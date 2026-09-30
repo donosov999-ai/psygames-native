@@ -306,6 +306,8 @@ void main() {
       '/games/monster-traits?mode=missing',
       '/games/roll-and-bank',
       '/games/hidden-character',
+      // Раннер «Поиска глазами» (5386c0e8) — только нативный.
+      '/games/search-runner',
       '/games/mahjong',
       '/games/math-slider',
       '/games/math-sprint',

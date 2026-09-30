@@ -28,6 +28,7 @@ import 'package:psygames_flutter/games/pattern/screen.dart';
 import 'package:psygames_flutter/games/quick_count/screen.dart';
 import 'package:psygames_flutter/games/schulte/screen.dart';
 import 'package:psygames_flutter/games/sdmt/screen.dart';
+import 'package:psygames_flutter/games/search_runner/screen.dart';
 import 'package:psygames_flutter/games/set_game/screen.dart';
 import 'package:psygames_flutter/games/visual_search/screen.dart';
 import 'dart:math' as math;
@@ -56,6 +57,7 @@ final screens = <String, ({String levelKey, int level, Widget Function(SharedSta
   'зрительный поиск': (levelKey: 'visual_search', level: 25, build: (s) => VisualSearchScreen(state: s, rnd: createRng('гейт'))),
   // L16: 18 карточек и самая длинная вывеска «… но не …».
   'найди признак': (levelKey: 'monster_traits', level: 16, build: (s) => MonsterTraitsScreen(state: s, seed: 1)),
+  'раннер': (levelKey: 'search_runner', level: 13, build: (s) => SearchRunnerScreen(state: s, seed: 1)),
 };
 
 /// Все нарисованные коробки под полем — в мировых точках.

@@ -6,6 +6,8 @@ import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'support/boss_probe.dart';
+
 /// РАУНД ЗАКРЫВАЕТСЯ НАЖАТИЯМИ ПО СЦЕНЕ — по координатам, как пальцем.
 /// Где отличия, проба знает из той же раздачи по зерну: у экрана и у пробы
 /// один генератор и одно зерно, поэтому картинка у них одна.
@@ -143,5 +145,23 @@ void main() {
             reason: '$screen объект вылез по высоте: ${sh.y} при высоте ${s.height}');
       }
     }
+  });
+
+  testWidgets('🔴 веха: победа на 3-м уровне открывает бой «сложи подсвеченные», на 2-м — нет', (tester) async {
+    // В вебе этот экран зовёт BossRound каждые три уровня; при переносе бой пропал молча.
+    await expectBossAfterWin(tester, won: find.textContaining(L.t('nextLabel')), hudKey: 'bossHudCounting', play: (level) async {
+      await open(tester, level: level, seed: 'босс$level');
+      final p = levelParams(level);
+      final s = sceneOnScreen(tester);
+      final rnd = createRng('босс$level');
+      for (var round = 1; round <= p.rounds; round += 1) {
+        final scene = generateScene(s.width, s.height, p.objectCount, p.spriteAlphabet, rnd);
+        final alt = withDifference(scene, p.diffCount, p.spriteAlphabet, rnd);
+        for (final idx in alt.diffIdx) {
+          await tapShape(tester, alt.shapes[idx]);
+        }
+        await tester.pump(const Duration(milliseconds: 800));
+      }
+    });
   });
 }

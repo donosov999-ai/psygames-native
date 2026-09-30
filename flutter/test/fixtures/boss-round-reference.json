@@ -1,0 +1,8214 @@
+{
+  "source": "frontend/src/components/bossTask.ts",
+  "types": [
+    "counting",
+    "lightning",
+    "completeline",
+    "finderror",
+    "oddletter",
+    "gonogo"
+  ],
+  "seedsPerType": 40,
+  "cases": [
+    {
+      "type": "counting",
+      "seed": "boss:counting:0",
+      "draws": 20,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroCounting",
+        "hudKey": "bossHudCounting",
+        "cells": [
+          {
+            "value": 9,
+            "hl": false
+          },
+          {
+            "value": 8,
+            "hl": true
+          },
+          {
+            "value": 5,
+            "hl": false
+          },
+          {
+            "value": 9,
+            "hl": true
+          },
+          {
+            "value": 1,
+            "hl": false
+          },
+          {
+            "value": 12,
+            "hl": true
+          }
+        ],
+        "cols": 3,
+        "options": [
+          29,
+          30,
+          27,
+          31
+        ],
+        "answer": 29
+      }
+    },
+    {
+      "type": "counting",
+      "seed": "boss:counting:1",
+      "draws": 22,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroCounting",
+        "hudKey": "bossHudCounting",
+        "cells": [
+          {
+            "value": 3,
+            "hl": true
+          },
+          {
+            "value": 10,
+            "hl": false
+          },
+          {
+            "value": 4,
+            "hl": true
+          },
+          {
+            "value": 11,
+            "hl": false
+          },
+          {
+            "value": 5,
+            "hl": false
+          },
+          {
+            "value": 7,
+            "hl": true
+          }
+        ],
+        "cols": 3,
+        "options": [
+          14,
+          16,
+          17,
+          12
+        ],
+        "answer": 14
+      }
+    },
+    {
+      "type": "counting",
+      "seed": "boss:counting:2",
+      "draws": 22,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroCounting",
+        "hudKey": "bossHudCounting",
+        "cells": [
+          {
+            "value": 1,
+            "hl": false
+          },
+          {
+            "value": 12,
+            "hl": false
+          },
+          {
+            "value": 2,
+            "hl": true
+          },
+          {
+            "value": 1,
+            "hl": false
+          },
+          {
+            "value": 9,
+            "hl": true
+          },
+          {
+            "value": 10,
+            "hl": true
+          }
+        ],
+        "cols": 3,
+        "options": [
+          21,
+          24,
+          23,
+          16
+        ],
+        "answer": 21
+      }
+    },
+    {
+      "type": "counting",
+      "seed": "boss:counting:3",
+      "draws": 22,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroCounting",
+        "hudKey": "bossHudCounting",
+        "cells": [
+          {
+            "value": 5,
+            "hl": false
+          },
+          {
+            "value": 7,
+            "hl": false
+          },
+          {
+            "value": 12,
+            "hl": true
+          },
+          {
+            "value": 1,
+            "hl": true
+          },
+          {
+            "value": 8,
+            "hl": false
+          },
+          {
+            "value": 1,
+            "hl": true
+          }
+        ],
+        "cols": 3,
+        "options": [
+          13,
+          14,
+          10,
+          20
+        ],
+        "answer": 14
+      }
+    },
+    {
+      "type": "counting",
+      "seed": "boss:counting:4",
+      "draws": 22,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroCounting",
+        "hudKey": "bossHudCounting",
+        "cells": [
+          {
+            "value": 10,
+            "hl": true
+          },
+          {
+            "value": 4,
+            "hl": true
+          },
+          {
+            "value": 2,
+            "hl": false
+          },
+          {
+            "value": 6,
+            "hl": false
+          },
+          {
+            "value": 9,
+            "hl": true
+          },
+          {
+            "value": 1,
+            "hl": false
+          }
+        ],
+        "cols": 3,
+        "options": [
+          28,
+          17,
+          29,
+          23
+        ],
+        "answer": 23
+      }
+    },
+    {
+      "type": "counting",
+      "seed": "boss:counting:5",
+      "draws": 22,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroCounting",
+        "hudKey": "bossHudCounting",
+        "cells": [
+          {
+            "value": 6,
+            "hl": false
+          },
+          {
+            "value": 6,
+            "hl": true
+          },
+          {
+            "value": 7,
+            "hl": true
+          },
+          {
+            "value": 6,
+            "hl": false
+          },
+          {
+            "value": 1,
+            "hl": true
+          },
+          {
+            "value": 11,
+            "hl": false
+          }
+        ],
+        "cols": 3,
+        "options": [
+          17,
+          8,
+          13,
+          14
+        ],
+        "answer": 14
+      }
+    },
+    {
+      "type": "counting",
+      "seed": "boss:counting:6",
+      "draws": 22,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroCounting",
+        "hudKey": "bossHudCounting",
+        "cells": [
+          {
+            "value": 9,
+            "hl": true
+          },
+          {
+            "value": 5,
+            "hl": false
+          },
+          {
+            "value": 10,
+            "hl": true
+          },
+          {
+            "value": 6,
+            "hl": false
+          },
+          {
+            "value": 10,
+            "hl": false
+          },
+          {
+            "value": 2,
+            "hl": true
+          }
+        ],
+        "cols": 3,
+        "options": [
+          18,
+          25,
+          21,
+          16
+        ],
+        "answer": 21
+      }
+    },
+    {
+      "type": "counting",
+      "seed": "boss:counting:7",
+      "draws": 20,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroCounting",
+        "hudKey": "bossHudCounting",
+        "cells": [
+          {
+            "value": 7,
+            "hl": true
+          },
+          {
+            "value": 3,
+            "hl": false
+          },
+          {
+            "value": 12,
+            "hl": true
+          },
+          {
+            "value": 6,
+            "hl": false
+          },
+          {
+            "value": 6,
+            "hl": false
+          },
+          {
+            "value": 12,
+            "hl": true
+          }
+        ],
+        "cols": 3,
+        "options": [
+          31,
+          29,
+          32,
+          27
+        ],
+        "answer": 31
+      }
+    },
+    {
+      "type": "counting",
+      "seed": "boss:counting:8",
+      "draws": 22,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroCounting",
+        "hudKey": "bossHudCounting",
+        "cells": [
+          {
+            "value": 4,
+            "hl": false
+          },
+          {
+            "value": 4,
+            "hl": false
+          },
+          {
+            "value": 7,
+            "hl": true
+          },
+          {
+            "value": 5,
+            "hl": true
+          },
+          {
+            "value": 2,
+            "hl": false
+          },
+          {
+            "value": 6,
+            "hl": true
+          }
+        ],
+        "cols": 3,
+        "options": [
+          15,
+          18,
+          22,
+          24
+        ],
+        "answer": 18
+      }
+    },
+    {
+      "type": "counting",
+      "seed": "boss:counting:9",
+      "draws": 22,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroCounting",
+        "hudKey": "bossHudCounting",
+        "cells": [
+          {
+            "value": 11,
+            "hl": true
+          },
+          {
+            "value": 7,
+            "hl": false
+          },
+          {
+            "value": 1,
+            "hl": true
+          },
+          {
+            "value": 12,
+            "hl": false
+          },
+          {
+            "value": 9,
+            "hl": true
+          },
+          {
+            "value": 10,
+            "hl": false
+          }
+        ],
+        "cols": 3,
+        "options": [
+          20,
+          17,
+          23,
+          21
+        ],
+        "answer": 21
+      }
+    },
+    {
+      "type": "counting",
+      "seed": "boss:counting:10",
+      "draws": 20,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroCounting",
+        "hudKey": "bossHudCounting",
+        "cells": [
+          {
+            "value": 2,
+            "hl": false
+          },
+          {
+            "value": 2,
+            "hl": false
+          },
+          {
+            "value": 3,
+            "hl": false
+          },
+          {
+            "value": 12,
+            "hl": true
+          },
+          {
+            "value": 11,
+            "hl": true
+          },
+          {
+            "value": 6,
+            "hl": true
+          }
+        ],
+        "cols": 3,
+        "options": [
+          23,
+          28,
+          29,
+          31
+        ],
+        "answer": 29
+      }
+    },
+    {
+      "type": "counting",
+      "seed": "boss:counting:11",
+      "draws": 20,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroCounting",
+        "hudKey": "bossHudCounting",
+        "cells": [
+          {
+            "value": 1,
+            "hl": false
+          },
+          {
+            "value": 10,
+            "hl": false
+          },
+          {
+            "value": 10,
+            "hl": true
+          },
+          {
+            "value": 2,
+            "hl": false
+          },
+          {
+            "value": 9,
+            "hl": true
+          },
+          {
+            "value": 8,
+            "hl": true
+          }
+        ],
+        "cols": 3,
+        "options": [
+          30,
+          27,
+          23,
+          29
+        ],
+        "answer": 27
+      }
+    },
+    {
+      "type": "counting",
+      "seed": "boss:counting:12",
+      "draws": 20,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroCounting",
+        "hudKey": "bossHudCounting",
+        "cells": [
+          {
+            "value": 7,
+            "hl": false
+          },
+          {
+            "value": 2,
+            "hl": false
+          },
+          {
+            "value": 8,
+            "hl": true
+          },
+          {
+            "value": 7,
+            "hl": true
+          },
+          {
+            "value": 7,
+            "hl": true
+          },
+          {
+            "value": 1,
+            "hl": false
+          }
+        ],
+        "cols": 3,
+        "options": [
+          22,
+          24,
+          21,
+          17
+        ],
+        "answer": 22
+      }
+    },
+    {
+      "type": "counting",
+      "seed": "boss:counting:13",
+      "draws": 22,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroCounting",
+        "hudKey": "bossHudCounting",
+        "cells": [
+          {
+            "value": 12,
+            "hl": true
+          },
+          {
+            "value": 2,
+            "hl": false
+          },
+          {
+            "value": 9,
+            "hl": true
+          },
+          {
+            "value": 11,
+            "hl": true
+          },
+          {
+            "value": 2,
+            "hl": false
+          },
+          {
+            "value": 3,
+            "hl": false
+          }
+        ],
+        "cols": 3,
+        "options": [
+          26,
+          29,
+          32,
+          31
+        ],
+        "answer": 32
+      }
+    },
+    {
+      "type": "counting",
+      "seed": "boss:counting:14",
+      "draws": 22,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroCounting",
+        "hudKey": "bossHudCounting",
+        "cells": [
+          {
+            "value": 12,
+            "hl": true
+          },
+          {
+            "value": 5,
+            "hl": true
+          },
+          {
+            "value": 2,
+            "hl": false
+          },
+          {
+            "value": 11,
+            "hl": false
+          },
+          {
+            "value": 10,
+            "hl": false
+          },
+          {
+            "value": 7,
+            "hl": true
+          }
+        ],
+        "cols": 3,
+        "options": [
+          27,
+          22,
+          23,
+          24
+        ],
+        "answer": 24
+      }
+    },
+    {
+      "type": "counting",
+      "seed": "boss:counting:15",
+      "draws": 20,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroCounting",
+        "hudKey": "bossHudCounting",
+        "cells": [
+          {
+            "value": 8,
+            "hl": false
+          },
+          {
+            "value": 11,
+            "hl": true
+          },
+          {
+            "value": 9,
+            "hl": true
+          },
+          {
+            "value": 11,
+            "hl": false
+          },
+          {
+            "value": 12,
+            "hl": true
+          },
+          {
+            "value": 3,
+            "hl": false
+          }
+        ],
+        "cols": 3,
+        "options": [
+          35,
+          32,
+          33,
+          26
+        ],
+        "answer": 32
+      }
+    },
+    {
+      "type": "counting",
+      "seed": "boss:counting:16",
+      "draws": 20,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroCounting",
+        "hudKey": "bossHudCounting",
+        "cells": [
+          {
+            "value": 7,
+            "hl": true
+          },
+          {
+            "value": 9,
+            "hl": true
+          },
+          {
+            "value": 11,
+            "hl": true
+          },
+          {
+            "value": 7,
+            "hl": false
+          },
+          {
+            "value": 10,
+            "hl": false
+          },
+          {
+            "value": 3,
+            "hl": false
+          }
+        ],
+        "cols": 3,
+        "options": [
+          27,
+          23,
+          30,
+          24
+        ],
+        "answer": 27
+      }
+    },
+    {
+      "type": "counting",
+      "seed": "boss:counting:17",
+      "draws": 20,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroCounting",
+        "hudKey": "bossHudCounting",
+        "cells": [
+          {
+            "value": 8,
+            "hl": false
+          },
+          {
+            "value": 9,
+            "hl": true
+          },
+          {
+            "value": 6,
+            "hl": false
+          },
+          {
+            "value": 9,
+            "hl": true
+          },
+          {
+            "value": 2,
+            "hl": true
+          },
+          {
+            "value": 3,
+            "hl": false
+          }
+        ],
+        "cols": 3,
+        "options": [
+          20,
+          14,
+          24,
+          16
+        ],
+        "answer": 20
+      }
+    },
+    {
+      "type": "counting",
+      "seed": "boss:counting:18",
+      "draws": 20,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroCounting",
+        "hudKey": "bossHudCounting",
+        "cells": [
+          {
+            "value": 12,
+            "hl": true
+          },
+          {
+            "value": 3,
+            "hl": false
+          },
+          {
+            "value": 9,
+            "hl": true
+          },
+          {
+            "value": 8,
+            "hl": false
+          },
+          {
+            "value": 7,
+            "hl": false
+          },
+          {
+            "value": 7,
+            "hl": true
+          }
+        ],
+        "cols": 3,
+        "options": [
+          34,
+          23,
+          28,
+          26
+        ],
+        "answer": 28
+      }
+    },
+    {
+      "type": "counting",
+      "seed": "boss:counting:19",
+      "draws": 22,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroCounting",
+        "hudKey": "bossHudCounting",
+        "cells": [
+          {
+            "value": 12,
+            "hl": false
+          },
+          {
+            "value": 9,
+            "hl": true
+          },
+          {
+            "value": 2,
+            "hl": true
+          },
+          {
+            "value": 8,
+            "hl": false
+          },
+          {
+            "value": 3,
+            "hl": false
+          },
+          {
+            "value": 2,
+            "hl": true
+          }
+        ],
+        "cols": 3,
+        "options": [
+          8,
+          13,
+          15,
+          7
+        ],
+        "answer": 13
+      }
+    },
+    {
+      "type": "counting",
+      "seed": "boss:counting:20",
+      "draws": 20,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroCounting",
+        "hudKey": "bossHudCounting",
+        "cells": [
+          {
+            "value": 5,
+            "hl": false
+          },
+          {
+            "value": 2,
+            "hl": false
+          },
+          {
+            "value": 8,
+            "hl": true
+          },
+          {
+            "value": 11,
+            "hl": false
+          },
+          {
+            "value": 2,
+            "hl": true
+          },
+          {
+            "value": 12,
+            "hl": true
+          }
+        ],
+        "cols": 3,
+        "options": [
+          22,
+          28,
+          21,
+          18
+        ],
+        "answer": 22
+      }
+    },
+    {
+      "type": "counting",
+      "seed": "boss:counting:21",
+      "draws": 20,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroCounting",
+        "hudKey": "bossHudCounting",
+        "cells": [
+          {
+            "value": 8,
+            "hl": true
+          },
+          {
+            "value": 9,
+            "hl": true
+          },
+          {
+            "value": 4,
+            "hl": false
+          },
+          {
+            "value": 12,
+            "hl": true
+          },
+          {
+            "value": 12,
+            "hl": false
+          },
+          {
+            "value": 12,
+            "hl": false
+          }
+        ],
+        "cols": 3,
+        "options": [
+          24,
+          28,
+          34,
+          29
+        ],
+        "answer": 29
+      }
+    },
+    {
+      "type": "counting",
+      "seed": "boss:counting:22",
+      "draws": 20,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroCounting",
+        "hudKey": "bossHudCounting",
+        "cells": [
+          {
+            "value": 5,
+            "hl": false
+          },
+          {
+            "value": 2,
+            "hl": true
+          },
+          {
+            "value": 4,
+            "hl": true
+          },
+          {
+            "value": 12,
+            "hl": true
+          },
+          {
+            "value": 5,
+            "hl": false
+          },
+          {
+            "value": 2,
+            "hl": false
+          }
+        ],
+        "cols": 3,
+        "options": [
+          16,
+          18,
+          14,
+          22
+        ],
+        "answer": 18
+      }
+    },
+    {
+      "type": "counting",
+      "seed": "boss:counting:23",
+      "draws": 20,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroCounting",
+        "hudKey": "bossHudCounting",
+        "cells": [
+          {
+            "value": 8,
+            "hl": false
+          },
+          {
+            "value": 3,
+            "hl": false
+          },
+          {
+            "value": 10,
+            "hl": true
+          },
+          {
+            "value": 9,
+            "hl": false
+          },
+          {
+            "value": 9,
+            "hl": true
+          },
+          {
+            "value": 1,
+            "hl": true
+          }
+        ],
+        "cols": 3,
+        "options": [
+          17,
+          22,
+          20,
+          19
+        ],
+        "answer": 20
+      }
+    },
+    {
+      "type": "counting",
+      "seed": "boss:counting:24",
+      "draws": 20,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroCounting",
+        "hudKey": "bossHudCounting",
+        "cells": [
+          {
+            "value": 7,
+            "hl": false
+          },
+          {
+            "value": 6,
+            "hl": false
+          },
+          {
+            "value": 5,
+            "hl": true
+          },
+          {
+            "value": 9,
+            "hl": true
+          },
+          {
+            "value": 6,
+            "hl": true
+          },
+          {
+            "value": 7,
+            "hl": false
+          }
+        ],
+        "cols": 3,
+        "options": [
+          15,
+          22,
+          26,
+          20
+        ],
+        "answer": 20
+      }
+    },
+    {
+      "type": "counting",
+      "seed": "boss:counting:25",
+      "draws": 20,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroCounting",
+        "hudKey": "bossHudCounting",
+        "cells": [
+          {
+            "value": 5,
+            "hl": false
+          },
+          {
+            "value": 5,
+            "hl": false
+          },
+          {
+            "value": 9,
+            "hl": true
+          },
+          {
+            "value": 3,
+            "hl": true
+          },
+          {
+            "value": 12,
+            "hl": false
+          },
+          {
+            "value": 10,
+            "hl": true
+          }
+        ],
+        "cols": 3,
+        "options": [
+          20,
+          26,
+          22,
+          16
+        ],
+        "answer": 22
+      }
+    },
+    {
+      "type": "counting",
+      "seed": "boss:counting:26",
+      "draws": 22,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroCounting",
+        "hudKey": "bossHudCounting",
+        "cells": [
+          {
+            "value": 6,
+            "hl": true
+          },
+          {
+            "value": 11,
+            "hl": true
+          },
+          {
+            "value": 8,
+            "hl": false
+          },
+          {
+            "value": 12,
+            "hl": false
+          },
+          {
+            "value": 6,
+            "hl": true
+          },
+          {
+            "value": 9,
+            "hl": false
+          }
+        ],
+        "cols": 3,
+        "options": [
+          20,
+          25,
+          23,
+          24
+        ],
+        "answer": 23
+      }
+    },
+    {
+      "type": "counting",
+      "seed": "boss:counting:27",
+      "draws": 22,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroCounting",
+        "hudKey": "bossHudCounting",
+        "cells": [
+          {
+            "value": 12,
+            "hl": false
+          },
+          {
+            "value": 1,
+            "hl": true
+          },
+          {
+            "value": 2,
+            "hl": false
+          },
+          {
+            "value": 2,
+            "hl": true
+          },
+          {
+            "value": 1,
+            "hl": false
+          },
+          {
+            "value": 3,
+            "hl": true
+          }
+        ],
+        "cols": 3,
+        "options": [
+          12,
+          6,
+          9,
+          7
+        ],
+        "answer": 6
+      }
+    },
+    {
+      "type": "counting",
+      "seed": "boss:counting:28",
+      "draws": 20,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroCounting",
+        "hudKey": "bossHudCounting",
+        "cells": [
+          {
+            "value": 11,
+            "hl": false
+          },
+          {
+            "value": 5,
+            "hl": true
+          },
+          {
+            "value": 5,
+            "hl": false
+          },
+          {
+            "value": 9,
+            "hl": true
+          },
+          {
+            "value": 5,
+            "hl": true
+          },
+          {
+            "value": 6,
+            "hl": false
+          }
+        ],
+        "cols": 3,
+        "options": [
+          25,
+          20,
+          19,
+          23
+        ],
+        "answer": 19
+      }
+    },
+    {
+      "type": "counting",
+      "seed": "boss:counting:29",
+      "draws": 20,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroCounting",
+        "hudKey": "bossHudCounting",
+        "cells": [
+          {
+            "value": 5,
+            "hl": false
+          },
+          {
+            "value": 3,
+            "hl": true
+          },
+          {
+            "value": 4,
+            "hl": true
+          },
+          {
+            "value": 8,
+            "hl": false
+          },
+          {
+            "value": 12,
+            "hl": true
+          },
+          {
+            "value": 5,
+            "hl": false
+          }
+        ],
+        "cols": 3,
+        "options": [
+          15,
+          21,
+          19,
+          17
+        ],
+        "answer": 19
+      }
+    },
+    {
+      "type": "counting",
+      "seed": "boss:counting:30",
+      "draws": 20,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroCounting",
+        "hudKey": "bossHudCounting",
+        "cells": [
+          {
+            "value": 2,
+            "hl": true
+          },
+          {
+            "value": 9,
+            "hl": false
+          },
+          {
+            "value": 4,
+            "hl": true
+          },
+          {
+            "value": 8,
+            "hl": true
+          },
+          {
+            "value": 6,
+            "hl": false
+          },
+          {
+            "value": 10,
+            "hl": false
+          }
+        ],
+        "cols": 3,
+        "options": [
+          14,
+          8,
+          17,
+          12
+        ],
+        "answer": 14
+      }
+    },
+    {
+      "type": "counting",
+      "seed": "boss:counting:31",
+      "draws": 22,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroCounting",
+        "hudKey": "bossHudCounting",
+        "cells": [
+          {
+            "value": 4,
+            "hl": false
+          },
+          {
+            "value": 7,
+            "hl": true
+          },
+          {
+            "value": 4,
+            "hl": true
+          },
+          {
+            "value": 3,
+            "hl": false
+          },
+          {
+            "value": 12,
+            "hl": false
+          },
+          {
+            "value": 2,
+            "hl": true
+          }
+        ],
+        "cols": 3,
+        "options": [
+          11,
+          13,
+          14,
+          16
+        ],
+        "answer": 13
+      }
+    },
+    {
+      "type": "counting",
+      "seed": "boss:counting:32",
+      "draws": 20,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroCounting",
+        "hudKey": "bossHudCounting",
+        "cells": [
+          {
+            "value": 2,
+            "hl": true
+          },
+          {
+            "value": 12,
+            "hl": false
+          },
+          {
+            "value": 7,
+            "hl": false
+          },
+          {
+            "value": 2,
+            "hl": true
+          },
+          {
+            "value": 6,
+            "hl": true
+          },
+          {
+            "value": 7,
+            "hl": false
+          }
+        ],
+        "cols": 3,
+        "options": [
+          10,
+          9,
+          5,
+          12
+        ],
+        "answer": 10
+      }
+    },
+    {
+      "type": "counting",
+      "seed": "boss:counting:33",
+      "draws": 20,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroCounting",
+        "hudKey": "bossHudCounting",
+        "cells": [
+          {
+            "value": 2,
+            "hl": false
+          },
+          {
+            "value": 4,
+            "hl": true
+          },
+          {
+            "value": 11,
+            "hl": false
+          },
+          {
+            "value": 8,
+            "hl": true
+          },
+          {
+            "value": 1,
+            "hl": true
+          },
+          {
+            "value": 9,
+            "hl": false
+          }
+        ],
+        "cols": 3,
+        "options": [
+          7,
+          8,
+          12,
+          13
+        ],
+        "answer": 13
+      }
+    },
+    {
+      "type": "counting",
+      "seed": "boss:counting:34",
+      "draws": 20,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroCounting",
+        "hudKey": "bossHudCounting",
+        "cells": [
+          {
+            "value": 11,
+            "hl": true
+          },
+          {
+            "value": 8,
+            "hl": false
+          },
+          {
+            "value": 7,
+            "hl": true
+          },
+          {
+            "value": 9,
+            "hl": false
+          },
+          {
+            "value": 6,
+            "hl": true
+          },
+          {
+            "value": 1,
+            "hl": false
+          }
+        ],
+        "cols": 3,
+        "options": [
+          25,
+          30,
+          24,
+          26
+        ],
+        "answer": 24
+      }
+    },
+    {
+      "type": "counting",
+      "seed": "boss:counting:35",
+      "draws": 24,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroCounting",
+        "hudKey": "bossHudCounting",
+        "cells": [
+          {
+            "value": 10,
+            "hl": false
+          },
+          {
+            "value": 5,
+            "hl": true
+          },
+          {
+            "value": 12,
+            "hl": false
+          },
+          {
+            "value": 2,
+            "hl": true
+          },
+          {
+            "value": 12,
+            "hl": false
+          },
+          {
+            "value": 12,
+            "hl": true
+          }
+        ],
+        "cols": 3,
+        "options": [
+          19,
+          14,
+          17,
+          21
+        ],
+        "answer": 19
+      }
+    },
+    {
+      "type": "counting",
+      "seed": "boss:counting:36",
+      "draws": 20,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroCounting",
+        "hudKey": "bossHudCounting",
+        "cells": [
+          {
+            "value": 9,
+            "hl": true
+          },
+          {
+            "value": 7,
+            "hl": false
+          },
+          {
+            "value": 4,
+            "hl": true
+          },
+          {
+            "value": 4,
+            "hl": true
+          },
+          {
+            "value": 10,
+            "hl": false
+          },
+          {
+            "value": 3,
+            "hl": false
+          }
+        ],
+        "cols": 3,
+        "options": [
+          22,
+          17,
+          11,
+          21
+        ],
+        "answer": 17
+      }
+    },
+    {
+      "type": "counting",
+      "seed": "boss:counting:37",
+      "draws": 22,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroCounting",
+        "hudKey": "bossHudCounting",
+        "cells": [
+          {
+            "value": 6,
+            "hl": true
+          },
+          {
+            "value": 2,
+            "hl": true
+          },
+          {
+            "value": 1,
+            "hl": false
+          },
+          {
+            "value": 9,
+            "hl": false
+          },
+          {
+            "value": 6,
+            "hl": false
+          },
+          {
+            "value": 10,
+            "hl": true
+          }
+        ],
+        "cols": 3,
+        "options": [
+          24,
+          13,
+          18,
+          12
+        ],
+        "answer": 18
+      }
+    },
+    {
+      "type": "counting",
+      "seed": "boss:counting:38",
+      "draws": 22,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroCounting",
+        "hudKey": "bossHudCounting",
+        "cells": [
+          {
+            "value": 11,
+            "hl": true
+          },
+          {
+            "value": 1,
+            "hl": true
+          },
+          {
+            "value": 2,
+            "hl": true
+          },
+          {
+            "value": 10,
+            "hl": false
+          },
+          {
+            "value": 3,
+            "hl": false
+          },
+          {
+            "value": 10,
+            "hl": false
+          }
+        ],
+        "cols": 3,
+        "options": [
+          14,
+          13,
+          17,
+          18
+        ],
+        "answer": 14
+      }
+    },
+    {
+      "type": "counting",
+      "seed": "boss:counting:39",
+      "draws": 22,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroCounting",
+        "hudKey": "bossHudCounting",
+        "cells": [
+          {
+            "value": 3,
+            "hl": false
+          },
+          {
+            "value": 1,
+            "hl": true
+          },
+          {
+            "value": 2,
+            "hl": true
+          },
+          {
+            "value": 2,
+            "hl": true
+          },
+          {
+            "value": 6,
+            "hl": false
+          },
+          {
+            "value": 5,
+            "hl": false
+          }
+        ],
+        "cols": 3,
+        "options": [
+          4,
+          9,
+          5,
+          7
+        ],
+        "answer": 5
+      }
+    },
+    {
+      "type": "lightning",
+      "seed": "boss:lightning:0",
+      "draws": 7,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroLightning",
+        "hudKey": "bossHudLightning",
+        "cells": [
+          {
+            "value": "?",
+            "hl": true
+          },
+          {
+            "value": 2,
+            "hl": false
+          },
+          {
+            "value": 3,
+            "hl": false
+          },
+          {
+            "value": 4,
+            "hl": false
+          },
+          {
+            "value": 5,
+            "hl": false
+          }
+        ],
+        "cols": 5,
+        "options": [
+          1,
+          4,
+          3,
+          5
+        ],
+        "answer": 1
+      }
+    },
+    {
+      "type": "lightning",
+      "seed": "boss:lightning:1",
+      "draws": 7,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroLightning",
+        "hudKey": "bossHudLightning",
+        "cells": [
+          {
+            "value": 1,
+            "hl": false
+          },
+          {
+            "value": 2,
+            "hl": false
+          },
+          {
+            "value": 3,
+            "hl": false
+          },
+          {
+            "value": "?",
+            "hl": true
+          },
+          {
+            "value": 5,
+            "hl": false
+          }
+        ],
+        "cols": 5,
+        "options": [
+          2,
+          5,
+          1,
+          4
+        ],
+        "answer": 4
+      }
+    },
+    {
+      "type": "lightning",
+      "seed": "boss:lightning:2",
+      "draws": 7,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroLightning",
+        "hudKey": "bossHudLightning",
+        "cells": [
+          {
+            "value": "?",
+            "hl": true
+          },
+          {
+            "value": 2,
+            "hl": false
+          },
+          {
+            "value": 3,
+            "hl": false
+          },
+          {
+            "value": 4,
+            "hl": false
+          },
+          {
+            "value": 5,
+            "hl": false
+          }
+        ],
+        "cols": 5,
+        "options": [
+          5,
+          3,
+          2,
+          1
+        ],
+        "answer": 1
+      }
+    },
+    {
+      "type": "lightning",
+      "seed": "boss:lightning:3",
+      "draws": 7,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroLightning",
+        "hudKey": "bossHudLightning",
+        "cells": [
+          {
+            "value": 1,
+            "hl": false
+          },
+          {
+            "value": 2,
+            "hl": false
+          },
+          {
+            "value": 3,
+            "hl": false
+          },
+          {
+            "value": "?",
+            "hl": true
+          },
+          {
+            "value": 5,
+            "hl": false
+          }
+        ],
+        "cols": 5,
+        "options": [
+          5,
+          3,
+          4,
+          2
+        ],
+        "answer": 4
+      }
+    },
+    {
+      "type": "lightning",
+      "seed": "boss:lightning:4",
+      "draws": 7,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroLightning",
+        "hudKey": "bossHudLightning",
+        "cells": [
+          {
+            "value": 1,
+            "hl": false
+          },
+          {
+            "value": 2,
+            "hl": false
+          },
+          {
+            "value": 3,
+            "hl": false
+          },
+          {
+            "value": 4,
+            "hl": false
+          },
+          {
+            "value": "?",
+            "hl": true
+          }
+        ],
+        "cols": 5,
+        "options": [
+          2,
+          1,
+          5,
+          4
+        ],
+        "answer": 5
+      }
+    },
+    {
+      "type": "lightning",
+      "seed": "boss:lightning:5",
+      "draws": 7,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroLightning",
+        "hudKey": "bossHudLightning",
+        "cells": [
+          {
+            "value": 1,
+            "hl": false
+          },
+          {
+            "value": 2,
+            "hl": false
+          },
+          {
+            "value": 3,
+            "hl": false
+          },
+          {
+            "value": 4,
+            "hl": false
+          },
+          {
+            "value": "?",
+            "hl": true
+          }
+        ],
+        "cols": 5,
+        "options": [
+          2,
+          4,
+          5,
+          3
+        ],
+        "answer": 5
+      }
+    },
+    {
+      "type": "lightning",
+      "seed": "boss:lightning:6",
+      "draws": 7,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroLightning",
+        "hudKey": "bossHudLightning",
+        "cells": [
+          {
+            "value": "?",
+            "hl": true
+          },
+          {
+            "value": 2,
+            "hl": false
+          },
+          {
+            "value": 3,
+            "hl": false
+          },
+          {
+            "value": 4,
+            "hl": false
+          },
+          {
+            "value": 5,
+            "hl": false
+          }
+        ],
+        "cols": 5,
+        "options": [
+          4,
+          3,
+          1,
+          5
+        ],
+        "answer": 1
+      }
+    },
+    {
+      "type": "lightning",
+      "seed": "boss:lightning:7",
+      "draws": 7,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroLightning",
+        "hudKey": "bossHudLightning",
+        "cells": [
+          {
+            "value": "?",
+            "hl": true
+          },
+          {
+            "value": 2,
+            "hl": false
+          },
+          {
+            "value": 3,
+            "hl": false
+          },
+          {
+            "value": 4,
+            "hl": false
+          },
+          {
+            "value": 5,
+            "hl": false
+          }
+        ],
+        "cols": 5,
+        "options": [
+          4,
+          3,
+          5,
+          1
+        ],
+        "answer": 1
+      }
+    },
+    {
+      "type": "lightning",
+      "seed": "boss:lightning:8",
+      "draws": 7,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroLightning",
+        "hudKey": "bossHudLightning",
+        "cells": [
+          {
+            "value": 1,
+            "hl": false
+          },
+          {
+            "value": "?",
+            "hl": true
+          },
+          {
+            "value": 3,
+            "hl": false
+          },
+          {
+            "value": 4,
+            "hl": false
+          },
+          {
+            "value": 5,
+            "hl": false
+          }
+        ],
+        "cols": 5,
+        "options": [
+          4,
+          2,
+          5,
+          1
+        ],
+        "answer": 2
+      }
+    },
+    {
+      "type": "lightning",
+      "seed": "boss:lightning:9",
+      "draws": 7,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroLightning",
+        "hudKey": "bossHudLightning",
+        "cells": [
+          {
+            "value": 1,
+            "hl": false
+          },
+          {
+            "value": 2,
+            "hl": false
+          },
+          {
+            "value": "?",
+            "hl": true
+          },
+          {
+            "value": 4,
+            "hl": false
+          },
+          {
+            "value": 5,
+            "hl": false
+          }
+        ],
+        "cols": 5,
+        "options": [
+          2,
+          3,
+          1,
+          4
+        ],
+        "answer": 3
+      }
+    },
+    {
+      "type": "lightning",
+      "seed": "boss:lightning:10",
+      "draws": 7,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroLightning",
+        "hudKey": "bossHudLightning",
+        "cells": [
+          {
+            "value": 1,
+            "hl": false
+          },
+          {
+            "value": 2,
+            "hl": false
+          },
+          {
+            "value": "?",
+            "hl": true
+          },
+          {
+            "value": 4,
+            "hl": false
+          },
+          {
+            "value": 5,
+            "hl": false
+          }
+        ],
+        "cols": 5,
+        "options": [
+          2,
+          3,
+          1,
+          4
+        ],
+        "answer": 3
+      }
+    },
+    {
+      "type": "lightning",
+      "seed": "boss:lightning:11",
+      "draws": 7,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroLightning",
+        "hudKey": "bossHudLightning",
+        "cells": [
+          {
+            "value": 1,
+            "hl": false
+          },
+          {
+            "value": 2,
+            "hl": false
+          },
+          {
+            "value": 3,
+            "hl": false
+          },
+          {
+            "value": "?",
+            "hl": true
+          },
+          {
+            "value": 5,
+            "hl": false
+          }
+        ],
+        "cols": 5,
+        "options": [
+          5,
+          1,
+          3,
+          4
+        ],
+        "answer": 4
+      }
+    },
+    {
+      "type": "lightning",
+      "seed": "boss:lightning:12",
+      "draws": 7,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroLightning",
+        "hudKey": "bossHudLightning",
+        "cells": [
+          {
+            "value": 1,
+            "hl": false
+          },
+          {
+            "value": 2,
+            "hl": false
+          },
+          {
+            "value": 3,
+            "hl": false
+          },
+          {
+            "value": 4,
+            "hl": false
+          },
+          {
+            "value": "?",
+            "hl": true
+          }
+        ],
+        "cols": 5,
+        "options": [
+          1,
+          2,
+          3,
+          5
+        ],
+        "answer": 5
+      }
+    },
+    {
+      "type": "lightning",
+      "seed": "boss:lightning:13",
+      "draws": 7,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroLightning",
+        "hudKey": "bossHudLightning",
+        "cells": [
+          {
+            "value": "?",
+            "hl": true
+          },
+          {
+            "value": 2,
+            "hl": false
+          },
+          {
+            "value": 3,
+            "hl": false
+          },
+          {
+            "value": 4,
+            "hl": false
+          },
+          {
+            "value": 5,
+            "hl": false
+          }
+        ],
+        "cols": 5,
+        "options": [
+          1,
+          3,
+          2,
+          4
+        ],
+        "answer": 1
+      }
+    },
+    {
+      "type": "lightning",
+      "seed": "boss:lightning:14",
+      "draws": 7,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroLightning",
+        "hudKey": "bossHudLightning",
+        "cells": [
+          {
+            "value": 1,
+            "hl": false
+          },
+          {
+            "value": "?",
+            "hl": true
+          },
+          {
+            "value": 3,
+            "hl": false
+          },
+          {
+            "value": 4,
+            "hl": false
+          },
+          {
+            "value": 5,
+            "hl": false
+          }
+        ],
+        "cols": 5,
+        "options": [
+          5,
+          1,
+          4,
+          2
+        ],
+        "answer": 2
+      }
+    },
+    {
+      "type": "lightning",
+      "seed": "boss:lightning:15",
+      "draws": 7,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroLightning",
+        "hudKey": "bossHudLightning",
+        "cells": [
+          {
+            "value": 1,
+            "hl": false
+          },
+          {
+            "value": "?",
+            "hl": true
+          },
+          {
+            "value": 3,
+            "hl": false
+          },
+          {
+            "value": 4,
+            "hl": false
+          },
+          {
+            "value": 5,
+            "hl": false
+          }
+        ],
+        "cols": 5,
+        "options": [
+          4,
+          2,
+          5,
+          1
+        ],
+        "answer": 2
+      }
+    },
+    {
+      "type": "lightning",
+      "seed": "boss:lightning:16",
+      "draws": 7,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroLightning",
+        "hudKey": "bossHudLightning",
+        "cells": [
+          {
+            "value": 1,
+            "hl": false
+          },
+          {
+            "value": 2,
+            "hl": false
+          },
+          {
+            "value": 3,
+            "hl": false
+          },
+          {
+            "value": 4,
+            "hl": false
+          },
+          {
+            "value": "?",
+            "hl": true
+          }
+        ],
+        "cols": 5,
+        "options": [
+          4,
+          1,
+          3,
+          5
+        ],
+        "answer": 5
+      }
+    },
+    {
+      "type": "lightning",
+      "seed": "boss:lightning:17",
+      "draws": 7,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroLightning",
+        "hudKey": "bossHudLightning",
+        "cells": [
+          {
+            "value": "?",
+            "hl": true
+          },
+          {
+            "value": 2,
+            "hl": false
+          },
+          {
+            "value": 3,
+            "hl": false
+          },
+          {
+            "value": 4,
+            "hl": false
+          },
+          {
+            "value": 5,
+            "hl": false
+          }
+        ],
+        "cols": 5,
+        "options": [
+          5,
+          4,
+          1,
+          3
+        ],
+        "answer": 1
+      }
+    },
+    {
+      "type": "lightning",
+      "seed": "boss:lightning:18",
+      "draws": 7,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroLightning",
+        "hudKey": "bossHudLightning",
+        "cells": [
+          {
+            "value": 1,
+            "hl": false
+          },
+          {
+            "value": 2,
+            "hl": false
+          },
+          {
+            "value": "?",
+            "hl": true
+          },
+          {
+            "value": 4,
+            "hl": false
+          },
+          {
+            "value": 5,
+            "hl": false
+          }
+        ],
+        "cols": 5,
+        "options": [
+          2,
+          5,
+          4,
+          3
+        ],
+        "answer": 3
+      }
+    },
+    {
+      "type": "lightning",
+      "seed": "boss:lightning:19",
+      "draws": 7,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroLightning",
+        "hudKey": "bossHudLightning",
+        "cells": [
+          {
+            "value": 1,
+            "hl": false
+          },
+          {
+            "value": 2,
+            "hl": false
+          },
+          {
+            "value": "?",
+            "hl": true
+          },
+          {
+            "value": 4,
+            "hl": false
+          },
+          {
+            "value": 5,
+            "hl": false
+          }
+        ],
+        "cols": 5,
+        "options": [
+          4,
+          3,
+          5,
+          1
+        ],
+        "answer": 3
+      }
+    },
+    {
+      "type": "lightning",
+      "seed": "boss:lightning:20",
+      "draws": 7,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroLightning",
+        "hudKey": "bossHudLightning",
+        "cells": [
+          {
+            "value": 1,
+            "hl": false
+          },
+          {
+            "value": 2,
+            "hl": false
+          },
+          {
+            "value": 3,
+            "hl": false
+          },
+          {
+            "value": 4,
+            "hl": false
+          },
+          {
+            "value": "?",
+            "hl": true
+          }
+        ],
+        "cols": 5,
+        "options": [
+          5,
+          4,
+          2,
+          1
+        ],
+        "answer": 5
+      }
+    },
+    {
+      "type": "lightning",
+      "seed": "boss:lightning:21",
+      "draws": 7,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroLightning",
+        "hudKey": "bossHudLightning",
+        "cells": [
+          {
+            "value": 1,
+            "hl": false
+          },
+          {
+            "value": 2,
+            "hl": false
+          },
+          {
+            "value": 3,
+            "hl": false
+          },
+          {
+            "value": "?",
+            "hl": true
+          },
+          {
+            "value": 5,
+            "hl": false
+          }
+        ],
+        "cols": 5,
+        "options": [
+          5,
+          2,
+          4,
+          3
+        ],
+        "answer": 4
+      }
+    },
+    {
+      "type": "lightning",
+      "seed": "boss:lightning:22",
+      "draws": 7,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroLightning",
+        "hudKey": "bossHudLightning",
+        "cells": [
+          {
+            "value": 1,
+            "hl": false
+          },
+          {
+            "value": 2,
+            "hl": false
+          },
+          {
+            "value": "?",
+            "hl": true
+          },
+          {
+            "value": 4,
+            "hl": false
+          },
+          {
+            "value": 5,
+            "hl": false
+          }
+        ],
+        "cols": 5,
+        "options": [
+          3,
+          5,
+          1,
+          4
+        ],
+        "answer": 3
+      }
+    },
+    {
+      "type": "lightning",
+      "seed": "boss:lightning:23",
+      "draws": 7,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroLightning",
+        "hudKey": "bossHudLightning",
+        "cells": [
+          {
+            "value": 1,
+            "hl": false
+          },
+          {
+            "value": "?",
+            "hl": true
+          },
+          {
+            "value": 3,
+            "hl": false
+          },
+          {
+            "value": 4,
+            "hl": false
+          },
+          {
+            "value": 5,
+            "hl": false
+          }
+        ],
+        "cols": 5,
+        "options": [
+          3,
+          2,
+          1,
+          5
+        ],
+        "answer": 2
+      }
+    },
+    {
+      "type": "lightning",
+      "seed": "boss:lightning:24",
+      "draws": 7,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroLightning",
+        "hudKey": "bossHudLightning",
+        "cells": [
+          {
+            "value": 1,
+            "hl": false
+          },
+          {
+            "value": 2,
+            "hl": false
+          },
+          {
+            "value": "?",
+            "hl": true
+          },
+          {
+            "value": 4,
+            "hl": false
+          },
+          {
+            "value": 5,
+            "hl": false
+          }
+        ],
+        "cols": 5,
+        "options": [
+          4,
+          3,
+          5,
+          2
+        ],
+        "answer": 3
+      }
+    },
+    {
+      "type": "lightning",
+      "seed": "boss:lightning:25",
+      "draws": 7,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroLightning",
+        "hudKey": "bossHudLightning",
+        "cells": [
+          {
+            "value": 1,
+            "hl": false
+          },
+          {
+            "value": "?",
+            "hl": true
+          },
+          {
+            "value": 3,
+            "hl": false
+          },
+          {
+            "value": 4,
+            "hl": false
+          },
+          {
+            "value": 5,
+            "hl": false
+          }
+        ],
+        "cols": 5,
+        "options": [
+          2,
+          5,
+          4,
+          1
+        ],
+        "answer": 2
+      }
+    },
+    {
+      "type": "lightning",
+      "seed": "boss:lightning:26",
+      "draws": 7,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroLightning",
+        "hudKey": "bossHudLightning",
+        "cells": [
+          {
+            "value": 1,
+            "hl": false
+          },
+          {
+            "value": 2,
+            "hl": false
+          },
+          {
+            "value": 3,
+            "hl": false
+          },
+          {
+            "value": 4,
+            "hl": false
+          },
+          {
+            "value": "?",
+            "hl": true
+          }
+        ],
+        "cols": 5,
+        "options": [
+          2,
+          3,
+          4,
+          5
+        ],
+        "answer": 5
+      }
+    },
+    {
+      "type": "lightning",
+      "seed": "boss:lightning:27",
+      "draws": 7,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroLightning",
+        "hudKey": "bossHudLightning",
+        "cells": [
+          {
+            "value": 1,
+            "hl": false
+          },
+          {
+            "value": "?",
+            "hl": true
+          },
+          {
+            "value": 3,
+            "hl": false
+          },
+          {
+            "value": 4,
+            "hl": false
+          },
+          {
+            "value": 5,
+            "hl": false
+          }
+        ],
+        "cols": 5,
+        "options": [
+          1,
+          3,
+          2,
+          4
+        ],
+        "answer": 2
+      }
+    },
+    {
+      "type": "lightning",
+      "seed": "boss:lightning:28",
+      "draws": 7,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroLightning",
+        "hudKey": "bossHudLightning",
+        "cells": [
+          {
+            "value": 1,
+            "hl": false
+          },
+          {
+            "value": 2,
+            "hl": false
+          },
+          {
+            "value": 3,
+            "hl": false
+          },
+          {
+            "value": 4,
+            "hl": false
+          },
+          {
+            "value": "?",
+            "hl": true
+          }
+        ],
+        "cols": 5,
+        "options": [
+          3,
+          5,
+          4,
+          2
+        ],
+        "answer": 5
+      }
+    },
+    {
+      "type": "lightning",
+      "seed": "boss:lightning:29",
+      "draws": 7,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroLightning",
+        "hudKey": "bossHudLightning",
+        "cells": [
+          {
+            "value": "?",
+            "hl": true
+          },
+          {
+            "value": 2,
+            "hl": false
+          },
+          {
+            "value": 3,
+            "hl": false
+          },
+          {
+            "value": 4,
+            "hl": false
+          },
+          {
+            "value": 5,
+            "hl": false
+          }
+        ],
+        "cols": 5,
+        "options": [
+          2,
+          3,
+          5,
+          1
+        ],
+        "answer": 1
+      }
+    },
+    {
+      "type": "lightning",
+      "seed": "boss:lightning:30",
+      "draws": 7,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroLightning",
+        "hudKey": "bossHudLightning",
+        "cells": [
+          {
+            "value": 1,
+            "hl": false
+          },
+          {
+            "value": 2,
+            "hl": false
+          },
+          {
+            "value": "?",
+            "hl": true
+          },
+          {
+            "value": 4,
+            "hl": false
+          },
+          {
+            "value": 5,
+            "hl": false
+          }
+        ],
+        "cols": 5,
+        "options": [
+          3,
+          4,
+          1,
+          5
+        ],
+        "answer": 3
+      }
+    },
+    {
+      "type": "lightning",
+      "seed": "boss:lightning:31",
+      "draws": 7,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroLightning",
+        "hudKey": "bossHudLightning",
+        "cells": [
+          {
+            "value": 1,
+            "hl": false
+          },
+          {
+            "value": 2,
+            "hl": false
+          },
+          {
+            "value": "?",
+            "hl": true
+          },
+          {
+            "value": 4,
+            "hl": false
+          },
+          {
+            "value": 5,
+            "hl": false
+          }
+        ],
+        "cols": 5,
+        "options": [
+          2,
+          5,
+          1,
+          3
+        ],
+        "answer": 3
+      }
+    },
+    {
+      "type": "lightning",
+      "seed": "boss:lightning:32",
+      "draws": 7,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroLightning",
+        "hudKey": "bossHudLightning",
+        "cells": [
+          {
+            "value": 1,
+            "hl": false
+          },
+          {
+            "value": 2,
+            "hl": false
+          },
+          {
+            "value": 3,
+            "hl": false
+          },
+          {
+            "value": 4,
+            "hl": false
+          },
+          {
+            "value": "?",
+            "hl": true
+          }
+        ],
+        "cols": 5,
+        "options": [
+          5,
+          4,
+          3,
+          2
+        ],
+        "answer": 5
+      }
+    },
+    {
+      "type": "lightning",
+      "seed": "boss:lightning:33",
+      "draws": 7,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroLightning",
+        "hudKey": "bossHudLightning",
+        "cells": [
+          {
+            "value": 1,
+            "hl": false
+          },
+          {
+            "value": "?",
+            "hl": true
+          },
+          {
+            "value": 3,
+            "hl": false
+          },
+          {
+            "value": 4,
+            "hl": false
+          },
+          {
+            "value": 5,
+            "hl": false
+          }
+        ],
+        "cols": 5,
+        "options": [
+          3,
+          2,
+          5,
+          4
+        ],
+        "answer": 2
+      }
+    },
+    {
+      "type": "lightning",
+      "seed": "boss:lightning:34",
+      "draws": 7,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroLightning",
+        "hudKey": "bossHudLightning",
+        "cells": [
+          {
+            "value": "?",
+            "hl": true
+          },
+          {
+            "value": 2,
+            "hl": false
+          },
+          {
+            "value": 3,
+            "hl": false
+          },
+          {
+            "value": 4,
+            "hl": false
+          },
+          {
+            "value": 5,
+            "hl": false
+          }
+        ],
+        "cols": 5,
+        "options": [
+          5,
+          2,
+          4,
+          1
+        ],
+        "answer": 1
+      }
+    },
+    {
+      "type": "lightning",
+      "seed": "boss:lightning:35",
+      "draws": 7,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroLightning",
+        "hudKey": "bossHudLightning",
+        "cells": [
+          {
+            "value": 1,
+            "hl": false
+          },
+          {
+            "value": 2,
+            "hl": false
+          },
+          {
+            "value": 3,
+            "hl": false
+          },
+          {
+            "value": 4,
+            "hl": false
+          },
+          {
+            "value": "?",
+            "hl": true
+          }
+        ],
+        "cols": 5,
+        "options": [
+          4,
+          5,
+          2,
+          1
+        ],
+        "answer": 5
+      }
+    },
+    {
+      "type": "lightning",
+      "seed": "boss:lightning:36",
+      "draws": 7,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroLightning",
+        "hudKey": "bossHudLightning",
+        "cells": [
+          {
+            "value": 1,
+            "hl": false
+          },
+          {
+            "value": "?",
+            "hl": true
+          },
+          {
+            "value": 3,
+            "hl": false
+          },
+          {
+            "value": 4,
+            "hl": false
+          },
+          {
+            "value": 5,
+            "hl": false
+          }
+        ],
+        "cols": 5,
+        "options": [
+          4,
+          2,
+          5,
+          1
+        ],
+        "answer": 2
+      }
+    },
+    {
+      "type": "lightning",
+      "seed": "boss:lightning:37",
+      "draws": 7,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroLightning",
+        "hudKey": "bossHudLightning",
+        "cells": [
+          {
+            "value": 1,
+            "hl": false
+          },
+          {
+            "value": 2,
+            "hl": false
+          },
+          {
+            "value": 3,
+            "hl": false
+          },
+          {
+            "value": "?",
+            "hl": true
+          },
+          {
+            "value": 5,
+            "hl": false
+          }
+        ],
+        "cols": 5,
+        "options": [
+          5,
+          3,
+          4,
+          2
+        ],
+        "answer": 4
+      }
+    },
+    {
+      "type": "lightning",
+      "seed": "boss:lightning:38",
+      "draws": 7,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroLightning",
+        "hudKey": "bossHudLightning",
+        "cells": [
+          {
+            "value": 1,
+            "hl": false
+          },
+          {
+            "value": 2,
+            "hl": false
+          },
+          {
+            "value": 3,
+            "hl": false
+          },
+          {
+            "value": "?",
+            "hl": true
+          },
+          {
+            "value": 5,
+            "hl": false
+          }
+        ],
+        "cols": 5,
+        "options": [
+          3,
+          2,
+          5,
+          4
+        ],
+        "answer": 4
+      }
+    },
+    {
+      "type": "lightning",
+      "seed": "boss:lightning:39",
+      "draws": 7,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroLightning",
+        "hudKey": "bossHudLightning",
+        "cells": [
+          {
+            "value": 1,
+            "hl": false
+          },
+          {
+            "value": "?",
+            "hl": true
+          },
+          {
+            "value": 3,
+            "hl": false
+          },
+          {
+            "value": 4,
+            "hl": false
+          },
+          {
+            "value": 5,
+            "hl": false
+          }
+        ],
+        "cols": 5,
+        "options": [
+          3,
+          4,
+          2,
+          1
+        ],
+        "answer": 2
+      }
+    },
+    {
+      "type": "completeline",
+      "seed": "boss:completeline:0",
+      "draws": 18,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroCompleteline",
+        "hudKey": "bossHudCompleteline",
+        "cells": [
+          {
+            "value": 7
+          },
+          {
+            "value": 5
+          },
+          {
+            "value": 6
+          },
+          {
+            "value": 1
+          },
+          {
+            "value": 9
+          },
+          {
+            "value": 2
+          },
+          {
+            "value": 8
+          },
+          {
+            "value": 4
+          }
+        ],
+        "cols": 9,
+        "options": [
+          2,
+          9,
+          3,
+          8
+        ],
+        "answer": 3
+      }
+    },
+    {
+      "type": "completeline",
+      "seed": "boss:completeline:1",
+      "draws": 18,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroCompleteline",
+        "hudKey": "bossHudCompleteline",
+        "cells": [
+          {
+            "value": 1
+          },
+          {
+            "value": 3
+          },
+          {
+            "value": 5
+          },
+          {
+            "value": 8
+          },
+          {
+            "value": 6
+          },
+          {
+            "value": 9
+          },
+          {
+            "value": 4
+          },
+          {
+            "value": 2
+          }
+        ],
+        "cols": 9,
+        "options": [
+          5,
+          3,
+          7,
+          2
+        ],
+        "answer": 7
+      }
+    },
+    {
+      "type": "completeline",
+      "seed": "boss:completeline:2",
+      "draws": 18,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroCompleteline",
+        "hudKey": "bossHudCompleteline",
+        "cells": [
+          {
+            "value": 6
+          },
+          {
+            "value": 8
+          },
+          {
+            "value": 5
+          },
+          {
+            "value": 4
+          },
+          {
+            "value": 7
+          },
+          {
+            "value": 9
+          },
+          {
+            "value": 1
+          },
+          {
+            "value": 2
+          }
+        ],
+        "cols": 9,
+        "options": [
+          9,
+          3,
+          5,
+          2
+        ],
+        "answer": 3
+      }
+    },
+    {
+      "type": "completeline",
+      "seed": "boss:completeline:3",
+      "draws": 18,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroCompleteline",
+        "hudKey": "bossHudCompleteline",
+        "cells": [
+          {
+            "value": 6
+          },
+          {
+            "value": 8
+          },
+          {
+            "value": 2
+          },
+          {
+            "value": 9
+          },
+          {
+            "value": 5
+          },
+          {
+            "value": 7
+          },
+          {
+            "value": 4
+          },
+          {
+            "value": 3
+          }
+        ],
+        "cols": 9,
+        "options": [
+          5,
+          4,
+          1,
+          3
+        ],
+        "answer": 1
+      }
+    },
+    {
+      "type": "completeline",
+      "seed": "boss:completeline:4",
+      "draws": 18,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroCompleteline",
+        "hudKey": "bossHudCompleteline",
+        "cells": [
+          {
+            "value": 3
+          },
+          {
+            "value": 9
+          },
+          {
+            "value": 8
+          },
+          {
+            "value": 7
+          },
+          {
+            "value": 6
+          },
+          {
+            "value": 2
+          },
+          {
+            "value": 1
+          },
+          {
+            "value": 5
+          }
+        ],
+        "cols": 9,
+        "options": [
+          7,
+          4,
+          5,
+          8
+        ],
+        "answer": 4
+      }
+    },
+    {
+      "type": "completeline",
+      "seed": "boss:completeline:5",
+      "draws": 18,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroCompleteline",
+        "hudKey": "bossHudCompleteline",
+        "cells": [
+          {
+            "value": 3
+          },
+          {
+            "value": 2
+          },
+          {
+            "value": 8
+          },
+          {
+            "value": 1
+          },
+          {
+            "value": 4
+          },
+          {
+            "value": 6
+          },
+          {
+            "value": 7
+          },
+          {
+            "value": 9
+          }
+        ],
+        "cols": 9,
+        "options": [
+          3,
+          5,
+          7,
+          9
+        ],
+        "answer": 5
+      }
+    },
+    {
+      "type": "completeline",
+      "seed": "boss:completeline:6",
+      "draws": 18,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroCompleteline",
+        "hudKey": "bossHudCompleteline",
+        "cells": [
+          {
+            "value": 3
+          },
+          {
+            "value": 2
+          },
+          {
+            "value": 5
+          },
+          {
+            "value": 4
+          },
+          {
+            "value": 1
+          },
+          {
+            "value": 9
+          },
+          {
+            "value": 6
+          },
+          {
+            "value": 7
+          }
+        ],
+        "cols": 9,
+        "options": [
+          8,
+          6,
+          7,
+          3
+        ],
+        "answer": 8
+      }
+    },
+    {
+      "type": "completeline",
+      "seed": "boss:completeline:7",
+      "draws": 18,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroCompleteline",
+        "hudKey": "bossHudCompleteline",
+        "cells": [
+          {
+            "value": 8
+          },
+          {
+            "value": 3
+          },
+          {
+            "value": 9
+          },
+          {
+            "value": 2
+          },
+          {
+            "value": 4
+          },
+          {
+            "value": 7
+          },
+          {
+            "value": 6
+          },
+          {
+            "value": 1
+          }
+        ],
+        "cols": 9,
+        "options": [
+          8,
+          7,
+          5,
+          9
+        ],
+        "answer": 5
+      }
+    },
+    {
+      "type": "completeline",
+      "seed": "boss:completeline:8",
+      "draws": 18,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroCompleteline",
+        "hudKey": "bossHudCompleteline",
+        "cells": [
+          {
+            "value": 1
+          },
+          {
+            "value": 5
+          },
+          {
+            "value": 6
+          },
+          {
+            "value": 9
+          },
+          {
+            "value": 3
+          },
+          {
+            "value": 7
+          },
+          {
+            "value": 8
+          },
+          {
+            "value": 2
+          }
+        ],
+        "cols": 9,
+        "options": [
+          4,
+          3,
+          5,
+          1
+        ],
+        "answer": 4
+      }
+    },
+    {
+      "type": "completeline",
+      "seed": "boss:completeline:9",
+      "draws": 18,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroCompleteline",
+        "hudKey": "bossHudCompleteline",
+        "cells": [
+          {
+            "value": 4
+          },
+          {
+            "value": 1
+          },
+          {
+            "value": 9
+          },
+          {
+            "value": 8
+          },
+          {
+            "value": 3
+          },
+          {
+            "value": 2
+          },
+          {
+            "value": 5
+          },
+          {
+            "value": 7
+          }
+        ],
+        "cols": 9,
+        "options": [
+          8,
+          1,
+          6,
+          7
+        ],
+        "answer": 6
+      }
+    },
+    {
+      "type": "completeline",
+      "seed": "boss:completeline:10",
+      "draws": 18,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroCompleteline",
+        "hudKey": "bossHudCompleteline",
+        "cells": [
+          {
+            "value": 5
+          },
+          {
+            "value": 3
+          },
+          {
+            "value": 8
+          },
+          {
+            "value": 7
+          },
+          {
+            "value": 2
+          },
+          {
+            "value": 6
+          },
+          {
+            "value": 4
+          },
+          {
+            "value": 9
+          }
+        ],
+        "cols": 9,
+        "options": [
+          1,
+          3,
+          8,
+          5
+        ],
+        "answer": 1
+      }
+    },
+    {
+      "type": "completeline",
+      "seed": "boss:completeline:11",
+      "draws": 18,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroCompleteline",
+        "hudKey": "bossHudCompleteline",
+        "cells": [
+          {
+            "value": 8
+          },
+          {
+            "value": 6
+          },
+          {
+            "value": 2
+          },
+          {
+            "value": 4
+          },
+          {
+            "value": 7
+          },
+          {
+            "value": 3
+          },
+          {
+            "value": 5
+          },
+          {
+            "value": 9
+          }
+        ],
+        "cols": 9,
+        "options": [
+          1,
+          8,
+          5,
+          9
+        ],
+        "answer": 1
+      }
+    },
+    {
+      "type": "completeline",
+      "seed": "boss:completeline:12",
+      "draws": 18,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroCompleteline",
+        "hudKey": "bossHudCompleteline",
+        "cells": [
+          {
+            "value": 1
+          },
+          {
+            "value": 9
+          },
+          {
+            "value": 5
+          },
+          {
+            "value": 3
+          },
+          {
+            "value": 7
+          },
+          {
+            "value": 4
+          },
+          {
+            "value": 2
+          },
+          {
+            "value": 8
+          }
+        ],
+        "cols": 9,
+        "options": [
+          8,
+          1,
+          3,
+          6
+        ],
+        "answer": 6
+      }
+    },
+    {
+      "type": "completeline",
+      "seed": "boss:completeline:13",
+      "draws": 18,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroCompleteline",
+        "hudKey": "bossHudCompleteline",
+        "cells": [
+          {
+            "value": 6
+          },
+          {
+            "value": 9
+          },
+          {
+            "value": 7
+          },
+          {
+            "value": 3
+          },
+          {
+            "value": 8
+          },
+          {
+            "value": 1
+          },
+          {
+            "value": 2
+          },
+          {
+            "value": 4
+          }
+        ],
+        "cols": 9,
+        "options": [
+          5,
+          6,
+          4,
+          1
+        ],
+        "answer": 5
+      }
+    },
+    {
+      "type": "completeline",
+      "seed": "boss:completeline:14",
+      "draws": 18,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroCompleteline",
+        "hudKey": "bossHudCompleteline",
+        "cells": [
+          {
+            "value": 4
+          },
+          {
+            "value": 7
+          },
+          {
+            "value": 1
+          },
+          {
+            "value": 3
+          },
+          {
+            "value": 8
+          },
+          {
+            "value": 6
+          },
+          {
+            "value": 2
+          },
+          {
+            "value": 5
+          }
+        ],
+        "cols": 9,
+        "options": [
+          8,
+          9,
+          7,
+          1
+        ],
+        "answer": 9
+      }
+    },
+    {
+      "type": "completeline",
+      "seed": "boss:completeline:15",
+      "draws": 18,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroCompleteline",
+        "hudKey": "bossHudCompleteline",
+        "cells": [
+          {
+            "value": 5
+          },
+          {
+            "value": 7
+          },
+          {
+            "value": 2
+          },
+          {
+            "value": 3
+          },
+          {
+            "value": 9
+          },
+          {
+            "value": 8
+          },
+          {
+            "value": 6
+          },
+          {
+            "value": 4
+          }
+        ],
+        "cols": 9,
+        "options": [
+          4,
+          8,
+          2,
+          1
+        ],
+        "answer": 1
+      }
+    },
+    {
+      "type": "completeline",
+      "seed": "boss:completeline:16",
+      "draws": 18,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroCompleteline",
+        "hudKey": "bossHudCompleteline",
+        "cells": [
+          {
+            "value": 4
+          },
+          {
+            "value": 3
+          },
+          {
+            "value": 1
+          },
+          {
+            "value": 6
+          },
+          {
+            "value": 9
+          },
+          {
+            "value": 5
+          },
+          {
+            "value": 7
+          },
+          {
+            "value": 2
+          }
+        ],
+        "cols": 9,
+        "options": [
+          5,
+          8,
+          3,
+          9
+        ],
+        "answer": 8
+      }
+    },
+    {
+      "type": "completeline",
+      "seed": "boss:completeline:17",
+      "draws": 18,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroCompleteline",
+        "hudKey": "bossHudCompleteline",
+        "cells": [
+          {
+            "value": 3
+          },
+          {
+            "value": 6
+          },
+          {
+            "value": 5
+          },
+          {
+            "value": 2
+          },
+          {
+            "value": 1
+          },
+          {
+            "value": 7
+          },
+          {
+            "value": 4
+          },
+          {
+            "value": 8
+          }
+        ],
+        "cols": 9,
+        "options": [
+          4,
+          8,
+          3,
+          9
+        ],
+        "answer": 9
+      }
+    },
+    {
+      "type": "completeline",
+      "seed": "boss:completeline:18",
+      "draws": 18,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroCompleteline",
+        "hudKey": "bossHudCompleteline",
+        "cells": [
+          {
+            "value": 1
+          },
+          {
+            "value": 4
+          },
+          {
+            "value": 5
+          },
+          {
+            "value": 7
+          },
+          {
+            "value": 8
+          },
+          {
+            "value": 3
+          },
+          {
+            "value": 6
+          },
+          {
+            "value": 2
+          }
+        ],
+        "cols": 9,
+        "options": [
+          4,
+          9,
+          6,
+          5
+        ],
+        "answer": 9
+      }
+    },
+    {
+      "type": "completeline",
+      "seed": "boss:completeline:19",
+      "draws": 18,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroCompleteline",
+        "hudKey": "bossHudCompleteline",
+        "cells": [
+          {
+            "value": 8
+          },
+          {
+            "value": 9
+          },
+          {
+            "value": 3
+          },
+          {
+            "value": 5
+          },
+          {
+            "value": 6
+          },
+          {
+            "value": 2
+          },
+          {
+            "value": 7
+          },
+          {
+            "value": 4
+          }
+        ],
+        "cols": 9,
+        "options": [
+          1,
+          5,
+          9,
+          2
+        ],
+        "answer": 1
+      }
+    },
+    {
+      "type": "completeline",
+      "seed": "boss:completeline:20",
+      "draws": 18,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroCompleteline",
+        "hudKey": "bossHudCompleteline",
+        "cells": [
+          {
+            "value": 7
+          },
+          {
+            "value": 9
+          },
+          {
+            "value": 6
+          },
+          {
+            "value": 4
+          },
+          {
+            "value": 5
+          },
+          {
+            "value": 2
+          },
+          {
+            "value": 1
+          },
+          {
+            "value": 8
+          }
+        ],
+        "cols": 9,
+        "options": [
+          9,
+          5,
+          3,
+          7
+        ],
+        "answer": 3
+      }
+    },
+    {
+      "type": "completeline",
+      "seed": "boss:completeline:21",
+      "draws": 18,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroCompleteline",
+        "hudKey": "bossHudCompleteline",
+        "cells": [
+          {
+            "value": 7
+          },
+          {
+            "value": 3
+          },
+          {
+            "value": 4
+          },
+          {
+            "value": 5
+          },
+          {
+            "value": 8
+          },
+          {
+            "value": 9
+          },
+          {
+            "value": 6
+          },
+          {
+            "value": 2
+          }
+        ],
+        "cols": 9,
+        "options": [
+          2,
+          7,
+          4,
+          1
+        ],
+        "answer": 1
+      }
+    },
+    {
+      "type": "completeline",
+      "seed": "boss:completeline:22",
+      "draws": 18,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroCompleteline",
+        "hudKey": "bossHudCompleteline",
+        "cells": [
+          {
+            "value": 7
+          },
+          {
+            "value": 5
+          },
+          {
+            "value": 9
+          },
+          {
+            "value": 1
+          },
+          {
+            "value": 6
+          },
+          {
+            "value": 2
+          },
+          {
+            "value": 3
+          },
+          {
+            "value": 4
+          }
+        ],
+        "cols": 9,
+        "options": [
+          8,
+          2,
+          3,
+          9
+        ],
+        "answer": 8
+      }
+    },
+    {
+      "type": "completeline",
+      "seed": "boss:completeline:23",
+      "draws": 18,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroCompleteline",
+        "hudKey": "bossHudCompleteline",
+        "cells": [
+          {
+            "value": 2
+          },
+          {
+            "value": 1
+          },
+          {
+            "value": 9
+          },
+          {
+            "value": 5
+          },
+          {
+            "value": 7
+          },
+          {
+            "value": 3
+          },
+          {
+            "value": 6
+          },
+          {
+            "value": 8
+          }
+        ],
+        "cols": 9,
+        "options": [
+          4,
+          1,
+          7,
+          9
+        ],
+        "answer": 4
+      }
+    },
+    {
+      "type": "completeline",
+      "seed": "boss:completeline:24",
+      "draws": 18,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroCompleteline",
+        "hudKey": "bossHudCompleteline",
+        "cells": [
+          {
+            "value": 1
+          },
+          {
+            "value": 7
+          },
+          {
+            "value": 8
+          },
+          {
+            "value": 3
+          },
+          {
+            "value": 4
+          },
+          {
+            "value": 9
+          },
+          {
+            "value": 2
+          },
+          {
+            "value": 6
+          }
+        ],
+        "cols": 9,
+        "options": [
+          2,
+          5,
+          6,
+          3
+        ],
+        "answer": 5
+      }
+    },
+    {
+      "type": "completeline",
+      "seed": "boss:completeline:25",
+      "draws": 18,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroCompleteline",
+        "hudKey": "bossHudCompleteline",
+        "cells": [
+          {
+            "value": 9
+          },
+          {
+            "value": 3
+          },
+          {
+            "value": 1
+          },
+          {
+            "value": 5
+          },
+          {
+            "value": 7
+          },
+          {
+            "value": 8
+          },
+          {
+            "value": 2
+          },
+          {
+            "value": 4
+          }
+        ],
+        "cols": 9,
+        "options": [
+          2,
+          6,
+          9,
+          3
+        ],
+        "answer": 6
+      }
+    },
+    {
+      "type": "completeline",
+      "seed": "boss:completeline:26",
+      "draws": 18,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroCompleteline",
+        "hudKey": "bossHudCompleteline",
+        "cells": [
+          {
+            "value": 8
+          },
+          {
+            "value": 9
+          },
+          {
+            "value": 7
+          },
+          {
+            "value": 5
+          },
+          {
+            "value": 4
+          },
+          {
+            "value": 3
+          },
+          {
+            "value": 1
+          },
+          {
+            "value": 6
+          }
+        ],
+        "cols": 9,
+        "options": [
+          9,
+          1,
+          3,
+          2
+        ],
+        "answer": 2
+      }
+    },
+    {
+      "type": "completeline",
+      "seed": "boss:completeline:27",
+      "draws": 18,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroCompleteline",
+        "hudKey": "bossHudCompleteline",
+        "cells": [
+          {
+            "value": 6
+          },
+          {
+            "value": 4
+          },
+          {
+            "value": 8
+          },
+          {
+            "value": 3
+          },
+          {
+            "value": 2
+          },
+          {
+            "value": 7
+          },
+          {
+            "value": 9
+          },
+          {
+            "value": 5
+          }
+        ],
+        "cols": 9,
+        "options": [
+          6,
+          1,
+          2,
+          7
+        ],
+        "answer": 1
+      }
+    },
+    {
+      "type": "completeline",
+      "seed": "boss:completeline:28",
+      "draws": 18,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroCompleteline",
+        "hudKey": "bossHudCompleteline",
+        "cells": [
+          {
+            "value": 4
+          },
+          {
+            "value": 8
+          },
+          {
+            "value": 9
+          },
+          {
+            "value": 2
+          },
+          {
+            "value": 7
+          },
+          {
+            "value": 1
+          },
+          {
+            "value": 3
+          },
+          {
+            "value": 6
+          }
+        ],
+        "cols": 9,
+        "options": [
+          2,
+          1,
+          5,
+          3
+        ],
+        "answer": 5
+      }
+    },
+    {
+      "type": "completeline",
+      "seed": "boss:completeline:29",
+      "draws": 18,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroCompleteline",
+        "hudKey": "bossHudCompleteline",
+        "cells": [
+          {
+            "value": 6
+          },
+          {
+            "value": 4
+          },
+          {
+            "value": 2
+          },
+          {
+            "value": 1
+          },
+          {
+            "value": 5
+          },
+          {
+            "value": 8
+          },
+          {
+            "value": 9
+          },
+          {
+            "value": 3
+          }
+        ],
+        "cols": 9,
+        "options": [
+          2,
+          1,
+          5,
+          7
+        ],
+        "answer": 7
+      }
+    },
+    {
+      "type": "completeline",
+      "seed": "boss:completeline:30",
+      "draws": 18,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroCompleteline",
+        "hudKey": "bossHudCompleteline",
+        "cells": [
+          {
+            "value": 7
+          },
+          {
+            "value": 3
+          },
+          {
+            "value": 4
+          },
+          {
+            "value": 1
+          },
+          {
+            "value": 9
+          },
+          {
+            "value": 5
+          },
+          {
+            "value": 6
+          },
+          {
+            "value": 8
+          }
+        ],
+        "cols": 9,
+        "options": [
+          9,
+          3,
+          2,
+          1
+        ],
+        "answer": 2
+      }
+    },
+    {
+      "type": "completeline",
+      "seed": "boss:completeline:31",
+      "draws": 18,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroCompleteline",
+        "hudKey": "bossHudCompleteline",
+        "cells": [
+          {
+            "value": 3
+          },
+          {
+            "value": 2
+          },
+          {
+            "value": 4
+          },
+          {
+            "value": 6
+          },
+          {
+            "value": 7
+          },
+          {
+            "value": 8
+          },
+          {
+            "value": 5
+          },
+          {
+            "value": 9
+          }
+        ],
+        "cols": 9,
+        "options": [
+          7,
+          6,
+          1,
+          4
+        ],
+        "answer": 1
+      }
+    },
+    {
+      "type": "completeline",
+      "seed": "boss:completeline:32",
+      "draws": 18,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroCompleteline",
+        "hudKey": "bossHudCompleteline",
+        "cells": [
+          {
+            "value": 6
+          },
+          {
+            "value": 1
+          },
+          {
+            "value": 7
+          },
+          {
+            "value": 2
+          },
+          {
+            "value": 3
+          },
+          {
+            "value": 9
+          },
+          {
+            "value": 8
+          },
+          {
+            "value": 5
+          }
+        ],
+        "cols": 9,
+        "options": [
+          3,
+          7,
+          5,
+          4
+        ],
+        "answer": 4
+      }
+    },
+    {
+      "type": "completeline",
+      "seed": "boss:completeline:33",
+      "draws": 18,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroCompleteline",
+        "hudKey": "bossHudCompleteline",
+        "cells": [
+          {
+            "value": 2
+          },
+          {
+            "value": 6
+          },
+          {
+            "value": 4
+          },
+          {
+            "value": 5
+          },
+          {
+            "value": 9
+          },
+          {
+            "value": 3
+          },
+          {
+            "value": 7
+          },
+          {
+            "value": 1
+          }
+        ],
+        "cols": 9,
+        "options": [
+          1,
+          5,
+          8,
+          3
+        ],
+        "answer": 8
+      }
+    },
+    {
+      "type": "completeline",
+      "seed": "boss:completeline:34",
+      "draws": 18,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroCompleteline",
+        "hudKey": "bossHudCompleteline",
+        "cells": [
+          {
+            "value": 7
+          },
+          {
+            "value": 5
+          },
+          {
+            "value": 9
+          },
+          {
+            "value": 4
+          },
+          {
+            "value": 1
+          },
+          {
+            "value": 6
+          },
+          {
+            "value": 8
+          },
+          {
+            "value": 3
+          }
+        ],
+        "cols": 9,
+        "options": [
+          6,
+          7,
+          3,
+          2
+        ],
+        "answer": 2
+      }
+    },
+    {
+      "type": "completeline",
+      "seed": "boss:completeline:35",
+      "draws": 18,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroCompleteline",
+        "hudKey": "bossHudCompleteline",
+        "cells": [
+          {
+            "value": 5
+          },
+          {
+            "value": 9
+          },
+          {
+            "value": 1
+          },
+          {
+            "value": 2
+          },
+          {
+            "value": 6
+          },
+          {
+            "value": 7
+          },
+          {
+            "value": 8
+          },
+          {
+            "value": 3
+          }
+        ],
+        "cols": 9,
+        "options": [
+          3,
+          1,
+          7,
+          4
+        ],
+        "answer": 4
+      }
+    },
+    {
+      "type": "completeline",
+      "seed": "boss:completeline:36",
+      "draws": 18,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroCompleteline",
+        "hudKey": "bossHudCompleteline",
+        "cells": [
+          {
+            "value": 4
+          },
+          {
+            "value": 9
+          },
+          {
+            "value": 3
+          },
+          {
+            "value": 7
+          },
+          {
+            "value": 1
+          },
+          {
+            "value": 6
+          },
+          {
+            "value": 5
+          },
+          {
+            "value": 8
+          }
+        ],
+        "cols": 9,
+        "options": [
+          5,
+          2,
+          1,
+          8
+        ],
+        "answer": 2
+      }
+    },
+    {
+      "type": "completeline",
+      "seed": "boss:completeline:37",
+      "draws": 18,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroCompleteline",
+        "hudKey": "bossHudCompleteline",
+        "cells": [
+          {
+            "value": 1
+          },
+          {
+            "value": 7
+          },
+          {
+            "value": 9
+          },
+          {
+            "value": 2
+          },
+          {
+            "value": 4
+          },
+          {
+            "value": 8
+          },
+          {
+            "value": 6
+          },
+          {
+            "value": 3
+          }
+        ],
+        "cols": 9,
+        "options": [
+          5,
+          2,
+          9,
+          6
+        ],
+        "answer": 5
+      }
+    },
+    {
+      "type": "completeline",
+      "seed": "boss:completeline:38",
+      "draws": 18,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroCompleteline",
+        "hudKey": "bossHudCompleteline",
+        "cells": [
+          {
+            "value": 7
+          },
+          {
+            "value": 3
+          },
+          {
+            "value": 9
+          },
+          {
+            "value": 6
+          },
+          {
+            "value": 4
+          },
+          {
+            "value": 1
+          },
+          {
+            "value": 2
+          },
+          {
+            "value": 5
+          }
+        ],
+        "cols": 9,
+        "options": [
+          6,
+          3,
+          8,
+          9
+        ],
+        "answer": 8
+      }
+    },
+    {
+      "type": "completeline",
+      "seed": "boss:completeline:39",
+      "draws": 18,
+      "task": {
+        "kind": "choose",
+        "introKey": "bossIntroCompleteline",
+        "hudKey": "bossHudCompleteline",
+        "cells": [
+          {
+            "value": 8
+          },
+          {
+            "value": 6
+          },
+          {
+            "value": 5
+          },
+          {
+            "value": 3
+          },
+          {
+            "value": 4
+          },
+          {
+            "value": 1
+          },
+          {
+            "value": 9
+          },
+          {
+            "value": 7
+          }
+        ],
+        "cols": 9,
+        "options": [
+          2,
+          7,
+          8,
+          1
+        ],
+        "answer": 2
+      }
+    },
+    {
+      "type": "finderror",
+      "seed": "boss:finderror:0",
+      "draws": 16,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroFinderror",
+        "hudKey": "bossHudFinderror",
+        "grid": [
+          1,
+          4,
+          3,
+          2,
+          4,
+          1,
+          2,
+          2,
+          4,
+          3,
+          2,
+          1,
+          2,
+          3,
+          4,
+          1
+        ],
+        "gridCols": 4,
+        "badCells": [
+          7,
+          6
+        ]
+      }
+    },
+    {
+      "type": "finderror",
+      "seed": "boss:finderror:1",
+      "draws": 15,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroFinderror",
+        "hudKey": "bossHudFinderror",
+        "grid": [
+          4,
+          3,
+          2,
+          1,
+          2,
+          1,
+          4,
+          4,
+          2,
+          3,
+          1,
+          4,
+          2,
+          4,
+          3,
+          1
+        ],
+        "gridCols": 4,
+        "badCells": [
+          7,
+          6
+        ]
+      }
+    },
+    {
+      "type": "finderror",
+      "seed": "boss:finderror:2",
+      "draws": 15,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroFinderror",
+        "hudKey": "bossHudFinderror",
+        "grid": [
+          4,
+          2,
+          2,
+          1,
+          1,
+          3,
+          2,
+          4,
+          2,
+          4,
+          3,
+          1,
+          2,
+          3,
+          1,
+          4
+        ],
+        "gridCols": 4,
+        "badCells": [
+          1,
+          2
+        ]
+      }
+    },
+    {
+      "type": "finderror",
+      "seed": "boss:finderror:3",
+      "draws": 15,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroFinderror",
+        "hudKey": "bossHudFinderror",
+        "grid": [
+          1,
+          2,
+          4,
+          1,
+          2,
+          4,
+          1,
+          3,
+          4,
+          2,
+          3,
+          1,
+          1,
+          4,
+          2,
+          3
+        ],
+        "gridCols": 4,
+        "badCells": [
+          3,
+          0
+        ]
+      }
+    },
+    {
+      "type": "finderror",
+      "seed": "boss:finderror:4",
+      "draws": 16,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroFinderror",
+        "hudKey": "bossHudFinderror",
+        "grid": [
+          4,
+          3,
+          2,
+          1,
+          4,
+          1,
+          2,
+          3,
+          3,
+          2,
+          1,
+          4,
+          2,
+          2,
+          1,
+          4
+        ],
+        "gridCols": 4,
+        "badCells": [
+          12,
+          13
+        ]
+      }
+    },
+    {
+      "type": "finderror",
+      "seed": "boss:finderror:5",
+      "draws": 15,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroFinderror",
+        "hudKey": "bossHudFinderror",
+        "grid": [
+          4,
+          2,
+          1,
+          3,
+          3,
+          2,
+          4,
+          3,
+          4,
+          2,
+          1,
+          3,
+          3,
+          4,
+          1,
+          2
+        ],
+        "gridCols": 4,
+        "badCells": [
+          7,
+          4
+        ]
+      }
+    },
+    {
+      "type": "finderror",
+      "seed": "boss:finderror:6",
+      "draws": 15,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroFinderror",
+        "hudKey": "bossHudFinderror",
+        "grid": [
+          4,
+          3,
+          2,
+          4,
+          4,
+          1,
+          2,
+          3,
+          4,
+          1,
+          3,
+          2,
+          1,
+          2,
+          3,
+          4
+        ],
+        "gridCols": 4,
+        "badCells": [
+          0,
+          3
+        ]
+      }
+    },
+    {
+      "type": "finderror",
+      "seed": "boss:finderror:7",
+      "draws": 15,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroFinderror",
+        "hudKey": "bossHudFinderror",
+        "grid": [
+          1,
+          1,
+          4,
+          3,
+          3,
+          4,
+          2,
+          1,
+          4,
+          1,
+          2,
+          3,
+          2,
+          3,
+          1,
+          4
+        ],
+        "gridCols": 4,
+        "badCells": [
+          0,
+          1
+        ]
+      }
+    },
+    {
+      "type": "finderror",
+      "seed": "boss:finderror:8",
+      "draws": 15,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroFinderror",
+        "hudKey": "bossHudFinderror",
+        "grid": [
+          4,
+          2,
+          3,
+          1,
+          4,
+          2,
+          3,
+          1,
+          1,
+          4,
+          2,
+          3,
+          4,
+          3,
+          1,
+          3
+        ],
+        "gridCols": 4,
+        "badCells": [
+          13,
+          15
+        ]
+      }
+    },
+    {
+      "type": "finderror",
+      "seed": "boss:finderror:9",
+      "draws": 15,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroFinderror",
+        "hudKey": "bossHudFinderror",
+        "grid": [
+          3,
+          1,
+          2,
+          4,
+          3,
+          1,
+          4,
+          2,
+          1,
+          2,
+          4,
+          3,
+          2,
+          1,
+          3,
+          3
+        ],
+        "gridCols": 4,
+        "badCells": [
+          15,
+          14
+        ]
+      }
+    },
+    {
+      "type": "finderror",
+      "seed": "boss:finderror:10",
+      "draws": 16,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroFinderror",
+        "hudKey": "bossHudFinderror",
+        "grid": [
+          1,
+          3,
+          2,
+          4,
+          4,
+          3,
+          2,
+          1,
+          1,
+          2,
+          4,
+          3,
+          2,
+          2,
+          1,
+          3
+        ],
+        "gridCols": 4,
+        "badCells": [
+          13,
+          12
+        ]
+      }
+    },
+    {
+      "type": "finderror",
+      "seed": "boss:finderror:11",
+      "draws": 15,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroFinderror",
+        "hudKey": "bossHudFinderror",
+        "grid": [
+          4,
+          1,
+          2,
+          3,
+          4,
+          2,
+          1,
+          3,
+          1,
+          3,
+          4,
+          2,
+          1,
+          4,
+          2,
+          1
+        ],
+        "gridCols": 4,
+        "badCells": [
+          12,
+          15
+        ]
+      }
+    },
+    {
+      "type": "finderror",
+      "seed": "boss:finderror:12",
+      "draws": 15,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroFinderror",
+        "hudKey": "bossHudFinderror",
+        "grid": [
+          1,
+          4,
+          3,
+          2,
+          1,
+          1,
+          3,
+          4,
+          1,
+          2,
+          3,
+          4,
+          2,
+          4,
+          1,
+          3
+        ],
+        "gridCols": 4,
+        "badCells": [
+          4,
+          5
+        ]
+      }
+    },
+    {
+      "type": "finderror",
+      "seed": "boss:finderror:13",
+      "draws": 15,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroFinderror",
+        "hudKey": "bossHudFinderror",
+        "grid": [
+          3,
+          2,
+          4,
+          1,
+          1,
+          4,
+          2,
+          4,
+          1,
+          4,
+          2,
+          3,
+          3,
+          4,
+          2,
+          1
+        ],
+        "gridCols": 4,
+        "badCells": [
+          7,
+          5
+        ]
+      }
+    },
+    {
+      "type": "finderror",
+      "seed": "boss:finderror:14",
+      "draws": 15,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroFinderror",
+        "hudKey": "bossHudFinderror",
+        "grid": [
+          3,
+          1,
+          2,
+          4,
+          2,
+          1,
+          4,
+          3,
+          3,
+          1,
+          2,
+          4,
+          1,
+          1,
+          2,
+          3
+        ],
+        "gridCols": 4,
+        "badCells": [
+          12,
+          13
+        ]
+      }
+    },
+    {
+      "type": "finderror",
+      "seed": "boss:finderror:15",
+      "draws": 15,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroFinderror",
+        "hudKey": "bossHudFinderror",
+        "grid": [
+          3,
+          2,
+          4,
+          1,
+          2,
+          1,
+          3,
+          4,
+          2,
+          3,
+          1,
+          4,
+          1,
+          4,
+          1,
+          3
+        ],
+        "gridCols": 4,
+        "badCells": [
+          14,
+          12
+        ]
+      }
+    },
+    {
+      "type": "finderror",
+      "seed": "boss:finderror:16",
+      "draws": 15,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroFinderror",
+        "hudKey": "bossHudFinderror",
+        "grid": [
+          4,
+          3,
+          2,
+          1,
+          4,
+          1,
+          2,
+          3,
+          2,
+          1,
+          3,
+          4,
+          3,
+          3,
+          1,
+          2
+        ],
+        "gridCols": 4,
+        "badCells": [
+          12,
+          13
+        ]
+      }
+    },
+    {
+      "type": "finderror",
+      "seed": "boss:finderror:17",
+      "draws": 15,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroFinderror",
+        "hudKey": "bossHudFinderror",
+        "grid": [
+          2,
+          1,
+          3,
+          4,
+          1,
+          2,
+          4,
+          1,
+          3,
+          4,
+          2,
+          1,
+          2,
+          1,
+          3,
+          4
+        ],
+        "gridCols": 4,
+        "badCells": [
+          4,
+          7
+        ]
+      }
+    },
+    {
+      "type": "finderror",
+      "seed": "boss:finderror:18",
+      "draws": 15,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroFinderror",
+        "hudKey": "bossHudFinderror",
+        "grid": [
+          3,
+          2,
+          2,
+          4,
+          1,
+          4,
+          3,
+          2,
+          1,
+          3,
+          4,
+          2,
+          4,
+          2,
+          1,
+          3
+        ],
+        "gridCols": 4,
+        "badCells": [
+          1,
+          2
+        ]
+      }
+    },
+    {
+      "type": "finderror",
+      "seed": "boss:finderror:19",
+      "draws": 15,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroFinderror",
+        "hudKey": "bossHudFinderror",
+        "grid": [
+          3,
+          2,
+          4,
+          1,
+          1,
+          3,
+          2,
+          4,
+          1,
+          3,
+          4,
+          2,
+          2,
+          2,
+          3,
+          4
+        ],
+        "gridCols": 4,
+        "badCells": [
+          13,
+          12
+        ]
+      }
+    },
+    {
+      "type": "finderror",
+      "seed": "boss:finderror:20",
+      "draws": 15,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroFinderror",
+        "hudKey": "bossHudFinderror",
+        "grid": [
+          3,
+          4,
+          2,
+          1,
+          4,
+          1,
+          2,
+          3,
+          2,
+          4,
+          1,
+          1,
+          4,
+          2,
+          3,
+          1
+        ],
+        "gridCols": 4,
+        "badCells": [
+          11,
+          10
+        ]
+      }
+    },
+    {
+      "type": "finderror",
+      "seed": "boss:finderror:21",
+      "draws": 15,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroFinderror",
+        "hudKey": "bossHudFinderror",
+        "grid": [
+          2,
+          1,
+          1,
+          3,
+          4,
+          1,
+          3,
+          2,
+          2,
+          4,
+          3,
+          1,
+          1,
+          2,
+          3,
+          4
+        ],
+        "gridCols": 4,
+        "badCells": [
+          2,
+          1
+        ]
+      }
+    },
+    {
+      "type": "finderror",
+      "seed": "boss:finderror:22",
+      "draws": 15,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroFinderror",
+        "hudKey": "bossHudFinderror",
+        "grid": [
+          1,
+          2,
+          3,
+          4,
+          1,
+          4,
+          1,
+          2,
+          3,
+          1,
+          4,
+          2,
+          3,
+          4,
+          1,
+          2
+        ],
+        "gridCols": 4,
+        "badCells": [
+          6,
+          4
+        ]
+      }
+    },
+    {
+      "type": "finderror",
+      "seed": "boss:finderror:23",
+      "draws": 16,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroFinderror",
+        "hudKey": "bossHudFinderror",
+        "grid": [
+          1,
+          4,
+          3,
+          2,
+          2,
+          1,
+          3,
+          4,
+          4,
+          2,
+          3,
+          1,
+          3,
+          4,
+          1,
+          3
+        ],
+        "gridCols": 4,
+        "badCells": [
+          15,
+          12
+        ]
+      }
+    },
+    {
+      "type": "finderror",
+      "seed": "boss:finderror:24",
+      "draws": 15,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroFinderror",
+        "hudKey": "bossHudFinderror",
+        "grid": [
+          1,
+          4,
+          2,
+          1,
+          3,
+          2,
+          1,
+          4,
+          3,
+          4,
+          1,
+          2,
+          4,
+          2,
+          3,
+          1
+        ],
+        "gridCols": 4,
+        "badCells": [
+          3,
+          0
+        ]
+      }
+    },
+    {
+      "type": "finderror",
+      "seed": "boss:finderror:25",
+      "draws": 15,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroFinderror",
+        "hudKey": "bossHudFinderror",
+        "grid": [
+          2,
+          3,
+          4,
+          1,
+          3,
+          1,
+          2,
+          4,
+          1,
+          4,
+          2,
+          3,
+          2,
+          3,
+          1,
+          3
+        ],
+        "gridCols": 4,
+        "badCells": [
+          13,
+          15
+        ]
+      }
+    },
+    {
+      "type": "finderror",
+      "seed": "boss:finderror:26",
+      "draws": 15,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroFinderror",
+        "hudKey": "bossHudFinderror",
+        "grid": [
+          3,
+          2,
+          4,
+          1,
+          1,
+          1,
+          3,
+          4,
+          4,
+          1,
+          3,
+          2,
+          1,
+          3,
+          2,
+          4
+        ],
+        "gridCols": 4,
+        "badCells": [
+          4,
+          5
+        ]
+      }
+    },
+    {
+      "type": "finderror",
+      "seed": "boss:finderror:27",
+      "draws": 15,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroFinderror",
+        "hudKey": "bossHudFinderror",
+        "grid": [
+          2,
+          4,
+          3,
+          1,
+          1,
+          4,
+          3,
+          2,
+          1,
+          4,
+          4,
+          3,
+          3,
+          4,
+          2,
+          1
+        ],
+        "gridCols": 4,
+        "badCells": [
+          10,
+          9
+        ]
+      }
+    },
+    {
+      "type": "finderror",
+      "seed": "boss:finderror:28",
+      "draws": 15,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroFinderror",
+        "hudKey": "bossHudFinderror",
+        "grid": [
+          2,
+          2,
+          1,
+          4,
+          4,
+          1,
+          3,
+          2,
+          1,
+          2,
+          3,
+          4,
+          4,
+          1,
+          2,
+          3
+        ],
+        "gridCols": 4,
+        "badCells": [
+          0,
+          1
+        ]
+      }
+    },
+    {
+      "type": "finderror",
+      "seed": "boss:finderror:29",
+      "draws": 15,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroFinderror",
+        "hudKey": "bossHudFinderror",
+        "grid": [
+          3,
+          4,
+          1,
+          2,
+          4,
+          3,
+          2,
+          1,
+          3,
+          2,
+          1,
+          4,
+          1,
+          4,
+          2,
+          1
+        ],
+        "gridCols": 4,
+        "badCells": [
+          12,
+          15
+        ]
+      }
+    },
+    {
+      "type": "finderror",
+      "seed": "boss:finderror:30",
+      "draws": 15,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroFinderror",
+        "hudKey": "bossHudFinderror",
+        "grid": [
+          2,
+          4,
+          1,
+          4,
+          1,
+          4,
+          2,
+          3,
+          4,
+          1,
+          3,
+          2,
+          4,
+          2,
+          3,
+          1
+        ],
+        "gridCols": 4,
+        "badCells": [
+          1,
+          3
+        ]
+      }
+    },
+    {
+      "type": "finderror",
+      "seed": "boss:finderror:31",
+      "draws": 15,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroFinderror",
+        "hudKey": "bossHudFinderror",
+        "grid": [
+          3,
+          4,
+          3,
+          2,
+          1,
+          4,
+          3,
+          2,
+          2,
+          4,
+          1,
+          3,
+          1,
+          2,
+          3,
+          4
+        ],
+        "gridCols": 4,
+        "badCells": [
+          0,
+          2
+        ]
+      }
+    },
+    {
+      "type": "finderror",
+      "seed": "boss:finderror:32",
+      "draws": 15,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroFinderror",
+        "hudKey": "bossHudFinderror",
+        "grid": [
+          2,
+          3,
+          1,
+          4,
+          3,
+          1,
+          2,
+          4,
+          4,
+          1,
+          1,
+          3,
+          4,
+          1,
+          3,
+          2
+        ],
+        "gridCols": 4,
+        "badCells": [
+          9,
+          10
+        ]
+      }
+    },
+    {
+      "type": "finderror",
+      "seed": "boss:finderror:33",
+      "draws": 17,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroFinderror",
+        "hudKey": "bossHudFinderror",
+        "grid": [
+          2,
+          1,
+          3,
+          4,
+          4,
+          1,
+          3,
+          2,
+          4,
+          3,
+          2,
+          1,
+          1,
+          1,
+          2,
+          4
+        ],
+        "gridCols": 4,
+        "badCells": [
+          12,
+          13
+        ]
+      }
+    },
+    {
+      "type": "finderror",
+      "seed": "boss:finderror:34",
+      "draws": 15,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroFinderror",
+        "hudKey": "bossHudFinderror",
+        "grid": [
+          4,
+          2,
+          3,
+          1,
+          2,
+          3,
+          4,
+          1,
+          3,
+          4,
+          1,
+          2,
+          1,
+          1,
+          4,
+          2
+        ],
+        "gridCols": 4,
+        "badCells": [
+          13,
+          12
+        ]
+      }
+    },
+    {
+      "type": "finderror",
+      "seed": "boss:finderror:35",
+      "draws": 15,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroFinderror",
+        "hudKey": "bossHudFinderror",
+        "grid": [
+          3,
+          4,
+          4,
+          2,
+          3,
+          4,
+          2,
+          1,
+          1,
+          4,
+          3,
+          2,
+          1,
+          4,
+          2,
+          3
+        ],
+        "gridCols": 4,
+        "badCells": [
+          1,
+          2
+        ]
+      }
+    },
+    {
+      "type": "finderror",
+      "seed": "boss:finderror:36",
+      "draws": 15,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroFinderror",
+        "hudKey": "bossHudFinderror",
+        "grid": [
+          3,
+          4,
+          1,
+          4,
+          4,
+          2,
+          1,
+          3,
+          4,
+          2,
+          1,
+          3,
+          2,
+          1,
+          4,
+          3
+        ],
+        "gridCols": 4,
+        "badCells": [
+          1,
+          3
+        ]
+      }
+    },
+    {
+      "type": "finderror",
+      "seed": "boss:finderror:37",
+      "draws": 16,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroFinderror",
+        "hudKey": "bossHudFinderror",
+        "grid": [
+          4,
+          1,
+          3,
+          2,
+          3,
+          4,
+          1,
+          2,
+          3,
+          2,
+          1,
+          4,
+          4,
+          3,
+          1,
+          4
+        ],
+        "gridCols": 4,
+        "badCells": [
+          15,
+          12
+        ]
+      }
+    },
+    {
+      "type": "finderror",
+      "seed": "boss:finderror:38",
+      "draws": 15,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroFinderror",
+        "hudKey": "bossHudFinderror",
+        "grid": [
+          4,
+          3,
+          1,
+          2,
+          4,
+          1,
+          2,
+          3,
+          3,
+          4,
+          1,
+          2,
+          2,
+          4,
+          1,
+          4
+        ],
+        "gridCols": 4,
+        "badCells": [
+          13,
+          15
+        ]
+      }
+    },
+    {
+      "type": "finderror",
+      "seed": "boss:finderror:39",
+      "draws": 15,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroFinderror",
+        "hudKey": "bossHudFinderror",
+        "grid": [
+          4,
+          3,
+          1,
+          2,
+          2,
+          1,
+          4,
+          3,
+          3,
+          2,
+          4,
+          1,
+          3,
+          3,
+          4,
+          1
+        ],
+        "gridCols": 4,
+        "badCells": [
+          12,
+          13
+        ]
+      }
+    },
+    {
+      "type": "oddletter",
+      "seed": "boss:oddletter:0",
+      "draws": 7,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroOddletter",
+        "hudKey": "bossHudOddletter",
+        "grid": [
+          "N",
+          "A",
+          "K",
+          "J",
+          "Q",
+          "K"
+        ],
+        "gridCols": 3,
+        "badCells": [
+          1
+        ]
+      }
+    },
+    {
+      "type": "oddletter",
+      "seed": "boss:oddletter:1",
+      "draws": 7,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroOddletter",
+        "hudKey": "bossHudOddletter",
+        "grid": [
+          "O",
+          "P",
+          "B",
+          "S",
+          "J",
+          "R"
+        ],
+        "gridCols": 3,
+        "badCells": [
+          0
+        ]
+      }
+    },
+    {
+      "type": "oddletter",
+      "seed": "boss:oddletter:2",
+      "draws": 7,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroOddletter",
+        "hudKey": "bossHudOddletter",
+        "grid": [
+          "K",
+          "J",
+          "V",
+          "C",
+          "U",
+          "N"
+        ],
+        "gridCols": 3,
+        "badCells": [
+          4
+        ]
+      }
+    },
+    {
+      "type": "oddletter",
+      "seed": "boss:oddletter:3",
+      "draws": 7,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroOddletter",
+        "hudKey": "bossHudOddletter",
+        "grid": [
+          "W",
+          "E",
+          "T",
+          "N",
+          "S",
+          "N"
+        ],
+        "gridCols": 3,
+        "badCells": [
+          1
+        ]
+      }
+    },
+    {
+      "type": "oddletter",
+      "seed": "boss:oddletter:4",
+      "draws": 7,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroOddletter",
+        "hudKey": "bossHudOddletter",
+        "grid": [
+          "A",
+          "R",
+          "J",
+          "M",
+          "Q",
+          "N"
+        ],
+        "gridCols": 3,
+        "badCells": [
+          0
+        ]
+      }
+    },
+    {
+      "type": "oddletter",
+      "seed": "boss:oddletter:5",
+      "draws": 7,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroOddletter",
+        "hudKey": "bossHudOddletter",
+        "grid": [
+          "O",
+          "C",
+          "M",
+          "Z",
+          "H",
+          "J"
+        ],
+        "gridCols": 3,
+        "badCells": [
+          0
+        ]
+      }
+    },
+    {
+      "type": "oddletter",
+      "seed": "boss:oddletter:6",
+      "draws": 7,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroOddletter",
+        "hudKey": "bossHudOddletter",
+        "grid": [
+          "O",
+          "X",
+          "B",
+          "R",
+          "G",
+          "B"
+        ],
+        "gridCols": 3,
+        "badCells": [
+          0
+        ]
+      }
+    },
+    {
+      "type": "oddletter",
+      "seed": "boss:oddletter:7",
+      "draws": 7,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroOddletter",
+        "hudKey": "bossHudOddletter",
+        "grid": [
+          "M",
+          "G",
+          "Z",
+          "R",
+          "V",
+          "A"
+        ],
+        "gridCols": 3,
+        "badCells": [
+          5
+        ]
+      }
+    },
+    {
+      "type": "oddletter",
+      "seed": "boss:oddletter:8",
+      "draws": 7,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroOddletter",
+        "hudKey": "bossHudOddletter",
+        "grid": [
+          "E",
+          "Z",
+          "C",
+          "K",
+          "F",
+          "G"
+        ],
+        "gridCols": 3,
+        "badCells": [
+          0
+        ]
+      }
+    },
+    {
+      "type": "oddletter",
+      "seed": "boss:oddletter:9",
+      "draws": 7,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroOddletter",
+        "hudKey": "bossHudOddletter",
+        "grid": [
+          "Q",
+          "A",
+          "P",
+          "K",
+          "K",
+          "Z"
+        ],
+        "gridCols": 3,
+        "badCells": [
+          1
+        ]
+      }
+    },
+    {
+      "type": "oddletter",
+      "seed": "boss:oddletter:10",
+      "draws": 7,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroOddletter",
+        "hudKey": "bossHudOddletter",
+        "grid": [
+          "D",
+          "H",
+          "D",
+          "F",
+          "P",
+          "U"
+        ],
+        "gridCols": 3,
+        "badCells": [
+          5
+        ]
+      }
+    },
+    {
+      "type": "oddletter",
+      "seed": "boss:oddletter:11",
+      "draws": 7,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroOddletter",
+        "hudKey": "bossHudOddletter",
+        "grid": [
+          "G",
+          "M",
+          "K",
+          "I",
+          "V",
+          "P"
+        ],
+        "gridCols": 3,
+        "badCells": [
+          3
+        ]
+      }
+    },
+    {
+      "type": "oddletter",
+      "seed": "boss:oddletter:12",
+      "draws": 7,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroOddletter",
+        "hudKey": "bossHudOddletter",
+        "grid": [
+          "L",
+          "V",
+          "K",
+          "V",
+          "O",
+          "Z"
+        ],
+        "gridCols": 3,
+        "badCells": [
+          4
+        ]
+      }
+    },
+    {
+      "type": "oddletter",
+      "seed": "boss:oddletter:13",
+      "draws": 7,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroOddletter",
+        "hudKey": "bossHudOddletter",
+        "grid": [
+          "P",
+          "F",
+          "E",
+          "J",
+          "F",
+          "P"
+        ],
+        "gridCols": 3,
+        "badCells": [
+          2
+        ]
+      }
+    },
+    {
+      "type": "oddletter",
+      "seed": "boss:oddletter:14",
+      "draws": 7,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroOddletter",
+        "hudKey": "bossHudOddletter",
+        "grid": [
+          "W",
+          "D",
+          "Z",
+          "P",
+          "A",
+          "K"
+        ],
+        "gridCols": 3,
+        "badCells": [
+          4
+        ]
+      }
+    },
+    {
+      "type": "oddletter",
+      "seed": "boss:oddletter:15",
+      "draws": 7,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroOddletter",
+        "hudKey": "bossHudOddletter",
+        "grid": [
+          "X",
+          "S",
+          "V",
+          "R",
+          "N",
+          "E"
+        ],
+        "gridCols": 3,
+        "badCells": [
+          5
+        ]
+      }
+    },
+    {
+      "type": "oddletter",
+      "seed": "boss:oddletter:16",
+      "draws": 7,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroOddletter",
+        "hudKey": "bossHudOddletter",
+        "grid": [
+          "N",
+          "Z",
+          "G",
+          "H",
+          "R",
+          "U"
+        ],
+        "gridCols": 3,
+        "badCells": [
+          5
+        ]
+      }
+    },
+    {
+      "type": "oddletter",
+      "seed": "boss:oddletter:17",
+      "draws": 7,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroOddletter",
+        "hudKey": "bossHudOddletter",
+        "grid": [
+          "W",
+          "X",
+          "O",
+          "H",
+          "Q",
+          "Q"
+        ],
+        "gridCols": 3,
+        "badCells": [
+          2
+        ]
+      }
+    },
+    {
+      "type": "oddletter",
+      "seed": "boss:oddletter:18",
+      "draws": 7,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroOddletter",
+        "hudKey": "bossHudOddletter",
+        "grid": [
+          "D",
+          "L",
+          "F",
+          "P",
+          "U",
+          "P"
+        ],
+        "gridCols": 3,
+        "badCells": [
+          4
+        ]
+      }
+    },
+    {
+      "type": "oddletter",
+      "seed": "boss:oddletter:19",
+      "draws": 7,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroOddletter",
+        "hudKey": "bossHudOddletter",
+        "grid": [
+          "B",
+          "X",
+          "R",
+          "V",
+          "A",
+          "L"
+        ],
+        "gridCols": 3,
+        "badCells": [
+          4
+        ]
+      }
+    },
+    {
+      "type": "oddletter",
+      "seed": "boss:oddletter:20",
+      "draws": 7,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroOddletter",
+        "hudKey": "bossHudOddletter",
+        "grid": [
+          "N",
+          "H",
+          "T",
+          "M",
+          "I",
+          "V"
+        ],
+        "gridCols": 3,
+        "badCells": [
+          4
+        ]
+      }
+    },
+    {
+      "type": "oddletter",
+      "seed": "boss:oddletter:21",
+      "draws": 7,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroOddletter",
+        "hudKey": "bossHudOddletter",
+        "grid": [
+          "H",
+          "C",
+          "T",
+          "W",
+          "B",
+          "A"
+        ],
+        "gridCols": 3,
+        "badCells": [
+          5
+        ]
+      }
+    },
+    {
+      "type": "oddletter",
+      "seed": "boss:oddletter:22",
+      "draws": 7,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroOddletter",
+        "hudKey": "bossHudOddletter",
+        "grid": [
+          "Z",
+          "K",
+          "U",
+          "D",
+          "W",
+          "N"
+        ],
+        "gridCols": 3,
+        "badCells": [
+          2
+        ]
+      }
+    },
+    {
+      "type": "oddletter",
+      "seed": "boss:oddletter:23",
+      "draws": 7,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroOddletter",
+        "hudKey": "bossHudOddletter",
+        "grid": [
+          "O",
+          "P",
+          "V",
+          "M",
+          "G",
+          "B"
+        ],
+        "gridCols": 3,
+        "badCells": [
+          0
+        ]
+      }
+    },
+    {
+      "type": "oddletter",
+      "seed": "boss:oddletter:24",
+      "draws": 7,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroOddletter",
+        "hudKey": "bossHudOddletter",
+        "grid": [
+          "N",
+          "F",
+          "G",
+          "X",
+          "F",
+          "U"
+        ],
+        "gridCols": 3,
+        "badCells": [
+          5
+        ]
+      }
+    },
+    {
+      "type": "oddletter",
+      "seed": "boss:oddletter:25",
+      "draws": 7,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroOddletter",
+        "hudKey": "bossHudOddletter",
+        "grid": [
+          "C",
+          "O",
+          "X",
+          "X",
+          "V",
+          "C"
+        ],
+        "gridCols": 3,
+        "badCells": [
+          1
+        ]
+      }
+    },
+    {
+      "type": "oddletter",
+      "seed": "boss:oddletter:26",
+      "draws": 7,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroOddletter",
+        "hudKey": "bossHudOddletter",
+        "grid": [
+          "T",
+          "E",
+          "N",
+          "W",
+          "S",
+          "C"
+        ],
+        "gridCols": 3,
+        "badCells": [
+          1
+        ]
+      }
+    },
+    {
+      "type": "oddletter",
+      "seed": "boss:oddletter:27",
+      "draws": 7,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroOddletter",
+        "hudKey": "bossHudOddletter",
+        "grid": [
+          "C",
+          "M",
+          "P",
+          "A",
+          "Z",
+          "D"
+        ],
+        "gridCols": 3,
+        "badCells": [
+          3
+        ]
+      }
+    },
+    {
+      "type": "oddletter",
+      "seed": "boss:oddletter:28",
+      "draws": 7,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroOddletter",
+        "hudKey": "bossHudOddletter",
+        "grid": [
+          "K",
+          "L",
+          "Q",
+          "E",
+          "X",
+          "S"
+        ],
+        "gridCols": 3,
+        "badCells": [
+          3
+        ]
+      }
+    },
+    {
+      "type": "oddletter",
+      "seed": "boss:oddletter:29",
+      "draws": 7,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroOddletter",
+        "hudKey": "bossHudOddletter",
+        "grid": [
+          "B",
+          "I",
+          "Z",
+          "V",
+          "R",
+          "P"
+        ],
+        "gridCols": 3,
+        "badCells": [
+          1
+        ]
+      }
+    },
+    {
+      "type": "oddletter",
+      "seed": "boss:oddletter:30",
+      "draws": 7,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroOddletter",
+        "hudKey": "bossHudOddletter",
+        "grid": [
+          "Q",
+          "R",
+          "Z",
+          "B",
+          "X",
+          "I"
+        ],
+        "gridCols": 3,
+        "badCells": [
+          5
+        ]
+      }
+    },
+    {
+      "type": "oddletter",
+      "seed": "boss:oddletter:31",
+      "draws": 7,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroOddletter",
+        "hudKey": "bossHudOddletter",
+        "grid": [
+          "J",
+          "Q",
+          "R",
+          "Z",
+          "J",
+          "I"
+        ],
+        "gridCols": 3,
+        "badCells": [
+          5
+        ]
+      }
+    },
+    {
+      "type": "oddletter",
+      "seed": "boss:oddletter:32",
+      "draws": 7,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroOddletter",
+        "hudKey": "bossHudOddletter",
+        "grid": [
+          "C",
+          "N",
+          "K",
+          "U",
+          "L",
+          "C"
+        ],
+        "gridCols": 3,
+        "badCells": [
+          3
+        ]
+      }
+    },
+    {
+      "type": "oddletter",
+      "seed": "boss:oddletter:33",
+      "draws": 7,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroOddletter",
+        "hudKey": "bossHudOddletter",
+        "grid": [
+          "A",
+          "H",
+          "J",
+          "V",
+          "L",
+          "J"
+        ],
+        "gridCols": 3,
+        "badCells": [
+          0
+        ]
+      }
+    },
+    {
+      "type": "oddletter",
+      "seed": "boss:oddletter:34",
+      "draws": 7,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroOddletter",
+        "hudKey": "bossHudOddletter",
+        "grid": [
+          "L",
+          "B",
+          "Z",
+          "B",
+          "X",
+          "O"
+        ],
+        "gridCols": 3,
+        "badCells": [
+          5
+        ]
+      }
+    },
+    {
+      "type": "oddletter",
+      "seed": "boss:oddletter:35",
+      "draws": 7,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroOddletter",
+        "hudKey": "bossHudOddletter",
+        "grid": [
+          "B",
+          "M",
+          "A",
+          "C",
+          "R",
+          "T"
+        ],
+        "gridCols": 3,
+        "badCells": [
+          2
+        ]
+      }
+    },
+    {
+      "type": "oddletter",
+      "seed": "boss:oddletter:36",
+      "draws": 7,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroOddletter",
+        "hudKey": "bossHudOddletter",
+        "grid": [
+          "R",
+          "W",
+          "F",
+          "L",
+          "N",
+          "O"
+        ],
+        "gridCols": 3,
+        "badCells": [
+          5
+        ]
+      }
+    },
+    {
+      "type": "oddletter",
+      "seed": "boss:oddletter:37",
+      "draws": 7,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroOddletter",
+        "hudKey": "bossHudOddletter",
+        "grid": [
+          "X",
+          "J",
+          "G",
+          "N",
+          "W",
+          "A"
+        ],
+        "gridCols": 3,
+        "badCells": [
+          5
+        ]
+      }
+    },
+    {
+      "type": "oddletter",
+      "seed": "boss:oddletter:38",
+      "draws": 7,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroOddletter",
+        "hudKey": "bossHudOddletter",
+        "grid": [
+          "G",
+          "L",
+          "G",
+          "O",
+          "R",
+          "M"
+        ],
+        "gridCols": 3,
+        "badCells": [
+          3
+        ]
+      }
+    },
+    {
+      "type": "oddletter",
+      "seed": "boss:oddletter:39",
+      "draws": 7,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroOddletter",
+        "hudKey": "bossHudOddletter",
+        "grid": [
+          "V",
+          "Z",
+          "X",
+          "R",
+          "O",
+          "M"
+        ],
+        "gridCols": 3,
+        "badCells": [
+          4
+        ]
+      }
+    },
+    {
+      "type": "gonogo",
+      "seed": "boss:gonogo:0",
+      "draws": 7,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroGonogo",
+        "hudKey": "bossHudGonogo",
+        "grid": [
+          "🟡",
+          "🟢",
+          "🔵",
+          "🟣",
+          "🟡",
+          "🔴"
+        ],
+        "gridCols": 3,
+        "badCells": [
+          1
+        ]
+      }
+    },
+    {
+      "type": "gonogo",
+      "seed": "boss:gonogo:1",
+      "draws": 7,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroGonogo",
+        "hudKey": "bossHudGonogo",
+        "grid": [
+          "🟣",
+          "🟢",
+          "🔴",
+          "🟡",
+          "🟡",
+          "🟣"
+        ],
+        "gridCols": 3,
+        "badCells": [
+          1
+        ]
+      }
+    },
+    {
+      "type": "gonogo",
+      "seed": "boss:gonogo:2",
+      "draws": 7,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroGonogo",
+        "hudKey": "bossHudGonogo",
+        "grid": [
+          "🔵",
+          "🔴",
+          "🟡",
+          "🔴",
+          "🔴",
+          "🟢"
+        ],
+        "gridCols": 3,
+        "badCells": [
+          5
+        ]
+      }
+    },
+    {
+      "type": "gonogo",
+      "seed": "boss:gonogo:3",
+      "draws": 7,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroGonogo",
+        "hudKey": "bossHudGonogo",
+        "grid": [
+          "🟢",
+          "🔵",
+          "🔵",
+          "🔵",
+          "🟡",
+          "🔵"
+        ],
+        "gridCols": 3,
+        "badCells": [
+          0
+        ]
+      }
+    },
+    {
+      "type": "gonogo",
+      "seed": "boss:gonogo:4",
+      "draws": 7,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroGonogo",
+        "hudKey": "bossHudGonogo",
+        "grid": [
+          "🔵",
+          "🔵",
+          "🔵",
+          "🟢",
+          "🟠",
+          "🟣"
+        ],
+        "gridCols": 3,
+        "badCells": [
+          3
+        ]
+      }
+    },
+    {
+      "type": "gonogo",
+      "seed": "boss:gonogo:5",
+      "draws": 7,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroGonogo",
+        "hudKey": "bossHudGonogo",
+        "grid": [
+          "🔵",
+          "🔵",
+          "🔵",
+          "🟣",
+          "🔴",
+          "🟢"
+        ],
+        "gridCols": 3,
+        "badCells": [
+          5
+        ]
+      }
+    },
+    {
+      "type": "gonogo",
+      "seed": "boss:gonogo:6",
+      "draws": 7,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroGonogo",
+        "hudKey": "bossHudGonogo",
+        "grid": [
+          "🔵",
+          "🔴",
+          "🔵",
+          "🟠",
+          "🟢",
+          "🟡"
+        ],
+        "gridCols": 3,
+        "badCells": [
+          4
+        ]
+      }
+    },
+    {
+      "type": "gonogo",
+      "seed": "boss:gonogo:7",
+      "draws": 7,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroGonogo",
+        "hudKey": "bossHudGonogo",
+        "grid": [
+          "🔴",
+          "🔴",
+          "🟡",
+          "🔴",
+          "🔴",
+          "🟢"
+        ],
+        "gridCols": 3,
+        "badCells": [
+          5
+        ]
+      }
+    },
+    {
+      "type": "gonogo",
+      "seed": "boss:gonogo:8",
+      "draws": 7,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroGonogo",
+        "hudKey": "bossHudGonogo",
+        "grid": [
+          "🟡",
+          "🔴",
+          "🟢",
+          "🟣",
+          "🟣",
+          "🔴"
+        ],
+        "gridCols": 3,
+        "badCells": [
+          2
+        ]
+      }
+    },
+    {
+      "type": "gonogo",
+      "seed": "boss:gonogo:9",
+      "draws": 7,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroGonogo",
+        "hudKey": "bossHudGonogo",
+        "grid": [
+          "🟢",
+          "🔴",
+          "🟠",
+          "🟠",
+          "🟡",
+          "🔵"
+        ],
+        "gridCols": 3,
+        "badCells": [
+          0
+        ]
+      }
+    },
+    {
+      "type": "gonogo",
+      "seed": "boss:gonogo:10",
+      "draws": 7,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroGonogo",
+        "hudKey": "bossHudGonogo",
+        "grid": [
+          "🔴",
+          "🟠",
+          "🔴",
+          "🔵",
+          "🟡",
+          "🟢"
+        ],
+        "gridCols": 3,
+        "badCells": [
+          5
+        ]
+      }
+    },
+    {
+      "type": "gonogo",
+      "seed": "boss:gonogo:11",
+      "draws": 7,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroGonogo",
+        "hudKey": "bossHudGonogo",
+        "grid": [
+          "🔵",
+          "🔵",
+          "🔵",
+          "🟢",
+          "🔴",
+          "🟠"
+        ],
+        "gridCols": 3,
+        "badCells": [
+          3
+        ]
+      }
+    },
+    {
+      "type": "gonogo",
+      "seed": "boss:gonogo:12",
+      "draws": 7,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroGonogo",
+        "hudKey": "bossHudGonogo",
+        "grid": [
+          "🟡",
+          "🟠",
+          "🟢",
+          "🟡",
+          "🟠",
+          "🟡"
+        ],
+        "gridCols": 3,
+        "badCells": [
+          2
+        ]
+      }
+    },
+    {
+      "type": "gonogo",
+      "seed": "boss:gonogo:13",
+      "draws": 7,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroGonogo",
+        "hudKey": "bossHudGonogo",
+        "grid": [
+          "🟢",
+          "🔵",
+          "🟠",
+          "🟠",
+          "🔴",
+          "🟠"
+        ],
+        "gridCols": 3,
+        "badCells": [
+          0
+        ]
+      }
+    },
+    {
+      "type": "gonogo",
+      "seed": "boss:gonogo:14",
+      "draws": 7,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroGonogo",
+        "hudKey": "bossHudGonogo",
+        "grid": [
+          "🟢",
+          "🟡",
+          "🟣",
+          "🔵",
+          "🟡",
+          "🟡"
+        ],
+        "gridCols": 3,
+        "badCells": [
+          0
+        ]
+      }
+    },
+    {
+      "type": "gonogo",
+      "seed": "boss:gonogo:15",
+      "draws": 7,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroGonogo",
+        "hudKey": "bossHudGonogo",
+        "grid": [
+          "🔵",
+          "🟢",
+          "🔴",
+          "🔴",
+          "🟠",
+          "🟡"
+        ],
+        "gridCols": 3,
+        "badCells": [
+          1
+        ]
+      }
+    },
+    {
+      "type": "gonogo",
+      "seed": "boss:gonogo:16",
+      "draws": 7,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroGonogo",
+        "hudKey": "bossHudGonogo",
+        "grid": [
+          "🟣",
+          "🔴",
+          "🔴",
+          "🟡",
+          "🟢",
+          "🟡"
+        ],
+        "gridCols": 3,
+        "badCells": [
+          4
+        ]
+      }
+    },
+    {
+      "type": "gonogo",
+      "seed": "boss:gonogo:17",
+      "draws": 7,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroGonogo",
+        "hudKey": "bossHudGonogo",
+        "grid": [
+          "🔵",
+          "🟣",
+          "🔵",
+          "🟢",
+          "🔴",
+          "🔴"
+        ],
+        "gridCols": 3,
+        "badCells": [
+          3
+        ]
+      }
+    },
+    {
+      "type": "gonogo",
+      "seed": "boss:gonogo:18",
+      "draws": 7,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroGonogo",
+        "hudKey": "bossHudGonogo",
+        "grid": [
+          "🟠",
+          "🟣",
+          "🟡",
+          "🟣",
+          "🟠",
+          "🟢"
+        ],
+        "gridCols": 3,
+        "badCells": [
+          5
+        ]
+      }
+    },
+    {
+      "type": "gonogo",
+      "seed": "boss:gonogo:19",
+      "draws": 7,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroGonogo",
+        "hudKey": "bossHudGonogo",
+        "grid": [
+          "🟣",
+          "🔴",
+          "🔴",
+          "🟠",
+          "🔴",
+          "🟢"
+        ],
+        "gridCols": 3,
+        "badCells": [
+          5
+        ]
+      }
+    },
+    {
+      "type": "gonogo",
+      "seed": "boss:gonogo:20",
+      "draws": 7,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroGonogo",
+        "hudKey": "bossHudGonogo",
+        "grid": [
+          "🔵",
+          "🟡",
+          "🟢",
+          "🟣",
+          "🔴",
+          "🔵"
+        ],
+        "gridCols": 3,
+        "badCells": [
+          2
+        ]
+      }
+    },
+    {
+      "type": "gonogo",
+      "seed": "boss:gonogo:21",
+      "draws": 7,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroGonogo",
+        "hudKey": "bossHudGonogo",
+        "grid": [
+          "🟡",
+          "🟠",
+          "🟡",
+          "🟡",
+          "🟢",
+          "🟣"
+        ],
+        "gridCols": 3,
+        "badCells": [
+          4
+        ]
+      }
+    },
+    {
+      "type": "gonogo",
+      "seed": "boss:gonogo:22",
+      "draws": 7,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroGonogo",
+        "hudKey": "bossHudGonogo",
+        "grid": [
+          "🟠",
+          "🟡",
+          "🟢",
+          "🔵",
+          "🟠",
+          "🟡"
+        ],
+        "gridCols": 3,
+        "badCells": [
+          2
+        ]
+      }
+    },
+    {
+      "type": "gonogo",
+      "seed": "boss:gonogo:23",
+      "draws": 7,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroGonogo",
+        "hudKey": "bossHudGonogo",
+        "grid": [
+          "🔵",
+          "🟠",
+          "🟣",
+          "🟡",
+          "🟡",
+          "🟢"
+        ],
+        "gridCols": 3,
+        "badCells": [
+          5
+        ]
+      }
+    },
+    {
+      "type": "gonogo",
+      "seed": "boss:gonogo:24",
+      "draws": 7,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroGonogo",
+        "hudKey": "bossHudGonogo",
+        "grid": [
+          "🟠",
+          "🟣",
+          "🟢",
+          "🟣",
+          "🔵",
+          "🔵"
+        ],
+        "gridCols": 3,
+        "badCells": [
+          2
+        ]
+      }
+    },
+    {
+      "type": "gonogo",
+      "seed": "boss:gonogo:25",
+      "draws": 7,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroGonogo",
+        "hudKey": "bossHudGonogo",
+        "grid": [
+          "🔴",
+          "🟠",
+          "🟢",
+          "🔵",
+          "🔵",
+          "🟣"
+        ],
+        "gridCols": 3,
+        "badCells": [
+          2
+        ]
+      }
+    },
+    {
+      "type": "gonogo",
+      "seed": "boss:gonogo:26",
+      "draws": 7,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroGonogo",
+        "hudKey": "bossHudGonogo",
+        "grid": [
+          "🔵",
+          "🟡",
+          "🟣",
+          "🟢",
+          "🔴",
+          "🔵"
+        ],
+        "gridCols": 3,
+        "badCells": [
+          3
+        ]
+      }
+    },
+    {
+      "type": "gonogo",
+      "seed": "boss:gonogo:27",
+      "draws": 7,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroGonogo",
+        "hudKey": "bossHudGonogo",
+        "grid": [
+          "🟠",
+          "🟣",
+          "🟡",
+          "🟢",
+          "🟡",
+          "🔴"
+        ],
+        "gridCols": 3,
+        "badCells": [
+          3
+        ]
+      }
+    },
+    {
+      "type": "gonogo",
+      "seed": "boss:gonogo:28",
+      "draws": 7,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroGonogo",
+        "hudKey": "bossHudGonogo",
+        "grid": [
+          "🟣",
+          "🔴",
+          "🟡",
+          "🟣",
+          "🟢",
+          "🔵"
+        ],
+        "gridCols": 3,
+        "badCells": [
+          4
+        ]
+      }
+    },
+    {
+      "type": "gonogo",
+      "seed": "boss:gonogo:29",
+      "draws": 7,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroGonogo",
+        "hudKey": "bossHudGonogo",
+        "grid": [
+          "🟠",
+          "🟣",
+          "🔴",
+          "🟢",
+          "🟣",
+          "🟣"
+        ],
+        "gridCols": 3,
+        "badCells": [
+          3
+        ]
+      }
+    },
+    {
+      "type": "gonogo",
+      "seed": "boss:gonogo:30",
+      "draws": 7,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroGonogo",
+        "hudKey": "bossHudGonogo",
+        "grid": [
+          "🟢",
+          "🟡",
+          "🟡",
+          "🟣",
+          "🟣",
+          "🔵"
+        ],
+        "gridCols": 3,
+        "badCells": [
+          0
+        ]
+      }
+    },
+    {
+      "type": "gonogo",
+      "seed": "boss:gonogo:31",
+      "draws": 7,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroGonogo",
+        "hudKey": "bossHudGonogo",
+        "grid": [
+          "🟢",
+          "🟡",
+          "🔵",
+          "🔵",
+          "🟠",
+          "🟣"
+        ],
+        "gridCols": 3,
+        "badCells": [
+          0
+        ]
+      }
+    },
+    {
+      "type": "gonogo",
+      "seed": "boss:gonogo:32",
+      "draws": 7,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroGonogo",
+        "hudKey": "bossHudGonogo",
+        "grid": [
+          "🔴",
+          "🟡",
+          "🟣",
+          "🔵",
+          "🔴",
+          "🟢"
+        ],
+        "gridCols": 3,
+        "badCells": [
+          5
+        ]
+      }
+    },
+    {
+      "type": "gonogo",
+      "seed": "boss:gonogo:33",
+      "draws": 7,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroGonogo",
+        "hudKey": "bossHudGonogo",
+        "grid": [
+          "🔵",
+          "🟡",
+          "🟠",
+          "🟢",
+          "🔵",
+          "🔵"
+        ],
+        "gridCols": 3,
+        "badCells": [
+          3
+        ]
+      }
+    },
+    {
+      "type": "gonogo",
+      "seed": "boss:gonogo:34",
+      "draws": 7,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroGonogo",
+        "hudKey": "bossHudGonogo",
+        "grid": [
+          "🟣",
+          "🟡",
+          "🔵",
+          "🔴",
+          "🔵",
+          "🟢"
+        ],
+        "gridCols": 3,
+        "badCells": [
+          5
+        ]
+      }
+    },
+    {
+      "type": "gonogo",
+      "seed": "boss:gonogo:35",
+      "draws": 7,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroGonogo",
+        "hudKey": "bossHudGonogo",
+        "grid": [
+          "🟢",
+          "🔵",
+          "🟣",
+          "🟣",
+          "🔴",
+          "🟠"
+        ],
+        "gridCols": 3,
+        "badCells": [
+          0
+        ]
+      }
+    },
+    {
+      "type": "gonogo",
+      "seed": "boss:gonogo:36",
+      "draws": 7,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroGonogo",
+        "hudKey": "bossHudGonogo",
+        "grid": [
+          "🟡",
+          "🟡",
+          "🟡",
+          "🟡",
+          "🟠",
+          "🟢"
+        ],
+        "gridCols": 3,
+        "badCells": [
+          5
+        ]
+      }
+    },
+    {
+      "type": "gonogo",
+      "seed": "boss:gonogo:37",
+      "draws": 7,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroGonogo",
+        "hudKey": "bossHudGonogo",
+        "grid": [
+          "🟢",
+          "🟡",
+          "🟡",
+          "🔵",
+          "🟡",
+          "🟡"
+        ],
+        "gridCols": 3,
+        "badCells": [
+          0
+        ]
+      }
+    },
+    {
+      "type": "gonogo",
+      "seed": "boss:gonogo:38",
+      "draws": 7,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroGonogo",
+        "hudKey": "bossHudGonogo",
+        "grid": [
+          "🟢",
+          "🔴",
+          "🟡",
+          "🔴",
+          "🟠",
+          "🔵"
+        ],
+        "gridCols": 3,
+        "badCells": [
+          0
+        ]
+      }
+    },
+    {
+      "type": "gonogo",
+      "seed": "boss:gonogo:39",
+      "draws": 7,
+      "task": {
+        "kind": "tapcell",
+        "introKey": "bossIntroGonogo",
+        "hudKey": "bossHudGonogo",
+        "grid": [
+          "🔴",
+          "🟢",
+          "🟣",
+          "🔴",
+          "🟣",
+          "🔴"
+        ],
+        "gridCols": 3,
+        "badCells": [
+          1
+        ]
+      }
+    }
+  ]
+}
