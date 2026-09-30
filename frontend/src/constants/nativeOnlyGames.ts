@@ -33,6 +33,8 @@ export const NATIVE_ONLY_GAMES: readonly NativeOnlyGame[] = [
   { route: '/games/monster-traits', nameKey: 'monsterTraits', descKey: 'monsterTraitsDesc' },
   // MindLab «Найди» (kids/find.py) — раздел «Поиск», задача c8a2783f.
   { route: '/games/kids-find', nameKey: 'kidsFind', descKey: 'kidsFindDesc' },
+  // MindLab «Подлодки» (submarinos/sea.py) — раздел «Поиск», задача c8a2783f.
+  { route: '/games/submarines', nameKey: 'submarines', descKey: 'submarinesDesc' },
   { route: '/games/roll-and-bank', nameKey: 'rollAndBank', descKey: 'rollAndBankDesc' },
   { route: '/games/hidden-character', nameKey: 'hiddenCharacter', descKey: 'hiddenCharacterDesc' },
 ];

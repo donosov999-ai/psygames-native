@@ -121,6 +121,7 @@ IconData hubIcon(String name) {
     'happy': Icons.sentiment_satisfied_alt_outlined,
     'dice': Icons.casino_outlined,
     'eye-off': Icons.visibility_off_outlined,
+    'boat': Icons.directions_boat_outlined,
   };
   return map[name] ?? Icons.extension_outlined;
 }

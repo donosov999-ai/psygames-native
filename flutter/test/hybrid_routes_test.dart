@@ -304,6 +304,7 @@ void main() {
       '/games/traffic-jam',
       '/games/monster-traits',
       '/games/kids-find',
+      '/games/submarines',
       '/games/roll-and-bank',
       '/games/hidden-character',
       '/games/mahjong',

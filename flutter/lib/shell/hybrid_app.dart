@@ -26,6 +26,7 @@ import '../games/targets/screen.dart';
 import '../games/dots_connect/screen.dart';
 import '../games/memory_matrix/screen.dart';
 import '../games/stroop/screen.dart';
+import '../games/submarines/screen.dart';
 import '../games/one_line/screen.dart';
 import '../games/anagrams/screen.dart';
 import '../games/anagrams/all_words_screen.dart';
@@ -214,6 +215,8 @@ class HybridApp extends StatefulWidget {
       '/games/monster-traits': (s) => MonsterTraitsScreen(state: s),
       // MindLab «Найди» (kids/find.py) — раздел «Поиск», задача c8a2783f: только нативная.
       '/games/kids-find': (s) => KidsFindScreen(state: s),
+      // MindLab «Подлодки» (submarinos/sea.py) — раздел «Поиск», задача c8a2783f: только нативная.
+      '/games/submarines': (s) => SubmarinesScreen(state: s),
       '/games/roll-and-bank': (s) => RollAndBankScreen(state: s),
       '/games/hidden-character': (s) => HiddenCharacterScreen(state: s),
         /*

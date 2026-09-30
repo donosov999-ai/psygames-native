@@ -29,6 +29,7 @@ import 'package:psygames_flutter/games/quick_count/screen.dart';
 import 'package:psygames_flutter/games/schulte/screen.dart';
 import 'package:psygames_flutter/games/sdmt/screen.dart';
 import 'package:psygames_flutter/games/set_game/screen.dart';
+import 'package:psygames_flutter/games/submarines/screen.dart';
 import 'package:psygames_flutter/games/visual_search/screen.dart';
 import 'dart:math' as math;
 
@@ -56,6 +57,8 @@ final screens = <String, ({String levelKey, int level, Widget Function(SharedSta
   'зрительный поиск': (levelKey: 'visual_search', level: 25, build: (s) => VisualSearchScreen(state: s, rnd: createRng('гейт'))),
   // L22: поле 8×8 и время на доску.
   'найди другую': (levelKey: 'kids_find', level: 22, build: (s) => KidsFindScreen(state: s, seed: 1)),
+  // L9: поле 10×10 и стандартный флот.
+  'подлодки': (levelKey: 'submarines', level: 9, build: (s) => SubmarinesScreen(state: s, seed: 1)),
 };
 
 /// Все нарисованные коробки под полем — в мировых точках.
