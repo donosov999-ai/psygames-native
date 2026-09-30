@@ -25,7 +25,6 @@ const КАТАЛОГ = path.join(__dirname, '../../app/games');
 const РЕЖИМЫ: string[] = JSON.parse(fs.readFileSync(path.join(__dirname, 'tatham-tables.generated.json'), 'utf8')).режимы;
 
 const СПАН = 'psygames-span-claude-mac';
-const ПАМЯТЬ_СЛУХ = 'psygames-memory-hearing-claude-mac';
 const ШАХМАТЫ = 'psygames-chess-claude-mac';
 const ВНИМАНИЕ = 'psygames-attention-claude-mac';
 const ПОИСК = 'psygames-search-claude-mac';
@@ -50,9 +49,6 @@ const БЕЗ_РАЗБОРА: Record<string, string> = {
 const ЖДУТ_ЭКРАНЫ: Record<string, string> = {
   corsi: СПАН, 'digit-span': СПАН, 'listening-span': СПАН, 'memory-matrix': СПАН, 'n-back': СПАН,
   'picture-pairs': СПАН, 'reading-span': СПАН, 'spatial-span': СПАН,
-  rmet: ПАМЯТЬ_СЛУХ,
-  'chinese-tones': ПАМЯТЬ_СЛУХ, 'phoneme-pairs': ПАМЯТЬ_СЛУХ,
-  'pseudoword-echo': ПАМЯТЬ_СЛУХ, 'rhythm-pitch': ПАМЯТЬ_СЛУХ,
   'chess-blind': ШАХМАТЫ, 'scholars-mate': ШАХМАТЫ,
   ant: ВНИМАНИЕ, bart: ВНИМАНИЕ, 'choice-rt': ВНИМАНИЕ, cpt: ВНИМАНИЕ, flanker: ВНИМАНИЕ, 'go-no-go': ВНИМАНИЕ,
   inhibition: ВНИМАНИЕ, iowa: ВНИМАНИЕ, posner: ВНИМАНИЕ, prl: ВНИМАНИЕ, proofreading: ВНИМАНИЕ, simon: ВНИМАНИЕ,
