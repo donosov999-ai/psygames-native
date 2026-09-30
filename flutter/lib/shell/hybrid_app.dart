@@ -208,6 +208,19 @@ class HybridApp extends StatefulWidget {
         '/games/memory-palace': (s) => MemoryPalaceScreen(state: s),
         '/games/rmet': (s) => RmetScreen(state: s),
         '/games/ant': (s) => AntScreen(state: s),
+        // РАЗВИЛКА «КОНФЛИКТ ВНИМАНИЯ» — НА ОБЩЕМ ЭКРАНЕ, СВОЕГО НЕ ПИШЕМ. Девять
+        // карточек уже лежат в `assets/hubs.json` (выгружены из hubContents.ts),
+        // заголовок — там же в `meta`, подписи — в словарях. Своя копия списка стала
+        // бы вторым реестром и отстала бы молча. Все девять карточек ведут на
+        // нативные экраны: раздел перенесён целиком. Градиент — как в вебе
+        // (`attention-conflict.tsx`, GRADIENT).
+        '/games/attention-conflict': (s) => HubScreen(
+              state: s,
+              hubRoute: '/games/attention-conflict',
+              icon: Icons.psychology_alt,
+              gradient: const [Color(0xFF7C3AED), Color(0xFFEC4899)],
+              isNative: native.containsKey,
+            ),
         '/games/iowa': (s) => IowaScreen(state: s),
         '/games/prl': (s) => PrlScreen(state: s),
         '/games/bart': (s) => BartScreen(state: s),
