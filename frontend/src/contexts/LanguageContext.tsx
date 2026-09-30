@@ -908,6 +908,17 @@ const translations: Translations = {
   skillListening: { ru: 'Тренируем: восприятие на слух', en: 'Training: listening' },
   phonemePairs: { ru: 'Фонемы: минимальные пары', en: 'Phonemes: Minimal Pairs' },
   phonemePairsDesc: { ru: 'Услышь разницу: ship или sheep?', en: 'Hear the difference: ship or sheep?' },
+  /*
+   * 🎓 РАЗБОР «ФОНЕМНЫХ ПАР» (30.09.2026): узнать, где пара расходится, и слушать только это место.
+   * {da}/{db} — место расхождения по написанию (ru/es/pt) или по пиньиню (zh); у en/de — гласный.
+   */
+  teachPhIntro: { ru: 'В паре слова различаются ОДНИМ звуком. Узнайте, где они расходятся, и слушайте только это место — остальное у них общее.', en: 'The two words differ in ONE sound. Find where they split and listen only to that spot — the rest is shared.' },
+  teachPhSpot: { ru: '«{a}» и «{b}» расходятся в одном месте: {da} против {db}. Послушайте оба.', en: '“{a}” and “{b}” split in one spot: {da} versus {db}. Listen to both.' },
+  teachPhVowel: { ru: '«{a}» и «{b}» различаются только гласным в середине слова, а написание здесь подсказывает плохо. Послушайте оба.', en: '“{a}” and “{b}” differ only in the vowel in the middle, and the spelling is a poor guide here. Listen to both.' },
+  teachPhProbe: { ru: 'Сейчас прозвучит одно из двух. Слушайте только место различия.', en: 'Now you will hear one of the two. Listen only to the spot where they differ.' },
+  teachPhAnswerSpot: { ru: 'Прозвучало «{w}» — в месте различия было {dx}.', en: 'That was “{w}” — the differing spot had {dx}.' },
+  teachPhAnswerVowel: { ru: 'Прозвучало «{w}» — различие было в гласном.', en: 'That was “{w}” — the difference was in the vowel.' },
+  teachPhDone: { ru: 'Так и отвечайте: знаете, где пара расходится, — слушаете только это место.', en: 'Answer the same way: know where the pair splits, and listen only to that spot.' },
   pseudowordEcho: { ru: 'Эхо: псевдослова', en: 'Echo: Pseudowords' },
   pseudowordEchoDesc: { ru: 'Услышал выдуманное слово — найди его написание', en: 'Hear a made-up word — pick its spelling' },
   /*
@@ -1075,6 +1086,14 @@ const translations: Translations = {
   teachPrlNoise: { ru: 'Одна неудача — ещё не смена правила: даже верный цвет иногда не даёт очков. Переключайтесь после двух-трёх неудач подряд, а не после первой.', en: 'One failure is not a rule change: even the right colour sometimes pays nothing. Switch after two or three failures in a row, not after the first.' },
   teachRmetEyes: { ru: 'Смотрите на ГЛАЗА — веки, брови, направление взгляда, — а не на «лицо вообще». Варианты близки по смыслу нарочно, поэтому сравнивайте их между собой, а не с первым впечатлением.', en: 'Look at the EYES — lids, brows, direction of gaze — not at “the face” in general. The options are deliberately close in meaning, so compare them with each other rather than with your first impression.' },
   /*
+   * 🎓 РАЗБОР «ПРОЧТИ ЭМОЦИЮ» (веб, 30.09.2026): признаки глаз → сравнение с соседними словами →
+   * выбор. Слова и признаки подставляет экран из пунктов самой игры (ITEMS: hint, correct).
+   */
+  teachRmetCues: { ru: 'Сначала глаза, слова потом. Что видно здесь: {hint}.', en: 'Eyes first, words later. What you can see here: {hint}.' },
+  teachRmetCompare: { ru: '«{word}» выглядел бы так: {cues}. Сравните с этими глазами.', en: '“{word}” would look like this: {cues}. Compare it with these eyes.' },
+  teachRmetPick: { ru: 'К признакам «{hint}» ближе всего «{word}» — это и ответ.', en: 'The cues “{hint}” fit “{word}” best — that is the answer.' },
+  teachRmetDone: { ru: 'Так и отвечайте: признаки глаз → сравнение с соседними словами → выбор того, что ближе к признакам.', en: 'Answer the same way: read the eye cues → compare with the neighbouring words → pick the one closest to the cues.' },
+  /*
    * 🎓 РАЗБОР ИГР НА ОБЪЁМ, СЧЁТ И ПОИСК. Верный ответ человек и так видит по итогу раунда —
    * учить надо ПРИЁМУ, которым объём берётся: группировка, траектория, период, опорная примета.
    */
@@ -1150,7 +1169,7 @@ const translations: Translations = {
    * буквенно-цифровой код для чисел. Слова опор подставляет экран из словаря 00–99.
    */
   teachMnemoIntroWords: { ru: 'Ряд из {n} слов держится не счётом «первое, второе», а ЦЕПОЧКОЙ сцен: каждое следующее слово что-то делает с предыдущим.', en: 'A row of {n} words holds together not by counting “first, second” but by a CHAIN of scenes: each next word does something to the previous one.' },
-  teachMnemoIntroNumbers: { ru: 'Цифры голой памятью не держатся. Приём: число превращается в СЛОВО по согласным, а слова уже связываются в цепочку. Разберём {n} чисел этого ряда.', en: 'Bare digits do not stick. The technique: turn each number into a WORD by its consonants, then chain the words. Let us work through {n} numbers of this row.' },
+  teachMnemoIntroNumbers: { ru: 'Цифры голой памятью не держатся. Приём: число превращается в СЛОВО по согласным, а слова уже связываются в цепочку. Разберём первые {n} — остальные тем же приёмом.', en: 'Bare digits do not stick. The technique: turn each number into a WORD by its consonants, then chain the words. Let us work through the first {n}; the rest go the same way.' },
   teachMnemoIntroNumbersNoPegs: { ru: 'Цифры голой памятью не держатся: связывайте их в сцены по две-три, а не повторяйте подряд. Таблицы опор для этого языка пока нет.', en: 'Bare digits do not stick: bind them into scenes two or three at a time instead of repeating the row. There is no peg table for this language yet.' },
   teachMnemoPegFirst: { ru: '{n} — это «{word}» ({why}). Согласные и дают слово: гласные свободны, поэтому подставляются любые.', en: '{n} is “{word}” ({why}). The consonants make the word: vowels are free, so any of them fit.' },
   teachMnemoPeg: { ru: '{n} — «{word}» ({why}).', en: '{n} — “{word}” ({why}).' },
@@ -2537,6 +2556,15 @@ const translations: Translations = {
   dictationDesc:      { ru: 'Фраза звучит — вы печатаете её целиком', en: 'A phrase is read out — you type it in full' },
   dictationConfigDesc:{ ru: 'Фраза звучит, но на экране её нет. Печатайте по памяти на слух: опечатка не пускает дальше, прослушать можно сколько угодно раз.', en: 'The phrase is spoken but not shown. Type it by ear: a typo blocks the way, and you may replay as often as you like.' },
   dictationTask:      { ru: 'Наберите то, что услышали', en: 'Type what you heard' },
+  /*
+   * 🎓 РАЗБОР «ДИКТАНТА» (30.09.2026): диктовать себе кусками. {c} — кусок фразы уровня по два-три слова
+   * (у китайского — по четыре знака), {i} — его номер.
+   */
+  teachDictIntro: { ru: 'Фразу целиком в голове не удержать — её диктуют себе кусками. Услышали всю, разбили на куски по два-три слова, набираете кусок за куском.', en: 'A whole phrase will not stay in your head — you dictate it to yourself in pieces. Hear it all, split it into pieces of two or three words, type piece by piece.' },
+  teachDictListen: { ru: 'Сначала слушайте фразу целиком, ничего не набирая.', en: 'First listen to the whole phrase without typing anything.' },
+  teachDictChunk: { ru: 'Кусок {i}: «{c}». Проговорите его про себя — и наберите.', en: 'Piece {i}: “{c}”. Say it to yourself — then type it.' },
+  teachDictStuck: { ru: 'Застряли на знаке — переслушайте фразу, а не перебирайте буквы: ввод всё равно стоит, пока знак не верный.', en: 'Stuck on a character? Replay the phrase instead of trying letters: the input will not move until the character is right.' },
+  teachDictDone: { ru: 'Так и пишите: услышали целиком → разбили на куски → диктуете себе кусок за куском.', en: 'Write it the same way: hear it whole → split it into pieces → dictate to yourself piece by piece.' },
   dictationHint:      { ru: 'Ненабранное скрыто точками — это диктант, а не списывание', en: 'Untyped characters stay dotted — this is dictation, not copying' },
   dictationNeedsKeyboard: { ru: 'Нужна настоящая клавиатура: упражнение сводит скорость слуха и набора, а на экранной клавиатуре это другая задача.', en: 'A real keyboard is required: the exercise matches listening speed to typing speed, and on an on-screen keyboard that is a different task.' },
   chineseTones:      { ru: 'Тоны китайского', en: 'Chinese Tones' },
@@ -2546,6 +2574,17 @@ const translations: Translations = {
   ctPickTone:        { ru: 'Какой тон прозвучал?', en: 'Which tone did you hear?' },
   ctPickPinyin:      { ru: 'Какой слог прозвучал?', en: 'Which syllable did you hear?' },
   ctTone:            { ru: 'тон', en: 'tone' },
+  /*
+   * 🎓 РАЗБОР «ТОНОВ КИТАЙСКОГО» (30.09.2026): слушать движение голоса. {zh} {py} — слово из банка
+   * игры, {a}/{b} — пара второго и третьего тона одного слога.
+   */
+  teachZhIntro: { ru: 'Слушайте не слог, а ДВИЖЕНИЕ голоса. Один и тот же слог в четырёх тонах — четыре разных слова.', en: 'Listen not to the syllable but to how the voice MOVES. One syllable in four tones is four different words.' },
+  teachZhTone1: { ru: 'Тон 1 — {zh} {py}: голос ровный и высокий, как протяжная нота.', en: 'Tone 1 — {zh} {py}: the voice stays high and level, like a held note.' },
+  teachZhTone2: { ru: 'Тон 2 — {zh} {py}: голос идёт снизу вверх, как в переспросе «а?».', en: 'Tone 2 — {zh} {py}: the voice rises, as in a puzzled “huh?”.' },
+  teachZhTone3: { ru: 'Тон 3 — {zh} {py}: голос проваливается вниз и немного поднимается — самый низкий из четырёх.', en: 'Tone 3 — {zh} {py}: the voice dips and rises a little — the lowest of the four.' },
+  teachZhTone4: { ru: 'Тон 4 — {zh} {py}: голос резко падает сверху вниз, как в коротком «нет!».', en: 'Tone 4 — {zh} {py}: the voice drops sharply from high to low, like a curt “no!”.' },
+  teachZhPair23: { ru: 'Второй и третий легко спутать: оба кончаются подъёмом. Разница в начале: {a} {pa} сразу идёт вверх, {b} {pb} сначала уходит вниз.', en: 'Tones 2 and 3 are easy to mix up: both end by rising. The difference is at the start: {a} {pa} goes up right away, {b} {pb} first goes down.' },
+  teachZhDone: { ru: 'Так и отвечайте: услышали слог — представьте его линию: ровная, вверх, яма или вниз.', en: 'Answer the same way: hear the syllable, picture its line — level, up, dip or down.' },
   recoWhyBranch:    { ru: 'Этой ветке достаётся меньше всего', en: 'This branch gets the least practice' },
   recoWhyFresh:     { ru: 'Новое в приложении', en: 'New in the app' },
   recoWhyCalm:      { ru: 'Под вечер — без гонки', en: 'For the evening — no rush' },
