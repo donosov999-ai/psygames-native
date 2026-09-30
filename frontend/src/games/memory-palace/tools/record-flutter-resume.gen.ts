@@ -38,9 +38,7 @@ import { makeSeed, restoreFromResume, snapshotForResume } from '../integration';
 
 declare const __dirname: string;
 declare function require(m: string): any;
-// eslint-disable-next-line @typescript-eslint/no-require-imports
 const { mkdirSync, writeFileSync } = require('fs');
-// eslint-disable-next-line @typescript-eslint/no-require-imports
 const { dirname, join } = require('path');
 const ROOT = join(__dirname, '../../../../..');
 
@@ -84,7 +82,7 @@ describe('эталон продолжения «Дворца памяти» дл
       const прямо: Действие[] = t.slice(0, n).map((id, i) => ['answer', id, 200_000 + i * 1000]);
       const обратно: Действие[] = [...t.slice(0, n)].reverse().map((id, i) => ['answer', id, 300_000 + i * 1000]);
 
-      const сценарии: Array<{ name: string; actions: Действие[]; now: number }> = [
+      const сценарии: { name: string; actions: Действие[]; now: number }[] = [
         { name: 'route', actions: [['start', 1000]], now: 5000 },
         { name: 'place-partial-hand', actions: [['start', 1000], ['toPlace'], ['item', t[0]!], ['locus', 0], ['item', t[1]!], ['locus', 1], ['item', t[2]!]], now: 61_000 },
         { name: 'place-locus-first', actions: [['start', 1000], ['toPlace'], ['locus', 2], ['item', t[0]!], ['locus', 1]], now: 40_000 },
