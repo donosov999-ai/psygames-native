@@ -19,9 +19,11 @@ on:
         required: false
         default: ''
       notes:
-        description: 'Что тестировать — одной строкой'
+        # Уходит в «Что тестировать» у сборки; коммит и прогон скрипт раздачи дописывает
+        # сам (задача aa56958d). До 30.09 поле было объявлено и никуда не шло.
+        description: 'Что тестировать — одной строкой (коммит допишется сам)'
         required: false
-        default: 'Гибрид: «Соедини точки», «Одна линия», «Цифровой ряд», «Матрица памяти» уже нативные, остальное как раньше'
+        default: ''
 
 env:
   BUNDLE_ID: com.psygames.app
@@ -257,6 +259,7 @@ jobs:
         env:
           APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
           APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
+          WHAT_TO_TEST: ${{ inputs.notes }}
         run: |
           # ⚠️ ОТДЕЛЬНОЕ ОКРУЖЕНИЕ, А НЕ `pip install` В СИСТЕМНЫЙ PYTHON. На раннере
           # macOS python3 из Homebrew, и он отбивает установку с

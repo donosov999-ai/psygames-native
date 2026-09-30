@@ -1,0 +1,1 @@
+{"source":"frontend/src/services/pseudowords.ts","vowels":{"en":"aeiou","es":"aeiouáéíóú","pt":"aeiouáâãéêíóôõú","de":"aeiouäöü","ru":"аеёиоуыэюя"},"consonants":{"en":"bcdfghklmnprstvz","es":"bcdfghlmnprstvz","pt":"bcdfglmnprstvz","de":"bdfghklmnprstwz","ru":"бвгдклмнпрстфхш"},"devanagari":"कखगघचछजझटठडढणतथदधनपफबभमयरलवशषसह"}

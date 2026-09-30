@@ -3,7 +3,13 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../../shell/aux_action.dart';
+import '../../shell/game_preset.dart';
 import '../../shell/game_rules.dart';
+import '../../shell/generator/contract.dart';
+import '../../shell/generator/engine.dart';
+import '../../shell/generator/ladder_pool.dart';
+import '../../shell/generator/shadow.dart';
+import '../../shell/generator/store.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
@@ -70,6 +76,31 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
   bool _won = false;
   String? _failure;
 
+  /// Партия проиграна движком (статус −1: «Сапёр» взорвался, у «Угадай код» кончились
+  /// попытки). До 30.09.2026 нативный экран этот исход не видел вовсе: партии не было
+  /// ни в статистике, ни в лестнице, хотя веб зовёт `lvl.fail()` (puzzles.tsx).
+  bool _lost = false;
+
+  /// Нажато «Показать решение». Решённая решателем доска — не победа, а РАЗБОР (веб,
+  /// puzzles.tsx: ступень не растёт и не падает). До 30.09.2026 нативный экран считал её
+  /// победой и поднимал ступень — отчёты 8a1b20d6 и 67561a7f были про тот же исход в вебе.
+  bool _solverUsed = false;
+
+  /// Ступень, на которой розданы доска и партия: после победы лестница уже шагнула.
+  int _dealLevel = 1;
+
+  /*
+   * 🔴 ТЕНЬ ГЕНЕРАТОРА НА ВСЕ 42 РЕЖИМА (звено 2 цепочки генератора, задача 543d853c).
+   * Человек играет прежнюю лестницу, а генератор рядом пишет, какую ступень выбрал бы,
+   * и учит рейтинг игрока на настоящих исходах — ровно так, как эталон «Судоку» (§10
+   * шаг 2). Прописанные ключи уровня не трогаются: у генератора свои
+   * (`psygames_puzzles_<движок>_adaptive_*`), проба `puzzles_generator_test.dart`.
+   */
+  List<Template> _genPool = const [];
+  GeneratorShadow? _shadow;
+  Template? _given;
+  String _eventId = '';
+
   @override
   void initState() {
     super.initState();
@@ -104,10 +135,16 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
       // лестницы обязан быть настоящим. Прежде лестница строилась ДО движка и у
       // 28 режимов получала выдуманный потолок 999 — уровень рос в пустоту.
       _steps = resolveSteps(_mode, engine, index);
+      _genPool = ladderPool(gameId: _mode.levelKey, stepKeys: [for (final s in _steps) s.params]);
+      _shadow = GeneratorShadow(GeneratorStore(widget.state, gameId: _mode.levelKey));
       _ladder = LevelLadder(
         gameId: _mode.levelKey,
         store: SharedLevelStore(widget.state),
         maxLevel: _steps.length,
+        // Партию веб пишет типом `puzzles` с режимом рядом (puzzles.tsx) — так же и здесь,
+        // иначе в статистике её нет нигде. Уровень — по-прежнему у каждого режима свой.
+        sessionType: 'puzzles',
+        sessionMode: _mode.engineName,
       );
       await _ladder.load();
       if (!mounted) return;
@@ -179,7 +216,17 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
     final engine = _engine;
     if (engine == null) return;
     LessonUsed.reset();   // новая доска — партия снова зачётная
-    final step = _steps[(_ladder.level - 1).clamp(0, _steps.length - 1)];
+    final at = (_ladder.level - 1).clamp(0, _steps.length - 1);
+    final step = _steps[at];
+    _solverUsed = false;
+    _lost = false;
+    _dealLevel = _ladder.level;
+    _given = at < _genPool.length ? _genPool[at] : null;
+    _eventId = '${_mode.levelKey}-${DateTime.now().microsecondsSinceEpoch}';
+    // Шаг зарядки — не личная лестница человека: рейтинг на нём не учим (как и уровень).
+    if (_given != null && !GamePreset.isPreset) {
+      _shadow?.recordDeal(level: _dealLevel, given: _given!, pool: _genPool, mode: Leniency.normal);
+    }
     final ok = engine.start(_gameIndex, step.params, DateTime.now().millisecondsSinceEpoch % 100000);
     setState(() {
       _failure = ok ? null : 'партия не собралась: ${step.params}';
@@ -214,14 +261,45 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
     if (engine == null) return;
     final frame = PuzzleFrame.parse(engine.draw());
     final status = engine.status;
+    final justWon = status == 1 && !_won;
+    final justLost = status == -1 && !_won && !_lost;
     setState(() {
       _frame = frame;
       _status = engine.statusText;
-      if (status == 1 && !_won) {
-        _won = true;
-        unawaited(_ladder.win());
-      }
+      if (justWon) _won = true;
+      if (justLost) _lost = true;
     });
+    if (justWon) _finish(won: true);
+    if (justLost) _finish(won: false);
+  }
+
+  /// Конец партии: одна запись на исход — с тем, что в вебе (`puzzles.tsx`): тип
+  /// `puzzles`, режим, трудность `<режим>-<ступень>`, решатель в подробностях.
+  void _finish({required bool won}) {
+    // Разбор («Показать решение» или плеер разбора) — третье состояние: партия пишется,
+    // ступень не двигается ни вверх, ни вниз. Флаг разбора читается ДО win/fail: лестница
+    // его сбрасывает.
+    if (_solverUsed) LessonUsed.mark();
+    final assisted = LessonUsed.inRound;
+    final details = <String, Object?>{
+      'level': _dealLevel,
+      'mode': _mode.engineName,
+      'solver_used': _solverUsed,
+    };
+    final difficulty = '${_mode.engineName}-$_dealLevel';
+    if (won) {
+      unawaited(_ladder.win(difficulty: difficulty, details: details));
+    } else {
+      unawaited(_ladder.fail(difficulty: difficulty, details: details));
+    }
+    final given = _given;
+    if (given != null && !GamePreset.isPreset) {
+      _shadow?.recordOutcome(
+        given: given,
+        outcome: assisted ? Outcome.assisted : (won ? Outcome.passed : Outcome.failed),
+        eventId: _eventId,
+      );
+    }
   }
 
   void _tap(Offset at, Size widgetSize) {
@@ -249,6 +327,7 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
   void _solve() {
     final engine = _engine;
     if (engine == null || _won) return;
+    _solverUsed = true;
     engine.solve();
     _refresh();
   }
@@ -357,7 +436,7 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
       ]),
       toolbar: _Toolbar(
         mode: _mode,
-        steps: _steps,
+        params: step.params,
         won: _won,
         status: _status,
         onDigit: _digit,
@@ -372,11 +451,40 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
   }
 }
 
+/// Сколько клавиш цифр у ступени: размер поля читается из её параметров («6dh» → 6,
+/// «5x5de» → 5, «3x3db» → 9 клеток у Solo), у «Угадай код» — число цветов.
+///
+/// 🔴 ДВА ДЕФЕКТА, ИСПРАВЛЕННЫХ 30.09.2026 (задача f5034811, замер по исходнику):
+/// · ряд клавиш считался по ПЕРВОЙ ступени лестницы на всех уровнях — у головоломок,
+///   где поле растёт (Keen, Towers, Unequal, Filling), на верхних ступенях цифр не
+///   хватало бы. Теперь параметры приходят от текущей ступени;
+/// · у «Угадай код» параметры не «сторона поля», а `c6p4g10Bm`, и общий разбор
+///   отдавал девять клавиш на шестицветный код — три лишние, мёртвые. Теперь цветов
+///   столько, сколько у ступени (`c<N>`), как и в веб-версии (`names.ts`).
+int puzzleKeyCount(PuzzleMode mode, String params) {
+  final p = params;
+  if (mode.engineName == 'Guess') {
+    final c = RegExp(r'c(\d+)').firstMatch(p);
+    return c == null ? 6 : int.parse(c.group(1)!).clamp(2, 10);
+  }
+  final m = RegExp(r'^(\d+)x(\d+)').firstMatch(p);
+  if (mode.engineName == 'Solo' && m != null) {
+    return int.parse(m.group(1)!) * int.parse(m.group(2)!);
+  }
+  if (mode.digitLabels.isNotEmpty) return mode.digitLabels.length;
+  if (m != null) return int.parse(m.group(1)!);
+  // ⚠️ БЕЗ «!» НА КОНЦЕ. Параметры ступени приходят и из меню движка, где первым
+  // символом бывает буква. Восклицательный знак здесь уронил бы ряд клавиш прямо в
+  // руках у игрока; девять — привычный ряд судоку и честное «не смог разобрать».
+  final first = RegExp(r'^(\d+)').firstMatch(p);
+  return first == null ? 9 : int.parse(first.group(1)!);
+}
+
 /// Липкий низ: ряд клавиш режима (у «Нежити» они подписаны чудовищами) и победа.
 class _Toolbar extends StatelessWidget {
   const _Toolbar({
     required this.mode,
-    required this.steps,
+    required this.params,
     required this.won,
     required this.status,
     required this.onDigit,
@@ -384,29 +492,15 @@ class _Toolbar extends StatelessWidget {
   });
 
   final PuzzleMode mode;
-  final List<PuzzleStep> steps;
+
+  /// Параметры ТЕКУЩЕЙ ступени — по ним считается ряд клавиш.
+  final String params;
   final bool won;
   final String status;
   final void Function(int) onDigit;
   final VoidCallback onNext;
 
-  /// Сколько клавиш у ступени: размер поля читается из параметров («6dh» → 6,
-  /// «5x5de» → 5, «3x3db» → 9 клеток у Solo).
-  int get _keys {
-    final p = steps.isEmpty ? '' : steps.first.params;
-    final m = RegExp(r'^(\d+)x(\d+)').firstMatch(p);
-    if (mode.engineName == 'Solo' && m != null) {
-      return int.parse(m.group(1)!) * int.parse(m.group(2)!);
-    }
-    if (mode.digitLabels.isNotEmpty) return mode.digitLabels.length;
-    if (m != null) return int.parse(m.group(1)!);
-    // ⚠️ БЕЗ «!» НА КОНЦЕ. Параметры ступени теперь приходят и из меню движка, где
-    // первым символом бывает буква («4de» у Keen — цифра, а у иных пресетов нет).
-    // Восклицательный знак здесь уронил бы ряд клавиш прямо в руках у игрока;
-    // девять — привычный ряд судоку и честное «не смог разобрать».
-    final first = RegExp(r'^(\d+)').firstMatch(p);
-    return first == null ? 9 : int.parse(first.group(1)!);
-  }
+  int get _keys => puzzleKeyCount(mode, params);
 
   @override
   Widget build(BuildContext context) {
