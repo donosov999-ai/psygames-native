@@ -112,6 +112,8 @@ void main() {
       '$origin/games/cloze.html?wu=1&targetLang=en&rounds=10&bilingual=1',
       '$origin/games/lexical-decision',
       '$origin/games/lexical-decision.html?wu=1&targetLang=es&trials=12&bilingual=1',
+      '$origin/games/story-recall',
+      '$origin/games/story-recall.html?wu=1',
       '$origin/games/hearing-hub',
       '$origin/games/mnemonics-hub',
     ]) {
@@ -283,6 +285,7 @@ void main() {
       '/games/semantic-sort',
       '/games/cloze',
       '/games/lexical-decision',
+      '/games/story-recall',
       '/games/hearing-hub',
       '/games/mental-rotation',
       '/games/navigator',
