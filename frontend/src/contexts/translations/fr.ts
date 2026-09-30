@@ -3022,7 +3022,7 @@ const t: Record<string, string> = {
   "mnemFreeTrainingNote": "Autant d’éléments que tu veux. Ton niveau ne change pas.",
   "mnemFreeTrainingStart": "Entraînement : {n} — sans changer de niveau",
   "teachMnemoIntroWords": "Une rangée de {n} mots ne tient pas en comptant « premier, deuxième », mais grâce à une CHAÎNE de scènes : chaque mot suivant fait quelque chose au précédent.",
-  "teachMnemoIntroNumbers": "Des chiffres nus ne restent pas en tête. L’astuce : chaque nombre devient un MOT grâce à ses consonnes, puis les mots s’enchaînent. Voyons les {n} nombres de cette rangée.",
+  "teachMnemoIntroNumbers": "Des chiffres nus ne restent pas en tête. L’astuce : chaque nombre devient un MOT grâce à ses consonnes, puis les mots s’enchaînent. Voyons les {n} premiers ; le reste suit le même principe.",
   "teachMnemoIntroNumbersNoPegs": "Des chiffres nus ne restent pas en tête : lie-les en scènes de deux ou trois au lieu de répéter la rangée. Il n’y a pas encore de table de mots-clés pour cette langue.",
   "teachMnemoPegFirst": "{n}, c’est « {word} » ({why}). Les consonnes font le mot : les voyelles sont libres, n’importe laquelle convient.",
   "teachMnemoPeg": "{n} — « {word} » ({why}).",

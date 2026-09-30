@@ -3022,7 +3022,7 @@ const t: Record<string, string> = {
   "mnemFreeTrainingNote": "개수는 자유입니다. 레벨은 바뀌지 않습니다.",
   "mnemFreeTrainingStart": "연습: {n}개 — 레벨 변동 없음",
   "teachMnemoIntroWords": "{n}개 단어의 줄은 “첫째, 둘째”로 세어서가 아니라 장면의 사슬로 기억됩니다: 다음 단어가 앞 단어에게 무언가를 합니다.",
-  "teachMnemoIntroNumbers": "숫자 그대로는 기억에 남지 않습니다. 방법: 각 숫자를 자음으로 단어로 바꾸고, 그 단어들을 사슬로 잇습니다. 이 줄의 숫자 {n}개를 살펴봅시다.",
+  "teachMnemoIntroNumbers": "숫자 그대로는 기억에 남지 않습니다. 방법: 각 숫자를 자음으로 단어로 바꾸고, 그 단어들을 사슬로 잇습니다. 처음 {n}개를 살펴봅시다. 나머지도 같은 방법입니다.",
   "teachMnemoIntroNumbersNoPegs": "숫자 그대로는 기억에 남지 않습니다: 줄을 반복하지 말고 두세 개씩 장면으로 묶으세요. 이 언어용 페그 표는 아직 없습니다.",
   "teachMnemoPegFirst": "{n}은(는) “{word}”({why}). 자음이 단어를 만듭니다: 모음은 자유라서 아무거나 넣어도 됩니다.",
   "teachMnemoPeg": "{n} — “{word}”({why}).",

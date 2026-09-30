@@ -3027,7 +3027,7 @@ const t: Record<string, string> = {
   "mnemFreeTrainingNote": "Cualquier número de elementos. Tu nivel no cambia.",
   "mnemFreeTrainingStart": "Práctica: {n} — sin cambio de nivel",
   "teachMnemoIntroWords": "Una fila de {n} palabras no se sostiene contando «primera, segunda», sino con una CADENA de escenas: cada palabra siguiente le hace algo a la anterior.",
-  "teachMnemoIntroNumbers": "Los dígitos sueltos no se quedan. El truco: cada número se convierte en una PALABRA por sus consonantes y luego las palabras se encadenan. Veamos los {n} números de esta fila.",
+  "teachMnemoIntroNumbers": "Los dígitos sueltos no se quedan. El truco: cada número se convierte en una PALABRA por sus consonantes y luego las palabras se encadenan. Veamos los primeros {n}; el resto va igual.",
   "teachMnemoIntroNumbersNoPegs": "Los dígitos sueltos no se quedan: únelos en escenas de dos o tres en vez de repetir la fila. Todavía no hay tabla de palabras clave para este idioma.",
   "teachMnemoPegFirst": "{n} es «{word}» ({why}). Las consonantes forman la palabra: las vocales son libres, así que vale cualquiera.",
   "teachMnemoPeg": "{n} — «{word}» ({why}).",

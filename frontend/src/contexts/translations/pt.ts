@@ -3027,7 +3027,7 @@ const t: Record<string, string> = {
   "mnemFreeTrainingNote": "Qualquer número de itens. Seu nível não muda.",
   "mnemFreeTrainingStart": "Treino: {n} — sem mudar de nível",
   "teachMnemoIntroWords": "Uma fila de {n} palavras não se segura contando “primeira, segunda”, mas por uma CORRENTE de cenas: cada palavra seguinte faz algo com a anterior.",
-  "teachMnemoIntroNumbers": "Dígitos soltos não ficam na memória. A técnica: cada número vira uma PALAVRA pelas consoantes, e depois as palavras se ligam em corrente. Vamos ver os {n} números desta fila.",
+  "teachMnemoIntroNumbers": "Dígitos soltos não ficam na memória. A técnica: cada número vira uma PALAVRA pelas consoantes, e depois as palavras se ligam em corrente. Vamos ver os primeiros {n}; o resto segue igual.",
   "teachMnemoIntroNumbersNoPegs": "Dígitos soltos não ficam na memória: junte-os em cenas de dois ou três em vez de repetir a fila. Ainda não há tabela de palavras-chave para este idioma.",
   "teachMnemoPegFirst": "{n} é “{word}” ({why}). As consoantes formam a palavra: as vogais são livres, então qualquer uma serve.",
   "teachMnemoPeg": "{n} — “{word}” ({why}).",

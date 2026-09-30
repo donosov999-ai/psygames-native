@@ -3027,7 +3027,7 @@ const t: Record<string, string> = {
   "mnemFreeTrainingNote": "数量任选。等级不会改变。",
   "mnemFreeTrainingStart": "练习：{n} 个 — 不计等级",
   "teachMnemoIntroWords": "{n} 个词的一行，不是靠数“第一、第二”记住的，而是靠一条场景链：每个后面的词都对前一个词做点什么。",
-  "teachMnemoIntroNumbers": "光秃秃的数字记不住。方法：按辅音把每个数字变成一个词，再把这些词串成链。我们来拆解这一行的 {n} 个数字。",
+  "teachMnemoIntroNumbers": "光秃秃的数字记不住。方法：按辅音把每个数字变成一个词，再把这些词串成链。我们先拆解前 {n} 个，其余照此办理。",
   "teachMnemoIntroNumbersNoPegs": "光秃秃的数字记不住：把它们两三个一组编成场景，而不是反复念整行。这种语言暂时还没有记忆桩表。",
   "teachMnemoPegFirst": "{n} 就是“{word}”（{why}）。辅音组成这个词：元音不受限制，填哪个都行。",
   "teachMnemoPeg": "{n} — “{word}”（{why}）。",

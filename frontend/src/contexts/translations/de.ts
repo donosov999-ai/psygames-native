@@ -3027,7 +3027,7 @@ const t: Record<string, string> = {
   "mnemFreeTrainingNote": "Beliebig viele Elemente. Dein Level ändert sich nicht.",
   "mnemFreeTrainingStart": "Training: {n} — Level bleibt gleich",
   "teachMnemoIntroWords": "Eine Reihe von {n} Wörtern hält nicht durch Zählen „erstens, zweitens“, sondern durch eine KETTE von Szenen: Jedes nächste Wort macht etwas mit dem vorherigen.",
-  "teachMnemoIntroNumbers": "Nackte Ziffern bleiben nicht hängen. Der Trick: Jede Zahl wird über ihre Konsonanten zu einem WORT, dann werden die Wörter zu einer Kette verbunden. Gehen wir die {n} Zahlen dieser Reihe durch.",
+  "teachMnemoIntroNumbers": "Nackte Ziffern bleiben nicht hängen. Der Trick: Jede Zahl wird über ihre Konsonanten zu einem WORT, dann werden die Wörter zu einer Kette verbunden. Gehen wir die ersten {n} durch — der Rest geht genauso.",
   "teachMnemoIntroNumbersNoPegs": "Nackte Ziffern bleiben nicht hängen: Verbinde sie zu zweit oder zu dritt zu Szenen, statt die Reihe herunterzuleiern. Für diese Sprache gibt es noch keine Merkworttabelle.",
   "teachMnemoPegFirst": "{n} ist „{word}“ ({why}). Die Konsonanten bilden das Wort: Vokale sind frei, also passt jeder.",
   "teachMnemoPeg": "{n} — „{word}“ ({why}).",
