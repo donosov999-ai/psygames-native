@@ -360,7 +360,7 @@ const AUX_UNDER_FIELD: Record<string, number> = {
   'cake-sort.tsx': 2,       // отмена + подсказка: ход тапом по столу
   'chinese-tones.tsx': 1,   // повтор звука
   'cpt.tsx': 1,             // СТОП
-  'dictation.tsx': 1,       // повтор диктовки
+  'dictation.tsx': 2,       // повтор диктовки + разбор по шагам (teachButton, уровни 1–3; 30.09.2026)
   'eye-gym.tsx': 1,         // СТОП (переехал из полосы ответа 23.09.2026)
   // dots-connect.tsx и one-line.tsx: свой ряд значков под доской через `renderServiceRow` модуля (17.09.2026)
   'goods-sort.tsx': 3,      // отмена + подсказка + перемешать: ответ здесь дают пальцем по полю
