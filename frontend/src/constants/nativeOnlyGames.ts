@@ -31,6 +31,8 @@ export const NATIVE_ONLY_GAMES: readonly NativeOnlyGame[] = [
   // «Пространство», «Поиск глазами», «Конфликт внимания», «Головоломки».
   { route: '/games/traffic-jam', nameKey: 'trafficJam', descKey: 'trafficJamDesc' },
   { route: '/games/monster-traits', nameKey: 'monsterTraits', descKey: 'monsterTraitsDesc' },
+  // Второй режим «Найди признак» — «Кого не хватает» (раздел «Поиск», задача 664b414a).
+  { route: '/games/monster-traits?mode=missing', nameKey: 'monsterMissing', descKey: 'monsterMissingDesc' },
   { route: '/games/roll-and-bank', nameKey: 'rollAndBank', descKey: 'rollAndBankDesc' },
   { route: '/games/hidden-character', nameKey: 'hiddenCharacter', descKey: 'hiddenCharacterDesc' },
 ];

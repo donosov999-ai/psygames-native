@@ -12,7 +12,7 @@
 // вот эту потерю генератор и чинит.
 //
 // Запуск: node flutter/tools/embed-hubs.mjs
-import { readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync, readdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -141,7 +141,10 @@ try {
  * Поэтому ключ снимается ТЕМ ЖЕ способом, каким его пишет веб-экран:
  *  · обычный адрес — единственный литерал `usePersistentLevel('…')` в экране;
  *  · головоломки — формула `puzzles.tsx` (режим строчными, пробелы → `_`);
- *  · «Лаборатория» — литерал `spatial_lab_<режим>` в её экране.
+ *  · «Лаборатория» — литерал `spatial_lab_<режим>` в её экране;
+ *  · нативная игра с режимом (веб-экрана нет, `NATIVE_ONLY_GAMES`) — литерал
+ *    `<игра>_<режим>` в её Dart-коде (`flutter/lib/games/<игра>/`). Нет литерала —
+ *    генератор ПАДАЕТ: карточка показывала бы уровень из адреса, то есть чужой.
  * Если веб поменяет формулу — генератор падает, а не пишет тихо старый ключ.
  * Поле ставится только там, где ключ ОТЛИЧАЕТСЯ от выводимого из адреса.
  */
@@ -160,6 +163,17 @@ if (!экран('puzzles').includes(формулаГоловоломок)) {
   console.error('🔴 в puzzles.tsx сменилась формула ключа уровня — поправь embed-hubs.mjs, иначе развилки покажут чужой уровень');
   process.exit(1);
 }
+// Нативные игры без веб-экрана — по реестру `NATIVE_ONLY_GAMES` (адреса литералами).
+const НАТИВНЫЕ = new Set(
+  [...readFileSync(join(FLUTTER, '..', 'frontend', 'src', 'constants', 'nativeOnlyGames.ts'), 'utf8')
+    .matchAll(/route:\s*'([^']+)'/g)].map((m) => m[1]),
+);
+function дартИгры(имя) {
+  const папка = join(FLUTTER, 'lib', 'games', имя.replace(/-/g, '_'));
+  try {
+    return readdirSync(папка).filter((f) => f.endsWith('.dart')).map((f) => readFileSync(join(папка, f), 'utf8')).join('\n');
+  } catch { return ''; }
+}
 const безКлюча = [];
 function ключУровня(route) {
   const [путь, хвост = ''] = route.split('?');
@@ -172,6 +186,13 @@ function ключУровня(route) {
   } else if (режим && имя === 'spatial-lab') {
     const лит = `spatial_lab_${режим}`;
     if (экран(имя).includes(`'${лит}'`)) ключ = лит;
+  } else if (режим && НАТИВНЫЕ.has(route)) {
+    const лит = `${имя.replace(/-/g, '_')}_${режим}`;
+    if (!дартИгры(имя).includes(`'${лит}'`)) {
+      console.error(`🔴 нативная карточка ${route}: в flutter/lib/games/${имя.replace(/-/g, '_')}/ нет ключа лестницы '${лит}'`);
+      process.exit(1);
+    }
+    ключ = лит;
   } else if (!режим) {
     const найдено = new Set([...экран(имя).matchAll(/usePersistentLevel\(\s*'([a-z0-9_]+)'/g)].map((m) => m[1]));
     if (найдено.size === 1) ключ = [...найдено][0];

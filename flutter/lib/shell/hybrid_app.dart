@@ -42,6 +42,7 @@ import '../games/tower_london/screen.dart';
 import '../games/animal_queue/screen.dart';
 import '../games/kids_sort/screen.dart';
 import '../games/traffic_jam/screen.dart';
+import '../games/monster_traits/missing_screen.dart';
 import '../games/monster_traits/screen.dart';
 import '../games/roll_and_bank/screen.dart';
 import '../games/hidden_character/screen.dart';
@@ -211,6 +212,8 @@ class HybridApp extends StatefulWidget {
       // развилках «Пространство», «Поиск глазами», «Конфликт внимания», «Головоломки».
       '/games/traffic-jam': (s) => TrafficJamScreen(state: s),
       '/games/monster-traits': (s) => MonsterTraitsScreen(state: s),
+      // Второй режим «Найди признак» — «Кого не хватает» (MindLab Missing, задача 664b414a).
+      '/games/monster-traits?mode=missing': (s) => MonsterMissingScreen(state: s),
       '/games/roll-and-bank': (s) => RollAndBankScreen(state: s),
       '/games/hidden-character': (s) => HiddenCharacterScreen(state: s),
         /*
