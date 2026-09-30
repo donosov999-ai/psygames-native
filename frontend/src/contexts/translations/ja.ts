@@ -3092,6 +3092,11 @@ const t: Record<string, string> = {
   "teachPhAnswerSpot": "流れたのは「{w}」——違う部分は {dx} でした。",
   "teachPhAnswerVowel": "流れたのは「{w}」——違いは母音でした。",
   "teachPhDone": "この要領で答えましょう：ペアがどこで分かれるかを知り、その部分だけを聞く。",
+  "teachDictIntro": "文全体は頭に残りません——区切って自分に口述します。まず全体を聞き、二、三語ずつに区切って、一区切りずつ打ちます。",
+  "teachDictListen": "まず何も打たずに文全体を聞きましょう。",
+  "teachDictChunk": "区切り {i}：「{c}」。心の中で言ってから打ちます。",
+  "teachDictStuck": "一文字で止まったら、文字を当てずっぽうに試さず、文を聞き直しましょう：正しい文字になるまで入力は進みません。",
+  "teachDictDone": "この要領で書きましょう：全体を聞く → 区切る → 一区切りずつ自分に口述する。",
   "block": "ブロック",
   "seriesDone": "シリーズ終了。ミス",
   "yes": "はい",
@@ -3183,11 +3188,6 @@ const t: Record<string, string> = {
   "hcAgain": "もう一回",
   "teachHiddenHalf": "「{q}」と聞こう：はいは{yes}人、いいえは{no}人。いちばんいい質問は、残りをできるだけ半分に分ける。どちらの答えでも半分が消える。",
   "teachHiddenLast": "残りはひとり。それがかくれている人だ。選んで「この人だ！」を押そう。",
-  "teachDictIntro": "文全体は頭に残りません——区切って自分に口述します。まず全体を聞き、二、三語ずつに区切って、一区切りずつ打ちます。",
-  "teachDictListen": "まず何も打たずに文全体を聞きましょう。",
-  "teachDictChunk": "区切り {i}：「{c}」。心の中で言ってから打ちます。",
-  "teachDictStuck": "一文字で止まったら、文字を当てずっぽうに試さず、文を聞き直しましょう：正しい文字になるまで入力は進みません。",
-  "teachDictDone": "この要領で書きましょう：全体を聞く → 区切る → 一区切りずつ自分に口述する。",
   "rbHeadStart": "先行 {n}",
 };
 export default t;
