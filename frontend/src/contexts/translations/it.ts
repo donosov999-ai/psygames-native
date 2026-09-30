@@ -3075,6 +3075,11 @@ const t: Record<string, string> = {
   "teachPhAnswerSpot": "Era «{w}»: nel punto di differenza c’era {dx}.",
   "teachPhAnswerVowel": "Era «{w}»: la differenza era nella vocale.",
   "teachPhDone": "Rispondi così: sai dove la coppia si separa e ascolti solo quel punto.",
+  "teachDictIntro": "Una frase intera non resta in testa: te la detti a pezzi. Ascoltala tutta, dividila in pezzi di due o tre parole e scrivi pezzo per pezzo.",
+  "teachDictListen": "Prima ascolta tutta la frase senza scrivere nulla.",
+  "teachDictChunk": "Pezzo {i}: «{c}». Ripetilo dentro di te e scrivilo.",
+  "teachDictStuck": "Bloccato su un carattere? Riascolta la frase invece di tentare lettere: l’inserimento non avanza finché il carattere non è giusto.",
+  "teachDictDone": "Scrivi così: ascolti tutto → dividi in pezzi → ti detti pezzo per pezzo.",
   "block": "Blocco",
   "seriesDone": "Serie completata. Errori",
   "yes": "Sì",
@@ -3166,11 +3171,6 @@ const t: Record<string, string> = {
   "hcAgain": "Ancora una volta",
   "teachHiddenHalf": "Chiedi «{q}»: sì per {yes}, no per {no}. La domanda migliore divide i rimasti il più vicino possibile a metà: ogni risposta ne toglie la metà.",
   "teachHiddenLast": "Ne è rimasto uno: è lui. Sceglilo e premi «È lui!».",
-  "teachDictIntro": "Una frase intera non resta in testa: te la detti a pezzi. Ascoltala tutta, dividila in pezzi di due o tre parole e scrivi pezzo per pezzo.",
-  "teachDictListen": "Prima ascolta tutta la frase senza scrivere nulla.",
-  "teachDictChunk": "Pezzo {i}: «{c}». Ripetilo dentro di te e scrivilo.",
-  "teachDictStuck": "Bloccato su un carattere? Riascolta la frase invece di tentare lettere: l’inserimento non avanza finché il carattere non è giusto.",
-  "teachDictDone": "Scrivi così: ascolti tutto → dividi in pezzi → ti detti pezzo per pezzo.",
   "rbHeadStart": "vantaggio {n}",
 };
 export default t;
