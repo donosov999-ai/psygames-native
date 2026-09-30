@@ -3036,5 +3036,9 @@ const t: Record<string, string> = {
   "teachMnemoChainWords": "“{a}” → “{b}”：一个场景，前一个对后一个做点什么。越荒诞，记得越牢。",
   "teachMnemoOrder": "必须按顺序作答，所以才需要这条链：想起第一个场景，它就会带出第二个。这一行共有 {n} 个。",
   "teachMnemoDone": "就这样玩：变成画面，串成链条，再按顺序走一遍。",
+  "teachRmetCues": "先看眼睛，再看词语。这里能看到：{hint}。",
+  "teachRmetCompare": "“{word}”会是这样：{cues}。和这双眼睛比一比。",
+  "teachRmetPick": "与特征“{hint}”最接近的是“{word}”——这就是答案。",
+  "teachRmetDone": "就这样作答：先读眼部特征 → 再与相近的词比较 → 选最接近特征的那个。",
 };
 export default t;

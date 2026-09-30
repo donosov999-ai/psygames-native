@@ -1063,6 +1063,14 @@ const translations: Translations = {
   teachPrlNoise: { ru: 'Одна неудача — ещё не смена правила: даже верный цвет иногда не даёт очков. Переключайтесь после двух-трёх неудач подряд, а не после первой.', en: 'One failure is not a rule change: even the right colour sometimes pays nothing. Switch after two or three failures in a row, not after the first.' },
   teachRmetEyes: { ru: 'Смотрите на ГЛАЗА — веки, брови, направление взгляда, — а не на «лицо вообще». Варианты близки по смыслу нарочно, поэтому сравнивайте их между собой, а не с первым впечатлением.', en: 'Look at the EYES — lids, brows, direction of gaze — not at “the face” in general. The options are deliberately close in meaning, so compare them with each other rather than with your first impression.' },
   /*
+   * 🎓 РАЗБОР «ПРОЧТИ ЭМОЦИЮ» (веб, 30.09.2026): признаки глаз → сравнение с соседними словами →
+   * выбор. Слова и признаки подставляет экран из пунктов самой игры (ITEMS: hint, correct).
+   */
+  teachRmetCues: { ru: 'Сначала глаза, слова потом. Что видно здесь: {hint}.', en: 'Eyes first, words later. What you can see here: {hint}.' },
+  teachRmetCompare: { ru: '«{word}» выглядел бы так: {cues}. Сравните с этими глазами.', en: '“{word}” would look like this: {cues}. Compare it with these eyes.' },
+  teachRmetPick: { ru: 'К признакам «{hint}» ближе всего «{word}» — это и ответ.', en: 'The cues “{hint}” fit “{word}” best — that is the answer.' },
+  teachRmetDone: { ru: 'Так и отвечайте: признаки глаз → сравнение с соседними словами → выбор того, что ближе к признакам.', en: 'Answer the same way: read the eye cues → compare with the neighbouring words → pick the one closest to the cues.' },
+  /*
    * 🎓 РАЗБОР ИГР НА ОБЪЁМ, СЧЁТ И ПОИСК. Верный ответ человек и так видит по итогу раунда —
    * учить надо ПРИЁМУ, которым объём берётся: группировка, траектория, период, опорная примета.
    */

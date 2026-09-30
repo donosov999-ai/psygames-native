@@ -3030,5 +3030,9 @@ const t: Record<string, string> = {
   "teachMnemoChainWords": "「{a}」→「{b}」：前のものが後のものに何かをする一つの場面。ばかばかしいほど強く残ります。",
   "teachMnemoOrder": "答えは「順番どおり」なので鎖が必要です。最初の場面を思い出せば、それが次の場面を引き出します。この列は全部で {n} 個です。",
   "teachMnemoDone": "この要領で遊びましょう：イメージに変え、鎖につなぎ、順番にたどる。",
+  "teachRmetCues": "まず目を見て、言葉はそのあと。ここで見えるのは：{hint}。",
+  "teachRmetCompare": "「{word}」ならこう見えます：{cues}。この目と比べてみましょう。",
+  "teachRmetPick": "「{hint}」という特徴に最も近いのは「{word}」——これが答えです。",
+  "teachRmetDone": "この要領で答えましょう：目の特徴を読む → 近い言葉と比べる → 特徴に最も近いものを選ぶ。",
 };
 export default t;

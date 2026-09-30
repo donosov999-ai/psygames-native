@@ -3031,5 +3031,9 @@ const t: Record<string, string> = {
   "teachMnemoChainWords": "“{a}” → “{b}”: 앞의 것이 뒤의 것에 무언가를 하는 하나의 장면. 황당할수록 단단합니다.",
   "teachMnemoOrder": "답은 순서대로 해야 하므로 사슬이 필요합니다: 첫 장면을 떠올리면 그것이 두 번째를 끌어옵니다. 이 줄은 모두 {n}개입니다.",
   "teachMnemoDone": "이렇게 플레이하세요: 이미지로 바꾸고, 사슬로 잇고, 순서대로 따라가세요.",
+  "teachRmetCues": "먼저 눈을 보고, 단어는 그다음에. 여기서 보이는 것: {hint}.",
+  "teachRmetCompare": "“{word}”라면 이렇게 보입니다: {cues}. 이 눈과 비교해 보세요.",
+  "teachRmetPick": "“{hint}”라는 특징에 가장 가까운 것은 “{word}” — 이것이 답입니다.",
+  "teachRmetDone": "이렇게 답하세요: 눈의 특징 읽기 → 비슷한 단어와 비교 → 특징에 가장 가까운 것 고르기.",
 };
 export default t;

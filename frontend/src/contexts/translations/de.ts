@@ -3036,5 +3036,9 @@ const t: Record<string, string> = {
   "teachMnemoChainWords": "„{a}“ → „{b}“: eine Szene, in der das Erste etwas mit dem Zweiten macht. Je absurder, desto fester.",
   "teachMnemoOrder": "Geantwortet wird IN DER REIHENFOLGE, deshalb braucht es die Kette: Du erinnerst dich an die erste Szene, und sie zieht die zweite nach. Die Reihe hat {n}.",
   "teachMnemoDone": "So spielst du es auch: in Bilder verwandeln, zu einer Kette verbinden, die Kette der Reihe nach ablaufen.",
+  "teachRmetCues": "Erst die Augen, dann die Wörter. Was man hier sieht: {hint}.",
+  "teachRmetCompare": "„{word}“ würde so aussehen: {cues}. Vergleiche das mit diesen Augen.",
+  "teachRmetPick": "Zu den Merkmalen „{hint}“ passt „{word}“ am besten — das ist die Antwort.",
+  "teachRmetDone": "So antwortest du auch: Merkmale der Augen → Vergleich mit den Nachbarwörtern → das Wort wählen, das am besten passt.",
 };
 export default t;
