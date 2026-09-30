@@ -7,6 +7,8 @@ import 'package:flutter/material.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
+import '../../shell/lesson.dart';
+import '../../shell/lesson_player.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/session_report.dart';
 import '../../shell/shared_level_store.dart';
@@ -16,6 +18,7 @@ import 'check.dart';
 import 'deck.dart';
 import 'game.dart';
 import 'ladder.dart';
+import 'lesson.dart';
 import 'motifs.dart';
 import 'run.dart';
 
@@ -24,6 +27,14 @@ const int scholarsFlowMs = 10 * 60 * 1000;
 
 /// Сколько последних медиан ступени хранится для «обычно».
 const int scholarsRecentRuns = 5;
+
+/// Трудность в отчёте — словом, как пишет веб (`scholars-mate.tsx`): число здесь
+/// разошлось бы с веб-записями той же игры в статистике.
+String scholarsDifficulty(int level) => level <= 10
+    ? 'easy'
+    : level <= 25
+    ? 'medium'
+    : 'hard';
 
 /// Секунды как в вебе: до десятой, половина вверх («1050 мс» → «1.1»).
 String scholarsSeconds(int ms) => ((ms / 100).round() / 10).toStringAsFixed(1);
@@ -170,6 +181,32 @@ class _ScholarsMateScreenState extends State<ScholarsMateScreen> {
   String? get _motif => _mode.startsWith('motif:') ? _mode.substring(6) : null;
   bool get _mix => _mode == 'mix';
 
+  /// Колода режима и ступени. Одна на «Начать» и на разбор: разбор обязан
+  /// показывать те же задания, что раздаст подход, а не соседние.
+  List<ScholarsPuzzle> _deckFor(ScholarsCorpus corpus, int level, int seed) {
+    if (_mix) {
+      return buildMixedMotifDeck(
+        corpus,
+        level,
+        seed: seed,
+        count: _flow ? 200 : null,
+      );
+    }
+    if (_motif != null) {
+      return buildNamedDeck(
+        corpus,
+        _motif!,
+        level,
+        seed: seed,
+        count: _flow ? 200 : null,
+      );
+    }
+    if (_flow) {
+      return buildFlowDeck(corpus, level, seed, scholarsFlowMs, only: _only);
+    }
+    return buildDeck(corpus, level, seed: seed, only: _only);
+  }
+
   void _start() {
     final corpus = _corpus;
     if (corpus == null) return;
@@ -177,27 +214,7 @@ class _ScholarsMateScreenState extends State<ScholarsMateScreen> {
     final seed =
         widget.seed ?? DateTime.now().millisecondsSinceEpoch % 100000 + _starts;
     _starts++;
-    final List<ScholarsPuzzle> deck;
-    if (_mix) {
-      deck = buildMixedMotifDeck(
-        corpus,
-        level,
-        seed: seed,
-        count: _flow ? 200 : null,
-      );
-    } else if (_motif != null) {
-      deck = buildNamedDeck(
-        corpus,
-        _motif!,
-        level,
-        seed: seed,
-        count: _flow ? 200 : null,
-      );
-    } else if (_flow) {
-      deck = buildFlowDeck(corpus, level, seed, scholarsFlowMs, only: _only);
-    } else {
-      deck = buildDeck(corpus, level, seed: seed, only: _only);
-    }
+    final deck = _deckFor(corpus, level, seed);
     if (deck.isEmpty) return;
     _watch
       ..reset()
@@ -291,6 +308,7 @@ class _ScholarsMateScreenState extends State<ScholarsMateScreen> {
           timeSeconds: seconds,
           errors: r.total - r.solved,
           mode: mode,
+          difficulty: scholarsDifficulty(level),
           details: details,
         );
       } else if (step == StepMove.down) {
@@ -299,6 +317,8 @@ class _ScholarsMateScreenState extends State<ScholarsMateScreen> {
           timeSeconds: seconds,
           errors: r.total - r.solved,
           mode: mode,
+          difficulty: scholarsDifficulty(level),
+          details: details,
         );
       } else {
         await SessionReport.send(
@@ -307,7 +327,7 @@ class _ScholarsMateScreenState extends State<ScholarsMateScreen> {
           timeSeconds: seconds,
           errors: r.total - r.solved,
           mode: mode,
-          difficulty: '$level',
+          difficulty: scholarsDifficulty(level),
           details: details,
         );
       }
@@ -317,6 +337,7 @@ class _ScholarsMateScreenState extends State<ScholarsMateScreen> {
         timeSeconds: seconds,
         errors: r.total - r.solved,
         mode: mode,
+        difficulty: scholarsDifficulty(level),
         details: details,
       );
     } else {
@@ -325,17 +346,51 @@ class _ScholarsMateScreenState extends State<ScholarsMateScreen> {
         timeSeconds: seconds,
         errors: r.total - r.solved,
         mode: mode,
+        difficulty: scholarsDifficulty(level),
+        details: details,
       );
     }
     if (mounted) setState(() {});
+  }
+
+  /// 🔴 РАЗБОР ОТКРЫВАЕТСЯ ДО ПАРТИИ И ДАЖЕ ДО КОРПУСА. Корпус весит 7 МБ и
+  /// читается не мгновенно; кнопка стоит сразу, а разбор сам дожидается данных.
+  /// Спрятанная до загрузки кнопка для человека — «разбора нет».
+  Future<void> _openLesson() async {
+    final corpus = _corpus ?? await ScholarsCorpus.load();
+    if (!mounted) return;
+    final level = _phase == _Phase.playing ? _runLevel : _ladder.level;
+    final steps = scholarsLessonFromDeck(
+      _deckFor(corpus, level, widget.seed ?? level * 131 + _starts),
+    );
+    if (steps.isEmpty) return;
+    LessonUsed.mark();
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => LessonPlayerScreen(
+          title: L.t('scholarsMate'),
+          steps: steps,
+          board: (context, side, shown) {
+            final frame =
+                steps[shown.clamp(0, steps.length - 1)].payload
+                    as ScholarsLessonFrame;
+            return Center(
+              child: ScholarsLessonBoard(frame: frame, side: side),
+            );
+          },
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final corpus = _corpus;
     if (corpus == null) {
-      return Scaffold(
-        body: Center(
+      return GameShell(
+        title: L.t('scholarsMate'),
+        onLesson: _openLesson,
+        field: (context, h) => Center(
           child: _error == null
               ? const CircularProgressIndicator()
               : Text(_error!),
@@ -346,6 +401,7 @@ class _ScholarsMateScreenState extends State<ScholarsMateScreen> {
     final playing = _phase == _Phase.playing && run != null;
     return GameShell(
       title: L.t('scholarsMate'),
+      onLesson: _openLesson,
       hud: [
         if (!GamePreset.isPreset)
           HudItem(
@@ -698,6 +754,33 @@ class _ScholarsMateScreenState extends State<ScholarsMateScreen> {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Доска шага разбора — та же доска партии, с ходом шага и полем, куда смотреть.
+class ScholarsLessonBoard extends StatelessWidget {
+  const ScholarsLessonBoard({
+    super.key,
+    required this.frame,
+    required this.side,
+  });
+
+  final ScholarsLessonFrame frame;
+  final double side;
+
+  @override
+  Widget build(BuildContext context) {
+    final white = frame.whiteBottom;
+    int? at(String? square) =>
+        square == null ? null : scholarsSquareIndex(square, whiteBottom: white);
+    return ChessBoardView(
+      pieces: scholarsPieces(frame.fen, whiteBottom: white),
+      side: side,
+      keyPrefix: 'sml',
+      selected: at(frame.from),
+      targets: {?at(frame.to)},
+      hinted: at(frame.focus),
     );
   }
 }

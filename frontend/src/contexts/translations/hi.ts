@@ -3073,5 +3073,15 @@ const t: Record<string, string> = {
   "chessAskSquare": "क्या {a} और {b} एक ही रंग के हैं?",
   "chessAskKnight": "क्या घोड़ा {from} से {to} तक {n} चालों में जाएगा?",
   "chessAskRecall": "क्या {sq} पर {piece} था?",
+  "teachScholarsKing": "विरोधी राजा को देखें: उसके आसपास कौन-से खाने उसके अपने मोहरों से घिरे हैं, और पास में क्या पहले से हमला कर रहा है?",
+  "teachScholarsMate": "{move} शह-मात है: ऐसी शह जिससे बचाव नहीं। राजा के पास जाने की जगह नहीं, हमलावर को मारा नहीं जा सकता, बीच में कुछ नहीं आ सकता।",
+  "teachScholarsThreatAsk": "क्या मात का ख़तरा है? मन में चाल विरोधी को सौंपें और जाँचें: क्या उसके पास एक चाल में मात है?",
+  "teachScholarsThreatYes": "हाँ: अगर चाल विरोधी की होती, तो {move} से मात हो जाती।",
+  "teachScholarsThreatNo": "नहीं: विरोधी की कोई भी चाल मात नहीं देती।",
+  "teachScholarsDefendThreat": "पहले ख़तरा खोजें: विरोधी {move} से मात की धमकी दे रहा है।",
+  "teachScholarsDefend": "बचाव {move}: इसके बाद एक चाल में मात नहीं है, और कोई मोहरा मुफ़्त में नहीं जाता।",
+  "teachScholarsSacrifice": "बलिदान {move}: राजा को खोलने के लिए एक मोहरा देते हैं।",
+  "teachScholarsReply": "विरोधी का जवाब मजबूरी है: {move}।",
+  "teachScholarsContinue": "आगे {move}: राजा पर हमला बिना रुके जारी है।",
 };
 export default t;

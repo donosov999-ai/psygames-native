@@ -202,16 +202,76 @@ bool threatAnswer(ScholarsPuzzle p) {
   final fen = shownFen(p);
   final g = _board(fen);
   if (g.inCheck) return true;
+  try {
+    return hasMateInOne(passTurn(fen));
+  } catch (_) {
+    return p.threat ?? false; // позиция без нулевого хода — верим разметке
+  }
+}
+
+/// Под шахом ли сторона, чей ход.
+bool inCheck(String fen) {
+  try {
+    return _board(fen).inCheck;
+  } catch (_) {
+    return false;
+  }
+}
+
+/// НУЛЕВОЙ ХОД: та же позиция, но очередь у соперника. Им отвечает
+/// [threatAnswer], и им же разбор показывает, ЧЕМ грозит соперник — одна
+/// функция на игру и на разбор, иначе они разошлись бы в угрозах.
+String passTurn(String fen) {
   final parts = fen.split(' ');
   parts[1] = parts[1] == 'w' ? 'b' : 'w';
   if (parts.length > 3) {
     parts[3] = '-'; // взятие на проходе после пропуска хода недействительно
   }
+  return parts.join(' ');
+}
+
+/// Матующий ход стороны, чей ход, — сразу в обеих записях: доске разбора нужны
+/// поля (uci), подписи — SAN. Пусто — мата в один нет.
+({String uci, String san})? mateInOne(String fen) {
   try {
-    return hasMateInOne(parts.join(' '));
+    final g = _board(fen);
+    for (final m in g.generateLegalMoves()) {
+      final uci = g.toAlgebraic(m);
+      final t = _board(fen);
+      if (!_play(t, uci)) continue;
+      if (t.checkmate) return (uci: uci, san: g.toSan(m));
+    }
   } catch (_) {
-    return p.threat ?? false; // позиция без нулевого хода — верим разметке
+    // битая позиция
   }
+  return null;
+}
+
+/// Ход в записи SAN — подпись шага разбора. Пусто — хода в позиции нет.
+String? sanOf(String fen, String uci) {
+  try {
+    final g = _board(fen);
+    for (final m in g.generateLegalMoves()) {
+      if (g.toAlgebraic(m) == uci) return g.toSan(m);
+    }
+  } catch (_) {
+    // битая позиция
+  }
+  return null;
+}
+
+/// Обратно: ход в записи uci по SAN. [bestDefence] отдаёт SAN, а доске
+/// разбора нужны поля.
+String? uciOf(String fen, String san) {
+  try {
+    final g = _board(fen);
+    for (final m in g.generateLegalMoves()) {
+      if (g.toSan(m) == san) return g.toAlgebraic(m);
+    }
+  } catch (_) {
+    // битая позиция
+  }
+  return null;
 }
 
 const Map<String, int> _pieceValue = {
@@ -351,12 +411,7 @@ Verdict check(ScholarsPuzzle p, String uci) {
   }
 
   if (g.checkmate) {
-    return Verdict(
-      correct: true,
-      best: firstSan,
-      fenAfter: after,
-      mated: true,
-    );
+    return Verdict(correct: true, best: firstSan, fenAfter: after, mated: true);
   }
 
   // Мат в два-три хода: наш ход верен, если он ПЕРВЫЙ в записанной

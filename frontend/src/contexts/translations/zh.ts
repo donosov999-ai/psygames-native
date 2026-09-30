@@ -3070,5 +3070,15 @@ const t: Record<string, string> = {
   "chessAskSquare": "{a} 和 {b} 是同色格吗？",
   "chessAskKnight": "马能从 {from} 用 {n} 步走到 {to} 吗？",
   "chessAskRecall": "{sq} 上原来是 {piece} 吗？",
+  "teachScholarsKing": "看对方的王：它周围哪些格子被自己的棋子堵住了，附近已经有什么在攻击？",
+  "teachScholarsMate": "{move} 将死：这是无法解除的将军。王无处可逃，攻击的棋子吃不掉，也无法垫将。",
+  "teachScholarsThreatAsk": "有将死的威胁吗？在脑中把走棋权交给对方，检查：对方有一步将死吗？",
+  "teachScholarsThreatYes": "有：如果轮到对方走，{move} 就是将死。",
+  "teachScholarsThreatNo": "没有：对方没有任何一步能将死。",
+  "teachScholarsDefendThreat": "先找到威胁：对方威胁用 {move} 将死。",
+  "teachScholarsDefend": "防守 {move}：走完后对方没有一步将死，也没有白白丢子。",
+  "teachScholarsSacrifice": "弃子 {move}：送出一个棋子，打开对方王的防线。",
+  "teachScholarsReply": "对方的应着是被迫的：{move}。",
+  "teachScholarsContinue": "接着走 {move}：对王的攻击不停歇。",
 };
 export default t;

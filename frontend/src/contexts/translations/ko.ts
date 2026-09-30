@@ -3065,5 +3065,15 @@ const t: Record<string, string> = {
   "chessAskSquare": "{a}와 {b}는 같은 색인가요?",
   "chessAskKnight": "나이트가 {from}에서 {to}까지 {n}수에 갈까요?",
   "chessAskRecall": "{sq}에 {piece}가 있었나요?",
+  "teachScholarsKing": "상대 킹을 보세요: 주변의 어떤 칸이 자기 기물로 막혀 있고, 근처에서 무엇이 이미 공격하고 있나요?",
+  "teachScholarsMate": "{move} 체크메이트: 막을 수 없는 체크입니다. 킹은 피할 곳이 없고, 공격하는 기물을 잡을 수 없으며, 사이를 막을 수도 없습니다.",
+  "teachScholarsThreatAsk": "메이트 위협이 있나요? 머릿속으로 차례를 상대에게 넘기고 확인하세요: 상대에게 한 수 메이트가 있나요?",
+  "teachScholarsThreatYes": "있습니다: 상대 차례라면 {move}(으)로 메이트입니다.",
+  "teachScholarsThreatNo": "없습니다: 상대의 어떤 수도 메이트가 되지 않습니다.",
+  "teachScholarsDefendThreat": "먼저 위협을 찾으세요: 상대는 {move}(으)로 메이트를 노립니다.",
+  "teachScholarsDefend": "방어 {move}: 이후 한 수 메이트가 없고, 기물도 공짜로 내주지 않습니다.",
+  "teachScholarsSacrifice": "희생 {move}: 기물을 내주어 킹을 엽니다.",
+  "teachScholarsReply": "상대의 응수는 강제됩니다: {move}.",
+  "teachScholarsContinue": "이어서 {move}: 킹에 대한 공격을 쉬지 않고 이어 갑니다.",
 };
 export default t;

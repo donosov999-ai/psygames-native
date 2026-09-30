@@ -3065,5 +3065,15 @@ const t: Record<string, string> = {
   "chessAskSquare": "{a} e {b} hanno lo stesso colore?",
   "chessAskKnight": "Il cavallo va da {from} a {to} in {n} mosse?",
   "chessAskRecall": "Su {sq} c’era {piece}?",
+  "teachScholarsKing": "Guarda il re avversario: quali case intorno a lui sono occupate dai suoi pezzi e cosa attacca già lì vicino.",
+  "teachScholarsMate": "{move} è matto: uno scacco senza difesa. Il re non ha dove andare, l’attaccante non si può catturare e niente può interporsi.",
+  "teachScholarsThreatAsk": "C’è una minaccia di matto? Cedi la mossa all’avversario nella tua testa e controlla: ha un matto in una?",
+  "teachScholarsThreatYes": "Sì: se toccasse all’avversario, {move} sarebbe matto.",
+  "teachScholarsThreatNo": "No: nessuna mossa dell’avversario dà matto.",
+  "teachScholarsDefendThreat": "Prima trova la minaccia: l’avversario minaccia matto con {move}.",
+  "teachScholarsDefend": "Difesa {move}: dopo non c’è matto in una e nessun pezzo viene regalato.",
+  "teachScholarsSacrifice": "Sacrificio {move}: diamo un pezzo per aprire il re.",
+  "teachScholarsReply": "La risposta dell’avversario è forzata: {move}.",
+  "teachScholarsContinue": "Poi {move}: l’attacco al re continua senza tregua.",
 };
 export default t;

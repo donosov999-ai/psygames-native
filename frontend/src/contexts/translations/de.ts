@@ -3070,5 +3070,15 @@ const t: Record<string, string> = {
   "chessAskSquare": "Haben {a} und {b} dieselbe Farbe?",
   "chessAskKnight": "Kommt der Springer von {from} nach {to} in {n} Zügen an?",
   "chessAskRecall": "Stand {piece} auf {sq}?",
+  "teachScholarsKing": "Schau auf den gegnerischen König: Welche Felder um ihn sind von eigenen Figuren besetzt, und was greift schon in der Nähe an?",
+  "teachScholarsMate": "{move} ist matt: ein Schach ohne Abwehr. Der König kann nicht fliehen, der Angreifer ist nicht zu schlagen, nichts lässt sich dazwischenstellen.",
+  "teachScholarsThreatAsk": "Droht Matt? Gib den Zug in Gedanken an den Gegner ab und prüfe: Hat er Matt in einem Zug?",
+  "teachScholarsThreatYes": "Ja: Wäre der Gegner am Zug, wäre {move} matt.",
+  "teachScholarsThreatNo": "Nein: Kein Zug des Gegners setzt matt.",
+  "teachScholarsDefendThreat": "Finde zuerst die Drohung: Der Gegner droht Matt mit {move}.",
+  "teachScholarsDefend": "Verteidigung {move}: Danach gibt es kein Matt in einem Zug, und keine Figur geht verloren.",
+  "teachScholarsSacrifice": "Opfer {move}: Wir geben eine Figur, um den König zu öffnen.",
+  "teachScholarsReply": "Die Antwort des Gegners ist erzwungen: {move}.",
+  "teachScholarsContinue": "Weiter mit {move}: Der Angriff auf den König geht ohne Pause weiter.",
 };
 export default t;

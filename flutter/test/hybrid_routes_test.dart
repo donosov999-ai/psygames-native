@@ -253,8 +253,6 @@ void main() {
       '/games/ball-sort',
       '/games/bart',
       '/games/cake-sort',
-      // «Доска в уме» перенесена целиком: партия и серия, вход спрашивает режим.
-      '/games/chess-blind',
       '/games/choice-rt',
       '/games/cpt',
       '/games/corsi',

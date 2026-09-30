@@ -82,7 +82,6 @@ import 'game_preset.dart';
 import 'game_rules.dart';
 import 'game_shell.dart';
 import 'puzzle_routes.g.dart';
-import '../games/chess_blind/entry.dart';
 import '../games/scholars_mate/screen.dart';
 import 'shared_state.dart';
 import 'tap_latency.dart';
@@ -208,8 +207,12 @@ class HybridApp extends StatefulWidget {
         '/games/stop-signal': (s) => StopSignalScreen(state: s),
         '/games/posner': (s) => PosnerScreen(state: s),
         '/games/stroop-emotional': (s) => EmoStroopScreen(state: s),
-        // «Доска в уме» перенесена целиком: партия и серия, вход спрашивает режим.
-        '/games/chess-blind': (s) => const ChessBlindEntry(),
+        // «Доска в уме» (`/games/chess-blind`) НЕ перехватывается — нарочно, до
+        // полного переноса. Замер 30.09.2026 по нативному экрану против веба:
+        // уровень не двигался (всегда 1), ходы вслепую не показывались по одному,
+        // верный вариант в «что стоит на поле» стоял первой кнопкой, у серии нет
+        // доски и замера времени блоков. Веб-версия работает целиком — пусть
+        // играют в неё, пока перенос не догонит (задача 3d79c4f0).
         // «Детский мат» перенесён целиком: лестница, узоры, микс, жертва и поток.
         '/games/scholars-mate': (s) => ScholarsMateScreen(state: s),
         '/games/switching-task': (s) => SwitchingTaskScreen(state: s),

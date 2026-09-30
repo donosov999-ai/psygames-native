@@ -3066,5 +3066,15 @@ const t: Record<string, string> = {
   "chessAskSquare": "هل {a} و{b} من اللون نفسه؟",
   "chessAskKnight": "هل يصل الحصان من {from} إلى {to} في {n} نقلات؟",
   "chessAskRecall": "هل كانت {piece} على {sq}؟",
+  "teachScholarsKing": "انظر إلى ملك الخصم: أيّ المربعات حوله تسدّها قطعه نفسها، وما الذي يهاجم قريبًا منه بالفعل؟",
+  "teachScholarsMate": "{move} كش مات: كشّ لا دفاع عنه. لا مهرب للملك، ولا يمكن أخذ القطعة المهاجمة، ولا شيء يمكن أن يعترض.",
+  "teachScholarsThreatAsk": "هل هناك تهديد بالمات؟ أعطِ الدور للخصم في ذهنك وتحقّق: هل لديه مات في نقلة واحدة؟",
+  "teachScholarsThreatYes": "نعم: لو كان الدور للخصم لكانت {move} ماتًا.",
+  "teachScholarsThreatNo": "لا: لا توجد نقلة للخصم تعطي ماتًا.",
+  "teachScholarsDefendThreat": "ابحث أولًا عن التهديد: الخصم يهدّد بالمات بـ{move}.",
+  "teachScholarsDefend": "الدفاع {move}: بعدها لا يوجد مات في نقلة واحدة، ولا تُعطى أي قطعة مجانًا.",
+  "teachScholarsSacrifice": "تضحية {move}: نتخلى عن قطعة لفتح الملك.",
+  "teachScholarsReply": "ردّ الخصم إجباري: {move}.",
+  "teachScholarsContinue": "بعد ذلك {move}: يستمر الهجوم على الملك بلا توقف.",
 };
 export default t;

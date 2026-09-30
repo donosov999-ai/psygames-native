@@ -3065,5 +3065,15 @@ const t: Record<string, string> = {
   "chessAskSquare": "{a} et {b} sont-elles de la même couleur ?",
   "chessAskKnight": "Le cavalier va-t-il de {from} à {to} en {n} coups ?",
   "chessAskRecall": "Y avait-il {piece} sur {sq} ?",
+  "teachScholarsKing": "Regarde le roi adverse : quelles cases autour de lui sont occupées par ses propres pièces, et qu’est-ce qui attaque déjà tout près ?",
+  "teachScholarsMate": "{move} est mat : un échec sans défense. Le roi n’a aucune case, l’attaquant ne peut pas être pris, rien ne peut s’interposer.",
+  "teachScholarsThreatAsk": "Y a-t-il une menace de mat ? Donne le trait à l’adversaire dans ta tête et vérifie : a-t-il un mat en un coup ?",
+  "teachScholarsThreatYes": "Oui : si c’était à l’adversaire de jouer, {move} serait mat.",
+  "teachScholarsThreatNo": "Non : aucun coup de l’adversaire ne donne mat.",
+  "teachScholarsDefendThreat": "Trouve d’abord la menace : l’adversaire menace de mater par {move}.",
+  "teachScholarsDefend": "Défense {move} : après elle, plus de mat en un coup, et aucune pièce n’est perdue.",
+  "teachScholarsSacrifice": "Sacrifice {move} : on donne une pièce pour ouvrir le roi.",
+  "teachScholarsReply": "La réponse de l’adversaire est forcée : {move}.",
+  "teachScholarsContinue": "Ensuite {move} : l’attaque sur le roi continue sans répit.",
 };
 export default t;
