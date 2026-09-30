@@ -3,7 +3,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/anagrams/board.dart';
 import 'package:psygames_flutter/games/anagrams/screen.dart';
 import 'package:psygames_flutter/shell/game_shell.dart';
+import 'package:psygames_flutter/games/anagrams/teach.dart';
 import 'package:psygames_flutter/shell/l10n.dart';
+import 'package:psygames_flutter/shell/lesson.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -154,5 +156,59 @@ void main() {
     final hud = tester.widget<GameShell>(find.byType(GameShell)).hud;
     expect(hud.map((h) => h.label), containsAll(<String>['Stufe', 'Runde', 'Richtig']));
     await tester.runAsync(() => L.load('ru'));
+  });
+
+  /* ═══════════ РАЗБОР ПО ШАГАМ ═══════════
+   *
+   * 🔴 ПОЧЕМУ ЭТО ЗДЕСЬ, А НЕ ТОЛЬКО В ПЕРЕПИСИ. Гейт `lesson_census_test.dart`
+   * требует у экрана кнопку и краснеет, если её нет. Но он НЕ проверяет, что разбор
+   * доводит слово до конца и что партия после него перестаёт быть зачётной: перепись
+   * считает носители, а не поведение. Поэтому разбор играется здесь.
+   */
+  testWidgets('🔴 разбор доводит слово до конца и открывает РОВНО те плитки, что объясняет',
+      (tester) async {
+    await _boot(tester, state);
+    expect(find.byKey(const Key('game-lesson')), findsOneWidget,
+        reason: 'на первом уровне разбор обязан быть');
+    await tester.tap(find.byKey(const Key('game-lesson')));
+    await tester.pumpAndSettle();
+    expect(find.textContaining(L.t('teachTitle')), findsWidgets, reason: 'плеер открылся');
+
+    // Шаги листаем до последнего и смотрим на доску ПЛЕЕРА, а не на доску партии.
+    final target = _board(tester).target;
+    for (var i = 0; i < 12; i++) {
+      final next = find.byTooltip(L.t('puzzleNextStep'));
+      if (next.evaluate().isEmpty) break;
+      await tester.tap(next);
+      await tester.pump(const Duration(milliseconds: 50));
+    }
+    final board = tester
+        .widgetList<AnagramBoard>(find.byType(AnagramBoard))
+        .last;
+    final assembled = [for (final i in board.picked) board.letters[i]].join();
+    expect(assembled, upJs(target),
+        reason: 'разбор обязан довести до слова, а не до половины');
+  });
+
+  testWidgets('🔴 партия с разбором перестаёт быть зачётной', (tester) async {
+    LessonUsed.reset();
+    await _boot(tester, state);
+    expect(LessonUsed.inRound, isFalse, reason: 'до разбора партия зачётная');
+    await tester.tap(find.byKey(const Key('game-lesson')));
+    await tester.pumpAndSettle();
+    // Отметку ставит экран при открытии: правило «лестницу не двигаем» живёт в
+    // каркасе (`LevelLadder.win/fail`), но включить его обязана игра.
+    expect(LessonUsed.inRound, isTrue,
+        reason: 'без отметки лестница пошла бы вверх по показанному решению');
+    LessonUsed.reset();
+  });
+
+  testWidgets('🔴 с четвёртого уровня разбора нет: приёмы уже названы', (tester) async {
+    await state.set('psygames_anagrams_level_nzt48', '4');
+    await _boot(tester, state);
+    expect(find.byKey(const Key('game-lesson')), findsNothing,
+        reason: 'правило перенесено дословно: разбор до третьего уровня включительно');
+    // И это не «экран сломался»: партия на месте.
+    expect(find.byType(AnagramBoard), findsOneWidget);
   });
 }
