@@ -3034,6 +3034,9 @@ const t: Record<string, string> = {
   "teachCorsiPath": "Non memorizzare i blocchi uno per uno, ma il PERCORSO che disegnano i lampi: fai passare tra loro una linea immaginaria. Cinque lampi diventano un solo tragitto — uno zigzag, una lettera, un uncino.",
   "teachCorsiBackward": "In modalità inversa non girare punto per punto al volo. Prima costruisci il percorso in avanti, come è stato mostrato, e rispondendo ripercorrilo dalla fine.",
   "teachCorsiEyes": "Segui ogni lampo con lo sguardo e non distoglierlo fino alla fine della sequenza. Un lampo perso spezza tutto il percorso: da lì in poi si tira a indovinare.",
+  "teachPicturePairsPlaces": "Finché le carte sono scoperte, lega ogni immagine a un posto: angoli, bordi, centro. Poi apri dove hai visto la sua gemella, non a caso.",
+  "teachPicturePairsGroup": "Con tris e quartetti, ricorda TUTTI i posti di un'immagine: il gruppo sparisce solo quando apri tutte le sue carte di fila.",
+  "teachPicturePairsSwap": "Dal livello 22, dopo un errore le carte coperte si scambiano di posto e la coppia si illumina. Sposta l'immagine nella memoria dove è finita la sua carta.",
   "vsFindAll": "Trova tutte queste figure — in qualsiasi rotazione",
   "vsFindConj": "Trova la figura di questo colore e forma",
 };

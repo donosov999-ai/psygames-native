@@ -102,6 +102,16 @@ flutter:
     - assets/pizza/tops/
     - assets/pizza/boards/
     - assets/vocab/
+    - assets/pairs/
+    - assets/pairs/animals/
+    - assets/pairs/bio/
+    - assets/pairs/biz/
+    - assets/pairs/brain/
+    - assets/pairs/car/
+    - assets/pairs/chess/
+    - assets/pairs/coz/
+    - assets/pairs/edu/
+    - assets/pairs/geo/
 
   # To add assets to your application, add an assets section, like this:
   # assets:
