@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
@@ -7,6 +8,7 @@ import '../../shell/l10n.dart';
 import 'marks.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/session_report.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import 'generator/contract.dart';
@@ -96,6 +98,11 @@ class _SudokuScreenState extends State<SudokuScreen> {
   ({int r, int c})? _selected;
   int _errors = 0;
   int _hintsUsed = 0;
+
+  /// Когда раздана доска — от этого считается время партии в отчёте.
+  DateTime _startedAt = DateTime.now();
+
+  int get _elapsed => DateTime.now().difference(_startedAt).inSeconds;
   bool _won = false;
   bool _lost = false;
   String? _failure;
@@ -139,6 +146,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
         _resetNotes(board?.n ?? 0);
         _selected = null;
         _errors = 0;
+        _startedAt = DateTime.now();
         _hintsUsed = 0;
         _won = false;
         _lost = false;
@@ -157,6 +165,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
       _resetNotes(board?.n ?? 0);
       _selected = null;
       _errors = 0;
+      _startedAt = DateTime.now();
       _hintsUsed = 0;
       _won = false;
       _lost = false;
@@ -274,6 +283,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
         if (_errors >= errorLimit) {
           _lost = true;
           _recordOutcome(Outcome.failed);
+          _reportLoss();
         }
         return;
       }
@@ -338,6 +348,77 @@ class _SudokuScreenState extends State<SudokuScreen> {
     return levels.config(widget.mode == null ? _ladder.level : (_side?.step ?? 1)).hintMax;
   }
 
+  // ─────────────────────────────────────────────────────────────────────────
+  // ОТЧЁТ ПАРТИИ — задача 24cecc5c.
+  //
+  // 🔴 ПАРТИЯ, КОТОРАЯ НЕ ДОШЛА ДО ОТЧЁТА, ДЛЯ СТАТИСТИКИ И ЗАРЯДКИ НЕ СУЩЕСТВУЕТ.
+  // Первая редакция экрана отправляла отчёт только через лестницу — и только на
+  // победе в обычных уровнях. Проигрыш и победа в «Небоскрёбах»/«Неравенствах» не
+  // доходили никуда: в статистике их нет, шаг зарядки на них не засчитывался.
+  //
+  // Форма отчёта — ТА ЖЕ, что пишет веб (app/games/sudoku.tsx, saveSession на победе
+  // и на проигрыше): game_type 'sudoku', режим `level-N[-вариант]` или `towers-N`,
+  // очки по той же формуле. Разойдутся — партия ляжет в статистику под другим именем.
+  // ─────────────────────────────────────────────────────────────────────────
+
+  /// Имя режима партии в отчёте: `level-12` или `level-12-thermo`, как в вебе.
+  String _levelMode(int level) {
+    final v = _board?.variant ?? 'none';
+    return v == 'none' ? 'level-$level' : 'level-$level-$v';
+  }
+
+  /// Полоса трудности — та же разбивка, что у веба.
+  String _difficultyFor(int level) => level <= 4 ? 'easy' : level <= 9 ? 'medium' : 'hard';
+
+  /// Очки — формула веба: база растёт со ступенью, ошибки, время и подсказки её режут.
+  int _score(int level) =>
+      math.max(0, (1500 + level * 150 - _errors * 50 - _elapsed * 2 - _hintsUsed * 50).round());
+
+  /// ⚠️ ПРОИГРЫШ ИДЁТ МИМО ЛЕСТНИЦЫ, И ЭТО НАМЕРЕННО. `LevelLadder.fail` после трёх
+  /// провалов подряд опускает уровень, а веб-судоку уровень за проигрыши НЕ опускает
+  /// (замер: в app/games/sudoku.tsx и sudoku-roads.ts нет ни счёта провалов, ни
+  /// понижения). Пошли проигрыш через лестницу — нативная половина начала бы ронять
+  /// человеку уровень, которого веб не трогал.
+  void _reportLoss() {
+    final mode = widget.mode;
+    final level = mode == null ? _ladder.level : (_side?.step ?? 1);
+    unawaited(SessionReport.send(
+      gameType: 'sudoku',
+      score: 0,
+      timeSeconds: _elapsed,
+      difficulty: mode == null ? _difficultyFor(level) : null,
+      mode: mode == null ? _levelMode(level) : '${sideModeName(mode)}-$level',
+      errors: _errors,
+      details: {
+        'errors': _errors,
+        'completed': false,
+        'failed_out': true,
+        'level': level,
+        'variant': mode == null ? (_board?.variant ?? 'none') : sideModeName(mode),
+        if (mode == null) 'road': 'normal',
+      },
+    ));
+  }
+
+  /// Победа в режиме — своя мини-лестница, но отчёт обязан уйти так же, как у уровней.
+  void _reportModeWin(int step) {
+    final mode = widget.mode!;
+    unawaited(SessionReport.send(
+      gameType: 'sudoku',
+      score: _score(step),
+      timeSeconds: _elapsed,
+      mode: '${sideModeName(mode)}-$step',
+      errors: _errors,
+      details: {
+        'errors': _errors,
+        'completed': true,
+        'hint_uses': _hintsUsed,
+        'level': step,
+        'variant': sideModeName(mode),
+      },
+    ));
+  }
+
   void _checkWin() {
     final solution = _solution;
     if (solution == null) return;
@@ -348,12 +429,19 @@ class _SudokuScreenState extends State<SudokuScreen> {
     }
     _won = true;
     if (widget.mode != null) {
+      _reportModeWin(_side?.step ?? 1);   // шаг — ДО прибавки, как в вебе
       _side?.win();   // ступень режима — свой счётчик, лестница на 92 ступени не трогается
       return;
     }
     // Подсказками доигранная партия рейтинг не повышает — это правило движка, не экрана.
     _recordOutcome(_hintsUsed > 0 ? Outcome.assisted : Outcome.passed);
-    unawaited(_ladder.win());
+    final level = _ladder.level;
+    unawaited(_ladder.win(
+      score: _score(level),
+      timeSeconds: _elapsed,
+      errors: _errors,
+      mode: _levelMode(level),
+    ));
   }
 
   /// 🔴 РАЗБОР СУДОКУ: ПОЧЕМУ ЭТА ЦИФРА, А НЕ «ВОТ ОТВЕТ».
