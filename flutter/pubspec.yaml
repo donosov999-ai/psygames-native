@@ -94,6 +94,7 @@ flutter:
     - assets/puzzles/
     - assets/voice/
     - assets/spatial/
+    - assets/pause/
     - assets/goods/
     - assets/tubes/
     - assets/balls/
