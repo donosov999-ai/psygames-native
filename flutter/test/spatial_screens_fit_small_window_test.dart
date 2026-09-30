@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/mental_rotation/screen.dart';
+import 'package:psygames_flutter/games/navigator/screen.dart';
+import 'package:psygames_flutter/games/navigator/strings.dart';
 import 'package:psygames_flutter/games/spatial_hub/screen.dart';
 import 'package:psygames_flutter/games/spatial_lab/screen.dart';
 import 'package:psygames_flutter/games/spatial_span/screen.dart';
@@ -8,7 +10,7 @@ import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// ЧЕТЫРЕ ЭКРАНА РАЗДЕЛА ПОМЕЩАЮТСЯ В САМОЕ УЗКОЕ ОКНО, КОТОРОЕ У НАС ЕСТЬ.
+/// ПЯТЬ ЭКРАНОВ РАЗДЕЛА ПОМЕЩАЮТСЯ В САМОЕ УЗКОЕ ОКНО, КОТОРОЕ У НАС ЕСТЬ.
 ///
 /// 📍 Урок «Поиска и счёта» 23.09.2026, записка в канал psygames: «проба РАСКЛАДКИ ловит
 /// то, чего не видит ни одна проба правил». У них два захода подряд она нашла настоящие
@@ -43,6 +45,9 @@ void main() {
     });
     state = await SharedState.open();
     await L.load('ru');
+    // Словарь модуля — заранее: иначе первый кадр «Навигатора» — крутилка загрузки, и проба
+    // мерила бы её, а не экран.
+    await NavigatorStrings.load(locale: 'ru');
   });
 
   /// Открыть экран в окне заданного размера и вернуть исключение раскладки, если оно было.
@@ -75,6 +80,11 @@ void main() {
 
     testWidgets('🔴 «Лаборатория» не переполняет ${w.key}', (tester) async {
       expect(await openAt(tester, SpatialLabScreen(state: state), w.value), isNull);
+    });
+
+    testWidgets('🔴 «Навигатор» не переполняет ${w.key}', (tester) async {
+      expect(await openAt(tester, NavigatorScreen(state: state), w.value), isNull);
+      expect(find.byKey(const Key('nav-rules')), findsOneWidget, reason: 'мерится экран правил, а не загрузка');
     });
 
     testWidgets('🔴 Развилка не переполняет ${w.key}', (tester) async {
