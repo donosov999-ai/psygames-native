@@ -320,7 +320,7 @@ class _LexicalDecisionScreenState extends State<LexicalDecisionScreen> {
             key: const Key('ld-bilingual'),
             contentPadding: EdgeInsets.zero,
             title: Text(L.t('bilingualMode')),
-            subtitle: Text(L.t('bilingualModeDesc'), style: theme.textTheme.bodySmall),
+            subtitle: Text(_names.bilingualDesc(_target, _second), style: theme.textTheme.bodySmall),
             value: _bilingual,
             onChanged: (v) => setState(() => _bilingual = v),
           ),
