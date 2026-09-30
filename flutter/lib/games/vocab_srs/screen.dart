@@ -1,8 +1,6 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show rootBundle;
 
 import '../../shell/demo_lesson.dart';
 import '../../shell/game_preset.dart';
@@ -12,6 +10,8 @@ import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import '../languages/bilingual.dart';
+import '../languages/lang_names.dart';
+import '../languages/json_asset.dart';
 import 'model.dart';
 import 'typing.dart';
 
@@ -88,6 +88,7 @@ class VocabSrsScreen extends StatefulWidget {
 class _VocabSrsScreenState extends State<VocabSrsScreen> {
   late LevelLadder _runs;
   List<VocabEntry>? _vocab;
+  LangNames _names = LangNames.empty;
 
   VocabPhase _phase = VocabPhase.config;
   String _targetLang = 'es';
@@ -165,11 +166,13 @@ class _VocabSrsScreenState extends State<VocabSrsScreen> {
     await _runs.load();
     final vocab = widget.vocabOverride ??
         [
-          for (final e in jsonDecode(await rootBundle.loadString('assets/vocab/translation-vocab.json')) as List<dynamic>)
+          for (final e in await loadJsonAsset('assets/vocab/translation-vocab.json') as List<dynamic>)
             (e as Map).map((k, v) => MapEntry('$k', '$v')),
         ];
+    final names = await LangNames.load();
     if (!mounted) return;
     setState(() {
+      _names = names;
       _vocab = vocab;
       // 🔴 НАСТРОЙКИ ШАГА ЗАРЯДКИ — ИЗ АДРЕСА, КАК В ВЕБЕ (`useGamePreset`).
       // Языковая зарядка открывает словарь с `?targetLang=…&bilingual=1&lang2=…`;
@@ -502,6 +505,7 @@ class _VocabSrsScreenState extends State<VocabSrsScreen> {
             runs: _runs.level,
             bilingual: _bilingual,
             second: _second,
+            bilingualDesc: _names.bilingualDesc(_targetLang, _second),
             secondChoices: [for (final l in _langs) if (l != _targetLang) l],
             onLang: (l) {
               setState(() => _targetLang = l);
@@ -564,6 +568,7 @@ class _Config extends StatelessWidget {
     required this.runs,
     required this.bilingual,
     required this.second,
+    required this.bilingualDesc,
     required this.secondChoices,
     required this.onLang,
     required this.onLimit,
@@ -584,6 +589,9 @@ class _Config extends StatelessWidget {
 
   /// Настоящий второй язык — уже не совпадающий ни с первым, ни с родным.
   final String second;
+
+  /// Подпись режима «два языка сразу» с подставленной парой.
+  final String bilingualDesc;
   final List<String> secondChoices;
   final void Function(String) onLang;
   final void Function(int) onLimit;
@@ -637,7 +645,7 @@ class _Config extends StatelessWidget {
             key: const Key('vocab-bilingual'),
             contentPadding: EdgeInsets.zero,
             title: Text(L.t('bilingualMode')),
-            subtitle: Text(L.t('bilingualModeDesc'), style: Theme.of(context).textTheme.bodySmall),
+            subtitle: Text(bilingualDesc, style: Theme.of(context).textTheme.bodySmall),
             value: bilingual,
             onChanged: onBilingual,
           ),

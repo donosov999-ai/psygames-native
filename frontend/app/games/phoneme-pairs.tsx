@@ -47,7 +47,7 @@ type GamePhase = 'config' | 'playing' | 'cleared' | 'result';
 // Минимальные пары. Порядок = сложность: ПЕРВАЯ половина списка — «лёгкие»
 // (контраст хорошо различим в TTS), вторая — тоньше. Только пары, которые
 // системный синтез реально произносит различимо.
-const MINIMAL_PAIRS: Record<string, [string, string][]> = {
+export const MINIMAL_PAIRS: Record<string, [string, string][]> = {
   en: [
     // easy half — чёткие гласные контрасты /æ e ʌ/ + разные слоги
     ['snack', 'snake'],
@@ -172,12 +172,12 @@ const LANG_NAMES: Record<string, string> = {
  * пишется здесь руками: одно место правды на приложение. Для нелатинских
  * письменностей подпись обязательна, для остальных её нет и не нужно.
  */
-const PINYIN_HINT: Record<string, string> = Object.fromEntries(
+export const PINYIN_HINT: Record<string, string> = Object.fromEntries(
   MINIMAL_PAIRS.zh!.flat().map((з) => [з, ZH_PINYIN[з]?.pinyin ?? '']),
 );
 const TARGET_LANGS = Object.keys(MINIMAL_PAIRS);
 
-interface Trial {
+export interface Trial {
   words: [string, string];   // порядок на кнопках (перемешан)
   correctIdx: 0 | 1;         // какое слово прозвучит
 }
@@ -208,7 +208,8 @@ export function levelParams(level: number): {
   };
 }
 
-function buildTrials(pairs: [string, string][], count: number): Trial[] {
+/** Экспортирована ради сверки Flutter-переноса с исполнением (`scripts/flutter-phoneme-pairs-reference.test.ts`). */
+export function buildTrials(pairs: [string, string][], count: number): Trial[] {
   const out: Trial[] = [];
   for (let i = 0; i < count; i++) {
     const pair = pairs[Math.floor(Math.random() * pairs.length)];

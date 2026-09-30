@@ -45,8 +45,12 @@ class VoiceIndex {
   static Future<VoiceIndex> load() async {
     if (_cache != null) return _cache!;
     try {
+      // ⚠️ БАЙТАМИ, А НЕ `loadString`: указатель весит 81 663 байта (30.09.2026), а
+      // `loadString` с 51 200 уходит в `compute()`, и testWidgets висит десять минут —
+      // первая же проба экрана со звуком не дожила бы до конца.
+      final data = await rootBundle.load('assets/voice/voice-index.json');
       final raw = jsonDecode(
-        await rootBundle.loadString('assets/voice/voice-index.json'),
+        utf8.decode(data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes)),
       ) as Map<String, dynamic>;
       final rawLetters = raw['letters'];
       _cache = VoiceIndex(

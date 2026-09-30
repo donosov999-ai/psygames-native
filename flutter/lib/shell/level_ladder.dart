@@ -107,7 +107,8 @@ class LevelLadder {
     _failStreak = 0;
     // Пресет — шаг зарядки, разбор — партия с показанным решением. В обоих
     // случаях лестница меряла бы не человека, поэтому не двигается.
-    final counted = !GamePreset.isPreset && !LessonUsed.inRound;
+    final lesson = LessonUsed.inRound;
+    final counted = !GamePreset.isPreset && !lesson;
     LessonUsed.reset();
     if (counted) {
       if (_level < maxLevel) _level += 1;
@@ -121,16 +122,35 @@ class LevelLadder {
       errors: errors,
       mode: mode ?? sessionMode,
       difficulty: difficulty ?? '$_level',
-      details: details,
+      details: _withLesson(details, lesson),
     );
   }
+
+  /*
+   * 🔴 ПАРТИЯ С РАЗБОРОМ НЕСЁТ `lesson: true` — ОДНИМ МЕСТОМ ДЛЯ ВСЕХ НАТИВНЫХ ЭКРАНОВ
+   * (задача 9660186d, 30.09.2026). Уровень такая партия не двигала и раньше, а монеты и
+   * серия «чисто» считаются в `saveSession` веба — и флага там не было: итог писал
+   * «не засчитывается» и тут же «+100 ×2 · чисто». Читатель — `api.ts` (без ×2, серия не
+   * тикается). Экрану ничего делать не нужно: признак берётся из `LessonUsed`.
+   */
+  static Map<String, Object?>? _withLesson(Map<String, Object?>? details, bool lesson) =>
+      lesson ? {...?details, 'lesson': true} : details;
 
   /// Провал. Опускает уровень только на третий подряд — один промах ничего не стоит.
   ///
   /// ⚠️ Проигранная партия — ТОЖЕ партия: она идёт в статистику и двигает шаг
   /// зарядки так же, как выигранная. Иначе человек, проваливший шаг серии,
   /// застрял бы на нём навсегда.
-  Future<void> fail({int score = 0, int timeSeconds = 0, int? errors, String? mode}) async {
+  ///
+  /// `difficulty` и `details` — как у [win]: не переданы — уходит прежнее.
+  Future<void> fail({
+    int score = 0,
+    int timeSeconds = 0,
+    int? errors,
+    String? mode,
+    String? difficulty,
+    Map<String, Object?>? details,
+  }) async {
     final lesson = LessonUsed.inRound;
     LessonUsed.reset();   // см. [win]: отметку съедает партия, которую она не засчитала
     if (GamePreset.isPreset || lesson) {
@@ -143,7 +163,8 @@ class LevelLadder {
         timeSeconds: timeSeconds,
         errors: errors,
         mode: mode ?? sessionMode,
-        difficulty: '$_level',
+        difficulty: difficulty ?? '$_level',
+        details: _withLesson(details, lesson),
       );
       return;
     }
@@ -159,7 +180,8 @@ class LevelLadder {
       timeSeconds: timeSeconds,
       errors: errors,
       mode: mode ?? sessionMode,
-      difficulty: '$_level',
+      difficulty: difficulty ?? '$_level',
+      details: details,
     );
   }
 
