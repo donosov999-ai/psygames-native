@@ -3039,5 +3039,12 @@ const t: Record<string, string> = {
   "teachPicturePairsSwap": "레벨 22부터는 실수하면 뒤집힌 카드들이 자리를 바꾸고 그 쌍이 빛나요. 카드가 옮겨 간 곳으로 기억 속 그림도 옮기세요.",
   "vsFindAll": "이 도형을 모두 찾으세요 — 방향은 상관없습니다",
   "vsFindConj": "이 색과 모양의 도형을 찾으세요",
+  "teachPhIntro": "두 단어는 소리 하나만 다릅니다. 어디서 갈라지는지 찾고 그 부분만 들으세요. 나머지는 같습니다.",
+  "teachPhSpot": "“{a}”와(과) “{b}”는 한 곳만 다릅니다: {da} 대 {db}. 둘 다 들어 보세요.",
+  "teachPhVowel": "“{a}”와(과) “{b}”는 가운데 모음만 다르고, 여기서는 철자가 별 도움이 안 됩니다. 둘 다 들어 보세요.",
+  "teachPhProbe": "이제 둘 중 하나가 나옵니다. 다른 부분만 들으세요.",
+  "teachPhAnswerSpot": "나온 것은 “{w}” — 다른 부분은 {dx}였습니다.",
+  "teachPhAnswerVowel": "나온 것은 “{w}” — 차이는 모음에 있었습니다.",
+  "teachPhDone": "이렇게 답하세요: 쌍이 어디서 갈라지는지 알고 그 부분만 듣습니다.",
 };
 export default t;

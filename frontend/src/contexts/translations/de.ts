@@ -3044,5 +3044,12 @@ const t: Record<string, string> = {
   "teachPicturePairsSwap": "Ab Level 22 tauschen nach einem Fehler verdeckte Karten die Plätze, und das Paar leuchtet auf. Verschiebe das Bild im Kopf dorthin, wo seine Karte hingewandert ist.",
   "vsFindAll": "Finde alle diese Formen — in jeder Drehung",
   "vsFindConj": "Finde die Form in dieser Farbe",
+  "teachPhIntro": "Die beiden Wörter unterscheiden sich in EINEM Laut. Finde, wo sie auseinandergehen, und hör nur auf diese Stelle — der Rest ist gleich.",
+  "teachPhSpot": "„{a}“ und „{b}“ gehen an einer Stelle auseinander: {da} gegen {db}. Hör dir beide an.",
+  "teachPhVowel": "„{a}“ und „{b}“ unterscheiden sich nur im Vokal in der Mitte, und die Schreibung hilft hier wenig. Hör dir beide an.",
+  "teachPhProbe": "Gleich hörst du eines der beiden. Hör nur auf die Stelle, an der sie sich unterscheiden.",
+  "teachPhAnswerSpot": "Das war „{w}“ — an der Stelle stand {dx}.",
+  "teachPhAnswerVowel": "Das war „{w}“ — der Unterschied lag im Vokal.",
+  "teachPhDone": "So antwortest du auch: Du weißt, wo das Paar auseinandergeht, und hörst nur auf diese Stelle.",
 };
 export default t;

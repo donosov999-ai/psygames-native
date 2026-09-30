@@ -908,6 +908,17 @@ const translations: Translations = {
   skillListening: { ru: 'Тренируем: восприятие на слух', en: 'Training: listening' },
   phonemePairs: { ru: 'Фонемы: минимальные пары', en: 'Phonemes: Minimal Pairs' },
   phonemePairsDesc: { ru: 'Услышь разницу: ship или sheep?', en: 'Hear the difference: ship or sheep?' },
+  /*
+   * 🎓 РАЗБОР «ФОНЕМНЫХ ПАР» (30.09.2026): узнать, где пара расходится, и слушать только это место.
+   * {da}/{db} — место расхождения по написанию (ru/es/pt) или по пиньиню (zh); у en/de — гласный.
+   */
+  teachPhIntro: { ru: 'В паре слова различаются ОДНИМ звуком. Узнайте, где они расходятся, и слушайте только это место — остальное у них общее.', en: 'The two words differ in ONE sound. Find where they split and listen only to that spot — the rest is shared.' },
+  teachPhSpot: { ru: '«{a}» и «{b}» расходятся в одном месте: {da} против {db}. Послушайте оба.', en: '“{a}” and “{b}” split in one spot: {da} versus {db}. Listen to both.' },
+  teachPhVowel: { ru: '«{a}» и «{b}» различаются только гласным в середине слова, а написание здесь подсказывает плохо. Послушайте оба.', en: '“{a}” and “{b}” differ only in the vowel in the middle, and the spelling is a poor guide here. Listen to both.' },
+  teachPhProbe: { ru: 'Сейчас прозвучит одно из двух. Слушайте только место различия.', en: 'Now you will hear one of the two. Listen only to the spot where they differ.' },
+  teachPhAnswerSpot: { ru: 'Прозвучало «{w}» — в месте различия было {dx}.', en: 'That was “{w}” — the differing spot had {dx}.' },
+  teachPhAnswerVowel: { ru: 'Прозвучало «{w}» — различие было в гласном.', en: 'That was “{w}” — the difference was in the vowel.' },
+  teachPhDone: { ru: 'Так и отвечайте: знаете, где пара расходится, — слушаете только это место.', en: 'Answer the same way: know where the pair splits, and listen only to that spot.' },
   pseudowordEcho: { ru: 'Эхо: псевдослова', en: 'Echo: Pseudowords' },
   pseudowordEchoDesc: { ru: 'Услышал выдуманное слово — найди его написание', en: 'Hear a made-up word — pick its spelling' },
   listeningSpan: { ru: 'Слуховой охват', en: 'Listening Span' },

@@ -3044,5 +3044,12 @@ const t: Record<string, string> = {
   "teachPicturePairsSwap": "从第22关起，出错后背面朝上的卡片会交换位置，这一对会亮起。把记忆中的图移到它的卡片去的地方。",
   "vsFindAll": "找出所有这种图形 — 任意旋转方向",
   "vsFindConj": "找出这种颜色和形状的图形",
+  "teachPhIntro": "这两个词只差一个音。先找出它们在哪里不同，然后只听那个位置——其余部分都一样。",
+  "teachPhSpot": "“{a}”和“{b}”只在一处不同：{da} 对 {db}。两个都听一听。",
+  "teachPhVowel": "“{a}”和“{b}”只差中间的元音，这里拼写帮不上忙。两个都听一听。",
+  "teachPhProbe": "现在会播放其中一个。只听它们不同的那个位置。",
+  "teachPhAnswerSpot": "刚才是“{w}”——不同之处是 {dx}。",
+  "teachPhAnswerVowel": "刚才是“{w}”——不同之处在元音。",
+  "teachPhDone": "就这样作答：知道这对词在哪里不同，就只听那个位置。",
 };
 export default t;

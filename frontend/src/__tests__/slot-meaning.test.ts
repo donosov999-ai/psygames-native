@@ -367,7 +367,7 @@ const AUX_UNDER_FIELD: Record<string, number> = {
   'hanoi.tsx': 1,           // отмена
   'mahjong.tsx': 2,         // отмена + перемешать
   'pattern.tsx': 1,         // подсказка (три ступени)
-  'phoneme-pairs.tsx': 1,   // повтор звука
+  'phoneme-pairs.tsx': 2,   // повтор звука + разбор по шагам (teachButton, уровни 1–3; 30.09.2026)
   'prl.tsx': 1,             // СТОП
   'proofreading.tsx': 1,    // подсказка
   'tower-london.tsx': 1,    // отмена

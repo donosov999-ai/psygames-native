@@ -3044,5 +3044,12 @@ const t: Record<string, string> = {
   "teachPicturePairsSwap": "A partir do nível 22, depois de um erro as cartas viradas para baixo trocam de lugar e o par se ilumina. Mova a figura na memória para onde a carta dela foi.",
   "vsFindAll": "Encontre todas estas formas — em qualquer rotação",
   "vsFindConj": "Encontre a forma desta cor e formato",
+  "teachPhIntro": "As duas palavras diferem em UM só som. Descubra onde elas se separam e ouça só esse ponto — o resto é igual.",
+  "teachPhSpot": "“{a}” e “{b}” se separam em um só ponto: {da} contra {db}. Ouça as duas.",
+  "teachPhVowel": "“{a}” e “{b}” diferem só na vogal do meio, e a escrita ajuda pouco aqui. Ouça as duas.",
+  "teachPhProbe": "Agora vai tocar uma das duas. Ouça só o ponto onde elas diferem.",
+  "teachPhAnswerSpot": "Tocou “{w}” — no ponto de diferença estava {dx}.",
+  "teachPhAnswerVowel": "Tocou “{w}” — a diferença estava na vogal.",
+  "teachPhDone": "Responda assim: você sabe onde o par se separa e ouve só esse ponto.",
 };
 export default t;
