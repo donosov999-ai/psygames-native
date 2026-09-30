@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../../shell/demo_lesson.dart';
+import '../../shell/game_clock.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/lesson.dart';
@@ -43,8 +44,9 @@ class _KidsFindScreenState extends State<KidsFindScreen> {
   int? _wrongAt; // клетка, по которой только что промахнулись
   bool _won = false;
   double? _left;
-  Timer? _tick, _next;
-  DateTime _started = DateTime.now();
+  // Часы партии (lib/shell/game_clock.dart): стоят под паузой, разбором и в фоне.
+  GameTimer? _tick, _next;
+  int _startedMs = gameNow();
 
   @override
   void initState() {
@@ -74,7 +76,7 @@ class _KidsFindScreenState extends State<KidsFindScreen> {
     _boardNo = 0;
     _errors = 0;
     _won = false;
-    _started = DateTime.now();
+    _startedMs = gameNow();
     _deal();
   }
 
@@ -87,7 +89,7 @@ class _KidsFindScreenState extends State<KidsFindScreen> {
     final seconds = findLevelFor(_levelNo).seconds;
     _left = seconds;
     if (seconds != null) {
-      _tick = Timer.periodic(const Duration(milliseconds: 100), (_) {
+      _tick = gameInterval(const Duration(milliseconds: 100), () {
         if (!mounted || _phase != _Phase.playing) return;
         final left = (_left! - 0.1).clamp(0.0, 999.0);
         setState(() => _left = left);
@@ -106,14 +108,14 @@ class _KidsFindScreenState extends State<KidsFindScreen> {
     if (i == b.target) {
       setState(() => _phase = _Phase.right);
       _tick?.cancel();
-      _next = Timer(const Duration(milliseconds: 450), _advance);
+      _next = gameTimeout(const Duration(milliseconds: 450), _advance);
     } else {
       setState(() {
         _errors += 1;
         _wrongAt = i;
       });
       _next?.cancel();
-      _next = Timer(const Duration(milliseconds: 350), () {
+      _next = gameTimeout(const Duration(milliseconds: 350), () {
         if (mounted && _phase == _Phase.playing) setState(() => _wrongAt = null);
       });
     }
@@ -130,7 +132,7 @@ class _KidsFindScreenState extends State<KidsFindScreen> {
       return;
     }
     final passed = _errors <= findErrorsAllowed;
-    final seconds = DateTime.now().difference(_started).inSeconds;
+    final seconds = (gameNow() - _startedMs) ~/ 1000;
     final lv = findLevelFor(_levelNo);
     final details = <String, Object?>{
       'side': lv.side,

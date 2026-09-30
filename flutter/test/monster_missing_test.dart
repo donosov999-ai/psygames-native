@@ -15,6 +15,8 @@ import 'package:psygames_flutter/shell/session_report.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'support/game_clock_fake.dart';
+
 int shared(Monster a, Monster b) =>
     (a.color == b.color ? 1 : 0) + (a.body == b.body ? 1 : 0) + (a.eyes == b.eyes ? 1 : 0);
 
@@ -105,6 +107,7 @@ void main() {
         addTearDown(tester.view.reset);
       }
       final state = await freshAt(level);
+      useFakeGameClock(tester);
       await tester.pumpWidget(MaterialApp(home: MonsterMissingScreen(key: UniqueKey(), state: state, seed: seed)));
       await tester.pump();
       await tester.pump();
