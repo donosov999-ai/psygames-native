@@ -117,25 +117,40 @@ void main() {
       '$origin/games/pseudoword-echo',
       '$origin/games/phoneme-pairs',
       '$origin/games/chinese-tones',
+      '$origin/games/dictation',
+      '$origin/games/dictation.html?wu=1&targetLang=en',
       '$origin/games/chinese-tones.html?wu=1',
       '$origin/games/phoneme-pairs.html?wu=1&targetLang=zh',
       '$origin/games/pseudoword-echo.html?wu=1&targetLang=es',
       '$origin/games/phonemic-fluency.html?wu=1&targetLang=en&duration=90',
       '$origin/games/story-recall.html?wu=1',
       '$origin/games/hearing-hub',
+      '$origin/games/words-hub',
+      '$origin/games/languages-hub',
       '$origin/games/mnemonics-hub',
     ]) {
       expect(HybridApp.routeOf(url), isNotNull, reason: url);
     }
   });
 
-  /// 🔴 Развилки «Слова» и «Языки» остаются в вебе, пока зарядку раздела нечем
-  /// запустить из натива: перехват показал бы список без неё.
-  test('🔴 развилки со своей зарядкой не перехватываются', () {
+  /// 🔴 Развилки «Слова» и «Языки» перехватываются ТОЛЬКО вместе с зарядкой
+  /// раздела в шапке: без неё перехват молча отнял бы у человека рабочую серию.
+  test('🔴 развилки со своей зарядкой перехватываются с мостом к ней в шапке', () {
     const origin = 'http://127.0.0.1:54321';
-    expect(HybridApp.routeOf('$origin/games/words-hub'), isNull);
-    expect(HybridApp.routeOf('$origin/games/languages-hub'), isNull);
+    for (final route in ['/games/words-hub', '/games/languages-hub']) {
+      expect(HybridApp.routeOf('$origin$route'), route);
+    }
     expect(HybridApp.routeOf('$origin/games/hearing-hub'), '/games/hearing-hub');
+  });
+
+  /// 🔴 НАСТРОЙКИ ШАГА СНИМАЕТ ТОЛЬКО ТОТ ЭКРАН, ЧЬИ ОНИ. Живой прогон 30.09.2026:
+  /// развилка «Языки» → зарядка → «Словарь» открылся экраном настроек, потому что
+  /// закрытие развилки досрабатывало ПОСЛЕ открытия «Словаря» и стирало его `wu=1`.
+  test('🔴 закрытие старого экрана не стирает настройки шага нового', () {
+    expect(routeOwnsPreset('/games/languages-hub', '/games/languages-hub'), isTrue,
+        reason: 'поверх никого — свои настройки снимаются');
+    expect(routeOwnsPreset('/games/vocab-srs', '/games/languages-hub'), isFalse,
+        reason: 'страница ушла вперёд, открыт «Словарь» — его настройки не трогать');
   });
 
   /// ⚠️ Фрактал и ГЛУБОКИЙ фрактал — РАЗНЫЕ экраны. Перехват одного не должен утаскивать
@@ -275,6 +290,7 @@ void main() {
       '/games/counting-hub',
       '/games/faces-names',
       '/games/find-differences',
+      '/games/scholars-mate',
       '/games/search-hub',
       '/games/visual-search',
       '/games/flanker',
@@ -306,7 +322,10 @@ void main() {
       '/games/pseudoword-echo',
       '/games/phoneme-pairs',
       '/games/chinese-tones',
+      '/games/dictation',
       '/games/hearing-hub',
+      '/games/words-hub',
+      '/games/languages-hub',
       '/games/mental-rotation',
       '/games/navigator',
       '/games/number-bonds',

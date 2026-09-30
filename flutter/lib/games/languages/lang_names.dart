@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../shell/l10n.dart';
 import 'json_asset.dart';
 
 /// САМОНАЗВАНИЯ ЯЗЫКОВ — данные веба, а не текст экрана.
@@ -29,6 +30,12 @@ class LangNames {
 
   /// Подпись языка у стимула — `WORD_LANG_LABEL[язык] ?? язык.toUpperCase()`.
   String label(String code) => wordLabels[code] ?? code.toUpperCase();
+
+  /// Подпись режима «два языка сразу»: `{a}` и `{b}` — самоназвания пары, как в
+  /// `BilingualToggle.tsx`. 🔴 Без подстановки человек видел сырые скобки —
+  /// «{a} и {b} вперемешку» (живой прогон 30.09.2026 в «Словаре»).
+  String bilingualDesc(String first, String second) =>
+      L.t('bilingualModeDesc').replaceAll('{a}', label(first)).replaceAll('{b}', label(second));
 }
 
 /// 🔴 ЯЗЫК — СЛОВОМ У САМОГО СТИМУЛА, а не только двумя буквами в шапке.

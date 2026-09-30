@@ -3,7 +3,13 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../../shell/aux_action.dart';
+import '../../shell/game_preset.dart';
 import '../../shell/game_rules.dart';
+import '../../shell/generator/contract.dart';
+import '../../shell/generator/engine.dart';
+import '../../shell/generator/ladder_pool.dart';
+import '../../shell/generator/shadow.dart';
+import '../../shell/generator/store.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
@@ -70,6 +76,31 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
   bool _won = false;
   String? _failure;
 
+  /// Партия проиграна движком (статус −1: «Сапёр» взорвался, у «Угадай код» кончились
+  /// попытки). До 30.09.2026 нативный экран этот исход не видел вовсе: партии не было
+  /// ни в статистике, ни в лестнице, хотя веб зовёт `lvl.fail()` (puzzles.tsx).
+  bool _lost = false;
+
+  /// Нажато «Показать решение». Решённая решателем доска — не победа, а РАЗБОР (веб,
+  /// puzzles.tsx: ступень не растёт и не падает). До 30.09.2026 нативный экран считал её
+  /// победой и поднимал ступень — отчёты 8a1b20d6 и 67561a7f были про тот же исход в вебе.
+  bool _solverUsed = false;
+
+  /// Ступень, на которой розданы доска и партия: после победы лестница уже шагнула.
+  int _dealLevel = 1;
+
+  /*
+   * 🔴 ТЕНЬ ГЕНЕРАТОРА НА ВСЕ 42 РЕЖИМА (звено 2 цепочки генератора, задача 543d853c).
+   * Человек играет прежнюю лестницу, а генератор рядом пишет, какую ступень выбрал бы,
+   * и учит рейтинг игрока на настоящих исходах — ровно так, как эталон «Судоку» (§10
+   * шаг 2). Прописанные ключи уровня не трогаются: у генератора свои
+   * (`psygames_puzzles_<движок>_adaptive_*`), проба `puzzles_generator_test.dart`.
+   */
+  List<Template> _genPool = const [];
+  GeneratorShadow? _shadow;
+  Template? _given;
+  String _eventId = '';
+
   @override
   void initState() {
     super.initState();
@@ -104,6 +135,8 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
       // лестницы обязан быть настоящим. Прежде лестница строилась ДО движка и у
       // 28 режимов получала выдуманный потолок 999 — уровень рос в пустоту.
       _steps = resolveSteps(_mode, engine, index);
+      _genPool = ladderPool(gameId: _mode.levelKey, stepKeys: [for (final s in _steps) s.params]);
+      _shadow = GeneratorShadow(GeneratorStore(widget.state, gameId: _mode.levelKey));
       _ladder = LevelLadder(
         gameId: _mode.levelKey,
         store: SharedLevelStore(widget.state),
@@ -183,7 +216,17 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
     final engine = _engine;
     if (engine == null) return;
     LessonUsed.reset();   // новая доска — партия снова зачётная
-    final step = _steps[(_ladder.level - 1).clamp(0, _steps.length - 1)];
+    final at = (_ladder.level - 1).clamp(0, _steps.length - 1);
+    final step = _steps[at];
+    _solverUsed = false;
+    _lost = false;
+    _dealLevel = _ladder.level;
+    _given = at < _genPool.length ? _genPool[at] : null;
+    _eventId = '${_mode.levelKey}-${DateTime.now().microsecondsSinceEpoch}';
+    // Шаг зарядки — не личная лестница человека: рейтинг на нём не учим (как и уровень).
+    if (_given != null && !GamePreset.isPreset) {
+      _shadow?.recordDeal(level: _dealLevel, given: _given!, pool: _genPool, mode: Leniency.normal);
+    }
     final ok = engine.start(_gameIndex, step.params, DateTime.now().millisecondsSinceEpoch % 100000);
     setState(() {
       _failure = ok ? null : 'партия не собралась: ${step.params}';
@@ -218,14 +261,45 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
     if (engine == null) return;
     final frame = PuzzleFrame.parse(engine.draw());
     final status = engine.status;
+    final justWon = status == 1 && !_won;
+    final justLost = status == -1 && !_won && !_lost;
     setState(() {
       _frame = frame;
       _status = engine.statusText;
-      if (status == 1 && !_won) {
-        _won = true;
-        unawaited(_ladder.win());
-      }
+      if (justWon) _won = true;
+      if (justLost) _lost = true;
     });
+    if (justWon) _finish(won: true);
+    if (justLost) _finish(won: false);
+  }
+
+  /// Конец партии: одна запись на исход — с тем, что в вебе (`puzzles.tsx`): тип
+  /// `puzzles`, режим, трудность `<режим>-<ступень>`, решатель в подробностях.
+  void _finish({required bool won}) {
+    // Разбор («Показать решение» или плеер разбора) — третье состояние: партия пишется,
+    // ступень не двигается ни вверх, ни вниз. Флаг разбора читается ДО win/fail: лестница
+    // его сбрасывает.
+    if (_solverUsed) LessonUsed.mark();
+    final assisted = LessonUsed.inRound;
+    final details = <String, Object?>{
+      'level': _dealLevel,
+      'mode': _mode.engineName,
+      'solver_used': _solverUsed,
+    };
+    final difficulty = '${_mode.engineName}-$_dealLevel';
+    if (won) {
+      unawaited(_ladder.win(difficulty: difficulty, details: details));
+    } else {
+      unawaited(_ladder.fail(difficulty: difficulty, details: details));
+    }
+    final given = _given;
+    if (given != null && !GamePreset.isPreset) {
+      _shadow?.recordOutcome(
+        given: given,
+        outcome: assisted ? Outcome.assisted : (won ? Outcome.passed : Outcome.failed),
+        eventId: _eventId,
+      );
+    }
   }
 
   void _tap(Offset at, Size widgetSize) {
@@ -253,6 +327,7 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
   void _solve() {
     final engine = _engine;
     if (engine == null || _won) return;
+    _solverUsed = true;
     engine.solve();
     _refresh();
   }
