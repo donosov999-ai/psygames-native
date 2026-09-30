@@ -73,6 +73,11 @@ import LevelProgressMap from '@/src/components/LevelProgressMap';
 import LevelCleared from '@/src/components/LevelCleared';
 import GameResult from '@/src/components/GameResult';
 import { RhythmPitchGame, type RhythmPitchPhaseAction } from '@/src/games/rhythm-pitch/RhythmPitchGame';
+import LessonPlayer from '@/src/components/LessonPlayer';
+import Svg, { Polyline } from 'react-native-svg';
+import { GameAuxAction } from '@/src/components/GameAuxAction';
+import { собратьРазборРитма, type КарточкаРитма } from '@/src/games/rhythm-pitch/teach';
+import type { RhythmPitchRound } from '@/src/games/rhythm-pitch/core/types';
 import { createAppToneAudioEngine } from '@/src/games/rhythm-pitch/appAudio';
 import {
   LEVELS,
@@ -214,16 +219,64 @@ export default function RhythmPitchScreen() {
   // эффект монтирования всегда раньше промиса. См. useAutostartWhenReady.
   useAutostartWhenReady(() => autostart && soundPref !== null && !muted && lvl.loaded, () => setPhase('playing'));
 
+  /**
+   * 🎓 РАЗБОР ПО ШАГАМ (Денис 17.09.2026, «раскатывай везде»): в ритме держать темп, в высоте следить
+   * за линией (`src/games/rhythm-pitch/teach.ts`). Пример — свой раунд тем же генератором и уровнем,
+   * звучит на том же движке. Только на уровнях 1–3; партия с разбором не засчитывается.
+   */
+  const [урок, setУрок] = React.useState<{ карточки: КарточкаРитма[]; индекс: number; пример: RhythmPitchRound } | null>(null);
+  const карточкаУрока = урок ? урок.карточки[урок.индекс] : null;
+  const урокВПартииRef = React.useRef(false);
+  const [итогСРазбором, setИтогСРазбором] = React.useState(false);
+  const разборДоступен = phase === 'playing' && level <= 3;
+  /** Номер открытия разбора — зерно примера: каждый раз свой ритм, без настенных часов (гейт game-clock-discipline). */
+  const номерРазбораRef = React.useRef(0);
+  const начатьРазбор = () => {
+    номерРазбораRef.current += 1;
+    const р = собратьРазборРитма(level, `разбор-${level}-${attempt}-${номерРазбораRef.current}`);
+    if (!р) return;
+    урокВПартииRef.current = true;
+    void engine.stop();
+    setУрок({ карточки: р.карточки, индекс: 0, пример: р.пример });
+  };
+  const урокДальше = React.useCallback(
+    () => setУрок((у) => (у && у.индекс + 1 < у.карточки.length ? { ...у, индекс: у.индекс + 1 } : у)),
+    [],
+  );
+  const урокНазад = React.useCallback(
+    () => setУрок((у) => (у && у.индекс > 0 ? { ...у, индекс: у.индекс - 1 } : у)),
+    [],
+  );
+  const урокЗакрыть = React.useCallback(() => { void engine.stop(); setУрок(null); }, [engine]);
+  const текстУрока = карточкаУрока
+    ? Object.entries(карточкаУрока.поля ?? {}).reduce(
+      (текст, [ключ, знач]) => текст.replace(new RegExp(`\\{${ключ}\\}`, 'g'), String(знач)),
+      t(карточкаУрока.ключ) as string,
+    )
+    : '';
+  /** Карточка со звуком проигрывает пример на том же движке, что и партия. */
+  React.useEffect(() => {
+    if (!урок) return;
+    const к = урок.карточки[урок.индекс];
+    if (!к?.звук) return;
+    const таймер = setTimeout(() => { engine.playRound(урок.пример, 0.8).catch(() => {}); }, 350);
+    return () => { clearTimeout(таймер); void engine.stop(); };
+  }, [урок, engine]);
+
   const onComplete = React.useCallback(async (m: RhythmPitchMetrics) => {
     const passed = isPassed(m);
+    const сРазбором = урокВПартииRef.current;
+    урокВПартииRef.current = false;
+    setИтогСРазбором(сРазбором);
     setLast(m);
     setDoneLevel(level);
 
     // Пресет и шаг зарядки уровень НЕ двигают — так во всех экранах.
-    if (!isPreset && passed && shouldChainNextLevel(mode)) lvl.reach(level + 1);
-    else if (!isPreset && !passed) lvl.fail();
+    // Партия с разбором не засчитывается: ни подъёма, ни провала.
+    if (!isPreset && !сРазбором && passed && shouldChainNextLevel(mode)) lvl.reach(level + 1);
+    else if (!isPreset && !сРазбором && !passed) lvl.fail();
 
-    if (isPreset) setPhase('result');
+    if (isPreset || сРазбором) setPhase('result');
     else { setClearedPassed(passed); setPhase('cleared'); }
 
     try {
@@ -252,6 +305,7 @@ export default function RhythmPitchScreen() {
           tone_count: m.specific.toneCount,
           interval_semitones: m.specific.intervalSemitones,
           generator_version: m.generatorVersion,
+          ...(сРазбором ? { lesson: true } : {}),
         },
       });
     } catch (err) { console.error(err); }
@@ -259,7 +313,7 @@ export default function RhythmPitchScreen() {
 
   const stars = last ? starsFor(last.accuracy) : 1;
 
-  const start = () => { setArmed(false); setAttempt((n) => n + 1); setPhase('playing'); };
+  const start = () => { урокВПартииRef.current = false; setИтогСРазбором(false); setУрок(null); setArmed(false); setAttempt((n) => n + 1); setPhase('playing'); };
   const turnSoundOn = () => { void setSoundEnabled(true); setSoundPref(true); };
 
   /** Уйти в экран настройки — сюда ведёт и «назад» каркаса, и конец партии. */
@@ -308,6 +362,10 @@ export default function RhythmPitchScreen() {
          * фиксировано уровнем), но поправку задержки придётся набивать заново.
          */
         confirmExit={armed}
+        /** 🎓 «Разбор» — значком в общем ряду под полем, как у всех игр. */
+        headerActions={разборДоступен ? (
+          <GameAuxAction compact icon="school-outline" tint="#d97706" label={t('teachButton')} onPress={начатьРазбор} />
+        ) : undefined}
       >
         <View style={styles.stage}>
           <RhythmPitchGame
@@ -355,6 +413,58 @@ export default function RhythmPitchScreen() {
              */
           />
         </View>
+        {/*
+          🎓 РАЗБОР НА ВЕСЬ ЭКРАН. Поле — сам пример: в ритме удары точками на линии времени, в высоте
+          ноты на своей высоте (первая серым, вторая цветом).
+        */}
+        <LessonPlayer
+          visible={!!урок}
+          индекс={урок?.индекс ?? 0}
+          шагов={Math.max(0, (урок?.карточки.length ?? 1) - 1)}
+          текст={текстУрока}
+          сноска={урок?.индекс === 0 ? t('teachNotCounted') : undefined}
+          готово={карточкаУрока?.вид === 'готово'}
+          занят={false}
+          renderBoard={(сторона) => {
+            const пример = урок?.пример;
+            if (!пример) return null;
+            const высота = Math.round(сторона * 0.4);
+            if (пример.mode === 'rhythm-echo') {
+              const конец = Math.max(1, пример.beats[пример.beats.length - 1]!.onsetMs);
+              return (
+                <View style={{ width: сторона, height: высота, justifyContent: 'center' }}>
+                  <View style={[styles.разборЛиния, { backgroundColor: colors.border }]} />
+                  {пример.beats.map((б, i) => (
+                    <View key={i} style={[styles.разборУдар, { left: 16 + ((сторона - 64) * б.onsetMs) / конец, top: высота / 2 - 16, backgroundColor: GRADIENT[0] }]} />
+                  ))}
+                </View>
+              );
+            }
+            const частоты = пример.sequence.map((i) => пример.frequenciesHz[i]!);
+            const мин = Math.min(...частоты); const макс = Math.max(...частоты);
+            const y = (f: number) => (макс === мин ? высота / 2 - 16 : 8 + ((макс - f) * (высота - 48)) / (макс - мин));
+            const x = (i: number) => сторона * (0.25 + (0.5 * i) / Math.max(1, частоты.length - 1));
+            return (
+              <View style={{ width: сторона, height: высота }}>
+                {/* Сама «линия», о которой говорит текст: от ноты к ноте, вверх или вниз. */}
+                <Svg width={сторона} height={высота} style={StyleSheet.absoluteFill}>
+                  <Polyline points={частоты.map((f, i) => `${x(i)},${y(f) + 16}`).join(' ')}
+                    stroke={GRADIENT[0]} strokeOpacity={0.45} strokeWidth={4} strokeLinecap="round" fill="none" />
+                </Svg>
+                {частоты.map((f, i) => (
+                  <View key={i} style={[styles.разборУдар, {
+                    left: x(i) - 16,
+                    top: y(f),
+                    backgroundColor: i === 0 ? colors.textSecondary : GRADIENT[0],
+                  }]} />
+                ))}
+              </View>
+            );
+          }}
+          onДальше={урокДальше}
+          onНазад={урокНазад}
+          onЗакрыть={урокЗакрыть}
+        />
       </GameShell>
     );
   }
@@ -434,13 +544,16 @@ export default function RhythmPitchScreen() {
           time={last.durationMs / 1000}
           errors={last.errors}
           onPlayAgain={start} onGoHome={() => goBackOrHome()}
-          gradient={GRADIENT as [string, string]} />
+          gradient={GRADIENT as [string, string]}
+          metricsNote={итогСРазбором ? [t('teachNotCounted')] : undefined} />
       )}
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  разборЛиния: { position: 'absolute', left: 16, right: 16, height: 3, borderRadius: 2 },
+  разборУдар: { position: 'absolute', width: 32, height: 32, borderRadius: 16 },
   phaseAction: { minHeight: 52, borderRadius: 16, borderWidth: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 16 },
   phaseActionText: { fontSize: 16, fontWeight: '700' },
   root: { flex: 1 },

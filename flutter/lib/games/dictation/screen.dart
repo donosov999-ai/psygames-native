@@ -5,10 +5,11 @@ import 'package:flutter/foundation.dart' show defaultTargetPlatform, TargetPlatf
 import 'package:flutter/material.dart';
 
 import '../../shell/audio_host.dart';
-import '../../shell/demo_lesson.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
+import '../../shell/lesson.dart';
+import '../../shell/lesson_player.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/noise.dart';
 import '../../shell/shared_level_store.dart';
@@ -18,6 +19,7 @@ import '../cloze/model.dart';
 import '../languages/json_asset.dart';
 import '../languages/lang_names.dart';
 import '../vocab_srs/typing.dart';
+import 'lesson.dart';
 import 'model.dart';
 
 /// «Диктант» — экран раздела «Языки» на Flutter. Правила и сверка с живым TS — в
@@ -303,19 +305,54 @@ class _DictationScreenState extends State<DictationScreen> {
     }
   }
 
-  List<DemoTrial> _demoTrials() {
-    final all = _cloze == null ? const <DictationPhrase>[] : buildDictationPhrases(_cloze!, _vocab, _target);
-    if (all.isEmpty) return [DemoTrial(text: '', rule: L.t('dictationIntroDesc'))];
-    final f = all.first;
-    return [
-      DemoTrial(
-        text: f.text,
-        art: SizedBox(width: 300, child: Text(f.text, textAlign: TextAlign.center, style: const TextStyle(fontSize: 22))),
-        sub: L.t('dictationTask'),
-        answer: f.text,
-        rule: L.t('dictationIntroDesc'),
+  /// Тексты разбора — из словаря, теми же ключами, что зовёт веб-учитель.
+  String _teach(String key, Map<String, String> args) {
+    var out = switch (key) {
+      'teachDictIntro' => L.t('teachDictIntro'),
+      'teachDictListen' => L.t('teachDictListen'),
+      'teachDictChunk' => L.t('teachDictChunk'),
+      'teachDictStuck' => L.t('teachDictStuck'),
+      _ => L.t('teachDictDone'),
+    };
+    args.forEach((k, v) => out = out.replaceAll('{$k}', v));
+    return out;
+  }
+
+  final Random _lessonRandom = Random();
+
+  /// 🎓 Разбор по шагам (раздел «Память и слух», `lesson.dart`) вместо демо-карточки: фраза уровня,
+  /// не текущая, кусками по два-три слова (китайская — клаузами), каждый кусок проговаривается.
+  /// Идёт партия — разбор делает её незачётной (LessonUsed).
+  Future<void> _openLesson() async {
+    final cloze = _cloze;
+    if (cloze == null) return;
+    final pool = [for (final p in levelPhrases(buildDictationPhrases(cloze, _vocab, _target), _ladder.level)) p.text];
+    final playing = _phase == DictationPhase.playing && _idx < _phrases.length;
+    final r = dictationLessonCards(
+      pool: pool,
+      lang: _target,
+      exclude: playing ? _phrases[_idx].text : null,
+      rnd: _lessonRandom.nextDouble,
+    );
+    if (r == null) return;
+    if (playing) LessonUsed.mark();
+    await _voice?.cancel();
+    final steps = dictationLessonSteps(r.cards, _teach);
+    if (!mounted) return;
+    await Navigator.of(context).push(MaterialPageRoute<void>(
+      builder: (_) => LessonPlayerScreen(
+        title: L.t('dictation'),
+        steps: steps,
+        board: (context, side, i) {
+          final card = steps[i.clamp(0, steps.length - 1)].payload as DictCard;
+          return KeyedSubtree(
+            key: ValueKey('dict-lesson-$i'),
+            child: _DictLessonBoard(card: card, chunks: r.chunks, lang: _target, voice: _voice, rate: _params.rate, side: side),
+          );
+        },
       ),
-    ];
+    ));
+    await _voice?.cancel();
   }
 
   @override
@@ -327,7 +364,7 @@ class _DictationScreenState extends State<DictationScreen> {
     return GameShell(
       title: L.t('dictation'),
       onBack: () => Navigator.of(context).maybePop(),
-      onLesson: () => openDemoLesson(context, title: L.t('dictation'), trials: _demoTrials()),
+      onLesson: _openLesson,
       hud: !playing
           ? const []
           : [
@@ -560,6 +597,71 @@ class _DictationTypingState extends State<_DictationTyping> {
               onChanged: _changed,
             ),
           ),
+        ]),
+      ),
+    );
+  }
+}
+
+/// Поле разбора: набранные куски, текущий — выделен, остальные — точками. При показе карточка
+/// проговаривает свою фразу или кусок тем же голосом, что и партия.
+class _DictLessonBoard extends StatefulWidget {
+  const _DictLessonBoard({
+    required this.card,
+    required this.chunks,
+    required this.lang,
+    required this.voice,
+    required this.rate,
+    required this.side,
+  });
+
+  final DictCard card;
+  final List<String> chunks;
+  final String lang;
+  final VoiceLayer? voice;
+  final double rate;
+  final double side;
+
+  @override
+  State<_DictLessonBoard> createState() => _DictLessonBoardState();
+}
+
+class _DictLessonBoardState extends State<_DictLessonBoard> {
+  @override
+  void initState() {
+    super.initState();
+    final say = widget.card.speak;
+    if (say.isNotEmpty) widget.voice?.speak(say.join(widget.lang == 'zh' ? '' : ' '), widget.lang, rate: widget.rate);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final c = widget.card;
+    final sep = widget.lang == 'zh' ? '' : ' ';
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      child: SizedBox(
+        width: widget.side,
+        child: Wrap(alignment: WrapAlignment.center, spacing: 6, runSpacing: 6, children: [
+          for (var k = 0; k < widget.chunks.length; k += 1)
+            Container(
+              key: ValueKey('dict-lesson-chunk-$k'),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: c.chunk == k
+                    ? scheme.primaryContainer
+                    : k < c.typed
+                        ? scheme.surfaceContainerHighest
+                        : Colors.transparent,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: scheme.outlineVariant),
+              ),
+              child: Text(
+                k < c.typed || c.chunk == k ? widget.chunks[k] : '·' * widget.chunks[k].split(sep).length,
+                style: TextStyle(fontSize: 18, fontWeight: c.chunk == k ? FontWeight.w800 : FontWeight.w500),
+              ),
+            ),
         ]),
       ),
     );
