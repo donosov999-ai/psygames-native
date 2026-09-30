@@ -79,6 +79,20 @@ describe('эталоны «Ритм и высота» для переноса н
     // Синтетический раунд с долей 250 мс — там, где пол работает.
     const fast = { ...rr, unitMs: 250, beatCount: 3, beats: [{ onsetMs: 0, accent: false }, { onsetMs: 250, accent: false }, { onsetMs: 500, accent: false }] } as RhythmEchoRound;
     const floorScore = scoreRhythmTiming(fast, [1040, 1260, 1590], 1000, 0);
+    // Счёт по интервалам (VER 3, решение Дениса 30.09): случаи, где подбор сдвига РАБОТАЕТ.
+    const intervalScores = ([[1, 'int-a'], [21, 'int-c'], [31, 'int-d']] as const).flatMap(([level, seed]) => {
+      const r = generateRhythmPitchRound(seed, level, 'rhythm-echo') as RhythmEchoRound;
+      const at = (late: number, k = 1) => r.beats.map((b, i) => 7000 + late + b.onsetMs * k + (i % 2 ? 17 : -9));
+      const mid = Math.floor(r.beats.length / 2);
+      return [
+        { level, seed, what: 'late300', taps: at(300) },
+        { level, seed, what: 'late800', taps: at(800) },
+        { level, seed, what: 'skipLate', taps: at(500).filter((_, i) => i !== mid) },
+        { level, seed, what: 'stretched', taps: at(400, 1.33) },
+        { level, seed, what: 'strayFirst', taps: [7000 + 90, ...at(600)] },
+        { level, seed, what: 'empty', taps: [] as number[] },
+      ].map((c) => ({ ...c, timing: scoreRhythmTiming(r, c.taps, 7000, 25) }));
+    });
     const pd = generateRhythmPitchRound('daily-2026-09-30', 2, 'pitch-path') as PitchPathRound;
     const ps = generateRhythmPitchRound('daily-2026-09-30', 14, 'pitch-path') as PitchPathRound;
     const opts = { durationMs: 8000, calibrationOffsetMs: 12.5, calibrationSamples: 4, replayCount: 0 };
@@ -135,7 +149,7 @@ describe('эталоны «Ритм и высота» для переноса н
     fs.writeFileSync(OUT, JSON.stringify({
       taken: '2026-09-30', tool: 'frontend/scripts/flutter-rhythm-pitch-reference.test.ts',
       rngSeq, seeds, shuffled, rounds, align, latency, rhythmRound: rr, rhythmScores, pitchScores, passed,
-      floorScore, trace, pitchSession: { round: pr, result: p.result, phase: p.phase, response: p.pitchSequenceResponse },
+      floorScore, intervalScores, trace, pitchSession: { round: pr, result: p.result, phase: p.phase, response: p.pitchSequenceResponse },
       directionSession: { replayPhase, replayCount: d.replayCount, result: d.result, phase: d.phase },
     }, null, 1), 'utf8');
     fs.writeFileSync(ASSET, JSON.stringify({ source: 'frontend/src/games/rhythm-pitch/core/i18n.ts', locales: dict }), 'utf8');
