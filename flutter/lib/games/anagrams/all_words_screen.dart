@@ -3,11 +3,14 @@ import 'package:flutter/material.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
+import '../../shell/lesson.dart';
+import '../../shell/lesson_player.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import 'all_words_board.dart';
 import 'model.dart';
+import 'teach.dart';
 
 /// Экран «Все слова» — второй режим анаграмм.
 ///
@@ -70,6 +73,8 @@ class _AllWordsScreenState extends State<AllWordsScreen> {
     _opened.clear();
     _hintsUsed = 0;
     _wrong = false;
+    // Новая раскладка — отметка разбора снимается: следующая партия зачётная.
+    LessonUsed.reset();
   }
 
   String get _draft => [for (final i in _picked) _letters[i]].join();
@@ -130,6 +135,55 @@ class _AllWordsScreenState extends State<AllWordsScreen> {
         _wrong = false;
       });
 
+  /* ═══════════ РАЗБОР ПО ШАГАМ: СЕМЬИ ПО НАЧАЛУ ═══════════
+   *
+   * Приём и замер, из которого он выбран, — в `teach.dart` (`allWordsLesson`).
+   * Доступность — как у классики: первые три уровня. Дальше человек приём знает,
+   * а показ всех слов колеса только отнимает у него поиск.
+   */
+  List<AllWordsTeachStep> get _lessonSteps {
+    final pack = _pack;
+    if (pack == null) return const [];
+    return allWordsLesson(pack.words, _letters);
+  }
+
+  Future<void> _openLesson() async {
+    final pack = _pack;
+    final steps = _lessonSteps;
+    if (pack == null || steps.length < 2) return;
+    LessonUsed.mark();
+    final letters = [..._letters];
+    await Navigator.of(context).push(MaterialPageRoute<void>(
+      builder: (_) => LessonPlayerScreen(
+        title: L.t('anagramAllWords'),
+        steps: [
+          for (final s in steps) LessonStep(text: teachAllWordsText(s, L.t), payload: s),
+        ],
+        board: (context, side, shown) {
+          // Как у остальных разборов каркаса: на шаге i видно всё, что сделали шаги
+          // ДО него. Последнее найденное слово ещё и подсвечено на колесе — видно,
+          // из каких плиток оно сложилось.
+          final found = <String>[
+            for (var i = 0; i < shown && i < steps.length; i++)
+              if (steps[i].word.isNotEmpty) steps[i].word,
+          ];
+          final last = shown > 0 && shown <= steps.length ? steps[shown - 1].place : const <int>[];
+          return AllWordsBoard(
+            pack: pack,
+            letters: letters,
+            picked: last,
+            found: found,
+            opened: const {},
+            bonuses: const [],
+            wrong: false,
+            fieldHeight: side,
+            onPick: (_) {},
+          );
+        },
+      ),
+    ));
+  }
+
   @override
   Widget build(BuildContext context) {
     final pack = _pack;
@@ -138,6 +192,7 @@ class _AllWordsScreenState extends State<AllWordsScreen> {
     }
     return GameShell(
       title: L.t('anagramAllWords'),
+      onLesson: _ladder.level <= 3 && _lessonSteps.length > 1 ? _openLesson : null,
       hud: [
         HudItem(label: L.t('level'), value: '${_ladder.level}', icon: Icons.flag_outlined),
         HudItem(

@@ -3,12 +3,15 @@ import 'package:flutter/material.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
+import '../../shell/lesson.dart';
+import '../../shell/lesson_player.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import 'crossword.dart';
 import 'crossword_board.dart';
 import 'model.dart';
+import 'teach.dart';
 
 /// Экран «Кроссворд» — третий режим анаграмм.
 ///
@@ -67,6 +70,8 @@ class _CrosswordScreenState extends State<CrosswordScreen> {
     _opened.clear();
     _hintsUsed = 0;
     _wrong = false;
+    // Новая сетка — отметка разбора снимается: следующая партия зачётная.
+    LessonUsed.reset();
   }
 
   int get _hintsLeft => crossHintsAtLevel(_ladder.level) - _hintsUsed;
@@ -126,6 +131,51 @@ class _CrosswordScreenState extends State<CrosswordScreen> {
         _wrong = false;
       });
 
+  /* ═══════════ РАЗБОР ПО ШАГАМ: ПЕРЕСЕЧЕНИЯ ═══════════
+   *
+   * Приём — в `teach.dart` (`crosswordLesson`): первым самое перекрёстное слово,
+   * дальше — где уже открыто больше всего букв. Доступность — как у остальных
+   * режимов анаграмм: первые три уровня.
+   */
+  List<CrossTeachStep> get _lessonSteps {
+    final cw = _cw;
+    if (cw == null) return const [];
+    return crosswordLesson(cw, _letters);
+  }
+
+  Future<void> _openLesson() async {
+    final cw = _cw;
+    final steps = _lessonSteps;
+    if (cw == null || steps.length < 2) return;
+    LessonUsed.mark();
+    final letters = [..._letters];
+    await Navigator.of(context).push(MaterialPageRoute<void>(
+      builder: (_) => LessonPlayerScreen(
+        title: L.t('anagramCrossword'),
+        steps: [
+          for (final s in steps) LessonStep(text: teachCrossText(s, L.t), payload: s),
+        ],
+        board: (context, side, shown) {
+          // Как у остальных разборов каркаса: на шаге i открыты слова шагов ДО него,
+          // а плитки последнего найденного подсвечены на колесе.
+          final found = <String>[
+            for (var i = 0; i < shown && i < steps.length; i++)
+              if (steps[i].word.isNotEmpty) steps[i].word,
+          ];
+          final last = shown > 0 && shown <= steps.length ? steps[shown - 1].place : const <int>[];
+          return CrosswordBoard(
+            crossword: cw,
+            letters: letters,
+            picked: last,
+            revealed: crosswordRevealed(cw, found),
+            fieldHeight: side,
+            onPick: (_) {},
+          );
+        },
+      ),
+    ));
+  }
+
   @override
   Widget build(BuildContext context) {
     final cw = _cw;
@@ -134,6 +184,7 @@ class _CrosswordScreenState extends State<CrosswordScreen> {
     }
     return GameShell(
       title: L.t('anagramCrossword'),
+      onLesson: _ladder.level <= 3 && _lessonSteps.length > 1 ? _openLesson : null,
       hud: [
         HudItem(label: L.t('level'), value: '${_ladder.level}', icon: Icons.flag_outlined),
         HudItem(

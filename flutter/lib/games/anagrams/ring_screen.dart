@@ -3,11 +3,14 @@ import 'package:flutter/material.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
+import '../../shell/lesson.dart';
+import '../../shell/lesson_player.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import 'ring.dart';
 import 'ring_board.dart';
+import 'teach.dart';
 
 /// Экран «Слово-квадрат» — четвёртый и последний режим анаграмм.
 ///
@@ -62,6 +65,8 @@ class _RingScreenState extends State<RingScreen> {
     _solved.clear();
     _hintsUsed = 0;
     _wrong = false;
+    // Новое кольцо — отметка разбора снимается: следующая партия зачётная.
+    LessonUsed.reset();
   }
 
   String get _draft => [for (final i in _picked) _letters[i]].join();
@@ -132,6 +137,47 @@ class _RingScreenState extends State<RingScreen> {
         _wrong = false;
       });
 
+  /* ═══════════ РАЗБОР ПО ШАГАМ: РЕДКОЕ НАЧАЛО, ПОТОМ УГЛЫ ═══════════
+   *
+   * Приём и замер, из которого он выбран, — в `teach.dart` (`ringLesson`).
+   * Доступность — как у остальных режимов анаграмм: первые три уровня.
+   */
+  List<RingTeachStep> get _lessonSteps {
+    final ring = _ring;
+    final packs = _packs;
+    if (ring == null || packs == null) return const [];
+    return ringLesson(ring, packs.dictionary);
+  }
+
+  Future<void> _openLesson() async {
+    final ring = _ring;
+    final steps = _lessonSteps;
+    if (ring == null || steps.length < 2) return;
+    LessonUsed.mark();
+    final letters = [..._letters];
+    await Navigator.of(context).push(MaterialPageRoute<void>(
+      builder: (_) => LessonPlayerScreen(
+        title: L.t('anagramSquare'),
+        steps: [
+          for (final s in steps) LessonStep(text: teachRingText(s, L.t), payload: s),
+        ],
+        board: (context, side, shown) => RingBoard(
+          ring: ring,
+          letters: letters,
+          picked: const [],
+          // Как у остальных разборов каркаса: на шаге i стоят стороны шагов ДО него.
+          solved: {
+            for (var i = 0; i < shown && i < steps.length; i++)
+              if (steps[i].word.isNotEmpty) steps[i].word,
+          },
+          wrong: false,
+          fieldHeight: side,
+          onPick: (_) {},
+        ),
+      ),
+    ));
+  }
+
   @override
   Widget build(BuildContext context) {
     final ring = _ring;
@@ -140,6 +186,7 @@ class _RingScreenState extends State<RingScreen> {
     }
     return GameShell(
       title: L.t('anagramSquare'),
+      onLesson: _ladder.level <= 3 && _lessonSteps.length > 1 ? _openLesson : null,
       hud: [
         HudItem(label: L.t('level'), value: '${_ladder.level}', icon: Icons.flag_outlined),
         HudItem(label: L.t('label_found'), value: '${_solved.length}/4', icon: Icons.check_circle_outline),
