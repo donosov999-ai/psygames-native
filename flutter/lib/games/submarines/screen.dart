@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../../shell/demo_lesson.dart';
+import '../../shell/game_clock.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/lesson.dart';
@@ -35,7 +36,8 @@ class _SubmarinesScreenState extends State<SubmarinesScreen> {
   int _levelNo = 1;
   bool _over = false;
   bool _won = false;
-  DateTime _started = DateTime.now();
+  // Часы партии (lib/shell/game_clock.dart): стоят под паузой, разбором и в фоне.
+  int _startedMs = gameNow();
 
   @override
   void initState() {
@@ -58,7 +60,7 @@ class _SubmarinesScreenState extends State<SubmarinesScreen> {
     _board = SubBoard.deal(_levelNo, _rnd);
     _over = false;
     _won = false;
-    _started = DateTime.now();
+    _startedMs = gameNow();
   }
 
   Future<void> _fire(int r, int c) async {
@@ -72,7 +74,7 @@ class _SubmarinesScreenState extends State<SubmarinesScreen> {
   Future<void> _finish() async {
     final b = _board!;
     final passed = b.sea.done && b.sea.shots.length <= b.budget;
-    final seconds = DateTime.now().difference(_started).inSeconds;
+    final seconds = (gameNow() - _startedMs) ~/ 1000;
     final misses = b.sea.shots.values.where((hit) => !hit).length;
     final details = <String, Object?>{
       'size': b.level.size,

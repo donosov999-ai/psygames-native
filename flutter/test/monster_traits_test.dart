@@ -11,6 +11,8 @@ import 'package:psygames_flutter/shell/session_report.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'support/game_clock_fake.dart';
+
 /// «НАЙДИ ПРИЗНАК»: раздача, разбор ответа и экран до конца партии пальцем.
 ///
 /// Раздачу проба повторяет тем же зерном, что отдаёт экрану, — так она знает, кого
@@ -111,6 +113,7 @@ void main() {
 
     testWidgets('🔴 отметил ровно всех с признаком — победа, партия записана с разбором', (tester) async {
       final state = await fresh();
+      useFakeGameClock(tester);
       await tester.pumpWidget(MaterialApp(home: MonsterTraitsScreen(state: state, seed: 5)));
       await settle(tester);
       final round = TraitRound.deal(1, Random(5));
@@ -133,6 +136,7 @@ void main() {
 
     testWidgets('отметил лишнего и пропустил своего — провал, и отказ назван числами', (tester) async {
       final state = await fresh();
+      useFakeGameClock(tester);
       await tester.pumpWidget(MaterialApp(home: MonsterTraitsScreen(state: state, seed: 5)));
       await settle(tester);
       final round = TraitRound.deal(1, Random(5));
@@ -160,6 +164,7 @@ void main() {
 
     testWidgets('🔴 время вышло — раунд сдаётся сам тем, что успел отметить (L12: 40 с)', (tester) async {
       final state = await freshAt(12);
+      useFakeGameClock(tester);
       await tester.pumpWidget(MaterialApp(home: MonsterTraitsScreen(state: state, seed: 3)));
       await settle(tester);
       expect(find.text('40'), findsOneWidget, reason: 'на табло нет 40 секунд');
@@ -177,6 +182,7 @@ void main() {
 
     testWidgets('без времени до L12: минута ожидания ничего не сдаёт', (tester) async {
       final state = await freshAt(11);
+      useFakeGameClock(tester);
       await tester.pumpWidget(MaterialApp(home: MonsterTraitsScreen(state: state, seed: 3)));
       await settle(tester);
       await tester.pump(const Duration(seconds: 60));
@@ -187,6 +193,7 @@ void main() {
     testWidgets('🔴 два признака (L8) и «но не» (L16): вывеска называет оба, победа — точным набором', (tester) async {
       for (final (level, joint) in [(8, 'mtAnd'), (16, 'mtButNot')]) {
         final state = await freshAt(level);
+        useFakeGameClock(tester);
         await tester.pumpWidget(MaterialApp(home: MonsterTraitsScreen(key: UniqueKey(), state: state, seed: 7)));
         await settle(tester);
         final round = TraitRound.deal(level, Random(7));
@@ -208,6 +215,7 @@ void main() {
     testWidgets('разбор пары называет ПРИЁМ пары: «сперва первый, среди найденных второй» / «отбрось»', (tester) async {
       for (final (level, key) in [(8, 'teachTraitPair'), (16, 'teachTraitNot')]) {
         final state = await freshAt(level);
+        useFakeGameClock(tester);
         await tester.pumpWidget(MaterialApp(home: MonsterTraitsScreen(key: UniqueKey(), state: state, seed: 11)));
         await settle(tester);
         final r = TraitRound.deal(level, Random(11));
@@ -235,6 +243,7 @@ void main() {
       tester.view.physicalSize = const Size(320, 568);
       addTearDown(tester.view.reset);
       final state = await freshAt(16);
+      useFakeGameClock(tester);
       await tester.pumpWidget(MaterialApp(home: MonsterTraitsScreen(state: state, seed: 2)));
       await settle(tester);
       final field = tester.getRect(find.byKey(const Key('game-field')));
@@ -250,6 +259,7 @@ void main() {
 
     testWidgets('разбор называет приём — «смотри только на один признак»', (tester) async {
       final state = await fresh();
+      useFakeGameClock(tester);
       await tester.pumpWidget(MaterialApp(home: MonsterTraitsScreen(state: state, seed: 9)));
       await settle(tester);
       final round = TraitRound.deal(1, Random(9));
