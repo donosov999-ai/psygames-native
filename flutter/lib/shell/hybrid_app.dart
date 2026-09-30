@@ -36,6 +36,7 @@ import '../games/hanoi/screen.dart';
 import '../games/tower_london/screen.dart';
 import '../games/sort_tubes/screen.dart';
 import '../games/mental_rotation/screen.dart';
+import '../games/navigator/screen.dart';
 import '../games/samurai/screen.dart';
 import '../games/spatial_hub/screen.dart';
 import '../games/spatial_lab/screen.dart';
@@ -144,6 +145,7 @@ class HybridApp extends StatefulWidget {
         '/games/sudoku-fractal-deep': (s) => DeepScreen(state: s),
         '/games/go-no-go': (s) => GoNoGoScreen(state: s),
         '/games/mental-rotation': (s) => MentalRotationScreen(state: s),
+        '/games/navigator': (s) => NavigatorScreen(state: s),
         '/games/spatial-span': (s) => SpatialSpanScreen(state: s),
         // Все четыре упражнения лаборатории перенесены, поэтому перехват честен: адрес с
         // `?mode=` попадает в ту же строку карты, и ни один режим не остаётся в вебе.

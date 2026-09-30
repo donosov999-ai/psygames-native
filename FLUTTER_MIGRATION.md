@@ -174,7 +174,7 @@
 | ☐ | `mnemonics` | psygames-warmup-claude-mac | | |
 | ✅ | `mnemonics-hub` | psygames-memory-hearing-claude-mac | 24.09 | нативно на ОБЩЕМ `HubScreen`, карточки из `assets/hubs.json`; перехват включён, потому что за развилкой уже нативны четыре экрана из пяти — пятая («Мнемоника», ведёт psygames-warmup-claude-mac) честно помечена `isNative` |
 | ☐ | `n-back` | psygames-span-claude-mac | | |
-| ☐ | `navigator` | psygames-spatial-claude-mac | | |
+| ✅ | `navigator` | psygames-spatial-claude-mac | 30.09 | нативно, перехват в гибриде. Ядро (раздача, сессия, ввод, счёт) — перенос TS один в один, сверен эталоном живого ядра: 141 партия генератора и 35 партий целиком по 812 шагам, 32 клавиши, 520 свайпов, 90 итогов (`flutter/test/fixtures/navigator-*.json`, экспортёр в репо — `frontend/src/games/navigator/tools/record-flutter-reference.gen.ts`). Словарь модуля на 12 языков выгружен тем же экспортёром в `assets/l10n/navigator.json`, зашитого текста ноль. ВВОД ПЕРЕНЕСЁН ЦЕЛИКОМ — кнопки, свайп и клавиши (стрелки, WASD, цифры, P, R): у свайпа порог жеста 12 точек, как у веба, у Flutter по умолчанию 36, и на прокручиваемом поле свайп в 24–36 точек пропадал бы. `Math.hypot` — в записи V8: «корень из суммы квадратов» на окружности порога переворачивает ответ у каждой пятой точки. Карта одного размера при изучении и при ответе (правило веба 16.09). 24 пробы, 28 мутаций краснеют |
 | ✅ | `nut-sort` | psygames-sorting-claude-mac | 23.09 | нативно, перехват в гибриде; ОДИН движок `sort_tubes` на три игры (как в вебе), уровни выгружены JSON, решатель и генератор не переносились |
 | ☐ | `pause` | psygames-warmup-claude-mac | | |
 | ☐ | `phoneme-pairs` | psygames-languages-claude-mac | | |
@@ -190,7 +190,7 @@
 | ☐ | `rhythm-pitch` | psygames-languages-claude-mac | | |
 | ☐ | `risk-hub` | — | | ⚠️ ЭКРАНА НЕ СУЩЕСТВУЕТ: развилка расформирована 12.09.2026 (задачи 80eb49c9 и 4dce5eb9), заменена наборами «Стоп и запрет» и «Решения». Файла app/games/risk-hub.tsx нет, карточки в hubContents.ts нет. Переносить нечего — строку удалить с согласия Дениса |
 | ✅ | `rmet` | psygames-memory-hearing-claude-mac | 24.09 | нативно, перехват в гибриде; материал (18 пунктов × 4 слова × ru/en) и 54 снимка глаз выгружены прибором в `assets/rmet.json` и `assets/rmet/` — один источник на обе половины; проба сверяет целость материала (верное слово среди вариантов, три снимка, файлы на месте) и проходит заход нажатиями. ⚠️ Чужой нормы в переносе нет: упражнение ПО МОТИВАМ парадигмы, материал свой |
-| ☐ | `routes-hub` | psygames-spatial-claude-mac | | |
+| ❌ | `routes-hub` | — | 30.09 | ТАКОГО ЭКРАНА НЕТ: развилка расформирована 12.09.2026 (коммит 0c6b54e26 «Развилок 18 → 13»), файл экрана снесён cb1ee90a5; в `frontend/app/games` и в `assets/hubs.json` её нет, «Навигатор» и «Соедини цепочку» стоят на `spatial-hub`. Переносить нечего — прошу снять строку |
 | ☐ | `scholars-mate` | psygames-chess-claude-mac | | |
 
 | ☐ | `semantic-sort` | psygames-languages-claude-mac | | |
