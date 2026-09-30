@@ -89,6 +89,14 @@ SimonTrial makeTrial(double Function() rnd) {
   );
 }
 
+/// Примеры для разбора — ДАННЫЕ: синий слева (цвет и позиция согласны) и синий
+/// СПРАВА (позиция тянет вправо, а цвет требует левой кнопки). Вторая проба и
+/// есть эффект Саймона.
+List<SimonTrial> simonDemoTrials() => const [
+      SimonTrial(color: SimonColor.blue, position: SimonSide.left, kind: SimonKind.congruent),
+      SimonTrial(color: SimonColor.blue, position: SimonSide.right, kind: SimonKind.incongruent),
+    ];
+
 enum SimonOutcome { hit, wrong, miss }
 
 /// Партия: раздаёт пробы, держит два срока подряд и копит время реакции по видам.

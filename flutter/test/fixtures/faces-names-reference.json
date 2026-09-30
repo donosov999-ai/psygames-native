@@ -1,0 +1,2327 @@
+{
+ "meta": {
+  "source": "frontend/src/games/faces-names/core",
+  "note": "Прогон живого TS. Dart обязан повторить до знака.",
+  "seed": "flutter-ref",
+  "levels": [
+   1,
+   4,
+   5,
+   7,
+   8,
+   9,
+   12,
+   17,
+   20,
+   25,
+   33
+  ]
+ },
+ "distances": [
+  {
+   "a": "synthetic-person-01",
+   "b": "synthetic-person-02",
+   "face": 0.9324999999999999,
+   "name": 0.9
+  },
+  {
+   "a": "synthetic-person-01",
+   "b": "synthetic-person-07",
+   "face": 0.31750000000000006,
+   "name": 0.52
+  },
+  {
+   "a": "synthetic-person-01",
+   "b": "synthetic-person-08",
+   "face": 0.88,
+   "name": 0.8500000000000001
+  },
+  {
+   "a": "synthetic-person-04",
+   "b": "synthetic-person-10",
+   "face": 0.23750000000000004,
+   "name": 0.7400000000000001
+  },
+  {
+   "a": "synthetic-person-13",
+   "b": "synthetic-person-19",
+   "face": 0.23750000000000004,
+   "name": 0.7125000000000001
+  },
+  {
+   "a": "synthetic-person-06",
+   "b": "synthetic-person-42",
+   "face": 0.28750000000000003,
+   "name": 0.52
+  },
+  {
+   "a": "synthetic-person-21",
+   "b": "synthetic-person-48",
+   "face": 0.835,
+   "name": 0.8500000000000001
+  },
+  {
+   "a": "synthetic-person-31",
+   "b": "synthetic-person-32",
+   "face": 0.9324999999999999,
+   "name": 0.7400000000000001
+  }
+ ],
+ "puzzles": [
+  {
+   "level": 1,
+   "id": "faces-names:flutter-ref:1",
+   "difficulty": 26,
+   "studiedPersonIds": [
+    "synthetic-person-29",
+    "synthetic-person-28"
+   ],
+   "peopleIds": [
+    "synthetic-person-29",
+    "synthetic-person-28",
+    "synthetic-person-37",
+    "synthetic-person-36",
+    "synthetic-person-35",
+    "synthetic-person-40"
+   ],
+   "trials": [
+    {
+     "id": "trial-0",
+     "targetPersonId": "synthetic-person-29",
+     "recognitionPersonIds": [
+      "synthetic-person-37",
+      "synthetic-person-29"
+     ],
+     "namePersonIds": [
+      "synthetic-person-36",
+      "synthetic-person-29"
+     ],
+     "factIds": []
+    },
+    {
+     "id": "trial-1",
+     "targetPersonId": "synthetic-person-28",
+     "recognitionPersonIds": [
+      "synthetic-person-28",
+      "synthetic-person-35"
+     ],
+     "namePersonIds": [
+      "synthetic-person-40",
+      "synthetic-person-28"
+     ],
+     "factIds": []
+    }
+   ],
+   "interferencePrompts": [
+    {
+     "id": "interference-0",
+     "left": 4,
+     "right": 9,
+     "answer": 13,
+     "options": [
+      13,
+      12,
+      11
+     ]
+    }
+   ],
+   "factRecallEnabled": false,
+   "immediateRecall": true,
+   "meanFaceSimilarity": 0.0675,
+   "meanNameSimilarity": 0.19166667,
+   "meanRecognitionDistractorSimilarity": 0.12
+  },
+  {
+   "level": 4,
+   "id": "faces-names:flutter-ref:4",
+   "difficulty": 32,
+   "studiedPersonIds": [
+    "synthetic-person-38",
+    "synthetic-person-22",
+    "synthetic-person-25"
+   ],
+   "peopleIds": [
+    "synthetic-person-38",
+    "synthetic-person-22",
+    "synthetic-person-25",
+    "synthetic-person-05",
+    "synthetic-person-31",
+    "synthetic-person-03",
+    "synthetic-person-24",
+    "synthetic-person-40"
+   ],
+   "trials": [
+    {
+     "id": "trial-0",
+     "targetPersonId": "synthetic-person-38",
+     "recognitionPersonIds": [
+      "synthetic-person-05",
+      "synthetic-person-38"
+     ],
+     "namePersonIds": [
+      "synthetic-person-38",
+      "synthetic-person-31"
+     ],
+     "factIds": []
+    },
+    {
+     "id": "trial-1",
+     "targetPersonId": "synthetic-person-22",
+     "recognitionPersonIds": [
+      "synthetic-person-22",
+      "synthetic-person-03"
+     ],
+     "namePersonIds": [
+      "synthetic-person-24",
+      "synthetic-person-22"
+     ],
+     "factIds": []
+    },
+    {
+     "id": "trial-2",
+     "targetPersonId": "synthetic-person-25",
+     "recognitionPersonIds": [
+      "synthetic-person-40",
+      "synthetic-person-25"
+     ],
+     "namePersonIds": [
+      "synthetic-person-25",
+      "synthetic-person-24"
+     ],
+     "factIds": []
+    }
+   ],
+   "interferencePrompts": [
+    {
+     "id": "interference-0",
+     "left": 5,
+     "right": 8,
+     "answer": 13,
+     "options": [
+      12,
+      10,
+      13
+     ]
+    }
+   ],
+   "factRecallEnabled": false,
+   "immediateRecall": true,
+   "meanFaceSimilarity": 0.135,
+   "meanNameSimilarity": 0.20333333,
+   "meanRecognitionDistractorSimilarity": 0.18083333
+  },
+  {
+   "level": 5,
+   "id": "faces-names:flutter-ref:5",
+   "difficulty": 41,
+   "studiedPersonIds": [
+    "synthetic-person-28",
+    "synthetic-person-20",
+    "synthetic-person-07"
+   ],
+   "peopleIds": [
+    "synthetic-person-28",
+    "synthetic-person-20",
+    "synthetic-person-07",
+    "synthetic-person-40",
+    "synthetic-person-33",
+    "synthetic-person-32",
+    "synthetic-person-03"
+   ],
+   "trials": [
+    {
+     "id": "trial-0",
+     "targetPersonId": "synthetic-person-07",
+     "recognitionPersonIds": [
+      "synthetic-person-07",
+      "synthetic-person-40"
+     ],
+     "namePersonIds": [
+      "synthetic-person-07",
+      "synthetic-person-40"
+     ],
+     "factIds": []
+    },
+    {
+     "id": "trial-1",
+     "targetPersonId": "synthetic-person-28",
+     "recognitionPersonIds": [
+      "synthetic-person-28",
+      "synthetic-person-33"
+     ],
+     "namePersonIds": [
+      "synthetic-person-32",
+      "synthetic-person-28"
+     ],
+     "factIds": []
+    },
+    {
+     "id": "trial-2",
+     "targetPersonId": "synthetic-person-20",
+     "recognitionPersonIds": [
+      "synthetic-person-20",
+      "synthetic-person-03"
+     ],
+     "namePersonIds": [
+      "synthetic-person-03",
+      "synthetic-person-20"
+     ],
+     "factIds": []
+    }
+   ],
+   "interferencePrompts": [
+    {
+     "id": "interference-0",
+     "left": 5,
+     "right": 9,
+     "answer": 14,
+     "options": [
+      16,
+      13,
+      14
+     ]
+    },
+    {
+     "id": "interference-1",
+     "left": 4,
+     "right": 8,
+     "answer": 12,
+     "options": [
+      14,
+      12,
+      9
+     ]
+    }
+   ],
+   "factRecallEnabled": false,
+   "immediateRecall": false,
+   "meanFaceSimilarity": 0.155,
+   "meanNameSimilarity": 0.225,
+   "meanRecognitionDistractorSimilarity": 0.21083333
+  },
+  {
+   "level": 7,
+   "id": "faces-names:flutter-ref:7",
+   "difficulty": 46,
+   "studiedPersonIds": [
+    "synthetic-person-28",
+    "synthetic-person-13",
+    "synthetic-person-02",
+    "synthetic-person-39"
+   ],
+   "peopleIds": [
+    "synthetic-person-28",
+    "synthetic-person-13",
+    "synthetic-person-02",
+    "synthetic-person-39",
+    "synthetic-person-07",
+    "synthetic-person-25",
+    "synthetic-person-12",
+    "synthetic-person-32",
+    "synthetic-person-05",
+    "synthetic-person-09",
+    "synthetic-person-43"
+   ],
+   "trials": [
+    {
+     "id": "trial-0",
+     "targetPersonId": "synthetic-person-02",
+     "recognitionPersonIds": [
+      "synthetic-person-07",
+      "synthetic-person-02"
+     ],
+     "namePersonIds": [
+      "synthetic-person-25",
+      "synthetic-person-02"
+     ],
+     "factIds": []
+    },
+    {
+     "id": "trial-1",
+     "targetPersonId": "synthetic-person-39",
+     "recognitionPersonIds": [
+      "synthetic-person-12",
+      "synthetic-person-39"
+     ],
+     "namePersonIds": [
+      "synthetic-person-32",
+      "synthetic-person-39"
+     ],
+     "factIds": []
+    },
+    {
+     "id": "trial-2",
+     "targetPersonId": "synthetic-person-13",
+     "recognitionPersonIds": [
+      "synthetic-person-13",
+      "synthetic-person-12"
+     ],
+     "namePersonIds": [
+      "synthetic-person-13",
+      "synthetic-person-05"
+     ],
+     "factIds": []
+    },
+    {
+     "id": "trial-3",
+     "targetPersonId": "synthetic-person-28",
+     "recognitionPersonIds": [
+      "synthetic-person-09",
+      "synthetic-person-28"
+     ],
+     "namePersonIds": [
+      "synthetic-person-43",
+      "synthetic-person-28"
+     ],
+     "factIds": []
+    }
+   ],
+   "interferencePrompts": [
+    {
+     "id": "interference-0",
+     "left": 8,
+     "right": 7,
+     "answer": 15,
+     "options": [
+      16,
+      15,
+      17
+     ]
+    },
+    {
+     "id": "interference-1",
+     "left": 1,
+     "right": 9,
+     "answer": 10,
+     "options": [
+      10,
+      13,
+      7
+     ]
+    }
+   ],
+   "factRecallEnabled": false,
+   "immediateRecall": false,
+   "meanFaceSimilarity": 0.2175,
+   "meanNameSimilarity": 0.22555556,
+   "meanRecognitionDistractorSimilarity": 0.25625
+  },
+  {
+   "level": 8,
+   "id": "faces-names:flutter-ref:8",
+   "difficulty": 56,
+   "studiedPersonIds": [
+    "synthetic-person-11",
+    "synthetic-person-48",
+    "synthetic-person-20",
+    "synthetic-person-10"
+   ],
+   "peopleIds": [
+    "synthetic-person-11",
+    "synthetic-person-48",
+    "synthetic-person-20",
+    "synthetic-person-10",
+    "synthetic-person-15",
+    "synthetic-person-14",
+    "synthetic-person-27",
+    "synthetic-person-03",
+    "synthetic-person-07",
+    "synthetic-person-09",
+    "synthetic-person-25"
+   ],
+   "trials": [
+    {
+     "id": "trial-0",
+     "targetPersonId": "synthetic-person-10",
+     "recognitionPersonIds": [
+      "synthetic-person-10",
+      "synthetic-person-15"
+     ],
+     "namePersonIds": [
+      "synthetic-person-10",
+      "synthetic-person-14"
+     ],
+     "factIds": [
+      "fact-13",
+      "fact-10"
+     ]
+    },
+    {
+     "id": "trial-1",
+     "targetPersonId": "synthetic-person-11",
+     "recognitionPersonIds": [
+      "synthetic-person-27",
+      "synthetic-person-11"
+     ],
+     "namePersonIds": [
+      "synthetic-person-11",
+      "synthetic-person-03"
+     ],
+     "factIds": [
+      "fact-10",
+      "fact-11"
+     ]
+    },
+    {
+     "id": "trial-2",
+     "targetPersonId": "synthetic-person-48",
+     "recognitionPersonIds": [
+      "synthetic-person-07",
+      "synthetic-person-48"
+     ],
+     "namePersonIds": [
+      "synthetic-person-03",
+      "synthetic-person-48"
+     ],
+     "factIds": [
+      "fact-17",
+      "fact-48"
+     ]
+    },
+    {
+     "id": "trial-3",
+     "targetPersonId": "synthetic-person-20",
+     "recognitionPersonIds": [
+      "synthetic-person-09",
+      "synthetic-person-20"
+     ],
+     "namePersonIds": [
+      "synthetic-person-25",
+      "synthetic-person-20"
+     ],
+     "factIds": [
+      "fact-20",
+      "fact-35"
+     ]
+    }
+   ],
+   "interferencePrompts": [
+    {
+     "id": "interference-0",
+     "left": 1,
+     "right": 3,
+     "answer": 4,
+     "options": [
+      2,
+      3,
+      4
+     ]
+    },
+    {
+     "id": "interference-1",
+     "left": 4,
+     "right": 3,
+     "answer": 7,
+     "options": [
+      10,
+      7,
+      8
+     ]
+    }
+   ],
+   "factRecallEnabled": true,
+   "immediateRecall": false,
+   "meanFaceSimilarity": 0.19583333,
+   "meanNameSimilarity": 0.24458333,
+   "meanRecognitionDistractorSimilarity": 0.269375
+  },
+  {
+   "level": 9,
+   "id": "faces-names:flutter-ref:9",
+   "difficulty": 60,
+   "studiedPersonIds": [
+    "synthetic-person-23",
+    "synthetic-person-38",
+    "synthetic-person-42",
+    "synthetic-person-34"
+   ],
+   "peopleIds": [
+    "synthetic-person-23",
+    "synthetic-person-38",
+    "synthetic-person-42",
+    "synthetic-person-34",
+    "synthetic-person-02",
+    "synthetic-person-20",
+    "synthetic-person-31",
+    "synthetic-person-01",
+    "synthetic-person-09",
+    "synthetic-person-45",
+    "synthetic-person-44",
+    "synthetic-person-19",
+    "synthetic-person-28",
+    "synthetic-person-07",
+    "synthetic-person-39",
+    "synthetic-person-16",
+    "synthetic-person-27",
+    "synthetic-person-26"
+   ],
+   "trials": [
+    {
+     "id": "trial-0",
+     "targetPersonId": "synthetic-person-34",
+     "recognitionPersonIds": [
+      "synthetic-person-34",
+      "synthetic-person-20",
+      "synthetic-person-02"
+     ],
+     "namePersonIds": [
+      "synthetic-person-34",
+      "synthetic-person-01",
+      "synthetic-person-31"
+     ],
+     "factIds": [
+      "fact-13",
+      "fact-34",
+      "fact-01"
+     ]
+    },
+    {
+     "id": "trial-1",
+     "targetPersonId": "synthetic-person-23",
+     "recognitionPersonIds": [
+      "synthetic-person-09",
+      "synthetic-person-23",
+      "synthetic-person-45"
+     ],
+     "namePersonIds": [
+      "synthetic-person-44",
+      "synthetic-person-19",
+      "synthetic-person-23"
+     ],
+     "factIds": [
+      "fact-23",
+      "fact-15",
+      "fact-33"
+     ]
+    },
+    {
+     "id": "trial-2",
+     "targetPersonId": "synthetic-person-42",
+     "recognitionPersonIds": [
+      "synthetic-person-42",
+      "synthetic-person-07",
+      "synthetic-person-28"
+     ],
+     "namePersonIds": [
+      "synthetic-person-01",
+      "synthetic-person-39",
+      "synthetic-person-42"
+     ],
+     "factIds": [
+      "fact-47",
+      "fact-41",
+      "fact-42"
+     ]
+    },
+    {
+     "id": "trial-3",
+     "targetPersonId": "synthetic-person-38",
+     "recognitionPersonIds": [
+      "synthetic-person-38",
+      "synthetic-person-16",
+      "synthetic-person-27"
+     ],
+     "namePersonIds": [
+      "synthetic-person-26",
+      "synthetic-person-01",
+      "synthetic-person-38"
+     ],
+     "factIds": [
+      "fact-40",
+      "fact-45",
+      "fact-38"
+     ]
+    }
+   ],
+   "interferencePrompts": [
+    {
+     "id": "interference-0",
+     "left": 2,
+     "right": 4,
+     "answer": 6,
+     "options": [
+      6,
+      7,
+      4
+     ]
+    },
+    {
+     "id": "interference-1",
+     "left": 4,
+     "right": 7,
+     "answer": 11,
+     "options": [
+      9,
+      11,
+      14
+     ]
+    }
+   ],
+   "factRecallEnabled": true,
+   "immediateRecall": false,
+   "meanFaceSimilarity": 0.24416667,
+   "meanNameSimilarity": 0.23,
+   "meanRecognitionDistractorSimilarity": 0.296875
+  },
+  {
+   "level": 12,
+   "id": "faces-names:flutter-ref:12",
+   "difficulty": 69,
+   "studiedPersonIds": [
+    "synthetic-person-41",
+    "synthetic-person-32",
+    "synthetic-person-12",
+    "synthetic-person-37",
+    "synthetic-person-45"
+   ],
+   "peopleIds": [
+    "synthetic-person-41",
+    "synthetic-person-32",
+    "synthetic-person-12",
+    "synthetic-person-37",
+    "synthetic-person-45",
+    "synthetic-person-27",
+    "synthetic-person-13",
+    "synthetic-person-18",
+    "synthetic-person-47",
+    "synthetic-person-26",
+    "synthetic-person-20",
+    "synthetic-person-08",
+    "synthetic-person-17",
+    "synthetic-person-07",
+    "synthetic-person-48",
+    "synthetic-person-36",
+    "synthetic-person-46",
+    "synthetic-person-01",
+    "synthetic-person-02",
+    "synthetic-person-23",
+    "synthetic-person-31"
+   ],
+   "trials": [
+    {
+     "id": "trial-0",
+     "targetPersonId": "synthetic-person-41",
+     "recognitionPersonIds": [
+      "synthetic-person-13",
+      "synthetic-person-27",
+      "synthetic-person-41"
+     ],
+     "namePersonIds": [
+      "synthetic-person-41",
+      "synthetic-person-37",
+      "synthetic-person-18"
+     ],
+     "factIds": [
+      "fact-18",
+      "fact-34",
+      "fact-41"
+     ]
+    },
+    {
+     "id": "trial-1",
+     "targetPersonId": "synthetic-person-37",
+     "recognitionPersonIds": [
+      "synthetic-person-47",
+      "synthetic-person-26",
+      "synthetic-person-37"
+     ],
+     "namePersonIds": [
+      "synthetic-person-37",
+      "synthetic-person-41",
+      "synthetic-person-20"
+     ],
+     "factIds": [
+      "fact-47",
+      "fact-21",
+      "fact-37"
+     ]
+    },
+    {
+     "id": "trial-2",
+     "targetPersonId": "synthetic-person-12",
+     "recognitionPersonIds": [
+      "synthetic-person-08",
+      "synthetic-person-17",
+      "synthetic-person-12"
+     ],
+     "namePersonIds": [
+      "synthetic-person-12",
+      "synthetic-person-48",
+      "synthetic-person-07"
+     ],
+     "factIds": [
+      "fact-27",
+      "fact-12",
+      "fact-45"
+     ]
+    },
+    {
+     "id": "trial-3",
+     "targetPersonId": "synthetic-person-32",
+     "recognitionPersonIds": [
+      "synthetic-person-36",
+      "synthetic-person-46",
+      "synthetic-person-32"
+     ],
+     "namePersonIds": [
+      "synthetic-person-01",
+      "synthetic-person-32",
+      "synthetic-person-17"
+     ],
+     "factIds": [
+      "fact-15",
+      "fact-32",
+      "fact-47"
+     ]
+    },
+    {
+     "id": "trial-4",
+     "targetPersonId": "synthetic-person-45",
+     "recognitionPersonIds": [
+      "synthetic-person-02",
+      "synthetic-person-23",
+      "synthetic-person-45"
+     ],
+     "namePersonIds": [
+      "synthetic-person-45",
+      "synthetic-person-47",
+      "synthetic-person-31"
+     ],
+     "factIds": [
+      "fact-03",
+      "fact-45",
+      "fact-15"
+     ]
+    }
+   ],
+   "interferencePrompts": [
+    {
+     "id": "interference-0",
+     "left": 7,
+     "right": 4,
+     "answer": 11,
+     "options": [
+      11,
+      8,
+      13
+     ]
+    },
+    {
+     "id": "interference-1",
+     "left": 8,
+     "right": 6,
+     "answer": 14,
+     "options": [
+      16,
+      14,
+      12
+     ]
+    },
+    {
+     "id": "interference-2",
+     "left": 4,
+     "right": 4,
+     "answer": 8,
+     "options": [
+      8,
+      10,
+      11
+     ]
+    }
+   ],
+   "factRecallEnabled": true,
+   "immediateRecall": false,
+   "meanFaceSimilarity": 0.194,
+   "meanNameSimilarity": 0.44325,
+   "meanRecognitionDistractorSimilarity": 0.3015
+  },
+  {
+   "level": 17,
+   "id": "faces-names:flutter-ref:17",
+   "difficulty": 83,
+   "studiedPersonIds": [
+    "synthetic-person-22",
+    "synthetic-person-40",
+    "synthetic-person-28",
+    "synthetic-person-16",
+    "synthetic-person-04",
+    "synthetic-person-14",
+    "synthetic-person-08"
+   ],
+   "peopleIds": [
+    "synthetic-person-22",
+    "synthetic-person-40",
+    "synthetic-person-28",
+    "synthetic-person-16",
+    "synthetic-person-04",
+    "synthetic-person-14",
+    "synthetic-person-08",
+    "synthetic-person-20",
+    "synthetic-person-26",
+    "synthetic-person-38",
+    "synthetic-person-30",
+    "synthetic-person-46",
+    "synthetic-person-23",
+    "synthetic-person-06",
+    "synthetic-person-15",
+    "synthetic-person-35",
+    "synthetic-person-34",
+    "synthetic-person-10",
+    "synthetic-person-27",
+    "synthetic-person-36",
+    "synthetic-person-47",
+    "synthetic-person-02",
+    "synthetic-person-43",
+    "synthetic-person-21",
+    "synthetic-person-32",
+    "synthetic-person-18",
+    "synthetic-person-37",
+    "synthetic-person-44",
+    "synthetic-person-19",
+    "synthetic-person-11",
+    "synthetic-person-03"
+   ],
+   "trials": [
+    {
+     "id": "trial-0",
+     "targetPersonId": "synthetic-person-08",
+     "recognitionPersonIds": [
+      "synthetic-person-26",
+      "synthetic-person-08",
+      "synthetic-person-20",
+      "synthetic-person-38"
+     ],
+     "namePersonIds": [
+      "synthetic-person-38",
+      "synthetic-person-28",
+      "synthetic-person-08",
+      "synthetic-person-30"
+     ],
+     "factIds": [
+      "fact-37",
+      "fact-08",
+      "fact-02",
+      "fact-33"
+     ]
+    },
+    {
+     "id": "trial-1",
+     "targetPersonId": "synthetic-person-28",
+     "recognitionPersonIds": [
+      "synthetic-person-23",
+      "synthetic-person-28",
+      "synthetic-person-06",
+      "synthetic-person-46"
+     ],
+     "namePersonIds": [
+      "synthetic-person-28",
+      "synthetic-person-35",
+      "synthetic-person-15",
+      "synthetic-person-08"
+     ],
+     "factIds": [
+      "fact-15",
+      "fact-01",
+      "fact-28",
+      "fact-16"
+     ]
+    },
+    {
+     "id": "trial-2",
+     "targetPersonId": "synthetic-person-22",
+     "recognitionPersonIds": [
+      "synthetic-person-10",
+      "synthetic-person-22",
+      "synthetic-person-27",
+      "synthetic-person-34"
+     ],
+     "namePersonIds": [
+      "synthetic-person-47",
+      "synthetic-person-02",
+      "synthetic-person-22",
+      "synthetic-person-36"
+     ],
+     "factIds": [
+      "fact-14",
+      "fact-22",
+      "fact-46",
+      "fact-18"
+     ]
+    },
+    {
+     "id": "trial-3",
+     "targetPersonId": "synthetic-person-04",
+     "recognitionPersonIds": [
+      "synthetic-person-43",
+      "synthetic-person-46",
+      "synthetic-person-47",
+      "synthetic-person-04"
+     ],
+     "namePersonIds": [
+      "synthetic-person-04",
+      "synthetic-person-21",
+      "synthetic-person-36",
+      "synthetic-person-14"
+     ],
+     "factIds": [
+      "fact-30",
+      "fact-04",
+      "fact-44",
+      "fact-34"
+     ]
+    },
+    {
+     "id": "trial-4",
+     "targetPersonId": "synthetic-person-14",
+     "recognitionPersonIds": [
+      "synthetic-person-14",
+      "synthetic-person-32",
+      "synthetic-person-18",
+      "synthetic-person-26"
+     ],
+     "namePersonIds": [
+      "synthetic-person-04",
+      "synthetic-person-32",
+      "synthetic-person-14",
+      "synthetic-person-37"
+     ],
+     "factIds": [
+      "fact-14",
+      "fact-44",
+      "fact-26",
+      "fact-46"
+     ]
+    },
+    {
+     "id": "trial-5",
+     "targetPersonId": "synthetic-person-40",
+     "recognitionPersonIds": [
+      "synthetic-person-40",
+      "synthetic-person-18",
+      "synthetic-person-46",
+      "synthetic-person-35"
+     ],
+     "namePersonIds": [
+      "synthetic-person-44",
+      "synthetic-person-40",
+      "synthetic-person-34",
+      "synthetic-person-19"
+     ],
+     "factIds": [
+      "fact-33",
+      "fact-08",
+      "fact-40",
+      "fact-17"
+     ]
+    },
+    {
+     "id": "trial-6",
+     "targetPersonId": "synthetic-person-16",
+     "recognitionPersonIds": [
+      "synthetic-person-11",
+      "synthetic-person-46",
+      "synthetic-person-16",
+      "synthetic-person-10"
+     ],
+     "namePersonIds": [
+      "synthetic-person-16",
+      "synthetic-person-03",
+      "synthetic-person-46",
+      "synthetic-person-44"
+     ],
+     "factIds": [
+      "fact-16",
+      "fact-43",
+      "fact-48",
+      "fact-25"
+     ]
+    }
+   ],
+   "interferencePrompts": [
+    {
+     "id": "interference-0",
+     "left": 7,
+     "right": 9,
+     "answer": 16,
+     "options": [
+      13,
+      18,
+      16
+     ]
+    },
+    {
+     "id": "interference-1",
+     "left": 8,
+     "right": 8,
+     "answer": 16,
+     "options": [
+      16,
+      14,
+      19
+     ]
+    },
+    {
+     "id": "interference-2",
+     "left": 1,
+     "right": 5,
+     "answer": 6,
+     "options": [
+      8,
+      6,
+      9
+     ]
+    }
+   ],
+   "factRecallEnabled": true,
+   "immediateRecall": false,
+   "meanFaceSimilarity": 0.41642857,
+   "meanNameSimilarity": 0.22063492,
+   "meanRecognitionDistractorSimilarity": 0.4777381
+  },
+  {
+   "level": 20,
+   "id": "faces-names:flutter-ref:20",
+   "difficulty": 92,
+   "studiedPersonIds": [
+    "synthetic-person-25",
+    "synthetic-person-07",
+    "synthetic-person-43",
+    "synthetic-person-13",
+    "synthetic-person-19",
+    "synthetic-person-37",
+    "synthetic-person-31",
+    "synthetic-person-01"
+   ],
+   "peopleIds": [
+    "synthetic-person-25",
+    "synthetic-person-07",
+    "synthetic-person-43",
+    "synthetic-person-13",
+    "synthetic-person-19",
+    "synthetic-person-37",
+    "synthetic-person-31",
+    "synthetic-person-01",
+    "synthetic-person-05",
+    "synthetic-person-15",
+    "synthetic-person-29",
+    "synthetic-person-41",
+    "synthetic-person-23",
+    "synthetic-person-47",
+    "synthetic-person-26",
+    "synthetic-person-03",
+    "synthetic-person-10",
+    "synthetic-person-24",
+    "synthetic-person-40",
+    "synthetic-person-14",
+    "synthetic-person-09",
+    "synthetic-person-35",
+    "synthetic-person-17",
+    "synthetic-person-28",
+    "synthetic-person-33",
+    "synthetic-person-45",
+    "synthetic-person-18",
+    "synthetic-person-16",
+    "synthetic-person-11",
+    "synthetic-person-21",
+    "synthetic-person-02",
+    "synthetic-person-48",
+    "synthetic-person-04",
+    "synthetic-person-20"
+   ],
+   "trials": [
+    {
+     "id": "trial-0",
+     "targetPersonId": "synthetic-person-01",
+     "recognitionPersonIds": [
+      "synthetic-person-15",
+      "synthetic-person-01",
+      "synthetic-person-29",
+      "synthetic-person-05"
+     ],
+     "namePersonIds": [
+      "synthetic-person-23",
+      "synthetic-person-19",
+      "synthetic-person-41",
+      "synthetic-person-01"
+     ],
+     "factIds": [
+      "fact-15",
+      "fact-19",
+      "fact-28",
+      "fact-01"
+     ]
+    },
+    {
+     "id": "trial-1",
+     "targetPersonId": "synthetic-person-37",
+     "recognitionPersonIds": [
+      "synthetic-person-47",
+      "synthetic-person-37",
+      "synthetic-person-41",
+      "synthetic-person-26"
+     ],
+     "namePersonIds": [
+      "synthetic-person-01",
+      "synthetic-person-10",
+      "synthetic-person-03",
+      "synthetic-person-37"
+     ],
+     "factIds": [
+      "fact-33",
+      "fact-40",
+      "fact-37",
+      "fact-17"
+     ]
+    },
+    {
+     "id": "trial-2",
+     "targetPersonId": "synthetic-person-25",
+     "recognitionPersonIds": [
+      "synthetic-person-25",
+      "synthetic-person-05",
+      "synthetic-person-24",
+      "synthetic-person-29"
+     ],
+     "namePersonIds": [
+      "synthetic-person-14",
+      "synthetic-person-25",
+      "synthetic-person-40",
+      "synthetic-person-43"
+     ],
+     "factIds": [
+      "fact-12",
+      "fact-29",
+      "fact-25",
+      "fact-41"
+     ]
+    },
+    {
+     "id": "trial-3",
+     "targetPersonId": "synthetic-person-31",
+     "recognitionPersonIds": [
+      "synthetic-person-40",
+      "synthetic-person-31",
+      "synthetic-person-35",
+      "synthetic-person-09"
+     ],
+     "namePersonIds": [
+      "synthetic-person-01",
+      "synthetic-person-17",
+      "synthetic-person-31",
+      "synthetic-person-41"
+     ],
+     "factIds": [
+      "fact-31",
+      "fact-47",
+      "fact-07",
+      "fact-21"
+     ]
+    },
+    {
+     "id": "trial-4",
+     "targetPersonId": "synthetic-person-19",
+     "recognitionPersonIds": [
+      "synthetic-person-23",
+      "synthetic-person-33",
+      "synthetic-person-28",
+      "synthetic-person-19"
+     ],
+     "namePersonIds": [
+      "synthetic-person-14",
+      "synthetic-person-19",
+      "synthetic-person-40",
+      "synthetic-person-01"
+     ],
+     "factIds": [
+      "fact-11",
+      "fact-47",
+      "fact-35",
+      "fact-19"
+     ]
+    },
+    {
+     "id": "trial-5",
+     "targetPersonId": "synthetic-person-13",
+     "recognitionPersonIds": [
+      "synthetic-person-17",
+      "synthetic-person-23",
+      "synthetic-person-45",
+      "synthetic-person-13"
+     ],
+     "namePersonIds": [
+      "synthetic-person-23",
+      "synthetic-person-07",
+      "synthetic-person-18",
+      "synthetic-person-13"
+     ],
+     "factIds": [
+      "fact-42",
+      "fact-24",
+      "fact-13",
+      "fact-32"
+     ]
+    },
+    {
+     "id": "trial-6",
+     "targetPersonId": "synthetic-person-07",
+     "recognitionPersonIds": [
+      "synthetic-person-11",
+      "synthetic-person-21",
+      "synthetic-person-16",
+      "synthetic-person-07"
+     ],
+     "namePersonIds": [
+      "synthetic-person-07",
+      "synthetic-person-02",
+      "synthetic-person-48",
+      "synthetic-person-41"
+     ],
+     "factIds": [
+      "fact-47",
+      "fact-07",
+      "fact-31",
+      "fact-39"
+     ]
+    },
+    {
+     "id": "trial-7",
+     "targetPersonId": "synthetic-person-43",
+     "recognitionPersonIds": [
+      "synthetic-person-43",
+      "synthetic-person-47",
+      "synthetic-person-04",
+      "synthetic-person-21"
+     ],
+     "namePersonIds": [
+      "synthetic-person-43",
+      "synthetic-person-47",
+      "synthetic-person-25",
+      "synthetic-person-20"
+     ],
+     "factIds": [
+      "fact-43",
+      "fact-12",
+      "fact-03",
+      "fact-29"
+     ]
+    }
+   ],
+   "interferencePrompts": [
+    {
+     "id": "interference-0",
+     "left": 3,
+     "right": 8,
+     "answer": 11,
+     "options": [
+      12,
+      11,
+      9
+     ]
+    },
+    {
+     "id": "interference-1",
+     "left": 3,
+     "right": 1,
+     "answer": 4,
+     "options": [
+      2,
+      4,
+      6
+     ]
+    },
+    {
+     "id": "interference-2",
+     "left": 1,
+     "right": 7,
+     "answer": 8,
+     "options": [
+      9,
+      8,
+      10
+     ]
+    },
+    {
+     "id": "interference-3",
+     "left": 2,
+     "right": 2,
+     "answer": 4,
+     "options": [
+      4,
+      5,
+      6
+     ]
+    }
+   ],
+   "factRecallEnabled": true,
+   "immediateRecall": false,
+   "meanFaceSimilarity": 0.64776786,
+   "meanNameSimilarity": 0.37705357,
+   "meanRecognitionDistractorSimilarity": 0.30052083
+  },
+  {
+   "level": 25,
+   "id": "faces-names:flutter-ref:25",
+   "difficulty": 98,
+   "studiedPersonIds": [
+    "synthetic-person-06",
+    "synthetic-person-42",
+    "synthetic-person-24",
+    "synthetic-person-48",
+    "synthetic-person-18",
+    "synthetic-person-12",
+    "synthetic-person-36",
+    "synthetic-person-30",
+    "synthetic-person-32",
+    "synthetic-person-08"
+   ],
+   "peopleIds": [
+    "synthetic-person-06",
+    "synthetic-person-42",
+    "synthetic-person-24",
+    "synthetic-person-48",
+    "synthetic-person-18",
+    "synthetic-person-12",
+    "synthetic-person-36",
+    "synthetic-person-30",
+    "synthetic-person-32",
+    "synthetic-person-08",
+    "synthetic-person-02",
+    "synthetic-person-28",
+    "synthetic-person-45",
+    "synthetic-person-44",
+    "synthetic-person-46",
+    "synthetic-person-38",
+    "synthetic-person-16",
+    "synthetic-person-17",
+    "synthetic-person-07",
+    "synthetic-person-37",
+    "synthetic-person-22",
+    "synthetic-person-26",
+    "synthetic-person-47",
+    "synthetic-person-20",
+    "synthetic-person-35",
+    "synthetic-person-15",
+    "synthetic-person-14",
+    "synthetic-person-10",
+    "synthetic-person-21",
+    "synthetic-person-33",
+    "synthetic-person-09",
+    "synthetic-person-40",
+    "synthetic-person-39",
+    "synthetic-person-41",
+    "synthetic-person-27",
+    "synthetic-person-13"
+   ],
+   "trials": [
+    {
+     "id": "trial-0",
+     "targetPersonId": "synthetic-person-06",
+     "recognitionPersonIds": [
+      "synthetic-person-28",
+      "synthetic-person-06",
+      "synthetic-person-45",
+      "synthetic-person-02"
+     ],
+     "namePersonIds": [
+      "synthetic-person-46",
+      "synthetic-person-06",
+      "synthetic-person-44",
+      "synthetic-person-42"
+     ],
+     "factIds": [
+      "fact-03",
+      "fact-36",
+      "fact-06",
+      "fact-41"
+     ]
+    },
+    {
+     "id": "trial-1",
+     "targetPersonId": "synthetic-person-48",
+     "recognitionPersonIds": [
+      "synthetic-person-38",
+      "synthetic-person-16",
+      "synthetic-person-44",
+      "synthetic-person-48"
+     ],
+     "namePersonIds": [
+      "synthetic-person-48",
+      "synthetic-person-17",
+      "synthetic-person-18",
+      "synthetic-person-07"
+     ],
+     "factIds": [
+      "fact-16",
+      "fact-48",
+      "fact-12",
+      "fact-41"
+     ]
+    },
+    {
+     "id": "trial-2",
+     "targetPersonId": "synthetic-person-36",
+     "recognitionPersonIds": [
+      "synthetic-person-37",
+      "synthetic-person-36",
+      "synthetic-person-22",
+      "synthetic-person-26"
+     ],
+     "namePersonIds": [
+      "synthetic-person-22",
+      "synthetic-person-20",
+      "synthetic-person-36",
+      "synthetic-person-47"
+     ],
+     "factIds": [
+      "fact-43",
+      "fact-41",
+      "fact-36",
+      "fact-29"
+     ]
+    },
+    {
+     "id": "trial-3",
+     "targetPersonId": "synthetic-person-08",
+     "recognitionPersonIds": [
+      "synthetic-person-02",
+      "synthetic-person-44",
+      "synthetic-person-38",
+      "synthetic-person-08"
+     ],
+     "namePersonIds": [
+      "synthetic-person-15",
+      "synthetic-person-35",
+      "synthetic-person-28",
+      "synthetic-person-08"
+     ],
+     "factIds": [
+      "fact-37",
+      "fact-08",
+      "fact-02",
+      "fact-33"
+     ]
+    },
+    {
+     "id": "trial-4",
+     "targetPersonId": "synthetic-person-24",
+     "recognitionPersonIds": [
+      "synthetic-person-20",
+      "synthetic-person-10",
+      "synthetic-person-14",
+      "synthetic-person-24"
+     ],
+     "namePersonIds": [
+      "synthetic-person-42",
+      "synthetic-person-21",
+      "synthetic-person-24",
+      "synthetic-person-46"
+     ],
+     "factIds": [
+      "fact-13",
+      "fact-42",
+      "fact-24",
+      "fact-32"
+     ]
+    },
+    {
+     "id": "trial-5",
+     "targetPersonId": "synthetic-person-30",
+     "recognitionPersonIds": [
+      "synthetic-person-26",
+      "synthetic-person-21",
+      "synthetic-person-30",
+      "synthetic-person-10"
+     ],
+     "namePersonIds": [
+      "synthetic-person-32",
+      "synthetic-person-30",
+      "synthetic-person-38",
+      "synthetic-person-15"
+     ],
+     "factIds": [
+      "fact-30",
+      "fact-22",
+      "fact-18",
+      "fact-04"
+     ]
+    },
+    {
+     "id": "trial-6",
+     "targetPersonId": "synthetic-person-42",
+     "recognitionPersonIds": [
+      "synthetic-person-28",
+      "synthetic-person-38",
+      "synthetic-person-33",
+      "synthetic-person-42"
+     ],
+     "namePersonIds": [
+      "synthetic-person-24",
+      "synthetic-person-06",
+      "synthetic-person-42",
+      "synthetic-person-20"
+     ],
+     "factIds": [
+      "fact-24",
+      "fact-42",
+      "fact-13",
+      "fact-32"
+     ]
+    },
+    {
+     "id": "trial-7",
+     "targetPersonId": "synthetic-person-18",
+     "recognitionPersonIds": [
+      "synthetic-person-40",
+      "synthetic-person-09",
+      "synthetic-person-14",
+      "synthetic-person-18"
+     ],
+     "namePersonIds": [
+      "synthetic-person-17",
+      "synthetic-person-39",
+      "synthetic-person-18",
+      "synthetic-person-48"
+     ],
+     "factIds": [
+      "fact-30",
+      "fact-18",
+      "fact-46",
+      "fact-44"
+     ]
+    },
+    {
+     "id": "trial-8",
+     "targetPersonId": "synthetic-person-32",
+     "recognitionPersonIds": [
+      "synthetic-person-02",
+      "synthetic-person-14",
+      "synthetic-person-26",
+      "synthetic-person-32"
+     ],
+     "namePersonIds": [
+      "synthetic-person-12",
+      "synthetic-person-32",
+      "synthetic-person-27",
+      "synthetic-person-41"
+     ],
+     "factIds": [
+      "fact-24",
+      "fact-13",
+      "fact-32",
+      "fact-42"
+     ]
+    },
+    {
+     "id": "trial-9",
+     "targetPersonId": "synthetic-person-12",
+     "recognitionPersonIds": [
+      "synthetic-person-39",
+      "synthetic-person-12",
+      "synthetic-person-17",
+      "synthetic-person-13"
+     ],
+     "namePersonIds": [
+      "synthetic-person-27",
+      "synthetic-person-32",
+      "synthetic-person-41",
+      "synthetic-person-12"
+     ],
+     "factIds": [
+      "fact-12",
+      "fact-41",
+      "fact-06",
+      "fact-36"
+     ]
+    }
+   ],
+   "interferencePrompts": [
+    {
+     "id": "interference-0",
+     "left": 6,
+     "right": 5,
+     "answer": 11,
+     "options": [
+      11,
+      13,
+      10
+     ]
+    },
+    {
+     "id": "interference-1",
+     "left": 6,
+     "right": 1,
+     "answer": 7,
+     "options": [
+      4,
+      5,
+      7
+     ]
+    },
+    {
+     "id": "interference-2",
+     "left": 1,
+     "right": 4,
+     "answer": 5,
+     "options": [
+      5,
+      6,
+      2
+     ]
+    },
+    {
+     "id": "interference-3",
+     "left": 2,
+     "right": 8,
+     "answer": 10,
+     "options": [
+      9,
+      7,
+      10
+     ]
+    }
+   ],
+   "factRecallEnabled": true,
+   "immediateRecall": false,
+   "meanFaceSimilarity": 0.475,
+   "meanNameSimilarity": 0.24905556,
+   "meanRecognitionDistractorSimilarity": 0.36408333
+  },
+  {
+   "level": 33,
+   "id": "faces-names:flutter-ref:33",
+   "difficulty": 100,
+   "studiedPersonIds": [
+    "synthetic-person-28",
+    "synthetic-person-34",
+    "synthetic-person-10",
+    "synthetic-person-40",
+    "synthetic-person-04",
+    "synthetic-person-46",
+    "synthetic-person-16",
+    "synthetic-person-22",
+    "synthetic-person-14",
+    "synthetic-person-20",
+    "synthetic-person-32",
+    "synthetic-person-08"
+   ],
+   "peopleIds": [
+    "synthetic-person-28",
+    "synthetic-person-34",
+    "synthetic-person-10",
+    "synthetic-person-40",
+    "synthetic-person-04",
+    "synthetic-person-46",
+    "synthetic-person-16",
+    "synthetic-person-22",
+    "synthetic-person-14",
+    "synthetic-person-20",
+    "synthetic-person-32",
+    "synthetic-person-08",
+    "synthetic-person-38",
+    "synthetic-person-44",
+    "synthetic-person-02",
+    "synthetic-person-01",
+    "synthetic-person-25",
+    "synthetic-person-35",
+    "synthetic-person-18",
+    "synthetic-person-31",
+    "synthetic-person-27",
+    "synthetic-person-36",
+    "synthetic-person-05",
+    "synthetic-person-47",
+    "synthetic-person-48",
+    "synthetic-person-23",
+    "synthetic-person-13",
+    "synthetic-person-15",
+    "synthetic-person-06",
+    "synthetic-person-19",
+    "synthetic-person-11",
+    "synthetic-person-07",
+    "synthetic-person-03",
+    "synthetic-person-43",
+    "synthetic-person-26",
+    "synthetic-person-21",
+    "synthetic-person-29",
+    "synthetic-person-12",
+    "synthetic-person-41",
+    "synthetic-person-24",
+    "synthetic-person-45",
+    "synthetic-person-37"
+   ],
+   "trials": [
+    {
+     "id": "trial-0",
+     "targetPersonId": "synthetic-person-14",
+     "recognitionPersonIds": [
+      "synthetic-person-38",
+      "synthetic-person-02",
+      "synthetic-person-14",
+      "synthetic-person-44"
+     ],
+     "namePersonIds": [
+      "synthetic-person-20",
+      "synthetic-person-01",
+      "synthetic-person-25",
+      "synthetic-person-14"
+     ],
+     "factIds": [
+      "fact-18",
+      "fact-22",
+      "fact-20",
+      "fact-14"
+     ]
+    },
+    {
+     "id": "trial-1",
+     "targetPersonId": "synthetic-person-40",
+     "recognitionPersonIds": [
+      "synthetic-person-40",
+      "synthetic-person-31",
+      "synthetic-person-35",
+      "synthetic-person-18"
+     ],
+     "namePersonIds": [
+      "synthetic-person-40",
+      "synthetic-person-25",
+      "synthetic-person-14",
+      "synthetic-person-01"
+     ],
+     "factIds": [
+      "fact-40",
+      "fact-37",
+      "fact-17",
+      "fact-33"
+     ]
+    },
+    {
+     "id": "trial-2",
+     "targetPersonId": "synthetic-person-22",
+     "recognitionPersonIds": [
+      "synthetic-person-22",
+      "synthetic-person-27",
+      "synthetic-person-36",
+      "synthetic-person-05"
+     ],
+     "namePersonIds": [
+      "synthetic-person-36",
+      "synthetic-person-22",
+      "synthetic-person-02",
+      "synthetic-person-47"
+     ],
+     "factIds": [
+      "fact-14",
+      "fact-26",
+      "fact-22",
+      "fact-34"
+     ]
+    },
+    {
+     "id": "trial-3",
+     "targetPersonId": "synthetic-person-34",
+     "recognitionPersonIds": [
+      "synthetic-person-48",
+      "synthetic-person-02",
+      "synthetic-person-23",
+      "synthetic-person-34"
+     ],
+     "namePersonIds": [
+      "synthetic-person-13",
+      "synthetic-person-34",
+      "synthetic-person-44",
+      "synthetic-person-40"
+     ],
+     "factIds": [
+      "fact-30",
+      "fact-04",
+      "fact-34",
+      "fact-38"
+     ]
+    },
+    {
+     "id": "trial-4",
+     "targetPersonId": "synthetic-person-08",
+     "recognitionPersonIds": [
+      "synthetic-person-44",
+      "synthetic-person-02",
+      "synthetic-person-08",
+      "synthetic-person-38"
+     ],
+     "namePersonIds": [
+      "synthetic-person-15",
+      "synthetic-person-35",
+      "synthetic-person-28",
+      "synthetic-person-08"
+     ],
+     "factIds": [
+      "fact-40",
+      "fact-17",
+      "fact-08",
+      "fact-33"
+     ]
+    },
+    {
+     "id": "trial-5",
+     "targetPersonId": "synthetic-person-28",
+     "recognitionPersonIds": [
+      "synthetic-person-19",
+      "synthetic-person-23",
+      "synthetic-person-28",
+      "synthetic-person-06"
+     ],
+     "namePersonIds": [
+      "synthetic-person-08",
+      "synthetic-person-28",
+      "synthetic-person-35",
+      "synthetic-person-15"
+     ],
+     "factIds": [
+      "fact-15",
+      "fact-28",
+      "fact-01",
+      "fact-44"
+     ]
+    },
+    {
+     "id": "trial-6",
+     "targetPersonId": "synthetic-person-16",
+     "recognitionPersonIds": [
+      "synthetic-person-11",
+      "synthetic-person-16",
+      "synthetic-person-38",
+      "synthetic-person-07"
+     ],
+     "namePersonIds": [
+      "synthetic-person-44",
+      "synthetic-person-46",
+      "synthetic-person-16",
+      "synthetic-person-03"
+     ],
+     "factIds": [
+      "fact-06",
+      "fact-16",
+      "fact-41",
+      "fact-03"
+     ]
+    },
+    {
+     "id": "trial-7",
+     "targetPersonId": "synthetic-person-04",
+     "recognitionPersonIds": [
+      "synthetic-person-43",
+      "synthetic-person-26",
+      "synthetic-person-47",
+      "synthetic-person-04"
+     ],
+     "namePersonIds": [
+      "synthetic-person-04",
+      "synthetic-person-14",
+      "synthetic-person-21",
+      "synthetic-person-20"
+     ],
+     "factIds": [
+      "fact-04",
+      "fact-22",
+      "fact-10",
+      "fact-30"
+     ]
+    },
+    {
+     "id": "trial-8",
+     "targetPersonId": "synthetic-person-46",
+     "recognitionPersonIds": [
+      "synthetic-person-12",
+      "synthetic-person-03",
+      "synthetic-person-46",
+      "synthetic-person-29"
+     ],
+     "namePersonIds": [
+      "synthetic-person-26",
+      "synthetic-person-47",
+      "synthetic-person-46",
+      "synthetic-person-16"
+     ],
+     "factIds": [
+      "fact-04",
+      "fact-26",
+      "fact-44",
+      "fact-46"
+     ]
+    },
+    {
+     "id": "trial-9",
+     "targetPersonId": "synthetic-person-32",
+     "recognitionPersonIds": [
+      "synthetic-person-38",
+      "synthetic-person-02",
+      "synthetic-person-26",
+      "synthetic-person-32"
+     ],
+     "namePersonIds": [
+      "synthetic-person-27",
+      "synthetic-person-32",
+      "synthetic-person-41",
+      "synthetic-person-12"
+     ],
+     "factIds": [
+      "fact-32",
+      "fact-42",
+      "fact-13",
+      "fact-24"
+     ]
+    },
+    {
+     "id": "trial-10",
+     "targetPersonId": "synthetic-person-20",
+     "recognitionPersonIds": [
+      "synthetic-person-44",
+      "synthetic-person-20",
+      "synthetic-person-02",
+      "synthetic-person-38"
+     ],
+     "namePersonIds": [
+      "synthetic-person-29",
+      "synthetic-person-43",
+      "synthetic-person-20",
+      "synthetic-person-05"
+     ],
+     "factIds": [
+      "fact-20",
+      "fact-46",
+      "fact-22",
+      "fact-14"
+     ]
+    },
+    {
+     "id": "trial-11",
+     "targetPersonId": "synthetic-person-10",
+     "recognitionPersonIds": [
+      "synthetic-person-24",
+      "synthetic-person-10",
+      "synthetic-person-43",
+      "synthetic-person-15"
+     ],
+     "namePersonIds": [
+      "synthetic-person-10",
+      "synthetic-person-45",
+      "synthetic-person-03",
+      "synthetic-person-37"
+     ],
+     "factIds": [
+      "fact-22",
+      "fact-26",
+      "fact-10",
+      "fact-46"
+     ]
+    }
+   ],
+   "interferencePrompts": [
+    {
+     "id": "interference-0",
+     "left": 9,
+     "right": 2,
+     "answer": 11,
+     "options": [
+      11,
+      12,
+      10
+     ]
+    },
+    {
+     "id": "interference-1",
+     "left": 1,
+     "right": 8,
+     "answer": 9,
+     "options": [
+      7,
+      6,
+      9
+     ]
+    },
+    {
+     "id": "interference-2",
+     "left": 7,
+     "right": 1,
+     "answer": 8,
+     "options": [
+      8,
+      9,
+      11
+     ]
+    },
+    {
+     "id": "interference-3",
+     "left": 4,
+     "right": 6,
+     "answer": 10,
+     "options": [
+      13,
+      10,
+      8
+     ]
+    },
+    {
+     "id": "interference-4",
+     "left": 3,
+     "right": 5,
+     "answer": 8,
+     "options": [
+      11,
+      8,
+      10
+     ]
+    },
+    {
+     "id": "interference-5",
+     "left": 7,
+     "right": 5,
+     "answer": 12,
+     "options": [
+      15,
+      9,
+      12
+     ]
+    }
+   ],
+   "factRecallEnabled": true,
+   "immediateRecall": false,
+   "meanFaceSimilarity": 0.41253788,
+   "meanNameSimilarity": 0.24895202,
+   "meanRecognitionDistractorSimilarity": 0.41666667
+  }
+ ],
+ "plays": [
+  {
+   "level": 5,
+   "kind": "perfect",
+   "шаги": [
+    "study:0",
+    "study:1",
+    "study:2",
+    "interference:5+9=14",
+    "interference:4+8=12",
+    "recognition:synthetic-person-07",
+    "name:synthetic-person-07",
+    "recognition:synthetic-person-28",
+    "name:synthetic-person-28",
+    "recognition:synthetic-person-20",
+    "name:synthetic-person-20"
+   ],
+   "phase": "result",
+   "result": {
+    "accuracy": 1,
+    "durationMs": 60000,
+    "difficulty": 41,
+    "errors": 0,
+    "score": 100,
+    "seed": "flutter-ref",
+    "generatorVersion": "faces-names-generator-v1",
+    "details": {
+     "level": 5
+    },
+    "specific": {
+     "personCount": 3,
+     "faceRecognitionCorrect": 3,
+     "faceRecognitionTotal": 3,
+     "faceRecognitionAccuracy": 1,
+     "nameRecallCorrect": 3,
+     "nameRecallTotal": 3,
+     "nameRecallAccuracy": 1,
+     "factRecallCorrect": 0,
+     "factRecallTotal": 0,
+     "factRecallAccuracy": null,
+     "interferenceRounds": 2,
+     "interferenceCorrect": 2,
+     "meanFaceSimilarity": 0.155,
+     "meanNameSimilarity": 0.225,
+     "meanRecognitionDistractorSimilarity": 0.21083333,
+     "invalidInteractions": 0
+    }
+   }
+  },
+  {
+   "level": 8,
+   "kind": "perfect",
+   "шаги": [
+    "study:0",
+    "study:1",
+    "study:2",
+    "study:3",
+    "interference:1+3=4",
+    "interference:4+3=7",
+    "recognition:synthetic-person-10",
+    "name:synthetic-person-10",
+    "fact:fact-10",
+    "recognition:synthetic-person-11",
+    "name:synthetic-person-11",
+    "fact:fact-11",
+    "recognition:synthetic-person-48",
+    "name:synthetic-person-48",
+    "fact:fact-48",
+    "recognition:synthetic-person-20",
+    "name:synthetic-person-20",
+    "fact:fact-20"
+   ],
+   "phase": "result",
+   "result": {
+    "accuracy": 1,
+    "durationMs": 60000,
+    "difficulty": 56,
+    "errors": 0,
+    "score": 100,
+    "seed": "flutter-ref",
+    "generatorVersion": "faces-names-generator-v1",
+    "details": {
+     "level": 8
+    },
+    "specific": {
+     "personCount": 4,
+     "faceRecognitionCorrect": 4,
+     "faceRecognitionTotal": 4,
+     "faceRecognitionAccuracy": 1,
+     "nameRecallCorrect": 4,
+     "nameRecallTotal": 4,
+     "nameRecallAccuracy": 1,
+     "factRecallCorrect": 4,
+     "factRecallTotal": 4,
+     "factRecallAccuracy": 1,
+     "interferenceRounds": 2,
+     "interferenceCorrect": 2,
+     "meanFaceSimilarity": 0.19583333,
+     "meanNameSimilarity": 0.24458333,
+     "meanRecognitionDistractorSimilarity": 0.269375,
+     "invalidInteractions": 0
+    }
+   }
+  },
+  {
+   "level": 12,
+   "kind": "perfect",
+   "шаги": [
+    "study:0",
+    "study:1",
+    "study:2",
+    "study:3",
+    "study:4",
+    "interference:7+4=11",
+    "interference:8+6=14",
+    "interference:4+4=8",
+    "recognition:synthetic-person-41",
+    "name:synthetic-person-41",
+    "fact:fact-41",
+    "recognition:synthetic-person-37",
+    "name:synthetic-person-37",
+    "fact:fact-37",
+    "recognition:synthetic-person-12",
+    "name:synthetic-person-12",
+    "fact:fact-12",
+    "recognition:synthetic-person-32",
+    "name:synthetic-person-32",
+    "fact:fact-32",
+    "recognition:synthetic-person-45",
+    "name:synthetic-person-45",
+    "fact:fact-45"
+   ],
+   "phase": "result",
+   "result": {
+    "accuracy": 1,
+    "durationMs": 60000,
+    "difficulty": 69,
+    "errors": 0,
+    "score": 100,
+    "seed": "flutter-ref",
+    "generatorVersion": "faces-names-generator-v1",
+    "details": {
+     "level": 12
+    },
+    "specific": {
+     "personCount": 5,
+     "faceRecognitionCorrect": 5,
+     "faceRecognitionTotal": 5,
+     "faceRecognitionAccuracy": 1,
+     "nameRecallCorrect": 5,
+     "nameRecallTotal": 5,
+     "nameRecallAccuracy": 1,
+     "factRecallCorrect": 5,
+     "factRecallTotal": 5,
+     "factRecallAccuracy": 1,
+     "interferenceRounds": 3,
+     "interferenceCorrect": 3,
+     "meanFaceSimilarity": 0.194,
+     "meanNameSimilarity": 0.44325,
+     "meanRecognitionDistractorSimilarity": 0.3015,
+     "invalidInteractions": 0
+    }
+   }
+  },
+  {
+   "level": 8,
+   "kind": "first-option",
+   "phase": "result",
+   "result": {
+    "accuracy": 0.33333333,
+    "durationMs": 45000,
+    "difficulty": 56,
+    "errors": 8,
+    "score": 33,
+    "seed": "flutter-ref",
+    "generatorVersion": "faces-names-generator-v1",
+    "details": {
+     "level": 8
+    },
+    "specific": {
+     "personCount": 4,
+     "faceRecognitionCorrect": 1,
+     "faceRecognitionTotal": 4,
+     "faceRecognitionAccuracy": 0.25,
+     "nameRecallCorrect": 2,
+     "nameRecallTotal": 4,
+     "nameRecallAccuracy": 0.5,
+     "factRecallCorrect": 1,
+     "factRecallTotal": 4,
+     "factRecallAccuracy": 0.25,
+     "interferenceRounds": 2,
+     "interferenceCorrect": 0,
+     "meanFaceSimilarity": 0.19583333,
+     "meanNameSimilarity": 0.24458333,
+     "meanRecognitionDistractorSimilarity": 0.269375,
+     "invalidInteractions": 0
+    }
+   }
+  },
+  {
+   "level": 20,
+   "kind": "first-option",
+   "phase": "result",
+   "result": {
+    "accuracy": 0.25,
+    "durationMs": 45000,
+    "difficulty": 92,
+    "errors": 18,
+    "score": 25,
+    "seed": "flutter-ref",
+    "generatorVersion": "faces-names-generator-v1",
+    "details": {
+     "level": 20
+    },
+    "specific": {
+     "personCount": 8,
+     "faceRecognitionCorrect": 2,
+     "faceRecognitionTotal": 8,
+     "faceRecognitionAccuracy": 0.25,
+     "nameRecallCorrect": 2,
+     "nameRecallTotal": 8,
+     "nameRecallAccuracy": 0.25,
+     "factRecallCorrect": 2,
+     "factRecallTotal": 8,
+     "factRecallAccuracy": 0.25,
+     "interferenceRounds": 4,
+     "interferenceCorrect": 1,
+     "meanFaceSimilarity": 0.64776786,
+     "meanNameSimilarity": 0.37705357,
+     "meanRecognitionDistractorSimilarity": 0.30052083,
+     "invalidInteractions": 0
+    }
+   }
+  }
+ ]
+}

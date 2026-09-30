@@ -1,10 +1,16 @@
+import 'dart:async';
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
 import '../../shell/aux_action.dart';
+import '../../shell/game_preset.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
+import '../../shell/lesson.dart';
+import '../../shell/lesson_player.dart';
 import '../../shell/shared_state.dart';
 import 'board.dart';
 import 'model.dart';
@@ -42,11 +48,37 @@ class _Snapshot {
 }
 
 class _CakeSortScreenState extends State<CakeSortScreen> {
+  /// 🔴 СЛЕДУЮЩИЙ УРОВЕНЬ ЕДЕТ САМ (Денис 24.09.2026: «не переходит на
+  /// следующий уровень сам»).
+  ///
+  /// Итог со звёздами показывается 1,4 секунды — столько, чтобы человек увидел
+  /// оценку, — и партия продолжается. Кнопка остаётся для тех, кто не ждёт.
+  ///
+  /// ⚠️ Таймер гасится при уходе с экрана, отмене хода и «начать заново»:
+  /// открытый таймер после размонтирования валит весь прогон проб молча.
+  Timer? _autoNext;
+
+  void _scheduleNext() {
+    _autoNext?.cancel();
+    _autoNext = Timer(const Duration(milliseconds: 1400), () {
+      if (mounted && _won) _next();
+    });
+  }
+
+  void _cancelNext() {
+    _autoNext?.cancel();
+    _autoNext = null;
+  }
+
   CakeLevelSet? _set;
   late LevelLadder _ladder;
 
   CakeLevel? _level;
   CakeBoard? _board;
+
+  /// Записанные решения вшитых уровней: номер уровня → плоские тройки
+  /// «откуда, вид, куда». Пусто — разбора нет.
+  Map<int, List<int>> _solutions = const {};
 
   /// Раскрытая тарелка: в ней выбирают КУСОК (на столе сектор 15 точек — не
   /// попасть). Так это устроено в вебе.
@@ -60,6 +92,13 @@ class _CakeSortScreenState extends State<CakeSortScreen> {
   final List<_Snapshot> _history = [];
 
   @override
+  void dispose() {
+    // Открытый таймер после ухода с экрана валит весь прогон проб молча.
+    _cancelNext();
+    super.dispose();
+  }
+
+  @override
   void initState() {
     super.initState();
     _ladder = LevelLadder(gameId: widget.gameId, store: SharedLevelStore(widget.state));
@@ -67,6 +106,23 @@ class _CakeSortScreenState extends State<CakeSortScreen> {
   }
 
   Future<void> _boot() async {
+    /*
+     * 🔴 РЕШЕНИЯ ЗАПИСАНЫ, А НЕ ИЩУТСЯ. У тортов ветвление такое, что поиск пути на
+     * телефоне стоит секунды: замер веб-стороны — L10 (102 продолжения) 24 954 мс,
+     * L20 больше минуты. Поэтому путь каждого вшитого уровня посчитан ЗАРАНЕЕ
+     * (`tools/record-solutions.gen.ts`) и лежит рядом с уровнями. Разбор его
+     * ПРОИГРЫВАЕТ — это и дешевле, и доказательнее поиска: видно конкретное
+     * решение, а не «поиск что-то нашёл».
+     */
+    try {
+      final sol = jsonDecode(await rootBundle.loadString('assets/levels/cake_solutions.json'))
+          as Map<String, dynamic>;
+      _solutions = (sol['moves'] as Map<String, dynamic>).map(
+        (k, v) => MapEntry(int.parse(k), (v as List).cast<int>()),
+      );
+    } catch (_) {
+      // Решений нет — кнопки разбора не будет; играть это не мешает.
+    }
     final raw = await rootBundle.loadString('assets/levels/cake_sort.json');
     await _ladder.load();
     if (!mounted) return;
@@ -87,7 +143,10 @@ class _CakeSortScreenState extends State<CakeSortScreen> {
     _history.clear();
   }
 
-  void _restart() => setState(() => _start(_level!));
+  void _restart() {
+    _cancelNext();
+    setState(() => _start(_level!));
+  }
 
   Future<void> _next() async {
     await _ladder.win();
@@ -143,10 +202,14 @@ class _CakeSortScreenState extends State<CakeSortScreen> {
     _history.add(_Snapshot(board.copy(), _moves));
     _moves += 1;
     _board = after;
-    if (after.isCleared) _won = true;
+    if (after.isCleared) {
+      _won = true;
+      _scheduleNext();
+    }
   }
 
   void _undo() {
+    _cancelNext();
     if (_history.isEmpty) return;
     final s = _history.removeLast();
     setState(() {
@@ -156,6 +219,46 @@ class _CakeSortScreenState extends State<CakeSortScreen> {
       _selType = null;
       _won = false;
     });
+  }
+
+  Future<void> _openLesson() async {
+    final level = _set?.byLevel(_ladder.level);
+    final flat = _solutions[_ladder.level];
+    if (level == null || flat == null || flat.length < 3) return;
+    // Тройки «откуда, вид, куда» — ровно та же форма, что у хода экрана (`moveType`).
+    final moves = [
+      for (var i = 0; i + 2 < flat.length; i += 3) (flat[i], flat[i + 1], flat[i + 2]),
+    ];
+    LessonUsed.mark();
+    await Navigator.of(context).push(MaterialPageRoute<void>(
+      builder: (_) => LessonPlayerScreen(
+        title: widget.title,
+        steps: [for (final m in moves) LessonStep(payload: m)],
+        board: (context, side, shown) {
+          // Доска собирается с нуля и проигрывает первые `shown` ходов записи.
+          var b = level.freshBoard();
+          for (var i = 0; i < shown && i < moves.length; i++) {
+            final (from, type, to) = moves[i];
+            final next = moveType(b, from, type, to);
+            if (next == null) break;   // запись разошлась с уровнем — лучше короткий разбор
+            // ⚠️ `collapse` здесь НЕ вызывается: `moveType` уже вернул свёрнутую
+            // доску. Второй вызов был бы не просто лишним — он читался бы как
+            // «свёртка нужна», и разбор разошёлся бы с игрой, если она изменится.
+            b = next;
+          }
+          return CakeTable(
+            board: b,
+            fieldHeight: side,
+            skin: widget.skin,
+            selected: null,
+            selectedType: null,
+            canDrop: (_, _) => false,
+            onTapPlate: (_) {},
+            onDrop: (_, _) {},
+          );
+        },
+      ),
+    ));
   }
 
   @override
@@ -175,11 +278,17 @@ class _CakeSortScreenState extends State<CakeSortScreen> {
     return GameShell(
       title: widget.title,
       hud: [
-        HudItem(label: 'Уровень', value: '${_ladder.level}', icon: Icons.flag_outlined),
+        // Счётчик уровня при шаге зарядки скрыт: шаг лестницу не двигает
+        // (правило каркаса), и число рядом с партией читалось бы как обещание
+        // её засчитать. Так же сделано в вебе — `goods-sort.tsx:2994` и родня.
+        if (!GamePreset.isPreset)
+          HudItem(label: 'Уровень', value: '${_ladder.level}', icon: Icons.flag_outlined),
         HudItem(label: 'Ходы', value: '$_moves', icon: Icons.swap_horiz),
         HudItem(label: 'Кусков', value: '$left', icon: Icons.pie_chart_outline),
         HudItem(label: 'Очередь', value: '${board.queue.length}', icon: Icons.inbox_outlined),
       ],
+      // Разбор — проигрывание записанного решения этого уровня.
+      onLesson: (_solutions[_ladder.level] == null) ? null : _openLesson,
       field: (context, h) => Stack(
         children: [
           CakeTable(

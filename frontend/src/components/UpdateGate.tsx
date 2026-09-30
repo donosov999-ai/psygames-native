@@ -37,7 +37,7 @@ export default function UpdateGate() {
         await relaunch();
       } catch (err) {
         // web / Android / нет сети / нет релиза → тихо игнорируем
-        // eslint-disable-next-line no-console
+         
         console.debug('[UpdateGate] update check skipped:', err);
       }
     })();

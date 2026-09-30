@@ -1,0 +1,364 @@
+{
+ "снято": "прогоном живого TS из frontend/app/games/cpt.tsx (VER 4, origin/main)",
+ "targetRate": 0.2,
+ "targets": [
+  "X",
+  "K",
+  "T",
+  "H"
+ ],
+ "confusables": {
+  "X": [
+   "K",
+   "Y",
+   "V",
+   "W",
+   "N",
+   "M"
+  ],
+  "K": [
+   "X",
+   "R",
+   "H",
+   "N",
+   "M"
+  ],
+  "T": [
+   "Y",
+   "L",
+   "F",
+   "J",
+   "V"
+  ],
+  "H": [
+   "N",
+   "M",
+   "K",
+   "U",
+   "B"
+  ]
+ },
+ "colorLureRate": 0.1,
+ "minTrialsForLevel": 24,
+ "мёртвые переходы": [],
+ "граничные уровни": {
+  "16": {
+   "durationSec": 90,
+   "isiMs": 500,
+   "mode": "AX",
+   "confusableRatio": 0.5,
+   "target": "H",
+   "colorRule": true
+  },
+  "20": {
+   "durationSec": 90,
+   "isiMs": 500,
+   "mode": "AX",
+   "confusableRatio": 0.5,
+   "target": "H",
+   "colorRule": true
+  }
+ },
+ "замер потока": {
+  "прогонов": 120000,
+  "L1": {
+   "доля целей": 0.2003,
+   "доля красных": 0,
+   "доля цветовых ловушек": 0,
+   "мишень": "X"
+  },
+  "L5": {
+   "доля целей": 0.2,
+   "доля красных": 0,
+   "доля цветовых ловушек": 0,
+   "мишень": "X"
+  },
+  "L6": {
+   "доля целей": 0.2006,
+   "доля красных": 0,
+   "доля цветовых ловушек": 0,
+   "мишень": "X"
+  },
+  "L10": {
+   "доля целей": 0.1999,
+   "доля красных": 0,
+   "доля цветовых ловушек": 0,
+   "мишень": "K"
+  },
+  "L11": {
+   "доля целей": 0.1996,
+   "доля красных": 0,
+   "доля цветовых ловушек": 0,
+   "мишень": "K"
+  },
+  "L13": {
+   "доля целей": 0.2001,
+   "доля красных": 0.3877,
+   "доля цветовых ловушек": 0.1228,
+   "мишень": "T"
+  },
+  "L15": {
+   "доля целей": 0.2025,
+   "доля красных": 0.3881,
+   "доля цветовых ловушек": 0.1212,
+   "мишень": "H"
+  }
+ },
+ "levels": [
+  {
+   "level": 1,
+   "durationSec": 90,
+   "isiMs": 1500,
+   "mode": "X",
+   "confusableRatio": 0,
+   "target": "X",
+   "colorRule": false,
+   "condition": {
+    "isiMs": 1500,
+    "mode": "X",
+    "confusableRatio": 0,
+    "target": "X",
+    "colorRule": false
+   },
+   "fits": 30
+  },
+  {
+   "level": 2,
+   "durationSec": 90,
+   "isiMs": 1350,
+   "mode": "X",
+   "confusableRatio": 0,
+   "target": "X",
+   "colorRule": false,
+   "condition": {
+    "isiMs": 1350,
+    "mode": "X",
+    "confusableRatio": 0,
+    "target": "X",
+    "colorRule": false
+   },
+   "fits": 33
+  },
+  {
+   "level": 3,
+   "durationSec": 90,
+   "isiMs": 1200,
+   "mode": "X",
+   "confusableRatio": 0.1,
+   "target": "X",
+   "colorRule": false,
+   "condition": {
+    "isiMs": 1200,
+    "mode": "X",
+    "confusableRatio": 0.1,
+    "target": "X",
+    "colorRule": false
+   },
+   "fits": 37
+  },
+  {
+   "level": 4,
+   "durationSec": 90,
+   "isiMs": 1050,
+   "mode": "X",
+   "confusableRatio": 0.135,
+   "target": "X",
+   "colorRule": false,
+   "condition": {
+    "isiMs": 1050,
+    "mode": "X",
+    "confusableRatio": 0.135,
+    "target": "X",
+    "colorRule": false
+   },
+   "fits": 42
+  },
+  {
+   "level": 5,
+   "durationSec": 90,
+   "isiMs": 900,
+   "mode": "X",
+   "confusableRatio": 0.17,
+   "target": "X",
+   "colorRule": false,
+   "condition": {
+    "isiMs": 900,
+    "mode": "X",
+    "confusableRatio": 0.17,
+    "target": "X",
+    "colorRule": false
+   },
+   "fits": 50
+  },
+  {
+   "level": 6,
+   "durationSec": 90,
+   "isiMs": 1100,
+   "mode": "AX",
+   "confusableRatio": 0.205,
+   "target": "X",
+   "colorRule": false,
+   "condition": {
+    "isiMs": 1100,
+    "mode": "AX",
+    "confusableRatio": 0.205,
+    "target": "X",
+    "colorRule": false
+   },
+   "fits": 40
+  },
+  {
+   "level": 7,
+   "durationSec": 90,
+   "isiMs": 1040,
+   "mode": "AX",
+   "confusableRatio": 0.24,
+   "target": "X",
+   "colorRule": false,
+   "condition": {
+    "isiMs": 1040,
+    "mode": "AX",
+    "confusableRatio": 0.24,
+    "target": "X",
+    "colorRule": false
+   },
+   "fits": 43
+  },
+  {
+   "level": 8,
+   "durationSec": 90,
+   "isiMs": 980,
+   "mode": "AX",
+   "confusableRatio": 0.275,
+   "target": "X",
+   "colorRule": false,
+   "condition": {
+    "isiMs": 980,
+    "mode": "AX",
+    "confusableRatio": 0.275,
+    "target": "X",
+    "colorRule": false
+   },
+   "fits": 45
+  },
+  {
+   "level": 9,
+   "durationSec": 90,
+   "isiMs": 920,
+   "mode": "AX",
+   "confusableRatio": 0.31,
+   "target": "K",
+   "colorRule": false,
+   "condition": {
+    "isiMs": 920,
+    "mode": "AX",
+    "confusableRatio": 0.31,
+    "target": "K",
+    "colorRule": false
+   },
+   "fits": 48
+  },
+  {
+   "level": 10,
+   "durationSec": 90,
+   "isiMs": 860,
+   "mode": "AX",
+   "confusableRatio": 0.345,
+   "target": "K",
+   "colorRule": false,
+   "condition": {
+    "isiMs": 860,
+    "mode": "AX",
+    "confusableRatio": 0.345,
+    "target": "K",
+    "colorRule": false
+   },
+   "fits": 52
+  },
+  {
+   "level": 11,
+   "durationSec": 90,
+   "isiMs": 800,
+   "mode": "AX",
+   "confusableRatio": 0.38,
+   "target": "K",
+   "colorRule": false,
+   "condition": {
+    "isiMs": 800,
+    "mode": "AX",
+    "confusableRatio": 0.38,
+    "target": "K",
+    "colorRule": false
+   },
+   "fits": 56
+  },
+  {
+   "level": 12,
+   "durationSec": 90,
+   "isiMs": 725,
+   "mode": "AX",
+   "confusableRatio": 0.415,
+   "target": "T",
+   "colorRule": false,
+   "condition": {
+    "isiMs": 725,
+    "mode": "AX",
+    "confusableRatio": 0.415,
+    "target": "T",
+    "colorRule": false
+   },
+   "fits": 62
+  },
+  {
+   "level": 13,
+   "durationSec": 90,
+   "isiMs": 650,
+   "mode": "AX",
+   "confusableRatio": 0.45,
+   "target": "T",
+   "colorRule": true,
+   "condition": {
+    "isiMs": 650,
+    "mode": "AX",
+    "confusableRatio": 0.45,
+    "target": "T",
+    "colorRule": true
+   },
+   "fits": 69
+  },
+  {
+   "level": 14,
+   "durationSec": 90,
+   "isiMs": 575,
+   "mode": "AX",
+   "confusableRatio": 0.485,
+   "target": "T",
+   "colorRule": true,
+   "condition": {
+    "isiMs": 575,
+    "mode": "AX",
+    "confusableRatio": 0.485,
+    "target": "T",
+    "colorRule": true
+   },
+   "fits": 78
+  },
+  {
+   "level": 15,
+   "durationSec": 90,
+   "isiMs": 500,
+   "mode": "AX",
+   "confusableRatio": 0.5,
+   "target": "H",
+   "colorRule": true,
+   "condition": {
+    "isiMs": 500,
+    "mode": "AX",
+    "confusableRatio": 0.5,
+    "target": "H",
+    "colorRule": true
+   },
+   "fits": 90
+  }
+ ]
+}

@@ -218,7 +218,7 @@ function evalIn(scope: Record<string, any>, expr: string): any {
   const keys = Object.keys(scope).filter((k) => /^[A-Za-z_$][\w$]*$/.test(k) && !RESERVED.has(k));
   // Имена из модуля важнее: если файл сам экспортирует `fetch`, перекрывать нечего.
   const глушим = ПОБОЧНЫЕ.filter((n) => !keys.includes(n));
-  // eslint-disable-next-line no-new-func
+   
   return new Function(...keys, ...глушим, `return (${expr});`)(
     ...keys.map((k) => scope[k]), ...глушим.map(() => БЕЗВРЕДНО),
   );

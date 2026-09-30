@@ -1,3 +1,5 @@
+import 'game_preset.dart';
+import 'lesson.dart';
 import 'session_report.dart';
 
 /// Лестница уровней игры — перенос хука usePersistentLevel из React-версии.
@@ -49,11 +51,27 @@ class LevelLadder {
   /// `score` и `timeSeconds` экран передаёт сам: лестница их не знает и не должна.
   /// Не передал — уедут нули, и это ЧЕСТНЕЕ выдуманного числа: ноль в статистике
   /// виден, а придуманный счёт неотличим от настоящего.
+  /*
+   * 🔴 ПАРТИЯ-ПРЕСЕТ ЛЕСТНИЦУ НЕ ДВИГАЕТ. Нашёл раздел «Пространство» 23.09.2026:
+   * в вебе это правило стоит в 53 экранах (`passed = !isPreset && …`), а нативно не
+   * было НИ В ОДНОМ — все 14 перенесённых звали `win()/fail()` безусловно. Значит шаг
+   * зарядки молча менял личный уровень игрока: вверх при удаче, вниз при провале.
+   *
+   * Правило поставлено ЗДЕСЬ, а не в экранах: это свойство запуска, а не игры.
+   * Записанное в каждом экране, оно будет забыто в следующем.
+   *
+   * ⚠️ Партия при этом всё равно уходит в статистику — она была, и прятать её
+   * нельзя. Не двигается только лестница.
+   */
   Future<void> win({int score = 0, int timeSeconds = 0, int? errors, String? mode}) async {
     _failStreak = 0;
-    if (_level < maxLevel) _level += 1;
-    if (_level > _best) _best = _level;
-    await _save();
+    // Пресет — шаг зарядки, разбор — партия с показанным решением. В обоих
+    // случаях лестница меряла бы не человека, поэтому не двигается.
+    if (!GamePreset.isPreset && !LessonUsed.inRound) {
+      if (_level < maxLevel) _level += 1;
+      if (_level > _best) _best = _level;
+      await _save();
+    }
     await SessionReport.send(
       gameType: gameId,
       score: score,
@@ -70,6 +88,20 @@ class LevelLadder {
   /// зарядки так же, как выигранная. Иначе человек, проваливший шаг серии,
   /// застрял бы на нём навсегда.
   Future<void> fail({int score = 0, int timeSeconds = 0, int? errors, String? mode}) async {
+    if (GamePreset.isPreset || LessonUsed.inRound) {
+      // Ни пресет, ни партия с разбором не копят провалов: иначе три шага зарядки
+      // подряд (или три подсмотренных решения) опустили бы личный уровень, который
+      // человек в этих партиях и не защищал.
+      await SessionReport.send(
+        gameType: gameId,
+        score: score,
+        timeSeconds: timeSeconds,
+        errors: errors,
+        mode: mode,
+        difficulty: '$_level',
+      );
+      return;
+    }
     _failStreak += 1;
     if (_failStreak >= failStreakThreshold) {
       _failStreak = 0;

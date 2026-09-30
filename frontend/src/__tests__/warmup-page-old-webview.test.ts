@@ -89,3 +89,57 @@ describe('встроенная зарядка на WebView Chrome 90', () => {
     expect(styles).toMatch(/height: 100dvh/);
   });
 });
+
+/**
+ * 🔴 ПОЧЕМУ ЧТЕНИЯ ИСХОДНИКА НЕ ХВАТИЛО.
+ *
+ * Проба выше сверяла, что в sync-скрипте ЕСТЬ строка `html.replace(МОДУЛЬ, ПОЛИФИЛ + МОДУЛЬ)`.
+ * Строка была на месте — и 23.09.2026 полифил всё равно перестал вставляться: вызов лежал
+ * ВНУТРИ ветки `if (!html.includes('embed.js'))`, по скобкам, а не по смыслу. Пришла сборка
+ * будильника, где ссылки на embed.* стоят уже сверху, ветка закрылась — и вставка стала
+ * недостижимой (коммит 39368dd4). Исходник читался зелёным, страница ехала без полифила.
+ *
+ * Поэтому здесь скрипт ПРОГОНЯЕТСЯ на подделке: папка с index.html той самой формы,
+ * что и приехала 23.09. Отдельным процессом — файл модульный, а пробы здесь на require.
+ */
+describe('вставка полифила прогоном, а не чтением', () => {
+  const { execFileSync } = require('child_process');
+  const os = require('os');
+  const СКРИПТ = path.join(__dirname, '..', '..', 'scripts', 'sync-warmup-page.mjs');
+  const ВЫСОТА = '@supports not (height: 100dvh) {\n  .practice-shell {\n    height: 100vh;\n  }\n}\n';
+
+  /** Собирает подделку страницы и возвращает, что скрипт сделал с её index.html. */
+  const прогнать = (css: string): { итог: string; html: string } => {
+    const папка: string = fs.mkdtempSync(path.join(os.tmpdir(), 'warmup-embed-'));
+    // Ровно форма 23.09: ссылки на embed.* уже стоят, полифила нет.
+    fs.writeFileSync(path.join(папка, 'index.html'), [
+      '<!doctype html><html><head>',
+      '      <link rel="stylesheet" href="./embed.css" />',
+      '</head><body>',
+      '    <script type="module" src="./app/app.mjs"></script>',
+      '      <script src="./embed.js" defer></script>',
+      '</body></html>',
+    ].join('\n') + '\n');
+    fs.writeFileSync(path.join(папка, 'embed.css'), css);
+    const итог: string = execFileSync(process.execPath, [
+      '--input-type=module', '-e',
+      `import { вшитьВстраивание } from ${JSON.stringify(СКРИПТ)};` +
+      `process.stdout.write(String(вшитьВстраивание(${JSON.stringify(папка)})));`,
+    ], { encoding: 'utf8' }) as string;
+    return { итог, html: fs.readFileSync(path.join(папка, 'index.html'), 'utf8') as string };
+  };
+
+  it('🔴 полифил доезжает даже туда, где ссылки на embed.* уже стоят', () => {
+    const { итог, html } = прогнать(ВЫСОТА);
+    expect(html).toContain('psygames-embed-polyfill');
+    // И именно ПЕРЕД модулем: после — поздно, модуль исполнится первым.
+    expect(html.indexOf('psygames-embed-polyfill')).toBeLessThan(html.indexOf('src="./app/app.mjs"'));
+    expect(итог).toBe('true');
+  });
+
+  it('🔴 потерянная запасная высота в embed.css валит перенос, а не проходит молча', () => {
+    const { итог, html } = прогнать('body.is-embedded { color: red; }\n');
+    expect(html).toContain('psygames-embed-polyfill');   // вставка сделана,
+    expect(итог).toBe('false');                          // но перенос себя не засчитал
+  });
+});

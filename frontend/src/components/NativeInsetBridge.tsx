@@ -39,7 +39,7 @@ import { SafeAreaInsetsContext, useSafeAreaInsets } from 'react-native-safe-area
 export interface NativeInsets { top: number; bottom: number; left: number; right: number }
 
 declare global {
-  // eslint-disable-next-line no-var
+   
   var __psyInsets: NativeInsets | undefined;
 }
 

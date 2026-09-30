@@ -14,6 +14,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../shell/demo_lesson.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/level_ladder.dart';
@@ -123,6 +124,22 @@ class _SwitchingTaskScreenState extends State<SwitchingTaskScreen> {
     _nextTrial();
   }
 
+  /// Примеры разбора: один стимул под обеими задачами режима — видно, что
+  /// верная кнопка меняется от ЗАДАЧИ, а не от стимула.
+  List<DemoTrial> _demoTrials() => [
+        for (final t in switchDemoTrials(widget.mode))
+          DemoTrial(
+            text: t.full,
+            sub: taskMeta(widget.mode, t.taskIdx).cue,
+            answer: t.correctLeft
+                ? taskMeta(widget.mode, t.taskIdx).left
+                : taskMeta(widget.mode, t.taskIdx).right,
+            // Правило одно на оба примера: смотри на ПОДСКАЗКУ задачи (ЧИСЛО /
+            // БУКВА) и отвечай по ней, а не по прошлой пробе.
+            ruleKey: 'switchingTaskDesc',
+          ),
+      ];
+
   void _nextTrial() {
     final g = _game!;
     _timer?.cancel();
@@ -193,6 +210,9 @@ class _SwitchingTaskScreenState extends State<SwitchingTaskScreen> {
         HudItem(label: L.t('hud_correct'), value: '${g.hits}', icon: Icons.check),
         HudItem(label: L.t('reaction'), value: '${g.meanRtMs ?? 0}', icon: Icons.bolt),
       ],
+      onLesson: _game == null
+          ? null
+          : () => openDemoLesson(context, title: L.t('switchingTask'), trials: _demoTrials()),
       field: (context, h) => _Field(
         game: g,
         mode: widget.mode,

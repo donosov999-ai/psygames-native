@@ -29,7 +29,7 @@ import { RATING_LADDER } from '@/src/services/sudoku-bank';
  * `boards.json` держит 58 полос от 1.2 до 9.2, доски на месте, «Бездна» цела.
  * Сверяться надо с тем, что проба и обещает названием — с содержимым банка.
  */
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+ 
 const BANK_BANDS: number[] = require('@/src/services/sudoku-bank/boards.json').bands;
 import { LANGUAGES } from '@/src/contexts/LanguageContext';
 

@@ -5,6 +5,8 @@ import '../../shell/aux_action.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
+import '../../shell/lesson.dart';
+import '../../shell/lesson_player.dart';
 import '../../shell/shared_state.dart';
 import 'board.dart';
 import 'model.dart';
@@ -64,6 +66,41 @@ class _DotsConnectScreenState extends State<DotsConnectScreen> {
     if (_game!.isWon && !_won) setState(() => _won = true);
   }
 
+  /// ⚠️ Название одной строкой: второй литерал — второе место переводить.
+  static const _title = 'Соедини точки';
+
+  /*
+   * 🔴 РАЗБОР БЕРЁТ ГОТОВОЕ РЕШЕНИЕ, А НЕ ИЩЕТ СВОЁ.
+   *
+   * Уровень везёт `solution` — путь каждой пары, посчитанный генератором. Гонять
+   * по нему поиск значило бы решать заново задачу, ответ на которую лежит рядом,
+   * и рисковать тем, что поиск найдёт ДРУГОЙ путь — не тот, по которому уровень
+   * задуман. Шаг разбора = одна пара: её путь появляется целиком.
+   */
+  Future<void> _openLesson() async {
+    final lvl = _game?.level;
+    if (lvl == null || lvl.solution.isEmpty) return;
+    final order = lvl.pairs.map((p) => p.id).where(lvl.solution.containsKey).toList();
+    final steps = [for (final id in order) LessonStep(payload: id)];
+    if (steps.isEmpty) return;
+    LessonUsed.mark();
+    await Navigator.of(context).push(MaterialPageRoute<void>(
+      builder: (_) => LessonPlayerScreen(
+        title: _title,
+        steps: steps,
+        board: (context, side, shown) {
+          // Доска строится с нуля и получает пути первых `shown` пар: так человек
+          // видит ровно то, что уже разобрано, и ничего сверх.
+          final g = DotsGame(lvl);
+          for (var i = 0; i < shown && i < order.length; i++) {
+            g.drawPath(order[i], lvl.solution[order[i]]!);
+          }
+          return DotsBoard(level: lvl, game: g, fieldHeight: side, onChanged: () {});
+        },
+      ),
+    ));
+  }
+
   @override
   Widget build(BuildContext context) {
     final set = _set;
@@ -73,7 +110,10 @@ class _DotsConnectScreenState extends State<DotsConnectScreen> {
     }
     final level = game.level;
     return GameShell(
-      title: 'Соедини точки',
+      title: _title,
+      // Разбор — из ЭТАЛОННОГО решения уровня: генератор посчитал его, когда
+      // собирал уровень, и искать заново нечего.
+      onLesson: level.solution.isEmpty ? null : _openLesson,
       hud: [
         HudItem(label: 'Уровень', value: '${_ladder.level}', icon: Icons.flag_outlined),
         HudItem(label: 'Достигнуто', value: '${_ladder.best}', icon: Icons.emoji_events_outlined),

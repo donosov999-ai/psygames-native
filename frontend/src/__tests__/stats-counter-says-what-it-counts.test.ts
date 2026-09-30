@@ -18,9 +18,9 @@
  * после него джобы не идут. Так же сделано в соседних пробах (evening-calm и др.).
  */
 declare const __dirname: string;
-declare function require(id: string): any;   // eslint-disable-line @typescript-eslint/no-explicit-any
-const fs = require('fs');                    // eslint-disable-line @typescript-eslint/no-require-imports
-const path = require('path');                // eslint-disable-line @typescript-eslint/no-require-imports
+declare function require(id: string): any;    
+const fs = require('fs');                     
+const path = require('path');                 
 
 const ROOT = path.join(__dirname, '..', '..');
 const read = (rel: string) => fs.readFileSync(path.join(ROOT, rel), 'utf8');

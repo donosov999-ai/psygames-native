@@ -24,7 +24,8 @@
  * фигуры, а всякая подделка всё равно проверяется `isValidRotation` — не
  * «наверное, зеркало», а перебором 24 ориентаций.
  */
-import { isValidRotation, mirrorShape, normalizeShape, rotateShape, shapeKey } from './geometry';
+import { allOrientations, isValidRotation, mirrorShape, normalizeShape, rotateShape, shapeKey } from './geometry';
+import { hiddenCubes, orientationsWithoutHidden, visibleSignature } from './occlusion';
 import { pick, randomInt, shuffle } from './rng';
 import { shapesOfSize } from './shapes';
 import {rotationLevelSpec} from './levels';
@@ -65,6 +66,47 @@ export function rotationCandidates(p: LevelParams): Shape[] {
   return chiral.length >= 2 ? chiral : band;
 }
 
+/**
+ * 🔴 РАКУРС ЭТАЛОНА ВЫБИРАЕТСЯ, А НЕ ДОСТАЁТСЯ КАКОЙ ВЫПАЛ.
+ *
+ * 📍 Три отчёта Дениса 17.09.2026: «то, что я вижу, и то, что он называет правильным
+ * ответом, не сочетается» · «непонятно, сколько кубиков она содержит» · «кубики
+ * изначально не содержат такое количество». Замер координатора: у 95–100 % заданий
+ * хотя бы один кубик эталона не виден ВООБЩЕ — и тогда верный ответ, повёрнутый
+ * другой стороной, открывает спрятанный кубик и честно читается как ДРУГАЯ фигура.
+ *
+ * Берётся ракурс, в котором видны все кубики И у эталона, И у верного ответа. Замер
+ * 23.09.2026: такой ракурс есть у 25 фигур каталога из 26. Если нет — берётся тот, где
+ * скрыто МЕНЬШЕ ВСЕГО, а не первый попавшийся.
+ *
+ * ⚠️ Шаги поворота при этом не меняются: `angleSum` — ось биомаркера, и она обязана
+ * остаться той же. Меняется только то, с какой стороны фигура показана.
+ */
+function ракурсБезСкрытых(base: Shape, steps: RotationStep[], rng: Rng): Shape {
+  const все = allOrientations(base);
+  const годные = все.filter((o) => hiddenCubes(o).length === 0 && hiddenCubes(applySteps(o, steps)).length === 0);
+  if (годные.length) return pick(rng, годные);
+  let лучший = все[0];
+  let лучшее = Infinity;
+  for (const o of все) {
+    const скрыто = hiddenCubes(o).length + hiddenCubes(applySteps(o, steps)).length;
+    if (скрыто < лучшее) { лучшее = скрыто; лучший = o; }
+  }
+  return лучший;
+}
+
+/** Фигура и ракурс, где видны все кубики И у эталона, И у его поворота. */
+function чистаяПара(base: Shape, candidates: Shape[], steps: RotationStep[], rng: Rng): Shape {
+  for (let попытка = 0; попытка < 8; попытка++) {
+    const фигура = попытка === 0 ? base : pick(rng, candidates);
+    const годные = allOrientations(фигура).filter(
+      (o) => hiddenCubes(o).length === 0 && hiddenCubes(applySteps(o, steps)).length === 0,
+    );
+    if (годные.length) return pick(rng, годные);
+  }
+  return ракурсБезСкрытых(base, steps, rng);
+}
+
 function applySteps(shape: Shape, steps: RotationStep[]): Shape {
   let out = shape;
   for (const step of steps) out = rotateShape(out, step.axis, 1);
@@ -84,14 +126,28 @@ export function buildRotationTask(level: number, rng: Rng): RotationTask {
   // degenerates to a constant-X sample. Every extra quarter is actually applied.
   const steps = spec.path.map(axis=>({axis}));
   if(rng()<.5)steps.push({axis:spec.path[spec.path.length-1]});
+  /*
+   * ⚠️ РАКУРС РЕШАЕТ НЕ ВСЁ: связывает ПАРА «эталон и его поворот». У части фигур
+   * чистый ракурс есть у каждой по отдельности, но ни одного общего на двоих. Замер
+   * 23.09.2026: одним только выбором ракурса скрытый кубик остаётся у 97 заданий из
+   * 500. Поэтому сначала ищется фигура, у которой чистая пара ЕСТЬ, и лишь потом —
+   * лучший из плохих ракурсов. Партия важнее чистоты: перебор ограничен.
+   */
+  base = чистаяПара(base, candidates, steps, rng);
   let correctShape = applySteps(base, steps);
   for (let guard = 0; guard < 12 && shapeKey(correctShape) === shapeKey(normalizeShape(base)); guard++) {
-    base = pick(rng, candidates);
+    base = чистаяПара(pick(rng, candidates), candidates, steps, rng);
     correctShape = applySteps(base, steps);
   }
 
   const options: RotationOption[] = [{ shape: correctShape, isMatch: true, flaw: 'none' }];
   const taken = new Set<string>([shapeKey(correctShape)]);
+  /*
+   * Отпечатки РИСУНКОВ уже показанных вариантов. Отдельно от `taken`, потому что
+   * `taken` хранит фигуры (3D), а человек сравнивает картинки: две разные фигуры,
+   * отличающиеся только невидимым кубиком, дают на экране один и тот же рисунок.
+   */
+  const рисунки = new Set<string>([visibleSignature(correctShape)]);
 
   const others = candidates.filter((s) => shapeKey(s) !== shapeKey(base));
   const spoil = (): { shape: Shape; flaw: 'mirror' | 'other' } | null => {
@@ -118,8 +174,39 @@ export function buildRotationTask(level: number, rng: Rng): RotationTask {
   for (let attempt = 0; options.length < p.optionCount && attempt < 200; attempt++) {
     const spoiled = spoil();
     if (!spoiled) continue;
-    taken.add(shapeKey(spoiled.shape));
-    options.push({ shape: spoiled.shape, isMatch: false, flaw: spoiled.flaw });
+    /*
+     * Подделка тоже показывается целиком — иначе человек сравнивает полную фигуру с
+     * обрезанной и отвечает по числу кубиков, а не поворотом в голове.
+     *
+     * 🔴 НО ТОЛЬКО ТАМ, ГДЕ РАКУРС И ТАК СЛУЧАЕН. У подделки «переставлен один кубик»
+     * ракурс НЕ свободен: она обязана быть тем же поворотом эталона с одним сдвинутым
+     * кубиком, и проба mental-rotation-50 это проверяет — откручивает подделку шагами
+     * назад и требует совпадения с эталоном ровно в `кубиков − 1` местах. Первая
+     * редакция этой правки крутила и её: совпадение падало с 3 до 2, проба краснела и
+     * была права — подделка переставала быть промахом на один кубик и становилась
+     * просто другой фигурой под другим углом.
+     */
+    const свободныйРакурс = spec.foil !== 'one-cube';
+    const чистые = свободныйРакурс ? orientationsWithoutHidden(spoiled.shape) : [];
+    const показ = чистые.length ? pick(rng, чистые) : spoiled.shape;
+    /*
+     * 🔴 И ГЛАВНОЕ: НИ ОДИН ВАРИАНТ НЕ ИМЕЕТ ПРАВА ВЫГЛЯДЕТЬ КАК УЖЕ ПОКАЗАННЫЙ.
+     *
+     * Совпадение с ВЕРНЫМ ответом — это нерешаемое задание: две одинаковые картинки,
+     * и одна объявлена правильной. Совпадение двух ПОДДЕЛОК мягче, но тоже дефект:
+     * человек видит на экране два одинаковых рисунка и ищет между ними разницу,
+     * которой нет.
+     *
+     * ⚠️ ПЕРВАЯ РЕДАКЦИЯ СРАВНИВАЛА ТОЛЬКО С ВЕРНЫМ ОТВЕТОМ — и этого не хватило.
+     * Замер 23.09.2026 на 3000 заданиях: без всякой проверки одинаковых пар 4,
+     * со сравнением только с верным 2, со сравнением со ВСЕМИ показанными 0.
+     */
+    const рисунок = visibleSignature(показ);
+    if (рисунки.has(рисунок)) continue;
+    if (taken.has(shapeKey(показ))) continue;
+    рисунки.add(рисунок);
+    taken.add(shapeKey(показ));
+    options.push({ shape: показ, isMatch: false, flaw: spoiled.flaw });
   }
 
   if(options.length!==p.optionCount)throw new Error(`rotation ${level}: insufficient distinct options`);

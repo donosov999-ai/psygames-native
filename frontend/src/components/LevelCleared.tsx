@@ -486,9 +486,18 @@ export default function LevelCleared({ level, maxLevel, stars = 3, passed = true
           </Act>
         ) : null}
         {/* За что засчитан уровень — когда цель была не «убрать всё». Без этой
-            строки честная победа на частично полной доске читается как сбой. */}
-        {reasonLine && passed && !compact && (
-          <Text style={[styles.comparisonText, { color: fg, opacity: 0.95 }]} numberOfLines={2}>{reasonLine}</Text>
+            строки честная победа на частично полной доске читается как сбой.
+
+            🔴 ПОКАЗЫВАЕМ И ПРИ ПРОИГРЫШЕ (24.09.2026, отчёт 91785f91). Условие
+            стояло `reasonLine && passed`, то есть причину было видно только
+            победителю — а нужна она ровно проигравшему. Человек доиграл четыре
+            партии «Заливки» подряд, получил четыре раза «почти» и написал «не
+            переходит на следующий уровень»: он не укладывался в бюджет ходов, и
+            узнать это было неоткуда. Молчащий отказ читается как поломка.
+            ⚠️ Чужие экраны это не задевает: `reasonLine` на 24.09 передают два
+            экрана, и оба мои (`goods-sort`, `puzzles`). */}
+        {reasonLine && !compact && (
+          <Text style={[styles.comparisonText, { color: fg, opacity: 0.95 }]} numberOfLines={3}>{reasonLine}</Text>
         )}
         {recordLine && !compact && (
           <Act at={ACT.record}>

@@ -1,0 +1,246 @@
+{
+ "снято": "прогоном живого TS из frontend/app/games/proofreading.tsx (VER 7, origin/main)",
+ "maxLevel": 15,
+ "scripts": {
+  "latin": "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+  "cyrillic": "АБВГДЕЖЗИКЛМНОПРСТУФХЦЧШЩЭЮЯ",
+  "greek": "ΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩ",
+  "devanagari": "अआइईउऊऋएऐओऔकखगघङचछजझञटठडढणतथदधनपफबभमयरलवशषसह",
+  "hiragana": "あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをん",
+  "hanzi": "一二三四五六七八九十人口手日月山水火木金土大小上下中天年学生好爱国家车马鱼鸟花雨电风云石田白红黑"
+ },
+ "digits": "0123456789",
+ "мёртвые переходы": [],
+ "граничные уровни": {
+  "0": {
+   "rows": 7,
+   "cols": 8,
+   "timeLimitSec": 58,
+   "minFoundPct": 0.8
+  },
+  "16": {
+   "rows": 16,
+   "cols": 12,
+   "timeLimitSec": 86,
+   "minFoundPct": 1
+  },
+  "30": {
+   "rows": 16,
+   "cols": 12,
+   "timeLimitSec": 86,
+   "minFoundPct": 1
+  }
+ },
+ "levels": [
+  {
+   "level": 1,
+   "rows": 8,
+   "cols": 8,
+   "timeLimitSec": 64,
+   "minFoundPct": 0.8,
+   "condition": {
+    "rows": 8,
+    "cols": 8,
+    "timeLimitSec": 64,
+    "minFoundPct": 0.8
+   },
+   "cells": 64
+  },
+  {
+   "level": 2,
+   "rows": 9,
+   "cols": 8,
+   "timeLimitSec": 69,
+   "minFoundPct": 0.8,
+   "condition": {
+    "rows": 9,
+    "cols": 8,
+    "timeLimitSec": 69,
+    "minFoundPct": 0.8
+   },
+   "cells": 72
+  },
+  {
+   "level": 3,
+   "rows": 10,
+   "cols": 8,
+   "timeLimitSec": 74,
+   "minFoundPct": 0.8,
+   "condition": {
+    "rows": 10,
+    "cols": 8,
+    "timeLimitSec": 74,
+    "minFoundPct": 0.8
+   },
+   "cells": 80
+  },
+  {
+   "level": 4,
+   "rows": 11,
+   "cols": 8,
+   "timeLimitSec": 77,
+   "minFoundPct": 0.8,
+   "condition": {
+    "rows": 11,
+    "cols": 8,
+    "timeLimitSec": 77,
+    "minFoundPct": 0.8
+   },
+   "cells": 88
+  },
+  {
+   "level": 5,
+   "rows": 12,
+   "cols": 8,
+   "timeLimitSec": 81,
+   "minFoundPct": 0.8,
+   "condition": {
+    "rows": 12,
+    "cols": 8,
+    "timeLimitSec": 81,
+    "minFoundPct": 0.8
+   },
+   "cells": 96
+  },
+  {
+   "level": 6,
+   "rows": 10,
+   "cols": 10,
+   "timeLimitSec": 80,
+   "minFoundPct": 0.9,
+   "condition": {
+    "rows": 10,
+    "cols": 10,
+    "timeLimitSec": 80,
+    "minFoundPct": 0.9
+   },
+   "cells": 100
+  },
+  {
+   "level": 7,
+   "rows": 11,
+   "cols": 10,
+   "timeLimitSec": 84,
+   "minFoundPct": 0.9,
+   "condition": {
+    "rows": 11,
+    "cols": 10,
+    "timeLimitSec": 84,
+    "minFoundPct": 0.9
+   },
+   "cells": 110
+  },
+  {
+   "level": 8,
+   "rows": 12,
+   "cols": 10,
+   "timeLimitSec": 86,
+   "minFoundPct": 0.9,
+   "condition": {
+    "rows": 12,
+    "cols": 10,
+    "timeLimitSec": 86,
+    "minFoundPct": 0.9
+   },
+   "cells": 120
+  },
+  {
+   "level": 9,
+   "rows": 13,
+   "cols": 10,
+   "timeLimitSec": 88,
+   "minFoundPct": 0.9,
+   "condition": {
+    "rows": 13,
+    "cols": 10,
+    "timeLimitSec": 88,
+    "minFoundPct": 0.9
+   },
+   "cells": 130
+  },
+  {
+   "level": 10,
+   "rows": 14,
+   "cols": 10,
+   "timeLimitSec": 90,
+   "minFoundPct": 0.9,
+   "condition": {
+    "rows": 14,
+    "cols": 10,
+    "timeLimitSec": 90,
+    "minFoundPct": 0.9
+   },
+   "cells": 140
+  },
+  {
+   "level": 11,
+   "rows": 12,
+   "cols": 12,
+   "timeLimitSec": 86,
+   "minFoundPct": 1,
+   "condition": {
+    "rows": 12,
+    "cols": 12,
+    "timeLimitSec": 86,
+    "minFoundPct": 1
+   },
+   "cells": 144
+  },
+  {
+   "level": 12,
+   "rows": 13,
+   "cols": 12,
+   "timeLimitSec": 87,
+   "minFoundPct": 1,
+   "condition": {
+    "rows": 13,
+    "cols": 12,
+    "timeLimitSec": 87,
+    "minFoundPct": 1
+   },
+   "cells": 156
+  },
+  {
+   "level": 13,
+   "rows": 14,
+   "cols": 12,
+   "timeLimitSec": 87,
+   "minFoundPct": 1,
+   "condition": {
+    "rows": 14,
+    "cols": 12,
+    "timeLimitSec": 87,
+    "minFoundPct": 1
+   },
+   "cells": 168
+  },
+  {
+   "level": 14,
+   "rows": 15,
+   "cols": 12,
+   "timeLimitSec": 86,
+   "minFoundPct": 1,
+   "condition": {
+    "rows": 15,
+    "cols": 12,
+    "timeLimitSec": 86,
+    "minFoundPct": 1
+   },
+   "cells": 180
+  },
+  {
+   "level": 15,
+   "rows": 16,
+   "cols": 12,
+   "timeLimitSec": 86,
+   "minFoundPct": 1,
+   "condition": {
+    "rows": 16,
+    "cols": 12,
+    "timeLimitSec": 86,
+    "minFoundPct": 1
+   },
+   "cells": 192
+  }
+ ]
+}

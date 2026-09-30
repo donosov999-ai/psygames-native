@@ -246,13 +246,30 @@ function atomsOf(expr: string): string[] {
 }
 const baseName = (a: string, defs: Defs): string => (defs[a] ? a : (a.indexOf('.') >= 0 ? a.slice(0, a.indexOf('.')) : a));
 /** Определение имени — то, что ведёт к `isPreset`; при споре двух таких не раскрываем. */
+/**
+ * 🔴 ОДНО И ТО ЖЕ ОПРЕДЕЛЕНИЕ ДВАЖДЫ — ЭТО НЕ ДВУСМЫСЛЕННОСТЬ.
+ *
+ * 📍 Замер 24.09.2026: `mnemonics.tsx` покраснел «поднимает уровень в зарядке и
+ * нигде не объяснён» — а оба подъёма стоят под одной и той же оговоркой
+ * `const isLevelRun = !isPreset && useLevelRef.current`. Просто третий режим
+ * («Опоры») завёл ВТОРУЮ такую строку, слово в слово. Разбор видел два
+ * определения, считал имя неоднозначным, отказывался его раскрывать — и ветка
+ * с `!isPreset` становилась «достижимой в зарядке». Экран при этом верен.
+ *
+ * Поэтому одинаковые определения сводятся к одному ПЕРЕД тем, как решать про
+ * неоднозначность. Отказ остаётся там, где определения и правда РАЗНЫЕ: тогда
+ * неизвестно, какое действует, и «непонятое — под подозрение».
+ */
 function defOf(name: string, defs: Defs): string | null {
   const list = defs[name];
   if (!list || !list.length) return null;
-  const wp = list.filter((d) => /\bisPreset\b/.test(d));
+  const same = (d: string) => d.replace(/\s+/g, ' ').trim();
+  const uniq = (xs: string[]) => [...new Map(xs.map((d) => [same(d), d])).values()];
+  const wp = uniq(list.filter((d) => /\bisPreset\b/.test(d)));
   if (wp.length === 1) return wp[0];
   if (wp.length > 1) return null;
-  return list.length === 1 ? list[0] : null;
+  const all = uniq(list);
+  return all.length === 1 ? all[0] : null;
 }
 /** Ведёт ли имя — через свои определения — к `isPreset`? */
 function leadsToPreset(name: string, defs: Defs, seen = new Set<string>(), depth = 0): boolean {

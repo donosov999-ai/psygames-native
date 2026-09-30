@@ -57,6 +57,13 @@ class L {
   /// `digitSpanTitle` вместо подписи, и пропуск чинится в тот же день.
   static String t(String key) => _dict[key] ?? key;
 
+  /// Есть ли такой ключ в словаре.
+  ///
+  /// ⚠️ Нужен там, где ключ ВЫВОДИТСЯ правилом, а не написан в коде: `t` при
+  /// промахе возвращает САМ ключ, и проверить существование им нельзя — на экране
+  /// оказалось бы `goNoGoDesc` вместо правила.
+  static bool has(String key) => _dict.containsKey(key);
+
   /// Подстановка: `L.f('levelOf', {'n': '7'})` для строк с `{n}`.
   static String f(String key, Map<String, String> args) {
     var s = t(key);

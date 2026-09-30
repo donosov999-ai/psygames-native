@@ -55,11 +55,50 @@ function dartFiles(dir) {
 }
 
 // 1. Какие ключи зовут нативные экраны.
+//
+// 🔴 ДВЕ ДВЕРИ, А НЕ ОДНА: `L.t('ключ')` и `L.f('ключ', {…})` — со вставкой чисел.
+// 📍 Замер 24.09.2026: регулярка искала только `L.t(`, и ключ, живущий ТОЛЬКО в
+// `L.f`, молча не попадал в словарь — экран показывал сам ключ вместо текста.
+// Поймано на `tolWonPreset` («Лондонская башня»). Три соседних экрана
+// (`levelDone` у «Лиц и имён», «Дворца памяти», «Пар слов») уцелели случайно:
+// тот же ключ зовётся у них ещё и через `L.t`. Ни одна проба этого не видит —
+// подстановка молча возвращает ключ, а не падает.
 const used = new Set();
-const call = /\bL\.t\(\s*'([a-zA-Z_][a-zA-Z0-9_]*)'/g;
+const call = /\bL\.[tf]\(\s*'([a-zA-Z_][a-zA-Z0-9_]*)'/g;
+// ⚠️ КОММЕНТАРИИ ОТСЕКАЕМ. В `l10n.dart` пример вызова стоит прямо в описании
+// (`L.f('levelOf', …)`), и без этого шага инструмент честно требовал завести в
+// веб-словаре ключ, которого не зовёт ни один экран.
+const withoutComments = (src) =>
+  src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
 for (const f of dartFiles(join(FLUTTER, 'lib'))) {
-  const src = readFileSync(f, 'utf8');
+  const src = withoutComments(readFileSync(f, 'utf8'));
   for (const m of src.matchAll(call)) used.add(m[1]);
+}
+
+// 1б. КЛЮЧИ, КОТОРЫЕ ЗОВУТСЯ ПЕРЕМЕННОЙ, А НЕ ЛИТЕРАЛОМ.
+//
+// 🔴 Шаблон выше находит только `L.t('имя')`. А карточки развилок и режимов
+// головоломок берут ключ ИЗ ДАННЫХ: `L.t(c.nameKey)`. Такие ключи в исходнике
+// не написаны вовсе, и первый же прогон после перевода развилок оставил бы их
+// без строк — экран показал бы сами ключи. Поэтому собираем их из собранных
+// ассетов: там они лежат явно.
+for (const [file, fields] of [
+  ['assets/hubs.json', ['nameKey', 'descKey']],
+  ['assets/puzzles/modes.json', ['titleKey', 'digitNames']],
+]) {
+  let data;
+  try { data = JSON.parse(readFileSync(join(FLUTTER, file), 'utf8')); } catch { continue; }
+  const walk = (node) => {
+    if (Array.isArray(node)) return node.forEach(walk);
+    if (!node || typeof node !== 'object') return;
+    for (const f of fields) {
+      const v = node[f];
+      if (typeof v === 'string' && v) used.add(v);
+      else if (Array.isArray(v)) v.forEach((x) => typeof x === 'string' && x && used.add(x));
+    }
+    Object.values(node).forEach(walk);
+  };
+  walk(data);
 }
 
 // 2. Словари веба.
@@ -77,6 +116,26 @@ const overlays = Object.fromEntries(
 
 // 3. Ключ, которого в веб-словаре нет, — это ошибка, а не повод молча пропустить:
 //    словарь один, и заводить строку надо в нём, иначе перевода не будет НИГДЕ.
+/*
+ * 🔴 ПРАВИЛО ЕСТЬ У КАЖДОЙ ПЕРЕХВАЧЕННОЙ ИГРЫ, И КЛЮЧ ЕГО НИКТО НЕ ЗОВЁТ ЯВНО.
+ *
+ * Справку каркас показывает САМ, по адресу открытой игры: ключ выводится правилом
+ * `<имя адреса>Desc` (`/games/go-no-go` → `goNoGoDesc`). Шаблон `L.t('ключ')` таких
+ * ключей не видит — их в исходнике нет, — и десять правил не доехали бы в сборку,
+ * хотя в словаре лежат. Замер 24.09.2026: из двенадцати игр без карточки в развилке
+ * у десяти правило в вебе БЫЛО.
+ */
+for (const файл of ['lib/shell/hybrid_app.dart', 'lib/shell/puzzle_routes.g.dart']) {
+  let код = '';
+  try { код = readFileSync(join(FLUTTER, файл), 'utf8'); } catch { continue; }
+  for (const m of код.matchAll(/'(\/games\/[^']+)':/g)) {
+    const адрес = m[1].split('?')[0].split('/').pop();
+    const camel = адрес.split('-').map((ч, i) => (i ? ч[0].toUpperCase() + ч.slice(1) : ч)).join('');
+    const ключ = `${camel}Desc`;
+    if (base[ключ]) used.add(ключ);
+  }
+}
+
 const orphans = [...used].filter((k) => !base[k]);
 if (orphans.length) {
   console.error(`🔴 ${orphans.length} ключей зовут из Dart, но их нет в веб-словаре:`);
