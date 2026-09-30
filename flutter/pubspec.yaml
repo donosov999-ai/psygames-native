@@ -37,6 +37,16 @@ dependencies:
   webview_flutter: ^4.14.1
   shared_preferences: ^2.5.5
   ffi: ^2.1.4
+  # Шахматные правила «Детского мата»: законные ходы, SAN, мат. Чистый Dart без
+  # нативной части и без зависимостей — MIT. В вебе ту же работу делает chess.js
+  # (BSD-2), своего движка правил в приложении нет и писать его незачем.
+  bishop: ^1.4.4
+  # SVG: фигуры Cburnett «Детского мата» — тем же набором, что в вебе (BSD-3);
+  # картинки шагов «Паузы», выгруженные рисовалками веб-зарядки
+  # (flutter/tools/export-pause.cjs). Тот же пакет у «Умного будильника».
+  # ⚠️ Добавлен в main и в ветке «Паузы» независимо — при слиянии строка
+  # задвоилась («Duplicate mapping key»), оставлена одна.
+  flutter_svg: ^2.2.1
   flutter_tts: ^4.2.5
   just_audio: ^0.10.6
   # 🔴 Забрать прогресс ПРЕЖНЕЙ версии из контейнера приложения (lib/shell/legacy_import.dart).
@@ -45,9 +55,6 @@ dependencies:
   path_provider: ^2.1.5
   sqlite3: ^2.9.0
   sqlite3_flutter_libs: ^0.5.41
-  # «Пауза»: картинки шагов практик — SVG, выгруженные рисовалками веб-страницы
-  # зарядки (flutter/tools/export-pause.cjs). Тот же пакет у «Умного будильника».
-  flutter_svg: ^2.2.1
 
 dev_dependencies:
   integration_test:
@@ -86,6 +93,15 @@ flutter:
   assets:
     - assets/levels/
     - assets/hubs.json
+    # Корпус позиций «Доски в уме»: 2000 задач Lichess (CC0). Каталог объявлен
+    # ПОИМЁННО — строка вида «- assets/x/» берёт только файлы самой папки, и
+    # вложенные каталоги молча не попадают в сборку («Слова» на этом потеряли
+    # заход: 17,9 МБ вместо 101,5, а сборка была зелёной).
+    - assets/chess_blind/
+    # Фигуры Cburnett (BSD-3), извлечены из frontend/src/games/chess-blind/core/pieces.ts
+    - assets/chess/
+    # Корпус «Детского мата»: 718 своих матовых позиций + задачи Lichess (CC0)
+    - assets/scholars_mate/
     - assets/faces-names.json
     - assets/memory-palace.json
     - assets/rmet.json
