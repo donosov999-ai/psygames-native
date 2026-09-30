@@ -21,9 +21,7 @@ import { разрезать, собратьРазборДиктанта } from '
 
 declare const __dirname: string;
 declare function require(m: string): any;
-// eslint-disable-next-line @typescript-eslint/no-require-imports
 const { mkdirSync, writeFileSync } = require('fs');
-// eslint-disable-next-line @typescript-eslint/no-require-imports
 const { dirname, join } = require('path');
 const ROOT = join(__dirname, '../../../../..');
 
