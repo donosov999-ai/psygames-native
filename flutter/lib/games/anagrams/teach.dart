@@ -20,6 +20,8 @@
 /// поэтому одно слово в эталоне лежит дважды.
 library;
 
+import 'ring.dart';
+
 /// Приём, которым объясняется шаг.
 enum TeachTechnique {
   /// Осмотр: ничего не ставим, ищем опору — самую редкую букву.
@@ -423,3 +425,174 @@ String teachAllWordsText(AllWordsTeachStep s, String Function(String) t) =>
         .replaceAll('{word}', s.word.toUpperCase())
         .replaceAll('{n}', '${s.n}')
         .replaceAll('{total}', '${s.total}');
+
+/* ═══════════ «СЛОВО-КВАДРАТ»: РЕДКОЕ НАЧАЛО, ПОТОМ УГЛЫ ═══════════
+ *
+ * 🔴 ПРИЁМ ВЫБРАН ЗАМЕРОМ ПО ВСЕМ КОЛЬЦАМ (30.09.2026, по 1000 колец ru/en/de).
+ * Пятибуквенных слов словаря, складывающихся из банка кольца, — медиана 10–14,
+ * а сторон четыре. Два сужения, и оба человек может повторить сам:
+ *   · РЕДКАЯ ПЕРВАЯ БУКВА. Из этих 10–14 слов на самую редкую начальную букву
+ *     истинного слова начинается медиана 1–2 — выбор почти однозначный;
+ *   · УГЛЫ. Каждое поставленное слово даёт две угловые буквы соседям. Под шаблон
+ *     с известными углами подходит медиана 2–4 слова, ровно одно — в 8–26 %.
+ * То есть учим не «вот ответ», а порядок, в котором квадрат решается почти без
+ * перебора.
+ *
+ * ⚠️ Кандидаты считаются по УНИКАЛЬНЫМ словам словаря колец языка: в наборе одно
+ * слово стоит во многих кольцах, и повтор раздул бы число «вариантов», которых у
+ * человека нет.
+ */
+
+/// Приём шага «Слово-квадрат».
+enum RingTechnique {
+  /// Осмотр: сколько слов складывается из банка и почему углы — ключ.
+  look,
+
+  /// Первое слово — на самую редкую начальную букву.
+  first,
+
+  /// Следующее — по известным углам.
+  corner,
+}
+
+/// Шаг разбора квадрата.
+class RingTeachStep {
+  const RingTeachStep({
+    required this.technique,
+    required this.side,
+    required this.word,
+    required this.piece,
+    required this.n,
+    required this.total,
+  });
+
+  final RingTechnique technique;
+
+  /// Сторона: 't', 'r', 'b', 'l' (у осмотра пусто).
+  final String side;
+
+  /// Слово стороны (у осмотра пусто).
+  final String word;
+
+  /// Опора шага: начальная буква у первого, шаблон углов («Р···А») у угловых.
+  final String piece;
+
+  /// Сколько слов банка подходит под опору.
+  final int n;
+
+  /// Сколько всего пятибуквенных слов складывается из банка.
+  final int total;
+}
+
+/// Углы, которые сторона делит с соседями: [первая буква, последняя буква].
+const _ringCorners = <String, List<String>>{
+  't': ['TL', 'TR'],
+  'r': ['TR', 'BR'],
+  'b': ['BL', 'BR'],
+  'l': ['TL', 'BL'],
+};
+
+String _ringWordOf(Ring r, String side) => switch (side) {
+      't' => r.top,
+      'r' => r.right,
+      'b' => r.bottom,
+      _ => r.left,
+    };
+
+/// Разбор кольца: осмотр, первое слово на редкую букву, остальные по углам.
+///
+/// [dictionary] — слова колец языка (`RingPacks.dictionary`), в нём бывают повторы.
+List<RingTeachStep> ringLesson(Ring ring, List<String> dictionary) {
+  final bank = ring.bank;
+  final candidates = ({...dictionary}.where((w) => w.length == ringSide && madeOfBank(w, bank)).toList())
+    ..sort();
+  // Все четыре истинных слова обязаны быть среди кандидатов — иначе счёт врёт.
+  for (final w in ring.words) {
+    if (!candidates.contains(w)) return const [];
+  }
+  const order = ['t', 'r', 'b', 'l'];
+  final total = candidates.length;
+  final steps = <RingTeachStep>[
+    RingTeachStep(technique: RingTechnique.look, side: '', word: '', piece: '', n: total, total: total),
+  ];
+
+  int startCount(String letter) => candidates.where((w) => w[0] == letter).length;
+  var first = order.first;
+  var firstN = startCount(_ringWordOf(ring, first)[0]);
+  for (final s in order.skip(1)) {
+    final n = startCount(_ringWordOf(ring, s)[0]);
+    if (n < firstN) {
+      first = s;
+      firstN = n;
+    }
+  }
+  final corners = <String, String>{};
+  void place(String side) {
+    final w = _ringWordOf(ring, side);
+    corners[_ringCorners[side]![0]] = w[0];
+    corners[_ringCorners[side]![1]] = w[ringSide - 1];
+  }
+
+  final firstWord = _ringWordOf(ring, first);
+  steps.add(RingTeachStep(
+    technique: RingTechnique.first,
+    side: first,
+    word: firstWord,
+    piece: firstWord[0],
+    n: firstN,
+    total: total,
+  ));
+  place(first);
+  final placed = {first};
+
+  while (placed.length < order.length) {
+    String? best;
+    var bestN = 1 << 30;
+    for (final s in order) {
+      if (placed.contains(s)) continue;
+      final a = corners[_ringCorners[s]![0]];
+      final b = corners[_ringCorners[s]![1]];
+      final n = candidates
+          .where((w) => (a == null || w[0] == a) && (b == null || w[ringSide - 1] == b))
+          .length;
+      if (n < bestN) {
+        best = s;
+        bestN = n;
+      }
+    }
+    final s = best!;
+    final a = corners[_ringCorners[s]![0]];
+    final b = corners[_ringCorners[s]![1]];
+    steps.add(RingTeachStep(
+      technique: RingTechnique.corner,
+      side: s,
+      word: _ringWordOf(ring, s),
+      piece: '${a ?? '·'}···${b ?? '·'}',
+      n: bestN,
+      total: total,
+    ));
+    place(s);
+    placed.add(s);
+  }
+  return steps;
+}
+
+/// Ключи объяснений квадрата — списком, чтобы сборщик словаря их увидел.
+const teachRingKeys = <String>[
+  'teachRingLook',
+  'teachRingFirst',
+  'teachRingCorner',
+];
+
+String teachRingKey(RingTechnique t) => switch (t) {
+      RingTechnique.look => 'teachRingLook',
+      RingTechnique.first => 'teachRingFirst',
+      RingTechnique.corner => 'teachRingCorner',
+    };
+
+/// Объяснение шага. Подстановки: {piece}, {word}, {n}, {total}.
+String teachRingText(RingTeachStep s, String Function(String) t) => t(teachRingKey(s.technique))
+    .replaceAll('{piece}', s.piece.toUpperCase())
+    .replaceAll('{word}', s.word.toUpperCase())
+    .replaceAll('{n}', '${s.n}')
+    .replaceAll('{total}', '${s.total}');
