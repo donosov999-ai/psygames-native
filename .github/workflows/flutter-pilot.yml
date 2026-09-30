@@ -9,12 +9,31 @@
 # числа снимаются с телефона (`adb shell am start -W`, медиана пяти запусков).
 name: Пилот Flutter (пробы + сборка Android)
 
+# ⚠️ Пути — не только flutter/**: словари, развилки и режимы головоломок во Flutter СОБИРАЮТСЯ
+# из этих веб-исходников (гейт «сгенерированное совпадает с исходниками» ниже). PR, правящий один
+# веб-словарь или экран веба, иначе прошёл бы мимо проверки — так расходились словари 30.09.2026.
 on:
   push:
     branches: [main]
-    paths: ['flutter/**', '.github/workflows/flutter-pilot.yml']
+    paths:
+      - 'flutter/**'
+      - '.github/workflows/flutter-pilot.yml'
+      - 'frontend/src/contexts/LanguageContext.tsx'
+      - 'frontend/src/contexts/translations/**'
+      - 'frontend/src/constants/defaultPlaylists.json'
+      - 'frontend/src/constants/hubContents.ts'
+      - 'frontend/src/games/tatham-bridge/sections/**'
+      - 'frontend/app/games/**'
   pull_request:
-    paths: ['flutter/**', '.github/workflows/flutter-pilot.yml']
+    paths:
+      - 'flutter/**'
+      - '.github/workflows/flutter-pilot.yml'
+      - 'frontend/src/contexts/LanguageContext.tsx'
+      - 'frontend/src/contexts/translations/**'
+      - 'frontend/src/constants/defaultPlaylists.json'
+      - 'frontend/src/constants/hubContents.ts'
+      - 'frontend/src/games/tatham-bridge/sections/**'
+      - 'frontend/app/games/**'
   workflow_dispatch:
 
 concurrency:
