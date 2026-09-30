@@ -13,6 +13,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/mnemonics/model.dart';
 import 'package:psygames_flutter/games/mnemonics/screen.dart';
+import 'package:psygames_flutter/shell/game_clock.dart';
 import 'package:psygames_flutter/shell/game_preset.dart';
 import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/lesson.dart';
@@ -40,10 +41,16 @@ void main() {
   tearDown(() {
     GamePreset.clear();
     LessonUsed.reset();
+    resetGameClock();
+    gameWallMs = () => DateTime.now().millisecondsSinceEpoch;
   });
 
   Future<MnemonicsScreenState> boot(WidgetTester tester, {int level = 1, int seed = 7}) async {
     if (level > 1) await state.set(_levelKey, '$level');
+    // Часы партии — поддельные часы пробы: иначе удержание и время ответа идут по настоящим
+    // часам машины, а pump двигает только поддельные, и таймер игры не срабатывает никогда.
+    resetGameClock();
+    gameWallMs = () => tester.binding.clock.now().millisecondsSinceEpoch;
     await tester.pumpWidget(MaterialApp(home: MnemonicsScreen(state: state, content: content, random: Random(seed))));
     await tester.pump();
     await tester.pump();
