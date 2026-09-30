@@ -122,6 +122,17 @@ class _HiddenCharacterScreenState extends State<HiddenCharacterScreen> {
 
   void _next() => setState(_deal);
 
+  static final _compact = OutlinedButton.styleFrom(
+    visualDensity: VisualDensity.compact,
+    minimumSize: const Size(0, 36),
+    padding: const EdgeInsets.symmetric(horizontal: 10),
+  );
+  static final _compactFilled = FilledButton.styleFrom(
+    visualDensity: VisualDensity.compact,
+    minimumSize: const Size(0, 36),
+    padding: const EdgeInsets.symmetric(horizontal: 12),
+  );
+
   int get _stars {
     final r = _round!;
     if (r.extraQuestions == 0) return 3;
@@ -228,28 +239,32 @@ class _HiddenCharacterScreenState extends State<HiddenCharacterScreen> {
                 icon: Icon(r.won! ? Icons.arrow_forward : Icons.refresh),
                 label: Text(r.won! ? '${'★' * _stars} · ${L.t('nextLabel')}' : L.t('hcAgain')),
               )
-            : Column(
-                mainAxisSize: MainAxisSize.min,
+            /*
+             * 🔴 ВОПРОСЫ И «ЭТО ОН!» — ОДНИМ РЯДОМ С ПЕРЕНОСОМ, КНОПКИ КОМПАКТНЫЕ.
+             * Замер 30.09.2026 (проба mindlab_small_screens): на 320×568 шесть вопросов
+             * вставали в три ряда, «Это он!» — отдельным четвёртым, и низ выдавливал поле
+             * с 24 персонажами — колонка переполнялась на 10 px. Один перенос вместо
+             * «ряд + строка» и плотность compact возвращают полю место; высота кнопки не
+             * ниже 36 — палец попадает.
+             */
+            : Wrap(
+                alignment: WrapAlignment.center,
+                spacing: 6,
+                runSpacing: 4,
                 children: [
-                  Wrap(
-                    alignment: WrapAlignment.center,
-                    spacing: 8,
-                    runSpacing: 6,
-                    children: [
-                      for (final f in r.features)
-                        if (!r.wasAsked(f))
-                          OutlinedButton(
-                            key: ValueKey('hc-ask-${f.name}'),
-                            onPressed: () => _ask(f),
-                            child: Text(featureQuestion(f)),
-                          ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
+                  for (final f in r.features)
+                    if (!r.wasAsked(f))
+                      OutlinedButton(
+                        key: ValueKey('hc-ask-${f.name}'),
+                        style: _compact,
+                        onPressed: () => _ask(f),
+                        child: Text(featureQuestion(f)),
+                      ),
                   FilledButton.icon(
                     key: const ValueKey('hc-confirm'),
+                    style: _compactFilled,
                     onPressed: _chosen == null ? null : _confirm,
-                    icon: const Icon(Icons.person_search),
+                    icon: const Icon(Icons.person_search, size: 18),
                     label: Text(L.t('hcConfirm')),
                   ),
                 ],

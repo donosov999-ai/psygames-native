@@ -39,8 +39,14 @@ class TrafficJamScreen extends StatefulWidget {
 }
 
 /// Банк досок из ассета (60 ступеней, минимум ходов растёт от 2 до 27).
+///
+/// ⚠️ БАЙТАМИ, А НЕ `loadString`. `loadString` кэширует будущее и у больших файлов
+/// уходит в `compute`; замер 30.09.2026 (проба mindlab_small_screens): во второй пробе
+/// подряд кэшированное будущее из зоны первой не завершалось, экран висел на спиннере.
+/// Тот же приём уже стоит в `L.load` (словарь больше 50 КБ вешал пробы на 10 минут).
 Future<List<TjLevel>> loadTrafficJamBank() async {
-  final raw = await rootBundle.loadString('assets/levels/traffic_jam.json');
+  final bytes = await rootBundle.load('assets/levels/traffic_jam.json');
+  final raw = utf8.decode(bytes.buffer.asUint8List(bytes.offsetInBytes, bytes.lengthInBytes));
   final data = jsonDecode(raw) as Map<String, dynamic>;
   return [for (final l in data['levels'] as List) TjLevel.fromJson(l as Map<String, dynamic>)];
 }
