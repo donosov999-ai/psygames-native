@@ -18,11 +18,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
 import '../../shell/aux_action.dart';
+import '../../shell/game_preset.dart';
 import '../../shell/lesson.dart';
 import '../../shell/lesson_player.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/preset_cap.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import 'face_painter.dart';
@@ -68,10 +70,18 @@ class _FacesNamesScreenState extends State<FacesNamesScreen> {
     });
   }
 
+  /// Уровень партии. Шаг зарядки задаёт свой (profiles.ts: 6 и 12), но не выше личного + 1 —
+  /// как в вебе (`capPresetByLevel`). 🔴 До 30.09.2026 шаг читался только вебом: в приложении
+  /// зарядка молча играла личный уровень.
+  int get _roundLevel => GamePreset.isPreset
+      ? capPresetByLevel(want: GamePreset.num('level', _ladder.level), atLevel: _ladder.level)
+      : _ladder.level;
+
   void _newRound() {
     final lib = _lib;
     if (lib == null) return;
-    _session = FacesNamesSession.create(lib, 'faces-names-${_ladder.level}', _ladder.level);
+    final level = _roundLevel;
+    _session = FacesNamesSession.create(lib, 'faces-names-$level', level);
   }
 
   Future<void> _finish(FacesNamesMetrics m) async {
@@ -206,7 +216,7 @@ class _FacesNamesScreenState extends State<FacesNamesScreen> {
       title: lib.s(L.locale, 'title'),
       onLesson: _openLesson,
       hud: [
-        HudItem(label: L.t('level'), value: '${_ladder.level}', icon: Icons.flag_outlined),
+        HudItem(label: L.t('level'), value: '$_roundLevel', icon: Icons.flag_outlined),
         HudItem(
           label: lib.s(L.locale, _phaseKey(phase)),
           value: _hudRightValue(s),
