@@ -1938,6 +1938,10 @@ const translations: Translations = {
   storyRecallHint: { ru: 'Напиши всё что помнишь из рассказа', en: 'Write everything you remember from the story' },
   storyRecallPlaceholder: { ru: 'имена, числа, места, действия...', en: 'names, numbers, places, actions...' },
   storyDone:       { ru: 'Готово', en: 'Done' },
+  // Отчёт 3c7b98c5 (26.09.2026): у чтения не было ни кнопки перехода, ни слова о том, что он случится сам.
+  storyReadDone:   { ru: 'Запомнил — дальше', en: 'Got it — next' },
+  storyReadAuto:   { ru: 'Дальше само через {n} с', en: 'Moves on by itself in {n} s' },
+  storyReadyRecall: { ru: 'Готов к пересказу', en: 'Ready to recall' },
   benefitStory1:   { ru: 'Эпизодическая память',     en: 'Episodic memory' },
   benefitStory2:   { ru: 'Удержание под отвлечением', en: 'Retention under distraction' },
   benefitStory3:   { ru: 'Бизнес-встречи / детали',   en: 'Business meetings / details' },
