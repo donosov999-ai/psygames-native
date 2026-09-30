@@ -197,7 +197,28 @@ try {
   out.meta = old.meta ?? {};
   out.pick = old.pick;
 } catch { /* первый запуск */ }
+
+/*
+ * 🔴 ЗАГОЛОВОК РАЗВИЛКИ — КЛЮЧОМ СЛОВАРЯ, КАК В ВЕБЕ. Нашёл раздел «Языки»
+ * 30.09.2026: `meta` вёз только русский текст («Слух», «Выбери упражнение»),
+ * и нативная развилка на остальных одиннадцати языках говорила по-русски, хотя
+ * веб-экран той же развилки берёт `titleKey`/`descKey`/`pickKey`/`footnoteKey`.
+ * Ключи снимаются с самого веб-экрана — второго реестра нет; текст остаётся
+ * запасным для развилок, у экрана которых ключей нет.
+ */
+const КЛЮЧИ_ЗАГОЛОВКА = ['titleKey', 'descKey', 'pickKey', 'footnoteKey'];
+let заголовковСКлючом = 0;
+for (const route of Object.keys(out.hubs)) {
+  const текст = экран(route.split('/').pop());
+  const m = (out.meta[route] ??= {});
+  let нашлось = false;
+  for (const поле of КЛЮЧИ_ЗАГОЛОВКА) {
+    const hit = текст.match(new RegExp(`\\b${поле}="([A-Za-z0-9_]+)"`));
+    if (hit) { m[поле] = hit[1]; нашлось = true; } else delete m[поле];
+  }
+  if (нашлось) заголовковСКлючом++;
+}
 writeFileSync(OUT, JSON.stringify(out, null, 0) + '\n');
-console.log(`развилок: ${Object.keys(out.hubs).length} · карточек: ${cards} · все с ключами словаря`);
+console.log(`развилок: ${Object.keys(out.hubs).length} · карточек: ${cards} · все с ключами словаря · заголовков с ключом: ${заголовковСКлючом}`);
 console.log(`ключ уровня снят с экрана у ${сКлючом} карточек · режимов без ключа: ${безКлюча.length}${безКлюча.length ? ' — ' + безКлюча.join(', ') : ''}`);
 console.log(`раскладок по профилям: ${Object.keys(out.layouts).length} · адресов в них: ${layoutCards} · карточек вне реестра: ${Object.keys(out.extra).length}`);
