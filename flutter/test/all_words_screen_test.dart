@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/anagrams/all_words_board.dart';
 import 'package:psygames_flutter/games/anagrams/all_words_screen.dart';
 import 'package:psygames_flutter/shell/game_shell.dart';
+import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -50,6 +51,9 @@ void main() {
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
     state = await SharedState.open();
+    // Подписи — из ТОГО ЖЕ словаря, что и в сборке: проба заодно проверяет, что
+    // `assets/l10n/ru.json` собран и читается, а не сверяется с переписанной строкой.
+    await L.load('ru');
   });
 
   testWidgets('🔴 экран доходит до поля: цели показаны клетками по числу букв', (tester) async {
@@ -74,7 +78,7 @@ void main() {
     expect(_board(tester).found, contains(target));
     expect(_board(tester).picked, isEmpty, reason: 'после зачёта черновик сбрасывается');
     final hud = tester.widget<GameShell>(find.byType(GameShell)).hud;
-    expect(hud.firstWhere((h) => h.label == 'Найдено').value, startsWith('1/'));
+    expect(hud.firstWhere((h) => h.label == L.t('label_found')).value, startsWith('1/'));
   });
 
   testWidgets('🔴 повтор той же цели не засчитывается дважды', (tester) async {
@@ -114,12 +118,12 @@ void main() {
     await _boot(tester, state);
     expect(_board(tester).opened, isEmpty);
     for (var i = 1; i <= 3; i++) {
-      await tester.tap(find.byTooltip('Подсказка'));
+      await tester.tap(find.byTooltip(L.t('btn_hint')));
       await tester.pump();
       final openedCount = _board(tester).opened.values.fold<int>(0, (a, b) => a + b);
       expect(openedCount, i, reason: 'подсказка $i обязана открыть букву');
     }
-    await tester.tap(find.byTooltip('Подсказка'), warnIfMissed: false);
+    await tester.tap(find.byTooltip(L.t('btn_hint')), warnIfMissed: false);
     await tester.pump();
     final openedAfter = _board(tester).opened.values.fold<int>(0, (a, b) => a + b);
     expect(openedAfter, 3, reason: 'запас подсказок конечен');
@@ -133,7 +137,7 @@ void main() {
     await tester.pump();
 
     final before = _board(tester).letters;
-    await tester.tap(find.byTooltip('Перемешать'));
+    await tester.tap(find.byTooltip(L.t('shuffleBtn')));
     await tester.pump();
     final after = _board(tester);
     expect(after.letters.toList()..sort(), before.toList()..sort(), reason: 'буквы те же');
