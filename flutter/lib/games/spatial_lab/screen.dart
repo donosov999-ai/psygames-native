@@ -29,10 +29,14 @@ import 'twiddle.dart';
 ///
 /// ⚠️ У КАЖДОГО УПРАЖНЕНИЯ СВОЯ ЛЕСТНИЦА, и ключи те же, что у веба
 /// (`psygames_spatial_lab_<упражнение>_level_<профиль>`): иначе прогресс разъедется молча.
+/// Два нажатия по той же цели не дальше этого — поворот по часовой. То же число, что у веба
+/// (`SpatialLab.tsx`, `ДВОЙНОЕ_НАЖАТИЕ_МС`): порог у двух половин приложения обязан совпадать.
+const labDoubleTapMs = 350;
+
 enum LabPhase { config, playing }
 
 class SpatialLabScreen extends StatefulWidget {
-  const SpatialLabScreen({super.key, required this.state, this.seed, this.banks});
+  const SpatialLabScreen({super.key, required this.state, this.seed, this.banks, this.now});
 
   final SharedState state;
 
@@ -41,6 +45,10 @@ class SpatialLabScreen extends StatefulWidget {
 
   /// Банки точных позиций 3×3; в приложении грузятся из ассетов.
   final LabBanks? banks;
+
+  /// Часы для двойного нажатия. Проба подставляет свои, чтобы мерить порог точно; в
+  /// приложении — настоящее время.
+  final DateTime Function()? now;
 
   @override
   State<SpatialLabScreen> createState() => _SpatialLabScreenState();
@@ -57,6 +65,10 @@ class _SpatialLabScreenState extends State<SpatialLabScreen> {
   Deal? _deal;
   int _selection = 0;
   bool _won = false;
+
+  /// Последнее нажатие по клетке: что выбрано и когда. Нужно только двойному нажатию.
+  int? _lastTapTarget;
+  DateTime? _lastTapAt;
 
   final math.Random _random = math.Random();
 
@@ -106,6 +118,11 @@ class _SpatialLabScreenState extends State<SpatialLabScreen> {
       _selection = deal.selection;
       _phase = LabPhase.playing;
       _won = false;
+      // Память о первом касании не переживает новую раздачу. Иначе: нажал клетку, нажал
+      // «Новая раздача», снова быстро нажал ту же клетку — и свежее поле поворачивается от
+      // ПЕРВОГО касания по нему, если выбор новой раздачи совпал с нажатой клеткой.
+      _lastTapTarget = null;
+      _lastTapAt = null;
     });
   }
 
@@ -142,6 +159,17 @@ class _SpatialLabScreenState extends State<SpatialLabScreen> {
 
   /// Тычок по клетке: у сети и сдвигов выбирается сама клетка, у поворота чисел — блок 2×2,
   /// поэтому выбор прижимается к полю: блок не может начаться в последней строке или столбце.
+  ///
+  /// 🔴 ВТОРОЕ НАЖАТИЕ ПО ТОЙ ЖЕ ЦЕЛИ БЫСТРЕЕ [labDoubleTapMs] — ПОВОРОТ ПО ЧАСОВОЙ.
+  /// Отчёт Дениса 60913453 («Сеть труб»): «по двойному нажатию вращение, чтобы шло тоже».
+  /// В вебе это сделано 17.09.2026 (задача f3fae4e2, `SpatialLab.tsx`, `ДВОЙНОЕ_НАЖАТИЕ_МС`), а
+  /// перенос на Flutter 23.09 его ПОТЕРЯЛ: с выпуска 2.56.0 экран открывается нативно, и у людей
+  /// пропала функция, которую они просили и уже получили. Здесь — то же правило один в один:
+  ///   · цель — сама клетка у сети, блок 2×2 у поворота чисел (нажатие по ЛЮБОЙ клетке блока);
+  ///   · поворот, только если цель уже выбрана — первое нажатие выбирает, второе крутит;
+  ///   · у упражнений сдвига направления у нажатия нет, там двойное нажатие — просто выбор.
+  /// ⚠️ Не `GestureDetector.onDoubleTap`: он придерживает КАЖДОЕ одиночное нажатие на время
+  /// ожидания второго, и выбор клетки начинает запаздывать. Здесь одиночное срабатывает сразу.
   void _pick(int index) {
     final n = _deal!.state.present.width;
     var next = index;
@@ -150,7 +178,29 @@ class _SpatialLabScreenState extends State<SpatialLabScreen> {
       next = r * n + c;
     }
     if (_deal!.task?.locked.contains(next) ?? false) return;
+    // `_selection == next` — страховка, как в вебе, и она РАВНОСИЛЬНА отсутствию: выбор
+    // присваивается только здесь и в `_request`, а `_request` стирает память о касании.
+    // Поэтому узнанное второе касание всегда приходит на уже выбранную цель. Мутация «убрать
+    // сверку выбора» пробу не роняет — это доказано, а не дыра (30.09.2026).
+    if (_secondTap(next) && !isShift(_mode) && _selection == next) {
+      _turn(1);
+      return;
+    }
     setState(() => _selection = next);
+  }
+
+  /// Это нажатие — второе по той же цели не позже порога? Первое запоминается.
+  bool _secondTap(int target) {
+    final t = (widget.now ?? DateTime.now)();
+    final prevAt = _lastTapAt;
+    if (prevAt != null && _lastTapTarget == target && t.difference(prevAt).inMilliseconds <= labDoubleTapMs) {
+      _lastTapTarget = null;
+      _lastTapAt = null;
+      return true;
+    }
+    _lastTapTarget = target;
+    _lastTapAt = t;
+    return false;
   }
 
   /// Заголовок один на экран и на разбор: вторая такая строка — второй долг
