@@ -55,7 +55,7 @@ const GRADIENT = ['#7873f5', '#ff6ec4'];
  * за спецсимволы». Если спрашивает он, игрок спросит тем более.
  * Порог 4 — тот самый уровень, с которого помехи включаются (levelParams).
  */
-const SWITCH_RULES: LevelRule[] = [
+export const SWITCH_RULES: LevelRule[] = [
   { key: 'noise', fromLevel: 4 },
 ];
 // Цвет текста поверх плашки считает onGradientText по ОБОИМ концам градиента.
