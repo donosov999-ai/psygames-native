@@ -2501,6 +2501,15 @@ const translations: Translations = {
   dictationDesc:      { ru: 'Фраза звучит — вы печатаете её целиком', en: 'A phrase is read out — you type it in full' },
   dictationConfigDesc:{ ru: 'Фраза звучит, но на экране её нет. Печатайте по памяти на слух: опечатка не пускает дальше, прослушать можно сколько угодно раз.', en: 'The phrase is spoken but not shown. Type it by ear: a typo blocks the way, and you may replay as often as you like.' },
   dictationTask:      { ru: 'Наберите то, что услышали', en: 'Type what you heard' },
+  /*
+   * 🎓 РАЗБОР «ДИКТАНТА» (30.09.2026): диктовать себе кусками. {c} — кусок фразы уровня по два-три слова
+   * (у китайского — по четыре знака), {i} — его номер.
+   */
+  teachDictIntro: { ru: 'Фразу целиком в голове не удержать — её диктуют себе кусками. Услышали всю, разбили на куски по два-три слова, набираете кусок за куском.', en: 'A whole phrase will not stay in your head — you dictate it to yourself in pieces. Hear it all, split it into pieces of two or three words, type piece by piece.' },
+  teachDictListen: { ru: 'Сначала слушайте фразу целиком, ничего не набирая.', en: 'First listen to the whole phrase without typing anything.' },
+  teachDictChunk: { ru: 'Кусок {i}: «{c}». Проговорите его про себя — и наберите.', en: 'Piece {i}: “{c}”. Say it to yourself — then type it.' },
+  teachDictStuck: { ru: 'Застряли на знаке — переслушайте фразу, а не перебирайте буквы: ввод всё равно стоит, пока знак не верный.', en: 'Stuck on a character? Replay the phrase instead of trying letters: the input will not move until the character is right.' },
+  teachDictDone: { ru: 'Так и пишите: услышали целиком → разбили на куски → диктуете себе кусок за куском.', en: 'Write it the same way: hear it whole → split it into pieces → dictate to yourself piece by piece.' },
   dictationHint:      { ru: 'Ненабранное скрыто точками — это диктант, а не списывание', en: 'Untyped characters stay dotted — this is dictation, not copying' },
   dictationNeedsKeyboard: { ru: 'Нужна настоящая клавиатура: упражнение сводит скорость слуха и набора, а на экранной клавиатуре это другая задача.', en: 'A real keyboard is required: the exercise matches listening speed to typing speed, and on an on-screen keyboard that is a different task.' },
   chineseTones:      { ru: 'Тоны китайского', en: 'Chinese Tones' },

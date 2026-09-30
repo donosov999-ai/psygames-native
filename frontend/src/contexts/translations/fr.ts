@@ -3039,5 +3039,10 @@ const t: Record<string, string> = {
   "teachPicturePairsSwap": "À partir du niveau 22, après une erreur, des cartes face cachée échangent leur place et la paire s'illumine. Déplace l'image dans ta mémoire là où sa carte est partie.",
   "vsFindAll": "Trouve toutes ces figures — dans n'importe quelle orientation",
   "vsFindConj": "Trouve la figure de cette couleur et de cette forme",
+  "teachDictIntro": "Une phrase entière ne tient pas en tête : on se la dicte par morceaux. Écoute-la en entier, coupe-la en morceaux de deux ou trois mots, tape morceau par morceau.",
+  "teachDictListen": "Écoute d’abord toute la phrase sans rien taper.",
+  "teachDictChunk": "Morceau {i} : « {c} ». Dis-le-toi — puis tape-le.",
+  "teachDictStuck": "Bloqué sur un caractère ? Réécoute la phrase au lieu d’essayer des lettres : la saisie n’avance pas tant que le caractère n’est pas juste.",
+  "teachDictDone": "Écris ainsi : entendre en entier → couper en morceaux → te dicter morceau par morceau.",
 };
 export default t;
