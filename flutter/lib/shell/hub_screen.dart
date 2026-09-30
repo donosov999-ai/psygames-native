@@ -5,6 +5,7 @@ import 'package:flutter/services.dart' show rootBundle;
 
 import 'level_ladder.dart';
 import 'shared_level_store.dart';
+import 'l10n.dart';
 import 'shared_state.dart';
 
 /// РАЗВИЛКА (хаб) — ОБЩИЙ ЭКРАН НА ВСЕ РАЗДЕЛЫ.
@@ -27,6 +28,7 @@ class HubScreen extends StatefulWidget {
     required this.hubRoute,
     required this.icon,
     required this.gradient,
+    this.header,
     this.isNative,
   });
 
@@ -36,6 +38,17 @@ class HubScreen extends StatefulWidget {
   final String hubRoute;
   final IconData icon;
   final List<Color> gradient;
+
+  /// ЧТО ПОКАЗАТЬ НАД СПИСКОМ КАРТОЧЕК. Просьба раздела «Шахматы» 23.09.2026, и
+  /// она не единичная: в вебе над выбором стоит ЗАРЯДКА раздела — карточка,
+  /// которая ставит несколько упражнений подряд по их собственным лестницам.
+  /// Такие есть у «Шахмат» (`ChessWarmup`) и у «Слов» (`WordsWarmup`).
+  ///
+  /// ⚠️ Без этого слота раздел вынужден либо писать свой экран развилки вместо
+  /// общего — и тогда счёт «правок каркаса ноль» кончается, — либо включить
+  /// перехват и молча отнять у человека рабочую зарядку. «Шахматы» выбрали
+  /// третье: не включать маршрут и сказать об этом, что и правильно.
+  final Widget? header;
 
   /// Перенесена ли игра на Flutter. Нужно только для подписи на карточке:
   /// открывает её в любом случае оболочка (см. [HubCardTap]).
@@ -47,21 +60,43 @@ class HubScreen extends StatefulWidget {
 
 /// Карточка развилки: куда ведёт, как называется, чем отличается.
 class HubCard {
-  const HubCard({required this.route, required this.icon, required this.name, required this.desc, required this.type});
+  const HubCard({
+    required this.route,
+    required this.icon,
+    required this.nameKey,
+    required this.descKey,
+    required this.type,
+    this.levelKey,
+  });
 
   factory HubCard.fromJson(Map<String, dynamic> j) => HubCard(
         route: j['route'] as String,
-        icon: j['icon'] as String? ?? '',
-        name: j['name'] as String,
-        desc: j['desc'] as String? ?? '',
-        type: j['type'] as String? ?? '',
+        icon: j['icon'] as String? ?? 'apps',
+        nameKey: j['nameKey'] as String? ?? '',
+        descKey: j['descKey'] as String? ?? '',
+        type: j['type'] as String?,
+        levelKey: j['levelKey'] as String?,
       );
 
   final String route;
   final String icon;
-  final String name;
-  final String desc;
-  final String type;
+
+  /// 🔴 КЛЮЧИ СЛОВАРЯ, А НЕ ГОТОВЫЙ ТЕКСТ. До 23.09.2026 здесь лежали русские
+  /// строки, и ВСЕ 13 развилок показывали один язык из двенадцати. Нашёл раздел
+  /// «Судоку», и нашёл не гейтом: храповик зашитого текста смотрит КОД, а текст
+  /// лежал в ДАННЫХ и проходил мимо него.
+  final String nameKey;
+  final String descKey;
+
+  final String? type;
+
+  /// Чем игра подписывает свой уровень, если это НЕ адрес карточки.
+  /// Пусто — ключ берётся из адреса; расходятся три карточки из 113
+  /// (замер 23.09.2026, см. `_boot`).
+  final String? levelKey;
+
+  String get name => nameKey.isEmpty ? route : L.t(nameKey);
+  String get desc => descKey.isEmpty ? '' : L.t(descKey);
 }
 
 /// Значок карточки по имени из веб-реестра. Незнакомое имя — общий значок:
@@ -98,18 +133,114 @@ class _HubScreenState extends State<HubScreen> {
     _boot();
   }
 
+  /*
+   * 🔴 СОСТАВ РАЗВИЛКИ БЕРЁТСЯ ТОЙ ЖЕ ЦЕПОЧКОЙ, ЧТО И В ВЕБЕ.
+   *
+   * ПОЙМАНО 24.09.2026 отчётом Дениса: «в хабах лагает — то старый хаб без
+   * Тэтхэма, то новый с Тэтхэмом». Причина не в мигании, а в том, что составов
+   * было ДВА. Замер по файлу состава против нативного набора:
+   *   Головоломки 4 против 40 · Судоку 12 против 5 · Пространство 17 против 9
+   *   Сортировка 17 против 8 · Счёт 14 против 7 · Поиск 13 против 8.
+   * Сорок режимов Тэтхэма давно разнесены по тематическим развилкам решениями
+   * Дениса, а натив показывал ЗАВОДСКОЙ список.
+   *
+   * Веб берёт так (`ProfileContext.tsx:218`):
+   *   сохранённый состав профиля → общий раздел состава → заводской список.
+   * Повторяем цепочку звено в звено. Сохранённый состав живёт в хранилище под
+   * `psygames_playlists_override`, и мост его уже возит — то есть правда у нас
+   * УЖЕ есть, её просто не читали.
+   *
+   * ⚠️ Карточку нельзя ПРИДУМАТЬ составом: строка ищется в заводском реестре, а
+   * объект несёт свои ключи. Так же устроен `visibleHubCards` в вебе.
+   */
+  List<HubCard> _cardsFor(Map<String, dynamic> bundle) {
+    final factory_ = ((bundle['hubs'] as Map<String, dynamic>)[widget.hubRoute] as List? ?? [])
+        .map((e) => HubCard.fromJson(e as Map<String, dynamic>))
+        .toList();
+
+    List<dynamic>? items;
+    // 1. Состав, сохранённый на устройстве, — он и есть живая правда.
+    final saved = widget.state.get('psygames_playlists_override');
+    if (saved != null && saved.isNotEmpty) {
+      try {
+        final o = jsonDecode(saved) as Map<String, dynamic>;
+        final byProfile = (o['профили'] as Map<String, dynamic>?)?[widget.state.activeProfile];
+        items = ((byProfile as Map<String, dynamic>?)?['хабы']
+                as Map<String, dynamic>?)?[widget.hubRoute] as List?;
+        items ??= (o['хабы'] as Map<String, dynamic>?)?[widget.hubRoute] as List?;
+      } catch (_) {
+        // Испорченный состав — не повод показать пустую развилку: идём дальше.
+      }
+    }
+    // 2. Раскладки, выгруженные из заводского файла состава (`layouts`).
+    if (items == null) {
+      final layouts = bundle['layouts'] as Map<String, dynamic>?;
+      final mine = layouts?[widget.state.activeProfile] as Map<String, dynamic>?;
+      items = mine?[widget.hubRoute] as List?;
+    }
+    if (items == null) return factory_;
+
+    /*
+     * 🔴 КАРТОЧКУ ИЩЕМ ВО ВСЁМ РЕЕСТРЕ, А НЕ В СВОЕЙ РАЗВИЛКЕ.
+     *
+     * Раскладка переносит карточки МЕЖДУ развилками: сорок режимов Тэтхэма
+     * разнесены из «Головоломок» по тематическим. Значит адрес из раскладки
+     * «Сортировки» описан в карточках «Головоломок», и поиск только среди своих
+     * не нашёл бы ни одного — развилка молча осталась бы заводской.
+     */
+    final byRoute = <String, HubCard>{};
+    for (final list in (bundle['hubs'] as Map<String, dynamic>).values) {
+      for (final e in list as List) {
+        final c = HubCard.fromJson(e as Map<String, dynamic>);
+        byRoute[c.route] = c;
+      }
+    }
+    for (final e in (bundle['extra'] as Map<String, dynamic>? ?? {}).values) {
+      final c = HubCard.fromJson(e as Map<String, dynamic>);
+      byRoute[c.route] = c;
+    }
+
+    final out = <HubCard>[];
+    for (final e in items) {
+      if (e is String) {
+        final c = byRoute[e];
+        if (c != null) out.add(c);
+        continue;
+      }
+      if (e is! Map) continue;
+      // Состав, сохранённый на устройстве, описывает карточку своими полями —
+      // теми же, что в веб-файле. Забытый значок не имеет права оставлять на
+      // экране пустое место, поэтому у него есть общий запасной.
+      final m = e.cast<String, dynamic>();
+      final route = m['маршрут'] ?? m['route'];
+      final nameKey = m['имя'] ?? m['nameKey'];
+      if (route is! String || nameKey is! String) continue;
+      out.add(HubCard(
+        route: route,
+        icon: (m['значок'] ?? m['icon'] ?? 'extension-puzzle') as String,
+        nameKey: nameKey,
+        descKey: (m['описание'] ?? m['descKey'] ?? nameKey) as String,
+        type: null,
+      ));
+    }
+    return out.isEmpty ? factory_ : out;
+  }
+
   Future<void> _boot() async {
     final raw = await rootBundle.loadString('assets/hubs.json');
     final j = jsonDecode(raw) as Map<String, dynamic>;
-    final cards = ((j['hubs'] as Map<String, dynamic>)[widget.hubRoute] as List? ?? [])
-        .map((e) => HubCard.fromJson(e as Map<String, dynamic>))
-        .toList();
+    final cards = _cardsFor(j);
     final meta = (j['meta'] as Map<String, dynamic>)[widget.hubRoute] as Map<String, dynamic>?;
 
     // Уровень каждой игры — из ОБЩЕЙ памяти, той же, что у веб-половины: на
     // карточке видно, где человек остановился, без захода в игру.
     for (final c in cards) {
-      final id = c.route.split('/').last.replaceAll('-', '_');
+      // 🔴 КЛЮЧ УРОВНЯ БЕРЁТСЯ ИЗ ДАННЫХ, А АДРЕС — ТОЛЬКО ЗАПАСНОЙ ВАРИАНТ.
+      // Вывод ключа из адреса верен для 110 карточек из 113 и ВРЁТ для трёх:
+      // Шульте пишет уровень как `schulte_table`, два режима «Лаборатории» —
+      // с суффиксом режима. Человеку на девятом уровне развилка показывала
+      // «ур. 1» — замер 23.09.2026 пробой развилок «Поиска» и «Счёта».
+      final id = c.levelKey ?? c.route.split('/').last.replaceAll('-', '_');
       final ladder = LevelLadder(gameId: id, store: SharedLevelStore(widget.state));
       await ladder.load();
       _levels[c.route] = ladder.level;
@@ -142,6 +273,12 @@ class _HubScreenState extends State<HubScreen> {
           : ListView(
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
               children: [
+                // Шапка раздела идёт ПЕРЕД градиентным заголовком: зарядка —
+                // это действие, а заголовок только называет раздел.
+                if (widget.header != null) ...[
+                  widget.header!,
+                  const SizedBox(height: 12),
+                ],
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
@@ -182,7 +319,7 @@ class _HubScreenState extends State<HubScreen> {
                       title: Text(c.name, style: const TextStyle(fontWeight: FontWeight.w700)),
                       subtitle: Text(
                         [
-                          if (c.type.isNotEmpty) c.type,
+                          if ((c.type ?? '').isNotEmpty) c.type!,
                           if (c.desc.isNotEmpty) c.desc,
                         ].join(' · '),
                         // ⚠️ ДВЕ СТРОКИ, А НЕ СКОЛЬКО ВЫЙДЕТ. На снимке описания

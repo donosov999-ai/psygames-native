@@ -9,6 +9,10 @@ import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import 'layout.dart';
 import 'levels.dart';
+import '../../shell/l10n.dart';
+import '../../shell/lesson.dart';
+import '../../shell/lesson_player.dart';
+import '../sudoku/lesson.dart';
 import 'rules.dart';
 
 /// САМУРАЙ на общем каркасе — вторая игра раздела в переезде на Flutter.
@@ -183,13 +187,81 @@ class _SamuraiScreenState extends State<SamuraiScreen> {
     return k;
   }
 
+  /// 🔴 РАЗБОР САМУРАЯ — ТОТ ЖЕ УЧИТЕЛЬ, ЧТО У КЛАССИКИ, НО ПРАВИЛО ДРУГОЕ.
+  ///
+  /// Кандидаты считает `isValid` самой игры: клетка перекрытия принадлежит двум
+  /// сеткам сразу, и своя копия правила в учителе дала бы ход, невозможный в
+  /// партии. Приём «в строке осталось одно место» здесь ВЫКЛЮЧЕН: строка поля
+  /// 21×21 пересекает две сетки, и подпись «в строке 4» назвала бы не ту линию.
+  /// Заголовок один на экран и на разбор: вторая строка — второй долг подписей.
+  String get _title => 'Самурай';
+
+  List<LessonStep> _lessonSteps() {
+    final board = _board;
+    if (board == null || _grid.isEmpty) return const [];
+    return sudokuLessonSteps(
+      say: (key, args) {
+        var out = switch (key) {
+          'teachSudokuNaked' => L.t('teachSudokuNaked'),
+          'teachSudokuHiddenBox' => L.t('teachSudokuHiddenBox'),
+          _ => L.t('teachSudokuPlain'),
+        };
+        for (final e in args.entries) {
+          out = out.replaceAll('{${e.key}}', e.value);
+        }
+        return out;
+      },
+      grid: _grid,
+      solution: board.solution,
+      n: samuraiSize,
+      br: 3,
+      bc: 3,
+      candidates: (g, r, c) => [for (var d = 1; d <= 9; d += 1) if (isValid(g, r, c, d)) d],
+      exists: isSamuraiCell,
+      lineSingles: false,
+    );
+  }
+
+  Future<void> _openLesson() async {
+    final steps = _lessonSteps();
+    final board = _board;
+    if (steps.isEmpty || board == null) return;
+    LessonUsed.mark();
+    final h = ScrollController();
+    final v = ScrollController();
+    await Navigator.of(context).push(MaterialPageRoute<void>(
+      builder: (_) => LessonPlayerScreen(
+        title: _title,
+        steps: steps,
+        board: (context, side, shown) {
+          final m = steps[shown.clamp(0, steps.length - 1)].payload as SudokuMove;
+          return SamuraiField(
+            board: board,
+            grid: m.grid,
+            given: _given,
+            selected: (r: m.r, c: m.c),
+            // Карта целиком: на разборе важно видеть, В КАКОЙ сетке идёт ход.
+            zoom: SamuraiZoom.map,
+            height: side,
+            hCtrl: h,
+            vCtrl: v,
+            onTap: (_, _) {},
+          );
+        },
+      ),
+    ));
+    h.dispose();
+    v.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final levels = _levels;
     final board = _board;
 
     return GameShell(
-      title: 'Самурай',
+      title: _title,
+      onLesson: _lessonSteps().isEmpty ? null : _openLesson,
       hud: [
         HudItem(label: 'Ступень', value: '${_ladder.level}', icon: Icons.trending_up),
         HudItem(label: 'Ошибки', value: '$_errors/${_params.maxErrors}', icon: Icons.close),
@@ -198,7 +270,7 @@ class _SamuraiScreenState extends State<SamuraiScreen> {
       field: (context, height) {
         if (levels == null) return const Center(child: CircularProgressIndicator());
         if (board == null) return Center(child: Text(_failure ?? 'Доска не собралась'));
-        return _Field(
+        return SamuraiField(
           board: board,
           grid: _grid,
           given: _given,
@@ -247,8 +319,9 @@ class _SamuraiScreenState extends State<SamuraiScreen> {
 }
 
 /// Поле: на карте вся фигура целиком, в рабочем масштабе — листается в обе стороны.
-class _Field extends StatelessWidget {
-  const _Field({
+class SamuraiField extends StatelessWidget {
+  const SamuraiField({
+    super.key,
     required this.board,
     required this.grid,
     required this.given,
@@ -390,7 +463,7 @@ class _Cell extends StatelessWidget {
       child: Material(
         color: bg,
         child: InkWell(
-          key: Key('клетка${row}_$col'),
+          key: Key('cell_${row}_$col'),
           onTap: () => onTap(row, col),
           child: DecoratedBox(
             decoration: BoxDecoration(
@@ -444,7 +517,7 @@ class _Toolbar extends StatelessWidget {
       return Padding(
         padding: const EdgeInsets.all(12),
         child: FilledButton.icon(
-          key: const Key('дальше'),
+          key: const Key('next'),
           onPressed: onNext,
           icon: Icon(won ? Icons.arrow_forward : Icons.refresh),
           label: Text(won ? 'Следующая ступень' : 'Ещё раз'),
@@ -474,7 +547,7 @@ class _Toolbar extends StatelessWidget {
                       width: keyWidth,
                       height: keyWidth,
                       child: FilledButton(
-                        key: Key('цифра$v'),
+                        key: Key('digit$v'),
                         onPressed: () => onDigit(v),
                         style: FilledButton.styleFrom(padding: EdgeInsets.zero),
                         child: Text('$v', style: const TextStyle(fontSize: 20)),
@@ -484,7 +557,7 @@ class _Toolbar extends StatelessWidget {
                     width: keyWidth,
                     height: keyWidth,
                     child: OutlinedButton(
-                      key: const Key('стереть'),
+                      key: const Key('erase'),
                       onPressed: onErase,
                       style: OutlinedButton.styleFrom(padding: EdgeInsets.zero),
                       child: const Icon(Icons.backspace_outlined, size: 18),

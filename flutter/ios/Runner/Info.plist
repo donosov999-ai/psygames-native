@@ -66,5 +66,13 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<!-- 🔴 ЭКСПОРТНЫЙ ВОПРОС ОТВЕЧАЕТСЯ ЗДЕСЬ, А НЕ РУКАМИ ПОСЛЕ КАЖДОЙ ЗАЛИВКИ.
+	     Без него сборка встаёт в MISSING_EXPORT_COMPLIANCE, и отдать её группе
+	     тестировщиков НЕЛЬЗЯ вовсе: 23.09.2026 так молча простояли четыре версии
+	     подряд (2.55.0 … 2.55.4), а на телефоне показывалась предыдущая 2.54.23.
+	     Ответ тот же, что у всех 2.54.x этого приложения: шифрование только
+	     стандартное (HTTPS), то есть освобождённое. -->
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 </dict>
 </plist>

@@ -127,30 +127,60 @@ const ВПЕРЁД = /^(Начать|Играть|Дальше|Продолжи�
  */
 const НАЗАД = /заново|restart|сначала|выйти|назад/i;
 
-async function шагВперёд(page) {
-  return page.evaluate(({ src, назадSrc }) => {
+async function шагВперёд(page, прошлый) {
+  return page.evaluate(({ src, назадSrc, прошлый }) => {
     const rx = new RegExp(src, 'iu');
     const кн = [...document.querySelectorAll('[role="button"], button')]
       .map((e) => ({ e, t: (e.getAttribute('aria-label') || e.innerText || '').replace(/\s+/g, ' ').trim() }))
-      .filter((x) => x.t && rx.test(x.t) && !new RegExp(назадSrc, 'iu').test(x.t) && x.e.getBoundingClientRect().width > 40);
+      .filter((x) => x.t && rx.test(x.t) && !new RegExp(назадSrc, 'iu').test(x.t) && x.e.getBoundingClientRect().width > 40)
+      // ⚠️ ТУ ЖЕ КНОПКУ ВТОРОЙ РАЗ НЕ БЕРЁМ. У «Ритма» на экране калибровки первой в разметке
+      // стоит «Запустить калибровку», а выход из круга — «Продолжить без замера» — ниже.
+      // Прибор жал первую подходящую, снова видел её же и останавливался, так и не войдя в партию.
+      .filter((x) => x.t !== прошлый);
     if (!кн.length) return null;
     const { e, t } = кн[0];
     const было = e.getBoundingClientRect();
     const заКраем = было.bottom > innerHeight || было.top < 0;
-    if (заКраем) e.scrollIntoView({ block: 'center' });
+    /**
+     * 🔴 ПРОКРУЧИВАЕМ ВСЕГДА, А НЕ ТОЛЬКО ПРИ ВЫХОДЕ ЗА ОКНО. Кнопка может лежать
+     * внутри окна и при этом быть выкручена за край ПРОКРУЧИВАЕМОГО ПОЛЯ: рамка
+     * рисуется на старом месте, а видно там уже соседний узел каркаса.
+     * Замер 23.09.2026, «Ритм» 360×640: «Продолжить без замера» отдавала 484…532,
+     * под точкой (180,508) лежал `game-aux-row`, и клик уходил в него. Прибор
+     * писал круг «запуск → продолжить → запуск», хотя игра работает.
+     */
+    e.scrollIntoView({ block: 'center' });
     const r = e.getBoundingClientRect();
-    return { t: t.slice(0, 20), заКраем, x: Math.round(r.left + r.width / 2), y: Math.round(r.top + r.height / 2) };
-  }, { src: ВПЕРЁД.source, назадSrc: НАЗАД.source });
+    const x = Math.round(r.left + r.width / 2);
+    const y = Math.round(r.top + r.height / 2);
+    /** Под точкой обязана быть ТА ЖЕ кнопка: иначе нажатие вслепую молчит. */
+    const верх = document.elementFromPoint(x, y);
+    const перекрыта = !(верх && (верх === e || e.contains(верх)));
+    return { t: t.slice(0, 20), заКраем, перекрыта, x, y };
+  }, { src: ВПЕРЁД.source, назадSrc: НАЗАД.source, прошлый: прошлый ?? null });
 }
+
+/**
+ * ⚠️ ЗВУКОВОЙ ШАГ ЖДЁТ ДОЛЬШЕ, И ОДНО И ТО ЖЕ НЕ ЖМЁМ ДВАЖДЫ. Замер 23.09.2026:
+ * у «Ритма» перед партией стоит калибровка громкости. Прибор жал «Запустить калибровку»
+ * и через 1,5 с, не дождавшись сигналов, жал её снова — и так по кругу, ни разу не увидев
+ * кнопку «Продолжить без замера», которая появляется ТОЛЬКО после отыгранных сигналов.
+ * Выход из круга в игре есть, его просто не дожидались: четыре сигнала идут дольше паузы прибора.
+ */
+const ЗВУКОВОЙ_ШАГ = /калибров|calibration/i;
 
 async function вПартию(page) {
   const шаги = [];
-  for (let i = 0; i < 4; i++) {
-    const ц = await шагВперёд(page);
+  let прошлый = null;
+  for (let i = 0; i < 5; i++) {
+    const ц = await шагВперёд(page, прошлый);
     if (!ц) break;
+    /** Перекрытую кнопку НЕ жмём вслепую: молчаливый промах хуже честной остановки. */
+    if (ц.перекрыта) { шаги.push(`${ц.t} 🔴 перекрыта другим узлом`); break; }
     await page.mouse.click(ц.x, ц.y);
     шаги.push(ц.заКраем ? `${ц.t} (за краем, пришлось прокрутить)` : ц.t);
-    await page.waitForTimeout(1500);
+    прошлый = ц.t;
+    await page.waitForTimeout(ЗВУКОВОЙ_ШАГ.test(ц.t) ? 9000 : 1500);
     await устойчиво(page);
     await погаситьПодсказку(page);
   }

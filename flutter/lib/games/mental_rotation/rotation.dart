@@ -11,6 +11,7 @@
 library;
 
 import 'geometry.dart';
+import 'occlusion.dart';
 import 'levels.dart';
 import 'rng.dart';
 import 'shapes.dart';
@@ -70,6 +71,29 @@ Shape _applySteps(Shape shape, List<RotationStep> steps) {
   return normalizeShape(out);
 }
 
+/// Фигура и ракурс, где видны все кубики И у эталона, И у его поворота. Нет такой
+/// пары за восемь попыток — берётся ракурс с наименьшим числом скрытых.
+Shape _cleanPair(Shape base, List<Shape> candidates, List<RotationStep> steps, Rng rng) {
+  for (var attempt = 0; attempt < 8; attempt++) {
+    final figure = attempt == 0 ? base : pick(rng, candidates);
+    final fit = allOrientations(figure)
+        .where((o) => hiddenCubes(o).isEmpty && hiddenCubes(_applySteps(o, steps)).isEmpty)
+        .toList();
+    if (fit.isNotEmpty) return pick(rng, fit);
+  }
+  final all = allOrientations(base);
+  var best = all.first;
+  var bestCount = 1 << 30;
+  for (final o in all) {
+    final n = hiddenCubes(o).length + hiddenCubes(_applySteps(o, steps)).length;
+    if (n < bestCount) {
+      bestCount = n;
+      best = o;
+    }
+  }
+  return best;
+}
+
 RotationTask buildRotationTask(int level, Rng rng) {
   final p = levelParams(level);
   final spec = rotationLevelSpec(level);
@@ -80,13 +104,17 @@ RotationTask buildRotationTask(int level, Rng rng) {
   // Поворот обязан что-то изменить: вариант, совпавший с эталоном, отвечается без ротации в голове.
   final steps = [for (final axis in spec.path) RotationStep(axis)];
   if (rng() < .5) steps.add(RotationStep(spec.path.last));
+  // 🔴 Ракурс эталона ВЫБИРАЕТСЯ, а не достаётся какой выпал: иначе эталон прячет
+  // кубик, а верный ответ с другой стороны его открывает, и на экране две разные
+  // фигуры. Подробности и замеры — в occlusion.dart и в TS-близнеце rotation.ts.
+  base = _cleanPair(base, candidates, steps, rng);
   var correctShape = _applySteps(base, steps);
   for (
     var guard = 0;
     guard < 12 && shapeKey(correctShape) == shapeKey(normalizeShape(base));
     guard++
   ) {
-    base = pick(rng, candidates);
+    base = _cleanPair(pick(rng, candidates), candidates, steps, rng);
     correctShape = _applySteps(base, steps);
   }
 
@@ -94,6 +122,9 @@ RotationTask buildRotationTask(int level, Rng rng) {
     RotationOption(shape: correctShape, isMatch: true, flaw: Flaw.none),
   ];
   final taken = <String>{shapeKey(correctShape)};
+  // Отпечатки РИСУНКОВ показанных вариантов — отдельно от `taken`: две разные фигуры,
+  // отличающиеся только невидимым кубиком, дают на экране один и тот же рисунок.
+  final drawn = <String>{visibleSignature(correctShape)};
   final others = candidates.where((s) => shapeKey(s) != shapeKey(base)).toList();
 
   RotationOption? spoil() {
@@ -122,8 +153,18 @@ RotationTask buildRotationTask(int level, Rng rng) {
   for (var attempt = 0; options.length < p.optionCount && attempt < 200; attempt++) {
     final spoiled = spoil();
     if (spoiled == null) continue;
-    taken.add(shapeKey(spoiled.shape));
-    options.add(spoiled);
+    // Подделка тоже показывается целиком — но только там, где ракурс и так случаен:
+    // у подделки «переставлен один кубик» он связан с эталоном, и крутить её нельзя.
+    final freeAngle = spec.foil != 'one-cube';
+    final clean = freeAngle ? orientationsWithoutHidden(spoiled.shape) : const <Shape>[];
+    final shown = clean.isNotEmpty ? pick(rng, clean) : spoiled.shape;
+    // Ни один вариант не имеет права выглядеть как уже показанный.
+    final signature = visibleSignature(shown);
+    if (drawn.contains(signature)) continue;
+    if (taken.contains(shapeKey(shown))) continue;
+    drawn.add(signature);
+    taken.add(shapeKey(shown));
+    options.add(RotationOption(shape: shown, isMatch: false, flaw: spoiled.flaw));
   }
   if (options.length != p.optionCount) {
     throw StateError('rotation $level: insufficient distinct options');

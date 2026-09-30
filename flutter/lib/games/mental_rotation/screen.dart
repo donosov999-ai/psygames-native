@@ -7,6 +7,8 @@ import 'package:flutter/material.dart' hide Axis;
 import 'package:flutter/material.dart' as ui show Axis;
 
 import '../../shell/aux_action.dart';
+import '../../shell/demo_lesson.dart';
+import '../../shell/l10n.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
@@ -283,6 +285,16 @@ class _MentalRotationScreenState extends State<MentalRotationScreen> {
 
   // ─── экран ──────────────────────────────────────────────────────────────
 
+  /// Заголовок один на экран и на разбор: вторая такая строка — второй долг
+  /// храповика подписей (`test/ui_text_debt_does_not_grow_test.dart`).
+  String get _title => 'Мысленное вращение';
+
+  /// Разбор объясняет ПРИЁМ: верный ответ человек и так увидит по итогу раунда,
+  /// а вот чем объём берётся — нет.
+  List<DemoTrial> _demoTrials() => [
+        DemoTrial(text: '', rule: L.t('teachRotationAnchor')),
+      ];
+
   @override
   Widget build(BuildContext context) {
     if (!_ready) return const Scaffold(body: Center(child: CircularProgressIndicator()));
@@ -290,7 +302,8 @@ class _MentalRotationScreenState extends State<MentalRotationScreen> {
     final task = _task;
 
     return GameShell(
-      title: 'Мысленное вращение',
+      title: _title,
+      onLesson: () => openDemoLesson(context, title: _title, trials: _demoTrials()),
       onRules: () => _showRules(context),
       hud: _phase == Phase.playing
           ? [

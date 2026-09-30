@@ -1,0 +1,225 @@
+{
+ "снято": "прогоном живого TS из frontend/app/games/ant.tsx (VER 2, origin/main)",
+ "incongruentProb": 0.3333333333333333,
+ "neutralProb": 0.3333333333333333,
+ "maxLevel": 15,
+ "levels": [
+  {
+   "level": 1,
+   "trials": 12,
+   "windowMs": 3000,
+   "preJitterMs": 400,
+   "ctoaVarMs": 100,
+   "condition": {
+    "trials": 12,
+    "windowMs": 3000,
+    "preJitterMs": 400,
+    "ctoaVarMs": 100
+   }
+  },
+  {
+   "level": 2,
+   "trials": 12,
+   "windowMs": 2860,
+   "preJitterMs": 480,
+   "ctoaVarMs": 140,
+   "condition": {
+    "trials": 12,
+    "windowMs": 2860,
+    "preJitterMs": 480,
+    "ctoaVarMs": 140
+   }
+  },
+  {
+   "level": 3,
+   "trials": 12,
+   "windowMs": 2720,
+   "preJitterMs": 560,
+   "ctoaVarMs": 180,
+   "condition": {
+    "trials": 12,
+    "windowMs": 2720,
+    "preJitterMs": 560,
+    "ctoaVarMs": 180
+   }
+  },
+  {
+   "level": 4,
+   "trials": 12,
+   "windowMs": 2580,
+   "preJitterMs": 640,
+   "ctoaVarMs": 220,
+   "condition": {
+    "trials": 12,
+    "windowMs": 2580,
+    "preJitterMs": 640,
+    "ctoaVarMs": 220
+   }
+  },
+  {
+   "level": 5,
+   "trials": 12,
+   "windowMs": 2440,
+   "preJitterMs": 720,
+   "ctoaVarMs": 260,
+   "condition": {
+    "trials": 12,
+    "windowMs": 2440,
+    "preJitterMs": 720,
+    "ctoaVarMs": 260
+   }
+  },
+  {
+   "level": 6,
+   "trials": 16,
+   "windowMs": 2300,
+   "preJitterMs": 800,
+   "ctoaVarMs": 300,
+   "condition": {
+    "trials": 16,
+    "windowMs": 2300,
+    "preJitterMs": 800,
+    "ctoaVarMs": 300
+   }
+  },
+  {
+   "level": 7,
+   "trials": 16,
+   "windowMs": 2160,
+   "preJitterMs": 880,
+   "ctoaVarMs": 340,
+   "condition": {
+    "trials": 16,
+    "windowMs": 2160,
+    "preJitterMs": 880,
+    "ctoaVarMs": 340
+   }
+  },
+  {
+   "level": 8,
+   "trials": 16,
+   "windowMs": 2020,
+   "preJitterMs": 960,
+   "ctoaVarMs": 380,
+   "condition": {
+    "trials": 16,
+    "windowMs": 2020,
+    "preJitterMs": 960,
+    "ctoaVarMs": 380
+   }
+  },
+  {
+   "level": 9,
+   "trials": 16,
+   "windowMs": 1880,
+   "preJitterMs": 1040,
+   "ctoaVarMs": 420,
+   "condition": {
+    "trials": 16,
+    "windowMs": 1880,
+    "preJitterMs": 1040,
+    "ctoaVarMs": 420
+   }
+  },
+  {
+   "level": 10,
+   "trials": 16,
+   "windowMs": 1740,
+   "preJitterMs": 1120,
+   "ctoaVarMs": 460,
+   "condition": {
+    "trials": 16,
+    "windowMs": 1740,
+    "preJitterMs": 1120,
+    "ctoaVarMs": 460
+   }
+  },
+  {
+   "level": 11,
+   "trials": 20,
+   "windowMs": 1600,
+   "preJitterMs": 1200,
+   "ctoaVarMs": 500,
+   "condition": {
+    "trials": 20,
+    "windowMs": 1600,
+    "preJitterMs": 1200,
+    "ctoaVarMs": 500
+   }
+  },
+  {
+   "level": 12,
+   "trials": 20,
+   "windowMs": 1460,
+   "preJitterMs": 1280,
+   "ctoaVarMs": 540,
+   "condition": {
+    "trials": 20,
+    "windowMs": 1460,
+    "preJitterMs": 1280,
+    "ctoaVarMs": 540
+   }
+  },
+  {
+   "level": 13,
+   "trials": 20,
+   "windowMs": 1320,
+   "preJitterMs": 1360,
+   "ctoaVarMs": 580,
+   "condition": {
+    "trials": 20,
+    "windowMs": 1320,
+    "preJitterMs": 1360,
+    "ctoaVarMs": 580
+   }
+  },
+  {
+   "level": 14,
+   "trials": 20,
+   "windowMs": 1180,
+   "preJitterMs": 1440,
+   "ctoaVarMs": 620,
+   "condition": {
+    "trials": 20,
+    "windowMs": 1180,
+    "preJitterMs": 1440,
+    "ctoaVarMs": 620
+   }
+  },
+  {
+   "level": 15,
+   "trials": 20,
+   "windowMs": 1040,
+   "preJitterMs": 1520,
+   "ctoaVarMs": 660,
+   "condition": {
+    "trials": 20,
+    "windowMs": 1040,
+    "preJitterMs": 1520,
+    "ctoaVarMs": 660
+   }
+  }
+ ],
+ "замер потока": {
+  "прогонов": 300000,
+  "доли": {
+   "incongruent": 0.3336,
+   "neutral": 0.3321,
+   "congruent": 0.3343
+  },
+  "подсказки": {
+   "center": 0.2499,
+   "none": 0.25,
+   "double": 0.2503,
+   "spatial": 0.2498
+  },
+  "позиции": {
+   "bottom": 0.5011,
+   "top": 0.4989
+  },
+  "направления": {
+   "left": 0.5,
+   "right": 0.5
+  }
+ }
+}

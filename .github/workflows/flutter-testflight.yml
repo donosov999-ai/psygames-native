@@ -15,13 +15,15 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Версия в магазине (CFBundleShortVersionString)'
-        required: true
-        default: '2.55.0'
-      notes:
-        description: 'Что тестировать — одной строкой'
+        description: 'Версия — ПУСТО значит из frontend/app.json (одна линия на все сборки)'
         required: false
-        default: 'Гибрид: «Соедини точки», «Одна линия», «Цифровой ряд», «Матрица памяти» уже нативные, остальное как раньше'
+        default: ''
+      notes:
+        # Уходит в «Что тестировать» у сборки; коммит и прогон скрипт раздачи дописывает
+        # сам (задача aa56958d). До 30.09 поле было объявлено и никуда не шло.
+        description: 'Что тестировать — одной строкой (коммит допишется сам)'
+        required: false
+        default: ''
 
 env:
   BUNDLE_ID: com.psygames.app
@@ -86,6 +88,13 @@ jobs:
           git -C "$HOME/puzzles" checkout --quiet "$TATHAM_SHA"
           echo "канон: $(git -C "$HOME/puzzles" rev-parse --short HEAD)"
           PUZZLES_SRC="$HOME/puzzles" tool/build_tatham.sh
+          # 🔴 И ОТДЕЛЬНО ПОД iOS — ЭТО РАЗНЫЕ СБОРКИ, А НЕ ОДНА.
+          # Выше — библиотека ПОД ХОСТ, ею гоняются пробы. Здесь — статическая .a
+          # под устройство: её линкует ios/Flutter/Release.xcconfig (-force_load).
+          # Нет файла — линковка падает, и падает она на ШЕСТНАДЦАТОЙ минуте сборки,
+          # когда уже собран весь Dart.
+          PUZZLES_SRC="$HOME/puzzles" tool/build_tatham_ios.sh arm64
+          ls -l build/tatham-ios-arm64/libtatham.a
 
       - name: Пробы пилота
         working-directory: flutter
@@ -96,8 +105,31 @@ jobs:
 
       - name: Боевой идентификатор и версия
         run: |
+          # 🔴 ВЕРСИЯ БЕРЁТСЯ ИЗ frontend/app.json — ОДНА ЛИНИЯ НА ВСЁ.
+          #
+          # 📍 Решение Дениса 24.09.2026: «льём везде на Flutter, никаких двух веток».
+          # До этого номер приходил параметром запуска, и линии разъехались: в Play
+          # уезжала 2.54.x, в TestFlight — 2.55.x. Ручное поле означало, что сверить
+          # их было нечем и некому, и однажды веб дорос бы до занятых гибридом
+          # номеров, а App Store не принимает версию, равную опубликованной.
+          #
+          # Теперь источник один — тот же файл, из которого версию берут Play,
+          # App Store и десктоп. Поле `version` у запуска оставлено ТОЛЬКО как
+          # запасной ход: пусто — берём из app.json.
           BUILD="${{ github.run_number }}"
-          sed -i '' "s/^version: .*/version: ${{ inputs.version }}+$BUILD/" flutter/pubspec.yaml
+          VERSION="${{ inputs.version }}"
+          FROM_APP=$(node -p "require('./frontend/app.json').expo.version")
+          if [ -z "$VERSION" ] || [ "$VERSION" = "из app.json" ]; then VERSION="$FROM_APP"; fi
+          if [ "$VERSION" != "$FROM_APP" ]; then
+            echo "::warning title=Версия::запуск просит $VERSION, а в app.json $FROM_APP — линия расходится"
+          fi
+          sed -i '' "s/^version: .*/version: $VERSION+$BUILD/" flutter/pubspec.yaml
+          # 🔴 ВЕРСИЮ ОТДАЁМ ДАЛЬШЕ ПО ПРОГОНУ, А НЕ ЧИТАЕМ ПОЛЕ ЗАНОВО.
+          # Замер 24.09.2026: поле запуска стало необязательным, шаги ниже
+          # продолжали брать `inputs.version` — и получали ПУСТО. Раздача искала
+          # сборку «+31» без версии, не нашла и упала «не стала VALID за 20 минут»,
+          # хотя .ipa на 82 МБ залился нормально. Одна переменная на весь прогон.
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
           # ⚠️ В iOS-проекте идентификатор пишется pro.psygames.psygamesFlutter,
           # а в Android — pro.psygames.psygames_flutter. Первый заход 23.09 искал
           # второе написание, не заменил ничего, и упал на проверке ниже — она и
@@ -105,7 +137,7 @@ jobs:
           sed -i '' "s/pro\.psygames\.psygamesFlutter/$BUNDLE_ID/g" flutter/ios/Runner.xcodeproj/project.pbxproj
           /usr/libexec/PlistBuddy -c "Set :CFBundleDisplayName PsyGames" flutter/ios/Runner/Info.plist 2>/dev/null \
             || /usr/libexec/PlistBuddy -c "Add :CFBundleDisplayName string PsyGames" flutter/ios/Runner/Info.plist
-          echo "версия ${{ inputs.version }}+$BUILD · идентификатор $BUNDLE_ID"
+          echo "версия $VERSION+$BUILD · идентификатор $BUNDLE_ID"
           NEW=$(grep -c "PRODUCT_BUNDLE_IDENTIFIER = $BUNDLE_ID;" flutter/ios/Runner.xcodeproj/project.pbxproj || true)
           LEFT=$(grep -c "pro\.psygames" flutter/ios/Runner.xcodeproj/project.pbxproj || true)
           echo "целей с боевым идентификатором: $NEW · осталось старых упоминаний: $LEFT"
@@ -177,6 +209,23 @@ jobs:
           </dict></plist>
           PLIST
           flutter build ipa --release --export-options-plist="$RUNNER_TEMP/ExportOptions.plist"
+
+      # 🔴 ДВИЖОК ДОЕХАЛ ДО БИНАРНИКА? Проверяем ДО заливки, а не после.
+      # Линковка молчит, когда движок выпадает: сборка зелёная, размер
+      # правдоподобный, а приложение падает на первом ходе уже у человека.
+      # Замер чата «Шахматы» 23.09.2026: бинарник вышел 294 КБ вообще без движка,
+      # и ничего красного не загорелось.
+      - name: Гейт — движок в бинарнике
+        working-directory: flutter
+        # ⚠️ БЕЗ ПУТИ: пусть ищет сам. Явный путь здесь и был причиной трёх
+        # отбитых зелёных сборок — на бегунке после `flutter build ipa` нет
+        # ни build/ios/iphoneos, ни распакованного .app, только .ipa.
+        run: |
+          tool/check_ios_engine.sh
+          # ⚠️ И ТОЛЬКО ПОТОМ КОПИРОВАНИЕ. Заменяя вызов гейта, я срезал вместе с
+          # ним эти три строки — и сборка прошла гейт, но упала на заливке с
+          # «.ipa не найден». Многострочный `run:` обязан начинаться с `|`,
+          # иначе YAML склеивает строки в одну команду.
           mkdir -p "$RUNNER_TEMP/ipa"
           cp build/ios/ipa/*.ipa "$RUNNER_TEMP/ipa/"
           ls -la "$RUNNER_TEMP/ipa"
@@ -195,12 +244,32 @@ jobs:
           {
             echo "## Гибрид на Flutter уехал в TestFlight"
             echo ""
-            echo "· версия ${{ inputs.version }}+${{ github.run_number }}, идентификатор $BUNDLE_ID"
+            echo "· версия $VERSION+${{ github.run_number }}, идентификатор $BUNDLE_ID"
             echo "· нативные игры: «Соедини точки», «Одна линия», «Цифровой ряд», «Матрица памяти»"
             echo "· остальные экраны открываются нынешней сборкой внутри приложения"
             echo ""
-            echo "⚠️ Внутренняя группа видит сборку сразу, внешняя ждёт одобрения Apple."
+            echo "⚠️ Внешняя группа «Семья и близкие» ждёт одобрения Apple и раздаётся вручную."
           } >> "$GITHUB_STEP_SUMMARY"
+
+      # 🔴 БЕЗ ЭТОГО ШАГА ЗАЛИВКА НИЧЕГО НЕ МЕНЯЕТ НА ТЕЛЕФОНЕ. Сборка появляется в App
+      # Store Connect и остаётся НИ В ОДНОЙ группе: так 23.09.2026 молча простояли четыре
+      # версии подряд, а тестировщики видели предыдущую. Прежний итог прогона писал
+      # «внутренняя группа видит сборку сразу» — это была неправда.
+      - name: Раздать сборку внутренней группе
+        env:
+          APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
+          WHAT_TO_TEST: ${{ inputs.notes }}
+        run: |
+          # ⚠️ ОТДЕЛЬНОЕ ОКРУЖЕНИЕ, А НЕ `pip install` В СИСТЕМНЫЙ PYTHON. На раннере
+          # macOS python3 из Homebrew, и он отбивает установку с
+          # `error: externally-managed-environment` (PEP 668). Прогон 35913577125:
+          # сборка 2.55.5 залилась, а шаг раздачи упал здесь — версия осталась
+          # невидимой для тестировщиков, и отдавать её пришлось руками.
+          python3 -m venv "$RUNNER_TEMP/tfenv"
+          "$RUNNER_TEMP/tfenv/bin/pip" install --quiet --disable-pip-version-check pyjwt cryptography
+          export APPLE_API_KEY_FILE=~/private_keys/AuthKey_${APPLE_API_KEY_ID}.p8
+          "$RUNNER_TEMP/tfenv/bin/python" flutter/tool/testflight_assign.py "$VERSION" "${{ github.run_number }}"
 
       - uses: actions/upload-artifact@v4
         if: always()

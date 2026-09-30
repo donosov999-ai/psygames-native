@@ -111,6 +111,8 @@ class SharedState {
     } catch (_) {
       return false;
     }
+    // Сообщение о смене маршрута ключей не несёт — его разбирает оболочка.
+    if (m['op'] == 'route') return false;
     final key = m['key'];
     if (key is! String || !owns(key)) return false;
     switch (m['op']) {
@@ -153,6 +155,25 @@ class SharedState {
   var send = function (msg) {
     try { if (window.$channel && window.$channel.postMessage) window.$channel.postMessage(JSON.stringify(msg)); } catch (e) {}
   };
+  // 🔴 СМЕНА МАРШРУТА — ТАКАЯ ЖЕ ПОДМЕНА, КАК И ЗАПИСЬ В ХРАНИЛИЩЕ, И ПО ТОЙ ЖЕ ПРИЧИНЕ.
+  //
+  // Оболочка ловила переходы через `onNavigationRequest`, а он срабатывает только
+  // на НАСТОЯЩУЮ загрузку документа. Приложение же ходит по экранам через History
+  // API (expo-router зовёт `pushState`), и WebView о таком переходе не сообщает
+  // вовсе. Замер раздела «Зарядки» 23.09.2026 на симуляторе iPhone 17 Pro: и
+  // `spatial-span` из зарядки, и `spatial-hub` из каталога открылись ВЕБ-версиями,
+  // хотя обе стоят в карте перехвата. То есть перехват не работал ни разу, и
+  // вместе с ним не исполнялось ничего, что висит на нативном экране.
+  //
+  // ⚠️ Событие `popstate` тут не спасает: браузер шлёт его на «назад», но НЕ на
+  // `pushState`. Поэтому подменяются оба метода, а `popstate` слушается вдобавок.
+  var sendRoute = function () { send({ op: 'route', url: String(location.href) }); };
+  var hist = window.history;
+  var push = hist.pushState, replace = hist.replaceState;
+  hist.pushState = function () { push.apply(hist, arguments); sendRoute(); };
+  hist.replaceState = function () { replace.apply(hist, arguments); sendRoute(); };
+  window.addEventListener('popstate', sendRoute);
+
   var proto = window.Storage.prototype;
   var setItem = proto.setItem, removeItem = proto.removeItem;
   proto.setItem = function (k, v) {

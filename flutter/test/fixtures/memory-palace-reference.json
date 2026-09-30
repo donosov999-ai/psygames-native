@@ -1,0 +1,742 @@
+{
+ "meta": {
+  "source": "frontend/src/games/memory-palace/core",
+  "note": "Прогон живого TS. Dart обязан повторить до знака.",
+  "seed": "flutter-ref",
+  "levels": [
+   1,
+   3,
+   5,
+   6,
+   7,
+   9,
+   11,
+   13,
+   15
+  ],
+  "lociForLevel": [
+   5,
+   6,
+   7,
+   7,
+   8,
+   9,
+   10,
+   11,
+   12
+  ]
+ },
+ "rounds": [
+  {
+   "level": 1,
+   "id": "memory-palace:flutter-ref:1",
+   "difficulty": 26,
+   "lociCount": 5,
+   "routeShuffled": false,
+   "lociIds": [
+    "gate",
+    "fountain",
+    "gallery",
+    "stairs",
+    "window"
+   ],
+   "lociOrder": [
+    1,
+    2,
+    3,
+    4,
+    5
+   ],
+   "targetItemIds": [
+    "envelope",
+    "ring",
+    "cup",
+    "spoon",
+    "boot"
+   ],
+   "distractorItemIds": [
+    "quill",
+    "bell"
+   ],
+   "recallCandidateIds": [
+    "quill",
+    "boot",
+    "cup",
+    "spoon",
+    "envelope",
+    "ring",
+    "bell"
+   ]
+  },
+  {
+   "level": 3,
+   "id": "memory-palace:flutter-ref:3",
+   "difficulty": 34,
+   "lociCount": 6,
+   "routeShuffled": false,
+   "lociIds": [
+    "gate",
+    "fountain",
+    "gallery",
+    "stairs",
+    "window",
+    "library"
+   ],
+   "lociOrder": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6
+   ],
+   "targetItemIds": [
+    "candle",
+    "suitcase",
+    "violet",
+    "thermos",
+    "lamp",
+    "bottle"
+   ],
+   "distractorItemIds": [
+    "mitten",
+    "envelope"
+   ],
+   "recallCandidateIds": [
+    "envelope",
+    "lamp",
+    "candle",
+    "bottle",
+    "violet",
+    "thermos",
+    "suitcase",
+    "mitten"
+   ]
+  },
+  {
+   "level": 5,
+   "id": "memory-palace:flutter-ref:5",
+   "difficulty": 42,
+   "lociCount": 7,
+   "routeShuffled": false,
+   "lociIds": [
+    "gate",
+    "fountain",
+    "gallery",
+    "stairs",
+    "window",
+    "library",
+    "balcony"
+   ],
+   "lociOrder": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7
+   ],
+   "targetItemIds": [
+    "quill",
+    "leaf",
+    "strawhat",
+    "scissors",
+    "envelope",
+    "candle",
+    "boot"
+   ],
+   "distractorItemIds": [
+    "guitar",
+    "shell"
+   ],
+   "recallCandidateIds": [
+    "quill",
+    "envelope",
+    "strawhat",
+    "shell",
+    "boot",
+    "candle",
+    "guitar",
+    "leaf",
+    "scissors"
+   ]
+  },
+  {
+   "level": 6,
+   "id": "memory-palace:flutter-ref:6",
+   "difficulty": 42,
+   "lociCount": 7,
+   "routeShuffled": true,
+   "lociIds": [
+    "window",
+    "bridge",
+    "observatory",
+    "stairs",
+    "tower",
+    "gallery",
+    "library"
+   ],
+   "lociOrder": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7
+   ],
+   "targetItemIds": [
+    "teapot",
+    "candle",
+    "spoon",
+    "umbrella",
+    "whistle",
+    "wateringcan",
+    "fork"
+   ],
+   "distractorItemIds": [
+    "stone",
+    "pencil"
+   ],
+   "recallCandidateIds": [
+    "whistle",
+    "pencil",
+    "stone",
+    "wateringcan",
+    "spoon",
+    "fork",
+    "teapot",
+    "umbrella",
+    "candle"
+   ]
+  },
+  {
+   "level": 7,
+   "id": "memory-palace:flutter-ref:7",
+   "difficulty": 54,
+   "lociCount": 8,
+   "routeShuffled": true,
+   "lociIds": [
+    "library",
+    "tower",
+    "garden",
+    "gallery",
+    "fountain",
+    "window",
+    "observatory",
+    "workshop"
+   ],
+   "lociOrder": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8
+   ],
+   "targetItemIds": [
+    "clock",
+    "violet",
+    "kite",
+    "quill",
+    "cactus",
+    "mitten",
+    "boat",
+    "umbrella"
+   ],
+   "distractorItemIds": [
+    "envelope",
+    "ladder",
+    "candle"
+   ],
+   "recallCandidateIds": [
+    "mitten",
+    "envelope",
+    "ladder",
+    "boat",
+    "candle",
+    "kite",
+    "umbrella",
+    "violet",
+    "cactus",
+    "quill",
+    "clock"
+   ]
+  },
+  {
+   "level": 9,
+   "id": "memory-palace:flutter-ref:9",
+   "difficulty": 62,
+   "lociCount": 9,
+   "routeShuffled": true,
+   "lociIds": [
+    "stairs",
+    "bridge",
+    "observatory",
+    "window",
+    "library",
+    "gate",
+    "fountain",
+    "gallery",
+    "balcony"
+   ],
+   "lociOrder": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+   ],
+   "targetItemIds": [
+    "ribbon",
+    "leaf",
+    "strawhat",
+    "chair",
+    "bell",
+    "crown",
+    "lemon",
+    "kite",
+    "teapot"
+   ],
+   "distractorItemIds": [
+    "violin",
+    "brick",
+    "hourglass"
+   ],
+   "recallCandidateIds": [
+    "bell",
+    "violin",
+    "hourglass",
+    "chair",
+    "strawhat",
+    "kite",
+    "brick",
+    "crown",
+    "leaf",
+    "lemon",
+    "ribbon",
+    "teapot"
+   ]
+  },
+  {
+   "level": 11,
+   "id": "memory-palace:flutter-ref:11",
+   "difficulty": 70,
+   "lociCount": 10,
+   "routeShuffled": true,
+   "lociIds": [
+    "gate",
+    "window",
+    "observatory",
+    "fountain",
+    "library",
+    "workshop",
+    "balcony",
+    "gallery",
+    "garden",
+    "bridge"
+   ],
+   "lociOrder": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10
+   ],
+   "targetItemIds": [
+    "saucer",
+    "clock",
+    "coin",
+    "shell",
+    "scissors",
+    "leaf",
+    "guitar",
+    "envelope",
+    "crown",
+    "backpack"
+   ],
+   "distractorItemIds": [
+    "feather",
+    "candle",
+    "boat"
+   ],
+   "recallCandidateIds": [
+    "boat",
+    "saucer",
+    "scissors",
+    "coin",
+    "shell",
+    "clock",
+    "candle",
+    "backpack",
+    "guitar",
+    "feather",
+    "leaf",
+    "crown",
+    "envelope"
+   ]
+  },
+  {
+   "level": 13,
+   "id": "memory-palace:flutter-ref:13",
+   "difficulty": 82,
+   "lociCount": 11,
+   "routeShuffled": true,
+   "lociIds": [
+    "fountain",
+    "balcony",
+    "gallery",
+    "window",
+    "gate",
+    "stairs",
+    "tower",
+    "garden",
+    "library",
+    "observatory",
+    "workshop"
+   ],
+   "lociOrder": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11
+   ],
+   "targetItemIds": [
+    "violet",
+    "acorn",
+    "suitcase",
+    "anchor",
+    "feather",
+    "book",
+    "spinningtop",
+    "pumpkin",
+    "quill",
+    "violin",
+    "whistle"
+   ],
+   "distractorItemIds": [
+    "stone",
+    "hourglass",
+    "spoon",
+    "leaf"
+   ],
+   "recallCandidateIds": [
+    "acorn",
+    "pumpkin",
+    "whistle",
+    "anchor",
+    "spinningtop",
+    "book",
+    "stone",
+    "violet",
+    "suitcase",
+    "hourglass",
+    "spoon",
+    "quill",
+    "violin",
+    "feather",
+    "leaf"
+   ]
+  },
+  {
+   "level": 15,
+   "id": "memory-palace:flutter-ref:15",
+   "difficulty": 90,
+   "lociCount": 12,
+   "routeShuffled": true,
+   "lociIds": [
+    "bridge",
+    "balcony",
+    "observatory",
+    "window",
+    "stairs",
+    "gate",
+    "library",
+    "tower",
+    "fountain",
+    "workshop",
+    "garden",
+    "gallery"
+   ],
+   "lociOrder": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12
+   ],
+   "targetItemIds": [
+    "fork",
+    "acorn",
+    "spinningtop",
+    "cup",
+    "envelope",
+    "mitten",
+    "leaf",
+    "strawhat",
+    "saucer",
+    "guitar",
+    "scissors",
+    "walnut"
+   ],
+   "distractorItemIds": [
+    "stone",
+    "candle",
+    "violin",
+    "shell"
+   ],
+   "recallCandidateIds": [
+    "leaf",
+    "cup",
+    "guitar",
+    "saucer",
+    "shell",
+    "candle",
+    "violin",
+    "stone",
+    "fork",
+    "envelope",
+    "mitten",
+    "acorn",
+    "walnut",
+    "scissors",
+    "strawhat",
+    "spinningtop"
+   ]
+  }
+ ],
+ "plays": [
+  {
+   "level": 3,
+   "shift": 0,
+   "phase": "result",
+   "placements": [
+    "candle",
+    "suitcase",
+    "violet",
+    "thermos",
+    "lamp",
+    "bottle"
+   ],
+   "шагиПрямо": [
+    "gate→candle",
+    "fountain→suitcase",
+    "gallery→violet",
+    "stairs→thermos",
+    "window→lamp",
+    "library→bottle"
+   ],
+   "result": {
+    "accuracy": 1,
+    "durationMs": 60000,
+    "difficulty": 34,
+    "errors": 0,
+    "score": 1136,
+    "seed": "flutter-ref",
+    "generatorVersion": "memory-palace-generator-v1",
+    "details": {
+     "level": 3
+    },
+    "specific": {
+     "lociCount": 6,
+     "targetItemCount": 6,
+     "distractorCount": 2,
+     "placementChanges": 0,
+     "itemKnowledgeAccuracy": 1,
+     "locationAccuracy": 1,
+     "orderAccuracy": 1,
+     "forwardLocationAccuracy": 1,
+     "reverseLocationAccuracy": 1,
+     "itemKnowledgeHits": 12,
+     "locationHits": 12,
+     "orderPairHits": 30,
+     "orderPairTotal": 30,
+     "directionScores": [
+      {
+       "direction": "forward",
+       "itemKnowledgeHits": 6,
+       "locationHits": 6,
+       "orderPairHits": 15,
+       "orderPairTotal": 15,
+       "responses": 6
+      },
+      {
+       "direction": "reverse",
+       "itemKnowledgeHits": 6,
+       "locationHits": 6,
+       "orderPairHits": 15,
+       "orderPairTotal": 15,
+       "responses": 6
+      }
+     ]
+    }
+   }
+  },
+  {
+   "level": 7,
+   "shift": 0,
+   "phase": "result",
+   "placements": [
+    "clock",
+    "violet",
+    "kite",
+    "quill",
+    "cactus",
+    "mitten",
+    "boat",
+    "umbrella"
+   ],
+   "шагиПрямо": [
+    "library→clock",
+    "tower→violet",
+    "garden→kite",
+    "gallery→quill",
+    "fountain→cactus",
+    "window→mitten",
+    "observatory→boat",
+    "workshop→umbrella"
+   ],
+   "result": {
+    "accuracy": 1,
+    "durationMs": 60000,
+    "difficulty": 54,
+    "errors": 0,
+    "score": 1216,
+    "seed": "flutter-ref",
+    "generatorVersion": "memory-palace-generator-v1",
+    "details": {
+     "level": 7
+    },
+    "specific": {
+     "lociCount": 8,
+     "targetItemCount": 8,
+     "distractorCount": 3,
+     "placementChanges": 0,
+     "itemKnowledgeAccuracy": 1,
+     "locationAccuracy": 1,
+     "orderAccuracy": 1,
+     "forwardLocationAccuracy": 1,
+     "reverseLocationAccuracy": 1,
+     "itemKnowledgeHits": 16,
+     "locationHits": 16,
+     "orderPairHits": 56,
+     "orderPairTotal": 56,
+     "directionScores": [
+      {
+       "direction": "forward",
+       "itemKnowledgeHits": 8,
+       "locationHits": 8,
+       "orderPairHits": 28,
+       "orderPairTotal": 28,
+       "responses": 8
+      },
+      {
+       "direction": "reverse",
+       "itemKnowledgeHits": 8,
+       "locationHits": 8,
+       "orderPairHits": 28,
+       "orderPairTotal": 28,
+       "responses": 8
+      }
+     ]
+    }
+   }
+  },
+  {
+   "level": 7,
+   "shift": 1,
+   "phase": "result",
+   "placements": [
+    "clock",
+    "violet",
+    "kite",
+    "quill",
+    "cactus",
+    "mitten",
+    "boat",
+    "umbrella"
+   ],
+   "шагиПрямо": [
+    "library→violet",
+    "tower→kite",
+    "garden→quill",
+    "gallery→cactus",
+    "fountain→mitten",
+    "window→boat",
+    "observatory→umbrella",
+    "workshop→clock"
+   ],
+   "result": {
+    "accuracy": 0.5,
+    "durationMs": 60000,
+    "difficulty": 54,
+    "errors": 16,
+    "score": 428,
+    "seed": "flutter-ref",
+    "generatorVersion": "memory-palace-generator-v1",
+    "details": {
+     "level": 7
+    },
+    "specific": {
+     "lociCount": 8,
+     "targetItemCount": 8,
+     "distractorCount": 3,
+     "placementChanges": 0,
+     "itemKnowledgeAccuracy": 1,
+     "locationAccuracy": 0,
+     "orderAccuracy": 0.75,
+     "forwardLocationAccuracy": 0,
+     "reverseLocationAccuracy": 0,
+     "itemKnowledgeHits": 16,
+     "locationHits": 0,
+     "orderPairHits": 42,
+     "orderPairTotal": 56,
+     "directionScores": [
+      {
+       "direction": "forward",
+       "itemKnowledgeHits": 8,
+       "locationHits": 0,
+       "orderPairHits": 21,
+       "orderPairTotal": 28,
+       "responses": 8
+      },
+      {
+       "direction": "reverse",
+       "itemKnowledgeHits": 8,
+       "locationHits": 0,
+       "orderPairHits": 21,
+       "orderPairTotal": 28,
+       "responses": 8
+      }
+     ]
+    }
+   }
+  }
+ ]
+}

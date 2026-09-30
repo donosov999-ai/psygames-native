@@ -49,10 +49,10 @@ void main() {
 
   /// Экраны раздела и клетка, по которой видно, что доска раздана.
   List<({String name, Widget screen, String cell})> screens() => [
-        (name: 'Судоку', screen: SudokuScreen(state: state), cell: 'клетка0_0'),
-        (name: 'Самурай', screen: SamuraiScreen(state: state), cell: 'клетка0_0'),
-        (name: 'Фрактал', screen: FractalScreen(state: state), cell: 'корень0_0'),
-        (name: 'Бездна', screen: DeepScreen(state: state), cell: 'клетка0_0'),
+        (name: 'Судоку', screen: SudokuScreen(state: state), cell: 'cell_0_0'),
+        (name: 'Самурай', screen: SamuraiScreen(state: state), cell: 'cell_0_0'),
+        (name: 'Фрактал', screen: FractalScreen(state: state), cell: 'root_0_0'),
+        (name: 'Бездна', screen: DeepScreen(state: state), cell: 'cell_0_0'),
       ];
 
   for (final size in sizes) {
@@ -86,7 +86,7 @@ void main() {
 
     for (final s in screens()) {
       await boot(tester, s.screen, s.cell);
-      for (final key in ['цифра1', 'цифра9', 'стереть']) {
+      for (final key in ['digit1', 'digit9', 'erase']) {
         final f = find.byKey(Key(key));
         expect(f, findsOneWidget, reason: '${s.name}: нет клавиши $key');
         final rect = tester.getRect(f);
@@ -103,10 +103,10 @@ void main() {
   /// 🔴 ПРОГРЕСС ПИШЕТСЯ ПОД ТЕМ ЖЕ КЛЮЧОМ, ЧТО У ВЕБ-ВЕРСИИ. Разойдутся имена —
   /// обе половины будут работать, показывая разные уровни, и заметит это игрок.
   testWidgets('🔴 экраны читают уровень из общих ключей, а не из своих', (tester) async {
-    await boot(tester, SudokuScreen(state: state), 'клетка0_0');
+    await boot(tester, SudokuScreen(state: state), 'cell_0_0');
     expect(find.text('5'), findsWidgets, reason: 'судоку взяла уровень 5 из общего ключа');
 
-    await boot(tester, FractalScreen(state: state), 'корень0_0');
+    await boot(tester, FractalScreen(state: state), 'root_0_0');
     expect(find.text('6'), findsWidgets, reason: 'фрактал взял уровень 6 из общего ключа');
   });
 }

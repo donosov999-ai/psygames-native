@@ -1,3 +1,6 @@
+import 'game_pet.dart';
+import 'game_rules.dart';
+import 'l10n.dart';
 import 'package:flutter/material.dart';
 
 /// Каркас игрового экрана — перенос GameShell из React-версии PsyGames.
@@ -19,6 +22,7 @@ class GameShell extends StatelessWidget {
     this.toolbar,
     this.onBack,
     this.onRules,
+    this.onLesson,
     this.pauseActions = const [],
   });
 
@@ -39,6 +43,20 @@ class GameShell extends StatelessWidget {
   final VoidCallback? onBack;
   final VoidCallback? onRules;
 
+  /*
+   * 🔴 РАЗБОР ПО ШАГАМ — КНОПКА В КАРКАСЕ, А НЕ В 38 ЭКРАНАХ.
+   *
+   * Решение Дениса 24.09.2026: «решатель и учитель вообще должны быть в каждом
+   * упражнении… кнопку решателя и учителя не забудь поставить в игры». Поставить
+   * её по одной в каждый экран — это тридцать восемь мест разойтись: где-то
+   * значок другой, где-то её забудут вовсе. Поэтому место у кнопки одно, рядом с
+   * «Правилами», и выглядит она везде одинаково.
+   *
+   * Игра передаёт сюда только «что делать по нажатию». Нет разбора у игры — нет и
+   * кнопки: объяснять отсутствие того, чего не видно, незачем.
+   */
+  final VoidCallback? onLesson;
+
   /// Пункты меню паузы: те же служебные действия плюс выход.
   final List<PauseAction> pauseActions;
 
@@ -49,9 +67,30 @@ class GameShell extends StatelessWidget {
       body: SafeArea(
         child: Column(
           children: [
-            _Header(title: title, onBack: onBack, onRules: onRules, onPause: () => _pause(context)),
+            _Header(
+              title: title,
+              // Кнопка в шапке есть ВСЕГДА: раздел уточняет, куда вести, но не
+              // решает, можно ли уйти. См. `_leave`.
+              onBack: () => _leave(context),
+              /*
+               * 🔴 СПРАВКА ЕСТЬ У КАЖДОЙ ИГРЫ, И ЭКРАН ЕЁ НЕ ПЕРЕДАЁТ.
+               *
+               * Заводить кнопку в каждый из полусотни перенесённых экранов —
+               * полсотни мест её забыть. Так уже вышло с выходом: `onBack`
+               * передавал ОДИН экран из тридцати восьми. Поэтому правило каркас
+               * спрашивает сам, по адресу открытой игры (`GameRules`), а экран
+               * может уточнить своё — тогда берётся его.
+               */
+              onRules: onRules ?? _rulesByRoute(context),
+              onLesson: onLesson,
+              onPause: () => _pause(context),
+            ),
             if (hud.isNotEmpty) _HudRow(items: hud),
             Expanded(
+              // Ключ нужен пробам: по нему меряется, вписалась ли доска в поле.
+              // Без него проверить это снаружи нечем — `Wrap` и `Stack` о
+              // переполнении молчат и просто рисуют поверх нижних полос.
+              key: const Key('game-field'),
               child: LayoutBuilder(
                 // 🔴 Высота поля отдаётся игре числом. Игра НЕ считает доску от окна:
                 // окно не знает про шапку, счётчики, ряд значков и липкий низ.
@@ -71,28 +110,170 @@ class GameShell extends StatelessWidget {
     );
   }
 
+  /*
+   * 🔴 ИЗ ИГРЫ ОБЯЗАН БЫТЬ ВЫХОД, И ОТВЕЧАЕТ ЗА ЭТО КАРКАС.
+   *
+   * Найдено живьём 23.09.2026, Денис на iPhone: «даже выйти сейчас нельзя из игры».
+   * В листе паузы было «Начать заново», «Отменить ход», «Продолжить» — и всё.
+   * Свайп от края нативный экран тоже не закрывает.
+   *
+   * Замер по коду: экранов на каркасе 38, `onBack` передаёт ОДИН. Тридцать семь
+   * разделов не сговаривались — их одинаково не заставили: поле было
+   * необязательным, и каркас молча рисовал шапку без кнопки.
+   *
+   * Поэтому выход берёт на себя каркас: `onBack`, если раздел его дал, иначе
+   * `Navigator.maybePop` — то самое, что делает системный жест. Раздел может
+   * уточнить поведение, но не может его ОТМЕНИТЬ, и это верно: экран без выхода
+   * — не экран, а ловушка.
+   */
+  /// Справка по адресу открытой игры; null — правила для неё нет.
+  VoidCallback? _rulesByRoute(BuildContext context) {
+    final key = GameRules.keyFor(GameRules.currentRoute);
+    if (key == null) return null;
+    return () => showGameRules(context, title: title, ruleKey: key);
+  }
+
+  void _leave(BuildContext context) {
+    if (onBack != null) {
+      onBack!();
+      return;
+    }
+    Navigator.of(context).maybePop();
+  }
+
   void _pause(BuildContext context) {
-    showModalBottomSheet<void>(
-      context: context,
-      builder: (ctx) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            for (final a in pauseActions)
-              ListTile(
-                leading: Icon(a.icon),
-                title: Text(a.label),
-                onTap: () {
-                  Navigator.of(ctx).pop();
-                  a.onPressed();
-                },
+    Navigator.of(context).push(MaterialPageRoute<void>(
+      builder: (_) => _PauseScreen(
+        hud: hud,
+        actions: pauseActions,
+        onLeave: () => _leave(context),
+      ),
+    ));
+  }
+}
+
+/// 🔴 «НА ГЛАВНУЮ» — ЭТО НЕ ТО ЖЕ, ЧТО «ВЫЙТИ ИЗ УПРАЖНЕНИЯ».
+///
+/// В веб-версии в паузе ДВА разных ухода (`GameShell.tsx:1343-1345`): шаг назад — в
+/// развилку раздела, откуда человек пришёл, и уход на самую главную минуя развилки.
+/// Нативный экран сам про главную ничего не знает — её показывает веб-половина внутри
+/// оболочки. Поэтому оболочка вешает сюда свой обработчик, а каркас его только зовёт.
+class GameExit {
+  /// Ставит [HybridApp]; пусто — значит главной нет (настольная проба), и пункт не рисуем.
+  static VoidCallback? home;
+}
+
+/// Пауза во весь экран — как в веб-версии, а не лист снизу.
+///
+/// 📍 Образец прислал Денис 23.09.2026 кадром: счётчики сверху, «Продолжить игру»
+/// главной кнопкой, ниже служебные пункты, и ДВА ухода в конце. Лист снизу на три
+/// пункта, который стоял здесь до этого, не давал ни выхода, ни счётчиков.
+class _PauseScreen extends StatelessWidget {
+  const _PauseScreen({required this.hud, required this.actions, required this.onLeave});
+
+  final List<HudItem> hud;
+  final List<PauseAction> actions;
+  final VoidCallback onLeave;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    Widget button(String label, IconData icon, VoidCallback onTap, {bool primary = false, Key? key}) {
+      final child = Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, size: 22, color: primary ? scheme.onPrimary : scheme.onSurface),
+          const SizedBox(width: 10),
+          Flexible(
+            child: Text(
+              label,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: primary ? scheme.onPrimary : scheme.onSurface,
               ),
-            ListTile(
-              leading: const Icon(Icons.close),
-              title: const Text('Продолжить'),
-              onTap: () => Navigator.of(ctx).pop(),
             ),
-          ],
+          ),
+        ],
+      );
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 6),
+        child: SizedBox(
+          width: double.infinity,
+          height: 58,
+          child: Material(
+            key: key,
+            color: primary ? scheme.primary : scheme.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(29),
+            child: InkWell(borderRadius: BorderRadius.circular(29), onTap: onTap, child: Center(child: child)),
+          ),
+        ),
+      );
+    }
+
+    return Scaffold(
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Column(
+            children: [
+              const SizedBox(height: 28),
+              // Счётчики те же, что в шапке игры: человек видит, на чём остановился.
+              if (hud.isNotEmpty)
+                Wrap(
+                  spacing: 10,
+                  runSpacing: 10,
+                  alignment: WrapAlignment.center,
+                  children: [
+                    for (final h in hud)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: scheme.surfaceContainerHighest,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Column(
+                          children: [
+                            Text(h.label, style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant)),
+                            Text(h.value,
+                                style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
+              const SizedBox(height: 28),
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      button(L.t('exitConfirmStay'), Icons.play_arrow,
+                          () => Navigator.of(context).pop(),
+                          primary: true, key: const Key('pause-resume')),
+                      for (final a in actions)
+                        button(a.label, a.icon, () {
+                          Navigator.of(context).pop();
+                          a.onPressed();
+                        }),
+                      // Шаг назад: туда, откуда пришли, — в развилку раздела.
+                      button(L.t('pauseExitGame'), Icons.exit_to_app, () {
+                        Navigator.of(context).pop();
+                        onLeave();
+                      }, key: const Key('pause-leave')),
+                      // И на самую главную, минуя развилки, — если оболочка её знает.
+                      if (GameExit.home != null)
+                        button(L.t('goHome'), Icons.home, () {
+                          Navigator.of(context).pop();
+                          GameExit.home!();
+                        }, key: const Key('pause-home')),
+                      const SizedBox(height: 16),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -114,10 +295,11 @@ class PauseAction {
 }
 
 class _Header extends StatelessWidget {
-  const _Header({required this.title, this.onBack, this.onRules, this.onPause});
+  const _Header({required this.title, this.onBack, this.onRules, this.onLesson, this.onPause});
   final String title;
   final VoidCallback? onBack;
   final VoidCallback? onRules;
+  final VoidCallback? onLesson;
   final VoidCallback? onPause;
 
   @override
@@ -136,10 +318,24 @@ class _Header extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: Theme.of(context).textTheme.titleMedium),
             ),
+            // Питомец в шапке — как в веб-половине. Его нет, пока оболочка не
+            // назвала адрес раздачи: кадры лежат во вложенной веб-сборке.
+            if (PetHost.ready)
+              Padding(
+                padding: const EdgeInsets.only(right: 4),
+                child: GamePet(state: PetHost.state!, origin: PetHost.origin!, size: 34),
+              ),
+            if (onLesson != null)
+              IconButton(
+                key: const Key('game-lesson'),
+                onPressed: onLesson,
+                icon: const Icon(Icons.school_outlined),
+                tooltip: L.t('teachButton'),
+              ),
             if (onRules != null)
               IconButton(onPressed: onRules, icon: const Icon(Icons.help_outline), tooltip: 'Правила'),
             if (onBack != null)
-              IconButton(onPressed: onBack, icon: const Icon(Icons.arrow_back), tooltip: 'Назад'),
+              IconButton(onPressed: onBack, icon: const Icon(Icons.arrow_back), tooltip: L.t('back')),
           ],
         ),
       );

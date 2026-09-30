@@ -23,11 +23,39 @@ OUT="${OUT_DIR:-$FLUTTER_DIR/build/tatham-ios-$ARCH}"
 [ -d "$SRC" ] || { echo "нет канона Тэтхэма: $SRC"; exit 2; }
 [ -f "$BRIDGE/psy_play.c" ] || { echo "нет моста: $BRIDGE"; exit 2; }
 
+# 🔴 ТРИ ЦЕЛИ, А НЕ ДВЕ — И ТРЕТЬЯ САМАЯ ВАЖНАЯ НА СОВРЕМЕННОМ МАКЕ.
+#
+# Первая редакция знала только `arm64 → устройство` и `x86_64 → симулятор`. На
+# Apple Silicon СИМУЛЯТОР ТОЖЕ arm64, и такой цели у скрипта не было вовсе:
+# собранная x86_64-библиотека давала `Undefined symbol: _psy_board` и ещё 25.
+# Нашёл раздел «Зарядки» 23.09.2026, пытаясь прогнать перехват живьём — то есть
+# на этом спотыкается КАЖДЫЙ, кто собирает начисто на M-маке.
+#
+# ⚠️ arm64 для устройства и arm64 для симулятора — РАЗНЫЕ цели: отличается суффикс
+# `-simulator`. Библиотека устройства в симуляторе не линкуется и наоборот.
 case "$ARCH" in
-  arm64)  SDK=iphoneos;        TARGET="arm64-apple-ios13.0" ;;
-  x86_64) SDK=iphonesimulator; TARGET="x86_64-apple-ios13.0-simulator" ;;
-  *) echo "неизвестная архитектура: $ARCH"; exit 2 ;;
+  arm64)     SDK=iphoneos;        TARGET="arm64-apple-ios13.0" ;;
+  arm64-sim) SDK=iphonesimulator; TARGET="arm64-apple-ios13.0-simulator" ;;
+  x86_64)    SDK=iphonesimulator; TARGET="x86_64-apple-ios13.0-simulator" ;;
+  sim)       SDK=iphonesimulator; TARGET="" ;;   # обе архитектуры симулятора + lipo
+  *) echo "неизвестная архитектура: $ARCH (arm64 | arm64-sim | x86_64 | sim)"; exit 2 ;;
 esac
+
+# Универсальная библиотека симулятора: Xcode линкует симулятор ОБЕИМИ
+# архитектурами даже на Apple Silicon, и однослойная .a даёт «Undefined symbol»
+# на той, которой нет.
+if [ "$ARCH" = "sim" ]; then
+  "$0" arm64-sim || exit $?
+  "$0" x86_64   || exit $?
+  OUT_UNI="${OUT_DIR:-$FLUTTER_DIR/build/tatham-ios-sim}"
+  mkdir -p "$OUT_UNI"
+  xcrun lipo -create \
+    "$FLUTTER_DIR/build/tatham-ios-arm64-sim/libtatham.a" \
+    "$FLUTTER_DIR/build/tatham-ios-x86_64/libtatham.a" \
+    -output "$OUT_UNI/libtatham.a" || exit 5
+  echo "$OUT_UNI/libtatham.a · $(wc -c < "$OUT_UNI/libtatham.a" | tr -d ' ') байт · $(xcrun lipo -archs "$OUT_UNI/libtatham.a")"
+  exit 0
+fi
 SDKROOT="$(xcrun --sdk $SDK --show-sdk-path)"
 
 mkdir -p "$OUT/gen" "$OUT/patched" "$OUT/obj"

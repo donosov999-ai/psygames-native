@@ -82,7 +82,9 @@ interface EyeItem {
 // 18 standardized items (subset of Baron-Cohen 2001 + adapted for self-contained format)
 // Real RMET uses photographs; we use emoji + short context + 4 emotion words.
 // Validated for psychometric direction, not exact magnitude.
-const ITEMS: EyeItem[] = [
+/** Экспортировано для выгрузки во Flutter: материал один на обе половины
+ * приложения (`frontend/scripts/flutter-rmet-reference.test.ts`). */
+export const ITEMS: EyeItem[] = [
   { emoji: '😏', hint_ru: 'приподнятая бровь, лёгкая улыбка', hint_en: 'raised eyebrow, slight smile',
     correct_ru: 'игривый', correct_en: 'playful',
     options_ru: ['игривый','утешающий','раздражённый','скучающий'],

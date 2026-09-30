@@ -1,4 +1,4 @@
-/* psygames-cake-solutions · VER 1 · 23.09.2026 */
+/* psygames-cake-sort-solutions · VER 2 · 23.09.2026 */
 /**
  * ЗАПИСАННЫЕ РЕШЕНИЯ ВШИТЫХ УРОВНЕЙ — чтобы не искать путь на устройстве.
  *
@@ -24,7 +24,7 @@ function загрузить(): Map<number, Ход[]> {
   if (кэш) return кэш;
   кэш = new Map();
   try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
+     
     const файл = require('./solutions.json') as { moves: Record<string, number[]> };
     for (const [уровень, плоско] of Object.entries(файл.moves ?? {})) {
       const ходы: Ход[] = [];

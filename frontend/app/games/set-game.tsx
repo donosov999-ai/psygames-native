@@ -74,7 +74,7 @@ const COLOR_HEX: Record<ColorType, string> = { red: '#e63946', green: '#2a9d8f',
 // признаков карты, но без него сет не собрать.
 const COLOR_HEX_CB: Record<ColorType, string> = { red: '#d55e00', green: '#009e73', purple: '#cc79a7' };
 
-const allCards = (): Card[] => {
+export const allCards = (): Card[] => {
   const out: Card[] = [];
   for (const s of SHAPES) for (const f of FILLS) for (const c of COLORS) for (const n of COUNTS) {
     out.push({ shape: s, fill: f, color: c, count: n, id: `${s}-${f}-${c}-${n}` });
@@ -82,9 +82,9 @@ const allCards = (): Card[] => {
   return out;
 };
 
-function shuffle<T>(arr: T[]): T[] { const a=[...arr]; for (let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
+function shuffle<T>(arr: T[], rnd: () => number = Math.random): T[] { const a=[...arr]; for (let i=a.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
 
-function isSet(a: Card, b: Card, c: Card): boolean {
+export function isSet(a: Card, b: Card, c: Card): boolean {
   const allSameOrAllDiff = (x: any, y: any, z: any) =>
     (x === y && y === z) || (x !== y && y !== z && x !== z);
   return allSameOrAllDiff(a.shape, b.shape, c.shape) &&
@@ -120,7 +120,7 @@ const EXAMPLE_INVALID: Card[] = [
   { shape: 'circle', fill: 'solid', color: 'purple', count: 3, id: 'ex-i-3' },
 ];
 
-function findAnySet(cards: Card[]): [number, number, number] | null {
+export function findAnySet(cards: Card[]): [number, number, number] | null {
   for (let i = 0; i < cards.length; i++)
     for (let j = i + 1; j < cards.length; j++)
       for (let k = j + 1; k < cards.length; k++)
@@ -132,12 +132,17 @@ function findAnySet(cards: Card[]): [number, number, number] | null {
 export const SET_BOARD_SIZE = 12;
 
 // Build a board of 12 cards that contains at least one SET (and not too many).
-function buildBoard(): Card[] {
-  const deck = shuffle(allCards());
+/**
+ * ⚠️ ИСТОЧНИК СЛУЧАЙНОСТИ — ПАРАМЕТР (по умолчанию `Math.random`, поведение прежнее).
+ * Без него расклад нельзя выгрузить детерминированно, а значит нельзя сверить перенос
+ * на Flutter. Тот же приём уже принят в соседних ядрах раздела.
+ */
+export function buildBoard(rnd: () => number = Math.random): Card[] {
+  const deck = shuffle(allCards(), rnd);
   let board = deck.slice(0, SET_BOARD_SIZE);
   let guard = 0;
   while (!findAnySet(board) && guard < 100) {
-    board = shuffle(allCards()).slice(0, SET_BOARD_SIZE);
+    board = shuffle(allCards(), rnd).slice(0, SET_BOARD_SIZE);
     guard++;
   }
   return board;

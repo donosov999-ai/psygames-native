@@ -4,11 +4,15 @@ import 'package:flutter/material.dart';
 
 import '../../shell/aux_action.dart';
 import '../../shell/game_shell.dart';
+import '../../shell/l10n.dart';
+import '../../shell/lesson.dart';
+import '../../shell/lesson_player.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import 'board.dart';
 import 'model.dart';
+import 'teach.dart';
 
 /// Экран «Анаграммы», КЛАССИЧЕСКИЙ режим.
 ///
@@ -135,6 +139,8 @@ class _AnagramsScreenState extends State<AnagramsScreen> {
         await _ladder.fail();
       }
       if (!mounted) return;
+      // Новая партия — отметка разбора снимается: следующая снова зачётная.
+      LessonUsed.reset();
       setState(() {
         _trial = 0;
         _solved = 0;
@@ -170,6 +176,61 @@ class _AnagramsScreenState extends State<AnagramsScreen> {
         _picked.clear();
       });
 
+  /* ═══════════ РАЗБОР ПО ШАГАМ ═══════════
+   *
+   * 🔴 БЕЗ ЭТОГО ПЕРЕХВАТ ОТНИМАЛ БЫ РАЗБОР, КОТОРЫЙ В ВЕБЕ УЖЕ ЕСТЬ. Гейт
+   * `lesson_census_test.dart` поймал ровно это: нативный экран открывается вместо
+   * веб-страницы, а кнопки разбора у него нет — значит функция пропала у игрока,
+   * и ни одна проба самого экрана этого не заметила бы.
+   *
+   * Правило доступности перенесено дословно (`anagrams.tsx:1103`): первые три
+   * уровня и не меньше двух шагов. Дальше человек уже знает приёмы, и показ решения
+   * только мешает.
+   */
+  List<TeachStep> get _lessonSteps {
+    final round = _round;
+    final bank = _bank;
+    if (round == null || bank == null) return const [];
+    return anagramLesson(round.target, round.letters, bank.classicBank);
+  }
+
+  Future<void> _openLesson() async {
+    final round = _round;
+    final steps = _lessonSteps;
+    if (round == null || steps.length < 2) return;
+    // Партия с показанным решением лестницу не двигает — правило живёт в каркасе
+    // (`LevelLadder.win/fail` смотрят на эту отметку).
+    LessonUsed.mark();
+    await Navigator.of(context).push(MaterialPageRoute<void>(
+      builder: (_) => LessonPlayerScreen(
+        title: L.t('anagrams'),
+        steps: [
+          for (final s in steps)
+            // Текст СОБИРАЕТСЯ из словаря теми же ключами, что зовёт экран: в нём
+            // три подстановки ({piece}, {n}, {total}), ключом их не передать.
+            LessonStep(text: teachStepText(s, L.t), payload: s),
+        ],
+        board: (context, side, shown) {
+          // Показываем ровно то, что собрано к этому шагу: индексы плиток берём из
+          // шагов, а не заново — подсветка обязана совпасть с объяснением.
+          final placed = <int>[];
+          for (var i = 0; i < shown && i < steps.length; i++) {
+            placed.addAll(steps[i].place);
+          }
+          return AnagramBoard(
+            target: round.target,
+            letters: round.letters,
+            picked: placed,
+            fieldHeight: side,
+            revealed: 0,
+            wrong: false,
+            onPick: (_) {},
+          );
+        },
+      ),
+    ));
+  }
+
   @override
   Widget build(BuildContext context) {
     final round = _round;
@@ -177,13 +238,16 @@ class _AnagramsScreenState extends State<AnagramsScreen> {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
     return GameShell(
-      title: 'Анаграммы',
+      title: L.t('anagrams'),
+      // Кнопка разбора — только там, где он есть: первые уровни и слово, которое
+      // разбирается. Нет шагов — нет и кнопки (каркас скрывает её сам при null).
+      onLesson: _ladder.level <= 3 && _lessonSteps.length > 1 ? _openLesson : null,
       hud: [
-        HudItem(label: 'Уровень', value: '${_ladder.level}', icon: Icons.flag_outlined),
-        HudItem(label: 'Слово', value: '${_trial + 1}/${_level.trials}', icon: Icons.tag),
-        HudItem(label: 'Собрано', value: '$_solved', icon: Icons.check_circle_outline),
+        HudItem(label: L.t('level'), value: '${_ladder.level}', icon: Icons.flag_outlined),
+        HudItem(label: L.t('round'), value: '${_trial + 1}/${_level.trials}', icon: Icons.tag),
+        HudItem(label: L.t('hud_correct'), value: '$_solved', icon: Icons.check_circle_outline),
         if (_level.wordSec > 0)
-          HudItem(label: 'Осталось', value: '$_secLeft с', icon: Icons.timer_outlined),
+          HudItem(label: L.t('timeLeftLabel'), value: '$_secLeft${L.t('secShort')}', icon: Icons.timer_outlined),
       ],
       field: (context, h) => AnagramBoard(
         target: round.target,
@@ -199,15 +263,15 @@ class _AnagramsScreenState extends State<AnagramsScreen> {
       auxRow: AuxBar(children: [
         AuxAction(
           icon: Icons.lightbulb_outline,
-          label: 'Подсказка',
+          label: L.t('btn_hint'),
           tint: const Color(0xFFB45309),
           count: _hintsLeft,
           onPressed: _hintsLeft > 0 ? _hint : null,
         ),
-        AuxAction(icon: Icons.shuffle, label: 'Перемешать', onPressed: _shuffle),
+        AuxAction(icon: Icons.shuffle, label: L.t('shuffleBtn'), onPressed: _shuffle),
         AuxAction(
           icon: Icons.skip_next_outlined,
-          label: 'Пропустить слово',
+          label: L.t('skip'),
           onPressed: _giveUp,
         ),
       ]),
@@ -220,7 +284,7 @@ class _AnagramsScreenState extends State<AnagramsScreen> {
                 key: const ValueKey('anagrams-reset'),
                 onPressed: _picked.isEmpty ? null : _reset,
                 icon: const Icon(Icons.backspace_outlined),
-                label: const Text('Сбросить'),
+                label: Text(L.t('clear')),
               ),
             ),
             const SizedBox(width: 10),
@@ -229,15 +293,15 @@ class _AnagramsScreenState extends State<AnagramsScreen> {
                 key: const ValueKey('anagrams-check'),
                 onPressed: _picked.isEmpty ? null : _check,
                 icon: const Icon(Icons.done),
-                label: const Text('Проверить'),
+                label: Text(L.t('check')),
               ),
             ),
           ],
         ),
       ),
       pauseActions: [
-        PauseAction(label: 'Перемешать', icon: Icons.shuffle, onPressed: _shuffle),
-        PauseAction(label: 'Пропустить слово', icon: Icons.skip_next_outlined, onPressed: _giveUp),
+        PauseAction(label: L.t('shuffleBtn'), icon: Icons.shuffle, onPressed: _shuffle),
+        PauseAction(label: L.t('skip'), icon: Icons.skip_next_outlined, onPressed: _giveUp),
       ],
     );
   }

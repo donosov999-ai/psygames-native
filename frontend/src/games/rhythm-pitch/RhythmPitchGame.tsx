@@ -499,8 +499,25 @@ function RhythmPitchSessionView({
 
   const действиеФазы: RhythmPitchPhaseAction | null = React.useMemo(() => {
     if (session.phase === 'rules') return { label: strings.start, disabled: false, run: begin };
+    /**
+     * 🔴 НА КАЛИБРОВКЕ НАРУЖУ УХОДИТ «ТАП», А НЕ ЗАПУСК. Мишень, по которой бьют
+     * в такт сигналам, обязана стоять на ОДНОМ месте: замер 23.09.2026, окно
+     * 360×640 — «Тап» и своя «Пауза» жили внутри прокрутки, ряд уезжал на 17 точек
+     * под низ экрана и ехал под пальцем вместе с текстом.
+     * ⚠️ Запуск наружу отдавать НЕЛЬЗЯ: тогда одна кнопка сменит подпись ровно в
+     * тот момент, когда пошли сигналы, — это и есть жалоба 02.09.2026 «ни хера
+     * вообще не понимаю». Поэтому запуск остаётся в карточке, а внизу всегда
+     * стоит мишень: до старта погашенная, с подписью, куда бить.
+     */
+    if (session.phase === 'calibration') {
+      return {
+        label: strings.calibrationTap,
+        disabled: !session.calibrationPlaying,
+        run: () => applySession((current) => recordCalibrationTap(current, now())),
+      };
+    }
     return null;
-  }, [session.phase, strings.start, begin]);
+  }, [session.phase, session.calibrationPlaying, strings.start, strings.calibrationTap, begin, applySession, now]);
 
   React.useEffect(() => {
     onPhaseAction?.(действиеФазы);
@@ -626,12 +643,16 @@ function RhythmPitchSessionView({
           ) : (
             <Text accessibilityLiveRegion="polite" style={[styles.listening, { color: theme.primary }]}>{strings.calibrationPlaying}</Text>
           )}
-          <ActionButton
-            label={strings.calibrationTap}
-            theme={theme}
-            disabled={!session.calibrationPlaying}
-            onPress={() => applySession((current) => recordCalibrationTap(current, now()))}
-          />
+          {/* В каркасе мишень стоит внизу неподвижно (см. `действиеФазы`); здесь — только
+              когда экран открыт сам по себе и отдавать её некому. */}
+          {действиеСнаружи ? null : (
+            <ActionButton
+              label={strings.calibrationTap}
+              theme={theme}
+              disabled={!session.calibrationPlaying}
+              onPress={() => applySession((current) => recordCalibrationTap(current, now()))}
+            />
+          )}
           <Text style={[styles.body, тесно && styles.тесныйТекст, { color: theme.textSecondary }]}>{strings.calibrationTapHint}</Text>
           {session.calibrationComplete ? (
             <View style={styles.calibrationResult}>
@@ -654,7 +675,9 @@ function RhythmPitchSessionView({
               </View>
             ) : null}
         </View>
-        <ActionButton label={strings.pause} theme={theme} secondary onPress={stopAndPause} />
+        {/* У каркаса своё меню паузы (`pauseActions`), и вторая кнопка тем же словом
+            только добавляет высоты узкому экрану. */}
+        {действиеСнаружи ? null : <ActionButton label={strings.pause} theme={theme} secondary onPress={stopAndPause} />}
       </ScrollView>
     );
   }

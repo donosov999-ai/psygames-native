@@ -1,0 +1,265 @@
+{
+ "снято": "прогоном живого TS из frontend/app/games/prl.tsx (VER 3, origin/main)",
+ "maxLevel": 15,
+ "rules": [
+  {
+   "key": "reversal",
+   "fromLevel": 1
+  },
+  {
+   "key": "noisy",
+   "fromLevel": 5
+  }
+ ],
+ "мёртвые переходы": [],
+ "граничные уровни": {
+  "0": {
+   "rewardProb": 0.922,
+   "trialsTotal": 30,
+   "revMin": 9,
+   "revMax": 11,
+   "feedbackDelayMs": -57
+  },
+  "16": {
+   "rewardProb": 0.68,
+   "trialsTotal": 50,
+   "revMin": 3,
+   "revMax": 5,
+   "feedbackDelayMs": 800
+  },
+  "40": {
+   "rewardProb": 0.68,
+   "trialsTotal": 50,
+   "revMin": 3,
+   "revMax": 5,
+   "feedbackDelayMs": 800
+  }
+ },
+ "levels": [
+  {
+   "level": 1,
+   "rewardProb": 0.9,
+   "trialsTotal": 30,
+   "revMin": 8,
+   "revMax": 10,
+   "feedbackDelayMs": 0,
+   "condition": {
+    "rewardProb": 0.9,
+    "trialsTotal": 30,
+    "revMin": 8,
+    "revMax": 10,
+    "feedbackDelayMs": 0
+   }
+  },
+  {
+   "level": 2,
+   "rewardProb": 0.878,
+   "trialsTotal": 30,
+   "revMin": 8,
+   "revMax": 10,
+   "feedbackDelayMs": 57,
+   "condition": {
+    "rewardProb": 0.878,
+    "trialsTotal": 30,
+    "revMin": 8,
+    "revMax": 10,
+    "feedbackDelayMs": 57
+   }
+  },
+  {
+   "level": 3,
+   "rewardProb": 0.856,
+   "trialsTotal": 30,
+   "revMin": 7,
+   "revMax": 9,
+   "feedbackDelayMs": 114,
+   "condition": {
+    "rewardProb": 0.856,
+    "trialsTotal": 30,
+    "revMin": 7,
+    "revMax": 9,
+    "feedbackDelayMs": 114
+   }
+  },
+  {
+   "level": 4,
+   "rewardProb": 0.8340000000000001,
+   "trialsTotal": 30,
+   "revMin": 7,
+   "revMax": 9,
+   "feedbackDelayMs": 171,
+   "condition": {
+    "rewardProb": 0.8340000000000001,
+    "trialsTotal": 30,
+    "revMin": 7,
+    "revMax": 9,
+    "feedbackDelayMs": 171
+   }
+  },
+  {
+   "level": 5,
+   "rewardProb": 0.812,
+   "trialsTotal": 40,
+   "revMin": 6,
+   "revMax": 8,
+   "feedbackDelayMs": 228,
+   "condition": {
+    "rewardProb": 0.812,
+    "trialsTotal": 40,
+    "revMin": 6,
+    "revMax": 8,
+    "feedbackDelayMs": 228
+   }
+  },
+  {
+   "level": 6,
+   "rewardProb": 0.79,
+   "trialsTotal": 40,
+   "revMin": 6,
+   "revMax": 8,
+   "feedbackDelayMs": 285,
+   "condition": {
+    "rewardProb": 0.79,
+    "trialsTotal": 40,
+    "revMin": 6,
+    "revMax": 8,
+    "feedbackDelayMs": 285
+   }
+  },
+  {
+   "level": 7,
+   "rewardProb": 0.768,
+   "trialsTotal": 40,
+   "revMin": 5,
+   "revMax": 7,
+   "feedbackDelayMs": 342,
+   "condition": {
+    "rewardProb": 0.768,
+    "trialsTotal": 40,
+    "revMin": 5,
+    "revMax": 7,
+    "feedbackDelayMs": 342
+   }
+  },
+  {
+   "level": 8,
+   "rewardProb": 0.746,
+   "trialsTotal": 40,
+   "revMin": 5,
+   "revMax": 7,
+   "feedbackDelayMs": 399,
+   "condition": {
+    "rewardProb": 0.746,
+    "trialsTotal": 40,
+    "revMin": 5,
+    "revMax": 7,
+    "feedbackDelayMs": 399
+   }
+  },
+  {
+   "level": 9,
+   "rewardProb": 0.724,
+   "trialsTotal": 50,
+   "revMin": 4,
+   "revMax": 6,
+   "feedbackDelayMs": 456,
+   "condition": {
+    "rewardProb": 0.724,
+    "trialsTotal": 50,
+    "revMin": 4,
+    "revMax": 6,
+    "feedbackDelayMs": 456
+   }
+  },
+  {
+   "level": 10,
+   "rewardProb": 0.7020000000000001,
+   "trialsTotal": 50,
+   "revMin": 4,
+   "revMax": 6,
+   "feedbackDelayMs": 513,
+   "condition": {
+    "rewardProb": 0.7020000000000001,
+    "trialsTotal": 50,
+    "revMin": 4,
+    "revMax": 6,
+    "feedbackDelayMs": 513
+   }
+  },
+  {
+   "level": 11,
+   "rewardProb": 0.68,
+   "trialsTotal": 50,
+   "revMin": 3,
+   "revMax": 5,
+   "feedbackDelayMs": 570,
+   "condition": {
+    "rewardProb": 0.68,
+    "trialsTotal": 50,
+    "revMin": 3,
+    "revMax": 5,
+    "feedbackDelayMs": 570
+   }
+  },
+  {
+   "level": 12,
+   "rewardProb": 0.68,
+   "trialsTotal": 50,
+   "revMin": 3,
+   "revMax": 5,
+   "feedbackDelayMs": 627,
+   "condition": {
+    "rewardProb": 0.68,
+    "trialsTotal": 50,
+    "revMin": 3,
+    "revMax": 5,
+    "feedbackDelayMs": 627
+   }
+  },
+  {
+   "level": 13,
+   "rewardProb": 0.68,
+   "trialsTotal": 50,
+   "revMin": 3,
+   "revMax": 5,
+   "feedbackDelayMs": 684,
+   "condition": {
+    "rewardProb": 0.68,
+    "trialsTotal": 50,
+    "revMin": 3,
+    "revMax": 5,
+    "feedbackDelayMs": 684
+   }
+  },
+  {
+   "level": 14,
+   "rewardProb": 0.68,
+   "trialsTotal": 50,
+   "revMin": 3,
+   "revMax": 5,
+   "feedbackDelayMs": 741,
+   "condition": {
+    "rewardProb": 0.68,
+    "trialsTotal": 50,
+    "revMin": 3,
+    "revMax": 5,
+    "feedbackDelayMs": 741
+   }
+  },
+  {
+   "level": 15,
+   "rewardProb": 0.68,
+   "trialsTotal": 50,
+   "revMin": 3,
+   "revMax": 5,
+   "feedbackDelayMs": 798,
+   "condition": {
+    "rewardProb": 0.68,
+    "trialsTotal": 50,
+    "revMin": 3,
+    "revMax": 5,
+    "feedbackDelayMs": 798
+   }
+  }
+ ]
+}

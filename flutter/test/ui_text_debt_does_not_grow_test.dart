@@ -47,6 +47,11 @@ void main() {
   /// 23.09 — та же ветка, развилка «Пространства» переведена сразу (−24, файл ушёл из списка),
   /// и вместе с ней названия четырёх упражнений лаборатории (−4, deal.dart ушёл туда же).
   ///
+  /// 23.09 — «Слова», экран кроссворда (+8): файл приехал в main коммитом b2181fd5,
+  /// подписи в нём литералами. Заношу приёмкой, а не поднимаю потолок молча:
+  /// владелец — раздел «Слова», и гасить их ему. Ключи в общем словаре под это
+  /// есть не все, часть требует перевода на 12 языков — это отдельная работа.
+  ///
   /// Долг на 23.09.2026, пофайлово. МЕНЯТЬ ТОЛЬКО В МЕНЬШУЮ СТОРОНУ.
   ///
   /// Перевёл экран — опусти его число. Файла нет в списке — значит он обязан
@@ -55,7 +60,6 @@ void main() {
     'games/mental_rotation/words.dart': 62,
     'games/mental_rotation/screen.dart': 58,
     'games/spatial_lab/screen.dart': 51,
-    'games/puzzles/ladder.dart': 40,
     'games/sudoku/screen.dart': 31,
     'games/math_slider/screen.dart': 27,
     'games/schulte/screen.dart': 26,
@@ -77,14 +81,12 @@ void main() {
     'games/object_tracker/model.dart': 14,
     'games/fractal/screen.dart': 13,
     'games/deep/screen.dart': 13,
-    'games/anagrams/screen.dart': 13,
     'games/hanoi/screen.dart': 12,
+    'games/puzzles/screen.dart': 12,
     'games/memory_matrix/screen.dart': 12,
     'games/cake_sort/screen.dart': 11,
-    'games/puzzles/screen.dart': 11,
     'games/one_line/screen.dart': 10,
     'games/dots_connect/screen.dart': 10,
-    'games/anagrams/all_words_screen.dart': 9,
     'shell/hybrid_app.dart': 8,
     'games/stroop/model.dart': 8,
     'games/goods_sort/board.dart': 5,
@@ -104,7 +106,11 @@ void main() {
   // 284 у соседнего раздела минус 65, погашенных «Конфликтом внимания» в этом же коммите,
   // плюс 224 принятых при вливании «Пространства» 23.09, минус 28 — развилка раздела и
   // названия упражнений переведены в том же коммите: они держат КЛЮЧИ, как и веб-сторона.
-  const total = 764;
+  // 24.09 — «Слова» перевели все ЧЕТЫРЕ экрана анаграмм целиком (−38, все четыре файла
+  // ушли из списка): 733 + 4 принятых строки слова-квадрата − 38. Новых ключей не
+  // заводилось ни одного: веб-экран тех же режимов зовёт ровно эти подписи, и перевод
+  // на 12 языков у них уже был — `node flutter/tools/embed-l10n.mjs` привёз их сам.
+  const total = 699;
 
   final counts = _scan(Directory('lib'));
 
@@ -164,12 +170,26 @@ Map<String, int> _scan(Directory root) {
   final devMessage = RegExp(
       r"(throw\s+\w+\(|assert\(|debugPrint\(|[^.\w]print\()[^;]*?'[^'\n]*[А-Яа-яЁё][^'\n]*'",
       dotAll: true);
+  /*
+   * 🔴 КЛЮЧ ЧУЖОГО JSON — НЕ ТЕКСТ ИНТЕРФЕЙСА. Уточнение 24.09.2026.
+   *
+   * Веб-файл состава развилок описан по-русски: `профили`, `хабы`, `маршрут`,
+   * `имя`, `значок`, `описание`. Нативная сторона читает ЭТОТ ЖЕ файл, и обращение
+   * `j['профили']` — имя поля в чужих данных, а не подпись на экране. Переводить
+   * его некуда и незачем: переведёшь — перестанешь находить поле.
+   *
+   * Гейт заявляет «зашитый текст ИНТЕРФЕЙСА», значит и считать обязан то, что
+   * видит игрок. Так же здесь уже вынуты `throw`, `assert` и `debugPrint` — по
+   * той же причине, и с той же оговоркой: числа ниже пересчитаны ЭТИМ методом.
+   */
+  final mapKey = RegExp(r"\[\s*'[^'\n]*[А-Яа-яЁё][^'\n]*'\s*\]");
   final anyLiteral = RegExp(r"'[^'\n]*[А-Яа-яЁё][^'\n]*'");
   for (final f in root.listSync(recursive: true).whereType<File>()) {
     if (!f.path.endsWith('.dart')) continue;
     var src = f.readAsStringSync().replaceAll(blockComment, '').replaceAll(lineComment, '');
     var n = anyLiteral.allMatches(src).length -
         keyLiteral.allMatches(src).length -
+        mapKey.allMatches(src).length -
         devMessage.allMatches(src).fold<int>(0, (a, m) => a + anyLiteral.allMatches(m[0]!).length);
     if (n > 0) out[f.path.replaceFirst('lib/', '')] = n;
   }

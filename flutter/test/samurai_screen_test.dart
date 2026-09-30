@@ -30,14 +30,14 @@ void main() {
       for (var i = 0; i < 60; i++) {
         await tester.pump(const Duration(milliseconds: 50));
         await Future<void>.delayed(const Duration(milliseconds: 50));
-        if (find.byKey(const Key('клетка0_0')).evaluate().isNotEmpty) break;
+        if (find.byKey(const Key('cell_0_0')).evaluate().isNotEmpty) break;
       }
     });
     await tester.pump();
   }
 
   int digitAt(WidgetTester tester, int r, int c) {
-    final cell = find.byKey(Key('клетка${r}_$c'));
+    final cell = find.byKey(Key('cell_${r}_$c'));
     if (cell.evaluate().isEmpty) return -1;
     final text = find.descendant(of: cell, matching: find.byType(Text));
     if (text.evaluate().isEmpty) return 0;
@@ -106,7 +106,7 @@ void main() {
       ];
 
   Future<void> tapCell(WidgetTester tester, int r, int c) async {
-    final f = find.byKey(Key('клетка${r}_$c'));
+    final f = find.byKey(Key('cell_${r}_$c'));
     await tester.ensureVisible(f);
     await tester.pump();
     await tester.tap(f, warnIfMissed: false);
@@ -116,13 +116,13 @@ void main() {
   testWidgets('🔴 доска появляется: 369 клеток, дырок между сетками нет', (tester) async {
     await boot(tester);
     expect(find.text('Самурай'), findsOneWidget);
-    expect(find.byKey(const Key('клетка0_0')), findsOneWidget);
-    expect(find.byKey(const Key('клетка20_20')), findsOneWidget);
-    expect(find.byKey(const Key('клетка6_6')), findsOneWidget, reason: 'клетка перекрытия');
+    expect(find.byKey(const Key('cell_0_0')), findsOneWidget);
+    expect(find.byKey(const Key('cell_20_20')), findsOneWidget);
+    expect(find.byKey(const Key('cell_6_6')), findsOneWidget, reason: 'cell_ перекрытия');
     // Клетки между сетками не существует — и в разметке её тоже нет.
-    expect(find.byKey(const Key('клетка0_10')), findsNothing);
-    expect(find.byKey(const Key('цифра9')), findsOneWidget);
-    expect(find.byKey(const Key('стереть')), findsOneWidget);
+    expect(find.byKey(const Key('cell_0_10')), findsNothing);
+    expect(find.byKey(const Key('digit9')), findsOneWidget);
+    expect(find.byKey(const Key('erase')), findsOneWidget);
   });
 
   /// 🔴 ЖАЛОБА «ПОЛЕ НЕ ВЛЕЗАЕТ» — ЭТО ПРО ЭТУ АРИФМЕТИКУ.
@@ -148,9 +148,9 @@ void main() {
     await boot(tester);
     expect(find.byTooltip('Крупнее'), findsOneWidget, reason: 'старт — карта');
 
-    final before = tester.getSize(find.byKey(const Key('клетка0_0'))).width;
+    final before = tester.getSize(find.byKey(const Key('cell_0_0'))).width;
     await tapCell(tester, 0, 0);
-    final after = tester.getSize(find.byKey(const Key('клетка0_0'))).width;
+    final after = tester.getSize(find.byKey(const Key('cell_0_0'))).width;
 
     expect(find.byTooltip('Вся фигура'), findsOneWidget, reason: 'после тычка — рабочий масштаб');
     expect(after, greaterThanOrEqualTo(touchCell));
@@ -164,13 +164,13 @@ void main() {
     addTearDown(() => tester.binding.setSurfaceSize(null));
     await boot(tester);
 
-    final last = find.byKey(const Key('клетка20_20'));
+    final last = find.byKey(const Key('cell_20_20'));
     expect(last, findsOneWidget);
     await tester.ensureVisible(last);
     await tester.pump();
     final rect = tester.getRect(last);
-    expect(rect.top, greaterThanOrEqualTo(0.0), reason: 'клетка уехала за верх: $rect');
-    expect(rect.bottom, lessThanOrEqualTo(520.0), reason: 'клетка уехала за низ: $rect');
+    expect(rect.top, greaterThanOrEqualTo(0.0), reason: 'cell_ уехала за верх: $rect');
+    expect(rect.bottom, lessThanOrEqualTo(520.0), reason: 'cell_ уехала за низ: $rect');
   });
 
   testWidgets('🔴 цифра встаёт, а мимо решения — считается ошибкой по лестнице', (tester) async {
@@ -184,16 +184,16 @@ void main() {
 
     final a = empty.first;
     await tapCell(tester, a[0], a[1]);
-    await tester.tap(find.byKey(Key('цифра${solution[a[0]][a[1]]}')));
+    await tester.tap(find.byKey(Key('digit${solution[a[0]][a[1]]}')));
     await tester.pump();
     expect(digitAt(tester, a[0], a[1]), solution[a[0]][a[1]]);
     expect(find.text('0/10'), findsOneWidget, reason: 'верный ход — не ошибка; на 1-й ступени прощается 10');
 
     final b = empty[1];
     await tapCell(tester, b[0], b[1]);
-    await tester.tap(find.byKey(Key('цифра${solution[b[0]][b[1]] % 9 + 1}')));
+    await tester.tap(find.byKey(Key('digit${solution[b[0]][b[1]] % 9 + 1}')));
     await tester.pump();
-    expect(find.text('1/10'), findsOneWidget, reason: 'цифра мимо решения — ошибка');
+    expect(find.text('1/10'), findsOneWidget, reason: 'digit мимо решения — ошибка');
   });
 
   testWidgets('🔴 доска доигрывается нажатиями, и ступень растёт', (tester) async {
@@ -206,11 +206,11 @@ void main() {
       final r = cell[0], c = cell[1];
       if (grid[r][c] != 0) continue;
       await tapCell(tester, r, c);
-      await tester.tap(find.byKey(Key('цифра${solution[r][c]}')));
+      await tester.tap(find.byKey(Key('digit${solution[r][c]}')));
       await tester.pump();
     }
 
-    expect(find.byKey(const Key('дальше')), findsOneWidget, reason: 'доска сошлась — экран зовёт дальше');
+    expect(find.byKey(const Key('next')), findsOneWidget, reason: 'доска сошлась — экран зовёт дальше');
     expect(find.text('Следующая ступень'), findsOneWidget);
     // Ступень записана в тот же ключ, что у веб-версии.
     expect(state.get('psygames_sudoku_samurai_level_nzt48'), '2');

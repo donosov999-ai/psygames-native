@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../shell/aux_action.dart';
 import '../../shell/l10n.dart';
+import '../../shell/demo_lesson.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
@@ -132,6 +133,13 @@ class _DigitSpanScreenState extends State<DigitSpanScreen> {
     setState(_reset);
   }
 
+  /// Разбор объясняет ПРИЁМ: верный ответ человек и так увидит по итогу раунда,
+  /// а вот чем объём берётся — нет.
+  List<DemoTrial> _demoTrials() => [
+        DemoTrial(text: '', rule: L.t('teachSpanChunks')),
+        DemoTrial(text: '', rule: L.t('teachSpanBackward')),
+      ];
+
   @override
   Widget build(BuildContext context) {
     final g = _game;
@@ -139,6 +147,7 @@ class _DigitSpanScreenState extends State<DigitSpanScreen> {
     final backward = _direction == Direction.backward;
     return GameShell(
       title: L.t('digitSpan'),
+      onLesson: () => openDemoLesson(context, title: L.t('digitSpan'), trials: _demoTrials()),
       hud: [
         HudItem(label: L.t('level'), value: '${_ladder.level}', icon: Icons.flag_outlined),
         HudItem(label: L.t('personalBest'), value: '${_ladder.best}', icon: Icons.emoji_events_outlined),

@@ -55,6 +55,31 @@ void main() {
     }
   });
 
+  /*
+   * 🔴 У ИГРЫ СО МНОГИМИ РЕЖИМАМИ уровень хранится по режиму (`puzzles_mines`), а партию
+   * веб пишет ОДНИМ типом с режимом рядом (`puzzles` + `Mines`). Натив слал партию под
+   * ключом уровня — и в статистике её не было нигде (задача 48298f5f, 30.09.2026).
+   */
+  test('🔴 многорежимная игра: партия идёт типом веба с режимом, уровень — по режиму', () async {
+    final store = MemoryLevelStore();
+    final l = LevelLadder(gameId: 'puzzles_mines', store: store,
+        sessionType: 'puzzles', sessionMode: 'Mines');
+    await l.load();
+    await l.win();
+    await l.fail();
+    expect(sent.map((s) => s['game_type']).toSet(), {'puzzles'});
+    expect(sent.map((s) => s['mode']).toSet(), {'Mines'});
+    expect(await store.readInt('puzzles_mines.level'), 2, reason: 'уровень хранится по режиму, как в вебе');
+  });
+
+  test('режим, переданный партией явно, главнее режима лестницы', () async {
+    final l = LevelLadder(gameId: 'spatial_lab_net', store: MemoryLevelStore(),
+        sessionType: 'spatial_lab', sessionMode: 'net');
+    await l.load();
+    await l.win(mode: 'другой');
+    expect(sent.single['mode'], 'другой');
+  });
+
   test('трудность едет номером уровня — статистике нужен уровень, а не «сложно»', () async {
     final l = ladder();
     await l.load();

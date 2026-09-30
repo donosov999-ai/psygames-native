@@ -43,8 +43,18 @@ dependencies:
   bishop: ^1.4.4
   # Фигуры Cburnett рисуются SVG — тем же набором, что в вебе (BSD-3).
   flutter_svg: ^2.0.10
+  flutter_tts: ^4.2.5
+  just_audio: ^0.10.6
+  # 🔴 Забрать прогресс ПРЕЖНЕЙ версии из контейнера приложения (lib/shell/legacy_import.dart).
+  # Tauri-сборка держала его в localStorage WKWebView, а это обычный sqlite внутри
+  # нашего же контейнера. Без чтения этих файлов человек после обновления видит нули.
+  path_provider: ^2.1.5
+  sqlite3: ^2.9.0
+  sqlite3_flutter_libs: ^0.5.41
 
 dev_dependencies:
+  integration_test:
+    sdk: flutter
   flutter_test:
     sdk: flutter
 
@@ -88,8 +98,16 @@ flutter:
     - assets/chess/
     # Корпус «Детского мата»: 718 своих матовых позиций + задачи Lichess (CC0)
     - assets/scholars_mate/
+    - assets/faces-names.json
+    - assets/memory-palace.json
+    - assets/rmet.json
+    - assets/word-pairs.json
+    - assets/rmet/
     - assets/words/
+    - assets/rings/
     - assets/l10n/
+    - assets/puzzles/
+    - assets/voice/
     - assets/spatial/
     - assets/goods/
     - assets/tubes/
@@ -100,6 +118,16 @@ flutter:
     - assets/pizza/tops/
     - assets/pizza/boards/
     - assets/vocab/
+    - assets/pairs/
+    - assets/pairs/animals/
+    - assets/pairs/bio/
+    - assets/pairs/biz/
+    - assets/pairs/brain/
+    - assets/pairs/car/
+    - assets/pairs/chess/
+    - assets/pairs/coz/
+    - assets/pairs/edu/
+    - assets/pairs/geo/
 
   # To add assets to your application, add an assets section, like this:
   # assets:

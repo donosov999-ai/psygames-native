@@ -278,19 +278,31 @@ export type BankPick = Omit<BankBoard, 'solution'>;
  * вернувшийся на пройденный уровень, получит ровно ту задачу, что и в первый раз.
  * Разные зёрна на одном уровне почти наверняка дают разные доски — в полосе сорок штук.
  *
+ * 🔴 НОМЕР ПОПЫТКИ — ТРЕТЬЯ СОСТАВЛЯЮЩАЯ ЗЕРНА (решение Дениса 23.09.2026).
+ * Замер того же дня: на поясе банка (уровни 58–80) зерно складывалось только из профиля
+ * и уровня, поэтому проигранный уровень раздавал ОДНУ И ТУ ЖЕ доску сколько угодно раз —
+ * при сорока досках в полосе человек видел одну. Денис: «новая доска на каждую попытку».
+ * ⚠️ Попытка 0 обязана давать ПРЕЖНЮЮ доску, и строка зерна при ней не меняется ни на
+ * символ: иначе у всех, кто сейчас в середине партии, доска сменилась бы под рукой —
+ * незаконченная партия (`services/resume`) хранит ходы, а не саму доску.
+ *
  * ⚠️ БЕЗ РЕШЕНИЯ — И ЭТО НЕ ЭКОНОМИЯ РАДИ ЭКОНОМИИ. Решение считается перебором
  * (12 мс на трудной доске), а карточка уровня спрашивает «сколько тут пустых клеток»
  * на каждой перерисовке экрана настроек. Перебор в такт перерисовке — это заметный
  * подтормаживающий экран ради числа, которое читается из строки банка даром.
  */
-export function bankPickForLevel(level: number, seed: string, shift = 0): BankPick {
+export function bankPickForLevel(level: number, seed: string, shift = 0, attempt = 0): BankPick {
   const rating = bankRatingForLevel(level, shift);
   const pool = bankPool(rating);
   if (pool.length === 0) throw new Error(`sudoku-bank: полоса ${rating} пуста`);
   const lv = Math.max(1, Math.floor(Number.isFinite(level) ? level : 1));
+  const try_ = Math.max(0, Math.floor(Number.isFinite(attempt) ? attempt : 0));
   // Уровень входит в зерно намеренно: без него весь путь игрока раздавался бы одним и
   // тем же местом в полосе, и доски соседних уровней стояли бы рядом в исходном банке.
-  const rng = makeRng(`sudoku-bank|${normalizeSeed(seed)}|L${lv}|R${bandKey(rating)}`);
+  // Хвост попытки дописывается ТОЛЬКО со второй: нулевая строка зерна прежняя.
+  const rng = makeRng(
+    `sudoku-bank|${normalizeSeed(seed)}|L${lv}|R${bandKey(rating)}${try_ > 0 ? `|A${try_}` : ''}`,
+  );
   const index = Math.min(pool.length - 1, Math.max(0, Math.floor(rng() * pool.length)));
   const row = pool[index] as BankRow;
   const puzzle = parseBoard(row.p);
@@ -300,7 +312,7 @@ export function bankPickForLevel(level: number, seed: string, shift = 0): BankPi
 }
 
 /** 🔴 ЕДИНСТВЕННЫЙ ВХОД ЗА ДОСКОЙ ДЛЯ ПАРТИИ: тот же выбор плюс решение. */
-export function bankBoardForLevel(level: number, seed: string, shift = 0): BankBoard {
-  const pick = bankPickForLevel(level, seed, shift);
+export function bankBoardForLevel(level: number, seed: string, shift = 0, attempt = 0): BankBoard {
+  const pick = bankPickForLevel(level, seed, shift, attempt);
   return { ...pick, solution: solutionOf(pick.puzzle) };
 }

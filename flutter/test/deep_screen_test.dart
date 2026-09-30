@@ -20,7 +20,7 @@ void main() {
       for (var i = 0; i < 60; i++) {
         await tester.pump(const Duration(milliseconds: 50));
         await Future<void>.delayed(const Duration(milliseconds: 20));
-        if (find.byKey(const Key('клетка0_0')).evaluate().isNotEmpty) break;
+        if (find.byKey(const Key('cell_0_0')).evaluate().isNotEmpty) break;
       }
     });
     await tester.pump();
@@ -32,7 +32,7 @@ void main() {
   }
 
   int digitAt(WidgetTester tester, int r, int c) {
-    final cell = find.byKey(Key('клетка${r}_$c'));
+    final cell = find.byKey(Key('cell_${r}_$c'));
     final text = find.descendant(of: cell, matching: find.byType(Text));
     if (text.evaluate().isEmpty) return 0;
     final s = tester.widget<Text>(text.first).data ?? '';
@@ -47,7 +47,7 @@ void main() {
   testWidgets('🔴 доска появляется, и партия сразу записана в снимок', (tester) async {
     await boot(tester);
     expect(find.text('Бездна'), findsOneWidget);
-    expect(find.byKey(const Key('клетка8_8')), findsOneWidget);
+    expect(find.byKey(const Key('cell_8_8')), findsOneWidget);
     expect(find.text('1/2'), findsOneWidget, reason: 'глубина: корень из двух слоёв');
 
     final raw = state.get('psygames_resume_sudoku_fractal_deep_nzt48');
@@ -87,7 +87,7 @@ void main() {
     var found = false;
     for (var r = 0; r < 9 && !found; r++) {
       for (var c = 0; c < 9 && !found; c++) {
-        final cell = find.byKey(Key('клетка${r}_$c'));
+        final cell = find.byKey(Key('cell_${r}_$c'));
         final hasArrow = find.descendant(of: cell, matching: find.byIcon(Icons.arrow_downward));
         if (digitAt(tester, r, c) == 0 && hasArrow.evaluate().isEmpty) {
           er = r; ec = c; found = true;
@@ -96,8 +96,8 @@ void main() {
     }
     expect(found, isTrue, reason: 'нашлась пустая клетка для хода');
 
-    await tap(tester, find.byKey(Key('клетка${er}_$ec')));
-    await tap(tester, find.byKey(const Key('цифра7')));
+    await tap(tester, find.byKey(Key('cell_${er}_$ec')));
+    await tap(tester, find.byKey(const Key('digit7')));
     expect(digitAt(tester, er, ec), 7);
 
     final saved = jsonDecode(state.get('psygames_resume_sudoku_fractal_deep_nzt48')!)

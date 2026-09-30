@@ -10,6 +10,7 @@ library;
 
 import 'geometry.dart';
 import 'levels.dart';
+import 'occlusion.dart';
 import 'rng.dart';
 import 'shapes.dart';
 import 'surface.dart';
@@ -87,7 +88,15 @@ ViewpointTask buildViewpointTask(int level, Rng rng) {
   final candidates = viewpointCandidates(p.minC, p.maxC);
   if (candidates.isEmpty) throw StateError('нет фигур размера ${p.minC}–${p.maxC}');
 
-  for (final shape in shuffle(rng, candidates)) {
+  for (final source in shuffle(rng, candidates)) {
+
+    // 🔴 Эталон под ракурсом, где видны все кубики (отчёт 8db157b4: «кубики
+
+    // изначально не содержат такое количество»). Отпечатки ракурсов и все
+
+    // варианты считаются ОТ ЭТОЙ ЖЕ фигуры — задание остаётся согласованным.
+
+    final shape = clearestOrientation(source, (options) => pick(rng, options));
     final distinct = <String, double>{};
     for (final a in angles) {
       distinct.putIfAbsent(viewFingerprint(shape, a), () => a);

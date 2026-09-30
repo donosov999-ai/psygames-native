@@ -3,12 +3,16 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../../shell/aux_action.dart';
+import '../../shell/game_rules.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
+import '../../shell/lesson.dart';
+import '../../shell/lesson_player.dart';
 import 'engine.dart';
 import 'frame.dart';
+import 'lesson.dart';
 import 'ladder.dart';
 
 /// ГОЛОВОЛОМКИ ТЭТХЭМА на общем каркасе: один экран на все режимы.
@@ -45,10 +49,19 @@ class PuzzlesScreen extends StatefulWidget {
 }
 
 class _PuzzlesScreenState extends State<PuzzlesScreen> {
-  late final PuzzleMode _mode;
+  /// ⚠️ Карточка режима приходит ИЗ АССЕТА, а первый кадр рисуется раньше. Поле
+  /// было `late` — и экран падал LateInitializationError на первом же кадре.
+  /// Пусто значит «ещё грузится», и это честное состояние, а не сбой.
+  PuzzleMode? _modeOrNull;
+  PuzzleMode get _mode => _modeOrNull!;
   late LevelLadder _ladder;
   TathamEngine? _engine;
   int _gameIndex = -1;
+
+  /// Ступени ЭТОГО режима: своя лестница из `modes.json` либо меню движка.
+  /// Заполняется в [_boot] после открытия игры — до этого числа ступеней не знает
+  /// никто, потому что у 28 режимов оно живёт внутри движка (см. [resolveSteps]).
+  List<PuzzleStep> _steps = const [];
 
   PuzzleFrame _frame = const PuzzleFrame([], []);
   List<List<int>> _palette = const [];
@@ -60,17 +73,26 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
   @override
   void initState() {
     super.initState();
-    _mode = puzzleModes[widget.mode]!;
-    _ladder = LevelLadder(
-      gameId: _mode.levelKey,
-      store: SharedLevelStore(widget.state),
-      maxLevel: _mode.steps.length,
-    );
     _boot();
   }
 
+  /// ⚠️ Карточки режимов теперь ГРУЗЯТСЯ (ассет, собранный из веб-моста), а не
+  /// лежат в коде — значит режим нельзя взять синхронно в initState. Раньше
+  /// `puzzleModes[widget.mode]!` падал бы восклицательным знаком на незнакомом
+  /// имени; теперь незнакомое имя — это честная надпись на экране, а не сбой.
+  Future<void> _prepareMode() async {
+    await PuzzleModes.load();
+    final mode = PuzzleModes.all[widget.mode];
+    if (mode == null) {
+      if (mounted) setState(() => _failure = 'режим ${widget.mode} движку неизвестен');
+      return;
+    }
+    _modeOrNull = mode;
+  }
+
   Future<void> _boot() async {
-    await _ladder.load();
+    await _prepareMode();
+    if (_failure != null) return;
     try {
       final engine = TathamEngine.openPlatform(path: widget.libraryPath);
       final index = engine.indexOf(_mode.engineName);
@@ -78,10 +100,25 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
         setState(() => _failure = 'движок не знает игру ${_mode.engineName}');
         return;
       }
+      // ⚠️ ПОРЯДОК ВАЖЕН: ступени известны только после открытия игры, а потолок
+      // лестницы обязан быть настоящим. Прежде лестница строилась ДО движка и у
+      // 28 режимов получала выдуманный потолок 999 — уровень рос в пустоту.
+      _steps = resolveSteps(_mode, engine, index);
+      _ladder = LevelLadder(
+        gameId: _mode.levelKey,
+        store: SharedLevelStore(widget.state),
+        maxLevel: _steps.length,
+        // Партию веб пишет типом `puzzles` с режимом рядом (puzzles.tsx) — так же и здесь,
+        // иначе в статистике её нет нигде. Уровень — по-прежнему у каждого режима свой.
+        sessionType: 'puzzles',
+        sessionMode: _mode.engineName,
+      );
+      await _ladder.load();
       if (!mounted) return;
       setState(() {
         _engine = engine;
         _gameIndex = index;
+        _canSolve = engine.canSolve(index);
       });
       _deal();
     } catch (e) {
@@ -91,10 +128,62 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
     }
   }
 
+  /// Умеет ли движок решать ЭТУ игру — флаг берётся у автора, а не из нашего списка.
+  bool _canSolve = false;
+
+  /// Шаги разбора ЭТОЙ раздачи. Пусто — разбора нет, и кнопки тоже.
+  List<LessonStep> _lessonSteps = const [];
+
+  /*
+   * 🔴 РАЗБОР БЕРЁТСЯ У РЕШАТЕЛЯ ДВИЖКА И НИЧЕГО НЕ ЗНАЕТ ПРО ИГРУ.
+   *
+   * Шаги строит общий генератор (`TathamLesson`): он просит движок решить, снимает
+   * разность кадров и возвращает доску обратно. Здесь остаётся только нарисовать
+   * доску с раскрытыми шагами — это единственное, что знает про эту игру.
+   *
+   * ⚠️ Партия после разбора в уровень не засчитывается (`LessonUsed.mark`): решение
+   * было показано, и мерить по нему человека нечестно.
+   */
+  Future<void> _openLesson() async {
+    final engine = _engine;
+    if (engine == null) return;
+    final steps = _lessonSteps;
+    if (steps.isEmpty) return;
+    LessonUsed.mark();
+    final base = engine.draw();
+    await Navigator.of(context).push(MaterialPageRoute<void>(
+      builder: (_) => LessonPlayerScreen(
+        title: _mode.title,
+        steps: steps,
+        onNewBoard: _deal,
+        board: (context, side, shown) {
+          // Доска игрока плюс то, что разбор уже раскрыл. Кадр собирается заново
+          // из тех же строк движка — второго рисователя тут не заводим.
+          final lines = <String>[
+            ...base,
+            for (var i = 0; i < shown && i < steps.length; i++)
+              ...(steps[i].payload as List<String>),
+          ];
+          return CustomPaint(
+            size: Size(side, side),
+            painter: PuzzlePainter(
+              frame: PuzzleFrame.parse(lines),
+              palette: _palette,
+              engineSize: _size,
+              background: Theme.of(context).colorScheme.surface,
+            ),
+          );
+        },
+      ),
+    ));
+    if (mounted) _refresh();
+  }
+
   void _deal() {
     final engine = _engine;
     if (engine == null) return;
-    final step = _mode.steps[(_ladder.level - 1).clamp(0, _mode.steps.length - 1)];
+    LessonUsed.reset();   // новая доска — партия снова зачётная
+    final step = _steps[(_ladder.level - 1).clamp(0, _steps.length - 1)];
     final ok = engine.start(_gameIndex, step.params, DateTime.now().millisecondsSinceEpoch % 100000);
     setState(() {
       _failure = ok ? null : 'партия не собралась: ${step.params}';
@@ -105,6 +194,21 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
       }
     });
     _refresh();
+    _prepareLesson();
+  }
+
+  /// Посчитать разбор для нынешней раздачи.
+  ///
+  /// ⚠️ Генератор просит движок решить и возвращает доску обратно отменой — то
+  /// есть после этого вызова доска обязана остаться прежней. Это сторожит проба
+  /// `lesson_from_solver_test.dart`; без неё «Разбор» однажды стал бы «Сдаться».
+  Future<void> _prepareLesson() async {
+    final engine = _engine;
+    if (engine == null || _gameIndex < 0) return;
+    final steps = _canSolve
+        ? await TathamLesson(engine, canSolve: true, gameName: _mode.engineName).steps()
+        : const <LessonStep>[];
+    if (mounted) setState(() => _lessonSteps = steps);
   }
 
   /// Снять кадр у движка. Дёргается после КАЖДОГО действия: промежуточные кадры нам
@@ -155,12 +259,33 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final step = _mode.steps[(_ladder.level - 1).clamp(0, _mode.steps.length - 1)];
+    if (_failure != null) {
+      return Scaffold(body: Center(child: Text(_failure!)));
+    }
+    if (_modeOrNull == null) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+    final step = _steps[(_ladder.level - 1).clamp(0, _steps.length - 1)];
 
     return GameShell(
       title: _mode.title,
+      /*
+       * 🔴 КНОПКА ЕСТЬ ТОЛЬКО ТАМ, ГДЕ РАЗБОР ДЕЙСТВИТЕЛЬНО ПОЛУЧИЛСЯ.
+       *
+       * Сначала условие стояло по флагу `game.can_solve` — и проба показала, что
+       * флаг врёт в нашу сторону: у «Сапёра» он поднят (решатель нужен движку для
+       * РАЗДАЧИ), а `psy_solve` с позиции игрока решения не даёт. Кнопка была бы
+       * живой и не делала ничего.
+       * Поэтому спрашиваем не флаг, а результат: шаги считаются один раз на раздачу.
+       */
+      onLesson: _lessonSteps.isEmpty ? null : _openLesson,
+      // Правило игры — из словаря по ключу карточки режима. Нет ключа — нет и
+      // кнопки: пустое окно справки хуже её отсутствия.
+      onRules: _modeOrNull?.descKey == null
+          ? null
+          : () => showGameRules(context, title: _mode.title, ruleKey: _mode.descKey!),
       hud: [
-        HudItem(label: 'Ступень', value: '${_ladder.level}/${_mode.steps.length}', icon: Icons.trending_up),
+        HudItem(label: 'Ступень', value: '${_ladder.level}/${_steps.length}', icon: Icons.trending_up),
         HudItem(label: 'Доска', value: step.title, icon: Icons.grid_on),
       ],
       field: (context, height) {
@@ -170,13 +295,44 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
         }
         return LayoutBuilder(
           builder: (context, c) {
-            // Поле берёт МЕНЬШЕЕ из высоты каркаса и ширины — доска движка
-            // масштабируется целиком, поэтому мельче клетки не станут неожиданно.
-            final side = (height < c.maxWidth ? height : c.maxWidth) - 8;
-            final size = Size(side < 0 ? 0 : side, side < 0 ? 0 : side);
+            /*
+             * 🔴 КОРОБКА ПО ФОРМЕ ДОСКИ, А НЕ КВАДРАТ (решение Дениса 25.09.2026).
+             *
+             * Здесь стояло `side = min(высота, ширина)` и `Size(side, side)`. Для
+             * квадратных сеток — а их у Тэтхэма большинство — это ровно то, что
+             * нужно, и после этой правки для них НИЧЕГО не меняется: у квадратного
+             * холста обе стороны дают один и тот же множитель.
+             *
+             * 📍 ЗАМЕР 25.09.2026 на телефоне 390×844, «Снос групп» после
+             * переворота лестницы (холст движка 190×350): коробка выходила
+             * 382×382, доска в ней рисовалась 207×382 — по высоте впритык, а
+             * 183 точки ширины из 390 оставались пустыми. Множитель брался как
+             * `min(382/190, 382/350)`, то есть по ВЫСОТЕ КВАДРАТА, хотя высоты на
+             * экране было больше, чем ширины.
+             *
+             * `PuzzlePainter` и `toEngine` и без того вписывают холст с
+             * сохранением пропорций и центруют — поэтому квадратная коробка не
+             * искажала доску, а просто отнимала у неё место. Теперь коробка
+             * СОВПАДАЕТ с вписанным холстом, и пустых полей нет ни с одной
+             * стороны.
+             */
+            final boxW = c.maxWidth - 8;
+            final boxH = height - 8;
+            final ew = _size.w, eh = _size.h;
+            final Size size;
+            if (boxW <= 0 || boxH <= 0) {
+              size = Size.zero;
+            } else if (ew <= 0 || eh <= 0) {
+              // Холст ещё неизвестен — прежнее поведение, квадрат по меньшей стороне.
+              final side = boxW < boxH ? boxW : boxH;
+              size = Size(side, side);
+            } else {
+              final k = (boxW / ew) < (boxH / eh) ? boxW / ew : boxH / eh;
+              size = Size(ew * k, eh * k);
+            }
             return Center(
               child: GestureDetector(
-                key: const Key('поле'),
+                key: const Key('board'),
                 behavior: HitTestBehavior.opaque,
                 onTapDown: (d) => _tap(d.localPosition, size),
                 child: CustomPaint(
@@ -205,6 +361,7 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
       ]),
       toolbar: _Toolbar(
         mode: _mode,
+        steps: _steps,
         won: _won,
         status: _status,
         onDigit: _digit,
@@ -223,6 +380,7 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
 class _Toolbar extends StatelessWidget {
   const _Toolbar({
     required this.mode,
+    required this.steps,
     required this.won,
     required this.status,
     required this.onDigit,
@@ -230,6 +388,7 @@ class _Toolbar extends StatelessWidget {
   });
 
   final PuzzleMode mode;
+  final List<PuzzleStep> steps;
   final bool won;
   final String status;
   final void Function(int) onDigit;
@@ -238,14 +397,19 @@ class _Toolbar extends StatelessWidget {
   /// Сколько клавиш у ступени: размер поля читается из параметров («6dh» → 6,
   /// «5x5de» → 5, «3x3db» → 9 клеток у Solo).
   int get _keys {
-    final p = mode.steps.first.params;
+    final p = steps.isEmpty ? '' : steps.first.params;
     final m = RegExp(r'^(\d+)x(\d+)').firstMatch(p);
     if (mode.engineName == 'Solo' && m != null) {
       return int.parse(m.group(1)!) * int.parse(m.group(2)!);
     }
-    if (mode.digitLabels != null) return mode.digitLabels!.length;
+    if (mode.digitLabels.isNotEmpty) return mode.digitLabels.length;
     if (m != null) return int.parse(m.group(1)!);
-    return int.parse(RegExp(r'^(\d+)').firstMatch(p)!.group(1)!);
+    // ⚠️ БЕЗ «!» НА КОНЦЕ. Параметры ступени теперь приходят и из меню движка, где
+    // первым символом бывает буква («4de» у Keen — цифра, а у иных пресетов нет).
+    // Восклицательный знак здесь уронил бы ряд клавиш прямо в руках у игрока;
+    // девять — привычный ряд судоку и честное «не смог разобрать».
+    final first = RegExp(r'^(\d+)').firstMatch(p);
+    return first == null ? 9 : int.parse(first.group(1)!);
   }
 
   @override
@@ -254,7 +418,7 @@ class _Toolbar extends StatelessWidget {
       return Padding(
         padding: const EdgeInsets.all(12),
         child: FilledButton.icon(
-          key: const Key('дальше'),
+          key: const Key('next'),
           onPressed: onNext,
           icon: const Icon(Icons.arrow_forward),
           label: const Text('Следующая ступень'),
@@ -274,7 +438,7 @@ class _Toolbar extends StatelessWidget {
       builder: (context, c) {
         const gap = 6.0;
         final keys = _keys;
-        final wide = labels != null;
+        final wide = labels.isNotEmpty;
         final keyWidth = wide ? 96.0 : 48.0;
         final fit = ((c.maxWidth - 8 + gap) / (keyWidth + gap)).floor().clamp(1, keys);
         final rows = (keys / fit).ceil();
@@ -295,11 +459,11 @@ class _Toolbar extends StatelessWidget {
                       width: keyWidth,
                       height: 48,
                       child: FilledButton(
-                        key: Key('цифра$v'),
+                        key: Key('digit$v'),
                         onPressed: () => onDigit(v),
                         style: FilledButton.styleFrom(padding: EdgeInsets.zero),
                         child: Text(
-                          labels != null && v <= labels.length ? labels[v - 1] : '$v',
+                          labels.isNotEmpty && v <= labels.length ? labels[v - 1] : '$v',
                           style: TextStyle(fontSize: wide ? 13 : 20),
                         ),
                       ),

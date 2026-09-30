@@ -3,7 +3,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../../shell/aux_action.dart';
+import '../../shell/demo_lesson.dart';
+import '../../shell/l10n.dart';
 import '../../shell/game_shell.dart';
+import '../../shell/lesson.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
@@ -79,6 +82,10 @@ class _SchulteScreenState extends State<SchulteScreen> {
   }
 
   void _reset() {
+    // Новая партия — снова зачётная (договор shell/lesson.dart: отметку «разбор
+    // смотрели» снимает новая раздача). Отметка общая на всё приложение, и без
+    // сброса один открытый разбор выключал бы рост уровня во всех играх.
+    LessonUsed.reset();
     _reveal?.cancel();
     _ticker?.cancel();
     _watch
@@ -136,12 +143,23 @@ class _SchulteScreenState extends State<SchulteScreen> {
     return '${s.toStringAsFixed(1)} с';
   }
 
+  /// Заголовок один на экран и на разбор: вторая такая строка — второй долг
+  /// храповика подписей (`test/ui_text_debt_does_not_grow_test.dart`).
+  String get _title => 'Таблица Шульте';
+
+  /// Разбор объясняет ПРИЁМ: верный ответ человек и так увидит по итогу раунда,
+  /// а вот чем объём берётся — нет.
+  List<DemoTrial> _demoTrials() => [
+        DemoTrial(text: '', rule: L.t('teachSchulteCenter')),
+      ];
+
   @override
   Widget build(BuildContext context) {
     final g = _game;
     if (g == null) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     return GameShell(
-      title: 'Таблица Шульте',
+      title: _title,
+      onLesson: () => openDemoLesson(context, title: _title, trials: _demoTrials()),
       hud: [
         HudItem(label: 'Уровень', value: '${_ladder.level}', icon: Icons.flag_outlined),
         HudItem(label: 'Достигнуто', value: '${_ladder.best}', icon: Icons.emoji_events_outlined),

@@ -1,18 +1,36 @@
+import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
+import '../games/corsi/screen.dart';
+import '../games/picture_pairs/screen.dart';
 import '../games/digit_span/screen.dart';
+import '../games/ant/screen.dart';
+import '../games/bart/screen.dart';
 import '../games/choice_rt/screen.dart';
+import '../games/cpt/screen.dart';
 import '../games/flanker/screen.dart';
 import '../games/gonogo/screen.dart';
+import '../games/inhibition/screen.dart';
+import '../games/iowa/screen.dart';
 import '../games/posner/screen.dart';
+import '../games/proofreading/screen.dart';
+import '../games/prl/screen.dart';
 import '../games/simon/screen.dart';
 import '../games/stop_signal/screen.dart';
 import '../games/stroop_emotional/screen.dart';
+import '../games/wcst/screen.dart';
+import '../games/switching_task/screen.dart';
+import '../games/targets/screen.dart';
 import '../games/dots_connect/screen.dart';
 import '../games/memory_matrix/screen.dart';
 import '../games/stroop/screen.dart';
 import '../games/one_line/screen.dart';
+import '../games/anagrams/screen.dart';
+import '../games/anagrams/all_words_screen.dart';
+import '../games/anagrams/crossword_screen.dart';
+import '../games/anagrams/ring_screen.dart';
 import '../games/deep/screen.dart';
 import '../games/fractal/screen.dart';
 import '../games/goods_sort/screen.dart';
@@ -27,24 +45,43 @@ import '../games/samurai/screen.dart';
 import '../games/spatial_hub/screen.dart';
 import '../games/spatial_lab/screen.dart';
 import '../games/spatial_span/screen.dart';
+import '../games/sudoku/modes.dart';
 import '../games/sudoku/screen.dart';
 import '../games/mahjong/screen.dart';
 import '../games/math_slider/screen.dart';
 import '../games/math_sprint/screen.dart';
 import '../games/number_bonds/screen.dart';
 import '../games/ospan/screen.dart';
+import '../games/sdmt/screen.dart';
+import '../games/counter/screen.dart';
+import '../games/find_differences/screen.dart';
+import '../games/counting_hub/screen.dart';
+import '../games/search_hub/screen.dart';
+import '../games/visual_search/screen.dart';
+import '../games/set_game/screen.dart';
 import '../games/object_tracker/screen.dart';
 import '../games/pattern/screen.dart';
 import '../games/quick_count/screen.dart';
 import '../games/schulte/screen.dart';
 import 'asset_server.dart';
 import 'l10n.dart';
-import '../games/chess_blind/entry.dart';
 import '../games/sorting_hub/screen.dart';
+import '../games/faces_names/screen.dart';
+import '../games/memory_palace/screen.dart';
+import '../games/rmet/screen.dart';
+import '../games/word_pairs/screen.dart';
+import '../games/vocab_srs/screen.dart';
 import 'hub_screen.dart';
+import 'game_pet.dart';
 import 'session_report.dart';
+import 'game_preset.dart';
+import 'game_rules.dart';
+import 'game_shell.dart';
+import 'puzzle_routes.g.dart';
+import '../games/chess_blind/entry.dart';
 import 'shared_state.dart';
 import 'tap_latency.dart';
+
 
 /// ГИБРИД: снаружи Flutter, внутри — НЫНЕШНЕЕ ПРИЛОЖЕНИЕ ЦЕЛИКОМ.
 ///
@@ -67,80 +104,157 @@ class HybridApp extends StatefulWidget {
 
   /// Игра перенесена → строится нативно. Ключ — путь маршрута веб-сборки.
   static Map<String, Widget Function(SharedState)> get native => {
-    '/games/dots-connect': (s) => DotsConnectScreen(state: s),
-    '/games/one-line': (s) => OneLineScreen(state: s),
-    '/games/digit-span': (s) => DigitSpanScreen(state: s),
-    '/games/memory-matrix': (s) => MemoryMatrixScreen(state: s),
-    '/games/schulte': (s) => SchulteScreen(state: s),
-    '/games/mahjong': (s) => MahjongScreen(state: s),
-    '/games/math-slider': (s) => MathSliderScreen(state: s),
-    '/games/object-tracker': (s) => ObjectTrackerScreen(state: s),
-    '/games/quick-count': (s) => QuickCountScreen(state: s),
-    '/games/pattern': (s) => PatternScreen(state: s),
-    '/games/math-sprint': (s) => MathSprintScreen(state: s),
-    '/games/number-bonds': (s) => NumberBondsScreen(state: s),
-    '/games/ospan': (s) => OspanScreen(state: s),
-    '/games/stroop': (s) => StroopScreen(state: s),
-    '/games/flanker': (s) => FlankerScreen(state: s),
-    '/games/simon': (s) => SimonScreen(state: s),
-    '/games/sudoku': (s) => SudokuScreen(state: s),
-    '/games/sudoku-samurai': (s) => SamuraiScreen(state: s),
-    '/games/sudoku-fractal': (s) => FractalScreen(state: s),
-    '/games/sudoku-fractal-deep': (s) => DeepScreen(state: s),
-    '/games/go-no-go': (s) => GoNoGoScreen(state: s),
-    '/games/mental-rotation': (s) => MentalRotationScreen(state: s),
-    '/games/spatial-span': (s) => SpatialSpanScreen(state: s),
-    // Все четыре упражнения лаборатории перенесены, поэтому перехват честен: адрес с
-    // `?mode=` попадает в ту же строку карты, и ни один режим не остаётся в вебе.
-    '/games/spatial-lab': (s) => SpatialLabScreen(state: s),
-    '/games/spatial-hub': (s) => SpatialHubScreen(state: s),
-    '/games/goods-sort': (s) => GoodsSortScreen(state: s),
-    '/games/water-sort': (s) => SortTubesScreen(
-      state: s,
-      gameId: 'water_sort',
-      title: 'Пробирки',
-      skin: TubeSkin.water,
-    ),
-    '/games/ball-sort': (s) => SortTubesScreen(
-      state: s,
-      gameId: 'ball_sort',
-      title: 'Сортировка шариков',
-      skin: TubeSkin.balls,
-    ),
-    '/games/nut-sort': (s) => SortTubesScreen(
-      state: s,
-      gameId: 'nut_sort',
-      title: 'Сортировка гаек',
-      skin: TubeSkin.nuts,
-    ),
-    '/games/cake-sort': (s) => CakeSortScreen(
-      state: s,
-      gameId: 'cake_sort',
-      title: 'Торты',
-      skin: CakeSkin.cake,
-    ),
-    '/games/pizza-sort': (s) => CakeSortScreen(
-      state: s,
-      gameId: 'pizza_sort',
-      title: 'Пицца',
-      skin: CakeSkin.pizza,
-    ),
-    '/games/hanoi': (s) => HanoiScreen(state: s),
-    '/games/tower-london': (s) => TowerLondonScreen(state: s),
-    /*
+        /*
+         * 🔴 АНАГРАММЫ — ЧЕТЫРЕ РАЗНЫЕ ИГРЫ ЗА ОДНИМ АДРЕСОМ, и каждая получает
+         * свой ключ. Голый `/games/anagrams` ведёт на классику: это режим по
+         * умолчанию на экране настройки, и человек, пришедший по ссылке без
+         * хвоста, попадает туда же, куда попал бы в вебе.
+         *
+         * ⚠️ Включено ТОЛЬКО когда готовы все четыре. Один ключ без хвоста
+         * накрыл бы разом все режимы, и человек, выбравший кроссворд, получил бы
+         * классику — а проба бы этого не заметила: маршрут-то открывается.
+         */
+        '/games/anagrams': (s) => AnagramsScreen(state: s),
+        '/games/anagrams?mode=classic': (s) => AnagramsScreen(state: s),
+        '/games/anagrams?mode=all': (s) => AllWordsScreen(state: s),
+        '/games/anagrams?mode=cross': (s) => CrosswordScreen(state: s),
+        '/games/anagrams?mode=square': (s) => RingScreen(state: s),
+        '/games/dots-connect': (s) => DotsConnectScreen(state: s),
+        '/games/one-line': (s) => OneLineScreen(state: s),
+        '/games/digit-span': (s) => DigitSpanScreen(state: s),
+        '/games/memory-matrix': (s) => MemoryMatrixScreen(state: s),
+        '/games/corsi': (s) => CorsiScreen(state: s),
+        '/games/picture-pairs': (s) => PicturePairsScreen(state: s),
+        '/games/schulte': (s) => SchulteScreen(state: s),
+        '/games/mahjong': (s) => MahjongScreen(state: s),
+        '/games/math-slider': (s) => MathSliderScreen(state: s),
+        '/games/object-tracker': (s) => ObjectTrackerScreen(state: s),
+        '/games/quick-count': (s) => QuickCountScreen(state: s),
+        '/games/pattern': (s) => PatternScreen(state: s),
+        '/games/math-sprint': (s) => MathSprintScreen(state: s),
+        '/games/number-bonds': (s) => NumberBondsScreen(state: s),
+        '/games/ospan': (s) => OspanScreen(state: s),
+        '/games/sdmt': (s) => SdmtScreen(state: s),
+        '/games/set-game': (s) => SetGameScreen(state: s),
+        '/games/counter': (s) => CounterScreen(state: s),
+        '/games/find-differences': (s) => FindDifferencesScreen(state: s),
+        '/games/visual-search': (s) => VisualSearchScreen(state: s),
+        '/games/stroop': (s) => StroopScreen(state: s),
+        '/games/flanker': (s) => FlankerScreen(state: s),
+        '/games/simon': (s) => SimonScreen(state: s),
+        '/games/sudoku': (s) => SudokuScreen(state: s),
+        // Режимы той же доски: адрес отличается только хвостом, экран — тот же.
+        '/games/sudoku?mode=towers': (s) => SudokuScreen(state: s, mode: SideMode.towers),
+        '/games/sudoku?mode=unequal': (s) => SudokuScreen(state: s, mode: SideMode.unequal),
+        // Развилки раздела — на ОБЩЕМ экране каркаса: карточки уже лежат в
+        // `assets/hubs.json`, вторая копия начала бы отставать молча.
+        '/games/sudoku-hub': (s) => HubScreen(
+              state: s,
+              hubRoute: '/games/sudoku-hub',
+              icon: Icons.apps,
+              gradient: const [Color(0xFF3B2F7A), Color(0xFF5B4D9E)],
+              isNative: native.containsKey,
+            ),
+        '/games/puzzles-hub': (s) => HubScreen(
+              state: s,
+              hubRoute: '/games/puzzles-hub',
+              icon: Icons.extension,
+              gradient: const [Color(0xFF0F766E), Color(0xFFF59E0B)],
+              isNative: native.containsKey,
+            ),
+        '/games/sudoku-samurai': (s) => SamuraiScreen(state: s),
+        '/games/sudoku-fractal': (s) => FractalScreen(state: s),
+        '/games/sudoku-fractal-deep': (s) => DeepScreen(state: s),
+        '/games/go-no-go': (s) => GoNoGoScreen(state: s),
+        '/games/mental-rotation': (s) => MentalRotationScreen(state: s),
+        '/games/spatial-span': (s) => SpatialSpanScreen(state: s),
+        // Все четыре упражнения лаборатории перенесены, поэтому перехват честен: адрес с
+        // `?mode=` попадает в ту же строку карты, и ни один режим не остаётся в вебе.
+        '/games/spatial-lab': (s) => SpatialLabScreen(state: s),
+        '/games/spatial-hub': (s) => SpatialHubScreen(state: s),
+        '/games/goods-sort': (s) => GoodsSortScreen(state: s),
+      '/games/water-sort': (s) => SortTubesScreen(
+            state: s, gameId: 'water_sort', title: 'Пробирки', skin: TubeSkin.water),
+      '/games/ball-sort': (s) => SortTubesScreen(
+            state: s, gameId: 'ball_sort', title: 'Сортировка шариков', skin: TubeSkin.balls),
+      '/games/nut-sort': (s) => SortTubesScreen(
+            state: s, gameId: 'nut_sort', title: 'Сортировка гаек', skin: TubeSkin.nuts),
+      '/games/cake-sort': (s) => CakeSortScreen(
+            state: s, gameId: 'cake_sort', title: 'Торты', skin: CakeSkin.cake),
+      '/games/pizza-sort': (s) => CakeSortScreen(
+            state: s, gameId: 'pizza_sort', title: 'Пицца', skin: CakeSkin.pizza),
+      '/games/hanoi': (s) => HanoiScreen(state: s),
+      '/games/tower-london': (s) => TowerLondonScreen(state: s),
+        /*
          * 🔴 РАЗВИЛКА ТОЖЕ ПЕРЕХВАТЫВАЕТСЯ. Она ведёт на восемь игр, из которых
          * все восемь уже нативные: оставь её в вебе — и каждый заход в игру шёл
          * бы через веб-страницу, которую мы всё равно перехватим кадром позже.
          * Какую игру чем открыть, решает оболочка (см. `_openNative`), а не хаб.
          */
-    '/games/chess-blind': (s) => const ChessBlindEntry(),
-    '/games/sorting-hub': (s) =>
-        SortingHubScreen(state: s, isNative: native.containsKey),
-    '/games/choice-rt': (s) => ChoiceRtScreen(state: s),
-    '/games/stop-signal': (s) => StopSignalScreen(state: s),
-    '/games/posner': (s) => PosnerScreen(state: s),
-    '/games/stroop-emotional': (s) => EmoStroopScreen(state: s),
-  };
+        '/games/sorting-hub': (s) =>
+            SortingHubScreen(state: s, isNative: native.containsKey),
+        // Развилки моего раздела: состав — данными, ход в веб даёт хост гибрида.
+        '/games/search-hub': (s) =>
+            SearchHubScreen(state: s, isNative: native.containsKey),
+        '/games/counting-hub': (s) =>
+            CountingHubScreen(state: s, isNative: native.containsKey),
+        '/games/choice-rt': (s) => ChoiceRtScreen(state: s),
+        '/games/stop-signal': (s) => StopSignalScreen(state: s),
+        '/games/posner': (s) => PosnerScreen(state: s),
+        '/games/stroop-emotional': (s) => EmoStroopScreen(state: s),
+        // «Доска в уме» перенесена целиком: партия и серия, вход спрашивает режим.
+        '/games/chess-blind': (s) => const ChessBlindEntry(),
+        '/games/switching-task': (s) => SwitchingTaskScreen(state: s),
+        '/games/targets': (s) => TargetsScreen(state: s),
+        '/games/inhibition': (s) => InhibitionScreen(state: s),
+        '/games/faces-names': (s) => FacesNamesScreen(state: s),
+        '/games/memory-palace': (s) => MemoryPalaceScreen(state: s),
+        '/games/rmet': (s) => RmetScreen(state: s),
+        '/games/ant': (s) => AntScreen(state: s),
+        '/games/iowa': (s) => IowaScreen(state: s),
+        '/games/prl': (s) => PrlScreen(state: s),
+        '/games/bart': (s) => BartScreen(state: s),
+        '/games/wcst': (s) => WcstScreen(state: s),
+        '/games/cpt': (s) => CptScreen(state: s),
+        '/games/proofreading': (s) => ProofreadingScreen(state: s),
+        /*
+         * 🔴 СОРОК ТРИ АДРЕСА ОДНОГО ЭКРАНА — СГЕНЕРИРОВАНЫ, А НЕ ВПИСАНЫ.
+         *
+         * Головоломки устроены не как остальные игры: экран один, а режимов 42, и
+         * отличает их только хвост `?mode=`. Сорок две строки, переписанные с
+         * реестра, — сорок два места молча разойтись с ним. Поэтому карта их
+         * адресов собирается из `assets/puzzles/modes.json`
+         * (`tools/embed-puzzle-routes.mjs`), и там же лежит правило кодирования
+         * пробела в именах вроде «Light Up».
+         *
+         * ⚠️ Перехват включён 23.09.2026 — ПОСЛЕ того, как замер показал, что
+         * открываются все 42 (до этого у 28 из них экран падал на пустом списке
+         * ступеней; см. `test/puzzles_all_modes_open_test.dart`).
+         */
+        ...puzzleRoutes(),
+        '/games/word-pairs': (s) => WordPairsScreen(state: s),
+        // «Языки»: словарь SRS — узнавание, припоминание, печать и два языка сразу.
+        // Настройки шага языковой зарядки (`targetLang`, `bilingual`, `lang2`,
+        // `direction`, `newLimit`) экран берёт из хвоста адреса через GamePreset.
+        '/games/vocab-srs': (s) => VocabSrsScreen(state: s),
+        /*
+         * 🔴 РАЗВИЛКА «МНЕМОТЕХНИКИ» ПЕРЕХВАТЫВАЕТСЯ, ПОТОМУ ЧТО ЗА НЕЙ УЖЕ
+         * НАТИВНО ЧЕТЫРЕ ЭКРАНА ИЗ ПЯТИ: «Дворец памяти», «Лица и имена»,
+         * «Пары слов» и «Прочти эмоцию». Пятая — «Мнемоника» — ещё в вебе, и
+         * `isNative` честно показывает это на карточке: открывать её будет
+         * оболочка, а не хаб.
+         *
+         * ⚠️ Карточки берутся из `assets/hubs.json`, как у остальных развилок:
+         * свой список в коде был бы вторым реестром рядом с `hubContents.ts`.
+         */
+        '/games/mnemonics-hub': (s) => HubScreen(
+              state: s,
+              hubRoute: '/games/mnemonics-hub',
+              icon: Icons.link,
+              gradient: const [Color(0xFFD946EF), Color(0xFFF59E0B)],
+              isNative: native.containsKey,
+            ),
+      };
 
   /// ЗАМЕР: открыть ту же игру в НЫНЕШНЕЙ версии на том же устройстве.
   ///
@@ -172,21 +286,100 @@ class HybridApp extends StatefulWidget {
   /// `file:///…/games/one-line`, и с якорем или запросом.
   static String? routeOf(String url) {
     if (webOnly) return null;
-    var u = url.split('#').first.split('?').first;
+    final noHash = url.split('#').first;
+    final qi = noHash.indexOf('?');
+    final query = qi < 0 ? '' : noHash.substring(qi);
+    var u = qi < 0 ? noHash : noHash.substring(0, qi);
     if (u.endsWith('.html')) u = u.substring(0, u.length - 5);
     final i = u.indexOf('/games/');
     if (i < 0) return null;
     final r = u.substring(i);
+    /*
+     * 🔴 СНАЧАЛА ИЩЕМ АДРЕС ВМЕСТЕ С ХВОСТОМ, И ТОЛЬКО ПОТОМ БЕЗ НЕГО.
+     *
+     * Часть игр — это РЕЖИМЫ одного экрана, и отличает их только хвост:
+     * `/games/sudoku?mode=towers` — «Небоскрёбы», `?mode=unequal` — «Неравенства»,
+     * у каждого своя мини-лестница и свой счётчик. Прежний разбор срезал хвост до
+     * поиска, поэтому обе карточки развилки открывали бы ОБЫЧНУЮ судоку: человек
+     * жмёт «Небоскрёбы» и получает не ту игру. Игры без режимов это не задевает —
+     * для них ключа с хвостом в карте просто нет, и ответ прежний.
+     */
+    if (query.isNotEmpty && native.containsKey('$r$query')) return '$r$query';
+    /*
+     * ⚠️ И ТОТ ЖЕ ХВОСТ В ДРУГОМ НАПИСАНИИ. У четырёх головоломок в имени пробел,
+     * веб-версия ходит на `?mode=Light%20Up`, но адрес доходит до нас и в
+     * раскодированном виде — смотря кто его вернул: `location.href` или переход
+     * документа. Одно написание в карте, оба — при разборе.
+     */
+    if (query.isNotEmpty) {
+      final decoded = Uri.decodeFull(query);
+      if (decoded != query && native.containsKey('$r$decoded')) return '$r$decoded';
+      final encoded = Uri.encodeFull(query);
+      if (encoded != query && native.containsKey('$r$encoded')) return '$r$encoded';
+    }
     return native.containsKey(r) ? r : null;
+  }
+
+  /// Настройки шага из хвоста адреса: `?wu=1&diff=hard&trials=20`.
+  ///
+  /// 🔴 БЕЗ ЭТОГО ПЕРЕНОС ТЕРЯЕТ ЗАРЯДКУ ЦЕЛИКОМ. `routeOf` отвечает на вопрос «какой
+  /// экран открыть», и хвост ему для этого чаще всего не нужен. Но в хвосте едут
+  /// настройки шага зарядки — и признак `wu=1`, при котором лестница НЕ двигается
+  /// (`useGamePreset.ts:22`, правило стоит в 53 веб-экранах). Нативные экраны хвоста
+  /// не видели вовсе, и шаг зарядки молча менял личный уровень игрока.
+  static Map<String, String> queryOf(String url) {
+    final noHash = url.split('#').first;
+    final q = noHash.indexOf('?');
+    if (q < 0) return const {};
+    return Uri.splitQueryString(noHash.substring(q + 1));
   }
 
   @override
   State<HybridApp> createState() => _HybridAppState();
 }
 
+/// Что делать с нативным экраном, когда страница сменила адрес.
+enum RouteAction {
+  /// Адрес тот же — ничего.
+  keep,
+
+  /// Страница ушла туда, где нативного экрана нет: снять открытый.
+  close,
+
+  /// Страница ушла на другую перенесённую игру: снять открытый и открыть новый.
+  closeThenOpen,
+
+  /// Ничего не открыто, адрес перенесённый: просто открыть.
+  open,
+}
+
+/// Решение о судьбе нативного экрана — ОТДЕЛЬНО от самого съёма.
+///
+/// 🔴 Вынесено ради пробы. Дефект 24.09.2026 («зарядка перевела шаг, а нативный
+/// экран остался лежать поверх») жил именно в этом решении, а не в рисовании.
+/// Пока решение было вплетено в обработчик сообщения, проверить его можно было
+/// только живым телефоном — то есть на деле никак, и оно доехало до людей.
+RouteAction routeAction(String? opened, String? next) {
+  if (opened == next) return RouteAction.keep;
+  if (opened == null) return next == null ? RouteAction.keep : RouteAction.open;
+  return next == null ? RouteAction.close : RouteAction.closeThenOpen;
+}
+
 class _HybridAppState extends State<HybridApp> {
   late final WebViewController _c;
   bool _loading = true;
+
+
+  /// Экран сняли МЫ, потому что страница ушла вперёд, — а не человек кнопкой.
+  bool _closedByPage = false;
+
+  /// Какой нативный экран сейчас открыт поверх страницы.
+  ///
+  /// ⚠️ Нужен из-за того, что перехват теперь идёт по СМЕНЕ АДРЕСА: страница
+  /// может сообщить об одном и том же маршруте дважды (`replaceState` после
+  /// `pushState` — обычное дело у роутера), и без этого поля поверх экрана
+  /// открылся бы его же двойник.
+  String? _openedRoute;
   final _marks = WebMarkTimer();
 
   /// Сообщение от веб-половины. Кроме записи в общую память здесь одно особое
@@ -197,6 +390,34 @@ class _HybridAppState extends State<HybridApp> {
   /// остались на старом словаре до перезапуска приложения — и это читается как
   /// «перевод сломан», хотя перевод на месте.
   Future<void> _fromWeb(String message) async {
+    // 🔴 СМЕНА МАРШРУТА ВНУТРИ СТРАНИЦЫ — ЕДИНСТВЕННЫЙ РАБОЧИЙ ПЕРЕХВАТ.
+    //
+    // `onNavigationRequest` ниже ловит только настоящую загрузку документа, а
+    // приложение ходит по экранам через History API, и WebView о таком переходе
+    // не сообщает. Замер раздела «Зарядки» 23.09.2026 на симуляторе: перенесённые
+    // экраны открывались ВЕБ-версиями, то есть перехват не работал ни разу.
+    // Делегат оставлен: он нужен для внешних ссылок и первой загрузки.
+    try {
+      final m = jsonDecode(message);
+      if (m is Map && m['op'] == 'route') {
+        final url = '${m['url']}';
+        final route = HybridApp.routeOf(url);
+        switch (routeAction(_openedRoute, route)) {
+          case RouteAction.keep:
+            break;
+          case RouteAction.close:
+            _closeNativeBecausePageMoved();
+          case RouteAction.closeThenOpen:
+            _closeNativeBecausePageMoved();
+            _openNative(route!, query: HybridApp.queryOf(url));
+          case RouteAction.open:
+            _openNative(route!, query: HybridApp.queryOf(url));
+        }
+        return;
+      }
+    } catch (_) {
+      // не наше сообщение — ниже разберёт общая память
+    }
     final was = L.locale;
     await widget.state.applyFromWeb(message);
     final now = L.resolve(widget.state.language);
@@ -217,10 +438,30 @@ class _HybridAppState extends State<HybridApp> {
     // ⚠️ Страница может быть ещё не готова — например, человек открыл нативный
     // экран сразу со старта. Веб-сторона на этот случай копит отчёты в очередь
     // и разбирает её, когда регистрирует приёмник; здесь просто отдаём.
+    // Питомец в шапке нативных игр берёт кадры из вложенной веб-сборки —
+    // они там уже лежат, класть их второй раз в ассеты Flutter значило бы
+    // 4,2 МБ впустую.
+    PetHost.state = widget.state;
+    PetHost.origin = widget.server.origin;
     SessionReport.sink = (json) async {
-      await _c.runJavaScript(
-        'window.__psySaveSession && window.__psySaveSession($json);',
-      );
+      await _c.runJavaScript('window.__psySaveSession && window.__psySaveSession($json);');
+    };
+    /*
+     * 🔴 «НА ГЛАВНУЮ» ИЗ ПАУЗЫ. Нативный экран про главную ничего не знает — её
+     * рисует веб-половина внутри оболочки. Поэтому уход на главную делаем здесь:
+     * снимаем нативный экран и уводим страницу в корень.
+     *
+     * ⚠️ Уводим именно `location.replace`, а не `history.back()`: назад вернуло бы в
+     * ту же игру, из которой человек только что попросился уйти.
+     */
+    GameExit.home = () async {
+      if (!mounted) return;
+      final nav = Navigator.of(context);
+      while (nav.canPop()) {
+        nav.pop();
+      }
+      _openedRoute = null;
+      await _c.runJavaScript("location.replace('${widget.server.origin}/');");
     };
     _c = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
@@ -228,66 +469,70 @@ class _HybridAppState extends State<HybridApp> {
         SharedState.channel,
         onMessageReceived: (m) => _fromWeb(m.message),
       )
-      ..addJavaScriptChannel(
-        latencyChannel,
-        onMessageReceived: (m) {
-          final line = _marks.onMark(m.message);
-          // ignore: avoid_print — прибор нарочно пишет в журнал устройства
-          if (line != null) print(line);
-        },
-      )
+      ..addJavaScriptChannel(latencyChannel, onMessageReceived: (m) {
+        final line = _marks.onMark(m.message);
+        // ignore: avoid_print — прибор нарочно пишет в журнал устройства
+        if (line != null) print(line);
+      })
       ..setOnConsoleMessage((m) {
         // Замеры страницы (ПОКАЗ/ОТКЛИК) уходят в журнал устройства вместе со строками Flutter.
-        if (tapLatencyProbe &&
-            (m.message.startsWith('ОТКЛИК') || m.message.startsWith('ПОКАЗ'))) {
+        if (tapLatencyProbe && (m.message.startsWith('ОТКЛИК') || m.message.startsWith('ПОКАЗ'))) {
           // ignore: avoid_print — прибор нарочно пишет в журнал устройства
           print(m.message);
         }
       })
-      ..setNavigationDelegate(
-        NavigationDelegate(
-          onNavigationRequest: (req) {
-            final route = HybridApp.routeOf(req.url);
-            if (route == null) return NavigationDecision.navigate;
-            // 🔴 ПЕРЕХВАТ. Веб-версию перенесённой игры не открываем никогда:
-            // иначе человек увидел бы старый экран там, где уже есть новый, и
-            // прогресс писался бы дважды разными путями.
-            _openNative(route);
-            return NavigationDecision.prevent;
-          },
-          onPageStarted: (_) => _c.runJavaScript(widget.state.bootstrapJs()),
-          onPageFinished: (_) {
-            _c.runJavaScript(widget.state.bootstrapJs());
-            if (tapLatencyProbe) {
-              _c.runJavaScript(webTapLatencyJs('Веб/страница'));
-              _c.runJavaScript(webStimulusMarkJs());
-            }
-            if (mounted) setState(() => _loading = false);
-          },
-        ),
-      )
+      ..setNavigationDelegate(NavigationDelegate(
+        onNavigationRequest: (req) {
+          final route = HybridApp.routeOf(req.url);
+          if (route == null) return NavigationDecision.navigate;
+          // 🔴 ПЕРЕХВАТ. Веб-версию перенесённой игры не открываем никогда:
+          // иначе человек увидел бы старый экран там, где уже есть новый, и
+          // прогресс писался бы дважды разными путями.
+          _openNative(route, query: HybridApp.queryOf(req.url));
+          return NavigationDecision.prevent;
+        },
+        onPageStarted: (_) => _c.runJavaScript(widget.state.bootstrapJs()),
+        onPageFinished: (_) {
+          _c.runJavaScript(widget.state.bootstrapJs());
+          if (tapLatencyProbe) {
+            _c.runJavaScript(webTapLatencyJs('Веб/страница'));
+            _c.runJavaScript(webStimulusMarkJs());
+          }
+          if (mounted) setState(() => _loading = false);
+        },
+      ))
       // 🔴 КОРЕНЬ, А НЕ /index.html. Замер 23.09.2026: по адресу `/index.html`
       // приложение грузится целиком (связка на 29,7 МБ доезжает), но
       // маршрутизатор такого маршрута не знает и показывает «страница не
       // найдена» — в журнале это видно по запросу unmatched.png. Корень он
       // разбирает как главную.
-      ..loadRequest(
-        Uri.parse('${widget.server.origin}${HybridApp.startRoute}'),
-      );
+      ..loadRequest(Uri.parse('${widget.server.origin}${HybridApp.startRoute}'));
+    // 🔴 СМЕНИЛАСЬ ВЛОЖЕННАЯ СБОРКА — СБРАСЫВАЕМ КЭШ WebView.
+    //
+    // 📍 Отчёт Дениса 24.09.2026 (71a0c36e): после обновления «картинки пропали
+    // — логотипы, и питомец в верхнем правом углу тоже», при нуле ошибок в
+    // журнале. Адрес страницы у нас постоянный (127.0.0.1:47355 — он держит
+    // корзину localStorage), поэтому WebView спокойно берёт из кэша СТАРУЮ
+    // страницу, а она просит файлы со старыми хешами: в новой сборке их нет.
+    //
+    // ⚠️ Сбрасываем ТОЛЬКО кэш и только при смене отпечатка. `clearLocalStorage`
+    // здесь звать нельзя ни в каком виде: на нём держится весь прогресс.
+    unawaited(_dropStaleCache());
     HybridApp.open = _open;
     // Перенесённая игра по START_ROUTE: перехват на первой загрузке не срабатывает
     // (это не переход, а первый адрес), поэтому открываем нативный экран сами.
-    final first = HybridApp.routeOf(
-      '${widget.server.origin}${HybridApp.startRoute}',
-    );
+    final first = HybridApp.routeOf('${widget.server.origin}${HybridApp.startRoute}');
     if (first != null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => _openNative(first));
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => _openNative(first, query: HybridApp.queryOf(HybridApp.startRoute)),
+      );
     }
   }
 
   @override
   void dispose() {
     SessionReport.sink = null;
+    GameExit.home = null;
     // Хук снимается вместе с хостом: оставленный, он звал бы мёртвый WebView.
     if (HybridApp.open == _open) HybridApp.open = null;
     super.dispose();
@@ -297,7 +542,7 @@ class _HybridAppState extends State<HybridApp> {
   Future<void> _open(String route) async {
     final native = HybridApp.routeOf('${widget.server.origin}$route');
     if (native != null) {
-      await _openNative(native);
+      await _openNative(native, query: HybridApp.queryOf(route));
       return;
     }
     if (!mounted) return;
@@ -307,11 +552,73 @@ class _HybridAppState extends State<HybridApp> {
     await _c.loadRequest(Uri.parse('${widget.server.origin}$route'));
   }
 
-  Future<void> _openNative(String route) async {
+  /*
+   * 🔴 СТРАНИЦА УШЛА ВПЕРЁД — НАТИВНЫЙ ЭКРАН ОБЯЗАН УЙТИ С НЕЙ.
+   *
+   * Нашёл раздел «Сортировки» 24.09.2026 (задача a912f656), и дефект точный.
+   * Зарядка после партии через две секунды переводит шаг сама
+   * (`WarmupContext.advanceToNext`), а нативный экран оставался лежать поверх:
+   * снимался он только действием человека, потому что `_openNative` ждал
+   * `Navigator.push`. Человек видел ту же игру, и ни победа, ни поражение ничего
+   * не двигали — под экраном зарядка уже была на следующем шаге.
+   * Бьёт по всем перехваченным играм, то есть по зарядке целиком.
+   *
+   * ⚠️ И ЗНАНИЕ ОБ ЭТОМ В КОДЕ БЫЛО. Ниже стоит комментарий «страница могла уехать
+   * сама (например, зарядка перевела шаг)» — а ветки поведения не было. Комментарий
+   * не заменяет кода: вот ровно этот случай.
+   */
+  void _closeNativeBecausePageMoved() {
+    if (_openedRoute == null || !mounted) return;
+    // Возврата страницы назад быть не должно: она ушла вперёд НАМЕРЕННО, и
+    // `history.back()` вернул бы человека в игру, из которой зарядка его вывела.
+    _closedByPage = true;
+    Navigator.of(context).pop();
+  }
+
+  Future<void> _openNative(String route, {Map<String, String> query = const {}}) async {
     final build = HybridApp.native[route];
     if (build == null) return;
-    final result = await Navigator.of(context)
-        .push(MaterialPageRoute(builder: (_) => build(widget.state)));
+    _openedRoute = route;
+    // Настройки шага живут ровно столько, сколько открыт экран, — как
+    // `useLocalSearchParams` в вебе. См. [GamePreset].
+    GamePreset.set(query);
+    // Адрес нужен каркасу, чтобы показать правило ИМЕННО этой игры.
+    GameRules.currentRoute = route;
+    final result = await Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => build(widget.state)),
+    );
+    // ⚠️ Отметку снимаем, ТОЛЬКО если она всё ещё наша: когда страница ушла вперёд,
+    // поверх уже открыт следующий экран, и его отметку затирать нельзя.
+    if (_openedRoute == route) _openedRoute = null;
+    GamePreset.clear();
+    if (GameRules.currentRoute == route) GameRules.currentRoute = null;
+    final closedByPage = _closedByPage;
+    _closedByPage = false;
+    // 🔴 СТРАНИЦА ПОД НАМИ ОСТАЛАСЬ НА АДРЕСЕ ИГРЫ. Перехват срабатывает ПОСЛЕ
+    // того, как роутер уже сменил адрес, — значит под нативным экраном веб-половина
+    // стоит на той же игре. Не вернуть её назад — человек, закрыв нативный экран,
+    // увидит веб-версию той же игры, то есть ровно то, что перехват и должен был
+    // предотвратить.
+    // ⚠️ Возврат делаем ТОЛЬКО если адрес всё ещё игровой: пока человек играл,
+    // страница могла уехать сама (например, зарядка перевела шаг).
+    /*
+     * 🔴 ШАГ НАЗАД ДЕЛАЕМ, ТОЛЬКО ЕСЛИ НИКУДА НЕ ИДЁМ ДАЛЬШЕ.
+     *
+     * Найдено по отчёту Дениса 23.09.2026: «ни одна игра из хаба головоломок не
+     * запускается, вылетает на главную». Развилка — нативный экран, и страница под
+     * ней стоит на `/games/<раздел>-hub`. Мы делали `history.back()` (то есть уводили
+     * страницу на главную) и СРАЗУ следом просили загрузить выбранную игру. Два
+     * перехода в одном такте: `history.back()` в WebKit исполняется асинхронно и
+     * прилетает ПОСЛЕ нашей загрузки, затирая её. Человек видит главную.
+     *
+     * Поэтому: выбрали карточку — идём сразу туда, шаг назад не нужен вовсе.
+     */
+    final goingOn = result is HubCardTap || closedByPage;
+    if (mounted && !goingOn) {
+      await _c.runJavaScript(
+        "if (String(location.pathname).indexOf('$route') >= 0) history.back();",
+      );
+    }
     // Вернулись из нативной игры — страница обязана перечитать прогресс,
     // иначе на карте уровней останется старое число.
     if (mounted) await _c.runJavaScript(widget.state.bootstrapJs());
@@ -323,21 +630,31 @@ class _HybridAppState extends State<HybridApp> {
     if (!mounted || result is! HubCardTap) return;
     final next = result.route;
     if (HybridApp.native.containsKey(next)) {
-      await _openNative(next);
+      await _openNative(next, query: HybridApp.queryOf(next));
     } else {
       await _c.loadRequest(Uri.parse('${widget.server.origin}$next'));
     }
   }
 
+  /// Сброс кэша при смене вложенной сборки — см. пояснение в `initState`.
+  Future<void> _dropStaleCache() async {
+    const key = 'psygames_embedded_build';
+    final now = await widget.server.fingerprint();
+    if (now.isEmpty) return;
+    if (widget.state.get(key) == now) return;
+    await _c.clearCache();
+    await widget.state.set(key, now);
+  }
+
   @override
   Widget build(BuildContext context) => Scaffold(
-    body: SafeArea(
-      child: Stack(
-        children: [
-          WebViewWidget(controller: _c),
-          if (_loading) const Center(child: CircularProgressIndicator()),
-        ],
-      ),
-    ),
-  );
+        body: SafeArea(
+          child: Stack(
+            children: [
+              WebViewWidget(controller: _c),
+              if (_loading) const Center(child: CircularProgressIndicator()),
+            ],
+          ),
+        ),
+      );
 }
