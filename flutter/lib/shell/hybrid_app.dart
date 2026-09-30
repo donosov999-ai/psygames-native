@@ -417,6 +417,13 @@ enum RouteAction {
 /// экран остался лежать поверх») жил именно в этом решении, а не в рисовании.
 /// Пока решение было вплетено в обработчик сообщения, проверить его можно было
 /// только живым телефоном — то есть на деле никак, и оно доехало до людей.
+/// Снимать ли настройки шага и отметку, когда закрылся экран [route].
+///
+/// 🔴 Только если поверх ещё не открыт следующий: страница, ушедшая вперёд,
+/// открывает новый экран РАНЬШЕ, чем досрабатывает закрытие старого, — и старый
+/// стёр бы настройки шага нового (живой прогон 30.09.2026, см. `_openNative`).
+bool routeOwnsPreset(String? opened, String route) => opened == route;
+
 RouteAction routeAction(String? opened, String? next) {
   if (opened == next) return RouteAction.keep;
   if (opened == null) return next == null ? RouteAction.keep : RouteAction.open;
@@ -647,8 +654,19 @@ class _HybridAppState extends State<HybridApp> {
     );
     // ⚠️ Отметку снимаем, ТОЛЬКО если она всё ещё наша: когда страница ушла вперёд,
     // поверх уже открыт следующий экран, и его отметку затирать нельзя.
-    if (_openedRoute == route) _openedRoute = null;
-    GamePreset.clear();
+    /*
+     * 🔴 НАСТРОЙКИ ШАГА — ПОД ТЕМ ЖЕ УСЛОВИЕМ. Нашёл раздел «Языки» 30.09.2026
+     * живым прогоном: развилка «Языки» → «Начать» зарядку → «Словарь» открылся
+     * ЭКРАНОМ НАСТРОЕК вместо шага. Порядок: страница ушла вперёд → хост снял
+     * развилку и СРАЗУ открыл «Словарь» с `wu=1` → продолжение этого метода для
+     * развилки срабатывает микрозадачей позже и стирало `GamePreset` уже нового
+     * экрана, а тот читает его после `await`. Бьёт по любой зарядке, где
+     * нативный экран сменяется нативным.
+     */
+    if (routeOwnsPreset(_openedRoute, route)) {
+      _openedRoute = null;
+      GamePreset.clear();
+    }
     if (GameRules.currentRoute == route) GameRules.currentRoute = null;
     final closedByPage = _closedByPage;
     _closedByPage = false;

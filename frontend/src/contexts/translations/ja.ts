@@ -464,6 +464,7 @@ const t: Record<string, string> = {
   "earnWhyStreak": "連続日数 — 2倍",
   "earnWhyRepeat": "本日の再プレイ — 2倍なし",
   "earnWhyWarmup": "ウォームアップの一歩 — ボーナスは最後に",
+  "earnWhyLesson": "解説つきのプレイ — 2倍なし",
   "todayEarnedTitle": "今日の獲得",
   "todayEmptyHint": "今日はまだプレイなし。1回遊べば、何をどれだけ稼いだかがここに出ます。",
   "todayRoundsLabel": "プレイ回数：{n}",
