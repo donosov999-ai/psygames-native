@@ -89,6 +89,7 @@ flutter:
     - assets/word-pairs.json
     - assets/rmet/
     - assets/words/
+    - assets/rings/
     - assets/l10n/
     - assets/puzzles/
     - assets/voice/
