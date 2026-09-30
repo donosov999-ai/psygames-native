@@ -908,8 +908,31 @@ const translations: Translations = {
   skillListening: { ru: 'Тренируем: восприятие на слух', en: 'Training: listening' },
   phonemePairs: { ru: 'Фонемы: минимальные пары', en: 'Phonemes: Minimal Pairs' },
   phonemePairsDesc: { ru: 'Услышь разницу: ship или sheep?', en: 'Hear the difference: ship or sheep?' },
+  /*
+   * 🎓 РАЗБОР «ФОНЕМНЫХ ПАР» (30.09.2026): узнать, где пара расходится, и слушать только это место.
+   * {da}/{db} — место расхождения по написанию (ru/es/pt) или по пиньиню (zh); у en/de — гласный.
+   */
+  teachPhIntro: { ru: 'В паре слова различаются ОДНИМ звуком. Узнайте, где они расходятся, и слушайте только это место — остальное у них общее.', en: 'The two words differ in ONE sound. Find where they split and listen only to that spot — the rest is shared.' },
+  teachPhSpot: { ru: '«{a}» и «{b}» расходятся в одном месте: {da} против {db}. Послушайте оба.', en: '“{a}” and “{b}” split in one spot: {da} versus {db}. Listen to both.' },
+  teachPhVowel: { ru: '«{a}» и «{b}» различаются только гласным в середине слова, а написание здесь подсказывает плохо. Послушайте оба.', en: '“{a}” and “{b}” differ only in the vowel in the middle, and the spelling is a poor guide here. Listen to both.' },
+  teachPhProbe: { ru: 'Сейчас прозвучит одно из двух. Слушайте только место различия.', en: 'Now you will hear one of the two. Listen only to the spot where they differ.' },
+  teachPhAnswerSpot: { ru: 'Прозвучало «{w}» — в месте различия было {dx}.', en: 'That was “{w}” — the differing spot had {dx}.' },
+  teachPhAnswerVowel: { ru: 'Прозвучало «{w}» — различие было в гласном.', en: 'That was “{w}” — the difference was in the vowel.' },
+  teachPhDone: { ru: 'Так и отвечайте: знаете, где пара расходится, — слушаете только это место.', en: 'Answer the same way: know where the pair splits, and listen only to that spot.' },
   pseudowordEcho: { ru: 'Эхо: псевдослова', en: 'Echo: Pseudowords' },
   pseudowordEchoDesc: { ru: 'Услышал выдуманное слово — найди его написание', en: 'Hear a made-up word — pick its spelling' },
+  /*
+   * 🎓 РАЗБОР «ЭХА ПСЕВДОСЛОВ» (30.09.2026): слушать по звукам и отбрасывать вариант, где место не
+   * совпало. {v} — ловушка, {a} → {b} — что было в слове и что стоит в ловушке (вид — из генератора игры).
+   */
+  teachEchoIntro: { ru: 'Псевдослово не угадать по смыслу — его можно только услышать по звукам, слева направо. Ловушки отличаются от него одним местом.', en: 'A pseudoword cannot be guessed from meaning — you can only hear it sound by sound, left to right. The traps differ from it in one spot.' },
+  teachEchoListen: { ru: 'Слушайте: держите в голове звуки по порядку, а не общее впечатление.', en: 'Listen: keep the sounds in order in your head, not the overall impression.' },
+  teachEchoVowel: { ru: '«{v}» — подменена гласная: {b} вместо {a}. Отбрасываем.', en: '“{v}” — a vowel is swapped: {b} instead of {a}. Rule it out.' },
+  teachEchoConsonant: { ru: '«{v}» — подменена согласная: {b} вместо {a}. Отбрасываем.', en: '“{v}” — a consonant is swapped: {b} instead of {a}. Rule it out.' },
+  teachEchoSwap: { ru: '«{v}» — соседние звуки переставлены: {b} вместо {a}. Отбрасываем.', en: '“{v}” — neighbouring sounds are switched: {b} instead of {a}. Rule it out.' },
+  teachEchoDouble: { ru: '«{v}» — лишний звук: {b} вместо {a}. Отбрасываем.', en: '“{v}” — an extra sound: {b} instead of {a}. Rule it out.' },
+  teachEchoPick: { ru: 'Остаётся «{w}» — его и произнесли.', en: 'That leaves “{w}” — that is what was said.' },
+  teachEchoDone: { ru: 'Так и отвечайте: слушайте звуки по порядку и отбрасывайте вариант, где хоть одно место не совпало.', en: 'Answer the same way: follow the sounds in order and rule out any option where even one spot does not match.' },
   listeningSpan: { ru: 'Слуховой охват', en: 'Listening Span' },
   listeningSpanDesc: { ru: 'Слова на слух — повтори порядок', en: 'Hear the words — repeat the order' },
   // v1.29.0 (Полиглот TIER 1 п.2/4/5): лексическое решение, Cloze, сортировка слов
@@ -1062,6 +1085,14 @@ const translations: Translations = {
   teachIowaSwitch: { ru: 'Проверьте каждую колоду по нескольку раз, прежде чем выбрать. Штрафы приходят редко, и по двум ходам выгодная колода неотличима от разорительной.', en: 'Sample every deck several times before settling. Penalties are rare, and two draws cannot tell a good deck from a ruinous one.' },
   teachPrlNoise: { ru: 'Одна неудача — ещё не смена правила: даже верный цвет иногда не даёт очков. Переключайтесь после двух-трёх неудач подряд, а не после первой.', en: 'One failure is not a rule change: even the right colour sometimes pays nothing. Switch after two or three failures in a row, not after the first.' },
   teachRmetEyes: { ru: 'Смотрите на ГЛАЗА — веки, брови, направление взгляда, — а не на «лицо вообще». Варианты близки по смыслу нарочно, поэтому сравнивайте их между собой, а не с первым впечатлением.', en: 'Look at the EYES — lids, brows, direction of gaze — not at “the face” in general. The options are deliberately close in meaning, so compare them with each other rather than with your first impression.' },
+  /*
+   * 🎓 РАЗБОР «ПРОЧТИ ЭМОЦИЮ» (веб, 30.09.2026): признаки глаз → сравнение с соседними словами →
+   * выбор. Слова и признаки подставляет экран из пунктов самой игры (ITEMS: hint, correct).
+   */
+  teachRmetCues: { ru: 'Сначала глаза, слова потом. Что видно здесь: {hint}.', en: 'Eyes first, words later. What you can see here: {hint}.' },
+  teachRmetCompare: { ru: '«{word}» выглядел бы так: {cues}. Сравните с этими глазами.', en: '“{word}” would look like this: {cues}. Compare it with these eyes.' },
+  teachRmetPick: { ru: 'К признакам «{hint}» ближе всего «{word}» — это и ответ.', en: 'The cues “{hint}” fit “{word}” best — that is the answer.' },
+  teachRmetDone: { ru: 'Так и отвечайте: признаки глаз → сравнение с соседними словами → выбор того, что ближе к признакам.', en: 'Answer the same way: read the eye cues → compare with the neighbouring words → pick the one closest to the cues.' },
   /*
    * 🎓 РАЗБОР ИГР НА ОБЪЁМ, СЧЁТ И ПОИСК. Верный ответ человек и так видит по итогу раунда —
    * учить надо ПРИЁМУ, которым объём берётся: группировка, траектория, период, опорная примета.
@@ -2543,6 +2574,17 @@ const translations: Translations = {
   ctPickTone:        { ru: 'Какой тон прозвучал?', en: 'Which tone did you hear?' },
   ctPickPinyin:      { ru: 'Какой слог прозвучал?', en: 'Which syllable did you hear?' },
   ctTone:            { ru: 'тон', en: 'tone' },
+  /*
+   * 🎓 РАЗБОР «ТОНОВ КИТАЙСКОГО» (30.09.2026): слушать движение голоса. {zh} {py} — слово из банка
+   * игры, {a}/{b} — пара второго и третьего тона одного слога.
+   */
+  teachZhIntro: { ru: 'Слушайте не слог, а ДВИЖЕНИЕ голоса. Один и тот же слог в четырёх тонах — четыре разных слова.', en: 'Listen not to the syllable but to how the voice MOVES. One syllable in four tones is four different words.' },
+  teachZhTone1: { ru: 'Тон 1 — {zh} {py}: голос ровный и высокий, как протяжная нота.', en: 'Tone 1 — {zh} {py}: the voice stays high and level, like a held note.' },
+  teachZhTone2: { ru: 'Тон 2 — {zh} {py}: голос идёт снизу вверх, как в переспросе «а?».', en: 'Tone 2 — {zh} {py}: the voice rises, as in a puzzled “huh?”.' },
+  teachZhTone3: { ru: 'Тон 3 — {zh} {py}: голос проваливается вниз и немного поднимается — самый низкий из четырёх.', en: 'Tone 3 — {zh} {py}: the voice dips and rises a little — the lowest of the four.' },
+  teachZhTone4: { ru: 'Тон 4 — {zh} {py}: голос резко падает сверху вниз, как в коротком «нет!».', en: 'Tone 4 — {zh} {py}: the voice drops sharply from high to low, like a curt “no!”.' },
+  teachZhPair23: { ru: 'Второй и третий легко спутать: оба кончаются подъёмом. Разница в начале: {a} {pa} сразу идёт вверх, {b} {pb} сначала уходит вниз.', en: 'Tones 2 and 3 are easy to mix up: both end by rising. The difference is at the start: {a} {pa} goes up right away, {b} {pb} first goes down.' },
+  teachZhDone: { ru: 'Так и отвечайте: услышали слог — представьте его линию: ровная, вверх, яма или вниз.', en: 'Answer the same way: hear the syllable, picture its line — level, up, dip or down.' },
   recoWhyBranch:    { ru: 'Этой ветке достаётся меньше всего', en: 'This branch gets the least practice' },
   recoWhyFresh:     { ru: 'Новое в приложении', en: 'New in the app' },
   recoWhyCalm:      { ru: 'Под вечер — без гонки', en: 'For the evening — no rush' },
@@ -4293,6 +4335,20 @@ const translations: Translations = {
   },
 
   rhythmPitch: { ru: 'Ритм и высота', en: 'Rhythm & Pitch' },
+  /*
+   * 🎓 РАЗБОР «РИТМА И ВЫСОТЫ» (30.09.2026): в ритме держать темп, в высоте следить за линией. Тексты
+   * стоят на замере генератора уровней 1–3 (ровный ряд без акцентов; «выше/ниже» из двух нот).
+   */
+  teachRpRhythmIntro: { ru: 'Держите ТЕМП, а не счёт: удары идут ровно, как шаги. Повторяйте рисунок в том же темпе.', en: 'Hold the TEMPO, not the count: the beats come evenly, like steps. Repeat the pattern at the same pace.' },
+  teachRpListen: { ru: 'Послушайте ряд. Ударов в нём: {n}.', en: 'Listen to the row. Beats in it: {n}.' },
+  teachRpEven: { ru: 'Промежутки между ударами одинаковые — стучите так же ровно, не спеша и не отставая.', en: 'The gaps between the beats are equal — tap just as evenly, neither rushing nor dragging.' },
+  teachRpTap: { ru: 'Первый удар — сразу, дальше — в том же темпе. Послушайте ещё раз и отстучите про себя.', en: 'First beat right away, then keep the same pace. Listen once more and tap along in your head.' },
+  teachRpRhythmDone: { ru: 'Так и играйте: поймали темп — держите его, а не пересчитывайте удары.', en: 'Play it the same way: catch the tempo and hold it instead of counting beats.' },
+  teachRpPitchIntro: { ru: 'Сравнивайте каждую ноту с предыдущей: выше она или ниже. Держите в голове линию, а не сами ноты.', en: 'Compare each note with the one before: higher or lower? Keep the line in your head, not the notes themselves.' },
+  teachRpListenTones: { ru: 'Послушайте ноты подряд. Их здесь: {n}.', en: 'Listen to the notes in a row. There are {n} here.' },
+  teachRpHigher: { ru: 'Вторая нота выше первой — линия идёт вверх.', en: 'The second note is higher than the first — the line goes up.' },
+  teachRpLower: { ru: 'Вторая нота ниже первой — линия идёт вниз.', en: 'The second note is lower than the first — the line goes down.' },
+  teachRpPitchDone: { ru: 'Так и отвечайте: слушайте, куда пошла линия от первой ноты — вверх или вниз.', en: 'Answer the same way: listen to where the line goes from the first note — up or down.' },
   rhythmPitchDesc: { ru: 'Повторяйте ритмы и запоминайте последовательности высот — на слух, без микрофона', en: 'Echo rhythms and remember pitch sequences — by ear, no microphone' },
   rhythmPitchIntroDesc: {
     ru: 'Сначала короткая калибровка: четыре сигнала, по которым игра узнаёт задержку вашего устройства и громкость. Дальше уровни чередуются: в «эхе ритма» нужно повторить услышанный рисунок ударов в том же времени, в «пути высоты» — определить, выше или ниже второй звук, а затем восстановить последовательность из низких, средних и высоких тонов. Слов в задании нет вовсе, поэтому язык не влияет на сложность. Тренирует слуховую рабочую память и чувство времени. Нужен звук: наушники или колонка.',
