@@ -105,6 +105,8 @@ void main() {
       '$origin/games/vocab-srs?wu=1&targetLang=en&bilingual=1&lang2=es',
       '$origin/games/semantic-sort',
       '$origin/games/semantic-sort.html?wu=1&targetLang=en&rounds=8&cats=3',
+      '$origin/games/cloze',
+      '$origin/games/cloze.html?wu=1&targetLang=en&rounds=10&bilingual=1',
       '$origin/games/mnemonics-hub',
     ]) {
       expect(HybridApp.routeOf(url), isNotNull, reason: url);
@@ -262,6 +264,7 @@ void main() {
       '/games/word-pairs',
       '/games/vocab-srs',
       '/games/semantic-sort',
+      '/games/cloze',
       '/games/mental-rotation',
       '/games/number-bonds',
       '/games/nut-sort',
