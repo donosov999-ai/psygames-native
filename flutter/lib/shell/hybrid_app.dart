@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 import '../games/corsi/screen.dart';
+import '../games/picture_pairs/screen.dart';
 import '../games/digit_span/screen.dart';
 import '../games/ant/screen.dart';
 import '../games/bart/screen.dart';
@@ -51,6 +52,13 @@ import '../games/math_slider/screen.dart';
 import '../games/math_sprint/screen.dart';
 import '../games/number_bonds/screen.dart';
 import '../games/ospan/screen.dart';
+import '../games/sdmt/screen.dart';
+import '../games/counter/screen.dart';
+import '../games/find_differences/screen.dart';
+import '../games/counting_hub/screen.dart';
+import '../games/search_hub/screen.dart';
+import '../games/visual_search/screen.dart';
+import '../games/set_game/screen.dart';
 import '../games/object_tracker/screen.dart';
 import '../games/pattern/screen.dart';
 import '../games/quick_count/screen.dart';
@@ -114,6 +122,7 @@ class HybridApp extends StatefulWidget {
         '/games/digit-span': (s) => DigitSpanScreen(state: s),
         '/games/memory-matrix': (s) => MemoryMatrixScreen(state: s),
         '/games/corsi': (s) => CorsiScreen(state: s),
+        '/games/picture-pairs': (s) => PicturePairsScreen(state: s),
         '/games/schulte': (s) => SchulteScreen(state: s),
         '/games/mahjong': (s) => MahjongScreen(state: s),
         '/games/math-slider': (s) => MathSliderScreen(state: s),
@@ -123,6 +132,11 @@ class HybridApp extends StatefulWidget {
         '/games/math-sprint': (s) => MathSprintScreen(state: s),
         '/games/number-bonds': (s) => NumberBondsScreen(state: s),
         '/games/ospan': (s) => OspanScreen(state: s),
+        '/games/sdmt': (s) => SdmtScreen(state: s),
+        '/games/set-game': (s) => SetGameScreen(state: s),
+        '/games/counter': (s) => CounterScreen(state: s),
+        '/games/find-differences': (s) => FindDifferencesScreen(state: s),
+        '/games/visual-search': (s) => VisualSearchScreen(state: s),
         '/games/stroop': (s) => StroopScreen(state: s),
         '/games/flanker': (s) => FlankerScreen(state: s),
         '/games/simon': (s) => SimonScreen(state: s),
@@ -177,6 +191,11 @@ class HybridApp extends StatefulWidget {
          */
         '/games/sorting-hub': (s) =>
             SortingHubScreen(state: s, isNative: native.containsKey),
+        // Развилки моего раздела: состав — данными, ход в веб даёт хост гибрида.
+        '/games/search-hub': (s) =>
+            SearchHubScreen(state: s, isNative: native.containsKey),
+        '/games/counting-hub': (s) =>
+            CountingHubScreen(state: s, isNative: native.containsKey),
         '/games/choice-rt': (s) => ChoiceRtScreen(state: s),
         '/games/stop-signal': (s) => StopSignalScreen(state: s),
         '/games/posner': (s) => PosnerScreen(state: s),

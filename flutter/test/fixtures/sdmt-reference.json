@@ -1,0 +1,975 @@
+{
+ "symbols": [
+  "star",
+  "heart",
+  "leaf",
+  "flash",
+  "cloud",
+  "flower",
+  "snow",
+  "water",
+  "moon"
+ ],
+ "bossEvery": 3,
+ "constants": {
+  "ВЕРХ_ПОЛЯ": 119,
+  "ПОЛЯ_ОТВЕТА": 132,
+  "ПАЛЕЦ": 48
+ },
+ "params": [
+  {
+   "level": 1,
+   "durationSec": 60,
+   "symbolCount": 5,
+   "targetHits": 14
+  },
+  {
+   "level": 2,
+   "durationSec": 60,
+   "symbolCount": 5,
+   "targetHits": 16
+  },
+  {
+   "level": 3,
+   "durationSec": 60,
+   "symbolCount": 5,
+   "targetHits": 17
+  },
+  {
+   "level": 4,
+   "durationSec": 60,
+   "symbolCount": 6,
+   "targetHits": 19
+  },
+  {
+   "level": 5,
+   "durationSec": 60,
+   "symbolCount": 6,
+   "targetHits": 20
+  },
+  {
+   "level": 6,
+   "durationSec": 50,
+   "symbolCount": 6,
+   "targetHits": 18
+  },
+  {
+   "level": 7,
+   "durationSec": 50,
+   "symbolCount": 7,
+   "targetHits": 20
+  },
+  {
+   "level": 8,
+   "durationSec": 50,
+   "symbolCount": 7,
+   "targetHits": 21
+  },
+  {
+   "level": 9,
+   "durationSec": 50,
+   "symbolCount": 7,
+   "targetHits": 22
+  },
+  {
+   "level": 10,
+   "durationSec": 50,
+   "symbolCount": 8,
+   "targetHits": 24
+  },
+  {
+   "level": 11,
+   "durationSec": 45,
+   "symbolCount": 8,
+   "targetHits": 23
+  },
+  {
+   "level": 12,
+   "durationSec": 45,
+   "symbolCount": 8,
+   "targetHits": 24
+  },
+  {
+   "level": 13,
+   "durationSec": 45,
+   "symbolCount": 9,
+   "targetHits": 25
+  },
+  {
+   "level": 14,
+   "durationSec": 45,
+   "symbolCount": 9,
+   "targetHits": 26
+  },
+  {
+   "level": 15,
+   "durationSec": 45,
+   "symbolCount": 9,
+   "targetHits": 27
+  },
+  {
+   "level": 16,
+   "durationSec": 45,
+   "symbolCount": 9,
+   "targetHits": 29
+  },
+  {
+   "level": 17,
+   "durationSec": 45,
+   "symbolCount": 9,
+   "targetHits": 30
+  },
+  {
+   "level": 18,
+   "durationSec": 45,
+   "symbolCount": 9,
+   "targetHits": 31
+  },
+  {
+   "level": 19,
+   "durationSec": 45,
+   "symbolCount": 9,
+   "targetHits": 32
+  },
+  {
+   "level": 20,
+   "durationSec": 45,
+   "symbolCount": 9,
+   "targetHits": 33
+  }
+ ],
+ "keymaps": [
+  {
+   "level": 1,
+   "count": 5,
+   "maps": [
+    [
+     {
+      "sym": "star",
+      "digit": 5
+     },
+     {
+      "sym": "water",
+      "digit": 9
+     },
+     {
+      "sym": "cloud",
+      "digit": 2
+     },
+     {
+      "sym": "flash",
+      "digit": 1
+     },
+     {
+      "sym": "heart",
+      "digit": 3
+     }
+    ],
+    [
+     {
+      "sym": "leaf",
+      "digit": 9
+     },
+     {
+      "sym": "snow",
+      "digit": 4
+     },
+     {
+      "sym": "star",
+      "digit": 3
+     },
+     {
+      "sym": "cloud",
+      "digit": 8
+     },
+     {
+      "sym": "flower",
+      "digit": 1
+     }
+    ],
+    [
+     {
+      "sym": "flash",
+      "digit": 8
+     },
+     {
+      "sym": "star",
+      "digit": 3
+     },
+     {
+      "sym": "cloud",
+      "digit": 7
+     },
+     {
+      "sym": "leaf",
+      "digit": 2
+     },
+     {
+      "sym": "flower",
+      "digit": 4
+     }
+    ],
+    [
+     {
+      "sym": "cloud",
+      "digit": 8
+     },
+     {
+      "sym": "heart",
+      "digit": 4
+     },
+     {
+      "sym": "flower",
+      "digit": 9
+     },
+     {
+      "sym": "star",
+      "digit": 7
+     },
+     {
+      "sym": "moon",
+      "digit": 6
+     }
+    ]
+   ]
+  },
+  {
+   "level": 4,
+   "count": 6,
+   "maps": [
+    [
+     {
+      "sym": "flower",
+      "digit": 9
+     },
+     {
+      "sym": "leaf",
+      "digit": 5
+     },
+     {
+      "sym": "cloud",
+      "digit": 6
+     },
+     {
+      "sym": "flash",
+      "digit": 4
+     },
+     {
+      "sym": "heart",
+      "digit": 2
+     },
+     {
+      "sym": "moon",
+      "digit": 7
+     }
+    ],
+    [
+     {
+      "sym": "flash",
+      "digit": 4
+     },
+     {
+      "sym": "heart",
+      "digit": 3
+     },
+     {
+      "sym": "water",
+      "digit": 1
+     },
+     {
+      "sym": "moon",
+      "digit": 2
+     },
+     {
+      "sym": "flower",
+      "digit": 9
+     },
+     {
+      "sym": "snow",
+      "digit": 7
+     }
+    ],
+    [
+     {
+      "sym": "heart",
+      "digit": 1
+     },
+     {
+      "sym": "star",
+      "digit": 2
+     },
+     {
+      "sym": "moon",
+      "digit": 3
+     },
+     {
+      "sym": "cloud",
+      "digit": 9
+     },
+     {
+      "sym": "flower",
+      "digit": 5
+     },
+     {
+      "sym": "water",
+      "digit": 8
+     }
+    ],
+    [
+     {
+      "sym": "star",
+      "digit": 5
+     },
+     {
+      "sym": "water",
+      "digit": 7
+     },
+     {
+      "sym": "cloud",
+      "digit": 6
+     },
+     {
+      "sym": "moon",
+      "digit": 4
+     },
+     {
+      "sym": "flower",
+      "digit": 2
+     },
+     {
+      "sym": "flash",
+      "digit": 3
+     }
+    ]
+   ]
+  },
+  {
+   "level": 7,
+   "count": 7,
+   "maps": [
+    [
+     {
+      "sym": "cloud",
+      "digit": 5
+     },
+     {
+      "sym": "flash",
+      "digit": 4
+     },
+     {
+      "sym": "flower",
+      "digit": 1
+     },
+     {
+      "sym": "leaf",
+      "digit": 3
+     },
+     {
+      "sym": "snow",
+      "digit": 6
+     },
+     {
+      "sym": "water",
+      "digit": 8
+     },
+     {
+      "sym": "moon",
+      "digit": 2
+     }
+    ],
+    [
+     {
+      "sym": "star",
+      "digit": 7
+     },
+     {
+      "sym": "flash",
+      "digit": 8
+     },
+     {
+      "sym": "moon",
+      "digit": 5
+     },
+     {
+      "sym": "heart",
+      "digit": 2
+     },
+     {
+      "sym": "cloud",
+      "digit": 1
+     },
+     {
+      "sym": "water",
+      "digit": 3
+     },
+     {
+      "sym": "flower",
+      "digit": 4
+     }
+    ],
+    [
+     {
+      "sym": "leaf",
+      "digit": 6
+     },
+     {
+      "sym": "cloud",
+      "digit": 5
+     },
+     {
+      "sym": "water",
+      "digit": 3
+     },
+     {
+      "sym": "snow",
+      "digit": 2
+     },
+     {
+      "sym": "flash",
+      "digit": 1
+     },
+     {
+      "sym": "heart",
+      "digit": 8
+     },
+     {
+      "sym": "star",
+      "digit": 7
+     }
+    ],
+    [
+     {
+      "sym": "cloud",
+      "digit": 5
+     },
+     {
+      "sym": "snow",
+      "digit": 6
+     },
+     {
+      "sym": "water",
+      "digit": 8
+     },
+     {
+      "sym": "leaf",
+      "digit": 9
+     },
+     {
+      "sym": "flash",
+      "digit": 4
+     },
+     {
+      "sym": "flower",
+      "digit": 3
+     },
+     {
+      "sym": "star",
+      "digit": 7
+     }
+    ]
+   ]
+  },
+  {
+   "level": 10,
+   "count": 8,
+   "maps": [
+    [
+     {
+      "sym": "cloud",
+      "digit": 9
+     },
+     {
+      "sym": "moon",
+      "digit": 4
+     },
+     {
+      "sym": "heart",
+      "digit": 6
+     },
+     {
+      "sym": "flower",
+      "digit": 7
+     },
+     {
+      "sym": "snow",
+      "digit": 3
+     },
+     {
+      "sym": "flash",
+      "digit": 1
+     },
+     {
+      "sym": "leaf",
+      "digit": 8
+     },
+     {
+      "sym": "star",
+      "digit": 2
+     }
+    ],
+    [
+     {
+      "sym": "leaf",
+      "digit": 7
+     },
+     {
+      "sym": "snow",
+      "digit": 2
+     },
+     {
+      "sym": "moon",
+      "digit": 1
+     },
+     {
+      "sym": "flash",
+      "digit": 6
+     },
+     {
+      "sym": "star",
+      "digit": 3
+     },
+     {
+      "sym": "cloud",
+      "digit": 4
+     },
+     {
+      "sym": "flower",
+      "digit": 8
+     },
+     {
+      "sym": "heart",
+      "digit": 5
+     }
+    ],
+    [
+     {
+      "sym": "moon",
+      "digit": 9
+     },
+     {
+      "sym": "cloud",
+      "digit": 5
+     },
+     {
+      "sym": "leaf",
+      "digit": 1
+     },
+     {
+      "sym": "heart",
+      "digit": 6
+     },
+     {
+      "sym": "star",
+      "digit": 7
+     },
+     {
+      "sym": "snow",
+      "digit": 8
+     },
+     {
+      "sym": "flash",
+      "digit": 4
+     },
+     {
+      "sym": "water",
+      "digit": 3
+     }
+    ],
+    [
+     {
+      "sym": "cloud",
+      "digit": 1
+     },
+     {
+      "sym": "heart",
+      "digit": 5
+     },
+     {
+      "sym": "snow",
+      "digit": 2
+     },
+     {
+      "sym": "moon",
+      "digit": 8
+     },
+     {
+      "sym": "water",
+      "digit": 7
+     },
+     {
+      "sym": "flash",
+      "digit": 3
+     },
+     {
+      "sym": "leaf",
+      "digit": 4
+     },
+     {
+      "sym": "flower",
+      "digit": 6
+     }
+    ]
+   ]
+  },
+  {
+   "level": 13,
+   "count": 9,
+   "maps": [
+    [
+     {
+      "sym": "heart",
+      "digit": 2
+     },
+     {
+      "sym": "star",
+      "digit": 1
+     },
+     {
+      "sym": "snow",
+      "digit": 5
+     },
+     {
+      "sym": "water",
+      "digit": 3
+     },
+     {
+      "sym": "flower",
+      "digit": 4
+     },
+     {
+      "sym": "leaf",
+      "digit": 6
+     },
+     {
+      "sym": "moon",
+      "digit": 8
+     },
+     {
+      "sym": "flash",
+      "digit": 9
+     },
+     {
+      "sym": "cloud",
+      "digit": 7
+     }
+    ],
+    [
+     {
+      "sym": "moon",
+      "digit": 7
+     },
+     {
+      "sym": "cloud",
+      "digit": 6
+     },
+     {
+      "sym": "snow",
+      "digit": 1
+     },
+     {
+      "sym": "leaf",
+      "digit": 8
+     },
+     {
+      "sym": "flash",
+      "digit": 2
+     },
+     {
+      "sym": "star",
+      "digit": 4
+     },
+     {
+      "sym": "flower",
+      "digit": 3
+     },
+     {
+      "sym": "water",
+      "digit": 5
+     },
+     {
+      "sym": "heart",
+      "digit": 9
+     }
+    ],
+    [
+     {
+      "sym": "flower",
+      "digit": 2
+     },
+     {
+      "sym": "water",
+      "digit": 9
+     },
+     {
+      "sym": "moon",
+      "digit": 8
+     },
+     {
+      "sym": "flash",
+      "digit": 4
+     },
+     {
+      "sym": "snow",
+      "digit": 5
+     },
+     {
+      "sym": "leaf",
+      "digit": 6
+     },
+     {
+      "sym": "cloud",
+      "digit": 7
+     },
+     {
+      "sym": "heart",
+      "digit": 3
+     },
+     {
+      "sym": "star",
+      "digit": 1
+     }
+    ],
+    [
+     {
+      "sym": "cloud",
+      "digit": 3
+     },
+     {
+      "sym": "moon",
+      "digit": 9
+     },
+     {
+      "sym": "flower",
+      "digit": 7
+     },
+     {
+      "sym": "leaf",
+      "digit": 4
+     },
+     {
+      "sym": "flash",
+      "digit": 6
+     },
+     {
+      "sym": "snow",
+      "digit": 2
+     },
+     {
+      "sym": "star",
+      "digit": 5
+     },
+     {
+      "sym": "heart",
+      "digit": 8
+     },
+     {
+      "sym": "water",
+      "digit": 1
+     }
+    ]
+   ]
+  },
+  {
+   "level": 15,
+   "count": 9,
+   "maps": [
+    [
+     {
+      "sym": "water",
+      "digit": 2
+     },
+     {
+      "sym": "star",
+      "digit": 3
+     },
+     {
+      "sym": "leaf",
+      "digit": 6
+     },
+     {
+      "sym": "flash",
+      "digit": 1
+     },
+     {
+      "sym": "snow",
+      "digit": 5
+     },
+     {
+      "sym": "moon",
+      "digit": 7
+     },
+     {
+      "sym": "cloud",
+      "digit": 9
+     },
+     {
+      "sym": "flower",
+      "digit": 4
+     },
+     {
+      "sym": "heart",
+      "digit": 8
+     }
+    ],
+    [
+     {
+      "sym": "moon",
+      "digit": 3
+     },
+     {
+      "sym": "flower",
+      "digit": 4
+     },
+     {
+      "sym": "cloud",
+      "digit": 5
+     },
+     {
+      "sym": "flash",
+      "digit": 9
+     },
+     {
+      "sym": "leaf",
+      "digit": 8
+     },
+     {
+      "sym": "snow",
+      "digit": 7
+     },
+     {
+      "sym": "heart",
+      "digit": 2
+     },
+     {
+      "sym": "water",
+      "digit": 6
+     },
+     {
+      "sym": "star",
+      "digit": 1
+     }
+    ],
+    [
+     {
+      "sym": "star",
+      "digit": 3
+     },
+     {
+      "sym": "flower",
+      "digit": 9
+     },
+     {
+      "sym": "heart",
+      "digit": 5
+     },
+     {
+      "sym": "cloud",
+      "digit": 4
+     },
+     {
+      "sym": "flash",
+      "digit": 2
+     },
+     {
+      "sym": "leaf",
+      "digit": 7
+     },
+     {
+      "sym": "snow",
+      "digit": 8
+     },
+     {
+      "sym": "water",
+      "digit": 1
+     },
+     {
+      "sym": "moon",
+      "digit": 6
+     }
+    ],
+    [
+     {
+      "sym": "moon",
+      "digit": 3
+     },
+     {
+      "sym": "cloud",
+      "digit": 2
+     },
+     {
+      "sym": "flash",
+      "digit": 5
+     },
+     {
+      "sym": "star",
+      "digit": 4
+     },
+     {
+      "sym": "snow",
+      "digit": 1
+     },
+     {
+      "sym": "leaf",
+      "digit": 9
+     },
+     {
+      "sym": "water",
+      "digit": 7
+     },
+     {
+      "sym": "flower",
+      "digit": 6
+     },
+     {
+      "sym": "heart",
+      "digit": 8
+     }
+    ]
+   ]
+  }
+ ],
+ "layout": [
+  {
+   "w": 320,
+   "h": 568,
+   "sdmtW": 288,
+   "stim": 98,
+   "pad": 56
+  },
+  {
+   "w": 360,
+   "h": 640,
+   "sdmtW": 328,
+   "stim": 114,
+   "pad": 70
+  },
+  {
+   "w": 375,
+   "h": 667,
+   "sdmtW": 343,
+   "stim": 120,
+   "pad": 75
+  },
+  {
+   "w": 390,
+   "h": 844,
+   "sdmtW": 358,
+   "stim": 150,
+   "pad": 80
+  },
+  {
+   "w": 430,
+   "h": 932,
+   "sdmtW": 398,
+   "stim": 167,
+   "pad": 93
+  },
+  {
+   "w": 768,
+   "h": 1024,
+   "sdmtW": 460,
+   "stim": 180,
+   "pad": 96
+  }
+ ]
+}
