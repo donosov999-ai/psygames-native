@@ -218,7 +218,8 @@ class _ChessBlindScreenState extends State<ChessBlindScreen> {
 
   void _openSeries({bool replace = false}) {
     final route = MaterialPageRoute<void>(
-      builder: (_) => ChessBlindSeriesScreen(corpus: _corpus),
+      builder: (_) =>
+          ChessBlindSeriesScreen(state: widget.state, corpus: _corpus),
     );
     final nav = Navigator.of(context);
     replace ? nav.pushReplacement(route) : nav.push(route);

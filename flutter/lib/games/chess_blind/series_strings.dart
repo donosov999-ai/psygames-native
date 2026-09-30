@@ -38,8 +38,12 @@ class ChessBlindText {
   static Future<ChessBlindText> load([AssetBundle? bundle]) async {
     var all = _all;
     if (all == null) {
-      final data = await (bundle ?? rootBundle).load('assets/chess_blind/strings.json');
-      final raw = utf8.decode(data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes));
+      final data = await (bundle ?? rootBundle).load(
+        'assets/chess_blind/strings.json',
+      );
+      final raw = utf8.decode(
+        data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes),
+      );
       final j = jsonDecode(raw) as Map<String, dynamic>;
       all = {
         for (final e in j.entries)

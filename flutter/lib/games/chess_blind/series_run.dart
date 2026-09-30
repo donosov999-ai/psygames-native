@@ -62,7 +62,8 @@ const String seriesGameType = 'chess_blind_series';
 bool seriesComplete(SeriesRun run) {
   if (run.blocks.length != run.planned.length) return false;
   for (var i = 0; i < run.blocks.length; i++) {
-    if (run.blocks[i].key != run.planned[i] || !run.blocks[i].done) return false;
+    final b = run.blocks[i];
+    if (b.key != run.planned[i] || !b.done) return false;
   }
   return true;
 }
@@ -72,12 +73,19 @@ Map<String, int>? seriesDiffs(SeriesRun run) {
   if (!seriesComplete(run)) return null;
   final base = run.blocks.first;
   return {
-    for (final b in run.blocks.skip(1)) '${b.key}_minus_${base.key}': b.timeMs - base.timeMs,
+    for (final b in run.blocks.skip(1))
+      '${b.key}_minus_${base.key}': b.timeMs - base.timeMs,
   };
 }
 
 /// ОДНА сессия на всю серию — поля те же, что у веба (`seriesSession`).
-({int score, int timeSeconds, int errors, String mode, Map<String, Object?> details})
+({
+  int score,
+  int timeSeconds,
+  int errors,
+  String mode,
+  Map<String, Object?> details,
+})
 seriesSession(SeriesRun run) {
   final complete = seriesComplete(run);
   final diffs = seriesDiffs(run);
@@ -129,14 +137,19 @@ class ChessSeriesProgress {
   const ChessSeriesProgress({required this.levels, required this.streaks});
 
   static const empty = ChessSeriesProgress(
-    levels: {'square': chessMinLevel, 'knight': chessMinLevel, 'recall': chessMinLevel},
+    levels: {
+      'square': chessMinLevel,
+      'knight': chessMinLevel,
+      'recall': chessMinLevel,
+    },
     streaks: {'square': 0, 'knight': 0, 'recall': 0},
   );
 
   final Map<String, int> levels;
   final Map<String, int> streaks;
 
-  static String keyFor(String profile) => 'psygames_chess_blind_series_$profile';
+  static String keyFor(String profile) =>
+      'psygames_chess_blind_series_$profile';
 
   /// Мусор и пропуски — это минимум, а не падение.
   static ChessSeriesProgress parse(String? raw) {
@@ -215,7 +228,10 @@ afterSeriesRun(ChessSeriesProgress progress, SeriesRun run) {
   final grown = min(chessMaxLevel(), level + 1);
   final raised = grown > level;
   final levels = raised
-      ? {for (final k in chessSeriesPlan) k: max(progress.levels[k] ?? 1, grown)}
+      ? {
+          for (final k in chessSeriesPlan)
+            k: max(progress.levels[k] ?? 1, grown),
+        }
       : progress.levels;
   // Новый уровень — новый отсчёт устойчивости: прошлые прогоны были на другой доске.
   return (

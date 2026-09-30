@@ -26,7 +26,9 @@ class ChessBoardFrame extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (!coords) return Directionality(textDirection: TextDirection.ltr, child: board);
+    if (!coords) {
+      return Directionality(textDirection: TextDirection.ltr, child: board);
+    }
     final step = side / 8;
     final style = TextStyle(
       fontSize: max(10, step * 0.28),
