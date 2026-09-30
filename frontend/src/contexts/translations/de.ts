@@ -3016,5 +3016,10 @@ const t: Record<string, string> = {
   "teachPalaceDone": "So spielen Sie weiter: Gegenstände ablegen, dann den Weg vor und zurück gehen.",
   "tolWonPreset": "Runde geschafft: {e} Züge zu viel von {r}",
   "puzzleOutOfMoves": "Züge aufgebraucht: {m} von {n} genutzt. Ziel ist nicht nur, das Feld zu füllen, sondern es im Zugbudget zu schaffen.",
+  "teachGoodsWhyTriple": "Ein drittes gleiches Teil — das Trio verschwindet und die Nische wird frei.",
+  "teachGoodsWhyStack": "Zur eigenen Sorte legen: Die Ware wartet auf ein drittes Teil, statt fremden Platz zu belegen.",
+  "teachGoodsWhyFree": "Die Nische ist jetzt ganz leer — genau das ist der Platz für das nächste Trio.",
+  "teachGoodsWhyRoom": "Nimm das obere Teil weg, um an die Ware darunter zu kommen.",
+  "teachGoodsNoPath": "Hier gibt es keine Lösung zu zeigen — gehen wir stattdessen die Regel durch.",
 };
 export default t;

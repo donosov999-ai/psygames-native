@@ -3016,5 +3016,10 @@ const t: Record<string, string> = {
   "teachPalaceDone": "就这样玩：先把东西放好，再把路线正着走一遍、倒着走一遍。",
   "tolWonPreset": "本轮通过：多走了 {e} 步，共 {r} 步",
   "puzzleOutOfMoves": "步数用完：已用 {m} 步，共 {n} 步。目标不只是填满棋盘，而是在步数预算之内完成。",
+  "teachGoodsWhyTriple": "第三件相同的商品——三件一组消失，格位随之空出。",
+  "teachGoodsWhyStack": "放到同类旁边：商品在等第三件，而不是占别人的位置。",
+  "teachGoodsWhyFree": "这个格位已经完全空了——下一组三件就放这里。",
+  "teachGoodsWhyRoom": "把上面那件拿开，才能取到下面需要的商品。",
+  "teachGoodsNoPath": "这里没有可演示的解法——我们来讲规则。",
 };
 export default t;

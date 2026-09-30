@@ -19,7 +19,7 @@
  *    краснела от здорового переноса порога.
  */
 import {
-  levelWon, goalMet, goalPlan, queueSize, COLLAPSE_FROM, collapseLevel } from '@/src/games/goods-sort/core/level';
+  levelWon, goalMet, queueSize, COLLAPSE_FROM, collapseLevel } from '@/src/games/goods-sort/core/level';
 import { isCleared } from '@/src/games/goods-sort/core/board';
 
 declare function require(m: string): any;

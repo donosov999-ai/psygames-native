@@ -235,7 +235,6 @@ function выгрузитьНабор(ключ: string, выход: string): voi
   // одного уровня выглядит как «изменены все 120». Формат файла — это ещё и то,
   // можно ли увидеть, что в нём поменялось.
   fs.writeFileSync(выход, `${JSON.stringify(данные, null, 1)}\n`);
-  // eslint-disable-next-line no-console
   console.log(`ВЫГРУЗКА: ${levels.length} + ${wide.length} ступеней, зерно ${ЗЕРНО}, `
     + `набор ${набор.key} (${пул.length} видов) → ${выход}\n`
     + `  одноцветных ${levels.filter((l) => monochromeLevel(l.level)).length}, `
@@ -302,8 +301,7 @@ describe('выгрузка лестницы товаров для приложе
 
     const выход = path.join(ПАПКА, 'goods_sets.json');
     fs.writeFileSync(выход, `${JSON.stringify(каталог, null, 1)}\n`);
-    // eslint-disable-next-line no-console
-    console.log(`КАТАЛОГ: ${каталог.sets.length} наборов → ${выход}\n  `
+      console.log(`КАТАЛОГ: ${каталог.sets.length} наборов → ${выход}\n  `
       + каталог.sets.map((s) => `${s.key} ${s.pool.length}в с L${s.unlockLevel}`).join(' · '));
   }, 60000);
 });

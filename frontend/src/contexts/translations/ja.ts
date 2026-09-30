@@ -3010,5 +3010,10 @@ const t: Record<string, string> = {
   "teachPalaceDone": "この調子で進めてください。物を置き、そのあと道を行きと帰りでたどります。",
   "tolWonPreset": "クリア：{r} 手のうち {e} 手多く使いました",
   "puzzleOutOfMoves": "手数切れ：{n} 手のうち {m} 手を使いました。盤を埋めるだけでなく、手数の枠内で埋めるのが目標です。",
+  "teachGoodsWhyTriple": "同じ品が三つめ——三つ揃いが消えて、棚が空きます。",
+  "teachGoodsWhyStack": "同じ種類の隣へ置きます。品は三つめを待つのであって、よその場所をふさぐためではありません。",
+  "teachGoodsWhyFree": "棚がすっかり空きました——ここが次の三つ揃いの置き場です。",
+  "teachGoodsWhyRoom": "上の品をどけて、その下にある目当ての品を取り出します。",
+  "teachGoodsNoPath": "ここでは見せられる解法がありません——代わりにルールを見ていきましょう。",
 };
 export default t;

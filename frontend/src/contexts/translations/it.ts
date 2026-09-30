@@ -3011,5 +3011,10 @@ const t: Record<string, string> = {
   "teachPalaceDone": "Giochi così: collochi gli oggetti, poi percorra la strada avanti e indietro.",
   "tolWonPreset": "Turno superato: {e} mosse in più su {r}",
   "puzzleOutOfMoves": "Mosse finite: usate {m} su {n}. Lo scopo non è solo riempire il piano, ma farlo entro il budget di mosse.",
+  "teachGoodsWhyTriple": "Un terzo uguale: il tris sparisce e la nicchia si libera.",
+  "teachGoodsWhyStack": "Mettilo con i suoi simili: il prodotto aspetta un terzo invece di occupare il posto altrui.",
+  "teachGoodsWhyFree": "La nicchia è rimasta del tutto vuota: è proprio lo spazio per il prossimo tris.",
+  "teachGoodsWhyRoom": "Togli quello sopra per arrivare al prodotto che sta sotto.",
+  "teachGoodsNoPath": "Qui non c’è una soluzione da mostrare: rivediamo la regola.",
 };
 export default t;

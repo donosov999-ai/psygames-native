@@ -3011,5 +3011,10 @@ const t: Record<string, string> = {
   "teachPalaceDone": "이렇게 이어 가세요. 물건을 놓고, 길을 갈 때와 올 때 모두 따라갑니다.",
   "tolWonPreset": "판 통과: {r}수 가운데 {e}수를 더 썼습니다",
   "puzzleOutOfMoves": "수 소진: {n}수 가운데 {m}수를 썼습니다. 목표는 판을 채우는 것만이 아니라 정해진 수 안에 채우는 것입니다.",
+  "teachGoodsWhyTriple": "같은 물건이 세 번째 — 세 개가 사라지고 칸이 비워집니다.",
+  "teachGoodsWhyStack": "같은 종류 옆에 놓습니다. 물건은 세 번째를 기다리는 것이지 남의 자리를 차지하는 게 아닙니다.",
+  "teachGoodsWhyFree": "칸이 완전히 비었습니다 — 바로 다음 세 개를 놓을 자리입니다.",
+  "teachGoodsWhyRoom": "위에 있는 것을 치워야 그 아래 필요한 물건에 닿습니다.",
+  "teachGoodsNoPath": "여기서는 보여 줄 풀이가 없습니다 — 대신 규칙을 짚어 보겠습니다.",
 };
 export default t;

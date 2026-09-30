@@ -387,7 +387,6 @@ describe('очередь укорачивается, а не пропадает'
     if (!кэш.has(L)) кэш.set(L, dealCollapse(L, pool, false));
     return кэш.get(L) as ReturnType<typeof dealCollapse>;
   };
-  const ШИРОКИЙ = Array.from({ length: WIDEST_POOL }, (_, i) => i);
 
   /**
    * 🔴 УРОВЕНЬ НЕ СМЕЕТ ПРИЙТИ БЕЗ МЕХАНИКИ, КОТОРУЮ ЕМУ ТОЛЬКО ЧТО ОБЕЩАЛИ.

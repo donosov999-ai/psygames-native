@@ -3016,5 +3016,10 @@ const t: Record<string, string> = {
   "teachPalaceDone": "Juegue así: coloque los objetos y luego recorra la ruta de ida y de vuelta.",
   "tolWonPreset": "Ronda superada: {e} movimientos de más de {r}",
   "puzzleOutOfMoves": "Sin movimientos: usados {m} de {n}. No se trata solo de llenar el tablero, sino de hacerlo dentro del presupuesto de movimientos.",
+  "teachGoodsWhyTriple": "Un tercero igual: el trío desaparece y el hueco queda libre.",
+  "teachGoodsWhyStack": "Colócalo junto a los de su clase: el producto espera a un tercero en vez de ocupar sitio ajeno.",
+  "teachGoodsWhyFree": "El hueco ha quedado del todo vacío: ese es el sitio para el próximo trío.",
+  "teachGoodsWhyRoom": "Retira el de arriba para llegar al producto que hay debajo.",
+  "teachGoodsNoPath": "Aquí no hay solución que mostrar: repasemos la regla.",
 };
 export default t;
