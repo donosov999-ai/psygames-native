@@ -4165,6 +4165,20 @@ const translations: Translations = {
   },
 
   rhythmPitch: { ru: 'Ритм и высота', en: 'Rhythm & Pitch' },
+  /*
+   * 🎓 РАЗБОР «РИТМА И ВЫСОТЫ» (30.09.2026): в ритме держать темп, в высоте следить за линией. Тексты
+   * стоят на замере генератора уровней 1–3 (ровный ряд без акцентов; «выше/ниже» из двух нот).
+   */
+  teachRpRhythmIntro: { ru: 'Держите ТЕМП, а не счёт: удары идут ровно, как шаги. Повторяйте рисунок в том же темпе.', en: 'Hold the TEMPO, not the count: the beats come evenly, like steps. Repeat the pattern at the same pace.' },
+  teachRpListen: { ru: 'Послушайте ряд. Ударов в нём: {n}.', en: 'Listen to the row. Beats in it: {n}.' },
+  teachRpEven: { ru: 'Промежутки между ударами одинаковые — стучите так же ровно, не спеша и не отставая.', en: 'The gaps between the beats are equal — tap just as evenly, neither rushing nor dragging.' },
+  teachRpTap: { ru: 'Первый удар — сразу, дальше — в том же темпе. Послушайте ещё раз и отстучите про себя.', en: 'First beat right away, then keep the same pace. Listen once more and tap along in your head.' },
+  teachRpRhythmDone: { ru: 'Так и играйте: поймали темп — держите его, а не пересчитывайте удары.', en: 'Play it the same way: catch the tempo and hold it instead of counting beats.' },
+  teachRpPitchIntro: { ru: 'Сравнивайте каждую ноту с предыдущей: выше она или ниже. Держите в голове линию, а не сами ноты.', en: 'Compare each note with the one before: higher or lower? Keep the line in your head, not the notes themselves.' },
+  teachRpListenTones: { ru: 'Послушайте ноты подряд. Их здесь: {n}.', en: 'Listen to the notes in a row. There are {n} here.' },
+  teachRpHigher: { ru: 'Вторая нота выше первой — линия идёт вверх.', en: 'The second note is higher than the first — the line goes up.' },
+  teachRpLower: { ru: 'Вторая нота ниже первой — линия идёт вниз.', en: 'The second note is lower than the first — the line goes down.' },
+  teachRpPitchDone: { ru: 'Так и отвечайте: слушайте, куда пошла линия от первой ноты — вверх или вниз.', en: 'Answer the same way: listen to where the line goes from the first note — up or down.' },
   rhythmPitchDesc: { ru: 'Повторяйте ритмы и запоминайте последовательности высот — на слух, без микрофона', en: 'Echo rhythms and remember pitch sequences — by ear, no microphone' },
   rhythmPitchIntroDesc: {
     ru: 'Сначала короткая калибровка: четыре сигнала, по которым игра узнаёт задержку вашего устройства и громкость. Дальше уровни чередуются: в «эхе ритма» нужно повторить услышанный рисунок ударов в том же времени, в «пути высоты» — определить, выше или ниже второй звук, а затем восстановить последовательность из низких, средних и высоких тонов. Слов в задании нет вовсе, поэтому язык не влияет на сложность. Тренирует слуховую рабочую память и чувство времени. Нужен звук: наушники или колонка.',

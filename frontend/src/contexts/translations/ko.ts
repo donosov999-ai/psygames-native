@@ -3039,5 +3039,15 @@ const t: Record<string, string> = {
   "teachPicturePairsSwap": "레벨 22부터는 실수하면 뒤집힌 카드들이 자리를 바꾸고 그 쌍이 빛나요. 카드가 옮겨 간 곳으로 기억 속 그림도 옮기세요.",
   "vsFindAll": "이 도형을 모두 찾으세요 — 방향은 상관없습니다",
   "vsFindConj": "이 색과 모양의 도형을 찾으세요",
+  "teachRpRhythmIntro": "박자를 세지 말고 템포를 잡으세요: 두드림은 발걸음처럼 고르게 옵니다. 같은 템포로 패턴을 반복하세요.",
+  "teachRpListen": "줄을 들어 보세요. 두드림 수: {n}.",
+  "teachRpEven": "두드림 사이 간격은 모두 같습니다 — 서두르지도 늦지도 않게 똑같이 고르게 두드리세요.",
+  "teachRpTap": "첫 두드림은 바로, 그다음은 같은 템포로. 한 번 더 듣고 속으로 따라 두드려 보세요.",
+  "teachRpRhythmDone": "이렇게 플레이하세요: 템포를 잡아 유지하고, 두드림을 세지 마세요.",
+  "teachRpPitchIntro": "각 음을 바로 앞 음과 비교하세요: 더 높은가, 더 낮은가? 음 자체가 아니라 선을 기억하세요.",
+  "teachRpListenTones": "음을 이어서 들어 보세요. 여기에는 {n}개입니다.",
+  "teachRpHigher": "두 번째 음이 첫 번째보다 높습니다 — 선이 위로 갑니다.",
+  "teachRpLower": "두 번째 음이 첫 번째보다 낮습니다 — 선이 아래로 갑니다.",
+  "teachRpPitchDone": "이렇게 답하세요: 첫 음에서 선이 어디로 가는지 — 위인지 아래인지 들으세요.",
 };
 export default t;

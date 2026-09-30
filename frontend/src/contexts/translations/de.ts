@@ -3044,5 +3044,15 @@ const t: Record<string, string> = {
   "teachPicturePairsSwap": "Ab Level 22 tauschen nach einem Fehler verdeckte Karten die Plätze, und das Paar leuchtet auf. Verschiebe das Bild im Kopf dorthin, wo seine Karte hingewandert ist.",
   "vsFindAll": "Finde alle diese Formen — in jeder Drehung",
   "vsFindConj": "Finde die Form in dieser Farbe",
+  "teachRpRhythmIntro": "Halte das TEMPO, nicht die Zählung: Die Schläge kommen gleichmäßig wie Schritte. Wiederhole das Muster im selben Tempo.",
+  "teachRpListen": "Hör dir die Reihe an. Schläge darin: {n}.",
+  "teachRpEven": "Die Abstände zwischen den Schlägen sind gleich — klopf genauso gleichmäßig, ohne zu hetzen oder zu schleppen.",
+  "teachRpTap": "Der erste Schlag sofort, dann im selben Tempo. Hör noch einmal hin und klopf im Kopf mit.",
+  "teachRpRhythmDone": "So spielst du auch: Tempo erfassen und halten, statt die Schläge zu zählen.",
+  "teachRpPitchIntro": "Vergleiche jeden Ton mit dem vorigen: höher oder tiefer? Behalte die Linie im Kopf, nicht die Töne selbst.",
+  "teachRpListenTones": "Hör dir die Töne nacheinander an. Es sind {n}.",
+  "teachRpHigher": "Der zweite Ton ist höher als der erste — die Linie geht nach oben.",
+  "teachRpLower": "Der zweite Ton ist tiefer als der erste — die Linie geht nach unten.",
+  "teachRpPitchDone": "So antwortest du auch: Hör, wohin die Linie vom ersten Ton aus geht — nach oben oder nach unten.",
 };
 export default t;

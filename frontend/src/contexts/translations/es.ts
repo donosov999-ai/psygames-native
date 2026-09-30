@@ -3044,5 +3044,15 @@ const t: Record<string, string> = {
   "teachPicturePairsSwap": "Desde el nivel 22, tras un error las cartas boca abajo cambian de lugar y la pareja se ilumina. Mueve la imagen en tu memoria a donde fue su carta.",
   "vsFindAll": "Encuentra todas estas figuras — en cualquier rotación",
   "vsFindConj": "Encuentra la figura de este color y forma",
+  "teachRpRhythmIntro": "Mantén el TEMPO, no la cuenta: los golpes llegan parejos, como pasos. Repite el patrón al mismo ritmo.",
+  "teachRpListen": "Escucha la serie. Golpes en ella: {n}.",
+  "teachRpEven": "Los intervalos entre golpes son iguales: marca igual de parejo, sin adelantarte ni atrasarte.",
+  "teachRpTap": "El primer golpe enseguida y luego al mismo ritmo. Escucha otra vez y marca por dentro.",
+  "teachRpRhythmDone": "Juega igual: capta el tempo y mantenlo en vez de contar golpes.",
+  "teachRpPitchIntro": "Compara cada nota con la anterior: ¿más aguda o más grave? Guarda en la cabeza la línea, no las notas.",
+  "teachRpListenTones": "Escucha las notas seguidas. Aquí hay {n}.",
+  "teachRpHigher": "La segunda nota es más aguda que la primera: la línea sube.",
+  "teachRpLower": "La segunda nota es más grave que la primera: la línea baja.",
+  "teachRpPitchDone": "Responde igual: escucha hacia dónde va la línea desde la primera nota, arriba o abajo.",
 };
 export default t;

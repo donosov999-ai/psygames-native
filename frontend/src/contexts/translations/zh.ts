@@ -3044,5 +3044,15 @@ const t: Record<string, string> = {
   "teachPicturePairsSwap": "从第22关起，出错后背面朝上的卡片会交换位置，这一对会亮起。把记忆中的图移到它的卡片去的地方。",
   "vsFindAll": "找出所有这种图形 — 任意旋转方向",
   "vsFindConj": "找出这种颜色和形状的图形",
+  "teachRpRhythmIntro": "抓住节奏的速度，而不是数拍子：敲击像脚步一样均匀。用同样的速度重复这个节奏。",
+  "teachRpListen": "听这一串。一共敲了 {n} 下。",
+  "teachRpEven": "每两下之间的间隔都一样——你也要敲得一样均匀，不抢也不拖。",
+  "teachRpTap": "第一下立刻敲，之后保持同样的速度。再听一遍，在心里跟着敲。",
+  "teachRpRhythmDone": "就这样玩：抓住速度并保持住，而不是去数拍子。",
+  "teachRpPitchIntro": "把每个音和前一个比较：更高还是更低？脑子里记住的是这条线，而不是音本身。",
+  "teachRpListenTones": "连续听这些音。这里一共 {n} 个。",
+  "teachRpHigher": "第二个音比第一个高——线往上走。",
+  "teachRpLower": "第二个音比第一个低——线往下走。",
+  "teachRpPitchDone": "就这样作答：听线从第一个音出发往哪里走——往上还是往下。",
 };
 export default t;
