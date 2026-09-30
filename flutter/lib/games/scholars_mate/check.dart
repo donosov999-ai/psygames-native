@@ -425,3 +425,15 @@ String completeMove(String fen, String uci) {
     return uci;
   }
 }
+
+/// Шаг связки «мата с жертвой»: ход человека, затем ответ соперника из записи.
+///
+/// 🔴 ЖЕРТВА ДОИГРЫВАЕТСЯ ДО МАТА. В вебе верность решалась первым ходом, и
+/// упражнение, названное «мат с жертвой», кончалось до мата на всех 371 позиции.
+/// Экран играет ответ соперника и спрашивает следующий ход, пока не мат.
+({String fen, bool mated}) playLineStep(String fen, String uci, String? reply) {
+  final g = _board(fen);
+  _play(g, uci);
+  if (reply != null) _play(g, reply);
+  return (fen: _asWebWrites(g), mated: g.checkmate);
+}
