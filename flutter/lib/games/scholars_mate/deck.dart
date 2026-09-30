@@ -6,6 +6,7 @@
 library;
 
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:flutter/services.dart';
 
@@ -14,11 +15,39 @@ import 'ladder.dart';
 
 /// Корпус: задачи по видам. Читается один раз за запуск.
 class ScholarsCorpus {
-  ScholarsCorpus(this._byKind);
+  ScholarsCorpus(this._byKind, [this._named = const {}]);
 
   final Map<ScholarsKind, List<ScholarsPuzzle>> _byKind;
 
+  /// Пулы именованных узоров списка отработки («арабский мат», «мат Бодена»…),
+  /// в порядке файла. Позиции переведены как «мат из партий» — так и в вебе.
+  final Map<String, List<ScholarsPuzzle>> _named;
+
   List<ScholarsPuzzle> of(ScholarsKind kind) => _byKind[kind] ?? const [];
+
+  List<ScholarsPuzzle> named(String motif) => _named[motif] ?? const [];
+
+  /// Узоры списка отработки: сначала самые богатые позициями.
+  ///
+  /// 🔴 СОРТИРОВКА УСТОЙЧИВАЯ, КАК В JS. Веб сортирует `Object.keys` по размеру
+  /// пула, и при РАВНЫХ размерах JS сохраняет порядок файла, а `List.sort` в Dart
+  /// этого не обещает: список отработки разошёлся бы с вебом молча. Ничьи
+  /// разбираются по месту в файле явно.
+  List<String> get namedMotifs {
+    final keys = _named.keys.toList();
+    final order = {for (var i = 0; i < keys.length; i++) keys[i]: i};
+    keys.sort((a, b) {
+      final bySize = named(b).length - named(a).length;
+      return bySize != 0 ? bySize : order[a]! - order[b]!;
+    });
+    return keys;
+  }
+
+  int namedCount(String motif) => named(motif).length;
+
+  /// Сколько позиций в миксе — сумма по всем пулам.
+  int get mixedCount =>
+      namedMotifs.fold(0, (sum, motif) => sum + namedCount(motif));
 
   int count(ScholarsKind kind) => of(kind).length;
 
@@ -28,8 +57,9 @@ class ScholarsCorpus {
   static Future<ScholarsCorpus> load([AssetBundle? bundle]) async {
     final cached = _loaded;
     if (cached != null) return cached;
-    final raw = await (bundle ?? rootBundle)
-        .loadString('assets/scholars_mate/puzzles.json');
+    final raw = await (bundle ?? rootBundle).loadString(
+      'assets/scholars_mate/puzzles.json',
+    );
     final made = fromJson(jsonDecode(raw) as Map<String, dynamic>);
     _loaded = made;
     return made;
@@ -46,7 +76,17 @@ class ScholarsCorpus {
           _translate(kind, row),
       ];
     }
-    return ScholarsCorpus(byKind);
+    final named = <String, List<ScholarsPuzzle>>{};
+    final pools = json['named'];
+    if (pools is Map<String, dynamic>) {
+      for (final MapEntry(key: motif, value: rows) in pools.entries) {
+        named[motif] = [
+          for (final row in (rows as List).cast<Map<String, dynamic>>())
+            _translate(ScholarsKind.fromGames, row),
+        ];
+      }
+    }
+    return ScholarsCorpus(byKind, named);
   }
 }
 
@@ -122,7 +162,9 @@ List<ScholarsPuzzle> buildDeck(
     if (base.maxRating > 0 && kind != ScholarsKind.mate) {
       // 🔴 ПОЛОСА, А НЕ ПОТОЛОК: односторонний фильтр лестницы не строит.
       final inBand = pool
-          .where((x) => x.rating >= base.minRating && x.rating <= base.maxRating)
+          .where(
+            (x) => x.rating >= base.minRating && x.rating <= base.maxRating,
+          )
           .toList();
       pool = inBand.length >= base.count
           ? inBand
@@ -143,4 +185,129 @@ List<ScholarsPuzzle> buildDeck(
     deck.add(x);
   }
   return deck;
+}
+
+/// Набор на подход по одному именованному узору.
+///
+/// Лестницы тут нет: человек выбрал, что отрабатывать, и получает только это.
+/// Секунды и число позиций — с уровня, чтобы отработка шла в темпе лестницы;
+/// `count` — длинный набор для потока. Весь подход — за одну сторону.
+List<ScholarsPuzzle> buildNamedDeck(
+  ScholarsCorpus corpus,
+  String motif,
+  int level, {
+  int seed = 1,
+  int? count,
+}) {
+  final raw = corpus.named(motif);
+  if (raw.isEmpty) return const [];
+  final base = levelParams(level);
+  final want = min(count ?? base.count, raw.length);
+  final next = _rng(seed * 7919 + motif.length * 104729 + level);
+  double rnd() => next() / 0x7fffffff;
+  final deck = <ScholarsPuzzle>[];
+  final taken = <String>{};
+  String? sideOfRun;
+  for (var i = 0; deck.length < want && i < want * 80; i++) {
+    final x = raw[(rnd() * raw.length).floor()];
+    final side = sideToMove(x);
+    if (sideOfRun == null) {
+      sideOfRun = side;
+    } else if (side != sideOfRun) {
+      continue;
+    }
+    if (!taken.add(_shownKey(x))) continue;
+    deck.add(x);
+  }
+  return deck;
+}
+
+/// Микс узоров — «какой тут вообще мат?»: любой узор из списка, имя до ответа
+/// скрывает экран. Одна сторона на весь подход.
+List<ScholarsPuzzle> buildMixedMotifDeck(
+  ScholarsCorpus corpus,
+  int level, {
+  int seed = 1,
+  int? count,
+}) {
+  final names = corpus.namedMotifs
+      .where((m) => corpus.namedCount(m) > 0)
+      .toList();
+  if (names.isEmpty) return const [];
+  final base = levelParams(level);
+  final want = count ?? base.count;
+  final next = _rng(seed * 7919 + level * 104729 + names.length);
+  double rnd() => next() / 0x7fffffff;
+  final deck = <ScholarsPuzzle>[];
+  final taken = <String>{};
+  String? sideOfRun;
+  for (var i = 0; deck.length < want && i < want * 200; i++) {
+    final raw = corpus.named(names[(rnd() * names.length).floor()]);
+    final x = raw[(rnd() * raw.length).floor()];
+    final side = sideToMove(x);
+    if (sideOfRun == null) {
+      sideOfRun = side;
+    } else if (side != sideOfRun) {
+      continue;
+    }
+    if (!taken.add(_shownKey(x))) continue;
+    deck.add(x);
+  }
+  return deck;
+}
+
+/// Сколько наборов добирает поток, прежде чем сдаться.
+const int _flowSetsCeiling = 120;
+
+/// Колода потока: наборы лестницы подряд, пока одного цвета не наберётся на
+/// всё время (три секунды на позицию), — и берётся цвет, которого больше.
+///
+/// ⚠️ Просто отфильтровать один набор нельзя — не хватит позиций: в смешанной
+/// колоде на больший цвет приходится 66–119 из ~200 нужных (замер веба).
+List<ScholarsPuzzle> buildFlowDeck(
+  ScholarsCorpus corpus,
+  int level,
+  int seed,
+  int flowMs, {
+  ScholarsKind? only,
+}) {
+  final base = levelParams(level);
+  final need = max(4, (flowMs / 1000 / 3 / base.count).ceil()) * base.count;
+  final byColour = <String, List<ScholarsPuzzle>>{'w': [], 'b': []};
+  final seen = <String>{};
+  for (var n = 0; n < _flowSetsCeiling; n++) {
+    var added = 0;
+    for (final p in buildDeck(
+      corpus,
+      level,
+      seed: seed + n * 101,
+      only: only,
+    )) {
+      if (!seen.add(_shownKey(p))) continue;
+      byColour[sideToMove(p)]!.add(p);
+      added++;
+    }
+    if (added == 0) break; // пул исчерпан
+    if (max(byColour['w']!.length, byColour['b']!.length) >= need) break;
+  }
+  return byColour['w']!.length >= byColour['b']!.length
+      ? byColour['w']!
+      : byColour['b']!;
+}
+
+/// Виды заданий выбранного режима — для карточки настройки. Узор и микс
+/// спрашивают мат из партий, жертва — только жертву, лестница — виды уровня.
+List<ScholarsKind> kindsOfMode(
+  int level, {
+  ScholarsKind? only,
+  String? motif,
+  bool mix = false,
+}) {
+  if (mix || motif != null) return const [ScholarsKind.fromGames];
+  if (only != null) return [only];
+  final kinds = <ScholarsKind>[];
+  for (final k in levelParams(level).kinds) {
+    if (!kinds.contains(k)) kinds.add(k);
+  }
+  return kinds;
 }

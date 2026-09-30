@@ -26,7 +26,19 @@ declare const require: (id: string) => {
 declare const __dirname: string;
 declare const process: { env: Record<string, string | undefined> };
 
-import { puzzlesOf, buildDeck, levelParams } from '../games/scholars-mate/core/deck';
+import {
+  puzzlesOf,
+  buildDeck,
+  buildFlowDeck,
+  buildMixedMotifDeck,
+  buildNamedDeck,
+  levelParams,
+  mixedMotifCount,
+  namedMotifCount,
+  NAMED_MOTIFS,
+  видыРежима,
+} from '../games/scholars-mate/core/deck';
+import { звёздыПодхода, прятатьВид, ступеньПоМедиане } from '../games/scholars-mate/core/run';
 import {
   shownFen,
   sideToMove,
@@ -108,6 +120,46 @@ describe('эталон «Детского мата»', () => {
       };
     }
     эталон['decks'] = колоды;
+
+    // Режимы экрана: узор, микс, поток, жертва — и то, что решает итог подхода.
+    // Сверяется то же, что видит человек: показанные позиции в порядке подачи.
+    const ключ = (x: ScholarsPuzzle) => `${x.fen}|${x.pre ?? ''}`;
+    const узоры = NAMED_MOTIFS.slice(0, 3).concat(NAMED_MOTIFS.slice(-1));
+    const режимы: Record<string, unknown> = {
+      namedMotifs: NAMED_MOTIFS,
+      namedCounts: Object.fromEntries(NAMED_MOTIFS.map((и) => [и, namedMotifCount(и)])),
+      mixedCount: mixedMotifCount(),
+      named: Object.fromEntries(узоры.flatMap((и) => [
+        [`${и}|L1|s1`, buildNamedDeck(и, 1, 1).map(ключ)],
+        [`${и}|L20|s2`, buildNamedDeck(и, 20, 2).map(ключ)],
+        [`${и}|L8|s3|200`, buildNamedDeck(и, 8, 3, 200).map(ключ)],
+      ])),
+      mixed: {
+        'L1|s1': buildMixedMotifDeck(1, 1).map(ключ),
+        'L20|s3': buildMixedMotifDeck(20, 3).map(ключ),
+        'L8|s5|200': buildMixedMotifDeck(8, 5, 200).map(ключ),
+      },
+      flow: {
+        'L5|s1': buildFlowDeck(5, 1, 600000).map(ключ),
+        'L30|s2|sacrifice': buildFlowDeck(30, 2, 600000, 'sacrifice').map(ключ),
+      },
+      sacrifice: { 'L12|s4': buildDeck(12, 4, 'sacrifice').map(ключ) },
+      kindsOfMode: [
+        [3, null, null, false], [10, null, null, false], [20, 'sacrifice', null, false],
+        [20, null, NAMED_MOTIFS[0], false], [20, null, null, true], [35, null, null, false],
+      ].map(([л, т, у, м]) => ({
+        level: л, only: т, motif: у, mix: м,
+        kinds: видыРежима(л as number, т as ScholarsKind | null, у as string | null, м as boolean),
+      })),
+      hide: [1, 28, 29, 40].flatMap((л) => ВИДЫ.map((к) => ({ level: л, kind: к, hide: прятатьВид(л, к) }))),
+      step: [0, 900, 1500, 2500, 4000, 7000].flatMap((мс) => [1, 15, 40].map((л) => ({
+        medianMs: мс, level: л, step: ступеньПоМедиане(мс, л),
+      }))),
+      stars: [900, 2500, 7000].flatMap((мс) => [1, 40].flatMap((л) => [0, 1, 3].map((h) => ({
+        medianMs: мс, level: л, hints: h, stars: звёздыПодхода(мс, л, h),
+      })))),
+    };
+    эталон['modes'] = режимы;
 
     if (!process.env.SCHOLARS_EXPORT) return;
     const fs = require('fs');
