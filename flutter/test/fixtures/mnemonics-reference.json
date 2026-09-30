@@ -10904,7 +10904,7 @@
    "lang": "ru",
    "cards": [
     {
-     "kind": "приём",
+     "kind": "intro",
      "key": "teachMnemoIntroWords",
      "fields": {
       "n": 5
@@ -10912,7 +10912,7 @@
      "item": null
     },
     {
-     "kind": "опора",
+     "kind": "peg",
      "key": "teachMnemoWordFirst",
      "fields": {
       "a": "дом",
@@ -10921,7 +10921,7 @@
      "item": 0
     },
     {
-     "kind": "связка",
+     "kind": "chain",
      "key": "teachMnemoChainWords",
      "fields": {
       "a": "дом",
@@ -10930,7 +10930,7 @@
      "item": 1
     },
     {
-     "kind": "связка",
+     "kind": "chain",
      "key": "teachMnemoChainWords",
      "fields": {
       "a": "собака",
@@ -10939,7 +10939,7 @@
      "item": 2
     },
     {
-     "kind": "связка",
+     "kind": "chain",
      "key": "teachMnemoChainWords",
      "fields": {
       "a": "река",
@@ -10948,7 +10948,7 @@
      "item": 3
     },
     {
-     "kind": "порядок",
+     "kind": "order",
      "key": "teachMnemoOrder",
      "fields": {
       "n": 5
@@ -10956,7 +10956,7 @@
      "item": null
     },
     {
-     "kind": "готово",
+     "kind": "done",
      "key": "teachMnemoDone",
      "fields": {},
      "item": null
@@ -10972,7 +10972,7 @@
    "lang": "en",
    "cards": [
     {
-     "kind": "приём",
+     "kind": "intro",
      "key": "teachMnemoIntroWords",
      "fields": {
       "n": 2
@@ -10980,7 +10980,7 @@
      "item": null
     },
     {
-     "kind": "опора",
+     "kind": "peg",
      "key": "teachMnemoWordFirst",
      "fields": {
       "a": "house",
@@ -10989,7 +10989,7 @@
      "item": 0
     },
     {
-     "kind": "связка",
+     "kind": "chain",
      "key": "teachMnemoChainWords",
      "fields": {
       "a": "house",
@@ -10998,7 +10998,7 @@
      "item": 1
     },
     {
-     "kind": "порядок",
+     "kind": "order",
      "key": "teachMnemoOrder",
      "fields": {
       "n": 2
@@ -11006,7 +11006,7 @@
      "item": null
     },
     {
-     "kind": "готово",
+     "kind": "done",
      "key": "teachMnemoDone",
      "fields": {},
      "item": null
@@ -11021,7 +11021,7 @@
    "lang": "ru",
    "cards": [
     {
-     "kind": "приём",
+     "kind": "intro",
      "key": "teachMnemoIntroWords",
      "fields": {
       "n": 1
@@ -11029,7 +11029,7 @@
      "item": null
     },
     {
-     "kind": "опора",
+     "kind": "peg",
      "key": "teachMnemoWordFirst",
      "fields": {
       "a": "окно",
@@ -11038,7 +11038,7 @@
      "item": 0
     },
     {
-     "kind": "порядок",
+     "kind": "order",
      "key": "teachMnemoOrder",
      "fields": {
       "n": 1
@@ -11046,7 +11046,7 @@
      "item": null
     },
     {
-     "kind": "готово",
+     "kind": "done",
      "key": "teachMnemoDone",
      "fields": {},
      "item": null
@@ -11065,7 +11065,7 @@
    "lang": "ru",
    "cards": [
     {
-     "kind": "приём",
+     "kind": "intro",
      "key": "teachMnemoIntroNumbers",
      "fields": {
       "n": 4
@@ -11073,7 +11073,7 @@
      "item": null
     },
     {
-     "kind": "опора",
+     "kind": "peg",
      "key": "teachMnemoPegFirst",
      "fields": {
       "n": "31",
@@ -11083,7 +11083,7 @@
      "item": 0
     },
     {
-     "kind": "опора",
+     "kind": "peg",
      "key": "teachMnemoPeg",
      "fields": {
       "n": "82",
@@ -11093,7 +11093,7 @@
      "item": 1
     },
     {
-     "kind": "связка",
+     "kind": "chain",
      "key": "teachMnemoChain",
      "fields": {
       "a": "мёд",
@@ -11102,7 +11102,7 @@
      "item": 1
     },
     {
-     "kind": "опора",
+     "kind": "peg",
      "key": "teachMnemoPeg",
      "fields": {
       "n": "47",
@@ -11112,7 +11112,7 @@
      "item": 2
     },
     {
-     "kind": "связка",
+     "kind": "chain",
      "key": "teachMnemoChain",
      "fields": {
       "a": "вино",
@@ -11121,7 +11121,7 @@
      "item": 2
     },
     {
-     "kind": "опора",
+     "kind": "peg",
      "key": "teachMnemoPeg",
      "fields": {
       "n": "90",
@@ -11131,7 +11131,7 @@
      "item": 3
     },
     {
-     "kind": "связка",
+     "kind": "chain",
      "key": "teachMnemoChain",
      "fields": {
       "a": "рука",
@@ -11140,7 +11140,7 @@
      "item": 3
     },
     {
-     "kind": "порядок",
+     "kind": "order",
      "key": "teachMnemoOrder",
      "fields": {
       "n": 5
@@ -11148,7 +11148,7 @@
      "item": null
     },
     {
-     "kind": "готово",
+     "kind": "done",
      "key": "teachMnemoDone",
      "fields": {},
      "item": null
@@ -11165,7 +11165,7 @@
    "lang": "en",
    "cards": [
     {
-     "kind": "приём",
+     "kind": "intro",
      "key": "teachMnemoIntroNumbers",
      "fields": {
       "n": 3
@@ -11173,7 +11173,7 @@
      "item": null
     },
     {
-     "kind": "опора",
+     "kind": "peg",
      "key": "teachMnemoPegFirst",
      "fields": {
       "n": "20",
@@ -11183,7 +11183,7 @@
      "item": 0
     },
     {
-     "kind": "опора",
+     "kind": "peg",
      "key": "teachMnemoPeg",
      "fields": {
       "n": "99",
@@ -11193,7 +11193,7 @@
      "item": 1
     },
     {
-     "kind": "связка",
+     "kind": "chain",
      "key": "teachMnemoChain",
      "fields": {
       "a": "nose",
@@ -11202,7 +11202,7 @@
      "item": 1
     },
     {
-     "kind": "опора",
+     "kind": "peg",
      "key": "teachMnemoPeg",
      "fields": {
       "n": "10",
@@ -11212,7 +11212,7 @@
      "item": 2
     },
     {
-     "kind": "связка",
+     "kind": "chain",
      "key": "teachMnemoChain",
      "fields": {
       "a": "pipe",
@@ -11221,7 +11221,7 @@
      "item": 2
     },
     {
-     "kind": "порядок",
+     "kind": "order",
      "key": "teachMnemoOrder",
      "fields": {
       "n": 3
@@ -11229,7 +11229,7 @@
      "item": null
     },
     {
-     "kind": "готово",
+     "kind": "done",
      "key": "teachMnemoDone",
      "fields": {},
      "item": null
@@ -11248,7 +11248,7 @@
    "lang": "de",
    "cards": [
     {
-     "kind": "приём",
+     "kind": "intro",
      "key": "teachMnemoIntroNumbersNoPegs",
      "fields": {
       "n": 5
@@ -11256,7 +11256,7 @@
      "item": null
     },
     {
-     "kind": "опора",
+     "kind": "peg",
      "key": "teachMnemoWordFirst",
      "fields": {
       "a": "31",
@@ -11265,7 +11265,7 @@
      "item": 0
     },
     {
-     "kind": "связка",
+     "kind": "chain",
      "key": "teachMnemoChainWords",
      "fields": {
       "a": "31",
@@ -11274,7 +11274,7 @@
      "item": 1
     },
     {
-     "kind": "связка",
+     "kind": "chain",
      "key": "teachMnemoChainWords",
      "fields": {
       "a": "82",
@@ -11283,7 +11283,7 @@
      "item": 2
     },
     {
-     "kind": "связка",
+     "kind": "chain",
      "key": "teachMnemoChainWords",
      "fields": {
       "a": "47",
@@ -11292,7 +11292,7 @@
      "item": 3
     },
     {
-     "kind": "порядок",
+     "kind": "order",
      "key": "teachMnemoOrder",
      "fields": {
       "n": 5
@@ -11300,7 +11300,7 @@
      "item": null
     },
     {
-     "kind": "готово",
+     "kind": "done",
      "key": "teachMnemoDone",
      "fields": {},
      "item": null
@@ -11315,7 +11315,7 @@
    "lang": "ru",
    "cards": [
     {
-     "kind": "приём",
+     "kind": "intro",
      "key": "teachMnemoIntroNumbers",
      "fields": {
       "n": 1
@@ -11323,7 +11323,7 @@
      "item": null
     },
     {
-     "kind": "опора",
+     "kind": "peg",
      "key": "teachMnemoPegFirst",
      "fields": {
       "n": "55",
@@ -11333,7 +11333,7 @@
      "item": 0
     },
     {
-     "kind": "порядок",
+     "kind": "order",
      "key": "teachMnemoOrder",
      "fields": {
       "n": 1
@@ -11341,7 +11341,7 @@
      "item": null
     },
     {
-     "kind": "готово",
+     "kind": "done",
      "key": "teachMnemoDone",
      "fields": {},
      "item": null

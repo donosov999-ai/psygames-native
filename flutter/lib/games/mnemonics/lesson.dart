@@ -19,7 +19,8 @@ import 'model.dart';
 /// его сам. Вступление чисел обещает ровно столько, сколько разбор покажет (правка PR #11).
 const mnemoShown = 4;
 
-/// Карточка разбора: ключ текста, подстановки и какой элемент ряда подсветить.
+/// Карточка разбора: вид (intro / peg / chain / order / done — латиницей: кириллица только в
+/// видимом тексте), ключ текста, подстановки и какой элемент ряда подсветить.
 typedef MnemoCard = ({String kind, String key, Map<String, String> fields, int? item});
 
 List<MnemoCard> mnemonicsLessonCards({
@@ -38,7 +39,7 @@ List<MnemoCard> mnemonicsLessonCards({
 
   final cards = <MnemoCard>[
     (
-      kind: 'приём',
+      kind: 'intro',
       key: mode == 'numbers'
           ? (pegs ? 'teachMnemoIntroNumbers' : 'teachMnemoIntroNumbersNoPegs')
           : 'teachMnemoIntroWords',
@@ -53,25 +54,25 @@ List<MnemoCard> mnemonicsLessonCards({
       final why = n != null && n >= 0 && n <= 99 ? table.why(n) : '';
       final word = pegWord(item);
       cards.add((
-        kind: 'опора',
+        kind: 'peg',
         key: i == 0 ? 'teachMnemoPegFirst' : 'teachMnemoPeg',
         fields: {'n': item, 'word': word, 'why': why},
         item: i,
       ));
       if (i > 0) {
-        cards.add((kind: 'связка', key: 'teachMnemoChain', fields: {'a': pegWord(taken[i - 1]), 'b': word}, item: i));
+        cards.add((kind: 'chain', key: 'teachMnemoChain', fields: {'a': pegWord(taken[i - 1]), 'b': word}, item: i));
       }
       continue;
     }
     cards.add((
-      kind: i == 0 ? 'опора' : 'связка',
+      kind: i == 0 ? 'peg' : 'chain',
       key: i == 0 ? 'teachMnemoWordFirst' : 'teachMnemoChainWords',
       fields: {'a': i == 0 ? item : taken[i - 1], 'b': item},
       item: i,
     ));
   }
-  cards.add((kind: 'порядок', key: 'teachMnemoOrder', fields: {'n': '${items.length}'}, item: null));
-  cards.add((kind: 'готово', key: 'teachMnemoDone', fields: const {}, item: null));
+  cards.add((kind: 'order', key: 'teachMnemoOrder', fields: {'n': '${items.length}'}, item: null));
+  cards.add((kind: 'done', key: 'teachMnemoDone', fields: const {}, item: null));
   return cards;
 }
 

@@ -61,6 +61,11 @@ function записать(путь: string, данные: unknown): void {
   writeFileSync(полный, `${JSON.stringify(данные, null, 1)}\n`);
 }
 
+/** Вид карточки для Dart: там кириллица только в видимом тексте (решение Дениса 23.09.2026). */
+const ВИД_ЛАТИНИЦЕЙ: Record<string, string> = {
+  приём: 'intro', опора: 'peg', связка: 'chain', порядок: 'order', готово: 'done',
+};
+
 describe('эталон «Мнемоники» для Flutter', () => {
   it('пишет эталон и данные игры', () => {
     const уровни = [0, ...Array.from({ length: 16 }, (_, i) => i + 1), 40];
@@ -124,7 +129,7 @@ describe('эталон «Мнемоники» для Flutter', () => {
     const lessons = lessonInputs.map((вход) => ({
       ...вход,
       cards: собратьРазборМнемоники(вход.items, вход.mode, вход.lang).карточки.map((к) => ({
-        kind: к.вид, key: к.ключ, fields: к.поля ?? {}, item: к.элемент,
+        kind: ВИД_ЛАТИНИЦЕЙ[к.вид], key: к.ключ, fields: к.поля ?? {}, item: к.элемент,
       })),
     }));
 
