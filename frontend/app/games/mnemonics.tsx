@@ -154,6 +154,13 @@ export default function MnemonicsGame() {
   useCalmHush(isCalm);   // вечерний и ночной шаг зарядки — без писка
   const levelRef = useRef(1);
   const useLevelRef = useRef(false);   // запущено по уровню? (для reach + авто-потока)
+  /**
+   * 🔴 ПАРТИЯ С РАЗБОРОМ НЕ ЗАСЧИТЫВАЕТСЯ В УРОВЕНЬ — так обещает первая карточка плеера
+   * (`teachNotCounted`). До 30.09.2026 обещание держалось только словами: разбор открывался
+   * посреди запоминания, а чистый итог поднимал уровень как обычно. Флаг ставит «Разбор»,
+   * снимает новая партия; итог такой партии идёт как свободная тренировка.
+   */
+  const урокВПартииRef = useRef(false);
     // ⚠️ Ждём загрузки уровня. Без этого автостарт («Вызов дня», онбординг) играл
   // ПЕРВЫЙ уровень человеку с двенадцатым: уровень приезжает асинхронно, а
   // эффект монтирования всегда раньше промиса. См. useAutostartWhenReady.
@@ -266,6 +273,7 @@ export default function MnemonicsGame() {
   };
 
   const startGame = (useLevel = false) => {
+    урокВПартииRef.current = false;
     // По уровню (не-пресет): число слов из лесенки (старт 5). Иначе — выбранное вручную / preset.
     let ic = itemCount;
     if (!isPreset && useLevel) { ic = levelParams(lvl.level).itemCount; levelRef.current = lvl.level; useLevelRef.current = true; setItemCount(ic); }
@@ -374,7 +382,7 @@ export default function MnemonicsGame() {
       // Check if all items selected
       if (newOrder.length === items.length) {
         const finalTime = elapsedTime + (errors * PENALTY_SECONDS);
-        const isLevelRun = !isPreset && useLevelRef.current;
+        const isLevelRun = !isPreset && useLevelRef.current && !урокВПартииRef.current;
         const passed = errors === 0;
         if (isLevelRun) {
           if (passed) lvl.reach(levelRef.current + 1);   // чистое воспроизведение → +уровень (больше слов)
@@ -432,6 +440,7 @@ export default function MnemonicsGame() {
   const разборДоступен = phase === 'memorize' && mode !== 'pegs' && lvl.level <= 3 && items.length > 0;
   const начатьРазбор = () => {
     if (!items.length) return;
+    урокВПартииRef.current = true;
     const { карточки } = собратьРазборМнемоники(items, mode === 'numbers' ? 'numbers' : 'words', language);
     setУрок({ карточки, индекс: 0 });
   };
@@ -688,7 +697,7 @@ export default function MnemonicsGame() {
   const завершитьОпоры = async (ошибок: number) => {
     const допуск = Math.floor(items.length / 10);
     const passed = ошибок <= допуск;
-    const isLevelRun = !isPreset && useLevelRef.current;
+    const isLevelRun = !isPreset && useLevelRef.current && !урокВПартииRef.current;
     if (isLevelRun) {
       if (passed) lvl.reach(levelRef.current + 1);
       else lvl.fail();
