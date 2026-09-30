@@ -4,16 +4,19 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 
 import '../../shell/audio_host.dart';
-import '../../shell/demo_lesson.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
+import '../../shell/lesson.dart';
+import '../../shell/lesson_player.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/noise.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import '../../shell/voice.dart';
 import '../languages/json_asset.dart';
+import '../hearing_common/lesson_cue.dart';
+import 'lesson.dart';
 import 'model.dart';
 
 /// «Тоны китайского» — экран раздела «Языки» на Flutter. Правила и сверка с живым
@@ -181,12 +184,50 @@ class _ChineseTonesScreenState extends State<ChineseTonesScreen> {
     }
   }
 
-  List<DemoTrial> _demoTrials() {
-    final s = _bank?[3]?.firstOrNull;
-    if (s == null) return [DemoTrial(text: '', rule: L.t('chineseTonesIntroDesc'))];
-    return [
-      DemoTrial(text: '${s.zh} · ${s.pinyin}', sub: L.t('ctPickTone'), answer: '${toneSigns[2]} 3', rule: L.t('chineseTonesIntroDesc')),
-    ];
+  /// Тексты разбора — из словаря, теми же ключами, что зовёт веб-учитель.
+  String _teach(String key, Map<String, String> args) {
+    var out = switch (key) {
+      'teachZhIntro' => L.t('teachZhIntro'),
+      'teachZhTone1' => L.t('teachZhTone1'),
+      'teachZhTone2' => L.t('teachZhTone2'),
+      'teachZhTone3' => L.t('teachZhTone3'),
+      'teachZhTone4' => L.t('teachZhTone4'),
+      'teachZhPair23' => L.t('teachZhPair23'),
+      _ => L.t('teachZhDone'),
+    };
+    args.forEach((k, v) => out = out.replaceAll('{$k}', v));
+    return out;
+  }
+
+  final Random _lessonRandom = Random();
+
+  /// 🎓 Разбор по шагам (раздел «Память и слух», `lesson.dart`) вместо демо-карточки: один слог в
+  /// четырёх тонах с линиями голоса и пара «второй — третий»; слог текущего задания не берётся.
+  /// Идёт партия — разбор делает её незачётной (LessonUsed).
+  Future<void> _openLesson() async {
+    final bank = _bank;
+    if (bank == null) return;
+    final playing = _phase == CtPhase.playing && _idx < _trials.length;
+    final r = ctLessonCards(bank: bank, exclude: playing ? _trials[_idx].syll.pinyin : null, rnd: _lessonRandom.nextDouble);
+    if (playing) LessonUsed.mark();
+    _sayLater?.cancel();
+    await _voice?.cancel();
+    final steps = ctLessonSteps(r.cards, _teach);
+    if (!mounted) return;
+    await Navigator.of(context).push(MaterialPageRoute<void>(
+      builder: (_) => LessonPlayerScreen(
+        title: L.t('chineseTonesShort'),
+        steps: steps,
+        board: (context, side, i) {
+          final card = steps[i.clamp(0, steps.length - 1)].payload as CtCard;
+          return KeyedSubtree(
+            key: ValueKey('ct-lesson-$i'),
+            child: _CtLessonBoard(card: card, voice: _voice, side: side),
+          );
+        },
+      ),
+    ));
+    await _voice?.cancel();
   }
 
   @override
@@ -198,7 +239,7 @@ class _ChineseTonesScreenState extends State<ChineseTonesScreen> {
     return GameShell(
       title: L.t('chineseTonesShort'),
       onBack: () => Navigator.of(context).maybePop(),
-      onLesson: () => openDemoLesson(context, title: L.t('chineseTonesShort'), trials: _demoTrials()),
+      onLesson: _openLesson,
       hud: t == null
           ? const []
           : [
@@ -335,4 +376,113 @@ class _ChineseTonesScreenState extends State<ChineseTonesScreen> {
             ]),
     );
   }
+}
+
+/// Поле разбора: слова карточки с линиями тонов — горит та, о которой речь (на паре — обе). Рамка
+/// обязательна: тон — не только форма, но и высота; без шкалы ровная первая и падающая четвёртая
+/// читаются одинаково «где-то наверху» (кадр веба 30.09.2026). Карточка со словом звучит сама.
+class _CtLessonBoard extends StatefulWidget {
+  const _CtLessonBoard({required this.card, required this.voice, required this.side});
+
+  final CtCard card;
+  final VoiceLayer? voice;
+  final double side;
+
+  @override
+  State<_CtLessonBoard> createState() => _CtLessonBoardState();
+}
+
+class _CtLessonBoardState extends State<_CtLessonBoard> with SingleTickerProviderStateMixin {
+  late final LessonCue _cue = LessonCue(this);
+
+  @override
+  void initState() {
+    super.initState();
+    // Как в вебе: через 350 мс знаки по очереди, между ними 300 мс, темп 0,85.
+    final words = widget.card.speak;
+    _cue.run(words.length, (i) => widget.voice?.speak(words[i], 'zh', rate: 0.85), gap: const Duration(milliseconds: 300));
+  }
+
+  @override
+  void dispose() {
+    _cue.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final c = widget.card;
+    final lineW = min(96.0, ((widget.side - 24) / max(4, c.sylls.length)).floorToDouble());
+    // Естественная ширина ряда, ужатая под поле: подписи пиньиня шире линии (замер пробой: +8 px на 4 слогах).
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      child: Row(mainAxisSize: MainAxisSize.min, children: [
+        for (final s in c.sylls)
+          () {
+            final lit = c.kind == 'pair' || c.tone == s.tone;
+            return Padding(
+              key: ValueKey('ct-lesson-syll-${s.tone}'),
+              padding: const EdgeInsets.symmetric(horizontal: 3),
+              child: Column(mainAxisSize: MainAxisSize.min, children: [
+                CustomPaint(
+                  key: ValueKey('ct-lesson-line-${s.tone}${lit ? '-lit' : ''}'),
+                  size: Size(lineW, (lineW * 0.62).roundToDouble()),
+                  painter: _ToneLine(
+                    contour: ctToneContours[s.tone]!,
+                    color: lit ? _accent : scheme.onSurfaceVariant,
+                    frame: scheme.outlineVariant,
+                    lit: lit,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(s.zh,
+                    style: TextStyle(fontSize: 28, fontWeight: FontWeight.w700, color: lit ? scheme.onSurface : scheme.onSurfaceVariant)),
+                Text('${s.pinyin} ${toneSigns[s.tone - 1]}', style: TextStyle(fontSize: 14, color: scheme.onSurfaceVariant)),
+              ]),
+            );
+          }(),
+      ]),
+    );
+  }
+}
+
+/// Линия тона в рамке шкалы: ступени 1–5 снизу вверх, точки равномерно по ширине.
+class _ToneLine extends CustomPainter {
+  _ToneLine({required this.contour, required this.color, required this.frame, required this.lit});
+
+  final List<int> contour;
+  final Color color;
+  final Color frame;
+  final bool lit;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    const pad = 8.0;
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(Rect.fromLTWH(1, 1, size.width - 2, size.height - 2), const Radius.circular(8)),
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.5
+        ..color = frame,
+    );
+    final path = Path();
+    for (var i = 0; i < contour.length; i += 1) {
+      final x = pad + i * (size.width - 2 * pad) / (contour.length - 1);
+      final y = pad + (5 - contour[i]) * (size.height - 2 * pad) / 4;
+      i == 0 ? path.moveTo(x, y) : path.lineTo(x, y);
+    }
+    canvas.drawPath(
+      path,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 6
+        ..strokeCap = StrokeCap.round
+        ..strokeJoin = StrokeJoin.round
+        ..color = color.withValues(alpha: lit ? 1 : 0.45),
+    );
+  }
+
+  @override
+  bool shouldRepaint(_ToneLine old) => old.color != color || old.lit != lit || old.contour != contour;
 }

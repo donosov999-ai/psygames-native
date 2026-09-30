@@ -103,6 +103,7 @@ flutter:
     - assets/memory-palace.json
     - assets/rmet.json
     - assets/word-pairs.json
+    - assets/mnemonics.json
     - assets/rmet/
     - assets/words/
     - assets/rings/

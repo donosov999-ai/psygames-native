@@ -63,13 +63,17 @@ class WordPair {
 }
 
 class WordPairsContent {
-  const WordPairsContent({required this.words, this.vocab = const []});
+  const WordPairsContent({required this.words, this.vocab = const [], this.targetLanguages = const []});
 
   /// Списки слов по языку интерфейса (режим «случайные пары»).
   final Map<String, List<String>> words;
 
   /// Словарь переводов: записи вида {en: house, ru: дом, …}.
   final List<Map<String, String>> vocab;
+
+  /// Языки режима «Перевод»: только со словарём, название — на самом языке. Данные из веба
+  /// (`LANGUAGES` + `hasVocab`) выгружает прибор `frontend/scripts/flutter-word-pairs-reference.test.ts`.
+  final List<({String code, String name})> targetLanguages;
 
   List<String> wordsFor(String locale) => words[locale] ?? words['en'] ?? const [];
 
@@ -79,6 +83,10 @@ class WordPairsContent {
       words: (j['words'] as Map).map(
         (k, v) => MapEntry(k as String, [for (final x in v as List) x as String]),
       ),
+      targetLanguages: [
+        for (final l in (j['targetLanguages'] as List?) ?? const [])
+          (code: (l as Map)['code'] as String, name: l['name'] as String),
+      ],
       vocab: vocabJson == null
           ? const []
           : [
@@ -129,10 +137,12 @@ class WordPairsSession {
     required int level,
     required List<String> seen,
     Random? random,
+    int? pairCount,
   }) {
     final rng = random ?? Random();
     final params = wordPairsLevelParams(level);
-    final count = params.pairCount;
+    // Шаг зарядки задаёт число пар сам (потолок уровня считает экран); иначе — по уровню.
+    final count = pairCount ?? params.pairCount;
     if (mode == 'translation' && content.vocab.isNotEmpty) {
       final target = targetLocale == locale ? (locale == 'en' ? 'es' : 'en') : targetLocale;
       final res = pickFreshFrom(content.vocab, count, seen, (e) => e['en'] ?? '', rng);

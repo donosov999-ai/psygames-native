@@ -17,6 +17,8 @@
 import { RUSSIAN_WORDS, ENGLISH_WORDS } from '@/src/constants/games';
 import { levelParams } from '@/app/games/word-pairs';
 import { pickFreshFrom } from '@/src/services/freshPool';
+import { LANGUAGES } from '@/src/contexts/LanguageContext';
+import { hasVocab } from '@/src/constants/translationVocab';
 
 declare function require(id: string): any;
 declare const __dirname: string;
@@ -42,11 +44,18 @@ it('выгружает списки слов и эталон лестницы «
       en: ENGLISH_WORDS.length,
     },
     words: { ru: [...RUSSIAN_WORDS], en: [...ENGLISH_WORDS] },
+    /**
+     * Языки режима «Перевод» — ТОЛЬКО те, на которых есть словарь (веб: `hasVocab`), с названием
+     * на самом языке (веб: `LANGUAGES`). Во Flutter список не пишется руками: названия — данные,
+     * и язык, получивший словарь в вебе, приезжает в приложение перезапуском этого прибора.
+     */
+    targetLanguages: LANGUAGES.filter((l) => hasVocab(l.code)).map((l) => ({ code: l.code, name: l.name })),
   };
   fs.mkdirSync(path.resolve(FLUTTER, 'assets'), { recursive: true });
   fs.writeFileSync(path.resolve(FLUTTER, 'assets', 'word-pairs.json'), JSON.stringify(data), 'utf8');
   expect(data.words.ru.length).toBeGreaterThanOrEqual(50);
   expect(data.words.en.length).toBeGreaterThanOrEqual(50);
+  expect(data.targetLanguages.length).toBeGreaterThanOrEqual(2);
 
   const levels = Array.from({ length: 15 }, (_, i) => {
     const p = levelParams(i + 1);

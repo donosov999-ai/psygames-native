@@ -20,19 +20,26 @@
 /// перемешивание маршрута бессмысленным: порядок читался бы прямо с экрана.
 library;
 
+import 'dart:async';
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
 import '../../shell/aux_action.dart';
+import '../../shell/game_clock.dart';
+import '../../shell/game_preset.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/resume_store.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import '../../shell/lesson.dart';
 import '../../shell/lesson_player.dart';
 import 'lesson.dart';
 import 'model.dart';
+import 'resume.dart';
 
 /// Числа раскладки — те же, что в вебе (`PLACE_LAYOUT`).
 class PalaceLayout {
@@ -74,7 +81,7 @@ class MemoryPalaceScreen extends StatefulWidget {
   State<MemoryPalaceScreen> createState() => _MemoryPalaceScreenState();
 }
 
-class _MemoryPalaceScreenState extends State<MemoryPalaceScreen> {
+class _MemoryPalaceScreenState extends State<MemoryPalaceScreen> with WidgetsBindingObserver {
   late LevelLadder _ladder;
   MemoryPalaceContent? _content;
   MemoryPalaceSession? _session;
@@ -82,9 +89,24 @@ class _MemoryPalaceScreenState extends State<MemoryPalaceScreen> {
 
   int get _now => DateTime.now().millisecondsSinceEpoch;
 
+  /// 🔴 НЕДОИГРАННАЯ ПАРТИЯ (задача 1077f0ae). Запись в ОБЩЕМ ключе с веб-половиной — форма снимка
+  /// веб-сессии (`resume.dart`, эталон memory-palace-resume-reference.json). До 30.09.2026 не было:
+  /// свернул приложение посреди раскладки — партия начиналась заново.
+  late final ResumeStore _resume = ResumeStore(widget.state, memoryPalaceGameId, memoryPalaceResumeVersion);
+  GameTimer? _saveTimer;
+  final Random _random = Random();
+
+  /// Уровень текущей партии: поднятой — из снимка, новой — из адреса (шаг зарядки, вызов дня)
+  /// или личный. Веб: `num('level', lvl.level)` — «уровень из адреса важнее сохранённого».
+  int _partyLevel = 1;
+
+  /// Открыто для пробы: живая партия (зерно теперь свежее на каждый заход — вычислить её снаружи нельзя).
+  MemoryPalaceSession? get session => _session;
+
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _ladder = LevelLadder(
       gameId: 'memory_palace',
       store: SharedLevelStore(widget.state),
@@ -93,25 +115,83 @@ class _MemoryPalaceScreenState extends State<MemoryPalaceScreen> {
     _boot();
   }
 
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _flush();   // экран сносят — дописать партию сразу, а не через задержку
+    super.dispose();
+  }
+
+  /// Приложение свернули — ровно тот случай, ради которого запись и существует.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state != AppLifecycleState.resumed) _flush();
+  }
+
   Future<void> _boot() async {
     final content = widget.content ??
         MemoryPalaceContent.fromJsonString(await rootBundle.loadString('assets/memory-palace.json'));
     await _ladder.load();
+    // Шаг зарядки старую партию не поднимает: она подменила бы уровень шага (как в вебе).
+    final saved = GamePreset.autostart ? null : await _resume.load();
     if (!mounted) return;
+    final live = memoryPalaceRestore(saved, _now);
     setState(() {
       _content = content;
       _booting = false;
-      _newRound();
+      if (live != null) {
+        _session = live.session;
+        _partyLevel = live.level;
+      } else {
+        _newRound();
+        if (GamePreset.autostart) _session?.start(_now);
+      }
     });
   }
 
   void _newRound() {
     final c = _content;
     if (c == null) return;
-    _session = MemoryPalaceSession.create(c, 'memory-palace-${_ladder.level}', _ladder.level);
+    _partyLevel = GamePreset.num('level', _ladder.level).clamp(1, memoryPalaceLevels);
+    // Зерно свежее на каждый заход (веб: makeSeed/makeNonce) — повтор раскладки мерил бы узнавание.
+    _session = MemoryPalaceSession.create(c, memoryPalaceSeed(_partyLevel, _now, _random.nextDouble()), _partyLevel);
+  }
+
+  /// Партия изменилась — отложенная запись перезаводится (веб: createPartySaver): подряд идущие
+  /// касания дают ОДНУ запись, и пишется ПОСЛЕДНЕЕ состояние, а не первое.
+  void _changed() {
+    _saveTimer?.cancel();
+    // Игровые часы (храповик game_clock_discipline): на паузе запись ждёт, а уход в фон и снос
+    // экрана дописывают партию сразу (`didChangeAppLifecycleState`, `dispose`).
+    _saveTimer = gameTimeout(memoryPalaceResumeDebounce, _flush);
+  }
+
+  void _flush() {
+    _saveTimer?.cancel();
+    _saveTimer = null;
+    final snap = memoryPalaceSnapshot(_session, _partyLevel, _now);
+    if (snap != null) _resume.save(snap);
+  }
+
+  void _act(VoidCallback action) {
+    setState(action);
+    _changed();
+  }
+
+  /// «Заново» — новая партия со свежим зерном (веб: start()), недоигранная запись стирается.
+  void _restart() {
+    _saveTimer?.cancel();
+    _resume.clear();
+    setState(() {
+      _newRound();
+      _session?.start(_now);
+    });
   }
 
   Future<void> _finish(MemoryPalaceMetrics m) async {
+    // Партия доиграна — незаконченной больше нет, иначе «Продолжить» звало бы в закрытый маршрут.
+    _saveTimer?.cancel();
+    await _resume.clear();
     final seconds = (m.durationMs / 1000).round();
     if (m.passed) {
       await _ladder.win(score: m.score, timeSeconds: seconds, errors: m.errors, mode: 'level');
@@ -125,6 +205,7 @@ class _MemoryPalaceScreenState extends State<MemoryPalaceScreen> {
     final s = _session;
     if (s == null) return;
     setState(() => action(s));
+    _changed();
     final r = s.result;
     if (s.phase == MemoryPalacePhase.result && r != null) _finish(r);
   }
@@ -202,7 +283,7 @@ class _MemoryPalaceScreenState extends State<MemoryPalaceScreen> {
       title: c.s(L.locale, 'title'),
       onLesson: _openLesson,
       hud: [
-        HudItem(label: L.t('level'), value: '${_ladder.level}', icon: Icons.flag_outlined),
+        HudItem(label: L.t('level'), value: '$_partyLevel', icon: Icons.flag_outlined),
         HudItem(label: c.s(L.locale, 'route'), value: '${s.round.lociCount}', icon: Icons.route_outlined),
         HudItem(label: c.s(L.locale, _phaseKey(s.phase)), value: _progress(s), icon: Icons.checklist_outlined),
       ],
@@ -211,7 +292,7 @@ class _MemoryPalaceScreenState extends State<MemoryPalaceScreen> {
         AuxAction(
           icon: Icons.refresh,
           label: c.s(L.locale, 'restart'),
-          onPressed: () => setState(() => s.restart(_now)),
+          onPressed: _restart,
         ),
       ]),
       toolbar: _toolbar(context, s, c),
@@ -219,7 +300,7 @@ class _MemoryPalaceScreenState extends State<MemoryPalaceScreen> {
         PauseAction(
           label: c.s(L.locale, 'restart'),
           icon: Icons.refresh,
-          onPressed: () => setState(() => s.restart(_now)),
+          onPressed: _restart,
         ),
       ],
     );
@@ -369,7 +450,7 @@ class _MemoryPalaceScreenState extends State<MemoryPalaceScreen> {
                 selected: s.selectedLocusIndex == i,
                 // Номер вне фазы маршрута — только пока маршрут постоянен.
                 showOrder: phase == 'route' || !memoryPalaceRouteIsShuffled(s.round.level),
-                onTap: phase == 'place' ? () => setState(() => s.selectLocus(i)) : null,
+                onTap: phase == 'place' ? () => _act(() => s.selectLocus(i)) : null,
               ),
           ],
         ),
@@ -394,7 +475,7 @@ class _MemoryPalaceScreenState extends State<MemoryPalaceScreen> {
           dimmed: placed.contains(item.id),
           selected: s.selectedItemId == item.id,
           showName: palaceShowsItemNames(s.round.level),
-          onTap: () => setState(() => s.selectItem(item.id)),
+          onTap: () => _act(() => s.selectItem(item.id)),
         );
       },
     );
@@ -433,35 +514,35 @@ class _MemoryPalaceScreenState extends State<MemoryPalaceScreen> {
       case MemoryPalacePhase.rules:
         return bar(FilledButton.icon(
           key: const ValueKey('mp-start'),
-          onPressed: () => setState(() => s.start(_now)),
+          onPressed: () => _act(() => s.start(_now)),
           icon: const Icon(Icons.play_arrow),
           label: Text(c.s(L.locale, 'start')),
         ));
       case MemoryPalacePhase.route:
         return bar(FilledButton.icon(
           key: const ValueKey('mp-to-place'),
-          onPressed: () => setState(s.continueToPlacement),
+          onPressed: () => _act(s.continueToPlacement),
           icon: const Icon(Icons.arrow_forward),
           label: Text(c.s(L.locale, 'placeTitle')),
         ));
       case MemoryPalacePhase.place:
         return bar(FilledButton.icon(
           key: const ValueKey('mp-confirm'),
-          onPressed: s.placementComplete ? () => setState(s.confirmPlacements) : null,
+          onPressed: s.placementComplete ? () => _act(s.confirmPlacements) : null,
           icon: const Icon(Icons.check),
           label: Text(c.s(L.locale, 'studyTitle')),
         ));
       case MemoryPalacePhase.study:
         return bar(FilledButton.icon(
           key: const ValueKey('mp-to-recall'),
-          onPressed: () => setState(s.startRecall),
+          onPressed: () => _act(s.startRecall),
           icon: const Icon(Icons.help_outline),
           label: Text(c.s(L.locale, 'recallTitle')),
         ));
       case MemoryPalacePhase.transition:
         return bar(FilledButton.icon(
           key: const ValueKey('mp-to-reverse'),
-          onPressed: () => setState(s.continueToReverse),
+          onPressed: () => _act(s.continueToReverse),
           icon: const Icon(Icons.arrow_forward),
           label: Text(c.s(L.locale, 'recallReverse')),
         ));
