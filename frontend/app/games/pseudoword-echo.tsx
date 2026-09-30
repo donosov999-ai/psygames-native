@@ -342,7 +342,7 @@ export default function PseudowordEchoGame() {
   const карточкаУрока = урок ? урок.карточки[урок.индекс] : null;
   const урокВПартииRef = useRef(false);
   const [итогСРазбором, setИтогСРазбором] = useState(false);
-  const разборДоступен = phase === 'playing' && levelRef.current <= 3;
+  const разборДоступен = phase === 'playing' && lvl.level <= 3;
   const начатьРазбор = () => {
     ttsCancel();
     stopNoise();
