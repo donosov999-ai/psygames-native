@@ -68,6 +68,7 @@ void main() {
     '/games/inhibition',
     '/games/memory-palace',
     '/games/rmet',
+    '/games/mnemonics',
     '/games/ant',
     '/games/iowa',
     '/games/prl',

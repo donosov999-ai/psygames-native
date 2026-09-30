@@ -1,0 +1,9209 @@
+{
+ "source": "frontend/src/games/phoneme-pairs/tools/record-flutter-lesson.gen.ts",
+ "langs": [
+  "en",
+  "es",
+  "de",
+  "pt",
+  "zh",
+  "ru"
+ ],
+ "where": [
+  {
+   "lang": "en",
+   "kind": "vowel",
+   "a": "snack",
+   "b": "snake",
+   "diff": null
+  },
+  {
+   "lang": "en",
+   "kind": "vowel",
+   "a": "paper",
+   "b": "pepper",
+   "diff": null
+  },
+  {
+   "lang": "en",
+   "kind": "vowel",
+   "a": "walk",
+   "b": "work",
+   "diff": null
+  },
+  {
+   "lang": "en",
+   "kind": "vowel",
+   "a": "fan",
+   "b": "fun",
+   "diff": null
+  },
+  {
+   "lang": "en",
+   "kind": "vowel",
+   "a": "cat",
+   "b": "cut",
+   "diff": null
+  },
+  {
+   "lang": "en",
+   "kind": "vowel",
+   "a": "hat",
+   "b": "hut",
+   "diff": null
+  },
+  {
+   "lang": "en",
+   "kind": "vowel",
+   "a": "coat",
+   "b": "caught",
+   "diff": null
+  },
+  {
+   "lang": "en",
+   "kind": "vowel",
+   "a": "pen",
+   "b": "pan",
+   "diff": null
+  },
+  {
+   "lang": "en",
+   "kind": "vowel",
+   "a": "bad",
+   "b": "bed",
+   "diff": null
+  },
+  {
+   "lang": "en",
+   "kind": "vowel",
+   "a": "bat",
+   "b": "bet",
+   "diff": null
+  },
+  {
+   "lang": "en",
+   "kind": "vowel",
+   "a": "men",
+   "b": "man",
+   "diff": null
+  },
+  {
+   "lang": "en",
+   "kind": "vowel",
+   "a": "ship",
+   "b": "sheep",
+   "diff": null
+  },
+  {
+   "lang": "en",
+   "kind": "vowel",
+   "a": "sit",
+   "b": "seat",
+   "diff": null
+  },
+  {
+   "lang": "en",
+   "kind": "vowel",
+   "a": "live",
+   "b": "leave",
+   "diff": null
+  },
+  {
+   "lang": "en",
+   "kind": "vowel",
+   "a": "cheap",
+   "b": "chip",
+   "diff": null
+  },
+  {
+   "lang": "en",
+   "kind": "vowel",
+   "a": "full",
+   "b": "fool",
+   "diff": null
+  },
+  {
+   "lang": "en",
+   "kind": "vowel",
+   "a": "pool",
+   "b": "pull",
+   "diff": null
+  },
+  {
+   "lang": "en",
+   "kind": "vowel",
+   "a": "luck",
+   "b": "lock",
+   "diff": null
+  },
+  {
+   "lang": "es",
+   "kind": "letters",
+   "a": "casa",
+   "b": "cosa",
+   "diff": {
+    "a": [
+     1,
+     2
+    ],
+    "b": [
+     1,
+     2
+    ]
+   }
+  },
+  {
+   "lang": "es",
+   "kind": "letters",
+   "a": "mesa",
+   "b": "misa",
+   "diff": {
+    "a": [
+     1,
+     2
+    ],
+    "b": [
+     1,
+     2
+    ]
+   }
+  },
+  {
+   "lang": "es",
+   "kind": "letters",
+   "a": "peso",
+   "b": "piso",
+   "diff": {
+    "a": [
+     1,
+     2
+    ],
+    "b": [
+     1,
+     2
+    ]
+   }
+  },
+  {
+   "lang": "es",
+   "kind": "letters",
+   "a": "tos",
+   "b": "dos",
+   "diff": {
+    "a": [
+     0,
+     1
+    ],
+    "b": [
+     0,
+     1
+    ]
+   }
+  },
+  {
+   "lang": "es",
+   "kind": "letters",
+   "a": "cana",
+   "b": "caña",
+   "diff": {
+    "a": [
+     2,
+     3
+    ],
+    "b": [
+     2,
+     3
+    ]
+   }
+  },
+  {
+   "lang": "es",
+   "kind": "letters",
+   "a": "pena",
+   "b": "peña",
+   "diff": {
+    "a": [
+     2,
+     3
+    ],
+    "b": [
+     2,
+     3
+    ]
+   }
+  },
+  {
+   "lang": "es",
+   "kind": "letters",
+   "a": "pero",
+   "b": "perro",
+   "diff": {
+    "a": [
+     2,
+     3
+    ],
+    "b": [
+     2,
+     4
+    ]
+   }
+  },
+  {
+   "lang": "es",
+   "kind": "letters",
+   "a": "caro",
+   "b": "carro",
+   "diff": {
+    "a": [
+     2,
+     3
+    ],
+    "b": [
+     2,
+     4
+    ]
+   }
+  },
+  {
+   "lang": "es",
+   "kind": "letters",
+   "a": "coro",
+   "b": "corro",
+   "diff": {
+    "a": [
+     2,
+     3
+    ],
+    "b": [
+     2,
+     4
+    ]
+   }
+  },
+  {
+   "lang": "es",
+   "kind": "letters",
+   "a": "moro",
+   "b": "morro",
+   "diff": {
+    "a": [
+     2,
+     3
+    ],
+    "b": [
+     2,
+     4
+    ]
+   }
+  },
+  {
+   "lang": "es",
+   "kind": "letters",
+   "a": "polo",
+   "b": "pollo",
+   "diff": {
+    "a": [
+     2,
+     3
+    ],
+    "b": [
+     2,
+     4
+    ]
+   }
+  },
+  {
+   "lang": "es",
+   "kind": "letters",
+   "a": "vale",
+   "b": "valle",
+   "diff": {
+    "a": [
+     2,
+     3
+    ],
+    "b": [
+     2,
+     4
+    ]
+   }
+  },
+  {
+   "lang": "de",
+   "kind": "vowel",
+   "a": "schon",
+   "b": "schön",
+   "diff": null
+  },
+  {
+   "lang": "de",
+   "kind": "vowel",
+   "a": "kennen",
+   "b": "können",
+   "diff": null
+  },
+  {
+   "lang": "de",
+   "kind": "vowel",
+   "a": "Beet",
+   "b": "Bett",
+   "diff": null
+  },
+  {
+   "lang": "de",
+   "kind": "vowel",
+   "a": "Stadt",
+   "b": "Staat",
+   "diff": null
+  },
+  {
+   "lang": "de",
+   "kind": "vowel",
+   "a": "Ofen",
+   "b": "offen",
+   "diff": null
+  },
+  {
+   "lang": "de",
+   "kind": "vowel",
+   "a": "Wahl",
+   "b": "Wall",
+   "diff": null
+  },
+  {
+   "lang": "de",
+   "kind": "vowel",
+   "a": "Miete",
+   "b": "Mitte",
+   "diff": null
+  },
+  {
+   "lang": "de",
+   "kind": "vowel",
+   "a": "bieten",
+   "b": "bitten",
+   "diff": null
+  },
+  {
+   "lang": "de",
+   "kind": "vowel",
+   "a": "Hüte",
+   "b": "Hütte",
+   "diff": null
+  },
+  {
+   "lang": "de",
+   "kind": "vowel",
+   "a": "fühlen",
+   "b": "füllen",
+   "diff": null
+  },
+  {
+   "lang": "de",
+   "kind": "vowel",
+   "a": "Höhle",
+   "b": "Hölle",
+   "diff": null
+  },
+  {
+   "lang": "pt",
+   "kind": "letters",
+   "a": "faca",
+   "b": "vaca",
+   "diff": {
+    "a": [
+     0,
+     1
+    ],
+    "b": [
+     0,
+     1
+    ]
+   }
+  },
+  {
+   "lang": "pt",
+   "kind": "letters",
+   "a": "tia",
+   "b": "dia",
+   "diff": {
+    "a": [
+     0,
+     1
+    ],
+    "b": [
+     0,
+     1
+    ]
+   }
+  },
+  {
+   "lang": "pt",
+   "kind": "letters",
+   "a": "mala",
+   "b": "mola",
+   "diff": {
+    "a": [
+     1,
+     2
+    ],
+    "b": [
+     1,
+     2
+    ]
+   }
+  },
+  {
+   "lang": "pt",
+   "kind": "letters",
+   "a": "bola",
+   "b": "bolo",
+   "diff": {
+    "a": [
+     3,
+     4
+    ],
+    "b": [
+     3,
+     4
+    ]
+   }
+  },
+  {
+   "lang": "pt",
+   "kind": "letters",
+   "a": "caro",
+   "b": "carro",
+   "diff": {
+    "a": [
+     2,
+     3
+    ],
+    "b": [
+     2,
+     4
+    ]
+   }
+  },
+  {
+   "lang": "pt",
+   "kind": "letters",
+   "a": "casar",
+   "b": "caçar",
+   "diff": {
+    "a": [
+     2,
+     3
+    ],
+    "b": [
+     2,
+     3
+    ]
+   }
+  },
+  {
+   "lang": "pt",
+   "kind": "letters",
+   "a": "pão",
+   "b": "pau",
+   "diff": {
+    "a": [
+     1,
+     3
+    ],
+    "b": [
+     1,
+     3
+    ]
+   }
+  },
+  {
+   "lang": "pt",
+   "kind": "letters",
+   "a": "avô",
+   "b": "avó",
+   "diff": {
+    "a": [
+     2,
+     3
+    ],
+    "b": [
+     2,
+     3
+    ]
+   }
+  },
+  {
+   "lang": "pt",
+   "kind": "letters",
+   "a": "vovô",
+   "b": "vovó",
+   "diff": {
+    "a": [
+     3,
+     4
+    ],
+    "b": [
+     3,
+     4
+    ]
+   }
+  },
+  {
+   "lang": "zh",
+   "kind": "pinyin",
+   "a": "山",
+   "b": "三",
+   "diff": {
+    "a": [
+     0,
+     2
+    ],
+    "b": [
+     0,
+     1
+    ]
+   }
+  },
+  {
+   "lang": "zh",
+   "kind": "pinyin",
+   "a": "事",
+   "b": "四",
+   "diff": {
+    "a": [
+     0,
+     2
+    ],
+    "b": [
+     0,
+     1
+    ]
+   }
+  },
+  {
+   "lang": "zh",
+   "kind": "pinyin",
+   "a": "找",
+   "b": "早",
+   "diff": {
+    "a": [
+     0,
+     2
+    ],
+    "b": [
+     0,
+     1
+    ]
+   }
+  },
+  {
+   "lang": "zh",
+   "kind": "pinyin",
+   "a": "饭",
+   "b": "放",
+   "diff": {
+    "a": [
+     2,
+     3
+    ],
+    "b": [
+     2,
+     4
+    ]
+   }
+  },
+  {
+   "lang": "zh",
+   "kind": "pinyin",
+   "a": "分",
+   "b": "风",
+   "diff": {
+    "a": [
+     2,
+     3
+    ],
+    "b": [
+     2,
+     4
+    ]
+   }
+  },
+  {
+   "lang": "zh",
+   "kind": "pinyin",
+   "a": "班",
+   "b": "帮",
+   "diff": {
+    "a": [
+     2,
+     3
+    ],
+    "b": [
+     2,
+     4
+    ]
+   }
+  },
+  {
+   "lang": "zh",
+   "kind": "pinyin",
+   "a": "睡",
+   "b": "岁",
+   "diff": {
+    "a": [
+     0,
+     2
+    ],
+    "b": [
+     0,
+     1
+    ]
+   }
+  },
+  {
+   "lang": "zh",
+   "kind": "pinyin",
+   "a": "出",
+   "b": "粗",
+   "diff": {
+    "a": [
+     0,
+     2
+    ],
+    "b": [
+     0,
+     1
+    ]
+   }
+  },
+  {
+   "lang": "zh",
+   "kind": "pinyin",
+   "a": "成",
+   "b": "层",
+   "diff": {
+    "a": [
+     0,
+     2
+    ],
+    "b": [
+     0,
+     1
+    ]
+   }
+  },
+  {
+   "lang": "zh",
+   "kind": "pinyin",
+   "a": "前",
+   "b": "墙",
+   "diff": {
+    "a": [
+     3,
+     4
+    ],
+    "b": [
+     3,
+     5
+    ]
+   }
+  },
+  {
+   "lang": "zh",
+   "kind": "pinyin",
+   "a": "进",
+   "b": "静",
+   "diff": {
+    "a": [
+     2,
+     3
+    ],
+    "b": [
+     2,
+     4
+    ]
+   }
+  },
+  {
+   "lang": "zh",
+   "kind": "pinyin",
+   "a": "人",
+   "b": "仍",
+   "diff": {
+    "a": [
+     2,
+     3
+    ],
+    "b": [
+     2,
+     4
+    ]
+   }
+  },
+  {
+   "lang": "zh",
+   "kind": "pinyin",
+   "a": "种",
+   "b": "总",
+   "diff": {
+    "a": [
+     0,
+     2
+    ],
+    "b": [
+     0,
+     1
+    ]
+   }
+  },
+  {
+   "lang": "ru",
+   "kind": "letters",
+   "a": "дом",
+   "b": "том",
+   "diff": {
+    "a": [
+     0,
+     1
+    ],
+    "b": [
+     0,
+     1
+    ]
+   }
+  },
+  {
+   "lang": "ru",
+   "kind": "letters",
+   "a": "почка",
+   "b": "бочка",
+   "diff": {
+    "a": [
+     0,
+     1
+    ],
+    "b": [
+     0,
+     1
+    ]
+   }
+  },
+  {
+   "lang": "ru",
+   "kind": "letters",
+   "a": "шест",
+   "b": "жест",
+   "diff": {
+    "a": [
+     0,
+     1
+    ],
+    "b": [
+     0,
+     1
+    ]
+   }
+  },
+  {
+   "lang": "ru",
+   "kind": "letters",
+   "a": "мышка",
+   "b": "мишка",
+   "diff": {
+    "a": [
+     1,
+     2
+    ],
+    "b": [
+     1,
+     2
+    ]
+   }
+  },
+  {
+   "lang": "ru",
+   "kind": "letters",
+   "a": "лук",
+   "b": "люк",
+   "diff": {
+    "a": [
+     1,
+     2
+    ],
+    "b": [
+     1,
+     2
+    ]
+   }
+  },
+  {
+   "lang": "ru",
+   "kind": "letters",
+   "a": "банка",
+   "b": "банька",
+   "diff": {
+    "a": [
+     2,
+     3
+    ],
+    "b": [
+     2,
+     4
+    ]
+   }
+  },
+  {
+   "lang": "ru",
+   "kind": "letters",
+   "a": "полка",
+   "b": "полька",
+   "diff": {
+    "a": [
+     2,
+     3
+    ],
+    "b": [
+     2,
+     4
+    ]
+   }
+  },
+  {
+   "lang": "ru",
+   "kind": "letters",
+   "a": "мел",
+   "b": "мель",
+   "diff": {
+    "a": [
+     2,
+     3
+    ],
+    "b": [
+     2,
+     4
+    ]
+   }
+  },
+  {
+   "lang": "ru",
+   "kind": "letters",
+   "a": "угол",
+   "b": "уголь",
+   "diff": {
+    "a": [
+     3,
+     4
+    ],
+    "b": [
+     3,
+     5
+    ]
+   }
+  },
+  {
+   "lang": "ru",
+   "kind": "letters",
+   "a": "кров",
+   "b": "кровь",
+   "diff": {
+    "a": [
+     3,
+     4
+    ],
+    "b": [
+     3,
+     5
+    ]
+   }
+  },
+  {
+   "lang": "ru",
+   "kind": "letters",
+   "a": "рад",
+   "b": "ряд",
+   "diff": {
+    "a": [
+     1,
+     2
+    ],
+    "b": [
+     1,
+     2
+    ]
+   }
+  },
+  {
+   "lang": "ru",
+   "kind": "letters",
+   "a": "быть",
+   "b": "бить",
+   "diff": {
+    "a": [
+     1,
+     2
+    ],
+    "b": [
+     1,
+     2
+    ]
+   }
+  }
+ ],
+ "lessons": [
+  {
+   "note": "до партии",
+   "lang": "en",
+   "pool": [
+    [
+     "snack",
+     "snake"
+    ],
+    [
+     "paper",
+     "pepper"
+    ],
+    [
+     "walk",
+     "work"
+    ],
+    [
+     "fan",
+     "fun"
+    ],
+    [
+     "cat",
+     "cut"
+    ],
+    [
+     "hat",
+     "hut"
+    ],
+    [
+     "coat",
+     "caught"
+    ],
+    [
+     "pen",
+     "pan"
+    ],
+    [
+     "bad",
+     "bed"
+    ]
+   ],
+   "exclude": null,
+   "stream": [
+    0.964236170751974,
+    0.06577026727609336,
+    0.3817827943712473,
+    0.48588855168782175,
+    0.80042939260602,
+    0.3754218907561153,
+    0.7029043056536466,
+    0.6658997554332018,
+    0.4051308762282133,
+    0.01353108580224216
+   ],
+   "examples": [
+    [
+     "pen",
+     "pan"
+    ],
+    [
+     "fan",
+     "fun"
+    ]
+   ],
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachPhIntro",
+     "fields": {},
+     "pair": null,
+     "sounding": null,
+     "speak": [],
+     "diff": null
+    },
+    {
+     "kind": "pair",
+     "key": "teachPhVowel",
+     "fields": {
+      "a": "pen",
+      "b": "pan"
+     },
+     "pair": [
+      "pen",
+      "pan"
+     ],
+     "sounding": null,
+     "speak": [
+      "pen",
+      "pan"
+     ],
+     "diff": null
+    },
+    {
+     "kind": "probe",
+     "key": "teachPhProbe",
+     "fields": {},
+     "pair": [
+      "pen",
+      "pan"
+     ],
+     "sounding": 0,
+     "speak": [
+      "pen"
+     ],
+     "diff": null
+    },
+    {
+     "kind": "answer",
+     "key": "teachPhAnswerVowel",
+     "fields": {
+      "w": "pen"
+     },
+     "pair": [
+      "pen",
+      "pan"
+     ],
+     "sounding": 0,
+     "speak": [
+      "pen"
+     ],
+     "diff": null
+    },
+    {
+     "kind": "pair",
+     "key": "teachPhVowel",
+     "fields": {
+      "a": "fan",
+      "b": "fun"
+     },
+     "pair": [
+      "fan",
+      "fun"
+     ],
+     "sounding": null,
+     "speak": [
+      "fan",
+      "fun"
+     ],
+     "diff": null
+    },
+    {
+     "kind": "probe",
+     "key": "teachPhProbe",
+     "fields": {},
+     "pair": [
+      "fan",
+      "fun"
+     ],
+     "sounding": 0,
+     "speak": [
+      "fan"
+     ],
+     "diff": null
+    },
+    {
+     "kind": "answer",
+     "key": "teachPhAnswerVowel",
+     "fields": {
+      "w": "fan"
+     },
+     "pair": [
+      "fan",
+      "fun"
+     ],
+     "sounding": 0,
+     "speak": [
+      "fan"
+     ],
+     "diff": null
+    },
+    {
+     "kind": "done",
+     "key": "teachPhDone",
+     "fields": {},
+     "pair": null,
+     "sounding": null,
+     "speak": [],
+     "diff": null
+    }
+   ]
+  },
+  {
+   "note": "текущая пара",
+   "lang": "en",
+   "pool": [
+    [
+     "snack",
+     "snake"
+    ],
+    [
+     "paper",
+     "pepper"
+    ],
+    [
+     "walk",
+     "work"
+    ],
+    [
+     "fan",
+     "fun"
+    ],
+    [
+     "cat",
+     "cut"
+    ],
+    [
+     "hat",
+     "hut"
+    ],
+    [
+     "coat",
+     "caught"
+    ],
+    [
+     "pen",
+     "pan"
+    ],
+    [
+     "bad",
+     "bed"
+    ]
+   ],
+   "exclude": [
+    "snack",
+    "snake"
+   ],
+   "stream": [
+    0.9247844768688083,
+    0.7968442442361265,
+    0.16347392206080258,
+    0.598349864827469,
+    0.17064476036466658,
+    0.9086893133353442,
+    0.9077760577201843,
+    0.5817671725526452,
+    0.6576829710975289
+   ],
+   "examples": [
+    [
+     "cat",
+     "cut"
+    ],
+    [
+     "walk",
+     "work"
+    ]
+   ],
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachPhIntro",
+     "fields": {},
+     "pair": null,
+     "sounding": null,
+     "speak": [],
+     "diff": null
+    },
+    {
+     "kind": "pair",
+     "key": "teachPhVowel",
+     "fields": {
+      "a": "cat",
+      "b": "cut"
+     },
+     "pair": [
+      "cat",
+      "cut"
+     ],
+     "sounding": null,
+     "speak": [
+      "cat",
+      "cut"
+     ],
+     "diff": null
+    },
+    {
+     "kind": "probe",
+     "key": "teachPhProbe",
+     "fields": {},
+     "pair": [
+      "cat",
+      "cut"
+     ],
+     "sounding": 1,
+     "speak": [
+      "cut"
+     ],
+     "diff": null
+    },
+    {
+     "kind": "answer",
+     "key": "teachPhAnswerVowel",
+     "fields": {
+      "w": "cut"
+     },
+     "pair": [
+      "cat",
+      "cut"
+     ],
+     "sounding": 1,
+     "speak": [
+      "cut"
+     ],
+     "diff": null
+    },
+    {
+     "kind": "pair",
+     "key": "teachPhVowel",
+     "fields": {
+      "a": "walk",
+      "b": "work"
+     },
+     "pair": [
+      "walk",
+      "work"
+     ],
+     "sounding": null,
+     "speak": [
+      "walk",
+      "work"
+     ],
+     "diff": null
+    },
+    {
+     "kind": "probe",
+     "key": "teachPhProbe",
+     "fields": {},
+     "pair": [
+      "walk",
+      "work"
+     ],
+     "sounding": 1,
+     "speak": [
+      "work"
+     ],
+     "diff": null
+    },
+    {
+     "kind": "answer",
+     "key": "teachPhAnswerVowel",
+     "fields": {
+      "w": "work"
+     },
+     "pair": [
+      "walk",
+      "work"
+     ],
+     "sounding": 1,
+     "speak": [
+      "work"
+     ],
+     "diff": null
+    },
+    {
+     "kind": "done",
+     "key": "teachPhDone",
+     "fields": {},
+     "pair": null,
+     "sounding": null,
+     "speak": [],
+     "diff": null
+    }
+   ]
+  },
+  {
+   "note": "текущая пара в обратном порядке кнопок",
+   "lang": "en",
+   "pool": [
+    [
+     "snack",
+     "snake"
+    ],
+    [
+     "paper",
+     "pepper"
+    ],
+    [
+     "walk",
+     "work"
+    ],
+    [
+     "fan",
+     "fun"
+    ],
+    [
+     "cat",
+     "cut"
+    ],
+    [
+     "hat",
+     "hut"
+    ],
+    [
+     "coat",
+     "caught"
+    ],
+    [
+     "pen",
+     "pan"
+    ],
+    [
+     "bad",
+     "bed"
+    ]
+   ],
+   "exclude": [
+    "pepper",
+    "paper"
+   ],
+   "stream": [
+    0.471744833746925,
+    0.0725408960133791,
+    0.09810306644067168,
+    0.6084961190354079,
+    0.056151263415813446,
+    0.03544865106232464,
+    0.9123965559992939,
+    0.49411599710583687,
+    0.5901221015956253
+   ],
+   "examples": [
+    [
+     "fan",
+     "fun"
+    ],
+    [
+     "walk",
+     "work"
+    ]
+   ],
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachPhIntro",
+     "fields": {},
+     "pair": null,
+     "sounding": null,
+     "speak": [],
+     "diff": null
+    },
+    {
+     "kind": "pair",
+     "key": "teachPhVowel",
+     "fields": {
+      "a": "fan",
+      "b": "fun"
+     },
+     "pair": [
+      "fan",
+      "fun"
+     ],
+     "sounding": null,
+     "speak": [
+      "fan",
+      "fun"
+     ],
+     "diff": null
+    },
+    {
+     "kind": "probe",
+     "key": "teachPhProbe",
+     "fields": {},
+     "pair": [
+      "fan",
+      "fun"
+     ],
+     "sounding": 0,
+     "speak": [
+      "fan"
+     ],
+     "diff": null
+    },
+    {
+     "kind": "answer",
+     "key": "teachPhAnswerVowel",
+     "fields": {
+      "w": "fan"
+     },
+     "pair": [
+      "fan",
+      "fun"
+     ],
+     "sounding": 0,
+     "speak": [
+      "fan"
+     ],
+     "diff": null
+    },
+    {
+     "kind": "pair",
+     "key": "teachPhVowel",
+     "fields": {
+      "a": "walk",
+      "b": "work"
+     },
+     "pair": [
+      "walk",
+      "work"
+     ],
+     "sounding": null,
+     "speak": [
+      "walk",
+      "work"
+     ],
+     "diff": null
+    },
+    {
+     "kind": "probe",
+     "key": "teachPhProbe",
+     "fields": {},
+     "pair": [
+      "walk",
+      "work"
+     ],
+     "sounding": 1,
+     "speak": [
+      "work"
+     ],
+     "diff": null
+    },
+    {
+     "kind": "answer",
+     "key": "teachPhAnswerVowel",
+     "fields": {
+      "w": "work"
+     },
+     "pair": [
+      "walk",
+      "work"
+     ],
+     "sounding": 1,
+     "speak": [
+      "work"
+     ],
+     "diff": null
+    },
+    {
+     "kind": "done",
+     "key": "teachPhDone",
+     "fields": {},
+     "pair": null,
+     "sounding": null,
+     "speak": [],
+     "diff": null
+    }
+   ]
+  },
+  {
+   "note": "до партии",
+   "lang": "en",
+   "pool": [
+    [
+     "snack",
+     "snake"
+    ],
+    [
+     "paper",
+     "pepper"
+    ],
+    [
+     "walk",
+     "work"
+    ],
+    [
+     "fan",
+     "fun"
+    ],
+    [
+     "cat",
+     "cut"
+    ],
+    [
+     "hat",
+     "hut"
+    ],
+    [
+     "coat",
+     "caught"
+    ],
+    [
+     "pen",
+     "pan"
+    ],
+    [
+     "bad",
+     "bed"
+    ],
+    [
+     "bat",
+     "bet"
+    ],
+    [
+     "men",
+     "man"
+    ],
+    [
+     "ship",
+     "sheep"
+    ],
+    [
+     "sit",
+     "seat"
+    ],
+    [
+     "live",
+     "leave"
+    ],
+    [
+     "cheap",
+     "chip"
+    ],
+    [
+     "full",
+     "fool"
+    ],
+    [
+     "pool",
+     "pull"
+    ],
+    [
+     "luck",
+     "lock"
+    ]
+   ],
+   "exclude": null,
+   "stream": [
+    0.5884233524557203,
+    0.4181043354328722,
+    0.22907001059502363,
+    0.8465077732689679,
+    0.572862935019657,
+    0.05845475755631924,
+    0.061256438959389925,
+    0.8849048742558807,
+    0.43521523708477616,
+    0.17829817929305136,
+    0.33132303366437554,
+    0.23930644895881414,
+    0.8703168809879571,
+    0.626585544552654,
+    0.2526445076800883,
+    0.42637624661438167,
+    0.49522569845430553,
+    0.446001352975145,
+    0.5355333660263568
+   ],
+   "examples": [
+    [
+     "pool",
+     "pull"
+    ],
+    [
+     "ship",
+     "sheep"
+    ]
+   ],
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachPhIntro",
+     "fields": {},
+     "pair": null,
+     "sounding": null,
+     "speak": [],
+     "diff": null
+    },
+    {
+     "kind": "pair",
+     "key": "teachPhVowel",
+     "fields": {
+      "a": "pool",
+      "b": "pull"
+     },
+     "pair": [
+      "pool",
+      "pull"
+     ],
+     "sounding": null,
+     "speak": [
+      "pool",
+      "pull"
+     ],
+     "diff": null
+    },
+    {
+     "kind": "probe",
+     "key": "teachPhProbe",
+     "fields": {},
+     "pair": [
+      "pool",
+      "pull"
+     ],
+     "sounding": 0,
+     "speak": [
+      "pool"
+     ],
+     "diff": null
+    },
+    {
+     "kind": "answer",
+     "key": "teachPhAnswerVowel",
+     "fields": {
+      "w": "pool"
+     },
+     "pair": [
+      "pool",
+      "pull"
+     ],
+     "sounding": 0,
+     "speak": [
+      "pool"
+     ],
+     "diff": null
+    },
+    {
+     "kind": "pair",
+     "key": "teachPhVowel",
+     "fields": {
+      "a": "ship",
+      "b": "sheep"
+     },
+     "pair": [
+      "ship",
+      "sheep"
+     ],
+     "sounding": null,
+     "speak": [
+      "ship",
+      "sheep"
+     ],
+     "diff": null
+    },
+    {
+     "kind": "probe",
+     "key": "teachPhProbe",
+     "fields": {},
+     "pair": [
+      "ship",
+      "sheep"
+     ],
+     "sounding": 1,
+     "speak": [
+      "sheep"
+     ],
+     "diff": null
+    },
+    {
+     "kind": "answer",
+     "key": "teachPhAnswerVowel",
+     "fields": {
+      "w": "sheep"
+     },
+     "pair": [
+      "ship",
+      "sheep"
+     ],
+     "sounding": 1,
+     "speak": [
+      "sheep"
+     ],
+     "diff": null
+    },
+    {
+     "kind": "done",
+     "key": "teachPhDone",
+     "fields": {},
+     "pair": null,
+     "sounding": null,
+     "speak": [],
+     "diff": null
+    }
+   ]
+  },
+  {
+   "note": "текущая пара",
+   "lang": "en",
+   "pool": [
+    [
+     "snack",
+     "snake"
+    ],
+    [
+     "paper",
+     "pepper"
+    ],
+    [
+     "walk",
+     "work"
+    ],
+    [
+     "fan",
+     "fun"
+    ],
+    [
+     "cat",
+     "cut"
+    ],
+    [
+     "hat",
+     "hut"
+    ],
+    [
+     "coat",
+     "caught"
+    ],
+    [
+     "pen",
+     "pan"
+    ],
+    [
+     "bad",
+     "bed"
+    ],
+    [
+     "bat",
+     "bet"
+    ],
+    [
+     "men",
+     "man"
+    ],
+    [
+     "ship",
+     "sheep"
+    ],
+    [
+     "sit",
+     "seat"
+    ],
+    [
+     "live",
+     "leave"
+    ],
+    [
+     "cheap",
+     "chip"
+    ],
+    [
+     "full",
+     "fool"
+    ],
+    [
+     "pool",
+     "pull"
+    ],
+    [
+     "luck",
+     "lock"
+    ]
+   ],
+   "exclude": [
+    "snack",
+    "snake"
+   ],
+   "stream": [
+    0.10620500519871712,
+    0.1854598217178136,
+    0.8757192767225206,
+    0.09032378951087594,
+    0.9705238563474268,
+    0.8684504784177989,
+    0.8825814269948751,
+    0.7678662671241909,
+    0.9825562471523881,
+    0.6971412019338459,
+    0.3138752724044025,
+    0.3589396793395281,
+    0.2956096560228616,
+    0.16371275787241757,
+    0.2089092335663736,
+    0.9723691598046571,
+    0.8556366432458162,
+    0.38795398571528494
+   ],
+   "examples": [
+    [
+     "sit",
+     "seat"
+    ],
+    [
+     "hat",
+     "hut"
+    ]
+   ],
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachPhIntro",
+     "fields": {},
+     "pair": null,
+     "sounding": null,
+     "speak": [],
+     "diff": null
+    },
+    {
+     "kind": "pair",
+     "key": "teachPhVowel",
+     "fields": {
+      "a": "sit",
+      "b": "seat"
+     },
+     "pair": [
+      "sit",
+      "seat"
+     ],
+     "sounding": null,
+     "speak": [
+      "sit",
+      "seat"
+     ],
+     "diff": null
+    },
+    {
+     "kind": "probe",
+     "key": "teachPhProbe",
+     "fields": {},
+     "pair": [
+      "sit",
+      "seat"
+     ],
+     "sounding": 1,
+     "speak": [
+      "seat"
+     ],
+     "diff": null
+    },
+    {
+     "kind": "answer",
+     "key": "teachPhAnswerVowel",
+     "fields": {
+      "w": "seat"
+     },
+     "pair": [
+      "sit",
+      "seat"
+     ],
+     "sounding": 1,
+     "speak": [
+      "seat"
+     ],
+     "diff": null
+    },
+    {
+     "kind": "pair",
+     "key": "teachPhVowel",
+     "fields": {
+      "a": "hat",
+      "b": "hut"
+     },
+     "pair": [
+      "hat",
+      "hut"
+     ],
+     "sounding": null,
+     "speak": [
+      "hat",
+      "hut"
+     ],
+     "diff": null
+    },
+    {
+     "kind": "probe",
+     "key": "teachPhProbe",
+     "fields": {},
+     "pair": [
+      "hat",
+      "hut"
+     ],
+     "sounding": 0,
+     "speak": [
+      "hat"
+     ],
+     "diff": null
+    },
+    {
+     "kind": "answer",
+     "key": "teachPhAnswerVowel",
+     "fields": {
+      "w": "hat"
+     },
+     "pair": [
+      "hat",
+      "hut"
+     ],
+     "sounding": 0,
+     "speak": [
+      "hat"
+     ],
+     "diff": null
+    },
+    {
+     "kind": "done",
+     "key": "teachPhDone",
+     "fields": {},
+     "pair": null,
+     "sounding": null,
+     "speak": [],
+     "diff": null
+    }
+   ]
+  },
+  {
+   "note": "текущая пара в обратном порядке кнопок",
+   "lang": "en",
+   "pool": [
+    [
+     "snack",
+     "snake"
+    ],
+    [
+     "paper",
+     "pepper"
+    ],
+    [
+     "walk",
+     "work"
+    ],
+    [
+     "fan",
+     "fun"
+    ],
+    [
+     "cat",
+     "cut"
+    ],
+    [
+     "hat",
+     "hut"
+    ],
+    [
+     "coat",
+     "caught"
+    ],
+    [
+     "pen",
+     "pan"
+    ],
+    [
+     "bad",
+     "bed"
+    ],
+    [
+     "bat",
+     "bet"
+    ],
+    [
+     "men",
+     "man"
+    ],
+    [
+     "ship",
+     "sheep"
+    ],
+    [
+     "sit",
+     "seat"
+    ],
+    [
+     "live",
+     "leave"
+    ],
+    [
+     "cheap",
+     "chip"
+    ],
+    [
+     "full",
+     "fool"
+    ],
+    [
+     "pool",
+     "pull"
+    ],
+    [
+     "luck",
+     "lock"
+    ]
+   ],
+   "exclude": [
+    "pepper",
+    "paper"
+   ],
+   "stream": [
+    0.16996056213974953,
+    0.986683759605512,
+    0.4566976970527321,
+    0.9917725732084364,
+    0.4859023520257324,
+    0.07442945730872452,
+    0.7998266785871238,
+    0.3431914863176644,
+    0.9287282309960574,
+    0.258068788331002,
+    0.5956408292986453,
+    0.3441546957474202,
+    0.34921371564269066,
+    0.0037829133216291666,
+    0.5432686533313245,
+    0.9160438391845673,
+    0.03546795714646578,
+    0.8989044262561947
+   ],
+   "examples": [
+    [
+     "men",
+     "man"
+    ],
+    [
+     "coat",
+     "caught"
+    ]
+   ],
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachPhIntro",
+     "fields": {},
+     "pair": null,
+     "sounding": null,
+     "speak": [],
+     "diff": null
+    },
+    {
+     "kind": "pair",
+     "key": "teachPhVowel",
+     "fields": {
+      "a": "men",
+      "b": "man"
+     },
+     "pair": [
+      "men",
+      "man"
+     ],
+     "sounding": null,
+     "speak": [
+      "men",
+      "man"
+     ],
+     "diff": null
+    },
+    {
+     "kind": "probe",
+     "key": "teachPhProbe",
+     "fields": {},
+     "pair": [
+      "men",
+      "man"
+     ],
+     "sounding": 0,
+     "speak": [
+      "men"
+     ],
+     "diff": null
+    },
+    {
+     "kind": "answer",
+     "key": "teachPhAnswerVowel",
+     "fields": {
+      "w": "men"
+     },
+     "pair": [
+      "men",
+      "man"
+     ],
+     "sounding": 0,
+     "speak": [
+      "men"
+     ],
+     "diff": null
+    },
+    {
+     "kind": "pair",
+     "key": "teachPhVowel",
+     "fields": {
+      "a": "coat",
+      "b": "caught"
+     },
+     "pair": [
+      "coat",
+      "caught"
+     ],
+     "sounding": null,
+     "speak": [
+      "coat",
+      "caught"
+     ],
+     "diff": null
+    },
+    {
+     "kind": "probe",
+     "key": "teachPhProbe",
+     "fields": {},
+     "pair": [
+      "coat",
+      "caught"
+     ],
+     "sounding": 1,
+     "speak": [
+      "caught"
+     ],
+     "diff": null
+    },
+    {
+     "kind": "answer",
+     "key": "teachPhAnswerVowel",
+     "fields": {
+      "w": "caught"
+     },
+     "pair": [
+      "coat",
+      "caught"
+     ],
+     "sounding": 1,
+     "speak": [
+      "caught"
+     ],
+     "diff": null
+    },
+    {
+     "kind": "done",
+     "key": "teachPhDone",
+     "fields": {},
+     "pair": null,
+     "sounding": null,
+     "speak": [],
+     "diff": null
+    }
+   ]
+  },
+  {
+   "note": "до партии",
+   "lang": "es",
+   "pool": [
+    [
+     "casa",
+     "cosa"
+    ],
+    [
+     "mesa",
+     "misa"
+    ],
+    [
+     "peso",
+     "piso"
+    ],
+    [
+     "tos",
+     "dos"
+    ],
+    [
+     "cana",
+     "caña"
+    ],
+    [
+     "pena",
+     "peña"
+    ]
+   ],
+   "exclude": null,
+   "stream": [
+    0.5217045086901635,
+    0.008260984206572175,
+    0.1733984888996929,
+    0.9872917192988098,
+    0.935979297850281,
+    0.04701153771020472,
+    0.8652769052423537
+   ],
+   "examples": [
+    [
+     "pena",
+     "peña"
+    ],
+    [
+     "mesa",
+     "misa"
+    ]
+   ],
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachPhIntro",
+     "fields": {},
+     "pair": null,
+     "sounding": null,
+     "speak": [],
+     "diff": null
+    },
+    {
+     "kind": "pair",
+     "key": "teachPhSpot",
+     "fields": {
+      "a": "pena",
+      "b": "peña",
+      "da": "n",
+      "db": "ñ"
+     },
+     "pair": [
+      "pena",
+      "peña"
+     ],
+     "sounding": null,
+     "speak": [
+      "pena",
+      "peña"
+     ],
+     "diff": {
+      "a": [
+       2,
+       3
+      ],
+      "b": [
+       2,
+       3
+      ]
+     }
+    },
+    {
+     "kind": "probe",
+     "key": "teachPhProbe",
+     "fields": {},
+     "pair": [
+      "pena",
+      "peña"
+     ],
+     "sounding": 0,
+     "speak": [
+      "pena"
+     ],
+     "diff": {
+      "a": [
+       2,
+       3
+      ],
+      "b": [
+       2,
+       3
+      ]
+     }
+    },
+    {
+     "kind": "answer",
+     "key": "teachPhAnswerSpot",
+     "fields": {
+      "w": "pena",
+      "dx": "n"
+     },
+     "pair": [
+      "pena",
+      "peña"
+     ],
+     "sounding": 0,
+     "speak": [
+      "pena"
+     ],
+     "diff": {
+      "a": [
+       2,
+       3
+      ],
+      "b": [
+       2,
+       3
+      ]
+     }
+    },
+    {
+     "kind": "pair",
+     "key": "teachPhSpot",
+     "fields": {
+      "a": "mesa",
+      "b": "misa",
+      "da": "e",
+      "db": "i"
+     },
+     "pair": [
+      "mesa",
+      "misa"
+     ],
+     "sounding": null,
+     "speak": [
+      "mesa",
+      "misa"
+     ],
+     "diff": {
+      "a": [
+       1,
+       2
+      ],
+      "b": [
+       1,
+       2
+      ]
+     }
+    },
+    {
+     "kind": "probe",
+     "key": "teachPhProbe",
+     "fields": {},
+     "pair": [
+      "mesa",
+      "misa"
+     ],
+     "sounding": 1,
+     "speak": [
+      "misa"
+     ],
+     "diff": {
+      "a": [
+       1,
+       2
+      ],
+      "b": [
+       1,
+       2
+      ]
+     }
+    },
+    {
+     "kind": "answer",
+     "key": "teachPhAnswerSpot",
+     "fields": {
+      "w": "misa",
+      "dx": "i"
+     },
+     "pair": [
+      "mesa",
+      "misa"
+     ],
+     "sounding": 1,
+     "speak": [
+      "misa"
+     ],
+     "diff": {
+      "a": [
+       1,
+       2
+      ],
+      "b": [
+       1,
+       2
+      ]
+     }
+    },
+    {
+     "kind": "done",
+     "key": "teachPhDone",
+     "fields": {},
+     "pair": null,
+     "sounding": null,
+     "speak": [],
+     "diff": null
+    }
+   ]
+  },
+  {
+   "note": "текущая пара",
+   "lang": "es",
+   "pool": [
+    [
+     "casa",
+     "cosa"
+    ],
+    [
+     "mesa",
+     "misa"
+    ],
+    [
+     "peso",
+     "piso"
+    ],
+    [
+     "tos",
+     "dos"
+    ],
+    [
+     "cana",
+     "caña"
+    ],
+    [
+     "pena",
+     "peña"
+    ]
+   ],
+   "exclude": [
+    "casa",
+    "cosa"
+   ],
+   "stream": [
+    0.9647606774233282,
+    0.4246131042018533,
+    0.6777193741872907,
+    0.4329264899715781,
+    0.6396561712026596,
+    0.982221094891429
+   ],
+   "examples": [
+    [
+     "cana",
+     "caña"
+    ],
+    [
+     "mesa",
+     "misa"
+    ]
+   ],
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachPhIntro",
+     "fields": {},
+     "pair": null,
+     "sounding": null,
+     "speak": [],
+     "diff": null
+    },
+    {
+     "kind": "pair",
+     "key": "teachPhSpot",
+     "fields": {
+      "a": "cana",
+      "b": "caña",
+      "da": "n",
+      "db": "ñ"
+     },
+     "pair": [
+      "cana",
+      "caña"
+     ],
+     "sounding": null,
+     "speak": [
+      "cana",
+      "caña"
+     ],
+     "diff": {
+      "a": [
+       2,
+       3
+      ],
+      "b": [
+       2,
+       3
+      ]
+     }
+    },
+    {
+     "kind": "probe",
+     "key": "teachPhProbe",
+     "fields": {},
+     "pair": [
+      "cana",
+      "caña"
+     ],
+     "sounding": 1,
+     "speak": [
+      "caña"
+     ],
+     "diff": {
+      "a": [
+       2,
+       3
+      ],
+      "b": [
+       2,
+       3
+      ]
+     }
+    },
+    {
+     "kind": "answer",
+     "key": "teachPhAnswerSpot",
+     "fields": {
+      "w": "caña",
+      "dx": "ñ"
+     },
+     "pair": [
+      "cana",
+      "caña"
+     ],
+     "sounding": 1,
+     "speak": [
+      "caña"
+     ],
+     "diff": {
+      "a": [
+       2,
+       3
+      ],
+      "b": [
+       2,
+       3
+      ]
+     }
+    },
+    {
+     "kind": "pair",
+     "key": "teachPhSpot",
+     "fields": {
+      "a": "mesa",
+      "b": "misa",
+      "da": "e",
+      "db": "i"
+     },
+     "pair": [
+      "mesa",
+      "misa"
+     ],
+     "sounding": null,
+     "speak": [
+      "mesa",
+      "misa"
+     ],
+     "diff": {
+      "a": [
+       1,
+       2
+      ],
+      "b": [
+       1,
+       2
+      ]
+     }
+    },
+    {
+     "kind": "probe",
+     "key": "teachPhProbe",
+     "fields": {},
+     "pair": [
+      "mesa",
+      "misa"
+     ],
+     "sounding": 1,
+     "speak": [
+      "misa"
+     ],
+     "diff": {
+      "a": [
+       1,
+       2
+      ],
+      "b": [
+       1,
+       2
+      ]
+     }
+    },
+    {
+     "kind": "answer",
+     "key": "teachPhAnswerSpot",
+     "fields": {
+      "w": "misa",
+      "dx": "i"
+     },
+     "pair": [
+      "mesa",
+      "misa"
+     ],
+     "sounding": 1,
+     "speak": [
+      "misa"
+     ],
+     "diff": {
+      "a": [
+       1,
+       2
+      ],
+      "b": [
+       1,
+       2
+      ]
+     }
+    },
+    {
+     "kind": "done",
+     "key": "teachPhDone",
+     "fields": {},
+     "pair": null,
+     "sounding": null,
+     "speak": [],
+     "diff": null
+    }
+   ]
+  },
+  {
+   "note": "текущая пара в обратном порядке кнопок",
+   "lang": "es",
+   "pool": [
+    [
+     "casa",
+     "cosa"
+    ],
+    [
+     "mesa",
+     "misa"
+    ],
+    [
+     "peso",
+     "piso"
+    ],
+    [
+     "tos",
+     "dos"
+    ],
+    [
+     "cana",
+     "caña"
+    ],
+    [
+     "pena",
+     "peña"
+    ]
+   ],
+   "exclude": [
+    "misa",
+    "mesa"
+   ],
+   "stream": [
+    0.18834243807941675,
+    0.5821539983153343,
+    0.49085514270700514,
+    0.467058117268607,
+    0.9349733674898744,
+    0.4239148290362209
+   ],
+   "examples": [
+    [
+     "cana",
+     "caña"
+    ],
+    [
+     "pena",
+     "peña"
+    ]
+   ],
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachPhIntro",
+     "fields": {},
+     "pair": null,
+     "sounding": null,
+     "speak": [],
+     "diff": null
+    },
+    {
+     "kind": "pair",
+     "key": "teachPhSpot",
+     "fields": {
+      "a": "cana",
+      "b": "caña",
+      "da": "n",
+      "db": "ñ"
+     },
+     "pair": [
+      "cana",
+      "caña"
+     ],
+     "sounding": null,
+     "speak": [
+      "cana",
+      "caña"
+     ],
+     "diff": {
+      "a": [
+       2,
+       3
+      ],
+      "b": [
+       2,
+       3
+      ]
+     }
+    },
+    {
+     "kind": "probe",
+     "key": "teachPhProbe",
+     "fields": {},
+     "pair": [
+      "cana",
+      "caña"
+     ],
+     "sounding": 1,
+     "speak": [
+      "caña"
+     ],
+     "diff": {
+      "a": [
+       2,
+       3
+      ],
+      "b": [
+       2,
+       3
+      ]
+     }
+    },
+    {
+     "kind": "answer",
+     "key": "teachPhAnswerSpot",
+     "fields": {
+      "w": "caña",
+      "dx": "ñ"
+     },
+     "pair": [
+      "cana",
+      "caña"
+     ],
+     "sounding": 1,
+     "speak": [
+      "caña"
+     ],
+     "diff": {
+      "a": [
+       2,
+       3
+      ],
+      "b": [
+       2,
+       3
+      ]
+     }
+    },
+    {
+     "kind": "pair",
+     "key": "teachPhSpot",
+     "fields": {
+      "a": "pena",
+      "b": "peña",
+      "da": "n",
+      "db": "ñ"
+     },
+     "pair": [
+      "pena",
+      "peña"
+     ],
+     "sounding": null,
+     "speak": [
+      "pena",
+      "peña"
+     ],
+     "diff": {
+      "a": [
+       2,
+       3
+      ],
+      "b": [
+       2,
+       3
+      ]
+     }
+    },
+    {
+     "kind": "probe",
+     "key": "teachPhProbe",
+     "fields": {},
+     "pair": [
+      "pena",
+      "peña"
+     ],
+     "sounding": 0,
+     "speak": [
+      "pena"
+     ],
+     "diff": {
+      "a": [
+       2,
+       3
+      ],
+      "b": [
+       2,
+       3
+      ]
+     }
+    },
+    {
+     "kind": "answer",
+     "key": "teachPhAnswerSpot",
+     "fields": {
+      "w": "pena",
+      "dx": "n"
+     },
+     "pair": [
+      "pena",
+      "peña"
+     ],
+     "sounding": 0,
+     "speak": [
+      "pena"
+     ],
+     "diff": {
+      "a": [
+       2,
+       3
+      ],
+      "b": [
+       2,
+       3
+      ]
+     }
+    },
+    {
+     "kind": "done",
+     "key": "teachPhDone",
+     "fields": {},
+     "pair": null,
+     "sounding": null,
+     "speak": [],
+     "diff": null
+    }
+   ]
+  },
+  {
+   "note": "до партии",
+   "lang": "es",
+   "pool": [
+    [
+     "casa",
+     "cosa"
+    ],
+    [
+     "mesa",
+     "misa"
+    ],
+    [
+     "peso",
+     "piso"
+    ],
+    [
+     "tos",
+     "dos"
+    ],
+    [
+     "cana",
+     "caña"
+    ],
+    [
+     "pena",
+     "peña"
+    ],
+    [
+     "pero",
+     "perro"
+    ],
+    [
+     "caro",
+     "carro"
+    ],
+    [
+     "coro",
+     "corro"
+    ],
+    [
+     "moro",
+     "morro"
+    ],
+    [
+     "polo",
+     "pollo"
+    ],
+    [
+     "vale",
+     "valle"
+    ]
+   ],
+   "exclude": null,
+   "stream": [
+    0.2954754231031984,
+    0.08377046952955425,
+    0.4506300752982497,
+    0.040405111853033304,
+    0.39152307412587106,
+    0.519979671575129,
+    0.6724158639553934,
+    0.48008271818980575,
+    0.9732589225750417,
+    0.3347358254250139,
+    0.3591707181185484,
+    0.10725194308906794,
+    0.7911491710692644
+   ],
+   "examples": [
+    [
+     "pena",
+     "peña"
+    ],
+    [
+     "coro",
+     "corro"
+    ]
+   ],
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachPhIntro",
+     "fields": {},
+     "pair": null,
+     "sounding": null,
+     "speak": [],
+     "diff": null
+    },
+    {
+     "kind": "pair",
+     "key": "teachPhSpot",
+     "fields": {
+      "a": "pena",
+      "b": "peña",
+      "da": "n",
+      "db": "ñ"
+     },
+     "pair": [
+      "pena",
+      "peña"
+     ],
+     "sounding": null,
+     "speak": [
+      "pena",
+      "peña"
+     ],
+     "diff": {
+      "a": [
+       2,
+       3
+      ],
+      "b": [
+       2,
+       3
+      ]
+     }
+    },
+    {
+     "kind": "probe",
+     "key": "teachPhProbe",
+     "fields": {},
+     "pair": [
+      "pena",
+      "peña"
+     ],
+     "sounding": 0,
+     "speak": [
+      "pena"
+     ],
+     "diff": {
+      "a": [
+       2,
+       3
+      ],
+      "b": [
+       2,
+       3
+      ]
+     }
+    },
+    {
+     "kind": "answer",
+     "key": "teachPhAnswerSpot",
+     "fields": {
+      "w": "pena",
+      "dx": "n"
+     },
+     "pair": [
+      "pena",
+      "peña"
+     ],
+     "sounding": 0,
+     "speak": [
+      "pena"
+     ],
+     "diff": {
+      "a": [
+       2,
+       3
+      ],
+      "b": [
+       2,
+       3
+      ]
+     }
+    },
+    {
+     "kind": "pair",
+     "key": "teachPhSpot",
+     "fields": {
+      "a": "coro",
+      "b": "corro",
+      "da": "r",
+      "db": "rr"
+     },
+     "pair": [
+      "coro",
+      "corro"
+     ],
+     "sounding": null,
+     "speak": [
+      "coro",
+      "corro"
+     ],
+     "diff": {
+      "a": [
+       2,
+       3
+      ],
+      "b": [
+       2,
+       4
+      ]
+     }
+    },
+    {
+     "kind": "probe",
+     "key": "teachPhProbe",
+     "fields": {},
+     "pair": [
+      "coro",
+      "corro"
+     ],
+     "sounding": 1,
+     "speak": [
+      "corro"
+     ],
+     "diff": {
+      "a": [
+       2,
+       3
+      ],
+      "b": [
+       2,
+       4
+      ]
+     }
+    },
+    {
+     "kind": "answer",
+     "key": "teachPhAnswerSpot",
+     "fields": {
+      "w": "corro",
+      "dx": "rr"
+     },
+     "pair": [
+      "coro",
+      "corro"
+     ],
+     "sounding": 1,
+     "speak": [
+      "corro"
+     ],
+     "diff": {
+      "a": [
+       2,
+       3
+      ],
+      "b": [
+       2,
+       4
+      ]
+     }
+    },
+    {
+     "kind": "done",
+     "key": "teachPhDone",
+     "fields": {},
+     "pair": null,
+     "sounding": null,
+     "speak": [],
+     "diff": null
+    }
+   ]
+  },
+  {
+   "note": "текущая пара",
+   "lang": "es",
+   "pool": [
+    [
+     "casa",
+     "cosa"
+    ],
+    [
+     "mesa",
+     "misa"
+    ],
+    [
+     "peso",
+     "piso"
+    ],
+    [
+     "tos",
+     "dos"
+    ],
+    [
+     "cana",
+     "caña"
+    ],
+    [
+     "pena",
+     "peña"
+    ],
+    [
+     "pero",
+     "perro"
+    ],
+    [
+     "caro",
+     "carro"
+    ],
+    [
+     "coro",
+     "corro"
+    ],
+    [
+     "moro",
+     "morro"
+    ],
+    [
+     "polo",
+     "pollo"
+    ],
+    [
+     "vale",
+     "valle"
+    ]
+   ],
+   "exclude": [
+    "casa",
+    "cosa"
+   ],
+   "stream": [
+    0.8858975803013891,
+    0.5074014801066369,
+    0.7272262377664447,
+    0.5720857714768499,
+    0.1863834341056645,
+    0.8124166247434914,
+    0.6525142586324364,
+    0.9478350859135389,
+    0.08962429803796113,
+    0.5096012849826366,
+    0.15399933676235378,
+    0.7895122854970396
+   ],
+   "examples": [
+    [
+     "tos",
+     "dos"
+    ],
+    [
+     "moro",
+     "morro"
+    ]
+   ],
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachPhIntro",
+     "fields": {},
+     "pair": null,
+     "sounding": null,
+     "speak": [],
+     "diff": null
+    },
+    {
+     "kind": "pair",
+     "key": "teachPhSpot",
+     "fields": {
+      "a": "tos",
+      "b": "dos",
+      "da": "t",
+      "db": "d"
+     },
+     "pair": [
+      "tos",
+      "dos"
+     ],
+     "sounding": null,
+     "speak": [
+      "tos",
+      "dos"
+     ],
+     "diff": {
+      "a": [
+       0,
+       1
+      ],
+      "b": [
+       0,
+       1
+      ]
+     }
+    },
+    {
+     "kind": "probe",
+     "key": "teachPhProbe",
+     "fields": {},
+     "pair": [
+      "tos",
+      "dos"
+     ],
+     "sounding": 0,
+     "speak": [
+      "tos"
+     ],
+     "diff": {
+      "a": [
+       0,
+       1
+      ],
+      "b": [
+       0,
+       1
+      ]
+     }
+    },
+    {
+     "kind": "answer",
+     "key": "teachPhAnswerSpot",
+     "fields": {
+      "w": "tos",
+      "dx": "t"
+     },
+     "pair": [
+      "tos",
+      "dos"
+     ],
+     "sounding": 0,
+     "speak": [
+      "tos"
+     ],
+     "diff": {
+      "a": [
+       0,
+       1
+      ],
+      "b": [
+       0,
+       1
+      ]
+     }
+    },
+    {
+     "kind": "pair",
+     "key": "teachPhSpot",
+     "fields": {
+      "a": "moro",
+      "b": "morro",
+      "da": "r",
+      "db": "rr"
+     },
+     "pair": [
+      "moro",
+      "morro"
+     ],
+     "sounding": null,
+     "speak": [
+      "moro",
+      "morro"
+     ],
+     "diff": {
+      "a": [
+       2,
+       3
+      ],
+      "b": [
+       2,
+       4
+      ]
+     }
+    },
+    {
+     "kind": "probe",
+     "key": "teachPhProbe",
+     "fields": {},
+     "pair": [
+      "moro",
+      "morro"
+     ],
+     "sounding": 1,
+     "speak": [
+      "morro"
+     ],
+     "diff": {
+      "a": [
+       2,
+       3
+      ],
+      "b": [
+       2,
+       4
+      ]
+     }
+    },
+    {
+     "kind": "answer",
+     "key": "teachPhAnswerSpot",
+     "fields": {
+      "w": "morro",
+      "dx": "rr"
+     },
+     "pair": [
+      "moro",
+      "morro"
+     ],
+     "sounding": 1,
+     "speak": [
+      "morro"
+     ],
+     "diff": {
+      "a": [
+       2,
+       3
+      ],
+      "b": [
+       2,
+       4
+      ]
+     }
+    },
+    {
+     "kind": "done",
+     "key": "teachPhDone",
+     "fields": {},
+     "pair": null,
+     "sounding": null,
+     "speak": [],
+     "diff": null
+    }
+   ]
+  },
+  {
+   "note": "текущая пара в обратном порядке кнопок",
+   "lang": "es",
+   "pool": [
+    [
+     "casa",
+     "cosa"
+    ],
+    [
+     "mesa",
+     "misa"
+    ],
+    [
+     "peso",
+     "piso"
+    ],
+    [
+     "tos",
+     "dos"
+    ],
+    [
+     "cana",
+     "caña"
+    ],
+    [
+     "pena",
+     "peña"
+    ],
+    [
+     "pero",
+     "perro"
+    ],
+    [
+     "caro",
+     "carro"
+    ],
+    [
+     "coro",
+     "corro"
+    ],
+    [
+     "moro",
+     "morro"
+    ],
+    [
+     "polo",
+     "pollo"
+    ],
+    [
+     "vale",
+     "valle"
+    ]
+   ],
+   "exclude": [
+    "misa",
+    "mesa"
+   ],
+   "stream": [
+    0.48475390556268394,
+    0.673745104111731,
+    0.5496490227524191,
+    0.4567936551757157,
+    0.640928361332044,
+    0.1515036269556731,
+    0.36502677854150534,
+    0.40672049950808287,
+    0.32232420961372554,
+    0.8481589457951486,
+    0.7015896583907306,
+    0.4414765809196979
+   ],
+   "examples": [
+    [
+     "tos",
+     "dos"
+    ],
+    [
+     "coro",
+     "corro"
+    ]
+   ],
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachPhIntro",
+     "fields": {},
+     "pair": null,
+     "sounding": null,
+     "speak": [],
+     "diff": null
+    },
+    {
+     "kind": "pair",
+     "key": "teachPhSpot",
+     "fields": {
+      "a": "tos",
+      "b": "dos",
+      "da": "t",
+      "db": "d"
+     },
+     "pair": [
+      "tos",
+      "dos"
+     ],
+     "sounding": null,
+     "speak": [
+      "tos",
+      "dos"
+     ],
+     "diff": {
+      "a": [
+       0,
+       1
+      ],
+      "b": [
+       0,
+       1
+      ]
+     }
+    },
+    {
+     "kind": "probe",
+     "key": "teachPhProbe",
+     "fields": {},
+     "pair": [
+      "tos",
+      "dos"
+     ],
+     "sounding": 1,
+     "speak": [
+      "dos"
+     ],
+     "diff": {
+      "a": [
+       0,
+       1
+      ],
+      "b": [
+       0,
+       1
+      ]
+     }
+    },
+    {
+     "kind": "answer",
+     "key": "teachPhAnswerSpot",
+     "fields": {
+      "w": "dos",
+      "dx": "d"
+     },
+     "pair": [
+      "tos",
+      "dos"
+     ],
+     "sounding": 1,
+     "speak": [
+      "dos"
+     ],
+     "diff": {
+      "a": [
+       0,
+       1
+      ],
+      "b": [
+       0,
+       1
+      ]
+     }
+    },
+    {
+     "kind": "pair",
+     "key": "teachPhSpot",
+     "fields": {
+      "a": "coro",
+      "b": "corro",
+      "da": "r",
+      "db": "rr"
+     },
+     "pair": [
+      "coro",
+      "corro"
+     ],
+     "sounding": null,
+     "speak": [
+      "coro",
+      "corro"
+     ],
+     "diff": {
+      "a": [
+       2,
+       3
+      ],
+      "b": [
+       2,
+       4
+      ]
+     }
+    },
+    {
+     "kind": "probe",
+     "key": "teachPhProbe",
+     "fields": {},
+     "pair": [
+      "coro",
+      "corro"
+     ],
+     "sounding": 0,
+     "speak": [
+      "coro"
+     ],
+     "diff": {
+      "a": [
+       2,
+       3
+      ],
+      "b": [
+       2,
+       4
+      ]
+     }
+    },
+    {
+     "kind": "answer",
+     "key": "teachPhAnswerSpot",
+     "fields": {
+      "w": "coro",
+      "dx": "r"
+     },
+     "pair": [
+      "coro",
+      "corro"
+     ],
+     "sounding": 0,
+     "speak": [
+      "coro"
+     ],
+     "diff": {
+      "a": [
+       2,
+       3
+      ],
+      "b": [
+       2,
+       4
+      ]
+     }
+    },
+    {
+     "kind": "done",
+     "key": "teachPhDone",
+     "fields": {},
+     "pair": null,
+     "sounding": null,
+     "speak": [],
+     "diff": null
+    }
+   ]
+  },
+  {
+   "note": "до партии",
+   "lang": "de",
+   "pool": [
+    [
+     "schon",
+     "schön"
+    ],
+    [
+     "kennen",
+     "können"
+    ],
+    [
+     "Beet",
+     "Bett"
+    ],
+    [
+     "Stadt",
+     "Staat"
+    ],
+    [
+     "Ofen",
+     "offen"
+    ],
+    [
+     "Wahl",
+     "Wall"
+    ]
+   ],
+   "exclude": null,
+   "stream": [
+    0.2910861289128661,
+    0.8121823959518224,
+    0.8016261153388768,
+    0.5652455126401037,
+    0.34697797847911716,
+    0.985271621728316,
+    0.07249013474211097
+   ],
+   "examples": [
+    [
+     "Beet",
+     "Bett"
+    ],
+    [
+     "schon",
+     "schön"
+    ]
+   ],
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachPhIntro",
+     "fields": {},
+     "pair": null,
+     "sounding": null,
+     "speak": [],
+     "diff": null
+    },
+    {
+     "kind": "pair",
+     "key": "teachPhVowel",
+     "fields": {
+      "a": "Beet",
+      "b": "Bett"
+     },
+     "pair": [
+      "Beet",
+      "Bett"
+     ],
+     "sounding": null,
+     "speak": [
+      "Beet",
+      "Bett"
+     ],
+     "diff": null
+    },
+    {
+     "kind": "probe",
+     "key": "teachPhProbe",
+     "fields": {},
+     "pair": [
+      "Beet",
+      "Bett"
+     ],
+     "sounding": 1,
+     "speak": [
+      "Bett"
+     ],
+     "diff": null
+    },
+    {
+     "kind": "answer",
+     "key": "teachPhAnswerVowel",
+     "fields": {
+      "w": "Bett"
+     },
+     "pair": [
+      "Beet",
+      "Bett"
+     ],
+     "sounding": 1,
+     "speak": [
+      "Bett"
+     ],
+     "diff": null
+    },
+    {
+     "kind": "pair",
+     "key": "teachPhVowel",
+     "fields": {
+      "a": "schon",
+      "b": "schön"
+     },
+     "pair": [
+      "schon",
+      "schön"
+     ],
+     "sounding": null,
+     "speak": [
+      "schon",
+      "schön"
+     ],
+     "diff": null
+    },
+    {
+     "kind": "probe",
+     "key": "teachPhProbe",
+     "fields": {},
+     "pair": [
+      "schon",
+      "schön"
+     ],
+     "sounding": 0,
+     "speak": [
+      "schon"
+     ],
+     "diff": null
+    },
+    {
+     "kind": "answer",
+     "key": "teachPhAnswerVowel",
+     "fields": {
+      "w": "schon"
+     },
+     "pair": [
+      "schon",
+      "schön"
+     ],
+     "sounding": 0,
+     "speak": [
+      "schon"
+     ],
+     "diff": null
+    },
+    {
+     "kind": "done",
+     "key": "teachPhDone",
+     "fields": {},
+     "pair": null,
+     "sounding": null,
+     "speak": [],
+     "diff": null
+    }
+   ]
+  },
+  {
+   "note": "текущая пара",
+   "lang": "de",
+   "pool": [
+    [
+     "schon",
+     "schön"
+    ],
+    [
+     "kennen",
+     "können"
+    ],
+    [
+     "Beet",
+     "Bett"
+    ],
+    [
+     "Stadt",
+     "Staat"
+    ],
+    [
+     "Ofen",
+     "offen"
+    ],
+    [
+     "Wahl",
+     "Wall"
+    ]
+   ],
+   "exclude": [
+    "schon",
+    "schön"
+   ],
+   "stream": [
+    0.6650120196864009,
+    0.4851819835603237,
+    0.7396295247599483,
+    0.8275054411496967,
+    0.07216227077879012,
+    0.036433607805520296
+   ],
+   "examples": [
+    [
+     "kennen",
+     "können"
+    ],
+    [
+     "Wahl",
+     "Wall"
+    ]
+   ],
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachPhIntro",
+     "fields": {},
+     "pair": null,
+     "sounding": null,
+     "speak": [],
+     "diff": null
+    },
+    {
+     "kind": "pair",
+     "key": "teachPhVowel",
+     "fields": {
+      "a": "kennen",
+      "b": "können"
+     },
+     "pair": [
+      "kennen",
+      "können"
+     ],
+     "sounding": null,
+     "speak": [
+      "kennen",
+      "können"
+     ],
+     "diff": null
+    },
+    {
+     "kind": "probe",
+     "key": "teachPhProbe",
+     "fields": {},
+     "pair": [
+      "kennen",
+      "können"
+     ],
+     "sounding": 0,
+     "speak": [
+      "kennen"
+     ],
+     "diff": null
+    },
+    {
+     "kind": "answer",
+     "key": "teachPhAnswerVowel",
+     "fields": {
+      "w": "kennen"
+     },
+     "pair": [
+      "kennen",
+      "können"
+     ],
+     "sounding": 0,
+     "speak": [
+      "kennen"
+     ],
+     "diff": null
+    },
+    {
+     "kind": "pair",
+     "key": "teachPhVowel",
+     "fields": {
+      "a": "Wahl",
+      "b": "Wall"
+     },
+     "pair": [
+      "Wahl",
+      "Wall"
+     ],
+     "sounding": null,
+     "speak": [
+      "Wahl",
+      "Wall"
+     ],
+     "diff": null
+    },
+    {
+     "kind": "probe",
+     "key": "teachPhProbe",
+     "fields": {},
+     "pair": [
+      "Wahl",
+      "Wall"
+     ],
+     "sounding": 0,
+     "speak": [
+      "Wahl"
+     ],
+     "diff": null
+    },
+    {
+     "kind": "answer",
+     "key": "teachPhAnswerVowel",
+     "fields": {
+      "w": "Wahl"
+     },
+     "pair": [
+      "Wahl",
+      "Wall"
+     ],
+     "sounding": 0,
+     "speak": [
+      "Wahl"
+     ],
+     "diff": null
+    },
+    {
+     "kind": "done",
+     "key": "teachPhDone",
+     "fields": {},
+     "pair": null,
+     "sounding": null,
+     "speak": [],
+     "diff": null
+    }
+   ]
+  },
+  {
+   "note": "текущая пара в обратном порядке кнопок",
+   "lang": "de",
+   "pool": [
+    [
+     "schon",
+     "schön"
+    ],
+    [
+     "kennen",
+     "können"
+    ],
+    [
+     "Beet",
+     "Bett"
+    ],
+    [
+     "Stadt",
+     "Staat"
+    ],
+    [
+     "Ofen",
+     "offen"
+    ],
+    [
+     "Wahl",
+     "Wall"
+    ]
+   ],
+   "exclude": [
+    "können",
+    "kennen"
+   ],
+   "stream": [
+    0.6621913823764771,
+    0.6102009282913059,
+    0.10641512530855834,
+    0.018226709682494402,
+    0.9474392605479807,
+    0.6793433327693492
+   ],
+   "examples": [
+    [
+     "Beet",
+     "Bett"
+    ],
+    [
+     "Wahl",
+     "Wall"
+    ]
+   ],
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachPhIntro",
+     "fields": {},
+     "pair": null,
+     "sounding": null,
+     "speak": [],
+     "diff": null
+    },
+    {
+     "kind": "pair",
+     "key": "teachPhVowel",
+     "fields": {
+      "a": "Beet",
+      "b": "Bett"
+     },
+     "pair": [
+      "Beet",
+      "Bett"
+     ],
+     "sounding": null,
+     "speak": [
+      "Beet",
+      "Bett"
+     ],
+     "diff": null
+    },
+    {
+     "kind": "probe",
+     "key": "teachPhProbe",
+     "fields": {},
+     "pair": [
+      "Beet",
+      "Bett"
+     ],
+     "sounding": 1,
+     "speak": [
+      "Bett"
+     ],
+     "diff": null
+    },
+    {
+     "kind": "answer",
+     "key": "teachPhAnswerVowel",
+     "fields": {
+      "w": "Bett"
+     },
+     "pair": [
+      "Beet",
+      "Bett"
+     ],
+     "sounding": 1,
+     "speak": [
+      "Bett"
+     ],
+     "diff": null
+    },
+    {
+     "kind": "pair",
+     "key": "teachPhVowel",
+     "fields": {
+      "a": "Wahl",
+      "b": "Wall"
+     },
+     "pair": [
+      "Wahl",
+      "Wall"
+     ],
+     "sounding": null,
+     "speak": [
+      "Wahl",
+      "Wall"
+     ],
+     "diff": null
+    },
+    {
+     "kind": "probe",
+     "key": "teachPhProbe",
+     "fields": {},
+     "pair": [
+      "Wahl",
+      "Wall"
+     ],
+     "sounding": 1,
+     "speak": [
+      "Wall"
+     ],
+     "diff": null
+    },
+    {
+     "kind": "answer",
+     "key": "teachPhAnswerVowel",
+     "fields": {
+      "w": "Wall"
+     },
+     "pair": [
+      "Wahl",
+      "Wall"
+     ],
+     "sounding": 1,
+     "speak": [
+      "Wall"
+     ],
+     "diff": null
+    },
+    {
+     "kind": "done",
+     "key": "teachPhDone",
+     "fields": {},
+     "pair": null,
+     "sounding": null,
+     "speak": [],
+     "diff": null
+    }
+   ]
+  },
+  {
+   "note": "до партии",
+   "lang": "de",
+   "pool": [
+    [
+     "schon",
+     "schön"
+    ],
+    [
+     "kennen",
+     "können"
+    ],
+    [
+     "Beet",
+     "Bett"
+    ],
+    [
+     "Stadt",
+     "Staat"
+    ],
+    [
+     "Ofen",
+     "offen"
+    ],
+    [
+     "Wahl",
+     "Wall"
+    ],
+    [
+     "Miete",
+     "Mitte"
+    ],
+    [
+     "bieten",
+     "bitten"
+    ],
+    [
+     "Hüte",
+     "Hütte"
+    ],
+    [
+     "fühlen",
+     "füllen"
+    ],
+    [
+     "Höhle",
+     "Hölle"
+    ]
+   ],
+   "exclude": null,
+   "stream": [
+    0.1016450880561024,
+    0.13061670190654695,
+    0.9818152107764035,
+    0.756695365998894,
+    0.8144761389121413,
+    0.972661793930456,
+    0.1381527914199978,
+    0.9769298718310893,
+    0.9938846626318991,
+    0.9505846027750522,
+    0.6127620220649987,
+    0.45339503581635654
+   ],
+   "examples": [
+    [
+     "Ofen",
+     "offen"
+    ],
+    [
+     "fühlen",
+     "füllen"
+    ]
+   ],
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachPhIntro",
+     "fields": {},
+     "pair": null,
+     "sounding": null,
+     "speak": [],
+     "diff": null
+    },
+    {
+     "kind": "pair",
+     "key": "teachPhVowel",
+     "fields": {
+      "a": "Ofen",
+      "b": "offen"
+     },
+     "pair": [
+      "Ofen",
+      "offen"
+     ],
+     "sounding": null,
+     "speak": [
+      "Ofen",
+      "offen"
+     ],
+     "diff": null
+    },
+    {
+     "kind": "probe",
+     "key": "teachPhProbe",
+     "fields": {},
+     "pair": [
+      "Ofen",
+      "offen"
+     ],
+     "sounding": 1,
+     "speak": [
+      "offen"
+     ],
+     "diff": null
+    },
+    {
+     "kind": "answer",
+     "key": "teachPhAnswerVowel",
+     "fields": {
+      "w": "offen"
+     },
+     "pair": [
+      "Ofen",
+      "offen"
+     ],
+     "sounding": 1,
+     "speak": [
+      "offen"
+     ],
+     "diff": null
+    },
+    {
+     "kind": "pair",
+     "key": "teachPhVowel",
+     "fields": {
+      "a": "fühlen",
+      "b": "füllen"
+     },
+     "pair": [
+      "fühlen",
+      "füllen"
+     ],
+     "sounding": null,
+     "speak": [
+      "fühlen",
+      "füllen"
+     ],
+     "diff": null
+    },
+    {
+     "kind": "probe",
+     "key": "teachPhProbe",
+     "fields": {},
+     "pair": [
+      "fühlen",
+      "füllen"
+     ],
+     "sounding": 0,
+     "speak": [
+      "fühlen"
+     ],
+     "diff": null
+    },
+    {
+     "kind": "answer",
+     "key": "teachPhAnswerVowel",
+     "fields": {
+      "w": "fühlen"
+     },
+     "pair": [
+      "fühlen",
+      "füllen"
+     ],
+     "sounding": 0,
+     "speak": [
+      "fühlen"
+     ],
+     "diff": null
+    },
+    {
+     "kind": "done",
+     "key": "teachPhDone",
+     "fields": {},
+     "pair": null,
+     "sounding": null,
+     "speak": [],
+     "diff": null
+    }
+   ]
+  },
+  {
+   "note": "текущая пара",
+   "lang": "de",
+   "pool": [
+    [
+     "schon",
+     "schön"
+    ],
+    [
+     "kennen",
+     "können"
+    ],
+    [
+     "Beet",
+     "Bett"
+    ],
+    [
+     "Stadt",
+     "Staat"
+    ],
+    [
+     "Ofen",
+     "offen"
+    ],
+    [
+     "Wahl",
+     "Wall"
+    ],
+    [
+     "Miete",
+     "Mitte"
+    ],
+    [
+     "bieten",
+     "bitten"
+    ],
+    [
+     "Hüte",
+     "Hütte"
+    ],
+    [
+     "fühlen",
+     "füllen"
+    ],
+    [
+     "Höhle",
+     "Hölle"
+    ]
+   ],
+   "exclude": [
+    "schon",
+    "schön"
+   ],
+   "stream": [
+    0.09717778628692031,
+    0.40582208009436727,
+    0.4884233954362571,
+    0.24488749797455966,
+    0.9008742261212319,
+    0.061546784825623035,
+    0.40701038273982704,
+    0.37905765953473747,
+    0.2690791126806289,
+    0.5981077151373029,
+    0.49945794022642076
+   ],
+   "examples": [
+    [
+     "Stadt",
+     "Staat"
+    ],
+    [
+     "Wahl",
+     "Wall"
+    ]
+   ],
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachPhIntro",
+     "fields": {},
+     "pair": null,
+     "sounding": null,
+     "speak": [],
+     "diff": null
+    },
+    {
+     "kind": "pair",
+     "key": "teachPhVowel",
+     "fields": {
+      "a": "Stadt",
+      "b": "Staat"
+     },
+     "pair": [
+      "Stadt",
+      "Staat"
+     ],
+     "sounding": null,
+     "speak": [
+      "Stadt",
+      "Staat"
+     ],
+     "diff": null
+    },
+    {
+     "kind": "probe",
+     "key": "teachPhProbe",
+     "fields": {},
+     "pair": [
+      "Stadt",
+      "Staat"
+     ],
+     "sounding": 1,
+     "speak": [
+      "Staat"
+     ],
+     "diff": null
+    },
+    {
+     "kind": "answer",
+     "key": "teachPhAnswerVowel",
+     "fields": {
+      "w": "Staat"
+     },
+     "pair": [
+      "Stadt",
+      "Staat"
+     ],
+     "sounding": 1,
+     "speak": [
+      "Staat"
+     ],
+     "diff": null
+    },
+    {
+     "kind": "pair",
+     "key": "teachPhVowel",
+     "fields": {
+      "a": "Wahl",
+      "b": "Wall"
+     },
+     "pair": [
+      "Wahl",
+      "Wall"
+     ],
+     "sounding": null,
+     "speak": [
+      "Wahl",
+      "Wall"
+     ],
+     "diff": null
+    },
+    {
+     "kind": "probe",
+     "key": "teachPhProbe",
+     "fields": {},
+     "pair": [
+      "Wahl",
+      "Wall"
+     ],
+     "sounding": 0,
+     "speak": [
+      "Wahl"
+     ],
+     "diff": null
+    },
+    {
+     "kind": "answer",
+     "key": "teachPhAnswerVowel",
+     "fields": {
+      "w": "Wahl"
+     },
+     "pair": [
+      "Wahl",
+      "Wall"
+     ],
+     "sounding": 0,
+     "speak": [
+      "Wahl"
+     ],
+     "diff": null
+    },
+    {
+     "kind": "done",
+     "key": "teachPhDone",
+     "fields": {},
+     "pair": null,
+     "sounding": null,
+     "speak": [],
+     "diff": null
+    }
+   ]
+  },
+  {
+   "note": "текущая пара в обратном порядке кнопок",
+   "lang": "de",
+   "pool": [
+    [
+     "schon",
+     "schön"
+    ],
+    [
+     "kennen",
+     "können"
+    ],
+    [
+     "Beet",
+     "Bett"
+    ],
+    [
+     "Stadt",
+     "Staat"
+    ],
+    [
+     "Ofen",
+     "offen"
+    ],
+    [
+     "Wahl",
+     "Wall"
+    ],
+    [
+     "Miete",
+     "Mitte"
+    ],
+    [
+     "bieten",
+     "bitten"
+    ],
+    [
+     "Hüte",
+     "Hütte"
+    ],
+    [
+     "fühlen",
+     "füllen"
+    ],
+    [
+     "Höhle",
+     "Hölle"
+    ]
+   ],
+   "exclude": [
+    "können",
+    "kennen"
+   ],
+   "stream": [
+    0.28309046220965683,
+    0.07036998402327299,
+    0.6054683609399945,
+    0.20110279880464077,
+    0.5129803456366062,
+    0.8696908513084054,
+    0.4898305437527597,
+    0.5110397797543555,
+    0.6094646106939763,
+    0.4024334899149835,
+    0.9631767142564058
+   ],
+   "examples": [
+    [
+     "fühlen",
+     "füllen"
+    ],
+    [
+     "Höhle",
+     "Hölle"
+    ]
+   ],
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachPhIntro",
+     "fields": {},
+     "pair": null,
+     "sounding": null,
+     "speak": [],
+     "diff": null
+    },
+    {
+     "kind": "pair",
+     "key": "teachPhVowel",
+     "fields": {
+      "a": "fühlen",
+      "b": "füllen"
+     },
+     "pair": [
+      "fühlen",
+      "füllen"
+     ],
+     "sounding": null,
+     "speak": [
+      "fühlen",
+      "füllen"
+     ],
+     "diff": null
+    },
+    {
+     "kind": "probe",
+     "key": "teachPhProbe",
+     "fields": {},
+     "pair": [
+      "fühlen",
+      "füllen"
+     ],
+     "sounding": 0,
+     "speak": [
+      "fühlen"
+     ],
+     "diff": null
+    },
+    {
+     "kind": "answer",
+     "key": "teachPhAnswerVowel",
+     "fields": {
+      "w": "fühlen"
+     },
+     "pair": [
+      "fühlen",
+      "füllen"
+     ],
+     "sounding": 0,
+     "speak": [
+      "fühlen"
+     ],
+     "diff": null
+    },
+    {
+     "kind": "pair",
+     "key": "teachPhVowel",
+     "fields": {
+      "a": "Höhle",
+      "b": "Hölle"
+     },
+     "pair": [
+      "Höhle",
+      "Hölle"
+     ],
+     "sounding": null,
+     "speak": [
+      "Höhle",
+      "Hölle"
+     ],
+     "diff": null
+    },
+    {
+     "kind": "probe",
+     "key": "teachPhProbe",
+     "fields": {},
+     "pair": [
+      "Höhle",
+      "Hölle"
+     ],
+     "sounding": 1,
+     "speak": [
+      "Hölle"
+     ],
+     "diff": null
+    },
+    {
+     "kind": "answer",
+     "key": "teachPhAnswerVowel",
+     "fields": {
+      "w": "Hölle"
+     },
+     "pair": [
+      "Höhle",
+      "Hölle"
+     ],
+     "sounding": 1,
+     "speak": [
+      "Hölle"
+     ],
+     "diff": null
+    },
+    {
+     "kind": "done",
+     "key": "teachPhDone",
+     "fields": {},
+     "pair": null,
+     "sounding": null,
+     "speak": [],
+     "diff": null
+    }
+   ]
+  },
+  {
+   "note": "до партии",
+   "lang": "pt",
+   "pool": [
+    [
+     "faca",
+     "vaca"
+    ],
+    [
+     "tia",
+     "dia"
+    ],
+    [
+     "mala",
+     "mola"
+    ],
+    [
+     "bola",
+     "bolo"
+    ],
+    [
+     "caro",
+     "carro"
+    ]
+   ],
+   "exclude": null,
+   "stream": [
+    0.1861543485429138,
+    0.807514239102602,
+    0.3063305451069027,
+    0.9740536343306303,
+    0.4708206565119326,
+    0.7218663187231869
+   ],
+   "examples": [
+    [
+     "mala",
+     "mola"
+    ],
+    [
+     "tia",
+     "dia"
+    ]
+   ],
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachPhIntro",
+     "fields": {},
+     "pair": null,
+     "sounding": null,
+     "speak": [],
+     "diff": null
+    },
+    {
+     "kind": "pair",
+     "key": "teachPhSpot",
+     "fields": {
+      "a": "mala",
+      "b": "mola",
+      "da": "a",
+      "db": "o"
+     },
+     "pair": [
+      "mala",
+      "mola"
+     ],
+     "sounding": null,
+     "speak": [
+      "mala",
+      "mola"
+     ],
+     "diff": {
+      "a": [
+       1,
+       2
+      ],
+      "b": [
+       1,
+       2
+      ]
+     }
+    },
+    {
+     "kind": "probe",
+     "key": "teachPhProbe",
+     "fields": {},
+     "pair": [
+      "mala",
+      "mola"
+     ],
+     "sounding": 0,
+     "speak": [
+      "mala"
+     ],
+     "diff": {
+      "a": [
+       1,
+       2
+      ],
+      "b": [
+       1,
+       2
+      ]
+     }
+    },
+    {
+     "kind": "answer",
+     "key": "teachPhAnswerSpot",
+     "fields": {
+      "w": "mala",
+      "dx": "a"
+     },
+     "pair": [
+      "mala",
+      "mola"
+     ],
+     "sounding": 0,
+     "speak": [
+      "mala"
+     ],
+     "diff": {
+      "a": [
+       1,
+       2
+      ],
+      "b": [
+       1,
+       2
+      ]
+     }
+    },
+    {
+     "kind": "pair",
+     "key": "teachPhSpot",
+     "fields": {
+      "a": "tia",
+      "b": "dia",
+      "da": "t",
+      "db": "d"
+     },
+     "pair": [
+      "tia",
+      "dia"
+     ],
+     "sounding": null,
+     "speak": [
+      "tia",
+      "dia"
+     ],
+     "diff": {
+      "a": [
+       0,
+       1
+      ],
+      "b": [
+       0,
+       1
+      ]
+     }
+    },
+    {
+     "kind": "probe",
+     "key": "teachPhProbe",
+     "fields": {},
+     "pair": [
+      "tia",
+      "dia"
+     ],
+     "sounding": 1,
+     "speak": [
+      "dia"
+     ],
+     "diff": {
+      "a": [
+       0,
+       1
+      ],
+      "b": [
+       0,
+       1
+      ]
+     }
+    },
+    {
+     "kind": "answer",
+     "key": "teachPhAnswerSpot",
+     "fields": {
+      "w": "dia",
+      "dx": "d"
+     },
+     "pair": [
+      "tia",
+      "dia"
+     ],
+     "sounding": 1,
+     "speak": [
+      "dia"
+     ],
+     "diff": {
+      "a": [
+       0,
+       1
+      ],
+      "b": [
+       0,
+       1
+      ]
+     }
+    },
+    {
+     "kind": "done",
+     "key": "teachPhDone",
+     "fields": {},
+     "pair": null,
+     "sounding": null,
+     "speak": [],
+     "diff": null
+    }
+   ]
+  },
+  {
+   "note": "текущая пара",
+   "lang": "pt",
+   "pool": [
+    [
+     "faca",
+     "vaca"
+    ],
+    [
+     "tia",
+     "dia"
+    ],
+    [
+     "mala",
+     "mola"
+    ],
+    [
+     "bola",
+     "bolo"
+    ],
+    [
+     "caro",
+     "carro"
+    ]
+   ],
+   "exclude": [
+    "faca",
+    "vaca"
+   ],
+   "stream": [
+    0.8427293554414064,
+    0.13445029337890446,
+    0.8383995110634714,
+    0.9466082812286913,
+    0.20606317254714668
+   ],
+   "examples": [
+    [
+     "bola",
+     "bolo"
+    ],
+    [
+     "mala",
+     "mola"
+    ]
+   ],
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachPhIntro",
+     "fields": {},
+     "pair": null,
+     "sounding": null,
+     "speak": [],
+     "diff": null
+    },
+    {
+     "kind": "pair",
+     "key": "teachPhSpot",
+     "fields": {
+      "a": "bola",
+      "b": "bolo",
+      "da": "a",
+      "db": "o"
+     },
+     "pair": [
+      "bola",
+      "bolo"
+     ],
+     "sounding": null,
+     "speak": [
+      "bola",
+      "bolo"
+     ],
+     "diff": {
+      "a": [
+       3,
+       4
+      ],
+      "b": [
+       3,
+       4
+      ]
+     }
+    },
+    {
+     "kind": "probe",
+     "key": "teachPhProbe",
+     "fields": {},
+     "pair": [
+      "bola",
+      "bolo"
+     ],
+     "sounding": 1,
+     "speak": [
+      "bolo"
+     ],
+     "diff": {
+      "a": [
+       3,
+       4
+      ],
+      "b": [
+       3,
+       4
+      ]
+     }
+    },
+    {
+     "kind": "answer",
+     "key": "teachPhAnswerSpot",
+     "fields": {
+      "w": "bolo",
+      "dx": "o"
+     },
+     "pair": [
+      "bola",
+      "bolo"
+     ],
+     "sounding": 1,
+     "speak": [
+      "bolo"
+     ],
+     "diff": {
+      "a": [
+       3,
+       4
+      ],
+      "b": [
+       3,
+       4
+      ]
+     }
+    },
+    {
+     "kind": "pair",
+     "key": "teachPhSpot",
+     "fields": {
+      "a": "mala",
+      "b": "mola",
+      "da": "a",
+      "db": "o"
+     },
+     "pair": [
+      "mala",
+      "mola"
+     ],
+     "sounding": null,
+     "speak": [
+      "mala",
+      "mola"
+     ],
+     "diff": {
+      "a": [
+       1,
+       2
+      ],
+      "b": [
+       1,
+       2
+      ]
+     }
+    },
+    {
+     "kind": "probe",
+     "key": "teachPhProbe",
+     "fields": {},
+     "pair": [
+      "mala",
+      "mola"
+     ],
+     "sounding": 0,
+     "speak": [
+      "mala"
+     ],
+     "diff": {
+      "a": [
+       1,
+       2
+      ],
+      "b": [
+       1,
+       2
+      ]
+     }
+    },
+    {
+     "kind": "answer",
+     "key": "teachPhAnswerSpot",
+     "fields": {
+      "w": "mala",
+      "dx": "a"
+     },
+     "pair": [
+      "mala",
+      "mola"
+     ],
+     "sounding": 0,
+     "speak": [
+      "mala"
+     ],
+     "diff": {
+      "a": [
+       1,
+       2
+      ],
+      "b": [
+       1,
+       2
+      ]
+     }
+    },
+    {
+     "kind": "done",
+     "key": "teachPhDone",
+     "fields": {},
+     "pair": null,
+     "sounding": null,
+     "speak": [],
+     "diff": null
+    }
+   ]
+  },
+  {
+   "note": "текущая пара в обратном порядке кнопок",
+   "lang": "pt",
+   "pool": [
+    [
+     "faca",
+     "vaca"
+    ],
+    [
+     "tia",
+     "dia"
+    ],
+    [
+     "mala",
+     "mola"
+    ],
+    [
+     "bola",
+     "bolo"
+    ],
+    [
+     "caro",
+     "carro"
+    ]
+   ],
+   "exclude": [
+    "dia",
+    "tia"
+   ],
+   "stream": [
+    0.44063915172591805,
+    0.05090844980441034,
+    0.7110777783673257,
+    0.26451867492869496,
+    0.7105156374163926
+   ],
+   "examples": [
+    [
+     "bola",
+     "bolo"
+    ],
+    [
+     "caro",
+     "carro"
+    ]
+   ],
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachPhIntro",
+     "fields": {},
+     "pair": null,
+     "sounding": null,
+     "speak": [],
+     "diff": null
+    },
+    {
+     "kind": "pair",
+     "key": "teachPhSpot",
+     "fields": {
+      "a": "bola",
+      "b": "bolo",
+      "da": "a",
+      "db": "o"
+     },
+     "pair": [
+      "bola",
+      "bolo"
+     ],
+     "sounding": null,
+     "speak": [
+      "bola",
+      "bolo"
+     ],
+     "diff": {
+      "a": [
+       3,
+       4
+      ],
+      "b": [
+       3,
+       4
+      ]
+     }
+    },
+    {
+     "kind": "probe",
+     "key": "teachPhProbe",
+     "fields": {},
+     "pair": [
+      "bola",
+      "bolo"
+     ],
+     "sounding": 0,
+     "speak": [
+      "bola"
+     ],
+     "diff": {
+      "a": [
+       3,
+       4
+      ],
+      "b": [
+       3,
+       4
+      ]
+     }
+    },
+    {
+     "kind": "answer",
+     "key": "teachPhAnswerSpot",
+     "fields": {
+      "w": "bola",
+      "dx": "a"
+     },
+     "pair": [
+      "bola",
+      "bolo"
+     ],
+     "sounding": 0,
+     "speak": [
+      "bola"
+     ],
+     "diff": {
+      "a": [
+       3,
+       4
+      ],
+      "b": [
+       3,
+       4
+      ]
+     }
+    },
+    {
+     "kind": "pair",
+     "key": "teachPhSpot",
+     "fields": {
+      "a": "caro",
+      "b": "carro",
+      "da": "r",
+      "db": "rr"
+     },
+     "pair": [
+      "caro",
+      "carro"
+     ],
+     "sounding": null,
+     "speak": [
+      "caro",
+      "carro"
+     ],
+     "diff": {
+      "a": [
+       2,
+       3
+      ],
+      "b": [
+       2,
+       4
+      ]
+     }
+    },
+    {
+     "kind": "probe",
+     "key": "teachPhProbe",
+     "fields": {},
+     "pair": [
+      "caro",
+      "carro"
+     ],
+     "sounding": 1,
+     "speak": [
+      "carro"
+     ],
+     "diff": {
+      "a": [
+       2,
+       3
+      ],
+      "b": [
+       2,
+       4
+      ]
+     }
+    },
+    {
+     "kind": "answer",
+     "key": "teachPhAnswerSpot",
+     "fields": {
+      "w": "carro",
+      "dx": "rr"
+     },
+     "pair": [
+      "caro",
+      "carro"
+     ],
+     "sounding": 1,
+     "speak": [
+      "carro"
+     ],
+     "diff": {
+      "a": [
+       2,
+       3
+      ],
+      "b": [
+       2,
+       4
+      ]
+     }
+    },
+    {
+     "kind": "done",
+     "key": "teachPhDone",
+     "fields": {},
+     "pair": null,
+     "sounding": null,
+     "speak": [],
+     "diff": null
+    }
+   ]
+  },
+  {
+   "note": "до партии",
+   "lang": "pt",
+   "pool": [
+    [
+     "faca",
+     "vaca"
+    ],
+    [
+     "tia",
+     "dia"
+    ],
+    [
+     "mala",
+     "mola"
+    ],
+    [
+     "bola",
+     "bolo"
+    ],
+    [
+     "caro",
+     "carro"
+    ],
+    [
+     "casar",
+     "caçar"
+    ],
+    [
+     "pão",
+     "pau"
+    ],
+    [
+     "avô",
+     "avó"
+    ],
+    [
+     "vovô",
+     "vovó"
+    ]
+   ],
+   "exclude": null,
+   "stream": [
+    0.6949463293422014,
+    0.6257284844759852,
+    0.7985071772709489,
+    0.9999440799001604,
+    0.32651166059076786,
+    0.8621630507986993,
+    0.5978737256955355,
+    0.4863003473728895,
+    0.19119164743460715,
+    0.9528249667491764
+   ],
+   "examples": [
+    [
+     "mala",
+     "mola"
+    ],
+    [
+     "faca",
+     "vaca"
+    ]
+   ],
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachPhIntro",
+     "fields": {},
+     "pair": null,
+     "sounding": null,
+     "speak": [],
+     "diff": null
+    },
+    {
+     "kind": "pair",
+     "key": "teachPhSpot",
+     "fields": {
+      "a": "mala",
+      "b": "mola",
+      "da": "a",
+      "db": "o"
+     },
+     "pair": [
+      "mala",
+      "mola"
+     ],
+     "sounding": null,
+     "speak": [
+      "mala",
+      "mola"
+     ],
+     "diff": {
+      "a": [
+       1,
+       2
+      ],
+      "b": [
+       1,
+       2
+      ]
+     }
+    },
+    {
+     "kind": "probe",
+     "key": "teachPhProbe",
+     "fields": {},
+     "pair": [
+      "mala",
+      "mola"
+     ],
+     "sounding": 0,
+     "speak": [
+      "mala"
+     ],
+     "diff": {
+      "a": [
+       1,
+       2
+      ],
+      "b": [
+       1,
+       2
+      ]
+     }
+    },
+    {
+     "kind": "answer",
+     "key": "teachPhAnswerSpot",
+     "fields": {
+      "w": "mala",
+      "dx": "a"
+     },
+     "pair": [
+      "mala",
+      "mola"
+     ],
+     "sounding": 0,
+     "speak": [
+      "mala"
+     ],
+     "diff": {
+      "a": [
+       1,
+       2
+      ],
+      "b": [
+       1,
+       2
+      ]
+     }
+    },
+    {
+     "kind": "pair",
+     "key": "teachPhSpot",
+     "fields": {
+      "a": "faca",
+      "b": "vaca",
+      "da": "f",
+      "db": "v"
+     },
+     "pair": [
+      "faca",
+      "vaca"
+     ],
+     "sounding": null,
+     "speak": [
+      "faca",
+      "vaca"
+     ],
+     "diff": {
+      "a": [
+       0,
+       1
+      ],
+      "b": [
+       0,
+       1
+      ]
+     }
+    },
+    {
+     "kind": "probe",
+     "key": "teachPhProbe",
+     "fields": {},
+     "pair": [
+      "faca",
+      "vaca"
+     ],
+     "sounding": 1,
+     "speak": [
+      "vaca"
+     ],
+     "diff": {
+      "a": [
+       0,
+       1
+      ],
+      "b": [
+       0,
+       1
+      ]
+     }
+    },
+    {
+     "kind": "answer",
+     "key": "teachPhAnswerSpot",
+     "fields": {
+      "w": "vaca",
+      "dx": "v"
+     },
+     "pair": [
+      "faca",
+      "vaca"
+     ],
+     "sounding": 1,
+     "speak": [
+      "vaca"
+     ],
+     "diff": {
+      "a": [
+       0,
+       1
+      ],
+      "b": [
+       0,
+       1
+      ]
+     }
+    },
+    {
+     "kind": "done",
+     "key": "teachPhDone",
+     "fields": {},
+     "pair": null,
+     "sounding": null,
+     "speak": [],
+     "diff": null
+    }
+   ]
+  },
+  {
+   "note": "текущая пара",
+   "lang": "pt",
+   "pool": [
+    [
+     "faca",
+     "vaca"
+    ],
+    [
+     "tia",
+     "dia"
+    ],
+    [
+     "mala",
+     "mola"
+    ],
+    [
+     "bola",
+     "bolo"
+    ],
+    [
+     "caro",
+     "carro"
+    ],
+    [
+     "casar",
+     "caçar"
+    ],
+    [
+     "pão",
+     "pau"
+    ],
+    [
+     "avô",
+     "avó"
+    ],
+    [
+     "vovô",
+     "vovó"
+    ]
+   ],
+   "exclude": [
+    "faca",
+    "vaca"
+   ],
+   "stream": [
+    0.15630108397454023,
+    0.647779816063121,
+    0.8219792027957737,
+    0.29855182068422437,
+    0.6044678448233753,
+    0.09461582102812827,
+    0.1366605330258608,
+    0.6094130617566407,
+    0.927808380452916
+   ],
+   "examples": [
+    [
+     "pão",
+     "pau"
+    ],
+    [
+     "caro",
+     "carro"
+    ]
+   ],
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachPhIntro",
+     "fields": {},
+     "pair": null,
+     "sounding": null,
+     "speak": [],
+     "diff": null
+    },
+    {
+     "kind": "pair",
+     "key": "teachPhSpot",
+     "fields": {
+      "a": "pão",
+      "b": "pau",
+      "da": "ão",
+      "db": "au"
+     },
+     "pair": [
+      "pão",
+      "pau"
+     ],
+     "sounding": null,
+     "speak": [
+      "pão",
+      "pau"
+     ],
+     "diff": {
+      "a": [
+       1,
+       3
+      ],
+      "b": [
+       1,
+       3
+      ]
+     }
+    },
+    {
+     "kind": "probe",
+     "key": "teachPhProbe",
+     "fields": {},
+     "pair": [
+      "pão",
+      "pau"
+     ],
+     "sounding": 1,
+     "speak": [
+      "pau"
+     ],
+     "diff": {
+      "a": [
+       1,
+       3
+      ],
+      "b": [
+       1,
+       3
+      ]
+     }
+    },
+    {
+     "kind": "answer",
+     "key": "teachPhAnswerSpot",
+     "fields": {
+      "w": "pau",
+      "dx": "au"
+     },
+     "pair": [
+      "pão",
+      "pau"
+     ],
+     "sounding": 1,
+     "speak": [
+      "pau"
+     ],
+     "diff": {
+      "a": [
+       1,
+       3
+      ],
+      "b": [
+       1,
+       3
+      ]
+     }
+    },
+    {
+     "kind": "pair",
+     "key": "teachPhSpot",
+     "fields": {
+      "a": "caro",
+      "b": "carro",
+      "da": "r",
+      "db": "rr"
+     },
+     "pair": [
+      "caro",
+      "carro"
+     ],
+     "sounding": null,
+     "speak": [
+      "caro",
+      "carro"
+     ],
+     "diff": {
+      "a": [
+       2,
+       3
+      ],
+      "b": [
+       2,
+       4
+      ]
+     }
+    },
+    {
+     "kind": "probe",
+     "key": "teachPhProbe",
+     "fields": {},
+     "pair": [
+      "caro",
+      "carro"
+     ],
+     "sounding": 1,
+     "speak": [
+      "carro"
+     ],
+     "diff": {
+      "a": [
+       2,
+       3
+      ],
+      "b": [
+       2,
+       4
+      ]
+     }
+    },
+    {
+     "kind": "answer",
+     "key": "teachPhAnswerSpot",
+     "fields": {
+      "w": "carro",
+      "dx": "rr"
+     },
+     "pair": [
+      "caro",
+      "carro"
+     ],
+     "sounding": 1,
+     "speak": [
+      "carro"
+     ],
+     "diff": {
+      "a": [
+       2,
+       3
+      ],
+      "b": [
+       2,
+       4
+      ]
+     }
+    },
+    {
+     "kind": "done",
+     "key": "teachPhDone",
+     "fields": {},
+     "pair": null,
+     "sounding": null,
+     "speak": [],
+     "diff": null
+    }
+   ]
+  },
+  {
+   "note": "текущая пара в обратном порядке кнопок",
+   "lang": "pt",
+   "pool": [
+    [
+     "faca",
+     "vaca"
+    ],
+    [
+     "tia",
+     "dia"
+    ],
+    [
+     "mala",
+     "mola"
+    ],
+    [
+     "bola",
+     "bolo"
+    ],
+    [
+     "caro",
+     "carro"
+    ],
+    [
+     "casar",
+     "caçar"
+    ],
+    [
+     "pão",
+     "pau"
+    ],
+    [
+     "avô",
+     "avó"
+    ],
+    [
+     "vovô",
+     "vovó"
+    ]
+   ],
+   "exclude": [
+    "dia",
+    "tia"
+   ],
+   "stream": [
+    0.20230385614559054,
+    0.08111541927792132,
+    0.455377253703773,
+    0.518038472160697,
+    0.10743871168233454,
+    0.3912642924115062,
+    0.9120727491099387,
+    0.7426153314299881,
+    0.9867616610135883
+   ],
+   "examples": [
+    [
+     "caro",
+     "carro"
+    ],
+    [
+     "casar",
+     "caçar"
+    ]
+   ],
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachPhIntro",
+     "fields": {},
+     "pair": null,
+     "sounding": null,
+     "speak": [],
+     "diff": null
+    },
+    {
+     "kind": "pair",
+     "key": "teachPhSpot",
+     "fields": {
+      "a": "caro",
+      "b": "carro",
+      "da": "r",
+      "db": "rr"
+     },
+     "pair": [
+      "caro",
+      "carro"
+     ],
+     "sounding": null,
+     "speak": [
+      "caro",
+      "carro"
+     ],
+     "diff": {
+      "a": [
+       2,
+       3
+      ],
+      "b": [
+       2,
+       4
+      ]
+     }
+    },
+    {
+     "kind": "probe",
+     "key": "teachPhProbe",
+     "fields": {},
+     "pair": [
+      "caro",
+      "carro"
+     ],
+     "sounding": 1,
+     "speak": [
+      "carro"
+     ],
+     "diff": {
+      "a": [
+       2,
+       3
+      ],
+      "b": [
+       2,
+       4
+      ]
+     }
+    },
+    {
+     "kind": "answer",
+     "key": "teachPhAnswerSpot",
+     "fields": {
+      "w": "carro",
+      "dx": "rr"
+     },
+     "pair": [
+      "caro",
+      "carro"
+     ],
+     "sounding": 1,
+     "speak": [
+      "carro"
+     ],
+     "diff": {
+      "a": [
+       2,
+       3
+      ],
+      "b": [
+       2,
+       4
+      ]
+     }
+    },
+    {
+     "kind": "pair",
+     "key": "teachPhSpot",
+     "fields": {
+      "a": "casar",
+      "b": "caçar",
+      "da": "s",
+      "db": "ç"
+     },
+     "pair": [
+      "casar",
+      "caçar"
+     ],
+     "sounding": null,
+     "speak": [
+      "casar",
+      "caçar"
+     ],
+     "diff": {
+      "a": [
+       2,
+       3
+      ],
+      "b": [
+       2,
+       3
+      ]
+     }
+    },
+    {
+     "kind": "probe",
+     "key": "teachPhProbe",
+     "fields": {},
+     "pair": [
+      "casar",
+      "caçar"
+     ],
+     "sounding": 1,
+     "speak": [
+      "caçar"
+     ],
+     "diff": {
+      "a": [
+       2,
+       3
+      ],
+      "b": [
+       2,
+       3
+      ]
+     }
+    },
+    {
+     "kind": "answer",
+     "key": "teachPhAnswerSpot",
+     "fields": {
+      "w": "caçar",
+      "dx": "ç"
+     },
+     "pair": [
+      "casar",
+      "caçar"
+     ],
+     "sounding": 1,
+     "speak": [
+      "caçar"
+     ],
+     "diff": {
+      "a": [
+       2,
+       3
+      ],
+      "b": [
+       2,
+       3
+      ]
+     }
+    },
+    {
+     "kind": "done",
+     "key": "teachPhDone",
+     "fields": {},
+     "pair": null,
+     "sounding": null,
+     "speak": [],
+     "diff": null
+    }
+   ]
+  },
+  {
+   "note": "до партии",
+   "lang": "zh",
+   "pool": [
+    [
+     "山",
+     "三"
+    ],
+    [
+     "事",
+     "四"
+    ],
+    [
+     "找",
+     "早"
+    ],
+    [
+     "饭",
+     "放"
+    ],
+    [
+     "分",
+     "风"
+    ],
+    [
+     "班",
+     "帮"
+    ],
+    [
+     "睡",
+     "岁"
+    ]
+   ],
+   "exclude": null,
+   "stream": [
+    0.3031555782072246,
+    0.5319406231865287,
+    0.1343393912538886,
+    0.06645348644815385,
+    0.5368478002492338,
+    0.28931077430024743,
+    0.665833875304088,
+    0.4732185525353998
+   ],
+   "examples": [
+    [
+     "睡",
+     "岁"
+    ],
+    [
+     "班",
+     "帮"
+    ]
+   ],
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachPhIntro",
+     "fields": {},
+     "pair": null,
+     "sounding": null,
+     "speak": [],
+     "diff": null
+    },
+    {
+     "kind": "pair",
+     "key": "teachPhSpot",
+     "fields": {
+      "a": "睡 shuì",
+      "b": "岁 suì",
+      "da": "sh",
+      "db": "s"
+     },
+     "pair": [
+      "睡",
+      "岁"
+     ],
+     "sounding": null,
+     "speak": [
+      "睡",
+      "岁"
+     ],
+     "diff": {
+      "a": [
+       0,
+       2
+      ],
+      "b": [
+       0,
+       1
+      ]
+     }
+    },
+    {
+     "kind": "probe",
+     "key": "teachPhProbe",
+     "fields": {},
+     "pair": [
+      "睡",
+      "岁"
+     ],
+     "sounding": 1,
+     "speak": [
+      "岁"
+     ],
+     "diff": {
+      "a": [
+       0,
+       2
+      ],
+      "b": [
+       0,
+       1
+      ]
+     }
+    },
+    {
+     "kind": "answer",
+     "key": "teachPhAnswerSpot",
+     "fields": {
+      "w": "岁 suì",
+      "dx": "s"
+     },
+     "pair": [
+      "睡",
+      "岁"
+     ],
+     "sounding": 1,
+     "speak": [
+      "岁"
+     ],
+     "diff": {
+      "a": [
+       0,
+       2
+      ],
+      "b": [
+       0,
+       1
+      ]
+     }
+    },
+    {
+     "kind": "pair",
+     "key": "teachPhSpot",
+     "fields": {
+      "a": "班 bān",
+      "b": "帮 bāng",
+      "da": "n",
+      "db": "ng"
+     },
+     "pair": [
+      "班",
+      "帮"
+     ],
+     "sounding": null,
+     "speak": [
+      "班",
+      "帮"
+     ],
+     "diff": {
+      "a": [
+       2,
+       3
+      ],
+      "b": [
+       2,
+       4
+      ]
+     }
+    },
+    {
+     "kind": "probe",
+     "key": "teachPhProbe",
+     "fields": {},
+     "pair": [
+      "班",
+      "帮"
+     ],
+     "sounding": 0,
+     "speak": [
+      "班"
+     ],
+     "diff": {
+      "a": [
+       2,
+       3
+      ],
+      "b": [
+       2,
+       4
+      ]
+     }
+    },
+    {
+     "kind": "answer",
+     "key": "teachPhAnswerSpot",
+     "fields": {
+      "w": "班 bān",
+      "dx": "n"
+     },
+     "pair": [
+      "班",
+      "帮"
+     ],
+     "sounding": 0,
+     "speak": [
+      "班"
+     ],
+     "diff": {
+      "a": [
+       2,
+       3
+      ],
+      "b": [
+       2,
+       4
+      ]
+     }
+    },
+    {
+     "kind": "done",
+     "key": "teachPhDone",
+     "fields": {},
+     "pair": null,
+     "sounding": null,
+     "speak": [],
+     "diff": null
+    }
+   ]
+  },
+  {
+   "note": "текущая пара",
+   "lang": "zh",
+   "pool": [
+    [
+     "山",
+     "三"
+    ],
+    [
+     "事",
+     "四"
+    ],
+    [
+     "找",
+     "早"
+    ],
+    [
+     "饭",
+     "放"
+    ],
+    [
+     "分",
+     "风"
+    ],
+    [
+     "班",
+     "帮"
+    ],
+    [
+     "睡",
+     "岁"
+    ]
+   ],
+   "exclude": [
+    "山",
+    "三"
+   ],
+   "stream": [
+    0.8072620644234121,
+    0.3592068466823548,
+    0.6298719490878284,
+    0.47807516413740814,
+    0.5478226779960096,
+    0.6857925220392644,
+    0.13616473833099008
+   ],
+   "examples": [
+    [
+     "事",
+     "四"
+    ],
+    [
+     "分",
+     "风"
+    ]
+   ],
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachPhIntro",
+     "fields": {},
+     "pair": null,
+     "sounding": null,
+     "speak": [],
+     "diff": null
+    },
+    {
+     "kind": "pair",
+     "key": "teachPhSpot",
+     "fields": {
+      "a": "事 shì",
+      "b": "四 sì",
+      "da": "sh",
+      "db": "s"
+     },
+     "pair": [
+      "事",
+      "四"
+     ],
+     "sounding": null,
+     "speak": [
+      "事",
+      "四"
+     ],
+     "diff": {
+      "a": [
+       0,
+       2
+      ],
+      "b": [
+       0,
+       1
+      ]
+     }
+    },
+    {
+     "kind": "probe",
+     "key": "teachPhProbe",
+     "fields": {},
+     "pair": [
+      "事",
+      "四"
+     ],
+     "sounding": 1,
+     "speak": [
+      "四"
+     ],
+     "diff": {
+      "a": [
+       0,
+       2
+      ],
+      "b": [
+       0,
+       1
+      ]
+     }
+    },
+    {
+     "kind": "answer",
+     "key": "teachPhAnswerSpot",
+     "fields": {
+      "w": "四 sì",
+      "dx": "s"
+     },
+     "pair": [
+      "事",
+      "四"
+     ],
+     "sounding": 1,
+     "speak": [
+      "四"
+     ],
+     "diff": {
+      "a": [
+       0,
+       2
+      ],
+      "b": [
+       0,
+       1
+      ]
+     }
+    },
+    {
+     "kind": "pair",
+     "key": "teachPhSpot",
+     "fields": {
+      "a": "分 fēn",
+      "b": "风 fēng",
+      "da": "n",
+      "db": "ng"
+     },
+     "pair": [
+      "分",
+      "风"
+     ],
+     "sounding": null,
+     "speak": [
+      "分",
+      "风"
+     ],
+     "diff": {
+      "a": [
+       2,
+       3
+      ],
+      "b": [
+       2,
+       4
+      ]
+     }
+    },
+    {
+     "kind": "probe",
+     "key": "teachPhProbe",
+     "fields": {},
+     "pair": [
+      "分",
+      "风"
+     ],
+     "sounding": 0,
+     "speak": [
+      "分"
+     ],
+     "diff": {
+      "a": [
+       2,
+       3
+      ],
+      "b": [
+       2,
+       4
+      ]
+     }
+    },
+    {
+     "kind": "answer",
+     "key": "teachPhAnswerSpot",
+     "fields": {
+      "w": "分 fēn",
+      "dx": "n"
+     },
+     "pair": [
+      "分",
+      "风"
+     ],
+     "sounding": 0,
+     "speak": [
+      "分"
+     ],
+     "diff": {
+      "a": [
+       2,
+       3
+      ],
+      "b": [
+       2,
+       4
+      ]
+     }
+    },
+    {
+     "kind": "done",
+     "key": "teachPhDone",
+     "fields": {},
+     "pair": null,
+     "sounding": null,
+     "speak": [],
+     "diff": null
+    }
+   ]
+  },
+  {
+   "note": "текущая пара в обратном порядке кнопок",
+   "lang": "zh",
+   "pool": [
+    [
+     "山",
+     "三"
+    ],
+    [
+     "事",
+     "四"
+    ],
+    [
+     "找",
+     "早"
+    ],
+    [
+     "饭",
+     "放"
+    ],
+    [
+     "分",
+     "风"
+    ],
+    [
+     "班",
+     "帮"
+    ],
+    [
+     "睡",
+     "岁"
+    ]
+   ],
+   "exclude": [
+    "四",
+    "事"
+   ],
+   "stream": [
+    0.6546615262050182,
+    0.3687865494284779,
+    0.013130876934155822,
+    0.7002983444835991,
+    0.9452403851319104,
+    0.7054132705088705,
+    0.26218091743066907
+   ],
+   "examples": [
+    [
+     "睡",
+     "岁"
+    ],
+    [
+     "班",
+     "帮"
+    ]
+   ],
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachPhIntro",
+     "fields": {},
+     "pair": null,
+     "sounding": null,
+     "speak": [],
+     "diff": null
+    },
+    {
+     "kind": "pair",
+     "key": "teachPhSpot",
+     "fields": {
+      "a": "睡 shuì",
+      "b": "岁 suì",
+      "da": "sh",
+      "db": "s"
+     },
+     "pair": [
+      "睡",
+      "岁"
+     ],
+     "sounding": null,
+     "speak": [
+      "睡",
+      "岁"
+     ],
+     "diff": {
+      "a": [
+       0,
+       2
+      ],
+      "b": [
+       0,
+       1
+      ]
+     }
+    },
+    {
+     "kind": "probe",
+     "key": "teachPhProbe",
+     "fields": {},
+     "pair": [
+      "睡",
+      "岁"
+     ],
+     "sounding": 1,
+     "speak": [
+      "岁"
+     ],
+     "diff": {
+      "a": [
+       0,
+       2
+      ],
+      "b": [
+       0,
+       1
+      ]
+     }
+    },
+    {
+     "kind": "answer",
+     "key": "teachPhAnswerSpot",
+     "fields": {
+      "w": "岁 suì",
+      "dx": "s"
+     },
+     "pair": [
+      "睡",
+      "岁"
+     ],
+     "sounding": 1,
+     "speak": [
+      "岁"
+     ],
+     "diff": {
+      "a": [
+       0,
+       2
+      ],
+      "b": [
+       0,
+       1
+      ]
+     }
+    },
+    {
+     "kind": "pair",
+     "key": "teachPhSpot",
+     "fields": {
+      "a": "班 bān",
+      "b": "帮 bāng",
+      "da": "n",
+      "db": "ng"
+     },
+     "pair": [
+      "班",
+      "帮"
+     ],
+     "sounding": null,
+     "speak": [
+      "班",
+      "帮"
+     ],
+     "diff": {
+      "a": [
+       2,
+       3
+      ],
+      "b": [
+       2,
+       4
+      ]
+     }
+    },
+    {
+     "kind": "probe",
+     "key": "teachPhProbe",
+     "fields": {},
+     "pair": [
+      "班",
+      "帮"
+     ],
+     "sounding": 0,
+     "speak": [
+      "班"
+     ],
+     "diff": {
+      "a": [
+       2,
+       3
+      ],
+      "b": [
+       2,
+       4
+      ]
+     }
+    },
+    {
+     "kind": "answer",
+     "key": "teachPhAnswerSpot",
+     "fields": {
+      "w": "班 bān",
+      "dx": "n"
+     },
+     "pair": [
+      "班",
+      "帮"
+     ],
+     "sounding": 0,
+     "speak": [
+      "班"
+     ],
+     "diff": {
+      "a": [
+       2,
+       3
+      ],
+      "b": [
+       2,
+       4
+      ]
+     }
+    },
+    {
+     "kind": "done",
+     "key": "teachPhDone",
+     "fields": {},
+     "pair": null,
+     "sounding": null,
+     "speak": [],
+     "diff": null
+    }
+   ]
+  },
+  {
+   "note": "до партии",
+   "lang": "zh",
+   "pool": [
+    [
+     "山",
+     "三"
+    ],
+    [
+     "事",
+     "四"
+    ],
+    [
+     "找",
+     "早"
+    ],
+    [
+     "饭",
+     "放"
+    ],
+    [
+     "分",
+     "风"
+    ],
+    [
+     "班",
+     "帮"
+    ],
+    [
+     "睡",
+     "岁"
+    ],
+    [
+     "出",
+     "粗"
+    ],
+    [
+     "成",
+     "层"
+    ],
+    [
+     "前",
+     "墙"
+    ],
+    [
+     "进",
+     "静"
+    ],
+    [
+     "人",
+     "仍"
+    ],
+    [
+     "种",
+     "总"
+    ]
+   ],
+   "exclude": null,
+   "stream": [
+    0.5620192165952176,
+    0.5991953550837934,
+    0.7567749626468867,
+    0.9349967236630619,
+    0.9623874756507576,
+    0.44340499537065625,
+    0.7381613764446229,
+    0.626998177729547,
+    0.6127765902783722,
+    0.17803369415923953,
+    0.677538585383445,
+    0.5122336777858436,
+    0.33100151806138456,
+    0.996172125916928
+   ],
+   "examples": [
+    [
+     "分",
+     "风"
+    ],
+    [
+     "事",
+     "四"
+    ]
+   ],
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachPhIntro",
+     "fields": {},
+     "pair": null,
+     "sounding": null,
+     "speak": [],
+     "diff": null
+    },
+    {
+     "kind": "pair",
+     "key": "teachPhSpot",
+     "fields": {
+      "a": "分 fēn",
+      "b": "风 fēng",
+      "da": "n",
+      "db": "ng"
+     },
+     "pair": [
+      "分",
+      "风"
+     ],
+     "sounding": null,
+     "speak": [
+      "分",
+      "风"
+     ],
+     "diff": {
+      "a": [
+       2,
+       3
+      ],
+      "b": [
+       2,
+       4
+      ]
+     }
+    },
+    {
+     "kind": "probe",
+     "key": "teachPhProbe",
+     "fields": {},
+     "pair": [
+      "分",
+      "风"
+     ],
+     "sounding": 0,
+     "speak": [
+      "分"
+     ],
+     "diff": {
+      "a": [
+       2,
+       3
+      ],
+      "b": [
+       2,
+       4
+      ]
+     }
+    },
+    {
+     "kind": "answer",
+     "key": "teachPhAnswerSpot",
+     "fields": {
+      "w": "分 fēn",
+      "dx": "n"
+     },
+     "pair": [
+      "分",
+      "风"
+     ],
+     "sounding": 0,
+     "speak": [
+      "分"
+     ],
+     "diff": {
+      "a": [
+       2,
+       3
+      ],
+      "b": [
+       2,
+       4
+      ]
+     }
+    },
+    {
+     "kind": "pair",
+     "key": "teachPhSpot",
+     "fields": {
+      "a": "事 shì",
+      "b": "四 sì",
+      "da": "sh",
+      "db": "s"
+     },
+     "pair": [
+      "事",
+      "四"
+     ],
+     "sounding": null,
+     "speak": [
+      "事",
+      "四"
+     ],
+     "diff": {
+      "a": [
+       0,
+       2
+      ],
+      "b": [
+       0,
+       1
+      ]
+     }
+    },
+    {
+     "kind": "probe",
+     "key": "teachPhProbe",
+     "fields": {},
+     "pair": [
+      "事",
+      "四"
+     ],
+     "sounding": 1,
+     "speak": [
+      "四"
+     ],
+     "diff": {
+      "a": [
+       0,
+       2
+      ],
+      "b": [
+       0,
+       1
+      ]
+     }
+    },
+    {
+     "kind": "answer",
+     "key": "teachPhAnswerSpot",
+     "fields": {
+      "w": "四 sì",
+      "dx": "s"
+     },
+     "pair": [
+      "事",
+      "四"
+     ],
+     "sounding": 1,
+     "speak": [
+      "四"
+     ],
+     "diff": {
+      "a": [
+       0,
+       2
+      ],
+      "b": [
+       0,
+       1
+      ]
+     }
+    },
+    {
+     "kind": "done",
+     "key": "teachPhDone",
+     "fields": {},
+     "pair": null,
+     "sounding": null,
+     "speak": [],
+     "diff": null
+    }
+   ]
+  },
+  {
+   "note": "текущая пара",
+   "lang": "zh",
+   "pool": [
+    [
+     "山",
+     "三"
+    ],
+    [
+     "事",
+     "四"
+    ],
+    [
+     "找",
+     "早"
+    ],
+    [
+     "饭",
+     "放"
+    ],
+    [
+     "分",
+     "风"
+    ],
+    [
+     "班",
+     "帮"
+    ],
+    [
+     "睡",
+     "岁"
+    ],
+    [
+     "出",
+     "粗"
+    ],
+    [
+     "成",
+     "层"
+    ],
+    [
+     "前",
+     "墙"
+    ],
+    [
+     "进",
+     "静"
+    ],
+    [
+     "人",
+     "仍"
+    ],
+    [
+     "种",
+     "总"
+    ]
+   ],
+   "exclude": [
+    "山",
+    "三"
+   ],
+   "stream": [
+    0.822868068004027,
+    0.11919578770175576,
+    0.1539075777400285,
+    0.7590683263260871,
+    0.22430093586444855,
+    0.06863639876246452,
+    0.15089740115217865,
+    0.1600489893462509,
+    0.11046370957046747,
+    0.520530286245048,
+    0.8703268438111991,
+    0.033738090889528394,
+    0.7032068693079054
+   ],
+   "examples": [
+    [
+     "分",
+     "风"
+    ],
+    [
+     "饭",
+     "放"
+    ]
+   ],
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachPhIntro",
+     "fields": {},
+     "pair": null,
+     "sounding": null,
+     "speak": [],
+     "diff": null
+    },
+    {
+     "kind": "pair",
+     "key": "teachPhSpot",
+     "fields": {
+      "a": "分 fēn",
+      "b": "风 fēng",
+      "da": "n",
+      "db": "ng"
+     },
+     "pair": [
+      "分",
+      "风"
+     ],
+     "sounding": null,
+     "speak": [
+      "分",
+      "风"
+     ],
+     "diff": {
+      "a": [
+       2,
+       3
+      ],
+      "b": [
+       2,
+       4
+      ]
+     }
+    },
+    {
+     "kind": "probe",
+     "key": "teachPhProbe",
+     "fields": {},
+     "pair": [
+      "分",
+      "风"
+     ],
+     "sounding": 0,
+     "speak": [
+      "分"
+     ],
+     "diff": {
+      "a": [
+       2,
+       3
+      ],
+      "b": [
+       2,
+       4
+      ]
+     }
+    },
+    {
+     "kind": "answer",
+     "key": "teachPhAnswerSpot",
+     "fields": {
+      "w": "分 fēn",
+      "dx": "n"
+     },
+     "pair": [
+      "分",
+      "风"
+     ],
+     "sounding": 0,
+     "speak": [
+      "分"
+     ],
+     "diff": {
+      "a": [
+       2,
+       3
+      ],
+      "b": [
+       2,
+       4
+      ]
+     }
+    },
+    {
+     "kind": "pair",
+     "key": "teachPhSpot",
+     "fields": {
+      "a": "饭 fàn",
+      "b": "放 fàng",
+      "da": "n",
+      "db": "ng"
+     },
+     "pair": [
+      "饭",
+      "放"
+     ],
+     "sounding": null,
+     "speak": [
+      "饭",
+      "放"
+     ],
+     "diff": {
+      "a": [
+       2,
+       3
+      ],
+      "b": [
+       2,
+       4
+      ]
+     }
+    },
+    {
+     "kind": "probe",
+     "key": "teachPhProbe",
+     "fields": {},
+     "pair": [
+      "饭",
+      "放"
+     ],
+     "sounding": 1,
+     "speak": [
+      "放"
+     ],
+     "diff": {
+      "a": [
+       2,
+       3
+      ],
+      "b": [
+       2,
+       4
+      ]
+     }
+    },
+    {
+     "kind": "answer",
+     "key": "teachPhAnswerSpot",
+     "fields": {
+      "w": "放 fàng",
+      "dx": "ng"
+     },
+     "pair": [
+      "饭",
+      "放"
+     ],
+     "sounding": 1,
+     "speak": [
+      "放"
+     ],
+     "diff": {
+      "a": [
+       2,
+       3
+      ],
+      "b": [
+       2,
+       4
+      ]
+     }
+    },
+    {
+     "kind": "done",
+     "key": "teachPhDone",
+     "fields": {},
+     "pair": null,
+     "sounding": null,
+     "speak": [],
+     "diff": null
+    }
+   ]
+  },
+  {
+   "note": "текущая пара в обратном порядке кнопок",
+   "lang": "zh",
+   "pool": [
+    [
+     "山",
+     "三"
+    ],
+    [
+     "事",
+     "四"
+    ],
+    [
+     "找",
+     "早"
+    ],
+    [
+     "饭",
+     "放"
+    ],
+    [
+     "分",
+     "风"
+    ],
+    [
+     "班",
+     "帮"
+    ],
+    [
+     "睡",
+     "岁"
+    ],
+    [
+     "出",
+     "粗"
+    ],
+    [
+     "成",
+     "层"
+    ],
+    [
+     "前",
+     "墙"
+    ],
+    [
+     "进",
+     "静"
+    ],
+    [
+     "人",
+     "仍"
+    ],
+    [
+     "种",
+     "总"
+    ]
+   ],
+   "exclude": [
+    "四",
+    "事"
+   ],
+   "stream": [
+    0.4036447599064559,
+    0.9363746827002615,
+    0.47374916169792414,
+    0.7944892281666398,
+    0.29788239765912294,
+    0.8893849840387702,
+    0.6693945780862123,
+    0.07909054472111166,
+    0.8552167492453009,
+    0.42188839172013104,
+    0.5982065750285983,
+    0.4587341716978699,
+    0.17725687311030924
+   ],
+   "examples": [
+    [
+     "睡",
+     "岁"
+    ],
+    [
+     "前",
+     "墙"
+    ]
+   ],
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachPhIntro",
+     "fields": {},
+     "pair": null,
+     "sounding": null,
+     "speak": [],
+     "diff": null
+    },
+    {
+     "kind": "pair",
+     "key": "teachPhSpot",
+     "fields": {
+      "a": "睡 shuì",
+      "b": "岁 suì",
+      "da": "sh",
+      "db": "s"
+     },
+     "pair": [
+      "睡",
+      "岁"
+     ],
+     "sounding": null,
+     "speak": [
+      "睡",
+      "岁"
+     ],
+     "diff": {
+      "a": [
+       0,
+       2
+      ],
+      "b": [
+       0,
+       1
+      ]
+     }
+    },
+    {
+     "kind": "probe",
+     "key": "teachPhProbe",
+     "fields": {},
+     "pair": [
+      "睡",
+      "岁"
+     ],
+     "sounding": 0,
+     "speak": [
+      "睡"
+     ],
+     "diff": {
+      "a": [
+       0,
+       2
+      ],
+      "b": [
+       0,
+       1
+      ]
+     }
+    },
+    {
+     "kind": "answer",
+     "key": "teachPhAnswerSpot",
+     "fields": {
+      "w": "睡 shuì",
+      "dx": "sh"
+     },
+     "pair": [
+      "睡",
+      "岁"
+     ],
+     "sounding": 0,
+     "speak": [
+      "睡"
+     ],
+     "diff": {
+      "a": [
+       0,
+       2
+      ],
+      "b": [
+       0,
+       1
+      ]
+     }
+    },
+    {
+     "kind": "pair",
+     "key": "teachPhSpot",
+     "fields": {
+      "a": "前 qián",
+      "b": "墙 qiáng",
+      "da": "n",
+      "db": "ng"
+     },
+     "pair": [
+      "前",
+      "墙"
+     ],
+     "sounding": null,
+     "speak": [
+      "前",
+      "墙"
+     ],
+     "diff": {
+      "a": [
+       3,
+       4
+      ],
+      "b": [
+       3,
+       5
+      ]
+     }
+    },
+    {
+     "kind": "probe",
+     "key": "teachPhProbe",
+     "fields": {},
+     "pair": [
+      "前",
+      "墙"
+     ],
+     "sounding": 0,
+     "speak": [
+      "前"
+     ],
+     "diff": {
+      "a": [
+       3,
+       4
+      ],
+      "b": [
+       3,
+       5
+      ]
+     }
+    },
+    {
+     "kind": "answer",
+     "key": "teachPhAnswerSpot",
+     "fields": {
+      "w": "前 qián",
+      "dx": "n"
+     },
+     "pair": [
+      "前",
+      "墙"
+     ],
+     "sounding": 0,
+     "speak": [
+      "前"
+     ],
+     "diff": {
+      "a": [
+       3,
+       4
+      ],
+      "b": [
+       3,
+       5
+      ]
+     }
+    },
+    {
+     "kind": "done",
+     "key": "teachPhDone",
+     "fields": {},
+     "pair": null,
+     "sounding": null,
+     "speak": [],
+     "diff": null
+    }
+   ]
+  },
+  {
+   "note": "до партии",
+   "lang": "ru",
+   "pool": [
+    [
+     "дом",
+     "том"
+    ],
+    [
+     "почка",
+     "бочка"
+    ],
+    [
+     "шест",
+     "жест"
+    ],
+    [
+     "мышка",
+     "мишка"
+    ],
+    [
+     "лук",
+     "люк"
+    ],
+    [
+     "банка",
+     "банька"
+    ]
+   ],
+   "exclude": null,
+   "stream": [
+    0.5156495699193329,
+    0.9910667124204338,
+    0.617722749710083,
+    0.27392285061068833,
+    0.4644823628477752,
+    0.9480217357631773,
+    0.9799274953547865
+   ],
+   "examples": [
+    [
+     "почка",
+     "бочка"
+    ],
+    [
+     "банка",
+     "банька"
+    ]
+   ],
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachPhIntro",
+     "fields": {},
+     "pair": null,
+     "sounding": null,
+     "speak": [],
+     "diff": null
+    },
+    {
+     "kind": "pair",
+     "key": "teachPhSpot",
+     "fields": {
+      "a": "почка",
+      "b": "бочка",
+      "da": "п",
+      "db": "б"
+     },
+     "pair": [
+      "почка",
+      "бочка"
+     ],
+     "sounding": null,
+     "speak": [
+      "почка",
+      "бочка"
+     ],
+     "diff": {
+      "a": [
+       0,
+       1
+      ],
+      "b": [
+       0,
+       1
+      ]
+     }
+    },
+    {
+     "kind": "probe",
+     "key": "teachPhProbe",
+     "fields": {},
+     "pair": [
+      "почка",
+      "бочка"
+     ],
+     "sounding": 1,
+     "speak": [
+      "бочка"
+     ],
+     "diff": {
+      "a": [
+       0,
+       1
+      ],
+      "b": [
+       0,
+       1
+      ]
+     }
+    },
+    {
+     "kind": "answer",
+     "key": "teachPhAnswerSpot",
+     "fields": {
+      "w": "бочка",
+      "dx": "б"
+     },
+     "pair": [
+      "почка",
+      "бочка"
+     ],
+     "sounding": 1,
+     "speak": [
+      "бочка"
+     ],
+     "diff": {
+      "a": [
+       0,
+       1
+      ],
+      "b": [
+       0,
+       1
+      ]
+     }
+    },
+    {
+     "kind": "pair",
+     "key": "teachPhSpot",
+     "fields": {
+      "a": "банка",
+      "b": "банька",
+      "da": "н",
+      "db": "нь"
+     },
+     "pair": [
+      "банка",
+      "банька"
+     ],
+     "sounding": null,
+     "speak": [
+      "банка",
+      "банька"
+     ],
+     "diff": {
+      "a": [
+       2,
+       3
+      ],
+      "b": [
+       2,
+       4
+      ]
+     }
+    },
+    {
+     "kind": "probe",
+     "key": "teachPhProbe",
+     "fields": {},
+     "pair": [
+      "банка",
+      "банька"
+     ],
+     "sounding": 1,
+     "speak": [
+      "банька"
+     ],
+     "diff": {
+      "a": [
+       2,
+       3
+      ],
+      "b": [
+       2,
+       4
+      ]
+     }
+    },
+    {
+     "kind": "answer",
+     "key": "teachPhAnswerSpot",
+     "fields": {
+      "w": "банька",
+      "dx": "нь"
+     },
+     "pair": [
+      "банка",
+      "банька"
+     ],
+     "sounding": 1,
+     "speak": [
+      "банька"
+     ],
+     "diff": {
+      "a": [
+       2,
+       3
+      ],
+      "b": [
+       2,
+       4
+      ]
+     }
+    },
+    {
+     "kind": "done",
+     "key": "teachPhDone",
+     "fields": {},
+     "pair": null,
+     "sounding": null,
+     "speak": [],
+     "diff": null
+    }
+   ]
+  },
+  {
+   "note": "текущая пара",
+   "lang": "ru",
+   "pool": [
+    [
+     "дом",
+     "том"
+    ],
+    [
+     "почка",
+     "бочка"
+    ],
+    [
+     "шест",
+     "жест"
+    ],
+    [
+     "мышка",
+     "мишка"
+    ],
+    [
+     "лук",
+     "люк"
+    ],
+    [
+     "банка",
+     "банька"
+    ]
+   ],
+   "exclude": [
+    "дом",
+    "том"
+   ],
+   "stream": [
+    0.3070970717817545,
+    0.759923002216965,
+    0.563055234728381,
+    0.8181458590552211,
+    0.9060801460873336,
+    0.48569825827144086
+   ],
+   "examples": [
+    [
+     "почка",
+     "бочка"
+    ],
+    [
+     "мышка",
+     "мишка"
+    ]
+   ],
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachPhIntro",
+     "fields": {},
+     "pair": null,
+     "sounding": null,
+     "speak": [],
+     "diff": null
+    },
+    {
+     "kind": "pair",
+     "key": "teachPhSpot",
+     "fields": {
+      "a": "почка",
+      "b": "бочка",
+      "da": "п",
+      "db": "б"
+     },
+     "pair": [
+      "почка",
+      "бочка"
+     ],
+     "sounding": null,
+     "speak": [
+      "почка",
+      "бочка"
+     ],
+     "diff": {
+      "a": [
+       0,
+       1
+      ],
+      "b": [
+       0,
+       1
+      ]
+     }
+    },
+    {
+     "kind": "probe",
+     "key": "teachPhProbe",
+     "fields": {},
+     "pair": [
+      "почка",
+      "бочка"
+     ],
+     "sounding": 1,
+     "speak": [
+      "бочка"
+     ],
+     "diff": {
+      "a": [
+       0,
+       1
+      ],
+      "b": [
+       0,
+       1
+      ]
+     }
+    },
+    {
+     "kind": "answer",
+     "key": "teachPhAnswerSpot",
+     "fields": {
+      "w": "бочка",
+      "dx": "б"
+     },
+     "pair": [
+      "почка",
+      "бочка"
+     ],
+     "sounding": 1,
+     "speak": [
+      "бочка"
+     ],
+     "diff": {
+      "a": [
+       0,
+       1
+      ],
+      "b": [
+       0,
+       1
+      ]
+     }
+    },
+    {
+     "kind": "pair",
+     "key": "teachPhSpot",
+     "fields": {
+      "a": "мышка",
+      "b": "мишка",
+      "da": "ы",
+      "db": "и"
+     },
+     "pair": [
+      "мышка",
+      "мишка"
+     ],
+     "sounding": null,
+     "speak": [
+      "мышка",
+      "мишка"
+     ],
+     "diff": {
+      "a": [
+       1,
+       2
+      ],
+      "b": [
+       1,
+       2
+      ]
+     }
+    },
+    {
+     "kind": "probe",
+     "key": "teachPhProbe",
+     "fields": {},
+     "pair": [
+      "мышка",
+      "мишка"
+     ],
+     "sounding": 0,
+     "speak": [
+      "мышка"
+     ],
+     "diff": {
+      "a": [
+       1,
+       2
+      ],
+      "b": [
+       1,
+       2
+      ]
+     }
+    },
+    {
+     "kind": "answer",
+     "key": "teachPhAnswerSpot",
+     "fields": {
+      "w": "мышка",
+      "dx": "ы"
+     },
+     "pair": [
+      "мышка",
+      "мишка"
+     ],
+     "sounding": 0,
+     "speak": [
+      "мышка"
+     ],
+     "diff": {
+      "a": [
+       1,
+       2
+      ],
+      "b": [
+       1,
+       2
+      ]
+     }
+    },
+    {
+     "kind": "done",
+     "key": "teachPhDone",
+     "fields": {},
+     "pair": null,
+     "sounding": null,
+     "speak": [],
+     "diff": null
+    }
+   ]
+  },
+  {
+   "note": "текущая пара в обратном порядке кнопок",
+   "lang": "ru",
+   "pool": [
+    [
+     "дом",
+     "том"
+    ],
+    [
+     "почка",
+     "бочка"
+    ],
+    [
+     "шест",
+     "жест"
+    ],
+    [
+     "мышка",
+     "мишка"
+    ],
+    [
+     "лук",
+     "люк"
+    ],
+    [
+     "банка",
+     "банька"
+    ]
+   ],
+   "exclude": [
+    "бочка",
+    "почка"
+   ],
+   "stream": [
+    0.24380859010852873,
+    0.586631968151778,
+    0.8092181733809412,
+    0.490900834556669,
+    0.12094415817409754,
+    0.03748511988669634
+   ],
+   "examples": [
+    [
+     "банка",
+     "банька"
+    ],
+    [
+     "дом",
+     "том"
+    ]
+   ],
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachPhIntro",
+     "fields": {},
+     "pair": null,
+     "sounding": null,
+     "speak": [],
+     "diff": null
+    },
+    {
+     "kind": "pair",
+     "key": "teachPhSpot",
+     "fields": {
+      "a": "банка",
+      "b": "банька",
+      "da": "н",
+      "db": "нь"
+     },
+     "pair": [
+      "банка",
+      "банька"
+     ],
+     "sounding": null,
+     "speak": [
+      "банка",
+      "банька"
+     ],
+     "diff": {
+      "a": [
+       2,
+       3
+      ],
+      "b": [
+       2,
+       4
+      ]
+     }
+    },
+    {
+     "kind": "probe",
+     "key": "teachPhProbe",
+     "fields": {},
+     "pair": [
+      "банка",
+      "банька"
+     ],
+     "sounding": 0,
+     "speak": [
+      "банка"
+     ],
+     "diff": {
+      "a": [
+       2,
+       3
+      ],
+      "b": [
+       2,
+       4
+      ]
+     }
+    },
+    {
+     "kind": "answer",
+     "key": "teachPhAnswerSpot",
+     "fields": {
+      "w": "банка",
+      "dx": "н"
+     },
+     "pair": [
+      "банка",
+      "банька"
+     ],
+     "sounding": 0,
+     "speak": [
+      "банка"
+     ],
+     "diff": {
+      "a": [
+       2,
+       3
+      ],
+      "b": [
+       2,
+       4
+      ]
+     }
+    },
+    {
+     "kind": "pair",
+     "key": "teachPhSpot",
+     "fields": {
+      "a": "дом",
+      "b": "том",
+      "da": "д",
+      "db": "т"
+     },
+     "pair": [
+      "дом",
+      "том"
+     ],
+     "sounding": null,
+     "speak": [
+      "дом",
+      "том"
+     ],
+     "diff": {
+      "a": [
+       0,
+       1
+      ],
+      "b": [
+       0,
+       1
+      ]
+     }
+    },
+    {
+     "kind": "probe",
+     "key": "teachPhProbe",
+     "fields": {},
+     "pair": [
+      "дом",
+      "том"
+     ],
+     "sounding": 0,
+     "speak": [
+      "дом"
+     ],
+     "diff": {
+      "a": [
+       0,
+       1
+      ],
+      "b": [
+       0,
+       1
+      ]
+     }
+    },
+    {
+     "kind": "answer",
+     "key": "teachPhAnswerSpot",
+     "fields": {
+      "w": "дом",
+      "dx": "д"
+     },
+     "pair": [
+      "дом",
+      "том"
+     ],
+     "sounding": 0,
+     "speak": [
+      "дом"
+     ],
+     "diff": {
+      "a": [
+       0,
+       1
+      ],
+      "b": [
+       0,
+       1
+      ]
+     }
+    },
+    {
+     "kind": "done",
+     "key": "teachPhDone",
+     "fields": {},
+     "pair": null,
+     "sounding": null,
+     "speak": [],
+     "diff": null
+    }
+   ]
+  },
+  {
+   "note": "до партии",
+   "lang": "ru",
+   "pool": [
+    [
+     "дом",
+     "том"
+    ],
+    [
+     "почка",
+     "бочка"
+    ],
+    [
+     "шест",
+     "жест"
+    ],
+    [
+     "мышка",
+     "мишка"
+    ],
+    [
+     "лук",
+     "люк"
+    ],
+    [
+     "банка",
+     "банька"
+    ],
+    [
+     "полка",
+     "полька"
+    ],
+    [
+     "мел",
+     "мель"
+    ],
+    [
+     "угол",
+     "уголь"
+    ],
+    [
+     "кров",
+     "кровь"
+    ],
+    [
+     "рад",
+     "ряд"
+    ],
+    [
+     "быть",
+     "бить"
+    ]
+   ],
+   "exclude": null,
+   "stream": [
+    0.9361179827246815,
+    0.5964013065677136,
+    0.4560866607353091,
+    0.013098062481731176,
+    0.08480082079768181,
+    0.8745968469884247,
+    0.02102809539064765,
+    0.48928854521363974,
+    0.2783561861142516,
+    0.6156459844205528,
+    0.232230631634593,
+    0.8958446430042386,
+    0.9304872723296285
+   ],
+   "examples": [
+    [
+     "кров",
+     "кровь"
+    ],
+    [
+     "банка",
+     "банька"
+    ]
+   ],
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachPhIntro",
+     "fields": {},
+     "pair": null,
+     "sounding": null,
+     "speak": [],
+     "diff": null
+    },
+    {
+     "kind": "pair",
+     "key": "teachPhSpot",
+     "fields": {
+      "a": "кров",
+      "b": "кровь",
+      "da": "в",
+      "db": "вь"
+     },
+     "pair": [
+      "кров",
+      "кровь"
+     ],
+     "sounding": null,
+     "speak": [
+      "кров",
+      "кровь"
+     ],
+     "diff": {
+      "a": [
+       3,
+       4
+      ],
+      "b": [
+       3,
+       5
+      ]
+     }
+    },
+    {
+     "kind": "probe",
+     "key": "teachPhProbe",
+     "fields": {},
+     "pair": [
+      "кров",
+      "кровь"
+     ],
+     "sounding": 1,
+     "speak": [
+      "кровь"
+     ],
+     "diff": {
+      "a": [
+       3,
+       4
+      ],
+      "b": [
+       3,
+       5
+      ]
+     }
+    },
+    {
+     "kind": "answer",
+     "key": "teachPhAnswerSpot",
+     "fields": {
+      "w": "кровь",
+      "dx": "вь"
+     },
+     "pair": [
+      "кров",
+      "кровь"
+     ],
+     "sounding": 1,
+     "speak": [
+      "кровь"
+     ],
+     "diff": {
+      "a": [
+       3,
+       4
+      ],
+      "b": [
+       3,
+       5
+      ]
+     }
+    },
+    {
+     "kind": "pair",
+     "key": "teachPhSpot",
+     "fields": {
+      "a": "банка",
+      "b": "банька",
+      "da": "н",
+      "db": "нь"
+     },
+     "pair": [
+      "банка",
+      "банька"
+     ],
+     "sounding": null,
+     "speak": [
+      "банка",
+      "банька"
+     ],
+     "diff": {
+      "a": [
+       2,
+       3
+      ],
+      "b": [
+       2,
+       4
+      ]
+     }
+    },
+    {
+     "kind": "probe",
+     "key": "teachPhProbe",
+     "fields": {},
+     "pair": [
+      "банка",
+      "банька"
+     ],
+     "sounding": 1,
+     "speak": [
+      "банька"
+     ],
+     "diff": {
+      "a": [
+       2,
+       3
+      ],
+      "b": [
+       2,
+       4
+      ]
+     }
+    },
+    {
+     "kind": "answer",
+     "key": "teachPhAnswerSpot",
+     "fields": {
+      "w": "банька",
+      "dx": "нь"
+     },
+     "pair": [
+      "банка",
+      "банька"
+     ],
+     "sounding": 1,
+     "speak": [
+      "банька"
+     ],
+     "diff": {
+      "a": [
+       2,
+       3
+      ],
+      "b": [
+       2,
+       4
+      ]
+     }
+    },
+    {
+     "kind": "done",
+     "key": "teachPhDone",
+     "fields": {},
+     "pair": null,
+     "sounding": null,
+     "speak": [],
+     "diff": null
+    }
+   ]
+  },
+  {
+   "note": "текущая пара",
+   "lang": "ru",
+   "pool": [
+    [
+     "дом",
+     "том"
+    ],
+    [
+     "почка",
+     "бочка"
+    ],
+    [
+     "шест",
+     "жест"
+    ],
+    [
+     "мышка",
+     "мишка"
+    ],
+    [
+     "лук",
+     "люк"
+    ],
+    [
+     "банка",
+     "банька"
+    ],
+    [
+     "полка",
+     "полька"
+    ],
+    [
+     "мел",
+     "мель"
+    ],
+    [
+     "угол",
+     "уголь"
+    ],
+    [
+     "кров",
+     "кровь"
+    ],
+    [
+     "рад",
+     "ряд"
+    ],
+    [
+     "быть",
+     "бить"
+    ]
+   ],
+   "exclude": [
+    "дом",
+    "том"
+   ],
+   "stream": [
+    0.461488941218704,
+    0.7735638511367142,
+    0.580737327458337,
+    0.6360471753869206,
+    0.47201478155329823,
+    0.5355287347920239,
+    0.7691930399741977,
+    0.15274867648258805,
+    0.7241373641882092,
+    0.5007533819880337,
+    0.6433411557227373,
+    0.7327963416464627
+   ],
+   "examples": [
+    [
+     "банка",
+     "банька"
+    ],
+    [
+     "шест",
+     "жест"
+    ]
+   ],
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachPhIntro",
+     "fields": {},
+     "pair": null,
+     "sounding": null,
+     "speak": [],
+     "diff": null
+    },
+    {
+     "kind": "pair",
+     "key": "teachPhSpot",
+     "fields": {
+      "a": "банка",
+      "b": "банька",
+      "da": "н",
+      "db": "нь"
+     },
+     "pair": [
+      "банка",
+      "банька"
+     ],
+     "sounding": null,
+     "speak": [
+      "банка",
+      "банька"
+     ],
+     "diff": {
+      "a": [
+       2,
+       3
+      ],
+      "b": [
+       2,
+       4
+      ]
+     }
+    },
+    {
+     "kind": "probe",
+     "key": "teachPhProbe",
+     "fields": {},
+     "pair": [
+      "банка",
+      "банька"
+     ],
+     "sounding": 1,
+     "speak": [
+      "банька"
+     ],
+     "diff": {
+      "a": [
+       2,
+       3
+      ],
+      "b": [
+       2,
+       4
+      ]
+     }
+    },
+    {
+     "kind": "answer",
+     "key": "teachPhAnswerSpot",
+     "fields": {
+      "w": "банька",
+      "dx": "нь"
+     },
+     "pair": [
+      "банка",
+      "банька"
+     ],
+     "sounding": 1,
+     "speak": [
+      "банька"
+     ],
+     "diff": {
+      "a": [
+       2,
+       3
+      ],
+      "b": [
+       2,
+       4
+      ]
+     }
+    },
+    {
+     "kind": "pair",
+     "key": "teachPhSpot",
+     "fields": {
+      "a": "шест",
+      "b": "жест",
+      "da": "ш",
+      "db": "ж"
+     },
+     "pair": [
+      "шест",
+      "жест"
+     ],
+     "sounding": null,
+     "speak": [
+      "шест",
+      "жест"
+     ],
+     "diff": {
+      "a": [
+       0,
+       1
+      ],
+      "b": [
+       0,
+       1
+      ]
+     }
+    },
+    {
+     "kind": "probe",
+     "key": "teachPhProbe",
+     "fields": {},
+     "pair": [
+      "шест",
+      "жест"
+     ],
+     "sounding": 1,
+     "speak": [
+      "жест"
+     ],
+     "diff": {
+      "a": [
+       0,
+       1
+      ],
+      "b": [
+       0,
+       1
+      ]
+     }
+    },
+    {
+     "kind": "answer",
+     "key": "teachPhAnswerSpot",
+     "fields": {
+      "w": "жест",
+      "dx": "ж"
+     },
+     "pair": [
+      "шест",
+      "жест"
+     ],
+     "sounding": 1,
+     "speak": [
+      "жест"
+     ],
+     "diff": {
+      "a": [
+       0,
+       1
+      ],
+      "b": [
+       0,
+       1
+      ]
+     }
+    },
+    {
+     "kind": "done",
+     "key": "teachPhDone",
+     "fields": {},
+     "pair": null,
+     "sounding": null,
+     "speak": [],
+     "diff": null
+    }
+   ]
+  },
+  {
+   "note": "текущая пара в обратном порядке кнопок",
+   "lang": "ru",
+   "pool": [
+    [
+     "дом",
+     "том"
+    ],
+    [
+     "почка",
+     "бочка"
+    ],
+    [
+     "шест",
+     "жест"
+    ],
+    [
+     "мышка",
+     "мишка"
+    ],
+    [
+     "лук",
+     "люк"
+    ],
+    [
+     "банка",
+     "банька"
+    ],
+    [
+     "полка",
+     "полька"
+    ],
+    [
+     "мел",
+     "мель"
+    ],
+    [
+     "угол",
+     "уголь"
+    ],
+    [
+     "кров",
+     "кровь"
+    ],
+    [
+     "рад",
+     "ряд"
+    ],
+    [
+     "быть",
+     "бить"
+    ]
+   ],
+   "exclude": [
+    "бочка",
+    "почка"
+   ],
+   "stream": [
+    0.9481995599344373,
+    0.1097373676020652,
+    0.9306409803684801,
+    0.9887187513522804,
+    0.7592341424897313,
+    0.5926804766058922,
+    0.6508761935401708,
+    0.7381660982500762,
+    0.3686619852669537,
+    0.5072371419519186,
+    0.614881289890036,
+    0.9359146161004901
+   ],
+   "examples": [
+    [
+     "дом",
+     "том"
+    ],
+    [
+     "банка",
+     "банька"
+    ]
+   ],
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachPhIntro",
+     "fields": {},
+     "pair": null,
+     "sounding": null,
+     "speak": [],
+     "diff": null
+    },
+    {
+     "kind": "pair",
+     "key": "teachPhSpot",
+     "fields": {
+      "a": "дом",
+      "b": "том",
+      "da": "д",
+      "db": "т"
+     },
+     "pair": [
+      "дом",
+      "том"
+     ],
+     "sounding": null,
+     "speak": [
+      "дом",
+      "том"
+     ],
+     "diff": {
+      "a": [
+       0,
+       1
+      ],
+      "b": [
+       0,
+       1
+      ]
+     }
+    },
+    {
+     "kind": "probe",
+     "key": "teachPhProbe",
+     "fields": {},
+     "pair": [
+      "дом",
+      "том"
+     ],
+     "sounding": 1,
+     "speak": [
+      "том"
+     ],
+     "diff": {
+      "a": [
+       0,
+       1
+      ],
+      "b": [
+       0,
+       1
+      ]
+     }
+    },
+    {
+     "kind": "answer",
+     "key": "teachPhAnswerSpot",
+     "fields": {
+      "w": "том",
+      "dx": "т"
+     },
+     "pair": [
+      "дом",
+      "том"
+     ],
+     "sounding": 1,
+     "speak": [
+      "том"
+     ],
+     "diff": {
+      "a": [
+       0,
+       1
+      ],
+      "b": [
+       0,
+       1
+      ]
+     }
+    },
+    {
+     "kind": "pair",
+     "key": "teachPhSpot",
+     "fields": {
+      "a": "банка",
+      "b": "банька",
+      "da": "н",
+      "db": "нь"
+     },
+     "pair": [
+      "банка",
+      "банька"
+     ],
+     "sounding": null,
+     "speak": [
+      "банка",
+      "банька"
+     ],
+     "diff": {
+      "a": [
+       2,
+       3
+      ],
+      "b": [
+       2,
+       4
+      ]
+     }
+    },
+    {
+     "kind": "probe",
+     "key": "teachPhProbe",
+     "fields": {},
+     "pair": [
+      "банка",
+      "банька"
+     ],
+     "sounding": 1,
+     "speak": [
+      "банька"
+     ],
+     "diff": {
+      "a": [
+       2,
+       3
+      ],
+      "b": [
+       2,
+       4
+      ]
+     }
+    },
+    {
+     "kind": "answer",
+     "key": "teachPhAnswerSpot",
+     "fields": {
+      "w": "банька",
+      "dx": "нь"
+     },
+     "pair": [
+      "банка",
+      "банька"
+     ],
+     "sounding": 1,
+     "speak": [
+      "банька"
+     ],
+     "diff": {
+      "a": [
+       2,
+       3
+      ],
+      "b": [
+       2,
+       4
+      ]
+     }
+    },
+    {
+     "kind": "done",
+     "key": "teachPhDone",
+     "fields": {},
+     "pair": null,
+     "sounding": null,
+     "speak": [],
+     "diff": null
+    }
+   ]
+  },
+  {
+   "note": "из двух пар одна текущая — один пример",
+   "lang": "ru",
+   "pool": [
+    [
+     "дом",
+     "том"
+    ],
+    [
+     "почка",
+     "бочка"
+    ]
+   ],
+   "exclude": [
+    "дом",
+    "том"
+   ],
+   "stream": [
+    0.7768852992448956
+   ],
+   "examples": [
+    [
+     "почка",
+     "бочка"
+    ]
+   ],
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachPhIntro",
+     "fields": {},
+     "pair": null,
+     "sounding": null,
+     "speak": [],
+     "diff": null
+    },
+    {
+     "kind": "pair",
+     "key": "teachPhSpot",
+     "fields": {
+      "a": "почка",
+      "b": "бочка",
+      "da": "п",
+      "db": "б"
+     },
+     "pair": [
+      "почка",
+      "бочка"
+     ],
+     "sounding": null,
+     "speak": [
+      "почка",
+      "бочка"
+     ],
+     "diff": {
+      "a": [
+       0,
+       1
+      ],
+      "b": [
+       0,
+       1
+      ]
+     }
+    },
+    {
+     "kind": "probe",
+     "key": "teachPhProbe",
+     "fields": {},
+     "pair": [
+      "почка",
+      "бочка"
+     ],
+     "sounding": 1,
+     "speak": [
+      "бочка"
+     ],
+     "diff": {
+      "a": [
+       0,
+       1
+      ],
+      "b": [
+       0,
+       1
+      ]
+     }
+    },
+    {
+     "kind": "answer",
+     "key": "teachPhAnswerSpot",
+     "fields": {
+      "w": "бочка",
+      "dx": "б"
+     },
+     "pair": [
+      "почка",
+      "бочка"
+     ],
+     "sounding": 1,
+     "speak": [
+      "бочка"
+     ],
+     "diff": {
+      "a": [
+       0,
+       1
+      ],
+      "b": [
+       0,
+       1
+      ]
+     }
+    },
+    {
+     "kind": "done",
+     "key": "teachPhDone",
+     "fields": {},
+     "pair": null,
+     "sounding": null,
+     "speak": [],
+     "diff": null
+    }
+   ]
+  },
+  {
+   "note": "единственная пара текущая — примеров нет",
+   "lang": "ru",
+   "pool": [
+    [
+     "дом",
+     "том"
+    ]
+   ],
+   "exclude": [
+    "дом",
+    "том"
+   ],
+   "stream": [],
+   "examples": [],
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachPhIntro",
+     "fields": {},
+     "pair": null,
+     "sounding": null,
+     "speak": [],
+     "diff": null
+    },
+    {
+     "kind": "done",
+     "key": "teachPhDone",
+     "fields": {},
+     "pair": null,
+     "sounding": null,
+     "speak": [],
+     "diff": null
+    }
+   ]
+  }
+ ]
+}

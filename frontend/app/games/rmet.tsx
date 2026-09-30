@@ -25,7 +25,7 @@
  * копирайтом. Неверным было не это, а название и заявление о валидированности.
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity,
   ScrollView, Image
@@ -50,6 +50,9 @@ import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import LevelCleared from '@/src/components/LevelCleared';
+import LessonPlayer from '@/src/components/LessonPlayer';
+import { GameAuxAction } from '@/src/components/GameAuxAction';
+import { собратьРазборЭмоций, type КарточкаЭмоции } from '@/src/games/rmet/teach';
 import { gameNow } from '@/src/services/gamePause';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 
@@ -291,7 +294,46 @@ export default function RMETGame() {
 
   useEffect(() => () => { if (fbTimerRef.current) clearTimeout(fbTimerRef.current); }, []);
 
+  /**
+   * 🎓 РАЗБОР ПО ШАГАМ (Денис 17.09.2026: «раскатывай везде»). Учит чтению: признаки глаз →
+   * сравнение с соседними словами → выбор (`src/games/rmet/teach.ts`). Материал — пункты самой
+   * игры, пример никогда не совпадает с текущим заданием. Только на первых трёх уровнях.
+   *
+   * 🔴 ПАРТИЯ С РАЗБОРОМ НЕ ЗАСЧИТЫВАЕТСЯ: пример — пункт этой же игры, и в партии из 18 он ещё
+   * встретится. Такая партия не двигает счётчик, не пишет звёзд и помечена в истории `lesson`.
+   */
+  const [урок, setУрок] = useState<{ карточки: КарточкаЭмоции[]; индекс: number } | null>(null);
+  const карточкаУрока = урок ? урок.карточки[урок.индекс] : null;
+  const урокВПартииRef = useRef(false);
+  const [итогСРазбором, setИтогСРазбором] = useState(false);
+  const разборДоступен = phase === 'playing' && runs.level <= 3 && items.length > 0;
+  const начатьРазбор = () => {
+    const сейчас = items[round];
+    const текущее = сейчас ? ITEMS.findIndex((x) => x.correct_en === сейчас.correct_en) : -1;
+    урокВПартииRef.current = true;
+    setУрок({ карточки: собратьРазборЭмоций(ITEMS, language, текущее >= 0 ? текущее : null).карточки, индекс: 0 });
+  };
+  /** Ссылки стабильные: плеер ведёт шаги таймером в эффекте с этими обработчиками в зависимостях. */
+  const урокДальше = useCallback(
+    () => setУрок((у) => (у && у.индекс + 1 < у.карточки.length ? { ...у, индекс: у.индекс + 1 } : у)),
+    [],
+  );
+  const урокНазад = useCallback(
+    () => setУрок((у) => (у && у.индекс > 0 ? { ...у, индекс: у.индекс - 1 } : у)),
+    [],
+  );
+  const урокЗакрыть = useCallback(() => setУрок(null), []);
+  const текстУрока = карточкаУрока
+    ? Object.entries(карточкаУрока.поля ?? {}).reduce(
+      (текст, [ключ, знач]) => текст.replace(new RegExp(`\\{${ключ}\\}`, 'g'), String(знач)),
+      t(карточкаУрока.ключ) as string,
+    )
+    : '';
+
   const startGame = () => {
+    урокВПартииRef.current = false;
+    setИтогСРазбором(false);
+    setУрок(null);
     const picked = shuffle(ITEMS).slice(0, trialsCount).map((it) => ({ ...it, _vi: Math.floor(Math.random() * (EYE_IMG[it.correct_en]?.length || 1)) }));
     setItems(picked);
     setRound(0);
@@ -332,7 +374,9 @@ export default function RMETGame() {
     setPhase('result');
     // Тест доводят до конца — провалить нельзя. Прохождение засчитано завершением.
     const doneRun = runs.level;
-    runs.reach(doneRun + 1);
+    const сРазбором = урокВПартииRef.current;
+    setИтогСРазбором(сРазбором);
+    if (!сРазбором) runs.reach(doneRun + 1);
     try {
       // passed отсутствует НАМЕРЕННО (задача e53f4958, группа «провала нет по
       // устройству»): RMET — замерный тест: результат это точность, порога «провала» нет.
@@ -351,6 +395,7 @@ export default function RMETGame() {
           n_trials: items.length,
           accuracy: Number(accuracy.toFixed(3)),
           mean_rt: Math.round(meanRt),
+          ...(сРазбором ? { lesson: true } : {}),
         },
       });
     } catch (e) { console.error(e); }
@@ -432,6 +477,13 @@ export default function RMETGame() {
           { key: 'round', icon: 'repeat', label: t('round'), value: `${round + 1}/${items.length}` },
           { key: 'hud_correct', icon: 'checkmark-circle', label: t('hud_correct'), value: hits, tone: 'good' as const },
         ]}
+        /** 🎓 «Разбор» — значком в общем ряду под полем, как у всех игр. */
+        headerActions={разборДоступен ? (
+          <GameAuxAction
+            compact icon="school-outline" tint="#d97706" label={t('teachButton')}
+            onPress={начатьРазбор}
+          />
+        ) : undefined}
         toolbar={it ? (
           <View style={styles.optsGrid}>
             {shuffledOpts.map((opt) => {
@@ -465,6 +517,60 @@ export default function RMETGame() {
             <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('rmetHint')}</Text>
           </View>
         )}
+        {/*
+          🎓 РАЗБОР НА ВЕСЬ ЭКРАН. Сцена — глаза примера и его четыре слова; на сравнении рядом
+          встают глаза соседнего слова из его же пункта, на выборе ответ подсвечен.
+          Слова идут по алфавиту: в данных верное всегда первым, и порядок подсказал бы ответ.
+        */}
+        <LessonPlayer
+          visible={!!урок}
+          индекс={урок?.индекс ?? 0}
+          шагов={Math.max(0, (урок?.карточки.length ?? 1) - 1)}
+          текст={текстУрока}
+          сноска={урок?.индекс === 0 ? t('teachNotCounted') : undefined}
+          готово={карточкаУрока?.вид === 'готово'}
+          занят={false}
+          renderBoard={(сторона) => {
+            const к = карточкаУрока;
+            const п = к && к.пункт !== null ? ITEMS[к.пункт] : null;
+            if (!п) return <Ionicons name="eye" size={Math.round(сторона * 0.4)} color={GRADIENT[0]} />;
+            const ru = language === 'ru';
+            const сосед = к && к.сосед !== null ? ITEMS[к.сосед] : null;
+            const словоСоседа = сосед ? (ru ? сосед.correct_ru : сосед.correct_en) : null;
+            const варианты = [...(ru ? п.options_ru : п.options_en)].sort((a, b) => a.localeCompare(b));
+            return (
+              <View style={[styles.разборПоле, { width: сторона }]}>
+                <Image source={EYE_IMG[п.correct_en][0]} accessibilityLabel={t('a11yEyesPhoto')}
+                  style={[styles.разборФото, { width: сторона, height: Math.round(сторона * 0.42) }]} resizeMode="cover" />
+                {сосед ? (
+                  <View style={styles.разборСоседРяд}>
+                    <Image source={EYE_IMG[сосед.correct_en][0]} accessibilityLabel={t('a11yEyesPhoto')}
+                      style={[styles.разборФото, { width: Math.round(сторона * 0.5), height: Math.round(сторона * 0.21) }]} resizeMode="cover" />
+                    <Text style={[styles.разборСоседСлово, { color: colors.text }]}>{словоСоседа}</Text>
+                  </View>
+                ) : null}
+                <View style={styles.разборВарианты}>
+                  {варианты.map((в) => {
+                    const выбран = к?.выбрано === в;
+                    const сравниваем = словоСоседа === в;
+                    return (
+                      <View key={в} style={[styles.разборВариант, {
+                        borderColor: выбран ? '#22c55e' : сравниваем ? GRADIENT[0] : colors.border,
+                        borderWidth: выбран || сравниваем ? 2 : 1,
+                        backgroundColor: выбран ? '#22c55e22' : colors.surface,
+                      }]}>
+                        <Text style={[styles.разборВариантТекст, { color: colors.text }]}>{в}</Text>
+                      </View>
+                    );
+                  })}
+                </View>
+              </View>
+            );
+          }}
+          onДальше={урокДальше}
+          onНазад={урокНазад}
+          onЗакрыть={урокЗакрыть}
+        />
       </GameShell>
     );
   }
@@ -487,7 +593,19 @@ export default function RMETGame() {
           методика с нормами: оценивай мы попадания, человек начал бы играть «на
           три звезды», а не так, как играл бы, и результат перестал бы что-либо
           мерить. Звезда здесь говорит «дошёл до конца», и это правда. */}
-      {phase === 'result' && (
+      {/* Партия с разбором — обычный итог со сноской: «уровень пройден» и звёзды были бы неправдой. */}
+      {phase === 'result' && итогСРазбором && (
+        <GameResult
+          score={hits}
+          errors={errors}
+          stars={3}   // как у LevelCleared ниже: звезда за доведённую партию, а не за попадания
+          gradient={GRADIENT}
+          metricsNote={[t('teachNotCounted')]}
+          onPlayAgain={() => setPhase('config')}
+          onGoHome={() => goBackOrHome()}
+        />
+      )}
+      {phase === 'result' && !итогСРазбором && (
         <LevelCleared
           gameId="rmet"
           level={Math.max(1, runs.level - 1)}
@@ -504,6 +622,13 @@ export default function RMETGame() {
 }
 
 const styles = StyleSheet.create({
+  разборПоле: { alignItems: 'center', gap: 10 },
+  разборФото: { borderRadius: 14 },
+  разборСоседРяд: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  разборСоседСлово: { fontSize: 16, fontWeight: '700' },
+  разборВарианты: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'center' },
+  разборВариант: { borderRadius: 12, paddingHorizontal: 12, paddingVertical: 8, minHeight: 40, justifyContent: 'center' },
+  разборВариантТекст: { fontSize: 15, fontWeight: '600' },
   container: { flex: 1 },
   header: { flexDirection: 'row', alignItems: 'center', padding: 16, justifyContent: 'space-between' },
   backBtn: { width: 48, height: 48, borderRadius: 24, justifyContent: 'center', alignItems: 'center' },
