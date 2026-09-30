@@ -3885,6 +3885,18 @@ const translations: Translations = {
   cakeSortPickSlice: { ru: 'Выбери кусок, который переложить', en: 'Pick the slice to move' },
   // Текст дословно тот же, что у тортов: правило игры одно, разная только еда.
   pizzaSortDesc: { ru: 'Собирайте круг из шести одинаковых кусков', en: 'Gather a circle of six matching slices' },
+  // MindLab в «Сортировках» (решение Дениса 30.09.2026): «Очередь зверей» и «Цвета и формы» — только нативные экраны.
+  animalQueue: { ru: 'Очередь зверей', en: 'Animal Queue' },
+  animalQueueDesc: { ru: 'Поставь зверей в очередь по подсказкам: 🦁 ➜ 🦊 значит, что лев стоит раньше лисы', en: 'Line the animals up by the clues: 🦁 ➜ 🦊 means the lion stands before the fox' },
+  kidsSort: { ru: 'Цвета и формы', en: 'Colours and Shapes' },
+  kidsSortDesc: { ru: 'Клади карточку в подходящую коробку. Сначала — по цвету; потом правило сменится без предупреждения — угадай новое по ✓ и ✗', en: 'Put each card in the matching box. First by colour; then the rule changes without warning — find the new one from ✓ and ✗' },
+  kidsSortCards: { ru: 'Карточки', en: 'Cards' },
+  kidsSortPersev: { ru: 'По старому правилу', en: 'By the old rule' },
+  teachQueueFirst: { ru: 'Первым встаёт тот, на кого не указывает ни одна стрелка: раньше него никто стоять не должен.', en: 'First in line is the one no arrow points to: nobody has to stand before it.' },
+  teachQueueNext: { ru: 'Дальше — зверь, чьи подсказки выполнены: все, кто должен стоять раньше него, уже в очереди.', en: 'Next comes an animal whose clues are all met: everyone who must stand before it is already in line.' },
+  teachKidsSortRule: { ru: 'Сначала клади по цвету: красную карточку — к красному кругу, синюю — к синему квадрату. Форма пока не важна.', en: 'First sort by colour: a red card goes to the red circle, a blue one to the blue square. Shape does not matter yet.' },
+  teachKidsSortSwitch: { ru: 'Правило может смениться без предупреждения. Признак — ✗ там, где такая же карточка только что была верной.', en: 'The rule can change without warning. The sign: a ✗ where the same kind of card was right a moment ago.' },
+  teachKidsSortShape: { ru: 'Тогда попробуй другой признак — форму: круг к кругу, квадрат к квадрату. Пошли ✓ — правило найдено, держись его.', en: 'Then try the other feature, shape: circle to circle, square to square. When the ✓ come back, you have found the rule — stick to it.' },
   cakePlate: { ru: 'Тарелка', en: 'Plate' },
   cakeQueue: { ru: 'В очереди', en: 'In queue' },
   cakeProven: { ru: 'Проверен', en: 'Verified' },
