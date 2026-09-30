@@ -188,7 +188,10 @@ const ALREADY: Record<string, string> = {
   'targets.tsx': "t('hint_targets_tap_if')",
   'tower-london.tsx': "t('towerHint')",
   'trail-making.tsx': "t('nextLabel')",
-  'visual-search.tsx': 'FIND_CONJ[language]',
+  // Подсказка переехала из инлайн-карты FIND_CONJ в общий словарь (30.09.2026,
+  // PR #8): ту же фразу зовёт нативный экран, а два источника одной строки
+  // расходятся в переводе молча. Строка в игровом рендере та же — сменилась метка.
+  'visual-search.tsx': "t('vsFindConj')",
   'wcst.tsx': "t('wcstHint')",
   'word-pairs.tsx': "t('label_memorize_word_pairs')",
 };
