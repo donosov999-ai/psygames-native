@@ -266,6 +266,15 @@ void main() {
     expect(on('relaxation'), isFalse, reason: 'оба забирают внимание целиком — второе заменяет первое');
     expect(on('breathing'), isFalse, reason: 'внимание целиком не делится ни с чем, и дыхание тоже уступает');
     expect(tester.widget<Text>(find.byKey(const Key('pause-uses-feldenkrais'))).data, contains('внимание целиком'));
+    expect(
+      tester.widget<Text>(find.byKey(const Key('pause-replaced'))).data,
+      'Расслабление → Осознанное движение · занимает: внимание целиком',
+      reason: 'молча снятая галочка читается как сбой — замена названа строкой',
+    );
+    await tester.ensureVisible(find.byKey(const Key('pause-context-home')));
+    await tester.tap(find.byKey(const Key('pause-context-home')));
+    await tester.pump();
+    expect(find.byKey(const Key('pause-replaced')), findsNothing, reason: 'строка — про последний выбор, следующая правка её гасит');
   });
 }
 

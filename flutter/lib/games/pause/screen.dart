@@ -280,7 +280,11 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
   }
 
   /// Правка выбора из панели настройки: `setState` защищён и снаружи не зовётся.
-  void edit(VoidCallback change) => setState(change);
+  /// Любая правка настроек гасит строку о замене: она про последний выбор, не про прошлые.
+  void edit(VoidCallback change) => setState(() {
+        replaced = null;
+        change();
+      });
 
   List<Json> _available() =>
       (_engine?.catalog ?? const <Json>[]).where((s) => (s['contexts'] as List).contains(_context)).toList();
@@ -311,11 +315,24 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
   /// блокировать не вправе). В маршруте замены нет: он разводит их по блокам сам.
   void addToParallel(String id) {
     final candidate = <String, dynamic>{'setId': id, 'programId': _programOf[id]};
-    _sets.removeWhere((other) => _engine!
-        .resourceConflict(<String, dynamic>{'setId': other, 'programId': _programOf[other]}, candidate)
-        .isNotEmpty);
+    List<String> shared(String other) => _engine!
+        .resourceConflict(<String, dynamic>{'setId': other, 'programId': _programOf[other]}, candidate);
+    final gone = [for (final other in _sets) if (other != id && shared(other).isNotEmpty) other];
+    final what = {for (final other in gone) ...shared(other)};
+    _sets.removeWhere(gone.contains);
     if (!_sets.contains(id)) _sets.add(id);
+    final data = _engine!.data['resources'] as Map?;
+    if (gone.isEmpty || data == null) return;
+    // Молча снятая галочка читается как сбой: говорим, что чем заменено и почему.
+    // Собрано из уже переведённых частей (названия наборов, «занимает», ресурсы) —
+    // новых строк словаря не нужно.
+    String title(String setId) => _text(_engine!.set(setId)['title']);
+    final names = what.map((r) => _text((data['labels'] as Map)[r] ?? r)).join(', ');
+    replaced = '${gone.map(title).join(', ')} → ${title(id)} · ${_text(data['uses'])}: $names';
   }
+
+  /// Что вытеснил последний выбор в параллели (задача f5dfd582).
+  String? replaced;
 
   Map<String, int> _mastery() {
     try {
@@ -1100,6 +1117,15 @@ class _Config extends StatelessWidget {
                   style: theme.textTheme.bodySmall,
                 ),
               ),
+          if (st.replaced != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 6),
+              child: Text(
+                st.replaced!,
+                key: const Key('pause-replaced'),
+                style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.primary),
+              ),
+            ),
           const SizedBox(height: 12),
           Text(st.pc('duration'), style: label),
           const SizedBox(height: 6),
