@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/shell/hub_screen.dart';
+import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -24,6 +25,9 @@ void main() {
     // искать дефект там, где его нет.
     SharedPreferences.setMockInitialValues({});
     final s = await SharedState.open();
+    // Заголовок развилки идёт ключом словаря (с 30.09.2026), как в вебе: без
+    // загруженного словаря экран показал бы сам ключ, а не «Шахматы».
+    await L.load('ru');
 
     Widget hub({Widget? header}) => MaterialApp(
           home: HubScreen(

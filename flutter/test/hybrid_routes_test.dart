@@ -106,10 +106,30 @@ void main() {
       '$origin/games/vocab-srs',
       '$origin/games/vocab-srs.html',
       '$origin/games/vocab-srs?wu=1&targetLang=en&bilingual=1&lang2=es',
+      '$origin/games/semantic-sort',
+      '$origin/games/semantic-sort.html?wu=1&targetLang=en&rounds=8&cats=3',
+      '$origin/games/cloze',
+      '$origin/games/cloze.html?wu=1&targetLang=en&rounds=10&bilingual=1',
+      '$origin/games/lexical-decision',
+      '$origin/games/lexical-decision.html?wu=1&targetLang=es&trials=12&bilingual=1',
+      '$origin/games/story-recall',
+      '$origin/games/phonemic-fluency',
+      '$origin/games/phonemic-fluency.html?wu=1&targetLang=en&duration=90',
+      '$origin/games/story-recall.html?wu=1',
+      '$origin/games/hearing-hub',
       '$origin/games/mnemonics-hub',
     ]) {
       expect(HybridApp.routeOf(url), isNotNull, reason: url);
     }
+  });
+
+  /// 🔴 Развилки «Слова» и «Языки» остаются в вебе, пока зарядку раздела нечем
+  /// запустить из натива: перехват показал бы список без неё.
+  test('🔴 развилки со своей зарядкой не перехватываются', () {
+    const origin = 'http://127.0.0.1:54321';
+    expect(HybridApp.routeOf('$origin/games/words-hub'), isNull);
+    expect(HybridApp.routeOf('$origin/games/languages-hub'), isNull);
+    expect(HybridApp.routeOf('$origin/games/hearing-hub'), '/games/hearing-hub');
   });
 
   /// ⚠️ Фрактал и ГЛУБОКИЙ фрактал — РАЗНЫЕ экраны. Перехват одного не должен утаскивать
@@ -185,6 +205,8 @@ void main() {
       '/games/anagrams?mode=classic',
       '/games/anagrams?mode=cross',
       '/games/anagrams?mode=square',
+      // MindLab (30.09.2026): «Очередь зверей» и «Цвета и формы» — только нативные.
+      '/games/animal-queue',
       '/games/ant',
       '/games/attention-conflict',
       // 🔴 Сорок три адреса головоломок стоят здесь ПОИМЁННО, хотя карта их
@@ -255,6 +277,7 @@ void main() {
       '/games/hanoi',
       '/games/inhibition',
       '/games/iowa',
+      '/games/kids-sort',
       '/games/mahjong',
       '/games/math-slider',
       '/games/math-sprint',
@@ -264,6 +287,12 @@ void main() {
       '/games/mnemonics-hub',
       '/games/word-pairs',
       '/games/vocab-srs',
+      '/games/semantic-sort',
+      '/games/cloze',
+      '/games/lexical-decision',
+      '/games/story-recall',
+      '/games/phonemic-fluency',
+      '/games/hearing-hub',
       '/games/mental-rotation',
       '/games/navigator',
       '/games/number-bonds',

@@ -39,6 +39,8 @@ import '../games/cake_sort/board.dart' show CakeSkin;
 import '../games/cake_sort/screen.dart';
 import '../games/hanoi/screen.dart';
 import '../games/tower_london/screen.dart';
+import '../games/animal_queue/screen.dart';
+import '../games/kids_sort/screen.dart';
 import '../games/sort_tubes/screen.dart';
 import '../games/mental_rotation/screen.dart';
 import '../games/navigator/screen.dart';
@@ -72,6 +74,11 @@ import '../games/memory_palace/screen.dart';
 import '../games/rmet/screen.dart';
 import '../games/word_pairs/screen.dart';
 import '../games/vocab_srs/screen.dart';
+import '../games/semantic_sort/screen.dart';
+import '../games/cloze/screen.dart';
+import '../games/lexical_decision/screen.dart';
+import '../games/story_recall/screen.dart';
+import '../games/phonemic_fluency/screen.dart';
 import 'hub_screen.dart';
 import 'game_pet.dart';
 import 'session_report.dart';
@@ -186,6 +193,9 @@ class HybridApp extends StatefulWidget {
             state: s, gameId: 'pizza_sort', title: 'Пицца', skin: CakeSkin.pizza),
       '/games/hanoi': (s) => HanoiScreen(state: s),
       '/games/tower-london': (s) => TowerLondonScreen(state: s),
+      // MindLab (решение Дениса 30.09.2026): только нативные, веб-двойника у них нет.
+      '/games/animal-queue': (s) => AnimalQueueScreen(state: s),
+      '/games/kids-sort': (s) => KidsSortScreen(state: s),
         /*
          * 🔴 РАЗВИЛКА ТОЖЕ ПЕРЕХВАТЫВАЕТСЯ. Она ведёт на восемь игр, из которых
          * все восемь уже нативные: оставь её в вебе — и каждый заход в игру шёл
@@ -249,6 +259,24 @@ class HybridApp extends StatefulWidget {
         // Настройки шага языковой зарядки (`targetLang`, `bilingual`, `lang2`,
         // `direction`, `newLimit`) экран берёт из хвоста адреса через GamePreset.
         '/games/vocab-srs': (s) => VocabSrsScreen(state: s),
+        '/games/semantic-sort': (s) => SemanticSortScreen(state: s),
+        '/games/cloze': (s) => ClozeScreen(state: s),
+        '/games/lexical-decision': (s) => LexicalDecisionScreen(state: s),
+        '/games/story-recall': (s) => StoryRecallScreen(state: s),
+        '/games/phonemic-fluency': (s) => PhonemicFluencyScreen(state: s),
+        /*
+         * Развилка «Слух» — на общем каркасе: над списком у неё в вебе ничего нет.
+         * ⚠️ «Слова» и «Языки» НЕ перехватываются: над их списком стоит зарядка
+         * раздела (`WordsWarmup`, `LanguagesWarmup`), запустить которую из натива
+         * пока нечем, — перехват молча отнял бы у человека рабочую зарядку.
+         */
+        '/games/hearing-hub': (s) => HubScreen(
+              state: s,
+              hubRoute: '/games/hearing-hub',
+              icon: Icons.hearing,
+              gradient: const [Color(0xFF0D9488), Color(0xFF84CC16)],
+              isNative: native.containsKey,
+            ),
         /*
          * 🔴 РАЗВИЛКА «МНЕМОТЕХНИКИ» ПЕРЕХВАТЫВАЕТСЯ, ПОТОМУ ЧТО ЗА НЕЙ УЖЕ
          * НАТИВНО ЧЕТЫРЕ ЭКРАНА ИЗ ПЯТИ: «Дворец памяти», «Лица и имена»,
