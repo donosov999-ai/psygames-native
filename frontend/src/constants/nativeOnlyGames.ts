@@ -33,6 +33,8 @@ export const NATIVE_ONLY_GAMES: readonly NativeOnlyGame[] = [
   { route: '/games/monster-traits', nameKey: 'monsterTraits', descKey: 'monsterTraitsDesc' },
   { route: '/games/roll-and-bank', nameKey: 'rollAndBank', descKey: 'rollAndBankDesc' },
   { route: '/games/hidden-character', nameKey: 'hiddenCharacter', descKey: 'hiddenCharacterDesc' },
+  // «Шахматы», новая игра 1 из 7 (задача 04e0a67e): тактика по двенадцати приёмам Lichess.
+  { route: '/games/find-move', nameKey: 'findMove', descKey: 'findMoveDesc' },
 ];
 
 export const NATIVE_ONLY_ROUTES: readonly string[] = NATIVE_ONLY_GAMES.map((g) => g.route);
