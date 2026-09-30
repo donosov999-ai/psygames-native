@@ -39,6 +39,7 @@ export function WordsWarmup() {
       titleKey="wordsWarmupTitle"
       descKey="wordsWarmupDesc"
       ярлык="слова"
+      bridgeId="words"
       accent={АКЦЕНТ_СЛОВА}
       loading={!анаграммы.loaded || !корректура.loaded}
     />

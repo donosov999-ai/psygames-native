@@ -610,13 +610,23 @@ export const saveSession = async (session: GameSession): Promise<GameSession> =>
     const pid = (globalThis as any).__psygames_active_profile_id as string | undefined;
     if (pid) {
       const clean = (stored.errors ?? 0) === 0 && (stored.score ?? 0) > 0;
-      await tickCleanRun(pid, clean);
+      /*
+       * 🔴 ПАРТИЯ С РАЗБОРОМ — БЕЗ ×2 И БЕЗ ТИКА СЕРИИ «ЧИСТО» (задача 9660186d, 30.09.2026).
+       * Признак пишут экраны: `lesson: true` (нативная лестница — сама, `LevelLadder`) или
+       * `solver_used: true` (головоломки, «Показать решение»). Серию «чисто» разбор НЕ
+       * обнуляет — `tickCleanRun(false)` сбросил бы её в ноль, а наказывать за учёбу нельзя;
+       * он её просто не двигает.
+       */
+      const d = (stored.details ?? {}) as Record<string, unknown>;
+      const lesson = d.lesson === true || d.solver_used === true;
+      if (!lesson) await tickCleanRun(pid, clean);
       await recordRound({
         profileId: pid,
         game: stored.game_type,
         score: stored.score,
         errors: stored.errors,
         warmupStep: (globalThis as any).__psygames_warmup_active === true,
+        lesson,
       });
     }
   } catch { /* начисление некритично — партия уже записана */ }
