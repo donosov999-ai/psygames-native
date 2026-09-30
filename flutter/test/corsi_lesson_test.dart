@@ -99,12 +99,11 @@ void main() {
     expect(LessonUsed.inRound, isTrue, reason: 'партия с разбором не засчитывается');
   });
 
-  // ⚠️ На 375×667 и 360×640 разбор вылезает за край НЕ из-за Корси: общий плеер не
-  // прокручивает текст приёма — так же у «Матрицы», «Цифрового ряда», «Обратного
-  // порядка» (замер 30.09). Задача общему слою 01746b4c; после починки снять skip.
+  // На 375×667 и 360×640 разбор вылезал за край из-за общего плеера (замер 30.09,
+  // задача 01746b4c) — починено в #22, проверки малых экранов снова включены.
   for (final size in const [Size(390, 844), Size(375, 667), Size(360, 640)]) {
     testWidgets('🔴 разбор целиком помещается на ${size.width.toInt()}×${size.height.toInt()} — все три шага',
-        skip: size.height < 800, (tester) async {
+        (tester) async {
       tester.view.physicalSize = size;
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.reset);
