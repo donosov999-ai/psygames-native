@@ -56,7 +56,13 @@ const assetFile = path.join(root, 'flutter/assets/pause/practices.json');
 fs.mkdirSync(path.dirname(assetFile), { recursive: true });
 fs.writeFileSync(
   assetFile,
-  JSON.stringify({ catalog: e.PRACTICE_CATALOG, warnings: e.WARNING_TEXT, strings: e.PAUSE_STRINGS }, null, 2) + '\n',
+  JSON.stringify({
+    catalog: e.PRACTICE_CATALOG,
+    warnings: e.WARNING_TEXT,
+    strings: e.PAUSE_STRINGS,
+    // Подписи занятых ресурсов (задача f5dfd582): «занимает: глаза» на 12 языках.
+    resources: { labels: e.RESOURCE_TEXT, uses: e.RESOURCE_USES_TEXT },
+  }, null, 2) + '\n',
 );
 
 const all = e.PRACTICE_CATALOG.flatMap((s) => s.programs.map((p) => ({ setId: s.id, programId: p.id })));
@@ -89,6 +95,22 @@ for (const mode of ['parallel', 'charge']) {
     const selections = e.PRACTICE_CATALOG.slice(0, i + 1).map((s) => ({ setId: s.id }));
     for (const guideMode of ['visual', 'both']) requests.push({ ...request(selections), mode, guideMode, durationMs: 300000 });
     requests.push({ ...request(selections), mode, soloCompletions: {}, durationMs: 30000 });
+  }
+}
+// Занятый ресурс (задача f5dfd582): пятёрка Дениса, «внимание целиком», общий кор —
+// в параллели и в маршруте.
+const five = [
+  { setId: 'breathing', programId: 'box' },
+  { setId: 'eye-gym', programId: 'desk' },
+  { setId: 'postures', programId: 'horse-shallow' },
+  { setId: 'abdomen', programId: 'level-4' },
+  { setId: 'pelvic-floor', programId: 'balanced' },
+];
+const sharedCore = [{ setId: 'isometrics', programId: 'general-gentle' }, { setId: 'abdomen', programId: 'level-1' }];
+const attention = [{ setId: 'relaxation' }, { setId: 'feldenkrais' }];
+for (const mode of ['parallel', 'charge']) {
+  for (const selections of [five, sharedCore, attention, [...sharedCore, { setId: 'mobility', programId: 'wrists-desk' }]]) {
+    requests.push({ ...request(selections), mode, guideMode: 'both', durationMs: 300000 });
   }
 }
 requests.push({ ...request([]) }, { ...request([{ setId: 'missing' }]) }, { ...request([all[0], all[0]]) });

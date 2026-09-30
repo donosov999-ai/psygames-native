@@ -38,6 +38,9 @@
         "home"
       ],
       "parallelClass": "breath",
+      "resources": [
+        "breath"
+      ],
       "programs": [
         {
           "id": "box",
@@ -1454,7 +1457,10 @@
           ],
           "soloOnly": true,
           "status": "extension",
-          "parallelClass": "attention"
+          "parallelClass": "attention",
+          "resources": [
+            "attention"
+          ]
         }
       ],
       "defaultProgramId": "coherent"
@@ -1497,6 +1503,9 @@
         "home"
       ],
       "parallelClass": "eyes",
+      "resources": [
+        "eyes"
+      ],
       "warningIds": [
         "general-stop"
       ],
@@ -2204,6 +2213,9 @@
         "home"
       ],
       "parallelClass": "face",
+      "resources": [
+        "face"
+      ],
       "warningIds": [
         "general-stop"
       ],
@@ -2777,7 +2789,11 @@
           "contexts": [
             "home"
           ],
-          "parallelClass": "solo"
+          "parallelClass": "solo",
+          "resources": [
+            "voice",
+            "breath"
+          ]
         },
         {
           "id": "articulation-gym",
@@ -3098,7 +3114,11 @@
           "contexts": [
             "home"
           ],
-          "parallelClass": "solo"
+          "parallelClass": "solo",
+          "resources": [
+            "face",
+            "voice"
+          ]
         },
         {
           "id": "tongue-posture",
@@ -3324,6 +3344,9 @@
         "home"
       ],
       "parallelClass": "attention",
+      "resources": [
+        "attention"
+      ],
       "programs": [
         {
           "id": "pmr-groups",
@@ -4029,6 +4052,9 @@
         "home"
       ],
       "parallelClass": "pelvic",
+      "resources": [
+        "pelvic"
+      ],
       "warningIds": [
         "pelvic-floor"
       ],
@@ -4556,6 +4582,9 @@
         "home"
       ],
       "parallelClass": "motor",
+      "resources": [
+        "neck"
+      ],
       "warningIds": [
         "general-stop"
       ],
@@ -4738,6 +4767,9 @@
           ],
           "warningIds": [
             "neck-mobility"
+          ],
+          "resources": [
+            "neck"
           ]
         },
         {
@@ -4915,6 +4947,9 @@
           "contexts": [
             "desk-visible",
             "home"
+          ],
+          "resources": [
+            "spine"
           ]
         },
         {
@@ -5092,6 +5127,9 @@
           "status": "experimental",
           "warningIds": [
             "experimental"
+          ],
+          "resources": [
+            "feet"
           ]
         },
         {
@@ -5234,6 +5272,9 @@
           "status": "experimental",
           "warningIds": [
             "experimental"
+          ],
+          "resources": [
+            "hands"
           ]
         }
       ],
@@ -5275,6 +5316,9 @@
         "home"
       ],
       "parallelClass": "motor",
+      "resources": [
+        "stance"
+      ],
       "warningIds": [
         "yoga-load"
       ],
@@ -5880,6 +5924,9 @@
         "home"
       ],
       "parallelClass": "motor",
+      "resources": [
+        "glutes"
+      ],
       "warningIds": [
         "general-stop"
       ],
@@ -5985,6 +6032,9 @@
               "channel": "tension",
               "motion": "tension"
             }
+          ],
+          "resources": [
+            "glutes"
           ]
         },
         {
@@ -6162,6 +6212,10 @@
           "status": "experimental",
           "warningIds": [
             "experimental"
+          ],
+          "resources": [
+            "glutes",
+            "core"
           ]
         }
       ],
@@ -6205,6 +6259,9 @@
         "home"
       ],
       "parallelClass": "motor",
+      "resources": [
+        "core"
+      ],
       "warningIds": [
         "general-stop"
       ],
@@ -6693,7 +6750,6 @@
           "warningIds": [
             "advanced-abdomen"
           ],
-          "soloOnly": true,
           "requiresPriorExperience": true
         },
         {
@@ -6802,7 +6858,6 @@
             "advanced-abdomen",
             "vacuum"
           ],
-          "soloOnly": true,
           "requiresPriorExperience": true
         },
         {
@@ -6910,7 +6965,6 @@
           "warningIds": [
             "advanced-abdomen"
           ],
-          "soloOnly": true,
           "requiresPriorExperience": true
         },
         {
@@ -7159,7 +7213,6 @@
             "advanced-abdomen",
             "vacuum"
           ],
-          "soloOnly": true,
           "requiresPriorExperience": true
         }
       ],
@@ -7202,6 +7255,9 @@
         "home"
       ],
       "parallelClass": "attention",
+      "resources": [
+        "attention"
+      ],
       "warningIds": [
         "general-stop"
       ],
@@ -7597,6 +7653,206 @@
       "progress": "Progress",
       "parallel": "Parallel",
       "solo": "Solo"
+    }
+  },
+  "resources": {
+    "labels": {
+      "breath": {
+        "ru": "дыхание",
+        "en": "breathing",
+        "de": "Atmung",
+        "es": "respiración",
+        "fr": "respiration",
+        "it": "respirazione",
+        "pt": "respiração",
+        "ar": "التنفس",
+        "hi": "श्वास",
+        "ja": "呼吸",
+        "ko": "호흡",
+        "zh": "呼吸"
+      },
+      "eyes": {
+        "ru": "глаза",
+        "en": "eyes",
+        "de": "Augen",
+        "es": "ojos",
+        "fr": "yeux",
+        "it": "occhi",
+        "pt": "olhos",
+        "ar": "العينان",
+        "hi": "आँखें",
+        "ja": "目",
+        "ko": "눈",
+        "zh": "眼睛"
+      },
+      "face": {
+        "ru": "лицо",
+        "en": "face",
+        "de": "Gesicht",
+        "es": "cara",
+        "fr": "visage",
+        "it": "viso",
+        "pt": "rosto",
+        "ar": "الوجه",
+        "hi": "चेहरा",
+        "ja": "顔",
+        "ko": "얼굴",
+        "zh": "面部"
+      },
+      "voice": {
+        "ru": "голос",
+        "en": "voice",
+        "de": "Stimme",
+        "es": "voz",
+        "fr": "voix",
+        "it": "voce",
+        "pt": "voz",
+        "ar": "الصوت",
+        "hi": "आवाज़",
+        "ja": "声",
+        "ko": "목소리",
+        "zh": "声音"
+      },
+      "hands": {
+        "ru": "руки",
+        "en": "hands",
+        "de": "Hände",
+        "es": "manos",
+        "fr": "mains",
+        "it": "mani",
+        "pt": "mãos",
+        "ar": "اليدان",
+        "hi": "हाथ",
+        "ja": "手",
+        "ko": "손",
+        "zh": "双手"
+      },
+      "neck": {
+        "ru": "шея",
+        "en": "neck",
+        "de": "Nacken",
+        "es": "cuello",
+        "fr": "cou",
+        "it": "collo",
+        "pt": "pescoço",
+        "ar": "الرقبة",
+        "hi": "गर्दन",
+        "ja": "首",
+        "ko": "목",
+        "zh": "颈部"
+      },
+      "spine": {
+        "ru": "спина",
+        "en": "spine",
+        "de": "Wirbelsäule",
+        "es": "columna",
+        "fr": "colonne",
+        "it": "colonna",
+        "pt": "coluna",
+        "ar": "العمود الفقري",
+        "hi": "रीढ़",
+        "ja": "背骨",
+        "ko": "척추",
+        "zh": "脊柱"
+      },
+      "feet": {
+        "ru": "стопы",
+        "en": "feet",
+        "de": "Füße",
+        "es": "pies",
+        "fr": "pieds",
+        "it": "piedi",
+        "pt": "pés",
+        "ar": "القدمان",
+        "hi": "पैर",
+        "ja": "足",
+        "ko": "발",
+        "zh": "双脚"
+      },
+      "stance": {
+        "ru": "стойка",
+        "en": "stance",
+        "de": "Haltung",
+        "es": "postura",
+        "fr": "posture",
+        "it": "postura",
+        "pt": "postura",
+        "ar": "الوقفة",
+        "hi": "मुद्रा",
+        "ja": "姿勢",
+        "ko": "자세",
+        "zh": "站姿"
+      },
+      "core": {
+        "ru": "пресс и живот",
+        "en": "core",
+        "de": "Rumpf",
+        "es": "abdomen",
+        "fr": "sangle abdominale",
+        "it": "addome",
+        "pt": "abdômen",
+        "ar": "البطن",
+        "hi": "पेट",
+        "ja": "腹部",
+        "ko": "복부",
+        "zh": "腹部"
+      },
+      "pelvic": {
+        "ru": "тазовое дно",
+        "en": "pelvic floor",
+        "de": "Beckenboden",
+        "es": "suelo pélvico",
+        "fr": "périnée",
+        "it": "pavimento pelvico",
+        "pt": "assoalho pélvico",
+        "ar": "قاع الحوض",
+        "hi": "पेल्विक फ्लोर",
+        "ja": "骨盤底",
+        "ko": "골반저",
+        "zh": "盆底"
+      },
+      "glutes": {
+        "ru": "ягодицы",
+        "en": "glutes",
+        "de": "Gesäß",
+        "es": "glúteos",
+        "fr": "fessiers",
+        "it": "glutei",
+        "pt": "glúteos",
+        "ar": "الأرداف",
+        "hi": "नितंब",
+        "ja": "臀部",
+        "ko": "둔근",
+        "zh": "臀部"
+      },
+      "attention": {
+        "ru": "внимание целиком",
+        "en": "full attention",
+        "de": "volle Aufmerksamkeit",
+        "es": "atención plena",
+        "fr": "toute l’attention",
+        "it": "attenzione piena",
+        "pt": "atenção total",
+        "ar": "الانتباه الكامل",
+        "hi": "पूरा ध्यान",
+        "ja": "注意のすべて",
+        "ko": "온전한 주의",
+        "zh": "全部注意力"
+      }
+    },
+    "uses": {
+      "ru": "занимает",
+      "en": "uses",
+      "de": "belegt",
+      "es": "ocupa",
+      "fr": "occupe",
+      "it": "occupa",
+      "pt": "ocupa",
+      "ar": "يشغل",
+      "hi": "उपयोग करता है",
+      "ja": "使う",
+      "ko": "사용",
+      "zh": "占用"
     }
   }
 }

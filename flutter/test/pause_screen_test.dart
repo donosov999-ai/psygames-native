@@ -230,6 +230,43 @@ void main() {
     await tester.pump(const Duration(milliseconds: 16));
     expect(voice.spoken, isEmpty);
   });
+
+  testWidgets('🔴 пятёрка Дениса собирается в параллель; у каждой написано, что она занимает', (tester) async {
+    await open(tester);
+    await tester.tap(find.byKey(const Key('pause-context-home')));
+    await tester.tap(find.byKey(const Key('pause-mode-parallel')));
+    await tester.pump();
+    for (final id in ['breathing', 'eye-gym', 'postures', 'abdomen', 'pelvic-floor']) {
+      final chip = find.byKey(Key('pause-set-$id'));
+      await tester.ensureVisible(chip);
+      if (!tester.widget<FilterChip>(chip).selected) await tester.tap(chip);
+      await tester.pump();
+    }
+    for (final id in ['breathing', 'eye-gym', 'postures', 'abdomen', 'pelvic-floor']) {
+      expect(tester.widget<FilterChip>(find.byKey(Key('pause-set-$id'))).selected, isTrue,
+          reason: '$id: в пятёрке нет общего ресурса — никто никого не вытесняет');
+    }
+    expect(find.byKey(const Key('pause-uses-pelvic-floor')), findsOneWidget);
+    expect(tester.widget<Text>(find.byKey(const Key('pause-uses-abdomen'))).data, contains('занимает: пресс и живот'));
+  });
+
+  testWidgets('🔴 развилка «либо-либо»: осознанное движение заменяет расслабление, «Начать» не гаснет', (tester) async {
+    await open(tester);
+    await tester.tap(find.byKey(const Key('pause-context-home')));
+    await tester.tap(find.byKey(const Key('pause-mode-parallel')));
+    await tester.pump();
+    for (final id in ['breathing', 'relaxation', 'feldenkrais']) {
+      final chip = find.byKey(Key('pause-set-$id'));
+      await tester.ensureVisible(chip);
+      if (!tester.widget<FilterChip>(chip).selected) await tester.tap(chip);
+      await tester.pump();
+    }
+    bool on(String id) => tester.widget<FilterChip>(find.byKey(Key('pause-set-$id'))).selected;
+    expect(on('feldenkrais'), isTrue);
+    expect(on('relaxation'), isFalse, reason: 'оба забирают внимание целиком — второе заменяет первое');
+    expect(on('breathing'), isFalse, reason: 'внимание целиком не делится ни с чем, и дыхание тоже уступает');
+    expect(tester.widget<Text>(find.byKey(const Key('pause-uses-feldenkrais'))).data, contains('внимание целиком'));
+  });
 }
 
 class _Voice implements VoiceBackend {

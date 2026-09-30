@@ -297,6 +297,26 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
 
   String _text(Object? value) => value == null ? '' : localText(value, _locale);
 
+  /// «занимает: дыхание» — что держит практика в параллели (задача f5dfd582).
+  String resourcesLine(String setId) {
+    final data = _engine!.data['resources'] as Map?;
+    if (data == null) return '';
+    final labels = data['labels'] as Map;
+    final names = _engine!.resources(setId, _programOf[setId]).map((r) => _text(labels[r])).join(', ');
+    return names.isEmpty ? '' : '${_text(data['uses'])}: $names';
+  }
+
+  /// Развилка «либо-либо»: в параллели новая практика ЗАМЕНЯЕТ выбранные, что делят
+  /// с ней ресурс, — кнопка запуска не гаснет (решение Дениса 24.09: приложение
+  /// блокировать не вправе). В маршруте замены нет: он разводит их по блокам сам.
+  void addToParallel(String id) {
+    final candidate = <String, dynamic>{'setId': id, 'programId': _programOf[id]};
+    _sets.removeWhere((other) => _engine!
+        .resourceConflict(<String, dynamic>{'setId': other, 'programId': _programOf[other]}, candidate)
+        .isNotEmpty);
+    if (!_sets.contains(id)) _sets.add(id);
+  }
+
   Map<String, int> _mastery() {
     try {
       final raw = widget.state.get(_masteryKey);
@@ -1059,13 +1079,27 @@ class _Config extends StatelessWidget {
                       ..clear()
                       ..add(id);
                   } else if (on) {
-                    if (!st._sets.contains(id)) st._sets.add(id);
+                    if (st._mode == 'parallel') {
+                      st.addToParallel(id);
+                    } else if (!st._sets.contains(id)) {
+                      st._sets.add(id);
+                    }
                   } else {
                     st._sets.remove(id);
                   }
                 }),
               ),
           ]),
+          if (st._mode != 'solo')
+            for (final id in chosen)
+              Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Text(
+                  '${st._text(engine.set(id)['title'])} — ${st.resourcesLine(id)}',
+                  key: Key('pause-uses-$id'),
+                  style: theme.textTheme.bodySmall,
+                ),
+              ),
           const SizedBox(height: 12),
           Text(st.pc('duration'), style: label),
           const SizedBox(height: 6),

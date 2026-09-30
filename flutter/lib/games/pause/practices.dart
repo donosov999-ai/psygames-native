@@ -33,6 +33,25 @@ class Practices {
         .firstWhere((p) => p['id'] == (programId ?? s['defaultProgramId']));
   }
 
+  /// Что занимает выбранная программа: своё, если задано, иначе ресурсы набора
+  /// (`getPracticeResources` ядра на TS, задача f5dfd582).
+  List<String> resources(String setId, [String? programId]) {
+    try {
+      final p = program(setId, programId);
+      return List<String>.from(p['resources'] ?? set(setId)['resources'] ?? const []);
+    } on StateError {
+      return const [];
+    }
+  }
+
+  /// Общий ресурс двух практик — развилка «либо-либо». Внимание целиком не делится
+  /// ни с чем (`getResourceConflict` ядра на TS).
+  List<String> resourceConflict(Json a, Json b) {
+    final left = resources(a['setId'], a['programId']), right = resources(b['setId'], b['programId']);
+    if (left.contains('attention') || right.contains('attention')) return const ['attention'];
+    return left.where(right.contains).toList();
+  }
+
   List<Json> _resolve(List<Json> selections) {
     final result = <Json>[];
     for (final s in selections) {
@@ -130,6 +149,16 @@ class Practices {
       errors.addAll(
         resolved.map((i) => _parallelIssue(i, r)).whereType<String>().toSet(),
       );
+      var clash = false;
+      for (var i = 0; i < resolved.length && !clash; i++) {
+        for (var j = i + 1; j < resolved.length; j++) {
+          if (resourceConflict(resolved[i]['selection'], resolved[j]['selection']).isNotEmpty) {
+            clash = true;
+            break;
+          }
+        }
+      }
+      if (clash) errors.add('RESOURCE_CONFLICT');
     }
     return errors;
   }
@@ -215,6 +244,8 @@ class Practices {
     'MASTERY_REQUIRED',
     'WARNING_NOT_ACKNOWLEDGED',
     'PRIOR_EXPERIENCE_REQUIRED',
+    // Развилку «либо-либо» решает интерфейс заменой, а не отказом (задача f5dfd582).
+    'RESOURCE_CONFLICT',
   };
 
   /// Что стоит сказать человеку, не мешая ему запустить.
@@ -233,14 +264,18 @@ class Practices {
     final resolved = _resolve(objects(r['selections']));
     List<List<Json>> working = [resolved];
     if (r['mode'] == 'charge') {
-      working = resolved
-          .where((i) => _parallelIssue(i, r) != null)
-          .map((i) => [i])
-          .toList();
-      final parallel = _breathFirst(
-        resolved.where((i) => _parallelIssue(i, r) == null).toList(),
-      );
-      if (parallel.isNotEmpty) working.insert(0, parallel);
+      // Маршрут: в общий параллельный блок — только то, что не делит ресурс с уже взятым.
+      final parallel = <Json>[];
+      working = [];
+      for (final i in resolved) {
+        final clash = parallel.any((t) => resourceConflict(t['selection'], i['selection']).isNotEmpty);
+        if (_parallelIssue(i, r) == null && !clash) {
+          parallel.add(i);
+        } else {
+          working.add([i]);
+        }
+      }
+      if (parallel.isNotEmpty) working.insert(0, _breathFirst(parallel));
     }
     final int duration = r['durationMs'];
     if (duration < working.length * 15000) {
