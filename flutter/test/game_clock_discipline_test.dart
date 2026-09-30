@@ -13,9 +13,12 @@ import 'package:flutter_test/flutter_test.dart';
 /// ХРАПОВИК: число вызовов в файле расти не может, новый файл с настенными часами — красный.
 /// Перевёл файл — снизь его строку в той же правке (иначе проба напомнит, что список протух).
 ///
-/// ⚠️ Законное остаётся в списке: календарь (зерно дня, срок повторения слова), а не
-/// длительность партии. Если в файле ТОЛЬКО календарь — оставь число и напиши это рядом.
-/// Анимация интерфейса (вспышка, тряска) — тоже не партия, но её честнее вести
+/// ⚠️ ЗАКОННОЕ — ПОМЕЧАЙ СТРОКУ, А НЕ ПОДНИМАЙ БАЗУ. Календарь, а не длительность партии
+/// (зерно раздачи, id партии, отметка времени сохранения, срок повторения слова) под паузой
+/// стоять не должен. Такую строку помечай комментарием на ней же:
+///     final seed = DateTime.now().millisecondsSinceEpoch; // wall-clock: зерно раздачи
+/// Помеченная строка не считается. Причина после двоеточия обязательна — пустая метка не
+/// работает. Анимация интерфейса (вспышка, тряска) — тоже не партия, но её честнее вести
 /// `AnimationController`, а не `Timer`.
 const _baseline = <String, int>{
   'anagrams/screen.dart': 1,
@@ -112,13 +115,20 @@ const _baseline = <String, int>{
   'word_pairs/screen.dart': 1,
 };
 
+final _marked = RegExp(r'//\s*wall-clock:\s*\S');
 final _wall = RegExp(r'DateTime\.now\(\)|(?<![A-Za-z_])Timer(\.periodic)?\(');
 
 Map<String, int> _measure() {
   final out = <String, int>{};
   for (final e in Directory('lib/games').listSync(recursive: true)) {
     if (e is! File || !e.path.endsWith('.dart')) continue;
-    final code = e.readAsStringSync().replaceAll(RegExp(r'//[^\n]*'), '');
+    // Строка с меткой `// wall-clock: <причина>` — законный календарь, не считается (см. шапку).
+    final code = e
+        .readAsStringSync()
+        .split('\n')
+        .where((line) => !_marked.hasMatch(line))
+        .join('\n')
+        .replaceAll(RegExp(r'//[^\n]*'), '');
     final n = _wall.allMatches(code).length;
     if (n > 0) out[e.path.substring('lib/games/'.length)] = n;
   }
