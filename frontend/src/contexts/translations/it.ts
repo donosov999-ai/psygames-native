@@ -3035,5 +3035,10 @@ const t: Record<string, string> = {
   "teachMnemoChainWords": "«{a}» → «{b}»: una scena in cui il primo fa qualcosa al secondo. Più è assurda, più tiene.",
   "teachMnemoOrder": "Si risponde IN ORDINE, per questo serve la catena: ricordi la prima scena e lei trascina la seconda. La fila ne ha {n}.",
   "teachMnemoDone": "Gioca così: trasformale in immagini, legale in catena e percorri la catena in ordine.",
+  "teachCorsiPath": "Non memorizzare i blocchi uno per uno, ma il PERCORSO che disegnano i lampi: fai passare tra loro una linea immaginaria. Cinque lampi diventano un solo tragitto — uno zigzag, una lettera, un uncino.",
+  "teachCorsiBackward": "In modalità inversa non girare punto per punto al volo. Prima costruisci il percorso in avanti, come è stato mostrato, e rispondendo ripercorrilo dalla fine.",
+  "teachCorsiEyes": "Segui ogni lampo con lo sguardo e non distoglierlo fino alla fine della sequenza. Un lampo perso spezza tutto il percorso: da lì in poi si tira a indovinare.",
+  "vsFindAll": "Trova tutte queste figure — in qualsiasi rotazione",
+  "vsFindConj": "Trova la figura di questo colore e forma",
 };
 export default t;

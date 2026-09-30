@@ -86,6 +86,10 @@ class _MahjongScreenState extends State<MahjongScreen> {
   int get _pairsTotal => _tiles.length ~/ 2;
 
   void _deal() {
+    // Новая партия — снова зачётная (договор shell/lesson.dart: отметку «разбор
+    // смотрели» снимает новая раздача). Отметка общая на всё приложение, и без
+    // сброса один открытый разбор выключал бы рост уровня во всех играх.
+    LessonUsed.reset();
     _blockersTimer?.cancel();
     _picked = _layouts?.forLevel(_ladder.level);
     final places = _picked?.places ?? const <Place>[];
