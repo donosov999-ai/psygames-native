@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../../shell/aux_action.dart';
+import '../../shell/boss_round.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/l10n.dart';
 import '../../shell/game_shell.dart';
@@ -50,6 +51,9 @@ class _MathSprintScreenState extends State<MathSprintScreen> {
   int _bestStreak = 0;
   double _left = 0;
   bool _won = false;
+
+  /// Итог боя с боссом после этой партии; `null` — боя не было (веб: `bossWon`).
+  bool? _boss;
   bool _ready = false;
   _Phase _phase = _Phase.ready;
   Timer? _tick;
@@ -148,14 +152,18 @@ class _MathSprintScreenState extends State<MathSprintScreen> {
   Future<void> _finish() async {
     _tick?.cancel();
     final passed = _correct >= sprintCorrectToPass;
+    // Веха как в вебе: каждый третий ЗАСЧИТАННЫЙ уровень — бой «дополни ряд до 1–9».
+    bool? boss;
     if (passed) {
-      await _ladder.win();
+      boss = await BossRound.winThenBoss(context, _ladder,
+          type: BossType.completeline, color: const Color(0xFFFC4A1A));
     } else {
       await _ladder.fail();
     }
     if (!mounted) return;
     setState(() {
       _won = passed;
+      _boss = boss;
       _phase = _Phase.result;
     });
   }
@@ -210,6 +218,7 @@ class _MathSprintScreenState extends State<MathSprintScreen> {
             textAlign: TextAlign.center,
             style: text.titleMedium,
           ),
+          BossOutcomeLine(_boss),
           const SizedBox(height: 8),
           FilledButton.icon(
             key: const Key('дальше'),

@@ -19,6 +19,7 @@ import 'package:psygames_flutter/games/counter/screen.dart';
 import 'package:psygames_flutter/games/find_differences/screen.dart';
 import 'package:psygames_flutter/games/kids_find/screen.dart';
 import 'package:psygames_flutter/games/mahjong/screen.dart';
+import 'package:psygames_flutter/games/monster_traits/screen.dart';
 import 'package:psygames_flutter/games/math_slider/screen.dart';
 import 'package:psygames_flutter/games/math_sprint/screen.dart';
 import 'package:psygames_flutter/games/number_bonds/screen.dart';
@@ -28,6 +29,7 @@ import 'package:psygames_flutter/games/pattern/screen.dart';
 import 'package:psygames_flutter/games/quick_count/screen.dart';
 import 'package:psygames_flutter/games/schulte/screen.dart';
 import 'package:psygames_flutter/games/sdmt/screen.dart';
+import 'package:psygames_flutter/games/search_runner/screen.dart';
 import 'package:psygames_flutter/games/set_game/screen.dart';
 import 'package:psygames_flutter/games/submarines/screen.dart';
 import 'package:psygames_flutter/games/visual_search/screen.dart';
@@ -59,6 +61,9 @@ final screens = <String, ({String levelKey, int level, Widget Function(SharedSta
   'найди другую': (levelKey: 'kids_find', level: 22, build: (s) => KidsFindScreen(state: s, seed: 1)),
   // L9: поле 10×10 и стандартный флот.
   'подлодки': (levelKey: 'submarines', level: 9, build: (s) => SubmarinesScreen(state: s, seed: 1)),
+  // L16: 18 карточек и самая длинная вывеска «… но не …».
+  'найди признак': (levelKey: 'monster_traits', level: 16, build: (s) => MonsterTraitsScreen(state: s, seed: 1)),
+  'раннер': (levelKey: 'search_runner', level: 13, build: (s) => SearchRunnerScreen(state: s, seed: 1)),
 };
 
 /// Все нарисованные коробки под полем — в мировых точках.
