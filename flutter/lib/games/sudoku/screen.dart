@@ -99,6 +99,10 @@ class _SudokuScreenState extends State<SudokuScreen> {
   int _errors = 0;
   int _hintsUsed = 0;
 
+  /// Переделки — как у веба: в клетке стояла цифра, и её сменили или стёрли.
+  /// Веб пишет это число в каждую победу (`backtrack_count`) — «решал неуверенно».
+  int _backtracks = 0;
+
   /// Когда раздана доска — от этого считается время партии в отчёте.
   DateTime _startedAt = DateTime.now();
 
@@ -148,6 +152,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
         _errors = 0;
         _startedAt = DateTime.now();
         _hintsUsed = 0;
+        _backtracks = 0;
         _won = false;
         _lost = false;
       });
@@ -167,6 +172,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
       _errors = 0;
       _startedAt = DateTime.now();
       _hintsUsed = 0;
+      _backtracks = 0;
       _won = false;
       _lost = false;
     });
@@ -276,7 +282,9 @@ class _SudokuScreenState extends State<SudokuScreen> {
     if (_given[sel.r][sel.c]) return;   // подсказку задания не трогаем
 
     setState(() {
-      _history.add(_Step(_StepKind.digit, sel.r, sel.c, _grid[sel.r][sel.c]));
+      final was = _grid[sel.r][sel.c];
+      if (was != 0 && was != value) _backtracks += 1;
+      _history.add(_Step(_StepKind.digit, sel.r, sel.c, was));
       _grid[sel.r][sel.c] = value;
       if (value != 0 && solution[sel.r][sel.c] != value) {
         _errors += 1;
@@ -413,6 +421,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
         'errors': _errors,
         'completed': true,
         'hint_uses': _hintsUsed,
+        'backtrack_count': _backtracks,
         'level': step,
         'variant': sideModeName(mode),
       },
@@ -436,11 +445,24 @@ class _SudokuScreenState extends State<SudokuScreen> {
     // Подсказками доигранная партия рейтинг не повышает — это правило движка, не экрана.
     _recordOutcome(_hintsUsed > 0 ? Outcome.assisted : Outcome.passed);
     final level = _ladder.level;
+    // Трудность и подробности — как у веба (app/games/sudoku.tsx, saveSession победы).
+    // До 30.09 лестница умела слать только номер: трудностью уходило «54», а не «hard»,
+    // и без дороги — история сравнила бы уровень 12 лёгкой и тяжёлой дорог между собой.
     unawaited(_ladder.win(
       score: _score(level),
       timeSeconds: _elapsed,
       errors: _errors,
       mode: _levelMode(level),
+      difficulty: _difficultyFor(level),
+      details: {
+        'errors': _errors,
+        'completed': true,
+        'hint_uses': _hintsUsed,
+        'backtrack_count': _backtracks,
+        'level': level,
+        'variant': _board?.variant ?? 'none',
+        'road': 'normal',
+      },
     ));
   }
 

@@ -183,9 +183,17 @@ void main() {
       final g = [for (var r = 0; r < 9; r++) [for (var c = 0; c < 9; c++) digitAt(tester, r, c)]];
       final givens = [for (final row in g) [...row]];
       final s = solve(g, 9, 3, 3);
+      // Одна переделка: в первую пустую клетку сначала неверная цифра (та, что уже
+      // стоит в строке), потом верная. Так веб и считает `backtrack_count`.
+      var redone = false;
       for (var r = 0; r < 9; r++) {
         for (var c = 0; c < 9; c++) {
-          if (givens[r][c] == 0) await put(tester, r, c, s[r][c]);
+          if (givens[r][c] != 0) continue;
+          if (!redone) {
+            await put(tester, r, c, givens[r].firstWhere((v) => v != 0));
+            redone = true;
+          }
+          await put(tester, r, c, s[r][c]);
         }
       }
       await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 50)));
@@ -196,6 +204,18 @@ void main() {
       expect(r.single['mode'], 'level-5');
       expect((r.single['score'] as num).toInt(), greaterThan(0), reason: 'очки по формуле веба');
       expect(r.single.containsKey('time_seconds'), isTrue);
+      // 🔴 ТРУДНОСТЬ — ПОЛОСОЙ, А НЕ НОМЕРОМ. До 30.09 уходило «5»: общая лестница
+      // умела слать только номер. Веб шлёт easy/medium/hard (5 — это medium).
+      expect(r.single['difficulty'], 'medium', reason: 'трудность — полоса веба, не номер уровня');
+      final d = (r.single['details'] as Map?)?.cast<String, Object?>();
+      expect(d, isNotNull, reason: 'победа без подробностей — веб их пишет всегда');
+      expect(d!['completed'], true);
+      expect(d['level'], 5);
+      expect(d['variant'], 'none');
+      expect(d['road'], 'normal', reason: 'дорогу веб пишет явно, включая обычную');
+      expect(d['hint_uses'], 0);
+      expect(d['backtrack_count'], 1, reason: 'одна переделка — одна, как у веба');
+      expect(d['errors'], 1, reason: 'неверная цифра перед переделкой — ошибка');
     });
   });
 
