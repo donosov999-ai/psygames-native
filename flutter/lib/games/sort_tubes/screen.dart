@@ -8,6 +8,7 @@ import '../../shell/aux_action.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/level_rules.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/board_solver.dart';
 import '../../shell/lesson.dart';
@@ -310,6 +311,8 @@ class _SortTubesScreenState extends State<SortTubesScreen> {
     final stars = starsFor(_moves, level.reference, level.level);
 
     return GameShell(
+      // Правило уровня объявляет каркас — в спокойный момент, не поверх партии (задача e371fd3a).
+      levelRule: LevelRuleSpot(gameId: widget.gameId, level: _ladder.level, state: widget.state, calm: _moves == 0 || _won),
       title: widget.title,
       // Разбор — общим решателем каркаса. Колбы устроены иначе, чем стопки: за ход
       // переливается сразу несколько шариков, и договор это выдерживает.

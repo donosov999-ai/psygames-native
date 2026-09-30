@@ -127,6 +127,22 @@ for (const [file, fields] of [
   walk(data);
 }
 
+// 1в. ПРАВИЛА УРОВНЕЙ: ключ собирается из игры и правила, `lr_<игра>_<ключ>_<поле>`.
+//
+// Каркас показывает карточку правила по таблице `assets/level_rules.json` (её выгружает
+// `frontend/src/games/level-rules/tools/export-level-rules.gen.ts`), и ни одного такого
+// ключа литералом в Dart нет. Без этого шага карточка пришла бы без текста — задача
+// e371fd3a, 30.09.2026. Пример у правила необязателен, поэтому берём только то, что есть.
+const lrWanted = new Set();
+try {
+  const rules = JSON.parse(readFileSync(join(FLUTTER, 'assets/level_rules.json'), 'utf8')).games;
+  for (const [game, ranges] of Object.entries(rules)) {
+    for (const [, , key] of ranges) {
+      if (key) ['title', 'rule', 'example'].forEach((f) => lrWanted.add(`lr_${game}_${key}_${f}`));
+    }
+  }
+} catch { /* таблицы нет — и правил во Flutter нет */ }
+
 // 2. Словари веба.
 const base = evalObjectAfter(
   readFileSync(join(WEB, 'LanguageContext.tsx'), 'utf8'),
@@ -161,6 +177,15 @@ for (const файл of ['lib/shell/hybrid_app.dart', 'lib/shell/puzzle_routes.g.
     if (base[ключ]) used.add(ключ);
   }
 }
+
+// Правила уровней: в словарь уходит то, что в веб-словаре есть. Нет заголовка или текста —
+// это дыра веба (её сторожит гейт level-rules-i18n), и карточку каркас тогда не покажет.
+const lrNoText = [];
+for (const k of lrWanted) {
+  if (base[k]) used.add(k);
+  else if (!k.endsWith('_example')) lrNoText.push(k);
+}
+if (lrNoText.length) console.warn(`⚠️ правила уровней без текста в веб-словаре (${lrNoText.length}): ${lrNoText.slice(0, 8).join(', ')}`);
 
 const orphans = [...used].filter((k) => !base[k]);
 if (orphans.length) {

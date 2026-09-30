@@ -10,6 +10,7 @@ import '../../shell/lesson.dart';
 import '../../shell/lesson_player.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/level_rules.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import 'board.dart';
@@ -498,6 +499,8 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> {
     }
     final progress = goalProgress(board.cells, level.goal);
     return GameShell(
+      // Правило уровня объявляет каркас — в спокойный момент, не поверх партии (задача e371fd3a).
+      levelRule: LevelRuleSpot(gameId: 'goods_sort', level: _ladder.level, state: widget.state, calm: _moves == 0 || _won),
       title: _title,
       onLesson: _board == null ? null : _openLesson,
       hud: [
