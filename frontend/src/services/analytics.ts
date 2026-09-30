@@ -35,7 +35,8 @@ export interface AreaStat {
   /** Доля от всех партий, 0..1. Именно это показываем полосой. */
   share: number;
   /**
-   * Сдвиг среднего результата: свежие две недели против предыдущих двух.
+   * Сдвиг результата: свежие две недели против предыдущих двух — у каждой игры своей
+   * шкалой, затем среднее по играм области, взвешенное числом партий.
    * null — данных не хватает на честное сравнение, и тогда НИЧЕГО не рисуем.
    * Показать «0%» вместо «нет данных» — значит соврать про застой.
    */
@@ -60,20 +61,23 @@ export function areaBreakdown(
   areaOf: (gameType: string) => string | undefined,
   now: number = Date.now(),
 ): AreaStat[] {
-  const byArea = new Map<string, { all: number; recent: number[]; prev: number[] }>();
+  type Halves = { recent: number[]; prev: number[] };
+  const byArea = new Map<string, { all: number; games: Map<string, Halves> }>();
 
   for (const s of sessions) {
     const area = areaOf(s.game_type);
     if (!area) continue;                       // игра не из реестра — молча не приписываем никуда
-    const rec = byArea.get(area) ?? { all: 0, recent: [], prev: [] };
+    const rec = byArea.get(area) ?? { all: 0, games: new Map<string, Halves>() };
     rec.all += 1;
 
     const t = s.timestamp ? Date.parse(s.timestamp) : NaN;
     const score = Number(s.score);
     if (Number.isFinite(t) && t <= now && Number.isFinite(score)) {
       const age = now - t;
-      if (age <= HALF_WINDOW_MS) rec.recent.push(score);
-      else if (age <= HALF_WINDOW_MS * 2) rec.prev.push(score);
+      const g = rec.games.get(s.game_type) ?? { recent: [], prev: [] };
+      if (age <= HALF_WINDOW_MS) g.recent.push(score);
+      else if (age <= HALF_WINDOW_MS * 2) g.prev.push(score);
+      rec.games.set(s.game_type, g);
     }
     byArea.set(area, rec);
   }
@@ -82,12 +86,26 @@ export function areaBreakdown(
   const out: AreaStat[] = [];
 
   for (const [area, rec] of byArea) {
-    let trend: number | null = null;
-    if (rec.recent.length >= MIN_FOR_TREND && rec.prev.length >= MIN_FOR_TREND) {
-      const before = avg(rec.prev);
+    /*
+     * 🔴 СДВИГ СЧИТАЕТСЯ У КАЖДОЙ ИГРЫ СВОЕЙ ШКАЛОЙ И ТОЛЬКО ПОТОМ СВОДИТСЯ В ОБЛАСТЬ.
+     * Раньше сравнивался средний балл области как есть, а шкалы у игр разные: у дыхания
+     * счёт — секунды, у паузы — минуты, у судоку — очки. Стоило в свежие две недели
+     * сыграть больше игр с мелкой шкалой — и область «падала на 71 %», хотя ни в одной
+     * игре результат не изменился (отчёт dfd6b290, 18.09.2026: «−71 %», «−54 %»).
+     * Сдвиг области — среднее сдвигов её игр, взвешенное числом их партий в окне.
+     */
+    let sum = 0;
+    let weight = 0;
+    for (const g of rec.games.values()) {
+      if (g.recent.length < MIN_FOR_TREND || g.prev.length < MIN_FOR_TREND) continue;
+      const before = avg(g.prev);
       // Делить на ноль нельзя, и «рост с нуля» — не рост, а отсутствие базы.
-      if (before > 0) trend = (avg(rec.recent) - before) / before;
+      if (!(before > 0)) continue;
+      const w = g.recent.length + g.prev.length;
+      sum += w * ((avg(g.recent) - before) / before);
+      weight += w;
     }
+    const trend = weight > 0 ? sum / weight : null;
     out.push({ area, sessions: rec.all, share: total ? rec.all / total : 0, trend });
   }
 
