@@ -32,13 +32,32 @@ void main() {
   }
 
   /// Ведёт маркер пальцем к нужному значению шкалы и возвращает, что вышло.
+  /// ПРИЦЕЛИВАНИЕ ПО ПОКАЗАНИЯМ ЭКРАНА, А НЕ ПО ФОРМУЛЕ РАСКЛАДКИ.
+  ///
+  /// Раньше проба сама считала, где на дорожке лежит число, повторяя формулу
+  /// экрана. Стоило дорожке сжаться на полподписи с каждой стороны (чтобы
+  /// крайняя подпись не вылезала за поле) — и проба промахнулась, хотя игра
+  /// работала. Теперь маркер водят как рукой: тащат, читают, что показал экран,
+  /// и правят направление — половинным делением. Формулы проба не знает вовсе.
   Future<double> dragTo(WidgetTester tester, MathSliderScale scale, double value) async {
     final rect = tester.getRect(find.byKey(const Key('шкала')));
-    final from = rect.left +
-        ((estimateOnScreen(tester) - scale.min) / scale.width).clamp(0.0, 1.0) * rect.width;
-    final to = rect.left + ((value - scale.min) / scale.width).clamp(0.0, 1.0) * rect.width;
-    await tester.dragFrom(Offset(from, rect.top + 50), Offset(to - from, 0));
-    await tester.pump();
+    final y = rect.top + 50;
+    var lo = rect.left + 1;
+    var hi = rect.right - 1;
+    var cur = rect.center.dx;
+    for (var step = 0; step < 24; step += 1) {
+      final mid = (lo + hi) / 2;
+      await tester.dragFrom(Offset(cur, y), Offset(mid - cur, 0));
+      await tester.pump();
+      cur = mid;
+      final got = estimateOnScreen(tester);
+      if ((got - value).abs() <= scale.keyboardStep) return got;
+      if (got < value) {
+        lo = mid;
+      } else {
+        hi = mid;
+      }
+    }
     return estimateOnScreen(tester);
   }
 

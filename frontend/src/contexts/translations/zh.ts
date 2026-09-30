@@ -3039,5 +3039,7 @@ const t: Record<string, string> = {
   "teachCorsiPath": "不要一个一个地记方块，而要记闪光画出的路径：在它们之间画一条想象的线。五次闪光就变成一条路线——一条折线、一个字母、一个钩子。",
   "teachCorsiBackward": "倒序模式下，不要一点一点地临时翻转。先按显示的顺序把路线正着搭好，回答时再从终点走回去。",
   "teachCorsiEyes": "用目光追着每一次闪光，直到演示结束都不要移开。漏掉一次闪光，整条路线就断了——之后只能靠猜。",
+  "vsFindAll": "找出所有这种图形 — 任意旋转方向",
+  "vsFindConj": "找出这种颜色和形状的图形",
 };
 export default t;

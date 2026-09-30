@@ -3039,5 +3039,7 @@ const t: Record<string, string> = {
   "teachCorsiPath": "Merke dir nicht die Blöcke einzeln, sondern den WEG, den die Blitze zeichnen: Zieh eine gedachte Linie durch sie. Fünf Blitze werden zu einer Route — Zickzack, Buchstabe, Haken.",
   "teachCorsiBackward": "Im Rückwärtsmodus nicht Punkt für Punkt im Kopf umdrehen. Bau zuerst die Route vorwärts, wie sie gezeigt wurde, und geh sie beim Antworten vom Ende her ab.",
   "teachCorsiEyes": "Folge jedem Blitz mit den Augen und schau bis zum Ende der Anzeige nicht weg. Ein verpasster Blitz zerreißt die ganze Route — danach ist es Raten.",
+  "vsFindAll": "Finde alle diese Formen — in jeder Drehung",
+  "vsFindConj": "Finde die Form in dieser Farbe",
 };
 export default t;

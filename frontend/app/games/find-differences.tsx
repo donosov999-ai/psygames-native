@@ -128,7 +128,7 @@ export const FIND_DIFFERENCES_LEVELS: number = (() => {
 // поэтому богатая палитра не мешает игре: разница в цвете всегда заметна.
 const PALETTE = ['#ef4444','#f97316','#facc15','#22c55e','#06b6d4','#3b82f6','#d946ef'];
 
-function rand(a: number, b: number) { return a + Math.random() * (b - a); }
+function rand(a: number, b: number, rnd: () => number = Math.random) { return a + rnd() * (b - a); }
 
 function hexToRgb(h: string): [number, number, number] {
   const n = parseInt(h.slice(1), 16);
@@ -163,7 +163,12 @@ function tooClose(a: Shape, b: Shape, padding = 12): boolean {
  *   Экспортирована ради гейта: приманки проверяются ИСПОЛНЕНИЕМ сборки сцены,
  *   а не чтением исходника.
  */
-export function generateScene(width: number, height: number, count: number, alphabet: number = SPRITE_COUNT): Shape[] {
+/**
+ * ⚠️ ИСТОЧНИК СЛУЧАЙНОСТИ — ПАРАМЕТР (по умолчанию `Math.random`, поведение прежнее).
+ * Без него сцену не выгрузить детерминированно: ни сверить перенос на Flutter, ни
+ * проверить приманки гейтом иначе, чем долями на большом прогоне.
+ */
+export function generateScene(width: number, height: number, count: number, alphabet: number = SPRITE_COUNT, rnd: () => number = Math.random): Shape[] {
   // Сеточная раскладка: каждый объект — в своей ячейке сетки + лёгкий джиттер внутри неё.
   // Объект гарантированно остаётся внутри ячейки с зазором ≥6px → НАЛОЖЕНИЯ НЕВОЗМОЖНЫ.
   const cols = Math.max(1, Math.round(Math.sqrt(count * width / Math.max(1, height))));
@@ -174,7 +179,7 @@ export function generateScene(width: number, height: number, count: number, alph
   const jitter = Math.max(0, (cellMin - size) / 2 - 6);
   const cellIdx = Array.from({ length: cols * rows }, (_, i) => i);
   for (let i = cellIdx.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
+    const j = Math.floor(rnd() * (i + 1));
     [cellIdx[i], cellIdx[j]] = [cellIdx[j], cellIdx[i]];
   }
   const shapes: Shape[] = [];
@@ -182,9 +187,9 @@ export function generateScene(width: number, height: number, count: number, alph
     const ci = cellIdx[n];
     const gr = Math.floor(ci / cols), gc = ci % cols;
     shapes.push({
-      sprite: Math.floor(Math.random() * Math.max(1, Math.min(alphabet, SPRITE_COUNT))),
-      x: gc * cw + cw / 2 + rand(-jitter, jitter),
-      y: gr * ch + ch / 2 + rand(-jitter, jitter),
+      sprite: Math.floor(rnd() * Math.max(1, Math.min(alphabet, SPRITE_COUNT))),
+      x: gc * cw + cw / 2 + rand(-jitter, jitter, rnd),
+      y: gr * ch + ch / 2 + rand(-jitter, jitter, rnd),
       size,
       rot: 0,
     });
@@ -200,18 +205,18 @@ export function generateScene(width: number, height: number, count: number, alph
  * четвёртый, и его видно, не сравнивая картинки вовсе. Ось сходства при этом
  * работала бы наоборот — чем выше уровень, тем ЛЕГЧЕ.
  */
-export function withDifference(scene: Shape[], diffCount: number, alphabet: number = SPRITE_COUNT): { altered: Shape[]; diffIdx: number[] } {
+export function withDifference(scene: Shape[], diffCount: number, alphabet: number = SPRITE_COUNT, rnd: () => number = Math.random): { altered: Shape[]; diffIdx: number[] } {
   const altered = scene.map((s) => ({ ...s }));
   const indices = Array.from({ length: scene.length }, (_, i) => i);
   for (let i = indices.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
+    const j = Math.floor(rnd() * (i + 1));
     [indices[i], indices[j]] = [indices[j], indices[i]];
   }
   const diffIdx = indices.slice(0, diffCount);
   for (const i of diffIdx) {
     // Try size change first only if it stays safe (won't overlap neighbors).
     // Otherwise fall through to color or kind change.
-    const tryChanges = [Math.floor(Math.random() * 3), 0, 1, 2];   // randomized first attempt, plus all fallbacks
+    const tryChanges = [Math.floor(rnd() * 3), 0, 1, 2];   // randomized first attempt, plus all fallbacks
     let applied = false;
     for (const change of tryChanges) {
       if (applied) break;
@@ -221,7 +226,7 @@ export function withDifference(scene: Shape[], diffCount: number, alphabet: numb
         // При алфавите в один вид менять не на что — тогда пробуем другие способы.
         if (алф > 1) {
           let sp = altered[i].sprite;
-          do { sp = Math.floor(Math.random() * алф); } while (sp === altered[i].sprite);
+          do { sp = Math.floor(rnd() * алф); } while (sp === altered[i].sprite);
           altered[i].sprite = sp;
           applied = true;
         }
@@ -236,7 +241,7 @@ export function withDifference(scene: Shape[], diffCount: number, alphabet: numb
         }
       } else {
         // повернуть/отразить на заметный угол
-        altered[i].rot = (altered[i].rot + (Math.random() < 0.5 ? 180 : 90)) % 360;
+        altered[i].rot = (altered[i].rot + (rnd() < 0.5 ? 180 : 90)) % 360;
         applied = true;
       }
     }

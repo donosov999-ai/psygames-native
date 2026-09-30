@@ -3039,5 +3039,7 @@ const t: Record<string, string> = {
   "teachCorsiPath": "No memorices los bloques uno a uno, sino el CAMINO que trazan los destellos: pasa por ellos una línea imaginaria. Cinco destellos se convierten en una sola ruta: un zigzag, una letra, un gancho.",
   "teachCorsiBackward": "En el modo inverso no des la vuelta punto a punto sobre la marcha. Primero arma la ruta hacia delante, tal como se mostró, y al responder recórrela desde el final.",
   "teachCorsiEyes": "Sigue cada destello con la mirada y no la apartes hasta que termine la muestra. Un destello perdido rompe toda la ruta: a partir de ahí es adivinar.",
+  "vsFindAll": "Encuentra todas estas figuras — en cualquier rotación",
+  "vsFindConj": "Encuentra la figura de este color y forma",
 };
 export default t;
