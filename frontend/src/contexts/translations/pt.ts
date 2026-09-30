@@ -3039,6 +3039,9 @@ const t: Record<string, string> = {
   "teachCorsiPath": "Não memorize os blocos um a um, e sim o CAMINHO que os lampejos desenham: passe uma linha imaginária por eles. Cinco lampejos viram uma só rota — um zigue-zague, uma letra, um gancho.",
   "teachCorsiBackward": "No modo inverso, não vire ponto a ponto na hora. Primeiro monte a rota para a frente, como foi mostrada, e ao responder percorra-a a partir do fim.",
   "teachCorsiEyes": "Acompanhe cada lampejo com os olhos e não desvie o olhar até a exibição acabar. Um lampejo perdido quebra a rota inteira — daí em diante é chute.",
+  "teachPicturePairsPlaces": "Enquanto as cartas estão viradas para cima, ligue cada figura a um lugar: cantos, bordas, centro. Depois abra onde viu o par, não ao acaso.",
+  "teachPicturePairsGroup": "Com trios e quartetos, guarde TODOS os lugares de uma figura: o grupo só some quando todas as suas cartas são abertas em seguida.",
+  "teachPicturePairsSwap": "A partir do nível 22, depois de um erro as cartas viradas para baixo trocam de lugar e o par se ilumina. Mova a figura na memória para onde a carta dela foi.",
   "vsFindAll": "Encontre todas estas formas — em qualquer rotação",
   "vsFindConj": "Encontre a forma desta cor e formato",
 };

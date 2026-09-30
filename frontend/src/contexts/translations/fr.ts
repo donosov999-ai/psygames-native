@@ -3034,6 +3034,9 @@ const t: Record<string, string> = {
   "teachCorsiPath": "Ne mémorisez pas les blocs un par un, mais le CHEMIN que tracent les éclairs : faites passer une ligne imaginaire par eux. Cinq éclairs deviennent un seul trajet — un zigzag, une lettre, un crochet.",
   "teachCorsiBackward": "En mode inverse, ne retournez pas point par point à la volée. Construisez d’abord le trajet à l’endroit, tel qu’il a été montré, puis parcourez-le depuis la fin en répondant.",
   "teachCorsiEyes": "Suivez chaque éclair des yeux et ne détournez pas le regard avant la fin de l’affichage. Un éclair manqué brise tout le trajet — ensuite, c’est deviner.",
+  "teachPicturePairsPlaces": "Tant que les cartes sont visibles, associe chaque image à un endroit : coins, bords, milieu. Ensuite, retourne là où tu as vu sa jumelle, pas au hasard.",
+  "teachPicturePairsGroup": "Avec les triplets et les quadruplets, garde en tête TOUS les emplacements d'une image : un groupe disparaît seulement quand toutes ses cartes sont retournées d'affilée.",
+  "teachPicturePairsSwap": "À partir du niveau 22, après une erreur, des cartes face cachée échangent leur place et la paire s'illumine. Déplace l'image dans ta mémoire là où sa carte est partie.",
   "vsFindAll": "Trouve toutes ces figures — dans n'importe quelle orientation",
   "vsFindConj": "Trouve la figure de cette couleur et de cette forme",
 };

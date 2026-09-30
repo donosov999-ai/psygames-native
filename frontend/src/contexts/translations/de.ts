@@ -3039,6 +3039,9 @@ const t: Record<string, string> = {
   "teachCorsiPath": "Merke dir nicht die Blöcke einzeln, sondern den WEG, den die Blitze zeichnen: Zieh eine gedachte Linie durch sie. Fünf Blitze werden zu einer Route — Zickzack, Buchstabe, Haken.",
   "teachCorsiBackward": "Im Rückwärtsmodus nicht Punkt für Punkt im Kopf umdrehen. Bau zuerst die Route vorwärts, wie sie gezeigt wurde, und geh sie beim Antworten vom Ende her ab.",
   "teachCorsiEyes": "Folge jedem Blitz mit den Augen und schau bis zum Ende der Anzeige nicht weg. Ein verpasster Blitz zerreißt die ganze Route — danach ist es Raten.",
+  "teachPicturePairsPlaces": "Solange die Karten offen liegen, verknüpfe jedes Bild mit einem Ort: Ecken, Ränder, Mitte. Dann decke dort auf, wo du sein Gegenstück gesehen hast.",
+  "teachPicturePairsGroup": "Bei Dreiern und Vierern behalte ALLE Orte eines Bildes im Kopf: Eine Gruppe verschwindet erst, wenn alle ihre Karten nacheinander aufgedeckt sind.",
+  "teachPicturePairsSwap": "Ab Level 22 tauschen nach einem Fehler verdeckte Karten die Plätze, und das Paar leuchtet auf. Verschiebe das Bild im Kopf dorthin, wo seine Karte hingewandert ist.",
   "vsFindAll": "Finde alle diese Formen — in jeder Drehung",
   "vsFindConj": "Finde die Form in dieser Farbe",
 };
