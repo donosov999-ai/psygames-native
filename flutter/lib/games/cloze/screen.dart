@@ -14,6 +14,7 @@ import '../languages/bilingual.dart';
 import '../languages/fresh_pool.dart';
 import '../languages/json_asset.dart';
 import '../languages/lang_names.dart';
+import '../languages/lang_picker.dart';
 import 'model.dart';
 
 /// «Cloze: фразы» — экран раздела «Языки» на Flutter. Правила и сверка с живым
@@ -318,12 +319,13 @@ class _ClozeScreenState extends State<ClozeScreen> {
           const SizedBox(height: 16),
           Text(L.t('language')),
           const SizedBox(height: 6),
-          DropdownButtonFormField<String>(
+          LangDropdown(
             key: const Key('cloze-lang'),
-            initialValue: langs.contains(_targetLang) ? _targetLang : null,
-            decoration: const InputDecoration(border: OutlineInputBorder(), isDense: true),
-            items: [for (final l in langs) DropdownMenuItem(value: l, child: Text(l.toUpperCase()))],
-            onChanged: (v) => v == null ? null : setState(() => _targetLang = v),
+            keyPrefix: 'cloze-lang',
+            langs: langs,
+            value: _targetLang,
+            label: _names.name,
+            onChanged: (v) => setState(() => _targetLang = v),
           ),
           const SizedBox(height: 8),
           SwitchListTile(
@@ -335,12 +337,13 @@ class _ClozeScreenState extends State<ClozeScreen> {
             onChanged: (v) => setState(() => _bilingual = v),
           ),
           if (_bilingual)
-            DropdownButtonFormField<String>(
+            LangDropdown(
               key: const Key('cloze-lang2'),
-              initialValue: seconds.contains(_second) ? _second : null,
-              decoration: const InputDecoration(border: OutlineInputBorder(), isDense: true),
-              items: [for (final l in seconds) DropdownMenuItem(value: l, child: Text(l.toUpperCase()))],
-              onChanged: (v) => v == null ? null : setState(() => _wantedSecond = v),
+              keyPrefix: 'cloze-lang2',
+              langs: seconds,
+              value: _second,
+              label: _names.name,
+              onChanged: (v) => setState(() => _wantedSecond = v),
             ),
           const SizedBox(height: 24),
           FilledButton(key: const Key('cloze-start'), onPressed: _start, child: Text(L.t('start'))),

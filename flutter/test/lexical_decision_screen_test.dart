@@ -159,8 +159,12 @@ void main() {
 
   testWidgets('в выборе — только языки с псевдословами и без своего', (tester) async {
     await boot(tester, () => 1000);
-    expect(find.byKey(const Key('ld-lang-en')), findsOneWidget);
-    expect(find.byKey(const Key('ld-lang-es')), findsOneWidget);
+    // Выбор — выпадающей строкой: состав пунктов виден в открытом списке.
+    await tester.tap(find.byKey(const Key('ld-lang')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(find.byKey(const Key('ld-lang-en')), findsWidgets);
+    expect(find.byKey(const Key('ld-lang-es')), findsWidgets);
     expect(find.byKey(const Key('ld-lang-fr')), findsNothing, reason: 'у французского генератора нет');
     expect(find.byKey(const Key('ld-lang-ru')), findsNothing, reason: 'свой язык целью не бывает');
     expect(find.byKey(const Key('ld-level-params')), findsOneWidget);

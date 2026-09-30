@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:psygames_flutter/games/languages/lang_picker.dart';
 import 'package:psygames_flutter/shell/game_preset.dart';
 import 'package:psygames_flutter/shell/game_rules.dart';
 import 'package:psygames_flutter/shell/hybrid_app.dart';
@@ -35,6 +36,12 @@ const _games = <String, String>{
   '/games/chinese-tones': 'ct-start',
   '/games/dictation': 'dict-start',
   '/games/rhythm-pitch': 'rp-start',
+};
+
+/// Где человек выбирает изучаемый язык — там строка обязана быть выпадающей.
+const _choosesLanguage = {
+  '/games/vocab-srs', '/games/semantic-sort', '/games/cloze', '/games/lexical-decision',
+  '/games/phonemic-fluency', '/games/pseudoword-echo', '/games/phoneme-pairs', '/games/dictation',
 };
 
 const _locales = ['ru', 'en', 'es', 'de', 'zh', 'hi', 'pt', 'fr', 'it', 'ja', 'ko', 'ar'];
@@ -150,6 +157,12 @@ void main() {
       });
       final e1 = tester.takeException();
       if (e1 != null) bad.add('$route настройка: ${'$e1'.split('\n').first}');
+      // Язык — одной выпадающей строкой (задача a0ae517f), а не сеткой фишек.
+      final chips = find.byWidgetPredicate((w) => w is ChoiceChip && '${w.key}'.contains('-lang-'));
+      if (chips.evaluate().isNotEmpty) bad.add('$route: язык выбирается сеткой из ${chips.evaluate().length} фишек');
+      if (_choosesLanguage.contains(route) && find.byType(LangDropdown).evaluate().isEmpty) {
+        bad.add('$route: нет выпадающего выбора языка');
+      }
       bad.addAll(_measure(tester, '$route настройка'));
 
       final btn = find.byKey(Key(start));

@@ -15,6 +15,7 @@ import '../../shell/shared_state.dart';
 import '../../shell/voice.dart';
 import '../languages/json_asset.dart';
 import '../languages/lang_names.dart';
+import '../languages/lang_picker.dart';
 import 'model.dart';
 
 /// «Фонемы: минимальные пары» — экран раздела «Языки» на Flutter. Правила и сверка
@@ -260,16 +261,14 @@ class _PhonemePairsScreenState extends State<PhonemePairsScreen> {
           const SizedBox(height: 12),
           Text(L.t('langToTrain'), style: theme.textTheme.titleSmall),
           const SizedBox(height: 6),
-          Wrap(spacing: 8, runSpacing: 8, children: [
-            for (final l in _data!.langs)
-              if (l != _base)
-                ChoiceChip(
-                  key: Key('ph-lang-$l'),
-                  label: Text(_names.name(l)),
-                  selected: _target == l,
-                  onSelected: (_) => _pickLang(l),
-                ),
-          ]),
+          LangDropdown(
+            key: const Key('ph-lang'),
+            keyPrefix: 'ph-lang',
+            langs: [for (final l in _data!.langs) if (l != _base) l],
+            value: _target,
+            label: _names.name,
+            onChanged: _pickLang,
+          ),
           const SizedBox(height: 12),
           Text(L.t('level'), style: theme.textTheme.titleSmall),
           Text(L.t('phPairsLvlAuto').replaceAll('{n}', '${_ladder.level}'), style: theme.textTheme.bodySmall),
