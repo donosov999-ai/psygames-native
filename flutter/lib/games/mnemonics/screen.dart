@@ -24,6 +24,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
 import '../../shell/aux_action.dart';
+import '../../shell/game_clock.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
@@ -80,7 +81,7 @@ class MnemonicsScreenState extends State<MnemonicsScreen> {
   final List<String> _picked = [];
   int _errors = 0;
   int _elapsedMs = 0;
-  Timer? _clock;
+  GameTimer? _clock;
 
   int _gapLeftMs = 0;
   int _examples = 0;
@@ -92,7 +93,7 @@ class MnemonicsScreenState extends State<MnemonicsScreen> {
   final List<int> _asked = [];
   ({bool right, String answer})? _feedback;
   int _questionMs = 0;
-  Timer? _feedbackTimer;
+  GameTimer? _feedbackTimer;
 
   bool _passed = false;
   int _score = 0;
@@ -150,7 +151,8 @@ class MnemonicsScreenState extends State<MnemonicsScreen> {
 
   void _runClock() {
     _clock?.cancel();
-    _clock = Timer.periodic(_tick, (_) => _onTick());
+    // Игровые часы: под паузой каркаса и под разбором удержание и ответ не тают (задача 430d1299).
+    _clock = gameInterval(_tick, _onTick);
   }
 
   void _onTick() {
@@ -279,7 +281,7 @@ class MnemonicsScreenState extends State<MnemonicsScreen> {
       _asked.add(q.n);
     });
     _feedbackTimer?.cancel();
-    _feedbackTimer = Timer(Duration(milliseconds: right ? 550 : 1600), () {
+    _feedbackTimer = gameTimeout(Duration(milliseconds: right ? 550 : 1600), () {
       if (!mounted) return;
       if (_asked.length >= _pegTotal) {
         // Допуск — одна ошибка на десять вопросов (как в вебе).
