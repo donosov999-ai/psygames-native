@@ -17,6 +17,7 @@ import '../../shell/voice.dart';
 import '../languages/json_asset.dart';
 import '../languages/lang_names.dart';
 import '../lexical_decision/model.dart';
+import '../hearing_common/lesson_cue.dart';
 import 'lesson.dart';
 import 'model.dart';
 
@@ -481,32 +482,21 @@ class _EchoLessonBoard extends StatefulWidget {
   State<_EchoLessonBoard> createState() => _EchoLessonBoardState();
 }
 
-class _EchoLessonBoardState extends State<_EchoLessonBoard> {
-  Timer? _next;
-  bool _gone = false;
+class _EchoLessonBoardState extends State<_EchoLessonBoard> with SingleTickerProviderStateMixin {
+  late final LessonCue _cue = LessonCue(this);
 
   @override
   void initState() {
     super.initState();
-    _sayFrom(0, 350);
+    // Как в вебе: через 350 мс, темп 0,85.
+    final words = widget.card.speak;
+    _cue.run(words.length, (i) => widget.voice?.speak(words[i], widget.lang, rate: 0.85));
   }
 
   @override
   void dispose() {
-    _gone = true;
-    _next?.cancel();
+    _cue.dispose();
     super.dispose();
-  }
-
-  /// Как в вебе: через 350 мс, темп 0,85. Таймер отменяемый — листнули раньше, слово не звучит поверх.
-  void _sayFrom(int i, int afterMs) {
-    final words = widget.card.speak;
-    if (i >= words.length) return;
-    _next = Timer(Duration(milliseconds: afterMs), () async {
-      if (_gone) return;
-      await widget.voice?.speak(words[i], widget.lang, rate: 0.85);
-      if (!_gone) _sayFrom(i + 1, 0);
-    });
   }
 
   @override
