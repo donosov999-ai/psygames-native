@@ -3266,6 +3266,10 @@ const translations: Translations = {
   catsWhyRow: { ru: 'В этой строке осталось одно место', en: 'Only one square left in this row' },
   catsWhyColumn: { ru: 'В этом столбце осталось одно место', en: 'Only one square left in this column' },
   catsWhyTrial: { ru: 'Вынужденного хода нет — дальше перебор', en: 'No forced move — search from here' },
+  // Пилот генератора уровней судоку (§10 шаг 3): пункт меню паузы и кнопка после проигрыша.
+  sudokuPilotOn: { ru: 'Уровни от генератора (пилот)', en: 'Generated levels (pilot)' },
+  sudokuPilotOff: { ru: 'Вернуться к лестнице уровней', en: 'Back to the level ladder' },
+  sudokuRepeatSame: { ru: 'Ещё раз эту же', en: 'Same difficulty again' },
   sudokuPencilHint: { ru: 'Выбери клетку и жми цифры — они встанут в угол мелким. Повторный тап снимает пометку.', en: 'Pick a cell and tap digits — they go into the corner as small marks. Tap again to remove one.' },
   killerCageRule: { ru: 'Цифры в каждой цветной группе в сумме дают число в её углу и не повторяются.', en: 'Digits in each coloured cage add up to the number in its corner and never repeat.' },
   boardSize: { ru: 'Размер поля', en: 'Board size' },

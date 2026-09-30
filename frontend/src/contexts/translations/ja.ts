@@ -3057,5 +3057,8 @@ const t: Record<string, string> = {
   "catsWhyRow": "この行に残るマスは1つだけ",
   "catsWhyColumn": "この列に残るマスは1つだけ",
   "catsWhyTrial": "確定する手がない — ここから試行",
+  "sudokuPilotOn": "生成レベル（試験版）",
+  "sudokuPilotOff": "レベルの階段に戻る",
+  "sudokuRepeatSame": "同じ難しさでもう一度",
 };
 export default t;

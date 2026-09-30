@@ -3063,5 +3063,8 @@ const t: Record<string, string> = {
   "catsWhyRow": "这一行只剩一个格子",
   "catsWhyColumn": "这一列只剩一个格子",
   "catsWhyTrial": "没有必走的一步——从这里开始试探",
+  "sudokuPilotOn": "生成的关卡（试点）",
+  "sudokuPilotOff": "返回关卡阶梯",
+  "sudokuRepeatSame": "同样难度再来一次",
 };
 export default t;

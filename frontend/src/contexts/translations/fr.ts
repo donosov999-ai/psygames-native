@@ -3058,5 +3058,8 @@ const t: Record<string, string> = {
   "catsWhyRow": "Il ne reste qu’une case dans cette ligne",
   "catsWhyColumn": "Il ne reste qu’une case dans cette colonne",
   "catsWhyTrial": "Aucun coup forcé — à partir d’ici, on essaie",
+  "sudokuPilotOn": "Niveaux générés (pilote)",
+  "sudokuPilotOff": "Revenir à l’échelle des niveaux",
+  "sudokuRepeatSame": "Encore, même difficulté",
 };
 export default t;

@@ -3059,5 +3059,8 @@ const t: Record<string, string> = {
   "catsWhyRow": "بقيت خانة واحدة فقط في هذا الصف",
   "catsWhyColumn": "بقيت خانة واحدة فقط في هذا العمود",
   "catsWhyTrial": "لا توجد نقلة إجبارية — من هنا نجرّب",
+  "sudokuPilotOn": "مستويات مولَّدة (تجريبي)",
+  "sudokuPilotOff": "العودة إلى سلّم المستويات",
+  "sudokuRepeatSame": "مرة أخرى بالصعوبة نفسها",
 };
 export default t;

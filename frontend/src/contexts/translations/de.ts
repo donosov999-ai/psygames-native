@@ -3063,5 +3063,8 @@ const t: Record<string, string> = {
   "catsWhyRow": "In dieser Zeile ist nur noch ein Feld frei",
   "catsWhyColumn": "In dieser Spalte ist nur noch ein Feld frei",
   "catsWhyTrial": "Kein erzwungener Zug — ab hier wird probiert",
+  "sudokuPilotOn": "Generierte Level (Pilot)",
+  "sudokuPilotOff": "Zurück zur Level-Leiter",
+  "sudokuRepeatSame": "Gleiche Schwierigkeit nochmal",
 };
 export default t;

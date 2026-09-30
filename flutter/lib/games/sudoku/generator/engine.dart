@@ -173,18 +173,28 @@ Template? pickNext(AdaptiveState s, List<Template> pool, Leniency mode, {double?
   return best;
 }
 
-/// Рейтинг шаблона, который человек играл последним, — цель для «ещё раз эту же».
+/// Шаблон, который человек играл последним, — то, что выдаёт «ещё раз эту же».
+///
+/// 🔴 КНОПКА ВЫДАЁТ ЭТОТ ЖЕ ШАБЛОН, А НЕ ВЫБОР ПО ЕГО РЕЙТИНГУ (замер 30.09.2026).
+/// Через `pickNext(repeatRating:)` сам шаблон почти не выигрывает: у него штраф 420 —
+/// 300 за «то же правило подряд» и 120 за свежий повтор, — и любое другое правило ближе
+/// чем на 420 очков рейтинга его обходит. На пуле из 34 шаблонов с шагом ~40 это значит
+/// «другое правило» почти всегда: кнопка «эту же» уводила бы с термометров на сэндвич.
+/// Поэтому экран берёт шаблон отсюда напрямую; доска другая — зерно новое.
 ///
 /// ⚠️ Возвращает `null`, когда сыгранного шаблона в пуле уже нет (пул пересобран, правило
 /// убрали): тогда кнопка не притворяется работающей, а выбор идёт обычным путём.
-double? lastTemplateRating(AdaptiveState s, List<Template> pool) {
+Template? lastTemplate(AdaptiveState s, List<Template> pool) {
   if (s.recentTemplateIds.isEmpty) return null;
   final id = s.recentTemplateIds.last;
   for (final t in pool) {
-    if (t.id == id) return t.rating;
+    if (t.id == id) return t;
   }
   return null;
 }
+
+/// Рейтинг шаблона, который человек играл последним, — цель для «ещё раз эту же».
+double? lastTemplateRating(AdaptiveState s, List<Template> pool) => lastTemplate(s, pool)?.rating;
 
 extension<T> on Iterable<T> {
   T? get firstOrNull => isEmpty ? null : first;

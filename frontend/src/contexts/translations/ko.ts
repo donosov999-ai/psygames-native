@@ -3058,5 +3058,8 @@ const t: Record<string, string> = {
   "catsWhyRow": "이 행에는 한 칸만 남았습니다",
   "catsWhyColumn": "이 열에는 한 칸만 남았습니다",
   "catsWhyTrial": "강제된 수가 없습니다 — 여기서부터는 시도",
+  "sudokuPilotOn": "생성된 레벨 (시범)",
+  "sudokuPilotOff": "레벨 사다리로 돌아가기",
+  "sudokuRepeatSame": "같은 난이도로 한 번 더",
 };
 export default t;
