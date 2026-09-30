@@ -19,9 +19,25 @@ class LevelLadder {
     required LevelStore store,
     this.failStreakThreshold = 3,
     this.maxLevel = 999,
+    this.sessionType,
+    this.sessionMode,
   }) : _store = store;   // ignore: prefer_initializing_formals — поле приватное, а параметр именованный
 
   final String gameId;
+
+  /*
+   * 🔴 КЛЮЧ УРОВНЯ И ТИП ПАРТИИ — НЕ ОДНО И ТО ЖЕ, КОГДА У ИГРЫ МНОГО РЕЖИМОВ.
+   * Головоломки держат уровень у каждого режима свой (`puzzles_mines`), «Лаборатория» —
+   * у каждого упражнения (`spatial_lab_net`), и так же хранит их веб. А партию веб
+   * пишет ОДНИМ типом с режимом рядом: `puzzles` + `Mines`, `spatial_lab` + `net`.
+   * Натив отправлял партию под ключом уровня — и в статистике её не было нигде:
+   * ни в «Балансе тренировок», ни в карточке игры (разбор жалобы Дениса «статистика
+   * не доходит», задача 48298f5f, 30.09.2026). Не задано — партия идёт под [gameId],
+   * как у всех игр с одним режимом.
+   */
+  final String? sessionType;
+  final String? sessionMode;
+
   final LevelStore _store;
   final int failStreakThreshold;
   final int maxLevel;
@@ -87,11 +103,11 @@ class LevelLadder {
       await _save();
     }
     await SessionReport.send(
-      gameType: gameId,
+      gameType: sessionType ?? gameId,
       score: score,
       timeSeconds: timeSeconds,
       errors: errors,
-      mode: mode,
+      mode: mode ?? sessionMode,
       difficulty: '$_level',
     );
   }
@@ -109,11 +125,11 @@ class LevelLadder {
       // подряд (или три подсмотренных решения) опустили бы личный уровень, который
       // человек в этих партиях и не защищал.
       await SessionReport.send(
-        gameType: gameId,
+        gameType: sessionType ?? gameId,
         score: score,
         timeSeconds: timeSeconds,
         errors: errors,
-        mode: mode,
+        mode: mode ?? sessionMode,
         difficulty: '$_level',
       );
       return;
@@ -125,11 +141,11 @@ class LevelLadder {
     }
     await _save();
     await SessionReport.send(
-      gameType: gameId,
+      gameType: sessionType ?? gameId,
       score: score,
       timeSeconds: timeSeconds,
       errors: errors,
-      mode: mode,
+      mode: mode ?? sessionMode,
       difficulty: '$_level',
     );
   }

@@ -68,6 +68,10 @@ class _SpatialLabScreenState extends State<SpatialLabScreen> {
         gameId: 'spatial_lab_${m.name}',
         store: SharedLevelStore(widget.state),
         maxLevel: 50,
+        // Партию веб пишет типом `spatial_lab` с упражнением в `mode` (spatial-lab.tsx),
+        // иначе в статистике её нет нигде. Уровень — по-прежнему у каждого упражнения свой.
+        sessionType: 'spatial_lab',
+        sessionMode: m.name,
       );
     }
     _boot();
