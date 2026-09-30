@@ -13,6 +13,7 @@ import '../../shell/shared_state.dart';
 import '../languages/bilingual.dart';
 import '../languages/fresh_pool.dart';
 import '../languages/json_asset.dart';
+import '../languages/lang_names.dart';
 import 'model.dart';
 
 /// «Cloze: фразы» — экран раздела «Языки» на Flutter. Правила и сверка с живым
@@ -39,6 +40,7 @@ class _ClozeScreenState extends State<ClozeScreen> {
   late LevelLadder _ladder;
   List<Map<String, String>>? _vocab;
   Map<String, List<ClozePhrase>> _phrases = const {};
+  LangNames _names = LangNames.empty;
   late final double Function() _rng = widget.random ?? Random().nextDouble;
 
   ClozePhase _phase = ClozePhase.config;
@@ -97,10 +99,12 @@ class _ClozeScreenState extends State<ClozeScreen> {
           for (final e in (await loadJsonAsset('assets/vocab/cloze-phrases.json') as Map).entries)
             '${e.key}': [for (final f in (e.value as List)) ClozePhrase('${(f as Map)['text']}', '${f['answerEn']}')],
         };
+    final names = await LangNames.load();
     if (!mounted) return;
     setState(() {
       _vocab = vocab;
       _phrases = phrases;
+      _names = names;
       _targetLang = GamePreset.str('targetLang', _baseLang == 'en' ? 'es' : 'en');
       _bilingual = GamePreset.str(bilingualKey) == '1';
       _wantedSecond = GamePreset.str('lang2', pairFor(_baseLang)[1]);
@@ -326,7 +330,7 @@ class _ClozeScreenState extends State<ClozeScreen> {
             key: const Key('cloze-bilingual'),
             contentPadding: EdgeInsets.zero,
             title: Text(L.t('bilingualMode')),
-            subtitle: Text(L.t('bilingualModeDesc'), style: Theme.of(context).textTheme.bodySmall),
+            subtitle: Text(_names.bilingualDesc(_targetLang, _second), style: Theme.of(context).textTheme.bodySmall),
             value: _bilingual,
             onChanged: (v) => setState(() => _bilingual = v),
           ),
