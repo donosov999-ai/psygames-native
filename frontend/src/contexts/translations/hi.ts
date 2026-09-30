@@ -1086,6 +1086,7 @@ const t: Record<string, string> = {
   "earnWhyStreak": "लगातार दिनों की लय — दोगुना",
   "earnWhyRepeat": "आज दोहराव — बिना दोगुने के",
   "earnWhyWarmup": "वॉर्म-अप चरण — बोनस अंत में",
+  "earnWhyLesson": "हल देखकर खेला — दोगुना नहीं",
   "todayEarnedTitle": "आज कमाया",
   "todayEmptyHint": "आज अभी कोई दौर नहीं। एक खेलो — यहाँ दिखेगा कि किससे कितना मिला।",
   "todayRoundsLabel": "दौर: {n}",

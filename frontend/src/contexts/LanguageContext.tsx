@@ -2824,6 +2824,7 @@ const translations: Translations = {
   earnWhyStreak: { ru: 'серия дней — вдвое', en: 'day streak — double' },
   earnWhyRepeat: { ru: 'повтор сегодня — без удвоения', en: 'repeat today — no doubling' },
   earnWhyWarmup: { ru: 'шаг зарядки — бонус в конце комплекса', en: 'warm-up step — bonus at the end' },
+  earnWhyLesson: { ru: 'партия с разбором — без удвоения', en: 'played with a walkthrough — no doubling' },
   todayEarnedTitle: { ru: 'Заработано за сегодня', en: 'Earned so far today' },
   todayEmptyHint: { ru: 'Партий сегодня ещё не было. Сыграй — здесь появится, что и сколько принесло.', en: 'No rounds today yet. Play one — this is where you’ll see what it earned.' },
   todayRoundsLabel: { ru: 'партий: {n}', en: 'rounds: {n}' },
