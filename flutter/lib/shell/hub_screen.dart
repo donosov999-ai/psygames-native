@@ -119,6 +119,7 @@ const Map<String, IconData> hubIcons = {
   'business': Icons.business_outlined,
   'cafe': Icons.cake_outlined,
   'calculator': Icons.calculate_outlined,
+  'car': Icons.directions_car_outlined,
   'chatbubbles': Icons.forum_outlined,
   'checkmark-done': Icons.done_all,
   'chevron-forward': Icons.chevron_right,
@@ -131,12 +132,14 @@ const Map<String, IconData> hubIcons = {
   'cube': Icons.view_in_ar_outlined,
   'cube-outline': Icons.view_in_ar_outlined,
   'diamond': Icons.diamond_outlined,
+  'dice': Icons.casino_outlined,
   'disc': Icons.album_outlined,
   'ear': Icons.hearing,
   'ellipse': Icons.circle_outlined,
   'ellipse-outline': Icons.circle_outlined,
   'extension-puzzle': Icons.extension_outlined,
   'eye': Icons.visibility_outlined,
+  'eye-off': Icons.visibility_off_outlined,
   'eye-outline': Icons.visibility_outlined,
   'flash': Icons.flash_on_outlined,
   'flask': Icons.science_outlined,
@@ -150,6 +153,7 @@ const Map<String, IconData> hubIcons = {
   'grid': Icons.grid_view_outlined,
   'grid-outline': Icons.grid_view_outlined,
   'hand-left': Icons.back_hand_outlined,
+  'happy': Icons.sentiment_satisfied_alt_outlined,
   'headset': Icons.headset_outlined,
   'home': Icons.home_outlined,
   'keypad': Icons.dialpad,
@@ -164,6 +168,7 @@ const Map<String, IconData> hubIcons = {
   'musical-note': Icons.music_note_outlined,
   'musical-notes': Icons.queue_music_outlined,
   'navigate': Icons.navigation_outlined,
+  'paw': Icons.pets_outlined,
   'person': Icons.person_outline,
   'pizza': Icons.local_pizza_outlined,
   'planet': Icons.public,
@@ -198,7 +203,7 @@ class _HubScreenState extends State<HubScreen> {
   String _title = '';
   String _desc = '';
   String _footnote = '';
-  String _pick = '';
+  String _pick = 'Выбери упражнение';
   final Map<String, int> _levels = {};
 
   @override
@@ -301,7 +306,10 @@ class _HubScreenState extends State<HubScreen> {
   }
 
   Future<void> _boot() async {
-    final raw = await rootBundle.loadString('assets/hubs.json');
+    // ⚠️ БАЙТАМИ, А НЕ `loadString`: с 51 200 байт он декодирует в `compute()`,
+    // и testWidgets висит десять минут. 30.09.2026 файл весил 47 979 — запас 3 КБ.
+    final data = await rootBundle.load('assets/hubs.json');
+    final raw = utf8.decode(data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes));
     final j = jsonDecode(raw) as Map<String, dynamic>;
     final cards = _cardsFor(j);
     final meta = (j['meta'] as Map<String, dynamic>)[widget.hubRoute] as Map<String, dynamic>?;
@@ -320,20 +328,20 @@ class _HubScreenState extends State<HubScreen> {
       _levels[c.route] = ladder.level;
     }
     if (!mounted) return;
-    // 🔴 ШАПКА — КЛЮЧАМИ СЛОВАРЯ, КАК И КАРТОЧКИ. До 30.09.2026 здесь лежали
-    // русские строки, и шапка всех развилок говорила по-русски на двенадцати
-    // языках. Ключи снимает с веб-экрана развилки `tools/embed-hubs.mjs`.
-    String header(String field) {
-      final key = meta?[field] as String?;
-      return key == null || key.isEmpty ? '' : L.t(key);
+    // 🔴 КЛЮЧ СЛОВАРЯ ПРЕЖДЕ ТЕКСТА: `meta` несёт ключи, снятые с веб-экрана
+    // развилки (embed-hubs.mjs), а русский текст — только запасной путь для
+    // развилок без ключей. Без этого заголовок говорил по-русски на всех языках.
+    String tr(String keyField, String? text) {
+      final key = meta?[keyField] as String?;
+      return (key != null && key.isNotEmpty) ? L.t(key) : (text ?? '');
     }
 
     setState(() {
       _cards = cards;
-      _title = header('titleKey');
-      _desc = header('descKey');
-      _footnote = header('footnoteKey');
-      _pick = header('pickKey');
+      _title = tr('titleKey', meta?['title'] as String?);
+      _desc = tr('descKey', meta?['desc'] as String?);
+      _footnote = tr('footnoteKey', meta?['footnote'] as String?);
+      _pick = tr('pickKey', j['pick'] as String? ?? _pick);
     });
   }
 
@@ -346,7 +354,7 @@ class _HubScreenState extends State<HubScreen> {
         title: Text(_title.isEmpty ? 'Развилка' : _title),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          tooltip: L.t('a11yBack'),
+          tooltip: 'Назад',
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),

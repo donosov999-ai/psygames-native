@@ -96,10 +96,9 @@ for (const f of dartFiles(join(FLUTTER, 'lib'))) {
 // головоломок берут ключ ИЗ ДАННЫХ: `L.t(c.nameKey)`. Такие ключи в исходнике
 // не написаны вовсе, и первый же прогон после перевода развилок оставил бы их
 // без строк — экран показал бы сами ключи. Поэтому собираем их из собранных
-// ассетов: там они лежат явно. Шапка развилки (`meta`: заголовок, описание,
-// сноска, призыв «выбери») с 30.09.2026 тоже лежит ключами — они здесь же.
+// ассетов: там они лежат явно.
 for (const [file, fields] of [
-  ['assets/hubs.json', ['nameKey', 'descKey', 'titleKey', 'footnoteKey', 'pickKey']],
+  ['assets/hubs.json', ['nameKey', 'descKey', 'titleKey', 'pickKey', 'footnoteKey']],
   ['assets/puzzles/modes.json', ['titleKey', 'digitNames']],
 ]) {
   let data;

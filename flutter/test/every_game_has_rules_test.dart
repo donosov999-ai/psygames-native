@@ -8,7 +8,7 @@ import 'package:psygames_flutter/shell/game_shell.dart';
 import 'package:psygames_flutter/shell/hybrid_app.dart';
 import 'package:psygames_flutter/shell/l10n.dart';
 
-import 'hub_routes.dart';
+import 'support/hub_routes.dart';
 
 /// 🔴 СПРАВКА ЕСТЬ У КАЖДОЙ ПЕРЕНЕСЁННОЙ ИГРЫ, А НЕ У ОДНОЙ.
 ///
@@ -32,7 +32,8 @@ void main() {
       File('${Directory.current.path}/assets/l10n/ru.json').readAsStringSync(),
     ) as Map<String, dynamic>;
 
-    // Развилка — меню, а не игра; узнаём её по данным (`hub_routes.dart`), не по хвосту адреса.
+    // Развилки — не игры. Что такое развилка — `test/support/hub_routes.dart`:
+    // по реестру развилок, а не по имени на `-hub` (две из 13 называются иначе).
     final routes = HybridApp.native.keys.where((r) => !isHubRoute(r)).toList();
     expect(routes.length, greaterThan(90), reason: 'перехваченных игр ${routes.length}');
 

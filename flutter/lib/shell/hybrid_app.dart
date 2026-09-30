@@ -39,8 +39,15 @@ import '../games/cake_sort/board.dart' show CakeSkin;
 import '../games/cake_sort/screen.dart';
 import '../games/hanoi/screen.dart';
 import '../games/tower_london/screen.dart';
+import '../games/animal_queue/screen.dart';
+import '../games/kids_sort/screen.dart';
+import '../games/traffic_jam/screen.dart';
+import '../games/monster_traits/screen.dart';
+import '../games/roll_and_bank/screen.dart';
+import '../games/hidden_character/screen.dart';
 import '../games/sort_tubes/screen.dart';
 import '../games/mental_rotation/screen.dart';
+import '../games/navigator/screen.dart';
 import '../games/samurai/screen.dart';
 import '../games/spatial_hub/screen.dart';
 import '../games/spatial_lab/screen.dart';
@@ -71,6 +78,15 @@ import '../games/faces_names/screen.dart';
 import '../games/memory_palace/screen.dart';
 import '../games/rmet/screen.dart';
 import '../games/word_pairs/screen.dart';
+import '../games/vocab_srs/screen.dart';
+import '../games/semantic_sort/screen.dart';
+import '../games/cloze/screen.dart';
+import '../games/lexical_decision/screen.dart';
+import '../games/story_recall/screen.dart';
+import '../games/phonemic_fluency/screen.dart';
+import '../games/pseudoword_echo/screen.dart';
+import '../games/phoneme_pairs/screen.dart';
+import '../games/chinese_tones/screen.dart';
 import 'hub_screen.dart';
 import 'game_pet.dart';
 import 'session_report.dart';
@@ -166,6 +182,7 @@ class HybridApp extends StatefulWidget {
         '/games/sudoku-fractal-deep': (s) => DeepScreen(state: s),
         '/games/go-no-go': (s) => GoNoGoScreen(state: s),
         '/games/mental-rotation': (s) => MentalRotationScreen(state: s),
+        '/games/navigator': (s) => NavigatorScreen(state: s),
         '/games/spatial-span': (s) => SpatialSpanScreen(state: s),
         // Все четыре упражнения лаборатории перенесены, поэтому перехват честен: адрес с
         // `?mode=` попадает в ту же строку карты, и ни один режим не остаётся в вебе.
@@ -184,6 +201,15 @@ class HybridApp extends StatefulWidget {
             state: s, gameId: 'pizza_sort', title: 'Пицца', skin: CakeSkin.pizza),
       '/games/hanoi': (s) => HanoiScreen(state: s),
       '/games/tower-london': (s) => TowerLondonScreen(state: s),
+      // MindLab (решение Дениса 30.09.2026): только нативные, веб-двойника у них нет.
+      '/games/animal-queue': (s) => AnimalQueueScreen(state: s),
+      '/games/kids-sort': (s) => KidsSortScreen(state: s),
+      // MindLab у координатора (задача f5034811): тоже только нативные, карточки — в
+      // развилках «Пространство», «Поиск глазами», «Конфликт внимания», «Головоломки».
+      '/games/traffic-jam': (s) => TrafficJamScreen(state: s),
+      '/games/monster-traits': (s) => MonsterTraitsScreen(state: s),
+      '/games/roll-and-bank': (s) => RollAndBankScreen(state: s),
+      '/games/hidden-character': (s) => HiddenCharacterScreen(state: s),
         /*
          * 🔴 РАЗВИЛКА ТОЖЕ ПЕРЕХВАТЫВАЕТСЯ. Она ведёт на восемь игр, из которых
          * все восемь уже нативные: оставь её в вебе — и каждый заход в игру шёл
@@ -212,6 +238,19 @@ class HybridApp extends StatefulWidget {
         '/games/memory-palace': (s) => MemoryPalaceScreen(state: s),
         '/games/rmet': (s) => RmetScreen(state: s),
         '/games/ant': (s) => AntScreen(state: s),
+        // РАЗВИЛКА «КОНФЛИКТ ВНИМАНИЯ» — НА ОБЩЕМ ЭКРАНЕ, СВОЕГО НЕ ПИШЕМ. Девять
+        // карточек уже лежат в `assets/hubs.json` (выгружены из hubContents.ts),
+        // заголовок — там же в `meta`, подписи — в словарях. Своя копия списка стала
+        // бы вторым реестром и отстала бы молча. Все девять карточек ведут на
+        // нативные экраны: раздел перенесён целиком. Градиент — как в вебе
+        // (`attention-conflict.tsx`, GRADIENT).
+        '/games/attention-conflict': (s) => HubScreen(
+              state: s,
+              hubRoute: '/games/attention-conflict',
+              icon: Icons.psychology_alt,
+              gradient: const [Color(0xFF7C3AED), Color(0xFFEC4899)],
+              isNative: native.containsKey,
+            ),
         '/games/iowa': (s) => IowaScreen(state: s),
         '/games/prl': (s) => PrlScreen(state: s),
         '/games/bart': (s) => BartScreen(state: s),
@@ -234,6 +273,31 @@ class HybridApp extends StatefulWidget {
          */
         ...puzzleRoutes(),
         '/games/word-pairs': (s) => WordPairsScreen(state: s),
+        // «Языки»: словарь SRS — узнавание, припоминание, печать и два языка сразу.
+        // Настройки шага языковой зарядки (`targetLang`, `bilingual`, `lang2`,
+        // `direction`, `newLimit`) экран берёт из хвоста адреса через GamePreset.
+        '/games/vocab-srs': (s) => VocabSrsScreen(state: s),
+        '/games/semantic-sort': (s) => SemanticSortScreen(state: s),
+        '/games/cloze': (s) => ClozeScreen(state: s),
+        '/games/lexical-decision': (s) => LexicalDecisionScreen(state: s),
+        '/games/story-recall': (s) => StoryRecallScreen(state: s),
+        '/games/phonemic-fluency': (s) => PhonemicFluencyScreen(state: s),
+        '/games/pseudoword-echo': (s) => PseudowordEchoScreen(state: s),
+        '/games/phoneme-pairs': (s) => PhonemePairsScreen(state: s),
+        '/games/chinese-tones': (s) => ChineseTonesScreen(state: s),
+        /*
+         * Развилка «Слух» — на общем каркасе: над списком у неё в вебе ничего нет.
+         * ⚠️ «Слова» и «Языки» НЕ перехватываются: над их списком стоит зарядка
+         * раздела (`WordsWarmup`, `LanguagesWarmup`), запустить которую из натива
+         * пока нечем, — перехват молча отнял бы у человека рабочую зарядку.
+         */
+        '/games/hearing-hub': (s) => HubScreen(
+              state: s,
+              hubRoute: '/games/hearing-hub',
+              icon: Icons.hearing,
+              gradient: const [Color(0xFF0D9488), Color(0xFF84CC16)],
+              isNative: native.containsKey,
+            ),
         /*
          * 🔴 РАЗВИЛКА «МНЕМОТЕХНИКИ» ПЕРЕХВАТЫВАЕТСЯ, ПОТОМУ ЧТО ЗА НЕЙ УЖЕ
          * НАТИВНО ЧЕТЫРЕ ЭКРАНА ИЗ ПЯТИ: «Дворец памяти», «Лица и имена»,
@@ -356,6 +420,13 @@ enum RouteAction {
 /// экран остался лежать поверх») жил именно в этом решении, а не в рисовании.
 /// Пока решение было вплетено в обработчик сообщения, проверить его можно было
 /// только живым телефоном — то есть на деле никак, и оно доехало до людей.
+/// Снимать ли настройки шага и отметку, когда закрылся экран [route].
+///
+/// 🔴 Только если поверх ещё не открыт следующий: страница, ушедшая вперёд,
+/// открывает новый экран РАНЬШЕ, чем досрабатывает закрытие старого, — и старый
+/// стёр бы настройки шага нового (живой прогон 30.09.2026, см. `_openNative`).
+bool routeOwnsPreset(String? opened, String route) => opened == route;
+
 RouteAction routeAction(String? opened, String? next) {
   if (opened == next) return RouteAction.keep;
   if (opened == null) return next == null ? RouteAction.keep : RouteAction.open;
@@ -586,8 +657,19 @@ class _HybridAppState extends State<HybridApp> {
     );
     // ⚠️ Отметку снимаем, ТОЛЬКО если она всё ещё наша: когда страница ушла вперёд,
     // поверх уже открыт следующий экран, и его отметку затирать нельзя.
-    if (_openedRoute == route) _openedRoute = null;
-    GamePreset.clear();
+    /*
+     * 🔴 НАСТРОЙКИ ШАГА — ПОД ТЕМ ЖЕ УСЛОВИЕМ. Нашёл раздел «Языки» 30.09.2026
+     * живым прогоном: развилка «Языки» → «Начать» зарядку → «Словарь» открылся
+     * ЭКРАНОМ НАСТРОЕК вместо шага. Порядок: страница ушла вперёд → хост снял
+     * развилку и СРАЗУ открыл «Словарь» с `wu=1` → продолжение этого метода для
+     * развилки срабатывает микрозадачей позже и стирало `GamePreset` уже нового
+     * экрана, а тот читает его после `await`. Бьёт по любой зарядке, где
+     * нативный экран сменяется нативным.
+     */
+    if (routeOwnsPreset(_openedRoute, route)) {
+      _openedRoute = null;
+      GamePreset.clear();
+    }
     if (GameRules.currentRoute == route) GameRules.currentRoute = null;
     final closedByPage = _closedByPage;
     _closedByPage = false;

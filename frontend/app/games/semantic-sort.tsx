@@ -73,7 +73,88 @@ export const SEMANTICSORT_RULES: LevelRule[] = [
 ];
 
 type GamePhase = 'intro' | 'config' | 'playing' | 'cleared' | 'result';
-interface Round { word: string; correctCat: string; cats: string[]; язык: string }
+export interface Round { word: string; correctCat: string; cats: string[]; язык: string }
+
+/**
+ * Годные категории языка и обратная карта «слово → категория».
+ *
+ * 🔴 ВЫНЕСЕНО РАДИ ПЕРЕНОСА — ПОВЕДЕНИЕ ТО ЖЕ. Порог «не меньше трёх слов» в
+ * нынешних данных не срабатывает ни на одном из 12 языков (минимум 6 слов в
+ * категории, замер 30.09.2026), поэтому проверить его перенос можно только на
+ * своём словаре — а для этого правило должно исполняться отдельно от экрана.
+ */
+export function semanticCategories(
+  vocab: readonly Record<string, string | undefined>[],
+  tgt: string,
+): { cats: string[]; wordCat: Map<string, string> } {
+  const byCat = new Map<string, string[]>();
+  const wordCat = new Map<string, string>();
+  for (const w of vocab) {
+    if (!w[tgt] || !w.cat) continue;
+    if (!byCat.has(w.cat)) byCat.set(w.cat, []);
+    byCat.get(w.cat)!.push(w[tgt]!);
+    wordCat.set(w[tgt]!, w.cat);
+  }
+  const cats = Array.from(byCat.keys()).filter((c) => byCat.get(c)!.length >= 3);
+  return { cats, wordCat };
+}
+
+/**
+ * Раунды партии из уже отобранных слов.
+ *
+ * 🔴 ВЫНЕСЕНО ИЗ КОМПОНЕНТА РАДИ ПЕРЕНОСА НА FLUTTER — БЕЗ ИЗМЕНЕНИЯ ПОВЕДЕНИЯ.
+ * Эталон для нативной версии снимается ИСПОЛНЕНИЕМ этой функции
+ * (`frontend/scripts/flutter-semantic-sort-reference.test.ts`), а не её копией:
+ * копия замерзает, а исходник живёт, и обе половины разошлись бы молча.
+ * Случайность приходит параметром (по умолчанию `Math.random`, как было), чтобы
+ * эталон мог подать заданную очередь чисел.
+ *
+ * ⚠️ «Коварные» дистракторы ищутся по ключу `${tgt}:${word}` даже для слова
+ * второго языка в билингво — так было и так осталось: таблица построена под
+ * первый язык, и у второго ключ просто не находится (фолбэк — случайные).
+ */
+export function buildSemanticRounds(
+  picked: readonly Record<string, string | undefined>[],
+  rc: number,
+  cats: readonly string[],
+  effCats: number,
+  wordCat: ReadonlyMap<string, string>,
+  tgt: string,
+  языкиРаунда: readonly string[],
+  билингво: boolean,
+  rng: () => number = Math.random,
+): Round[] {
+  const newRounds: Round[] = [];
+  const freshRes = { picked };
+  for (let r = 0; r < rc; r++) {
+    const entry = freshRes.picked[r];
+    if (!entry) break;
+    const correctCat = String(entry.cat);
+    const языкСлова = билингво ? (языкиРаунда[r] ?? tgt) : tgt;
+    const word = String(entry[языкСлова]);
+    const others = cats.filter((c) => c !== correctCat);
+    for (let i = others.length - 1; i > 0; i--) {
+      const j = Math.floor(rng() * (i + 1));
+      [others[i], others[j]] = [others[j], others[i]];
+    }
+    // V3: «коварные» категории-дистракторы — из предрасчитанной таблицы эмбеддинг-близости
+    // (похожие на целевое слово слова других категорий → их категории). Фолбэк — случайные.
+    const smart: string[] = [];
+    for (const dw of SEMANTIC_DISTRACTORS[`${tgt}:${word}`] ?? []) {
+      const dc = wordCat.get(dw);
+      if (dc && dc !== correctCat && cats.includes(dc) && !smart.includes(dc)) smart.push(dc);
+      if (smart.length >= effCats - 1) break;
+    }
+    const fill = others.filter((c) => !smart.includes(c));
+    const roundCats = [correctCat, ...smart, ...fill].slice(0, effCats);
+    for (let i = roundCats.length - 1; i > 0; i--) {
+      const j = Math.floor(rng() * (i + 1));
+      [roundCats[i], roundCats[j]] = [roundCats[j], roundCats[i]];
+    }
+    newRounds.push({ word, correctCat, cats: roundCats, язык: языкСлова });
+  }
+  return newRounds;
+}
 
 export default function SemanticSortGame() {
   const { colors } = useTheme();
@@ -162,15 +243,7 @@ export default function SemanticSortGame() {
       setCatsPerRound(cpr);
     }
     // слова целевого языка, сгруппированные по категориям (+ обратный маппинг слово → категория)
-    const byCat = new Map<string, string[]>();
-    const wordCat = new Map<string, string>();
-    for (const w of TRANSLATION_VOCAB) {
-      if (!w[tgt] || !w.cat) continue;
-      if (!byCat.has(w.cat)) byCat.set(w.cat, []);
-      byCat.get(w.cat)!.push(w[tgt]);
-      wordCat.set(w[tgt], w.cat);
-    }
-    const cats = Array.from(byCat.keys()).filter((c) => byCat.get(c)!.length >= 3);
+    const { cats, wordCat } = semanticCategories(TRANSLATION_VOCAB as unknown as readonly Record<string, string | undefined>[], tgt);
     const effCats = Math.min(cpr, cats.length);   // не больше, чем есть категорий
 
     /**
@@ -203,34 +276,7 @@ export default function SemanticSortGame() {
     const freshRes = pickFreshFrom(wordsPool, rc, seenWords, (w) => String(w.en), Math.random);
     await writeSeen('semantic_sort_words', profile?.id, freshRes.seen);
 
-    const newRounds: Round[] = [];
-    for (let r = 0; r < rc; r++) {
-      const entry = freshRes.picked[r];
-      if (!entry) break;
-      const correctCat = String(entry.cat);
-      const языкСлова = билингво ? (языкиРаунда[r] ?? tgt) : tgt;
-      const word = String(entry[языкСлова]);
-      const others = cats.filter((c) => c !== correctCat);
-      for (let i = others.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [others[i], others[j]] = [others[j], others[i]];
-      }
-      // V3: «коварные» категории-дистракторы — из предрасчитанной таблицы эмбеддинг-близости
-      // (похожие на целевое слово слова других категорий → их категории). Фолбэк — случайные.
-      const smart: string[] = [];
-      for (const dw of SEMANTIC_DISTRACTORS[`${tgt}:${word}`] ?? []) {
-        const dc = wordCat.get(dw);
-        if (dc && dc !== correctCat && cats.includes(dc) && !smart.includes(dc)) smart.push(dc);
-        if (smart.length >= effCats - 1) break;
-      }
-      const fill = others.filter((c) => !smart.includes(c));
-      const roundCats = [correctCat, ...smart, ...fill].slice(0, effCats);
-      for (let i = roundCats.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [roundCats[i], roundCats[j]] = [roundCats[j], roundCats[i]];
-      }
-      newRounds.push({ word, correctCat, cats: roundCats, язык: языкСлова });
-    }
+    const newRounds = buildSemanticRounds(freshRes.picked, rc, cats, effCats, wordCat, tgt, языкиРаунда, билингво);
     roundsRef.current = newRounds;
     setRounds(newRounds);
     setIdx(0);

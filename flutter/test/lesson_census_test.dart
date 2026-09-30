@@ -6,7 +6,7 @@ import 'package:psygames_flutter/shell/lesson.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'hub_routes.dart';
+import 'support/hub_routes.dart';
 
 /// 🔴 ПЕРЕПИСЬ РАЗБОРА: КТО ИЗ НАШИХ ЭКРАНОВ УЖЕ УМЕЕТ УЧИТЬ.
 ///
@@ -95,8 +95,9 @@ void main() {
     final broke = <String, String>{};
 
     for (final e in HybridApp.native.entries) {
-      // Развилки — не игры, разбирать там нечего. Узнаём по данным (`hub_routes.dart`):
-      // у «Объёма памяти» адрес без хвоста `-hub`.
+      // Развилки — не игры, разбирать там нечего. Что такое развилка — одно
+      // определение на все пробы: `test/support/hub_routes.dart` (по реестру, а не
+      // по имени на `-hub`: две развилки из 13 называются иначе).
       if (isHubRoute(e.key)) continue;
       // Головоломки Тэтхэма считает свой гейт: их разбор держит движок через ffi,
       // а он в `flutter test` не поднимается.

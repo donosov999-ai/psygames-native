@@ -11,14 +11,17 @@
  */
 import { TRANSLATION_VOCAB, VOCAB_LANGS } from '@/src/constants/translationVocab';
 
-const VOWELS: Record<string, string> = {
+/** Таблицы букв экспортируются ради выгрузки во Flutter
+ *  (`scripts/flutter-lexical-decision-reference.test.ts` → `flutter/assets/vocab/pseudoword-letters.json`):
+ *  у приложения нет второй копии таблиц, только эта. */
+export const VOWELS: Record<string, string> = {
   en: 'aeiou',
   es: 'aeiouáéíóú',
   pt: 'aeiouáâãéêíóôõú',
   de: 'aeiouäöü',
   ru: 'аеёиоуыэюя',
 };
-const CONSONANTS: Record<string, string> = {
+export const CONSONANTS: Record<string, string> = {
   en: 'bcdfghklmnprstvz',
   es: 'bcdfghlmnprstvz',
   pt: 'bcdfglmnprstvz',
@@ -26,7 +29,7 @@ const CONSONANTS: Record<string, string> = {
   ru: 'бвгдклмнпрстфхш',
 };
 
-const DEVANAGARI_CONSONANTS = 'कखगघचछजझटठडढणतथदधनपफबभमयरलवशषसह';
+export const DEVANAGARI_CONSONANTS = 'कखगघचछजझटठडढणतथदधनपफबभमयरलवशषसह';
 
 function realWords(lang: string): string[] {
   return TRANSLATION_VOCAB.map((w) => w[lang]).filter(Boolean);

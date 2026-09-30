@@ -5,7 +5,7 @@ import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'hub_routes.dart';
+import 'support/hub_routes.dart';
 
 /// 🔴 РАЗВИЛКА — НЕ ИГРА: ПАУЗЫ НА НЕЙ БЫТЬ НЕ ДОЛЖНО.
 ///
@@ -28,7 +28,9 @@ void main() {
   });
 
   testWidgets('🔴 ни на одной развилке нет кнопки паузы', (tester) async {
-    // Развилки — по данным (`hub_routes.dart`): у «Объёма памяти» адрес без хвоста `-hub`.
+    // По реестру развилок, а не по имени на `-hub`: до 30.09.2026 две развилки
+    // с другим именем (`/games/attention-conflict`, `/games/span`) эта проба не
+    // поднимала вовсе. Определение — `test/support/hub_routes.dart`.
     final hubs = HybridApp.native.keys.where(isHubRoute).toList();
     expect(hubs.length, greaterThanOrEqualTo(4), reason: 'развилок в карте найдено ${hubs.length}');
     final guilty = <String>[];

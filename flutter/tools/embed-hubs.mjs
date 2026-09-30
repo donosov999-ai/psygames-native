@@ -191,47 +191,47 @@ for (const list of [...Object.values(out.hubs), Object.values(out.extra)]) {
 }
 out._levelKey = 'Ключ уровня карточки, снятый с веб-экрана игры (embed-hubs.mjs). Пусто — ключ совпадает с выводимым из адреса.';
 
+// Заголовки самих развилок оставляем как были: они лежат отдельной таблицей.
+try {
+  const old = JSON.parse(readFileSync(OUT, 'utf8'));
+  out.meta = old.meta ?? {};
+  out.pick = old.pick;
+} catch { /* первый запуск */ }
+
 /*
- * 🔴 ШАПКА РАЗВИЛКИ — КЛЮЧАМИ СЛОВАРЯ, СНЯТЫМИ С ВЕБ-ЭКРАНА, КАК И КАРТОЧКИ.
- *
- * До 30.09.2026 генератор ПЕРЕНОСИЛ `meta` из прошлого файла: русские строки,
- * записанные один раз руками. Замер по 13 развилкам, по четыре поля (заголовок,
- * описание, сноска, призыв «выбери»): в вебе все 52 названы КЛЮЧАМИ, а натив
- * показывал их по-русски на всех двенадцати языках. И даже по-русски 6 из 52
- * разошлись с вебом: у «Объёма памяти» не было сноски, у «Конфликта внимания» —
- * описания и сноски, а «Выбери доску», «Выбери парадигму», «Выбери модальность»
- * стали общим «Выбери упражнение».
- *
- * Ключи снимаются тем же способом, каким их пишет веб:
- *  · общий `HubScreen` — пропсы `titleKey=` / `descKey=` / `footnoteKey=` / `pickKey=`;
- *  · свои экраны (`span`, `sudoku-hub`, `attention-conflict`) — вызов `t('…')`
- *    в заголовке героя (`heroTitle`), его описании (`heroDesc`), подписи выбора
- *    (`sectionLabel`) и сноске (`footnote`).
- * Не нашёлся хоть один ключ — генератор падает: молча оставить старую строку
- * значило бы вернуть ровно этот дефект.
+ * 🔴 ЗАГОЛОВОК РАЗВИЛКИ — КЛЮЧОМ СЛОВАРЯ, КАК В ВЕБЕ. Нашёл раздел «Языки»
+ * 30.09.2026: `meta` вёз только русский текст («Слух», «Выбери упражнение»),
+ * и нативная развилка на остальных одиннадцати языках говорила по-русски, хотя
+ * веб-экран той же развилки берёт `titleKey`/`descKey`/`pickKey`/`footnoteKey`.
+ * Ключи снимаются с самого веб-экрана — второго реестра нет; текст остаётся
+ * запасным для развилок, у экрана которых ключей нет.
  */
-const HEADER_FIELDS = [
-  ['titleKey', /titleKey="([A-Za-z0-9_]+)"/, /styles\.heroTitle[^>]*>\s*\{t\('([A-Za-z0-9_]+)'\)\}/],
-  ['descKey', /descKey="([A-Za-z0-9_]+)"/, /styles\.heroDesc[^>]*>\s*\{t\('([A-Za-z0-9_]+)'\)\}/],
-  ['footnoteKey', /footnoteKey="([A-Za-z0-9_]+)"/, /styles\.footnote[^>]*>\s*\{t\('([A-Za-z0-9_]+)'\)\}/],
-  ['pickKey', /pickKey="([A-Za-z0-9_]+)"/, /styles\.sectionLabel[^>]*>\s*\{t\('([A-Za-z0-9_]+)'\)\}/],
-];
-const headerMissing = [];
+const КЛЮЧИ_ЗАГОЛОВКА = ['titleKey', 'descKey', 'pickKey', 'footnoteKey'];
+/*
+ * ⚠️ ТРИ РАЗВИЛКИ СВОИМ ЭКРАНОМ: `span`, `sudoku-hub`, `attention-conflict` зовут
+ * не общий `HubScreen` с пропсами, а `t('…')` прямо в разметке — пропсов там нет,
+ * и по одному шаблону `titleKey="…"` они оставались по-русски на всех языках
+ * (замер 30.09.2026: у всех трёх все четыре поля есть ключами). Второй шаблон —
+ * тот же `t('…')` в элементе героя, подписи выбора и сноски.
+ */
+const HEADER_CALL_FORM = {
+  titleKey: /styles\.heroTitle[^>]*>\s*\{t\('([A-Za-z0-9_]+)'\)\}/,
+  descKey: /styles\.heroDesc[^>]*>\s*\{t\('([A-Za-z0-9_]+)'\)\}/,
+  pickKey: /styles\.sectionLabel[^>]*>\s*\{t\('([A-Za-z0-9_]+)'\)\}/,
+  footnoteKey: /styles\.footnote[^>]*>\s*\{t\('([A-Za-z0-9_]+)'\)\}/,
+};
+let заголовковСКлючом = 0;
 for (const route of Object.keys(out.hubs)) {
-  const screenText = экран(route.split('/').pop());
-  const header = {};
-  for (const [field, asProp, asCall] of HEADER_FIELDS) {
-    const key = screenText.match(asProp)?.[1] ?? screenText.match(asCall)?.[1];
-    if (key) header[field] = key;
-    else headerMissing.push(`${route} · ${field}`);
+  const текст = экран(route.split('/').pop());
+  const m = (out.meta[route] ??= {});
+  let нашлось = false;
+  for (const поле of КЛЮЧИ_ЗАГОЛОВКА) {
+    const hit = текст.match(new RegExp(`\\b${поле}="([A-Za-z0-9_]+)"`)) ?? текст.match(HEADER_CALL_FORM[поле]);
+    if (hit) { m[поле] = hit[1]; нашлось = true; } else delete m[поле];
   }
-  out.meta[route] = header;
-}
-if (headerMissing.length) {
-  console.error(`🔴 не найден ключ шапки развилки: ${headerMissing.join(', ')} — поправь embed-hubs.mjs`);
-  process.exit(1);
+  if (нашлось) заголовковСКлючом++;
 }
 writeFileSync(OUT, JSON.stringify(out, null, 0) + '\n');
-console.log(`развилок: ${Object.keys(out.hubs).length} · карточек: ${cards} · все с ключами словаря · шапка: ${Object.keys(out.meta).length} × ${HEADER_FIELDS.length} ключа`);
+console.log(`развилок: ${Object.keys(out.hubs).length} · карточек: ${cards} · все с ключами словаря · заголовков с ключом: ${заголовковСКлючом}`);
 console.log(`ключ уровня снят с экрана у ${сКлючом} карточек · режимов без ключа: ${безКлюча.length}${безКлюча.length ? ' — ' + безКлюча.join(', ') : ''}`);
 console.log(`раскладок по профилям: ${Object.keys(out.layouts).length} · адресов в них: ${layoutCards} · карточек вне реестра: ${Object.keys(out.extra).length}`);
