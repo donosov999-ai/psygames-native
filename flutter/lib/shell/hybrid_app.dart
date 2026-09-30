@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 import '../games/corsi/screen.dart';
+import '../games/picture_pairs/screen.dart';
 import '../games/digit_span/screen.dart';
 import '../games/ant/screen.dart';
 import '../games/bart/screen.dart';
@@ -26,6 +27,10 @@ import '../games/dots_connect/screen.dart';
 import '../games/memory_matrix/screen.dart';
 import '../games/stroop/screen.dart';
 import '../games/one_line/screen.dart';
+import '../games/anagrams/screen.dart';
+import '../games/anagrams/all_words_screen.dart';
+import '../games/anagrams/crossword_screen.dart';
+import '../games/anagrams/ring_screen.dart';
 import '../games/deep/screen.dart';
 import '../games/fractal/screen.dart';
 import '../games/goods_sort/screen.dart';
@@ -47,6 +52,13 @@ import '../games/math_slider/screen.dart';
 import '../games/math_sprint/screen.dart';
 import '../games/number_bonds/screen.dart';
 import '../games/ospan/screen.dart';
+import '../games/sdmt/screen.dart';
+import '../games/counter/screen.dart';
+import '../games/find_differences/screen.dart';
+import '../games/counting_hub/screen.dart';
+import '../games/search_hub/screen.dart';
+import '../games/visual_search/screen.dart';
+import '../games/set_game/screen.dart';
 import '../games/object_tracker/screen.dart';
 import '../games/pattern/screen.dart';
 import '../games/quick_count/screen.dart';
@@ -90,11 +102,27 @@ class HybridApp extends StatefulWidget {
 
   /// Игра перенесена → строится нативно. Ключ — путь маршрута веб-сборки.
   static Map<String, Widget Function(SharedState)> get native => {
+        /*
+         * 🔴 АНАГРАММЫ — ЧЕТЫРЕ РАЗНЫЕ ИГРЫ ЗА ОДНИМ АДРЕСОМ, и каждая получает
+         * свой ключ. Голый `/games/anagrams` ведёт на классику: это режим по
+         * умолчанию на экране настройки, и человек, пришедший по ссылке без
+         * хвоста, попадает туда же, куда попал бы в вебе.
+         *
+         * ⚠️ Включено ТОЛЬКО когда готовы все четыре. Один ключ без хвоста
+         * накрыл бы разом все режимы, и человек, выбравший кроссворд, получил бы
+         * классику — а проба бы этого не заметила: маршрут-то открывается.
+         */
+        '/games/anagrams': (s) => AnagramsScreen(state: s),
+        '/games/anagrams?mode=classic': (s) => AnagramsScreen(state: s),
+        '/games/anagrams?mode=all': (s) => AllWordsScreen(state: s),
+        '/games/anagrams?mode=cross': (s) => CrosswordScreen(state: s),
+        '/games/anagrams?mode=square': (s) => RingScreen(state: s),
         '/games/dots-connect': (s) => DotsConnectScreen(state: s),
         '/games/one-line': (s) => OneLineScreen(state: s),
         '/games/digit-span': (s) => DigitSpanScreen(state: s),
         '/games/memory-matrix': (s) => MemoryMatrixScreen(state: s),
         '/games/corsi': (s) => CorsiScreen(state: s),
+        '/games/picture-pairs': (s) => PicturePairsScreen(state: s),
         '/games/schulte': (s) => SchulteScreen(state: s),
         '/games/mahjong': (s) => MahjongScreen(state: s),
         '/games/math-slider': (s) => MathSliderScreen(state: s),
@@ -104,6 +132,11 @@ class HybridApp extends StatefulWidget {
         '/games/math-sprint': (s) => MathSprintScreen(state: s),
         '/games/number-bonds': (s) => NumberBondsScreen(state: s),
         '/games/ospan': (s) => OspanScreen(state: s),
+        '/games/sdmt': (s) => SdmtScreen(state: s),
+        '/games/set-game': (s) => SetGameScreen(state: s),
+        '/games/counter': (s) => CounterScreen(state: s),
+        '/games/find-differences': (s) => FindDifferencesScreen(state: s),
+        '/games/visual-search': (s) => VisualSearchScreen(state: s),
         '/games/stroop': (s) => StroopScreen(state: s),
         '/games/flanker': (s) => FlankerScreen(state: s),
         '/games/simon': (s) => SimonScreen(state: s),
@@ -158,6 +191,11 @@ class HybridApp extends StatefulWidget {
          */
         '/games/sorting-hub': (s) =>
             SortingHubScreen(state: s, isNative: native.containsKey),
+        // Развилки моего раздела: состав — данными, ход в веб даёт хост гибрида.
+        '/games/search-hub': (s) =>
+            SearchHubScreen(state: s, isNative: native.containsKey),
+        '/games/counting-hub': (s) =>
+            CountingHubScreen(state: s, isNative: native.containsKey),
         '/games/choice-rt': (s) => ChoiceRtScreen(state: s),
         '/games/stop-signal': (s) => StopSignalScreen(state: s),
         '/games/posner': (s) => PosnerScreen(state: s),

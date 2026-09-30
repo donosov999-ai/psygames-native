@@ -59,7 +59,7 @@ const COUNTER_BENEFITS = [
 
 type GamePhase = 'intro' | 'config' | 'playing' | 'boss' | 'cleared' | 'result';
 // Синергия (пилот): каждые BOSS_EVERY уровней прошёл раунд → битва с боссом (резкая смена правила).
-const BOSS_EVERY = 3;
+export const BOSS_EVERY = 3;
 
 interface Cell {
   value: number;
@@ -88,7 +88,7 @@ const LEVEL_TABLE: { size: number; limitSec: number }[] = [
 ];
 
 const TOTAL_ROUNDS = 10;
-const PASS_ACCURACY = 0.8;   // решено ≥80% раундов = проход уровня
+export const PASS_ACCURACY = 0.8;   // решено ≥80% раундов = проход уровня
 
 /** Обещанный потолок карты; выше — продолжение оси скорости до пола. */
 export const COUNTER_MAX_LEVEL = 20;
@@ -125,6 +125,56 @@ export function levelParams(level: number): { gridSize: number; roundLimitMs: nu
   // карточка правила lr_counter_triples (гейт level-rule-threshold сверяет).
   const tripleShare = L <= 25 ? 0 : Math.min(1, (L - 25) * 0.2);
   return { gridSize: 9, roundLimitMs: Math.round(limitSec * 1000), rounds: TOTAL_ROUNDS, cellMax, tripleShare };
+}
+
+/**
+ * ПРАВИЛО РАУНДА — ЧИСТОЙ ФУНКЦИЕЙ, БЕЗ СОСТОЯНИЯ ЭКРАНА.
+ *
+ * Раньше сетка и цель рождались внутри `generateGrid`, которая тут же звала
+ * `setTargetSum` — прогнать правило отдельно было нельзя ни пробе, ни переносу
+ * на Flutter. Поведение и ПОРЯДОК БРОСКОВ не менялись: сперва числа клеток,
+ * потом жребий «двойка или тройка», потом сами клетки.
+ *
+ * ⚠️ Цель всегда достижима по построению: она и есть сумма двух (или, с долей
+ * `tripleShare`, трёх) клеток этой же сетки. Зачёт идёт ПО СУММЕ, а не по тем
+ * самым клеткам — любая комбинация с нужной суммой верна.
+ */
+export function makeCounterRound(
+  gs: number,
+  cellMax: number,
+  tripleShare: number,
+  rnd: () => number = Math.random,
+): { numbers: number[]; target: number } {
+  const totalCells = gs * gs;
+  const numbers = Array.from({ length: totalCells }, () => Math.floor(rnd() * cellMax) + 1);
+  const picks = new Set<number>();
+  const need = rnd() < tripleShare ? 3 : 2;
+  while (picks.size < need) picks.add(Math.floor(rnd() * totalCells));
+  const target = [...picks].reduce((acc, i) => acc + numbers[i], 0);
+  return { numbers, target };
+}
+
+/**
+ * РАЗМЕР КЛЕТКИ — ТОЖЕ ПРАВИЛО, А НЕ ВЁРСТКА: в нём сидит починка по отчёту
+ * 16.09.2026 (клетки уходили за нижний край, прокрутки нет). Вынесено функцией,
+ * чтобы переносу и пробе было что прогнать, а не пересказывать формулу.
+ *
+ * `место` — сколько досталось контейнеру сетки (`flex: 1`); пока раскладка не
+ * измерена, работает запасной расчёт от экрана.
+ */
+export function counterCellSize(
+  место: { w: number; h: number } | null,
+  width: number,
+  height: number,
+  gridSize: number,
+): number {
+  const высотаМеста = место ? место.h - 8 /* marginBottom сетки */ : height - 320;
+  const ширинаМеста = место ? место.w : width - 28;
+  return Math.max(28, Math.min(
+    (ширинаМеста - (gridSize - 1) * 8) / gridSize,
+    (высотаМеста - (gridSize - 1) * 8) / gridSize,
+    140
+  ));
 }
 
 export default function CounterGame() {
@@ -189,23 +239,11 @@ export default function CounterGame() {
   useEffect(() => () => clearAllTimers(), []);
 
   const generateGrid = (gs: number, cellMax: number, tripleShare: number): Cell[] => {
-    const totalCells = gs * gs;
-    const numbers = Array.from({ length: totalCells }, () =>
-      Math.floor(Math.random() * cellMax) + 1
-    );
-
-    // Целевая сумма всегда достижима: сумма 2 (или, с долей tripleShare, 3)
-    // случайных клеток; выбор клеток и зачёт по сумме не меняются
-    const picks = new Set<number>();
-    const need = Math.random() < tripleShare ? 3 : 2;
-    while (picks.size < need) picks.add(Math.floor(Math.random() * totalCells));
-
-    const target = [...picks].reduce((acc, i) => acc + numbers[i], 0);
+    const { numbers, target } = makeCounterRound(gs, cellMax, tripleShare);
     setTargetSum(target);
     setSelectedSum(0);
     setShowSuccess(false);
     setShowTimeout(false);
-
     return numbers.map(value => ({ value, selected: false }));
   };
 
@@ -368,13 +406,7 @@ export default function CounterGame() {
    * получает ровно остаток высоты под сеткой. «Экран минус 320» остался только на
    * первый кадр, пока раскладка не измерена.
    */
-  const высотаМеста = место ? место.h - 8 /* marginBottom сетки */ : height - 320;
-  const ширинаМеста = место ? место.w : width - 28;
-  const cellSize = Math.max(28, Math.min(
-    (ширинаМеста - (gridSize - 1) * 8) / gridSize,
-    (высотаМеста - (gridSize - 1) * 8) / gridSize,
-    140
-  ));
+  const cellSize = counterCellSize(место, width, height, gridSize);
 
   const renderConfig = () => {
     const p = levelParams(lvl.level);

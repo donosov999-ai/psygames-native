@@ -1078,6 +1078,12 @@ const translations: Translations = {
   teachSpanBackward: { ru: 'Обратный порядок не запоминают отдельно: запоминайте ряд как обычно, а разворачивайте уже при ответе — по тем же группам, с конца.', en: 'Do not memorise the reversed order separately: learn the row as usual and reverse it when answering, group by group from the end.' },
   teachSpatialSpanPath: { ru: 'Клетки — не набор точек, а ЛИНИЯ. Соедините их мысленно в ломаную: траектория из пяти узлов держится лучше пяти отдельных мест.', en: 'The cells are not a set of points but a LINE. Join them into a path: a five-node trajectory holds better than five separate places.' },
   teachMatrixShape: { ru: 'Запоминайте ФИГУРУ, которую образуют клетки — букву, угол, линию, — а не каждую клетку отдельно. Одна фигура вместо семи адресов.', en: 'Memorise the SHAPE the cells form — a letter, a corner, a line — instead of each cell. One shape instead of seven addresses.' },
+  teachCorsiPath: { ru: 'Запоминайте не блоки по одному, а ПУТЬ, который рисуют вспышки: ведите по ним воображаемую линию. Пять вспышек становятся одним маршрутом — ломаной, буквой, зигзагом.', en: 'Memorise not the blocks one by one but the PATH the flashes trace: run an imaginary line through them. Five flashes become one route — a zigzag, a letter, a hook.' },
+  teachCorsiBackward: { ru: 'В обратном режиме не разворачивайте на лету по одной точке. Сначала сложите маршрут вперёд, как его показали, — а при ответе пройдите его с конца.', en: 'In reverse mode do not flip it point by point on the fly. First build the route forwards, as it was shown, then walk it from the end when you answer.' },
+  teachCorsiEyes: { ru: 'Ведите взгляд за каждой вспышкой и не отводите его до конца показа. Пропущенная вспышка рвёт весь маршрут — дальше уже угадывание.', en: 'Follow every flash with your eyes and do not look away until the display ends. One missed flash breaks the whole route — after that it is guessing.' },
+  teachPicturePairsPlaces: { ru: 'Пока карты открыты, привязывайте картинки к местам: углы, края, середина. Потом открывайте не наугад, а туда, где видели пару.', en: 'While the cards are face up, tie each picture to a place: corners, edges, middle. Then open where you saw its twin, not at random.' },
+  teachPicturePairsGroup: { ru: 'С тройками и четвёрками держите в памяти ВСЕ места одной картинки: группа снимается, только когда открыты все её карты подряд.', en: 'With triples and quads, keep EVERY place of one picture in mind: a group clears only when all its cards are opened in a row.' },
+  teachPicturePairsSwap: { ru: 'С 22-го уровня после ошибки закрытые карты меняются местами, и пара подсвечивается. Перенесите картинку в памяти туда, куда уехала её карта.', en: 'From level 22, after a mistake face-down cards swap places and the pair lights up. Move the picture in your memory to where its card went.' },
   teachOspanOrder: { ru: 'Пример-помеха нарочно мешает повторять буквы. Досчитайте его ДО КОНЦА и только потом верните буквы: метание между задачами стирает обе.', en: 'The equation is there to block rehearsal. Finish it COMPLETELY, then bring the letters back: darting between the two erases both.' },
   teachSchulteCenter: { ru: 'Держите взгляд в ЦЕНТРЕ таблицы и ищите периферией. Бегая глазами по клеткам, вы читаете таблицу, а тренируется при этом не охват, а скорость чтения.', en: 'Hold your gaze at the CENTRE and search with peripheral vision. Darting from cell to cell is reading the table — that trains reading speed, not span.' },
   teachTrackerGroup: { ru: 'Не перескакивайте с объекта на объект — держите их ГРУППОЙ, как вершины одной фигуры. Четыре траектории не удержать, а один меняющийся четырёхугольник — можно.', en: 'Do not jump from target to target — hold them as ONE SHAPE, the vertices of a single polygon. Four trajectories cannot be held; one changing quadrilateral can.' },
@@ -3521,6 +3527,12 @@ const translations: Translations = {
 
   // Авто-растущие уровни (одна строка на игру)
   corsiLvlAuto: { ru: 'Ур. {n} — растёт сам (span → скорость → обратный порядок)', en: 'Lv {n} — grows with results (span → speed → reverse)' },
+  // ОДИН СЛОВАРЬ НА ДВЕ СТОПКИ. Подсказка «Зрительного поиска» жила инлайн-картой
+  // на 7 языков в самом экране; нативный экран зовёт ту же фразу через
+  // flutter/lib/shell/l10n.dart, и два источника одной строки — это место, где
+  // перевод разъезжается молча. Карты убраны, накладки всех 12 языков заполнены.
+  vsFindAll: { ru: 'Найди все такие фигуры — в любом повороте', en: 'Find all of these shapes — in any rotation' },
+  vsFindConj: { ru: 'Найди фигуру такого цвета и формы', en: 'Find the shape with this colour and form' },
   vsearchLvlAuto: { ru: 'Ур. {n} — растёт сам по результату (объектов и целей больше)', en: 'Lv {n} — grows with results (more items & targets)' },
   ospanLvlAuto: { ru: 'Ур. {n} — растёт сам (набор → сложнее счёт → быстрее показ)', en: 'Lv {n} — grows with results (set size → harder math → faster)' },
   hanoiLvlAuto: { ru: 'Ур. {n} — растёт сам: больше дисков, затем 4 и 5 стержней', en: 'Lv {n} — grows with results: more discs, then 4 and 5 pegs' },

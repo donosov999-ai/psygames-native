@@ -3040,5 +3040,13 @@ const t: Record<string, string> = {
   "teachRmetCompare": "«{word}» se vería así: {cues}. Compáralo con estos ojos.",
   "teachRmetPick": "Con los rasgos «{hint}» encaja mejor «{word}»: esa es la respuesta.",
   "teachRmetDone": "Responde igual: rasgos de los ojos → comparación con las palabras vecinas → elige la que más se acerque.",
+  "teachCorsiPath": "No memorices los bloques uno a uno, sino el CAMINO que trazan los destellos: pasa por ellos una línea imaginaria. Cinco destellos se convierten en una sola ruta: un zigzag, una letra, un gancho.",
+  "teachCorsiBackward": "En el modo inverso no des la vuelta punto a punto sobre la marcha. Primero arma la ruta hacia delante, tal como se mostró, y al responder recórrela desde el final.",
+  "teachCorsiEyes": "Sigue cada destello con la mirada y no la apartes hasta que termine la muestra. Un destello perdido rompe toda la ruta: a partir de ahí es adivinar.",
+  "teachPicturePairsPlaces": "Mientras las cartas están boca arriba, asocia cada imagen a un lugar: esquinas, bordes, centro. Luego abre donde viste su pareja, no al azar.",
+  "teachPicturePairsGroup": "Con tríos y cuartetos, recuerda TODOS los lugares de una imagen: el grupo desaparece solo cuando abres todas sus cartas seguidas.",
+  "teachPicturePairsSwap": "Desde el nivel 22, tras un error las cartas boca abajo cambian de lugar y la pareja se ilumina. Mueve la imagen en tu memoria a donde fue su carta.",
+  "vsFindAll": "Encuentra todas estas figuras — en cualquier rotación",
+  "vsFindConj": "Encuentra la figura de este color y forma",
 };
 export default t;
