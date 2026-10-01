@@ -51,10 +51,14 @@ class ThermoLink {
 
 /// Клетка стрелки: кружок — сумма цифр вдоль своей стрелки.
 class ArrowLink {
-  const ArrowLink({required this.circle, required this.arrows, required this.isCircle});
+  const ArrowLink({required this.circle, required this.arrows, required this.isCircle, this.prev, this.next});
   final List<int> circle;
   final List<List<int>> arrows;
   final bool isCircle;
+
+  /// Соседи по стрелке — для отрисовки линии (как у веба: `prev`/`next` клетки).
+  final List<int>? prev;
+  final List<int>? next;
 
   static ArrowLink? fromJson(Object? v) {
     if (v is! Map) return null;
@@ -64,16 +68,21 @@ class ArrowLink {
           .map((a) => (a as List).cast<num>().map((x) => x.toInt()).toList())
           .toList(),
       isCircle: v['isCircle'] == true,
+      prev: v['prev'] is List ? (v['prev'] as List).cast<num>().map((x) => x.toInt()).toList() : null,
+      next: v['next'] is List ? (v['next'] as List).cast<num>().map((x) => x.toInt()).toList() : null,
     );
   }
 }
 
 /// Клетки-суммы: какая группа у клетки, сумма группы и её состав.
 class CageMap {
-  const CageMap({required this.cageOf, required this.sum, required this.cells});
+  const CageMap({required this.cageOf, required this.sum, required this.cells, this.anchor = const []});
   final List<List<int>> cageOf;
   final List<int> sum;
   final List<List<List<int>>> cells;
+
+  /// Клетка, в углу которой пишется сумма группы: номер `r * n + c` (−1 — нет).
+  final List<int> anchor;
 
   static CageMap? fromJson(Object? v) {
     if (v is! Map) return null;
@@ -83,6 +92,7 @@ class CageMap {
     return CageMap(
       cageOf: _grid(v['cageOf']),
       sum: (v['sum'] as List).map((x) => x is num ? x.toInt() : 0).toList(),
+      anchor: v['anchor'] is List ? (v['anchor'] as List).map((x) => x is num ? x.toInt() : -1).toList() : const [],
       cells: (v['cells'] as List)
           .map((cage) => cage is List
               ? cage.map((p) => (p as List).cast<num>().map((x) => x.toInt()).toList()).toList()
@@ -123,15 +133,63 @@ List<List<int>> _grid(Object? v) => (v as List)
     .map((row) => (row as List).cast<num>().map((x) => x.toInt()).toList())
     .toList();
 
+/// Точки Кропки на гранях: `h` — между клеткой и правой, `v` — и нижней.
+/// 1 — белая (разница 1), 2 — чёрная (вдвое), 0 — точки НЕ показано (ничего не утверждает).
+class KropkiMap {
+  const KropkiMap({required this.h, required this.v});
+  final List<List<int>> h;
+  final List<List<int>> v;
+
+  static KropkiMap? fromJson(Object? x) {
+    if (x is! Map) return null;
+    return KropkiMap(h: _grid(x['h']), v: _grid(x['v']));
+  }
+}
+
+/// Суммы сэндвича у краёв: сумма цифр МЕЖДУ 1 и 9 строки (`rows`) и столбца (`cols`).
+/// −1 — сумма спрятана прореживанием (не подсказка).
+class SandwichClues {
+  const SandwichClues({required this.rows, required this.cols});
+  final List<int> rows;
+  final List<int> cols;
+
+  static SandwichClues? fromJson(Object? x) {
+    if (x is! Map) return null;
+    List<int> line(String k) => (x[k] as List).cast<num>().map((e) => e.toInt()).toList();
+    return SandwichClues(rows: line('rows'), cols: line('cols'));
+  }
+}
+
 /// Геометрия доски: то, что у варианта сверх строки, столбца и блока.
+///
+/// 🔴 01.10.2026 (задача 450c0211): до этого дня здесь НЕ разбирались `parity`, `kropki` и
+/// `sandwich` — выгрузка их несла, а разбор молча выбрасывал. Доски чёт-нечета, Кропки и
+/// сэндвича единственны только С ЭТИМИ подсказками, значит у человека на экране было
+/// несколько решений, а сверка шла с одним. Теперь поля разбираются, проверяются в
+/// [isValid] (как `overlayOk` веба) и рисуются (`variant_decor.dart`).
 class BoardGeometry {
-  const BoardGeometry({this.regions, this.thermo, this.arrow, this.cages, this.unequal, this.towers});
+  const BoardGeometry({
+    this.regions,
+    this.thermo,
+    this.arrow,
+    this.cages,
+    this.unequal,
+    this.towers,
+    this.parity,
+    this.kropki,
+    this.sandwich,
+  });
   final List<List<int>>? regions;
   final List<List<ThermoLink?>>? thermo;
   final List<List<ArrowLink?>>? arrow;
   final CageMap? cages;
   final UnequalMap? unequal;
   final TowersMap? towers;
+
+  /// Метки чётности: 1 — чётная, 2 — нечётная, 0 — метки нет.
+  final List<List<int>>? parity;
+  final KropkiMap? kropki;
+  final SandwichClues? sandwich;
 
   static BoardGeometry fromJson(Map<String, Object?> v) => BoardGeometry(
         regions: v['regions'] == null ? null : _grid(v['regions']),
@@ -148,6 +206,9 @@ class BoardGeometry {
         cages: CageMap.fromJson(v['cages']),
         unequal: UnequalMap.fromJson(v['unequal']),
         towers: TowersMap.fromJson(v['towers']),
+        parity: v['parity'] == null ? null : _grid(v['parity']),
+        kropki: KropkiMap.fromJson(v['kropki']),
+        sandwich: SandwichClues.fromJson(v['sandwich']),
       );
 }
 
@@ -321,6 +382,56 @@ bool isValid(
     }
   }
 
+  // Показанные подсказки — чётность, точки, суммы сэндвича (перенос `overlayOk` веба).
+  if (!overlayOk(grid, r, c, val, n, g)) return false;
+
+  return true;
+}
+
+/// Не нарушает ли цифра [val] в клетке (r, c) ПОКАЗАННЫЕ подсказки — перенос `overlayOk`
+/// из `frontend/src/services/sudoku-core.ts`: метки чётности, точки Кропки, суммы сэндвича.
+bool overlayOk(List<List<int>> grid, int r, int c, int val, int n, BoardGeometry g) {
+  final parity = g.parity;
+  if (parity != null) {
+    final m = parity[r][c];
+    if (m == 1 && val.isOdd) return false;
+    if (m == 2 && val.isEven) return false;
+  }
+  final kropki = g.kropki;
+  if (kropki != null) {
+    bool rel(int d, int a, int b) => d == 2 ? (a == 2 * b || b == 2 * a) : (a - b).abs() == 1;
+    final edges = <(int, int, int)>[
+      if (c < n - 1) (kropki.h[r][c], r, c + 1),
+      if (c > 0) (kropki.h[r][c - 1], r, c - 1),
+      if (r < n - 1) (kropki.v[r][c], r + 1, c),
+      if (r > 0) (kropki.v[r - 1][c], r - 1, c),
+    ];
+    for (final (d, nr, nc) in edges) {
+      if (d == 0) continue;   // точки НЕ показано — ничего не утверждаем
+      final nb = grid[nr][nc];
+      if (nb != 0 && !rel(d, val, nb)) return false;
+    }
+  }
+  final sandwich = g.sandwich;
+  if (sandwich != null) {
+    bool check(List<int> line, int want) {
+      if (want < 0) return true;   // сумма спрятана — не подсказка
+      final i1 = line.indexOf(1), i9 = line.indexOf(9);
+      if (i1 < 0 || i9 < 0) return true;
+      final a = i1 < i9 ? i1 : i9, b = i1 < i9 ? i9 : i1;
+      var t = 0;
+      for (var k = a + 1; k < b; k++) {
+        if (line[k] == 0) return true;
+        t += line[k];
+      }
+      return t == want;
+    }
+
+    final row = [...grid[r]]..[c] = val;
+    if (!check(row, sandwich.rows[r])) return false;
+    final col = [for (var i = 0; i < n; i++) grid[i][c]]..[r] = val;
+    if (!check(col, sandwich.cols[c])) return false;
+  }
   return true;
 }
 
