@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../../shell/game_preset.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
@@ -81,7 +82,8 @@ class _StopSignalScreenState extends State<StopSignalScreen> {
       _estimate = estimateSsrt(_state.trials);
       _reset();
     });
-    if (stopSignalAutostart) _start();
+    // Шаг зарядки начинается сам — перенос веб-`useAutostartWhenReady` (отчёт Дениса 01.10.2026).
+    if (stopSignalAutostart || GamePreset.autostart) _start();
   }
 
   void _reset() {

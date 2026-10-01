@@ -320,13 +320,17 @@ describe('экран развилки: меню, а не партия', () => {
     }
   });
 
-  it('с развилки только уходят — пять переходов и кнопка назад', () => {
+  it('с развилки только уходят — шесть переходов и кнопка назад', () => {
     expect([...SCREEN.matchAll(/router\.push\(/g)].length).toBeGreaterThanOrEqual(1);
     expect(SCREEN).toContain('goBackOrHome()');
     // 27.08.2026 (70b58bbe): к трём доскам добавились карточки режимов классической
     // доски — «Небоскрёбы» и «Неравенства» (?mode=…). Смысл гейта не тронут:
     // отсюда ТОЛЬКО уходят, и каждый уход — в семейство судоку.
-    expect(SUDOKU_CARDS.length).toBe(5);
+    // 30.09.2026: шестая — «Кошки» (Queens / Star Battle), решение Дениса 24.09 «в
+    // развилку «Судоку»». Число поднято осознанно, а не чтобы позеленеть: состав
+    // развилки — это решение, и проба держит его поимённо ниже, а не только счётом.
+    expect(SUDOKU_CARDS.length).toBe(6);
+    expect(SUDOKU_CARDS.map((c) => c.route)).toContain('/games/cats');
     expect(SUDOKU_CARDS.every((c) => c.route.startsWith('/games/'))).toBe(true);
   });
 

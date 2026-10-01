@@ -17,6 +17,8 @@
 /// живыми партиями — начальное значение только задаёт старт.
 library;
 
+import 'dart:math';
+
 import '../../../shell/generator/ladder_pool.dart' show ratingFloor, ratingCeil;
 import '../levels.dart';
 import 'contract.dart';
@@ -44,44 +46,97 @@ double ratingForBank(double bandRating) {
   return ratingFloor + (ratingCeil - ratingFloor) * t;
 }
 
+/// Шаблон ОДНОЙ ступени лестницы — правило плюс полоса трудности.
+///
+/// Вынесено из сборки пула, потому что тем же вопросом задаётся и раздача пилота
+/// (§10 шаг 3): генератор выбрал шаблон — надо найти ступень, чья доска ему отвечает.
+/// Посчитай это двумя копиями кода — они разойдутся, и пилот начнёт раздавать доски
+/// не той трудности, которую выбрал рейтинг.
+Template templateForLevel(SudokuLevels levels, int lv) {
+  final cfg = levels.config(lv);
+  if (cfg.fromBank) {
+    final bank = levels.bankRating(lv);
+    final band = (bank * 10).round();
+    return Template(id: 'sudoku:bank:band$band', band: band, rating: ratingForBank(bank), variant: 'none');
+  }
+  // Вариантная ступень: меру берём у выгруженных досок, а не у номера уровня.
+  final tiers = <int>[];
+  for (var i = 0; i < levels.boardsFor(lv); i++) {
+    final t = levels.boardAt(lv, i)?.tier;
+    if (t != null) tiers.add(t);
+  }
+  // Мера промолчала у всех досок ступени — берём середину шкалы, но НЕ выбрасываем
+  // ступень: правило без рейтинга всё равно играбельно, рейтинг наберётся партиями.
+  final tier = tiers.isEmpty
+      ? 4
+      : (tiers.reduce((a, b) => a + b) / tiers.length).round().clamp(1, maxTier);
+  return Template(
+    id: 'sudoku:${cfg.variant}:tier$tier',
+    band: tier,
+    rating: ratingForTier(tier),
+    variant: cfg.variant,
+  );
+}
+
 /// Собрать пул из лестницы. Один шаблон на пару (правило, полоса); полоса берётся у
 /// нашей меры, а не у номера ступени.
 List<Template> buildPool(SudokuLevels levels, {int lastLevel = 92}) {
   final byId = <String, Template>{};
-
   for (var lv = 1; lv <= lastLevel; lv++) {
-    final cfg = levels.config(lv);
-
-    if (cfg.fromBank) {
-      final bank = levels.bankRating(lv);
-      final band = (bank * 10).round();
-      final id = 'sudoku:bank:band$band';
-      byId[id] ??= Template(id: id, band: band, rating: ratingForBank(bank), variant: 'none');
-      continue;
-    }
-
-    // Вариантная ступень: меру берём у выгруженных досок, а не у номера уровня.
-    final tiers = <int>[];
-    for (var i = 0; i < levels.boardsFor(lv); i++) {
-      final t = levels.boardAt(lv, i)?.tier;
-      if (t != null) tiers.add(t);
-    }
-    // Мера промолчала у всех досок ступени — берём середину шкалы, но НЕ выбрасываем
-    // ступень: правило без рейтинга всё равно играбельно, рейтинг наберётся партиями.
-    final tier = tiers.isEmpty
-        ? 4
-        : (tiers.reduce((a, b) => a + b) / tiers.length).round().clamp(1, maxTier);
-    final id = 'sudoku:${cfg.variant}:tier$tier';
-    byId[id] ??= Template(
-      id: id,
-      band: tier,
-      rating: ratingForTier(tier),
-      variant: cfg.variant,
-    );
+    final t = templateForLevel(levels, lv);
+    byId[t.id] ??= t;
   }
-
   final pool = byId.values.toList()..sort((a, b) => a.rating.compareTo(b.rating));
   return pool;
+}
+
+/// Ступени лестницы, чьи доски отвечают шаблону, — откуда пилот берёт доску.
+Map<String, List<int>> levelsByTemplate(SudokuLevels levels, {int lastLevel = 92}) {
+  final out = <String, List<int>>{};
+  for (var lv = 1; lv <= lastLevel; lv++) {
+    (out[templateForLevel(levels, lv).id] ??= <int>[]).add(lv);
+  }
+  return out;
+}
+
+/// Одна ли это доска: сторона, правило и все цифры задания.
+bool samePuzzle(SudokuBoard a, SudokuBoard b) {
+  if (a.n != b.n || a.variant != b.variant) return false;
+  for (var r = 0; r < a.n; r++) {
+    for (var c = 0; c < a.n; c++) {
+      if (a.puzzle[r][c] != b.puzzle[r][c]) return false;
+    }
+  }
+  return true;
+}
+
+/// ДОСКА ПОД ШАБЛОН — то, что пилот выдаёт человеку, когда генератор выбрал шаблон.
+///
+/// Ступень берётся из тех, чей шаблон совпал (`levelsByTemplate`), доска — её же, по
+/// зерну. Одно зерно — одна доска (§9.4): всё случайное здесь идёт от `seed`, часов нет.
+/// `avoid` — доска, которую повторять не надо («ещё раз эту же»: трудность та же, доска
+/// другая); уйти от неё — не больше восьми попыток, зависать нельзя (§8.5).
+/// `null` — у шаблона нет ни одной ступени с доской; экран тогда берёт доску лестницы.
+({SudokuBoard board, int level})? boardForTemplate(
+  SudokuLevels levels,
+  Map<String, List<int>> byTemplate,
+  Template t,
+  int seed, {
+  SudokuBoard? avoid,
+}) {
+  final candidates = byTemplate[t.id] ?? const <int>[];
+  if (candidates.isEmpty) return null;
+  final rnd = Random(seed);
+  SudokuBoard? board;
+  var level = candidates.first;
+  for (var i = 0; i < 8; i++) {
+    level = candidates[rnd.nextInt(candidates.length)];
+    // Зерно 0 уровни читают как «от часов» — такого здесь быть не должно.
+    final s = seed + i == 0 ? 1 : seed + i;
+    board = levels.boardFor(level, seed: s);
+    if (board == null || avoid == null || !samePuzzle(board, avoid)) break;
+  }
+  return board == null ? null : (board: board, level: level);
 }
 
 /// Шаблон ДЛЯ УЖЕ ВЫДАННОЙ ДОСКИ — тем же именем, что и в пуле.
@@ -114,19 +169,11 @@ Template templateForBoard({
 }
 
 /// Рейтинг ПРОПИСАННОЙ ступени — той же мерой, что и у шаблонов пула.
-double ratingForLevel(SudokuLevels levels, int level) {
-  final cfg = levels.config(level);
-  if (cfg.fromBank) return ratingForBank(levels.bankRating(level));
-  final tiers = <int>[];
-  for (var i = 0; i < levels.boardsFor(level); i++) {
-    final t = levels.boardAt(level, i)?.tier;
-    if (t != null) tiers.add(t);
-  }
-  final tier = tiers.isEmpty
-      ? 4
-      : (tiers.reduce((a, b) => a + b) / tiers.length).round().clamp(1, maxTier);
-  return ratingForTier(tier);
-}
+///
+/// Одна строка, а не своя копия подсчёта: до 30.09 здесь стоял второй экземпляр той же
+/// логики, что в `templateForLevel`, и две копии разошлись бы при первой правке меры —
+/// старт пилота считал бы трудность ступени иначе, чем пул, из которого он раздаёт.
+double ratingForLevel(SudokuLevels levels, int level) => templateForLevel(levels, level).rating;
 
 /// Состояние для того, кто ПРИШЁЛ С ПРОПИСАННОЙ ЛЕСТНИЦЫ (решение Дениса 23.09.2026).
 ///
