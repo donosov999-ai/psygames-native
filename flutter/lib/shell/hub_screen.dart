@@ -209,7 +209,8 @@ IconData hubIcon(String name) => hubIcons[name] ?? Icons.extension_outlined;
 /// Картинки и карта — выгрузка веб-реестра `flutter/tools/embed-game-icons.mjs`
 /// (`assets/game_icons/`). Ищем по ключу названия, как веб (`gameIconByNameKey`), затем
 /// по адресу целиком: семь строк подписаны своим ключом (`suiteStroop` → `/games/stroop`).
-/// Нет иконки (режимы головоломок, группы) — прежний значок: пустого места быть не может.
+/// С 01.10.2026 иконка есть у всех 114 строк (режимы — `MODE_ICONS`, по адресу целиком);
+/// нет иконки (новая строка, битая выгрузка) — прежний значок: пустого места быть не может.
 String? hubIconFile(Map<String, dynamic> index, HubCard c) =>
     ((index['byNameKey'] as Map?)?[c.nameKey] ?? (index['byRoute'] as Map?)?[c.route]) as String?;
 
@@ -485,7 +486,7 @@ class _HubScreenState extends State<HubScreen> {
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           // Уровень — то самое, за чем человек и возвращается.
-                          Text('ур. ${_levels[c.route] ?? 1}',
+                          Text('${L.t('unitLevelShort')} ${_levels[c.route] ?? 1}',
                               style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant)),
                           if (widget.isNative?.call(c.route) ?? false)
                             Icon(Icons.bolt, size: 14, color: scheme.primary),
