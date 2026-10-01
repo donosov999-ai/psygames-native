@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/corsi/screen.dart';
 import 'package:psygames_flutter/shell/l10n.dart';
+import 'package:psygames_flutter/shell/level_rules.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import 'support/boss_probe.dart';
 
 /// ПАРТИЯ ИГРАЕТСЯ ТЫЧКАМИ ПО БЛОКАМ, а не вызовом правил.
 ///
@@ -155,5 +158,66 @@ void main() {
     await tester.pump(const Duration(milliseconds: 100));
     await tester.pumpWidget(const MaterialApp(home: SizedBox()));
     await tester.pump(const Duration(seconds: 6));
+  });
+  /// Открывает экран на уровне [level]: лестница читает его из общего хранилища, как в
+  /// приложении. Таблица правил — заранее: догруженная посреди партии, она перестраивает
+  /// шапку каркаса в случайный момент поддельного времени.
+  Future<void> open(WidgetTester tester, int level) async {
+    SharedPreferences.setMockInitialValues({'psygames_corsi_level_nzt48': '$level'});
+    state = await SharedState.open();
+    await LevelRules.load();
+    await tester.pumpWidget(MaterialApp(home: CorsiScreen(key: UniqueKey(), state: state)));
+    await tester.pump();
+    await tester.pump();
+  }
+
+  /// Смотрит показ до конца — пока подпись «Запомни» не сменится вводом. На 3-м уровне
+  /// ряд из пяти-шести блоков идёт дольше четырёх секунд окна [watch].
+  Future<List<int>> watchAll(WidgetTester tester) async {
+    final seen = <int>[];
+    var dark = true;
+    for (var i = 0; i < 400; i++) {
+      final lit = litBlock(tester);
+      if (lit == null) {
+        dark = true;
+        if (find.text(L.t('memorize')).evaluate().isEmpty) break;
+      } else if (dark) {
+        seen.add(lit);
+        dark = false;
+      }
+      await tester.pump(const Duration(milliseconds: 50));
+    }
+    return seen;
+  }
+
+  /// Партия победой нажатиями: первый ряд — длина, с которой уровень начинается, —
+  /// повторён верно; дальше два нарочных промаха, и партия кончается со взятым уровнем.
+  Future<void> winByTaps(WidgetTester tester) async {
+    await tester.tap(find.text(L.t('start')));
+    await tester.pump();
+    final first = await watchAll(tester);
+    for (final b in first) {
+      await tester.tap(find.byKey(Key('блок$b')));
+      await tester.pump();
+    }
+    for (var miss = 0; miss < 2; miss++) {
+      await tester.pump(const Duration(milliseconds: 800));
+      final row = await watchAll(tester);
+      final wrong = List.generate(9, (i) => i).firstWhere((i) => i != row.first);
+      await tester.tap(find.byKey(Key('блок$wrong')));
+      await tester.pump();
+    }
+    // Пауза после промаха (700 мс) — и партия уходит в итог.
+    await tester.pump(const Duration(milliseconds: 800));
+    await tester.pump();
+  }
+
+  testWidgets('🔴 веха: победа на 3-м уровне открывает бой «сложи подсвеченные», на 2-м — нет', (tester) async {
+    // В вебе corsi.tsx зовёт BossRound каждые три уровня (BOSS_EVERY = 3, тип counting);
+    // при переносе бой пропал молча — задача a2ecb067.
+    await expectBossAfterWin(tester, won: find.text(L.t('nextLabel')), hudKey: 'bossHudCounting', play: (level) async {
+      await open(tester, level);
+      await winByTaps(tester);
+    });
   });
 }
