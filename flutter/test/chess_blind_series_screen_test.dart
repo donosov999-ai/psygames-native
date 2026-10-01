@@ -3,6 +3,9 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import 'support/game_clock_fake.dart';
+
 import 'package:psygames_flutter/games/chess_blind/positions.dart';
 import 'package:psygames_flutter/games/chess_common/board.dart';
 import 'package:psygames_flutter/games/chess_blind/series.dart';
@@ -52,6 +55,7 @@ void main() {
     final state = await SharedState.open();
     // Пустой кадр: иначе второй вызов переиспользует состояние прежнего экрана.
     await tester.pumpWidget(const SizedBox());
+    useFakeGameClock(tester);
     await tester.pumpWidget(
       MaterialApp(
         home: ChessBlindSeriesScreen(

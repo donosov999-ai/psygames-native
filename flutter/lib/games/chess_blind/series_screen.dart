@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../../shell/game_clock.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/session_report.dart';
@@ -66,8 +67,7 @@ class ChessBlindSeriesScreen extends StatefulWidget {
 }
 
 class _ChessBlindSeriesScreenState extends State<ChessBlindSeriesScreen> {
-  final Stopwatch _watch = Stopwatch()..start();
-  Timer? _ticker;
+  GameTimer? _ticker;
   ChessBlindText? _text;
   PositionCorpus? _corpus;
   String? _error;
@@ -93,7 +93,8 @@ class _ChessBlindSeriesScreenState extends State<ChessBlindSeriesScreen> {
   SeriesRun? _finished;
   ({bool raised, String weakest, PieceBand band, int runsLeft})? _move;
 
-  int _raw() => widget.clock?.call() ?? _watch.elapsedMilliseconds;
+  // Игровые часы: стоят под паузой, разбором и в фоне (lib/shell/game_clock.dart).
+  int _raw() => widget.clock?.call() ?? gameNow();
   int _pausedTotal = 0;
   int? _pausedSince;
   int _now() {
@@ -141,7 +142,9 @@ class _ChessBlindSeriesScreenState extends State<ChessBlindSeriesScreen> {
     final corpus = _corpus;
     if (corpus == null) return;
     final entry = seriesEntry(_progress);
-    _seed = widget.seed ?? DateTime.now().millisecondsSinceEpoch % 100000;
+    final wallMs =
+        DateTime.now().millisecondsSinceEpoch; // wall-clock: зерно раздачи
+    _seed = widget.seed ?? wallMs % 100000;
     final picked = corpus.pickRandom(entry.band, Random(_seed));
     _pausedTotal = 0;
     _pausedSince = null;
@@ -159,7 +162,7 @@ class _ChessBlindSeriesScreenState extends State<ChessBlindSeriesScreen> {
       _openBlock(0);
     });
     _ticker?.cancel();
-    _ticker = Timer.periodic(const Duration(milliseconds: 100), (_) => _tick());
+    _ticker = gameInterval(const Duration(milliseconds: 100), _tick);
   }
 
   List<SeriesQuestion> _build(int index) => buildBlockQuestions(

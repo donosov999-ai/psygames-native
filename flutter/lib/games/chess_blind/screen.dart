@@ -4,6 +4,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../../shell/game_clock.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
@@ -135,6 +136,9 @@ enum _Stage { config, play, done }
 /// 🔴 ЧАСЫ ИГРОВЫЕ: всё, что идёт по времени (показ, ходы, пауза после ответа),
 /// стоит, пока партия не на экране — под паузой, правилами, разбором. Веб
 /// научился этому 09.09 после «пауза не паузит: игра ушла на помеху».
+int _wallMillisecond() =>
+    DateTime.now().millisecond; // wall-clock: зерно разбора
+
 class ChessBlindScreen extends StatefulWidget {
   const ChessBlindScreen({
     super.key,
@@ -163,8 +167,7 @@ class _ChessBlindScreenState extends State<ChessBlindScreen> {
     store: SharedLevelStore(widget.state),
     maxLevel: puzzleMaxLevel,
   );
-  final Stopwatch _watch = Stopwatch()..start();
-  Timer? _ticker;
+  GameTimer? _ticker;
   PositionCorpus? _corpus;
   String? _error;
   late ChessAssist _assist = ChessAssist.read(widget.state);
@@ -181,7 +184,8 @@ class _ChessBlindScreenState extends State<ChessBlindScreen> {
   _Reveal? _reveal;
   bool _completing = false;
 
-  int _raw() => widget.clock?.call() ?? _watch.elapsedMilliseconds;
+  // Игровые часы: стоят под паузой, разбором и в фоне (lib/shell/game_clock.dart).
+  int _raw() => widget.clock?.call() ?? gameNow();
   int _pausedTotal = 0;
   int? _pausedSince;
 
@@ -255,7 +259,7 @@ class _ChessBlindScreenState extends State<ChessBlindScreen> {
       _completing = false;
     });
     _ticker?.cancel();
-    _ticker = Timer.periodic(const Duration(milliseconds: 50), (_) => _tick());
+    _ticker = gameInterval(const Duration(milliseconds: 50), _tick);
   }
 
   void _tick() {
@@ -409,7 +413,8 @@ class _ChessBlindScreenState extends State<ChessBlindScreen> {
     final game = ChessBlindGame.start(
       level: level,
       corpus: corpus,
-      random: Random(level * 131 + DateTime.now().millisecond),
+      // Зерно разбора — календарь, не длительность партии.
+      random: Random(level * 131 + _wallMillisecond()),
     );
     final steps = chessBlindLessonSteps(game);
     if (steps.isEmpty) return;
