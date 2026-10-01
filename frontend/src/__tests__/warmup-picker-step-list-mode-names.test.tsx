@@ -56,8 +56,10 @@ describe('экран «Зарядка»: состав набора', () => {
       .filter((n: any) => n.props?.accessibilityRole === 'radio' && String(n.props.accessibilityLabel ?? '').startsWith('Проба'))[0];
     expect(карточка).toBeTruthy();
     await act(async () => { карточка.props.onPress(); });
-    const строки = tr.root.findAll((n: any) => Array.isArray(n.props?.children) && n.props.children[1] === '. ')
-      .map((n: any) => n.props.children.filter((c: any) => typeof c === 'string' || typeof c === 'number').join(''));
+    // Строка состава — одна готовая надпись «N. имя · ~M мин» (с 01.10.2026 её же
+    // отдаёт оболочке модель экрана, `services/warmupUi.ts`): ищем по тексту, не по разметке.
+    const строки = tr.root.findAll((n: any) => typeof n.props?.children === 'string' && /^\d+\. /.test(n.props.children))
+      .map((n: any) => n.props.children as string);
     const состав = [...new Set(строки)].filter((с) => /^\d+\. /.test(с));
     expect(`строк ${состав.length} · первая «${состав[0]?.split(' · ')[0]}» · общая карточка ${состав.some((с) => с.includes('puzzlesUnruly')) ? 1 : 0}`)
       .toBe('строк 2 · первая «1. puzzlesNet» · общая карточка 0');

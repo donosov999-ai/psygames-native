@@ -25,6 +25,7 @@ import { loadReminderSettings, saveReminderSettings, applyReminders, requestRemi
 import { getAiInsight, toneForProfile, dayKey } from '@/src/services/aiInsight';
 import { FAB_CLEARANCE } from '@/src/services/fabPosition';
 import type { StepResult } from '@/src/contexts/WarmupContext';
+import { postUiModel, registerUiActions } from '@/src/services/warmupUi';
 
 // Промпт «включить напоминания?» показываем после завершённой зарядки, пока
 // напоминания выключены и юзер не ответил (флаг). Только натив — на web no-op.
@@ -213,6 +214,102 @@ export default function WarmupComplete() {
   // У замеров с остыванием повтора нет, и кнопки нет.
   const повтор = повторСерии(meta);
   const playAgain = () => { if (повтор) warmup.startPlaylist(повтор); };
+
+  /**
+   * 🔴 ПОД ОБОЛОЧКОЙ ИТОГ РИСУЕТ FLUTTER (`services/warmupUi.ts`, задача 748c3f5f).
+   * Расчёты — эти же, ниже по экрану: модель отдаёт ровно то, что он показал бы.
+   * Собрана до раннего выхода: порядок хуков не должен зависеть от того, есть ли сессия.
+   */
+  const uiModel = (() => {
+    if (!meta) return { empty: true, emptyText: t('sessionNotFound'), home: t('goHome') };
+    const best = Math.max(0, ...history
+      .filter((h) => h.duration_min === meta.duration_min && h.track === meta.track && h.completed)
+      .map((h) => h.total_score));
+    const pb = !безСчёта && totalScore > 0 && totalScore >= best;
+    const поНомеру = results.length > 0 && results.every((r) => r.шаг !== undefined);
+    const сыграны = new Set(results.map((r) => r.шаг));
+    const doneIds = results.map((r) => r.game_type);
+    const missed = meta.steps.length > results.length
+      ? meta.steps
+        .filter((st, i) => (поНомеру ? !сыграны.has(i) : !doneIds.includes(st.game_id)))
+        .map((st) => имяШага(st, t))
+      : [];
+    return {
+      empty: false,
+      completed,
+      hero: {
+        emoji: completed ? '🎉' : '⏸',
+        title: completed ? t('warmupDoneTitle') : t('warmupStoppedTitle'),
+        sub: `${metaWeekday} · ${metaSlot} · ${elapsedMin}:${elapsedSecRem.toString().padStart(2, '0')}`,
+        personalBest: completed && pb ? t('personalBest') : null,
+      },
+      resultsTitle: t('resultsTitle'),
+      rows: results.map((r) => {
+        const game = GAMES.find((g) => g.id === r.game_type);
+        const шаг = r.шаг !== undefined ? meta.steps[r.шаг] : undefined;
+        return {
+          name: шаг ? имяШага(шаг, t) : game ? t(game.nameKey) : r.game_type,
+          color: game?.gradient[0] || '#fbbf24',
+          score: безСчёта ? null : очкиСоЗнаком(r.score),
+          negative: r.score < 0,
+          time: `${r.time_seconds.toFixed(1)}${t('secShort')}`,
+          // Числом, не «✗N»: знак во Flutter рисуется пустым квадратом, значок ставит оболочка.
+          errors: !безСчёта && r.errors > 0 ? r.errors : null,
+        };
+      }),
+      skipped: missed.length > 0 ? `${t('skippedNamed')}: ${missed.join(', ')}` : null,
+      breakdown: разбор && разбор.навыки.length > 0 ? {
+        title: t('warmupBreakdownTitle'),
+        lead: разбор.лучший
+          ? t('warmupBreakdownUp').replace('{skill}', t(разбор.лучший.skillKey)).replace('{pct}', String(Math.round(разбор.лучший.delta)))
+          : разбор.худший
+            ? t('warmupBreakdownDown').replace('{skill}', t(разбор.худший.skillKey)).replace('{pct}', String(Math.abs(Math.round(разбор.худший.delta))))
+            : t('warmupBreakdownFlat'),
+        rows: разбор.навыки.map((н) => ({
+          skill: t(н.skillKey), delta: `${н.delta >= 0 ? '+' : ''}${Math.round(н.delta)}%`, up: н.delta >= 0,
+        })),
+        hints: [
+          ...(разбор.худший ? [t('warmupBreakdownAdvice').replace('{skill}', t(разбор.худший.skillKey))] : []),
+          ...(разбор.безИстории > 0 ? [t('warmupBreakdownNoHistory').replace('{n}', String(разбор.безИстории))] : []),
+        ],
+      } : null,
+      total: безСчёта ? null : {
+        label: t('totalScoreLabel'),
+        value: String(totalScore),
+        compare: best > 0 ? (pb ? t('bestInCategory') : t('bestScoreN').replace('{n}', String(best))) : null,
+        combo: combo && combo.bonus > 0
+          ? t('comboLine').replace('{n}', String(combo.streakLen)).replace('{b}', String(combo.bonus))
+          : null,
+      },
+      streak: streak > 0 ? {
+        value: (streak === 1 ? t('streakDayOne') : t('streakDaysMany')).replace('{n}', String(streak)),
+        label: t('dontBreakStreak'),
+      } : null,
+      verdict: verdict ? {
+        title: t('brainTodayTitle'),
+        msg: aiVerdictText || verdict.message,
+        tone: verdict.delta_pct > 5 ? 'up' : verdict.delta_pct < -5 ? 'down' : 'flat',
+      } : null,
+      reminder: reminderPrompt === 'show'
+        ? { kind: 'ask', title: t('remindTomorrowQ'), body: t('remindTomorrowBody'), enable: t('ctaEnable'), later: t('notNow') }
+        : reminderPrompt === 'enabled' ? { kind: 'done', title: t('remindSetMorning') } : null,
+      again: повтор ? t('ctaAgain') : null,
+      home: t('goHome'),
+    };
+  })();
+  const uiJson = JSON.stringify(uiModel);
+  const uiRef = React.useRef<object>(uiModel);
+  uiRef.current = uiModel;
+  const actRef = React.useRef({ playAgain, goHome, enableReminders, dismissReminders });
+  actRef.current = { playAgain, goHome, enableReminders, dismissReminders };
+  useEffect(() => { postUiModel('complete', uiRef.current); }, [uiJson]);
+  useEffect(() => registerUiActions('complete', {
+    again: () => actRef.current.playAgain(),
+    home: () => actRef.current.goHome(),
+    remindEnable: () => { void actRef.current.enableReminders(); },
+    remindLater: () => { void actRef.current.dismissReminders(); },
+    post: () => postUiModel('complete', uiRef.current),
+  }), []);
 
   if (!meta) {
     return (
