@@ -91,8 +91,12 @@ void main() {
   group('партия', () {
     /// Ряд, который знают ответы: стимулы идут из настоящего генератора на фиксированном потоке.
     NbackGame game({NbModality modality = NbModality.single, int n = 2, int trials = 20}) {
-      var x = 0.137;
-      double rng() => x = (x * 9301 + 49297) % 233280 / 233280;
+      // Поток на ЦЕЛОМ состоянии: на дроби он сходится к ≈0,22 и выдаёт почти одно и то же (01.10.2026).
+      var st = 137;
+      double rng() {
+        st = (st * 9301 + 49297) % 233280;
+        return st / 233280;
+      }
       return NbackGame(n: n, trials: trials, modality: modality, rng: rng);
     }
 

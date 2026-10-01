@@ -690,8 +690,12 @@ class NbLessonArt extends StatelessWidget {
 /// [want] — совпадение или приманку. Примеры берутся из того же генератора, что партия.
 List<int> _windowFor(int n, bool Function(List<int> items, int i) want, int seed) {
   for (var s = seed; s < seed + 50; s++) {
-    var x = s / 997;
-    double rng() => x = (x * 9301 + 49297) % 233280 / 233280;
+    // Поток на ЦЕЛОМ состоянии: на дроби он сходится к ≈0,22 и выдаёт почти одно и то же (01.10.2026).
+    var st = s;
+    double rng() {
+      st = (st * 9301 + 49297) % 233280;
+      return st / 233280;
+    }
     final seq = buildNbackSequence(20, n, nbCells, rng, n > 1 ? 0.3 : null);
     for (var i = n + 1; i < seq.items.length; i++) {
       if (want(seq.items, i)) return seq.items.sublist(i - n - 1, i + 1);

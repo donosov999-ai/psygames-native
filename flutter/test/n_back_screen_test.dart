@@ -76,8 +76,12 @@ void main() {
       soundOn: () => true,
       letters: {for (final l in nbAudioLetters) l: '$l.opus'},
     );
-    var x = 0.4242;
-    double rng() => x = (x * 9301 + 49297) % 233280 / 233280;
+    // Поток на ЦЕЛОМ состоянии: на дроби он сходится к ≈0,22 и выдаёт почти одно и то же (01.10.2026).
+    var st = 4242;
+    double rng() {
+      st = (st * 9301 + 49297) % 233280;
+      return st / 233280;
+    }
     await tester.pumpWidget(MaterialApp(home: NBackScreen(state: state, voice: layer, strings: strings, rng: rng)));
     for (var i = 0; i < 5; i++) {
       await tester.pump();
