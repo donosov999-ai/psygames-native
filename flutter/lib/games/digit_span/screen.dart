@@ -848,8 +848,14 @@ String dsChunked(List<int> seq) {
 /// (`expectedDigits` — тем же правилом, которым игра засчитывает ответ). Без ряда разбор был
 /// только словами: имя приёма есть, а увидеть его не на чем.
 List<DemoTrial> digitSpanLessonTrials({double Function()? rng}) {
-  var x = 0.4242;
-  final r = rng ?? () => x = (x * 9301 + 49297) % 233280 / 233280;
+  // Поток на ЦЕЛОМ состоянии: на дроби он сходится к ≈0,22, и ряд разбора был бы «2 2 2 2 …» —
+  // «прямо» и «наоборот» на нём одинаковы, и пример обратного ввода ничего бы не показал.
+  var st = 4242;
+  final r = rng ??
+      () {
+        st = (st * 9301 + 49297) % 233280;
+        return st / 233280;
+      };
   final forward = generateSeq(7, r);
   final backward = generateSeq(6, r);
   return [
