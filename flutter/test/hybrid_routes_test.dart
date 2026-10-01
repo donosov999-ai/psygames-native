@@ -284,6 +284,7 @@ void main() {
       '/games/cake-sort',
       // «Доска в уме» — партия и серия нативно (01.10.2026).
       '/games/chess-blind',
+      '/games/chess-hub',
       '/games/find-move',
       '/games/choice-rt',
       '/games/cpt',
