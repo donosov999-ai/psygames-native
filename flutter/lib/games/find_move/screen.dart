@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../../shell/game_clock.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
@@ -77,8 +78,7 @@ class _FindMoveScreenState extends State<FindMoveScreen> {
     store: SharedLevelStore(widget.state),
     maxLevel: findMoveLevels,
   );
-  final Stopwatch _watch = Stopwatch();
-  Timer? _ticker;
+  GameTimer? _ticker;
   FindMoveCorpus? _corpus;
   String? _error;
   _Phase _phase = _Phase.config;
@@ -87,7 +87,8 @@ class _FindMoveScreenState extends State<FindMoveScreen> {
   FindMoveResult? _last;
   int _starts = 0;
 
-  int _raw() => widget.clock?.call() ?? _watch.elapsedMilliseconds;
+  // Игровые часы: стоят под паузой, разбором и в фоне (lib/shell/game_clock.dart).
+  int _raw() => widget.clock?.call() ?? gameNow();
   int _pausedTotal = 0;
   int? _pausedSince;
   int _now() {
@@ -120,8 +121,11 @@ class _FindMoveScreenState extends State<FindMoveScreen> {
     super.dispose();
   }
 
-  int _seed(int level) =>
-      widget.seed ?? DateTime.now().millisecondsSinceEpoch % 100000 + _starts;
+  int _seed(int level) {
+    final wallMs =
+        DateTime.now().millisecondsSinceEpoch; // wall-clock: зерно подхода
+    return widget.seed ?? wallMs % 100000 + _starts;
+  }
 
   void _start() {
     final corpus = _corpus;
@@ -130,9 +134,6 @@ class _FindMoveScreenState extends State<FindMoveScreen> {
     final deck = findMoveDeckFor(corpus, level, seed: _seed(level));
     _starts++;
     if (deck.isEmpty) return;
-    _watch
-      ..reset()
-      ..start();
     _pausedTotal = 0;
     _pausedSince = null;
     setState(() {
@@ -141,7 +142,7 @@ class _FindMoveScreenState extends State<FindMoveScreen> {
       _phase = _Phase.playing;
     });
     _ticker?.cancel();
-    _ticker = Timer.periodic(const Duration(milliseconds: 100), (_) => _tick());
+    _ticker = gameInterval(const Duration(milliseconds: 100), _tick);
   }
 
   void _tick() {

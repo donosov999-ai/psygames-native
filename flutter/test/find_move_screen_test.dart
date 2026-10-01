@@ -9,11 +9,14 @@ import 'package:psygames_flutter/games/find_move/lesson.dart';
 import 'package:psygames_flutter/games/find_move/screen.dart';
 import 'package:psygames_flutter/games/scholars_mate/screen.dart'
     show scholarsSquareIndex;
+import 'package:psygames_flutter/shell/game_clock.dart';
 import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/lesson.dart';
 import 'package:psygames_flutter/shell/lesson_player.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import 'support/game_clock_fake.dart';
 
 /// ЭКРАН «НАЙДИ ХОД» — ПАРТИЯ КАСАНИЯМИ.
 ///
@@ -36,7 +39,9 @@ void main() {
     WidgetTester tester, {
     Size size = const Size(390, 844),
     int seed = 5,
+    bool gameClock = false,
   }) async {
+    useFakeGameClock(tester);
     tester.view.physicalSize = size * 2;
     tester.view.devicePixelRatio = 2;
     addTearDown(tester.view.reset);
@@ -46,7 +51,8 @@ void main() {
         home: FindMoveScreen(
           state: state,
           corpus: corpus,
-          clock: () => clock,
+          // gameClock: часы партии — игровые (как в приложении), их двигает pump.
+          clock: gameClock ? null : () => clock,
           seed: seed,
         ),
       ),
@@ -165,13 +171,17 @@ void main() {
   });
 
   testWidgets('часы стоят, пока открыт разбор поверх партии', (tester) async {
-    await open(tester);
+    // Игровые часы приложения, не подставные: разбор держит партию сам (holdGame),
+    // а время двигает pump — две минуты под разбором.
+    await open(tester, gameClock: true);
     await tester.tap(find.byKey(const Key('fm-start')));
     await tester.pump();
     await tester.tap(find.byKey(const Key('game-lesson')));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 500));
-    await wait(tester, findMoveSeconds * 2000);
+    for (var i = 0; i < findMoveSeconds * 2; i++) {
+      await tester.pump(const Duration(seconds: 1));
+    }
     expect(
       find.byType(LessonPlayerScreen),
       findsOneWidget,
@@ -180,10 +190,12 @@ void main() {
     Navigator.of(
       tester.element(find.byType(FindMoveScreen, skipOffstage: false)),
     ).pop();
-    for (var i = 0; i < 6; i++) {
+    // Разбор снимает паузу, когда его страница уходит совсем (после анимации).
+    for (var i = 0; i < 20 && isGameHeld(); i++) {
       await tester.pump(const Duration(milliseconds: 100));
     }
-    await wait(tester, 100);
+    expect(isGameHeld(), isFalse, reason: 'разбор закрыт — пауза снята');
+    await tester.pump(const Duration(milliseconds: 300));
     expect(
       text(tester, 'fm-verdict'),
       ' ',
