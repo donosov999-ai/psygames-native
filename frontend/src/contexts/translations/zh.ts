@@ -3087,6 +3087,7 @@ const t: Record<string, string> = {
   "sudokuPilotOff": "返回关卡阶梯",
   "sudokuRepeatSame": "同样难度再来一次",
   "sudokuSkinLetters": "用字母代替数字",
+  "sudokuSkinAnimals": "用动物代替数字",
   "digitsCandy": "糖果",
   "sudokuHiddenWord": "隐藏的单词：{w}",
   "teachRpRhythmIntro": "抓住节奏的速度，而不是数拍子：敲击像脚步一样均匀。用同样的速度重复这个节奏。",

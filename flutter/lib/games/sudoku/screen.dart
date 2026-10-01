@@ -149,7 +149,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
   /// Что реально видно на доске — для отчёта партии (буквы на термометрах не ставятся,
   /// поэтому выбор игрока и показанное могут расходиться).
   String? get _skinShown => _symbols.images != null
-      ? 'drawn:${_choice.style}'
+      ? (_symbols.isDigits ? 'drawn:${_choice.style}' : SudokuSkin.animals.name)
       : _symbols.isDigits
           ? null
           : SudokuSkin.letters.name;
@@ -208,6 +208,9 @@ class _SudokuScreenState extends State<SudokuScreen> {
                 if (board != null && skinApplies(board.variant))
                   option(const Key('skin-letters'), const SkinChoice(SudokuSkin.letters),
                       const Icon(Icons.abc), L.t('sudokuSkinLetters')),
+                if (board != null && skinApplies(board.variant))
+                  option(const Key('skin-animals'), const SkinChoice(SudokuSkin.animals),
+                      Image.asset(animalImage(0), width: 32, height: 32), L.t('sudokuSkinAnimals')),
                 for (final st in digitStyles)
                   option(
                     Key('skin-drawn-$st'),

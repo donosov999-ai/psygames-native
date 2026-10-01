@@ -3081,6 +3081,7 @@ const t: Record<string, string> = {
   "sudokuPilotOff": "レベルの階段に戻る",
   "sudokuRepeatSame": "同じ難しさでもう一度",
   "sudokuSkinLetters": "数字の代わりに文字",
+  "sudokuSkinAnimals": "数字のかわりに どうぶつ",
   "digitsCandy": "キャンディ",
   "sudokuHiddenWord": "隠された言葉：{w}",
   "teachRpRhythmIntro": "拍を数えるのではなく、テンポをつかみます。打音は足音のように均等に来ます。同じテンポで型を繰り返しましょう。",

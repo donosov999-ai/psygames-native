@@ -16,10 +16,10 @@ import 'dart:math';
 import 'package:flutter/services.dart';
 
 /// Какими значками показывать цифры.
-enum SudokuSkin { digits, letters, drawn }
+enum SudokuSkin { digits, letters, drawn, animals }
 
 /// Выбор игрока: вид значков и, для рисованных, набор. Хранится одной строкой:
-/// `digits` · `letters` · `drawn:<набор>`.
+/// `digits` · `letters` · `animals` · `drawn:<набор>`.
 class SkinChoice {
   const SkinChoice(this.skin, [this.style = 'candy']);
   final SudokuSkin skin;
@@ -27,6 +27,7 @@ class SkinChoice {
 
   static SkinChoice parse(String? s) {
     if (s == SudokuSkin.letters.name) return const SkinChoice(SudokuSkin.letters);
+    if (s == SudokuSkin.animals.name) return const SkinChoice(SudokuSkin.animals);
     if (s != null && s.startsWith('drawn:')) {
       final st = s.substring(6);
       if (digitStyles.contains(st)) return SkinChoice(SudokuSkin.drawn, st);
@@ -60,6 +61,26 @@ bool styleOwned(String style, String profile, List<String> unlocked) =>
 
 /// Картинка цифры набора — ассет, скопированный из веба как есть.
 String digitImage(String style, int v) => 'assets/digits/$style/d$v.webp';
+
+/// 🔴 ЗВЕРИ ВМЕСТО ЦИФР (задача 01dc3ff0, «Судоку с животными» MindLab). Картинки — свои,
+/// из «Пар» (`assets/pairs/animals/0..11.webp`), чужих ассетов нет. Номера картинок:
+/// 0 кот · 1 собака · 2 лиса · 3 сова · 4 заяц · 5 медведь · 6 панда · 7 лев · 8 лягушка ·
+/// 9 пингвин · 10 слон · 11 свинья.
+///
+/// ⚠️ НАБОР ПОДОБРАН ПО ЦВЕТУ, А НЕ ПО ПОРЯДКУ. Зверь различается с первого взгляда только
+/// окраской: лиса рядом с котом (оба рыжие), сова и медведь рядом с собакой (все бурые)
+/// путаются, поэтому в девятку их нет. На малых полях — самые несхожие из девяти.
+/// Глиф — эмодзи того же зверя: им говорят пометки карандашом и текст разбора.
+const animalPicks = <int, List<int>>{
+  4: [0, 8, 9, 11],                      // кот · лягушка · пингвин · свинья
+  6: [0, 1, 6, 8, 9, 11],                // + собака · панда
+  9: [0, 1, 4, 6, 7, 8, 9, 10, 11],      // + заяц · лев · слон
+};
+const animalGlyphs = <int, String>{
+  0: '🐱', 1: '🐶', 2: '🦊', 3: '🦉', 4: '🐰', 5: '🐻',
+  6: '🐼', 7: '🦁', 8: '🐸', 9: '🐧', 10: '🐘', 11: '🐷',
+};
+String animalImage(int i) => 'assets/pairs/animals/$i.webp';
 
 /// 🔴 ПРАВИЛО ВЕБА: картинка — только там, где под цифрой НИЧЕГО не нарисовано.
 /// «Под цифрой что-то нарисовано → цифра рисуется текстом цветом темы. Контраст важнее
@@ -133,6 +154,16 @@ class SudokuSymbols {
     return im != null && v > 0 && v < im.length ? im[v] : null;
   }
 
+  /// Звери (картинки «Пар») — для полей 4, 6 и 9; на прочих размерах цифры.
+  factory SudokuSymbols.animals(int n) {
+    final picks = animalPicks[n];
+    if (picks == null) return SudokuSymbols.digits(n);
+    return SudokuSymbols._(
+      ['', for (final i in picks) animalGlyphs[i]!],
+      images: ['', for (final i in picks) animalImage(i)],
+    );
+  }
+
   /// Обычные цифры.
   factory SudokuSymbols.digits(int n) => SudokuSymbols._(['', for (var v = 1; v <= n; v++) '$v']);
 
@@ -178,6 +209,8 @@ SudokuSymbols symbolsFor({
   // Рисованные — это всё ещё цифры: числовой смысл не теряется ни на одном правиле.
   // Где под клеткой рисунок, клетка сама возьмёт текст (decorFreeVariants).
   if (skin == SudokuSkin.drawn && n > 0) return SudokuSymbols.drawn(n, style);
+  // Звери — как буквы: прячут числовой смысл, поэтому только на правилах без него.
+  if (skin == SudokuSkin.animals && skinApplies(variant) && n > 0) return SudokuSymbols.animals(n);
   if (skin != SudokuSkin.letters || !skinApplies(variant) || n == 0) return SudokuSymbols.digits(n);
   final words = WordokuWords.of(language, n);
   if (words == null || words.isEmpty) return SudokuSymbols.alphabet(n);

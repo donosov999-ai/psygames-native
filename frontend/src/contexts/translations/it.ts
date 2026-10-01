@@ -3082,6 +3082,7 @@ const t: Record<string, string> = {
   "sudokuPilotOff": "Torna alla scala dei livelli",
   "sudokuRepeatSame": "Ancora, stessa difficoltà",
   "sudokuSkinLetters": "Lettere al posto dei numeri",
+  "sudokuSkinAnimals": "Animali al posto delle cifre",
   "digitsCandy": "Caramella",
   "sudokuHiddenWord": "Parola nascosta: {w}",
   "teachRpRhythmIntro": "Tieni il TEMPO, non il conto: i colpi arrivano regolari, come passi. Ripeti lo schema allo stesso tempo.",
