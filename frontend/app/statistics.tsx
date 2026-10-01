@@ -18,7 +18,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { isRTLLang } from '@/src/services/rtl';
 import { getAllStats, GameStats, GameSession, getSessions } from '@/src/services/api';
 import { getTokens, levelInfo, getStreak } from '@/src/services/tokens';
-import { GAMES } from '@/src/constants/games';
+import { GAMES, categoryOfSessionType } from '@/src/constants/games';
 import { areaBreakdown, weakestArea, type AreaStat } from '@/src/services/analytics';
 import {
   belongsToProfile,
@@ -67,8 +67,26 @@ function StatisticsScreenBody() {
   const [tokens, setTokens] = useState(0);          // D1: токены/уровень/стрик в герое
   const [streakDays, setStreakDays] = useState(0);
   const [sessionsByGame, setSessionsByGame] = useState<Record<string, number[]>>({});
-  // Баланс тренировок по областям: чего человек качает, а что обходит стороной.
-  const [areas, setAreas] = useState<AreaStat[]>([]);  // D1.2: тренды очков
+  /*
+   * Баланс тренировок по областям: чего человек качает, а что обходит стороной.
+   *
+   * 🔴 СЧИТАЕТСЯ ПО ВЫБРАННОМУ ПРОФИЛЮ, А НЕ ПО ВСЕМУ УСТРОЙСТВУ. Отчёты dfd6b290 и
+   * 54c73576 (18–19.09.2026): «у двух разных людей одна фигура». На кадре переключатель
+   * стоит на «Микро-релакс», а в балансе 458 партий всего устройства, восстановление
+   * 1 %. Баланс считался ОДИН раз при загрузке, по всем партиям всех профилей за всё
+   * время, и переключателя не слушал; у Вали в её профиле восстановление — 8 % (замер
+   * по облаку 30.09). Теперь профиль — его партии, «Все игры» — все.
+   * «Своя» партия — та же, что во вкладке «История» (`belongsToProfile`): где так
+   * написано в ней самой. Догадок о ничьих партиях нет.
+   *
+   * Раздел берётся по ТИПУ ПАРТИИ, а не по id карточки: у трёх судоку они различаются
+   * (id через дефис, партия через подчёркивание), и эти партии выпадали из баланса молча.
+   */
+  const profileId = profile?.id;
+  const areas = useMemo<AreaStat[]>(() => {
+    const scoped = scopeAll || !profileId ? sessions : sessions.filter((s) => belongsToProfile(s, profileId));
+    return areaBreakdown(scoped as any, categoryOfSessionType);
+  }, [sessions, scopeAll, profileId]);
   // v1.115.0: недельный ИИ-дайджест — кэш на ISO-неделю (isoWeekKey), молчаливый null = карточка просто не рисуется
   const [aiDigest, setAiDigest] = useState<string | null>(null);
 
@@ -91,9 +109,6 @@ function StatisticsScreenBody() {
         (byGame[s.game_type] ||= []).push(typeof s.score === 'number' && isFinite(s.score) ? s.score : 0);
       }
       setSessionsByGame(byGame);
-      // Категория берётся из реестра игр: id игры и категория живут там, а не здесь.
-      const areaOf = (g: string) => GAMES.find((x: any) => x.id === g)?.category as string | undefined;
-      setAreas(areaBreakdown(allSessions as any, areaOf));
       // Недельный дайджест — компактный агрегат за последние 7 дней (не сырой дамп сессий)
       if (profile?.id) {
         const weekAgo = Date.now() - 7 * 86400_000;

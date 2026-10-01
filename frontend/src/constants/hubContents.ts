@@ -127,6 +127,9 @@ export const HUB_CONTENTS: Record<string, HubSubGame[]> = {
   '/games/chess-hub': [
     { route: '/games/scholars-mate', icon: 'flash', nameKey: 'scholarsMate', descKey: 'scholarsMateDesc', typeKey: 'chessTypeTactics' },
     { route: '/games/chess-blind', icon: 'apps', nameKey: 'chessBlind', descKey: 'chessBlindDesc', typeKey: 'chessTypeBlind' },
+    // «Найди ход» (01.10.2026, задача 04e0a67e): только нативный экран, веб-двойника нет —
+    // адрес в `nativeOnlyGames.ts`, экран в `flutter/lib/games/find_move`.
+    { route: '/games/find-move', icon: 'search', nameKey: 'findMove', descKey: 'findMoveDesc', typeKey: 'chessTypeTactics' },
   ],
 
   /* ——— Внимание ——— */
