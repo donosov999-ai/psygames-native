@@ -3299,5 +3299,7 @@ const t: Record<string, string> = {
   "teachHiddenHalf": "Pregunta «{q}»: sí para {yes}, no para {no}. La mejor pregunta divide a los que quedan lo más cerca posible de la mitad: cualquier respuesta elimina a la mitad.",
   "teachHiddenLast": "Queda uno: es el escondido. Elígelo y pulsa «¡Es este!».",
   "rbHeadStart": "ventaja {n}",
+  "levelNext": "Siguiente nivel",
+  "cellsTaken": "Llenas",
 };
 export default t;

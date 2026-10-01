@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:psygames_flutter/games/dots_connect/board.dart';
@@ -14,6 +15,8 @@ import 'package:psygames_flutter/games/dots_connect/screen.dart';
 /// ⚠️ Чтение ассета — настоящий ввод-вывод, а в пробе время поддельное: без
 /// `runAsync` загрузка не двигается вовсе, и проба врёт про «висит».
 void main() {
+  // Подписи экрана идут через L.t — проба читает русский словарь, как пользователь RU.
+  setUpAll(() async => L.load('ru'));
   late SharedState state;
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
