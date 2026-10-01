@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../../shell/boss_round.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/game_shell.dart';
@@ -52,6 +53,7 @@ class _ChoiceRtScreenState extends State<ChoiceRtScreen> {
   ChoiceOutcome? _flash;
   Timer? _timer;
   bool _passed = false;
+  bool? _boss; // итог боя на вехе; null — боя не было
 
   @override
   void initState() {
@@ -138,7 +140,10 @@ class _ChoiceRtScreenState extends State<ChoiceRtScreen> {
 
   void _answer(ChoiceDirection d) {
     final g = _game;
-    if (g == null || _phase != ChoiceRtPhase.playing || !g.stimulusShown) return;
+    // `finished` — партия уже сдана в `_finish`, а фаза ещё «игра»: пока лестница пишет
+    // победу и открывается бой, последний знак на экране, и нажатие сдало бы партию
+    // второй раз.
+    if (g == null || _phase != ChoiceRtPhase.playing || !g.stimulusShown || g.finished) return;
     _after(g.answer(d));
   }
 
@@ -152,19 +157,24 @@ class _ChoiceRtScreenState extends State<ChoiceRtScreen> {
     });
   }
 
-  void _finish() {
+  Future<void> _finish() async {
     final g = _game!;
     _timer?.cancel();
     final passed = g.accuracy >= choiceRtPassAccuracy;
+    // Веха как в вебе: каждый третий ЗАСЧИТАННЫЙ уровень — бой «жми / не жми», потом итог.
+    bool? boss;
+    if (passed) {
+      boss = await BossRound.winThenBoss(context, _ladder,
+          type: BossType.gonogo, color: const Color(0xFFFDC830));
+    } else {
+      await _ladder.fail();
+    }
+    if (!mounted) return;
     setState(() {
       _phase = ChoiceRtPhase.done;
       _passed = passed;
+      _boss = boss;
     });
-    if (passed) {
-      _ladder.win();
-    } else {
-      _ladder.fail();
-    }
   }
 
   @override
@@ -188,6 +198,7 @@ class _ChoiceRtScreenState extends State<ChoiceRtScreen> {
         phase: _phase,
         flash: _flash,
         passed: _passed,
+        boss: _boss,
         height: h,
         onStart: _start,
         onAgain: () => setState(_reset),
@@ -233,6 +244,7 @@ class _Field extends StatelessWidget {
     required this.phase,
     required this.flash,
     required this.passed,
+    required this.boss,
     required this.height,
     required this.onStart,
     required this.onAgain,
@@ -242,6 +254,7 @@ class _Field extends StatelessWidget {
   final ChoiceRtPhase phase;
   final ChoiceOutcome? flash;
   final bool passed;
+  final bool? boss;
 
   /// Высота поля приходит числом от каркаса.
   final double height;
@@ -291,6 +304,7 @@ class _Field extends StatelessWidget {
             Text(game.meanRtMs == null
                 ? '${L.t('meanReaction')}: —'
                 : '${L.t('meanReaction')}: ${game.meanRtMs} ${L.t('msShort')}'),
+            BossOutcomeLine(boss),
             const SizedBox(height: 16),
             FilledButton(onPressed: onAgain, child: Text(L.t('retry'))),
           ],

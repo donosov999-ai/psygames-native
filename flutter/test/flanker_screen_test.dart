@@ -8,6 +8,8 @@ import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'support/boss_probe.dart';
+
 /// ПАРТИЯ В «СТРЕЛКИ» ИГРАЕТСЯ НАЖАТИЯМИ, а не вызовом правил.
 ///
 /// Проба нажимает настоящие кнопки ответа и читает то, что видно на экране:
@@ -131,5 +133,36 @@ void main() {
     await tester.pump(const Duration(milliseconds: 360));
     // Счётчик «Верно» каркаса остался нулём.
     expect(find.text('0'), findsWidgets);
+  });
+
+  testWidgets('🔴 веха: победа на 3-м уровне открывает бой «жми / не жми», на 2-м — нет', (tester) async {
+    // В вебе фланкер зовёт BossRound каждые три уровня; при переносе бой пропал молча.
+    // Признак взятого уровня — хвост строки «Уровень {n} пройден!»: номер у двух партий разный.
+    final won = find.textContaining(L.t('levelDone').split('}').last);
+    var opens = 0;
+    var clock = 0;
+    await expectBossAfterWin(tester, won: won, hudKey: 'bossHudGonogo', play: (level) async {
+      SharedPreferences.setMockInitialValues({'${SharedState.prefix}flanker_level_nzt48': '$level'});
+      state = await SharedState.open();
+      // Свежее приложение на каждую партию: всплывшее после прошлой (карточка правила
+      // нового уровня) иначе осталось бы поверх «Начать» следующей.
+      await tester.pumpWidget(MaterialApp(
+        key: ValueKey('app${opens += 1}'),
+        home: FlankerScreen(state: state, clock: () => clock, rnd: Random(7)),
+      ));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(L.t('start')));
+      await tester.pump();
+      for (var i = 0;
+          i < 60 && won.evaluate().isEmpty && find.byKey(const Key('boss-round')).evaluate().isEmpty;
+          i++) {
+        await tester.pump(preWait);
+        if (find.byKey(const Key('flanker-stimulus')).evaluate().isEmpty) continue;
+        clock += 450;
+        await tester.tap(answerFor(centerOnScreen(tester)));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 360));
+      }
+    });
   });
 }

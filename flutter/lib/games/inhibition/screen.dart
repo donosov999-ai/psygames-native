@@ -13,6 +13,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../../shell/boss_round.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/game_shell.dart';
@@ -58,6 +59,7 @@ class _InhibitionScreenState extends State<InhibitionScreen> {
   Timer? _timer;
   Timer? _stopTimer;
   bool _passed = false;
+  bool? _boss; // итог боя на вехе; null — боя не было
 
   @override
   void initState() {
@@ -161,21 +163,30 @@ class _InhibitionScreenState extends State<InhibitionScreen> {
     });
   }
 
-  void _finish() {
+  Future<void> _finish() async {
     final g = _game!;
     _timer?.cancel();
     _stopTimer?.cancel();
     final passed = g.accuracy >= inhibitionPassAccuracy;
+    final seconds = g.elapsedSeconds.round();
+    final errors = g.falseAlarms + g.misses;
+    // Веха как в вебе: каждый третий ЗАСЧИТАННЫЙ уровень — бой «жми / не жми», потом итог.
+    // Повторной сдачи партии нажатием нет: `press()` после закрытой пробы возвращает null.
+    bool? boss;
+    if (passed) {
+      boss = await BossRound.winThenBoss(context, _ladder,
+          type: BossType.gonogo,
+          color: const Color(0xFF11998E),
+          win: () => _ladder.win(score: g.score, timeSeconds: seconds, errors: errors, mode: widget.mode.name));
+    } else {
+      await _ladder.fail(score: g.score, timeSeconds: seconds, errors: errors, mode: widget.mode.name);
+    }
+    if (!mounted) return;
     setState(() {
       _phase = InhibitionPhase.done;
       _passed = passed;
+      _boss = boss;
     });
-    final seconds = g.elapsedSeconds.round();
-    if (passed) {
-      _ladder.win(score: g.score, timeSeconds: seconds, errors: g.falseAlarms + g.misses, mode: widget.mode.name);
-    } else {
-      _ladder.fail(score: g.score, timeSeconds: seconds, errors: g.falseAlarms + g.misses, mode: widget.mode.name);
-    }
   }
 
   /// Примеры разбора — по ПОДРЕЖИМУ, а не все четыре подряд: человек играет
@@ -241,6 +252,7 @@ class _InhibitionScreenState extends State<InhibitionScreen> {
         phase: _phase,
         flash: _flash,
         passed: _passed,
+        boss: _boss,
         height: h,
         onStart: _start,
         onAgain: () => setState(_reset),
@@ -257,6 +269,7 @@ class _Field extends StatelessWidget {
     required this.phase,
     required this.flash,
     required this.passed,
+    required this.boss,
     required this.height,
     required this.onStart,
     required this.onAgain,
@@ -267,6 +280,7 @@ class _Field extends StatelessWidget {
   final InhibitionPhase phase;
   final InhibitionOutcome? flash;
   final bool passed;
+  final bool? boss;
 
   /// Высота поля приходит числом от каркаса — доска не считается от окна.
   final double height;
@@ -333,6 +347,7 @@ class _Field extends StatelessWidget {
             Text(game.meanRtMs == null
                 ? '${L.t('meanReaction')}: —'
                 : '${L.t('meanReaction')}: ${game.meanRtMs} ${L.t('msShort')}'),
+            BossOutcomeLine(boss),
             const SizedBox(height: 8),
             Text(L.t('inhibPass'), style: Theme.of(context).textTheme.bodySmall, textAlign: TextAlign.center),
             const SizedBox(height: 16),

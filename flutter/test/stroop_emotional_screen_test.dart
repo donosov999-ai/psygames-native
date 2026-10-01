@@ -12,6 +12,8 @@ import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'support/boss_probe.dart';
+
 /// ПАРТИЯ В «ЭМОЦИОНАЛЬНЫЙ СТРУП» ИГРАЕТСЯ НАЖАТИЯМИ ПО ЦВЕТУ ЧЕРНИЛ.
 ///
 /// 🔴 Проба читает с экрана САМО СЛОВО и его цвет и жмёт кнопку цвета. Слова
@@ -123,6 +125,41 @@ void main() {
     // Язык приложения русский, а слова английские — экран обязан сказать об этом вслух.
     expect(find.byKey(const Key('emostroop-lang-fallback')), findsOneWidget,
         reason: 'подменять смысл молча хуже, чем предупредить');
+  });
+
+  testWidgets('🔴 веха: победа на 3-м уровне открывает бой «жми / не жми», на 2-м — нет', (tester) async {
+    // В вебе эмоциональный Струп зовёт BossRound каждые три уровня; при переносе бой пропал молча.
+    // Признак взятого уровня — хвост строки «Уровень {n} пройден!»: номер у двух партий разный.
+    final won = find.textContaining(L.t('levelDone').split('}').last);
+    var opens = 0;
+    var clock = 0;
+    await expectBossAfterWin(tester, won: won, hudKey: 'bossHudGonogo', play: (level) async {
+      SharedPreferences.setMockInitialValues({'${SharedState.prefix}stroop_emotional_level_nzt48': '$level'});
+      state = await SharedState.open();
+      // Свежее приложение на каждую партию: всплывшее после прошлой (карточка правила
+      // нового уровня) иначе осталось бы поверх «Начать» следующей.
+      await tester.pumpWidget(MaterialApp(
+        key: ValueKey('app${opens += 1}'),
+        home: EmoStroopScreen(
+            state: state, clock: () => clock, rnd: Random(7), words: words),
+      ));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(L.t('start')));
+      await tester.pump();
+      for (var i = 0;
+          i < 1200 && won.evaluate().isEmpty && find.byKey(const Key('boss-round')).evaluate().isEmpty;
+          i++) {
+        final ink = colorOnScreen(tester);
+        if (ink == null) {
+          await tester.pump(const Duration(milliseconds: 50));
+          continue;
+        }
+        clock += 640;
+        await tester.tap(find.byKey(Key('emostroop-answer-${inkName(ink)}')));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 400));
+      }
+    });
   });
 }
 

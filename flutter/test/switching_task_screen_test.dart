@@ -6,6 +6,8 @@ import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'support/boss_probe.dart';
+
 /// ПАРТИЯ В «ПЕРЕКЛЮЧЕНИЕ ЗАДАЧ» ИГРАЕТСЯ НАЖАТИЯМИ.
 ///
 /// 🔴 Проба читает с экрана ДВЕ вещи — плашку «ОЦЕНИ» и стимул — и отвечает по
@@ -179,5 +181,36 @@ void main() {
       await tester.pump(const Duration(milliseconds: 400));
     }
     expect(find.text('5/12'), findsOneWidget, reason: 'четыре верные пробы прошли');
+  });
+
+  testWidgets('🔴 веха: победа на 3-м уровне открывает бой «впиши пропуск», на 2-м — нет', (tester) async {
+    // В вебе переключение зовёт BossRound каждые три уровня; при переносе бой пропал молча.
+    // Признак взятого уровня — хвост строки «Уровень {n} пройден!»: номер у двух партий разный.
+    final won = find.textContaining(L.t('levelDone').split('}').last);
+    var opens = 0;
+    await expectBossAfterWin(tester, won: won, hudKey: 'bossHudLightning', play: (level) async {
+      SharedPreferences.setMockInitialValues({_levelKey: '$level'});
+      state = await SharedState.open();
+      // Свежее приложение на каждую партию: всплывшее после прошлой (карточка правила
+      // нового уровня) иначе осталось бы поверх «Начать» следующей.
+      await tester.pumpWidget(MaterialApp(
+        key: ValueKey('app${opens += 1}'),home: SwitchingTaskScreen(state: state)));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(L.t('start')));
+      await tester.pump();
+      for (var i = 0;
+          i < 1200 && won.evaluate().isEmpty && find.byKey(const Key('boss-round')).evaluate().isEmpty;
+          i++) {
+        final s = onScreen(StimMode.mix);
+        if (s == null) {
+          await tester.pump(const Duration(milliseconds: 50));
+          continue;
+        }
+        final left = correctLeft(StimMode.mix, s.idx, s.stim);
+        await tester.tap(find.byKey(Key('switching-answer-${left ? 'left' : 'right'}')));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 400));
+      }
+    });
   });
 }

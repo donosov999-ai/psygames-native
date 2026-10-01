@@ -8,6 +8,8 @@ import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'support/boss_probe.dart';
+
 /// ПАРТИЯ В «ВЫБОР-РЕАКЦИЮ» ИГРАЕТСЯ НАЖАТИЯМИ ПО КРЕСТОВИНЕ.
 ///
 /// 🔴 Главное свойство экрана, которое проба обязана стеречь: крестовина держит
@@ -137,5 +139,43 @@ void main() {
       await tester.pump(const Duration(milliseconds: 400));
     }
     fail('за 12 проб нейтраль не выпала — проверять было нечего');
+  });
+
+  testWidgets('🔴 веха: победа на 3-м уровне открывает бой «жми / не жми», на 2-м — нет', (tester) async {
+    // В вебе выбор-реакция зовёт BossRound каждые три уровня; при переносе бой пропал молча.
+    // Признак взятого уровня — хвост строки «Уровень {n} пройден!»: номер у двух партий разный.
+    final won = find.textContaining(L.t('levelDone').split('}').last);
+    bool bossOpen() => find.byKey(const Key('boss-round')).evaluate().isNotEmpty;
+    List<ChoiceDirection> signs() => ChoiceDirection.values.where((d) => shown(d.name)).toList();
+    var opens = 0;
+    var clock = 0;
+    await expectBossAfterWin(tester, won: won, hudKey: 'bossHudGonogo', play: (level) async {
+      SharedPreferences.setMockInitialValues({'${SharedState.prefix}choice_rt_level_nzt48': '$level'});
+      state = await SharedState.open();
+      // Свежее приложение на каждую партию: всплывшее после прошлой (карточка правила
+      // нового уровня) иначе осталось бы поверх «Начать» следующей.
+      await tester.pumpWidget(MaterialApp(
+        key: ValueKey('app${opens += 1}'),
+        home: ChoiceRtScreen(state: state, clock: () => clock, rnd: Random(9)),
+      ));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(L.t('start')));
+      await tester.pump();
+      for (var i = 0; i < 1500 && won.evaluate().isEmpty && !bossOpen(); i++) {
+        final dir = signs();
+        if (dir.isEmpty) {
+          // Подготовка или нейтраль: молчать — верный ответ, ждём следующую пробу.
+          await tester.pump(const Duration(milliseconds: 50));
+          continue;
+        }
+        clock += 460;
+        await tester.tap(find.byKey(Key('choicert-answer-${dir.first.name}')));
+        await tester.pump();
+        // ⚠️ Знак остаётся на экране до рождения следующей пробы — ждём, пока он уйдёт.
+        for (var k = 0; k < 120 && signs().isNotEmpty && !bossOpen() && won.evaluate().isEmpty; k++) {
+          await tester.pump(const Duration(milliseconds: 50));
+        }
+      }
+    });
   });
 }

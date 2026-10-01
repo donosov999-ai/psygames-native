@@ -9,6 +9,8 @@ import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'support/boss_probe.dart';
+
 /// ПАРТИЯ В «СТОП-СИГНАЛ» ИГРАЕТСЯ НАЖАТИЯМИ ПО ПОЛЮ.
 ///
 /// 🔴 Главное, что стережёт проба: лестница задержки лежит под ОБЩИМ с веб-версией
@@ -112,5 +114,46 @@ void main() {
       await tester.pump(const Duration(milliseconds: 1600));
     }
     fail('за 12 проб стоп-проба не выпала — проверять было нечего');
+  });
+
+  testWidgets('🔴 веха: победа на 3-м уровне открывает бой «жми / не жми», на 2-м — нет', (tester) async {
+    // В вебе стоп-сигнал зовёт BossRound каждые три уровня; при переносе бой пропал молча.
+    // Признак взятого уровня — хвост строки «Уровень {n} пройден!»: номер у двух партий разный.
+    final won = find.textContaining(L.t('levelDone').split('}').last);
+    bool bossOpen() => find.byKey(const Key('boss-round')).evaluate().isNotEmpty;
+    var opens = 0;
+    var clock = 0;
+    await expectBossAfterWin(tester, won: won, hudKey: 'bossHudGonogo', play: (level) async {
+      SharedPreferences.setMockInitialValues({'${SharedState.prefix}stop_signal_level_nzt48': '$level'});
+      state = await SharedState.open();
+      // Свежее приложение на каждую партию: всплывшее после прошлой (карточка правила
+      // нового уровня) иначе осталось бы поверх «Начать» следующей.
+      await tester.pumpWidget(MaterialApp(
+        key: ValueKey('app${opens += 1}'),
+        home: StopSignalScreen(state: state, clock: () => clock, rnd: Random(4)),
+      ));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(L.t('start')));
+      await tester.pump();
+      for (var i = 0; i < 60 && won.evaluate().isEmpty && !bossOpen(); i++) {
+        await waitGo(tester);
+        if (!goShown() && !stopShown()) continue;
+        // Знак «стоп» приходит через ступень после GO, а ступень не длиннее ssdMaxMs (700):
+        // смотрим 750 мс и жмём, только если знака нет. Так партия чистая.
+        var isStop = stopShown();
+        for (var k = 0; k < 15 && !isStop; k++) {
+          await tester.pump(const Duration(milliseconds: 50));
+          isStop = stopShown();
+        }
+        if (!isStop) {
+          clock += 750;
+          await tester.tap(find.byKey(const Key('stopsignal-field')));
+          await tester.pump();
+        }
+        for (var k = 0; k < 120 && (goShown() || stopShown()) && !bossOpen() && won.evaluate().isEmpty; k++) {
+          await tester.pump(const Duration(milliseconds: 50));
+        }
+      }
+    });
   });
 }

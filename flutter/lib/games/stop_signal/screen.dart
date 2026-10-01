@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../../shell/boss_round.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/game_shell.dart';
@@ -52,6 +53,7 @@ class _StopSignalScreenState extends State<StopSignalScreen> {
   Timer? _timer;
   Timer? _stopTimer;
   bool _passed = false;
+  bool? _boss; // итог боя на вехе; null — боя не было
 
   /// Накопленное окно проб и ступень — общие с веб-версией.
   LadderState _state = emptyLadder;
@@ -156,7 +158,7 @@ class _StopSignalScreenState extends State<StopSignalScreen> {
     });
   }
 
-  void _finish() {
+  Future<void> _finish() async {
     final g = _game!;
     _timer?.cancel();
     _stopTimer?.cancel();
@@ -164,18 +166,26 @@ class _StopSignalScreenState extends State<StopSignalScreen> {
     final pool = appendTrials(_state.trials, g.runTrials);
     final next = LadderState(ssdMs: g.ssdMs, trials: pool);
     final passed = g.accuracy >= stopSignalPassAccuracy;
+    // Окно стоп-проб пишется ДО боя: уйдёт человек с экрана посреди боя — пробы партии
+    // всё равно долиты в общий с вебом ключ.
+    widget.state.set(ladderKey, serializeLadder(next));
+    // Веха как в вебе: каждый третий ЗАСЧИТАННЫЙ уровень — бой «жми / не жми», потом итог.
+    // Повторной сдачи партии нажатием здесь нет: `press()` после ответа возвращает null.
+    bool? boss;
+    if (passed) {
+      boss = await BossRound.winThenBoss(context, _ladder,
+          type: BossType.gonogo, color: const Color(0xFFEE0979));
+    } else {
+      await _ladder.fail();
+    }
+    if (!mounted) return;
     setState(() {
       _state = next;
       _estimate = estimateSsrt(pool);
       _phase = StopSignalPhase.done;
       _passed = passed;
+      _boss = boss;
     });
-    widget.state.set(ladderKey, serializeLadder(next));
-    if (passed) {
-      _ladder.win();
-    } else {
-      _ladder.fail();
-    }
   }
 
   /// Примеры разбора: обычная проба GO и стоп-проба. Ответ во второй —
@@ -219,6 +229,7 @@ class _StopSignalScreenState extends State<StopSignalScreen> {
         phase: _phase,
         flash: _flash,
         passed: _passed,
+        boss: _boss,
         height: h,
         onStart: _start,
         onAgain: () => setState(_reset),
@@ -288,6 +299,7 @@ class _Field extends StatelessWidget {
     required this.phase,
     required this.flash,
     required this.passed,
+    required this.boss,
     required this.height,
     required this.onStart,
     required this.onAgain,
@@ -301,6 +313,7 @@ class _Field extends StatelessWidget {
   final StopSignalPhase phase;
   final StopOutcome? flash;
   final bool passed;
+  final bool? boss;
   final double height;
   final VoidCallback onStart;
   final VoidCallback onAgain;
@@ -379,6 +392,7 @@ class _Field extends StatelessWidget {
                 : '${text.t('goRtLabel')}: ${game.meanGoRtMs} ${L.t('msShort')}'),
             const SizedBox(height: 12),
             _ssrtBlock(context),
+            BossOutcomeLine(boss),
             const SizedBox(height: 16),
             FilledButton(onPressed: onAgain, child: Text(L.t('retry'))),
           ],

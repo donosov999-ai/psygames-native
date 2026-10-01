@@ -8,6 +8,8 @@ import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'support/boss_probe.dart';
+
 /// ПАРТИЯ В ANT ИГРАЕТСЯ НАЖАТИЯМИ.
 ///
 /// 🔴 Проба читает С ЭКРАНА, куда смотрит ЦЕНТРАЛЬНАЯ стрелка, и жмёт туда же.
@@ -226,5 +228,36 @@ void main() {
     final second = await play(2);
     expect(first.length, 6);
     expect(second, first, reason: 'один сид дал две разные партии — сид до партии не доходит');
+  });
+
+  testWidgets('🔴 веха: победа на 3-м уровне открывает бой «жми / не жми», на 2-м — нет', (tester) async {
+    // В вебе ANT зовёт BossRound каждые три уровня; при переносе бой пропал молча.
+    // Признак взятого уровня — хвост строки «Уровень {n} пройден!»: номер у двух партий разный.
+    final won = find.textContaining(L.t('levelDone').split('}').last);
+    var opens = 0;
+    await expectBossAfterWin(tester, won: won, hudKey: 'bossHudGonogo', play: (level) async {
+      SharedPreferences.setMockInitialValues({_levelKey: '$level'});
+      state = await SharedState.open();
+      // Свежее приложение на каждую партию: всплывшее после прошлой (карточка правила
+      // нового уровня) иначе осталось бы поверх «Начать» следующей.
+      await tester.pumpWidget(MaterialApp(
+        key: ValueKey('app${opens += 1}'),
+          home: AntScreen(state: state, rnd: Random(3))));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(L.t('start')));
+      await tester.pump();
+      for (var i = 0;
+          i < 2000 && won.evaluate().isEmpty && find.byKey(const Key('boss-round')).evaluate().isEmpty;
+          i++) {
+        final d = centerOnScreen();
+        if (d == null) {
+          await tester.pump(const Duration(milliseconds: 50));
+          continue;
+        }
+        await tester.tap(find.byKey(Key('ant-answer-${d.name}')));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: antFeedbackMs + 50));
+      }
+    });
   });
 }

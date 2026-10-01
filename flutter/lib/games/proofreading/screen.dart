@@ -15,6 +15,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../../shell/boss_round.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/game_shell.dart';
@@ -65,6 +66,7 @@ class _ProofreadingScreenState extends State<ProofreadingScreen> {
   ProofGame? _game;
   ProofPhase _phase = ProofPhase.ready;
   int? _wrongFlash;
+  bool? _boss; // итог боя на вехе; null — боя не было
   Timer? _tick;
   Timer? _flash;
 
@@ -144,16 +146,28 @@ class _ProofreadingScreenState extends State<ProofreadingScreen> {
     if (g.finished) _finish();
   }
 
-  void _finish() {
+  Future<void> _finish() async {
     final g = _game!;
     _tick?.cancel();
     _flash?.cancel();
-    setState(() => _phase = ProofPhase.done);
+    final seconds = g.elapsedSec.round();
+    // Веха как в вебе: каждый третий ЗАСЧИТАННЫЙ уровень — бой «тапни гласную», потом итог.
+    // Повторной сдачи партии нет: сданная партия нажатия не берёт (`tap` → ignored), часы
+    // остановлены строкой выше.
+    bool? boss;
     if (g.passed) {
-      _ladder.win(score: g.found.length, timeSeconds: g.elapsedSec.round(), errors: g.errors);
+      boss = await BossRound.winThenBoss(context, _ladder,
+          type: BossType.oddletter,
+          color: const Color(0xFFA8EDEA),
+          win: () => _ladder.win(score: g.found.length, timeSeconds: seconds, errors: g.errors));
     } else {
-      _ladder.fail(score: g.found.length, timeSeconds: g.elapsedSec.round(), errors: g.errors);
+      await _ladder.fail(score: g.found.length, timeSeconds: seconds, errors: g.errors);
     }
+    if (!mounted) return;
+    setState(() {
+      _phase = ProofPhase.done;
+      _boss = boss;
+    });
   }
 
   /// Примеры разбора: клетка С искомой буквой и клетка без неё.
@@ -210,6 +224,7 @@ class _ProofreadingScreenState extends State<ProofreadingScreen> {
         game: g,
         phase: _phase,
         wrongFlash: _wrongFlash,
+        boss: _boss,
         height: h,
         onStart: _start,
         onAgain: () => setState(_reset),
@@ -224,6 +239,7 @@ class _Field extends StatelessWidget {
     required this.game,
     required this.phase,
     required this.wrongFlash,
+    required this.boss,
     required this.height,
     required this.onStart,
     required this.onAgain,
@@ -233,6 +249,7 @@ class _Field extends StatelessWidget {
   final ProofGame game;
   final ProofPhase phase;
   final int? wrongFlash;
+  final bool? boss;
 
   /// Высота поля приходит числом от каркаса — доска не считается от окна.
   final double height;
@@ -285,6 +302,7 @@ class _Field extends StatelessWidget {
                 '${L.t('hud_errors')}: ${game.errors}'),
             // Доля пропусков — мера раздела, показывается числом.
             Text('${L.t('hud_missed')}: ${game.omissionPct}%', key: const Key('proof-omission')),
+            BossOutcomeLine(boss),
             const SizedBox(height: 16),
             FilledButton(onPressed: onAgain, child: Text(L.t('start'))),
           ],

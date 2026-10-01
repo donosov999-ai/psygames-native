@@ -74,10 +74,9 @@
      `flutter/lib/shell/boss_round.dart`: победа и веха одним вызовом
      `BossRound.winThenBoss(context, _ladder, type:, color:)` вместо `_ladder.win()`,
      `BossOutcomeLine(_boss)` в итоге партии; тип — `config.type` веб-экрана, цвет —
-     `GRADIENT[0]`. Проба — `flutter/test/support/boss_probe.dart`. Подключены 9 экранов
-     «Поиска и счёта»; ещё без боя: ant, choice-rt, corsi, cpt, flanker, go-no-go,
-     inhibition, posner, proofreading, simon, stop-signal, stroop, stroop-emotional,
-     sudoku, switching-task.
+     `GRADIENT[0]`. Проба — `flutter/test/support/boss_probe.dart`. Подключены экраны
+     «Поиска и счёта» и все 13 «Конфликта внимания» (01.10, задача 67c77247); ещё без
+     боя: corsi, sudoku.
 
 6. 🔴 **Подписи — из словаря, а не строками в коде.** `L.t('ключ')`
    (`flutter/lib/shell/l10n.dart`), ключ завести в `frontend/src/contexts/LanguageContext.tsx`,
