@@ -46,6 +46,11 @@ class SystemVoiceBackend implements VoiceBackend {
   @override
   Future<bool> playUrl(String url, double rate) async {
     try {
+      // 🔴 just_audio: `play()` возвращается СРАЗУ, если плеер уже «играет», а «играет» он
+      // и после конца записи — до pause/stop. Без паузы здесь ждало конца только первое слово
+      // партии: со второго `playUrl` возвращался сразу после загрузки, пауза между словами
+      // шла от начала слова, а следующее слово обрывало звучащее («Объём на слух», 02.10.2026).
+      if (_player.playing) await _player.pause();
       await _player.setUrl(url);
       await _player.setSpeed(clampVoiceRate(rate));
       await _player.play();
