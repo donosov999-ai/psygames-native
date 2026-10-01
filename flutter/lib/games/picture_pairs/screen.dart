@@ -8,9 +8,13 @@ import 'package:flutter/services.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/demo_lesson.dart';
+import '../../shell/game_clock.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/preset_cap.dart';
+import '../../shell/resume_store.dart';
+import '../../shell/session_report.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import 'model.dart';
@@ -21,7 +25,16 @@ import 'model.dart';
 /// человек открывает их группами — пары, с L10 тройки, с L13 четвёрки. С L22 после
 /// каждой ошибки закрытые карты меняются местами, пара за парой, и пара подсвечена
 /// до обмена. Секундомер идёт только в самой партии: показ и обмены навязаны игрой.
+///
+/// СВОБОДНАЯ ПАРТИЯ (веб: режим `single`) — пары, число пар 6/8/10/12 и фото-показ
+/// 0,5/1,5/3 с выбирает человек; лестница не двигается. Ею же играется шаг зарядки — как
+/// в вебе. НЕЗАКОНЧЕННАЯ ПАРТИЯ пишется снимком в форме веб-сессии ([pairsSnapshot]) и
+/// поднимается при входе: свернул приложение посреди расклада — расклад на месте.
 enum Phase { ready, preview, play, won, revealed }
+
+/// Отложенная запись партии — как в вебе и у «Дворца памяти»: подряд идущие касания дают
+/// ОДНУ запись, и пишется последнее состояние.
+const pairsResumeDebounce = Duration(milliseconds: 400);
 
 class PicturePairsScreen extends StatefulWidget {
   const PicturePairsScreen({super.key, required this.state, this.rnd, this.theme});
@@ -79,8 +92,20 @@ class PairsTheme {
   }
 }
 
-class _PicturePairsScreenState extends State<PicturePairsScreen> {
+class _PicturePairsScreenState extends State<PicturePairsScreen> with WidgetsBindingObserver {
   late LevelLadder _ladder;
+  late final ResumeStore _resume = ResumeStore(widget.state, pairsGameId, pairsResumeVersion);
+  GameTimer? _saveTimer;
+
+  /// Свободная партия и её настройки (веб: `mode === 'single'`, `pairsCount`,
+  /// `photoMemoryMode`, `previewMs`).
+  bool _free = false;
+  int _freePairs = 6;
+  bool _photo = true;
+  int _previewMs = 500;
+
+  /// Секунды, набежавшие до подъёма партии из снимка: секундомер идёт поверх них.
+  double _elapsedBase = 0;
   late Random _rnd;
   PairsTheme? _theme;
   PairsGame? _game;
@@ -100,24 +125,47 @@ class _PicturePairsScreenState extends State<PicturePairsScreen> {
     super.initState();
     _rnd = widget.rnd ?? Random();
     _ladder = LevelLadder(gameId: 'picture_pairs', store: SharedLevelStore(widget.state));
+    WidgetsBinding.instance.addObserver(this);
     _boot();
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _flush(); // экран сносят — дописать партию сразу, а не через задержку
     _timer?.cancel();
     _tick?.cancel();
     super.dispose();
   }
 
+  /// Приложение свернули — ровно тот случай, ради которого запись и существует.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state != AppLifecycleState.resumed) _flush();
+  }
+
   Future<void> _boot() async {
     await _ladder.load();
     final theme = widget.theme ?? await PairsTheme.load(widget.state.activeProfile);
+    // Шаг зарядки старую партию не поднимает: он сам начинает свежий раунд (как в вебе).
+    final saved = GamePreset.autostart ? null : await _resume.load();
     if (!mounted) return;
+    final live = pairsRestore(saved, rnd: _rnd);
     setState(() {
       _theme = theme;
       _reset();
+      if (live != null) {
+        _game = live.game;
+        _free = live.free;
+        if (live.free) _freePairs = live.game.groups;
+        _elapsedBase = live.elapsed;
+        _phase = Phase.play;
+      }
     });
+    if (live != null) {
+      _startClock();
+      return;
+    }
     // Шаг зарядки начинается сам — перенос веб-`useAutostartWhenReady` (отчёт Дениса 01.10.2026).
     if (GamePreset.autostart) _start();
   }
@@ -125,13 +173,63 @@ class _PicturePairsScreenState extends State<PicturePairsScreen> {
   void _reset() {
     _timer?.cancel();
     _tick?.cancel();
+    _tick = null;
     _clock
       ..stop()
       ..reset();
-    _game = PairsGame(level: _ladder.level, rnd: _rnd);
+    _elapsedBase = 0;
+    if (GamePreset.isPreset) {
+      // Шаг зарядки — свободная партия по шагу (веб: режим single). Число пар — желание шага,
+      // но не больше освоенного + 1 (`capPresetByLevel`); показ — из шага, по умолчанию 3 с.
+      final level = _ladder.level;
+      _free = true;
+      _photo = true;
+      _freePairs = capPresetByLevel(
+        want: GamePreset.num('pairsCount', 6),
+        atLevel: LevelCfg.of(level).pairs,
+        atTop: level >= 9,
+      );
+      _previewMs = GamePreset.num('previewMs', 3000);
+    }
+    _game = _free
+        ? PairsGame(
+            level: _ladder.level,
+            cfg: pairsFreeCfg(pairs: _freePairs, photo: _photo, previewMs: _previewMs),
+            rnd: _rnd,
+          )
+        : PairsGame(level: _ladder.level, rnd: _rnd);
     _phase = Phase.ready;
     _locked = false;
     _swapPair = null;
+  }
+
+  /// Секунды партии: набежавшие до подъёма из снимка плюс секундомер.
+  double get _elapsed => _elapsedBase + _clock.elapsed.inMilliseconds / 1000;
+
+  /// «Заново»: новая партия, недоигранная запись стирается (веб: startGame → clearResume).
+  void _restart() {
+    _saveTimer?.cancel();
+    unawaited(_resume.clear());
+    setState(_reset);
+  }
+
+  /// Партия изменилась — отложенная запись перезаводится. На игровых часах: на паузе
+  /// запись ждёт, а уход в фон и снос экрана дописывают партию сразу.
+  void _changed() {
+    _saveTimer?.cancel();
+    _saveTimer = gameTimeout(pairsResumeDebounce, _flush);
+  }
+
+  /// Записать живую партию. Не пишется: фото-показ (снимок поля лицом вверх был бы
+  /// сохранённой шпаргалкой), итог, раскрытое решение и партия, где ещё ничего не сделано.
+  void _flush() {
+    _saveTimer?.cancel();
+    _saveTimer = null;
+    final g = _game;
+    if (g == null || _phase != Phase.play) return;
+    if (g.moves == 0 && g.matchedGroups == 0 && g.errors == 0) return;
+    // Счёт цепочки уровней копит веб; нативная партия считает уровень сама — 0.
+    unawaited(_resume.save(pairsSnapshot(g, free: _free, score: 0, elapsed: _elapsed)));
   }
 
   void _startClock() {
@@ -147,9 +245,18 @@ class _PicturePairsScreenState extends State<PicturePairsScreen> {
     _tick = null;
   }
 
-  /// Показ: все карты лицом вверх `previewMs`, потом партия.
+  /// Показ: все карты лицом вверх `previewMs`, потом партия. Без фото-показа (свободная
+  /// партия с выключенным флажком) — сразу партия.
   void _start() {
     final g = _game!;
+    // Новая партия заменяет незаконченную: прежний расклад продолжать уже нечем.
+    _saveTimer?.cancel();
+    unawaited(_resume.clear());
+    if (!g.cfg.photo || g.cfg.previewMs <= 0) {
+      setState(() => _phase = Phase.play);
+      _startClock();
+      return;
+    }
     setState(() => _phase = Phase.preview);
     _timer = Timer(Duration(milliseconds: g.cfg.previewMs), () {
       if (!mounted) return;
@@ -164,6 +271,7 @@ class _PicturePairsScreenState extends State<PicturePairsScreen> {
     final r = g.tap(i);
     if (r == TapResult.ignored) return;
     setState(() {});
+    _changed();
     if (r == TapResult.groupMatched) {
       _locked = true;
       _timer = Timer(const Duration(milliseconds: 400), () {
@@ -172,7 +280,11 @@ class _PicturePairsScreenState extends State<PicturePairsScreen> {
           g.settleMatch();
           _locked = false;
         });
-        if (g.isWon) _win();
+        if (g.isWon) {
+          _win();
+        } else {
+          _changed();
+        }
       });
     } else if (r == TapResult.groupMissed) {
       _locked = true;
@@ -216,6 +328,7 @@ class _PicturePairsScreenState extends State<PicturePairsScreen> {
           g.swap(a, b);
           _swapPair = null;
         });
+        _changed();
         _timer = Timer(const Duration(milliseconds: swapGapMs), () => step(left - 1));
       });
     }
@@ -226,9 +339,42 @@ class _PicturePairsScreenState extends State<PicturePairsScreen> {
   void _win() {
     final g = _game!;
     _stopClock();
-    final seconds = _clock.elapsed.inSeconds;
+    final elapsed = _elapsed;
+    final seconds = elapsed.round();
+    // Партия доиграна — незаконченной больше нет, иначе «Продолжить» звало бы на разобранный расклад.
+    _saveTimer?.cancel();
+    unawaited(_resume.clear());
     setState(() => _phase = Phase.won);
-    _ladder.win(score: g.score(seconds), timeSeconds: seconds, errors: g.errors, mode: 'game');
+    if (_free) {
+      // Свободная партия лестницу не двигает — отчёт идёт сам, метками веба (`saveSession`, single).
+      unawaited(
+        SessionReport.send(
+          gameType: 'picture_pairs',
+          score: g.freeScore(elapsed),
+          timeSeconds: seconds,
+          difficulty: '${g.groups} pairs',
+          mode: g.cfg.photo ? 'photo-${g.cfg.previewMs}ms' : 'classic',
+          errors: g.errors,
+          details: {
+            'moves': g.moves,
+            'optimal': g.groups,
+            'photo_memory_mode': g.cfg.photo,
+            'preview_ms': g.cfg.photo ? g.cfg.previewMs : 0,
+            'extra_moves': g.extraMoves,
+          },
+        ),
+      );
+      return;
+    }
+    // Метки уровня — как веб `advanceLevel`: lvl<N>, game и details уровня.
+    _ladder.win(
+      score: g.score(seconds),
+      timeSeconds: seconds,
+      errors: g.errors,
+      mode: 'game',
+      difficulty: 'lvl${g.level}',
+      details: {'level': g.level, 'moves': g.moves, 'pairs': g.groups, 'photo_memory_mode': g.cfg.photo},
+    );
   }
 
   /// Показать решение: все карты лицом вверх, партия кончается без зачёта —
@@ -236,6 +382,9 @@ class _PicturePairsScreenState extends State<PicturePairsScreen> {
   void _reveal() {
     _timer?.cancel();
     _stopClock();
+    // Раскрытая партия кончилась без зачёта — продолжать в ней нечего.
+    _saveTimer?.cancel();
+    unawaited(_resume.clear());
     setState(() {
       _phase = Phase.revealed;
       _swapPair = null;
@@ -254,14 +403,38 @@ class _PicturePairsScreenState extends State<PicturePairsScreen> {
       title: L.t('picturePairs'),
       onLesson: () => openDemoLesson(context, title: L.t('picturePairs'), trials: pairsLessonTrials(theme)),
       hud: [
-        HudItem(label: L.t('level'), value: '${_ladder.level}', icon: Icons.flag_outlined),
-        HudItem(label: L.t('personalBest'), value: '${_ladder.best}', icon: Icons.emoji_events_outlined),
+        // В свободной партии уровня нет — тропинку и рекорд уровня не показываем (как веб).
+        if (!_free) HudItem(label: L.t('level'), value: '${_ladder.level}', icon: Icons.flag_outlined),
+        if (!_free) HudItem(label: L.t('personalBest'), value: '${_ladder.best}', icon: Icons.emoji_events_outlined),
         HudItem(label: L.t('hud_correct'), value: '${g.matchedGroups}/${g.groups}', icon: Icons.done_all),
         HudItem(label: L.t('hud_moves'), value: '${g.moves}', icon: Icons.swap_horiz),
-        HudItem(label: L.t('time'), value: '${_clock.elapsed.inSeconds}', icon: Icons.timer_outlined),
+        HudItem(label: L.t('time'), value: '${_elapsed.floor()}', icon: Icons.timer_outlined),
       ],
       field: (context, h) => _phase == Phase.ready
-          ? _Ready(level: _ladder.level, onStart: _start)
+          ? _Ready(
+              level: _ladder.level,
+              free: _free,
+              pairs: _freePairs,
+              photo: _photo,
+              previewMs: _previewMs,
+              onFree: (v) => setState(() {
+                _free = v;
+                _reset();
+              }),
+              onPairs: (n) => setState(() {
+                _freePairs = n;
+                _reset();
+              }),
+              onPhoto: (v) => setState(() {
+                _photo = v;
+                _reset();
+              }),
+              onPreview: (ms) => setState(() {
+                _previewMs = ms;
+                _reset();
+              }),
+              onStart: _start,
+            )
           : _Field(
               game: g,
               theme: theme,
@@ -271,7 +444,7 @@ class _PicturePairsScreenState extends State<PicturePairsScreen> {
               onTap: _tap,
             ),
       auxRow: AuxBar(children: [
-        AuxAction(icon: Icons.refresh, label: L.t('restart'), onPressed: () => setState(_reset)),
+        AuxAction(icon: Icons.refresh, label: L.t('restart'), onPressed: _restart),
         AuxAction(
           icon: Icons.visibility_outlined,
           label: L.t('puzzleShowSolution'),
@@ -283,28 +456,48 @@ class _PicturePairsScreenState extends State<PicturePairsScreen> {
           ? Padding(
               padding: const EdgeInsets.all(12),
               child: FilledButton.icon(
-                onPressed: () => setState(_reset),
+                onPressed: _restart,
                 icon: const Icon(Icons.arrow_forward),
                 label: Text(_phase == Phase.won ? L.t('nextLabel') : L.t('retry')),
               ),
             )
           : null,
       pauseActions: [
-        PauseAction(label: L.t('restart'), icon: Icons.refresh, onPressed: () => setState(_reset)),
+        PauseAction(label: L.t('restart'), icon: Icons.refresh, onPressed: _restart),
       ],
     );
   }
 }
 
-/// Экран перед партией: уровень, правило уровня (если оно здесь меняется) и старт.
+/// Экран перед партией: выбор «уровни / свободно», затем уровень с его правилом или
+/// настройки свободной партии, и старт.
 ///
 /// ⚠️ Пока у каркаса нет общей карточки правил (задача e371fd3a), правило уровня
 /// объявляется здесь, до показа карт — иначе тройки, четвёрки и обмены включались бы
 /// молча. Ключи написаны целиком, а не собраны из имени: `embed-l10n` вырезает из
 /// словаря только ключи, которые видит в исходнике.
 class _Ready extends StatelessWidget {
-  const _Ready({required this.level, required this.onStart});
+  const _Ready({
+    required this.level,
+    required this.free,
+    required this.pairs,
+    required this.photo,
+    required this.previewMs,
+    required this.onFree,
+    required this.onPairs,
+    required this.onPhoto,
+    required this.onPreview,
+    required this.onStart,
+  });
   final int level;
+  final bool free;
+  final int pairs;
+  final bool photo;
+  final int previewMs;
+  final ValueChanged<bool> onFree;
+  final ValueChanged<int> onPairs;
+  final ValueChanged<bool> onPhoto;
+  final ValueChanged<int> onPreview;
   final VoidCallback onStart;
 
   static (String, String)? _rule(int level) => switch (LevelCfg.ruleAt(level)) {
@@ -314,28 +507,120 @@ class _Ready extends StatelessWidget {
         _ => null,
       };
 
+  /// Секунды показа, как в вебе: «0.5», «1.5», «3» — без хвоста «.0».
+  static String _secs(int ms) => ms % 1000 == 0 ? '${ms ~/ 1000}' : '${ms / 1000}';
+
   @override
   Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
     final rule = _rule(level);
-    return Center(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (rule != null) ...[
-              Text(rule.$1,
-                  key: const Key('правило'),
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.titleMedium),
-              const SizedBox(height: 6),
-              Text(rule.$2, textAlign: TextAlign.center),
-              const SizedBox(height: 16),
-            ],
-            FilledButton(onPressed: onStart, child: Text(L.t('start'))),
-          ],
+    final cfg = LevelCfg.of(level);
+    // «Начать» прибита под настройками и видна без прокрутки — как полоса старта в вебе
+    // (отчёт 02.09.2026: «не мотать экран вниз, чтобы запустить»); прокручиваются только
+    // настройки. На 360×640 с правилом уровня кнопка иначе уезжала за край.
+    return Column(
+      children: [
+        Expanded(
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Выбор режима — те же подписи, что у общего веб-переключателя (GameModeSwitch).
+                  SegmentedButton<bool>(
+                    key: const Key('pp-mode'),
+                    segments: [
+                      ButtonSegment(value: false, label: Text(L.t('sudokuModeLevels'))),
+                      ButtonSegment(value: true, label: Text(L.t('sudokuModeFree'))),
+                    ],
+                    selected: {free},
+                    showSelectedIcon: false,
+                    onSelectionChanged: (v) => onFree(v.first),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    // Ключ — литералом в L.t('…'): ключ внутри тернарника сборщик словаря
+                    // (embed-l10n) и гейт словаря не видят, и экран показывал сам ключ.
+                    free ? L.t('pairsModeFreeHint') : L.t('pairsModeLevelsHint'),
+                    textAlign: TextAlign.center,
+                    style: text.bodySmall,
+                  ),
+                  const SizedBox(height: 16),
+                  if (!free) ...[
+                    Text(
+                      '${L.t('pairsLvlPairs').replaceAll('{n}', '${cfg.pairs}')} · '
+                      '${L.t('pairsLvlFlash').replaceAll('{s}', (cfg.previewMs / 1000).toStringAsFixed(1))}',
+                      key: const Key('pp-level-params'),
+                      textAlign: TextAlign.center,
+                      style: text.bodyMedium,
+                    ),
+                    const SizedBox(height: 12),
+                    if (rule != null) ...[
+                      Text(rule.$1, key: const Key('правило'), textAlign: TextAlign.center, style: text.titleMedium),
+                      const SizedBox(height: 6),
+                      Text(rule.$2, textAlign: TextAlign.center),
+                      const SizedBox(height: 16),
+                    ],
+                  ] else ...[
+                    Text(L.t('pairsCount'), style: text.titleSmall),
+                    const SizedBox(height: 6),
+                    Wrap(
+                      spacing: 8,
+                      alignment: WrapAlignment.center,
+                      children: [
+                        for (final n in pairsFreeCounts)
+                          ChoiceChip(
+                            key: Key('pp-pairs-$n'),
+                            label: Text('$n'),
+                            selected: n == pairs,
+                            onSelected: (_) => onPairs(n),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    CheckboxListTile(
+                      key: const Key('pp-photo'),
+                      contentPadding: EdgeInsets.zero,
+                      value: photo,
+                      onChanged: (v) => onPhoto(v ?? true),
+                      title: Text(L.t('label_photo_memory')),
+                      subtitle: Text(L.t('desc_photo_memory'), style: text.bodySmall),
+                    ),
+                    if (photo)
+                      Wrap(
+                        spacing: 8,
+                        alignment: WrapAlignment.center,
+                        children: [
+                          for (final ms in pairsFreePreviewMs)
+                            ChoiceChip(
+                              key: Key('pp-preview-$ms'),
+                              // Секунды + готовая тройка «Легко/Средне/Сложно» из словаря, как в вебе.
+                              label: Text(
+                                '${_secs(ms)}${L.t('secShort')} '
+                                '(${ms == 500
+                                    ? L.t('hard')
+                                    : ms == 1500
+                                    ? L.t('medium')
+                                    : L.t('easy')})',
+                              ),
+                              selected: ms == previewMs,
+                              onSelected: (_) => onPreview(ms),
+                            ),
+                        ],
+                      ),
+                    const SizedBox(height: 16),
+                  ],
+                ],
+              ),
+            ),
+          ),
         ),
-      ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(24, 8, 24, 12),
+          child: FilledButton(key: const Key('pp-start'), onPressed: onStart, child: Text(L.t('start'))),
+        ),
+      ],
     );
   }
 }
