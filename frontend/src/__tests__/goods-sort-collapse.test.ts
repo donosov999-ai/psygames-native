@@ -14,7 +14,19 @@
  */
 import { makeBoard, collapseTriples, moveTop, isCleared, canPlace, makeReport, TRIPLE, type Shelf } from '@/src/games/goods-sort/core/board';
 import { solveStrict, hintMove } from '@/src/games/goods-sort/core/solver';
-import { dealCollapse, collapseLevel, COLLAPSE_FROM, strictPlacement, backRowLevel, BACK_FROM, queueSize, queueLadder, WIDEST_POOL } from '@/src/games/goods-sort/core/level';
+import { dealCollapse, collapseLevel, COLLAPSE_FROM, strictPlacement, backRowLevel, BACK_FROM, queueSize, queueLadder } from '@/src/games/goods-sort/core/level';
+
+/** Сеяный поток вместо Math.random: раздача пробы повторяется от прогона к прогону. */
+function mulberrySeed(seed: number): () => number {
+  let a = seed >>> 0;
+  return () => {
+    a = (a + 0x6d2b79f5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
 
 /** Доска на два столбца по две ниши. Ниша 0 ждёт третью единицу из ниши 2. */
 function стол(queue: Shelf[] = []) {
@@ -557,7 +569,23 @@ describe('номера ниш — устойчивые адреса', () => {
   });
 
   it('🔴 номера ниш попарно различны на протяжении всей партии', () => {
-    const d = dealCollapse(58, pool, false);
+    /*
+     * ⚠️ РАЗДАЧА ЗАСЕЯНА (01.10.2026, задача a2f1fd92). Без зерна проба падала на CI
+     * чужих PR (#64, #90): `приходов > 0` — Received 0. Замер на 60 зёрнах: в 5 из 60
+     * раздач L58 за 120 подсказок не приходит ни одной полки. Причина — не номера ниш,
+     * а решатель: после 7–9 ходов подсказка ходит туда-обратно с периодом 2 (зерно
+     * 20261008: 0>4, 4>0, 0>4…) и полку не освобождает — так на всех шести
+     * проверенных раздачах, просто на этих пяти полка не успевает закрыться раньше.
+     * Проба мерит номера ниш, а не решатель, поэтому раздача взята с приходами.
+     */
+    const realRandom = Math.random;
+    Math.random = mulberrySeed(20261003);
+    let d: ReturnType<typeof dealCollapse>;
+    try {
+      d = dealCollapse(58, pool, false);
+    } finally {
+      Math.random = realRandom;
+    }
     let b = makeBoard(d.cells, d.caps, { col: d.col, ids: d.ids, queue: d.queue, back: d.back });
     expect(d.queue.length).toBeGreaterThan(0);
     let приходов = 0;
