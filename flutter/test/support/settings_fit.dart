@@ -12,7 +12,8 @@ import 'package:psygames_flutter/shell/l10n.dart';
 /// Мерится на 360×640 — самом тесном окне, которое приложение поддерживает, — и на ДВУХ языках:
 /// английский основной (решение Дениса 01.10), и подписи у него бывают длиннее русских.
 /// [open] обязан заново построить экран и довести его до экрана настройки — словарь меняется
-/// между заходами. После пробы словарь возвращается русским, как его грузят пробы файла.
+/// между заходами. По-английски дополнительно — ни одной русской буквы на экране.
+/// После пробы словарь возвращается русским, как его грузят пробы файла.
 Future<void> expectSettingsFit(WidgetTester tester, Future<void> Function() open, {required String where}) async {
   tester.view.physicalSize = const Size(360, 640);
   tester.view.devicePixelRatio = 1.0;
@@ -35,6 +36,13 @@ Future<void> expectSettingsFit(WidgetTester tester, Future<void> Function() open
     for (final e in pressable.evaluate()) {
       final r = tester.getRect(find.byWidget(e.widget).first);
       if (r.left < 0 || r.right > 360) problems.add('$lang: ${e.widget.runtimeType} за краем — $r');
+    }
+    // Английский — основной язык (решение Дениса 01.10): ни одной русской буквы на экране.
+    if (lang == 'en') {
+      for (final e in find.byType(Text).evaluate()) {
+        final t = (e.widget as Text).data ?? (e.widget as Text).textSpan?.toPlainText() ?? '';
+        if (RegExp('[А-Яа-яЁё]').hasMatch(t)) problems.add('en: кириллица в «$t»');
+      }
     }
   }
   L.useForTest('ru', (jsonDecode(File('assets/l10n/ru.json').readAsStringSync()) as Map).cast<String, String>());
