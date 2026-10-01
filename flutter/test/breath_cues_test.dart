@@ -129,6 +129,9 @@ void main() {
       expect(vibro.map((v) => v['count']), [1, 2, 1, 2], reason: 'вибро веба: одно, двойное, длинное, двойное');
       expect(vibro[2]['continuous'], isTrue, reason: 'выдох — длинный импульс');
       expect(vibro[2]['durationMs'], 60);
+      // Денис 01.10: «вибрации нет нихуя» — 0,35 в руке не слышно; сила общая с «Паузой».
+      expect(vibro.map((v) => v['strength']), everyElement(PausePracticeHaptics.strength));
+      expect(PausePracticeHaptics.strength, greaterThanOrEqualTo(.8));
     });
 
     test('звук выключен — тона нет, вибрация есть; вибрация выключена — наоборот', () {
