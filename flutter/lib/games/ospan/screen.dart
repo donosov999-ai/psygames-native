@@ -7,7 +7,9 @@ import '../../shell/aux_action.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/l10n.dart';
 import '../../shell/game_shell.dart';
+import '../../shell/lesson.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/level_rules.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import 'model.dart';
@@ -80,6 +82,10 @@ class _OspanScreenState extends State<OspanScreen> {
   }
 
   void _reset() {
+    // Новая партия — снова зачётная (договор shell/lesson.dart: отметку «разбор
+    // смотрели» снимает новая раздача). Отметка общая на всё приложение, и без
+    // сброса один открытый разбор выключал бы рост уровня во всех играх.
+    LessonUsed.reset();
     _letterTimer?.cancel();
     _params = levelParams(_ladder.level);
     _letters.clear();
@@ -158,6 +164,8 @@ class _OspanScreenState extends State<OspanScreen> {
   Widget build(BuildContext context) {
     if (!_ready) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     return GameShell(
+      // Правило уровня объявляет каркас — в спокойный момент, не поверх партии (задача e371fd3a).
+      levelRule: LevelRuleSpot(gameId: 'ospan', level: _ladder.level, state: widget.state, calm: (_phase == _Phase.equation && _step == 0) || _phase == _Phase.result),
       title: _title,
       onLesson: () => openDemoLesson(context, title: _title, trials: _demoTrials()),
       hud: [

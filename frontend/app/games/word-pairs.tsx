@@ -128,6 +128,7 @@ export default function WordPairsGame() {
     const п = (pairsRef.current.length ? pairsRef.current : pairs)
       .map((p) => ({ id: p.id, слово1: p.word1, слово2: p.word2 }));
     if (!п.length) return;
+    урокВПартииRef.current = true;
     setУрок({ карточки: собратьРазборПар(п).карточки, индекс: 0 });
   };
   /**
@@ -177,6 +178,13 @@ export default function WordPairsGame() {
   // state в колбэке setTimeout был бы устаревшим (паттерн simon/cpt).
   const levelRef = useRef(1);
   const useLevelRef = useRef(false);   // запущено по уровню? (для reach/fail)
+  /**
+   * 🔴 ПАРТИЯ С РАЗБОРОМ НЕ ЗАСЧИТЫВАЕТСЯ В УРОВЕНЬ — так обещает первая карточка плеера
+   * (`teachNotCounted`). До 30.09.2026 обещание держалось только словами: разбор открывался
+   * посреди запоминания, а итог двигал уровень как обычно. Флаг ставит «Разбор», снимает
+   * новая партия; итог такой партии идёт как свободная тренировка.
+   */
+  const урокВПартииRef = useRef(false);
   const pairsRef = useRef<WordPair[]>([]);
   const checkStartedRef = useRef(false);
   const memorizeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -227,6 +235,7 @@ export default function WordPairsGame() {
   };
 
   const startGame = async () => {
+    урокВПартииRef.current = false;
     // Уровневый режим (persist): число пар и лимит запоминания из levelParams.
     // Пресет зарядки — ручной pairCount, без лимита времени.
     const useLevel = !isPreset;
@@ -322,13 +331,14 @@ export default function WordPairsGame() {
         if (timerRef.current) clearInterval(timerRef.current);
         const finalTime = elapsedTime + (errors * PENALTY_SECONDS);
         // Проход уровня: точность ≥80% ⇔ ошибок ≤ пар/4. Вверх мгновенно, вниз с гистерезисом.
-        const passed = useLevelRef.current && errors <= maxErrorsAllowed(pairs.length);
-        if (!isPreset && useLevelRef.current) {
+        const поУровню = useLevelRef.current && !урокВПартииRef.current;
+        const passed = поУровню && errors <= maxErrorsAllowed(pairs.length);
+        if (!isPreset && поУровню) {
           if (passed) lvl.reach(levelRef.current + 1);
           else lvl.fail();
         }
         setClearedPassed(passed);
-        setPhase(useLevelRef.current ? 'cleared' : 'result');   // непрерывный поток: провал → баннер «ещё раз», не тупик
+        setPhase(поУровню ? 'cleared' : 'result');   // непрерывный поток: провал → баннер «ещё раз», не тупик
 
         try {
           await saveSession({
@@ -338,7 +348,7 @@ export default function WordPairsGame() {
             time_seconds: finalTime,
             difficulty: mode === 'translation' ? `${pairs.length} pairs · ${language}→${targetLang}` : `${pairs.length} pairs`,
             errors: errors,
-            details: { hits: pairs.length - errors, errors, pair_count: pairs.length, mode, ...(useLevelRef.current ? { level: levelRef.current } : {}), ...(mode === 'translation' ? { base_lang: language, target_lang: targetLang } : {}) },
+            details: { hits: pairs.length - errors, errors, pair_count: pairs.length, mode, ...(поУровню ? { level: levelRef.current } : {}), ...(mode === 'translation' ? { base_lang: language, target_lang: targetLang } : {}) },
           });
         } catch (error) {
           console.error('Error saving session:', error);
@@ -479,18 +489,17 @@ export default function WordPairsGame() {
           onPress={начатьРазбор}
         />
       ) : undefined}
-      stats={
-        <View style={styles.gameHeader}>
-          <View style={[styles.timerBox, { backgroundColor: GRADIENT[0] }]}>
-            <Ionicons name="time-outline" size={20} color={textOn(GRADIENT[0])} />
-            <Text style={[styles.timerText, { color: textOn(GRADIENT[0]) }]}>
-              {memorizeLimitSec > 0
-                ? `${t('timeLeftLabel')} ${Math.max(0, memorizeLimitSec - elapsedTime).toFixed(0)}${t('secShort')}`
-                : `${t('time')} ${elapsedTime.toFixed(1)}${t('secShort')}`}
-            </Text>
-          </View>
-        </View>
-      }
+      /**
+       * 📏 ШАПКА — ДАННЫМИ КАРКАСА, А НЕ СВОЕЙ ПЛАШКОЙ. Своя плашка времени (поля 10 + отступы
+       * 6 и 8) растила полосу до 70 при каноне 61 (`gameLayout.ts`), и поле стояло на 9 точек
+       * ниже соседей по «Зарядке» (замер 30.09.2026, 390×844 и 360×640). Обратный отсчёт —
+       * песочными часами, прошедшее время — часами: значок один на место, слово по тапу.
+       */
+      hud={[
+        memorizeLimitSec > 0
+          ? { key: 'time', icon: 'hourglass-outline' as const, label: t('timeLeftLabel'), value: `${Math.max(0, memorizeLimitSec - elapsedTime).toFixed(0)}${t('secShort')}` }
+          : { key: 'time', icon: 'time-outline' as const, label: t('time'), value: `${elapsedTime.toFixed(1)}${t('secShort')}` },
+      ]}
       toolbar={
         <TouchableOpacity
           accessibilityRole="button" style={styles.toolbarBtn} onPress={startCheck}>
@@ -590,28 +599,12 @@ export default function WordPairsGame() {
         { id: 'home', label: t('goHome'), icon: 'home' as const, leave: true },
       ]}
       scrollableField
-      stats={
-        <View style={styles.gameHeader}>
-          <View style={[styles.statBox, { backgroundColor: colors.surface }]}>
-            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{t('time')}</Text>
-            <Text style={[styles.statValue, { color: colors.text }]}>{elapsedTime.toFixed(1)}s</Text>
-          </View>
-          <View style={[styles.statBox, { backgroundColor: colors.surface }]}>
-            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{t('errors')}</Text>
-            <Text style={[styles.statValue, { color: errors > 0 ? colors.error : colors.text }]}>
-              {errors} (+{errors * PENALTY_SECONDS}s)
-            </Text>
-          </View>
-          <View style={[styles.statBox, { backgroundColor: colors.surface }]}>
-            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
-              {t('label_found')}
-            </Text>
-            <Text style={[styles.statValue, { color: colors.success }]}>
-              {matchedPairs.size}/{pairs.length}
-            </Text>
-          </View>
-        </View>
-      }
+      /** 📏 Шапка данными каркаса — см. фазу запоминания: полоса 61, как у всего раздела. */
+      hud={[
+        { key: 'time', icon: 'time-outline' as const, label: t('time'), value: `${elapsedTime.toFixed(1)}${t('secShort')}` },
+        { key: 'errors', icon: 'close-circle' as const, label: t('errors'), value: errors > 0 ? `${errors} (+${errors * PENALTY_SECONDS}${t('secShort')})` : 0 },
+        { key: 'found', icon: 'checkmark-done' as const, label: t('label_found'), value: `${matchedPairs.size}/${pairs.length}` },
+      ]}
     >
       <Text style={[styles.phaseTitle, { color: colors.text }]}>
         {t('label_restore_pairs')}
@@ -783,28 +776,6 @@ const styles = StyleSheet.create({
   // Кнопка «Проверить» в тулбаре каркаса: тянется на всю ширину ряда
   toolbarBtn: { flex: 1 },
   toolbarGrad: { marginBottom: 0 },
-  gameHeader: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginBottom: 8,
-  },
-  timerBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 12,
-    marginBottom: 6,
-  },
-  timerText: { fontSize: 18, fontWeight: '700', color: '#FFFFFF' },
-  statBox: {
-    flex: 1,
-    alignItems: 'center',
-    paddingVertical: 10,
-    borderRadius: 12,
-  },
-  statLabel: { fontSize: 11 },
-  statValue: { fontSize: 14, fontWeight: '700', marginTop: 2 },
   phaseTitle: { fontSize: 18, fontWeight: '700', marginBottom: 16, textAlign: 'center' },
   pairRow: {
     flexDirection: 'row',

@@ -8,6 +8,8 @@ import 'package:psygames_flutter/shell/game_shell.dart';
 import 'package:psygames_flutter/shell/hybrid_app.dart';
 import 'package:psygames_flutter/shell/l10n.dart';
 
+import 'support/hub_routes.dart';
+
 /// 🔴 СПРАВКА ЕСТЬ У КАЖДОЙ ПЕРЕНЕСЁННОЙ ИГРЫ, А НЕ У ОДНОЙ.
 ///
 /// Цель Дениса 24.09.2026: «решатель и учитель для наших игр, чтобы был у всех
@@ -30,7 +32,9 @@ void main() {
       File('${Directory.current.path}/assets/l10n/ru.json').readAsStringSync(),
     ) as Map<String, dynamic>;
 
-    final routes = HybridApp.native.keys.where((r) => !r.endsWith('-hub')).toList();
+    // Развилки — не игры. Что такое развилка — `test/support/hub_routes.dart`:
+    // по реестру развилок, а не по имени на `-hub` (две из 13 называются иначе).
+    final routes = HybridApp.native.keys.where((r) => !isHubRoute(r)).toList();
     expect(routes.length, greaterThan(90), reason: 'перехваченных игр ${routes.length}');
 
     /*

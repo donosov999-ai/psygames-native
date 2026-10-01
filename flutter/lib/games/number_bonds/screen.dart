@@ -4,9 +4,11 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../../shell/aux_action.dart';
+import '../../shell/boss_round.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/l10n.dart';
 import '../../shell/game_shell.dart';
+import '../../shell/lesson.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
@@ -48,6 +50,9 @@ class _NumberBondsScreenState extends State<NumberBondsScreen> {
   int _errors = 0;
   bool? _right;
   bool _won = false;
+
+  /// Итог боя с боссом после этой партии; `null` — боя не было (веб: `bossWon`).
+  bool? _boss;
   bool _ready = false;
   _Phase _phase = _Phase.playing;
   int _leftMs = 0;
@@ -79,6 +84,10 @@ class _NumberBondsScreenState extends State<NumberBondsScreen> {
   }
 
   void _reset() {
+    // Новая партия — снова зачётная (договор shell/lesson.dart: отметку «разбор
+    // смотрели» снимает новая раздача). Отметка общая на всё приложение, и без
+    // сброса один открытый разбор выключал бы рост уровня во всех играх.
+    LessonUsed.reset();
     _tick?.cancel();
     _next?.cancel();
     _cfg = levelParams(_ladder.level);
@@ -146,14 +155,18 @@ class _NumberBondsScreenState extends State<NumberBondsScreen> {
       if (!mounted) return;
       if (_round >= _cfg.trials) {
         final passed = _errors <= bondsErrorsAllowed;
+        // Веха как в вебе: каждый третий ЗАСЧИТАННЫЙ уровень — бой «сложи подсвеченные».
+        bool? boss;
         if (passed) {
-          await _ladder.win();
+          boss = await BossRound.winThenBoss(context, _ladder,
+              type: BossType.counting, color: const Color(0xFF36D1DC));
         } else {
           await _ladder.fail();
         }
         if (!mounted) return;
         setState(() {
           _won = passed;
+          _boss = boss;
           _phase = _Phase.result;
         });
         return;
@@ -241,6 +254,7 @@ class _NumberBondsScreenState extends State<NumberBondsScreen> {
             textAlign: TextAlign.center,
             style: text.titleMedium,
           ),
+          BossOutcomeLine(_boss),
           const SizedBox(height: 8),
           FilledButton.icon(
             key: const Key('дальше'),

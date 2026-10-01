@@ -1,11 +1,11 @@
-<!-- STRUCTURE.md · СОБИРАЕТСЯ, РУКАМИ НЕ ПРАВИТЬ · 2026-09-17 02:17 · коммит eea68d70 -->
+<!-- STRUCTURE.md · СОБИРАЕТСЯ, РУКАМИ НЕ ПРАВИТЬ · 2026-09-30 23:14 · коммит 14c3ef203 -->
 # PsyGames — структура: игры, развилки, потоки, профили
 
 > 🔴 **ЭТОТ ФАЙЛ СОБИРАЕТСЯ, А НЕ ПИШЕТСЯ.** Пересобрать: `node frontend/scripts/build-structure.mjs`
 > из корня репозитория. Правка руками пропадёт при следующей сборке — и, что хуже,
 > соврёт до неё. Числа сняты из тех же данных, что показывает приложение.
 >
-> Снято 2026-09-17 02:17 на коммите `eea68d70`. Копия для Дениса лежит в Obsidian:
+> Снято 2026-09-30 23:14 на коммите `14c3ef203`. Копия для Дениса лежит в Obsidian:
 > `PsyGames/Структура игр и развилок.md` — обе печатает один прогон.
 
 > ⚙️ **Состав правится не здесь и не в коде, а ФАЙЛОМ настроек.**
@@ -16,7 +16,7 @@
 
 Развилок 13. Карточка «(группа)» — вход в другую развилку.
 
-### Конфликт внимания · `/games/attention-conflict` — 9 карточек · 18 экранов
+### Конфликт внимания · `/games/attention-conflict` — 10 карточек · 19 экранов
 
 - **Струп: торможение** — `/games/stroop` — набор:
     - Эмоциональный — `/games/stroop-emotional`
@@ -35,12 +35,16 @@
 - **PRL: смена правил** — `/games/prl` — набор:
     - Четыре колоды — `/games/iowa`
     - Надувай шар — `/games/bart`
+- **Рискни и сохрани** — `/games/roll-and-bank`
 - **Корректура: фокус** — `/games/proofreading`
 
-### Шахматы · `/games/chess-hub` — 2
+### Шахматы · `/games/chess-hub` — 5
 
 - **Детский мат** — `/games/scholars-mate`
 - **Доска в уме** — `/games/chess-blind`
+- **Колышки** — `/games/puzzles` `?mode=Pegs`
+- **Указатели** — `/games/puzzles` `?mode=Signpost`
+- **Инерция** — `/games/puzzles` `?mode=Inertia`
 
 ### Счёт · `/games/counting-hub` — 14
 
@@ -80,14 +84,15 @@
 - **Пары слов: память** — `/games/word-pairs`
 - **Прочти эмоцию** — `/games/rmet`
 
-### Головоломки · `/games/puzzles-hub` — 4
+### Головоломки · `/games/puzzles-hub` — 5
 
 - **Чёт-нечет** — `/games/puzzles`
 - **Косые черты** — `/games/puzzles` `?mode=Slant`
 - **Чёрный ящик** — `/games/puzzles` `?mode=Black Box`
 - **Угадай код** — `/games/puzzles` `?mode=Guess`
+- **Кто спрятался?** — `/games/hidden-character`
 
-### Поиск глазами · `/games/search-hub` — 13
+### Поиск глазами · `/games/search-hub` — 18
 
 - **Визуальный поиск** — `/games/visual-search`
 - **Найди отличия** — `/games/find-differences`
@@ -97,13 +102,18 @@
 - **Трекер объектов** — `/games/object-tracker`
 - **SDMT: символ→цифра** — `/games/sdmt`
 - **SET: тройки признаков** — `/games/set-game`
+- **Найди признак** — `/games/monster-traits`
+- **Найди признак** — `/games/monster-traits` `?mode=missing`
+- **Поиск на ходу** — `/games/search-runner`
+- **Найди другую** — `/games/kids-find`
+- **Подлодки** — `/games/submarines`
 - **Фонари** — `/games/puzzles` `?mode=Light Up`
 - **Палатки у деревьев** — `/games/puzzles` `?mode=Tents`
 - **Домино** — `/games/puzzles` `?mode=Dominosa`
 - **Прямоугольники** — `/games/puzzles` `?mode=Rectangles`
 - **Раскраска карты** — `/games/puzzles` `?mode=Map`
 
-### Сортировка · `/games/sorting-hub` — 17
+### Сортировка · `/games/sorting-hub` — 16
 
 - **Сортировка товаров** — `/games/goods-sort`
 - **Пробирки** — `/games/water-sort`
@@ -113,11 +123,10 @@
 - **Пицца** — `/games/pizza-sort`
 - **Ханойская башня** — `/games/hanoi`
 - **Башня Лондона** — `/games/tower-london`
-- **Колышки** — `/games/puzzles` `?mode=Pegs`
+- **Очередь зверей** — `/games/animal-queue`
+- **Цвета и формы** — `/games/kids-sort`
 - **Заливка** — `/games/puzzles` `?mode=Flood`
 - **Снос групп** — `/games/puzzles` `?mode=Same Game`
-- **Указатели** — `/games/puzzles` `?mode=Signpost`
-- **Инерция** — `/games/puzzles` `?mode=Inertia`
 - **Замкнутая петля** — `/games/puzzles` `?mode=Loopy`
 - **Жемчужная петля** — `/games/puzzles` `?mode=Pearl`
 - **Мосты** — `/games/puzzles` `?mode=Bridges`
@@ -134,13 +143,14 @@
 - **N-back: оперативная память** — `/games/n-back`
 - **Парные картинки** — `/games/picture-pairs`
 
-### Пространство · `/games/spatial-hub` — 17
+### Пространство · `/games/spatial-hub` — 18
 
 - **Ментальная ротация** — `/games/mental-rotation`
 - **Пространственная лаборатория** — `/games/spatial-lab` `?mode=twiddle`
 - **Пространственная лаборатория** — `/games/spatial-lab` `?mode=net`
 - **Клоцки** — `/games/puzzles` `?mode=Slide`
 - **Сокобан** — `/games/puzzles` `?mode=Sokoban`
+- **Освободи путь** — `/games/traffic-jam`
 - **Соедини точки** — `/games/dots-connect`
 - **Одна линия** — `/games/one-line`
 - **Соедини цепочку** — `/games/trail-making`
@@ -207,12 +217,9 @@
 | `Untangle` | Распутать | Пространство |
 | `Bridges` | Мосты | Сортировка |
 | `Flood` | Заливка | Сортировка |
-| `Inertia` | Инерция | Сортировка |
 | `Loopy` | Замкнутая петля | Сортировка |
 | `Pearl` | Жемчужная петля | Сортировка |
-| `Pegs` | Колышки | Сортировка |
 | `Same Game` | Снос групп | Сортировка |
-| `Signpost` | Указатели | Сортировка |
 | `Train Tracks` | Рельсы | Сортировка |
 | `Filling` | Заполнение областей | Судоку: три доски |
 | `Keen` | Клетки с арифметикой | Судоку: три доски |
@@ -228,6 +235,9 @@
 | `Palisade` | Частокол | Счёт |
 | `Pattern` | Японский кроссворд | Счёт |
 | `Range` | Обзор | Счёт |
+| `Inertia` | Инерция | Шахматы |
+| `Pegs` | Колышки | Шахматы |
+| `Signpost` | Указатели | Шахматы |
 
 Всего разложено: **42**.
 
@@ -320,7 +330,7 @@
 | Фрактал: Бездна | `sudoku-fractal-deep` | `/games/sudoku-fractal-deep` | — |
 | Фрактальная судоку | `sudoku-fractal` | `/games/sudoku-fractal` | Судоку: три доски |
 | Ханойская башня | `hanoi` | `/games/hanoi` | Сортировка |
-| Чёт-нечет | `puzzles` | `/games/puzzles` | Поиск глазами, Судоку: три доски, Головоломки, Пространство, Сортировка, Счёт |
+| Чёт-нечет | `puzzles` | `/games/puzzles` | Шахматы, Поиск глазами, Судоку: три доски, Головоломки, Пространство, Сортировка, Счёт |
 
 ### Раздел `memory` — 27
 
@@ -389,7 +399,7 @@
 | Судоку и числовые сетки `поток-хаб-sudoku` | 3 | 7 | 9 |
 | Головоломки Тэтхэма `поток-хаб-puzzles` | 3 | 7 | 10 |
 | Пространство `поток-хаб-spatial` | 5 | 10 | 16 |
-| Сортировки и порядок `поток-хаб-sorting` | 5 | 7 | 11 |
+| Сортировки и порядок `поток-хаб-sorting` | 5 | 6 | 10 |
 | Счёт `поток-хаб-counting` | 4 | 7 | 10 |
 | Слова `поток-хаб-words` | 4 | 7 | 10 |
 | Слух `поток-хаб-hearing` | 4 | 9 | 14 |
@@ -412,7 +422,7 @@
 | Все игры · Судоку: три доски `серия-хаб-sudoku` | 12 | ~19 | 3 |
 | Все игры · Головоломки `серия-хаб-puzzles` | 4 | ~6 | 4 |
 | Все игры · Пространство `серия-хаб-spatial` | 17 | ~20 | 3 |
-| Все игры · Сортировка `серия-хаб-sorting` | 17 | ~23 | 3 |
+| Все игры · Сортировка `серия-хаб-sorting` | 14 | ~19 | 3 |
 | Все игры · Счёт `серия-хаб-counting` | 14 | ~20 | 3 |
 | Все игры · Слова `серия-хаб-words` | 7 | ~9 | 4 |
 | Все игры · Слух `серия-хаб-hearing` | 5 | ~6 | 2 |
@@ -424,16 +434,16 @@
 
 | профиль | игр | развилок задано файлом | своих серий |
 |---|---|---|---|
-| `odv999` | 3 | 6 | 55 |
-| `whatsnew` | 15 | 6 | 7 |
-| `women` | 31 | 6 | 11 |
-| `free` | 20 | 6 | 7 |
-| `kids` | 27 | 6 | 23 |
-| `seniors` | 20 | 6 | 11 |
-| `chess` | 28 | 6 | 11 |
-| `drivers` | 20 | 6 | 7 |
-| `execs` | 20 | 6 | 7 |
-| `students` | 20 | 6 | 19 |
-| `nzt48` | 3 | 6 | 11 |
-| `vasilyeva` | 20 | 6 | 11 |
-| `polyglot` | 22 | 6 | 15 |
+| `odv999` | 3 | 8 | 55 |
+| `whatsnew` | 15 | 7 | 7 |
+| `women` | 31 | 7 | 11 |
+| `free` | 20 | 7 | 7 |
+| `kids` | 27 | 8 | 23 |
+| `seniors` | 20 | 7 | 11 |
+| `chess` | 28 | 7 | 11 |
+| `drivers` | 20 | 7 | 7 |
+| `execs` | 20 | 7 | 7 |
+| `students` | 20 | 7 | 19 |
+| `nzt48` | 3 | 7 | 11 |
+| `vasilyeva` | 20 | 7 | 11 |
+| `polyglot` | 22 | 7 | 15 |

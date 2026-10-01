@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:psygames_flutter/games/anagrams/crossword.dart';
 import 'package:psygames_flutter/games/anagrams/crossword_board.dart';
 import 'package:psygames_flutter/games/anagrams/crossword_screen.dart';
 import 'package:psygames_flutter/shell/game_shell.dart';
+import 'package:psygames_flutter/shell/l10n.dart';
+import 'package:psygames_flutter/shell/lesson.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -49,6 +52,9 @@ void main() {
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
     state = await SharedState.open();
+    // Подписи — из ТОГО ЖЕ словаря, что и в сборке: проба заодно проверяет, что
+    // `assets/l10n/ru.json` собран и читается, а не сверяется с переписанной строкой.
+    await L.load('ru');
   });
 
   testWidgets('🔴 сетка НАРИСОВАНА: занятых клеток столько же, сколько букв в модели', (tester) async {
@@ -74,7 +80,7 @@ void main() {
     expect(b.revealed.length, word.length, reason: 'найденное слово открыто целиком');
     expect(b.picked, isEmpty, reason: 'после зачёта черновик сбрасывается');
     final hud = tester.widget<GameShell>(find.byType(GameShell)).hud;
-    expect(hud.firstWhere((h) => h.label == 'Найдено').value, startsWith('1/'));
+    expect(hud.firstWhere((h) => h.label == L.t('label_found')).value, startsWith('1/'));
   });
 
   testWidgets('🔴 слова НЕ из сетки не засчитываются, даже если они настоящие', (tester) async {
@@ -104,10 +110,10 @@ void main() {
   testWidgets('🔴 подсказка открывает клетку и тратится по лестнице уровня', (tester) async {
     await _boot(tester, state);
     expect(_board(tester).revealed, isEmpty);
-    await tester.tap(find.byTooltip('Подсказка'));
+    await tester.tap(find.byTooltip(L.t('btn_hint')));
     await tester.pump();
     expect(_board(tester).revealed.length, 1, reason: 'подсказка открывает одну букву');
-    await tester.tap(find.byTooltip('Подсказка'));
+    await tester.tap(find.byTooltip(L.t('btn_hint')));
     await tester.pump();
     expect(_board(tester).revealed.length, 2);
   });
@@ -116,11 +122,11 @@ void main() {
     await _boot(tester, state);
     // На первом уровне их пять (`crossHintsAtLevel`). Жмём шесть раз.
     for (var i = 1; i <= 5; i++) {
-      await tester.tap(find.byTooltip('Подсказка'));
+      await tester.tap(find.byTooltip(L.t('btn_hint')));
       await tester.pump();
       expect(_board(tester).revealed.length, i, reason: 'подсказка $i обязана открыть букву');
     }
-    await tester.tap(find.byTooltip('Подсказка'), warnIfMissed: false);
+    await tester.tap(find.byTooltip(L.t('btn_hint')), warnIfMissed: false);
     await tester.pump();
     expect(_board(tester).revealed.length, 5,
         reason: 'шестая подсказка не выдаётся — иначе ресурс бесконечен');
@@ -128,17 +134,57 @@ void main() {
 
   testWidgets('🔴 «Перемешать» меняет порядок, но не буквы и не открытое', (tester) async {
     await _boot(tester, state);
-    await tester.tap(find.byTooltip('Подсказка'));
+    await tester.tap(find.byTooltip(L.t('btn_hint')));
     await tester.pump();
     final before = _board(tester);
     final openedBefore = before.revealed.length;
     final lettersBefore = before.letters.toList()..sort();
 
-    await tester.tap(find.byTooltip('Перемешать'));
+    await tester.tap(find.byTooltip(L.t('shuffleBtn')));
     await tester.pump();
     final after = _board(tester);
     expect(after.letters.toList()..sort(), lettersBefore, reason: 'буквы те же');
     expect(after.revealed.length, openedBefore, reason: 'перемешивание не отнимает открытое');
     expect(after.picked, isEmpty);
+  });
+
+  /* ═══════════ РАЗБОР ПО ШАГАМ ═══════════
+   *
+   * Перепись разбора пропускает адреса с `?`, а кроссворд живёт на
+   * `/games/anagrams?mode=cross`. Кнопку и поведение разбора сторожат только эти пробы.
+   */
+  testWidgets('🔴 разбор открывает сетку целиком — каждую клетку каждого слова', (tester) async {
+    await _boot(tester, state);
+    final cw = _board(tester).crossword;
+    expect(find.byKey(const Key('game-lesson')), findsOneWidget, reason: 'на первом уровне разбор есть');
+    await tester.tap(find.byKey(const Key('game-lesson')));
+    await tester.pumpAndSettle();
+    for (var i = 0; i < 20; i++) {
+      final next = find.byTooltip(L.t('puzzleNextStep'));
+      if (next.evaluate().isEmpty) break;
+      await tester.tap(next);
+      await tester.pump(const Duration(milliseconds: 20));
+    }
+    final board = tester.widgetList<CrosswordBoard>(find.byType(CrosswordBoard)).last;
+    expect(board.revealed, crosswordRevealed(cw, [for (final w in cw.words) w.word]),
+        reason: 'в конце разбора сетка обязана быть открыта вся');
+  });
+
+  testWidgets('🔴 партия с разбором перестаёт быть зачётной', (tester) async {
+    LessonUsed.reset();
+    await _boot(tester, state);
+    await tester.tap(find.byKey(const Key('game-lesson')));
+    await tester.pumpAndSettle();
+    expect(LessonUsed.inRound, isTrue, reason: 'иначе лестница пошла бы вверх по показанному решению');
+    LessonUsed.reset();
+  });
+
+  testWidgets('🔴 с четвёртого уровня разбора нет', (tester) async {
+    // Ключ лестницы — тот, что пишет сам экран (`gameId: 'anagrams_cross'`).
+    await state.set('psygames_anagrams_cross_level_nzt48', '4');
+    await _boot(tester, state);
+    expect(find.byType(CrosswordBoard), findsOneWidget, reason: 'партия на месте');
+    expect(find.byKey(const Key('game-lesson')), findsNothing,
+        reason: 'как у остальных режимов: разбор до третьего уровня включительно');
   });
 }

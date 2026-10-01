@@ -93,9 +93,15 @@ class DemoCard extends StatelessWidget {
               // текст и кнопки), и ряд фланкера вылезал за край на 57 px —
               // померено пробой. Уменьшение целиком сохраняет пропорции: зазор
               // между стрелками и есть задача, и менять его нельзя.
-              KeyedSubtree(
-                key: const Key('demo-stimulus'),
-                child: FittedBox(fit: BoxFit.scaleDown, child: trial.art!),
+              // Flexible — чтобы уменьшение шло и по ВЫСОТЕ: без него столбец
+              // даёт рисунку бесконечную высоту, и FittedBox ужимал только по
+              // ширине. Доска Корси 280×294 вылезала снизу на 57 px (замер
+              // раздела «Объём памяти» 30.09.2026).
+              Flexible(
+                child: KeyedSubtree(
+                  key: const Key('demo-stimulus'),
+                  child: FittedBox(fit: BoxFit.scaleDown, child: trial.art!),
+                ),
               )
             else
               Text(

@@ -10,6 +10,7 @@ import '../../shell/lesson.dart';
 import '../../shell/lesson_player.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/level_rules.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import 'model.dart';
@@ -86,6 +87,10 @@ class _MahjongScreenState extends State<MahjongScreen> {
   int get _pairsTotal => _tiles.length ~/ 2;
 
   void _deal() {
+    // Новая партия — снова зачётная (договор shell/lesson.dart: отметку «разбор
+    // смотрели» снимает новая раздача). Отметка общая на всё приложение, и без
+    // сброса один открытый разбор выключал бы рост уровня во всех играх.
+    LessonUsed.reset();
     _blockersTimer?.cancel();
     _picked = _layouts?.forLevel(_ladder.level);
     final places = _picked?.places ?? const <Place>[];
@@ -269,6 +274,8 @@ class _MahjongScreenState extends State<MahjongScreen> {
     }
     final left = shufflesLeft(_cfg.shuffles, _shufflesUsed);
     return GameShell(
+      // Правило уровня объявляет каркас — в спокойный момент, не поверх партии (задача e371fd3a).
+      levelRule: LevelRuleSpot(gameId: 'mahjong', level: _ladder.level, state: widget.state, calm: _matched == 0 || _won),
       title: _title,
       onLesson: _tiles.isEmpty ? null : _openLesson,
       hud: [

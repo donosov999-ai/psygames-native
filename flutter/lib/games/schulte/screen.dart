@@ -3,9 +3,11 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../../shell/aux_action.dart';
+import '../../shell/boss_round.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/l10n.dart';
 import '../../shell/game_shell.dart';
+import '../../shell/lesson.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
@@ -43,6 +45,9 @@ class _SchulteScreenState extends State<SchulteScreen> {
   /// Ось 9: до объявления правило скрыто, а нажатия не считаются.
   bool _ruleRevealed = true;
   bool _won = false;
+
+  /// Итог боя с боссом после этой партии; `null` — боя не было (веб: `bossWon`).
+  bool? _boss;
   Duration _elapsed = Duration.zero;
 
   Timer? _reveal;
@@ -81,6 +86,10 @@ class _SchulteScreenState extends State<SchulteScreen> {
   }
 
   void _reset() {
+    // Новая партия — снова зачётная (договор shell/lesson.dart: отметку «разбор
+    // смотрели» снимает новая раздача). Отметка общая на всё приложение, и без
+    // сброса один открытый разбор выключал бы рост уровня во всех играх.
+    LessonUsed.reset();
     _reveal?.cancel();
     _ticker?.cancel();
     _watch
@@ -128,9 +137,22 @@ class _SchulteScreenState extends State<SchulteScreen> {
     setState(() {
       _phase = _Phase.done;
       _won = ok;
+      _boss = null; // итог боя — только этой партии; бой, если будет, допишет его ниже
       _elapsed = _watch.elapsed;
     });
-    ok ? _ladder.win() : _ladder.fail();
+    if (!ok) {
+      _ladder.fail();
+      return;
+    }
+    _winThenBoss();
+  }
+
+  /// Веха как в вебе: каждый третий ЗАСЧИТАННЫЙ уровень — бой «сложи подсвеченные».
+  Future<void> _winThenBoss() async {
+    final boss = await BossRound.winThenBoss(context, _ladder,
+        type: BossType.counting, color: const Color(0xFF667EEA));
+    if (!mounted || boss == null) return;
+    setState(() => _boss = boss);
   }
 
   String get _time {
@@ -192,6 +214,7 @@ class _SchulteScreenState extends State<SchulteScreen> {
                       : 'Ошибок ${g.errors} — больше $_levelErrorsAllowed, уровень не засчитан',
                   textAlign: TextAlign.center,
                 ),
+                BossOutcomeLine(_boss),
                 const SizedBox(height: 8),
                 FilledButton.icon(
                   onPressed: () => setState(_reset),

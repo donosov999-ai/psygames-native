@@ -57,15 +57,15 @@ interface Item {
   decoy: boolean;
 }
 
-function shuffle<T>(arr: T[]): T[] { const a=[...arr]; for (let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
+function shuffle<T>(arr: T[], rnd: () => number = Math.random): T[] { const a=[...arr]; for (let i=a.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
 
-const SHAPES_ALL: Shape[] = ['T', 'L', 'I', 'plus'];   // рото-различимый набор: T(3-луч)/L(угол)/I(черта)/plus(крест)
+export const SHAPES_ALL: Shape[] = ['T', 'L', 'I', 'plus'];   // рото-различимый набор: T(3-луч)/L(угол)/I(черта)/plus(крест)
 // Конъюнктивный поиск (фаза-2, высокие уровни): цель = цвет + форма. NEUTRAL — для feature-уровней (поиск по форме).
-const NEUTRAL_STROKE = '#ffffff';
+export const NEUTRAL_STROKE = '#ffffff';
 /** Фон поля И плашки-образца. Одна константа на оба места намеренно: они разъехались, и
  *  образец стал рисоваться белым по белому — см. комментарий у плашки ниже. */
 const FIELD_BG = '#1f2937';
-const COLORS_ALL: string[] = ['#60a5fa', '#fbbf24', '#f472b6'];   // голубой / янтарь / розовый — различимы на тёмном поле
+export const COLORS_ALL: string[] = ['#60a5fa', '#fbbf24', '#f472b6'];   // голубой / янтарь / розовый — различимы на тёмном поле
 /**
  * ЦВЕТА КОНЪЮНКЦИИ ПРИ ДАЛЬТОНИЗМЕ.
  *
@@ -83,37 +83,24 @@ const COLORS_ALL: string[] = ['#60a5fa', '#fbbf24', '#f472b6'];   // голуб�
  * видах (стало 34.6), светлота под тёмное поле и запас до белого — белый занят
  * обычным режимом, где цвет не значит ничего.
  */
-const COLORS_CB: string[] = ['#56b4e9', '#fc8d62', '#e78ac3'];
-const CONJ_FROM_LEVEL = 8;                                        // с L8 включается конъюнкция
-
-// «Найди фигуру такого цвета и формы» (конъюнкция) — инлайн-карта языков
-const FIND_CONJ: Record<string, string> = {
-  ru: 'Найди фигуру такого цвета и формы', en: 'Find the shape with this colour and form',
-  es: 'Encuentra la figura de este color y forma', pt: 'Encontre a forma desta cor e formato',
-  de: 'Finde die Form in dieser Farbe', zh: '找出这种颜色和形状的图形', hi: 'इस रंग और आकार की आकृति खोजें',
-};
+export const COLORS_CB: string[] = ['#56b4e9', '#fc8d62', '#e78ac3'];
+export const CONJ_FROM_LEVEL = 8;                                        // с L8 включается конъюнкция
 
 /**
- * Подсказка над полем, 7 языков (инлайн-карта, как в OrientationGuard).
+ * ПОДСКАЗКА НАД ПОЛЕМ ЖИВЁТ В ОБЩЕМ СЛОВАРЕ (`vsFindAll` / `vsFindConj`).
+ *
+ * Раньше здесь лежали две инлайн-карты на 7 языков. Нативный экран зовёт те же
+ * строки через `flutter/lib/shell/l10n.dart`, и второй источник той же фразы —
+ * это место, где перевод разъезжается молча. Строки перенесены в словарь без
+ * изменения текста, накладки всех 12 языков заполнены (7 — теми же фразами,
+ * что лежали здесь, 5 — новым переводом).
  *
  * «В ЛЮБОМ ПОВОРОТЕ» — не украшение. Каждой фигуре, включая цель, назначается
- * случайный поворот 0/90/180/270 (см. makeBoard), а образец в рамке нарисован
- * в одном положении. Повёрнутая T выглядит как ⊢, повёрнутая L как ⌐ —
- * различить их можно только по типу стыка, и без явной оговорки человек ищет
- * ровно ту картинку, что показана, не находит и жмёт на похожие: «с буквой Г
- * как-то не понятно, выбираешь похожие и получается ошибка» (репорт Rulon).
- * Раунд не закрывается, пока не найдены ВСЕ цели, поэтому игра просто не
- * доходила до конца — за 14 дней ни одной сохранённой сессии ни у кого.
+ * случайный поворот 0/90/180/270, а образец в рамке нарисован в одном положении.
+ * Без явной оговорки человек ищет ровно ту картинку, что показана, не находит и
+ * жмёт на похожие («с буквой Г как-то не понятно», отчёт Rulon), а раунд не
+ * закрывается, пока не найдены ВСЕ цели — игра просто не доходила до конца.
  */
-const FIND_TXT: Record<string, string> = {
-  ru: 'Найди все такие фигуры — в любом повороте',
-  en: 'Find all of these shapes — in any rotation',
-  es: 'Encuentra todas estas figuras — en cualquier rotación',
-  pt: 'Encontre todas estas formas — em qualquer rotação',
-  de: 'Finde alle diese Formen — in jeder Drehung',
-  zh: '找出所有这种图形 — 任意旋转方向',
-  hi: 'ये सभी आकृतियाँ खोजें — किसी भी दिशा में',
-};
 
 // Уровень (1..15+) задаёт базовую сложность; раунды внутри сессии добавляют объекты.
 // Дистракторов больше с уровнем; целей 1→2→3→4 по мере роста уровня. (Конъюнктивный поиск цвет+форма — фаза 2.)
@@ -170,7 +157,7 @@ export const VISUAL_SEARCH_LEVELS: number = (() => {
 })();
 
 /** Экспортирована для гейта `visual-search-decoy-axis`: приманки проверяются ИСПОЛНЕНИЕМ сборки, а не чтением исходника. */
-export function makeBoard(count: number, targetShape: Shape, targetColor: string, targetCount: number, conjunction: boolean, w: number, h: number, palette: string[] = COLORS_ALL, decoyCount = 0): Item[] {
+export function makeBoard(count: number, targetShape: Shape, targetColor: string, targetCount: number, conjunction: boolean, w: number, h: number, palette: string[] = COLORS_ALL, decoyCount = 0, rnd: () => number = Math.random): Item[] {
   const cols = Math.ceil(Math.sqrt(count * (w / h)));
   const rows = Math.ceil(count / cols);
   const cellW = w / cols;
@@ -179,16 +166,16 @@ export function makeBoard(count: number, targetShape: Shape, targetColor: string
   for (let r = 0; r < rows; r++)
     for (let c = 0; c < cols; c++)
       slots.push({ cx: c * cellW + cellW / 2, cy: r * cellH + cellH / 2 });
-  const picked = shuffle(slots).slice(0, count);
+  const picked = shuffle(slots, rnd).slice(0, count);
   // targetCount РАЗНЫХ ячеек назначаем целями
-  const targetSet = new Set(shuffle(picked.map((_, i) => i)).slice(0, targetCount));
+  const targetSet = new Set(shuffle(picked.map((_, i) => i), rnd).slice(0, targetCount));
   // Приманки берутся из НЕцелевых мест: цель приманкой стать не может, иначе
   // уровень стал бы непроходимым.
   const свободные = picked.map((_, i) => i).filter((i) => !targetSet.has(i));
-  const decoySet = new Set(shuffle(свободные).slice(0, Math.min(decoyCount, свободные.length)));
+  const decoySet = new Set(shuffle(свободные, rnd).slice(0, Math.min(decoyCount, свободные.length)));
   const otherShapes = SHAPES_ALL.filter((s) => s !== targetShape);
   const otherColors = palette.filter((c) => c !== targetColor);
-  const pick = <T,>(a: T[]) => a[Math.floor(Math.random() * a.length)];
+  const pick = <T,>(a: T[]) => a[Math.floor(rnd() * a.length)];
   return picked.map((s, i) => {
     const isT = targetSet.has(i);
     let shape: Shape, color: string;
@@ -196,7 +183,7 @@ export function makeBoard(count: number, targetShape: Shape, targetColor: string
       shape = targetShape; color = conjunction ? targetColor : NEUTRAL_STROKE;
     } else if (conjunction) {
       // КОНЪЮНКЦИЯ: дистрактор делит РОВНО один признак с целью (нет элемента с обоими → нет pop-out, серийный поиск)
-      if (Math.random() < 0.5) { color = targetColor; shape = pick(otherShapes); }      // тот же цвет, другая форма
+      if (rnd() < 0.5) { color = targetColor; shape = pick(otherShapes); }      // тот же цвет, другая форма
       else { color = pick(otherColors); shape = targetShape; }                            // другой цвет, та же форма
     } else {
       shape = pick(otherShapes); color = NEUTRAL_STROKE;                                  // feature-поиск: только форма
@@ -204,13 +191,37 @@ export function makeBoard(count: number, targetShape: Shape, targetColor: string
     const приманка = decoySet.has(i);
     if (приманка) { shape = targetShape; color = conjunction ? targetColor : NEUTRAL_STROKE; }
     return {
-      x: s.cx + (Math.random() - 0.5) * cellW * 0.3,
-      y: s.cy + (Math.random() - 0.5) * cellH * 0.3,
-      rot: [0, 90, 180, 270][Math.floor(Math.random() * 4)],
+      x: s.cx + (rnd() - 0.5) * cellW * 0.3,
+      y: s.cy + (rnd() - 0.5) * cellH * 0.3,
+      rot: [0, 90, 180, 270][Math.floor(rnd() * 4)],
       isTarget: isT, found: false, shape, color, decoy: приманка,
     };
   });
 }
+
+/**
+ * РАЗМЕР ДОСКИ — ПРАВИЛО: от него зависит и раскладка мест, и плотность поля,
+ * то есть сама сложность поиска. Вынесено функцией, чтобы переносу и пробе было
+ * что прогнать, а не пересказывать формулу. Доска квадратная и не шире 480.
+ */
+/**
+ * ВЫБОР ЦЕЛИ РАУНДА — тоже правило и тоже с порядком бросков: сперва форма,
+ * потом (только на конъюнкции) цвет. Порядок важен: по одному зерну обе стопки
+ * обязаны раздать один и тот же раунд.
+ */
+export function vsPickTarget(conjunction: boolean, palette: string[], rnd: () => number = Math.random): { shape: Shape; color: string } {
+  const shape = SHAPES_ALL[Math.floor(rnd() * SHAPES_ALL.length)];
+  const color = conjunction ? palette[Math.floor(rnd() * palette.length)] : NEUTRAL_STROKE;
+  return { shape, color };
+}
+
+export function vsBoardSize(width: number): { w: number; h: number } {
+  const w = Math.min(width - 32, 480);
+  return { w, h: Math.round(w * 1.0) };
+}
+
+/** Сторона предмета и его чувствительной области — порог нажатия, не украшение. */
+export const VS_ITEM_SIZE = 32;
 
 export default function VisualSearchGame() {
   const { colors, colorblind } = useTheme();
@@ -267,13 +278,11 @@ export default function VisualSearchGame() {
     return () => clearInterval(id);
   }, [phase]);
 
-  const boardW = Math.min(width - 32, 480);
-  const boardH = Math.round(boardW * 1.0);
+  const { w: boardW, h: boardH } = vsBoardSize(width);
 
   const newRound = (r: number) => {
     const { count, targetCount: tc, conjunction, decoys } = levelParams(levelRef.current, r);
-    const shape = SHAPES_ALL[Math.floor(Math.random() * SHAPES_ALL.length)];
-    const color = conjunction ? PALETTE[Math.floor(Math.random() * PALETTE.length)] : NEUTRAL_STROKE;
+    const { shape, color } = vsPickTarget(conjunction, PALETTE);
     roundRef.current = r;
     targetCountRef.current = tc;
     conjRef.current = conjunction;
@@ -502,7 +511,7 @@ export default function VisualSearchGame() {
           <View style={styles.fieldCol}>
             <View style={styles.hintRow}>
               <Text style={[styles.hintText, { color: colors.textSecondary }]}>
-                {(conjRef.current ? (FIND_CONJ[language] || FIND_CONJ.en) : (FIND_TXT[language] || FIND_TXT.en))}{targetCount > 1 ? ` ×${targetCount}` : ''}
+                {(conjRef.current ? t('vsFindConj') : t('vsFindAll'))}{targetCount > 1 ? ` ×${targetCount}` : ''}
               </Text>
               {/* ⚠️ Фон задан ИНЛАЙНОМ, а не только в styles.targetRef. Снимок из репорта
                   Вали 07.08 (v1.188, ✓0 ✗4 за 65 с): замер пикселей показал плашку
@@ -522,8 +531,8 @@ export default function VisualSearchGame() {
                   accessibilityState={{ disabled: feedback !== null }}
                   style={{
                     position: 'absolute',
-                    left: it.x - 16, top: it.y - 16,
-                    width: 32, height: 32,
+                    left: it.x - VS_ITEM_SIZE / 2, top: it.y - VS_ITEM_SIZE / 2,
+                    width: VS_ITEM_SIZE, height: VS_ITEM_SIZE,
                     alignItems: 'center', justifyContent: 'center',
                     backgroundColor: it.found ? '#22c55e66' : 'transparent',
                     borderRadius: 4,

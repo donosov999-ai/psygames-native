@@ -20,6 +20,11 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { TRANSLATION_VOCAB } from '@/src/constants/translationVocab';
 import { buildQueue, gradeCard, getStats, addCustomWords, type Grade } from '@/src/services/vocab-srs';
 import { buildOptions } from '@/app/games/vocab-srs';
+import {
+  параЯзыков as bi_pair, рядЯзыковПары as bi_row, разложитьПоРяду as bi_spread,
+  паройЯзыков as bi_pill, вторымНеПервый as bi_second,
+} from '@/src/services/bilingualMode';
+import { ПОСЛЕДОВАТЕЛЬНОСТЬ as FLOW_SEQ, ЯЗЫКИ_ПОТОКА as FLOW_LANGS, ЗАПАСНОЙ_ЯЗЫК as FLOW_SPARE } from '@/src/services/languageFlow';
 import { createState, pressChar, backspace, stats as статистикаНабора, isPunct, MARK } from '@/src/services/typing';
 
 /**
@@ -136,6 +141,38 @@ describe('эталоны словаря SRS для переноса на Flutter
     const знаки = ['.', ',', '!', '?', ';', ':', '…', '—', '«', '»', '(', ')', '-', 'a', 'п', ' ', '1']
       .map((ch) => ({ ch, знак: isPunct(ch) }));
 
+    // ── 3г. БИЛИНГВО: две колоды вперемешку по ряду чередования ──
+    const интерфейсы = ['ru', 'en', 'es', 'de', 'zh', 'hi', 'pt', 'fr', 'it', 'ja', 'ko', 'ar'];
+    const билингво = {
+      поток: { последовательность: [...FLOW_SEQ], языки: [...FLOW_LANGS], запасной: FLOW_SPARE },
+      параДляИнтерфейса: Object.fromEntries(интерфейсы.map((i) => [i, bi_pair(i)])),
+      рядПары: [
+        { первый: 'en', второй: 'es', сколько: 10, ряд: bi_row(10, 'en', 'es') },
+        { первый: 'de', второй: 'fr', сколько: 7, ряд: bi_row(7, 'de', 'fr') },
+        { первый: 'en', второй: 'es', сколько: 0, ряд: bi_row(0, 'en', 'es') },
+      ],
+      разложить: [
+        // ровный материал — ряд соблюдается целиком
+        { имя: 'поровну', поЯзыку: { en: ['e1', 'e2', 'e3', 'e4', 'e5'], de: ['d1', 'd2', 'd3', 'd4', 'd5'] }, сколько: 10, пара: ['en', 'de'] },
+        // один язык кончился — добор из второго, смен меньше
+        { имя: 'неровно', поЯзыку: { en: ['e1', 'e2'], de: ['d1', 'd2', 'd3', 'd4', 'd5', 'd6'] }, сколько: 8, пара: ['en', 'de'] },
+        // материала меньше, чем просили, — партия короче, а не обрыв
+        { имя: 'материал кончился', поЯзыку: { en: ['e1'], de: ['d1'] }, сколько: 6, пара: ['en', 'de'] },
+      ].map((c) => ({ ...c, итог: bi_spread(c.поЯзыку as Record<string, string[]>, c.сколько, 'ru', c.пара) })),
+      пилюля: [
+        { текущий: 'en', пара: ['en', 'es'] }, { текущий: 'es', пара: ['en', 'es'] },
+        { текущий: 'de', пара: [] }, { текущий: 'EN', пара: ['en', 'es'] },
+      ].map((c) => ({ ...c, итог: bi_pill(c.текущий, c.пара) })),
+      второй: [
+        { родной: 'ru', первый: 'en', желаемый: 'es' },
+        { родной: 'ru', первый: 'es', желаемый: 'es' },
+        { родной: 'ru', первый: 'en', желаемый: 'ru' },
+        { родной: 'en', первый: 'es', желаемый: 'es' },
+        { родной: 'es', первый: 'en', желаемый: 'en' },
+        { родной: 'de', первый: 'en', желаемый: 'en' },
+      ].map((c) => ({ ...c, итог: bi_second(c.родной, c.первый, c.желаемый) })),
+    };
+
     // ── 4. Свои слова: разбор строк «слово = перевод» ──
     await AsyncStorage.clear();
     const добавлено = await addCustomWords('ru', 'es', [
@@ -179,6 +216,7 @@ describe('эталоны словаря SRS для переноса на Flutter
         freshПервые: граница.fresh.map((c) => c.id),
         статистика: границаСтат,
       },
+      билингво,
       печать: {
         объяснение: 'движок набора src/services/typing.ts: строгий режим словаря и послабление диктанта',
         метки: { PENDING: MARK.PENDING, CORRECT: MARK.CORRECT, WRONG: MARK.WRONG },

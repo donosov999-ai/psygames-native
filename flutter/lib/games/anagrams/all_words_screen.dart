@@ -2,11 +2,15 @@ import 'package:flutter/material.dart';
 
 import '../../shell/aux_action.dart';
 import '../../shell/game_shell.dart';
+import '../../shell/l10n.dart';
+import '../../shell/lesson.dart';
+import '../../shell/lesson_player.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import 'all_words_board.dart';
 import 'model.dart';
+import 'teach.dart';
 
 /// Экран «Все слова» — второй режим анаграмм.
 ///
@@ -69,6 +73,8 @@ class _AllWordsScreenState extends State<AllWordsScreen> {
     _opened.clear();
     _hintsUsed = 0;
     _wrong = false;
+    // Новая раскладка — отметка разбора снимается: следующая партия зачётная.
+    LessonUsed.reset();
   }
 
   String get _draft => [for (final i in _picked) _letters[i]].join();
@@ -129,6 +135,55 @@ class _AllWordsScreenState extends State<AllWordsScreen> {
         _wrong = false;
       });
 
+  /* ═══════════ РАЗБОР ПО ШАГАМ: СЕМЬИ ПО НАЧАЛУ ═══════════
+   *
+   * Приём и замер, из которого он выбран, — в `teach.dart` (`allWordsLesson`).
+   * Доступность — как у классики: первые три уровня. Дальше человек приём знает,
+   * а показ всех слов колеса только отнимает у него поиск.
+   */
+  List<AllWordsTeachStep> get _lessonSteps {
+    final pack = _pack;
+    if (pack == null) return const [];
+    return allWordsLesson(pack.words, _letters);
+  }
+
+  Future<void> _openLesson() async {
+    final pack = _pack;
+    final steps = _lessonSteps;
+    if (pack == null || steps.length < 2) return;
+    LessonUsed.mark();
+    final letters = [..._letters];
+    await Navigator.of(context).push(MaterialPageRoute<void>(
+      builder: (_) => LessonPlayerScreen(
+        title: L.t('anagramAllWords'),
+        steps: [
+          for (final s in steps) LessonStep(text: teachAllWordsText(s, L.t), payload: s),
+        ],
+        board: (context, side, shown) {
+          // Как у остальных разборов каркаса: на шаге i видно всё, что сделали шаги
+          // ДО него. Последнее найденное слово ещё и подсвечено на колесе — видно,
+          // из каких плиток оно сложилось.
+          final found = <String>[
+            for (var i = 0; i < shown && i < steps.length; i++)
+              if (steps[i].word.isNotEmpty) steps[i].word,
+          ];
+          final last = shown > 0 && shown <= steps.length ? steps[shown - 1].place : const <int>[];
+          return AllWordsBoard(
+            pack: pack,
+            letters: letters,
+            picked: last,
+            found: found,
+            opened: const {},
+            bonuses: const [],
+            wrong: false,
+            fieldHeight: side,
+            onPick: (_) {},
+          );
+        },
+      ),
+    ));
+  }
+
   @override
   Widget build(BuildContext context) {
     final pack = _pack;
@@ -136,16 +191,17 @@ class _AllWordsScreenState extends State<AllWordsScreen> {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
     return GameShell(
-      title: 'Все слова',
+      title: L.t('anagramAllWords'),
+      onLesson: _ladder.level <= 3 && _lessonSteps.length > 1 ? _openLesson : null,
       hud: [
-        HudItem(label: 'Уровень', value: '${_ladder.level}', icon: Icons.flag_outlined),
+        HudItem(label: L.t('level'), value: '${_ladder.level}', icon: Icons.flag_outlined),
         HudItem(
-          label: 'Найдено',
+          label: L.t('label_found'),
           value: '${_found.length}/${pack.words.length}',
           icon: Icons.check_circle_outline,
         ),
         if (_bonuses.isNotEmpty)
-          HudItem(label: 'Бонусы', value: '${_bonuses.length}', icon: Icons.star_outline),
+          HudItem(label: L.t('anagramBonusJar'), value: '${_bonuses.length}', icon: Icons.star_outline),
       ],
       field: (context, h) => AllWordsBoard(
         pack: pack,
@@ -161,12 +217,12 @@ class _AllWordsScreenState extends State<AllWordsScreen> {
       auxRow: AuxBar(children: [
         AuxAction(
           icon: Icons.lightbulb_outline,
-          label: 'Подсказка',
+          label: L.t('btn_hint'),
           tint: const Color(0xFFB45309),
           count: _hintsPerRound - _hintsUsed,
           onPressed: _hintsUsed < _hintsPerRound ? _hint : null,
         ),
-        AuxAction(icon: Icons.shuffle, label: 'Перемешать', onPressed: _shuffle),
+        AuxAction(icon: Icons.shuffle, label: L.t('shuffleBtn'), onPressed: _shuffle),
       ]),
       toolbar: Padding(
         padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
@@ -177,7 +233,7 @@ class _AllWordsScreenState extends State<AllWordsScreen> {
                 key: const ValueKey('all-words-clear'),
                 onPressed: _picked.isEmpty ? null : _clear,
                 icon: const Icon(Icons.backspace_outlined),
-                label: const Text('Сбросить'),
+                label: Text(L.t('clear')),
               ),
             ),
             const SizedBox(width: 10),
@@ -186,14 +242,14 @@ class _AllWordsScreenState extends State<AllWordsScreen> {
                 key: const ValueKey('all-words-check'),
                 onPressed: _picked.isEmpty ? null : () { _submit(); },
                 icon: const Icon(Icons.done),
-                label: const Text('Проверить'),
+                label: Text(L.t('check')),
               ),
             ),
           ],
         ),
       ),
       pauseActions: [
-        PauseAction(label: 'Перемешать', icon: Icons.shuffle, onPressed: _shuffle),
+        PauseAction(label: L.t('shuffleBtn'), icon: Icons.shuffle, onPressed: _shuffle),
       ],
     );
   }

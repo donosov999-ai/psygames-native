@@ -4,9 +4,11 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../../shell/aux_action.dart';
+import '../../shell/boss_round.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/l10n.dart';
 import '../../shell/game_shell.dart';
+import '../../shell/lesson.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
@@ -51,6 +53,9 @@ class _QuickCountScreenState extends State<QuickCountScreen> {
   int _shift = 0;
   int? _picked;
   bool _won = false;
+
+  /// Итог боя с боссом после этой партии; `null` — боя не было (веб: `bossWon`).
+  bool? _boss;
   bool _ready = false;
   Timer? _timer;
 
@@ -78,6 +83,10 @@ class _QuickCountScreenState extends State<QuickCountScreen> {
   }
 
   void _reset() {
+    // Новая партия — снова зачётная (договор shell/lesson.dart: отметку «разбор
+    // смотрели» снимает новая раздача). Отметка общая на всё приложение, и без
+    // сброса один открытый разбор выключал бы рост уровня во всех играх.
+    LessonUsed.reset();
     _timer?.cancel();
     _params = levelParams(_ladder.level);
     _phase = _Phase.ready;
@@ -127,14 +136,18 @@ class _QuickCountScreenState extends State<QuickCountScreen> {
     }
     final accuracy = _correct / trialsPerRound * 100;
     final won = accuracy >= passAccuracyPercent;
+    // Веха как в вебе: каждый третий ЗАСЧИТАННЫЙ уровень — бой «тапни только зелёный».
+    bool? boss;
     if (won) {
-      await _ladder.win();
+      boss = await BossRound.winThenBoss(context, _ladder,
+          type: BossType.gonogo, color: const Color(0xFFF7971E));
     } else {
       await _ladder.fail();
     }
     if (!mounted) return;
     setState(() {
       _won = won;
+      _boss = boss;
       _phase = _Phase.result;
     });
   }
@@ -237,6 +250,7 @@ class _QuickCountScreenState extends State<QuickCountScreen> {
               ],
             ),
           ),
+        if (_phase == _Phase.result) BossOutcomeLine(_boss),
         if (_phase == _Phase.result)
           FilledButton.icon(
             key: const Key('дальше'),
