@@ -286,6 +286,7 @@ void main() {
       '/games/chess-blind',
       '/games/chess-hub',
       '/games/find-move',
+      '/games/solitaire-chess',
       '/games/choice-rt',
       '/games/cpt',
       '/games/corsi',

@@ -367,6 +367,7 @@ const translations: Translations = {
   skillChessCalc: { ru: 'Тренируем: расчёт вариантов', en: 'Training: calculating lines' },
   chessTypeTactics: { ru: 'Тактика · мат в 1–2 хода', en: 'Tactics · mate in 1–2' },
   chessTypeBlind: { ru: 'Вслепую · доска в голове', en: 'Blindfold · board in your head' },
+  chessTypeSolitaire: { ru: 'Головоломка · только взятия', en: 'Puzzle · captures only' },
   skillSwitching: { ru: 'Тренируем: переключение внимания', en: 'Training: attention switching' },
 
   // ───── Round 2: 7 more games ─────

@@ -72,8 +72,9 @@ class SolitaireBoard {
     void jump(List<(int, int)> dirs) {
       for (final (dr, dc) in dirs) {
         final rr = r + dr, cc = c + dc;
-        if (_on(rr, cc) && cells.containsKey(rr * dim + cc))
+        if (_on(rr, cc) && cells.containsKey(rr * dim + cc)) {
           out.add(rr * dim + cc);
+        }
       }
     }
 
