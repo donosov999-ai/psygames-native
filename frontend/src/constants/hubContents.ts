@@ -130,6 +130,9 @@ export const HUB_CONTENTS: Record<string, HubSubGame[]> = {
     // «Найди ход» (01.10.2026, задача 04e0a67e): только нативный экран, веб-двойника нет —
     // адрес в `nativeOnlyGames.ts`, экран в `flutter/lib/games/find_move`.
     { route: '/games/find-move', icon: 'search', nameKey: 'findMove', descKey: 'findMoveDesc', typeKey: 'chessTypeTactics' },
+    // «Шахматный пасьянс» (01.10.2026, задача 66b3d2ac): тоже только нативный экран —
+    // адрес в `nativeOnlyGames.ts`, экран в `flutter/lib/games/solitaire_chess`.
+    { route: '/games/solitaire-chess', icon: 'extension-puzzle', nameKey: 'solitaireChess', descKey: 'solitaireChessDesc', typeKey: 'chessTypeSolitaire' },
   ],
 
   /* ——— Внимание ——— */
