@@ -133,6 +133,7 @@ void main() {
       '$origin/games/words-hub',
       '$origin/games/languages-hub',
       '$origin/games/mnemonics-hub',
+      '$origin/games/span',
     ]) {
       expect(HybridApp.routeOf(url), isNotNull, reason: url);
     }
@@ -332,6 +333,7 @@ void main() {
       '/games/rmet',
       '/games/mnemonics',
       '/games/mnemonics-hub',
+      '/games/span',
       '/games/word-pairs',
       '/games/vocab-srs',
       '/games/semantic-sort',

@@ -103,32 +103,106 @@ class HubCard {
   String get desc => descKey.isEmpty ? '' : L.t(descKey);
 }
 
+/// Значки карточек: имя из веб-реестра (Ionicons) → ближайший значок Material.
+///
+/// 🔴 ТАБЛИЦА ПОЛНАЯ — ПО ВСЕМ ИМЕНАМ ИЗ `assets/hubs.json`. До 30.09.2026 в ней
+/// было 12 имён из 75, и 98 карточек из 113 показывали общий значок-пазл: в
+/// «Объёме памяти» пять из шести, в «Головоломках» почти все сорок. Полноту держит
+/// проба `hub_icons_are_mapped_test.dart`: новое имя в веб-реестре без строки
+/// здесь — красный CI с этим именем, а не тихий пазл на экране.
+const Map<String, IconData> hubIcons = {
+  'albums': Icons.collections_outlined,
+  'analytics': Icons.analytics_outlined,
+  'apps': Icons.apps,
+  'apps-outline': Icons.apps,
+  'arrow-forward': Icons.arrow_forward,
+  'basket': Icons.shopping_basket_outlined,
+  'boat': Icons.directions_boat_outlined,
+  'book': Icons.menu_book_outlined,
+  'browsers': Icons.web_outlined,
+  'bulb': Icons.lightbulb_outline,
+  'business': Icons.business_outlined,
+  'cafe': Icons.cake_outlined,
+  'calculator': Icons.calculate_outlined,
+  'car': Icons.directions_car_outlined,
+  'chatbubbles': Icons.forum_outlined,
+  'checkmark-done': Icons.done_all,
+  'chevron-forward': Icons.chevron_right,
+  'color-fill': Icons.format_color_fill,
+  'color-palette': Icons.palette_outlined,
+  'contrast': Icons.contrast,
+  'copy': Icons.content_copy,
+  'create': Icons.edit_outlined,
+  'create-outline': Icons.edit_outlined,
+  'cube': Icons.view_in_ar_outlined,
+  'cube-outline': Icons.view_in_ar_outlined,
+  'diamond': Icons.diamond_outlined,
+  'dice': Icons.casino_outlined,
+  'disc': Icons.album_outlined,
+  'ear': Icons.hearing,
+  'ellipse': Icons.circle_outlined,
+  'ellipse-outline': Icons.circle_outlined,
+  'extension-puzzle': Icons.extension_outlined,
+  'eye': Icons.visibility_outlined,
+  'eye-off': Icons.visibility_off_outlined,
+  'eye-outline': Icons.visibility_outlined,
+  'flash': Icons.flash_on_outlined,
+  'flask': Icons.science_outlined,
+  'funnel': Icons.filter_alt_outlined,
+  'git-branch': Icons.account_tree_outlined,
+  'git-branch-outline': Icons.account_tree_outlined,
+  'git-compare': Icons.compare_arrows,
+  'git-merge': Icons.merge,
+  'git-network': Icons.hub_outlined,
+  'git-network-outline': Icons.hub_outlined,
+  'grid': Icons.grid_view_outlined,
+  'grid-outline': Icons.grid_view_outlined,
+  'hand-left': Icons.back_hand_outlined,
+  'happy': Icons.sentiment_satisfied_alt_outlined,
+  'headset': Icons.headset_outlined,
+  'home': Icons.home_outlined,
+  'keypad': Icons.dialpad,
+  'layers': Icons.layers_outlined,
+  'link': Icons.link,
+  'list-outline': Icons.list_alt_outlined,
+  'locate': Icons.my_location,
+  // Магнитов в Material нет — «Магниты» Тэтхэма про полюса «+» и «−».
+  'magnet': Icons.exposure_outlined,
+  'map': Icons.map_outlined,
+  'mic': Icons.mic_none_outlined,
+  'musical-note': Icons.music_note_outlined,
+  'musical-notes': Icons.queue_music_outlined,
+  'navigate': Icons.navigation_outlined,
+  'paw': Icons.pets_outlined,
+  'person': Icons.person_outline,
+  'pizza': Icons.local_pizza_outlined,
+  'planet': Icons.public,
+  'remove-circle': Icons.remove_circle_outline,
+  'repeat': Icons.repeat,
+  'scan': Icons.crop_free,
+  'search': Icons.search,
+  'settings': Icons.settings_outlined,
+  'share-social': Icons.share_outlined,
+  'shuffle': Icons.shuffle,
+  // Черепа в Material нет — «Нежить» Тэтхэма про опасные клетки.
+  'skull': Icons.dangerous_outlined,
+  'square-outline': Icons.crop_square,
+  'swap-horizontal': Icons.swap_horiz,
+  'swap-vertical': Icons.swap_vert,
+  'sync': Icons.sync,
+  'sync-circle': Icons.sync,
+  'text': Icons.text_fields,
+  'timer': Icons.timer_outlined,
+  'train': Icons.train_outlined,
+  'trending-up': Icons.trending_up,
+  'triangle': Icons.change_history,
+  'warning': Icons.warning_amber_outlined,
+  'water': Icons.water_drop_outlined,
+};
+
 /// Значок карточки по имени из веб-реестра. Незнакомое имя — общий значок:
 /// забытое поле не имеет права оставлять пустое место на экране.
-IconData hubIcon(String name) {
-  const map = {
-    'basket': Icons.shopping_basket_outlined,
-    'flask': Icons.science_outlined,
-    'ellipse': Icons.circle_outlined,
-    'settings': Icons.settings_outlined,
-    'cafe': Icons.cake_outlined,
-    'pizza': Icons.local_pizza_outlined,
-    'git-branch-outline': Icons.account_tree_outlined,
-    'layers': Icons.layers_outlined,
-    'list-outline': Icons.list_alt_outlined,
-    'grid': Icons.grid_view_outlined,
-    'eye-outline': Icons.visibility_outlined,
-    'extension-puzzle': Icons.extension_outlined,
-    'paw': Icons.pets_outlined,
-    'color-palette': Icons.palette_outlined,
-    'car': Icons.directions_car_outlined,
-    'happy': Icons.sentiment_satisfied_alt_outlined,
-    'dice': Icons.casino_outlined,
-    'eye-off': Icons.visibility_off_outlined,
-    'boat': Icons.directions_boat_outlined,
-  };
-  return map[name] ?? Icons.extension_outlined;
-}
+IconData hubIcon(String name) => hubIcons[name] ?? Icons.extension_outlined;
 
 /// 🖼 ИКОНКА ИГРЫ В СТРОКЕ РАЗВИЛКИ — «поле игры в миниатюре» (решение Дениса 13.09.2026:
 /// «иконка должна быть мини-экраном приложения»; 01.10.2026 — показывать В ПРИЛОЖЕНИИ).

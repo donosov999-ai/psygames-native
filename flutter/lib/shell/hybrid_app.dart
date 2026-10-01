@@ -72,6 +72,7 @@ import '../games/counter/screen.dart';
 import '../games/find_differences/screen.dart';
 import '../games/counting_hub/screen.dart';
 import '../games/search_hub/screen.dart';
+import '../games/span_hub/screen.dart';
 import '../games/visual_search/screen.dart';
 import '../games/set_game/screen.dart';
 import '../games/object_tracker/screen.dart';
@@ -274,6 +275,10 @@ class HybridApp extends StatefulWidget {
             SearchHubScreen(state: s, isNative: native.containsKey),
         '/games/counting-hub': (s) =>
             CountingHubScreen(state: s, isNative: native.containsKey),
+        // Развилка «Объём памяти» — адрес без хвоста `-hub`, развилкой её делает
+        // запись в `assets/hubs.json`. Неперенесённые карточки открывает
+        // веб-половина: какую чем — решает оболочка, а не хаб.
+        '/games/span': (s) => SpanHubScreen(state: s, isNative: native.containsKey),
         '/games/choice-rt': (s) => ChoiceRtScreen(state: s),
         '/games/stop-signal': (s) => StopSignalScreen(state: s),
         '/games/posner': (s) => PosnerScreen(state: s),
