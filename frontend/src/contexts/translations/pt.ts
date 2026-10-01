@@ -3368,11 +3368,14 @@ const t: Record<string, string> = {
   "sudokuVariantRenban": "🟪 renban",
   "sudokuVariantRegionsum": "🟦 somas iguais",
   "sudokuVariantPalindrome": "⬜ palíndromo",
+  "sudokuVariantBetween": "⚪ entre as pontas",
   "sudokuRuleRenban": "Os dígitos numa linha roxa formam uma sequência consecutiva, em qualquer ordem e sem repetição.",
   "sudokuRuleRegionsum": "Linha azul: em cada quadro por onde passa, os seus dígitos somam o mesmo valor.",
   "sudokuRulePalindrome": "Uma linha cinza é lida da mesma forma a partir de ambas as pontas: os dígitos à mesma distância das pontas são iguais.",
+  "sudokuRuleBetween": "Os dígitos da linha ficam estritamente entre os dígitos dos círculos nas suas pontas.",
   "sdkRule_renban": "renban",
   "sdkRule_regionsum": "somas iguais",
   "sdkRule_palindrome": "palíndromo",
+  "sdkRule_between": "entre as pontas",
 };
 export default t;

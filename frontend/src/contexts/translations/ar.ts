@@ -3364,11 +3364,14 @@ const t: Record<string, string> = {
   "sudokuVariantRenban": "🟪 رينبان",
   "sudokuVariantRegionsum": "🟦 مجاميع متساوية",
   "sudokuVariantPalindrome": "⬜ خط متناظر",
+  "sudokuVariantBetween": "⚪ بين الطرفين",
   "sudokuRuleRenban": "الأرقام على الخط البنفسجي تشكّل سلسلة متتالية بأي ترتيب ودون تكرار.",
   "sudokuRuleRegionsum": "الخط الأزرق: في كل مربع يمر به، يكون مجموع أرقامه هو نفسه.",
   "sudokuRulePalindrome": "الخط الرمادي يُقرأ بالطريقة نفسها من الطرفين: الأرقام التي تبعد المسافة نفسها عن الطرفين متساوية.",
+  "sudokuRuleBetween": "أرقام الخط تقع بين رقمَي الدائرتين عند طرفيه، ولا تساوي أيًّا منهما.",
   "sdkRule_renban": "رينبان",
   "sdkRule_regionsum": "مجاميع متساوية",
   "sdkRule_palindrome": "الخط المتناظر",
+  "sdkRule_between": "بين الطرفين",
 };
 export default t;

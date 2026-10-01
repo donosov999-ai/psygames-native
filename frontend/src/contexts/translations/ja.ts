@@ -3362,11 +3362,14 @@ const t: Record<string, string> = {
   "sudokuVariantRenban": "🟪 レンバン",
   "sudokuVariantRegionsum": "🟦 同じ合計",
   "sudokuVariantPalindrome": "⬜ 回文",
+  "sudokuVariantBetween": "⚪ 両端のあいだ",
   "sudokuRuleRenban": "紫の線の上の数字は、連続した数が並びます。順番は自由で、同じ数字は入りません。",
   "sudokuRuleRegionsum": "青い線：通過する各ブロックで、線上の数字の合計が同じになります。",
   "sudokuRulePalindrome": "灰色の線は、どちらの端から読んでも同じです。両端から同じ距離にある数字は一致します。",
+  "sudokuRuleBetween": "線上の数字は、両端の丸の数字のうち小さい方より大きく、大きい方より小さくなります。",
   "sdkRule_renban": "レンバン",
   "sdkRule_regionsum": "同じ合計",
   "sdkRule_palindrome": "回文",
+  "sdkRule_between": "両端のあいだ",
 };
 export default t;
