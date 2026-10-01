@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/quick_count/model.dart';
 import 'package:psygames_flutter/games/quick_count/screen.dart';
+import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -15,6 +16,12 @@ import 'support/boss_probe.dart';
 /// любому, кто слушает экран чтецом. Поэтому проба считает нарисованные точки,
 /// а не читает готовое число.
 void main() {
+  setUpAll(() async {
+    // Подписи — из общего словаря, как в приложении (экран переведён на L.t, задача 4b6f863e).
+    TestWidgetsFlutterBinding.ensureInitialized();
+    await L.load('ru');
+  });
+
   late SharedState state;
   var opens = 0;
 
@@ -65,7 +72,7 @@ void main() {
   testWidgets('🔴 партия из двенадцати проб играется нажатиями и берёт уровень', (tester) async {
     final p = levelParams(1);
     await open(tester);
-    expect(find.text('Быстрый счёт'), findsOneWidget);
+    expect(find.text(L.t('quickCount')), findsOneWidget);
     await tester.tap(find.byKey(const Key('начать')));
     await tester.pump();
 
@@ -73,7 +80,7 @@ void main() {
       expect(find.text('${i + 1}/$trialsPerRound'), findsOneWidget, reason: 'проба ${i + 1}');
       await playTrial(tester, p);
     }
-    expect(find.text('Следующий уровень'), findsOneWidget, reason: 'двенадцать из двенадцати — уровень взят');
+    expect(find.text(L.t('nextLabel')), findsOneWidget, reason: 'двенадцать из двенадцати — уровень взят');
   });
 
   testWidgets('🔴 верный ответ ВСЕГДА есть среди кнопок, и их не больше шести', (tester) async {
@@ -106,7 +113,7 @@ void main() {
     for (var i = 0; i < trialsPerRound; i += 1) {
       await playTrial(tester, p, correct: i >= 3);
     }
-    expect(find.text('Ещё раз'), findsOneWidget, reason: '75% — уровень не взят');
+    expect(find.text(L.t('retry')), findsOneWidget, reason: '75% — уровень не взят');
     expect(find.textContaining('нужно 80%'), findsOneWidget);
   });
 
@@ -150,7 +157,7 @@ void main() {
 
   testWidgets('🔴 веха: победа на 3-м уровне открывает бой «тапни только зелёный», на 2-м — нет', (tester) async {
     // В вебе этот экран зовёт BossRound каждые три уровня; при переносе бой пропал молча.
-    await expectBossAfterWin(tester, won: find.text('Следующий уровень'), hudKey: 'bossHudGonogo', play: (level) async {
+    await expectBossAfterWin(tester, won: find.text(L.t('nextLabel')), hudKey: 'bossHudGonogo', play: (level) async {
       final p = levelParams(level);
       await open(tester, level: level, seed: level);
       await tester.tap(find.byKey(const Key('начать')));

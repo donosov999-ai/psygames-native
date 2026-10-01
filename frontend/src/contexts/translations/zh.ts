@@ -3305,5 +3305,17 @@ const t: Record<string, string> = {
   "teachHiddenHalf": "问“{q}”：是的有 {yes} 个，不是的有 {no} 个。最好的问题能把剩下的人尽量分成两半：无论答案如何都能排除一半。",
   "teachHiddenLast": "只剩一个——就是他。选中他并点“就是他！”。",
   "rbHeadStart": "领先 {n}",
+  "sprintReadyHint": "{n} 秒——尽量多做几道",
+  "sprintResultWin": "过关：答对 {correct} 题，{score} 分，最佳连对 {streak}",
+  "sprintResultFail": "答对 {correct} 题——需要 {need} 题",
+  "qcIntro": "圆点会一闪而过——说出有几个",
+  "qcHold": "把数字记在心里",
+  "qcResultWin": "过关：正确率 {p}%",
+  "qcResultFail": "正确率 {p}%——需要 {need}%",
+  "qcWas": "实际有 {n} 个",
+  "nbResultWin": "过关：答对 {hits} 题，错误 {errors} 次",
+  "nbResultFail": "错误 {errors} 次——最多允许 {max} 次",
+  "nbPickChips": "选择筹码",
+  "nbCollected": "已凑：{sum}",
 };
 export default t;

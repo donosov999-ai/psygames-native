@@ -3305,5 +3305,17 @@ const t: Record<string, string> = {
   "teachHiddenHalf": "Pregunta «{q}»: sí para {yes}, no para {no}. La mejor pregunta divide a los que quedan lo más cerca posible de la mitad: cualquier respuesta elimina a la mitad.",
   "teachHiddenLast": "Queda uno: es el escondido. Elígelo y pulsa «¡Es este!».",
   "rbHeadStart": "ventaja {n}",
+  "sprintReadyHint": "{n} segundos: resuelve tantos como puedas",
+  "sprintResultWin": "Nivel superado: {correct} aciertos, {score} puntos, mejor racha {streak}",
+  "sprintResultFail": "{correct} aciertos — necesitas {need}",
+  "qcIntro": "Los puntos aparecen un instante: di cuántos hay",
+  "qcHold": "Guarda el número en la mente",
+  "qcResultWin": "Nivel superado: {p} % de aciertos",
+  "qcResultFail": "{p} % de aciertos — necesitas {need} %",
+  "qcWas": "había {n}",
+  "nbResultWin": "Nivel superado: {hits} aciertos, {errors} errores",
+  "nbResultFail": "{errors} errores — se permiten como máximo {max}",
+  "nbPickChips": "elige las fichas",
+  "nbCollected": "suma: {sum}",
 };
 export default t;

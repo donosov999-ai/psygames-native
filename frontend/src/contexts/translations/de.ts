@@ -3305,5 +3305,17 @@ const t: Record<string, string> = {
   "teachHiddenHalf": "Frag „{q}“: ja bei {yes}, nein bei {no}. Die beste Frage teilt die Übrigen möglichst genau in zwei Hälften: Jede Antwort streicht die Hälfte.",
   "teachHiddenLast": "Eine Figur ist übrig – das ist die Versteckte. Wähle sie und drücke „Das ist sie!“.",
   "rbHeadStart": "Vorsprung {n}",
+  "sprintReadyHint": "{n} Sekunden – löse so viele wie möglich",
+  "sprintResultWin": "Level geschafft: {correct} richtig, {score} Punkte, beste Serie {streak}",
+  "sprintResultFail": "{correct} richtig – nötig sind {need}",
+  "qcIntro": "Die Punkte blitzen kurz auf – sag, wie viele es waren",
+  "qcHold": "Behalte die Zahl im Kopf",
+  "qcResultWin": "Level geschafft: {p} % richtig",
+  "qcResultFail": "{p} % richtig – nötig sind {need} %",
+  "qcWas": "es waren {n}",
+  "nbResultWin": "Level geschafft: {hits} richtig, {errors} Fehler",
+  "nbResultFail": "{errors} Fehler – erlaubt sind höchstens {max}",
+  "nbPickChips": "wähle die Chips",
+  "nbCollected": "Summe: {sum}",
 };
 export default t;

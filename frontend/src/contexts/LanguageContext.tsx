@@ -4560,6 +4560,19 @@ const translations: Translations = {
     en: 'No pairs left, nothing to shuffle or undo. This level has to be restarted.',
   },
   mahjongRestartLevel: { ru: 'Начать уровень заново', en: 'Restart the level' },
+  // «Поиск» и «Счёт» — подписи нативных экранов: спринт, быстрый счёт, состав числа (задача 4b6f863e, 02.10.2026)
+  sprintReadyHint: { ru: '{n} секунд на счёт — считай как можно больше', en: '{n} seconds — solve as many as you can' },
+  sprintResultWin: { ru: 'Уровень взят: верных {correct}, очков {score}, лучшая серия {streak}', en: 'Level cleared: {correct} correct, {score} points, best streak {streak}' },
+  sprintResultFail: { ru: 'Верных {correct} — нужно {need}', en: '{correct} correct — you need {need}' },
+  qcIntro: { ru: 'Точки вспыхнут на мгновение — назови, сколько их', en: 'The dots flash for an instant — say how many there were' },
+  qcHold: { ru: 'Держи число в уме', en: 'Keep the number in mind' },
+  qcResultWin: { ru: 'Уровень взят: {p}% верных', en: 'Level cleared: {p}% correct' },
+  qcResultFail: { ru: 'Верных {p}% — нужно {need}%', en: '{p}% correct — you need {need}%' },
+  qcWas: { ru: 'было {n}', en: 'there were {n}' },
+  nbResultWin: { ru: 'Уровень взят: верно {hits}, ошибок {errors}', en: 'Level cleared: {hits} correct, {errors} errors' },
+  nbResultFail: { ru: 'Ошибок {errors} — можно не больше {max}', en: '{errors} errors — at most {max} allowed' },
+  nbPickChips: { ru: 'выбери фишки', en: 'pick the chips' },
+  nbCollected: { ru: 'собрано: {sum}', en: 'total: {sum}' },
   // >>> SCREEN_STRINGS
 };
 

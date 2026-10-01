@@ -3301,5 +3301,17 @@ const t: Record<string, string> = {
   "teachHiddenHalf": "اسأل «{q}»: نعم عند {yes}، ولا عند {no}. أفضل سؤال يقسم المتبقين إلى نصفين قدر الإمكان: أي إجابة تُسقط النصف.",
   "teachHiddenLast": "بقي واحد — إنه المختبئ. اختره واضغط «إنه هو!».",
   "rbHeadStart": "تقدّم {n}",
+  "sprintReadyHint": "{n} ثانية — حُلّ أكبر عدد ممكن",
+  "sprintResultWin": "اجتزت المستوى: {correct} إجابة صحيحة، {score} نقطة، أفضل سلسلة {streak}",
+  "sprintResultFail": "{correct} إجابة صحيحة — المطلوب {need}",
+  "qcIntro": "تومض النقاط لحظةً — قل كم عددها",
+  "qcHold": "احتفظ بالعدد في ذهنك",
+  "qcResultWin": "اجتزت المستوى: {p}% صحيحة",
+  "qcResultFail": "{p}% صحيحة — المطلوب {need}%",
+  "qcWas": "كان العدد {n}",
+  "nbResultWin": "اجتزت المستوى: {hits} صحيحة، {errors} أخطاء",
+  "nbResultFail": "{errors} أخطاء — المسموح {max} على الأكثر",
+  "nbPickChips": "اختر الرقائق",
+  "nbCollected": "المجموع: {sum}",
 };
 export default t;

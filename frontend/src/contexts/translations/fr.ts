@@ -3300,5 +3300,17 @@ const t: Record<string, string> = {
   "teachHiddenHalf": "Demande « {q} » : oui pour {yes}, non pour {no}. La meilleure question coupe les restants au plus près de la moitié : chaque réponse en élimine la moitié.",
   "teachHiddenLast": "Il n’en reste qu’un : c’est lui. Choisis-le et appuie sur « C’est lui ! ».",
   "rbHeadStart": "avance {n}",
+  "sprintReadyHint": "{n} secondes : résous-en le plus possible",
+  "sprintResultWin": "Niveau réussi : {correct} bonnes réponses, {score} points, meilleure série {streak}",
+  "sprintResultFail": "{correct} bonnes réponses — il en faut {need}",
+  "qcIntro": "Les points s’allument un instant : dis combien il y en a",
+  "qcHold": "Garde le nombre en tête",
+  "qcResultWin": "Niveau réussi : {p} % de bonnes réponses",
+  "qcResultFail": "{p} % de bonnes réponses — il en faut {need} %",
+  "qcWas": "il y en avait {n}",
+  "nbResultWin": "Niveau réussi : {hits} bonnes réponses, {errors} erreurs",
+  "nbResultFail": "{errors} erreurs — {max} au maximum",
+  "nbPickChips": "choisis les jetons",
+  "nbCollected": "total : {sum}",
 };
 export default t;

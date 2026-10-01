@@ -3300,5 +3300,17 @@ const t: Record<string, string> = {
   "teachHiddenHalf": "「{q}」라고 물어보세요: 예는 {yes}명, 아니요는 {no}명. 가장 좋은 질문은 남은 사람을 반에 가깝게 나눠요. 어떤 답이든 절반이 사라져요.",
   "teachHiddenLast": "한 명 남았어요. 그 사람이 숨은 사람이에요. 골라서 「바로 이 사람!」을 누르세요.",
   "rbHeadStart": "앞서 출발 {n}",
+  "sprintReadyHint": "{n}초 — 최대한 많이 풀어 보세요",
+  "sprintResultWin": "레벨 통과: 정답 {correct}개, {score}점, 최고 연속 {streak}",
+  "sprintResultFail": "정답 {correct}개 — {need}개가 필요해요",
+  "qcIntro": "점이 잠깐 번쩍여요 — 몇 개였는지 말해 보세요",
+  "qcHold": "숫자를 기억해 두세요",
+  "qcResultWin": "레벨 통과: 정답률 {p}%",
+  "qcResultFail": "정답률 {p}% — {need}%가 필요해요",
+  "qcWas": "정답은 {n}개",
+  "nbResultWin": "레벨 통과: 정답 {hits}개, 실수 {errors}개",
+  "nbResultFail": "실수 {errors}개 — 최대 {max}개까지만 돼요",
+  "nbPickChips": "칩을 고르세요",
+  "nbCollected": "합계: {sum}",
 };
 export default t;

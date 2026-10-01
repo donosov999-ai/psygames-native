@@ -3308,5 +3308,17 @@ const t: Record<string, string> = {
   "teachHiddenHalf": "«{q}» पूछो: हाँ — {yes}, नहीं — {no}। सबसे अच्छा सवाल बचे हुओं को लगभग आधा-आधा बाँटता है: कोई भी जवाब आधे को हटा देता है।",
   "teachHiddenLast": "एक बचा है — वही छिपा है। उसे चुनो और «यही है!» दबाओ।",
   "rbHeadStart": "बढ़त {n}",
+  "sprintReadyHint": "{n} सेकंड — जितने हो सकें, हल करें",
+  "sprintResultWin": "स्तर पूरा: {correct} सही, {score} अंक, सबसे लंबी लड़ी {streak}",
+  "sprintResultFail": "{correct} सही — {need} चाहिए",
+  "qcIntro": "बिंदु पल भर के लिए चमकेंगे — बताइए, कितने थे",
+  "qcHold": "संख्या याद रखिए",
+  "qcResultWin": "स्तर पूरा: {p}% सही",
+  "qcResultFail": "{p}% सही — {need}% चाहिए",
+  "qcWas": "थे {n}",
+  "nbResultWin": "स्तर पूरा: {hits} सही, {errors} गलतियाँ",
+  "nbResultFail": "{errors} गलतियाँ — अधिकतम {max} की अनुमति है",
+  "nbPickChips": "चिप्स चुनिए",
+  "nbCollected": "जोड़: {sum}",
 };
 export default t;

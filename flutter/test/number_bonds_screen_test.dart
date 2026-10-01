@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/number_bonds/model.dart';
 import 'package:psygames_flutter/games/number_bonds/screen.dart';
+import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -10,6 +11,12 @@ import 'support/boss_probe.dart';
 /// ПАРТИЯ ИГРАЕТСЯ НАЖАТИЯМИ ПО ФИШКАМ. Числа проба читает С ЭКРАНА и сама ищет
 /// решение перебором — как человек, а не подглядывая в генератор.
 void main() {
+  setUpAll(() async {
+    // Подписи — из общего словаря, как в приложении (экран переведён на L.t, задача 4b6f863e).
+    TestWidgetsFlutterBinding.ensureInitialized();
+    await L.load('ru');
+  });
+
   late SharedState state;
   var opens = 0;
 
@@ -62,7 +69,7 @@ void main() {
   testWidgets('🔴 раунд проходится нажатиями: решение принимается САМО, без кнопки', (tester) async {
     await open(tester);
     final cfg = levelParams(1);
-    expect(find.text('Состав числа'), findsOneWidget);
+    expect(find.text(L.t('numberBonds')), findsOneWidget);
 
     for (var i = 1; i <= cfg.trials; i += 1) {
       expect(find.text('$i/${cfg.trials}'), findsOneWidget, reason: 'задача $i');
@@ -77,7 +84,7 @@ void main() {
       // Кнопку «Проверить» не трогаем — верное засчитывается само.
       await tester.pump(const Duration(milliseconds: 700));
     }
-    expect(find.text('Следующий уровень'), findsOneWidget, reason: 'без ошибок — уровень взят');
+    expect(find.text(L.t('nextLabel')), findsOneWidget, reason: 'без ошибок — уровень взят');
   });
 
   testWidgets('🔴 «Проверить» с одной фишкой — ошибка, как в вебе', (tester) async {
@@ -119,7 +126,7 @@ void main() {
       }
       await tester.pump(const Duration(milliseconds: 700));
     }
-    expect(find.text('Ещё раз'), findsOneWidget, reason: 'три ошибки — уровень не взят');
+    expect(find.text(L.t('retry')), findsOneWidget, reason: 'три ошибки — уровень не взят');
   });
 
   testWidgets('🔴 окно на задачу: просрочка засчитывается ошибкой, детские уровни без окна', (tester) async {
@@ -127,7 +134,7 @@ void main() {
     await open(tester, level: 4, seed: 'окно');
     final cfg = levelParams(4);
     expect(cfg.windowMs, 40000);
-    expect(find.text('40 с'), findsOneWidget, reason: 'окно показано');
+    expect(find.text('40 ${L.t('secShort')}'), findsOneWidget, reason: 'окно показано');
     await tester.pump(const Duration(seconds: 41));
     await tester.pump(const Duration(milliseconds: 700));
     expect(find.text('1/$bondsErrorsAllowed'), findsOneWidget, reason: 'просрочка — ошибка');
@@ -151,7 +158,7 @@ void main() {
 
   testWidgets('🔴 веха: победа на 3-м уровне открывает бой «сложи подсвеченные», на 2-м — нет', (tester) async {
     // В вебе этот экран зовёт BossRound каждые три уровня; при переносе бой пропал молча.
-    await expectBossAfterWin(tester, won: find.text('Следующий уровень'), hudKey: 'bossHudCounting', play: (level) async {
+    await expectBossAfterWin(tester, won: find.text(L.t('nextLabel')), hudKey: 'bossHudCounting', play: (level) async {
       await open(tester, level: level, seed: 'босс$level');
       final cfg = levelParams(level);
       for (var i = 1; i <= cfg.trials; i += 1) {

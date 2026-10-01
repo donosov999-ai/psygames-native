@@ -69,11 +69,8 @@ void main() {
     'games/spatial_span/screen.dart': 21,
     'games/ospan/screen.dart': 21,
     'games/ospan/model.dart': 20,
-    'games/number_bonds/screen.dart': 18,
     'games/mahjong/screen.dart': 18,
     'games/pattern/screen.dart': 18,
-    'games/quick_count/screen.dart': 18,
-    'games/math_sprint/screen.dart': 18,
     'main.dart': 16,
     'games/goods_sort/screen.dart': 15,
     'games/samurai/screen.dart': 14,
@@ -112,7 +109,10 @@ void main() {
   // на 12 языков у них уже был — `node flutter/tools/embed-l10n.mjs` привёз их сам.
   // 30.09 — «Пространство»: правила четырёх упражнений «Лаборатории» и «Понятно» ушли в
   // словарь (задача 848da95d), spatial_lab 51 → 43: 699 − 8.
-  const total = 691;
+  // 02.10 — «Поиск» и «Счёт» (задача 4b6f863e): спринт, быстрый счёт и состав числа переведены
+  // целиком, −54 (три файла ушли из списка). Готовые ключи веба взяты где были, 12 новых — сразу
+  // на 12 языках: 691 − 54.
+  const total = 637;
 
   final counts = _scan(Directory('lib'));
 

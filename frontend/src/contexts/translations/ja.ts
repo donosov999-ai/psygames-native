@@ -3299,5 +3299,17 @@ const t: Record<string, string> = {
   "teachHiddenHalf": "「{q}」と聞こう：はいは{yes}人、いいえは{no}人。いちばんいい質問は、残りをできるだけ半分に分ける。どちらの答えでも半分が消える。",
   "teachHiddenLast": "残りはひとり。それがかくれている人だ。選んで「この人だ！」を押そう。",
   "rbHeadStart": "先行 {n}",
+  "sprintReadyHint": "{n} 秒——できるだけたくさん解こう",
+  "sprintResultWin": "レベルクリア：正解 {correct}、{score} 点、最長連続 {streak}",
+  "sprintResultFail": "正解 {correct}——必要なのは {need}",
+  "qcIntro": "点が一瞬だけ光ります——いくつあったか答えよう",
+  "qcHold": "数を覚えておこう",
+  "qcResultWin": "レベルクリア：正答率 {p}%",
+  "qcResultFail": "正答率 {p}%——必要なのは {need}%",
+  "qcWas": "正解は {n}",
+  "nbResultWin": "レベルクリア：正解 {hits}、ミス {errors}",
+  "nbResultFail": "ミス {errors}——許されるのは {max} まで",
+  "nbPickChips": "チップを選ぼう",
+  "nbCollected": "合計：{sum}",
 };
 export default t;
