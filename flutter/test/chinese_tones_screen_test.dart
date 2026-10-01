@@ -98,6 +98,20 @@ void main() {
     expect(state.get(SharedState.levelKey('chinese_tones', 'nzt48')), '2');
   });
 
+  testWidgets('🔴 кнопки тона — нарисованная линия, а не знак ˊ ˋ (их нет в Roboto — пустые квадраты)', (tester) async {
+    await boot(tester);
+    await tester.tap(find.byKey(const Key('ct-start')));
+    await tester.pump(const Duration(milliseconds: 450));
+    for (var i = 0; i < 4; i += 1) {
+      final option = find.byKey(Key('ct-option-$i'));
+      expect(find.descendant(of: option, matching: find.byKey(Key('ct-option-line-${i + 1}'))), findsOneWidget,
+          reason: 'кнопка ${i + 1} рисует линию своего тона');
+      final texts = tester.widgetList<Text>(find.descendant(of: option, matching: find.byType(Text))).map((t) => t.data ?? '');
+      final glyphs = texts.join().runes.where((r) => r >= 0x02B0 && r <= 0x02FF).map(String.fromCharCode).toList();
+      expect(glyphs, isEmpty, reason: 'знаки-модификаторы на кнопке ${i + 1}: $glyphs');
+    }
+  });
+
   testWidgets('🔴 слог целиком с 11-го: верно — написание из банка, под словом шум', (tester) async {
     final sent = <Map<String, dynamic>>[];
     SessionReport.sink = (j) async => sent.add(jsonDecode(j) as Map<String, dynamic>);
