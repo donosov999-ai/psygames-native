@@ -108,6 +108,7 @@ import '../games/chess_blind/screen.dart';
 import '../games/chess_hub/screen.dart';
 import '../games/scholars_mate/screen.dart';
 import 'shared_state.dart';
+import 'restart_scope.dart';
 import 'tap_latency.dart';
 
 
@@ -825,9 +826,14 @@ class _HybridAppState extends State<HybridApp> {
     if (step != null && stepInfo == null) unawaited(_loadStepInfo(step));
     final result = await Navigator.of(context).push(
       MaterialPageRoute(
+        // «Заново» в паузе любой игры — пересоздание экрана в RestartScope (restart_scope.dart).
         builder: (_) => step == null
-            ? build(widget.state)
-            : WarmupStepFrame(info: step, onSkip: _skipNativeStep, child: build(widget.state)),
+            ? RestartScope(builder: (_) => build(widget.state))
+            : WarmupStepFrame(
+                info: step,
+                onSkip: _skipNativeStep,
+                child: RestartScope(builder: (_) => build(widget.state)),
+              ),
       ),
     );
     // ⚠️ Отметку снимаем, ТОЛЬКО если она всё ещё наша: когда страница ушла вперёд,
