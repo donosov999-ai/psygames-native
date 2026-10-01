@@ -6,7 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/shell/l10n.dart';
 
 /// 🔴 ЭКРАН НАСТРОЙКИ ВЛЕЗАЕТ В ОКНО: «Начать» на первом экране, ничего нажимаемого за краем,
-/// переполнений нет. Задача ae1d918b: замер 17.09.2026 на веб-экранах раздела «Объём памяти» —
+/// переполнений нет, прокрутки настроек не больше 0,1 окна. Задача ae1d918b: замер 17.09.2026 на веб-экранах раздела «Объём памяти» —
 /// «Начать» уезжала ниже экрана у пяти игр (до 1,8 экрана у «Цифрового ряда»).
 ///
 /// Мерится на 360×640 — самом тесном окне, которое приложение поддерживает, — и на ДВУХ языках:
@@ -36,6 +36,15 @@ Future<void> expectSettingsFit(WidgetTester tester, Future<void> Function() open
     for (final e in pressable.evaluate()) {
       final r = tester.getRect(find.byWidget(e.widget).first);
       if (r.left < 0 || r.right > 360) problems.add('$lang: ${e.widget.runtimeType} за краем — $r');
+    }
+    // Приёмка 17.09: все группы выбора на первом экране — настройки прокручиваются не больше
+    // чем на 0,1 окна (страница ≤ 1,1 экрана). Замер 02.10.2026 на 360×640: у семи экранов
+    // раздела самое длинное — 48 пт прокрутки у «Цифрового ряда» по-английски (1,07 экрана).
+    for (final e in find.byType(Scrollable).evaluate()) {
+      final pos = ((e as StatefulElement).state as ScrollableState).position;
+      if (pos.maxScrollExtent > 64) {
+        problems.add('$lang: настройки длиннее 1,1 экрана — прокрутка ${pos.maxScrollExtent.round()} пт');
+      }
     }
     // Английский — основной язык (решение Дениса 01.10): ни одной русской буквы на экране.
     if (lang == 'en') {
