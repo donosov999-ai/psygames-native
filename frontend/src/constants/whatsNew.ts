@@ -26,7 +26,7 @@ export const WHATS_NEW: WhatsNewEntry[] = [
       'Гимнастика для глаз во весь экран, стереокартинки — портретом',
       'Дыхание звучит: свой тон и вибрация на вдох, задержку и выдох, щелчки отсчёта',
       '«Заново» в меню паузы у каждой игры — и это не считается проигрышем',
-      'Вибрация во всех играх слушается переключателя в настройках',
+      'Вибрация стала ощутимой и во всех играх слушается переключателя в настройках',
       'Сортировка товаров: коробки схлопываются с 31-го уровня (было с 56-го), с 52-го задние ряды всегда вместе',
     ],
     en: [
@@ -37,7 +37,7 @@ export const WHATS_NEW: WhatsNewEntry[] = [
       'Eye gym goes full screen; stereograms in portrait',
       'Breathing now sounds: its own tone and vibration for inhale, hold and exhale, plus countdown clicks',
       'Restart in the pause menu of every game — and it does not count as a loss',
-      'Vibration in every game follows the switch in Settings',
+      'Vibration is now clearly felt and follows the Settings switch in every game',
       'Goods Sorting: boxes collapse from level 31 (was 56); from level 52 the back rows always come together',
     ],
   },
