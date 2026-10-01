@@ -74,7 +74,7 @@ class _RollAndBankScreenState extends State<RollAndBankScreen> {
     _botTimer?.cancel();
     _levelNo = _ladder.level;
     final step = rollAndBankStep(_levelNo);
-    _game = RollAndBank(goal: step.goal, botHold: step.botHold, rnd: _rnd);
+    _game = RollAndBank(goal: step.goal, botHold: step.botHold, headStart: step.headStart, rnd: _rnd);
     _note = L.t('rbYourTurn');
     _burnt = false;
     _started = DateTime.now();
@@ -136,11 +136,27 @@ class _RollAndBankScreenState extends State<RollAndBankScreen> {
       'winner': g.winner == 0 ? 'player' : 'bot',
       'player_position': g.position[0],
       'bot_position': g.position[1],
+      /*
+       * УСЛОВИЕ УРОВНЯ — В САМУ ПАРТИЮ, как у всех проб раздела: трасса, бот и его
+       * фора. Иначе победа на L3 и на L20 в статистике неразличимы.
+       */
       'goal': g.goal,
       'bot_hold': g.botHold,
+      'bot': g.botHold == null ? 'never_banks' : 'threshold',
+      'head_start': g.headStart,
       'rolls': g.rolls,
       'busts': g.busts,
       'banks': g.banks,
+      /*
+       * МЕРА РИСКА — рядом с BART (задача ddb5da3b): по ХОДАМ, а не по броскам.
+       * Сколько бросков до «сохранить» (только ходы, закрытые сохранением), какая доля
+       * ходов сгорела и сколько несохранённого человек в среднем сохраняет — его порог.
+       * Пустое плечо — null, а не 0: «ни разу не сохранял» не равно «сохранял сразу».
+       */
+      'turns': g.turns,
+      'mean_rolls_to_bank': g.meanRollsToBank,
+      'bust_rate': g.bustRate,
+      'mean_bank_total': g.meanBankTotal,
     };
     final seconds = DateTime.now().difference(_started).inSeconds;
     setState(() => _note = g.winner == 0 ? L.t('rbWin') : L.t('rbLose'));
@@ -285,6 +301,13 @@ class _Board extends StatelessWidget {
             ),
             _Lane(
               label: L.t('rbBot'),
+              /*
+               * Фора видна на самой дорожке бота: без подписи человек увидел бы бота,
+               * стоящего впереди с первого хода, и счёл бы это ошибкой игры.
+               * ⚠️ ОТДЕЛЬНОЙ СТРОКОЙ, А НЕ В ЗАГОЛОВКЕ: «Bot · head start 28» рядом
+               * с «28 / 30» и «(+12)» переполнял строку на 28 px уже на 375 px.
+               */
+              caption: game.headStart > 0 ? L.f('rbHeadStart', {'n': '${game.headStart}'}) : null,
               pos: game.position[1],
               banked: game.banked[1],
               goal: game.goal,
@@ -302,6 +325,7 @@ class _Board extends StatelessWidget {
 class _Lane extends StatelessWidget {
   const _Lane({
     required this.label,
+    this.caption,
     required this.pos,
     required this.banked,
     required this.goal,
@@ -310,6 +334,9 @@ class _Lane extends StatelessWidget {
   });
 
   final String label;
+
+  /// Строка под заголовком дорожки (фора бота); `null` — нет строки.
+  final String? caption;
   final int pos;
   final int banked;
   final int goal;
@@ -330,6 +357,8 @@ class _Lane extends StatelessWidget {
           Text('$pos / $goal', style: const TextStyle(fontFeatures: [FontFeature.tabularFigures()])),
           if (pos > banked) Text('  (+${pos - banked})', style: TextStyle(color: color)),
         ]),
+        if (caption != null)
+          Text(caption!, style: TextStyle(fontSize: 12, color: color), maxLines: 1, overflow: TextOverflow.ellipsis),
         const SizedBox(height: 4),
         LayoutBuilder(builder: (context, c) {
           final w = c.maxWidth;

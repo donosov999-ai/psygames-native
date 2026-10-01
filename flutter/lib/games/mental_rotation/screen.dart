@@ -11,6 +11,7 @@ import '../../shell/demo_lesson.dart';
 import '../../shell/l10n.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/level_rules.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import 'formation.dart';
@@ -308,6 +309,8 @@ class _MentalRotationScreenState extends State<MentalRotationScreen> {
     final task = _task;
 
     return GameShell(
+      // Правило уровня объявляет каркас — в спокойный момент, не поверх партии (задача e371fd3a).
+      levelRule: LevelRuleSpot(gameId: 'mental_rotation', level: _ladder.level, state: widget.state, calm: _phase != Phase.playing),
       title: _title,
       onLesson: () => openDemoLesson(context, title: _title, trials: _demoTrials()),
       onRules: () => _showRules(context),

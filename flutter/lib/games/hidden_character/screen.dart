@@ -107,15 +107,19 @@ class _HiddenCharacterScreenState extends State<HiddenCharacterScreen> {
       'won': won,
       'questions_used': r.asked.length,
       'optimal_questions': r.optimal,
+      'extra_questions': r.extraQuestions,
+      // Навык — ошибочные выборы (вопрос ухудшил гарантию), а не число вопросов.
+      'mistakes': r.mistakes,
+      'traps': (r.traps * 100).round() / 100,
       'candidates_at_pick': candidates,
       'suspects': r.suspects.length,
       'features': r.features.length,
     };
     final seconds = DateTime.now().difference(_started).inSeconds;
     if (won) {
-      await _ladder.win(errors: r.extraQuestions, timeSeconds: seconds, details: details);
+      await _ladder.win(errors: r.mistakes, timeSeconds: seconds, details: details);
     } else {
-      await _ladder.fail(errors: r.extraQuestions + 1, timeSeconds: seconds, details: details);
+      await _ladder.fail(errors: r.mistakes + 1, timeSeconds: seconds, details: details);
     }
     if (mounted) setState(() {});
   }
@@ -133,10 +137,11 @@ class _HiddenCharacterScreenState extends State<HiddenCharacterScreen> {
     padding: const EdgeInsets.symmetric(horizontal: 12),
   );
 
+  /// Звёзды — за выбор вопросов, а не за удачу ответов (замер 30.09 в model.dart).
   int get _stars {
     final r = _round!;
-    if (r.extraQuestions == 0) return 3;
-    return r.extraQuestions == 1 ? 2 : 1;
+    if (r.mistakes == 0) return 3;
+    return r.mistakes == 1 ? 2 : 1;
   }
 
   /*

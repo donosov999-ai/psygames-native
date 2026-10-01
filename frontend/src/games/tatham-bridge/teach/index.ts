@@ -4,6 +4,7 @@
  * Здесь ничего не пишут руками: свой режим вписывается в `sections/<раздел>.teach.ts`.
  */
 import type { УчительРежима } from './types';
+import { УЧИТЕЛЯ_РАЗДЕЛА as ШАХМАТЫ } from '../sections/chess.teach';
 import { УЧИТЕЛЯ_РАЗДЕЛА as СЧЁТ } from '../sections/counting.teach';
 import { УЧИТЕЛЯ_РАЗДЕЛА as ГОЛОВОЛОМКИ } from '../sections/puzzles.teach';
 import { УЧИТЕЛЯ_РАЗДЕЛА as ПОИСК } from '../sections/search.teach';
@@ -12,7 +13,7 @@ import { УЧИТЕЛЯ_РАЗДЕЛА as ПРОСТРАНСТВО } from '../se
 import { УЧИТЕЛЯ_РАЗДЕЛА as СУДОКУ } from '../sections/sudoku.teach';
 
 export const УЧИТЕЛЯ: Record<string, УчительРежима> = {
-  ...СЧЁТ, ...ГОЛОВОЛОМКИ, ...ПОИСК, ...СОРТИРОВКА, ...ПРОСТРАНСТВО, ...СУДОКУ,
+  ...СЧЁТ, ...ГОЛОВОЛОМКИ, ...ПОИСК, ...СОРТИРОВКА, ...ШАХМАТЫ, ...ПРОСТРАНСТВО, ...СУДОКУ,
 };
 
 export type { УчительРежима, КарточкаУрока, РамкаУрока, НажатиеУрока, ВходУрока } from './types';

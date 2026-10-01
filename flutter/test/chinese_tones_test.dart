@@ -35,7 +35,9 @@ void main() {
         if (applyTone(stripTone(s.pinyin), toneOf(s.pinyin)) != s.pinyin) bad.add(s.pinyin);
       }
     }
-    expect(bank.values.fold<int>(0, (a, l) => a + l.length), 429);
+    // 424: из банка выброшены слова, чей записанный тон расходится с обычным чтением знака — голос
+    // прочёл бы другой тон (`ZH_TONE_BANK_DROPPED`, «Память и слух» 30.09.2026).
+    expect(bank.values.fold<int>(0, (a, l) => a + l.length), 424);
     expect(bad, isEmpty);
   });
 

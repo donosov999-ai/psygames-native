@@ -1,0 +1,7045 @@
+{
+ "taken": "2026-09-30",
+ "tool": "frontend/scripts/flutter-rhythm-pitch-reference.test.ts",
+ "rngSeq": [
+  0.5166419988963753,
+  0.6596221292857081,
+  0.0018796597141772509,
+  0.8993499737698585,
+  0.7205349628347903,
+  0.47386677167378366,
+  0.9036288792267442,
+  0.6176504602190107
+ ],
+ "seeds": [
+  {
+   "raw": "  Hello World_Seed  ",
+   "normalized": "hello-world-seed",
+   "hash": 3057411192
+  },
+  {
+   "raw": "a--b",
+   "normalized": "a-b",
+   "hash": 713678691
+  },
+  {
+   "raw": "",
+   "normalized": "rhythm-pitch",
+   "hash": 3083085434
+  },
+  {
+   "raw": "x",
+   "normalized": "x",
+   "hash": 4245442695
+  }
+ ],
+ "shuffled": [
+  0,
+  4,
+  5,
+  1,
+  2,
+  3
+ ],
+ "rounds": [
+  {
+   "seed": "daily-2026-09-30",
+   "level": 1,
+   "mode": "rhythm-echo",
+   "round": {
+    "id": "rhythm-pitch:daily-2026-09-30:1:rhythm-echo",
+    "seed": "daily-2026-09-30",
+    "level": 1,
+    "mode": "rhythm-echo",
+    "difficulty": 17,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": true,
+    "beatCount": 3,
+    "bpm": 60,
+    "unitMs": 1000,
+    "beats": [
+     {
+      "onsetMs": 0,
+      "accent": false
+     },
+     {
+      "onsetMs": 1000,
+      "accent": false
+     },
+     {
+      "onsetMs": 2000,
+      "accent": false
+     }
+    ],
+    "pauseCount": 0,
+    "syncopationCount": 0,
+    "accentCount": 0
+   },
+   "issues": []
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 1,
+   "mode": "pitch-path",
+   "round": {
+    "id": "rhythm-pitch:daily-2026-09-30:1:pitch-path",
+    "seed": "daily-2026-09-30",
+    "level": 1,
+    "mode": "pitch-path",
+    "difficulty": 18,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": true,
+    "task": "direction",
+    "toneCount": 2,
+    "pitchLevelCount": 2,
+    "intervalSemitones": 6,
+    "frequenciesHz": [
+     277.1826309768721,
+     391.99543598174927
+    ],
+    "sequence": [
+     0,
+     1
+    ],
+    "directionAnswer": "higher"
+   },
+   "issues": []
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 1,
+   "auto": "rhythm-echo"
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 2,
+   "mode": "rhythm-echo",
+   "round": {
+    "id": "rhythm-pitch:daily-2026-09-30:2:rhythm-echo",
+    "seed": "daily-2026-09-30",
+    "level": 2,
+    "mode": "rhythm-echo",
+    "difficulty": 17,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": true,
+    "beatCount": 3,
+    "bpm": 60,
+    "unitMs": 1000,
+    "beats": [
+     {
+      "onsetMs": 0,
+      "accent": false
+     },
+     {
+      "onsetMs": 1000,
+      "accent": false
+     },
+     {
+      "onsetMs": 2000,
+      "accent": false
+     }
+    ],
+    "pauseCount": 0,
+    "syncopationCount": 0,
+    "accentCount": 0
+   },
+   "issues": []
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 2,
+   "mode": "pitch-path",
+   "round": {
+    "id": "rhythm-pitch:daily-2026-09-30:2:pitch-path",
+    "seed": "daily-2026-09-30",
+    "level": 2,
+    "mode": "pitch-path",
+    "difficulty": 24,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": true,
+    "task": "direction",
+    "toneCount": 2,
+    "pitchLevelCount": 2,
+    "intervalSemitones": 5,
+    "frequenciesHz": [
+     293.6647679174076,
+     391.99543598174927
+    ],
+    "sequence": [
+     1,
+     0
+    ],
+    "directionAnswer": "lower"
+   },
+   "issues": []
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 2,
+   "auto": "pitch-path"
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 3,
+   "mode": "rhythm-echo",
+   "round": {
+    "id": "rhythm-pitch:daily-2026-09-30:3:rhythm-echo",
+    "seed": "daily-2026-09-30",
+    "level": 3,
+    "mode": "rhythm-echo",
+    "difficulty": 24,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": true,
+    "beatCount": 4,
+    "bpm": 70,
+    "unitMs": 857.1428571428571,
+    "beats": [
+     {
+      "onsetMs": 0,
+      "accent": false
+     },
+     {
+      "onsetMs": 857.143,
+      "accent": false
+     },
+     {
+      "onsetMs": 1714.286,
+      "accent": false
+     },
+     {
+      "onsetMs": 2571.429,
+      "accent": false
+     }
+    ],
+    "pauseCount": 0,
+    "syncopationCount": 0,
+    "accentCount": 0
+   },
+   "issues": []
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 3,
+   "mode": "pitch-path",
+   "round": {
+    "id": "rhythm-pitch:daily-2026-09-30:3:pitch-path",
+    "seed": "daily-2026-09-30",
+    "level": 3,
+    "mode": "pitch-path",
+    "difficulty": 30,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": true,
+    "task": "direction",
+    "toneCount": 2,
+    "pitchLevelCount": 2,
+    "intervalSemitones": 4,
+    "frequenciesHz": [
+     349.2282314330039,
+     440
+    ],
+    "sequence": [
+     0,
+     1
+    ],
+    "directionAnswer": "higher"
+   },
+   "issues": []
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 3,
+   "auto": "rhythm-echo"
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 4,
+   "mode": "rhythm-echo",
+   "round": {
+    "id": "rhythm-pitch:daily-2026-09-30:4:rhythm-echo",
+    "seed": "daily-2026-09-30",
+    "level": 4,
+    "mode": "rhythm-echo",
+    "difficulty": 27,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "beatCount": 4,
+    "bpm": 70,
+    "unitMs": 857.1428571428571,
+    "beats": [
+     {
+      "onsetMs": 0,
+      "accent": false
+     },
+     {
+      "onsetMs": 857.143,
+      "accent": false
+     },
+     {
+      "onsetMs": 2571.429,
+      "accent": false
+     },
+     {
+      "onsetMs": 3428.571,
+      "accent": false
+     }
+    ],
+    "pauseCount": 1,
+    "syncopationCount": 0,
+    "accentCount": 0
+   },
+   "issues": []
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 4,
+   "mode": "pitch-path",
+   "round": {
+    "id": "rhythm-pitch:daily-2026-09-30:4:pitch-path",
+    "seed": "daily-2026-09-30",
+    "level": 4,
+    "mode": "pitch-path",
+    "difficulty": 33,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "task": "sequence",
+    "toneCount": 3,
+    "pitchLevelCount": 3,
+    "intervalSemitones": 6,
+    "frequenciesHz": [
+     207.65234878997256,
+     293.6647679174076,
+     415.3046975799451
+    ],
+    "sequence": [
+     2,
+     0,
+     1
+    ],
+    "directionAnswer": null
+   },
+   "issues": []
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 4,
+   "auto": "pitch-path"
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 5,
+   "mode": "rhythm-echo",
+   "round": {
+    "id": "rhythm-pitch:daily-2026-09-30:5:rhythm-echo",
+    "seed": "daily-2026-09-30",
+    "level": 5,
+    "mode": "rhythm-echo",
+    "difficulty": 35,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "beatCount": 5,
+    "bpm": 80,
+    "unitMs": 750,
+    "beats": [
+     {
+      "onsetMs": 0,
+      "accent": true
+     },
+     {
+      "onsetMs": 750,
+      "accent": false
+     },
+     {
+      "onsetMs": 2250,
+      "accent": false
+     },
+     {
+      "onsetMs": 3000,
+      "accent": false
+     },
+     {
+      "onsetMs": 3750,
+      "accent": false
+     }
+    ],
+    "pauseCount": 1,
+    "syncopationCount": 0,
+    "accentCount": 1
+   },
+   "issues": []
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 5,
+   "mode": "pitch-path",
+   "round": {
+    "id": "rhythm-pitch:daily-2026-09-30:5:pitch-path",
+    "seed": "daily-2026-09-30",
+    "level": 5,
+    "mode": "pitch-path",
+    "difficulty": 33,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "task": "sequence",
+    "toneCount": 3,
+    "pitchLevelCount": 3,
+    "intervalSemitones": 6,
+    "frequenciesHz": [
+     293.6647679174076,
+     415.3046975799451,
+     587.3295358348151
+    ],
+    "sequence": [
+     2,
+     1,
+     0
+    ],
+    "directionAnswer": null
+   },
+   "issues": []
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 5,
+   "auto": "rhythm-echo"
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 6,
+   "mode": "rhythm-echo",
+   "round": {
+    "id": "rhythm-pitch:daily-2026-09-30:6:rhythm-echo",
+    "seed": "daily-2026-09-30",
+    "level": 6,
+    "mode": "rhythm-echo",
+    "difficulty": 38,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "beatCount": 5,
+    "bpm": 80,
+    "unitMs": 750,
+    "beats": [
+     {
+      "onsetMs": 0,
+      "accent": true
+     },
+     {
+      "onsetMs": 750,
+      "accent": false
+     },
+     {
+      "onsetMs": 2250,
+      "accent": false
+     },
+     {
+      "onsetMs": 3000,
+      "accent": true
+     },
+     {
+      "onsetMs": 3750,
+      "accent": true
+     }
+    ],
+    "pauseCount": 1,
+    "syncopationCount": 0,
+    "accentCount": 3
+   },
+   "issues": []
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 6,
+   "mode": "pitch-path",
+   "round": {
+    "id": "rhythm-pitch:daily-2026-09-30:6:pitch-path",
+    "seed": "daily-2026-09-30",
+    "level": 6,
+    "mode": "pitch-path",
+    "difficulty": 38,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "task": "sequence",
+    "toneCount": 4,
+    "pitchLevelCount": 3,
+    "intervalSemitones": 6,
+    "frequenciesHz": [
+     293.6647679174076,
+     415.3046975799451,
+     587.3295358348151
+    ],
+    "sequence": [
+     2,
+     0,
+     1,
+     0
+    ],
+    "directionAnswer": null
+   },
+   "issues": []
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 6,
+   "auto": "pitch-path"
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 7,
+   "mode": "rhythm-echo",
+   "round": {
+    "id": "rhythm-pitch:daily-2026-09-30:7:rhythm-echo",
+    "seed": "daily-2026-09-30",
+    "level": 7,
+    "mode": "rhythm-echo",
+    "difficulty": 49,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "beatCount": 6,
+    "bpm": 90,
+    "unitMs": 666.6666666666666,
+    "beats": [
+     {
+      "onsetMs": 0,
+      "accent": true
+     },
+     {
+      "onsetMs": 666.667,
+      "accent": false
+     },
+     {
+      "onsetMs": 2000,
+      "accent": true
+     },
+     {
+      "onsetMs": 2333.333,
+      "accent": false
+     },
+     {
+      "onsetMs": 3000,
+      "accent": false
+     },
+     {
+      "onsetMs": 3666.667,
+      "accent": true
+     }
+    ],
+    "pauseCount": 1,
+    "syncopationCount": 1,
+    "accentCount": 3
+   },
+   "issues": []
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 7,
+   "mode": "pitch-path",
+   "round": {
+    "id": "rhythm-pitch:daily-2026-09-30:7:pitch-path",
+    "seed": "daily-2026-09-30",
+    "level": 7,
+    "mode": "pitch-path",
+    "difficulty": 38,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "task": "sequence",
+    "toneCount": 4,
+    "pitchLevelCount": 3,
+    "intervalSemitones": 6,
+    "frequenciesHz": [
+     220,
+     311.1269837220809,
+     440
+    ],
+    "sequence": [
+     0,
+     1,
+     2,
+     0
+    ],
+    "directionAnswer": null
+   },
+   "issues": []
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 7,
+   "auto": "rhythm-echo"
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 8,
+   "mode": "rhythm-echo",
+   "round": {
+    "id": "rhythm-pitch:daily-2026-09-30:8:rhythm-echo",
+    "seed": "daily-2026-09-30",
+    "level": 8,
+    "mode": "rhythm-echo",
+    "difficulty": 46,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "beatCount": 6,
+    "bpm": 90,
+    "unitMs": 666.6666666666666,
+    "beats": [
+     {
+      "onsetMs": 0,
+      "accent": true
+     },
+     {
+      "onsetMs": 666.667,
+      "accent": false
+     },
+     {
+      "onsetMs": 2000,
+      "accent": false
+     },
+     {
+      "onsetMs": 2333.333,
+      "accent": false
+     },
+     {
+      "onsetMs": 3000,
+      "accent": false
+     },
+     {
+      "onsetMs": 3666.667,
+      "accent": false
+     }
+    ],
+    "pauseCount": 1,
+    "syncopationCount": 1,
+    "accentCount": 1
+   },
+   "issues": []
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 8,
+   "mode": "pitch-path",
+   "round": {
+    "id": "rhythm-pitch:daily-2026-09-30:8:pitch-path",
+    "seed": "daily-2026-09-30",
+    "level": 8,
+    "mode": "pitch-path",
+    "difficulty": 43,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "task": "sequence",
+    "toneCount": 5,
+    "pitchLevelCount": 3,
+    "intervalSemitones": 6,
+    "frequenciesHz": [
+     311.1269837220809,
+     440,
+     622.2539674441618
+    ],
+    "sequence": [
+     0,
+     2,
+     1,
+     2,
+     0
+    ],
+    "directionAnswer": null
+   },
+   "issues": []
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 8,
+   "auto": "pitch-path"
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 9,
+   "mode": "rhythm-echo",
+   "round": {
+    "id": "rhythm-pitch:daily-2026-09-30:9:rhythm-echo",
+    "seed": "daily-2026-09-30",
+    "level": 9,
+    "mode": "rhythm-echo",
+    "difficulty": 53,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "beatCount": 7,
+    "bpm": 100,
+    "unitMs": 600,
+    "beats": [
+     {
+      "onsetMs": 0,
+      "accent": true
+     },
+     {
+      "onsetMs": 600,
+      "accent": false
+     },
+     {
+      "onsetMs": 1800,
+      "accent": false
+     },
+     {
+      "onsetMs": 2700,
+      "accent": false
+     },
+     {
+      "onsetMs": 3300,
+      "accent": false
+     },
+     {
+      "onsetMs": 3900,
+      "accent": false
+     },
+     {
+      "onsetMs": 4500,
+      "accent": false
+     }
+    ],
+    "pauseCount": 1,
+    "syncopationCount": 1,
+    "accentCount": 1
+   },
+   "issues": []
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 9,
+   "mode": "pitch-path",
+   "round": {
+    "id": "rhythm-pitch:daily-2026-09-30:9:pitch-path",
+    "seed": "daily-2026-09-30",
+    "level": 9,
+    "mode": "pitch-path",
+    "difficulty": 50,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "task": "sequence",
+    "toneCount": 5,
+    "pitchLevelCount": 3,
+    "intervalSemitones": 5,
+    "frequenciesHz": [
+     261.6255653005986,
+     349.2282314330039,
+     466.1637615180899
+    ],
+    "sequence": [
+     2,
+     0,
+     1,
+     2,
+     0
+    ],
+    "directionAnswer": null
+   },
+   "issues": []
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 9,
+   "auto": "rhythm-echo"
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 10,
+   "mode": "rhythm-echo",
+   "round": {
+    "id": "rhythm-pitch:daily-2026-09-30:10:rhythm-echo",
+    "seed": "daily-2026-09-30",
+    "level": 10,
+    "mode": "rhythm-echo",
+    "difficulty": 59,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "beatCount": 7,
+    "bpm": 100,
+    "unitMs": 600,
+    "beats": [
+     {
+      "onsetMs": 0,
+      "accent": true
+     },
+     {
+      "onsetMs": 600,
+      "accent": false
+     },
+     {
+      "onsetMs": 1800,
+      "accent": false
+     },
+     {
+      "onsetMs": 2100,
+      "accent": true
+     },
+     {
+      "onsetMs": 2700,
+      "accent": true
+     },
+     {
+      "onsetMs": 3300,
+      "accent": false
+     },
+     {
+      "onsetMs": 4500,
+      "accent": false
+     }
+    ],
+    "pauseCount": 2,
+    "syncopationCount": 1,
+    "accentCount": 3
+   },
+   "issues": []
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 10,
+   "mode": "pitch-path",
+   "round": {
+    "id": "rhythm-pitch:daily-2026-09-30:10:pitch-path",
+    "seed": "daily-2026-09-30",
+    "level": 10,
+    "mode": "pitch-path",
+    "difficulty": 55,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "task": "sequence",
+    "toneCount": 6,
+    "pitchLevelCount": 3,
+    "intervalSemitones": 5,
+    "frequenciesHz": [
+     220,
+     293.6647679174076,
+     391.99543598174927
+    ],
+    "sequence": [
+     2,
+     1,
+     0,
+     1,
+     0,
+     1
+    ],
+    "directionAnswer": null
+   },
+   "issues": []
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 10,
+   "auto": "pitch-path"
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 11,
+   "mode": "rhythm-echo",
+   "round": {
+    "id": "rhythm-pitch:daily-2026-09-30:11:rhythm-echo",
+    "seed": "daily-2026-09-30",
+    "level": 11,
+    "mode": "rhythm-echo",
+    "difficulty": 69,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "beatCount": 8,
+    "bpm": 110,
+    "unitMs": 545.4545454545455,
+    "beats": [
+     {
+      "onsetMs": 0,
+      "accent": true
+     },
+     {
+      "onsetMs": 1090.909,
+      "accent": true
+     },
+     {
+      "onsetMs": 2181.818,
+      "accent": false
+     },
+     {
+      "onsetMs": 2454.545,
+      "accent": false
+     },
+     {
+      "onsetMs": 3000,
+      "accent": true
+     },
+     {
+      "onsetMs": 3545.455,
+      "accent": false
+     },
+     {
+      "onsetMs": 4636.364,
+      "accent": false
+     },
+     {
+      "onsetMs": 5181.818,
+      "accent": false
+     }
+    ],
+    "pauseCount": 3,
+    "syncopationCount": 1,
+    "accentCount": 3
+   },
+   "issues": []
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 11,
+   "mode": "pitch-path",
+   "round": {
+    "id": "rhythm-pitch:daily-2026-09-30:11:pitch-path",
+    "seed": "daily-2026-09-30",
+    "level": 11,
+    "mode": "pitch-path",
+    "difficulty": 55,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "task": "sequence",
+    "toneCount": 6,
+    "pitchLevelCount": 3,
+    "intervalSemitones": 5,
+    "frequenciesHz": [
+     311.1269837220809,
+     415.3046975799451,
+     554.3652619537442
+    ],
+    "sequence": [
+     2,
+     1,
+     0,
+     2,
+     0,
+     1
+    ],
+    "directionAnswer": null
+   },
+   "issues": []
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 11,
+   "auto": "rhythm-echo"
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 12,
+   "mode": "rhythm-echo",
+   "round": {
+    "id": "rhythm-pitch:daily-2026-09-30:12:rhythm-echo",
+    "seed": "daily-2026-09-30",
+    "level": 12,
+    "mode": "rhythm-echo",
+    "difficulty": 65,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "beatCount": 8,
+    "bpm": 110,
+    "unitMs": 545.4545454545455,
+    "beats": [
+     {
+      "onsetMs": 0,
+      "accent": true
+     },
+     {
+      "onsetMs": 545.455,
+      "accent": false
+     },
+     {
+      "onsetMs": 1636.364,
+      "accent": false
+     },
+     {
+      "onsetMs": 2454.545,
+      "accent": true
+     },
+     {
+      "onsetMs": 3000,
+      "accent": false
+     },
+     {
+      "onsetMs": 3272.727,
+      "accent": false
+     },
+     {
+      "onsetMs": 3818.182,
+      "accent": false
+     },
+     {
+      "onsetMs": 4363.636,
+      "accent": false
+     }
+    ],
+    "pauseCount": 1,
+    "syncopationCount": 2,
+    "accentCount": 2
+   },
+   "issues": []
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 12,
+   "mode": "pitch-path",
+   "round": {
+    "id": "rhythm-pitch:daily-2026-09-30:12:pitch-path",
+    "seed": "daily-2026-09-30",
+    "level": 12,
+    "mode": "pitch-path",
+    "difficulty": 60,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "task": "sequence",
+    "toneCount": 7,
+    "pitchLevelCount": 3,
+    "intervalSemitones": 5,
+    "frequenciesHz": [
+     349.2282314330039,
+     466.1637615180899,
+     622.2539674441618
+    ],
+    "sequence": [
+     1,
+     0,
+     2,
+     0,
+     2,
+     0,
+     2
+    ],
+    "directionAnswer": null
+   },
+   "issues": []
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 12,
+   "auto": "pitch-path"
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 13,
+   "mode": "rhythm-echo",
+   "round": {
+    "id": "rhythm-pitch:daily-2026-09-30:13:rhythm-echo",
+    "seed": "daily-2026-09-30",
+    "level": 13,
+    "mode": "rhythm-echo",
+    "difficulty": 77,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "beatCount": 9,
+    "bpm": 120,
+    "unitMs": 500,
+    "beats": [
+     {
+      "onsetMs": 0,
+      "accent": true
+     },
+     {
+      "onsetMs": 500,
+      "accent": false
+     },
+     {
+      "onsetMs": 1500,
+      "accent": false
+     },
+     {
+      "onsetMs": 2250,
+      "accent": false
+     },
+     {
+      "onsetMs": 2750,
+      "accent": false
+     },
+     {
+      "onsetMs": 3000,
+      "accent": true
+     },
+     {
+      "onsetMs": 3250,
+      "accent": true
+     },
+     {
+      "onsetMs": 3750,
+      "accent": false
+     },
+     {
+      "onsetMs": 4250,
+      "accent": false
+     }
+    ],
+    "pauseCount": 1,
+    "syncopationCount": 3,
+    "accentCount": 3
+   },
+   "issues": []
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 13,
+   "mode": "pitch-path",
+   "round": {
+    "id": "rhythm-pitch:daily-2026-09-30:13:pitch-path",
+    "seed": "daily-2026-09-30",
+    "level": 13,
+    "mode": "pitch-path",
+    "difficulty": 60,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "task": "sequence",
+    "toneCount": 7,
+    "pitchLevelCount": 3,
+    "intervalSemitones": 5,
+    "frequenciesHz": [
+     233.08188075904496,
+     311.1269837220809,
+     415.3046975799451
+    ],
+    "sequence": [
+     0,
+     2,
+     1,
+     0,
+     1,
+     2,
+     1
+    ],
+    "directionAnswer": null
+   },
+   "issues": []
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 13,
+   "auto": "rhythm-echo"
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 14,
+   "mode": "rhythm-echo",
+   "round": {
+    "id": "rhythm-pitch:daily-2026-09-30:14:rhythm-echo",
+    "seed": "daily-2026-09-30",
+    "level": 14,
+    "mode": "rhythm-echo",
+    "difficulty": 82,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "beatCount": 9,
+    "bpm": 120,
+    "unitMs": 500,
+    "beats": [
+     {
+      "onsetMs": 0,
+      "accent": true
+     },
+     {
+      "onsetMs": 500,
+      "accent": false
+     },
+     {
+      "onsetMs": 1500,
+      "accent": false
+     },
+     {
+      "onsetMs": 2250,
+      "accent": true
+     },
+     {
+      "onsetMs": 3250,
+      "accent": true
+     },
+     {
+      "onsetMs": 3750,
+      "accent": false
+     },
+     {
+      "onsetMs": 4250,
+      "accent": true
+     },
+     {
+      "onsetMs": 4500,
+      "accent": false
+     },
+     {
+      "onsetMs": 5500,
+      "accent": true
+     }
+    ],
+    "pauseCount": 3,
+    "syncopationCount": 2,
+    "accentCount": 5
+   },
+   "issues": []
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 14,
+   "mode": "pitch-path",
+   "round": {
+    "id": "rhythm-pitch:daily-2026-09-30:14:pitch-path",
+    "seed": "daily-2026-09-30",
+    "level": 14,
+    "mode": "pitch-path",
+    "difficulty": 72,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "task": "sequence",
+    "toneCount": 8,
+    "pitchLevelCount": 3,
+    "intervalSemitones": 4,
+    "frequenciesHz": [
+     349.2282314330039,
+     440,
+     554.3652619537442
+    ],
+    "sequence": [
+     1,
+     2,
+     0,
+     1,
+     0,
+     1,
+     0,
+     2
+    ],
+    "directionAnswer": null
+   },
+   "issues": []
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 14,
+   "auto": "pitch-path"
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 15,
+   "mode": "rhythm-echo",
+   "round": {
+    "id": "rhythm-pitch:daily-2026-09-30:15:rhythm-echo",
+    "seed": "daily-2026-09-30",
+    "level": 15,
+    "mode": "rhythm-echo",
+    "difficulty": 86,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "beatCount": 10,
+    "bpm": 130,
+    "unitMs": 461.53846153846155,
+    "beats": [
+     {
+      "onsetMs": 0,
+      "accent": true
+     },
+     {
+      "onsetMs": 461.538,
+      "accent": true
+     },
+     {
+      "onsetMs": 1384.615,
+      "accent": false
+     },
+     {
+      "onsetMs": 2076.923,
+      "accent": false
+     },
+     {
+      "onsetMs": 2538.462,
+      "accent": false
+     },
+     {
+      "onsetMs": 3230.769,
+      "accent": false
+     },
+     {
+      "onsetMs": 4153.846,
+      "accent": false
+     },
+     {
+      "onsetMs": 4615.385,
+      "accent": false
+     },
+     {
+      "onsetMs": 5076.923,
+      "accent": false
+     },
+     {
+      "onsetMs": 5307.692,
+      "accent": false
+     }
+    ],
+    "pauseCount": 2,
+    "syncopationCount": 3,
+    "accentCount": 2
+   },
+   "issues": []
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 15,
+   "mode": "pitch-path",
+   "round": {
+    "id": "rhythm-pitch:daily-2026-09-30:15:pitch-path",
+    "seed": "daily-2026-09-30",
+    "level": 15,
+    "mode": "pitch-path",
+    "difficulty": 72,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "task": "sequence",
+    "toneCount": 8,
+    "pitchLevelCount": 3,
+    "intervalSemitones": 4,
+    "frequenciesHz": [
+     329.6275569128699,
+     415.3046975799451,
+     523.2511306011972
+    ],
+    "sequence": [
+     0,
+     2,
+     1,
+     0,
+     1,
+     2,
+     1,
+     0
+    ],
+    "directionAnswer": null
+   },
+   "issues": []
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 15,
+   "auto": "rhythm-echo"
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 16,
+   "mode": "rhythm-echo",
+   "round": {
+    "id": "rhythm-pitch:daily-2026-09-30:16:rhythm-echo",
+    "seed": "daily-2026-09-30",
+    "level": 16,
+    "mode": "rhythm-echo",
+    "difficulty": 81,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "beatCount": 10,
+    "bpm": 130,
+    "unitMs": 461.53846153846155,
+    "beats": [
+     {
+      "onsetMs": 0,
+      "accent": true
+     },
+     {
+      "onsetMs": 923.077,
+      "accent": false
+     },
+     {
+      "onsetMs": 1846.154,
+      "accent": true
+     },
+     {
+      "onsetMs": 2076.923,
+      "accent": false
+     },
+     {
+      "onsetMs": 3000,
+      "accent": false
+     },
+     {
+      "onsetMs": 3461.538,
+      "accent": false
+     },
+     {
+      "onsetMs": 3923.077,
+      "accent": false
+     },
+     {
+      "onsetMs": 4384.615,
+      "accent": false
+     },
+     {
+      "onsetMs": 4846.154,
+      "accent": false
+     },
+     {
+      "onsetMs": 5307.692,
+      "accent": false
+     }
+    ],
+    "pauseCount": 3,
+    "syncopationCount": 1,
+    "accentCount": 2
+   },
+   "issues": []
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 16,
+   "mode": "pitch-path",
+   "round": {
+    "id": "rhythm-pitch:daily-2026-09-30:16:pitch-path",
+    "seed": "daily-2026-09-30",
+    "level": 16,
+    "mode": "pitch-path",
+    "difficulty": 77,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "task": "sequence",
+    "toneCount": 9,
+    "pitchLevelCount": 3,
+    "intervalSemitones": 4,
+    "frequenciesHz": [
+     329.6275569128699,
+     415.3046975799451,
+     523.2511306011972
+    ],
+    "sequence": [
+     2,
+     0,
+     1,
+     0,
+     2,
+     1,
+     2,
+     1,
+     0
+    ],
+    "directionAnswer": null
+   },
+   "issues": []
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 16,
+   "auto": "pitch-path"
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 17,
+   "mode": "rhythm-echo",
+   "round": {
+    "id": "rhythm-pitch:daily-2026-09-30:17:rhythm-echo",
+    "seed": "daily-2026-09-30",
+    "level": 17,
+    "mode": "rhythm-echo",
+    "difficulty": 100,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "beatCount": 11,
+    "bpm": 140,
+    "unitMs": 428.57142857142856,
+    "beats": [
+     {
+      "onsetMs": 0,
+      "accent": true
+     },
+     {
+      "onsetMs": 214.286,
+      "accent": false
+     },
+     {
+      "onsetMs": 1071.429,
+      "accent": true
+     },
+     {
+      "onsetMs": 1714.286,
+      "accent": true
+     },
+     {
+      "onsetMs": 2142.857,
+      "accent": false
+     },
+     {
+      "onsetMs": 3000,
+      "accent": true
+     },
+     {
+      "onsetMs": 3214.286,
+      "accent": false
+     },
+     {
+      "onsetMs": 3642.857,
+      "accent": true
+     },
+     {
+      "onsetMs": 4071.429,
+      "accent": true
+     },
+     {
+      "onsetMs": 4500,
+      "accent": false
+     },
+     {
+      "onsetMs": 4928.571,
+      "accent": true
+     }
+    ],
+    "pauseCount": 2,
+    "syncopationCount": 3,
+    "accentCount": 7
+   },
+   "issues": []
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 17,
+   "mode": "pitch-path",
+   "round": {
+    "id": "rhythm-pitch:daily-2026-09-30:17:pitch-path",
+    "seed": "daily-2026-09-30",
+    "level": 17,
+    "mode": "pitch-path",
+    "difficulty": 77,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "task": "sequence",
+    "toneCount": 9,
+    "pitchLevelCount": 3,
+    "intervalSemitones": 4,
+    "frequenciesHz": [
+     329.6275569128699,
+     415.3046975799451,
+     523.2511306011972
+    ],
+    "sequence": [
+     1,
+     0,
+     2,
+     0,
+     2,
+     1,
+     2,
+     0,
+     1
+    ],
+    "directionAnswer": null
+   },
+   "issues": []
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 17,
+   "auto": "rhythm-echo"
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 18,
+   "mode": "rhythm-echo",
+   "round": {
+    "id": "rhythm-pitch:daily-2026-09-30:18:rhythm-echo",
+    "seed": "daily-2026-09-30",
+    "level": 18,
+    "mode": "rhythm-echo",
+    "difficulty": 100,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "beatCount": 11,
+    "bpm": 140,
+    "unitMs": 428.57142857142856,
+    "beats": [
+     {
+      "onsetMs": 0,
+      "accent": true
+     },
+     {
+      "onsetMs": 642.857,
+      "accent": true
+     },
+     {
+      "onsetMs": 1500,
+      "accent": false
+     },
+     {
+      "onsetMs": 2142.857,
+      "accent": true
+     },
+     {
+      "onsetMs": 2785.714,
+      "accent": false
+     },
+     {
+      "onsetMs": 3214.286,
+      "accent": true
+     },
+     {
+      "onsetMs": 3642.857,
+      "accent": false
+     },
+     {
+      "onsetMs": 4500,
+      "accent": false
+     },
+     {
+      "onsetMs": 4928.571,
+      "accent": false
+     },
+     {
+      "onsetMs": 5142.857,
+      "accent": true
+     },
+     {
+      "onsetMs": 5571.429,
+      "accent": false
+     }
+    ],
+    "pauseCount": 2,
+    "syncopationCount": 4,
+    "accentCount": 5
+   },
+   "issues": []
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 18,
+   "mode": "pitch-path",
+   "round": {
+    "id": "rhythm-pitch:daily-2026-09-30:18:pitch-path",
+    "seed": "daily-2026-09-30",
+    "level": 18,
+    "mode": "pitch-path",
+    "difficulty": 82,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "task": "sequence",
+    "toneCount": 10,
+    "pitchLevelCount": 3,
+    "intervalSemitones": 4,
+    "frequenciesHz": [
+     349.2282314330039,
+     440,
+     554.3652619537442
+    ],
+    "sequence": [
+     0,
+     2,
+     1,
+     0,
+     2,
+     0,
+     2,
+     0,
+     1,
+     2
+    ],
+    "directionAnswer": null
+   },
+   "issues": []
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 18,
+   "auto": "pitch-path"
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 19,
+   "mode": "rhythm-echo",
+   "round": {
+    "id": "rhythm-pitch:daily-2026-09-30:19:rhythm-echo",
+    "seed": "daily-2026-09-30",
+    "level": 19,
+    "mode": "rhythm-echo",
+    "difficulty": 100,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "beatCount": 12,
+    "bpm": 150,
+    "unitMs": 400,
+    "beats": [
+     {
+      "onsetMs": 0,
+      "accent": true
+     },
+     {
+      "onsetMs": 400,
+      "accent": false
+     },
+     {
+      "onsetMs": 1200,
+      "accent": true
+     },
+     {
+      "onsetMs": 1400,
+      "accent": false
+     },
+     {
+      "onsetMs": 2200,
+      "accent": true
+     },
+     {
+      "onsetMs": 3000,
+      "accent": false
+     },
+     {
+      "onsetMs": 3200,
+      "accent": true
+     },
+     {
+      "onsetMs": 4000,
+      "accent": true
+     },
+     {
+      "onsetMs": 4600,
+      "accent": false
+     },
+     {
+      "onsetMs": 5000,
+      "accent": false
+     },
+     {
+      "onsetMs": 5400,
+      "accent": false
+     },
+     {
+      "onsetMs": 6200,
+      "accent": false
+     }
+    ],
+    "pauseCount": 5,
+    "syncopationCount": 3,
+    "accentCount": 5
+   },
+   "issues": []
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 19,
+   "mode": "pitch-path",
+   "round": {
+    "id": "rhythm-pitch:daily-2026-09-30:19:pitch-path",
+    "seed": "daily-2026-09-30",
+    "level": 19,
+    "mode": "pitch-path",
+    "difficulty": 89,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "task": "sequence",
+    "toneCount": 10,
+    "pitchLevelCount": 3,
+    "intervalSemitones": 3,
+    "frequenciesHz": [
+     277.1826309768721,
+     329.6275569128699,
+     391.99543598174927
+    ],
+    "sequence": [
+     0,
+     1,
+     2,
+     0,
+     1,
+     0,
+     2,
+     0,
+     2,
+     0
+    ],
+    "directionAnswer": null
+   },
+   "issues": []
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 19,
+   "auto": "rhythm-echo"
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 20,
+   "mode": "rhythm-echo",
+   "round": {
+    "id": "rhythm-pitch:daily-2026-09-30:20:rhythm-echo",
+    "seed": "daily-2026-09-30",
+    "level": 20,
+    "mode": "rhythm-echo",
+    "difficulty": 100,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "beatCount": 12,
+    "bpm": 150,
+    "unitMs": 400,
+    "beats": [
+     {
+      "onsetMs": 0,
+      "accent": true
+     },
+     {
+      "onsetMs": 600,
+      "accent": false
+     },
+     {
+      "onsetMs": 1400,
+      "accent": false
+     },
+     {
+      "onsetMs": 2000,
+      "accent": true
+     },
+     {
+      "onsetMs": 2400,
+      "accent": false
+     },
+     {
+      "onsetMs": 2800,
+      "accent": false
+     },
+     {
+      "onsetMs": 3400,
+      "accent": false
+     },
+     {
+      "onsetMs": 4200,
+      "accent": false
+     },
+     {
+      "onsetMs": 5000,
+      "accent": false
+     },
+     {
+      "onsetMs": 5800,
+      "accent": false
+     },
+     {
+      "onsetMs": 6200,
+      "accent": true
+     },
+     {
+      "onsetMs": 6600,
+      "accent": false
+     }
+    ],
+    "pauseCount": 4,
+    "syncopationCount": 3,
+    "accentCount": 3
+   },
+   "issues": []
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 20,
+   "mode": "pitch-path",
+   "round": {
+    "id": "rhythm-pitch:daily-2026-09-30:20:pitch-path",
+    "seed": "daily-2026-09-30",
+    "level": 20,
+    "mode": "pitch-path",
+    "difficulty": 89,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "task": "sequence",
+    "toneCount": 10,
+    "pitchLevelCount": 3,
+    "intervalSemitones": 3,
+    "frequenciesHz": [
+     311.1269837220809,
+     369.9944227116344,
+     440
+    ],
+    "sequence": [
+     0,
+     1,
+     2,
+     1,
+     2,
+     0,
+     1,
+     0,
+     2,
+     0
+    ],
+    "directionAnswer": null
+   },
+   "issues": []
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 20,
+   "auto": "pitch-path"
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 21,
+   "mode": "rhythm-echo",
+   "round": {
+    "id": "rhythm-pitch:daily-2026-09-30:21:rhythm-echo",
+    "seed": "daily-2026-09-30",
+    "level": 21,
+    "mode": "rhythm-echo",
+    "difficulty": 100,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "beatCount": 12,
+    "bpm": 160,
+    "unitMs": 375,
+    "beats": [
+     {
+      "onsetMs": 0,
+      "accent": true
+     },
+     {
+      "onsetMs": 375,
+      "accent": false
+     },
+     {
+      "onsetMs": 1125,
+      "accent": false
+     },
+     {
+      "onsetMs": 1312.5,
+      "accent": false
+     },
+     {
+      "onsetMs": 2062.5,
+      "accent": false
+     },
+     {
+      "onsetMs": 2437.5,
+      "accent": false
+     },
+     {
+      "onsetMs": 2812.5,
+      "accent": true
+     },
+     {
+      "onsetMs": 3187.5,
+      "accent": true
+     },
+     {
+      "onsetMs": 3562.5,
+      "accent": true
+     },
+     {
+      "onsetMs": 3937.5,
+      "accent": false
+     },
+     {
+      "onsetMs": 4312.5,
+      "accent": false
+     },
+     {
+      "onsetMs": 4500,
+      "accent": false
+     }
+    ],
+    "pauseCount": 2,
+    "syncopationCount": 2,
+    "accentCount": 4
+   },
+   "issues": []
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 21,
+   "mode": "pitch-path",
+   "round": {
+    "id": "rhythm-pitch:daily-2026-09-30:21:pitch-path",
+    "seed": "daily-2026-09-30",
+    "level": 21,
+    "mode": "pitch-path",
+    "difficulty": 89,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "task": "sequence",
+    "toneCount": 10,
+    "pitchLevelCount": 3,
+    "intervalSemitones": 3,
+    "frequenciesHz": [
+     311.1269837220809,
+     369.9944227116344,
+     440
+    ],
+    "sequence": [
+     0,
+     1,
+     2,
+     0,
+     1,
+     0,
+     2,
+     0,
+     2,
+     0
+    ],
+    "directionAnswer": null
+   },
+   "issues": []
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 21,
+   "auto": "rhythm-echo"
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 22,
+   "mode": "rhythm-echo",
+   "round": {
+    "id": "rhythm-pitch:daily-2026-09-30:22:rhythm-echo",
+    "seed": "daily-2026-09-30",
+    "level": 22,
+    "mode": "rhythm-echo",
+    "difficulty": 100,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "beatCount": 12,
+    "bpm": 160,
+    "unitMs": 375,
+    "beats": [
+     {
+      "onsetMs": 0,
+      "accent": true
+     },
+     {
+      "onsetMs": 750,
+      "accent": false
+     },
+     {
+      "onsetMs": 1500,
+      "accent": false
+     },
+     {
+      "onsetMs": 1687.5,
+      "accent": false
+     },
+     {
+      "onsetMs": 2062.5,
+      "accent": false
+     },
+     {
+      "onsetMs": 2437.5,
+      "accent": false
+     },
+     {
+      "onsetMs": 2812.5,
+      "accent": false
+     },
+     {
+      "onsetMs": 3187.5,
+      "accent": false
+     },
+     {
+      "onsetMs": 3562.5,
+      "accent": false
+     },
+     {
+      "onsetMs": 3750,
+      "accent": true
+     },
+     {
+      "onsetMs": 4312.5,
+      "accent": true
+     },
+     {
+      "onsetMs": 4687.5,
+      "accent": false
+     }
+    ],
+    "pauseCount": 2,
+    "syncopationCount": 3,
+    "accentCount": 3
+   },
+   "issues": []
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 22,
+   "mode": "pitch-path",
+   "round": {
+    "id": "rhythm-pitch:daily-2026-09-30:22:pitch-path",
+    "seed": "daily-2026-09-30",
+    "level": 22,
+    "mode": "pitch-path",
+    "difficulty": 89,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "task": "sequence",
+    "toneCount": 10,
+    "pitchLevelCount": 3,
+    "intervalSemitones": 3,
+    "frequenciesHz": [
+     261.6255653005986,
+     311.1269837220809,
+     369.9944227116344
+    ],
+    "sequence": [
+     2,
+     0,
+     1,
+     2,
+     0,
+     2,
+     0,
+     1,
+     0,
+     1
+    ],
+    "directionAnswer": null
+   },
+   "issues": []
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 22,
+   "auto": "pitch-path"
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 23,
+   "mode": "rhythm-echo",
+   "round": {
+    "id": "rhythm-pitch:daily-2026-09-30:23:rhythm-echo",
+    "seed": "daily-2026-09-30",
+    "level": 23,
+    "mode": "rhythm-echo",
+    "difficulty": 100,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "beatCount": 12,
+    "bpm": 160,
+    "unitMs": 375,
+    "beats": [
+     {
+      "onsetMs": 0,
+      "accent": true
+     },
+     {
+      "onsetMs": 375,
+      "accent": false
+     },
+     {
+      "onsetMs": 1125,
+      "accent": true
+     },
+     {
+      "onsetMs": 1687.5,
+      "accent": true
+     },
+     {
+      "onsetMs": 2437.5,
+      "accent": false
+     },
+     {
+      "onsetMs": 2812.5,
+      "accent": true
+     },
+     {
+      "onsetMs": 3187.5,
+      "accent": true
+     },
+     {
+      "onsetMs": 3562.5,
+      "accent": true
+     },
+     {
+      "onsetMs": 3937.5,
+      "accent": false
+     },
+     {
+      "onsetMs": 4312.5,
+      "accent": false
+     },
+     {
+      "onsetMs": 4687.5,
+      "accent": false
+     },
+     {
+      "onsetMs": 5062.5,
+      "accent": false
+     }
+    ],
+    "pauseCount": 2,
+    "syncopationCount": 1,
+    "accentCount": 6
+   },
+   "issues": []
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 23,
+   "mode": "pitch-path",
+   "round": {
+    "id": "rhythm-pitch:daily-2026-09-30:23:pitch-path",
+    "seed": "daily-2026-09-30",
+    "level": 23,
+    "mode": "pitch-path",
+    "difficulty": 89,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "task": "sequence",
+    "toneCount": 10,
+    "pitchLevelCount": 3,
+    "intervalSemitones": 3,
+    "frequenciesHz": [
+     349.2282314330039,
+     415.3046975799451,
+     493.8833012561241
+    ],
+    "sequence": [
+     0,
+     1,
+     2,
+     1,
+     2,
+     1,
+     2,
+     0,
+     2,
+     0
+    ],
+    "directionAnswer": null
+   },
+   "issues": []
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 23,
+   "auto": "rhythm-echo"
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 24,
+   "mode": "rhythm-echo",
+   "round": {
+    "id": "rhythm-pitch:daily-2026-09-30:24:rhythm-echo",
+    "seed": "daily-2026-09-30",
+    "level": 24,
+    "mode": "rhythm-echo",
+    "difficulty": 100,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "beatCount": 12,
+    "bpm": 160,
+    "unitMs": 375,
+    "beats": [
+     {
+      "onsetMs": 0,
+      "accent": true
+     },
+     {
+      "onsetMs": 375,
+      "accent": false
+     },
+     {
+      "onsetMs": 1125,
+      "accent": true
+     },
+     {
+      "onsetMs": 1312.5,
+      "accent": true
+     },
+     {
+      "onsetMs": 1687.5,
+      "accent": false
+     },
+     {
+      "onsetMs": 2062.5,
+      "accent": false
+     },
+     {
+      "onsetMs": 2812.5,
+      "accent": true
+     },
+     {
+      "onsetMs": 3000,
+      "accent": true
+     },
+     {
+      "onsetMs": 3187.5,
+      "accent": false
+     },
+     {
+      "onsetMs": 3562.5,
+      "accent": false
+     },
+     {
+      "onsetMs": 3937.5,
+      "accent": false
+     },
+     {
+      "onsetMs": 4312.5,
+      "accent": false
+     }
+    ],
+    "pauseCount": 2,
+    "syncopationCount": 3,
+    "accentCount": 5
+   },
+   "issues": []
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 24,
+   "mode": "pitch-path",
+   "round": {
+    "id": "rhythm-pitch:daily-2026-09-30:24:pitch-path",
+    "seed": "daily-2026-09-30",
+    "level": 24,
+    "mode": "pitch-path",
+    "difficulty": 96,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "task": "sequence",
+    "toneCount": 10,
+    "pitchLevelCount": 3,
+    "intervalSemitones": 2,
+    "frequenciesHz": [
+     261.6255653005986,
+     293.6647679174076,
+     329.6275569128699
+    ],
+    "sequence": [
+     2,
+     1,
+     0,
+     2,
+     0,
+     1,
+     2,
+     0,
+     1,
+     0
+    ],
+    "directionAnswer": null
+   },
+   "issues": []
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 24,
+   "auto": "pitch-path"
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 25,
+   "mode": "rhythm-echo",
+   "round": {
+    "id": "rhythm-pitch:daily-2026-09-30:25:rhythm-echo",
+    "seed": "daily-2026-09-30",
+    "level": 25,
+    "mode": "rhythm-echo",
+    "difficulty": 100,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "beatCount": 12,
+    "bpm": 160,
+    "unitMs": 375,
+    "beats": [
+     {
+      "onsetMs": 0,
+      "accent": true
+     },
+     {
+      "onsetMs": 375,
+      "accent": false
+     },
+     {
+      "onsetMs": 1125,
+      "accent": false
+     },
+     {
+      "onsetMs": 1687.5,
+      "accent": true
+     },
+     {
+      "onsetMs": 2062.5,
+      "accent": false
+     },
+     {
+      "onsetMs": 2437.5,
+      "accent": false
+     },
+     {
+      "onsetMs": 3000,
+      "accent": true
+     },
+     {
+      "onsetMs": 3562.5,
+      "accent": false
+     },
+     {
+      "onsetMs": 3937.5,
+      "accent": false
+     },
+     {
+      "onsetMs": 4500,
+      "accent": false
+     },
+     {
+      "onsetMs": 4875,
+      "accent": false
+     },
+     {
+      "onsetMs": 5625,
+      "accent": true
+     }
+    ],
+    "pauseCount": 2,
+    "syncopationCount": 4,
+    "accentCount": 4
+   },
+   "issues": []
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 25,
+   "mode": "pitch-path",
+   "round": {
+    "id": "rhythm-pitch:daily-2026-09-30:25:pitch-path",
+    "seed": "daily-2026-09-30",
+    "level": 25,
+    "mode": "pitch-path",
+    "difficulty": 96,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "task": "sequence",
+    "toneCount": 10,
+    "pitchLevelCount": 3,
+    "intervalSemitones": 2,
+    "frequenciesHz": [
+     277.1826309768721,
+     311.1269837220809,
+     349.2282314330039
+    ],
+    "sequence": [
+     2,
+     0,
+     1,
+     0,
+     2,
+     1,
+     2,
+     1,
+     0,
+     1
+    ],
+    "directionAnswer": null
+   },
+   "issues": []
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 25,
+   "auto": "rhythm-echo"
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 26,
+   "mode": "rhythm-echo",
+   "round": {
+    "id": "rhythm-pitch:daily-2026-09-30:26:rhythm-echo",
+    "seed": "daily-2026-09-30",
+    "level": 26,
+    "mode": "rhythm-echo",
+    "difficulty": 100,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "beatCount": 12,
+    "bpm": 160,
+    "unitMs": 375,
+    "beats": [
+     {
+      "onsetMs": 0,
+      "accent": true
+     },
+     {
+      "onsetMs": 375,
+      "accent": true
+     },
+     {
+      "onsetMs": 1125,
+      "accent": false
+     },
+     {
+      "onsetMs": 1312.5,
+      "accent": false
+     },
+     {
+      "onsetMs": 1687.5,
+      "accent": false
+     },
+     {
+      "onsetMs": 2062.5,
+      "accent": true
+     },
+     {
+      "onsetMs": 2250,
+      "accent": false
+     },
+     {
+      "onsetMs": 2812.5,
+      "accent": false
+     },
+     {
+      "onsetMs": 3187.5,
+      "accent": false
+     },
+     {
+      "onsetMs": 3375,
+      "accent": false
+     },
+     {
+      "onsetMs": 4125,
+      "accent": false
+     },
+     {
+      "onsetMs": 4875,
+      "accent": false
+     }
+    ],
+    "pauseCount": 3,
+    "syncopationCount": 4,
+    "accentCount": 3
+   },
+   "issues": []
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 26,
+   "mode": "pitch-path",
+   "round": {
+    "id": "rhythm-pitch:daily-2026-09-30:26:pitch-path",
+    "seed": "daily-2026-09-30",
+    "level": 26,
+    "mode": "pitch-path",
+    "difficulty": 96,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "task": "sequence",
+    "toneCount": 10,
+    "pitchLevelCount": 3,
+    "intervalSemitones": 2,
+    "frequenciesHz": [
+     277.1826309768721,
+     311.1269837220809,
+     349.2282314330039
+    ],
+    "sequence": [
+     2,
+     0,
+     1,
+     2,
+     0,
+     2,
+     0,
+     1,
+     0,
+     1
+    ],
+    "directionAnswer": null
+   },
+   "issues": []
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 26,
+   "auto": "pitch-path"
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 27,
+   "mode": "rhythm-echo",
+   "round": {
+    "id": "rhythm-pitch:daily-2026-09-30:27:rhythm-echo",
+    "seed": "daily-2026-09-30",
+    "level": 27,
+    "mode": "rhythm-echo",
+    "difficulty": 100,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "beatCount": 12,
+    "bpm": 160,
+    "unitMs": 375,
+    "beats": [
+     {
+      "onsetMs": 0,
+      "accent": true
+     },
+     {
+      "onsetMs": 375,
+      "accent": false
+     },
+     {
+      "onsetMs": 1125,
+      "accent": false
+     },
+     {
+      "onsetMs": 1687.5,
+      "accent": false
+     },
+     {
+      "onsetMs": 2437.5,
+      "accent": true
+     },
+     {
+      "onsetMs": 2812.5,
+      "accent": false
+     },
+     {
+      "onsetMs": 3562.5,
+      "accent": false
+     },
+     {
+      "onsetMs": 3937.5,
+      "accent": true
+     },
+     {
+      "onsetMs": 4312.5,
+      "accent": false
+     },
+     {
+      "onsetMs": 4687.5,
+      "accent": false
+     },
+     {
+      "onsetMs": 5062.5,
+      "accent": false
+     },
+     {
+      "onsetMs": 5250,
+      "accent": true
+     }
+    ],
+    "pauseCount": 3,
+    "syncopationCount": 2,
+    "accentCount": 4
+   },
+   "issues": []
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 27,
+   "mode": "pitch-path",
+   "round": {
+    "id": "rhythm-pitch:daily-2026-09-30:27:pitch-path",
+    "seed": "daily-2026-09-30",
+    "level": 27,
+    "mode": "pitch-path",
+    "difficulty": 96,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "task": "sequence",
+    "toneCount": 10,
+    "pitchLevelCount": 3,
+    "intervalSemitones": 2,
+    "frequenciesHz": [
+     391.99543598174927,
+     440,
+     493.8833012561241
+    ],
+    "sequence": [
+     1,
+     0,
+     2,
+     1,
+     2,
+     0,
+     2,
+     1,
+     0,
+     2
+    ],
+    "directionAnswer": null
+   },
+   "issues": []
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 27,
+   "auto": "rhythm-echo"
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 28,
+   "mode": "rhythm-echo",
+   "round": {
+    "id": "rhythm-pitch:daily-2026-09-30:28:rhythm-echo",
+    "seed": "daily-2026-09-30",
+    "level": 28,
+    "mode": "rhythm-echo",
+    "difficulty": 100,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "beatCount": 12,
+    "bpm": 160,
+    "unitMs": 375,
+    "beats": [
+     {
+      "onsetMs": 0,
+      "accent": true
+     },
+     {
+      "onsetMs": 375,
+      "accent": false
+     },
+     {
+      "onsetMs": 1125,
+      "accent": true
+     },
+     {
+      "onsetMs": 1687.5,
+      "accent": false
+     },
+     {
+      "onsetMs": 2062.5,
+      "accent": true
+     },
+     {
+      "onsetMs": 2812.5,
+      "accent": true
+     },
+     {
+      "onsetMs": 3000,
+      "accent": true
+     },
+     {
+      "onsetMs": 3375,
+      "accent": false
+     },
+     {
+      "onsetMs": 4125,
+      "accent": false
+     },
+     {
+      "onsetMs": 4312.5,
+      "accent": false
+     },
+     {
+      "onsetMs": 4875,
+      "accent": false
+     },
+     {
+      "onsetMs": 5250,
+      "accent": false
+     }
+    ],
+    "pauseCount": 3,
+    "syncopationCount": 4,
+    "accentCount": 5
+   },
+   "issues": []
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 28,
+   "mode": "pitch-path",
+   "round": {
+    "id": "rhythm-pitch:daily-2026-09-30:28:pitch-path",
+    "seed": "daily-2026-09-30",
+    "level": 28,
+    "mode": "pitch-path",
+    "difficulty": 96,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "task": "sequence",
+    "toneCount": 10,
+    "pitchLevelCount": 3,
+    "intervalSemitones": 2,
+    "frequenciesHz": [
+     311.1269837220809,
+     349.2282314330039,
+     391.99543598174927
+    ],
+    "sequence": [
+     2,
+     1,
+     0,
+     1,
+     2,
+     0,
+     2,
+     0,
+     2,
+     0
+    ],
+    "directionAnswer": null
+   },
+   "issues": []
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 28,
+   "auto": "pitch-path"
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 29,
+   "mode": "rhythm-echo",
+   "round": {
+    "id": "rhythm-pitch:daily-2026-09-30:29:rhythm-echo",
+    "seed": "daily-2026-09-30",
+    "level": 29,
+    "mode": "rhythm-echo",
+    "difficulty": 100,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "beatCount": 12,
+    "bpm": 160,
+    "unitMs": 375,
+    "beats": [
+     {
+      "onsetMs": 0,
+      "accent": true
+     },
+     {
+      "onsetMs": 562.5,
+      "accent": false
+     },
+     {
+      "onsetMs": 1312.5,
+      "accent": false
+     },
+     {
+      "onsetMs": 1875,
+      "accent": true
+     },
+     {
+      "onsetMs": 2437.5,
+      "accent": true
+     },
+     {
+      "onsetMs": 3187.5,
+      "accent": false
+     },
+     {
+      "onsetMs": 3562.5,
+      "accent": false
+     },
+     {
+      "onsetMs": 3937.5,
+      "accent": false
+     },
+     {
+      "onsetMs": 4687.5,
+      "accent": true
+     },
+     {
+      "onsetMs": 5437.5,
+      "accent": true
+     },
+     {
+      "onsetMs": 5812.5,
+      "accent": true
+     },
+     {
+      "onsetMs": 6000,
+      "accent": true
+     }
+    ],
+    "pauseCount": 4,
+    "syncopationCount": 4,
+    "accentCount": 7
+   },
+   "issues": []
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 29,
+   "mode": "pitch-path",
+   "round": {
+    "id": "rhythm-pitch:daily-2026-09-30:29:pitch-path",
+    "seed": "daily-2026-09-30",
+    "level": 29,
+    "mode": "pitch-path",
+    "difficulty": 100,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "task": "sequence",
+    "toneCount": 10,
+    "pitchLevelCount": 3,
+    "intervalSemitones": 1,
+    "frequenciesHz": [
+     415.3046975799451,
+     440,
+     466.1637615180899
+    ],
+    "sequence": [
+     0,
+     1,
+     2,
+     0,
+     1,
+     0,
+     1,
+     0,
+     2,
+     1
+    ],
+    "directionAnswer": null
+   },
+   "issues": []
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 29,
+   "auto": "rhythm-echo"
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 30,
+   "mode": "rhythm-echo",
+   "round": {
+    "id": "rhythm-pitch:daily-2026-09-30:30:rhythm-echo",
+    "seed": "daily-2026-09-30",
+    "level": 30,
+    "mode": "rhythm-echo",
+    "difficulty": 100,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "beatCount": 12,
+    "bpm": 160,
+    "unitMs": 375,
+    "beats": [
+     {
+      "onsetMs": 0,
+      "accent": true
+     },
+     {
+      "onsetMs": 375,
+      "accent": false
+     },
+     {
+      "onsetMs": 1125,
+      "accent": true
+     },
+     {
+      "onsetMs": 1687.5,
+      "accent": true
+     },
+     {
+      "onsetMs": 1875,
+      "accent": false
+     },
+     {
+      "onsetMs": 2062.5,
+      "accent": true
+     },
+     {
+      "onsetMs": 2437.5,
+      "accent": true
+     },
+     {
+      "onsetMs": 2812.5,
+      "accent": false
+     },
+     {
+      "onsetMs": 3187.5,
+      "accent": true
+     },
+     {
+      "onsetMs": 3562.5,
+      "accent": false
+     },
+     {
+      "onsetMs": 4312.5,
+      "accent": false
+     },
+     {
+      "onsetMs": 5062.5,
+      "accent": true
+     }
+    ],
+    "pauseCount": 3,
+    "syncopationCount": 3,
+    "accentCount": 7
+   },
+   "issues": []
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 30,
+   "mode": "pitch-path",
+   "round": {
+    "id": "rhythm-pitch:daily-2026-09-30:30:pitch-path",
+    "seed": "daily-2026-09-30",
+    "level": 30,
+    "mode": "pitch-path",
+    "difficulty": 100,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "task": "sequence",
+    "toneCount": 10,
+    "pitchLevelCount": 3,
+    "intervalSemitones": 1,
+    "frequenciesHz": [
+     329.6275569128699,
+     349.2282314330039,
+     369.9944227116344
+    ],
+    "sequence": [
+     0,
+     1,
+     2,
+     0,
+     2,
+     1,
+     2,
+     0,
+     1,
+     0
+    ],
+    "directionAnswer": null
+   },
+   "issues": []
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 30,
+   "auto": "pitch-path"
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 31,
+   "mode": "rhythm-echo",
+   "round": {
+    "id": "rhythm-pitch:daily-2026-09-30:31:rhythm-echo",
+    "seed": "daily-2026-09-30",
+    "level": 31,
+    "mode": "rhythm-echo",
+    "difficulty": 100,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "beatCount": 12,
+    "bpm": 160,
+    "unitMs": 375,
+    "beats": [
+     {
+      "onsetMs": 0,
+      "accent": true
+     },
+     {
+      "onsetMs": 562.5,
+      "accent": false
+     },
+     {
+      "onsetMs": 1312.5,
+      "accent": true
+     },
+     {
+      "onsetMs": 1500,
+      "accent": false
+     },
+     {
+      "onsetMs": 2250,
+      "accent": false
+     },
+     {
+      "onsetMs": 2437.5,
+      "accent": true
+     },
+     {
+      "onsetMs": 2812.5,
+      "accent": true
+     },
+     {
+      "onsetMs": 3000,
+      "accent": false
+     },
+     {
+      "onsetMs": 3375,
+      "accent": false
+     },
+     {
+      "onsetMs": 3750,
+      "accent": false
+     },
+     {
+      "onsetMs": 4500,
+      "accent": true
+     },
+     {
+      "onsetMs": 5062.5,
+      "accent": false
+     }
+    ],
+    "pauseCount": 3,
+    "syncopationCount": 5,
+    "accentCount": 5
+   },
+   "issues": []
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 31,
+   "mode": "pitch-path",
+   "round": {
+    "id": "rhythm-pitch:daily-2026-09-30:31:pitch-path",
+    "seed": "daily-2026-09-30",
+    "level": 31,
+    "mode": "pitch-path",
+    "difficulty": 100,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "task": "sequence",
+    "toneCount": 10,
+    "pitchLevelCount": 3,
+    "intervalSemitones": 1,
+    "frequenciesHz": [
+     311.1269837220809,
+     329.6275569128699,
+     349.2282314330039
+    ],
+    "sequence": [
+     2,
+     1,
+     0,
+     1,
+     2,
+     1,
+     0,
+     2,
+     1,
+     2
+    ],
+    "directionAnswer": null
+   },
+   "issues": []
+  },
+  {
+   "seed": "daily-2026-09-30",
+   "level": 31,
+   "auto": "rhythm-echo"
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 1,
+   "mode": "rhythm-echo",
+   "round": {
+    "id": "rhythm-pitch:rhythm-seed:1:rhythm-echo",
+    "seed": "rhythm-seed",
+    "level": 1,
+    "mode": "rhythm-echo",
+    "difficulty": 17,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": true,
+    "beatCount": 3,
+    "bpm": 60,
+    "unitMs": 1000,
+    "beats": [
+     {
+      "onsetMs": 0,
+      "accent": false
+     },
+     {
+      "onsetMs": 1000,
+      "accent": false
+     },
+     {
+      "onsetMs": 2000,
+      "accent": false
+     }
+    ],
+    "pauseCount": 0,
+    "syncopationCount": 0,
+    "accentCount": 0
+   },
+   "issues": []
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 1,
+   "mode": "pitch-path",
+   "round": {
+    "id": "rhythm-pitch:rhythm-seed:1:pitch-path",
+    "seed": "rhythm-seed",
+    "level": 1,
+    "mode": "pitch-path",
+    "difficulty": 18,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": true,
+    "task": "direction",
+    "toneCount": 2,
+    "pitchLevelCount": 2,
+    "intervalSemitones": 6,
+    "frequenciesHz": [
+     277.1826309768721,
+     391.99543598174927
+    ],
+    "sequence": [
+     1,
+     0
+    ],
+    "directionAnswer": "lower"
+   },
+   "issues": []
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 1,
+   "auto": "rhythm-echo"
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 2,
+   "mode": "rhythm-echo",
+   "round": {
+    "id": "rhythm-pitch:rhythm-seed:2:rhythm-echo",
+    "seed": "rhythm-seed",
+    "level": 2,
+    "mode": "rhythm-echo",
+    "difficulty": 17,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": true,
+    "beatCount": 3,
+    "bpm": 60,
+    "unitMs": 1000,
+    "beats": [
+     {
+      "onsetMs": 0,
+      "accent": false
+     },
+     {
+      "onsetMs": 1000,
+      "accent": false
+     },
+     {
+      "onsetMs": 2000,
+      "accent": false
+     }
+    ],
+    "pauseCount": 0,
+    "syncopationCount": 0,
+    "accentCount": 0
+   },
+   "issues": []
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 2,
+   "mode": "pitch-path",
+   "round": {
+    "id": "rhythm-pitch:rhythm-seed:2:pitch-path",
+    "seed": "rhythm-seed",
+    "level": 2,
+    "mode": "pitch-path",
+    "difficulty": 24,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": true,
+    "task": "direction",
+    "toneCount": 2,
+    "pitchLevelCount": 2,
+    "intervalSemitones": 5,
+    "frequenciesHz": [
+     369.9944227116344,
+     493.8833012561241
+    ],
+    "sequence": [
+     0,
+     1
+    ],
+    "directionAnswer": "higher"
+   },
+   "issues": []
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 2,
+   "auto": "pitch-path"
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 3,
+   "mode": "rhythm-echo",
+   "round": {
+    "id": "rhythm-pitch:rhythm-seed:3:rhythm-echo",
+    "seed": "rhythm-seed",
+    "level": 3,
+    "mode": "rhythm-echo",
+    "difficulty": 24,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": true,
+    "beatCount": 4,
+    "bpm": 70,
+    "unitMs": 857.1428571428571,
+    "beats": [
+     {
+      "onsetMs": 0,
+      "accent": false
+     },
+     {
+      "onsetMs": 857.143,
+      "accent": false
+     },
+     {
+      "onsetMs": 1714.286,
+      "accent": false
+     },
+     {
+      "onsetMs": 2571.429,
+      "accent": false
+     }
+    ],
+    "pauseCount": 0,
+    "syncopationCount": 0,
+    "accentCount": 0
+   },
+   "issues": []
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 3,
+   "mode": "pitch-path",
+   "round": {
+    "id": "rhythm-pitch:rhythm-seed:3:pitch-path",
+    "seed": "rhythm-seed",
+    "level": 3,
+    "mode": "pitch-path",
+    "difficulty": 30,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": true,
+    "task": "direction",
+    "toneCount": 2,
+    "pitchLevelCount": 2,
+    "intervalSemitones": 4,
+    "frequenciesHz": [
+     391.99543598174927,
+     493.8833012561241
+    ],
+    "sequence": [
+     0,
+     1
+    ],
+    "directionAnswer": "higher"
+   },
+   "issues": []
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 3,
+   "auto": "rhythm-echo"
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 4,
+   "mode": "rhythm-echo",
+   "round": {
+    "id": "rhythm-pitch:rhythm-seed:4:rhythm-echo",
+    "seed": "rhythm-seed",
+    "level": 4,
+    "mode": "rhythm-echo",
+    "difficulty": 27,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "beatCount": 4,
+    "bpm": 70,
+    "unitMs": 857.1428571428571,
+    "beats": [
+     {
+      "onsetMs": 0,
+      "accent": false
+     },
+     {
+      "onsetMs": 857.143,
+      "accent": false
+     },
+     {
+      "onsetMs": 2571.429,
+      "accent": false
+     },
+     {
+      "onsetMs": 3428.571,
+      "accent": false
+     }
+    ],
+    "pauseCount": 1,
+    "syncopationCount": 0,
+    "accentCount": 0
+   },
+   "issues": []
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 4,
+   "mode": "pitch-path",
+   "round": {
+    "id": "rhythm-pitch:rhythm-seed:4:pitch-path",
+    "seed": "rhythm-seed",
+    "level": 4,
+    "mode": "pitch-path",
+    "difficulty": 33,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "task": "sequence",
+    "toneCount": 3,
+    "pitchLevelCount": 3,
+    "intervalSemitones": 6,
+    "frequenciesHz": [
+     329.6275569128699,
+     466.1637615180899,
+     659.2551138257398
+    ],
+    "sequence": [
+     1,
+     2,
+     0
+    ],
+    "directionAnswer": null
+   },
+   "issues": []
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 4,
+   "auto": "pitch-path"
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 5,
+   "mode": "rhythm-echo",
+   "round": {
+    "id": "rhythm-pitch:rhythm-seed:5:rhythm-echo",
+    "seed": "rhythm-seed",
+    "level": 5,
+    "mode": "rhythm-echo",
+    "difficulty": 37,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "beatCount": 5,
+    "bpm": 80,
+    "unitMs": 750,
+    "beats": [
+     {
+      "onsetMs": 0,
+      "accent": true
+     },
+     {
+      "onsetMs": 750,
+      "accent": true
+     },
+     {
+      "onsetMs": 2250,
+      "accent": false
+     },
+     {
+      "onsetMs": 3000,
+      "accent": false
+     },
+     {
+      "onsetMs": 3750,
+      "accent": false
+     }
+    ],
+    "pauseCount": 1,
+    "syncopationCount": 0,
+    "accentCount": 2
+   },
+   "issues": []
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 5,
+   "mode": "pitch-path",
+   "round": {
+    "id": "rhythm-pitch:rhythm-seed:5:pitch-path",
+    "seed": "rhythm-seed",
+    "level": 5,
+    "mode": "pitch-path",
+    "difficulty": 33,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "task": "sequence",
+    "toneCount": 3,
+    "pitchLevelCount": 3,
+    "intervalSemitones": 6,
+    "frequenciesHz": [
+     329.6275569128699,
+     466.1637615180899,
+     659.2551138257398
+    ],
+    "sequence": [
+     1,
+     0,
+     2
+    ],
+    "directionAnswer": null
+   },
+   "issues": []
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 5,
+   "auto": "rhythm-echo"
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 6,
+   "mode": "rhythm-echo",
+   "round": {
+    "id": "rhythm-pitch:rhythm-seed:6:rhythm-echo",
+    "seed": "rhythm-seed",
+    "level": 6,
+    "mode": "rhythm-echo",
+    "difficulty": 35,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "beatCount": 5,
+    "bpm": 80,
+    "unitMs": 750,
+    "beats": [
+     {
+      "onsetMs": 0,
+      "accent": true
+     },
+     {
+      "onsetMs": 750,
+      "accent": false
+     },
+     {
+      "onsetMs": 2250,
+      "accent": false
+     },
+     {
+      "onsetMs": 3000,
+      "accent": false
+     },
+     {
+      "onsetMs": 3750,
+      "accent": false
+     }
+    ],
+    "pauseCount": 1,
+    "syncopationCount": 0,
+    "accentCount": 1
+   },
+   "issues": []
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 6,
+   "mode": "pitch-path",
+   "round": {
+    "id": "rhythm-pitch:rhythm-seed:6:pitch-path",
+    "seed": "rhythm-seed",
+    "level": 6,
+    "mode": "pitch-path",
+    "difficulty": 38,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "task": "sequence",
+    "toneCount": 4,
+    "pitchLevelCount": 3,
+    "intervalSemitones": 6,
+    "frequenciesHz": [
+     277.1826309768721,
+     391.99543598174927,
+     554.3652619537442
+    ],
+    "sequence": [
+     0,
+     1,
+     2,
+     0
+    ],
+    "directionAnswer": null
+   },
+   "issues": []
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 6,
+   "auto": "pitch-path"
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 7,
+   "mode": "rhythm-echo",
+   "round": {
+    "id": "rhythm-pitch:rhythm-seed:7:rhythm-echo",
+    "seed": "rhythm-seed",
+    "level": 7,
+    "mode": "rhythm-echo",
+    "difficulty": 47,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "beatCount": 6,
+    "bpm": 90,
+    "unitMs": 666.6666666666666,
+    "beats": [
+     {
+      "onsetMs": 0,
+      "accent": true
+     },
+     {
+      "onsetMs": 666.667,
+      "accent": true
+     },
+     {
+      "onsetMs": 2000,
+      "accent": false
+     },
+     {
+      "onsetMs": 3000,
+      "accent": false
+     },
+     {
+      "onsetMs": 3666.667,
+      "accent": false
+     },
+     {
+      "onsetMs": 4333.333,
+      "accent": false
+     }
+    ],
+    "pauseCount": 1,
+    "syncopationCount": 1,
+    "accentCount": 2
+   },
+   "issues": []
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 7,
+   "mode": "pitch-path",
+   "round": {
+    "id": "rhythm-pitch:rhythm-seed:7:pitch-path",
+    "seed": "rhythm-seed",
+    "level": 7,
+    "mode": "pitch-path",
+    "difficulty": 38,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "task": "sequence",
+    "toneCount": 4,
+    "pitchLevelCount": 3,
+    "intervalSemitones": 6,
+    "frequenciesHz": [
+     246.94165062806206,
+     349.2282314330039,
+     493.8833012561241
+    ],
+    "sequence": [
+     2,
+     1,
+     0,
+     1
+    ],
+    "directionAnswer": null
+   },
+   "issues": []
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 7,
+   "auto": "rhythm-echo"
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 8,
+   "mode": "rhythm-echo",
+   "round": {
+    "id": "rhythm-pitch:rhythm-seed:8:rhythm-echo",
+    "seed": "rhythm-seed",
+    "level": 8,
+    "mode": "rhythm-echo",
+    "difficulty": 46,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "beatCount": 6,
+    "bpm": 90,
+    "unitMs": 666.6666666666666,
+    "beats": [
+     {
+      "onsetMs": 0,
+      "accent": true
+     },
+     {
+      "onsetMs": 666.667,
+      "accent": false
+     },
+     {
+      "onsetMs": 2000,
+      "accent": false
+     },
+     {
+      "onsetMs": 3000,
+      "accent": false
+     },
+     {
+      "onsetMs": 3666.667,
+      "accent": false
+     },
+     {
+      "onsetMs": 4333.333,
+      "accent": false
+     }
+    ],
+    "pauseCount": 1,
+    "syncopationCount": 1,
+    "accentCount": 1
+   },
+   "issues": []
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 8,
+   "mode": "pitch-path",
+   "round": {
+    "id": "rhythm-pitch:rhythm-seed:8:pitch-path",
+    "seed": "rhythm-seed",
+    "level": 8,
+    "mode": "pitch-path",
+    "difficulty": 43,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "task": "sequence",
+    "toneCount": 5,
+    "pitchLevelCount": 3,
+    "intervalSemitones": 6,
+    "frequenciesHz": [
+     220,
+     311.1269837220809,
+     440
+    ],
+    "sequence": [
+     0,
+     1,
+     2,
+     0,
+     2
+    ],
+    "directionAnswer": null
+   },
+   "issues": []
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 8,
+   "auto": "pitch-path"
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 9,
+   "mode": "rhythm-echo",
+   "round": {
+    "id": "rhythm-pitch:rhythm-seed:9:rhythm-echo",
+    "seed": "rhythm-seed",
+    "level": 9,
+    "mode": "rhythm-echo",
+    "difficulty": 53,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "beatCount": 7,
+    "bpm": 100,
+    "unitMs": 600,
+    "beats": [
+     {
+      "onsetMs": 0,
+      "accent": true
+     },
+     {
+      "onsetMs": 600,
+      "accent": false
+     },
+     {
+      "onsetMs": 1800,
+      "accent": false
+     },
+     {
+      "onsetMs": 2700,
+      "accent": false
+     },
+     {
+      "onsetMs": 3300,
+      "accent": false
+     },
+     {
+      "onsetMs": 3900,
+      "accent": false
+     },
+     {
+      "onsetMs": 4500,
+      "accent": false
+     }
+    ],
+    "pauseCount": 1,
+    "syncopationCount": 1,
+    "accentCount": 1
+   },
+   "issues": []
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 9,
+   "mode": "pitch-path",
+   "round": {
+    "id": "rhythm-pitch:rhythm-seed:9:pitch-path",
+    "seed": "rhythm-seed",
+    "level": 9,
+    "mode": "pitch-path",
+    "difficulty": 50,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "task": "sequence",
+    "toneCount": 5,
+    "pitchLevelCount": 3,
+    "intervalSemitones": 5,
+    "frequenciesHz": [
+     329.6275569128699,
+     440,
+     587.3295358348151
+    ],
+    "sequence": [
+     1,
+     2,
+     0,
+     1,
+     2
+    ],
+    "directionAnswer": null
+   },
+   "issues": []
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 9,
+   "auto": "rhythm-echo"
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 10,
+   "mode": "rhythm-echo",
+   "round": {
+    "id": "rhythm-pitch:rhythm-seed:10:rhythm-echo",
+    "seed": "rhythm-seed",
+    "level": 10,
+    "mode": "rhythm-echo",
+    "difficulty": 56,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "beatCount": 7,
+    "bpm": 100,
+    "unitMs": 600,
+    "beats": [
+     {
+      "onsetMs": 0,
+      "accent": true
+     },
+     {
+      "onsetMs": 600,
+      "accent": false
+     },
+     {
+      "onsetMs": 1800,
+      "accent": true
+     },
+     {
+      "onsetMs": 2100,
+      "accent": true
+     },
+     {
+      "onsetMs": 2700,
+      "accent": false
+     },
+     {
+      "onsetMs": 3300,
+      "accent": false
+     },
+     {
+      "onsetMs": 3900,
+      "accent": false
+     }
+    ],
+    "pauseCount": 1,
+    "syncopationCount": 1,
+    "accentCount": 3
+   },
+   "issues": []
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 10,
+   "mode": "pitch-path",
+   "round": {
+    "id": "rhythm-pitch:rhythm-seed:10:pitch-path",
+    "seed": "rhythm-seed",
+    "level": 10,
+    "mode": "pitch-path",
+    "difficulty": 55,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "task": "sequence",
+    "toneCount": 6,
+    "pitchLevelCount": 3,
+    "intervalSemitones": 5,
+    "frequenciesHz": [
+     277.1826309768721,
+     369.9944227116344,
+     493.8833012561241
+    ],
+    "sequence": [
+     1,
+     0,
+     2,
+     0,
+     2,
+     0
+    ],
+    "directionAnswer": null
+   },
+   "issues": []
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 10,
+   "auto": "pitch-path"
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 11,
+   "mode": "rhythm-echo",
+   "round": {
+    "id": "rhythm-pitch:rhythm-seed:11:rhythm-echo",
+    "seed": "rhythm-seed",
+    "level": 11,
+    "mode": "rhythm-echo",
+    "difficulty": 63,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "beatCount": 8,
+    "bpm": 110,
+    "unitMs": 545.4545454545455,
+    "beats": [
+     {
+      "onsetMs": 0,
+      "accent": true
+     },
+     {
+      "onsetMs": 545.455,
+      "accent": false
+     },
+     {
+      "onsetMs": 1636.364,
+      "accent": false
+     },
+     {
+      "onsetMs": 1909.091,
+      "accent": false
+     },
+     {
+      "onsetMs": 2454.545,
+      "accent": false
+     },
+     {
+      "onsetMs": 3000,
+      "accent": false
+     },
+     {
+      "onsetMs": 4090.909,
+      "accent": false
+     },
+     {
+      "onsetMs": 4636.364,
+      "accent": false
+     }
+    ],
+    "pauseCount": 2,
+    "syncopationCount": 1,
+    "accentCount": 1
+   },
+   "issues": []
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 11,
+   "mode": "pitch-path",
+   "round": {
+    "id": "rhythm-pitch:rhythm-seed:11:pitch-path",
+    "seed": "rhythm-seed",
+    "level": 11,
+    "mode": "pitch-path",
+    "difficulty": 55,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "task": "sequence",
+    "toneCount": 6,
+    "pitchLevelCount": 3,
+    "intervalSemitones": 5,
+    "frequenciesHz": [
+     311.1269837220809,
+     415.3046975799451,
+     554.3652619537442
+    ],
+    "sequence": [
+     0,
+     2,
+     1,
+     2,
+     1,
+     0
+    ],
+    "directionAnswer": null
+   },
+   "issues": []
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 11,
+   "auto": "rhythm-echo"
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 12,
+   "mode": "rhythm-echo",
+   "round": {
+    "id": "rhythm-pitch:rhythm-seed:12:rhythm-echo",
+    "seed": "rhythm-seed",
+    "level": 12,
+    "mode": "rhythm-echo",
+    "difficulty": 72,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "beatCount": 8,
+    "bpm": 110,
+    "unitMs": 545.4545454545455,
+    "beats": [
+     {
+      "onsetMs": 0,
+      "accent": true
+     },
+     {
+      "onsetMs": 1090.909,
+      "accent": true
+     },
+     {
+      "onsetMs": 2181.818,
+      "accent": false
+     },
+     {
+      "onsetMs": 3000,
+      "accent": false
+     },
+     {
+      "onsetMs": 3545.455,
+      "accent": false
+     },
+     {
+      "onsetMs": 3818.182,
+      "accent": false
+     },
+     {
+      "onsetMs": 4363.636,
+      "accent": false
+     },
+     {
+      "onsetMs": 4636.364,
+      "accent": false
+     }
+    ],
+    "pauseCount": 2,
+    "syncopationCount": 3,
+    "accentCount": 2
+   },
+   "issues": []
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 12,
+   "mode": "pitch-path",
+   "round": {
+    "id": "rhythm-pitch:rhythm-seed:12:pitch-path",
+    "seed": "rhythm-seed",
+    "level": 12,
+    "mode": "pitch-path",
+    "difficulty": 60,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "task": "sequence",
+    "toneCount": 7,
+    "pitchLevelCount": 3,
+    "intervalSemitones": 5,
+    "frequenciesHz": [
+     329.6275569128699,
+     440,
+     587.3295358348151
+    ],
+    "sequence": [
+     1,
+     0,
+     2,
+     0,
+     1,
+     0,
+     2
+    ],
+    "directionAnswer": null
+   },
+   "issues": []
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 12,
+   "auto": "pitch-path"
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 13,
+   "mode": "rhythm-echo",
+   "round": {
+    "id": "rhythm-pitch:rhythm-seed:13:rhythm-echo",
+    "seed": "rhythm-seed",
+    "level": 13,
+    "mode": "rhythm-echo",
+    "difficulty": 69,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "beatCount": 9,
+    "bpm": 120,
+    "unitMs": 500,
+    "beats": [
+     {
+      "onsetMs": 0,
+      "accent": true
+     },
+     {
+      "onsetMs": 500,
+      "accent": true
+     },
+     {
+      "onsetMs": 1500,
+      "accent": false
+     },
+     {
+      "onsetMs": 2250,
+      "accent": true
+     },
+     {
+      "onsetMs": 2750,
+      "accent": false
+     },
+     {
+      "onsetMs": 3250,
+      "accent": false
+     },
+     {
+      "onsetMs": 3750,
+      "accent": false
+     },
+     {
+      "onsetMs": 4250,
+      "accent": false
+     },
+     {
+      "onsetMs": 4750,
+      "accent": false
+     }
+    ],
+    "pauseCount": 1,
+    "syncopationCount": 1,
+    "accentCount": 3
+   },
+   "issues": []
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 13,
+   "mode": "pitch-path",
+   "round": {
+    "id": "rhythm-pitch:rhythm-seed:13:pitch-path",
+    "seed": "rhythm-seed",
+    "level": 13,
+    "mode": "pitch-path",
+    "difficulty": 60,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "task": "sequence",
+    "toneCount": 7,
+    "pitchLevelCount": 3,
+    "intervalSemitones": 5,
+    "frequenciesHz": [
+     261.6255653005986,
+     349.2282314330039,
+     466.1637615180899
+    ],
+    "sequence": [
+     1,
+     2,
+     0,
+     2,
+     1,
+     0,
+     1
+    ],
+    "directionAnswer": null
+   },
+   "issues": []
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 13,
+   "auto": "rhythm-echo"
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 14,
+   "mode": "rhythm-echo",
+   "round": {
+    "id": "rhythm-pitch:rhythm-seed:14:rhythm-echo",
+    "seed": "rhythm-seed",
+    "level": 14,
+    "mode": "rhythm-echo",
+    "difficulty": 76,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "beatCount": 9,
+    "bpm": 120,
+    "unitMs": 500,
+    "beats": [
+     {
+      "onsetMs": 0,
+      "accent": true
+     },
+     {
+      "onsetMs": 500,
+      "accent": false
+     },
+     {
+      "onsetMs": 1500,
+      "accent": false
+     },
+     {
+      "onsetMs": 2250,
+      "accent": false
+     },
+     {
+      "onsetMs": 2750,
+      "accent": false
+     },
+     {
+      "onsetMs": 3250,
+      "accent": false
+     },
+     {
+      "onsetMs": 4000,
+      "accent": true
+     },
+     {
+      "onsetMs": 4500,
+      "accent": false
+     },
+     {
+      "onsetMs": 5500,
+      "accent": true
+     }
+    ],
+    "pauseCount": 2,
+    "syncopationCount": 2,
+    "accentCount": 3
+   },
+   "issues": []
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 14,
+   "mode": "pitch-path",
+   "round": {
+    "id": "rhythm-pitch:rhythm-seed:14:pitch-path",
+    "seed": "rhythm-seed",
+    "level": 14,
+    "mode": "pitch-path",
+    "difficulty": 72,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "task": "sequence",
+    "toneCount": 8,
+    "pitchLevelCount": 3,
+    "intervalSemitones": 4,
+    "frequenciesHz": [
+     369.9944227116344,
+     466.1637615180899,
+     587.3295358348151
+    ],
+    "sequence": [
+     1,
+     0,
+     2,
+     0,
+     2,
+     1,
+     0,
+     1
+    ],
+    "directionAnswer": null
+   },
+   "issues": []
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 14,
+   "auto": "pitch-path"
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 15,
+   "mode": "rhythm-echo",
+   "round": {
+    "id": "rhythm-pitch:rhythm-seed:15:rhythm-echo",
+    "seed": "rhythm-seed",
+    "level": 15,
+    "mode": "rhythm-echo",
+    "difficulty": 80,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "beatCount": 10,
+    "bpm": 130,
+    "unitMs": 461.53846153846155,
+    "beats": [
+     {
+      "onsetMs": 0,
+      "accent": true
+     },
+     {
+      "onsetMs": 461.538,
+      "accent": false
+     },
+     {
+      "onsetMs": 1384.615,
+      "accent": false
+     },
+     {
+      "onsetMs": 1615.385,
+      "accent": false
+     },
+     {
+      "onsetMs": 2307.692,
+      "accent": false
+     },
+     {
+      "onsetMs": 2769.231,
+      "accent": false
+     },
+     {
+      "onsetMs": 3230.769,
+      "accent": false
+     },
+     {
+      "onsetMs": 3692.308,
+      "accent": false
+     },
+     {
+      "onsetMs": 4153.846,
+      "accent": true
+     },
+     {
+      "onsetMs": 4615.385,
+      "accent": true
+     }
+    ],
+    "pauseCount": 1,
+    "syncopationCount": 2,
+    "accentCount": 3
+   },
+   "issues": []
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 15,
+   "mode": "pitch-path",
+   "round": {
+    "id": "rhythm-pitch:rhythm-seed:15:pitch-path",
+    "seed": "rhythm-seed",
+    "level": 15,
+    "mode": "pitch-path",
+    "difficulty": 72,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "task": "sequence",
+    "toneCount": 8,
+    "pitchLevelCount": 3,
+    "intervalSemitones": 4,
+    "frequenciesHz": [
+     261.6255653005986,
+     329.6275569128699,
+     415.3046975799451
+    ],
+    "sequence": [
+     2,
+     0,
+     1,
+     2,
+     0,
+     1,
+     2,
+     1
+    ],
+    "directionAnswer": null
+   },
+   "issues": []
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 15,
+   "auto": "rhythm-echo"
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 16,
+   "mode": "rhythm-echo",
+   "round": {
+    "id": "rhythm-pitch:rhythm-seed:16:rhythm-echo",
+    "seed": "rhythm-seed",
+    "level": 16,
+    "mode": "rhythm-echo",
+    "difficulty": 84,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "beatCount": 10,
+    "bpm": 130,
+    "unitMs": 461.53846153846155,
+    "beats": [
+     {
+      "onsetMs": 0,
+      "accent": true
+     },
+     {
+      "onsetMs": 461.538,
+      "accent": false
+     },
+     {
+      "onsetMs": 1384.615,
+      "accent": true
+     },
+     {
+      "onsetMs": 1615.385,
+      "accent": true
+     },
+     {
+      "onsetMs": 2076.923,
+      "accent": false
+     },
+     {
+      "onsetMs": 2538.462,
+      "accent": true
+     },
+     {
+      "onsetMs": 3461.538,
+      "accent": false
+     },
+     {
+      "onsetMs": 3923.077,
+      "accent": true
+     },
+     {
+      "onsetMs": 4384.615,
+      "accent": false
+     },
+     {
+      "onsetMs": 4846.154,
+      "accent": true
+     }
+    ],
+    "pauseCount": 2,
+    "syncopationCount": 1,
+    "accentCount": 6
+   },
+   "issues": []
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 16,
+   "mode": "pitch-path",
+   "round": {
+    "id": "rhythm-pitch:rhythm-seed:16:pitch-path",
+    "seed": "rhythm-seed",
+    "level": 16,
+    "mode": "pitch-path",
+    "difficulty": 77,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "task": "sequence",
+    "toneCount": 9,
+    "pitchLevelCount": 3,
+    "intervalSemitones": 4,
+    "frequenciesHz": [
+     329.6275569128699,
+     415.3046975799451,
+     523.2511306011972
+    ],
+    "sequence": [
+     2,
+     1,
+     0,
+     1,
+     2,
+     0,
+     1,
+     0,
+     1
+    ],
+    "directionAnswer": null
+   },
+   "issues": []
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 16,
+   "auto": "pitch-path"
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 17,
+   "mode": "rhythm-echo",
+   "round": {
+    "id": "rhythm-pitch:rhythm-seed:17:rhythm-echo",
+    "seed": "rhythm-seed",
+    "level": 17,
+    "mode": "rhythm-echo",
+    "difficulty": 100,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "beatCount": 11,
+    "bpm": 140,
+    "unitMs": 428.57142857142856,
+    "beats": [
+     {
+      "onsetMs": 0,
+      "accent": true
+     },
+     {
+      "onsetMs": 642.857,
+      "accent": true
+     },
+     {
+      "onsetMs": 1500,
+      "accent": false
+     },
+     {
+      "onsetMs": 2142.857,
+      "accent": false
+     },
+     {
+      "onsetMs": 2357.143,
+      "accent": true
+     },
+     {
+      "onsetMs": 2571.429,
+      "accent": true
+     },
+     {
+      "onsetMs": 3000,
+      "accent": false
+     },
+     {
+      "onsetMs": 3428.571,
+      "accent": false
+     },
+     {
+      "onsetMs": 4071.429,
+      "accent": false
+     },
+     {
+      "onsetMs": 4500,
+      "accent": true
+     },
+     {
+      "onsetMs": 4714.286,
+      "accent": false
+     }
+    ],
+    "pauseCount": 1,
+    "syncopationCount": 6,
+    "accentCount": 5
+   },
+   "issues": []
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 17,
+   "mode": "pitch-path",
+   "round": {
+    "id": "rhythm-pitch:rhythm-seed:17:pitch-path",
+    "seed": "rhythm-seed",
+    "level": 17,
+    "mode": "pitch-path",
+    "difficulty": 77,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "task": "sequence",
+    "toneCount": 9,
+    "pitchLevelCount": 3,
+    "intervalSemitones": 4,
+    "frequenciesHz": [
+     329.6275569128699,
+     415.3046975799451,
+     523.2511306011972
+    ],
+    "sequence": [
+     2,
+     0,
+     1,
+     2,
+     0,
+     2,
+     1,
+     0,
+     2
+    ],
+    "directionAnswer": null
+   },
+   "issues": []
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 17,
+   "auto": "rhythm-echo"
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 18,
+   "mode": "rhythm-echo",
+   "round": {
+    "id": "rhythm-pitch:rhythm-seed:18:rhythm-echo",
+    "seed": "rhythm-seed",
+    "level": 18,
+    "mode": "rhythm-echo",
+    "difficulty": 90,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "beatCount": 11,
+    "bpm": 140,
+    "unitMs": 428.57142857142856,
+    "beats": [
+     {
+      "onsetMs": 0,
+      "accent": true
+     },
+     {
+      "onsetMs": 642.857,
+      "accent": false
+     },
+     {
+      "onsetMs": 1500,
+      "accent": false
+     },
+     {
+      "onsetMs": 1714.286,
+      "accent": false
+     },
+     {
+      "onsetMs": 2142.857,
+      "accent": false
+     },
+     {
+      "onsetMs": 2571.429,
+      "accent": false
+     },
+     {
+      "onsetMs": 3000,
+      "accent": false
+     },
+     {
+      "onsetMs": 3428.571,
+      "accent": false
+     },
+     {
+      "onsetMs": 4285.714,
+      "accent": false
+     },
+     {
+      "onsetMs": 4714.286,
+      "accent": true
+     },
+     {
+      "onsetMs": 5142.857,
+      "accent": true
+     }
+    ],
+    "pauseCount": 2,
+    "syncopationCount": 2,
+    "accentCount": 3
+   },
+   "issues": []
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 18,
+   "mode": "pitch-path",
+   "round": {
+    "id": "rhythm-pitch:rhythm-seed:18:pitch-path",
+    "seed": "rhythm-seed",
+    "level": 18,
+    "mode": "pitch-path",
+    "difficulty": 82,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "task": "sequence",
+    "toneCount": 10,
+    "pitchLevelCount": 3,
+    "intervalSemitones": 4,
+    "frequenciesHz": [
+     261.6255653005986,
+     329.6275569128699,
+     415.3046975799451
+    ],
+    "sequence": [
+     2,
+     0,
+     1,
+     0,
+     2,
+     0,
+     2,
+     0,
+     1,
+     0
+    ],
+    "directionAnswer": null
+   },
+   "issues": []
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 18,
+   "auto": "pitch-path"
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 19,
+   "mode": "rhythm-echo",
+   "round": {
+    "id": "rhythm-pitch:rhythm-seed:19:rhythm-echo",
+    "seed": "rhythm-seed",
+    "level": 19,
+    "mode": "rhythm-echo",
+    "difficulty": 97,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "beatCount": 12,
+    "bpm": 150,
+    "unitMs": 400,
+    "beats": [
+     {
+      "onsetMs": 0,
+      "accent": true
+     },
+     {
+      "onsetMs": 400,
+      "accent": false
+     },
+     {
+      "onsetMs": 1200,
+      "accent": true
+     },
+     {
+      "onsetMs": 1400,
+      "accent": true
+     },
+     {
+      "onsetMs": 1800,
+      "accent": false
+     },
+     {
+      "onsetMs": 2200,
+      "accent": false
+     },
+     {
+      "onsetMs": 2600,
+      "accent": false
+     },
+     {
+      "onsetMs": 3000,
+      "accent": false
+     },
+     {
+      "onsetMs": 3400,
+      "accent": true
+     },
+     {
+      "onsetMs": 3600,
+      "accent": false
+     },
+     {
+      "onsetMs": 4000,
+      "accent": false
+     },
+     {
+      "onsetMs": 4400,
+      "accent": true
+     }
+    ],
+    "pauseCount": 1,
+    "syncopationCount": 2,
+    "accentCount": 5
+   },
+   "issues": []
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 19,
+   "mode": "pitch-path",
+   "round": {
+    "id": "rhythm-pitch:rhythm-seed:19:pitch-path",
+    "seed": "rhythm-seed",
+    "level": 19,
+    "mode": "pitch-path",
+    "difficulty": 89,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "task": "sequence",
+    "toneCount": 10,
+    "pitchLevelCount": 3,
+    "intervalSemitones": 3,
+    "frequenciesHz": [
+     261.6255653005986,
+     311.1269837220809,
+     369.9944227116344
+    ],
+    "sequence": [
+     1,
+     2,
+     0,
+     1,
+     0,
+     1,
+     0,
+     2,
+     1,
+     2
+    ],
+    "directionAnswer": null
+   },
+   "issues": []
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 19,
+   "auto": "rhythm-echo"
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 20,
+   "mode": "rhythm-echo",
+   "round": {
+    "id": "rhythm-pitch:rhythm-seed:20:rhythm-echo",
+    "seed": "rhythm-seed",
+    "level": 20,
+    "mode": "rhythm-echo",
+    "difficulty": 100,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "beatCount": 12,
+    "bpm": 150,
+    "unitMs": 400,
+    "beats": [
+     {
+      "onsetMs": 0,
+      "accent": true
+     },
+     {
+      "onsetMs": 400,
+      "accent": true
+     },
+     {
+      "onsetMs": 1200,
+      "accent": false
+     },
+     {
+      "onsetMs": 1800,
+      "accent": false
+     },
+     {
+      "onsetMs": 2200,
+      "accent": true
+     },
+     {
+      "onsetMs": 2600,
+      "accent": false
+     },
+     {
+      "onsetMs": 3200,
+      "accent": false
+     },
+     {
+      "onsetMs": 4000,
+      "accent": true
+     },
+     {
+      "onsetMs": 4600,
+      "accent": false
+     },
+     {
+      "onsetMs": 5000,
+      "accent": false
+     },
+     {
+      "onsetMs": 5200,
+      "accent": false
+     },
+     {
+      "onsetMs": 5800,
+      "accent": true
+     }
+    ],
+    "pauseCount": 2,
+    "syncopationCount": 5,
+    "accentCount": 5
+   },
+   "issues": []
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 20,
+   "mode": "pitch-path",
+   "round": {
+    "id": "rhythm-pitch:rhythm-seed:20:pitch-path",
+    "seed": "rhythm-seed",
+    "level": 20,
+    "mode": "pitch-path",
+    "difficulty": 89,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "task": "sequence",
+    "toneCount": 10,
+    "pitchLevelCount": 3,
+    "intervalSemitones": 3,
+    "frequenciesHz": [
+     311.1269837220809,
+     369.9944227116344,
+     440
+    ],
+    "sequence": [
+     0,
+     2,
+     1,
+     0,
+     2,
+     0,
+     2,
+     0,
+     2,
+     0
+    ],
+    "directionAnswer": null
+   },
+   "issues": []
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 20,
+   "auto": "pitch-path"
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 21,
+   "mode": "rhythm-echo",
+   "round": {
+    "id": "rhythm-pitch:rhythm-seed:21:rhythm-echo",
+    "seed": "rhythm-seed",
+    "level": 21,
+    "mode": "rhythm-echo",
+    "difficulty": 100,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "beatCount": 12,
+    "bpm": 160,
+    "unitMs": 375,
+    "beats": [
+     {
+      "onsetMs": 0,
+      "accent": true
+     },
+     {
+      "onsetMs": 187.5,
+      "accent": true
+     },
+     {
+      "onsetMs": 937.5,
+      "accent": false
+     },
+     {
+      "onsetMs": 1125,
+      "accent": true
+     },
+     {
+      "onsetMs": 1500,
+      "accent": false
+     },
+     {
+      "onsetMs": 1875,
+      "accent": false
+     },
+     {
+      "onsetMs": 2250,
+      "accent": false
+     },
+     {
+      "onsetMs": 2812.5,
+      "accent": true
+     },
+     {
+      "onsetMs": 3187.5,
+      "accent": false
+     },
+     {
+      "onsetMs": 3562.5,
+      "accent": false
+     },
+     {
+      "onsetMs": 3937.5,
+      "accent": true
+     },
+     {
+      "onsetMs": 4312.5,
+      "accent": false
+     }
+    ],
+    "pauseCount": 1,
+    "syncopationCount": 3,
+    "accentCount": 5
+   },
+   "issues": []
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 21,
+   "mode": "pitch-path",
+   "round": {
+    "id": "rhythm-pitch:rhythm-seed:21:pitch-path",
+    "seed": "rhythm-seed",
+    "level": 21,
+    "mode": "pitch-path",
+    "difficulty": 89,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "task": "sequence",
+    "toneCount": 10,
+    "pitchLevelCount": 3,
+    "intervalSemitones": 3,
+    "frequenciesHz": [
+     261.6255653005986,
+     311.1269837220809,
+     369.9944227116344
+    ],
+    "sequence": [
+     0,
+     2,
+     1,
+     0,
+     2,
+     0,
+     2,
+     0,
+     1,
+     2
+    ],
+    "directionAnswer": null
+   },
+   "issues": []
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 21,
+   "auto": "rhythm-echo"
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 22,
+   "mode": "rhythm-echo",
+   "round": {
+    "id": "rhythm-pitch:rhythm-seed:22:rhythm-echo",
+    "seed": "rhythm-seed",
+    "level": 22,
+    "mode": "rhythm-echo",
+    "difficulty": 100,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "beatCount": 12,
+    "bpm": 160,
+    "unitMs": 375,
+    "beats": [
+     {
+      "onsetMs": 0,
+      "accent": true
+     },
+     {
+      "onsetMs": 375,
+      "accent": true
+     },
+     {
+      "onsetMs": 1125,
+      "accent": false
+     },
+     {
+      "onsetMs": 1312.5,
+      "accent": false
+     },
+     {
+      "onsetMs": 1687.5,
+      "accent": false
+     },
+     {
+      "onsetMs": 2062.5,
+      "accent": false
+     },
+     {
+      "onsetMs": 2625,
+      "accent": false
+     },
+     {
+      "onsetMs": 3000,
+      "accent": false
+     },
+     {
+      "onsetMs": 3187.5,
+      "accent": false
+     },
+     {
+      "onsetMs": 3562.5,
+      "accent": true
+     },
+     {
+      "onsetMs": 3937.5,
+      "accent": false
+     },
+     {
+      "onsetMs": 4125,
+      "accent": false
+     }
+    ],
+    "pauseCount": 1,
+    "syncopationCount": 4,
+    "accentCount": 3
+   },
+   "issues": []
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 22,
+   "mode": "pitch-path",
+   "round": {
+    "id": "rhythm-pitch:rhythm-seed:22:pitch-path",
+    "seed": "rhythm-seed",
+    "level": 22,
+    "mode": "pitch-path",
+    "difficulty": 89,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "task": "sequence",
+    "toneCount": 10,
+    "pitchLevelCount": 3,
+    "intervalSemitones": 3,
+    "frequenciesHz": [
+     369.9944227116344,
+     440,
+     523.2511306011972
+    ],
+    "sequence": [
+     2,
+     1,
+     0,
+     2,
+     0,
+     2,
+     0,
+     2,
+     1,
+     2
+    ],
+    "directionAnswer": null
+   },
+   "issues": []
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 22,
+   "auto": "pitch-path"
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 23,
+   "mode": "rhythm-echo",
+   "round": {
+    "id": "rhythm-pitch:rhythm-seed:23:rhythm-echo",
+    "seed": "rhythm-seed",
+    "level": 23,
+    "mode": "rhythm-echo",
+    "difficulty": 100,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "beatCount": 12,
+    "bpm": 160,
+    "unitMs": 375,
+    "beats": [
+     {
+      "onsetMs": 0,
+      "accent": true
+     },
+     {
+      "onsetMs": 375,
+      "accent": false
+     },
+     {
+      "onsetMs": 1125,
+      "accent": false
+     },
+     {
+      "onsetMs": 1687.5,
+      "accent": true
+     },
+     {
+      "onsetMs": 2062.5,
+      "accent": true
+     },
+     {
+      "onsetMs": 2250,
+      "accent": true
+     },
+     {
+      "onsetMs": 2625,
+      "accent": false
+     },
+     {
+      "onsetMs": 3375,
+      "accent": false
+     },
+     {
+      "onsetMs": 3750,
+      "accent": false
+     },
+     {
+      "onsetMs": 4125,
+      "accent": false
+     },
+     {
+      "onsetMs": 4500,
+      "accent": true
+     },
+     {
+      "onsetMs": 4875,
+      "accent": false
+     }
+    ],
+    "pauseCount": 2,
+    "syncopationCount": 2,
+    "accentCount": 5
+   },
+   "issues": []
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 23,
+   "mode": "pitch-path",
+   "round": {
+    "id": "rhythm-pitch:rhythm-seed:23:pitch-path",
+    "seed": "rhythm-seed",
+    "level": 23,
+    "mode": "pitch-path",
+    "difficulty": 89,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "task": "sequence",
+    "toneCount": 10,
+    "pitchLevelCount": 3,
+    "intervalSemitones": 3,
+    "frequenciesHz": [
+     261.6255653005986,
+     311.1269837220809,
+     369.9944227116344
+    ],
+    "sequence": [
+     2,
+     0,
+     1,
+     0,
+     1,
+     2,
+     0,
+     2,
+     0,
+     2
+    ],
+    "directionAnswer": null
+   },
+   "issues": []
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 23,
+   "auto": "rhythm-echo"
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 24,
+   "mode": "rhythm-echo",
+   "round": {
+    "id": "rhythm-pitch:rhythm-seed:24:rhythm-echo",
+    "seed": "rhythm-seed",
+    "level": 24,
+    "mode": "rhythm-echo",
+    "difficulty": 100,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "beatCount": 12,
+    "bpm": 160,
+    "unitMs": 375,
+    "beats": [
+     {
+      "onsetMs": 0,
+      "accent": true
+     },
+     {
+      "onsetMs": 750,
+      "accent": false
+     },
+     {
+      "onsetMs": 1500,
+      "accent": false
+     },
+     {
+      "onsetMs": 2062.5,
+      "accent": true
+     },
+     {
+      "onsetMs": 2812.5,
+      "accent": true
+     },
+     {
+      "onsetMs": 3187.5,
+      "accent": true
+     },
+     {
+      "onsetMs": 3562.5,
+      "accent": false
+     },
+     {
+      "onsetMs": 3937.5,
+      "accent": true
+     },
+     {
+      "onsetMs": 4312.5,
+      "accent": true
+     },
+     {
+      "onsetMs": 4687.5,
+      "accent": false
+     },
+     {
+      "onsetMs": 5437.5,
+      "accent": false
+     },
+     {
+      "onsetMs": 5812.5,
+      "accent": true
+     }
+    ],
+    "pauseCount": 4,
+    "syncopationCount": 1,
+    "accentCount": 7
+   },
+   "issues": []
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 24,
+   "mode": "pitch-path",
+   "round": {
+    "id": "rhythm-pitch:rhythm-seed:24:pitch-path",
+    "seed": "rhythm-seed",
+    "level": 24,
+    "mode": "pitch-path",
+    "difficulty": 96,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "task": "sequence",
+    "toneCount": 10,
+    "pitchLevelCount": 3,
+    "intervalSemitones": 2,
+    "frequenciesHz": [
+     391.99543598174927,
+     440,
+     493.8833012561241
+    ],
+    "sequence": [
+     0,
+     2,
+     1,
+     0,
+     1,
+     0,
+     1,
+     2,
+     1,
+     2
+    ],
+    "directionAnswer": null
+   },
+   "issues": []
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 24,
+   "auto": "pitch-path"
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 25,
+   "mode": "rhythm-echo",
+   "round": {
+    "id": "rhythm-pitch:rhythm-seed:25:rhythm-echo",
+    "seed": "rhythm-seed",
+    "level": 25,
+    "mode": "rhythm-echo",
+    "difficulty": 98,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "beatCount": 12,
+    "bpm": 160,
+    "unitMs": 375,
+    "beats": [
+     {
+      "onsetMs": 0,
+      "accent": true
+     },
+     {
+      "onsetMs": 375,
+      "accent": true
+     },
+     {
+      "onsetMs": 1125,
+      "accent": false
+     },
+     {
+      "onsetMs": 1687.5,
+      "accent": false
+     },
+     {
+      "onsetMs": 2062.5,
+      "accent": false
+     },
+     {
+      "onsetMs": 2437.5,
+      "accent": false
+     },
+     {
+      "onsetMs": 2812.5,
+      "accent": true
+     },
+     {
+      "onsetMs": 3187.5,
+      "accent": true
+     },
+     {
+      "onsetMs": 3562.5,
+      "accent": false
+     },
+     {
+      "onsetMs": 3937.5,
+      "accent": false
+     },
+     {
+      "onsetMs": 4500,
+      "accent": false
+     },
+     {
+      "onsetMs": 4875,
+      "accent": false
+     }
+    ],
+    "pauseCount": 1,
+    "syncopationCount": 2,
+    "accentCount": 4
+   },
+   "issues": []
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 25,
+   "mode": "pitch-path",
+   "round": {
+    "id": "rhythm-pitch:rhythm-seed:25:pitch-path",
+    "seed": "rhythm-seed",
+    "level": 25,
+    "mode": "pitch-path",
+    "difficulty": 96,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "task": "sequence",
+    "toneCount": 10,
+    "pitchLevelCount": 3,
+    "intervalSemitones": 2,
+    "frequenciesHz": [
+     329.6275569128699,
+     369.9944227116344,
+     415.3046975799451
+    ],
+    "sequence": [
+     2,
+     0,
+     1,
+     2,
+     0,
+     2,
+     1,
+     0,
+     2,
+     0
+    ],
+    "directionAnswer": null
+   },
+   "issues": []
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 25,
+   "auto": "rhythm-echo"
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 26,
+   "mode": "rhythm-echo",
+   "round": {
+    "id": "rhythm-pitch:rhythm-seed:26:rhythm-echo",
+    "seed": "rhythm-seed",
+    "level": 26,
+    "mode": "rhythm-echo",
+    "difficulty": 100,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "beatCount": 12,
+    "bpm": 160,
+    "unitMs": 375,
+    "beats": [
+     {
+      "onsetMs": 0,
+      "accent": true
+     },
+     {
+      "onsetMs": 187.5,
+      "accent": false
+     },
+     {
+      "onsetMs": 937.5,
+      "accent": true
+     },
+     {
+      "onsetMs": 1125,
+      "accent": false
+     },
+     {
+      "onsetMs": 1500,
+      "accent": true
+     },
+     {
+      "onsetMs": 1875,
+      "accent": true
+     },
+     {
+      "onsetMs": 2250,
+      "accent": true
+     },
+     {
+      "onsetMs": 2625,
+      "accent": true
+     },
+     {
+      "onsetMs": 2812.5,
+      "accent": false
+     },
+     {
+      "onsetMs": 3187.5,
+      "accent": true
+     },
+     {
+      "onsetMs": 3375,
+      "accent": false
+     },
+     {
+      "onsetMs": 4125,
+      "accent": true
+     }
+    ],
+    "pauseCount": 2,
+    "syncopationCount": 4,
+    "accentCount": 8
+   },
+   "issues": []
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 26,
+   "mode": "pitch-path",
+   "round": {
+    "id": "rhythm-pitch:rhythm-seed:26:pitch-path",
+    "seed": "rhythm-seed",
+    "level": 26,
+    "mode": "pitch-path",
+    "difficulty": 96,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "task": "sequence",
+    "toneCount": 10,
+    "pitchLevelCount": 3,
+    "intervalSemitones": 2,
+    "frequenciesHz": [
+     369.9944227116344,
+     415.3046975799451,
+     466.1637615180899
+    ],
+    "sequence": [
+     2,
+     1,
+     0,
+     1,
+     2,
+     1,
+     0,
+     2,
+     0,
+     1
+    ],
+    "directionAnswer": null
+   },
+   "issues": []
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 26,
+   "auto": "pitch-path"
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 27,
+   "mode": "rhythm-echo",
+   "round": {
+    "id": "rhythm-pitch:rhythm-seed:27:rhythm-echo",
+    "seed": "rhythm-seed",
+    "level": 27,
+    "mode": "rhythm-echo",
+    "difficulty": 100,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "beatCount": 12,
+    "bpm": 160,
+    "unitMs": 375,
+    "beats": [
+     {
+      "onsetMs": 0,
+      "accent": true
+     },
+     {
+      "onsetMs": 375,
+      "accent": false
+     },
+     {
+      "onsetMs": 1125,
+      "accent": false
+     },
+     {
+      "onsetMs": 1687.5,
+      "accent": true
+     },
+     {
+      "onsetMs": 2437.5,
+      "accent": false
+     },
+     {
+      "onsetMs": 3187.5,
+      "accent": false
+     },
+     {
+      "onsetMs": 3562.5,
+      "accent": true
+     },
+     {
+      "onsetMs": 4125,
+      "accent": false
+     },
+     {
+      "onsetMs": 4500,
+      "accent": false
+     },
+     {
+      "onsetMs": 5250,
+      "accent": false
+     },
+     {
+      "onsetMs": 5625,
+      "accent": true
+     },
+     {
+      "onsetMs": 6000,
+      "accent": true
+     }
+    ],
+    "pauseCount": 4,
+    "syncopationCount": 2,
+    "accentCount": 5
+   },
+   "issues": []
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 27,
+   "mode": "pitch-path",
+   "round": {
+    "id": "rhythm-pitch:rhythm-seed:27:pitch-path",
+    "seed": "rhythm-seed",
+    "level": 27,
+    "mode": "pitch-path",
+    "difficulty": 96,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "task": "sequence",
+    "toneCount": 10,
+    "pitchLevelCount": 3,
+    "intervalSemitones": 2,
+    "frequenciesHz": [
+     415.3046975799451,
+     466.1637615180899,
+     523.2511306011972
+    ],
+    "sequence": [
+     1,
+     0,
+     2,
+     1,
+     2,
+     1,
+     2,
+     1,
+     2,
+     1
+    ],
+    "directionAnswer": null
+   },
+   "issues": []
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 27,
+   "auto": "rhythm-echo"
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 28,
+   "mode": "rhythm-echo",
+   "round": {
+    "id": "rhythm-pitch:rhythm-seed:28:rhythm-echo",
+    "seed": "rhythm-seed",
+    "level": 28,
+    "mode": "rhythm-echo",
+    "difficulty": 96,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "beatCount": 12,
+    "bpm": 160,
+    "unitMs": 375,
+    "beats": [
+     {
+      "onsetMs": 0,
+      "accent": true
+     },
+     {
+      "onsetMs": 375,
+      "accent": false
+     },
+     {
+      "onsetMs": 1125,
+      "accent": true
+     },
+     {
+      "onsetMs": 1687.5,
+      "accent": false
+     },
+     {
+      "onsetMs": 2062.5,
+      "accent": false
+     },
+     {
+      "onsetMs": 2437.5,
+      "accent": true
+     },
+     {
+      "onsetMs": 2812.5,
+      "accent": false
+     },
+     {
+      "onsetMs": 3187.5,
+      "accent": false
+     },
+     {
+      "onsetMs": 3562.5,
+      "accent": false
+     },
+     {
+      "onsetMs": 4312.5,
+      "accent": false
+     },
+     {
+      "onsetMs": 4687.5,
+      "accent": false
+     },
+     {
+      "onsetMs": 5062.5,
+      "accent": false
+     }
+    ],
+    "pauseCount": 2,
+    "syncopationCount": 1,
+    "accentCount": 3
+   },
+   "issues": []
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 28,
+   "mode": "pitch-path",
+   "round": {
+    "id": "rhythm-pitch:rhythm-seed:28:pitch-path",
+    "seed": "rhythm-seed",
+    "level": 28,
+    "mode": "pitch-path",
+    "difficulty": 96,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "task": "sequence",
+    "toneCount": 10,
+    "pitchLevelCount": 3,
+    "intervalSemitones": 2,
+    "frequenciesHz": [
+     329.6275569128699,
+     369.9944227116344,
+     415.3046975799451
+    ],
+    "sequence": [
+     2,
+     1,
+     0,
+     1,
+     2,
+     1,
+     2,
+     0,
+     1,
+     2
+    ],
+    "directionAnswer": null
+   },
+   "issues": []
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 28,
+   "auto": "pitch-path"
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 29,
+   "mode": "rhythm-echo",
+   "round": {
+    "id": "rhythm-pitch:rhythm-seed:29:rhythm-echo",
+    "seed": "rhythm-seed",
+    "level": 29,
+    "mode": "rhythm-echo",
+    "difficulty": 100,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "beatCount": 12,
+    "bpm": 160,
+    "unitMs": 375,
+    "beats": [
+     {
+      "onsetMs": 0,
+      "accent": true
+     },
+     {
+      "onsetMs": 375,
+      "accent": false
+     },
+     {
+      "onsetMs": 1125,
+      "accent": false
+     },
+     {
+      "onsetMs": 1687.5,
+      "accent": true
+     },
+     {
+      "onsetMs": 2062.5,
+      "accent": false
+     },
+     {
+      "onsetMs": 2437.5,
+      "accent": true
+     },
+     {
+      "onsetMs": 2625,
+      "accent": false
+     },
+     {
+      "onsetMs": 3187.5,
+      "accent": false
+     },
+     {
+      "onsetMs": 3562.5,
+      "accent": true
+     },
+     {
+      "onsetMs": 3937.5,
+      "accent": false
+     },
+     {
+      "onsetMs": 4500,
+      "accent": true
+     },
+     {
+      "onsetMs": 4875,
+      "accent": false
+     }
+    ],
+    "pauseCount": 1,
+    "syncopationCount": 4,
+    "accentCount": 5
+   },
+   "issues": []
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 29,
+   "mode": "pitch-path",
+   "round": {
+    "id": "rhythm-pitch:rhythm-seed:29:pitch-path",
+    "seed": "rhythm-seed",
+    "level": 29,
+    "mode": "pitch-path",
+    "difficulty": 100,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "task": "sequence",
+    "toneCount": 10,
+    "pitchLevelCount": 3,
+    "intervalSemitones": 1,
+    "frequenciesHz": [
+     369.9944227116344,
+     391.99543598174927,
+     415.3046975799451
+    ],
+    "sequence": [
+     1,
+     2,
+     0,
+     1,
+     0,
+     1,
+     0,
+     1,
+     2,
+     1
+    ],
+    "directionAnswer": null
+   },
+   "issues": []
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 29,
+   "auto": "rhythm-echo"
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 30,
+   "mode": "rhythm-echo",
+   "round": {
+    "id": "rhythm-pitch:rhythm-seed:30:rhythm-echo",
+    "seed": "rhythm-seed",
+    "level": 30,
+    "mode": "rhythm-echo",
+    "difficulty": 100,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "beatCount": 12,
+    "bpm": 160,
+    "unitMs": 375,
+    "beats": [
+     {
+      "onsetMs": 0,
+      "accent": true
+     },
+     {
+      "onsetMs": 562.5,
+      "accent": true
+     },
+     {
+      "onsetMs": 1312.5,
+      "accent": false
+     },
+     {
+      "onsetMs": 1500,
+      "accent": false
+     },
+     {
+      "onsetMs": 2062.5,
+      "accent": false
+     },
+     {
+      "onsetMs": 2625,
+      "accent": false
+     },
+     {
+      "onsetMs": 2812.5,
+      "accent": true
+     },
+     {
+      "onsetMs": 3187.5,
+      "accent": true
+     },
+     {
+      "onsetMs": 3375,
+      "accent": false
+     },
+     {
+      "onsetMs": 3750,
+      "accent": true
+     },
+     {
+      "onsetMs": 4125,
+      "accent": false
+     },
+     {
+      "onsetMs": 4500,
+      "accent": false
+     }
+    ],
+    "pauseCount": 1,
+    "syncopationCount": 6,
+    "accentCount": 5
+   },
+   "issues": []
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 30,
+   "mode": "pitch-path",
+   "round": {
+    "id": "rhythm-pitch:rhythm-seed:30:pitch-path",
+    "seed": "rhythm-seed",
+    "level": 30,
+    "mode": "pitch-path",
+    "difficulty": 100,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "task": "sequence",
+    "toneCount": 10,
+    "pitchLevelCount": 3,
+    "intervalSemitones": 1,
+    "frequenciesHz": [
+     277.1826309768721,
+     293.6647679174076,
+     311.1269837220809
+    ],
+    "sequence": [
+     0,
+     2,
+     1,
+     2,
+     0,
+     1,
+     2,
+     1,
+     0,
+     2
+    ],
+    "directionAnswer": null
+   },
+   "issues": []
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 30,
+   "auto": "pitch-path"
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 31,
+   "mode": "rhythm-echo",
+   "round": {
+    "id": "rhythm-pitch:rhythm-seed:31:rhythm-echo",
+    "seed": "rhythm-seed",
+    "level": 31,
+    "mode": "rhythm-echo",
+    "difficulty": 99,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "beatCount": 12,
+    "bpm": 160,
+    "unitMs": 375,
+    "beats": [
+     {
+      "onsetMs": 0,
+      "accent": true
+     },
+     {
+      "onsetMs": 562.5,
+      "accent": false
+     },
+     {
+      "onsetMs": 1312.5,
+      "accent": true
+     },
+     {
+      "onsetMs": 1500,
+      "accent": false
+     },
+     {
+      "onsetMs": 1875,
+      "accent": false
+     },
+     {
+      "onsetMs": 2250,
+      "accent": false
+     },
+     {
+      "onsetMs": 2625,
+      "accent": false
+     },
+     {
+      "onsetMs": 3000,
+      "accent": false
+     },
+     {
+      "onsetMs": 3375,
+      "accent": false
+     },
+     {
+      "onsetMs": 3562.5,
+      "accent": false
+     },
+     {
+      "onsetMs": 3937.5,
+      "accent": false
+     },
+     {
+      "onsetMs": 4312.5,
+      "accent": false
+     }
+    ],
+    "pauseCount": 1,
+    "syncopationCount": 3,
+    "accentCount": 2
+   },
+   "issues": []
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 31,
+   "mode": "pitch-path",
+   "round": {
+    "id": "rhythm-pitch:rhythm-seed:31:pitch-path",
+    "seed": "rhythm-seed",
+    "level": 31,
+    "mode": "pitch-path",
+    "difficulty": 100,
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "tutorialReplay": false,
+    "task": "sequence",
+    "toneCount": 10,
+    "pitchLevelCount": 3,
+    "intervalSemitones": 1,
+    "frequenciesHz": [
+     369.9944227116344,
+     391.99543598174927,
+     415.3046975799451
+    ],
+    "sequence": [
+     1,
+     2,
+     0,
+     1,
+     2,
+     0,
+     1,
+     0,
+     2,
+     1
+    ],
+    "directionAnswer": null
+   },
+   "issues": []
+  },
+  {
+   "seed": "Rhythm Seed",
+   "level": 31,
+   "auto": "rhythm-echo"
+  }
+ ],
+ "align": [
+  {
+   "e": [
+    0,
+    500,
+    1000,
+    1500
+   ],
+   "o": [
+    10,
+    490,
+    1020,
+    1480
+   ],
+   "t": 150,
+   "result": {
+    "errorsMs": [
+     10,
+     10,
+     20,
+     20
+    ],
+    "missingTaps": 0,
+    "extraTaps": 0
+   }
+  },
+  {
+   "e": [
+    0,
+    500,
+    1000,
+    1500
+   ],
+   "o": [
+    10,
+    1020,
+    1480
+   ],
+   "t": 150,
+   "result": {
+    "errorsMs": [
+     10,
+     20,
+     20
+    ],
+    "missingTaps": 1,
+    "extraTaps": 0
+   }
+  },
+  {
+   "e": [
+    0,
+    500,
+    1000
+   ],
+   "o": [
+    0,
+    200,
+    500,
+    1000,
+    1700
+   ],
+   "t": 150,
+   "result": {
+    "errorsMs": [
+     0,
+     0,
+     0
+    ],
+    "missingTaps": 0,
+    "extraTaps": 2
+   }
+  },
+  {
+   "e": [
+    0,
+    250,
+    750,
+    1000,
+    2000
+   ],
+   "o": [],
+   "t": 100,
+   "result": {
+    "errorsMs": [],
+    "missingTaps": 5,
+    "extraTaps": 0
+   }
+  },
+  {
+   "e": [
+    0
+   ],
+   "o": [
+    250
+   ],
+   "t": 100,
+   "result": {
+    "errorsMs": [
+     250
+    ],
+    "missingTaps": 0,
+    "extraTaps": 0
+   }
+  }
+ ],
+ "latency": [
+  {
+   "e": [
+    0,
+    600,
+    1200,
+    1800
+   ],
+   "o": [
+    80,
+    690,
+    1260,
+    1900
+   ],
+   "result": {
+    "offsetMs": 85,
+    "samples": 4
+   }
+  },
+  {
+   "e": [
+    0,
+    600,
+    1200
+   ],
+   "o": [
+    1000,
+    1600,
+    -900
+   ],
+   "result": {
+    "offsetMs": 500,
+    "samples": 3
+   }
+  },
+  {
+   "e": [
+    0,
+    600
+   ],
+   "o": [
+    30
+   ],
+   "result": {
+    "offsetMs": 0,
+    "samples": 0
+   }
+  },
+  {
+   "e": [
+    0,
+    0
+   ],
+   "o": [
+    -12,
+    -12.5
+   ],
+   "result": {
+    "offsetMs": -12.2,
+    "samples": 2
+   }
+  }
+ ],
+ "rhythmRound": {
+  "id": "rhythm-pitch:daily-2026-09-30:9:rhythm-echo",
+  "seed": "daily-2026-09-30",
+  "level": 9,
+  "mode": "rhythm-echo",
+  "difficulty": 53,
+  "generatorVersion": "rhythm-pitch-generator-v1",
+  "tutorialReplay": false,
+  "beatCount": 7,
+  "bpm": 100,
+  "unitMs": 600,
+  "beats": [
+   {
+    "onsetMs": 0,
+    "accent": true
+   },
+   {
+    "onsetMs": 600,
+    "accent": false
+   },
+   {
+    "onsetMs": 1800,
+    "accent": false
+   },
+   {
+    "onsetMs": 2700,
+    "accent": false
+   },
+   {
+    "onsetMs": 3300,
+    "accent": false
+   },
+   {
+    "onsetMs": 3900,
+    "accent": false
+   },
+   {
+    "onsetMs": 4500,
+    "accent": false
+   }
+  ],
+  "pauseCount": 1,
+  "syncopationCount": 1,
+  "accentCount": 1
+ },
+ "rhythmScores": [
+  {
+   "taps": [
+    5030,
+    5555,
+    6830,
+    7655,
+    8330,
+    8855,
+    9530
+   ],
+   "start": 5000,
+   "offset": 0,
+   "timing": {
+    "accuracy": 0.7976190476190477,
+    "meanTimingErrorMs": 36.42857142857143,
+    "missingTaps": 0,
+    "extraTaps": 0,
+    "matchedTaps": 7
+   },
+   "completion": {
+    "accuracy": 0.7976190476190477,
+    "durationMs": 12346,
+    "difficulty": 53,
+    "errors": 1,
+    "score": 985,
+    "seed": "daily-2026-09-30",
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "details": {
+     "level": 9
+    },
+    "specific": {
+     "mode": "rhythm-echo",
+     "calibrationOffsetMs": 0,
+     "calibrationSamples": 3,
+     "replayCount": 1,
+     "timingAccuracy": 0.7976190476190477,
+     "meanTimingErrorMs": 36.4,
+     "missingTaps": 0,
+     "extraTaps": 0,
+     "beatCount": 7,
+     "bpm": 100,
+     "pauseCount": 1,
+     "syncopationCount": 1,
+     "accentCount": 1,
+     "pitchTask": null,
+     "pitchAccuracy": null,
+     "toneCount": 0,
+     "pitchLevelCount": 0,
+     "intervalSemitones": null,
+     "minimumFrequencyHz": null,
+     "maximumFrequencyHz": null
+    }
+   }
+  },
+  {
+   "taps": [
+    5030,
+    5555,
+    6830,
+    7655,
+    8330,
+    8855,
+    9530
+   ],
+   "start": 5000,
+   "offset": 20,
+   "timing": {
+    "accuracy": 0.8134920634920635,
+    "meanTimingErrorMs": 33.57142857142857,
+    "missingTaps": 0,
+    "extraTaps": 0,
+    "matchedTaps": 7
+   },
+   "completion": {
+    "accuracy": 0.8134920634920635,
+    "durationMs": 12346,
+    "difficulty": 53,
+    "errors": 1,
+    "score": 1000,
+    "seed": "daily-2026-09-30",
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "details": {
+     "level": 9
+    },
+    "specific": {
+     "mode": "rhythm-echo",
+     "calibrationOffsetMs": 20,
+     "calibrationSamples": 3,
+     "replayCount": 1,
+     "timingAccuracy": 0.8134920634920635,
+     "meanTimingErrorMs": 33.6,
+     "missingTaps": 0,
+     "extraTaps": 0,
+     "beatCount": 7,
+     "bpm": 100,
+     "pauseCount": 1,
+     "syncopationCount": 1,
+     "accentCount": 1,
+     "pitchTask": null,
+     "pitchAccuracy": null,
+     "toneCount": 0,
+     "pitchLevelCount": 0,
+     "intervalSemitones": null,
+     "minimumFrequencyHz": null,
+     "maximumFrequencyHz": null
+    }
+   }
+  },
+  {
+   "taps": [
+    5555,
+    6830,
+    7655,
+    8330,
+    8855,
+    9530
+   ],
+   "start": 5000,
+   "offset": 0,
+   "timing": {
+    "accuracy": 0.6071428571428572,
+    "meanTimingErrorMs": 37.5,
+    "missingTaps": 1,
+    "extraTaps": 0,
+    "matchedTaps": 6
+   },
+   "completion": {
+    "accuracy": 0.6071428571428572,
+    "durationMs": 12346,
+    "difficulty": 53,
+    "errors": 3,
+    "score": 744,
+    "seed": "daily-2026-09-30",
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "details": {
+     "level": 9
+    },
+    "specific": {
+     "mode": "rhythm-echo",
+     "calibrationOffsetMs": 0,
+     "calibrationSamples": 3,
+     "replayCount": 1,
+     "timingAccuracy": 0.6071428571428572,
+     "meanTimingErrorMs": 37.5,
+     "missingTaps": 1,
+     "extraTaps": 0,
+     "beatCount": 7,
+     "bpm": 100,
+     "pauseCount": 1,
+     "syncopationCount": 1,
+     "accentCount": 1,
+     "pitchTask": null,
+     "pitchAccuracy": null,
+     "toneCount": 0,
+     "pitchLevelCount": 0,
+     "intervalSemitones": null,
+     "minimumFrequencyHz": null,
+     "maximumFrequencyHz": null
+    }
+   }
+  },
+  {
+   "taps": [
+    5030,
+    5555,
+    6830,
+    7655,
+    8330,
+    8855,
+    9530,
+    9999
+   ],
+   "start": 5000,
+   "offset": 0,
+   "timing": {
+    "accuracy": 0.5833333333333333,
+    "meanTimingErrorMs": 36.42857142857143,
+    "missingTaps": 0,
+    "extraTaps": 1,
+    "matchedTaps": 7
+   },
+   "completion": {
+    "accuracy": 0.5833333333333333,
+    "durationMs": 12346,
+    "difficulty": 53,
+    "errors": 4,
+    "score": 695,
+    "seed": "daily-2026-09-30",
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "details": {
+     "level": 9
+    },
+    "specific": {
+     "mode": "rhythm-echo",
+     "calibrationOffsetMs": 0,
+     "calibrationSamples": 3,
+     "replayCount": 1,
+     "timingAccuracy": 0.5833333333333333,
+     "meanTimingErrorMs": 36.4,
+     "missingTaps": 0,
+     "extraTaps": 1,
+     "beatCount": 7,
+     "bpm": 100,
+     "pauseCount": 1,
+     "syncopationCount": 1,
+     "accentCount": 1,
+     "pitchTask": null,
+     "pitchAccuracy": null,
+     "toneCount": 0,
+     "pitchLevelCount": 0,
+     "intervalSemitones": null,
+     "minimumFrequencyHz": null,
+     "maximumFrequencyHz": null
+    }
+   }
+  }
+ ],
+ "pitchScores": {
+  "directionRight": {
+   "accuracy": 1,
+   "durationMs": 8000,
+   "difficulty": 24,
+   "errors": 0,
+   "score": 1096,
+   "seed": "daily-2026-09-30",
+   "generatorVersion": "rhythm-pitch-generator-v1",
+   "details": {
+    "level": 2
+   },
+   "specific": {
+    "mode": "pitch-path",
+    "calibrationOffsetMs": 12.5,
+    "calibrationSamples": 4,
+    "replayCount": 0,
+    "timingAccuracy": null,
+    "meanTimingErrorMs": null,
+    "missingTaps": 0,
+    "extraTaps": 0,
+    "beatCount": 0,
+    "bpm": null,
+    "pauseCount": 0,
+    "syncopationCount": 0,
+    "accentCount": 0,
+    "pitchTask": "direction",
+    "pitchAccuracy": 1,
+    "toneCount": 2,
+    "pitchLevelCount": 2,
+    "intervalSemitones": 5,
+    "minimumFrequencyHz": 293.6647679174076,
+    "maximumFrequencyHz": 391.99543598174927
+   }
+  },
+  "directionWrong": {
+   "accuracy": 0,
+   "durationMs": 8000,
+   "difficulty": 24,
+   "errors": 1,
+   "score": 66,
+   "seed": "daily-2026-09-30",
+   "generatorVersion": "rhythm-pitch-generator-v1",
+   "details": {
+    "level": 2
+   },
+   "specific": {
+    "mode": "pitch-path",
+    "calibrationOffsetMs": 12.5,
+    "calibrationSamples": 4,
+    "replayCount": 0,
+    "timingAccuracy": null,
+    "meanTimingErrorMs": null,
+    "missingTaps": 0,
+    "extraTaps": 0,
+    "beatCount": 0,
+    "bpm": null,
+    "pauseCount": 0,
+    "syncopationCount": 0,
+    "accentCount": 0,
+    "pitchTask": "direction",
+    "pitchAccuracy": 0,
+    "toneCount": 2,
+    "pitchLevelCount": 2,
+    "intervalSemitones": 5,
+    "minimumFrequencyHz": 293.6647679174076,
+    "maximumFrequencyHz": 391.99543598174927
+   }
+  },
+  "sequenceRight": {
+   "accuracy": 1,
+   "durationMs": 8000,
+   "difficulty": 72,
+   "errors": 0,
+   "score": 1288,
+   "seed": "daily-2026-09-30",
+   "generatorVersion": "rhythm-pitch-generator-v1",
+   "details": {
+    "level": 14
+   },
+   "specific": {
+    "mode": "pitch-path",
+    "calibrationOffsetMs": 12.5,
+    "calibrationSamples": 4,
+    "replayCount": 0,
+    "timingAccuracy": null,
+    "meanTimingErrorMs": null,
+    "missingTaps": 0,
+    "extraTaps": 0,
+    "beatCount": 0,
+    "bpm": null,
+    "pauseCount": 0,
+    "syncopationCount": 0,
+    "accentCount": 0,
+    "pitchTask": "sequence",
+    "pitchAccuracy": 1,
+    "toneCount": 8,
+    "pitchLevelCount": 3,
+    "intervalSemitones": 4,
+    "minimumFrequencyHz": 349.2282314330039,
+    "maximumFrequencyHz": 554.3652619537442
+   }
+  },
+  "sequenceHalf": {
+   "accuracy": 0.5,
+   "durationMs": 8000,
+   "difficulty": 72,
+   "errors": 4,
+   "score": 668,
+   "seed": "daily-2026-09-30",
+   "generatorVersion": "rhythm-pitch-generator-v1",
+   "details": {
+    "level": 14
+   },
+   "specific": {
+    "mode": "pitch-path",
+    "calibrationOffsetMs": 12.5,
+    "calibrationSamples": 4,
+    "replayCount": 0,
+    "timingAccuracy": null,
+    "meanTimingErrorMs": null,
+    "missingTaps": 0,
+    "extraTaps": 0,
+    "beatCount": 0,
+    "bpm": null,
+    "pauseCount": 0,
+    "syncopationCount": 0,
+    "accentCount": 0,
+    "pitchTask": "sequence",
+    "pitchAccuracy": 0.5,
+    "toneCount": 8,
+    "pitchLevelCount": 3,
+    "intervalSemitones": 4,
+    "minimumFrequencyHz": 349.2282314330039,
+    "maximumFrequencyHz": 554.3652619537442
+   }
+  }
+ },
+ "passed": [
+  {
+   "a": 0.69,
+   "passed": false
+  },
+  {
+   "a": 0.7,
+   "passed": true
+  },
+  {
+   "a": 0.71,
+   "passed": true
+  }
+ ],
+ "floorScore": {
+  "accuracy": 0.5333333333333333,
+  "meanTimingErrorMs": 46.666666666666664,
+  "missingTaps": 0,
+  "extraTaps": 0,
+  "matchedTaps": 3
+ },
+ "trace": [
+  {
+   "label": "start",
+   "phase": "calibration",
+   "calibrationComplete": false,
+   "calibrationOffsetMs": 0,
+   "calibrationSamples": 0,
+   "responseStartedAt": null,
+   "rhythmTaps": [],
+   "replayCount": 0,
+   "pausedMs": 0,
+   "pausedFrom": null,
+   "result": null
+  },
+  {
+   "label": "calib-play",
+   "phase": "calibration",
+   "calibrationComplete": false,
+   "calibrationOffsetMs": 0,
+   "calibrationSamples": 0,
+   "responseStartedAt": null,
+   "rhythmTaps": [],
+   "replayCount": 0,
+   "pausedMs": 0,
+   "pausedFrom": null,
+   "result": null
+  },
+  {
+   "label": "calib-done",
+   "phase": "calibration",
+   "calibrationComplete": true,
+   "calibrationOffsetMs": 75,
+   "calibrationSamples": 4,
+   "responseStartedAt": null,
+   "rhythmTaps": [],
+   "replayCount": 0,
+   "pausedMs": 0,
+   "pausedFrom": null,
+   "result": null
+  },
+  {
+   "label": "ready",
+   "phase": "ready",
+   "calibrationComplete": true,
+   "calibrationOffsetMs": 75,
+   "calibrationSamples": 4,
+   "responseStartedAt": null,
+   "rhythmTaps": [],
+   "replayCount": 0,
+   "pausedMs": 0,
+   "pausedFrom": null,
+   "result": null
+  },
+  {
+   "label": "paused",
+   "phase": "paused",
+   "calibrationComplete": true,
+   "calibrationOffsetMs": 75,
+   "calibrationSamples": 4,
+   "responseStartedAt": null,
+   "rhythmTaps": [],
+   "replayCount": 0,
+   "pausedMs": 0,
+   "pausedFrom": "ready",
+   "result": null
+  },
+  {
+   "label": "resumed",
+   "phase": "ready",
+   "calibrationComplete": true,
+   "calibrationOffsetMs": 75,
+   "calibrationSamples": 4,
+   "responseStartedAt": null,
+   "rhythmTaps": [],
+   "replayCount": 0,
+   "pausedMs": 1500,
+   "pausedFrom": null,
+   "result": null
+  },
+  {
+   "label": "playback",
+   "phase": "playback",
+   "calibrationComplete": true,
+   "calibrationOffsetMs": 75,
+   "calibrationSamples": 4,
+   "responseStartedAt": null,
+   "rhythmTaps": [],
+   "replayCount": 0,
+   "pausedMs": 1500,
+   "pausedFrom": null,
+   "result": null
+  },
+  {
+   "label": "response",
+   "phase": "response",
+   "calibrationComplete": true,
+   "calibrationOffsetMs": 75,
+   "calibrationSamples": 4,
+   "responseStartedAt": 10000,
+   "rhythmTaps": [],
+   "replayCount": 0,
+   "pausedMs": 1500,
+   "pausedFrom": null,
+   "result": null
+  },
+  {
+   "label": "result",
+   "phase": "result",
+   "calibrationComplete": true,
+   "calibrationOffsetMs": 75,
+   "calibrationSamples": 4,
+   "responseStartedAt": 10000,
+   "rhythmTaps": [
+    10060,
+    10660,
+    11860,
+    12160,
+    12760,
+    13360,
+    13960
+   ],
+   "replayCount": 0,
+   "pausedMs": 1500,
+   "pausedFrom": null,
+   "result": {
+    "accuracy": 0.9166666666666666,
+    "durationMs": 17500,
+    "difficulty": 53,
+    "errors": 1,
+    "score": 1104,
+    "seed": "scenario",
+    "generatorVersion": "rhythm-pitch-generator-v1",
+    "details": {
+     "level": 9
+    },
+    "specific": {
+     "mode": "rhythm-echo",
+     "calibrationOffsetMs": 75,
+     "calibrationSamples": 4,
+     "replayCount": 0,
+     "timingAccuracy": 0.9166666666666666,
+     "meanTimingErrorMs": 15,
+     "missingTaps": 0,
+     "extraTaps": 0,
+     "beatCount": 7,
+     "bpm": 100,
+     "pauseCount": 1,
+     "syncopationCount": 1,
+     "accentCount": 1,
+     "pitchTask": null,
+     "pitchAccuracy": null,
+     "toneCount": 0,
+     "pitchLevelCount": 0,
+     "intervalSemitones": null,
+     "minimumFrequencyHz": null,
+     "maximumFrequencyHz": null
+    }
+   }
+  },
+  {
+   "label": "restart",
+   "phase": "ready",
+   "calibrationComplete": true,
+   "calibrationOffsetMs": 75,
+   "calibrationSamples": 4,
+   "responseStartedAt": null,
+   "rhythmTaps": [],
+   "replayCount": 0,
+   "pausedMs": 0,
+   "pausedFrom": null,
+   "result": null
+  }
+ ],
+ "pitchSession": {
+  "round": {
+   "id": "rhythm-pitch:scenario:14:pitch-path",
+   "seed": "scenario",
+   "level": 14,
+   "mode": "pitch-path",
+   "difficulty": 72,
+   "generatorVersion": "rhythm-pitch-generator-v1",
+   "tutorialReplay": false,
+   "task": "sequence",
+   "toneCount": 8,
+   "pitchLevelCount": 3,
+   "intervalSemitones": 4,
+   "frequenciesHz": [
+    293.6647679174076,
+    369.9944227116344,
+    466.1637615180899
+   ],
+   "sequence": [
+    1,
+    0,
+    2,
+    0,
+    2,
+    0,
+    1,
+    0
+   ],
+   "directionAnswer": null
+  },
+  "result": {
+   "accuracy": 1,
+   "durationMs": 9000,
+   "difficulty": 72,
+   "errors": 0,
+   "score": 1288,
+   "seed": "scenario",
+   "generatorVersion": "rhythm-pitch-generator-v1",
+   "details": {
+    "level": 14
+   },
+   "specific": {
+    "mode": "pitch-path",
+    "calibrationOffsetMs": 0,
+    "calibrationSamples": 0,
+    "replayCount": 0,
+    "timingAccuracy": null,
+    "meanTimingErrorMs": null,
+    "missingTaps": 0,
+    "extraTaps": 0,
+    "beatCount": 0,
+    "bpm": null,
+    "pauseCount": 0,
+    "syncopationCount": 0,
+    "accentCount": 0,
+    "pitchTask": "sequence",
+    "pitchAccuracy": 1,
+    "toneCount": 8,
+    "pitchLevelCount": 3,
+    "intervalSemitones": 4,
+    "minimumFrequencyHz": 293.6647679174076,
+    "maximumFrequencyHz": 466.1637615180899
+   }
+  },
+  "phase": "result",
+  "response": [
+   1,
+   0,
+   2,
+   0,
+   2,
+   0,
+   1,
+   0
+  ]
+ },
+ "directionSession": {
+  "replayPhase": "playback",
+  "replayCount": 1,
+  "result": {
+   "accuracy": 0,
+   "durationMs": 4000,
+   "difficulty": 24,
+   "errors": 1,
+   "score": 66,
+   "seed": "scenario",
+   "generatorVersion": "rhythm-pitch-generator-v1",
+   "details": {
+    "level": 2
+   },
+   "specific": {
+    "mode": "pitch-path",
+    "calibrationOffsetMs": 0,
+    "calibrationSamples": 0,
+    "replayCount": 1,
+    "timingAccuracy": null,
+    "meanTimingErrorMs": null,
+    "missingTaps": 0,
+    "extraTaps": 0,
+    "beatCount": 0,
+    "bpm": null,
+    "pauseCount": 0,
+    "syncopationCount": 0,
+    "accentCount": 0,
+    "pitchTask": "direction",
+    "pitchAccuracy": 0,
+    "toneCount": 2,
+    "pitchLevelCount": 2,
+    "intervalSemitones": 5,
+    "minimumFrequencyHz": 329.6275569128699,
+    "maximumFrequencyHz": 440
+   }
+  },
+  "phase": "result"
+ }
+}

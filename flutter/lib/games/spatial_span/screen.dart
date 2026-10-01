@@ -8,6 +8,7 @@ import '../../shell/demo_lesson.dart';
 import '../../shell/l10n.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/level_rules.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import 'model.dart';
@@ -183,6 +184,8 @@ class _SpatialSpanScreenState extends State<SpatialSpanScreen> {
     if (!_ready) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     final g = _game!;
     return GameShell(
+      // Правило уровня объявляет каркас — в спокойный момент, не поверх партии (задача e371fd3a).
+      levelRule: LevelRuleSpot(gameId: 'spatial_span', level: _ladder.level, state: widget.state, calm: _phase == Phase.ready || _phase == Phase.done),
       title: _title,
       onLesson: () => openDemoLesson(context, title: _title, trials: _demoTrials()),
       onRules: () => showDialog<void>(
