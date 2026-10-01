@@ -3437,7 +3437,6 @@ const translations: Translations = {
   sudokuRuleThermo: { ru: 'Вдоль термометра цифры строго растут от колбы.', en: 'Digits strictly increase along each thermometer from the bulb.' },
   sudokuRuleWhisper: { ru: 'Соседние цифры на зелёной линии отличаются минимум на 5.', en: 'Neighbouring digits on a green line differ by at least 5.' },
   // Нативные экраны раздела «Судоку» (Flutter): полоса счётчиков, кнопки, имена правил без значков.
-  sdkHudRule: { ru: 'Правило', en: 'Rule' },
   sdkHudStage: { ru: 'Ступень', en: 'Stage' },
   sdkNextLevel: { ru: 'Следующий уровень', en: 'Next level' },
   sdkNextStage: { ru: 'Следующая ступень', en: 'Next stage' },

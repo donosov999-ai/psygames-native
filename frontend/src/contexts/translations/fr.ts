@@ -3264,7 +3264,6 @@ const t: Record<string, string> = {
   "teachHiddenHalf": "Demande « {q} » : oui pour {yes}, non pour {no}. La meilleure question coupe les restants au plus près de la moitié : chaque réponse en élimine la moitié.",
   "teachHiddenLast": "Il n’en reste qu’un : c’est lui. Choisis-le et appuie sur « C’est lui ! ».",
   "rbHeadStart": "avance {n}",
-  "sdkHudRule": "Règle",
   "sdkHudStage": "Palier",
   "sdkNextLevel": "Niveau suivant",
   "sdkNextStage": "Palier suivant",
