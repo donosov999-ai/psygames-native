@@ -198,6 +198,6 @@ CatsGrade gradeCats(CatsBoard board) {
     if (touch()) continue;
     trial();
   }
-  assert(placed == n && board.solutionCells.every((i) => cat[i]), 'мера пришла не к разгадке');
+  assert(placed == n && board.solutionCells.every((i) => cat[i]), 'grade did not reach the solution');
   return CatsGrade(tier: tier, steps: steps, cost: cost, uses: uses);
 }
