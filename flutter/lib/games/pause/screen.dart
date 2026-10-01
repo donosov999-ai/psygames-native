@@ -27,6 +27,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 
+import '../../shell/app_haptics.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/game_shell.dart';
@@ -37,6 +38,7 @@ import '../../shell/voice.dart';
 import '../../shell/voice_system.dart';
 import 'breathing.dart';
 import 'eye_gym.dart';
+import 'practice_haptics.dart';
 import 'practices.dart';
 import 'stage.dart';
 
@@ -116,6 +118,9 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
   Json? _session;
   String _spoken = '';
   late final Ticker _ticker = createTicker((_) => _tick());
+  /// Вибрация — через выключатель «Вибрация» настроек (`app_haptics.dart`).
+  late final AppHaptics _buzz = AppHaptics(widget.state);
+  late final PausePracticeHaptics _haptics = PausePracticeHaptics(() => appHapticOn(widget.state));
   final Stopwatch _watch = Stopwatch()..start();
   // Режим «Дыхание»: формат веба, отсчёт перед первым вдохом, Вим Хоф.
   bool get _breath => widget.flavor == PauseFlavor.breathing;
@@ -434,7 +439,7 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
       phase = PausePhase.playing;
     });
     // Отклик вместо взгляда на экран (отчёт тестировщицы 05.09): глаза заняты точкой.
-    unawaited(HapticFeedback.mediumImpact());
+    unawaited(_buzz.medium());
     _syncTicker();
   }
 
@@ -462,7 +467,7 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
       final idx = e.position.index;
       if (idx != _eyeStep && !e.done) {
         _eyeStep = idx;
-        unawaited(HapticFeedback.selectionClick());
+        unawaited(_buzz.selection());
       }
       if (e.done) _completeEye(e);
       return;
@@ -492,6 +497,7 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
     if (next['phase'] == 'completed') {
       _complete(next);
     } else {
+      _haptics.update(next['plan'], next['elapsedMs'] as int);
       _speak();
     }
   }
@@ -565,10 +571,13 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
         : (_session?['phase'] == 'running' || (_session?['phase'] == 'ready' && _leadUntil != null));
     if (running && !_ticker.isActive) _ticker.start();
     if (!running && _ticker.isActive) _ticker.stop();
+    // Пауза, уход в фон, конец — вибрация удержания не доигрывает сама.
+    if (!running) _haptics.stop();
   }
 
   void _complete(Json s) {
     _ticker.stop();
+    _haptics.complete();
     unawaited(_voice.cancel());
     final Json result = s['result'];
     final Json plan = s['plan'];
@@ -623,7 +632,7 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
   /// фактом завершения, и в шаге зарядки тоже, как в вебе), партия под прежним `eye_gym`.
   void _completeEye(EyeGymRun e) {
     _ticker.stop();
-    unawaited(HapticFeedback.heavyImpact());
+    unawaited(_buzz.heavy());
     final done = e.level;
     // «Лучший» — до записи уровня: после неё он читается уже от нового уровня.
     final best = eyeBest;
@@ -709,6 +718,7 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _ticker.dispose();
+    _haptics.dispose();
     unawaited(_voice.cancel());
     super.dispose();
   }

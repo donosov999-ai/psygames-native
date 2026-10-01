@@ -14,6 +14,7 @@ import { localSpatialHost, spatialWarmupPlaylist } from '@/src/games/spatial-cor
 import { isGameAllowed } from '@/src/constants/profiles';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { fbCorrect, fbComplete } from '@/src/services/feedback';
+import { hostInfo, hostLeadsBetween, postToHost, stepDoneMessage } from '@/src/services/hostWarmup';
 
 export interface StepResult {
   /** Локальный прогон приёмки: без сессий, наград и истории. */
@@ -386,6 +387,29 @@ export function WarmupProvider({ children }: { children: React.ReactNode }) {
     advanceToNext();
   }, [advanceToNext]);
 
+  /**
+   * Оболочка гибрида САМА открыла шаг `idx` (или открывает его после «Пропустить») —
+   * учёт догоняет её, а адрес страницы встаёт на тот же шаг. Для оболочки это
+   * переход «на тот же экран», и она его пропускает (`routeAction` → keep).
+   * См. `services/hostWarmup.ts`.
+   */
+  const goToStep = useCallback((idx: number) => {
+    const s = stateRef.current;
+    if (!s.meta || !s.active) return;
+    if (advanceTimerRef.current) { clearTimeout(advanceTimerRef.current); advanceTimerRef.current = null; }
+    lastAdvanceRef.current = Date.now();
+    setState((st) => ({ ...st, currentIdx: idx }));
+    if (idx >= s.meta.steps.length) {
+      fbComplete();
+      const completePath = s.meta.track === 'assessment' ? '/assessment-result' : '/warmup-complete';
+      setTimeout(() => router.replace(completePath as any), 0);
+      return;
+    }
+    const step = s.meta.steps[idx];
+    const params = stepToParams(step, s.meta.slot, s.meta.track);
+    setTimeout(() => router.replace({ pathname: step.game_route, params } as any), 0);
+  }, [router]);
+
   const stopWarmup = useCallback(async (completed = false) => {
     if (advanceTimerRef.current) { clearTimeout(advanceTimerRef.current); advanceTimerRef.current = null; }
     if (state.meta && !state.localSpatial) {
@@ -475,6 +499,17 @@ export function WarmupProvider({ children }: { children: React.ReactNode }) {
       // Человек уже отвечает на вопрос карточки итога (сохранение успело прийти позже
       // касания) — переход не ставим: ответ сам решит, куда идти.
       if (autoAdvanceHoldsRef.current > 0) return;
+      /**
+       * 🔴 ОБА ШАГА НАТИВНЫЕ — ПЕРЕХОД ВЕДЁТ ОБОЛОЧКА (решение Дениса 01.10.2026,
+       * `services/hostWarmup.ts`). Веб не уходит на свой мост: оболочка сама покажет
+       * «дальше: …» и откроет следующую игру, а сюда вернётся вызовом `goTo`.
+       * Время зарядки вышло — спросить человека пока умеет только веб-мост: туда.
+       */
+      const timeUp = Date.now() - cur.startTime > cur.meta.duration_min * 60_000;
+      if (!timeUp && hostLeadsBetween(step, cur.meta.steps[idxAtSave + 1])) {
+        const msg = stepDoneMessage(cur.meta, idxAtSave, { score: s.score, time_seconds: s.time_seconds, errors: s.errors });
+        if (msg && postToHost(msg)) return;
+      }
       advanceTimerRef.current = setTimeout(() => {
         advanceTimerRef.current = null;
         if (autoAdvanceHoldsRef.current > 0) return;
@@ -484,6 +519,28 @@ export function WarmupProvider({ children }: { children: React.ReactNode }) {
     setSessionListener(listener);
     return () => setSessionListener(null);
   }, [recordResult, advanceToNext]);
+
+  /**
+   * Входы для оболочки гибрида (`flutter/lib/shell/warmup_step_bridge.dart`).
+   * Получив `warmupStepDone`, оболочка ОБЯЗАНА ответить одним из них — иначе
+   * зарядка встанет: веб свой переход в этом случае не планирует.
+   */
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const w = window as unknown as Record<string, unknown>;
+    const api = {
+      /** Оболочка вести не взялась (экрана уже нет и т. п.) — обычный веб-переход. */
+      advance: (fromIdx: number) => advanceToNext(fromIdx),
+      goTo: (idx: number) => goToStep(idx),
+      stop: () => { void stopWarmup(false).then(() => router.replace('/' as any)); },
+      /** Полоска «N/M» нативного шага (63bccf96). */
+      info: () => { const s = stateRef.current; return hostInfo(s.active, s.meta, s.currentIdx); },
+      /** ⏭ нативного шага — ровно то же, что веб-⏭ в каркасе (`GameShell.wuSkipConfirm`). */
+      skip: () => skipCurrent(),
+    };
+    w.__psyWarmupHost = api;
+    return () => { if (w.__psyWarmupHost === api) delete w.__psyWarmupHost; };
+  }, [advanceToNext, goToStep, stopWarmup, skipCurrent, router]);
 
   // Android: системная кнопка «Назад» (◁) во время зарядки/комплекса. Навигация warmup идёт
   // через router.replace (без бэк-стека) → ◁ ничего не делал. Перехватываем: выходим из зарядки домой.
