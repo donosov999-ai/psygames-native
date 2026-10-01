@@ -61,24 +61,14 @@ void main() {
     'games/mental_rotation/screen.dart': 58,
     'games/spatial_lab/screen.dart': 43,
     'games/sudoku/screen.dart': 31,
-    'games/math_slider/screen.dart': 27,
-    'games/schulte/screen.dart': 26,
     'games/pattern/model.dart': 24,
-    'games/object_tracker/screen.dart': 24,
     'games/sort_tubes/screen.dart': 23,
     'games/spatial_span/screen.dart': 21,
-    'games/ospan/screen.dart': 21,
-    'games/ospan/model.dart': 20,
-    'games/number_bonds/screen.dart': 18,
-    'games/mahjong/screen.dart': 18,
     'games/pattern/screen.dart': 18,
-    'games/quick_count/screen.dart': 18,
-    'games/math_sprint/screen.dart': 18,
     'main.dart': 16,
     'games/goods_sort/screen.dart': 15,
     'games/samurai/screen.dart': 14,
     'games/tower_london/screen.dart': 14,
-    'games/object_tracker/model.dart': 14,
     'games/fractal/screen.dart': 13,
     'games/deep/screen.dart': 13,
     'games/hanoi/screen.dart': 12,
@@ -112,7 +102,16 @@ void main() {
   // на 12 языков у них уже был — `node flutter/tools/embed-l10n.mjs` привёз их сам.
   // 30.09 — «Пространство»: правила четырёх упражнений «Лаборатории» и «Понятно» ушли в
   // словарь (задача 848da95d), spatial_lab 51 → 43: 699 − 8.
-  const total = 691;
+  // 02.10 — «Поиск» и «Счёт» (задача 4b6f863e): спринт, быстрый счёт и состав числа переведены
+  // целиком, −54 (три файла ушли из списка). Готовые ключи веба взяты где были, 12 новых — сразу
+  // на 12 языках: 691 − 54.
+  // 02.10 — там же: маджонг, OSpan и трекер объектов (−97, пять файлов ушли из списка). Подписи —
+  // в словарь (21 новый ключ на 12 языках); алфавит OSpan, регулярка ввода и замечания проверки
+  // договора трекера вынуты из счёта как данные (см. `alphabetList` ниже): 637 − 97.
+  // 02.10 — там же: «Математическая шкала» и «Таблица Шульте» (−53, оба файла ушли из списка),
+  // 33 новых ключа на 12 языках; подсказка Шульте — целой фразой на каждое из девяти сочетаний
+  // «что × порядок», а не склейкой; алфавит письменности — данные: 540 − 53.
+  const total = 487;
 
   final counts = _scan(Directory('lib'));
 
@@ -186,13 +185,39 @@ Map<String, int> _scan(Directory root) {
    */
   final mapKey = RegExp(r"\[\s*'[^'\n]*[А-Яа-яЁё][^'\n]*'\s*\]");
   final anyLiteral = RegExp(r"'[^'\n]*[А-Яа-яЁё][^'\n]*'");
+  /*
+   * 🟢 ДАННЫЕ, А НЕ ПОДПИСИ — ещё три вида. Уточнение 02.10.2026 (задача 4b6f863e, «Поиск»).
+   *
+   * Задача перевода говорит прямо: законные данные не переводить, а объяснить в пробе.
+   * Счёт до уточнения записывал их в долг, и погасить такой долг можно было только
+   * обходом — спрятать букву в код символа. Поэтому они вынуты из счёта ЯВНО:
+   *   · список ЦЕЛИКОМ из одиночных букв — алфавит упражнения. У «OSpan» это русский
+   *     набор букв на запоминание (`lettersRu`); английский — `lettersEn`, выбор по языку
+   *     (`ospan/screen.dart`, `_pool`). Одиночная буква вне такого списка — например
+   *     единица «с» — по-прежнему считается: она подпись. Сюда же строка-алфавит письменности
+   *     — не короче 10 заглавных букв подряд без пробелов (`schulte/screen.dart`: кириллица у
+   *     русского языка, латиница у остальных);
+   *   · литерал регулярного выражения `RegExp(r'[^А-ЯЁA-Z]')` — класс символов, не текст;
+   *   · замечание проверки договора `issues.add('…')` — копится списком и уходит только в
+   *     `StateError` (`object_tracker/model.dart`): то же сообщение разработчику, что
+   *     `throw` и `assert` выше, только собранное по частям.
+   * Замер перед уточнением: все виды встречались ТОЛЬКО в этих четырёх файлах раздела.
+   */
+  final alphabetList = RegExp(r"\[(\s*'[А-Яа-яЁё]'\s*,)+\s*('[А-Яа-яЁё]'\s*,?\s*)?\]");
+  final alphabetString = RegExp(r"'[А-ЯЁ]{10,}'");
+  final regexLiteral = RegExp(r"RegExp\(\s*r?'[^'\n]*[А-Яа-яЁё][^'\n]*'");
+  final issueNote = RegExp(r"issues\.add\(\s*'[^'\n]*[А-Яа-яЁё][^'\n]*'");
   for (final f in root.listSync(recursive: true).whereType<File>()) {
     if (!f.path.endsWith('.dart')) continue;
     var src = f.readAsStringSync().replaceAll(blockComment, '').replaceAll(lineComment, '');
     var n = anyLiteral.allMatches(src).length -
         keyLiteral.allMatches(src).length -
         mapKey.allMatches(src).length -
-        devMessage.allMatches(src).fold<int>(0, (a, m) => a + anyLiteral.allMatches(m[0]!).length);
+        devMessage.allMatches(src).fold<int>(0, (a, m) => a + anyLiteral.allMatches(m[0]!).length) -
+        alphabetList.allMatches(src).fold<int>(0, (a, m) => a + anyLiteral.allMatches(m[0]!).length) -
+        alphabetString.allMatches(src).length -
+        regexLiteral.allMatches(src).length -
+        issueNote.allMatches(src).length;
     if (n > 0) out[f.path.replaceFirst('lib/', '')] = n;
   }
   return out;

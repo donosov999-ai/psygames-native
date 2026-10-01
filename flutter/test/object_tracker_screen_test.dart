@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/object_tracker/model.dart';
 import 'package:psygames_flutter/games/object_tracker/screen.dart';
+import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -9,6 +10,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// правила и рисунок проверяются РАЗНЫМИ пробами — между формулой и картинкой
 /// стоит код поля, которого не видит ни сверка правил, ни сверка очков.
 void main() {
+  setUpAll(() async {
+    // Подписи — из общего словаря, как в приложении (экран переведён на L.t, задача 4b6f863e).
+    TestWidgetsFlutterBinding.ensureInitialized();
+    await L.load('ru');
+  });
+
   late SharedState state;
   var opens = 0;
 
@@ -42,7 +49,7 @@ void main() {
     // Та же раздача, что у экрана: одно зерно, один генератор.
     final round = generateObjectTrackerRound('object-tracker-1', 1);
     await open(tester);
-    expect(find.text('Трекер объектов'), findsOneWidget);
+    expect(find.text(L.t('objectTracker')), findsOneWidget);
 
     // Показ: цели отмечены рамкой и названы в подписи — проба читает то же, что человек.
     final marked = <int>[];
@@ -73,14 +80,14 @@ void main() {
     }
     await tester.tap(find.byKey(const Key('готово')));
     await tester.pump();
-    expect(find.text('Следующий уровень'), findsOneWidget, reason: 'все цели названы — уровень взят');
+    expect(find.text(L.t('nextLabel')), findsOneWidget, reason: 'все цели названы — уровень взят');
   });
 
   testWidgets('🔴 щадящий режим двигает мир нажатием, а не кадрами', (tester) async {
     final round = generateObjectTrackerRound('object-tracker-1', 1);
     await open(tester);
     await tester.tap(find.byKey(const Key('щадящий-значок')).evaluate().isEmpty
-        ? find.bySemanticsLabel('Щадящий режим')
+        ? find.bySemanticsLabel(L.t('trkGentle'))
         : find.byKey(const Key('щадящий-значок')));
     await tester.pump();
     await tester.tap(find.byKey(const Key('поехали')));
@@ -114,7 +121,7 @@ void main() {
     await tester.pump();
     await tester.tap(find.byKey(const Key('готово')));
     await tester.pump();
-    expect(find.text('Ещё раз'), findsOneWidget, reason: 'ни одной цели — уровень не взят');
+    expect(find.text(L.t('retry')), findsOneWidget, reason: 'ни одной цели — уровень не взят');
     final target = round.initialWorld.objects.indexWhere((o) => round.targetIds.contains(o.id));
     expect(labelOf(tester, target), contains('была целью'), reason: 'после круга показывают правду');
   });

@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/mahjong/model.dart';
 import 'package:psygames_flutter/games/mahjong/screen.dart';
+import 'package:psygames_flutter/shell/l10n.dart';
+import 'package:psygames_flutter/shell/level_rules.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -13,6 +15,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// Какие плитки свободны и что на них нарисовано, проба узнаёт из ПОДПИСЕЙ на
 /// экране (Semantics), а не из модели: так проверяется ровно то, что видит человек.
 void main() {
+  setUpAll(() async {
+    // Подписи — из общего словаря, как в приложении (экран переведён на L.t, задача 4b6f863e).
+    TestWidgetsFlutterBinding.ensureInitialized();
+    await L.load('ru');
+  });
+
   late SharedState state;
 
   /// Зерно у экрана и у пробы ОДНО: проба знает ту же доску, что видит человек,
@@ -22,6 +30,9 @@ void main() {
   Future<void> open(WidgetTester tester, {int level = 1}) async {
     SharedPreferences.setMockInitialValues({
       if (level != 1) '${SharedState.prefix}mahjong_level_nzt48': '$level',
+      // Со словарём каркас объявляет правило уровня карточкой поверх доски, и она
+      // перехватила бы нажатия. Правила здесь не предмет пробы — помечены как показанные.
+      for (final k in ['layers2', 'layers3', 'layers4', 'hidden']) LevelRules.seenKey('mahjong', k): '1',
     });
     state = await SharedState.open();
     // Ресурс раскладок читается с диска — ждём по-настоящему, как в пробе «Одной линии».
@@ -55,7 +66,7 @@ void main() {
     final deal = dealSolvable(layouts.forLevel(1)!.places, 36, rnd: Random(seed).nextDouble);
 
     await open(tester);
-    expect(find.text('Маджонг'), findsOneWidget);
+    expect(find.text(L.t('mahjong')), findsOneWidget);
     expect(tilesOnScreen(tester).length, deal.tiles.length,
         reason: 'на экране ровно та доска, что раздал генератор');
 
@@ -70,7 +81,7 @@ void main() {
     }
 
     expect(tilesOnScreen(tester), isEmpty, reason: 'доска разобрана до конца');
-    expect(find.text('Следующий уровень'), findsOneWidget);
+    expect(find.text(L.t('nextLabel')), findsOneWidget);
   });
 
   testWidgets('🔴 занятую плитку снять нельзя — она остаётся на доске', (tester) async {
