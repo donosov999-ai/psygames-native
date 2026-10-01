@@ -72,6 +72,7 @@ class ChessBoardView extends StatelessWidget {
     this.revealed = const <int>{},
     this.sideDiscs = false,
     this.cornerCoords = false,
+    this.dim = 8,
   });
 
   /// Клетка → фигура. Пустые клетки просто отсутствуют.
@@ -116,42 +117,46 @@ class ChessBoardView extends StatelessWidget {
   /// Мелкие подписи полей в угловых клетках (a–h снизу, 1–8 слева).
   final bool cornerCoords;
 
+  /// Сторона доски в клетках. 8 — шахматная; «Шахматный пасьянс» играет на 4×4.
+  /// Клетка — `ряд * dim + столбец`, ряд 0 — верхний, как и у 8×8.
+  final int dim;
+
   static const _light = Color(0xFFE8C48A);
   static const _dark = Color(0xFFC8A06A);
 
   @override
   Widget build(BuildContext context) {
-    final step = side / 8;
+    final step = side / dim;
     final mark = Theme.of(context).colorScheme.primary;
     return SizedBox(
       width: side,
       height: side,
       child: Column(
         children: [
-          for (var row = 0; row < 8; row++)
+          for (var row = 0; row < dim; row++)
             Row(
               children: [
-                for (var col = 0; col < 8; col++)
+                for (var col = 0; col < dim; col++)
                   _Square(
-                    index: row * 8 + col,
+                    index: row * dim + col,
                     step: step,
                     light: (row + col) % 2 == 0,
                     lightColor: _light,
                     darkColor: _dark,
                     mark: mark,
-                    piece: pieces[row * 8 + col],
-                    selected: selected == row * 8 + col,
-                    target: targets.contains(row * 8 + col),
+                    piece: pieces[row * dim + col],
+                    selected: selected == row * dim + col,
+                    target: targets.contains(row * dim + col),
                     masked: masked,
                     keyPrefix: keyPrefix,
                     onTap: onTapSquare,
-                    hinted: hinted == row * 8 + col,
-                    outline: outlines[row * 8 + col],
-                    strong: strong == row * 8 + col,
-                    revealed: revealed.contains(row * 8 + col),
+                    hinted: hinted == row * dim + col,
+                    outline: outlines[row * dim + col],
+                    strong: strong == row * dim + col,
+                    revealed: revealed.contains(row * dim + col),
                     sideDiscs: sideDiscs,
-                    rankLabel: cornerCoords && col == 0 ? '${8 - row}' : null,
-                    fileLabel: cornerCoords && row == 7
+                    rankLabel: cornerCoords && col == 0 ? '${dim - row}' : null,
+                    fileLabel: cornerCoords && row == dim - 1
                         ? 'abcdefgh'[col]
                         : null,
                   ),

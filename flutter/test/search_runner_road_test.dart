@@ -8,7 +8,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:psygames_flutter/games/search_runner/road.dart';
+import 'package:psygames_flutter/games/runner/road.dart';
 
 void main() {
   final ref = jsonDecode(File('test/fixtures/road-reference.json').readAsStringSync()) as Map<String, dynamic>;
