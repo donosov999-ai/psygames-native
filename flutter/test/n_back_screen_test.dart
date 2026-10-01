@@ -66,6 +66,7 @@ void main() {
     SharedPreferences.setMockInitialValues({
       'psygames_n_back_level_nzt48': '$level',
       if (ruleSeen) LevelRules.seenKey('n_back', 'dual'): '1',
+      if (ruleSeen) LevelRules.seenKey('n_back', 'switch'): '1',
     });
     state = await SharedState.open();
     sent.clear();
@@ -186,6 +187,31 @@ void main() {
     await tester.tap(find.text(L.t('ctaGotIt')));
     await tester.pumpAndSettle();
     expect(find.text(L.t('start')), findsOneWidget, reason: 'после «Понятно» — экран старта, партия не шла');
+  });
+
+  testWidgets('🔴 на 27-м уровне ДО партии — карточка правила «Глубина меняется» (ось 9)', (tester) async {
+    await boot(tester, level: 27, ruleSeen: false);
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.text(L.t('lr_n_back_switch_title')), findsWidgets, reason: 'новая механика объявлена до партии');
+    await tester.tap(find.text(L.t('ctaGotIt')));
+    await tester.pumpAndSettle();
+    expect(find.text(L.t('start')), findsOneWidget);
+  });
+
+  testWidgets('🔴 ось 9 в партии: на 11-й пробе N в шапке сменился 6 → 5 и объявлено «Теперь 5-back»', (tester) async {
+    await boot(tester, level: 27);
+    await tester.tap(find.text(L.t('start')));
+    var sawSix = false;
+    for (var i = 0; i < 400 && !hud(tester, 'N', '5'); i++) {
+      if (hud(tester, 'N', '6')) sawSix = true;
+      expect(find.byKey(const Key('nb-switch-note')), findsNothing, reason: 'до смены глубины объявления нет');
+      await tester.pump(const Duration(milliseconds: 250));
+    }
+    expect(sawSix, isTrue, reason: 'первый отрезок — 6-back');
+    expect(hud(tester, 'N', '5'), isTrue, reason: 'со смены отрезка — 5-back');
+    expect(find.text(L.t('nBackSwitchNow').replaceAll('{n}', '5')), findsOneWidget, reason: 'смена объявлена на экране');
+    await tester.tap(find.byTooltip(L.t('restart')));
+    await tester.pump(const Duration(seconds: 5));
   });
 
   testWidgets('двойной поток с голосом: «Position» и «Sound», буква и звучит, и видна', (tester) async {

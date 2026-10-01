@@ -3736,6 +3736,8 @@ const translations: Translations = {
   mmNowRed: { ru: '🔴 Теперь КРАСНЫЕ', en: '🔴 Now RED' },
   mmPurpleFirst: { ru: '🟣 Сначала ФИОЛЕТОВЫЕ', en: '🟣 Purple first' },
   nBackDualHint: { ru: 'Жми Position если позиция повторяет {n} назад. Жми Sound если буква повторяет {n} назад. Можно жать оба', en: 'Tap Position if the position repeats {n} back. Tap Sound if the letter repeats {n} back. You can tap both' },
+  // Смена глубины посреди партии — ось 9 (задача 103cd98d).
+  nBackSwitchNow: { ru: 'Теперь {n}-back', en: 'Now {n}-back' },
   nBackShare: { ru: 'Прошёл {n}-back в PsyGames с точностью {p}% — обгони!', en: 'I reached {n}-back in PsyGames at {p}% accuracy — beat that!' },
   anagramTheme_all: { ru: 'Все', en: 'All' },
   anagramTheme_animals: { ru: 'Животные', en: 'Animals' },
@@ -4199,6 +4201,9 @@ const translations: Translations = {
   lr_n_back_dual_title: { ru: 'Два потока', en: 'Two streams' },
   lr_n_back_dual_rule: { ru: 'Теперь ДВА потока сразу: позиция на поле и буква (звук). Совпадение позиции отмечай кнопкой «👁 Position», совпадение буквы — «🔊 Sound». Можно нажать обе.', en: 'Now TWO streams at once: the position on the grid and a letter (sound). Mark a position match with the "👁 Position" button, a letter match with "🔊 Sound". You can tap both.' },
   lr_n_back_dual_example: { ru: 'Пример (2-back): позиция как 2 шага назад → Position; буква как 2 шага назад → Sound.', en: 'Example (2-back): position same as 2 steps ago → Position; letter same as 2 steps ago → Sound.' },
+  lr_n_back_switch_title: { ru: 'Глубина меняется', en: 'Depth changes' },
+  lr_n_back_switch_rule: { ru: 'Теперь глубина меняется прямо в партии: N и N − 1 чередуются отрезками. При смене появится «Теперь N-back», а N в шапке покажет текущую глубину. Сравнивай с тем шагом, который действует сейчас.', en: 'Now the depth changes during the round: N and N − 1 take turns in stretches. When it switches, you\'ll see “Now N-back”, and N in the header shows the current depth. Compare with the step that applies right now.' },
+  lr_n_back_switch_example: { ru: 'Пример: 6-back сменился на 5-back — повтор позиции 6 шагов назад теперь не совпадение, а приманка; совпадение — 5 шагов назад.', en: 'Example: 6-back switched to 5-back — a repeat from 6 steps ago is now a lure, not a match; a match is 5 steps back.' },
   lr_counter_triples_title: { ru: 'Сумма из трёх', en: 'Sum of three' },
   lr_counter_triples_rule: { ru: 'С этого уровня цель может собираться не из двух, а из ТРЁХ клеток. Не находится пара — ищи тройку.', en: 'From this level the target may be built from THREE cells, not just two. No pair works — look for a triple.' },
   lr_counter_triples_example: { ru: 'Пример: цель 24 = 9 + 8 + 7.', en: 'Example: target 24 = 9 + 8 + 7.' },

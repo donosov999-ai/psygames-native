@@ -162,6 +162,7 @@ class _NBackScreenState extends State<NBackScreen> {
     late final int n;
     late final NbModality modality;
     double? lure;
+    int? switchEvery;
     if (GamePreset.isPreset) {
       // Шаг объявляет глубину режимом ('2-back'); пресет — потолок желания: больше
       // освоенного + 1 не даём (presetCap, веб `capPresetByLevel`).
@@ -177,8 +178,10 @@ class _NBackScreenState extends State<NBackScreen> {
       _showMs = p.showMs;
       _gapMs = p.gapMs;
       lure = p.lureRate;
+      // Ось 9: глубина меняется внутри партии (с L27). Шаг зарядки играет постоянную N.
+      switchEvery = p.switchEvery;
     }
-    _game = NbackGame(n: n, trials: _trials, modality: modality, lureRate: lure, rng: _rng);
+    _game = NbackGame(n: n, trials: _trials, modality: modality, lureRate: lure, switchEvery: switchEvery, rng: _rng);
     _phase = NbPhase.ready;
     _lit = false;
     _lastVisual = NbPress.ignored;
@@ -318,7 +321,8 @@ class _NBackScreenState extends State<NBackScreen> {
       title: L.t('nBack'),
       onLesson: () => openDemoLesson(context, title: L.t('nBack'), trials: nBackLessonTrials()),
       hud: [
-        HudItem(label: 'N', value: '${g.n}', icon: Icons.layers_outlined),
+        // Глубина ТЕКУЩЕЙ пробы: с L27 она меняется внутри партии (ось 9).
+        HudItem(label: 'N', value: '${g.nHere}', icon: Icons.layers_outlined),
         HudItem(label: L.t('round'), value: '$shown/${g.trials}', icon: Icons.repeat),
         HudItem(label: L.t('hud_correct'), value: '${g.hits + g.aHits}', icon: Icons.check_circle_outline),
         HudItem(label: L.t('level'), value: '${_ladder.level}', icon: Icons.flag_outlined),
@@ -437,14 +441,26 @@ class _Playing extends StatelessWidget {
                     : null,
               ),
             ),
+          // Смена глубины объявляется на той пробе, где случилась (ось 9): иначе человек
+          // сравнивал бы по прежнему N, не зная, что правило поменялось. Объявление встаёт НА
+          // МЕСТО подсказки, а не лишней строкой: поле ниже не должно прыгать посреди партии.
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-            child: Text(
-              game.dual ? L.t('nBackDualHint').replaceAll('{n}', '${game.n}') : L.t('nBackHint'),
-              textAlign: TextAlign.center,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
+            child: game.switchedHere
+                ? Text(
+                    L.t('nBackSwitchNow').replaceAll('{n}', '${game.nHere}'),
+                    key: const Key('nb-switch-note'),
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontWeight: FontWeight.w800),
+                  )
+                : Text(
+                    game.dual ? L.t('nBackDualHint').replaceAll('{n}', '${game.nHere}') : L.t('nBackHint'),
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
           ),
         ],
       );
@@ -612,7 +628,8 @@ class NbSolution extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final items = game.visual.items;
-    final n = game.n;
+    // Глубина — по плану партии: с L27 она у каждой пробы своя (ось 9).
+    final plan = game.plan;
     final scheme = Theme.of(context).colorScheme;
     return SingleChildScrollView(
       padding: const EdgeInsets.all(12),
@@ -624,7 +641,7 @@ class NbSolution extends StatelessWidget {
             alignment: WrapAlignment.center,
             children: [
               for (var i = 0; i < items.length; i++)
-                _solutionChip(context, scheme, i, items, n),
+                _solutionChip(context, scheme, i, items, plan[i]),
             ],
           ),
           const SizedBox(height: 12),
