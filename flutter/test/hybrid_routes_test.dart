@@ -295,6 +295,7 @@ void main() {
       '/games/knights-queens',
       '/games/draughts-combo',
       '/games/corners',
+      '/games/go-capture',
       '/games/choice-rt',
       '/games/cpt',
       '/games/corsi',

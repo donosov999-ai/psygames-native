@@ -140,6 +140,8 @@ export const HUB_CONTENTS: Record<string, HubSubGame[]> = {
     { route: '/games/draughts-combo', icon: 'extension-puzzle', nameKey: 'draughtsCombo', descKey: 'draughtsComboDesc', typeKey: 'chessTypeDraughts' },
     // «Уголки» (02.10.2026, задача 30b5a5aa): только нативный экран.
     { route: '/games/corners', icon: 'extension-puzzle', nameKey: 'corners', descKey: 'cornersDesc', typeKey: 'chessTypeCorners' },
+    // «Го: захват» (02.10.2026, задача 66dee70c): только нативный экран.
+    { route: '/games/go-capture', icon: 'extension-puzzle', nameKey: 'goCapture', descKey: 'goCaptureDesc', typeKey: 'chessTypeGoCapture' },
   ],
 
   /* ——— Внимание ——— */

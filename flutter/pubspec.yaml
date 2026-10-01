@@ -124,6 +124,7 @@ flutter:
     - assets/knights_queens/
     - assets/draughts_combo/
     - assets/corners/
+    - assets/go_capture/
     - assets/faces-names.json
     - assets/memory-palace.json
     - assets/rmet.json

@@ -51,6 +51,8 @@ export const NATIVE_ONLY_GAMES: readonly NativeOnlyGame[] = [
   { route: '/games/draughts-combo', nameKey: 'draughtsCombo', descKey: 'draughtsComboDesc' },
   // «Шахматы», новая игра 5 из 7 (задача 30b5a5aa): «Уголки» — фишки из угла в угол за N ходов.
   { route: '/games/corners', nameKey: 'corners', descKey: 'cornersDesc' },
+  // «Шахматы», новая игра 6 из 7 (задача 66dee70c): «Го: захват» — снять группу за N ходов.
+  { route: '/games/go-capture', nameKey: 'goCapture', descKey: 'goCaptureDesc' },
 ];
 
 export const NATIVE_ONLY_ROUTES: readonly string[] = NATIVE_ONLY_GAMES.map((g) => g.route);
