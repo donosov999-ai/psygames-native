@@ -7,6 +7,7 @@ import '../games/corsi/screen.dart';
 import '../games/find_move/screen.dart';
 import '../games/picture_pairs/screen.dart';
 import '../games/digit_span/screen.dart';
+import '../games/listening_span/screen.dart';
 import '../games/ant/screen.dart';
 import '../games/bart/screen.dart';
 import '../games/choice_rt/screen.dart';
@@ -152,6 +153,7 @@ class HybridApp extends StatefulWidget {
         '/games/memory-matrix': (s) => MemoryMatrixScreen(state: s),
         '/games/corsi': (s) => CorsiScreen(state: s),
         '/games/picture-pairs': (s) => PicturePairsScreen(state: s),
+        '/games/listening-span': (s) => ListeningSpanScreen(state: s),
         '/games/schulte': (s) => SchulteScreen(state: s),
         // «Пауза / Зарядка» — хаб практик; `?set=…` доходит до экрана через GamePreset.
         '/games/pause': (s) => PauseScreen(state: s),
