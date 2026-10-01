@@ -2,8 +2,8 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
+import '../../shell/app_haptics.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/game_clock.dart';
@@ -56,6 +56,9 @@ class ReadingSpanScreen extends StatefulWidget {
 }
 
 class _ReadingSpanScreenState extends State<ReadingSpanScreen> {
+  /// Вибрация — через общий выключатель «Вибрация» (веб `psygames_haptic_enabled`).
+  late final AppHaptics _haptics = AppHaptics(widget.state);
+
   late LevelLadder _ladder;
   late final double Function() _rng = widget.rng ?? Random().nextDouble;
   final _input = TextEditingController();
@@ -139,7 +142,7 @@ class _ReadingSpanScreenState extends State<ReadingSpanScreen> {
     final g = _game;
     if (g == null || _phase != RspanPhase.judge) return;
     g.judge(saysSense);
-    HapticFeedback.selectionClick();
+    _haptics.selection();
     setState(() => _lastJudge = saysSense);
     if (!g.judged) return;
     // Ось 3 — удержание: последние слова надо ещё додержать, прежде чем откроется ввод.
