@@ -3098,6 +3098,7 @@ const t: Record<string, string> = {
   "sudokuRepeatSame": "Gleiche Schwierigkeit nochmal",
   "sudokuSkinLetters": "Buchstaben statt Ziffern",
   "sudokuSkinAnimals": "Tiere statt Ziffern",
+  "sdkRule_friends": "🐱 neben 🐭",
   "digitsCandy": "Bonbon",
   "sudokuHiddenWord": "Verstecktes Wort: {w}",
   "teachRpRhythmIntro": "Halte das TEMPO, nicht die Zählung: Die Schläge kommen gleichmäßig wie Schritte. Wiederhole das Muster im selben Tempo.",

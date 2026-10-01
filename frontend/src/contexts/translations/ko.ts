@@ -3093,6 +3093,7 @@ const t: Record<string, string> = {
   "sudokuRepeatSame": "같은 난이도로 한 번 더",
   "sudokuSkinLetters": "숫자 대신 글자",
   "sudokuSkinAnimals": "숫자 대신 동물",
+  "sdkRule_friends": "🐱 옆에 🐭",
   "digitsCandy": "사탕",
   "sudokuHiddenWord": "숨은 단어: {w}",
   "teachRpRhythmIntro": "박자를 세지 말고 템포를 잡으세요: 두드림은 발걸음처럼 고르게 옵니다. 같은 템포로 패턴을 반복하세요.",
