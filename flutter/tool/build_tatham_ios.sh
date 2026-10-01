@@ -106,7 +106,7 @@ SRCS="$SRCS $OUT/patched/midend.c $BRIDGE/psy_fe.c $SRC/drawing.c $OUT/gen/combi
 OBJS=""
 for f in $SRCS; do
   o="$OUT/obj/$(basename "${f%.c}").o"
-  xcrun --sdk $SDK clang -O2 -DCOMBINED -target "$TARGET" -isysroot "$SDKROOT" \
+  xcrun --sdk $SDK clang -O2 -DCOMBINED -DSOLVER_DIAGNOSTICS -include "$BRIDGE/psy_diag.h" -target "$TARGET" -isysroot "$SDKROOT" \
     -I"$OUT/gen" -I"$SRC" -c "$f" -o "$o" 2>> "$OUT/build.err" || { grep -m5 "error:" "$OUT/build.err"; exit 4; }
   OBJS="$OBJS $o"
 done

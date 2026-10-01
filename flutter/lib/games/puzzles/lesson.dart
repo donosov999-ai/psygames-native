@@ -1,5 +1,7 @@
 library;
 
+import 'package:flutter/foundation.dart' show visibleForTesting;
+
 import '../../shell/lesson.dart';
 import 'engine.dart';
 
@@ -28,6 +30,11 @@ class TathamLesson extends LessonSource {
   final bool canSolve;
   final String gameName;
 
+  /// Рассуждения решателя последнего разбора, строками автора. Для слоя имён приёмов и
+  /// для замера «какие строки печатает движок» — человеку не показываются.
+  @visibleForTesting
+  List<String> lastWorking = const [];
+
   @override
   // ⚠️ Строка машинная, без русского текста: это пометка для реестра охвата и
   // пробы, а не подпись на экране. Фраза здесь стала бы зашитым текстом на одном
@@ -42,7 +49,11 @@ class TathamLesson extends LessonSource {
     if (!canSolve) return const [];
     final before = _engine.draw();
     final at = _engine.statePos;
-    if (!_engine.solve()) return const [];
+    // Решаем С ПЕЧАТЬЮ решателя: из неё приходит имя приёма (задача 23773004). Движок
+    // без печати или старая библиотека дают пустой список — разбор остаётся, как был.
+    final working = _engine.solveExplain();
+    if (working == null) return const [];
+    lastWorking = working;
     final after = _engine.draw();
     // Доску возвращаем игроку ровно такой, какой взяли: разбор показывает решение,
     // а не решает за человека. Без этого «Разбор» превратился бы в «Сдаться».

@@ -71,7 +71,7 @@ for f in combi divvy dsf findloop grid latin laydomino loopgen malloc matching m
 done
 CORE="$CORE $OUT/patched/midend.c"
 
-clang -O2 -DCOMBINED -fvisibility=hidden -fPIC -I"$OUT/gen" -I"$SRC" -shared -o "$OUT/$LIB" \
+clang -O2 -DCOMBINED -fvisibility=hidden -DSOLVER_DIAGNOSTICS -include "$BRIDGE/psy_diag.h" -fPIC -I"$OUT/gen" -I"$SRC" -shared -o "$OUT/$LIB" \
   "$BRIDGE/psy_fe.c" "$SRC/drawing.c" "$OUT/gen/combined-list.c" \
   "$BRIDGE/psy_bridge.c" "$BRIDGE/psy_play.c" $SRCS $CORE 2> "$OUT/build.err"
 rc=$?
