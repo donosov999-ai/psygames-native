@@ -5,6 +5,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../shell/game_preset.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/game_shell.dart';
@@ -117,6 +118,8 @@ class _PicturePairsScreenState extends State<PicturePairsScreen> {
       _theme = theme;
       _reset();
     });
+    // Шаг зарядки начинается сам — перенос веб-`useAutostartWhenReady` (отчёт Дениса 01.10.2026).
+    if (GamePreset.autostart) _start();
   }
 
   void _reset() {
