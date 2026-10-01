@@ -188,13 +188,29 @@ void main() {
     expect(find.text(L.t('start')), findsOneWidget, reason: 'после «Понятно» — экран старта, партия не шла');
   });
 
-  testWidgets('двойной поток с голосом: «Position» и «Sound», буква и звучит, и видна', (tester) async {
+  testWidgets('🔴 двойной поток с голосом: кнопки «Позиция» и «Звук» на языке интерфейса, буква и звучит, и видна',
+      (tester) async {
     await boot(tester, level: 9, voice: true);
     await tester.tap(find.text(L.t('start')));
     await tester.pump(const Duration(milliseconds: 700));
     expect(find.byKey(const Key('nb-position')), findsOneWidget);
     expect(find.byKey(const Key('nb-sound')), findsOneWidget);
     expect(find.byKey(const Key('nb-letter')), findsOneWidget, reason: 'букву видно и глазами');
+    // Подписи кнопок появляются, когда уже можно отвечать (до того на них «Запоминаем…»).
+    Finder label(String key, String text) => find.descendant(of: find.byKey(Key(key)), matching: find.text(text));
+    for (var i = 0; i < 80 && label('nb-position', L.t('suiteModeSimon')).evaluate().isEmpty; i++) {
+      await tester.pump(const Duration(milliseconds: 250));
+    }
+    expect(label('nb-position', L.t('suiteModeSimon')), findsOneWidget, reason: 'кнопка позиции — на языке интерфейса');
+    expect(label('nb-sound', L.t('label_sound')), findsOneWidget, reason: 'кнопка звука — на языке интерфейса');
+    // В русском экране партии — ни одного латинского слова, кроме названия методики «N-back»
+    // (приёмка 6596a00d: висели «Position», «Sound» и «Жми Position»).
+    final latin = [
+      for (final e in find.byType(Text).evaluate())
+        for (final m in RegExp(r'[A-Za-z]{3,}').allMatches((e.widget as Text).data ?? ''))
+          if (m.group(0) != 'back') m.group(0)!,
+    ];
+    expect('латинских слов: ${latin.join(', ')}', 'латинских слов: ');
     await tester.tap(find.byTooltip(L.t('restart')));
     await tester.pump(const Duration(seconds: 3));
   });

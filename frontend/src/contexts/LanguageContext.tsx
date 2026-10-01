@@ -282,7 +282,7 @@ const translations: Translations = {
   nLevelLabel: { ru: 'Глубина (N)', en: 'Depth (N)' },
   match: { ru: 'СОВПАДЕНИЕ', en: 'MATCH' },
   warmup: { ru: 'Запоминаем…', en: 'Warming up…' },
-  nBackHint: { ru: 'Сравните текущую вспышку с той, что была N шагов назад — если совпадает → MATCH', en: 'Compare current flash with one N steps ago — if same position → MATCH' },
+  nBackHint: { ru: 'Сравните текущую вспышку с той, что была N шагов назад — если совпадает → «СОВПАДЕНИЕ»', en: 'Compare current flash with one N steps ago — if same position → MATCH' },
   benefitNback1: { ru: 'Быстрее держать в голове несколько мыслей', en: 'Hold multiple thoughts in mind faster' },
   benefitNback2: { ru: 'Лучше учиться сложным навыкам', en: 'Learn complex skills better' },
   benefitNback3: { ru: 'Точнее принимать решения под нагрузкой', en: 'Decide more accurately under load' },
@@ -3702,7 +3702,8 @@ const translations: Translations = {
   mmMemorizePurple: { ru: '🟣 Запомни ФИОЛЕТОВЫЕ', en: '🟣 Memorize PURPLE' },
   mmNowRed: { ru: '🔴 Теперь КРАСНЫЕ', en: '🔴 Now RED' },
   mmPurpleFirst: { ru: '🟣 Сначала ФИОЛЕТОВЫЕ', en: '🟣 Purple first' },
-  nBackDualHint: { ru: 'Жми Position если позиция повторяет {n} назад. Жми Sound если буква повторяет {n} назад. Можно жать оба', en: 'Tap Position if the position repeats {n} back. Tap Sound if the letter repeats {n} back. You can tap both' },
+  // Кнопки ответа n-back — ключами suiteModeSimon («Позиция») и label_sound («Звук»): подсказка обязана называть их так же (приёмка 6596a00d, 01.10.2026).
+  nBackDualHint: { ru: 'Жми «Позиция», если позиция повторяет {n} назад. Жми «Звук», если буква повторяет {n} назад. Можно жать обе', en: 'Tap Position if the position repeats {n} back. Tap Sound if the letter repeats {n} back. You can tap both' },
   nBackShare: { ru: 'Прошёл {n}-back в PsyGames с точностью {p}% — обгони!', en: 'I reached {n}-back in PsyGames at {p}% accuracy — beat that!' },
   anagramTheme_all: { ru: 'Все', en: 'All' },
   anagramTheme_animals: { ru: 'Животные', en: 'Animals' },

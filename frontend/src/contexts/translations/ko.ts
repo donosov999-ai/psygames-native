@@ -1763,7 +1763,7 @@ const t: Record<string, string> = {
   "mmMemorizePurple": "🟣 보라색을 기억하세요",
   "mmNowRed": "🔴 이제 빨간색",
   "mmPurpleFirst": "🟣 보라색 먼저",
-  "nBackDualHint": "위치가 {n}개 전과 같으면 Position, 글자가 {n}개 전과 같으면 Sound. 둘 다 눌러도 됩니다",
+  "nBackDualHint": "위치가 {n}개 전과 같으면 ‘위치’, 글자가 {n}개 전과 같으면 ‘소리’. 둘 다 눌러도 됩니다",
   "nBackShare": "PsyGames에서 {n}-back을 정확도 {p}%로 달성 — 나를 이겨봐!",
   "anagramTheme_all": "전체",
   "anagramTheme_animals": "동물",

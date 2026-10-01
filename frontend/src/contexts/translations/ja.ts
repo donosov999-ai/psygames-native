@@ -976,7 +976,7 @@ const t: Record<string, string> = {
   "mmMemorizePurple": "🟣 紫を覚えて",
   "mmNowRed": "🔴 次は赤",
   "mmPurpleFirst": "🟣 まず紫から",
-  "nBackDualHint": "位置が{n}個前と同じならPosition、文字が{n}個前と同じならSound。両方押してもOK",
+  "nBackDualHint": "位置が{n}個前と同じなら「位置」、文字が{n}個前と同じなら「音」。両方押してもOK",
   "nBackShare": "PsyGamesで{n}-backを正答率{p}%でクリア — 超えてみて！",
   "anagramTheme_all": "すべて",
   "anagramTheme_animals": "動物",

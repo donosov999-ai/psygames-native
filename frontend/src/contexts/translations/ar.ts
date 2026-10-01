@@ -1764,7 +1764,7 @@ const t: Record<string, string> = {
   "mmMemorizePurple": "🟣 احفظ البنفسجية",
   "mmNowRed": "🔴 الآن الحمراء",
   "mmPurpleFirst": "🟣 البنفسجية أولًا",
-  "nBackDualHint": "اضغط Position إذا تكرر الموضع قبل {n}. واضغط Sound إذا تكرر الحرف قبل {n}. يمكنك ضغط كليهما",
+  "nBackDualHint": "اضغط «الموضع» إذا تكرر الموضع قبل {n}. واضغط «الصوت» إذا تكرر الحرف قبل {n}. يمكنك ضغط كليهما",
   "nBackShare": "وصلت إلى {n}-back في PsyGames بدقة {p}٪ — تفوّق عليّ!",
   "anagramTheme_all": "الكل",
   "anagramTheme_animals": "حيوانات",

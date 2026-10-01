@@ -1629,7 +1629,7 @@ const t: Record<string, string> = {
   "mmMemorizePurple": "🟣 Memoriza las MORADAS",
   "mmNowRed": "🔴 Ahora las ROJAS",
   "mmPurpleFirst": "🟣 Primero las MORADAS",
-  "nBackDualHint": "Pulsa Position si la posición se repite {n} atrás. Pulsa Sound si la letra se repite {n} atrás. Puedes pulsar ambos",
+  "nBackDualHint": "Pulsa «Posición» si la posición se repite {n} atrás. Pulsa «Sonido» si la letra se repite {n} atrás. Puedes pulsar ambos",
   "nBackShare": "¡Alcancé {n}-back en PsyGames con {p}% de precisión — supérame!",
   "anagramTheme_all": "Todas",
   "anagramTheme_animals": "Animales",

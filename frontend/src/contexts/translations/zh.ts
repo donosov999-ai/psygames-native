@@ -1629,7 +1629,7 @@ const t: Record<string, string> = {
   "mmMemorizePurple": "🟣 记住紫色",
   "mmNowRed": "🔴 现在点红色",
   "mmPurpleFirst": "🟣 先点紫色",
-  "nBackDualHint": "位置与 {n} 步前相同按 Position；字母与 {n} 步前相同按 Sound。可以同时按",
+  "nBackDualHint": "位置与 {n} 步前相同按“位置”；字母与 {n} 步前相同按“声音”。可以同时按",
   "nBackShare": "我在 PsyGames 以 {p}% 正确率通过了 {n}-back——来超越我！",
   "anagramTheme_all": "全部",
   "anagramTheme_animals": "动物",

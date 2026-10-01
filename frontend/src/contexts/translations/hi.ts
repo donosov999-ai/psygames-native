@@ -1632,7 +1632,7 @@ const t: Record<string, string> = {
   "mmMemorizePurple": "🟣 बैंगनी याद करें",
   "mmNowRed": "🔴 अब लाल",
   "mmPurpleFirst": "🟣 पहले बैंगनी",
-  "nBackDualHint": "Position दबाएँ अगर स्थिति {n} पहले जैसी है। Sound दबाएँ अगर अक्षर {n} पहले जैसा है। दोनों दबा सकते हैं",
+  "nBackDualHint": "“स्थिति” दबाएँ अगर स्थिति {n} पहले जैसी है। “आवाज़” दबाएँ अगर अक्षर {n} पहले जैसा है। दोनों दबा सकते हैं",
   "nBackShare": "मैंने PsyGames में {n}-back {p}% सटीकता से पार किया — मुझे हराओ!",
   "anagramTheme_all": "सब",
   "anagramTheme_animals": "जानवर",

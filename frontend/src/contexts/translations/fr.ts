@@ -1763,7 +1763,7 @@ const t: Record<string, string> = {
   "mmMemorizePurple": "🟣 Mémorise les VIOLETTES",
   "mmNowRed": "🔴 Maintenant les ROUGES",
   "mmPurpleFirst": "🟣 D’abord les VIOLETTES",
-  "nBackDualHint": "Appuie sur Position si la position se répète {n} en arrière. Sur Sound si la lettre se répète {n} en arrière. Les deux sont possibles",
+  "nBackDualHint": "Appuie sur « Position » si la position se répète {n} en arrière. Sur « Son » si la lettre se répète {n} en arrière. Les deux sont possibles",
   "nBackShare": "J’ai atteint le {n}-back sur PsyGames avec {p} % de précision — fais mieux !",
   "anagramTheme_all": "Tous",
   "anagramTheme_animals": "Animaux",

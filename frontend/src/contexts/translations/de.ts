@@ -1629,7 +1629,7 @@ const t: Record<string, string> = {
   "mmMemorizePurple": "🟣 Merk dir die LILA",
   "mmNowRed": "🔴 Jetzt die ROTEN",
   "mmPurpleFirst": "🟣 Zuerst die LILA",
-  "nBackDualHint": "Tippe Position, wenn die Position {n} zurück gleich ist. Tippe Sound, wenn der Buchstabe {n} zurück gleich ist. Beides geht",
+  "nBackDualHint": "Tippe „Position“, wenn die Position {n} zurück gleich ist. Tippe „Ton“, wenn der Buchstabe {n} zurück gleich ist. Beides geht",
   "nBackShare": "Ich habe {n}-back auf PsyGames mit {p} % Genauigkeit geschafft — überbiete das!",
   "anagramTheme_all": "Alle",
   "anagramTheme_animals": "Tiere",

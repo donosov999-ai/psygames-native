@@ -529,8 +529,6 @@ class _Buttons extends StatelessWidget {
             style: FilledButton.styleFrom(backgroundColor: _tint(last)),
             onPressed: open && !answered ? onTap : null,
             icon: Icon(icon),
-            // ⚠️ «Position / Sound» во всех языках — как в вебе и в справке (согласовано на
-            // 12 языках); перевести ли — открытое решение Дениса (задача 6596a00d).
             label: Text(open ? label : L.t('warmup'), maxLines: 1, overflow: TextOverflow.ellipsis),
           ),
         ),
@@ -542,9 +540,13 @@ class _Buttons extends StatelessWidget {
       child: Row(
         children: game.dual
             ? [
-                button(const Key('nb-position'), 'Position', Icons.grid_view, game.visualAnswered, lastVisual, onVisual),
+                // Подписи — на языке интерфейса (приёмка 6596a00d, 01.10.2026): английское слово в
+                // русском экране — тот же класс дефекта, что зашитый текст. Ключи уже есть в словаре
+                // с нужным переводом на 12 языках (suiteModeSimon «Позиция», label_sound «Звук»);
+                // подсказка nBackDualHint называет кнопки теми же словами.
+                button(const Key('nb-position'), L.t('suiteModeSimon'), Icons.grid_view, game.visualAnswered, lastVisual, onVisual),
                 const SizedBox(width: 12),
-                button(const Key('nb-sound'), 'Sound', Icons.volume_up_outlined, game.audioAnswered, lastAudio, onAudio),
+                button(const Key('nb-sound'), L.t('label_sound'), Icons.volume_up_outlined, game.audioAnswered, lastAudio, onAudio),
               ]
             : [button(const Key('nb-match'), L.t('match'), Icons.check, game.visualAnswered, lastVisual, onVisual)],
       ),
