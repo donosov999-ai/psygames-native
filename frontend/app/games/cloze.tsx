@@ -57,7 +57,7 @@ const CLOZE_BENEFITS = [
 ];
 
 type GamePhase = 'intro' | 'config' | 'playing' | 'cleared' | 'result';
-interface Round { text: string; answer: string; options: string[]; язык: string }
+export interface Round { text: string; answer: string; options: string[]; язык: string }
 
 /** Сентинел «время вышло»: picked не совпадает ни с одной опцией →
  *  подсветится только правильный ответ (зелёным), как reveal. */
@@ -65,7 +65,7 @@ const TIMEOUT_PICK = '⏰';
 
 // Уровень 1..15: раундов больше (6 → 16), лимит на фразу короче (14с → 4.5с).
 // Пул = 16 фраз на язык, поэтому раунды упираются в потолок пула.
-function levelParams(level: number): { rounds: number; timeLimitMs: number } {
+export function levelParams(level: number): { rounds: number; timeLimitMs: number } {
   const rounds = Math.min(16, 5 + level);                        // 6 → 16
   const timeLimitMs = Math.max(4500, 14000 - (level - 1) * 700); // 14с → 4.5с
   return { rounds, timeLimitMs };
@@ -77,6 +77,81 @@ function availablePhrases(tgt: string): number {
     const e = TRANSLATION_VOCAB.find((w) => w.en === p.answerEn);
     return !!(e && e[tgt]);
   }).length;
+}
+
+/**
+ * Порядок фраз ОДНОГО языка: сначала невиданные, потом хвост вперемешку.
+ *
+ * 🔴 ВЫНЕСЕНО ИЗ КОМПОНЕНТА РАДИ ПЕРЕНОСА НА FLUTTER — ПОВЕДЕНИЕ ТО ЖЕ. Эталон для
+ * нативной версии снимается ИСПОЛНЕНИЕМ (`frontend/scripts/flutter-cloze-reference.test.ts`),
+ * а не копией: копия замерзает, исходник живёт. Случайность — параметром, по
+ * умолчанию `Math.random`, как было.
+ *
+ * Хвост нужен потому, что фраза с неизвестным `answerEn` при сборке раундов
+ * пропускается, и без запаса раундов вышло бы меньше заказанного.
+ */
+export function clozeOrderPhrases<T extends { text: string }>(
+  все: readonly T[],
+  виденные: readonly string[],
+  roundsCount: number,
+  rng: () => number = Math.random,
+): { ordered: T[]; seen: string[] } {
+  const свежие = pickFreshFrom(все, roundsCount, виденные, (f) => f.text, rng);
+  const остальные = все.filter((f) => !свежие.picked.includes(f));
+  for (let i = остальные.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [остальные[i], остальные[j]] = [остальные[j], остальные[i]];
+  }
+  return { ordered: [...свежие.picked, ...остальные], seen: свежие.seen };
+}
+
+/**
+ * Раунды из уже упорядоченных фраз — вынесено тем же доводом, что и
+ * [clozeOrderPhrases]. В билингво раунд ЦЕЛИКОМ на одном языке, язык меняется
+ * от раунда к раунду; фраза, ответ и дистракторы — из одного языка.
+ */
+export function buildClozeRounds(
+  поЯзыку: Record<string, { text: string; answerEn: string }[]>,
+  roundsCount: number,
+  билингво: boolean,
+  language: string,
+  пара: readonly string[],
+  rng: () => number = Math.random,
+  vocab: readonly Record<string, string | undefined>[] = TRANSLATION_VOCAB as unknown as Record<string, string | undefined>[],
+): Round[] {
+  const tgt = пара[0]!;
+  const phrases: { text: string; answerEn: string; язык: string }[] = билингво
+    ? разложитьПоРяду(поЯзыку, roundsCount * 2, language, [...пара]).элементы
+        .map((x) => ({ ...x.элемент, язык: x.язык }))
+    : (поЯзыку[tgt] ?? []).map((f) => ({ ...f, язык: tgt }));
+  const newRounds: Round[] = [];
+  for (const p2 of phrases) {
+    if (newRounds.length >= roundsCount) break;
+    const яз = p2.язык;
+    const entry = vocab.find((w) => w.en === p2.answerEn);
+    if (!entry || !entry[яз]) continue; // фраза с неизвестным answerEn — пропуск
+    const answer = entry[яз]!;
+    // дистракторы той же категории; добор из всего словаря, если категория мала
+    const sameCat = vocab.filter((w) => w.cat === entry.cat && w[яз] && w[яз] !== answer).map((w) => w[яз]!);
+    const anyOther = vocab.filter((w) => w[яз] && w[яз] !== answer).map((w) => w[яз]!);
+    const distractors = new Set<string>();
+    const pickFrom = (arr: string[]) => {
+      let guard = 0;
+      while (distractors.size < 3 && guard < 60 && arr.length > 0) {
+        guard += 1;
+        distractors.add(arr[Math.floor(rng() * arr.length)]!);
+      }
+    };
+    pickFrom(sameCat);
+    if (distractors.size < 3) pickFrom(anyOther);
+    const options = [answer, ...distractors];
+    for (let i = options.length - 1; i > 0; i--) {
+      const j = Math.floor(rng() * (i + 1));
+      [options[i], options[j]] = [options[j]!, options[i]!];
+    }
+    newRounds.push({ text: p2.text, answer, options, язык: яз });
+  }
+  return newRounds;
 }
 
 export default function ClozeGame() {
@@ -214,48 +289,11 @@ export default function ClozeGame() {
     for (const л of языкиРаунда) {
       const все = [...(CLOZE_PHRASES[л] ?? [])];
       const виденные = await readSeen('cloze_phrases_' + л, profile?.id);
-      const свежие = pickFreshFrom(все, roundsCount, виденные, (f) => f.text, Math.random);
-      await writeSeen('cloze_phrases_' + л, profile?.id, свежие.seen);
-      /* Добор хвостом: фраза с неизвестным answerEn ниже пропускается, и без запаса
-         раундов вышло бы меньше заказанного. */
-      const остальные = все.filter((f) => !свежие.picked.includes(f));
-      for (let i = остальные.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [остальные[i], остальные[j]] = [остальные[j], остальные[i]];
-      }
-      поЯзыку[л] = [...свежие.picked, ...остальные];
+      const порядок = clozeOrderPhrases(все, виденные, roundsCount);
+      await writeSeen('cloze_phrases_' + л, profile?.id, порядок.seen);
+      поЯзыку[л] = порядок.ordered;
     }
-    const phrases: { text: string; answerEn: string; язык: string }[] = билингво
-      ? разложитьПоРяду(поЯзыку, roundsCount * 2, language, [tgt, второйЯзык]).элементы
-          .map((x) => ({ ...x.элемент, язык: x.язык }))
-      : (поЯзыку[tgt] ?? []).map((f) => ({ ...f, язык: tgt }));
-    const newRounds: Round[] = [];
-    for (const p2 of phrases) {
-      if (newRounds.length >= roundsCount) break;
-      const яз = p2.язык;
-      const entry = TRANSLATION_VOCAB.find((w) => w.en === p2.answerEn);
-      if (!entry || !entry[яз]) continue; // фраза с неизвестным answerEn — пропуск
-      const answer = entry[яз];
-      // дистракторы той же категории; добор из всего словаря, если категория мала
-      const sameCat = TRANSLATION_VOCAB.filter((w) => w.cat === entry.cat && w[яз] && w[яз] !== answer).map((w) => w[яз]);
-      const anyOther = TRANSLATION_VOCAB.filter((w) => w[яз] && w[яз] !== answer).map((w) => w[яз]);
-      const distractors = new Set<string>();
-      const pickFrom = (arr: string[]) => {
-        let guard = 0;
-        while (distractors.size < 3 && guard < 60 && arr.length > 0) {
-          guard += 1;
-          distractors.add(arr[Math.floor(Math.random() * arr.length)]);
-        }
-      };
-      pickFrom(sameCat);
-      if (distractors.size < 3) pickFrom(anyOther);
-      const options = [answer, ...distractors];
-      for (let i = options.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [options[i], options[j]] = [options[j], options[i]];
-      }
-      newRounds.push({ text: p2.text, answer, options, язык: яз });
-    }
+    const newRounds = buildClozeRounds(поЯзыку, roundsCount, билингво, language, [tgt, второйЯзык]);
     roundsRef.current = newRounds;
     idxRef.current = 0;
     correctRef.current = 0;

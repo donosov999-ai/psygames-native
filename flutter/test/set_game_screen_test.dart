@@ -6,6 +6,8 @@ import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'support/boss_probe.dart';
+
 /// СТОЛ РАЗБИРАЕТСЯ НАЖАТИЯМИ. Карты проба знает из той же раздачи по зерну,
 /// а сет ищет САМА перебором — как человек, а не подглядывая в ответ.
 void main() {
@@ -118,5 +120,21 @@ void main() {
       // Три колонки: двенадцать карт ложатся ровно в четыре ряда.
       expect(tops.length, 4, reason: '$screen рядов ${tops.length}, а должно быть четыре');
     }
+  });
+
+  testWidgets('🔴 веха: победа на 3-м уровне открывает бой «какой цифры не хватает», на 2-м — нет', (tester) async {
+    // В вебе этот экран зовёт BossRound каждые три уровня; при переносе бой пропал молча.
+    await expectBossAfterWin(tester, won: find.textContaining(L.t('nextLabel')), hudKey: 'bossHudLightning', play: (level) async {
+      final rnd = createRng('босс$level');
+      await open(tester, level: level, seed: 'босс$level');
+      final p = levelParams(level);
+      for (var i = 1; i <= p.trials; i += 1) {
+        for (final idx in findAnySet(buildBoard(rnd))!) {
+          await tester.tap(find.byKey(Key('карта$idx')));
+          await tester.pump();
+        }
+        await tester.pump(const Duration(milliseconds: 800));
+      }
+    });
   });
 }

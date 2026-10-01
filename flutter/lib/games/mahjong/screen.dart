@@ -10,6 +10,7 @@ import '../../shell/lesson.dart';
 import '../../shell/lesson_player.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/level_rules.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import 'model.dart';
@@ -273,6 +274,8 @@ class _MahjongScreenState extends State<MahjongScreen> {
     }
     final left = shufflesLeft(_cfg.shuffles, _shufflesUsed);
     return GameShell(
+      // Правило уровня объявляет каркас — в спокойный момент, не поверх партии (задача e371fd3a).
+      levelRule: LevelRuleSpot(gameId: 'mahjong', level: _ladder.level, state: widget.state, calm: _matched == 0 || _won),
       title: _title,
       onLesson: _tiles.isEmpty ? null : _openLesson,
       hud: [

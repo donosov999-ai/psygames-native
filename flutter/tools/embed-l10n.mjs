@@ -98,11 +98,22 @@ for (const f of dartFiles(join(FLUTTER, 'lib'))) {
 // без строк — экран показал бы сами ключи. Поэтому собираем их из собранных
 // ассетов: там они лежат явно.
 for (const [file, fields] of [
-  ['assets/hubs.json', ['nameKey', 'descKey']],
+  ['assets/hubs.json', ['nameKey', 'descKey', 'titleKey', 'pickKey', 'footnoteKey']],
   ['assets/puzzles/modes.json', ['titleKey', 'digitNames']],
 ]) {
   let data;
-  try { data = JSON.parse(readFileSync(join(FLUTTER, file), 'utf8')); } catch { continue; }
+  // 🔴 НЕТ ФАЙЛА — пропустить можно; ЕСТЬ, НО НЕ ЧИТАЕТСЯ — СТОП. Замер 01.10.2026: после
+  // слияния веток hubs.json стоял с маркерами конфликта, разбор падал, `catch` молча шёл
+  // дальше — и словарь собрался на 710 ключей вместо 831: выпали ~90 имён и описаний
+  // карточек развилок, экран показал бы ключи. Порядок после слияния: embed-hubs, потом этот.
+  let raw;
+  try { raw = readFileSync(join(FLUTTER, file), 'utf8'); } catch { continue; }
+  try {
+    data = JSON.parse(raw);
+  } catch (e) {
+    console.error(`🔴 ${file} есть, но не разбирается (${e.message.split('\n')[0]}) — конфликт слияния? Сначала node flutter/tools/embed-hubs.mjs`);
+    process.exit(1);
+  }
   const walk = (node) => {
     if (Array.isArray(node)) return node.forEach(walk);
     if (!node || typeof node !== 'object') return;
@@ -115,6 +126,22 @@ for (const [file, fields] of [
   };
   walk(data);
 }
+
+// 1в. ПРАВИЛА УРОВНЕЙ: ключ собирается из игры и правила, `lr_<игра>_<ключ>_<поле>`.
+//
+// Каркас показывает карточку правила по таблице `assets/level_rules.json` (её выгружает
+// `frontend/src/games/level-rules/tools/export-level-rules.gen.ts`), и ни одного такого
+// ключа литералом в Dart нет. Без этого шага карточка пришла бы без текста — задача
+// e371fd3a, 30.09.2026. Пример у правила необязателен, поэтому берём только то, что есть.
+const lrWanted = new Set();
+try {
+  const rules = JSON.parse(readFileSync(join(FLUTTER, 'assets/level_rules.json'), 'utf8')).games;
+  for (const [game, ranges] of Object.entries(rules)) {
+    for (const [, , key] of ranges) {
+      if (key) ['title', 'rule', 'example'].forEach((f) => lrWanted.add(`lr_${game}_${key}_${f}`));
+    }
+  }
+} catch { /* таблицы нет — и правил во Flutter нет */ }
 
 // 2. Словари веба.
 const base = evalObjectAfter(
@@ -150,6 +177,15 @@ for (const файл of ['lib/shell/hybrid_app.dart', 'lib/shell/puzzle_routes.g.
     if (base[ключ]) used.add(ключ);
   }
 }
+
+// Правила уровней: в словарь уходит то, что в веб-словаре есть. Нет заголовка или текста —
+// это дыра веба (её сторожит гейт level-rules-i18n), и карточку каркас тогда не покажет.
+const lrNoText = [];
+for (const k of lrWanted) {
+  if (base[k]) used.add(k);
+  else if (!k.endsWith('_example')) lrNoText.push(k);
+}
+if (lrNoText.length) console.warn(`⚠️ правила уровней без текста в веб-словаре (${lrNoText.length}): ${lrNoText.slice(0, 8).join(', ')}`);
 
 const orphans = [...used].filter((k) => !base[k]);
 if (orphans.length) {

@@ -25,18 +25,6 @@
  * пересчитывает формулу у себя (второй источник правды) и что блок «Сегодня»
  * нарисован БЕЗУСЛОВНО — то есть пустой день не превращается в пустое место.
  */
-jest.mock('@/src/services/supabase', () => ({
-  getSupabase: () => ({ from: () => ({ insert: async () => ({ error: null }) }) }),
-  SUPABASE_TABLE: 'cognitive_sessions',
-  SUPABASE_URL: 'x',
-  SUPABASE_RELAY_URL: 'x',
-  SUPABASE_PUBLISHABLE_KEY: 'x',
-  currentSupabaseBase: () => 'direct',
-}));
-
-declare const __dirname: string;
-declare function require(id: string): any;
-
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { saveSession } from '@/src/services/api';
 import { getTokens, TOKEN_DELTA_CAP } from '@/src/services/tokens';
@@ -55,6 +43,17 @@ import {
   DAY_STREAK_FOR_MULT,
   EarnReason,
 } from '@/src/services/earn';
+jest.mock('@/src/services/supabase', () => ({
+  getSupabase: () => ({ from: () => ({ insert: async () => ({ error: null }) }) }),
+  SUPABASE_TABLE: 'cognitive_sessions',
+  SUPABASE_URL: 'x',
+  SUPABASE_RELAY_URL: 'x',
+  SUPABASE_PUBLISHABLE_KEY: 'x',
+  currentSupabaseBase: () => 'direct',
+}));
+
+declare const __dirname: string;
+declare function require(id: string): any;
 
 const fs = require('fs');
 const path = require('path');
@@ -147,6 +146,21 @@ describe('множитель ×2', () => {
     expect(e.multiplier).toBe(1);
     expect(e.reason).toBe('warmup');
     expect(e.total).toBe(e.base);
+  });
+
+  /**
+   * 🔴 ПАРТИЯ С РАЗБОРОМ — ПО БАЗЕ, БЕЗ ×2 (задача 9660186d, 30.09.2026). Экран пишет
+   * «не засчитывается», а итог платил «×2 · чисто — вдвое»: в части игр разбор показывает
+   * ответ текущего задания, и удвоение шло за подсмотренный ответ. База остаётся —
+   * наказывать за учёбу значит учить её не брать.
+   */
+  it('🔴 партия с разбором — по базе, и ни «чисто», ни серия не удваивают', () => {
+    const e = round({ errors: 0, lesson: true, dayStreak: 10 });
+    expect(e.base).toBeGreaterThan(0);
+    expect(e.multiplier).toBe(1);
+    expect(e.reason).toBe('lesson');
+    expect(e.total).toBe(e.base);
+    expect(earnReasonKey('lesson')).toBe('earnWhyLesson');
   });
 });
 
@@ -353,6 +367,17 @@ describe('партия доиграна', () => {
     await saveSession({ game_type: 'mahjong', score: 200, time_seconds: 30, errors: 0 });
     (globalThis as any).__psygames_warmup_active = false;
     expect(await getTokens(pid)).toBe(10);
+  });
+
+  it('🔴 разбор (lesson / solver_used) платит по базе и не двигает серию «чисто»', async () => {
+    for (const details of [{ lesson: true }, { solver_used: true }]) {
+      const pid = who();
+      await play(pid, { score: 200, errors: 0 });              // серия «чисто» = 1
+      const runBefore = await cleanRun.getCleanRun(pid);
+      const gain = await play(pid, { score: 200, errors: 0, details });
+      expect(`${JSON.stringify(details)}: ${gain}`).toBe(`${JSON.stringify(details)}: 10`);
+      expect(await cleanRun.getCleanRun(pid)).toBe(runBefore);  // не выросла и не обнулилась
+    }
   });
 
   it('переигровка того же уровня перестаёт удваивать после квоты', async () => {

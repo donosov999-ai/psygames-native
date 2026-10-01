@@ -126,7 +126,8 @@ void main() {
     await tester.pump();
     await tester.tap(find.byKey(const ValueKey('mp-to-place')));
     await tester.pump();
-    final session = MemoryPalaceSession.create(content, 'memory-palace-1', 1);
+    // Зерно свежее на каждый заход (как в вебе) — партию берём с экрана, а не строим заново.
+    final session = (tester.state(find.byType(MemoryPalaceScreen)) as dynamic).session as MemoryPalaceSession;
     final firstName = session.round.targetItems.first.title('ru');
     expect(palaceShowsItemNames(1), isTrue);
     expect(find.text(firstName), findsWidgets, reason: 'имя предмета обязано быть видно');
