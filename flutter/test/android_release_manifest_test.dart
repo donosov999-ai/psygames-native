@@ -17,6 +17,20 @@ void main() {
         reason: 'без INTERNET релизная сборка не поднимет AssetServer и стартует пустой');
   });
 
+  test('открытый http разрешён на 127.0.0.1 — иначе ERR_CLEARTEXT_NOT_PERMITTED, пустой экран', () {
+    // Второй дефект того же выпуска (01.10.2026): с INTERNET сервер поднимался, но релизный
+    // WebView не пускал http на петлю. Проверено релизным APK на эмуляторе, не flutter run.
+    final manifest = File('android/app/src/main/AndroidManifest.xml')
+        .readAsStringSync()
+        .replaceAll(RegExp(r'<!--.*?-->', dotAll: true), '');
+    expect(manifest, contains('android:networkSecurityConfig="@xml/network_security_config"'));
+    final config = File('android/app/src/main/res/xml/network_security_config.xml').readAsStringSync();
+    expect(config, matches(RegExp(r'cleartextTrafficPermitted="true"[\s\S]*<domain[^>]*>127\.0\.0\.1</domain>')),
+        reason: 'петлевой адрес обязан быть в списке открытого http');
+    expect(config, isNot(contains('<base-config cleartextTrafficPermitted="true"')),
+        reason: 'открытый http — только для петли, не для всего интернета');
+  });
+
   test('каркас действительно слушает сокет — иначе проба выше сторожит пустое место', () {
     final server = File('lib/shell/asset_server.dart').readAsStringSync();
     expect(server, contains('HttpServer.bind'));
