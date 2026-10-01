@@ -59,6 +59,10 @@ class _DraughtsComboScreenState extends State<DraughtsComboScreen> {
   String? _error;
   _Phase _phase = _Phase.config;
   ComboRun? _run;
+
+  /// Пробе: текущий подход (позиция и число сделанных ходов), чтобы решать касаниями.
+  @visibleForTesting
+  ComboRun? get debugRun => _run;
   int _runLevel = 1;
   ComboResult? _last;
   int _starts = 0;
@@ -298,7 +302,7 @@ class _DraughtsComboScreenState extends State<DraughtsComboScreen> {
     };
     return LayoutBuilder(
       builder: (context, box) {
-        final side = min(box.maxWidth - 16, fieldHeight - 230).clamp(
+        final side = min(box.maxWidth - 16, fieldHeight - 200).clamp(
           120.0,
           440.0,
         );
