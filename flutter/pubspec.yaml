@@ -92,6 +92,11 @@ flutter:
   # реально попало в сборку, и краснеет на пропущенном каталоге.
   assets:
     - assets/levels/
+    - assets/digits/candy/
+    - assets/digits/elegant/
+    - assets/digits/neon/
+    - assets/digits/pastel/
+    - assets/digits/rainbow/
     - assets/hubs.json
     # Иконки игр «поле в миниатюре» для строк развилок — выгрузка веб-реестра
     # (flutter/tools/embed-game-icons.mjs), не править руками.

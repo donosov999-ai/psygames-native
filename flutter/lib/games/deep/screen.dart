@@ -1,10 +1,13 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../../shell/game_clock.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/game_shell.dart';
+import '../../shell/session_report.dart';
 import '../../shell/shared_state.dart';
 import '../../shell/l10n.dart';
 import '../../shell/lesson.dart';
@@ -59,6 +62,15 @@ class _DeepScreenState extends State<DeepScreen> {
 
   ({int r, int c})? _selected;
   bool _won = false;
+
+  /// Когда началась партия в ЭТОМ заходе. ⚠️ Продолжение партии из снимка считает
+  /// время с открытия экрана: снимок веба длительности не хранит, и выдумывать её
+  /// нельзя — отчёт честно покажет время последнего захода.
+  /// Начало партии по ИГРОВЫМ часам (мс) — гейт game_clock_discipline_test (#74).
+  int _startedAt = gameNow();
+
+  /// Отчёт уходит ОДИН раз на победу: сборка корня — событие, а не состояние.
+  bool _reported = false;
   String? _failure;
 
   DeepCfg get _cfg {
@@ -130,6 +142,8 @@ class _DeepScreenState extends State<DeepScreen> {
         };
         _cache.clear();
         _won = false;
+        _reported = false;
+        _startedAt = gameNow();
       });
       return _seed.isNotEmpty;
     } catch (_) {
@@ -155,7 +169,7 @@ class _DeepScreenState extends State<DeepScreen> {
     };
     widget.state.set(_resumeKey, jsonEncode({
       'v': resumeVersion,
-      'savedAt': DateTime.now().millisecondsSinceEpoch,
+      'savedAt': DateTime.now().millisecondsSinceEpoch, // wall-clock: отметка сохранения
       'state': state,
     }));
   }
@@ -163,7 +177,7 @@ class _DeepScreenState extends State<DeepScreen> {
   void _newGame() {
     final rnd = Random();
     setState(() {
-      _seed = 'бездна-${DateTime.now().millisecondsSinceEpoch}-${rnd.nextInt(9999)}';
+      _seed = 'бездна-${DateTime.now().millisecondsSinceEpoch}-${rnd.nextInt(9999)}'; // wall-clock: зерно раздачи
       _path = '';
       _grids.clear();
       _past.clear();
@@ -171,6 +185,8 @@ class _DeepScreenState extends State<DeepScreen> {
       _cache.clear();
       _selected = null;
       _won = false;
+      _reported = false;
+      _startedAt = gameNow();
       _failure = null;
     });
     _save();
@@ -228,9 +244,38 @@ class _DeepScreenState extends State<DeepScreen> {
       _won = deepRootComplete(_nodeAt, _grids);
     });
     _save();
+    if (_won) _reportWin();
   }
 
   void _erase() => _place(0);
+
+  /// 🔴 ОТЧЁТ ПАРТИИ «БЕЗДНЫ» — задача 24cecc5c. Первая редакция экрана при сборке
+  /// корня только ставила `_won`: партия не уходила в psygames_sessions, в статистике
+  /// её не было, шаг зарядки на ней не засчитывался.
+  ///
+  /// Форма — ТА ЖЕ, что пишет веб (app/games/sudoku-fractal-deep.tsx, `finish(true)`):
+  /// game_type `sudoku_fractal_deep`, режим `deep`, трудность — пресет, очки
+  /// `решённые узлы × 120 − ошибки × 20 + 2000`. Ошибок нативный экран не считает
+  /// (ход сверяется не с разгадкой, а с правилами сетки) — отдаём 0, а не выдуманное.
+  void _reportWin() {
+    if (_reported) return;
+    _reported = true;
+    final solved = _grids.keys.where((p) => p != '' && deepNodeDone(_nodeAt, _grids, p)).length;
+    unawaited(SessionReport.send(
+      gameType: gameId,
+      score: solved * 120 + 2000,
+      timeSeconds: (gameNow() - _startedAt) ~/ 1000,
+      difficulty: _preset,
+      mode: 'deep',
+      errors: 0,
+      details: {
+        'preset': _preset,
+        'depth': _cfg.depth,
+        'solved_nodes': solved,
+        'touched': _grids.length,
+      },
+    ));
+  }
 
   void _undo() {
     if (_past.isEmpty || _won) return;
