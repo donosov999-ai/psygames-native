@@ -1,12 +1,17 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../shell/game_clock.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/l10n.dart';
+import 'keypad.dart';
 import 'marks.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/session_report.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import 'generator/contract.dart';
@@ -20,6 +25,7 @@ import '../../shell/lesson_player.dart';
 import 'lesson.dart';
 import 'mode_board.dart';
 import 'modes.dart';
+import 'symbols.dart';
 
 /// СУДОКУ на общем каркасе — первый экран раздела в переезде на Flutter.
 ///
@@ -76,6 +82,25 @@ class _SudokuScreenState extends State<SudokuScreen> {
   Template? _givenTemplate;
   late String _dealId;
 
+  /// 🔴 ПИЛОТ ГЕНЕРАТОРА (§10 шаг 3) — ОТДЕЛЬНЫЙ ПУТЬ ЗА ФЛАГОМ, включается в меню паузы.
+  /// Включён: доску выбирает рейтинг, номер уровня — счётчик побед пилота. Выключен:
+  /// лестница на 92 ступени ровно как была — ни один её ключ пилот не пишет.
+  GeneratorStore? _genStore;
+  bool _pilot = false;
+  Map<String, List<int>> _levelsOfTemplate = const {};
+  Template? _pilotTemplate;
+
+  /// Ступень лестницы, чья доска выдана под выбранный шаблон: от неё — подсказки и очки.
+  int _pilotLevel = 1;
+  int _pilotSeed = 0;
+  int _pilotWins = 0;
+
+  /// Сколько раз подряд нажато «ещё раз эту же»: номер попытки входит в зерно, поэтому
+  /// доска другая, а трудность — та же (решение Дениса 23.09.2026).
+  int _attempt = 0;
+  Template? _repeatable;
+  String _pilotEventId = '';
+
   List<List<int>> _grid = const [];
   List<List<bool>> _given = const [];
   /// 🔴 ШАГ ИСТОРИИ — ТРЁХ ВИДОВ, А НЕ ОДНОГО. Пока история знала только цифры,
@@ -96,6 +121,125 @@ class _SudokuScreenState extends State<SudokuScreen> {
   ({int r, int c})? _selected;
   int _errors = 0;
   int _hintsUsed = 0;
+
+  /// 🔴 ЗНАЧКИ ВМЕСТО ЦИФР (задача f1e1ff9c): предпочтение игрока и набор значков
+  /// выданной доски. Внутри игра живёт цифрами — значок меняет только то, что видно.
+  SkinChoice _choice = const SkinChoice(SudokuSkin.digits);
+  SudokuSymbols _symbols = SudokuSymbols.digits(9);
+  int _dealSeed = 1;
+
+  String get _skinKey => '${SharedState.prefix}sudoku_skin_${widget.state.activeProfile}';
+
+  /// Значки для доски лестницы или пилота; у режимов («Небоскрёбы», «Неравенства»)
+  /// цифры — высоты и неравенства без чисел не читаются.
+  void _applySymbols(SudokuBoard? board, int seed) {
+    _dealSeed = seed;
+    _symbols = board == null || widget.mode != null
+        ? SudokuSymbols.digits(board?.n ?? 9)
+        : symbolsFor(
+            skin: _choice.skin,
+            style: _choice.style,
+            variant: board.variant,
+            solution: board.solution,
+            language: widget.state.language,
+            seed: seed,
+          );
+  }
+
+  /// Что реально видно на доске — для отчёта партии (буквы на термометрах не ставятся,
+  /// поэтому выбор игрока и показанное могут расходиться).
+  String? get _skinShown => _symbols.images != null
+      ? 'drawn:${_choice.style}'
+      : _symbols.isDigits
+          ? null
+          : SudokuSkin.letters.name;
+
+  /// Купленные в магазине наборы — общая память с вебом (frontend/src/services/cosmetics.ts).
+  List<String> get _unlocked {
+    final raw = widget.state.get('${SharedState.prefix}cosmetics_unlocked_${widget.state.activeProfile}');
+    if (raw == null || raw.isEmpty) return const [];
+    try {
+      return (jsonDecode(raw) as List).cast<String>();
+    } catch (_) {
+      return const [];
+    }
+  }
+
+  /// Название набора — литералами: ключ, собранный из переменной, в словарь сборки не
+  /// попадает, и экран показал бы сам ключ.
+  static String _styleName(String st) => switch (st) {
+        'rainbow' => L.t('cosName_digits_rainbow'),
+        'pastel' => L.t('cosName_digits_pastel'),
+        'neon' => L.t('cosName_digits_neon'),
+        'elegant' => L.t('cosName_digits_elegant'),
+        _ => L.t('digitsCandy'),
+      };
+
+  /// «Стиль цифр»: обычные, буквы (только где положены), пять рисованных наборов веба.
+  Future<void> _pickSkin() async {
+    final board = _board;
+    final profile = widget.state.activeProfile, unlocked = _unlocked;
+    final picked = await showModalBottomSheet<SkinChoice>(
+      context: context,
+      showDragHandle: true,
+      // Лист растёт по содержимому: по умолчанию он режется на 9/16 экрана, и последние
+      // наборы уходили за край — выбор, который надо искать прокруткой (замер пробой 30.09).
+      isScrollControlled: true,
+      builder: (ctx) {
+        Widget option(Key key, SkinChoice c, Widget leading, String title, {bool enabled = true}) {
+          final on = c.name == _choice.name;
+          return ListTile(
+            key: key,
+            leading: leading,
+            title: Text(title),
+            enabled: enabled,
+            trailing: on ? const Icon(Icons.check) : (enabled ? null : const Icon(Icons.lock_outline)),
+            onTap: enabled ? () => Navigator.of(ctx).pop(c) : null,
+          );
+        }
+
+        return SafeArea(
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                option(const Key('skin-digits'), const SkinChoice(SudokuSkin.digits),
+                    const Icon(Icons.pin_outlined), L.t('digitsPlain')),
+                if (board != null && skinApplies(board.variant))
+                  option(const Key('skin-letters'), const SkinChoice(SudokuSkin.letters),
+                      const Icon(Icons.abc), L.t('sudokuSkinLetters')),
+                for (final st in digitStyles)
+                  option(
+                    Key('skin-drawn-$st'),
+                    SkinChoice(SudokuSkin.drawn, st),
+                    Image.asset(digitImage(st, 5), width: 32, height: 32),
+                    _styleName(st),
+                    enabled: styleOwned(st, profile, unlocked),
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+    if (picked == null || !mounted) return;
+    widget.state.set(_skinKey, picked.name);
+    setState(() {
+      _choice = picked;
+      _applySymbols(_board, _dealSeed);
+    });
+  }
+
+  /// Переделки — как у веба: в клетке стояла цифра, и её сменили или стёрли.
+  /// Веб пишет это число в каждую победу (`backtrack_count`) — «решал неуверенно».
+  int _backtracks = 0;
+
+  /// Когда раздана доска — от этого считается время партии в отчёте.
+  /// Начало партии по ИГРОВЫМ часам (мс): пауза и разбор поверх игры время партии не
+  /// съедают (гейт game_clock_discipline_test, #74).
+  int _startedAt = gameNow();
+
+  int get _elapsed => (gameNow() - _startedAt) ~/ 1000;
   bool _won = false;
   bool _lost = false;
   String? _failure;
@@ -110,14 +254,22 @@ class _SudokuScreenState extends State<SudokuScreen> {
   Future<void> _boot() async {
     await _ladder.load();
     final levels = await SudokuLevels.load();
+    await WordokuWords.load();
     // Лестница нужна и в режиме: потолок подсказок берётся по номеру ступени — ровно
     // так же, как в веб-половине (там в режиме `level` держит номер ступени).
     final modes = widget.mode == null ? null : await SideModes.load();
     if (!mounted) return;
     setState(() {
       _levels = levels;
+      _choice = SkinChoice.parse(widget.state.get(_skinKey));
       _pool = buildPool(levels);
-      _shadow = GeneratorShadow(GeneratorStore(widget.state));
+      final store = GeneratorStore(widget.state);
+      _genStore = store;
+      _shadow = GeneratorShadow(store);
+      _levelsOfTemplate = levelsByTemplate(levels);
+      // Флаг действует только на лестницу: у «Небоскрёбов» и «Неравенств» своя.
+      _pilot = widget.mode == null && store.enabled;
+      if (_pilot) _pilotWins = store.load().adaptiveWins;
       _sideModes = modes;
       if (widget.mode != null) _side = SideProgress(widget.state, widget.mode!);
     });
@@ -129,7 +281,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
     if (mode != null) {
       final modes = _sideModes, side = _side;
       if (modes == null || side == null) return;
-      final board = modes.boardFor(mode, side.step, seed: DateTime.now().millisecondsSinceEpoch);
+      final board = modes.boardFor(mode, side.step, seed: DateTime.now().millisecondsSinceEpoch); // wall-clock: зерно раздачи
       setState(() {
         _sideBoard = board;
         _failure = board == null ? _noBoards : null;
@@ -139,17 +291,25 @@ class _SudokuScreenState extends State<SudokuScreen> {
         _resetNotes(board?.n ?? 0);
         _selected = null;
         _errors = 0;
+        _startedAt = gameNow();
         _hintsUsed = 0;
+        _backtracks = 0;
         _won = false;
         _lost = false;
       });
       return;   // теневой шаг генератора живёт на лестнице, а не в режимах
     }
+    if (_pilot) {
+      _dealPilot();
+      return;
+    }
     final levels = _levels;
     if (levels == null) return;
-    final board = levels.boardFor(_ladder.level, seed: DateTime.now().millisecondsSinceEpoch);
+    final seed = DateTime.now().millisecondsSinceEpoch; // wall-clock: зерно раздачи
+    final board = levels.boardFor(_ladder.level, seed: seed);
     setState(() {
       _board = board;
+      _applySymbols(board, seed);
       _failure = board == null ? _noBoards : null;
       _grid = board == null ? const [] : [for (final row in board.puzzle) [...row]];
       _given = board == null ? const [] : [for (final row in board.puzzle) [for (final v in row) v != 0]];
@@ -157,7 +317,9 @@ class _SudokuScreenState extends State<SudokuScreen> {
       _resetNotes(board?.n ?? 0);
       _selected = null;
       _errors = 0;
+      _startedAt = gameNow();
       _hintsUsed = 0;
+      _backtracks = 0;
       _won = false;
       _lost = false;
     });
@@ -168,7 +330,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
   void _recordDeal(SudokuBoard? board) {
     final shadow = _shadow;
     if (shadow == null || board == null) return;
-    _dealId = 'lv${_ladder.level}-${DateTime.now().millisecondsSinceEpoch}';
+    _dealId = 'lv${_ladder.level}-${DateTime.now().millisecondsSinceEpoch}'; // wall-clock: id партии
     _givenTemplate = templateForBoard(
       variant: board.variant,
       fromBank: board.rating != null,
@@ -188,6 +350,10 @@ class _SudokuScreenState extends State<SudokuScreen> {
   void _recordOutcome(Outcome outcome) {
     final shadow = _shadow, given = _givenTemplate;
     if (shadow == null || given == null) return;
+    // 🔴 После первого включения пилота его рейтинг и счёт побед — только его партии.
+    // Иначе выключил пилот, прошёл три ступени лестницы — и номер пилота вырос на три
+    // (§4.3: «иначе победам припишется чужой счёт»). Журнал выбора тень ведёт дальше.
+    if (_genStore?.pilotStarted ?? false) return;
     shadow.recordOutcome(
       given: given,
       outcome: outcome,
@@ -195,6 +361,135 @@ class _SudokuScreenState extends State<SudokuScreen> {
       errors: _errors,
       hints: _hintsUsed,
     );
+  }
+
+  /// Раздача пилота: шаблон выбирает рейтинг, доску даёт ступень той же трудности.
+  ///
+  /// `repeat` — кнопка «ещё раз эту же»: ТОТ ЖЕ шаблон, а не выбор по его рейтингу
+  /// (почему — `lastTemplate` в engine.dart), и доска по возможности не та же самая.
+  /// ⚠️ ЗАВИСАТЬ НЕЛЬЗЯ (§8.5): нет шаблона или доски — берётся доска текущей ступени
+  /// лестницы, проверенная; перебор досок ограничен восемью попытками.
+  void _dealPilot({bool repeat = false}) {
+    final levels = _levels, store = _genStore;
+    if (levels == null || store == null) return;
+    final s = store.load();
+    var t = repeat ? lastTemplate(s, _pool) : null;
+    t ??= pickNext(s, _pool, Leniency.normal);
+    _attempt = repeat ? _attempt + 1 : 0;
+    final seed = DateTime.now().millisecondsSinceEpoch + _attempt; // wall-clock: зерно раздачи
+    final dealt = t == null
+        ? null
+        : boardForTemplate(levels, _levelsOfTemplate, t, seed, avoid: repeat ? _board : null);
+    var board = dealt?.board;
+    var source = dealt?.level ?? _ladder.level;
+    if (board == null) {
+      source = _ladder.level;
+      board = levels.boardFor(source, seed: seed);
+      t = templateForLevel(levels, source);
+    }
+    setState(() {
+      _board = board;
+      _applySymbols(board, seed);
+      _pilotTemplate = t;
+      _pilotLevel = source;
+      _pilotSeed = seed;
+      _pilotWins = s.adaptiveWins;
+      _repeatable = null;
+      // Микросекунды, а не зерно: две раздачи в одну миллисекунду дали бы один id,
+      // и второй исход движок отбросил бы как повтор (идемпотентность по eventId).
+      _pilotEventId = 'gen-${DateTime.now().microsecondsSinceEpoch}'; // wall-clock: id партии
+      _failure = board == null ? _noBoards : null;
+      _grid = board == null ? const [] : [for (final row in board.puzzle) [...row]];
+      _given = board == null ? const [] : [for (final row in board.puzzle) [for (final v in row) v != 0]];
+      _history.clear();
+      _resetNotes(board?.n ?? 0);
+      _selected = null;
+      _errors = 0;
+      _startedAt = gameNow();
+      _hintsUsed = 0;
+      _backtracks = 0;
+      _won = false;
+      _lost = false;
+    });
+  }
+
+  /// Исход партии пилота: в рейтинг и счётчик побед пилота, в статистику — с пометкой
+  /// пути. ⚠️ Лестницу НЕ трогает: адаптивная партия не открывает прописанную ступень
+  /// (§8.1, приёмка §9.8), и восстановление уровня не должно принять её за ступень —
+  /// поэтому режим `adaptive`, а не `level-N`, и в подробностях нет `level`.
+  void _pilotFinish(Outcome outcome) {
+    final store = _genStore, t = _pilotTemplate;
+    if (store == null || t == null) return;
+    final next = applyOutcome(
+      store.load(),
+      OutcomeEvent(
+        eventId: _pilotEventId,
+        task: TaskId(
+          gameId: 'sudoku',
+          templateId: t.id,
+          difficultyBand: t.band,
+          generatorVersion: generatorAlgorithmVersion,
+          seed: '$_pilotSeed',
+        ),
+        outcome: outcome,
+        errors: _errors,
+        hints: _hintsUsed,
+        seconds: _elapsed,
+        at: DateTime.now(), // wall-clock: отметка события — от неё считается перерыв в игре
+      ),
+      template: t,
+    );
+    store.save(next);
+    _pilotWins = next.adaptiveWins;
+    _repeatable = outcome == Outcome.failed ? lastTemplate(next, _pool) : null;
+    final won = outcome != Outcome.failed;
+    unawaited(SessionReport.send(
+      gameType: 'sudoku',
+      score: won ? _score(_pilotLevel) : 0,
+      timeSeconds: _elapsed,
+      difficulty: _difficultyFor(_pilotLevel),
+      mode: 'adaptive',
+      errors: _errors,
+      details: {
+        'errors': _errors,
+        'completed': won,
+        if (!won) 'failed_out': true,
+        'hint_uses': _hintsUsed,
+        'backtrack_count': _backtracks,
+        'progression_kind': 'adaptive',
+        // Снимок состояния после партии (§8.7): где жить рейтингу — на телефоне или ещё
+        // на сервере — открытый вопрос проекта (§5, п.2), но с этими полями сервер уже
+        // держит всё, чтобы восстановить счёт пилота после переустановки: event_id —
+        // защита от двойного применения, рейтинг и неуверенность — канонический снимок.
+        'event_id': _pilotEventId,
+        'skill_rating': (next.skillRating * 10).round() / 10,
+        'rating_uncertainty': (next.ratingUncertainty * 10).round() / 10,
+        'adaptive_wins': next.adaptiveWins,
+        'template_id': t.id,
+        'difficulty_band': t.band,
+        'generator_version': generatorAlgorithmVersion,
+        'seed': _pilotSeed,
+        'source_level': _pilotLevel,
+        'variant': _board?.variant ?? 'none',
+        'repeat': _attempt > 0,
+        if (_skinShown != null) 'skin': _skinShown,
+      },
+    ));
+  }
+
+  /// Включить или выключить пилот. Первое включение — старт от трудности ТЕКУЩЕЙ
+  /// ступени, номер с нуля (решение Дениса 23.09.2026, В3); повторное — продолжение.
+  void _togglePilot() {
+    final store = _genStore, levels = _levels;
+    if (store == null || levels == null || widget.mode != null) return;
+    final on = !_pilot;
+    if (on && !store.pilotStarted) {
+      store.save(startFromLadder(levels, _ladder.level));
+      store.markPilotStarted();
+    }
+    store.setEnabled(on);
+    setState(() => _pilot = on);
+    _deal();
   }
 
   void _select(int r, int c) {
@@ -267,13 +562,20 @@ class _SudokuScreenState extends State<SudokuScreen> {
     if (_given[sel.r][sel.c]) return;   // подсказку задания не трогаем
 
     setState(() {
-      _history.add(_Step(_StepKind.digit, sel.r, sel.c, _grid[sel.r][sel.c]));
+      final was = _grid[sel.r][sel.c];
+      if (was != 0 && was != value) _backtracks += 1;
+      _history.add(_Step(_StepKind.digit, sel.r, sel.c, was));
       _grid[sel.r][sel.c] = value;
       if (value != 0 && solution[sel.r][sel.c] != value) {
         _errors += 1;
         if (_errors >= errorLimit) {
           _lost = true;
-          _recordOutcome(Outcome.failed);
+          if (_pilot) {
+            _pilotFinish(Outcome.failed);
+          } else {
+            _recordOutcome(Outcome.failed);
+            _reportLoss();
+          }
         }
         return;
       }
@@ -335,7 +637,81 @@ class _SudokuScreenState extends State<SudokuScreen> {
   int get _hintMax {
     final levels = _levels;
     if (levels == null) return 0;
-    return levels.config(widget.mode == null ? _ladder.level : (_side?.step ?? 1)).hintMax;
+    final level = widget.mode != null ? (_side?.step ?? 1) : (_pilot ? _pilotLevel : _ladder.level);
+    return levels.config(level).hintMax;
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // ОТЧЁТ ПАРТИИ — задача 24cecc5c.
+  //
+  // 🔴 ПАРТИЯ, КОТОРАЯ НЕ ДОШЛА ДО ОТЧЁТА, ДЛЯ СТАТИСТИКИ И ЗАРЯДКИ НЕ СУЩЕСТВУЕТ.
+  // Первая редакция экрана отправляла отчёт только через лестницу — и только на
+  // победе в обычных уровнях. Проигрыш и победа в «Небоскрёбах»/«Неравенствах» не
+  // доходили никуда: в статистике их нет, шаг зарядки на них не засчитывался.
+  //
+  // Форма отчёта — ТА ЖЕ, что пишет веб (app/games/sudoku.tsx, saveSession на победе
+  // и на проигрыше): game_type 'sudoku', режим `level-N[-вариант]` или `towers-N`,
+  // очки по той же формуле. Разойдутся — партия ляжет в статистику под другим именем.
+  // ─────────────────────────────────────────────────────────────────────────
+
+  /// Имя режима партии в отчёте: `level-12` или `level-12-thermo`, как в вебе.
+  String _levelMode(int level) {
+    final v = _board?.variant ?? 'none';
+    return v == 'none' ? 'level-$level' : 'level-$level-$v';
+  }
+
+  /// Полоса трудности — та же разбивка, что у веба.
+  String _difficultyFor(int level) => level <= 4 ? 'easy' : level <= 9 ? 'medium' : 'hard';
+
+  /// Очки — формула веба: база растёт со ступенью, ошибки, время и подсказки её режут.
+  int _score(int level) =>
+      math.max(0, (1500 + level * 150 - _errors * 50 - _elapsed * 2 - _hintsUsed * 50).round());
+
+  /// ⚠️ ПРОИГРЫШ ИДЁТ МИМО ЛЕСТНИЦЫ, И ЭТО НАМЕРЕННО. `LevelLadder.fail` после трёх
+  /// провалов подряд опускает уровень, а веб-судоку уровень за проигрыши НЕ опускает
+  /// (замер: в app/games/sudoku.tsx и sudoku-roads.ts нет ни счёта провалов, ни
+  /// понижения). Пошли проигрыш через лестницу — нативная половина начала бы ронять
+  /// человеку уровень, которого веб не трогал.
+  void _reportLoss() {
+    final mode = widget.mode;
+    final level = mode == null ? _ladder.level : (_side?.step ?? 1);
+    unawaited(SessionReport.send(
+      gameType: 'sudoku',
+      score: 0,
+      timeSeconds: _elapsed,
+      difficulty: mode == null ? _difficultyFor(level) : null,
+      mode: mode == null ? _levelMode(level) : '${sideModeName(mode)}-$level',
+      errors: _errors,
+      details: {
+        'errors': _errors,
+        'completed': false,
+        'failed_out': true,
+        'level': level,
+        'variant': mode == null ? (_board?.variant ?? 'none') : sideModeName(mode),
+        if (mode == null) 'road': 'normal',
+        if (_skinShown != null) 'skin': _skinShown,
+      },
+    ));
+  }
+
+  /// Победа в режиме — своя мини-лестница, но отчёт обязан уйти так же, как у уровней.
+  void _reportModeWin(int step) {
+    final mode = widget.mode!;
+    unawaited(SessionReport.send(
+      gameType: 'sudoku',
+      score: _score(step),
+      timeSeconds: _elapsed,
+      mode: '${sideModeName(mode)}-$step',
+      errors: _errors,
+      details: {
+        'errors': _errors,
+        'completed': true,
+        'hint_uses': _hintsUsed,
+        'backtrack_count': _backtracks,
+        'level': step,
+        'variant': sideModeName(mode),
+      },
+    ));
   }
 
   void _checkWin() {
@@ -348,12 +724,37 @@ class _SudokuScreenState extends State<SudokuScreen> {
     }
     _won = true;
     if (widget.mode != null) {
+      _reportModeWin(_side?.step ?? 1);   // шаг — ДО прибавки, как в вебе
       _side?.win();   // ступень режима — свой счётчик, лестница на 92 ступени не трогается
       return;
     }
     // Подсказками доигранная партия рейтинг не повышает — это правило движка, не экрана.
+    if (_pilot) {
+      _pilotFinish(_hintsUsed > 0 ? Outcome.assisted : Outcome.passed);
+      return;
+    }
     _recordOutcome(_hintsUsed > 0 ? Outcome.assisted : Outcome.passed);
-    unawaited(_ladder.win());
+    final level = _ladder.level;
+    // Трудность и подробности — как у веба (app/games/sudoku.tsx, saveSession победы).
+    // До 30.09 лестница умела слать только номер: трудностью уходило «54», а не «hard»,
+    // и без дороги — история сравнила бы уровень 12 лёгкой и тяжёлой дорог между собой.
+    unawaited(_ladder.win(
+      score: _score(level),
+      timeSeconds: _elapsed,
+      errors: _errors,
+      mode: _levelMode(level),
+      difficulty: _difficultyFor(level),
+      details: {
+        'errors': _errors,
+        'completed': true,
+        'hint_uses': _hintsUsed,
+        'backtrack_count': _backtracks,
+        'level': level,
+        'variant': _board?.variant ?? 'none',
+        'road': 'normal',
+        if (_skinShown != null) 'skin': _skinShown,
+      },
+    ));
   }
 
   /// 🔴 РАЗБОР СУДОКУ: ПОЧЕМУ ЭТА ЦИФРА, А НЕ «ВОТ ОТВЕТ».
@@ -374,7 +775,10 @@ class _SudokuScreenState extends State<SudokuScreen> {
       _ => L.t('teachSudokuPlain'),
     };
     for (final e in args.entries) {
-      out = out.replaceAll('{${e.key}}', e.value);
+      // Цифра в тексте разбора — тем же значком, что на доске: «цифре Л», а не «цифре 5»,
+      // которой человек на доске не видит.
+      final v = e.key == 'd' ? _symbols.glyph(int.tryParse(e.value) ?? 0) : e.value;
+      out = out.replaceAll('{${e.key}}', v.isEmpty ? e.value : v);
     }
     return out;
   }
@@ -435,6 +839,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
             selected: (r: m.r, c: m.c),
             height: sideLen,
             onTap: (_, _) {},
+            symbols: _symbols,
           );
         },
       ),
@@ -446,10 +851,12 @@ class _SudokuScreenState extends State<SudokuScreen> {
     final levels = _levels;
     final board = _board;
     final cfg = levels?.config(_ladder.level);
-    // Правило доски: у режима — его имя, у лестницы — имя варианта ступени.
+    // Правило доски: у режима — его имя, у лестницы — имя варианта ступени, у пилота —
+    // вариант выданной доски (ступень лестницы здесь ни при чём).
+    final variant = _pilot ? _board?.variant : cfg?.variant;
     final ruleLabel = widget.mode != null
         ? variantTitle(sideModeName(widget.mode!))
-        : (cfg != null && cfg.variant != 'none' ? variantTitle(cfg.variant) : null);
+        : (variant != null && variant != 'none' ? variantTitle(variant) : null);
 
     return GameShell(
       title: _title,
@@ -459,8 +866,11 @@ class _SudokuScreenState extends State<SudokuScreen> {
         // храповика подписей, а «Уровень» уже переведён на двенадцать языков.
         HudItem(
           label: 'Уровень',
-          value: widget.mode == null ? '${_ladder.level}' : '${_side?.step ?? 1}/$sideSteps',
-          icon: Icons.trending_up,
+          // У пилота номер — счётчик побед: только растёт, конца нет (решение 18.09).
+          value: widget.mode != null
+              ? '${_side?.step ?? 1}/$sideSteps'
+              : _pilot ? '${_pilotWins + 1}' : '${_ladder.level}',
+          icon: _pilot ? Icons.auto_awesome : Icons.trending_up,
         ),
         HudItem(label: 'Ошибки', value: '$_errors/$errorLimit', icon: Icons.close),
         if (ruleLabel != null) HudItem(label: 'Правило', value: ruleLabel, icon: Icons.rule),
@@ -494,6 +904,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
           selected: _selected,
           height: height,
           onTap: _select,
+          symbols: _symbols,
         );
       },
       // 🔴 ЧЕТЫРЕ ЗНАЧКА, КАК В ВЕБЕ, А НЕ ТРИ. Первая редакция нативного экрана
@@ -543,11 +954,31 @@ class _SudokuScreenState extends State<SudokuScreen> {
               onDigit: _onKey,
               onErase: _erase,
               onNext: _deal,
+              onRepeat: (_pilot && _lost && _repeatable != null)
+                  ? () => _dealPilot(repeat: true)
+                  : null,
               paint: _paint,
               onPaint: (i) => setState(() => _paint = i),
+              label: _symbols.glyph,
+              icon: _symbols.images == null
+                  ? null
+                  : (v) => Image.asset(_symbols.image(v)!, width: 30, height: 30, semanticLabel: '$v'),
+              wonNote: _won && _symbols.word != null
+                  ? L.t('sudokuHiddenWord').replaceAll('{w}', _symbols.word!)
+                  : null,
             ),
       pauseActions: [
         PauseAction(label: 'Начать заново', icon: Icons.refresh, onPressed: _deal),
+        if (widget.mode == null && _genStore != null)
+          PauseAction(
+            label: _pilot ? L.t('sudokuPilotOff') : L.t('sudokuPilotOn'),
+            icon: _pilot ? Icons.trending_up : Icons.auto_awesome,
+            onPressed: _togglePilot,
+          ),
+        // «Стиль цифр»: буквы внутри — только на правилах без числового смысла
+        // (symbols.dart); рисованные цифры — везде, это всё ещё цифры.
+        if (widget.mode == null && board != null)
+          PauseAction(label: L.t('digitStyle'), icon: Icons.style_outlined, onPressed: _pickSkin),
       ],
     );
   }
@@ -601,6 +1032,7 @@ class SudokuBoardView extends StatelessWidget {
     required this.selected,
     required this.height,
     required this.onTap,
+    this.symbols,
   });
 
   final SudokuBoard board;
@@ -611,6 +1043,9 @@ class SudokuBoardView extends StatelessWidget {
   final ({int r, int c})? selected;
   final double height;
   final void Function(int r, int c) onTap;
+
+  /// Значки вместо цифр (`symbols.dart`); `null` — цифры.
+  final SudokuSymbols? symbols;
 
   @override
   Widget build(BuildContext context) {
@@ -648,6 +1083,8 @@ class SudokuBoardView extends StatelessWidget {
                             selected: selected != null && selected!.r == r && selected!.c == col,
                             scheme: scheme,
                             onTap: onTap,
+                            glyph: symbols?.glyph,
+                            image: symbols?.image,
                           ),
                       ],
                     ),
@@ -674,12 +1111,20 @@ class _Cell extends StatelessWidget {
     required this.selected,
     required this.scheme,
     required this.onTap,
+    this.glyph,
+    this.image,
   });
 
   final double size;
   final int row;
   final int col;
   final SudokuBoard board;
+
+  /// Значок цифры; `null` — сама цифра.
+  final String Function(int)? glyph;
+
+  /// Картинка цифры (рисованный набор); `null` — без картинок.
+  final String? Function(int)? image;
   final int value;
   final bool given;
 
@@ -695,6 +1140,15 @@ class _Cell extends StatelessWidget {
         color: thick ? scheme.onSurface : scheme.outlineVariant,
         width: thick ? 2 : 0.5,
       );
+
+  /// Картинка рисованной цифры — по правилу веба: только если клетка не выбрана, не
+  /// покрашена и под ней ничего не нарисовано (decorFreeVariants). Иначе текст:
+  /// контраст важнее единообразия начертания.
+  Widget? _picture() {
+    final src = value == 0 ? null : image?.call(value);
+    if (src == null || selected || paint >= 0 || !decorFreeVariants.contains(board.variant)) return null;
+    return Image.asset(src, width: size * 0.72, height: size * 0.72, semanticLabel: '$value');
+  }
 
   bool _regionEdge(int r1, int c1, int r2, int c2) {
     final regions = board.geometry.regions;
@@ -752,9 +1206,10 @@ class _Cell extends StatelessWidget {
                       value: value,
                       cell: size,
                       color: scheme.onSurfaceVariant,
+                      glyph: glyph,
                     )
-                  : Text(
-                      value == 0 ? '' : '$value',
+                  : _picture() ?? Text(
+                      value == 0 ? '' : (glyph?.call(value) ?? '$value'),
                       style: TextStyle(
                         fontSize: size * 0.52,
                         fontWeight: given ? FontWeight.w800 : FontWeight.w500,
@@ -779,8 +1234,12 @@ class _Toolbar extends StatelessWidget {
     required this.onDigit,
     required this.onErase,
     required this.onNext,
+    this.onRepeat,
     required this.paint,
     required this.onPaint,
+    this.label,
+    this.icon,
+    this.wonNote,
   });
 
   final int n;
@@ -790,115 +1249,70 @@ class _Toolbar extends StatelessWidget {
   final VoidCallback onErase;
   final VoidCallback onNext;
 
+  /// «Ещё раз эту же» — только у пилота и только после проигрыша: та же трудность,
+  /// другая доска. `null` — кнопки нет (лестница, режимы, победа).
+  final VoidCallback? onRepeat;
+
   /// Выбранный цвет: не `null` — вместо клавиш стоит палитра.
   final int? paint;
   final void Function(int) onPaint;
 
+  /// Надписи клавиш — значками доски.
+  final String Function(int)? label;
+
+  /// Картинка клавиши (рисованные наборы); `null` — надпись.
+  final Widget Function(int)? icon;
+
+  /// Строка над кнопкой после победы — спрятанное слово Wordoku.
+  final String? wonNote;
+
   @override
   Widget build(BuildContext context) {
     if (won || lost) {
-      return Padding(
-        padding: const EdgeInsets.all(12),
-        child: FilledButton.icon(
-          key: const Key('next'),
-          onPressed: onNext,
-          icon: Icon(won ? Icons.arrow_forward : Icons.refresh),
-          label: Text(won ? 'Следующий уровень' : 'Ещё раз'),
-        ),
+      final next = FilledButton.icon(
+        key: const Key('next'),
+        onPressed: onNext,
+        icon: Icon(won ? Icons.arrow_forward : Icons.refresh),
+        label: Text(won ? 'Следующий уровень' : 'Ещё раз'),
       );
-    }
-    return LayoutBuilder(
-      builder: (context, c) {
-        const keyWidth = 48.0, gap = 6.0;
-        final keys = n + 1;                                   // цифры и «Стереть»
-        final fit = ((c.maxWidth - 8 + gap) / (keyWidth + gap)).floor().clamp(1, keys);
-        final rows = (keys / fit).ceil();
-        final perRow = (keys / rows).ceil();
-        final width = perRow * keyWidth + (perRow - 1) * gap;
-
-        // 🔴 ПАЛИТРА ВСТАЁТ НА МЕСТО КЛАВИАТУРЫ И ТОЙ ЖЕ ВЫСОТЫ — правило веб-версии
-        // (`слотКлавиатуры`). Иначе при переключении режима доска прыгает вверх-вниз,
-        // и человек теряет клетку, которую только что смотрел.
-        final slot = rows * keyWidth + (rows - 1) * gap;
-        if (paint != null) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Center(
-              child: ConstrainedBox(
-                constraints: BoxConstraints(minHeight: slot, maxWidth: width),
-                child: Wrap(
-                  spacing: gap,
-                  runSpacing: gap,
-                  alignment: WrapAlignment.center,
-                  children: [
-                    for (var i = 0; i < sudokuColorCount; i++)
-                      SizedBox(
-                        width: 40,
-                        height: 40,
-                        child: Material(
-                          color: cellColors[i].withValues(alpha: 0.55),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            side: BorderSide(
-                              color: paint == i
-                                  ? Theme.of(context).colorScheme.onSurface
-                                  : Theme.of(context).colorScheme.outlineVariant,
-                              width: paint == i ? 2 : 1,
-                            ),
-                          ),
-                          child: InkWell(
-                            key: Key('swatch$i'),
-                            onTap: () => onPaint(i),
-                            child: paint == i
-                                ? Icon(Icons.check,
-                                    size: 16, color: Theme.of(context).colorScheme.onSurface)
-                                : null,
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-            ),
-          );
-        }
-        return Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: Center(
-            child: SizedBox(
-              width: width,
-              child: Wrap(
-                spacing: gap,
-                runSpacing: gap,
+      final repeat = onRepeat;
+      final note = wonNote;
+      final Widget body = (lost && repeat != null)
+            ? Wrap(
                 alignment: WrapAlignment.center,
+                spacing: 8,
+                runSpacing: 8,
                 children: [
-                  for (var v = 1; v <= n; v++)
-                    SizedBox(
-                      width: keyWidth,
-                      height: keyWidth,
-                      child: FilledButton(
-                        key: Key('digit$v'),
-                        onPressed: () => onDigit(v),
-                        style: FilledButton.styleFrom(padding: EdgeInsets.zero),
-                        child: Text('$v', style: const TextStyle(fontSize: 20)),
-                      ),
-                    ),
-                  SizedBox(
-                    width: keyWidth,
-                    height: keyWidth,
-                    child: OutlinedButton(
-                      key: const Key('erase'),
-                      onPressed: onErase,
-                      style: OutlinedButton.styleFrom(padding: EdgeInsets.zero),
-                      child: const Icon(Icons.backspace_outlined, size: 18),
-                    ),
+                  next,
+                  OutlinedButton.icon(
+                    key: const Key('repeat'),
+                    onPressed: repeat,
+                    icon: const Icon(Icons.replay),
+                    label: Text(L.t('sudokuRepeatSame')),
                   ),
                 ],
+              )
+            : next;
+      return Padding(
+        padding: const EdgeInsets.all(12),
+        child: note == null
+            ? body
+            : Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    note,
+                    key: const Key('hidden-word'),
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+                  ),
+                  const SizedBox(height: 8),
+                  body,
+                ],
               ),
-            ),
-          ),
-        );
-      },
-    );
+      );
+    }
+    return SudokuKeys(
+        n: n, onDigit: onDigit, onErase: onErase, paint: paint, onPaint: onPaint, label: label, icon: icon);
   }
 }
