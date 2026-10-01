@@ -1,6 +1,10 @@
 import 'dart:convert';
+import 'dart:ui' show PlatformDispatcher;
 
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:shared_preferences/shared_preferences.dart';
+
+import 'l10n.dart';
 
 /// ОБЩАЯ ПАМЯТЬ ПО ОБЕ СТОРОНЫ ГРАНИЦЫ — сердце гибридной оболочки.
 ///
@@ -81,7 +85,19 @@ class SharedState {
   /// замер 23.09.2026 по `flutter/lib` — 789 видимых русских строк на пяти
   /// ветках. Пока мост не возил `language`, у нативной половины не было даже
   /// возможности спросить язык. Теперь есть; сами строки — отдельная работа.
-  String get language => _prefs.getString('language') ?? 'ru';
+  ///
+  /// 🔴 НЕТ ВЫБОРА — ЯЗЫК СИСТЕМЫ, КАК У ВЕБА, А НЕ РУССКИЙ. Веб (`LanguageContext.tsx`)
+  /// без сохранённого ключа берёт `navigator.language` и ключ НЕ пишет: он появляется
+  /// только при ручном выборе. Здесь стояло `?? 'ru'`, и замер 01.10.2026 на релизе
+  /// 2.56.1 (эмулятор en-US, свежая установка) показал: главная по-английски, а каждая
+  /// нативная игра и меню паузы — по-русски. Источник у обеих половин теперь один —
+  /// язык устройства (`navigator.language` у WebView берётся из него же).
+  String get language => _prefs.getString('language') ?? L.resolve(systemLanguage());
+
+  /// Язык устройства. Меняют ТОЛЬКО пробы: ветку «язык не выбран» надо проверять на
+  /// любом языке, а не только на том, что выставлен у машины.
+  @visibleForTesting
+  static String Function() systemLanguage = () => PlatformDispatcher.instance.locale.languageCode;
 
 
   Future<void> set(String key, String value) async {
