@@ -16,6 +16,22 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.56.1',
+    date: '2026-10-01',
+    ru: [
+      'Android: приложение снова запускается — починен пустой экран на старте',
+      'Правила уровня снова видны в 16 играх',
+      'Колышки, Указатели и Инерция переехали в раздел «Шахматы»',
+      'Пауза и разбор останавливают время партии',
+    ],
+    en: [
+      'Android: the app starts again — the blank screen on launch is fixed',
+      'Level rules are visible again in 16 games',
+      'Pegs, Signpost and Inertia moved to the Chess section',
+      'Pause and walkthroughs now stop the game clock',
+    ],
+  },
+  {
     version: '2.56.0',
     date: '2026-09-24',
     ru: [
