@@ -4,6 +4,7 @@ import 'game_rules.dart';
 import 'l10n.dart';
 import 'level_rules.dart';
 import 'package:flutter/material.dart';
+import 'restart_scope.dart';
 
 /// Каркас игрового экрана — перенос GameShell из React-версии PsyGames.
 ///
@@ -27,6 +28,7 @@ class GameShell extends StatelessWidget {
     this.onLesson,
     this.pauseActions = const [],
     this.levelRule,
+    this.fieldOnly = false,
   });
 
   final String title;
@@ -73,8 +75,58 @@ class GameShell extends StatelessWidget {
    */
   final LevelRuleSpot? levelRule;
 
+  /*
+   * 🔴 ТОЛЬКО ПОЛЕ — решение Дениса для «Гимнастики для глаз» (задача a72e77a1):
+   * «во всех режимах игровое поле занимает весь экран; во время занятия видна
+   * только жёлтая круглая кнопка паузы сбоку, остальные действия — в меню паузы».
+   * Шапки, счётчиков и ряда значков нет: глаза заняты точкой, и любая надпись
+   * рядом с ней — помеха. Счётчики и действия — в меню паузы, как обычно.
+   * По умолчанию выключено: остальные экраны каркаса не меняются.
+   */
+  final bool fieldOnly;
+
+  /// Отступ справа сверху, который в режиме [fieldOnly] занимает кнопка паузы.
+  static const fieldOnlyPauseClear = 72.0;
+
   @override
   Widget build(BuildContext context) {
+    if (fieldOnly) {
+      return Scaffold(
+        body: SafeArea(
+          child: Stack(children: [
+            Positioned.fill(
+              child: LayoutBuilder(
+                key: const Key('game-field'),
+                builder: (context, c) => field(context, c.maxHeight),
+              ),
+            ),
+            Positioned(
+              top: 8,
+              right: 12,
+              child: Semantics(
+                button: true,
+                label: L.t('gamePauseOpen'),
+                child: Material(
+                  key: const Key('field-only-pause'),
+                  color: const Color(0xFFFBBF24),
+                  shape: const CircleBorder(),
+                  elevation: 3,
+                  child: InkWell(
+                    customBorder: const CircleBorder(),
+                    onTap: () => _pause(context),
+                    child: const SizedBox(
+                      width: 52,
+                      height: 52,
+                      child: Icon(Icons.pause, size: 28, color: Color(0xFF201500)),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ]),
+        ),
+      );
+    }
     final scheme = Theme.of(context).colorScheme;
     final spot = levelRule;
     final ruleKey = spot == null ? null : LevelRules.activeKey(spot.gameId, spot.level);
@@ -160,14 +212,30 @@ class GameShell extends StatelessWidget {
     Navigator.of(context).maybePop();
   }
 
+  /// Свой «Заново» у игры уже есть: значок обновления или подпись перезапуска.
+  static bool _isRestart(PauseAction a) =>
+      a.icon == Icons.refresh ||
+      a.label == L.t('restart') ||
+      a.label == 'Начать заново' ||
+      a.label == 'Новая партия';
+
   void _pause(BuildContext context) {
+    // 🔴 «ЗАНОВО» У КАЖДОЙ ИГРЫ (задача 1e21b974): нет своего — каркас добавляет пункт,
+    // который пересоздаёт экран через RestartScope (проигрыш не пишется). Замер 01.10:
+    // своего «Заново» не было у 43 экранов из 86.
+    final restart = RestartScope.of(context);
+    final actions = [
+      if (restart != null && !pauseActions.any(_isRestart))
+        PauseAction(label: L.t('restart'), icon: Icons.refresh, onPressed: restart),
+      ...pauseActions,
+    ];
     Navigator.of(context).push(MaterialPageRoute<void>(
       // Пауза — страница ПОВЕРХ игры: пока она видна, часы и таймеры партии стоят
       // (game_clock.dart, задача 430d1299). Без этого игра под паузой жила дальше.
       builder: (_) => GameHoldScope(
         child: _PauseScreen(
           hud: hud,
-          actions: pauseActions,
+          actions: actions,
           onLeave: () => _leave(context),
         ),
       ),

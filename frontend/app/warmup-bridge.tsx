@@ -10,6 +10,7 @@ import { GAMES } from '@/src/constants/games';
 import { stepToParams, очкиСоЗнаком, серияБезСчёта, результатШага } from '@/src/services/warmup';
 import { имяШага } from '@/src/services/stepName';
 import { useLanguage } from '@/src/contexts/LanguageContext';
+import { postUiModel, registerUiActions } from '@/src/services/warmupUi';
 
 const GRADIENT = ['#fbbf24', '#f59e0b'];
 const AUTOSTART_SEC = 3;
@@ -131,6 +132,60 @@ export default function WarmupBridge() {
     router.replace('/' as any);
   };
   const спроситьСтоп = () => { if (взведено) setСпрашиваемСтоп(true); };
+
+  /**
+   * 🔴 ПОД ОБОЛОЧКОЙ МОСТ РИСУЕТ FLUTTER (`services/warmupUi.ts`, задача 748c3f5f).
+   * Отсчёт, «взвод» кнопок, вопрос о переборе и сам переход к игре остаются здесь —
+   * модель отдаёт ровно то, что мост показал бы, и обновляется каждую секунду отсчёта.
+   * Собрана до раннего выхода: порядок хуков не зависит от того, есть ли следующий шаг.
+   */
+  const uiModel = !warmup.active || !next ? null : {
+    evening: isEvening,
+    hud: `${isEvening ? t('complexEvening') : t('complexWarmup')} · ${warmup.currentIdx}/${meta?.steps.length ?? 0}`,
+    progress: warmup.currentIdx / (meta?.steps.length || 1),
+    done: justCompleted && completedGame ? {
+      label: `${пропущен ? t('skippedNamed') : t('bridgeJustPlayed')}${justCompletedIdx >= 0 && meta ? ` · ${justCompletedIdx + 1}/${meta.steps.length}` : ''}`,
+      skipped: пропущен,
+      title: имяШага(justCompleted, t),
+      score: justCompletedResult && !безСчёта ? очкиСоЗнаком(justCompletedResult.score) : null,
+      negative: !!justCompletedResult && justCompletedResult.score < 0,
+      time: justCompletedResult ? `${justCompletedResult.time_seconds.toFixed(1)}${t('secShort')}` : null,
+      errors: justCompletedResult && !безСчёта && justCompletedResult.errors > 0 ? justCompletedResult.errors : null,
+    } : null,
+    next: nextGame ? {
+      label: `${t('onbNext')}:`,
+      title: имяШага(next, t),
+      skill: t(nextGame.skillKey),
+      gradient: nextGame.gradient,
+      nameKey: nextGame.nameKey,
+      route: next.game_route,
+    } : null,
+    overtime: warmup.overtime,
+    seconds: warmup.overtime ? null : countdown,
+    countdown: warmup.overtime
+      ? t('warmupOvertime').replace('{m}', String(meta?.duration_min ?? 0)).replace('{n}', String(warmup.stepsLeft))
+      : t('startingInN').replace('{n}', String(countdown)),
+    primary: warmup.overtime ? t('exitConfirmStay') : t('ctaStartNow'),
+    skip: `${t('skipGameNamed')} ${имяШага(next, t)}`,
+    stop: t('stopComplex'),
+    ask: спрашиваемСтоп ? {
+      text: t('warmupStopAsk').replace('{n}', String(Math.max(0, warmup.currentIdx))).replace('{m}', String(meta?.steps.length ?? 0)),
+      keep: t('warmupStopKeep'),
+      stop: t('stopComplex'),
+    } : null,
+  };
+  // Модель уходит, когда меняется её текст (каждая секунда отсчёта); действия
+  // заводятся заново на каждой отрисовке — свежее замыкание без ссылок в отрисовке.
+  const uiJson = JSON.stringify(uiModel);
+  useEffect(() => { if (uiJson !== 'null') postUiModel('bridge', JSON.parse(uiJson)); }, [uiJson]);
+  useEffect(() => registerUiActions('bridge', {
+    start: () => { if (warmup.overtime) warmup.dismissOvertime(); startNow(); },
+    skip: () => skip(),
+    stopAsk: () => спроситьСтоп(),
+    keep: () => { setСпрашиваемСтоп(false); startNow(); },
+    stopConfirm: () => { void stop(); },
+    post: () => { if (uiJson !== 'null') postUiModel('bridge', JSON.parse(uiJson)); },
+  }));
 
   if (!warmup.active || !next) {
     return (
