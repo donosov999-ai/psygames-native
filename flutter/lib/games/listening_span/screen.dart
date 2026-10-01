@@ -2,8 +2,8 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
+import '../../shell/app_haptics.dart';
 import '../../shell/audio_host.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/demo_lesson.dart';
@@ -71,6 +71,9 @@ class ListeningSpanScreen extends StatefulWidget {
 }
 
 class _ListeningSpanScreenState extends State<ListeningSpanScreen> {
+  /// Вибрация — через общий выключатель «Вибрация» (веб `psygames_haptic_enabled`).
+  late final AppHaptics _haptics = AppHaptics(widget.state);
+
   late LevelLadder _ladder;
   late final double Function() _rng = widget.rng ?? Random().nextDouble;
   VoiceLayer? _voice;
@@ -222,7 +225,7 @@ class _ListeningSpanScreenState extends State<ListeningSpanScreen> {
     if (_phase != LspanPhase.recall) return;
     final r = g.tap(i);
     if (r == LspanTap.ignored) return;
-    HapticFeedback.selectionClick();
+    _haptics.selection();
     setState(() {});
     if (r == LspanTap.progress) return;
     _timer = gameTimeout(Duration(milliseconds: r == LspanTap.roundWon ? lspanAfterWinMs : lspanAfterMissMs), () {
