@@ -162,8 +162,9 @@ enum TapResult {
 
 /// Партия на одном уровне: колода, открытые карты, ходы и ошибки.
 class PairsGame {
-  PairsGame({required this.level, List<int>? deck, Random? rnd})
-      : cfg = LevelCfg.of(level),
+  /// [cfg] — правила свободной партии ([pairsFreeCfg]); без него правила берутся из уровня.
+  PairsGame({required this.level, LevelCfg? cfg, List<int>? deck, Random? rnd})
+      : cfg = cfg ?? LevelCfg.of(level),
         _rnd = rnd ?? Random() {
     final symbols = deck ?? _buildDeck();
     cards = [for (final s in symbols) PairCard(s)];
@@ -240,4 +241,99 @@ class PairsGame {
 
   /// Счёт уровня — как в вебе: лишние ходы и время снимают очки, но не ниже 50.
   int score(int seconds) => max(50, (400 - max(0, moves - groups) * 15 - seconds * 2).round());
+
+  /// Счёт свободной партии — как в вебе: от 2000, лишний ход стоит 30, секунда — 1.
+  int freeScore(double seconds) => max(0, (2000 - (moves - groups) * 30 - seconds).round());
+
+  /// Сколько ходов сверх идеальных — веб `extra_moves`.
+  int get extraMoves => moves - groups;
+}
+
+/// СВОБОДНАЯ ПАРТИЯ (веб: режим `single`) — число пар и фото-показ выбирает человек.
+/// Всегда ПАРЫ и без обменов после ошибки: тройки, четвёрки и обмены — оси лестницы
+/// уровней, свободная партия их не берёт.
+const pairsFreeCounts = <int>[6, 8, 10, 12];
+const pairsFreePreviewMs = <int>[500, 1500, 3000];
+
+LevelCfg pairsFreeCfg({required int pairs, required bool photo, required int previewMs}) => LevelCfg(
+      pairs: min(pairs, pairsSpriteCount),
+      groupSize: 2,
+      photo: photo,
+      previewMs: photo ? previewMs : 0,
+      swapsPerMiss: 0,
+    );
+
+/// НЕЗАКОНЧЕННАЯ ПАРТИЯ — снимок в ФОРМЕ ВЕБ-СЕССИИ (`PairsResume` в picture-pairs.tsx,
+/// `RESUME_V = 1`): ключ и конверт даёт общий `ResumeStore`, состав — этот. Одну и ту же
+/// партию человек может начать в одной половине гибрида и продолжить в другой.
+///
+/// ⚠️ РАСКЛАД ЦЕЛИКОМ, а не «уровень + сколько собрано»: человек держит в голове ПОЗИЦИИ
+/// увиденных карт, другой расклад стёр бы ровно то, что он запоминал. Недособранная группа
+/// закрывается: вернувшийся начинает ход заново, а не получает подсказку из открытой карты.
+/// ⚠️ Фото-показ не сохраняется вовсе (это решает экран): выход и возврат превращались бы
+/// в бесконечный показ — способ обойти механику.
+const pairsGameId = 'picture_pairs';
+const pairsResumeVersion = 1;
+
+Map<String, Object?> pairsSnapshot(PairsGame g, {required bool free, required int score, required double elapsed}) => {
+      'mode': free ? 'single' : 'game',
+      'level': g.level,
+      'pairsCount': g.groups,
+      'groupSize': g.cfg.groupSize,
+      'cards': [
+        for (var i = 0; i < g.cards.length; i++)
+          {'id': i, 'symbol': g.cards[i].symbol, 'flipped': g.cards[i].matched, 'matched': g.cards[i].matched},
+      ],
+      'moves': g.moves,
+      'matched': g.matchedGroups,
+      'errors': g.errors,
+      'score': score,
+      'elapsed': elapsed,
+    };
+
+/// Поднять партию из снимка. `null` — снимок не годится (пустой, порченый, расклад не
+/// сходится с размером группы): лучше честно начать заново, чем поднять доску, которой
+/// не бывает.
+({PairsGame game, bool free, int score, double elapsed})? pairsRestore(Map<String, Object?>? s, {Random? rnd}) {
+  if (s == null) return null;
+  final cards = s['cards'];
+  final level = s['level'];
+  final groupSize = s['groupSize'];
+  if (cards is! List || cards.isEmpty || level is! int || groupSize is! int) return null;
+  final free = s['mode'] == 'single';
+  final symbols = <int>[];
+  final matched = <bool>[];
+  for (final c in cards) {
+    if (c is! Map || c['symbol'] is! int || c['matched'] is! bool) return null;
+    final sym = c['symbol'] as int;
+    if (sym < 0 || sym >= pairsSpriteCount) return null;
+    symbols.add(sym);
+    matched.add(c['matched'] as bool);
+  }
+  final cfg = free ? pairsFreeCfg(pairs: s['pairsCount'] is int ? s['pairsCount'] as int : 0, photo: false, previewMs: 0) : null;
+  final game = PairsGame(level: level, cfg: cfg, deck: symbols, rnd: rnd);
+  if (game.cfg.groupSize != groupSize) return null;
+  // Каждой картинки ровно по группе, и собранная группа собрана целиком.
+  final bySymbol = <int, List<int>>{};
+  for (var i = 0; i < symbols.length; i++) {
+    bySymbol.putIfAbsent(symbols[i], () => []).add(i);
+  }
+  for (final places in bySymbol.values) {
+    if (places.length != groupSize) return null;
+    final m = places.where((i) => matched[i]).length;
+    if (m != 0 && m != groupSize) return null;
+  }
+  for (var i = 0; i < symbols.length; i++) {
+    game.cards[i].matched = matched[i];
+    game.cards[i].flipped = matched[i];
+  }
+  game.moves = s['moves'] is int ? s['moves'] as int : 0;
+  game.errors = s['errors'] is int ? s['errors'] as int : 0;
+  final elapsed = s['elapsed'];
+  return (
+    game: game,
+    free: free,
+    score: s['score'] is int ? s['score'] as int : 0,
+    elapsed: elapsed is num ? max(0.0, elapsed.toDouble()) : 0.0,
+  );
 }
