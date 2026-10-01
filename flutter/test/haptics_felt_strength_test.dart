@@ -60,6 +60,22 @@ void main() {
     expect(plugin, isNot(contains('value: 0.15')));
   });
 
+  // Денис, 01.10.2026: «дребезжание при удержании в Кегеле не работает… у
+  // конкурентов всё работает». Основной канал — системный вибромотор, как у них.
+  test('iOS: системный вибромотор — основной канал, импульсы снимаются в stop()', () {
+    final swift = File('ios/Runner/AppDelegate.swift').readAsStringSync();
+    final start = swift.indexOf('final class PracticeHapticsPlugin');
+    final end = swift.indexOf('\nfinal class', start + 1);
+    final plugin = swift.substring(start, end < 0 ? swift.length : end);
+    expect(swift, contains('import AudioToolbox'));
+    expect(plugin, contains('AudioServicesPlaySystemSound(kSystemSoundID_Vibrate)'));
+    final s = plugin.indexOf('private func stop()');
+    expect(plugin.substring(s, plugin.indexOf('}', s)), contains('pulse?.invalidate()'));
+    final play = plugin.substring(plugin.indexOf('guard call.method == "play"'));
+    expect(play.indexOf('buzz('), lessThan(play.indexOf('guard supported')),
+        reason: 'вибромотор не зависит от поддержки Core Haptics');
+  });
+
   test('Android: нативный код не режет силу до 0,6', () {
     final kotlin = File('android/app/src/main/kotlin/pro/psygames/psygames_flutter/PracticeHaptics.kt')
         .readAsStringSync();
