@@ -1112,6 +1112,7 @@ String variantTitle(String variant) => switch (variant) {
       'regionsum' => L.t('sdkRule_regionsum'),
       'palindrome' => L.t('sdkRule_palindrome'),
       'between' => L.t('sdkRule_between'),
+      'lockout' => L.t('sdkRule_lockout'),
       _ => L.t('sdkRule_none'),
     };
 

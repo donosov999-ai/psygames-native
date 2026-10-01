@@ -173,12 +173,12 @@ if (!DRY) fs.copyFileSync(path.join(src, 'services/sudoku-bank/boards.json'), pa
 console.error(`лестница: ${LAST} ступеней, полос банка ${bank.RATING_LADDER.length}; банк скопирован${DRY ? ' (--dry: не записано)' : ''}`);
 
 // ── 2. Проверка доски тем же ядром ────────────────────────────────────────────────────
-const GEOMETRY_FIELDS = ['regions', 'parity', 'kropki', 'sandwich', 'thermo', 'arrow', 'cages', 'whisper', 'renban', 'regionsum', 'palindrome', 'between'];
+const GEOMETRY_FIELDS = ['regions', 'parity', 'kropki', 'sandwich', 'thermo', 'arrow', 'cages', 'whisper', 'renban', 'regionsum', 'palindrome', 'between', 'lockout'];
 const MODE_FIELDS = ['towers', 'unequal'];
 /** Поля, которые ядро проверяет как ПОКАЗАННЫЕ подсказки (`overlayOk`): единственность и мера
  *  обязаны их видеть. Пропустить поле — доска «не единственна» (01.10: так выгрузка сама
  *  поймала линии шёпота, не попавшие в прежний явный список). */
-const OVERLAY_FIELDS = ['parity', 'kropki', 'sandwich', 'unequal', 'towers', 'whisper', 'renban', 'regionsum', 'palindrome', 'between'];
+const OVERLAY_FIELDS = ['parity', 'kropki', 'sandwich', 'unequal', 'towers', 'whisper', 'renban', 'regionsum', 'palindrome', 'between', 'lockout'];
 const toStr = (g) => g.map((row) => row.join('')).join('');
 
 /** Причина брака или null. `gen` — результат генератора, `tier` — что пойдёт в файл. */
@@ -392,62 +392,72 @@ if (!args['no-rules']) {
   const out = [];
   const perRule = [];
   for (const variant of variants) {
-    rngState = seedFor(BASE_SEED, 'rules', variant);
-    const { N, BR, BC } = core.dimsForSize(variant === 'towers' ? 6 : 9);
-    const killer = variant === 'killer';
-    const gen = core.generatePuzzle(0, N, BR, BC, killer ? 'none' : variant);
-    const sol = gen.solution;
-    // Подсказки — ВСЕ, без прореживания и без снятия меток с заполненных клеток: ход ставится
-    // в освобождённую клетку, и метка на ней обязана работать.
-    const ov = killer ? {} : core.overlaysFromSolution(sol, N, variant);
-    const extras = {};
-    if (gen.regions) extras.regions = gen.regions;
-    if (gen.thermo) extras.thermo = gen.thermo;
-    if (gen.arrow) extras.arrow = gen.arrow;
-    const cages = killer ? core.generateCages(sol, N, rng) : gen.cages;
-    if (cages) extras.cages = cages;
-    for (const f of OVERLAY_FIELDS) if (ov[f] != null) extras[f] = ov[f];
-    const grid = sol.map((row) => row.slice());
-    const cells = Array.from({ length: N * N }, (_, i) => i).sort(() => rng() - 0.5);
-    const blanks = Math.round(N * N / 3);
-    for (const i of cells.slice(0, blanks)) grid[Math.floor(i / N)][i % N] = 0;
-    // ⚠️ Неверная цифра — из тех, что ДОПУСКАЕТ КЛАССИКА (строка, столбец, блок): иначе её
-    // отсекает строка раньше правила варианта, и проба зеленеет при выключенном правиле.
-    // Так и было 01.10: мутация «шёпот не проверяется» прошла эталоны, где неверная цифра
-    // бралась соседней (+1). Счёт «решило правило варианта» печатается ниже.
-    const plain = (g, r, c, v) => core.isValid(g, r, c, v, N, BR, BC, variant === 'jigsaw' ? 'jigsaw' : 'none', extras.regions);
-    const judge = (g, r, c, v) => core.isValid(g, r, c, v, N, BR, BC, killer ? 'none' : variant, extras.regions, extras.thermo,
-      extras.arrow, extras.cages, extras.unequal, extras.towers) && core.overlayOk(g, r, c, v, N, ov);
-    const cases = [];
-    let byRule = 0;
-    for (let k = 0; k < 40; k++) {
-      // Из неверных половина ищется там, где «нельзя» говорит само правило варианта (если такие
-      // ходы на доске есть), остальные — любые допустимые классикой: проба видит и запрет, и
-      // разрешение правила.
-      const wantRule = k % 4 === 1;
-      let r = 0, c = 0, val = 0;
-      for (let tries = 0; tries < 200; tries++) {
-        const i = Math.floor(rng() * N * N);
-        r = Math.floor(i / N); c = i % N;
-        const right = sol[r][c];
-        if (k % 2 === 0) { val = right; break; }
+    // ⚠️ ДОСКА ОБЯЗАНА БУДИТЬ ПРАВИЛО (01.10.2026, lockout): на первой доске пустые клетки линий
+    // ни разу не попали в связывающее положение (у обоих концов пусто) — правило не решило ни
+    // одного хода, и сторож разборчивости покраснел. Пробуем до 10 досок; первая сеется как
+    // прежде, поэтому у вариантов, где правило уже работало, эталоны не меняются.
+    let best = null;
+    for (let attempt = 0; attempt < 10; attempt++) {
+      rngState = attempt === 0 ? seedFor(BASE_SEED, 'rules', variant) : seedFor(BASE_SEED, 'rules', variant, attempt);
+      const { N, BR, BC } = core.dimsForSize(variant === 'towers' ? 6 : 9);
+      const killer = variant === 'killer';
+      const gen = core.generatePuzzle(0, N, BR, BC, killer ? 'none' : variant);
+      const sol = gen.solution;
+      // Подсказки — ВСЕ, без прореживания и без снятия меток с заполненных клеток: ход ставится
+      // в освобождённую клетку, и метка на ней обязана работать.
+      const ov = killer ? {} : core.overlaysFromSolution(sol, N, variant);
+      const extras = {};
+      if (gen.regions) extras.regions = gen.regions;
+      if (gen.thermo) extras.thermo = gen.thermo;
+      if (gen.arrow) extras.arrow = gen.arrow;
+      const cages = killer ? core.generateCages(sol, N, rng) : gen.cages;
+      if (cages) extras.cages = cages;
+      for (const f of OVERLAY_FIELDS) if (ov[f] != null) extras[f] = ov[f];
+      const grid = sol.map((row) => row.slice());
+      const cells = Array.from({ length: N * N }, (_, i) => i).sort(() => rng() - 0.5);
+      const blanks = Math.round(N * N / 3);
+      for (const i of cells.slice(0, blanks)) grid[Math.floor(i / N)][i % N] = 0;
+      // ⚠️ Неверная цифра — из тех, что ДОПУСКАЕТ КЛАССИКА (строка, столбец, блок): иначе её
+      // отсекает строка раньше правила варианта, и проба зеленеет при выключенном правиле.
+      // Так и было 01.10: мутация «шёпот не проверяется» прошла эталоны, где неверная цифра
+      // бралась соседней (+1). Счёт «решило правило варианта» печатается ниже.
+      const plain = (g, r, c, v) => core.isValid(g, r, c, v, N, BR, BC, variant === 'jigsaw' ? 'jigsaw' : 'none', extras.regions);
+      const judge = (g, r, c, v) => core.isValid(g, r, c, v, N, BR, BC, killer ? 'none' : variant, extras.regions, extras.thermo,
+        extras.arrow, extras.cages, extras.unequal, extras.towers) && core.overlayOk(g, r, c, v, N, ov);
+      const cases = [];
+      let byRule = 0;
+      for (let k = 0; k < 40; k++) {
+        // Из неверных половина ищется там, где «нельзя» говорит само правило варианта (если такие
+        // ходы на доске есть), остальные — любые допустимые классикой: проба видит и запрет, и
+        // разрешение правила.
+        const wantRule = k % 4 === 1;
+        let r = 0, c = 0, val = 0;
+        for (let tries = 0; tries < 200; tries++) {
+          const i = Math.floor(rng() * N * N);
+          r = Math.floor(i / N); c = i % N;
+          const right = sol[r][c];
+          if (k % 2 === 0) { val = right; break; }
+          const g = grid.map((row) => row.slice());
+          g[r][c] = 0;
+          const alt = [];
+          for (let v = 1; v <= N; v++) if (v !== right && plain(g, r, c, v)) alt.push(v);
+          const ruled = alt.filter((v) => !judge(g, r, c, v));
+          const pool = wantRule && ruled.length ? ruled : alt;
+          val = pool.length ? pool[Math.floor(rng() * pool.length)] : (right % N) + 1;
+          if (wantRule ? ruled.length > 0 : alt.length > 0) break;
+        }
         const g = grid.map((row) => row.slice());
         g[r][c] = 0;
-        const alt = [];
-        for (let v = 1; v <= N; v++) if (v !== right && plain(g, r, c, v)) alt.push(v);
-        const ruled = alt.filter((v) => !judge(g, r, c, v));
-        const pool = wantRule && ruled.length ? ruled : alt;
-        val = pool.length ? pool[Math.floor(rng() * pool.length)] : (right % N) + 1;
-        if (wantRule ? ruled.length > 0 : alt.length > 0) break;
+        const ok = judge(g, r, c, val);
+        if (!ok && plain(g, r, c, val)) byRule++;
+        cases.push({ r, c, val, ok });
       }
-      const g = grid.map((row) => row.slice());
-      g[r][c] = 0;
-      const ok = judge(g, r, c, val);
-      if (!ok && plain(g, r, c, val)) byRule++;
-      cases.push({ r, c, val, ok });
+      const entry = { variant, n: N, br: BR, bc: BC, solution: sol, grid, extras, cases };
+      if (!best || byRule > best.byRule) best = { entry, byRule };
+      if (byRule >= 5 || variant === 'none' || variant === 'jigsaw') break;
     }
-    out.push({ variant, n: N, br: BR, bc: BC, solution: sol, grid, extras, cases });
-    perRule.push(`${variant} ${byRule}`);
+    out.push(best.entry);
+    perRule.push(`${variant} ${best.byRule}`);
   }
   const okCount = out.reduce((s, b) => s + b.cases.filter((x) => x.ok).length, 0);
   console.error(`  ходов, где «нельзя» сказало правило варианта, а не классика: ${perRule.join(', ')}`);

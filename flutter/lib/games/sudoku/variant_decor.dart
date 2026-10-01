@@ -39,6 +39,9 @@ const palindromeColor = Color(0xFF9CA3AF);
 /// Линия «между концами» — `#6B7280` веба.
 const betweenColor = Color(0xFF6B7280);
 
+/// Линия «замок» — `#0EA5E9` веба.
+const lockoutColor = Color(0xFF0EA5E9);
+
 /// Фиолетовая полоса ренбана — `#A855F7` веба, бледная (доля 0,32), чтобы цифра читалась.
 const renbanPurple = Color(0xFFA855F7);
 const cageAccents = [
@@ -51,7 +54,7 @@ const double seam = 1.5;
 
 /// Что нарисовать в одной клетке (под цифрой).
 class CellDecor {
-  const CellDecor({this.thermo, this.arrow, this.parity = 0, this.cageId = -1, this.whisper, this.renban, this.regionsum, this.palindrome, this.between});
+  const CellDecor({this.thermo, this.arrow, this.parity = 0, this.cageId = -1, this.whisper, this.renban, this.regionsum, this.palindrome, this.between, this.lockout});
 
   /// Звено термометра; колба — у клетки без `prev`.
   final ThermoLink? thermo;
@@ -80,11 +83,15 @@ class CellDecor {
   /// Звено линии «между концами».
   final ThermoLink? between;
 
+  /// Звено линии «замок».
+  final ThermoLink? lockout;
+
   bool get isEmpty =>
       thermo == null && arrow == null && parity == 0 && cageId < 0 && whisper == null && renban == null &&
       regionsum == null &&
       palindrome == null &&
-      between == null;
+      between == null &&
+      lockout == null;
 }
 
 /// Рисунок клетки по геометрии доски; `null` — рисовать нечего.
@@ -99,6 +106,7 @@ CellDecor? cellDecorFor(BoardGeometry g, int r, int c) {
     regionsum: g.regionsum?[r][c],
     palindrome: g.palindrome?[r][c],
     between: g.between?[r][c],
+    lockout: g.lockout?[r][c],
   );
   return d.isEmpty ? null : d;
 }
@@ -204,6 +212,33 @@ class CellDecorPainter extends CustomPainter {
         canvas.drawCircle(
           Offset(cell / 2, cell / 2),
           cell * 0.4,
+          Paint()
+            ..color = paint.color
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = math.max(2.0, (cell * 0.07).roundToDouble()),
+        );
+      }
+    }
+    final lockoutLink = decor.lockout;
+    if (lockoutLink != null) {
+      // замок — как в вебе (`app/games/sudoku.tsx`).
+      final thick = math.max(3.0, (cell * 0.16).roundToDouble());
+      final paint = Paint()..color = blendColor(surface, lockoutColor, 0.6);
+      for (final nb in [lockoutLink.prev, lockoutLink.next]) {
+        if (nb != null) canvas.drawRect(segment(size, row, col, nb, thick), paint);
+      }
+      // Концы — ромбы (повёрнутый квадрат): в них цифры, «запирающие» середину шкалы.
+      if (lockoutLink.prev == null || lockoutLink.next == null) {
+        final h = cell * 0.4;
+        final diamond = Path()
+          ..moveTo(cell / 2, cell / 2 - h)
+          ..lineTo(cell / 2 + h, cell / 2)
+          ..lineTo(cell / 2, cell / 2 + h)
+          ..lineTo(cell / 2 - h, cell / 2)
+          ..close();
+        canvas.drawPath(diamond, Paint()..color = surface);
+        canvas.drawPath(
+          diamond,
           Paint()
             ..color = paint.color
             ..style = PaintingStyle.stroke

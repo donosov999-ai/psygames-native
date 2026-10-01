@@ -183,6 +183,7 @@ class BoardGeometry {
     this.regionsum,
     this.palindrome,
     this.between,
+    this.lockout,
   });
   final List<List<int>>? regions;
   final List<List<ThermoLink?>>? thermo;
@@ -211,6 +212,9 @@ class BoardGeometry {
 
   /// Цифры на линии лежат строго между цифрами в кружках на её концах.
   final List<List<ThermoLink?>>? between;
+
+  /// Цифры в ромбах на концах линии отличаются минимум на 4, а цифры линии лежат вне промежутка между ними.
+  final List<List<ThermoLink?>>? lockout;
 
   static BoardGeometry fromJson(Map<String, Object?> v) => BoardGeometry(
         regions: v['regions'] == null ? null : _grid(v['regions']),
@@ -253,6 +257,11 @@ class BoardGeometry {
         between: v['between'] == null
             ? null
             : (v['between'] as List)
+                .map((row) => (row as List).map(ThermoLink.fromJson).toList())
+                .toList(),
+        lockout: v['lockout'] == null
+            ? null
+            : (v['lockout'] as List)
                 .map((row) => (row as List).map(ThermoLink.fromJson).toList())
                 .toList(),
       );
@@ -521,6 +530,24 @@ bool betweenOk(List<List<int>> grid, int r, int c, int val, List<List<ThermoLink
   return mids.every((v) => v > end) || mids.every((v) => v < end);
 }
 
+/// Цифра [val] в (r, c) не ломает lockout-линию: при обоих известных концах они отличаются
+/// минимум на 4, а средние вне отрезка между ними; при одном — средние ему не равны. Перенос
+/// `lockoutOk` веба.
+bool lockoutOk(List<List<int>> grid, int r, int c, int val, List<List<ThermoLink?>> pn) {
+  final cells = lineCells(pn, r, c);
+  if (cells.isEmpty) return true;
+  int at(List<int> cell) => cell[0] == r && cell[1] == c ? val : grid[cell[0]][cell[1]];
+  final a = at(cells.first), b = at(cells.last);
+  final mids = [for (final cell in cells.sublist(1, cells.length - 1)) at(cell)].where((v) => v != 0).toList();
+  if (a != 0 && b != 0) {
+    if ((a - b).abs() < 4) return false;
+    final lo = a < b ? a : b, hi = a < b ? b : a;
+    return mids.every((v) => v < lo || v > hi);
+  }
+  final end = a != 0 ? a : b;
+  return end == 0 || mids.every((v) => v != end);
+}
+
 /// Линия ренбана не нарушена цифрой [val] в (r, c): на линии нет повторов, и разброс
 /// известных цифр не шире её длины. Перенос `renbanOk` веба.
 bool renbanOk(List<List<int>> grid, int r, int c, int val, List<List<ThermoLink?>> pn) {
@@ -605,6 +632,8 @@ bool overlayOk(List<List<int>> grid, int r, int c, int val, int n, BoardGeometry
   if (palindrome != null && !palindromeOk(grid, r, c, val, palindrome)) return false;
   final between = g.between;
   if (between != null && !betweenOk(grid, r, c, val, between)) return false;
+  final lockout = g.lockout;
+  if (lockout != null && !lockoutOk(grid, r, c, val, lockout)) return false;
   return true;
 }
 

@@ -86,6 +86,10 @@ void main() {
               expect(d?.between, isNotNull, reason: '$at: звено линии «между концами» $r,$c не нарисовано');
               checked['between'] = (checked['between'] ?? 0) + 1;
             }
+            if (g.lockout?[r][c] != null) {
+              expect(d?.lockout, isNotNull, reason: '$at: звено линии «замок» $r,$c не нарисовано');
+              checked['lockout'] = (checked['lockout'] ?? 0) + 1;
+            }
             final p = g.parity?[r][c] ?? 0;
             if (p != 0) {
               expect(d?.parity, p, reason: '$at: метка чётности $r,$c не нарисована');
@@ -131,7 +135,7 @@ void main() {
       }
     }
     // Проба не пустая: каждая из шести подсказок встретилась на доске.
-    for (final kind in ['thermo', 'arrow', 'parity', 'cage', 'kropki', 'sandwich', 'diagonal', 'hyper', 'whisper', 'renban', 'regionsum', 'palindrome', 'between']) {
+    for (final kind in ['thermo', 'arrow', 'parity', 'cage', 'kropki', 'sandwich', 'diagonal', 'hyper', 'whisper', 'renban', 'regionsum', 'palindrome', 'between', 'lockout']) {
       expect(checked[kind] ?? 0, greaterThan(0), reason: 'подсказка «$kind» не встретилась ни разу — проба мимо');
     }
   });

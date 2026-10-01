@@ -52,6 +52,7 @@ void main() {
       'regionsum' => d.regionsum,
       'palindrome' => d.palindrome,
       'between' => d.between,
+      'lockout' => d.lockout,
       _ => d.whisper,
     };
   }
@@ -94,6 +95,19 @@ void main() {
         return true;
       }
       final cells = walkLine(lines, r, c);
+      if (variant == 'lockout') {
+        // Lockout: известные концы отличаются на ≥ 4, средние вне отрезка; при одном конце —
+        // средние ему не равны.
+        int at(List<int> cell) => cell[0] == r && cell[1] == c ? v : g[cell[0]][cell[1]];
+        final a = at(cells.first), b = at(cells.last);
+        final mids = [for (final cell in cells.sublist(1, cells.length - 1)) at(cell)].where((x) => x != 0).toList();
+        if (a != 0 && b != 0) {
+          if ((a - b).abs() < 4) return false;
+          return mids.every((x) => x < (a < b ? a : b) || x > (a < b ? b : a));
+        }
+        final end = a != 0 ? a : b;
+        return end == 0 || mids.every((x) => x != end);
+      }
       if (variant == 'between') {
         // «Между концами»: известные средние строго между известными концами; при одном конце —
         // по одну сторону от него.
@@ -179,6 +193,7 @@ void main() {
     (variant: 'regionsum', start: 103, name: 'равные суммы'),
     (variant: 'palindrome', start: 107, name: 'палиндром'),
     (variant: 'between', start: 111, name: 'между концами'),
+    (variant: 'lockout', start: 115, name: 'замок'),
   ]) {
     testWidgets('🔴 «${v.name}», ступень ${v.start}: правило в шапке, линии на поле, доска доигрывается нажатиями',
         (tester) async {
