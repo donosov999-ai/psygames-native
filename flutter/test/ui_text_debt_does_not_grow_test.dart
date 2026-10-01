@@ -52,6 +52,10 @@ void main() {
   /// владелец — раздел «Слова», и гасить их ему. Ключи в общем словаре под это
   /// есть не все, часть требует перевода на 12 языков — это отдельная работа.
   ///
+  /// 01.10 — раздел «Судоку» перевёл свои экраны (EN основной, решение Дениса 01.10):
+  /// «Судоку» 31→0, «Самурай» 14→0, «Фрактал» 13→0, «Головоломки» 12→0, оболочка 4→0
+  /// (подсказки «Пауза»/«Правила»), «Бездна» 13→1 (осталось зерно раздачи — данные, общие с вебом).
+  ///
   /// Долг на 23.09.2026, пофайлово. МЕНЯТЬ ТОЛЬКО В МЕНЬШУЮ СТОРОНУ.
   ///
   /// Перевёл экран — опусти его число. Файла нет в списке — значит он обязан
@@ -60,7 +64,6 @@ void main() {
     'games/mental_rotation/words.dart': 62,
     'games/mental_rotation/screen.dart': 58,
     'games/spatial_lab/screen.dart': 43,
-    'games/sudoku/screen.dart': 31,
     'games/math_slider/screen.dart': 27,
     'games/schulte/screen.dart': 26,
     'games/pattern/model.dart': 24,
@@ -76,13 +79,10 @@ void main() {
     'games/math_sprint/screen.dart': 18,
     'main.dart': 16,
     'games/goods_sort/screen.dart': 15,
-    'games/samurai/screen.dart': 14,
     'games/tower_london/screen.dart': 14,
     'games/object_tracker/model.dart': 14,
-    'games/fractal/screen.dart': 13,
-    'games/deep/screen.dart': 13,
+    'games/deep/screen.dart': 1,
     'games/hanoi/screen.dart': 12,
-    'games/puzzles/screen.dart': 12,
     'games/memory_matrix/screen.dart': 12,
     'games/cake_sort/screen.dart': 11,
     'games/one_line/screen.dart': 10,
@@ -91,7 +91,6 @@ void main() {
     'games/stroop/model.dart': 8,
     'games/goods_sort/board.dart': 5,
     'games/sort_tubes/model.dart': 5,
-    'shell/game_shell.dart': 4,
     'shell/hub_screen.dart': 4,
     'shell/tap_latency.dart': 4,
     'shell/web_game_screen.dart': 4,
@@ -112,7 +111,7 @@ void main() {
   // на 12 языков у них уже был — `node flutter/tools/embed-l10n.mjs` привёз их сам.
   // 30.09 — «Пространство»: правила четырёх упражнений «Лаборатории» и «Понятно» ушли в
   // словарь (задача 848da95d), spatial_lab 51 → 43: 699 − 8.
-  const total = 691;
+  const total = 609;
 
   final counts = _scan(Directory('lib'));
 
