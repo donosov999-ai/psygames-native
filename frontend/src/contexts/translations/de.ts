@@ -3269,5 +3269,6 @@ const t: Record<string, string> = {
   "teachHiddenHalf": "Frag „{q}“: ja bei {yes}, nein bei {no}. Die beste Frage teilt die Übrigen möglichst genau in zwei Hälften: Jede Antwort streicht die Hälfte.",
   "teachHiddenLast": "Eine Figur ist übrig – das ist die Versteckte. Wähle sie und drücke „Das ist sie!“.",
   "rbHeadStart": "Vorsprung {n}",
+  "sdkRule_whisper": "Flüstern",
 };
 export default t;

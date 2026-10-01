@@ -3263,5 +3263,6 @@ const t: Record<string, string> = {
   "teachHiddenHalf": "「{q}」と聞こう：はいは{yes}人、いいえは{no}人。いちばんいい質問は、残りをできるだけ半分に分ける。どちらの答えでも半分が消える。",
   "teachHiddenLast": "残りはひとり。それがかくれている人だ。選んで「この人だ！」を押そう。",
   "rbHeadStart": "先行 {n}",
+  "sdkRule_whisper": "ささやき",
 };
 export default t;
