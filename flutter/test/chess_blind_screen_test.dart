@@ -3,6 +3,9 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import 'support/game_clock_fake.dart';
+
 import 'package:psygames_flutter/games/chess_blind/game.dart';
 import 'package:psygames_flutter/games/chess_blind/ladder.dart';
 import 'package:psygames_flutter/games/chess_blind/positions.dart';
@@ -50,6 +53,7 @@ void main() {
       'psygames_chess_blind_level_nzt48': '$level',
     });
     final state = await SharedState.open();
+    useFakeGameClock(tester);
     await tester.pumpWidget(
       MaterialApp(
         home: ChessBlindScreen(

@@ -3,6 +3,9 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import 'support/game_clock_fake.dart';
+
 import 'package:psygames_flutter/games/chess_blind/game.dart';
 import 'package:psygames_flutter/games/chess_blind/lesson.dart';
 import 'package:psygames_flutter/games/chess_blind/positions.dart';
@@ -134,6 +137,7 @@ void main() {
       tester.view.devicePixelRatio = 2;
       addTearDown(tester.view.reset);
       final state = await SharedState.open();
+      useFakeGameClock(tester);
       await tester.pumpWidget(
         MaterialApp(
           home: ChessBlindScreen(state: state, corpus: corpus, clock: () => 0),

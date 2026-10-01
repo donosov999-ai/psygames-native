@@ -24,6 +24,22 @@ on:
         description: 'Для production впиши yes-100 (решение Дениса), иначе оставь пустым'
         required: false
         default: ''
+      promote_version_code:
+        # Проверенную во внутреннем треке сборку в продакшн ПРОДВИГАЮТ, а не заливают заново:
+        # Play берёт каждый versionCode один раз. Задан номер — сборки нет, только назначение.
+        description: 'Продвинуть уже загруженную сборку (versionCode, напр. 2056000) — без пересборки; пусто = собрать и залить'
+        required: false
+        default: ''
+      build_only:
+        # 🔴 01.10.2026: 2.56.0 ушла во внутренний трек без INTERNET в манифесте и не запускалась —
+        # номер 2056000 сгорел. Проверять надо ДО заливки: собрать, поставить на эмулятор, потом лить.
+        description: 'Только собрать и выложить AAB + универсальный APK артефактом — без заливки в Play'
+        type: boolean
+        default: false
+      from_run:
+        description: 'Залить в Play AAB из прогона build_only (id прогона) — тот самый файл, что проверили на эмуляторе'
+        required: false
+        default: ''
 
 concurrency:
   # Две заливки одной версии подряд — гарантированный отказ Play («version code already used»).
@@ -31,8 +47,44 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  promote:
+    name: Продвижение загруженной сборки
+    if: inputs.promote_version_code != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Продакшн — только с подтверждением
+        if: inputs.track == 'production'
+        run: |
+          if [ "${{ inputs.confirm_production }}" != "yes-100" ]; then
+            echo "::error title=Продакшн::нужно поле confirm_production = yes-100 — продакшн идёт только после «да» Дениса"
+            exit 1
+          fi
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Назначить сборку дорожке
+        env:
+          GOOGLE_PLAY_SA_JSON: ${{ secrets.GOOGLE_PLAY_SA_JSON }}
+          PLAY_TRACKS: ${{ inputs.track }}
+          PROMOTE_VERSION_CODE: ${{ inputs.promote_version_code }}
+        run: |
+          # Имя выпуска и «Что нового» — по версии из app.json; номер обязан ей отвечать.
+          VERSION=$(node -p "require('./frontend/app.json').expo.version")
+          IFS=. read -r MA MI PA <<< "$VERSION"
+          CODE=$((MA * 1000000 + MI * 1000 + PA))
+          if [ "$CODE" != "$PROMOTE_VERSION_CODE" ]; then
+            echo "::error title=Номер::app.json $VERSION даёт $CODE, а продвигается $PROMOTE_VERSION_CODE — «Что нового» ушло бы от другой версии"
+            exit 1
+          fi
+          npm install --no-save --prefix "$RUNNER_TEMP/play" googleapis
+          VERSION_NAME="$VERSION" NODE_PATH="$RUNNER_TEMP/play/node_modules" node .github/scripts/deploy_play.js
+          echo "## Google Play — продвижение: $VERSION ($CODE) → ${{ inputs.track }}" >> "$GITHUB_STEP_SUMMARY"
+
   play:
     name: Сборка и заливка
+    if: inputs.promote_version_code == '' && inputs.from_run == ''
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
@@ -159,7 +211,29 @@ jobs:
           [ "$WEB" -ge 1000 ] || { echo "::error title=Веб-часть::в пакете $WEB файлов веб-части — белый экран"; exit 1; }
           echo "AAB_PATH=$PWD/$AAB" >> "$GITHUB_ENV"
 
+      - name: Универсальный APK той же подписи — для проверки на эмуляторе
+        working-directory: flutter
+        env:
+          ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/psygames-release.jks
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          flutter build apk --release
+          APK=build/app/outputs/flutter-apk/app-release.apk
+          # Разрешения — из ИТОГОВОГО манифеста релиза, а не из исходника: debug/profile
+          # подмешивают свои, и flutter run их прятал (INTERNET, 01.10.2026).
+          AAPT=$(ls -d "$ANDROID_HOME"/build-tools/*/aapt | sort -V | tail -1)
+          PERMS=$("$AAPT" dump permissions "$APK")
+          echo "$PERMS"
+          echo "$PERMS" | grep -q "android.permission.INTERNET" \
+            || { echo "::error title=Манифест::в релизном APK нет INTERNET — сервер веб-части не поднимется, пустой экран"; exit 1; }
+          mkdir -p "$RUNNER_TEMP/out"
+          cp build/app/outputs/bundle/release/app-release.aab "$APK" "$RUNNER_TEMP/out/"
+          echo "$VERSION" > "$RUNNER_TEMP/out/version.txt"
+
       - name: Заливка в Google Play
+        if: ${{ !inputs.build_only }}
         env:
           GOOGLE_PLAY_SA_JSON: ${{ secrets.GOOGLE_PLAY_SA_JSON }}
           PLAY_TRACKS: ${{ inputs.track }}
@@ -180,5 +254,40 @@ jobs:
         if: always()
         with:
           name: flutter-hybrid-aab
-          path: flutter/build/app/outputs/bundle/release/app-release.aab
+          path: ${{ runner.temp }}/out/
           retention-days: 14
+
+  # Заливка ПРОВЕРЕННОГО файла: AAB из прогона build_only, без пересборки.
+  upload_from_run:
+    name: Заливка проверенной сборки
+    if: inputs.from_run != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Продакшн — только с подтверждением
+        if: inputs.track == 'production'
+        run: |
+          if [ "${{ inputs.confirm_production }}" != "yes-100" ]; then
+            echo "::error title=Продакшн::нужно поле confirm_production = yes-100 — продакшн идёт только после «да» Дениса"
+            exit 1
+          fi
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/download-artifact@v4
+        with:
+          name: flutter-hybrid-aab
+          path: ./aab
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ inputs.from_run }}
+      - name: Залить AAB из прогона ${{ inputs.from_run }}
+        env:
+          GOOGLE_PLAY_SA_JSON: ${{ secrets.GOOGLE_PLAY_SA_JSON }}
+          PLAY_TRACKS: ${{ inputs.track }}
+        run: |
+          ls -l aab
+          VERSION=$(cat aab/version.txt)
+          npm install --no-save --prefix "$RUNNER_TEMP/play" googleapis
+          AAB_PATH=aab/app-release.aab VERSION_NAME="$VERSION" NODE_PATH="$RUNNER_TEMP/play/node_modules" node .github/scripts/deploy_play.js
+          echo "## Google Play — залит AAB прогона ${{ inputs.from_run }}: $VERSION → ${{ inputs.track }}" >> "$GITHUB_STEP_SUMMARY"

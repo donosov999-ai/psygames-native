@@ -31,8 +31,16 @@ export const NATIVE_ONLY_GAMES: readonly NativeOnlyGame[] = [
   // «Пространство», «Поиск глазами», «Конфликт внимания», «Головоломки».
   { route: '/games/traffic-jam', nameKey: 'trafficJam', descKey: 'trafficJamDesc' },
   { route: '/games/monster-traits', nameKey: 'monsterTraits', descKey: 'monsterTraitsDesc' },
+  // MindLab «Найди» (kids/find.py) — раздел «Поиск», задача c8a2783f.
+  { route: '/games/kids-find', nameKey: 'kidsFind', descKey: 'kidsFindDesc' },
+  // MindLab «Подлодки» (submarinos/sea.py) — раздел «Поиск», задача c8a2783f.
+  { route: '/games/submarines', nameKey: 'submarines', descKey: 'submarinesDesc' },
+  // Второй режим «Найди признак» — «Кого не хватает» (раздел «Поиск», задача 664b414a).
+  { route: '/games/monster-traits?mode=missing', nameKey: 'monsterMissing', descKey: 'monsterMissingDesc' },
   { route: '/games/roll-and-bank', nameKey: 'rollAndBank', descKey: 'rollAndBankDesc' },
   { route: '/games/hidden-character', nameKey: 'hiddenCharacter', descKey: 'hiddenCharacterDesc' },
+  // Раннер «Поиска глазами» (задача 5386c0e8, решение Дениса 30.09.2026: сразу на Flutter).
+  { route: '/games/search-runner', nameKey: 'searchRunner', descKey: 'searchRunnerDesc' },
   // «Шахматы», новая игра 1 из 7 (задача 04e0a67e): тактика по двенадцати приёмам Lichess.
   { route: '/games/find-move', nameKey: 'findMove', descKey: 'findMoveDesc' },
 ];
