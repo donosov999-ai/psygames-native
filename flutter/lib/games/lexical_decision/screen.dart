@@ -283,8 +283,23 @@ class _LexicalDecisionScreenState extends State<LexicalDecisionScreen> {
     }
   }
 
-  /// Разбор до партии: настоящее слово языка и псевдослово из него же.
+  /// Разбор до партии: настоящее слово языка и псевдослово из него же. В режиме «По норме?» —
+  /// пара текущей ступени: ненормативная форма с правилом, потом её норма.
   List<DemoTrial> _demoTrials() {
+    if (_norm) {
+      final tiers = ldNormTiers(_normLadder.level);
+      final pair = _ns[_target]!.firstWhere((x) => tiers.contains(x.tier), orElse: () => _ns[_target]!.first);
+      final ruleKey = ldNsRuleKey(pair.rule);
+      return [
+        DemoTrial(
+          text: pair.form,
+          sub: L.t('ldNormHint'),
+          answer: L.t('ldNotNormBtn'),
+          rule: '${L.t('ldNormShouldBe').replaceAll('{norm}', pair.norm)}. ${ruleKey == null ? '' : L.t(ruleKey)}',
+        ),
+        DemoTrial(text: pair.norm, sub: L.t('ldNormHint'), answer: L.t('ldNormBtn'), rule: L.t('ldModeNormDesc')),
+      ];
+    }
     final vocab = _vocab ?? const <Map<String, String>>[];
     final words = ldRealWords(vocab, _target);
     if (words.isEmpty) return [DemoTrial(text: '', rule: L.t('lexicalDecisionIntroDesc'))];

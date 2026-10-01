@@ -306,4 +306,17 @@ void main() {
       expect(L.t(k), isNot(k), reason: 'ключ $k нет в словаре приложения');
     }
   });
+
+  testWidgets('разбор до партии в режиме «По норме?» — ненормативная форма с нормой, потом сама норма', (tester) async {
+    await boot(tester, () => 1000);
+    await pickTarget(tester, 'ru');
+    await tester.tap(find.byKey(const Key('ld-mode-norm')));
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('game-lesson')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    final first = ns['ru']!.firstWhere((x) => x.tier == 1);
+    expect(find.text(first.form), findsWidgets, reason: 'первая карточка — ненормативная форма');
+    expect(find.textContaining(first.norm), findsWidgets, reason: 'и её норма');
+  });
 }
