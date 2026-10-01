@@ -890,7 +890,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
           icon: _pilot ? Icons.auto_awesome : Icons.trending_up,
         ),
         HudItem(label: L.t('errors'), value: '$_errors/$errorLimit', icon: Icons.close),
-        if (ruleLabel != null) HudItem(label: L.t('sdkHudRule'), value: ruleLabel, icon: Icons.rule),
+        if (ruleLabel != null) HudItem(label: L.t('simonRule'), value: ruleLabel, icon: Icons.rule),
       ],
       field: (context, height) {
         final ready = widget.mode == null ? levels != null : _sideModes != null;

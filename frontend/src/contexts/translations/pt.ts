@@ -3269,7 +3269,6 @@ const t: Record<string, string> = {
   "teachHiddenHalf": "Pergunte «{q}»: sim para {yes}, não para {no}. A melhor pergunta divide os que restam o mais perto possível da metade: qualquer resposta tira metade.",
   "teachHiddenLast": "Sobrou um: é ele. Escolha-o e toque em «É ele!».",
   "rbHeadStart": "vantagem {n}",
-  "sdkHudRule": "Regra",
   "sdkHudStage": "Etapa",
   "sdkNextLevel": "Próximo nível",
   "sdkNextStage": "Próxima etapa",
