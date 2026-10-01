@@ -3474,6 +3474,25 @@ const translations: Translations = {
   sdkRule_sandparity: { ru: 'сэндвич и чётность', en: 'sandwich and parity' },
   sdkRule_killerdiag: { ru: 'суммы и диагонали', en: 'cages and diagonals' },
   sdkRule_whisper: { ru: 'шёпот', en: 'whispers' },
+  // Части имён ступеней Тэтхэма для нативной полосы «Доска» ({n} — число или размер).
+  tathamDiffEasy: { ru: 'лёгкая', en: 'easy' },
+  tathamDiffNormal: { ru: 'обычная', en: 'normal' },
+  tathamDiffMedium: { ru: 'средняя', en: 'medium' },
+  tathamDiffHard: { ru: 'трудная', en: 'hard' },
+  tathamDiffTricky: { ru: 'хитрая', en: 'tricky' },
+  tathamDiffExtreme: { ru: 'крайняя', en: 'extreme' },
+  tathamDiffUnreasonable: { ru: 'запредельная', en: 'unreasonable' },
+  tathamDiffBasic: { ru: 'начальная', en: 'basic' },
+  tathamDiffAdvanced: { ru: 'продвинутая', en: 'advanced' },
+  tathamRandom: { ru: 'Случайная {n}', en: 'Random {n}' },
+  tathamCross: { ru: 'Крест {n}', en: 'Cross {n}' },
+  tathamOctagon: { ru: 'Восьмиугольник', en: 'Octagon' },
+  tathamMines: { ru: '{n} мин', en: '{n} mines' },
+  tathamColours: { ru: '{n} цв.', en: '{n} colours' },
+  tathamPegs: { ru: '{n} мест', en: '{n} pegs' },
+  tathamRotation: { ru: 'поворот {n}', en: '{n} rotation' },
+  tathamOrientable: { ru: 'с направлением', en: 'with orientation' },
+  tathamTiles: { ru: '{n} плиток', en: '{n} tiles' },
   /**
    * ⚠️ Про ПОВТОР сказано прямо, и вот почему. Сообщение из чата обратной связи
    * 01.09.2026 (уровень 48, стрелки): «единица повторяется два раза — в чём ошибка

@@ -1,10 +1,15 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/cats/screen.dart';
 import 'package:psygames_flutter/games/deep/screen.dart';
 import 'package:psygames_flutter/games/fractal/screen.dart';
 import 'package:psygames_flutter/games/hidden_character/screen.dart';
+import 'package:psygames_flutter/games/puzzles/engine.dart';
 import 'package:psygames_flutter/games/puzzles/screen.dart';
+import 'package:psygames_flutter/games/puzzles/step_title.dart';
 import 'package:psygames_flutter/games/samurai/screen.dart';
 import 'package:psygames_flutter/games/sudoku/modes.dart';
 import 'package:psygames_flutter/games/sudoku/screen.dart';
@@ -23,8 +28,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// Здесь каждый экран раздела открывается с языком `en`, и весь текст для человека (`Text`,
 /// `RichText`, подписи для чтеца экрана, `Tooltip`) проверяется на кириллицу. Новая русская строка в коде — проба красная.
 ///
-/// ⚠️ Единственное исключение — имена ступеней головоломок: они приходят ДАННЫМИ из веба
-/// (`assets/puzzles/modes.json`, 78 из 88 по-русски) и переводятся отдельной задачей 92e1b615.
+/// Имена ступеней головоломок приходят ДАННЫМИ из веба (`assets/puzzles/modes.json`, 78 из
+/// 88 по-русски) и переводятся разбором по частям (`games/puzzles/step_title.dart`, задача
+/// 92e1b615); здесь же проверено, что на английском разбирается КАЖДОЕ имя всех режимов.
 final _cyrillic = RegExp('[А-Яа-яЁё]');
 
 void main() {
@@ -104,13 +110,39 @@ void main() {
     await expectEnglish(tester, 'Кто спрятался?', HiddenCharacterScreen(state: state));
   });
 
-  testWidgets('🔴 «Головоломки»: полоса и подсказка ввода (имя ступени — данные, см. шапку)', (tester) async {
-    await open(tester, PuzzlesScreen(state: state, mode: 'Unruly'));
-    final stepTitles = {
-      for (final w in tester.allWidgets)
-        if (w is Text && (w.data ?? '').contains('×')) w.data!,
-    };
-    final russian = visibleText(tester).where((t) => _cyrillic.hasMatch(t) && !stepTitles.contains(t)).toSet();
-    expect(russian, isEmpty, reason: '«Головоломки» на английском показывают русский: $russian');
+  testWidgets('🔴 «Головоломки»: режим со своей лестницей русских имён — полоса по-английски', (tester) async {
+    // «Сапёр»: имена ступеней в данных — «9×9, 10 мин» и т. п.
+    // Движок Тэтхэма в пробах — собранная локально библиотека (как в puzzle_rules_reach_the_screen_test).
+    final lib = '${Directory.current.path}/build/tatham/${TathamEngine.libraryName}';
+    void boardBuilt() => expect(find.textContaining(L.t('sdkGameFailed')), findsNothing, reason: 'доска не собралась');
+    await expectEnglish(tester, 'Головоломки · Mines', PuzzlesScreen(state: state, mode: 'Mines', libraryPath: lib),
+        ready: () => find.text('9×9, 10 mines').evaluate().isNotEmpty,
+        also: () {
+          boardBuilt();
+          expect(find.text('9×9, 10 mines'), findsOneWidget, reason: 'имя ступени разобрано');
+        });
+    await expectEnglish(tester, 'Головоломки · Unruly', PuzzlesScreen(state: state, mode: 'Unruly', libraryPath: lib),
+        also: boardBuilt);
+  });
+
+  test('🔴 имя КАЖДОЙ ступени всех режимов на английском разбирается — новое имя без шаблона краснеет', () async {
+    final raw = jsonDecode(File('assets/puzzles/modes.json').readAsStringSync()) as Map<String, dynamic>;
+    final untranslated = <String>[];
+    var total = 0;
+    for (final m in raw.entries) {
+      for (final st in (m.value['steps'] as List).cast<Map<String, dynamic>>()) {
+        total++;
+        final shown = stepTitle(st['title'] as String);
+        if (_cyrillic.hasMatch(shown)) untranslated.add('${m.key}: ${st['title']}');
+      }
+    }
+    expect(total, greaterThanOrEqualTo(80), reason: 'имён ступеней в данных меньше, чем было 01.10');
+    expect(untranslated, isEmpty, reason: 'добавь шаблон в lib/games/puzzles/step_title.dart: $untranslated');
+    expect(stepTitle('4 цвета, 3 места'), '4 colours, 3 pegs');
+    expect(stepTitle('3×3, восемь плиток'), '3×3, 8 tiles');
+    expect(stepTitle('Крест 7×9'), 'Cross 7×9');
+    expect(stepTitle('6×6, поворот 4×4'), '6×6, 4×4 rotation');
+    await L.load('ru');
+    expect(stepTitle('9×9, 10 мин'), '9×9, 10 мин', reason: 'русскому — имя как в данных');
   });
 }
