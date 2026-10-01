@@ -4,6 +4,7 @@ import { ProfileId, ProfileDef, PROFILE_BY_ID, PROFILES } from '@/src/constants/
 import { tryUnlock, requiresUnlock } from '@/src/services/unlock';
 import { загрузить as загрузитьСостав, наложить, поПорядку, вСеткуЗарядки, type СохранённыйСостав } from '@/src/services/playlistOverride';
 import { установитьХабыИзФайла } from '@/src/constants/hubContents';
+import { hubVisibility, HUB_VISIBLE_KEY } from '@/src/services/hubVisibility';
 import { установитьЗамкиИзФайла } from '@/src/services/featureLadder';
 import { установитьПорогиФигурок } from '@/src/services/collection';
 import { установитьПравилоУровня, установитьНаборыДняИНочи, установитьЯвноеНазначение, установитьСеткуИзФайла } from '@/src/services/warmup';
@@ -217,6 +218,16 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
   React.useEffect(() => {
     установитьХабыИзФайла(состав?.профили?.[profile.id]?.хабы ?? состав?.хабы ?? null);
   }, [profile.id, состав]);
+
+  /**
+   * 🔴 СОСТАВ РАЗВИЛОК — В ОБЩУЮ ПАМЯТЬ ДЛЯ НАТИВНОЙ ПОЛОВИНЫ (задача c86ddae6).
+   * Строго ПОСЛЕ эффекта выше: `visibleHubCards` читает раскладку, которую он ставит.
+   * Нативный `HubScreen` показывает ровно этот список — правило профиля считается
+   * один раз, здесь, той же функцией, что и число на значке.
+   */
+  React.useEffect(() => {
+    AsyncStorage.setItem(HUB_VISIBLE_KEY, JSON.stringify(hubVisibility(профильСоСоставом))).catch(() => {});
+  }, [профильСоСоставом, состав]);
 
   /**
    * Баланс — общий на всё приложение, а не на профиль: экономика одна. Поэтому
