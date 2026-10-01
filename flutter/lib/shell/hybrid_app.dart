@@ -112,6 +112,7 @@ import '../games/scholars_mate/screen.dart';
 import 'shared_state.dart';
 import 'restart_scope.dart';
 import 'tap_latency.dart';
+import 'warmup_screens.dart';
 
 
 /// ГИБРИД: снаружи Flutter, внутри — НЫНЕШНЕЕ ПРИЛОЖЕНИЕ ЦЕЛИКОМ.
@@ -132,6 +133,16 @@ class HybridApp extends StatefulWidget {
 
   /// Раздача вложенной веб-сборки — внутри приложения, см. [AssetServer].
   final AssetServer server;
+
+  /// 🔴 ЭКРАНЫ ОБОЛОЧКИ — НЕ ИГРЫ: выбор зарядки и её итог (задача 748c3f5f,
+  /// `warmup_screens.dart`). Отдельно от [native], потому что обходы-переписи проб
+  /// считают каждый адрес [native] игрой с правилами, уровнями и разбором.
+  /// Считает за ними по-прежнему страница — здесь только рисунок по её модели.
+  static Map<String, Widget Function(SharedState)> get shell => {
+        '/warmup-picker': (_) => const WarmupPickerScreen(),
+        '/warmup-complete': (_) => const WarmupCompleteScreen(),
+        '/warmup-bridge': (_) => const WarmupBridgeScreen(),
+      };
 
   /// Игра перенесена → строится нативно. Ключ — путь маршрута веб-сборки.
   static Map<String, Widget Function(SharedState)> get native => {
@@ -423,6 +434,9 @@ class HybridApp extends StatefulWidget {
     final query = qi < 0 ? '' : noHash.substring(qi);
     var u = qi < 0 ? noHash : noHash.substring(0, qi);
     if (u.endsWith('.html')) u = u.substring(0, u.length - 5);
+    for (final k in shell.keys) {
+      if (u.endsWith(k)) return k;
+    }
     final i = u.indexOf('/games/');
     if (i < 0) return null;
     final r = u.substring(i);
@@ -538,6 +552,8 @@ class _HybridAppState extends State<HybridApp> {
     // Делегат оставлен: он нужен для внешних ссылок и первой загрузки.
     try {
       final m = jsonDecode(message);
+      // Модель экрана зарядки, который рисуем мы (`warmup_screens.dart`).
+      if (WarmupUi.accept(m)) return;
       if (m is Map && m['op'] == 'warmupStepDone') {
         unawaited(_warmupStepDone(Map<String, Object?>.from(m)));
         return;
@@ -667,6 +683,7 @@ class _HybridAppState extends State<HybridApp> {
     unawaited(_dropStaleCache());
     HybridApp.open = _open;
     HybridApp.runJs = _runJs;
+    WarmupUi.run = _runUi;
     // Перенесённая игра по START_ROUTE: перехват на первой загрузке не срабатывает
     // (это не переход, а первый адрес), поэтому открываем нативный экран сами.
     final first = HybridApp.routeOf('${widget.server.origin}${HybridApp.startRoute}');
@@ -684,10 +701,12 @@ class _HybridAppState extends State<HybridApp> {
     // Хук снимается вместе с хостом: оставленный, он звал бы мёртвый WebView.
     if (HybridApp.open == _open) HybridApp.open = null;
     if (HybridApp.runJs == _runJs) HybridApp.runJs = null;
+    if (WarmupUi.run == _runUi) WarmupUi.run = null;
     super.dispose();
   }
 
   Future<Object?> _runJs(String js) => _c.runJavaScriptReturningResult(js);
+  Future<void> _runUi(String js) => _c.runJavaScript(js);
 
   /// Маршрут из нативного экрана: перенесённый — нативно, остальной — страницей в WebView.
   Future<void> _open(String route) async {
@@ -740,7 +759,11 @@ class _HybridAppState extends State<HybridApp> {
   /// Какие адреса оболочка рисует сама и на каком языке говорит человек — по этому
   /// веб решает, отдать ли переход между шагами зарядки оболочке.
   String _hostWarmupJs() {
-    final routes = {for (final r in HybridApp.native.keys) r.split('?').first}.toList()..sort();
+    final routes = {
+      for (final r in HybridApp.native.keys) r.split('?').first,
+      ...HybridApp.shell.keys,
+    }.toList()
+      ..sort();
     return 'window.__psyHostNativeRoutes=${jsonEncode(routes)};'
         'window.__psyHostLang=${jsonEncode(widget.state.language)};';
   }
@@ -818,7 +841,7 @@ class _HybridAppState extends State<HybridApp> {
     Map<String, String> query = const {},
     WarmupStepInfo? stepInfo,
   }) async {
-    final build = HybridApp.native[route];
+    final build = HybridApp.native[route] ?? HybridApp.shell[route];
     if (build == null) return;
     _openedRoute = route;
     // Настройки шага живут ровно столько, сколько открыт экран, — как

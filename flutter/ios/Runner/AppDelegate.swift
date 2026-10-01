@@ -55,7 +55,10 @@ final class PracticeHapticsPlugin: NSObject, FlutterPlugin {
     let args = call.arguments as? [String: Any] ?? [:]
     let continuous = args["continuous"] as? Bool ?? false
     let duration = min(30, max(0.001, ((args["durationMs"] as? NSNumber)?.doubleValue ?? 60) / 1000))
-    let intensity = Float(min(0.6, max(0.1, (args["strength"] as? NSNumber)?.doubleValue ?? 0.25)))
+    // Ощутимо в руке: шкала до 1,0, по умолчанию 0,8 (Денис 01.10: при 0,25 «вибрации нет»).
+    let intensity = Float(min(1.0, max(0.1, (args["strength"] as? NSNumber)?.doubleValue ?? 0.8)))
+    // Резкость 0,15 давала мягкий гул, которого не слышно; удержание — плотный гул, сигнал — чёткий щелчок.
+    let sharpness: Float = continuous ? 0.4 : 0.6
     do {
       if engine == nil {
         engine = try CHHapticEngine()
@@ -67,7 +70,7 @@ final class PracticeHapticsPlugin: NSObject, FlutterPlugin {
       }
       try engine?.start()
       let params = [CHHapticEventParameter(parameterID: .hapticIntensity, value: intensity),
-                    CHHapticEventParameter(parameterID: .hapticSharpness, value: 0.15)]
+                    CHHapticEventParameter(parameterID: .hapticSharpness, value: sharpness)]
       var events = [CHHapticEvent(
         eventType: continuous ? .hapticContinuous : .hapticTransient,
         parameters: params, relativeTime: 0, duration: continuous ? duration : 0)]
