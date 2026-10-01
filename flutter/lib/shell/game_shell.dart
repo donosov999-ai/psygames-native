@@ -4,6 +4,7 @@ import 'game_rules.dart';
 import 'l10n.dart';
 import 'level_rules.dart';
 import 'package:flutter/material.dart';
+import 'restart_scope.dart';
 
 /// Каркас игрового экрана — перенос GameShell из React-версии PsyGames.
 ///
@@ -160,14 +161,30 @@ class GameShell extends StatelessWidget {
     Navigator.of(context).maybePop();
   }
 
+  /// Свой «Заново» у игры уже есть: значок обновления или подпись перезапуска.
+  static bool _isRestart(PauseAction a) =>
+      a.icon == Icons.refresh ||
+      a.label == L.t('restart') ||
+      a.label == 'Начать заново' ||
+      a.label == 'Новая партия';
+
   void _pause(BuildContext context) {
+    // 🔴 «ЗАНОВО» У КАЖДОЙ ИГРЫ (задача 1e21b974): нет своего — каркас добавляет пункт,
+    // который пересоздаёт экран через RestartScope (проигрыш не пишется). Замер 01.10:
+    // своего «Заново» не было у 43 экранов из 86.
+    final restart = RestartScope.of(context);
+    final actions = [
+      if (restart != null && !pauseActions.any(_isRestart))
+        PauseAction(label: L.t('restart'), icon: Icons.refresh, onPressed: restart),
+      ...pauseActions,
+    ];
     Navigator.of(context).push(MaterialPageRoute<void>(
       // Пауза — страница ПОВЕРХ игры: пока она видна, часы и таймеры партии стоят
       // (game_clock.dart, задача 430d1299). Без этого игра под паузой жила дальше.
       builder: (_) => GameHoldScope(
         child: _PauseScreen(
           hud: hud,
-          actions: pauseActions,
+          actions: actions,
           onLeave: () => _leave(context),
         ),
       ),
