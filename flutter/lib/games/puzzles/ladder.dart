@@ -34,7 +34,19 @@ class PuzzleMode {
     this.digitLabels = const [],
     this.digitNames = const [],
     this.owner,
+    this.dragOnly = false,
+    this.secondKey,
   });
+
+  /// Ход делается ТОЛЬКО протяжкой: касание здесь не делает ничего (замер веба 11.09:
+  /// «Раскраска карты» 0 тычков из 663, «Колышки» 0 из 297, «Указатели» 0 из 360).
+  /// Под доской тогда честная подсказка «тяни», а не «тычок отмечает клетку».
+  final bool dragOnly;
+
+  /// Ключ словаря с подписью ВТОРОГО действия (правая кнопка у автора): флажок у
+  /// «Сапёра», крестик у японского кроссворда, карандаш у судоку. `null` — второго
+  /// действия у режима нет. Подпись называет, что кнопка делает именно здесь.
+  final String? secondKey;
 
   /// Имя игры у автора — им она ищется в движке («Solo», «Light Up»).
   final String engineName;
@@ -135,6 +147,14 @@ class PuzzleModes {
                   ))
               .toList(),
           owner: m['owner'] as String?,
+          dragOnly: m['dragOnly'] == true,
+          // В вебе у четырёх режимов признак стоит голым `true` — своей подписи раздел
+          // им не дал, и веб пишет общую «Второе действие» (puzzles.tsx, `?? 'puzzleSecondAction'`).
+          secondKey: switch (m['secondKey']) {
+            final String k when k.isNotEmpty => k,
+            true => 'puzzleSecondAction',
+            _ => null,
+          },
         ),
       );
     });
