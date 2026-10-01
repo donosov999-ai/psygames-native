@@ -751,7 +751,7 @@ const t: Record<string, string> = {
   "digitStyle": "数字のスタイル",
   "rulesWord": "ルール",
   "outOfLives": "ライフがなくなりました",
-  "outOfLivesHint": "ミス3回。もう一度 — 新しい盤面で。",
+  "outOfLivesHint": "ミス {n}/{n}。もう一度 — 新しい盤面で。",
   "timeErrorsLine": "タイム {t}秒 · ミス {n}",
   "sudokuMenu": "数独メニュー",
   "sudokuBaseRule": "基本：1–{n} の数字を行・列・ブロックに1回ずつ。",

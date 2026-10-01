@@ -1413,7 +1413,7 @@ const t: Record<string, string> = {
   "digitStyle": "数字样式",
   "rulesWord": "规则",
   "outOfLives": "生命用完了",
-  "outOfLivesHint": "3 次失误。再来一局——全新棋盘。",
+  "outOfLivesHint": "失误 {n}/{n}。再来一局——全新棋盘。",
   "timeErrorsLine": "用时 {t}秒 · 错误 {n}",
   "sudokuMenu": "数独菜单",
   "sudokuBaseRule": "基本规则：数字 1–{n} 在每行、每列、每宫恰好出现一次。",

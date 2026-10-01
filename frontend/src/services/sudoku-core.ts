@@ -265,7 +265,7 @@ export function generateThermoCages(sol: Cell[][], N: number, rnd: () => number 
 }
 
 // SUDOKU-LVL: уровневая прогрессия. 1–4 = 6×6, 5–8 = 9×9, 9–13 = диагональ, далее фазы-варианты.
-export interface LevelCfg { size: 6 | 9; N: number; BR: number; BC: number; blanks: number; variant: Variant; hintMax: number; }
+export interface LevelCfg { size: 6 | 9; N: number; BR: number; BC: number; blanks: number; variant: Variant; hintMax: number; lives: number; }
 export function levelConfig(level: number): LevelCfg {
   const lv = Math.max(1, level);
   const size: 6 | 9 = lv <= 4 ? 6 : 9;
@@ -370,7 +370,27 @@ export function levelConfig(level: number): LevelCfg {
     ? Math.min(24, 8 + lv * 3)                                   // L1..4 → 11,14,17,20
     : Math.min(58, 34 + (lv - 5));                               // L5+ → 34..58, без сбросов на границах правил
   const hintMax = lv <= 4 ? 3 : lv <= 8 ? 2 : 1;
-  return { size, N, BR, BC, blanks, variant, hintMax };
+  return { size, N, BR, BC, blanks, variant, hintMax, lives: livesFor(lv) };
+}
+
+/**
+ * 🔴 ЦЕНА ОШИБКИ — ОСЬ СТУПЕНИ (пункт 14 цепочки усложнений, задача 1fa57de3; решение
+ * Дениса 30.09 «Берём»). До 01.10 лимит был 3 ошибки на всех 92 ступенях (failurePolicy
+ * 'standard'), и ось не стреляла: замер 09.09 по cognitive_sessions — 51 партия за 90 дней,
+ * лимит сработал 1 раз из 46 и только на ступенях 1–10, наверху (31–55) — не больше двух
+ * ошибок за партию. Поэтому лимит убывает к верху: на входе прощает, наверху — нет.
+ *
+ *   1–4 (6×6, знакомство) — 5 · 5–8 (классика 9×9) — 4 · 9–29 — 3 ·
+ *   30–80 (вариантные правила, пояса ALS и цепей) — 2 · 81+ (комбо-пояс) — 1.
+ *
+ * ⚠️ ТАБЛИЦА ПЕРВАЯ, НЕ ОКОНЧАТЕЛЬНАЯ. Выборка 09.09 почти вся от одного человека, а
+ * малость ошибок может быть следствием осторожной игры под лимитом. Калибруется после
+ * включения: отчёт партии несёт лимит (details.lives), и считается, какая доля партий
+ * каждой полосы кончается ошибками. Самурай держит такую ось давно (LEVEL_ERRORS).
+ */
+export function livesFor(level: number): number {
+  const lv = Math.max(1, level);
+  return lv <= 4 ? 5 : lv <= 8 ? 4 : lv <= 29 ? 3 : lv <= 80 ? 2 : 1;
 }
 
 export type SudokuDifficultyTier = 'beginner' | 'easy' | 'medium' | 'hard' | 'expert' | 'extreme';

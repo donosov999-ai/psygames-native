@@ -1413,7 +1413,7 @@ const t: Record<string, string> = {
   "digitStyle": "Estilo de dígitos",
   "rulesWord": "reglas",
   "outOfLives": "Sin vidas",
-  "outOfLivesHint": "3 errores. Juega de nuevo — tablero nuevo.",
+  "outOfLivesHint": "Errores: {n} de {n}. Juega de nuevo — tablero nuevo.",
   "timeErrorsLine": "Tiempo {t}s · errores {n}",
   "sudokuMenu": "Menú de sudoku",
   "sudokuBaseRule": "Base: cada dígito 1–{n} exactamente una vez por fila, columna y bloque.",

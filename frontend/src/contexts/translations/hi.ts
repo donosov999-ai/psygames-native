@@ -1416,7 +1416,7 @@ const t: Record<string, string> = {
   "digitStyle": "अंक शैली",
   "rulesWord": "नियम",
   "outOfLives": "जीवन समाप्त",
-  "outOfLivesHint": "3 गलतियाँ। दोबारा खेलें — नया बोर्ड।",
+  "outOfLivesHint": "गलतियाँ: {n} में से {n}। दोबारा खेलें — नया बोर्ड।",
   "timeErrorsLine": "समय {t}से · गलतियाँ {n}",
   "sudokuMenu": "सुडोकू मेनू",
   "sudokuBaseRule": "मूल नियम: हर अंक 1–{n} हर पंक्ति, स्तंभ और ब्लॉक में ठीक एक बार।",

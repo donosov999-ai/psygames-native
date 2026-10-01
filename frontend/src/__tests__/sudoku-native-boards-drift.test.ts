@@ -43,7 +43,7 @@ describe('доски судоку у Flutter = живой TS', () => {
     for (let lv = 1; lv <= Math.max(LAST_LEVEL, inFile.length); lv++) {
       const c = levelConfig(lv);
       const live = lv <= LAST_LEVEL
-        ? { level: lv, n: c.N, br: c.BR, bc: c.BC, blanks: c.blanks, variant: c.variant, hintMax: c.hintMax }
+        ? { level: lv, n: c.N, br: c.BR, bc: c.BC, blanks: c.blanks, variant: c.variant, hintMax: c.hintMax, lives: c.lives }
         : undefined;
       if (JSON.stringify(live) !== JSON.stringify(inFile[lv - 1])) diverged.push(`L${lv}`);
     }

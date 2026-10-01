@@ -107,7 +107,8 @@ void main() {
     await tester.tap(find.byKey(Key('digit${solution[er][ec]}')));
     await tester.pump();
     expect(digitAt(tester, er, ec), solution[er][ec]);
-    expect(find.text('0/3'), findsOneWidget, reason: 'верный ход — не ошибка');
+    // Ступень 5 — лимит 4 (цена ошибки по ступеням, levelConfig.lives, задача 1fa57de3).
+    expect(find.text('0/4'), findsOneWidget, reason: 'верный ход — не ошибка');
 
     // Неверная цифра в другую пустую клетку — счётчик ошибок растёт.
     late int wr, wc;
@@ -122,7 +123,7 @@ void main() {
     await tester.pump();
     await tester.tap(find.byKey(Key('digit$wrong')));
     await tester.pump();
-    expect(find.text('1/3'), findsOneWidget, reason: 'digit мимо решения — ошибка');
+    expect(find.text('1/4'), findsOneWidget, reason: 'digit мимо решения — ошибка');
   });
 
   testWidgets('🔴 уровень доигрывается нажатиями до конца, и лестница растёт', (tester) async {

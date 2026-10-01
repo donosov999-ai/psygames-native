@@ -1539,7 +1539,7 @@ const t: Record<string, string> = {
   "digitStyle": "نمط الأرقام",
   "rulesWord": "القواعد",
   "outOfLives": "نفدت المحاولات",
-  "outOfLivesHint": "٣ أخطاء. العب من جديد — لوحة جديدة.",
+  "outOfLivesHint": "الأخطاء: {n} من {n}. العب من جديد — لوحة جديدة.",
   "timeErrorsLine": "الوقت {t}ث · أخطاء {n}",
   "sudokuMenu": "قائمة السودوكو",
   "sudokuBaseRule": "الأساس: كل رقم من 1–{n} مرة واحدة بالضبط في كل صف وعمود ومربع.",

@@ -715,9 +715,12 @@ export default function SudokuGame() {
   const [pencil, setPencil] = useState(false);
   const [selected, setSelected] = useState<{ r: number; c: number } | null>(null);
   // Модель провала — свойство РЕЖИМА, а не константа экрана (см. services/failure).
-  // Сейчас все режимы судоку короткие → 'standard', три жизни, как было. Длинные режимы
-  // (самурай, фрактал) возьмут 'longform': ошибки считаются, но час работы не обрывают.
-  const failure = failurePolicy('standard');
+  // Все режимы судоку короткие → 'standard'. На лестнице число жизней — поле СТУПЕНИ
+  // (levelConfig.lives, задача 1fa57de3: цена ошибки убывает к верху), остальные режимы —
+  // три, как было. Нативный экран читает то же поле из выгрузки лестницы.
+  const failure = mode === 'levels'
+    ? { ...failurePolicy('standard'), lives: roadLevelConfig(level, road).lives }
+    : failurePolicy('standard');
   // Лента ходов для отмены. Хранит ЧТО было в клетке до хода — назад отыгрывает экран.
   const hist = useMoveHistory<SudokuMove>();
   const [hintMax, setHintMax] = useState(3);   // лимит подсказок (меньше на высоких уровнях)
@@ -1291,7 +1294,7 @@ export default function SudokuGame() {
             difficulty: mode === 'levels' ? (level <= 4 ? 'easy' : level <= 9 ? 'medium' : 'hard') : difficulty,
             mode: mode === 'levels' ? `level-${level}` : (mode === 'towers' || mode === 'unequal') ? `${mode}-${level}` : `${N}x${N}`,
             errors: ne,
-            details: { errors: ne, completed: false, failed_out: true, ...(mode === 'levels' ? { level, variant, road } : (mode === 'towers' || mode === 'unequal') ? { level, variant } : {}) },
+            details: { errors: ne, completed: false, failed_out: true, ...(mode === 'levels' ? { level, variant, road, lives: failure.lives } : (mode === 'towers' || mode === 'unequal') ? { level, variant } : {}) },
           }).catch((e) => console.error(e));
         }
       }
@@ -1377,7 +1380,7 @@ export default function SudokuGame() {
              * Пишем ВСЕГДА и явно, включая `normal`: читать запись должно быть можно,
              * не зная, что «пусто значит обычная».
              */
-            ...(mode === 'levels' ? { level, variant, road } : (mode === 'towers' || mode === 'unequal') ? { level, variant } : {}),
+            ...(mode === 'levels' ? { level, variant, road, lives: failure.lives } : (mode === 'towers' || mode === 'unequal') ? { level, variant } : {}),
           },
         });
       } catch (e) { console.error(e); }
@@ -2488,7 +2491,7 @@ export default function SudokuGame() {
             <View style={[styles.overCard, { backgroundColor: colors.surface }]}>
               <Text style={styles.overEmoji}>💔</Text>
               <Text style={[styles.overTitle, { color: colors.text }]}>{t('outOfLives')}</Text>
-              <Text style={[styles.overSub, { color: colors.textSecondary }]}>{t('outOfLivesHint')}</Text>
+              <Text style={[styles.overSub, { color: colors.textSecondary }]}>{t('outOfLivesHint').replace(/\{n\}/g, String(failure.lives))}</Text>
               <TouchableOpacity
                 accessibilityRole="button" style={styles.startBtn} onPress={() => startGame()}>
                 <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>

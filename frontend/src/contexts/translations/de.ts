@@ -1413,7 +1413,7 @@ const t: Record<string, string> = {
   "digitStyle": "Ziffernstil",
   "rulesWord": "Regeln",
   "outOfLives": "Keine Leben mehr",
-  "outOfLivesHint": "3 Fehler. Spiel neu — frisches Feld.",
+  "outOfLivesHint": "Fehler: {n} von {n}. Spiel neu — frisches Feld.",
   "timeErrorsLine": "Zeit {t}s · Fehler {n}",
   "sudokuMenu": "Sudoku-Menü",
   "sudokuBaseRule": "Basis: Jede Ziffer 1–{n} genau einmal pro Zeile, Spalte und Block.",

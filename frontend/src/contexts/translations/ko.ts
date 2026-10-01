@@ -1538,7 +1538,7 @@ const t: Record<string, string> = {
   "digitStyle": "숫자 스타일",
   "rulesWord": "규칙",
   "outOfLives": "생명이 다 떨어졌어요",
-  "outOfLivesHint": "실수 3회. 새 보드로 다시 도전하세요.",
+  "outOfLivesHint": "실수 {n}/{n}. 새 보드로 다시 도전하세요.",
   "timeErrorsLine": "시간 {t}초 · 오류 {n}",
   "sudokuMenu": "스도쿠 메뉴",
   "sudokuBaseRule": "기본: 1–{n} 숫자를 각 행·열·블록에 정확히 한 번씩.",

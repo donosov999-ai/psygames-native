@@ -1538,7 +1538,7 @@ const t: Record<string, string> = {
   "digitStyle": "Stile cifre",
   "rulesWord": "regole",
   "outOfLives": "Vite finite",
-  "outOfLivesHint": "3 errori. Rigioca — griglia nuova.",
+  "outOfLivesHint": "Errori: {n} su {n}. Rigioca — griglia nuova.",
   "timeErrorsLine": "Tempo {t}s · errori {n}",
   "sudokuMenu": "Menu sudoku",
   "sudokuBaseRule": "Base: ogni cifra 1–{n} esattamente una volta per riga, colonna e blocco.",

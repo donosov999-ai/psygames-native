@@ -103,7 +103,8 @@ void main() {
 
     expect(marksAt(tester, cell.r, cell.c), ['1', '2', '3'],
         reason: 'в клетке видны три карандашные цифры');
-    expect(find.text('0/3'), findsOneWidget,
+    // Ступень 5 — лимит 4 (цена ошибки по ступеням, levelConfig.lives, задача 1fa57de3).
+    expect(find.text('0/4'), findsOneWidget,
         reason: 'пометка — не ход: счётчик ошибок стоит на месте');
   });
 

@@ -32,6 +32,7 @@ class SudokuLevel {
     required this.blanks,
     required this.variant,
     required this.hintMax,
+    this.lives = 3,
   });
 
   final int level;
@@ -41,6 +42,10 @@ class SudokuLevel {
   final int blanks;
   final String variant;
   final int hintMax;
+
+  /// Сколько ошибок до провала на этой ступени — `levelConfig.lives` веба (цена ошибки
+  /// убывает к верху лестницы, задача 1fa57de3). Выгрузка без поля — прежние три.
+  final int lives;
 
   /// Доска берётся из банка, когда это классика 9×9: банк только такой.
   bool get fromBank => variant == 'none' && n == 9;
@@ -113,6 +118,7 @@ class SudokuLevels {
         blanks: (row['blanks'] as num).toInt(),
         variant: row['variant'] as String,
         hintMax: (row['hintMax'] as num).toInt(),
+        lives: (row['lives'] as num?)?.toInt() ?? 3,
       );
     }
     final rows = [

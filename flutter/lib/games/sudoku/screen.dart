@@ -57,7 +57,13 @@ class SudokuScreen extends StatefulWidget {
 const _noBoards = 'Досок этого уровня нет в данных';
 
 class _SudokuScreenState extends State<SudokuScreen> {
-  static const errorLimit = 3;   // «3 ошибки. Сыграй заново» — правило веб-версии
+  /// Сколько ошибок до провала. На лестнице — поле ступени (`lives` выгрузки лестницы =
+  /// `levelConfig.lives` веба: цена ошибки убывает к верху, задача 1fa57de3); пилот
+  /// генератора и режимы — три, как было.
+  int get errorLimit {
+    if (widget.mode != null || _pilot) return 3;
+    return _levels?.config(_ladder.level).lives ?? 3;
+  }
 
   late LevelLadder _ladder;
   SudokuLevels? _levels;
@@ -689,6 +695,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
         'level': level,
         'variant': mode == null ? (_board?.variant ?? 'none') : sideModeName(mode),
         if (mode == null) 'road': 'normal',
+        if (mode == null) 'lives': errorLimit,
         if (_skinShown != null) 'skin': _skinShown,
       },
     ));
@@ -752,6 +759,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
         'level': level,
         'variant': _board?.variant ?? 'none',
         'road': 'normal',
+        'lives': errorLimit,
         if (_skinShown != null) 'skin': _skinShown,
       },
     ));
@@ -966,6 +974,8 @@ class _SudokuScreenState extends State<SudokuScreen> {
               wonNote: _won && _symbols.word != null
                   ? L.t('sudokuHiddenWord').replaceAll('{w}', _symbols.word!)
                   : null,
+              // Провал — словами и с числом ступени, как в вебе: «Ошибок: 2 из 2…».
+              lostNote: _lost ? L.t('outOfLivesHint').replaceAll('{n}', '$errorLimit') : null,
             ),
       pauseActions: [
         PauseAction(label: 'Начать заново', icon: Icons.refresh, onPressed: _deal),
@@ -1240,6 +1250,7 @@ class _Toolbar extends StatelessWidget {
     this.label,
     this.icon,
     this.wonNote,
+    this.lostNote,
   });
 
   final int n;
@@ -1266,6 +1277,9 @@ class _Toolbar extends StatelessWidget {
   /// Строка над кнопкой после победы — спрятанное слово Wordoku.
   final String? wonNote;
 
+  /// Строка над кнопкой после провала — сколько ошибок позволяла ступень.
+  final String? lostNote;
+
   @override
   Widget build(BuildContext context) {
     if (won || lost) {
@@ -1276,7 +1290,7 @@ class _Toolbar extends StatelessWidget {
         label: Text(won ? 'Следующий уровень' : 'Ещё раз'),
       );
       final repeat = onRepeat;
-      final note = wonNote;
+      final note = won ? wonNote : lostNote;
       final Widget body = (lost && repeat != null)
             ? Wrap(
                 alignment: WrapAlignment.center,
@@ -1302,7 +1316,7 @@ class _Toolbar extends StatelessWidget {
                 children: [
                   Text(
                     note,
-                    key: const Key('hidden-word'),
+                    key: Key(won ? 'hidden-word' : 'lost-note'),
                     textAlign: TextAlign.center,
                     style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
                   ),

@@ -3350,7 +3350,7 @@ const translations: Translations = {
   digitStyle: { ru: 'Стиль цифр', en: 'Digit style' },
   rulesWord: { ru: 'правила', en: 'rules' },
   outOfLives: { ru: 'Жизни закончились', en: 'Out of lives' },
-  outOfLivesHint: { ru: '3 ошибки. Сыграй заново — поле новое.', en: '3 mistakes. Play again — fresh board.' },
+  outOfLivesHint: { ru: 'Ошибок: {n} из {n}. Сыграй заново — поле новое.', en: 'Mistakes: {n} of {n}. Play again — fresh board.' },
   timeErrorsLine: { ru: 'Время {t}с · ошибок {n}', en: 'Time {t}s · errors {n}' },
   sudokuMenu: { ru: 'Меню судоку', en: 'Sudoku menu' },
   sudokuBaseRule: { ru: 'Базово: каждая цифра 1–{n} ровно один раз в строке, столбце и блоке.', en: 'Base: each digit 1–{n} exactly once per row, column and box.' },

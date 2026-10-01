@@ -152,7 +152,7 @@ const isBankLevel = (cfg) => cfg.variant === 'none' && cfg.N === bank.BANK_N;
 const ladder = [];
 for (let lv = 1; lv <= LAST; lv++) {
   const c = core.levelConfig(lv);
-  ladder.push({ level: lv, n: c.N, br: c.BR, bc: c.BC, blanks: c.blanks, variant: c.variant, hintMax: c.hintMax });
+  ladder.push({ level: lv, n: c.N, br: c.BR, bc: c.BC, blanks: c.blanks, variant: c.variant, hintMax: c.hintMax, lives: c.lives });
 }
 write('sudoku-ladder.json', {
   выгружено: STAMP,
