@@ -69,7 +69,11 @@ class GameRules {
   static Future<void> load() async {
     if (_byRoute.isNotEmpty) return;
     try {
-      final j = jsonDecode(await rootBundle.loadString('assets/hubs.json'))
+      // ⚠️ БАЙТАМИ, А НЕ `loadString`: у него порог 50 КБ (asset_bundle.dart), выше —
+      // разбор уходит в compute, и его кэш вешает вторую пробу файла (урок 30.09). Файл
+      // стоит у самого порога: 51 095 байт при 51 200 (замер 01.10.2026) и только растёт.
+      final b = await rootBundle.load('assets/hubs.json');
+      final j = jsonDecode(utf8.decode(b.buffer.asUint8List(b.offsetInBytes, b.lengthInBytes)))
           as Map<String, dynamic>;
       final out = <String, String>{};
       for (final list in (j['hubs'] as Map<String, dynamic>).values) {
