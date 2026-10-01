@@ -166,11 +166,13 @@ class SudokuSymbols {
   }
 
   /// «Мяу — друзья» (задача fa0d6f9c): правило говорит о коте и мыши, поэтому значки
-  /// неизменны при любом выборе игрока — 1 кот, 2 мышь, дальше звери поля 4×4 без лягушки.
+  /// неизменны при любом выборе игрока — 1 кот, 2 мышь (как MEOW_FRIENDS_4/_9 в MindLab),
+  /// дальше звери набора этого поля без кота. Поля 4×4 (малыши) и 9×9 (ступени лестницы).
   /// ⚠️ Картинки мыши в «Парах» нет (рисует задача 3ebe9d63): пока мышь — глиф 🐭.
   factory SudokuSymbols.meow(int n) {
-    const picks = [0, -1, 9, 11]; // кот · мышь (без картинки) · пингвин · свинья
-    if (n != picks.length) return SudokuSymbols.animals(n);
+    final rest = animalPicks[n]?.where((i) => i != 0).toList();
+    if (rest == null || rest.length < n - 2) return SudokuSymbols.digits(n);
+    final picks = [0, -1, ...rest.take(n - 2)]; // кот · мышь (без картинки) · звери поля
     return SudokuSymbols._(
       ['', for (final i in picks) i < 0 ? '🐭' : animalGlyphs[i]!],
       images: ['', for (final i in picks) i < 0 ? '' : animalImage(i)],

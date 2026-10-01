@@ -107,6 +107,16 @@ void main() {
     expect(friendsHold([[0, 0], [0, 0]]), isTrue, reason: 'кота нет — правилу не о чем судить');
   });
 
+  test('🔴 значки «Мяу» на любом поле: 1 — кот, 2 — мышь, все разные (4×4 малышей и 9×9 лестницы)', () {
+    for (final n in [4, 9]) {
+      final s = symbolsFor(skin: SudokuSkin.digits,
+          variant: friendsVariant, solution: List.generate(n, (_) => List.filled(n, 1)), language: 'ru', seed: 1);
+      expect(s.glyph(friendsCat), '🐱', reason: '$n×$n: 1 не кот');
+      expect(s.glyph(friendsMouse), '🐭', reason: '$n×$n: 2 не мышь');
+      expect({for (var v = 1; v <= n; v++) s.glyph(v)}.length, n, reason: '$n×$n: два значения с одним зверем');
+    }
+  });
+
   Future<SharedState> open(WidgetTester tester, {int step = 1, List<Map<String, dynamic>>? reports}) async {
     SharedPreferences.setMockInitialValues({'language': 'ru'});
     if (reports != null) SessionReport.sink = (json) async => reports.add(jsonDecode(json) as Map<String, dynamic>);
