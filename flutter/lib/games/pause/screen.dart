@@ -28,6 +28,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 
 import '../../shell/app_haptics.dart';
+import '../../shell/audio_host.dart' show appSoundOn;
 import '../../shell/aux_action.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/game_shell.dart';
@@ -38,6 +39,7 @@ import '../../shell/voice.dart';
 import '../../shell/voice_system.dart';
 import 'breathing.dart';
 import 'eye_gym.dart';
+import 'breath_cues.dart';
 import 'practice_haptics.dart';
 import 'practices.dart';
 import 'stage.dart';
@@ -79,6 +81,7 @@ class PauseScreen extends StatefulWidget {
     this.copy,
     this.clock,
     this.voice,
+    this.breathCues,
     this.today,
   });
 
@@ -97,6 +100,9 @@ class PauseScreen extends StatefulWidget {
 
   /// Голос подсказки. Пробы подают свой, чтобы слышать, что прозвучало.
   final VoiceLayer? voice;
+
+  /// Проигрыватель звуков фаз «Дыхания» — подменяется в пробах (`breath_cues.dart`).
+  final BreathCueBackend? breathCues;
 
   @override
   State<PauseScreen> createState() => PauseScreenState();
@@ -149,6 +155,11 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
   /// Достигнутый уровень и лучший — по ключам веба (`usePersistentLevel('eye_gym')`).
   int get eyeLevel => clampEyeLevel(int.tryParse(widget.state.get(_eyeLevelKey) ?? '') ?? 1);
   int get eyeBest => math.max(eyeLevel, clampEyeLevel(int.tryParse(widget.state.get(_eyeBestKey) ?? '') ?? 1));
+  /// Звуки фаз «Дыхания» (тон на вдох/задержку/выдох, щелчок отсчёта) — как у веб-игры.
+  late final BreathCues _cues = BreathCues(
+    backend: widget.breathCues ?? JustAudioBreathCueBackend(),
+    soundOn: () => appSoundOn(widget.state),
+  );
   late final VoiceLayer _voice =
       widget.voice ?? VoiceLayer(backend: SystemVoiceBackend(), soundOn: () => !GamePreset.isCalm);
 
@@ -409,6 +420,7 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
           // Три секунды «устройся поудобнее» — первый вдох не уходит в никуда.
           _session = newSession(plan);
           _leadUntil = _now + 3000;
+          _cues.reset();
         } else {
           _session = sessionAction(newSession(plan), 'start', _now);
         }
@@ -481,6 +493,7 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
     final lead = _leadUntil;
     if (lead != null && _session?['phase'] == 'ready') {
       if (_now < lead) {
+        if (_breath) _cues.lead(((lead - _now) / 1000).ceil());
         setState(() {});
         return;
       }
@@ -499,6 +512,21 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
     } else {
       _haptics.update(next['plan'], next['elapsedMs'] as int);
       _speak();
+      if (_breath) _breathCue(next);
+    }
+  }
+
+  /// Тон фазы дыхания на смену шага — независимо от режима подсказок (веб-игра «Дыхание»
+  /// звучала всегда, если звук не выключен). Шаг различается по началу отрезка плана, а не
+  /// по имени: два одинаковых шага подряд на стыке циклов — это две фазы, два сигнала.
+  void _breathCue(Json s) {
+    final elapsed = s['elapsedMs'] as int;
+    for (final seg in objects(s['plan']['timeline'])) {
+      if (seg['setId'] != 'breathing') continue;
+      if (elapsed >= (seg['startMs'] as int) && elapsed < (seg['endMs'] as int)) {
+        _cues.step('${seg['programId']}/${seg['stepId']}@${seg['startMs']}', seg['stepId'] as String);
+        return;
+      }
     }
   }
 
@@ -716,6 +744,7 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
 
   @override
   void dispose() {
+    unawaited(_cues.dispose());
     WidgetsBinding.instance.removeObserver(this);
     _ticker.dispose();
     _haptics.dispose();
