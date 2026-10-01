@@ -45,6 +45,13 @@ class GeneratorStore {
   String get flagKey => '${SharedState.prefix}${gameId}_adaptive_on_$profile';
   String get shadowKey => '${SharedState.prefix}${gameId}_adaptive_shadow_$profile';
 
+  /// Отметка «пилот уже начинался» — чтобы выключить и снова включить путь без потери
+  /// счёта побед. Первое включение обнуляет номер (победы лестницы — не победы пилота),
+  /// последующие — нет. У «Судоку» ключ прежний: `psygames_sudoku_adaptive_pilot_<профиль>`.
+  String get pilotKey => '${SharedState.prefix}${gameId}_adaptive_pilot_$profile';
+  bool get pilotStarted => state.get(pilotKey) == '1';
+  void markPilotStarted() => state.set(pilotKey, '1');
+
   /// Включён ли путь генератора. По умолчанию — НЕТ: пилот за флагом (§10 шаг 3).
   bool get enabled => state.get(flagKey) == '1';
 
@@ -81,5 +88,6 @@ class GeneratorStore {
     state.set(stateKey, '');
     state.set(shadowKey, '');
     state.set(flagKey, '0');
+    state.set(pilotKey, '');
   }
 }
