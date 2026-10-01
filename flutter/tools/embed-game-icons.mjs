@@ -15,7 +15,10 @@
 //     Но 7 строк подписаны своим ключом (`suiteStroop` ведёт на `/games/stroop`), поэтому
 //     второй путь — по адресу. Адрес сверяется ЦЕЛИКОМ, с режимом после `?`: «Башни»
 //     судоку не получат иконку обычного судоку.
-// Свежесть сторожит `frontend/src/__tests__/flutter-game-icons-fresh.test.ts`.
+//   · 01.10.2026 (решение Дениса «да делай»): у режимов своя иконка — `MODE_ICONS` в том же
+//     `gameIcons.ts`, ключ = адрес строки целиком (41 головоломка Тэтхэма, «Башни» и «Неравенства»
+//     судоку, «Найди ход»). Они идут во второй путь, по адресу.
+// Свежесть сторожит `flutter/test/hub_game_icons_test.dart` (тем же правилом пересчитывает карту).
 //
 // Запуск: node flutter/tools/embed-game-icons.mjs
 import { readFileSync, writeFileSync, mkdirSync, readdirSync, copyFileSync, rmSync } from 'node:fs';
@@ -30,10 +33,19 @@ const GAMES_TS = join(FRONT, 'src', 'constants', 'games.ts');
 const SRC_DIR = join(FRONT, 'assets', 'images', 'game_icons');
 const OUT_DIR = join(FLUTTER, 'assets', 'game_icons');
 
-/** id → файл из реестра `GAME_ICONS` (строки вида `id: require('…/game_icons/file.webp')`). */
+/** id → файл из реестра `GAME_ICONS` (строки вида `id: require('…/game_icons/file.webp')`;
+ * id с дефисом пишется в кавычках: `'sudoku-samurai': require(…)`). */
 export function readRegistry(text) {
   const out = {};
-  const re = /^\s*([a-z0-9_]+):\s*require\('\.\.\/\.\.\/assets\/images\/game_icons\/([^']+)'\)/gm;
+  const re = /^\s*'?([a-z0-9_-]+)'?:\s*require\('\.\.\/\.\.\/assets\/images\/game_icons\/([^']+)'\)/gm;
+  for (let m; (m = re.exec(text)); ) out[m[1]] = m[2];
+  return out;
+}
+
+/** Адрес строки → файл из `MODE_ICONS` (режимы и экраны без записи в GAMES; ключ — адрес целиком). */
+export function readModes(text) {
+  const out = {};
+  const re = /^\s*'(\/games\/[^']+)':\s*require\('\.\.\/\.\.\/assets\/images\/game_icons\/([^']+)'\)/gm;
   for (let m; (m = re.exec(text)); ) out[m[1]] = m[2];
   return out;
 }
@@ -58,18 +70,26 @@ export function readGames(text) {
 
 const sorted = (o) => Object.fromEntries(Object.entries(o).sort(([a], [b]) => a.localeCompare(b)));
 
-export function buildIndex(registry, games) {
-  const pick = (m) => sorted(Object.fromEntries(Object.entries(m).filter(([, id]) => registry[id]).map(([k, id]) => [k, registry[id]])));
-  return { byNameKey: pick(games.byNameKey), byRoute: pick(games.byRoute) };
+export function buildIndex(registry, games, modes = {}) {
+  const pick = (m) => Object.fromEntries(Object.entries(m).filter(([, id]) => registry[id]).map(([k, id]) => [k, registry[id]]));
+  const byRoute = pick(games.byRoute);
+  // Адрес режима не должен спорить с адресом игры: две иконки на одну строку — ошибка реестра.
+  for (const [route, file] of Object.entries(modes)) {
+    if (byRoute[route] && byRoute[route] !== file) throw new Error(`${route}: в GAMES ${byRoute[route]}, в MODE_ICONS ${file}`);
+    byRoute[route] = file;
+  }
+  return { byNameKey: sorted(pick(games.byNameKey)), byRoute: sorted(byRoute) };
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
-  const registry = readRegistry(readFileSync(ICONS_TS, 'utf8'));
+  const iconsTs = readFileSync(ICONS_TS, 'utf8');
+  const registry = readRegistry(iconsTs);
+  const modes = readModes(iconsTs);
   const games = readGames(readFileSync(GAMES_TS, 'utf8'));
-  const index = buildIndex(registry, games);
+  const index = buildIndex(registry, games, modes);
   rmSync(OUT_DIR, { recursive: true, force: true });
   mkdirSync(OUT_DIR, { recursive: true });
-  const files = [...new Set(Object.values(registry))].sort();
+  const files = [...new Set([...Object.values(registry), ...Object.values(modes)])].sort();
   const have = new Set(readdirSync(SRC_DIR));
   const lost = files.filter((f) => !have.has(f));
   if (lost.length) throw new Error(`в реестре есть, на диске нет: ${lost.join(', ')}`);

@@ -1114,6 +1114,9 @@ const translations: Translations = {
   teachCorsiPath: { ru: 'Запоминайте не блоки по одному, а ПУТЬ, который рисуют вспышки: ведите по ним воображаемую линию. Пять вспышек становятся одним маршрутом — ломаной, буквой, зигзагом.', en: 'Memorise not the blocks one by one but the PATH the flashes trace: run an imaginary line through them. Five flashes become one route — a zigzag, a letter, a hook.' },
   teachCorsiBackward: { ru: 'В обратном режиме не разворачивайте на лету по одной точке. Сначала сложите маршрут вперёд, как его показали, — а при ответе пройдите его с конца.', en: 'In reverse mode do not flip it point by point on the fly. First build the route forwards, as it was shown, then walk it from the end when you answer.' },
   teachCorsiEyes: { ru: 'Ведите взгляд за каждой вспышкой и не отводите его до конца показа. Пропущенная вспышка рвёт весь маршрут — дальше уже угадывание.', en: 'Follow every flash with your eyes and do not look away until the display ends. One missed flash breaks the whole route — after that it is guessing.' },
+  teachNbackMatch: { ru: 'Совпадение — когда загорелась та же клетка, что N шагов назад. На 1-back сравнивайте с предыдущей: та же клетка — жмите.', en: 'A match is the same square that lit up N steps back. In 1-back compare with the previous one: same square — press.' },
+  teachNbackDepth: { ru: 'На 2-back держите в голове две последние клетки и сдвигайте их, как ленту: новую сравнивайте с той, что была две назад.', en: 'In 2-back keep the last two squares in mind and shift them like a tape: compare each new one with the square two steps back.' },
+  teachNbackLure: { ru: 'Ловушка: клетка повторила предыдущую, а не ту, что N назад. Похоже на совпадение, но это не оно — не жмите.', en: 'A trap: the square repeats the previous one, not the one N back. It looks like a match, but it is not — do not press.' },
   teachPicturePairsPlaces: { ru: 'Пока карты открыты, привязывайте картинки к местам: углы, края, середина. Потом открывайте не наугад, а туда, где видели пару.', en: 'While the cards are face up, tie each picture to a place: corners, edges, middle. Then open where you saw its twin, not at random.' },
   teachPicturePairsGroup: { ru: 'С тройками и четвёрками держите в памяти ВСЕ места одной картинки: группа снимается, только когда открыты все её карты подряд.', en: 'With triples and quads, keep EVERY place of one picture in mind: a group clears only when all its cards are opened in a row.' },
   teachPicturePairsSwap: { ru: 'С 22-го уровня после ошибки закрытые карты меняются местами, и пара подсвечивается. Перенесите картинку в памяти туда, куда уехала её карта.', en: 'From level 22, after a mistake face-down cards swap places and the pair lights up. Move the picture in your memory to where its card went.' },
@@ -2869,6 +2872,38 @@ const translations: Translations = {
     ru: 'Забег работает в веб-слое приложения; в этой сборке графика недоступна.',
     en: 'The run works in the app web layer; graphics are unavailable in this build.',
   },
+  teachRunMiddle: {
+    ru: 'Берёт середина числа, а не края. Чтобы взять из строки несколько синих, веди число вбок прямо через них, а красное объезжай.',
+    en: 'Your number takes what its middle runs over, not what its edges brush. To take several blues from one row, slide sideways right through them and steer around the reds.',
+  },
+  teachRunColumns: {
+    ru: 'У столба сложи обе стопки и выбирай большую сумму — первое число стопки часто обманывает. Сторону выбирай до столба: через него не перебраться.',
+    en: 'At a pole, add up both stacks and take the bigger sum — the first number of a stack often misleads. Choose your side before the pole: you cannot cross it.',
+  },
+  teachRunWalls: {
+    ru: 'Стена поперёк дороги: бери меньший минус. «×2» выгоднее «+N», только если твоё число уже больше N.',
+    en: 'A wall across the road: take the smaller minus. “×2” beats “+N” only if your number is already bigger than N.',
+  },
+  teachRunRamp: {
+    ru: 'Трамплин: заезжай на зелёную площадку — прыжок пронесёт над большим красным и над разрывом. Синие на другом краю — приманка: после них на площадку не успеть.',
+    en: 'Ramp: drive onto the green pad — the jump carries you over the big red and over the gap. Blues on the far side are bait: after them you will not make it to the pad.',
+  },
+  teachRunBridge: {
+    ru: 'Мост и разрыв: выбирай полосу заранее — сменить её можно только до начала пролёта. Мимо моста — падение, и забег кончается.',
+    en: 'Bridge and gap: pick your lane early — you can only change it before the span begins. Miss the bridge and you fall, and the run is over.',
+  },
+  teachRunArches: {
+    ru: 'Арки с ответами: сначала сосчитай пример, потом смотри на арки. Варианты отличаются на 1, 2 или 10 — сверяй последнюю цифру и десятки.',
+    en: 'Answer arches: solve the problem first, then look at the arches. The options differ by 1, 2 or 10 — check the last digit and the tens.',
+  },
+  teachRunGuard: {
+    ru: 'Страж: на финише твоё число должно быть не меньше стража. Каждый промах и каждое красное — минус, береги число до конца.',
+    en: 'Guardian: at the finish your number must be at least the guardian’s. Every miss and every red costs you, so protect your number to the end.',
+  },
+  teachRunPile: {
+    ru: 'Кучка вместо цифры: считай полные рамки по десять и клетки в неполной — 4 рамки и 7 клеток это 47. Рамка — два столбика по пять: сколько клеток и сколько пусто, видно сразу, без пересчёта.',
+    en: 'A pile instead of digits: count the full frames of ten and the cells in the part-filled one — 4 frames and 7 cells make 47. A frame is two columns of five, so you see how many are filled and how many are empty at a glance, without counting.',
+  },
   levelAlmost: { ru: 'Уровень {n} — почти!', en: 'Level {n} — almost!' },
   cleanRunBadge: { ru: '🔥 Серия {n} чистых', en: '🔥 Clean run {n}' },
   levelStarting: { ru: 'Уровень {n} запускается…', en: 'Starting level {n}…' },
@@ -4425,6 +4460,9 @@ const translations: Translations = {
   lspanMemorizeHint: { ru: 'Запоминай слова и их порядок — экран их не покажет', en: 'Memorize the words and their order — the screen will not show them' },
   lspanRecallTitle: { ru: 'Что ты услышал?', en: 'What did you hear?' },
   lspanRecallHint: { ru: 'Тапай услышанные слова В ТОМ ЖЕ ПОРЯДКЕ ({i}-е из {n})', en: 'Tap the words you heard IN THE SAME ORDER ({i} of {n})' },
+  teachLspanOrder: { ru: 'Слова звучат по одному, на экране их нет. Нажмите услышанные в том же порядке: первое услышанное — первым.', en: 'The words are spoken one by one and never shown. Tap the ones you heard in the same order: the first word heard goes first.' },
+  teachLspanOrderMiss: { ru: 'Верные слова не в том порядке — это ошибка, и раунд сразу кончается. За партию прощается одна ошибка.', en: 'The right words in the wrong order count as a mistake, and the round ends at once. One mistake per game is allowed.' },
+  teachLspanSimilar: { ru: 'Позже рядом с услышанными встают похожие слова. Нажимайте услышанное, а не созвучное.', en: 'Later on, look-alike words appear next to the ones you heard. Tap the word you heard, not the one that sounds like it.' },
   pwEchoConfigDesc: { ru: 'Слушай выдуманное слово и выбери, как оно пишется. Тренирует фонологическую петлю — ключ к росту словаря.', en: 'Listen to a made-up word and pick its correct spelling. Trains the phonological loop — the key to vocabulary growth.' },
   pwEchoLvlAuto: { ru: 'Ур. {n} — растёт сам (длиннее слова → больше раундов)', en: 'Lv {n} — grows with results (longer words → more rounds)' },
   pwEchoUnsupportedNote: { ru: '中文 и हिन्दी пока не поддерживаются: для них нельзя честно собрать похожие варианты написания на слух.', en: '中文 and हिन्दी are not supported yet: sound-alike spelling options can’t be built fairly for those scripts.' },
