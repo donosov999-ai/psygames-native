@@ -85,12 +85,19 @@ for abi in arm64-v8a armeabi-v7a x86_64; do
   esac
   CC="$BIN/clang"
   mkdir -p "$OUT/$abi"
+  # 🔴 -lm и --no-undefined (01.10.2026). Без -lm библиотека СОБИРАЛАСЬ, а на телефоне падала:
+  # «dlopen failed: cannot locate symbol "atan2"» — все 42 головоломки не открывались в релизе
+  # 2.56.1 (проверка на эмуляторе ДО заливки). Компоновщик по умолчанию разрешает неразрешённые
+  # символы в .so, и ошибка всплывала только при загрузке. --no-undefined валит сборку здесь же.
   "$CC" --target=$TARGET$API -O2 -DCOMBINED -fvisibility=hidden -fPIC \
-    -I"$WORK/gen" -I"$SRC" -shared -o "$OUT/$abi/libtatham.so" $SRCS 2> "$WORK/build-$abi.err" || {
+    -I"$WORK/gen" -I"$SRC" -shared -o "$OUT/$abi/libtatham.so" $SRCS \
+    -lm -Wl,--no-undefined 2> "$WORK/build-$abi.err" || {
       grep -E "error:" "$WORK/build-$abi.err" | head -5; exit 5; }
   SZ=$(wc -c < "$OUT/$abi/libtatham.so" | tr -d ' ')
   N=$("$BIN/llvm-nm" -D --defined-only "$OUT/$abi/libtatham.so" 2>/dev/null | grep -c ' T psy_' || true)
-  echo "$abi · $SZ байт · экспортов psy_*: $N"
+  NEEDED=$("$BIN/llvm-readelf" -d "$OUT/$abi/libtatham.so" | grep -o 'Shared library: \[[^]]*\]' | tr '\n' ' ')
+  echo "$abi · $SZ байт · экспортов psy_*: $N · зависит от: $NEEDED"
+  echo "$NEEDED" | grep -q 'libm.so' || { echo "🔴 в $abi нет libm.so в зависимостях — atan2/sqrt не найдутся на телефоне"; exit 7; }
   # ⚠️ Библиотека без экспортов собирается молча и падает на первом ходе у человека.
   [ "$N" -ge 15 ] || { echo "🔴 в $abi нет экспортов psy_* — Dart не найдёт их по имени"; exit 6; }
 done
