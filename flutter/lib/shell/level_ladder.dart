@@ -101,6 +101,19 @@ class LevelLadder {
   /// этому признаку экран решает, пора ли боя с боссом ([BossRound.due]): веха — свойство
   /// засчитанного уровня. Узнать это после вызова иначе нельзя — отметку разбора этот же
   /// вызов и снимает.
+  /// 🔴 МЕТКА ШАГА ДОЕЗЖАЕТ В ПАРТИЮ, КАК У ВЕБА (задача 177a13df).
+  ///
+  /// «Оценка» узнаёт партию своего шага дословно: `sessionFitsStep` (`assessment.ts`)
+  /// сверяет `difficulty` и `mode` партии с шагом. Шаг кладёт их в настройки как `diff` и
+  /// `mode` (`stepToParams`, `warmup.ts`), а нативная партия уходила с `difficulty` =
+  /// уровень и без `mode` — замер 30.09.2026: digit_span и sdmt шаг не опознавал, домен
+  /// молча становился «средним, z = 0». Экран, передавший метку сам, — главнее.
+  static String? _stepLabel(String key) {
+    if (!GamePreset.isPreset) return null;
+    final v = GamePreset.params[key];
+    return v == null || v.isEmpty ? null : v;
+  }
+
   Future<bool> win({
     int score = 0,
     int timeSeconds = 0,
@@ -125,8 +138,8 @@ class LevelLadder {
       score: score,
       timeSeconds: timeSeconds,
       errors: errors,
-      mode: mode ?? sessionMode,
-      difficulty: difficulty ?? '$_level',
+      mode: mode ?? _stepLabel('mode') ?? sessionMode,
+      difficulty: difficulty ?? _stepLabel('diff') ?? '$_level',
       details: _withLesson(details, lesson),
     );
     return counted;
@@ -168,8 +181,8 @@ class LevelLadder {
         score: score,
         timeSeconds: timeSeconds,
         errors: errors,
-        mode: mode ?? sessionMode,
-        difficulty: difficulty ?? '$_level',
+        mode: mode ?? _stepLabel('mode') ?? sessionMode,
+        difficulty: difficulty ?? _stepLabel('diff') ?? '$_level',
         details: _withLesson(details, lesson),
       );
       return;
@@ -185,8 +198,8 @@ class LevelLadder {
       score: score,
       timeSeconds: timeSeconds,
       errors: errors,
-      mode: mode ?? sessionMode,
-      difficulty: difficulty ?? '$_level',
+      mode: mode ?? _stepLabel('mode') ?? sessionMode,
+      difficulty: difficulty ?? _stepLabel('diff') ?? '$_level',
       details: details,
     );
   }
