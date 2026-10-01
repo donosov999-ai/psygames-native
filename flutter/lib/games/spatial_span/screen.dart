@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/l10n.dart';
+import '../../shell/game_preset.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/level_rules.dart';
@@ -71,6 +72,9 @@ class _SpatialSpanScreenState extends State<SpatialSpanScreen> {
       _ready = true;
       _game = SpatialSpanGame(level: _ladder.level, random: widget.random);
     });
+    // Шаг зарядки начинается сам — перенос веб-`useAutostartWhenReady` (spatial-span.tsx:263;
+    // отчёт Дениса 01.10.2026: «каждое упражнение надо вручную»). Один раз, после загрузки уровня.
+    if (GamePreset.autostart) _start();
   }
 
   void _restart() {

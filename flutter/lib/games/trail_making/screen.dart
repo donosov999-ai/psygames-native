@@ -84,7 +84,11 @@ class _TrailMakingScreenState extends State<TrailMakingScreen> {
 
   Future<void> _boot() async {
     await _ladder.load();
-    if (mounted) setState(() => _ready = true);
+    if (!mounted) return;
+    setState(() => _ready = true);
+    // Шаг зарядки начинается сам — перенос веб-`useAutostartWhenReady` (trail-making.tsx:183;
+    // отчёт Дениса 01.10.2026: «каждое упражнение надо вручную»). Один раз, после загрузки уровня.
+    if (GamePreset.autostart) _start();
   }
 
   void _start() {

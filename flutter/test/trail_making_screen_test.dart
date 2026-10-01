@@ -229,7 +229,9 @@ void main() {
       (tester) async {
     GamePreset.set({'wu': '1', 'mode': 'A', 'count': '20'});
     await open(tester);
-    await press(tester, 'trail-start');
+    await tester.pump();
+    // Шаг зарядки начинается САМ, как в вебе (useAutostartWhenReady): кнопки «Начать» нет.
+    expect(find.byKey(const Key('trail-start')), findsNothing, reason: 'шаг зарядки не ждёт «Начать»');
     expect(nodeCount(), trailLevelParams(1).count + 1, reason: 'просили 20, освоено 6 — даётся 7');
     for (var i = 0; i < nodeCount(); i++) {
       await press(tester, 'trail-node-$i');
