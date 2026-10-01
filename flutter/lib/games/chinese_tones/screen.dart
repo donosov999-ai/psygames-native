@@ -45,6 +45,10 @@ class ChineseTonesScreen extends StatefulWidget {
 class _ChineseTonesScreenState extends State<ChineseTonesScreen> {
   late LevelLadder _ladder;
   Map<int, List<ZhSyllable>>? _bank;
+
+  /// Банк заданий партии — тот, что прозвучит на этом устройстве ([ctPlayableBank]).
+  /// Разбор берёт полный [_bank]: ему нужна основа во всех четырёх тонах, а таких с записью нет.
+  Map<int, List<ZhSyllable>>? _playBank;
   VoiceLayer? _voice;
   NoiseLayer? _noise;
   VoiceBlock? _block;
@@ -86,10 +90,14 @@ class _ChineseTonesScreenState extends State<ChineseTonesScreen> {
     final voice = widget.voice ?? await AudioHost.voice(widget.state);
     final noise = widget.noise ?? AudioHost.noise(widget.state);
     // Без китайского голоса упражнение невозможно по построению — говорим об этом.
-    final block = await voice.blockedReason('zh');
+    final systemVoice = await voice.hasSystemVoice('zh');
+    final playBank = ctPlayableBank(bank, systemVoice: systemVoice, hasRecording: (zh) => voice.hasRecording(zh, 'zh'));
+    final silent = playBank.values.any((l) => l.isEmpty);
+    final block = await voice.blockedReason('zh') ?? (silent ? VoiceBlock.noVoice : null);
     if (!mounted) return;
     setState(() {
       _bank = bank;
+      _playBank = silent ? bank : playBank;
       _voice = voice;
       _noise = noise;
       _block = block;
@@ -103,7 +111,7 @@ class _ChineseTonesScreenState extends State<ChineseTonesScreen> {
     final p = ctLevelParams(_ladder.level);
     setState(() {
       _params = p;
-      _trials = buildCtTrials(_bank!, p.trials, p.pinyinMode, _rng);
+      _trials = buildCtTrials(_playBank ?? _bank!, p.trials, p.pinyinMode, _rng);
       _idx = 0;
       _answered = null;
       _hits = _errors = _replays = 0;

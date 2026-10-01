@@ -192,6 +192,11 @@ class SystemVoiceBackend implements VoiceBackend {
   @override
   Future<bool> hasSystemVoice(String bcp47) async {
     try {
+      // 🔴 На Android список языков синтезатора включает и НЕскачанные голоса: язык «есть»,
+      // а произнести нечем. Точный ответ — isLanguageInstalled (флаг NOT_INSTALLED у голоса).
+      if (defaultTargetPlatform == TargetPlatform.android) {
+        return await _tts.isLanguageInstalled(bcp47) == true;
+      }
       final languages = await _tts.getLanguages as List<dynamic>?;
       if (languages == null || languages.isEmpty) {
         // Часть платформ отдаёт пустой список до первого произнесения. В вебе
