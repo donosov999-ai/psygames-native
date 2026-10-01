@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/gestures.dart' show DeviceGestureSettings;
@@ -6,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import '../../shell/aux_action.dart';
 import '../../shell/demo_lesson.dart';
+import '../../shell/game_clock.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/js_compat.dart' show jsRound;
@@ -48,7 +48,6 @@ class TrailMakingScreen extends StatefulWidget {
 class _TrailMakingScreenState extends State<TrailMakingScreen> {
   late final LevelLadder _ladder =
       LevelLadder(gameId: 'trail_making', store: SharedLevelStore(widget.state), maxLevel: trailLevels);
-  final Stopwatch _clock = Stopwatch()..start();
   bool _ready = false;
   TrailPhase _phase = TrailPhase.ready;
   TrailGame? _game;
@@ -59,7 +58,7 @@ class _TrailMakingScreenState extends State<TrailMakingScreen> {
   double _startedAt = 0;
   double _elapsed = 0;
   bool _passed = false;
-  Timer? _tick;
+  GameTimer? _tick;
   Offset? _drag;
 
   /// Канва партии. Считается в ПЕРВОМ кадре партии, а не до старта: до старта снизу стоит кнопка
@@ -67,7 +66,9 @@ class _TrailMakingScreenState extends State<TrailMakingScreen> {
   Size _canvas = const Size(328, 352);
   math.Random? _rnd;
 
-  double _now() => widget.now?.call() ?? _clock.elapsedMicroseconds / 1e6;
+  /// Время партии в секундах — по ИГРОВЫМ часам (`lib/shell/game_clock.dart`): на паузе каркаса,
+  /// в разборе и в фоне они стоят, и лимит ступени не тает, пока человек читает меню.
+  double _now() => widget.now?.call() ?? gameNow() / 1000;
 
   @override
   void initState() {
@@ -110,7 +111,7 @@ class _TrailMakingScreenState extends State<TrailMakingScreen> {
       _startedAt = _now();
       _elapsed = 0;
     });
-    _tick = Timer.periodic(const Duration(milliseconds: 100), (_) {
+    _tick = gameInterval(const Duration(milliseconds: 100), () {
       if (mounted && _phase == TrailPhase.playing) setState(() => _elapsed = _now() - _startedAt);
     });
   }

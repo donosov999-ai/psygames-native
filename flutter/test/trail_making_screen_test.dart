@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/trail_making/model.dart';
 import 'package:psygames_flutter/games/trail_making/screen.dart';
+import 'package:psygames_flutter/shell/game_clock.dart';
 import 'package:psygames_flutter/shell/game_preset.dart';
 import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/lesson_player.dart';
@@ -174,6 +175,40 @@ void main() {
     }
     await tester.pump();
     expect(await storedLevel(), 2, reason: 'разбор показывал ДРУГУЮ раскладку — партия засчитывается');
+  });
+
+  testWidgets('🔴 пауза каркаса не съедает лимит ступени: время партии идёт по игровым часам', (tester) async {
+    // Без подставных часов `now`: экран берёт время сам, и проба держит НАСТЕННЫЕ часы игровых.
+    // Десять минут паузы посреди партии при лимите первой ступени 16 с: по настенным часам —
+    // провал, по игровым — проход. Так ловится и `Stopwatch`, которого храповик часов не видит.
+    var wall = 1000000;
+    resetGameClock();
+    gameWallMs = () => wall;
+    addTearDown(() {
+      gameWallMs = () => DateTime.now().millisecondsSinceEpoch;
+      resetGameClock();
+    });
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await tester.pumpWidget(MaterialApp(home: TrailMakingScreen(state: state, random: math.Random(1))));
+    await tester.pump();
+    await tester.pump();
+    await press(tester, 'trail-start');
+    final n = nodeCount();
+    for (var i = 0; i < n; i++) {
+      if (i == 2) {
+        final release = holdGame();
+        wall += 600000;
+        release();
+      }
+      wall += 1000;
+      await press(tester, 'trail-node-$i');
+    }
+    await tester.pump();
+    expect(reports, hasLength(1));
+    expect(await storedLevel(), 2, reason: 'пауза в 10 минут не вошла во время партии — ступень пройдена');
   });
 
   testWidgets('время вышло — ступень не пройдена, лестница стоит, партия всё равно в статистике', (tester) async {
