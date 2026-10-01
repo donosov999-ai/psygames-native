@@ -95,6 +95,7 @@ import '../games/dictation/screen.dart';
 import '../games/rhythm_pitch/screen.dart';
 import 'hub_screen.dart';
 import 'warmup_bridge.dart';
+import 'warmup_step_bridge.dart';
 import 'game_pet.dart';
 import 'session_report.dart';
 import 'game_preset.dart';
@@ -518,6 +519,10 @@ class _HybridAppState extends State<HybridApp> {
     // Делегат оставлен: он нужен для внешних ссылок и первой загрузки.
     try {
       final m = jsonDecode(message);
+      if (m is Map && m['op'] == 'warmupStepDone') {
+        unawaited(_warmupStepDone(Map<String, Object?>.from(m)));
+        return;
+      }
       if (m is Map && m['op'] == 'route') {
         final url = '${m['url']}';
         final route = HybridApp.routeOf(url);
@@ -610,9 +615,13 @@ class _HybridAppState extends State<HybridApp> {
           _openNative(route, query: HybridApp.queryOf(req.url));
           return NavigationDecision.prevent;
         },
-        onPageStarted: (_) => _c.runJavaScript(widget.state.bootstrapJs()),
+        onPageStarted: (_) {
+          _c.runJavaScript(widget.state.bootstrapJs());
+          _c.runJavaScript(_hostWarmupJs());
+        },
         onPageFinished: (_) {
           _c.runJavaScript(widget.state.bootstrapJs());
+          _c.runJavaScript(_hostWarmupJs());
           if (tapLatencyProbe) {
             _c.runJavaScript(webTapLatencyJs('Веб/страница'));
             _c.runJavaScript(webStimulusMarkJs());
@@ -696,6 +705,67 @@ class _HybridAppState extends State<HybridApp> {
     // `history.back()` вернул бы человека в игру, из которой зарядка его вывела.
     _closedByPage = true;
     Navigator.of(context).pop();
+  }
+
+  /*
+   * 🔴 МЕЖДУ ДВУМЯ НАТИВНЫМИ ШАГАМИ ЗАРЯДКИ ПЕРЕХОД ВЕДЁТ ОБОЛОЧКА (решение Дениса
+   * 01.10.2026: «зачем вебом скреплять переходы между двумя упражнениями? это
+   * лишний глюк»). Раньше: партия → 2 с → веб-мост `/warmup-bridge` → 5 с → смена
+   * адреса → перехват → «закрыть старый / открыть новый». Теперь веб, засчитав
+   * нативную партию, шлёт `warmupStepDone` (`frontend/src/services/hostWarmup.ts`),
+   * а оболочка показывает свой мост (`warmup_step_bridge.dart`) и сама открывает
+   * следующую игру. Веб остаётся учётом: `goTo` двигает номер шага и ставит адрес
+   * страницы на тот же шаг — для перехвата это «тот же экран» (`RouteAction.keep`).
+   */
+
+  /// Какие адреса оболочка рисует сама и на каком языке говорит человек — по этому
+  /// веб решает, отдать ли переход между шагами зарядки оболочке.
+  String _hostWarmupJs() {
+    final routes = {for (final r in HybridApp.native.keys) r.split('?').first}.toList()..sort();
+    return 'window.__psyHostNativeRoutes=${jsonEncode(routes)};'
+        'window.__psyHostLang=${jsonEncode(widget.state.language)};';
+  }
+
+  Future<void> _warmupStepDone(Map<String, Object?> m) async {
+    final done = WarmupStepDone.fromJson(m);
+    final next = done == null ? null : HybridApp.routeOf('${widget.server.origin}${done.nextUrl}');
+    // 🔴 ВЕБ ЖДЁТ ОТВЕТА: свой переход он в этом случае не планирует. Вести не можем
+    // (экран уже закрыт, следующий шаг не наш) — возвращаем переход вебу.
+    if (done == null || next == null || _openedRoute == null || !mounted) {
+      final from = m['fromIdx'];
+      if (from is num) {
+        await _c.runJavaScript('window.__psyWarmupHost && window.__psyWarmupHost.advance(${from.toInt()});');
+      }
+      return;
+    }
+    // Игра успевает показать свой итог — как у веб-зарядки (2 с, вечером 3,5).
+    final shown = _openedRoute;
+    await Future<void>.delayed(Duration(milliseconds: done.evening ? 3500 : 2000));
+    if (!mounted || _openedRoute != shown) {
+      // Человек ушёл из игры сам, пока она показывала итог: переход — вебу.
+      await _c.runJavaScript('window.__psyWarmupHost && window.__psyWarmupHost.advance(${done.fromIdx});');
+      return;
+    }
+    final choice = await Navigator.of(context).push<WarmupBridgeChoice>(
+      MaterialPageRoute(builder: (_) => WarmupStepBridge(done: done)),
+    );
+    if (!mounted) return;
+    switch (choice) {
+      case WarmupBridgeChoice.go:
+        // Снять сыгранную игру и сразу открыть следующую — без страницы посередине.
+        _closeNativeBecausePageMoved();
+        unawaited(_openNative(next, query: HybridApp.queryOf(done.nextUrl)));
+        await _c.runJavaScript('window.__psyWarmupHost && window.__psyWarmupHost.goTo(${done.fromIdx + 1});');
+      case WarmupBridgeChoice.skip:
+        // Следующий шаг пропущен: страница сама уйдёт на шаг через один (или на итог),
+        // а перехват откроет его, если он наш.
+        _closeNativeBecausePageMoved();
+        await _c.runJavaScript('window.__psyWarmupHost && window.__psyWarmupHost.goTo(${done.fromIdx + 2});');
+      case WarmupBridgeChoice.stop:
+      case null:
+        _closeNativeBecausePageMoved();
+        await _c.runJavaScript('window.__psyWarmupHost && window.__psyWarmupHost.stop();');
+    }
   }
 
   Future<void> _openNative(String route, {Map<String, String> query = const {}}) async {
