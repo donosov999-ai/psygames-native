@@ -693,7 +693,7 @@ List<int> _windowFor(int n, bool Function(List<int> items, int i) want, int seed
       if (want(seq.items, i)) return seq.items.sublist(i - n - 1, i + 1);
     }
   }
-  throw StateError('n-back: генератор не дал примера для разбора');
+  throw StateError('n-back: generator gave no example for the lesson');
 }
 
 /// РАЗБОР ПО ШАГАМ: три приёма n-back на сетке самой игры.

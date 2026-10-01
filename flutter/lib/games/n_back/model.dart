@@ -183,7 +183,7 @@ NbackSequence _buildOnce(int trials, int n, int alphabet, NbRng rng, double? lur
     final pool = [for (var v = 0; v < alphabet; v++) if (!forbidden.contains(v)) v];
     // Запрещено максимум три значения при алфавите от девяти: пусто — значит алфавит
     // кто-то поменял не заметив, и честнее упасть, чем поставить совпадение молча.
-    if (pool.isEmpty) throw StateError('n-back: алфавита $alphabet не хватает при n=$n');
+    if (pool.isEmpty) throw StateError('n-back: alphabet $alphabet is too small for n=$n');
     items[i] = pool[(rng() * pool.length).floor()];
   }
   return NbackSequence(items, matchAt, lureAt);
