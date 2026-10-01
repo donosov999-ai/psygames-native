@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import '../../shell/game_preset.dart';
 import '../../shell/aux_action.dart';
+import '../../shell/boss_round.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
@@ -47,6 +48,9 @@ class _CorsiScreenState extends State<CorsiScreen> {
 
   /// Человек попросил ответ: партия кончается без зачёта, блоки показывают порядок.
   bool _revealed = false;
+
+  /// Итог боя с боссом на вехе лестницы; null — боя в этой партии не было.
+  bool? _boss;
   Timer? _timer;
   DateTime? _startedAt;
 
@@ -89,6 +93,7 @@ class _CorsiScreenState extends State<CorsiScreen> {
     _feedback = Feedback.none;
     _lit = null;
     _revealed = false;
+    _boss = null;
     _startedAt = null;
     // Новая раздача — партия снова зачётная. Без этого одна открытая карточка
     // разбора замораживала лестницу: отметка общая на всё приложение.
@@ -171,16 +176,11 @@ class _CorsiScreenState extends State<CorsiScreen> {
     });
   }
 
-  void _finish() {
+  Future<void> _finish() async {
     final g = _game!;
     final seconds = _startedAt == null
         ? 0
         : DateTime.now().difference(_startedAt!).inSeconds;
-    setState(() {
-      _phase = Phase.done;
-      _feedback = Feedback.none;
-      _lit = null;
-    });
     /*
      * 🔴 МЕТКИ ПАРТИИ — КАК У ВЕБ-ЭКРАНА, А В ШАГЕ «ОЦЕНКИ» — МЕТКИ ШАГА.
      * «Оценка» опознаёт партию по difficulty и mode ДОСЛОВНО (sessionFitsStep,
@@ -196,13 +196,29 @@ class _CorsiScreenState extends State<CorsiScreen> {
     final mode = preset ? direction : 'L${g.level}';
     final details = <String, Object?>{'level': g.level, 'span': g.span};
     // Уровень взят, если человек повторил ряд той длины, с которой уровень начинается.
+    // Веха как в вебе (corsi.tsx, BOSS_EVERY = 3): каждый третий ЗАСЧИТАННЫЙ уровень —
+    // бой «сложи подсвеченные», резкая смена правила: память позиций → счёт чисел.
+    // Бой идёт ДО итога партии; пока он открыт, поле держит последний отклик и нажатий
+    // не принимает (_tap ждёт Feedback.none), а «спокойного момента» для правила
+    // уровня ещё нет — карточка правила не встанет поверх боя.
+    bool? boss;
     if (g.passed) {
-      _ladder.win(score: g.score, timeSeconds: seconds, errors: g.errors,
-          mode: mode, difficulty: difficulty, details: details);
+      boss = await BossRound.winThenBoss(context, _ladder,
+          type: BossType.counting,
+          color: const Color(0xFF0083B0),
+          win: () => _ladder.win(score: g.score, timeSeconds: seconds, errors: g.errors,
+              mode: mode, difficulty: difficulty, details: details));
     } else {
-      _ladder.fail(score: g.score, timeSeconds: seconds, errors: g.errors,
+      await _ladder.fail(score: g.score, timeSeconds: seconds, errors: g.errors,
           mode: mode, difficulty: difficulty, details: details);
     }
+    if (!mounted) return;
+    setState(() {
+      _phase = Phase.done;
+      _feedback = Feedback.none;
+      _lit = null;
+      _boss = boss;
+    });
   }
 
   @override
@@ -248,10 +264,16 @@ class _CorsiScreenState extends State<CorsiScreen> {
       toolbar: _phase == Phase.done
           ? Padding(
               padding: const EdgeInsets.all(12),
-              child: FilledButton.icon(
-                onPressed: () => setState(_reset),
-                icon: const Icon(Icons.arrow_forward),
-                label: Text(g.passed && !_revealed ? L.t('nextLabel') : L.t('retry')),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  BossOutcomeLine(_boss),
+                  FilledButton.icon(
+                    onPressed: () => setState(_reset),
+                    icon: const Icon(Icons.arrow_forward),
+                    label: Text(g.passed && !_revealed ? L.t('nextLabel') : L.t('retry')),
+                  ),
+                ],
               ),
             )
           : null,
