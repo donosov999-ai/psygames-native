@@ -68,6 +68,11 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
+  # Значки приложения iOS / Android / macOS — из одного исходника `store/appstore/icon-1024-noalpha.png`
+  # (решение Дениса 18.09.2026). Конфиг — flutter_launcher_icons.yaml, запуск — tool/gen_app_icons.sh.
+  flutter_launcher_icons: ^0.14.4
+  # Сторож значков (test/app_icon_is_ours_test.dart) читает PNG — та же библиотека, что у генератора.
+  image: ^4.3.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -92,6 +97,11 @@ flutter:
   # реально попало в сборку, и краснеет на пропущенном каталоге.
   assets:
     - assets/levels/
+    - assets/digits/candy/
+    - assets/digits/elegant/
+    - assets/digits/neon/
+    - assets/digits/pastel/
+    - assets/digits/rainbow/
     - assets/hubs.json
     # Иконки игр «поле в миниатюре» для строк развилок — выгрузка веб-реестра
     # (flutter/tools/embed-game-icons.mjs), не править руками.
@@ -106,6 +116,9 @@ flutter:
     - assets/chess/
     # Корпус «Детского мата»: 718 своих матовых позиций + задачи Lichess (CC0)
     - assets/scholars_mate/
+    # «Найди ход»: 3 108 задач Lichess (CC0) по двенадцати приёмам, 430 КБ;
+    # генератор tools/find_move_corpus.py
+    - assets/find_move/
     - assets/faces-names.json
     - assets/memory-palace.json
     - assets/rmet.json
@@ -121,6 +134,7 @@ flutter:
     - assets/pause/
     - assets/pause/guides/
     - assets/pause/cosmic-body/
+    - assets/eye_stereograms/
     - assets/goods/
     - assets/tubes/
     - assets/balls/
