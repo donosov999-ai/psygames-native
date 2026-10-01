@@ -944,7 +944,8 @@ class _HybridAppState extends State<HybridApp> {
      * ⚠️ Перезагрузка — по событию `popstate`, а не следом: `history.back()` в WebKit
      * асинхронный, и перезагрузка в том же такте застала бы страницу на старом адресе.
      */
-    final reloadWeb = _watchedSnapshot() != watchedBefore;
+    // `takeWebDirty` — после переноса кодом / восстановления копии: прогресс переписан целиком.
+    final reloadWeb = (_watchedSnapshot() != watchedBefore) | SettingsScreen.takeWebDirty();
     if (mounted && !goingOn) {
       await _c.runJavaScript(reloadWeb
           ? "(function(){var d=false;function r(){if(d)return;d=true;location.reload();}"
