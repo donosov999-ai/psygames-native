@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:psygames_flutter/games/pause/screen.dart';
 import 'package:psygames_flutter/shell/hybrid_app.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -93,6 +94,8 @@ void main() {
       '$origin/games/inhibition',
       '$origin/games/faces-names',
       '$origin/games/memory-palace',
+      '$origin/games/mnemonics',
+      '$origin/games/mnemonics?wu=1&mode=numbers&itemCount=8',
       '$origin/games/rmet',
       '$origin/games/ant',
       '$origin/games/attention-conflict',
@@ -231,6 +234,10 @@ void main() {
       '/games/animal-queue',
       '/games/ant',
       '/games/attention-conflict',
+      // «Дыхание» слито в «Паузу»: тот же экран в режиме дыхания.
+      '/games/breathing',
+      // «Гимнастика для глаз» слита в «Паузу» тем же ходом.
+      '/games/eye-gym',
       // 🔴 Сорок три адреса головоломок стоят здесь ПОИМЁННО, хотя карта их
       // генерирует. Это не дубль: генератор отвечает на «что собралось», а список
       // — на «что мы согласились перехватывать». Переименуют режим в реестре —
@@ -281,6 +288,9 @@ void main() {
       '/games/ball-sort',
       '/games/bart',
       '/games/cake-sort',
+      // «Доска в уме» — партия и серия нативно (01.10.2026).
+      '/games/chess-blind',
+      '/games/chess-hub',
       '/games/choice-rt',
       '/games/cpt',
       '/games/corsi',
@@ -304,14 +314,20 @@ void main() {
       // MindLab у координатора (задача f5034811): четыре игры только нативные.
       '/games/traffic-jam',
       '/games/monster-traits',
+      '/games/kids-find',
+      '/games/submarines',
+      '/games/monster-traits?mode=missing',
       '/games/roll-and-bank',
       '/games/hidden-character',
+      // Раннер «Поиска глазами» (5386c0e8) — только нативный.
+      '/games/search-runner',
       '/games/mahjong',
       '/games/math-slider',
       '/games/math-sprint',
       '/games/memory-matrix',
       '/games/memory-palace',
       '/games/rmet',
+      '/games/mnemonics',
       '/games/mnemonics-hub',
       '/games/span',
       '/games/word-pairs',
@@ -337,6 +353,8 @@ void main() {
       '/games/one-line',
       '/games/ospan',
       '/games/pattern',
+      // «Пауза / Зарядка» — хаб практик; набор приходит хвостом `?set=` через GamePreset.
+      '/games/pause',
       '/games/posner',
       '/games/pizza-sort',
       '/games/prl',
@@ -427,5 +445,45 @@ void main() {
     expect(HybridApp.routeOf('https://psygames.app/games/anagrams?lang=ru&mode=cross'),
         anyOf('/games/anagrams?mode=cross', '/games/anagrams'),
         reason: 'хвост с двумя параметрами не должен терять режим');
+  });
+
+  test('«Пауза» открывается нативно и с набором в хвосте адреса', () async {
+    SharedPreferences.setMockInitialValues({});
+    final state = await SharedState.open();
+    for (final url in [
+      'https://psygames.app/games/pause',
+      'https://psygames.app/games/pause?set=breathing',
+      'https://psygames.app/games/pause.html?set=eye-gym&wu=1',
+    ]) {
+      final route = HybridApp.routeOf(url);
+      expect(route, '/games/pause', reason: url);
+      expect(HybridApp.native[route]!(state).runtimeType.toString(), 'PauseScreen', reason: url);
+    }
+  });
+
+  test('«Дыхание» открывается «Паузой» в режиме дыхания, с техникой в хвосте', () async {
+    SharedPreferences.setMockInitialValues({});
+    final state = await SharedState.open();
+    for (final url in [
+      'https://psygames.app/games/breathing',
+      'https://psygames.app/games/breathing?tech=sigh&wu=1',
+    ]) {
+      final route = HybridApp.routeOf(url);
+      expect(route, '/games/breathing', reason: url);
+      final screen = HybridApp.native[route]!(state);
+      expect(screen, isA<PauseScreen>(), reason: url);
+      expect((screen as PauseScreen).flavor, PauseFlavor.breathing, reason: url);
+    }
+  });
+
+  test('«Гимнастика для глаз» открывается «Паузой» в режиме глаз', () async {
+    SharedPreferences.setMockInitialValues({});
+    final state = await SharedState.open();
+    for (final url in ['https://psygames.app/games/eye-gym', 'https://psygames.app/games/eye-gym?wu=1']) {
+      final route = HybridApp.routeOf(url);
+      expect(route, '/games/eye-gym', reason: url);
+      final screen = HybridApp.native[route]!(state);
+      expect((screen as PauseScreen).flavor, PauseFlavor.eyeGym, reason: url);
+    }
   });
 }

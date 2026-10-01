@@ -9,10 +9,14 @@ import '../../shell/demo_lesson.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
+import '../../shell/lesson.dart';
+import '../../shell/lesson_player.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import 'core.dart';
+import '../hearing_common/lesson_cue.dart';
+import 'lesson.dart';
 import 'strings.dart';
 import 'tones.dart';
 
@@ -316,6 +320,54 @@ class _RhythmPitchScreenState extends State<RhythmPitchScreen> {
           defaultTargetPlatform == TargetPlatform.windows ||
           defaultTargetPlatform == TargetPlatform.linux);
 
+  /// Тексты разбора — из общего словаря, теми же ключами, что зовёт веб-учитель.
+  String _teach(String key, Map<String, String> args) {
+    var out = switch (key) {
+      'teachRpRhythmIntro' => L.t('teachRpRhythmIntro'),
+      'teachRpListen' => L.t('teachRpListen'),
+      'teachRpEven' => L.t('teachRpEven'),
+      'teachRpTap' => L.t('teachRpTap'),
+      'teachRpRhythmDone' => L.t('teachRpRhythmDone'),
+      'teachRpPitchIntro' => L.t('teachRpPitchIntro'),
+      'teachRpListenTones' => L.t('teachRpListenTones'),
+      'teachRpHigher' => L.t('teachRpHigher'),
+      'teachRpLower' => L.t('teachRpLower'),
+      _ => L.t('teachRpPitchDone'),
+    };
+    args.forEach((k, v) => out = out.replaceAll('{$k}', v));
+    return out;
+  }
+
+  /// Номер открытия разбора — зерно примера: каждый раз свой ряд, без настенных часов.
+  int _lessonNo = 0;
+
+  /// 🎓 Разбор по шагам (раздел «Память и слух», `lesson.dart`) вместо демо-карточки: свой раунд тем
+  /// же генератором и режимом, звучит на движке партии. Разбору нечего сказать (не вышло за пять
+  /// зёрен) — остаётся демо-карточка. Идёт партия — разбор делает её незачётной (LessonUsed); сама
+  /// партия под разбором встаёт на паузу (`didChangeDependencies`).
+  Future<void> _openLesson(String title) async {
+    final mode = _presetMode ?? rhythmPitchModeForLevel(_level);
+    _lessonNo += 1;
+    final ex = rpLessonExample(_level, mode, 'lesson-$_lessonNo');
+    if (ex == null) return openDemoLesson(context, title: title, trials: _demoTrials());
+    if (_phase == RpScreenPhase.playing) LessonUsed.mark();
+    final steps = rpLessonSteps(ex.cards, _teach);
+    await Navigator.of(context).push(MaterialPageRoute<void>(
+      builder: (_) => LessonPlayerScreen(
+        title: title,
+        steps: steps,
+        board: (context, side, i) {
+          final card = steps[i.clamp(0, steps.length - 1)].payload as RpCard;
+          return KeyedSubtree(
+            key: ValueKey('rp-lesson-$i'),
+            child: _RpLessonBoard(round: ex.round, card: card, engine: _engine, side: side),
+          );
+        },
+      ),
+    ));
+    unawaited(_engine.stop());
+  }
+
   List<DemoTrial> _demoTrials() => [
     DemoTrial(text: '● ● ○ ●', sub: _s.mode('rhythm-echo'), answer: _s.t('rhythmTap'), rule: _s.t('rhythmRule')),
     DemoTrial(text: '↑', sub: _s.mode('pitch-path'), answer: _s.direction('higher'), rule: _s.t('pitchRule')),
@@ -337,7 +389,7 @@ class _RhythmPitchScreenState extends State<RhythmPitchScreen> {
       onKeyEvent: _onKey,
       child: GameShell(
         title: title,
-        onLesson: () => openDemoLesson(context, title: title, trials: _demoTrials()),
+        onLesson: () => _openLesson(title),
         pauseActions: [
           if (_phase == RpScreenPhase.playing)
             PauseAction(label: L.t('restart'), icon: Icons.refresh, onPressed: _restart),
@@ -845,4 +897,106 @@ class _RhythmPitchScreenState extends State<RhythmPitchScreen> {
       ),
     );
   }
+}
+
+/// Поле разбора. Ритм — удары на линии времени по своим моментам (ровный ряд виден как равные шаги);
+/// высота — ноты по частоте и линия между ними: вверх или вниз. Карточка со звуком проигрывает пример
+/// через 350 мс на движке партии, громкость 0,8 — как в вебе.
+class _RpLessonBoard extends StatefulWidget {
+  const _RpLessonBoard({required this.round, required this.card, required this.engine, required this.side});
+
+  final RpRound round;
+  final RpCard card;
+  final RpToneEngine engine;
+  final double side;
+
+  @override
+  State<_RpLessonBoard> createState() => _RpLessonBoardState();
+}
+
+class _RpLessonBoardState extends State<_RpLessonBoard> with SingleTickerProviderStateMixin {
+  late final LessonCue _cue = LessonCue(this);
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.card.sound) {
+      // Через 350 мс: прошлая карточка успевает остановить свой звук (её dispose — после этого initState).
+      // Звук выключен или движка нет — разбор идёт текстом и полем, без падения.
+      _cue.run(1, (_) {
+        unawaited(widget.engine.playRound(widget.round, 0.8).then((_) {}, onError: (Object _) {}));
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _cue.dispose();
+    unawaited(widget.engine.stop());
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final side = widget.side;
+    final h = (side * 0.4).roundToDouble();
+    final r = widget.round;
+    return SizedBox(
+      width: side,
+      height: h,
+      child: CustomPaint(
+        key: ValueKey('rp-lesson-board-${r.mode}'),
+        painter: _RpLessonPainter(round: r, line: scheme.outlineVariant, dim: scheme.onSurfaceVariant),
+      ),
+    );
+  }
+}
+
+class _RpLessonPainter extends CustomPainter {
+  _RpLessonPainter({required this.round, required this.line, required this.dim});
+
+  final RpRound round;
+  final Color line;
+  final Color dim;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    const dot = 16.0;
+    final fill = Paint()..color = _grad0;
+    switch (round) {
+      case RhythmEchoRound(:final beats):
+        final end = beats.isEmpty ? 1.0 : (beats.last.onsetMs <= 0 ? 1.0 : beats.last.onsetMs);
+        canvas.drawLine(Offset(16, size.height / 2), Offset(size.width - 16, size.height / 2),
+            Paint()..color = line..strokeWidth = 2);
+        for (final b in beats) {
+          canvas.drawCircle(Offset(16 + dot + (size.width - 64) * b.onsetMs / end, size.height / 2), dot, fill);
+        }
+      case PitchPathRound(:final sequence, :final frequenciesHz):
+        final f = [for (final i in sequence) frequenciesHz[i]];
+        if (f.isEmpty) return;
+        final lo = f.reduce((a, b) => a < b ? a : b);
+        final hi = f.reduce((a, b) => a > b ? a : b);
+        double y(double v) => hi == lo ? size.height / 2 : 8 + dot + (hi - v) * (size.height - 48) / (hi - lo);
+        double x(int i) => size.width * (0.25 + 0.5 * i / (f.length - 1 < 1 ? 1 : f.length - 1));
+        final path = Path();
+        for (var i = 0; i < f.length; i += 1) {
+          i == 0 ? path.moveTo(x(i), y(f[i])) : path.lineTo(x(i), y(f[i]));
+        }
+        canvas.drawPath(
+          path,
+          Paint()
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 4
+            ..strokeCap = StrokeCap.round
+            ..color = _grad0.withValues(alpha: 0.45),
+        );
+        for (var i = 0; i < f.length; i += 1) {
+          canvas.drawCircle(Offset(x(i), y(f[i])), dot, i == 0 ? (Paint()..color = dim) : fill);
+        }
+    }
+  }
+
+  @override
+  bool shouldRepaint(_RpLessonPainter old) => old.round != round;
 }

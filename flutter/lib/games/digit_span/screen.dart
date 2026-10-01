@@ -2,11 +2,13 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../shell/game_preset.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/l10n.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/level_rules.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import 'model.dart';
@@ -54,7 +56,10 @@ class _DigitSpanScreenState extends State<DigitSpanScreen> {
 
   Future<void> _boot() async {
     await _ladder.load();
-    if (mounted) setState(_reset);
+    if (!mounted) return;
+    setState(_reset);
+    // Шаг зарядки начинается сам — перенос веб-`useAutostartWhenReady` (отчёт Дениса 01.10.2026).
+    if (GamePreset.autostart) _start();
   }
 
   void _reset() {
@@ -146,6 +151,8 @@ class _DigitSpanScreenState extends State<DigitSpanScreen> {
     if (g == null) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     final backward = _direction == Direction.backward;
     return GameShell(
+      // Правило уровня объявляет каркас — в спокойный момент, не поверх партии (задача e371fd3a).
+      levelRule: LevelRuleSpot(gameId: 'digit_span', level: _ladder.level, state: widget.state, calm: _phase == Phase.ready || _phase == Phase.done),
       title: L.t('digitSpan'),
       onLesson: () => openDemoLesson(context, title: L.t('digitSpan'), trials: _demoTrials()),
       hud: [

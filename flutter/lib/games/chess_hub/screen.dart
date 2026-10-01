@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../shell/hub_screen.dart';
 import '../../shell/shared_state.dart';
+import '../../shell/warmup_bridge.dart';
 
 /// РАЗВИЛКА «ШАХМАТЫ» — тонкий маршрут поверх общего хаба, как в вебе.
 ///
@@ -15,28 +16,29 @@ import '../../shell/shared_state.dart';
 /// «Детский мат» оставляет её на виду и меряет, за сколько секунд узнан узор.
 /// У каждого своя лестница и своя цифра роста.
 ///
-/// 🔴 ЧЕГО ЗДЕСЬ ПОКА НЕТ И ПОЧЕМУ МАРШРУТ НЕ ПЕРЕХВАЧЕН. В вебе над выбором
-/// стоит ШАХМАТНАЯ ЗАРЯДКА — карточка, которая ставит оба упражнения подряд по
-/// их собственным лестницам (`components/warmups/ChessWarmup.tsx`, 39 строк +
-/// `services/chessWarmup.ts`, 244). Общий `HubScreen` каркаса слота под шапку не
-/// имеет, а заводить свой хаб ради одного слота — это второй экран развилки,
-/// который разъедется с первым. Пока слота нет, перехват `/games/chess-hub`
-/// НЕ включён: иначе человек, открыв развилку, потерял бы рабочую зарядку и
-/// увидел бы это как поломку. Границу держит проба `chess_hub_test.dart`.
-class ChessHubScreen extends StatelessWidget {
-  const ChessHubScreen({super.key, required this.state, this.isNative});
-
-  final SharedState state;
-  final bool Function(String route)? isNative;
-
-  @override
-  Widget build(BuildContext context) => HubScreen(
-    state: state,
-    hubRoute: '/games/chess-hub',
-    icon: Icons.grid_on_outlined,
-    // Акцент раздела — тот же, что в вебе (АКЦЕНТ_ШАХМАТЫ), чтобы развилка
-    // не сменила цвет на переезде.
-    gradient: const [Color(0xFF8E5B2F), Color(0xFF2F2A24)],
-    isNative: isNative,
-  );
-}
+/// 🔴 НАД ВЫБОРОМ — ШАХМАТНАЯ ЗАРЯДКА, КАК В ВЕБЕ. Она ставит оба упражнения
+/// подряд по их собственным лестницам (`components/warmups/ChessWarmup.tsx`).
+/// Шапка — мост к той же веб-карточке (`shell/warmup_bridge.dart`, bridgeId
+/// «chess»): подписи и число подходов берёт у неё, запускает её же
+/// `startPlaylist`. Второй копии состава зарядки здесь нет. До 01.10.2026 слота
+/// под шапку не было, и маршрут нарочно не перехватывался.
+///
+/// ⚠️ ФУНКЦИЯ, А НЕ СВОЙ ВИДЖЕТ-ОБЁРТКА: маршрут отдаёт тот же общий
+/// [HubScreen], что у «Слов» и «Языков», — и общая проба моста зарядки видит
+/// его шапку, а не обёртку.
+HubScreen chessHubScreen({
+  required SharedState state,
+  bool Function(String route)? isNative,
+}) => HubScreen(
+  state: state,
+  hubRoute: '/games/chess-hub',
+  icon: Icons.grid_on_outlined,
+  // Акцент раздела — тот же, что в вебе (АКЦЕНТ_ШАХМАТЫ), чтобы развилка
+  // не сменила цвет на переезде.
+  gradient: const [Color(0xFF8E5B2F), Color(0xFF2F2A24)],
+  header: const WarmupBridgeHeader(
+    bridgeId: 'chess',
+    accent: Color(0xFF8E5B2F),
+  ),
+  isNative: isNative,
+);

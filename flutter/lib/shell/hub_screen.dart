@@ -113,6 +113,7 @@ const Map<String, IconData> hubIcons = {
   'apps-outline': Icons.apps,
   'arrow-forward': Icons.arrow_forward,
   'basket': Icons.shopping_basket_outlined,
+  'boat': Icons.directions_boat_outlined,
   'book': Icons.menu_book_outlined,
   'browsers': Icons.web_outlined,
   'bulb': Icons.lightbulb_outline,
@@ -198,8 +199,18 @@ const Map<String, IconData> hubIcons = {
 /// забытое поле не имеет права оставлять пустое место на экране.
 IconData hubIcon(String name) => hubIcons[name] ?? Icons.extension_outlined;
 
+/// 🖼 ИКОНКА ИГРЫ В СТРОКЕ РАЗВИЛКИ — «поле игры в миниатюре» (решение Дениса 13.09.2026:
+/// «иконка должна быть мини-экраном приложения»; 01.10.2026 — показывать В ПРИЛОЖЕНИИ).
+/// Картинки и карта — выгрузка веб-реестра `flutter/tools/embed-game-icons.mjs`
+/// (`assets/game_icons/`). Ищем по ключу названия, как веб (`gameIconByNameKey`), затем
+/// по адресу целиком: семь строк подписаны своим ключом (`suiteStroop` → `/games/stroop`).
+/// Нет иконки (режимы головоломок, группы) — прежний значок: пустого места быть не может.
+String? hubIconFile(Map<String, dynamic> index, HubCard c) =>
+    ((index['byNameKey'] as Map?)?[c.nameKey] ?? (index['byRoute'] as Map?)?[c.route]) as String?;
+
 class _HubScreenState extends State<HubScreen> {
   List<HubCard>? _cards;
+  Map<String, dynamic> _icons = const {};
   String _title = '';
   String _desc = '';
   String _footnote = '';
@@ -313,6 +324,13 @@ class _HubScreenState extends State<HubScreen> {
     final j = jsonDecode(raw) as Map<String, dynamic>;
     final cards = _cardsFor(j);
     final meta = (j['meta'] as Map<String, dynamic>)[widget.hubRoute] as Map<String, dynamic>?;
+    var icons = const <String, dynamic>{};
+    try {
+      final b = await rootBundle.load('assets/game_icons/index.json');
+      icons = jsonDecode(utf8.decode(b.buffer.asUint8List(b.offsetInBytes, b.lengthInBytes))) as Map<String, dynamic>;
+    } catch (_) {
+      // Нет карты — строки остаются со значками, развилка работает как прежде.
+    }
 
     // Уровень каждой игры — из ОБЩЕЙ памяти, той же, что у веб-половины: на
     // карточке видно, где человек остановился, без захода в игру.
@@ -338,6 +356,7 @@ class _HubScreenState extends State<HubScreen> {
 
     setState(() {
       _cards = cards;
+      _icons = icons;
       _title = tr('titleKey', meta?['title'] as String?);
       _desc = tr('descKey', meta?['desc'] as String?);
       _footnote = tr('footnoteKey', meta?['footnote'] as String?);
@@ -402,10 +421,24 @@ class _HubScreenState extends State<HubScreen> {
                     margin: const EdgeInsets.only(bottom: 8),
                     child: ListTile(
                       key: ValueKey('hub-card-${c.route}'),
-                      leading: CircleAvatar(
-                        backgroundColor: scheme.secondaryContainer,
-                        child: Icon(hubIcon(c.icon), color: scheme.onSecondaryContainer),
-                      ),
+                      leading: switch (hubIconFile(_icons, c)) {
+                        final file? => ClipRRect(
+                            // Скруглённый квадрат, как в каталоге: круг срезал бы углы поля игры.
+                            borderRadius: BorderRadius.circular(10),
+                            child: Image.asset(
+                              'assets/game_icons/$file',
+                              key: ValueKey('hub-icon-${c.route}'),
+                              width: 40,
+                              height: 40,
+                              fit: BoxFit.cover,
+                              excludeFromSemantics: true,
+                            ),
+                          ),
+                        _ => CircleAvatar(
+                            backgroundColor: scheme.secondaryContainer,
+                            child: Icon(hubIcon(c.icon), color: scheme.onSecondaryContainer),
+                          ),
+                      },
                       title: Text(c.name, style: const TextStyle(fontWeight: FontWeight.w700)),
                       subtitle: Text(
                         [

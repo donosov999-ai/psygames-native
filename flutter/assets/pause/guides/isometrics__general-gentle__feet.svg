@@ -1,0 +1,10 @@
+<svg viewBox="0 0 600 390" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="300" cy="62" r="34" fill="none" stroke="rgba(174,181,198,0.68)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></circle>
+    <path d="M300 96 L300 232 M300 142 L236 214 M300 142 L364 214 M300 232 L252 330 M300 232 L348 330" fill="none" stroke="rgba(174,181,198,0.68)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+    <circle cx="230" cy="221" r="28" fill="rgba(141,123,255,0.09)" stroke="rgba(141,123,255,0.28)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"></circle>
+    <circle cx="370" cy="221" r="28" fill="rgba(141,123,255,0.09)" stroke="rgba(141,123,255,0.28)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"></circle>
+    <ellipse cx="300" cy="246" rx="74" ry="42" fill="rgba(141,123,255,0.09)" stroke="rgba(141,123,255,0.28)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"></ellipse>
+    <ellipse cx="240" cy="344" rx="38" ry="18" fill="rgba(141,123,255,0.34)" stroke="#8d7bff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" opacity="1"></ellipse>
+    <ellipse cx="360" cy="344" rx="38" ry="18" fill="rgba(141,123,255,0.34)" stroke="#8d7bff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" opacity="1"></ellipse>
+    <path d="M172 196 L428 196" fill="none" stroke="#8d7bff" stroke-width="6" stroke-linecap="round" opacity="1" stroke-dasharray="120 120"></path>
+  </svg>

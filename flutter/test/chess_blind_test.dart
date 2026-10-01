@@ -568,6 +568,11 @@ void gameRunsEndToEnd() {
         PuzzleQuizType.locate,
         reason: 'ступень 12 — розыск',
       );
+      // С 11-й ступени между ходами и вопросами — счёт-помеха.
+      expect(game.phase, ChessBlindPhase.interference);
+      while (game.phase == ChessBlindPhase.interference) {
+        game.answerExample(true);
+      }
 
       var answered = 0;
       while (game.current != null) {
