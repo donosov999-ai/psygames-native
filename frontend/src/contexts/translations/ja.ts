@@ -3360,7 +3360,10 @@ const t: Record<string, string> = {
   "tathamOrientable": "向きあり",
   "tathamTiles": "{n} 枚",
   "sudokuVariantRenban": "🟪 レンバン",
+  "sudokuVariantRegionsum": "🟦 同じ合計",
   "sudokuRuleRenban": "紫の線の上の数字は、連続した数が並びます。順番は自由で、同じ数字は入りません。",
+  "sudokuRuleRegionsum": "青い線：通過する各ブロックで、線上の数字の合計が同じになります。",
   "sdkRule_renban": "レンバン",
+  "sdkRule_regionsum": "同じ合計",
 };
 export default t;

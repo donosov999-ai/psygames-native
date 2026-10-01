@@ -3366,7 +3366,10 @@ const t: Record<string, string> = {
   "tathamOrientable": "带方向",
   "tathamTiles": "{n} 块",
   "sudokuVariantRenban": "🟪 Renban",
+  "sudokuVariantRegionsum": "🟦 各宫等和",
   "sudokuRuleRenban": "紫线上的数字是连续的一组数，顺序不限，且不能重复。",
+  "sudokuRuleRegionsum": "蓝线：在它经过的每个宫里，线上数字之和都相同。",
   "sdkRule_renban": "Renban",
+  "sdkRule_regionsum": "各宫等和",
 };
 export default t;

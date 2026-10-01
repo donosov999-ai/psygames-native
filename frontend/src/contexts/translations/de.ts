@@ -3366,7 +3366,10 @@ const t: Record<string, string> = {
   "tathamOrientable": "mit Ausrichtung",
   "tathamTiles": "{n} Kacheln",
   "sudokuVariantRenban": "🟪 Renban",
+  "sudokuVariantRegionsum": "🟦 gleiche Summen",
   "sudokuRuleRenban": "Die Ziffern auf einer lila Linie bilden eine lückenlose Folge in beliebiger Reihenfolge, ohne Wiederholung.",
+  "sudokuRuleRegionsum": "Blaue Linie: In jedem Block, den sie durchläuft, ergeben ihre Ziffern dieselbe Summe.",
   "sdkRule_renban": "Renban",
+  "sdkRule_regionsum": "gleiche Summen",
 };
 export default t;

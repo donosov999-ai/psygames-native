@@ -3369,7 +3369,10 @@ const t: Record<string, string> = {
   "tathamOrientable": "दिशा सहित",
   "tathamTiles": "{n} टाइलें",
   "sudokuVariantRenban": "🟪 रेनबान",
+  "sudokuVariantRegionsum": "🟦 बराबर योग",
   "sudokuRuleRenban": "बैंगनी रेखा पर अंक लगातार संख्याओं का एक समूह बनाते हैं, क्रम कोई भी हो सकता है, पर दोहराव नहीं।",
+  "sudokuRuleRegionsum": "नीली रेखा: जिस भी खंड से यह गुज़रती है, उसमें इसके अंकों का योग एक जैसा होता है।",
   "sdkRule_renban": "रेनबान",
+  "sdkRule_regionsum": "बराबर योग",
 };
 export default t;

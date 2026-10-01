@@ -3361,7 +3361,10 @@ const t: Record<string, string> = {
   "tathamOrientable": "avec orientation",
   "tathamTiles": "{n} tuiles",
   "sudokuVariantRenban": "🟪 renban",
+  "sudokuVariantRegionsum": "🟦 sommes égales",
   "sudokuRuleRenban": "Les chiffres d’une ligne violette forment une suite consécutive, dans n’importe quel ordre, sans répétition.",
+  "sudokuRuleRegionsum": "Ligne bleue : dans chaque bloc qu’elle traverse, la somme de ses chiffres est la même.",
   "sdkRule_renban": "renban",
+  "sdkRule_regionsum": "sommes égales",
 };
 export default t;

@@ -3361,7 +3361,10 @@ const t: Record<string, string> = {
   "tathamOrientable": "방향 포함",
   "tathamTiles": "{n}개 타일",
   "sudokuVariantRenban": "🟪 렌반",
+  "sudokuVariantRegionsum": "🟦 같은 합",
   "sudokuRuleRenban": "보라색 선 위의 숫자는 순서와 상관없이 연속된 수가 되며, 같은 숫자는 들어가지 않습니다.",
+  "sudokuRuleRegionsum": "파란 선: 지나가는 각 박스 안에서 선 위 숫자의 합이 모두 같습니다.",
   "sdkRule_renban": "렌반",
+  "sdkRule_regionsum": "같은 합",
 };
 export default t;
