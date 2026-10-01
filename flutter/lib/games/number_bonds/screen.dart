@@ -12,6 +12,7 @@ import '../../shell/lesson.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
+import '../counting_common/generator_shadow.dart';
 import 'model.dart';
 
 /// «Состав числа» на общем каркасе: собрать цель из нескольких фишек.
@@ -59,6 +60,10 @@ class _NumberBondsScreenState extends State<NumberBondsScreen> {
   Timer? _tick;
   Timer? _next;
 
+  /// Тень генератора уровней (звено 4, задача 4e584381): раздача с новой партией, исход до лестницы.
+  late final LadderShadow _shadow =
+      LadderShadow(widget.state, gameId: 'number_bonds', stepKeys: bondsStepKeys);
+
   @override
   void initState() {
     super.initState();
@@ -91,6 +96,7 @@ class _NumberBondsScreenState extends State<NumberBondsScreen> {
     _tick?.cancel();
     _next?.cancel();
     _cfg = levelParams(_ladder.level);
+    _shadow.deal(_ladder.level);
     _round = 1;
     _hits = 0;
     _errors = 0;
@@ -155,6 +161,7 @@ class _NumberBondsScreenState extends State<NumberBondsScreen> {
       if (!mounted) return;
       if (_round >= _cfg.trials) {
         final passed = _errors <= bondsErrorsAllowed;
+        _shadow.outcome(passed: passed, errors: _errors);
         // Веха как в вебе: каждый третий ЗАСЧИТАННЫЙ уровень — бой «сложи подсвеченные».
         bool? boss;
         if (passed) {

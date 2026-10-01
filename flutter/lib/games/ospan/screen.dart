@@ -12,6 +12,7 @@ import '../../shell/level_ladder.dart';
 import '../../shell/level_rules.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
+import '../counting_common/generator_shadow.dart';
 import 'model.dart';
 
 /// OSpan на общем каркасе: равенство → буква → равенство → буква, потом назвать
@@ -51,6 +52,10 @@ class _OspanScreenState extends State<OspanScreen> {
   final TextEditingController _input = TextEditingController();
   Timer? _letterTimer;
 
+  /// Тень генератора уровней (звено 4, задача 4e584381): раздача с новой партией, исход до лестницы.
+  late final LadderShadow _shadow =
+      LadderShadow(widget.state, gameId: 'ospan', stepKeys: ospanStepKeys);
+
   @override
   void initState() {
     super.initState();
@@ -88,6 +93,7 @@ class _OspanScreenState extends State<OspanScreen> {
     LessonUsed.reset();
     _letterTimer?.cancel();
     _params = levelParams(_ladder.level);
+    _shadow.deal(_ladder.level);
     _letters.clear();
     _input.clear();
     _step = 0;
@@ -136,6 +142,7 @@ class _OspanScreenState extends State<OspanScreen> {
     }
     errors += math.max(0, typed.length - _letters.length);   // лишние буквы — тоже промах
     final passed = ospanPassed(errors);
+    _shadow.outcome(passed: passed, errors: errors + _mathErrors);
     if (passed) {
       await _ladder.win();
     } else {

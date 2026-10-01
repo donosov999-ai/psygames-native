@@ -35,6 +35,21 @@ OspanParams levelParams(int level) {
   return OspanParams(setSize: setSize, letterMs: letterMs, hardMath: hardMath, mathLoad: mathLoad.toDouble());
 }
 
+/// Имя ступени для пула генератора уровней (звено 4, задача 4e584381) — из ПАРАМЕТРОВ уровня, а
+/// не из номера (договор `ladderPool`): букв в наборе, показ буквы в мс, трудный счёт, нагрузка
+/// счёта в восьмых.
+String ospanStepKey(int level) {
+  final p = levelParams(level);
+  return 's${p.setSize}-l${p.letterMs}-${p.hardMath ? 'h' : 'e'}-m${(p.mathLoad * 8).round()}';
+}
+
+/// Последний уровень, где растут набор и скорость: дальше (L17+) растёт только нагрузка счёта
+/// без потолка — открытый хвост, конечным списком ступеней его не выразить.
+const int ospanShapedLevels = 16;
+
+/// Ступени до плато: 1…[ospanShapedLevels].
+final List<String> ospanStepKeys = [for (var l = 1; l <= ospanShapedLevels; l++) ospanStepKey(l)];
+
 class Equation {
   const Equation(this.left, this.right, this.isCorrect);
   final String left;
