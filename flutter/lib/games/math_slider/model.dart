@@ -176,53 +176,59 @@ double evaluateExpression(MathExpression e) {
   }
 }
 
-/// Число в подписи: до двух знаков после запятой, запятая — как в ru-RU.
-String formatNumber(double value) {
+/// Число в подписи: до двух знаков после запятой. Разделитель — как в вебе
+/// (`formatNumber(value, locale)` в core/expression.ts): запятая у ru-RU, точка у en-US.
+/// Веб берёт `'ru'` только для русского, для всех остальных языков — `'en'`
+/// (frontend/app/games/math-slider.tsx: `language === 'ru' ? 'ru' : 'en'`).
+String formatNumber(double value, {String locale = 'ru'}) {
   final v = roundNumber(value, 2);
   var s = v.toStringAsFixed(2);
   if (s.contains('.')) {
     s = s.replaceFirst(RegExp(r'0+$'), '');
     s = s.replaceFirst(RegExp(r'\.$'), '');
   }
-  return s.replaceAll('.', ',');
+  return locale == 'ru' ? s.replaceAll('.', ',') : s;
 }
+
+/// Язык чисел для подписей «Математической шкалы» — как у веба: русский или «остальные».
+String numberLocale(String language) => language == 'ru' ? 'ru' : 'en';
 
 const Map<int, String> _superscript = {2: '²', 3: '³', 4: '⁴'};
 
-String _formatNode(MathExpression e) {
+String _formatNode(MathExpression e, String locale) {
   switch (e) {
     case Literal():
-      return formatNumber(e.value);
+      return formatNumber(e.value, locale: locale);
     case Binary():
       final op = e.operator == '*' ? '×' : (e.operator == '/' ? '÷' : e.operator);
-      return '(${_formatNode(e.left)} $op ${_formatNode(e.right)})';
+      return '(${_formatNode(e.left, locale)} $op ${_formatNode(e.right, locale)})';
     case Power():
       final inner = e.base is Literal
-          ? formatNumber((e.base as Literal).value)
-          : '(${_formatNode(e.base)})';
+          ? formatNumber((e.base as Literal).value, locale: locale)
+          : '(${_formatNode(e.base, locale)})';
       return '$inner${_superscript[e.exponent] ?? '^${e.exponent}'}';
     case LinearEquation():
       final sign = e.b >= 0 ? '+' : '−';
-      return '${formatNumber(e.a)}x $sign ${formatNumber(e.b.abs())} = ${formatNumber(e.c)},  x = ?';
+      return '${formatNumber(e.a, locale: locale)}x $sign ${formatNumber(e.b.abs(), locale: locale)} = ${formatNumber(e.c, locale: locale)},  x = ?';
     case QuadEquation():
       final sign = e.b >= 0 ? '+' : '−';
-      return '${formatNumber(e.a)}x² $sign ${formatNumber(e.b.abs())} = ${formatNumber(e.c)},  x = ?';
+      return '${formatNumber(e.a, locale: locale)}x² $sign ${formatNumber(e.b.abs(), locale: locale)} = ${formatNumber(e.c, locale: locale)},  x = ?';
     case RootEstimation():
-      return '√${formatNumber(e.value)}';
+      return '√${formatNumber(e.value, locale: locale)}';
     case IntegralArea():
       return 'S ≈ ?';
     case PercentOf():
-      return '${formatNumber(e.percent)}% × ${formatNumber(e.base)}';
+      return '${formatNumber(e.percent, locale: locale)}% × ${formatNumber(e.base, locale: locale)}';
     case DiscountOf():
-      return '${formatNumber(e.price)} × (1 − ${formatNumber(e.percent)}%)';
+      return '${formatNumber(e.price, locale: locale)} × (1 − ${formatNumber(e.percent, locale: locale)}%)';
     case ProportionOf():
-      return '${formatNumber(e.leftNumerator)} : ${formatNumber(e.leftDenominator)} = x : ${formatNumber(e.rightDenominator)}';
+      return '${formatNumber(e.leftNumerator, locale: locale)} : ${formatNumber(e.leftDenominator, locale: locale)} = x : ${formatNumber(e.rightDenominator, locale: locale)}';
   }
 }
 
 /// Скобки расставлены при сборке: угадывать старшинство операций не нужно.
-String formatExpression(MathExpression e) {
-  final formatted = _formatNode(e);
+String formatExpression(MathExpression e, {String locale = 'ru'}) {
+  final formatted = _formatNode(e, locale);
   if (e is! Binary) return formatted;
   return formatted.substring(1, formatted.length - 1);
 }

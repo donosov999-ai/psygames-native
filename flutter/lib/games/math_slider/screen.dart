@@ -203,7 +203,8 @@ class _MathSliderScreenState extends State<MathSliderScreen> {
 
   int get _outside => _trials.where((t) => t.outsideTarget).length;
 
-  String _fmt(double v) => formatNumber(v);
+  /// Разделитель дробей — по языку человека, как в вебе: «6,25» по-русски, «6.25» иначе.
+  String _fmt(double v) => formatNumber(v, locale: numberLocale(L.locale));
 
   String get _prompt {
     final e = _question.expression;
@@ -395,7 +396,7 @@ class _Field extends StatelessWidget {
           Flexible(
             child: Center(
               child: Text(
-                question.text,
+                formatExpression(question.expression, locale: numberLocale(L.locale)),
                 key: const Key('вопрос'),
                 textAlign: TextAlign.center,
                 style: text.headlineSmall?.copyWith(fontWeight: FontWeight.w700),
@@ -489,7 +490,7 @@ class _NumberLine extends StatelessWidget {
               width: 48,
               child: Column(children: [
                 Container(width: 2, height: 8, color: scheme.outline),
-                Text(formatNumber(scale.ticks[i]),
+                Text(formatNumber(scale.ticks[i], locale: numberLocale(L.locale)),
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.labelSmall),
               ]),
@@ -506,9 +507,9 @@ class _NumberLine extends StatelessWidget {
             child: Semantics(
               key: const Key('маркер'),
               slider: true,
-              label: L.f('sliderMarkerA11y', {'x': formatNumber(estimate)}),
+              label: L.f('sliderMarkerA11y', {'x': formatNumber(estimate, locale: numberLocale(L.locale))}),
               child: Column(children: [
-                Text(formatNumber(estimate),
+                Text(formatNumber(estimate, locale: numberLocale(L.locale)),
                     style: TextStyle(fontWeight: FontWeight.w700, color: scheme.primary)),
                 Icon(Icons.place, color: scheme.primary, size: 28),
               ]),

@@ -120,8 +120,10 @@ class RunnerTasks {
   final int Function(int level) memory;
 }
 
-/// Генераторы упражнений раздела «Счёт».
-final RunnerTasks countingTasks = RunnerTasks(
+/// Генераторы упражнений раздела «Счёт». [numberLocale] — запись дробей в вопросе шкалы, как в
+/// вебе (`шкала.formatExpression(q.expression, язык)`, NumberRunGame.web.tsx:216): `'ru'` —
+/// запятая, `'en'` — точка; экран берёт её по языку человека (`slider.numberLocale`).
+RunnerTasks countingTasksFor(String numberLocale) => RunnerTasks(
   blitz: (level, rnd) {
     final p = sprint.generateSprintProblem(level, rnd);
     return BlitzTask(display: p.display, answer: p.answer.toDouble());
@@ -141,7 +143,7 @@ final RunnerTasks countingTasks = RunnerTasks(
   scale: (level, rnd) {
     final q = slider.generateMathSliderQuestions('run-${(rnd() * 1e9).floor()}', math.min(52, level), 1)[0];
     return ScaleTask(
-      prompt: slider.formatExpression(q.expression),
+      prompt: slider.formatExpression(q.expression, locale: numberLocale),
       min: q.scale.min,
       max: q.scale.max,
       answer: q.answer,
@@ -150,6 +152,10 @@ final RunnerTasks countingTasks = RunnerTasks(
   },
   memory: (level) => ospan.levelParams(level).setSize,
 );
+
+/// Русская запись чисел — ею сняты эталоны забега (`record-number-run-reference.mjs`:
+/// `formatExpression(q.expression, 'ru')`), поэтому пробы ядра ходят через неё.
+final RunnerTasks countingTasks = countingTasksFor('ru');
 
 /// Уровень [level] по зерну [seed]. Раздачу, где стоящий на месте проходит уровень, перебрасываем
 /// солью; выбор по-прежнему однозначен для пары (уровень, зерно).

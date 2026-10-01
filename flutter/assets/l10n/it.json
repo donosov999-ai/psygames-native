@@ -1476,7 +1476,7 @@
 "trkBallA11y":"pallina {n}",
 "trkGentle":"Modalità delicata",
 "trkMoving":"Seguile con lo sguardo",
-"trkPreview":"Ricorda le palline segnate: sono {n}",
+"trkPreview":"Ricorda le palline segnate: {n}",
 "trkResultFail":"{hits} su {total} giuste, {extra} in più — livello non superato",
 "trkResultWin":"{hits} su {total} giuste, {extra} in più",
 "trkSelect":"Segna quelle che hai seguito",

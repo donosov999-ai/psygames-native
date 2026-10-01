@@ -1476,7 +1476,7 @@
 "trkBallA11y":"ball {n}",
 "trkGentle":"Gentle mode",
 "trkMoving":"Follow them with your eyes",
-"trkPreview":"Remember the marked balls — there are {n}",
+"trkPreview":"Remember the marked balls: {n}",
 "trkResultFail":"{hits} of {total} correct, {extra} extra — level not cleared",
 "trkResultWin":"{hits} of {total} correct, {extra} extra",
 "trkSelect":"Mark the ones you followed",

@@ -1476,7 +1476,7 @@
 "trkBallA11y":"गेंद {n}",
 "trkGentle":"हल्का मोड",
 "trkMoving":"उन्हें नज़रों से देखते रहिए",
-"trkPreview":"चिह्नित गेंदें याद रखिए — कुल {n} हैं",
+"trkPreview":"चिह्नित गेंदें याद रखिए: {n}",
 "trkResultFail":"{total} में से {hits} सही, {extra} अतिरिक्त — स्तर पूरा नहीं हुआ",
 "trkResultWin":"{total} में से {hits} सही, {extra} अतिरिक्त",
 "trkSelect":"जिनका पीछा किया, उन्हें चिह्नित कीजिए",

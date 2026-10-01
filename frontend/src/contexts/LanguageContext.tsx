@@ -4584,7 +4584,7 @@ const translations: Translations = {
   ospanResultFail: { ru: 'Промахов {n} — уровень берётся только за чистое вспоминание', en: '{n} slips — a level counts only with a perfect recall' },
   ospanRecallPrompt: { ru: 'Назови буквы по порядку — их {n}', en: 'Name the letters in order — there are {n}' },
   ospanYouSaid: { ru: 'ты назвал: {x}', en: 'you entered: {x}' },
-  trkPreview: { ru: 'Запомни отмеченные шарики — их {n}', en: 'Remember the marked balls — there are {n}' },
+  trkPreview: { ru: 'Запомни отмеченные шарики — их {n}', en: 'Remember the marked balls: {n}' },
   trkMoving: { ru: 'Следи за ними взглядом', en: 'Follow them with your eyes' },
   trkSelect: { ru: 'Отметь те, за которыми следил', en: 'Mark the ones you followed' },
   trkResultWin: { ru: 'Верно {hits} из {total}, лишних {extra}', en: '{hits} of {total} correct, {extra} extra' },

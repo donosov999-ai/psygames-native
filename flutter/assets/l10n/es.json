@@ -1476,7 +1476,7 @@
 "trkBallA11y":"bola {n}",
 "trkGentle":"Modo suave",
 "trkMoving":"Síguelas con la mirada",
-"trkPreview":"Recuerda las bolas marcadas: son {n}",
+"trkPreview":"Recuerda las bolas marcadas: {n}",
 "trkResultFail":"{hits} de {total} correctas, {extra} de más — nivel no superado",
 "trkResultWin":"{hits} de {total} correctas, {extra} de más",
 "trkSelect":"Marca las que seguiste",

@@ -3330,7 +3330,7 @@ const t: Record<string, string> = {
   "ospanResultFail": "{n} चूक — स्तर तभी गिना जाता है जब सब बिना गलती याद हो",
   "ospanRecallPrompt": "अक्षर क्रम से बताइए — कुल {n} हैं",
   "ospanYouSaid": "आपने लिखा: {x}",
-  "trkPreview": "चिह्नित गेंदें याद रखिए — कुल {n} हैं",
+  "trkPreview": "चिह्नित गेंदें याद रखिए: {n}",
   "trkMoving": "उन्हें नज़रों से देखते रहिए",
   "trkSelect": "जिनका पीछा किया, उन्हें चिह्नित कीजिए",
   "trkResultWin": "{total} में से {hits} सही, {extra} अतिरिक्त",

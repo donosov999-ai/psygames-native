@@ -23,6 +23,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// русский набор букв, который игра выбрала не по языку, и текст, собранный из данных.
 void main() {
   final cyrillic = RegExp('[А-Яа-яЁё]');
+  final decimalComma = RegExp(r'\d,\d');
 
   setUpAll(() async {
     TestWidgetsFlutterBinding.ensureInitialized();
@@ -67,6 +68,11 @@ void main() {
       final russian = shown.where(cyrillic.hasMatch).toSet().toList();
       expect(russian, isEmpty,
           reason: '${entry.key} на английском показывает русский текст: $russian');
+      // Русская запятая в дроби — тоже русский текст, только кириллицы в ней нет. Снимок эмулятора
+      // 02.10.2026: шкала «Математической шкалы» шла «6,25 · 12,5 · 18,75» при английском языке.
+      final commaFractions = shown.where(decimalComma.hasMatch).toSet().toList();
+      expect(commaFractions, isEmpty,
+          reason: '${entry.key} на английском пишет дроби через запятую: $commaFractions');
     });
   }
 }

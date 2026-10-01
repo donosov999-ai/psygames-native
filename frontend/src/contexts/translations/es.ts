@@ -3327,7 +3327,7 @@ const t: Record<string, string> = {
   "ospanResultFail": "{n} fallos — el nivel solo cuenta con un recuerdo perfecto",
   "ospanRecallPrompt": "Di las letras en orden: son {n}",
   "ospanYouSaid": "escribiste: {x}",
-  "trkPreview": "Recuerda las bolas marcadas: son {n}",
+  "trkPreview": "Recuerda las bolas marcadas: {n}",
   "trkMoving": "Síguelas con la mirada",
   "trkSelect": "Marca las que seguiste",
   "trkResultWin": "{hits} de {total} correctas, {extra} de más",

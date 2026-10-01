@@ -132,6 +132,30 @@ void main() {
     });
   });
 
+  test('🔴 вопрос шкалы на английском — дробь с точкой, остальной уровень ряд в ряд', () {
+    // Веб: `шкала.formatExpression(q.expression, язык)` (NumberRunGame.web.tsx:216) — запятая только
+    // по-русски. Эталоны сняты русской записью, поэтому пробы ядра идут через countingTasks ('ru'),
+    // а здесь — что английская раздача отличается от неё ТОЛЬКО разделителем дробей.
+    final decimalComma = RegExp(r'(?<=\d),(?=\d)');
+    Object? noPrompts(RoadCourse c) => jsonDecode(jsonEncode(c.toJson()), reviver: (k, v) => k == 'prompt' ? null : v);
+    var withFractions = 0;
+    for (var level = 13; level <= 52; level += 1) {
+      for (var seed = 1; seed <= 3; seed += 1) {
+        final boss = isBossLevel(level);
+        final ru = makeLevel(level, seed, countingTasks, boss: boss);
+        final en = makeLevel(level, seed, countingTasksFor('en'), boss: boss);
+        expect(jsonEncode(noPrompts(en)), jsonEncode(noPrompts(ru)), reason: 'L$level/$seed: раздача та же');
+        for (var i = 0; i < ru.rows.length; i += 1) {
+          final a = ru.rows[i].prompt, b = en.rows[i].prompt;
+          if (a == null) continue;
+          expect(b, a.replaceAll(decimalComma, '.'), reason: 'L$level/$seed ряд $i');
+          if (a.contains(decimalComma)) withFractions += 1;
+        }
+      }
+    }
+    expect(withFractions, greaterThan(0), reason: 'ни одной дроби в вопросах шкалы — проба ничего не проверила');
+  });
+
   group('прогоны кадров', () {
     for (final run in (runsRef['runs'] as List).cast<Map<String, dynamic>>()) {
       test('🔴 ${run['name']}: след и события совпадают с живым ядром', () {

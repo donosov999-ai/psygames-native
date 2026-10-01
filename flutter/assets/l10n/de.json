@@ -1476,7 +1476,7 @@
 "trkBallA11y":"Kugel {n}",
 "trkGentle":"Schonmodus",
 "trkMoving":"Verfolge sie mit den Augen",
-"trkPreview":"Merke dir die markierten Kugeln – es sind {n}",
+"trkPreview":"Merke dir die markierten Kugeln: {n}",
 "trkResultFail":"{hits} von {total} richtig, {extra} zu viel – Level nicht geschafft",
 "trkResultWin":"{hits} von {total} richtig, {extra} zu viel",
 "trkSelect":"Markiere die, die du verfolgt hast",

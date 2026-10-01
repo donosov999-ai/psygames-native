@@ -14,6 +14,7 @@ import '../../shell/level_ladder.dart';
 import '../../shell/session_report.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
+import '../math_slider/model.dart' show numberLocale;
 import '../runner/road.dart';
 import 'campaign.dart';
 import 'level.dart';
@@ -241,7 +242,7 @@ class _NumberRunScreenState extends State<NumberRunScreen> with SingleTickerProv
     _games += 1;
     final level = _ladder.level;
     _course = _mode == NumberRunMode.levels
-        ? makeLevel(level, _seed, countingTasks, boss: isBossLevel(level))
+        ? makeLevel(level, _seed, countingTasksFor(numberLocale(L.locale)), boss: isBossLevel(level))
         : makeCampaign(_seed);
     _s = roadInitial(_course!);
     _phase = _Phase.config;
@@ -585,7 +586,7 @@ class _NumberRunScreenState extends State<NumberRunScreen> with SingleTickerProv
         if (test(r)) return (r, course);
       }
       final other = _fallbacks.putIfAbsent(
-          fallbackLevel, () => makeLevel(fallbackLevel, 1, countingTasks, boss: isBossLevel(fallbackLevel)));
+          fallbackLevel, () => makeLevel(fallbackLevel, 1, countingTasksFor(numberLocale(L.locale)), boss: isBossLevel(fallbackLevel)));
       for (final r in other.rows) {
         if (test(r)) return (r, other);
       }
