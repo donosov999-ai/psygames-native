@@ -22,7 +22,7 @@ class QueensBoard {
 
   /// Из записи генератора: `n*n` знаков сверху вниз, «Q» — заданный, «#» — дыра.
   factory QueensBoard.parse(int n, String code) {
-    assert(code.length == n * n, 'доска $code');
+    assert(code.length == n * n, 'board $code');
     return QueensBoard(
       n,
       givens: {
