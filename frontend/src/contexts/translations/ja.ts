@@ -3317,8 +3317,8 @@ const t: Record<string, string> = {
   "tathamRotation": "{n} 回転",
   "tathamOrientable": "向きあり",
   "tathamTiles": "{n} 枚",
-  "sudokuVariantRenban": "🟪 連番",
+  "sudokuVariantRenban": "🟪 レンバン",
   "sudokuRuleRenban": "紫の線の上の数字は、連続した数が並びます。順番は自由で、同じ数字は入りません。",
-  "sdkRule_renban": "連番",
+  "sdkRule_renban": "レンバン",
 };
 export default t;
