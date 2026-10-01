@@ -268,6 +268,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
     // Лестница нужна и в режиме: потолок подсказок берётся по номеру ступени — ровно
     // так же, как в веб-половине (там в режиме `level` держит номер ступени).
     final modes = widget.mode == null ? null : await SideModes.load();
+    final kids = widget.junior ? await KidsBoards.load() : null;
     if (!mounted) return;
     setState(() {
       _levels = levels;
@@ -285,7 +286,10 @@ class _SudokuScreenState extends State<SudokuScreen> {
       if (_pilot) _pilotWins = store.load().adaptiveWins;
       _sideModes = modes;
       if (widget.mode != null) _side = SideProgress(widget.state, widget.mode!);
-      if (widget.junior) _junior = JuniorProgress(widget.state);
+      if (kids != null) {
+        _kids = kids;
+        _junior = JuniorProgress(widget.state, kids.steps.length);
+      }
     });
     _deal();
   }
@@ -293,12 +297,15 @@ class _SudokuScreenState extends State<SudokuScreen> {
   /// Ступень малышей; `null` — обычная игра.
   JuniorProgress? _junior;
 
+  /// Доски малышей из выгрузки; `null` — обычная игра.
+  KidsBoards? _kids;
+
   /// Раздача малышей: доска 4×4 своей ступени, значки — как у лестницы.
   void _dealJunior() {
-    final junior = _junior;
-    if (junior == null) return;
+    final junior = _junior, kids = _kids;
+    if (junior == null || kids == null) return;
     final seed = DateTime.now().millisecondsSinceEpoch; // wall-clock: зерно раздачи
-    final board = juniorBoard(junior.step, seed);
+    final board = kids.board(junior.step, seed);
     setState(() {
       _board = board;
       _applySymbols(board, seed);
@@ -742,6 +749,27 @@ class _SudokuScreenState extends State<SudokuScreen> {
   /// понижения). Пошли проигрыш через лестницу — нативная половина начала бы ронять
   /// человеку уровень, которого веб не трогал.
   void _reportLoss() {
+    // Малыши — свой отчёт той же формы, что победа: иначе проигрыш на доске 4×4 ушёл бы
+    // в статистику уровнем обычной лестницы, на котором человек вовсе не играл.
+    final junior = _junior;
+    if (widget.junior && junior != null) {
+      unawaited(SessionReport.send(
+        gameType: 'sudoku',
+        score: 0,
+        timeSeconds: _elapsed,
+        mode: 'junior-${junior.step}',
+        errors: _errors,
+        details: {
+          'errors': _errors,
+          'completed': false,
+          'failed_out': true,
+          'level': junior.step,
+          'variant': 'junior',
+          if (_skinShown != null) 'skin': _skinShown,
+        },
+      ));
+      return;
+    }
     final mode = widget.mode;
     final level = mode == null ? _ladder.level : (_side?.step ?? 1);
     unawaited(SessionReport.send(
@@ -924,9 +952,9 @@ class _SudokuScreenState extends State<SudokuScreen> {
     final levels = _levels;
     final board = _board;
     final cfg = levels?.config(_ladder.level);
-    // Правило доски: у режима — его имя, у лестницы — имя варианта ступени, у пилота —
-    // вариант выданной доски (ступень лестницы здесь ни при чём).
-    final variant = _pilot ? _board?.variant : cfg?.variant;
+    // Правило доски: у режима — его имя, у лестницы — имя варианта ступени, у пилота и
+    // малышей — вариант выданной доски (ступень лестницы здесь ни при чём).
+    final variant = (_pilot || widget.junior) ? _board?.variant : cfg?.variant;
     final ruleLabel = widget.mode != null
         ? variantTitle(sideModeName(widget.mode!))
         : (variant != null && variant != 'none' ? variantTitle(variant) : null);
@@ -941,7 +969,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
           label: 'Уровень',
           // У пилота номер — счётчик побед: только растёт, конца нет (решение 18.09).
           value: widget.junior
-              ? '${_junior?.step ?? 1}/$juniorSteps'
+              ? '${_junior?.step ?? 1}/${_junior?.steps ?? 1}'
               : widget.mode != null
                   ? '${_side?.step ?? 1}/$sideSteps'
                   : _pilot ? '${_pilotWins + 1}' : '${_ladder.level}',
@@ -1037,7 +1065,11 @@ class _SudokuScreenState extends State<SudokuScreen> {
               label: _symbols.glyph,
               icon: _symbols.images == null
                   ? null
-                  : (v) => Image.asset(_symbols.image(v)!, width: 30, height: 30, semanticLabel: '$v'),
+                  : (v) {
+                      // Значение без картинки (мышь «Мяу», пока её рисуют) — клавиша берёт глиф.
+                      final src = _symbols.image(v);
+                      return src == null ? null : Image.asset(src, width: 30, height: 30, semanticLabel: '$v');
+                    },
               wonNote: _won && _symbols.word != null
                   ? L.t('sudokuHiddenWord').replaceAll('{w}', _symbols.word!)
                   : null,
@@ -1092,6 +1124,7 @@ String variantTitle(String variant) => switch (variant) {
       'thermoknight' => 'термо и конь',
       'sandparity' => 'сэндвич и чётность',
       'killerdiag' => 'суммы и диагонали',
+      'friends' => L.t('sdkRule_friends'),
       _ => 'классика',
     };
 
@@ -1435,7 +1468,7 @@ class _Toolbar extends StatelessWidget {
   final String Function(int)? label;
 
   /// Картинка клавиши (рисованные наборы); `null` — надпись.
-  final Widget Function(int)? icon;
+  final Widget? Function(int)? icon;
 
   /// Строка над кнопкой после победы — спрятанное слово Wordoku.
   final String? wonNote;

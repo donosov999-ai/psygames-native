@@ -1,126 +1,118 @@
-/// «СУДОКУ ДЛЯ МАЛЫШЕЙ»: доски 4×4 с единственным решением (задача 01dc3ff0, часть 2).
+/// «СУДОКУ ДЛЯ МАЛЫШЕЙ»: дорожка до 1-го уровня обычной лестницы (задачи 01dc3ff0, fa0d6f9c).
 ///
-/// Происхождение — «Судоку с животными» MindLab (звери 4×4 и 9×9), решение Дениса 30.09:
-/// тематический режим нашего судоку, а не отдельная игра. Самая малая ступень обычной
-/// лестницы — 6×6; ребёнку четырёх-пяти лет нужна доска, где держится в голове вся строка.
+/// Происхождение — «Судоку с животными» MindLab, решение Дениса 30.09: тематический режим нашего
+/// судоку, а не отдельная игра. План уровней v3 (решение Дениса 01.10, «игрок проходит через ВСЕ
+/// судоку»): малыши идут тремя дорожками по три ступени — звери 4×4 → «Мяу — друзья» 4×4 →
+/// звери 6×6. Ступени и число подсказок — решение развилки лестницы (LEVELS_PLAN.md).
 ///
-/// 🔴 ДОСКИ СТРОЯТСЯ ЗДЕСЬ, А НЕ ВОЗЯТСЯ ДАННЫМИ. У 4×4 всего 288 полных решёток, а проверка
-/// единственности — перебор по 16 клеткам: доля миллисекунды. Тащить для этого выгрузку из TS
-/// (как у вариантных досок 9×9) — лишний слой без выгоды.
+/// 🔴 ДОСКИ — ДАННЫМИ ИЗ ВЫГРУЗКИ (`assets/levels/sudoku-kids-boards.json`, выгрузчик
+/// `tools/export_kids_boards.py`, генератор MindLab по зерну). Своего генератора здесь больше
+/// нет: доски проверены дважды (выгрузчиком и пробой `sudoku_kids_test.dart`), и на каждой доске
+/// «Мяу» правило друзей ОБЯЗАТЕЛЬНО — без него решений больше одного.
 ///
-/// ЛЕСТНИЦА — ЧИСЛО ПУСТЫХ КЛЕТОК, 4 → 12. ⚠️ 12 — ГРАНИЦА САМОЙ ДОСКИ, А НЕ ПОТОЛОК ЛЕСТНИЦЫ:
-/// у судоку 4×4 меньше четырёх подсказок с единственным решением не бывает (известный
-/// результат перебором всех 288 решёток), то есть пустых не больше двенадцати. Дальше рост —
-/// следующей осью: поле 6×6 со зверями (обычная лестница, ступени 1–4).
+/// ПРАВИЛО «МЯУ — ДРУЗЬЯ»: у каждого кота (значение 1) мышь (значение 2) в одной из четырёх
+/// соседних клеток. Отдельной проверки хода экрану не нужно: решение доски с правилом
+/// единственно, а ход сверяется с решением — ход, разводящий кота и мышь, и есть ошибка.
 library;
 
-import 'dart:math';
+import 'dart:convert';
+
+import 'package:flutter/services.dart' show rootBundle;
 
 import '../../shell/shared_state.dart';
 import 'levels.dart';
 import 'rules.dart';
 
-/// Пустых клеток на ступени.
-const juniorBlanks = [4, 6, 8, 9, 10, 11, 12];
+/// Имя правила друзей в `SudokuBoard.variant`: по нему экран берёт значки кота и мыши и
+/// подпись правила.
+const friendsVariant = 'friends';
 
-int get juniorSteps => juniorBlanks.length;
+/// Значения кота и мыши в правиле друзей.
+const friendsCat = 1, friendsMouse = 2;
 
-/// Сколько решений у доски 4×4 (до [limit]).
-int juniorSolutions(List<List<int>> grid, {int limit = 2}) {
-  final g = [for (final row in grid) [...row]];
-  var count = 0;
-  bool ok(int r, int c, int v) {
-    for (var i = 0; i < 4; i++) {
-      if (g[r][i] == v || g[i][c] == v) return false;
-    }
-    final r0 = r - r % 2, c0 = c - c % 2;
-    for (var i = 0; i < 2; i++) {
-      for (var j = 0; j < 2; j++) {
-        if (g[r0 + i][c0 + j] == v) return false;
-      }
-    }
-    return true;
-  }
+/// Ступень дорожки: поле, блок, правило и её доски (задание и решение строками цифр).
+class KidsStep {
+  const KidsStep({
+    required this.track,
+    required this.n,
+    required this.br,
+    required this.bc,
+    required this.friends,
+    required this.givens,
+    required this.boards,
+  });
 
-  bool walk(int k) {
-    if (k == 16) return ++count >= limit;
-    final r = k ~/ 4, c = k % 4;
-    if (g[r][c] != 0) return walk(k + 1);
-    for (var v = 1; v <= 4; v++) {
-      if (!ok(r, c, v)) continue;
-      g[r][c] = v;
-      if (walk(k + 1)) return true;
-      g[r][c] = 0;
-    }
-    return false;
-  }
-
-  walk(0);
-  return count;
+  final String track;
+  final int n;
+  final int br;
+  final int bc;
+  final bool friends;
+  final int givens;
+  final List<({String puzzle, String solution})> boards;
 }
 
-/// Случайная полная решётка 4×4: образец + перестановки, сохраняющие правила (цифры,
-/// строки внутри полос, полосы, столбцы внутри стопок, стопки, поворот).
-List<List<int>> _fullGrid(Random rnd) {
-  var g = [
-    [1, 2, 3, 4],
-    [3, 4, 1, 2],
-    [2, 1, 4, 3],
-    [4, 3, 2, 1],
-  ];
-  final digits = [1, 2, 3, 4]..shuffle(rnd);
-  g = [for (final row in g) [for (final v in row) digits[v - 1]]];
-  List<int> order() {
-    final bands = [0, 1]..shuffle(rnd);
-    return [for (final b in bands) ...([0, 1]..shuffle(rnd)).map((i) => b * 2 + i)];
-  }
+/// Все ступени малышей подряд, в порядке дорожек выгрузки.
+class KidsBoards {
+  const KidsBoards(this.steps);
 
-  final rows = order(), cols = order();
-  g = [for (final r in rows) [for (final c in cols) g[r][c]]];
-  if (rnd.nextBool()) g = [for (var c = 0; c < 4; c++) [for (var r = 0; r < 4; r++) g[r][c]]];
-  return g;
+  static const asset = 'assets/levels/sudoku-kids-boards.json';
+
+  final List<KidsStep> steps;
+
+  static Future<KidsBoards> load() async =>
+      KidsBoards.parse(jsonDecode(await rootBundle.loadString(asset)) as Map<String, Object?>);
+
+  factory KidsBoards.parse(Map<String, Object?> json) => KidsBoards([
+        for (final t in (json['tracks'] as List).cast<Map<String, Object?>>())
+          for (final s in (t['steps'] as List).cast<Map<String, Object?>>())
+            KidsStep(
+              track: t['id'] as String,
+              n: t['n'] as int,
+              br: t['br'] as int,
+              bc: t['bc'] as int,
+              friends: t['friends'] != null,
+              givens: s['givens'] as int,
+              boards: [
+                for (final b in (s['boards'] as List).cast<Map<String, Object?>>())
+                  (puzzle: b['puzzle'] as String, solution: b['solution'] as String),
+              ],
+            ),
+      ]);
+
+  /// Доска ступени [step] (1…`steps.length`); [pick] выбирает доску по кругу.
+  SudokuBoard board(int step, int pick) {
+    final s = steps[(step - 1).clamp(0, steps.length - 1)];
+    final b = s.boards[pick % s.boards.length];
+    List<List<int>> grid(String digits) => [
+          for (var r = 0; r < s.n; r++)
+            [for (var c = 0; c < s.n; c++) int.parse(digits[r * s.n + c])],
+        ];
+    return SudokuBoard(
+      level: step,
+      n: s.n,
+      br: s.br,
+      bc: s.bc,
+      variant: s.friends ? friendsVariant : 'none',
+      puzzle: grid(b.puzzle),
+      solution: grid(b.solution),
+      geometry: const BoardGeometry(),
+    );
+  }
 }
 
-/// Доска ступени [step] (1…[juniorSteps]): ровно столько пустых, сколько велит ступень,
-/// и единственное решение. Одно зерно — одна доска.
-SudokuBoard juniorBoard(int step, int seed) {
-  final target = juniorBlanks[(step - 1).clamp(0, juniorBlanks.length - 1)];
-  final rnd = Random(seed);
-  List<List<int>>? bestPuzzle, bestSolution;
-  var bestBlanks = -1;
-  // Выкапывание может застрять раньше цели (на 12 — чаще всего): тогда новая решётка.
-  for (var attempt = 0; attempt < 400; attempt++) {
-    final solution = _fullGrid(rnd);
-    final puzzle = [for (final row in solution) [...row]];
-    final cells = [for (var i = 0; i < 16; i++) i]..shuffle(rnd);
-    var blanks = 0;
-    for (final i in cells) {
-      if (blanks == target) break;
-      final r = i ~/ 4, c = i % 4, v = puzzle[r][c];
-      puzzle[r][c] = 0;
-      if (juniorSolutions(puzzle) == 1) {
-        blanks++;
-      } else {
-        puzzle[r][c] = v;
-      }
+/// Правило друзей на решётке: у каждого кота мышь сбоку, сверху или снизу. Пустые клетки
+/// не мешают — правило судит только о стоящих котах.
+bool friendsHold(List<List<int>> g) {
+  final n = g.length;
+  for (var r = 0; r < n; r++) {
+    for (var c = 0; c < n; c++) {
+      if (g[r][c] != friendsCat) continue;
+      final mouse = [(r - 1, c), (r + 1, c), (r, c - 1), (r, c + 1)]
+          .any((p) => p.$1 >= 0 && p.$2 >= 0 && p.$1 < n && p.$2 < n && g[p.$1][p.$2] == friendsMouse);
+      if (!mouse) return false;
     }
-    if (blanks > bestBlanks) {
-      bestBlanks = blanks;
-      bestPuzzle = puzzle;
-      bestSolution = solution;
-    }
-    if (blanks == target) break;
   }
-  return SudokuBoard(
-    level: step,
-    n: 4,
-    br: 2,
-    bc: 2,
-    variant: 'none',
-    puzzle: bestPuzzle!,
-    solution: bestSolution!,
-    geometry: const BoardGeometry(),
-  );
+  return true;
 }
 
 /// Имя лестницы малышей — в формате общей памяти уровней (`psygames_<игра>_level_<профиль>`):
@@ -128,14 +120,17 @@ SudokuBoard juniorBoard(int step, int seed) {
 /// а `embed-hubs.mjs` для нативной карточки с режимом ищет этот литерал в исходниках игры.
 const juniorLadderId = 'sudoku_junior';
 
-/// Ступень малышей — свой счётчик: обычная лестница на 92 ступени не трогается.
+/// Ступень малышей — свой счётчик: обычная лестница не трогается.
 class JuniorProgress {
-  JuniorProgress(this.state);
+  JuniorProgress(this.state, this.steps);
   final SharedState state;
+
+  /// Сколько ступеней в дорожке (из выгрузки).
+  final int steps;
 
   String get key => '${SharedState.prefix}${juniorLadderId}_level_${state.activeProfile}';
 
-  int get step => (int.tryParse(state.get(key) ?? '') ?? 1).clamp(1, juniorSteps);
+  int get step => (int.tryParse(state.get(key) ?? '') ?? 1).clamp(1, steps);
 
-  void win() => state.set(key, '${(step + 1).clamp(1, juniorSteps)}');
+  void win() => state.set(key, '${(step + 1).clamp(1, steps)}');
 }

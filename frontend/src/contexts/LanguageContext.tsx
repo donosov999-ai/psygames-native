@@ -3350,6 +3350,7 @@ const translations: Translations = {
   // Значки вместо цифр (задача f1e1ff9c): пункт паузы и спрятанное слово Wordoku после победы.
   sudokuSkinLetters: { ru: 'Буквы вместо цифр', en: 'Letters instead of digits' },
   sudokuSkinAnimals: { ru: 'Звери вместо цифр', en: 'Animals instead of digits' },
+  sdkRule_friends: { ru: '🐱 рядом с 🐭', en: '🐱 next to 🐭' },
   digitsCandy: { ru: 'Конфетные', en: 'Candy' },
   sudokuHiddenWord: { ru: 'Спрятанное слово: {w}', en: 'Hidden word: {w}' },
   sudokuPencilHint: { ru: 'Выбери клетку и жми цифры — они встанут в угол мелким. Повторный тап снимает пометку.', en: 'Pick a cell and tap digits — they go into the corner as small marks. Tap again to remove one.' },

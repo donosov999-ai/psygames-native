@@ -87,7 +87,7 @@ String animalImage(int i) => 'assets/pairs/animals/$i.webp';
 /// единообразия начертания — читаемость цифры и есть игра» (app/games/sudoku.tsx).
 /// У этих правил под клетками ничего нет: знаки Кропки стоят между клетками, подсказки
 /// сэндвича — снаружи.
-const decorFreeVariants = {'none', 'diagonal', 'antiknight', 'hyper', 'antiking', 'jigsaw', 'kropki', 'sandwich', 'nonconsec'};
+const decorFreeVariants = {'none', 'diagonal', 'antiknight', 'hyper', 'antiking', 'jigsaw', 'kropki', 'sandwich', 'nonconsec', 'friends'};
 
 /// 🔴 ПРАВИЛА, ГДЕ У ЦИФРЫ НЕТ ЧИСЛОВОГО СМЫСЛА — только «девять разных значков».
 ///
@@ -149,9 +149,10 @@ class SudokuSymbols {
         images: ['', for (var v = 1; v <= n; v++) digitImage(style, v)],
       );
 
+  /// Картинка значения; `null` — картинки нет, клетка и клавиша рисуют глиф.
   String? image(int v) {
     final im = images;
-    return im != null && v > 0 && v < im.length ? im[v] : null;
+    return im != null && v > 0 && v < im.length && im[v].isNotEmpty ? im[v] : null;
   }
 
   /// Звери (картинки «Пар») — для полей 4, 6 и 9; на прочих размерах цифры.
@@ -161,6 +162,18 @@ class SudokuSymbols {
     return SudokuSymbols._(
       ['', for (final i in picks) animalGlyphs[i]!],
       images: ['', for (final i in picks) animalImage(i)],
+    );
+  }
+
+  /// «Мяу — друзья» (задача fa0d6f9c): правило говорит о коте и мыши, поэтому значки
+  /// неизменны при любом выборе игрока — 1 кот, 2 мышь, дальше звери поля 4×4 без лягушки.
+  /// ⚠️ Картинки мыши в «Парах» нет (рисует задача 3ebe9d63): пока мышь — глиф 🐭.
+  factory SudokuSymbols.meow(int n) {
+    const picks = [0, -1, 9, 11]; // кот · мышь (без картинки) · пингвин · свинья
+    if (n != picks.length) return SudokuSymbols.animals(n);
+    return SudokuSymbols._(
+      ['', for (final i in picks) i < 0 ? '🐭' : animalGlyphs[i]!],
+      images: ['', for (final i in picks) i < 0 ? '' : animalImage(i)],
     );
   }
 
@@ -206,6 +219,8 @@ SudokuSymbols symbolsFor({
   String style = 'candy',
 }) {
   final n = solution.length;
+  // Правило друзей — о коте и мыши: значки не выбираются, иначе пропадает само правило.
+  if (variant == 'friends' && n > 0) return SudokuSymbols.meow(n);
   // Рисованные — это всё ещё цифры: числовой смысл не теряется ни на одном правиле.
   // Где под клеткой рисунок, клетка сама возьмёт текст (decorFreeVariants).
   if (skin == SudokuSkin.drawn && n > 0) return SudokuSymbols.drawn(n, style);
