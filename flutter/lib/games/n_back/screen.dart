@@ -225,7 +225,9 @@ class _NBackScreenState extends State<NBackScreen> {
   Future<void> _say(String letter) async {
     final v = _voice;
     if (v == null) return;
-    if (!await v.speakLetter(letter)) await v.speak(letter, 'en');
+    // Скорости — как у веба (tts.ts, speakLetterName): запись имени буквы — 1, синтез без
+    // записи — 1,2. Записи подбирались по длительности под окно пробы при скорости 1.
+    if (!await v.speakLetter(letter, rate: 1.0)) await v.speak(letter, 'en', rate: 1.2);
   }
 
   void _press({required bool audio}) {
@@ -521,12 +523,21 @@ class _Buttons extends StatelessWidget {
   Widget build(BuildContext context) {
     final open = game.canMatch;
     Widget button(Key key, String label, IconData icon, bool answered, NbPress last, VoidCallback onTap) {
+      final tint = _tint(last);
       return Expanded(
         child: SizedBox(
           height: 56,
           child: FilledButton.icon(
             key: key,
-            style: FilledButton.styleFrom(backgroundColor: _tint(last)),
+            // Нажатие сразу запирает кнопку — одно нажатие на пробу. Цвет «верно / мимо» нужен
+            // именно запертой кнопке: без disabled-цветов она брала серый цвет темы, и ответ на
+            // нажатие не был виден никогда (сверка веб → натив 02.10.2026).
+            style: FilledButton.styleFrom(
+              backgroundColor: tint,
+              disabledBackgroundColor: tint,
+              disabledForegroundColor: tint == null ? null : Colors.white,
+              disabledIconColor: tint == null ? null : Colors.white,
+            ),
             onPressed: open && !answered ? onTap : null,
             icon: Icon(icon),
             label: Text(open ? label : L.t('warmup'), maxLines: 1, overflow: TextOverflow.ellipsis),

@@ -20,11 +20,13 @@ class _FakeVoice implements VoiceBackend {
   _FakeVoice({required this.system});
   final bool system;
   final played = <String>[];
+  final playRates = <double>[];
   final spoken = <String>[];
 
   @override
   Future<bool> playUrl(String url, double rate) async {
     played.add(url);
+    playRates.add(rate);
     return true;
   }
 
@@ -49,6 +51,7 @@ class _FakeVoice implements VoiceBackend {
 /// (177a13df) — ровно то, что раньше уходило неверным молча.
 void main() {
   late SharedState state;
+  late _FakeVoice fake;
   final sent = <Map<String, dynamic>>[];
   final strings = NbStrings.fromJson(
       jsonDecode(File('assets/l10n/n_back.json').readAsStringSync()) as Map<String, dynamic>, 'ru');
@@ -71,8 +74,9 @@ void main() {
     sent.clear();
     SessionReport.sink = (json) async => sent.add(jsonDecode(json) as Map<String, dynamic>);
     if (preset != null) GamePreset.set(preset);
+    fake = _FakeVoice(system: voice);
     final layer = VoiceLayer(
-      backend: _FakeVoice(system: voice),
+      backend: fake,
       soundOn: () => true,
       letters: {for (final l in nbAudioLetters) l: '$l.opus'},
     );
@@ -127,6 +131,44 @@ void main() {
       .byWidgetPredicate((w) => w is Semantics && w.properties.label == '$label: $value')
       .evaluate()
       .isNotEmpty;
+
+  /// Цвет фона кнопки ответа, каким его видит человек.
+  Color? buttonFill(WidgetTester tester, Key key) => tester
+      .widget<Material>(find.descendant(of: find.byKey(key), matching: find.byType(Material)).first)
+      .color;
+
+  testWidgets('🔴 нажатие видно: попадание красит кнопку зелёным, ложная тревога — красным', (tester) async {
+    // Нажатие сразу запирает кнопку (одно нажатие на пробу), а цвет «верно / мимо» был задан
+    // только для открытой кнопки — запертая брала серый цвет темы, и ответ на нажатие не был
+    // виден никогда (сверка веб → натив 02.10.2026).
+    await boot(tester, level: 2);
+    await tester.tap(find.text(L.t('start')));
+    await tester.pump();
+    final seen = <int>[];
+    final fills = <String, Color?>{};
+    var dark = true;
+    for (var step = 0; step < 4000 && fills.length < 2 && find.byType(NbGrid).evaluate().isNotEmpty; step++) {
+      final lit = litCell(tester);
+      if (lit == null) {
+        dark = true;
+      } else if (dark) {
+        dark = false;
+        seen.add(lit);
+        final i = seen.length - 1;
+        final kind = i < 2 ? null : (seen[i] == seen[i - 2] ? 'hit' : 'falseAlarm');
+        if (kind != null && !fills.containsKey(kind)) {
+          await tester.tap(find.byKey(const Key('nb-match')));
+          await tester.pump();
+          fills[kind] = buttonFill(tester, const Key('nb-match'));
+        }
+      }
+      await tester.pump(const Duration(milliseconds: 50));
+    }
+    expect('попадание ${fills['hit']} · мимо ${fills['falseAlarm']}',
+        'попадание ${const Color(0xFF2E9E5B)} · мимо ${const Color(0xFFD9534F)}');
+    await tester.tap(find.byTooltip(L.t('restart')));
+    await tester.pump(const Duration(seconds: 3));
+  });
 
   testWidgets('🔴 партия нажатиями: 2-back, все совпадения взяты — 100 %, уровень поднят', (tester) async {
     await boot(tester, level: 2);
@@ -211,6 +253,20 @@ void main() {
           if (m.group(0) != 'back') m.group(0)!,
     ];
     expect('латинских слов: ${latin.join(', ')}', 'латинских слов: ');
+    await tester.tap(find.byTooltip(L.t('restart')));
+    await tester.pump(const Duration(seconds: 3));
+  });
+
+  testWidgets('🔴 запись буквы звучит со скоростью 1, как в вебе (speakLetterName), а не 0,9 по умолчанию',
+      (tester) async {
+    // Записи букв подбирались по длительности под окно пробы при скорости 1 (n-back.tsx); на 0,9
+    // имя буквы тянулось на десятую дольше веба (сверка веб → натив 02.10.2026).
+    await boot(tester, level: 9, voice: true);
+    await tester.tap(find.text(L.t('start')));
+    for (var i = 0; i < 40 && fake.playRates.length < 3; i++) {
+      await tester.pump(const Duration(milliseconds: 250));
+    }
+    expect('букв ${fake.playRates.length >= 3} · скорости ${fake.playRates.toSet()}', 'букв true · скорости {1.0}');
     await tester.tap(find.byTooltip(L.t('restart')));
     await tester.pump(const Duration(seconds: 3));
   });
