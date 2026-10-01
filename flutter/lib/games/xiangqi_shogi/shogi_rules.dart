@@ -145,9 +145,10 @@ class ShogiPosition {
   /// Сколько горизонталей впереди у фигуры на ряду `row`.
   int _rowsAhead(int side, int row) => side == sgSente ? row : 8 - row;
 
-  /// Поля, куда фигура на `from` бьёт или ходит (без проверки шаха).
-  Iterable<int> targets(int from) sync* {
-    final p = cells[from];
+  /// Поля, куда фигура на `from` бьёт или ходит (без проверки шаха). `as` — фигура,
+  /// которую мысленно ставим на пустое поле (проверка шаха сбросом без хода).
+  Iterable<int> targets(int from, [SgPiece? as]) sync* {
+    final p = as ?? cells[from];
     if (p == null) return;
     final f = _forward(p.side);
     final r0 = from ~/ 9, c0 = from % 9;
@@ -250,10 +251,38 @@ class ShogiPosition {
     return false;
   }
 
+  /// Поля, куда сброс закрывает шах: между единственной дальнобойной фигурой, давшей
+  /// шах, и королём. Пусто — сбросом не закрыться (шах вплотную, конём или двойной).
+  Set<int> _interpositions(int me) {
+    final k = king(me);
+    if (k == null) return const {};
+    final checkers = <int>[];
+    for (var i = 0; i < 81; i++) {
+      final p = cells[i];
+      if (p == null || p.side == me) continue;
+      if (targets(i).contains(k)) checkers.add(i);
+    }
+    if (checkers.length != 1) return const {};
+    final c = checkers.single;
+    final dr = (k ~/ 9 - c ~/ 9).sign, dc = (k % 9 - c % 9).sign;
+    final out = <int>{};
+    var r = c ~/ 9 + dr, col = c % 9 + dc;
+    while (r * 9 + col != k) {
+      if ((k ~/ 9 - c ~/ 9).abs() <= 1 && (k % 9 - c % 9).abs() <= 1) break;
+      if ((k ~/ 9 - c ~/ 9).abs() == 2 && (k % 9 - c % 9).abs() == 1) break; // конь
+      out.add(r * 9 + col);
+      r += dr;
+      col += dc;
+    }
+    return out;
+  }
+
   /// Ходы без проверки шаха своему королю и без запрета мата сбросом пешки.
+  /// Под шахом сбросы — только на поля между дальнобойной фигурой и королём.
   List<String> _pseudo() {
     final me = toMove;
     final out = <String>[];
+    final dropOnly = inCheck(me) ? _interpositions(me) : null;
     for (var from = 0; from < 81; from++) {
       final p = cells[from];
       if (p == null || p.side != me) continue;
@@ -276,6 +305,7 @@ class ShogiPosition {
       if ((hands[me][kind] ?? 0) == 0) continue;
       for (var to = 0; to < 81; to++) {
         if (cells[to] != null) continue;
+        if (dropOnly != null && !dropOnly.contains(to)) continue;
         final ahead = _rowsAhead(me, to ~/ 9);
         if ((kind == 'P' || kind == 'L') && ahead == 0) continue;
         if (kind == 'N' && ahead <= 1) continue;
@@ -304,4 +334,27 @@ class ShogiPosition {
   }
 
   bool get checkmate => inCheck(toMove) && legalMoves().isEmpty;
+
+  /// Законные ходы, дающие шах (атакующий в цумэ). Сбросы проверяются без хода: фигура
+  /// мысленно ставится на поле и бьёт ли она короля; ходы по доске — ходом (там бывает
+  /// вскрытый шах). Совпадает с `legalMoves().where(даёт шах)` — проба в тесте.
+  List<String> checkingMoves() {
+    final me = toMove;
+    final k = king(1 - me);
+    if (k == null) return const [];
+    final out = <String>[];
+    for (final m in _pseudo()) {
+      if (m.contains('@')) {
+        final to = sgIndex(m.substring(2));
+        if (!targets(to, SgPiece(me, m[0])).contains(k)) continue;
+      }
+      final next = apply(m);
+      if (!next.inCheck(1 - me) || next.inCheck(me)) continue;
+      if (m.startsWith('P@') && next.legalMoves(pawnDropMateRule: false).isEmpty) {
+        continue; // утифудзумэ
+      }
+      out.add(m);
+    }
+    return out;
+  }
 }

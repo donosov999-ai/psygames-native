@@ -164,6 +164,8 @@ export const MODE_ICONS: Record<string, any> = {
   '/games/corners': require('../../assets/images/game_icons/corners.webp'),
   // «Го: захват» (66dee70c): своя иконка — доска го, группа-цель в красном кольце.
   '/games/go-capture': require('../../assets/images/game_icons/go_capture.webp'),
+  // «Сянци и сёги» (c33fb91b): своя иконка — половина доски сянци, половина сёги.
+  '/games/xiangqi-shogi': require('../../assets/images/game_icons/xiangqi_shogi.webp'),
   '/games/cats': require('../../assets/images/game_icons/cats.webp'),
   // «Пасьянс-шахматы» (#133) — строка развилки шахмат без своей карточки в GAMES: иконка группы фигур.
   '/games/solitaire-chess': require('../../assets/images/game_icons/chess_group.webp'),

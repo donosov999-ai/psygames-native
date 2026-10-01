@@ -303,6 +303,7 @@ void main() {
       '/games/draughts-combo',
       '/games/corners',
       '/games/go-capture',
+      '/games/xiangqi-shogi',
       '/games/choice-rt',
       '/games/cpt',
       '/games/corsi',

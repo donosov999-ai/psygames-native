@@ -142,6 +142,8 @@ export const HUB_CONTENTS: Record<string, HubSubGame[]> = {
     { route: '/games/corners', icon: 'extension-puzzle', nameKey: 'corners', descKey: 'cornersDesc', typeKey: 'chessTypeCorners' },
     // «Го: захват» (02.10.2026, задача 66dee70c): только нативный экран.
     { route: '/games/go-capture', icon: 'extension-puzzle', nameKey: 'goCapture', descKey: 'goCaptureDesc', typeKey: 'chessTypeGoCapture' },
+    // «Сянци и сёги» (02.10.2026, задача c33fb91b): только нативный экран.
+    { route: '/games/xiangqi-shogi', icon: 'extension-puzzle', nameKey: 'xiangqiShogi', descKey: 'xiangqiShogiDesc', typeKey: 'chessTypeXiangqiShogi' },
   ],
 
   /* ——— Внимание ——— */

@@ -53,6 +53,8 @@ export const NATIVE_ONLY_GAMES: readonly NativeOnlyGame[] = [
   { route: '/games/corners', nameKey: 'corners', descKey: 'cornersDesc' },
   // «Шахматы», новая игра 6 из 7 (задача 66dee70c): «Го: захват» — снять группу за N ходов.
   { route: '/games/go-capture', nameKey: 'goCapture', descKey: 'goCaptureDesc' },
+  // «Шахматы», новая игра 7 из 7 (задача c33fb91b): «Сянци и сёги» — мат в N.
+  { route: '/games/xiangqi-shogi', nameKey: 'xiangqiShogi', descKey: 'xiangqiShogiDesc' },
 ];
 
 export const NATIVE_ONLY_ROUTES: readonly string[] = NATIVE_ONLY_GAMES.map((g) => g.route);
