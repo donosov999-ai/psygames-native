@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/go_capture/game.dart';
 import 'package:psygames_flutter/games/go_capture/ladder.dart';
 import 'package:psygames_flutter/games/go_capture/lesson.dart';
+import 'package:psygames_flutter/games/go_capture/life.dart';
 import 'package:psygames_flutter/games/go_capture/rules.dart';
 import 'package:psygames_flutter/games/go_capture/screen.dart';
 import 'package:psygames_flutter/shell/game_clock.dart';
@@ -24,6 +25,9 @@ void main() {
   final corpus = GoCaptureCorpus.parse(
     File('assets/go_capture/puzzles.json').readAsStringSync(),
   );
+  final lifeCorpus = GoCaptureCorpus.parse(
+    File('assets/go_capture/life.json').readAsStringSync(),
+  );
   var clock = 0;
 
   setUp(() async {
@@ -38,6 +42,7 @@ void main() {
     Size size = const Size(390, 844),
     bool gameClock = false,
     int level = 1,
+    int lifeLevel = 1,
   }) async {
     useFakeGameClock(tester);
     tester.view.physicalSize = size * 2;
@@ -45,11 +50,15 @@ void main() {
     addTearDown(tester.view.reset);
     final state = await SharedState.open();
     if (level > 1) await state.set('psygames_go-capture_level_nzt48', '$level');
+    if (lifeLevel > 1) {
+      await state.set('psygames_go-life_level_nzt48', '$lifeLevel');
+    }
     await tester.pumpWidget(
       MaterialApp(
         home: GoCaptureScreen(
           state: state,
           corpus: corpus,
+          lifeCorpus: lifeCorpus,
           clock: gameClock ? null : () => clock,
           seed: 5,
         ),
@@ -207,6 +216,68 @@ void main() {
             lessThanOrEqualTo(size.height),
             reason: '$k в кадре',
           );
+        }
+        expect(tester.takeException(), isNull);
+      },
+    );
+  }
+
+  testWidgets('«Жизнь»: режим переключается, пять задач решены касаниями — ступень «Жизни» выше, «Захвата» — нет', (
+    tester,
+  ) async {
+    await open(tester);
+    await tester.tap(find.byKey(const Key('gc-mode-life')));
+    await tester.pump();
+    expect(find.text(L.t('glAbout')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('gc-start')));
+    await tester.pump();
+    final deck = goCaptureDeckFor(lifeCorpus, 1, seed: 5);
+    for (final p in deck) {
+      expect(run(tester).puzzle.id, p.id);
+      expect(run(tester).mode, GcMode.life);
+      expect(text(tester, 'gc-rule'), L.f('glRule', {'n': '${p.moves}'}));
+      final line = goLifeLine(p);
+      for (var i = 0; i < line.length; i += 2) {
+        await tapPoint(tester, line[i]);
+        if (run(tester).verdict != null) break;
+        clock += GoCaptureRun.replyMs + 10;
+        await tester.pump(const Duration(milliseconds: 150));
+      }
+      expect(text(tester, 'gc-verdict'), '✓', reason: 'задача ${p.id}');
+      clock += 1500;
+      await tester.pump(const Duration(milliseconds: 250));
+    }
+    await tester.pump(const Duration(milliseconds: 250));
+    expect(
+      find.textContaining('${L.t('label_level_short')} 2'),
+      findsOneWidget,
+    );
+    // Лестницы раздельные: поднялась «Жизнь», «Захват» не тронут.
+    final state = await SharedState.open();
+    expect(state.get('psygames_go-life_level_nzt48'), '2');
+    expect(state.get('psygames_go-capture_level_nzt48'), isNull);
+  });
+
+  for (final size in const [Size(320, 568), Size(390, 844)]) {
+    testWidgets(
+      '${size.width.toInt()}×${size.height.toInt()}: «Жизнь» 9×9 — пункт ≥ 30, «так не жить» с кнопками в кадре',
+      (tester) async {
+        await open(tester, size: size, lifeLevel: 22);
+        await tester.tap(find.byKey(const Key('gc-mode-life')));
+        await tester.pump();
+        await tester.tap(find.byKey(const Key('gc-start')));
+        await tester.pump();
+        final r = run(tester);
+        expect(r.puzzle.size, 9);
+        expect(tester.getSize(find.byKey(const Key('gc-0'))).width, greaterThanOrEqualTo(30));
+        final p = r.puzzle;
+        final bad = LifeSolver()
+            .candidates(p.position, p.target)
+            .firstWhere((m) => m != p.key && p.position.play(m) != null);
+        await tapPoint(tester, bad);
+        expect(text(tester, 'gc-verdict'), L.t('glWrong'));
+        for (final k in const ['gc-restart', 'gc-next', 'gc-verdict']) {
+          expect(tester.getRect(find.byKey(Key(k))).bottom, lessThanOrEqualTo(size.height), reason: '$k в кадре');
         }
         expect(tester.takeException(), isNull);
       },

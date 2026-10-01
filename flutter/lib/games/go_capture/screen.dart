@@ -23,20 +23,25 @@ String goCaptureDifficulty(int level) => level <= 6
     ? 'medium'
     : 'hard';
 
-/// ЭКРАН «ГО: ЗАХВАТ» на общем каркасе — тонкий, как у «Уголков»: всё, что
-/// засчитывается, — в `game.dart` и закрыто пробами без пикселей; правила и решатель
-/// — в `rules.dart`.
+/// ЭКРАН «ГО» на общем каркасе — тонкий, как у «Уголков»: всё, что засчитывается, —
+/// в `game.dart` и закрыто пробами без пикселей; правила и решатели — в `rules.dart`
+/// (захват) и `life.dart` (жизнь). Два режима, у каждого своя лестница — как у «Коня
+/// и ферзей».
 class GoCaptureScreen extends StatefulWidget {
   const GoCaptureScreen({
     super.key,
     required this.state,
     this.corpus,
+    this.lifeCorpus,
     this.clock,
     this.seed,
+    this.initialMode = GcMode.capture,
   });
 
   final SharedState state;
   final GoCaptureCorpus? corpus;
+  final GoCaptureCorpus? lifeCorpus;
+  final GcMode initialMode;
   final int Function()? clock;
   final int? seed;
 
@@ -47,13 +52,19 @@ class GoCaptureScreen extends StatefulWidget {
 enum _Phase { config, playing, done }
 
 class _GoCaptureScreenState extends State<GoCaptureScreen> {
-  late final LevelLadder _ladder = LevelLadder(
-    gameId: 'go-capture',
-    store: SharedLevelStore(widget.state),
-    maxLevel: goCaptureLevels,
-  );
+  late GcMode _mode = widget.initialMode;
+  late final Map<GcMode, LevelLadder> _ladders = {
+    for (final m in GcMode.values)
+      m: LevelLadder(
+        gameId: m == GcMode.capture ? 'go-capture' : 'go-life',
+        store: SharedLevelStore(widget.state),
+        maxLevel: goCaptureLevels,
+      ),
+  };
+  LevelLadder get _ladder => _ladders[_mode]!;
   GameTimer? _ticker;
-  GoCaptureCorpus? _corpus;
+  final Map<GcMode, GoCaptureCorpus> _corpora = {};
+  GoCaptureCorpus? get _corpus => _corpora[_mode];
   String? _error;
   _Phase _phase = _Phase.config;
   GoCaptureRun? _run;
@@ -75,10 +86,17 @@ class _GoCaptureScreenState extends State<GoCaptureScreen> {
 
   Future<void> _boot() async {
     try {
-      await _ladder.load();
-      final corpus = widget.corpus ?? await GoCaptureCorpus.load();
+      for (final l in _ladders.values) {
+        await l.load();
+      }
+      final capture = widget.corpus ?? await GoCaptureCorpus.load();
+      final life =
+          widget.lifeCorpus ?? await GoCaptureCorpus.load(GcMode.life);
       if (!mounted) return;
-      setState(() => _corpus = corpus);
+      setState(() {
+        _corpora[GcMode.capture] = capture;
+        _corpora[GcMode.life] = life;
+      });
       if (GamePreset.autostart) _start();
     } catch (e) {
       if (!mounted) return;
@@ -106,7 +124,7 @@ class _GoCaptureScreenState extends State<GoCaptureScreen> {
     _starts++;
     if (deck.isEmpty) return;
     setState(() {
-      _run = GoCaptureRun(level: level, deck: deck, now: _now);
+      _run = GoCaptureRun(level: level, deck: deck, now: _now, mode: _mode);
       _runLevel = level;
       _phase = _Phase.playing;
     });
@@ -129,6 +147,8 @@ class _GoCaptureScreenState extends State<GoCaptureScreen> {
 
   Future<void> _complete(GoCaptureResult r) async {
     final level = _runLevel;
+    final mode = _run?.mode ?? _mode;
+    final ladder = _ladders[mode]!;
     final seconds = (r.attempts.fold<int>(0, (s, a) => s + a.ms) / 1000)
         .round();
     final step = goCaptureStep(level);
@@ -141,6 +161,7 @@ class _GoCaptureScreenState extends State<GoCaptureScreen> {
       'puzzles': [for (final a in r.attempts) a.puzzleId],
       'group': step.group,
       'band': step.band,
+      'mode': mode.name,
     };
     setState(() {
       _last = r;
@@ -148,20 +169,20 @@ class _GoCaptureScreenState extends State<GoCaptureScreen> {
     });
     final difficulty = goCaptureDifficulty(level);
     if (r.passed) {
-      await _ladder.win(
+      await ladder.win(
         score: r.solved,
         timeSeconds: seconds,
         errors: r.total - r.solved,
-        mode: 'levels',
+        mode: mode.name,
         difficulty: difficulty,
         details: details,
       );
     } else if (r.failed) {
-      await _ladder.fail(
+      await ladder.fail(
         score: r.solved,
         timeSeconds: seconds,
         errors: r.total - r.solved,
-        mode: 'levels',
+        mode: mode.name,
         difficulty: difficulty,
         details: details,
       );
@@ -171,7 +192,7 @@ class _GoCaptureScreenState extends State<GoCaptureScreen> {
         score: r.solved,
         timeSeconds: seconds,
         errors: r.total - r.solved,
-        mode: 'levels',
+        mode: mode.name,
         difficulty: difficulty,
         details: details,
       );
@@ -180,12 +201,14 @@ class _GoCaptureScreenState extends State<GoCaptureScreen> {
   }
 
   Future<void> _openLesson() async {
-    final corpus = _corpus ?? await GoCaptureCorpus.load();
+    final mode = _phase == _Phase.playing ? (_run?.mode ?? _mode) : _mode;
+    final corpus = _corpora[mode] ?? await GoCaptureCorpus.load(mode);
     if (!mounted) return;
-    final level = _phase == _Phase.playing ? _runLevel : _ladder.level;
+    final level = _phase == _Phase.playing ? _runLevel : _ladders[mode]!.level;
     final seed = widget.seed ?? level * 131 + _starts;
     final deck = goCaptureDeckFor(corpus, level, seed: seed, count: 1);
-    final steps = goCaptureLessonForLevel(corpus, level, seed: seed);
+    final steps = goLessonForLevel(corpus, level, mode, seed: seed);
+    final mine = mode == GcMode.life ? goBlack : goWhite;
     if (steps.isEmpty || deck.isEmpty) return;
     final puzzle = deck.first;
     LessonUsed.mark();
@@ -202,9 +225,10 @@ class _GoCaptureScreenState extends State<GoCaptureScreen> {
               child: GoBoardView(
                 position: f.position,
                 side: side,
-                target: f.position.at(puzzle.target) == goWhite
+                target: f.position.at(puzzle.target) == mine
                     ? f.position.group(puzzle.target).stones
                     : const {},
+                targetRing: _ringFor(mode),
                 lastMove: f.move,
               ),
             );
@@ -264,13 +288,32 @@ class _GoCaptureScreenState extends State<GoCaptureScreen> {
     );
   }
 
+  static Color _ringFor(GcMode mode) =>
+      mode == GcMode.life ? const Color(0xFF1E88E5) : const Color(0xFFD32F2F);
+
   Widget _config() => SingleChildScrollView(
     padding: const EdgeInsets.all(16),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        SegmentedButton<GcMode>(
+          key: const Key('gc-mode'),
+          segments: [
+            ButtonSegment(
+              value: GcMode.capture,
+              label: Text(L.t('gcModeCapture'), key: const Key('gc-mode-capture')),
+            ),
+            ButtonSegment(
+              value: GcMode.life,
+              label: Text(L.t('gcModeLife'), key: const Key('gc-mode-life')),
+            ),
+          ],
+          selected: {_mode},
+          onSelectionChanged: (v) => setState(() => _mode = v.first),
+        ),
+        const SizedBox(height: 12),
         Text(
-          L.t('gcAbout'),
+          L.t(_mode == GcMode.capture ? 'gcAbout' : 'glAbout'),
           key: const Key('gc-about'),
           style: const TextStyle(fontWeight: FontWeight.w600),
         ),
@@ -292,6 +335,7 @@ class _GoCaptureScreenState extends State<GoCaptureScreen> {
     final left = run.secondsLeft;
     final verdict = run.verdict;
     final wrong = verdict == GoCaptureVerdict.wrong;
+    final life = run.mode == GcMode.life;
     String verdictText() => switch (verdict) {
       null => run.refusal == 'ko'
           ? L.t('gcKo')
@@ -301,7 +345,7 @@ class _GoCaptureScreenState extends State<GoCaptureScreen> {
           ? L.t('gcWhiteThinks')
           : ' ',
       GoCaptureVerdict.solved => '✓',
-      GoCaptureVerdict.wrong => L.t('gcWrong'),
+      GoCaptureVerdict.wrong => L.t(life ? 'glWrong' : 'gcWrong'),
       GoCaptureVerdict.timeout => L.t('timeIsUp'),
     };
     return LayoutBuilder(
@@ -314,7 +358,7 @@ class _GoCaptureScreenState extends State<GoCaptureScreen> {
           child: Column(
             children: [
               Text(
-                L.f('gcRule', {'n': '${run.puzzle.moves}'}),
+                L.f(life ? 'glRule' : 'gcRule', {'n': '${run.puzzle.moves}'}),
                 key: const Key('gc-rule'),
                 textAlign: TextAlign.center,
                 maxLines: 2,
@@ -348,6 +392,7 @@ class _GoCaptureScreenState extends State<GoCaptureScreen> {
                 position: run.position,
                 side: side,
                 target: run.targetStones,
+                targetRing: _ringFor(run.mode),
                 lastMove: run.lastMove,
                 hint: run.hintPoint,
                 onTap: (p) => setState(() => run.tap(p)),
@@ -469,13 +514,15 @@ class _GoCaptureScreenState extends State<GoCaptureScreen> {
 }
 
 /// Доска го: линии и пункты на пересечениях, камни — чёрные и белые кружки; группа-
-/// цель обведена красным, последний ход — точкой, подсказка — золотым кольцом.
+/// цель обведена кольцом (захват — красным, жизнь — синим), последний ход — точкой,
+/// подсказка — золотым кольцом.
 class GoBoardView extends StatelessWidget {
   const GoBoardView({
     super.key,
     required this.position,
     required this.side,
     this.target = const {},
+    this.targetRing = const Color(0xFFD32F2F),
     this.lastMove,
     this.hint,
     this.onTap,
@@ -484,6 +531,7 @@ class GoBoardView extends StatelessWidget {
   final GoPosition position;
   final double side;
   final Set<int> target;
+  final Color targetRing;
   final int? lastMove;
   final int? hint;
   final void Function(int point)? onTap;
@@ -517,7 +565,7 @@ class GoBoardView extends StatelessWidget {
     if (p == hint) {
       ring = const Color(0xFFE0A800);
     } else if (inTarget) {
-      ring = const Color(0xFFD32F2F);
+      ring = targetRing;
     }
     return GestureDetector(
       key: Key('gc-$p'),

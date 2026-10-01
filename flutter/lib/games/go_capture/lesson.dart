@@ -16,6 +16,7 @@ library;
 import '../../shell/l10n.dart';
 import '../../shell/lesson.dart';
 import 'ladder.dart';
+import 'life.dart';
 import 'rules.dart';
 
 const gcLessonKeys = <String>[
@@ -35,6 +36,26 @@ const gcLessonKeys = <String>[
 ];
 
 const gcFallbackKeys = {'teachGcMove'};
+
+/// Разбор «Жизни». Чёрные: «два глаза» (после хода группа безусловно жива), «взятие»
+/// (снят камень белых), «глаз» (пустых областей, замкнутых группой, стало больше),
+/// «атари» (белым осталось одно дамэ), запасная — «ход». Белые: «лезут внутрь»
+/// (камень в пространстве группы), «атари» (чёрным одно дамэ), «пас», иначе «ответ».
+const glLessonKeys = <String>[
+  'teachGlRule',
+  'teachGlTwoEyes',
+  'teachGlCapture',
+  'teachGlEye',
+  'teachGlAtari',
+  'teachGlInvade',
+  'teachGlWhiteAtari',
+  'teachGcPass',
+  'teachGcReply',
+  'teachGcMove',
+  'teachGlDone',
+];
+
+const glFallbackKeys = {'teachGcMove'};
 
 class GcLessonFrame {
   const GcLessonFrame({required this.position, this.move});
@@ -164,3 +185,124 @@ List<LessonStep> goCaptureLessonForLevel(
   for (final p in goCaptureDeckFor(corpus, level, seed: seed, count: 1))
     ...goCaptureLessonSteps(p),
 ];
+
+/// Линия решателя «Жизни»: ход чёрных, лучшая атака белых — пока группа не жива.
+List<int> goLifeLine(GoCapturePuzzle p) {
+  final out = <int>[];
+  var pos = p.position;
+  var left = p.moves;
+  var black = p.key;
+  for (var guard = 0; guard < 2 * p.moves + 2; guard++) {
+    final next = pos.play(black);
+    if (next == null) break;
+    out.add(black);
+    pos = next;
+    left--;
+    if (LifeSolver.alive(pos, p.target) || left <= 0) break;
+    final reply = LifeSolver().attackerReply(pos, p.target, left);
+    final after = pos.play(reply);
+    if (after == null) break;
+    out.add(reply);
+    pos = after;
+    final win = LifeSolver().winningMoves(pos, p.target, left);
+    if (win.isEmpty) break;
+    black = win.first;
+  }
+  return out;
+}
+
+/// Число пустых областей, замкнутых чёрными (соседи — только чёрные камни и край).
+int _blackEnclosedRegions(GoPosition pos) {
+  final seen = <int>{};
+  var count = 0;
+  for (var p = 0; p < pos.points.length; p++) {
+    if (pos.at(p) != goEmpty || seen.contains(p)) continue;
+    var enclosed = true;
+    final stack = [p];
+    seen.add(p);
+    while (stack.isNotEmpty) {
+      final q = stack.removeLast();
+      for (final m in pos.neighbours(q)) {
+        final v = pos.at(m);
+        if (v == goWhite) enclosed = false;
+        if (v == goEmpty && seen.add(m)) stack.add(m);
+      }
+    }
+    if (enclosed) count++;
+  }
+  return count;
+}
+
+List<String> goLifeLineKeys(GoCapturePuzzle p) {
+  final keys = <String>[];
+  var pos = p.position;
+  for (final m in goLifeLine(p)) {
+    final black = pos.toMove == goBlack;
+    final next = pos.play(m)!;
+    if (black) {
+      final whitesBefore = pos.points.where((v) => v == goWhite).length;
+      final whitesAfter = next.points.where((v) => v == goWhite).length;
+      if (LifeSolver.alive(next, p.target)) {
+        keys.add('teachGlTwoEyes');
+      } else if (whitesAfter < whitesBefore) {
+        keys.add('teachGlCapture');
+      } else if (_blackEnclosedRegions(next) > _blackEnclosedRegions(pos)) {
+        keys.add('teachGlEye');
+      } else if (next.neighbours(m).any(
+        (n) => next.at(n) == goWhite && next.group(n).liberties.length == 1,
+      )) {
+        keys.add('teachGlAtari');
+      } else {
+        keys.add('teachGcMove');
+      }
+    } else if (m < 0) {
+      keys.add('teachGcPass');
+    } else {
+      final space = LifeSolver().candidates(pos, p.target).toSet();
+      if (next.at(p.target) == goBlack &&
+          next.group(p.target).liberties.length == 1) {
+        keys.add('teachGlWhiteAtari');
+      } else if (space.contains(m) &&
+          !pos.neighbours(m).any((n) => pos.at(n) == goWhite)) {
+        keys.add('teachGlInvade');
+      } else {
+        keys.add('teachGcReply');
+      }
+    }
+    pos = next;
+  }
+  return keys;
+}
+
+List<LessonStep> goLifeLessonSteps(GoCapturePuzzle p) {
+  final line = goLifeLine(p);
+  if (line.isEmpty) return const [];
+  final keys = goLifeLineKeys(p);
+  var pos = p.position;
+  final out = <LessonStep>[
+    _step('teachGlRule', GcLessonFrame(position: pos), {'n': '${p.moves}'}),
+  ];
+  for (var i = 0; i < line.length; i++) {
+    final m = line[i];
+    pos = pos.play(m)!;
+    out.add(
+      _step(keys[i], GcLessonFrame(position: pos, move: m), {
+        'move': m < 0 ? '—' : goPointName(p.size, m),
+      }),
+    );
+  }
+  out.add(_step('teachGlDone', GcLessonFrame(position: pos), {'n': '${p.moves}'}));
+  return out;
+}
+
+List<LessonStep> goLessonForLevel(
+  GoCaptureCorpus corpus,
+  int level,
+  GcMode mode, {
+  required int seed,
+}) => mode == GcMode.capture
+    ? goCaptureLessonForLevel(corpus, level, seed: seed)
+    : [
+        for (final p in goCaptureDeckFor(corpus, level, seed: seed, count: 1))
+          ...goLifeLessonSteps(p),
+      ];

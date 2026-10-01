@@ -1,6 +1,10 @@
-/// ЛЕСТНИЦА «ГО: ЗАХВАТ»: доска, число ходов — и треть по числу кандидатов.
+/// ЛЕСТНИЦЫ «ГО»: доска, число ходов — и треть по числу кандидатов.
 ///
-/// Корпус — `assets/go_capture/puzzles.json` из `tools/go_capture_corpus.dart`.
+/// Два режима, у каждого свой корпус и своя лестница:
+///   · «Захват» — `assets/go_capture/puzzles.json` из `tools/go_capture_corpus.dart`;
+///   · «Жизнь» — `assets/go_capture/life.json` из `tools/go_life_corpus.dart`, группы
+///     (5,1) → (6,1) → (5,2) → (6,2) → (7,2) → (6,3) → (7,3) → (9,3).
+/// Ниже — про захват.
 /// 24 ступени = 8 групп × 3 трети. Группа (доска, ходов чёрных): (5,2) → (5,3) →
 /// (6,2) → (6,3) → (7,3) → (7,4) → (9,3) → (9,4). Треть — по числу ходов-кандидатов
 /// у чёрных около цели: чем их больше, тем труднее найти ключ. Ключ у каждой задачи
@@ -19,6 +23,9 @@ const int goCaptureDeck = 5;
 const int goCaptureSeconds = 120;
 const int goCapturePassClean = 4;
 const int goCaptureFailAtMost = 2;
+
+/// Режим: снять белую группу или сделать чёрную безусловно живой.
+enum GcMode { capture, life }
 
 class GoCapturePuzzle {
   GoCapturePuzzle({
@@ -79,8 +86,12 @@ class GoCaptureCorpus {
     ]);
   }
 
-  static Future<GoCaptureCorpus> load() async {
-    final data = await rootBundle.load('assets/go_capture/puzzles.json');
+  static Future<GoCaptureCorpus> load([GcMode mode = GcMode.capture]) async {
+    final data = await rootBundle.load(
+      mode == GcMode.capture
+          ? 'assets/go_capture/puzzles.json'
+          : 'assets/go_capture/life.json',
+    );
     return parse(
       utf8.decode(
         data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes),

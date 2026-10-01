@@ -1,4 +1,5 @@
-/// ПОДХОД «ГО: ЗАХВАТ» — логика без пикселей, по образцу «Шашек».
+/// ПОДХОД «ГО» — логика без пикселей, по образцу «Шашек». Два режима: «Захват» (снять
+/// белую группу) и «Жизнь» (сделать чёрную группу безусловно живой, `life.dart`).
 ///
 /// Человек — чёрные: касание пустого пункта ставит камень. Белые отвечают лучшим
 /// ходом решателя через полсекунды, чтобы ответ было видно.
@@ -11,6 +12,7 @@
 library;
 
 import 'ladder.dart';
+import 'life.dart';
 import 'rules.dart';
 
 class GoCaptureAttempt {
@@ -43,14 +45,19 @@ class GoCaptureResult {
 enum GoCaptureVerdict { solved, wrong, timeout }
 
 class GoCaptureRun {
-  GoCaptureRun({required this.level, required this.deck, required this.now})
-    : assert(deck.isNotEmpty) {
+  GoCaptureRun({
+    required this.level,
+    required this.deck,
+    required this.now,
+    this.mode = GcMode.capture,
+  }) : assert(deck.isNotEmpty) {
     _open();
   }
 
   final int level;
   final List<GoCapturePuzzle> deck;
   final int Function() now;
+  final GcMode mode;
 
   static const int replyMs = 550;
 
@@ -77,10 +84,20 @@ class GoCaptureRun {
   bool get waitingReply => _replyAt > 0;
   int get movesLeft => puzzle.moves - made;
 
-  /// Камни группы-цели сейчас (пусто — снята).
-  Set<int> get targetStones => position.at(puzzle.target) == goWhite
+  /// Камни группы-цели сейчас (пусто — снята). В «Жизни» цель — чёрная группа.
+  Set<int> get targetStones =>
+      position.at(puzzle.target) == (mode == GcMode.life ? goBlack : goWhite)
       ? position.group(puzzle.target).stones
       : const {};
+
+  /// Цель достигнута: белая группа снята / чёрная безусловно жива.
+  bool get _goal => mode == GcMode.capture
+      ? position.at(puzzle.target) == goEmpty
+      : LifeSolver.alive(position, puzzle.target);
+
+  GoVerdict _holds() => mode == GcMode.capture
+      ? CaptureSolver().holdsAfter(position, puzzle.target, movesLeft)
+      : LifeSolver().holdsAfter(position, puzzle.target, movesLeft);
 
   double get secondsLeft {
     final left = goCaptureSeconds - (now() - _startedAt) / 1000;
@@ -143,13 +160,11 @@ class GoCaptureRun {
     position = next;
     lastMove = point;
     made++;
-    if (position.at(puzzle.target) == goEmpty) {
+    if (_goal) {
       _close(solved: true);
       return;
     }
-    if (movesLeft <= 0 ||
-        CaptureSolver().holdsAfter(position, puzzle.target, movesLeft) ==
-            GoVerdict.no) {
+    if (movesLeft <= 0 || _holds() == GoVerdict.no) {
       verdict = GoCaptureVerdict.wrong;
       return;
     }
@@ -163,7 +178,9 @@ class GoCaptureRun {
       null;
 
   void _whiteReplies() {
-    final m = CaptureSolver().defenderReply(position, puzzle.target, movesLeft);
+    final m = mode == GcMode.capture
+        ? CaptureSolver().defenderReply(position, puzzle.target, movesLeft)
+        : LifeSolver().attackerReply(position, puzzle.target, movesLeft);
     final next = position.play(m);
     if (next == null) return;
     position = next;
@@ -181,7 +198,9 @@ class GoCaptureRun {
   void takeHint() {
     if (!canHint) return;
     hinted = true;
-    final win = CaptureSolver().winningMoves(position, puzzle.target, movesLeft);
+    final win = mode == GcMode.capture
+        ? CaptureSolver().winningMoves(position, puzzle.target, movesLeft)
+        : LifeSolver().winningMoves(position, puzzle.target, movesLeft);
     if (win.isNotEmpty) hintPoint = win.first;
   }
 
