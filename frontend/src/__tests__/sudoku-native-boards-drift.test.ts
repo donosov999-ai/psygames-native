@@ -12,14 +12,14 @@
  * выгруженной доски и ступени режимов. Сами доски случайны — их целость, единственность и
  * меру проверяет выгрузка до записи, а Dart-сторона — `flutter/test/sudoku_levels_test.dart`.
  */
+import { levelConfig, dimsForSize } from '@/src/services/sudoku-core';
+import { BANK_N, RATING_LADDER } from '@/src/services/sudoku-bank';
+import { sideStepCfg, sideStepCount } from '@/src/services/sudoku-modes';
+
 declare const __dirname: string;
 declare function require(id: string): any;
 const { readFileSync } = require('fs');
 const { join } = require('path');
-
-import { levelConfig, dimsForSize } from '@/src/services/sudoku-core';
-import { BANK_N, RATING_LADDER } from '@/src/services/sudoku-bank';
-import { sideStepCfg, sideStepCount } from '@/src/services/sudoku-modes';
 
 const LEVELS_DIR = join(__dirname, '..', '..', '..', 'flutter', 'assets', 'levels');
 const readLevels = (file: string) => JSON.parse(readFileSync(join(LEVELS_DIR, file), 'utf8'));
