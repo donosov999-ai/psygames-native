@@ -81,8 +81,14 @@ void main() {
     SessionReport.sink = (json) async => sent.add(jsonDecode(json) as Map<String, dynamic>);
     if (preset != null) GamePreset.set(preset);
     voiceDevice = _FakeVoice(system: voice);
-    var x = seed / 100;
-    double rng() => x = (x * 9301 + 49297) % 233280 / 233280;
+    // Линейный конгруэнтный поток на ЦЕЛОМ состоянии. На дроби (x = (x·9301 + 49297) % 233280 / 233280)
+    // он сходится к ≈0,22, и все цифры ряда выходили «2»: на таком ряду «прямо», «наоборот» и «по
+    // возрастанию» неразличимы, и проба обратного ввода ничего не доказывала (01.10.2026).
+    var st = seed;
+    double rng() {
+      st = (st * 9301 + 49297) % 233280;
+      return st / 233280;
+    }
     await tester.pumpWidget(MaterialApp(
       home: DigitSpanScreen(
         key: UniqueKey(),
