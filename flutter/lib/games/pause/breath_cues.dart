@@ -145,11 +145,13 @@ class BreathCues {
   }
 
   /// Вибрация веба: вдох 18 мс, задержка [14, 90, 14], выдох 60 мс.
+  /// Сила — общая с «Паузой» (`PausePracticeHaptics.strength`): 0,35 в руке не слышно
+  /// (Денис 01.10: «вибрации нет нихуя»).
   Future<void> _vibrate(BreathCue cue) async {
     final args = switch (cue) {
-      BreathCue.inhale => {'continuous': false, 'count': 1, 'durationMs': 18, 'strength': .35},
-      BreathCue.hold => {'continuous': false, 'count': 2, 'durationMs': 14, 'strength': .35},
-      BreathCue.exhale => {'continuous': true, 'count': 1, 'durationMs': 60, 'strength': .35},
+      BreathCue.inhale => {'continuous': false, 'count': 1, 'durationMs': 18, 'strength': PausePracticeHaptics.strength},
+      BreathCue.hold => {'continuous': false, 'count': 2, 'durationMs': 14, 'strength': PausePracticeHaptics.strength},
+      BreathCue.exhale => {'continuous': true, 'count': 1, 'durationMs': 60, 'strength': PausePracticeHaptics.strength},
       BreathCue.tap => null,
     };
     if (args == null) return;
