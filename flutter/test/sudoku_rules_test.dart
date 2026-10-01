@@ -51,6 +51,31 @@ void main() {
     expect(bad, greaterThan(100), reason: 'незаконных ходов слишком мало');
   });
 
+  /// ⚠️ Неверную цифру, которую отсекает уже строка или блок, правило варианта не решает —
+  /// на таких эталонах проба зелёная и при выключенном правиле (01.10: мутация «шёпот не
+  /// проверяется» прошла прежнюю выборку). Сторож: у каждого варианта со своим правилом
+  /// есть ходы, где классика «можно», а эталон «нельзя».
+  test('🔴 эталоны разборчивы по правилу варианта, а не только по классике', () {
+    final weak = <String>[];
+    for (final b in boards) {
+      final variant = b['variant'] as String;
+      if (variant == 'none' || variant == 'jigsaw') continue;   // своего правила сверх блока нет
+      final n = (b['n'] as num).toInt(), br = (b['br'] as num).toInt(), bc = (b['bc'] as num).toInt();
+      final grid = (b['grid'] as List).map((row) => (row as List).cast<num>().map((x) => x.toInt()).toList()).toList();
+      var byRule = 0;
+      for (final cs in (b['cases'] as List).cast<Map<String, Object?>>()) {
+        if (cs['ok'] == true) continue;
+        final r = (cs['r'] as num).toInt(), c = (cs['c'] as num).toInt(), val = (cs['val'] as num).toInt();
+        final was = grid[r][c];
+        grid[r][c] = 0;
+        if (isValid(grid, r, c, val, n, br, bc)) byRule++;
+        grid[r][c] = was;
+      }
+      if (byRule < 5) weak.add('$variant: $byRule');
+    }
+    expect(weak, isEmpty, reason: 'мало ходов, решённых правилом варианта: $weak — перевыгрузи эталоны');
+  });
+
   for (final board in boards) {
     final variant = board['variant'] as String;
     test('🔴 «$variant»: ответ переноса совпадает с живым TS на всех случаях', () {

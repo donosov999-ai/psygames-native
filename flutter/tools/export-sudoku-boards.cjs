@@ -352,6 +352,7 @@ if (!args['no-modes']) {
 if (!args['no-rules']) {
   const variants = [...new Set(ladder.map((l) => l.variant)), 'killer', 'unequal', 'towers'];
   const out = [];
+  const perRule = [];
   for (const variant of variants) {
     rngState = seedFor(BASE_SEED, 'rules', variant);
     const { N, BR, BC } = core.dimsForSize(variant === 'towers' ? 6 : 9);
@@ -372,20 +373,46 @@ if (!args['no-rules']) {
     const cells = Array.from({ length: N * N }, (_, i) => i).sort(() => rng() - 0.5);
     const blanks = Math.round(N * N / 3);
     for (const i of cells.slice(0, blanks)) grid[Math.floor(i / N)][i % N] = 0;
+    // ⚠️ Неверная цифра — из тех, что ДОПУСКАЕТ КЛАССИКА (строка, столбец, блок): иначе её
+    // отсекает строка раньше правила варианта, и проба зеленеет при выключенном правиле.
+    // Так и было 01.10: мутация «шёпот не проверяется» прошла эталоны, где неверная цифра
+    // бралась соседней (+1). Счёт «решило правило варианта» печатается ниже.
+    const plain = (g, r, c, v) => core.isValid(g, r, c, v, N, BR, BC, variant === 'jigsaw' ? 'jigsaw' : 'none', extras.regions);
+    const judge = (g, r, c, v) => core.isValid(g, r, c, v, N, BR, BC, killer ? 'none' : variant, extras.regions, extras.thermo,
+      extras.arrow, extras.cages, extras.unequal, extras.towers) && core.overlayOk(g, r, c, v, N, ov);
     const cases = [];
+    let byRule = 0;
     for (let k = 0; k < 40; k++) {
-      const i = Math.floor(rng() * N * N), r = Math.floor(i / N), c = i % N;
-      const right = sol[r][c];
-      const val = k % 2 === 0 ? right : (right % N) + 1;
+      // Из неверных половина ищется там, где «нельзя» говорит само правило варианта (если такие
+      // ходы на доске есть), остальные — любые допустимые классикой: проба видит и запрет, и
+      // разрешение правила.
+      const wantRule = k % 4 === 1;
+      let r = 0, c = 0, val = 0;
+      for (let tries = 0; tries < 200; tries++) {
+        const i = Math.floor(rng() * N * N);
+        r = Math.floor(i / N); c = i % N;
+        const right = sol[r][c];
+        if (k % 2 === 0) { val = right; break; }
+        const g = grid.map((row) => row.slice());
+        g[r][c] = 0;
+        const alt = [];
+        for (let v = 1; v <= N; v++) if (v !== right && plain(g, r, c, v)) alt.push(v);
+        const ruled = alt.filter((v) => !judge(g, r, c, v));
+        const pool = wantRule && ruled.length ? ruled : alt;
+        val = pool.length ? pool[Math.floor(rng() * pool.length)] : (right % N) + 1;
+        if (wantRule ? ruled.length > 0 : alt.length > 0) break;
+      }
       const g = grid.map((row) => row.slice());
       g[r][c] = 0;
-      const ok = core.isValid(g, r, c, val, N, BR, BC, killer ? 'none' : variant, extras.regions, extras.thermo,
-        extras.arrow, extras.cages, extras.unequal, extras.towers) && core.overlayOk(g, r, c, val, N, ov);
+      const ok = judge(g, r, c, val);
+      if (!ok && plain(g, r, c, val)) byRule++;
       cases.push({ r, c, val, ok });
     }
     out.push({ variant, n: N, br: BR, bc: BC, solution: sol, grid, extras, cases });
+    perRule.push(`${variant} ${byRule}`);
   }
   const okCount = out.reduce((s, b) => s + b.cases.filter((x) => x.ok).length, 0);
+  console.error(`  ходов, где «нельзя» сказало правило варианта, а не классика: ${perRule.join(', ')}`);
   if (!DRY) {
     fs.writeFileSync(path.join(root, 'flutter/test/fixtures/sudoku-rules-reference.json'),
       `${JSON.stringify({ выгружено: STAMP, источник: 'flutter/tools/export-sudoku-boards.cjs', ladder, boards: out })}\n`);
