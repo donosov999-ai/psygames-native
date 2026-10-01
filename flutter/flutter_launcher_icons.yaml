@@ -1,0 +1,23 @@
+# ЗНАЧКИ ПРИЛОЖЕНИЯ — генерируются, руками не рисуются (задача TeamOps 28848838).
+#
+# 📍 Замер 01.10.2026: с переезда пилота в репозиторий (63049fd49, 23.09) в ios/, android/ и macos/
+# лежал СТАНДАРТНЫЙ логотип Flutter (iOS 1024 — md5 c785f893, байт в байт шаблон SDK), и с ним
+# уехали 2.56.x в TestFlight и Google Play. Утверждённый значок — мозг на тёмном фоне
+# (решение Дениса 18.09.2026, 124b5a1ed) — лежал рядом в store/appstore/ и в сборку не попадал.
+#
+# Пересобрать: `flutter/tool/gen_app_icons.sh`. Сторож — `test/app_icon_is_ours_test.dart`.
+flutter_launcher_icons:
+  image_path: "../store/appstore/icon-1024-noalpha.png"
+  ios: true
+  remove_alpha_ios: true
+  background_color_ios: "#0A0828"
+  android: true
+  min_sdk_android: 21
+  # Адаптивный значок Android 8+: без него лаунчер кладёт квадрат в белый круг. Фон — цвет
+  # углов исходника, отступ — чтобы маска не срезала края мозга.
+  adaptive_icon_background: "#0A0828"
+  adaptive_icon_foreground: "../store/appstore/icon-1024-noalpha.png"
+  adaptive_icon_foreground_inset: 16
+  macos:
+    generate: true
+    image_path: "../store/appstore/icon-1024-noalpha.png"
