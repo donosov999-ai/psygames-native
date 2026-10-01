@@ -303,6 +303,8 @@ const t: Record<string, string> = {
   "teachNavigatorRoute": "Diga a rota em setas — «cima, direita, direita, baixo»: uma sequência se guarda melhor que uma imagem. Se o mapa girar, gire as setas junto.",
   "teachNavigatorTurns": "A curva conta a partir da direção do movimento, não da tela: imagine-se de frente para onde vai. Subindo e virando à direita na tela, é «Direita»; descendo e virando à direita na tela, já é «Esquerda».",
   "teachNavigatorHome": "Mantenha o saldo total do deslocamento: quantas casas você andou para a direita ou esquerda e para cima ou baixo no total. A casa fica no sentido oposto a essa soma: 2 para a direita e 1 para cima — a casa está embaixo à esquerda, «Sudoeste».",
+  "teachTrailA": "Procure o próximo número com antecedência: enquanto traça a linha até o «3», seus olhos já encontram o «4». Buscar enquanto se move é onde se ganha tempo.",
+  "teachTrailB": "Guarde o par na cabeça, não duas contagens separadas: «1 — A, 2 — B, 3 — C». Diga em voz alta — assim a troca de número para letra não te desorienta.",
   "spatialNet": "Rede de canos",
   "spatialTwiddle": "Giro de números",
   "spatialSixteen": "Deslizar números",

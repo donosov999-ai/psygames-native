@@ -626,6 +626,8 @@ const t: Record<string, string> = {
   "teachNavigatorRoute": "Ripeti il percorso a frecce — «su, destra, destra, giù»: una catena si ricorda meglio di un’immagine. Se la mappa ruota, ruota anche le frecce.",
   "teachNavigatorTurns": "La svolta si conta dalla direzione di marcia, non dallo schermo: immagina di guardare avanti. Se salivi e giri a destra sullo schermo, è «Destra»; se scendevi e giri a destra sullo schermo, è già «Sinistra».",
   "teachNavigatorHome": "Tieni il conto totale dello spostamento: quante caselle sei andato a destra o a sinistra e su o giù in tutto. Casa sta dalla parte opposta a questa somma: 2 a destra e 1 su — casa è in basso a sinistra, «Sud-ovest».",
+  "teachTrailA": "Cerca il numero successivo in anticipo: mentre tracci la linea verso il «3», con gli occhi trovi già il «4». Cercare mentre ti muovi è dove si guadagna tempo.",
+  "teachTrailB": "Tieni a mente la coppia, non due conteggi separati: «1 — A, 2 — B, 3 — C». Ripetila ad alta voce: così il passaggio dal numero alla lettera non ti fa perdere il filo.",
   "spatialNet": "Rete di tubi",
   "spatialTwiddle": "Rotazione dei numeri",
   "spatialSixteen": "Scorrimento dei numeri",
