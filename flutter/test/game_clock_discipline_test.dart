@@ -31,7 +31,6 @@ const _baseline = <String, int>{
   'choice_rt/model.dart': 1,
   'choice_rt/screen.dart': 3,
   'cloze/screen.dart': 5,
-  'corsi/screen.dart': 6,
   'counter/screen.dart': 4,
   'cpt/model.dart': 1,
   'cpt/screen.dart': 4,

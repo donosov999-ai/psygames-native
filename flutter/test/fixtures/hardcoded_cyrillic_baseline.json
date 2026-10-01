@@ -5,7 +5,6 @@
  "lib/games/cats/lesson.dart": 1,
  "lib/games/chess_blind/board.dart": 2,
  "lib/games/chess_blind/positions.dart": 4,
- "lib/games/corsi/screen.dart": 3,
  "lib/games/deep/screen.dart": 13,
  "lib/games/deep/tree.dart": 2,
  "lib/games/digit_span/screen.dart": 4,
