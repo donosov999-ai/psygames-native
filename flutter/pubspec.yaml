@@ -123,6 +123,7 @@ flutter:
     - assets/solitaire_chess/
     - assets/knights_queens/
     - assets/draughts_combo/
+    - assets/corners/
     - assets/faces-names.json
     - assets/memory-palace.json
     - assets/rmet.json

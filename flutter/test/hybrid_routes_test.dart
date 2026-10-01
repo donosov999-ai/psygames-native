@@ -294,6 +294,7 @@ void main() {
       '/games/solitaire-chess',
       '/games/knights-queens',
       '/games/draughts-combo',
+      '/games/corners',
       '/games/choice-rt',
       '/games/cpt',
       '/games/corsi',
