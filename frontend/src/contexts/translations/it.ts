@@ -3365,15 +3365,18 @@ const t: Record<string, string> = {
   "sudokuVariantPalindrome": "⬜ palindromo",
   "sudokuVariantBetween": "⚪ tra gli estremi",
   "sudokuVariantLockout": "🔷 lucchetto",
+  "sudokuVariantXv": "✖ XV",
   "sudokuRuleRenban": "Le cifre su una linea viola formano una serie consecutiva, in qualsiasi ordine e senza ripetizioni.",
   "sudokuRuleRegionsum": "Linea blu: in ogni riquadro che attraversa, le sue cifre danno la stessa somma.",
   "sudokuRulePalindrome": "Una linea grigia si legge uguale da entrambe le estremità: le cifre alla stessa distanza dalle estremità coincidono.",
   "sudokuRuleBetween": "Le cifre sulla linea stanno strettamente tra le cifre nei cerchi alle sue estremità.",
   "sudokuRuleLockout": "Le cifre nei rombi alle estremità differiscono di almeno 4, e le cifre della linea stanno fuori dall’intervallo tra di esse.",
+  "sudokuRuleXv": "Una X tra due celle indica somma 10, una V somma 5. Sono tutti segnati: due celle vicine senza segno non sommano mai 5 né 10.",
   "sdkRule_renban": "renban",
   "sdkRule_regionsum": "somme uguali",
   "sdkRule_palindrome": "palindromo",
   "sdkRule_between": "tra gli estremi",
   "sdkRule_lockout": "lucchetto",
+  "sdkRule_xv": "XV",
 };
 export default t;

@@ -3373,15 +3373,18 @@ const t: Record<string, string> = {
   "sudokuVariantPalindrome": "⬜ पैलिंड्रोम",
   "sudokuVariantBetween": "⚪ सिरों के बीच",
   "sudokuVariantLockout": "🔷 ताला",
+  "sudokuVariantXv": "✖ XV",
   "sudokuRuleRenban": "बैंगनी रेखा पर अंक लगातार संख्याओं का एक समूह बनाते हैं, क्रम कोई भी हो सकता है, पर दोहराव नहीं।",
   "sudokuRuleRegionsum": "नीली रेखा: जिस भी खंड से यह गुज़रती है, उसमें इसके अंकों का योग एक जैसा होता है।",
   "sudokuRulePalindrome": "स्लेटी रेखा दोनों सिरों से एक जैसी पढ़ी जाती है: सिरों से बराबर दूरी पर स्थित अंक एक जैसे होते हैं।",
   "sudokuRuleBetween": "रेखा के अंक उसके दोनों सिरों के वृत्तों वाले अंकों के बीच होते हैं, उनमें से किसी के बराबर नहीं।",
   "sudokuRuleLockout": "रेखा के सिरों पर बने समचतुर्भुजों के अंकों में कम से कम 4 का अंतर होता है, और रेखा के अंक उनके बीच के दायरे से बाहर होते हैं।",
+  "sudokuRuleXv": "खानों के बीच X का मतलब है योग 10, V का मतलब है योग 5। सभी चिह्न दिखाए गए हैं: बिना चिह्न वाले पड़ोसी खानों का योग कभी 5 या 10 नहीं होता।",
   "sdkRule_renban": "रेनबान",
   "sdkRule_regionsum": "बराबर योग",
   "sdkRule_palindrome": "पैलिंड्रोम",
   "sdkRule_between": "सिरों के बीच",
   "sdkRule_lockout": "ताला",
+  "sdkRule_xv": "XV",
 };
 export default t;
