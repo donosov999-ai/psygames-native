@@ -3494,7 +3494,7 @@ const translations: Translations = {
   sudokuRuleRegionsum: { ru: 'Синяя линия: в каждом блоке, через который она идёт, сумма её цифр одна и та же.', en: 'Blue line: in every box it passes through, its digits add up to the same total.' },
   sudokuRulePalindrome: { ru: 'Серая линия читается одинаково с обоих концов: цифры на равном расстоянии от концов совпадают.', en: 'A grey line reads the same from both ends: digits at equal distance from the ends match.' },
   sudokuRuleBetween: { ru: 'Цифры на линии лежат строго между цифрами в кружках на её концах.', en: 'Digits on the line lie strictly between the digits in the circles at its ends.' },
-  sudokuRuleLockout: { ru: 'Цифры в ромбах на концах линии отличаются минимум на 4, а цифры линии лежат вне промежутка между ними.', en: 'Digits in the diamonds at the ends differ by at least 4, and line digits lie outside the range between them.' },
+  sudokuRuleLockout: { ru: 'Цифры в ромбах на концах линии отличаются минимум на 4, а цифры линии не равны им и не лежат между ними.', en: 'Digits in the diamonds at the ends differ by at least 4; line digits are neither equal to them nor between them.' },
   // Нативные экраны раздела «Судоку» (Flutter): полоса счётчиков, кнопки, имена правил без значков.
   sdkHudStage: { ru: 'Ступень', en: 'Stage' },
   sdkNextLevel: { ru: 'Следующий уровень', en: 'Next level' },
