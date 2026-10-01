@@ -20,6 +20,53 @@ import 'mate.dart';
 import 'shogi_rules.dart';
 import 'view.dart';
 
+/// Ключи, которые экран зовёт не литералом: описание по режиму и справка по фигурам
+/// (`L.t(xsPieceKey(…))`, `L.t('${key}Rule')`). Сборщик словаря (`tools/embed-l10n.mjs`)
+/// видит только литерал в вызове или список `…Keys` — без списка экран показал бы ключ
+/// (замер 02.10 на эмуляторе: «xsAboutXiangqi» на настройке).
+const xsScreenKeys = <String>[
+  'xsAboutXiangqi',
+  'xsAboutShogi',
+  'xqK',
+  'xqKRule',
+  'xqA',
+  'xqARule',
+  'xqB',
+  'xqBRule',
+  'xqN',
+  'xqNRule',
+  'xqR',
+  'xqRRule',
+  'xqC',
+  'xqCRule',
+  'xqP',
+  'xqPRule',
+  'sgK',
+  'sgKRule',
+  'sgR',
+  'sgRRule',
+  'sgB',
+  'sgBRule',
+  'sgG',
+  'sgGRule',
+  'sgS',
+  'sgSRule',
+  'sgN',
+  'sgNRule',
+  'sgL',
+  'sgLRule',
+  'sgP',
+  'sgPRule',
+  'sgPR',
+  'sgPRRule',
+  'sgPB',
+  'sgPBRule',
+  'sgPS',
+  'sgPN',
+  'sgPL',
+  'sgPP',
+];
+
 String xsDifficulty(int level) => level <= 6
     ? 'easy'
     : level <= 15
@@ -149,7 +196,8 @@ class _XiangqiShogiScreenState extends State<XiangqiShogiScreen> {
     final level = _runLevel;
     final mode = _run?.mode ?? _mode;
     final ladder = _ladders[mode]!;
-    final seconds = (r.attempts.fold<int>(0, (s, a) => s + a.ms) / 1000).round();
+    final seconds = (r.attempts.fold<int>(0, (s, a) => s + a.ms) / 1000)
+        .round();
     final step = xsStep(level);
     final details = <String, Object?>{
       'level': level,
@@ -214,7 +262,9 @@ class _XiangqiShogiScreenState extends State<XiangqiShogiScreen> {
           title: L.t('xiangqiShogi'),
           steps: steps,
           board: (context, side, shown) {
-            final f = steps[shown.clamp(0, steps.length - 1)].payload as XsLessonFrame;
+            final f =
+                steps[shown.clamp(0, steps.length - 1)].payload
+                    as XsLessonFrame;
             return Center(
               // Сянци — 10 рядов на 9 вертикалей: в квадратное окно плеера по высоте.
               child: XsBoardView(
@@ -248,7 +298,9 @@ class _XiangqiShogiScreenState extends State<XiangqiShogiScreen> {
         title: L.t('xiangqiShogi'),
         onLesson: _openLesson,
         field: (context, h) => Center(
-          child: _error == null ? const CircularProgressIndicator() : Text(_error!),
+          child: _error == null
+              ? const CircularProgressIndicator()
+              : Text(_error!),
         ),
       );
     }
@@ -279,7 +331,11 @@ class _XiangqiShogiScreenState extends State<XiangqiShogiScreen> {
       },
       pauseActions: [
         if (playing)
-          PauseAction(label: L.t('restart'), icon: Icons.refresh, onPressed: _start),
+          PauseAction(
+            label: L.t('restart'),
+            icon: Icons.refresh,
+            onPressed: _start,
+          ),
         PauseAction(
           label: L.t('xsPieces'),
           icon: Icons.menu_book_outlined,
@@ -299,7 +355,10 @@ class _XiangqiShogiScreenState extends State<XiangqiShogiScreen> {
           segments: [
             ButtonSegment(
               value: XsMode.xiangqi,
-              label: Text(L.t('xsModeXiangqi'), key: const Key('xs-mode-xiangqi')),
+              label: Text(
+                L.t('xsModeXiangqi'),
+                key: const Key('xs-mode-xiangqi'),
+              ),
             ),
             ButtonSegment(
               value: XsMode.shogi,
@@ -309,13 +368,9 @@ class _XiangqiShogiScreenState extends State<XiangqiShogiScreen> {
           selected: {_mode},
           onSelectionChanged: (v) => setState(() => _mode = v.first),
         ),
+        // «Старт» и «Фигуры» — сразу под режимом: правила длинные и на 320×568
+        // сталкивают кнопки за край (как у «Го», замер 02.10).
         const SizedBox(height: 12),
-        Text(
-          L.t(_mode == XsMode.xiangqi ? 'xsAboutXiangqi' : 'xsAboutShogi'),
-          key: const Key('xs-about'),
-          style: const TextStyle(fontWeight: FontWeight.w600),
-        ),
-        const SizedBox(height: 16),
         FilledButton(
           key: const Key('xs-start'),
           onPressed: _start,
@@ -328,10 +383,21 @@ class _XiangqiShogiScreenState extends State<XiangqiShogiScreen> {
           onPressed: _openGuide,
           icon: const Icon(Icons.menu_book_outlined),
           label: Text(L.t('xsPieces')),
-          style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(48)),
+          style: OutlinedButton.styleFrom(
+            minimumSize: const Size.fromHeight(48),
+          ),
         ),
         const SizedBox(height: 16),
-        Text(L.t('xiangqiShogiDesc'), style: Theme.of(context).textTheme.bodyMedium),
+        Text(
+          L.t(_mode == XsMode.xiangqi ? 'xsAboutXiangqi' : 'xsAboutShogi'),
+          key: const Key('xs-about'),
+          style: const TextStyle(fontWeight: FontWeight.w600),
+        ),
+        const SizedBox(height: 16),
+        Text(
+          L.t('xiangqiShogiDesc'),
+          style: Theme.of(context).textTheme.bodyMedium,
+        ),
       ],
     ),
   );
@@ -344,11 +410,12 @@ class _XiangqiShogiScreenState extends State<XiangqiShogiScreen> {
     final view = run.view;
     final shogi = run.mode == XsMode.shogi;
     String verdictText() => switch (verdict) {
-      null => run.refusal == 'check'
-          ? L.t('xsNeedCheck')
-          : run.waitingReply
-          ? L.t('xsDefenceThinks')
-          : ' ',
+      null =>
+        run.refusal == 'check'
+            ? L.t('xsNeedCheck')
+            : run.waitingReply
+            ? L.t('xsDefenceThinks')
+            : ' ',
       XsVerdict.solved => '✓',
       XsVerdict.wrong => L.t('xsWrong'),
       XsVerdict.timeout => L.t('timeIsUp'),
@@ -372,7 +439,10 @@ class _XiangqiShogiScreenState extends State<XiangqiShogiScreen> {
                 textAlign: TextAlign.center,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
               const SizedBox(height: 6),
               SizedBox(
@@ -381,7 +451,9 @@ class _XiangqiShogiScreenState extends State<XiangqiShogiScreen> {
                   key: const Key('xs-time'),
                   value: (left / xsSeconds).clamp(0.0, 1.0),
                   minHeight: 8,
-                  color: left < xsSeconds * 0.25 ? scheme.error : scheme.primary,
+                  color: left < xsSeconds * 0.25
+                      ? scheme.error
+                      : scheme.primary,
                 ),
               ),
               Text(
@@ -423,8 +495,12 @@ class _XiangqiShogiScreenState extends State<XiangqiShogiScreen> {
                     if (verdict == null || wrong)
                       OutlinedButton(
                         key: const Key('xs-restart'),
-                        onPressed: run.made == 0 && !wrong ? null : () => setState(run.restart),
-                        style: OutlinedButton.styleFrom(minimumSize: const Size(100, 48)),
+                        onPressed: run.made == 0 && !wrong
+                            ? null
+                            : () => setState(run.restart),
+                        style: OutlinedButton.styleFrom(
+                          minimumSize: const Size(100, 48),
+                        ),
                         child: Text(L.t('restart')),
                       ),
                     if (wrong)
@@ -437,12 +513,19 @@ class _XiangqiShogiScreenState extends State<XiangqiShogiScreen> {
                       run.hinted
                           ? Padding(
                               padding: const EdgeInsets.symmetric(vertical: 12),
-                              child: Text(L.t('hintUsed'), key: const Key('xs-hint-used')),
+                              child: Text(
+                                L.t('hintUsed'),
+                                key: const Key('xs-hint-used'),
+                              ),
                             )
                           : OutlinedButton(
                               key: const Key('xs-hint'),
-                              onPressed: run.canHint ? () => setState(run.takeHint) : null,
-                              style: OutlinedButton.styleFrom(minimumSize: const Size(110, 48)),
+                              onPressed: run.canHint
+                                  ? () => setState(run.takeHint)
+                                  : null,
+                              style: OutlinedButton.styleFrom(
+                                minimumSize: const Size(110, 48),
+                              ),
                               child: Text(L.t('btn_hint')),
                             ),
                   ],
@@ -513,7 +596,9 @@ class _XiangqiShogiScreenState extends State<XiangqiShogiScreen> {
           FilledButton(
             key: const Key('xs-again'),
             onPressed: _start,
-            style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52)),
+            style: FilledButton.styleFrom(
+              minimumSize: const Size.fromHeight(52),
+            ),
             child: Text(
               up
                   ? '${L.t('nextLabel')} · ${L.t('label_level_short')} ${_ladder.level}'
@@ -524,7 +609,9 @@ class _XiangqiShogiScreenState extends State<XiangqiShogiScreen> {
           OutlinedButton(
             key: const Key('xs-menu'),
             onPressed: () => setState(() => _phase = _Phase.config),
-            style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(48)),
+            style: OutlinedButton.styleFrom(
+              minimumSize: const Size.fromHeight(48),
+            ),
             child: Text(L.t('mode')),
           ),
         ],
@@ -537,8 +624,24 @@ class _XiangqiShogiScreenState extends State<XiangqiShogiScreen> {
 /// не рисуем, кружок светлый у сэнтэ и тёмный у готэ, знак готэ повёрнут.
 String xsGlyph(XsMode mode, XsPiece p) {
   if (mode == XsMode.xiangqi) {
-    const red = {'K': '帥', 'A': '仕', 'B': '相', 'N': '傌', 'R': '俥', 'C': '炮', 'P': '兵'};
-    const black = {'K': '將', 'A': '士', 'B': '象', 'N': '馬', 'R': '車', 'C': '砲', 'P': '卒'};
+    const red = {
+      'K': '帥',
+      'A': '仕',
+      'B': '相',
+      'N': '傌',
+      'R': '俥',
+      'C': '炮',
+      'P': '兵',
+    };
+    const black = {
+      'K': '將',
+      'A': '士',
+      'B': '象',
+      'N': '馬',
+      'R': '車',
+      'C': '砲',
+      'P': '卒',
+    };
     return (p.side == 0 ? red : black)[p.kind] ?? p.kind;
   }
   const shogi = {
@@ -561,7 +664,12 @@ String xsGlyph(XsMode mode, XsPiece p) {
 }
 
 class XsPieceView extends StatelessWidget {
-  const XsPieceView({super.key, required this.mode, required this.piece, required this.size});
+  const XsPieceView({
+    super.key,
+    required this.mode,
+    required this.piece,
+    required this.size,
+  });
   final XsMode mode;
   final XsPiece piece;
   final double size;
@@ -575,12 +683,19 @@ class XsPieceView extends StatelessWidget {
       ink = attacker ? const Color(0xFFC62828) : const Color(0xFF1B1B1B);
       disc = const Color(0xFFF6E7C1);
     } else {
-      ink = piece.kind.startsWith('+') ? const Color(0xFFC62828) : const Color(0xFF1B1B1B);
+      ink = piece.kind.startsWith('+')
+          ? const Color(0xFFC62828)
+          : const Color(0xFF1B1B1B);
       disc = attacker ? const Color(0xFFF3D9A4) : const Color(0xFFD9C08A);
     }
     final glyph = Text(
       xsGlyph(mode, piece),
-      style: TextStyle(fontSize: size * 0.56, height: 1.0, color: ink, fontWeight: FontWeight.w700),
+      style: TextStyle(
+        fontSize: size * 0.56,
+        height: 1.0,
+        color: ink,
+        fontWeight: FontWeight.w700,
+      ),
     );
     return Container(
       width: size,
@@ -590,7 +705,13 @@ class XsPieceView extends StatelessWidget {
         color: disc,
         shape: BoxShape.circle,
         border: Border.all(color: ink, width: max(1.2, size * 0.05)),
-        boxShadow: const [BoxShadow(color: Color(0x33000000), blurRadius: 2, offset: Offset(0, 1))],
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x33000000),
+            blurRadius: 2,
+            offset: Offset(0, 1),
+          ),
+        ],
       ),
       child: mode == XsMode.shogi && !attacker
           ? Transform.rotate(angle: pi, child: glyph)
@@ -635,7 +756,9 @@ class XsBoardView extends StatelessWidget {
         child: Column(
           children: [
             for (var r = 0; r < rows; r++)
-              Row(children: [for (var c = 0; c < 9; c++) _cell(r * 9 + c, cell)]),
+              Row(
+                children: [for (var c = 0; c < 9; c++) _cell(r * 9 + c, cell)],
+              ),
           ],
         ),
       ),
@@ -678,7 +801,10 @@ class XsBoardView extends StatelessWidget {
                 key: Key('xs-t-$i'),
                 width: cell * 0.28,
                 height: cell * 0.28,
-                decoration: const BoxDecoration(color: Color(0xAA2E7D32), shape: BoxShape.circle),
+                decoration: const BoxDecoration(
+                  color: Color(0xAA2E7D32),
+                  shape: BoxShape.circle,
+                ),
               )
             : null,
       ),
@@ -699,8 +825,16 @@ class _XsGridPainter extends CustomPainter {
       ..strokeWidth = max(1.0, cell * 0.03);
     if (mode == XsMode.shogi) {
       for (var i = 0; i <= 9; i++) {
-        canvas.drawLine(Offset(i * cell, 0), Offset(i * cell, size.height), paint);
-        canvas.drawLine(Offset(0, i * cell), Offset(size.width, i * cell), paint);
+        canvas.drawLine(
+          Offset(i * cell, 0),
+          Offset(i * cell, size.height),
+          paint,
+        );
+        canvas.drawLine(
+          Offset(0, i * cell),
+          Offset(size.width, i * cell),
+          paint,
+        );
       }
       return;
     }
@@ -715,7 +849,11 @@ class _XsGridPainter extends CustomPainter {
         canvas.drawLine(Offset(x, half), Offset(x, half + 9 * cell), paint);
       } else {
         canvas.drawLine(Offset(x, half), Offset(x, half + 4 * cell), paint);
-        canvas.drawLine(Offset(x, half + 5 * cell), Offset(x, half + 9 * cell), paint);
+        canvas.drawLine(
+          Offset(x, half + 5 * cell),
+          Offset(x, half + 9 * cell),
+          paint,
+        );
       }
     }
     // Дворцы: диагонали d–f.
@@ -769,7 +907,9 @@ class XsHandView extends StatelessWidget {
                       ? BoxDecoration(
                           shape: BoxShape.circle,
                           border: Border.all(
-                            color: k == hint ? const Color(0xFFE0A800) : const Color(0xFF2E7D32),
+                            color: k == hint
+                                ? const Color(0xFFE0A800)
+                                : const Color(0xFF2E7D32),
                             width: 3,
                           ),
                         )
@@ -777,14 +917,21 @@ class XsHandView extends StatelessWidget {
                   child: Stack(
                     clipBehavior: Clip.none,
                     children: [
-                      XsPieceView(mode: XsMode.shogi, piece: XsPiece(0, k), size: cell),
+                      XsPieceView(
+                        mode: XsMode.shogi,
+                        piece: XsPiece(0, k),
+                        size: cell,
+                      ),
                       if ((hand[k] ?? 0) > 1)
                         Positioned(
                           right: -2,
                           bottom: -2,
                           child: Text(
                             '${hand[k]}',
-                            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800),
+                            style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w800,
+                            ),
                           ),
                         ),
                     ],
@@ -804,7 +951,18 @@ class XsPieceGuide extends StatelessWidget {
   final XsMode mode;
 
   static const xiangqiKinds = ['K', 'A', 'B', 'N', 'R', 'C', 'P'];
-  static const shogiKinds = ['K', 'R', 'B', 'G', 'S', 'N', 'L', 'P', '+R', '+B'];
+  static const shogiKinds = [
+    'K',
+    'R',
+    'B',
+    'G',
+    'S',
+    'N',
+    'L',
+    'P',
+    '+R',
+    '+B',
+  ];
 
   /// Где стоит фигура на схеме и куда ходит: (центр окна, поля назначения) в индексах доски.
   static (int, Set<int>) diagram(XsMode mode, String kind) {
@@ -848,7 +1006,10 @@ class XsPieceGuide extends StatelessWidget {
       if (empty > 0) row += '$empty';
       rows.add(row);
     }
-    final game = bishop.Game(variant: xiangqiVariant, fen: '${rows.join('/')} w - - 0 1');
+    final game = bishop.Game(
+      variant: xiangqiVariant,
+      fen: '${rows.join('/')} w - - 0 1',
+    );
     final from = xsSquare(mode, at);
     final out = <int>{};
     for (final m in game.generateLegalMoves()) {
@@ -890,7 +1051,13 @@ class XsPieceGuide extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(L.t(key), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+                Text(
+                  L.t(key),
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
                 const SizedBox(height: 2),
                 Text(L.t('${key}Rule')),
               ],
@@ -916,19 +1083,27 @@ class XsPieceGuide extends StatelessWidget {
                 for (var dc = -2; dc <= 2; dc++)
                   () {
                     final r = r0 + dr, c = c0 + dc;
-                    final inside = r >= 0 && r < xsRanks(mode) && c >= 0 && c < 9;
+                    final inside =
+                        r >= 0 && r < xsRanks(mode) && c >= 0 && c < 9;
                     final i = r * 9 + c;
                     return Container(
                       width: cell,
                       height: cell,
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
-                        border: Border.all(color: const Color(0x55000000), width: 0.5),
+                        border: Border.all(
+                          color: const Color(0x55000000),
+                          width: 0.5,
+                        ),
                       ),
                       child: !inside
                           ? null
                           : i == at
-                          ? XsPieceView(mode: mode, piece: XsPiece(0, kind), size: cell)
+                          ? XsPieceView(
+                              mode: mode,
+                              piece: XsPiece(0, kind),
+                              size: cell,
+                            )
                           : to.contains(i)
                           ? Container(
                               width: 6,

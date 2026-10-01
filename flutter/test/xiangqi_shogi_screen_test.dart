@@ -104,6 +104,25 @@ void main() {
     await tester.pump(const Duration(milliseconds: 250));
   }
 
+  test('🔴 каждый ключ экрана, справки и разбора разрешается в текст на ru и en', () async {
+    // Подстановка при промахе молча возвращает ключ — пробы, сравнивающие L.t с L.t,
+    // этого не видят. Замер 02.10: на эмуляторе настройка показала «xsAboutXiangqi».
+    for (final lang in const ['ru', 'en']) {
+      await L.load(lang);
+      for (final k in [
+        ...xsScreenKeys,
+        ...xsLessonKeys,
+        for (final kind in XsPieceGuide.xiangqiKinds) ...[xsPieceKey(XsMode.xiangqi, kind), '${xsPieceKey(XsMode.xiangqi, kind)}Rule'],
+        for (final kind in XsPieceGuide.shogiKinds) ...[xsPieceKey(XsMode.shogi, kind), '${xsPieceKey(XsMode.shogi, kind)}Rule'],
+        for (final kind in const ['+S', '+N', '+L', '+P']) xsPieceKey(XsMode.shogi, kind),
+        'xiangqiShogi', 'xsModeXiangqi', 'xsModeShogi', 'xsRule', 'xsWrong', 'xsNeedCheck', 'xsDefenceThinks', 'xsPieces',
+      ]) {
+        expect(L.t(k), isNot(k), reason: '$lang: $k');
+      }
+    }
+    await L.load('ru');
+  });
+
   testWidgets('сянци, ступень 1: пять матов касаниями — ступень выше', (tester) async {
     final state = await open(tester);
     await tester.tap(find.byKey(const Key('xs-start')));
