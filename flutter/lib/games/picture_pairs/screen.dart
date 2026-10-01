@@ -565,7 +565,9 @@ class _Ready extends StatelessWidget {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    L.t(free ? 'pairsModeFreeHint' : 'pairsModeLevelsHint'),
+                    // Ключ — литералом в L.t('…'): ключ внутри тернарника сборщик словаря
+                    // (embed-l10n) и гейт словаря не видят, и экран показывал сам ключ.
+                    free ? L.t('pairsModeFreeHint') : L.t('pairsModeLevelsHint'),
                     textAlign: TextAlign.center,
                     style: text.bodySmall,
                   ),
@@ -621,11 +623,11 @@ class _Ready extends StatelessWidget {
                               // Секунды + готовая тройка «Легко/Средне/Сложно» из словаря, как в вебе.
                               label: Text(
                                 '${_secs(ms)}${L.t('secShort')} '
-                                '(${L.t(ms == 500
-                                    ? 'hard'
+                                '(${ms == 500
+                                    ? L.t('hard')
                                     : ms == 1500
-                                    ? 'medium'
-                                    : 'easy')})',
+                                    ? L.t('medium')
+                                    : L.t('easy')})',
                               ),
                               selected: ms == previewMs,
                               onSelected: (_) => onPreview(ms),

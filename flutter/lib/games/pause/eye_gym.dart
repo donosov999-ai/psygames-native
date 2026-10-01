@@ -238,14 +238,22 @@ const eyeUiKeys = [
   'eyeModePursuit', 'eyeModeFocus', 'eyeModeRelax', 'eye1min', 'eye3min', 'eye5min', 'eyeSlow', 'eyeNorm',
   'eyeFast', 'eyeSpeedLabel', 'eyeDisclaimer', 'sudokuModeLevels', 'sudokuModeFree', 'hud_step', 'timeLeftLabel',
   'secShort', 'mode', 'duration',
+  // Стереокартинки (задача a72e77a1) и кнопка паузы поля во весь экран.
+  'eyeModeStereo', 'eyeStereoShortTitle', 'eyeStereoOptional', 'eyeStereoInstruction', 'eyeStereoComfort',
+  'eyeStereoAnswer', 'eyeStereoReveal', 'eyeStereoNext', 'storyDone', 'shape_circle', 'eyeStereoHeart',
+  'shape_star', 'gamePauseOpen',
 ];
 
 /// Поле подхода: инструкция шага, мишень (или ладони, или взгляд вдаль), полоса хода.
 class EyeGymStage extends StatelessWidget {
-  const EyeGymStage({super.key, required this.run, required this.height});
+  const EyeGymStage({super.key, required this.run, required this.height, this.sideClear = 0});
 
   final EyeGymRun run;
   final double height;
+
+  /// Отступ подписи шага от правого края — под кнопку паузы, когда поле во весь
+  /// экран (`GameShell.fieldOnly`). Слева тот же, чтобы подпись осталась по центру.
+  final double sideClear;
 
   @override
   Widget build(BuildContext context) {
@@ -257,7 +265,7 @@ class EyeGymStage extends StatelessWidget {
       key: const Key('pause-eye'),
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+          padding: EdgeInsets.fromLTRB(math.max(16, sideClear), 8, math.max(16, sideClear), 4),
           child: Text(L.t(step.instrKey), key: const Key('pause-eye-instr'), style: theme.textTheme.titleMedium, textAlign: TextAlign.center),
         ),
         Expanded(
