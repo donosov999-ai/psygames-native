@@ -53,7 +53,6 @@ describe('проходимость «Эха ритма»', () => {
         rows.push(`${shift} мс | ±${noise} мс | ${pct(passRate(low, shift, noise))} | ${pct(passRate(high, shift, noise))} | ${pct(passRate(rhythm, shift, noise))}`);
       }
     }
-    // eslint-disable-next-line no-console
     console.log(rows.join('\n'));
     expect(rows.length).toBe(1 + SHIFTS.length * NOISE.length);
   });

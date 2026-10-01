@@ -10,7 +10,7 @@
 import { generateRhythmPitchRound, scoreRhythmTiming, type RhythmEchoRound } from '@/src/games/rhythm-pitch/core';
 
 const START = 50_000;
-const CASES: Array<[number, string]> = [[1, 'инт-a'], [9, 'инт-b'], [21, 'инт-c'], [31, 'инт-d']];
+const CASES: [number, string][] = [[1, 'инт-a'], [9, 'инт-b'], [21, 'инт-c'], [31, 'инт-d']];
 
 function round(level: number, seed: string): RhythmEchoRound {
   return generateRhythmPitchRound(seed, level, 'rhythm-echo') as RhythmEchoRound;
