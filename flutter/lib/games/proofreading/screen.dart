@@ -15,6 +15,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../../shell/game_preset.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
@@ -87,7 +88,8 @@ class _ProofreadingScreenState extends State<ProofreadingScreen> {
     await _ladder.load();
     if (!mounted) return;
     setState(_reset);
-    if (proofAutostart) _start();
+    // Шаг зарядки начинается сам — перенос веб-`useAutostartWhenReady` (отчёт Дениса 01.10.2026).
+    if (proofAutostart || GamePreset.autostart) _start();
   }
 
   void _reset() {

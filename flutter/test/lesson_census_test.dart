@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/shell/hybrid_app.dart';
@@ -68,6 +70,7 @@ void main() {
     '/games/inhibition',
     '/games/memory-palace',
     '/games/rmet',
+    '/games/mnemonics',
     '/games/ant',
     '/games/iowa',
     '/games/prl',
@@ -84,8 +87,29 @@ void main() {
     '/games/anagrams?mode=all',
     '/games/anagrams?mode=cross',
     '/games/anagrams?mode=square',
+    '/games/kids-find',
+    '/games/submarines',
+    '/games/monster-traits?mode=missing',
+    '/games/search-runner',
   ];
 
+
+  /// 🔴 БЕЗ РАЗБОРА — ПО РЕШЕНИЮ ВЕБ-РЕЕСТРА, А НЕ СВОИМ СПИСКОМ. Практики ведут
+  /// сами (дыхание, гимнастика для глаз), «Пауза» — хаб практик, не игра: у них в
+  /// вебе разбора нет с причиной поимённо (`БЕЗ_РАЗБОРА` в
+  /// `frontend/src/__tests__/lesson-everywhere.test.ts`). Список читается оттуда,
+  /// чтобы решение жило в одном месте: снимут исключение в вебе — нативная
+  /// перепись потребует разбор и здесь.
+  final noLessonByWeb = () {
+    final web = File('../frontend/src/__tests__/lesson-everywhere.test.ts').readAsStringSync();
+    final start = web.indexOf('const БЕЗ_РАЗБОРА');
+    final block = web.substring(start, web.indexOf('};', start));
+    return RegExp(r"^\s*'?([\w-]+)'?\s*:", multiLine: true).allMatches(block).map((m) => m.group(1)!).toSet();
+  }();
+
+  test('исключения веб-реестра прочитаны — иначе перепись молча требовала бы разбор от практик', () {
+    expect(noLessonByWeb, containsAll(['pause', 'breathing', 'eye-gym']));
+  });
 
   testWidgets('🔴 разбор не пропал ни у одной игры, где он уже был', (tester) async {
     SharedPreferences.setMockInitialValues({'psygames_active_profile': 'nzt48'});
@@ -107,12 +131,18 @@ void main() {
       // вместе с Тэтхэмом, перепись писала «51 из 51», не глядя на три игры, у
       // которых разбора не было вовсе (замер 30.09.2026, задача 17d894f7). Теперь
       // они считаются, как обычные экраны.
-      if (e.key.contains('?') && !e.key.startsWith('/games/anagrams?')) continue;
+      // Так же считается режим «Найди признак» — «Кого не хватает»: свой экран на Dart.
+      if (e.key.contains('?') &&
+          !e.key.startsWith('/games/anagrams?') &&
+          !e.key.startsWith('/games/monster-traits?')) {
+        continue;
+      }
       // 🔴 `/games/puzzles` — НЕ ИГРА, а один экран на 42 режима: разбор там
       // живёт у РЕЖИМА, и считать его как «экран без разбора» значит держать в
       // остатке строку, которую нечем закрыть. Так же устроен веб-реестр
       // (`frontend/src/__tests__/lesson-everywhere.test.ts`, список БЕЗ_РАЗБОРА).
       if (e.key == '/games/puzzles') continue;
+      if (noLessonByWeb.contains(e.key.replaceFirst('/games/', '').split('?').first)) continue;
       try {
         await tester.runAsync(() async {
           await tester.pumpWidget(MaterialApp(home: e.value(state)));

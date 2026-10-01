@@ -29,7 +29,7 @@ void main() {
   testWidgets('🔴 обе развилки раздела перехватываются С мостом к зарядке в шапке', (tester) async {
     SharedPreferences.setMockInitialValues({});
     final state = await SharedState.open();
-    for (final (route, bridge) in [('/games/words-hub', 'words'), ('/games/languages-hub', 'languages')]) {
+    for (final (route, bridge) in [('/games/words-hub', 'words'), ('/games/languages-hub', 'languages'), ('/games/chess-hub', 'chess')]) {
       final w = HybridApp.native[route]!(state);
       expect(w, isA<HubScreen>(), reason: route);
       final header = (w as HubScreen).header;

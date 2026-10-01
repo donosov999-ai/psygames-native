@@ -37,7 +37,10 @@ const строка = (p) => { if (!p) return ''; const s = M.UTF8ToString(p); M.
 const ЗЁРНА = [11, 22, 33];
 const ДОПУСК = 1;
 
-const раздел = readFileSync(path.join(ЗДЕСЬ, '../src/games/tatham-bridge/sections/sorting.ts'), 'utf8');
+// Pegs с 30.09.2026 живёт в «Шахматах» (задача 9425fa7b) — лестницу ищем в обоих файлах.
+const раздел = ['sorting.ts', 'chess.ts']
+  .map((ф) => readFileSync(path.join(ЗДЕСЬ, '../src/games/tatham-bridge/sections', ф), 'utf8'))
+  .join('\n');
 function лестница(режим) {
   const начало = раздел.indexOf(`'${режим}': {`);
   if (начало < 0) return null;

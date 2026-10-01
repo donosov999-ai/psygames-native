@@ -6,6 +6,7 @@ import 'package:psygames_flutter/games/corsi/model.dart';
 import 'package:psygames_flutter/games/corsi/screen.dart';
 import 'package:psygames_flutter/shell/game_preset.dart';
 import 'package:psygames_flutter/shell/l10n.dart';
+import 'package:psygames_flutter/shell/level_rules.dart';
 import 'package:psygames_flutter/shell/session_report.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -26,7 +27,14 @@ void main() {
   late SharedState state;
   final sent = <Map<String, dynamic>>[];
 
-  setUpAll(() async => L.load('ru'));
+  // Словарь и таблица правил уровней — до пробы, как в приложении (грузятся при запуске).
+  // Таблица, догруженная посреди партии, перестраивает шапку каркаса в случайный момент
+  // поддельного времени: замер 01.10.2026 — 1 провал из 3 («нажатие мимо блока»), с
+  // загрузкой заранее — 3 из 3 зелёные.
+  setUpAll(() async {
+    await L.load('ru');
+    await LevelRules.load();
+  });
 
   setUp(() async {
     SharedPreferences.setMockInitialValues({'psygames_corsi_level_nzt48': '12'});

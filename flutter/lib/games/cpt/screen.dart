@@ -14,10 +14,12 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../../shell/game_preset.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/level_rules.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import '../../shell/tap_latency.dart';
@@ -89,7 +91,8 @@ class _CptScreenState extends State<CptScreen> {
     await _ladder.load();
     if (!mounted) return;
     setState(_reset);
-    if (cptAutostart) _start();
+    // Шаг зарядки начинается сам — перенос веб-`useAutostartWhenReady` (отчёт Дениса 01.10.2026).
+    if (cptAutostart || GamePreset.autostart) _start();
   }
 
   void _reset() {
@@ -213,6 +216,8 @@ class _CptScreenState extends State<CptScreen> {
     final m = g.metrics;
     final left = (g.durationSec - g.elapsedSec).clamp(0, g.durationSec.toDouble());
     return GameShell(
+      // Правило уровня объявляет каркас — в спокойный момент, не поверх партии (задача e371fd3a).
+      levelRule: LevelRuleSpot(gameId: 'cpt', level: _ladder.level, state: widget.state, calm: _phase != CptPhase.playing),
       title: L.t('cpt'),
       hud: [
         HudItem(label: L.t('level'), value: '${_ladder.level}', icon: Icons.flag_outlined),

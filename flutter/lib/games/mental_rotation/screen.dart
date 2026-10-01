@@ -6,11 +6,13 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart' hide Axis;
 import 'package:flutter/material.dart' as ui show Axis;
 
+import '../../shell/game_preset.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/l10n.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/level_rules.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import 'formation.dart';
@@ -119,6 +121,8 @@ class _MentalRotationScreenState extends State<MentalRotationScreen> {
     await _ladder.load();
     if (!mounted) return;
     setState(() => _ready = true);
+    // Шаг зарядки начинается сам — перенос веб-`useAutostartWhenReady` (отчёт Дениса 01.10.2026).
+    if (GamePreset.autostart) _startRun();
   }
 
   // ─── партия ─────────────────────────────────────────────────────────────
@@ -302,6 +306,8 @@ class _MentalRotationScreenState extends State<MentalRotationScreen> {
     final task = _task;
 
     return GameShell(
+      // Правило уровня объявляет каркас — в спокойный момент, не поверх партии (задача e371fd3a).
+      levelRule: LevelRuleSpot(gameId: 'mental_rotation', level: _ladder.level, state: widget.state, calm: _phase != Phase.playing),
       title: _title,
       onLesson: () => openDemoLesson(context, title: _title, trials: _demoTrials()),
       onRules: () => _showRules(context),
