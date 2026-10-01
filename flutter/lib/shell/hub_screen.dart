@@ -300,7 +300,7 @@ class _HubScreenState extends State<HubScreen> {
         title: Text(_title.isEmpty ? 'Развилка' : _title),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          tooltip: 'Назад',
+          tooltip: L.t('back'),
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),

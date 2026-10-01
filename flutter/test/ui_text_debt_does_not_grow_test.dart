@@ -52,6 +52,9 @@ void main() {
   /// владелец — раздел «Слова», и гасить их ему. Ключи в общем словаре под это
   /// есть не все, часть требует перевода на 12 языков — это отдельная работа.
   ///
+  /// 01.10 — оболочка: подсказки «Пауза»/«Правила» и «Назад» развилки — из словаря
+  /// (EN основной): game_shell 4→2, hub_screen 4→3.
+  ///
   /// Долг на 23.09.2026, пофайлово. МЕНЯТЬ ТОЛЬКО В МЕНЬШУЮ СТОРОНУ.
   ///
   /// Перевёл экран — опусти его число. Файла нет в списке — значит он обязан
@@ -91,8 +94,8 @@ void main() {
     'games/stroop/model.dart': 8,
     'games/goods_sort/board.dart': 5,
     'games/sort_tubes/model.dart': 5,
-    'shell/game_shell.dart': 4,
-    'shell/hub_screen.dart': 4,
+    'shell/game_shell.dart': 2,
+    'shell/hub_screen.dart': 3,
     'shell/tap_latency.dart': 4,
     'shell/web_game_screen.dart': 4,
     'games/goods_sort/model.dart': 4,
@@ -112,7 +115,7 @@ void main() {
   // на 12 языков у них уже был — `node flutter/tools/embed-l10n.mjs` привёз их сам.
   // 30.09 — «Пространство»: правила четырёх упражнений «Лаборатории» и «Понятно» ушли в
   // словарь (задача 848da95d), spatial_lab 51 → 43: 699 − 8.
-  const total = 691;
+  const total = 688;
 
   final counts = _scan(Directory('lib'));
 
