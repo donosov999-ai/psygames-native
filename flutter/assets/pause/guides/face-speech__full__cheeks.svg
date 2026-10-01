@@ -1,0 +1,14 @@
+<svg viewBox="0 0 600 390" xmlns="http://www.w3.org/2000/svg">
+    <ellipse cx="165" cy="194" rx="24" ry="42" fill="rgba(141,123,255,0.09)" stroke="rgba(141,123,255,0.28)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"></ellipse>
+    <ellipse cx="435" cy="194" rx="24" ry="42" fill="rgba(141,123,255,0.09)" stroke="rgba(141,123,255,0.28)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"></ellipse>
+    <path d="M220 135 Q255 112 280 136 M320 136 Q350 112 382 135" fill="rgba(141,123,255,0.09)" stroke="rgba(141,123,255,0.28)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"></path>
+    <ellipse cx="252" cy="170" rx="25" ry="13" fill="rgba(141,123,255,0.09)" stroke="rgba(141,123,255,0.28)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"></ellipse>
+    <ellipse cx="348" cy="170" rx="25" ry="13" fill="rgba(141,123,255,0.09)" stroke="rgba(141,123,255,0.28)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"></ellipse>
+    <circle cx="230" cy="220" r="34" fill="rgba(141,123,255,0.34)" stroke="#8d7bff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" opacity="1"></circle>
+    <circle cx="370" cy="220" r="34" fill="rgba(141,123,255,0.34)" stroke="#8d7bff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" opacity="1"></circle>
+    <path d="M300 170 Q286 216 304 222" fill="none" stroke="rgba(174,181,198,0.68)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+    <path d="M246 264 Q300 304 354 264 Q302 250 246 264 Z" fill="rgba(141,123,255,0.09)" stroke="rgba(141,123,255,0.28)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"></path>
+    <path d="M275 277 Q300 322 325 277" fill="rgba(141,123,255,0.09)" stroke="rgba(141,123,255,0.28)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"></path>
+    <path d="M212 273 Q300 350 388 273" fill="rgba(141,123,255,0.09)" stroke="rgba(141,123,255,0.28)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"></path>
+    <path d="M265 344 Q300 374 335 344" fill="rgba(141,123,255,0.09)" stroke="rgba(141,123,255,0.28)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"></path>
+  </svg>

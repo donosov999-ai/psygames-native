@@ -26,6 +26,20 @@ export type GuideMode = 'visual' | 'audio' | 'both';
 export type PlanMode = 'solo' | 'parallel' | 'charge';
 export type CatalogStatus = 'approved' | 'extension' | 'experimental';
 export type ParallelClass = 'breath' | 'eyes' | 'face' | 'pelvic' | 'motor' | 'attention' | 'solo';
+/**
+ * 🔴 ЗАНЯТЫЙ РЕСУРС — ОСЬ СОВМЕСТИМОСТИ В ПАРАЛЛЕЛИ (ТЗ Дениса 24.09.2026, отчёт
+ * 819e911b, задача f5dfd582): «надо понять, где стоит развилка — либо-либо, а где „и“;
+ * максимально пять параллельно: дыхание, зрение, поза всадника, вакуум живота, Кегель».
+ *
+ * Две практики несовместимы, когда претендуют на один ресурс. `attention` — внимание
+ * ЦЕЛИКОМ: расслабление, осознанное движение и наблюдение дыхания его забирают, поэтому
+ * и идут отдельно — ресурс объясняет, ПОЧЕМУ нельзя, а не просто запрещает.
+ * Грубая пара `soloOnly` + `parallelClass` остаётся для запрета по безопасности
+ * (интенсивное дыхание, голос), совместимость пар решает ресурс.
+ */
+export type PracticeResource =
+  | 'breath' | 'eyes' | 'face' | 'voice' | 'hands' | 'neck' | 'spine' | 'feet'
+  | 'stance' | 'core' | 'pelvic' | 'glutes' | 'attention';
 export type AttentionLoad = 'low' | 'peak';
 export type MotionChannel = 'breath' | 'eyes' | 'face' | 'tension' | 'stretch' | 'voice' | 'still';
 export type GuideChannel = 'scale' | 'position' | 'focus' | 'none' | 'tension';
@@ -84,6 +98,8 @@ export interface PracticeProgram {
   readonly status?: CatalogStatus;
   /** Overrides scheduling semantics when variations inside one set differ. */
   readonly parallelClass?: ParallelClass;
+  /** Занятые ресурсы, если у программы они не те, что у набора. */
+  readonly resources?: readonly PracticeResource[];
 }
 
 export interface PracticeSet {
@@ -94,6 +110,8 @@ export interface PracticeSet {
   readonly defaultEnabled: boolean;
   readonly contexts: readonly PracticeContext[];
   readonly parallelClass: ParallelClass;
+  /** Что занимает практика набора по умолчанию; программа может уточнить своё. */
+  readonly resources: readonly PracticeResource[];
   readonly warningIds?: readonly WarningId[];
   readonly programs: readonly PracticeProgram[];
   readonly defaultProgramId: string;
@@ -131,6 +149,7 @@ export interface PlanValidationIssue {
     | 'PRIOR_EXPERIENCE_REQUIRED'
     | 'MASTERY_REQUIRED'
     | 'PAIR_NOT_ALLOWED'
+    | 'RESOURCE_CONFLICT'
     | 'AUDIO_GUIDE_REQUIRED'
     | 'ATTENTION_PEAK_COLLISION'
     | 'DURATION_TOO_SHORT';
@@ -385,14 +404,14 @@ const tonguePosture = p('tongue-posture', 'Положение языка у нё
   s('tongue-release', 'Расслабление', 'Release', 'Полностью расслабьте язык и челюсть.', 'Relax the tongue and jaw fully.', 8_000, 'low', 'still'),
 ], { status: 'extension', warningIds: ['general-stop'], contexts: ['desk-invisible', 'desk-visible', 'home'], parallelClass: 'motor' });
 
-export const PRACTICE_CATALOG: readonly PracticeSet[] = [
+const BASE_CATALOG: readonly PracticeSet[] = [
   {
     id: 'breathing', title: { ...l('Дыхание', 'Breathing'), de: 'Atmung', es: 'Respiración', fr: 'Respiration', it: 'Respirazione', pt: 'Respiração', ar: 'التنفس', hi: 'श्वास', ja: '呼吸', ko: '호흡', zh: '呼吸' }, summary: l('Управляемые варианты и спокойное наблюдение дыхания.', 'Guided variations and calm breath awareness.'),
-    status: 'approved', defaultEnabled: true, contexts: ['desk-invisible', 'desk-visible', 'home'], parallelClass: 'breath', programs: breathingPrograms, defaultProgramId: 'coherent',
+    status: 'approved', defaultEnabled: true, contexts: ['desk-invisible', 'desk-visible', 'home'], parallelClass: 'breath', resources: ['breath'], programs: breathingPrograms, defaultProgramId: 'coherent',
   },
   {
     id: 'eye-gym', title: { ...l('Гимнастика для глаз', 'Eye gym'), de: 'Augengymnastik', es: 'Gimnasia ocular', fr: 'Gymnastique des yeux', it: 'Ginnastica oculare', pt: 'Ginástica ocular', ar: 'تمارين العين', hi: 'नेत्र व्यायाम', ja: '眼のトレーニング', ko: '눈 체조', zh: '眼保健操' }, summary: l('Движения, фокусировка и отдых без боли.', 'Movement, focus and rest without pain.'),
-    status: 'approved', defaultEnabled: true, contexts: ['desk-invisible', 'desk-visible', 'home'], parallelClass: 'eyes', warningIds: ['general-stop'],
+    status: 'approved', defaultEnabled: true, contexts: ['desk-invisible', 'desk-visible', 'home'], parallelClass: 'eyes', resources: ['eyes'], warningIds: ['general-stop'],
     programs: [
       eyeFull,
       p('desk', 'За столом', 'At the desk', 'Компактный комплекс с паузой взгляда вдаль, без пальминга и сведения.', 'A compact sequence with a distance break, without palming or convergence.', eyeFull.steps.slice(0, 6)),
@@ -404,12 +423,12 @@ export const PRACTICE_CATALOG: readonly PracticeSet[] = [
   },
   {
     id: 'face-speech', title: { ...l('Лицо, голос и артикуляция', 'Face, voice and articulation'), de: 'Gesicht, Stimme, Artikulation', es: 'Cara, voz y articulación', fr: 'Visage, voix et articulation', it: 'Viso, voce e articolazione', pt: 'Rosto, voz e articulação', ar: 'الوجه والصوت والنطق', hi: 'चेहरा, आवाज़ और उच्चारण', ja: '顔・声・発音', ko: '얼굴·목소리·발음', zh: '面部、嗓音与发音' }, summary: l('Одна вариация за раз: лицо, голос, артикуляция или положение языка.', 'Choose one variation at a time: face, voice, articulation, or tongue posture.'),
-    status: 'approved', defaultEnabled: true, contexts: ['desk-invisible', 'desk-visible', 'home'], parallelClass: 'face', warningIds: ['general-stop'],
+    status: 'approved', defaultEnabled: true, contexts: ['desk-invisible', 'desk-visible', 'home'], parallelClass: 'face', resources: ['face'], warningIds: ['general-stop'],
     programs: [faceFull, voiceWarmup, articulationGym, tonguePosture], defaultProgramId: 'full',
   },
   {
     id: 'relaxation', title: { ...l('Расслабление', 'Relaxation'), de: 'Entspannung', es: 'Relajación', fr: 'Relaxation', it: 'Rilassamento', pt: 'Relaxamento', ar: 'الاسترخاء', hi: 'विश्राम', ja: 'リラクゼーション', ko: '이완', zh: '放松' }, summary: l('Одна вариация за раз: мышечная релаксация, сканирование тела или аутогенная пауза.', 'Choose one variation at a time: muscle relaxation, body scan, or autogenic pause.'),
-    status: 'approved', defaultEnabled: true, contexts: ['desk-invisible', 'desk-visible', 'home'], parallelClass: 'attention', programs: [
+    status: 'approved', defaultEnabled: true, contexts: ['desk-invisible', 'desk-visible', 'home'], parallelClass: 'attention', resources: ['attention'], programs: [
       p('pmr-groups', 'Мышечная релаксация · группы', 'Muscle relaxation · groups', 'Умеренно напрягать и полностью расслаблять группы мышц.', 'Tense muscle groups moderately, then release fully.', [
         s('hands', 'Кисти', 'Hands', 'Сожмите кисти умеренно, затем полностью отпустите.', 'Tense the hands moderately, then release fully.', 10_000, 'peak', 'tension'),
         s('shoulders', 'Плечи', 'Shoulders', 'Слегка поднимите плечи и расслабьте.', 'Lift the shoulders lightly and release.', 10_000, 'peak', 'tension'),
@@ -436,7 +455,7 @@ export const PRACTICE_CATALOG: readonly PracticeSet[] = [
   },
   {
     id: 'pelvic-floor', title: { ...l('Кегель / тазовое дно', 'Kegel / pelvic floor'), de: 'Kegel / Beckenboden', es: 'Kegel / suelo pélvico', fr: 'Kegel / plancher pelvien', it: 'Kegel / pavimento pelvico', pt: 'Kegel / assoalho pélvico', ar: 'كيجل / قاع الحوض', hi: 'कीगल / पेल्विक फ़्लोर', ja: 'ケーゲル／骨盤底', ko: '케겔/골반저', zh: '凯格尔／盆底' }, summary: l('Короткие, длинные и смешанные сокращения без участия живота и ягодиц.', 'Short, long, and mixed squeezes without engaging the abdomen or glutes.'),
-    status: 'approved', defaultEnabled: false, contexts: ['desk-invisible', 'desk-visible', 'home'], parallelClass: 'pelvic', warningIds: ['pelvic-floor'], programs: [
+    status: 'approved', defaultEnabled: false, contexts: ['desk-invisible', 'desk-visible', 'home'], parallelClass: 'pelvic', resources: ['pelvic'], warningIds: ['pelvic-floor'], programs: [
       p('balanced', 'Смешанная последовательность', 'Mixed sequence', 'Короткие и длинные сокращения без задержки дыхания и натуживания.', 'Short and long squeezes without breath holding or straining.', [
         s('long-squeeze', 'Плавное сокращение', 'Long squeeze', 'Мягко сократите мышцы, продолжая дышать; живот и ягодицы остаются расслабленными.', 'Squeeze gently while continuing to breathe; keep the abdomen and glutes relaxed.', 5_000, 'peak', 'tension'),
         s('long-release', 'Полное расслабление', 'Full release', 'Полностью расслабьте мышцы.', 'Release the muscles completely.', 5_000, 'low', 'tension'),
@@ -459,7 +478,7 @@ export const PRACTICE_CATALOG: readonly PracticeSet[] = [
   },
   {
     id: 'mobility', title: { ...l('Подвижность суставов', 'Joint mobility'), de: 'Gelenkmobilität', es: 'Movilidad articular', fr: 'Mobilité articulaire', it: 'Mobilità articolare', pt: 'Mobilidade articular', ar: 'مرونة المفاصل', hi: 'जोड़ों की गतिशीलता', ja: '関節モビリティ', ko: '관절 가동성', zh: '关节灵活性' }, summary: l('Одна зона за раз: шея и плечи, грудной отдел, голеностоп или кисти.', 'Choose one area at a time: neck and shoulders, thoracic spine, ankles, or wrists.'),
-    status: 'approved', defaultEnabled: true, contexts: ['desk-invisible', 'desk-visible', 'home'], parallelClass: 'motor', warningIds: ['general-stop'], programs: [
+    status: 'approved', defaultEnabled: true, contexts: ['desk-invisible', 'desk-visible', 'home'], parallelClass: 'motor', resources: ['neck'], warningIds: ['general-stop'], programs: [
       p('neck-shoulders', 'Шея и плечи', 'Neck and shoulders', 'Медленно и только в комфортном диапазоне.', 'Slowly and only within a comfortable range.', [
         s('shoulder-rolls', 'Круги плечами', 'Shoulder rolls', 'Сделайте медленные круги плечами.', 'Roll the shoulders slowly.', 10_000, 'peak', 'stretch'),
         s('side', 'Наклон в сторону', 'Side tilt', 'Наклоните голову в сторону без давления рукой.', 'Tilt the head sideways without hand pressure.', 10_000, 'peak', 'stretch'),
@@ -487,7 +506,7 @@ export const PRACTICE_CATALOG: readonly PracticeSet[] = [
   },
   {
     id: 'postures', title: { ...l('Позы', 'Postures'), de: 'Haltungen', es: 'Posturas', fr: 'Postures', it: 'Posture', pt: 'Posturas', ar: 'الوضعيات', hi: 'आसन', ja: '姿勢', ko: '자세', zh: '体式' }, summary: l('Одна выбранная поза за раз: всадник, сапожник, лотос или стойка столбом.', 'Choose one posture at a time: horse, cobbler, lotus, or standing post.'),
-    status: 'extension', defaultEnabled: false, contexts: ['home'], parallelClass: 'motor', warningIds: ['yoga-load'], programs: [
+    status: 'extension', defaultEnabled: false, contexts: ['home'], parallelClass: 'motor', resources: ['stance'], warningIds: ['yoga-load'], programs: [
       p('horse-shallow', 'Всадник · неглубоко', 'Horse · shallow', 'Устойчивая неглубокая стойка без работы до отказа.', 'A stable shallow stance without training to failure.', [
         s('horse-setup', 'Положение', 'Set up', 'Поставьте стопы устойчиво и слегка согните колени.', 'Place feet steadily and bend the knees slightly.', 12_000, 'peak', 'tension'),
         s('horse-hold', 'Удержание', 'Hold', 'Дышите спокойно; выпрямитесь раньше при дискомфорте.', 'Breathe normally; stand up early if uncomfortable.', 15_000, 'peak', 'tension'),
@@ -512,7 +531,7 @@ export const PRACTICE_CATALOG: readonly PracticeSet[] = [
   },
   {
     id: 'isometrics', title: { ...l('Изометрические сокращения', 'Isometric contractions'), de: 'Isometrie', es: 'Isometría', fr: 'Isométrie', it: 'Isometria', pt: 'Isometria', ar: 'تمارين متساوية القياس', hi: 'आइसोमेट्रिक', ja: 'アイソメトリクス', ko: '등척성 운동', zh: '等长训练' }, summary: l('Одна вариация за раз: ягодицы или мягкая общая изометрия.', 'Choose one variation at a time: glutes or gentle general isometrics.'),
-    status: 'extension', defaultEnabled: false, contexts: ['desk-invisible', 'desk-visible', 'home'], parallelClass: 'motor', warningIds: ['general-stop'], programs: [
+    status: 'extension', defaultEnabled: false, contexts: ['desk-invisible', 'desk-visible', 'home'], parallelClass: 'motor', resources: ['glutes'], warningIds: ['general-stop'], programs: [
       p('glute-seated', 'Ягодицы · сидя', 'Glutes · seated', 'Умеренное сокращение и полное расслабление без задержки дыхания.', 'A moderate squeeze and full release without breath holding.', [
         s('squeeze', 'Сокращение', 'Squeeze', 'Умеренно сократите ягодицы и продолжайте дышать.', 'Squeeze the glutes moderately and keep breathing.', 5_000, 'peak', 'tension'),
         s('release', 'Расслабление', 'Release', 'Полностью расслабьте мышцы.', 'Release the muscles fully.', 7_000, 'low', 'tension'),
@@ -527,7 +546,7 @@ export const PRACTICE_CATALOG: readonly PracticeSet[] = [
   },
   {
     id: 'abdomen', title: { ...l('Живот', 'Abdomen'), de: 'Bauch', es: 'Abdomen', fr: 'Abdomen', it: 'Addome', pt: 'Abdômen', ar: 'البطن', hi: 'उदर', ja: '腹部', ko: '복부', zh: '腹部' }, summary: l('Одна вариация за раз: базовые уровни, прогрессия или знакомые агнисара, вакуум и наули.', 'One variation at a time: foundations, progression, or familiar agnisara, vacuum, and nauli.'),
-    status: 'extension', defaultEnabled: false, contexts: ['desk-invisible', 'desk-visible', 'home'], parallelClass: 'motor', warningIds: ['general-stop'], programs: [
+    status: 'extension', defaultEnabled: false, contexts: ['desk-invisible', 'desk-visible', 'home'], parallelClass: 'motor', resources: ['core'], warningIds: ['general-stop'], programs: [
       p('foundation-progression', 'Базовая прогрессия · 1→2', 'Foundation progression · 1→2', 'Последовательно: мягкая активация на выдохе, затем удержание при обычном дыхании.', 'Sequential foundations: gentle exhale engagement, then a hold with normal breathing.', [
         s('foundation-exhale', 'Уровень 1 · выдох', 'Level 1 · exhale', 'На выдохе слегка подтяните низ живота.', 'Gently engage the lower abdomen on exhale.', 6_000, 'peak', 'tension'),
         s('foundation-release', 'Полное расслабление', 'Full release', 'На вдохе полностью отпустите.', 'Release fully on inhale.', 6_000, 'low', 'breath'),
@@ -545,15 +564,15 @@ export const PRACTICE_CATALOG: readonly PracticeSet[] = [
       p('level-3', 'Уровень 3 · агнисара', 'Level 3 · agnisara', 'Таймер агнисары для тех, кто уже освоил технику отдельно.', 'An agnisara timer for people who already learned the technique elsewhere.', [
         s('practice', 'Знакомая агнисара', 'Familiar agnisara', 'Выполните уже освоенную агнисару в привычном комфортном темпе; приложение не обучает технике.', 'Perform the agnisara technique you already learned at a familiar comfortable pace; the app does not teach it.', 15_000, 'peak', 'tension'),
         s('release', 'Завершить', 'Finish', 'Завершите знакомым способом и восстановите обычное дыхание.', 'Finish in the way you learned and restore normal breathing.', 12_000, 'low', 'breath'),
-      ], { warningIds: ['advanced-abdomen'], soloOnly: true, requiresPriorExperience: true }),
+      ], { warningIds: ['advanced-abdomen'], requiresPriorExperience: true }),
       p('level-4', 'Уровень 4 · вакуум', 'Level 4 · vacuum', 'Таймер вакуума для тех, кто уже освоил технику отдельно.', 'A vacuum timer for people who already learned the technique elsewhere.', [
         s('practice', 'Знакомый вакуум', 'Familiar vacuum', 'Выполните уже освоенный вакуум в привычном безопасном варианте; приложение не обучает технике.', 'Perform the vacuum technique you already learned in your familiar safe form; the app does not teach it.', 15_000, 'peak', 'tension'),
         s('release', 'Завершить', 'Finish', 'Завершите знакомым способом и вернитесь к обычному дыханию.', 'Finish in the way you learned and return to normal breathing.', 12_000, 'low', 'breath'),
-      ], { warningIds: ['advanced-abdomen', 'vacuum'], soloOnly: true, requiresPriorExperience: true }),
+      ], { warningIds: ['advanced-abdomen', 'vacuum'], requiresPriorExperience: true }),
       p('level-5', 'Уровень 5 · наули', 'Level 5 · nauli', 'Таймер наули для тех, кто уже освоил технику отдельно.', 'A nauli timer for people who already learned the technique elsewhere.', [
         s('practice', 'Знакомая наули', 'Familiar nauli', 'Выполните уже освоенную наули в привычном комфортном варианте; приложение не обучает технике.', 'Perform the nauli technique you already learned in your familiar comfortable form; the app does not teach it.', 15_000, 'peak', 'tension'),
         s('release', 'Завершить', 'Finish', 'Завершите знакомым способом и восстановите обычное дыхание.', 'Finish in the way you learned and restore normal breathing.', 12_000, 'low', 'breath'),
-      ], { warningIds: ['advanced-abdomen'], soloOnly: true, requiresPriorExperience: true }),
+      ], { warningIds: ['advanced-abdomen'], requiresPriorExperience: true }),
       p('experienced-progression', 'Продвинутая последовательность · 3→5', 'Experienced progression · 3→5', 'Последовательный таймер агнисары, вакуума и наули только для тех, кто уже освоил все три техники.', 'A sequential agnisara, vacuum, and nauli timer only for people who already learned all three techniques.', [
         s('advanced-agnisara', 'Знакомая агнисара', 'Familiar agnisara', 'Выполните уже освоенную агнисару; приложение не обучает технике.', 'Perform the agnisara technique you already learned; the app does not teach it.', 15_000, 'peak', 'tension'),
         s('advanced-recover-one', 'Восстановить дыхание', 'Restore breathing', 'Полностью завершите подход и вернитесь к обычному дыханию.', 'Finish the effort completely and return to normal breathing.', 12_000, 'low', 'breath'),
@@ -561,12 +580,12 @@ export const PRACTICE_CATALOG: readonly PracticeSet[] = [
         s('advanced-recover-two', 'Восстановить дыхание', 'Restore breathing', 'Полностью завершите подход и вернитесь к обычному дыханию.', 'Finish the effort completely and return to normal breathing.', 12_000, 'low', 'breath'),
         s('advanced-nauli', 'Знакомая наули', 'Familiar nauli', 'Выполните уже освоенную наули; приложение не обучает технике.', 'Perform the nauli technique you already learned; the app does not teach it.', 15_000, 'peak', 'tension'),
         s('advanced-finish', 'Завершить', 'Finish', 'Завершите знакомым способом и восстановите обычное дыхание.', 'Finish in the way you learned and restore normal breathing.', 12_000, 'low', 'breath'),
-      ], { warningIds: ['advanced-abdomen', 'vacuum'], soloOnly: true, requiresPriorExperience: true }),
+      ], { warningIds: ['advanced-abdomen', 'vacuum'], requiresPriorExperience: true }),
     ], defaultProgramId: 'foundation-progression',
   },
   {
     id: 'feldenkrais', title: { ...l('Осознанное движение', 'Awareness through movement'), de: 'Feldenkrais', es: 'Feldenkrais', fr: 'Feldenkrais', it: 'Feldenkrais', pt: 'Feldenkrais', ar: 'فيلدنكرايس', hi: 'फेल्डेनक्राइस', ja: 'フェルデンクライス', ko: '펠든크라이스', zh: '费登奎斯' }, summary: l('Очень небольшие движения с вниманием к различиям, только отдельно.', 'Very small movements with attention to differences, solo only.'),
-    status: 'extension', defaultEnabled: false, contexts: ['desk-visible', 'home'], parallelClass: 'attention', warningIds: ['general-stop'], programs: [p('seated-observation', 'Сидя · мягкое исследование', 'Seated gentle exploration', 'Оригинальная короткая последовательность в духе принципов Фельденкрайза, без лечебных обещаний.', 'An original short sequence informed by Feldenkrais principles, with no treatment claim.', [
+    status: 'extension', defaultEnabled: false, contexts: ['desk-visible', 'home'], parallelClass: 'attention', resources: ['attention'], warningIds: ['general-stop'], programs: [p('seated-observation', 'Сидя · мягкое исследование', 'Seated gentle exploration', 'Оригинальная короткая последовательность в духе принципов Фельденкрайза, без лечебных обещаний.', 'An original short sequence informed by Feldenkrais principles, with no treatment claim.', [
       s('settle', 'Исходное положение', 'Settle', 'Сядьте с опорой и отметьте, как вес распределён сейчас.', 'Sit with support and notice how your weight is distributed now.', 12_000, 'peak', 'still'),
       s('small-turn', 'Малый поворот', 'Small turn', 'Очень немного поверните голову в одну сторону и вернитесь; не ищите максимальную амплитуду.', 'Turn the head a very small amount to one side and return; do not seek maximum range.', 14_000, 'peak', 'stretch'),
       s('shoulder-follow', 'Связь с плечами', 'Let shoulders follow', 'Повторите малое движение и отметьте, как плечи могут следовать без усилия.', 'Repeat the small movement and notice how the shoulders can follow without effort.', 14_000, 'peak', 'stretch'),
@@ -576,6 +595,49 @@ export const PRACTICE_CATALOG: readonly PracticeSet[] = [
   },
 ] as const;
 
+/**
+ * Ресурсы программ, которые занимают НЕ то, что набор по умолчанию. Картой, а не в
+ * каждом `p(...)`: так правило видно одним взглядом, а в каталоге (и в выгрузке для
+ * нативных половин) у программы появляется готовое поле `resources`.
+ */
+const PROGRAM_RESOURCES: Readonly<Record<string, readonly PracticeResource[]>> = {
+  'breathing/breath-awareness': ['attention'],
+  'face-speech/voice-warmup': ['voice', 'breath'],
+  'face-speech/articulation-gym': ['face', 'voice'],
+  'mobility/neck-shoulders': ['neck'],
+  'mobility/thoracic-chair': ['spine'],
+  'mobility/ankle-seated': ['feet'],
+  'mobility/wrists-desk': ['hands'],
+  'isometrics/glute-seated': ['glutes'],
+  'isometrics/general-gentle': ['glutes', 'core'],
+};
+
+export const PRACTICE_CATALOG: readonly PracticeSet[] = BASE_CATALOG.map((set) => ({
+  ...set,
+  programs: set.programs.map((program) => {
+    const own = PROGRAM_RESOURCES[`${set.id}/${program.id}`];
+    return own ? { ...program, resources: own } : program;
+  }),
+}));
+
+/** Что занимает выбранная программа: своё, если задано, иначе ресурсы набора. */
+export function getPracticeResources(selection: PracticeSelection): readonly PracticeResource[] {
+  const resolved = resolveSelection(selection);
+  if (!resolved) return [];
+  return resolved.program.resources ?? resolved.set.resources;
+}
+
+/**
+ * Общий ресурс двух практик — развилка «либо-либо». Внимание целиком не делится ни
+ * с чем: практика, забирающая его, конфликтует с любой другой.
+ */
+export function getResourceConflict(a: PracticeSelection, b: PracticeSelection): readonly PracticeResource[] {
+  const left = getPracticeResources(a);
+  const right = getPracticeResources(b);
+  if (left.includes('attention') || right.includes('attention')) return ['attention'];
+  return left.filter((resource) => right.includes(resource));
+}
+
 export const EXCLUDED_DUPLICATES = [
   { name: 'mula bandha', representedBy: 'pelvic-floor' },
   { name: 'shavasana', representedBy: 'relaxation/pmr-groups or relaxation/body-scan-short' },
@@ -584,6 +646,28 @@ export const EXCLUDED_DUPLICATES = [
   { name: 'paida', representedBy: 'face-speech/full' },
   { name: 'lotus', representedBy: 'postures/lotus-comfortable, not a separate set' },
 ] as const;
+
+/** Подписи ресурсов: «занимает: глаза» на карточке практики — в обеих нативных половинах. */
+export const RESOURCE_TEXT: Readonly<Record<PracticeResource, LocalizedText>> = {
+  breath: { ...l('дыхание', 'breathing'), de: 'Atmung', es: 'respiración', fr: 'respiration', it: 'respirazione', pt: 'respiração', ar: 'التنفس', hi: 'श्वास', ja: '呼吸', ko: '호흡', zh: '呼吸' },
+  eyes: { ...l('глаза', 'eyes'), de: 'Augen', es: 'ojos', fr: 'yeux', it: 'occhi', pt: 'olhos', ar: 'العينان', hi: 'आँखें', ja: '目', ko: '눈', zh: '眼睛' },
+  face: { ...l('лицо', 'face'), de: 'Gesicht', es: 'cara', fr: 'visage', it: 'viso', pt: 'rosto', ar: 'الوجه', hi: 'चेहरा', ja: '顔', ko: '얼굴', zh: '面部' },
+  voice: { ...l('голос', 'voice'), de: 'Stimme', es: 'voz', fr: 'voix', it: 'voce', pt: 'voz', ar: 'الصوت', hi: 'आवाज़', ja: '声', ko: '목소리', zh: '声音' },
+  hands: { ...l('руки', 'hands'), de: 'Hände', es: 'manos', fr: 'mains', it: 'mani', pt: 'mãos', ar: 'اليدان', hi: 'हाथ', ja: '手', ko: '손', zh: '双手' },
+  neck: { ...l('шея', 'neck'), de: 'Nacken', es: 'cuello', fr: 'cou', it: 'collo', pt: 'pescoço', ar: 'الرقبة', hi: 'गर्दन', ja: '首', ko: '목', zh: '颈部' },
+  spine: { ...l('спина', 'spine'), de: 'Wirbelsäule', es: 'columna', fr: 'colonne', it: 'colonna', pt: 'coluna', ar: 'العمود الفقري', hi: 'रीढ़', ja: '背骨', ko: '척추', zh: '脊柱' },
+  feet: { ...l('стопы', 'feet'), de: 'Füße', es: 'pies', fr: 'pieds', it: 'piedi', pt: 'pés', ar: 'القدمان', hi: 'पैर', ja: '足', ko: '발', zh: '双脚' },
+  stance: { ...l('стойка', 'stance'), de: 'Haltung', es: 'postura', fr: 'posture', it: 'postura', pt: 'postura', ar: 'الوقفة', hi: 'मुद्रा', ja: '姿勢', ko: '자세', zh: '站姿' },
+  core: { ...l('пресс и живот', 'core'), de: 'Rumpf', es: 'abdomen', fr: 'sangle abdominale', it: 'addome', pt: 'abdômen', ar: 'البطن', hi: 'पेट', ja: '腹部', ko: '복부', zh: '腹部' },
+  pelvic: { ...l('тазовое дно', 'pelvic floor'), de: 'Beckenboden', es: 'suelo pélvico', fr: 'périnée', it: 'pavimento pelvico', pt: 'assoalho pélvico', ar: 'قاع الحوض', hi: 'पेल्विक फ्लोर', ja: '骨盤底', ko: '골반저', zh: '盆底' },
+  glutes: { ...l('ягодицы', 'glutes'), de: 'Gesäß', es: 'glúteos', fr: 'fessiers', it: 'glutei', pt: 'glúteos', ar: 'الأرداف', hi: 'नितंब', ja: '臀部', ko: '둔근', zh: '臀部' },
+  attention: { ...l('внимание целиком', 'full attention'), de: 'volle Aufmerksamkeit', es: 'atención plena', fr: 'toute l’attention', it: 'attenzione piena', pt: 'atenção total', ar: 'الانتباه الكامل', hi: 'पूरा ध्यान', ja: '注意のすべて', ko: '온전한 주의', zh: '全部注意力' },
+};
+
+/** «занимает: …» — глагол к подписи ресурса на карточке практики. */
+export const RESOURCE_USES_TEXT: LocalizedText = {
+  ...l('занимает', 'uses'), de: 'belegt', es: 'ocupa', fr: 'occupe', it: 'occupa', pt: 'ocupa', ar: 'يشغل', hi: 'उपयोग करता है', ja: '使う', ko: '사용', zh: '占用',
+};
 
 export const WARNING_TEXT: Readonly<Record<WarningId, LocalizedText>> = {
   'general-stop': l('Остановитесь при боли, головокружении, онемении или выраженном дискомфорте.', 'Stop for pain, dizziness, numbness, or marked discomfort.'),
@@ -800,6 +884,23 @@ function validateResolved(request: PlanRequest, resolved: readonly ResolvedSelec
         setIds: unique(matching.flatMap((problem) => problem.setIds ?? [])),
       });
     }
+    // Развилка «либо-либо»: две практики не могут занимать один ресурс одновременно.
+    const clashing: PracticeSetId[] = [];
+    for (let i = 0; i < resolved.length; i++) {
+      for (let j = i + 1; j < resolved.length; j++) {
+        if (getResourceConflict(resolved[i].selection, resolved[j].selection).length > 0) {
+          clashing.push(resolved[i].set.id, resolved[j].set.id);
+        }
+      }
+    }
+    if (clashing.length > 0) {
+      issues.push(issue(
+        'RESOURCE_CONFLICT',
+        'Две выбранные практики занимают один ресурс — оставьте одну из них.',
+        'Two selected practices use the same resource — keep one of them.',
+        { setIds: unique(clashing) },
+      ));
+    }
   }
   return issues;
 }
@@ -830,7 +931,9 @@ function groupForCharge(resolved: readonly ResolvedSelection[], request: PlanReq
   const parallel: ResolvedSelection[] = [];
   const blocks: WorkingBlock[] = [];
   for (const item of resolved) {
-    if (parallelSelectionIssue(item, request) === null) {
+    // Маршрут: в общий параллельный блок — только то, что не делит ресурс с уже взятым.
+    const clash = parallel.some((taken) => getResourceConflict(taken.selection, item.selection).length > 0);
+    if (parallelSelectionIssue(item, request) === null && !clash) {
       parallel.push(item);
     } else {
       blocks.push({ selections: [item] });

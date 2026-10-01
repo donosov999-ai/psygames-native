@@ -93,7 +93,54 @@ class PositionCorpus {
 
   CorpusEntry pickRandom(PieceBand band, [Random? random]) =>
       pick(band, (random ?? Random()).nextDouble());
+
+  /// Позиция ПАРТИИ — по правилу веба (`puzzlePosition`, core/positions.ts):
+  /// полоса «цель ± 1», и в ней первая в случайном порядке позиция, где
+  /// однозначных фигур не меньше [minUnique]. Нет такой — первая из полосы по
+  /// числу фигур: партия короче на вопрос лучше, чем без позиции.
+  ///
+  /// 🔴 ПОЛОСА ПАРТИИ — НЕ ПОЛОСА СЕРИИ. Серия берёт позицию из широких полос
+  /// корпуса (4–8, 9–14 …), партия — из узкой вокруг ЧИСЛА уровня. Перенос
+  /// 24.09 брал широкую: на ступени «4 фигуры» выпадало до восьми.
+  CorpusEntry pickPuzzle(int target, int minUnique, Random random) {
+    final band = puzzlePiecesBand(target);
+    final list = inBand(band);
+    if (list.isEmpty) return pickRandom(bandForTarget(target), random);
+    final order = List<int>.generate(list.length, (i) => i);
+    for (var i = order.length - 1; i > 0; i--) {
+      final j = random.nextInt(i + 1);
+      final tmp = order[i];
+      order[i] = order[j];
+      order[j] = tmp;
+    }
+    CorpusEntry? fallback;
+    for (final i in order) {
+      final entry = list[i];
+      final pieces = piecesFromFen(entry.fen);
+      if (pieces.length < band.min || pieces.length > band.max) continue;
+      fallback ??= entry;
+      if (uniquePieceCount(pieces) < minUnique) continue;
+      return entry;
+    }
+    return fallback ?? list.first;
+  }
 }
+
+/// Допуск полосы партии: корпус отдаёт позицию «цель ± 1», а не ровно цель.
+const int puzzlePiecesTolerance = 1;
+
+/// Полоса, которую уровень объявляет человеку: цель ± допуск, не ниже трёх.
+PieceBand puzzlePiecesBand(int target) {
+  final lo = max(3, target - puzzlePiecesTolerance);
+  return PieceBand(lo, max(lo, target + puzzlePiecesTolerance));
+}
+
+/// Широкая полоса корпуса, в которую попадает число — запасной путь, когда
+/// узкая полоса пуста.
+PieceBand bandForTarget(int target) => pieceBands.firstWhere(
+  (b) => target >= b.min && target <= b.max,
+  orElse: () => pieceBands.last,
+);
 
 /// Фигуры позиции в координатах ЭКРАНА (0 = a8, сверху вниз).
 ///

@@ -52,6 +52,7 @@ const STUCK_TRANSCRIBE_H = 1;    // расшифровка укладывает�
 const STUCK_VISION_H = 1;        // зрение идёт тем же проходом
 const STUCK_INTAKE_H = 24;       // разбор пока запускается руками
 const QUIET_INTAKE_H = 72;       // тишина в приёме — предупреждение
+const CLOSED = 'fixed,done,wontfix'; // статус NOT NULL, по умолчанию 'new' — в обеих таблицах
 
 const q = async (path) => {
   const r = await fetch(`${REST}/rest/v1/${path}`, {
@@ -87,11 +88,24 @@ try {
    * лежат в `bug-shots`. Ссылка не выписывалась, разбор шёл БЕЗ картинки и
    * отчитывался успехом — 32 непрочитанных скриншота при «неразобранных 0».
    * Проверка, которая смотрит половину конвейера, врёт про здоровье целого.
+   *
+   * 🔴 ЗАКРЫТЫЕ ОТЧЁТЫ ЗРЕНИЕ НЕ ДЕРЖАТ. Замер 30.09.2026: датчик горел красным
+   * ВСЕГДА — 11 кадров 01–11.09 без подписи, у всех одиннадцати `status='fixed'`
+   * и заполнен `intake_at`: отчёты разобрали и починили раньше, чем зрение их
+   * прочитало. Очередь разбора их не видит и не подберёт никогда, то есть этот
+   * красный работой не чинился — ровно та ложная тревога из шапки файла.
+   * Почему фильтр по статусу, а не по `intake_at`: поломка 26.08 выглядела
+   * именно как «разобран, но без картинки», и фильтр по `intake_at` ослепил бы
+   * датчик как раз к ней. Открытый отчёт без подписи по-прежнему роняет проверку;
+   * закрытые без подписи остаются видны числом в строке, но красным не горят.
    */
   for (const t of ['app_feedback', 'bug_reports']) {
-    const v = await q(`${t}?select=id&is_robot=eq.false&shot_path=not.is.null&shot_caption=is.null&created_at=lt.${ago(STUCK_VISION_H)}&limit=1`);
+    const blind = `${t}?select=id&is_robot=eq.false&shot_path=not.is.null&shot_caption=is.null&created_at=lt.${ago(STUCK_VISION_H)}&limit=1`;
+    const v = await q(`${blind}&status=not.in.(${CLOSED})`);
+    const closed = await q(`${blind}&status=in.(${CLOSED})`);
     add(`зрение · ${t === 'app_feedback' ? 'отзывы' : 'багфикс'}`, (v.total ?? 0) === 0, v.total,
-      `непрочитанных скриншотов: ${v.total} (порог ${STUCK_VISION_H} ч)`);
+      `непрочитанных скриншотов: ${v.total} (порог ${STUCK_VISION_H} ч)` +
+      (closed.total ? `; в закрытых отчётах без подписи ещё ${closed.total} — история, датчик не держит` : ''));
 
     const i = await q(`${t}?select=id&is_robot=eq.false&intake_at=is.null&created_at=lt.${ago(STUCK_INTAKE_H)}&limit=1`);
     add(`разбор · ${t === 'app_feedback' ? 'отзывы' : 'багфикс'}`, (i.total ?? 0) === 0, i.total,

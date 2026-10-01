@@ -6,6 +6,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart' hide Axis;
 import 'package:flutter/material.dart' as ui show Axis;
 
+import '../../shell/game_preset.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/l10n.dart';
@@ -122,6 +123,8 @@ class _MentalRotationScreenState extends State<MentalRotationScreen> {
     await loadMentalRotationWords();
     if (!mounted) return;
     setState(() => _ready = true);
+    // Шаг зарядки начинается сам — перенос веб-`useAutostartWhenReady` (отчёт Дениса 01.10.2026).
+    if (GamePreset.autostart) _startRun();
   }
 
   // ─── партия ─────────────────────────────────────────────────────────────
