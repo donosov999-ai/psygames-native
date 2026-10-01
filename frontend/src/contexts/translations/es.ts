@@ -3367,9 +3367,12 @@ const t: Record<string, string> = {
   "tathamTiles": "{n} fichas",
   "sudokuVariantRenban": "🟪 renban",
   "sudokuVariantRegionsum": "🟦 sumas iguales",
+  "sudokuVariantPalindrome": "⬜ palíndromo",
   "sudokuRuleRenban": "Los dígitos de una línea morada forman una serie consecutiva en cualquier orden, sin repetirse.",
   "sudokuRuleRegionsum": "Línea azul: en cada cuadro por el que pasa, sus dígitos suman lo mismo.",
+  "sudokuRulePalindrome": "Una línea gris se lee igual desde ambos extremos: los dígitos a la misma distancia de los extremos coinciden.",
   "sdkRule_renban": "renban",
   "sdkRule_regionsum": "sumas iguales",
+  "sdkRule_palindrome": "palíndromo",
 };
 export default t;

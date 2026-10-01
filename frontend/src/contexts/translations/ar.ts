@@ -3363,9 +3363,12 @@ const t: Record<string, string> = {
   "tathamTiles": "القطع: {n}",
   "sudokuVariantRenban": "🟪 رينبان",
   "sudokuVariantRegionsum": "🟦 مجاميع متساوية",
+  "sudokuVariantPalindrome": "⬜ خط متناظر",
   "sudokuRuleRenban": "الأرقام على الخط البنفسجي تشكّل سلسلة متتالية بأي ترتيب ودون تكرار.",
   "sudokuRuleRegionsum": "الخط الأزرق: في كل مربع يمر به، يكون مجموع أرقامه هو نفسه.",
+  "sudokuRulePalindrome": "الخط الرمادي يُقرأ بالطريقة نفسها من الطرفين: الأرقام التي تبعد المسافة نفسها عن الطرفين متساوية.",
   "sdkRule_renban": "رينبان",
   "sdkRule_regionsum": "مجاميع متساوية",
+  "sdkRule_palindrome": "الخط المتناظر",
 };
 export default t;

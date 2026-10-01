@@ -3367,9 +3367,12 @@ const t: Record<string, string> = {
   "tathamTiles": "{n} Kacheln",
   "sudokuVariantRenban": "🟪 Renban",
   "sudokuVariantRegionsum": "🟦 gleiche Summen",
+  "sudokuVariantPalindrome": "⬜ Palindrom",
   "sudokuRuleRenban": "Die Ziffern auf einer lila Linie bilden eine lückenlose Folge in beliebiger Reihenfolge, ohne Wiederholung.",
   "sudokuRuleRegionsum": "Blaue Linie: In jedem Block, den sie durchläuft, ergeben ihre Ziffern dieselbe Summe.",
+  "sudokuRulePalindrome": "Eine graue Linie liest sich von beiden Enden gleich: Ziffern im gleichen Abstand von den Enden stimmen überein.",
   "sdkRule_renban": "Renban",
   "sdkRule_regionsum": "gleiche Summen",
+  "sdkRule_palindrome": "Palindrom",
 };
 export default t;

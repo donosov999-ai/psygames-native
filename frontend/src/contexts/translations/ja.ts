@@ -3361,9 +3361,12 @@ const t: Record<string, string> = {
   "tathamTiles": "{n} 枚",
   "sudokuVariantRenban": "🟪 レンバン",
   "sudokuVariantRegionsum": "🟦 同じ合計",
+  "sudokuVariantPalindrome": "⬜ 回文",
   "sudokuRuleRenban": "紫の線の上の数字は、連続した数が並びます。順番は自由で、同じ数字は入りません。",
   "sudokuRuleRegionsum": "青い線：通過する各ブロックで、線上の数字の合計が同じになります。",
+  "sudokuRulePalindrome": "灰色の線は、どちらの端から読んでも同じです。両端から同じ距離にある数字は一致します。",
   "sdkRule_renban": "レンバン",
   "sdkRule_regionsum": "同じ合計",
+  "sdkRule_palindrome": "回文",
 };
 export default t;

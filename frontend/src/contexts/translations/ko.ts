@@ -3362,9 +3362,12 @@ const t: Record<string, string> = {
   "tathamTiles": "{n}개 타일",
   "sudokuVariantRenban": "🟪 렌반",
   "sudokuVariantRegionsum": "🟦 같은 합",
+  "sudokuVariantPalindrome": "⬜ 회문",
   "sudokuRuleRenban": "보라색 선 위의 숫자는 순서와 상관없이 연속된 수가 되며, 같은 숫자는 들어가지 않습니다.",
   "sudokuRuleRegionsum": "파란 선: 지나가는 각 박스 안에서 선 위 숫자의 합이 모두 같습니다.",
+  "sudokuRulePalindrome": "회색 선은 양 끝 어느 쪽에서 읽어도 같습니다: 양 끝에서 같은 거리에 있는 숫자끼리 서로 같습니다.",
   "sdkRule_renban": "렌반",
   "sdkRule_regionsum": "같은 합",
+  "sdkRule_palindrome": "회문",
 };
 export default t;

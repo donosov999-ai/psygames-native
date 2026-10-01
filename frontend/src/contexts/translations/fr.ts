@@ -3362,9 +3362,12 @@ const t: Record<string, string> = {
   "tathamTiles": "{n} tuiles",
   "sudokuVariantRenban": "🟪 renban",
   "sudokuVariantRegionsum": "🟦 sommes égales",
+  "sudokuVariantPalindrome": "⬜ palindrome",
   "sudokuRuleRenban": "Les chiffres d’une ligne violette forment une suite consécutive, dans n’importe quel ordre, sans répétition.",
   "sudokuRuleRegionsum": "Ligne bleue : dans chaque bloc qu’elle traverse, la somme de ses chiffres est la même.",
+  "sudokuRulePalindrome": "Une ligne grise se lit de la même façon depuis les deux extrémités : les chiffres à égale distance des extrémités sont identiques.",
   "sdkRule_renban": "renban",
   "sdkRule_regionsum": "sommes égales",
+  "sdkRule_palindrome": "palindrome",
 };
 export default t;

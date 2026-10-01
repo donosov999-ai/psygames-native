@@ -3370,9 +3370,12 @@ const t: Record<string, string> = {
   "tathamTiles": "{n} टाइलें",
   "sudokuVariantRenban": "🟪 रेनबान",
   "sudokuVariantRegionsum": "🟦 बराबर योग",
+  "sudokuVariantPalindrome": "⬜ पैलिंड्रोम",
   "sudokuRuleRenban": "बैंगनी रेखा पर अंक लगातार संख्याओं का एक समूह बनाते हैं, क्रम कोई भी हो सकता है, पर दोहराव नहीं।",
   "sudokuRuleRegionsum": "नीली रेखा: जिस भी खंड से यह गुज़रती है, उसमें इसके अंकों का योग एक जैसा होता है।",
+  "sudokuRulePalindrome": "स्लेटी रेखा दोनों सिरों से एक जैसी पढ़ी जाती है: सिरों से बराबर दूरी पर स्थित अंक एक जैसे होते हैं।",
   "sdkRule_renban": "रेनबान",
   "sdkRule_regionsum": "बराबर योग",
+  "sdkRule_palindrome": "पैलिंड्रोम",
 };
 export default t;
