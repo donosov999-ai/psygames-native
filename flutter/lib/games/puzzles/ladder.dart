@@ -50,7 +50,28 @@ class PuzzleMode {
     this.owner,
     this.dragOnly = false,
     this.secondKey,
+    this.arrows = false,
+    this.eightWays = false,
+    this.pick = false,
+    this.pickSecond = false,
+    this.secondPickKey,
   });
+
+  /// Стрелки курсора под полем (16 режимов веба, `СТРЕЛОЧНЫЕ`): у «Куба» и «Инерции» ход
+  /// делается только ими, у остальных — курсор как запасной ввод к касанию.
+  final bool arrows;
+
+  /// Восемь направлений вместо четырёх — диагонали тоже (у «Инерции»).
+  final bool eightWays;
+
+  /// Кнопка «Взять» — CURSOR_SELECT под курсором (12 режимов, `ВЫБОР`).
+  final bool pick;
+
+  /// Второй выбор — CURSOR_SELECT2 (6 режимов, `ВЫБОР_ВТОРОЙ`).
+  final bool pickSecond;
+
+  /// Ключ подписи второго выбора; нет своего — подпись второго действия режима.
+  final String? secondPickKey;
 
   /// Ход делается ТОЛЬКО протяжкой: касание здесь не делает ничего (замер веба 11.09:
   /// «Раскраска карты» 0 тычков из 663, «Колышки» 0 из 297, «Указатели» 0 из 360).
@@ -165,6 +186,11 @@ class PuzzleModes {
           dragOnly: m['dragOnly'] == true,
           // В вебе у четырёх режимов признак стоит голым `true` — своей подписи раздел
           // им не дал, и веб пишет общую «Второе действие» (puzzles.tsx, `?? 'puzzleSecondAction'`).
+          arrows: m['arrows'] == true,
+          eightWays: m['eightWays'] == true,
+          pick: m['pick'] == true,
+          pickSecond: m['pickSecond'] == true,
+          secondPickKey: m['secondPickKey'] as String?,
           secondKey: switch (m['secondKey']) {
             final String k when k.isNotEmpty => k,
             true => 'puzzleSecondAction',
