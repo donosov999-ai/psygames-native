@@ -16,16 +16,16 @@ import 'package:shared_preferences/shared_preferences.dart';
 void main() {
   late SharedState state;
   const vocab = <Map<String, String>>[
-    {'en': 'house', 'es': 'casa', 'fr': 'maison'},
-    {'en': 'water', 'es': 'agua', 'fr': 'eau'},
-    {'en': 'bread', 'es': 'pan', 'fr': 'pain'},
-    {'en': 'mother', 'es': 'madre', 'fr': 'mère'},
-    {'en': 'garden', 'es': 'jardín', 'fr': 'jardin'},
-    {'en': 'window', 'es': 'ventana', 'fr': 'fenêtre'},
-    {'en': 'winter', 'es': 'invierno', 'fr': 'hiver'},
-    {'en': 'river', 'es': 'río', 'fr': 'rivière'},
-    {'en': 'summer', 'es': 'verano', 'fr': 'été'},
-    {'en': 'forest', 'es': 'bosque', 'fr': 'forêt'},
+    {'en': 'house', 'es': 'casa', 'fr': 'maison', 'ru': 'дом'},
+    {'en': 'water', 'es': 'agua', 'fr': 'eau', 'ru': 'вода'},
+    {'en': 'bread', 'es': 'pan', 'fr': 'pain', 'ru': 'хлеб'},
+    {'en': 'mother', 'es': 'madre', 'fr': 'mère', 'ru': 'мама'},
+    {'en': 'garden', 'es': 'jardín', 'fr': 'jardin', 'ru': 'сад'},
+    {'en': 'window', 'es': 'ventana', 'fr': 'fenêtre', 'ru': 'окно'},
+    {'en': 'winter', 'es': 'invierno', 'fr': 'hiver', 'ru': 'зима'},
+    {'en': 'river', 'es': 'río', 'fr': 'rivière', 'ru': 'река'},
+    {'en': 'summer', 'es': 'verano', 'fr': 'été', 'ru': 'лето'},
+    {'en': 'forest', 'es': 'bosque', 'fr': 'forêt', 'ru': 'лес'},
   ];
   bool isReal(String w) => vocab.any((e) => e.values.contains(w));
 
@@ -157,7 +157,7 @@ void main() {
     expect(find.text('ES·en'), findsOneWidget, reason: 'пилюля в шапке: текущий прописными');
   });
 
-  testWidgets('в выборе — только языки с псевдословами и без своего', (tester) async {
+  testWidgets('в выборе — только языки с псевдословами, и свой среди них', (tester) async {
     await boot(tester, () => 1000);
     // Выбор — выпадающей строкой: состав пунктов виден в открытом списке.
     await tester.tap(find.byKey(const Key('ld-lang')));
@@ -166,8 +166,33 @@ void main() {
     expect(find.byKey(const Key('ld-lang-en')), findsWidgets);
     expect(find.byKey(const Key('ld-lang-es')), findsWidgets);
     expect(find.byKey(const Key('ld-lang-fr')), findsNothing, reason: 'у французского генератора нет');
-    expect(find.byKey(const Key('ld-lang-ru')), findsNothing, reason: 'свой язык целью не бывает');
+    expect(find.byKey(const Key('ld-lang-ru')), findsWidgets, reason: 'родной язык — тоже язык задания (d0ad03d9)');
     expect(find.byKey(const Key('ld-level-params')), findsOneWidget);
+  });
+
+  testWidgets('🔴 русскоязычный выбирает «Русский» — партия идёт по-русски, без подмены на en/es', (tester) async {
+    final sent = <Map<String, dynamic>>[];
+    SessionReport.sink = (j) async => sent.add(jsonDecode(j) as Map<String, dynamic>);
+    var now = 1000;
+    await boot(tester, () => now);
+    await tester.tap(find.byKey(const Key('ld-lang')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.tap(find.byKey(const Key('ld-lang-ru')).last);
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.tap(find.byKey(const Key('ld-start')));
+    await tester.pump();
+    final total = ldLevelParams(1).trials;
+    final cyrillic = RegExp('^[а-яё]+\$');
+    for (var i = 0; i < total; i += 1) {
+      now += 700;
+      final w = shown(tester);
+      expect(cyrillic.hasMatch(w), isTrue, reason: 'проба ${i + 1} «$w» — не русская');
+      await tester.tap(find.byKey(Key(isReal(w) ? 'ld-yes' : 'ld-no')));
+      await tester.pump(const Duration(milliseconds: 400));
+    }
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(sent.single['difficulty'], 'ru · $total');
   });
 
   testWidgets('разбор до партии — настоящее слово и псевдослово языка', (tester) async {

@@ -69,8 +69,11 @@ class _LexicalDecisionScreenState extends State<LexicalDecisionScreen> {
   int get _now => (widget.clock ?? () => DateTime.now().millisecondsSinceEpoch)();
   String get _baseLang => widget.state.language;
 
-  /// Свой язык целью не бывает: выбран он — берётся запасной, как `tgt` веба.
-  String get _target => _targetLang == _baseLang ? (_baseLang == 'en' ? 'es' : 'en') : _targetLang;
+  /// 🔴 Родной язык — тоже язык задания (решение Дениса 01.10.2026, d0ad03d9): раньше он
+  /// отсекался, и англоязычный игрок никогда не получал английский. Откат — только для языка
+  /// без словаря, как `tgt` веба.
+  String get _target =>
+      _ldLangs.isEmpty || _ldLangs.contains(_targetLang) ? _targetLang : (_baseLang == 'en' ? 'es' : 'en');
   String get _second => secondNotFirst(_baseLang, _target, _wantedSecond);
 
   @override
@@ -118,7 +121,7 @@ class _LexicalDecisionScreenState extends State<LexicalDecisionScreen> {
   /// Раньше в вебе выбор шёл из всех двенадцати, и на французском игра была пустой.
   List<String> get _langs => [
         for (final l in (_names.languages.isEmpty ? _ldLangs : _names.languages.keys))
-          if (l != _baseLang && _ldLangs.contains(l)) l,
+          if (_ldLangs.contains(l)) l,
       ];
 
   void _start() {

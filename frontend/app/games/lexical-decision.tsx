@@ -158,7 +158,10 @@ export default function LexicalDecisionGame() {
 
   useEffect(() => () => clearAllTimers(), []);
 
-  const tgt = targetLang === language ? (language === 'en' ? 'es' : 'en') : targetLang;
+  // 🔴 РОДНОЙ ЯЗЫК — ТОЖЕ ЯЗЫК ЗАДАНИЯ (решение Дениса 01.10.2026, задача d0ad03d9).
+  // Раньше язык интерфейса отсекался и подменялся на en/es — англоязычный игрок
+  // никогда не получал английский. Откат — только для языка без словаря.
+  const tgt = hasPseudowords(targetLang) ? targetLang : (language === 'en' ? 'es' : 'en');
   /** Режим билингво: два иностранных вперемешку в одной партии (см. bilingualMode). */
   const [билингво, setБилингво] = useState<boolean>(() => str(БИЛИНГВО, '') === '1');
   /**
@@ -333,7 +336,7 @@ export default function LexicalDecisionGame() {
                 оставался мёртвым навсегда, без шапки и без «назад».
                 Список выводится ИЗ САМОГО словаря, вписать его руками нельзя.
               */}
-              {LANGUAGES.filter((l) => l.code !== language && hasPseudowords(l.code)).map((l) => (
+              {LANGUAGES.filter((l) => hasPseudowords(l.code)).map((l) => (
                 <TouchableOpacity
                   accessibilityRole="button"
                   key={l.code}

@@ -83,8 +83,9 @@ class _PseudowordEchoScreenState extends State<PseudowordEchoScreen> {
   int get _now => (widget.clock ?? () => DateTime.now().millisecondsSinceEpoch)();
   String get _base => widget.state.language;
 
-  /// Свой язык целью не бывает: выбран он — берётся запасной, как `tgt` веба.
-  String get _target => _targetLang == _base ? (_base == 'en' ? 'es' : 'en') : _targetLang;
+  /// 🔴 Родной язык — тоже язык задания (решение Дениса 01.10.2026, d0ad03d9). Откат — только
+  /// для языка вне списка, как `tgt` веба.
+  String get _target => echoLangs.contains(_targetLang) ? _targetLang : (_base == 'en' ? 'es' : 'en');
 
   /// Выбор языка — тот же ключ, что у веба (`psygames_pseudoword_echo_targetlang`).
   static const String _langKey = 'psygames_pseudoword_echo_targetlang';
@@ -353,7 +354,7 @@ class _PseudowordEchoScreenState extends State<PseudowordEchoScreen> {
           LangDropdown(
             key: const Key('echo-lang'),
             keyPrefix: 'echo-lang',
-            langs: [for (final l in echoLangs) if (l != _base) l],
+            langs: echoLangs,
             value: _target,
             label: _names.name,
             onChanged: _pickLang,
