@@ -1,0 +1,727 @@
+{
+ "generator": "tool/gen_traffic_jam.dart — самое дальнее от решения положение связной компоненты случайной расстановки; ход = проезд машины на любое число клеток",
+ "seed": 20260930,
+ "tried": 15000,
+ "levels": [
+  {
+   "id": "tj-001",
+   "rows": [
+    "F.....",
+    "F..D..",
+    "XX.D..",
+    "AAACC.",
+    "....GG",
+    "..EEBB"
+   ],
+   "minMoves": 2
+  },
+  {
+   "id": "tj-002",
+   "rows": [
+    "..GGG.",
+    ".AAAE.",
+    "CXX.E.",
+    "CFFDD.",
+    "C.....",
+    ".BB.HH"
+   ],
+   "minMoves": 3
+  },
+  {
+   "id": "tj-003",
+   "rows": [
+    "...GG.",
+    "ECCCA.",
+    "E.XXAF",
+    "..HH.F",
+    "IB..DD",
+    "IB...."
+   ],
+   "minMoves": 4
+  },
+  {
+   "id": "tj-004",
+   "rows": [
+    "FABBB.",
+    "FAG...",
+    "XXG..E",
+    "..CC.E",
+    "......",
+    "DDD.HH"
+   ],
+   "minMoves": 4
+  },
+  {
+   "id": "tj-005",
+   "rows": [
+    "E..CC.",
+    "EBBF..",
+    "XXDF..",
+    "HHDAA.",
+    ".GG...",
+    "......"
+   ],
+   "minMoves": 5
+  },
+  {
+   "id": "tj-006",
+   "rows": [
+    ".I..C.",
+    ".IF.CA",
+    "XXFGEA",
+    "HDDGE.",
+    "HB....",
+    "HB..JJ"
+   ],
+   "minMoves": 5
+  },
+  {
+   "id": "tj-007",
+   "rows": [
+    ".ACCC.",
+    ".A..H.",
+    ".XX.HD",
+    "G.FFED",
+    "G...ED",
+    "..BBE."
+   ],
+   "minMoves": 6
+  },
+  {
+   "id": "tj-008",
+   "rows": [
+    ".DDBB.",
+    "...HHJ",
+    "..XXCJ",
+    "GG..C.",
+    "..EEA.",
+    "FFIIA."
+   ],
+   "minMoves": 6
+  },
+  {
+   "id": "tj-009",
+   "rows": [
+    "..AA..",
+    "FFFCG.",
+    "XXHCGI",
+    "E.HDDI",
+    "E.....",
+    "BB...."
+   ],
+   "minMoves": 6
+  },
+  {
+   "id": "tj-010",
+   "rows": [
+    "D..AJJ",
+    "DBBACE",
+    "..XXCE",
+    "H.FFMM",
+    "H.G..K",
+    "LLGIIK"
+   ],
+   "minMoves": 7
+  },
+  {
+   "id": "tj-011",
+   "rows": [
+    ".EDD..",
+    ".EFAG.",
+    "XXFAGC",
+    "..BBBC",
+    "......",
+    "......"
+   ],
+   "minMoves": 7
+  },
+  {
+   "id": "tj-012",
+   "rows": [
+    "GG.BB.",
+    "FF..DA",
+    "..XXDA",
+    "..HHDA",
+    "...CEE",
+    "...C.."
+   ],
+   "minMoves": 8
+  },
+  {
+   "id": "tj-013",
+   "rows": [
+    ".FFACC",
+    "...A..",
+    "..XXE.",
+    ".GGGE.",
+    "..BBD.",
+    "....D."
+   ],
+   "minMoves": 8
+  },
+  {
+   "id": "tj-014",
+   "rows": [
+    "...GGC",
+    "..EEAC",
+    ".XX.AC",
+    ".BB.A.",
+    "..FDD.",
+    "..F..."
+   ],
+   "minMoves": 8
+  },
+  {
+   "id": "tj-015",
+   "rows": [
+    "IFFFGG",
+    "I.EEJJ",
+    "XX..DC",
+    ".AAADC",
+    ".....B",
+    ".HHH.B"
+   ],
+   "minMoves": 9
+  },
+  {
+   "id": "tj-016",
+   "rows": [
+    "HHHAAA",
+    "..IIGG",
+    ".FXXEJ",
+    ".F.DEJ",
+    "..BDE.",
+    "..BDCC"
+   ],
+   "minMoves": 9
+  },
+  {
+   "id": "tj-017",
+   "rows": [
+    "......",
+    "..AAGE",
+    "XX.FGE",
+    "C..FG.",
+    "C..FBB",
+    "CDDD.."
+   ],
+   "minMoves": 10
+  },
+  {
+   "id": "tj-018",
+   "rows": [
+    "...JKK",
+    ".IIJ.C",
+    ".EGXXC",
+    ".EGA.H",
+    "B.GADH",
+    "B.FFDH"
+   ],
+   "minMoves": 10
+  },
+  {
+   "id": "tj-019",
+   "rows": [
+    ".F.EHH",
+    ".F.EAA",
+    ".DBXXI",
+    "JDB..I",
+    "JD..KG",
+    ".CCCKG"
+   ],
+   "minMoves": 10
+  },
+  {
+   "id": "tj-020",
+   "rows": [
+    "..AA.D",
+    "..FFCD",
+    "..XXCD",
+    ".JJG..",
+    "..EGII",
+    "HHEBBB"
+   ],
+   "minMoves": 11
+  },
+  {
+   "id": "tj-021",
+   "rows": [
+    "AJJEDD",
+    "A..EBI",
+    "XX.EBI",
+    "GKKKCH",
+    "G...CH",
+    "..FF.."
+   ],
+   "minMoves": 11
+  },
+  {
+   "id": "tj-022",
+   "rows": [
+    "KI..BB",
+    "KIJJEE",
+    "XXDA..",
+    "..DA.G",
+    "FFDHHG",
+    ".CC..."
+   ],
+   "minMoves": 12
+  },
+  {
+   "id": "tj-023",
+   "rows": [
+    "BJ.KK.",
+    "BJHHEE",
+    "XXCDLA",
+    ".GCDLA",
+    ".G..IF",
+    "....IF"
+   ],
+   "minMoves": 12
+  },
+  {
+   "id": "tj-024",
+   "rows": [
+    "JAAEEC",
+    "J..DDC",
+    "XXIBFG",
+    "..IBFG",
+    ".KI.LG",
+    ".KHHL."
+   ],
+   "minMoves": 12
+  },
+  {
+   "id": "tj-025",
+   "rows": [
+    "G.AAB.",
+    "GJJJBD",
+    "XX.ICD",
+    "KL.ICF",
+    "KLEEEF",
+    "HH...."
+   ],
+   "minMoves": 13
+  },
+  {
+   "id": "tj-026",
+   "rows": [
+    ".JAABB",
+    ".JFFEE",
+    "XXCHLK",
+    "..CHLK",
+    "DDCHGG",
+    ".MMII."
+   ],
+   "minMoves": 13
+  },
+  {
+   "id": "tj-027",
+   "rows": [
+    ".GBBBC",
+    ".GHEEC",
+    "XXH..C",
+    "..H.II",
+    "..FFA.",
+    "DDD.A."
+   ],
+   "minMoves": 14
+  },
+  {
+   "id": "tj-028",
+   "rows": [
+    "..CCCA",
+    "..D..A",
+    "XXDE..",
+    "..DEHH",
+    "BBGGF.",
+    "..IIF."
+   ],
+   "minMoves": 14
+  },
+  {
+   "id": "tj-029",
+   "rows": [
+    "MLBBKK",
+    "MLHHH.",
+    "MCXXG.",
+    "ACDDGJ",
+    "AIIFFJ",
+    ".EE..."
+   ],
+   "minMoves": 14
+  },
+  {
+   "id": "tj-030",
+   "rows": [
+    ".IKKAA",
+    ".I.HHG",
+    ".XX.JG",
+    "BBFFJG",
+    "EDDDLL",
+    "EMMCCC"
+   ],
+   "minMoves": 15
+  },
+  {
+   "id": "tj-031",
+   "rows": [
+    "KFMMII",
+    "KF.JJJ",
+    "XXA..L",
+    "BBA..L",
+    "GECCCL",
+    "GEDDHH"
+   ],
+   "minMoves": 15
+  },
+  {
+   "id": "tj-032",
+   "rows": [
+    "...CHH",
+    "...CII",
+    "DXXC.B",
+    "DEEEAB",
+    "..G.AB",
+    "..G.FF"
+   ],
+   "minMoves": 16
+  },
+  {
+   "id": "tj-033",
+   "rows": [
+    ".JBBG.",
+    ".JI.GF",
+    "XXI.HF",
+    "CEEAH.",
+    "C..ADD",
+    "......"
+   ],
+   "minMoves": 16
+  },
+  {
+   "id": "tj-034",
+   "rows": [
+    "GGHHKB",
+    ".JJ.KB",
+    ".XXD.B",
+    "..FDCC",
+    "..FEAA",
+    "...EII"
+   ],
+   "minMoves": 17
+  },
+  {
+   "id": "tj-035",
+   "rows": [
+    "MMBBBE",
+    "F.DDLE",
+    "FXX.LK",
+    "FJJGGK",
+    "HC.AA.",
+    "HC.II."
+   ],
+   "minMoves": 17
+  },
+  {
+   "id": "tj-036",
+   "rows": [
+    "......",
+    "...C.F",
+    ".XXCAF",
+    ".EECAF",
+    ".D.BB.",
+    ".D.GG."
+   ],
+   "minMoves": 17
+  },
+  {
+   "id": "tj-037",
+   "rows": [
+    ".EEB..",
+    ".C.BLL",
+    ".CXXHA",
+    "GJJ.HA",
+    "GDD.IA",
+    "KKFFI."
+   ],
+   "minMoves": 18
+  },
+  {
+   "id": "tj-038",
+   "rows": [
+    "..JGGG",
+    "..JB..",
+    "XXFB..",
+    ".CFBII",
+    ".CAA.H",
+    "EE.DDH"
+   ],
+   "minMoves": 18
+  },
+  {
+   "id": "tj-039",
+   "rows": [
+    "..CCCG",
+    "JJKKEG",
+    ".BXXE.",
+    "FBAAE.",
+    "F.I.HH",
+    "DDI..."
+   ],
+   "minMoves": 19
+  },
+  {
+   "id": "tj-040",
+   "rows": [
+    "KEECCC",
+    "KMMGII",
+    "XX.G.L",
+    "DJBBBL",
+    "DJF.AA",
+    "HHF..."
+   ],
+   "minMoves": 19
+  },
+  {
+   "id": "tj-041",
+   "rows": [
+    "I...C.",
+    "I.BBCG",
+    "XXE.CG",
+    "..EDDJ",
+    "AAAF.J",
+    "HHHF.."
+   ],
+   "minMoves": 19
+  },
+  {
+   "id": "tj-042",
+   "rows": [
+    "...HFF",
+    "DDDHKJ",
+    "EGXXKJ",
+    "EGBBK.",
+    "AGC...",
+    "A.C.II"
+   ],
+   "minMoves": 20
+  },
+  {
+   "id": "tj-043",
+   "rows": [
+    "..DEGG",
+    "..DEHA",
+    ".XX.HA",
+    "CCBBHA",
+    ".F.II.",
+    ".FJJKK"
+   ],
+   "minMoves": 20
+  },
+  {
+   "id": "tj-044",
+   "rows": [
+    "JAAA..",
+    "J.EEHH",
+    "GXXF..",
+    "GD.FBB",
+    "CDKKLI",
+    "C...LI"
+   ],
+   "minMoves": 21
+  },
+  {
+   "id": "tj-045",
+   "rows": [
+    "JHHGGI",
+    "JLL.CI",
+    "XXEDCI",
+    ".MEDKK",
+    ".MFFF.",
+    ".AAABB"
+   ],
+   "minMoves": 21
+  },
+  {
+   "id": "tj-046",
+   "rows": [
+    "..JDHH",
+    "F.JD..",
+    "FXX.EA",
+    "F...EA",
+    "GGCCCA",
+    "BBBII."
+   ],
+   "minMoves": 21
+  },
+  {
+   "id": "tj-047",
+   "rows": [
+    ".CAADD",
+    ".CEEEI",
+    ".XX..I",
+    ".FFBBI",
+    "...JGG",
+    ".HHJ.."
+   ],
+   "minMoves": 22
+  },
+  {
+   "id": "tj-048",
+   "rows": [
+    ".FCCEE",
+    ".FII.J",
+    "XXA..J",
+    "G.ALLJ",
+    "GHHBK.",
+    "DD.BK."
+   ],
+   "minMoves": 22
+  },
+  {
+   "id": "tj-049",
+   "rows": [
+    "B..DHH",
+    "BIIDJ.",
+    "XX.KJE",
+    "FFFK.E",
+    "..ACCE",
+    "..AGG."
+   ],
+   "minMoves": 23
+  },
+  {
+   "id": "tj-050",
+   "rows": [
+    "...AGG",
+    ".J.ADD",
+    ".JXXFH",
+    ".CCCFH",
+    "..EIIH",
+    "..EBB."
+   ],
+   "minMoves": 23
+  },
+  {
+   "id": "tj-051",
+   "rows": [
+    "DD.EG.",
+    "FLLEGH",
+    "FBXXGH",
+    ".BI...",
+    "K.ICCJ",
+    "K..AAJ"
+   ],
+   "minMoves": 23
+  },
+  {
+   "id": "tj-052",
+   "rows": [
+    "II.LDM",
+    "H..LDM",
+    "HXX.KG",
+    "BBE.KG",
+    ".FEJJG",
+    ".FAACC"
+   ],
+   "minMoves": 24
+  },
+  {
+   "id": "tj-053",
+   "rows": [
+    "L.JFKK",
+    "L.JF.G",
+    "L.XXEG",
+    "IICCEA",
+    "DDHHHA",
+    "BBB..."
+   ],
+   "minMoves": 24
+  },
+  {
+   "id": "tj-054",
+   "rows": [
+    "LLDDCH",
+    "FF.BCH",
+    "IXXB..",
+    "I.GKJJ",
+    "AAGK..",
+    ".EEE.."
+   ],
+   "minMoves": 25
+  },
+  {
+   "id": "tj-055",
+   "rows": [
+    "..AAGB",
+    "CKKKGB",
+    "CXX.GJ",
+    "C..F.J",
+    "..HFDD",
+    "IIH.EE"
+   ],
+   "minMoves": 25
+  },
+  {
+   "id": "tj-056",
+   "rows": [
+    "GGF..E",
+    "A.FHHE",
+    "A.XXID",
+    "BBB.ID",
+    ".J.KCC",
+    ".J.K.."
+   ],
+   "minMoves": 25
+  },
+  {
+   "id": "tj-057",
+   "rows": [
+    "GGDDE.",
+    "AA.HEL",
+    "JXXH.L",
+    "J.MIII",
+    "FFM..B",
+    "CCKKKB"
+   ],
+   "minMoves": 26
+  },
+  {
+   "id": "tj-058",
+   "rows": [
+    "GAAB.K",
+    "G..BHK",
+    "JIXXHL",
+    "JIDDHL",
+    "J.FEE.",
+    "CCF..."
+   ],
+   "minMoves": 26
+  },
+  {
+   "id": "tj-059",
+   "rows": [
+    "EED.HH",
+    "J.DBBB",
+    "JXXG..",
+    "KK.GAA",
+    "LLFF.C",
+    "IIMM.C"
+   ],
+   "minMoves": 27
+  },
+  {
+   "id": "tj-060",
+   "rows": [
+    "J.GGAE",
+    "JBBBAE",
+    "XXDICH",
+    "..DICH",
+    "...IFF",
+    "..KK.."
+   ],
+   "minMoves": 27
+  }
+ ]
+}

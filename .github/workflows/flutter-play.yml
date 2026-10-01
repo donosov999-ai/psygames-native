@@ -1,0 +1,304 @@
+# Гибрид на Flutter → Google Play, в ТУ ЖЕ карточку приложения (com.psygames.app).
+#
+# 🔴 ЗАПУСКАЕТСЯ ТОЛЬКО РУКАМИ. Задача 2f28c441 («одна линия», звено 2): гибрид уезжает
+# в Play сначала ВНУТРЕННИМ треком, продакшн — отдельным запуском после «да» Дениса.
+# Образец — flutter-testflight.yml: та же веб-часть внутри, тот же движок Тэтхэма той же
+# меткой, те же пробы перед сборкой. Отличие — площадка: здесь Linux и NDK.
+#
+# Подпись — тем же ключом, что у живого выпуска старой линии (секреты ANDROID_KEYSTORE_*
+# из build.yml; android/app/build.gradle.kts читает их из окружения). Номер сборки считает
+# Gradle из версии: 2.56.0 → 2056000, строго больше принятого 2054024.
+name: Flutter → Google Play (гибрид, вручную)
+
+on:
+  workflow_dispatch:
+    inputs:
+      track:
+        description: 'Дорожка Play: internal — внутренний трек; production — продакшн 100 %'
+        type: choice
+        options: [internal, production]
+        default: internal
+      confirm_production:
+        # Продакшн публичен и необратим: второе поле, чтобы его нельзя было выбрать
+        # одним промахом по списку. Для internal не нужно.
+        description: 'Для production впиши yes-100 (решение Дениса), иначе оставь пустым'
+        required: false
+        default: ''
+      promote_version_code:
+        # Проверенную во внутреннем треке сборку в продакшн ПРОДВИГАЮТ, а не заливают заново:
+        # Play берёт каждый versionCode один раз. Задан номер — сборки нет, только назначение.
+        description: 'Продвинуть уже загруженную сборку (versionCode, напр. 2056000) — без пересборки; пусто = собрать и залить'
+        required: false
+        default: ''
+      build_only:
+        # 🔴 01.10.2026: 2.56.0 ушла во внутренний трек без INTERNET в манифесте и не запускалась —
+        # номер 2056000 сгорел. Проверять надо ДО заливки: собрать, поставить на эмулятор, потом лить.
+        description: 'Только собрать и выложить AAB + универсальный APK артефактом — без заливки в Play'
+        type: boolean
+        default: false
+      from_run:
+        description: 'Залить в Play AAB из прогона build_only (id прогона) — тот самый файл, что проверили на эмуляторе'
+        required: false
+        default: ''
+
+concurrency:
+  # Две заливки одной версии подряд — гарантированный отказ Play («version code already used»).
+  group: flutter-play
+  cancel-in-progress: false
+
+jobs:
+  promote:
+    name: Продвижение загруженной сборки
+    if: inputs.promote_version_code != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Продакшн — только с подтверждением
+        if: inputs.track == 'production'
+        run: |
+          if [ "${{ inputs.confirm_production }}" != "yes-100" ]; then
+            echo "::error title=Продакшн::нужно поле confirm_production = yes-100 — продакшн идёт только после «да» Дениса"
+            exit 1
+          fi
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Назначить сборку дорожке
+        env:
+          GOOGLE_PLAY_SA_JSON: ${{ secrets.GOOGLE_PLAY_SA_JSON }}
+          PLAY_TRACKS: ${{ inputs.track }}
+          PROMOTE_VERSION_CODE: ${{ inputs.promote_version_code }}
+        run: |
+          # Имя выпуска и «Что нового» — по версии из app.json; номер обязан ей отвечать.
+          VERSION=$(node -p "require('./frontend/app.json').expo.version")
+          IFS=. read -r MA MI PA <<< "$VERSION"
+          CODE=$((MA * 1000000 + MI * 1000 + PA))
+          if [ "$CODE" != "$PROMOTE_VERSION_CODE" ]; then
+            echo "::error title=Номер::app.json $VERSION даёт $CODE, а продвигается $PROMOTE_VERSION_CODE — «Что нового» ушло бы от другой версии"
+            exit 1
+          fi
+          npm install --no-save --prefix "$RUNNER_TEMP/play" googleapis
+          VERSION_NAME="$VERSION" NODE_PATH="$RUNNER_TEMP/play/node_modules" node .github/scripts/deploy_play.js
+          echo "## Google Play — продвижение: $VERSION ($CODE) → ${{ inputs.track }}" >> "$GITHUB_STEP_SUMMARY"
+
+  play:
+    name: Сборка и заливка
+    if: inputs.promote_version_code == '' && inputs.from_run == ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Продакшн — только с подтверждением
+        if: inputs.track == 'production'
+        run: |
+          if [ "${{ inputs.confirm_production }}" != "yes-100" ]; then
+            echo "::error title=Продакшн::нужно поле confirm_production = yes-100 — продакшн идёт только после «да» Дениса"
+            exit 1
+          fi
+
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Зависимости веб-части
+        working-directory: frontend
+        run: npm ci --legacy-peer-deps
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.47.5
+          channel: stable
+          cache: true
+
+      - name: Вложить веб-часть внутрь приложения
+        run: bash flutter/tools/embed-web.sh
+
+      - name: Проверить, что веб-часть действительно вложена
+        run: |
+          # Тот же замер, что в TestFlight: без поимённых каталогов в pubspec сборка
+          # выходит ЗЕЛЁНОЙ, но пустой (23.09: 17,9 МБ вместо 101,5).
+          DIRS=$(grep -c 'assets/web' flutter/pubspec.yaml || echo 0)
+          FILES=$(find flutter/assets/web -type f | wc -l | tr -d ' ')
+          echo "каталогов в pubspec: $DIRS · файлов вложено: $FILES"
+          if [ "$DIRS" -lt 50 ] || [ "$FILES" -lt 1000 ]; then
+            echo "::error title=Веб-часть::вложено слишком мало — сборка была бы пустой"; exit 1
+          fi
+
+      # ⚠️ Метка канона ОБЯЗАНА совпадать с flutter-pilot.yml и flutter-testflight.yml
+      # (сторож tatham_pin_matches_test): разойдутся — выпуск соберётся на другом движке,
+      # чем проверяли пробы.
+      - name: Канон Тэтхэма (по метке) и сборка движка — под пробы и под Android
+        working-directory: flutter
+        run: |
+          set -eu
+          TATHAM_SHA=428913c6a58b60802fe5d734d9a44c34159f4e0f
+          git clone --quiet https://git.tartarus.org/simon/puzzles.git "$HOME/puzzles"
+          git -C "$HOME/puzzles" checkout --quiet "$TATHAM_SHA"
+          echo "канон: $(git -C "$HOME/puzzles" rev-parse --short HEAD)"
+          PUZZLES_SRC="$HOME/puzzles" tool/build_tatham.sh
+          # Под Android — отдельная сборка .so на каждую архитектуру в jniLibs: без неё
+          # пакет собирается зелёным, а головоломки падают на первом ходе у человека.
+          ANDROID_NDK_HOME="${ANDROID_NDK_HOME:-$ANDROID_NDK_ROOT}" PUZZLES_SRC="$HOME/puzzles" tool/build_tatham_android.sh
+
+      - name: Пробы пилота
+        working-directory: flutter
+        run: |
+          flutter pub get
+          flutter analyze
+          flutter test --reporter compact
+
+      - name: Версия из frontend/app.json — одна линия на все сборки
+        run: |
+          # Решение Дениса 24.09.2026: «льём везде на Flutter, никаких двух веток» —
+          # версия одна, из app.json, как у TestFlight. Номер для Play считает Gradle.
+          VERSION=$(node -p "require('./frontend/app.json').expo.version")
+          BUILD="${{ github.run_number }}"
+          sed -i "s/^version: .*/version: $VERSION+$BUILD/" flutter/pubspec.yaml
+          IFS=. read -r MA MI PA <<< "$VERSION"
+          CODE=$((MA * 1000000 + MI * 1000 + PA))
+          echo "версия $VERSION · номер для Play $CODE"
+          # 2.54.24 (2054024) уже принят в продакшн — меньший или равный номер Play отвергнет.
+          if [ "$CODE" -le 2054024 ]; then
+            echo "::error title=Версия::$VERSION даёт номер $CODE — не больше принятого 2054024"; exit 1
+          fi
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+
+      - name: Ключ подписи
+        env:
+          KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          # Без ключа Gradle тихо подпишет ОТЛАДОЧНЫМ — такой пакет не встанет поверх живого.
+          if [ -z "$KEYSTORE_B64" ]; then echo "::error title=Подпись::нет секрета ANDROID_KEYSTORE_BASE64"; exit 1; fi
+          echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/psygames-release.jks"
+          ls -l "$RUNNER_TEMP/psygames-release.jks"
+
+      - name: Сборка .aab (release, подписанная)
+        working-directory: flutter
+        env:
+          ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/psygames-release.jks
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: flutter build appbundle --release
+
+      - name: Гейты пакета — подпись, движок, веб-часть
+        working-directory: flutter
+        run: |
+          set -eu
+          AAB=build/app/outputs/bundle/release/app-release.aab
+          ls -l "$AAB"
+          SIGNER=$(keytool -printcert -jarfile "$AAB" | grep -m1 'Owner:' || true)
+          echo "подпись: $SIGNER"
+          if [ -z "$SIGNER" ] || echo "$SIGNER" | grep -q 'Android Debug'; then
+            echo "::error title=Подпись::пакет подписан отладочным ключом или не подписан"; exit 1
+          fi
+          LIST=$(unzip -l "$AAB")
+          for ABI in arm64-v8a armeabi-v7a; do
+            echo "$LIST" | grep -q "base/lib/$ABI/libtatham.so" \
+              || { echo "::error title=Движок::нет libtatham.so под $ABI — головоломки упадут на первом ходе"; exit 1; }
+          done
+          WEB=$(echo "$LIST" | grep -c 'base/assets/flutter_assets/assets/web/' || true)
+          echo "файлов веб-части в пакете: $WEB"
+          [ "$WEB" -ge 1000 ] || { echo "::error title=Веб-часть::в пакете $WEB файлов веб-части — белый экран"; exit 1; }
+          # Сеть: без INTERNET релиз падает на старте — AssetServer не откроет сокет на 127.0.0.1.
+          # Замер 01.10.2026: так ушла во внутренний трек 2.56.0 (прогон 36787018396). Манифест
+          # пакета — protobuf, но имена разрешений лежат в нём строками, поэтому grep -a.
+          # Список собирается целиком, без `grep -q` в конвейере: тот закрыл бы канал на первом
+          # совпадении, и под pipefail шаг покраснел бы от SIGPIPE у unzip.
+          PERMS=$(unzip -p "$AAB" base/manifest/AndroidManifest.xml | grep -a -o 'android\.permission\.[A-Z_]*' | sort -u || true)
+          echo "разрешения пакета: $(echo $PERMS)"
+          case "$PERMS" in
+            *android.permission.INTERNET*) ;;
+            *) echo "::error title=Сеть::в манифесте пакета нет android.permission.INTERNET — приложение упадёт на старте"; exit 1 ;;
+          esac
+          echo "AAB_PATH=$PWD/$AAB" >> "$GITHUB_ENV"
+
+      - name: Универсальный APK той же подписи — для проверки на эмуляторе
+        working-directory: flutter
+        env:
+          ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/psygames-release.jks
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          flutter build apk --release
+          APK=build/app/outputs/flutter-apk/app-release.apk
+          # Разрешения — из ИТОГОВОГО манифеста релиза, а не из исходника: debug/profile
+          # подмешивают свои, и flutter run их прятал (INTERNET, 01.10.2026).
+          AAPT=$(ls -d "$ANDROID_HOME"/build-tools/*/aapt | sort -V | tail -1)
+          PERMS=$("$AAPT" dump permissions "$APK")
+          echo "$PERMS"
+          echo "$PERMS" | grep -q "android.permission.INTERNET" \
+            || { echo "::error title=Манифест::в релизном APK нет INTERNET — сервер веб-части не поднимется, пустой экран"; exit 1; }
+          mkdir -p "$RUNNER_TEMP/out"
+          cp build/app/outputs/bundle/release/app-release.aab "$APK" "$RUNNER_TEMP/out/"
+          echo "$VERSION" > "$RUNNER_TEMP/out/version.txt"
+
+      - name: Заливка в Google Play
+        if: ${{ !inputs.build_only }}
+        env:
+          GOOGLE_PLAY_SA_JSON: ${{ secrets.GOOGLE_PLAY_SA_JSON }}
+          PLAY_TRACKS: ${{ inputs.track }}
+        run: |
+          npm install --no-save --prefix "$RUNNER_TEMP/play" googleapis
+          VERSION_NAME="$VERSION" NODE_PATH="$RUNNER_TEMP/play/node_modules" node .github/scripts/deploy_play.js
+          {
+            echo "## Google Play — гибрид"
+            echo ""
+            echo "| Что | Значение |"
+            echo "|---|---|"
+            echo "| Версия | $VERSION |"
+            echo "| Дорожка | ${{ inputs.track }} |"
+            echo "| Коммит | ${GITHUB_SHA::9} |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: flutter-hybrid-aab
+          path: ${{ runner.temp }}/out/
+          retention-days: 14
+
+  # Заливка ПРОВЕРЕННОГО файла: AAB из прогона build_only, без пересборки.
+  upload_from_run:
+    name: Заливка проверенной сборки
+    if: inputs.from_run != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Продакшн — только с подтверждением
+        if: inputs.track == 'production'
+        run: |
+          if [ "${{ inputs.confirm_production }}" != "yes-100" ]; then
+            echo "::error title=Продакшн::нужно поле confirm_production = yes-100 — продакшн идёт только после «да» Дениса"
+            exit 1
+          fi
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/download-artifact@v4
+        with:
+          name: flutter-hybrid-aab
+          path: ./aab
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ inputs.from_run }}
+      - name: Залить AAB из прогона ${{ inputs.from_run }}
+        env:
+          GOOGLE_PLAY_SA_JSON: ${{ secrets.GOOGLE_PLAY_SA_JSON }}
+          PLAY_TRACKS: ${{ inputs.track }}
+        run: |
+          ls -l aab
+          VERSION=$(cat aab/version.txt)
+          npm install --no-save --prefix "$RUNNER_TEMP/play" googleapis
+          AAB_PATH=aab/app-release.aab VERSION_NAME="$VERSION" NODE_PATH="$RUNNER_TEMP/play/node_modules" node .github/scripts/deploy_play.js
+          echo "## Google Play — залит AAB прогона ${{ inputs.from_run }}: $VERSION → ${{ inputs.track }}" >> "$GITHUB_STEP_SUMMARY"

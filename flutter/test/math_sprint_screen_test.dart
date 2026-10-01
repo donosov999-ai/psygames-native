@@ -5,6 +5,8 @@ import 'package:psygames_flutter/games/math_sprint/screen.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'support/boss_probe.dart';
+
 /// ПАРТИЯ ИГРАЕТСЯ НАЖАТИЯМИ ПО КЛАВИШАМ. Что за задача на экране, проба читает
 /// с экрана — и набирает ответ цифрами, как человек.
 void main() {
@@ -127,5 +129,19 @@ void main() {
       expect(rects[3].top > rects[0].top, isTrue, reason: '$screen: четвёртая клавиша ушла на второй ряд');
       expect(find.byKey(const Key('проверить')), findsOneWidget);
     }
+  });
+
+  testWidgets('🔴 веха: победа на 3-м уровне открывает бой «дополни ряд до 1–9», на 2-м — нет', (tester) async {
+    // В вебе этот экран зовёт BossRound каждые три уровня; при переносе бой пропал молча.
+    await expectBossAfterWin(tester, won: find.text('Следующий уровень'), hudKey: 'bossHudCompleteline', play: (level) async {
+      final rnd = createRng('босс$level');
+      await open(tester, level: level, seed: 'босс$level');
+      await tester.tap(find.byKey(const Key('начать')));
+      await tester.pump();
+      for (var i = 0; i < sprintCorrectToPass; i += 1) {
+        await type(tester, generateSprintProblem(level, rnd).answer);
+      }
+      await tester.pump(const Duration(seconds: 61));
+    });
   });
 }

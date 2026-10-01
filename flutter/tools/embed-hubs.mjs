@@ -12,7 +12,7 @@
 // вот эту потерю генератор и чинит.
 //
 // Запуск: node flutter/tools/embed-hubs.mjs
-import { readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync, readdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -141,7 +141,10 @@ try {
  * Поэтому ключ снимается ТЕМ ЖЕ способом, каким его пишет веб-экран:
  *  · обычный адрес — единственный литерал `usePersistentLevel('…')` в экране;
  *  · головоломки — формула `puzzles.tsx` (режим строчными, пробелы → `_`);
- *  · «Лаборатория» — литерал `spatial_lab_<режим>` в её экране.
+ *  · «Лаборатория» — литерал `spatial_lab_<режим>` в её экране;
+ *  · нативная игра с режимом (веб-экрана нет, `NATIVE_ONLY_GAMES`) — литерал
+ *    `<игра>_<режим>` в её Dart-коде (`flutter/lib/games/<игра>/`). Нет литерала —
+ *    генератор ПАДАЕТ: карточка показывала бы уровень из адреса, то есть чужой.
  * Если веб поменяет формулу — генератор падает, а не пишет тихо старый ключ.
  * Поле ставится только там, где ключ ОТЛИЧАЕТСЯ от выводимого из адреса.
  */
@@ -160,6 +163,17 @@ if (!экран('puzzles').includes(формулаГоловоломок)) {
   console.error('🔴 в puzzles.tsx сменилась формула ключа уровня — поправь embed-hubs.mjs, иначе развилки покажут чужой уровень');
   process.exit(1);
 }
+// Нативные игры без веб-экрана — по реестру `NATIVE_ONLY_GAMES` (адреса литералами).
+const НАТИВНЫЕ = new Set(
+  [...readFileSync(join(FLUTTER, '..', 'frontend', 'src', 'constants', 'nativeOnlyGames.ts'), 'utf8')
+    .matchAll(/route:\s*'([^']+)'/g)].map((m) => m[1]),
+);
+function дартИгры(имя) {
+  const папка = join(FLUTTER, 'lib', 'games', имя.replace(/-/g, '_'));
+  try {
+    return readdirSync(папка).filter((f) => f.endsWith('.dart')).map((f) => readFileSync(join(папка, f), 'utf8')).join('\n');
+  } catch { return ''; }
+}
 const безКлюча = [];
 function ключУровня(route) {
   const [путь, хвост = ''] = route.split('?');
@@ -172,6 +186,13 @@ function ключУровня(route) {
   } else if (режим && имя === 'spatial-lab') {
     const лит = `spatial_lab_${режим}`;
     if (экран(имя).includes(`'${лит}'`)) ключ = лит;
+  } else if (режим && НАТИВНЫЕ.has(route)) {
+    const лит = `${имя.replace(/-/g, '_')}_${режим}`;
+    if (!дартИгры(имя).includes(`'${лит}'`)) {
+      console.error(`🔴 нативная карточка ${route}: в flutter/lib/games/${имя.replace(/-/g, '_')}/ нет ключа лестницы '${лит}'`);
+      process.exit(1);
+    }
+    ключ = лит;
   } else if (!режим) {
     const найдено = new Set([...экран(имя).matchAll(/usePersistentLevel\(\s*'([a-z0-9_]+)'/g)].map((m) => m[1]));
     if (найдено.size === 1) ключ = [...найдено][0];
@@ -191,13 +212,45 @@ for (const list of [...Object.values(out.hubs), Object.values(out.extra)]) {
 }
 out._levelKey = 'Ключ уровня карточки, снятый с веб-экрана игры (embed-hubs.mjs). Пусто — ключ совпадает с выводимым из адреса.';
 
-// Заголовки самих развилок оставляем как были: они лежат отдельной таблицей.
-try {
-  const old = JSON.parse(readFileSync(OUT, 'utf8'));
+// Заголовки самих развилок оставляем как были: они лежат отдельной таблицей — это ДАННЫЕ, а не генерат.
+// 🔴 Файла нет — первый запуск. Файл есть, но не разбирается (маркеры конфликта после слияния) — СТОП.
+// Тихий `catch` здесь 01.10.2026 стёр title/desc/footnote у всех 13 развилок и «Выбери упражнение»
+// (цепочка PR #79 → #80 → #81): у трёх развилок без ключей — «Конфликт внимания», «Объём памяти»,
+// «Судоку: три доски» — заголовок стал пустым. Та же ловушка, что у embed-l10n.
+let прежний = null;
+try { прежний = readFileSync(OUT, 'utf8'); } catch { /* первый запуск: файла нет */ }
+if (прежний !== null) {
+  let old;
+  try { old = JSON.parse(прежний); } catch {
+    console.error(`🔴 ${OUT} есть, но не разбирается (конфликт слияния?). meta и pick в нём — данные, генератор их не`
+      + ' восстановит: сначала разреши конфликт (возьми meta и pick со стороны, где они целы), потом запускай генератор.');
+    process.exit(1);
+  }
   out.meta = old.meta ?? {};
   out.pick = old.pick;
-} catch { /* первый запуск */ }
+}
+
+/*
+ * 🔴 ЗАГОЛОВОК РАЗВИЛКИ — КЛЮЧОМ СЛОВАРЯ, КАК В ВЕБЕ. Нашёл раздел «Языки»
+ * 30.09.2026: `meta` вёз только русский текст («Слух», «Выбери упражнение»),
+ * и нативная развилка на остальных одиннадцати языках говорила по-русски, хотя
+ * веб-экран той же развилки берёт `titleKey`/`descKey`/`pickKey`/`footnoteKey`.
+ * Ключи снимаются с самого веб-экрана — второго реестра нет; текст остаётся
+ * запасным для развилок, у экрана которых ключей нет.
+ */
+const КЛЮЧИ_ЗАГОЛОВКА = ['titleKey', 'descKey', 'pickKey', 'footnoteKey'];
+let заголовковСКлючом = 0;
+for (const route of Object.keys(out.hubs)) {
+  const текст = экран(route.split('/').pop());
+  const m = (out.meta[route] ??= {});
+  let нашлось = false;
+  for (const поле of КЛЮЧИ_ЗАГОЛОВКА) {
+    const hit = текст.match(new RegExp(`\\b${поле}="([A-Za-z0-9_]+)"`));
+    if (hit) { m[поле] = hit[1]; нашлось = true; } else delete m[поле];
+  }
+  if (нашлось) заголовковСКлючом++;
+}
 writeFileSync(OUT, JSON.stringify(out, null, 0) + '\n');
-console.log(`развилок: ${Object.keys(out.hubs).length} · карточек: ${cards} · все с ключами словаря`);
+console.log(`развилок: ${Object.keys(out.hubs).length} · карточек: ${cards} · все с ключами словаря · заголовков с ключом: ${заголовковСКлючом}`);
 console.log(`ключ уровня снят с экрана у ${сКлючом} карточек · режимов без ключа: ${безКлюча.length}${безКлюча.length ? ' — ' + безКлюча.join(', ') : ''}`);
 console.log(`раскладок по профилям: ${Object.keys(out.layouts).length} · адресов в них: ${layoutCards} · карточек вне реестра: ${Object.keys(out.extra).length}`);

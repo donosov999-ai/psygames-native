@@ -137,7 +137,10 @@ describe('режим билингво внутри упражнения', () => 
 
   it('🔴 у «Слово или нет?» псевдослова генерируются по языку пробы', () => {
     const src = код(читать('../../app/games/lexical-decision.tsx'));
-    expect(src).toMatch(/generatePseudowords\(л, пол\)/);
+    // 30.09.2026 сборка проб вынесена из `startGame` в `buildLexicalTrials` (ради сверки
+    // с Flutter), имена переменных — латиницей; смысл тот же: язык берётся из цикла по
+    // языкам партии, а не общий на всю партию.
+    expect(src).toMatch(/for \(const lang of langs\)[\s\S]*?generatePseudowords\(lang, half\)/);
   });
 
   it('🔴 у сортировки слово берётся на языке своего раунда', () => {

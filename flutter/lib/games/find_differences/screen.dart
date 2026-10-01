@@ -4,7 +4,9 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../../shell/aux_action.dart';
+import '../../shell/boss_round.dart';
 import '../../shell/demo_lesson.dart';
+import '../../shell/game_preset.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/lesson.dart';
@@ -55,6 +57,9 @@ class _FindDifferencesScreenState extends State<FindDifferencesScreen> {
   double _left_ = 0;
   int _elapsedMs = 0;
   bool _won = false;
+
+  /// Итог боя с боссом после этой партии; `null` — боя не было (веб: `bossWon`).
+  bool? _boss;
   bool _ready = false;
   _Phase _phase = _Phase.playing;
   Timer? _tick;
@@ -118,6 +123,11 @@ class _FindDifferencesScreenState extends State<FindDifferencesScreen> {
     _diffIdx = alt.diffIdx;
     _elapsedMs = 0;
     _left_ = _params.roundTimeSec.toDouble();
+    // 🔴 ТИХИЙ ШАГ (вечер и ночь) — БЕЗ ТАЙМЕРА ВОВСЕ, как в вебе
+    // (`find-differences.tsx`: `if (isCalm) { setTimeLeft(0); return; }`).
+    // Не «много секунд», а НЕТ ограничения: тикающая цифра торопит всё равно,
+    // а слот задуман как успокоение перед сном (отчёт «нельзя таймер», 18.08).
+    if (GamePreset.isCalm) return;
     _tick = Timer.periodic(const Duration(milliseconds: 100), (_) {
       if (!mounted) return;
       _elapsedMs += 100;
@@ -143,14 +153,18 @@ class _FindDifferencesScreenState extends State<FindDifferencesScreen> {
       if (_round >= _params.rounds) {
         // Уровень берётся, только если закрыты ВСЕ раунды: недобор — не проход.
         final passed = _roundsWon >= _params.rounds;
+        // Веха как в вебе: каждый третий ЗАСЧИТАННЫЙ уровень — бой «сложи подсвеченные».
+        bool? boss;
         if (passed) {
-          await _ladder.win();
+          boss = await BossRound.winThenBoss(context, _ladder,
+              type: BossType.counting, color: const Color(0xFF34E89E));
         } else {
           await _ladder.fail();
         }
         if (!mounted) return;
         setState(() {
           _won = passed;
+          _boss = boss;
           _phase = _Phase.result;
         });
         return;
@@ -199,7 +213,9 @@ class _FindDifferencesScreenState extends State<FindDifferencesScreen> {
         HudItem(label: L.t('personalBest'), value: '${_ladder.best}', icon: Icons.emoji_events_outlined),
         HudItem(label: L.t('round'), value: '$_round/${_params.rounds}', icon: Icons.repeat),
         HudItem(label: L.t('label_found'), value: '${_found.length}/${_diffIdx.length}', icon: Icons.search),
-        HudItem(label: L.t('time'), value: '${_left_.ceil()}', icon: Icons.timer_outlined),
+        // В тихом шаге показателя времени нет: считать нечего, и цифра торопила бы.
+        if (!GamePreset.isCalm)
+          HudItem(label: L.t('time'), value: '${_left_.ceil()}', icon: Icons.timer_outlined),
       ],
       field: (context, h) => LayoutBuilder(builder: (context, c) {
         final s = sceneSize(c.maxWidth, h);
@@ -251,6 +267,7 @@ class _FindDifferencesScreenState extends State<FindDifferencesScreen> {
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
+                BossOutcomeLine(_boss),
                 const SizedBox(height: 8),
                 FilledButton.icon(
                   key: const Key('дальше'),

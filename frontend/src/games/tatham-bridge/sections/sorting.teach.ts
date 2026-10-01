@@ -5,7 +5,8 @@
  * 📍 Денис 17.09.2026, проверив пилот на «Чёт-нечет»: «обучение зашло — раскатывай везде по всем
  * играм». Сюда вписывается учитель каждого своего режима под именем движка — экран головоломок
  * найдёт его сам (`../teach/index.ts`). Формат, образец и порядок — в шапке `../teach/types.ts`.
- * Режимы раздела: Pegs, Flood, Same Game, Signpost, Inertia, Loopy, Pearl, Bridges, Train Tracks.
+ * Режимы раздела: Flood, Same Game, Loopy, Pearl, Bridges, Train Tracks (Pegs, Signpost, Inertia
+ * переехали в «Шахматы» 30.09.2026 — `chess.teach.ts`).
  */
 import type { УчительРежима } from '../teach/types';
 

@@ -32,7 +32,13 @@ const auth = new google.auth.GoogleAuth({
   scopes: ['https://www.googleapis.com/auth/androidpublisher'],
 });
 
-const TRACKS = ['production'];
+/**
+ * Дорожки Play. По умолчанию — продакшн, как было всегда у старой линии (build.yml, тег).
+ * Гибрид на Flutter (flutter-play.yml) передаёт PLAY_TRACKS=internal: сначала внутренний
+ * трек, продакшн — отдельным запуском после «да» Дениса (задача 2f28c441).
+ * ⚠️ Продакшн — только целиком (status 'completed' = 100 %): частичных раскаток не делаем.
+ */
+const TRACKS = (process.env.PLAY_TRACKS || 'production').split(',').map((t) => t.trim()).filter(Boolean);
 
 async function main() {
   // Сначала текст, только потом загрузка: если описания нет, лучше не залить
@@ -56,12 +62,23 @@ async function main() {
   const { data: { id: editId } } = await pub.edits.insert({ packageName: PACKAGE, requestBody: {} });
 
   try {
-    console.log('Uploading AAB...');
-    const { data: { versionCode } } = await pub.edits.bundles.upload({
-      packageName: PACKAGE,
-      editId,
-      media: { mimeType: 'application/octet-stream', body: fs.createReadStream(AAB_PATH) },
-    });
+    /**
+     * ПРОДВИЖЕНИЕ БЕЗ ЗАГРУЗКИ (PROMOTE_VERSION_CODE). Play принимает каждый versionCode ОДИН раз,
+     * поэтому сборку, проверенную во внутреннем треке, в продакшн нельзя «залить ещё раз» — только
+     * назначить уже загруженный номер другой дорожке. Иначе в продакшн уехала бы НЕ та сборка,
+     * что проверяли, или отказ «version code already used».
+     */
+    let versionCode = process.env.PROMOTE_VERSION_CODE || '';
+    if (versionCode) {
+      console.log(`Promoting already uploaded versionCode ${versionCode} (no upload)...`);
+    } else {
+      console.log('Uploading AAB...');
+      ({ data: { versionCode } } = await pub.edits.bundles.upload({
+        packageName: PACKAGE,
+        editId,
+        media: { mimeType: 'application/octet-stream', body: fs.createReadStream(AAB_PATH) },
+      }));
+    }
     console.log('versionCode:', versionCode);
 
     for (const track of TRACKS) {

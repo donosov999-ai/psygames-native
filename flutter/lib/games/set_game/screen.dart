@@ -4,7 +4,9 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../../shell/aux_action.dart';
+import '../../shell/boss_round.dart';
 import '../../shell/demo_lesson.dart';
+import '../../shell/game_preset.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/lesson.dart';
@@ -48,6 +50,9 @@ class _SetGameScreenState extends State<SetGameScreen> {
   bool? _right;
   int _leftMs = 0;
   bool _won = false;
+
+  /// Итог боя с боссом после этой партии; `null` — боя не было (веб: `bossWon`).
+  bool? _boss;
   bool _ready = false;
   _Phase _phase = _Phase.playing;
   Timer? _tick;
@@ -84,7 +89,14 @@ class _SetGameScreenState extends State<SetGameScreen> {
     LessonUsed.reset();
     _tick?.cancel();
     _next?.cancel();
-    _params = levelParams(_ladder.level);
+    // 🔴 ШАГ ЗАРЯДКИ — СВОЁ ЧИСЛО РАСКЛАДОВ И БЕЗ ЛИМИТА ВРЕМЕНИ, как в вебе
+    // (`set-game.tsx`: `isPreset ? { trials, timeLimit: 0 } : levelParams(...)`).
+    // Разминка не должна давить часами; число раскладов задаёт шаг (по
+    // умолчанию 6), а не ступень лестницы. Лестница при пресете и так не
+    // двигается — это держит каркас (LevelLadder).
+    _params = GamePreset.isPreset
+        ? SetParams(trials: GamePreset.num('trials', 6), timeLimit: 0)
+        : levelParams(_ladder.level);
     _round = 1;
     _hits = 0;
     _errors = 0;
@@ -136,14 +148,18 @@ class _SetGameScreenState extends State<SetGameScreen> {
       if (!mounted) return;
       if (_round >= _params.trials) {
         final passed = _errors <= setErrorsAllowed;
+        // Веха как в вебе: каждый третий ЗАСЧИТАННЫЙ уровень — бой «какой цифры не хватает».
+        bool? boss;
         if (passed) {
-          await _ladder.win();
+          boss = await BossRound.winThenBoss(context, _ladder,
+              type: BossType.lightning, color: const Color(0xFF43CEA2));
         } else {
           await _ladder.fail();
         }
         if (!mounted) return;
         setState(() {
           _won = passed;
+          _boss = boss;
           _phase = _Phase.result;
         });
         return;
@@ -244,6 +260,7 @@ class _SetGameScreenState extends State<SetGameScreen> {
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
+                BossOutcomeLine(_boss),
                 const SizedBox(height: 8),
                 FilledButton.icon(
                   key: const Key('дальше'),
