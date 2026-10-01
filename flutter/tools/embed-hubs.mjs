@@ -16,6 +16,20 @@ import { readFileSync, writeFileSync, readdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+/**
+ * 🔴 ПО ЗАПИСИ НА СТРОКУ, А НЕ ОДНОЙ СТРОКОЙ (01.10.2026). Файл писался `JSON.stringify(…, null, 0)` —
+ * целиком в одну строку (en.json — 98 597 знаков), и git сравнивал его одной строкой: ЛЮБЫЕ два PR,
+ * добавившие хоть по ключу, конфликтовали всегда. «Шахматы» дважды за утро ловили конфликт к концу
+ * CI. Теперь верхние уровни — по записи на строку (порядок тот же), глубже — компактно: git сводит
+ * добавления в разных местах сам, а размер почти не растёт.
+ */
+function jsonLines(v, depth) {
+  if (depth <= 0 || v === null || typeof v !== 'object' || Array.isArray(v)) return JSON.stringify(v);
+  const items = Object.entries(v).map(([k, x]) => JSON.stringify(k) + ':' + jsonLines(x, depth - 1));
+  return items.length ? '{\n' + items.join(',\n') + '\n}' : '{}';
+}
+
+
 const HERE = dirname(fileURLToPath(import.meta.url));
 const FLUTTER = join(HERE, '..');
 const SRC = join(FLUTTER, '..', 'frontend', 'src', 'constants', 'hubContents.ts');
@@ -239,18 +253,31 @@ if (прежний !== null) {
  * запасным для развилок, у экрана которых ключей нет.
  */
 const КЛЮЧИ_ЗАГОЛОВКА = ['titleKey', 'descKey', 'pickKey', 'footnoteKey'];
+/*
+ * ⚠️ ТРИ РАЗВИЛКИ СВОИМ ЭКРАНОМ: `span`, `sudoku-hub`, `attention-conflict` зовут
+ * не общий `HubScreen` с пропсами, а `t('…')` прямо в разметке — пропсов там нет,
+ * и по одному шаблону `titleKey="…"` они оставались по-русски на всех языках
+ * (замер 30.09.2026: у всех трёх все четыре поля есть ключами). Второй шаблон —
+ * тот же `t('…')` в элементе героя, подписи выбора и сноски.
+ */
+const HEADER_CALL_FORM = {
+  titleKey: /styles\.heroTitle[^>]*>\s*\{t\('([A-Za-z0-9_]+)'\)\}/,
+  descKey: /styles\.heroDesc[^>]*>\s*\{t\('([A-Za-z0-9_]+)'\)\}/,
+  pickKey: /styles\.sectionLabel[^>]*>\s*\{t\('([A-Za-z0-9_]+)'\)\}/,
+  footnoteKey: /styles\.footnote[^>]*>\s*\{t\('([A-Za-z0-9_]+)'\)\}/,
+};
 let заголовковСКлючом = 0;
 for (const route of Object.keys(out.hubs)) {
   const текст = экран(route.split('/').pop());
   const m = (out.meta[route] ??= {});
   let нашлось = false;
   for (const поле of КЛЮЧИ_ЗАГОЛОВКА) {
-    const hit = текст.match(new RegExp(`\\b${поле}="([A-Za-z0-9_]+)"`));
+    const hit = текст.match(new RegExp(`\\b${поле}="([A-Za-z0-9_]+)"`)) ?? текст.match(HEADER_CALL_FORM[поле]);
     if (hit) { m[поле] = hit[1]; нашлось = true; } else delete m[поле];
   }
   if (нашлось) заголовковСКлючом++;
 }
-writeFileSync(OUT, JSON.stringify(out, null, 0) + '\n');
+writeFileSync(OUT, jsonLines(out, 2) + '\n');
 console.log(`развилок: ${Object.keys(out.hubs).length} · карточек: ${cards} · все с ключами словаря · заголовков с ключом: ${заголовковСКлючом}`);
 console.log(`ключ уровня снят с экрана у ${сКлючом} карточек · режимов без ключа: ${безКлюча.length}${безКлюча.length ? ' — ' + безКлюча.join(', ') : ''}`);
 console.log(`раскладок по профилям: ${Object.keys(out.layouts).length} · адресов в них: ${layoutCards} · карточек вне реестра: ${Object.keys(out.extra).length}`);

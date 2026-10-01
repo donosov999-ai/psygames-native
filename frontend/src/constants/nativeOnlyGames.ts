@@ -43,6 +43,8 @@ export const NATIVE_ONLY_GAMES: readonly NativeOnlyGame[] = [
   { route: '/games/search-runner', nameKey: 'searchRunner', descKey: 'searchRunnerDesc' },
   // «Шахматы», новая игра 1 из 7 (задача 04e0a67e): тактика по двенадцати приёмам Lichess.
   { route: '/games/find-move', nameKey: 'findMove', descKey: 'findMoveDesc' },
+  // «Шахматы», новая игра 2 из 7 (задача 66b3d2ac): каждый ход — взятие, остаётся одна фигура.
+  { route: '/games/solitaire-chess', nameKey: 'solitaireChess', descKey: 'solitaireChessDesc' },
 ];
 
 export const NATIVE_ONLY_ROUTES: readonly string[] = NATIVE_ONLY_GAMES.map((g) => g.route);

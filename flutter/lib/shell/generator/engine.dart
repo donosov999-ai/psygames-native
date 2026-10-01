@@ -66,29 +66,67 @@ double stepFor(double uncertainty) => 8 + uncertainty / 10;
 double expectedScore(double player, double template) =>
     1 / (1 + pow(10, (template - player) / 400));
 
-/// Применить событие к состоянию. ИДЕМПОТЕНТНО: то же `eventId` второй раз ничего не
-/// меняет — офлайн-устройства и повторные отправки не должны накручивать рейтинг.
-AdaptiveState applyOutcome(AdaptiveState s, OutcomeEvent e, {required Template template}) {
-  if (e.eventId == s.lastEventId) return s;
-  if (e.progressionKind != 'adaptive') return s;   // партия прописанного пути — не наша
+/// Сколько применённых событий помнит защита от повтора (D1).
+const eventTail = 64;
 
-  final expected = expectedScore(s.skillRating, template.rating);
+/// Предел неуверенности и её рост от перерыва (D4, как у Glicko: RD' = √(RD² + c²·t)).
+/// c подобрано так, что от нижней границы 60 до 350 неуверенность доходит примерно за
+/// год без игры: c² = (350² − 60²) / 365.
+const maxUncertainty = 350.0;
+const _uncertaintyGrowthPerDay = (350.0 * 350.0 - 60.0 * 60.0) / 365.0;
+
+/// Неуверенность после перерыва в [days] дней.
+double uncertaintyAfterBreak(double u, double days) =>
+    days <= 0 ? u : min(maxUncertainty, sqrt(u * u + _uncertaintyGrowthPerDay * days));
+
+/// Рейтинг шаблона с учётом партий (D3): выученный, иначе начальный из меры игры.
+double ratingOf(AdaptiveState s, Template t) => s.templateRatings[t.id] ?? t.rating;
+
+/// Шаг рейтинга ШАБЛОНА: медленнее шага игрока и сужается с партиями по нему. Шаблон
+/// учится на одном человеке, и быстрый шаг съел бы шкалу: игрок и шаблон двигались бы
+/// навстречу друг другу, и рейтинг игрока перестал бы значить трудность (замер —
+/// generator_convergence_test.dart).
+double templateStep(int games) => max(2.0, 16 / sqrt(1 + games));
+
+/// Применить событие к состоянию. ИДЕМПОТЕНТНО: событие из хвоста применённых
+/// ([eventTail]) второй раз ничего не меняет — офлайн-устройства и повторные отправки
+/// не должны накручивать рейтинг.
+AdaptiveState applyOutcome(AdaptiveState s, OutcomeEvent e, {required Template template}) {
+  if (e.eventId == s.lastEventId || s.recentEventIds.contains(e.eventId)) return s;
+  if (e.progressionKind != 'adaptive') return s;   // партия прописанного пути — не наша
+  if (e.outcome == Outcome.aborted) return s;      // звонок, уход в фон: не партия
+
+  // D4: перерыв без игры расширяет неуверенность ДО расчёта шага.
+  final last = s.lastPlayedAt;
+  if (last != null) {
+    s.ratingUncertainty =
+        uncertaintyAfterBreak(s.ratingUncertainty, e.at.difference(last).inMinutes / (60 * 24));
+  }
+
+  final tRating = ratingOf(s, template);
+  final expected = expectedScore(s.skillRating, tRating);
   final k = stepFor(s.ratingUncertainty);
+  final games = s.templateGames[template.id] ?? 0;
 
   switch (e.outcome) {
     case Outcome.passed:
       s.skillRating += k * (1 - expected);
       s.adaptiveWins += 1;                          // номер только растёт
       s.ratingUncertainty = max(60, s.ratingUncertainty * 0.93);
+      // D3: пройденный шаблон оказался легче, чем думали, — его рейтинг вниз.
+      s.templateRatings[template.id] = tRating - templateStep(games) * (1 - expected);
+      s.templateGames[template.id] = games + 1;
     case Outcome.failed:
       s.skillRating += k * (0 - expected);
       s.ratingUncertainty = max(60, s.ratingUncertainty * 0.93);
+      s.templateRatings[template.id] = tRating + templateStep(games) * expected;
+      s.templateGames[template.id] = games + 1;
     case Outcome.assisted:
       // Подсказки не повышают рейтинг (§8.4). И не понижают: человек доиграл, просто
-      // не сам — наказывать за подсказку значит учить их не брать.
+      // не сам — наказывать за подсказку значит учить их не брать. Шаблон тоже не учится:
+      // по партии с подсказкой его трудность не видна.
       break;
     case Outcome.aborted:
-      // Звонок, уход в фон, случайный выход: не партия. Ничего не трогаем.
       return s;
   }
 
@@ -97,6 +135,9 @@ AdaptiveState applyOutcome(AdaptiveState s, OutcomeEvent e, {required Template t
   s.recentOutcomes.add(e.outcome.name);
   if (s.recentOutcomes.length > 8) s.recentOutcomes.removeAt(0);
   s.lastEventId = e.eventId;
+  s.recentEventIds.add(e.eventId);
+  if (s.recentEventIds.length > eventTail) s.recentEventIds.removeAt(0);
+  s.lastPlayedAt = e.at;
   return s;
 }
 
@@ -137,6 +178,20 @@ double targetRating(AdaptiveState s, Leniency mode, {double? repeatRating}) {
   }
 }
 
+/// Цель, по которой [pickNext] выбирает шаблон: [targetRating] плюс правило «Пожёстче».
+///
+/// 🔴 D2 (звено 3, 30.09): «Пожёстче» после провала ОБЛЕГЧАЛА. Цель была рейтинг + 40, а
+/// провал уже опустил рейтинг — после провала на 1240 следующая цель 1219. Обещано «держим
+/// трудность, пока не пройдёшь», поэтому после провала на «Пожёстче» цель — рейтинг
+/// проваленного шаблона, как у кнопки «ещё раз эту же».
+double effectiveTarget(AdaptiveState s, List<Template> pool, Leniency mode, {double? repeatRating}) {
+  if (repeatRating == null && mode == Leniency.harder && failStreak(s) > 0) {
+    final held = lastTemplateRating(s, pool);
+    if (held != null) return held;
+  }
+  return targetRating(s, mode, repeatRating: repeatRating);
+}
+
 /// Выбрать следующий шаблон.
 ///
 /// Правила, в порядке силы:
@@ -149,14 +204,14 @@ double targetRating(AdaptiveState s, Leniency mode, {double? repeatRating}) {
 /// на котором экран показывает прописанную лестницу.
 Template? pickNext(AdaptiveState s, List<Template> pool, Leniency mode, {double? repeatRating}) {
   if (pool.isEmpty) return null;
-  final target = targetRating(s, mode, repeatRating: repeatRating);
+  final target = effectiveTarget(s, pool, mode, repeatRating: repeatRating);
   final lastVariant = pool
       .where((t) => s.recentTemplateIds.isNotEmpty && t.id == s.recentTemplateIds.last)
       .map((t) => t.variant)
       .firstOrNull;
 
   double penalty(Template t) {
-    var p = (t.rating - target).abs();
+    var p = (ratingOf(s, t) - target).abs();
     if (t.variant == lastVariant) p += 300;                        // не то же правило подряд
     final seen = s.recentTemplateIds.lastIndexOf(t.id);
     if (seen >= 0) p += 120 * (seen + 1) / s.recentTemplateIds.length;
@@ -197,7 +252,11 @@ Template? lastTemplate(AdaptiveState s, List<Template> pool) {
 }
 
 /// Рейтинг шаблона, который человек играл последним, — цель для «ещё раз эту же».
-double? lastTemplateRating(AdaptiveState s, List<Template> pool) => lastTemplate(s, pool)?.rating;
+/// Выученный (D3), если по шаблону уже были партии.
+double? lastTemplateRating(AdaptiveState s, List<Template> pool) {
+  final t = lastTemplate(s, pool);
+  return t == null ? null : ratingOf(s, t);
+}
 
 extension<T> on Iterable<T> {
   T? get firstOrNull => isEmpty ? null : first;
