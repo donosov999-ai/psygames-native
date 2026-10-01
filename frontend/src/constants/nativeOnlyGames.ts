@@ -47,6 +47,8 @@ export const NATIVE_ONLY_GAMES: readonly NativeOnlyGame[] = [
   { route: '/games/solitaire-chess', nameKey: 'solitaireChess', descKey: 'solitaireChessDesc' },
   // «Шахматы», новая игра 3 из 7 (задача 39ad8924): «Восемь ферзей» и «Обход конём» одним экраном.
   { route: '/games/knights-queens', nameKey: 'knightsQueens', descKey: 'knightsQueensDesc' },
+  // «Шахматы», новая игра 4 из 7 (задача 41ac876c): комбинации «отдай и забери» в русских шашках.
+  { route: '/games/draughts-combo', nameKey: 'draughtsCombo', descKey: 'draughtsComboDesc' },
 ];
 
 export const NATIVE_ONLY_ROUTES: readonly string[] = NATIVE_ONLY_GAMES.map((g) => g.route);

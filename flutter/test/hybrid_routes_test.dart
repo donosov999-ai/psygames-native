@@ -293,6 +293,7 @@ void main() {
       '/games/find-move',
       '/games/solitaire-chess',
       '/games/knights-queens',
+      '/games/draughts-combo',
       '/games/choice-rt',
       '/games/cpt',
       '/games/corsi',

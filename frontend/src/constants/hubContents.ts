@@ -136,6 +136,8 @@ export const HUB_CONTENTS: Record<string, HubSubGame[]> = {
     // «Конь и ферзи» (01.10.2026, задача 39ad8924): только нативный экран —
     // адрес в `nativeOnlyGames.ts`, экран в `flutter/lib/games/knights_queens`.
     { route: '/games/knights-queens', icon: 'extension-puzzle', nameKey: 'knightsQueens', descKey: 'knightsQueensDesc', typeKey: 'chessTypeKnightsQueens' },
+    // «Шашки: комбинации» (01.10.2026, задача 41ac876c): только нативный экран.
+    { route: '/games/draughts-combo', icon: 'extension-puzzle', nameKey: 'draughtsCombo', descKey: 'draughtsComboDesc', typeKey: 'chessTypeDraughts' },
   ],
 
   /* ——— Внимание ——— */

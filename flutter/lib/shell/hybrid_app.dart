@@ -5,6 +5,7 @@ import 'package:webview_flutter/webview_flutter.dart';
 
 import '../games/corsi/screen.dart';
 import '../games/find_move/screen.dart';
+import '../games/draughts_combo/screen.dart';
 import '../games/knights_queens/screen.dart';
 import '../games/solitaire_chess/screen.dart';
 import '../games/picture_pairs/screen.dart';
@@ -270,6 +271,7 @@ class HybridApp extends StatefulWidget {
         '/games/find-move': (s) => FindMoveScreen(state: s),
         '/games/solitaire-chess': (s) => SolitaireChessScreen(state: s),
         '/games/knights-queens': (s) => KnightsQueensScreen(state: s),
+        '/games/draughts-combo': (s) => DraughtsComboScreen(state: s),
         // «Детский мат» перенесён целиком: лестница, узоры, микс, жертва и поток.
         '/games/scholars-mate': (s) => ScholarsMateScreen(state: s),
         '/games/switching-task': (s) => SwitchingTaskScreen(state: s),
