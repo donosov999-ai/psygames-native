@@ -5,6 +5,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../shell/app_haptics.dart';
 import '../../shell/audio_host.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/boss_round.dart';
@@ -96,6 +97,9 @@ class NBackScreen extends StatefulWidget {
 }
 
 class _NBackScreenState extends State<NBackScreen> {
+  /// Вибрация — через общий выключатель «Вибрация» (веб `psygames_haptic_enabled`).
+  late final AppHaptics _haptics = AppHaptics(widget.state);
+
   late LevelLadder _ladder;
   late final NbRng _rng = widget.rng ?? Random().nextDouble;
   VoiceLayer? _voice;
@@ -229,7 +233,7 @@ class _NBackScreenState extends State<NBackScreen> {
     if (g == null || _phase != NbPhase.playing) return;
     final r = audio ? g.pressAudio() : g.pressVisual();
     if (r == NbPress.ignored) return;
-    HapticFeedback.selectionClick();
+    _haptics.selection();
     setState(() => audio ? _lastAudio = r : _lastVisual = r);
   }
 
