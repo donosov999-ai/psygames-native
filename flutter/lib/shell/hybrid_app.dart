@@ -75,6 +75,7 @@ import '../games/object_tracker/screen.dart';
 import '../games/pattern/screen.dart';
 import '../games/quick_count/screen.dart';
 import '../games/schulte/screen.dart';
+import '../games/pause/screen.dart';
 import 'asset_server.dart';
 import 'l10n.dart';
 import '../games/sorting_hub/screen.dart';
@@ -152,6 +153,14 @@ class HybridApp extends StatefulWidget {
         '/games/corsi': (s) => CorsiScreen(state: s),
         '/games/picture-pairs': (s) => PicturePairsScreen(state: s),
         '/games/schulte': (s) => SchulteScreen(state: s),
+        // «Пауза / Зарядка» — хаб практик; `?set=…` доходит до экрана через GamePreset.
+        '/games/pause': (s) => PauseScreen(state: s),
+        // «Дыхание» слито в «Паузу» (решение Дениса 30.09): тот же экран, режим дыхания,
+        // партия пишется под прежним `breathing`. Техника шага зарядки — `?tech=`.
+        '/games/breathing': (s) => PauseScreen(state: s, flavor: PauseFlavor.breathing),
+        // «Гимнастика для глаз» слита туда же: лестница 15 уровней и 11 узоров перенесены
+        // со сверкой по живому экрану, партия — под прежним `eye_gym`.
+        '/games/eye-gym': (s) => PauseScreen(state: s, flavor: PauseFlavor.eyeGym),
         '/games/mahjong': (s) => MahjongScreen(state: s),
         '/games/math-slider': (s) => MathSliderScreen(state: s),
         '/games/object-tracker': (s) => ObjectTrackerScreen(state: s),
