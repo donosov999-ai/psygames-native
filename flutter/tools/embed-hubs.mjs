@@ -253,13 +253,26 @@ if (прежний !== null) {
  * запасным для развилок, у экрана которых ключей нет.
  */
 const КЛЮЧИ_ЗАГОЛОВКА = ['titleKey', 'descKey', 'pickKey', 'footnoteKey'];
+/*
+ * ⚠️ ТРИ РАЗВИЛКИ СВОИМ ЭКРАНОМ: `span`, `sudoku-hub`, `attention-conflict` зовут
+ * не общий `HubScreen` с пропсами, а `t('…')` прямо в разметке — пропсов там нет,
+ * и по одному шаблону `titleKey="…"` они оставались по-русски на всех языках
+ * (замер 30.09.2026: у всех трёх все четыре поля есть ключами). Второй шаблон —
+ * тот же `t('…')` в элементе героя, подписи выбора и сноски.
+ */
+const HEADER_CALL_FORM = {
+  titleKey: /styles\.heroTitle[^>]*>\s*\{t\('([A-Za-z0-9_]+)'\)\}/,
+  descKey: /styles\.heroDesc[^>]*>\s*\{t\('([A-Za-z0-9_]+)'\)\}/,
+  pickKey: /styles\.sectionLabel[^>]*>\s*\{t\('([A-Za-z0-9_]+)'\)\}/,
+  footnoteKey: /styles\.footnote[^>]*>\s*\{t\('([A-Za-z0-9_]+)'\)\}/,
+};
 let заголовковСКлючом = 0;
 for (const route of Object.keys(out.hubs)) {
   const текст = экран(route.split('/').pop());
   const m = (out.meta[route] ??= {});
   let нашлось = false;
   for (const поле of КЛЮЧИ_ЗАГОЛОВКА) {
-    const hit = текст.match(new RegExp(`\\b${поле}="([A-Za-z0-9_]+)"`));
+    const hit = текст.match(new RegExp(`\\b${поле}="([A-Za-z0-9_]+)"`)) ?? текст.match(HEADER_CALL_FORM[поле]);
     if (hit) { m[поле] = hit[1]; нашлось = true; } else delete m[поле];
   }
   if (нашлось) заголовковСКлючом++;

@@ -107,6 +107,11 @@ void main() {
         )));
     await tester.tap(find.text('open'));
     await settle(find.byKey(const ValueKey('hub-card-/games/wcst')));
+    // Карточку сперва прокрутить в видимую зону, как выше: с 30.09.2026 шапка
+    // развилки несёт описание из веба («Подавление автоматического…»), карточки
+    // сдвинулись вниз, и нажатие по карточке за краем уходило мимо — маршрута нет.
+    await tester.ensureVisible(find.byKey(const ValueKey('hub-card-/games/wcst')));
+    await tester.pump();
     await tester.tap(find.byKey(const ValueKey('hub-card-/games/wcst')));
     await settle(find.text('open'));
 

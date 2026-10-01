@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 import '../games/corsi/screen.dart';
+import '../games/n_back/screen.dart';
 import '../games/find_move/screen.dart';
+import '../games/solitaire_chess/screen.dart';
 import '../games/picture_pairs/screen.dart';
 import '../games/digit_span/screen.dart';
 import '../games/ant/screen.dart';
@@ -47,6 +49,7 @@ import '../games/kids_sort/screen.dart';
 import '../games/traffic_jam/screen.dart';
 import '../games/monster_traits/missing_screen.dart';
 import '../games/monster_traits/screen.dart';
+import '../games/number_run/screen.dart';
 import '../games/search_runner/screen.dart';
 import '../games/roll_and_bank/screen.dart';
 import '../games/hidden_character/screen.dart';
@@ -70,6 +73,7 @@ import '../games/counter/screen.dart';
 import '../games/find_differences/screen.dart';
 import '../games/counting_hub/screen.dart';
 import '../games/search_hub/screen.dart';
+import '../games/span_hub/screen.dart';
 import '../games/visual_search/screen.dart';
 import '../games/set_game/screen.dart';
 import '../games/object_tracker/screen.dart';
@@ -165,6 +169,7 @@ class HybridApp extends StatefulWidget {
         '/games/digit-span': (s) => DigitSpanScreen(state: s),
         '/games/memory-matrix': (s) => MemoryMatrixScreen(state: s),
         '/games/corsi': (s) => CorsiScreen(state: s),
+        '/games/n-back': (s) => NBackScreen(state: s),
         '/games/picture-pairs': (s) => PicturePairsScreen(state: s),
         '/games/schulte': (s) => SchulteScreen(state: s),
         // «Пауза / Зарядка» — хаб практик; `?set=…` доходит до экрана через GamePreset.
@@ -186,6 +191,9 @@ class HybridApp extends StatefulWidget {
         '/games/sdmt': (s) => SdmtScreen(state: s),
         '/games/set-game': (s) => SetGameScreen(state: s),
         '/games/counter': (s) => CounterScreen(state: s),
+        // «Числовой забег» (задача 41845727): на общем ядре дороги раннеров; веб-страница с WebGL
+        // остаётся для веб-сборки, в приложении — нативный экран.
+        '/games/number-run': (s) => NumberRunScreen(state: s),
         '/games/find-differences': (s) => FindDifferencesScreen(state: s),
         '/games/visual-search': (s) => VisualSearchScreen(state: s),
         '/games/stroop': (s) => StroopScreen(state: s),
@@ -269,6 +277,10 @@ class HybridApp extends StatefulWidget {
             SearchHubScreen(state: s, isNative: native.containsKey),
         '/games/counting-hub': (s) =>
             CountingHubScreen(state: s, isNative: native.containsKey),
+        // Развилка «Объём памяти» — адрес без хвоста `-hub`, развилкой её делает
+        // запись в `assets/hubs.json`. Неперенесённые карточки открывает
+        // веб-половина: какую чем — решает оболочка, а не хаб.
+        '/games/span': (s) => SpanHubScreen(state: s, isNative: native.containsKey),
         '/games/choice-rt': (s) => ChoiceRtScreen(state: s),
         '/games/stop-signal': (s) => StopSignalScreen(state: s),
         '/games/posner': (s) => PosnerScreen(state: s),
@@ -277,6 +289,7 @@ class HybridApp extends StatefulWidget {
         // варианты, помеха) и серия (часы блоков, разности, прогресс) — 01.10.2026.
         '/games/chess-blind': (s) => ChessBlindScreen(state: s),
         '/games/find-move': (s) => FindMoveScreen(state: s),
+        '/games/solitaire-chess': (s) => SolitaireChessScreen(state: s),
         // «Детский мат» перенесён целиком: лестница, узоры, микс, жертва и поток.
         '/games/scholars-mate': (s) => ScholarsMateScreen(state: s),
         '/games/switching-task': (s) => SwitchingTaskScreen(state: s),

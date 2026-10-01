@@ -367,6 +367,7 @@ const translations: Translations = {
   skillChessCalc: { ru: 'Тренируем: расчёт вариантов', en: 'Training: calculating lines' },
   chessTypeTactics: { ru: 'Тактика · мат в 1–2 хода', en: 'Tactics · mate in 1–2' },
   chessTypeBlind: { ru: 'Вслепую · доска в голове', en: 'Blindfold · board in your head' },
+  chessTypeSolitaire: { ru: 'Головоломка · только взятия', en: 'Puzzle · captures only' },
   skillSwitching: { ru: 'Тренируем: переключение внимания', en: 'Training: attention switching' },
 
   // ───── Round 2: 7 more games ─────
@@ -1135,6 +1136,9 @@ const translations: Translations = {
   teachCorsiPath: { ru: 'Запоминайте не блоки по одному, а ПУТЬ, который рисуют вспышки: ведите по ним воображаемую линию. Пять вспышек становятся одним маршрутом — ломаной, буквой, зигзагом.', en: 'Memorise not the blocks one by one but the PATH the flashes trace: run an imaginary line through them. Five flashes become one route — a zigzag, a letter, a hook.' },
   teachCorsiBackward: { ru: 'В обратном режиме не разворачивайте на лету по одной точке. Сначала сложите маршрут вперёд, как его показали, — а при ответе пройдите его с конца.', en: 'In reverse mode do not flip it point by point on the fly. First build the route forwards, as it was shown, then walk it from the end when you answer.' },
   teachCorsiEyes: { ru: 'Ведите взгляд за каждой вспышкой и не отводите его до конца показа. Пропущенная вспышка рвёт весь маршрут — дальше уже угадывание.', en: 'Follow every flash with your eyes and do not look away until the display ends. One missed flash breaks the whole route — after that it is guessing.' },
+  teachNbackMatch: { ru: 'Совпадение — когда загорелась та же клетка, что N шагов назад. На 1-back сравнивайте с предыдущей: та же клетка — жмите.', en: 'A match is the same square that lit up N steps back. In 1-back compare with the previous one: same square — press.' },
+  teachNbackDepth: { ru: 'На 2-back держите в голове две последние клетки и сдвигайте их, как ленту: новую сравнивайте с той, что была две назад.', en: 'In 2-back keep the last two squares in mind and shift them like a tape: compare each new one with the square two steps back.' },
+  teachNbackLure: { ru: 'Ловушка: клетка повторила предыдущую, а не ту, что N назад. Похоже на совпадение, но это не оно — не жмите.', en: 'A trap: the square repeats the previous one, not the one N back. It looks like a match, but it is not — do not press.' },
   teachPicturePairsPlaces: { ru: 'Пока карты открыты, привязывайте картинки к местам: углы, края, середина. Потом открывайте не наугад, а туда, где видели пару.', en: 'While the cards are face up, tie each picture to a place: corners, edges, middle. Then open where you saw its twin, not at random.' },
   teachPicturePairsGroup: { ru: 'С тройками и четвёрками держите в памяти ВСЕ места одной картинки: группа снимается, только когда открыты все её карты подряд.', en: 'With triples and quads, keep EVERY place of one picture in mind: a group clears only when all its cards are opened in a row.' },
   teachPicturePairsSwap: { ru: 'С 22-го уровня после ошибки закрытые карты меняются местами, и пара подсвечивается. Перенесите картинку в памяти туда, куда уехала её карта.', en: 'From level 22, after a mistake face-down cards swap places and the pair lights up. Move the picture in your memory to where its card went.' },
@@ -2890,6 +2894,38 @@ const translations: Translations = {
     ru: 'Забег работает в веб-слое приложения; в этой сборке графика недоступна.',
     en: 'The run works in the app web layer; graphics are unavailable in this build.',
   },
+  teachRunMiddle: {
+    ru: 'Берёт середина числа, а не края. Чтобы взять из строки несколько синих, веди число вбок прямо через них, а красное объезжай.',
+    en: 'Your number takes what its middle runs over, not what its edges brush. To take several blues from one row, slide sideways right through them and steer around the reds.',
+  },
+  teachRunColumns: {
+    ru: 'У столба сложи обе стопки и выбирай большую сумму — первое число стопки часто обманывает. Сторону выбирай до столба: через него не перебраться.',
+    en: 'At a pole, add up both stacks and take the bigger sum — the first number of a stack often misleads. Choose your side before the pole: you cannot cross it.',
+  },
+  teachRunWalls: {
+    ru: 'Стена поперёк дороги: бери меньший минус. «×2» выгоднее «+N», только если твоё число уже больше N.',
+    en: 'A wall across the road: take the smaller minus. “×2” beats “+N” only if your number is already bigger than N.',
+  },
+  teachRunRamp: {
+    ru: 'Трамплин: заезжай на зелёную площадку — прыжок пронесёт над большим красным и над разрывом. Синие на другом краю — приманка: после них на площадку не успеть.',
+    en: 'Ramp: drive onto the green pad — the jump carries you over the big red and over the gap. Blues on the far side are bait: after them you will not make it to the pad.',
+  },
+  teachRunBridge: {
+    ru: 'Мост и разрыв: выбирай полосу заранее — сменить её можно только до начала пролёта. Мимо моста — падение, и забег кончается.',
+    en: 'Bridge and gap: pick your lane early — you can only change it before the span begins. Miss the bridge and you fall, and the run is over.',
+  },
+  teachRunArches: {
+    ru: 'Арки с ответами: сначала сосчитай пример, потом смотри на арки. Варианты отличаются на 1, 2 или 10 — сверяй последнюю цифру и десятки.',
+    en: 'Answer arches: solve the problem first, then look at the arches. The options differ by 1, 2 or 10 — check the last digit and the tens.',
+  },
+  teachRunGuard: {
+    ru: 'Страж: на финише твоё число должно быть не меньше стража. Каждый промах и каждое красное — минус, береги число до конца.',
+    en: 'Guardian: at the finish your number must be at least the guardian’s. Every miss and every red costs you, so protect your number to the end.',
+  },
+  teachRunPile: {
+    ru: 'Кучка вместо цифры: считай полные рамки по десять и клетки в неполной — 4 рамки и 7 клеток это 47. Рамка — два столбика по пять: сколько клеток и сколько пусто, видно сразу, без пересчёта.',
+    en: 'A pile instead of digits: count the full frames of ten and the cells in the part-filled one — 4 frames and 7 cells make 47. A frame is two columns of five, so you see how many are filled and how many are empty at a glance, without counting.',
+  },
   levelAlmost: { ru: 'Уровень {n} — почти!', en: 'Level {n} — almost!' },
   cleanRunBadge: { ru: '🔥 Серия {n} чистых', en: '🔥 Clean run {n}' },
   levelStarting: { ru: 'Уровень {n} запускается…', en: 'Starting level {n}…' },
@@ -4361,6 +4397,21 @@ const translations: Translations = {
   teachFmMate: { ru: 'Итог: мат.', en: 'Result: checkmate.' },
   teachFmGain: { ru: 'Итог: выигрыш материала — {n} в пешках.', en: 'Result: material gained — {n} in pawns.' },
   teachFmEdge: { ru: 'Итог: решающее преимущество — материал ещё равен, но позиция соперника рушится.', en: 'Result: a decisive advantage — material is still level, but the opponent’s position collapses.' },
+  // «Шахматный пасьянс» (шахматы, задача 66b3d2ac): каждый ход — взятие, остаётся одна фигура
+  solitaireChess: { ru: 'Шахматный пасьянс', en: 'Chess Solitaire' },
+  solitaireChessDesc: { ru: 'Каждый ход — взятие, и бить можно любую фигуру. Оставьте на доске одну и не упритесь в тупик. 24 ступени: от трёх фигур до десяти, внутри — от лёгких досок к коварным.', en: 'Every move is a capture, and any piece can take any other. Leave a single piece on the board without running into a dead end. 24 steps: from three pieces to ten, from easy boards to tricky ones.' },
+  solRule: { ru: 'Каждый ход — взятие. Оставьте одну фигуру', en: 'Every move captures. Leave one piece' },
+  solPieces: { ru: 'Фигур: {n}', en: 'Pieces: {n}' },
+  solStuck: { ru: 'Тупик: брать больше нечего', en: 'Dead end: nothing left to capture' },
+  solClean: { ru: 'С первой попытки и без подсказки: {n}', en: 'First try, no hint: {n}' },
+  teachSolRule: { ru: 'Правило одно: каждый ход — взятие. Цвета нет, бить можно любую фигуру, пешка бьёт по диагонали вверх. Цель — оставить одну фигуру. Тупик — когда фигур больше одной, а брать нечего.', en: 'There is one rule: every move is a capture. There are no colours, any piece can take any other, a pawn captures diagonally upwards. The goal is to leave one piece. A dead end is more than one piece and nothing to capture.' },
+  teachSolPlan: { ru: 'Решай с конца: последней останется фигура «{piece}» — она сделает больше всего взятий. Фигуру, до которой достаёт только один охотник, снимай, пока он жив.', en: 'Solve from the end: the last one standing will be the {piece} — it makes the most captures. Take a piece that only one hunter can reach while that hunter is still alive.' },
+  teachSolOnlyCapture: { ru: 'Ход {n}: {move}. Других взятий на доске нет.', en: 'Move {n}: {move}. There is no other capture on the board.' },
+  teachSolOnlySafe: { ru: 'Ход {n}: {move}. Взятия есть и другие, но только это не ведёт в тупик.', en: 'Move {n}: {move}. There are other captures, but only this one avoids a dead end.' },
+  teachSolLoneTarget: { ru: 'Ход {n}: {move}. До цели достаёт только эта фигура — бери, пока охотник на доске.', en: 'Move {n}: {move}. Only this piece can reach that one — take it while the hunter is still on the board.' },
+  teachSolSurvivor: { ru: 'Ход {n}: {move}. Берёт фигура, которая останется последней: копи взятия у неё.', en: 'Move {n}: {move}. The capture goes to the piece that will remain last: pile the captures on it.' },
+  teachSolSafe: { ru: 'Ход {n}: {move}. После этого взятия решение ещё есть.', en: 'Move {n}: {move}. After this capture a solution still exists.' },
+  teachSolLast: { ru: 'Ход {n}: {move}. На доске одна фигура — решено.', en: 'Move {n}: {move}. One piece is left — solved.' },
   teachScholarsKing: { ru: 'Смотри на короля соперника: какие поля вокруг него заняты своими же фигурами и что уже бьёт рядом.', en: 'Look at the enemy king: which squares around it are blocked by its own pieces, and what already attacks nearby.' },
   teachScholarsMate: { ru: '{move} — мат: шах, от которого нет защиты. Королю некуда уйти, атакующую фигуру не взять, закрыться нечем.', en: '{move} is mate: a check with no defence. The king has nowhere to go, the attacker cannot be taken, nothing can block.' },
   teachScholarsThreatAsk: { ru: 'Грозит ли мат? Отдай в уме ход сопернику и проверь: есть ли у него мат в один ход?', en: 'Is mate threatened? Hand the move to your opponent in your head and check: do they have mate in one?' },
