@@ -11,7 +11,7 @@
 import { translateFor } from '../contexts/LanguageContext';
 
 export type Cell = number; // 0 = empty
-export type Variant = 'none' | 'diagonal' | 'antiknight' | 'hyper' | 'nonconsec' | 'jigsaw' | 'antiking' | 'evenodd' | 'kropki' | 'sandwich' | 'thermo' | 'arrow' | 'thermocage' | 'unequal' | 'towers' | 'sandparity' | 'thermoknight' | 'killerdiag' | 'whisper' | 'renban' | 'regionsum' | 'palindrome' | 'between' | 'lockout';
+export type Variant = 'none' | 'diagonal' | 'antiknight' | 'hyper' | 'nonconsec' | 'jigsaw' | 'antiking' | 'evenodd' | 'kropki' | 'sandwich' | 'thermo' | 'arrow' | 'thermocage' | 'unequal' | 'towers' | 'sandparity' | 'thermoknight' | 'killerdiag' | 'whisper' | 'renban' | 'regionsum' | 'palindrome' | 'between' | 'lockout' | 'xv';
 
 export const HYPER_BOXES = [[1, 1], [1, 5], [5, 1], [5, 5]] as const;   // Windoku: 4 доп. зоны 3×3 (левые-верхние углы)
 export const KNIGHT = [[-2, -1], [-2, 1], [-1, -2], [-1, 2], [1, -2], [1, 2], [2, -1], [2, 1]] as const;
@@ -48,6 +48,7 @@ const VARIANT_KEY_SUFFIX: Record<Exclude<Variant, 'none'>, string> = {
   palindrome: 'Palindrome',
   between: 'Between',
   lockout: 'Lockout',
+  xv: 'Xv',
 };
 export function variantLabel(v: Variant, lang: string): string {
   if (v === 'none') return '';
@@ -362,7 +363,9 @@ export function levelConfig(level: number): LevelCfg {
   /** МЕЖДУ КОНЦАМИ — СТУПЕНИ 109–112 (задача 25679487). В конец лестницы, место по замеру. */
   else if (lv >= 109 && lv <= 112) variant = 'between';
   /** ЗАПОР — СТУПЕНИ 113–116 (задача 25679487). В конец лестницы, место по замеру. */
-  else if (lv >= 113) variant = 'lockout';
+  else if (lv >= 113 && lv <= 116) variant = 'lockout';
+  /** XV — СТУПЕНИ 117–120 (пункт 7 цепочки, задача 7eacd001). В конец лестницы, место по замеру. */
+  else if (lv >= 117) variant = 'xv';
   /**
    * 🔴 НЕРАВЕНСТВА (футосики) СОБРАНЫ, НО УРОВНЕЙ НЕ ПОЛУЧИЛИ — ЗАМЕР 26.08.2026.
    *
@@ -933,6 +936,44 @@ export function lockoutOk(grid: Cell[][], r: number, c: number, n: number, pn: T
   return !end || mids.every((v) => v !== end);
 }
 
+/**
+ * 🔴 XV (пункт 7 цепочки «14 усложнений», задача 7eacd001; решение Дениса 30.09 «Берём»):
+ * X на грани двух клеток — их сумма 10, V — сумма 5. И ОТРИЦАТЕЛЬНОЕ УСЛОВИЕ: показаны ВСЕ X и
+ * V, значит у соседей без знака сумма не 5 и не 10. Формулировка сверена 01.10.2026 с
+ * logic-masters.de («Cells connected by an X must sum to 10. Cells connected by an V must sum to
+ * 5. All X's and V's are given.»).
+ *
+ * Знаки — прямо из решения, все пары с суммой 5 и 10; прореживать их НЕЛЬЗЯ — отрицательное
+ * условие стало бы ложью. Карта как у кропки: h — грань вправо, v — грань вниз; 1 = V, 2 = X.
+ */
+export type XvMap = { h: number[][]; v: number[][] };
+export function xvFromSolution(sol: Cell[][], N: number): XvMap {
+  const mark = (a: number, b: number) => (a + b === 10 ? 2 : a + b === 5 ? 1 : 0);
+  const h = Array.from({ length: N }, () => Array(N).fill(0));
+  const v = Array.from({ length: N }, () => Array(N).fill(0));
+  for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+    if (c < N - 1) h[r][c] = mark(sol[r][c], sol[r][c + 1]);
+    if (r < N - 1) v[r][c] = mark(sol[r][c], sol[r + 1][c]);
+  }
+  return { h, v };
+}
+
+/** Цифра n в (r, c) не спорит ни с одним знаком XV у известных соседей (и с их отсутствием). */
+export function xvOk(grid: Cell[][], r: number, c: number, n: number, xv: XvMap, N: number): boolean {
+  const edges: [number, number, number][] = [];
+  if (c < N - 1) edges.push([xv.h[r][c], r, c + 1]);
+  if (c > 0) edges.push([xv.h[r][c - 1], r, c - 1]);
+  if (r < N - 1) edges.push([xv.v[r][c], r + 1, c]);
+  if (r > 0) edges.push([xv.v[r - 1][c], r - 1, c]);
+  for (const [d, nr, nc] of edges) {
+    const o = grid[nr][nc];
+    if (o === 0) continue;
+    const sum = n + o;
+    if (d === 2 ? sum !== 10 : d === 1 ? sum !== 5 : sum === 5 || sum === 10) return false;
+  }
+  return true;
+}
+
 export function arrowFromSolution(sol: Cell[][], N: number): ArrowMap {
   const used: boolean[][] = Array.from({ length: N }, () => Array(N).fill(false));
   const groups: [number, number][][] = [];
@@ -1316,6 +1357,8 @@ export interface Overlays {
   between?: ThermoPN;
   /** Цифры в ромбах на концах линии отличаются минимум на 4, а цифры линии лежат вне промежутка между ними. */
   lockout?: ThermoPN;
+  /** XV: знаки на гранях (1 = V, сумма 5; 2 = X, сумма 10); показаны все. */
+  xv?: XvMap;
 }
 
 /** Полные оверлеи из решения — до прореживания. */
@@ -1362,6 +1405,9 @@ export function overlaysFromSolution(sol: Cell[][], N: number, variant: Variant)
   }
   if (variant === 'between') {
     return { between: betweenFromSolution(sol, N) };
+  }
+  if (variant === 'xv') {
+    return { xv: xvFromSolution(sol, N) };
   }
   if (variant === 'lockout') {
     return { lockout: lockoutFromSolution(sol, N) };
@@ -1448,6 +1494,7 @@ export function overlayOk(grid: Cell[][], r: number, c: number, n: number, N: nu
   if (ov.palindrome && !palindromeOk(grid, r, c, n, ov.palindrome)) return false;   // линия — показанная подсказка
   if (ov.between && !betweenOk(grid, r, c, n, ov.between)) return false;   // линия — показанная подсказка
   if (ov.lockout && !lockoutOk(grid, r, c, n, ov.lockout)) return false;   // линия — показанная подсказка
+  if (ov.xv && !xvOk(grid, r, c, n, ov.xv, N)) return false;   // знаки и их отсутствие — подсказка
   if (ov.sandwich) {
     const check = (line: number[], want: number): boolean => {
       if (want < 0) return true;                                      // сумма СПРЯТАНА (см. thinSandwich) — не подсказка
@@ -1504,7 +1551,7 @@ export function countSolutions(grid: Cell[][], N: number, BR: number, BC: number
 // thermocage здесь ОБЯЗАН быть: единственность решения у него считается по ДВУМ
 // правилам сразу (isValid знает и цепочку, и сумму). Доска, единственная по каждому
 // правилу порознь, вместе может иметь второе решение — и наоборот.
-const UNIQUE_CHECKED: readonly Variant[] = ['none', 'diagonal', 'antiknight', 'hyper', 'nonconsec', 'antiking', 'jigsaw', 'thermo', 'arrow', 'evenodd', 'kropki', 'sandwich', 'thermocage', 'unequal', 'towers', 'sandparity', 'thermoknight', 'killerdiag', 'whisper', 'renban', 'regionsum', 'palindrome', 'between', 'lockout'];
+const UNIQUE_CHECKED: readonly Variant[] = ['none', 'diagonal', 'antiknight', 'hyper', 'nonconsec', 'antiking', 'jigsaw', 'thermo', 'arrow', 'evenodd', 'kropki', 'sandwich', 'thermocage', 'unequal', 'towers', 'sandparity', 'thermoknight', 'killerdiag', 'whisper', 'renban', 'regionsum', 'palindrome', 'between', 'lockout', 'xv'];
 
 /**
  * Готовая сетка для «несоседних чисел» — БЕЗ перебора.
@@ -1533,7 +1580,7 @@ export function buildNonconsecSolution(): Cell[][] {
   return g;
 }
 
-export function generatePuzzle(blanks: number, N: number, BR: number, BC: number, variant: Variant = 'none', thin?: (ov: Overlays) => Overlays): { puzzle: Cell[][]; solution: Cell[][]; regions?: number[][]; parity?: number[][]; kropki?: { h: number[][]; v: number[][] }; sandwich?: { rows: number[]; cols: number[] }; thermo?: ThermoPN; arrow?: ArrowMap; cages?: CageMap; unequal?: UnequalMap; towers?: TowersMap; whisper?: ThermoPN; renban?: ThermoPN; regionsum?: ThermoPN; palindrome?: ThermoPN; between?: ThermoPN; lockout?: ThermoPN } {
+export function generatePuzzle(blanks: number, N: number, BR: number, BC: number, variant: Variant = 'none', thin?: (ov: Overlays) => Overlays): { puzzle: Cell[][]; solution: Cell[][]; regions?: number[][]; parity?: number[][]; kropki?: { h: number[][]; v: number[][] }; sandwich?: { rows: number[]; cols: number[] }; thermo?: ThermoPN; arrow?: ArrowMap; cages?: CageMap; unequal?: UnequalMap; towers?: TowersMap; whisper?: ThermoPN; renban?: ThermoPN; regionsum?: ThermoPN; palindrome?: ThermoPN; between?: ThermoPN; lockout?: ThermoPN; xv?: XvMap } {
   const sol: Cell[][] = Array.from({ length: N }, () => Array(N).fill(0));
   let regions: number[][] | undefined;
   let thermo: ThermoPN | undefined;
@@ -1630,7 +1677,8 @@ export function generatePuzzle(blanks: number, N: number, BR: number, BC: number
   const palindrome = ov.palindrome;
   const between = ov.between;
   const lockout = ov.lockout;
-  return { puzzle, solution: sol, regions, parity, kropki, sandwich, thermo, arrow, cages, unequal, towers, whisper, renban, regionsum, palindrome, between, lockout };
+  const xv = ov.xv;
+  return { puzzle, solution: sol, regions, parity, kropki, sandwich, thermo, arrow, cages, unequal, towers, whisper, renban, regionsum, palindrome, between, lockout, xv };
 }
 
 /**
@@ -1666,6 +1714,7 @@ export interface RejectionContext {
   palindrome?: ThermoPN;
   between?: ThermoPN;
   lockout?: ThermoPN;
+  xv?: XvMap;
 }
 
 export function rejectionReason(
@@ -1700,6 +1749,7 @@ export function rejectionReason(
     if (variant === 'palindrome' && ctx.palindrome && !palindromeOk(test, r, c, n, ctx.palindrome)) return variantRule(variant, lang);
     if (variant === 'between' && ctx.between && !betweenOk(test, r, c, n, ctx.between)) return variantRule(variant, lang);
     if (variant === 'lockout' && ctx.lockout && !lockoutOk(test, r, c, n, ctx.lockout)) return variantRule(variant, lang);
+    if (variant === 'xv' && ctx.xv && !xvOk(test, r, c, n, ctx.xv, N)) return variantRule(variant, lang);
     if (variant === 'kropki' && ctx.kropki) {
       const okDot = (dot: number, a: number, b: number): boolean => {
         if (dot === 1) return Math.abs(a - b) === 1;              // белая: разница в единицу

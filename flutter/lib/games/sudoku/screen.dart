@@ -1113,6 +1113,7 @@ String variantTitle(String variant) => switch (variant) {
       'palindrome' => L.t('sdkRule_palindrome'),
       'between' => L.t('sdkRule_between'),
       'lockout' => L.t('sdkRule_lockout'),
+      'xv' => L.t('sdkRule_xv'),
       _ => L.t('sdkRule_none'),
     };
 
@@ -1236,6 +1237,21 @@ class SudokuBoardView extends StatelessWidget {
                   child: CustomPaint(
                     key: const Key('kropki-layer'),
                     painter: KropkiPainter(dots: kropkiDots(g.kropki!, n, cell), cell: cell),
+                  ),
+                ),
+              ),
+            // XV — буквы на гранях, так же поверх клеток.
+            if (g.xv != null)
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: CustomPaint(
+                    key: const Key('xv-layer'),
+                    painter: XvPainter(
+                      marks: xvMarks(g.xv!, n, cell),
+                      cell: cell,
+                      surface: scheme.surface,
+                      ink: scheme.onSurface,
+                    ),
                   ),
                 ),
               ),

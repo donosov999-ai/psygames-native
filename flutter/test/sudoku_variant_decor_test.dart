@@ -115,6 +115,13 @@ void main() {
           expect((layer.painter! as KropkiPainter).dots.length, want, reason: '$at: не все точки Кропки на доске');
           checked['kropki'] = (checked['kropki'] ?? 0) + want;
         }
+        final xv = g.xv;
+        if (xv != null) {
+          final want = [for (final row in xv.h) ...row, for (final row in xv.v) ...row].where((v) => v != 0).length;
+          final layer = tester.widget<CustomPaint>(find.byKey(const Key('xv-layer')));
+          expect((layer.painter! as XvPainter).marks.length, want, reason: '$at: не все знаки XV на доске');
+          checked['xv'] = (checked['xv'] ?? 0) + want;
+        }
         if (b.variant == 'diagonal' || b.variant == 'killerdiag') {
           expect(find.byKey(const Key('diagonal-layer')), findsOneWidget, reason: '$at: диагонали не нарисованы');
           checked['diagonal'] = (checked['diagonal'] ?? 0) + 1;
@@ -135,7 +142,7 @@ void main() {
       }
     }
     // Проба не пустая: каждая из шести подсказок встретилась на доске.
-    for (final kind in ['thermo', 'arrow', 'parity', 'cage', 'kropki', 'sandwich', 'diagonal', 'hyper', 'whisper', 'renban', 'regionsum', 'palindrome', 'between', 'lockout']) {
+    for (final kind in ['thermo', 'arrow', 'parity', 'cage', 'kropki', 'sandwich', 'diagonal', 'hyper', 'whisper', 'renban', 'regionsum', 'palindrome', 'between', 'lockout', 'xv']) {
       expect(checked[kind] ?? 0, greaterThan(0), reason: 'подсказка «$kind» не встретилась ни разу — проба мимо');
     }
   });
@@ -189,5 +196,14 @@ void main() {
     sums[0][4] = 2;   // блок 1: 1+2 = 3 → в блоке 0 одиночная клетка обязана быть 3
     expect(isValid(sums, 0, 2, 3, 9, 3, 3, variant: 'regionsum', geometry: g6), isTrue, reason: '3 = 1+2');
     expect(isValid(sums, 0, 2, 4, 9, 3, 3, variant: 'regionsum', geometry: g6), isFalse, reason: '4 ≠ 1+2');
+
+    // XV: X между (0,0)–(0,1) — сумма 10; между (0,1)–(0,2) знака нет — не 5 и не 10.
+    final xh = List.generate(9, (_) => List.filled(9, 0))..[0][0] = 2;
+    final g7 = BoardGeometry(xv: KropkiMap(h: xh, v: List.generate(9, (_) => List.filled(9, 0))));
+    final xrow = [for (final row in empty) [...row]]..[0][1] = 3;
+    expect(isValid(xrow, 0, 0, 7, 9, 3, 3, variant: 'xv', geometry: g7), isTrue, reason: '7+3 = 10 под X');
+    expect(isValid(xrow, 0, 0, 6, 9, 3, 3, variant: 'xv', geometry: g7), isFalse, reason: '6+3 ≠ 10');
+    expect(isValid(xrow, 0, 2, 2, 9, 3, 3, variant: 'xv', geometry: g7), isFalse, reason: 'без знака 2+3 = 5 нельзя');
+    expect(isValid(xrow, 0, 2, 4, 9, 3, 3, variant: 'xv', geometry: g7), isTrue, reason: 'без знака 4+3 = 7 можно');
   });
 }

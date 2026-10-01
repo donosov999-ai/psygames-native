@@ -25,7 +25,7 @@
  */
 import {
   Cell, Variant, ThermoPN, ArrowMap, CageMap, isValid, generatePuzzle, shuffle, HYPER_BOXES, ORTHO,
-  Overlays, levelConfig, UnequalMap, TowersMap, towersLineOk, WHISPER_GAP, renbanOk, lineCells, regionSumOk, palindromeOk, betweenOk, lockoutOk,
+  Overlays, levelConfig, UnequalMap, TowersMap, towersLineOk, WHISPER_GAP, renbanOk, lineCells, regionSumOk, palindromeOk, betweenOk, lockoutOk, xvOk, XvMap,
 } from './sudoku-core';
 
 export type Technique =
@@ -46,9 +46,11 @@ export type Technique =
   | 'palindrome_mirror'  // кандидаты зеркальных клеток линии пересекаются
   | 'between_window'  // кандидат вне любого окна между концами линии
   | 'lockout_window'  // кандидат вне годной пары концов lockout-линии
+  | 'xv_pair'  // XV: кандидату нет пары у ПУСТОГО соседа (знак — 5/10, без знака — не 5 и не 10)
   | 'guess';          // логики не хватило — нужен перебор
 
 export const TECHNIQUE_TIER: Record<Technique, number> = {
+  xv_pair: 4,   // XV: класс выводов варианта
   lockout_window: 4,   // замок: кандидат вне годной пары концов lockout-линии
   between_window: 4,   // между концами: кандидат вне любого окна между концами линии
   // Палиндром: кандидаты зеркальных клеток пересекаются. Ступень 4 — как у всего КЛАССА выводов
@@ -102,6 +104,8 @@ export interface GradeCtx {
   palindrome?: ThermoPN;
   between?: ThermoPN;
   lockout?: ThermoPN;
+  /** XV: знаки на гранях, показаны все (отрицательное условие). */
+  xv?: XvMap;
 }
 
 export interface Grade {
@@ -177,7 +181,7 @@ export function unitsFor(N: number, BR: number, BC: number, variant: Variant, re
 
 /** Оценка пазла: самая сложная техника, без которой не обойтись. */
 export function gradePuzzle(puzzle: Cell[][], ctx: GradeCtx, tierCap = 9): Grade {
-  const { N, BR, BC, variant, regions, thermo, arrow, cages, parity, kropki, sandwich, unequal, towers, whisper, renban, regionsum, palindrome, between, lockout } = ctx;
+  const { N, BR, BC, variant, regions, thermo, arrow, cages, parity, kropki, sandwich, unequal, towers, whisper, renban, regionsum, palindrome, between, lockout, xv } = ctx;
   const grid = puzzle.map((row) => [...row]);
   const FULL = (1 << N) - 1;
   const cand: number[][] = Array.from({ length: N }, () => Array(N).fill(FULL));
@@ -278,6 +282,7 @@ export function gradePuzzle(puzzle: Cell[][], ctx: GradeCtx, tierCap = 9): Grade
         if (ok && palindrome && !palindromeOk(grid, r, c, v, palindrome)) ok = false;   // против известных цифр — даром
         if (ok && between && !betweenOk(grid, r, c, v, between)) ok = false;   // против известных цифр — даром
         if (ok && lockout && !lockoutOk(grid, r, c, v, lockout)) ok = false;   // против известных цифр — даром
+        if (ok && xv && !xvOk(grid, r, c, v, xv, N)) ok = false;   // XV против известных соседей — даром
         if (!ok) m &= ~bit(v);
       }
       cand[r][c] = m;
@@ -574,6 +579,37 @@ export function gradePuzzle(puzzle: Cell[][], ctx: GradeCtx, tierCap = 9): Grade
         for (let i = 0; i < mids.length; i++) if (prune(mids[i], keepMid[i])) return true;
       }
       if (usedLock) bump('lockout_window');
+    }
+
+    /**
+     * ── XV: кандидат v клетки живёт, только если у КАЖДОГО пустого соседа есть кандидат w,
+     * согласный с гранью: X → v + w = 10, V → v + w = 5, без знака → v + w ∉ {5, 10}. Техника
+     * `xv_pair` (ступень 4); срез по известным соседям — даром, выше.
+     */
+    if (xv && выводВарианта) {
+      let usedXv = false;
+      const fits = (d: number, a: number, b: number) => (d === 2 ? a + b === 10 : d === 1 ? a + b === 5 : a + b !== 5 && a + b !== 10);
+      for (let pass = 0; pass < N; pass++) {
+        let changed = false;
+        for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+          if (grid[r][c] !== 0) continue;
+          const edges: [number, number, number][] = [];
+          if (c < N - 1) edges.push([xv.h[r][c], r, c + 1]);
+          if (c > 0) edges.push([xv.h[r][c - 1], r, c - 1]);
+          if (r < N - 1) edges.push([xv.v[r][c], r + 1, c]);
+          if (r > 0) edges.push([xv.v[r - 1][c], r - 1, c]);
+          let m = cand[r][c];
+          for (const [d, nr, nc] of edges) {
+            if (grid[nr][nc] !== 0) continue;
+            const other = bitsOf(cand[nr][nc], N);
+            for (const v of bitsOf(m, N)) if (!other.some((w) => fits(d, v, w))) m &= ~bit(v);
+          }
+          if (m !== cand[r][c]) { cand[r][c] = m; changed = true; usedXv = true; }
+          if (m === 0) return true;
+        }
+        if (!changed) break;
+      }
+      if (usedXv) bump('xv_pair');
     }
 
     if (unequal && выводВарианта) {
@@ -1156,6 +1192,8 @@ const VARIANT_TIER_CEILING: Partial<Record<Variant, number>> = {
   /** Lockout (113–116) — ЗАМЕР 01.10.2026, выгрузка 48 досок: 4 ×44, 5 ×4; шестёрки ноль. Без
    *  линий не решается 0 из 48, под потолком 3 — 0 из 48. Потолок 5. */
   lockout: 5,
+  /** XV (117–120) — потолок по замеру 01.10.2026 (см. сообщение коммита). */
+  xv: 5,
   /**
    * Комбо-пояс 81–92 — ЗАМЕР 29.08.2026 (combo-tiers.measure, по 15 боевых досок):
    * шестёрка у всех трёх пар — 0–1 из 15 (не массово), пятёрка достижима у всех
@@ -1366,7 +1404,7 @@ export type GeneratedPuzzle = ReturnType<typeof generatePuzzle>;
  * refilter; если конкретная попытка не укладывается в бюджет, generateLogical всё
  * равно сохраняет прежний безопасный fallback через проверку единственности.
  */
-const LOGIC_VARIANTS: readonly Variant[] = ['none', 'diagonal', 'antiknight', 'hyper', 'antiking', 'evenodd', 'kropki', 'sandwich', 'jigsaw', 'nonconsec', 'thermo', 'arrow', 'thermocage', 'sandparity', 'thermoknight', 'killerdiag', 'whisper', 'renban', 'regionsum', 'palindrome', 'between', 'lockout'];
+const LOGIC_VARIANTS: readonly Variant[] = ['none', 'diagonal', 'antiknight', 'hyper', 'antiking', 'evenodd', 'kropki', 'sandwich', 'jigsaw', 'nonconsec', 'thermo', 'arrow', 'thermocage', 'sandparity', 'thermoknight', 'killerdiag', 'whisper', 'renban', 'regionsum', 'palindrome', 'between', 'lockout', 'xv'];
 
 /**
  * Сколько раз проходим доску, пытаясь убрать ещё клетку. Больше трёх бюджет обычно
@@ -1420,7 +1458,7 @@ export function solvedSameBoard(grade: Grade, solution: Cell[][]): boolean {
 function gradeOf(gen: GeneratedPuzzle, N: number, BR: number, BC: number, variant: Variant): Grade {
   return gradePuzzle(gen.puzzle, {
     N, BR, BC, variant, regions: gen.regions, thermo: gen.thermo, arrow: gen.arrow, cages: gen.cages,
-    parity: gen.parity, kropki: gen.kropki, sandwich: gen.sandwich, whisper: gen.whisper, renban: gen.renban, regionsum: gen.regionsum, palindrome: gen.palindrome, between: gen.between, lockout: gen.lockout,
+    parity: gen.parity, kropki: gen.kropki, sandwich: gen.sandwich, whisper: gen.whisper, renban: gen.renban, regionsum: gen.regionsum, palindrome: gen.palindrome, between: gen.between, lockout: gen.lockout, xv: gen.xv,
     // ⚠️ Знаки и краевые подсказки ОБЯЗАНЫ доходить до оценщика. До 27.08.2026 их
     // здесь не было, и запасной путь оценивал unequal/towers вслепую: та же доска
     // давала «ступень 2, hidden_single» без карты и «ступень 4, unequal_chain» с ней.
@@ -1455,7 +1493,7 @@ function digByLogic(
   // увидит человек — та же дисциплина, что у сэндвича и кропки.
   const unequal = (base as { unequal?: UnequalMap }).unequal;
   const towers = (base as { towers?: TowersMap }).towers;
-  const ctx: GradeCtx = { N, BR, BC, variant, regions: base.regions, thermo: base.thermo, arrow: base.arrow, cages: base.cages, parity, kropki, sandwich, unequal, towers, whisper: base.whisper, renban: base.renban, regionsum: base.regionsum, palindrome: base.palindrome, between: base.between, lockout: base.lockout };
+  const ctx: GradeCtx = { N, BR, BC, variant, regions: base.regions, thermo: base.thermo, arrow: base.arrow, cages: base.cages, parity, kropki, sandwich, unequal, towers, whisper: base.whisper, renban: base.renban, regionsum: base.regionsum, palindrome: base.palindrome, between: base.between, lockout: base.lockout, xv: base.xv };
 
   // Лимит пустых держим только на новичковых уровнях, чтобы не пугать доской в дырках.
   // Дальше глубину задаёт ЛОГИКА. Старый лимит (58 к 29-му) как раз и упирался в потолок,

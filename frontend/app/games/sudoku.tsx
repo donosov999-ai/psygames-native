@@ -381,7 +381,7 @@ export const SUDOKU_GAME_ID = GAME_ID;
  * Число берётся из гейта, а не пишется рядом: расхождение этих двух чисел и было
  * дефектом, и повториться оно не должно (см. `sudoku-ladder-matches-gate`).
  */
-const SUDOKU_LAST_LEVEL = 116;   // 54–57 ThermoCage; 58–65 ALS; 66–79 цепи; 80 легенда; 81–92 комбо; 93–96 немецкий шёпот; 97–100 ренбан; 101–104 равные суммы; 105–108 палиндром; 109–112 между концами; 113–116 замок
+const SUDOKU_LAST_LEVEL = 120;   // 54–57 ThermoCage; 58–65 ALS; 66–79 цепи; 80 легенда; 81–92 комбо; 93–96 немецкий шёпот; 97–100 ренбан; 101–104 равные суммы; 105–108 палиндром; 109–112 между концами; 113–116 замок; 117–120 XV
 const SUDOKU_TIER_KEYS: Record<SudokuDifficultyTier, string> = {
   beginner: 'sudokuTierBeginner',
   easy: 'sudokuTierEasy',
@@ -474,6 +474,8 @@ interface SudokuResume {
   between?: ThermoPN | null;
   /** замок (113–116); в старых снимках поля нет — читать с ?? null. */
   lockout?: ThermoPN | null;
+  /** XV (117–120); в старых снимках поля нет — читать с ?? null. */
+  xv?: { h: number[][]; v: number[][] } | null;
   /** Поля режимов towers/unequal; в старых снимках отсутствуют — читать с ?? null. */
   unequal?: UnequalMap | null;
   towers?: TowersMap | null;
@@ -697,7 +699,8 @@ export default function SudokuGame() {
   const [regionsum, setRegionsum] = useState<ThermoPN | null>(null);   // равные суммы: линии той же формы
   const [palindrome, setPalindrome] = useState<ThermoPN | null>(null);   // палиндром
   const [between, setBetween] = useState<ThermoPN | null>(null);   // между концами
-  const [lockout, setLockout] = useState<ThermoPN | null>(null);   // замок
+  const [lockout, setLockout] = useState<ThermoPN | null>(null);
+  const [xv, setXv] = useState<{ h: number[][]; v: number[][] } | null>(null);   // XV: знаки на гранях, показаны все   // замок
   const [arrow, setArrow] = useState<ArrowMap | null>(null);   // arrow: кружок (сумма) + стрелка
   const [unequalMap, setUnequalMap] = useState<UnequalMap | null>(null);   // unequal: знаки </> на гранях
   const [towersMap, setTowersMap] = useState<TowersMap | null>(null);   // towers: числа видимости на четырёх краях
@@ -1043,6 +1046,7 @@ export default function SudokuGame() {
     setPalindrome((built as { palindrome?: ThermoPN }).palindrome ?? null);
     setBetween((built as { between?: ThermoPN }).between ?? null);
     setLockout((built as { lockout?: ThermoPN }).lockout ?? null);
+    setXv((built as { xv?: { h: number[][]; v: number[][] } }).xv ?? null);
     setArrow(ar ?? null);
     // Карты режимов towers/unequal: на прочих досках их нет — чистим до null.
     const sideMaps = built as { unequal?: UnequalMap; towers?: TowersMap };
@@ -1084,7 +1088,7 @@ export default function SudokuGame() {
   const snapshot = (): SudokuResume => ({
     mode, level, road, difficulty, size, variant, dims,
     puzzle, solution, grid, given, cellColors, marks,
-    regions, cages, cageSums, cageAnchors, parityMarks, kropki, sandwich, thermo, arrow, whisper, renban, regionsum, palindrome, between, lockout,
+    regions, cages, cageSums, cageAnchors, parityMarks, kropki, sandwich, thermo, arrow, whisper, renban, regionsum, palindrome, between, lockout, xv,
     unequal: unequalMap, towers: towersMap,
     errors, hintUses, hintMax, backtrackCount,
     elapsed: elapsedTime,
@@ -1113,7 +1117,7 @@ export default function SudokuGame() {
     setPencil(false);
     setRegions(s.regions); setCages(s.cages); setCageSums(s.cageSums); setCageAnchors(s.cageAnchors);
     setParityMarks(s.parityMarks); setKropki(s.kropki); setSandwich(s.sandwich);
-    setThermo(s.thermo); setArrow(s.arrow); setWhisper(s.whisper ?? null); setRenban(s.renban ?? null); setRegionsum(s.regionsum ?? null); setPalindrome(s.palindrome ?? null); setBetween(s.between ?? null); setLockout(s.lockout ?? null);
+    setThermo(s.thermo); setArrow(s.arrow); setWhisper(s.whisper ?? null); setRenban(s.renban ?? null); setRegionsum(s.regionsum ?? null); setPalindrome(s.palindrome ?? null); setBetween(s.between ?? null); setLockout(s.lockout ?? null); setXv(s.xv ?? null);
     setUnequalMap(s.unequal ?? null); setTowersMap(s.towers ?? null);   // старые снимки полей не имеют
     setErrors(s.errors); setHintUses(s.hintUses); setHintMax(s.hintMax); setBacktrackCount(s.backtrackCount);
     setSelected(null); setOver(false); setBossWon(null);
@@ -1298,6 +1302,7 @@ export default function SudokuGame() {
         palindrome: palindrome ?? undefined,
         between: between ?? undefined,
         lockout: lockout ?? undefined,
+        xv: xv ?? undefined,
         arrow: arrow ?? undefined,
         parity: parityMarks ?? undefined,
         kropki: kropki ?? undefined,
@@ -2264,6 +2269,17 @@ export default function SudokuGame() {
               {/* НЕРАВЕНСТВА: знак на грани — та же пилюля, что точка кропки, только с
                   символом. Горизонталь: h=1 значит «эта < правой» → '<'. Вертикаль:
                   v=1 значит «эта < нижней» → '∧' (остриё указывает на меньшую). */}
+              {/* XV: буква на грани в той же пилюле, что знак неравенства. Показаны ВСЕ X и V. */}
+              {variant === 'xv' && xv && c < N - 1 && xv.h[r][c] !== 0 && (
+                <View style={{ position: 'absolute', width: cellSize * 0.36, height: cellSize * 0.36, borderRadius: cellSize * 0.18, right: -cellSize * 0.18, top: cellSize / 2 - cellSize * 0.18, backgroundColor: colors.surface, borderWidth: 1, borderColor: '#777777', alignItems: 'center', justifyContent: 'center', zIndex: 5, pointerEvents: 'none' }}>
+                  <Text style={{ fontSize: Math.max(9, Math.round(cellSize * 0.26)), fontWeight: '800', color: colors.text }}>{xv.h[r][c] === 2 ? 'X' : 'V'}</Text>
+                </View>
+              )}
+              {variant === 'xv' && xv && r < N - 1 && xv.v[r][c] !== 0 && (
+                <View style={{ position: 'absolute', width: cellSize * 0.36, height: cellSize * 0.36, borderRadius: cellSize * 0.18, bottom: -cellSize * 0.18, left: cellSize / 2 - cellSize * 0.18, backgroundColor: colors.surface, borderWidth: 1, borderColor: '#777777', alignItems: 'center', justifyContent: 'center', zIndex: 5, pointerEvents: 'none' }}>
+                  <Text style={{ fontSize: Math.max(9, Math.round(cellSize * 0.26)), fontWeight: '800', color: colors.text }}>{xv.v[r][c] === 2 ? 'X' : 'V'}</Text>
+                </View>
+              )}
               {variant === 'unequal' && unequalMap && c < N - 1 && unequalMap.h[r][c] !== 0 && (
                 <View style={{ position: 'absolute', width: cellSize * 0.36, height: cellSize * 0.36, borderRadius: cellSize * 0.18, right: -cellSize * 0.18, top: cellSize / 2 - cellSize * 0.18, backgroundColor: colors.surface, borderWidth: 1, borderColor: '#777777', alignItems: 'center', justifyContent: 'center', zIndex: 5, pointerEvents: 'none' }}>
                   <Text style={{ fontSize: Math.max(9, Math.round(cellSize * 0.26)), fontWeight: '800', color: colors.text }}>{unequalMap.h[r][c] === 1 ? '<' : '>'}</Text>

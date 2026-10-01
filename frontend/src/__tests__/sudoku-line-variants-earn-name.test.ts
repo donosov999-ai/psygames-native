@@ -30,7 +30,7 @@ const { readFileSync } = require('fs');
 const { join } = require('path');
 
 type Row = { level: number | string; variant: string; n: number | string; br: number | string; bc: number | string;
-  puzzle: string; tier: number | string; geometry: Record<string, ThermoPN | undefined> };
+  puzzle: string; tier: number | string; geometry: Record<string, ThermoPN | { h: number[][]; v: number[][] } | undefined> };
 const all: Row[] = JSON.parse(readFileSync(join(__dirname, '..', '..', '..', 'flutter', 'assets', 'levels',
   'sudoku-variant-boards.json'), 'utf8')).boards;
 
@@ -43,6 +43,8 @@ const LINE_VARIANTS: { variant: Variant; levels: number[]; cap?: number }[] = [
   { variant: 'palindrome', levels: [105, 106, 107, 108] },
   { variant: 'between', levels: [109, 110, 111, 112], cap: 3 },
   { variant: 'lockout', levels: [113, 114, 115, 116], cap: 3 },
+  // XV — не линия, а знаки на гранях, но вопрос тот же: без знаков доска не решается.
+  { variant: 'xv', levels: [117, 118, 119, 120] },
 ];
 
 describe.each(LINE_VARIANTS)('«$variant» заслуживает своё имя на досках, которые получает человек', ({ variant, levels, cap = 3 }) => {

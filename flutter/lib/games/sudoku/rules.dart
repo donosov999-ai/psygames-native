@@ -184,6 +184,7 @@ class BoardGeometry {
     this.palindrome,
     this.between,
     this.lockout,
+    this.xv,
   });
   final List<List<int>>? regions;
   final List<List<ThermoLink?>>? thermo;
@@ -216,6 +217,10 @@ class BoardGeometry {
   /// Цифры в ромбах на концах линии отличаются минимум на 4, а цифры линии лежат вне промежутка между ними.
   final List<List<ThermoLink?>>? lockout;
 
+  /// XV: знаки на гранях (1 = V, сумма 5; 2 = X, сумма 10), показаны ВСЕ — та же форма h/v,
+  /// что у точек Кропки.
+  final KropkiMap? xv;
+
   static BoardGeometry fromJson(Map<String, Object?> v) => BoardGeometry(
         regions: v['regions'] == null ? null : _grid(v['regions']),
         thermo: v['thermo'] == null
@@ -234,6 +239,7 @@ class BoardGeometry {
         parity: v['parity'] == null ? null : _grid(v['parity']),
         kropki: KropkiMap.fromJson(v['kropki']),
         sandwich: SandwichClues.fromJson(v['sandwich']),
+        xv: KropkiMap.fromJson(v['xv']),
         whisper: v['whisper'] == null
             ? null
             : (v['whisper'] as List)
@@ -634,6 +640,22 @@ bool overlayOk(List<List<int>> grid, int r, int c, int val, int n, BoardGeometry
   if (between != null && !betweenOk(grid, r, c, val, between)) return false;
   final lockout = g.lockout;
   if (lockout != null && !lockoutOk(grid, r, c, val, lockout)) return false;
+  final xv = g.xv;
+  if (xv != null) {
+    // XV с отрицательным условием (перенос `xvOk` веба): X → сумма 10, V → 5, без знака — ни то, ни другое.
+    final edges = <(int, int, int)>[
+      if (c < n - 1) (xv.h[r][c], r, c + 1),
+      if (c > 0) (xv.h[r][c - 1], r, c - 1),
+      if (r < n - 1) (xv.v[r][c], r + 1, c),
+      if (r > 0) (xv.v[r - 1][c], r - 1, c),
+    ];
+    for (final (d, nr, nc) in edges) {
+      final o = grid[nr][nc];
+      if (o == 0) continue;
+      final sum = val + o;
+      if (d == 2 ? sum != 10 : d == 1 ? sum != 5 : sum == 5 || sum == 10) return false;
+    }
+  }
   return true;
 }
 

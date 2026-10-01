@@ -315,6 +315,55 @@ List<KropkiDot> kropkiDots(KropkiMap k, int n, double cell) => [
         ],
     ];
 
+/// Знак XV на грани: центр в координатах доски и буква.
+class XvMark {
+  const XvMark(this.center, this.isX);
+  final Offset center;
+  final bool isX;
+}
+
+/// Знаки XV по всей доске — поверх клеток, на гранях (как точки Кропки).
+List<XvMark> xvMarks(KropkiMap xv, int n, double cell) => [
+      for (var r = 0; r < n; r++)
+        for (var c = 0; c < n; c++) ...[
+          if (c < n - 1 && xv.h[r][c] != 0) XvMark(Offset((c + 1) * cell, (r + 0.5) * cell), xv.h[r][c] == 2),
+          if (r < n - 1 && xv.v[r][c] != 0) XvMark(Offset((c + 0.5) * cell, (r + 1) * cell), xv.v[r][c] == 2),
+        ],
+    ];
+
+/// XV — буква в кружке на грани, как знак неравенства веба (пилюля 0,36 клетки).
+class XvPainter extends CustomPainter {
+  XvPainter({required this.marks, required this.cell, required this.surface, required this.ink});
+  final List<XvMark> marks;
+  final double cell;
+  final Color surface;
+  final Color ink;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rad = cell * 0.18;
+    final edge = Paint()
+      ..color = const Color(0xFF777777)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1;
+    for (final m in marks) {
+      canvas.drawCircle(m.center, rad, Paint()..color = surface);
+      canvas.drawCircle(m.center, rad, edge);
+      final tp = TextPainter(
+        text: TextSpan(
+          text: m.isX ? 'X' : 'V',
+          style: TextStyle(color: ink, fontSize: math.max(9.0, (cell * 0.26).roundToDouble()), fontWeight: FontWeight.w800),
+        ),
+        textDirection: TextDirection.ltr,
+      )..layout();
+      tp.paint(canvas, m.center - Offset(tp.width / 2, tp.height / 2));
+    }
+  }
+
+  @override
+  bool shouldRepaint(XvPainter old) => old.marks != marks || old.cell != cell || old.surface != surface || old.ink != ink;
+}
+
 class KropkiPainter extends CustomPainter {
   KropkiPainter({required this.dots, required this.cell});
   final List<KropkiDot> dots;
