@@ -18,7 +18,7 @@ class SolitaireBoard {
 
   /// Из записи генератора: `dim*dim` знаков сверху вниз, «.» — пусто.
   factory SolitaireBoard.parse(String s, {int dim = 4}) {
-    assert(s.length == dim * dim, 'доска $s');
+    assert(s.length == dim * dim, 'board $s');
     return SolitaireBoard(dim, {
       for (var i = 0; i < s.length; i++)
         if (s[i] != '.') i: s[i],
