@@ -61,8 +61,6 @@ void main() {
     'games/mental_rotation/screen.dart': 58,
     'games/spatial_lab/screen.dart': 43,
     'games/sudoku/screen.dart': 31,
-    'games/math_slider/screen.dart': 27,
-    'games/schulte/screen.dart': 26,
     'games/pattern/model.dart': 24,
     'games/sort_tubes/screen.dart': 23,
     'games/spatial_span/screen.dart': 21,
@@ -110,7 +108,10 @@ void main() {
   // 02.10 — там же: маджонг, OSpan и трекер объектов (−97, пять файлов ушли из списка). Подписи —
   // в словарь (21 новый ключ на 12 языках); алфавит OSpan, регулярка ввода и замечания проверки
   // договора трекера вынуты из счёта как данные (см. `alphabetList` ниже): 637 − 97.
-  const total = 540;
+  // 02.10 — там же: «Математическая шкала» и «Таблица Шульте» (−53, оба файла ушли из списка),
+  // 33 новых ключа на 12 языках; подсказка Шульте — целой фразой на каждое из девяти сочетаний
+  // «что × порядок», а не склейкой; алфавит письменности — данные: 540 − 53.
+  const total = 487;
 
   final counts = _scan(Directory('lib'));
 
@@ -193,14 +194,17 @@ Map<String, int> _scan(Directory root) {
    *   · список ЦЕЛИКОМ из одиночных букв — алфавит упражнения. У «OSpan» это русский
    *     набор букв на запоминание (`lettersRu`); английский — `lettersEn`, выбор по языку
    *     (`ospan/screen.dart`, `_pool`). Одиночная буква вне такого списка — например
-   *     единица «с» — по-прежнему считается: она подпись;
+   *     единица «с» — по-прежнему считается: она подпись. Сюда же строка-алфавит письменности
+   *     — не короче 10 заглавных букв подряд без пробелов (`schulte/screen.dart`: кириллица у
+   *     русского языка, латиница у остальных);
    *   · литерал регулярного выражения `RegExp(r'[^А-ЯЁA-Z]')` — класс символов, не текст;
    *   · замечание проверки договора `issues.add('…')` — копится списком и уходит только в
    *     `StateError` (`object_tracker/model.dart`): то же сообщение разработчику, что
    *     `throw` и `assert` выше, только собранное по частям.
-   * Замер перед уточнением: все три вида встречались ТОЛЬКО в этих трёх файлах раздела.
+   * Замер перед уточнением: все виды встречались ТОЛЬКО в этих четырёх файлах раздела.
    */
   final alphabetList = RegExp(r"\[(\s*'[А-Яа-яЁё]'\s*,)+\s*('[А-Яа-яЁё]'\s*,?\s*)?\]");
+  final alphabetString = RegExp(r"'[А-ЯЁ]{10,}'");
   final regexLiteral = RegExp(r"RegExp\(\s*r?'[^'\n]*[А-Яа-яЁё][^'\n]*'");
   final issueNote = RegExp(r"issues\.add\(\s*'[^'\n]*[А-Яа-яЁё][^'\n]*'");
   for (final f in root.listSync(recursive: true).whereType<File>()) {
@@ -211,6 +215,7 @@ Map<String, int> _scan(Directory root) {
         mapKey.allMatches(src).length -
         devMessage.allMatches(src).fold<int>(0, (a, m) => a + anyLiteral.allMatches(m[0]!).length) -
         alphabetList.allMatches(src).fold<int>(0, (a, m) => a + anyLiteral.allMatches(m[0]!).length) -
+        alphabetString.allMatches(src).length -
         regexLiteral.allMatches(src).length -
         issueNote.allMatches(src).length;
     if (n > 0) out[f.path.replaceFirst('lib/', '')] = n;

@@ -161,12 +161,12 @@ class _SchulteScreenState extends State<SchulteScreen> {
 
   String get _time {
     final s = _elapsed.inMilliseconds / 1000;
-    return '${s.toStringAsFixed(1)} с';
+    return '${s.toStringAsFixed(1)} ${L.t('secShort')}';
   }
 
   /// Заголовок один на экран и на разбор: вторая такая строка — второй долг
   /// храповика подписей (`test/ui_text_debt_does_not_grow_test.dart`).
-  String get _title => 'Таблица Шульте';
+  String get _title => L.t('schulteTable');
 
   /// Разбор объясняет ПРИЁМ: верный ответ человек и так увидит по итогу раунда,
   /// а вот чем объём берётся — нет.
@@ -182,10 +182,10 @@ class _SchulteScreenState extends State<SchulteScreen> {
       title: _title,
       onLesson: () => openDemoLesson(context, title: _title, trials: _demoTrials()),
       hud: [
-        HudItem(label: 'Уровень', value: '${_ladder.level}', icon: Icons.flag_outlined),
-        HudItem(label: 'Достигнуто', value: '${_ladder.best}', icon: Icons.emoji_events_outlined),
-        HudItem(label: 'Ошибки', value: '${g.errors}', icon: Icons.close),
-        HudItem(label: 'Время', value: _time, icon: Icons.timer_outlined),
+        HudItem(label: L.t('level'), value: '${_ladder.level}', icon: Icons.flag_outlined),
+        HudItem(label: L.t('personalBest'), value: '${_ladder.best}', icon: Icons.emoji_events_outlined),
+        HudItem(label: L.t('errors'), value: '${g.errors}', icon: Icons.close),
+        HudItem(label: L.t('time'), value: _time, icon: Icons.timer_outlined),
       ],
       field: (context, h) => _Field(
         game: g,
@@ -199,12 +199,12 @@ class _SchulteScreenState extends State<SchulteScreen> {
       auxRow: AuxBar(children: [
         AuxAction(
           icon: Icons.refresh,
-          label: 'Начать заново',
+          label: L.t('restart'),
           onPressed: () => setState(_reset),
         ),
         AuxAction(
           icon: Icons.grid_view,
-          label: 'Поле ${g.size}×${g.size}',
+          label: L.f('schulteGridSize', {'n': '${g.size}'}),
           onPressed: null,
         ),
       ]),
@@ -214,8 +214,8 @@ class _SchulteScreenState extends State<SchulteScreen> {
               child: Column(mainAxisSize: MainAxisSize.min, children: [
                 Text(
                   _won
-                      ? 'Таблица собрана за $_time, ошибок ${g.errors}'
-                      : 'Ошибок ${g.errors} — больше $_levelErrorsAllowed, уровень не засчитан',
+                      ? L.f('schulteResultWin', {'t': _time, 'errors': '${g.errors}'})
+                      : L.f('schulteResultFail', {'errors': '${g.errors}', 'max': '$_levelErrorsAllowed'}),
                   textAlign: TextAlign.center,
                 ),
                 BossOutcomeLine(_boss),
@@ -223,13 +223,13 @@ class _SchulteScreenState extends State<SchulteScreen> {
                 FilledButton.icon(
                   onPressed: () => setState(_reset),
                   icon: const Icon(Icons.arrow_forward),
-                  label: Text(_won ? 'Следующий уровень' : 'Ещё раз'),
+                  label: Text(_won ? L.t('nextLabel') : L.t('retry')),
                 ),
               ]),
             )
           : null,
       pauseActions: [
-        PauseAction(label: 'Начать заново', icon: Icons.refresh, onPressed: () => setState(_reset)),
+        PauseAction(label: L.t('restart'), icon: Icons.refresh, onPressed: () => setState(_reset)),
       ],
     );
   }
@@ -255,19 +255,21 @@ class _Field extends StatelessWidget {
   final VoidCallback onStart;
   final void Function(int) onTap;
 
+  /// Фраза целиком на каждое сочетание «что ищем × в каком порядке»: склейка
+  /// «Ищи $что $куда» не переводится — в других языках другой порядок слов.
   String get _rule {
     final p = game.params;
-    final dir = switch (p.direction) {
-      Direction.forward => 'по порядку',
-      Direction.backward => 'в обратном порядке',
-      Direction.centerOut => 'от центра наружу',
+    return switch ((p.contentMode, p.direction)) {
+      (ContentMode.numbers, Direction.forward) => L.t('schulteRuleNumFwd'),
+      (ContentMode.numbers, Direction.backward) => L.t('schulteRuleNumBack'),
+      (ContentMode.numbers, Direction.centerOut) => L.t('schulteRuleNumCenter'),
+      (ContentMode.letters, Direction.forward) => L.t('schulteRuleLetFwd'),
+      (ContentMode.letters, Direction.backward) => L.t('schulteRuleLetBack'),
+      (ContentMode.letters, Direction.centerOut) => L.t('schulteRuleLetCenter'),
+      (ContentMode.mixed, Direction.forward) => L.t('schulteRuleMixFwd'),
+      (ContentMode.mixed, Direction.backward) => L.t('schulteRuleMixBack'),
+      (ContentMode.mixed, Direction.centerOut) => L.t('schulteRuleMixCenter'),
     };
-    final what = switch (p.contentMode) {
-      ContentMode.numbers => 'числа',
-      ContentMode.letters => 'буквы',
-      ContentMode.mixed => 'число и букву по очереди',
-    };
-    return 'Ищи $what $dir';
   }
 
   @override
@@ -282,11 +284,11 @@ class _Field extends StatelessWidget {
             if (game.params.surpriseStart)
               Padding(
                 padding: const EdgeInsets.only(top: 6),
-                child: Text('С чего начинать — скажем после показа поля',
+                child: Text(L.t('schulteSurpriseStart'),
                     style: text.bodySmall, textAlign: TextAlign.center),
               ),
             const SizedBox(height: 12),
-            FilledButton(onPressed: onStart, child: const Text('Начать')),
+            FilledButton(onPressed: onStart, child: Text(L.t('start'))),
           ],
         ),
       );
@@ -299,8 +301,8 @@ class _Field extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: 4),
           child: Text(
             phase == _Phase.done
-                ? (won ? 'Готово' : 'Таблица собрана')
-                : 'Ищи: $target',
+                ? (won ? L.t('storyDone') : L.t('schulteCollected'))
+                : L.f('schulteFind', {'x': target}),
             key: const Key('цель'),
             style: text.titleMedium,
           ),
