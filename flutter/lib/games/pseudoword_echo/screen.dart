@@ -4,10 +4,11 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 
 import '../../shell/audio_host.dart';
-import '../../shell/demo_lesson.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
+import '../../shell/lesson.dart';
+import '../../shell/lesson_player.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/noise.dart';
 import '../../shell/shared_level_store.dart';
@@ -17,6 +18,8 @@ import '../languages/json_asset.dart';
 import '../languages/lang_names.dart';
 import '../languages/lang_picker.dart';
 import '../lexical_decision/model.dart';
+import '../hearing_common/lesson_cue.dart';
+import 'lesson.dart';
 import 'model.dart';
 
 /// «Эхо: псевдослова» — экран раздела «Языки» на Flutter. Правила и сверка с живым
@@ -243,38 +246,68 @@ class _PseudowordEchoScreenState extends State<PseudowordEchoScreen> {
           ? (L.t('lr_pseudoword_echo_longer6_title'), L.t('lr_pseudoword_echo_longer6_rule'))
           : null;
 
-  List<DemoTrial> _demoTrials() {
-    final p = echoLevelParams(1);
-    final r = buildEchoRounds(
-      vocab: _vocab ?? const [],
-      letters: _letters,
-      lang: _target,
-      count: 1,
-      lenMin: p.lenMin,
-      lenMax: p.lenMax,
-      rng: Random(3).nextDouble,
-    );
-    if (r.isEmpty) return [DemoTrial(text: '', rule: L.t('pseudowordEchoIntroDesc'))];
-    return [
-      DemoTrial(
-        text: r.first.options.join('  ·  '),
-        // ⚠️ Четыре написания — виджетом `art`: строкой стимула они шли шрифтом
-        // до 44 и вылезали из карточки (замер пробой: на 220 px).
-        art: SizedBox(
-          width: 260,
-          child: Column(mainAxisSize: MainAxisSize.min, children: [
-            for (final o in r.first.options)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 2),
-                child: Text(o, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600)),
-              ),
-          ]),
-        ),
-        sub: L.t('pwEchoPickSpelling'),
-        answer: r.first.word,
-        rule: L.t('pseudowordEchoIntroDesc'),
+  /// Тексты разбора — из словаря, теми же ключами, что зовёт веб-учитель.
+  String _teach(String key, Map<String, String> args) {
+    var out = switch (key) {
+      'teachEchoIntro' => L.t('teachEchoIntro'),
+      'teachEchoListen' => L.t('teachEchoListen'),
+      'teachEchoVowel' => L.t('teachEchoVowel'),
+      'teachEchoConsonant' => L.t('teachEchoConsonant'),
+      'teachEchoSwap' => L.t('teachEchoSwap'),
+      'teachEchoDouble' => L.t('teachEchoDouble'),
+      'teachEchoPick' => L.t('teachEchoPick'),
+      _ => L.t('teachEchoDone'),
+    };
+    args.forEach((k, v) => out = out.replaceAll('{$k}', v));
+    return out;
+  }
+
+  final Random _lessonRandom = Random();
+
+  /// 🎓 Разбор по шагам (раздел «Память и слух», `lesson.dart`) вместо демо-карточки: свежий раунд
+  /// правилами уровня (не текущий — тот назвал бы ответ), ловушки отсеиваются по одной с названием
+  /// отличия (`echoLessonExample`: до шести попыток получить слово, отличное от текущего).
+  /// Идёт партия — разбор делает её незачётной (LessonUsed).
+  Future<void> _openLesson() async {
+    final playing = _phase == EchoPhase.playing && _idx < _rounds.length;
+    final p = playing ? _params : echoLevelParams(_ladder.level);
+    final current = playing ? _rounds[_idx].word : null;
+    final example = echoLessonExample(() {
+      final r = buildEchoRounds(
+        vocab: _vocab ?? const [],
+        letters: _letters,
+        lang: _target,
+        count: 1,
+        lenMin: p.lenMin,
+        lenMax: p.lenMax,
+        hardShare: p.hardShare,
+        rng: _lessonRandom.nextDouble,
+      );
+      return r.isEmpty ? null : (word: r.first.word, options: r.first.options);
+    }, current);
+    if (example == null) return;
+    if (playing) LessonUsed.mark();
+    await _voice?.cancel();
+    await _noise?.stop();
+    final vowels = _letters.vowels[_target] ?? _letters.vowels['en'] ?? '';
+    final r = echoLessonCards(word: example.word, options: example.options, vowels: vowels);
+    final steps = echoLessonSteps(r.cards, _teach);
+    if (!mounted) return;
+    final ex = example;
+    await Navigator.of(context).push(MaterialPageRoute<void>(
+      builder: (_) => LessonPlayerScreen(
+        title: L.t('pseudowordEcho'),
+        steps: steps,
+        board: (context, side, i) {
+          final card = steps[i.clamp(0, steps.length - 1)].payload as EchoCard;
+          return KeyedSubtree(
+            key: ValueKey('echo-lesson-$i'),
+            child: _EchoLessonBoard(card: card, options: ex.options, answer: ex.word, lang: _target, voice: _voice, side: side),
+          );
+        },
       ),
-    ];
+    ));
+    await _voice?.cancel();
   }
 
   @override
@@ -286,7 +319,7 @@ class _PseudowordEchoScreenState extends State<PseudowordEchoScreen> {
     return GameShell(
       title: L.t('pseudowordEcho'),
       onBack: () => Navigator.of(context).maybePop(),
-      onLesson: () => openDemoLesson(context, title: L.t('pseudowordEcho'), trials: _demoTrials()),
+      onLesson: _openLesson,
       hud: r == null
           ? const []
           : [
@@ -419,6 +452,110 @@ class _PseudowordEchoScreenState extends State<PseudowordEchoScreen> {
                 child: FittedBox(fit: BoxFit.scaleDown, child: Text(o, style: const TextStyle(fontSize: 18))),
               ),
             ),
+        ]),
+      ),
+    );
+  }
+}
+
+/// Поле разбора: четыре написания. Разбираемая ловушка обведена, место отличия подчёркнуто; отсеянные
+/// бледнеют и зачёркнуты; в ответе услышанное обведено зелёным. Карточка со словом звучит сама.
+class _EchoLessonBoard extends StatefulWidget {
+  const _EchoLessonBoard({
+    required this.card,
+    required this.options,
+    required this.answer,
+    required this.lang,
+    required this.voice,
+    required this.side,
+  });
+
+  final EchoCard card;
+  final List<String> options;
+  final String answer;
+  final String lang;
+  final VoiceLayer? voice;
+  final double side;
+
+  @override
+  State<_EchoLessonBoard> createState() => _EchoLessonBoardState();
+}
+
+class _EchoLessonBoardState extends State<_EchoLessonBoard> with SingleTickerProviderStateMixin {
+  late final LessonCue _cue = LessonCue(this);
+
+  @override
+  void initState() {
+    super.initState();
+    // Как в вебе: через 350 мс, темп 0,85.
+    final words = widget.card.speak;
+    _cue.run(words.length, (i) => widget.voice?.speak(words[i], widget.lang, rate: 0.85));
+  }
+
+  @override
+  void dispose() {
+    _cue.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final c = widget.card;
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      child: SizedBox(
+        width: widget.side,
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          for (var k = 0; k < widget.options.length; k += 1)
+            () {
+              final o = widget.options[k];
+              final current = c.kind == 'drop' && c.variant == o;
+              final dropped = c.dropped.contains(o) && !current;
+              final answer = (c.kind == 'answer' || c.kind == 'done') && o == widget.answer;
+              final r = o.runes.toList();
+              final (from, to) = current && c.at != null ? c.at! : (0, 0);
+              String part(int a, int b) => String.fromCharCodes(r.sublist(a.clamp(0, r.length), b.clamp(0, r.length)));
+              final base = TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.w600,
+                color: scheme.onSurface,
+                decoration: dropped ? TextDecoration.lineThrough : null,
+              );
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: Opacity(
+                  opacity: dropped ? 0.45 : 1,
+                  child: Container(
+                    key: ValueKey('echo-lesson-option-$k'),
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: scheme.surface,
+                      borderRadius: BorderRadius.circular(12),
+                      border: answer
+                          ? Border.all(color: _good, width: 3)
+                          : current
+                              ? Border.all(color: _accent, width: 3)
+                              : Border.all(color: scheme.outlineVariant),
+                    ),
+                    child: Text.rich(
+                      TextSpan(style: base, children: [
+                        TextSpan(text: part(0, from)),
+                        if (to > from)
+                          TextSpan(
+                            text: part(from, to),
+                            style: const TextStyle(color: _accent, decoration: TextDecoration.underline, decorationColor: _accent),
+                          ),
+                        TextSpan(text: part(to, r.length)),
+                      ]),
+                      key: ValueKey('echo-lesson-text-$k'),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+              );
+            }(),
         ]),
       ),
     );

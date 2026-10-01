@@ -6,6 +6,7 @@ import '../../shell/aux_action.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/level_rules.dart';
 import '../../shell/preset_cap.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/board_solver.dart';
@@ -235,6 +236,8 @@ class _HanoiScreenState extends State<HanoiScreen> {
     final stars = hanoiStars(_moves, min);
 
     return GameShell(
+      // Правило уровня объявляет каркас — в спокойный момент, не поверх партии (задача e371fd3a).
+      levelRule: LevelRuleSpot(gameId: 'hanoi', level: _ladder.level, state: widget.state, calm: _moves == 0 || _won),
       title: _title,
       // Разбор по шагам — общим решателем каркаса. Своего учителя игра не пишет:
       // договор `HanoiPuzzle` отдаёт снимок, ходы и «решено», остальное общее.

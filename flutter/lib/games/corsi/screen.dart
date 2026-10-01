@@ -3,12 +3,14 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../../shell/game_preset.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/lesson.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/level_rules.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import 'model.dart';
@@ -63,7 +65,10 @@ class _CorsiScreenState extends State<CorsiScreen> {
 
   Future<void> _boot() async {
     await _ladder.load();
-    if (mounted) setState(_reset);
+    if (!mounted) return;
+    setState(_reset);
+    // Шаг зарядки начинается сам — перенос веб-`useAutostartWhenReady` (отчёт Дениса 01.10.2026).
+    if (GamePreset.autostart) _start();
   }
 
   void _reset() {
@@ -181,6 +186,8 @@ class _CorsiScreenState extends State<CorsiScreen> {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
     return GameShell(
+      // Правило уровня объявляет каркас — в спокойный момент, не поверх партии (задача e371fd3a).
+      levelRule: LevelRuleSpot(gameId: 'corsi', level: _ladder.level, state: widget.state, calm: _phase == Phase.ready || _phase == Phase.done),
       title: L.t('corsi'),
       onLesson: () => openDemoLesson(context, title: L.t('corsi'), trials: corsiLessonTrials()),
       hud: [

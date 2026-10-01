@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/schulte/screen.dart';
+import 'package:psygames_flutter/shell/boss_round.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import 'support/boss_probe.dart';
 
 /// ПАРТИЯ ИГРАЕТСЯ ТЫЧКАМИ ПО КЛЕТКАМ, а не вызовом правил: проба читает с
 /// экрана, что искать, и жмёт ровно ту клетку, на которой это написано.
@@ -19,7 +22,7 @@ void main() {
 
   Future<void> open(WidgetTester tester, {int level = 1}) async {
     state = await boot(level: level);
-    await tester.pumpWidget(MaterialApp(home: SchulteScreen(state: state)));
+    await tester.pumpWidget(MaterialApp(home: SchulteScreen(key: UniqueKey(), state: state)));
     await tester.pump();
     await tester.pump();
   }
@@ -93,5 +96,49 @@ void main() {
     await tester.pump(const Duration(milliseconds: 200));
     await tester.pumpWidget(const MaterialApp(home: SizedBox()));
     await tester.pump(const Duration(seconds: 5));
+  });
+
+  testWidgets('🔴 веха: победа на 3-м уровне открывает бой «сложи подсвеченные», на 2-м — нет', (tester) async {
+    // В вебе этот экран зовёт BossRound каждые три уровня; при переносе бой пропал молча.
+    await expectBossAfterWin(tester, won: find.text('Следующий уровень'), hudKey: 'bossHudCounting', play: (level) async {
+      await open(tester, level: level);
+      await tester.tap(find.text('Начать'));
+      await tester.pump();
+      for (var i = 0; i < 200 && find.text('Следующий уровень').evaluate().isEmpty; i += 1) {
+        await tester.tap(cellWith(tester, target(tester)));
+        await tester.pump();
+      }
+    });
+  });
+
+  testWidgets('🔴 итог боя не переезжает в следующий уровень того же экрана', (tester) async {
+    // Правило действует только ВНУТРИ одного экрана: пробы вехи открывают экран заново
+    // на каждом уровне и этого пути не проходят. Здесь 3-й уровень с боем, «Следующий
+    // уровень» той же кнопкой, 4-й без боя — строки «Босс устоял» в его итоге быть не должно.
+    Future<void> playToEnd() async {
+      await tester.tap(find.text('Начать'));
+      await tester.pump();
+      for (var i = 0; i < 200 && find.text('Следующий уровень').evaluate().isEmpty; i += 1) {
+        await tester.tap(cellWith(tester, target(tester)));
+        await tester.pump();
+      }
+    }
+
+    await open(tester, level: 3);
+    await playToEnd();
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(find.byKey(const Key('boss-round')), findsOneWidget);
+    await tester.pump(BossRound.introTime + const Duration(seconds: BossRound.roundSeconds + 1));
+    await tester.pump(BossRound.doneTime);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('boss-outcome')), findsOneWidget);
+
+    await tester.tap(find.text('Следующий уровень'));
+    await tester.pump();
+    await playToEnd();
+    await tester.pump(const Duration(seconds: 3));
+    expect(find.byKey(const Key('boss-round')), findsNothing, reason: 'бой после 4-го уровня');
+    expect(find.text('Следующий уровень'), findsOneWidget, reason: 'уровень 4 не взят');
+    expect(find.byKey(const Key('boss-outcome')), findsNothing, reason: 'в итоге 4-го уровня — итог прошлого боя');
   });
 }

@@ -1,4 +1,4 @@
-/* psygames-water-sort-difficulty · VER 1 · 30.09.2026 */
+/* psygames-water-sort-difficulty · VER 2 · 30.09.2026 */
 /**
  * МЕРА ТРУДНОСТИ РАСКЛАДА — СКОЛЬКО РАЗ ЗА ПАРТИЮ НАДО ДУМАТЬ.
  *
@@ -40,13 +40,13 @@ import { Field, Move, fieldKey, isSolved, legalMoves, pour, topRun } from './tub
  * Значит мера занижает, а не завышает — развилка засчитывается, только когда
  * решатель ДОКАЗАЛ нерешаемость.
  */
-export function развилкиСоСмертью(start: Field, path: readonly Move[], budget = 20000): number {
+export function deathForks(start: Field, path: readonly Move[], budget = 20000): number {
   let g = start;
   let n = 0;
   for (const step of path) {
-    const ходы = legalMoves(g);
-    if (ходы.length >= 2) {
-      for (const m of ходы) {
+    const moves = legalMoves(g);
+    if (moves.length >= 2) {
+      for (const m of moves) {
         const x = pour(g, m.from, m.to);
         if (x && solve(x, budget).outcome === 'unsolvable') { n += 1; break; }
       }
@@ -59,7 +59,7 @@ export function развилкиСоСмертью(start: Field, path: readonly 
 }
 
 /** Сколько работы осталось: стыки цветов плюс неоднородные сосуды. Оценка для луча. */
-export function работыОсталось(f: Field): number {
+export function workLeft(f: Field): number {
   let s = 0;
   for (const t of f.tubes) {
     for (let i = 1; i < t.length; i += 1) if (t[i] !== t[i - 1]) s += 1;
@@ -83,25 +83,25 @@ export function работыОсталось(f: Field): number {
  * если она выигрывается (лишняя осторожность стоит одной перераздачи).
  * Детерминирован: ничьи разбиваются ключом положения.
  */
-export function решениеНеДлиннее(start: Field, limit: number, width = 300): number | null {
-  let слой: Field[] = [start];
-  const виден = new Set<string>([fieldKey(start)]);
+export function solutionWithin(start: Field, limit: number, width = 300): number | null {
+  let layer: Field[] = [start];
+  const seen = new Set<string>([fieldKey(start)]);
   for (let d = 0; d <= limit; d += 1) {
-    for (const f of слой) if (isSolved(f)) return d;
+    for (const f of layer) if (isSolved(f)) return d;
     const next: { f: Field; s: number; k: string }[] = [];
-    for (const f of слой) {
+    for (const f of layer) {
       for (const m of legalMoves(f)) {
         const n = pour(f, m.from, m.to);
         if (!n) continue;
         const k = fieldKey(n);
-        if (виден.has(k)) continue;
-        виден.add(k);
-        next.push({ f: n, s: работыОсталось(n), k });
+        if (seen.has(k)) continue;
+        seen.add(k);
+        next.push({ f: n, s: workLeft(n), k });
       }
     }
     next.sort((a, b) => a.s - b.s || (a.k < b.k ? -1 : a.k > b.k ? 1 : 0));
-    слой = next.slice(0, width).map((x) => x.f);
-    if (!слой.length) return null;
+    layer = next.slice(0, width).map((x) => x.f);
+    if (!layer.length) return null;
   }
   return null;
 }

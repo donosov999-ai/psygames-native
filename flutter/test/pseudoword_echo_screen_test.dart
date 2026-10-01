@@ -139,10 +139,15 @@ void main() {
     expect(state.get('psygames_pseudoword_echo_targetlang'), 'de');
   });
 
-  testWidgets('разбор до партии — четыре написания и верное', (tester) async {
+  // Демо-карточку сменил разбор по шагам (`lesson.dart`, раздел «Память и слух»); его шаги меряет
+  // `pseudoword_echo_lesson_test.dart`, здесь — что до партии он открывается с четырьмя написаниями.
+  testWidgets('разбор до партии — четыре написания', (tester) async {
     await boot(tester);
     await tester.tap(find.byKey(const Key('game-lesson')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(find.byKey(const ValueKey('echo-lesson-option-3')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('lesson-close')));
     await tester.pumpAndSettle();
-    expect(find.text(L.t('pwEchoPickSpelling')), findsWidgets);
   });
 }

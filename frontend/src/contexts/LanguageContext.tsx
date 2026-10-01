@@ -908,8 +908,31 @@ const translations: Translations = {
   skillListening: { ru: 'Тренируем: восприятие на слух', en: 'Training: listening' },
   phonemePairs: { ru: 'Фонемы: минимальные пары', en: 'Phonemes: Minimal Pairs' },
   phonemePairsDesc: { ru: 'Услышь разницу: ship или sheep?', en: 'Hear the difference: ship or sheep?' },
+  /*
+   * 🎓 РАЗБОР «ФОНЕМНЫХ ПАР» (30.09.2026): узнать, где пара расходится, и слушать только это место.
+   * {da}/{db} — место расхождения по написанию (ru/es/pt) или по пиньиню (zh); у en/de — гласный.
+   */
+  teachPhIntro: { ru: 'В паре слова различаются ОДНИМ звуком. Узнайте, где они расходятся, и слушайте только это место — остальное у них общее.', en: 'The two words differ in ONE sound. Find where they split and listen only to that spot — the rest is shared.' },
+  teachPhSpot: { ru: '«{a}» и «{b}» расходятся в одном месте: {da} против {db}. Послушайте оба.', en: '“{a}” and “{b}” split in one spot: {da} versus {db}. Listen to both.' },
+  teachPhVowel: { ru: '«{a}» и «{b}» различаются только гласным в середине слова, а написание здесь подсказывает плохо. Послушайте оба.', en: '“{a}” and “{b}” differ only in the vowel in the middle, and the spelling is a poor guide here. Listen to both.' },
+  teachPhProbe: { ru: 'Сейчас прозвучит одно из двух. Слушайте только место различия.', en: 'Now you will hear one of the two. Listen only to the spot where they differ.' },
+  teachPhAnswerSpot: { ru: 'Прозвучало «{w}» — в месте различия было {dx}.', en: 'That was “{w}” — the differing spot had {dx}.' },
+  teachPhAnswerVowel: { ru: 'Прозвучало «{w}» — различие было в гласном.', en: 'That was “{w}” — the difference was in the vowel.' },
+  teachPhDone: { ru: 'Так и отвечайте: знаете, где пара расходится, — слушаете только это место.', en: 'Answer the same way: know where the pair splits, and listen only to that spot.' },
   pseudowordEcho: { ru: 'Эхо: псевдослова', en: 'Echo: Pseudowords' },
   pseudowordEchoDesc: { ru: 'Услышал выдуманное слово — найди его написание', en: 'Hear a made-up word — pick its spelling' },
+  /*
+   * 🎓 РАЗБОР «ЭХА ПСЕВДОСЛОВ» (30.09.2026): слушать по звукам и отбрасывать вариант, где место не
+   * совпало. {v} — ловушка, {a} → {b} — что было в слове и что стоит в ловушке (вид — из генератора игры).
+   */
+  teachEchoIntro: { ru: 'Псевдослово не угадать по смыслу — его можно только услышать по звукам, слева направо. Ловушки отличаются от него одним местом.', en: 'A pseudoword cannot be guessed from meaning — you can only hear it sound by sound, left to right. The traps differ from it in one spot.' },
+  teachEchoListen: { ru: 'Слушайте: держите в голове звуки по порядку, а не общее впечатление.', en: 'Listen: keep the sounds in order in your head, not the overall impression.' },
+  teachEchoVowel: { ru: '«{v}» — подменена гласная: {b} вместо {a}. Отбрасываем.', en: '“{v}” — a vowel is swapped: {b} instead of {a}. Rule it out.' },
+  teachEchoConsonant: { ru: '«{v}» — подменена согласная: {b} вместо {a}. Отбрасываем.', en: '“{v}” — a consonant is swapped: {b} instead of {a}. Rule it out.' },
+  teachEchoSwap: { ru: '«{v}» — соседние звуки переставлены: {b} вместо {a}. Отбрасываем.', en: '“{v}” — neighbouring sounds are switched: {b} instead of {a}. Rule it out.' },
+  teachEchoDouble: { ru: '«{v}» — лишний звук: {b} вместо {a}. Отбрасываем.', en: '“{v}” — an extra sound: {b} instead of {a}. Rule it out.' },
+  teachEchoPick: { ru: 'Остаётся «{w}» — его и произнесли.', en: 'That leaves “{w}” — that is what was said.' },
+  teachEchoDone: { ru: 'Так и отвечайте: слушайте звуки по порядку и отбрасывайте вариант, где хоть одно место не совпало.', en: 'Answer the same way: follow the sounds in order and rule out any option where even one spot does not match.' },
   listeningSpan: { ru: 'Слуховой охват', en: 'Listening Span' },
   listeningSpanDesc: { ru: 'Слова на слух — повтори порядок', en: 'Hear the words — repeat the order' },
   // v1.29.0 (Полиглот TIER 1 п.2/4/5): лексическое решение, Cloze, сортировка слов
@@ -1063,6 +1086,14 @@ const translations: Translations = {
   teachPrlNoise: { ru: 'Одна неудача — ещё не смена правила: даже верный цвет иногда не даёт очков. Переключайтесь после двух-трёх неудач подряд, а не после первой.', en: 'One failure is not a rule change: even the right colour sometimes pays nothing. Switch after two or three failures in a row, not after the first.' },
   teachRmetEyes: { ru: 'Смотрите на ГЛАЗА — веки, брови, направление взгляда, — а не на «лицо вообще». Варианты близки по смыслу нарочно, поэтому сравнивайте их между собой, а не с первым впечатлением.', en: 'Look at the EYES — lids, brows, direction of gaze — not at “the face” in general. The options are deliberately close in meaning, so compare them with each other rather than with your first impression.' },
   /*
+   * 🎓 РАЗБОР «ПРОЧТИ ЭМОЦИЮ» (веб, 30.09.2026): признаки глаз → сравнение с соседними словами →
+   * выбор. Слова и признаки подставляет экран из пунктов самой игры (ITEMS: hint, correct).
+   */
+  teachRmetCues: { ru: 'Сначала глаза, слова потом. Что видно здесь: {hint}.', en: 'Eyes first, words later. What you can see here: {hint}.' },
+  teachRmetCompare: { ru: '«{word}» выглядел бы так: {cues}. Сравните с этими глазами.', en: '“{word}” would look like this: {cues}. Compare it with these eyes.' },
+  teachRmetPick: { ru: 'К признакам «{hint}» ближе всего «{word}» — это и ответ.', en: 'The cues “{hint}” fit “{word}” best — that is the answer.' },
+  teachRmetDone: { ru: 'Так и отвечайте: признаки глаз → сравнение с соседними словами → выбор того, что ближе к признакам.', en: 'Answer the same way: read the eye cues → compare with the neighbouring words → pick the one closest to the cues.' },
+  /*
    * 🎓 РАЗБОР ИГР НА ОБЪЁМ, СЧЁТ И ПОИСК. Верный ответ человек и так видит по итогу раунда —
    * учить надо ПРИЁМУ, которым объём берётся: группировка, траектория, период, опорная примета.
    */
@@ -1138,7 +1169,7 @@ const translations: Translations = {
    * буквенно-цифровой код для чисел. Слова опор подставляет экран из словаря 00–99.
    */
   teachMnemoIntroWords: { ru: 'Ряд из {n} слов держится не счётом «первое, второе», а ЦЕПОЧКОЙ сцен: каждое следующее слово что-то делает с предыдущим.', en: 'A row of {n} words holds together not by counting “first, second” but by a CHAIN of scenes: each next word does something to the previous one.' },
-  teachMnemoIntroNumbers: { ru: 'Цифры голой памятью не держатся. Приём: число превращается в СЛОВО по согласным, а слова уже связываются в цепочку. Разберём {n} чисел этого ряда.', en: 'Bare digits do not stick. The technique: turn each number into a WORD by its consonants, then chain the words. Let us work through {n} numbers of this row.' },
+  teachMnemoIntroNumbers: { ru: 'Цифры голой памятью не держатся. Приём: число превращается в СЛОВО по согласным, а слова уже связываются в цепочку. Разберём первые {n} — остальные тем же приёмом.', en: 'Bare digits do not stick. The technique: turn each number into a WORD by its consonants, then chain the words. Let us work through the first {n}; the rest go the same way.' },
   teachMnemoIntroNumbersNoPegs: { ru: 'Цифры голой памятью не держатся: связывайте их в сцены по две-три, а не повторяйте подряд. Таблицы опор для этого языка пока нет.', en: 'Bare digits do not stick: bind them into scenes two or three at a time instead of repeating the row. There is no peg table for this language yet.' },
   teachMnemoPegFirst: { ru: '{n} — это «{word}» ({why}). Согласные и дают слово: гласные свободны, поэтому подставляются любые.', en: '{n} is “{word}” ({why}). The consonants make the word: vowels are free, so any of them fit.' },
   teachMnemoPeg: { ru: '{n} — «{word}» ({why}).', en: '{n} — “{word}” ({why}).' },
@@ -1290,7 +1321,7 @@ const translations: Translations = {
   puzzlesGroup: { ru: 'Головоломки', en: 'Puzzles' },
   puzzlesGroupDesc: { ru: 'Сорок логических головоломок Саймона Тэтхэма — его движки целиком', en: 'Forty logic puzzles by Simon Tatham — his engines, whole' },
   puzzlesGroupFootnote: { ru: 'У каждой головоломки своя лестница сложности: где-то три ступени, где-то шестнадцать', en: 'Each puzzle has its own difficulty ladder: three steps in some, sixteen in others' },
-  puzzlesKeenDesc: { ru: 'В каждой группе арифметика сходится к числу в её углу. Нажми клетку, потом цифру снизу; второе действие ставит пометку', en: 'In each cage the arithmetic adds up to the number in its corner. Tap a cell, then a digit below; the second action leaves a pencil mark' },
+  puzzlesKeenDesc: { ru: 'В каждой группе арифметика сходится к числу в её углу. Нажми клетку, потом цифру снизу; второе действие ставит пометку', en: 'In each cage, the arithmetic must equal the number in its corner. Tap a cell, then a digit below; the second action leaves a pencil mark' },
   puzzlesSinglesDesc: { ru: 'Числа уже расставлены: вычеркни повторы, не разорвав поле. Нажми клетку, чтобы вычеркнуть; второе действие обводит нужную', en: 'The numbers are already there: cross out repeats without splitting the grid. Tap a cell to cross it out; the second action circles one to keep' },
   puzzlesTentsDesc: { ru: 'Поставить палатку у каждого дерева, соблюдая счёт по краям. Тап — палатка, второе действие — трава', en: 'Put a tent by each tree, matching the counts on the edges. Tap for a tent; the second action marks grass' },
   puzzlesTentsIntroDesc: { ru: 'У каждого дерева должна стоять своя палатка — вплотную сверху, снизу, слева или справа; палаток ровно столько, сколько деревьев. Палатки не касаются друг друга даже углом. Числа у края поля — сколько палаток в этой строке или столбце. Пример: у строки 0 палаток нет, её можно целиком отметить травой. Нажатие по пустой клетке ставит палатку; кнопка «Трава» или долгое нажатие отмечает «здесь палатки нет»; нажатие по занятой клетке очищает её. Трава для решения не обязательна.', en: 'Every tree needs its own tent right next to it — above, below, left or right — and there are exactly as many tents as trees. Tents never touch each other, not even diagonally. The numbers at the edge say how many tents are in that row or column. Example: a row marked 0 has no tents, so you can cover all of it with grass. Tap an empty cell to pitch a tent; the “Grass” button or a long press marks “no tent here”; tapping a filled cell clears it. Grass is not required to solve.' },
@@ -1367,8 +1398,8 @@ const translations: Translations = {
   areaBalanceHint: { ru: 'Доля ваших тренировок по областям. Это не оценка способностей — мы не меряем их и не обещаем: это то, что вы на самом деле качаете, а что обходите стороной.', en: 'How your training is split across areas. Not a rating of ability — we do not measure that and do not claim to: this is what you actually train and what you skip.' },
   areaBalanceWeak: { ru: 'Реже всего вы тренируете: {area}', en: 'You train this the least: {area}' },
   areaBalanceEmpty: { ru: 'Сыграйте несколько партий — и здесь появится картина.', en: 'Play a few rounds and the picture will appear here.' },
-  areaTrendUp: { ru: 'результат вырос на {n}%', en: 'score up {n}%' },
-  areaTrendDown: { ru: 'результат снизился на {n}%', en: 'score down {n}%' },
+  areaTrendUp: { ru: 'результат вырос на {n}% — 2 недели к двум предыдущим', en: 'score up {n}% — last 2 weeks vs the 2 before' },
+  areaTrendDown: { ru: 'результат снизился на {n}% — 2 недели к двум предыдущим', en: 'score down {n}% — last 2 weeks vs the 2 before' },
   catMemory:    { ru: 'Память',                          en: 'Memory' },
   catAttention: { ru: 'Внимание',                        en: 'Attention' },
   catLogic:     { ru: 'Логика и принятие решений',       en: 'Logic & Decisions' },
@@ -2507,8 +2538,6 @@ const translations: Translations = {
   // ⚠️ `с` и `Время вышло` НЕ заводим — они уже есть как secShort и timeIsUp;
   // гейт дублей это ловит, и правильно: два ключа с одним текстом расходятся
   // при переводе, и в одном месте останется старая формулировка.
-  scholarsYes:         { ru: 'Да', en: 'Yes' },
-  scholarsNo:          { ru: 'Нет', en: 'No' },
   ballGlossy:     { ru: 'Глянцевые',      en: 'Glossy' },
   ballGlass:      { ru: 'Стеклянные',     en: 'Glass' },
   ballFluffy:     { ru: 'Пушистые',       en: 'Fluffy' },
@@ -2527,6 +2556,15 @@ const translations: Translations = {
   dictationDesc:      { ru: 'Фраза звучит — вы печатаете её целиком', en: 'A phrase is read out — you type it in full' },
   dictationConfigDesc:{ ru: 'Фраза звучит, но на экране её нет. Печатайте по памяти на слух: опечатка не пускает дальше, прослушать можно сколько угодно раз.', en: 'The phrase is spoken but not shown. Type it by ear: a typo blocks the way, and you may replay as often as you like.' },
   dictationTask:      { ru: 'Наберите то, что услышали', en: 'Type what you heard' },
+  /*
+   * 🎓 РАЗБОР «ДИКТАНТА» (30.09.2026): диктовать себе кусками. {c} — кусок фразы уровня по два-три слова
+   * (у китайского — по четыре знака), {i} — его номер.
+   */
+  teachDictIntro: { ru: 'Фразу целиком в голове не удержать — её диктуют себе кусками. Услышали всю, разбили на куски по два-три слова, набираете кусок за куском.', en: 'A whole phrase will not stay in your head — you dictate it to yourself in pieces. Hear it all, split it into pieces of two or three words, type piece by piece.' },
+  teachDictListen: { ru: 'Сначала слушайте фразу целиком, ничего не набирая.', en: 'First listen to the whole phrase without typing anything.' },
+  teachDictChunk: { ru: 'Кусок {i}: «{c}». Проговорите его про себя — и наберите.', en: 'Piece {i}: “{c}”. Say it to yourself — then type it.' },
+  teachDictStuck: { ru: 'Застряли на знаке — переслушайте фразу, а не перебирайте буквы: ввод всё равно стоит, пока знак не верный.', en: 'Stuck on a character? Replay the phrase instead of trying letters: the input will not move until the character is right.' },
+  teachDictDone: { ru: 'Так и пишите: услышали целиком → разбили на куски → диктуете себе кусок за куском.', en: 'Write it the same way: hear it whole → split it into pieces → dictate to yourself piece by piece.' },
   dictationHint:      { ru: 'Ненабранное скрыто точками — это диктант, а не списывание', en: 'Untyped characters stay dotted — this is dictation, not copying' },
   dictationNeedsKeyboard: { ru: 'Нужна настоящая клавиатура: упражнение сводит скорость слуха и набора, а на экранной клавиатуре это другая задача.', en: 'A real keyboard is required: the exercise matches listening speed to typing speed, and on an on-screen keyboard that is a different task.' },
   chineseTones:      { ru: 'Тоны китайского', en: 'Chinese Tones' },
@@ -2536,6 +2574,17 @@ const translations: Translations = {
   ctPickTone:        { ru: 'Какой тон прозвучал?', en: 'Which tone did you hear?' },
   ctPickPinyin:      { ru: 'Какой слог прозвучал?', en: 'Which syllable did you hear?' },
   ctTone:            { ru: 'тон', en: 'tone' },
+  /*
+   * 🎓 РАЗБОР «ТОНОВ КИТАЙСКОГО» (30.09.2026): слушать движение голоса. {zh} {py} — слово из банка
+   * игры, {a}/{b} — пара второго и третьего тона одного слога.
+   */
+  teachZhIntro: { ru: 'Слушайте не слог, а ДВИЖЕНИЕ голоса. Один и тот же слог в четырёх тонах — четыре разных слова.', en: 'Listen not to the syllable but to how the voice MOVES. One syllable in four tones is four different words.' },
+  teachZhTone1: { ru: 'Тон 1 — {zh} {py}: голос ровный и высокий, как протяжная нота.', en: 'Tone 1 — {zh} {py}: the voice stays high and level, like a held note.' },
+  teachZhTone2: { ru: 'Тон 2 — {zh} {py}: голос идёт снизу вверх, как в переспросе «а?».', en: 'Tone 2 — {zh} {py}: the voice rises, as in a puzzled “huh?”.' },
+  teachZhTone3: { ru: 'Тон 3 — {zh} {py}: голос проваливается вниз и немного поднимается — самый низкий из четырёх.', en: 'Tone 3 — {zh} {py}: the voice dips and rises a little — the lowest of the four.' },
+  teachZhTone4: { ru: 'Тон 4 — {zh} {py}: голос резко падает сверху вниз, как в коротком «нет!».', en: 'Tone 4 — {zh} {py}: the voice drops sharply from high to low, like a curt “no!”.' },
+  teachZhPair23: { ru: 'Второй и третий легко спутать: оба кончаются подъёмом. Разница в начале: {a} {pa} сразу идёт вверх, {b} {pb} сначала уходит вниз.', en: 'Tones 2 and 3 are easy to mix up: both end by rising. The difference is at the start: {a} {pa} goes up right away, {b} {pb} first goes down.' },
+  teachZhDone: { ru: 'Так и отвечайте: услышали слог — представьте его линию: ровная, вверх, яма или вниз.', en: 'Answer the same way: hear the syllable, picture its line — level, up, dip or down.' },
   recoWhyBranch:    { ru: 'Этой ветке достаётся меньше всего', en: 'This branch gets the least practice' },
   recoWhyFresh:     { ru: 'Новое в приложении', en: 'New in the app' },
   recoWhyCalm:      { ru: 'Под вечер — без гонки', en: 'For the evening — no rush' },
@@ -3268,6 +3317,30 @@ const translations: Translations = {
   fracTechHiddenPair: { ru: 'Скрытая пара', en: 'Hidden pair' },
   fracTechXwing: { ru: 'X-wing', en: 'X-wing' },
   sudokuPencilMode: { ru: 'Пометки', en: 'Notes' },
+  // «Кошки» (Queens / Star Battle) — новая игра раздела «Судоку», решение Дениса 24.09.2026.
+  // Экран рождается сразу нативным, веб-версии у игры нет: ключи заводятся здесь, потому
+  // что словарь один на два стека (flutter/tools/embed-l10n.mjs вырезает из него ровно то,
+  // что зовут нативные экраны).
+  catsTitle: { ru: 'Кошки', en: 'Cats' },
+  catsDesc: { ru: 'Поставь по одной кошке в каждую строку, каждый столбец и каждый цвет. Кошки не касаются друг друга — даже углами.', en: 'Place one cat in every row, every column and every colour. Cats may not touch — not even diagonally.' },
+  catsType: { ru: 'Цветные области · поле 6–10', en: 'Colour regions · board 6–10' },
+  catsRuleColor: { ru: 'На каждый цвет — одна кошка', en: 'One cat per colour' },
+  catsRuleLine: { ru: 'В каждой строке и столбце — одна кошка', en: 'One cat per row and column' },
+  catsRuleTouch: { ru: 'Кошки не могут соприкасаться, даже углами', en: 'Cats may not touch, not even diagonally' },
+  // Имена приёмов для разбора по шагам: каждый ход в разборе назван словом, иначе
+  // разбор превращается в показ ответа (правило проекта, цель Дениса 24.09.2026).
+  catsWhyRegion: { ru: 'В этом цвете осталось одно место', en: 'Only one square left in this colour' },
+  catsWhyRow: { ru: 'В этой строке осталось одно место', en: 'Only one square left in this row' },
+  catsWhyColumn: { ru: 'В этом столбце осталось одно место', en: 'Only one square left in this column' },
+  catsWhyTrial: { ru: 'Вынужденного хода нет — дальше перебор', en: 'No forced move — search from here' },
+  // Пилот генератора уровней судоку (§10 шаг 3): пункт меню паузы и кнопка после проигрыша.
+  sudokuPilotOn: { ru: 'Уровни от генератора (пилот)', en: 'Generated levels (pilot)' },
+  sudokuPilotOff: { ru: 'Вернуться к лестнице уровней', en: 'Back to the level ladder' },
+  sudokuRepeatSame: { ru: 'Ещё раз эту же', en: 'Same difficulty again' },
+  // Значки вместо цифр (задача f1e1ff9c): пункт паузы и спрятанное слово Wordoku после победы.
+  sudokuSkinLetters: { ru: 'Буквы вместо цифр', en: 'Letters instead of digits' },
+  digitsCandy: { ru: 'Конфетные', en: 'Candy' },
+  sudokuHiddenWord: { ru: 'Спрятанное слово: {w}', en: 'Hidden word: {w}' },
   sudokuPencilHint: { ru: 'Выбери клетку и жми цифры — они встанут в угол мелким. Повторный тап снимает пометку.', en: 'Pick a cell and tap digits — they go into the corner as small marks. Tap again to remove one.' },
   killerCageRule: { ru: 'Цифры в каждой цветной группе в сумме дают число в её углу и не повторяются.', en: 'Digits in each coloured cage add up to the number in its corner and never repeat.' },
   boardSize: { ru: 'Размер поля', en: 'Board size' },
@@ -3906,6 +3979,20 @@ const translations: Translations = {
   teachTrafficNext: { ru: 'Следующий ход освобождает клетку тому, кто держит выезд. Двигай машину ровно настолько, насколько нужно, и не закрывай дорогу другим.', en: 'The next move frees a cell for whoever blocks the exit. Move a car exactly as far as needed, without blocking the others.' },
   monsterTraits: { ru: 'Найди признак', en: 'Find the Trait' },
   monsterTraitsDesc: { ru: 'Отметь всех монстров с названным признаком — цветом, формой тела или числом глаз — и нажми «Проверить». Засчитывается только точный набор: без пропущенных и без лишних.', en: 'Mark every monster with the named trait — colour, body shape or number of eyes — and press Check. Only the exact set counts: none missed, none extra.' },
+  kidsFind: { ru: 'Найди другую', en: 'Find the Odd One' },
+  kidsFindDesc: { ru: 'На поле одна фигура не как все — нажми её. Образца нет: другую находишь, сравнивая фигуры между собой. Сначала она отличается цветом, потом формой, потом размером; дальше остальные фигуры тоже пёстрые, а потом другая отличается только сочетанием цвета и формы. Пять полей на уровень, можно ошибиться один раз.', en: 'One shape on the board is not like the others — tap it. There is no sample: you find it by comparing the shapes with each other. First it differs in colour, then in shape, then in size; later the other shapes are mixed too, and then the odd one differs only by a combination of colour and shape. Five boards per level, one mistake is allowed.' },
+  teachFindPopout: { ru: 'Не ищи по одной: окинь поле целиком. Если другая отличается цветом, она «выскакивает» сама — глаз находит её раньше, чем ты начнёшь перебирать.', en: 'Don’t search one by one: take in the whole board. If the odd one differs in colour, it pops out by itself — your eye finds it before you start checking.' },
+  teachFindOneTrait: { ru: 'Пестрота мешает: выбери ОДИН признак — форму или размер — и сравнивай только по нему, остальное не читай. Другая — та, что не совпадает по этому признаку ни с кем.', en: 'The mix gets in the way: pick ONE trait — shape or size — and compare only by it, ignore the rest. The odd one is the one that matches nobody in that trait.' },
+  teachFindConjunction: { ru: 'Помех два вида — назови их про себя («синие звёзды, жёлтые круги»). Другая — та, что не подходит ни под одно имя: у неё цвет одного вида и форма другого.', en: 'There are two kinds of distractors — name them silently (“blue stars, yellow circles”). The odd one fits neither name: it has the colour of one kind and the shape of the other.' },
+  submarines: { ru: 'Подлодки', en: 'Submarines' },
+  submarinesDesc: { ru: 'Где-то в море спрятан флот. Нажимай клетку — это выстрел: точка — мимо, красное — попал, тёмное — корабль потоплен. Корабли прямые и не пересекаются, но стоять вплотную могут. Потопи весь флот, пока не кончились выстрелы: их дано чуть больше, чем нужно умному боту на этом же флоте. С каждым уровнем море больше, флот крупнее, а выстрелов меньше.', en: 'A fleet is hidden somewhere at sea. Tap a cell to fire: a dot is a miss, red is a hit, dark means the ship is sunk. Ships are straight and never overlap, but may stand side by side. Sink the whole fleet before you run out of shots: you get slightly more than a smart bot needs on the same fleet. Each level the sea gets bigger, the fleet larger and the shots fewer.' },
+  teachSubParity: { ru: 'Стреляй шахматкой — через клетку. Самый короткий корабль занимает две клетки, и шахматка его не пропустит: вдвое меньше выстрелов на поиск.', en: 'Fire in a checkerboard pattern — every other cell. The shortest ship covers two cells, so the checkerboard cannot miss it: half the shots for the search.' },
+  teachSubFinish: { ru: 'Попал — добивай: сначала четыре соседа, а когда второе попадание покажет направление — только вдоль этой линии. Корабль прямой, в стороны от линии он не уходит.', en: 'Hit? Finish it: first the four neighbours, and once a second hit shows the direction — only along that line. A ship is straight and never turns off its line.' },
+  teachSubHeat: { ru: 'Где больше всего способов поставить живой корабль — туда и стреляй. На рисунке так видит поле бот: чем краснее клетка, тем больше кораблей в ней может стоять.', en: 'Fire where a living ship can stand in the most ways. The picture shows the board as the bot sees it: the redder the cell, the more ships could be there.' },
+  searchRunner: { ru: 'Поиск на ходу', en: 'Search on the Run' },
+  searchRunnerDesc: { ru: 'Упражнения раздела на дороге. Над дорогой — вопрос станции: что идёт следующим по порядку, какая фигура нужна или за какой меткой ты следил. Въезжай в арку с ответом — тап по левой или правой половине дороги. Уровень взят, если найдено не меньше 70 % станций.', en: 'The section’s drills on the road. Above the road is the station’s question: what comes next in order, which shape you need, or which mark you tracked. Drive into the arch with the answer — tap the left or right half of the road. The level counts when you find at least 70% of the stations.' },
+  teachRunnerGates: { ru: 'Смотри на ОБА показанных знака: по ним видно и направление — вверх или вниз, — и чередование «число — буква». Следующий продолжает именно эту пару, а не привычное «плюс один».', en: 'Look at BOTH shown signs: they tell the direction — up or down — and the number–letter alternation. The next one continues exactly that pair, not the habitual “plus one”.' },
+  teachRunnerWindows: { ru: 'Не пересчитывай фигуры: держи в голове ОДНУ примету цели — форму, а если цель задана парой, форму И цвет — и пробегай окна взглядом по этой примете. Фигура с красной точкой — приманка.', en: 'Don’t count the shapes: keep ONE feature of the target in mind — the shape, or the shape AND the colour when the target is a pair — and sweep the windows for that feature. A shape with a red dot is a decoy.' },
   mtFind: { ru: 'Отметь всех, у кого:', en: 'Mark everyone with:' },
   mtColorRed: { ru: 'красный цвет', en: 'red colour' },
   mtColorBlue: { ru: 'синий цвет', en: 'blue colour' },
@@ -3922,6 +4009,17 @@ const translations: Translations = {
   teachTraitScan: { ru: 'Смотри только на один признак — {trait}. Остальное не читай: цвет, форма и глаза сбивают, если держать в голове всё сразу.', en: 'Look at one trait only — {trait}. Ignore the rest: colour, shape and eyes get in the way if you track everything at once.' },
   teachTraitMark: { ru: 'Есть {trait} — отмечаем и идём дальше по ряду.', en: 'Has {trait} — mark it and move along the row.' },
   teachTraitCheck: { ru: 'Перед проверкой пройди поле ещё раз по рядам: не пропустил ли кого и нет ли лишнего.', en: 'Before checking, scan the field again row by row: did you miss anyone or mark someone extra?' },
+  mtAnd: { ru: 'и', en: 'and' },
+  mtButNot: { ru: 'но не', en: 'but not' },
+  teachTraitPair: { ru: 'Два признака сразу: сперва найди всех, у кого {trait}, а уже среди них отметь тех, у кого {trait2}. Держать в голове оба признака разом — медленнее и с ошибками.', en: 'Two traits at once: first find everyone with {trait}, then among them mark those with {trait2}. Holding both traits in mind at once is slower and error-prone.' },
+  teachTraitNot: { ru: 'Сперва найди всех, у кого {trait}, потом ОТБРОСЬ из них тех, у кого {trait2}. Отмечай только оставшихся.', en: 'First find everyone with {trait}, then DROP those with {trait2}. Mark only the ones left.' },
+  monsterMissing: { ru: 'Кого не хватает', en: 'Who’s Missing' },
+  monsterMissingDesc: { ru: 'Запомни всех монстров, пока они на столе. Потом одного уберут — выбери его среди вариантов. Варианты похожи на пропавшего: отличить можно, только если запомнил и цвет, и тело, и глаза. Три пробы на уровень, нужно две верные.', en: 'Remember every monster while they are on the table. Then one is removed — pick it from the options. The options look like the missing one: you can tell them apart only if you remembered its colour, body and eyes. Three tries per level, two must be right.' },
+  mtRemember: { ru: 'Запомни всех', en: 'Remember them all' },
+  mtMissingAsk: { ru: 'Кого не хватает?', en: 'Who’s missing?' },
+  mtMissingAsk2: { ru: 'Кого двоих не хватает?', en: 'Which two are missing?' },
+  teachMissingName: { ru: 'Называй каждого про себя тремя признаками: «красный, круглый, два глаза». Картинку целиком память держит плохо, а тройку слов — хорошо.', en: 'Name each one silently by three traits: “red, round, two eyes”. Memory holds a whole picture badly, but three words well.' },
+  teachMissingCheck: { ru: 'Пройди по столу и сверь свои тройки: чьей тройки нет — тот и пропал. Выбирай по тройке, а не по «похоже».', en: 'Go over the table and check your triples: whose triple is absent is the missing one. Choose by the triple, not by “looks like”.' },
   rollAndBank: { ru: 'Рискни и сохрани', en: 'Roll and Bank' },
   rollAndBankDesc: { ru: 'Бросай кубик и иди вперёд. Можно бросать ещё или сохранить пройденное. Выпала единица — всё несохранённое сгорает и ход переходит к боту. Кто первым дошёл до финиша — победил.', en: 'Roll the die and move forward. Roll again or bank your progress. A one burns everything unbanked and the turn passes to the bot. First to the finish wins.' },
   rbRoll: { ru: 'Бросить', en: 'Roll' },
@@ -4190,16 +4288,48 @@ const translations: Translations = {
   chessCfgBlindMoves: { ru: 'ходов вслепую', en: 'blind moves' },
   chessCfgQuizPick: { ru: 'вопрос «что здесь?»', en: '“what is here?” quiz' },
   chessCfgQuizLocate: { ru: 'вопрос «где фигура?»', en: '“where is it?” quiz' },
-  block: { ru: 'Блок', en: 'Block' },
-  seriesDone: { ru: 'Серия пройдена. Ошибок', en: 'Series finished. Mistakes' },
   yes: { ru: 'Да', en: 'Yes' },
   no: { ru: 'Нет', en: 'No' },
-  chessBlockSquare: { ru: 'Цвет полей', en: 'Colour of squares' },
-  chessBlockKnight: { ru: 'Ход коня', en: 'Knight move' },
-  chessBlockRecall: { ru: 'Память о позиции', en: 'Recall the position' },
-  chessAskSquare: { ru: 'Поля {a} и {b} одного цвета?', en: 'Are {a} and {b} the same colour?' },
-  chessAskKnight: { ru: 'Конь дойдёт с {from} на {to} за {n} хода?', en: 'Can the knight go {from} to {to} in {n} moves?' },
-  chessAskRecall: { ru: 'На {sq} стояла эта фигура: {piece}?', en: 'Was this piece on {sq}: {piece}?' },
+  teachChessBlindChunks: { ru: 'Запоминай связками, а не по клетке: пешечная цепь, король за своими пешками, ладья на открытой линии. Позиции из живых партий — связки в них есть всегда.', en: 'Remember in chunks, not square by square: a pawn chain, a king behind its pawns, a rook on an open file. The positions come from real games, so chunks are always there.' },
+  teachChessBlindMove: { ru: 'Ход {n}: {piece} {from} → {to}. Обнови картинку в голове: на {from} теперь пусто, фигура стоит на {to}.', en: 'Move {n}: {piece} {from} → {to}. Update the picture in your head: {from} is now empty, the piece stands on {to}.' },
+  teachChessBlindStayed: { ru: 'На {sq} — {piece}: фигура стоит здесь с самого показа, ходы её не трогали.', en: 'On {sq}: {piece}. It has stood there since the position was shown; no move touched it.' },
+  teachChessBlindMoved: { ru: 'На {sq} — {piece}: фигура пришла сюда ходом {n}. Отвечай по последнему ходу фигуры, а не по первой картинке.', en: 'On {sq}: {piece}. It arrived with move {n}. Answer by the piece’s last move, not by the first picture.' },
+  teachChessBlindCount: { ru: 'Сначала пример на счёт. Позицию держи картинкой, а не проговором — голова занята числами.', en: 'First a sum to check. Hold the position as a picture, not by reciting it: your head is busy with numbers.' },
+  // «Найди ход» (шахматы, задача 04e0a67e): 12 приёмов Lichess, разбор по шагам
+  findMove: { ru: 'Найди ход', en: 'Find the Move' },
+  findMoveDesc: { ru: 'Позиция из живой партии: найдите ход, который выигрывает, — мат, фигуру или решающий удар. Двенадцать тактических приёмов, от незащищённой фигуры до мата в два хода.', en: 'A position from a real game: find the move that wins — a mate, a piece or a decisive blow. Twelve tactical motifs, from a hanging piece to mate in two.' },
+  findMoveSeek: { ru: 'Найдите выигрыш', en: 'Find the win' },
+  findMoveNewThemes: { ru: 'Новые приёмы', en: 'New motifs' },
+  findMoveThemesOpen: { ru: 'Приём не назван — узнайте его сами', en: 'The motif is not named — recognise it yourself' },
+  findMoveClean: { ru: 'Без подсказки: {n}', en: 'Without a hint: {n}' },
+  fmHangingPiece: { ru: 'Незащищённая фигура', en: 'Hanging piece' },
+  fmMateIn1: { ru: 'Мат в один ход', en: 'Mate in one' },
+  fmFork: { ru: 'Вилка', en: 'Fork' },
+  fmPin: { ru: 'Связка', en: 'Pin' },
+  fmSkewer: { ru: 'Сквозной удар', en: 'Skewer' },
+  fmDiscoveredAttack: { ru: 'Вскрытое нападение', en: 'Discovered attack' },
+  fmDoubleCheck: { ru: 'Двойной шах', en: 'Double check' },
+  fmTrappedPiece: { ru: 'Пойманная фигура', en: 'Trapped piece' },
+  fmDeflection: { ru: 'Отвлечение', en: 'Deflection' },
+  fmAttraction: { ru: 'Завлечение', en: 'Attraction' },
+  fmMateIn2: { ru: 'Мат в два хода', en: 'Mate in two' },
+  teachFmHangingPiece: { ru: 'Ищи фигуру соперника, которую никто не защищает: её можно просто забрать. Проверь каждое взятие — что бьёт и кто защищает.', en: 'Look for an enemy piece that nobody defends: you can simply take it. Check every capture — what attacks and who defends.' },
+  teachFmMateIn1: { ru: 'Смотри на короля соперника: какие поля вокруг него свободны и кто их держит. Мат — шах, от которого не уйти, не закрыться и который не взять.', en: 'Look at the enemy king: which squares around it are free and who controls them. Mate is a check that cannot be escaped, blocked or captured.' },
+  teachFmBackRankMate: { ru: 'Король за своими пешками заперт на последней горизонтали. Ладья или ферзь на эту горизонталь — и уйти некуда.', en: 'The king behind its own pawns is locked on the back rank. A rook or queen on that rank — and there is nowhere to go.' },
+  teachFmFork: { ru: 'Одна фигура нападает сразу на две. Ищи поле, откуда твоя фигура бьёт две ценные цели, — соперник спасёт только одну.', en: 'One piece attacks two at once. Find a square from which your piece hits two valuable targets — the opponent can save only one.' },
+  teachFmPin: { ru: 'Фигура соперника стоит на линии перед более ценной — королём или ферзём. Нападай на неё: уйти она не может.', en: 'An enemy piece stands on a line in front of a more valuable one — the king or queen. Attack it: it cannot move away.' },
+  teachFmSkewer: { ru: 'Ценная фигура стоит на линии впереди менее ценной. Бей по линии: ценная уйдёт, и откроется та, что за ней.', en: 'A valuable piece stands on a line in front of a less valuable one. Strike along the line: the valuable one steps aside and exposes the one behind.' },
+  teachFmDiscoveredAttack: { ru: 'Твоя фигура закрывает линию дальнобойной. Уйди ею с угрозой — и откроется второе нападение.', en: 'Your piece blocks the line of a long-range piece. Move it away with a threat — and a second attack is revealed.' },
+  teachFmDoubleCheck: { ru: 'Шах сразу двумя фигурами: закрыться или взять нельзя, королю остаётся только уйти.', en: 'Check by two pieces at once: it cannot be blocked or captured — the king can only move.' },
+  teachFmTrappedPiece: { ru: 'Фигуре соперника некуда отступить. Нападай на неё — и она пропадёт.', en: 'An enemy piece has no safe retreat. Attack it — and it is lost.' },
+  teachFmDeflection: { ru: 'Защитник держит важное поле или фигуру. Отвлеки его — заставь уйти, и защищённое упадёт.', en: 'A defender guards a key square or piece. Deflect it — force it away, and what it guarded falls.' },
+  teachFmAttraction: { ru: 'Заставь фигуру соперника, чаще всего короля, встать на плохое поле — обычно жертвой, — а следующим ходом накажи.', en: 'Lure an enemy piece, most often the king, onto a bad square — usually with a sacrifice — and punish it on the next move.' },
+  teachFmMateIn2: { ru: 'Мат в два хода: первый ход не оставляет защиты — часто это шах или жертва. После любого ответа мат следующим ходом.', en: 'Mate in two: the first move leaves no defence — often a check or a sacrifice. After any reply, mate follows next move.' },
+  teachFmMove: { ru: 'Ход {n}: {move} — {theme}.', en: 'Move {n}: {move} — {theme}.' },
+  teachFmReply: { ru: 'Соперник отвечает {move}.', en: 'The opponent replies {move}.' },
+  teachFmMate: { ru: 'Итог: мат.', en: 'Result: checkmate.' },
+  teachFmGain: { ru: 'Итог: выигрыш материала — {n} в пешках.', en: 'Result: material gained — {n} in pawns.' },
+  teachFmEdge: { ru: 'Итог: решающее преимущество — материал ещё равен, но позиция соперника рушится.', en: 'Result: a decisive advantage — material is still level, but the opponent’s position collapses.' },
   teachScholarsKing: { ru: 'Смотри на короля соперника: какие поля вокруг него заняты своими же фигурами и что уже бьёт рядом.', en: 'Look at the enemy king: which squares around it are blocked by its own pieces, and what already attacks nearby.' },
   teachScholarsMate: { ru: '{move} — мат: шах, от которого нет защиты. Королю некуда уйти, атакующую фигуру не взять, закрыться нечем.', en: '{move} is mate: a check with no defence. The king has nowhere to go, the attacker cannot be taken, nothing can block.' },
   teachScholarsThreatAsk: { ru: 'Грозит ли мат? Отдай в уме ход сопернику и проверь: есть ли у него мат в один ход?', en: 'Is mate threatened? Hand the move to your opponent in your head and check: do they have mate in one?' },
@@ -4286,6 +4416,20 @@ const translations: Translations = {
   },
 
   rhythmPitch: { ru: 'Ритм и высота', en: 'Rhythm & Pitch' },
+  /*
+   * 🎓 РАЗБОР «РИТМА И ВЫСОТЫ» (30.09.2026): в ритме держать темп, в высоте следить за линией. Тексты
+   * стоят на замере генератора уровней 1–3 (ровный ряд без акцентов; «выше/ниже» из двух нот).
+   */
+  teachRpRhythmIntro: { ru: 'Держите ТЕМП, а не счёт: удары идут ровно, как шаги. Повторяйте рисунок в том же темпе.', en: 'Hold the TEMPO, not the count: the beats come evenly, like steps. Repeat the pattern at the same pace.' },
+  teachRpListen: { ru: 'Послушайте ряд. Ударов в нём: {n}.', en: 'Listen to the row. Beats in it: {n}.' },
+  teachRpEven: { ru: 'Промежутки между ударами одинаковые — стучите так же ровно, не спеша и не отставая.', en: 'The gaps between the beats are equal — tap just as evenly, neither rushing nor dragging.' },
+  teachRpTap: { ru: 'Первый удар — сразу, дальше — в том же темпе. Послушайте ещё раз и отстучите про себя.', en: 'First beat right away, then keep the same pace. Listen once more and tap along in your head.' },
+  teachRpRhythmDone: { ru: 'Так и играйте: поймали темп — держите его, а не пересчитывайте удары.', en: 'Play it the same way: catch the tempo and hold it instead of counting beats.' },
+  teachRpPitchIntro: { ru: 'Сравнивайте каждую ноту с предыдущей: выше она или ниже. Держите в голове линию, а не сами ноты.', en: 'Compare each note with the one before: higher or lower? Keep the line in your head, not the notes themselves.' },
+  teachRpListenTones: { ru: 'Послушайте ноты подряд. Их здесь: {n}.', en: 'Listen to the notes in a row. There are {n} here.' },
+  teachRpHigher: { ru: 'Вторая нота выше первой — линия идёт вверх.', en: 'The second note is higher than the first — the line goes up.' },
+  teachRpLower: { ru: 'Вторая нота ниже первой — линия идёт вниз.', en: 'The second note is lower than the first — the line goes down.' },
+  teachRpPitchDone: { ru: 'Так и отвечайте: слушайте, куда пошла линия от первой ноты — вверх или вниз.', en: 'Answer the same way: listen to where the line goes from the first note — up or down.' },
   rhythmPitchDesc: { ru: 'Повторяйте ритмы и запоминайте последовательности высот — на слух, без микрофона', en: 'Echo rhythms and remember pitch sequences — by ear, no microphone' },
   rhythmPitchIntroDesc: {
     ru: 'Сначала короткая калибровка: четыре сигнала, по которым игра узнаёт задержку вашего устройства и громкость. Дальше уровни чередуются: в «эхе ритма» нужно повторить услышанный рисунок ударов в том же времени, в «пути высоты» — определить, выше или ниже второй звук, а затем восстановить последовательность из низких, средних и высоких тонов. Слов в задании нет вовсе, поэтому язык не влияет на сложность. Тренирует слуховую рабочую память и чувство времени. Нужен звук: наушники или колонка.',

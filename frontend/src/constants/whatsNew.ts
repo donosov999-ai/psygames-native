@@ -16,6 +16,36 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.56.2',
+    date: '2026-10-01',
+    ru: [
+      'Игры говорят на языке телефона, если язык не выбран вручную',
+      'Пауза и зарядка работают нативно; занятые упражнения не ставятся вместе',
+      '«Доска в уме» и развилка «Шахматы» — нативно, с шахматной зарядкой',
+    ],
+    en: [
+      'Games speak your phone language if you have not picked one',
+      'Pause and warm-up run natively; overlapping exercises are not paired',
+      'Board in Mind and the Chess section run natively, with a chess warm-up',
+    ],
+  },
+  {
+    version: '2.56.1',
+    date: '2026-10-01',
+    ru: [
+      'Android: приложение снова запускается — починен пустой экран на старте',
+      'Правила уровня снова видны в 16 играх',
+      'Колышки, Указатели и Инерция переехали в раздел «Шахматы»',
+      'Пауза и разбор останавливают время партии',
+    ],
+    en: [
+      'Android: the app starts again — the blank screen on launch is fixed',
+      'Level rules are visible again in 16 games',
+      'Pegs, Signpost and Inertia moved to the Chess section',
+      'Pause and walkthroughs now stop the game clock',
+    ],
+  },
+  {
     version: '2.56.0',
     date: '2026-09-24',
     ru: [

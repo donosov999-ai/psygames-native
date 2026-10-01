@@ -1540,6 +1540,20 @@ export function sessionGameType(s: { game_type?: string; details?: Record<string
   return t;
 }
 
+/**
+ * Раздел каталога по ТИПУ ПАРТИИ — для счёта по областям.
+ *
+ * ⚠️ Искать по `id` карточки нельзя: у самурая, фрактала и глубокого фрактала id через
+ * дефис, а партия пишется через подчёркивание. Баланс тренировок искал по id, и все
+ * их партии выпадали из него молча (замер 30.09.2026: 17 из 612 партий профиля NZT-48).
+ */
+const CATEGORY_BY_SESSION_TYPE = new Map<string, GameCategory>(
+  GAMES.map((g) => [sessionTypeOf(g), g.category]),
+);
+export function categoryOfSessionType(t: string): GameCategory | undefined {
+  return CATEGORY_BY_SESSION_TYPE.get(t);
+}
+
 // Russian words for word games
 export const RUSSIAN_WORDS = [
   'дом', 'кот', 'солнце', 'книга', 'река', 'лес', 'окно', 'стол', 'дверь', 'дорога',

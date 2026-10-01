@@ -11,13 +11,16 @@ library;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
+import '../../shell/game_preset.dart';
 import '../../shell/aux_action.dart';
-import '../../shell/demo_lesson.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
+import '../../shell/lesson.dart';
+import '../../shell/lesson_player.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
+import 'lesson.dart';
 import 'model.dart';
 
 class RmetScreen extends StatefulWidget {
@@ -64,6 +67,8 @@ class _RmetScreenState extends State<RmetScreen> {
       _content = content;
       _booting = false;
     });
+    // Шаг зарядки начинается сам — перенос веб-`useAutostartWhenReady` (отчёт Дениса 01.10.2026).
+    if (GamePreset.autostart) _start();
   }
 
   void _start() {
@@ -100,12 +105,114 @@ class _RmetScreenState extends State<RmetScreen> {
     }
   }
 
-  /// 🔴 КАРТОЧКИ БЕЗ ОТВЕТА — И ЭТО НЕ ПРОПУСК. Верного хода на ОТДЕЛЬНОЙ пробе
-  /// здесь нет: выигрывает стратегия. Подписать карточке «верно: так» значило бы
-  /// соврать — человек сделает так и проиграет на следующем шаге.
-  List<DemoTrial> _demoTrials() => [
-        DemoTrial(text: '', rule: L.t('teachRmetEyes')),
-      ];
+  /// Тексты разбора — из словаря, теми же ключами, что зовёт веб-учитель.
+  String _teach(String key, Map<String, String> args) {
+    var out = switch (key) {
+      'teachRmetEyes' => L.t('teachRmetEyes'),
+      'teachRmetCues' => L.t('teachRmetCues'),
+      'teachRmetCompare' => L.t('teachRmetCompare'),
+      'teachRmetPick' => L.t('teachRmetPick'),
+      _ => L.t('teachRmetDone'),
+    };
+    for (final e in args.entries) {
+      out = out.replaceAll('{${e.key}}', e.value);
+    }
+    return out;
+  }
+
+  /// 🎓 Разбор по шагам на настоящем материале игры (`lesson.dart`). Идёт партия —
+  /// её текущий пункт в примеры не берётся: разбор показал бы ответ.
+  Future<void> _openLesson() async {
+    final c = _content;
+    if (c == null) return;
+    final s = _session;
+    final current = s == null || s.finished ? -1 : c.items.indexOf(s.current);
+    final steps = rmetLessonSteps(
+      say: _teach,
+      items: c.items,
+      locale: _locale,
+      exclude: current >= 0 ? current : null,
+    );
+    if (steps.isEmpty) return;
+    LessonUsed.mark();
+    await Navigator.of(context).push(MaterialPageRoute<void>(
+      builder: (_) => LessonPlayerScreen(
+        title: L.t('rmet'),
+        steps: steps,
+        board: (context, side, i) =>
+            _lessonBoard(context, c, side, steps[i.clamp(0, steps.length - 1)].payload as RmetCard),
+      ),
+    ));
+  }
+
+  /// Поле разбора: снимок глаз примера, на сравнении — снимок соседа с его словом,
+  /// ниже четыре варианта пункта; сравниваемое слово обведено, выбранное — зелёным.
+  Widget _lessonBoard(BuildContext context, RmetContent c, double side, RmetCard card) {
+    final scheme = Theme.of(context).colorScheme;
+    final index = card.item;
+    if (index == null) {
+      return Icon(Icons.visibility_outlined, size: side * 0.4, color: scheme.primary);
+    }
+    final item = c.items[index];
+    final neighbor = card.neighbor == null ? null : c.items[card.neighbor!];
+    final neighborWord = neighbor?.correctFor(_locale);
+    final options = [...item.optionsFor(_locale)]..sort();
+    Widget emoji(EyeItem it, double w, double h) =>
+        SizedBox(width: w, height: h, child: Center(child: Text(it.emoji, style: const TextStyle(fontSize: 48))));
+    Widget photo(EyeItem it, double w, double h) => ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: it.files.isEmpty
+              ? emoji(it, w, h)
+              : Image.asset('assets/rmet/${it.files.first}', width: w, height: h, fit: BoxFit.cover,
+                  errorBuilder: (context, error, stack) => emoji(it, w, h)),
+        );
+    /*
+     * ⚠️ ПОЛЕ — КВАДРАТ side×side, А НА УЗКОМ ЭКРАНЕ ОН МАЛ. Плеер отдаёт доске
+     * 40–55 % высоты: на 360×640 это ~234 точки, а снимок, снимок соседа и два
+     * ряда слов требуют ~270 — переполнение 22 px ловила проба. Размеры снимков
+     * ужаты, а FittedBox страхует длинные слова (немецкие, русские): поле
+     * уменьшается целиком, но не вылезает за квадрат.
+     */
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      child: SizedBox(
+        width: side,
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          KeyedSubtree(key: const ValueKey('rmet-lesson-photo'), child: photo(item, side, side * 0.36)),
+          if (neighbor != null) ...[
+            const SizedBox(height: 8),
+            Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+              KeyedSubtree(
+                  key: const ValueKey('rmet-lesson-neighbor'), child: photo(neighbor, side * 0.45, side * 0.18)),
+              const SizedBox(width: 10),
+              Flexible(child: Text(neighborWord!, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700))),
+            ]),
+          ],
+          const SizedBox(height: 10),
+          Wrap(spacing: 6, runSpacing: 6, alignment: WrapAlignment.center, children: [
+            for (final word in options)
+              Container(
+                key: ValueKey('rmet-lesson-option-$word'),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: card.picked == word ? const Color(0x3322C55E) : scheme.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: card.picked == word
+                        ? const Color(0xFF22C55E)
+                        : neighborWord == word
+                            ? scheme.primary
+                            : scheme.outlineVariant,
+                    width: card.picked == word || neighborWord == word ? 2 : 1,
+                  ),
+                ),
+                child: Text(word),
+              ),
+          ]),
+        ]),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -119,7 +226,7 @@ class _RmetScreenState extends State<RmetScreen> {
     final s = _session;
     return GameShell(
       title: L.t('rmet'),
-      onLesson: () => openDemoLesson(context, title: L.t('rmet'), trials: _demoTrials()),
+      onLesson: _openLesson,
       hud: [
         HudItem(label: L.t('score'), value: '${s?.hits ?? 0}', icon: Icons.check_circle_outline),
         HudItem(
