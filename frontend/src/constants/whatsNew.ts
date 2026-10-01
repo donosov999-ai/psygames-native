@@ -16,6 +16,20 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.56.2',
+    date: '2026-10-01',
+    ru: [
+      'Игры говорят на языке телефона, если язык не выбран вручную',
+      'Пауза и зарядка работают нативно; занятые упражнения не ставятся вместе',
+      '«Доска в уме» и развилка «Шахматы» — нативно, с шахматной зарядкой',
+    ],
+    en: [
+      'Games speak your phone language if you have not picked one',
+      'Pause and warm-up run natively; overlapping exercises are not paired',
+      'Board in Mind and the Chess section run natively, with a chess warm-up',
+    ],
+  },
+  {
     version: '2.56.1',
     date: '2026-10-01',
     ru: [
