@@ -133,4 +133,28 @@ void main() {
     expect(s54.ratingUncertainty, greaterThanOrEqualTo(300),
         reason: 'ступень говорит ЧТО проходил, но не НАСКОЛЬКО уверенно');
   });
+
+  /// 🔴 ПРИЁМКА §9.4 И ОБЕЩАНИЕ ПИЛОТА: генератор может выбрать ЛЮБОЙ шаблон пула —
+  /// значит у каждого обязана найтись доска, и именно этого шаблона. Иначе рейтинг
+  /// выбрал бы трудность, а человек получил бы доску другой.
+  test('🔴 §9.4: у каждого шаблона есть своя доска; одно зерно — одна доска; «ещё раз» — другая', () {
+    final byTemplate = levelsByTemplate(levels);
+    var withChoice = 0;
+    for (final t in pool) {
+      final a = boardForTemplate(levels, byTemplate, t, 4242);
+      expect(a, isNotNull, reason: '${t.id}: генератор может выбрать шаблон, а выдать нечего');
+      expect(templateForLevel(levels, a!.level).id, t.id,
+          reason: '${t.id}: доска взята со ступени другого шаблона');
+      final b = boardForTemplate(levels, byTemplate, t, 4242)!;
+      expect(b.level, a.level, reason: '${t.id}: одно зерно — одна ступень');
+      expect(samePuzzle(a.board, b.board), isTrue, reason: '${t.id}: одно зерно — одна доска');
+      final total = byTemplate[t.id]!.map(levels.boardsFor).reduce((x, y) => x + y);
+      if (total < 2) continue;
+      withChoice++;
+      final c = boardForTemplate(levels, byTemplate, t, 4242, avoid: a.board)!;
+      expect(samePuzzle(c.board, a.board), isFalse,
+          reason: '${t.id}: «ещё раз эту же» выдала ту же самую доску');
+    }
+    expect(withChoice, pool.length, reason: 'у каждого шаблона больше одной доски');
+  });
 }

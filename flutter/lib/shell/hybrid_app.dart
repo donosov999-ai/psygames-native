@@ -59,6 +59,7 @@ import '../games/spatial_hub/screen.dart';
 import '../games/spatial_lab/screen.dart';
 import '../games/spatial_span/screen.dart';
 import '../games/sudoku/modes.dart';
+import '../games/cats/screen.dart';
 import '../games/sudoku/screen.dart';
 import '../games/mahjong/screen.dart';
 import '../games/math_slider/screen.dart';
@@ -109,6 +110,7 @@ import '../games/chess_blind/screen.dart';
 import '../games/chess_hub/screen.dart';
 import '../games/scholars_mate/screen.dart';
 import 'shared_state.dart';
+import 'restart_scope.dart';
 import 'tap_latency.dart';
 
 
@@ -183,6 +185,10 @@ class HybridApp extends StatefulWidget {
         // Режимы той же доски: адрес отличается только хвостом, экран — тот же.
         '/games/sudoku?mode=towers': (s) => SudokuScreen(state: s, mode: SideMode.towers),
         '/games/sudoku?mode=unequal': (s) => SudokuScreen(state: s, mode: SideMode.unequal),
+        // «Кошки» (Queens / Star Battle) — первая игра, рождённая сразу нативной:
+        // веб-страницы у неё нет вовсе, поэтому перехват не «отнимает» веб-версию,
+        // а является единственным входом. Карточку в развилку кладёт координатор.
+        '/games/cats': (s) => CatsScreen(state: s),
         // Развилки раздела — на ОБЩЕМ экране каркаса: карточки уже лежат в
         // `assets/hubs.json`, вторая копия начала бы отставать молча.
         '/games/sudoku-hub': (s) => HubScreen(
@@ -827,9 +833,14 @@ class _HybridAppState extends State<HybridApp> {
     if (step != null && stepInfo == null) unawaited(_loadStepInfo(step));
     final result = await Navigator.of(context).push(
       MaterialPageRoute(
+        // «Заново» в паузе любой игры — пересоздание экрана в RestartScope (restart_scope.dart).
         builder: (_) => step == null
-            ? build(widget.state)
-            : WarmupStepFrame(info: step, onSkip: _skipNativeStep, child: build(widget.state)),
+            ? RestartScope(builder: (_) => build(widget.state))
+            : WarmupStepFrame(
+                info: step,
+                onSkip: _skipNativeStep,
+                child: RestartScope(builder: (_) => build(widget.state)),
+              ),
       ),
     );
     // ⚠️ Отметку снимаем, ТОЛЬКО если она всё ещё наша: когда страница ушла вперёд,
