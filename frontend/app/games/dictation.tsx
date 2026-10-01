@@ -21,7 +21,7 @@
  * человек чаще всего сбивается. Последнее и есть польза сверх скорости: слабую
  * клавишу видно поимённо.
  */
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -43,6 +43,8 @@ import GameResult from '@/src/components/GameResult';
 import GameShell from '@/src/components/GameShell';
 import GameSetupBar from '@/src/components/GameSetupBar';
 import { GameAuxAction, GameAuxBar } from '@/src/components/GameAuxAction';
+import LessonPlayer from '@/src/components/LessonPlayer';
+import { собратьРазборДиктанта, type КарточкаДиктанта } from '@/src/games/dictation/teach';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import TypingAnswer from '@/src/games/vocab-srs/TypingAnswer';
@@ -126,7 +128,59 @@ export default function DictationGame() {
     AsyncStorage.getItem(STORE_KEY).then((v) => { if (v && dictationLangs().includes(v)) setTargetLang(v); }).catch(() => {});
   }, [isPreset]);
 
+  /**
+   * 🎓 РАЗБОР ПО ШАГАМ (Денис 17.09.2026, «раскатывай везде»): диктовать себе кусками — фраза уровня
+   * режется на куски по два-три слова, каждый звучит (`src/games/dictation/teach.ts`). Фраза — из
+   * пула уровня, но не текущая. Только на уровнях 1–3; партия с разбором не засчитывается.
+   * Обработчики стабильные: экран тикает таймером.
+   */
+  const [урок, setУрок] = useState<{ карточки: КарточкаДиктанта[]; индекс: number; куски: string[] } | null>(null);
+  const карточкаУрока = урок ? урок.карточки[урок.индекс] : null;
+  const урокВПартииRef = useRef(false);
+  const [итогСРазбором, setИтогСРазбором] = useState(false);
+  const разборДоступен = phase === 'playing' && level <= 3;
+  const начатьРазбор = () => {
+    ttsCancel();
+    stopNoise();
+    const р = собратьРазборДиктанта(levelPhrases(buildPhrases(tgt), level), tgt, фразы[idx]?.text ?? null);
+    if (!р) return;
+    урокВПартииRef.current = true;
+    setУрок({ карточки: р.карточки, индекс: 0, куски: р.куски });
+  };
+  const урокДальше = useCallback(
+    () => setУрок((у) => (у && у.индекс + 1 < у.карточки.length ? { ...у, индекс: у.индекс + 1 } : у)),
+    [],
+  );
+  const урокНазад = useCallback(
+    () => setУрок((у) => (у && у.индекс > 0 ? { ...у, индекс: у.индекс - 1 } : у)),
+    [],
+  );
+  const урокЗакрыть = useCallback(() => { ttsCancel(); setУрок(null); }, []);
+  const текстУрока = карточкаУрока
+    ? Object.entries(карточкаУрока.поля ?? {}).reduce(
+      (текст, [ключ, знач]) => текст.replace(new RegExp(`\\{${ключ}\\}`, 'g'), String(знач)),
+      t(карточкаУрока.ключ) as string,
+    )
+    : '';
+  /** Карточка с куском звучит сама: разбор про слух. */
+  useEffect(() => {
+    if (!урок) return;
+    const к = урок.карточки[урок.индекс];
+    if (!к || !к.звук.length) return;
+    let отменено = false;
+    const таймер = setTimeout(async () => {
+      for (const кусок of к.звук) {
+        if (отменено) return;
+        await speak(кусок, tgt, 0.85);
+      }
+    }, 350);
+    return () => { отменено = true; clearTimeout(таймер); ttsCancel(); };
+  }, [урок, tgt]);
+
   const startGame = () => {
+    урокВПартииRef.current = false;
+    setИтогСРазбором(false);
+    setУрок(null);
     ttsCancel();
     if (timerRef.current) clearInterval(timerRef.current);
     const все = buildPhrases(tgt);
@@ -188,7 +242,10 @@ export default function DictationGame() {
     const точность = знаки + опечатки > 0 ? Math.round((знаки / (знаки + опечатки)) * 100) : 100;
     const слабые = Object.entries(слабыеRef.current).sort((a, b) => b[1] - a[1]).slice(0, 5);
     const passed = точность >= 90;
-    if (isPreset) setPhase(passed ? 'cleared' : 'result');
+    const сРазбором = урокВПартииRef.current;
+    setИтогСРазбором(сРазбором);
+    if (сРазбором) setPhase('result');   // партия с разбором не засчитывается: ни подъёма, ни провала
+    else if (isPreset) setPhase(passed ? 'cleared' : 'result');
     else {
       if (passed) lvl.reach(level + 1); else lvl.fail();
       setClearedPassed(passed);
@@ -212,6 +269,7 @@ export default function DictationGame() {
           replays: повторыRef.current,
           target_lang: tgt,
           weak_keys: слабые.map(([к, n]) => `${к}:${n}`),
+          ...(сРазбором ? { lesson: true } : {}),
         },
       });
     } catch (e) { console.error('Error saving session:', e); }
@@ -298,6 +356,9 @@ export default function DictationGame() {
         ]}
         headerActions={
           <GameAuxBar>
+            {разборДоступен && (
+              <GameAuxAction compact icon="school-outline" tint="#d97706" label={t('teachButton')} onPress={начатьРазбор} />
+            )}
             {/* compact: в полосе счётчиков (auxInHud) подпись «ещё раз» не влезает на длинных языках —
                  замер 16.09.2026 на 390 pt: es «Escuchar otra vez» 177 px, правый край 398 — за экраном на 8;
                  de 175 px, край 389 — впритык. Слово остаётся в accessibilityLabel. */}
@@ -365,6 +426,43 @@ export default function DictationGame() {
           </TouchableOpacity>
           <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('dictationTask')}</Text>
         </View>
+        {/*
+          🎓 РАЗБОР НА ВЕСЬ ЭКРАН. Поле — фраза кусками: набранные видны, текущий подчёркнут, остальное
+          точками, как в самой партии (hideUntyped).
+        */}
+        <LessonPlayer
+          visible={!!урок}
+          индекс={урок?.индекс ?? 0}
+          шагов={Math.max(0, (урок?.карточки.length ?? 1) - 1)}
+          текст={текстУрока}
+          сноска={урок?.индекс === 0 ? t('teachNotCounted') : undefined}
+          готово={карточкаУрока?.вид === 'готово'}
+          занят={false}
+          renderBoard={(сторона) => {
+            const к = карточкаУрока;
+            const куски = урок?.куски ?? [];
+            return (
+              <View style={[styles.разборПоле, { width: сторона }]}>
+                <Text style={[styles.разборФраза, { color: colors.text }]}>
+                  {куски.map((кусок, i) => {
+                    const набран = !!к && i < к.набрано;
+                    const текущий = к?.кусок === i;
+                    const показ = набран || текущий ? кусок : Array.from(кусок).map((знак) => (знак === ' ' ? ' ' : '·')).join('');
+                    const стык = i < куски.length - 1 && tgt !== 'zh' ? ' ' : '';
+                    return (
+                      <Text key={i} style={текущий ? { color: GRADIENT[0], textDecorationLine: 'underline' } : набран ? undefined : { color: colors.textSecondary }}>
+                        {показ}{стык}
+                      </Text>
+                    );
+                  })}
+                </Text>
+              </View>
+            );
+          }}
+          onДальше={урокДальше}
+          onНазад={урокНазад}
+          onЗакрыть={урокЗакрыть}
+        />
       </GameShell>
     );
   }
@@ -401,6 +499,7 @@ export default function DictationGame() {
           onPlayAgain={() => setPhase('config')}
           onGoHome={() => goBackOrHome()}
           gradient={GRADIENT as [string, string]}
+          metricsNote={итогСРазбором ? [t('teachNotCounted')] : undefined}
         />
       )}
     </SafeAreaView>
@@ -408,6 +507,8 @@ export default function DictationGame() {
 }
 
 const styles = StyleSheet.create({
+  разборПоле: { alignItems: 'center', paddingHorizontal: 8 },
+  разборФраза: { fontSize: 24, fontWeight: '700', lineHeight: 36, textAlign: 'center', letterSpacing: 0.5 },
   /** Место поля ввода, пока идёт окно удержания: та же высота, чтобы экран не прыгал. */
   ожидание: { minHeight: 72, alignItems: 'center', justifyContent: 'center' },
   container: { flex: 1 },

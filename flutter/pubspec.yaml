@@ -94,6 +94,7 @@ flutter:
     - assets/digits/pastel/
     - assets/digits/rainbow/
     - assets/hubs.json
+    - assets/level_rules.json
     # Корпус позиций «Доски в уме»: 2000 задач Lichess (CC0). Каталог объявлен
     # ПОИМЁННО — строка вида «- assets/x/» берёт только файлы самой папки, и
     # вложенные каталоги молча не попадают в сборку («Слова» на этом потеряли
@@ -107,6 +108,7 @@ flutter:
     - assets/memory-palace.json
     - assets/rmet.json
     - assets/word-pairs.json
+    - assets/mnemonics.json
     - assets/rmet/
     - assets/words/
     - assets/rings/
