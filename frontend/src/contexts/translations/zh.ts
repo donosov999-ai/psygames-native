@@ -3323,5 +3323,8 @@ const t: Record<string, string> = {
   "tathamRotation": "{n} 旋转",
   "tathamOrientable": "带方向",
   "tathamTiles": "{n} 块",
+  "sudokuVariantRenban": "🟪 Renban",
+  "sudokuRuleRenban": "紫线上的数字是连续的一组数，顺序不限，且不能重复。",
+  "sdkRule_renban": "Renban",
 };
 export default t;

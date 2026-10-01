@@ -3323,5 +3323,8 @@ const t: Record<string, string> = {
   "tathamRotation": "{n}-Drehung",
   "tathamOrientable": "mit Ausrichtung",
   "tathamTiles": "{n} Kacheln",
+  "sudokuVariantRenban": "🟪 Renban",
+  "sudokuRuleRenban": "Die Ziffern auf einer lila Linie bilden eine lückenlose Folge in beliebiger Reihenfolge, ohne Wiederholung.",
+  "sdkRule_renban": "Renban",
 };
 export default t;

@@ -3318,5 +3318,8 @@ const t: Record<string, string> = {
   "tathamRotation": "rotation {n}",
   "tathamOrientable": "avec orientation",
   "tathamTiles": "{n} tuiles",
+  "sudokuVariantRenban": "🟪 renban",
+  "sudokuRuleRenban": "Les chiffres d’une ligne violette forment une suite consécutive, dans n’importe quel ordre, sans répétition.",
+  "sdkRule_renban": "renban",
 };
 export default t;

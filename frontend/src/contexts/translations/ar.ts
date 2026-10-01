@@ -3319,5 +3319,8 @@ const t: Record<string, string> = {
   "tathamRotation": "تدوير {n}",
   "tathamOrientable": "مع الاتجاه",
   "tathamTiles": "القطع: {n}",
+  "sudokuVariantRenban": "🟪 رينبان",
+  "sudokuRuleRenban": "الأرقام على الخط البنفسجي تشكّل سلسلة متتالية بأي ترتيب ودون تكرار.",
+  "sdkRule_renban": "رينبان",
 };
 export default t;

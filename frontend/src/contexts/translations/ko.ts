@@ -3318,5 +3318,8 @@ const t: Record<string, string> = {
   "tathamRotation": "{n} 회전",
   "tathamOrientable": "방향 포함",
   "tathamTiles": "{n}개 타일",
+  "sudokuVariantRenban": "🟪 렌반",
+  "sudokuRuleRenban": "보라색 선 위의 숫자는 순서와 상관없이 연속된 수가 되며, 같은 숫자는 들어가지 않습니다.",
+  "sdkRule_renban": "렌반",
 };
 export default t;

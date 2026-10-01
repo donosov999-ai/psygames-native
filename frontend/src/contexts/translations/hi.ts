@@ -3326,5 +3326,8 @@ const t: Record<string, string> = {
   "tathamRotation": "{n} घुमाव",
   "tathamOrientable": "दिशा सहित",
   "tathamTiles": "{n} टाइलें",
+  "sudokuVariantRenban": "🟪 रेनबान",
+  "sudokuRuleRenban": "बैंगनी रेखा पर अंक लगातार संख्याओं का एक समूह बनाते हैं, क्रम कोई भी हो सकता है, पर दोहराव नहीं।",
+  "sdkRule_renban": "रेनबान",
 };
 export default t;

@@ -3323,5 +3323,8 @@ const t: Record<string, string> = {
   "tathamRotation": "giro {n}",
   "tathamOrientable": "con orientación",
   "tathamTiles": "{n} fichas",
+  "sudokuVariantRenban": "🟪 renban",
+  "sudokuRuleRenban": "Los dígitos de una línea morada forman una serie consecutiva en cualquier orden, sin repetirse.",
+  "sdkRule_renban": "renban",
 };
 export default t;
