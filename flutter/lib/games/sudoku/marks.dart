@@ -144,12 +144,16 @@ class PencilMarksLayer extends StatelessWidget {
     required this.value,
     required this.cell,
     required this.color,
+    this.glyph,
   });
 
   final int mask;
   final int value;
   final double cell;
   final Color color;
+
+  /// Значок цифры (буквы Wordoku и т. п.); `null` — сама цифра.
+  final String Function(int)? glyph;
 
   @override
   Widget build(BuildContext context) {
@@ -175,7 +179,9 @@ class PencilMarksLayer extends StatelessWidget {
                       height: slot,
                       child: Center(
                         child: Text(
-                          digits.contains(row * 3 + col + 1) ? '${row * 3 + col + 1}' : '',
+                          digits.contains(row * 3 + col + 1)
+                              ? (glyph?.call(row * 3 + col + 1) ?? '${row * 3 + col + 1}')
+                              : '',
                           style: TextStyle(fontSize: font, height: 1, color: color),
                         ),
                       ),
