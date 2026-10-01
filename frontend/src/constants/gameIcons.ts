@@ -156,6 +156,7 @@ export const MODE_ICONS: Record<string, any> = {
   '/games/sudoku?mode=towers': require('../../assets/images/game_icons/sudoku_towers.webp'),
   '/games/sudoku?mode=unequal': require('../../assets/images/game_icons/sudoku_unequal.webp'),
   '/games/find-move': require('../../assets/images/game_icons/find_move.webp'),
+  '/games/cats': require('../../assets/images/game_icons/cats.webp'),
 };
 
 /** Кастомная иконка игры по id (undefined → GameCard покажет Ionicons-фолбэк). */
