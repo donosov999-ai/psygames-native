@@ -76,8 +76,15 @@ void main() {
     return f.evaluate().isEmpty ? '' : tester.widget<Text>(f).data ?? '';
   }
 
-  Future<void> chooseDuel(WidgetTester tester, {int pairs = 6, PairsBotLevel bot = PairsBotLevel.kitten}) async {
+  Future<void> chooseDuel(
+    WidgetTester tester, {
+    int pairs = 6,
+    PairsBotLevel bot = PairsBotLevel.kitten,
+    int group = 2,
+  }) async {
     await tester.tap(find.text(L.t('pairsModeDuel')));
+    await tester.pump();
+    await tester.tap(find.byKey(Key('pp-group-$group')));
     await tester.pump();
     await tester.tap(find.byKey(Key('pp-pairs-$pairs')));
     await tester.pump();
@@ -94,7 +101,9 @@ void main() {
   }
 
   /// Доиграть дуэль за человека с идеальной памятью. Возвращает, сколько раз ходил бот.
-  Future<int> playToEnd(WidgetTester tester) async {
+  /// Ход — [group] карт: известна вся группа — снять её; иначе первая незнакомая, к ней
+  /// известные той же картинки, остаток — незнакомыми.
+  Future<int> playToEnd(WidgetTester tester, {int group = 2}) async {
     final seen = <int, int>{};
     var botTurns = 0;
     var wasBot = false;
@@ -121,11 +130,11 @@ void main() {
       for (final e in seen.entries) {
         if (closed(e.key)) known.putIfAbsent(e.value, () => []).add(e.key);
       }
-      final pair = known.values.where((v) => v.length >= 2).firstOrNull;
+      final whole = known.values.where((v) => v.length >= group).firstOrNull;
       final n = cardCount();
       final List<int> plan;
-      if (pair != null) {
-        plan = pair.take(2).toList();
+      if (whole != null) {
+        plan = whole.take(group).toList();
       } else {
         final a = List.generate(n, (i) => i).firstWhere((i) => closed(i) && !seen.containsKey(i));
         plan = [a];
@@ -135,16 +144,22 @@ void main() {
         continue;
       }
       look();
-      int second;
-      if (plan.length == 2) {
-        second = plan[1];
-      } else {
-        final s = seen[plan.first]!;
-        final mate = seen.entries.where((e) => e.key != plan.first && e.value == s && closed(e.key)).firstOrNull;
-        second = mate?.key ?? List.generate(n, (i) => i).firstWhere((i) => closed(i) && !seen.containsKey(i));
+      final opened = [plan.first];
+      while (opened.length < group) {
+        int next;
+        if (plan.length == group) {
+          next = plan[opened.length];
+        } else {
+          final s = seen[plan.first]!;
+          final mate = seen.entries.where((e) => !opened.contains(e.key) && e.value == s && closed(e.key)).firstOrNull;
+          next =
+              mate?.key ??
+              List.generate(n, (i) => i).firstWhere((i) => closed(i) && !seen.containsKey(i) && !opened.contains(i));
+        }
+        await open(tester, next);
+        opened.add(next);
+        look();
       }
-      await open(tester, second);
-      look();
       await tester.pump(const Duration(milliseconds: 900));
     }
     fail('дуэль не кончилась за 2000 шагов');
@@ -179,6 +194,58 @@ void main() {
     expect(hud('pairsDuelYou', '$you') && hud('rbBot', '$bot'), isTrue);
     expect(state.get(levelKey), '4', reason: 'дуэль лестницу не двигает');
     expect(state.get(resumeKey), isNull, reason: 'дуэль снимком не пишется');
+    await leave(tester);
+  });
+
+  testWidgets('🔴 дуэль на тройках доиграна нажатиями: ход — три карты у обеих сторон, отчёт с размером группы', (
+    tester,
+  ) async {
+    await boot(tester, level: 4);
+    await chooseDuel(tester, pairs: 6, bot: PairsBotLevel.fox, group: 3);
+    expect(tester.widget<Text>(find.byKey(const Key('pp-group-3'))).data, L.t('lr_picture_pairs_triple_title'));
+    expect(find.text(L.t('pairsDuelHintTriples')), findsOneWidget, reason: 'подсказка — про три карты за ход');
+    await tester.tap(find.byKey(const Key('pp-start')));
+    await tester.pump();
+    expect(cardCount(), 18, reason: 'шесть троек');
+    // Первый ход человека: две разные карты ещё не конец хода — открывается третья.
+    await open(tester, 0);
+    await open(tester, 1);
+    expect(caption(tester), L.t('pairsDuelYourTurn'), reason: 'две карты из трёх — ход не кончен');
+    await open(tester, 2);
+    expect(board(tester).where((s) => s >= 0).length, 3, reason: 'ход — три карты');
+    await tester.pump(const Duration(milliseconds: 900));
+
+    final botTurns = await playToEnd(tester, group: 3);
+    expect(botTurns, greaterThan(0), reason: 'бот ходил сам');
+    final s = sent.single;
+    final d = s['details'] as Map;
+    expect('${s['mode']} / ${s['difficulty']} / группа ${d['group_size']}', 'duel-fox / 6 triples / группа 3');
+    expect((d['player_pairs'] as int) + (d['bot_pairs'] as int), 6, reason: 'все тройки разобраны');
+    expect(state.get(levelKey), '4', reason: 'дуэль лестницу не двигает');
+    await leave(tester);
+  });
+
+  testWidgets('🔴 бот на тройках открывает три карты по одной, с паузой', (tester) async {
+    await boot(tester);
+    await chooseDuel(tester, pairs: 8, bot: PairsBotLevel.owl, group: 3);
+    await tester.tap(find.byKey(const Key('pp-start')));
+    await tester.pump();
+    final first = <int>[];
+    for (var i = 0; first.length < 3; i++) {
+      await open(tester, i);
+      first.add(face(tester, i));
+    }
+    expect(
+      first.toSet().length > 1,
+      isTrue,
+      reason: 'нужен промах: на зерне Random(11) первые три карты не одна тройка — иначе поменяйте зерно пробы',
+    );
+    await tester.pump(const Duration(milliseconds: 810));
+    expect(caption(tester), L.t('pairsDuelBotTurn'), reason: 'промах — ход бота');
+    for (var k = 1; k <= 3; k++) {
+      await tester.pump(const Duration(milliseconds: pairsBotStepMs + 10));
+      expect(board(tester).where((s) => s >= 0).length, k, reason: 'бот открыл карту $k из трёх');
+    }
     await leave(tester);
   });
 
@@ -238,6 +305,9 @@ void main() {
     scan('свободно');
     await chooseDuel(tester, bot: PairsBotLevel.owl);
     scan('дуэль');
+    await tester.tap(find.byKey(const Key('pp-group-3')));
+    await tester.pump();
+    scan('дуэль на тройках');
     await tester.tap(find.text(L.t('pairsModeKids')));
     await tester.pump();
     scan('малыши');
@@ -250,13 +320,18 @@ void main() {
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
     await boot(tester);
-    await chooseDuel(tester, bot: PairsBotLevel.fox);
+    await chooseDuel(tester, bot: PairsBotLevel.fox, group: 3);
     final start = tester.getRect(find.byKey(const Key('pp-start')));
     expect(start.bottom, lessThanOrEqualTo(640.0), reason: '«Начать» на первом экране');
     for (final b in PairsBotLevel.values) {
       final r = tester.getRect(find.byKey(Key('pp-bot-${b.name}')));
       expect(r.right, lessThanOrEqualTo(360.0), reason: '${b.name} не за краем');
     }
+    for (final g in [2, 3]) {
+      final r = tester.getRect(find.byKey(Key('pp-group-$g')));
+      expect(r.left >= 0 && r.right <= 360, isTrue, reason: 'группа $g не за краем: $r');
+    }
+    expect(tester.takeException(), isNull, reason: 'без переполнения');
     await leave(tester);
   });
 }

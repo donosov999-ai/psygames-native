@@ -86,21 +86,65 @@ void main() {
     expect(duel.playerPerseverations, 1);
   });
 
-  /// Сыграть дуэль ботом за игрока: обе стороны — боты, у каждой своя память.
-  int play(PairsBotLevel me, PairsBotLevel rival, int seed, int pairs) {
+  PairsGame triples(List<int> deck) => PairsGame(
+    level: 1,
+    cfg: pairsFreeCfg(pairs: deck.length ~/ 3, photo: false, previewMs: 0, groupSize: 3),
+    deck: deck,
+  );
+
+  test(
+    '🔴 тройки: две известные карты из трёх ход не начинают — первой идёт незнакомая, известные добираются к ней',
+    () {
+      final g = triples([0, 0, 1, 1, 0, 1]);
+      final bot = PairsBot(PairsBotLevel.owl, rnd: Random(4))
+        ..see(0, 0)
+        ..see(1, 0);
+      expect(bot.firstPick(g), isNot(anyOf(0, 1)), reason: 'группа не известна целиком — начинает с незнакомой');
+      // Незнакомая оказалась нулём — к ней добираются известные нули.
+      g.tap(4);
+      bot.see(4, 0);
+      expect([0, 1], contains(bot.nextPick(g)));
+    },
+  );
+
+  test('🔴 тройки: известна вся тройка — снимает её одним ходом', () {
+    final g = triples([0, 1, 0, 1, 0, 1]);
+    final duel = PairsDuel(
+      game: g,
+      bot: PairsBot(PairsBotLevel.fox, rnd: Random(6)),
+    );
+    duel.bot
+      ..see(0, 0)
+      ..see(2, 0)
+      ..see(4, 0);
+    duel.botTurn = true;
+    final opened = <int>[];
+    late TapResult r;
+    do {
+      final i = g.open.isEmpty ? duel.bot.firstPick(g) : duel.bot.nextPick(g);
+      opened.add(i);
+      r = duel.tap(i);
+    } while (r == TapResult.opened);
+    expect('${opened.toSet()} $r', '{0, 2, 4} TapResult.groupMatched');
+  });
+
+  /// Сыграть дуэль ботом за игрока: обе стороны — боты, у каждой своя память. Ход — открыть
+  /// [size] карт: две на парах, три на тройках.
+  int play(PairsBotLevel me, PairsBotLevel rival, int seed, int pairs, {int size = 2}) {
     final rnd = Random(seed);
-    final deck = [for (var s = 0; s < pairs; s++) ...[s, s]]..shuffle(rnd);
-    final duel = PairsDuel(game: board(deck), bot: PairsBot(rival, rnd: Random(seed * 31 + 7)));
+    final deck = [for (var s = 0; s < pairs; s++) for (var k = 0; k < size; k++) s]..shuffle(rnd);
+    final duel = PairsDuel(game: size == 3 ? triples(deck) : board(deck), bot: PairsBot(rival, rnd: Random(seed * 31 + 7)));
     final mine = PairsBot(me, rnd: Random(seed * 17 + 3));
+    final g = duel.game;
     while (!duel.over) {
       final side = duel.botTurn ? duel.bot : mine;
-      final a = side.firstPick(duel.game);
-      duel.tap(a);
-      mine.see(a, duel.game.cards[a].symbol); // соперник видит каждую открытую карту
-      final b = side.nextPick(duel.game);
-      final r = duel.tap(b);
-      mine.see(b, duel.game.cards[b].symbol);
-      if (r == TapResult.groupMatched) mine.forget([a, b]);
+      late TapResult r;
+      do {
+        final i = g.open.isEmpty ? side.firstPick(g) : side.nextPick(g);
+        r = duel.tap(i);
+        mine.see(i, g.cards[i].symbol); // соперник видит каждую открытую карту
+      } while (r == TapResult.opened);
+      if (r == TapResult.groupMatched) mine.forget(List.of(g.open));
       duel.settle(r);
     }
     return duel.outcome;
@@ -130,5 +174,34 @@ void main() {
     }
     expect(verdict.join('; '), '6 пар: сова/лиса true, лиса/котёнок true; 12 пар: сова/лиса true, лиса/котёнок true',
         reason: 'доли побед без ничьих — ${rates.join('; ')}');
+  });
+
+  test('🔴 тройки: сила — та же память — сова обыгрывает лису, лиса — котёнка (6 и 12 троек, по 1000 раздач)', () {
+    // Замер 02.10.2026 на тех же 1000 раздачах: 6 троек — 996:1 и 644:165, 12 троек — 1000:0 и 779:95.
+    final verdict = <String>[];
+    final rates = <String>[];
+    for (final groups in [6, 12]) {
+      String duel(PairsBotLevel me, PairsBotLevel rival) {
+        var wins = 0;
+        var losses = 0;
+        for (var seed = 1; seed <= 1000; seed++) {
+          final o = play(me, rival, seed, groups, size: 3);
+          if (o > 0) wins++;
+          if (o < 0) losses++;
+        }
+        rates.add('$groups троек ${me.name}/${rival.name} $wins:$losses');
+        return '${wins / (wins + losses) > 0.7}';
+      }
+
+      verdict.add(
+        '$groups троек: сова/лиса ${duel(PairsBotLevel.owl, PairsBotLevel.fox)}, '
+        'лиса/котёнок ${duel(PairsBotLevel.fox, PairsBotLevel.kitten)}',
+      );
+    }
+    expect(
+      verdict.join('; '),
+      '6 троек: сова/лиса true, лиса/котёнок true; 12 троек: сова/лиса true, лиса/котёнок true',
+      reason: rates.join(' · '),
+    );
   });
 }
