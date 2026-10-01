@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 import '../games/corsi/screen.dart';
+import '../games/n_back/screen.dart';
 import '../games/find_move/screen.dart';
 import '../games/solitaire_chess/screen.dart';
 import '../games/picture_pairs/screen.dart';
@@ -170,6 +171,7 @@ class HybridApp extends StatefulWidget {
         '/games/digit-span': (s) => DigitSpanScreen(state: s),
         '/games/memory-matrix': (s) => MemoryMatrixScreen(state: s),
         '/games/corsi': (s) => CorsiScreen(state: s),
+        '/games/n-back': (s) => NBackScreen(state: s),
         '/games/picture-pairs': (s) => PicturePairsScreen(state: s),
         '/games/schulte': (s) => SchulteScreen(state: s),
         // «Пауза / Зарядка» — хаб практик; `?set=…` доходит до экрана через GamePreset.
