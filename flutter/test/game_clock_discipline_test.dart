@@ -57,7 +57,6 @@ const _baseline = <String, int>{
   'mahjong/screen.dart': 1,
   'math_slider/screen.dart': 2,
   'math_sprint/screen.dart': 1,
-  'memory_matrix/screen.dart': 2,
   'memory_palace/screen.dart': 1,
   'mental_rotation/screen.dart': 10,
   'number_bonds/screen.dart': 2,
