@@ -4422,7 +4422,7 @@ const translations: Translations = {
   draughtsComboDesc: { ru: 'Задачи-комбинации в русских шашках: отдайте шашку — соперник обязан бить — и заберите больше. 24 ступени: от удара в один ход к комбинациям в три хода с прорывом в дамки и дамочным ударом.', en: 'Combination puzzles in Russian draughts: give up a piece — your opponent must capture — and take back more. 24 steps: from one-move shots to three-move combinations with a breakthrough to king and king strikes.' },
   chessTypeDraughts: { ru: 'Головоломка · шашки', en: 'Puzzle · draughts' },
   drAbout: { ru: 'Вы играете белыми. Касание шашки — выбор, касание поля с точкой — ход. Бить обязательно; простая бьёт и назад; дамка ходит и бьёт на любое расстояние.', en: 'You play White. Tap a piece to select it, tap a dotted square to move. Capturing is compulsory; men also capture backwards; a king moves and captures at any distance.' },
-  drRule: { ru: 'Выиграйте {gain} за {n} хода(ов) белых', en: 'Win {gain} in {n} White move(s)' },
+  drRule: { ru: 'Выиграйте {gain} за {n} хода(ов) белых', en: 'White to play and win {gain} piece(s) in {n} move(s)' },
   drGain: { ru: 'Выигрыш: {n}', en: 'Gain: {n}' },
   drOpponent: { ru: 'Ход соперника…', en: 'Opponent to move…' },
   drWrong: { ru: 'Этот ход не выигрывает — начните заново', en: 'This move does not win — start again' },

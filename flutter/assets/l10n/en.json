@@ -225,7 +225,7 @@
 "drAbout":"You play White. Tap a piece to select it, tap a dotted square to move. Capturing is compulsory; men also capture backwards; a king moves and captures at any distance.",
 "drGain":"Gain: {n}",
 "drOpponent":"Opponent to move…",
-"drRule":"Win {gain} in {n} White move(s)",
+"drRule":"White to play and win {gain} piece(s) in {n} move(s)",
 "drWrong":"This move does not win — start again",
 "draughtsCombo":"Draughts: Combinations",
 "draughtsComboDesc":"Combination puzzles in Russian draughts: give up a piece — your opponent must capture — and take back more. 24 steps: from one-move shots to three-move combinations with a breakthrough to king and king strikes.",
