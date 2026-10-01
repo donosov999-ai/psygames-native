@@ -1109,6 +1109,7 @@ String variantTitle(String variant) => switch (variant) {
       'killerdiag' => L.t('sdkRule_killerdiag'),
       'whisper' => L.t('sdkRule_whisper'),
       'renban' => L.t('sdkRule_renban'),
+      'regionsum' => L.t('sdkRule_regionsum'),
       _ => L.t('sdkRule_none'),
     };
 

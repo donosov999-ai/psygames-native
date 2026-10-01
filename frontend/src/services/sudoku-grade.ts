@@ -25,7 +25,7 @@
  */
 import {
   Cell, Variant, ThermoPN, ArrowMap, CageMap, isValid, generatePuzzle, shuffle, HYPER_BOXES, ORTHO,
-  Overlays, levelConfig, UnequalMap, TowersMap, towersLineOk, WHISPER_GAP, renbanOk, lineCells,
+  Overlays, levelConfig, UnequalMap, TowersMap, towersLineOk, WHISPER_GAP, renbanOk, lineCells, regionSumOk,
 } from './sudoku-core';
 
 export type Technique =
@@ -40,6 +40,7 @@ export type Technique =
   | 'unequal_chain'   // цепочка неравенств: границы протянуты через ПУСТЫХ соседей
   | 'whisper_line'    // немецкий шёпот: кандидат без пары «±5» у ПУСТОГО соседа по линии
   | 'renban_window'   // ренбан: кандидат вне любого окна «подряд», куда влезает вся линия
+  | 'region_sum'      // линия равных сумм: кандидат не входит ни в одну раскладку общей суммы
   | 'x_wing'          // X-wing
   | 'xy_wing'         // XY-wing: ось {a,b} и два клюва {a,c} и {b,c} — c уходит там, где видно оба
   | 'guess';          // логики не хватило — нужен перебор
@@ -51,6 +52,8 @@ export const TECHNIQUE_TIER: Record<Technique, number> = {
   whisper_line: 4,
   // Ренбан — тот же класс: вывод через ПУСТЫЕ клетки линии (окно значений), ступень 4.
   renban_window: 4,
+  // Линия равных сумм — тот же класс: вывод через ПУСТЫЕ клетки линии в нескольких блоках.
+  region_sum: 4,
   /**
    * 🔴 СТУПЕНЬ СУММ НАЗНАЧЕНА ЗАМЕРОМ, А НЕ НА ГЛАЗ (07.09.2026). До этого дня вывод
    * из клеток-сумм не помечался ВООБЩЕ — блок в `refilter` работал, но `bump` не звал,
@@ -86,6 +89,8 @@ export interface GradeCtx {
   whisper?: ThermoPN;
   /** Ренбан: на линии цифры разные и подряд (в любом порядке). */
   renban?: ThermoPN;
+  /** Линии равных сумм: в каждом блоке линии сумма её цифр одна. */
+  regionsum?: ThermoPN;
 }
 
 export interface Grade {
@@ -161,7 +166,7 @@ export function unitsFor(N: number, BR: number, BC: number, variant: Variant, re
 
 /** Оценка пазла: самая сложная техника, без которой не обойтись. */
 export function gradePuzzle(puzzle: Cell[][], ctx: GradeCtx, tierCap = 9): Grade {
-  const { N, BR, BC, variant, regions, thermo, arrow, cages, parity, kropki, sandwich, unequal, towers, whisper, renban } = ctx;
+  const { N, BR, BC, variant, regions, thermo, arrow, cages, parity, kropki, sandwich, unequal, towers, whisper, renban, regionsum } = ctx;
   const grid = puzzle.map((row) => [...row]);
   const FULL = (1 << N) - 1;
   const cand: number[][] = Array.from({ length: N }, () => Array(N).fill(FULL));
@@ -257,6 +262,8 @@ export function gradePuzzle(puzzle: Cell[][], ctx: GradeCtx, tierCap = 9): Grade
         }
         // Ренбан против ИЗВЕСТНЫХ цифр линии (повтор, разброс шире длины) — дано даром.
         if (ok && renban && !renbanOk(grid, r, c, v, renban)) ok = false;
+        // Равные суммы против ИЗВЕСТНЫХ цифр: коридоры сумм по блокам — даром.
+        if (ok && regionsum && !regionSumOk(grid, r, c, v, regionsum, N, BR, BC)) ok = false;
         if (!ok) m &= ~bit(v);
       }
       cand[r][c] = m;
@@ -398,6 +405,65 @@ export function gradePuzzle(puzzle: Cell[][], ctx: GradeCtx, tierCap = 9): Grade
         }
       }
       if (usedRenban) bump('renban_window');
+    }
+
+    /**
+     * ── ЛИНИЯ РАВНЫХ СУММ: у каждого блока линии перебором кандидатов находятся достижимые
+     * суммы (цифры в блоке разные), общая сумма T обязана лежать в их пересечении. Кандидат
+     * пустой клетки живёт, только если входит хотя бы в одну раскладку своего блока с такой T.
+     * Техникой (`region_sum`) считается этот вывод; срез по известным цифрам — даром, выше.
+     */
+    if (regionsum && выводВарианта) {
+      let usedSum = false;
+      const boxOf = (rr: number, cc: number) => Math.floor(rr / BR) * (N / BC) + Math.floor(cc / BC);
+      for (let r0 = 0; r0 < N; r0++) for (let c0 = 0; c0 < N; c0++) {
+        const head = regionsum[r0][c0];
+        if (!head || head.prev) continue;                          // по разу на линию
+        const cells = lineCells(regionsum, r0, c0);
+        const byBox = new Map<number, [number, number][]>();
+        for (const cell of cells) {
+          const b = boxOf(cell[0], cell[1]);
+          byBox.set(b, [...(byBox.get(b) ?? []), cell]);
+        }
+        // Для каждого блока: сумма → (клетка → цифры, которые встречаются в раскладках этой суммы).
+        const reach: Map<number, Map<string, number>>[] = [];
+        for (const group of byBox.values()) {
+          const fixed = group.filter(([gr, gc]) => grid[gr][gc] !== 0).map(([gr, gc]) => grid[gr][gc]);
+          const base = fixed.reduce((a, b) => a + b, 0);
+          const empty = group.filter(([gr, gc]) => grid[gr][gc] === 0);
+          const out = new Map<number, Map<string, number>>();
+          const pick: number[] = [];
+          const walk = (k: number, sum: number) => {
+            if (k === empty.length) {
+              const m = out.get(sum) ?? new Map<string, number>();
+              empty.forEach(([er, ec], i) => m.set(`${er},${ec}`, (m.get(`${er},${ec}`) ?? 0) | bit(pick[i])));
+              out.set(sum, m);
+              return;
+            }
+            const [er, ec] = empty[k];
+            for (const v of bitsOf(cand[er][ec], N)) {
+              if (fixed.includes(v) || pick.includes(v)) continue;
+              pick.push(v); walk(k + 1, sum + v); pick.pop();
+            }
+          };
+          walk(0, base);
+          reach.push(out);
+        }
+        let common: number[] = [...(reach[0]?.keys() ?? [])];
+        for (const m of reach.slice(1)) common = common.filter((t) => m.has(t));
+        if (!common.length) return true;                           // противоречие: общей суммы нет
+        for (const m of reach) {
+          const allowed = new Map<string, number>();
+          for (const t of common) for (const [key, bits] of m.get(t) ?? []) allowed.set(key, (allowed.get(key) ?? 0) | bits);
+          for (const [key, bits] of allowed) {
+            const [er, ec] = key.split(',').map(Number);
+            const next = cand[er][ec] & bits;
+            if (next !== cand[er][ec]) { cand[er][ec] = next; usedSum = true; }
+            if (next === 0) return true;
+          }
+        }
+      }
+      if (usedSum) bump('region_sum');
     }
 
     if (unequal && выводВарианта) {
@@ -968,6 +1034,9 @@ const VARIANT_TIER_CEILING: Partial<Record<Variant, number>> = {
   /** Ренбан (97–100) — ЗАМЕР 01.10.2026, выгрузка 48 досок боевым путём: 4 ×45, 5 ×3; шестёрки
    *  ноль. Без линий не решается 0 из 48, под потолком 3 — 1 из 48. Потолок 5. */
   renban: 5,
+  /** Линии равных сумм (101–104) — ЗАМЕР 01.10.2026, выгрузка 48 досок: 4 ×44, 5 ×4; шестёрки
+   *  ноль. Без линий не решается 0 из 48, под потолком 3 — 0 из 48. Потолок 5. */
+  regionsum: 5,
   /**
    * Комбо-пояс 81–92 — ЗАМЕР 29.08.2026 (combo-tiers.measure, по 15 боевых досок):
    * шестёрка у всех трёх пар — 0–1 из 15 (не массово), пятёрка достижима у всех
@@ -1178,7 +1247,7 @@ export type GeneratedPuzzle = ReturnType<typeof generatePuzzle>;
  * refilter; если конкретная попытка не укладывается в бюджет, generateLogical всё
  * равно сохраняет прежний безопасный fallback через проверку единственности.
  */
-const LOGIC_VARIANTS: readonly Variant[] = ['none', 'diagonal', 'antiknight', 'hyper', 'antiking', 'evenodd', 'kropki', 'sandwich', 'jigsaw', 'nonconsec', 'thermo', 'arrow', 'thermocage', 'sandparity', 'thermoknight', 'killerdiag', 'whisper', 'renban'];
+const LOGIC_VARIANTS: readonly Variant[] = ['none', 'diagonal', 'antiknight', 'hyper', 'antiking', 'evenodd', 'kropki', 'sandwich', 'jigsaw', 'nonconsec', 'thermo', 'arrow', 'thermocage', 'sandparity', 'thermoknight', 'killerdiag', 'whisper', 'renban', 'regionsum'];
 
 /**
  * Сколько раз проходим доску, пытаясь убрать ещё клетку. Больше трёх бюджет обычно
@@ -1232,7 +1301,7 @@ export function solvedSameBoard(grade: Grade, solution: Cell[][]): boolean {
 function gradeOf(gen: GeneratedPuzzle, N: number, BR: number, BC: number, variant: Variant): Grade {
   return gradePuzzle(gen.puzzle, {
     N, BR, BC, variant, regions: gen.regions, thermo: gen.thermo, arrow: gen.arrow, cages: gen.cages,
-    parity: gen.parity, kropki: gen.kropki, sandwich: gen.sandwich, whisper: gen.whisper, renban: gen.renban,
+    parity: gen.parity, kropki: gen.kropki, sandwich: gen.sandwich, whisper: gen.whisper, renban: gen.renban, regionsum: gen.regionsum,
     // ⚠️ Знаки и краевые подсказки ОБЯЗАНЫ доходить до оценщика. До 27.08.2026 их
     // здесь не было, и запасной путь оценивал unequal/towers вслепую: та же доска
     // давала «ступень 2, hidden_single» без карты и «ступень 4, unequal_chain» с ней.
@@ -1267,7 +1336,7 @@ function digByLogic(
   // увидит человек — та же дисциплина, что у сэндвича и кропки.
   const unequal = (base as { unequal?: UnequalMap }).unequal;
   const towers = (base as { towers?: TowersMap }).towers;
-  const ctx: GradeCtx = { N, BR, BC, variant, regions: base.regions, thermo: base.thermo, arrow: base.arrow, cages: base.cages, parity, kropki, sandwich, unequal, towers, whisper: base.whisper, renban: base.renban };
+  const ctx: GradeCtx = { N, BR, BC, variant, regions: base.regions, thermo: base.thermo, arrow: base.arrow, cages: base.cages, parity, kropki, sandwich, unequal, towers, whisper: base.whisper, renban: base.renban, regionsum: base.regionsum };
 
   // Лимит пустых держим только на новичковых уровнях, чтобы не пугать доской в дырках.
   // Дальше глубину задаёт ЛОГИКА. Старый лимит (58 к 29-му) как раз и упирался в потолок,

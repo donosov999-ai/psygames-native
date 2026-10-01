@@ -47,7 +47,7 @@ void main() {
     final f = find.byKey(Key('decor_${r}_$c'));
     if (f.evaluate().isEmpty) return null;
     final d = (tester.widget<CustomPaint>(f).painter! as CellDecorPainter).decor;
-    return variant == 'renban' ? d.renban : d.whisper;
+    return switch (variant) { 'renban' => d.renban, 'regionsum' => d.regionsum, _ => d.whisper };
   }
 
   /// Своя прогулка по линии: все клетки линии через (r, c).
@@ -87,8 +87,20 @@ void main() {
         }
         return true;
       }
-      // Ренбан: на линии без повторов, разброс не шире длины линии.
       final cells = walkLine(lines, r, c);
+      if (variant == 'regionsum') {
+        // Равные суммы: у ПОЛНОСТЬЮ заполненных блоков линии сумма одна (проверка — на полной линии).
+        final sums = <int, int>{};
+        var full = true;
+        for (final cell in cells) {
+          final o = cell[0] == r && cell[1] == c ? v : g[cell[0]][cell[1]];
+          if (o == 0) { full = false; break; }
+          final box = cell[0] ~/ 3 * 3 + cell[1] ~/ 3;
+          sums[box] = (sums[box] ?? 0) + o;
+        }
+        return !full || sums.values.toSet().length == 1;
+      }
+      // Ренбан: на линии без повторов, разброс не шире длины линии.
       final vals = <int>[v];
       for (final cell in cells) {
         if (cell[0] == r && cell[1] == c) continue;
@@ -138,6 +150,7 @@ void main() {
   for (final v in const [
     (variant: 'whisper', start: 95, name: 'шёпот'),
     (variant: 'renban', start: 99, name: 'ренбан'),
+    (variant: 'regionsum', start: 103, name: 'равные суммы'),
   ]) {
     testWidgets('🔴 «${v.name}», ступень ${v.start}: правило в шапке, линии на поле, доска доигрывается нажатиями',
         (tester) async {

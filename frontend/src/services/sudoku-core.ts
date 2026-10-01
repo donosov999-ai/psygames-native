@@ -11,7 +11,7 @@
 import { translateFor } from '../contexts/LanguageContext';
 
 export type Cell = number; // 0 = empty
-export type Variant = 'none' | 'diagonal' | 'antiknight' | 'hyper' | 'nonconsec' | 'jigsaw' | 'antiking' | 'evenodd' | 'kropki' | 'sandwich' | 'thermo' | 'arrow' | 'thermocage' | 'unequal' | 'towers' | 'sandparity' | 'thermoknight' | 'killerdiag' | 'whisper' | 'renban';
+export type Variant = 'none' | 'diagonal' | 'antiknight' | 'hyper' | 'nonconsec' | 'jigsaw' | 'antiking' | 'evenodd' | 'kropki' | 'sandwich' | 'thermo' | 'arrow' | 'thermocage' | 'unequal' | 'towers' | 'sandparity' | 'thermoknight' | 'killerdiag' | 'whisper' | 'renban' | 'regionsum';
 
 export const HYPER_BOXES = [[1, 1], [1, 5], [5, 1], [5, 5]] as const;   // Windoku: 4 доп. зоны 3×3 (левые-верхние углы)
 export const KNIGHT = [[-2, -1], [-2, 1], [-1, -2], [-1, 2], [1, -2], [1, 2], [2, -1], [2, 1]] as const;
@@ -44,6 +44,7 @@ const VARIANT_KEY_SUFFIX: Record<Exclude<Variant, 'none'>, string> = {
   sandparity: 'Sandparity', thermoknight: 'Thermoknight', killerdiag: 'Killerdiag',
   whisper: 'Whisper',
   renban: 'Renban',
+  regionsum: 'Regionsum',
 };
 export function variantLabel(v: Variant, lang: string): string {
   if (v === 'none') return '';
@@ -347,7 +348,12 @@ export function levelConfig(level: number): LevelCfg {
    * 🔴 РЕНБАН — СТУПЕНИ 97–100 (01.10.2026, пункт 4 цепочки «14 усложнений», задача 031a7684).
    * Тоже в конец лестницы — по той же причине, что шёпот. Место по замеру (см. VARIANT_TIER_CEILING).
    */
-  else if (lv >= 97) variant = 'renban';
+  else if (lv >= 97 && lv <= 100) variant = 'renban';
+  /**
+   * 🔴 ЛИНИИ РАВНЫХ СУММ — СТУПЕНИ 101–104 (01.10.2026, пункт 5 цепочки, задача b0a1feef).
+   * Тоже в конец лестницы. Место по замеру (см. VARIANT_TIER_CEILING).
+   */
+  else if (lv >= 101) variant = 'regionsum';
   /**
    * 🔴 НЕРАВЕНСТВА (футосики) СОБРАНЫ, НО УРОВНЕЙ НЕ ПОЛУЧИЛИ — ЗАМЕР 26.08.2026.
    *
@@ -653,6 +659,74 @@ export function renbanOk(grid: Cell[][], r: number, c: number, n: number, pn: Th
     vals.push(v);
   }
   return Math.max(...vals) - Math.min(...vals) <= cells.length - 1;
+}
+
+/**
+ * 🔴 ЛИНИИ РАВНЫХ СУММ (Region Sum Lines; пункт 5 цепочки «14 усложнений», задача b0a1feef;
+ * решение Дениса 30.09 «Берём»): синяя линия проходит через несколько блоков, и в КАЖДОМ
+ * блоке сумма её цифр одна и та же. Правило связывает блоки: одиночная клетка на линии в
+ * одном блоке равна сумме двух-трёх клеток в соседнем.
+ *
+ * Линии — ИЗ решения: случайный путь 3…7 клеток, который задевает ≥ 2 блока и у которого
+ * суммы по блокам совпали (замер 01.10: ~2 % путей, ≈ 6 линий на доску за 400 попыток).
+ * До пяти линий, без общих клеток. Хранятся тем же видом prev/next.
+ */
+export function regionSumFromSolution(sol: Cell[][], N: number, BR: number, BC: number, rnd: () => number = Math.random): ThermoPN {
+  const used: boolean[][] = Array.from({ length: N }, () => Array(N).fill(false));
+  const boxOf = (r: number, c: number) => Math.floor(r / BR) * (N / BC) + Math.floor(c / BC);
+  const paths: [number, number][][] = [];
+  for (let attempt = 0; attempt < 800 && paths.length < 5; attempt++) {
+    const len = 3 + Math.floor(rnd() * 5);   // 3..7
+    let r = Math.floor(rnd() * N), c = Math.floor(rnd() * N);
+    if (used[r][c]) continue;
+    const path: [number, number][] = [[r, c]];
+    for (let s = 1; s < len; s++) {
+      const nb = ORTHO.map(([dr, dc]) => [r + dr, c + dc] as [number, number])
+        .filter(([nr, nc]) => nr >= 0 && nr < N && nc >= 0 && nc < N && !used[nr][nc]
+          && !path.some(([pr, pc]) => pr === nr && pc === nc));
+      if (!nb.length) break;
+      [r, c] = nb[Math.floor(rnd() * nb.length)];
+      path.push([r, c]);
+    }
+    const sums = new Map<number, number>();
+    for (const [pr, pc] of path) sums.set(boxOf(pr, pc), (sums.get(boxOf(pr, pc)) ?? 0) + sol[pr][pc]);
+    if (path.length < 3 || sums.size < 2) continue;
+    const vals = [...sums.values()];
+    if (!vals.every((v) => v === vals[0])) continue;
+    paths.push(path);
+    for (const [pr, pc] of path) used[pr][pc] = true;
+  }
+  const pn: ThermoPN = Array.from({ length: N }, () => Array(N).fill(null));
+  for (const path of paths) for (let k = 0; k < path.length; k++) {
+    const [r, c] = path[k];
+    pn[r][c] = { prev: k > 0 ? path[k - 1] : null, next: k < path.length - 1 ? path[k + 1] : null };
+  }
+  return pn;
+}
+
+/**
+ * Не нарушает ли цифра n в (r, c) линию равных сумм. Клетки линии делятся на группы по
+ * блокам; у заполненной группы сумма точная, у неполной — коридор [сумма + наименьшее
+ * добивание, сумма + наибольшее] (разные цифры: 1+2+…, N+(N−1)+…). Все группы обязаны
+ * иметь общую сумму: коридоры пересекаются, а точные суммы равны.
+ */
+export function regionSumOk(grid: Cell[][], r: number, c: number, n: number, pn: ThermoPN, N: number, BR: number, BC: number): boolean {
+  const cells = lineCells(pn, r, c);
+  if (!cells.length) return true;
+  const boxOf = (rr: number, cc: number) => Math.floor(rr / BR) * (N / BC) + Math.floor(cc / BC);
+  const groups = new Map<number, { sum: number; empty: number }>();
+  for (const [lr, lc] of cells) {
+    const v = lr === r && lc === c ? n : grid[lr][lc];
+    const g = groups.get(boxOf(lr, lc)) ?? { sum: 0, empty: 0 };
+    if (v === 0) g.empty++; else g.sum += v;
+    groups.set(boxOf(lr, lc), g);
+  }
+  let lo = -Infinity, hi = Infinity;
+  for (const { sum, empty } of groups.values()) {
+    lo = Math.max(lo, sum + (empty * (empty + 1)) / 2);
+    hi = Math.min(hi, sum + empty * N - (empty * (empty - 1)) / 2);
+  }
+  return lo <= hi;
 }
 
 export function arrowFromSolution(sol: Cell[][], N: number): ArrowMap {
@@ -1030,6 +1104,8 @@ export interface Overlays {
   whisper?: ThermoPN;
   /** Ренбан: линии prev/next; цифры на линии разные и образуют отрезок подряд. */
   renban?: ThermoPN;
+  /** Линии равных сумм: в каждом блоке, через который идёт линия, сумма её цифр одна. */
+  regionsum?: ThermoPN;
 }
 
 /** Полные оверлеи из решения — до прореживания. */
@@ -1066,6 +1142,10 @@ export function overlaysFromSolution(sol: Cell[][], N: number, variant: Variant)
   }
   if (variant === 'renban') {
     return { renban: renbanFromSolution(sol, N) };
+  }
+  if (variant === 'regionsum') {
+    const { BR, BC } = dimsForSize(N as 6 | 9);
+    return { regionsum: regionSumFromSolution(sol, N, BR, BC) };
   }
   if (variant === 'unequal') {
     // Знаки СРАЗУ все; сколько показать — решает прореживание уровня, как у кропки.
@@ -1142,6 +1222,10 @@ export function overlayOk(grid: Cell[][], r: number, c: number, n: number, N: nu
     }
   }
   if (ov.renban && !renbanOk(grid, r, c, n, ov.renban)) return false;   // линия — показанная подсказка
+  if (ov.regionsum) {
+    const { BR, BC } = dimsForSize(N as 6 | 9);
+    if (!regionSumOk(grid, r, c, n, ov.regionsum, N, BR, BC)) return false;
+  }
   if (ov.sandwich) {
     const check = (line: number[], want: number): boolean => {
       if (want < 0) return true;                                      // сумма СПРЯТАНА (см. thinSandwich) — не подсказка
@@ -1198,7 +1282,7 @@ export function countSolutions(grid: Cell[][], N: number, BR: number, BC: number
 // thermocage здесь ОБЯЗАН быть: единственность решения у него считается по ДВУМ
 // правилам сразу (isValid знает и цепочку, и сумму). Доска, единственная по каждому
 // правилу порознь, вместе может иметь второе решение — и наоборот.
-const UNIQUE_CHECKED: readonly Variant[] = ['none', 'diagonal', 'antiknight', 'hyper', 'nonconsec', 'antiking', 'jigsaw', 'thermo', 'arrow', 'evenodd', 'kropki', 'sandwich', 'thermocage', 'unequal', 'towers', 'sandparity', 'thermoknight', 'killerdiag', 'whisper', 'renban'];
+const UNIQUE_CHECKED: readonly Variant[] = ['none', 'diagonal', 'antiknight', 'hyper', 'nonconsec', 'antiking', 'jigsaw', 'thermo', 'arrow', 'evenodd', 'kropki', 'sandwich', 'thermocage', 'unequal', 'towers', 'sandparity', 'thermoknight', 'killerdiag', 'whisper', 'renban', 'regionsum'];
 
 /**
  * Готовая сетка для «несоседних чисел» — БЕЗ перебора.
@@ -1227,7 +1311,7 @@ export function buildNonconsecSolution(): Cell[][] {
   return g;
 }
 
-export function generatePuzzle(blanks: number, N: number, BR: number, BC: number, variant: Variant = 'none', thin?: (ov: Overlays) => Overlays): { puzzle: Cell[][]; solution: Cell[][]; regions?: number[][]; parity?: number[][]; kropki?: { h: number[][]; v: number[][] }; sandwich?: { rows: number[]; cols: number[] }; thermo?: ThermoPN; arrow?: ArrowMap; cages?: CageMap; unequal?: UnequalMap; towers?: TowersMap; whisper?: ThermoPN; renban?: ThermoPN } {
+export function generatePuzzle(blanks: number, N: number, BR: number, BC: number, variant: Variant = 'none', thin?: (ov: Overlays) => Overlays): { puzzle: Cell[][]; solution: Cell[][]; regions?: number[][]; parity?: number[][]; kropki?: { h: number[][]; v: number[][] }; sandwich?: { rows: number[]; cols: number[] }; thermo?: ThermoPN; arrow?: ArrowMap; cages?: CageMap; unequal?: UnequalMap; towers?: TowersMap; whisper?: ThermoPN; renban?: ThermoPN; regionsum?: ThermoPN } {
   const sol: Cell[][] = Array.from({ length: N }, () => Array(N).fill(0));
   let regions: number[][] | undefined;
   let thermo: ThermoPN | undefined;
@@ -1320,7 +1404,8 @@ export function generatePuzzle(blanks: number, N: number, BR: number, BC: number
   const towers = ov.towers;
   const whisper = ov.whisper;
   const renban = ov.renban;
-  return { puzzle, solution: sol, regions, parity, kropki, sandwich, thermo, arrow, cages, unequal, towers, whisper, renban };
+  const regionsum = ov.regionsum;
+  return { puzzle, solution: sol, regions, parity, kropki, sandwich, thermo, arrow, cages, unequal, towers, whisper, renban, regionsum };
 }
 
 /**
@@ -1352,6 +1437,7 @@ export interface RejectionContext {
   towers?: TowersMap;
   whisper?: ThermoPN;
   renban?: ThermoPN;
+  regionsum?: ThermoPN;
 }
 
 export function rejectionReason(
@@ -1382,6 +1468,7 @@ export function rejectionReason(
       }
     }
     if (variant === 'renban' && ctx.renban && !renbanOk(test, r, c, n, ctx.renban)) return variantRule(variant, lang);
+    if (variant === 'regionsum' && ctx.regionsum && !regionSumOk(test, r, c, n, ctx.regionsum, N, BR, BC)) return variantRule(variant, lang);
     if (variant === 'kropki' && ctx.kropki) {
       const okDot = (dot: number, a: number, b: number): boolean => {
         if (dot === 1) return Math.abs(a - b) === 1;              // белая: разница в единицу

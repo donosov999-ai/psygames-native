@@ -381,7 +381,7 @@ export const SUDOKU_GAME_ID = GAME_ID;
  * Число берётся из гейта, а не пишется рядом: расхождение этих двух чисел и было
  * дефектом, и повториться оно не должно (см. `sudoku-ladder-matches-gate`).
  */
-const SUDOKU_LAST_LEVEL = 100;   // 54–57 ThermoCage; 58–65 ALS; 66–79 цепи; 80 легенда; 81–92 комбо; 93–96 немецкий шёпот; 97–100 ренбан
+const SUDOKU_LAST_LEVEL = 104;   // 54–57 ThermoCage; 58–65 ALS; 66–79 цепи; 80 легенда; 81–92 комбо; 93–96 немецкий шёпот; 97–100 ренбан; 101–104 равные суммы
 const SUDOKU_TIER_KEYS: Record<SudokuDifficultyTier, string> = {
   beginner: 'sudokuTierBeginner',
   easy: 'sudokuTierEasy',
@@ -466,6 +466,8 @@ interface SudokuResume {
   whisper?: ThermoPN | null;
   /** Ренбан (97–100); в снимках до 01.10 поля нет — читать с ?? null. */
   renban?: ThermoPN | null;
+  /** Линии равных сумм (101–104); в снимках до 01.10 поля нет — читать с ?? null. */
+  regionsum?: ThermoPN | null;
   /** Поля режимов towers/unequal; в старых снимках отсутствуют — читать с ?? null. */
   unequal?: UnequalMap | null;
   towers?: TowersMap | null;
@@ -686,6 +688,7 @@ export default function SudokuGame() {
   const [thermo, setThermo] = useState<ThermoPN | null>(null);   // thermo: prev/next-карта термометров
   const [whisper, setWhisper] = useState<ThermoPN | null>(null);   // немецкий шёпот: линии той же формы prev/next
   const [renban, setRenban] = useState<ThermoPN | null>(null);     // ренбан: линии той же формы prev/next
+  const [regionsum, setRegionsum] = useState<ThermoPN | null>(null);   // равные суммы: линии той же формы
   const [arrow, setArrow] = useState<ArrowMap | null>(null);   // arrow: кружок (сумма) + стрелка
   const [unequalMap, setUnequalMap] = useState<UnequalMap | null>(null);   // unequal: знаки </> на гранях
   const [towersMap, setTowersMap] = useState<TowersMap | null>(null);   // towers: числа видимости на четырёх краях
@@ -1027,6 +1030,7 @@ export default function SudokuGame() {
     setThermo(th ?? null);
     setWhisper((built as { whisper?: ThermoPN }).whisper ?? null);
     setRenban((built as { renban?: ThermoPN }).renban ?? null);
+    setRegionsum((built as { regionsum?: ThermoPN }).regionsum ?? null);
     setArrow(ar ?? null);
     // Карты режимов towers/unequal: на прочих досках их нет — чистим до null.
     const sideMaps = built as { unequal?: UnequalMap; towers?: TowersMap };
@@ -1068,7 +1072,7 @@ export default function SudokuGame() {
   const snapshot = (): SudokuResume => ({
     mode, level, road, difficulty, size, variant, dims,
     puzzle, solution, grid, given, cellColors, marks,
-    regions, cages, cageSums, cageAnchors, parityMarks, kropki, sandwich, thermo, arrow, whisper, renban,
+    regions, cages, cageSums, cageAnchors, parityMarks, kropki, sandwich, thermo, arrow, whisper, renban, regionsum,
     unequal: unequalMap, towers: towersMap,
     errors, hintUses, hintMax, backtrackCount,
     elapsed: elapsedTime,
@@ -1097,7 +1101,7 @@ export default function SudokuGame() {
     setPencil(false);
     setRegions(s.regions); setCages(s.cages); setCageSums(s.cageSums); setCageAnchors(s.cageAnchors);
     setParityMarks(s.parityMarks); setKropki(s.kropki); setSandwich(s.sandwich);
-    setThermo(s.thermo); setArrow(s.arrow); setWhisper(s.whisper ?? null); setRenban(s.renban ?? null);
+    setThermo(s.thermo); setArrow(s.arrow); setWhisper(s.whisper ?? null); setRenban(s.renban ?? null); setRegionsum(s.regionsum ?? null);
     setUnequalMap(s.unequal ?? null); setTowersMap(s.towers ?? null);   // старые снимки полей не имеют
     setErrors(s.errors); setHintUses(s.hintUses); setHintMax(s.hintMax); setBacktrackCount(s.backtrackCount);
     setSelected(null); setOver(false); setBossWon(null);
@@ -1278,6 +1282,7 @@ export default function SudokuGame() {
         thermo: thermo ?? undefined,
         whisper: whisper ?? undefined,
         renban: renban ?? undefined,
+        regionsum: regionsum ?? undefined,
         arrow: arrow ?? undefined,
         parity: parityMarks ?? undefined,
         kropki: kropki ?? undefined,
@@ -2017,6 +2022,7 @@ export default function SudokuGame() {
             || (variant === 'arrow' && arrow && arrow[r][c])
             || (variant === 'whisper' && whisper && whisper[r][c])
             || (variant === 'renban' && renban && renban[r][c])
+            || (variant === 'regionsum' && regionsum && regionsum[r][c])
             || (variant === 'kropki' && kropki && (
                  (c < N - 1 && kropki.h[r][c] !== 0) || (c > 0 && kropki.h[r][c - 1] !== 0)
                  || (r < N - 1 && kropki.v[r][c] !== 0) || (r > 0 && kropki.v[r - 1][c] !== 0)))
@@ -2110,6 +2116,20 @@ export default function SudokuGame() {
                 const pn = whisper[r][c]!;
                 const thick = thermoThick(cellSize);
                 const col = blendHex(colors.surface, '#22C55E', 0.6);
+                const seg = (cell: [number, number]) => thermoSegment(r, c, cell, cellSize, thick);
+                return (
+                  <>
+                    {pn.prev && <View style={{ position: 'absolute', backgroundColor: col, pointerEvents: 'none', ...seg(pn.prev) }} />}
+                    {pn.next && <View style={{ position: 'absolute', backgroundColor: col, pointerEvents: 'none', ...seg(pn.next) }} />}
+                  </>
+                );
+              })()}
+              {variant === 'regionsum' && regionsum && regionsum[r][c] && (() => {
+                // Равные суммы — синяя линия без колбы, как шёпот: та же трубка и тот же
+                // зазор у границы (`thermoSegment`).
+                const pn = regionsum[r][c]!;
+                const thick = thermoThick(cellSize);
+                const col = blendHex(colors.surface, '#3B82F6', 0.6);
                 const seg = (cell: [number, number]) => thermoSegment(r, c, cell, cellSize, thick);
                 return (
                   <>

@@ -180,6 +180,7 @@ class BoardGeometry {
     this.sandwich,
     this.whisper,
     this.renban,
+    this.regionsum,
   });
   final List<List<int>>? regions;
   final List<List<ThermoLink?>>? thermo;
@@ -199,6 +200,9 @@ class BoardGeometry {
 
   /// Фиолетовые линии ренбана: цифры на линии разные и идут подряд в любом порядке.
   final List<List<ThermoLink?>>? renban;
+
+  /// Синие линии равных сумм: в каждом блоке, через который идёт линия, сумма её цифр одна.
+  final List<List<ThermoLink?>>? regionsum;
 
   static BoardGeometry fromJson(Map<String, Object?> v) => BoardGeometry(
         regions: v['regions'] == null ? null : _grid(v['regions']),
@@ -226,6 +230,11 @@ class BoardGeometry {
         renban: v['renban'] == null
             ? null
             : (v['renban'] as List)
+                .map((row) => (row as List).map(ThermoLink.fromJson).toList())
+                .toList(),
+        regionsum: v['regionsum'] == null
+            ? null
+            : (v['regionsum'] as List)
                 .map((row) => (row as List).map(ThermoLink.fromJson).toList())
                 .toList(),
       );
@@ -440,6 +449,30 @@ List<List<int>> lineCells(List<List<ThermoLink?>> pn, int r, int c) {
   return out;
 }
 
+/// Линия равных сумм не нарушена цифрой [val] в (r, c): у каждого блока линии коридор
+/// возможных сумм (заполненное + наименьшее/наибольшее добивание разными цифрами), и все
+/// коридоры пересекаются. Перенос `regionSumOk` веба; блоки — 3×3 у 9×9, 2×3 у 6×6.
+bool regionSumOk(List<List<int>> grid, int r, int c, int val, List<List<ThermoLink?>> pn, int n) {
+  final cells = lineCells(pn, r, c);
+  if (cells.isEmpty) return true;
+  final br = n == 6 ? 2 : 3, bc = 3;
+  final sums = <int, int>{}, empties = <int, int>{};
+  for (final cell in cells) {
+    final box = cell[0] ~/ br * (n ~/ bc) + cell[1] ~/ bc;
+    final v = cell[0] == r && cell[1] == c ? val : grid[cell[0]][cell[1]];
+    sums[box] = (sums[box] ?? 0) + v;
+    if (v == 0) empties[box] = (empties[box] ?? 0) + 1;
+  }
+  var lo = -1 << 30, hi = 1 << 30;
+  for (final box in sums.keys) {
+    final k = empties[box] ?? 0, sum = sums[box]!;
+    final low = sum + k * (k + 1) ~/ 2, high = sum + k * n - k * (k - 1) ~/ 2;
+    if (low > lo) lo = low;
+    if (high < hi) hi = high;
+  }
+  return lo <= hi;
+}
+
 /// Линия ренбана не нарушена цифрой [val] в (r, c): на линии нет повторов, и разброс
 /// известных цифр не шире её длины. Перенос `renbanOk` веба.
 bool renbanOk(List<List<int>> grid, int r, int c, int val, List<List<ThermoLink?>> pn) {
@@ -462,7 +495,7 @@ bool renbanOk(List<List<int>> grid, int r, int c, int val, List<List<ThermoLink?
 
 /// Не нарушает ли цифра [val] в клетке (r, c) ПОКАЗАННЫЕ подсказки — перенос `overlayOk`
 /// из `frontend/src/services/sudoku-core.ts`: метки чётности, точки Кропки, суммы сэндвича,
-/// линии шёпота и ренбана.
+/// линии шёпота, ренбана и равных сумм.
 bool overlayOk(List<List<int>> grid, int r, int c, int val, int n, BoardGeometry g) {
   final parity = g.parity;
   if (parity != null) {
@@ -498,6 +531,8 @@ bool overlayOk(List<List<int>> grid, int r, int c, int val, int n, BoardGeometry
   }
   final renban = g.renban;
   if (renban != null && !renbanOk(grid, r, c, val, renban)) return false;
+  final regionsum = g.regionsum;
+  if (regionsum != null && !regionSumOk(grid, r, c, val, regionsum, n)) return false;
   final sandwich = g.sandwich;
   if (sandwich != null) {
     bool check(List<int> line, int want) {

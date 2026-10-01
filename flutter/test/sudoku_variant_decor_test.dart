@@ -74,6 +74,10 @@ void main() {
               expect(d?.renban, isNotNull, reason: '$at: звено полосы ренбана $r,$c не нарисовано');
               checked['renban'] = (checked['renban'] ?? 0) + 1;
             }
+            if (g.regionsum?[r][c] != null) {
+              expect(d?.regionsum, isNotNull, reason: '$at: звено линии равных сумм $r,$c не нарисовано');
+              checked['regionsum'] = (checked['regionsum'] ?? 0) + 1;
+            }
             final p = g.parity?[r][c] ?? 0;
             if (p != 0) {
               expect(d?.parity, p, reason: '$at: метка чётности $r,$c не нарисована');
@@ -119,12 +123,12 @@ void main() {
       }
     }
     // Проба не пустая: каждая из шести подсказок встретилась на доске.
-    for (final kind in ['thermo', 'arrow', 'parity', 'cage', 'kropki', 'sandwich', 'diagonal', 'hyper', 'whisper', 'renban']) {
+    for (final kind in ['thermo', 'arrow', 'parity', 'cage', 'kropki', 'sandwich', 'diagonal', 'hyper', 'whisper', 'renban', 'regionsum']) {
       expect(checked[kind] ?? 0, greaterThan(0), reason: 'подсказка «$kind» не встретилась ни разу — проба мимо');
     }
   });
 
-  test('🔴 показанные подсказки проверяются: чётность, точка Кропки, сумма сэндвича, линии шёпота и ренбана', () {
+  test('🔴 показанные подсказки проверяются: чётность, точка Кропки, сумма сэндвича, линии шёпота, ренбана и равных сумм', () {
     final empty = List.generate(9, (_) => List.filled(9, 0));
     final parity = List.generate(9, (_) => List.filled(9, 0))..[0][0] = 1;   // 1 — чётная
     final g1 = BoardGeometry(parity: parity);
@@ -162,5 +166,16 @@ void main() {
     expect(isValid(run, 0, 0, 3, 9, 3, 3, variant: 'renban', geometry: g5), isTrue, reason: '3 и 5 — окно из трёх (3-4-5)');
     expect(isValid(run, 0, 0, 2, 9, 3, 3, variant: 'renban', geometry: g5), isFalse, reason: '2 и 5 — шире трёх подряд');
     expect(isValid(run, 0, 0, 7, 9, 3, 3, variant: 'renban', geometry: g5), isTrue, reason: '5 и 7 — окно 5-6-7');
+
+    // Линия равных сумм (0,2)–(0,3)–(0,4): (0,2) в блоке 0, (0,3)–(0,4) в блоке 1.
+    final rs = List<List<ThermoLink?>>.generate(9, (_) => List<ThermoLink?>.filled(9, null));
+    rs[0][2] = const ThermoLink(next: [0, 3]);
+    rs[0][3] = const ThermoLink(prev: [0, 2], next: [0, 4]);
+    rs[0][4] = const ThermoLink(prev: [0, 3]);
+    final g6 = BoardGeometry(regionsum: rs);
+    final sums = [for (final row in empty) [...row]]..[0][3] = 1;
+    sums[0][4] = 2;   // блок 1: 1+2 = 3 → в блоке 0 одиночная клетка обязана быть 3
+    expect(isValid(sums, 0, 2, 3, 9, 3, 3, variant: 'regionsum', geometry: g6), isTrue, reason: '3 = 1+2');
+    expect(isValid(sums, 0, 2, 4, 9, 3, 3, variant: 'regionsum', geometry: g6), isFalse, reason: '4 ≠ 1+2');
   });
 }
