@@ -41,6 +41,7 @@ import { a11yBtn, a11yModal } from '@/src/services/a11y';
 import { goBackOrHome } from '@/src/utils/nav';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { имяШага } from '@/src/services/stepName';
+import { postUiModel, registerUiActions } from '@/src/services/warmupUi';
 
 const ORDER: WarmupSlot[] = ['morning', 'day', 'evening', 'night'];
 
@@ -345,129 +346,181 @@ export default function WarmupPicker() {
 
   const narrow = width < 380;
 
-  const renderCard = (slot: PickKey) => {
+  /**
+   * Всё, что показывает карточка, — одной функцией: её читают и веб-отрисовка ниже,
+   * и модель для оболочки (`services/warmupUi.ts`). Две копии разошлись бы молча.
+   */
+  const cardModel = (slot: PickKey) => {
     const on = picked === slot;
-    const meta = isSeries(slot) && seriesKind(slot) === 'blocks' ? { steps: [], est_total_sec: 0 } as any : metaFor(slot);
+    const series = isSeries(slot);
+    const blocks = series && seriesKind(slot as SeriesKey) === 'blocks';
+    const meta = blocks ? { steps: [], est_total_sec: 0 } as any : metaFor(slot);
     const off = isEmpty(slot);
     const mins = Math.max(1, Math.round(meta.est_total_sec / 60));
-    const series = isSeries(slot);
+    const metaLine = slot === 'financial' && !finCooldown.ready
+      ? `${t('ctaWait')}: ${finCooldown.daysLeft}${t('unitDayShort')}`
+      : blocks
+        ? `${t('seriesBlocksCount')}: ${seriesBlockCount(slot as SeriesKey)}`
+        : off
+          ? t('restDay')
+          : `${t('unitGames')}: ${meta.steps.length} · ~${mins} ${t('unitMin')}`;
+    // Пишем это на самой карточке, а не мелким шрифтом внизу экрана: человек должен
+    // понимать до запуска, что стрик тут не растёт. У серии своя приписка: состав
+    // фиксирован, иначе замеры разных дней несравнимы.
+    const note = !series && !isTrainingSlot(slot as WarmupSlot)
+      ? t('slotNightNote')
+      : series
+        ? (slot === 'assessment' && assessDays !== null ? `${t('seriesFixedNote')} · ${assessDays}${t('unitDayShort')}` : t('seriesFixedNote'))
+        : null;
+    // Длительность — чипы прямо на карточке, у ВСЕХ четырёх слотов. Там, где состав
+    // назван целиком, три длины дали бы один и тот же список — чипов нет (`длинаВлияет`).
+    const durs = !series && !isСвоя(slot) && on && длинаВлияет(wd, slot as WarmupSlot, слотЗафиксирован(slot as WarmupSlot))
+      ? ([5, 10, 15] as const).map((d) => ({ value: d, label: `${d} ${t('unitMin')}`, selected: dur[slot as WarmupSlot] === d }))
+      : null;
+    // Длина ПОТОКА — те же чипы, но выбирают вариант набора, а не длину слота.
+    const п = потокКарточки(slot);
+    const выбранный = п ? (п.варианты.find((в) => в.длина === длинаПотока[п.ключ]) ?? п.варианты[0]).длина : null;
+    const ownLens = п && on && п.варианты.length >= 2
+      ? п.варианты.map(({ длина }) => ({ value: длина ?? 0, label: `${длина} ${t('unitMin')}`, selected: выбранный === длина }))
+      : null;
+    // З6: состав набора виден ДО старта — только на выбранной карточке.
+    const steps: string[] = on && !off && !blocks && meta.steps.length > 0
+      ? meta.steps.map((st: { game_id: string; game_route?: string; mode?: string; est_duration_sec: number }, i: number) =>
+        `${i + 1}. ${имяШага(st, t)} · ~${Math.max(1, Math.round(st.est_duration_sec / 60))} ${t('unitMin')}`)
+      : [];
+    return {
+      key: slot as string, title: titleOf(slot), desc: descOf(slot), meta: metaLine, note,
+      icon: значок(slot) as string, tint: TINT[slot], on, off, durs, ownLens, steps,
+    };
+  };
+
+  const renderCard = (slot: PickKey) => {
+    const m = cardModel(slot);
+    const п = потокКарточки(slot);
     return (
       <TouchableOpacity
         key={slot}
         accessibilityRole="radio"
-        accessibilityState={{ selected: on }}
-        accessibilityLabel={`${titleOf(slot)}. ${descOf(slot)}`}
+        accessibilityState={{ selected: m.on }}
+        accessibilityLabel={`${m.title}. ${m.desc}`}
         onPress={() => setPicked(slot)}
-        disabled={off}
+        disabled={m.off}
         activeOpacity={0.85}
         style={[styles.card, {
-          opacity: off ? 0.45 : 1,
+          opacity: m.off ? 0.45 : 1,
           backgroundColor: colors.surface,
-          borderColor: on ? TINT[slot][0] : colors.border,
-          borderWidth: on ? 2 : 1,
+          borderColor: m.on ? TINT[slot][0] : colors.border,
+          borderWidth: m.on ? 2 : 1,
         }]}
       >
         <View style={[styles.icon, { backgroundColor: TINT[slot][0] + '22' }]}>
           <Ionicons name={значок(slot)} size={narrow ? 20 : 24} color={TINT[slot][0]} />
         </View>
         <View style={styles.cardBody}>
-          <Text style={[styles.cardTitle, { color: colors.text }]}>{titleOf(slot)}</Text>
-          <Text style={[styles.cardDesc, { color: colors.textSecondary }]}>{descOf(slot)}</Text>
-          <Text style={[styles.cardMeta, { color: colors.textSecondary }]}>
-            {slot === 'financial' && !finCooldown.ready
-              ? `${t('ctaWait')}: ${finCooldown.daysLeft}${t('unitDayShort')}`
-              : series && seriesKind(slot as SeriesKey) === 'blocks'
-                ? `${t('seriesBlocksCount')}: ${seriesBlockCount(slot as SeriesKey)}`
-                : off
-                  ? t('restDay')
-                  : `${t('unitGames')}: ${meta.steps.length} · ~${mins} ${t('unitMin')}`}
-          </Text>
-          {/* Пишем это на самой карточке, а не мелким шрифтом внизу экрана:
-              человек должен понимать до запуска, что стрик тут не растёт. */}
-          {!series && !isTrainingSlot(slot as WarmupSlot) && (
-            <Text style={[styles.cardNote, { color: TINT[slot][1] }]}>{t('slotNightNote')}</Text>
+          <Text style={[styles.cardTitle, { color: colors.text }]}>{m.title}</Text>
+          <Text style={[styles.cardDesc, { color: colors.textSecondary }]}>{m.desc}</Text>
+          <Text style={[styles.cardMeta, { color: colors.textSecondary }]}>{m.meta}</Text>
+          {m.note !== null && (
+            <Text style={[styles.cardNote, { color: TINT[slot][1] }]}>{m.note}</Text>
           )}
-          {/* У серии своя приписка: состав фиксирован, иначе замеры разных дней
-              несравнимы. Это не оговорка мелким шрифтом, а условие, на котором
-              вся серия держится. */}
-          {series && (
-            <Text style={[styles.cardNote, { color: TINT[slot][1] }]}>
-              {slot === 'assessment' && assessDays !== null ? `${t('seriesFixedNote')} · ${assessDays}${t('unitDayShort')}` : t('seriesFixedNote')}
-            </Text>
-          )}
-          {/* Длительность — чипы прямо на карточке, у ВСЕХ четырёх слотов.
-              Там, где состав назван целиком (фикс-набор профиля или набор слота
-              из файла), три длины дали бы один и тот же список — чипов нет, и
-              решает это `длинаВлияет`, а не перечень слотов здесь. */}
-          {!series && !isСвоя(slot) && on && длинаВлияет(wd, slot as WarmupSlot, слотЗафиксирован(slot as WarmupSlot)) && (
+          {m.durs && (
             <View style={styles.durRow}>
-              {([5, 10, 15] as const).map((d) => (
+              {m.durs.map((d) => (
                 <TouchableOpacity
-                  key={d}
+                  key={d.value}
                   accessibilityRole="radio"
-                  accessibilityState={{ selected: dur[slot as WarmupSlot] === d }}
-                  accessibilityLabel={`${d} ${t('unitMin')}`}
-                  onPress={() => pickDur(slot as WarmupSlot, d)}
+                  accessibilityState={{ selected: d.selected }}
+                  accessibilityLabel={d.label}
+                  onPress={() => pickDur(slot as WarmupSlot, d.value as Длительность)}
                   style={[styles.durChip, {
-                    backgroundColor: dur[slot as WarmupSlot] === d ? TINT[slot][0] : 'transparent',
-                    borderColor: dur[slot as WarmupSlot] === d ? TINT[slot][0] : colors.border,
+                    backgroundColor: d.selected ? TINT[slot][0] : 'transparent',
+                    borderColor: d.selected ? TINT[slot][0] : colors.border,
                   }]}
                 >
-                  <Text style={{ fontSize: 12.5, fontWeight: '800', color: dur[slot as WarmupSlot] === d ? '#fff' : colors.text }}>
-                    {d} {t('unitMin')}
+                  <Text style={{ fontSize: 12.5, fontWeight: '800', color: d.selected ? '#fff' : colors.text }}>
+                    {d.label}
                   </Text>
                 </TouchableOpacity>
               ))}
             </View>
           )}
-          {/* Длина ПОТОКА — те же чипы, но выбирают вариант набора, а не длину слота.
-              У одиночного набора варианта один — чипов нет (раньше тут стояли чипы
-              слота, которые запуск своей серии не читал). */}
-          {(() => {
-            const п = потокКарточки(slot);
-            if (!п || !on || п.варианты.length < 2) return null;
-            const выбранный = (п.варианты.find((в) => в.длина === длинаПотока[п.ключ]) ?? п.варианты[0]).длина;
-            return (
-              <View style={styles.durRow} testID="own-series-length">
-                {п.варианты.map(({ длина }) => (
-                  <TouchableOpacity
-                    key={длина ?? 0}
-                    accessibilityRole="radio"
-                    accessibilityState={{ selected: выбранный === длина }}
-                    accessibilityLabel={`${длина} ${t('unitMin')}`}
-                    onPress={() => { if (длина) выбратьДлинуПотока(п.ключ, длина); }}
-                    style={[styles.durChip, {
-                      backgroundColor: выбранный === длина ? TINT[slot][0] : 'transparent',
-                      borderColor: выбранный === длина ? TINT[slot][0] : colors.border,
-                    }]}
-                  >
-                    <Text style={{ fontSize: 12.5, fontWeight: '800', color: выбранный === длина ? '#fff' : colors.text }}>
-                      {длина} {t('unitMin')}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            );
-          })()}
-          {/* З6: состав набора виден ДО старта. Только на выбранной карточке —
-              иначе экран превращается в четыре простыни. Серии блоков без списка:
-              их ведёт сама игра. */}
-          {on && !off && !(series && seriesKind(slot as SeriesKey) === 'blocks') && meta.steps.length > 0 && (
-            <View style={styles.stepsList}>
-              {meta.steps.map((st: { game_id: string; game_route?: string; mode?: string; est_duration_sec: number }, i: number) => {
-                return (
-                  <Text key={`${st.game_id}-${i}`} style={[styles.stepLine, { color: colors.textSecondary }]} numberOfLines={1}>
-                    {i + 1}. {имяШага(st, t)} · ~{Math.max(1, Math.round(st.est_duration_sec / 60))} {t('unitMin')}
+          {m.ownLens && п && (
+            <View style={styles.durRow} testID="own-series-length">
+              {m.ownLens.map((d) => (
+                <TouchableOpacity
+                  key={d.value}
+                  accessibilityRole="radio"
+                  accessibilityState={{ selected: d.selected }}
+                  accessibilityLabel={d.label}
+                  onPress={() => { if (d.value) выбратьДлинуПотока(п.ключ, d.value as Длительность); }}
+                  style={[styles.durChip, {
+                    backgroundColor: d.selected ? TINT[slot][0] : 'transparent',
+                    borderColor: d.selected ? TINT[slot][0] : colors.border,
+                  }]}
+                >
+                  <Text style={{ fontSize: 12.5, fontWeight: '800', color: d.selected ? '#fff' : colors.text }}>
+                    {d.label}
                   </Text>
-                );
-              })}
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
+          {m.steps.length > 0 && (
+            <View style={styles.stepsList}>
+              {m.steps.map((line, i) => (
+                <Text key={i} style={[styles.stepLine, { color: colors.textSecondary }]} numberOfLines={1}>
+                  {line}
+                </Text>
+              ))}
             </View>
           )}
         </View>
-        {on && <Ionicons name="checkmark-circle" size={22} color={TINT[slot][0]} />}
+        {m.on && <Ionicons name="checkmark-circle" size={22} color={TINT[slot][0]} />}
       </TouchableOpacity>
     );
   };
+
+  /**
+   * 🔴 ПОД ОБОЛОЧКОЙ ЭТОТ ЭКРАН РИСУЕТ FLUTTER (`services/warmupUi.ts`, задача 748c3f5f):
+   * отдаём ему ровно то, что показали бы сами, и принимаем его нажатия.
+   */
+  const uiModel = {
+    title: t('warmupPickerTitle'),
+    hint: t('warmupPickerHint'),
+    back: t('a11yBack'),
+    slots: ORDER.map(cardModel),
+    seriesHead: seriesShown.length > 0 ? { title: t('seriesGroup'), note: t('seriesGroupNote') } : null,
+    series: seriesShown.map(cardModel),
+    ownHead: потоки.length > 0 ? { title: t('ownSeriesGroup'), note: t('ownSeriesGroupNote') } : null,
+    own: потоки.map((п) => cardModel(`своя:${п.ключ}` as PickKey)),
+    start: { label: t('start'), disabled: metaFor(picked).steps.length === 0, tint: TINT[picked][0] },
+    help: {
+      label: t('btn_help'),
+      title: t('warmupPickerTitle'),
+      gotIt: t('setGotIt'),
+      hint: t('warmupPickerHint'),
+      rows: ORDER.map((slot) => ({
+        icon: значок(slot) as string,
+        tint: TINT[slot][0],
+        name: t(cap(slot)),
+        desc: t(cap(slot) + 'Desc') + (!isTrainingSlot(slot) ? ' — ' + t('slotNightNote') : ''),
+      })),
+    },
+  };
+  // Модель уходит, когда меняется её текст; действия заводятся заново на каждой
+  // отрисовке — так оболочка всегда зовёт свежее замыкание, без ссылок в отрисовке.
+  const uiJson = JSON.stringify(uiModel);
+  React.useEffect(() => { postUiModel('picker', JSON.parse(uiJson)); }, [uiJson]);
+  React.useEffect(() => registerUiActions('picker', {
+    pick: (k: string) => setPicked(k as PickKey),
+    dur: (slot: string, d: number) => pickDur(slot as WarmupSlot, d as Длительность),
+    ownLen: (k: string, d: number) => {
+      if (isСвоя(k) && d) выбратьДлинуПотока(k.slice('своя:'.length), d as Длительность);
+    },
+    launch: () => launch(),
+    back: () => goBackOrHome(),
+    post: () => postUiModel('picker', JSON.parse(uiJson)),
+  }));
 
   return (
     <View style={[styles.wrap, { backgroundColor: colors.background, paddingTop: insets.top + 8 }]}>

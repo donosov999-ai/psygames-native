@@ -35,7 +35,10 @@ class PausePracticeHaptics {
   /// PsyGames нет, поэтому ведёт Кегель: ради его удержания вибрацию и просили.
   static const leader = 'kegel';
 
-  static const strength = .25;
+  /// 🔴 Сила ОЩУТИМАЯ. Денис, 01.10.2026: «вибрации нет нихуя». 0,25 из 1,0 при
+  /// резкости 0,15 (и потолок 0,6 в iOS) — едва различимый гул Taptic Engine, в руке
+  /// его не слышно. Нативные стороны теперь пускают до 1,0.
+  static const strength = .8;
 
   final bool Function() _enabled;
   String? _key;
