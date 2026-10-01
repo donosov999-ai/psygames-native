@@ -12,7 +12,7 @@
  * список значений: у китайского один иероглиф = один слог.
  */
 import { ZH_PINYIN, ZH_PINYIN_COUNT } from '@/src/constants/zhPinyin.generated';
-import { ZH_TONE_BANK, ZH_TONE_BANK_COUNT } from '@/src/constants/zhToneBank.generated';
+import { ZH_TONE_BANK, ZH_TONE_BANK_COUNT, ZH_TONE_BANK_DROPPED } from '@/src/constants/zhToneBank.generated';
 import { TRANSLATION_VOCAB } from '@/src/constants/translationVocab';
 import { SOURCES, CREDIT_REQUIRED } from '@/src/constants/sources';
 
@@ -86,6 +86,19 @@ describe('банк тонов для упражнения', () => {
       expect(`тон ${тон}: ${чужие.map((с) => s(с)).join(' ')}`).toBe(`тон ${тон}: `);
     }
     function s(с: { zh: string; pinyin: string }) { return `${с.zh}/${с.pinyin}`; }
+  });
+
+  /**
+   * 🔴 ЗВУЧИТ ТОТ ТОН, КОТОРЫЙ ИГРА ЗАСЧИТАЕТ. Голос читает одиночный иероглиф его ОБЫЧНЫМ
+   * чтением. До 30.09.2026 в банке было 9 слогов, где записанное чтение расходилось с обычным по
+   * тону (重 chóng при обычном zhòng и т. д.): задание просило один тон, а звучал другой, и верный
+   * слух засчитывался ошибкой. Сборщик сверяет с kMandarin (Unihan) и пишет отсеянное сюда.
+   */
+  it('🔴 расходящиеся с обычным чтением слоги отсеяны сборщиком и в банк не попали', () => {
+    const отсеяно = ZH_TONE_BANK_DROPPED.map((з) => `${з.zh} ${з.pinyin}`);
+    for (const пример of ['重 chóng', '为 wéi', '了 liǎo', '地 dì']) expect(отсеяно).toContain(пример);
+    const вБанке = new Set(([1, 2, 3, 4] as const).flatMap((т) => ZH_TONE_BANK[т].map((с) => `${с.zh} ${с.pinyin}`)));
+    expect(отсеяно.filter((з) => вБанке.has(з))).toEqual([]);
   });
 
   it('слоги односложные и не повторяются по звучанию', () => {

@@ -3,6 +3,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/anagrams/board.dart';
 import 'package:psygames_flutter/games/anagrams/screen.dart';
 import 'package:psygames_flutter/shell/game_shell.dart';
+import 'package:psygames_flutter/games/anagrams/teach.dart';
+import 'package:psygames_flutter/shell/l10n.dart';
+import 'package:psygames_flutter/shell/lesson.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -51,6 +54,9 @@ void main() {
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
     state = await SharedState.open();
+    // Подписи — из ТОГО ЖЕ словаря, что и в сборке: проба заодно проверяет, что
+    // `assets/l10n/ru.json` собран и читается, а не сверяется с переписанной строкой.
+    await L.load('ru');
   });
 
   testWidgets('🔴 экран доходит до доски, а не крутит загрузку вечно', (tester) async {
@@ -72,7 +78,7 @@ void main() {
     expect(after.picked, isEmpty, reason: 'после зачёта набранное сбрасывается');
     expect(find.textContaining('Собрано'), findsNothing); // подпись в Semantics, не текстом
     final hud = tester.widget<GameShell>(find.byType(GameShell)).hud;
-    final solved = hud.firstWhere((h) => h.label == 'Собрано').value;
+    final solved = hud.firstWhere((h) => h.label == L.t('hud_correct')).value;
     expect(solved, '1', reason: 'собранное слово обязано попасть в счётчик');
   });
 
@@ -99,14 +105,14 @@ void main() {
     await _boot(tester, state);
     expect(_board(tester).revealed, 0);
     for (var i = 1; i <= 3; i++) {
-      await tester.tap(find.byTooltip('Подсказка'));
+      await tester.tap(find.byTooltip(L.t('btn_hint')));
       await tester.pump();
       expect(_board(tester).revealed, i, reason: 'подсказка $i обязана открыть букву');
     }
     // Запас кончился. Проверяем не «кнопка серая», а ПОВЕДЕНИЕ: четвёртое
     // нажатие не открывает четвёртой буквы. Серый вид — оформление, а ресурс,
     // который тратится молча, и есть дефект.
-    await tester.tap(find.byTooltip('Подсказка'), warnIfMissed: false);
+    await tester.tap(find.byTooltip(L.t('btn_hint')), warnIfMissed: false);
     await tester.pump();
     expect(_board(tester).revealed, 3, reason: 'запас подсказок конечен');
   });
@@ -115,12 +121,95 @@ void main() {
     await _boot(tester, state);
     final before = _board(tester);
     final target = before.target;
-    await tester.tap(find.byTooltip('Перемешать'));
+    await tester.tap(find.byTooltip(L.t('shuffleBtn')));
     await tester.pump();
     final after = _board(tester);
     expect(after.target, target, reason: 'слово то же');
     expect(after.letters.toList()..sort(), before.letters.toList()..sort(),
         reason: 'буквы те же');
     expect(after.picked, isEmpty, reason: 'набранное сбрасывается — порядок индексов изменился');
+  });
+
+  /// 🔴 ОБЕЩАНИЕ ПРОВЕРЯЕТСЯ НА ЧУЖОМ ЯЗЫКЕ, А НЕ НА РУССКОМ.
+  ///
+  /// Пробы выше зовут `L.t('ключ')` и на русском словаре получают ровно те слова,
+  /// что раньше были зашиты, — то есть покраснеть от возврата литералов они НЕ
+  /// могут. Обещание тут другое: немец видит немецкое. Поэтому один заход идёт
+  /// на немецком и сверяется с НАПИСАННЫМИ немецкими словами: вернут литерал —
+  /// проба покраснеет, и неважно, каким способом его вернут.
+  ///
+  /// Язык слов и язык интерфейса — РАЗНЫЕ вещи: банк остаётся русским (`locale:
+  /// 'ru'`), подписи становятся немецкими. Так же устроен и веб-экран, где язык
+  /// слов выбирается отдельной строкой `wordLangLabel`.
+  testWidgets('🔴 подписи говорят на языке игрока, а не на языке разработчика', (tester) async {
+    // ⚠️ ПОПРАВКА 30.09.2026 к первому объяснению. Здесь стояло «голый
+    // `await L.load` в testWidgets не завершается никогда» — опыт это опроверг:
+    // малый файл грузится, а висел только файл от 50 КБ, который
+    // `AssetBundle.loadString` отдавал в `compute()`. С 30.09 `L.load` декодирует
+    // байты сам, и голый await безопасен; `runAsync` оставлен — он не вредит.
+    await tester.runAsync(() => L.load('de'));
+    await _boot(tester, state);
+    expect(find.text('Anagramme'), findsWidgets, reason: 'заголовок');
+    expect(find.byTooltip('Tipp'), findsOneWidget, reason: 'подсказка');
+    expect(find.byTooltip('Mischen'), findsOneWidget, reason: 'перемешать');
+    expect(find.text('Löschen'), findsOneWidget, reason: 'сброс черновика');
+    expect(find.text('Prüfen'), findsOneWidget, reason: 'сдать слово');
+    final hud = tester.widget<GameShell>(find.byType(GameShell)).hud;
+    expect(hud.map((h) => h.label), containsAll(<String>['Stufe', 'Runde', 'Richtig']));
+    await tester.runAsync(() => L.load('ru'));
+  });
+
+  /* ═══════════ РАЗБОР ПО ШАГАМ ═══════════
+   *
+   * 🔴 ПОЧЕМУ ЭТО ЗДЕСЬ, А НЕ ТОЛЬКО В ПЕРЕПИСИ. Гейт `lesson_census_test.dart`
+   * требует у экрана кнопку и краснеет, если её нет. Но он НЕ проверяет, что разбор
+   * доводит слово до конца и что партия после него перестаёт быть зачётной: перепись
+   * считает носители, а не поведение. Поэтому разбор играется здесь.
+   */
+  testWidgets('🔴 разбор доводит слово до конца и открывает РОВНО те плитки, что объясняет',
+      (tester) async {
+    await _boot(tester, state);
+    expect(find.byKey(const Key('game-lesson')), findsOneWidget,
+        reason: 'на первом уровне разбор обязан быть');
+    await tester.tap(find.byKey(const Key('game-lesson')));
+    await tester.pumpAndSettle();
+    expect(find.textContaining(L.t('teachTitle')), findsWidgets, reason: 'плеер открылся');
+
+    // Шаги листаем до последнего и смотрим на доску ПЛЕЕРА, а не на доску партии.
+    final target = _board(tester).target;
+    for (var i = 0; i < 12; i++) {
+      final next = find.byTooltip(L.t('puzzleNextStep'));
+      if (next.evaluate().isEmpty) break;
+      await tester.tap(next);
+      await tester.pump(const Duration(milliseconds: 50));
+    }
+    final board = tester
+        .widgetList<AnagramBoard>(find.byType(AnagramBoard))
+        .last;
+    final assembled = [for (final i in board.picked) board.letters[i]].join();
+    expect(assembled, upJs(target),
+        reason: 'разбор обязан довести до слова, а не до половины');
+  });
+
+  testWidgets('🔴 партия с разбором перестаёт быть зачётной', (tester) async {
+    LessonUsed.reset();
+    await _boot(tester, state);
+    expect(LessonUsed.inRound, isFalse, reason: 'до разбора партия зачётная');
+    await tester.tap(find.byKey(const Key('game-lesson')));
+    await tester.pumpAndSettle();
+    // Отметку ставит экран при открытии: правило «лестницу не двигаем» живёт в
+    // каркасе (`LevelLadder.win/fail`), но включить его обязана игра.
+    expect(LessonUsed.inRound, isTrue,
+        reason: 'без отметки лестница пошла бы вверх по показанному решению');
+    LessonUsed.reset();
+  });
+
+  testWidgets('🔴 с четвёртого уровня разбора нет: приёмы уже названы', (tester) async {
+    await state.set('psygames_anagrams_level_nzt48', '4');
+    await _boot(tester, state);
+    expect(find.byKey(const Key('game-lesson')), findsNothing,
+        reason: 'правило перенесено дословно: разбор до третьего уровня включительно');
+    // И это не «экран сломался»: партия на месте.
+    expect(find.byType(AnagramBoard), findsOneWidget);
   });
 }

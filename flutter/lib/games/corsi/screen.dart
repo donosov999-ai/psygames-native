@@ -9,6 +9,7 @@ import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/lesson.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/level_rules.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import 'model.dart';
@@ -181,6 +182,8 @@ class _CorsiScreenState extends State<CorsiScreen> {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
     return GameShell(
+      // Правило уровня объявляет каркас — в спокойный момент, не поверх партии (задача e371fd3a).
+      levelRule: LevelRuleSpot(gameId: 'corsi', level: _ladder.level, state: widget.state, calm: _phase == Phase.ready || _phase == Phase.done),
       title: L.t('corsi'),
       onLesson: () => openDemoLesson(context, title: L.t('corsi'), trials: corsiLessonTrials()),
       hud: [
@@ -467,12 +470,11 @@ class CorsiLessonArt extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final answer = order;
-    // ⚠️ Размер подобран под карточку плеера: общая DemoCard сжимает рисунок только
-    // по ширине (FittedBox в столбце), а по высоте нет — доска 280×294 вылезала на
-    // 57 px. Пропорции доски 400×420 сохранены: расположение блоков и есть задача.
+    // Пропорции доски 400×420 сохранены: расположение блоков и есть задача. Ужимает
+    // её под экран общая DemoCard — по ширине и, с #22, по высоте.
     return CorsiBoardView(
-      width: 200,
-      height: 210,
+      width: 280,
+      height: 294,
       route: missedStep == null ? answer : const [],
       block: (i, side) {
         final step = answer.indexOf(i);
