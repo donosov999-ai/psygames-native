@@ -82,6 +82,18 @@ class CounterCfg {
   int get passNeed => (rounds * counterPassAccuracy).ceil();
 }
 
+/// Имя ступени для пула генератора уровней (звено 4, задача 4e584381) — из ПАРАМЕТРОВ уровня,
+/// а не из номера (договор `ladderPool`): сторона сетки, окно раунда в десятых секунды,
+/// наибольшее число в клетке и доля троек.
+String counterStepKey(int level) {
+  final c = counterLevelParams(level);
+  final triples = c.tripleShare > 0 ? '-x${(c.tripleShare * 10).round()}' : '';
+  return 'g${c.gridSize}-s${c.roundLimitMs ~/ 100}-c${c.cellMax}$triples';
+}
+
+/// Ступени, которые карта ОБЕЩАЕТ: 1…[counterMaxLevel]. Выше — открытый хвост (числа растут).
+final List<String> counterStepKeys = [for (var l = 1; l <= counterMaxLevel; l++) counterStepKey(l)];
+
 CounterCfg counterLevelParams(int level) {
   final l = math.max(level, 1);
   if (l <= _table.length) {
