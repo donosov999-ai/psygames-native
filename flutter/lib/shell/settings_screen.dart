@@ -1,15 +1,22 @@
 library;
 
 import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
 
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../games/languages/lang_names.dart';
 import 'app_look.dart';
 import 'hub_screen.dart' show HubCardTap;
 import 'l10n.dart';
 import 'profiles.dart';
+import 'progress_transfer.dart';
 import 'shared_state.dart';
 
 /// 🔴 НАСТРОЙКИ НА FLUTTER — ПЕРЕНОС ПО ФУНКЦИЯМ ВЕБ-ЭКРАНА (задача eae0879c).
@@ -47,6 +54,16 @@ class SettingsScreen extends StatefulWidget {
 
   /// Границы размера питомца — `PET_SCALE_MIN/MAX` из `frontend/src/services/pet.ts`.
   static const petMin = 0.6, petMax = 1.8;
+
+  /// Перенос кодом или восстановление копии переписали прогресс целиком — веб-половина обязана
+  /// перечитать его перезагрузкой, даже если «наблюдаемые» ключи не поменялись. Снимает оболочка.
+  static bool webDirty = false;
+
+  static bool takeWebDirty() {
+    final d = webDirty;
+    webDirty = false;
+    return d;
+  }
 
   /// Число так, как его пишет `String(n)` в JS: целое — без «.0».
   static String jsNumber(num v) => v == v.roundToDouble() ? v.round().toString() : v.toString();
@@ -122,6 +139,140 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   void _go(String route) => Navigator.of(context).pop(HubCardTap(route));
+
+  Future<void> _alert(String title, [String? body]) => showDialog<void>(
+        context: context,
+        builder: (c) => AlertDialog(
+          title: Text(title),
+          content: body == null ? null : Text(body),
+          actions: [TextButton(onPressed: () => Navigator.of(c).pop(), child: Text(L.t('close')))],
+        ),
+      );
+
+  /// «Получить код» — модалка с кодом и «Копировать» (`transferMode === 'export'` веба).
+  Future<void> _exportCode() async {
+    final code = ProgressTransfer.exportCode(_s);
+    await showDialog<void>(
+      context: context,
+      builder: (c) => AlertDialog(
+        title: Text(L.t('progressCodeTitle')),
+        content: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          Text(L.t('exportCodeHint'), style: const TextStyle(fontSize: 12.5)),
+          const SizedBox(height: 10),
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxHeight: 180),
+            child: SingleChildScrollView(
+              child: SelectableText(code, key: const Key('settings-export-code'), style: const TextStyle(fontSize: 11, fontFamily: 'monospace')),
+            ),
+          ),
+        ]),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(c).pop(), child: Text(L.t('close'))),
+          FilledButton(
+            key: const Key('settings-export-copy'),
+            onPressed: () async {
+              await Clipboard.setData(ClipboardData(text: code));
+              if (c.mounted) ScaffoldMessenger.maybeOf(c)?.showSnackBar(SnackBar(content: Text(L.t('copied'))));
+            },
+            child: Text(L.t('copy')),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// «Вставить код» — поле и «Применить» (`transferMode === 'import'` веба).
+  Future<void> _importCode() async {
+    final ctl = TextEditingController();
+    final code = await showDialog<String>(
+      context: context,
+      builder: (c) => AlertDialog(
+        title: Text(L.t('pasteCodeTitle')),
+        content: TextField(
+          key: const Key('settings-import-field'),
+          controller: ctl,
+          minLines: 4,
+          maxLines: 8,
+          style: const TextStyle(fontSize: 11, fontFamily: 'monospace'),
+          decoration: InputDecoration(hintText: L.t('pasteCodePlaceholder'), border: const OutlineInputBorder()),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(c).pop(), child: Text(L.t('btn_cancel'))),
+          FilledButton(key: const Key('settings-import-apply'), onPressed: () => Navigator.of(c).pop(ctl.text), child: Text(L.t('apply'))),
+        ],
+      ),
+    );
+    if (code == null || !mounted) return;
+    final r = await ProgressTransfer.importCode(_s, code);
+    if (!mounted) return;
+    if (r.ok) {
+      SettingsScreen.webDirty = true;
+      AppLook.refresh(_s);
+      setState(() {});
+      await _alert(L.t('storyDone'), L.t('importDoneMsg').replaceAll('{n}', '${r.count}'));
+    } else {
+      // Метка причины в скобках — по снимку экрана сразу видно класс проблемы (как в вебе).
+      await _alert(L.t('importFailedTitle'), '${L.t('importFailedBody')}\n(${r.error ?? '?'})');
+    }
+  }
+
+  /// «Сохранить копию»: файл через «Поделиться» (Файлы, Диск, почта); не вышло — в буфер.
+  Future<void> _saveBackup() async {
+    // Точка, откуда всплывает лист «Поделиться» (на iPad обязательна), — до первого ожидания.
+    final box = context.findRenderObject() as RenderBox?;
+    try {
+      final json = ProgressTransfer.buildBackup(_s, appVersion: _version);
+      try {
+        final dir = await getTemporaryDirectory();
+        final date = ProgressTransfer.jsIso(DateTime.now()).substring(0, 10);
+        final f = File('${dir.path}/psygames-backup-$date.json')..writeAsStringSync(json);
+        await SharePlus.instance.share(ShareParams(
+          files: [XFile(f.path, mimeType: 'application/json')],
+          title: 'PsyGames backup',
+          sharePositionOrigin: box == null ? null : box.localToGlobal(Offset.zero) & box.size,
+        ));
+        return;
+      } catch (_) {
+        // «Поделиться» недоступно — резерв, как у веба: весь JSON в буфер.
+      }
+      await Clipboard.setData(ClipboardData(text: json));
+      if (mounted) await _alert(L.t('alert_backup_copied'), L.t('msg_backup_copied_full'));
+    } catch (_) {
+      if (mounted) await _alert(L.t('alert_export_error'), L.t('msg_backup_create_failed'));
+    }
+  }
+
+  /// «Восстановить копию»: выбор файла (в гибриде веб открывал тот же системный выбор);
+  /// отказ выбора — ничего; выбор недоступен — из буфера, как у веба на нативе.
+  Future<void> _restoreBackup() async {
+    String? json;
+    try {
+      final files = await FilePicker.pickFiles(type: FileType.custom, allowedExtensions: const ['json']);
+      if (files.isEmpty) return;
+      json = utf8.decode(await files.first.readAsBytes());
+    } catch (e) {
+      if (e is! MissingPluginException && e is! UnimplementedError) {
+        if (mounted) await _alert(L.t('alert_import_error'), L.t('msg_restore_failed'));
+        return;
+      }
+      // Выбора файла нет на этой платформе (плагин не подключён или не реализован) — буфер.
+      json = (await Clipboard.getData(Clipboard.kTextPlain))?.text;
+      if (json == null || json.trim().isEmpty) {
+        if (mounted) await _alert(L.t('alert_restore_from_clipboard'), L.t('msg_paste_backup_json'));
+        return;
+      }
+    }
+    try {
+      final n = await ProgressTransfer.restoreBackup(_s, json);
+      SettingsScreen.webDirty = true;
+      AppLook.refresh(_s);
+      if (!mounted) return;
+      setState(() {});
+      await _alert(L.t('alert_backup_restored'), L.t('backupRestoredMsg').replaceAll('{n}', '$n'));
+    } on BackupError {
+      if (mounted) await _alert(L.t('alert_import_error'), L.t('msg_restore_failed'));
+    }
+  }
 
   Future<void> _switch(String id) async {
     if (await _profiles.switchTo(_s, id)) {
@@ -390,6 +541,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ]),
         ));
 
+    Widget action(String key, IconData icon, Color iconColor, String label, Future<void> Function() onTap) => card(InkWell(
+          key: Key('settings-$key'),
+          onTap: onTap,
+          child: Row(children: [
+            Icon(icon, color: iconColor, size: 24),
+            const SizedBox(width: 12),
+            Expanded(child: Text(label, style: TextStyle(color: text, fontSize: 16, fontWeight: FontWeight.w500))),
+            Icon(rtl ? Icons.chevron_left : Icons.chevron_right, color: sub, size: 20),
+          ]),
+        ));
+
     final volume = _volume;
     final petScale = _petScale;
     final profile = _s.activeProfile;
@@ -485,6 +647,31 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     onChanged: (v) => _put(SettingsScreen.petScale, SettingsScreen.jsNumber(double.parse(v.toStringAsFixed(2)))),
                   ),
                 ])),
+              // Перенос прогресса между установками (веб / старый APK / Play — разные хранилища).
+              card(Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                Row(children: [
+                  Icon(Icons.swap_horiz, color: accent, size: 24),
+                  const SizedBox(width: 12),
+                  Expanded(child: Text(L.t('transferProgress'), style: TextStyle(color: text, fontSize: 16, fontWeight: FontWeight.w500))),
+                ]),
+                const SizedBox(height: 10),
+                Text(L.t('transferProgressHint'), style: TextStyle(color: sub, fontSize: 12.5, height: 1.35)),
+                const SizedBox(height: 10),
+                Wrap(spacing: 8, runSpacing: 8, children: [
+                  FilledButton(
+                    key: const Key('settings-export'),
+                    style: FilledButton.styleFrom(backgroundColor: accent, minimumSize: const Size(0, 48)),
+                    onPressed: _exportCode,
+                    child: Text(L.t('exportGetCode')),
+                  ),
+                  OutlinedButton(
+                    key: const Key('settings-import'),
+                    style: OutlinedButton.styleFrom(foregroundColor: accent, side: BorderSide(color: accent, width: 1.5), minimumSize: const Size(0, 48)),
+                    onPressed: _importCode,
+                    child: Text(L.t('importPasteCode')),
+                  ),
+                ]),
+              ])),
               card(Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Row(children: [
                   Icon(Icons.translate, color: accent, size: 24),
@@ -512,6 +699,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               link('/whats-new', Icons.auto_awesome_outlined, accent, L.t('versionHistory')),
               link('/sources', Icons.local_library_outlined, accent, L.t('sourcesTitle')),
               link('/onboarding?tutorial=1', Icons.play_circle_outline, accent, L.t('btn_replay_tutorial')),
+              action('backup-save', Icons.cloud_download_outlined, const Color(0xFF22C55E), L.t('btn_save_backup'), _saveBackup),
+              action('backup-restore', Icons.cloud_upload_outlined, const Color(0xFF3B82F6), L.t('btn_restore_backup'), _restoreBackup),
               const SizedBox(height: 24),
               Text(
                 'PsyGames${_version.isEmpty ? '' : ' v$_version'} · ${_profiles.byId(profile)?.emoji ?? ''} ${L.t('profileName_$profile')} · ${L.t('label_validated_paradigms')}',

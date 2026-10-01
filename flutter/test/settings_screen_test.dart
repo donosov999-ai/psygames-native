@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:psygames_flutter/shell/app_look.dart';
@@ -39,6 +40,17 @@ void main() {
   Future<void> tap(WidgetTester t, String key) async {
     await t.ensureVisible(find.byKey(Key(key)));
     await t.tap(find.byKey(Key(key)));
+    await t.pumpAndSettle();
+  }
+
+  /// Нажатие, за которым идут каналы платформы (файлы, «Поделиться», выбор файла): их ответы
+  /// приходят в настоящем времени, а не в поддельном — иначе цепочка не доходит до конца.
+  Future<void> realTap(WidgetTester t, String key) async {
+    await t.ensureVisible(find.byKey(Key(key)));
+    await t.runAsync(() async {
+      await t.tap(find.byKey(Key(key)));
+      await Future<void>.delayed(const Duration(milliseconds: 300));
+    });
     await t.pumpAndSettle();
   }
 
@@ -206,6 +218,68 @@ void main() {
         final missing = [for (final g in p.games.values) if (!dict.containsKey(g['nameKey'])) g['nameKey']];
         expect(missing, isEmpty, reason: '$loc: $missing');
       }
+    });
+  });
+
+  group('перенос и копия (часть 3)', () {
+    String? clip;
+    setUp(() {
+      clip = null;
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(SystemChannels.platform, (call) async {
+        if (call.method == 'Clipboard.setData') clip = (call.arguments as Map)['text'] as String?;
+        if (call.method == 'Clipboard.getData') return {'text': clip};
+        return null;
+      });
+    });
+    tearDown(() => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(SystemChannels.platform, null));
+
+    testWidgets('«Получить код» — код раскладывается в прогресс этого телефона', (t) async {
+      await open(t, prefs: {'psygames_sudoku_level_free': '12'});
+      await tap(t, 'settings-export');
+      final code = t.widget<SelectableText>(find.byKey(const Key('settings-export-code'))).data!;
+      final data = jsonDecode(utf8.decode(base64Decode(code)))['data'] as Map;
+      expect(data['psygames_sudoku_level_free'], '12');
+      await t.tap(find.byKey(const Key('settings-export-copy')));
+      await t.pumpAndSettle();
+      expect(clip, code, reason: '«Копировать» не положило код в буфер');
+    });
+
+    testWidgets('«Вставить код» с кодом ВЕБА переносит прогресс и просит перезагрузить веб', (t) async {
+      final ref = jsonDecode(File('test/fixtures/settings-transfer-reference.json').readAsStringSync()) as Map;
+      await open(t);
+      SettingsScreen.webDirty = false;
+      await tap(t, 'settings-import');
+      await t.enterText(find.byKey(const Key('settings-import-field')), ref['code'] as String);
+      await t.tap(find.byKey(const Key('settings-import-apply')));
+      await t.pumpAndSettle();
+      expect(state.get('psygames_sudoku_level_odv999'), '92');
+      expect(SettingsScreen.takeWebDirty(), isTrue, reason: 'после переноса веб остался бы со старым прогрессом');
+      expect(find.text(L.t('storyDone')), findsOneWidget);
+    });
+
+    testWidgets('плохой код — «не удалось» с меткой причины, прогресс не тронут', (t) async {
+      await open(t);
+      await tap(t, 'settings-import');
+      await t.enterText(find.byKey(const Key('settings-import-field')), base64Encode(utf8.encode('{"x":1}')));
+      await t.tap(find.byKey(const Key('settings-import-apply')));
+      await t.pumpAndSettle();
+      expect(find.textContaining('(bad-format)'), findsOneWidget);
+    });
+
+    testWidgets('«Сохранить копию» без «Поделиться» — весь JSON в буфер, как резерв веба', (t) async {
+      await open(t, prefs: {'psygames_active_profile': 'kids'});
+      await realTap(t, 'settings-backup-save');
+      expect(clip, contains('"app": "PsyGames-Backup"'));
+      expect(find.text(L.t('alert_backup_copied')), findsOneWidget);
+    });
+
+    testWidgets('«Восстановить копию» без выбора файла — из буфера; копия веба принимается', (t) async {
+      final ref = jsonDecode(File('test/fixtures/settings-transfer-reference.json').readAsStringSync()) as Map;
+      await open(t);
+      clip = ref['backup'] as String;
+      await realTap(t, 'settings-backup-restore');
+      expect(state.get('psygames_pet_name'), 'Синапс 🐾');
+      expect(find.text(L.t('alert_backup_restored')), findsOneWidget);
     });
   });
 }

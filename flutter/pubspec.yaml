@@ -61,6 +61,8 @@ dependencies:
   practice_kit:
     path: ../packages/practice_kit
   package_info_plus: ^10.2.1
+  share_plus: ^13.3.0
+  file_picker: ^13.1.0
 
 dev_dependencies:
   webview_flutter_platform_interface: ^2.15.1
