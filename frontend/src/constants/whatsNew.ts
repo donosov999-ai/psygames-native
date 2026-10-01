@@ -16,6 +16,32 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.56.3',
+    date: '2026-10-01',
+    ru: [
+      'Вернулся фирменный значок приложения — мозг на тёмном фоне',
+      'Новая игра «Кошки» в разделе «Судоку»: по одной кошке в строке, столбце и цвете',
+      'Судоку: на доске снова видны диагонали, области и подсказки вариантов',
+      'Зарядка целиком в приложении: выбор, упражнения подряд и итог без переходов через сайт',
+      'Гимнастика для глаз во весь экран, стереокартинки — портретом',
+      'Дыхание звучит: свой тон и вибрация на вдох, задержку и выдох, щелчки отсчёта',
+      '«Заново» в меню паузы у каждой игры — и это не считается проигрышем',
+      'Вибрация стала ощутимой и во всех играх слушается переключателя в настройках',
+      'Сортировка товаров: коробки схлопываются с 31-го уровня (было с 56-го), с 52-го задние ряды всегда вместе',
+    ],
+    en: [
+      'The app icon is ours again — the brain on a dark background',
+      'New game Cats in the Sudoku section: one cat per row, column and colour',
+      'Sudoku: diagonals, regions and variant hints are back on the board',
+      'Warm-up runs fully in the app: picking, back-to-back exercises and the summary, no detours through the site',
+      'Eye gym goes full screen; stereograms in portrait',
+      'Breathing now sounds: its own tone and vibration for inhale, hold and exhale, plus countdown clicks',
+      'Restart in the pause menu of every game — and it does not count as a loss',
+      'Vibration is now clearly felt and follows the Settings switch in every game',
+      'Goods Sorting: boxes collapse from level 31 (was 56); from level 52 the back rows always come together',
+    ],
+  },
+  {
     version: '2.56.2',
     date: '2026-10-01',
     ru: [
