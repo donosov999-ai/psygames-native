@@ -87,11 +87,23 @@ void main() {
   });
 
   testWidgets('🔴 «Инерция»: восемь направлений, диагональ двигает шар', (tester) async {
-    await boot(tester, 'Inertia');
-    expect(find.byKey(const Key('cursor-up-left')), findsOneWidget, reason: 'у «Инерции» диагонали');
+    // Доска — новая на каждый запуск (зерно экрана от часов). Замер 02.10: на 1 доске из 40
+    // шар со старта упирается в стену по ВСЕМ четырём диагоналям — проба краснела без поломки
+    // (TestFlight 2.56.5, прогон 36935753109). Поэтому до пяти досок: сломанный ввод не
+    // сдвинет шар ни на одной, а «все диагонали в стену» пять раз подряд — ~1e-8.
+    var moved = false;
+    for (var board = 0; board < 5 && !moved; board++) {
+      await boot(tester, 'Inertia');
+      expect(find.byKey(const Key('cursor-up-left')), findsOneWidget, reason: 'у «Инерции» диагонали');
+      moved = await anyArrowMoves(
+          tester, ['cursor-up-left', 'cursor-up-right', 'cursor-down-left', 'cursor-down-right']);
+      if (!moved) {
+        await tester.pumpWidget(const SizedBox());
+        await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 3)));
+      }
+    }
     expect(
-        await anyArrowMoves(tester,
-            ['cursor-up-left', 'cursor-up-right', 'cursor-down-left', 'cursor-down-right']),
+        moved,
         isTrue,
         reason: 'ни одна диагональ не сделала ход — цифровой блок не доходит до движка');
   });
