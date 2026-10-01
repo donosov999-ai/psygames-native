@@ -820,7 +820,7 @@ const t: Record<string, string> = {
   "sudokuVariantUnequal": "≶ 不等号",
   "sudokuTowersTitle": "タワー",
   "sudokuUnequalTitle": "不等号ナンプレ",
-  "sudokuTowersHubDesc": "端のヒント:見えるビルの数",
+  "sudokuTowersHubDesc": "端のヒント：見えるビルの数",
   "sudokuUnequalHubDesc": "マス間の記号、比較の鎖",
   "sudokuTypeTowers": "6×6 · 8段",
   "sudokuTypeUnequal": "9×9 · 8段",
