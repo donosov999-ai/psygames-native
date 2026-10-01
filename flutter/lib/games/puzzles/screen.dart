@@ -118,7 +118,8 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
     await PuzzleModes.load();
     final mode = PuzzleModes.all[widget.mode];
     if (mode == null) {
-      if (mounted) setState(() => _failure = '${L.t('sdkGameFailed')}: ${widget.mode}');
+      if (mounted) setState(() => _failure = L.t('sdkGameFailed'));
+      debugPrint('puzzles: engine does not know mode ${widget.mode}');
       return;
     }
     _modeOrNull = mode;
@@ -131,7 +132,8 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
       final engine = TathamEngine.openPlatform(path: widget.libraryPath);
       final index = engine.indexOf(_mode.engineName);
       if (index < 0) {
-        setState(() => _failure = '${L.t('sdkGameFailed')}: ${_mode.engineName}');
+        setState(() => _failure = L.t('sdkGameFailed'));
+        debugPrint('puzzles: engine has no game ${_mode.engineName}');
         return;
       }
       // ⚠️ ПОРЯДОК ВАЖЕН: ступени известны только после открытия игры, а потолок
@@ -160,7 +162,8 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
     } catch (e) {
       // ⚠️ Библиотеки может не быть (сборка под платформу — отдельная задача).
       // Тогда экран честно говорит об этом, а не показывает вечную загрузку.
-      if (mounted) setState(() => _failure = '${L.t('sdkGameFailed')}: $e');
+      if (mounted) setState(() => _failure = L.t('sdkGameFailed'));
+      debugPrint('puzzles: engine failed to load: $e');
     }
   }
 
