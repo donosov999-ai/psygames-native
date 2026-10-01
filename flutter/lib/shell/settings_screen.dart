@@ -9,6 +9,7 @@ import '../games/languages/lang_names.dart';
 import 'app_look.dart';
 import 'hub_screen.dart' show HubCardTap;
 import 'l10n.dart';
+import 'profiles.dart';
 import 'shared_state.dart';
 
 /// 🔴 НАСТРОЙКИ НА FLUTTER — ПЕРЕНОС ПО ФУНКЦИЯМ ВЕБ-ЭКРАНА (задача eae0879c).
@@ -61,12 +62,20 @@ const settingsProfileKeys = <String>[
   'profileName_odv999', 'profileName_whatsnew', 'profileName_women', 'profileName_kids',
   'profileName_seniors', 'profileName_students', 'profileName_vasilyeva', 'profileName_free',
   'profileName_polyglot',
+  'profileDesc_nzt48', 'profileDesc_execs', 'profileDesc_drivers', 'profileDesc_chess',
+  'profileDesc_odv999', 'profileDesc_whatsnew', 'profileDesc_women', 'profileDesc_kids',
+  'profileDesc_seniors', 'profileDesc_students', 'profileDesc_vasilyeva', 'profileDesc_free',
+  'profileDesc_polyglot',
 ];
+
+/// Значок категории игры в листе деталей — `CATEGORY_EMOJI` из `app/settings.tsx`.
+const _categoryEmoji = {'memory': '🧠', 'attention': '🎯', 'logic': '🧩', 'action': '⚡'};
 
 class _SettingsScreenState extends State<SettingsScreen> {
   SharedState get _s => widget.state;
   LangNames _names = LangNames.empty;
   String _version = '';
+  Profiles _profiles = Profiles.current;
 
   @override
   void initState() {
@@ -74,6 +83,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
     unawaited(LangNames.load().then((n) {
       if (mounted) setState(() => _names = n);
     }).catchError((_) {}));
+    if (_profiles.list.isEmpty) {
+      unawaited(Profiles.load().then((p) {
+        if (mounted) setState(() => _profiles = p);
+      }));
+    }
     unawaited(PackageInfo.fromPlatform().then((p) {
       if (mounted) setState(() => _version = p.version);
     }).catchError((_) {}));
@@ -108,6 +122,233 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   void _go(String route) => Navigator.of(context).pop(HubCardTap(route));
+
+  Future<void> _switch(String id) async {
+    if (await _profiles.switchTo(_s, id)) {
+      AppLook.refresh(_s);
+      if (mounted) setState(() {});
+    }
+  }
+
+  String _desc(Profile p) => L.t('profileDesc_${p.id}').replaceAll('{n}', '${_profiles.publicGameCount}');
+
+  /// Лист деталей профиля (`Profile Detail Modal` веба): описание, хук, метки, игры, действие.
+  Future<void> _details(Profile p, {required bool dark}) => showModalBottomSheet<void>(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: AppLook.token('surface', dark: dark),
+        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+        builder: (c) {
+          final text = AppLook.token('text', dark: dark), sub = AppLook.token('textSecondary', dark: dark);
+          final card = AppLook.token('card', dark: dark);
+          final color = AppLook.hexColor(p.color) ?? AppLook.accentOf(_s);
+          final loc = L.locale;
+          final games = p.games;
+          Widget chip(String t) => Container(
+                padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 10),
+                decoration: BoxDecoration(color: card, borderRadius: BorderRadius.circular(14)),
+                child: Text(t, style: TextStyle(fontSize: 11, color: text)),
+              );
+          final accessible = _profiles.accessible(_s, p.id);
+          final current = _s.activeProfile == p.id;
+          return ConstrainedBox(
+            constraints: BoxConstraints(maxHeight: MediaQuery.of(c).size.height * 0.9),
+            child: SingleChildScrollView(
+              key: Key('profile-details-${p.id}'),
+              padding: const EdgeInsets.fromLTRB(22, 22, 22, 30),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text(p.emoji, style: const TextStyle(fontSize: 38)),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      Text(L.t('profileName_${p.id}'), style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: text)),
+                      if (p.text('audience', loc) != null)
+                        Text('👥 ${p.text('audience', loc)}', style: TextStyle(fontSize: 12, color: sub)),
+                    ]),
+                  ),
+                  IconButton(tooltip: L.t('close'), icon: Icon(Icons.cancel, color: sub, size: 28), onPressed: () => Navigator.of(c).pop()),
+                ]),
+                if (p.text('sales_hook', loc) != null)
+                  Container(
+                    margin: const EdgeInsets.only(top: 8, bottom: 14),
+                    padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                    decoration: BoxDecoration(
+                      color: color.withValues(alpha: 0.13),
+                      border: Border(left: BorderSide(color: color, width: 4)),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(p.text('sales_hook', loc)!, style: TextStyle(fontSize: 14, color: text, fontWeight: FontWeight.w600, height: 1.35)),
+                  ),
+                if (p.text('long_description', loc) != null)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 14),
+                    child: Text(p.text('long_description', loc)!, style: TextStyle(fontSize: 13, color: sub, height: 1.45)),
+                  ),
+                Wrap(spacing: 8, runSpacing: 8, children: [
+                  if (p.sessionMinutes != null) chip('⏱ ${loc == 'ru' ? p.sessionMinutes! : p.sessionMinutes!.replaceAll('мин', 'min')}'),
+                  if (p.warmup) chip('☀️ ${L.t('badge_morning_warmup')}'),
+                  if (p.financialDay) chip('💰 Financial Brain Day'),
+                  if (p.assessment) chip('📊 G1 Assessment'),
+                ]),
+                const SizedBox(height: 16),
+                Text(
+                  '🎮 ${games == null ? L.t('label_all_48_games').replaceAll('{n}', '${_profiles.publicGameCount}') : L.t('exercisesInProfile').replaceAll('{n}', '${games.length}')}',
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: text),
+                ),
+                const SizedBox(height: 10),
+                if (games == null)
+                  Text(L.t('desc_full_library'), style: TextStyle(fontSize: 13, color: sub, fontStyle: FontStyle.italic))
+                else
+                  for (final g in games)
+                    if (_profiles.games[g] case final info?)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        child: Row(children: [
+                          Text(_categoryEmoji[info['category']] ?? '•', style: const TextStyle(fontSize: 16)),
+                          const SizedBox(width: 8),
+                          Expanded(child: Text(L.t('${info['nameKey']}'), style: TextStyle(fontSize: 13, color: text))),
+                        ]),
+                      ),
+                const SizedBox(height: 18),
+                /*
+                 * ⚠️ ВВОД КОДА И ЗАПРОС В TELEGRAM НЕ ПЕРЕНЕСЕНЫ — ОНИ ВЫКЛЮЧЕНЫ В ВЕБЕ:
+                 * `UNLOCK_CODES_ENABLED = false` (запертых профилей нет вовсе) и
+                 * `MONETIZATION_ENABLED = false`. Включат — проба `settings_screen_test`
+                 * покраснеет и потребует перенести `tryUnlock`; на iOS ввод кода прятать
+                 * `Platform.isIOS` (App Store 3.1.1) — в гибриде веб считал себя 'web' и не прятал.
+                 */
+                if (!accessible && p.comingSoon)
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(color: card, borderRadius: BorderRadius.circular(12)),
+                    child: Column(children: [
+                      Text('🔒 ${L.t('label_coming_soon')}', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: text)),
+                      const SizedBox(height: 8),
+                      Text(L.t('comingSoonBody'), textAlign: TextAlign.center, style: TextStyle(fontSize: 12, color: sub)),
+                    ]),
+                  ),
+                if (accessible && !current)
+                  FilledButton(
+                    key: Key('profile-switch-${p.id}'),
+                    style: FilledButton.styleFrom(backgroundColor: color, foregroundColor: Colors.black, minimumSize: const Size.fromHeight(48)),
+                    onPressed: () {
+                      Navigator.of(c).pop();
+                      _switch(p.id);
+                    },
+                    child: Text('✓ ${L.t('btn_switch_to_profile')}', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15)),
+                  ),
+                if (current)
+                  Container(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    decoration: BoxDecoration(color: color.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(12)),
+                    child: Text('✓ ${L.t('label_current_profile')}',
+                        textAlign: TextAlign.center, style: TextStyle(color: text, fontWeight: FontWeight.w700, fontSize: 14)),
+                  ),
+              ]),
+            ),
+          );
+        },
+      );
+
+  Widget _profileSection({required bool dark}) {
+    final text = AppLook.token('text', dark: dark), sub = AppLook.token('textSecondary', dark: dark);
+    final cardColor = AppLook.token('card', dark: dark), border = AppLook.token('border', dark: dark);
+    final wide = MediaQuery.of(context).size.width >= 520;
+    final unlocked = Profiles.unlocked(_s);
+    Widget label(String t) => Padding(
+          padding: const EdgeInsets.only(top: 12, bottom: 8),
+          child: Text(t.toUpperCase(), style: TextStyle(color: sub, fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: 1)),
+        );
+    Widget grid(Iterable<Profile> ps) => LayoutBuilder(builder: (_, box) {
+          final w = (box.maxWidth - (wide ? 16 : 8)) / (wide ? 3 : 2);
+          return Wrap(spacing: 8, runSpacing: 8, children: [
+            for (final p in ps)
+              Builder(builder: (_) {
+                final active = p.id == _s.activeProfile;
+                final locked = !_profiles.accessible(_s, p.id);
+                final color = AppLook.hexColor(p.color) ?? AppLook.accentOf(_s);
+                return Opacity(
+                  opacity: locked ? 0.55 : 1,
+                  child: InkWell(
+                    key: Key('profile-${p.id}'),
+                    borderRadius: BorderRadius.circular(12),
+                    onTap: () => locked ? _details(p, dark: dark) : _switch(p.id),
+                    onLongPress: () => _details(p, dark: dark),
+                    child: Container(
+                      width: w,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: active ? color : cardColor,
+                        border: Border.all(color: active ? color : border, width: 2),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Column(children: [
+                        Text('${p.emoji}${locked ? '🔒' : ''}', style: const TextStyle(fontSize: 32)),
+                        const SizedBox(height: 4),
+                        Text(L.t('profileName_${p.id}'),
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: active ? Colors.black : text)),
+                        const SizedBox(height: 4),
+                        Text(_desc(p),
+                            textAlign: TextAlign.center,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(fontSize: 10, height: 1.3, color: active ? Colors.black.withValues(alpha: 0.7) : sub)),
+                        if (p.sessionMinutes != null)
+                          Text('⏱ ${p.sessionMinutes!.replaceAll('мин', L.t('unitMin'))}',
+                              style: TextStyle(fontSize: 9, color: active ? Colors.black.withValues(alpha: 0.55) : sub)),
+                      ]),
+                    ),
+                  ),
+                );
+              }),
+          ]);
+        });
+    final personal = _profiles.list.where((p) => p.group != 'themed');
+    final themed = _profiles.list.where((p) => p.group == 'themed');
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(color: AppLook.token('surface', dark: dark), borderRadius: BorderRadius.circular(16)),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Text('👤 ${L.t('label_profile')}', style: TextStyle(color: text, fontSize: 17, fontWeight: FontWeight.w700)),
+        const SizedBox(height: 4),
+        Text(L.t('desc_profile_section'), style: TextStyle(color: sub, fontSize: 12, height: 1.4)),
+        if (personal.isNotEmpty) ...[label('👥 ${L.t('label_personal')}'), grid(personal)],
+        if (themed.isNotEmpty) ...[
+          label(_profiles.codesEnabled ? L.t('label_themed_codes_on') : L.t('label_themed_codes_off')),
+          grid(themed),
+        ],
+        if (unlocked.isNotEmpty)
+          Align(
+            alignment: AlignmentDirectional.centerEnd,
+            child: TextButton(
+              key: const Key('profile-reset-unlocks'),
+              onPressed: () async {
+                final ok = await showDialog<bool>(
+                  context: context,
+                  builder: (c) => AlertDialog(
+                    title: Text(L.t('alert_reset_unlocks')),
+                    content: Text(L.t('msg_reset_unlocks_confirm')),
+                    actions: [
+                      TextButton(onPressed: () => Navigator.of(c).pop(false), child: Text(L.t('btn_cancel'))),
+                      TextButton(onPressed: () => Navigator.of(c).pop(true), child: Text(L.t('btn_reset'))),
+                    ],
+                  ),
+                );
+                if (ok == true) {
+                  await _profiles.resetUnlocks(_s);
+                  AppLook.refresh(_s);
+                  if (mounted) setState(() {});
+                }
+              },
+              child: Text('${L.t('label_unlocked')}: ${unlocked.length} · 🗑 ${L.t('btn_reset')}', style: TextStyle(fontSize: 11, color: sub)),
+            ),
+          ),
+      ]),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -186,6 +427,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: SingleChildScrollView(
               padding: const EdgeInsets.fromLTRB(20, 0, 20, 28),
               child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+              if (_profiles.list.isNotEmpty) _profileSection(dark: dark),
               toggle('theme', dark ? Icons.dark_mode : Icons.light_mode, L.t('darkTheme'), dark, _setTheme),
               toggle('sound', _sound ? Icons.volume_up : Icons.volume_off, L.t('label_sound'), _sound,
                   (v) => _put(SettingsScreen.sound, '$v')),
@@ -272,7 +514,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               link('/onboarding?tutorial=1', Icons.play_circle_outline, accent, L.t('btn_replay_tutorial')),
               const SizedBox(height: 24),
               Text(
-                'PsyGames${_version.isEmpty ? '' : ' v$_version'} · ${L.t('profileName_$profile')} · ${L.t('label_validated_paradigms')}',
+                'PsyGames${_version.isEmpty ? '' : ' v$_version'} · ${_profiles.byId(profile)?.emoji ?? ''} ${L.t('profileName_$profile')} · ${L.t('label_validated_paradigms')}',
                 textAlign: TextAlign.center,
                 style: TextStyle(color: sub, fontSize: 16, fontWeight: FontWeight.w600),
               ),

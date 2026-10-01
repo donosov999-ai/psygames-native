@@ -7,6 +7,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:psygames_flutter/shell/app_look.dart';
 import 'package:psygames_flutter/shell/hub_screen.dart' show HubCardTap;
 import 'package:psygames_flutter/shell/l10n.dart';
+import 'package:psygames_flutter/shell/profiles.dart';
 import 'package:psygames_flutter/shell/settings_screen.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -152,5 +153,59 @@ void main() {
       final missing = keys.where((k) => !dict.containsKey(k)).toList();
       expect(missing, isEmpty, reason: '$loc: нет $missing — на экране был бы сырой ключ');
     }
+  });
+
+  group('профили (часть 2)', () {
+    testWidgets('нажатие на карточку переключает профиль — тем же ключом, что веб, и тема следом', (t) async {
+      await open(t, prefs: {'psygames_active_profile': 'nzt48'});
+      expect(AppLook.mode.value, ThemeMode.light, reason: 'nzt48 — светлый');
+      final before = AppLook.accent.value;
+      await tap(t, 'profile-chess');
+      expect(state.get('psygames_active_profile'), 'chess');
+      // Проверяем то, что слушает MaterialApp, а не пересчёт из памяти: иначе забытый
+      // AppLook.refresh проходит незамеченным (мутация P2 выжила на прежней проверке).
+      expect(AppLook.mode.value, ThemeMode.dark, reason: 'chess — тёмный, а приложение осталось светлым');
+      expect(AppLook.accent.value, isNot(before), reason: 'акцент профиля не сменился');
+    });
+
+    testWidgets('долгое нажатие — лист деталей: игры профиля и «переключиться»', (t) async {
+      await open(t, prefs: {'psygames_active_profile': 'nzt48'});
+      await t.ensureVisible(find.byKey(const Key('profile-kids')));
+      await t.longPress(find.byKey(const Key('profile-kids')));
+      await t.pumpAndSettle();
+      expect(find.byKey(const Key('profile-details-kids')), findsOneWidget);
+      final kids = Profiles.current.byId('kids')!;
+      final first = Profiles.current.games[kids.games!.first]!;
+      expect(find.text(L.t('${first['nameKey']}')), findsWidgets, reason: 'в листе нет игр профиля');
+      await t.ensureVisible(find.byKey(const Key('profile-switch-kids')));
+      await t.tap(find.byKey(const Key('profile-switch-kids')));
+      await t.pumpAndSettle();
+      expect(state.get('psygames_active_profile'), 'kids');
+    });
+
+    testWidgets('сброс разблокировок снимает ключ, как resetUnlocks веба', (t) async {
+      await open(t, prefs: {'psygames_unlocked_themed': '["chess"]'});
+      await tap(t, 'profile-reset-unlocks');
+      await t.tap(find.text(L.t('btn_reset')).last);
+      await t.pumpAndSettle();
+      expect(state.get('psygames_unlocked_themed'), isNull);
+    });
+
+    test('🔴 коды в вебе выключены — иначе перенеси tryUnlock (unlock.ts) и спрячь ввод на iOS', () {
+      final p = Profiles.parse(File('assets/profiles.json').readAsStringSync());
+      expect(p.codesEnabled, isFalse,
+          reason: 'UNLOCK_CODES_ENABLED включили: в нативных настройках нет ввода кода — перенеси tryUnlock и '
+              'спрячь ввод на iOS (App Store 3.1.1)');
+      expect(p.monetization, isFalse, reason: 'MONETIZATION_ENABLED включили: перенеси запрос кода в Telegram');
+    });
+
+    test('имена игр из листа деталей есть в словаре en и ru', () {
+      final p = Profiles.parse(File('assets/profiles.json').readAsStringSync());
+      for (final loc in const ['en', 'ru']) {
+        final dict = jsonDecode(File('assets/l10n/$loc.json').readAsStringSync()) as Map;
+        final missing = [for (final g in p.games.values) if (!dict.containsKey(g['nameKey'])) g['nameKey']];
+        expect(missing, isEmpty, reason: '$loc: $missing');
+      }
+    });
   });
 }

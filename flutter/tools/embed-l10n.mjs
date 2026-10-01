@@ -114,6 +114,8 @@ for (const f of dartFiles(join(FLUTTER, 'lib'))) {
 for (const [file, fields] of [
   ['assets/hubs.json', ['nameKey', 'descKey', 'titleKey', 'pickKey', 'footnoteKey']],
   ['assets/puzzles/modes.json', ['titleKey', 'digitNames', 'secondKey', 'secondPickKey']],
+  // Имена игр в листе деталей профиля (настройки на Flutter, задача eae0879c).
+  ['assets/profiles.json', ['nameKey']],
 ]) {
   let data;
   // 🔴 НЕТ ФАЙЛА — пропустить можно; ЕСТЬ, НО НЕ ЧИТАЕТСЯ — СТОП. Замер 01.10.2026: после

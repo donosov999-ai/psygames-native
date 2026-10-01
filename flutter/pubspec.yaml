@@ -107,6 +107,8 @@ flutter:
     # Вид приложения (цвета тем, тема профиля, акценты магазина) — выгрузка веба
     # (flutter/tools/embed-look.mjs), не править руками.
     - assets/look.json
+    # Профили для настроек — выгрузка живого TS, сторож frontend/src/__tests__/flutter-profiles-asset-fresh.test.ts
+    - assets/profiles.json
     # Иконки игр «поле в миниатюре» для строк развилок — выгрузка веб-реестра
     # (flutter/tools/embed-game-icons.mjs), не править руками.
     - assets/game_icons/
