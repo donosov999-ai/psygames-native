@@ -11,6 +11,8 @@
  *  · `wikt` — пометка статьи Викисловаря (en.wiktionary.org, CC BY-SA 4.0),
  *    снята 02.10.2026 выгрузкой kaikki.org по категориям «nonstandard»,
  *    «proscribed», «misspellings», «eggcorns»; в `label` — сама пометка;
+ *  · `gramota` — ответ справочной службы Грамоты.ру, номер вопроса в `ref`
+ *    (https://gramota.ru/spravka/vopros/<ref>), снят 02.10.2026;
  *  · `fipi2026` — «Орфоэпический список — 2026» ФИПИ (задание 4 ЕГЭ, по
  *    государственному орфоэпическому словарю Института русского языка РАН):
  *    https://doc.fipi.ru/navigator-podgotovki/navigator-ege/2026/ru-1-fonetika.pdf
@@ -37,13 +39,17 @@ export interface NonstandardForm {
   norm: string;
   rule: NsRule;
   tier: 1 | 2 | 3;
-  src: 'wikt' | 'fipi2026';
+  src: 'wikt' | 'gramota' | 'fipi2026';
+  /** Номер вопроса справочной службы — у `gramota`. */
+  ref?: number;
   /** Пометка источника — дословно. */
   label: string;
 }
 
 const w = (form: string, norm: string, rule: NsRule, tier: 1 | 2 | 3, label: string): NonstandardForm =>
   ({ form, norm, rule, tier, src: 'wikt', label });
+const g = (form: string, norm: string, rule: NsRule, tier: 1 | 2 | 3, ref: number): NonstandardForm =>
+  ({ form, norm, rule, tier, src: 'gramota', ref, label: `Грамота.ру, вопрос №${ref}: «Правильно: ${norm}»` });
 const f = (form: string, norm: string): NonstandardForm =>
   ({ form, norm, rule: 'stress', tier: 3, src: 'fipi2026', label: 'орфоэпический список' });
 
@@ -148,6 +154,8 @@ export const NONSTANDARD_FORMS: Record<string, readonly NonstandardForm[]> = {
     w('комфорка', 'конфорка', 'spelling', 2, 'nonstandard'),
     w('продливать', 'продлевать', 'spelling', 2, 'nonstandard'),
     w('подскользнуться', 'поскользнуться', 'spelling', 2, 'colloquial'),
+    g('будующий', 'будущий', 'spelling', 2, 212395),
+    g('координально', 'кардинально', 'spelling', 2, 204713),
     w('вообщем', 'в общем', 'separate', 2, 'misspelling'),
     w('врятли', 'вряд ли', 'separate', 2, 'misspelling'),
     w('всмысле', 'в смысле', 'separate', 2, 'colloquial, proscribed'),
@@ -209,6 +217,7 @@ export function hasNonstandardForms(lang: string): boolean {
 /** Адрес источника пары — для разбора и проверки. */
 export function nonstandardSourceUrl(lang: string, x: NonstandardForm): string {
   if (x.src === 'fipi2026') return 'https://doc.fipi.ru/navigator-podgotovki/navigator-ege/2026/ru-1-fonetika.pdf';
+  if (x.src === 'gramota') return `https://gramota.ru/spravka/vopros/${x.ref}`;
   void lang;
   // У спутанных пар статья — про слово, а не про фразу: «then: misspelling of than».
   const page = x.rule === 'confused' ? x.label.split(':')[0]! : x.form;

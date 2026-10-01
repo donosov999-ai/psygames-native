@@ -2258,14 +2258,9 @@
      "form": "облоко"
     },
     {
-     "text": "хотят",
+     "text": "поезжай",
      "isNorm": true,
-     "form": "хочут"
-    },
-    {
-     "text": "её",
-     "isNorm": true,
-     "form": "ейный"
+     "form": "ехай"
     },
     {
      "text": "его",
@@ -2273,19 +2268,59 @@
      "form": "егошний"
     },
     {
-     "text": "симпатичный",
+     "text": "мужчина",
      "isNorm": true,
-     "form": "симпотичный"
+     "form": "мущина"
     },
     {
-     "text": "некоторый",
+     "text": "её",
      "isNorm": true,
-     "form": "некторый"
+     "form": "ейный"
     },
     {
-     "text": "положить",
+     "text": "проволока",
      "isNorm": true,
-     "form": "покласть"
+     "form": "проволка"
+    },
+    {
+     "text": "ничё",
+     "isNorm": false,
+     "form": "ничё"
+    },
+    {
+     "text": "поскользнуться",
+     "isNorm": true,
+     "form": "подскользнуться"
+    },
+    {
+     "text": "деревяный",
+     "isNorm": false,
+     "form": "деревяный"
+    },
+    {
+     "text": "поезжайте",
+     "isNorm": true,
+     "form": "ехайте"
+    },
+    {
+     "text": "с ходу",
+     "isNorm": true,
+     "form": "сходу"
+    },
+    {
+     "text": "купивши",
+     "isNorm": false,
+     "form": "купивши"
+    },
+    {
+     "text": "серебрянный",
+     "isNorm": false,
+     "form": "серебрянный"
+    },
+    {
+     "text": "касаемо",
+     "isNorm": false,
+     "form": "касаемо"
     },
     {
      "text": "тута",
@@ -2293,54 +2328,19 @@
      "form": "тута"
     },
     {
-     "text": "кухня",
-     "isNorm": true,
-     "form": "куфня"
-    },
-    {
-     "text": "использовывать",
-     "isNorm": false,
-     "form": "использовывать"
-    },
-    {
-     "text": "еслибы",
-     "isNorm": false,
-     "form": "еслибы"
-    },
-    {
-     "text": "водалей",
-     "isNorm": false,
-     "form": "водалей"
-    },
-    {
-     "text": "выйграть",
-     "isNorm": false,
-     "form": "выйграть"
-    },
-    {
      "text": "вообщем",
      "isNorm": false,
      "form": "вообщем"
     },
     {
-     "text": "двоюрный",
+     "text": "трёс",
      "isNorm": false,
-     "form": "двоюрный"
+     "form": "трёс"
     },
     {
-     "text": "ляжьте",
+     "text": "куфня",
      "isNorm": false,
-     "form": "ляжьте"
-    },
-    {
-     "text": "едь",
-     "isNorm": false,
-     "form": "едь"
-    },
-    {
-     "text": "пиджак",
-     "isNorm": true,
-     "form": "пинжак"
+     "form": "куфня"
     }
    ]
   },
@@ -2352,104 +2352,24 @@
    "shift": 139,
    "trials": [
     {
-     "text": "катАлог",
+     "text": "углУбить",
      "isNorm": false,
-     "form": "катАлог"
+     "form": "углУбить"
     },
     {
-     "text": "корЫсть",
+     "text": "вряд ли",
      "isNorm": true,
-     "form": "кОрысть"
+     "form": "врятли"
     },
     {
-     "text": "в смысле",
+     "text": "шофЁр",
      "isNorm": true,
-     "form": "всмысле"
-    },
-    {
-     "text": "квартАл",
-     "isNorm": true,
-     "form": "квАртал"
-    },
-    {
-     "text": "звонИт",
-     "isNorm": true,
-     "form": "звОнит"
-    },
-    {
-     "text": "щЁлкать",
-     "isNorm": true,
-     "form": "щелкАть"
-    },
-    {
-     "text": "докумЕнт",
-     "isNorm": true,
-     "form": "дОкумент"
-    },
-    {
-     "text": "выйграть",
-     "isNorm": false,
-     "form": "выйграть"
-    },
-    {
-     "text": "оптОвый",
-     "isNorm": true,
-     "form": "Оптовый"
-    },
-    {
-     "text": "в общем",
-     "isNorm": true,
-     "form": "вообщем"
-    },
-    {
-     "text": "шОфер",
-     "isNorm": false,
      "form": "шОфер"
     },
     {
-     "text": "кранЫ",
-     "isNorm": false,
-     "form": "кранЫ"
-    },
-    {
-     "text": "пАртер",
-     "isNorm": false,
-     "form": "пАртер"
-    },
-    {
-     "text": "позвОнит",
-     "isNorm": false,
-     "form": "позвОнит"
-    },
-    {
-     "text": "тАможня",
-     "isNorm": false,
-     "form": "тАможня"
-    },
-    {
-     "text": "тортЫ",
-     "isNorm": false,
-     "form": "тортЫ"
-    },
-    {
-     "text": "некрОлог",
-     "isNorm": false,
-     "form": "некрОлог"
-    },
-    {
-     "text": "жевачка",
-     "isNorm": false,
-     "form": "жевачка"
-    },
-    {
-     "text": "статУя",
-     "isNorm": false,
-     "form": "статУя"
-    },
-    {
-     "text": "ждалА",
+     "text": "откУпорить",
      "isNorm": true,
-     "form": "ждАла"
+     "form": "откупОрить"
     },
     {
      "text": "мужчина",
@@ -2457,9 +2377,89 @@
      "form": "мущина"
     },
     {
-     "text": "эспрессо",
+     "text": "киломЕтр",
      "isNorm": true,
+     "form": "килОметр"
+    },
+    {
+     "text": "докумЕнт",
+     "isNorm": true,
+     "form": "дОкумент"
+    },
+    {
+     "text": "кУхонный",
+     "isNorm": true,
+     "form": "кухОнный"
+    },
+    {
+     "text": "продлевать",
+     "isNorm": true,
+     "form": "продливать"
+    },
+    {
+     "text": "туфлЯ",
+     "isNorm": false,
+     "form": "туфлЯ"
+    },
+    {
+     "text": "кардинально",
+     "isNorm": true,
+     "form": "координально"
+    },
+    {
+     "text": "серебряный",
+     "isNorm": true,
+     "form": "серебрянный"
+    },
+    {
+     "text": "кранЫ",
+     "isNorm": false,
+     "form": "кранЫ"
+    },
+    {
+     "text": "щелкАть",
+     "isNorm": false,
+     "form": "щелкАть"
+    },
+    {
+     "text": "сходу",
+     "isNorm": false,
+     "form": "сходу"
+    },
+    {
+     "text": "аэропортЫ",
+     "isNorm": false,
+     "form": "аэропортЫ"
+    },
+    {
+     "text": "начАл",
+     "isNorm": false,
+     "form": "начАл"
+    },
+    {
+     "text": "некрОлог",
+     "isNorm": false,
+     "form": "некрОлог"
+    },
+    {
+     "text": "экспрессо",
+     "isNorm": false,
      "form": "экспрессо"
+    },
+    {
+     "text": "выйграть",
+     "isNorm": false,
+     "form": "выйграть"
+    },
+    {
+     "text": "жАлюзи",
+     "isNorm": false,
+     "form": "жАлюзи"
+    },
+    {
+     "text": "каталОг",
+     "isNorm": true,
+     "form": "катАлог"
     }
    ]
   },
