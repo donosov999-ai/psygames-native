@@ -89,7 +89,7 @@ for abi in arm64-v8a armeabi-v7a x86_64; do
   # «dlopen failed: cannot locate symbol "atan2"» — все 42 головоломки не открывались в релизе
   # 2.56.1 (проверка на эмуляторе ДО заливки). Компоновщик по умолчанию разрешает неразрешённые
   # символы в .so, и ошибка всплывала только при загрузке. --no-undefined валит сборку здесь же.
-  "$CC" --target=$TARGET$API -O2 -DCOMBINED -fvisibility=hidden -fPIC \
+  "$CC" --target=$TARGET$API -O2 -DCOMBINED -DSOLVER_DIAGNOSTICS -include "$BRIDGE/psy_diag.h" -fvisibility=hidden -fPIC \
     -I"$WORK/gen" -I"$SRC" -shared -o "$OUT/$abi/libtatham.so" $SRCS \
     -lm -Wl,--no-undefined 2> "$WORK/build-$abi.err" || {
       grep -E "error:" "$WORK/build-$abi.err" | head -5; exit 5; }
