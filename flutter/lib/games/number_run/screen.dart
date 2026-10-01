@@ -5,6 +5,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 
 import '../../shell/demo_lesson.dart';
+import '../../shell/game_preset.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/js_compat.dart' show jsNum, jsRound;
 import '../../shell/l10n.dart';
@@ -221,6 +222,9 @@ class _NumberRunScreenState extends State<NumberRunScreen> with SingleTickerProv
       _loaded = true;
       _deal();
     });
+    // Шаг зарядки начинается сам — без «Начать» (проба warmup_step_starts_itself_test,
+    // отчёт Дениса 01.10.2026). Веб-забег так не умел; правило общее для нативных игр.
+    if (GamePreset.autostart) _start();
   }
 
   @override
