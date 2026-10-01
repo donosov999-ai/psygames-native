@@ -176,6 +176,7 @@ const Map<String, IconData> hubIcons = {
   'remove-circle': Icons.remove_circle_outline,
   'repeat': Icons.repeat,
   'scan': Icons.crop_free,
+  'search': Icons.search,
   'settings': Icons.settings_outlined,
   'share-social': Icons.share_outlined,
   'shuffle': Icons.shuffle,
