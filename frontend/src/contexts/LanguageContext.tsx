@@ -4629,6 +4629,8 @@ const translations: Translations = {
   sliderConfirm: { ru: 'Подтвердить', en: 'Confirm' },
   sliderTrainingNote: { ru: 'Тренировка — эта попытка не сохраняется', en: 'Practice — this try isn’t saved' },
   sliderMarkerA11y: { ru: 'маркер, оценка {x}', en: 'marker, estimate {x}' },
+  // «Счёт» — подписи нативного экрана «Паттерны» (задача 4b6f863e, 02.10.2026)
+  patResultWin: { ru: 'Уровень взят: {p}% верных, звёзд {stars}', en: 'Level cleared: {p}% correct, {stars} stars' },
   // >>> SCREEN_STRINGS
 };
 

@@ -3371,5 +3371,6 @@ const t: Record<string, string> = {
   "sliderConfirm": "Confirmar",
   "sliderTrainingNote": "Práctica: este intento no se guarda",
   "sliderMarkerA11y": "marcador, estimación {x}",
+  "patResultWin": "Nivel superado: {p} % de aciertos, {stars} estrellas",
 };
 export default t;

@@ -61,10 +61,8 @@ void main() {
     'games/mental_rotation/screen.dart': 58,
     'games/spatial_lab/screen.dart': 43,
     'games/sudoku/screen.dart': 31,
-    'games/pattern/model.dart': 24,
     'games/sort_tubes/screen.dart': 23,
     'games/spatial_span/screen.dart': 21,
-    'games/pattern/screen.dart': 18,
     'main.dart': 16,
     'games/goods_sort/screen.dart': 15,
     'games/samurai/screen.dart': 14,
@@ -111,7 +109,10 @@ void main() {
   // 02.10 — там же: «Математическая шкала» и «Таблица Шульте» (−53, оба файла ушли из списка),
   // 33 новых ключа на 12 языках; подсказка Шульте — целой фразой на каждое из девяти сочетаний
   // «что × порядок», а не склейкой; алфавит письменности — данные: 540 − 53.
-  const total = 487;
+  // 02.10 — там же: «Паттерны» (−42, оба файла ушли из списка). Русские копии подписей классов
+  // и правил в модели заменены ключами общего словаря (список patternLabelKeys для сборщика);
+  // два ключа виджета прятались в тернарнике внутри Key(…) — разнесены: 487 − 42.
+  const total = 445;
 
   final counts = _scan(Directory('lib'));
 

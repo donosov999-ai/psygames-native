@@ -3365,5 +3365,6 @@ const t: Record<string, string> = {
   "sliderConfirm": "確定",
   "sliderTrainingNote": "練習——この回は記録されません",
   "sliderMarkerA11y": "マーカー、見積もり {x}",
+  "patResultWin": "レベルクリア：正答率 {p}%、星 {stars}",
 };
 export default t;

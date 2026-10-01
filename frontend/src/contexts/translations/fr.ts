@@ -3366,5 +3366,6 @@ const t: Record<string, string> = {
   "sliderConfirm": "Valider",
   "sliderTrainingNote": "Entraînement : cet essai n’est pas enregistré",
   "sliderMarkerA11y": "repère, estimation {x}",
+  "patResultWin": "Niveau réussi : {p} % de bonnes réponses, {stars} étoiles",
 };
 export default t;

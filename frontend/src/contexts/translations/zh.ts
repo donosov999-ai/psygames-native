@@ -3371,5 +3371,6 @@ const t: Record<string, string> = {
   "sliderConfirm": "确认",
   "sliderTrainingNote": "练习——这次不计入记录",
   "sliderMarkerA11y": "标记，估计值 {x}",
+  "patResultWin": "过关：正确率 {p}%，{stars} 颗星",
 };
 export default t;
