@@ -183,6 +183,26 @@ export function sessionFitsStep(session: GameSession, step: PlaylistStep | undef
   return true;
 }
 
+/**
+ * Результаты шагов батареи → партии для подсчёта.
+ * ⚠️ Настройки партии (`difficulty`, `mode`) обязаны доехать: по ним `sessionFitsStep`
+ * узнаёт партию шага. Без них 7 доменов из 12 у любого человека выходили «средними».
+ */
+export function sessionsFromStepResults(results: readonly {
+  game_type: string; score: number; time_seconds: number; errors: number;
+  details?: Record<string, any>; difficulty?: string; mode?: string;
+}[]): GameSession[] {
+  return results.map((r) => ({
+    game_type: r.game_type,
+    score: r.score,
+    time_seconds: r.time_seconds,
+    errors: r.errors,
+    details: r.details,
+    difficulty: r.difficulty,
+    mode: r.mode,
+  }));
+}
+
 export function scoreSessions(sessions: GameSession[]): AssessmentResult {
   const scores: DomainScore[] = [];
   for (const dom of DOMAINS) {

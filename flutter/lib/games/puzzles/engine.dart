@@ -111,6 +111,13 @@ class TathamEngine {
   static TathamEngine openPlatform({String? path}) {
     if (Platform.isIOS) return TathamEngine._(DynamicLibrary.process());
     if (Platform.isAndroid) return TathamEngine._(DynamicLibrary.open('libtatham.so'));
+    // 🔴 macOS — `.dylib` в самом приложении: Contents/Frameworks/ рядом с Contents/MacOS/<бинарник>.
+    // Кладёт её туда tool/build_macos_app.sh. Без этой строки экран головоломок на маке падал
+    // «нужен путь» — путь передают только пробы (01.10.2026).
+    if (Platform.isMacOS && path == null) {
+      final macos = File(Platform.resolvedExecutable).parent;
+      return open('${macos.parent.path}/Frameworks/$libraryName');
+    }
     if (path == null) {
       throw ArgumentError('на настольной сборке нужен путь к $libraryName');
     }
