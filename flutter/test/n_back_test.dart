@@ -156,4 +156,23 @@ void main() {
       expect(jitteredGapMs(300, () => 0.0), 300);
     });
   });
+
+  /// Справка двойного потока называет кнопки так, как они подписаны на экране
+  /// (`suiteModeSimon` и `label_sound`), во всех 12 языках: подсказка в партии, правило
+  /// уровня и его пример. Висели «👁 Position» и «🔊 Sound», когда на кнопке уже «Позиция».
+  test('🔴 подсказка и правило двойного потока называют кнопки их подписями — 12 языков', () {
+    final bad = <String>[];
+    for (final lang in const ['ru', 'en', 'es', 'de', 'zh', 'hi', 'pt', 'fr', 'it', 'ja', 'ko', 'ar']) {
+      final d = jsonDecode(File('assets/l10n/$lang.json').readAsStringSync()) as Map<String, dynamic>;
+      final buttons = [d['suiteModeSimon'] as String, d['label_sound'] as String];
+      for (final key in const ['nBackDualHint', 'lr_n_back_dual_rule', 'lr_n_back_dual_example']) {
+        final text = d[key] as String;
+        for (final b in buttons) {
+          if (!text.contains(b)) bad.add('$lang.$key без «$b»');
+        }
+        if (lang != 'en' && text.contains('Sound')) bad.add('$lang.$key: «Sound»');
+      }
+    }
+    expect(bad, isEmpty);
+  });
 }
