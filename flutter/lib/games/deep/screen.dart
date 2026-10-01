@@ -4,6 +4,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../../shell/game_clock.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/session_report.dart';
@@ -65,7 +66,8 @@ class _DeepScreenState extends State<DeepScreen> {
   /// Когда началась партия в ЭТОМ заходе. ⚠️ Продолжение партии из снимка считает
   /// время с открытия экрана: снимок веба длительности не хранит, и выдумывать её
   /// нельзя — отчёт честно покажет время последнего захода.
-  DateTime _startedAt = DateTime.now();
+  /// Начало партии по ИГРОВЫМ часам (мс) — гейт game_clock_discipline_test (#74).
+  int _startedAt = gameNow();
 
   /// Отчёт уходит ОДИН раз на победу: сборка корня — событие, а не состояние.
   bool _reported = false;
@@ -141,7 +143,7 @@ class _DeepScreenState extends State<DeepScreen> {
         _cache.clear();
         _won = false;
         _reported = false;
-        _startedAt = DateTime.now();
+        _startedAt = gameNow();
       });
       return _seed.isNotEmpty;
     } catch (_) {
@@ -167,7 +169,7 @@ class _DeepScreenState extends State<DeepScreen> {
     };
     widget.state.set(_resumeKey, jsonEncode({
       'v': resumeVersion,
-      'savedAt': DateTime.now().millisecondsSinceEpoch,
+      'savedAt': DateTime.now().millisecondsSinceEpoch, // wall-clock: отметка сохранения
       'state': state,
     }));
   }
@@ -175,7 +177,7 @@ class _DeepScreenState extends State<DeepScreen> {
   void _newGame() {
     final rnd = Random();
     setState(() {
-      _seed = 'бездна-${DateTime.now().millisecondsSinceEpoch}-${rnd.nextInt(9999)}';
+      _seed = 'бездна-${DateTime.now().millisecondsSinceEpoch}-${rnd.nextInt(9999)}'; // wall-clock: зерно раздачи
       _path = '';
       _grids.clear();
       _past.clear();
@@ -184,7 +186,7 @@ class _DeepScreenState extends State<DeepScreen> {
       _selected = null;
       _won = false;
       _reported = false;
-      _startedAt = DateTime.now();
+      _startedAt = gameNow();
       _failure = null;
     });
     _save();
@@ -262,7 +264,7 @@ class _DeepScreenState extends State<DeepScreen> {
     unawaited(SessionReport.send(
       gameType: gameId,
       score: solved * 120 + 2000,
-      timeSeconds: DateTime.now().difference(_startedAt).inSeconds,
+      timeSeconds: (gameNow() - _startedAt) ~/ 1000,
       difficulty: _preset,
       mode: 'deep',
       errors: 0,

@@ -4,6 +4,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../shell/game_clock.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/l10n.dart';
 import 'keypad.dart';
@@ -234,9 +235,11 @@ class _SudokuScreenState extends State<SudokuScreen> {
   int _backtracks = 0;
 
   /// Когда раздана доска — от этого считается время партии в отчёте.
-  DateTime _startedAt = DateTime.now();
+  /// Начало партии по ИГРОВЫМ часам (мс): пауза и разбор поверх игры время партии не
+  /// съедают (гейт game_clock_discipline_test, #74).
+  int _startedAt = gameNow();
 
-  int get _elapsed => DateTime.now().difference(_startedAt).inSeconds;
+  int get _elapsed => (gameNow() - _startedAt) ~/ 1000;
   bool _won = false;
   bool _lost = false;
   String? _failure;
@@ -278,7 +281,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
     if (mode != null) {
       final modes = _sideModes, side = _side;
       if (modes == null || side == null) return;
-      final board = modes.boardFor(mode, side.step, seed: DateTime.now().millisecondsSinceEpoch);
+      final board = modes.boardFor(mode, side.step, seed: DateTime.now().millisecondsSinceEpoch); // wall-clock: зерно раздачи
       setState(() {
         _sideBoard = board;
         _failure = board == null ? _noBoards : null;
@@ -288,7 +291,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
         _resetNotes(board?.n ?? 0);
         _selected = null;
         _errors = 0;
-        _startedAt = DateTime.now();
+        _startedAt = gameNow();
         _hintsUsed = 0;
         _backtracks = 0;
         _won = false;
@@ -302,7 +305,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
     }
     final levels = _levels;
     if (levels == null) return;
-    final seed = DateTime.now().millisecondsSinceEpoch;
+    final seed = DateTime.now().millisecondsSinceEpoch; // wall-clock: зерно раздачи
     final board = levels.boardFor(_ladder.level, seed: seed);
     setState(() {
       _board = board;
@@ -314,7 +317,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
       _resetNotes(board?.n ?? 0);
       _selected = null;
       _errors = 0;
-      _startedAt = DateTime.now();
+      _startedAt = gameNow();
       _hintsUsed = 0;
       _backtracks = 0;
       _won = false;
@@ -327,7 +330,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
   void _recordDeal(SudokuBoard? board) {
     final shadow = _shadow;
     if (shadow == null || board == null) return;
-    _dealId = 'lv${_ladder.level}-${DateTime.now().millisecondsSinceEpoch}';
+    _dealId = 'lv${_ladder.level}-${DateTime.now().millisecondsSinceEpoch}'; // wall-clock: id партии
     _givenTemplate = templateForBoard(
       variant: board.variant,
       fromBank: board.rating != null,
@@ -373,7 +376,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
     var t = repeat ? lastTemplate(s, _pool) : null;
     t ??= pickNext(s, _pool, Leniency.normal);
     _attempt = repeat ? _attempt + 1 : 0;
-    final seed = DateTime.now().millisecondsSinceEpoch + _attempt;
+    final seed = DateTime.now().millisecondsSinceEpoch + _attempt; // wall-clock: зерно раздачи
     final dealt = t == null
         ? null
         : boardForTemplate(levels, _levelsOfTemplate, t, seed, avoid: repeat ? _board : null);
@@ -394,7 +397,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
       _repeatable = null;
       // Микросекунды, а не зерно: две раздачи в одну миллисекунду дали бы один id,
       // и второй исход движок отбросил бы как повтор (идемпотентность по eventId).
-      _pilotEventId = 'gen-${DateTime.now().microsecondsSinceEpoch}';
+      _pilotEventId = 'gen-${DateTime.now().microsecondsSinceEpoch}'; // wall-clock: id партии
       _failure = board == null ? _noBoards : null;
       _grid = board == null ? const [] : [for (final row in board.puzzle) [...row]];
       _given = board == null ? const [] : [for (final row in board.puzzle) [for (final v in row) v != 0]];
@@ -402,7 +405,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
       _resetNotes(board?.n ?? 0);
       _selected = null;
       _errors = 0;
-      _startedAt = DateTime.now();
+      _startedAt = gameNow();
       _hintsUsed = 0;
       _backtracks = 0;
       _won = false;
@@ -432,7 +435,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
         errors: _errors,
         hints: _hintsUsed,
         seconds: _elapsed,
-        at: DateTime.now(),
+        at: DateTime.now(), // wall-clock: отметка события — от неё считается перерыв в игре
       ),
       template: t,
     );
