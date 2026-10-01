@@ -9,12 +9,31 @@
 # числа снимаются с телефона (`adb shell am start -W`, медиана пяти запусков).
 name: Пилот Flutter (пробы + сборка Android)
 
+# ⚠️ Пути — не только flutter/**: словари, развилки и режимы головоломок во Flutter СОБИРАЮТСЯ
+# из этих веб-исходников (гейт «сгенерированное совпадает с исходниками» ниже). PR, правящий один
+# веб-словарь или экран веба, иначе прошёл бы мимо проверки — так расходились словари 30.09.2026.
 on:
   push:
     branches: [main]
-    paths: ['flutter/**', '.github/workflows/flutter-pilot.yml']
+    paths:
+      - 'flutter/**'
+      - '.github/workflows/flutter-pilot.yml'
+      - 'frontend/src/contexts/LanguageContext.tsx'
+      - 'frontend/src/contexts/translations/**'
+      - 'frontend/src/constants/defaultPlaylists.json'
+      - 'frontend/src/constants/hubContents.ts'
+      - 'frontend/src/games/tatham-bridge/sections/**'
+      - 'frontend/app/games/**'
   pull_request:
-    paths: ['flutter/**', '.github/workflows/flutter-pilot.yml']
+    paths:
+      - 'flutter/**'
+      - '.github/workflows/flutter-pilot.yml'
+      - 'frontend/src/contexts/LanguageContext.tsx'
+      - 'frontend/src/contexts/translations/**'
+      - 'frontend/src/constants/defaultPlaylists.json'
+      - 'frontend/src/constants/hubContents.ts'
+      - 'frontend/src/games/tatham-bridge/sections/**'
+      - 'frontend/app/games/**'
   workflow_dispatch:
 
 concurrency:
@@ -60,6 +79,26 @@ jobs:
           PUZZLES_SRC="$HOME/puzzles" tool/build_tatham.sh
           ls -l build/tatham/
 
+      # 🔴 СГЕНЕРИРОВАННОЕ ОБЯЗАНО СОВПАДАТЬ С ИСХОДНИКАМИ.
+      #
+      # Словари, развилки и режимы головоломок во Flutter — ВЫГРУЗКА из веб-исходников.
+      # Слияние двух веток склеивает сгенерированный JSON «чисто», но неверно: 30.09.2026
+      # после #63 экран «Диктанта» звал пять ключей, которых в словарях main не было, —
+      # человек увидел бы сырые ключи. В тот же день так же расходились #10, #44, #57, #64.
+      # Проверка — пересобрать и сравнить: генераторы на одном node, без зависимостей, и
+      # повторный прогон не меняет ни байта (замер 30.09).
+      - name: Сгенерированное совпадает с исходниками
+        run: |
+          node tools/embed-hubs.mjs > /dev/null
+          node tools/embed-puzzle-modes.mjs > /dev/null
+          node tools/embed-puzzle-routes.mjs > /dev/null
+          node tools/embed-l10n.mjs > /dev/null
+          if ! git diff --quiet -- assets/hubs.json assets/puzzles/modes.json assets/l10n lib/shell/puzzle_routes.g.dart; then
+            git diff --stat -- assets/hubs.json assets/puzzles/modes.json assets/l10n lib/shell/puzzle_routes.g.dart
+            echo "::error title=Сгенерированное устарело::пересобери: cd flutter && node tools/embed-hubs.mjs && node tools/embed-puzzle-modes.mjs && node tools/embed-puzzle-routes.mjs && node tools/embed-l10n.mjs — и закоммить"
+            exit 1
+          fi
+
       - name: Анализатор — чисто
         run: flutter analyze
       - name: Пробы — все зелёные
@@ -101,6 +140,22 @@ jobs:
 
       - name: APK (release, без подписи)
         run: flutter build apk --release
+      # 🔴 ИТОГОВЫЙ РЕЛИЗНЫЙ МАНИФЕСТ ПРОСИТ СЕТЬ. Без INTERNET релиз падает на старте:
+      # AssetServer не откроет сокет на 127.0.0.1 (замер 01.10.2026, эмулятор Android 36).
+      # Шаблон Flutter кладёт строку только в debug/profile, и отладка это прячет, поэтому
+      # читаем тот манифест, что уходит в APK, — после слияния манифестов плагинов.
+      - name: Релизный манифест — сеть разрешена
+        run: |
+          set -eu
+          M=build/app/intermediates/packaged_manifests/release/processReleaseManifestForPackage/AndroidManifest.xml
+          [ -f "$M" ] || M=$(find build/app/intermediates -path '*release*' -name AndroidManifest.xml | head -1)
+          if [ -z "$M" ] || [ ! -f "$M" ]; then
+            echo "::error title=Манифест::не найден итоговый релизный манифест"; exit 1
+          fi
+          echo "манифест: $M"
+          grep -o 'uses-permission android:name="[^"]*"' "$M" | sort -u
+          grep -q 'android.permission.INTERNET' "$M" \
+            || { echo "::error title=Сеть::в релизном манифесте нет INTERNET — приложение упадёт на старте"; exit 1; }
       - name: AAB (release, без подписи)
         run: flutter build appbundle --release
       - name: Вес — числом в отчёт

@@ -5,6 +5,8 @@ import 'package:psygames_flutter/games/number_bonds/screen.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'support/boss_probe.dart';
+
 /// ПАРТИЯ ИГРАЕТСЯ НАЖАТИЯМИ ПО ФИШКАМ. Числа проба читает С ЭКРАНА и сама ищет
 /// решение перебором — как человек, а не подглядывая в генератор.
 void main() {
@@ -145,5 +147,20 @@ void main() {
         expect(r.bottom <= field.bottom + 0.5, isTrue, reason: '$screen фишка $i ниже поля фишек');
       }
     }
+  });
+
+  testWidgets('🔴 веха: победа на 3-м уровне открывает бой «сложи подсвеченные», на 2-м — нет', (tester) async {
+    // В вебе этот экран зовёт BossRound каждые три уровня; при переносе бой пропал молча.
+    await expectBossAfterWin(tester, won: find.text('Следующий уровень'), hudKey: 'bossHudCounting', play: (level) async {
+      await open(tester, level: level, seed: 'босс$level');
+      final cfg = levelParams(level);
+      for (var i = 1; i <= cfg.trials; i += 1) {
+        for (final idx in solve(chipsOnScreen(tester), targetOnScreen(tester))) {
+          await tester.tap(find.byKey(Key('фишка$idx')));
+          await tester.pump();
+        }
+        await tester.pump(const Duration(milliseconds: 700));
+      }
+    });
   });
 }

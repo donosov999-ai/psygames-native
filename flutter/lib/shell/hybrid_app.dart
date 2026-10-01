@@ -26,6 +26,7 @@ import '../games/targets/screen.dart';
 import '../games/dots_connect/screen.dart';
 import '../games/memory_matrix/screen.dart';
 import '../games/stroop/screen.dart';
+import '../games/submarines/screen.dart';
 import '../games/one_line/screen.dart';
 import '../games/anagrams/screen.dart';
 import '../games/anagrams/all_words_screen.dart';
@@ -40,9 +41,12 @@ import '../games/cake_sort/screen.dart';
 import '../games/hanoi/screen.dart';
 import '../games/tower_london/screen.dart';
 import '../games/animal_queue/screen.dart';
+import '../games/kids_find/screen.dart';
 import '../games/kids_sort/screen.dart';
 import '../games/traffic_jam/screen.dart';
+import '../games/monster_traits/missing_screen.dart';
 import '../games/monster_traits/screen.dart';
+import '../games/search_runner/screen.dart';
 import '../games/roll_and_bank/screen.dart';
 import '../games/hidden_character/screen.dart';
 import '../games/sort_tubes/screen.dart';
@@ -75,6 +79,7 @@ import 'l10n.dart';
 import '../games/sorting_hub/screen.dart';
 import '../games/faces_names/screen.dart';
 import '../games/memory_palace/screen.dart';
+import '../games/mnemonics/screen.dart';
 import '../games/rmet/screen.dart';
 import '../games/word_pairs/screen.dart';
 import '../games/vocab_srs/screen.dart';
@@ -87,6 +92,7 @@ import '../games/pseudoword_echo/screen.dart';
 import '../games/phoneme_pairs/screen.dart';
 import '../games/chinese_tones/screen.dart';
 import '../games/dictation/screen.dart';
+import '../games/rhythm_pitch/screen.dart';
 import 'hub_screen.dart';
 import 'warmup_bridge.dart';
 import 'game_pet.dart';
@@ -95,6 +101,7 @@ import 'game_preset.dart';
 import 'game_rules.dart';
 import 'game_shell.dart';
 import 'puzzle_routes.g.dart';
+import '../games/chess_blind/screen.dart';
 import '../games/chess_hub/screen.dart';
 import '../games/scholars_mate/screen.dart';
 import 'shared_state.dart';
@@ -211,8 +218,16 @@ class HybridApp extends StatefulWidget {
       // развилках «Пространство», «Поиск глазами», «Конфликт внимания», «Головоломки».
       '/games/traffic-jam': (s) => TrafficJamScreen(state: s),
       '/games/monster-traits': (s) => MonsterTraitsScreen(state: s),
+      // MindLab «Найди» (kids/find.py) — раздел «Поиск», задача c8a2783f: только нативная.
+      '/games/kids-find': (s) => KidsFindScreen(state: s),
+      // MindLab «Подлодки» (submarinos/sea.py) — раздел «Поиск», задача c8a2783f: только нативная.
+      '/games/submarines': (s) => SubmarinesScreen(state: s),
+      // Второй режим «Найди признак» — «Кого не хватает» (MindLab Missing, задача 664b414a).
+      '/games/monster-traits?mode=missing': (s) => MonsterMissingScreen(state: s),
       '/games/roll-and-bank': (s) => RollAndBankScreen(state: s),
       '/games/hidden-character': (s) => HiddenCharacterScreen(state: s),
+      // Раннер «Поиска глазами» (задача 5386c0e8): сразу нативный, веб-двойника нет.
+      '/games/search-runner': (s) => SearchRunnerScreen(state: s),
         /*
          * 🔴 РАЗВИЛКА ТОЖЕ ПЕРЕХВАТЫВАЕТСЯ. Она ведёт на восемь игр, из которых
          * все восемь уже нативные: оставь её в вебе — и каждый заход в игру шёл
@@ -230,12 +245,9 @@ class HybridApp extends StatefulWidget {
         '/games/stop-signal': (s) => StopSignalScreen(state: s),
         '/games/posner': (s) => PosnerScreen(state: s),
         '/games/stroop-emotional': (s) => EmoStroopScreen(state: s),
-        // «Доска в уме» (`/games/chess-blind`) НЕ перехватывается — нарочно, до
-        // полного переноса. Замер 30.09.2026 по нативному экрану против веба:
-        // уровень не двигался (всегда 1), ходы вслепую не показывались по одному,
-        // верный вариант в «что стоит на поле» стоял первой кнопкой, у серии нет
-        // доски и замера времени блоков. Веб-версия работает целиком — пусть
-        // играют в неё, пока перенос не догонит (задача 3d79c4f0).
+        // «Доска в уме» перенесена целиком: партия (лестница, ходы по одному,
+        // варианты, помеха) и серия (часы блоков, разности, прогресс) — 01.10.2026.
+        '/games/chess-blind': (s) => ChessBlindScreen(state: s),
         // «Детский мат» перенесён целиком: лестница, узоры, микс, жертва и поток.
         '/games/scholars-mate': (s) => ScholarsMateScreen(state: s),
         '/games/switching-task': (s) => SwitchingTaskScreen(state: s),
@@ -243,6 +255,7 @@ class HybridApp extends StatefulWidget {
         '/games/inhibition': (s) => InhibitionScreen(state: s),
         '/games/faces-names': (s) => FacesNamesScreen(state: s),
         '/games/memory-palace': (s) => MemoryPalaceScreen(state: s),
+        '/games/mnemonics': (s) => MnemonicsScreen(state: s),
         '/games/rmet': (s) => RmetScreen(state: s),
         '/games/ant': (s) => AntScreen(state: s),
         // РАЗВИЛКА «КОНФЛИКТ ВНИМАНИЯ» — НА ОБЩЕМ ЭКРАНЕ, СВОЕГО НЕ ПИШЕМ. Девять
@@ -293,6 +306,7 @@ class HybridApp extends StatefulWidget {
         '/games/phoneme-pairs': (s) => PhonemePairsScreen(state: s),
         '/games/chinese-tones': (s) => ChineseTonesScreen(state: s),
         '/games/dictation': (s) => DictationScreen(state: s),
+        '/games/rhythm-pitch': (s) => RhythmPitchScreen(state: s),
         /*
          * Развилка «Слух» — на общем каркасе: над списком у неё в вебе ничего нет.
          */

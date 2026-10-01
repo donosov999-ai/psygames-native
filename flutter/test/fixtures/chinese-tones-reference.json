@@ -1286,8 +1286,8 @@
    "shift": 11,
    "trials": [
     {
-     "zh": "学",
-     "pinyin": "xué",
+     "zh": "行",
+     "pinyin": "xíng",
      "tone": 2,
      "options": [
       "ˉ",
@@ -1412,8 +1412,8 @@
      "correctIdx": 3
     },
     {
-     "zh": "选",
-     "pinyin": "xuǎn",
+     "zh": "雪",
+     "pinyin": "xuě",
      "tone": 3,
      "options": [
       "ˉ",
@@ -1436,8 +1436,8 @@
      "correctIdx": 2
     },
     {
-     "zh": "草",
-     "pinyin": "cǎo",
+     "zh": "表",
+     "pinyin": "biǎo",
      "tone": 3,
      "options": [
       "ˉ",
@@ -1460,8 +1460,8 @@
      "correctIdx": 1
     },
     {
-     "zh": "能",
-     "pinyin": "néng",
+     "zh": "男",
+     "pinyin": "nán",
      "tone": 2,
      "options": [
       "ˉ",
@@ -1610,14 +1610,14 @@
      "correctIdx": 3
     },
     {
-     "zh": "都",
-     "pinyin": "dōu",
+     "zh": "东",
+     "pinyin": "dōng",
      "tone": 1,
      "options": [
-      "dòu",
-      "dóu",
-      "dǒu",
-      "dōu"
+      "dòng",
+      "dóng",
+      "dǒng",
+      "dōng"
      ],
      "correctIdx": 3
     },

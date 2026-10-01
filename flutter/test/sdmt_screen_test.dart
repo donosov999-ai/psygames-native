@@ -6,6 +6,8 @@ import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'support/boss_probe.dart';
+
 /// ПАРТИЯ ИГРАЕТСЯ НАЖАТИЯМИ ПО ЦИФРАМ. Легенду проба читает С ЭКРАНА — как
 /// человек: сопоставляет значок в клетке легенды с цифрой под ним.
 void main() {
@@ -152,5 +154,21 @@ void main() {
       expect(legend.top >= 0 && legend.bottom <= screen.height, isTrue,
           reason: '$screen легенда на экране: $legend');
     }
+  });
+
+  testWidgets('🔴 веха: победа на 3-м уровне открывает бой «сложи подсвеченные», на 2-м — нет', (tester) async {
+    // В вебе этот экран зовёт BossRound каждые три уровня; при переносе бой пропал молча.
+    await expectBossAfterWin(tester, won: find.textContaining(L.t('nextLabel')), hudKey: 'bossHudCounting', play: (level) async {
+      await open(tester, level: level, seed: 'босс$level');
+      final p = levelParams(level);
+      await tester.tap(find.byKey(const Key('начать')));
+      await tester.pump();
+      final legend = legendOnScreen(tester, p.symbolCount);
+      for (var i = 0; i < p.targetHits; i += 1) {
+        await tester.tap(find.byKey(Key('цифра${legend[stimOnScreen(tester)]!}')));
+        await tester.pump();
+      }
+      await tester.pump(const Duration(seconds: 11)); // партия в пробе — 10 с
+    });
   });
 }

@@ -574,7 +574,7 @@ class _ScholarsMateScreenState extends State<ScholarsMateScreen> {
       final best = verdict.best == null
           ? ''
           : threat
-          ? '${L.t('scholarsBest')} ${L.t(verdict.best == 'yes' ? 'scholarsYes' : 'scholarsNo')}'
+          ? '${L.t('scholarsBest')} ${L.t(verdict.best == 'yes' ? 'yes' : 'no')}'
           : '${L.t('scholarsBest')} ${verdict.best}';
       final punished = verdict.refutation == null
           ? ''
@@ -668,7 +668,7 @@ class _ScholarsMateScreenState extends State<ScholarsMateScreen> {
                     style: OutlinedButton.styleFrom(
                       minimumSize: const Size(110, 48),
                     ),
-                    child: Text(L.t('scholarsYes')),
+                    child: Text(L.t('yes')),
                   ),
                   const SizedBox(width: 12),
                   OutlinedButton(
@@ -677,7 +677,7 @@ class _ScholarsMateScreenState extends State<ScholarsMateScreen> {
                     style: OutlinedButton.styleFrom(
                       minimumSize: const Size(110, 48),
                     ),
-                    child: Text(L.t('scholarsNo')),
+                    child: Text(L.t('no')),
                   ),
                 ],
               ),
