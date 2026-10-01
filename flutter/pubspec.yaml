@@ -92,7 +92,15 @@ flutter:
   # реально попало в сборку, и краснеет на пропущенном каталоге.
   assets:
     - assets/levels/
+    - assets/digits/candy/
+    - assets/digits/elegant/
+    - assets/digits/neon/
+    - assets/digits/pastel/
+    - assets/digits/rainbow/
     - assets/hubs.json
+    # Иконки игр «поле в миниатюре» для строк развилок — выгрузка веб-реестра
+    # (flutter/tools/embed-game-icons.mjs), не править руками.
+    - assets/game_icons/
     - assets/level_rules.json
     # Корпус позиций «Доски в уме»: 2000 задач Lichess (CC0). Каталог объявлен
     # ПОИМЁННО — строка вида «- assets/x/» берёт только файлы самой папки, и
@@ -103,6 +111,9 @@ flutter:
     - assets/chess/
     # Корпус «Детского мата»: 718 своих матовых позиций + задачи Lichess (CC0)
     - assets/scholars_mate/
+    # «Найди ход»: 3 108 задач Lichess (CC0) по двенадцати приёмам, 430 КБ;
+    # генератор tools/find_move_corpus.py
+    - assets/find_move/
     - assets/faces-names.json
     - assets/memory-palace.json
     - assets/rmet.json
