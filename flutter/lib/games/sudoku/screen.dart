@@ -694,8 +694,8 @@ class _SudokuScreenState extends State<SudokuScreen> {
       gameType: 'sudoku',
       score: 0,
       timeSeconds: _elapsed,
-      difficulty: mode == null ? _difficultyFor(level) : null,
-      mode: mode == null ? _levelMode(level) : '${sideModeName(mode)}-$level',
+      difficulty: mode == null ? _difficultyFor(level) : _modeDifficulty(mode, level),
+      mode: mode == null ? _levelMode(level) : _modeKey(mode, level),
       errors: _errors,
       details: {
         'errors': _errors,
@@ -710,6 +710,20 @@ class _SudokuScreenState extends State<SudokuScreen> {
     ));
   }
 
+  /// Имя партии в отчёте — как у веба: режимы-лестницы `<режим>-<ступень>`, «Свободно» —
+  /// `9x9` с трудностью отдельно (app/games/sudoku.tsx, saveSession). «Киллер» в вебе писался
+  /// `killer-<сложность>` — наследие трёх кнопок; у лестницы осмысленна ступень.
+  String _modeKey(SideMode mode, int step) {
+    if (mode == SideMode.free) {
+      final n = freePreset(step).size;
+      return '${n}x$n';
+    }
+    return '${sideModeName(mode)}-$step';
+  }
+
+  String? _modeDifficulty(SideMode mode, int step) =>
+      mode == SideMode.free ? freePreset(step).difficulty : null;
+
   /// Победа в режиме — своя мини-лестница, но отчёт обязан уйти так же, как у уровней.
   void _reportModeWin(int step) {
     final mode = widget.mode!;
@@ -717,7 +731,8 @@ class _SudokuScreenState extends State<SudokuScreen> {
       gameType: 'sudoku',
       score: _score(step),
       timeSeconds: _elapsed,
-      mode: '${sideModeName(mode)}-$step',
+      difficulty: _modeDifficulty(mode, step),
+      mode: _modeKey(mode, step),
       errors: _errors,
       details: {
         'errors': _errors,
@@ -800,9 +815,43 @@ class _SudokuScreenState extends State<SudokuScreen> {
     return out;
   }
 
-  /// Заголовок один на экран и на разбор: вторая строка стала бы вторым долгом
-  /// храповика подписей (`test/ui_text_debt_does_not_grow_test.dart`).
-  String get _title => widget.mode == null ? L.t('sudoku') : L.t('teachTitle');
+  /// Заголовок один на экран и на разбор — имя режима.
+  ///
+  /// 🔴 С 24.09 (коммит b658621d4) у режимов здесь стояло `L.t('teachTitle')`: над
+  /// «Небоскрёбами» и «Неравенствами» было написано «Разбор по шагам». Теперь — имя режима
+  /// теми же ключами, что у карточек развилки (задача 55b97845).
+  String get _title => switch (widget.mode) {
+        null => L.t('sudoku'),
+        SideMode.towers => L.t('sudokuTowersTitle'),
+        SideMode.unequal => L.t('sudokuUnequalTitle'),
+        SideMode.killer => L.t('sudokuModeKiller'),
+        SideMode.free => L.t('sudokuModeFree'),
+      };
+
+  /// «Киллер» и «Свободно» — классическая доска (у киллера — с суммами): её рисует обычная
+  /// доска лестницы, у которой суммы и тонировка групп уже есть (`variant_decor.dart`).
+  SudokuBoard _asLadderBoard(SideBoard side) => SudokuBoard(
+        level: side.step,
+        n: side.n,
+        br: side.br,
+        bc: side.bc,
+        variant: widget.mode == SideMode.killer ? 'killer' : 'none',
+        puzzle: side.puzzle,
+        solution: side.solution,
+        geometry: side.geometry,
+        tier: side.tier,
+      );
+
+  /// Пресет «Свободно» словами: «9×9 · Medium».
+  String _freeLabel(int step) {
+    final p = freePreset(step);
+    return '${p.size}×${p.size} · ${L.t(p.difficulty)}';
+  }
+
+  void _chooseFree(int step) {
+    _side?.choose(step);
+    _deal();
+  }
 
   List<LessonStep> _lessonSteps() {
     final solution = _solution;
@@ -884,9 +933,11 @@ class _SudokuScreenState extends State<SudokuScreen> {
         HudItem(
           label: L.t('level'),
           // У пилота номер — счётчик побед: только растёт, конца нет (решение 18.09).
-          value: widget.mode != null
-              ? '${_side?.step ?? 1}/$sideSteps'
-              : _pilot ? '${_pilotWins + 1}' : '${_ladder.level}',
+          value: widget.mode == SideMode.free
+              ? _freeLabel(_side?.step ?? 1)
+              : widget.mode != null
+                  ? '${_side?.step ?? 1}/${sideStepsOf(widget.mode!)}'
+                  : _pilot ? '${_pilotWins + 1}' : '${_ladder.level}',
           icon: _pilot ? Icons.auto_awesome : Icons.trending_up,
         ),
         HudItem(label: L.t('errors'), value: '$_errors/$errorLimit', icon: Icons.close),
@@ -898,6 +949,18 @@ class _SudokuScreenState extends State<SudokuScreen> {
         final side = _sideBoard;
         if (widget.mode == null ? board == null : side == null) {
           return Center(child: Text(_failure ?? L.t('sdkBoardFailed')));
+        }
+        if (widget.mode == SideMode.killer || widget.mode == SideMode.free) {
+          return SudokuBoardView(
+            board: _asLadderBoard(side!),
+            grid: _grid,
+            given: _given,
+            marks: _marks,
+            colors: _colors,
+            selected: _selected,
+            height: height,
+            onTap: _select,
+          );
         }
         if (widget.mode != null) {
           return ModeBoard(
@@ -998,6 +1061,14 @@ class _SudokuScreenState extends State<SudokuScreen> {
         // (symbols.dart); рисованные цифры — везде, это всё ещё цифры.
         if (widget.mode == null && board != null)
           PauseAction(label: L.t('digitStyle'), icon: Icons.style_outlined, onPressed: _pickSkin),
+        // «Свободно»: размер и сложность — выбор человека, как кнопки веб-экрана.
+        if (widget.mode == SideMode.free)
+          for (var step = 1; step <= sideStepsOf(SideMode.free); step++)
+            PauseAction(
+              label: _freeLabel(step),
+              icon: step == (_side?.step ?? 1) ? Icons.radio_button_checked : Icons.radio_button_unchecked,
+              onPressed: () => _chooseFree(step),
+            ),
       ],
     );
   }

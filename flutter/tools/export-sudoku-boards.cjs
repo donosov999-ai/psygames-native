@@ -51,7 +51,7 @@
  *                                                                       остальные из файла
  *   node flutter/tools/export-sudoku-boards.cjs --no-boards --no-modes — лестница, банк, эталоны
  *                                                                       правил (секунды)
- *   флаги: --per-level=12 --per-step=6 --seed=1 --modes=towers,unequal --no-rules --dry
+ *   флаги: --per-level=12 --per-step=6 --seed=1 --modes=towers,unequal,killer,free --no-rules --dry
  *          (собрать и проверить, ничего не записывая)
  * После выгрузки: cd flutter && flutter test test/sudoku_levels_test.dart
  * Сторож расхождения веба и натива: frontend/src/__tests__/sudoku-native-boards-drift.test.ts.
@@ -314,10 +314,48 @@ if (!args['no-boards']) {
 
 // ── 4. Мини-лестницы режимов ──────────────────────────────────────────────────────────
 if (!args['no-modes']) {
-  const wanted = args.modes ? String(args.modes).split(',') : ['towers', 'unequal'];
+  const wanted = args.modes ? String(args.modes).split(',') : ['towers', 'unequal', 'killer', 'free'];
   const old = readOld('sudoku-modes.json');
   const modesOut = { ...(old?.modes ?? {}) };
-  for (const mode of wanted) {
+  /*
+   * 🔴 «КИЛЛЕР» И «СВОБОДНО» (задача 55b97845, 01.10.2026). На веб-экране это два из пяти
+   * режимов переключателя; нативный экран перехватил /games/sudoku, и до них в приложении
+   * стало не дойти. Доски — тем же путём, что веб-экран (app/games/sudoku.tsx, startGame):
+   *   · killer — классическая единственная доска generatePuzzle(killerBlanksForStep(ступень))
+   *     и суммы generateCages поверх неё; 6 ступеней KILLER_LADDER;
+   *   · free — классика generatePuzzle(blanksFor(размер, сложность)); «ступень» здесь —
+   *     пресет выбора: 1–3 → 6×6 лёгкая/средняя/сложная, 4–6 → 9×9.
+   */
+  const FREE_PRESETS = [[6, 'easy'], [6, 'medium'], [6, 'hard'], [9, 'easy'], [9, 'medium'], [9, 'hard']];
+  for (const mode of ['killer', 'free'].filter((m) => wanted.includes(m))) {
+    const rows = [];
+    const t0 = Date.now();
+    const steps = mode === 'killer' ? core.killerStepCount() : FREE_PRESETS.length;
+    for (let step = 1; step <= steps; step++) {
+      const [size, difficulty] = mode === 'killer' ? [9, null] : FREE_PRESETS[step - 1];
+      const { N, BR, BC } = core.dimsForSize(size);
+      const blanks = mode === 'killer' ? core.killerBlanksForStep(step) : core.blanksFor(size, difficulty);
+      const taken = new Set();
+      for (let i = 0; i < PER_STEP; i++) {
+        const r = buildChecked(`${mode} ступень ${step}, доска ${i + 1}`, taken, (attempt) => {
+          rngState = seedFor(BASE_SEED, mode, step, i, attempt);
+          const g = core.generatePuzzle(blanks, N, BR, BC, 'none');
+          const gen = { puzzle: g.puzzle, solution: g.solution };
+          if (mode === 'killer') gen.cages = core.generateCages(g.solution, N);
+          const m = grade.gradePuzzle(g.puzzle, { N, BR, BC, variant: 'none', cages: gen.cages });
+          return { gen, tier: m.solved ? m.tier : null, N, BR, BC, variant: 'none' };
+        });
+        rows.push({ step, blanks, ...(mode === 'free' ? { size, difficulty } : {}),
+          puzzle: toStr(r.gen.puzzle), solution: toStr(r.gen.solution), tier: r.tier,
+          ...(mode === 'killer' ? { cages: r.gen.cages } : {}) });
+      }
+    }
+    const before = old?.modes?.[mode] ?? [];
+    console.error(`${mode}: было ${before.length} [${histogram(before.map((b) => b.tier))}] → стало ${rows.length} [${histogram(rows.map((b) => b.tier))}]`
+      + ` за ${Math.round((Date.now() - t0) / 1000)} с`);
+    modesOut[mode] = rows;
+  }
+  for (const mode of wanted.filter((m) => m !== 'killer' && m !== 'free')) {
     if (mode !== 'towers' && mode !== 'unequal') throw Error(`--modes: нет режима «${mode}»`);
     const { N, BR, BC } = core.dimsForSize(mode === 'towers' ? 6 : 9);
     const rows = [];

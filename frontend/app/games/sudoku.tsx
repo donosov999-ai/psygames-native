@@ -850,6 +850,13 @@ export default function SudokuGame() {
   useEffect(() => {
     if (routeModeApplied.current || !sideStepsLoaded) return;
     const m = routeParams.mode;
+    // «Киллер» и «Свободно» — с 01.10 у них карточки развилки (задача 55b97845).
+    if (m === 'killer' || m === 'free') {
+      routeModeApplied.current = true;
+      setMode(m);
+      if (m === 'killer') setLevel(killerStep);
+      return;
+    }
     if (m !== 'towers' && m !== 'unequal') return;
     routeModeApplied.current = true;
     setMode(m);
