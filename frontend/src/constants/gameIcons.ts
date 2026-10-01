@@ -155,6 +155,10 @@ export const MODE_ICONS: Record<string, any> = {
   '/games/spatial-lab?mode=twiddle': require('../../assets/images/game_icons/puzzle_twiddle.webp'),
   '/games/sudoku?mode=towers': require('../../assets/images/game_icons/sudoku_towers.webp'),
   '/games/sudoku?mode=unequal': require('../../assets/images/game_icons/sudoku_unequal.webp'),
+  // Временно, до своих картинок (заказ imagegen-codex-mac): киллер — клетки с суммами, как у Keen;
+  // «Свободно» — классика без вариантов, как сама судоку.
+  '/games/sudoku?mode=killer': require('../../assets/images/game_icons/puzzle_keen.webp'),
+  '/games/sudoku?mode=free': require('../../assets/images/game_icons/sudoku.webp'),
   '/games/find-move': require('../../assets/images/game_icons/find_move.webp'),
   '/games/cats': require('../../assets/images/game_icons/cats.webp'),
 };
