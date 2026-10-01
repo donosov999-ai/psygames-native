@@ -621,8 +621,12 @@ class _Done extends StatelessWidget {
 /// подбирает тот же [lspanPickDistractors], что раздаёт партию.
 List<DemoTrial> listeningSpanLessonTrials(List<String> pool) {
   final words = pool.length >= 8 ? pool : const ['casa', 'agua', 'fuego', 'libro', 'tiempo', 'perro', 'cama', 'mesa'];
-  var x = 0.4242;
-  double rng() => x = (x * 9301 + 49297) % 233280 / 233280;
+  // Поток на ЦЕЛОМ состоянии: на дроби он сходится к ≈0,22 и выдаёт почти одно и то же (01.10.2026).
+  var st = 4242;
+  double rng() {
+    st = (st * 9301 + 49297) % 233280;
+    return st / 233280;
+  }
   final heard = words.take(3).toList();
   final others = lspanPickDistractors(words, heard, 3, 0, rng);
   final grid = [others[0], heard[1], heard[0], others[1], heard[2], others[2]];

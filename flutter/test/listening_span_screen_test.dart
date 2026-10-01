@@ -87,8 +87,12 @@ void main() {
     backend = _FakeVoice(system: voice);
     heardBefore = 0;
     final layer = VoiceLayer(backend: backend, soundOn: () => true);
-    var x = 0.4242;
-    double rng() => x = (x * 9301 + 49297) % 233280 / 233280;
+    // Поток на ЦЕЛОМ состоянии: на дроби он сходится к ≈0,22 и выдаёт почти одно и то же (01.10.2026).
+    var st = 4242;
+    double rng() {
+      st = (st * 9301 + 49297) % 233280;
+      return st / 233280;
+    }
     await tester.pumpWidget(MaterialApp(
       home: ListeningSpanScreen(key: UniqueKey(), state: state, voice: layer, vocab: vocab, langNames: names, rng: rng),
     ));
