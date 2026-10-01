@@ -17,6 +17,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../../shell/game_preset.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
@@ -84,7 +85,8 @@ class _TargetsScreenState extends State<TargetsScreen> {
     await _ladder.load();
     if (!mounted) return;
     setState(_reset);
-    if (targetsAutostart) _start();
+    // Шаг зарядки начинается сам — перенос веб-`useAutostartWhenReady` (отчёт Дениса 01.10.2026).
+    if (targetsAutostart || GamePreset.autostart) _start();
   }
 
   int _now() => widget.clock?.call() ?? DateTime.now().millisecondsSinceEpoch;
