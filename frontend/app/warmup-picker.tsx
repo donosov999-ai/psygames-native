@@ -507,24 +507,20 @@ export default function WarmupPicker() {
       })),
     },
   };
+  // Модель уходит, когда меняется её текст; действия заводятся заново на каждой
+  // отрисовке — так оболочка всегда зовёт свежее замыкание, без ссылок в отрисовке.
   const uiJson = JSON.stringify(uiModel);
-  const uiRef = React.useRef(uiModel);
-  uiRef.current = uiModel;
-  const launchRef = React.useRef(launch);
-  launchRef.current = launch;
-  const pickRef = React.useRef({ setPicked, pickDur, выбратьДлинуПотока });
-  pickRef.current = { setPicked, pickDur, выбратьДлинуПотока };
-  React.useEffect(() => { postUiModel('picker', uiRef.current); }, [uiJson]);
+  React.useEffect(() => { postUiModel('picker', JSON.parse(uiJson)); }, [uiJson]);
   React.useEffect(() => registerUiActions('picker', {
-    pick: (k: string) => pickRef.current.setPicked(k as PickKey),
-    dur: (slot: string, d: number) => pickRef.current.pickDur(slot as WarmupSlot, d as Длительность),
+    pick: (k: string) => setPicked(k as PickKey),
+    dur: (slot: string, d: number) => pickDur(slot as WarmupSlot, d as Длительность),
     ownLen: (k: string, d: number) => {
-      if (isСвоя(k) && d) pickRef.current.выбратьДлинуПотока(k.slice('своя:'.length), d as Длительность);
+      if (isСвоя(k) && d) выбратьДлинуПотока(k.slice('своя:'.length), d as Длительность);
     },
-    launch: () => launchRef.current(),
+    launch: () => launch(),
     back: () => goBackOrHome(),
-    post: () => postUiModel('picker', uiRef.current),
-  }), []);
+    post: () => postUiModel('picker', JSON.parse(uiJson)),
+  }));
 
   return (
     <View style={[styles.wrap, { backgroundColor: colors.background, paddingTop: insets.top + 8 }]}>

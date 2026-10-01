@@ -297,19 +297,17 @@ export default function WarmupComplete() {
       home: t('goHome'),
     };
   })();
+  // Модель уходит, когда меняется её текст; действия заводятся заново на каждой
+  // отрисовке — свежее замыкание без ссылок в отрисовке.
   const uiJson = JSON.stringify(uiModel);
-  const uiRef = React.useRef<object>(uiModel);
-  uiRef.current = uiModel;
-  const actRef = React.useRef({ playAgain, goHome, enableReminders, dismissReminders });
-  actRef.current = { playAgain, goHome, enableReminders, dismissReminders };
-  useEffect(() => { postUiModel('complete', uiRef.current); }, [uiJson]);
+  useEffect(() => { postUiModel('complete', JSON.parse(uiJson)); }, [uiJson]);
   useEffect(() => registerUiActions('complete', {
-    again: () => actRef.current.playAgain(),
-    home: () => actRef.current.goHome(),
-    remindEnable: () => { void actRef.current.enableReminders(); },
-    remindLater: () => { void actRef.current.dismissReminders(); },
-    post: () => postUiModel('complete', uiRef.current),
-  }), []);
+    again: () => playAgain(),
+    home: () => goHome(),
+    remindEnable: () => { void enableReminders(); },
+    remindLater: () => { void dismissReminders(); },
+    post: () => postUiModel('complete', JSON.parse(uiJson)),
+  }));
 
   if (!meta) {
     return (

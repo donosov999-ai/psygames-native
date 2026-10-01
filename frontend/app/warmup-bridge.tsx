@@ -174,20 +174,18 @@ export default function WarmupBridge() {
       stop: t('stopComplex'),
     } : null,
   };
+  // Модель уходит, когда меняется её текст (каждая секунда отсчёта); действия
+  // заводятся заново на каждой отрисовке — свежее замыкание без ссылок в отрисовке.
   const uiJson = JSON.stringify(uiModel);
-  const uiRef = useRef<object | null>(uiModel);
-  uiRef.current = uiModel;
-  const actRef = useRef({ startNow, skip, stop, спроситьСтоп, setСпрашиваемСтоп, dismiss: warmup.dismissOvertime, overtime: warmup.overtime });
-  actRef.current = { startNow, skip, stop, спроситьСтоп, setСпрашиваемСтоп, dismiss: warmup.dismissOvertime, overtime: warmup.overtime };
-  useEffect(() => { if (uiRef.current) postUiModel('bridge', uiRef.current); }, [uiJson]);
+  useEffect(() => { if (uiJson !== 'null') postUiModel('bridge', JSON.parse(uiJson)); }, [uiJson]);
   useEffect(() => registerUiActions('bridge', {
-    start: () => { const a = actRef.current; if (a.overtime) a.dismiss(); a.startNow(); },
-    skip: () => actRef.current.skip(),
-    stopAsk: () => actRef.current.спроситьСтоп(),
-    keep: () => { const a = actRef.current; a.setСпрашиваемСтоп(false); a.startNow(); },
-    stopConfirm: () => { void actRef.current.stop(); },
-    post: () => { if (uiRef.current) postUiModel('bridge', uiRef.current); },
-  }), []);
+    start: () => { if (warmup.overtime) warmup.dismissOvertime(); startNow(); },
+    skip: () => skip(),
+    stopAsk: () => спроситьСтоп(),
+    keep: () => { setСпрашиваемСтоп(false); startNow(); },
+    stopConfirm: () => { void stop(); },
+    post: () => { if (uiJson !== 'null') postUiModel('bridge', JSON.parse(uiJson)); },
+  }));
 
   if (!warmup.active || !next) {
     return (
