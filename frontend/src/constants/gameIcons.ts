@@ -85,6 +85,88 @@ export const GAME_ICONS: Record<string, any> = {
   water_sort: require('../../assets/images/game_icons/water_sort.webp'),
   wcst: require('../../assets/images/game_icons/wcst.webp'),
   word_pairs: require('../../assets/images/game_icons/word_pairs.webp'),
+  // Развилки-группы — папка «Apple Glass» (Денис 13.09.2026): три иконки первых игр развилки и четвёртая
+  // маленькая; у развилки из развилок («Языки») — их игры поочерёдно; у трёх игр («Шахматы») 4-й слот пуст.
+  // Собраны КОДОМ из иконок самих игр, не генерацией: ~/dev/psygames/memory-hearing-chat/icons/compose-group-tiles.py.
+  chess_group: require('../../assets/images/game_icons/chess_group.webp'),
+  counting_group: require('../../assets/images/game_icons/counting_group.webp'),
+  hearing_group: require('../../assets/images/game_icons/hearing_group.webp'),
+  languages_group: require('../../assets/images/game_icons/languages_group.webp'),
+  mnemonics_group: require('../../assets/images/game_icons/mnemonics_group.webp'),
+  puzzles_group: require('../../assets/images/game_icons/puzzles_group.webp'),
+  search_group: require('../../assets/images/game_icons/search_group.webp'),
+  sorting_group: require('../../assets/images/game_icons/sorting_group.webp'),
+  spatial_group: require('../../assets/images/game_icons/spatial_group.webp'),
+  words_group: require('../../assets/images/game_icons/words_group.webp'),
+  'sudoku-samurai': require('../../assets/images/game_icons/sudoku_samurai.webp'),
+  'sudoku-fractal': require('../../assets/images/game_icons/sudoku_fractal.webp'),
+  // Глубокий «Фрактал» — то же поле, вложенное глубже: иконка та же (экран скрыт из меню, видна в истории и итогах).
+  'sudoku-fractal-deep': require('../../assets/images/game_icons/sudoku_fractal.webp'),
+};
+
+/**
+ * Иконки РЕЖИМОВ и экранов без записи в GAMES — ключ = адрес строки развилки ЦЕЛИКОМ, с режимом:
+ * 41 головоломка Тэтхэма, режимы судоку и «Лаборатории», «Найди ход» (01.10.2026, поле игры по снимку
+ * её экрана, без текста). Читает выгрузка в приложение `flutter/tools/embed-game-icons.mjs`.
+ */
+export const MODE_ICONS: Record<string, any> = {
+  '/games/puzzles?mode=Black%20Box': require('../../assets/images/game_icons/puzzle_blackbox.webp'),
+  '/games/puzzles?mode=Bridges': require('../../assets/images/game_icons/puzzle_bridges.webp'),
+  '/games/puzzles?mode=Cube': require('../../assets/images/game_icons/puzzle_cube.webp'),
+  '/games/puzzles?mode=Dominosa': require('../../assets/images/game_icons/puzzle_dominosa.webp'),
+  '/games/puzzles?mode=Fifteen': require('../../assets/images/game_icons/puzzle_fifteen.webp'),
+  '/games/puzzles?mode=Filling': require('../../assets/images/game_icons/puzzle_filling.webp'),
+  '/games/puzzles?mode=Flip': require('../../assets/images/game_icons/puzzle_flip.webp'),
+  '/games/puzzles?mode=Flood': require('../../assets/images/game_icons/puzzle_flood.webp'),
+  '/games/puzzles?mode=Galaxies': require('../../assets/images/game_icons/puzzle_galaxies.webp'),
+  '/games/puzzles?mode=Guess': require('../../assets/images/game_icons/puzzle_guess.webp'),
+  '/games/puzzles?mode=Inertia': require('../../assets/images/game_icons/puzzle_inertia.webp'),
+  '/games/puzzles?mode=Keen': require('../../assets/images/game_icons/puzzle_keen.webp'),
+  '/games/puzzles?mode=Light%20Up': require('../../assets/images/game_icons/puzzle_lightup.webp'),
+  '/games/puzzles?mode=Loopy': require('../../assets/images/game_icons/puzzle_loopy.webp'),
+  '/games/puzzles?mode=Magnets': require('../../assets/images/game_icons/puzzle_magnets.webp'),
+  '/games/puzzles?mode=Map': require('../../assets/images/game_icons/puzzle_map.webp'),
+  '/games/puzzles?mode=Mines': require('../../assets/images/game_icons/puzzle_mines.webp'),
+  '/games/puzzles?mode=Mosaic': require('../../assets/images/game_icons/puzzle_mosaic.webp'),
+  '/games/puzzles?mode=Net': require('../../assets/images/game_icons/puzzle_net.webp'),
+  '/games/puzzles?mode=Netslide': require('../../assets/images/game_icons/puzzle_netslide.webp'),
+  '/games/puzzles?mode=Palisade': require('../../assets/images/game_icons/puzzle_palisade.webp'),
+  '/games/puzzles?mode=Pattern': require('../../assets/images/game_icons/puzzle_pattern.webp'),
+  '/games/puzzles?mode=Pearl': require('../../assets/images/game_icons/puzzle_pearl.webp'),
+  '/games/puzzles?mode=Pegs': require('../../assets/images/game_icons/puzzle_pegs.webp'),
+  '/games/puzzles?mode=Range': require('../../assets/images/game_icons/puzzle_range.webp'),
+  '/games/puzzles?mode=Rectangles': require('../../assets/images/game_icons/puzzle_rect.webp'),
+  '/games/puzzles?mode=Same%20Game': require('../../assets/images/game_icons/puzzle_samegame.webp'),
+  '/games/puzzles?mode=Signpost': require('../../assets/images/game_icons/puzzle_signpost.webp'),
+  '/games/puzzles?mode=Singles': require('../../assets/images/game_icons/puzzle_singles.webp'),
+  '/games/puzzles?mode=Sixteen': require('../../assets/images/game_icons/puzzle_sixteen.webp'),
+  '/games/puzzles?mode=Slant': require('../../assets/images/game_icons/puzzle_slant.webp'),
+  '/games/puzzles?mode=Slide': require('../../assets/images/game_icons/puzzle_slide.webp'),
+  '/games/puzzles?mode=Sokoban': require('../../assets/images/game_icons/puzzle_sokoban.webp'),
+  '/games/puzzles?mode=Solo': require('../../assets/images/game_icons/puzzle_solo.webp'),
+  '/games/puzzles?mode=Tents': require('../../assets/images/game_icons/puzzle_tents.webp'),
+  '/games/puzzles?mode=Towers': require('../../assets/images/game_icons/puzzle_towers.webp'),
+  '/games/puzzles?mode=Train%20Tracks': require('../../assets/images/game_icons/puzzle_tracks.webp'),
+  '/games/puzzles?mode=Twiddle': require('../../assets/images/game_icons/puzzle_twiddle.webp'),
+  '/games/puzzles?mode=Undead': require('../../assets/images/game_icons/puzzle_undead.webp'),
+  '/games/puzzles?mode=Unequal': require('../../assets/images/game_icons/puzzle_unequal.webp'),
+  '/games/puzzles?mode=Untangle': require('../../assets/images/game_icons/puzzle_untangle.webp'),
+  '/games/spatial-lab?mode=net': require('../../assets/images/game_icons/puzzle_net.webp'),
+  '/games/spatial-lab?mode=twiddle': require('../../assets/images/game_icons/puzzle_twiddle.webp'),
+  '/games/sudoku?mode=towers': require('../../assets/images/game_icons/sudoku_towers.webp'),
+  '/games/sudoku?mode=unequal': require('../../assets/images/game_icons/sudoku_unequal.webp'),
+  '/games/find-move': require('../../assets/images/game_icons/find_move.webp'),
+  // «Конь и ферзи» (39ad8924): своя иконка — поле с восемью ферзями и ходом коня.
+  '/games/knights-queens': require('../../assets/images/game_icons/knights_queens.webp'),
+  // «Шашки: комбинации» (41ac876c): своя иконка — доска шашек со взятием цепочкой.
+  '/games/draughts-combo': require('../../assets/images/game_icons/draughts_combo.webp'),
+  // «Уголки» (30b5a5aa): своя иконка — фишки в углу, цель подсвечена, прыжки цепочкой.
+  '/games/corners': require('../../assets/images/game_icons/corners.webp'),
+  // «Го: захват» (66dee70c): своя иконка — доска го, группа-цель в красном кольце.
+  '/games/go-capture': require('../../assets/images/game_icons/go_capture.webp'),
+  '/games/cats': require('../../assets/images/game_icons/cats.webp'),
+  // «Пасьянс-шахматы» (#133) — строка развилки шахмат без своей карточки в GAMES: иконка группы фигур.
+  '/games/solitaire-chess': require('../../assets/images/game_icons/chess_group.webp'),
 };
 
 /** Кастомная иконка игры по id (undefined → GameCard покажет Ionicons-фолбэк). */
