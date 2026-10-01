@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../shell/game_preset.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/l10n.dart';
 import '../../shell/demo_lesson.dart';
@@ -55,7 +56,10 @@ class _DigitSpanScreenState extends State<DigitSpanScreen> {
 
   Future<void> _boot() async {
     await _ladder.load();
-    if (mounted) setState(_reset);
+    if (!mounted) return;
+    setState(_reset);
+    // Шаг зарядки начинается сам — перенос веб-`useAutostartWhenReady` (отчёт Дениса 01.10.2026).
+    if (GamePreset.autostart) _start();
   }
 
   void _reset() {
