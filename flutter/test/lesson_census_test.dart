@@ -6,6 +6,8 @@ import 'package:psygames_flutter/shell/lesson.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'support/hub_routes.dart';
+
 /// 🔴 ПЕРЕПИСЬ РАЗБОРА: КТО ИЗ НАШИХ ЭКРАНОВ УЖЕ УМЕЕТ УЧИТЬ.
 ///
 /// Цель Дениса 24.09.2026: «решатель и учитель для наших игр, чтобы был у всех
@@ -66,6 +68,7 @@ void main() {
     '/games/inhibition',
     '/games/memory-palace',
     '/games/rmet',
+    '/games/mnemonics',
     '/games/ant',
     '/games/iowa',
     '/games/prl',
@@ -77,6 +80,15 @@ void main() {
     '/games/mahjong',
     '/games/goods-sort',
     '/games/faces-names',
+    '/games/anagrams',
+    '/games/anagrams?mode=classic',
+    '/games/anagrams?mode=all',
+    '/games/anagrams?mode=cross',
+    '/games/anagrams?mode=square',
+    '/games/kids-find',
+    '/games/submarines',
+    '/games/monster-traits?mode=missing',
+    '/games/search-runner',
   ];
 
 
@@ -88,11 +100,24 @@ void main() {
     final broke = <String, String>{};
 
     for (final e in HybridApp.native.entries) {
-      // Развилки — не игры, разбирать там нечего.
-      if (e.key.endsWith('-hub')) continue;
+      // Развилки — не игры, разбирать там нечего. Что такое развилка — одно
+      // определение на все пробы: `test/support/hub_routes.dart` (по реестру, а не
+      // по имени на `-hub`: две развилки из 13 называются иначе).
+      if (isHubRoute(e.key)) continue;
       // Головоломки Тэтхэма считает свой гейт: их разбор держит движок через ffi,
       // а он в `flutter test` не поднимается.
-      if (e.key.contains('?')) continue;
+      //
+      // 🔴 НО НЕ ВСЁ С `?` — ТЭТХЭМ. Режимы анаграмм (`/games/anagrams?mode=…`) —
+      // четыре самостоятельные игры с разбором на Dart, без движка. Пропуская их
+      // вместе с Тэтхэмом, перепись писала «51 из 51», не глядя на три игры, у
+      // которых разбора не было вовсе (замер 30.09.2026, задача 17d894f7). Теперь
+      // они считаются, как обычные экраны.
+      // Так же считается режим «Найди признак» — «Кого не хватает»: свой экран на Dart.
+      if (e.key.contains('?') &&
+          !e.key.startsWith('/games/anagrams?') &&
+          !e.key.startsWith('/games/monster-traits?')) {
+        continue;
+      }
       // 🔴 `/games/puzzles` — НЕ ИГРА, а один экран на 42 режима: разбор там
       // живёт у РЕЖИМА, и считать его как «экран без разбора» значит держать в
       // остатке строку, которую нечем закрыть. Так же устроен веб-реестр

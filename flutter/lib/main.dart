@@ -4,9 +4,11 @@ import 'games/dots_connect/screen.dart';
 import 'games/digit_span/screen.dart';
 import 'games/one_line/screen.dart';
 import 'shell/asset_server.dart';
+import 'shell/game_clock.dart';
 import 'shell/game_rules.dart';
 import 'shell/l10n.dart';
 import 'shell/legacy_import.dart';
+import 'shell/level_rules.dart';
 import 'shell/hybrid_app.dart';
 import 'shell/shared_state.dart';
 import 'shell/web_game_screen.dart';
@@ -43,7 +45,10 @@ Future<void> main() async {
   // (ключ `language`), и мост возит его через границу — см. SharedState.extraKeys.
   await L.load(state.language);
   await GameRules.load();   // правила игр — из того же реестра, что карточки развилок
+  await LevelRules.load();  // правила УРОВНЕЙ — до первого экрана, иначе шапка не узнает о правиле
   final server = await AssetServer.start();
+  // Приложение ушло в фон — часы партии стоят (как скрытая вкладка в вебе), задача 430d1299.
+  installGameClockLifecycle();
   runApp(PsyGamesPilotApp(state: state, server: server));
 }
 

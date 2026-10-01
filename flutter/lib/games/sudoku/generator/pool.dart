@@ -17,13 +17,15 @@
 /// живыми партиями — начальное значение только задаёт старт.
 library;
 
+import '../../../shell/generator/ladder_pool.dart' show ratingFloor, ratingCeil;
 import '../levels.dart';
 import 'contract.dart';
 import 'engine.dart';
 
-/// Границы шкалы игрока. 1200 — середина, с неё стартует новичок (см. `AdaptiveState`).
-const ratingFloor = 800.0;
-const ratingCeil = 2200.0;
+/// Границы шкалы игрока — общие для всех игр генератора (1200 — середина, с неё
+/// стартует новичок). С 30.09.2026 живут в общем модуле, отдаются отсюда под прежними
+/// именами: шкала одна, иначе рейтинг «Судоку» и головоломок стал бы несравним.
+export '../../../shell/generator/ladder_pool.dart' show ratingFloor, ratingCeil;
 
 /// Ступень техник у вариантных досок: 1–7 (выше семи наша мера не ходит).
 const maxTier = 7;

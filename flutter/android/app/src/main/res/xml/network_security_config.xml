@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Веб-часть гибрида отдаётся своим сервером на 127.0.0.1 (lib/shell/asset_server.dart) по
+     обычному http. Релизная сборка Android по умолчанию запрещает открытый http —
+     «net::ERR_CLEARTEXT_NOT_PERMITTED», пустой экран вместо приложения (01.10.2026, релизный
+     APK 2.56.1 на эмуляторе). Разрешаем ТОЛЬКО петлевой адрес, а не весь интернет. -->
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">127.0.0.1</domain>
+        <domain includeSubdomains="false">localhost</domain>
+    </domain-config>
+</network-security-config>

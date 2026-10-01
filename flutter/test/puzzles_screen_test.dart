@@ -14,7 +14,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 ///
 /// Никаких заглушек: экран поднимает ту же библиотеку C, что поедет на телефон, рисует
 /// её кадр и шлёт ей тычки. Проверяется то, что видит человек: доска появилась, тычок и
-/// клавиша дают ход, отмена его снимает, решение доводит до победы и двигает ступень.
+/// клавиша дают ход, отмена его снимает, «Показать решение» показывает ответ, не двигая ступень.
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -71,22 +71,30 @@ void main() {
     expect(find.byKey(const Key('digit4')), findsNothing, reason: 'чудовищ трое');
   });
 
-  testWidgets('🔴 решение доводит партию до победы и двигает ступень', (tester) async {
+  /*
+   * 🔴 «ПОКАЗАТЬ РЕШЕНИЕ» — РАЗБОР, А НЕ ПОБЕДА (исправлено 30.09.2026, задача 543d853c).
+   * До этого проба требовала, чтобы решатель ПОДНИМАЛ ступень, — то есть закрепляла
+   * дефект: веб (`frontend/app/games/puzzles.tsx`, «разбор») ступень за просмотр ответа
+   * не двигает ни вверх, ни вниз, а отчёты тестировщиков 8a1b20d6 и 67561a7f были ровно
+   * про этот исход. Теперь проба держит правильное: ответ показан, «Дальше» есть,
+   * ступень прежняя, следующая раздача — на той же ступени.
+   */
+  testWidgets('🔴 «Показать решение» доводит доску до ответа, но ступень не двигает', (tester) async {
     await boot(tester, 'Solo');
     expect(find.byKey(const Key('next')), findsNothing);
 
     await tester.tap(find.byTooltip('Показать решение'));
     await tester.pump();
 
-    expect(find.byKey(const Key('next')), findsOneWidget, reason: 'победа видна человеку');
-    expect(state.get('psygames_puzzles_solo_level_nzt48'), '2',
-        reason: 'ступень записана в тот же ключ, что у веб-версии');
+    expect(find.byKey(const Key('next')), findsOneWidget, reason: 'ответ показан — дальше идти можно');
+    expect(state.get('psygames_puzzles_solo_level_nzt48'), '1',
+        reason: 'ступень за просмотр ответа не растёт — как в вебе');
 
-    // «Дальше» раздаёт следующую ступень, а не оставляет решённую доску.
+    // «Дальше» раздаёт новую доску той же ступени, а не оставляет решённую.
     await tester.tap(find.byKey(const Key('next')));
     await tester.pump();
     expect(find.byKey(const Key('next')), findsNothing);
-    expect(find.text('2/5'), findsOneWidget);
+    expect(find.text('1/5'), findsOneWidget);
   });
 
   /// ⚠️ СРАВНИВАЕТСЯ СОДЕРЖИМОЕ КАДРА, А НЕ ОБЪЕКТ ХУДОЖНИКА. Первая редакция этой

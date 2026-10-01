@@ -6,7 +6,7 @@
  * Лесенка: L1-5 лёгкая половина пар + показ прозвучавшего слова; L6-10 весь
  * список; L11+ слепой режим (только звук верно/неверно). Replay не штрафуется.
  */
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -30,6 +30,8 @@ import GameResult from '@/src/components/GameResult';
 import GameShell from '@/src/components/GameShell';
 import GameSetupBar, { SETUP_BAR_SPACE } from '@/src/components/GameSetupBar';
 import { GameAuxAction, GameAuxBar } from '@/src/components/GameAuxAction';
+import LessonPlayer from '@/src/components/LessonPlayer';
+import { собратьРазборФонем, пулУровня, type КарточкаФонем, type Отрезок } from '@/src/games/phoneme-pairs/teach';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { gameNow } from '@/src/services/gamePause';
@@ -47,7 +49,8 @@ type GamePhase = 'config' | 'playing' | 'cleared' | 'result';
 // Минимальные пары. Порядок = сложность: ПЕРВАЯ половина списка — «лёгкие»
 // (контраст хорошо различим в TTS), вторая — тоньше. Только пары, которые
 // системный синтез реально произносит различимо.
-const MINIMAL_PAIRS: Record<string, [string, string][]> = {
+/** Экспорт — для пробы разбора `phoneme-pairs-teach`: разбор обязан брать пары отсюда же. */
+export const MINIMAL_PAIRS: Record<string, [string, string][]> = {
   en: [
     // easy half — чёткие гласные контрасты /æ e ʌ/ + разные слоги
     ['snack', 'snake'],
@@ -172,12 +175,12 @@ const LANG_NAMES: Record<string, string> = {
  * пишется здесь руками: одно место правды на приложение. Для нелатинских
  * письменностей подпись обязательна, для остальных её нет и не нужно.
  */
-const PINYIN_HINT: Record<string, string> = Object.fromEntries(
+export const PINYIN_HINT: Record<string, string> = Object.fromEntries(
   MINIMAL_PAIRS.zh!.flat().map((з) => [з, ZH_PINYIN[з]?.pinyin ?? '']),
 );
 const TARGET_LANGS = Object.keys(MINIMAL_PAIRS);
 
-interface Trial {
+export interface Trial {
   words: [string, string];   // порядок на кнопках (перемешан)
   correctIdx: 0 | 1;         // какое слово прозвучит
 }
@@ -208,7 +211,8 @@ export function levelParams(level: number): {
   };
 }
 
-function buildTrials(pairs: [string, string][], count: number): Trial[] {
+/** Экспортирована ради сверки Flutter-переноса с исполнением (`scripts/flutter-phoneme-pairs-reference.test.ts`). */
+export function buildTrials(pairs: [string, string][], count: number): Trial[] {
   const out: Trial[] = [];
   for (let i = 0; i < count; i++) {
     const pair = pairs[Math.floor(Math.random() * pairs.length)];
@@ -291,7 +295,60 @@ export default function PhonemePairsGame() {
     AsyncStorage.setItem(STORE_KEY, code).catch(() => {});
   };
 
+  /**
+   * 🎓 РАЗБОР ПО ШАГАМ (Денис 17.09.2026, «раскатывай везде»): узнать, где пара расходится, и слушать
+   * только это место (`src/games/phoneme-pairs/teach.ts`). Пары — из пула уровня, пара текущего
+   * задания не берётся. Только на уровнях 1–3; партия с разбором не засчитывается. Обработчики
+   * стабильные: экран тикает таймером каждые 100 мс.
+   */
+  const [урок, setУрок] = useState<{ карточки: КарточкаФонем[]; индекс: number } | null>(null);
+  const карточкаУрока = урок ? урок.карточки[урок.индекс] : null;
+  const урокВПартииRef = useRef(false);
+  const пулRef = useRef<[string, string][]>([]);
+  const [итогСРазбором, setИтогСРазбором] = useState(false);
+  const разборДоступен = phase === 'playing' && lvl.level <= 3;
+  const начатьРазбор = () => {
+    ttsCancel();
+    stopNoise();
+    урокВПартииRef.current = true;
+    const текущая = trialsRef.current[idx]?.words ?? null;
+    setУрок({ карточки: собратьРазборФонем(пулRef.current, tgtRef.current, текущая).карточки, индекс: 0 });
+  };
+  const урокДальше = useCallback(
+    () => setУрок((у) => (у && у.индекс + 1 < у.карточки.length ? { ...у, индекс: у.индекс + 1 } : у)),
+    [],
+  );
+  const урокНазад = useCallback(
+    () => setУрок((у) => (у && у.индекс > 0 ? { ...у, индекс: у.индекс - 1 } : у)),
+    [],
+  );
+  const урокЗакрыть = useCallback(() => { ttsCancel(); setУрок(null); }, []);
+  const текстУрока = карточкаУрока
+    ? Object.entries(карточкаУрока.поля ?? {}).reduce(
+      (текст, [ключ, знач]) => текст.replace(new RegExp(`\\{${ключ}\\}`, 'g'), String(знач)),
+      t(карточкаУрока.ключ) as string,
+    )
+    : '';
+  /** Карточка со словами звучит сама: разбор про слух. */
+  useEffect(() => {
+    if (!урок) return;
+    const к = урок.карточки[урок.индекс];
+    if (!к || !к.звук.length) return;
+    let отменено = false;
+    const таймер = setTimeout(async () => {
+      for (const слово of к.звук) {
+        if (отменено) return;
+        await speak(слово, tgtRef.current, 0.9);
+        await new Promise((готово) => setTimeout(готово, 450));
+      }
+    }, 350);
+    return () => { отменено = true; clearTimeout(таймер); ttsCancel(); };
+  }, [урок]);
+
   const startGame = () => {
+    урокВПартииRef.current = false;
+    setИтогСРазбором(false);
+    setУрок(null);
     ttsCancel();
     if (advanceRef.current) clearTimeout(advanceRef.current);
     if (timerRef.current) clearInterval(timerRef.current);
@@ -300,7 +357,8 @@ export default function PhonemePairsGame() {
     paramsRef.current = p;
     tgtRef.current = tgt;
     const all = MINIMAL_PAIRS[tgt] || MINIMAL_PAIRS.en;
-    const pool = p.easyOnly ? all.slice(0, Math.max(2, Math.ceil(all.length / 2))) : all;
+    const pool = пулУровня(all, p.easyOnly);   // та же формула, что у разбора
+    пулRef.current = pool;
     trialsRef.current = buildTrials(pool, p.trials);
     hitsRef.current = 0;
     errorsRef.current = 0;
@@ -346,7 +404,11 @@ export default function PhonemePairsGame() {
     // Ось 10, цена ошибки: на первых уровнях прощаются две, дальше одна, с
     // одиннадцатого — ни одной. Растёт не задание, а требование к точности.
     const passed = e <= парамRef.current.maxErrors;
-    if (isPreset) {
+    const сРазбором = урокВПартииRef.current;
+    setИтогСРазбором(сРазбором);
+    if (сРазбором) {
+      setPhase('result');   // партия с разбором не засчитывается: ни подъёма, ни провала
+    } else if (isPreset) {
       setPhase(passed ? 'cleared' : 'result');
     } else {
       if (passed) lvl.reach(levelRef.current + 1);
@@ -372,6 +434,7 @@ export default function PhonemePairsGame() {
           trials: paramsRef.current.trials,
           target_lang: tgtRef.current,
           replays: replaysRef.current,
+          ...(сРазбором ? { lesson: true } : {}),
         },
       });
     } catch (err) { console.error('Error saving session:', err); }
@@ -505,6 +568,9 @@ export default function PhonemePairsGame() {
         */
         headerActions={
           <GameAuxBar>
+            {разборДоступен && (
+              <GameAuxAction compact icon="school-outline" tint="#d97706" label={t('teachButton')} onPress={начатьРазбор} />
+            )}
             {/* compact: в полосе счётчиков (auxInHud) подпись «ещё раз» не влезает на длинных языках —
                  замер 16.09.2026 на 390 pt: es «Escuchar otra vez» 177 px, правый край 398 — за экраном на 8;
                  de 175 px, край 389 — впритык. Слово остаётся в accessibilityLabel. */}
@@ -558,6 +624,59 @@ export default function PhonemePairsGame() {
             </Text>
           )}
         </View>
+        {/*
+          🎓 РАЗБОР НА ВЕСЬ ЭКРАН. Поле — оба слова пары; место расхождения выделено (у китайского — в
+          пиньине, у английского и немецкого не выделено: там написание не совпадает со звуком).
+          На ответе прозвучавшее слово в зелёной рамке.
+        */}
+        <LessonPlayer
+          visible={!!урок}
+          индекс={урок?.индекс ?? 0}
+          шагов={Math.max(0, (урок?.карточки.length ?? 1) - 1)}
+          текст={текстУрока}
+          сноска={урок?.индекс === 0 ? t('teachNotCounted') : undefined}
+          готово={карточкаУрока?.вид === 'готово'}
+          занят={false}
+          renderBoard={(сторона) => {
+            const к = карточкаУрока;
+            if (!к?.пара) return <Ionicons name="ear-outline" size={Math.round(сторона * 0.3)} color={GRADIENT[0]} />;
+            const китайский = tgtRef.current === 'zh';
+            const куски = (текст: string, отрезок: Отрезок | undefined) => {
+              const б = Array.from(текст);
+              if (!отрезок) return <Text>{текст}</Text>;
+              return (
+                <Text>
+                  {б.slice(0, отрезок[0]).join('')}
+                  <Text style={{ color: GRADIENT[0], textDecorationLine: 'underline' }}>{б.slice(отрезок[0], отрезок[1]).join('')}</Text>
+                  {б.slice(отрезок[1]).join('')}
+                </Text>
+              );
+            };
+            return (
+              <View style={[styles.разборРяд, { width: сторона }]}>
+                {к.вид === 'проба' ? <Ionicons name="volume-high" size={30} color={colors.textSecondary} /> : null}
+                {([0, 1] as const).map((i) => {
+                  const слово = к.пара![i];
+                  const отрезок = к.отличие ? (i === 0 ? к.отличие.a : к.отличие.b) : undefined;
+                  const прозвучало = к.вид === 'ответ' && к.звучит === i;
+                  return (
+                    <View key={i} style={[styles.разборСлово, { borderColor: прозвучало ? '#22c55e' : colors.border, borderWidth: прозвучало ? 3 : 1, backgroundColor: colors.surface }]}>
+                      <Text style={[styles.разборСловоТекст, { color: colors.text }]}>
+                        {китайский ? слово : куски(слово, отрезок)}
+                      </Text>
+                      {китайский ? (
+                        <Text style={[styles.разборПиньинь, { color: colors.textSecondary }]}>{куски(PINYIN_HINT[слово] || '', отрезок)}</Text>
+                      ) : null}
+                    </View>
+                  );
+                })}
+              </View>
+            );
+          }}
+          onДальше={урокДальше}
+          onНазад={урокНазад}
+          onЗакрыть={урокЗакрыть}
+        />
       </GameShell>
     );
   }
@@ -594,6 +713,7 @@ export default function PhonemePairsGame() {
           onPlayAgain={() => setPhase('config')}
           onGoHome={() => goBackOrHome()}
           gradient={GRADIENT as [string, string]}
+          metricsNote={итогСРазбором ? [t('teachNotCounted')] : undefined}
         />
       )}
     </SafeAreaView>
@@ -601,6 +721,10 @@ export default function PhonemePairsGame() {
 }
 
 const styles = StyleSheet.create({
+  разборРяд: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center', gap: 12 },
+  разборСлово: { minWidth: 120, borderRadius: 16, paddingHorizontal: 18, paddingVertical: 14, alignItems: 'center', gap: 4 },
+  разборСловоТекст: { fontSize: 28, fontWeight: '800' },
+  разборПиньинь: { fontSize: 17, fontWeight: '600' },
   container: { flex: 1 },
   header: { flexDirection: 'row', alignItems: 'center', padding: 16, justifyContent: 'space-between' },
   backBtn: { width: 48, height: 48, borderRadius: 24, justifyContent: 'center', alignItems: 'center' },
