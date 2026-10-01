@@ -3369,13 +3369,16 @@ const t: Record<string, string> = {
   "sudokuVariantRegionsum": "🟦 somas iguais",
   "sudokuVariantPalindrome": "⬜ palíndromo",
   "sudokuVariantBetween": "⚪ entre as pontas",
+  "sudokuVariantLockout": "🔷 cadeado",
   "sudokuRuleRenban": "Os dígitos numa linha roxa formam uma sequência consecutiva, em qualquer ordem e sem repetição.",
   "sudokuRuleRegionsum": "Linha azul: em cada quadro por onde passa, os seus dígitos somam o mesmo valor.",
   "sudokuRulePalindrome": "Uma linha cinza é lida da mesma forma a partir de ambas as pontas: os dígitos à mesma distância das pontas são iguais.",
   "sudokuRuleBetween": "Os dígitos da linha ficam estritamente entre os dígitos dos círculos nas suas pontas.",
+  "sudokuRuleLockout": "Os dígitos dos losangos nas pontas diferem em pelo menos 4, e os dígitos da linha ficam fora do intervalo entre eles.",
   "sdkRule_renban": "renban",
   "sdkRule_regionsum": "somas iguais",
   "sdkRule_palindrome": "palíndromo",
   "sdkRule_between": "entre as pontas",
+  "sdkRule_lockout": "cadeado",
 };
 export default t;

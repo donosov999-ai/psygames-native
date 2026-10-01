@@ -3364,13 +3364,16 @@ const t: Record<string, string> = {
   "sudokuVariantRegionsum": "🟦 sommes égales",
   "sudokuVariantPalindrome": "⬜ palindrome",
   "sudokuVariantBetween": "⚪ entre les bouts",
+  "sudokuVariantLockout": "🔷 verrou",
   "sudokuRuleRenban": "Les chiffres d’une ligne violette forment une suite consécutive, dans n’importe quel ordre, sans répétition.",
   "sudokuRuleRegionsum": "Ligne bleue : dans chaque bloc qu’elle traverse, la somme de ses chiffres est la même.",
   "sudokuRulePalindrome": "Une ligne grise se lit de la même façon depuis les deux extrémités : les chiffres à égale distance des extrémités sont identiques.",
   "sudokuRuleBetween": "Les chiffres de la ligne sont strictement compris entre les chiffres des cercles à ses extrémités.",
+  "sudokuRuleLockout": "Les chiffres des losanges aux extrémités diffèrent d’au moins 4, et les chiffres de la ligne sont hors de l’intervalle qui les sépare.",
   "sdkRule_renban": "renban",
   "sdkRule_regionsum": "sommes égales",
   "sdkRule_palindrome": "palindrome",
   "sdkRule_between": "entre les bouts",
+  "sdkRule_lockout": "verrou",
 };
 export default t;

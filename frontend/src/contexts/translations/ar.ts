@@ -3365,13 +3365,16 @@ const t: Record<string, string> = {
   "sudokuVariantRegionsum": "🟦 مجاميع متساوية",
   "sudokuVariantPalindrome": "⬜ خط متناظر",
   "sudokuVariantBetween": "⚪ بين الطرفين",
+  "sudokuVariantLockout": "🔷 قفل",
   "sudokuRuleRenban": "الأرقام على الخط البنفسجي تشكّل سلسلة متتالية بأي ترتيب ودون تكرار.",
   "sudokuRuleRegionsum": "الخط الأزرق: في كل مربع يمر به، يكون مجموع أرقامه هو نفسه.",
   "sudokuRulePalindrome": "الخط الرمادي يُقرأ بالطريقة نفسها من الطرفين: الأرقام التي تبعد المسافة نفسها عن الطرفين متساوية.",
   "sudokuRuleBetween": "أرقام الخط تقع بين رقمَي الدائرتين عند طرفيه، ولا تساوي أيًّا منهما.",
+  "sudokuRuleLockout": "الرقمان في المعيّنين عند طرفي الخط يختلفان بأربعة على الأقل، وأرقام الخط تقع خارج المدى بينهما.",
   "sdkRule_renban": "رينبان",
   "sdkRule_regionsum": "مجاميع متساوية",
   "sdkRule_palindrome": "الخط المتناظر",
   "sdkRule_between": "بين الطرفين",
+  "sdkRule_lockout": "القفل",
 };
 export default t;

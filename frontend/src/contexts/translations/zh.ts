@@ -3369,13 +3369,16 @@ const t: Record<string, string> = {
   "sudokuVariantRegionsum": "🟦 各宫等和",
   "sudokuVariantPalindrome": "⬜ 回文",
   "sudokuVariantBetween": "⚪ 两端之间",
+  "sudokuVariantLockout": "🔷 锁线",
   "sudokuRuleRenban": "紫线上的数字是连续的一组数，顺序不限，且不能重复。",
   "sudokuRuleRegionsum": "蓝线：在它经过的每个宫里，线上数字之和都相同。",
   "sudokuRulePalindrome": "灰线从两端读起都一样：与两端距离相同的数字相等。",
   "sudokuRuleBetween": "线上的数字严格介于两端圆圈中的数字之间。",
+  "sudokuRuleLockout": "线两端菱形中的数字至少相差 4，线上的数字位于这两个数字的范围之外。",
   "sdkRule_renban": "Renban",
   "sdkRule_regionsum": "各宫等和",
   "sdkRule_palindrome": "回文",
   "sdkRule_between": "两端之间",
+  "sdkRule_lockout": "锁线",
 };
 export default t;
