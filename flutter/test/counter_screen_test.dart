@@ -7,6 +7,8 @@ import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'support/boss_probe.dart';
+
 /// ПАРТИЯ ИГРАЕТСЯ НАЖАТИЯМИ ПО КЛЕТКАМ. Числа проба читает С ЭКРАНА и сама
 /// ищет пару под цель — как человек, а не подглядывая в генератор.
 void main() {
@@ -248,5 +250,21 @@ void main() {
     final r = tester.getRect(last);
     expect(r.bottom, lessThanOrEqualTo(480.01), reason: 'последняя клетка недостижима прокруткой');
     expect(r.width, greaterThanOrEqualTo(27.9), reason: 'клетка ужата ниже порога нажатия');
+  });
+
+  testWidgets('🔴 веха: победа на 3-м уровне открывает бой «сложи подсвеченные», на 2-м — нет', (tester) async {
+    // В вебе этот экран зовёт BossRound каждые три уровня; при переносе бой пропал молча.
+    await expectBossAfterWin(tester, won: find.text(L.t('nextLabel')), hudKey: 'bossHudCounting', play: (level) async {
+      await open(tester, level: level, seed: 'босс$level');
+      for (var r = 0;
+          r < 40 &&
+              find.byKey(const Key('result')).evaluate().isEmpty &&
+              find.byKey(const Key('boss-round')).evaluate().isEmpty;
+          r += 1) {
+        await tapCells(tester, solve(cellsOnScreen(tester), targetOnScreen(tester)));
+        await tester.pump(const Duration(milliseconds: 800));
+        await tester.pump();
+      }
+    });
   });
 }

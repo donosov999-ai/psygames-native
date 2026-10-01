@@ -1,0 +1,6577 @@
+{
+ "source": "frontend/src/games/rhythm-pitch/tools/record-flutter-lesson.gen.ts",
+ "lessons": [
+  {
+   "level": 1,
+   "seed": "lesson-1-1",
+   "mode": "rhythm-echo",
+   "even": true,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpRhythmIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListen",
+     "fields": {
+      "n": "3"
+     },
+     "sound": true
+    },
+    {
+     "kind": "beat",
+     "key": "teachRpEven",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "tap",
+     "key": "teachRpTap",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpRhythmDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 1,
+   "seed": "lesson-1-2",
+   "mode": "rhythm-echo",
+   "even": true,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpRhythmIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListen",
+     "fields": {
+      "n": "3"
+     },
+     "sound": true
+    },
+    {
+     "kind": "beat",
+     "key": "teachRpEven",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "tap",
+     "key": "teachRpTap",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpRhythmDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 1,
+   "seed": "lesson-1-3",
+   "mode": "rhythm-echo",
+   "even": true,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpRhythmIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListen",
+     "fields": {
+      "n": "3"
+     },
+     "sound": true
+    },
+    {
+     "kind": "beat",
+     "key": "teachRpEven",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "tap",
+     "key": "teachRpTap",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpRhythmDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 1,
+   "seed": "lesson-1-4",
+   "mode": "rhythm-echo",
+   "even": true,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpRhythmIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListen",
+     "fields": {
+      "n": "3"
+     },
+     "sound": true
+    },
+    {
+     "kind": "beat",
+     "key": "teachRpEven",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "tap",
+     "key": "teachRpTap",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpRhythmDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 1,
+   "seed": "lesson-1-5",
+   "mode": "rhythm-echo",
+   "even": true,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpRhythmIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListen",
+     "fields": {
+      "n": "3"
+     },
+     "sound": true
+    },
+    {
+     "kind": "beat",
+     "key": "teachRpEven",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "tap",
+     "key": "teachRpTap",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpRhythmDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 1,
+   "seed": "lesson-1-6",
+   "mode": "rhythm-echo",
+   "even": true,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpRhythmIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListen",
+     "fields": {
+      "n": "3"
+     },
+     "sound": true
+    },
+    {
+     "kind": "beat",
+     "key": "teachRpEven",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "tap",
+     "key": "teachRpTap",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpRhythmDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 1,
+   "seed": "lesson-1-7",
+   "mode": "rhythm-echo",
+   "even": true,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpRhythmIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListen",
+     "fields": {
+      "n": "3"
+     },
+     "sound": true
+    },
+    {
+     "kind": "beat",
+     "key": "teachRpEven",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "tap",
+     "key": "teachRpTap",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpRhythmDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 1,
+   "seed": "lesson-1-8",
+   "mode": "rhythm-echo",
+   "even": true,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpRhythmIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListen",
+     "fields": {
+      "n": "3"
+     },
+     "sound": true
+    },
+    {
+     "kind": "beat",
+     "key": "teachRpEven",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "tap",
+     "key": "teachRpTap",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpRhythmDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 1,
+   "seed": "lesson-1-9",
+   "mode": "rhythm-echo",
+   "even": true,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpRhythmIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListen",
+     "fields": {
+      "n": "3"
+     },
+     "sound": true
+    },
+    {
+     "kind": "beat",
+     "key": "teachRpEven",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "tap",
+     "key": "teachRpTap",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpRhythmDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 1,
+   "seed": "lesson-1-10",
+   "mode": "rhythm-echo",
+   "even": true,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpRhythmIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListen",
+     "fields": {
+      "n": "3"
+     },
+     "sound": true
+    },
+    {
+     "kind": "beat",
+     "key": "teachRpEven",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "tap",
+     "key": "teachRpTap",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpRhythmDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 1,
+   "seed": "lesson-1-11",
+   "mode": "rhythm-echo",
+   "even": true,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpRhythmIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListen",
+     "fields": {
+      "n": "3"
+     },
+     "sound": true
+    },
+    {
+     "kind": "beat",
+     "key": "teachRpEven",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "tap",
+     "key": "teachRpTap",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpRhythmDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 1,
+   "seed": "lesson-1-12",
+   "mode": "rhythm-echo",
+   "even": true,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpRhythmIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListen",
+     "fields": {
+      "n": "3"
+     },
+     "sound": true
+    },
+    {
+     "kind": "beat",
+     "key": "teachRpEven",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "tap",
+     "key": "teachRpTap",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpRhythmDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 1,
+   "seed": "lesson-1-13",
+   "mode": "rhythm-echo",
+   "even": true,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpRhythmIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListen",
+     "fields": {
+      "n": "3"
+     },
+     "sound": true
+    },
+    {
+     "kind": "beat",
+     "key": "teachRpEven",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "tap",
+     "key": "teachRpTap",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpRhythmDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 1,
+   "seed": "lesson-1-14",
+   "mode": "rhythm-echo",
+   "even": true,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpRhythmIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListen",
+     "fields": {
+      "n": "3"
+     },
+     "sound": true
+    },
+    {
+     "kind": "beat",
+     "key": "teachRpEven",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "tap",
+     "key": "teachRpTap",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpRhythmDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 1,
+   "seed": "lesson-1-15",
+   "mode": "rhythm-echo",
+   "even": true,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpRhythmIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListen",
+     "fields": {
+      "n": "3"
+     },
+     "sound": true
+    },
+    {
+     "kind": "beat",
+     "key": "teachRpEven",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "tap",
+     "key": "teachRpTap",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpRhythmDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 1,
+   "seed": "lesson-1-16",
+   "mode": "rhythm-echo",
+   "even": true,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpRhythmIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListen",
+     "fields": {
+      "n": "3"
+     },
+     "sound": true
+    },
+    {
+     "kind": "beat",
+     "key": "teachRpEven",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "tap",
+     "key": "teachRpTap",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpRhythmDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 1,
+   "seed": "lesson-1-17",
+   "mode": "rhythm-echo",
+   "even": true,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpRhythmIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListen",
+     "fields": {
+      "n": "3"
+     },
+     "sound": true
+    },
+    {
+     "kind": "beat",
+     "key": "teachRpEven",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "tap",
+     "key": "teachRpTap",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpRhythmDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 1,
+   "seed": "lesson-1-18",
+   "mode": "rhythm-echo",
+   "even": true,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpRhythmIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListen",
+     "fields": {
+      "n": "3"
+     },
+     "sound": true
+    },
+    {
+     "kind": "beat",
+     "key": "teachRpEven",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "tap",
+     "key": "teachRpTap",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpRhythmDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 1,
+   "seed": "lesson-1-19",
+   "mode": "rhythm-echo",
+   "even": true,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpRhythmIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListen",
+     "fields": {
+      "n": "3"
+     },
+     "sound": true
+    },
+    {
+     "kind": "beat",
+     "key": "teachRpEven",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "tap",
+     "key": "teachRpTap",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpRhythmDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 1,
+   "seed": "lesson-1-20",
+   "mode": "rhythm-echo",
+   "even": true,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpRhythmIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListen",
+     "fields": {
+      "n": "3"
+     },
+     "sound": true
+    },
+    {
+     "kind": "beat",
+     "key": "teachRpEven",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "tap",
+     "key": "teachRpTap",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpRhythmDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 1,
+   "seed": "lesson-1-21",
+   "mode": "rhythm-echo",
+   "even": true,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpRhythmIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListen",
+     "fields": {
+      "n": "3"
+     },
+     "sound": true
+    },
+    {
+     "kind": "beat",
+     "key": "teachRpEven",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "tap",
+     "key": "teachRpTap",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpRhythmDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 1,
+   "seed": "lesson-1-22",
+   "mode": "rhythm-echo",
+   "even": true,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpRhythmIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListen",
+     "fields": {
+      "n": "3"
+     },
+     "sound": true
+    },
+    {
+     "kind": "beat",
+     "key": "teachRpEven",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "tap",
+     "key": "teachRpTap",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpRhythmDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 1,
+   "seed": "lesson-1-23",
+   "mode": "rhythm-echo",
+   "even": true,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpRhythmIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListen",
+     "fields": {
+      "n": "3"
+     },
+     "sound": true
+    },
+    {
+     "kind": "beat",
+     "key": "teachRpEven",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "tap",
+     "key": "teachRpTap",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpRhythmDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 1,
+   "seed": "lesson-1-24",
+   "mode": "rhythm-echo",
+   "even": true,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpRhythmIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListen",
+     "fields": {
+      "n": "3"
+     },
+     "sound": true
+    },
+    {
+     "kind": "beat",
+     "key": "teachRpEven",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "tap",
+     "key": "teachRpTap",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpRhythmDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 1,
+   "seed": "lesson-1-25",
+   "mode": "rhythm-echo",
+   "even": true,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpRhythmIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListen",
+     "fields": {
+      "n": "3"
+     },
+     "sound": true
+    },
+    {
+     "kind": "beat",
+     "key": "teachRpEven",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "tap",
+     "key": "teachRpTap",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpRhythmDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 1,
+   "seed": "lesson-1-26",
+   "mode": "rhythm-echo",
+   "even": true,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpRhythmIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListen",
+     "fields": {
+      "n": "3"
+     },
+     "sound": true
+    },
+    {
+     "kind": "beat",
+     "key": "teachRpEven",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "tap",
+     "key": "teachRpTap",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpRhythmDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 1,
+   "seed": "lesson-1-27",
+   "mode": "rhythm-echo",
+   "even": true,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpRhythmIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListen",
+     "fields": {
+      "n": "3"
+     },
+     "sound": true
+    },
+    {
+     "kind": "beat",
+     "key": "teachRpEven",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "tap",
+     "key": "teachRpTap",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpRhythmDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 1,
+   "seed": "lesson-1-28",
+   "mode": "rhythm-echo",
+   "even": true,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpRhythmIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListen",
+     "fields": {
+      "n": "3"
+     },
+     "sound": true
+    },
+    {
+     "kind": "beat",
+     "key": "teachRpEven",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "tap",
+     "key": "teachRpTap",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpRhythmDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 1,
+   "seed": "lesson-1-29",
+   "mode": "rhythm-echo",
+   "even": true,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpRhythmIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListen",
+     "fields": {
+      "n": "3"
+     },
+     "sound": true
+    },
+    {
+     "kind": "beat",
+     "key": "teachRpEven",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "tap",
+     "key": "teachRpTap",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpRhythmDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 1,
+   "seed": "lesson-1-30",
+   "mode": "rhythm-echo",
+   "even": true,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpRhythmIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListen",
+     "fields": {
+      "n": "3"
+     },
+     "sound": true
+    },
+    {
+     "kind": "beat",
+     "key": "teachRpEven",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "tap",
+     "key": "teachRpTap",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpRhythmDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 2,
+   "seed": "lesson-2-1",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpPitchIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListenTones",
+     "fields": {
+      "n": "2"
+     },
+     "sound": true
+    },
+    {
+     "kind": "compare",
+     "key": "teachRpHigher",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpPitchDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 2,
+   "seed": "lesson-2-2",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpPitchIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListenTones",
+     "fields": {
+      "n": "2"
+     },
+     "sound": true
+    },
+    {
+     "kind": "compare",
+     "key": "teachRpHigher",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpPitchDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 2,
+   "seed": "lesson-2-3",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpPitchIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListenTones",
+     "fields": {
+      "n": "2"
+     },
+     "sound": true
+    },
+    {
+     "kind": "compare",
+     "key": "teachRpHigher",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpPitchDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 2,
+   "seed": "lesson-2-4",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpPitchIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListenTones",
+     "fields": {
+      "n": "2"
+     },
+     "sound": true
+    },
+    {
+     "kind": "compare",
+     "key": "teachRpHigher",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpPitchDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 2,
+   "seed": "lesson-2-5",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpPitchIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListenTones",
+     "fields": {
+      "n": "2"
+     },
+     "sound": true
+    },
+    {
+     "kind": "compare",
+     "key": "teachRpHigher",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpPitchDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 2,
+   "seed": "lesson-2-6",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpPitchIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListenTones",
+     "fields": {
+      "n": "2"
+     },
+     "sound": true
+    },
+    {
+     "kind": "compare",
+     "key": "teachRpHigher",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpPitchDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 2,
+   "seed": "lesson-2-7",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpPitchIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListenTones",
+     "fields": {
+      "n": "2"
+     },
+     "sound": true
+    },
+    {
+     "kind": "compare",
+     "key": "teachRpLower",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpPitchDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 2,
+   "seed": "lesson-2-8",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpPitchIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListenTones",
+     "fields": {
+      "n": "2"
+     },
+     "sound": true
+    },
+    {
+     "kind": "compare",
+     "key": "teachRpLower",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpPitchDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 2,
+   "seed": "lesson-2-9",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpPitchIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListenTones",
+     "fields": {
+      "n": "2"
+     },
+     "sound": true
+    },
+    {
+     "kind": "compare",
+     "key": "teachRpLower",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpPitchDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 2,
+   "seed": "lesson-2-10",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpPitchIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListenTones",
+     "fields": {
+      "n": "2"
+     },
+     "sound": true
+    },
+    {
+     "kind": "compare",
+     "key": "teachRpLower",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpPitchDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 2,
+   "seed": "lesson-2-11",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpPitchIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListenTones",
+     "fields": {
+      "n": "2"
+     },
+     "sound": true
+    },
+    {
+     "kind": "compare",
+     "key": "teachRpHigher",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpPitchDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 2,
+   "seed": "lesson-2-12",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpPitchIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListenTones",
+     "fields": {
+      "n": "2"
+     },
+     "sound": true
+    },
+    {
+     "kind": "compare",
+     "key": "teachRpLower",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpPitchDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 2,
+   "seed": "lesson-2-13",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpPitchIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListenTones",
+     "fields": {
+      "n": "2"
+     },
+     "sound": true
+    },
+    {
+     "kind": "compare",
+     "key": "teachRpLower",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpPitchDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 2,
+   "seed": "lesson-2-14",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpPitchIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListenTones",
+     "fields": {
+      "n": "2"
+     },
+     "sound": true
+    },
+    {
+     "kind": "compare",
+     "key": "teachRpHigher",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpPitchDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 2,
+   "seed": "lesson-2-15",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpPitchIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListenTones",
+     "fields": {
+      "n": "2"
+     },
+     "sound": true
+    },
+    {
+     "kind": "compare",
+     "key": "teachRpLower",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpPitchDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 2,
+   "seed": "lesson-2-16",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpPitchIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListenTones",
+     "fields": {
+      "n": "2"
+     },
+     "sound": true
+    },
+    {
+     "kind": "compare",
+     "key": "teachRpLower",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpPitchDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 2,
+   "seed": "lesson-2-17",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpPitchIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListenTones",
+     "fields": {
+      "n": "2"
+     },
+     "sound": true
+    },
+    {
+     "kind": "compare",
+     "key": "teachRpLower",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpPitchDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 2,
+   "seed": "lesson-2-18",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpPitchIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListenTones",
+     "fields": {
+      "n": "2"
+     },
+     "sound": true
+    },
+    {
+     "kind": "compare",
+     "key": "teachRpHigher",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpPitchDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 2,
+   "seed": "lesson-2-19",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpPitchIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListenTones",
+     "fields": {
+      "n": "2"
+     },
+     "sound": true
+    },
+    {
+     "kind": "compare",
+     "key": "teachRpLower",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpPitchDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 2,
+   "seed": "lesson-2-20",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpPitchIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListenTones",
+     "fields": {
+      "n": "2"
+     },
+     "sound": true
+    },
+    {
+     "kind": "compare",
+     "key": "teachRpLower",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpPitchDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 2,
+   "seed": "lesson-2-21",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpPitchIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListenTones",
+     "fields": {
+      "n": "2"
+     },
+     "sound": true
+    },
+    {
+     "kind": "compare",
+     "key": "teachRpLower",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpPitchDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 2,
+   "seed": "lesson-2-22",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpPitchIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListenTones",
+     "fields": {
+      "n": "2"
+     },
+     "sound": true
+    },
+    {
+     "kind": "compare",
+     "key": "teachRpHigher",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpPitchDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 2,
+   "seed": "lesson-2-23",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpPitchIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListenTones",
+     "fields": {
+      "n": "2"
+     },
+     "sound": true
+    },
+    {
+     "kind": "compare",
+     "key": "teachRpLower",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpPitchDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 2,
+   "seed": "lesson-2-24",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpPitchIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListenTones",
+     "fields": {
+      "n": "2"
+     },
+     "sound": true
+    },
+    {
+     "kind": "compare",
+     "key": "teachRpLower",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpPitchDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 2,
+   "seed": "lesson-2-25",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpPitchIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListenTones",
+     "fields": {
+      "n": "2"
+     },
+     "sound": true
+    },
+    {
+     "kind": "compare",
+     "key": "teachRpLower",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpPitchDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 2,
+   "seed": "lesson-2-26",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpPitchIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListenTones",
+     "fields": {
+      "n": "2"
+     },
+     "sound": true
+    },
+    {
+     "kind": "compare",
+     "key": "teachRpLower",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpPitchDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 2,
+   "seed": "lesson-2-27",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpPitchIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListenTones",
+     "fields": {
+      "n": "2"
+     },
+     "sound": true
+    },
+    {
+     "kind": "compare",
+     "key": "teachRpLower",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpPitchDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 2,
+   "seed": "lesson-2-28",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpPitchIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListenTones",
+     "fields": {
+      "n": "2"
+     },
+     "sound": true
+    },
+    {
+     "kind": "compare",
+     "key": "teachRpHigher",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpPitchDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 2,
+   "seed": "lesson-2-29",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpPitchIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListenTones",
+     "fields": {
+      "n": "2"
+     },
+     "sound": true
+    },
+    {
+     "kind": "compare",
+     "key": "teachRpHigher",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpPitchDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 2,
+   "seed": "lesson-2-30",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpPitchIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListenTones",
+     "fields": {
+      "n": "2"
+     },
+     "sound": true
+    },
+    {
+     "kind": "compare",
+     "key": "teachRpHigher",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpPitchDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "seed": "lesson-3-1",
+   "mode": "rhythm-echo",
+   "even": true,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpRhythmIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListen",
+     "fields": {
+      "n": "4"
+     },
+     "sound": true
+    },
+    {
+     "kind": "beat",
+     "key": "teachRpEven",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "tap",
+     "key": "teachRpTap",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpRhythmDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "seed": "lesson-3-2",
+   "mode": "rhythm-echo",
+   "even": true,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpRhythmIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListen",
+     "fields": {
+      "n": "4"
+     },
+     "sound": true
+    },
+    {
+     "kind": "beat",
+     "key": "teachRpEven",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "tap",
+     "key": "teachRpTap",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpRhythmDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "seed": "lesson-3-3",
+   "mode": "rhythm-echo",
+   "even": true,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpRhythmIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListen",
+     "fields": {
+      "n": "4"
+     },
+     "sound": true
+    },
+    {
+     "kind": "beat",
+     "key": "teachRpEven",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "tap",
+     "key": "teachRpTap",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpRhythmDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "seed": "lesson-3-4",
+   "mode": "rhythm-echo",
+   "even": true,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpRhythmIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListen",
+     "fields": {
+      "n": "4"
+     },
+     "sound": true
+    },
+    {
+     "kind": "beat",
+     "key": "teachRpEven",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "tap",
+     "key": "teachRpTap",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpRhythmDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "seed": "lesson-3-5",
+   "mode": "rhythm-echo",
+   "even": true,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpRhythmIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListen",
+     "fields": {
+      "n": "4"
+     },
+     "sound": true
+    },
+    {
+     "kind": "beat",
+     "key": "teachRpEven",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "tap",
+     "key": "teachRpTap",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpRhythmDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "seed": "lesson-3-6",
+   "mode": "rhythm-echo",
+   "even": true,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpRhythmIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListen",
+     "fields": {
+      "n": "4"
+     },
+     "sound": true
+    },
+    {
+     "kind": "beat",
+     "key": "teachRpEven",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "tap",
+     "key": "teachRpTap",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpRhythmDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "seed": "lesson-3-7",
+   "mode": "rhythm-echo",
+   "even": true,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpRhythmIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListen",
+     "fields": {
+      "n": "4"
+     },
+     "sound": true
+    },
+    {
+     "kind": "beat",
+     "key": "teachRpEven",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "tap",
+     "key": "teachRpTap",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpRhythmDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "seed": "lesson-3-8",
+   "mode": "rhythm-echo",
+   "even": true,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpRhythmIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListen",
+     "fields": {
+      "n": "4"
+     },
+     "sound": true
+    },
+    {
+     "kind": "beat",
+     "key": "teachRpEven",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "tap",
+     "key": "teachRpTap",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpRhythmDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "seed": "lesson-3-9",
+   "mode": "rhythm-echo",
+   "even": true,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpRhythmIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListen",
+     "fields": {
+      "n": "4"
+     },
+     "sound": true
+    },
+    {
+     "kind": "beat",
+     "key": "teachRpEven",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "tap",
+     "key": "teachRpTap",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpRhythmDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "seed": "lesson-3-10",
+   "mode": "rhythm-echo",
+   "even": true,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpRhythmIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListen",
+     "fields": {
+      "n": "4"
+     },
+     "sound": true
+    },
+    {
+     "kind": "beat",
+     "key": "teachRpEven",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "tap",
+     "key": "teachRpTap",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpRhythmDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "seed": "lesson-3-11",
+   "mode": "rhythm-echo",
+   "even": true,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpRhythmIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListen",
+     "fields": {
+      "n": "4"
+     },
+     "sound": true
+    },
+    {
+     "kind": "beat",
+     "key": "teachRpEven",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "tap",
+     "key": "teachRpTap",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpRhythmDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "seed": "lesson-3-12",
+   "mode": "rhythm-echo",
+   "even": true,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpRhythmIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListen",
+     "fields": {
+      "n": "4"
+     },
+     "sound": true
+    },
+    {
+     "kind": "beat",
+     "key": "teachRpEven",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "tap",
+     "key": "teachRpTap",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpRhythmDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "seed": "lesson-3-13",
+   "mode": "rhythm-echo",
+   "even": true,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpRhythmIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListen",
+     "fields": {
+      "n": "4"
+     },
+     "sound": true
+    },
+    {
+     "kind": "beat",
+     "key": "teachRpEven",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "tap",
+     "key": "teachRpTap",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpRhythmDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "seed": "lesson-3-14",
+   "mode": "rhythm-echo",
+   "even": true,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpRhythmIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListen",
+     "fields": {
+      "n": "4"
+     },
+     "sound": true
+    },
+    {
+     "kind": "beat",
+     "key": "teachRpEven",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "tap",
+     "key": "teachRpTap",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpRhythmDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "seed": "lesson-3-15",
+   "mode": "rhythm-echo",
+   "even": true,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpRhythmIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListen",
+     "fields": {
+      "n": "4"
+     },
+     "sound": true
+    },
+    {
+     "kind": "beat",
+     "key": "teachRpEven",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "tap",
+     "key": "teachRpTap",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpRhythmDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "seed": "lesson-3-16",
+   "mode": "rhythm-echo",
+   "even": true,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpRhythmIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListen",
+     "fields": {
+      "n": "4"
+     },
+     "sound": true
+    },
+    {
+     "kind": "beat",
+     "key": "teachRpEven",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "tap",
+     "key": "teachRpTap",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpRhythmDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "seed": "lesson-3-17",
+   "mode": "rhythm-echo",
+   "even": true,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpRhythmIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListen",
+     "fields": {
+      "n": "4"
+     },
+     "sound": true
+    },
+    {
+     "kind": "beat",
+     "key": "teachRpEven",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "tap",
+     "key": "teachRpTap",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpRhythmDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "seed": "lesson-3-18",
+   "mode": "rhythm-echo",
+   "even": true,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpRhythmIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListen",
+     "fields": {
+      "n": "4"
+     },
+     "sound": true
+    },
+    {
+     "kind": "beat",
+     "key": "teachRpEven",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "tap",
+     "key": "teachRpTap",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpRhythmDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "seed": "lesson-3-19",
+   "mode": "rhythm-echo",
+   "even": true,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpRhythmIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListen",
+     "fields": {
+      "n": "4"
+     },
+     "sound": true
+    },
+    {
+     "kind": "beat",
+     "key": "teachRpEven",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "tap",
+     "key": "teachRpTap",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpRhythmDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "seed": "lesson-3-20",
+   "mode": "rhythm-echo",
+   "even": true,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpRhythmIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListen",
+     "fields": {
+      "n": "4"
+     },
+     "sound": true
+    },
+    {
+     "kind": "beat",
+     "key": "teachRpEven",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "tap",
+     "key": "teachRpTap",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpRhythmDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "seed": "lesson-3-21",
+   "mode": "rhythm-echo",
+   "even": true,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpRhythmIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListen",
+     "fields": {
+      "n": "4"
+     },
+     "sound": true
+    },
+    {
+     "kind": "beat",
+     "key": "teachRpEven",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "tap",
+     "key": "teachRpTap",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpRhythmDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "seed": "lesson-3-22",
+   "mode": "rhythm-echo",
+   "even": true,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpRhythmIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListen",
+     "fields": {
+      "n": "4"
+     },
+     "sound": true
+    },
+    {
+     "kind": "beat",
+     "key": "teachRpEven",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "tap",
+     "key": "teachRpTap",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpRhythmDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "seed": "lesson-3-23",
+   "mode": "rhythm-echo",
+   "even": true,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpRhythmIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListen",
+     "fields": {
+      "n": "4"
+     },
+     "sound": true
+    },
+    {
+     "kind": "beat",
+     "key": "teachRpEven",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "tap",
+     "key": "teachRpTap",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpRhythmDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "seed": "lesson-3-24",
+   "mode": "rhythm-echo",
+   "even": true,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpRhythmIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListen",
+     "fields": {
+      "n": "4"
+     },
+     "sound": true
+    },
+    {
+     "kind": "beat",
+     "key": "teachRpEven",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "tap",
+     "key": "teachRpTap",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpRhythmDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "seed": "lesson-3-25",
+   "mode": "rhythm-echo",
+   "even": true,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpRhythmIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListen",
+     "fields": {
+      "n": "4"
+     },
+     "sound": true
+    },
+    {
+     "kind": "beat",
+     "key": "teachRpEven",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "tap",
+     "key": "teachRpTap",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpRhythmDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "seed": "lesson-3-26",
+   "mode": "rhythm-echo",
+   "even": true,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpRhythmIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListen",
+     "fields": {
+      "n": "4"
+     },
+     "sound": true
+    },
+    {
+     "kind": "beat",
+     "key": "teachRpEven",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "tap",
+     "key": "teachRpTap",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpRhythmDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "seed": "lesson-3-27",
+   "mode": "rhythm-echo",
+   "even": true,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpRhythmIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListen",
+     "fields": {
+      "n": "4"
+     },
+     "sound": true
+    },
+    {
+     "kind": "beat",
+     "key": "teachRpEven",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "tap",
+     "key": "teachRpTap",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpRhythmDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "seed": "lesson-3-28",
+   "mode": "rhythm-echo",
+   "even": true,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpRhythmIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListen",
+     "fields": {
+      "n": "4"
+     },
+     "sound": true
+    },
+    {
+     "kind": "beat",
+     "key": "teachRpEven",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "tap",
+     "key": "teachRpTap",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpRhythmDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "seed": "lesson-3-29",
+   "mode": "rhythm-echo",
+   "even": true,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpRhythmIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListen",
+     "fields": {
+      "n": "4"
+     },
+     "sound": true
+    },
+    {
+     "kind": "beat",
+     "key": "teachRpEven",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "tap",
+     "key": "teachRpTap",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpRhythmDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "seed": "lesson-3-30",
+   "mode": "rhythm-echo",
+   "even": true,
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachRpRhythmIntro",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "listen",
+     "key": "teachRpListen",
+     "fields": {
+      "n": "4"
+     },
+     "sound": true
+    },
+    {
+     "kind": "beat",
+     "key": "teachRpEven",
+     "fields": {},
+     "sound": false
+    },
+    {
+     "kind": "tap",
+     "key": "teachRpTap",
+     "fields": {},
+     "sound": true
+    },
+    {
+     "kind": "done",
+     "key": "teachRpRhythmDone",
+     "fields": {},
+     "sound": false
+    }
+   ]
+  },
+  {
+   "level": 4,
+   "seed": "lesson-4-1",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 4,
+   "seed": "lesson-4-2",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 4,
+   "seed": "lesson-4-3",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 4,
+   "seed": "lesson-4-4",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 4,
+   "seed": "lesson-4-5",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 4,
+   "seed": "lesson-4-6",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 4,
+   "seed": "lesson-4-7",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 4,
+   "seed": "lesson-4-8",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 4,
+   "seed": "lesson-4-9",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 4,
+   "seed": "lesson-4-10",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 4,
+   "seed": "lesson-4-11",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 4,
+   "seed": "lesson-4-12",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 4,
+   "seed": "lesson-4-13",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 4,
+   "seed": "lesson-4-14",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 4,
+   "seed": "lesson-4-15",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 4,
+   "seed": "lesson-4-16",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 4,
+   "seed": "lesson-4-17",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 4,
+   "seed": "lesson-4-18",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 4,
+   "seed": "lesson-4-19",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 4,
+   "seed": "lesson-4-20",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 4,
+   "seed": "lesson-4-21",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 4,
+   "seed": "lesson-4-22",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 4,
+   "seed": "lesson-4-23",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 4,
+   "seed": "lesson-4-24",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 4,
+   "seed": "lesson-4-25",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 4,
+   "seed": "lesson-4-26",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 4,
+   "seed": "lesson-4-27",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 4,
+   "seed": "lesson-4-28",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 4,
+   "seed": "lesson-4-29",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 4,
+   "seed": "lesson-4-30",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 5,
+   "seed": "lesson-5-1",
+   "mode": "rhythm-echo",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 5,
+   "seed": "lesson-5-2",
+   "mode": "rhythm-echo",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 5,
+   "seed": "lesson-5-3",
+   "mode": "rhythm-echo",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 5,
+   "seed": "lesson-5-4",
+   "mode": "rhythm-echo",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 5,
+   "seed": "lesson-5-5",
+   "mode": "rhythm-echo",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 5,
+   "seed": "lesson-5-6",
+   "mode": "rhythm-echo",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 5,
+   "seed": "lesson-5-7",
+   "mode": "rhythm-echo",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 5,
+   "seed": "lesson-5-8",
+   "mode": "rhythm-echo",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 5,
+   "seed": "lesson-5-9",
+   "mode": "rhythm-echo",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 5,
+   "seed": "lesson-5-10",
+   "mode": "rhythm-echo",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 5,
+   "seed": "lesson-5-11",
+   "mode": "rhythm-echo",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 5,
+   "seed": "lesson-5-12",
+   "mode": "rhythm-echo",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 5,
+   "seed": "lesson-5-13",
+   "mode": "rhythm-echo",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 5,
+   "seed": "lesson-5-14",
+   "mode": "rhythm-echo",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 5,
+   "seed": "lesson-5-15",
+   "mode": "rhythm-echo",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 5,
+   "seed": "lesson-5-16",
+   "mode": "rhythm-echo",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 5,
+   "seed": "lesson-5-17",
+   "mode": "rhythm-echo",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 5,
+   "seed": "lesson-5-18",
+   "mode": "rhythm-echo",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 5,
+   "seed": "lesson-5-19",
+   "mode": "rhythm-echo",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 5,
+   "seed": "lesson-5-20",
+   "mode": "rhythm-echo",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 5,
+   "seed": "lesson-5-21",
+   "mode": "rhythm-echo",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 5,
+   "seed": "lesson-5-22",
+   "mode": "rhythm-echo",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 5,
+   "seed": "lesson-5-23",
+   "mode": "rhythm-echo",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 5,
+   "seed": "lesson-5-24",
+   "mode": "rhythm-echo",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 5,
+   "seed": "lesson-5-25",
+   "mode": "rhythm-echo",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 5,
+   "seed": "lesson-5-26",
+   "mode": "rhythm-echo",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 5,
+   "seed": "lesson-5-27",
+   "mode": "rhythm-echo",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 5,
+   "seed": "lesson-5-28",
+   "mode": "rhythm-echo",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 5,
+   "seed": "lesson-5-29",
+   "mode": "rhythm-echo",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 5,
+   "seed": "lesson-5-30",
+   "mode": "rhythm-echo",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 6,
+   "seed": "lesson-6-1",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 6,
+   "seed": "lesson-6-2",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 6,
+   "seed": "lesson-6-3",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 6,
+   "seed": "lesson-6-4",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 6,
+   "seed": "lesson-6-5",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 6,
+   "seed": "lesson-6-6",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 6,
+   "seed": "lesson-6-7",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 6,
+   "seed": "lesson-6-8",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 6,
+   "seed": "lesson-6-9",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 6,
+   "seed": "lesson-6-10",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 6,
+   "seed": "lesson-6-11",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 6,
+   "seed": "lesson-6-12",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 6,
+   "seed": "lesson-6-13",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 6,
+   "seed": "lesson-6-14",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 6,
+   "seed": "lesson-6-15",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 6,
+   "seed": "lesson-6-16",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 6,
+   "seed": "lesson-6-17",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 6,
+   "seed": "lesson-6-18",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 6,
+   "seed": "lesson-6-19",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 6,
+   "seed": "lesson-6-20",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 6,
+   "seed": "lesson-6-21",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 6,
+   "seed": "lesson-6-22",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 6,
+   "seed": "lesson-6-23",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 6,
+   "seed": "lesson-6-24",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 6,
+   "seed": "lesson-6-25",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 6,
+   "seed": "lesson-6-26",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 6,
+   "seed": "lesson-6-27",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 6,
+   "seed": "lesson-6-28",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 6,
+   "seed": "lesson-6-29",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": null
+  },
+  {
+   "level": 6,
+   "seed": "lesson-6-30",
+   "mode": "pitch-path",
+   "even": false,
+   "cards": null
+  }
+ ],
+ "forced": [
+  {
+   "level": 2,
+   "seed": "forced-2-1",
+   "even": true,
+   "equalGaps": true,
+   "accents": 0
+  },
+  {
+   "level": 2,
+   "seed": "forced-2-2",
+   "even": true,
+   "equalGaps": true,
+   "accents": 0
+  },
+  {
+   "level": 2,
+   "seed": "forced-2-3",
+   "even": true,
+   "equalGaps": true,
+   "accents": 0
+  },
+  {
+   "level": 2,
+   "seed": "forced-2-4",
+   "even": true,
+   "equalGaps": true,
+   "accents": 0
+  },
+  {
+   "level": 2,
+   "seed": "forced-2-5",
+   "even": true,
+   "equalGaps": true,
+   "accents": 0
+  },
+  {
+   "level": 2,
+   "seed": "forced-2-6",
+   "even": true,
+   "equalGaps": true,
+   "accents": 0
+  },
+  {
+   "level": 2,
+   "seed": "forced-2-7",
+   "even": true,
+   "equalGaps": true,
+   "accents": 0
+  },
+  {
+   "level": 2,
+   "seed": "forced-2-8",
+   "even": true,
+   "equalGaps": true,
+   "accents": 0
+  },
+  {
+   "level": 2,
+   "seed": "forced-2-9",
+   "even": true,
+   "equalGaps": true,
+   "accents": 0
+  },
+  {
+   "level": 2,
+   "seed": "forced-2-10",
+   "even": true,
+   "equalGaps": true,
+   "accents": 0
+  },
+  {
+   "level": 2,
+   "seed": "forced-2-11",
+   "even": true,
+   "equalGaps": true,
+   "accents": 0
+  },
+  {
+   "level": 2,
+   "seed": "forced-2-12",
+   "even": true,
+   "equalGaps": true,
+   "accents": 0
+  },
+  {
+   "level": 2,
+   "seed": "forced-2-13",
+   "even": true,
+   "equalGaps": true,
+   "accents": 0
+  },
+  {
+   "level": 2,
+   "seed": "forced-2-14",
+   "even": true,
+   "equalGaps": true,
+   "accents": 0
+  },
+  {
+   "level": 2,
+   "seed": "forced-2-15",
+   "even": true,
+   "equalGaps": true,
+   "accents": 0
+  },
+  {
+   "level": 2,
+   "seed": "forced-2-16",
+   "even": true,
+   "equalGaps": true,
+   "accents": 0
+  },
+  {
+   "level": 2,
+   "seed": "forced-2-17",
+   "even": true,
+   "equalGaps": true,
+   "accents": 0
+  },
+  {
+   "level": 2,
+   "seed": "forced-2-18",
+   "even": true,
+   "equalGaps": true,
+   "accents": 0
+  },
+  {
+   "level": 2,
+   "seed": "forced-2-19",
+   "even": true,
+   "equalGaps": true,
+   "accents": 0
+  },
+  {
+   "level": 2,
+   "seed": "forced-2-20",
+   "even": true,
+   "equalGaps": true,
+   "accents": 0
+  },
+  {
+   "level": 2,
+   "seed": "forced-2-21",
+   "even": true,
+   "equalGaps": true,
+   "accents": 0
+  },
+  {
+   "level": 2,
+   "seed": "forced-2-22",
+   "even": true,
+   "equalGaps": true,
+   "accents": 0
+  },
+  {
+   "level": 2,
+   "seed": "forced-2-23",
+   "even": true,
+   "equalGaps": true,
+   "accents": 0
+  },
+  {
+   "level": 2,
+   "seed": "forced-2-24",
+   "even": true,
+   "equalGaps": true,
+   "accents": 0
+  },
+  {
+   "level": 2,
+   "seed": "forced-2-25",
+   "even": true,
+   "equalGaps": true,
+   "accents": 0
+  },
+  {
+   "level": 2,
+   "seed": "forced-2-26",
+   "even": true,
+   "equalGaps": true,
+   "accents": 0
+  },
+  {
+   "level": 2,
+   "seed": "forced-2-27",
+   "even": true,
+   "equalGaps": true,
+   "accents": 0
+  },
+  {
+   "level": 2,
+   "seed": "forced-2-28",
+   "even": true,
+   "equalGaps": true,
+   "accents": 0
+  },
+  {
+   "level": 2,
+   "seed": "forced-2-29",
+   "even": true,
+   "equalGaps": true,
+   "accents": 0
+  },
+  {
+   "level": 2,
+   "seed": "forced-2-30",
+   "even": true,
+   "equalGaps": true,
+   "accents": 0
+  },
+  {
+   "level": 2,
+   "seed": "forced-2-31",
+   "even": true,
+   "equalGaps": true,
+   "accents": 0
+  },
+  {
+   "level": 2,
+   "seed": "forced-2-32",
+   "even": true,
+   "equalGaps": true,
+   "accents": 0
+  },
+  {
+   "level": 2,
+   "seed": "forced-2-33",
+   "even": true,
+   "equalGaps": true,
+   "accents": 0
+  },
+  {
+   "level": 2,
+   "seed": "forced-2-34",
+   "even": true,
+   "equalGaps": true,
+   "accents": 0
+  },
+  {
+   "level": 2,
+   "seed": "forced-2-35",
+   "even": true,
+   "equalGaps": true,
+   "accents": 0
+  },
+  {
+   "level": 2,
+   "seed": "forced-2-36",
+   "even": true,
+   "equalGaps": true,
+   "accents": 0
+  },
+  {
+   "level": 2,
+   "seed": "forced-2-37",
+   "even": true,
+   "equalGaps": true,
+   "accents": 0
+  },
+  {
+   "level": 2,
+   "seed": "forced-2-38",
+   "even": true,
+   "equalGaps": true,
+   "accents": 0
+  },
+  {
+   "level": 2,
+   "seed": "forced-2-39",
+   "even": true,
+   "equalGaps": true,
+   "accents": 0
+  },
+  {
+   "level": 2,
+   "seed": "forced-2-40",
+   "even": true,
+   "equalGaps": true,
+   "accents": 0
+  },
+  {
+   "level": 3,
+   "seed": "forced-3-1",
+   "even": true,
+   "equalGaps": true,
+   "accents": 0
+  },
+  {
+   "level": 3,
+   "seed": "forced-3-2",
+   "even": true,
+   "equalGaps": true,
+   "accents": 0
+  },
+  {
+   "level": 3,
+   "seed": "forced-3-3",
+   "even": true,
+   "equalGaps": true,
+   "accents": 0
+  },
+  {
+   "level": 3,
+   "seed": "forced-3-4",
+   "even": true,
+   "equalGaps": true,
+   "accents": 0
+  },
+  {
+   "level": 3,
+   "seed": "forced-3-5",
+   "even": true,
+   "equalGaps": true,
+   "accents": 0
+  },
+  {
+   "level": 3,
+   "seed": "forced-3-6",
+   "even": true,
+   "equalGaps": true,
+   "accents": 0
+  },
+  {
+   "level": 3,
+   "seed": "forced-3-7",
+   "even": true,
+   "equalGaps": true,
+   "accents": 0
+  },
+  {
+   "level": 3,
+   "seed": "forced-3-8",
+   "even": true,
+   "equalGaps": true,
+   "accents": 0
+  },
+  {
+   "level": 3,
+   "seed": "forced-3-9",
+   "even": true,
+   "equalGaps": true,
+   "accents": 0
+  },
+  {
+   "level": 3,
+   "seed": "forced-3-10",
+   "even": true,
+   "equalGaps": true,
+   "accents": 0
+  },
+  {
+   "level": 3,
+   "seed": "forced-3-11",
+   "even": true,
+   "equalGaps": true,
+   "accents": 0
+  },
+  {
+   "level": 3,
+   "seed": "forced-3-12",
+   "even": true,
+   "equalGaps": true,
+   "accents": 0
+  },
+  {
+   "level": 3,
+   "seed": "forced-3-13",
+   "even": true,
+   "equalGaps": true,
+   "accents": 0
+  },
+  {
+   "level": 3,
+   "seed": "forced-3-14",
+   "even": true,
+   "equalGaps": true,
+   "accents": 0
+  },
+  {
+   "level": 3,
+   "seed": "forced-3-15",
+   "even": true,
+   "equalGaps": true,
+   "accents": 0
+  },
+  {
+   "level": 3,
+   "seed": "forced-3-16",
+   "even": true,
+   "equalGaps": true,
+   "accents": 0
+  },
+  {
+   "level": 3,
+   "seed": "forced-3-17",
+   "even": true,
+   "equalGaps": true,
+   "accents": 0
+  },
+  {
+   "level": 3,
+   "seed": "forced-3-18",
+   "even": true,
+   "equalGaps": true,
+   "accents": 0
+  },
+  {
+   "level": 3,
+   "seed": "forced-3-19",
+   "even": true,
+   "equalGaps": true,
+   "accents": 0
+  },
+  {
+   "level": 3,
+   "seed": "forced-3-20",
+   "even": true,
+   "equalGaps": true,
+   "accents": 0
+  },
+  {
+   "level": 3,
+   "seed": "forced-3-21",
+   "even": true,
+   "equalGaps": true,
+   "accents": 0
+  },
+  {
+   "level": 3,
+   "seed": "forced-3-22",
+   "even": true,
+   "equalGaps": true,
+   "accents": 0
+  },
+  {
+   "level": 3,
+   "seed": "forced-3-23",
+   "even": true,
+   "equalGaps": true,
+   "accents": 0
+  },
+  {
+   "level": 3,
+   "seed": "forced-3-24",
+   "even": true,
+   "equalGaps": true,
+   "accents": 0
+  },
+  {
+   "level": 3,
+   "seed": "forced-3-25",
+   "even": true,
+   "equalGaps": true,
+   "accents": 0
+  },
+  {
+   "level": 3,
+   "seed": "forced-3-26",
+   "even": true,
+   "equalGaps": true,
+   "accents": 0
+  },
+  {
+   "level": 3,
+   "seed": "forced-3-27",
+   "even": true,
+   "equalGaps": true,
+   "accents": 0
+  },
+  {
+   "level": 3,
+   "seed": "forced-3-28",
+   "even": true,
+   "equalGaps": true,
+   "accents": 0
+  },
+  {
+   "level": 3,
+   "seed": "forced-3-29",
+   "even": true,
+   "equalGaps": true,
+   "accents": 0
+  },
+  {
+   "level": 3,
+   "seed": "forced-3-30",
+   "even": true,
+   "equalGaps": true,
+   "accents": 0
+  },
+  {
+   "level": 3,
+   "seed": "forced-3-31",
+   "even": true,
+   "equalGaps": true,
+   "accents": 0
+  },
+  {
+   "level": 3,
+   "seed": "forced-3-32",
+   "even": true,
+   "equalGaps": true,
+   "accents": 0
+  },
+  {
+   "level": 3,
+   "seed": "forced-3-33",
+   "even": true,
+   "equalGaps": true,
+   "accents": 0
+  },
+  {
+   "level": 3,
+   "seed": "forced-3-34",
+   "even": true,
+   "equalGaps": true,
+   "accents": 0
+  },
+  {
+   "level": 3,
+   "seed": "forced-3-35",
+   "even": true,
+   "equalGaps": true,
+   "accents": 0
+  },
+  {
+   "level": 3,
+   "seed": "forced-3-36",
+   "even": true,
+   "equalGaps": true,
+   "accents": 0
+  },
+  {
+   "level": 3,
+   "seed": "forced-3-37",
+   "even": true,
+   "equalGaps": true,
+   "accents": 0
+  },
+  {
+   "level": 3,
+   "seed": "forced-3-38",
+   "even": true,
+   "equalGaps": true,
+   "accents": 0
+  },
+  {
+   "level": 3,
+   "seed": "forced-3-39",
+   "even": true,
+   "equalGaps": true,
+   "accents": 0
+  },
+  {
+   "level": 3,
+   "seed": "forced-3-40",
+   "even": true,
+   "equalGaps": true,
+   "accents": 0
+  },
+  {
+   "level": 4,
+   "seed": "forced-4-1",
+   "even": false,
+   "equalGaps": false,
+   "accents": 0
+  },
+  {
+   "level": 4,
+   "seed": "forced-4-2",
+   "even": false,
+   "equalGaps": false,
+   "accents": 0
+  },
+  {
+   "level": 4,
+   "seed": "forced-4-3",
+   "even": false,
+   "equalGaps": false,
+   "accents": 0
+  },
+  {
+   "level": 4,
+   "seed": "forced-4-4",
+   "even": false,
+   "equalGaps": false,
+   "accents": 0
+  },
+  {
+   "level": 4,
+   "seed": "forced-4-5",
+   "even": false,
+   "equalGaps": false,
+   "accents": 0
+  },
+  {
+   "level": 4,
+   "seed": "forced-4-6",
+   "even": false,
+   "equalGaps": false,
+   "accents": 0
+  },
+  {
+   "level": 4,
+   "seed": "forced-4-7",
+   "even": false,
+   "equalGaps": false,
+   "accents": 0
+  },
+  {
+   "level": 4,
+   "seed": "forced-4-8",
+   "even": false,
+   "equalGaps": false,
+   "accents": 0
+  },
+  {
+   "level": 4,
+   "seed": "forced-4-9",
+   "even": false,
+   "equalGaps": false,
+   "accents": 0
+  },
+  {
+   "level": 4,
+   "seed": "forced-4-10",
+   "even": false,
+   "equalGaps": false,
+   "accents": 0
+  },
+  {
+   "level": 4,
+   "seed": "forced-4-11",
+   "even": false,
+   "equalGaps": false,
+   "accents": 0
+  },
+  {
+   "level": 4,
+   "seed": "forced-4-12",
+   "even": false,
+   "equalGaps": false,
+   "accents": 0
+  },
+  {
+   "level": 4,
+   "seed": "forced-4-13",
+   "even": false,
+   "equalGaps": false,
+   "accents": 0
+  },
+  {
+   "level": 4,
+   "seed": "forced-4-14",
+   "even": false,
+   "equalGaps": false,
+   "accents": 0
+  },
+  {
+   "level": 4,
+   "seed": "forced-4-15",
+   "even": false,
+   "equalGaps": false,
+   "accents": 0
+  },
+  {
+   "level": 4,
+   "seed": "forced-4-16",
+   "even": false,
+   "equalGaps": false,
+   "accents": 0
+  },
+  {
+   "level": 4,
+   "seed": "forced-4-17",
+   "even": false,
+   "equalGaps": false,
+   "accents": 0
+  },
+  {
+   "level": 4,
+   "seed": "forced-4-18",
+   "even": false,
+   "equalGaps": false,
+   "accents": 0
+  },
+  {
+   "level": 4,
+   "seed": "forced-4-19",
+   "even": false,
+   "equalGaps": false,
+   "accents": 0
+  },
+  {
+   "level": 4,
+   "seed": "forced-4-20",
+   "even": false,
+   "equalGaps": false,
+   "accents": 0
+  },
+  {
+   "level": 4,
+   "seed": "forced-4-21",
+   "even": false,
+   "equalGaps": false,
+   "accents": 0
+  },
+  {
+   "level": 4,
+   "seed": "forced-4-22",
+   "even": false,
+   "equalGaps": false,
+   "accents": 0
+  },
+  {
+   "level": 4,
+   "seed": "forced-4-23",
+   "even": false,
+   "equalGaps": false,
+   "accents": 0
+  },
+  {
+   "level": 4,
+   "seed": "forced-4-24",
+   "even": false,
+   "equalGaps": false,
+   "accents": 0
+  },
+  {
+   "level": 4,
+   "seed": "forced-4-25",
+   "even": false,
+   "equalGaps": false,
+   "accents": 0
+  },
+  {
+   "level": 4,
+   "seed": "forced-4-26",
+   "even": false,
+   "equalGaps": false,
+   "accents": 0
+  },
+  {
+   "level": 4,
+   "seed": "forced-4-27",
+   "even": false,
+   "equalGaps": false,
+   "accents": 0
+  },
+  {
+   "level": 4,
+   "seed": "forced-4-28",
+   "even": false,
+   "equalGaps": false,
+   "accents": 0
+  },
+  {
+   "level": 4,
+   "seed": "forced-4-29",
+   "even": false,
+   "equalGaps": false,
+   "accents": 0
+  },
+  {
+   "level": 4,
+   "seed": "forced-4-30",
+   "even": false,
+   "equalGaps": false,
+   "accents": 0
+  },
+  {
+   "level": 4,
+   "seed": "forced-4-31",
+   "even": false,
+   "equalGaps": false,
+   "accents": 0
+  },
+  {
+   "level": 4,
+   "seed": "forced-4-32",
+   "even": false,
+   "equalGaps": false,
+   "accents": 0
+  },
+  {
+   "level": 4,
+   "seed": "forced-4-33",
+   "even": false,
+   "equalGaps": false,
+   "accents": 0
+  },
+  {
+   "level": 4,
+   "seed": "forced-4-34",
+   "even": false,
+   "equalGaps": false,
+   "accents": 0
+  },
+  {
+   "level": 4,
+   "seed": "forced-4-35",
+   "even": false,
+   "equalGaps": false,
+   "accents": 0
+  },
+  {
+   "level": 4,
+   "seed": "forced-4-36",
+   "even": false,
+   "equalGaps": false,
+   "accents": 0
+  },
+  {
+   "level": 4,
+   "seed": "forced-4-37",
+   "even": false,
+   "equalGaps": false,
+   "accents": 0
+  },
+  {
+   "level": 4,
+   "seed": "forced-4-38",
+   "even": false,
+   "equalGaps": false,
+   "accents": 0
+  },
+  {
+   "level": 4,
+   "seed": "forced-4-39",
+   "even": false,
+   "equalGaps": false,
+   "accents": 0
+  },
+  {
+   "level": 4,
+   "seed": "forced-4-40",
+   "even": false,
+   "equalGaps": false,
+   "accents": 0
+  },
+  {
+   "level": 5,
+   "seed": "forced-5-1",
+   "even": false,
+   "equalGaps": false,
+   "accents": 1
+  },
+  {
+   "level": 5,
+   "seed": "forced-5-2",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 5,
+   "seed": "forced-5-3",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 5,
+   "seed": "forced-5-4",
+   "even": false,
+   "equalGaps": false,
+   "accents": 1
+  },
+  {
+   "level": 5,
+   "seed": "forced-5-5",
+   "even": false,
+   "equalGaps": false,
+   "accents": 1
+  },
+  {
+   "level": 5,
+   "seed": "forced-5-6",
+   "even": false,
+   "equalGaps": false,
+   "accents": 1
+  },
+  {
+   "level": 5,
+   "seed": "forced-5-7",
+   "even": false,
+   "equalGaps": false,
+   "accents": 1
+  },
+  {
+   "level": 5,
+   "seed": "forced-5-8",
+   "even": false,
+   "equalGaps": false,
+   "accents": 3
+  },
+  {
+   "level": 5,
+   "seed": "forced-5-9",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 5,
+   "seed": "forced-5-10",
+   "even": false,
+   "equalGaps": false,
+   "accents": 1
+  },
+  {
+   "level": 5,
+   "seed": "forced-5-11",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 5,
+   "seed": "forced-5-12",
+   "even": false,
+   "equalGaps": false,
+   "accents": 1
+  },
+  {
+   "level": 5,
+   "seed": "forced-5-13",
+   "even": false,
+   "equalGaps": false,
+   "accents": 1
+  },
+  {
+   "level": 5,
+   "seed": "forced-5-14",
+   "even": false,
+   "equalGaps": false,
+   "accents": 1
+  },
+  {
+   "level": 5,
+   "seed": "forced-5-15",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 5,
+   "seed": "forced-5-16",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 5,
+   "seed": "forced-5-17",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 5,
+   "seed": "forced-5-18",
+   "even": false,
+   "equalGaps": false,
+   "accents": 3
+  },
+  {
+   "level": 5,
+   "seed": "forced-5-19",
+   "even": false,
+   "equalGaps": false,
+   "accents": 1
+  },
+  {
+   "level": 5,
+   "seed": "forced-5-20",
+   "even": false,
+   "equalGaps": false,
+   "accents": 1
+  },
+  {
+   "level": 5,
+   "seed": "forced-5-21",
+   "even": false,
+   "equalGaps": false,
+   "accents": 1
+  },
+  {
+   "level": 5,
+   "seed": "forced-5-22",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 5,
+   "seed": "forced-5-23",
+   "even": false,
+   "equalGaps": false,
+   "accents": 1
+  },
+  {
+   "level": 5,
+   "seed": "forced-5-24",
+   "even": false,
+   "equalGaps": false,
+   "accents": 3
+  },
+  {
+   "level": 5,
+   "seed": "forced-5-25",
+   "even": false,
+   "equalGaps": false,
+   "accents": 3
+  },
+  {
+   "level": 5,
+   "seed": "forced-5-26",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 5,
+   "seed": "forced-5-27",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 5,
+   "seed": "forced-5-28",
+   "even": false,
+   "equalGaps": false,
+   "accents": 4
+  },
+  {
+   "level": 5,
+   "seed": "forced-5-29",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 5,
+   "seed": "forced-5-30",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 5,
+   "seed": "forced-5-31",
+   "even": false,
+   "equalGaps": false,
+   "accents": 4
+  },
+  {
+   "level": 5,
+   "seed": "forced-5-32",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 5,
+   "seed": "forced-5-33",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 5,
+   "seed": "forced-5-34",
+   "even": false,
+   "equalGaps": false,
+   "accents": 1
+  },
+  {
+   "level": 5,
+   "seed": "forced-5-35",
+   "even": false,
+   "equalGaps": false,
+   "accents": 1
+  },
+  {
+   "level": 5,
+   "seed": "forced-5-36",
+   "even": false,
+   "equalGaps": false,
+   "accents": 1
+  },
+  {
+   "level": 5,
+   "seed": "forced-5-37",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 5,
+   "seed": "forced-5-38",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 5,
+   "seed": "forced-5-39",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 5,
+   "seed": "forced-5-40",
+   "even": false,
+   "equalGaps": false,
+   "accents": 1
+  },
+  {
+   "level": 6,
+   "seed": "forced-6-1",
+   "even": false,
+   "equalGaps": false,
+   "accents": 1
+  },
+  {
+   "level": 6,
+   "seed": "forced-6-2",
+   "even": false,
+   "equalGaps": false,
+   "accents": 1
+  },
+  {
+   "level": 6,
+   "seed": "forced-6-3",
+   "even": false,
+   "equalGaps": false,
+   "accents": 1
+  },
+  {
+   "level": 6,
+   "seed": "forced-6-4",
+   "even": false,
+   "equalGaps": false,
+   "accents": 4
+  },
+  {
+   "level": 6,
+   "seed": "forced-6-5",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 6,
+   "seed": "forced-6-6",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 6,
+   "seed": "forced-6-7",
+   "even": false,
+   "equalGaps": false,
+   "accents": 1
+  },
+  {
+   "level": 6,
+   "seed": "forced-6-8",
+   "even": false,
+   "equalGaps": false,
+   "accents": 1
+  },
+  {
+   "level": 6,
+   "seed": "forced-6-9",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 6,
+   "seed": "forced-6-10",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 6,
+   "seed": "forced-6-11",
+   "even": false,
+   "equalGaps": false,
+   "accents": 3
+  },
+  {
+   "level": 6,
+   "seed": "forced-6-12",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 6,
+   "seed": "forced-6-13",
+   "even": false,
+   "equalGaps": false,
+   "accents": 1
+  },
+  {
+   "level": 6,
+   "seed": "forced-6-14",
+   "even": false,
+   "equalGaps": false,
+   "accents": 1
+  },
+  {
+   "level": 6,
+   "seed": "forced-6-15",
+   "even": false,
+   "equalGaps": false,
+   "accents": 1
+  },
+  {
+   "level": 6,
+   "seed": "forced-6-16",
+   "even": false,
+   "equalGaps": false,
+   "accents": 4
+  },
+  {
+   "level": 6,
+   "seed": "forced-6-17",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 6,
+   "seed": "forced-6-18",
+   "even": false,
+   "equalGaps": false,
+   "accents": 1
+  },
+  {
+   "level": 6,
+   "seed": "forced-6-19",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 6,
+   "seed": "forced-6-20",
+   "even": false,
+   "equalGaps": false,
+   "accents": 3
+  },
+  {
+   "level": 6,
+   "seed": "forced-6-21",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 6,
+   "seed": "forced-6-22",
+   "even": false,
+   "equalGaps": false,
+   "accents": 1
+  },
+  {
+   "level": 6,
+   "seed": "forced-6-23",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 6,
+   "seed": "forced-6-24",
+   "even": false,
+   "equalGaps": false,
+   "accents": 1
+  },
+  {
+   "level": 6,
+   "seed": "forced-6-25",
+   "even": false,
+   "equalGaps": false,
+   "accents": 1
+  },
+  {
+   "level": 6,
+   "seed": "forced-6-26",
+   "even": false,
+   "equalGaps": false,
+   "accents": 3
+  },
+  {
+   "level": 6,
+   "seed": "forced-6-27",
+   "even": false,
+   "equalGaps": false,
+   "accents": 1
+  },
+  {
+   "level": 6,
+   "seed": "forced-6-28",
+   "even": false,
+   "equalGaps": false,
+   "accents": 3
+  },
+  {
+   "level": 6,
+   "seed": "forced-6-29",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 6,
+   "seed": "forced-6-30",
+   "even": false,
+   "equalGaps": false,
+   "accents": 1
+  },
+  {
+   "level": 6,
+   "seed": "forced-6-31",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 6,
+   "seed": "forced-6-32",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 6,
+   "seed": "forced-6-33",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 6,
+   "seed": "forced-6-34",
+   "even": false,
+   "equalGaps": false,
+   "accents": 1
+  },
+  {
+   "level": 6,
+   "seed": "forced-6-35",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 6,
+   "seed": "forced-6-36",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 6,
+   "seed": "forced-6-37",
+   "even": false,
+   "equalGaps": false,
+   "accents": 3
+  },
+  {
+   "level": 6,
+   "seed": "forced-6-38",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 6,
+   "seed": "forced-6-39",
+   "even": false,
+   "equalGaps": false,
+   "accents": 4
+  },
+  {
+   "level": 6,
+   "seed": "forced-6-40",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 7,
+   "seed": "forced-7-1",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 7,
+   "seed": "forced-7-2",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 7,
+   "seed": "forced-7-3",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 7,
+   "seed": "forced-7-4",
+   "even": false,
+   "equalGaps": false,
+   "accents": 3
+  },
+  {
+   "level": 7,
+   "seed": "forced-7-5",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 7,
+   "seed": "forced-7-6",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 7,
+   "seed": "forced-7-7",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 7,
+   "seed": "forced-7-8",
+   "even": false,
+   "equalGaps": false,
+   "accents": 1
+  },
+  {
+   "level": 7,
+   "seed": "forced-7-9",
+   "even": false,
+   "equalGaps": false,
+   "accents": 1
+  },
+  {
+   "level": 7,
+   "seed": "forced-7-10",
+   "even": false,
+   "equalGaps": false,
+   "accents": 1
+  },
+  {
+   "level": 7,
+   "seed": "forced-7-11",
+   "even": false,
+   "equalGaps": false,
+   "accents": 4
+  },
+  {
+   "level": 7,
+   "seed": "forced-7-12",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 7,
+   "seed": "forced-7-13",
+   "even": false,
+   "equalGaps": false,
+   "accents": 1
+  },
+  {
+   "level": 7,
+   "seed": "forced-7-14",
+   "even": false,
+   "equalGaps": false,
+   "accents": 1
+  },
+  {
+   "level": 7,
+   "seed": "forced-7-15",
+   "even": false,
+   "equalGaps": false,
+   "accents": 4
+  },
+  {
+   "level": 7,
+   "seed": "forced-7-16",
+   "even": false,
+   "equalGaps": false,
+   "accents": 1
+  },
+  {
+   "level": 7,
+   "seed": "forced-7-17",
+   "even": false,
+   "equalGaps": false,
+   "accents": 1
+  },
+  {
+   "level": 7,
+   "seed": "forced-7-18",
+   "even": false,
+   "equalGaps": false,
+   "accents": 4
+  },
+  {
+   "level": 7,
+   "seed": "forced-7-19",
+   "even": false,
+   "equalGaps": false,
+   "accents": 3
+  },
+  {
+   "level": 7,
+   "seed": "forced-7-20",
+   "even": false,
+   "equalGaps": false,
+   "accents": 1
+  },
+  {
+   "level": 7,
+   "seed": "forced-7-21",
+   "even": false,
+   "equalGaps": false,
+   "accents": 3
+  },
+  {
+   "level": 7,
+   "seed": "forced-7-22",
+   "even": false,
+   "equalGaps": false,
+   "accents": 3
+  },
+  {
+   "level": 7,
+   "seed": "forced-7-23",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 7,
+   "seed": "forced-7-24",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 7,
+   "seed": "forced-7-25",
+   "even": false,
+   "equalGaps": false,
+   "accents": 1
+  },
+  {
+   "level": 7,
+   "seed": "forced-7-26",
+   "even": false,
+   "equalGaps": false,
+   "accents": 1
+  },
+  {
+   "level": 7,
+   "seed": "forced-7-27",
+   "even": false,
+   "equalGaps": false,
+   "accents": 3
+  },
+  {
+   "level": 7,
+   "seed": "forced-7-28",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 7,
+   "seed": "forced-7-29",
+   "even": false,
+   "equalGaps": false,
+   "accents": 3
+  },
+  {
+   "level": 7,
+   "seed": "forced-7-30",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 7,
+   "seed": "forced-7-31",
+   "even": false,
+   "equalGaps": false,
+   "accents": 1
+  },
+  {
+   "level": 7,
+   "seed": "forced-7-32",
+   "even": false,
+   "equalGaps": false,
+   "accents": 1
+  },
+  {
+   "level": 7,
+   "seed": "forced-7-33",
+   "even": false,
+   "equalGaps": false,
+   "accents": 3
+  },
+  {
+   "level": 7,
+   "seed": "forced-7-34",
+   "even": false,
+   "equalGaps": false,
+   "accents": 1
+  },
+  {
+   "level": 7,
+   "seed": "forced-7-35",
+   "even": false,
+   "equalGaps": false,
+   "accents": 3
+  },
+  {
+   "level": 7,
+   "seed": "forced-7-36",
+   "even": false,
+   "equalGaps": false,
+   "accents": 1
+  },
+  {
+   "level": 7,
+   "seed": "forced-7-37",
+   "even": false,
+   "equalGaps": false,
+   "accents": 3
+  },
+  {
+   "level": 7,
+   "seed": "forced-7-38",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 7,
+   "seed": "forced-7-39",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 7,
+   "seed": "forced-7-40",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 8,
+   "seed": "forced-8-1",
+   "even": false,
+   "equalGaps": false,
+   "accents": 4
+  },
+  {
+   "level": 8,
+   "seed": "forced-8-2",
+   "even": false,
+   "equalGaps": false,
+   "accents": 1
+  },
+  {
+   "level": 8,
+   "seed": "forced-8-3",
+   "even": false,
+   "equalGaps": false,
+   "accents": 3
+  },
+  {
+   "level": 8,
+   "seed": "forced-8-4",
+   "even": false,
+   "equalGaps": false,
+   "accents": 1
+  },
+  {
+   "level": 8,
+   "seed": "forced-8-5",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 8,
+   "seed": "forced-8-6",
+   "even": false,
+   "equalGaps": false,
+   "accents": 1
+  },
+  {
+   "level": 8,
+   "seed": "forced-8-7",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 8,
+   "seed": "forced-8-8",
+   "even": false,
+   "equalGaps": false,
+   "accents": 1
+  },
+  {
+   "level": 8,
+   "seed": "forced-8-9",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 8,
+   "seed": "forced-8-10",
+   "even": false,
+   "equalGaps": false,
+   "accents": 3
+  },
+  {
+   "level": 8,
+   "seed": "forced-8-11",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 8,
+   "seed": "forced-8-12",
+   "even": false,
+   "equalGaps": false,
+   "accents": 4
+  },
+  {
+   "level": 8,
+   "seed": "forced-8-13",
+   "even": false,
+   "equalGaps": false,
+   "accents": 1
+  },
+  {
+   "level": 8,
+   "seed": "forced-8-14",
+   "even": false,
+   "equalGaps": false,
+   "accents": 3
+  },
+  {
+   "level": 8,
+   "seed": "forced-8-15",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 8,
+   "seed": "forced-8-16",
+   "even": false,
+   "equalGaps": false,
+   "accents": 3
+  },
+  {
+   "level": 8,
+   "seed": "forced-8-17",
+   "even": false,
+   "equalGaps": false,
+   "accents": 1
+  },
+  {
+   "level": 8,
+   "seed": "forced-8-18",
+   "even": false,
+   "equalGaps": false,
+   "accents": 4
+  },
+  {
+   "level": 8,
+   "seed": "forced-8-19",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 8,
+   "seed": "forced-8-20",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 8,
+   "seed": "forced-8-21",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 8,
+   "seed": "forced-8-22",
+   "even": false,
+   "equalGaps": false,
+   "accents": 3
+  },
+  {
+   "level": 8,
+   "seed": "forced-8-23",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 8,
+   "seed": "forced-8-24",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 8,
+   "seed": "forced-8-25",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 8,
+   "seed": "forced-8-26",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 8,
+   "seed": "forced-8-27",
+   "even": false,
+   "equalGaps": false,
+   "accents": 1
+  },
+  {
+   "level": 8,
+   "seed": "forced-8-28",
+   "even": false,
+   "equalGaps": false,
+   "accents": 1
+  },
+  {
+   "level": 8,
+   "seed": "forced-8-29",
+   "even": false,
+   "equalGaps": false,
+   "accents": 1
+  },
+  {
+   "level": 8,
+   "seed": "forced-8-30",
+   "even": false,
+   "equalGaps": false,
+   "accents": 1
+  },
+  {
+   "level": 8,
+   "seed": "forced-8-31",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 8,
+   "seed": "forced-8-32",
+   "even": false,
+   "equalGaps": false,
+   "accents": 1
+  },
+  {
+   "level": 8,
+   "seed": "forced-8-33",
+   "even": false,
+   "equalGaps": false,
+   "accents": 1
+  },
+  {
+   "level": 8,
+   "seed": "forced-8-34",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 8,
+   "seed": "forced-8-35",
+   "even": false,
+   "equalGaps": false,
+   "accents": 1
+  },
+  {
+   "level": 8,
+   "seed": "forced-8-36",
+   "even": false,
+   "equalGaps": false,
+   "accents": 3
+  },
+  {
+   "level": 8,
+   "seed": "forced-8-37",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 8,
+   "seed": "forced-8-38",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 8,
+   "seed": "forced-8-39",
+   "even": false,
+   "equalGaps": false,
+   "accents": 1
+  },
+  {
+   "level": 8,
+   "seed": "forced-8-40",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 9,
+   "seed": "forced-9-1",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 9,
+   "seed": "forced-9-2",
+   "even": false,
+   "equalGaps": false,
+   "accents": 3
+  },
+  {
+   "level": 9,
+   "seed": "forced-9-3",
+   "even": false,
+   "equalGaps": false,
+   "accents": 4
+  },
+  {
+   "level": 9,
+   "seed": "forced-9-4",
+   "even": false,
+   "equalGaps": false,
+   "accents": 3
+  },
+  {
+   "level": 9,
+   "seed": "forced-9-5",
+   "even": false,
+   "equalGaps": false,
+   "accents": 1
+  },
+  {
+   "level": 9,
+   "seed": "forced-9-6",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 9,
+   "seed": "forced-9-7",
+   "even": false,
+   "equalGaps": false,
+   "accents": 1
+  },
+  {
+   "level": 9,
+   "seed": "forced-9-8",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 9,
+   "seed": "forced-9-9",
+   "even": false,
+   "equalGaps": false,
+   "accents": 1
+  },
+  {
+   "level": 9,
+   "seed": "forced-9-10",
+   "even": false,
+   "equalGaps": false,
+   "accents": 3
+  },
+  {
+   "level": 9,
+   "seed": "forced-9-11",
+   "even": false,
+   "equalGaps": false,
+   "accents": 1
+  },
+  {
+   "level": 9,
+   "seed": "forced-9-12",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 9,
+   "seed": "forced-9-13",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 9,
+   "seed": "forced-9-14",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 9,
+   "seed": "forced-9-15",
+   "even": false,
+   "equalGaps": false,
+   "accents": 4
+  },
+  {
+   "level": 9,
+   "seed": "forced-9-16",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 9,
+   "seed": "forced-9-17",
+   "even": false,
+   "equalGaps": false,
+   "accents": 3
+  },
+  {
+   "level": 9,
+   "seed": "forced-9-18",
+   "even": false,
+   "equalGaps": false,
+   "accents": 3
+  },
+  {
+   "level": 9,
+   "seed": "forced-9-19",
+   "even": false,
+   "equalGaps": false,
+   "accents": 1
+  },
+  {
+   "level": 9,
+   "seed": "forced-9-20",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 9,
+   "seed": "forced-9-21",
+   "even": false,
+   "equalGaps": false,
+   "accents": 3
+  },
+  {
+   "level": 9,
+   "seed": "forced-9-22",
+   "even": false,
+   "equalGaps": false,
+   "accents": 4
+  },
+  {
+   "level": 9,
+   "seed": "forced-9-23",
+   "even": false,
+   "equalGaps": false,
+   "accents": 3
+  },
+  {
+   "level": 9,
+   "seed": "forced-9-24",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 9,
+   "seed": "forced-9-25",
+   "even": false,
+   "equalGaps": false,
+   "accents": 3
+  },
+  {
+   "level": 9,
+   "seed": "forced-9-26",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 9,
+   "seed": "forced-9-27",
+   "even": false,
+   "equalGaps": false,
+   "accents": 3
+  },
+  {
+   "level": 9,
+   "seed": "forced-9-28",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 9,
+   "seed": "forced-9-29",
+   "even": false,
+   "equalGaps": false,
+   "accents": 3
+  },
+  {
+   "level": 9,
+   "seed": "forced-9-30",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 9,
+   "seed": "forced-9-31",
+   "even": false,
+   "equalGaps": false,
+   "accents": 3
+  },
+  {
+   "level": 9,
+   "seed": "forced-9-32",
+   "even": false,
+   "equalGaps": false,
+   "accents": 1
+  },
+  {
+   "level": 9,
+   "seed": "forced-9-33",
+   "even": false,
+   "equalGaps": false,
+   "accents": 1
+  },
+  {
+   "level": 9,
+   "seed": "forced-9-34",
+   "even": false,
+   "equalGaps": false,
+   "accents": 4
+  },
+  {
+   "level": 9,
+   "seed": "forced-9-35",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 9,
+   "seed": "forced-9-36",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 9,
+   "seed": "forced-9-37",
+   "even": false,
+   "equalGaps": false,
+   "accents": 1
+  },
+  {
+   "level": 9,
+   "seed": "forced-9-38",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 9,
+   "seed": "forced-9-39",
+   "even": false,
+   "equalGaps": false,
+   "accents": 1
+  },
+  {
+   "level": 9,
+   "seed": "forced-9-40",
+   "even": false,
+   "equalGaps": false,
+   "accents": 3
+  },
+  {
+   "level": 10,
+   "seed": "forced-10-1",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 10,
+   "seed": "forced-10-2",
+   "even": false,
+   "equalGaps": false,
+   "accents": 3
+  },
+  {
+   "level": 10,
+   "seed": "forced-10-3",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 10,
+   "seed": "forced-10-4",
+   "even": false,
+   "equalGaps": false,
+   "accents": 3
+  },
+  {
+   "level": 10,
+   "seed": "forced-10-5",
+   "even": false,
+   "equalGaps": false,
+   "accents": 1
+  },
+  {
+   "level": 10,
+   "seed": "forced-10-6",
+   "even": false,
+   "equalGaps": false,
+   "accents": 3
+  },
+  {
+   "level": 10,
+   "seed": "forced-10-7",
+   "even": false,
+   "equalGaps": false,
+   "accents": 3
+  },
+  {
+   "level": 10,
+   "seed": "forced-10-8",
+   "even": false,
+   "equalGaps": false,
+   "accents": 5
+  },
+  {
+   "level": 10,
+   "seed": "forced-10-9",
+   "even": false,
+   "equalGaps": false,
+   "accents": 5
+  },
+  {
+   "level": 10,
+   "seed": "forced-10-10",
+   "even": false,
+   "equalGaps": false,
+   "accents": 3
+  },
+  {
+   "level": 10,
+   "seed": "forced-10-11",
+   "even": false,
+   "equalGaps": false,
+   "accents": 1
+  },
+  {
+   "level": 10,
+   "seed": "forced-10-12",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 10,
+   "seed": "forced-10-13",
+   "even": false,
+   "equalGaps": false,
+   "accents": 1
+  },
+  {
+   "level": 10,
+   "seed": "forced-10-14",
+   "even": false,
+   "equalGaps": false,
+   "accents": 1
+  },
+  {
+   "level": 10,
+   "seed": "forced-10-15",
+   "even": false,
+   "equalGaps": false,
+   "accents": 1
+  },
+  {
+   "level": 10,
+   "seed": "forced-10-16",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 10,
+   "seed": "forced-10-17",
+   "even": false,
+   "equalGaps": false,
+   "accents": 1
+  },
+  {
+   "level": 10,
+   "seed": "forced-10-18",
+   "even": false,
+   "equalGaps": false,
+   "accents": 3
+  },
+  {
+   "level": 10,
+   "seed": "forced-10-19",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 10,
+   "seed": "forced-10-20",
+   "even": false,
+   "equalGaps": false,
+   "accents": 1
+  },
+  {
+   "level": 10,
+   "seed": "forced-10-21",
+   "even": false,
+   "equalGaps": false,
+   "accents": 1
+  },
+  {
+   "level": 10,
+   "seed": "forced-10-22",
+   "even": false,
+   "equalGaps": false,
+   "accents": 3
+  },
+  {
+   "level": 10,
+   "seed": "forced-10-23",
+   "even": false,
+   "equalGaps": false,
+   "accents": 1
+  },
+  {
+   "level": 10,
+   "seed": "forced-10-24",
+   "even": false,
+   "equalGaps": false,
+   "accents": 4
+  },
+  {
+   "level": 10,
+   "seed": "forced-10-25",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 10,
+   "seed": "forced-10-26",
+   "even": false,
+   "equalGaps": false,
+   "accents": 1
+  },
+  {
+   "level": 10,
+   "seed": "forced-10-27",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 10,
+   "seed": "forced-10-28",
+   "even": false,
+   "equalGaps": false,
+   "accents": 1
+  },
+  {
+   "level": 10,
+   "seed": "forced-10-29",
+   "even": false,
+   "equalGaps": false,
+   "accents": 3
+  },
+  {
+   "level": 10,
+   "seed": "forced-10-30",
+   "even": false,
+   "equalGaps": false,
+   "accents": 3
+  },
+  {
+   "level": 10,
+   "seed": "forced-10-31",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 10,
+   "seed": "forced-10-32",
+   "even": false,
+   "equalGaps": false,
+   "accents": 3
+  },
+  {
+   "level": 10,
+   "seed": "forced-10-33",
+   "even": false,
+   "equalGaps": false,
+   "accents": 3
+  },
+  {
+   "level": 10,
+   "seed": "forced-10-34",
+   "even": false,
+   "equalGaps": false,
+   "accents": 4
+  },
+  {
+   "level": 10,
+   "seed": "forced-10-35",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 10,
+   "seed": "forced-10-36",
+   "even": false,
+   "equalGaps": false,
+   "accents": 4
+  },
+  {
+   "level": 10,
+   "seed": "forced-10-37",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 10,
+   "seed": "forced-10-38",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 10,
+   "seed": "forced-10-39",
+   "even": false,
+   "equalGaps": false,
+   "accents": 2
+  },
+  {
+   "level": 10,
+   "seed": "forced-10-40",
+   "even": false,
+   "equalGaps": false,
+   "accents": 3
+  }
+ ]
+}
