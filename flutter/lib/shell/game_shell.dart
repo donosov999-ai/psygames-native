@@ -343,7 +343,7 @@ class _Header extends StatelessWidget {
             IconButton(
               onPressed: onPause,
               icon: const Icon(Icons.pause),
-              tooltip: 'Пауза',
+              tooltip: L.t('teachPause'),
             ),
             Expanded(
               child: Text(title,
@@ -373,7 +373,7 @@ class _Header extends StatelessWidget {
                 tooltip: L.t('teachButton'),
               ),
             if (onRules != null)
-              IconButton(onPressed: onRules, icon: const Icon(Icons.help_outline), tooltip: 'Правила'),
+              IconButton(onPressed: onRules, icon: const Icon(Icons.help_outline), tooltip: L.t('btn_rules')),
             if (onBack != null)
               IconButton(onPressed: onBack, icon: const Icon(Icons.arrow_back), tooltip: L.t('back')),
           ],
