@@ -78,7 +78,7 @@
  "lib/main.dart": 16,
  "lib/shell/asset_server.dart": 1,
  "lib/shell/game_shell.dart": 2,
- "lib/shell/hub_screen.dart": 10,
+ "lib/shell/hub_screen.dart": 9,
  "lib/shell/hybrid_app.dart": 8,
  "lib/shell/tap_latency.dart": 5,
  "lib/shell/web_game_screen.dart": 4
