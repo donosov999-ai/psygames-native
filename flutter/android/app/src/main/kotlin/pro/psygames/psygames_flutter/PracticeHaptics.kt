@@ -48,7 +48,7 @@ object PracticeHaptics {
         if (!supported || !foreground) { result.success(null); return }
         val continuous = call.argument<Boolean>("continuous") == true && amplitude
         val duration = if (continuous) (call.argument<Number>("durationMs")?.toLong() ?: 60L).coerceIn(1, 30000) else 35L
-        val strength = (call.argument<Number>("strength")?.toDouble() ?: .25).coerceIn(.1, .6)
+        val strength = (call.argument<Number>("strength")?.toDouble() ?: .8).coerceIn(.1, 1.0)
         val doubleCue = !continuous && call.argument<Number>("count")?.toInt() == 2
         try {
             val attributes = AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_ASSISTANCE_SONIFICATION).build()
