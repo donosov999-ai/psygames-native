@@ -54,6 +54,12 @@ class PuzzlesScreen extends StatefulWidget {
 
   @override
   State<PuzzlesScreen> createState() => _PuzzlesScreenState();
+
+  /// Движок открытого экрана — ТОЛЬКО для проб: ход надёжно виден лишь по позиции в истории
+  /// (`statePos`), а кадр движок отдаёт чуть разным и без ввода (замер 01.10.2026: два
+  /// draw() подряд у «Куба», «Инерции», «Сети» не совпадают).
+  @visibleForTesting
+  static TathamEngine? debugEngine;
 }
 
 class _PuzzlesScreenState extends State<PuzzlesScreen> {
@@ -152,6 +158,7 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
       );
       await _ladder.load();
       if (!mounted) return;
+      PuzzlesScreen.debugEngine = engine;
       setState(() {
         _engine = engine;
         _gameIndex = index;
@@ -372,6 +379,30 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
     _refresh();
   }
 
+  /// Стрелка курсора: 0 вверх · 1 вниз · 2 влево · 3 вправо.
+  void _arrow(int side) {
+    final engine = _engine;
+    if (engine == null || _won) return;
+    engine.cursor(side);
+    _refresh();
+  }
+
+  /// Диагональ «Инерции»: '7' ↖ · '9' ↗ · '1' ↙ · '3' ↘ (цифровой блок, как у автора).
+  void _diagonal(String digit) {
+    final engine = _engine;
+    if (engine == null || _won) return;
+    engine.diagonal(digit);
+    _refresh();
+  }
+
+  /// «Взять» под курсором — CURSOR_SELECT, второй выбор — CURSOR_SELECT2.
+  void _pick({bool second = false}) {
+    final engine = _engine;
+    if (engine == null || _won) return;
+    engine.select(second: second);
+    _refresh();
+  }
+
   void _undo() {
     final engine = _engine;
     if (engine == null) return;
@@ -510,6 +541,9 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
         won: _won,
         status: _status,
         onDigit: _digit,
+        onArrow: _arrow,
+        onDiagonal: _diagonal,
+        onPick: _pick,
         onNext: () {
           _deal();
         },
@@ -558,6 +592,9 @@ class _Toolbar extends StatelessWidget {
     required this.won,
     required this.status,
     required this.onDigit,
+    required this.onArrow,
+    required this.onDiagonal,
+    required this.onPick,
     required this.onNext,
   });
 
@@ -568,12 +605,33 @@ class _Toolbar extends StatelessWidget {
   final bool won;
   final String status;
   final void Function(int) onDigit;
+  final void Function(int side) onArrow;
+  final void Function(String digit) onDiagonal;
+  final void Function({bool second}) onPick;
   final VoidCallback onNext;
 
   int get _keys => puzzleKeyCount(mode, params);
 
+  /*
+   * 🔴 СТРЕЛКИ И «ВЗЯТЬ» — НАД РЯДОМ КЛАВИШ, КАК В ВЕБЕ (puzzles.tsx: крестовина и команды выбора).
+   * Замер 01.10.2026: в modes.json признаки лежали (arrows 16 режимов, eightWays 1, pick 12,
+   * pickSecond 6), а нативный экран их не читал — «Куб» и «Инерция», где автор принимает
+   * ТОЛЬКО стрелки, не играли вовсе; у «Распутай», «Колышек», «Карты» не было «Взять».
+   */
   @override
   Widget build(BuildContext context) {
+    final main = _main(context);
+    if (won || (!mode.arrows && !mode.pick)) return main;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _CursorPad(mode: mode, onArrow: onArrow, onDiagonal: onDiagonal, onPick: onPick),
+        main,
+      ],
+    );
+  }
+
+  Widget _main(BuildContext context) {
     if (won) {
       return Padding(
         padding: const EdgeInsets.all(12),
@@ -637,6 +695,84 @@ class _Toolbar extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+/// Крестовина курсора и команды выбора под полем головоломки.
+class _CursorPad extends StatelessWidget {
+  const _CursorPad({
+    required this.mode,
+    required this.onArrow,
+    required this.onDiagonal,
+    required this.onPick,
+  });
+
+  final PuzzleMode mode;
+  final void Function(int side) onArrow;
+  final void Function(String digit) onDiagonal;
+  final void Function({bool second}) onPick;
+
+  static const _size = 44.0;
+
+  Widget _btn(String key, IconData icon, VoidCallback onTap) => SizedBox(
+        width: _size,
+        height: _size,
+        child: IconButton.filledTonal(
+          key: Key(key),
+          padding: EdgeInsets.zero,
+          onPressed: onTap,
+          icon: Icon(icon),
+        ),
+      );
+
+  @override
+  Widget build(BuildContext context) {
+    const gap = SizedBox(width: 6, height: 6);
+    final up = _btn('cursor-up', Icons.arrow_upward, () => onArrow(0));
+    final down = _btn('cursor-down', Icons.arrow_downward, () => onArrow(1));
+    final left = _btn('cursor-left', Icons.arrow_back, () => onArrow(2));
+    final right = _btn('cursor-right', Icons.arrow_forward, () => onArrow(3));
+    Widget? cross;
+    if (mode.arrows && mode.eightWays) {
+      // Восемь направлений сеткой 3×3: диагонали — по своим углам, середина пустая.
+      Widget row(List<Widget> c) => Row(mainAxisSize: MainAxisSize.min, children: c);
+      cross = Column(mainAxisSize: MainAxisSize.min, children: [
+        row([_btn('cursor-up-left', Icons.north_west, () => onDiagonal('7')), gap, up, gap,
+            _btn('cursor-up-right', Icons.north_east, () => onDiagonal('9'))]),
+        gap,
+        row([left, gap, const SizedBox(width: _size, height: _size), gap, right]),
+        gap,
+        row([_btn('cursor-down-left', Icons.south_west, () => onDiagonal('1')), gap, down, gap,
+            _btn('cursor-down-right', Icons.south_east, () => onDiagonal('3'))]),
+      ]);
+    } else if (mode.arrows) {
+      cross = Row(mainAxisSize: MainAxisSize.min, children: [left, gap, up, gap, down, gap, right]);
+    }
+    final secondLabel = mode.secondPickKey ?? mode.secondKey ?? 'puzzleSecondAction';
+    return Padding(
+      padding: const EdgeInsets.only(top: 6),
+      child: Wrap(
+        alignment: WrapAlignment.center,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        spacing: 10,
+        runSpacing: 6,
+        children: [
+          ?cross,
+          if (mode.pick)
+            FilledButton.tonal(
+              key: const Key('cursor-select'),
+              onPressed: () => onPick(),
+              child: Text(L.t('puzzleSelect')),
+            ),
+          if (mode.pickSecond)
+            OutlinedButton(
+              key: const Key('cursor-select-second'),
+              onPressed: () => onPick(second: true),
+              child: Text(L.t(secondLabel)),
+            ),
+        ],
+      ),
     );
   }
 }

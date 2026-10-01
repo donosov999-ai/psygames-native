@@ -359,6 +359,76 @@ const dictation = () => {
   return frame(волна + строка + набрано + точки);
 };
 
+/* ─────────────────────────── ОБЪЁМ ПАМЯТИ (развилка span_group) ───────
+ * Раньше здесь лежал английский скрин СТАРОЙ развилки (Digit Span / Corsi Blocks
+ * / Spatial Span, релиз v1.135.0): сквозь карточку на любом языке просвечивали
+ * английские слова. Теперь — пиктограмма без единой буквы.
+ * Сверху — сетка 3x3, три ячейки подсвечены разными цветами и соединены маршрутом
+ * (запомнить последовательность). Снизу — ряд из пяти ячеек, четыре заполнены:
+ * «сколько элементов помещается в память».
+ */
+const spanGroup = () => {
+  const SIZE = 22;
+  const GAP = 8;
+  const X0 = 39;
+  const Y0 = 14;
+  const center = (r, c) => [X0 + c * (SIZE + GAP) + SIZE / 2, Y0 + r * (SIZE + GAP) + SIZE / 2];
+  const lit = { '0,0': C.blue, '1,2': C.coral, '2,1': C.amber };
+  const cells = [];
+  for (let r = 0; r < 3; r++) {
+    for (let c = 0; c < 3; c++) {
+      const color = lit[`${r},${c}`] ?? C.greyLine;
+      cells.push(
+        `<rect x="${X0 + c * (SIZE + GAP)}" y="${Y0 + r * (SIZE + GAP)}" width="${SIZE}" height="${SIZE}" rx="6" fill="${color}"/>`,
+      );
+    }
+  }
+  const [ax, ay] = center(0, 0);
+  const [bx, by] = center(1, 2);
+  const [cx, cy] = center(2, 1);
+  const route = `<path d="M${ax} ${ay} L${bx} ${by} L${cx} ${cy}" fill="none" stroke="${C.greyRoute}" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>`;
+  const row = [0, 1, 2, 3, 4]
+    .map((i) =>
+      i < 4
+        ? `<rect x="${18 + i * 26}" y="118" width="20" height="20" rx="6" fill="${C.teal}"/>`
+        : `<rect x="${18 + i * 26 + 1}" y="119" width="18" height="18" rx="5" fill="${C.white}" stroke="${C.grey}" stroke-width="2"/>`,
+    )
+    .join('');
+  // Маршрут рисуем ПОД ячейками: линия соединяет подсвеченные, не перечёркивая их.
+  return frame(route + cells.join('') + row);
+};
+
+/* ─────────────────────────── ПАРНЫЕ КАРТИНКИ ───────────────────────────
+ * Раньше здесь лежал английский скрин старого экрана «Picture Pairs» — а превью стоит на ПЕРВОМ
+ * экране онбординга (src/services/onboarding.ts, ONBOARDING_GAME_IDS) и встречало новичка на любом
+ * из 12 языков. Теперь — пиктограмма без единой буквы: 4×3 карты рубашкой вверх, одна пара открыта
+ * (два одинаковых круга) — «найди пары», как в самой игре.
+ */
+const picturePairs = () => {
+  const W = 28;
+  const H = 34;
+  const GX = 6;
+  const GY = 7;
+  const X0 = (160 - (4 * W + 3 * GX)) / 2;
+  const Y0 = (160 - (3 * H + 2 * GY)) / 2;
+  const open = new Set(['0,1', '2,2']);
+  const cards = [];
+  for (let r = 0; r < 3; r++) {
+    for (let c = 0; c < 4; c++) {
+      const x = X0 + c * (W + GX);
+      const y = Y0 + r * (H + GY);
+      if (open.has(`${r},${c}`)) {
+        cards.push(`<rect x="${x}" y="${y}" width="${W}" height="${H}" rx="6" fill="${C.white}" stroke="${C.coralLight}" stroke-width="2"/>`);
+        cards.push(`<circle cx="${x + W / 2}" cy="${y + H / 2}" r="8" fill="${C.coral}"/>`);
+      } else {
+        cards.push(`<rect x="${x}" y="${y}" width="${W}" height="${H}" rx="6" fill="${C.blue}"/>`);
+        cards.push(`<rect x="${x + 5}" y="${y + 5}" width="${W - 10}" height="${H - 10}" rx="3" fill="none" stroke="${C.blueLight}" stroke-width="1.5"/>`);
+      }
+    }
+  }
+  return frame(cards.join(''));
+};
+
 const THUMBS = {
   dictation,
   chinese_tones: chineseTones,
@@ -371,6 +441,8 @@ const THUMBS = {
   number_run: numberRun,
   dots_connect: dotsConnect,
   scholars_mate: scholarsMate,
+  span_group: spanGroup,
+  picture_pairs: picturePairs,
 };
 
 const wanted = process.argv.slice(2);
