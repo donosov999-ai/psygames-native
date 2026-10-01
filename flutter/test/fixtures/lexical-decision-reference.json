@@ -1,5 +1,5 @@
 {
- "taken": "2026-09-30",
+ "taken": "2026-10-02",
  "tool": "frontend/scripts/flutter-lexical-decision-reference.test.ts",
  "queue": [
   0,
@@ -1840,6 +1840,678 @@
      "text": "úsposõ",
      "isWord": false,
      "lang": "pt"
+    }
+   ]
+  },
+  {
+   "name": "ru → ru, родной",
+   "target": "ru",
+   "second": "en",
+   "bilingual": false,
+   "count": 14,
+   "language": "ru",
+   "shift": 103,
+   "trials": [
+    {
+     "text": "укка",
+     "isWord": false,
+     "lang": "ru"
+    },
+    {
+     "text": "вопрэх",
+     "isWord": false,
+     "lang": "ru"
+    },
+    {
+     "text": "знарь",
+     "isWord": false,
+     "lang": "ru"
+    },
+    {
+     "text": "сунка",
+     "isWord": false,
+     "lang": "ru"
+    },
+    {
+     "text": "вога",
+     "isWord": false,
+     "lang": "ru"
+    },
+    {
+     "text": "ферма",
+     "isWord": true,
+     "lang": "ru"
+    },
+    {
+     "text": "весра",
+     "isWord": false,
+     "lang": "ru"
+    },
+    {
+     "text": "читать",
+     "isWord": true,
+     "lang": "ru"
+    },
+    {
+     "text": "дорогой",
+     "isWord": true,
+     "lang": "ru"
+    },
+    {
+     "text": "привет",
+     "isWord": true,
+     "lang": "ru"
+    },
+    {
+     "text": "парк",
+     "isWord": true,
+     "lang": "ru"
+    },
+    {
+     "text": "ухо",
+     "isWord": true,
+     "lang": "ru"
+    },
+    {
+     "text": "правда",
+     "isWord": true,
+     "lang": "ru"
+    },
+    {
+     "text": "пожалуйсфа",
+     "isWord": false,
+     "lang": "ru"
+    }
+   ]
+  }
+ ],
+ "normLevels": [
+  {
+   "level": 1,
+   "tiers": [
+    1
+   ]
+  },
+  {
+   "level": 5,
+   "tiers": [
+    1
+   ]
+  },
+  {
+   "level": 6,
+   "tiers": [
+    1,
+    2
+   ]
+  },
+  {
+   "level": 10,
+   "tiers": [
+    1,
+    2
+   ]
+  },
+  {
+   "level": 11,
+   "tiers": [
+    2,
+    3
+   ]
+  },
+  {
+   "level": 30,
+   "tiers": [
+    2,
+    3
+   ]
+  }
+ ],
+ "normGames": [
+  {
+   "name": "en, уровень 1",
+   "target": "en",
+   "level": 1,
+   "count": 14,
+   "shift": 109,
+   "trials": [
+    {
+     "text": "could have",
+     "isNorm": true,
+     "form": "could of"
+    },
+    {
+     "text": "would have",
+     "isNorm": true,
+     "form": "would of"
+    },
+    {
+     "text": "taken",
+     "isNorm": true,
+     "form": "tooken"
+    },
+    {
+     "text": "regardless",
+     "isNorm": true,
+     "form": "irregardless"
+    },
+    {
+     "text": "should have",
+     "isNorm": true,
+     "form": "should of"
+    },
+    {
+     "text": "conversate",
+     "isNorm": false,
+     "form": "conversate"
+    },
+    {
+     "text": "isn't",
+     "isNorm": true,
+     "form": "ain't"
+    },
+    {
+     "text": "mischievious",
+     "isNorm": false,
+     "form": "mischievious"
+    },
+    {
+     "text": "hisself",
+     "isNorm": false,
+     "form": "hisself"
+    },
+    {
+     "text": "attackted",
+     "isNorm": false,
+     "form": "attackted"
+    },
+    {
+     "text": "brung",
+     "isNorm": false,
+     "form": "brung"
+    },
+    {
+     "text": "theirselves",
+     "isNorm": false,
+     "form": "theirselves"
+    },
+    {
+     "text": "knowed",
+     "isNorm": false,
+     "form": "knowed"
+    },
+    {
+     "text": "nuclear",
+     "isNorm": true,
+     "form": "nucular"
+    }
+   ]
+  },
+  {
+   "name": "en, уровень 12",
+   "target": "en",
+   "level": 12,
+   "count": 22,
+   "shift": 113,
+   "trials": [
+    {
+     "text": "a lot",
+     "isNorm": true,
+     "form": "alot"
+    },
+    {
+     "text": "free reign",
+     "isNorm": false,
+     "form": "free reign"
+    },
+    {
+     "text": "believe",
+     "isNorm": true,
+     "form": "beleive"
+    },
+    {
+     "text": "tommorow",
+     "isNorm": false,
+     "form": "tommorow"
+    },
+    {
+     "text": "don't lose it",
+     "isNorm": true,
+     "form": "don't loose it"
+    },
+    {
+     "text": "libary",
+     "isNorm": false,
+     "form": "libary"
+    },
+    {
+     "text": "which",
+     "isNorm": true,
+     "form": "wich"
+    },
+    {
+     "text": "separate",
+     "isNorm": true,
+     "form": "seperate"
+    },
+    {
+     "text": "taller then me",
+     "isNorm": false,
+     "form": "taller then me"
+    },
+    {
+     "text": "deep-seeded",
+     "isNorm": false,
+     "form": "deep-seeded"
+    },
+    {
+     "text": "tow the line",
+     "isNorm": false,
+     "form": "tow the line"
+    },
+    {
+     "text": "their here",
+     "isNorm": false,
+     "form": "their here"
+    },
+    {
+     "text": "recieve",
+     "isNorm": false,
+     "form": "recieve"
+    },
+    {
+     "text": "escape goat",
+     "isNorm": false,
+     "form": "escape goat"
+    },
+    {
+     "text": "sneak peak",
+     "isNorm": false,
+     "form": "sneak peak"
+    },
+    {
+     "text": "you're welcome",
+     "isNorm": true,
+     "form": "your welcome"
+    },
+    {
+     "text": "necessary",
+     "isNorm": true,
+     "form": "neccessary"
+    },
+    {
+     "text": "over there",
+     "isNorm": true,
+     "form": "over their"
+    },
+    {
+     "text": "moot point",
+     "isNorm": true,
+     "form": "mute point"
+    },
+    {
+     "text": "definitely",
+     "isNorm": true,
+     "form": "definately"
+    },
+    {
+     "text": "occurred",
+     "isNorm": true,
+     "form": "occured"
+    },
+    {
+     "text": "for all intensive purposes",
+     "isNorm": false,
+     "form": "for all intensive purposes"
+    }
+   ]
+  },
+  {
+   "name": "ru, уровень 1",
+   "target": "ru",
+   "level": 1,
+   "count": 14,
+   "shift": 127,
+   "trials": [
+    {
+     "text": "пиджак",
+     "isNorm": true,
+     "form": "пинжак"
+    },
+    {
+     "text": "положить",
+     "isNorm": true,
+     "form": "покласть"
+    },
+    {
+     "text": "там",
+     "isNorm": true,
+     "form": "тама"
+    },
+    {
+     "text": "куфня",
+     "isNorm": false,
+     "form": "куфня"
+    },
+    {
+     "text": "обымать",
+     "isNorm": false,
+     "form": "обымать"
+    },
+    {
+     "text": "что",
+     "isNorm": true,
+     "form": "шо"
+    },
+    {
+     "text": "ляжь",
+     "isNorm": false,
+     "form": "ляжь"
+    },
+    {
+     "text": "капишон",
+     "isNorm": false,
+     "form": "капишон"
+    },
+    {
+     "text": "двоюрный",
+     "isNorm": false,
+     "form": "двоюрный"
+    },
+    {
+     "text": "трёс",
+     "isNorm": false,
+     "form": "трёс"
+    },
+    {
+     "text": "ихний",
+     "isNorm": false,
+     "form": "ихний"
+    },
+    {
+     "text": "вместо",
+     "isNorm": true,
+     "form": "заместо"
+    },
+    {
+     "text": "её",
+     "isNorm": true,
+     "form": "ейный"
+    },
+    {
+     "text": "касательно",
+     "isNorm": true,
+     "form": "касаемо"
+    }
+   ]
+  },
+  {
+   "name": "ru, уровень 7",
+   "target": "ru",
+   "level": 7,
+   "count": 18,
+   "shift": 131,
+   "trials": [
+    {
+     "text": "облако",
+     "isNorm": true,
+     "form": "облоко"
+    },
+    {
+     "text": "хотят",
+     "isNorm": true,
+     "form": "хочут"
+    },
+    {
+     "text": "её",
+     "isNorm": true,
+     "form": "ейный"
+    },
+    {
+     "text": "его",
+     "isNorm": true,
+     "form": "егошний"
+    },
+    {
+     "text": "симпатичный",
+     "isNorm": true,
+     "form": "симпотичный"
+    },
+    {
+     "text": "некоторый",
+     "isNorm": true,
+     "form": "некторый"
+    },
+    {
+     "text": "положить",
+     "isNorm": true,
+     "form": "покласть"
+    },
+    {
+     "text": "тута",
+     "isNorm": false,
+     "form": "тута"
+    },
+    {
+     "text": "кухня",
+     "isNorm": true,
+     "form": "куфня"
+    },
+    {
+     "text": "использовывать",
+     "isNorm": false,
+     "form": "использовывать"
+    },
+    {
+     "text": "еслибы",
+     "isNorm": false,
+     "form": "еслибы"
+    },
+    {
+     "text": "водалей",
+     "isNorm": false,
+     "form": "водалей"
+    },
+    {
+     "text": "выйграть",
+     "isNorm": false,
+     "form": "выйграть"
+    },
+    {
+     "text": "вообщем",
+     "isNorm": false,
+     "form": "вообщем"
+    },
+    {
+     "text": "двоюрный",
+     "isNorm": false,
+     "form": "двоюрный"
+    },
+    {
+     "text": "ляжьте",
+     "isNorm": false,
+     "form": "ляжьте"
+    },
+    {
+     "text": "едь",
+     "isNorm": false,
+     "form": "едь"
+    },
+    {
+     "text": "пиджак",
+     "isNorm": true,
+     "form": "пинжак"
+    }
+   ]
+  },
+  {
+   "name": "ru, уровень 12",
+   "target": "ru",
+   "level": 12,
+   "count": 22,
+   "shift": 139,
+   "trials": [
+    {
+     "text": "катАлог",
+     "isNorm": false,
+     "form": "катАлог"
+    },
+    {
+     "text": "корЫсть",
+     "isNorm": true,
+     "form": "кОрысть"
+    },
+    {
+     "text": "в смысле",
+     "isNorm": true,
+     "form": "всмысле"
+    },
+    {
+     "text": "квартАл",
+     "isNorm": true,
+     "form": "квАртал"
+    },
+    {
+     "text": "звонИт",
+     "isNorm": true,
+     "form": "звОнит"
+    },
+    {
+     "text": "щЁлкать",
+     "isNorm": true,
+     "form": "щелкАть"
+    },
+    {
+     "text": "докумЕнт",
+     "isNorm": true,
+     "form": "дОкумент"
+    },
+    {
+     "text": "выйграть",
+     "isNorm": false,
+     "form": "выйграть"
+    },
+    {
+     "text": "оптОвый",
+     "isNorm": true,
+     "form": "Оптовый"
+    },
+    {
+     "text": "в общем",
+     "isNorm": true,
+     "form": "вообщем"
+    },
+    {
+     "text": "шОфер",
+     "isNorm": false,
+     "form": "шОфер"
+    },
+    {
+     "text": "кранЫ",
+     "isNorm": false,
+     "form": "кранЫ"
+    },
+    {
+     "text": "пАртер",
+     "isNorm": false,
+     "form": "пАртер"
+    },
+    {
+     "text": "позвОнит",
+     "isNorm": false,
+     "form": "позвОнит"
+    },
+    {
+     "text": "тАможня",
+     "isNorm": false,
+     "form": "тАможня"
+    },
+    {
+     "text": "тортЫ",
+     "isNorm": false,
+     "form": "тортЫ"
+    },
+    {
+     "text": "некрОлог",
+     "isNorm": false,
+     "form": "некрОлог"
+    },
+    {
+     "text": "жевачка",
+     "isNorm": false,
+     "form": "жевачка"
+    },
+    {
+     "text": "статУя",
+     "isNorm": false,
+     "form": "статУя"
+    },
+    {
+     "text": "ждалА",
+     "isNorm": true,
+     "form": "ждАла"
+    },
+    {
+     "text": "мужчина",
+     "isNorm": true,
+     "form": "мущина"
+    },
+    {
+     "text": "эспрессо",
+     "isNorm": true,
+     "form": "экспрессо"
+    }
+   ]
+  },
+  {
+   "name": "de — данных нет",
+   "target": "de",
+   "level": 1,
+   "count": 14,
+   "shift": 149,
+   "trials": []
+  },
+  {
+   "name": "ru, нечётное число проб",
+   "target": "ru",
+   "level": 3,
+   "count": 7,
+   "shift": 151,
+   "trials": [
+    {
+     "text": "тут",
+     "isNorm": true,
+     "form": "тута"
+    },
+    {
+     "text": "ничего",
+     "isNorm": true,
+     "form": "ничё"
+    },
+    {
+     "text": "купивши",
+     "isNorm": false,
+     "form": "купивши"
+    },
+    {
+     "text": "ляг",
+     "isNorm": true,
+     "form": "ляжь"
+    },
+    {
+     "text": "наихороший",
+     "isNorm": false,
+     "form": "наихороший"
+    },
+    {
+     "text": "тряс",
+     "isNorm": true,
+     "form": "трёс"
+    },
+    {
+     "text": "касаемо",
+     "isNorm": false,
+     "form": "касаемо"
     }
    ]
   }
