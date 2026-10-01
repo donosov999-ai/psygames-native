@@ -1,4 +1,4 @@
-/* psygames-water-sort-ladder-slope · VER 1 · 30.09.2026 */
+/* psygames-water-sort-ladder-slope · VER 2 · 30.09.2026 */
 /**
  * 🔴 ЛЕСТНИЦА СОСУДОВ РАСТЁТ ТРУДНОСТЬЮ, А НЕ СТОИТ ПЛАТО.
  *
@@ -18,13 +18,13 @@
  */
 import { levelMoveReference, levelParams, moveLimitFor, solve } from '@/src/games/water-sort/core/generate';
 import { скрытоНаУровне, звёздыПоХодам } from '@/src/games/water-sort/core/hidden';
-import { развилкиСоСмертью, решениеНеДлиннее } from '@/src/games/water-sort/core/difficulty';
+import { deathForks, solutionWithin } from '@/src/games/water-sort/core/difficulty';
 import type { Field } from '@/src/games/water-sort/core/tubes';
 
 declare function require(id: string): any;
 declare const __dirname: string;
 
-type Ступень = {
+type LevelEntry = {
   level: number; field: Field; colors: number; empty: number; minMoves: number;
   moveLimit: number; reference: number; hiddenLevel: boolean; starsByMoves: boolean;
   forks: number; forksTarget: number; candidates: number; provenMoves: number | null;
@@ -32,16 +32,16 @@ type Ступень = {
 
 const fs = require('fs');
 const path = require('path');
-const данные = JSON.parse(fs.readFileSync(
+const data = JSON.parse(fs.readFileSync(
   path.resolve(__dirname, '../../../flutter/assets/levels/sort_tubes.json'), 'utf8',
-)) as { difficulty?: { from: number; plateauFrom: number }; levels: Ступень[] };
-const L = данные.levels;
+)) as { difficulty?: { from: number; plateauFrom: number }; levels: LevelEntry[] };
+const L = data.levels;
 /** На сколько развилок следующая ступень вправе быть легче: отбор бьёт в цель ±2. */
-const ДОПУСК_ПРОВАЛА = 3;
+const DIP_TOLERANCE = 3;
 
 /** Ранговая корреляция Спирмена: растёт ли мера вместе с номером ступени. */
-function спирмен(xs: number[], ys: number[]): number {
-  const ранги = (a: number[]) => {
+function spearman(xs: number[], ys: number[]): number {
+  const ranks = (a: number[]) => {
     const idx = a.map((v, i) => [v, i] as const).sort((p, q) => p[0] - q[0]);
     const r = Array(a.length).fill(0);
     for (let i = 0; i < idx.length;) {
@@ -52,7 +52,7 @@ function спирмен(xs: number[], ys: number[]): number {
     }
     return r;
   };
-  const rx = ранги(xs), ry = ранги(ys);
+  const rx = ranks(xs), ry = ranks(ys);
   const mx = rx.reduce((s, v) => s + v, 0) / rx.length, my = ry.reduce((s, v) => s + v, 0) / ry.length;
   let num = 0, dx = 0, dy = 0;
   for (let i = 0; i < rx.length; i += 1) { num += (rx[i] - mx) * (ry[i] - my); dx += (rx[i] - mx) ** 2; dy += (ry[i] - my) ** 2; }
@@ -62,32 +62,32 @@ function спирмен(xs: number[], ys: number[]): number {
 describe('лестница сосудов: трудность растёт', () => {
   it('есть что проверять — выгрузка с мерой и все 60 ступеней', () => {
     expect(L.length).toBe(60);
-    expect(данные.difficulty).toBeDefined();
-    const без = L.filter((s) => typeof s.forks !== 'number');
-    expect(без.map((s) => s.level)).toEqual([]);
+    expect(data.difficulty).toBeDefined();
+    const missing = L.filter((s) => typeof s.forks !== 'number');
+    expect(missing.map((s) => s.level)).toEqual([]);
   });
 
   it('🔴 параметры ступеней — ровно те, что даёт ядро игры', () => {
     // Выгрузка обязана делать ТЕ ЖЕ уровни, отбирая только раздачу.
-    const беды: string[] = [];
+    const problems: string[] = [];
     for (const s of L) {
       const p = levelParams(s.level);
-      const ждём = {
+      const expected = {
         colors: p.colors, empty: p.empty, minMoves: p.minMoves, moveLimit: moveLimitFor(s.level),
         reference: levelMoveReference(s.level), hiddenLevel: скрытоНаУровне(s.level), starsByMoves: звёздыПоХодам(s.level),
       };
-      for (const [k, v] of Object.entries(ждём)) {
-        if ((s as unknown as Record<string, unknown>)[k] !== v) беды.push(`L${s.level} ${k}: в файле ${(s as unknown as Record<string, unknown>)[k]}, у ядра ${v}`);
+      for (const [k, v] of Object.entries(expected)) {
+        if ((s as unknown as Record<string, unknown>)[k] !== v) problems.push(`L${s.level} ${k}: в файле ${(s as unknown as Record<string, unknown>)[k]}, у ядра ${v}`);
       }
     }
-    expect(беды).toEqual([]);
+    expect(problems).toEqual([]);
   });
 
   it('🔴 мера растёт вместе с номером ступени', () => {
-    const от = данные.difficulty!.from;
-    const часть = L.filter((s) => s.level >= от);
-    const r = спирмен(часть.map((s) => s.level), часть.map((s) => s.forks));
-    console.log(`РАЗВИЛКИ ПО ЛЕСТНИЦЕ: ${L.map((s) => s.forks).join(' ')} · Спирмен с L${от}: ${r.toFixed(3)}`);
+    const fromLevel = data.difficulty!.from;
+    const inRange = L.filter((s) => s.level >= fromLevel);
+    const r = spearman(inRange.map((s) => s.level), inRange.map((s) => s.forks));
+    console.log(`РАЗВИЛКИ ПО ЛЕСТНИЦЕ: ${L.map((s) => s.forks).join(' ')} · Спирмен с L${fromLevel}: ${r.toFixed(3)}`);
     expect(r).toBeGreaterThanOrEqual(0.9);
   });
 
@@ -100,29 +100,29 @@ describe('лестница сосудов: трудность растёт', () 
    * была хорошей — она про тренд, а человек проходит ступени ПОДРЯД.
    */
   it('🔴 провалов нет: ступень не легче предыдущей больше чем на допуск', () => {
-    const от = данные.difficulty!.from;
-    const провалы: string[] = [];
+    const fromLevel = data.difficulty!.from;
+    const dips: string[] = [];
     for (let i = 1; i < L.length; i += 1) {
       const a = L[i - 1]!, b = L[i]!;
-      if (b.level > от && b.forks < a.forks - ДОПУСК_ПРОВАЛА) провалы.push(`L${a.level}→L${b.level}: ${a.forks} → ${b.forks}`);
+      if (b.level > fromLevel && b.forks < a.forks - DIP_TOLERANCE) dips.push(`L${a.level}→L${b.level}: ${a.forks} → ${b.forks}`);
     }
-    expect(провалы).toEqual([]);
+    expect(dips).toEqual([]);
   });
 
   it('🔴 хвост L33–L60 больше не плато: верх заметно труднее низа', () => {
-    const хвост = L.filter((s) => s.level >= 33);
-    const различных = new Set(хвост.map((s) => s.forks)).size;
-    const низ = хвост.slice(0, 5).map((s) => s.forks), верх = хвост.slice(-5).map((s) => s.forks);
+    const tail = L.filter((s) => s.level >= 33);
+    const distinct = new Set(tail.map((s) => s.forks)).size;
+    const bottom = tail.slice(0, 5).map((s) => s.forks), top = tail.slice(-5).map((s) => s.forks);
     const med = (a: number[]) => [...a].sort((x, y) => x - y)[Math.floor(a.length / 2)]!;
-    console.log(`ХВОСТ: различных значений ${различных} из ${хвост.length} · медиана L33–37 ${med(низ)} · L56–60 ${med(верх)}`);
-    expect(med(верх) - med(низ)).toBeGreaterThanOrEqual(15);
-    expect(различных).toBeGreaterThanOrEqual(15);
+    console.log(`ХВОСТ: различных значений ${distinct} из ${tail.length} · медиана L33–37 ${med(bottom)} · L56–60 ${med(top)}`);
+    expect(med(top) - med(bottom)).toBeGreaterThanOrEqual(15);
+    expect(distinct).toBeGreaterThanOrEqual(15);
   });
 
   it('🔴 на уровнях с лимитом ходов решение под лимитом ДОКАЗАНО', () => {
-    const беды = L.filter((s) => s.moveLimit > 0 && (s.provenMoves === null || s.provenMoves > s.moveLimit))
+    const problems = L.filter((s) => s.moveLimit > 0 && (s.provenMoves === null || s.provenMoves > s.moveLimit))
       .map((s) => `L${s.level}: лимит ${s.moveLimit}, найдено ${s.provenMoves}`);
-    expect(беды).toEqual([]);
+    expect(problems).toEqual([]);
   });
 
   it('🔴 записанные числа — правда: пересчёт на трёх ступенях', () => {
@@ -130,9 +130,9 @@ describe('лестница сосудов: трудность растёт', () 
       const s = L[n - 1]!;
       const r = solve(s.field, 300000);
       expect(`L${n}: ${r.outcome}`).toBe(`L${n}: solved`);
-      expect(`L${n}: развилок ${развилкиСоСмертью(s.field, r.moves)}`).toBe(`L${n}: развилок ${s.forks}`);
+      expect(`L${n}: развилок ${deathForks(s.field, r.moves)}`).toBe(`L${n}: развилок ${s.forks}`);
       if (s.moveLimit > 0) {
-        expect(`L${n}: луч ${решениеНеДлиннее(s.field, s.moveLimit)}`).toBe(`L${n}: луч ${s.provenMoves}`);
+        expect(`L${n}: луч ${solutionWithin(s.field, s.moveLimit)}`).toBe(`L${n}: луч ${s.provenMoves}`);
       }
     }
   }, 180000);

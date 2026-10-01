@@ -59,6 +59,7 @@ import '../games/spatial_hub/screen.dart';
 import '../games/spatial_lab/screen.dart';
 import '../games/spatial_span/screen.dart';
 import '../games/sudoku/modes.dart';
+import '../games/cats/screen.dart';
 import '../games/sudoku/screen.dart';
 import '../games/mahjong/screen.dart';
 import '../games/math_slider/screen.dart';
@@ -76,6 +77,7 @@ import '../games/object_tracker/screen.dart';
 import '../games/pattern/screen.dart';
 import '../games/quick_count/screen.dart';
 import '../games/schulte/screen.dart';
+import '../games/pause/screen.dart';
 import 'asset_server.dart';
 import 'l10n.dart';
 import '../games/sorting_hub/screen.dart';
@@ -97,6 +99,7 @@ import '../games/dictation/screen.dart';
 import '../games/rhythm_pitch/screen.dart';
 import 'hub_screen.dart';
 import 'warmup_bridge.dart';
+import 'warmup_step_bridge.dart';
 import 'game_pet.dart';
 import 'session_report.dart';
 import 'game_preset.dart';
@@ -107,6 +110,7 @@ import '../games/chess_blind/screen.dart';
 import '../games/chess_hub/screen.dart';
 import '../games/scholars_mate/screen.dart';
 import 'shared_state.dart';
+import 'restart_scope.dart';
 import 'tap_latency.dart';
 
 
@@ -153,6 +157,14 @@ class HybridApp extends StatefulWidget {
         '/games/corsi': (s) => CorsiScreen(state: s),
         '/games/picture-pairs': (s) => PicturePairsScreen(state: s),
         '/games/schulte': (s) => SchulteScreen(state: s),
+        // «Пауза / Зарядка» — хаб практик; `?set=…` доходит до экрана через GamePreset.
+        '/games/pause': (s) => PauseScreen(state: s),
+        // «Дыхание» слито в «Паузу» (решение Дениса 30.09): тот же экран, режим дыхания,
+        // партия пишется под прежним `breathing`. Техника шага зарядки — `?tech=`.
+        '/games/breathing': (s) => PauseScreen(state: s, flavor: PauseFlavor.breathing),
+        // «Гимнастика для глаз» слита туда же: лестница 15 уровней и 11 узоров перенесены
+        // со сверкой по живому экрану, партия — под прежним `eye_gym`.
+        '/games/eye-gym': (s) => PauseScreen(state: s, flavor: PauseFlavor.eyeGym),
         '/games/mahjong': (s) => MahjongScreen(state: s),
         '/games/math-slider': (s) => MathSliderScreen(state: s),
         '/games/object-tracker': (s) => ObjectTrackerScreen(state: s),
@@ -173,6 +185,10 @@ class HybridApp extends StatefulWidget {
         // Режимы той же доски: адрес отличается только хвостом, экран — тот же.
         '/games/sudoku?mode=towers': (s) => SudokuScreen(state: s, mode: SideMode.towers),
         '/games/sudoku?mode=unequal': (s) => SudokuScreen(state: s, mode: SideMode.unequal),
+        // «Кошки» (Queens / Star Battle) — первая игра, рождённая сразу нативной:
+        // веб-страницы у неё нет вовсе, поэтому перехват не «отнимает» веб-версию,
+        // а является единственным входом. Карточку в развилку кладёт координатор.
+        '/games/cats': (s) => CatsScreen(state: s),
         // Развилки раздела — на ОБЩЕМ экране каркаса: карточки уже лежат в
         // `assets/hubs.json`, вторая копия начала бы отставать молча.
         '/games/sudoku-hub': (s) => HubScreen(
@@ -522,6 +538,10 @@ class _HybridAppState extends State<HybridApp> {
     // Делегат оставлен: он нужен для внешних ссылок и первой загрузки.
     try {
       final m = jsonDecode(message);
+      if (m is Map && m['op'] == 'warmupStepDone') {
+        unawaited(_warmupStepDone(Map<String, Object?>.from(m)));
+        return;
+      }
       if (m is Map && m['op'] == 'route') {
         final url = '${m['url']}';
         final route = HybridApp.routeOf(url);
@@ -614,9 +634,13 @@ class _HybridAppState extends State<HybridApp> {
           _openNative(route, query: HybridApp.queryOf(req.url));
           return NavigationDecision.prevent;
         },
-        onPageStarted: (_) => _c.runJavaScript(widget.state.bootstrapJs()),
+        onPageStarted: (_) {
+          _c.runJavaScript(widget.state.bootstrapJs());
+          _c.runJavaScript(_hostWarmupJs());
+        },
         onPageFinished: (_) {
           _c.runJavaScript(widget.state.bootstrapJs());
+          _c.runJavaScript(_hostWarmupJs());
           if (tapLatencyProbe) {
             _c.runJavaScript(webTapLatencyJs('Веб/страница'));
             _c.runJavaScript(webStimulusMarkJs());
@@ -702,7 +726,98 @@ class _HybridAppState extends State<HybridApp> {
     Navigator.of(context).pop();
   }
 
-  Future<void> _openNative(String route, {Map<String, String> query = const {}}) async {
+  /*
+   * 🔴 МЕЖДУ ДВУМЯ НАТИВНЫМИ ШАГАМИ ЗАРЯДКИ ПЕРЕХОД ВЕДЁТ ОБОЛОЧКА (решение Дениса
+   * 01.10.2026: «зачем вебом скреплять переходы между двумя упражнениями? это
+   * лишний глюк»). Раньше: партия → 2 с → веб-мост `/warmup-bridge` → 5 с → смена
+   * адреса → перехват → «закрыть старый / открыть новый». Теперь веб, засчитав
+   * нативную партию, шлёт `warmupStepDone` (`frontend/src/services/hostWarmup.ts`),
+   * а оболочка показывает свой мост (`warmup_step_bridge.dart`) и сама открывает
+   * следующую игру. Веб остаётся учётом: `goTo` двигает номер шага и ставит адрес
+   * страницы на тот же шаг — для перехвата это «тот же экран» (`RouteAction.keep`).
+   */
+
+  /// Какие адреса оболочка рисует сама и на каком языке говорит человек — по этому
+  /// веб решает, отдать ли переход между шагами зарядки оболочке.
+  String _hostWarmupJs() {
+    final routes = {for (final r in HybridApp.native.keys) r.split('?').first}.toList()..sort();
+    return 'window.__psyHostNativeRoutes=${jsonEncode(routes)};'
+        'window.__psyHostLang=${jsonEncode(widget.state.language)};';
+  }
+
+  Future<void> _loadStepInfo(ValueNotifier<WarmupStepInfo?> into) async {
+    try {
+      final raw = await _c.runJavaScriptReturningResult(
+        'JSON.stringify(window.__psyWarmupHost && window.__psyWarmupHost.info ? window.__psyWarmupHost.info() : null)',
+      );
+      // WebKit отдаёт строку как есть, Android — ещё раз в кавычках (как в warmup_bridge.dart).
+      Object? v = raw;
+      for (var i = 0; i < 2 && v is String; i += 1) {
+        v = jsonDecode(v);
+      }
+      into.value = WarmupStepInfo.fromJson(v);
+    } catch (_) {
+      // Нет ответа — полоска остаётся без номера, ⏭ работает.
+    }
+  }
+
+  /// ⏭ нативного шага — туда же, куда веб-⏭: `skipCurrent` веба.
+  Future<void> _skipNativeStep() async {
+    _closeNativeBecausePageMoved();
+    await _c.runJavaScript('window.__psyWarmupHost && window.__psyWarmupHost.skip && window.__psyWarmupHost.skip();');
+  }
+
+  Future<void> _warmupStepDone(Map<String, Object?> m) async {
+    final done = WarmupStepDone.fromJson(m);
+    final next = done == null ? null : HybridApp.routeOf('${widget.server.origin}${done.nextUrl}');
+    // 🔴 ВЕБ ЖДЁТ ОТВЕТА: свой переход он в этом случае не планирует. Вести не можем
+    // (экран уже закрыт, следующий шаг не наш) — возвращаем переход вебу.
+    if (done == null || next == null || _openedRoute == null || !mounted) {
+      final from = m['fromIdx'];
+      if (from is num) {
+        await _c.runJavaScript('window.__psyWarmupHost && window.__psyWarmupHost.advance(${from.toInt()});');
+      }
+      return;
+    }
+    // Игра успевает показать свой итог — как у веб-зарядки (2 с, вечером 3,5).
+    final shown = _openedRoute;
+    await Future<void>.delayed(Duration(milliseconds: done.evening ? 3500 : 2000));
+    if (!mounted || _openedRoute != shown) {
+      // Человек ушёл из игры сам, пока она показывала итог: переход — вебу.
+      await _c.runJavaScript('window.__psyWarmupHost && window.__psyWarmupHost.advance(${done.fromIdx});');
+      return;
+    }
+    final choice = await Navigator.of(context).push<WarmupBridgeChoice>(
+      MaterialPageRoute(builder: (_) => WarmupStepBridge(done: done)),
+    );
+    if (!mounted) return;
+    switch (choice) {
+      case WarmupBridgeChoice.go:
+        // Снять сыгранную игру и сразу открыть следующую — без страницы посередине.
+        _closeNativeBecausePageMoved();
+        unawaited(_openNative(
+          next,
+          query: HybridApp.queryOf(done.nextUrl),
+          stepInfo: WarmupStepInfo(idx: done.fromIdx + 1, total: done.total, title: done.nextTitle, evening: done.evening),
+        ));
+        await _c.runJavaScript('window.__psyWarmupHost && window.__psyWarmupHost.goTo(${done.fromIdx + 1});');
+      case WarmupBridgeChoice.skip:
+        // Следующий шаг пропущен: страница сама уйдёт на шаг через один (или на итог),
+        // а перехват откроет его, если он наш.
+        _closeNativeBecausePageMoved();
+        await _c.runJavaScript('window.__psyWarmupHost && window.__psyWarmupHost.goTo(${done.fromIdx + 2});');
+      case WarmupBridgeChoice.stop:
+      case null:
+        _closeNativeBecausePageMoved();
+        await _c.runJavaScript('window.__psyWarmupHost && window.__psyWarmupHost.stop();');
+    }
+  }
+
+  Future<void> _openNative(
+    String route, {
+    Map<String, String> query = const {},
+    WarmupStepInfo? stepInfo,
+  }) async {
     final build = HybridApp.native[route];
     if (build == null) return;
     _openedRoute = route;
@@ -711,8 +826,22 @@ class _HybridAppState extends State<HybridApp> {
     GamePreset.set(query);
     // Адрес нужен каркасу, чтобы показать правило ИМЕННО этой игры.
     GameRules.currentRoute = route;
+    // 🔴 ШАГ ЗАРЯДКИ — В РАМКЕ С ПОЛОСКОЙ «N/M · ⏭» (задача 63bccf96): веб рисует её в
+    // своём каркасе, а нативный экран лежит поверх страницы. Номер шага знает веб —
+    // спрашиваем; когда переход ведёт сама оболочка, он известен заранее.
+    final step = GamePreset.isPreset ? ValueNotifier<WarmupStepInfo?>(stepInfo) : null;
+    if (step != null && stepInfo == null) unawaited(_loadStepInfo(step));
     final result = await Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => build(widget.state)),
+      MaterialPageRoute(
+        // «Заново» в паузе любой игры — пересоздание экрана в RestartScope (restart_scope.dart).
+        builder: (_) => step == null
+            ? RestartScope(builder: (_) => build(widget.state))
+            : WarmupStepFrame(
+                info: step,
+                onSkip: _skipNativeStep,
+                child: RestartScope(builder: (_) => build(widget.state)),
+              ),
+      ),
     );
     // ⚠️ Отметку снимаем, ТОЛЬКО если она всё ещё наша: когда страница ушла вперёд,
     // поверх уже открыт следующий экран, и его отметку затирать нельзя.

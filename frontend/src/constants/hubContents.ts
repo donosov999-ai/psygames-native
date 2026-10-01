@@ -212,6 +212,16 @@ export const HUB_CONTENTS: Record<string, HubSubGame[]> = {
      */
     { route: '/games/sudoku?mode=towers', icon: 'business', nameKey: 'sudokuTowersTitle', descKey: 'sudokuTowersHubDesc', typeKey: 'sudokuTypeTowers' },
     { route: '/games/sudoku?mode=unequal', icon: 'swap-vertical', nameKey: 'sudokuUnequalTitle', descKey: 'sudokuUnequalHubDesc', typeKey: 'sudokuTypeUnequal' },
+    /**
+     * «Кошки» (Queens / Star Battle) — решение Дениса 24.09.2026: «в развилку
+     * «Судоку» пятой карточкой». Экран рождается сразу нативным
+     * (flutter/lib/games/cats): веб-страницы у игры нет и не нужно — веб живёт только
+     * внутри приложения, где адрес перехватывает нативный экран.
+     * ⚠️ descKey здесь — это ПРАВИЛО игры: каркас приложения показывает его по адресу
+     * сам (flutter/lib/shell/game_rules.dart), и гейт every_game_has_rules требует его
+     * у каждой перехваченной игры.
+     */
+    { route: '/games/cats', icon: 'paw', nameKey: 'catsTitle', descKey: 'catsDesc', typeKey: 'catsType' },
   ],
 
 
