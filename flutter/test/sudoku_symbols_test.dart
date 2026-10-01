@@ -26,7 +26,9 @@ void main() {
   });
 
   Future<void> boot(WidgetTester tester, Map<String, Object> prefs) async {
-    SharedPreferences.setMockInitialValues(prefs);
+    // Язык закреплён: без выбора приложение с 01.10 берёт язык телефона (в CI —
+    // английский), а проба сверяет русские буквы и русские подписи.
+    SharedPreferences.setMockInitialValues({'language': 'ru', ...prefs});
     await tester.runAsync(() async {
       state = await SharedState.open();
       await tester.pumpWidget(MaterialApp(home: SudokuScreen(state: state)));
