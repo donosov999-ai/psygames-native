@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../../shell/boss_round.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/game_shell.dart';
@@ -50,6 +51,7 @@ class _SimonScreenState extends State<SimonScreen> {
   SimonOutcome? _flash;
   Timer? _timer;
   bool _passed = false;
+  bool? _boss; // итог боя на вехе; null — боя не было
 
   @override
   void initState() {
@@ -122,7 +124,10 @@ class _SimonScreenState extends State<SimonScreen> {
 
   void _answer(SimonSide side) {
     final g = _game;
-    if (g == null || _phase != SimonPhase.playing || !g.stimulusShown) return;
+    // `finished` — партия уже сдана в `_finish`, а фаза ещё «игра»: пока лестница пишет
+    // победу и открывается бой, последний квадрат на экране, и нажатие сдало бы партию
+    // второй раз.
+    if (g == null || _phase != SimonPhase.playing || !g.stimulusShown || g.finished) return;
     _after(g.answer(side));
   }
 
@@ -136,19 +141,24 @@ class _SimonScreenState extends State<SimonScreen> {
     });
   }
 
-  void _finish() {
+  Future<void> _finish() async {
     final g = _game!;
     _timer?.cancel();
     final passed = g.accuracy >= simonPassAccuracy;
+    // Веха как в вебе: каждый третий ЗАСЧИТАННЫЙ уровень — бой «жми / не жми», потом итог.
+    bool? boss;
+    if (passed) {
+      boss = await BossRound.winThenBoss(context, _ladder,
+          type: BossType.gonogo, color: const Color(0xFF1E3A8A));
+    } else {
+      await _ladder.fail();
+    }
+    if (!mounted) return;
     setState(() {
       _phase = SimonPhase.done;
       _passed = passed;
+      _boss = boss;
     });
-    if (passed) {
-      _ladder.win();
-    } else {
-      _ladder.fail();
-    }
   }
 
   @override
@@ -172,6 +182,7 @@ class _SimonScreenState extends State<SimonScreen> {
         phase: _phase,
         flash: _flash,
         passed: _passed,
+        boss: _boss,
         height: h,
         onStart: _start,
         onAgain: () => setState(_reset),
@@ -252,6 +263,7 @@ class _Field extends StatelessWidget {
     required this.phase,
     required this.flash,
     required this.passed,
+    required this.boss,
     required this.height,
     required this.onStart,
     required this.onAgain,
@@ -261,6 +273,7 @@ class _Field extends StatelessWidget {
   final SimonPhase phase;
   final SimonOutcome? flash;
   final bool passed;
+  final bool? boss;
 
   /// Высота поля приходит числом от каркаса.
   final double height;
@@ -311,6 +324,7 @@ class _Field extends StatelessWidget {
             Text(effect == null
                 ? '${L.t('hud_interference')}: —'
                 : '${L.t('hud_interference')}: $effect ${L.t('msShort')}'),
+            BossOutcomeLine(boss),
             const SizedBox(height: 16),
             FilledButton(onPressed: onAgain, child: Text(L.t('retry'))),
           ],

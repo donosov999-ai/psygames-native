@@ -75,9 +75,8 @@
      `BossRound.winThenBoss(context, _ladder, type:, color:)` вместо `_ladder.win()`,
      `BossOutcomeLine(_boss)` в итоге партии; тип — `config.type` веб-экрана, цвет —
      `GRADIENT[0]`. Проба — `flutter/test/support/boss_probe.dart`. Подключены 9 экранов
-     «Поиска и счёта» и `corsi` (раздел «Объём памяти», 01.10); ещё без боя: ant, choice-rt, cpt, flanker, go-no-go,
-     inhibition, posner, proofreading, simon, stop-signal, stroop, stroop-emotional,
-     sudoku, switching-task.
+     «Поиска и счёта», все 13 «Конфликта внимания» (01.10, задача 67c77247) и `corsi`
+     (раздел «Объём памяти», 01.10); ещё без боя: sudoku.
 
 6. 🔴 **Подписи — из словаря, а не строками в коде.** `L.t('ключ')`
    (`flutter/lib/shell/l10n.dart`), ключ завести в `frontend/src/contexts/LanguageContext.tsx`,
