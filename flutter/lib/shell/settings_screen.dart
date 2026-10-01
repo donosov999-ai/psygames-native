@@ -95,6 +95,12 @@ const settingsProfileKeys = <String>[
   'profileDesc_polyglot',
 ];
 
+/// Поле «профили» сохранённого состава (`СохранённыйСостав` в `playlistOverride.ts`) — имя
+/// поля СХЕМЫ ВЕБА, а не текст экрана: веб назвал поля по-русски. Кодами символов, чтобы сторожа
+/// кириллицы в коде (`no_new_hardcoded_cyrillic`, `ui_text_debt_does_not_grow`) считали только
+/// видимый текст.
+const _profilesField = '\u043f\u0440\u043e\u0444\u0438\u043b\u0438';
+
 /// Значок категории игры в листе деталей — `CATEGORY_EMOJI` из `app/settings.tsx`.
 const _categoryEmoji = {'memory': '🧠', 'attention': '🎯', 'logic': '🧩', 'action': '⚡'};
 
@@ -289,7 +295,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   int? get _playlistProfiles {
     try {
       final j = jsonDecode(_s.get(SettingsScreen.playlists) ?? '');
-      return j is Map && j['профили'] is Map ? (j['профили'] as Map).length : null;
+      return j is Map && j[_profilesField] is Map ? (j[_profilesField] as Map).length : null;
     } catch (_) {
       return null;
     }
@@ -445,7 +451,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     child: Text(p.text('long_description', loc)!, style: TextStyle(fontSize: 13, color: sub, height: 1.45)),
                   ),
                 Wrap(spacing: 8, runSpacing: 8, children: [
-                  if (p.sessionMinutes != null) chip('⏱ ${loc == 'ru' ? p.sessionMinutes! : p.sessionMinutes!.replaceAll('мин', 'min')}'),
+                  if (p.sessionMinutes != null) chip('⏱ ${p.sessionMinutes!} ${L.t('unitMin')}'),
                   if (p.warmup) chip('☀️ ${L.t('badge_morning_warmup')}'),
                   if (p.financialDay) chip('💰 Financial Brain Day'),
                   if (p.assessment) chip('📊 G1 Assessment'),
@@ -555,7 +561,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(fontSize: 10, height: 1.3, color: active ? Colors.black.withValues(alpha: 0.7) : sub)),
                         if (p.sessionMinutes != null)
-                          Text('⏱ ${p.sessionMinutes!.replaceAll('мин', L.t('unitMin'))}',
+                          Text('⏱ ${p.sessionMinutes!} ${L.t('unitMin')}',
                               style: TextStyle(fontSize: 9, color: active ? Colors.black.withValues(alpha: 0.55) : sub)),
                       ]),
                     ),

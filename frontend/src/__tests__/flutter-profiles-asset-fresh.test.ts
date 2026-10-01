@@ -34,6 +34,8 @@ function build(): string {
   const profiles = PROFILES.map((p) => {
     const o: Record<string, unknown> = {};
     for (const f of FIELDS) if ((p as any)[f] !== undefined) o[f] = (p as any)[f];
+    // Единица — словарём натива (`unitMin`), а не русским хвостом в данных: «5-15 мин» → «5-15».
+    if (typeof o.session_minutes === 'string') o.session_minutes = (o.session_minutes as string).replace(/\s*мин\.?\s*$/, '');
     o.requiresUnlock = requiresUnlock(p.id);
     o.comingSoon = isComingSoon(p.id);
     return o;
