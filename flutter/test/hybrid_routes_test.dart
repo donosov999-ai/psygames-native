@@ -376,6 +376,8 @@ void main() {
       '/games/sudoku-hub',
       '/games/sudoku?mode=towers',
       '/games/sudoku?mode=unequal',
+      // «Судоку для малышей» (4×4, звери) — только нативно, 01.10.2026.
+      '/games/sudoku?mode=junior',
       '/games/puzzles-hub',
       '/games/sudoku-fractal',
       '/games/sudoku-fractal-deep',

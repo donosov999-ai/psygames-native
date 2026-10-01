@@ -19,6 +19,7 @@ import 'generator/engine.dart';
 import 'generator/pool.dart';
 import 'generator/shadow.dart';
 import 'generator/store.dart';
+import 'junior.dart';
 import 'levels.dart';
 import '../../shell/lesson.dart';
 import '../../shell/lesson_player.dart';
@@ -39,7 +40,7 @@ import 'symbols.dart';
 /// Уровень лежит в общей памяти под тем же ключом, что у веб-версии
 /// (`psygames_sudoku_level_<профиль>`), поэтому прогресс один на обе половины.
 class SudokuScreen extends StatefulWidget {
-  const SudokuScreen({super.key, required this.state, this.mode});
+  const SudokuScreen({super.key, required this.state, this.mode, this.junior = false});
 
   final SharedState state;
 
@@ -47,6 +48,11 @@ class SudokuScreen extends StatefulWidget {
   /// «Неравенства» со своей мини-лестницей на 8 ступеней и своим счётчиком.
   /// В вебе это тот же экран с адресом `/games/sudoku?mode=towers`.
   final SideMode? mode;
+
+  /// «Судоку для малышей»: доски 4×4 (`junior.dart`), своя мини-лестница и свой счётчик;
+  /// обычная лестница на 92 ступени, пилот генератора и бой с боссом не трогаются.
+  /// Значки по умолчанию — звери (пока игрок сам не выбрал другие).
+  final bool junior;
 
   @override
   State<SudokuScreen> createState() => _SudokuScreenState();
@@ -264,22 +270,81 @@ class _SudokuScreenState extends State<SudokuScreen> {
     if (!mounted) return;
     setState(() {
       _levels = levels;
-      _choice = SkinChoice.parse(widget.state.get(_skinKey));
+      final savedSkin = widget.state.get(_skinKey);
+      _choice = widget.junior && savedSkin == null
+          ? const SkinChoice(SudokuSkin.animals)
+          : SkinChoice.parse(savedSkin);
       _pool = buildPool(levels);
       final store = GeneratorStore(widget.state);
       _genStore = store;
       _shadow = GeneratorShadow(store);
       _levelsOfTemplate = levelsByTemplate(levels);
       // Флаг действует только на лестницу: у «Небоскрёбов» и «Неравенств» своя.
-      _pilot = widget.mode == null && store.enabled;
+      _pilot = widget.mode == null && !widget.junior && store.enabled;
       if (_pilot) _pilotWins = store.load().adaptiveWins;
       _sideModes = modes;
       if (widget.mode != null) _side = SideProgress(widget.state, widget.mode!);
+      if (widget.junior) _junior = JuniorProgress(widget.state);
     });
     _deal();
   }
 
+  /// Ступень малышей; `null` — обычная игра.
+  JuniorProgress? _junior;
+
+  /// Раздача малышей: доска 4×4 своей ступени, значки — как у лестницы.
+  void _dealJunior() {
+    final junior = _junior;
+    if (junior == null) return;
+    final seed = DateTime.now().millisecondsSinceEpoch; // wall-clock: зерно раздачи
+    final board = juniorBoard(junior.step, seed);
+    setState(() {
+      _board = board;
+      _applySymbols(board, seed);
+      _failure = null;
+      _grid = [for (final row in board.puzzle) [...row]];
+      _given = [for (final row in board.puzzle) [for (final v in row) v != 0]];
+      _history.clear();
+      _resetNotes(board.n);
+      _selected = null;
+      _errors = 0;
+      _startedAt = gameNow();
+      _hintsUsed = 0;
+      _backtracks = 0;
+      _won = false;
+      _lost = false;
+    });
+  }
+
+  /// Победа малышей: отчёт с режимом и ступенью, следующая ступень — свой счётчик.
+  void _juniorWin() {
+    final junior = _junior;
+    if (junior == null) return;
+    final step = junior.step;
+    unawaited(SessionReport.send(
+      gameType: 'sudoku',
+      score: _score(step),
+      timeSeconds: _elapsed,
+      mode: 'junior-$step',
+      errors: _errors,
+      details: {
+        'errors': _errors,
+        'completed': true,
+        'hint_uses': _hintsUsed,
+        'backtrack_count': _backtracks,
+        'level': step,
+        'variant': 'junior',
+        if (_skinShown != null) 'skin': _skinShown,
+      },
+    ));
+    junior.win();
+  }
+
   void _deal() {
+    if (widget.junior) {
+      _dealJunior();
+      return;
+    }
     final mode = widget.mode;
     if (mode != null) {
       final modes = _sideModes, side = _side;
@@ -731,6 +796,10 @@ class _SudokuScreenState extends State<SudokuScreen> {
       _side?.win();   // ступень режима — свой счётчик, лестница на 92 ступени не трогается
       return;
     }
+    if (widget.junior) {
+      _juniorWin();
+      return;
+    }
     // Подсказками доигранная партия рейтинг не повышает — это правило движка, не экрана.
     if (_pilot) {
       _pilotFinish(_hintsUsed > 0 ? Outcome.assisted : Outcome.passed);
@@ -870,9 +939,11 @@ class _SudokuScreenState extends State<SudokuScreen> {
         HudItem(
           label: 'Уровень',
           // У пилота номер — счётчик побед: только растёт, конца нет (решение 18.09).
-          value: widget.mode != null
-              ? '${_side?.step ?? 1}/$sideSteps'
-              : _pilot ? '${_pilotWins + 1}' : '${_ladder.level}',
+          value: widget.junior
+              ? '${_junior?.step ?? 1}/$juniorSteps'
+              : widget.mode != null
+                  ? '${_side?.step ?? 1}/$sideSteps'
+                  : _pilot ? '${_pilotWins + 1}' : '${_ladder.level}',
           icon: _pilot ? Icons.auto_awesome : Icons.trending_up,
         ),
         HudItem(label: 'Ошибки', value: '$_errors/$errorLimit', icon: Icons.close),
@@ -972,7 +1043,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
             ),
       pauseActions: [
         PauseAction(label: 'Начать заново', icon: Icons.refresh, onPressed: _deal),
-        if (widget.mode == null && _genStore != null)
+        if (widget.mode == null && !widget.junior && _genStore != null)
           PauseAction(
             label: _pilot ? L.t('sudokuPilotOff') : L.t('sudokuPilotOn'),
             icon: _pilot ? Icons.trending_up : Icons.auto_awesome,
