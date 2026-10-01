@@ -6,6 +6,7 @@
 // Не заявлять лечение, диагностику или улучшение зрения.
 // Deterministic single-image random-dot stereograms. No network or asset service.
 // Run: node scripts/generate-eye-stereograms.mjs
+import { Buffer } from 'node:buffer';
 import { deflateSync } from 'node:zlib';
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
