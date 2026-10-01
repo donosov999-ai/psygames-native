@@ -89,6 +89,9 @@ flutter:
   assets:
     - assets/levels/
     - assets/hubs.json
+    # Иконки игр «поле в миниатюре» для строк развилок — выгрузка веб-реестра
+    # (flutter/tools/embed-game-icons.mjs), не править руками.
+    - assets/game_icons/
     - assets/level_rules.json
     # Корпус позиций «Доски в уме»: 2000 задач Lichess (CC0). Каталог объявлен
     # ПОИМЁННО — строка вида «- assets/x/» берёт только файлы самой папки, и
