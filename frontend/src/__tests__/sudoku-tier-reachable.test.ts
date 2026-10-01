@@ -79,10 +79,12 @@ const MEASURED_CEILING: Record<string, number> = {
   regionsum: 5,
   // палиндром (105–108): потолок по замеру выгрузки.
   palindrome: 5,
+  // между концами (109–112): потолок по замеру выгрузки.
+  between: 5,
 };
 
 /** 27.08 стояло 80 — комбо-пояс 81..92 не сторожил никто (так же было в sudoku-ladder-monotonic). */
-const LAST_LEVEL = 108;   // 93–96 — немецкий шёпот (01.10.2026)
+const LAST_LEVEL = 112;   // 93–96 — немецкий шёпот (01.10.2026)
 const LEVELS = Array.from({ length: LAST_LEVEL }, (_, i) => i + 1);
 
 describe('лестница судоку требует только достижимого', () => {

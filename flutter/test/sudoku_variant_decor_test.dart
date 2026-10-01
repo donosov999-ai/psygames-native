@@ -82,6 +82,10 @@ void main() {
               expect(d?.palindrome, isNotNull, reason: '$at: звено линии «палиндром» $r,$c не нарисовано');
               checked['palindrome'] = (checked['palindrome'] ?? 0) + 1;
             }
+            if (g.between?[r][c] != null) {
+              expect(d?.between, isNotNull, reason: '$at: звено линии «между концами» $r,$c не нарисовано');
+              checked['between'] = (checked['between'] ?? 0) + 1;
+            }
             final p = g.parity?[r][c] ?? 0;
             if (p != 0) {
               expect(d?.parity, p, reason: '$at: метка чётности $r,$c не нарисована');
@@ -127,7 +131,7 @@ void main() {
       }
     }
     // Проба не пустая: каждая из шести подсказок встретилась на доске.
-    for (final kind in ['thermo', 'arrow', 'parity', 'cage', 'kropki', 'sandwich', 'diagonal', 'hyper', 'whisper', 'renban', 'regionsum', 'palindrome']) {
+    for (final kind in ['thermo', 'arrow', 'parity', 'cage', 'kropki', 'sandwich', 'diagonal', 'hyper', 'whisper', 'renban', 'regionsum', 'palindrome', 'between']) {
       expect(checked[kind] ?? 0, greaterThan(0), reason: 'подсказка «$kind» не встретилась ни разу — проба мимо');
     }
   });

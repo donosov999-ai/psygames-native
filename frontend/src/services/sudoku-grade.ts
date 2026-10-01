@@ -25,7 +25,7 @@
  */
 import {
   Cell, Variant, ThermoPN, ArrowMap, CageMap, isValid, generatePuzzle, shuffle, HYPER_BOXES, ORTHO,
-  Overlays, levelConfig, UnequalMap, TowersMap, towersLineOk, WHISPER_GAP, renbanOk, lineCells, regionSumOk, palindromeOk,
+  Overlays, levelConfig, UnequalMap, TowersMap, towersLineOk, WHISPER_GAP, renbanOk, lineCells, regionSumOk, palindromeOk, betweenOk,
 } from './sudoku-core';
 
 export type Technique =
@@ -44,9 +44,11 @@ export type Technique =
   | 'x_wing'          // X-wing
   | 'xy_wing'         // XY-wing: ось {a,b} и два клюва {a,c} и {b,c} — c уходит там, где видно оба
   | 'palindrome_mirror'  // кандидаты зеркальных клеток линии пересекаются
+  | 'between_window'  // кандидат вне любого окна между концами линии
   | 'guess';          // логики не хватило — нужен перебор
 
 export const TECHNIQUE_TIER: Record<Technique, number> = {
+  between_window: 4,   // между концами: кандидат вне любого окна между концами линии
   // Палиндром: кандидаты зеркальных клеток пересекаются. Ступень 4 — как у всего КЛАССА выводов
   // варианта (`выводВарианта` включается с 4): мутация «приём без потолка» на ступени 3 выжила бы.
   palindrome_mirror: 4,
@@ -96,6 +98,7 @@ export interface GradeCtx {
   /** Линии равных сумм: в каждом блоке линии сумма её цифр одна. */
   regionsum?: ThermoPN;
   palindrome?: ThermoPN;
+  between?: ThermoPN;
 }
 
 export interface Grade {
@@ -171,7 +174,7 @@ export function unitsFor(N: number, BR: number, BC: number, variant: Variant, re
 
 /** Оценка пазла: самая сложная техника, без которой не обойтись. */
 export function gradePuzzle(puzzle: Cell[][], ctx: GradeCtx, tierCap = 9): Grade {
-  const { N, BR, BC, variant, regions, thermo, arrow, cages, parity, kropki, sandwich, unequal, towers, whisper, renban, regionsum, palindrome } = ctx;
+  const { N, BR, BC, variant, regions, thermo, arrow, cages, parity, kropki, sandwich, unequal, towers, whisper, renban, regionsum, palindrome, between } = ctx;
   const grid = puzzle.map((row) => [...row]);
   const FULL = (1 << N) - 1;
   const cand: number[][] = Array.from({ length: N }, () => Array(N).fill(FULL));
@@ -270,6 +273,7 @@ export function gradePuzzle(puzzle: Cell[][], ctx: GradeCtx, tierCap = 9): Grade
         // Равные суммы против ИЗВЕСТНЫХ цифр: коридоры сумм по блокам — даром.
         if (ok && regionsum && !regionSumOk(grid, r, c, v, regionsum, N, BR, BC)) ok = false;
         if (ok && palindrome && !palindromeOk(grid, r, c, v, palindrome)) ok = false;   // против известных цифр — даром
+        if (ok && between && !betweenOk(grid, r, c, v, between)) ok = false;   // против известных цифр — даром
         if (!ok) m &= ~bit(v);
       }
       cand[r][c] = m;
@@ -493,6 +497,42 @@ export function gradePuzzle(puzzle: Cell[][], ctx: GradeCtx, tierCap = 9): Grade
         }
       }
       if (usedMirror) bump('palindrome_mirror');
+    }
+
+    /**
+     * ── «МЕЖДУ КОНЦАМИ»: кандидат конца a живёт, только если у другого конца есть b ≠ a такой,
+     * что у КАЖДОЙ средней клетки найдётся кандидат строго между a и b; кандидат средней — если
+     * есть пара концов, между которыми он лежит. Техника `between_window` (ступень 4); срез по
+     * известным цифрам — даром.
+     */
+    if (between && выводВарианта) {
+      let usedBetween = false;
+      for (let r0 = 0; r0 < N; r0++) for (let c0 = 0; c0 < N; c0++) {
+        const head = between[r0][c0];
+        if (!head || head.prev) continue;
+        const cells = lineCells(between, r0, c0);
+        const opts = (cell: [number, number]) => (grid[cell[0]][cell[1]] ? [grid[cell[0]][cell[1]]] : bitsOf(cand[cell[0]][cell[1]], N));
+        const A = cells[0], B = cells[cells.length - 1], mids = cells.slice(1, -1);
+        const fits = (a: number, b: number) => a !== b && mids.every((m) => opts(m).some((v) => v > Math.min(a, b) && v < Math.max(a, b)));
+        const keepA: number[] = [], keepB: number[] = [];
+        const keepMid = mids.map(() => 0);
+        for (const a of opts(A)) for (const b of opts(B)) {
+          if (!fits(a, b)) continue;
+          if (!keepA.includes(a)) keepA.push(a);
+          if (!keepB.includes(b)) keepB.push(b);
+          mids.forEach((m, i) => { for (const v of opts(m)) if (v > Math.min(a, b) && v < Math.max(a, b)) keepMid[i] |= bit(v); });
+        }
+        const prune = (cell: [number, number], mask: number) => {
+          if (grid[cell[0]][cell[1]]) return false;
+          const next = cand[cell[0]][cell[1]] & mask;
+          if (next !== cand[cell[0]][cell[1]]) { cand[cell[0]][cell[1]] = next; usedBetween = true; }
+          return next === 0;
+        };
+        if (prune(A, keepA.reduce((m, v) => m | bit(v), 0))) return true;
+        if (prune(B, keepB.reduce((m, v) => m | bit(v), 0))) return true;
+        for (let i = 0; i < mids.length; i++) if (prune(mids[i], keepMid[i])) return true;
+      }
+      if (usedBetween) bump('between_window');
     }
 
     if (unequal && выводВарианта) {
@@ -1069,6 +1109,9 @@ const VARIANT_TIER_CEILING: Partial<Record<Variant, number>> = {
   /** Палиндром (105–108) — ЗАМЕР 01.10.2026, выгрузка 48 досок: 4 ×46, 5 ×2; шестёрки ноль. Без
    *  линий не решается 0 из 48, под потолком 3 — 2 из 48. Потолок 5. */
   palindrome: 5,
+  /** «Между концами» (109–112) — ЗАМЕР 01.10.2026, выгрузка 48 досок: 4 ×45, 5 ×3; шестёрки ноль.
+   *  Без линий не решается 0 из 48, под потолком 3 — 0 из 48. Потолок 5. */
+  between: 5,
   /**
    * Комбо-пояс 81–92 — ЗАМЕР 29.08.2026 (combo-tiers.measure, по 15 боевых досок):
    * шестёрка у всех трёх пар — 0–1 из 15 (не массово), пятёрка достижима у всех
@@ -1279,7 +1322,7 @@ export type GeneratedPuzzle = ReturnType<typeof generatePuzzle>;
  * refilter; если конкретная попытка не укладывается в бюджет, generateLogical всё
  * равно сохраняет прежний безопасный fallback через проверку единственности.
  */
-const LOGIC_VARIANTS: readonly Variant[] = ['none', 'diagonal', 'antiknight', 'hyper', 'antiking', 'evenodd', 'kropki', 'sandwich', 'jigsaw', 'nonconsec', 'thermo', 'arrow', 'thermocage', 'sandparity', 'thermoknight', 'killerdiag', 'whisper', 'renban', 'regionsum', 'palindrome'];
+const LOGIC_VARIANTS: readonly Variant[] = ['none', 'diagonal', 'antiknight', 'hyper', 'antiking', 'evenodd', 'kropki', 'sandwich', 'jigsaw', 'nonconsec', 'thermo', 'arrow', 'thermocage', 'sandparity', 'thermoknight', 'killerdiag', 'whisper', 'renban', 'regionsum', 'palindrome', 'between'];
 
 /**
  * Сколько раз проходим доску, пытаясь убрать ещё клетку. Больше трёх бюджет обычно
@@ -1333,7 +1376,7 @@ export function solvedSameBoard(grade: Grade, solution: Cell[][]): boolean {
 function gradeOf(gen: GeneratedPuzzle, N: number, BR: number, BC: number, variant: Variant): Grade {
   return gradePuzzle(gen.puzzle, {
     N, BR, BC, variant, regions: gen.regions, thermo: gen.thermo, arrow: gen.arrow, cages: gen.cages,
-    parity: gen.parity, kropki: gen.kropki, sandwich: gen.sandwich, whisper: gen.whisper, renban: gen.renban, regionsum: gen.regionsum, palindrome: gen.palindrome,
+    parity: gen.parity, kropki: gen.kropki, sandwich: gen.sandwich, whisper: gen.whisper, renban: gen.renban, regionsum: gen.regionsum, palindrome: gen.palindrome, between: gen.between,
     // ⚠️ Знаки и краевые подсказки ОБЯЗАНЫ доходить до оценщика. До 27.08.2026 их
     // здесь не было, и запасной путь оценивал unequal/towers вслепую: та же доска
     // давала «ступень 2, hidden_single» без карты и «ступень 4, unequal_chain» с ней.
@@ -1368,7 +1411,7 @@ function digByLogic(
   // увидит человек — та же дисциплина, что у сэндвича и кропки.
   const unequal = (base as { unequal?: UnequalMap }).unequal;
   const towers = (base as { towers?: TowersMap }).towers;
-  const ctx: GradeCtx = { N, BR, BC, variant, regions: base.regions, thermo: base.thermo, arrow: base.arrow, cages: base.cages, parity, kropki, sandwich, unequal, towers, whisper: base.whisper, renban: base.renban, regionsum: base.regionsum, palindrome: base.palindrome };
+  const ctx: GradeCtx = { N, BR, BC, variant, regions: base.regions, thermo: base.thermo, arrow: base.arrow, cages: base.cages, parity, kropki, sandwich, unequal, towers, whisper: base.whisper, renban: base.renban, regionsum: base.regionsum, palindrome: base.palindrome, between: base.between };
 
   // Лимит пустых держим только на новичковых уровнях, чтобы не пугать доской в дырках.
   // Дальше глубину задаёт ЛОГИКА. Старый лимит (58 к 29-му) как раз и упирался в потолок,

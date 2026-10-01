@@ -1111,6 +1111,7 @@ String variantTitle(String variant) => switch (variant) {
       'renban' => L.t('sdkRule_renban'),
       'regionsum' => L.t('sdkRule_regionsum'),
       'palindrome' => L.t('sdkRule_palindrome'),
+      'between' => L.t('sdkRule_between'),
       _ => L.t('sdkRule_none'),
     };
 

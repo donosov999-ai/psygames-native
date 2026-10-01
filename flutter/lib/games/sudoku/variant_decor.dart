@@ -36,6 +36,9 @@ const regionSumBlue = Color(0xFF3B82F6);
 /// Линия «палиндром» — `#9CA3AF` веба.
 const palindromeColor = Color(0xFF9CA3AF);
 
+/// Линия «между концами» — `#6B7280` веба.
+const betweenColor = Color(0xFF6B7280);
+
 /// Фиолетовая полоса ренбана — `#A855F7` веба, бледная (доля 0,32), чтобы цифра читалась.
 const renbanPurple = Color(0xFFA855F7);
 const cageAccents = [
@@ -48,7 +51,7 @@ const double seam = 1.5;
 
 /// Что нарисовать в одной клетке (под цифрой).
 class CellDecor {
-  const CellDecor({this.thermo, this.arrow, this.parity = 0, this.cageId = -1, this.whisper, this.renban, this.regionsum, this.palindrome});
+  const CellDecor({this.thermo, this.arrow, this.parity = 0, this.cageId = -1, this.whisper, this.renban, this.regionsum, this.palindrome, this.between});
 
   /// Звено термометра; колба — у клетки без `prev`.
   final ThermoLink? thermo;
@@ -74,10 +77,14 @@ class CellDecor {
   /// Звено линии «палиндром».
   final ThermoLink? palindrome;
 
+  /// Звено линии «между концами».
+  final ThermoLink? between;
+
   bool get isEmpty =>
       thermo == null && arrow == null && parity == 0 && cageId < 0 && whisper == null && renban == null &&
       regionsum == null &&
-      palindrome == null;
+      palindrome == null &&
+      between == null;
 }
 
 /// Рисунок клетки по геометрии доски; `null` — рисовать нечего.
@@ -91,6 +98,7 @@ CellDecor? cellDecorFor(BoardGeometry g, int r, int c) {
     renban: g.renban?[r][c],
     regionsum: g.regionsum?[r][c],
     palindrome: g.palindrome?[r][c],
+    between: g.between?[r][c],
   );
   return d.isEmpty ? null : d;
 }
@@ -173,13 +181,34 @@ class CellDecorPainter extends CustomPainter {
         if (nb != null) canvas.drawRect(segment(size, row, col, nb, thick), paint);
       }
     }
-    final lx = decor.palindrome;
-    if (lx != null) {
+    final palindromeLink = decor.palindrome;
+    if (palindromeLink != null) {
       // палиндром — как в вебе (`app/games/sudoku.tsx`).
       final thick = math.max(3.0, (cell * 0.16).roundToDouble());
       final paint = Paint()..color = blendColor(surface, palindromeColor, 0.6);
-      for (final nb in [lx.prev, lx.next]) {
+      for (final nb in [palindromeLink.prev, palindromeLink.next]) {
         if (nb != null) canvas.drawRect(segment(size, row, col, nb, thick), paint);
+      }
+    }
+    final betweenLink = decor.between;
+    if (betweenLink != null) {
+      // между концами — как в вебе (`app/games/sudoku.tsx`).
+      final thick = math.max(3.0, (cell * 0.16).roundToDouble());
+      final paint = Paint()..color = blendColor(surface, betweenColor, 0.6);
+      for (final nb in [betweenLink.prev, betweenLink.next]) {
+        if (nb != null) canvas.drawRect(segment(size, row, col, nb, thick), paint);
+      }
+      // Концы линии — кружки (как кружок стрелки): в них цифры-границы.
+      if (betweenLink.prev == null || betweenLink.next == null) {
+        canvas.drawCircle(Offset(cell / 2, cell / 2), cell * 0.4, Paint()..color = surface);
+        canvas.drawCircle(
+          Offset(cell / 2, cell / 2),
+          cell * 0.4,
+          Paint()
+            ..color = paint.color
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = math.max(2.0, (cell * 0.07).roundToDouble()),
+        );
       }
     }
     final w = decor.whisper;

@@ -381,7 +381,7 @@ export const SUDOKU_GAME_ID = GAME_ID;
  * Число берётся из гейта, а не пишется рядом: расхождение этих двух чисел и было
  * дефектом, и повториться оно не должно (см. `sudoku-ladder-matches-gate`).
  */
-const SUDOKU_LAST_LEVEL = 108;   // 54–57 ThermoCage; 58–65 ALS; 66–79 цепи; 80 легенда; 81–92 комбо; 93–96 немецкий шёпот; 97–100 ренбан; 101–104 равные суммы; 105–108 палиндром
+const SUDOKU_LAST_LEVEL = 112;   // 54–57 ThermoCage; 58–65 ALS; 66–79 цепи; 80 легенда; 81–92 комбо; 93–96 немецкий шёпот; 97–100 ренбан; 101–104 равные суммы; 105–108 палиндром; 109–112 между концами
 const SUDOKU_TIER_KEYS: Record<SudokuDifficultyTier, string> = {
   beginner: 'sudokuTierBeginner',
   easy: 'sudokuTierEasy',
@@ -470,6 +470,8 @@ interface SudokuResume {
   regionsum?: ThermoPN | null;
   /** палиндром (105–108); в старых снимках поля нет — читать с ?? null. */
   palindrome?: ThermoPN | null;
+  /** между концами (109–112); в старых снимках поля нет — читать с ?? null. */
+  between?: ThermoPN | null;
   /** Поля режимов towers/unequal; в старых снимках отсутствуют — читать с ?? null. */
   unequal?: UnequalMap | null;
   towers?: TowersMap | null;
@@ -692,6 +694,7 @@ export default function SudokuGame() {
   const [renban, setRenban] = useState<ThermoPN | null>(null);     // ренбан: линии той же формы prev/next
   const [regionsum, setRegionsum] = useState<ThermoPN | null>(null);   // равные суммы: линии той же формы
   const [palindrome, setPalindrome] = useState<ThermoPN | null>(null);   // палиндром
+  const [between, setBetween] = useState<ThermoPN | null>(null);   // между концами
   const [arrow, setArrow] = useState<ArrowMap | null>(null);   // arrow: кружок (сумма) + стрелка
   const [unequalMap, setUnequalMap] = useState<UnequalMap | null>(null);   // unequal: знаки </> на гранях
   const [towersMap, setTowersMap] = useState<TowersMap | null>(null);   // towers: числа видимости на четырёх краях
@@ -1035,6 +1038,7 @@ export default function SudokuGame() {
     setRenban((built as { renban?: ThermoPN }).renban ?? null);
     setRegionsum((built as { regionsum?: ThermoPN }).regionsum ?? null);
     setPalindrome((built as { palindrome?: ThermoPN }).palindrome ?? null);
+    setBetween((built as { between?: ThermoPN }).between ?? null);
     setArrow(ar ?? null);
     // Карты режимов towers/unequal: на прочих досках их нет — чистим до null.
     const sideMaps = built as { unequal?: UnequalMap; towers?: TowersMap };
@@ -1076,7 +1080,7 @@ export default function SudokuGame() {
   const snapshot = (): SudokuResume => ({
     mode, level, road, difficulty, size, variant, dims,
     puzzle, solution, grid, given, cellColors, marks,
-    regions, cages, cageSums, cageAnchors, parityMarks, kropki, sandwich, thermo, arrow, whisper, renban, regionsum, palindrome,
+    regions, cages, cageSums, cageAnchors, parityMarks, kropki, sandwich, thermo, arrow, whisper, renban, regionsum, palindrome, between,
     unequal: unequalMap, towers: towersMap,
     errors, hintUses, hintMax, backtrackCount,
     elapsed: elapsedTime,
@@ -1105,7 +1109,7 @@ export default function SudokuGame() {
     setPencil(false);
     setRegions(s.regions); setCages(s.cages); setCageSums(s.cageSums); setCageAnchors(s.cageAnchors);
     setParityMarks(s.parityMarks); setKropki(s.kropki); setSandwich(s.sandwich);
-    setThermo(s.thermo); setArrow(s.arrow); setWhisper(s.whisper ?? null); setRenban(s.renban ?? null); setRegionsum(s.regionsum ?? null); setPalindrome(s.palindrome ?? null);
+    setThermo(s.thermo); setArrow(s.arrow); setWhisper(s.whisper ?? null); setRenban(s.renban ?? null); setRegionsum(s.regionsum ?? null); setPalindrome(s.palindrome ?? null); setBetween(s.between ?? null);
     setUnequalMap(s.unequal ?? null); setTowersMap(s.towers ?? null);   // старые снимки полей не имеют
     setErrors(s.errors); setHintUses(s.hintUses); setHintMax(s.hintMax); setBacktrackCount(s.backtrackCount);
     setSelected(null); setOver(false); setBossWon(null);
@@ -1288,6 +1292,7 @@ export default function SudokuGame() {
         renban: renban ?? undefined,
         regionsum: regionsum ?? undefined,
         palindrome: palindrome ?? undefined,
+        between: between ?? undefined,
         arrow: arrow ?? undefined,
         parity: parityMarks ?? undefined,
         kropki: kropki ?? undefined,
@@ -2029,6 +2034,7 @@ export default function SudokuGame() {
             || (variant === 'renban' && renban && renban[r][c])
             || (variant === 'regionsum' && regionsum && regionsum[r][c])
             || (variant === 'palindrome' && palindrome && palindrome[r][c])
+            || (variant === 'between' && between && between[r][c])
             || (variant === 'kropki' && kropki && (
                  (c < N - 1 && kropki.h[r][c] !== 0) || (c > 0 && kropki.h[r][c - 1] !== 0)
                  || (r < N - 1 && kropki.v[r][c] !== 0) || (r > 0 && kropki.v[r - 1][c] !== 0)))
@@ -2169,6 +2175,20 @@ export default function SudokuGame() {
                   <>
                     {pn.prev && <View style={{ position: 'absolute', backgroundColor: col, pointerEvents: 'none', ...seg(pn.prev) }} />}
                     {pn.next && <View style={{ position: 'absolute', backgroundColor: col, pointerEvents: 'none', ...seg(pn.next) }} />}
+                  </>
+                );
+              })()}
+              {variant === 'between' && between && between[r][c] && (() => {
+                // между концами — линия #6B7280 той же формы prev/next, тот же `thermoSegment`.
+                const pn = between[r][c]!;
+                const thick = thermoThick(cellSize);
+                const col = blendHex(colors.surface, '#6B7280', 0.6);
+                const seg = (cell: [number, number]) => thermoSegment(r, c, cell, cellSize, thick);
+                return (
+                  <>
+                    {pn.prev && <View style={{ position: 'absolute', backgroundColor: col, pointerEvents: 'none', ...seg(pn.prev) }} />}
+                    {pn.next && <View style={{ position: 'absolute', backgroundColor: col, pointerEvents: 'none', ...seg(pn.next) }} />}
+                    {(!pn.prev || !pn.next) && <View style={{ position: 'absolute', pointerEvents: 'none', width: cellSize * 0.8, height: cellSize * 0.8, left: cellSize * 0.1, top: cellSize * 0.1, borderRadius: cellSize * 0.4, borderWidth: Math.max(2, Math.round(cellSize * 0.07)), borderColor: col, backgroundColor: colors.surface }} />}
                   </>
                 );
               })()}

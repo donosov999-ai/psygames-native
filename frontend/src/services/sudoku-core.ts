@@ -11,7 +11,7 @@
 import { translateFor } from '../contexts/LanguageContext';
 
 export type Cell = number; // 0 = empty
-export type Variant = 'none' | 'diagonal' | 'antiknight' | 'hyper' | 'nonconsec' | 'jigsaw' | 'antiking' | 'evenodd' | 'kropki' | 'sandwich' | 'thermo' | 'arrow' | 'thermocage' | 'unequal' | 'towers' | 'sandparity' | 'thermoknight' | 'killerdiag' | 'whisper' | 'renban' | 'regionsum' | 'palindrome';
+export type Variant = 'none' | 'diagonal' | 'antiknight' | 'hyper' | 'nonconsec' | 'jigsaw' | 'antiking' | 'evenodd' | 'kropki' | 'sandwich' | 'thermo' | 'arrow' | 'thermocage' | 'unequal' | 'towers' | 'sandparity' | 'thermoknight' | 'killerdiag' | 'whisper' | 'renban' | 'regionsum' | 'palindrome' | 'between';
 
 export const HYPER_BOXES = [[1, 1], [1, 5], [5, 1], [5, 5]] as const;   // Windoku: 4 доп. зоны 3×3 (левые-верхние углы)
 export const KNIGHT = [[-2, -1], [-2, 1], [-1, -2], [-1, 2], [1, -2], [1, 2], [2, -1], [2, 1]] as const;
@@ -46,6 +46,7 @@ const VARIANT_KEY_SUFFIX: Record<Exclude<Variant, 'none'>, string> = {
   renban: 'Renban',
   regionsum: 'Regionsum',
   palindrome: 'Palindrome',
+  between: 'Between',
 };
 export function variantLabel(v: Variant, lang: string): string {
   if (v === 'none') return '';
@@ -356,7 +357,9 @@ export function levelConfig(level: number): LevelCfg {
    */
   else if (lv >= 101 && lv <= 104) variant = 'regionsum';
   /** ПАЛИНДРОМ — СТУПЕНИ 105–108 (задача 25679487). В конец лестницы, место по замеру. */
-  else if (lv >= 105) variant = 'palindrome';
+  else if (lv >= 105 && lv <= 108) variant = 'palindrome';
+  /** МЕЖДУ КОНЦАМИ — СТУПЕНИ 109–112 (задача 25679487). В конец лестницы, место по замеру. */
+  else if (lv >= 109) variant = 'between';
   /**
    * 🔴 НЕРАВЕНСТВА (футосики) СОБРАНЫ, НО УРОВНЕЙ НЕ ПОЛУЧИЛИ — ЗАМЕР 26.08.2026.
    *
@@ -793,6 +796,71 @@ export function palindromeOk(grid: Cell[][], r: number, c: number, n: number, pn
   return o === 0 || o === n;
 }
 
+/**
+ * 🔴 «МЕЖДУ КОНЦАМИ» (Between line; пункт 6 цепочки «14 усложнений», задача 25679487, правило 2
+ * из 3): на линии с кружками на концах каждая цифра лежит СТРОГО между цифрами двух кружков.
+ * Отсюда кружки — самая большая и самая маленькая цифра линии, и средние клетки зажаты окном.
+ *
+ * Линии — ИЗ решения: пути 3…6, у которых средние строго между концами (замер 01.10: ~14 %
+ * путей; длины 3 — 60 %, 4 — 20 %, 5 — 17 %, 6 — 3 %). Длинные сперва; до пяти без общих клеток.
+ */
+export function betweenFromSolution(sol: Cell[][], N: number, rnd: () => number = Math.random): ThermoPN {
+  const used: boolean[][] = Array.from({ length: N }, () => Array(N).fill(false));
+  const found: [number, number][][] = [];
+  for (let attempt = 0; attempt < 1500 && found.length < 40; attempt++) {
+    const len = 3 + Math.floor(rnd() * 4);   // 3..6
+    let r = Math.floor(rnd() * N), c = Math.floor(rnd() * N);
+    const path: [number, number][] = [[r, c]];
+    for (let s = 1; s < len; s++) {
+      const nb = ORTHO.map(([dr, dc]) => [r + dr, c + dc] as [number, number])
+        .filter(([nr, nc]) => nr >= 0 && nr < N && nc >= 0 && nc < N && !path.some(([pr, pc]) => pr === nr && pc === nc));
+      if (!nb.length) break;
+      [r, c] = nb[Math.floor(rnd() * nb.length)];
+      path.push([r, c]);
+    }
+    const L = path.length;
+    if (L < 3) continue;
+    const a = sol[path[0][0]][path[0][1]], b = sol[path[L - 1][0]][path[L - 1][1]];
+    const lo = Math.min(a, b), hi = Math.max(a, b);
+    if (path.slice(1, -1).every(([pr, pc]) => sol[pr][pc] > lo && sol[pr][pc] < hi)) found.push(path);
+  }
+  found.sort((x, y) => y.length - x.length);
+  const paths: [number, number][][] = [];
+  for (const path of found) {
+    if (paths.length >= 5) break;
+    if (path.some(([r, c]) => used[r][c])) continue;
+    paths.push(path);
+    for (const [r, c] of path) used[r][c] = true;
+  }
+  const pn: ThermoPN = Array.from({ length: N }, () => Array(N).fill(null));
+  for (const path of paths) for (let k = 0; k < path.length; k++) {
+    const [r, c] = path[k];
+    pn[r][c] = { prev: k > 0 ? path[k - 1] : null, next: k < path.length - 1 ? path[k + 1] : null };
+  }
+  return pn;
+}
+
+/**
+ * Цифра n в (r, c) не ломает линию «между концами». Известные цифры: при обоих концах — каждая
+ * средняя строго между ними; при одном конце — все средние по ОДНУ сторону от него и не равны
+ * ему; средняя не может быть крайней из известных, если оба конца ещё пусты, — это не утверждаем.
+ */
+export function betweenOk(grid: Cell[][], r: number, c: number, n: number, pn: ThermoPN): boolean {
+  const cells = lineCells(pn, r, c);
+  if (!cells.length) return true;
+  const at = ([lr, lc]: [number, number]) => (lr === r && lc === c ? n : grid[lr][lc]);
+  const a = at(cells[0]), b = at(cells[cells.length - 1]);
+  const mids = cells.slice(1, -1).map(at).filter((v) => v !== 0);
+  if (a && b) {
+    if (a === b) return false;
+    const lo = Math.min(a, b), hi = Math.max(a, b);
+    return mids.every((v) => v > lo && v < hi);
+  }
+  const end = a || b;
+  if (!end || !mids.length) return true;
+  return mids.every((v) => v > end) || mids.every((v) => v < end);
+}
+
 export function arrowFromSolution(sol: Cell[][], N: number): ArrowMap {
   const used: boolean[][] = Array.from({ length: N }, () => Array(N).fill(false));
   const groups: [number, number][][] = [];
@@ -1172,6 +1240,8 @@ export interface Overlays {
   regionsum?: ThermoPN;
   /** Серая линия читается одинаково с обоих концов: цифры на равном расстоянии от концов совпадают. */
   palindrome?: ThermoPN;
+  /** Цифры на линии лежат строго между цифрами в кружках на её концах. */
+  between?: ThermoPN;
 }
 
 /** Полные оверлеи из решения — до прореживания. */
@@ -1215,6 +1285,9 @@ export function overlaysFromSolution(sol: Cell[][], N: number, variant: Variant)
   }
   if (variant === 'palindrome') {
     return { palindrome: palindromeFromSolution(sol, N) };
+  }
+  if (variant === 'between') {
+    return { between: betweenFromSolution(sol, N) };
   }
   if (variant === 'unequal') {
     // Знаки СРАЗУ все; сколько показать — решает прореживание уровня, как у кропки.
@@ -1296,6 +1369,7 @@ export function overlayOk(grid: Cell[][], r: number, c: number, n: number, N: nu
     if (!regionSumOk(grid, r, c, n, ov.regionsum, N, BR, BC)) return false;
   }
   if (ov.palindrome && !palindromeOk(grid, r, c, n, ov.palindrome)) return false;   // линия — показанная подсказка
+  if (ov.between && !betweenOk(grid, r, c, n, ov.between)) return false;   // линия — показанная подсказка
   if (ov.sandwich) {
     const check = (line: number[], want: number): boolean => {
       if (want < 0) return true;                                      // сумма СПРЯТАНА (см. thinSandwich) — не подсказка
@@ -1352,7 +1426,7 @@ export function countSolutions(grid: Cell[][], N: number, BR: number, BC: number
 // thermocage здесь ОБЯЗАН быть: единственность решения у него считается по ДВУМ
 // правилам сразу (isValid знает и цепочку, и сумму). Доска, единственная по каждому
 // правилу порознь, вместе может иметь второе решение — и наоборот.
-const UNIQUE_CHECKED: readonly Variant[] = ['none', 'diagonal', 'antiknight', 'hyper', 'nonconsec', 'antiking', 'jigsaw', 'thermo', 'arrow', 'evenodd', 'kropki', 'sandwich', 'thermocage', 'unequal', 'towers', 'sandparity', 'thermoknight', 'killerdiag', 'whisper', 'renban', 'regionsum', 'palindrome'];
+const UNIQUE_CHECKED: readonly Variant[] = ['none', 'diagonal', 'antiknight', 'hyper', 'nonconsec', 'antiking', 'jigsaw', 'thermo', 'arrow', 'evenodd', 'kropki', 'sandwich', 'thermocage', 'unequal', 'towers', 'sandparity', 'thermoknight', 'killerdiag', 'whisper', 'renban', 'regionsum', 'palindrome', 'between'];
 
 /**
  * Готовая сетка для «несоседних чисел» — БЕЗ перебора.
@@ -1381,7 +1455,7 @@ export function buildNonconsecSolution(): Cell[][] {
   return g;
 }
 
-export function generatePuzzle(blanks: number, N: number, BR: number, BC: number, variant: Variant = 'none', thin?: (ov: Overlays) => Overlays): { puzzle: Cell[][]; solution: Cell[][]; regions?: number[][]; parity?: number[][]; kropki?: { h: number[][]; v: number[][] }; sandwich?: { rows: number[]; cols: number[] }; thermo?: ThermoPN; arrow?: ArrowMap; cages?: CageMap; unequal?: UnequalMap; towers?: TowersMap; whisper?: ThermoPN; renban?: ThermoPN; regionsum?: ThermoPN; palindrome?: ThermoPN } {
+export function generatePuzzle(blanks: number, N: number, BR: number, BC: number, variant: Variant = 'none', thin?: (ov: Overlays) => Overlays): { puzzle: Cell[][]; solution: Cell[][]; regions?: number[][]; parity?: number[][]; kropki?: { h: number[][]; v: number[][] }; sandwich?: { rows: number[]; cols: number[] }; thermo?: ThermoPN; arrow?: ArrowMap; cages?: CageMap; unequal?: UnequalMap; towers?: TowersMap; whisper?: ThermoPN; renban?: ThermoPN; regionsum?: ThermoPN; palindrome?: ThermoPN; between?: ThermoPN } {
   const sol: Cell[][] = Array.from({ length: N }, () => Array(N).fill(0));
   let regions: number[][] | undefined;
   let thermo: ThermoPN | undefined;
@@ -1476,7 +1550,8 @@ export function generatePuzzle(blanks: number, N: number, BR: number, BC: number
   const renban = ov.renban;
   const regionsum = ov.regionsum;
   const palindrome = ov.palindrome;
-  return { puzzle, solution: sol, regions, parity, kropki, sandwich, thermo, arrow, cages, unequal, towers, whisper, renban, regionsum, palindrome };
+  const between = ov.between;
+  return { puzzle, solution: sol, regions, parity, kropki, sandwich, thermo, arrow, cages, unequal, towers, whisper, renban, regionsum, palindrome, between };
 }
 
 /**
@@ -1510,6 +1585,7 @@ export interface RejectionContext {
   renban?: ThermoPN;
   regionsum?: ThermoPN;
   palindrome?: ThermoPN;
+  between?: ThermoPN;
 }
 
 export function rejectionReason(
@@ -1542,6 +1618,7 @@ export function rejectionReason(
     if (variant === 'renban' && ctx.renban && !renbanOk(test, r, c, n, ctx.renban)) return variantRule(variant, lang);
     if (variant === 'regionsum' && ctx.regionsum && !regionSumOk(test, r, c, n, ctx.regionsum, N, BR, BC)) return variantRule(variant, lang);
     if (variant === 'palindrome' && ctx.palindrome && !palindromeOk(test, r, c, n, ctx.palindrome)) return variantRule(variant, lang);
+    if (variant === 'between' && ctx.between && !betweenOk(test, r, c, n, ctx.between)) return variantRule(variant, lang);
     if (variant === 'kropki' && ctx.kropki) {
       const okDot = (dot: number, a: number, b: number): boolean => {
         if (dot === 1) return Math.abs(a - b) === 1;              // белая: разница в единицу
