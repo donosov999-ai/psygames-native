@@ -19,6 +19,20 @@ import { readFileSync, writeFileSync, mkdirSync, readdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+/**
+ * 🔴 ПО ЗАПИСИ НА СТРОКУ, А НЕ ОДНОЙ СТРОКОЙ (01.10.2026). Файл писался `JSON.stringify(…, null, 0)` —
+ * целиком в одну строку (en.json — 98 597 знаков), и git сравнивал его одной строкой: ЛЮБЫЕ два PR,
+ * добавившие хоть по ключу, конфликтовали всегда. «Шахматы» дважды за утро ловили конфликт к концу
+ * CI. Теперь верхние уровни — по записи на строку (порядок тот же), глубже — компактно: git сводит
+ * добавления в разных местах сам, а размер почти не растёт.
+ */
+function jsonLines(v, depth) {
+  if (depth <= 0 || v === null || typeof v !== 'object' || Array.isArray(v)) return JSON.stringify(v);
+  const items = Object.entries(v).map(([k, x]) => JSON.stringify(k) + ':' + jsonLines(x, depth - 1));
+  return items.length ? '{\n' + items.join(',\n') + '\n}' : '{}';
+}
+
+
 const HERE = dirname(fileURLToPath(import.meta.url));
 const FLUTTER = join(HERE, '..');
 const SECTIONS = join(FLUTTER, '..', 'frontend', 'src', 'games', 'tatham-bridge', 'sections');
@@ -119,7 +133,7 @@ if (names.length !== 42) {
   process.exit(1);
 }
 mkdirSync(OUT, { recursive: true });
-writeFileSync(join(OUT, 'modes.json'), JSON.stringify(modes, null, 0) + '\n');
+writeFileSync(join(OUT, 'modes.json'), jsonLines(modes, 1) + '\n');
 console.log(`режимов: ${names.length} · со своей лестницей: ${withLadder} · на пресетах движка: ${names.length - withLadder}`);
 const byOwner = {};
 for (const m of Object.values(modes)) byOwner[m.owner ?? '—'] = (byOwner[m.owner ?? '—'] ?? 0) + 1;
