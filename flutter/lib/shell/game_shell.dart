@@ -27,6 +27,7 @@ class GameShell extends StatelessWidget {
     this.onLesson,
     this.pauseActions = const [],
     this.levelRule,
+    this.fieldOnly = false,
   });
 
   final String title;
@@ -73,8 +74,58 @@ class GameShell extends StatelessWidget {
    */
   final LevelRuleSpot? levelRule;
 
+  /*
+   * 🔴 ТОЛЬКО ПОЛЕ — решение Дениса для «Гимнастики для глаз» (задача a72e77a1):
+   * «во всех режимах игровое поле занимает весь экран; во время занятия видна
+   * только жёлтая круглая кнопка паузы сбоку, остальные действия — в меню паузы».
+   * Шапки, счётчиков и ряда значков нет: глаза заняты точкой, и любая надпись
+   * рядом с ней — помеха. Счётчики и действия — в меню паузы, как обычно.
+   * По умолчанию выключено: остальные экраны каркаса не меняются.
+   */
+  final bool fieldOnly;
+
+  /// Отступ справа сверху, который в режиме [fieldOnly] занимает кнопка паузы.
+  static const fieldOnlyPauseClear = 72.0;
+
   @override
   Widget build(BuildContext context) {
+    if (fieldOnly) {
+      return Scaffold(
+        body: SafeArea(
+          child: Stack(children: [
+            Positioned.fill(
+              child: LayoutBuilder(
+                key: const Key('game-field'),
+                builder: (context, c) => field(context, c.maxHeight),
+              ),
+            ),
+            Positioned(
+              top: 8,
+              right: 12,
+              child: Semantics(
+                button: true,
+                label: L.t('gamePauseOpen'),
+                child: Material(
+                  key: const Key('field-only-pause'),
+                  color: const Color(0xFFFBBF24),
+                  shape: const CircleBorder(),
+                  elevation: 3,
+                  child: InkWell(
+                    customBorder: const CircleBorder(),
+                    onTap: () => _pause(context),
+                    child: const SizedBox(
+                      width: 52,
+                      height: 52,
+                      child: Icon(Icons.pause, size: 28, color: Color(0xFF201500)),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ]),
+        ),
+      );
+    }
     final scheme = Theme.of(context).colorScheme;
     final spot = levelRule;
     final ruleKey = spot == null ? null : LevelRules.activeKey(spot.gameId, spot.level);

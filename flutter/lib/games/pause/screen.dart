@@ -138,6 +138,19 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
   bool get _eyes => widget.flavor == PauseFlavor.eyeGym;
   bool _eyeByLevel = true;
   String _eyeMode = 'full';
+
+  /// 🔴 СТЕРЕОКАРТИНКИ (задача a72e77a1, решение Дениса): необязательная оптическая
+  /// головоломка свободного режима — в уровни, зарядку, счёт и статистику не входит.
+  /// Портретная картинка во весь экран; «ответ / дальше / готово» — в меню паузы.
+  bool _stereo = false;
+  int _stereoIdx = 0;
+  bool _stereoShown = false;
+  static const stereograms = [('circle', 'eyeStereoCircle'), ('heart', 'eyeStereoHeart'), ('star', 'eyeStereoStar')];
+
+  /// Сколько секунд подхода прошло — для проб («меню паузы держит подход»).
+  @visibleForTesting
+  double get debugEyeElapsed => _eye?.elapsed ?? 0;
+
   double _eyeScale = 1;
   double _eyeSpeed = 1;
   int _eyePicked = 1;
@@ -425,6 +438,16 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
 
   /// Гимнастика: подход по уровню или по ручным настройкам.
   void startEyes() {
+    if (!_eyeByLevel && _eyeMode == 'stereo') {
+      setState(() {
+        _stereo = true;
+        _stereoIdx = 0;
+        _stereoShown = false;
+        phase = PausePhase.playing;
+      });
+      unawaited(_buzz.selection());
+      return;
+    }
     final cfg = eyeGymLevel(_eyePicked);
     final steps = _eyeByLevel ? eyeSteps('full', cfg.scale) : eyeSteps(_eyeMode, _eyeScale);
     setState(() {
@@ -677,8 +700,26 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
     });
   }
 
+  void stereoReveal() => setState(() => _stereoShown = true);
+
+  void stereoNext() => setState(() {
+        _stereoIdx = (_stereoIdx + 1) % stereograms.length;
+        _stereoShown = false;
+      });
+
+  void stereoFinish() => setState(() {
+        _stereo = false;
+        _stereoShown = false;
+        phase = PausePhase.config;
+      });
+
   Future<void> _back() async {
     final nav = Navigator.of(context);
+    // Стереокартинки — не партия: уход из них возвращает к настройкам, без вопроса.
+    if (_stereo) {
+      stereoFinish();
+      return;
+    }
     final running = phase == PausePhase.playing &&
         (_eye != null
             ? !_eye!.paused && !_eye!.done
@@ -761,8 +802,10 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
             : _breath
                 ? _BreathConfig(screen: this, height: h)
                 : _Config(screen: this, height: h),
-        PausePhase.playing => eye != null
-            ? EyeGymStage(run: eye, height: h)
+        PausePhase.playing => _stereo
+            ? _StereoView(screen: this)
+            : eye != null
+            ? EyeGymStage(run: eye, height: h, sideClear: GameShell.fieldOnlyPauseClear)
             : wim != null
             ? _WimView(screen: this, run: wim)
             : _Playing(engine: engine, session: s!, frame: frame!, progressLabel: ps('progress'), lead: lead, leadLabel: L.t('brGetReady')),
@@ -808,10 +851,67 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
               AuxAction(key: const Key('pause-restart'), icon: Icons.replay, label: ps('restart'), onPressed: _again),
             ])
           : null,
+      // 🔴 Подход гимнастики и стереокартинки — ТОЛЬКО ПОЛЕ (решение Дениса, задача
+      // a72e77a1): видна одна жёлтая круглая кнопка паузы, остальное — в её меню.
+      // Меню паузы — страница поверх: подход встаёт сам (`_coveredPause` выше).
+      fieldOnly: phase == PausePhase.playing && (eye != null || _stereo),
+      pauseActions: [
+        if (_stereo) ...[
+          PauseAction(
+            label: _stereoShown
+                ? '${L.t('eyeStereoAnswer')}: ${L.t(stereograms[_stereoIdx].$2)}'
+                : L.t('eyeStereoReveal'),
+            icon: Icons.visibility_outlined,
+            onPressed: stereoReveal,
+          ),
+          PauseAction(label: L.t('eyeStereoNext'), icon: Icons.arrow_forward, onPressed: stereoNext),
+          PauseAction(label: L.t('eyeStereoFinish'), icon: Icons.check, onPressed: stereoFinish),
+        ] else if (eye != null)
+          PauseAction(label: ps('restart'), icon: Icons.replay, onPressed: _again),
+      ],
     );
     // Ночной шаг зарядки («Не спится», `dim=1`): яркий экран в три часа ночи
     // работает против задачи — как у веба, приглушаем.
     return _dim ? Theme(data: ThemeData(brightness: Brightness.dark, colorSchemeSeed: const Color(0xff4ca1af)), child: shell) : shell;
+  }
+}
+
+/// Стереокартинка во весь экран: портрет, обрезка краёв узора (`cover`), фигура в центре
+/// остаётся. Ответ — после «Ответ» в меню паузы, плашкой внизу. Не партия: ни очков, ни уровня.
+class _StereoView extends StatelessWidget {
+  const _StereoView({required this.screen});
+
+  final PauseScreenState screen;
+
+  @override
+  Widget build(BuildContext context) {
+    final st = screen;
+    final (file, nameKey) = PauseScreenState.stereograms[st._stereoIdx];
+    return Stack(key: const Key('pause-eye-stereo'), fit: StackFit.expand, children: [
+      Image.asset('assets/eye_stereograms/$file.png', fit: BoxFit.cover, semanticLabel: L.t('eyeModeStereo')),
+      Positioned(
+        left: 16,
+        right: GameShell.fieldOnlyPauseClear,
+        top: 12,
+        child: Text(
+          '${st._stereoIdx + 1}/${PauseScreenState.stereograms.length} · ${L.t('eyeStereoInstruction')}',
+          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, shadows: [Shadow(blurRadius: 4)]),
+        ),
+      ),
+      if (st._stereoShown)
+        Positioned(
+          left: 16,
+          right: 16,
+          bottom: 16,
+          child: Container(
+            key: const Key('pause-eye-stereo-answer'),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(color: Colors.black.withValues(alpha: .7), borderRadius: BorderRadius.circular(12)),
+            child: Text('${L.t('eyeStereoAnswer')}: ${L.t(nameKey)}',
+                textAlign: TextAlign.center, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800)),
+          ),
+        ),
+    ]);
   }
 }
 
@@ -969,16 +1069,23 @@ class _EyeConfig extends StatelessWidget {
           else ...[
             Text(L.t('mode'), style: label),
             const SizedBox(height: 6),
-            chips<String>('mode', const [('full', 'eyeModeFull'), ('pursuit', 'eyeModePursuit'), ('focus', 'eyeModeFocus'), ('relax', 'eyeModeRelax')],
+            chips<String>('mode', const [('full', 'eyeModeFull'), ('pursuit', 'eyeModePursuit'), ('focus', 'eyeModeFocus'), ('relax', 'eyeModeRelax'), ('stereo', 'eyeModeStereo')],
                 st._eyeMode, (v) => st._eyeMode = v),
             const SizedBox(height: 12),
-            Text(L.t('duration'), style: label),
-            const SizedBox(height: 6),
-            chips<double>('scale', const [(0.4, 'eye1min'), (1.0, 'eye3min'), (1.7, 'eye5min')], st._eyeScale, (v) => st._eyeScale = v),
-            const SizedBox(height: 12),
-            Text(L.t('eyeSpeedLabel'), style: label),
-            const SizedBox(height: 6),
-            chips<double>('speed', const [(0.7, 'eyeSlow'), (1.0, 'eyeNorm'), (1.4, 'eyeFast')], st._eyeSpeed, (v) => st._eyeSpeed = v),
+            // Стереокартинки — не подход: длительности и скорости у них нет.
+            if (st._eyeMode == 'stereo') ...[
+              Text(L.t('eyeStereoOptional'), key: const Key('pause-eye-stereo-note'), style: theme.textTheme.bodySmall),
+              const SizedBox(height: 6),
+              Text(L.t('eyeStereoComfort'), style: theme.textTheme.bodySmall),
+            ] else ...[
+              Text(L.t('duration'), style: label),
+              const SizedBox(height: 6),
+              chips<double>('scale', const [(0.4, 'eye1min'), (1.0, 'eye3min'), (1.7, 'eye5min')], st._eyeScale, (v) => st._eyeScale = v),
+              const SizedBox(height: 12),
+              Text(L.t('eyeSpeedLabel'), style: label),
+              const SizedBox(height: 6),
+              chips<double>('speed', const [(0.7, 'eyeSlow'), (1.0, 'eyeNorm'), (1.4, 'eyeFast')], st._eyeSpeed, (v) => st._eyeSpeed = v),
+            ],
           ],
           const SizedBox(height: 16),
           Text(L.t('eyeDisclaimer'), style: theme.textTheme.bodySmall),
