@@ -824,6 +824,10 @@ const t: Record<string, string> = {
   "sudokuUnequalHubDesc": "マス間の記号、比較の鎖",
   "sudokuTypeTowers": "6×6 · 8段",
   "sudokuTypeUnequal": "9×9 · 8段",
+  "sudokuKillerHubDesc": "ケージの隅に合計、ケージ内で数字は重複なし",
+  "sudokuTypeKiller": "9×9 · 6段",
+  "sudokuFreeHubDesc": "クラシック、変則ルールなし：サイズと難易度を自由に選択",
+  "sudokuTypeFree": "6×6と9×9 · 難易度3種",
   "sudokuRuleDiagonal": "2本の対角線上でも数字は重複しません。",
   "sudokuRuleAntiknight": "同じ数字はナイトの動きの位置に置けません。",
   "sudokuRuleHyper": "追加の3×3エリア4つにも1–9が重複なしで入ります。",
@@ -3356,7 +3360,10 @@ const t: Record<string, string> = {
   "tathamOrientable": "向きあり",
   "tathamTiles": "{n} 枚",
   "sudokuVariantRenban": "🟪 レンバン",
+  "sudokuVariantRegionsum": "🟦 同じ合計",
   "sudokuRuleRenban": "紫の線の上の数字は、連続した数が並びます。順番は自由で、同じ数字は入りません。",
+  "sudokuRuleRegionsum": "青い線：通過する各ブロックで、線上の数字の合計が同じになります。",
   "sdkRule_renban": "レンバン",
+  "sdkRule_regionsum": "同じ合計",
 };
 export default t;

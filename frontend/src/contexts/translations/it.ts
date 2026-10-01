@@ -1611,6 +1611,10 @@ const t: Record<string, string> = {
   "sudokuUnequalHubDesc": "Segni tra le caselle, catene di confronti",
   "sudokuTypeTowers": "6×6 · 8 gradini",
   "sudokuTypeUnequal": "9×9 · 8 gradini",
+  "sudokuKillerHubDesc": "Somme delle gabbie negli angoli, nessuna ripetizione nella gabbia",
+  "sudokuTypeKiller": "9×9 · 6 gradini",
+  "sudokuFreeHubDesc": "Classico, senza varianti: dimensione e difficoltà a scelta",
+  "sudokuTypeFree": "6×6 e 9×9 · 3 difficoltà",
   "sudokuRuleDiagonal": "Le cifre sono uniche anche sulle due diagonali.",
   "sudokuRuleAntiknight": "Cifre uguali non possono trovarsi a un salto di cavallo.",
   "sudokuRuleHyper": "Quattro zone extra 3×3 contengono anch’esse 1–9 senza ripetizioni.",
@@ -3357,7 +3361,10 @@ const t: Record<string, string> = {
   "tathamOrientable": "con orientamento",
   "tathamTiles": "{n} tessere",
   "sudokuVariantRenban": "🟪 renban",
+  "sudokuVariantRegionsum": "🟦 somme uguali",
   "sudokuRuleRenban": "Le cifre su una linea viola formano una serie consecutiva, in qualsiasi ordine e senza ripetizioni.",
+  "sudokuRuleRegionsum": "Linea blu: in ogni riquadro che attraversa, le sue cifre danno la stessa somma.",
   "sdkRule_renban": "renban",
+  "sdkRule_regionsum": "somme uguali",
 };
 export default t;

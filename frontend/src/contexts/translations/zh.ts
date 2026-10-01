@@ -1477,6 +1477,10 @@ const t: Record<string, string> = {
   "sudokuUnequalHubDesc": "格间符号,比较链条",
   "sudokuTypeTowers": "6×6 · 8级",
   "sudokuTypeUnequal": "9×9 · 8级",
+  "sudokuKillerHubDesc": "笼的角上标出总和，笼内数字不重复",
+  "sudokuTypeKiller": "9×9 · 6级",
+  "sudokuFreeHubDesc": "经典，无变型规则：尺寸与难度自选",
+  "sudokuTypeFree": "6×6 与 9×9 · 3 种难度",
   "sudokuRuleDiagonal": "两条对角线上的数字也不能重复。",
   "sudokuRuleAntiknight": "相同数字不能互为马步位置。",
   "sudokuRuleHyper": "四个附加 3×3 宫同样包含 1–9 且不重复。",
@@ -3362,7 +3366,10 @@ const t: Record<string, string> = {
   "tathamOrientable": "带方向",
   "tathamTiles": "{n} 块",
   "sudokuVariantRenban": "🟪 Renban",
+  "sudokuVariantRegionsum": "🟦 各宫等和",
   "sudokuRuleRenban": "紫线上的数字是连续的一组数，顺序不限，且不能重复。",
+  "sudokuRuleRegionsum": "蓝线：在它经过的每个宫里，线上数字之和都相同。",
   "sdkRule_renban": "Renban",
+  "sdkRule_regionsum": "各宫等和",
 };
 export default t;

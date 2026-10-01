@@ -1611,6 +1611,10 @@ const t: Record<string, string> = {
   "sudokuUnequalHubDesc": "칸 사이 기호, 비교의 사슬",
   "sudokuTypeTowers": "6×6 · 8단계",
   "sudokuTypeUnequal": "9×9 · 8단계",
+  "sudokuKillerHubDesc": "케이지 모서리에 합계, 케이지 안에서 숫자 중복 없음",
+  "sudokuTypeKiller": "9×9 · 6단계",
+  "sudokuFreeHubDesc": "클래식, 변형 규칙 없음: 크기와 난이도 선택",
+  "sudokuTypeFree": "6×6, 9×9 · 난이도 3가지",
   "sudokuRuleDiagonal": "두 대각선에서도 숫자가 중복되지 않습니다.",
   "sudokuRuleAntiknight": "같은 숫자는 나이트 이동 거리에 놓을 수 없습니다.",
   "sudokuRuleHyper": "추가 3×3 구역 4개에도 1–9가 중복 없이 들어갑니다.",
@@ -3357,7 +3361,10 @@ const t: Record<string, string> = {
   "tathamOrientable": "방향 포함",
   "tathamTiles": "{n}개 타일",
   "sudokuVariantRenban": "🟪 렌반",
+  "sudokuVariantRegionsum": "🟦 같은 합",
   "sudokuRuleRenban": "보라색 선 위의 숫자는 순서와 상관없이 연속된 수가 되며, 같은 숫자는 들어가지 않습니다.",
+  "sudokuRuleRegionsum": "파란 선: 지나가는 각 박스 안에서 선 위 숫자의 합이 모두 같습니다.",
   "sdkRule_renban": "렌반",
+  "sdkRule_regionsum": "같은 합",
 };
 export default t;
