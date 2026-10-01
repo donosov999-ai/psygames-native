@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../../shell/game_preset.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/game_shell.dart';
@@ -64,7 +65,10 @@ class _CorsiScreenState extends State<CorsiScreen> {
 
   Future<void> _boot() async {
     await _ladder.load();
-    if (mounted) setState(_reset);
+    if (!mounted) return;
+    setState(_reset);
+    // Шаг зарядки начинается сам — перенос веб-`useAutostartWhenReady` (отчёт Дениса 01.10.2026).
+    if (GamePreset.autostart) _start();
   }
 
   void _reset() {
