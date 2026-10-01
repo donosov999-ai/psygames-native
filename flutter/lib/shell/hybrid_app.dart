@@ -26,6 +26,7 @@ import '../games/targets/screen.dart';
 import '../games/dots_connect/screen.dart';
 import '../games/memory_matrix/screen.dart';
 import '../games/stroop/screen.dart';
+import '../games/submarines/screen.dart';
 import '../games/one_line/screen.dart';
 import '../games/anagrams/screen.dart';
 import '../games/anagrams/all_words_screen.dart';
@@ -40,9 +41,12 @@ import '../games/cake_sort/screen.dart';
 import '../games/hanoi/screen.dart';
 import '../games/tower_london/screen.dart';
 import '../games/animal_queue/screen.dart';
+import '../games/kids_find/screen.dart';
 import '../games/kids_sort/screen.dart';
 import '../games/traffic_jam/screen.dart';
+import '../games/monster_traits/missing_screen.dart';
 import '../games/monster_traits/screen.dart';
+import '../games/search_runner/screen.dart';
 import '../games/roll_and_bank/screen.dart';
 import '../games/hidden_character/screen.dart';
 import '../games/sort_tubes/screen.dart';
@@ -212,8 +216,16 @@ class HybridApp extends StatefulWidget {
       // развилках «Пространство», «Поиск глазами», «Конфликт внимания», «Головоломки».
       '/games/traffic-jam': (s) => TrafficJamScreen(state: s),
       '/games/monster-traits': (s) => MonsterTraitsScreen(state: s),
+      // MindLab «Найди» (kids/find.py) — раздел «Поиск», задача c8a2783f: только нативная.
+      '/games/kids-find': (s) => KidsFindScreen(state: s),
+      // MindLab «Подлодки» (submarinos/sea.py) — раздел «Поиск», задача c8a2783f: только нативная.
+      '/games/submarines': (s) => SubmarinesScreen(state: s),
+      // Второй режим «Найди признак» — «Кого не хватает» (MindLab Missing, задача 664b414a).
+      '/games/monster-traits?mode=missing': (s) => MonsterMissingScreen(state: s),
       '/games/roll-and-bank': (s) => RollAndBankScreen(state: s),
       '/games/hidden-character': (s) => HiddenCharacterScreen(state: s),
+      // Раннер «Поиска глазами» (задача 5386c0e8): сразу нативный, веб-двойника нет.
+      '/games/search-runner': (s) => SearchRunnerScreen(state: s),
         /*
          * 🔴 РАЗВИЛКА ТОЖЕ ПЕРЕХВАТЫВАЕТСЯ. Она ведёт на восемь игр, из которых
          * все восемь уже нативные: оставь её в вебе — и каждый заход в игру шёл

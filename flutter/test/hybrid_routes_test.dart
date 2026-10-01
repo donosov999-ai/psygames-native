@@ -305,8 +305,13 @@ void main() {
       // MindLab у координатора (задача f5034811): четыре игры только нативные.
       '/games/traffic-jam',
       '/games/monster-traits',
+      '/games/kids-find',
+      '/games/submarines',
+      '/games/monster-traits?mode=missing',
       '/games/roll-and-bank',
       '/games/hidden-character',
+      // Раннер «Поиска глазами» (5386c0e8) — только нативный.
+      '/games/search-runner',
       '/games/mahjong',
       '/games/math-slider',
       '/games/math-sprint',

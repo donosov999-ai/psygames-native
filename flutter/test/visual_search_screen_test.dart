@@ -7,6 +7,8 @@ import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'support/boss_probe.dart';
+
 /// ПАРТИЯ ИГРАЕТСЯ НАЖАТИЯМИ, И ПРОБА ВИДИТ РОВНО ТО, ЧТО ВИДИТ ИГРОК: форму,
 /// цвет и точку приманки — подписи предметов. Кто цель, проба не спрашивает:
 /// она ищет совпадение с образцом сама, как человек.
@@ -270,5 +272,21 @@ void main() {
         }
       }
     }
+  });
+
+  testWidgets('🔴 веха: победа на 3-м уровне открывает бой «сложи подсвеченные», на 2-м — нет', (tester) async {
+    // В вебе этот экран зовёт BossRound каждые три уровня; при переносе бой пропал молча.
+    await expectBossAfterWin(tester, won: find.text('Следующий'), hudKey: 'bossHudCounting', play: (level) async {
+      await open(tester, level: level, trials: 3, seed: 'босс$level');
+      for (var r = 1; r <= 3; r += 1) {
+        final sample = guessSample(tester, vsLevelParams(level, r).targetCount);
+        for (final t in looksLikeTarget(tester, sample)) {
+          await tester.tap(find.byKey(Key('item$t')));
+          await tester.pump();
+        }
+        await tester.pump(const Duration(milliseconds: 500));
+        await tester.pump();
+      }
+    });
   });
 }

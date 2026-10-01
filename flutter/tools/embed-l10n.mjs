@@ -102,7 +102,18 @@ for (const [file, fields] of [
   ['assets/puzzles/modes.json', ['titleKey', 'digitNames']],
 ]) {
   let data;
-  try { data = JSON.parse(readFileSync(join(FLUTTER, file), 'utf8')); } catch { continue; }
+  // 🔴 НЕТ ФАЙЛА — пропустить можно; ЕСТЬ, НО НЕ ЧИТАЕТСЯ — СТОП. Замер 01.10.2026: после
+  // слияния веток hubs.json стоял с маркерами конфликта, разбор падал, `catch` молча шёл
+  // дальше — и словарь собрался на 710 ключей вместо 831: выпали ~90 имён и описаний
+  // карточек развилок, экран показал бы ключи. Порядок после слияния: embed-hubs, потом этот.
+  let raw;
+  try { raw = readFileSync(join(FLUTTER, file), 'utf8'); } catch { continue; }
+  try {
+    data = JSON.parse(raw);
+  } catch (e) {
+    console.error(`🔴 ${file} есть, но не разбирается (${e.message.split('\n')[0]}) — конфликт слияния? Сначала node flutter/tools/embed-hubs.mjs`);
+    process.exit(1);
+  }
   const walk = (node) => {
     if (Array.isArray(node)) return node.forEach(walk);
     if (!node || typeof node !== 'object') return;

@@ -61,7 +61,6 @@ const _baseline = <String, int>{
   'memory_matrix/screen.dart': 2,
   'memory_palace/screen.dart': 1,
   'mental_rotation/screen.dart': 10,
-  'monster_traits/screen.dart': 3,
   'number_bonds/screen.dart': 2,
   'ospan/screen.dart': 1,
   'pattern/screen.dart': 1,

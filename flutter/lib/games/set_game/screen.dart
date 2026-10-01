@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../../shell/aux_action.dart';
+import '../../shell/boss_round.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/game_shell.dart';
@@ -49,6 +50,9 @@ class _SetGameScreenState extends State<SetGameScreen> {
   bool? _right;
   int _leftMs = 0;
   bool _won = false;
+
+  /// Итог боя с боссом после этой партии; `null` — боя не было (веб: `bossWon`).
+  bool? _boss;
   bool _ready = false;
   _Phase _phase = _Phase.playing;
   Timer? _tick;
@@ -144,14 +148,18 @@ class _SetGameScreenState extends State<SetGameScreen> {
       if (!mounted) return;
       if (_round >= _params.trials) {
         final passed = _errors <= setErrorsAllowed;
+        // Веха как в вебе: каждый третий ЗАСЧИТАННЫЙ уровень — бой «какой цифры не хватает».
+        bool? boss;
         if (passed) {
-          await _ladder.win();
+          boss = await BossRound.winThenBoss(context, _ladder,
+              type: BossType.lightning, color: const Color(0xFF43CEA2));
         } else {
           await _ladder.fail();
         }
         if (!mounted) return;
         setState(() {
           _won = passed;
+          _boss = boss;
           _phase = _Phase.result;
         });
         return;
@@ -252,6 +260,7 @@ class _SetGameScreenState extends State<SetGameScreen> {
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
+                BossOutcomeLine(_boss),
                 const SizedBox(height: 8),
                 FilledButton.icon(
                   key: const Key('дальше'),

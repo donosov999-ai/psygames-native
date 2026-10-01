@@ -7,6 +7,8 @@ import 'package:psygames_flutter/games/quick_count/screen.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'support/boss_probe.dart';
+
 /// ПАРТИЯ ИГРАЕТСЯ НАЖАТИЯМИ, а число точек проба СЧИТАЕТ С ЭКРАНА — как человек.
 ///
 /// ⚠️ Подписи «точек N» на экране НЕТ и быть не должно: она выдала бы ответ
@@ -144,5 +146,18 @@ void main() {
           reason: '$screen: высота ряда — та, что считает правило, а не та, что вышла');
       expect(row.width <= screen.width, isTrue, reason: '$screen: ряд ответов помещается по ширине');
     }
+  });
+
+  testWidgets('🔴 веха: победа на 3-м уровне открывает бой «тапни только зелёный», на 2-м — нет', (tester) async {
+    // В вебе этот экран зовёт BossRound каждые три уровня; при переносе бой пропал молча.
+    await expectBossAfterWin(tester, won: find.text('Следующий уровень'), hudKey: 'bossHudGonogo', play: (level) async {
+      final p = levelParams(level);
+      await open(tester, level: level, seed: level);
+      await tester.tap(find.byKey(const Key('начать')));
+      await tester.pump();
+      for (var i = 0; i < trialsPerRound; i += 1) {
+        await playTrial(tester, p);
+      }
+    });
   });
 }

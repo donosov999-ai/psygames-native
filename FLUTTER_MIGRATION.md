@@ -53,8 +53,11 @@
    который экран просто зовёт, при переносе пропадает, и ни одна проба правил
    этого не заметит: гейты зелёные, экран играется.
    ```
-   grep -nE "from '@/src/services/" frontend/app/games/<игра>.tsx
+   grep -nE "from '@/src/(services|components)/" frontend/app/games/<игра>.tsx
    ```
+   ⚠️ **`components/` тоже.** До 30.09 здесь искали только `services/` — и так пропал
+   БОЙ С БОССОМ: `BossRound` лежит в `components/`, в вебе он стоял у 26 экранов, нативными
+   стали 24 — и ни у одного босса не было, пробы зелёные.
    Каждая строка — слой, который надо перенести или подключить к каркасному.
    Известные и что бывает, если пропустить (замеры 23.09.2026):
    · `api` — законченная партия. Пропустил: зарядка не двигает шаг (104 из 891
@@ -66,6 +69,15 @@
      подключения у «Бездны».
    · `tts` — голос. Слоя во Flutter пока НЕТ вовсе, держит семь экранов.
    · `feedback` — отклик, вибрация, звук нажатия.
+   · `components/BossRound` — бой с боссом каждые 3 уровня (`BOSS_EVERY`). Пропустил:
+     после 3-го, 6-го, 9-го уровня вехи нет, пробы зелёные. Каркасный слой готов с 30.09 —
+     `flutter/lib/shell/boss_round.dart`: победа и веха одним вызовом
+     `BossRound.winThenBoss(context, _ladder, type:, color:)` вместо `_ladder.win()`,
+     `BossOutcomeLine(_boss)` в итоге партии; тип — `config.type` веб-экрана, цвет —
+     `GRADIENT[0]`. Проба — `flutter/test/support/boss_probe.dart`. Подключены 9 экранов
+     «Поиска и счёта»; ещё без боя: ant, choice-rt, corsi, cpt, flanker, go-no-go,
+     inhibition, posner, proofreading, simon, stop-signal, stroop, stroop-emotional,
+     sudoku, switching-task.
 
 6. 🔴 **Подписи — из словаря, а не строками в коде.** `L.t('ключ')`
    (`flutter/lib/shell/l10n.dart`), ключ завести в `frontend/src/contexts/LanguageContext.tsx`,
