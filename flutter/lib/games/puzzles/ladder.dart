@@ -19,9 +19,23 @@ import 'engine.dart';
 /// классов нет вовсе — его лестница растёт только размером поля.
 
 class PuzzleStep {
-  const PuzzleStep(this.title, this.params);
+  const PuzzleStep(this.title, this.params, [this.parts = const []]);
   final String title;
   final String params;
+
+  /// Имя по частям для языков кроме русского (`games/puzzles/step_title.dart`).
+  final List<StepPart> parts;
+}
+
+/// Часть имени ступени: ключ словаря с числом/размером `{n}` либо готовый текст.
+class StepPart {
+  const StepPart({this.key, this.n = '', this.text = ''});
+  final String? key;
+  final String n;
+  final String text;
+
+  static StepPart fromJson(Map<String, dynamic> j) =>
+      StepPart(key: j['key'] as String?, n: (j['n'] ?? '') as String, text: (j['text'] ?? '') as String);
 }
 
 class PuzzleMode {
@@ -144,6 +158,7 @@ class PuzzleModes {
               .map((s) => PuzzleStep(
                     (s as Map<String, dynamic>)['title'] as String,
                     s['params'] as String,
+                    [for (final p in (s['parts'] as List?) ?? const []) StepPart.fromJson(p as Map<String, dynamic>)],
                   ))
               .toList(),
           owner: m['owner'] as String?,

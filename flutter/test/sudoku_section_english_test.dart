@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -8,6 +7,7 @@ import 'package:psygames_flutter/games/deep/screen.dart';
 import 'package:psygames_flutter/games/fractal/screen.dart';
 import 'package:psygames_flutter/games/hidden_character/screen.dart';
 import 'package:psygames_flutter/games/puzzles/engine.dart';
+import 'package:psygames_flutter/games/puzzles/ladder.dart';
 import 'package:psygames_flutter/games/puzzles/screen.dart';
 import 'package:psygames_flutter/games/puzzles/step_title.dart';
 import 'package:psygames_flutter/games/samurai/screen.dart';
@@ -125,24 +125,25 @@ void main() {
         also: boardBuilt);
   });
 
-  test('🔴 имя КАЖДОЙ ступени всех режимов на английском разбирается — новое имя без шаблона краснеет', () async {
-    final raw = jsonDecode(File('assets/puzzles/modes.json').readAsStringSync()) as Map<String, dynamic>;
+  test('🔴 имя КАЖДОЙ ступени всех режимов на английском собирается без русского', () async {
+    await PuzzleModes.load();
     final untranslated = <String>[];
     var total = 0;
-    for (final m in raw.entries) {
-      for (final st in (m.value['steps'] as List).cast<Map<String, dynamic>>()) {
+    for (final m in PuzzleModes.all.entries) {
+      for (final st in m.value.steps) {
         total++;
-        final shown = stepTitle(st['title'] as String);
-        if (_cyrillic.hasMatch(shown)) untranslated.add('${m.key}: ${st['title']}');
+        if (_cyrillic.hasMatch(stepTitle(st))) untranslated.add('${m.key}: ${st.title}');
       }
     }
     expect(total, greaterThanOrEqualTo(80), reason: 'имён ступеней в данных меньше, чем было 01.10');
-    expect(untranslated, isEmpty, reason: 'добавь шаблон в lib/games/puzzles/step_title.dart: $untranslated');
-    expect(stepTitle('4 цвета, 3 места'), '4 colours, 3 pegs');
-    expect(stepTitle('3×3, восемь плиток'), '3×3, 8 tiles');
-    expect(stepTitle('Крест 7×9'), 'Cross 7×9');
-    expect(stepTitle('6×6, поворот 4×4'), '6×6, 4×4 rotation');
+    expect(untranslated, isEmpty, reason: 'части имени не дошли: $untranslated');
+    String of(String mode, int i) => stepTitle(PuzzleModes.all[mode]!.steps[i]);
+    expect(of('Guess', 0), '4 colours, 3 pegs');
+    expect(of('Fifteen', 0), '3×3, 8 tiles');
+    expect(of('Pegs', 2), 'Cross 5×7');
+    expect(of('Twiddle', 6), '6×6, 4×4 rotation');
+    expect(of('Mines', 0), '9×9, 10 mines');
     await L.load('ru');
-    expect(stepTitle('9×9, 10 мин'), '9×9, 10 мин', reason: 'русскому — имя как в данных');
+    expect(of('Mines', 0), '9×9, 10 мин', reason: 'русскому — имя как в данных');
   });
 }

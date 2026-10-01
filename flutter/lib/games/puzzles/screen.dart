@@ -417,7 +417,7 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
           : () => showGameRules(context, title: _mode.title, ruleKey: _mode.descKey!),
       hud: [
         HudItem(label: L.t('sdkHudStage'), value: '${_ladder.level}/${_steps.length}', icon: Icons.trending_up),
-        HudItem(label: L.t('sdkBoard'), value: stepTitle(step.title), icon: Icons.grid_on),
+        HudItem(label: L.t('sdkBoard'), value: stepTitle(step), icon: Icons.grid_on),
       ],
       field: (context, height) {
         if (_failure != null) return Center(child: Text(_failure!));
