@@ -70,6 +70,10 @@ void main() {
               expect(d?.whisper, isNotNull, reason: '$at: звено линии шёпота $r,$c не нарисовано');
               checked['whisper'] = (checked['whisper'] ?? 0) + 1;
             }
+            if (g.renban?[r][c] != null) {
+              expect(d?.renban, isNotNull, reason: '$at: звено полосы ренбана $r,$c не нарисовано');
+              checked['renban'] = (checked['renban'] ?? 0) + 1;
+            }
             final p = g.parity?[r][c] ?? 0;
             if (p != 0) {
               expect(d?.parity, p, reason: '$at: метка чётности $r,$c не нарисована');
@@ -115,12 +119,12 @@ void main() {
       }
     }
     // Проба не пустая: каждая из шести подсказок встретилась на доске.
-    for (final kind in ['thermo', 'arrow', 'parity', 'cage', 'kropki', 'sandwich', 'diagonal', 'hyper', 'whisper']) {
+    for (final kind in ['thermo', 'arrow', 'parity', 'cage', 'kropki', 'sandwich', 'diagonal', 'hyper', 'whisper', 'renban']) {
       expect(checked[kind] ?? 0, greaterThan(0), reason: 'подсказка «$kind» не встретилась ни разу — проба мимо');
     }
   });
 
-  test('🔴 показанные подсказки проверяются: чётность, точка Кропки, сумма сэндвича, линия шёпота', () {
+  test('🔴 показанные подсказки проверяются: чётность, точка Кропки, сумма сэндвича, линии шёпота и ренбана', () {
     final empty = List.generate(9, (_) => List.filled(9, 0));
     final parity = List.generate(9, (_) => List.filled(9, 0))..[0][0] = 1;   // 1 — чётная
     final g1 = BoardGeometry(parity: parity);
@@ -147,5 +151,16 @@ void main() {
     expect(isValid(line, 0, 0, 3, 9, 3, 3, variant: 'whisper', geometry: g4), isFalse, reason: '|3−7| = 4 < 5');
     expect(isValid(line, 0, 0, 2, 9, 3, 3, variant: 'whisper', geometry: g4), isTrue, reason: '|2−7| = 5');
     expect(isValid(line, 1, 0, 3, 9, 3, 3, variant: 'whisper', geometry: g4), isTrue, reason: 'вне линии правило молчит');
+
+    // Полоса ренбана (0,0)–(0,1)–(0,2): цифры разные и подряд в любом порядке.
+    final rb = List<List<ThermoLink?>>.generate(9, (_) => List<ThermoLink?>.filled(9, null));
+    rb[0][0] = const ThermoLink(next: [0, 1]);
+    rb[0][1] = const ThermoLink(prev: [0, 0], next: [0, 2]);
+    rb[0][2] = const ThermoLink(prev: [0, 1]);
+    final g5 = BoardGeometry(renban: rb);
+    final run = [for (final row in empty) [...row]]..[0][2] = 5;
+    expect(isValid(run, 0, 0, 3, 9, 3, 3, variant: 'renban', geometry: g5), isTrue, reason: '3 и 5 — окно из трёх (3-4-5)');
+    expect(isValid(run, 0, 0, 2, 9, 3, 3, variant: 'renban', geometry: g5), isFalse, reason: '2 и 5 — шире трёх подряд');
+    expect(isValid(run, 0, 0, 7, 9, 3, 3, variant: 'renban', geometry: g5), isTrue, reason: '5 и 7 — окно 5-6-7');
   });
 }

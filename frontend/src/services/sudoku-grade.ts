@@ -25,7 +25,7 @@
  */
 import {
   Cell, Variant, ThermoPN, ArrowMap, CageMap, isValid, generatePuzzle, shuffle, HYPER_BOXES, ORTHO,
-  Overlays, levelConfig, UnequalMap, TowersMap, towersLineOk, WHISPER_GAP,
+  Overlays, levelConfig, UnequalMap, TowersMap, towersLineOk, WHISPER_GAP, renbanOk, lineCells,
 } from './sudoku-core';
 
 export type Technique =
@@ -39,6 +39,7 @@ export type Technique =
   | 'towers_clue'     // вывод из подсказки «сколько зданий видно с края»
   | 'unequal_chain'   // цепочка неравенств: границы протянуты через ПУСТЫХ соседей
   | 'whisper_line'    // немецкий шёпот: кандидат без пары «±5» у ПУСТОГО соседа по линии
+  | 'renban_window'   // ренбан: кандидат вне любого окна «подряд», куда влезает вся линия
   | 'x_wing'          // X-wing
   | 'xy_wing'         // XY-wing: ось {a,b} и два клюва {a,c} и {b,c} — c уходит там, где видно оба
   | 'guess';          // логики не хватило — нужен перебор
@@ -48,6 +49,8 @@ export const TECHNIQUE_TIER: Record<Technique, number> = {
   // Шёпот — тот же класс вывода, что цепочка неравенств: граница через ПУСТОГО соседа.
   // Ступень 4, как у трёх других вариантных выводов: шкала обязана быть сравнимой.
   whisper_line: 4,
+  // Ренбан — тот же класс: вывод через ПУСТЫЕ клетки линии (окно значений), ступень 4.
+  renban_window: 4,
   /**
    * 🔴 СТУПЕНЬ СУММ НАЗНАЧЕНА ЗАМЕРОМ, А НЕ НА ГЛАЗ (07.09.2026). До этого дня вывод
    * из клеток-сумм не помечался ВООБЩЕ — блок в `refilter` работал, но `bump` не звал,
@@ -81,6 +84,8 @@ export interface GradeCtx {
   towers?: TowersMap;
   /** Немецкий шёпот: линии, соседи на которых отличаются минимум на WHISPER_GAP. */
   whisper?: ThermoPN;
+  /** Ренбан: на линии цифры разные и подряд (в любом порядке). */
+  renban?: ThermoPN;
 }
 
 export interface Grade {
@@ -156,7 +161,7 @@ export function unitsFor(N: number, BR: number, BC: number, variant: Variant, re
 
 /** Оценка пазла: самая сложная техника, без которой не обойтись. */
 export function gradePuzzle(puzzle: Cell[][], ctx: GradeCtx, tierCap = 9): Grade {
-  const { N, BR, BC, variant, regions, thermo, arrow, cages, parity, kropki, sandwich, unequal, towers, whisper } = ctx;
+  const { N, BR, BC, variant, regions, thermo, arrow, cages, parity, kropki, sandwich, unequal, towers, whisper, renban } = ctx;
   const grid = puzzle.map((row) => [...row]);
   const FULL = (1 << N) - 1;
   const cand: number[][] = Array.from({ length: N }, () => Array(N).fill(FULL));
@@ -250,6 +255,8 @@ export function gradePuzzle(puzzle: Cell[][], ctx: GradeCtx, tierCap = 9): Grade
             }
           }
         }
+        // Ренбан против ИЗВЕСТНЫХ цифр линии (повтор, разброс шире длины) — дано даром.
+        if (ok && renban && !renbanOk(grid, r, c, v, renban)) ok = false;
         if (!ok) m &= ~bit(v);
       }
       cand[r][c] = m;
@@ -356,6 +363,41 @@ export function gradePuzzle(puzzle: Cell[][], ctx: GradeCtx, tierCap = 9): Grade
         if (!changed) break;
       }
       if (usedWhisper) bump('whisper_line');
+    }
+
+    /**
+     * ── РЕНБАН: кандидат v пустой клетки линии живёт, только если есть ОКНО значений
+     * [a, a+L−1] (L — длина линии), которое вмещает v и все известные цифры линии, и в котором
+     * каждая другая пустая клетка линии находит себе кандидата (не v и не известную цифру).
+     * Это и есть приём: окно зажимают ПУСТЫЕ клетки, а не только видимые цифры (их срез —
+     * даром, выше). Техникой (`renban_window`) считается только этот вывод.
+     */
+    if (renban && выводВарианта) {
+      let usedRenban = false;
+      for (let r0 = 0; r0 < N; r0++) for (let c0 = 0; c0 < N; c0++) {
+        const head = renban[r0][c0];
+        if (!head || head.prev) continue;                         // по разу на линию — с её начала
+        const cells = lineCells(renban, r0, c0);
+        const L = cells.length;
+        const known = cells.map(([lr, lc]) => grid[lr][lc]).filter((v) => v !== 0);
+        const empty = cells.filter(([lr, lc]) => grid[lr][lc] === 0);
+        for (const [er, ec] of empty) {
+          let m = cand[er][ec];
+          for (const v of bitsOf(m, N)) {
+            let fits = false;
+            for (let a = 1; a + L - 1 <= N && !fits; a++) {
+              const lo = a, hi = a + L - 1;
+              if (v < lo || v > hi || known.some((k) => k < lo || k > hi)) continue;
+              fits = empty.every(([yr, yc]) => (yr === er && yc === ec)
+                || bitsOf(cand[yr][yc], N).some((e) => e >= lo && e <= hi && e !== v && !known.includes(e)));
+            }
+            if (!fits) m &= ~bit(v);
+          }
+          if (m !== cand[er][ec]) { cand[er][ec] = m; usedRenban = true; }
+          if (m === 0) return true;
+        }
+      }
+      if (usedRenban) bump('renban_window');
     }
 
     if (unequal && выводВарианта) {
@@ -923,6 +965,9 @@ const VARIANT_TIER_CEILING: Partial<Record<Variant, number>> = {
    * 54 → 4 ×10, 58 → 4 ×4 и 5 ×6; шестёрки ноль. Потолок 5.
    */
   whisper: 5,
+  /** Ренбан (97–100) — ЗАМЕР 01.10.2026, выгрузка 48 досок боевым путём: 4 ×45, 5 ×3; шестёрки
+   *  ноль. Без линий не решается 0 из 48, под потолком 3 — 1 из 48. Потолок 5. */
+  renban: 5,
   /**
    * Комбо-пояс 81–92 — ЗАМЕР 29.08.2026 (combo-tiers.measure, по 15 боевых досок):
    * шестёрка у всех трёх пар — 0–1 из 15 (не массово), пятёрка достижима у всех
@@ -1133,7 +1178,7 @@ export type GeneratedPuzzle = ReturnType<typeof generatePuzzle>;
  * refilter; если конкретная попытка не укладывается в бюджет, generateLogical всё
  * равно сохраняет прежний безопасный fallback через проверку единственности.
  */
-const LOGIC_VARIANTS: readonly Variant[] = ['none', 'diagonal', 'antiknight', 'hyper', 'antiking', 'evenodd', 'kropki', 'sandwich', 'jigsaw', 'nonconsec', 'thermo', 'arrow', 'thermocage', 'sandparity', 'thermoknight', 'killerdiag', 'whisper'];
+const LOGIC_VARIANTS: readonly Variant[] = ['none', 'diagonal', 'antiknight', 'hyper', 'antiking', 'evenodd', 'kropki', 'sandwich', 'jigsaw', 'nonconsec', 'thermo', 'arrow', 'thermocage', 'sandparity', 'thermoknight', 'killerdiag', 'whisper', 'renban'];
 
 /**
  * Сколько раз проходим доску, пытаясь убрать ещё клетку. Больше трёх бюджет обычно
@@ -1187,7 +1232,7 @@ export function solvedSameBoard(grade: Grade, solution: Cell[][]): boolean {
 function gradeOf(gen: GeneratedPuzzle, N: number, BR: number, BC: number, variant: Variant): Grade {
   return gradePuzzle(gen.puzzle, {
     N, BR, BC, variant, regions: gen.regions, thermo: gen.thermo, arrow: gen.arrow, cages: gen.cages,
-    parity: gen.parity, kropki: gen.kropki, sandwich: gen.sandwich, whisper: gen.whisper,
+    parity: gen.parity, kropki: gen.kropki, sandwich: gen.sandwich, whisper: gen.whisper, renban: gen.renban,
     // ⚠️ Знаки и краевые подсказки ОБЯЗАНЫ доходить до оценщика. До 27.08.2026 их
     // здесь не было, и запасной путь оценивал unequal/towers вслепую: та же доска
     // давала «ступень 2, hidden_single» без карты и «ступень 4, unequal_chain» с ней.
@@ -1222,7 +1267,7 @@ function digByLogic(
   // увидит человек — та же дисциплина, что у сэндвича и кропки.
   const unequal = (base as { unequal?: UnequalMap }).unequal;
   const towers = (base as { towers?: TowersMap }).towers;
-  const ctx: GradeCtx = { N, BR, BC, variant, regions: base.regions, thermo: base.thermo, arrow: base.arrow, cages: base.cages, parity, kropki, sandwich, unequal, towers, whisper: base.whisper };
+  const ctx: GradeCtx = { N, BR, BC, variant, regions: base.regions, thermo: base.thermo, arrow: base.arrow, cages: base.cages, parity, kropki, sandwich, unequal, towers, whisper: base.whisper, renban: base.renban };
 
   // Лимит пустых держим только на новичковых уровнях, чтобы не пугать доской в дырках.
   // Дальше глубину задаёт ЛОГИКА. Старый лимит (58 к 29-му) как раз и упирался в потолок,

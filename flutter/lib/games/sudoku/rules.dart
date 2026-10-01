@@ -179,6 +179,7 @@ class BoardGeometry {
     this.kropki,
     this.sandwich,
     this.whisper,
+    this.renban,
   });
   final List<List<int>>? regions;
   final List<List<ThermoLink?>>? thermo;
@@ -195,6 +196,9 @@ class BoardGeometry {
   /// Зелёные линии «немецкого шёпота»: соседи по линии отличаются минимум на [whisperGap].
   /// Тот же вид prev/next, что у термометра (`whisperFromSolution` веба).
   final List<List<ThermoLink?>>? whisper;
+
+  /// Фиолетовые линии ренбана: цифры на линии разные и идут подряд в любом порядке.
+  final List<List<ThermoLink?>>? renban;
 
   static BoardGeometry fromJson(Map<String, Object?> v) => BoardGeometry(
         regions: v['regions'] == null ? null : _grid(v['regions']),
@@ -217,6 +221,11 @@ class BoardGeometry {
         whisper: v['whisper'] == null
             ? null
             : (v['whisper'] as List)
+                .map((row) => (row as List).map(ThermoLink.fromJson).toList())
+                .toList(),
+        renban: v['renban'] == null
+            ? null
+            : (v['renban'] as List)
                 .map((row) => (row as List).map(ThermoLink.fromJson).toList())
                 .toList(),
       );
@@ -411,9 +420,49 @@ bool isValid(
 /// Наименьшая разница соседей по линии шёпота — `WHISPER_GAP` веба.
 const whisperGap = 5;
 
+/// Все клетки линии (prev/next), на которой стоит (r, c); пусто — клетка не на линии.
+/// Перенос `lineCells` веба.
+List<List<int>> lineCells(List<List<ThermoLink?>> pn, int r, int c) {
+  if (pn[r][c] == null) return const [];
+  var cur = [r, c];
+  for (var guard = 0; guard < 81; guard++) {
+    final prev = pn[cur[0]][cur[1]]!.prev;
+    if (prev == null) break;
+    cur = prev;
+  }
+  final out = <List<int>>[];
+  for (var guard = 0; guard < 81; guard++) {
+    out.add(cur);
+    final next = pn[cur[0]][cur[1]]!.next;
+    if (next == null) break;
+    cur = next;
+  }
+  return out;
+}
+
+/// Линия ренбана не нарушена цифрой [val] в (r, c): на линии нет повторов, и разброс
+/// известных цифр не шире её длины. Перенос `renbanOk` веба.
+bool renbanOk(List<List<int>> grid, int r, int c, int val, List<List<ThermoLink?>> pn) {
+  final cells = lineCells(pn, r, c);
+  if (cells.isEmpty) return true;
+  final vals = <int>[];
+  for (final cell in cells) {
+    final v = cell[0] == r && cell[1] == c ? val : grid[cell[0]][cell[1]];
+    if (v == 0) continue;
+    if (vals.contains(v)) return false;
+    vals.add(v);
+  }
+  var lo = vals.first, hi = vals.first;
+  for (final v in vals) {
+    if (v < lo) lo = v;
+    if (v > hi) hi = v;
+  }
+  return hi - lo <= cells.length - 1;
+}
+
 /// Не нарушает ли цифра [val] в клетке (r, c) ПОКАЗАННЫЕ подсказки — перенос `overlayOk`
 /// из `frontend/src/services/sudoku-core.ts`: метки чётности, точки Кропки, суммы сэндвича,
-/// линии шёпота.
+/// линии шёпота и ренбана.
 bool overlayOk(List<List<int>> grid, int r, int c, int val, int n, BoardGeometry g) {
   final parity = g.parity;
   if (parity != null) {
@@ -447,6 +496,8 @@ bool overlayOk(List<List<int>> grid, int r, int c, int val, int n, BoardGeometry
       }
     }
   }
+  final renban = g.renban;
+  if (renban != null && !renbanOk(grid, r, c, val, renban)) return false;
   final sandwich = g.sandwich;
   if (sandwich != null) {
     bool check(List<int> line, int want) {

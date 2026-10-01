@@ -26,11 +26,13 @@ void main() {
   final boards = (data['boards'] as List).cast<Map<String, Object?>>();
   final ladder = (data['ladder'] as List).cast<Map<String, Object?>>();
 
-  test('есть что сверять: 20 вариантов, 800 случаев, лестница на 96 ступеней', () {
-    expect(boards.length, 20);
-    expect(ladder.length, 96);
+  test('есть что сверять: вариант на каждое правило лестницы и режимов, по 40 ходов, лестница целиком', () {
+    // Числа не зашиты: новое правило лестницы обязано приехать в эталоны само (выгрузка).
+    final ladderVariants = {for (final l in ladder) l['variant'] as String};
+    expect(boards.length, ladderVariants.length + 3, reason: 'варианты лестницы + killer, unequal, towers');
+    expect(ladder.length, greaterThanOrEqualTo(100));
     final cases = boards.fold<int>(0, (s, b) => s + (b['cases'] as List).length);
-    expect(cases, 800);
+    expect(cases, boards.length * 40);
   });
 
   test('🔴 каждый вариант лестницы есть в эталонах — новое правило не проходит мимо пробы', () {

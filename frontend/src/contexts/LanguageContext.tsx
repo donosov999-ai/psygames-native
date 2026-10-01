@@ -709,7 +709,7 @@ const translations: Translations = {
    * остаётся. Считать его из самой лестницы — отдельная задача 6d534161
    * («хабы: считать число вложенных игр, а не писать руками»).
    */
-  sudokuTypeClassic: { ru: 'Одна сетка · 96 ступеней',   en: 'One grid · 96 steps' },
+  sudokuTypeClassic: { ru: 'Одна сетка · 100 ступеней',   en: 'One grid · 100 steps' },
   sudokuTypeSamurai: { ru: 'Пять сеток, сцепленных углами', en: 'Five grids locked at the corners' },
   sudokuTypeFractal: { ru: 'Сетка внутри каждой клетки',  en: 'A grid inside every cell' },
   sudokuGroupFootnote: {
@@ -3399,6 +3399,7 @@ const translations: Translations = {
   sudokuVariantSandwich: { ru: '🥪 сэндвич', en: '🥪 sandwich' },
   sudokuVariantThermo: { ru: '🌡 термометр', en: '🌡 thermo' },
   sudokuVariantWhisper: { ru: '〰 шёпот', en: '〰 whispers' },
+  sudokuVariantRenban: { ru: '🟪 ренбан', en: '🟪 renban' },
   sudokuVariantArrow: { ru: '➳ стрелка', en: '➳ arrow' },
   sudokuVariantThermocage: { ru: '🌡+ сумма', en: '🌡+ cage' },
   sudokuVariantTowers: { ru: '🏙 небоскрёбы', en: '🏙 towers' },
@@ -3436,6 +3437,7 @@ const translations: Translations = {
   sudokuWhyNotLocal: { ru: 'Эта цифра не спорит с соседями напрямую — но в этой клетке стоит другая. Смотри строку, столбец и квадрат целиком.', en: 'This digit does not clash with its neighbours directly — but another one belongs here. Look at the whole row, column and box.' },
   sudokuRuleThermo: { ru: 'Вдоль термометра цифры строго растут от колбы.', en: 'Digits strictly increase along each thermometer from the bulb.' },
   sudokuRuleWhisper: { ru: 'Соседние цифры на зелёной линии отличаются минимум на 5.', en: 'Neighbouring digits on a green line differ by at least 5.' },
+  sudokuRuleRenban: { ru: 'На фиолетовой линии — цифры подряд в любом порядке, без повторов.', en: 'Digits on a purple line form a consecutive run in any order, with no repeats.' },
   // Нативные экраны раздела «Судоку» (Flutter): полоса счётчиков, кнопки, имена правил без значков.
   sdkHudRule: { ru: 'Правило', en: 'Rule' },
   sdkHudStage: { ru: 'Ступень', en: 'Stage' },
@@ -3474,6 +3476,7 @@ const translations: Translations = {
   sdkRule_sandparity: { ru: 'сэндвич и чётность', en: 'sandwich and parity' },
   sdkRule_killerdiag: { ru: 'суммы и диагонали', en: 'cages and diagonals' },
   sdkRule_whisper: { ru: 'шёпот', en: 'whispers' },
+  sdkRule_renban: { ru: 'ренбан', en: 'renban' },
   // Части имён ступеней Тэтхэма для нативной полосы «Доска» ({n} — число или размер).
   tathamDiffEasy: { ru: 'лёгкая', en: 'easy' },
   tathamDiffNormal: { ru: 'обычная', en: 'normal' },

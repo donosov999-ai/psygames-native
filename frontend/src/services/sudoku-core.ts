@@ -11,7 +11,7 @@
 import { translateFor } from '../contexts/LanguageContext';
 
 export type Cell = number; // 0 = empty
-export type Variant = 'none' | 'diagonal' | 'antiknight' | 'hyper' | 'nonconsec' | 'jigsaw' | 'antiking' | 'evenodd' | 'kropki' | 'sandwich' | 'thermo' | 'arrow' | 'thermocage' | 'unequal' | 'towers' | 'sandparity' | 'thermoknight' | 'killerdiag' | 'whisper';
+export type Variant = 'none' | 'diagonal' | 'antiknight' | 'hyper' | 'nonconsec' | 'jigsaw' | 'antiking' | 'evenodd' | 'kropki' | 'sandwich' | 'thermo' | 'arrow' | 'thermocage' | 'unequal' | 'towers' | 'sandparity' | 'thermoknight' | 'killerdiag' | 'whisper' | 'renban';
 
 export const HYPER_BOXES = [[1, 1], [1, 5], [5, 1], [5, 5]] as const;   // Windoku: 4 доп. зоны 3×3 (левые-верхние углы)
 export const KNIGHT = [[-2, -1], [-2, 1], [-1, -2], [-1, 2], [1, -2], [1, 2], [2, -1], [2, 1]] as const;
@@ -43,6 +43,7 @@ const VARIANT_KEY_SUFFIX: Record<Exclude<Variant, 'none'>, string> = {
   towers: 'Towers',
   sandparity: 'Sandparity', thermoknight: 'Thermoknight', killerdiag: 'Killerdiag',
   whisper: 'Whisper',
+  renban: 'Renban',
 };
 export function variantLabel(v: Variant, lang: string): string {
   if (v === 'none') return '';
@@ -341,7 +342,12 @@ export function levelConfig(level: number): LevelCfg {
    * Место по замеру: на 58 пустых доски шёпота встают ступенью 4–5 (как комбо-пояс 81–92),
    * без линий не решаются логикой ни одна из 30 — правило работает, а не украшает.
    */
-  else if (lv >= 93) variant = 'whisper';
+  else if (lv >= 93 && lv <= 96) variant = 'whisper';
+  /**
+   * 🔴 РЕНБАН — СТУПЕНИ 97–100 (01.10.2026, пункт 4 цепочки «14 усложнений», задача 031a7684).
+   * Тоже в конец лестницы — по той же причине, что шёпот. Место по замеру (см. VARIANT_TIER_CEILING).
+   */
+  else if (lv >= 97) variant = 'renban';
   /**
    * 🔴 НЕРАВЕНСТВА (футосики) СОБРАНЫ, НО УРОВНЕЙ НЕ ПОЛУЧИЛИ — ЗАМЕР 26.08.2026.
    *
@@ -569,6 +575,84 @@ export function whisperFromSolution(sol: Cell[][], N: number, rnd: () => number 
     pn[r][c] = { prev: k > 0 ? path[k - 1] : null, next: k < path.length - 1 ? path[k + 1] : null };
   }
   return pn;
+}
+
+/**
+ * 🔴 РЕНБАН (пункт 4 цепочки «14 усложнений», задача 031a7684; решение Дениса 30.09 «Берём»):
+ * на фиолетовой линии стоят цифры, идущие подряд (3-4-5-6), в ЛЮБОМ порядке и без повторов.
+ * Правило не про соседей, а про всю линию сразу: длина L задаёт ширину окна значений, и уже
+ * две известные цифры на линии зажимают остальных в окно max−min ≤ L−1.
+ *
+ * Линии строятся ИЗ решения: случайный путь по ортогональным соседям длиной 3…5, у которого
+ * цифры разные и образуют отрезок подряд. До шести линий, без пересечений. Хранятся тем же
+ * видом prev/next, что термометр и шёпот.
+ */
+export function renbanFromSolution(sol: Cell[][], N: number, rnd: () => number = Math.random): ThermoPN {
+  const used: boolean[][] = Array.from({ length: N }, () => Array(N).fill(false));
+  const paths: [number, number][][] = [];
+  for (let attempt = 0; attempt < 120 && paths.length < 6; attempt++) {
+    const starts: [number, number][] = [];
+    for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (!used[r][c]) starts.push([r, c]);
+    if (!starts.length) break;
+    const [sr, sc] = starts[Math.floor(rnd() * starts.length)];
+    const len = 3 + Math.floor(rnd() * 3);   // 3..5
+    const path: [number, number][] = [[sr, sc]];
+    const vals = [sol[sr][sc]];
+    let cr = sr, cc = sc;
+    for (let s = 1; s < len; s++) {
+      // Сосед годен, если с его цифрой набор ещё может стать отрезком длины len.
+      const nb = ORTHO.map(([dr, dc]) => [cr + dr, cc + dc] as [number, number])
+        .filter(([nr, nc]) => nr >= 0 && nr < N && nc >= 0 && nc < N && !used[nr][nc]
+          && !path.some(([pr, pc]) => pr === nr && pc === nc)
+          && !vals.includes(sol[nr][nc])
+          && Math.max(...vals, sol[nr][nc]) - Math.min(...vals, sol[nr][nc]) <= len - 1);
+      if (!nb.length) break;
+      const [nr, nc] = nb[Math.floor(rnd() * nb.length)];
+      path.push([nr, nc]); vals.push(sol[nr][nc]); cr = nr; cc = nc;
+    }
+    if (path.length >= 3 && Math.max(...vals) - Math.min(...vals) === path.length - 1) {
+      paths.push(path); for (const [r, c] of path) used[r][c] = true;
+    }
+  }
+  const pn: ThermoPN = Array.from({ length: N }, () => Array(N).fill(null));
+  for (const path of paths) for (let k = 0; k < path.length; k++) {
+    const [r, c] = path[k];
+    pn[r][c] = { prev: k > 0 ? path[k - 1] : null, next: k < path.length - 1 ? path[k + 1] : null };
+  }
+  return pn;
+}
+
+/** Все клетки линии (prev/next), на которой стоит (r, c); пусто — клетка не на линии. */
+export function lineCells(pn: ThermoPN, r: number, c: number): [number, number][] {
+  if (!pn[r]?.[c]) return [];
+  let cur: [number, number] = [r, c];
+  for (let guard = 0; guard < 81; guard++) {
+    const prev = pn[cur[0]][cur[1]]!.prev;
+    if (!prev) break;
+    cur = prev;
+  }
+  const out: [number, number][] = [];
+  for (let guard = 0; guard < 81; guard++) {
+    out.push(cur);
+    const next = pn[cur[0]][cur[1]]!.next;
+    if (!next) break;
+    cur = next;
+  }
+  return out;
+}
+
+/** Нарушает ли цифра n в (r, c) линию ренбана: повтор на линии или разброс шире длины. */
+export function renbanOk(grid: Cell[][], r: number, c: number, n: number, pn: ThermoPN): boolean {
+  const cells = lineCells(pn, r, c);
+  if (!cells.length) return true;
+  const vals: number[] = [];
+  for (const [lr, lc] of cells) {
+    const v = lr === r && lc === c ? n : grid[lr][lc];
+    if (v === 0) continue;
+    if (vals.includes(v)) return false;
+    vals.push(v);
+  }
+  return Math.max(...vals) - Math.min(...vals) <= cells.length - 1;
 }
 
 export function arrowFromSolution(sol: Cell[][], N: number): ArrowMap {
@@ -944,6 +1028,8 @@ export interface Overlays {
   /** Немецкий шёпот: линии (как у термометра — prev/next по клеткам); соседи на линии
    *  отличаются минимум на WHISPER_GAP. */
   whisper?: ThermoPN;
+  /** Ренбан: линии prev/next; цифры на линии разные и образуют отрезок подряд. */
+  renban?: ThermoPN;
 }
 
 /** Полные оверлеи из решения — до прореживания. */
@@ -977,6 +1063,9 @@ export function overlaysFromSolution(sol: Cell[][], N: number, variant: Variant)
   }
   if (variant === 'whisper') {
     return { whisper: whisperFromSolution(sol, N) };
+  }
+  if (variant === 'renban') {
+    return { renban: renbanFromSolution(sol, N) };
   }
   if (variant === 'unequal') {
     // Знаки СРАЗУ все; сколько показать — решает прореживание уровня, как у кропки.
@@ -1052,6 +1141,7 @@ export function overlayOk(grid: Cell[][], r: number, c: number, n: number, N: nu
       }
     }
   }
+  if (ov.renban && !renbanOk(grid, r, c, n, ov.renban)) return false;   // линия — показанная подсказка
   if (ov.sandwich) {
     const check = (line: number[], want: number): boolean => {
       if (want < 0) return true;                                      // сумма СПРЯТАНА (см. thinSandwich) — не подсказка
@@ -1108,7 +1198,7 @@ export function countSolutions(grid: Cell[][], N: number, BR: number, BC: number
 // thermocage здесь ОБЯЗАН быть: единственность решения у него считается по ДВУМ
 // правилам сразу (isValid знает и цепочку, и сумму). Доска, единственная по каждому
 // правилу порознь, вместе может иметь второе решение — и наоборот.
-const UNIQUE_CHECKED: readonly Variant[] = ['none', 'diagonal', 'antiknight', 'hyper', 'nonconsec', 'antiking', 'jigsaw', 'thermo', 'arrow', 'evenodd', 'kropki', 'sandwich', 'thermocage', 'unequal', 'towers', 'sandparity', 'thermoknight', 'killerdiag', 'whisper'];
+const UNIQUE_CHECKED: readonly Variant[] = ['none', 'diagonal', 'antiknight', 'hyper', 'nonconsec', 'antiking', 'jigsaw', 'thermo', 'arrow', 'evenodd', 'kropki', 'sandwich', 'thermocage', 'unequal', 'towers', 'sandparity', 'thermoknight', 'killerdiag', 'whisper', 'renban'];
 
 /**
  * Готовая сетка для «несоседних чисел» — БЕЗ перебора.
@@ -1137,7 +1227,7 @@ export function buildNonconsecSolution(): Cell[][] {
   return g;
 }
 
-export function generatePuzzle(blanks: number, N: number, BR: number, BC: number, variant: Variant = 'none', thin?: (ov: Overlays) => Overlays): { puzzle: Cell[][]; solution: Cell[][]; regions?: number[][]; parity?: number[][]; kropki?: { h: number[][]; v: number[][] }; sandwich?: { rows: number[]; cols: number[] }; thermo?: ThermoPN; arrow?: ArrowMap; cages?: CageMap; unequal?: UnequalMap; towers?: TowersMap; whisper?: ThermoPN } {
+export function generatePuzzle(blanks: number, N: number, BR: number, BC: number, variant: Variant = 'none', thin?: (ov: Overlays) => Overlays): { puzzle: Cell[][]; solution: Cell[][]; regions?: number[][]; parity?: number[][]; kropki?: { h: number[][]; v: number[][] }; sandwich?: { rows: number[]; cols: number[] }; thermo?: ThermoPN; arrow?: ArrowMap; cages?: CageMap; unequal?: UnequalMap; towers?: TowersMap; whisper?: ThermoPN; renban?: ThermoPN } {
   const sol: Cell[][] = Array.from({ length: N }, () => Array(N).fill(0));
   let regions: number[][] | undefined;
   let thermo: ThermoPN | undefined;
@@ -1229,7 +1319,8 @@ export function generatePuzzle(blanks: number, N: number, BR: number, BC: number
   const unequal = ov.unequal;
   const towers = ov.towers;
   const whisper = ov.whisper;
-  return { puzzle, solution: sol, regions, parity, kropki, sandwich, thermo, arrow, cages, unequal, towers, whisper };
+  const renban = ov.renban;
+  return { puzzle, solution: sol, regions, parity, kropki, sandwich, thermo, arrow, cages, unequal, towers, whisper, renban };
 }
 
 /**
@@ -1260,6 +1351,7 @@ export interface RejectionContext {
   unequal?: UnequalMap;
   towers?: TowersMap;
   whisper?: ThermoPN;
+  renban?: ThermoPN;
 }
 
 export function rejectionReason(
@@ -1289,6 +1381,7 @@ export function rejectionReason(
         if (other && Math.abs(n - other) < WHISPER_GAP) return variantRule(variant, lang);
       }
     }
+    if (variant === 'renban' && ctx.renban && !renbanOk(test, r, c, n, ctx.renban)) return variantRule(variant, lang);
     if (variant === 'kropki' && ctx.kropki) {
       const okDot = (dot: number, a: number, b: number): boolean => {
         if (dot === 1) return Math.abs(a - b) === 1;              // белая: разница в единицу

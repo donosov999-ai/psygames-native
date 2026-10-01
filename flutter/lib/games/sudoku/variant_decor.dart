@@ -1,5 +1,5 @@
 /// РИСУНОК ВАРИАНТОВ НА НАТИВНОЙ ДОСКЕ — термометры, стрелки, клетки-суммы, метки
-/// чётности, точки Кропки, линии шёпота.
+/// чётности, точки Кропки, линии шёпота и ренбана.
 ///
 /// 🔴 ЗАЧЕМ (задача 450c0211, 01.10.2026). Нативная доска с переноса 23.09 рисовала только
 /// рамки клеток: на ступенях 30–53 и 81–92 в шапке стояло «Правило: термометры», а на поле
@@ -29,6 +29,9 @@ const sudokuAccent2 = Color(0xFF86A8E7);
 
 /// Зелёная линия «немецкого шёпота» — `#22C55E` веба.
 const whisperGreen = Color(0xFF22C55E);
+
+/// Фиолетовая полоса ренбана — `#A855F7` веба, бледная (доля 0,32), чтобы цифра читалась.
+const renbanPurple = Color(0xFFA855F7);
 const cageAccents = [
   Color(0xFF7F7FD5), Color(0xFF86A8E7), Color(0xFFD58A7F),
   Color(0xFF7FD5A8), Color(0xFFD5C97F), Color(0xFFB07FD5),
@@ -39,7 +42,7 @@ const double seam = 1.5;
 
 /// Что нарисовать в одной клетке (под цифрой).
 class CellDecor {
-  const CellDecor({this.thermo, this.arrow, this.parity = 0, this.cageId = -1, this.whisper});
+  const CellDecor({this.thermo, this.arrow, this.parity = 0, this.cageId = -1, this.whisper, this.renban});
 
   /// Звено термометра; колба — у клетки без `prev`.
   final ThermoLink? thermo;
@@ -56,7 +59,11 @@ class CellDecor {
   /// Звено зелёной линии шёпота — как термометр, но без колбы.
   final ThermoLink? whisper;
 
-  bool get isEmpty => thermo == null && arrow == null && parity == 0 && cageId < 0 && whisper == null;
+  /// Звено полосы ренбана — широкая бледная, кружок в центре клетки сглаживает повороты.
+  final ThermoLink? renban;
+
+  bool get isEmpty =>
+      thermo == null && arrow == null && parity == 0 && cageId < 0 && whisper == null && renban == null;
 }
 
 /// Рисунок клетки по геометрии доски; `null` — рисовать нечего.
@@ -67,6 +74,7 @@ CellDecor? cellDecorFor(BoardGeometry g, int r, int c) {
     parity: g.parity?[r][c] ?? 0,
     cageId: g.cages?.cageOf[r][c] ?? -1,
     whisper: g.whisper?[r][c],
+    renban: g.renban?[r][c],
   );
   return d.isEmpty ? null : d;
 }
@@ -127,6 +135,17 @@ class CellDecorPainter extends CustomPainter {
       }
       if (t.prev == null) {
         canvas.drawCircle(Offset(cell / 2, cell / 2), cell * 0.21, paint);   // колба
+      }
+    }
+    final rb = decor.renban;
+    if (rb != null) {
+      // Ренбан — как в вебе (`app/games/sudoku.tsx`): полоса 0,34 клетки (не тоньше 6),
+      // бледная — под цифрой; кружок в центре закрывает стык на повороте.
+      final thick = math.max(6.0, (cell * 0.34).roundToDouble());
+      final paint = Paint()..color = blendColor(surface, renbanPurple, 0.32);
+      canvas.drawCircle(Offset(cell / 2, cell / 2), thick / 2, paint);
+      for (final nb in [rb.prev, rb.next]) {
+        if (nb != null) canvas.drawRect(segment(size, row, col, nb, thick), paint);
       }
     }
     final w = decor.whisper;
