@@ -10,9 +10,11 @@ import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../games/languages/lang_names.dart';
 import 'app_look.dart';
+import 'app_update.dart';
 import 'hub_screen.dart' show HubCardTap;
 import 'l10n.dart';
 import 'profiles.dart';
@@ -101,6 +103,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   LangNames _names = LangNames.empty;
   String _version = '';
   Profiles _profiles = Profiles.current;
+  bool _updChecking = false;
 
   @override
   void initState() {
@@ -247,6 +250,38 @@ class _SettingsScreenState extends State<SettingsScreen> {
       if (mounted) await _alert(L.t('alert_backup_copied'), L.t('msg_backup_copied_full'));
     } catch (_) {
       if (mounted) await _alert(L.t('alert_export_error'), L.t('msg_backup_create_failed'));
+    }
+  }
+
+  /// «Проверить обновления» (запрос Дениса, v1.151 веба): свежая версия → в магазин платформы.
+  Future<void> _checkUpdates() async {
+    setState(() => _updChecking = true);
+    final latest = await AppUpdate.fetchLatest();
+    if (!mounted) return;
+    setState(() => _updChecking = false);
+    if (latest == null) {
+      await _alert(L.t('updCheckFailed'));
+      return;
+    }
+    if (!AppUpdate.isNewer(latest, _version)) {
+      await _alert('✓ ${L.t('updLatest')}', 'v$_version');
+      return;
+    }
+    final go = await showDialog<bool>(
+      context: context,
+      builder: (c) => AlertDialog(
+        title: Text('${L.t('updAvailable')} v$latest'),
+        content: Text(L.t('updAvailableBody')),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(c).pop(false), child: Text(L.t('updLater'))),
+          FilledButton(key: const Key('settings-update-download'), onPressed: () => Navigator.of(c).pop(true), child: Text(L.t('updDownload'))),
+        ],
+      ),
+    );
+    if (go == true) {
+      try {
+        await launchUrl(Uri.parse(AppUpdate.storeUrl()), mode: LaunchMode.externalApplication);
+      } catch (_) {}
     }
   }
 
@@ -614,7 +649,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ]),
         ));
 
-    Widget action(String key, IconData icon, Color iconColor, String label, Future<void> Function() onTap, {String? hint}) =>
+    Widget action(String key, IconData icon, Color iconColor, String label, Future<void> Function() onTap,
+            {String? hint, String? trailing}) =>
         card(InkWell(
           key: Key('settings-$key'),
           onTap: onTap,
@@ -627,6 +663,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 if (hint != null) Text(hint, maxLines: 2, style: TextStyle(color: sub, fontSize: 12)),
               ]),
             ),
+            if (trailing != null) Text(trailing, style: TextStyle(color: sub, fontSize: 13, fontWeight: FontWeight.w600)),
             Icon(rtl ? Icons.chevron_left : Icons.chevron_right, color: sub, size: 20),
           ]),
         ));
@@ -775,6 +812,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ])),
               const SizedBox(height: 4),
               link('/achievements', Icons.emoji_events, const Color(0xFFFBBF24), L.t('achievementsTitle')),
+              action('update', Icons.system_update_alt, accent, L.t('updCheckBtn'), _checkUpdates,
+                  trailing: _updChecking ? '…' : (_version.isEmpty ? null : 'v$_version')),
               link('/whats-new', Icons.auto_awesome_outlined, accent, L.t('versionHistory')),
               link('/sources', Icons.local_library_outlined, accent, L.t('sourcesTitle')),
               link('/onboarding?tutorial=1', Icons.play_circle_outline, accent, L.t('btn_replay_tutorial')),
