@@ -1036,7 +1036,7 @@ String variantTitle(String variant) => switch (variant) {
       'thermoknight' => 'термо и конь',
       'sandparity' => 'сэндвич и чётность',
       'killerdiag' => 'суммы и диагонали',
-      'whisper' => 'шёпот',
+      'whisper' => L.t('sdkRule_whisper'),   // ключ, а не литерал: храповик долга текста
       _ => 'классика',
     };
 

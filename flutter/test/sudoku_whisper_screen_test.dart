@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/sudoku/rules.dart';
 import 'package:psygames_flutter/games/sudoku/screen.dart';
 import 'package:psygames_flutter/games/sudoku/variant_decor.dart';
+import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -14,6 +15,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// или не нарисуй вовсе — решение пробы разойдётся с доской, и партия не сойдётся.
 /// Перебор свой, а не `solveGrid`: проверять перенос тем же переносом нельзя.
 void main() {
+  // Проба ищет русское имя правила — словарь грузится явно (без него L.t вернёт ключ).
+  setUpAll(() async => L.load('ru'));
   late SharedState state;
 
   setUp(() async {

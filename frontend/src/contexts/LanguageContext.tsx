@@ -3436,6 +3436,8 @@ const translations: Translations = {
   sudokuWhyNotLocal: { ru: 'Эта цифра не спорит с соседями напрямую — но в этой клетке стоит другая. Смотри строку, столбец и квадрат целиком.', en: 'This digit does not clash with its neighbours directly — but another one belongs here. Look at the whole row, column and box.' },
   sudokuRuleThermo: { ru: 'Вдоль термометра цифры строго растут от колбы.', en: 'Digits strictly increase along each thermometer from the bulb.' },
   sudokuRuleWhisper: { ru: 'Соседние цифры на зелёной линии отличаются минимум на 5.', en: 'Neighbouring digits on a green line differ by at least 5.' },
+  // Нативная полоса счётчиков: имя правила без значка (〰 во Flutter — пустой квадрат).
+  sdkRule_whisper: { ru: 'шёпот', en: 'whispers' },
   /**
    * ⚠️ Про ПОВТОР сказано прямо, и вот почему. Сообщение из чата обратной связи
    * 01.09.2026 (уровень 48, стрелки): «единица повторяется два раза — в чём ошибка
