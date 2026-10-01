@@ -52,6 +52,8 @@ void main() {
       '$origin/games/set-game',
       '$origin/games/set-game.html',
       '$origin/games/counter',
+      '$origin/games/number-run',
+      '$origin/games/number-run.html?level=4',
       '$origin/games/find-differences',
       '$origin/games/visual-search',
       '$origin/games/search-hub',
@@ -133,6 +135,7 @@ void main() {
       '$origin/games/words-hub',
       '$origin/games/languages-hub',
       '$origin/games/mnemonics-hub',
+      '$origin/games/span',
     ]) {
       expect(HybridApp.routeOf(url), isNotNull, reason: url);
     }
@@ -293,6 +296,7 @@ void main() {
       '/games/chess-blind',
       '/games/chess-hub',
       '/games/find-move',
+      '/games/solitaire-chess',
       '/games/choice-rt',
       '/games/cpt',
       '/games/corsi',
@@ -331,6 +335,7 @@ void main() {
       '/games/rmet',
       '/games/mnemonics',
       '/games/mnemonics-hub',
+      '/games/span',
       '/games/word-pairs',
       '/games/vocab-srs',
       '/games/semantic-sort',
@@ -349,6 +354,8 @@ void main() {
       '/games/mental-rotation',
       '/games/navigator',
       '/games/number-bonds',
+      // «Числовой забег» (задача 41845727): общее ядро дороги раннеров.
+      '/games/number-run',
       '/games/nut-sort',
       '/games/object-tracker',
       '/games/one-line',

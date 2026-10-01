@@ -23,7 +23,7 @@ import '../../shell/js_compat.dart';
 import '../object_tracker/model.dart' as tracker;
 import '../schulte/model.dart' as schulte;
 import '../visual_search/model.dart';
-import 'road.dart';
+import '../runner/road.dart';
 
 enum SearchStation { gates, windows, tracker }
 

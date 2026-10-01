@@ -225,6 +225,7 @@ describe('зарядка и оценка идут с ЛИЧНОГО уровня
       pattern: { game_type: 'pattern', score: 0, time_seconds: 90, difficulty: 'medium', mode: 'lvl8' },
       bart: { game_type: 'bart', score: 0, time_seconds: 120, difficulty: 'medium', mode: '10b' },
       digit_span: { game_type: 'digit_span', score: 0, time_seconds: 60, difficulty: 'medium', mode: 'forward' },
+      corsi: { game_type: 'corsi', score: 0, time_seconds: 60, difficulty: 'medium', mode: 'forward' },   // corsi.tsx в пресете: diff шага и направление (30.09.2026)
       sdmt: { game_type: 'sdmt', score: 0, time_seconds: 70, difficulty: 'medium', mode: '60s' },
     };
     for (const [game, session] of Object.entries(saved)) {

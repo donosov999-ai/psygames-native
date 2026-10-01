@@ -119,6 +119,8 @@ flutter:
     # «Найди ход»: 3 108 задач Lichess (CC0) по двенадцати приёмам, 430 КБ;
     # генератор tools/find_move_corpus.py
     - assets/find_move/
+    # «Шахматный пасьянс»: 720 досок 4×4, генератор tools/solitaire_chess_corpus.py
+    - assets/solitaire_chess/
     - assets/faces-names.json
     - assets/memory-palace.json
     - assets/rmet.json
