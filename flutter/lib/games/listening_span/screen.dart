@@ -44,6 +44,13 @@ const lspanTargetLangKey = 'psygames_listening_span_targetlang';
 /// Запас «невиданного» — общий с веб-половиной (`readSeen('listening_span')`).
 const _seenPool = 'listening_span';
 
+/// Вступление перед первым словом партии: экран «Слушай…» успевает встать, и первое слово
+/// не теряется на переходе (шаг зарядки открывает экран и стартует сам). Паузы МЕЖДУ
+/// словами — мера пробы — им не затронуты. ⚠️ Побочно: в пробах без звукового плагина
+/// первое слово не звучит за окно сторожа зарядки (warmup_step_starts_itself_test) — там
+/// активация плеера just_audio бросает необработанную ошибку (разбор в канале 01.10).
+const lspanLeadInMs = 1000;
+
 class ListeningSpanScreen extends StatefulWidget {
   const ListeningSpanScreen({super.key, required this.state, this.voice, this.vocab, this.langNames, this.rng});
 
@@ -185,6 +192,10 @@ class _ListeningSpanScreenState extends State<ListeningSpanScreen> {
       _spokenIdx = 0;
       _holding = false;
     });
+    if (g.round == 1) {
+      await _wait(lspanLeadInMs);
+      if (!_alive(run)) return;
+    }
     for (var i = 0; i < g.spoken.length; i++) {
       if (!_alive(run)) return;
       setState(() => _spokenIdx = i + 1);
