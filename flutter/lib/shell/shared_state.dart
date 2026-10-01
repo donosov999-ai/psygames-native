@@ -45,8 +45,20 @@ class SharedState {
   /// 23.09.2026; если станет два, гейт назовёт второй раньше, чем он потеряется.
   static const extraKeys = {'language'};
 
-  /// Ключ принадлежит приложению — префикс ИЛИ явное исключение.
-  static bool owns(String key) => key.startsWith(prefix) || extraKeys.contains(key);
+  /// Пространства имён веба МИМО префикса — тоже закрытый список, сверяемый гейтом.
+  ///
+  /// 🔴 `psygames.` — личные рекорды ВСЕХ игр (`frontend/src/services/streak.ts`):
+  /// `psygames.bestStreak.<игра>` (серия подряд) и `psygames.best.<мера>.<игра>` (размах).
+  /// Замер 01.10.2026 (задача d3eeeba9): «Матрица памяти» на Flutter писала рекорд
+  /// под веб-ключом, а `set()` молча его выбрасывал — после 42 верных подряд
+  /// `get('psygames.bestStreak.memory_matrix')` = null. Гейт не видел ключ: веб собирает
+  /// его функцией (`const key = (g) => `psygames.bestStreak.${g}``), а не литералом.
+  /// ⚠️ Переименовать ключи в вебе нельзя — под ними уже лежат рекорды игроков.
+  static const extraPrefixes = ['psygames.'];
+
+  /// Ключ принадлежит приложению — префикс, второе пространство имён ИЛИ явное исключение.
+  static bool owns(String key) =>
+      key.startsWith(prefix) || extraPrefixes.any(key.startsWith) || extraKeys.contains(key);
 
   /// Имя канала, которым веб-сторона отвечает в Dart.
   static const channel = 'PsyBridge';
@@ -157,6 +169,7 @@ class SharedState {
     // Исключения мимо префикса уезжают в страницу списком, а не переписыванием
     // условия: добавится ключ в [extraKeys] — скрипт подхватит его сам.
     final extras = jsonEncode(extraKeys.toList());
+    final extraPrefixList = jsonEncode(extraPrefixes);
     return '''
 (function () {
   var snap = $data;
@@ -167,7 +180,13 @@ class SharedState {
   window.__psyBridgeReady = true;
   var P = '$prefix';
   var EXTRA = $extras;
-  var mine = function (k) { k = String(k); return k.indexOf(P) === 0 || EXTRA.indexOf(k) >= 0; };
+  var EXTRA_P = $extraPrefixList;
+  var mine = function (k) {
+    k = String(k);
+    if (k.indexOf(P) === 0 || EXTRA.indexOf(k) >= 0) return true;
+    for (var i = 0; i < EXTRA_P.length; i++) { if (k.indexOf(EXTRA_P[i]) === 0) return true; }
+    return false;
+  };
   var send = function (msg) {
     try { if (window.$channel && window.$channel.postMessage) window.$channel.postMessage(JSON.stringify(msg)); } catch (e) {}
   };
