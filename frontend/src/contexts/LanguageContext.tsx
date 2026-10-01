@@ -765,6 +765,22 @@ const translations: Translations = {
   pairsPreviewHint: { ru: '{s}с — потом карты закроются', en: '{s}s — then the cards flip back' },
   // Сравнение с идеальной памятью на том же раскладе (MindLab «Пары», задача cd9685ec).
   pairsIdealMoves: { ru: 'Ходов у идеальной памяти: {n}', en: 'Perfect memory would take {n} moves' },
+  // Дуэль с ботом (MindLab Punchline, задача cd9685ec).
+  pairsModeDuel: { ru: 'Дуэль', en: 'Duel' },
+  pairsDuelHint: { ru: 'Ходите по очереди с ботом. Нашли пару — ходите ещё. Карты бота видны и вам.', en: 'Take turns with a bot. Find a pair — go again. You see the bot\'s cards too.' },
+  pairsBotMemory: { ru: 'Память бота', en: 'Bot\'s memory' },
+  pairsBotKitten: { ru: 'Котёнок', en: 'Kitten' },
+  pairsBotFox: { ru: 'Лиса', en: 'Fox' },
+  pairsBotOwl: { ru: 'Сова', en: 'Owl' },
+  pairsBotRemembersN: { ru: 'держит в памяти карт: {n}', en: 'remembers the last {n} cards' },
+  pairsBotRemembersAll: { ru: 'помнит всё, что видел', en: 'remembers everything it has seen' },
+  pairsDuelYou: { ru: 'Вы', en: 'You' },
+  pairsDuelBot: { ru: 'Бот', en: 'Bot' },
+  pairsDuelYourTurn: { ru: 'Ваш ход', en: 'Your turn' },
+  pairsDuelBotTurn: { ru: 'Ходит бот…', en: 'Bot\'s turn…' },
+  pairsDuelWin: { ru: 'Победа! {you} : {bot}', en: 'You win! {you} : {bot}' },
+  pairsDuelLose: { ru: 'Бот выиграл {you} : {bot}', en: 'The bot wins {you} : {bot}' },
+  pairsDuelDraw: { ru: 'Ничья {you} : {bot}', en: 'Draw {you} : {bot}' },
   picturePairsIntroDesc: {
     ru: 'Открывайте по две карточки за раз и ищите пары. Чем меньше ходов — тем выше счёт. Тренирует визуальную память и сопоставление.',
     en: 'Flip two cards at a time and find matching pairs. Fewer moves = higher score. Trains visual memory and matching.',

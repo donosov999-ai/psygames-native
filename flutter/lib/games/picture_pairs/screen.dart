@@ -17,6 +17,7 @@ import '../../shell/resume_store.dart';
 import '../../shell/session_report.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
+import 'duel.dart';
 import 'model.dart';
 
 /// «Парные картинки» на общем каркасе.
@@ -30,7 +31,14 @@ import 'model.dart';
 /// 0,5/1,5/3 с выбирает человек; лестница не двигается. Ею же играется шаг зарядки — как
 /// в вебе. НЕЗАКОНЧЕННАЯ ПАРТИЯ пишется снимком в форме веб-сессии ([pairsSnapshot]) и
 /// поднимается при входе: свернул приложение посреди расклада — расклад на месте.
+///
+/// ДУЭЛЬ (задача cd9685ec, механика MindLab Punchline) — пары по очереди с ботом, у которого
+/// память на N последних карт ([PairsBotLevel]). Лестницу не двигает и снимком не пишется:
+/// ход бота — часть партии, поднять его из снимка честно нельзя.
 enum Phase { ready, preview, play, won, revealed }
+
+/// Режим экрана: лестница уровней, свободная партия или дуэль с ботом.
+enum PairsMode { levels, free, duel }
 
 /// Отложенная запись партии — как в вебе и у «Дворца памяти»: подряд идущие касания дают
 /// ОДНУ запись, и пишется последнее состояние.
@@ -100,6 +108,12 @@ class _PicturePairsScreenState extends State<PicturePairsScreen> with WidgetsBin
   /// Свободная партия и её настройки (веб: `mode === 'single'`, `pairsCount`,
   /// `photoMemoryMode`, `previewMs`).
   bool _free = false;
+
+  /// Дуэль с ботом: свой режим, пары и память бота выбирает человек.
+  bool _duelMode = false;
+  PairsBotLevel _botLevel = PairsBotLevel.kitten;
+  PairsDuel? _duel;
+  GameTimer? _botTimer;
   int _freePairs = 6;
   bool _photo = true;
   int _previewMs = 500;
@@ -134,6 +148,7 @@ class _PicturePairsScreenState extends State<PicturePairsScreen> with WidgetsBin
     WidgetsBinding.instance.removeObserver(this);
     _flush(); // экран сносят — дописать партию сразу, а не через задержку
     _timer?.cancel();
+    _botTimer?.cancel();
     _tick?.cancel();
     super.dispose();
   }
@@ -172,6 +187,9 @@ class _PicturePairsScreenState extends State<PicturePairsScreen> with WidgetsBin
 
   void _reset() {
     _timer?.cancel();
+    _botTimer?.cancel();
+    _botTimer = null;
+    _duel = null;
     _tick?.cancel();
     _tick = null;
     _clock
@@ -183,6 +201,7 @@ class _PicturePairsScreenState extends State<PicturePairsScreen> with WidgetsBin
       // но не больше освоенного + 1 (`capPresetByLevel`); показ — из шага, по умолчанию 3 с.
       final level = _ladder.level;
       _free = true;
+      _duelMode = false;
       _photo = true;
       _freePairs = capPresetByLevel(
         want: GamePreset.num('pairsCount', 6),
@@ -197,10 +216,26 @@ class _PicturePairsScreenState extends State<PicturePairsScreen> with WidgetsBin
             cfg: pairsFreeCfg(pairs: _freePairs, photo: _photo, previewMs: _previewMs),
             rnd: _rnd,
           )
-        : PairsGame(level: _ladder.level, rnd: _rnd);
+        : _duelMode
+            // Дуэль — классические пары без показа: память набирается ходами обоих.
+            ? PairsGame(level: _ladder.level, cfg: pairsFreeCfg(pairs: _freePairs, photo: false, previewMs: 0), rnd: _rnd)
+            : PairsGame(level: _ladder.level, rnd: _rnd);
+    if (_duelMode) _duel = PairsDuel(game: _game!, bot: PairsBot(_botLevel, rnd: _rnd));
     _phase = Phase.ready;
     _locked = false;
     _swapPair = null;
+  }
+
+  PairsMode get _mode => _duelMode
+      ? PairsMode.duel
+      : _free
+          ? PairsMode.free
+          : PairsMode.levels;
+
+  void _setMode(PairsMode m) {
+    _free = m == PairsMode.free;
+    _duelMode = m == PairsMode.duel;
+    _reset();
   }
 
   /// Секунды партии: набежавшие до подъёма из снимка плюс секундомер.
@@ -226,7 +261,7 @@ class _PicturePairsScreenState extends State<PicturePairsScreen> with WidgetsBin
     _saveTimer?.cancel();
     _saveTimer = null;
     final g = _game;
-    if (g == null || _phase != Phase.play) return;
+    if (g == null || _phase != Phase.play || _duelMode) return;
     if (g.moves == 0 && g.matchedGroups == 0 && g.errors == 0) return;
     // Счёт цепочки уровней копит веб; нативная партия считает уровень сама — 0.
     unawaited(_resume.save(pairsSnapshot(g, free: _free, score: 0, elapsed: _elapsed)));
@@ -268,6 +303,11 @@ class _PicturePairsScreenState extends State<PicturePairsScreen> with WidgetsBin
   void _tap(int i) {
     final g = _game!;
     if (_phase != Phase.play || _locked) return;
+    final duel = _duel;
+    if (duel != null) {
+      _duelTap(duel, i);
+      return;
+    }
     final r = g.tap(i);
     if (r == TapResult.ignored) return;
     setState(() {});
@@ -336,6 +376,78 @@ class _PicturePairsScreenState extends State<PicturePairsScreen> with WidgetsBin
     _timer = Timer(const Duration(milliseconds: swapGapMs), () => step(count));
   }
 
+  /// Ход игрока в дуэли. Пока ходит бот, поле заперто.
+  void _duelTap(PairsDuel duel, int i) {
+    if (duel.botTurn) return;
+    final r = duel.tap(i);
+    if (r == TapResult.ignored) return;
+    setState(() {});
+    if (r != TapResult.opened) _afterDuelMove(duel, r);
+  }
+
+  /// Группа набрана — показать её и решить, кто ходит дальше. На игровых часах: на паузе
+  /// бот не ходит.
+  void _afterDuelMove(PairsDuel duel, TapResult r) {
+    _locked = true;
+    _botTimer = gameTimeout(Duration(milliseconds: r == TapResult.groupMatched ? 400 : 800), () {
+      if (!mounted) return;
+      setState(() => duel.settle(r));
+      if (duel.over) {
+        _winDuel(duel);
+      } else if (duel.botTurn) {
+        _botMove(duel);
+      } else {
+        setState(() => _locked = false);
+      }
+    });
+  }
+
+  /// Ход бота: карты по одной, с паузой — человек успевает увидеть каждую.
+  void _botMove(PairsDuel duel) {
+    void pick() {
+      if (!mounted) return;
+      final g = duel.game;
+      late TapResult r;
+      setState(() => r = duel.tap(g.open.isEmpty ? duel.bot.firstPick(g) : duel.bot.nextPick(g)));
+      if (r == TapResult.opened) {
+        _botTimer = gameTimeout(const Duration(milliseconds: pairsBotStepMs), pick);
+      } else {
+        _afterDuelMove(duel, r);
+      }
+    }
+
+    _botTimer = gameTimeout(const Duration(milliseconds: pairsBotStepMs), pick);
+  }
+
+  /// Дуэль кончилась: итог по числу пар, лестница не двигается.
+  void _winDuel(PairsDuel duel) {
+    final g = duel.game;
+    _stopClock();
+    setState(() {
+      _phase = Phase.won;
+      _locked = false;
+    });
+    unawaited(
+      SessionReport.send(
+        gameType: 'picture_pairs',
+        score: duel.playerGroups,
+        timeSeconds: _elapsed.round(),
+        difficulty: '${g.groups} pairs',
+        mode: 'duel-${duel.bot.level.name}',
+        errors: duel.playerMisses,
+        details: {
+          'pairs': g.groups,
+          'player_pairs': duel.playerGroups,
+          'bot_pairs': duel.botGroups,
+          'bot': duel.bot.level.name,
+          'bot_memory': duel.bot.level.memory ?? g.cards.length,
+          'outcome': duel.outcome,
+          'perseverations': duel.playerPerseverations,
+        },
+      ),
+    );
+  }
+
   void _win() {
     final g = _game!;
     _stopClock();
@@ -391,6 +503,7 @@ class _PicturePairsScreenState extends State<PicturePairsScreen> with WidgetsBin
   /// подсмотренный расклад не поднимает уровень и не опускает его.
   void _reveal() {
     _timer?.cancel();
+    _botTimer?.cancel();
     _stopClock();
     // Раскрытая партия кончилась без зачёта — продолжать в ней нечего.
     _saveTimer?.cancel();
@@ -409,26 +522,36 @@ class _PicturePairsScreenState extends State<PicturePairsScreen> with WidgetsBin
     if (g == null || theme == null) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
+    final duel = _duel;
     return GameShell(
       title: L.t('picturePairs'),
       onLesson: () => openDemoLesson(context, title: L.t('picturePairs'), trials: pairsLessonTrials(theme)),
       hud: [
-        // В свободной партии уровня нет — тропинку и рекорд уровня не показываем (как веб).
-        if (!_free) HudItem(label: L.t('level'), value: '${_ladder.level}', icon: Icons.flag_outlined),
-        if (!_free) HudItem(label: L.t('personalBest'), value: '${_ladder.best}', icon: Icons.emoji_events_outlined),
-        HudItem(label: L.t('hud_correct'), value: '${g.matchedGroups}/${g.groups}', icon: Icons.done_all),
-        HudItem(label: L.t('hud_moves'), value: '${g.moves}', icon: Icons.swap_horiz),
+        // В свободной партии и дуэли уровня нет — тропинку и рекорд уровня не показываем (как веб).
+        if (_mode == PairsMode.levels) HudItem(label: L.t('level'), value: '${_ladder.level}', icon: Icons.flag_outlined),
+        if (_mode == PairsMode.levels)
+          HudItem(label: L.t('personalBest'), value: '${_ladder.best}', icon: Icons.emoji_events_outlined),
+        if (duel != null) ...[
+          // Счёт дуэли — пары каждой стороны; ходы общие и в шапке ничего бы не значили.
+          HudItem(label: L.t('pairsDuelYou'), value: '${duel.playerGroups}', icon: Icons.person_outline),
+          HudItem(label: L.t('pairsDuelBot'), value: '${duel.botGroups}', icon: Icons.smart_toy_outlined),
+        ] else ...[
+          HudItem(label: L.t('hud_correct'), value: '${g.matchedGroups}/${g.groups}', icon: Icons.done_all),
+          HudItem(label: L.t('hud_moves'), value: '${g.moves}', icon: Icons.swap_horiz),
+        ],
         HudItem(label: L.t('time'), value: '${_elapsed.floor()}', icon: Icons.timer_outlined),
       ],
       field: (context, h) => _phase == Phase.ready
           ? _Ready(
               level: _ladder.level,
-              free: _free,
+              mode: _mode,
+              bot: _botLevel,
               pairs: _freePairs,
               photo: _photo,
               previewMs: _previewMs,
-              onFree: (v) => setState(() {
-                _free = v;
+              onMode: (m) => setState(() => _setMode(m)),
+              onBot: (b) => setState(() {
+                _botLevel = b;
                 _reset();
               }),
               onPairs: (n) => setState(() {
@@ -452,6 +575,12 @@ class _PicturePairsScreenState extends State<PicturePairsScreen> with WidgetsBin
               swapPair: _swapPair,
               height: h,
               onTap: _tap,
+              // Чей ход — главное, что нужно знать в дуэли.
+              caption: duel == null || _phase != Phase.play
+                  ? null
+                  : duel.botTurn
+                      ? L.t('pairsDuelBotTurn')
+                      : L.t('pairsDuelYourTurn'),
             ),
       auxRow: AuxBar(children: [
         AuxAction(icon: Icons.refresh, label: L.t('restart'), onPressed: _restart),
@@ -468,8 +597,26 @@ class _PicturePairsScreenState extends State<PicturePairsScreen> with WidgetsBin
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Сравнение с идеальной памятью на том же раскладе (MindLab, cd9685ec).
-                  if (_phase == Phase.won)
+                  // Дуэль — счёт сторон; одиночная партия — сравнение с идеальной памятью на том
+                  // же раскладе (MindLab, cd9685ec).
+                  if (_phase == Phase.won && duel != null)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Text(
+                        // Каждый ключ — отдельным L.t('…'): embed-l10n и гейт словаря видят только такие.
+                        switch (duel.outcome) {
+                          > 0 => L.t('pairsDuelWin'),
+                          < 0 => L.t('pairsDuelLose'),
+                          _ => L.t('pairsDuelDraw'),
+                        }
+                            .replaceAll('{you}', '${duel.playerGroups}')
+                            .replaceAll('{bot}', '${duel.botGroups}'),
+                        key: const Key('pp-duel-result'),
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                    )
+                  else if (_phase == Phase.won)
                     Padding(
                       padding: const EdgeInsets.only(bottom: 8),
                       child: Text(
@@ -504,22 +651,26 @@ class _PicturePairsScreenState extends State<PicturePairsScreen> with WidgetsBin
 class _Ready extends StatelessWidget {
   const _Ready({
     required this.level,
-    required this.free,
+    required this.mode,
+    required this.bot,
     required this.pairs,
     required this.photo,
     required this.previewMs,
-    required this.onFree,
+    required this.onMode,
+    required this.onBot,
     required this.onPairs,
     required this.onPhoto,
     required this.onPreview,
     required this.onStart,
   });
   final int level;
-  final bool free;
+  final PairsMode mode;
+  final PairsBotLevel bot;
   final int pairs;
   final bool photo;
   final int previewMs;
-  final ValueChanged<bool> onFree;
+  final ValueChanged<PairsMode> onMode;
+  final ValueChanged<PairsBotLevel> onBot;
   final ValueChanged<int> onPairs;
   final ValueChanged<bool> onPhoto;
   final ValueChanged<int> onPreview;
@@ -534,6 +685,27 @@ class _Ready extends StatelessWidget {
 
   /// Секунды показа, как в вебе: «0.5», «1.5», «3» — без хвоста «.0».
   static String _secs(int ms) => ms % 1000 == 0 ? '${ms ~/ 1000}' : '${ms / 1000}';
+
+  /// Имя бота. Ключи написаны целиком: `embed-l10n` берёт в словарь только ключи из исходника.
+  static String _botName(PairsBotLevel b) => switch (b) {
+        PairsBotLevel.kitten => L.t('pairsBotKitten'),
+        PairsBotLevel.fox => L.t('pairsBotFox'),
+        PairsBotLevel.owl => L.t('pairsBotOwl'),
+      };
+
+  Widget _pairsChips() => Wrap(
+        spacing: 8,
+        alignment: WrapAlignment.center,
+        children: [
+          for (final n in pairsFreeCounts)
+            ChoiceChip(
+              key: Key('pp-pairs-$n'),
+              label: Text('$n'),
+              selected: n == pairs,
+              onSelected: (_) => onPairs(n),
+            ),
+        ],
+      );
 
   @override
   Widget build(BuildContext context) {
@@ -553,26 +725,58 @@ class _Ready extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   // Выбор режима — те же подписи, что у общего веб-переключателя (GameModeSwitch).
-                  SegmentedButton<bool>(
+                  SegmentedButton<PairsMode>(
                     key: const Key('pp-mode'),
                     segments: [
-                      ButtonSegment(value: false, label: Text(L.t('sudokuModeLevels'))),
-                      ButtonSegment(value: true, label: Text(L.t('sudokuModeFree'))),
+                      ButtonSegment(value: PairsMode.levels, label: Text(L.t('sudokuModeLevels'))),
+                      ButtonSegment(value: PairsMode.free, label: Text(L.t('sudokuModeFree'))),
+                      ButtonSegment(value: PairsMode.duel, label: Text(L.t('pairsModeDuel'))),
                     ],
-                    selected: {free},
+                    selected: {mode},
                     showSelectedIcon: false,
-                    onSelectionChanged: (v) => onFree(v.first),
+                    onSelectionChanged: (v) => onMode(v.first),
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    // Ключ — литералом в L.t('…'): ключ внутри тернарника сборщик словаря
-                    // (embed-l10n) и гейт словаря не видят, и экран показывал сам ключ.
-                    free ? L.t('pairsModeFreeHint') : L.t('pairsModeLevelsHint'),
+                    // Ключ — литералом в L.t('…'): ключ внутри тернарника или switch сборщик
+                    // словаря не видит, и экран показал бы сам ключ (так было до 01.10).
+                    switch (mode) {
+                      PairsMode.levels => L.t('pairsModeLevelsHint'),
+                      PairsMode.free => L.t('pairsModeFreeHint'),
+                      PairsMode.duel => L.t('pairsDuelHint'),
+                    },
                     textAlign: TextAlign.center,
                     style: text.bodySmall,
                   ),
                   const SizedBox(height: 16),
-                  if (!free) ...[
+                  if (mode == PairsMode.duel) ...[
+                    Text(L.t('pairsCount'), style: text.titleSmall),
+                    const SizedBox(height: 6),
+                    _pairsChips(),
+                    const SizedBox(height: 12),
+                    Text(L.t('pairsBotMemory'), style: text.titleSmall),
+                    const SizedBox(height: 6),
+                    SegmentedButton<PairsBotLevel>(
+                      key: const Key('pp-bot'),
+                      segments: [
+                        for (final b in PairsBotLevel.values)
+                          ButtonSegment(value: b, label: Text(_botName(b), key: Key('pp-bot-${b.name}'))),
+                      ],
+                      selected: {bot},
+                      showSelectedIcon: false,
+                      onSelectionChanged: (v) => onBot(v.first),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      bot.memory == null
+                          ? L.t('pairsBotRemembersAll')
+                          : L.t('pairsBotRemembersN').replaceAll('{n}', '${bot.memory}'),
+                      key: const Key('pp-bot-memory'),
+                      textAlign: TextAlign.center,
+                      style: text.bodySmall,
+                    ),
+                    const SizedBox(height: 16),
+                  ] else if (mode == PairsMode.levels) ...[
                     Text(
                       '${L.t('pairsLvlPairs').replaceAll('{n}', '${cfg.pairs}')} · '
                       '${L.t('pairsLvlFlash').replaceAll('{s}', (cfg.previewMs / 1000).toStringAsFixed(1))}',
@@ -590,19 +794,7 @@ class _Ready extends StatelessWidget {
                   ] else ...[
                     Text(L.t('pairsCount'), style: text.titleSmall),
                     const SizedBox(height: 6),
-                    Wrap(
-                      spacing: 8,
-                      alignment: WrapAlignment.center,
-                      children: [
-                        for (final n in pairsFreeCounts)
-                          ChoiceChip(
-                            key: Key('pp-pairs-$n'),
-                            label: Text('$n'),
-                            selected: n == pairs,
-                            onSelected: (_) => onPairs(n),
-                          ),
-                      ],
-                    ),
+                    _pairsChips(),
                     const SizedBox(height: 8),
                     CheckboxListTile(
                       key: const Key('pp-photo'),
@@ -659,7 +851,11 @@ class _Field extends StatelessWidget {
     required this.swapPair,
     required this.height,
     required this.onTap,
+    this.caption,
   });
+
+  /// Подпись под полем вместо обычной — в дуэли это чей ход.
+  final String? caption;
 
   final PairsGame game;
   final PairsTheme theme;
@@ -700,14 +896,16 @@ class _Field extends StatelessWidget {
           ],
         ),
       );
-      final caption = phase == Phase.preview ? L.t('label_memorize') : L.t('picturePairsHint');
+      final caption = this.caption ?? (phase == Phase.preview ? L.t('label_memorize') : L.t('picturePairsHint'));
       final column = Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           board,
           SizedBox(
             height: _hint,
-            child: Center(child: Text(caption, textAlign: TextAlign.center, style: Theme.of(context).textTheme.bodySmall)),
+            child: Center(
+              child: Text(caption, key: const Key('pp-caption'), textAlign: TextAlign.center, style: Theme.of(context).textTheme.bodySmall),
+            ),
           ),
         ],
       );
