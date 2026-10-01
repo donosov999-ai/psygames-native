@@ -2,10 +2,12 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show debugDefaultTargetPlatformOverride;
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:psygames_flutter/shell/app_look.dart';
+import 'package:psygames_flutter/shell/app_update.dart';
 import 'package:psygames_flutter/shell/hub_screen.dart' show HubCardTap;
 import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/profiles.dart';
@@ -333,6 +335,43 @@ void main() {
       await realTap(t, 'settings-playlists-load');
       expect(state.get(SettingsScreen.playlists), isNull);
       expect(find.text('не тот файл'), findsOneWidget);
+    });
+  });
+
+  group('проверка обновлений (часть 4)', () {
+    tearDown(() => AppUpdate.fetchLatest = () async => null);
+
+    test('isNewer — как у веба', () {
+      expect(AppUpdate.isNewer('2.56.5', '2.56.4'), isTrue);
+      expect(AppUpdate.isNewer('2.56.4', '2.56.4'), isFalse);
+      expect(AppUpdate.isNewer('2.54.24', '2.56.4'), isFalse, reason: 'застывший version.json не должен звать «обновиться»');
+      expect(AppUpdate.isNewer('3', '2.99.99'), isTrue);
+      expect(AppUpdate.isNewer('beta', '1.0.0'), isFalse);
+    });
+
+    test('«Скачать» ведёт в магазин своей платформы', () {
+      debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+      expect(AppUpdate.storeUrl(), contains('apps.apple.com/app/id6779208225'));
+      debugDefaultTargetPlatformOverride = TargetPlatform.android;
+      expect(AppUpdate.storeUrl(), contains('details?id=com.psygames.app'));
+      debugDefaultTargetPlatformOverride = null;
+    });
+
+    testWidgets('свежая версия — диалог со «Скачать»; та же — «последняя»; нет сети — «не удалось»', (t) async {
+      AppUpdate.fetchLatest = () async => '9.0.0';
+      await open(t);
+      await realTap(t, 'settings-update');
+      expect(find.byKey(const Key('settings-update-download')), findsOneWidget);
+      await t.tap(find.text(L.t('updLater')));
+      await t.pumpAndSettle();
+      AppUpdate.fetchLatest = () async => '2.56.4';
+      await realTap(t, 'settings-update');
+      expect(find.textContaining(L.t('updLatest')), findsOneWidget);
+      await t.tap(find.text(L.t('close')).last);
+      await t.pumpAndSettle();
+      AppUpdate.fetchLatest = () async => null;
+      await realTap(t, 'settings-update');
+      expect(find.text(L.t('updCheckFailed')), findsOneWidget);
     });
   });
 }
