@@ -1,4 +1,4 @@
-/* psygames-water-sort-export-levels · VER 2 · 30.09.2026 */
+/* psygames-water-sort-export-levels · VER 3 · 30.09.2026 */
 /**
  * 🔴 ВЫГРУЗКА ЛЕСТНИЦЫ СОСУДОВ ДЛЯ ПРИЛОЖЕНИЯ — ТЕПЕРЬ ПОВТОРЯЕМАЯ И С ОТБОРОМ.
  *
@@ -13,8 +13,8 @@
  * что при этом ТРУДНОСТЬ раздач одной ступени различается больше чем вдвое
  * (развилок со смертью у 10 раздач L47 — от 30 до 68), и прежняя выгрузка брала
  * первую решаемую: по лестнице трудность скакала случайно — L32 68, L35 30.
- * Теперь на каждую ступень с L4 раздаётся до `КАНДИДАТОВ` вариантов, и берётся
- * тот, у кого развилок ближе всего к цели лестницы (`цельРазвилок`).
+ * Теперь на каждую ступень с L4 раздаётся до `CANDIDATES` вариантов, и берётся
+ * тот, у кого развилок ближе всего к цели лестницы (`forkTarget`).
  *
  * ⚠️ ПОЧЕМУ НЕ ТОЛЬКО ХВОСТ L33–L60, ГДЕ КОНЧАЮТСЯ ПАРАМЕТРЫ. Отбери только хвост —
  * и стык с L32 провалится: у прежней L32 развилок 68, а нижняя цель хвоста около
@@ -22,10 +22,10 @@
  *
  * 🔴 УРОВНИ С ЛИМИТОМ ХОДОВ ДОКАЗЫВАЮТСЯ, А НЕ ПРЕДПОЛАГАЮТСЯ. Лимит — формула от
  * размера доски; отбор нарочно берёт трудные раздачи, и для каждой принятой на
- * уровне с лимитом найдено решение не длиннее лимита (`решениеНеДлиннее`).
+ * уровне с лимитом найдено решение не длиннее лимита (`solutionWithin`).
  *
  * 📌 ЧТО ПЕРЕНЕСЕНО ИЗ ПРЕЖНЕЙ ВЫГРУЗКИ КАК ЕСТЬ: раздачи ступеней обучения
- * L1–L3 (см. `собрать`) и `palette` с `draw`. Последние два — не
+ * L1–L3 (см. `buildLevel`) и `palette` с `draw`. Последние два — не
  * данные генератора, а константы экрана: цвета и значки порций
  * (`app/games/water-sort.tsx:154`) и доли рисунка стекла и гайки, снятые с
  * картинок. Пересчитывать их здесь незачем, а потерять при пересборке — легко.
@@ -44,7 +44,7 @@ import {
   КАМНИ_С, КОРОТКИЕ_С, ОТЛОЖЕННЫЙ_С, СТРОГО_С, ХОДЫ_С,
 } from '../core/generate';
 import { СКРЫТО_С, скрытоНаУровне, скрытыеСлои, звёздыПоХодам } from '../core/hidden';
-import { развилкиСоСмертью, решениеНеДлиннее } from '../core/difficulty';
+import { deathForks, solutionWithin } from '../core/difficulty';
 import type { Field } from '../core/tubes';
 
 declare const __dirname: string;
@@ -52,14 +52,14 @@ declare function require(id: string): any;
 const fs = require('fs');
 const path = require('path');
 
-const СТУПЕНЕЙ = 60;
-const ЗЕРНО = Number(process.env.TUBES_SEED ?? 20260930);
-const ФАЙЛ = path.resolve(__dirname, '../../../../../flutter/assets/levels/sort_tubes.json');
+const LEVEL_COUNT = 60;
+const SEED = Number(process.env.TUBES_SEED ?? 20260930);
+const ASSET_FILE = path.resolve(__dirname, '../../../../../flutter/assets/levels/sort_tubes.json');
 /** Прежняя выгрузка — с ней сверяются поля, не зависящие от раздачи. */
-const ПРЕЖНЯЯ = process.env.TUBES_FROM ?? ФАЙЛ;
-const ВЫХОД = process.env.TUBES_OUT ?? ФАЙЛ;
+const PREVIOUS_FILE = process.env.TUBES_FROM ?? ASSET_FILE;
+const OUT_FILE = process.env.TUBES_OUT ?? ASSET_FILE;
 /** Для пробного прогона: собрать только первые N ступеней (в файл уровней не писать!). */
-const СОБРАТЬ = Number(process.env.TUBES_LEVELS ?? СТУПЕНЕЙ);
+const LEVELS_TO_BUILD = Number(process.env.TUBES_LEVELS ?? LEVEL_COUNT);
 
 /**
  * С какой ступени раздача отбирается по развилкам. Первые три — обучение на трёх–
@@ -70,9 +70,9 @@ const СОБРАТЬ = Number(process.env.TUBES_LEVELS ?? СТУПЕНЕЙ);
  * стыке с отбираемой L14 провал 22 → 18. Параметры растят РАЗМЕР доски, а
  * трудность внутри размера всё равно решает случай.
  */
-export const ОТБОР_С = 4;
+export const SELECT_FROM = 4;
 /** Ступень, с которой доска перестаёт расти по цветам (12 цветов по 5 — `ХОДЫ_С`). */
-export const ПЛАТО_С = 14;
+export const PLATEAU_FROM = 14;
 /**
  * Цель по развилкам — два отрезка по прямой, чтобы стык не проваливался:
  * L4…L13 — от 3 до 16, пока растёт доска; L14…L60 — от 17 до 65.
@@ -80,7 +80,7 @@ export const ПЛАТО_С = 14;
  * 12×5 с двумя свободными), верхняя — край того, что раздача даёт без новых
  * параметров (у десяти раздач L60 максимум 65, у L47 — 68).
  */
-export const ЦЕЛЬ_НА_СТАРТЕ = 17;
+export const TARGET_AT_START = 17;
 /**
  * ⚠️ 65 → 60 ПО ПЕРВОЙ ВЫГРУЗКЕ 30.09.2026. С верхом 65 четыре последние ступени
  * исчерпали все 30 раздач и не попали в цель (L57 57 при цели 62, L59 55 при 64),
@@ -88,23 +88,23 @@ export const ЦЕЛЬ_НА_СТАРТЕ = 17;
  * что отбор берёт НАДЁЖНО: L50–L56 первой выгрузки попадали в 55–61 за 5–22
  * раздачи.
  */
-export const ЦЕЛЬ_НАВЕРХУ = 60;
-const КАНДИДАТОВ = 30;
+export const TARGET_AT_TOP = 60;
+const CANDIDATES = 30;
 /** Верхние ступени: подходящая раздача там реже, перебор длиннее. */
-const КАНДИДАТОВ_НАВЕРХУ = 60;
-const ВЕРХ_С = 50;
-const ДОПУСК = 2;
+const CANDIDATES_AT_TOP = 60;
+const TOP_FROM = 50;
+const TOLERANCE = 2;
 /**
  * 🔴 СЛЕДУЮЩАЯ СТУПЕНЬ НЕ ЛЕГЧЕ ПРЕДЫДУЩЕЙ БОЛЬШЕ ЧЕМ НА ЭТО ЧИСЛО. Человек идёт
  * по лестнице подряд, и «ближайшая к цели» без взгляда на соседа давала провалы.
  */
-const ПРОВАЛ_НЕ_БОЛЬШЕ = 2;
+const MAX_DIP = 2;
 
-export function цельРазвилок(L: number): number {
-  if (L < ОТБОР_С) return 0;
-  if (L < ПЛАТО_С) return Math.round(3 + (L - ОТБОР_С) * (16 - 3) / (ПЛАТО_С - 1 - ОТБОР_С));
-  const t = (L - ПЛАТО_С) / (СТУПЕНЕЙ - ПЛАТО_С);
-  return Math.round(ЦЕЛЬ_НА_СТАРТЕ + t * (ЦЕЛЬ_НАВЕРХУ - ЦЕЛЬ_НА_СТАРТЕ));
+export function forkTarget(L: number): number {
+  if (L < SELECT_FROM) return 0;
+  if (L < PLATEAU_FROM) return Math.round(3 + (L - SELECT_FROM) * (16 - 3) / (PLATEAU_FROM - 1 - SELECT_FROM));
+  const t = (L - PLATEAU_FROM) / (LEVEL_COUNT - PLATEAU_FROM);
+  return Math.round(TARGET_AT_START + t * (TARGET_AT_TOP - TARGET_AT_START));
 }
 
 function mulberry32(seed: number): () => number {
@@ -117,7 +117,7 @@ function mulberry32(seed: number): () => number {
   };
 }
 
-interface Ступень {
+interface LevelEntry {
   level: number;
   field: Field;
   colors: number;
@@ -140,121 +140,121 @@ interface Ступень {
   provenMoves: number | null;
 }
 
-function собрать(L: number, rnd: () => number, предыдущая: number, прежняя: { levels: Ступень[] }): Ступень {
+function buildLevel(L: number, rnd: () => number, prevForks: number, previous: { levels: LevelEntry[] }): LevelEntry {
   const p = levelParams(L);
-  const лимит = moveLimitFor(L);
-  const цель = цельРазвилок(L);
+  const limit = moveLimitFor(L);
+  const target = forkTarget(L);
   /*
    * 🔴 СТУПЕНИ ОБУЧЕНИЯ ПЕРЕНОСЯТСЯ ИЗ ПРЕЖНЕЙ ВЫГРУЗКИ КАК ЕСТЬ. Отбирать там
    * нечего (развилок 0–3), а на раздаче L1 держатся пробы экрана во Flutter
    * (`sort_tubes_screen_test.dart`: ходы в них взяты из этой доски) и первое
    * знакомство человека с игрой. Меру для записи считаем, доску не трогаем.
    */
-  const была = прежняя.levels[L - 1];
-  if (L < ОТБОР_С && была) {
-    const r = solve(была.field, 300000);
+  const prior = previous.levels[L - 1];
+  if (L < SELECT_FROM && prior) {
+    const r = solve(prior.field, 300000);
     return {
-      level: L, field: была.field, colors: p.colors, empty: p.empty, minMoves: p.minMoves,
-      moveLimit: лимит, reference: levelMoveReference(L), hidden: была.hidden ?? [],
+      level: L, field: prior.field, colors: p.colors, empty: p.empty, minMoves: p.minMoves,
+      moveLimit: limit, reference: levelMoveReference(L), hidden: prior.hidden ?? [],
       hiddenLevel: скрытоНаУровне(L), starsByMoves: звёздыПоХодам(L),
-      solutionMoves: была.solutionMoves, attempts: была.attempts,
-      forks: r.outcome === 'solved' ? развилкиСоСмертью(была.field, r.moves) : 0,
-      forksTarget: 0, candidates: 0, provenMoves: решениеНеДлиннее(была.field, лимит > 0 ? лимит : 200),
+      solutionMoves: prior.solutionMoves, attempts: prior.attempts,
+      forks: r.outcome === 'solved' ? deathForks(prior.field, r.moves) : 0,
+      forksTarget: 0, candidates: 0, provenMoves: solutionWithin(prior.field, limit > 0 ? limit : 200),
     };
   }
   // Не легче предыдущей больше чем на допуск — это условие ПРИЁМКИ, а цель — выбор
   // среди принятых. Не нашлось принятых — берём самую трудную из годных.
-  const пол = L > ОТБОР_С ? предыдущая - ПРОВАЛ_НЕ_БОЛЬШЕ : -Infinity;
-  type Вариант = { g: ReturnType<typeof generateLevel>; fk: number; proven: number | null };
-  let лучший: Вариант | null = null;
-  let запасной: Вариант | null = null;
-  let перебрано = 0;
-  const сколько = L < ОТБОР_С ? 1 : L >= ВЕРХ_С ? КАНДИДАТОВ_НАВЕРХУ : КАНДИДАТОВ;
-  for (let k = 0; k < сколько; k += 1) {
+  const minForks = L > SELECT_FROM ? prevForks - MAX_DIP : -Infinity;
+  type Candidate = { g: ReturnType<typeof generateLevel>; fk: number; proven: number | null };
+  let best: Candidate | null = null;
+  let fallback: Candidate | null = null;
+  let tried = 0;
+  const howMany = L < SELECT_FROM ? 1 : L >= TOP_FROM ? CANDIDATES_AT_TOP : CANDIDATES;
+  for (let k = 0; k < howMany; k += 1) {
     const g = generateLevel(L, rnd);
-    перебрано += 1;
+    tried += 1;
     const r = solve(g.field, 300000);
     if (r.outcome !== 'solved') continue;
     // Доказательство под лимитом — только там, где лимит есть; иначе для записи.
-    const proven = решениеНеДлиннее(g.field, лимит > 0 ? лимит : 200);
-    if (лимит > 0 && proven === null) continue;
-    const fk = развилкиСоСмертью(g.field, r.moves);
-    const в: Вариант = { g, fk, proven };
-    if (!запасной || fk > запасной.fk) запасной = в;
-    if (fk < пол) continue;
-    if (!лучший || Math.abs(fk - цель) < Math.abs(лучший.fk - цель)) лучший = в;
-    if (L >= ОТБОР_С && Math.abs(fk - цель) <= ДОПУСК) break;
+    const proven = solutionWithin(g.field, limit > 0 ? limit : 200);
+    if (limit > 0 && proven === null) continue;
+    const fk = deathForks(g.field, r.moves);
+    const cand: Candidate = { g, fk, proven };
+    if (!fallback || fk > fallback.fk) fallback = cand;
+    if (fk < minForks) continue;
+    if (!best || Math.abs(fk - target) < Math.abs(best.fk - target)) best = cand;
+    if (L >= SELECT_FROM && Math.abs(fk - target) <= TOLERANCE) break;
   }
-  if (!лучший) лучший = запасной;
-  if (!лучший) throw new Error(`L${L}: ни одной годной раздачи из ${перебрано}`);
-  const скрыт = скрытоНаУровне(L);
+  if (!best) best = fallback;
+  if (!best) throw new Error(`L${L}: ни одной годной раздачи из ${tried}`);
+  const hiddenOn = скрытоНаУровне(L);
   return {
     level: L,
-    field: лучший.g.field,
+    field: best.g.field,
     colors: p.colors,
     empty: p.empty,
     minMoves: p.minMoves,
-    moveLimit: лимит,
+    moveLimit: limit,
     reference: levelMoveReference(L),
-    hidden: скрыт ? [...скрытыеСлои(лучший.g.field, rnd)].sort((a, b) => a - b) : [],
-    hiddenLevel: скрыт,
+    hidden: hiddenOn ? [...скрытыеСлои(best.g.field, rnd)].sort((a, b) => a - b) : [],
+    hiddenLevel: hiddenOn,
     starsByMoves: звёздыПоХодам(L),
-    solutionMoves: лучший.g.solutionMoves,
-    attempts: лучший.g.attempts,
-    forks: лучший.fk,
-    forksTarget: цель,
-    candidates: перебрано,
-    provenMoves: лучший.proven,
+    solutionMoves: best.g.solutionMoves,
+    attempts: best.g.attempts,
+    forks: best.fk,
+    forksTarget: target,
+    candidates: tried,
+    provenMoves: best.proven,
   };
 }
 
 describe('выгрузка лестницы сосудов для приложения', () => {
   it('отбирает раздачи по развилкам и пишет JSON', () => {
-    if (СОБРАТЬ < СТУПЕНЕЙ && ВЫХОД === ФАЙЛ) throw new Error('пробный прогон пишет только в TUBES_OUT, не в файл уровней');
-    const прежняя = JSON.parse(fs.readFileSync(ПРЕЖНЯЯ, 'utf8'));
-    const rnd = mulberry32(ЗЕРНО);
-    const levels: Ступень[] = [];
+    if (LEVELS_TO_BUILD < LEVEL_COUNT && OUT_FILE === ASSET_FILE) throw new Error('пробный прогон пишет только в TUBES_OUT, не в файл уровней');
+    const previous = JSON.parse(fs.readFileSync(PREVIOUS_FILE, 'utf8'));
+    const rnd = mulberry32(SEED);
+    const levels: LevelEntry[] = [];
     const t0 = Date.now();
-    for (let L = 1; L <= СОБРАТЬ; L += 1) {
-      levels.push(собрать(L, rnd, levels.length ? levels[levels.length - 1]!.forks : 0, прежняя));
+    for (let L = 1; L <= LEVELS_TO_BUILD; L += 1) {
+      levels.push(buildLevel(L, rnd, levels.length ? levels[levels.length - 1]!.forks : 0, previous));
       const s = levels[levels.length - 1]!;
       console.log(`L${L}: развилок ${s.forks} (цель ${s.forksTarget}) · раздач ${s.candidates} · `
         + `лимит ${s.moveLimit || '—'} · решение лучом ${s.provenMoves ?? '—'} · ${Math.round((Date.now() - t0) / 1000)} с`);
     }
 
     /* 🔴 ВЫГРУЗКА ПРОВЕРЯЕТ СЕБЯ ДО ЗАПИСИ. */
-    const беды: string[] = [];
+    const problems: string[] = [];
     // 1. Поля, которые от раздачи НЕ зависят, обязаны совпасть с прежней выгрузкой:
     //    так доказывается, что инструмент делает ТЕ ЖЕ уровни, а не похожие.
     for (const s of levels) {
-      const old = прежняя.levels[s.level - 1];
+      const old = previous.levels[s.level - 1];
       for (const k of ['colors', 'empty', 'minMoves', 'moveLimit', 'reference', 'hiddenLevel', 'starsByMoves'] as const) {
-        if (old && JSON.stringify(old[k]) !== JSON.stringify(s[k])) беды.push(`L${s.level} ${k}: было ${old[k]}, стало ${s[k]}`);
+        if (old && JSON.stringify(old[k]) !== JSON.stringify(s[k])) problems.push(`L${s.level} ${k}: было ${old[k]}, стало ${s[k]}`);
       }
       if (s.moveLimit > 0 && (s.provenMoves === null || s.provenMoves > s.moveLimit)) {
-        беды.push(`L${s.level}: под лимитом ${s.moveLimit} решение не доказано`);
+        problems.push(`L${s.level}: под лимитом ${s.moveLimit} решение не доказано`);
       }
     }
     for (let i = 1; i < levels.length; i += 1) {
       const a = levels[i - 1]!, b = levels[i]!;
-      if (b.level > ОТБОР_С && b.forks < a.forks - ПРОВАЛ_НЕ_БОЛЬШЕ - 1) беды.push(`L${a.level}→L${b.level}: провал ${a.forks} → ${b.forks}`);
+      if (b.level > SELECT_FROM && b.forks < a.forks - MAX_DIP - 1) problems.push(`L${a.level}→L${b.level}: провал ${a.forks} → ${b.forks}`);
     }
-    const пороги = { короткие: КОРОТКИЕ_С, камни: КАМНИ_С, отложенный: ОТЛОЖЕННЫЙ_С, строго: СТРОГО_С, ходы: ХОДЫ_С, скрыто: СКРЫТО_С };
-    if (JSON.stringify(пороги) !== JSON.stringify(прежняя.thresholds)) беды.push(`пороги разошлись: ${JSON.stringify(пороги)} против ${JSON.stringify(прежняя.thresholds)}`);
-    expect(беды).toEqual([]);
+    const thresholdsNow = { короткие: КОРОТКИЕ_С, камни: КАМНИ_С, отложенный: ОТЛОЖЕННЫЙ_С, строго: СТРОГО_С, ходы: ХОДЫ_С, скрыто: СКРЫТО_С };
+    if (JSON.stringify(thresholdsNow) !== JSON.stringify(previous.thresholds)) problems.push(`пороги разошлись: ${JSON.stringify(thresholdsNow)} против ${JSON.stringify(previous.thresholds)}`);
+    expect(problems).toEqual([]);
 
-    const данные = {
+    const payload = {
       generator: 'water-sort generateLevel (живой TS) + отбор по развилкам со смертью с L4 — один движок на переливалку, шарики и гайки',
       exportedAt: new Date().toISOString().slice(0, 10),
-      seed: ЗЕРНО,
-      palette: прежняя.palette,
-      draw: прежняя.draw,
-      thresholds: пороги,
-      difficulty: { metric: 'развилки со смертью', from: ОТБОР_С, plateauFrom: ПЛАТО_С, targetStart: ЦЕЛЬ_НА_СТАРТЕ, targetTop: ЦЕЛЬ_НАВЕРХУ },
+      seed: SEED,
+      palette: previous.palette,
+      draw: previous.draw,
+      thresholds: thresholdsNow,
+      difficulty: { metric: 'развилки со смертью', from: SELECT_FROM, plateauFrom: PLATEAU_FROM, targetStart: TARGET_AT_START, targetTop: TARGET_AT_TOP },
       levels,
     };
     // Отступ в один пробел: схлопнутый JSON читается так же, но диффы мертвы.
-    fs.writeFileSync(ВЫХОД, `${JSON.stringify(данные, null, 1)}\n`);
-    console.log(`ВЫГРУЗКА: ${levels.length} ступеней, зерно ${ЗЕРНО} → ${ВЫХОД}, ${Math.round((Date.now() - t0) / 60000)} мин`);
+    fs.writeFileSync(OUT_FILE, `${JSON.stringify(payload, null, 1)}\n`);
+    console.log(`ВЫГРУЗКА: ${levels.length} ступеней, зерно ${SEED} → ${OUT_FILE}, ${Math.round((Date.now() - t0) / 60000)} мин`);
   }, 7200000);
 });
