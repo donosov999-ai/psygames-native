@@ -27,7 +27,6 @@ const _baseline = <String, int>{
   'ant/screen.dart': 6,
   'bart/screen.dart': 1,
   'cake_sort/screen.dart': 1,
-  'chess_blind/screen.dart': 1,
   'chinese_tones/screen.dart': 3,
   'choice_rt/model.dart': 1,
   'choice_rt/screen.dart': 3,

@@ -140,6 +140,29 @@ jobs:
 
       - name: APK (release, без подписи)
         run: flutter build apk --release
+      # 🔴 ИТОГОВЫЙ РЕЛИЗНЫЙ МАНИФЕСТ ДАЁТ ВЕБ-ЧАСТИ ПОДНЯТЬСЯ. Два дефекта одного выпуска
+      # (01.10.2026), оба невидимы в отладке и в пробах:
+      #   · нет INTERNET — AssetServer не откроет сокет на 127.0.0.1, падение на старте;
+      #   · нет networkSecurityConfig — релизный WebView отказывает в открытом http даже на
+      #     127.0.0.1 («net::ERR_CLEARTEXT_NOT_PERMITTED»), пустой экран (#88).
+      # Шаблон Flutter кладёт INTERNET только в debug/profile, поэтому читаем тот манифест,
+      # что уходит в APK, — после слияния манифестов плагинов.
+      - name: Релизный манифест — сеть и петлевой http разрешены
+        run: |
+          set -eu
+          M=build/app/intermediates/packaged_manifests/release/processReleaseManifestForPackage/AndroidManifest.xml
+          [ -f "$M" ] || M=$(find build/app/intermediates -path '*release*' -name AndroidManifest.xml | head -1)
+          if [ -z "$M" ] || [ ! -f "$M" ]; then
+            echo "::error title=Манифест::не найден итоговый релизный манифест"; exit 1
+          fi
+          echo "манифест: $M"
+          grep -o 'uses-permission android:name="[^"]*"' "$M" | sort -u
+          grep -q 'android.permission.INTERNET' "$M" \
+            || { echo "::error title=Сеть::в релизном манифесте нет INTERNET — приложение упадёт на старте"; exit 1; }
+          NSC=$(grep -o 'android:networkSecurityConfig="[^"]*"' "$M" | head -1 || true)
+          echo "сетевая политика: ${NSC:-нет}"
+          [ -n "$NSC" ] \
+            || { echo "::error title=Сеть::в релизном манифесте нет android:networkSecurityConfig — WebView не откроет http://127.0.0.1, пустой экран"; exit 1; }
       - name: AAB (release, без подписи)
         run: flutter build appbundle --release
       - name: Вес — числом в отчёт

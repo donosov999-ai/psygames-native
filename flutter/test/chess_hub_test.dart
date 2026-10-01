@@ -21,7 +21,7 @@ Future<void> _boot(WidgetTester tester, SharedState state) async {
         home: Navigator(
           onGenerateRoute: (_) => MaterialPageRoute(
             builder: (_) =>
-                ChessHubScreen(state: state, isNative: (r) => false),
+                chessHubScreen(state: state, isNative: (r) => false),
           ),
         ),
       ),
@@ -71,21 +71,10 @@ void main() {
     expect(find.text('ур. 4'), findsOneWidget, reason: 'уровень «Доски в уме»');
   });
 
-  test('🔴 ПЕРЕХВАТ НЕ ВКЛЮЧЁН, ПОКА НЕТ ЗАРЯДКИ — это не забывчивость', () {
-    /*
-     * В вебе над выбором стоит шахматная зарядка: она ставит оба упражнения
-     * подряд по их собственным лестницам. Общий HubScreen каркаса слота под
-     * шапку не имеет, значит нативная развилка сегодня БЕДНЕЕ веб-версии.
-     * Включить перехват — молча отнять у человека рабочую зарядку; ровно так
-     * же рассудили «Слова» по анаграммам и «Судоку» по головоломкам.
-     *
-     * Эта проба краснеет, если маршрут включат раньше зарядки. Снимать её
-     * вместе с включением перехвата — тем же коммитом, что и зарядку.
-     */
-    expect(
-      HybridApp.native.containsKey('/games/chess-hub'),
-      isFalse,
-      reason: 'сперва зарядка (слот в HubScreen + WarmupCard), потом перехват',
-    );
+  test('🔴 перехват включён ВМЕСТЕ с зарядкой: развилка — с мостом к шахматной зарядке', () {
+    // Сторож стоял обратным до 01.10.2026: слота под шапку не было, и перехват
+    // отнял бы рабочую зарядку. Снят тем же изменением, что поставил шапку-мост;
+    // что шапка именно «chess», держит warmup_bridge_test.dart.
+    expect(HybridApp.native.containsKey('/games/chess-hub'), isTrue);
   });
 }
