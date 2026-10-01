@@ -1028,6 +1028,7 @@ String variantTitle(String variant) => switch (variant) {
       'thermoknight' => 'термо и конь',
       'sandparity' => 'сэндвич и чётность',
       'killerdiag' => 'суммы и диагонали',
+      'whisper' => 'шёпот',
       _ => 'классика',
     };
 

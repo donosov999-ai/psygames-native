@@ -19,6 +19,12 @@
  *     selectionLookForLevel(ступень)})` и цикл шагов `runSteps` — без кадров экрана;
  *   · sudoku-modes.json          — небоскрёбы и неравенства: `sideBoardForStep`, по --per-step
  *     досок на ступень мини-лестницы.
+ * И эталоны правил для пробы `flutter/test/sudoku_rules_test.dart` —
+ * `flutter/test/fixtures/sudoku-rules-reference.json`: по доске на КАЖДЫЙ вариант лестницы и
+ * режимов, 40 ходов «цифра в клетку» с ответом живого ядра (`isValid` И `overlayOk` — натив
+ * держит оба в одной `isValid`). 🔴 Эталоны 23.09 выгружались без скрипта и без вариантов с
+ * показанными подсказками (чётность, Кропки, сэндвич) — поэтому их выброс из разбора натива
+ * прошёл пробу и уехал в Play 2.56.2 (задача 450c0211).
  *
  * НОВОЕ ПРАВИЛО ДОЕЗЖАЕТ САМО. Список ступеней — это `levelConfig`: поставил вариант на
  * ступень там — следующий прогон выгрузит его доски. Геометрия переносится полями результата
@@ -43,9 +49,10 @@
  *   node flutter/tools/export-sudoku-boards.cjs                       — всё (десятки минут)
  *   node flutter/tools/export-sudoku-boards.cjs --levels=42-45,50     — только эти ступени,
  *                                                                       остальные из файла
- *   node flutter/tools/export-sudoku-boards.cjs --no-boards --no-modes — лестница и банк (секунды)
- *   флаги: --per-level=12 --per-step=6 --seed=1 --modes=towers,unequal --dry (собрать и
- *          проверить, ничего не записывая)
+ *   node flutter/tools/export-sudoku-boards.cjs --no-boards --no-modes — лестница, банк, эталоны
+ *                                                                       правил (секунды)
+ *   флаги: --per-level=12 --per-step=6 --seed=1 --modes=towers,unequal --no-rules --dry
+ *          (собрать и проверить, ничего не записывая)
  * После выгрузки: cd flutter && flutter test test/sudoku_levels_test.dart
  * Сторож расхождения веба и натива: frontend/src/__tests__/sudoku-native-boards-drift.test.ts.
  */
@@ -60,7 +67,7 @@ const outDir = path.join(root, 'flutter/assets/levels');
 const ts = require(path.join(root, 'frontend/node_modules/typescript'));
 
 // ── Флаги ───────────────────────────────────────────────────────────────────────────
-const KNOWN = new Set(['levels', 'per-level', 'per-step', 'seed', 'modes', 'dry', 'no-boards', 'no-modes']);
+const KNOWN = new Set(['levels', 'per-level', 'per-step', 'seed', 'modes', 'dry', 'no-boards', 'no-modes', 'no-rules']);
 const args = {};
 for (const a of process.argv.slice(2)) {
   const m = /^--([a-z-]+)(?:=(.*))?$/.exec(a);
@@ -338,4 +345,52 @@ if (!args['no-modes']) {
   }
   write('sudoku-modes.json', { выгружено: STAMP, modes: modesOut });
 }
+// ── 5. Эталоны правил для пробы натива ────────────────────────────────────────────────
+// Варианты берутся из лестницы — новое правило попадает в эталоны само, — плюс режимы вне
+// лестницы. Доска — полное решение с 27 пустыми клетками; ходы — 20 цифр решения и 20
+// соседних (заведомо спорных), в любую клетку: проба сама освобождает клетку перед ходом.
+if (!args['no-rules']) {
+  const variants = [...new Set(ladder.map((l) => l.variant)), 'killer', 'unequal', 'towers'];
+  const out = [];
+  for (const variant of variants) {
+    rngState = seedFor(BASE_SEED, 'rules', variant);
+    const { N, BR, BC } = core.dimsForSize(variant === 'towers' ? 6 : 9);
+    const killer = variant === 'killer';
+    const gen = core.generatePuzzle(0, N, BR, BC, killer ? 'none' : variant);
+    const sol = gen.solution;
+    // Подсказки — ВСЕ, без прореживания и без снятия меток с заполненных клеток: ход ставится
+    // в освобождённую клетку, и метка на ней обязана работать.
+    const ov = killer ? {} : core.overlaysFromSolution(sol, N, variant);
+    const extras = {};
+    if (gen.regions) extras.regions = gen.regions;
+    if (gen.thermo) extras.thermo = gen.thermo;
+    if (gen.arrow) extras.arrow = gen.arrow;
+    const cages = killer ? core.generateCages(sol, N, rng) : gen.cages;
+    if (cages) extras.cages = cages;
+    for (const f of OVERLAY_FIELDS) if (ov[f] != null) extras[f] = ov[f];
+    const grid = sol.map((row) => row.slice());
+    const cells = Array.from({ length: N * N }, (_, i) => i).sort(() => rng() - 0.5);
+    const blanks = Math.round(N * N / 3);
+    for (const i of cells.slice(0, blanks)) grid[Math.floor(i / N)][i % N] = 0;
+    const cases = [];
+    for (let k = 0; k < 40; k++) {
+      const i = Math.floor(rng() * N * N), r = Math.floor(i / N), c = i % N;
+      const right = sol[r][c];
+      const val = k % 2 === 0 ? right : (right % N) + 1;
+      const g = grid.map((row) => row.slice());
+      g[r][c] = 0;
+      const ok = core.isValid(g, r, c, val, N, BR, BC, killer ? 'none' : variant, extras.regions, extras.thermo,
+        extras.arrow, extras.cages, extras.unequal, extras.towers) && core.overlayOk(g, r, c, val, N, ov);
+      cases.push({ r, c, val, ok });
+    }
+    out.push({ variant, n: N, br: BR, bc: BC, solution: sol, grid, extras, cases });
+  }
+  const okCount = out.reduce((s, b) => s + b.cases.filter((x) => x.ok).length, 0);
+  if (!DRY) {
+    fs.writeFileSync(path.join(root, 'flutter/test/fixtures/sudoku-rules-reference.json'),
+      `${JSON.stringify({ выгружено: STAMP, источник: 'flutter/tools/export-sudoku-boards.cjs', ladder, boards: out })}\n`);
+  }
+  console.error(`эталоны правил: ${out.length} вариантов (${variants.join(', ')}), ходов ${out.length * 40}, законных ${okCount}`);
+}
+
 console.error(DRY ? '--dry: собрано и проверено, файлы не тронуты' : `записано в ${path.relative(root, outDir)}/`);

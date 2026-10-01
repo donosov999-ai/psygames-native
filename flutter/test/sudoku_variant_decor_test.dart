@@ -66,6 +66,10 @@ void main() {
               expect(d?.arrow, isNotNull, reason: '$at: клетка стрелки $r,$c не нарисована');
               checked['arrow'] = (checked['arrow'] ?? 0) + 1;
             }
+            if (g.whisper?[r][c] != null) {
+              expect(d?.whisper, isNotNull, reason: '$at: звено линии шёпота $r,$c не нарисовано');
+              checked['whisper'] = (checked['whisper'] ?? 0) + 1;
+            }
             final p = g.parity?[r][c] ?? 0;
             if (p != 0) {
               expect(d?.parity, p, reason: '$at: метка чётности $r,$c не нарисована');
@@ -111,12 +115,12 @@ void main() {
       }
     }
     // Проба не пустая: каждая из шести подсказок встретилась на доске.
-    for (final kind in ['thermo', 'arrow', 'parity', 'cage', 'kropki', 'sandwich', 'diagonal', 'hyper']) {
+    for (final kind in ['thermo', 'arrow', 'parity', 'cage', 'kropki', 'sandwich', 'diagonal', 'hyper', 'whisper']) {
       expect(checked[kind] ?? 0, greaterThan(0), reason: 'подсказка «$kind» не встретилась ни разу — проба мимо');
     }
   });
 
-  test('🔴 показанные подсказки проверяются: чётность, точка Кропки, сумма сэндвича', () {
+  test('🔴 показанные подсказки проверяются: чётность, точка Кропки, сумма сэндвича, линия шёпота', () {
     final empty = List.generate(9, (_) => List.filled(9, 0));
     final parity = List.generate(9, (_) => List.filled(9, 0))..[0][0] = 1;   // 1 — чётная
     final g1 = BoardGeometry(parity: parity);
@@ -133,5 +137,15 @@ void main() {
     final row = [for (final row in empty) [...row]]..[0] = [1, 2, 0, 9, 0, 0, 0, 0, 0];
     expect(isValid(row, 0, 2, 4, 9, 3, 3, variant: 'sandwich', geometry: g3), isFalse, reason: '2+4 ≠ 5');
     expect(isValid(row, 0, 2, 3, 9, 3, 3, variant: 'sandwich', geometry: g3), isTrue, reason: '2+3 = 5');
+
+    // Линия шёпота (0,0)–(0,1): соседи по линии отличаются минимум на 5.
+    final w = List<List<ThermoLink?>>.generate(9, (_) => List<ThermoLink?>.filled(9, null));
+    w[0][0] = const ThermoLink(next: [0, 1]);
+    w[0][1] = const ThermoLink(prev: [0, 0]);
+    final g4 = BoardGeometry(whisper: w);
+    final line = [for (final row in empty) [...row]]..[0][1] = 7;
+    expect(isValid(line, 0, 0, 3, 9, 3, 3, variant: 'whisper', geometry: g4), isFalse, reason: '|3−7| = 4 < 5');
+    expect(isValid(line, 0, 0, 2, 9, 3, 3, variant: 'whisper', geometry: g4), isTrue, reason: '|2−7| = 5');
+    expect(isValid(line, 1, 0, 3, 9, 3, 3, variant: 'whisper', geometry: g4), isTrue, reason: 'вне линии правило молчит');
   });
 }

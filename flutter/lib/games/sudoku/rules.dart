@@ -178,6 +178,7 @@ class BoardGeometry {
     this.parity,
     this.kropki,
     this.sandwich,
+    this.whisper,
   });
   final List<List<int>>? regions;
   final List<List<ThermoLink?>>? thermo;
@@ -190,6 +191,10 @@ class BoardGeometry {
   final List<List<int>>? parity;
   final KropkiMap? kropki;
   final SandwichClues? sandwich;
+
+  /// Зелёные линии «немецкого шёпота»: соседи по линии отличаются минимум на [whisperGap].
+  /// Тот же вид prev/next, что у термометра (`whisperFromSolution` веба).
+  final List<List<ThermoLink?>>? whisper;
 
   static BoardGeometry fromJson(Map<String, Object?> v) => BoardGeometry(
         regions: v['regions'] == null ? null : _grid(v['regions']),
@@ -209,6 +214,11 @@ class BoardGeometry {
         parity: v['parity'] == null ? null : _grid(v['parity']),
         kropki: KropkiMap.fromJson(v['kropki']),
         sandwich: SandwichClues.fromJson(v['sandwich']),
+        whisper: v['whisper'] == null
+            ? null
+            : (v['whisper'] as List)
+                .map((row) => (row as List).map(ThermoLink.fromJson).toList())
+                .toList(),
       );
 }
 
@@ -388,8 +398,12 @@ bool isValid(
   return true;
 }
 
+/// Наименьшая разница соседей по линии шёпота — `WHISPER_GAP` веба.
+const whisperGap = 5;
+
 /// Не нарушает ли цифра [val] в клетке (r, c) ПОКАЗАННЫЕ подсказки — перенос `overlayOk`
-/// из `frontend/src/services/sudoku-core.ts`: метки чётности, точки Кропки, суммы сэндвича.
+/// из `frontend/src/services/sudoku-core.ts`: метки чётности, точки Кропки, суммы сэндвича,
+/// линии шёпота.
 bool overlayOk(List<List<int>> grid, int r, int c, int val, int n, BoardGeometry g) {
   final parity = g.parity;
   if (parity != null) {
@@ -410,6 +424,17 @@ bool overlayOk(List<List<int>> grid, int r, int c, int val, int n, BoardGeometry
       if (d == 0) continue;   // точки НЕ показано — ничего не утверждаем
       final nb = grid[nr][nc];
       if (nb != 0 && !rel(d, val, nb)) return false;
+    }
+  }
+  final whisper = g.whisper;
+  if (whisper != null) {
+    final link = whisper[r][c];
+    if (link != null) {
+      for (final nb in [link.prev, link.next]) {
+        if (nb == null) continue;
+        final o = grid[nb[0]][nb[1]];
+        if (o != 0 && (val - o).abs() < whisperGap) return false;
+      }
     }
   }
   final sandwich = g.sandwich;

@@ -123,7 +123,7 @@ void main() {
     expect(board, isNotNull);
 
     expect(state.get('psygames_sudoku_level_nzt48'), '42',
-        reason: 'лестница на 92 ступени в режиме не двигается');
+        reason: 'основная лестница в режиме не двигается');
     expect(progress.key, 'psygames_sudoku_towers_step_nzt48',
         reason: 'ключ ступени — тот же, что пишет веб-половина');
   });

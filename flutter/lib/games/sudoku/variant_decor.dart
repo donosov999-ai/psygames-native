@@ -1,5 +1,5 @@
 /// РИСУНОК ВАРИАНТОВ НА НАТИВНОЙ ДОСКЕ — термометры, стрелки, клетки-суммы, метки
-/// чётности, точки Кропки.
+/// чётности, точки Кропки, линии шёпота.
 ///
 /// 🔴 ЗАЧЕМ (задача 450c0211, 01.10.2026). Нативная доска с переноса 23.09 рисовала только
 /// рамки клеток: на ступенях 30–53 и 81–92 в шапке стояло «Правило: термометры», а на поле
@@ -26,6 +26,9 @@ Color blendColor(Color base, Color over, double t) => Color.lerp(base, over, t)!
 /// Акценты судоку веба: `GRADIENT` и оттенки групп `CAGE_ACCENTS`.
 const sudokuAccent = Color(0xFF7F7FD5);
 const sudokuAccent2 = Color(0xFF86A8E7);
+
+/// Зелёная линия «немецкого шёпота» — `#22C55E` веба.
+const whisperGreen = Color(0xFF22C55E);
 const cageAccents = [
   Color(0xFF7F7FD5), Color(0xFF86A8E7), Color(0xFFD58A7F),
   Color(0xFF7FD5A8), Color(0xFFD5C97F), Color(0xFFB07FD5),
@@ -36,7 +39,7 @@ const double seam = 1.5;
 
 /// Что нарисовать в одной клетке (под цифрой).
 class CellDecor {
-  const CellDecor({this.thermo, this.arrow, this.parity = 0, this.cageId = -1});
+  const CellDecor({this.thermo, this.arrow, this.parity = 0, this.cageId = -1, this.whisper});
 
   /// Звено термометра; колба — у клетки без `prev`.
   final ThermoLink? thermo;
@@ -50,7 +53,10 @@ class CellDecor {
   /// Номер группы-суммы; −1 — вне групп.
   final int cageId;
 
-  bool get isEmpty => thermo == null && arrow == null && parity == 0 && cageId < 0;
+  /// Звено зелёной линии шёпота — как термометр, но без колбы.
+  final ThermoLink? whisper;
+
+  bool get isEmpty => thermo == null && arrow == null && parity == 0 && cageId < 0 && whisper == null;
 }
 
 /// Рисунок клетки по геометрии доски; `null` — рисовать нечего.
@@ -60,6 +66,7 @@ CellDecor? cellDecorFor(BoardGeometry g, int r, int c) {
     arrow: g.arrow?[r][c],
     parity: g.parity?[r][c] ?? 0,
     cageId: g.cages?.cageOf[r][c] ?? -1,
+    whisper: g.whisper?[r][c],
   );
   return d.isEmpty ? null : d;
 }
@@ -68,7 +75,7 @@ CellDecor? cellDecorFor(BoardGeometry g, int r, int c) {
 Color? cageTint(Color surface, int cageId) =>
     cageId < 0 ? null : blendColor(surface, cageAccents[cageId % cageAccents.length], 0.16);
 
-/// Рисует трубку термометра, стрелку и метку чётности ПОД цифрой клетки.
+/// Рисует трубку термометра, линию шёпота, стрелку и метку чётности ПОД цифрой клетки.
 class CellDecorPainter extends CustomPainter {
   CellDecorPainter({required this.decor, required this.surface, required this.row, required this.col});
 
@@ -120,6 +127,16 @@ class CellDecorPainter extends CustomPainter {
       }
       if (t.prev == null) {
         canvas.drawCircle(Offset(cell / 2, cell / 2), cell * 0.21, paint);   // колба
+      }
+    }
+    final w = decor.whisper;
+    if (w != null) {
+      // Шёпот — та же трубка и тот же зазор у границы, что у термометра, но без колбы:
+      // у линии нет начала, правило симметрично.
+      final thick = math.max(3.0, (cell * 0.16).roundToDouble());
+      final paint = Paint()..color = blendColor(surface, whisperGreen, 0.6);
+      for (final nb in [w.prev, w.next]) {
+        if (nb != null) canvas.drawRect(segment(size, row, col, nb, thick), paint);
       }
     }
     final a = decor.arrow;
