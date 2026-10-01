@@ -16,6 +16,18 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.56.4',
+    date: '2026-10-01',
+    ru: [
+      'Вкладка «Зарядка» снова открывается: экран выбора больше не висит на загрузке',
+      'Дыхание: вибрация на вдох, задержку и выдох стала ощутимой',
+    ],
+    en: [
+      'The Workout tab opens again: the picker no longer hangs on loading',
+      'Breathing: vibration for inhale, hold and exhale is now clearly felt',
+    ],
+  },
+  {
     version: '2.56.3',
     date: '2026-10-01',
     ru: [
