@@ -44,8 +44,13 @@ void main() {
     sent.clear();
     SessionReport.sink = (json) async => sent.add(jsonDecode(json) as Map<String, dynamic>);
     if (preset != null) GamePreset.set(preset);
-    var x = seed / 100;
-    double rng() => x = (x * 9301 + 49297) % 233280 / 233280;
+    // Линейный конгруэнтный поток на ЦЕЛОМ состоянии: на дроби он сходится к ≈0,22 и раздавал
+    // каждый раунд почти одно и то же поле (01.10.2026, найдено на «Цифровом ряде»).
+    var st = seed;
+    double rng() {
+      st = (st * 9301 + 49297) % 233280;
+      return st / 233280;
+    }
     await tester.pumpWidget(MaterialApp(home: MemoryMatrixScreen(key: UniqueKey(), state: state, rng: rng)));
     for (var i = 0; i < 5; i++) {
       await tester.pump();
