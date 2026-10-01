@@ -16,6 +16,24 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.56.2',
+    date: '2026-10-01',
+    ru: [
+      'Игры говорят на языке телефона, если язык не выбран вручную',
+      'Колышки, Указатели, Раскраска карты и Распутай снова играются — ходы протяжкой',
+      'Головоломки: вернулись флажок в «Сапёре», крестик в японском кроссворде и карандаш',
+      'Пауза и зарядка работают нативно; занятые упражнения не ставятся вместе',
+      '«Доска в уме» и развилка «Шахматы» — нативно, с шахматной зарядкой',
+    ],
+    en: [
+      'Games speak your phone language if you have not picked one',
+      'Pegs, Signpost, Map and Untangle work again — move by dragging',
+      'Puzzles: the Mines flag, the Nonogram cross and pencil marks are back',
+      'Pause and warm-up run natively; overlapping exercises are not paired',
+      'Board in Mind and the Chess section run natively, with a chess warm-up',
+    ],
+  },
+  {
     version: '2.56.1',
     date: '2026-10-01',
     ru: [
