@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../../shell/aux_action.dart';
+import '../../shell/boss_round.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/l10n.dart';
 import '../../shell/game_shell.dart';
@@ -52,6 +53,9 @@ class _QuickCountScreenState extends State<QuickCountScreen> {
   int _shift = 0;
   int? _picked;
   bool _won = false;
+
+  /// Итог боя с боссом после этой партии; `null` — боя не было (веб: `bossWon`).
+  bool? _boss;
   bool _ready = false;
   Timer? _timer;
 
@@ -132,14 +136,18 @@ class _QuickCountScreenState extends State<QuickCountScreen> {
     }
     final accuracy = _correct / trialsPerRound * 100;
     final won = accuracy >= passAccuracyPercent;
+    // Веха как в вебе: каждый третий ЗАСЧИТАННЫЙ уровень — бой «тапни только зелёный».
+    bool? boss;
     if (won) {
-      await _ladder.win();
+      boss = await BossRound.winThenBoss(context, _ladder,
+          type: BossType.gonogo, color: const Color(0xFFF7971E));
     } else {
       await _ladder.fail();
     }
     if (!mounted) return;
     setState(() {
       _won = won;
+      _boss = boss;
       _phase = _Phase.result;
     });
   }
@@ -242,6 +250,7 @@ class _QuickCountScreenState extends State<QuickCountScreen> {
               ],
             ),
           ),
+        if (_phase == _Phase.result) BossOutcomeLine(_boss),
         if (_phase == _Phase.result)
           FilledButton.icon(
             key: const Key('дальше'),

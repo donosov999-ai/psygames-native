@@ -1,8 +1,10 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
 import '../../shell/aux_action.dart';
+import '../../shell/game_clock.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/lesson.dart';
@@ -55,7 +57,12 @@ class _MonsterTraitsScreenState extends State<MonsterTraitsScreen> {
   /// Итог проверки; `null` — ещё отмечаем.
   ({Set<int> missed, Set<int> extras})? _graded;
   int _levelNo = 1;
-  DateTime _started = DateTime.now();
+  // Часы партии (lib/shell/game_clock.dart): стоят под паузой, разбором и в фоне.
+  int _startedMs = gameNow();
+
+  /// Время раунда (с L12): сколько секунд осталось; `null` — раунд без времени.
+  int? _left;
+  GameTimer? _tick;
 
   bool get _checked => _graded != null;
   bool get _won => _graded != null && _graded!.missed.isEmpty && _graded!.extras.isEmpty;
@@ -75,11 +82,32 @@ class _MonsterTraitsScreenState extends State<MonsterTraitsScreen> {
   }
 
   void _deal() {
+    // Новая раздача — снова зачётная: отметку разбора снимает новая партия.
+    LessonUsed.reset();
+    _tick?.cancel();
     _levelNo = _ladder.level;
     _round = TraitRound.deal(_levelNo, _rnd);
     _selected.clear();
     _graded = null;
-    _started = DateTime.now();
+    _startedMs = gameNow();
+    _left = traitLevelFor(_levelNo).seconds;
+    if (_left != null) {
+      _tick = gameInterval(const Duration(seconds: 1), () {
+        if (!mounted || _checked) return;
+        if (_left! <= 1) {
+          setState(() => _left = 0);
+          _check(timeUp: true);
+        } else {
+          setState(() => _left = _left! - 1);
+        }
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _tick?.cancel();
+    super.dispose();
   }
 
   void _toggle(int i) {
@@ -89,13 +117,15 @@ class _MonsterTraitsScreenState extends State<MonsterTraitsScreen> {
     });
   }
 
-  Future<void> _check() async {
+  /// Проверка по кнопке или по концу времени: тогда проверяется то, что успел отметить.
+  Future<void> _check({bool timeUp = false}) async {
     final round = _round;
-    if (round == null || _checked || _selected.isEmpty) return;
+    if (round == null || _checked || (_selected.isEmpty && !timeUp)) return;
+    _tick?.cancel();
     final g = round.grade(_selected);
     setState(() => _graded = g);
     final errors = g.missed.length + g.extras.length;
-    final seconds = DateTime.now().difference(_started).inSeconds;
+    final seconds = (gameNow() - _startedMs) ~/ 1000;
     final details = <String, Object?>{
       'trait': round.trait.name,
       'value': round.value,
@@ -103,6 +133,11 @@ class _MonsterTraitsScreenState extends State<MonsterTraitsScreen> {
       'selected_count': _selected.length,
       'missed': g.missed.length,
       'extras': g.extras.length,
+      if (round.isPair) 'trait2': round.trait2!.name,
+      if (round.isPair) 'value2': round.value2,
+      if (round.negate2) 'negate2': true,
+      if (traitLevelFor(_levelNo).seconds != null) 'seconds': traitLevelFor(_levelNo).seconds,
+      if (timeUp) 'time_up': true,
     };
     if (errors == 0) {
       await _ladder.win(errors: 0, timeSeconds: seconds, score: 100, details: details);
@@ -123,12 +158,24 @@ class _MonsterTraitsScreenState extends State<MonsterTraitsScreen> {
     if (round == null) return;
     final label = traitLabel(round.trait, round.value);
     final order = round.target.toList()..sort();
+    // Приём зависит от условия: один признак — смотри только на него; два — сперва
+    // первый, среди найденных второй; «но не» — сперва первый, потом ОТБРОСЬ второй.
+    final second = round.isPair ? traitLabel(round.trait2!, round.value2!) : '';
     final steps = <LessonStep>[
       LessonStep(
         payload: const <int>{},
         techniqueKey: 'teachTraitScan',
         text: L.f('teachTraitScan', {'trait': label}),
       ),
+      if (round.isPair)
+        LessonStep(
+          payload: const <int>{},
+          techniqueKey: round.negate2 ? 'teachTraitNot' : 'teachTraitPair',
+          // Литералы в обеих ветках: сборщик словаря видит ключ только в `L.f('…')`.
+          text: round.negate2
+              ? L.f('teachTraitNot', {'trait': label, 'trait2': second})
+              : L.f('teachTraitPair', {'trait': label, 'trait2': second}),
+        ),
       for (var k = 0; k < order.length; k++)
         LessonStep(
           payload: order.take(k + 1).toSet(),
@@ -170,13 +217,14 @@ class _MonsterTraitsScreenState extends State<MonsterTraitsScreen> {
       onLesson: _checked ? null : _openLesson,
       hud: [
         HudItem(label: L.t('level'), value: '$_levelNo', icon: Icons.flag_outlined),
+        if (_left != null) HudItem(label: L.t('time'), value: '$_left', icon: Icons.timer_outlined),
         HudItem(label: L.t('puzzleHudMarked'), value: '${_selected.length}', icon: Icons.touch_app_outlined),
         if (g != null)
           HudItem(label: L.t('errors'), value: '${g.missed.length + g.extras.length}', icon: Icons.error_outline),
       ],
       field: (context, h) => Column(
         children: [
-          _Prompt(trait: round.trait, value: round.value),
+          _Prompt(round: round),
           const SizedBox(height: 8),
           Expanded(
             child: LayoutBuilder(
@@ -226,14 +274,13 @@ class _MonsterTraitsScreenState extends State<MonsterTraitsScreen> {
 
 /// «Отметь всех, у кого: [знак признака] подпись».
 class _Prompt extends StatelessWidget {
-  const _Prompt({required this.trait, required this.value});
+  const _Prompt({required this.round});
 
-  final Trait trait;
-  final int value;
+  final TraitRound round;
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
+    final text = Theme.of(context).textTheme;
     return Padding(
       padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
       child: Wrap(
@@ -243,22 +290,54 @@ class _Prompt extends StatelessWidget {
         spacing: 8,
         runSpacing: 6,
         children: [
-          Text(L.t('mtFind'), style: Theme.of(context).textTheme.titleMedium),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              color: scheme.primaryContainer,
-              borderRadius: BorderRadius.circular(20),
+          Text(L.t('mtFind'), style: text.titleMedium),
+          _TraitChip(trait: round.trait, value: round.value),
+          if (round.isPair) ...[
+            Text(
+              round.negate2 ? L.t('mtButNot') : L.t('mtAnd'),
+              key: const ValueKey('mt-joint'),
+              style: text.titleMedium?.copyWith(
+                fontWeight: FontWeight.w800,
+                color: round.negate2 ? const Color(0xFFDC2626) : null,
+              ),
             ),
-            child: Row(mainAxisSize: MainAxisSize.min, children: [
-              SizedBox(width: 26, height: 26, child: CustomPaint(painter: _TraitIconPainter(trait, value))),
-              const SizedBox(width: 6),
-              Text(traitLabel(trait, value),
-                  style: TextStyle(fontWeight: FontWeight.w700, color: scheme.onPrimaryContainer)),
-            ]),
-          ),
+            _TraitChip(trait: round.trait2!, value: round.value2!, crossed: round.negate2),
+          ],
         ],
       ),
+    );
+  }
+}
+
+/// Признак плашкой: значок и подпись. Зачёркнутый — тот, что надо отбросить («но не»).
+class _TraitChip extends StatelessWidget {
+  const _TraitChip({required this.trait, required this.value, this.crossed = false});
+
+  final Trait trait;
+  final int value;
+  final bool crossed;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: crossed ? const Color(0xFFFEE2E2) : scheme.primaryContainer,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(mainAxisSize: MainAxisSize.min, children: [
+        SizedBox(width: 26, height: 26, child: CustomPaint(painter: _TraitIconPainter(trait, value))),
+        const SizedBox(width: 6),
+        Text(
+          traitLabel(trait, value),
+          style: TextStyle(
+            fontWeight: FontWeight.w700,
+            color: crossed ? const Color(0xFF991B1B) : scheme.onPrimaryContainer,
+            decoration: crossed ? TextDecoration.lineThrough : null,
+          ),
+        ),
+      ]),
     );
   }
 }
