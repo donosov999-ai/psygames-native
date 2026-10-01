@@ -27,9 +27,14 @@ import 'rules.dart';
 /// даёт клетку ≥48 точек и листается. Арифметика вынесена в `layout.dart`, чтобы проба
 /// мерила её вызовом.
 class SamuraiScreen extends StatefulWidget {
-  const SamuraiScreen({super.key, required this.state});
+  const SamuraiScreen({super.key, required this.state, this.megabossFrom});
 
   final SharedState state;
+
+  /// Вход мегабоссом с вехи классической лестницы (каждый 15-й уровень судоку): номер того
+  /// уровня. Доска и правила не меняются — меняется только отчёт (`details.megaboss_from`),
+  /// как в вебе (`sudoku-samurai.tsx`, megabossFrom).
+  final int? megabossFrom;
 
   @override
   State<SamuraiScreen> createState() => _SamuraiScreenState();
@@ -176,7 +181,7 @@ class _SamuraiScreenState extends State<SamuraiScreen> {
     if (board == null) return;
     if (!isSolved(_grid, board.solution)) return;
     _won = true;
-    unawaited(_ladder.win());
+    unawaited(_ladder.win(details: {'megaboss_from': ?widget.megabossFrom}));
   }
 
   int get _left {

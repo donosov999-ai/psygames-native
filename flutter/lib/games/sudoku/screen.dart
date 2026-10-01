@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 
 import '../../shell/game_clock.dart';
 import '../../shell/aux_action.dart';
+import '../../shell/boss_round.dart';
 import '../../shell/l10n.dart';
 import 'keypad.dart';
 import 'marks.dart';
@@ -26,6 +27,7 @@ import 'lesson.dart';
 import 'mode_board.dart';
 import 'modes.dart';
 import 'symbols.dart';
+import '../samurai/screen.dart';
 
 /// СУДОКУ на общем каркасе — первый экран раздела в переезде на Flutter.
 ///
@@ -38,6 +40,34 @@ import 'symbols.dart';
 /// случаях. Доски — данными: банк классики и выгруженные вариантные доски (`levels.dart`).
 /// Уровень лежит в общей памяти под тем же ключом, что у веб-версии
 /// (`psygames_sudoku_level_<профиль>`), поэтому прогресс один на обе половины.
+/// 🔴 БОЙ С БОССОМ — КАК В ВЕБЕ (задача 217f50de). В `app/games/sudoku.tsx` после каждого
+/// третьего засчитанного уровня открывался бой, тип — из мешка `SUDOKU_BOSS_BAG`: три
+/// задания перетасованы, по одному на веху, опустел — мешок заново. При переносе на
+/// Flutter слой пропал молча (замер 30.09: босса не было ни в одном из 24 нативных экранов,
+/// где он был в вебе). Мешок живёт на уровне модуля — как массив модуля в вебе.
+/// Сверка состава с вебом — `test/sudoku_boss_test.dart` (читает список из исходника веба).
+const sudokuBossTypes = [BossType.finderror, BossType.lightning, BossType.completeline];
+final List<BossType> _sudokuBossBag = [];
+
+/// Следующий тип босса из мешка.
+BossType nextSudokuBoss(math.Random rnd) {
+  if (_sudokuBossBag.isEmpty) _sudokuBossBag.addAll(List.of(sudokuBossTypes)..shuffle(rnd));
+  return _sudokuBossBag.removeLast();
+}
+
+/// Только для проб: заправить мешок (тянется С КОНЦА) — бой нужного типа без зерна экрана.
+@visibleForTesting
+void fillSudokuBossBag(List<BossType> bag) => _sudokuBossBag
+  ..clear()
+  ..addAll(bag);
+
+/// Мегабосс — каждые столько уровней ВМЕСТО обычного боя (15 кратно 3), как
+/// `MEGA_BOSS_EVERY` веба: приглашение в «Самурая» с меткой вехи.
+const sudokuMegaBossEvery = 15;
+
+/// Цвет боя — первый цвет градиента судоку в вебе (`GRADIENT[0]`).
+const sudokuBossColor = Color(0xFF7F7FD5);
+
 class SudokuScreen extends StatefulWidget {
   const SudokuScreen({super.key, required this.state, this.mode});
 
@@ -241,6 +271,9 @@ class _SudokuScreenState extends State<SudokuScreen> {
 
   int get _elapsed => (gameNow() - _startedAt) ~/ 1000;
   bool _won = false;
+
+  /// Итог боя с боссом этой партии: `null` — боя не было.
+  bool? _boss;
   bool _lost = false;
   String? _failure;
 
@@ -295,6 +328,8 @@ class _SudokuScreenState extends State<SudokuScreen> {
         _hintsUsed = 0;
         _backtracks = 0;
         _won = false;
+      _boss = null;
+        _boss = null;
         _lost = false;
       });
       return;   // теневой шаг генератора живёт на лестнице, а не в режимах
@@ -321,6 +356,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
       _hintsUsed = 0;
       _backtracks = 0;
       _won = false;
+      _boss = null;
       _lost = false;
     });
     _recordDeal(board);
@@ -409,6 +445,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
       _hintsUsed = 0;
       _backtracks = 0;
       _won = false;
+      _boss = null;
       _lost = false;
     });
   }
@@ -738,7 +775,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
     // Трудность и подробности — как у веба (app/games/sudoku.tsx, saveSession победы).
     // До 30.09 лестница умела слать только номер: трудностью уходило «54», а не «hard»,
     // и без дороги — история сравнила бы уровень 12 лёгкой и тяжёлой дорог между собой.
-    unawaited(_ladder.win(
+    unawaited(_winWithBoss(() => _ladder.win(
       score: _score(level),
       timeSeconds: _elapsed,
       errors: _errors,
@@ -754,6 +791,55 @@ class _SudokuScreenState extends State<SudokuScreen> {
         'road': 'normal',
         if (_skinShown != null) 'skin': _skinShown,
       },
+    )));
+  }
+
+  /// Победа и веха — порядок веба: на каждом 15-м уровне приглашение в «Самурая»
+  /// (мегабосс), на остальных кратных трём — бой из мешка. Уровень берётся у лестницы ДО
+  /// победы, «засчитано ли» — из её ответа (не пресет зарядки, не партия с разбором):
+  /// экран этих признаков сам не придумывает — как `BossRound.winThenBoss`.
+  Future<void> _winWithBoss(Future<bool> Function() win) async {
+    final played = _ladder.level;
+    final counted = await win();
+    if (!counted || !mounted) return;
+    if (played % sudokuMegaBossEvery == 0) {
+      await _offerMegaBoss(played);
+      return;
+    }
+    if (!BossRound.due(played)) return;
+    final boss = await BossRound.afterWin(context,
+        counted: counted, playedLevel: played, type: nextSudokuBoss(_bossRnd), color: sudokuBossColor);
+    if (mounted && boss != null) setState(() => _boss = boss);
+  }
+
+  final _bossRnd = math.Random();
+
+  /// Мегабосс — приглашение, а не принуждение (как в вебе): партия на час, человек вправе
+  /// пойти позже; уровень уже засчитан, «Позже» ничего не отнимает.
+  Future<void> _offerMegaBoss(int level) async {
+    final go = await showDialog<bool>(
+      context: context,
+      builder: (c) => AlertDialog(
+        key: const Key('megaboss-offer'),
+        title: Text('⚔️ ${L.t('megaBossTitle')}'),
+        content: Text(L.t('megaBossOffer')),
+        actions: [
+          TextButton(
+            key: const Key('megaboss-later'),
+            onPressed: () => Navigator.of(c).pop(false),
+            child: Text(L.t('updLater')),
+          ),
+          FilledButton(
+            key: const Key('megaboss-go'),
+            onPressed: () => Navigator.of(c).pop(true),
+            child: Text(L.t('megaBossGo')),
+          ),
+        ],
+      ),
+    );
+    if (go != true || !mounted) return;
+    await Navigator.of(context).push(MaterialPageRoute<void>(
+      builder: (_) => SamuraiScreen(state: widget.state, megabossFrom: level),
     ));
   }
 
@@ -966,6 +1052,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
               wonNote: _won && _symbols.word != null
                   ? L.t('sudokuHiddenWord').replaceAll('{w}', _symbols.word!)
                   : null,
+              boss: _won ? _boss : null,
             ),
       pauseActions: [
         PauseAction(label: 'Начать заново', icon: Icons.refresh, onPressed: _deal),
@@ -1240,6 +1327,7 @@ class _Toolbar extends StatelessWidget {
     this.label,
     this.icon,
     this.wonNote,
+    this.boss,
   });
 
   final int n;
@@ -1265,6 +1353,9 @@ class _Toolbar extends StatelessWidget {
 
   /// Строка над кнопкой после победы — спрятанное слово Wordoku.
   final String? wonNote;
+
+  /// Итог боя с боссом (`null` — боя не было): строка «Босс повержен / устоял» в итоге.
+  final bool? boss;
 
   @override
   Widget build(BuildContext context) {
@@ -1295,18 +1386,21 @@ class _Toolbar extends StatelessWidget {
             : next;
       return Padding(
         padding: const EdgeInsets.all(12),
-        child: note == null
+        child: note == null && boss == null
             ? body
             : Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
-                    note,
-                    key: const Key('hidden-word'),
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
-                  ),
-                  const SizedBox(height: 8),
+                  if (note != null) ...[
+                    Text(
+                      note,
+                      key: const Key('hidden-word'),
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+                    ),
+                    const SizedBox(height: 8),
+                  ],
+                  if (boss != null) ...[BossOutcomeLine(boss), const SizedBox(height: 8)],
                   body,
                 ],
               ),
