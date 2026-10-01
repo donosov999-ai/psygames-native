@@ -64,18 +64,13 @@ void main() {
     'games/math_slider/screen.dart': 27,
     'games/schulte/screen.dart': 26,
     'games/pattern/model.dart': 24,
-    'games/object_tracker/screen.dart': 24,
     'games/sort_tubes/screen.dart': 23,
     'games/spatial_span/screen.dart': 21,
-    'games/ospan/screen.dart': 21,
-    'games/ospan/model.dart': 20,
-    'games/mahjong/screen.dart': 18,
     'games/pattern/screen.dart': 18,
     'main.dart': 16,
     'games/goods_sort/screen.dart': 15,
     'games/samurai/screen.dart': 14,
     'games/tower_london/screen.dart': 14,
-    'games/object_tracker/model.dart': 14,
     'games/fractal/screen.dart': 13,
     'games/deep/screen.dart': 13,
     'games/hanoi/screen.dart': 12,
@@ -112,7 +107,10 @@ void main() {
   // 02.10 — «Поиск» и «Счёт» (задача 4b6f863e): спринт, быстрый счёт и состав числа переведены
   // целиком, −54 (три файла ушли из списка). Готовые ключи веба взяты где были, 12 новых — сразу
   // на 12 языках: 691 − 54.
-  const total = 637;
+  // 02.10 — там же: маджонг, OSpan и трекер объектов (−97, пять файлов ушли из списка). Подписи —
+  // в словарь (21 новый ключ на 12 языках); алфавит OSpan, регулярка ввода и замечания проверки
+  // договора трекера вынуты из счёта как данные (см. `alphabetList` ниже): 637 − 97.
+  const total = 540;
 
   final counts = _scan(Directory('lib'));
 
@@ -186,13 +184,35 @@ Map<String, int> _scan(Directory root) {
    */
   final mapKey = RegExp(r"\[\s*'[^'\n]*[А-Яа-яЁё][^'\n]*'\s*\]");
   final anyLiteral = RegExp(r"'[^'\n]*[А-Яа-яЁё][^'\n]*'");
+  /*
+   * 🟢 ДАННЫЕ, А НЕ ПОДПИСИ — ещё три вида. Уточнение 02.10.2026 (задача 4b6f863e, «Поиск»).
+   *
+   * Задача перевода говорит прямо: законные данные не переводить, а объяснить в пробе.
+   * Счёт до уточнения записывал их в долг, и погасить такой долг можно было только
+   * обходом — спрятать букву в код символа. Поэтому они вынуты из счёта ЯВНО:
+   *   · список ЦЕЛИКОМ из одиночных букв — алфавит упражнения. У «OSpan» это русский
+   *     набор букв на запоминание (`lettersRu`); английский — `lettersEn`, выбор по языку
+   *     (`ospan/screen.dart`, `_pool`). Одиночная буква вне такого списка — например
+   *     единица «с» — по-прежнему считается: она подпись;
+   *   · литерал регулярного выражения `RegExp(r'[^А-ЯЁA-Z]')` — класс символов, не текст;
+   *   · замечание проверки договора `issues.add('…')` — копится списком и уходит только в
+   *     `StateError` (`object_tracker/model.dart`): то же сообщение разработчику, что
+   *     `throw` и `assert` выше, только собранное по частям.
+   * Замер перед уточнением: все три вида встречались ТОЛЬКО в этих трёх файлах раздела.
+   */
+  final alphabetList = RegExp(r"\[(\s*'[А-Яа-яЁё]'\s*,)+\s*('[А-Яа-яЁё]'\s*,?\s*)?\]");
+  final regexLiteral = RegExp(r"RegExp\(\s*r?'[^'\n]*[А-Яа-яЁё][^'\n]*'");
+  final issueNote = RegExp(r"issues\.add\(\s*'[^'\n]*[А-Яа-яЁё][^'\n]*'");
   for (final f in root.listSync(recursive: true).whereType<File>()) {
     if (!f.path.endsWith('.dart')) continue;
     var src = f.readAsStringSync().replaceAll(blockComment, '').replaceAll(lineComment, '');
     var n = anyLiteral.allMatches(src).length -
         keyLiteral.allMatches(src).length -
         mapKey.allMatches(src).length -
-        devMessage.allMatches(src).fold<int>(0, (a, m) => a + anyLiteral.allMatches(m[0]!).length);
+        devMessage.allMatches(src).fold<int>(0, (a, m) => a + anyLiteral.allMatches(m[0]!).length) -
+        alphabetList.allMatches(src).fold<int>(0, (a, m) => a + anyLiteral.allMatches(m[0]!).length) -
+        regexLiteral.allMatches(src).length -
+        issueNote.allMatches(src).length;
     if (n > 0) out[f.path.replaceFirst('lib/', '')] = n;
   }
   return out;

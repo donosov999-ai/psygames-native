@@ -4573,6 +4573,28 @@ const translations: Translations = {
   nbResultFail: { ru: 'Ошибок {errors} — можно не больше {max}', en: '{errors} errors — at most {max} allowed' },
   nbPickChips: { ru: 'выбери фишки', en: 'pick the chips' },
   nbCollected: { ru: 'собрано: {sum}', en: 'total: {sum}' },
+  // «Поиск» и «Счёт» — подписи нативных экранов: маджонг, OSpan, трекер объектов (задача 4b6f863e, 02.10.2026)
+  mjShufflesLeft: { ru: 'Перетасовки', en: 'Shuffles' },
+  mjCleared: { ru: 'Доска разобрана, ошибок {errors}', en: 'Board cleared, {errors} errors' },
+  mjTileA11y: { ru: 'плитка {face}', en: 'tile {face}' },
+  mjTileFreeA11y: { ru: 'плитка {face}, свободна', en: 'tile {face}, free' },
+  mjTileHidden: { ru: 'скрыта', en: 'hidden' },
+  ospanExample: { ru: 'например {x}', en: 'e.g. {x}' },
+  ospanResultWin: { ru: 'Уровень взят: все буквы по порядку ({n})', en: 'Level cleared: all {n} letters in order' },
+  ospanResultFail: { ru: 'Промахов {n} — уровень берётся только за чистое вспоминание', en: '{n} slips — a level counts only with a perfect recall' },
+  ospanRecallPrompt: { ru: 'Назови буквы по порядку — их {n}', en: 'Name the letters in order — there are {n}' },
+  ospanYouSaid: { ru: 'ты назвал: {x}', en: 'you entered: {x}' },
+  trkPreview: { ru: 'Запомни отмеченные шарики — их {n}', en: 'Remember the marked balls — there are {n}' },
+  trkMoving: { ru: 'Следи за ними взглядом', en: 'Follow them with your eyes' },
+  trkSelect: { ru: 'Отметь те, за которыми следил', en: 'Mark the ones you followed' },
+  trkResultWin: { ru: 'Верно {hits} из {total}, лишних {extra}', en: '{hits} of {total} correct, {extra} extra' },
+  trkResultFail: { ru: 'Верно {hits} из {total}, лишних {extra} — уровень не взят', en: '{hits} of {total} correct, {extra} extra — level not cleared' },
+  trkTargets: { ru: 'Целей', en: 'Targets' },
+  trkGentle: { ru: 'Щадящий режим', en: 'Gentle mode' },
+  trkBallA11y: { ru: 'шарик {n}', en: 'ball {n}' },
+  trkA11yTarget: { ru: 'цель', en: 'target' },
+  trkA11yChosen: { ru: 'выбран', en: 'selected' },
+  trkA11yWasTarget: { ru: 'была целью', en: 'was a target' },
   // >>> SCREEN_STRINGS
 };
 

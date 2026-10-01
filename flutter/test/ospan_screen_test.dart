@@ -2,12 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/ospan/model.dart';
 import 'package:psygames_flutter/games/ospan/screen.dart';
+import 'package:psygames_flutter/shell/l10n.dart';
+import 'package:psygames_flutter/shell/level_rules.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// КРУГ ИГРАЕТСЯ НАЖАТИЯМИ И ВВОДОМ. Равенство и букву проба читает С ЭКРАНА —
 /// как человек, а не из состояния игры.
 void main() {
+  setUpAll(() async {
+    // Подписи — из общего словаря, как в приложении (экран переведён на L.t, задача 4b6f863e).
+    TestWidgetsFlutterBinding.ensureInitialized();
+    await L.load('ru');
+  });
+
   late SharedState state;
   var opens = 0;
 
@@ -19,6 +27,9 @@ void main() {
     }
     SharedPreferences.setMockInitialValues({
       if (level != 1) '${SharedState.prefix}ospan_level_nzt48': '$level',
+      // Со словарём каркас объявляет правило уровня (с L6 — «hardmath») карточкой поверх
+      // поля, и она перехватила бы нажатия. Правило здесь не предмет пробы — помечено показанным.
+      LevelRules.seenKey('ospan', 'hardmath'): '1',
     });
     state = await SharedState.open();
     await tester.pumpWidget(MaterialApp(
@@ -63,7 +74,7 @@ void main() {
   testWidgets('🔴 круг играется нажатиями: равенство → буква, потом буквы по порядку', (tester) async {
     await open(tester);
     final p = levelParams(1);
-    expect(find.text('Счёт и память'), findsOneWidget);
+    expect(find.text(L.t('ospan')), findsOneWidget);
     expect(find.byKey(const Key('равенство')), findsOneWidget);
 
     final seen = await playRound(tester, p);
@@ -73,7 +84,7 @@ void main() {
     await tester.enterText(find.byKey(const Key('ввод')), seen.join());
     await tester.tap(find.byKey(const Key('проверить')));
     await tester.pump();
-    expect(find.text('Следующий уровень'), findsOneWidget, reason: 'все буквы по порядку — уровень взят');
+    expect(find.text(L.t('nextLabel')), findsOneWidget, reason: 'все буквы по порядку — уровень взят');
   });
 
   testWidgets('🔴 порядок букв важен: та же строка задом наперёд уровень не берёт', (tester) async {
@@ -85,7 +96,7 @@ void main() {
     await tester.pump();
     // Если буквы совпали случайно (палиндром) — проба бессмысленна, проверяем это явно.
     if (seen.join() != seen.reversed.join()) {
-      expect(find.text('Ещё раз'), findsOneWidget, reason: 'порядок нарушен — уровень не взят');
+      expect(find.text(L.t('retry')), findsOneWidget, reason: 'порядок нарушен — уровень не взят');
     }
   });
 
