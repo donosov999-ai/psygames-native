@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 import '../../shell/aux_action.dart';
@@ -11,6 +12,7 @@ import '../../shell/generator/ladder_pool.dart';
 import '../../shell/generator/shadow.dart';
 import '../../shell/generator/store.dart';
 import '../../shell/game_shell.dart';
+import '../../shell/l10n.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
@@ -302,11 +304,61 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
     }
   }
 
-  void _tap(Offset at, Size widgetSize) {
+  /*
+   * 🔴 ВВОД — ЖЕСТОМ ЦЕЛИКОМ: НАЖАЛ, ВЕДЁТ, ОТПУСТИЛ. Как мышь у автора.
+   *
+   * 📍 ПОВОД, 01.10.2026, релиз 2.56.1 на эмуляторе: «Колышки» не делали ни одного хода —
+   * ни протяжкой, ни двумя касаниями. Здесь стоял `onTapDown` → `engine.tap`, то есть
+   * «нажал и отпустил в одной точке». У Тэтхэма ход «Колышек», «Указателей», «Раскраски
+   * карты» и «Распутай» — ТОЛЬКО протяжка (веб мерил: 0 тычков из 297/360/663), а у
+   * «Мостов», «Клоцек», «Рельсов» и «Прямоугольников» протяжка — основной ход. Веб
+   * отдаёт движку весь жест (LEFT_BUTTON → LEFT_DRAG → LEFT_RELEASE), и до 24.09 эти игры
+   * на телефоне открывались в вебе; с перехватом всех 42 нативным экраном они встали.
+   * Касание при этом — тот же жест без движения: нажатие и отпускание в одной точке,
+   * ровно то, что раньше делал `engine.tap`.
+   *
+   * Второе действие (правая кнопка у автора) — переключателем под полем, как в вебе:
+   * пока он включён, тот же жест уходит правой кнопкой. Мышь на настольной сборке
+   * даёт правую кнопку сама.
+   */
+  int? _pointer;
+  int _button = 0;
+  ({int x, int y})? _last;
+
+  /// Включено второе действие — жест уходит правой кнопкой.
+  bool _second = false;
+
+  void _press(PointerDownEvent e, Size widgetSize) {
     final engine = _engine;
-    if (engine == null || _won) return;
-    final p = toEngine(at, widgetSize, _size);
-    engine.tap(p.x, p.y);
+    if (engine == null || _won || _pointer != null) return;
+    _pointer = e.pointer;
+    final right = _second || (e.kind == PointerDeviceKind.mouse && (e.buttons & kSecondaryMouseButton) != 0);
+    _button = right ? 3 : 0;
+    final p = toEngine(e.localPosition, widgetSize, _size);
+    _last = p;
+    engine.pointer(p.x, p.y, _button);
+    _refresh();
+  }
+
+  void _move(PointerMoveEvent e, Size widgetSize) {
+    final engine = _engine;
+    if (engine == null || e.pointer != _pointer) return;
+    final p = toEngine(e.localPosition, widgetSize, _size);
+    // Кадр снимаем, только когда точка ДВИЖКА сменилась: событий касания десятки в
+    // секунду, а движку нужен лишь новый пиксель его холста.
+    if (p == _last) return;
+    _last = p;
+    engine.pointer(p.x, p.y, _button + 1);
+    _refresh();
+  }
+
+  void _release(Offset? at, int pointer, Size widgetSize) {
+    final engine = _engine;
+    if (engine == null || pointer != _pointer) return;
+    _pointer = null;
+    final p = at == null ? _last : toEngine(at, widgetSize, _size);
+    if (p == null) return;
+    engine.pointer(p.x, p.y, _button + 2);
     _refresh();
   }
 
@@ -406,10 +458,15 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
               size = Size(ew * k, eh * k);
             }
             return Center(
-              child: GestureDetector(
+              child: Listener(
                 key: const Key('board'),
                 behavior: HitTestBehavior.opaque,
-                onTapDown: (d) => _tap(d.localPosition, size),
+                onPointerDown: (e) => _press(e, size),
+                onPointerMove: (e) => _move(e, size),
+                onPointerUp: (e) => _release(e.localPosition, e.pointer, size),
+                // Жест отобрали (системный жест, второй палец) — отпускаем там, где был
+                // последний кадр, чтобы движок не остался с «нажатой» кнопкой.
+                onPointerCancel: (e) => _release(null, e.pointer, size),
                 child: CustomPaint(
                   size: size,
                   painter: PuzzlePainter(
@@ -425,11 +482,21 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
         );
       },
       auxRow: AuxBar(children: [
-        AuxAction(icon: Icons.undo, label: 'Отменить', onPressed: _won ? null : _undo),
-        AuxAction(icon: Icons.refresh, label: 'Заново', onPressed: _deal),
+        AuxAction(icon: Icons.undo, label: L.t('btn_undo'), onPressed: _won ? null : _undo),
+        AuxAction(icon: Icons.refresh, label: L.t('restart'), onPressed: _deal),
+        // Второе действие — у 30 режимов из 42 (флажок, крестик, карандаш…). Подпись —
+        // что кнопка делает В ЭТОЙ игре, ключ из карточки режима (как в вебе).
+        if (_mode.secondKey != null)
+          AuxAction(
+            key: const Key('puzzle-second-action'),
+            icon: Icons.swap_horiz,
+            label: L.t(_mode.secondKey!),
+            active: _second,
+            onPressed: _won ? null : () => setState(() => _second = !_second),
+          ),
         AuxAction(
           icon: Icons.lightbulb_outline,
-          label: 'Показать решение',
+          label: L.t('puzzleShowSolution'),
           tint: const Color(0xFFB45309),
           onPressed: _won ? null : _solve,
         ),
@@ -445,7 +512,7 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
         },
       ),
       pauseActions: [
-        PauseAction(label: 'Начать заново', icon: Icons.refresh, onPressed: _deal),
+        PauseAction(label: L.t('restart'), icon: Icons.refresh, onPressed: _deal),
       ],
     );
   }
@@ -517,9 +584,12 @@ class _Toolbar extends StatelessWidget {
     }
     if (!mode.digits) {
       // Singles: ввод только тычками, ряд клавиш был бы обманом.
+      // Там, где касание не делает ничего, — подсказка «тяни» (веб, `ТОЛЬКО_ПРОТЯЖКА`):
+      // без неё доска выглядит сломанной — жмёшь, и ничего.
+      final idle = mode.dragOnly ? L.t('puzzleDragHint') : 'Тычок отмечает клетку';
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-        child: Text(status.isEmpty ? 'Тычок отмечает клетку' : status,
+        child: Text(status.isEmpty ? idle : status,
             textAlign: TextAlign.center, style: Theme.of(context).textTheme.bodySmall),
       );
     }
