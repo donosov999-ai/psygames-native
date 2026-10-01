@@ -22,6 +22,10 @@ import 'shared_state.dart';
 /// ⚠️ ЧЕГО ЗДЕСЬ НЕТ: отбора по профилю. В нативной половине профилей пока нет;
 /// когда появятся — считать отбор ТАМ ЖЕ, где он считается в вебе.
 class HubScreen extends StatefulWidget {
+  /// Ключ общей памяти, куда веб кладёт состав развилок активного профиля
+  /// (`frontend/src/services/hubVisibility.ts`, задача c86ddae6).
+  static const visibleKey = 'psygames_hub_visible';
+
   const HubScreen({
     super.key,
     required this.state,
@@ -170,6 +174,29 @@ class _HubScreenState extends State<HubScreen> {
    * ⚠️ Карточку нельзя ПРИДУМАТЬ составом: строка ищется в заводском реестре, а
    * объект несёт свои ключи. Так же устроен `visibleHubCards` в вебе.
    */
+  /// 🔴 ПРАВИЛО ПРОФИЛЯ: В РАЗВИЛКЕ ТОЛЬКО ТО, ЧТО ПРОФИЛЬ ОТКРЫВАЕТ (задача c86ddae6).
+  ///
+  /// Замер 01.10.2026: значок «Мнемоники» в каталоге — «1», а здесь было 5 строк; дети
+  /// видели за развилкой игры, закрытые их профилем. Само правило (всегда разрешённое,
+  /// подъём к родителям, отсев сырых, файл состава) не переписано на Dart: веб считает
+  /// видимое ТОЙ ЖЕ функцией, что и значок (`frontend/src/services/hubVisibility.ts`),
+  /// и кладёт в [HubScreen.visibleKey]. Нет ключа или он посчитан для другого профиля — показываем
+  /// как прежде: пустая развилка хуже лишней строки.
+  List<HubCard> _visibleFor(List<HubCard> cards) {
+    final raw = widget.state.get(HubScreen.visibleKey);
+    if (raw == null || raw.isEmpty) return cards;
+    try {
+      final o = jsonDecode(raw) as Map<String, dynamic>;
+      if (o['profile'] != widget.state.activeProfile) return cards;
+      final list = (o['hubs'] as Map<String, dynamic>?)?[widget.hubRoute] as List?;
+      if (list == null) return cards;
+      final open = list.cast<String>().toSet();
+      return cards.where((c) => open.contains(c.route)).toList();
+    } catch (_) {
+      return cards;
+    }
+  }
+
   List<HubCard> _cardsFor(Map<String, dynamic> bundle) {
     final factory_ = ((bundle['hubs'] as Map<String, dynamic>)[widget.hubRoute] as List? ?? [])
         .map((e) => HubCard.fromJson(e as Map<String, dynamic>))
@@ -249,7 +276,7 @@ class _HubScreenState extends State<HubScreen> {
     final data = await rootBundle.load('assets/hubs.json');
     final raw = utf8.decode(data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes));
     final j = jsonDecode(raw) as Map<String, dynamic>;
-    final cards = _cardsFor(j);
+    final cards = _visibleFor(_cardsFor(j));
     final meta = (j['meta'] as Map<String, dynamic>)[widget.hubRoute] as Map<String, dynamic>?;
     var icons = const <String, dynamic>{};
     try {
