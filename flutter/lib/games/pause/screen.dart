@@ -28,6 +28,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 
 import '../../shell/app_haptics.dart';
+import '../../shell/audio_host.dart' show appSoundOn;
 import '../../shell/aux_action.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/game_shell.dart';
@@ -36,6 +37,7 @@ import '../../shell/session_report.dart';
 import '../../shell/shared_state.dart';
 import '../../shell/voice.dart';
 import '../../shell/voice_system.dart';
+import 'breath_cues.dart';
 import 'breathing.dart';
 import 'eye_gym.dart';
 import 'practice_haptics.dart';
@@ -79,6 +81,7 @@ class PauseScreen extends StatefulWidget {
     this.copy,
     this.clock,
     this.voice,
+    this.breathSound,
     this.today,
   });
 
@@ -97,6 +100,9 @@ class PauseScreen extends StatefulWidget {
 
   /// Голос подсказки. Пробы подают свой, чтобы слышать, что прозвучало.
   final VoiceLayer? voice;
+
+  /// Тоны смены фазы «Дыхания». Пробы подают свои, чтобы слышать, что прозвучало.
+  final BreathSound? breathSound;
 
   @override
   State<PauseScreen> createState() => PauseScreenState();
@@ -121,6 +127,14 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
   /// Вибрация — через выключатель «Вибрация» настроек (`app_haptics.dart`).
   late final AppHaptics _buzz = AppHaptics(widget.state);
   late final PausePracticeHaptics _haptics = PausePracticeHaptics(() => appHapticOn(widget.state));
+
+  /// Сигналы фаз «Дыхания» — тон и вибрация на вдох, задержку и выдох, как в вебе
+  /// (задача b9964dff). Звук — по тумблеру «Звук», вибрация — по тумблеру «Вибрация».
+  late final BreathCues _breathCues = BreathCues(
+    soundOn: () => appSoundOn(widget.state),
+    hapticOn: () => appHapticOn(widget.state),
+    sound: widget.breathSound,
+  );
   final Stopwatch _watch = Stopwatch()..start();
   // Режим «Дыхание»: формат веба, отсчёт перед первым вдохом, Вим Хоф.
   bool get _breath => widget.flavor == PauseFlavor.breathing;
@@ -428,6 +442,7 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
         _spoken = '';
         phase = PausePhase.playing;
       });
+      _breathCues.reset();
       _syncTicker();
       _speak();
       return const [];
@@ -520,7 +535,13 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
     if (next['phase'] == 'completed') {
       _complete(next);
     } else {
-      _haptics.update(next['plan'], next['elapsedMs'] as int);
+      // «Дыхание» подаёт фазы своими сигналами (тон + вибрация веба); общее
+      // вибросопровождение практик тут молчит, иначе на вдох вибрировало бы дважды.
+      if (_breath) {
+        _breathCues.update(next['plan'], next['elapsedMs'] as int);
+      } else {
+        _haptics.update(next['plan'], next['elapsedMs'] as int);
+      }
       _speak();
     }
   }
@@ -760,6 +781,7 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
     WidgetsBinding.instance.removeObserver(this);
     _ticker.dispose();
     _haptics.dispose();
+    unawaited(_breathCues.dispose());
     unawaited(_voice.cancel());
     super.dispose();
   }
