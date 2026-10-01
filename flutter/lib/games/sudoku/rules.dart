@@ -235,6 +235,10 @@ int visibleCount(List<int> line) {
 /// у неполного проверяются границы: сколько видно минимум и максимум при любом добивании.
 /// Оценка сверху намеренно грубая — она не отбросит верную доску, а неверную поймает
 /// проверка полного ряда.
+///
+/// 🔴 Нижняя граница — по началу ряда до первой пустой (+1, если самого высокого там нет),
+/// а не «видно среди заполненных»: пустая клетка впереди закрывает видимые. `[_,2,4,1,6,3]`
+/// при подсказке 2 законен (`[5,…]`). Перенос починки `towersLineOk` веба (задача 2ab36958).
 bool towersLineOk(List<int> line, int clue) {
   if (clue == 0) return true;
   if (!line.any((v) => v == 0)) return visibleCount(line) == clue;
@@ -243,7 +247,13 @@ bool towersLineOk(List<int> line, int clue) {
     if (v == 0) { blanks++; continue; }
     if (v > tallest) { seen++; tallest = v; }
   }
-  return clue >= seen && clue <= seen + blanks;
+  var head = 0, headTop = 0;
+  for (final v in line) {
+    if (v == 0) break;
+    if (v > headTop) { head++; headTop = v; }
+  }
+  final low = head + (headTop == line.length ? 0 : 1);
+  return clue >= low && clue <= seen + blanks;
 }
 
 /// Законен ли ход: поставить `val` в клетку (`r`, `c`) на доске `grid`.

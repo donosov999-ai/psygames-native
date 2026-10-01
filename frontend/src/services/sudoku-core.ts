@@ -787,13 +787,24 @@ export function towersFromSolution(sol: Cell[][], N: number): TowersMap {
  * ⚠️ Оценка сверху намеренно грубая: каждая пустая клетка МОЖЕТ оказаться видимой.
  * Грубая, но ЧЕСТНАЯ: она никогда не отбросит верную доску, а только пропустит
  * часть неверных — их поймает проверка полного ряда.
+ *
+ * 🔴 НИЖНЯЯ ГРАНИЦА — ТОЛЬКО ПО НАЧАЛУ РЯДА ДО ПЕРВОЙ ПУСТОЙ (задача 2ab36958, 01.10.2026).
+ * Прежде снизу стояло «сколько видно среди заполненных», и это было НЕЧЕСТНО: пустая клетка
+ * ВПЕРЕДИ может закрыть уже видимые. Ряд [_,2,4,1,6,3] при подсказке 2 отвергался (среди
+ * заполненных видно три), а [5,2,4,1,6,3] даёт ровно 2. Замер: в эталонах правил ядро
+ * отвергло верную цифру решения в 8 ходах из 20, а оценщик срезал кандидатов неверным
+ * доводом. Честно снизу: видимые в начале до первой пустой — они видны при любом заполнении,
+ * — плюс самое высокое здание, если его в начале нет: оно где-то дальше и видно всегда.
  */
 export function towersLineOk(line: readonly number[], clue: number): boolean {
   if (clue === 0) return true;
   if (line.every((v) => v !== 0)) return visibleCount(line) === clue;
   let seen = 0, tallest = 0, blanks = 0;
   for (const v of line) { if (v === 0) { blanks++; continue; } if (v > tallest) { seen++; tallest = v; } }
-  return clue >= seen && clue <= seen + blanks;
+  let head = 0, headTop = 0;
+  for (const v of line) { if (v === 0) break; if (v > headTop) { head++; headTop = v; } }
+  const low = head + (headTop === line.length ? 0 : 1);
+  return clue >= low && clue <= seen + blanks;
 }
 
 export function isValid(grid: Cell[][], r: number, c: number, val: number, N: number, BR: number, BC: number, variant: Variant = 'none', regions?: number[][], thermo?: ThermoPN, arrow?: ArrowMap, cages?: CageMap, unequal?: UnequalMap, towers?: TowersMap): boolean {
