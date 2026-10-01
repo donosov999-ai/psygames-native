@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'games/dots_connect/screen.dart';
 import 'games/digit_span/screen.dart';
 import 'games/one_line/screen.dart';
+import 'shell/app_look.dart';
 import 'shell/asset_server.dart';
 import 'shell/game_clock.dart';
 import 'shell/game_rules.dart';
@@ -44,6 +45,8 @@ Future<void> main() async {
   // Язык берётся у общей памяти, а не задаётся числом в коде: его пишет веб-половина
   // (ключ `language`), и мост возит его через границу — см. SharedState.extraKeys.
   await L.load(state.language);
+  // Вид — тем же правилом, что у веба: профиль, ручной выбор, надетый акцент (app_look.dart).
+  await AppLook.load(state);
   await GameRules.load();   // правила игр — из того же реестра, что карточки развилок
   await LevelRules.load();  // правила УРОВНЕЙ — до первого экрана, иначе шапка не узнает о правиле
   final server = await AssetServer.start();
@@ -59,16 +62,23 @@ class PsyGamesPilotApp extends StatelessWidget {
   final AssetServer server;
 
   @override
-  Widget build(BuildContext context) => MaterialApp(
-        title: 'PsyGames — пилот Flutter',
-        debugShowCheckedModeBanner: false,
-        theme: ThemeData(colorSchemeSeed: const Color(0xFF7F7FD5), useMaterial3: true),
-        darkTheme: ThemeData(
-          colorSchemeSeed: const Color(0xFF7F7FD5),
-          brightness: Brightness.dark,
-          useMaterial3: true,
+  // 🔴 `title` видно на Android в списке недавних приложений — это имя продукта, а не
+  // рабочая пометка: было «PsyGames — пилот Flutter» (русский текст и слово «пилот»).
+  // `themeMode` — выбор человека (app_look.dart), а не тема телефона.
+  Widget build(BuildContext context) => ValueListenableBuilder<ThemeMode>(
+        valueListenable: AppLook.mode,
+        builder: (_, mode, _) => MaterialApp(
+          title: 'PsyGames',
+          debugShowCheckedModeBanner: false,
+          themeMode: mode,
+          theme: ThemeData(colorSchemeSeed: const Color(0xFF7F7FD5), useMaterial3: true),
+          darkTheme: ThemeData(
+            colorSchemeSeed: const Color(0xFF7F7FD5),
+            brightness: Brightness.dark,
+            useMaterial3: true,
+          ),
+          home: HybridApp(state: state, server: server),
         ),
-        home: HybridApp(state: state, server: server),
       );
 }
 

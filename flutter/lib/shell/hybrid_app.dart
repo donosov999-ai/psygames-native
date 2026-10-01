@@ -1,3 +1,5 @@
+import 'app_look.dart';
+import 'settings_screen.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
@@ -149,6 +151,8 @@ class HybridApp extends StatefulWidget {
         '/warmup-picker': (_) => const WarmupPickerScreen(),
         '/warmup-complete': (_) => const WarmupCompleteScreen(),
         '/warmup-bridge': (_) => const WarmupBridgeScreen(),
+        // Настройки на Flutter (задача eae0879c) — пишут те же ключи, что веб.
+        '/settings': (s) => SettingsScreen(state: s),
       };
 
   /// Игра перенесена → строится нативно. Ключ — путь маршрута веб-сборки.
@@ -602,6 +606,8 @@ class _HybridAppState extends State<HybridApp> {
     }
     final was = L.locale;
     await widget.state.applyFromWeb(message);
+    // Веб сменил тему, профиль или надетый акцент — нативные экраны следом (app_look.dart).
+    AppLook.refresh(widget.state);
     final now = L.resolve(widget.state.language);
     if (now != was) {
       await L.load(now);
@@ -876,6 +882,8 @@ class _HybridAppState extends State<HybridApp> {
     // своём каркасе, а нативный экран лежит поверх страницы. Номер шага знает веб —
     // спрашиваем; когда переход ведёт сама оболочка, он известен заранее.
     final step = GamePreset.isPreset ? ValueNotifier<WarmupStepInfo?>(stepInfo) : null;
+    // Снимок ключей, которые веб читает при запуске: после нативных настроек сравним.
+    final watchedBefore = _watchedSnapshot();
     if (step != null && stepInfo == null) unawaited(_loadStepInfo(step));
     final result = await Navigator.of(context).push(
       MaterialPageRoute(
@@ -927,10 +935,24 @@ class _HybridAppState extends State<HybridApp> {
      * Поэтому: выбрали карточку — идём сразу туда, шаг назад не нужен вовсе.
      */
     final goingOn = result is HubCardTap || closedByPage;
+    /*
+     * 🔴 НАТИВНЫЕ НАСТРОЙКИ ПОМЕНЯЛИ ТО, ЧТО ВЕБ ЧИТАЕТ ОДИН РАЗ ПРИ ЗАПУСКЕ.
+     * Тема, язык, профиль, звук, питомец живут у веба в памяти контекстов
+     * (`ThemeContext`, `feedback.ts`…): новый снимок в localStorage их не обновит, и
+     * человек вернулся бы в старый вид. Поэтому страница уходит назад и
+     * ПЕРЕЗАГРУЖАЕТСЯ — тогда снимок вливается до её кода (`bootstrapJs`).
+     * ⚠️ Перезагрузка — по событию `popstate`, а не следом: `history.back()` в WebKit
+     * асинхронный, и перезагрузка в том же такте застала бы страницу на старом адресе.
+     */
+    final reloadWeb = _watchedSnapshot() != watchedBefore;
     if (mounted && !goingOn) {
-      await _c.runJavaScript(
-        "if (String(location.pathname).indexOf('$route') >= 0) history.back();",
-      );
+      await _c.runJavaScript(reloadWeb
+          ? "(function(){var d=false;function r(){if(d)return;d=true;location.reload();}"
+              "if(String(location.pathname).indexOf('$route')>=0){window.addEventListener('popstate',r,{once:true});history.back();setTimeout(r,800);}else r();})();"
+          : "if (String(location.pathname).indexOf('$route') >= 0) history.back();");
+    } else if (mounted && reloadWeb && result is HubCardTap && HybridApp.native.containsKey(result.route)) {
+      // Дальше откроется нативный экран, а страница под ним осталась бы в старом виде.
+      await _c.runJavaScript('location.reload();');
     }
     // Вернулись из нативной игры — страница обязана перечитать прогресс,
     // иначе на карте уровней останется старое число.
@@ -948,6 +970,8 @@ class _HybridAppState extends State<HybridApp> {
       await _c.loadRequest(Uri.parse('${widget.server.origin}$next'));
     }
   }
+
+  String _watchedSnapshot() => [for (final k in SettingsScreen.watched) widget.state.get(k) ?? ''].join('\u0001');
 
   /// Сброс кэша при смене вложенной сборки — см. пояснение в `initState`.
   Future<void> _dropStaleCache() async {
