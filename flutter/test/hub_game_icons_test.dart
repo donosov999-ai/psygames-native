@@ -82,6 +82,22 @@ void main() {
         reason: 'у головоломки своя иконка, не иконка всей развилки');
   });
 
+  test('🔴 у КАЖДОЙ игры каталога (GAMES) есть иконка — и у карточек-развилок тоже', () {
+    final reg = File('../frontend/src/constants/gameIcons.ts').readAsStringSync();
+    final games = File('../frontend/src/constants/games.ts').readAsStringSync();
+    final registry = {
+      for (final m in RegExp(r"^\s*'?([a-z0-9_-]+)'?:\s*require\(", multiLine: true).allMatches(reg)) m.group(1)!,
+    };
+    final ids = [
+      for (final m in RegExp(r"^\s*id:\s*'([^']+)'", multiLine: true)
+          .allMatches(games.substring(games.indexOf('export const GAMES'))))
+        m.group(1)!,
+    ];
+    expect(ids.length, greaterThan(90));
+    expect(ids.where((id) => !registry.contains(id)).toList(), isEmpty,
+        reason: 'игра без иконки: добавь в GAME_ICONS (развилка — плитка-папка из иконок её игр)');
+  });
+
   test('🔴 у КАЖДОЙ строки нативных развилок есть иконка игры', () {
     final hubs = (jsonDecode(File('assets/hubs.json').readAsStringSync()) as Map<String, dynamic>)['hubs'] as Map<String, dynamic>;
     final missing = <String>[];

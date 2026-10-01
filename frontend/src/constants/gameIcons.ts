@@ -85,11 +85,23 @@ export const GAME_ICONS: Record<string, any> = {
   water_sort: require('../../assets/images/game_icons/water_sort.webp'),
   wcst: require('../../assets/images/game_icons/wcst.webp'),
   word_pairs: require('../../assets/images/game_icons/word_pairs.webp'),
-  // Развилки-группы — папка «Apple Glass»: три иконки своих игр и четвёртая маленькая (собрано кодом из их иконок).
+  // Развилки-группы — папка «Apple Glass» (Денис 13.09.2026): три иконки первых игр развилки и четвёртая
+  // маленькая; у развилки из развилок («Языки») — их игры поочерёдно; у трёх игр («Шахматы») 4-й слот пуст.
+  // Собраны КОДОМ из иконок самих игр, не генерацией: ~/dev/psygames/memory-hearing-chat/icons/compose-group-tiles.py.
+  chess_group: require('../../assets/images/game_icons/chess_group.webp'),
+  counting_group: require('../../assets/images/game_icons/counting_group.webp'),
   hearing_group: require('../../assets/images/game_icons/hearing_group.webp'),
+  languages_group: require('../../assets/images/game_icons/languages_group.webp'),
+  mnemonics_group: require('../../assets/images/game_icons/mnemonics_group.webp'),
+  puzzles_group: require('../../assets/images/game_icons/puzzles_group.webp'),
+  search_group: require('../../assets/images/game_icons/search_group.webp'),
+  sorting_group: require('../../assets/images/game_icons/sorting_group.webp'),
+  spatial_group: require('../../assets/images/game_icons/spatial_group.webp'),
   words_group: require('../../assets/images/game_icons/words_group.webp'),
   'sudoku-samurai': require('../../assets/images/game_icons/sudoku_samurai.webp'),
   'sudoku-fractal': require('../../assets/images/game_icons/sudoku_fractal.webp'),
+  // Глубокий «Фрактал» — то же поле, вложенное глубже: иконка та же (экран скрыт из меню, видна в истории и итогах).
+  'sudoku-fractal-deep': require('../../assets/images/game_icons/sudoku_fractal.webp'),
 };
 
 /**
