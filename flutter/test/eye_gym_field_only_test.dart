@@ -141,7 +141,7 @@ void main() {
     await menu(tester);
     await tester.tap(find.text(L.t('eyeStereoReveal')));
     await tester.pumpAndSettle();
-    expect(find.text('${L.t('eyeStereoAnswer')}: ${L.t('eyeStereoCircle')}'), findsOneWidget);
+    expect(find.text('${L.t('eyeStereoAnswer')}: ${L.t('shape_circle')}'), findsOneWidget);
 
     await menu(tester);
     await tester.tap(find.text(L.t('eyeStereoNext')));
@@ -151,7 +151,7 @@ void main() {
     expect(find.byKey(const Key('pause-eye-stereo-answer')), findsNothing, reason: 'ответ прошлой картинки остался');
 
     await menu(tester);
-    await tester.tap(find.text(L.t('eyeStereoFinish')));
+    await tester.tap(find.text(L.t('storyDone')));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('pause-config')), findsOneWidget);
     expect(reports, isEmpty, reason: 'стереокартинки — не партия: в статистику не пишутся');
@@ -168,7 +168,7 @@ void main() {
   test('подписи — из словаря на всех языках, а не сырые ключи', () async {
     for (final lang in ['ru', 'en', 'de', 'ja', 'ar']) {
       await L.load(lang);
-      for (final k in ['eyeModeStereo', 'eyeStereoReveal', 'eyeStereoNext', 'eyeStereoFinish', 'eyeStereoCircle', 'gamePauseOpen']) {
+      for (final k in ['eyeModeStereo', 'eyeStereoReveal', 'eyeStereoNext', 'storyDone', 'shape_circle', 'gamePauseOpen']) {
         expect(L.t(k), isNot(k), reason: '$lang: $k');
       }
     }

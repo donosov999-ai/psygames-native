@@ -145,7 +145,7 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
   bool _stereo = false;
   int _stereoIdx = 0;
   bool _stereoShown = false;
-  static const stereograms = [('circle', 'eyeStereoCircle'), ('heart', 'eyeStereoHeart'), ('star', 'eyeStereoStar')];
+  static const stereograms = [('circle', 'shape_circle'), ('heart', 'eyeStereoHeart'), ('star', 'shape_star')];
 
   /// Сколько секунд подхода прошло — для проб («меню паузы держит подход»).
   @visibleForTesting
@@ -865,7 +865,7 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
             onPressed: stereoReveal,
           ),
           PauseAction(label: L.t('eyeStereoNext'), icon: Icons.arrow_forward, onPressed: stereoNext),
-          PauseAction(label: L.t('eyeStereoFinish'), icon: Icons.check, onPressed: stereoFinish),
+          PauseAction(label: L.t('storyDone'), icon: Icons.check, onPressed: stereoFinish),
         ] else if (eye != null)
           PauseAction(label: ps('restart'), icon: Icons.replay, onPressed: _again),
       ],

@@ -240,8 +240,8 @@ const eyeUiKeys = [
   'secShort', 'mode', 'duration',
   // Стереокартинки (задача a72e77a1) и кнопка паузы поля во весь экран.
   'eyeModeStereo', 'eyeStereoShortTitle', 'eyeStereoOptional', 'eyeStereoInstruction', 'eyeStereoComfort',
-  'eyeStereoAnswer', 'eyeStereoReveal', 'eyeStereoNext', 'eyeStereoFinish', 'eyeStereoCircle', 'eyeStereoHeart',
-  'eyeStereoStar', 'gamePauseOpen',
+  'eyeStereoAnswer', 'eyeStereoReveal', 'eyeStereoNext', 'storyDone', 'shape_circle', 'eyeStereoHeart',
+  'shape_star', 'gamePauseOpen',
 ];
 
 /// Поле подхода: инструкция шага, мишень (или ладони, или взгляд вдаль), полоса хода.
