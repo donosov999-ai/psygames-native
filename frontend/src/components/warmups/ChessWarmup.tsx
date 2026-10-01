@@ -32,6 +32,7 @@ export function ChessWarmup() {
       titleKey="chessWarmupTitle"
       descKey="chessWarmupDesc"
       ярлык="шахматы"
+      bridgeId="chess"
       accent={АКЦЕНТ_ШАХМАТЫ}
       loading={!мат.loaded || !доска.loaded}
     />

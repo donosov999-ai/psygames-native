@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/shell/hybrid_app.dart';
@@ -98,6 +100,23 @@ void main() {
   ];
 
 
+  /// 🔴 БЕЗ РАЗБОРА — ПО РЕШЕНИЮ ВЕБ-РЕЕСТРА, А НЕ СВОИМ СПИСКОМ. Практики ведут
+  /// сами (дыхание, гимнастика для глаз), «Пауза» — хаб практик, не игра: у них в
+  /// вебе разбора нет с причиной поимённо (`БЕЗ_РАЗБОРА` в
+  /// `frontend/src/__tests__/lesson-everywhere.test.ts`). Список читается оттуда,
+  /// чтобы решение жило в одном месте: снимут исключение в вебе — нативная
+  /// перепись потребует разбор и здесь.
+  final noLessonByWeb = () {
+    final web = File('../frontend/src/__tests__/lesson-everywhere.test.ts').readAsStringSync();
+    final start = web.indexOf('const БЕЗ_РАЗБОРА');
+    final block = web.substring(start, web.indexOf('};', start));
+    return RegExp(r"^\s*'?([\w-]+)'?\s*:", multiLine: true).allMatches(block).map((m) => m.group(1)!).toSet();
+  }();
+
+  test('исключения веб-реестра прочитаны — иначе перепись молча требовала бы разбор от практик', () {
+    expect(noLessonByWeb, containsAll(['pause', 'breathing', 'eye-gym']));
+  });
+
   testWidgets('🔴 разбор не пропал ни у одной игры, где он уже был', (tester) async {
     SharedPreferences.setMockInitialValues({'psygames_active_profile': 'nzt48'});
     final state = await SharedState.open();
@@ -129,6 +148,7 @@ void main() {
       // остатке строку, которую нечем закрыть. Так же устроен веб-реестр
       // (`frontend/src/__tests__/lesson-everywhere.test.ts`, список БЕЗ_РАЗБОРА).
       if (e.key == '/games/puzzles') continue;
+      if (noLessonByWeb.contains(e.key.replaceFirst('/games/', '').split('?').first)) continue;
       try {
         await tester.runAsync(() async {
           await tester.pumpWidget(MaterialApp(home: e.value(state)));
