@@ -3200,6 +3200,8 @@ const t: Record<string, string> = {
   "hcAskRedShirt": "빨간 옷?",
   "hcAskSmile": "웃고 있어?",
   "hcAskEarring": "귀걸이?",
+  "hcOrMode": "또는…",
+  "hcEither": "{a} 또는 {b}?",
   "hcYes": "예",
   "hcNo": "아니요",
   "hcQuestions": "질문",

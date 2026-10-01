@@ -3199,6 +3199,8 @@ const t: Record<string, string> = {
   "hcAskRedShirt": "赤い服？",
   "hcAskSmile": "えがお？",
   "hcAskEarring": "イヤリング？",
+  "hcOrMode": "または…",
+  "hcEither": "{a}か{b}？",
   "hcYes": "はい",
   "hcNo": "いいえ",
   "hcQuestions": "質問",

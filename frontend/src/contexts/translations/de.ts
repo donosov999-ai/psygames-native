@@ -3205,6 +3205,8 @@ const t: Record<string, string> = {
   "hcAskRedShirt": "Rotes Oberteil?",
   "hcAskSmile": "Lächelt?",
   "hcAskEarring": "Ohrring?",
+  "hcOrMode": "oder…",
+  "hcEither": "{a} oder {b}?",
   "hcYes": "ja",
   "hcNo": "nein",
   "hcQuestions": "Fragen",

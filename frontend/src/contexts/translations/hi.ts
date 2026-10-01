@@ -3208,6 +3208,8 @@ const t: Record<string, string> = {
   "hcAskRedShirt": "लाल कपड़े?",
   "hcAskSmile": "मुस्कुरा रहा है?",
   "hcAskEarring": "बाली?",
+  "hcOrMode": "या…",
+  "hcEither": "{a} या {b}?",
   "hcYes": "हाँ",
   "hcNo": "नहीं",
   "hcQuestions": "सवाल",
