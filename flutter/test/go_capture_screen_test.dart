@@ -81,6 +81,18 @@ void main() {
       (tester.state(find.byType(GoCaptureScreen)) as dynamic).debugRun
           as GoCaptureRun;
 
+  test('🔴 каждый ключ экрана и разбора разрешается в текст на ru и en (не в сам ключ)', () async {
+    // Подстановка при промахе молча возвращает ключ — пробы сравнивают L.t с L.t и
+    // этого не видят. Замер 02.10: на эмуляторе настройка показала «gcAbout».
+    for (final lang in const ['ru', 'en']) {
+      await L.load(lang);
+      for (final k in [...gcScreenKeys, ...gcLessonKeys, ...glLessonKeys, 'goCapture', 'gcModeCapture', 'gcModeLife']) {
+        expect(L.t(k), isNot(k), reason: '$lang: $k');
+      }
+    }
+    await L.load('ru');
+  });
+
   testWidgets('ступень 1: пять задач решены касаниями — ступень выше', (
     tester,
   ) async {

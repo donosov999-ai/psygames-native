@@ -17,6 +17,18 @@ import 'ladder.dart';
 import 'lesson.dart';
 import 'rules.dart';
 
+/// Ключи, которые экран зовёт выбором по режиму (`L.t(life ? … : …)`). Сборщик словаря
+/// (`tools/embed-l10n.mjs`) видит только литерал в вызове или список `…Keys`: без этого
+/// списка экран показал бы сам ключ (замер 02.10 на эмуляторе: «gcAbout» на настройке).
+const gcScreenKeys = <String>[
+  'gcAbout',
+  'glAbout',
+  'gcRule',
+  'glRule',
+  'gcWrong',
+  'glWrong',
+];
+
 String goCaptureDifficulty(int level) => level <= 6
     ? 'easy'
     : level <= 15
@@ -311,18 +323,20 @@ class _GoCaptureScreenState extends State<GoCaptureScreen> {
           selected: {_mode},
           onSelectionChanged: (v) => setState(() => _mode = v.first),
         ),
+        // «Старт» — сразу под режимом: правила длинные, и на 320×568 под ними кнопка
+        // уезжала за край (замер 02.10, когда ключ правил впервые дошёл до словаря).
         const SizedBox(height: 12),
-        Text(
-          L.t(_mode == GcMode.capture ? 'gcAbout' : 'glAbout'),
-          key: const Key('gc-about'),
-          style: const TextStyle(fontWeight: FontWeight.w600),
-        ),
-        const SizedBox(height: 16),
         FilledButton(
           key: const Key('gc-start'),
           onPressed: _start,
           style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52)),
           child: Text(L.t('start')),
+        ),
+        const SizedBox(height: 16),
+        Text(
+          L.t(_mode == GcMode.capture ? 'gcAbout' : 'glAbout'),
+          key: const Key('gc-about'),
+          style: const TextStyle(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 16),
         Text(L.t('goCaptureDesc'), style: Theme.of(context).textTheme.bodyMedium),
