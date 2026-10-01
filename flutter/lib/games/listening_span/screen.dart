@@ -379,7 +379,8 @@ class _Ready extends StatelessWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    L.t(block == VoiceBlock.soundOff ? 'voiceSoundOff' : 'voiceMissing'),
+                    // Каждый ключ — своим L.t('…'): ключ внутри тернарника сборщик словаря не видит.
+                    block == VoiceBlock.soundOff ? L.t('voiceSoundOff') : L.t('voiceMissing'),
                     style: text.bodySmall?.copyWith(color: const Color(0xFFB45309), fontWeight: FontWeight.w600),
                   ),
                 ),
