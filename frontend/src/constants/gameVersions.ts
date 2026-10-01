@@ -44,7 +44,7 @@ export const GAME_VERSIONS: Record<string, GameVersion> = {
   'iowa': { ver: 2, date: '16.09.2026' },
   'languages-hub': { ver: 1, date: '04.09.2026' },
   'lexical-decision': { ver: 1, date: '19.08.2026' },
-  'listening-span': { ver: 2, date: '23.08.2026' },
+  'listening-span': { ver: 3, date: '01.10.2026' },
   'mahjong': { ver: 3, date: '27.08.2026' },
   'math-slider': { ver: 3, date: '07.09.2026' },
   'math-sprint': { ver: 2, date: '07.09.2026' },
