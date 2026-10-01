@@ -14,6 +14,7 @@ import 'package:psygames_flutter/shell/session_report.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:psygames_flutter/shell/voice.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'support/settings_fit.dart';
 
 /// Голос для проб: считает, что сказано, и умеет «не иметь голоса».
 class _FakeVoice implements VoiceBackend {
@@ -244,5 +245,9 @@ void main() {
     }
     await tester.tap(find.byKey(const Key('lesson-close')));
     await tester.pumpAndSettle();
+  });
+
+  testWidgets('🔴 настройка на 360×640 по-английски и по-русски: «Начать» на первом экране (ae1d918b)', (tester) async {
+    await expectSettingsFit(tester, () => boot(tester, level: 9, voice: true), where: 'n-back L9 двойной поток');
   });
 }
