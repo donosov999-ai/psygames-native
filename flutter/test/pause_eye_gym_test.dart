@@ -152,8 +152,9 @@ void main() {
     await tester.pump(const Duration(milliseconds: 400));
     now = 66000;
     await tester.pump(const Duration(milliseconds: 16));
-    final steps = eyeSteps('full', eyeGymLevel(1).scale);
-    final left = tester.widgetList<Text>(find.byType(Text)).map((t) => t.data ?? '').firstWhere((t) => t.endsWith('secShort'));
-    expect(left, '${total(steps) - 6}secShort', reason: '5 с до паузы + 1 с после; минута за экраном паузы не в счёт');
+    // Счётчик «осталось» с 01.10.2026 живёт в меню паузы, а не над полем (поле во весь
+    // экран, задача a72e77a1) — поэтому мерим само время подхода.
+    final dynamic st = tester.state(find.byType(PauseScreen));
+    expect(st.debugEyeElapsed as double, closeTo(6, .1), reason: '5 с до паузы + 1 с после; минута за экраном паузы не в счёт');
   });
 }

@@ -36,7 +36,7 @@ class TourBoard {
 
   /// Из записи генератора: «S» старт, «E» финиш, «#» препятствие, «.» свободно.
   factory TourBoard.parse(int rows, int cols, String code) {
-    assert(code.length == rows * cols, 'доска $code');
+    assert(code.length == rows * cols, 'board $code');
     return TourBoard(
       rows,
       cols,
