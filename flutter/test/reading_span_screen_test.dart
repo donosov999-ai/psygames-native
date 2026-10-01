@@ -45,8 +45,12 @@ void main() {
     sent.clear();
     SessionReport.sink = (json) async => sent.add(jsonDecode(json) as Map<String, dynamic>);
     if (preset != null) GamePreset.set(preset);
-    var x = 0.4242;
-    double rng() => x = (x * 9301 + 49297) % 233280 / 233280;
+    // Поток на ЦЕЛОМ состоянии: на дроби он сходится к ≈0,22 и выдаёт почти одно и то же (01.10.2026).
+    var st = 4242;
+    double rng() {
+      st = (st * 9301 + 49297) % 233280;
+      return st / 233280;
+    }
     await tester.pumpWidget(MaterialApp(
       home: ReadingSpanScreen(key: UniqueKey(), state: state, sentences: sentences, rng: rng),
     ));
