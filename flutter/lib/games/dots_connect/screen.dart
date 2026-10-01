@@ -3,6 +3,7 @@ import 'package:flutter/services.dart' show rootBundle;
 
 import '../../shell/aux_action.dart';
 import '../../shell/game_shell.dart';
+import '../../shell/l10n.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/lesson.dart';
@@ -67,7 +68,7 @@ class _DotsConnectScreenState extends State<DotsConnectScreen> {
   }
 
   /// ⚠️ Название одной строкой: второй литерал — второе место переводить.
-  static const _title = 'Соедини точки';
+  static String get _title => L.t('dotsConnect');
 
   /*
    * 🔴 РАЗБОР БЕРЁТ ГОТОВОЕ РЕШЕНИЕ, А НЕ ИЩЕТ СВОЁ.
@@ -115,10 +116,10 @@ class _DotsConnectScreenState extends State<DotsConnectScreen> {
       // собирал уровень, и искать заново нечего.
       onLesson: level.solution.isEmpty ? null : _openLesson,
       hud: [
-        HudItem(label: 'Уровень', value: '${_ladder.level}', icon: Icons.flag_outlined),
-        HudItem(label: 'Достигнуто', value: '${_ladder.best}', icon: Icons.emoji_events_outlined),
+        HudItem(label: L.t('level'), value: '${_ladder.level}', icon: Icons.flag_outlined),
+        HudItem(label: L.t('hud_best'), value: '${_ladder.best}', icon: Icons.emoji_events_outlined),
         HudItem(
-            label: 'Занято',
+            label: L.t('cellsTaken'),
             value: '${game.filledCells}/${level.playableCells}',
             icon: Icons.grid_4x4),
       ],
@@ -131,15 +132,15 @@ class _DotsConnectScreenState extends State<DotsConnectScreen> {
       auxRow: AuxBar(children: [
         AuxAction(
           icon: Icons.undo,
-          label: 'Отменить',
+          label: L.t('btn_undo'),
           onPressed: game.paths.isEmpty
               ? null
               : () => setState(() => game.clearPath(game.paths.keys.last)),
         ),
-        AuxAction(icon: Icons.refresh, label: 'Начать заново', onPressed: _restart),
+        AuxAction(icon: Icons.refresh, label: L.t('restart'), onPressed: _restart),
         AuxAction(
           icon: Icons.lightbulb_outline,
-          label: 'Показать решение',
+          label: L.t('puzzleShowSolution'),
           tint: const Color(0xFFB45309),
           onPressed: _won ? null : _showSolution,
         ),
@@ -150,13 +151,13 @@ class _DotsConnectScreenState extends State<DotsConnectScreen> {
               child: FilledButton.icon(
                 onPressed: _next,
                 icon: const Icon(Icons.arrow_forward),
-                label: const Text('Следующий уровень'),
+                label: Text(L.t('levelNext')),
               ),
             )
           : null,
       pauseActions: [
-        PauseAction(label: 'Начать заново', icon: Icons.refresh, onPressed: _restart),
-        PauseAction(label: 'Показать решение', icon: Icons.lightbulb_outline, onPressed: _showSolution),
+        PauseAction(label: L.t('restart'), icon: Icons.refresh, onPressed: _restart),
+        PauseAction(label: L.t('puzzleShowSolution'), icon: Icons.lightbulb_outline, onPressed: _showSolution),
       ],
     );
   }

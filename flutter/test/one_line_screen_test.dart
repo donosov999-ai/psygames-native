@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:psygames_flutter/games/one_line/board.dart';
@@ -30,6 +31,8 @@ Future<void> _boot(WidgetTester tester, SharedState state) async {
 }
 
 void main() {
+  // Подписи экрана идут через L.t — проба читает русский словарь, как пользователь RU.
+  setUpAll(() async => L.load('ru'));
   late SharedState state;
   setUp(() async {
     SharedPreferences.setMockInitialValues({});

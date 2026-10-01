@@ -4448,6 +4448,8 @@ const translations: Translations = {
     en: 'Drag your finger from a dot to its partner of the same colour — a path follows your finger. Paths of different pairs never cross, and by the end no cell may stay empty. Trains spatial planning.',
   },
 
+  levelNext: { ru: 'Следующий уровень', en: 'Next level' },
+  cellsTaken: { ru: 'Занято', en: 'Filled' },
   oneLine: { ru: 'Одна линия', en: 'One Line' },
   oneLineDesc: { ru: 'Проведите одну непрерывную линию по всем рёбрам, не проходя ни одно дважды', en: 'Draw one continuous line across every edge without using any edge twice' },
   oneLineIntroDesc: {

@@ -3301,5 +3301,7 @@ const t: Record<string, string> = {
   "teachHiddenHalf": "اسأل «{q}»: نعم عند {yes}، ولا عند {no}. أفضل سؤال يقسم المتبقين إلى نصفين قدر الإمكان: أي إجابة تُسقط النصف.",
   "teachHiddenLast": "بقي واحد — إنه المختبئ. اختره واضغط «إنه هو!».",
   "rbHeadStart": "تقدّم {n}",
+  "levelNext": "المستوى التالي",
+  "cellsTaken": "المملوءة",
 };
 export default t;

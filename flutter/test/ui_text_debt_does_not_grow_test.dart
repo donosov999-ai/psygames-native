@@ -85,8 +85,6 @@ void main() {
     'games/puzzles/screen.dart': 12,
     'games/memory_matrix/screen.dart': 12,
     'games/cake_sort/screen.dart': 11,
-    'games/one_line/screen.dart': 10,
-    'games/dots_connect/screen.dart': 10,
     'shell/hybrid_app.dart': 8,
     'games/stroop/model.dart': 8,
     'games/goods_sort/board.dart': 5,
@@ -112,7 +110,8 @@ void main() {
   // на 12 языков у них уже был — `node flutter/tools/embed-l10n.mjs` привёз их сам.
   // 30.09 — «Пространство»: правила четырёх упражнений «Лаборатории» и «Понятно» ушли в
   // словарь (задача 848da95d), spatial_lab 51 → 43: 699 − 8.
-  const total = 691;
+  // 02.10 — пилот («Одна линия», «Соедини точки») целиком через словарь: 691 − 20.
+  const total = 671;
 
   final counts = _scan(Directory('lib'));
 
