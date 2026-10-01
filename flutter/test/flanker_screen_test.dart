@@ -9,6 +9,7 @@ import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'support/boss_probe.dart';
+import 'support/slow_write_state.dart';
 
 /// ПАРТИЯ В «СТРЕЛКИ» ИГРАЕТСЯ НАЖАТИЯМИ, а не вызовом правил.
 ///
@@ -133,6 +134,39 @@ void main() {
     await tester.pump(const Duration(milliseconds: 360));
     // Счётчик «Верно» каркаса остался нулём.
     expect(find.text('0'), findsWidgets);
+  });
+
+  testWidgets('🔴 сданную партию не сдать второй раз: нажатие, пока пишется победа, уровень не двигает', (tester) async {
+    // Запись лестницы растянута до 300 мс, как канал к платформе на телефоне
+    // (support/slow_write_state.dart): партия сдана, а фаза ещё «игра» и последняя проба на экране.
+    SharedPreferences.setMockInitialValues({});
+    state = await SlowWriteState.open();
+    var clock = 0;
+    await tester.pumpWidget(MaterialApp(home: FlankerScreen(state: state, clock: () => clock, rnd: Random(7))));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(L.t('start')));
+    await tester.pump();
+    final stim = find.byKey(const Key('flanker-stimulus'));
+    var last = FlankerDirection.left;
+    for (var i = 0; i < FlankerLevel.of(1).trials; i++) {
+      for (var k = 0; k < 40 && stim.evaluate().isEmpty; k++) {
+        await tester.pump(const Duration(milliseconds: 50));
+      }
+      last = centerOnScreen(tester);
+      clock += 450;
+      await tester.tap(answerFor(last));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: flankerFeedbackMs + 30));
+    }
+    final done = find.textContaining(L.t('levelDone').split('}').last);
+    // Партия сдана 30 мс назад, победа ещё пишется: щель открыта.
+    expect(stim, findsOneWidget, reason: 'щель не воспроизведена: последней пробы на экране нет');
+    expect(done, findsNothing, reason: 'итог уже на экране — щели нет, проба ничего не проверяет');
+    await tester.tap(answerFor(last));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 2));
+    expect(done, findsOneWidget);
+    expect(state.get('${SharedState.prefix}flanker_level_nzt48'), '2', reason: 'партия сдана дважды — уровень прыгнул через ступень');
   });
 
   testWidgets('🔴 веха: победа на 3-м уровне открывает бой «жми / не жми», на 2-м — нет', (tester) async {

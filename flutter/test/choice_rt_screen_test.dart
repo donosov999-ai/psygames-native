@@ -9,6 +9,7 @@ import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'support/boss_probe.dart';
+import 'support/slow_write_state.dart';
 
 /// ПАРТИЯ В «ВЫБОР-РЕАКЦИЮ» ИГРАЕТСЯ НАЖАТИЯМИ ПО КРЕСТОВИНЕ.
 ///
@@ -139,6 +140,42 @@ void main() {
       await tester.pump(const Duration(milliseconds: 400));
     }
     fail('за 12 проб нейтраль не выпала — проверять было нечего');
+  });
+
+  testWidgets('🔴 сданную партию не сдать второй раз: нажатие, пока пишется победа, уровень не двигает', (tester) async {
+    // Запись лестницы растянута до 300 мс, как канал к платформе на телефоне
+    // (support/slow_write_state.dart): партия сдана, а фаза ещё «игра» и последняя проба на экране.
+    SharedPreferences.setMockInitialValues({});
+    state = await SlowWriteState.open();
+    var clock = 0;
+    await tester.pumpWidget(MaterialApp(home: ChoiceRtScreen(state: state, clock: () => clock, rnd: Random(9))));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(L.t('start')));
+    await tester.pump();
+    for (var i = 0; i < ChoiceRtLevel.of(1).trials; i++) {
+      await waitStimulus(tester);
+      final dir = ChoiceDirection.values.where((d) => shown(d.name)).toList();
+      if (dir.isEmpty) {
+        // Нейтраль: молчим до отклика «удержал» — окно вышло, проба закрыта.
+        for (var k = 0; k < 600 && find.byKey(const Key('choicert-held')).evaluate().isEmpty; k++) {
+          await tester.pump(const Duration(milliseconds: 10));
+        }
+      } else {
+        clock += 460;
+        await tester.tap(find.byKey(Key('choicert-answer-${dir.first.name}')));
+        await tester.pump();
+      }
+      await tester.pump(const Duration(milliseconds: choiceRtFeedbackMs + 30));
+    }
+    final done = find.textContaining(L.t('levelDone').split('}').last);
+    // Партия сдана 30 мс назад, победа ещё пишется: щель открыта.
+    expect(neutralShown() || ChoiceDirection.values.any((d) => shown(d.name)), isTrue, reason: 'щель не воспроизведена: последней пробы на экране нет');
+    expect(done, findsNothing, reason: 'итог уже на экране — щели нет, проба ничего не проверяет');
+    await tester.tap(find.byKey(const Key('choicert-answer-left')));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 2));
+    expect(done, findsOneWidget);
+    expect(state.get('${SharedState.prefix}choice_rt_level_nzt48'), '2', reason: 'партия сдана дважды — уровень прыгнул через ступень');
   });
 
   testWidgets('🔴 веха: победа на 3-м уровне открывает бой «жми / не жми», на 2-м — нет', (tester) async {

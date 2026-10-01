@@ -9,6 +9,7 @@ import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'support/boss_probe.dart';
+import 'support/slow_write_state.dart';
 
 /// ПАРТИЯ В «ПОЗИЦИЮ» ИГРАЕТСЯ НАЖАТИЯМИ.
 ///
@@ -119,6 +120,36 @@ void main() {
     expect(find.text(L.t('sameLevelRetry')), findsOneWidget);
     expect(find.textContaining('${L.t('hud_correct')}: 0/24'), findsOneWidget);
     expect(find.textContaining('${L.t('meanReaction')}: —'), findsOneWidget);
+  });
+
+  testWidgets('🔴 сданную партию не сдать второй раз: нажатие, пока пишется победа, уровень не двигает', (tester) async {
+    // Запись лестницы растянута до 300 мс, как канал к платформе на телефоне
+    // (support/slow_write_state.dart): партия сдана, а фаза ещё «игра» и последняя проба на экране.
+    SharedPreferences.setMockInitialValues({});
+    state = await SlowWriteState.open();
+    var clock = 0;
+    await tester.pumpWidget(MaterialApp(home: PosnerScreen(state: state, clock: () => clock, rnd: Random(7))));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(L.t('start')));
+    await tester.pump();
+    var last = PosnerSide.left;
+    for (var i = 0; i < PosnerLevel.of(1).trials; i++) {
+      await waitTarget(tester);
+      last = targetOnScreen()!;
+      clock += 420;
+      await tester.tap(find.byKey(Key('posner-answer-${last.name}')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: posnerFeedbackMs + 30));
+    }
+    final done = find.textContaining(L.t('levelDone').split('}').last);
+    // Партия сдана 30 мс назад, победа ещё пишется: щель открыта.
+    expect(targetOnScreen(), isNotNull, reason: 'щель не воспроизведена: последней пробы на экране нет');
+    expect(done, findsNothing, reason: 'итог уже на экране — щели нет, проба ничего не проверяет');
+    await tester.tap(find.byKey(Key('posner-answer-${last.name}')));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 2));
+    expect(done, findsOneWidget);
+    expect(state.get('${SharedState.prefix}posner_level_nzt48'), '2', reason: 'партия сдана дважды — уровень прыгнул через ступень');
   });
 
   testWidgets('🔴 веха: победа на 3-м уровне открывает бой «жми / не жми», на 2-м — нет', (tester) async {

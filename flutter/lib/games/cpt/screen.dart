@@ -64,9 +64,6 @@ class _CptScreenState extends State<CptScreen> {
   bool _flashWrong = false;
   bool _flashRight = false;
   bool? _boss; // итог боя на вехе; null — боя не было
-  // Партия сдана в `_finish`, а фаза ещё «игра»: пока лестница пишет победу и открывается
-  // бой, нажатие легло бы в метрики уже после вердикта.
-  bool _finishing = false;
   Timer? _isiTimer;
   Timer? _offTimer;
   Timer? _windowTimer;
@@ -116,7 +113,6 @@ class _CptScreenState extends State<CptScreen> {
 
   void _start() {
     _game!.begin();
-    _finishing = false;
     setState(() {
       _phase = CptPhase.playing;
       _letterVisible = false;
@@ -157,7 +153,7 @@ class _CptScreenState extends State<CptScreen> {
   }
 
   void _tap() {
-    if (_phase != CptPhase.playing || _finishing) return;
+    if (_phase != CptPhase.playing) return;
     final g = _game!;
     final t = g.current;
     if (t == null) return;
@@ -183,8 +179,10 @@ class _CptScreenState extends State<CptScreen> {
 
   Future<void> _finish() async {
     final g = _game!;
-    _finishing = true;
     _cancelAll();
+    // Охраны от нажатия, пока пишется победа, здесь НЕ нужно, в отличие от соседей: `_finish`
+    // зовётся только из `_schedule` после `closeTrial`, проба уже закрыта (`current == null`),
+    // и `_tap` такое нажатие не берёт.
     // 🔴 Оборванная партия уровень НЕ ДВИГАЕТ — ни вверх, ни вниз.
     final verdict = g.passed;
     final errors = g.metrics.omissions + g.metrics.commissions;

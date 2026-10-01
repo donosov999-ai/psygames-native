@@ -13,6 +13,7 @@ import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'support/boss_probe.dart';
+import 'support/slow_write_state.dart';
 
 /// ПАРТИЯ В «ЭМОЦИОНАЛЬНЫЙ СТРУП» ИГРАЕТСЯ НАЖАТИЯМИ ПО ЦВЕТУ ЧЕРНИЛ.
 ///
@@ -125,6 +126,38 @@ void main() {
     // Язык приложения русский, а слова английские — экран обязан сказать об этом вслух.
     expect(find.byKey(const Key('emostroop-lang-fallback')), findsOneWidget,
         reason: 'подменять смысл молча хуже, чем предупредить');
+  });
+
+  testWidgets('🔴 сданную партию не сдать второй раз: нажатие, пока пишется победа, уровень не двигает', (tester) async {
+    // Запись лестницы растянута до 300 мс, как канал к платформе на телефоне
+    // (support/slow_write_state.dart): партия сдана, а фаза ещё «игра» и последняя проба на экране.
+    SharedPreferences.setMockInitialValues({});
+    state = await SlowWriteState.open();
+    var clock = 0;
+    await tester.pumpWidget(MaterialApp(
+      home: EmoStroopScreen(state: state, clock: () => clock, rnd: Random(7), words: words),
+    ));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(L.t('start')));
+    await tester.pump();
+    late String last;
+    for (var i = 0; i < EmoLevel.of(1).trials; i++) {
+      await waitWord(tester);
+      last = 'emostroop-answer-${inkName(colorOnScreen(tester)!)}';
+      clock += 640;
+      await tester.tap(find.byKey(Key(last)));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: emoFeedbackMs + 30));
+    }
+    final done = find.textContaining(L.t('levelDone').split('}').last);
+    // Партия сдана 30 мс назад, победа ещё пишется: щель открыта.
+    expect(wordOnScreen(tester), isNotNull, reason: 'щель не воспроизведена: последней пробы на экране нет');
+    expect(done, findsNothing, reason: 'итог уже на экране — щели нет, проба ничего не проверяет');
+    await tester.tap(find.byKey(Key(last)));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 2));
+    expect(done, findsOneWidget);
+    expect(state.get('${SharedState.prefix}stroop_emotional_level_nzt48'), '2', reason: 'партия сдана дважды — уровень прыгнул через ступень');
   });
 
   testWidgets('🔴 веха: победа на 3-м уровне открывает бой «жми / не жми», на 2-м — нет', (tester) async {
