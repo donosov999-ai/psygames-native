@@ -523,13 +523,14 @@ List<DemoTrial> readingSpanLessonTrials(List<RspanSentence> pool, String languag
   return [
     DemoTrial(
       text: '',
-      answer: L.t(sense.ok ? 'makesSense' : 'nonsense'),
+      // Каждый ключ — своим L.t('…'): ключ внутри тернарника сборщик словаря не видит.
+      answer: sense.ok ? L.t('makesSense') : L.t('nonsense'),
       rule: L.t('teachRspanJudge'),
       art: RspanSentenceCard(sentence: sense, language: language),
     ),
     DemoTrial(
       text: '',
-      answer: L.t(nonsense.ok ? 'makesSense' : 'nonsense'),
+      answer: nonsense.ok ? L.t('makesSense') : L.t('nonsense'),
       rule: L.t('teachRspanNonsense'),
       art: RspanSentenceCard(sentence: nonsense, language: language),
     ),
