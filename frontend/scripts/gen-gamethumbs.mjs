@@ -398,6 +398,37 @@ const spanGroup = () => {
   return frame(route + cells.join('') + row);
 };
 
+/* ─────────────────────────── ПАРНЫЕ КАРТИНКИ ───────────────────────────
+ * Раньше здесь лежал английский скрин старого экрана «Picture Pairs» — а превью стоит на ПЕРВОМ
+ * экране онбординга (src/services/onboarding.ts, ONBOARDING_GAME_IDS) и встречало новичка на любом
+ * из 12 языков. Теперь — пиктограмма без единой буквы: 4×3 карты рубашкой вверх, одна пара открыта
+ * (два одинаковых круга) — «найди пары», как в самой игре.
+ */
+const picturePairs = () => {
+  const W = 28;
+  const H = 34;
+  const GX = 6;
+  const GY = 7;
+  const X0 = (160 - (4 * W + 3 * GX)) / 2;
+  const Y0 = (160 - (3 * H + 2 * GY)) / 2;
+  const open = new Set(['0,1', '2,2']);
+  const cards = [];
+  for (let r = 0; r < 3; r++) {
+    for (let c = 0; c < 4; c++) {
+      const x = X0 + c * (W + GX);
+      const y = Y0 + r * (H + GY);
+      if (open.has(`${r},${c}`)) {
+        cards.push(`<rect x="${x}" y="${y}" width="${W}" height="${H}" rx="6" fill="${C.white}" stroke="${C.coralLight}" stroke-width="2"/>`);
+        cards.push(`<circle cx="${x + W / 2}" cy="${y + H / 2}" r="8" fill="${C.coral}"/>`);
+      } else {
+        cards.push(`<rect x="${x}" y="${y}" width="${W}" height="${H}" rx="6" fill="${C.blue}"/>`);
+        cards.push(`<rect x="${x + 5}" y="${y + 5}" width="${W - 10}" height="${H - 10}" rx="3" fill="none" stroke="${C.blueLight}" stroke-width="1.5"/>`);
+      }
+    }
+  }
+  return frame(cards.join(''));
+};
+
 const THUMBS = {
   dictation,
   chinese_tones: chineseTones,
@@ -411,6 +442,7 @@ const THUMBS = {
   dots_connect: dotsConnect,
   scholars_mate: scholarsMate,
   span_group: spanGroup,
+  picture_pairs: picturePairs,
 };
 
 const wanted = process.argv.slice(2);
