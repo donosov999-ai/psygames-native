@@ -11,7 +11,7 @@
 import { translateFor } from '../contexts/LanguageContext';
 
 export type Cell = number; // 0 = empty
-export type Variant = 'none' | 'diagonal' | 'antiknight' | 'hyper' | 'nonconsec' | 'jigsaw' | 'antiking' | 'evenodd' | 'kropki' | 'sandwich' | 'thermo' | 'arrow' | 'thermocage' | 'unequal' | 'towers' | 'sandparity' | 'thermoknight' | 'killerdiag' | 'whisper' | 'renban' | 'regionsum';
+export type Variant = 'none' | 'diagonal' | 'antiknight' | 'hyper' | 'nonconsec' | 'jigsaw' | 'antiking' | 'evenodd' | 'kropki' | 'sandwich' | 'thermo' | 'arrow' | 'thermocage' | 'unequal' | 'towers' | 'sandparity' | 'thermoknight' | 'killerdiag' | 'whisper' | 'renban' | 'regionsum' | 'palindrome';
 
 export const HYPER_BOXES = [[1, 1], [1, 5], [5, 1], [5, 5]] as const;   // Windoku: 4 доп. зоны 3×3 (левые-верхние углы)
 export const KNIGHT = [[-2, -1], [-2, 1], [-1, -2], [-1, 2], [1, -2], [1, 2], [2, -1], [2, 1]] as const;
@@ -45,6 +45,7 @@ const VARIANT_KEY_SUFFIX: Record<Exclude<Variant, 'none'>, string> = {
   whisper: 'Whisper',
   renban: 'Renban',
   regionsum: 'Regionsum',
+  palindrome: 'Palindrome',
 };
 export function variantLabel(v: Variant, lang: string): string {
   if (v === 'none') return '';
@@ -353,7 +354,9 @@ export function levelConfig(level: number): LevelCfg {
    * 🔴 ЛИНИИ РАВНЫХ СУММ — СТУПЕНИ 101–104 (01.10.2026, пункт 5 цепочки, задача b0a1feef).
    * Тоже в конец лестницы. Место по замеру (см. VARIANT_TIER_CEILING).
    */
-  else if (lv >= 101) variant = 'regionsum';
+  else if (lv >= 101 && lv <= 104) variant = 'regionsum';
+  /** ПАЛИНДРОМ — СТУПЕНИ 105–108 (задача 25679487). В конец лестницы, место по замеру. */
+  else if (lv >= 105) variant = 'palindrome';
   /**
    * 🔴 НЕРАВЕНСТВА (футосики) СОБРАНЫ, НО УРОВНЕЙ НЕ ПОЛУЧИЛИ — ЗАМЕР 26.08.2026.
    *
@@ -727,6 +730,67 @@ export function regionSumOk(grid: Cell[][], r: number, c: number, n: number, pn:
     hi = Math.min(hi, sum + empty * N - (empty * (empty - 1)) / 2);
   }
   return lo <= hi;
+}
+
+/**
+ * 🔴 ПАЛИНДРОМ (пункт 6 цепочки «14 усложнений», задача 25679487; решение Дениса 30.09
+ * «Берём»): цифры на серой линии читаются одинаково с обоих концов — клетка i равна клетке
+ * L−1−i. Зеркальные клетки обязаны лежать в разных строках, столбцах и блоках, поэтому длина
+ * линии нечётная (у чётной две средние клетки — соседи, равными быть не могут).
+ *
+ * Линии — ИЗ решения: случайные пути 3…7, которые оказались палиндромами (замер 01.10:
+ * ~0,8 % путей, ≈ 6 линий на доску; длины 3 — 87 %, 5 — 12 %, 7 — 2 %). Длинные ценнее —
+ * у них больше зеркальных пар, поэтому сперва берутся линии ≥ 5, потом добираются тройки.
+ * До пяти линий без общих клеток; форма prev/next.
+ */
+export function palindromeFromSolution(sol: Cell[][], N: number, rnd: () => number = Math.random): ThermoPN {
+  const used: boolean[][] = Array.from({ length: N }, () => Array(N).fill(false));
+  const found: [number, number][][] = [];
+  for (let attempt = 0; attempt < 3000 && found.length < 40; attempt++) {
+    const len = 3 + 2 * Math.floor(rnd() * 3);   // 3, 5, 7
+    let r = Math.floor(rnd() * N), c = Math.floor(rnd() * N);
+    const path: [number, number][] = [[r, c]];
+    for (let s = 1; s < len; s++) {
+      const nb = ORTHO.map(([dr, dc]) => [r + dr, c + dc] as [number, number])
+        .filter(([nr, nc]) => nr >= 0 && nr < N && nc >= 0 && nc < N && !path.some(([pr, pc]) => pr === nr && pc === nc));
+      if (!nb.length) break;
+      [r, c] = nb[Math.floor(rnd() * nb.length)];
+      path.push([r, c]);
+    }
+    const L = path.length;
+    if (L < 3 || L % 2 === 0) continue;
+    let mirror = true;
+    for (let i = 0; i < Math.floor(L / 2) && mirror; i++) {
+      const [a1, b1] = path[i], [a2, b2] = path[L - 1 - i];
+      if (sol[a1][b1] !== sol[a2][b2]) mirror = false;
+    }
+    if (mirror) found.push(path);
+  }
+  found.sort((a, b) => b.length - a.length);
+  const paths: [number, number][][] = [];
+  for (const path of found) {
+    if (paths.length >= 5) break;
+    if (path.some(([r, c]) => used[r][c])) continue;
+    paths.push(path);
+    for (const [r, c] of path) used[r][c] = true;
+  }
+  const pn: ThermoPN = Array.from({ length: N }, () => Array(N).fill(null));
+  for (const path of paths) for (let k = 0; k < path.length; k++) {
+    const [r, c] = path[k];
+    pn[r][c] = { prev: k > 0 ? path[k - 1] : null, next: k < path.length - 1 ? path[k + 1] : null };
+  }
+  return pn;
+}
+
+/** Цифра n в (r, c) не спорит с зеркальной клеткой линии-палиндрома (если та заполнена). */
+export function palindromeOk(grid: Cell[][], r: number, c: number, n: number, pn: ThermoPN): boolean {
+  const cells = lineCells(pn, r, c);
+  if (!cells.length) return true;
+  const i = cells.findIndex(([lr, lc]) => lr === r && lc === c);
+  const [mr, mc] = cells[cells.length - 1 - i];
+  if (mr === r && mc === c) return true;                       // середина нечётной линии
+  const o = grid[mr][mc];
+  return o === 0 || o === n;
 }
 
 export function arrowFromSolution(sol: Cell[][], N: number): ArrowMap {
@@ -1106,6 +1170,8 @@ export interface Overlays {
   renban?: ThermoPN;
   /** Линии равных сумм: в каждом блоке, через который идёт линия, сумма её цифр одна. */
   regionsum?: ThermoPN;
+  /** Серая линия читается одинаково с обоих концов: цифры на равном расстоянии от концов совпадают. */
+  palindrome?: ThermoPN;
 }
 
 /** Полные оверлеи из решения — до прореживания. */
@@ -1146,6 +1212,9 @@ export function overlaysFromSolution(sol: Cell[][], N: number, variant: Variant)
   if (variant === 'regionsum') {
     const { BR, BC } = dimsForSize(N as 6 | 9);
     return { regionsum: regionSumFromSolution(sol, N, BR, BC) };
+  }
+  if (variant === 'palindrome') {
+    return { palindrome: palindromeFromSolution(sol, N) };
   }
   if (variant === 'unequal') {
     // Знаки СРАЗУ все; сколько показать — решает прореживание уровня, как у кропки.
@@ -1226,6 +1295,7 @@ export function overlayOk(grid: Cell[][], r: number, c: number, n: number, N: nu
     const { BR, BC } = dimsForSize(N as 6 | 9);
     if (!regionSumOk(grid, r, c, n, ov.regionsum, N, BR, BC)) return false;
   }
+  if (ov.palindrome && !palindromeOk(grid, r, c, n, ov.palindrome)) return false;   // линия — показанная подсказка
   if (ov.sandwich) {
     const check = (line: number[], want: number): boolean => {
       if (want < 0) return true;                                      // сумма СПРЯТАНА (см. thinSandwich) — не подсказка
@@ -1282,7 +1352,7 @@ export function countSolutions(grid: Cell[][], N: number, BR: number, BC: number
 // thermocage здесь ОБЯЗАН быть: единственность решения у него считается по ДВУМ
 // правилам сразу (isValid знает и цепочку, и сумму). Доска, единственная по каждому
 // правилу порознь, вместе может иметь второе решение — и наоборот.
-const UNIQUE_CHECKED: readonly Variant[] = ['none', 'diagonal', 'antiknight', 'hyper', 'nonconsec', 'antiking', 'jigsaw', 'thermo', 'arrow', 'evenodd', 'kropki', 'sandwich', 'thermocage', 'unequal', 'towers', 'sandparity', 'thermoknight', 'killerdiag', 'whisper', 'renban', 'regionsum'];
+const UNIQUE_CHECKED: readonly Variant[] = ['none', 'diagonal', 'antiknight', 'hyper', 'nonconsec', 'antiking', 'jigsaw', 'thermo', 'arrow', 'evenodd', 'kropki', 'sandwich', 'thermocage', 'unequal', 'towers', 'sandparity', 'thermoknight', 'killerdiag', 'whisper', 'renban', 'regionsum', 'palindrome'];
 
 /**
  * Готовая сетка для «несоседних чисел» — БЕЗ перебора.
@@ -1311,7 +1381,7 @@ export function buildNonconsecSolution(): Cell[][] {
   return g;
 }
 
-export function generatePuzzle(blanks: number, N: number, BR: number, BC: number, variant: Variant = 'none', thin?: (ov: Overlays) => Overlays): { puzzle: Cell[][]; solution: Cell[][]; regions?: number[][]; parity?: number[][]; kropki?: { h: number[][]; v: number[][] }; sandwich?: { rows: number[]; cols: number[] }; thermo?: ThermoPN; arrow?: ArrowMap; cages?: CageMap; unequal?: UnequalMap; towers?: TowersMap; whisper?: ThermoPN; renban?: ThermoPN; regionsum?: ThermoPN } {
+export function generatePuzzle(blanks: number, N: number, BR: number, BC: number, variant: Variant = 'none', thin?: (ov: Overlays) => Overlays): { puzzle: Cell[][]; solution: Cell[][]; regions?: number[][]; parity?: number[][]; kropki?: { h: number[][]; v: number[][] }; sandwich?: { rows: number[]; cols: number[] }; thermo?: ThermoPN; arrow?: ArrowMap; cages?: CageMap; unequal?: UnequalMap; towers?: TowersMap; whisper?: ThermoPN; renban?: ThermoPN; regionsum?: ThermoPN; palindrome?: ThermoPN } {
   const sol: Cell[][] = Array.from({ length: N }, () => Array(N).fill(0));
   let regions: number[][] | undefined;
   let thermo: ThermoPN | undefined;
@@ -1405,7 +1475,8 @@ export function generatePuzzle(blanks: number, N: number, BR: number, BC: number
   const whisper = ov.whisper;
   const renban = ov.renban;
   const regionsum = ov.regionsum;
-  return { puzzle, solution: sol, regions, parity, kropki, sandwich, thermo, arrow, cages, unequal, towers, whisper, renban, regionsum };
+  const palindrome = ov.palindrome;
+  return { puzzle, solution: sol, regions, parity, kropki, sandwich, thermo, arrow, cages, unequal, towers, whisper, renban, regionsum, palindrome };
 }
 
 /**
@@ -1438,6 +1509,7 @@ export interface RejectionContext {
   whisper?: ThermoPN;
   renban?: ThermoPN;
   regionsum?: ThermoPN;
+  palindrome?: ThermoPN;
 }
 
 export function rejectionReason(
@@ -1469,6 +1541,7 @@ export function rejectionReason(
     }
     if (variant === 'renban' && ctx.renban && !renbanOk(test, r, c, n, ctx.renban)) return variantRule(variant, lang);
     if (variant === 'regionsum' && ctx.regionsum && !regionSumOk(test, r, c, n, ctx.regionsum, N, BR, BC)) return variantRule(variant, lang);
+    if (variant === 'palindrome' && ctx.palindrome && !palindromeOk(test, r, c, n, ctx.palindrome)) return variantRule(variant, lang);
     if (variant === 'kropki' && ctx.kropki) {
       const okDot = (dot: number, a: number, b: number): boolean => {
         if (dot === 1) return Math.abs(a - b) === 1;              // белая: разница в единицу

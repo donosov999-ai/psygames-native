@@ -181,6 +181,7 @@ class BoardGeometry {
     this.whisper,
     this.renban,
     this.regionsum,
+    this.palindrome,
   });
   final List<List<int>>? regions;
   final List<List<ThermoLink?>>? thermo;
@@ -203,6 +204,9 @@ class BoardGeometry {
 
   /// Синие линии равных сумм: в каждом блоке, через который идёт линия, сумма её цифр одна.
   final List<List<ThermoLink?>>? regionsum;
+
+  /// Серая линия читается одинаково с обоих концов: цифры на равном расстоянии от концов совпадают.
+  final List<List<ThermoLink?>>? palindrome;
 
   static BoardGeometry fromJson(Map<String, Object?> v) => BoardGeometry(
         regions: v['regions'] == null ? null : _grid(v['regions']),
@@ -235,6 +239,11 @@ class BoardGeometry {
         regionsum: v['regionsum'] == null
             ? null
             : (v['regionsum'] as List)
+                .map((row) => (row as List).map(ThermoLink.fromJson).toList())
+                .toList(),
+        palindrome: v['palindrome'] == null
+            ? null
+            : (v['palindrome'] as List)
                 .map((row) => (row as List).map(ThermoLink.fromJson).toList())
                 .toList(),
       );
@@ -473,6 +482,18 @@ bool regionSumOk(List<List<int>> grid, int r, int c, int val, List<List<ThermoLi
   return lo <= hi;
 }
 
+/// Цифра [val] в (r, c) не спорит с зеркальной клеткой линии-палиндрома. Перенос
+/// `palindromeOk` веба.
+bool palindromeOk(List<List<int>> grid, int r, int c, int val, List<List<ThermoLink?>> pn) {
+  final cells = lineCells(pn, r, c);
+  if (cells.isEmpty) return true;
+  final i = cells.indexWhere((cell) => cell[0] == r && cell[1] == c);
+  final m = cells[cells.length - 1 - i];
+  if (m[0] == r && m[1] == c) return true;   // середина нечётной линии
+  final o = grid[m[0]][m[1]];
+  return o == 0 || o == val;
+}
+
 /// Линия ренбана не нарушена цифрой [val] в (r, c): на линии нет повторов, и разброс
 /// известных цифр не шире её длины. Перенос `renbanOk` веба.
 bool renbanOk(List<List<int>> grid, int r, int c, int val, List<List<ThermoLink?>> pn) {
@@ -553,6 +574,8 @@ bool overlayOk(List<List<int>> grid, int r, int c, int val, int n, BoardGeometry
     final col = [for (var i = 0; i < n; i++) grid[i][c]]..[r] = val;
     if (!check(col, sandwich.cols[c])) return false;
   }
+  final palindrome = g.palindrome;
+  if (palindrome != null && !palindromeOk(grid, r, c, val, palindrome)) return false;
   return true;
 }
 

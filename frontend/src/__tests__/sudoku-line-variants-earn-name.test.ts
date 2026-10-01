@@ -13,7 +13,8 @@
  *     решается не больше десятой части — то есть сам приём варианта нужен.
  * 📍 Замер 01.10.2026: шёпот — 48/48 с линиями той же ступенью, без линий 0/48, под потолком
  *    3 — 0/48; ренбан — 48/48, без линий 0/48, под потолком 3 — 1/48; равные суммы (101–104,
- *    задача b0a1feef) — 48/48, без линий 0/48, под потолком 3 — 0/48. Мутации: мера без фильтра линий → краснеет
+ *    задача b0a1feef) — 48/48, без линий 0/48, под потолком 3 — 0/48; палиндром (105–108, задача
+ *    25679487) — 48/48, без линий 0/48, под потолком 3 — 2/48. Мутации: мера без фильтра линий → краснеет
  *    вторая проба; приём без потолка → краснеет третья.
  *
  * VER 1 был `sudoku-whisper-earns-name.test.ts` — один вариант; с ренбаном таблица вариантов.
@@ -33,13 +34,14 @@ const all: Row[] = JSON.parse(readFileSync(join(__dirname, '..', '..', '..', 'fl
 
 const grid = (s: string, n: number) => Array.from({ length: n }, (_, r) => [...s.slice(r * n, r * n + n)].map(Number));
 
-const LINE_VARIANTS: { variant: Variant; levels: number[] }[] = [
+const LINE_VARIANTS: { variant: Variant; levels: number[]; cap?: number }[] = [
   { variant: 'whisper', levels: [93, 94, 95, 96] },
   { variant: 'renban', levels: [97, 98, 99, 100] },
   { variant: 'regionsum', levels: [101, 102, 103, 104] },
+  { variant: 'palindrome', levels: [105, 106, 107, 108] },
 ];
 
-describe.each(LINE_VARIANTS)('«$variant» заслуживает своё имя на досках, которые получает человек', ({ variant, levels }) => {
+describe.each(LINE_VARIANTS)('«$variant» заслуживает своё имя на досках, которые получает человек', ({ variant, levels, cap = 3 }) => {
   const boards = all.filter((b) => b.variant === variant);
   const ctx = (b: Row): GradeCtx => ({ N: Number(b.n), BR: Number(b.br), BC: Number(b.bc), variant, [variant]: b.geometry[variant] });
 
@@ -61,10 +63,13 @@ describe.each(LINE_VARIANTS)('«$variant» заслуживает своё им�
       .toBe(`с линиями ${boards.length}/${boards.length}, ступень сошлась ${boards.length}, без линий 0`);
   });
 
-  it('🔴 приём линии нужен: под потолком 3 решается не больше десятой части досок', () => {
+  // Потолок — на ступень НИЖЕ приёма варианта. Все выводы вариантов — ступень 4 (класс включается
+  // флагом `выводВарианта` с 4), поэтому потолок 3. 01.10: палиндром сперва стоял на ступени 3 с
+  // потолком 2 — мутация «приём без потолка» выжила: при потолке 2 доске не хватает своих приёмов.
+  it('🔴 приём линии нужен: под потолком ниже приёма решается не больше десятой части досок', () => {
     let capped = 0;
-    for (const b of boards) if (gradePuzzle(grid(b.puzzle, Number(b.n)), ctx(b), 3).solved) capped++;
-    expect(`под потолком 3 решено ${capped}/${boards.length}: не больше десятой части — ${capped <= boards.length / 10}`)
-      .toBe(`под потолком 3 решено ${capped}/${boards.length}: не больше десятой части — true`);
+    for (const b of boards) if (gradePuzzle(grid(b.puzzle, Number(b.n)), ctx(b), cap).solved) capped++;
+    expect(`под потолком ${cap} решено ${capped}/${boards.length}: не больше десятой части — ${capped <= boards.length / 10}`)
+      .toBe(`под потолком ${cap} решено ${capped}/${boards.length}: не больше десятой части — true`);
   });
 });

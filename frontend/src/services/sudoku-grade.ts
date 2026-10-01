@@ -25,7 +25,7 @@
  */
 import {
   Cell, Variant, ThermoPN, ArrowMap, CageMap, isValid, generatePuzzle, shuffle, HYPER_BOXES, ORTHO,
-  Overlays, levelConfig, UnequalMap, TowersMap, towersLineOk, WHISPER_GAP, renbanOk, lineCells, regionSumOk,
+  Overlays, levelConfig, UnequalMap, TowersMap, towersLineOk, WHISPER_GAP, renbanOk, lineCells, regionSumOk, palindromeOk,
 } from './sudoku-core';
 
 export type Technique =
@@ -43,9 +43,13 @@ export type Technique =
   | 'region_sum'      // линия равных сумм: кандидат не входит ни в одну раскладку общей суммы
   | 'x_wing'          // X-wing
   | 'xy_wing'         // XY-wing: ось {a,b} и два клюва {a,c} и {b,c} — c уходит там, где видно оба
+  | 'palindrome_mirror'  // кандидаты зеркальных клеток линии пересекаются
   | 'guess';          // логики не хватило — нужен перебор
 
 export const TECHNIQUE_TIER: Record<Technique, number> = {
+  // Палиндром: кандидаты зеркальных клеток пересекаются. Ступень 4 — как у всего КЛАССА выводов
+  // варианта (`выводВарианта` включается с 4): мутация «приём без потолка» на ступени 3 выжила бы.
+  palindrome_mirror: 4,
   naked_single: 1, hidden_single: 2, locked: 3, naked_subset: 4, sandwich_sum: 4, towers_clue: 4, unequal_chain: 4,
   // Шёпот — тот же класс вывода, что цепочка неравенств: граница через ПУСТОГО соседа.
   // Ступень 4, как у трёх других вариантных выводов: шкала обязана быть сравнимой.
@@ -91,6 +95,7 @@ export interface GradeCtx {
   renban?: ThermoPN;
   /** Линии равных сумм: в каждом блоке линии сумма её цифр одна. */
   regionsum?: ThermoPN;
+  palindrome?: ThermoPN;
 }
 
 export interface Grade {
@@ -166,7 +171,7 @@ export function unitsFor(N: number, BR: number, BC: number, variant: Variant, re
 
 /** Оценка пазла: самая сложная техника, без которой не обойтись. */
 export function gradePuzzle(puzzle: Cell[][], ctx: GradeCtx, tierCap = 9): Grade {
-  const { N, BR, BC, variant, regions, thermo, arrow, cages, parity, kropki, sandwich, unequal, towers, whisper, renban, regionsum } = ctx;
+  const { N, BR, BC, variant, regions, thermo, arrow, cages, parity, kropki, sandwich, unequal, towers, whisper, renban, regionsum, palindrome } = ctx;
   const grid = puzzle.map((row) => [...row]);
   const FULL = (1 << N) - 1;
   const cand: number[][] = Array.from({ length: N }, () => Array(N).fill(FULL));
@@ -264,6 +269,7 @@ export function gradePuzzle(puzzle: Cell[][], ctx: GradeCtx, tierCap = 9): Grade
         if (ok && renban && !renbanOk(grid, r, c, v, renban)) ok = false;
         // Равные суммы против ИЗВЕСТНЫХ цифр: коридоры сумм по блокам — даром.
         if (ok && regionsum && !regionSumOk(grid, r, c, v, regionsum, N, BR, BC)) ok = false;
+        if (ok && palindrome && !palindromeOk(grid, r, c, v, palindrome)) ok = false;   // против известных цифр — даром
         if (!ok) m &= ~bit(v);
       }
       cand[r][c] = m;
@@ -464,6 +470,29 @@ export function gradePuzzle(puzzle: Cell[][], ctx: GradeCtx, tierCap = 9): Grade
         }
       }
       if (usedSum) bump('region_sum');
+    }
+
+    /**
+     * ── ПАЛИНДРОМ: у пустых зеркальных клеток линии кандидаты пересекаются — цифра одна на двоих.
+     * Через пару проходит то, что известно о каждой из клеток в СВОИХ строке, столбце и блоке.
+     * Техника `palindrome_mirror` (ступень 4, класс выводов варианта); срез по заполненной
+     * зеркальной клетке — даром.
+     */
+    if (palindrome && выводВарианта) {
+      let usedMirror = false;
+      for (let r0 = 0; r0 < N; r0++) for (let c0 = 0; c0 < N; c0++) {
+        const head = palindrome[r0][c0];
+        if (!head || head.prev) continue;
+        const cells = lineCells(palindrome, r0, c0);
+        for (let i = 0; i < Math.floor(cells.length / 2); i++) {
+          const [ar, ac] = cells[i], [br, bc] = cells[cells.length - 1 - i];
+          if (grid[ar][ac] !== 0 || grid[br][bc] !== 0) continue;
+          const both = cand[ar][ac] & cand[br][bc];
+          if (both !== cand[ar][ac] || both !== cand[br][bc]) { cand[ar][ac] = both; cand[br][bc] = both; usedMirror = true; }
+          if (both === 0) return true;
+        }
+      }
+      if (usedMirror) bump('palindrome_mirror');
     }
 
     if (unequal && выводВарианта) {
@@ -1037,6 +1066,9 @@ const VARIANT_TIER_CEILING: Partial<Record<Variant, number>> = {
   /** Линии равных сумм (101–104) — ЗАМЕР 01.10.2026, выгрузка 48 досок: 4 ×44, 5 ×4; шестёрки
    *  ноль. Без линий не решается 0 из 48, под потолком 3 — 0 из 48. Потолок 5. */
   regionsum: 5,
+  /** Палиндром (105–108) — ЗАМЕР 01.10.2026, выгрузка 48 досок: 4 ×46, 5 ×2; шестёрки ноль. Без
+   *  линий не решается 0 из 48, под потолком 3 — 2 из 48. Потолок 5. */
+  palindrome: 5,
   /**
    * Комбо-пояс 81–92 — ЗАМЕР 29.08.2026 (combo-tiers.measure, по 15 боевых досок):
    * шестёрка у всех трёх пар — 0–1 из 15 (не массово), пятёрка достижима у всех
@@ -1247,7 +1279,7 @@ export type GeneratedPuzzle = ReturnType<typeof generatePuzzle>;
  * refilter; если конкретная попытка не укладывается в бюджет, generateLogical всё
  * равно сохраняет прежний безопасный fallback через проверку единственности.
  */
-const LOGIC_VARIANTS: readonly Variant[] = ['none', 'diagonal', 'antiknight', 'hyper', 'antiking', 'evenodd', 'kropki', 'sandwich', 'jigsaw', 'nonconsec', 'thermo', 'arrow', 'thermocage', 'sandparity', 'thermoknight', 'killerdiag', 'whisper', 'renban', 'regionsum'];
+const LOGIC_VARIANTS: readonly Variant[] = ['none', 'diagonal', 'antiknight', 'hyper', 'antiking', 'evenodd', 'kropki', 'sandwich', 'jigsaw', 'nonconsec', 'thermo', 'arrow', 'thermocage', 'sandparity', 'thermoknight', 'killerdiag', 'whisper', 'renban', 'regionsum', 'palindrome'];
 
 /**
  * Сколько раз проходим доску, пытаясь убрать ещё клетку. Больше трёх бюджет обычно
@@ -1301,7 +1333,7 @@ export function solvedSameBoard(grade: Grade, solution: Cell[][]): boolean {
 function gradeOf(gen: GeneratedPuzzle, N: number, BR: number, BC: number, variant: Variant): Grade {
   return gradePuzzle(gen.puzzle, {
     N, BR, BC, variant, regions: gen.regions, thermo: gen.thermo, arrow: gen.arrow, cages: gen.cages,
-    parity: gen.parity, kropki: gen.kropki, sandwich: gen.sandwich, whisper: gen.whisper, renban: gen.renban, regionsum: gen.regionsum,
+    parity: gen.parity, kropki: gen.kropki, sandwich: gen.sandwich, whisper: gen.whisper, renban: gen.renban, regionsum: gen.regionsum, palindrome: gen.palindrome,
     // ⚠️ Знаки и краевые подсказки ОБЯЗАНЫ доходить до оценщика. До 27.08.2026 их
     // здесь не было, и запасной путь оценивал unequal/towers вслепую: та же доска
     // давала «ступень 2, hidden_single» без карты и «ступень 4, unequal_chain» с ней.
@@ -1336,7 +1368,7 @@ function digByLogic(
   // увидит человек — та же дисциплина, что у сэндвича и кропки.
   const unequal = (base as { unequal?: UnequalMap }).unequal;
   const towers = (base as { towers?: TowersMap }).towers;
-  const ctx: GradeCtx = { N, BR, BC, variant, regions: base.regions, thermo: base.thermo, arrow: base.arrow, cages: base.cages, parity, kropki, sandwich, unequal, towers, whisper: base.whisper, renban: base.renban, regionsum: base.regionsum };
+  const ctx: GradeCtx = { N, BR, BC, variant, regions: base.regions, thermo: base.thermo, arrow: base.arrow, cages: base.cages, parity, kropki, sandwich, unequal, towers, whisper: base.whisper, renban: base.renban, regionsum: base.regionsum, palindrome: base.palindrome };
 
   // Лимит пустых держим только на новичковых уровнях, чтобы не пугать доской в дырках.
   // Дальше глубину задаёт ЛОГИКА. Старый лимит (58 к 29-му) как раз и упирался в потолок,

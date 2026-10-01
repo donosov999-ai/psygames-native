@@ -21,8 +21,8 @@ void main() {
     levels = await SudokuLevels.load();
   });
 
-  test('лестница на месте: 104 ступени', () {
-    expect(levels.lastLevel, 104);
+  test('лестница на месте: 108 ступеней', () {
+    expect(levels.lastLevel, 108);
     expect(levels.config(1).n, 6, reason: 'первые ступени — 6×6');
     expect(levels.config(9).variant, 'diagonal');
     expect(levels.config(62).variant, 'jigsaw', reason: 'кривые блоки переехали на 62–65 (23.09)');
@@ -30,6 +30,7 @@ void main() {
     expect(levels.config(93).variant, 'whisper', reason: 'немецкий шёпот — 93–96 (задача 5b0b7ca2)');
     expect(levels.config(97).variant, 'renban', reason: 'ренбан — 97–100 (задача 031a7684)');
     expect(levels.config(101).variant, 'regionsum', reason: 'равные суммы — 101–104 (задача b0a1feef)');
+    expect(levels.config(105).variant, 'palindrome', reason: 'палиндром — 105–108 (задача 25679487)');
   });
 
   test('🔴 у каждой ступени лестницы есть хотя бы одна доска', () {
@@ -124,8 +125,8 @@ void main() {
       expect(board.variant, 'none');
       expect(board.geometry.regions, isNull);
     }
-    // 9–53, 62–65, 81–104 — вариантные: рейтинга нет, зато есть измеренная ступень.
-    for (final lv in [9, 42, 62, 81, 92, 96, 100, 104]) {
+    // 9–53, 62–65, 81–108 — вариантные: рейтинга нет, зато есть измеренная ступень.
+    for (final lv in [9, 42, 62, 81, 92, 96, 100, 104, 108]) {
       final board = levels.boardFor(lv, seed: 7)!;
       expect(board.rating, isNull, reason: 'L$lv — вариантная доска, не банк');
       expect(board.tier, isNotNull, reason: 'у вариантной доски мера посчитана при выгрузке');

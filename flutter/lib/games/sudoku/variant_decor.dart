@@ -33,6 +33,9 @@ const whisperGreen = Color(0xFF22C55E);
 /// Синяя линия равных сумм — `#3B82F6` веба.
 const regionSumBlue = Color(0xFF3B82F6);
 
+/// Линия «палиндром» — `#9CA3AF` веба.
+const palindromeColor = Color(0xFF9CA3AF);
+
 /// Фиолетовая полоса ренбана — `#A855F7` веба, бледная (доля 0,32), чтобы цифра читалась.
 const renbanPurple = Color(0xFFA855F7);
 const cageAccents = [
@@ -45,7 +48,7 @@ const double seam = 1.5;
 
 /// Что нарисовать в одной клетке (под цифрой).
 class CellDecor {
-  const CellDecor({this.thermo, this.arrow, this.parity = 0, this.cageId = -1, this.whisper, this.renban, this.regionsum});
+  const CellDecor({this.thermo, this.arrow, this.parity = 0, this.cageId = -1, this.whisper, this.renban, this.regionsum, this.palindrome});
 
   /// Звено термометра; колба — у клетки без `prev`.
   final ThermoLink? thermo;
@@ -68,9 +71,13 @@ class CellDecor {
   /// Звено синей линии равных сумм — тонкая, как шёпот.
   final ThermoLink? regionsum;
 
+  /// Звено линии «палиндром».
+  final ThermoLink? palindrome;
+
   bool get isEmpty =>
       thermo == null && arrow == null && parity == 0 && cageId < 0 && whisper == null && renban == null &&
-      regionsum == null;
+      regionsum == null &&
+      palindrome == null;
 }
 
 /// Рисунок клетки по геометрии доски; `null` — рисовать нечего.
@@ -83,6 +90,7 @@ CellDecor? cellDecorFor(BoardGeometry g, int r, int c) {
     whisper: g.whisper?[r][c],
     renban: g.renban?[r][c],
     regionsum: g.regionsum?[r][c],
+    palindrome: g.palindrome?[r][c],
   );
   return d.isEmpty ? null : d;
 }
@@ -162,6 +170,15 @@ class CellDecorPainter extends CustomPainter {
       final thick = math.max(3.0, (cell * 0.16).roundToDouble());
       final paint = Paint()..color = blendColor(surface, regionSumBlue, 0.6);
       for (final nb in [rs.prev, rs.next]) {
+        if (nb != null) canvas.drawRect(segment(size, row, col, nb, thick), paint);
+      }
+    }
+    final lx = decor.palindrome;
+    if (lx != null) {
+      // палиндром — как в вебе (`app/games/sudoku.tsx`).
+      final thick = math.max(3.0, (cell * 0.16).roundToDouble());
+      final paint = Paint()..color = blendColor(surface, palindromeColor, 0.6);
+      for (final nb in [lx.prev, lx.next]) {
         if (nb != null) canvas.drawRect(segment(size, row, col, nb, thick), paint);
       }
     }

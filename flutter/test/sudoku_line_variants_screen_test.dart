@@ -47,7 +47,12 @@ void main() {
     final f = find.byKey(Key('decor_${r}_$c'));
     if (f.evaluate().isEmpty) return null;
     final d = (tester.widget<CustomPaint>(f).painter! as CellDecorPainter).decor;
-    return switch (variant) { 'renban' => d.renban, 'regionsum' => d.regionsum, _ => d.whisper };
+    return switch (variant) {
+      'renban' => d.renban,
+      'regionsum' => d.regionsum,
+      'palindrome' => d.palindrome,
+      _ => d.whisper,
+    };
   }
 
   /// Своя прогулка по линии: все клетки линии через (r, c).
@@ -88,6 +93,13 @@ void main() {
         return true;
       }
       final cells = walkLine(lines, r, c);
+      if (variant == 'palindrome') {
+        // Палиндром: зеркальная клетка линии, если заполнена, равна этой.
+        final i = cells.indexWhere((cell) => cell[0] == r && cell[1] == c);
+        final m = cells[cells.length - 1 - i];
+        final o = g[m[0]][m[1]];
+        return (m[0] == r && m[1] == c) || o == 0 || o == v;
+      }
       if (variant == 'regionsum') {
         // Равные суммы: у ПОЛНОСТЬЮ заполненных блоков линии сумма одна (проверка — на полной линии).
         final sums = <int, int>{};
@@ -151,6 +163,7 @@ void main() {
     (variant: 'whisper', start: 95, name: 'шёпот'),
     (variant: 'renban', start: 99, name: 'ренбан'),
     (variant: 'regionsum', start: 103, name: 'равные суммы'),
+    (variant: 'palindrome', start: 107, name: 'палиндром'),
   ]) {
     testWidgets('🔴 «${v.name}», ступень ${v.start}: правило в шапке, линии на поле, доска доигрывается нажатиями',
         (tester) async {
