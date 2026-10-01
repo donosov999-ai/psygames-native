@@ -19,15 +19,14 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
-import { useWarmup, StepResult } from '@/src/contexts/WarmupContext';
+import { useWarmup } from '@/src/contexts/WarmupContext';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { GAMES } from '@/src/constants/games';
 import {
-  scoreSessions, buildRecommendations, saveAssessmentResult, saveUserProfile,
+  scoreSessions, sessionsFromStepResults, buildRecommendations, saveAssessmentResult, saveUserProfile,
   AssessmentResult, DOMAINS, Domain, UserProfile,
 } from '@/src/services/assessment';
 import { getAiInsight, toneForProfile } from '@/src/services/aiInsight';
-import type { GameSession } from '@/src/services/api';
 
 const GRADIENT = ['#7c3aed', '#ec4899'];
 // Текст на плашке итога считаем по ОБОИМ концам: зашитый белый давал 3.53.
@@ -52,15 +51,9 @@ export default function AssessmentResultScreen() {
 
   useEffect(() => {
     (async () => {
-      // Convert warmup results to fake GameSession-like objects for scoring
-      const sessions: GameSession[] = warmup.results.map((r: StepResult) => ({
-        game_type: r.game_type,
-        score: r.score,
-        time_seconds: r.time_seconds,
-        errors: r.errors,
-        details: r.details,
-      }));
-      const res = scoreSessions(sessions);
+      // Результаты шагов → партии для подсчёта, ВМЕСТЕ с настройками партии: без них
+      // оценка не узнавала свою партию, и 7 доменов из 12 выходили «средними» у всех.
+      const res = scoreSessions(sessionsFromStepResults(warmup.results));
       const recs = buildRecommendations(res);
       setResult(res);
       setRecommendations(recs);

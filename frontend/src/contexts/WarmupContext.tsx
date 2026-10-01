@@ -24,12 +24,37 @@ export interface StepResult {
   errors: number;
   details?: Record<string, any>;
   /**
+   * Настройки сыгранной партии — уровень и режим, как их записала игра.
+   * 🔴 Без них оценка не узнавала свою партию: `sessionFitsStep` требует того, что шаг
+   * батареи предписал (`difficulty: 'medium'`, `mode: 'forward'`…), а результат шага их не
+   * нёс — и 7 доменов из 12 (digit_span, corsi, n_back, cpt, sdmt, phonemic_fluency, bart)
+   * у ЛЮБОГО человека выходили «средними», z = 0. Замер 30.09.2026 по коду main.
+   */
+  difficulty?: string;
+  mode?: string;
+  /**
    * Номер шага в наборе, за который записан результат. Ставит `recordResult` сам — по
    * текущему шагу. Без номера мост и итог узнавали «сыгранное» по последнему результату и по
    * имени игры: после пропуска мост писал «✓ СЫГРАНО» с именем пропущенной игры, а игра,
    * стоящая в наборе дважды, выглядела сыгранной оба раза (см. `результатШага`).
    */
   шаг?: number;
+}
+
+/**
+ * Результат шага из только что сохранённой партии.
+ * Имя ШАГА, а не корзины партии: итог, ядро-снимок и оценка сверяют результаты с шагами.
+ */
+export function stepResultOf(stepGameId: string, s: GameSession): StepResult {
+  return {
+    game_type: stepGameId,
+    score: s.score || 0,
+    time_seconds: s.time_seconds || 0,
+    errors: s.errors || 0,
+    details: s.details,
+    difficulty: s.difficulty,
+    mode: s.mode,
+  };
 }
 
 interface WarmupState {
@@ -438,14 +463,7 @@ export function WarmupProvider({ children }: { children: React.ReactNode }) {
       s.duration_preset = cur.meta.duration_min;
 
       // record into warmup result list
-      // Имя ШАГА, а не корзины партии: итог, ядро-снимок и оценка сверяют результаты с шагами.
-      await recordResult({
-        game_type: step.game_id,
-        score: s.score || 0,
-        time_seconds: s.time_seconds || 0,
-        errors: s.errors || 0,
-        details: s.details,
-      });
+      await recordResult(stepResultOf(step.game_id, s));
 
       // Ачивки чекаются в saveSession (runAchievementsCheck) — единая точка для
       // ЛЮБОГО завершённого раунда, с настоящим warmup-стриком (раньше тут был 0).
