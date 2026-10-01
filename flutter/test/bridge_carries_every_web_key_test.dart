@@ -29,7 +29,14 @@ void main() {
     }
 
     final calls = RegExp(r'''(?:getItem|setItem|removeItem)\(\s*(['"`])([^'"`\n]*)''');
-    final consts = RegExp(r'''const\s+([A-Z][A-Z_0-9]*(?:KEY|FLAG))\s*=\s*(['"`])([^'"`\n]*)''');
+    // PREFIX — с 01.10.2026: `GOAL_PREFIX + profileId` и т. п. (dailyGoal, streakGoal, petGreeting).
+    final consts = RegExp(r'''const\s+([A-Z][A-Z_0-9]*(?:KEY|FLAG|PREFIX))\s*=\s*(['"`])([^'"`\n]*)''');
+    // 🔴 КЛЮЧ, СОБРАННЫЙ ФУНКЦИЕЙ (задача d3eeeba9, 01.10.2026). Веб пишет рекорды так:
+    // `const key = (g) => `psygames.bestStreak.${g}`` → `getItem(key(id))`. Литерала в вызове
+    // нет, и гейт его не видел — ключ шёл мимо моста молча. Теперь: имя функции из вызова
+    // хранилища → её определение (в том же файле, иначе в любом) → литеральное начало.
+    final builderCalls = RegExp(r'''(?:getItem|setItem|removeItem)\(\s*([A-Za-z_$][\w$]*)\(''');
+    final defs = _keyBuilders(_ourSources(web));
 
     final strays = <String, String>{}; // ключ -> где нашли
 
@@ -41,6 +48,14 @@ void main() {
         final key = _staticHead(m.group(2)!);
         if (key.isEmpty) continue; // ключ собран целиком из переменной — литерала нет
         if (!SharedState.owns(key)) strays[key] = p;
+      }
+      for (final m in builderCalls.allMatches(src)) {
+        final name = m.group(1)!;
+        final heads = defs[p]?[name] ?? defs.values.expand((d) => d[name] ?? const <String>[]).toList();
+        for (final head in heads) {
+          if (head.isEmpty) continue; // начало ключа — переменная, литерала нет
+          if (!SharedState.owns(head)) strays[head] = '$p ($name())';
+        }
       }
       for (final m in consts.allMatches(src)) {
         final value = _staticHead(m.group(3)!);
@@ -81,6 +96,28 @@ void main() {
   });
 }
 
+
+/// Функции-сборщики ключей: файл → имя → литеральные начала ключа, которые она возвращает.
+/// Понимает три вида тела: шаблон (`=> `psygames.best.${m}``), `return `…`` и
+/// `return КОНСТАНТА + x` — константа ищется в том же файле.
+Map<String, Map<String, List<String>>> _keyBuilders(List<File> files) {
+  final arrow = RegExp(
+      r'''(?:const|let)\s+([A-Za-z_$][\w$]*)\s*=\s*\([^)]*\)\s*(?::\s*[\w<>\[\]| ]+)?\s*=>\s*\{?\s*(?:return\s+)?(?:(['"`])([^'"`\n]*)|([A-Z][A-Z_0-9]*)\s*\+)''');
+  final fn = RegExp(
+      r'''function\s+([A-Za-z_$][\w$]*)\s*\([^)]*\)\s*(?::\s*[\w<>\[\]| ]+)?\s*\{\s*return\s+(?:(['"`])([^'"`\n]*)|([A-Z][A-Z_0-9]*)\s*\+)''');
+  final constant = RegExp(r'''const\s+([A-Z][A-Z_0-9]*)\s*=\s*(['"`])([^'"`\n]*)''');
+  final out = <String, Map<String, List<String>>>{};
+  for (final f in files) {
+    final src = f.readAsStringSync();
+    final values = {for (final c in constant.allMatches(src)) c.group(1)!: _staticHead(c.group(3)!)};
+    for (final m in [...arrow.allMatches(src), ...fn.allMatches(src)]) {
+      final head = m.group(3) != null ? _staticHead(m.group(3)!) : values[m.group(4)];
+      if (head == null) continue; // константа из другого файла — не гадаем
+      (out[f.path] ??= {}).putIfAbsent(m.group(1)!, () => []).add(head);
+    }
+  }
+  return out;
+}
 
 /// ТОЛЬКО НАШИ ИСХОДНИКИ. 🔴 Поймано при первом же прогоне на дереве, где
 /// `node_modules` стоит ссылкой: обход ушёл в чужие пакеты и принёс двенадцать
