@@ -1,8 +1,8 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
+import '../../shell/app_haptics.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/game_clock.dart';
@@ -64,6 +64,9 @@ class MemoryMatrixScreen extends StatefulWidget {
 class _MemoryMatrixScreenState extends State<MemoryMatrixScreen> {
   late LevelLadder _ladder;
   late double Function() _rng;
+
+  /// Вибрация — через общий выключатель «Вибрация» (веб `psygames_haptic_enabled`).
+  late final AppHaptics _haptics = AppHaptics(widget.state);
   bool _loaded = false;
 
   /// Режим партии — «картинкой» (static) или «по порядку» (sequential); в шаге — из шага.
@@ -206,9 +209,9 @@ class _MemoryMatrixScreenState extends State<MemoryMatrixScreen> {
     final res = g.tap(cell);
     if (res == MmPress.ignored) return;
     if (res == MmPress.roundLost) {
-      HapticFeedback.heavyImpact();
+      _haptics.heavy();
     } else {
-      HapticFeedback.selectionClick();
+      _haptics.selection();
       if (g.streak > _bestStreak) {
         // Рекорд празднуем, когда он побит, а не в конце партии (веб: bumpBestStreak).
         if (_bestStreak > 0) _beatBest = true;

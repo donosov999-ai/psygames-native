@@ -1,9 +1,11 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/memory_matrix/model.dart';
 import 'package:psygames_flutter/games/memory_matrix/screen.dart';
+import 'package:psygames_flutter/shell/app_haptics.dart';
 import 'package:psygames_flutter/shell/demo_lesson.dart';
 import 'package:psygames_flutter/shell/game_clock.dart';
 import 'package:psygames_flutter/shell/game_preset.dart';
@@ -28,13 +30,15 @@ void main() {
     await LevelRules.load();
   });
 
-  Future<void> boot(WidgetTester tester, {int level = 1, Map<String, String>? preset, int seed = 7}) async {
+  Future<void> boot(WidgetTester tester,
+      {int level = 1, Map<String, String>? preset, int seed = 7, Map<String, String> extra = const {}}) async {
     // Паузы показа идут на игровых часах — им нужно поддельное время пробы.
     gameWallMs = () => tester.binding.clock.now().millisecondsSinceEpoch;
     SharedPreferences.setMockInitialValues({
       'psygames_memory_matrix_level_nzt48': '$level',
       // Карточки правил уровня проба уже «видела»: они ложатся в спокойный момент и закрыли бы поле.
       for (final k in ['grid6', 'fast', 'two_series', 'decoys']) LevelRules.seenKey('memory_matrix', k): '1',
+      ...extra,
     });
     state = await SharedState.open();
     sent.clear();
@@ -313,6 +317,28 @@ void main() {
     expect(trials.map((t) => t.rule).toList(),
         [L.t('teachMatrixShape'), L.t('lr_memory_matrix_two_series_rule'), L.t('lr_memory_matrix_decoys_rule')]);
     expect(trials.every((t) => t.art is MatrixGridView), isTrue);
+  });
+
+  testWidgets('вибрация нажатия — только при включённом тумблере «Вибрация»', (tester) async {
+    final buzz = <String>[];
+    final messenger = tester.binding.defaultBinaryMessenger;
+    messenger.setMockMethodCallHandler(SystemChannels.platform, (c) async {
+      if (c.method == 'HapticFeedback.vibrate') buzz.add('${c.arguments}');
+      return null;
+    });
+    addTearDown(() => messenger.setMockMethodCallHandler(SystemChannels.platform, null));
+    for (final on in [true, false]) {
+      buzz.clear();
+      await boot(tester, level: 1, extra: {hapticKey: '$on'});
+      await tester.tap(find.byKey(const Key('mm-start')));
+      await tester.pump();
+      final lit = await watch(tester);
+      await pumpUntil(tester, () => caption(tester) == L.t('matrixRecall'));
+      await tapAll(tester, [lit.first]);
+      expect(buzz.length, on ? 1 : 0, reason: 'тумблер ${on ? 'включён' : 'выключен'}: $buzz');
+      await tester.tap(find.byTooltip(L.t('restart')));
+      await tester.pump();
+    }
   });
 
   testWidgets('уход с экрана посреди показа гасит таймеры', (tester) async {
