@@ -75,7 +75,7 @@
      `BossRound.winThenBoss(context, _ladder, type:, color:)` вместо `_ladder.win()`,
      `BossOutcomeLine(_boss)` в итоге партии; тип — `config.type` веб-экрана, цвет —
      `GRADIENT[0]`. Проба — `flutter/test/support/boss_probe.dart`. Подключены 9 экранов
-     «Поиска и счёта»; ещё без боя: ant, choice-rt, corsi, cpt, flanker, go-no-go,
+     «Поиска и счёта» и `corsi` (раздел «Объём памяти», 01.10); ещё без боя: ant, choice-rt, cpt, flanker, go-no-go,
      inhibition, posner, proofreading, simon, stop-signal, stroop, stroop-emotional,
      sudoku, switching-task.
 

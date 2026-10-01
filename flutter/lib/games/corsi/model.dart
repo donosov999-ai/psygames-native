@@ -65,6 +65,23 @@ class LevelParams {
       holdMs: max(0, level - corsiVolumeTop) * 700,
     );
   }
+
+  /// ШАГ ЗАРЯДКИ И «ОЦЕНКИ» — параметры шага, а не лестницы (веб: `corsi.tsx`,
+  /// ветка `isPreset` в `startGame`).
+  ///
+  /// · Длина ряда — желание шага (`startLen`), но не выше освоенного + 1: правило
+  ///   `capPresetByLevel` (`frontend/src/services/presetCap.ts`). Наверху лесенки
+  ///   (освоено 8) желание не срезается.
+  /// · Темп постоянный — 800/500 мс, без задержки: норма «Оценки» (5,5 ± 1,2)
+  ///   снята на классическом темпе, а не на ускоренном.
+  /// · Направление задаёт шаг (`mode`), а не уровень: шаг «forward» у человека
+  ///   с 12-м уровнем обязан играться прямым порядком, иначе домен меряет не то.
+  static LevelParams preset({required int level, required int want, required bool reverse}) {
+    final atLevel = LevelParams.of(level).startSpan;
+    final atTop = atLevel >= 8;
+    final start = want <= 0 ? atLevel : (atTop ? want : min(want, atLevel + 1));
+    return LevelParams(startSpan: start, tickMs: 800, flashMs: 500, reverse: reverse, holdMs: 0);
+  }
 }
 
 /// Чем кончилось нажатие.
@@ -84,10 +101,12 @@ enum TapOutcome {
 
 /// Партия: ряды растут, пока человек их берёт; две ошибки — конец.
 class CorsiGame {
-  CorsiGame({required this.level, List<int>? sequence, Random? rnd})
-      : params = LevelParams.of(level),
+  /// `params` — только для шага зарядки и «Оценки» ([LevelParams.preset]);
+  /// в обычной партии правила берутся из уровня.
+  CorsiGame({required this.level, LevelParams? params, List<int>? sequence, Random? rnd})
+      : params = params ?? LevelParams.of(level),
         _rnd = rnd ?? Random() {
-    _seq = sequence ?? drawSequence(params.startSpan);
+    _seq = sequence ?? drawSequence(this.params.startSpan);
   }
 
   final int level;
