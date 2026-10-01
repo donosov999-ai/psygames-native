@@ -13,6 +13,7 @@ import 'package:psygames_flutter/shell/level_rules.dart';
 import 'package:psygames_flutter/shell/session_report.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'support/settings_fit.dart';
 
 /// 🔴 «ОБЪЁМ ПРИ ЧТЕНИИ» ИГРАЕТСЯ ЧТЕНИЕМ, НАЖАТИЯМИ И НАБОРОМ.
 ///
@@ -221,5 +222,10 @@ void main() {
     await tester.tap(find.text(L.t('ctaGotIt')));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('rspan-start')), findsOneWidget, reason: 'после «Понятно» — экран старта');
+  });
+
+  testWidgets('🔴 настройка влезает в 360×640 по-английски и по-русски: «Начать» видна, ничего за краем (ae1d918b)',
+      (tester) async {
+    await expectSettingsFit(tester, () => boot(tester, level: 5), where: 'reading-span L5 (нагрузка)');
   });
 }

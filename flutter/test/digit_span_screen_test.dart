@@ -15,6 +15,7 @@ import 'package:psygames_flutter/shell/session_report.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:psygames_flutter/shell/voice.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'support/settings_fit.dart';
 
 /// Голос без сети и без системы: записывает сказанное, «есть ли голос» — по флагу.
 class _FakeVoice implements VoiceBackend {
@@ -419,5 +420,10 @@ void main() {
     await tester.pump(const Duration(milliseconds: 100));
     // Без прокрутки времени: таймер, переживший экран, проба поймает сама — «Timer is still pending».
     await tester.pumpWidget(const SizedBox());
+  });
+
+  testWidgets('🔴 настройка влезает в 360×640 по-английски и по-русски: «Начать» видна, ничего за краем (ae1d918b)',
+      (tester) async {
+    await expectSettingsFit(tester, () => boot(tester, level: 15), where: 'digit-span L15 (направление после показа)');
   });
 }
