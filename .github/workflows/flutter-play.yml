@@ -209,6 +209,17 @@ jobs:
           WEB=$(echo "$LIST" | grep -c 'base/assets/flutter_assets/assets/web/' || true)
           echo "файлов веб-части в пакете: $WEB"
           [ "$WEB" -ge 1000 ] || { echo "::error title=Веб-часть::в пакете $WEB файлов веб-части — белый экран"; exit 1; }
+          # Сеть: без INTERNET релиз падает на старте — AssetServer не откроет сокет на 127.0.0.1.
+          # Замер 01.10.2026: так ушла во внутренний трек 2.56.0 (прогон 36787018396). Манифест
+          # пакета — protobuf, но имена разрешений лежат в нём строками, поэтому grep -a.
+          # Список собирается целиком, без `grep -q` в конвейере: тот закрыл бы канал на первом
+          # совпадении, и под pipefail шаг покраснел бы от SIGPIPE у unzip.
+          PERMS=$(unzip -p "$AAB" base/manifest/AndroidManifest.xml | grep -a -o 'android\.permission\.[A-Z_]*' | sort -u || true)
+          echo "разрешения пакета: $(echo $PERMS)"
+          case "$PERMS" in
+            *android.permission.INTERNET*) ;;
+            *) echo "::error title=Сеть::в манифесте пакета нет android.permission.INTERNET — приложение упадёт на старте"; exit 1 ;;
+          esac
           echo "AAB_PATH=$PWD/$AAB" >> "$GITHUB_ENV"
 
       - name: Универсальный APK той же подписи — для проверки на эмуляторе

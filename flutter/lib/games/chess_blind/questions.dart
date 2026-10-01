@@ -9,6 +9,7 @@ library;
 import 'dart:math';
 
 import 'ladder.dart';
+import 'options.dart';
 
 /// Фигура на доске: вид, цвет и клетка.
 class PuzzlePiece {
@@ -104,8 +105,18 @@ List<Question> buildQuestions({
             sq: p.sq,
             type: p.type,
             white: p.white,
-            // Варианты строит отдельный модуль; здесь важно, что они ЕСТЬ.
-            options: ['${p.type}${p.white ? 'w' : 'b'}'],
+            // Варианты — по лестнице (число и доля одноцветных), верный среди
+            // них в случайном месте. Перенос 24.09 держал здесь ОДИН верный
+            // вариант, и экран ставил его первой кнопкой.
+            options: [
+              for (final c in buildOptions(
+                pieces,
+                (type: p.type, white: p.white),
+                level,
+                rnd,
+              ))
+                comboKey(c),
+            ],
           ),
         )
         .toList();

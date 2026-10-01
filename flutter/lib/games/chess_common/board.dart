@@ -67,6 +67,11 @@ class ChessBoardView extends StatelessWidget {
     this.masked = false,
     this.keyPrefix = 'sq',
     this.hinted,
+    this.outlines = const <int, Color>{},
+    this.strong,
+    this.revealed = const <int>{},
+    this.sideDiscs = false,
+    this.cornerCoords = false,
   });
 
   /// Клетка → фигура. Пустые клетки просто отсутствуют.
@@ -90,6 +95,26 @@ class ChessBoardView extends StatelessWidget {
   /// Клетка, которую показала подсказка («Детский мат»): янтарь, отличный от
   /// рамки выбора, — иначе человек не отличит «ты выбрал» от «начни отсюда».
   final int? hinted;
+
+  /// Рамки клеток цветом: подсветка хода, ждущие ответа клетки, итог ответа.
+  final Map<int, Color> outlines;
+
+  /// 🔴 СПРАШИВАЕМАЯ КЛЕТКА — ЗАЛИВКОЙ И ТОЛСТОЙ РАМКОЙ, А НЕ ВОЛОСКОМ (отчёт
+  /// a4cc1a7d 04.09.2026: «подсветка, не видно, какую фигуру выделять» — линия
+  /// в 7 % клетки терялась под фишкой на охристой доске).
+  final int? strong;
+
+  /// Клетки, где фишка маски после ответа ПЕРЕВЁРНУТА в настоящую фигуру
+  /// (просьба Дениса трижды: «ответил вслепую — и не знаешь, ошибся ли»).
+  final Set<int> revealed;
+
+  /// Фишка маски в цвет СТОРОНЫ: тип скрыт, сторона видна — как в вебе.
+  /// Одинаково серые фишки делали задачу другой: вопрос «чья фигура» тоже
+  /// приходилось держать в памяти.
+  final bool sideDiscs;
+
+  /// Мелкие подписи полей в угловых клетках (a–h снизу, 1–8 слева).
+  final bool cornerCoords;
 
   static const _light = Color(0xFFE8C48A);
   static const _dark = Color(0xFFC8A06A);
@@ -121,6 +146,14 @@ class ChessBoardView extends StatelessWidget {
                     keyPrefix: keyPrefix,
                     onTap: onTapSquare,
                     hinted: hinted == row * 8 + col,
+                    outline: outlines[row * 8 + col],
+                    strong: strong == row * 8 + col,
+                    revealed: revealed.contains(row * 8 + col),
+                    sideDiscs: sideDiscs,
+                    rankLabel: cornerCoords && col == 0 ? '${8 - row}' : null,
+                    fileLabel: cornerCoords && row == 7
+                        ? 'abcdefgh'[col]
+                        : null,
                   ),
               ],
             ),
@@ -145,6 +178,12 @@ class _Square extends StatelessWidget {
     required this.keyPrefix,
     required this.onTap,
     this.hinted = false,
+    this.outline,
+    this.strong = false,
+    this.revealed = false,
+    this.sideDiscs = false,
+    this.rankLabel,
+    this.fileLabel,
   });
 
   final int index;
@@ -160,6 +199,12 @@ class _Square extends StatelessWidget {
   final String keyPrefix;
   final void Function(int square)? onTap;
   final bool hinted;
+  final Color? outline;
+  final bool strong;
+  final bool revealed;
+  final bool sideDiscs;
+  final String? rankLabel;
+  final String? fileLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -176,7 +221,11 @@ class _Square extends StatelessWidget {
               : light
               ? lightColor
               : darkColor,
-          border: selected ? Border.all(color: mark, width: step * 0.06) : null,
+          border: outline != null
+              ? Border.all(color: outline!, width: step * (strong ? 0.1 : 0.06))
+              : selected
+              ? Border.all(color: mark, width: step * 0.06)
+              : null,
         ),
         alignment: Alignment.center,
         child: Stack(
@@ -196,13 +245,65 @@ class _Square extends StatelessWidget {
                       : Border.all(color: mark, width: step * 0.07),
                 ),
               ),
+            if (strong)
+              Positioned.fill(
+                child: ColoredBox(color: const Color(0x5538BDF8)),
+              ),
+            if (rankLabel != null)
+              Positioned(
+                top: 1,
+                left: 2,
+                child: Text(
+                  rankLabel!,
+                  style: TextStyle(
+                    fontSize: step * 0.22,
+                    color: light
+                        ? const Color(0xFF5D4433)
+                        : const Color(0xFFC9B29A),
+                  ),
+                ),
+              ),
+            if (fileLabel != null)
+              Positioned(
+                bottom: 1,
+                right: 2,
+                child: Text(
+                  fileLabel!,
+                  style: TextStyle(
+                    fontSize: step * 0.22,
+                    color: light
+                        ? const Color(0xFF5D4433)
+                        : const Color(0xFFC9B29A),
+                  ),
+                ),
+              ),
             if (p != null)
-              masked
-                  ? Icon(
-                      Icons.circle,
-                      size: step * 0.42,
-                      color: const Color(0xFF5B5B5B),
-                    )
+              masked && !revealed
+                  ? sideDiscs
+                        ? Container(
+                            key: Key(
+                              '$keyPrefix-disc-$index-${p.white ? 'w' : 'b'}',
+                            ),
+                            width: step * 0.62,
+                            height: step * 0.62,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: p.white
+                                  ? const Color(0xFFCBD5E1)
+                                  : const Color(0xFF475569),
+                              border: Border.all(
+                                color: p.white
+                                    ? const Color(0xFF94A3B8)
+                                    : const Color(0xFF1E293B),
+                                width: 2,
+                              ),
+                            ),
+                          )
+                        : Icon(
+                            Icons.circle,
+                            size: step * 0.42,
+                            color: const Color(0xFF5B5B5B),
+                          )
                   : ChessPieceImage(
                       type: p.type,
                       white: p.white,
