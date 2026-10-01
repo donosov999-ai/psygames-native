@@ -44,7 +44,7 @@ class SudokuScreen extends StatefulWidget {
 
   final SharedState state;
 
-  /// Режим доски: `null` — обычная лестница на 92 ступени, иначе «Небоскрёбы» или
+  /// Режим доски: `null` — обычная лестница, иначе «Небоскрёбы» или
   /// «Неравенства» со своей мини-лестницей на 8 ступеней и своим счётчиком.
   /// В вебе это тот же экран с адресом `/games/sudoku?mode=towers`.
   final SideMode? mode;
@@ -91,7 +91,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
 
   /// 🔴 ПИЛОТ ГЕНЕРАТОРА (§10 шаг 3) — ОТДЕЛЬНЫЙ ПУТЬ ЗА ФЛАГОМ, включается в меню паузы.
   /// Включён: доску выбирает рейтинг, номер уровня — счётчик побед пилота. Выключен:
-  /// лестница на 92 ступени ровно как была — ни один её ключ пилот не пишет.
+  /// основная лестница ровно как была — ни один её ключ пилот не пишет.
   GeneratorStore? _genStore;
   bool _pilot = false;
   Map<String, List<int>> _levelsOfTemplate = const {};
@@ -254,13 +254,21 @@ class _SudokuScreenState extends State<SudokuScreen> {
   @override
   void initState() {
     super.initState();
-    _ladder = LevelLadder(gameId: 'sudoku', store: SharedLevelStore(widget.state), maxLevel: 92);
+    _ladder = _ladderUpTo(SudokuLevels.fallbackLast);
     _boot();
   }
 
+  /// 🔴 ПОТОЛОК ЛЕСТНИЦЫ — ИЗ ДАННЫХ, А НЕ ЧИСЛОМ В КОДЕ (01.10.2026, задача 5b0b7ca2).
+  /// Здесь стояло `maxLevel: 92`: ступени 93–96 «немецкого шёпота» выгрузились, а победа
+  /// на 92-й оставляла человека на 92-й навсегда — новые ступени были бы недостижимы.
+  /// Поймала проба нажатиями `sudoku_whisper_screen_test.dart`, а не пробы данных.
+  LevelLadder _ladderUpTo(int last) =>
+      LevelLadder(gameId: 'sudoku', store: SharedLevelStore(widget.state), maxLevel: last);
+
   Future<void> _boot() async {
-    await _ladder.load();
     final levels = await SudokuLevels.load();
+    _ladder = _ladderUpTo(levels.lastLevel);
+    await _ladder.load();
     await WordokuWords.load();
     // Лестница нужна и в режиме: потолок подсказок берётся по номеру ступени — ровно
     // так же, как в веб-половине (там в режиме `level` держит номер ступени).
@@ -733,7 +741,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
     _won = true;
     if (widget.mode != null) {
       _reportModeWin(_side?.step ?? 1);   // шаг — ДО прибавки, как в вебе
-      _side?.win();   // ступень режима — свой счётчик, лестница на 92 ступени не трогается
+      _side?.win();   // ступень режима — свой счётчик, основная лестница не трогается
       return;
     }
     // Подсказками доигранная партия рейтинг не повышает — это правило движка, не экрана.
