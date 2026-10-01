@@ -27,6 +27,7 @@ import 'lesson.dart';
 import 'mode_board.dart';
 import 'modes.dart';
 import 'symbols.dart';
+import 'variant_decor.dart';
 
 /// СУДОКУ на общем каркасе — первый экран раздела в переезде на Flutter.
 ///
@@ -1128,14 +1129,39 @@ class SudokuBoardView extends StatelessWidget {
       builder: (context, c) {
         // 🔴 Сторона — от МЕНЬШЕГО из высоты каркаса и ширины. Ровно этого не делала
         // веб-версия: считала от окна, и доска вылезала под ряд цифр.
-        final side = (height < c.maxWidth ? height : c.maxWidth) - 16;
+        final avail = (height < c.maxWidth ? height : c.maxWidth) - 16;
         final n = board.n;
-        final cell = side / n;
-        return Center(
-          child: SizedBox(
-            width: side,
-            height: side,
-            child: Column(
+        final g = board.geometry;
+        final sw = g.sandwich;
+        // Суммы сэндвича — полосой над доской и слева, как в вебе (`clueCols` 0,6 клетки).
+        final cell = avail / (n + (sw != null ? 0.6 : 0));
+        final side = cell * n;
+        final gutter = avail - side;
+        final cages = g.cages;
+        int? cageSumAt(int r, int col) {
+          if (cages == null) return null;
+          final id = cages.cageOf[r][col];
+          if (id < 0 || id >= cages.anchor.length || cages.anchor[id] != r * n + col) return null;
+          return cages.sum[id];
+        }
+
+        Widget clue(String key, int v, double w, double h) => SizedBox(
+              width: w,
+              height: h,
+              child: Center(
+                child: Text(
+                  v < 0 ? '' : '$v', // −1 — сумма спрятана прореживанием
+                  key: Key(key),
+                  style: TextStyle(fontSize: cell * 0.34, fontWeight: FontWeight.w600, color: scheme.onSurfaceVariant),
+                ),
+              ),
+            );
+
+        Widget boardGrid = SizedBox(
+          width: side,
+          height: side,
+          child: Stack(children: [
+            Column(
               children: [
                 for (var r = 0; r < n; r++)
                   SizedBox(
@@ -1159,14 +1185,59 @@ class SudokuBoardView extends StatelessWidget {
                             onTap: onTap,
                             glyph: symbols?.glyph,
                             image: symbols?.image,
+                            decor: cellDecorFor(g, r, col),
+                            cageSum: cageSumAt(r, col),
                           ),
                       ],
                     ),
                   ),
               ],
             ),
-          ),
+            // Диагонали и доп. зоны «гипера» — цельными линиями поверх доски, как в вебе.
+            if (board.variant == 'diagonal' || board.variant == 'killerdiag' || board.variant == 'hyper')
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: CustomPaint(
+                    key: Key(board.variant == 'hyper' ? 'hyper-layer' : 'diagonal-layer'),
+                    painter: BoardLinesPainter(
+                      diagonals: board.variant != 'hyper',
+                      hyper: board.variant == 'hyper',
+                      n: n,
+                      ink: scheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+              ),
+            // Точки Кропки — поверх клеток: они на грани, рисунок клетки срезал бы половину.
+            if (g.kropki != null)
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: CustomPaint(
+                    key: const Key('kropki-layer'),
+                    painter: KropkiPainter(dots: kropkiDots(g.kropki!, n, cell), cell: cell),
+                  ),
+                ),
+              ),
+          ]),
         );
+        if (sw != null) {
+          boardGrid = Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(mainAxisSize: MainAxisSize.min, children: [
+                SizedBox(width: gutter),
+                for (var col = 0; col < n; col++) clue('sandwich-col-$col', sw.cols[col], cell, gutter),
+              ]),
+              Row(mainAxisSize: MainAxisSize.min, children: [
+                Column(children: [
+                  for (var r = 0; r < n; r++) clue('sandwich-row-$r', sw.rows[r], gutter, cell),
+                ]),
+                boardGrid,
+              ]),
+            ],
+          );
+        }
+        return Center(child: boardGrid);
       },
     );
   }
@@ -1187,12 +1258,20 @@ class _Cell extends StatelessWidget {
     required this.onTap,
     this.glyph,
     this.image,
+    this.decor,
+    this.cageSum,
   });
 
   final double size;
   final int row;
   final int col;
   final SudokuBoard board;
+
+  /// Рисунок варианта под цифрой (`variant_decor.dart`); `null` — рисовать нечего.
+  final CellDecor? decor;
+
+  /// Сумма группы — у её угловой клетки; `null` — не угол.
+  final int? cageSum;
 
   /// Значок цифры; `null` — сама цифра.
   final String Function(int)? glyph;
@@ -1257,7 +1336,7 @@ class _Cell extends StatelessWidget {
             ? scheme.primaryContainer
             : (paint >= 0 && paint < sudokuColorCount
                 ? cellColors[paint].withValues(alpha: 0.35)
-                : scheme.surface),
+                : (cageTint(scheme.surface, decor?.cageId ?? -1) ?? scheme.surface)),
         child: InkWell(
           key: Key('cell_${row}_$col'),
           onTap: () => onTap(row, col),
@@ -1272,7 +1351,13 @@ class _Cell extends StatelessWidget {
             ),
             // Цифра ГАСИТ пометки, но не стирает их: убрал цифру — кандидаты
             // снова на месте (visiblePencilDigits, разбор в marks.dart).
-            child: Center(
+            child: Stack(fit: StackFit.expand, children: [
+              if (decor != null)
+                CustomPaint(
+                  key: Key('decor_${row}_$col'),
+                  painter: CellDecorPainter(decor: decor!, surface: scheme.surface, row: row, col: col),
+                ),
+              Center(
               child: value == 0 && mask != 0
                   ? PencilMarksLayer(
                       key: Key('marks_${row}_$col'),
@@ -1290,7 +1375,22 @@ class _Cell extends StatelessWidget {
                         color: given ? scheme.onSurface : scheme.primary,
                       ),
                     ),
-            ),
+              ),
+              if (cageSum != null)
+                Positioned(
+                  left: 3,
+                  top: 1,
+                  child: Text(
+                    '$cageSum',
+                    key: Key('cage-sum-${row}_$col'),
+                    style: TextStyle(
+                      fontSize: size * 0.27 < 8 ? 8 : size * 0.27,
+                      fontWeight: FontWeight.w700,
+                      color: scheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+            ]),
           ),
         ),
       ),

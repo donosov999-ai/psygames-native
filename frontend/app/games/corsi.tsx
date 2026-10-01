@@ -312,8 +312,11 @@ export default function CorsiGame() {
         game_type: 'corsi',
         score: Math.max(0, finalSpan * 200 - finalErrors * 50),
         time_seconds: finalTime,
-        difficulty: modeRef.current,
-        mode: `L${levelRef.current}`,
+        // Шаг «Оценки» опознаёт партию по меткам ШАГА дословно (sessionFitsStep в
+        // services/assessment.ts): в пресете — diff шага и направление. С меткой
+        // направления в difficulty домен молча считался средним (замер 30.09.2026).
+        difficulty: isPreset ? str('diff', 'medium') : modeRef.current,
+        mode: isPreset ? modeRef.current : `L${levelRef.current}`,
         errors: finalErrors,
         details: { level: levelRef.current, span: finalSpan },
       });
