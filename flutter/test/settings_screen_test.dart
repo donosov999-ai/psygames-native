@@ -282,4 +282,57 @@ void main() {
       expect(find.text(L.t('alert_backup_restored')), findsOneWidget);
     });
   });
+
+  group('состав профилей из файла — только владелец (часть 5)', () {
+    String? clip;
+    String? lastJs;
+    setUp(() {
+      clip = null;
+      lastJs = null;
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(SystemChannels.platform, (call) async {
+        if (call.method == 'Clipboard.getData') return {'text': clip};
+        return null;
+      });
+    });
+    tearDown(() {
+      SettingsScreen.webEval = null;
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(SystemChannels.platform, null);
+    });
+
+    testWidgets('у обычного профиля строк состава нет', (t) async {
+      await open(t, prefs: {'psygames_active_profile': 'kids'});
+      expect(find.byKey(const Key('settings-playlists-load')), findsNothing);
+    });
+
+    testWidgets('владелец: файл разбирает страница, состав ложится ключом веба, веб перезагружается', (t) async {
+      final saved = jsonEncode({'профили': {'kids': {}, 'free': {}}, 'наборы': []});
+      // Android отдаёт строку ещё раз в кавычках — проверяем самый неудобный случай.
+      SettingsScreen.webEval = (js) async {
+        lastJs = js;
+        return jsonEncode(jsonEncode({'ok': true, 'saved': saved, 'n': 2, 'dropped': ['zzz']}));
+      };
+      await open(t, prefs: {'psygames_active_profile': 'odv999'});
+      clip = '{"app":"PsyGames-Playlists"}';
+      SettingsScreen.webDirty = false;
+      await realTap(t, 'settings-playlists-load');
+      expect(lastJs, contains('__psyPlaylistsParse'));
+      expect(lastJs, contains(jsonEncode(clip)), reason: 'текст файла не дошёл до разборщика страницы');
+      expect(state.get(SettingsScreen.playlists), saved);
+      expect(SettingsScreen.takeWebDirty(), isTrue);
+      await t.tap(find.text(L.t('close')).last);
+      await t.pumpAndSettle();
+      expect(find.byKey(const Key('settings-playlists-reset')), findsOneWidget);
+      await realTap(t, 'settings-playlists-reset');
+      expect(state.get(SettingsScreen.playlists), isNull, reason: 'сброс не вернул заводской состав');
+    });
+
+    testWidgets('страница не приняла файл — ключ не тронут, причина на экране', (t) async {
+      SettingsScreen.webEval = (js) async => jsonEncode({'ok': false, 'error': 'не тот файл'});
+      await open(t, prefs: {'psygames_active_profile': 'odv999'});
+      clip = '{"app":"Другое"}';
+      await realTap(t, 'settings-playlists-load');
+      expect(state.get(SettingsScreen.playlists), isNull);
+      expect(find.text('не тот файл'), findsOneWidget);
+    });
+  });
 }

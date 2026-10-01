@@ -713,6 +713,7 @@ class _HybridAppState extends State<HybridApp> {
     HybridApp.open = _open;
     HybridApp.runJs = _runJs;
     WarmupUi.run = _runUi;
+    SettingsScreen.webEval = _runJs;
     // Перенесённая игра по START_ROUTE: перехват на первой загрузке не срабатывает
     // (это не переход, а первый адрес), поэтому открываем нативный экран сами.
     final first = HybridApp.routeOf('${widget.server.origin}${HybridApp.startRoute}');
@@ -731,6 +732,7 @@ class _HybridAppState extends State<HybridApp> {
     if (HybridApp.open == _open) HybridApp.open = null;
     if (HybridApp.runJs == _runJs) HybridApp.runJs = null;
     if (WarmupUi.run == _runUi) WarmupUi.run = null;
+    if (SettingsScreen.webEval == _runJs) SettingsScreen.webEval = null;
     super.dispose();
   }
 

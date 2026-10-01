@@ -49,8 +49,16 @@ class SettingsScreen extends StatefulWidget {
   /// иначе она останется в старом виде (см. `hybrid_app.dart`, возврат из настроек).
   static const watched = <String>[
     AppLook.overrideKey, sound, volume, music, haptic, colorblind, devChat, pet, petScale, 'language',
-    '${SharedState.prefix}active_profile',
+    '${SharedState.prefix}active_profile', playlists,
   ];
+
+  /// Состав профилей из файла владельца — `КЛЮЧ_СОСТАВА` (`playlistOverride.ts`).
+  static const playlists = '${SharedState.prefix}playlists_override';
+
+  /// Выполнить выражение в странице под нативным экраном и вернуть результат. Ставит оболочка
+  /// (`hybrid_app.dart`); в пробах — подмена. Нужна одному месту: разбору файла состава —
+  /// разборщик (`разобрать`, ~280 строк) живёт в вебе в единственном экземпляре.
+  static Future<Object?> Function(String js)? webEval;
 
   /// Границы размера питомца — `PET_SCALE_MIN/MAX` из `frontend/src/services/pet.ts`.
   static const petMin = 0.6, petMax = 1.8;
@@ -240,6 +248,71 @@ class _SettingsScreenState extends State<SettingsScreen> {
     } catch (_) {
       if (mounted) await _alert(L.t('alert_export_error'), L.t('msg_backup_create_failed'));
     }
+  }
+
+  /// Сколько профилей в загруженном составе; null — заводской из сборки.
+  int? get _playlistProfiles {
+    try {
+      final j = jsonDecode(_s.get(SettingsScreen.playlists) ?? '');
+      return j is Map && j['профили'] is Map ? (j['профили'] as Map).length : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// «Загрузить состав из файла» (только владелец): файл → разбор страницей → ключ состава.
+  Future<void> _loadPlaylists() async {
+    String? text;
+    try {
+      final files = await FilePicker.pickFiles(type: FileType.custom, allowedExtensions: const ['json']);
+      if (files.isEmpty) return;
+      text = utf8.decode(await files.first.readAsBytes());
+    } catch (e) {
+      if (e is! MissingPluginException && e is! UnimplementedError) {
+        if (mounted) await _alert(L.t('alert_import_error'), '$e');
+        return;
+      }
+      text = (await Clipboard.getData(Clipboard.kTextPlain))?.text;
+    }
+    if (text == null || text.trim().isEmpty) {
+      if (mounted) await _alert(L.t('btn_load_playlists'), L.t('playlistsPasteHint'));
+      return;
+    }
+    final eval = SettingsScreen.webEval;
+    Object? v;
+    try {
+      v = eval == null
+          ? null
+          : await eval('JSON.stringify(window.__psyPlaylistsParse ? window.__psyPlaylistsParse(${jsonEncode(text)}) : null)');
+      // WebKit отдаёт строку как есть, Android — ещё раз в кавычках (как в hybrid_app.dart).
+      for (var i = 0; i < 2 && v is String; i += 1) {
+        v = jsonDecode(v);
+      }
+    } catch (_) {
+      v = null;
+    }
+    if (!mounted) return;
+    if (v is! Map || v['ok'] != true || v['saved'] is! String) {
+      await _alert(L.t('alert_import_error'), v is Map ? '${v['error'] ?? ''}' : '');
+      return;
+    }
+    await _s.set(SettingsScreen.playlists, v['saved'] as String);
+    SettingsScreen.webDirty = true;
+    if (!mounted) return;
+    setState(() {});
+    final dropped = (v['dropped'] as List?)?.cast<Object?>() ?? const [];
+    final tail = dropped.isEmpty
+        ? ''
+        : '\n${L.t('playlistsDropped').replaceAll('{n}', '${dropped.length}').replaceAll('{first}', '${dropped.first}')}';
+    await _alert(L.t('btn_load_playlists'), L.t('playlistsLoaded').replaceAll('{n}', '${v['n']}') + tail);
+  }
+
+  Future<void> _resetPlaylists() async {
+    await _s.remove(SettingsScreen.playlists);
+    SettingsScreen.webDirty = true;
+    if (!mounted) return;
+    setState(() {});
+    await _alert(L.t('btn_reset_playlists'), L.t('playlistsReset'));
   }
 
   /// «Восстановить копию»: выбор файла (в гибриде веб открывал тот же системный выбор);
@@ -541,13 +614,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ]),
         ));
 
-    Widget action(String key, IconData icon, Color iconColor, String label, Future<void> Function() onTap) => card(InkWell(
+    Widget action(String key, IconData icon, Color iconColor, String label, Future<void> Function() onTap, {String? hint}) =>
+        card(InkWell(
           key: Key('settings-$key'),
           onTap: onTap,
           child: Row(children: [
             Icon(icon, color: iconColor, size: 24),
             const SizedBox(width: 12),
-            Expanded(child: Text(label, style: TextStyle(color: text, fontSize: 16, fontWeight: FontWeight.w500))),
+            Expanded(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text(label, style: TextStyle(color: text, fontSize: 16, fontWeight: FontWeight.w500)),
+                if (hint != null) Text(hint, maxLines: 2, style: TextStyle(color: sub, fontSize: 12)),
+              ]),
+            ),
             Icon(rtl ? Icons.chevron_left : Icons.chevron_right, color: sub, size: 20),
           ]),
         ));
@@ -701,6 +780,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
               link('/onboarding?tutorial=1', Icons.play_circle_outline, accent, L.t('btn_replay_tutorial')),
               action('backup-save', Icons.cloud_download_outlined, const Color(0xFF22C55E), L.t('btn_save_backup'), _saveBackup),
               action('backup-restore', Icons.cloud_upload_outlined, const Color(0xFF3B82F6), L.t('btn_restore_backup'), _restoreBackup),
+              // Состав профилей из файла — только у владельца (просьба Дениса 13.09.2026: «редактировать
+              // буду только я»), как `profile.id === 'odv999'` в вебе.
+              if (profile == 'odv999') ...[
+                action('playlists-load', Icons.list_alt, const Color(0xFFA855F7), L.t('btn_load_playlists'), _loadPlaylists,
+                    hint: _playlistProfiles == null
+                        ? L.t('playlistsNowFactory')
+                        : L.t('playlistsNowFile').replaceAll('{n}', '${_playlistProfiles!}')),
+                if (_playlistProfiles != null)
+                  action('playlists-reset', Icons.refresh, const Color(0xFFF59E0B), L.t('btn_reset_playlists'), _resetPlaylists),
+              ],
               const SizedBox(height: 24),
               Text(
                 'PsyGames${_version.isEmpty ? '' : ' v$_version'} · ${_profiles.byId(profile)?.emoji ?? ''} ${L.t('profileName_$profile')} · ${L.t('label_validated_paradigms')}',
