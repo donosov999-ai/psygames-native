@@ -68,9 +68,12 @@ void main() {
   }
 
   CornersRun run(WidgetTester tester) =>
-      (tester.state(find.byType(CornersScreen)) as dynamic).debugRun as CornersRun;
+      (tester.state(find.byType(CornersScreen)) as dynamic).debugRun
+          as CornersRun;
 
-  testWidgets('ступень 1: пять задач решены касаниями — ступень выше', (tester) async {
+  testWidgets('ступень 1: пять задач решены касаниями — ступень выше', (
+    tester,
+  ) async {
     await open(tester);
     await tester.tap(find.byKey(const Key('cn-start')));
     await tester.pump();
@@ -88,39 +91,60 @@ void main() {
       await tester.pump(const Duration(milliseconds: 250));
     }
     await tester.pump(const Duration(milliseconds: 250));
-    expect(text(tester, 'cn-solved'), '${L.t('hud_correct')}: ${deck.length}/${deck.length}');
-    expect(find.textContaining('${L.t('label_level_short')} 2'), findsOneWidget);
+    expect(
+      text(tester, 'cn-solved'),
+      '${L.t('hud_correct')}: ${deck.length}/${deck.length}',
+    );
+    expect(
+      find.textContaining('${L.t('label_level_short')} 2'),
+      findsOneWidget,
+    );
   });
 
-  for (final size in const [Size(320, 568), Size(390, 844)])
-  testWidgets('🔴 ${size.width.toInt()}×${size.height.toInt()} ступень «ровно минимум»: лишний ход — «ходы кончились», «Где ошибка?» — ход 1', (tester) async {
-    await open(tester, level: 3, size: size);
-    await tester.tap(find.byKey(const Key('cn-start')));
-    await tester.pump();
-    final r = run(tester);
-    final p = r.puzzle;
-    expect(r.limit, p.minimum);
-    // Первый ход, после которого за минимум−1 не успеть.
-    final bad = p.board.moves(p.startMask).firstWhere(
-      (m) => CornersSearch(p.board).reachable(CornersBoard.apply(p.startMask, m), p.minimum - 1) == CornersVerdict.no,
+  for (final size in const [Size(320, 568), Size(390, 844)]) {
+    testWidgets(
+      '🔴 ${size.width.toInt()}×${size.height.toInt()} ступень «ровно минимум»: лишний ход — «ходы кончились», «Где ошибка?» — ход 1',
+      (tester) async {
+        await open(tester, level: 3, size: size);
+        await tester.tap(find.byKey(const Key('cn-start')));
+        await tester.pump();
+        final r = run(tester);
+        final p = r.puzzle;
+        expect(r.limit, p.minimum);
+        // Первый ход, после которого за минимум−1 не успеть.
+        final bad = p.board
+            .moves(p.startMask)
+            .firstWhere(
+              (m) =>
+                  CornersSearch(p.board).reachable(
+                    CornersBoard.apply(p.startMask, m),
+                    p.minimum - 1,
+                  ) ==
+                  CornersVerdict.no,
+            );
+        await tapCell(tester, bad.$1);
+        await tapCell(tester, bad.$2);
+        while (r.verdict == null) {
+          final m = p.board.moves(r.pieces).first;
+          await tapCell(tester, m.$1);
+          await tapCell(tester, m.$2);
+        }
+        expect(text(tester, 'cn-verdict'), L.t('cnOut'));
+        await tester.tap(find.byKey(const Key('cn-where')));
+        await tester.pump();
+        expect(text(tester, 'cn-verdict'), L.f('cnMistake', {'n': '1'}));
+        expect(
+          tester.takeException(),
+          isNull,
+          reason: 'четыре кнопки и длинная надпись помещаются',
+        );
+        await tester.tap(find.byKey(const Key('cn-restart')));
+        await tester.pump();
+        expect(text(tester, 'cn-verdict'), ' ');
+        expect(r.history, isEmpty);
+      },
     );
-    await tapCell(tester, bad.$1);
-    await tapCell(tester, bad.$2);
-    while (r.verdict == null) {
-      final m = p.board.moves(r.pieces).first;
-      await tapCell(tester, m.$1);
-      await tapCell(tester, m.$2);
-    }
-    expect(text(tester, 'cn-verdict'), L.t('cnOut'));
-    await tester.tap(find.byKey(const Key('cn-where')));
-    await tester.pump();
-    expect(text(tester, 'cn-verdict'), L.f('cnMistake', {'n': '1'}));
-    expect(tester.takeException(), isNull, reason: 'четыре кнопки и длинная надпись помещаются');
-    await tester.tap(find.byKey(const Key('cn-restart')));
-    await tester.pump();
-    expect(text(tester, 'cn-verdict'), ' ');
-    expect(r.history, isEmpty);
-  });
+  }
 
   testWidgets('часы стоят, пока открыт разбор поверх партии', (tester) async {
     await open(tester, gameClock: true);
@@ -146,13 +170,19 @@ void main() {
 
   for (final size in const [Size(320, 568), Size(390, 844)]) {
     // Ступень 16 — доска 7×7, самая мелкая клетка корпуса.
-    testWidgets('${size.width.toInt()}×${size.height.toInt()}: 7×7 без переполнения, клетка ≥ 32', (tester) async {
-      await open(tester, size: size, level: 16);
-      await tester.tap(find.byKey(const Key('cn-start')));
-      await tester.pump();
-      expect(run(tester).puzzle.size, 7);
-      expect(tester.takeException(), isNull);
-      expect(tester.getSize(find.byKey(const Key('cn-0'))).width, greaterThanOrEqualTo(32));
-    });
+    testWidgets(
+      '${size.width.toInt()}×${size.height.toInt()}: 7×7 без переполнения, клетка ≥ 32',
+      (tester) async {
+        await open(tester, size: size, level: 16);
+        await tester.tap(find.byKey(const Key('cn-start')));
+        await tester.pump();
+        expect(run(tester).puzzle.size, 7);
+        expect(tester.takeException(), isNull);
+        expect(
+          tester.getSize(find.byKey(const Key('cn-0'))).width,
+          greaterThanOrEqualTo(32),
+        );
+      },
+    );
   }
 }
