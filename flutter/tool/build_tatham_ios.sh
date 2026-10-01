@@ -80,18 +80,30 @@ for g in $GAMES; do echo "GAME($g)" >> "$OUT/gen/generated-games.h"; done
 } > "$OUT/gen/combined-list.c"
 
 # Те же две заплаты, что у хостовой сборки: канон не трогаем, правим копии.
-sed 's/return state->completed ? +1 : 0;/return state->completed >= 0 ? +1 : 0;/' \
-  "$SRC/unfinished/slide.c" > "$OUT/patched/slide.c"
+# -DSOLVER_DIAGNOSTICS (учитель, задача 23773004): у slide.c под этим выключателем устаревший код
+# (board_text_format с тремя аргументами вместо четырёх) — печать ему выключаем, остальные движки печатают.
+{ echo '#undef SOLVER_DIAGNOSTICS'; sed 's/return state->completed ? +1 : 0;/return state->completed >= 0 ? +1 : 0;/' \
+  "$SRC/unfinished/slide.c"; } > "$OUT/patched/slide.c"
 grep -q 'return state->completed >= 0 ? +1 : 0;' "$OUT/patched/slide.c" \
   || { echo "заплата slide.c не легла: канон изменился"; exit 3; }
+# pearl.c читает solver_show_working под SOLVER_DIAGNOSTICS, а объявляет её только для автономного
+# решателя (pearl.c:49–52) — без заплаты -DSOLVER_DIAGNOSTICS не собирается. Добавляем ветку #elif.
+perl -pe 's/^(static bool solver_show_working = false;)$/$1\n#elif defined SOLVER_DIAGNOSTICS\nstatic const bool solver_show_working = true;/' \
+  "$SRC/pearl.c" > "$OUT/patched/pearl.c"
+grep -q 'static const bool solver_show_working = true;' "$OUT/patched/pearl.c" \
+  || { echo "заплата pearl.c не легла: канон изменился"; exit 3; }
+grep -q 'char \*aux_info;' "$SRC/midend.c" \
+  || { echo "заплата midend.c не легла: нет поля aux_info"; exit 3; }
 grep -q 'int nstates, statesize, statepos;' "$SRC/midend.c" \
   || { echo "заплата midend.c не легла: нет поля statepos"; exit 3; }
-{ cat "$SRC/midend.c"; printf '\nint psy_midend_statepos(midend *me) { return me->statepos; }\n'; } \
+{ cat "$SRC/midend.c"; printf '\nint psy_midend_statepos(midend *me) { return me->statepos; }\n'; \
+  printf 'char *psy_midend_swap_aux(midend *me, char *aux) { char *old = me->aux_info; me->aux_info = aux; return old; }\n'; } \
   > "$OUT/patched/midend.c"
 
 SRCS=""
 for g in $GAMES; do
   if [ "$g" = "slide" ]; then SRCS="$SRCS $OUT/patched/slide.c"
+  elif [ "$g" = "pearl" ]; then SRCS="$SRCS $OUT/patched/pearl.c"
   elif [ -f "$SRC/$g.c" ]; then SRCS="$SRCS $SRC/$g.c"
   else SRCS="$SRCS $SRC/unfinished/$g.c"; fi
 done

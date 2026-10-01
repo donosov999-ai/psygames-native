@@ -329,6 +329,8 @@ EMSCRIPTEN_KEEPALIVE int psy_status(void) { return ПАРТИЯ ? midend_status(
  * протяжки считался ходом. Канон позицию наружу не отдаёт — геттер дописан заплатой в `build.sh`.
  */
 int psy_midend_statepos(midend *me);
+/** Подменить `me->aux_info` и вернуть прежнее (заплата midend.c в build_tatham*.sh). */
+char *psy_midend_swap_aux(midend *me, char *aux);
 EMSCRIPTEN_KEEPALIVE int psy_statepos(void) { return ПАРТИЯ ? psy_midend_statepos(ПАРТИЯ) : 0; }
 EMSCRIPTEN_KEEPALIVE int psy_undo(void) { return ПАРТИЯ && midend_can_undo(ПАРТИЯ) ? ход(midend_process_key(ПАРТИЯ, -1, -1, 'u')) : 0; }
 EMSCRIPTEN_KEEPALIVE int psy_redo(void) { return ПАРТИЯ && midend_can_redo(ПАРТИЯ) ? ход(midend_process_key(ПАРТИЯ, -1, -1, 'r')) : 0; }
@@ -361,14 +363,12 @@ static char *ПЕЧАТЬ = NULL;
 static size_t печ_длина = 0, печ_ёмкость = 0;
 static int ЛОВИМ = 0;
 
-int psy_diag_printf(const char *fmt, ...)
+int psy_diag_vprintf(const char *fmt, va_list ap)
 {
-    va_list ap; int n;
+    int n;
     char кусок[512];
     if (!ЛОВИМ) return 0;
-    va_start(ap, fmt);
     n = vsnprintf(кусок, sizeof кусок, fmt, ap);
-    va_end(ap);
     if (n <= 0) return n;
     if ((size_t)n >= sizeof кусок) n = (int)sizeof кусок - 1;
     if (печ_длина + (size_t)n + 1 > печ_ёмкость) {
@@ -381,6 +381,16 @@ int psy_diag_printf(const char *fmt, ...)
     return n;
 }
 
+int psy_diag_printf(const char *fmt, ...)
+{
+    va_list ap; int n;
+    if (!ЛОВИМ) return 0;
+    va_start(ap, fmt);
+    n = psy_diag_vprintf(fmt, ap);
+    va_end(ap);
+    return n;
+}
+
 /** Решить и вернуть печать решателя строками. NULL — решения нет (как 0 у `psy_solve`). */
 EMSCRIPTEN_KEEPALIVE char *psy_solve_explain(void)
 {
@@ -388,9 +398,25 @@ EMSCRIPTEN_KEEPALIVE char *psy_solve_explain(void)
     if (!ПАРТИЯ) return NULL;
     печ_длина = 0;
     if (ПЕЧАТЬ) ПЕЧАТЬ[0] = '\0';
+    /*
+     * 🔴 РЕШАЕМ БЕЗ ГОТОВОГО РЕШЕНИЯ. При генерации автор кладёт решение в `aux`, и почти
+     * каждый solve_game его просто отдаёт, НЕ рассуждая (dominosa.c:2612 `if (aux)`). Замер
+     * 01.10: с aux печать пришла у 1 движка из 9 — Light Up, единственного, кто решает сам.
+     * Поэтому aux на время решения убираем; движок, который без него не умеет (Untangle,
+     * Netslide), решаем с aux — тогда разбор без имён, как раньше.
+     */
     ЛОВИМ = 1;
-    ошибка = midend_solve(ПАРТИЯ);
+    {
+        char *готовое = psy_midend_swap_aux(ПАРТИЯ, NULL);
+        ошибка = midend_solve(ПАРТИЯ);
+        psy_midend_swap_aux(ПАРТИЯ, готовое);
+    }
     ЛОВИМ = 0;
+    if (ошибка != NULL) {
+        печ_длина = 0;
+        if (ПЕЧАТЬ) ПЕЧАТЬ[0] = '\0';
+        ошибка = midend_solve(ПАРТИЯ);
+    }
     if (ошибка != NULL) return NULL;
     ХОД_БЫЛ = 1;
     return dupstr(ПЕЧАТЬ ? ПЕЧАТЬ : "");

@@ -22,6 +22,15 @@
 #ifndef PSY_DIAG_H
 #define PSY_DIAG_H
 #include <stdio.h>
+#include <stdarg.h>
 int psy_diag_printf(const char *fmt, ...);
+int psy_diag_vprintf(const char *fmt, va_list ap);
 #define printf(...) psy_diag_printf(__VA_ARGS__)
+/* Печать идёт не только через printf: slant.c:472 — vprintf, ещё 25 файлов зовут puts/putchar. */
+#undef vprintf
+#define vprintf(f, ap) psy_diag_vprintf((f), (ap))
+#undef puts
+#define puts(s) psy_diag_printf("%s\n", (s))
+#undef putchar
+#define putchar(c) psy_diag_printf("%c", (c))
 #endif
