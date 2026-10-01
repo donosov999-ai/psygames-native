@@ -37,8 +37,9 @@ import 'model.dart';
 /// ход бота — часть партии, поднять его из снимка честно нельзя.
 enum Phase { ready, preview, play, won, revealed }
 
-/// Режим экрана: лестница уровней, свободная партия или дуэль с ботом.
-enum PairsMode { levels, free, duel }
+/// Режим экрана: лестница уровней, свободная партия, дуэль с ботом или «Малыши» — движок
+/// MindLab «Пары» ступенями 4 → 8 → 12 пар с оценкой против идеальной памяти ([pairsKidsSteps]).
+enum PairsMode { levels, free, duel, kids }
 
 /// Отложенная запись партии — как в вебе и у «Дворца памяти»: подряд идущие касания дают
 /// ОДНУ запись, и пишется последнее состояние.
@@ -114,6 +115,15 @@ class _PicturePairsScreenState extends State<PicturePairsScreen> with WidgetsBin
   PairsBotLevel _botLevel = PairsBotLevel.kitten;
   PairsDuel? _duel;
   GameTimer? _botTimer;
+
+  /// «Малыши»: ступень поля (индекс в [pairsKidsSteps]) и итог последней партии.
+  bool _kidsMode = false;
+  int _kidsStep = 0;
+  int? _kidsStars;
+  bool _kidsUp = false;
+
+  /// Ступень «Малышей» хранится у профиля — как уровень лестницы.
+  String get _kidsKey => 'psygames_picture_pairs_kids_step_${widget.state.activeProfile}';
   int _freePairs = 6;
   bool _photo = true;
   int _previewMs = 500;
@@ -162,6 +172,8 @@ class _PicturePairsScreenState extends State<PicturePairsScreen> with WidgetsBin
   Future<void> _boot() async {
     await _ladder.load();
     final theme = widget.theme ?? await PairsTheme.load(widget.state.activeProfile);
+    final kidsStep = int.tryParse(widget.state.get(_kidsKey) ?? '') ?? 0;
+    _kidsStep = kidsStep.clamp(0, pairsKidsSteps.length - 1);
     // Шаг зарядки старую партию не поднимает: он сам начинает свежий раунд (как в вебе).
     final saved = GamePreset.autostart ? null : await _resume.load();
     if (!mounted) return;
@@ -202,6 +214,7 @@ class _PicturePairsScreenState extends State<PicturePairsScreen> with WidgetsBin
       final level = _ladder.level;
       _free = true;
       _duelMode = false;
+      _kidsMode = false;
       _photo = true;
       _freePairs = capPresetByLevel(
         want: GamePreset.num('pairsCount', 6),
@@ -219,7 +232,16 @@ class _PicturePairsScreenState extends State<PicturePairsScreen> with WidgetsBin
         : _duelMode
             // Дуэль — классические пары без показа: память набирается ходами обоих.
             ? PairsGame(level: _ladder.level, cfg: pairsFreeCfg(pairs: _freePairs, photo: false, previewMs: 0), rnd: _rnd)
-            : PairsGame(level: _ladder.level, rnd: _rnd);
+            : _kidsMode
+                // «Малыши» — как движок MindLab: пары без показа, поле по ступени.
+                ? PairsGame(
+                    level: _ladder.level,
+                    cfg: pairsFreeCfg(pairs: pairsKidsSteps[_kidsStep], photo: false, previewMs: 0),
+                    rnd: _rnd,
+                  )
+                : PairsGame(level: _ladder.level, rnd: _rnd);
+    _kidsStars = null;
+    _kidsUp = false;
     if (_duelMode) _duel = PairsDuel(game: _game!, bot: PairsBot(_botLevel, rnd: _rnd));
     _phase = Phase.ready;
     _locked = false;
@@ -228,13 +250,16 @@ class _PicturePairsScreenState extends State<PicturePairsScreen> with WidgetsBin
 
   PairsMode get _mode => _duelMode
       ? PairsMode.duel
-      : _free
-          ? PairsMode.free
-          : PairsMode.levels;
+      : _kidsMode
+          ? PairsMode.kids
+          : _free
+              ? PairsMode.free
+              : PairsMode.levels;
 
   void _setMode(PairsMode m) {
     _free = m == PairsMode.free;
     _duelMode = m == PairsMode.duel;
+    _kidsMode = m == PairsMode.kids;
     _reset();
   }
 
@@ -261,7 +286,8 @@ class _PicturePairsScreenState extends State<PicturePairsScreen> with WidgetsBin
     _saveTimer?.cancel();
     _saveTimer = null;
     final g = _game;
-    if (g == null || _phase != Phase.play || _duelMode) return;
+    // Дуэль и «Малыши» — нативные режимы, у веб-снимка (PairsResume) для них нет формы.
+    if (g == null || _phase != Phase.play || _duelMode || _kidsMode) return;
     if (g.moves == 0 && g.matchedGroups == 0 && g.errors == 0) return;
     // Счёт цепочки уровней копит веб; нативная партия считает уровень сама — 0.
     unawaited(_resume.save(pairsSnapshot(g, free: _free, score: 0, elapsed: _elapsed)));
@@ -457,6 +483,10 @@ class _PicturePairsScreenState extends State<PicturePairsScreen> with WidgetsBin
     _saveTimer?.cancel();
     unawaited(_resume.clear());
     setState(() => _phase = Phase.won);
+    if (_kidsMode) {
+      _winKids(g, seconds);
+      return;
+    }
     if (_free) {
       // Свободная партия лестницу не двигает — отчёт идёт сам, метками веба (`saveSession`, single).
       unawaited(
@@ -487,6 +517,30 @@ class _PicturePairsScreenState extends State<PicturePairsScreen> with WidgetsBin
       mode: 'game',
       difficulty: 'lvl${g.level}',
       details: {'level': g.level, 'moves': g.moves, 'pairs': g.groups, 'photo_memory_mode': g.cfg.photo, ..._memoryDetails(g)},
+    );
+  }
+
+  /// «Малыши»: звёзды по эффективности, ступень — вперёд с двух звёзд. Лестницу не двигает.
+  void _winKids(PairsGame g, int seconds) {
+    final played = _kidsStep;
+    final stars = pairsKidsStars(g.efficiency);
+    final next = pairsKidsNextStep(played, stars);
+    setState(() {
+      _kidsStars = stars;
+      _kidsUp = next > played;
+      _kidsStep = next;
+    });
+    unawaited(widget.state.set(_kidsKey, '$next'));
+    unawaited(
+      SessionReport.send(
+        gameType: 'picture_pairs',
+        score: stars,
+        timeSeconds: seconds,
+        difficulty: '${g.groups} pairs',
+        mode: 'kids',
+        errors: g.errors,
+        details: {'step': played + 1, 'pairs': g.groups, 'moves': g.moves, 'stars': stars, ..._memoryDetails(g)},
+      ),
     );
   }
 
@@ -534,18 +588,20 @@ class _PicturePairsScreenState extends State<PicturePairsScreen> with WidgetsBin
         if (duel != null) ...[
           // Счёт дуэли — пары каждой стороны; ходы общие и в шапке ничего бы не значили.
           HudItem(label: L.t('pairsDuelYou'), value: '${duel.playerGroups}', icon: Icons.person_outline),
-          HudItem(label: L.t('pairsDuelBot'), value: '${duel.botGroups}', icon: Icons.smart_toy_outlined),
+          HudItem(label: L.t('rbBot'), value: '${duel.botGroups}', icon: Icons.smart_toy_outlined),
         ] else ...[
           HudItem(label: L.t('hud_correct'), value: '${g.matchedGroups}/${g.groups}', icon: Icons.done_all),
           HudItem(label: L.t('hud_moves'), value: '${g.moves}', icon: Icons.swap_horiz),
         ],
-        HudItem(label: L.t('time'), value: '${_elapsed.floor()}', icon: Icons.timer_outlined),
+        // У «Малышей» часов нет — как в движке MindLab: оценка по ходам, а не по времени.
+        if (!_kidsMode) HudItem(label: L.t('time'), value: '${_elapsed.floor()}', icon: Icons.timer_outlined),
       ],
       field: (context, h) => _phase == Phase.ready
           ? _Ready(
               level: _ladder.level,
               mode: _mode,
               bot: _botLevel,
+              kidsStep: _kidsStep,
               pairs: _freePairs,
               photo: _photo,
               previewMs: _previewMs,
@@ -616,7 +672,17 @@ class _PicturePairsScreenState extends State<PicturePairsScreen> with WidgetsBin
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
                     )
-                  else if (_phase == Phase.won)
+                  else if (_phase == Phase.won) ...[
+                    if (_kidsStars != null)
+                      Semantics(
+                        label: L.t('pairsKidsStars').replaceAll('{n}', '${_kidsStars!}'),
+                        excludeSemantics: true,
+                        child: Text(
+                          '${'★' * _kidsStars!}${'☆' * (3 - _kidsStars!)}',
+                          key: const Key('pp-kids-stars'),
+                          style: const TextStyle(fontSize: 32, color: Color(0xFFF59E0B)),
+                        ),
+                      ),
                     Padding(
                       padding: const EdgeInsets.only(bottom: 8),
                       child: Text(
@@ -625,6 +691,17 @@ class _PicturePairsScreenState extends State<PicturePairsScreen> with WidgetsBin
                         textAlign: TextAlign.center,
                       ),
                     ),
+                    if (_kidsUp)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: Text(
+                          L.t('pairsKidsUp').replaceAll('{p}', '${pairsKidsSteps[_kidsStep]}'),
+                          key: const Key('pp-kids-up'),
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                      ),
+                  ],
                   FilledButton.icon(
                     onPressed: _restart,
                     icon: const Icon(Icons.arrow_forward),
@@ -653,6 +730,7 @@ class _Ready extends StatelessWidget {
     required this.level,
     required this.mode,
     required this.bot,
+    required this.kidsStep,
     required this.pairs,
     required this.photo,
     required this.previewMs,
@@ -666,6 +744,7 @@ class _Ready extends StatelessWidget {
   final int level;
   final PairsMode mode;
   final PairsBotLevel bot;
+  final int kidsStep;
   final int pairs;
   final bool photo;
   final int previewMs;
@@ -690,7 +769,8 @@ class _Ready extends StatelessWidget {
   static String _botName(PairsBotLevel b) => switch (b) {
         PairsBotLevel.kitten => L.t('pairsBotKitten'),
         PairsBotLevel.fox => L.t('pairsBotFox'),
-        PairsBotLevel.owl => L.t('pairsBotOwl'),
+        // Ключи-близнецы не заводим (гейт dictionary-duplicates): «Сова» и «Бот» в словаре уже есть.
+        PairsBotLevel.owl => L.t('cosName_avatar_owl'),
       };
 
   Widget _pairsChips() => Wrap(
@@ -725,16 +805,27 @@ class _Ready extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   // Выбор режима — те же подписи, что у общего веб-переключателя (GameModeSwitch).
-                  SegmentedButton<PairsMode>(
+                  // Четыре режима — фишками с переносом: в один сегментный ряд на 360 они не влезают.
+                  Wrap(
                     key: const Key('pp-mode'),
-                    segments: [
-                      ButtonSegment(value: PairsMode.levels, label: Text(L.t('sudokuModeLevels'))),
-                      ButtonSegment(value: PairsMode.free, label: Text(L.t('sudokuModeFree'))),
-                      ButtonSegment(value: PairsMode.duel, label: Text(L.t('pairsModeDuel'))),
+                    spacing: 8,
+                    runSpacing: 4,
+                    alignment: WrapAlignment.center,
+                    children: [
+                      for (final (m, label) in [
+                        (PairsMode.levels, L.t('sudokuModeLevels')),
+                        (PairsMode.free, L.t('sudokuModeFree')),
+                        (PairsMode.duel, L.t('pairsModeDuel')),
+                        (PairsMode.kids, L.t('pairsModeKids')),
+                      ])
+                        ChoiceChip(
+                          key: Key('pp-mode-${m.name}'),
+                          label: Text(label),
+                          selected: m == mode,
+                          showCheckmark: false,
+                          onSelected: (_) => onMode(m),
+                        ),
                     ],
-                    selected: {mode},
-                    showSelectedIcon: false,
-                    onSelectionChanged: (v) => onMode(v.first),
                   ),
                   const SizedBox(height: 6),
                   Text(
@@ -744,12 +835,24 @@ class _Ready extends StatelessWidget {
                       PairsMode.levels => L.t('pairsModeLevelsHint'),
                       PairsMode.free => L.t('pairsModeFreeHint'),
                       PairsMode.duel => L.t('pairsDuelHint'),
+                      PairsMode.kids => L.t('pairsKidsHint'),
                     },
                     textAlign: TextAlign.center,
                     style: text.bodySmall,
                   ),
                   const SizedBox(height: 16),
-                  if (mode == PairsMode.duel) ...[
+                  if (mode == PairsMode.kids) ...[
+                    Text(
+                      L.t('pairsKidsStep')
+                          .replaceAll('{n}', '${kidsStep + 1}')
+                          .replaceAll('{m}', '${pairsKidsSteps.length}')
+                          .replaceAll('{p}', '${pairsKidsSteps[kidsStep]}'),
+                      key: const Key('pp-kids-step'),
+                      textAlign: TextAlign.center,
+                      style: text.titleMedium,
+                    ),
+                    const SizedBox(height: 16),
+                  ] else if (mode == PairsMode.duel) ...[
                     Text(L.t('pairsCount'), style: text.titleSmall),
                     const SizedBox(height: 6),
                     _pairsChips(),

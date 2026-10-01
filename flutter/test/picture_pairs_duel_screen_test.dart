@@ -159,7 +159,7 @@ void main() {
     expect(cardCount(), 12, reason: 'шесть пар');
     expect(board(tester).every((s) => s < 0), isTrue, reason: 'в дуэли показа нет — карты сразу закрыты');
     expect(caption(tester), L.t('pairsDuelYourTurn'), reason: 'первым ходит человек');
-    expect(hud('pairsDuelYou', '0') && hud('pairsDuelBot', '0'), isTrue, reason: 'в шапке — счёт сторон');
+    expect(hud('pairsDuelYou', '0') && hud('rbBot', '0'), isTrue, reason: 'в шапке — счёт сторон');
     expect(hud('level', '4'), isFalse, reason: 'дуэль лестницу не показывает');
 
     final botTurns = await playToEnd(tester);
@@ -176,7 +176,7 @@ void main() {
     expect(d['outcome'], you.compareTo(bot));
     expect(tester.widget<Text>(find.byKey(const Key('pp-duel-result'))).data,
         L.t(key).replaceAll('{you}', '$you').replaceAll('{bot}', '$bot'));
-    expect(hud('pairsDuelYou', '$you') && hud('pairsDuelBot', '$bot'), isTrue);
+    expect(hud('pairsDuelYou', '$you') && hud('rbBot', '$bot'), isTrue);
     expect(state.get(levelKey), '4', reason: 'дуэль лестницу не двигает');
     expect(state.get(resumeKey), isNull, reason: 'дуэль снимком не пишется');
     await leave(tester);
@@ -238,11 +238,14 @@ void main() {
     scan('свободно');
     await chooseDuel(tester, bot: PairsBotLevel.owl);
     scan('дуэль');
+    await tester.tap(find.text(L.t('pairsModeKids')));
+    await tester.pump();
+    scan('малыши');
     expect('латинских слов: ${latin.length}${latin.isEmpty ? '' : ' — ${latin.take(6).join('; ')}'}', 'латинских слов: 0');
     await leave(tester);
   });
 
-  testWidgets('🔴 настройка дуэли на 360×640: три режима и три бота без переполнения, «Начать» видна', (tester) async {
+  testWidgets('🔴 настройка дуэли на 360×640: режимы и три бота без переполнения, «Начать» видна', (tester) async {
     tester.view.physicalSize = const Size(360, 640);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
