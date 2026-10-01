@@ -2,13 +2,15 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 /// 🔴 ВЫБОР ЗАРЯДКИ И ИТОГ — НАТИВНЫЕ ЭКРАНЫ (задача 748c3f5f).
 ///
 /// Решение Дениса 01.10.2026: «всё, что не на Flutter, — переводить», «зачем вебом
 /// скреплять переходы — это лишний глюк». После PR #98 серия из нативных игр шла без
 /// веба, но начиналась и кончалась веб-экранами — `/warmup-picker` и
-/// `/warmup-complete`.
+/// `/warmup-complete`, — а перед непереехавшей игрой и при «время вышло» показывала
+/// веб-мост `/warmup-bridge`.
 ///
 /// Считает за этими экранами по-прежнему веб: составы (`services/warmup.ts`),
 /// профиль, история, серия дней, разбор по навыкам, токены и напоминания —
@@ -24,6 +26,9 @@ class WarmupUi {
   /// Последняя модель итога.
   static final complete = ValueNotifier<Map<String, Object?>?>(null);
 
+  /// Последняя модель веб-моста (перед веб-игрой и когда вышло время).
+  static final bridge = ValueNotifier<Map<String, Object?>?>(null);
+
   /// Как звать страницу; ставит оболочка (`hybrid_app.dart`), пробы — свою.
   static Future<void> Function(String js)? run;
 
@@ -38,6 +43,8 @@ class WarmupUi {
         picker.value = value;
       case 'complete':
         complete.value = value;
+      case 'bridge':
+        bridge.value = value;
     }
     return true;
   }
@@ -644,6 +651,249 @@ class _WarmupCompleteScreenState extends State<WarmupCompleteScreen> {
                         ),
                       ),
                     ]),
+                  ),
+                ]),
+              ),
+            ),
+          );
+        },
+      );
+}
+
+/// Значки игр — та же карта, что у развилок (`assets/game_icons/index.json`, #90).
+class _GameIcons {
+  static Map<String, dynamic>? _index;
+
+  static Future<Map<String, dynamic>> load() async {
+    final have = _index;
+    if (have != null) return have;
+    try {
+      // Байтами, как развилки: `loadString` от 50 КБ уходит в compute и вешает пробы.
+      final b = await rootBundle.load('assets/game_icons/index.json');
+      return _index = jsonDecode(utf8.decode(b.buffer.asUint8List(b.offsetInBytes, b.lengthInBytes))) as Map<String, dynamic>;
+    } catch (_) {
+      return _index = const {};
+    }
+  }
+
+  static String? file(Map<String, dynamic> index, Object? nameKey, Object? route) =>
+      ((index['byNameKey'] as Map?)?[nameKey] ?? (index['byRoute'] as Map?)?[route]) as String?;
+}
+
+/// Веб-мост зарядки (`/warmup-bridge`) — рисунок по модели страницы.
+///
+/// Между двумя нативными шагами мост свой (`warmup_step_bridge.dart`, #98); этот —
+/// там, где ведёт страница: перед непереехавшей игрой и когда время зарядки вышло
+/// («доиграть / закончить»). Отсчёт, «взвод» кнопок через 800 мс и сам переход к
+/// игре — у страницы; здесь только рисунок и нажатия.
+class WarmupBridgeScreen extends StatefulWidget {
+  const WarmupBridgeScreen({super.key});
+
+  @override
+  State<WarmupBridgeScreen> createState() => _WarmupBridgeScreenState();
+}
+
+class _WarmupBridgeScreenState extends State<WarmupBridgeScreen> {
+  Map<String, dynamic> _icons = const {};
+
+  @override
+  void initState() {
+    super.initState();
+    unawaited(WarmupUi.act('bridge', 'post'));
+    unawaited(_GameIcons.load().then((i) {
+      if (mounted) setState(() => _icons = i);
+    }));
+  }
+
+  Widget _done(Map<String, Object?> d) {
+    final scheme = Theme.of(context).colorScheme;
+    final skipped = d['skipped'] == true;
+    return Container(
+      key: const Key('warmup-bridge-web-done'),
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(color: scheme.surfaceContainerLow, borderRadius: BorderRadius.circular(14)),
+      child: Column(children: [
+        Text(_s(d['label']).toUpperCase(),
+            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, letterSpacing: 1.2, color: scheme.onSurfaceVariant)),
+        const SizedBox(height: 6),
+        Icon(skipped ? Icons.skip_next : Icons.check_circle,
+            size: 48, color: skipped ? scheme.onSurfaceVariant : const Color(0xFF22C55E)),
+        Text(_s(d['title']), textAlign: TextAlign.center, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+        Wrap(spacing: 12, children: [
+          if (d['score'] is String)
+            Text(_s(d['score']),
+                style: TextStyle(
+                    fontWeight: FontWeight.w700,
+                    color: d['negative'] == true ? const Color(0xFFF43F5E) : const Color(0xFF22C55E))),
+          if (d['time'] is String)
+            Text(_s(d['time']), style: TextStyle(fontWeight: FontWeight.w700, color: scheme.onSurfaceVariant)),
+          if (d['errors'] is num)
+            Row(mainAxisSize: MainAxisSize.min, children: [
+              const Icon(Icons.close, size: 14, color: Color(0xFFF43F5E)),
+              Text('${d['errors']}', style: const TextStyle(fontWeight: FontWeight.w700, color: Color(0xFFF43F5E))),
+            ]),
+        ]),
+      ]),
+    );
+  }
+
+  Widget _next(Map<String, Object?> n) {
+    final g = n['gradient'] is List ? [for (final c in n['gradient'] as List) _hex(c)] : const <Color>[];
+    final colors = g.length >= 2 ? g.sublist(0, 2) : const [Color(0xFF6366F1), Color(0xFF8B5CF6)];
+    final file = _GameIcons.file(_icons, n['nameKey'], n['route']);
+    return Container(
+      key: const Key('warmup-bridge-web-next'),
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(colors: colors, begin: Alignment.topLeft, end: Alignment.bottomRight),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(children: [
+        Text(_s(n['label']),
+            style: const TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w700, letterSpacing: 2)),
+        const SizedBox(height: 8),
+        if (file != null)
+          ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: Image.asset('assets/game_icons/$file', width: 64, height: 64, fit: BoxFit.cover),
+          )
+        else
+          const Icon(Icons.sports_esports, size: 56, color: Colors.white),
+        const SizedBox(height: 8),
+        Text(_s(n['title']),
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w800)),
+        Text(_s(n['skill']), style: const TextStyle(color: Colors.white70, fontSize: 13)),
+      ]),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) => ValueListenableBuilder<Map<String, Object?>?>(
+        valueListenable: WarmupUi.bridge,
+        builder: (context, m, _) {
+          if (m == null) return const _Waiting();
+          final scheme = Theme.of(context).colorScheme;
+          final evening = m['evening'] == true;
+          final accent = evening ? const Color(0xFF818CF8) : const Color(0xFFFBBF24);
+          final progress = m['progress'] is num ? (m['progress'] as num).toDouble().clamp(0.0, 1.0) : 0.0;
+          final ask = m['ask'];
+          return PopScope(
+            canPop: false,
+            // Системное «назад» не уводит молча: тот же вопрос, что у «Остановить».
+            onPopInvokedWithResult: (didPop, _) {
+              if (!didPop) unawaited(WarmupUi.act('bridge', 'stopAsk'));
+            },
+            child: Scaffold(
+              key: const Key('warmup-bridge-web'),
+              body: SafeArea(
+                child: Column(children: [
+                  Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Column(children: [
+                      Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                        Icon(evening ? Icons.nightlight_round : Icons.bolt, size: 16, color: accent),
+                        const SizedBox(width: 4),
+                        Text(_s(m['hud']), style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: accent)),
+                      ]),
+                      const SizedBox(height: 8),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(2),
+                        child: LinearProgressIndicator(
+                          value: progress,
+                          minHeight: 4,
+                          color: accent,
+                          backgroundColor: scheme.surfaceContainerHighest,
+                        ),
+                      ),
+                    ]),
+                  ),
+                  Expanded(
+                    child: Center(
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.all(20),
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 520),
+                          child: Column(children: [
+                            if (m['done'] is Map) _done(Map<String, Object?>.from(m['done'] as Map)),
+                            const SizedBox(height: 18),
+                            if (m['next'] is Map) _next(Map<String, Object?>.from(m['next'] as Map)),
+                            const SizedBox(height: 18),
+                            Text(ask is Map ? _s(ask['text']) : _s(m['countdown']),
+                                key: const Key('warmup-bridge-web-countdown'),
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w700,
+                                    color: ask is Map ? scheme.onSurface : accent)),
+                            const SizedBox(height: 12),
+                            if (ask is Map) ...[
+                              // Безопасный ответ первым и залитым — как в вопросе о выходе из игры.
+                              FilledButton(
+                                key: const Key('warmup-bridge-web-keep'),
+                                style: FilledButton.styleFrom(
+                                  minimumSize: const Size(double.infinity, 52),
+                                  backgroundColor: const Color(0xFFFBBF24),
+                                  foregroundColor: Colors.black,
+                                ),
+                                onPressed: () => WarmupUi.act('bridge', 'keep'),
+                                child: Text(_s(ask['keep']), style: const TextStyle(fontWeight: FontWeight.w900)),
+                              ),
+                              const SizedBox(height: 12),
+                              OutlinedButton.icon(
+                                key: const Key('warmup-bridge-web-stop-yes'),
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: const Color(0xFFF43F5E),
+                                  side: const BorderSide(color: Color(0xFFF43F5E)),
+                                  minimumSize: const Size(0, 48),
+                                ),
+                                onPressed: () => WarmupUi.act('bridge', 'stopConfirm'),
+                                icon: const Icon(Icons.stop),
+                                label: Text(_s(ask['stop'])),
+                              ),
+                            ] else ...[
+                              FilledButton(
+                                key: const Key('warmup-bridge-web-start'),
+                                style: FilledButton.styleFrom(
+                                  minimumSize: const Size(double.infinity, 52),
+                                  backgroundColor: const Color(0xFFFBBF24),
+                                  foregroundColor: Colors.black,
+                                ),
+                                onPressed: () => WarmupUi.act('bridge', 'start'),
+                                child: Text(_s(m['primary']), style: const TextStyle(fontWeight: FontWeight.w900)),
+                              ),
+                              const SizedBox(height: 12),
+                              // Ряд не шире экрана: «Пропустить: <имя>» сжимается, «Остановить» — нет.
+                              Row(children: [
+                                Expanded(
+                                  child: OutlinedButton.icon(
+                                    key: const Key('warmup-bridge-web-skip'),
+                                    style: OutlinedButton.styleFrom(minimumSize: const Size(0, 48)),
+                                    onPressed: () => WarmupUi.act('bridge', 'skip'),
+                                    icon: const Icon(Icons.skip_next, size: 18),
+                                    label: Text(_s(m['skip']), maxLines: 2, overflow: TextOverflow.ellipsis),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                OutlinedButton.icon(
+                                  key: const Key('warmup-bridge-web-stop'),
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: const Color(0xFFF43F5E),
+                                    side: const BorderSide(color: Color(0xFFF43F5E)),
+                                    minimumSize: const Size(0, 48),
+                                  ),
+                                  onPressed: () => WarmupUi.act('bridge', 'stopAsk'),
+                                  icon: const Icon(Icons.stop, size: 18),
+                                  label: Text(_s(m['stop'])),
+                                ),
+                              ]),
+                            ],
+                          ]),
+                        ),
+                      ),
+                    ),
                   ),
                 ]),
               ),

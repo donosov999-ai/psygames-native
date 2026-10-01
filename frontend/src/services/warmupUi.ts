@@ -3,8 +3,8 @@
  *
  * Задача 748c3f5f, решение Дениса 01.10.2026: «всё, что не на Flutter, —
  * переводить», «зачем вебом скреплять переходы — это лишний глюк». Выбор зарядки
- * (`/warmup-picker`) и итог (`/warmup-complete`) были последними веб-экранами,
- * которые человек видел в серии из нативных игр.
+ * (`/warmup-picker`), итог (`/warmup-complete`) и веб-мост (`/warmup-bridge` —
+ * перед веб-игрой и когда вышло время) были последними веб-экранами зарядки.
  *
  * Расчёты за этими экранами тяжёлые и общие с остальным приложением: составы
  * (`services/warmup.ts`, 1690 строк), профиль, история, серия дней, разбор по
@@ -21,11 +21,12 @@
  */
 import { hostRendersNatively, postToHost } from '@/src/services/hostWarmup';
 
-export type WarmupUiScreen = 'picker' | 'complete';
+export type WarmupUiScreen = 'picker' | 'complete' | 'bridge';
 
 const ROUTE: Record<WarmupUiScreen, string> = {
   picker: '/warmup-picker',
   complete: '/warmup-complete',
+  bridge: '/warmup-bridge',
 };
 
 /** Оболочка рядом и рисует этот экран сама. */

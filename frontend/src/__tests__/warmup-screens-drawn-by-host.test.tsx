@@ -3,6 +3,7 @@
  * ВЫБОР ЗАРЯДКИ И ИТОГ ПОД ОБОЛОЧКОЙ РИСУЕТ FLUTTER, А СЧИТАЕТ ЭТОТ ЖЕ ЭКРАН.
  *
  * Задача 748c3f5f, решение Дениса 01.10.2026: «всё, что не на Flutter, — переводить».
+ * Экраны: выбор (/warmup-picker), итог (/warmup-complete), веб-мост (/warmup-bridge).
  * См. `services/warmupUi.ts`. Монтируются настоящие экраны; подменены профиль, зарядка,
  * навигация, хранилище, сервисы с сетью и сама оболочка (`window.PsyBridge`,
  * `window.__psyHostNativeRoutes`):
@@ -17,6 +18,7 @@ import TestRenderer, { act } from 'react-test-renderer';
 import { TouchableOpacity } from 'react-native';
 import WarmupPicker from '@/app/warmup-picker';
 import WarmupComplete from '@/app/warmup-complete';
+import WarmupBridge from '@/app/warmup-bridge';
 
 declare function require(id: string): any;
 
@@ -25,6 +27,10 @@ const mockStartPlaylist = jest.fn();
 const mockReplace = jest.fn();
 let mockMeta: any = null;
 let mockResults: any[] = [];
+let mockCurrentIdx = 0;
+let mockOvertime = false;
+const mockSkipCurrent = jest.fn();
+const mockStopWarmup = jest.fn(async (_c: boolean) => {});
 
 jest.mock('@/src/contexts/ProfileContext', () => ({
   useProfile: () => ({
@@ -35,7 +41,10 @@ jest.mock('@/src/contexts/ProfileContext', () => ({
 jest.mock('@/src/contexts/WarmupContext', () => ({
   useWarmup: () => ({
     meta: mockMeta, results: mockResults, startTime: Date.now() - 95_000,
-    stopWarmup: async () => {}, startPlaylist: mockStartPlaylist,
+    active: !!mockMeta, currentIdx: mockCurrentIdx, currentStep: mockMeta?.steps[mockCurrentIdx] ?? null,
+    overtime: mockOvertime, stepsLeft: mockMeta ? mockMeta.steps.length - mockCurrentIdx : 0,
+    dismissOvertime: jest.fn(), skipCurrent: mockSkipCurrent,
+    stopWarmup: (c: boolean) => mockStopWarmup(c), startPlaylist: mockStartPlaylist,
     startDay: mockStartDay, startNight: jest.fn(), startEvening: jest.fn(), startWarmup: jest.fn(),
   }),
 }));
@@ -81,7 +90,7 @@ const posted: any[] = [];
 
 function оболочка() {
   w.PsyBridge = { postMessage: (s: string) => posted.push(JSON.parse(s)) };
-  w.__psyHostNativeRoutes = ['/warmup-picker', '/warmup-complete', '/games/digit-span', '/games/schulte'];
+  w.__psyHostNativeRoutes = ['/warmup-picker', '/warmup-complete', '/warmup-bridge', '/games/digit-span', '/games/schulte'];
   w.__psyHostLang = 'ru';
 }
 
@@ -194,6 +203,74 @@ describe('итог зарядки', () => {
   it('без оболочки итог ничего не шлёт', async () => {
     const tr = await открыть(<WarmupComplete />);
     expect(posted).toHaveLength(0);
+    await act(async () => { tr.unmount(); });
+  });
+});
+
+describe('веб-мост зарядки', () => {
+  const ЦИФРЫ = { game_id: 'digit_span', game_route: '/games/digit-span', est_duration_sec: 60 };
+  const НБЭК = { game_id: 'n_back', game_route: '/games/n-back', est_duration_sec: 60 };
+
+  beforeEach(() => {
+    jest.useFakeTimers();
+    mockMeta = {
+      duration_min: 5, weekday: 1, weekday_name: 'пн', track: 'training', track_label: '', slot: 'morning',
+      steps: [ЦИФРЫ, НБЭК], est_total_sec: 120,
+    };
+    mockResults = [{ game_type: 'digit_span', score: 7, time_seconds: 31.2, errors: 2, шаг: 0 }];
+    mockCurrentIdx = 1;
+    mockOvertime = false;
+    mockSkipCurrent.mockClear();
+    mockStopWarmup.mockClear();
+  });
+  afterEach(() => { jest.clearAllTimers(); jest.useRealTimers(); });
+
+  async function мост(): Promise<TestRenderer.ReactTestRenderer> {
+    let tr!: TestRenderer.ReactTestRenderer;
+    await act(async () => { tr = TestRenderer.create(<WarmupBridge />); });
+    return tr;
+  }
+
+  it('🔴 под оболочкой отдаёт модель: что сыграно, что дальше, отсчёт; секунда — новая модель', async () => {
+    оболочка();
+    const tr = await мост();
+    const m = последняя('bridge');
+    expect(m.done.title).toBeTruthy();
+    expect(m.done.errors).toBe(2);
+    expect(m.next.route).toBe('/games/n-back');
+    expect(m.next.nameKey).toBeTruthy();
+    expect(m.seconds).toBe(5);
+    await act(async () => { jest.advanceTimersByTime(1000); });
+    expect(последняя('bridge').seconds).toBe(4);
+    await act(async () => { tr.unmount(); });
+  });
+
+  it('🔴 «Остановить» оболочки переспрашивает и только потом останавливает — взвод через 800 мс', async () => {
+    оболочка();
+    const tr = await мост();
+    await act(async () => { w.__psyWarmupUi.bridge.stopAsk(); });
+    expect(последняя('bridge').ask).toBeNull();   // палец с итога игры не стирает серию
+    await act(async () => { jest.advanceTimersByTime(900); });
+    await act(async () => { w.__psyWarmupUi.bridge.stopAsk(); });
+    expect(последняя('bridge').ask).toBeTruthy();
+    await act(async () => { w.__psyWarmupUi.bridge.stopConfirm(); });
+    expect(mockStopWarmup).toHaveBeenCalledWith(false);
+    await act(async () => { tr.unmount(); });
+  });
+
+  it('«Старт сейчас» оболочки — страница уходит на следующую игру', async () => {
+    оболочка();
+    const tr = await мост();
+    mockReplace.mockClear();
+    await act(async () => { w.__psyWarmupUi.bridge.start(); });
+    expect(mockReplace).toHaveBeenCalledWith(expect.objectContaining({ pathname: '/games/n-back' }));
+    await act(async () => { tr.unmount(); });
+  });
+
+  it('без оболочки мост ничего не шлёт', async () => {
+    const tr = await мост();
+    expect(posted).toHaveLength(0);
+    expect(w.__psyWarmupUi?.bridge).toBeUndefined();
     await act(async () => { tr.unmount(); });
   });
 });

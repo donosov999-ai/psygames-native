@@ -138,6 +138,7 @@ class HybridApp extends StatefulWidget {
   static Map<String, Widget Function(SharedState)> get shell => {
         '/warmup-picker': (_) => const WarmupPickerScreen(),
         '/warmup-complete': (_) => const WarmupCompleteScreen(),
+        '/warmup-bridge': (_) => const WarmupBridgeScreen(),
       };
 
   /// Игра перенесена → строится нативно. Ключ — путь маршрута веб-сборки.

@@ -18,6 +18,7 @@ void main() {
     calls.clear();
     WarmupUi.picker.value = null;
     WarmupUi.complete.value = null;
+    WarmupUi.bridge.value = null;
     WarmupUi.run = (js) async => calls.add(js);
   });
   tearDown(() => WarmupUi.run = null);
@@ -78,7 +79,9 @@ void main() {
     test('🔴 оба адреса — экраны оболочки, и в карте игр их нет (переписи игр их не считают)', () {
       expect(HybridApp.routeOf('http://127.0.0.1:8123/warmup-picker'), '/warmup-picker');
       expect(HybridApp.routeOf('http://127.0.0.1:8123/warmup-complete'), '/warmup-complete');
-      expect(HybridApp.shell.keys, containsAll(['/warmup-picker', '/warmup-complete']));
+      expect(HybridApp.routeOf('http://127.0.0.1:8123/warmup-bridge'), '/warmup-bridge');
+      expect(HybridApp.shell.keys, containsAll(['/warmup-picker', '/warmup-complete', '/warmup-bridge']));
+      expect(HybridApp.native.keys, isNot(contains('/warmup-bridge')));
       expect(HybridApp.native.keys, isNot(contains('/warmup-picker')));
       expect(HybridApp.native.keys, isNot(contains('/warmup-complete')));
     });
@@ -259,6 +262,85 @@ void main() {
       await nav.maybePop();
       await tester.pump();
       expect(called('complete', 'home'), isTrue);
+    });
+  });
+
+  group('веб-мост (перед веб-игрой и «время вышло»)', () {
+    Map<String, Object?> bridge({Map<String, Object?>? ask, bool overtime = false}) => {
+          'evening': false,
+          'hud': 'complexWarmup · 2/5',
+          'progress': 0.4,
+          'done': {'label': 'bridgeJustPlayed · 2/5', 'skipped': false, 'title': 'Объём цифр', 'score': '+7', 'negative': false, 'time': '31.2с', 'errors': 2},
+          'next': {'label': 'onbNext:', 'title': 'N-back', 'skill': 'Рабочая память', 'gradient': ['#6366f1', '#8b5cf6'], 'nameKey': 'nBack', 'route': '/games/n-back'},
+          'overtime': overtime,
+          'countdown': overtime ? 'Время вышло: 5 мин. Осталось 3' : 'Начинаем через 4',
+          'primary': overtime ? 'Доиграть' : 'Старт сейчас',
+          'skip': 'Пропустить: N-back',
+          'stop': 'Остановить',
+          'ask': ask,
+        };
+
+    testWidgets('🔴 мост из модели: что сыграно, что дальше, отсчёт; кнопки — действия страницы', (tester) async {
+      WarmupUi.bridge.value = bridge();
+      await pump(tester, const WarmupBridgeScreen());
+      expect(called('bridge', 'post'), isTrue);
+      expect(find.text('Объём цифр'), findsOneWidget);
+      expect(find.text('N-back'), findsOneWidget);
+      expect(find.text('Начинаем через 4'), findsOneWidget);
+      expect(find.byIcon(Icons.close), findsOneWidget, reason: 'ошибки — значком, не знаком «✗»');
+      await tester.tap(find.byKey(const Key('warmup-bridge-web-start')));
+      expect(called('bridge', 'start'), isTrue);
+      await tester.tap(find.byKey(const Key('warmup-bridge-web-skip')));
+      expect(called('bridge', 'skip'), isTrue);
+      await tester.tap(find.byKey(const Key('warmup-bridge-web-stop')));
+      expect(called('bridge', 'stopAsk'), isTrue);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('отсчёт идёт — экран обновляется по новой модели', (tester) async {
+      WarmupUi.bridge.value = bridge();
+      await pump(tester, const WarmupBridgeScreen());
+      final m = bridge();
+      m['countdown'] = 'Начинаем через 3';
+      WarmupUi.bridge.value = m;
+      await tester.pump();
+      expect(find.text('Начинаем через 3'), findsOneWidget);
+    });
+
+    testWidgets('🔴 «Остановить?» — продолжить первым; подтверждение — действие страницы', (tester) async {
+      WarmupUi.bridge.value = bridge(ask: {'text': 'Сыграно 2 из 5. Остановить?', 'keep': 'Продолжить', 'stop': 'Остановить'});
+      await pump(tester, const WarmupBridgeScreen());
+      expect(find.text('Сыграно 2 из 5. Остановить?'), findsOneWidget);
+      expect(find.byKey(const Key('warmup-bridge-web-start')), findsNothing);
+      await tester.tap(find.byKey(const Key('warmup-bridge-web-keep')));
+      expect(called('bridge', 'keep'), isTrue);
+      await tester.tap(find.byKey(const Key('warmup-bridge-web-stop-yes')));
+      expect(called('bridge', 'stopConfirm'), isTrue);
+    });
+
+    testWidgets('время вышло — главная кнопка «доиграть»', (tester) async {
+      WarmupUi.bridge.value = bridge(overtime: true);
+      await pump(tester, const WarmupBridgeScreen());
+      expect(find.text('Время вышло: 5 мин. Осталось 3'), findsOneWidget);
+      expect(find.text('Доиграть'), findsOneWidget);
+    });
+
+    testWidgets('системное «назад» не уводит молча — тот же вопрос, что «Остановить»', (tester) async {
+      WarmupUi.bridge.value = bridge();
+      await pump(tester, const WarmupBridgeScreen());
+      final nav = tester.state<NavigatorState>(find.byType(Navigator));
+      await nav.maybePop();
+      await tester.pump();
+      expect(called('bridge', 'stopAsk'), isTrue);
+      expect(find.byKey(const Key('warmup-bridge-web')), findsOneWidget);
+    });
+
+    test('🔴 натив → веб-мост → веб-игра: мост нативный, страница — только у веб-игры', () {
+      String? opened = HybridApp.routeOf('http://127.0.0.1:8123/games/digit-span?wu=1');
+      final toBridge = HybridApp.routeOf('http://127.0.0.1:8123/warmup-bridge');
+      expect(routeAction(opened, toBridge), RouteAction.closeThenOpen, reason: 'мост перед веб-игрой — экраном оболочки');
+      opened = toBridge;
+      expect(routeAction(opened, HybridApp.routeOf('http://127.0.0.1:8123/games/web-only-game')), RouteAction.close);
     });
   });
 }
