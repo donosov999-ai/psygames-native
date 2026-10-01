@@ -973,21 +973,26 @@ class XsPieceGuide extends StatelessWidget {
       final pos = ShogiPosition(cells, [{}, {}], sgSente);
       return (at, pos.targets(at).toSet());
     }
-    // Сянци: генералы по углам дворцов, чтобы позиция была законной.
+    // Сянци: позиция законна (генералы не смотрят друг на друга). Генералу схемы
+    // чёрная пешка на f6 закрывает вертикаль f — иначе ход вправо на f2 запрещён
+    // «лицом к лицу», и схема учила бы исключению вместо хода (замер на эмуляторе 02.10).
     final at = switch (kind) {
       'K' || 'A' => xsIndex(mode, 'e2'),
       'B' => xsIndex(mode, 'e3'),
       'P' => xsIndex(mode, 'e6'),
       _ => xsIndex(mode, 'e5'),
     };
-    final cells = <int, String>{
-      xsIndex(mode, 'd1'): 'K',
-      xsIndex(mode, 'f10'): 'k',
-    };
-    if (kind != 'K') cells[at] = kind;
-    if (kind == 'K') {
-      cells.remove(xsIndex(mode, 'd1'));
-      cells[at] = 'K';
+    final cells = <int, String>{xsIndex(mode, 'f10'): 'k'};
+    switch (kind) {
+      case 'K':
+        cells[at] = 'K';
+        cells[xsIndex(mode, 'f6')] = 'p';
+      case 'A':
+        cells[at] = 'A';
+        cells[xsIndex(mode, 'e1')] = 'K';
+      default:
+        cells[at] = kind;
+        cells[xsIndex(mode, 'd1')] = 'K';
     }
     final rows = <String>[];
     for (var r = 0; r < 10; r++) {

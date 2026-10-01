@@ -200,6 +200,8 @@ void main() {
     }
     // Схема снята с движка: конь из центра — 8 полей, колесница — линии, слон — 4.
     expect(XsPieceGuide.diagram(XsMode.xiangqi, 'N').$2.length, 8);
+    expect(XsPieceGuide.diagram(XsMode.xiangqi, 'K').$2.length, 4, reason: 'генерал из центра дворца — 4 хода');
+    expect(XsPieceGuide.diagram(XsMode.xiangqi, 'A').$2.length, 4, reason: 'советник из центра дворца — 4 хода');
     expect(XsPieceGuide.diagram(XsMode.xiangqi, 'B').$2.length, 4);
     expect(XsPieceGuide.diagram(XsMode.shogi, 'G').$2.length, 6);
     expect(XsPieceGuide.diagram(XsMode.shogi, 'S').$2.length, 5);
