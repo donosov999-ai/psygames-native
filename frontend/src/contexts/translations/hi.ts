@@ -2322,6 +2322,7 @@ const t: Record<string, string> = {
   "pairsLvlPairs": "{n} जोड़े",
   "pairsLvlFlash": "फ्लैश {s} सेकंड",
   "pairsPreviewHint": "{s} सेकंड — फिर कार्ड पलट जाएँगे",
+  "pairsIdealMoves": "पूर्ण स्मृति को {n} चालें लगतीं",
   "setExampleTitle": "उदाहरण: SET क्या होता है",
   "setExampleValid": "✓ SET: तीनों में आकार और भराव एक जैसे, रंग और संख्या तीनों में अलग",
   "setExampleInvalid": "✗ SET नहीं: रंग केवल दो कार्ड पर मिलता है (दो लाल, एक बैंगनी)",

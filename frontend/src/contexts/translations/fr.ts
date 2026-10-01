@@ -2314,6 +2314,7 @@ const t: Record<string, string> = {
   "pairsLvlPairs": "{n} paires",
   "pairsLvlFlash": "flash {s} s",
   "pairsPreviewHint": "{s} s — ensuite les cartes se retournent",
+  "pairsIdealMoves": "Une mémoire parfaite ferait {n} coups",
   "setExampleTitle": "Exemple : qu’est-ce qu’un SET",
   "setExampleValid": "✓ SET : forme et remplissage identiques sur les trois, couleur et nombre tous différents",
   "setExampleInvalid": "✗ Pas un SET : la couleur ne correspond que sur deux cartes (deux rouges, une violette)",

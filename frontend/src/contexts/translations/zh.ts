@@ -2319,6 +2319,7 @@ const t: Record<string, string> = {
   "pairsLvlPairs": "{n} 对",
   "pairsLvlFlash": "闪现 {s} 秒",
   "pairsPreviewHint": "{s} 秒后卡片会翻回去",
+  "pairsIdealMoves": "完美记忆只需 {n} 步",
   "setExampleTitle": "示例：什么是 SET",
   "setExampleValid": "✓ SET：三张牌的形状和填充相同，颜色和数量各不相同",
   "setExampleInvalid": "✗ 不是 SET：颜色只有两张相同（两张红色、一张紫色）",

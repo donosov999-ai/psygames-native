@@ -754,6 +754,8 @@ const translations: Translations = {
   pairsLvlPairs: { ru: '{n} пар', en: '{n} pairs' },
   pairsLvlFlash: { ru: 'фото-память {s}с', en: 'flash {s}s' },
   pairsPreviewHint: { ru: '{s}с — потом карты закроются', en: '{s}s — then the cards flip back' },
+  // Сравнение с идеальной памятью на том же раскладе (MindLab «Пары», задача cd9685ec).
+  pairsIdealMoves: { ru: 'Ходов у идеальной памяти: {n}', en: 'Perfect memory would take {n} moves' },
   picturePairsIntroDesc: {
     ru: 'Открывайте по две карточки за раз и ищите пары. Чем меньше ходов — тем выше счёт. Тренирует визуальную память и сопоставление.',
     en: 'Flip two cards at a time and find matching pairs. Fewer moves = higher score. Trains visual memory and matching.',

@@ -2314,6 +2314,7 @@ const t: Record<string, string> = {
   "pairsLvlPairs": "{n} 쌍",
   "pairsLvlFlash": "플래시 {s}초",
   "pairsPreviewHint": "{s}초 — 그다음 카드가 다시 뒤집힌다",
+  "pairsIdealMoves": "완벽한 기억이라면 {n}번 이동",
   "setExampleTitle": "예시: SET이란 무엇인가",
   "setExampleValid": "✓ SET: 세 장 모두 모양과 채우기가 같고, 색과 개수는 모두 다름",
   "setExampleInvalid": "✗ SET 아님: 색이 두 장만 같음 (빨강 둘, 보라 하나)",

@@ -2313,6 +2313,7 @@ const t: Record<string, string> = {
   "pairsLvlPairs": "{n} ペア",
   "pairsLvlFlash": "フラッシュ {s}秒",
   "pairsPreviewHint": "{s}秒 — そのあとカードは裏返る",
+  "pairsIdealMoves": "完璧な記憶なら {n} 手",
   "setExampleTitle": "例：SET とは何か",
   "setExampleValid": "✓ SET：3枚とも形と塗りが同じ、色と数はすべて異なる",
   "setExampleInvalid": "✗ SET ではない：色が一致するのは2枚だけ（赤2枚と紫1枚）",

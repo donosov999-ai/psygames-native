@@ -2315,6 +2315,7 @@ const t: Record<string, string> = {
   "pairsLvlPairs": "{n} أزواج",
   "pairsLvlFlash": "ومضة {s} ث",
   "pairsPreviewHint": "{s} ث — ثم تنقلب البطاقات",
+  "pairsIdealMoves": "الذاكرة المثالية تحتاج {n} نقلات",
   "setExampleTitle": "مثال: ما هو الـ SET",
   "setExampleValid": "✓ SET: الشكل والتعبئة متطابقان في الثلاث، واللون والعدد مختلفان في الثلاث",
   "setExampleInvalid": "✗ ليس SET: اللون يتطابق في بطاقتين فقط (حمراوان وواحدة بنفسجية)",

@@ -361,6 +361,7 @@ class _PicturePairsScreenState extends State<PicturePairsScreen> with WidgetsBin
             'photo_memory_mode': g.cfg.photo,
             'preview_ms': g.cfg.photo ? g.cfg.previewMs : 0,
             'extra_moves': g.extraMoves,
+            ..._memoryDetails(g),
           },
         ),
       );
@@ -373,9 +374,18 @@ class _PicturePairsScreenState extends State<PicturePairsScreen> with WidgetsBin
       errors: g.errors,
       mode: 'game',
       difficulty: 'lvl${g.level}',
-      details: {'level': g.level, 'moves': g.moves, 'pairs': g.groups, 'photo_memory_mode': g.cfg.photo},
+      details: {'level': g.level, 'moves': g.moves, 'pairs': g.groups, 'photo_memory_mode': g.cfg.photo, ..._memoryDetails(g)},
     );
   }
+
+  /// Метрики памяти MindLab (задача cd9685ec) — только нативные: веб их не считает.
+  /// `ideal_moves` — ходы идеальной памяти на этом раскладе, `efficiency` — они же на ходы
+  /// игрока, `perseverations` — ходы, повторившие промах, известный заранее.
+  Map<String, Object> _memoryDetails(PairsGame g) => {
+        'ideal_moves': g.idealMoves,
+        'efficiency': double.parse(g.efficiency.toStringAsFixed(2)),
+        'perseverations': g.perseverations,
+      };
 
   /// Показать решение: все карты лицом вверх, партия кончается без зачёта —
   /// подсмотренный расклад не поднимает уровень и не опускает его.
@@ -455,10 +465,25 @@ class _PicturePairsScreenState extends State<PicturePairsScreen> with WidgetsBin
       toolbar: _phase == Phase.won || _phase == Phase.revealed
           ? Padding(
               padding: const EdgeInsets.all(12),
-              child: FilledButton.icon(
-                onPressed: _restart,
-                icon: const Icon(Icons.arrow_forward),
-                label: Text(_phase == Phase.won ? L.t('nextLabel') : L.t('retry')),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Сравнение с идеальной памятью на том же раскладе (MindLab, cd9685ec).
+                  if (_phase == Phase.won)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Text(
+                        L.t('pairsIdealMoves').replaceAll('{n}', '${g.idealMoves}'),
+                        key: const Key('pp-ideal'),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  FilledButton.icon(
+                    onPressed: _restart,
+                    icon: const Icon(Icons.arrow_forward),
+                    label: Text(_phase == Phase.won ? L.t('nextLabel') : L.t('retry')),
+                  ),
+                ],
               ),
             )
           : null,

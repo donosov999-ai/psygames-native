@@ -138,6 +138,66 @@ PairsGrid pairsGrid({
 }
 
 /// Карта поля: номер картинки и её состояние.
+/// 🧠 ЭТАЛОН ИДЕАЛЬНОЙ ПАМЯТИ — сколько ходов нужно игроку, который помнит ВСЁ увиденное в
+/// партии и только его (показ перед партией не в счёт). Решение Дениса 30.09.2026, задача
+/// cd9685ec: движки MindLab добавляем в разделы нативно.
+///
+/// Перенос `perfect_memory_moves` движка «Пары» (abstract-games-core 73ec95d,
+/// engines/mindlab/kids/pairs.py), обобщённый на тройки и четвёрки:
+///   · известна целая группа — снять её одним ходом;
+///   · иначе открыть первую неизвестную карту, добрать известными той же картинки,
+///     остаток хода — неизвестными по порядку.
+/// На парах совпадает с движком ход в ход; на тройках не хуже `perfect_moves` из Punchline,
+/// который известными не добирает. Эталон — `flutter/tools/pairs_ideal_memory_reference.py`.
+///
+/// ЗАЧЕМ. Голое число ходов зависит от везения расклада. Ходы идеальной памяти на ТОМ ЖЕ
+/// раскладе, делённые на ходы игрока, — эффективность, сравнимая между партиями.
+int idealMemoryMoves(List<int> deck, int groupSize) {
+  final counts = <int, int>{};
+  for (final s in deck) {
+    counts[s] = (counts[s] ?? 0) + 1;
+  }
+  if (counts.values.any((c) => c != groupSize)) {
+    throw ArgumentError('deck is not made of whole groups of $groupSize: $counts');
+  }
+  final n = deck.length;
+  final taken = List<bool>.filled(n, false);
+  final known = List<bool>.filled(n, false);
+  var left = n;
+  var moves = 0;
+  while (left > 0) {
+    // Известная целая группа — первая по месту первой карты, как в движке.
+    final bySymbol = <int, List<int>>{};
+    for (var i = 0; i < n; i++) {
+      if (!taken[i] && known[i]) bySymbol.putIfAbsent(deck[i], () => []).add(i);
+    }
+    final group = bySymbol.values.where((v) => v.length == groupSize).firstOrNull;
+    final open = group ?? <int>[];
+    if (group == null) {
+      final a = List.generate(n, (i) => i).firstWhere((i) => !taken[i] && !known[i]);
+      known[a] = true;
+      open.add(a);
+      for (var i = 0; i < n && open.length < groupSize; i++) {
+        if (i != a && !taken[i] && known[i] && deck[i] == deck[a]) open.add(i);
+      }
+      for (var i = 0; i < n && open.length < groupSize; i++) {
+        if (!taken[i] && !known[i]) {
+          known[i] = true;
+          open.add(i);
+        }
+      }
+    }
+    moves += 1;
+    if (open.every((i) => deck[i] == deck[open.first])) {
+      for (final i in open) {
+        taken[i] = true;
+      }
+      left -= open.length;
+    }
+  }
+  return moves;
+}
+
 class PairCard {
   PairCard(this.symbol);
   final int symbol;
@@ -168,12 +228,38 @@ class PairsGame {
         _rnd = rnd ?? Random() {
     final symbols = deck ?? _buildDeck();
     cards = [for (final s in symbols) PairCard(s)];
+    _startDeck = List.unmodifiable(symbols);
+    _seen = List<bool>.filled(cards.length, false);
   }
 
   final int level;
   final LevelCfg cfg;
   final Random _rnd;
   late final List<PairCard> cards;
+
+  /// Расклад, с которого партия началась, — до первого обмена.
+  late final List<int> _startDeck;
+
+  /// Ходов идеальной памяти на ЭТОМ раскладе ([idealMemoryMoves]) — по раскладу начала,
+  /// а не нынешнему: обмены после ошибки — трудность уровня, а не везение расклада.
+  late final int idealMoves = idealMemoryMoves(_startDeck, cfg.groupSize);
+
+  /// Места, чьё лицо игрок видел в партии. Показ перед партией не в счёт: на нём видно всё.
+  /// После возврата к незаконченной партии знание начинается заново — за перерыв человек
+  /// мог забыть, и считать его промахи «известными» было бы нечестно.
+  late final List<bool> _seen;
+
+  /// Видел ли игрок карту ДО текущего хода — по одной отметке на открытую карту хода.
+  final List<bool> _openWasSeen = [];
+
+  /// 🔁 ПЕРСЕВЕРАЦИИ: ход открыл две карты, которые игрок УЖЕ видел, и картинки на них
+  /// разные — промах, известный заранее. Аналог метрики MindLab (sort.py) для игры на
+  /// переворот; задача cd9685ec.
+  int perseverations = 0;
+
+  /// Эффективность: ходов идеальной памяти на ходы игрока. 1 — как идеальная память;
+  /// больше 1 бывает, если человек унёс расклад с показа.
+  double get efficiency => moves == 0 ? 0 : idealMoves / moves;
 
   /// Карты, открытые в текущем ходе (номера мест на поле).
   final List<int> open = [];
@@ -202,12 +288,28 @@ class PairsGame {
     if (c.matched || c.flipped || open.length >= cfg.groupSize) return TapResult.ignored;
     c.flipped = true;
     open.add(i);
+    _openWasSeen.add(_seen[i]);
     if (open.length < cfg.groupSize) return TapResult.opened;
     moves += 1;
+    if (_knownWrong()) perseverations += 1;
+    for (final j in open) {
+      _seen[j] = true;
+    }
     final first = cards[open.first].symbol;
     if (open.every((j) => cards[j].symbol == first)) return TapResult.groupMatched;
     errors += 1;
     return TapResult.groupMissed;
+  }
+
+  /// Среди открытых в ходе есть две карты, виденные ДО хода, с разными картинками.
+  bool _knownWrong() {
+    for (var a = 0; a < open.length; a++) {
+      if (!_openWasSeen[a]) continue;
+      for (var b = a + 1; b < open.length; b++) {
+        if (_openWasSeen[b] && cards[open[a]].symbol != cards[open[b]].symbol) return true;
+      }
+    }
+    return false;
   }
 
   /// Снять набранную группу одинаковых.
@@ -216,6 +318,7 @@ class PairsGame {
       cards[j].matched = true;
     }
     open.clear();
+    _openWasSeen.clear();
   }
 
   /// Закрыть промах — карты лицом вниз, ход закончен.
@@ -224,6 +327,7 @@ class PairsGame {
       cards[j].flipped = false;
     }
     open.clear();
+    _openWasSeen.clear();
   }
 
   /// Закрытые карты — только они и меняются местами.
@@ -232,11 +336,14 @@ class PairsGame {
           if (!cards[i].matched && !cards[i].flipped) i,
       ];
 
-  /// Поменять местами две карты.
+  /// Поменять местами две карты. Знание едет вместе с картой: обмен показан подсветкой.
   void swap(int a, int b) {
     final t = cards[a];
     cards[a] = cards[b];
     cards[b] = t;
+    final s = _seen[a];
+    _seen[a] = _seen[b];
+    _seen[b] = s;
   }
 
   /// Счёт уровня — как в вебе: лишние ходы и время снимают очки, но не ниже 50.
