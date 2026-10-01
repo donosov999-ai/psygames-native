@@ -123,12 +123,17 @@ SudokuBoard juniorBoard(int step, int seed) {
   );
 }
 
+/// Имя лестницы малышей — в формате общей памяти уровней (`psygames_<игра>_level_<профиль>`):
+/// по нему карточка развилки показывает ступень (`hub_screen.dart`, `LevelLadder(gameId:)`),
+/// а `embed-hubs.mjs` для нативной карточки с режимом ищет этот литерал в исходниках игры.
+const juniorLadderId = 'sudoku_junior';
+
 /// Ступень малышей — свой счётчик: обычная лестница на 92 ступени не трогается.
 class JuniorProgress {
   JuniorProgress(this.state);
   final SharedState state;
 
-  String get key => '${SharedState.prefix}sudoku_junior_step_${state.activeProfile}';
+  String get key => '${SharedState.prefix}${juniorLadderId}_level_${state.activeProfile}';
 
   int get step => (int.tryParse(state.get(key) ?? '') ?? 1).clamp(1, juniorSteps);
 

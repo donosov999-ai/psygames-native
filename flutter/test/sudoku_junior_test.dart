@@ -168,7 +168,9 @@ void main() {
     }
     await tester.pump(const Duration(milliseconds: 100));
     expect(find.byKey(const Key('next')), findsOneWidget, reason: 'доска сошлась');
-    expect(state.get('psygames_sudoku_junior_step_${state.activeProfile}'), '2', reason: 'ступень малышей выросла');
+    expect(state.get('psygames_sudoku_junior_level_${state.activeProfile}'), '2', reason: 'ступень малышей выросла');
+    // Карточка развилки читает ступень тем же ключом: LevelLadder(gameId: 'sudoku_junior').
+    expect(juniorLadderId, 'sudoku_junior');
     expect(state.get('psygames_sudoku_level_${state.activeProfile}'), isNull, reason: 'лестница на 92 ступени не тронута');
     expect(reports.single['mode'], 'junior-1');
     expect((reports.single['details'] as Map)['skin'], 'animals');
