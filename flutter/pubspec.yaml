@@ -106,6 +106,9 @@ flutter:
     - assets/chess/
     # Корпус «Детского мата»: 718 своих матовых позиций + задачи Lichess (CC0)
     - assets/scholars_mate/
+    # «Найди ход»: 3 108 задач Lichess (CC0) по двенадцати приёмам, 430 КБ;
+    # генератор tools/find_move_corpus.py
+    - assets/find_move/
     - assets/faces-names.json
     - assets/memory-palace.json
     - assets/rmet.json
