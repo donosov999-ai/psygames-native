@@ -4397,7 +4397,7 @@ const translations: Translations = {
   teachDrStrike: { ru: 'Удар: {move} — снимаешь {n}.', en: 'Shot: {move} — you take {n}.' },
   teachDrCrown: { ru: 'Прорыв в дамки: {move}.', en: 'Breakthrough to king: {move}.' },
   teachDrKingStrike: { ru: 'Дамочный удар: {move} — снимаешь {n}.', en: 'King strike: {move} — you take {n}.' },
-  teachDrReply: { ru: 'Соперник отвечает {move} — лучшее, что у него есть.', en: 'Your opponent replies {move} — the best he has.' },
+  teachDrReply: { ru: 'Соперник отвечает {move} — лучшее, что у него есть.', en: 'Your opponent replies {move} — their best option.' },
   teachDrQuiet: { ru: 'Ход {move} — комбинация продолжается.', en: 'Move {move} — the combination continues.' },
   teachDrDone: { ru: 'Итог: ты впереди на {gain}.', en: 'Result: you are {gain} ahead.' },
   teachScholarsKing: { ru: 'Смотри на короля соперника: какие поля вокруг него заняты своими же фигурами и что уже бьёт рядом.', en: 'Look at the enemy king: which squares around it are blocked by its own pieces, and what already attacks nearby.' },
