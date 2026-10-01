@@ -99,7 +99,7 @@ for (const f of dartFiles(join(FLUTTER, 'lib'))) {
 // ассетов: там они лежат явно.
 for (const [file, fields] of [
   ['assets/hubs.json', ['nameKey', 'descKey', 'titleKey', 'pickKey', 'footnoteKey']],
-  ['assets/puzzles/modes.json', ['titleKey', 'digitNames', 'secondKey']],
+  ['assets/puzzles/modes.json', ['titleKey', 'digitNames', 'secondKey', 'secondPickKey']],
 ]) {
   let data;
   // 🔴 НЕТ ФАЙЛА — пропустить можно; ЕСТЬ, НО НЕ ЧИТАЕТСЯ — СТОП. Замер 01.10.2026: после
