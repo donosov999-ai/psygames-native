@@ -1,4 +1,8 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/spatial_hub/screen.dart';
 import 'package:psygames_flutter/shell/hybrid_app.dart';
@@ -86,5 +90,40 @@ void main() {
     await tester.tap(find.byKey(const Key('карточка-/games/navigator')));
     await tester.pump();
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('🔴 у каждой из девяти строк — иконка игры из общей карты, а не значок', (tester) async {
+    // Решение Дениса 01.10.2026 (4c3ba7c9): в строке развилки — поле игры в миниатюре. Карта —
+    // та же, что у общего экрана развилок; адрес — целиком, с ?mode= («Клоцки» ≠ «Сокобан»).
+    final index = jsonDecode(File('assets/game_icons/index.json').readAsStringSync()) as Map<String, dynamic>;
+    final byRoute = index['byRoute'] as Map<String, dynamic>;
+    await boot(tester);
+    for (final card in spatialHubCards) {
+      final row = find.byKey(Key('карточка-${card.route}'));
+      await tester.ensureVisible(row);
+      await tester.pump();
+      final icon = find.descendant(of: row, matching: find.byKey(ValueKey('hub-icon-${card.route}')));
+      expect(icon, findsOneWidget, reason: '${card.route}: строка без иконки');
+      final image = tester.widget<Image>(icon);
+      expect((image.image as AssetImage).assetName, 'assets/game_icons/${byRoute[card.route]}',
+          reason: '${card.route}: иконка чужой игры');
+      expect(File('assets/game_icons/${byRoute[card.route]}').existsSync(), isTrue,
+          reason: '${card.route}: файла иконки нет — экран показал бы пустой квадрат');
+    }
+  });
+
+  testWidgets('нет карты иконок — строки с прежним значком, не пустое место', (tester) async {
+    final messenger = TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+    messenger.setMockMessageHandler('flutter/assets', (msg) async {
+      final key = Uri.decodeFull(utf8.decode(msg!.buffer.asUint8List(msg.offsetInBytes, msg.lengthInBytes)));
+      if (key == 'assets/game_icons/index.json') return ByteData.sublistView(utf8.encode('{}'));
+      final f = File(key);
+      return f.existsSync() ? ByteData.sublistView(f.readAsBytesSync()) : null;
+    });
+    addTearDown(() => messenger.setMockMessageHandler('flutter/assets', null));
+    await boot(tester);
+    final row = find.byKey(const Key('карточка-/games/mental-rotation'));
+    expect(find.descendant(of: row, matching: find.byType(Icon)), findsOneWidget);
+    expect(find.descendant(of: row, matching: find.byType(Image)), findsNothing);
   });
 }
