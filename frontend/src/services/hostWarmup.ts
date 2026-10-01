@@ -125,12 +125,24 @@ export function stepDoneMessage(
   };
 }
 
-/** Отправить оболочке. false — канала нет, оболочка не услышит. */
+/**
+ * Отправить оболочке. false — канала нет, оболочка не услышит.
+ *
+ * 🔴 МЕТОД ЗОВЁТСЯ НА САМОМ МОСТЕ, А НЕ ВЫНУТЫМ (01.10.2026, Play 2.56.3 на эмуляторе).
+ * Было `const post = PsyBridge.postMessage; post(...)`. На iOS мост — обычная JS-функция,
+ * и такой вызов проходит; на Android мост — Java-объект (`addJavascriptInterface`), и его
+ * метод без своего объекта бросает «Java bridge method can't be invoked on a non-injected
+ * object». Исключение глоталось ниже, функция возвращала false — и ни одно сообщение веба
+ * не доходило: экран выбора зарядки (нативный, #108) ждал модель вечно, переход между
+ * нативными шагами (#98) молча уходил в веб. Сама оболочка шлёт через
+ * `window.PsyBridge.postMessage(...)` — потому её сообщения (смена адреса) работали.
+ * Проба: src/__tests__/host-bridge-bound-call.test.ts.
+ */
 export function postToHost(msg: object): boolean {
-  const post = hostWindow()?.PsyBridge?.postMessage;
-  if (typeof post !== 'function') return false;
+  const bridge = hostWindow()?.PsyBridge;
+  if (!bridge || typeof bridge.postMessage !== 'function') return false;
   try {
-    post(JSON.stringify(msg));
+    bridge.postMessage(JSON.stringify(msg));
     return true;
   } catch {
     return false;
