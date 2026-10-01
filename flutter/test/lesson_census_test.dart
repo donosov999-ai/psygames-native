@@ -70,6 +70,7 @@ void main() {
     '/games/inhibition',
     '/games/memory-palace',
     '/games/rmet',
+    '/games/mnemonics',
     '/games/ant',
     '/games/iowa',
     '/games/prl',
@@ -86,6 +87,10 @@ void main() {
     '/games/anagrams?mode=all',
     '/games/anagrams?mode=cross',
     '/games/anagrams?mode=square',
+    '/games/kids-find',
+    '/games/submarines',
+    '/games/monster-traits?mode=missing',
+    '/games/search-runner',
   ];
 
 
@@ -126,7 +131,12 @@ void main() {
       // вместе с Тэтхэмом, перепись писала «51 из 51», не глядя на три игры, у
       // которых разбора не было вовсе (замер 30.09.2026, задача 17d894f7). Теперь
       // они считаются, как обычные экраны.
-      if (e.key.contains('?') && !e.key.startsWith('/games/anagrams?')) continue;
+      // Так же считается режим «Найди признак» — «Кого не хватает»: свой экран на Dart.
+      if (e.key.contains('?') &&
+          !e.key.startsWith('/games/anagrams?') &&
+          !e.key.startsWith('/games/monster-traits?')) {
+        continue;
+      }
       // 🔴 `/games/puzzles` — НЕ ИГРА, а один экран на 42 режима: разбор там
       // живёт у РЕЖИМА, и считать его как «экран без разбора» значит держать в
       // остатке строку, которую нечем закрыть. Так же устроен веб-реестр

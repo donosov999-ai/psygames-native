@@ -598,7 +598,7 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
   /// счётчик подходов вперёд, серия дней — как у веб-экрана.
   void _completeBreath(double seconds, String technique) {
     final run = _ledger.run;
-    unawaited(_ledger.complete(widget.today?.call() ?? DateTime.now()));
+    unawaited(_ledger.complete(widget.today?.call() ?? DateTime.now())); // wall-clock: день серии
     final wim = technique == 'wimhof';
     unawaited(SessionReport.send(
       gameType: 'breathing',

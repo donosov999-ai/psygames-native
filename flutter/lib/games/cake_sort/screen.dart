@@ -8,6 +8,7 @@ import '../../shell/aux_action.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/level_rules.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/lesson.dart';
 import '../../shell/lesson_player.dart';
@@ -276,6 +277,8 @@ class _CakeSortScreenState extends State<CakeSortScreen> {
     final stuck = !_won && !board.hasAnyMove;
 
     return GameShell(
+      // Правило уровня объявляет каркас — в спокойный момент, не поверх партии (задача e371fd3a).
+      levelRule: LevelRuleSpot(gameId: widget.gameId, level: _ladder.level, state: widget.state, calm: _moves == 0 || _won),
       title: widget.title,
       hud: [
         // Счётчик уровня при шаге зарядки скрыт: шаг лестницу не двигает

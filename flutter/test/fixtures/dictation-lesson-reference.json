@@ -1,0 +1,4329 @@
+{
+ "source": "frontend/src/games/dictation/tools/record-flutter-lesson.gen.ts",
+ "langs": [
+  "en",
+  "ru",
+  "es",
+  "pt",
+  "de",
+  "zh",
+  "hi"
+ ],
+ "chunks": [
+  {
+   "lang": "en",
+   "text": "I drink coffee every morning.",
+   "chunks": [
+    "I drink coffee",
+    "every morning."
+   ]
+  },
+  {
+   "lang": "en",
+   "text": "The sun is shining in the sky.",
+   "chunks": [
+    "The sun is",
+    "shining in the",
+    "sky."
+   ]
+  },
+  {
+   "lang": "en",
+   "text": "My house has four rooms.",
+   "chunks": [
+    "My house has",
+    "four rooms."
+   ]
+  },
+  {
+   "lang": "en",
+   "text": "The cat drinks milk.",
+   "chunks": [
+    "The cat drinks",
+    "milk."
+   ]
+  },
+  {
+   "lang": "en",
+   "text": "I am reading an interesting book.",
+   "chunks": [
+    "I am reading",
+    "an interesting book."
+   ]
+  },
+  {
+   "lang": "en",
+   "text": "The dog is barking outside.",
+   "chunks": [
+    "The dog is",
+    "barking outside."
+   ]
+  },
+  {
+   "lang": "en",
+   "text": "Open the door, please.",
+   "chunks": [
+    "Open the door,",
+    "please."
+   ]
+  },
+  {
+   "lang": "en",
+   "text": "In winter we often see snow.",
+   "chunks": [
+    "In winter we",
+    "often see snow."
+   ]
+  },
+  {
+   "lang": "en",
+   "text": "My younger brother goes to school.",
+   "chunks": [
+    "My younger brother",
+    "goes to school."
+   ]
+  },
+  {
+   "lang": "en",
+   "text": "The fish lives in the sea.",
+   "chunks": [
+    "The fish lives",
+    "in the sea."
+   ]
+  },
+  {
+   "lang": "en",
+   "text": "I want to buy a new car.",
+   "chunks": [
+    "I want to",
+    "buy a new",
+    "car."
+   ]
+  },
+  {
+   "lang": "en",
+   "text": "This bag is very expensive.",
+   "chunks": [
+    "This bag is",
+    "very expensive."
+   ]
+  },
+  {
+   "lang": "en",
+   "text": "The opposite of hot is cold.",
+   "chunks": [
+    "The opposite of",
+    "hot is cold."
+   ]
+  },
+  {
+   "lang": "en",
+   "text": "Look at the moon — it is full tonight.",
+   "chunks": [
+    "Look at the",
+    "moon — it",
+    "is full tonight."
+   ]
+  },
+  {
+   "lang": "en",
+   "text": "After the night comes the morning.",
+   "chunks": [
+    "After the night",
+    "comes the morning."
+   ]
+  },
+  {
+   "lang": "en",
+   "text": "In the evening I like to read books.",
+   "chunks": [
+    "In the evening",
+    "I like to",
+    "read books."
+   ]
+  },
+  {
+   "lang": "en",
+   "text": "I am thirsty — give me some water.",
+   "chunks": [
+    "I am thirsty",
+    "— give me",
+    "some water."
+   ]
+  },
+  {
+   "lang": "en",
+   "text": "The fire warms the whole room.",
+   "chunks": [
+    "The fire warms",
+    "the whole room."
+   ]
+  },
+  {
+   "lang": "en",
+   "text": "The first star appears in the evening sky.",
+   "chunks": [
+    "The first star",
+    "appears in the",
+    "evening sky."
+   ]
+  },
+  {
+   "lang": "en",
+   "text": "Take an umbrella, the rain is heavy today.",
+   "chunks": [
+    "Take an umbrella,",
+    "the rain is",
+    "heavy today."
+   ]
+  },
+  {
+   "lang": "en",
+   "text": "She buys fresh bread every morning.",
+   "chunks": [
+    "She buys fresh",
+    "bread every morning."
+   ]
+  },
+  {
+   "lang": "en",
+   "text": "There is a red apple in the basket.",
+   "chunks": [
+    "There is a",
+    "red apple in",
+    "the basket."
+   ]
+  },
+  {
+   "lang": "en",
+   "text": "The horse runs across the field.",
+   "chunks": [
+    "The horse runs",
+    "across the field."
+   ]
+  },
+  {
+   "lang": "en",
+   "text": "A small grey mouse lives under the floor.",
+   "chunks": [
+    "A small grey",
+    "mouse lives under",
+    "the floor."
+   ]
+  },
+  {
+   "lang": "en",
+   "text": "We swim in the river every summer.",
+   "chunks": [
+    "We swim in",
+    "the river every",
+    "summer."
+   ]
+  },
+  {
+   "lang": "en",
+   "text": "The highest mountain is covered with snow.",
+   "chunks": [
+    "The highest mountain",
+    "is covered with",
+    "snow."
+   ]
+  },
+  {
+   "lang": "en",
+   "text": "Mushrooms grow in the forest.",
+   "chunks": [
+    "Mushrooms grow in",
+    "the forest."
+   ]
+  },
+  {
+   "lang": "en",
+   "text": "Put the plates on the table.",
+   "chunks": [
+    "Put the plates",
+    "on the table."
+   ]
+  },
+  {
+   "lang": "en",
+   "text": "The clock on the wall shows nine.",
+   "chunks": [
+    "The clock on",
+    "the wall shows",
+    "nine."
+   ]
+  },
+  {
+   "lang": "en",
+   "text": "We buy vegetables at the market.",
+   "chunks": [
+    "We buy vegetables",
+    "at the market."
+   ]
+  },
+  {
+   "lang": "en",
+   "text": "They took him to the hospital.",
+   "chunks": [
+    "They took him",
+    "to the hospital."
+   ]
+  },
+  {
+   "lang": "en",
+   "text": "The lesson lasts one hour.",
+   "chunks": [
+    "The lesson lasts",
+    "one hour."
+   ]
+  },
+  {
+   "lang": "en",
+   "text": "Children need to sleep at least eight hours.",
+   "chunks": [
+    "Children need to",
+    "sleep at least",
+    "eight hours."
+   ]
+  },
+  {
+   "lang": "en",
+   "text": "I want to write a letter to my friend.",
+   "chunks": [
+    "I want to",
+    "write a letter",
+    "to my friend."
+   ]
+  },
+  {
+   "lang": "en",
+   "text": "Please help me to open this window.",
+   "chunks": [
+    "Please help me",
+    "to open this",
+    "window."
+   ]
+  },
+  {
+   "lang": "en",
+   "text": "This house is very big.",
+   "chunks": [
+    "This house is",
+    "very big."
+   ]
+  },
+  {
+   "lang": "en",
+   "text": "This train is very fast.",
+   "chunks": [
+    "This train is",
+    "very fast."
+   ]
+  },
+  {
+   "lang": "en",
+   "text": "The floor in the kitchen is clean.",
+   "chunks": [
+    "The floor in",
+    "the kitchen is",
+    "clean."
+   ]
+  },
+  {
+   "lang": "en",
+   "text": "My grandfather is already very old.",
+   "chunks": [
+    "My grandfather is",
+    "already very old."
+   ]
+  },
+  {
+   "lang": "en",
+   "text": "I like listening to music.",
+   "chunks": [
+    "I like listening",
+    "to music."
+   ]
+  },
+  {
+   "lang": "en",
+   "text": "My mother cooks dinner every evening.",
+   "chunks": [
+    "My mother cooks",
+    "dinner every evening."
+   ]
+  },
+  {
+   "lang": "en",
+   "text": "A small bird sings in the garden.",
+   "chunks": [
+    "A small bird",
+    "sings in the",
+    "garden."
+   ]
+  },
+  {
+   "lang": "en",
+   "text": "The cow gives us milk every day.",
+   "chunks": [
+    "The cow gives",
+    "us milk every",
+    "day."
+   ]
+  },
+  {
+   "lang": "en",
+   "text": "There is not a single cloud in the sky.",
+   "chunks": [
+    "There is not",
+    "a single cloud",
+    "in the sky."
+   ]
+  },
+  {
+   "lang": "en",
+   "text": "He writes a long letter to his sister.",
+   "chunks": [
+    "He writes a",
+    "long letter to",
+    "his sister."
+   ]
+  },
+  {
+   "lang": "en",
+   "text": "We cross the bridge to reach the village.",
+   "chunks": [
+    "We cross the",
+    "bridge to reach",
+    "the village."
+   ]
+  },
+  {
+   "lang": "en",
+   "text": "They walk in the park after lunch.",
+   "chunks": [
+    "They walk in",
+    "the park after",
+    "lunch."
+   ]
+  },
+  {
+   "lang": "en",
+   "text": "The train leaves the station at six.",
+   "chunks": [
+    "The train leaves",
+    "the station at",
+    "six."
+   ]
+  },
+  {
+   "lang": "en",
+   "text": "I want to drink a glass of juice.",
+   "chunks": [
+    "I want to",
+    "drink a glass",
+    "of juice."
+   ]
+  },
+  {
+   "lang": "en",
+   "text": "Children love to play in the yard.",
+   "chunks": [
+    "Children love to",
+    "play in the",
+    "yard."
+   ]
+  },
+  {
+   "lang": "en",
+   "text": "I asked my friend to help me.",
+   "chunks": [
+    "I asked my",
+    "friend to help",
+    "me."
+   ]
+  },
+  {
+   "lang": "en",
+   "text": "Be careful, this soup is very hot.",
+   "chunks": [
+    "Be careful, this",
+    "soup is very",
+    "hot."
+   ]
+  },
+  {
+   "lang": "en",
+   "text": "Her new dress is really beautiful.",
+   "chunks": [
+    "Her new dress",
+    "is really beautiful."
+   ]
+  },
+  {
+   "lang": "en",
+   "text": "The lamp above the desk is broken.",
+   "chunks": [
+    "The lamp above",
+    "the desk is",
+    "broken."
+   ]
+  },
+  {
+   "lang": "en",
+   "text": "We swim at the beach every summer.",
+   "chunks": [
+    "We swim at",
+    "the beach every",
+    "summer."
+   ]
+  },
+  {
+   "lang": "en",
+   "text": "A week has seven days.",
+   "chunks": [
+    "A week has",
+    "seven days."
+   ]
+  },
+  {
+   "lang": "en",
+   "text": "The bee makes honey in summer.",
+   "chunks": [
+    "The bee makes",
+    "honey in summer."
+   ]
+  },
+  {
+   "lang": "en",
+   "text": "He holds the cup in his right hand.",
+   "chunks": [
+    "He holds the",
+    "cup in his",
+    "right hand."
+   ]
+  },
+  {
+   "lang": "en",
+   "text": "Their youngest child is only two.",
+   "chunks": [
+    "Their youngest child",
+    "is only two."
+   ]
+  },
+  {
+   "lang": "en",
+   "text": "Cut the bread with a sharp knife.",
+   "chunks": [
+    "Cut the bread",
+    "with a sharp",
+    "knife."
+   ]
+  },
+  {
+   "lang": "ru",
+   "text": "На столе лежит книга.",
+   "chunks": [
+    "На столе лежит",
+    "книга."
+   ]
+  },
+  {
+   "lang": "ru",
+   "text": "Утром я пью кофе.",
+   "chunks": [
+    "Утром я пью",
+    "кофе."
+   ]
+  },
+  {
+   "lang": "ru",
+   "text": "Ночью на небе светит луна.",
+   "chunks": [
+    "Ночью на небе",
+    "светит луна."
+   ]
+  },
+  {
+   "lang": "ru",
+   "text": "Во дворе лает собака.",
+   "chunks": [
+    "Во дворе лает",
+    "собака."
+   ]
+  },
+  {
+   "lang": "ru",
+   "text": "Зимой часто идёт снег.",
+   "chunks": [
+    "Зимой часто идёт",
+    "снег."
+   ]
+  },
+  {
+   "lang": "ru",
+   "text": "В реке плавает рыба.",
+   "chunks": [
+    "В реке плавает",
+    "рыба."
+   ]
+  },
+  {
+   "lang": "ru",
+   "text": "У дома растёт высокое дерево.",
+   "chunks": [
+    "У дома растёт",
+    "высокое дерево."
+   ]
+  },
+  {
+   "lang": "ru",
+   "text": "Мы идём покупать продукты.",
+   "chunks": [
+    "Мы идём покупать",
+    "продукты."
+   ]
+  },
+  {
+   "lang": "ru",
+   "text": "Вечером я люблю читать книги.",
+   "chunks": [
+    "Вечером я люблю",
+    "читать книги."
+   ]
+  },
+  {
+   "lang": "ru",
+   "text": "солнце светит днём, а луна — ночью.",
+   "chunks": [
+    "солнце светит днём,",
+    "а луна —",
+    "ночью."
+   ]
+  },
+  {
+   "lang": "ru",
+   "text": "В этой комнате есть большое окно.",
+   "chunks": [
+    "В этой комнате",
+    "есть большое окно."
+   ]
+  },
+  {
+   "lang": "ru",
+   "text": "По дороге едет машина.",
+   "chunks": [
+    "По дороге едет",
+    "машина."
+   ]
+  },
+  {
+   "lang": "ru",
+   "text": "В зоопарке живёт большой слон.",
+   "chunks": [
+    "В зоопарке живёт",
+    "большой слон."
+   ]
+  },
+  {
+   "lang": "ru",
+   "text": "Мне нравится моя работа.",
+   "chunks": [
+    "Мне нравится моя",
+    "работа."
+   ]
+  },
+  {
+   "lang": "ru",
+   "text": "Противоположность слову «горячий» — холодный.",
+   "chunks": [
+    "Противоположность слову «горячий»",
+    "— холодный."
+   ]
+  },
+  {
+   "lang": "ru",
+   "text": "После ночи наступает утро.",
+   "chunks": [
+    "После ночи наступает",
+    "утро."
+   ]
+  },
+  {
+   "lang": "ru",
+   "text": "В стакане холодная вода.",
+   "chunks": [
+    "В стакане холодная",
+    "вода."
+   ]
+  },
+  {
+   "lang": "ru",
+   "text": "В печи горит огонь.",
+   "chunks": [
+    "В печи горит",
+    "огонь."
+   ]
+  },
+  {
+   "lang": "ru",
+   "text": "Первая звезда загорается вечером.",
+   "chunks": [
+    "Первая звезда загорается",
+    "вечером."
+   ]
+  },
+  {
+   "lang": "ru",
+   "text": "На улице идёт сильный дождь.",
+   "chunks": [
+    "На улице идёт",
+    "сильный дождь."
+   ]
+  },
+  {
+   "lang": "ru",
+   "text": "Мама печёт вкусный хлеб.",
+   "chunks": [
+    "Мама печёт вкусный",
+    "хлеб."
+   ]
+  },
+  {
+   "lang": "ru",
+   "text": "В корзине лежит красное яблоко.",
+   "chunks": [
+    "В корзине лежит",
+    "красное яблоко."
+   ]
+  },
+  {
+   "lang": "ru",
+   "text": "По полю бежит лошадь.",
+   "chunks": [
+    "По полю бежит",
+    "лошадь."
+   ]
+  },
+  {
+   "lang": "ru",
+   "text": "Под полом живёт серая мышь.",
+   "chunks": [
+    "Под полом живёт",
+    "серая мышь."
+   ]
+  },
+  {
+   "lang": "ru",
+   "text": "Через город течёт река.",
+   "chunks": [
+    "Через город течёт",
+    "река."
+   ]
+  },
+  {
+   "lang": "ru",
+   "text": "Вдалеке видна высокая гора.",
+   "chunks": [
+    "Вдалеке видна высокая",
+    "гора."
+   ]
+  },
+  {
+   "lang": "ru",
+   "text": "За деревней начинается густой лес.",
+   "chunks": [
+    "За деревней начинается",
+    "густой лес."
+   ]
+  },
+  {
+   "lang": "ru",
+   "text": "В комнате стоит деревянный стул.",
+   "chunks": [
+    "В комнате стоит",
+    "деревянный стул."
+   ]
+  },
+  {
+   "lang": "ru",
+   "text": "На стене висят старые часы.",
+   "chunks": [
+    "На стене висят",
+    "старые часы."
+   ]
+  },
+  {
+   "lang": "ru",
+   "text": "Наш город стоит на реке.",
+   "chunks": [
+    "Наш город стоит",
+    "на реке."
+   ]
+  },
+  {
+   "lang": "ru",
+   "text": "Рядом с домом открылся новый рынок.",
+   "chunks": [
+    "Рядом с домом",
+    "открылся новый рынок."
+   ]
+  },
+  {
+   "lang": "ru",
+   "text": "В нашем городе есть новая больница.",
+   "chunks": [
+    "В нашем городе",
+    "есть новая больница."
+   ]
+  },
+  {
+   "lang": "ru",
+   "text": "Урок длится один час.",
+   "chunks": [
+    "Урок длится один",
+    "час."
+   ]
+  },
+  {
+   "lang": "ru",
+   "text": "Ребёнку нужно спать восемь часов.",
+   "chunks": [
+    "Ребёнку нужно спать",
+    "восемь часов."
+   ]
+  },
+  {
+   "lang": "ru",
+   "text": "Я хочу писать письмо другу.",
+   "chunks": [
+    "Я хочу писать",
+    "письмо другу."
+   ]
+  },
+  {
+   "lang": "ru",
+   "text": "Не забывай открывать окно по утрам.",
+   "chunks": [
+    "Не забывай открывать",
+    "окно по утрам."
+   ]
+  },
+  {
+   "lang": "ru",
+   "text": "Слон — очень большой зверь.",
+   "chunks": [
+    "Слон — очень",
+    "большой зверь."
+   ]
+  },
+  {
+   "lang": "ru",
+   "text": "Этот поезд очень быстрый.",
+   "chunks": [
+    "Этот поезд очень",
+    "быстрый."
+   ]
+  },
+  {
+   "lang": "ru",
+   "text": "Пол в комнате совсем чистый.",
+   "chunks": [
+    "Пол в комнате",
+    "совсем чистый."
+   ]
+  },
+  {
+   "lang": "ru",
+   "text": "Мой дедушка уже очень старый.",
+   "chunks": [
+    "Мой дедушка уже",
+    "очень старый."
+   ]
+  },
+  {
+   "lang": "ru",
+   "text": "Ужин каждый вечер готовит мать.",
+   "chunks": [
+    "Ужин каждый вечер",
+    "готовит мать."
+   ]
+  },
+  {
+   "lang": "ru",
+   "text": "В саду поёт маленькая птица.",
+   "chunks": [
+    "В саду поёт",
+    "маленькая птица."
+   ]
+  },
+  {
+   "lang": "ru",
+   "text": "Молоко нам даёт корова.",
+   "chunks": [
+    "Молоко нам даёт",
+    "корова."
+   ]
+  },
+  {
+   "lang": "ru",
+   "text": "По небу плывёт белое облако.",
+   "chunks": [
+    "По небу плывёт",
+    "белое облако."
+   ]
+  },
+  {
+   "lang": "ru",
+   "text": "Сестре он пишет длинное письмо.",
+   "chunks": [
+    "Сестре он пишет",
+    "длинное письмо."
+   ]
+  },
+  {
+   "lang": "ru",
+   "text": "Через реку построен мост.",
+   "chunks": [
+    "Через реку построен",
+    "мост."
+   ]
+  },
+  {
+   "lang": "ru",
+   "text": "За домом растёт большой сад.",
+   "chunks": [
+    "За домом растёт",
+    "большой сад."
+   ]
+  },
+  {
+   "lang": "ru",
+   "text": "Самая тёплая комната в доме — кухня.",
+   "chunks": [
+    "Самая тёплая комната",
+    "в доме —",
+    "кухня."
+   ]
+  },
+  {
+   "lang": "ru",
+   "text": "В жару хочется много пить.",
+   "chunks": [
+    "В жару хочется",
+    "много пить."
+   ]
+  },
+  {
+   "lang": "ru",
+   "text": "Дети во дворе любят играть.",
+   "chunks": [
+    "Дети во дворе",
+    "любят играть."
+   ]
+  },
+  {
+   "lang": "ru",
+   "text": "Другу всегда надо помогать.",
+   "chunks": [
+    "Другу всегда надо",
+    "помогать."
+   ]
+  },
+  {
+   "lang": "ru",
+   "text": "Осторожно, суп очень горячий.",
+   "chunks": [
+    "Осторожно, суп очень",
+    "горячий."
+   ]
+  },
+  {
+   "lang": "ru",
+   "text": "Этот город очень красивый.",
+   "chunks": [
+    "Этот город очень",
+    "красивый."
+   ]
+  },
+  {
+   "lang": "ru",
+   "text": "Над столом висит лампа.",
+   "chunks": [
+    "Над столом висит",
+    "лампа."
+   ]
+  },
+  {
+   "lang": "ru",
+   "text": "Семь дней — это одна неделя.",
+   "chunks": [
+    "Семь дней —",
+    "это одна неделя."
+   ]
+  },
+  {
+   "lang": "ru",
+   "text": "Мёд в улье делает пчела.",
+   "chunks": [
+    "Мёд в улье",
+    "делает пчела."
+   ]
+  },
+  {
+   "lang": "ru",
+   "text": "У человека есть голова, нога и рука.",
+   "chunks": [
+    "У человека есть",
+    "голова, нога и",
+    "рука."
+   ]
+  },
+  {
+   "lang": "ru",
+   "text": "В коляске спит маленький ребёнок.",
+   "chunks": [
+    "В коляске спит",
+    "маленький ребёнок."
+   ]
+  },
+  {
+   "lang": "ru",
+   "text": "Хлеб режет острый нож.",
+   "chunks": [
+    "Хлеб режет острый",
+    "нож."
+   ]
+  },
+  {
+   "lang": "ru",
+   "text": "После вечера наступает ночь.",
+   "chunks": [
+    "После вечера наступает",
+    "ночь."
+   ]
+  },
+  {
+   "lang": "es",
+   "text": "Por la mañana bebo café.",
+   "chunks": [
+    "Por la mañana",
+    "bebo café."
+   ]
+  },
+  {
+   "lang": "es",
+   "text": "Quiero comprar un coche nuevo.",
+   "chunks": [
+    "Quiero comprar un",
+    "coche nuevo."
+   ]
+  },
+  {
+   "lang": "es",
+   "text": "Mi hermano sabe leer muy rápido.",
+   "chunks": [
+    "Mi hermano sabe",
+    "leer muy rápido."
+   ]
+  },
+  {
+   "lang": "es",
+   "text": "En invierno cae mucha nieve.",
+   "chunks": [
+    "En invierno cae",
+    "mucha nieve."
+   ]
+  },
+  {
+   "lang": "es",
+   "text": "No tengo dinero para comprar esto.",
+   "chunks": [
+    "No tengo dinero",
+    "para comprar esto."
+   ]
+  },
+  {
+   "lang": "es",
+   "text": "¿Quieres vino o té?",
+   "chunks": [
+    "¿Quieres vino o",
+    "té?"
+   ]
+  },
+  {
+   "lang": "es",
+   "text": "Mi casa tiene cuatro habitaciones.",
+   "chunks": [
+    "Mi casa tiene",
+    "cuatro habitaciones."
+   ]
+  },
+  {
+   "lang": "es",
+   "text": "El gato bebe leche.",
+   "chunks": [
+    "El gato bebe",
+    "leche."
+   ]
+  },
+  {
+   "lang": "es",
+   "text": "No encuentro mi llave.",
+   "chunks": [
+    "No encuentro mi",
+    "llave."
+   ]
+  },
+  {
+   "lang": "es",
+   "text": "Después de la noche llega la mañana.",
+   "chunks": [
+    "Después de la",
+    "noche llega la",
+    "mañana."
+   ]
+  },
+  {
+   "lang": "es",
+   "text": "Hoy hace mucho viento.",
+   "chunks": [
+    "Hoy hace mucho",
+    "viento."
+   ]
+  },
+  {
+   "lang": "es",
+   "text": "Voy a la escuela todos los días.",
+   "chunks": [
+    "Voy a la",
+    "escuela todos los",
+    "días."
+   ]
+  },
+  {
+   "lang": "es",
+   "text": "El opuesto de caliente es frío.",
+   "chunks": [
+    "El opuesto de",
+    "caliente es frío."
+   ]
+  },
+  {
+   "lang": "es",
+   "text": "Mi color favorito es el azul.",
+   "chunks": [
+    "Mi color favorito",
+    "es el azul."
+   ]
+  },
+  {
+   "lang": "es",
+   "text": "El pez nada en el río.",
+   "chunks": [
+    "El pez nada",
+    "en el río."
+   ]
+  },
+  {
+   "lang": "es",
+   "text": "Mi hermano pequeño va a la escuela.",
+   "chunks": [
+    "Mi hermano pequeño",
+    "va a la",
+    "escuela."
+   ]
+  },
+  {
+   "lang": "es",
+   "text": "En el vaso hay agua fría.",
+   "chunks": [
+    "En el vaso",
+    "hay agua fría."
+   ]
+  },
+  {
+   "lang": "es",
+   "text": "En la chimenea arde el fuego.",
+   "chunks": [
+    "En la chimenea",
+    "arde el fuego."
+   ]
+  },
+  {
+   "lang": "es",
+   "text": "La primera estrella aparece por la tarde.",
+   "chunks": [
+    "La primera estrella",
+    "aparece por la",
+    "tarde."
+   ]
+  },
+  {
+   "lang": "es",
+   "text": "Hoy cae mucha lluvia.",
+   "chunks": [
+    "Hoy cae mucha",
+    "lluvia."
+   ]
+  },
+  {
+   "lang": "es",
+   "text": "Mi madre hace pan todos los días.",
+   "chunks": [
+    "Mi madre hace",
+    "pan todos los",
+    "días."
+   ]
+  },
+  {
+   "lang": "es",
+   "text": "En la cesta hay una manzana roja.",
+   "chunks": [
+    "En la cesta",
+    "hay una manzana",
+    "roja."
+   ]
+  },
+  {
+   "lang": "es",
+   "text": "Por el campo corre un caballo.",
+   "chunks": [
+    "Por el campo",
+    "corre un caballo."
+   ]
+  },
+  {
+   "lang": "es",
+   "text": "Debajo del suelo vive un ratón.",
+   "chunks": [
+    "Debajo del suelo",
+    "vive un ratón."
+   ]
+  },
+  {
+   "lang": "es",
+   "text": "Por la ciudad pasa un río.",
+   "chunks": [
+    "Por la ciudad",
+    "pasa un río."
+   ]
+  },
+  {
+   "lang": "es",
+   "text": "A lo lejos se ve una montaña alta.",
+   "chunks": [
+    "A lo lejos",
+    "se ve una",
+    "montaña alta."
+   ]
+  },
+  {
+   "lang": "es",
+   "text": "Detrás del pueblo empieza el bosque.",
+   "chunks": [
+    "Detrás del pueblo",
+    "empieza el bosque."
+   ]
+  },
+  {
+   "lang": "es",
+   "text": "En la cocina hay una mesa de madera.",
+   "chunks": [
+    "En la cocina",
+    "hay una mesa",
+    "de madera."
+   ]
+  },
+  {
+   "lang": "es",
+   "text": "El reloj de la pared marca las nueve.",
+   "chunks": [
+    "El reloj de",
+    "la pared marca",
+    "las nueve."
+   ]
+  },
+  {
+   "lang": "es",
+   "text": "Compramos verduras en el mercado.",
+   "chunks": [
+    "Compramos verduras en",
+    "el mercado."
+   ]
+  },
+  {
+   "lang": "es",
+   "text": "Lo llevaron al hospital.",
+   "chunks": [
+    "Lo llevaron al",
+    "hospital."
+   ]
+  },
+  {
+   "lang": "es",
+   "text": "La clase dura una hora.",
+   "chunks": [
+    "La clase dura",
+    "una hora."
+   ]
+  },
+  {
+   "lang": "es",
+   "text": "Los niños necesitan dormir ocho horas.",
+   "chunks": [
+    "Los niños necesitan",
+    "dormir ocho horas."
+   ]
+  },
+  {
+   "lang": "es",
+   "text": "Quiero escribir una carta a mi amigo.",
+   "chunks": [
+    "Quiero escribir una",
+    "carta a mi",
+    "amigo."
+   ]
+  },
+  {
+   "lang": "es",
+   "text": "Ayúdame a abrir la ventana.",
+   "chunks": [
+    "Ayúdame a abrir",
+    "la ventana."
+   ]
+  },
+  {
+   "lang": "es",
+   "text": "Esta casa es muy grande.",
+   "chunks": [
+    "Esta casa es",
+    "muy grande."
+   ]
+  },
+  {
+   "lang": "es",
+   "text": "Este tren es muy rápido.",
+   "chunks": [
+    "Este tren es",
+    "muy rápido."
+   ]
+  },
+  {
+   "lang": "es",
+   "text": "El suelo de la cocina está limpio.",
+   "chunks": [
+    "El suelo de",
+    "la cocina está",
+    "limpio."
+   ]
+  },
+  {
+   "lang": "es",
+   "text": "Mi abuelo ya es muy viejo.",
+   "chunks": [
+    "Mi abuelo ya",
+    "es muy viejo."
+   ]
+  },
+  {
+   "lang": "es",
+   "text": "La música es mi asignatura favorita.",
+   "chunks": [
+    "La música es",
+    "mi asignatura favorita."
+   ]
+  },
+  {
+   "lang": "es",
+   "text": "Mi madre prepara la cena todas las noches.",
+   "chunks": [
+    "Mi madre prepara",
+    "la cena todas",
+    "las noches."
+   ]
+  },
+  {
+   "lang": "es",
+   "text": "En el jardín canta un pájaro.",
+   "chunks": [
+    "En el jardín",
+    "canta un pájaro."
+   ]
+  },
+  {
+   "lang": "es",
+   "text": "La vaca nos da leche.",
+   "chunks": [
+    "La vaca nos",
+    "da leche."
+   ]
+  },
+  {
+   "lang": "es",
+   "text": "En el cielo hay una sola nube.",
+   "chunks": [
+    "En el cielo",
+    "hay una sola",
+    "nube."
+   ]
+  },
+  {
+   "lang": "es",
+   "text": "Escribe una carta larga a su hermana.",
+   "chunks": [
+    "Escribe una carta",
+    "larga a su",
+    "hermana."
+   ]
+  },
+  {
+   "lang": "es",
+   "text": "Cruzamos el puente para llegar al pueblo.",
+   "chunks": [
+    "Cruzamos el puente",
+    "para llegar al",
+    "pueblo."
+   ]
+  },
+  {
+   "lang": "es",
+   "text": "Después de comer paseamos por el parque.",
+   "chunks": [
+    "Después de comer",
+    "paseamos por el",
+    "parque."
+   ]
+  },
+  {
+   "lang": "es",
+   "text": "El tren sale de la estación a las seis.",
+   "chunks": [
+    "El tren sale",
+    "de la estación",
+    "a las seis."
+   ]
+  },
+  {
+   "lang": "es",
+   "text": "Con este calor quiero beber mucha agua.",
+   "chunks": [
+    "Con este calor",
+    "quiero beber mucha",
+    "agua."
+   ]
+  },
+  {
+   "lang": "es",
+   "text": "A los niños les gusta jugar en el patio.",
+   "chunks": [
+    "A los niños",
+    "les gusta jugar",
+    "en el patio."
+   ]
+  },
+  {
+   "lang": "es",
+   "text": "Siempre hay que ayudar a un amigo.",
+   "chunks": [
+    "Siempre hay que",
+    "ayudar a un",
+    "amigo."
+   ]
+  },
+  {
+   "lang": "es",
+   "text": "Cuidado, la sopa está muy caliente.",
+   "chunks": [
+    "Cuidado, la sopa",
+    "está muy caliente."
+   ]
+  },
+  {
+   "lang": "es",
+   "text": "Este parque es muy hermoso.",
+   "chunks": [
+    "Este parque es",
+    "muy hermoso."
+   ]
+  },
+  {
+   "lang": "es",
+   "text": "Sobre la mesa hay una lámpara.",
+   "chunks": [
+    "Sobre la mesa",
+    "hay una lámpara."
+   ]
+  },
+  {
+   "lang": "es",
+   "text": "Siete días son una semana.",
+   "chunks": [
+    "Siete días son",
+    "una semana."
+   ]
+  },
+  {
+   "lang": "es",
+   "text": "La miel la hace la abeja.",
+   "chunks": [
+    "La miel la",
+    "hace la abeja."
+   ]
+  },
+  {
+   "lang": "es",
+   "text": "Sostiene la taza con la mano derecha.",
+   "chunks": [
+    "Sostiene la taza",
+    "con la mano",
+    "derecha."
+   ]
+  },
+  {
+   "lang": "es",
+   "text": "En el coche duerme un niño pequeño.",
+   "chunks": [
+    "En el coche",
+    "duerme un niño",
+    "pequeño."
+   ]
+  },
+  {
+   "lang": "es",
+   "text": "Corta el pan con un cuchillo afilado.",
+   "chunks": [
+    "Corta el pan",
+    "con un cuchillo",
+    "afilado."
+   ]
+  },
+  {
+   "lang": "es",
+   "text": "Después de la tarde llega la noche.",
+   "chunks": [
+    "Después de la",
+    "tarde llega la",
+    "noche."
+   ]
+  },
+  {
+   "lang": "pt",
+   "text": "De manhã bebo café.",
+   "chunks": [
+    "De manhã bebo",
+    "café."
+   ]
+  },
+  {
+   "lang": "pt",
+   "text": "O gato bebe leite.",
+   "chunks": [
+    "O gato bebe",
+    "leite."
+   ]
+  },
+  {
+   "lang": "pt",
+   "text": "No inverno cai muita neve.",
+   "chunks": [
+    "No inverno cai",
+    "muita neve."
+   ]
+  },
+  {
+   "lang": "pt",
+   "text": "Não tenho dinheiro para comprar isso.",
+   "chunks": [
+    "Não tenho dinheiro",
+    "para comprar isso."
+   ]
+  },
+  {
+   "lang": "pt",
+   "text": "Quero comprar um carro novo.",
+   "chunks": [
+    "Quero comprar um",
+    "carro novo."
+   ]
+  },
+  {
+   "lang": "pt",
+   "text": "O sol brilha no céu.",
+   "chunks": [
+    "O sol brilha",
+    "no céu."
+   ]
+  },
+  {
+   "lang": "pt",
+   "text": "Minha casa tem quatro quartos.",
+   "chunks": [
+    "Minha casa tem",
+    "quatro quartos."
+   ]
+  },
+  {
+   "lang": "pt",
+   "text": "O cachorro late no quintal.",
+   "chunks": [
+    "O cachorro late",
+    "no quintal."
+   ]
+  },
+  {
+   "lang": "pt",
+   "text": "Em cima da mesa há um livro.",
+   "chunks": [
+    "Em cima da",
+    "mesa há um",
+    "livro."
+   ]
+  },
+  {
+   "lang": "pt",
+   "text": "O oposto de quente é frio.",
+   "chunks": [
+    "O oposto de",
+    "quente é frio."
+   ]
+  },
+  {
+   "lang": "pt",
+   "text": "Depois da noite vem a manhã.",
+   "chunks": [
+    "Depois da noite",
+    "vem a manhã."
+   ]
+  },
+  {
+   "lang": "pt",
+   "text": "A lua está cheia hoje.",
+   "chunks": [
+    "A lua está",
+    "cheia hoje."
+   ]
+  },
+  {
+   "lang": "pt",
+   "text": "Vou à escola todos os dias.",
+   "chunks": [
+    "Vou à escola",
+    "todos os dias."
+   ]
+  },
+  {
+   "lang": "pt",
+   "text": "No rio nada um peixe.",
+   "chunks": [
+    "No rio nada",
+    "um peixe."
+   ]
+  },
+  {
+   "lang": "pt",
+   "text": "Hoje faz muito vento.",
+   "chunks": [
+    "Hoje faz muito",
+    "vento."
+   ]
+  },
+  {
+   "lang": "pt",
+   "text": "Meu irmão pequeno vai à escola.",
+   "chunks": [
+    "Meu irmão pequeno",
+    "vai à escola."
+   ]
+  },
+  {
+   "lang": "pt",
+   "text": "No copo há água fria.",
+   "chunks": [
+    "No copo há",
+    "água fria."
+   ]
+  },
+  {
+   "lang": "pt",
+   "text": "Na lareira arde o fogo.",
+   "chunks": [
+    "Na lareira arde",
+    "o fogo."
+   ]
+  },
+  {
+   "lang": "pt",
+   "text": "À noite aparece a primeira estrela.",
+   "chunks": [
+    "À noite aparece",
+    "a primeira estrela."
+   ]
+  },
+  {
+   "lang": "pt",
+   "text": "Hoje cai muita chuva.",
+   "chunks": [
+    "Hoje cai muita",
+    "chuva."
+   ]
+  },
+  {
+   "lang": "pt",
+   "text": "A minha mãe faz pão todos os dias.",
+   "chunks": [
+    "A minha mãe",
+    "faz pão todos",
+    "os dias."
+   ]
+  },
+  {
+   "lang": "pt",
+   "text": "No cesto há uma maçã vermelha.",
+   "chunks": [
+    "No cesto há",
+    "uma maçã vermelha."
+   ]
+  },
+  {
+   "lang": "pt",
+   "text": "Pelo campo corre um cavalo.",
+   "chunks": [
+    "Pelo campo corre",
+    "um cavalo."
+   ]
+  },
+  {
+   "lang": "pt",
+   "text": "Debaixo do chão vive um rato.",
+   "chunks": [
+    "Debaixo do chão",
+    "vive um rato."
+   ]
+  },
+  {
+   "lang": "pt",
+   "text": "Pela cidade passa um rio.",
+   "chunks": [
+    "Pela cidade passa",
+    "um rio."
+   ]
+  },
+  {
+   "lang": "pt",
+   "text": "Ao longe vê-se uma montanha alta.",
+   "chunks": [
+    "Ao longe vê-se",
+    "uma montanha alta."
+   ]
+  },
+  {
+   "lang": "pt",
+   "text": "Atrás da aldeia começa a floresta.",
+   "chunks": [
+    "Atrás da aldeia",
+    "começa a floresta."
+   ]
+  },
+  {
+   "lang": "pt",
+   "text": "Na cozinha há uma mesa de madeira.",
+   "chunks": [
+    "Na cozinha há",
+    "uma mesa de",
+    "madeira."
+   ]
+  },
+  {
+   "lang": "pt",
+   "text": "O relógio na parede marca nove horas.",
+   "chunks": [
+    "O relógio na",
+    "parede marca nove",
+    "horas."
+   ]
+  },
+  {
+   "lang": "pt",
+   "text": "Compramos legumes no mercado.",
+   "chunks": [
+    "Compramos legumes no",
+    "mercado."
+   ]
+  },
+  {
+   "lang": "pt",
+   "text": "Levaram-no ao hospital.",
+   "chunks": [
+    "Levaram-no ao hospital."
+   ]
+  },
+  {
+   "lang": "pt",
+   "text": "A aula dura uma hora.",
+   "chunks": [
+    "A aula dura",
+    "uma hora."
+   ]
+  },
+  {
+   "lang": "pt",
+   "text": "As crianças precisam de dormir oito horas.",
+   "chunks": [
+    "As crianças precisam",
+    "de dormir oito",
+    "horas."
+   ]
+  },
+  {
+   "lang": "pt",
+   "text": "Quero escrever uma carta ao meu amigo.",
+   "chunks": [
+    "Quero escrever uma",
+    "carta ao meu",
+    "amigo."
+   ]
+  },
+  {
+   "lang": "pt",
+   "text": "Ajuda-me a abrir a janela.",
+   "chunks": [
+    "Ajuda-me a abrir",
+    "a janela."
+   ]
+  },
+  {
+   "lang": "pt",
+   "text": "Esta casa é muito grande.",
+   "chunks": [
+    "Esta casa é",
+    "muito grande."
+   ]
+  },
+  {
+   "lang": "pt",
+   "text": "Este comboio é muito rápido.",
+   "chunks": [
+    "Este comboio é",
+    "muito rápido."
+   ]
+  },
+  {
+   "lang": "pt",
+   "text": "O chão da cozinha está limpo.",
+   "chunks": [
+    "O chão da",
+    "cozinha está limpo."
+   ]
+  },
+  {
+   "lang": "pt",
+   "text": "O meu avô já é muito velho.",
+   "chunks": [
+    "O meu avô",
+    "já é muito",
+    "velho."
+   ]
+  },
+  {
+   "lang": "pt",
+   "text": "Gosto de ouvir música.",
+   "chunks": [
+    "Gosto de ouvir",
+    "música."
+   ]
+  },
+  {
+   "lang": "pt",
+   "text": "Minha mãe faz o jantar todas as noites.",
+   "chunks": [
+    "Minha mãe faz",
+    "o jantar todas",
+    "as noites."
+   ]
+  },
+  {
+   "lang": "pt",
+   "text": "No jardim canta um pássaro.",
+   "chunks": [
+    "No jardim canta",
+    "um pássaro."
+   ]
+  },
+  {
+   "lang": "pt",
+   "text": "A vaca nos dá leite.",
+   "chunks": [
+    "A vaca nos",
+    "dá leite."
+   ]
+  },
+  {
+   "lang": "pt",
+   "text": "No céu há apenas uma nuvem.",
+   "chunks": [
+    "No céu há",
+    "apenas uma nuvem."
+   ]
+  },
+  {
+   "lang": "pt",
+   "text": "Ele escreve uma carta longa para a irmã.",
+   "chunks": [
+    "Ele escreve uma",
+    "carta longa para",
+    "a irmã."
+   ]
+  },
+  {
+   "lang": "pt",
+   "text": "Atravessamos a ponte para chegar à aldeia.",
+   "chunks": [
+    "Atravessamos a ponte",
+    "para chegar à",
+    "aldeia."
+   ]
+  },
+  {
+   "lang": "pt",
+   "text": "Depois do almoço passeamos no parque.",
+   "chunks": [
+    "Depois do almoço",
+    "passeamos no parque."
+   ]
+  },
+  {
+   "lang": "pt",
+   "text": "O trem sai da estação às seis.",
+   "chunks": [
+    "O trem sai",
+    "da estação às",
+    "seis."
+   ]
+  },
+  {
+   "lang": "pt",
+   "text": "Com este calor quero beber muita água.",
+   "chunks": [
+    "Com este calor",
+    "quero beber muita",
+    "água."
+   ]
+  },
+  {
+   "lang": "pt",
+   "text": "Eles gostam de jogar futebol no pátio.",
+   "chunks": [
+    "Eles gostam de",
+    "jogar futebol no",
+    "pátio."
+   ]
+  },
+  {
+   "lang": "pt",
+   "text": "É preciso ajudar um amigo.",
+   "chunks": [
+    "É preciso ajudar",
+    "um amigo."
+   ]
+  },
+  {
+   "lang": "pt",
+   "text": "Cuidado, a sopa está muito quente.",
+   "chunks": [
+    "Cuidado, a sopa",
+    "está muito quente."
+   ]
+  },
+  {
+   "lang": "pt",
+   "text": "Este parque é muito bonito.",
+   "chunks": [
+    "Este parque é",
+    "muito bonito."
+   ]
+  },
+  {
+   "lang": "pt",
+   "text": "Sobre a mesa há uma lâmpada.",
+   "chunks": [
+    "Sobre a mesa",
+    "há uma lâmpada."
+   ]
+  },
+  {
+   "lang": "pt",
+   "text": "Sete dias são uma semana.",
+   "chunks": [
+    "Sete dias são",
+    "uma semana."
+   ]
+  },
+  {
+   "lang": "pt",
+   "text": "O mel é feito pela abelha.",
+   "chunks": [
+    "O mel é",
+    "feito pela abelha."
+   ]
+  },
+  {
+   "lang": "pt",
+   "text": "Ele segura a xícara com a mão direita.",
+   "chunks": [
+    "Ele segura a",
+    "xícara com a",
+    "mão direita."
+   ]
+  },
+  {
+   "lang": "pt",
+   "text": "No carrinho dorme uma criança pequena.",
+   "chunks": [
+    "No carrinho dorme",
+    "uma criança pequena."
+   ]
+  },
+  {
+   "lang": "pt",
+   "text": "Corte o pão com uma faca afiada.",
+   "chunks": [
+    "Corte o pão",
+    "com uma faca",
+    "afiada."
+   ]
+  },
+  {
+   "lang": "pt",
+   "text": "Depois da tarde chega a noite.",
+   "chunks": [
+    "Depois da tarde",
+    "chega a noite."
+   ]
+  },
+  {
+   "lang": "de",
+   "text": "Ich trinke jeden Morgen Kaffee.",
+   "chunks": [
+    "Ich trinke jeden",
+    "Morgen Kaffee."
+   ]
+  },
+  {
+   "lang": "de",
+   "text": "Die Katze trinkt Milch.",
+   "chunks": [
+    "Die Katze trinkt",
+    "Milch."
+   ]
+  },
+  {
+   "lang": "de",
+   "text": "Im Winter fällt viel Schnee.",
+   "chunks": [
+    "Im Winter fällt",
+    "viel Schnee."
+   ]
+  },
+  {
+   "lang": "de",
+   "text": "Ich habe kein Geld.",
+   "chunks": [
+    "Ich habe kein",
+    "Geld."
+   ]
+  },
+  {
+   "lang": "de",
+   "text": "Die Sonne scheint am Himmel.",
+   "chunks": [
+    "Die Sonne scheint",
+    "am Himmel."
+   ]
+  },
+  {
+   "lang": "de",
+   "text": "Der Hund bellt im Hof.",
+   "chunks": [
+    "Der Hund bellt",
+    "im Hof."
+   ]
+  },
+  {
+   "lang": "de",
+   "text": "Mein Haus hat vier Zimmer.",
+   "chunks": [
+    "Mein Haus hat",
+    "vier Zimmer."
+   ]
+  },
+  {
+   "lang": "de",
+   "text": "Ich möchte ein neues Auto kaufen.",
+   "chunks": [
+    "Ich möchte ein",
+    "neues Auto kaufen."
+   ]
+  },
+  {
+   "lang": "de",
+   "text": "Am Abend mag ich lesen.",
+   "chunks": [
+    "Am Abend mag",
+    "ich lesen."
+   ]
+  },
+  {
+   "lang": "de",
+   "text": "Auf dem Tisch liegt ein Buch.",
+   "chunks": [
+    "Auf dem Tisch",
+    "liegt ein Buch."
+   ]
+  },
+  {
+   "lang": "de",
+   "text": "Das Gegenteil von heiß ist kalt.",
+   "chunks": [
+    "Das Gegenteil von",
+    "heiß ist kalt."
+   ]
+  },
+  {
+   "lang": "de",
+   "text": "Nach der Nacht kommt der Morgen.",
+   "chunks": [
+    "Nach der Nacht",
+    "kommt der Morgen."
+   ]
+  },
+  {
+   "lang": "de",
+   "text": "Der Mond ist heute voll.",
+   "chunks": [
+    "Der Mond ist",
+    "heute voll."
+   ]
+  },
+  {
+   "lang": "de",
+   "text": "Ich gehe jeden Tag zur Schule.",
+   "chunks": [
+    "Ich gehe jeden",
+    "Tag zur Schule."
+   ]
+  },
+  {
+   "lang": "de",
+   "text": "Im Fluss schwimmt ein Fisch.",
+   "chunks": [
+    "Im Fluss schwimmt",
+    "ein Fisch."
+   ]
+  },
+  {
+   "lang": "de",
+   "text": "Meine Blume ist sehr schön.",
+   "chunks": [
+    "Meine Blume ist",
+    "sehr schön."
+   ]
+  },
+  {
+   "lang": "de",
+   "text": "Im Glas ist kaltes Wasser.",
+   "chunks": [
+    "Im Glas ist",
+    "kaltes Wasser."
+   ]
+  },
+  {
+   "lang": "de",
+   "text": "Im Ofen brennt das Feuer.",
+   "chunks": [
+    "Im Ofen brennt",
+    "das Feuer."
+   ]
+  },
+  {
+   "lang": "de",
+   "text": "Am Abend erscheint der erste Stern.",
+   "chunks": [
+    "Am Abend erscheint",
+    "der erste Stern."
+   ]
+  },
+  {
+   "lang": "de",
+   "text": "Heute fällt viel Regen.",
+   "chunks": [
+    "Heute fällt viel",
+    "Regen."
+   ]
+  },
+  {
+   "lang": "de",
+   "text": "Meine Mutter backt jeden Tag Brot.",
+   "chunks": [
+    "Meine Mutter backt",
+    "jeden Tag Brot."
+   ]
+  },
+  {
+   "lang": "de",
+   "text": "Im Korb liegt ein roter Apfel.",
+   "chunks": [
+    "Im Korb liegt",
+    "ein roter Apfel."
+   ]
+  },
+  {
+   "lang": "de",
+   "text": "Über das Feld läuft ein Pferd.",
+   "chunks": [
+    "Über das Feld",
+    "läuft ein Pferd."
+   ]
+  },
+  {
+   "lang": "de",
+   "text": "Unter dem Boden lebt eine Maus.",
+   "chunks": [
+    "Unter dem Boden",
+    "lebt eine Maus."
+   ]
+  },
+  {
+   "lang": "de",
+   "text": "Durch die Stadt fließt ein Fluss.",
+   "chunks": [
+    "Durch die Stadt",
+    "fließt ein Fluss."
+   ]
+  },
+  {
+   "lang": "de",
+   "text": "In der Ferne sieht man einen hohen Berg.",
+   "chunks": [
+    "In der Ferne",
+    "sieht man einen",
+    "hohen Berg."
+   ]
+  },
+  {
+   "lang": "de",
+   "text": "Hinter dem Dorf beginnt der Wald.",
+   "chunks": [
+    "Hinter dem Dorf",
+    "beginnt der Wald."
+   ]
+  },
+  {
+   "lang": "de",
+   "text": "In der Küche steht ein Tisch aus Holz.",
+   "chunks": [
+    "In der Küche",
+    "steht ein Tisch",
+    "aus Holz."
+   ]
+  },
+  {
+   "lang": "de",
+   "text": "Die Uhr an der Wand zeigt neun.",
+   "chunks": [
+    "Die Uhr an",
+    "der Wand zeigt",
+    "neun."
+   ]
+  },
+  {
+   "lang": "de",
+   "text": "Wir kaufen Gemüse auf dem Markt.",
+   "chunks": [
+    "Wir kaufen Gemüse",
+    "auf dem Markt."
+   ]
+  },
+  {
+   "lang": "de",
+   "text": "Man brachte ihn ins Krankenhaus.",
+   "chunks": [
+    "Man brachte ihn",
+    "ins Krankenhaus."
+   ]
+  },
+  {
+   "lang": "de",
+   "text": "Der Unterricht dauert eine Stunde.",
+   "chunks": [
+    "Der Unterricht dauert",
+    "eine Stunde."
+   ]
+  },
+  {
+   "lang": "de",
+   "text": "Kinder müssen acht Stunden schlafen.",
+   "chunks": [
+    "Kinder müssen acht",
+    "Stunden schlafen."
+   ]
+  },
+  {
+   "lang": "de",
+   "text": "Ich möchte meinem Freund einen Brief schreiben.",
+   "chunks": [
+    "Ich möchte meinem",
+    "Freund einen Brief",
+    "schreiben."
+   ]
+  },
+  {
+   "lang": "de",
+   "text": "Hilf mir bitte, das Fenster zu öffnen.",
+   "chunks": [
+    "Hilf mir bitte,",
+    "das Fenster zu",
+    "öffnen."
+   ]
+  },
+  {
+   "lang": "de",
+   "text": "Dieses Haus ist sehr groß.",
+   "chunks": [
+    "Dieses Haus ist",
+    "sehr groß."
+   ]
+  },
+  {
+   "lang": "de",
+   "text": "Dieser Zug ist sehr schnell.",
+   "chunks": [
+    "Dieser Zug ist",
+    "sehr schnell."
+   ]
+  },
+  {
+   "lang": "de",
+   "text": "Der Boden in der Küche ist sauber.",
+   "chunks": [
+    "Der Boden in",
+    "der Küche ist",
+    "sauber."
+   ]
+  },
+  {
+   "lang": "de",
+   "text": "Mein Großvater ist schon sehr alt.",
+   "chunks": [
+    "Mein Großvater ist",
+    "schon sehr alt."
+   ]
+  },
+  {
+   "lang": "de",
+   "text": "Ich höre gern Musik.",
+   "chunks": [
+    "Ich höre gern",
+    "Musik."
+   ]
+  },
+  {
+   "lang": "de",
+   "text": "Meine Mutter kocht jeden Abend das Essen.",
+   "chunks": [
+    "Meine Mutter kocht",
+    "jeden Abend das",
+    "Essen."
+   ]
+  },
+  {
+   "lang": "de",
+   "text": "Im Garten singt ein Vogel.",
+   "chunks": [
+    "Im Garten singt",
+    "ein Vogel."
+   ]
+  },
+  {
+   "lang": "de",
+   "text": "Die Kuh gibt uns Milch.",
+   "chunks": [
+    "Die Kuh gibt",
+    "uns Milch."
+   ]
+  },
+  {
+   "lang": "de",
+   "text": "Am Himmel steht nur eine Wolke.",
+   "chunks": [
+    "Am Himmel steht",
+    "nur eine Wolke."
+   ]
+  },
+  {
+   "lang": "de",
+   "text": "Er schreibt seiner Schwester einen langen Brief.",
+   "chunks": [
+    "Er schreibt seiner",
+    "Schwester einen langen",
+    "Brief."
+   ]
+  },
+  {
+   "lang": "de",
+   "text": "Wir gehen über die Brücke ins Dorf.",
+   "chunks": [
+    "Wir gehen über",
+    "die Brücke ins",
+    "Dorf."
+   ]
+  },
+  {
+   "lang": "de",
+   "text": "Nach dem Essen gehen wir in den Park.",
+   "chunks": [
+    "Nach dem Essen",
+    "gehen wir in",
+    "den Park."
+   ]
+  },
+  {
+   "lang": "de",
+   "text": "Der Zug fährt um sechs vom Bahnhof ab.",
+   "chunks": [
+    "Der Zug fährt",
+    "um sechs vom",
+    "Bahnhof ab."
+   ]
+  },
+  {
+   "lang": "de",
+   "text": "Bei dieser Hitze möchte ich viel trinken.",
+   "chunks": [
+    "Bei dieser Hitze",
+    "möchte ich viel",
+    "trinken."
+   ]
+  },
+  {
+   "lang": "de",
+   "text": "Die Kinder wollen im Hof spielen.",
+   "chunks": [
+    "Die Kinder wollen",
+    "im Hof spielen."
+   ]
+  },
+  {
+   "lang": "de",
+   "text": "Einem Freund muss man immer helfen.",
+   "chunks": [
+    "Einem Freund muss",
+    "man immer helfen."
+   ]
+  },
+  {
+   "lang": "de",
+   "text": "Vorsicht, die Suppe ist sehr heiß.",
+   "chunks": [
+    "Vorsicht, die Suppe",
+    "ist sehr heiß."
+   ]
+  },
+  {
+   "lang": "de",
+   "text": "Dieser Park ist sehr schön.",
+   "chunks": [
+    "Dieser Park ist",
+    "sehr schön."
+   ]
+  },
+  {
+   "lang": "de",
+   "text": "Über dem Tisch hängt eine Lampe.",
+   "chunks": [
+    "Über dem Tisch",
+    "hängt eine Lampe."
+   ]
+  },
+  {
+   "lang": "de",
+   "text": "Sieben Tage sind eine Woche.",
+   "chunks": [
+    "Sieben Tage sind",
+    "eine Woche."
+   ]
+  },
+  {
+   "lang": "de",
+   "text": "Den Honig macht die Biene.",
+   "chunks": [
+    "Den Honig macht",
+    "die Biene."
+   ]
+  },
+  {
+   "lang": "de",
+   "text": "Er hält die Tasse in der rechten Hand.",
+   "chunks": [
+    "Er hält die",
+    "Tasse in der",
+    "rechten Hand."
+   ]
+  },
+  {
+   "lang": "de",
+   "text": "Im Wagen schläft ein kleines Kind.",
+   "chunks": [
+    "Im Wagen schläft",
+    "ein kleines Kind."
+   ]
+  },
+  {
+   "lang": "de",
+   "text": "Schneide das Brot mit einem scharfen Messer.",
+   "chunks": [
+    "Schneide das Brot",
+    "mit einem scharfen",
+    "Messer."
+   ]
+  },
+  {
+   "lang": "de",
+   "text": "Nach dem Abend kommt die Nacht.",
+   "chunks": [
+    "Nach dem Abend",
+    "kommt die Nacht."
+   ]
+  },
+  {
+   "lang": "zh",
+   "text": "我每天早上喝咖啡。",
+   "chunks": [
+    "我每天早上喝咖啡。"
+   ]
+  },
+  {
+   "lang": "zh",
+   "text": "猫喜欢喝牛奶。",
+   "chunks": [
+    "猫喜欢喝牛奶。"
+   ]
+  },
+  {
+   "lang": "zh",
+   "text": "冬天经常下雪。",
+   "chunks": [
+    "冬天经常下雪。"
+   ]
+  },
+  {
+   "lang": "zh",
+   "text": "我没有钱买这个。",
+   "chunks": [
+    "我没有钱买这个。"
+   ]
+  },
+  {
+   "lang": "zh",
+   "text": "太阳在天上照耀。",
+   "chunks": [
+    "太阳在天上照耀。"
+   ]
+  },
+  {
+   "lang": "zh",
+   "text": "狗在院子里叫。",
+   "chunks": [
+    "狗在院子里叫。"
+   ]
+  },
+  {
+   "lang": "zh",
+   "text": "我的房子有四个房间。",
+   "chunks": [
+    "我的房子有四个房间。"
+   ]
+  },
+  {
+   "lang": "zh",
+   "text": "我想买一辆新车。",
+   "chunks": [
+    "我想买一辆新车。"
+   ]
+  },
+  {
+   "lang": "zh",
+   "text": "晚上我喜欢读书。",
+   "chunks": [
+    "晚上我喜欢读书。"
+   ]
+  },
+  {
+   "lang": "zh",
+   "text": "桌子上有一本书。",
+   "chunks": [
+    "桌子上有一本书。"
+   ]
+  },
+  {
+   "lang": "zh",
+   "text": "热的反义词是冷。",
+   "chunks": [
+    "热的反义词是冷。"
+   ]
+  },
+  {
+   "lang": "zh",
+   "text": "夜晚之后是早上。",
+   "chunks": [
+    "夜晚之后是早上。"
+   ]
+  },
+  {
+   "lang": "zh",
+   "text": "今晚的月亮很圆。",
+   "chunks": [
+    "今晚的月亮很圆。"
+   ]
+  },
+  {
+   "lang": "zh",
+   "text": "我每天去学校。",
+   "chunks": [
+    "我每天去学校。"
+   ]
+  },
+  {
+   "lang": "zh",
+   "text": "鱼在河里游。",
+   "chunks": [
+    "鱼在河里游。"
+   ]
+  },
+  {
+   "lang": "zh",
+   "text": "我有一个哥哥。",
+   "chunks": [
+    "我有一个哥哥。"
+   ]
+  },
+  {
+   "lang": "zh",
+   "text": "杯子里有冷水。",
+   "chunks": [
+    "杯子里有冷水。"
+   ]
+  },
+  {
+   "lang": "zh",
+   "text": "炉子里烧着火。",
+   "chunks": [
+    "炉子里烧着火。"
+   ]
+  },
+  {
+   "lang": "zh",
+   "text": "晚上出现第一颗星星。",
+   "chunks": [
+    "晚上出现第一颗星星。"
+   ]
+  },
+  {
+   "lang": "zh",
+   "text": "今天下了很大的雨。",
+   "chunks": [
+    "今天下了很大的雨。"
+   ]
+  },
+  {
+   "lang": "zh",
+   "text": "妈妈每天做面包。",
+   "chunks": [
+    "妈妈每天做面包。"
+   ]
+  },
+  {
+   "lang": "zh",
+   "text": "篮子里有一个红色的苹果。",
+   "chunks": [
+    "篮子里有一个红色的苹果。"
+   ]
+  },
+  {
+   "lang": "zh",
+   "text": "田野上跑着一匹马。",
+   "chunks": [
+    "田野上跑着一匹马。"
+   ]
+  },
+  {
+   "lang": "zh",
+   "text": "地板下面住着一只老鼠。",
+   "chunks": [
+    "地板下面住着一只老鼠。"
+   ]
+  },
+  {
+   "lang": "zh",
+   "text": "城市里流过一条河。",
+   "chunks": [
+    "城市里流过一条河。"
+   ]
+  },
+  {
+   "lang": "zh",
+   "text": "远处能看到一座高山。",
+   "chunks": [
+    "远处能看到一座高山。"
+   ]
+  },
+  {
+   "lang": "zh",
+   "text": "村子后面是一片森林。",
+   "chunks": [
+    "村子后面是一片森林。"
+   ]
+  },
+  {
+   "lang": "zh",
+   "text": "厨房里有一张木头桌子。",
+   "chunks": [
+    "厨房里有一张木头桌子。"
+   ]
+  },
+  {
+   "lang": "zh",
+   "text": "墙上的钟指着九点。",
+   "chunks": [
+    "墙上的钟指着九点。"
+   ]
+  },
+  {
+   "lang": "zh",
+   "text": "我们在市场买蔬菜。",
+   "chunks": [
+    "我们在市场买蔬菜。"
+   ]
+  },
+  {
+   "lang": "zh",
+   "text": "他被送到了医院。",
+   "chunks": [
+    "他被送到了医院。"
+   ]
+  },
+  {
+   "lang": "zh",
+   "text": "一节课上一个小时。",
+   "chunks": [
+    "一节课上一个小时。"
+   ]
+  },
+  {
+   "lang": "zh",
+   "text": "孩子每天要睡觉八个小时。",
+   "chunks": [
+    "孩子每天要睡觉八个小时。"
+   ]
+  },
+  {
+   "lang": "zh",
+   "text": "我想给朋友写一封信。",
+   "chunks": [
+    "我想给朋友写一封信。"
+   ]
+  },
+  {
+   "lang": "zh",
+   "text": "请帮我开窗户。",
+   "chunks": [
+    "请帮我开窗户。"
+   ]
+  },
+  {
+   "lang": "zh",
+   "text": "这座房子非常大。",
+   "chunks": [
+    "这座房子非常大。"
+   ]
+  },
+  {
+   "lang": "zh",
+   "text": "这列火车非常快。",
+   "chunks": [
+    "这列火车非常快。"
+   ]
+  },
+  {
+   "lang": "zh",
+   "text": "厨房的地板很干净。",
+   "chunks": [
+    "厨房的地板很干净。"
+   ]
+  },
+  {
+   "lang": "zh",
+   "text": "这栋楼已经很老了。",
+   "chunks": [
+    "这栋楼已经很老了。"
+   ]
+  },
+  {
+   "lang": "zh",
+   "text": "我喜欢听音乐。",
+   "chunks": [
+    "我喜欢听音乐。"
+   ]
+  },
+  {
+   "lang": "zh",
+   "text": "我的妈妈做晚饭。",
+   "chunks": [
+    "我的妈妈做晚饭。"
+   ]
+  },
+  {
+   "lang": "zh",
+   "text": "花园里有一只鸟在唱歌。",
+   "chunks": [
+    "花园里有一只鸟在唱歌。"
+   ]
+  },
+  {
+   "lang": "zh",
+   "text": "牛给我们牛奶。",
+   "chunks": [
+    "牛给我们牛奶。"
+   ]
+  },
+  {
+   "lang": "zh",
+   "text": "天上只有一朵云。",
+   "chunks": [
+    "天上只有一朵云。"
+   ]
+  },
+  {
+   "lang": "zh",
+   "text": "他给姐姐写了一封长信。",
+   "chunks": [
+    "他给姐姐写了一封长信。"
+   ]
+  },
+  {
+   "lang": "zh",
+   "text": "我们过桥去村子。",
+   "chunks": [
+    "我们过桥去村子。"
+   ]
+  },
+  {
+   "lang": "zh",
+   "text": "吃完饭我们去公园散步。",
+   "chunks": [
+    "吃完饭我们去公园散步。"
+   ]
+  },
+  {
+   "lang": "zh",
+   "text": "火车六点从车站出发。",
+   "chunks": [
+    "火车六点从车站出发。"
+   ]
+  },
+  {
+   "lang": "zh",
+   "text": "天热，我想多喝水。",
+   "chunks": [
+    "天热，",
+    "我想多喝水。"
+   ]
+  },
+  {
+   "lang": "zh",
+   "text": "孩子们喜欢在院子里玩儿。",
+   "chunks": [
+    "孩子们喜欢在院子里玩儿。"
+   ]
+  },
+  {
+   "lang": "zh",
+   "text": "朋友有事一定要帮助。",
+   "chunks": [
+    "朋友有事一定要帮助。"
+   ]
+  },
+  {
+   "lang": "zh",
+   "text": "小心，汤很热。",
+   "chunks": [
+    "小心，",
+    "汤很热。"
+   ]
+  },
+  {
+   "lang": "zh",
+   "text": "这个公园很美丽。",
+   "chunks": [
+    "这个公园很美丽。"
+   ]
+  },
+  {
+   "lang": "zh",
+   "text": "桌子上面挂着一盏灯。",
+   "chunks": [
+    "桌子上面挂着一盏灯。"
+   ]
+  },
+  {
+   "lang": "zh",
+   "text": "七天是一个星期。",
+   "chunks": [
+    "七天是一个星期。"
+   ]
+  },
+  {
+   "lang": "zh",
+   "text": "蜂蜜是蜜蜂做的。",
+   "chunks": [
+    "蜂蜜是蜜蜂做的。"
+   ]
+  },
+  {
+   "lang": "zh",
+   "text": "他用右手拿杯子。",
+   "chunks": [
+    "他用右手拿杯子。"
+   ]
+  },
+  {
+   "lang": "zh",
+   "text": "车里睡着一个小孩子。",
+   "chunks": [
+    "车里睡着一个小孩子。"
+   ]
+  },
+  {
+   "lang": "zh",
+   "text": "用快刀切面包。",
+   "chunks": [
+    "用快刀切面包。"
+   ]
+  },
+  {
+   "lang": "zh",
+   "text": "晚上以后是夜晚。",
+   "chunks": [
+    "晚上以后是夜晚。"
+   ]
+  },
+  {
+   "lang": "hi",
+   "text": "मैं हर सुबह कॉफ़ी पीता हूँ।",
+   "chunks": [
+    "मैं हर सुबह",
+    "कॉफ़ी पीता हूँ।"
+   ]
+  },
+  {
+   "lang": "hi",
+   "text": "बिल्ली दूध पीती है।",
+   "chunks": [
+    "बिल्ली दूध पीती",
+    "है।"
+   ]
+  },
+  {
+   "lang": "hi",
+   "text": "सर्दियों में बर्फ़ गिरती है।",
+   "chunks": [
+    "सर्दियों में बर्फ़",
+    "गिरती है।"
+   ]
+  },
+  {
+   "lang": "hi",
+   "text": "मेरे पास पैसा नहीं है।",
+   "chunks": [
+    "मेरे पास पैसा",
+    "नहीं है।"
+   ]
+  },
+  {
+   "lang": "hi",
+   "text": "सूरज आसमान में चमकता है।",
+   "chunks": [
+    "सूरज आसमान में",
+    "चमकता है।"
+   ]
+  },
+  {
+   "lang": "hi",
+   "text": "कुत्ता आँगन में भौंकता है।",
+   "chunks": [
+    "कुत्ता आँगन में",
+    "भौंकता है।"
+   ]
+  },
+  {
+   "lang": "hi",
+   "text": "मेरे घर में चार कमरे हैं।",
+   "chunks": [
+    "मेरे घर में",
+    "चार कमरे हैं।"
+   ]
+  },
+  {
+   "lang": "hi",
+   "text": "मैं नई गाड़ी खरीदना चाहता हूँ।",
+   "chunks": [
+    "मैं नई गाड़ी",
+    "खरीदना चाहता हूँ।"
+   ]
+  },
+  {
+   "lang": "hi",
+   "text": "शाम को मुझे पढ़ना पसंद है।",
+   "chunks": [
+    "शाम को मुझे",
+    "पढ़ना पसंद है।"
+   ]
+  },
+  {
+   "lang": "hi",
+   "text": "मेज़ पर एक किताब है।",
+   "chunks": [
+    "मेज़ पर एक",
+    "किताब है।"
+   ]
+  },
+  {
+   "lang": "hi",
+   "text": "गरम का उल्टा ठंडा है।",
+   "chunks": [
+    "गरम का उल्टा",
+    "ठंडा है।"
+   ]
+  },
+  {
+   "lang": "hi",
+   "text": "रात के बाद सुबह आती है।",
+   "chunks": [
+    "रात के बाद",
+    "सुबह आती है।"
+   ]
+  },
+  {
+   "lang": "hi",
+   "text": "आज चाँद पूरा है।",
+   "chunks": [
+    "आज चाँद पूरा",
+    "है।"
+   ]
+  },
+  {
+   "lang": "hi",
+   "text": "मैं हर दिन स्कूल जाता हूँ।",
+   "chunks": [
+    "मैं हर दिन",
+    "स्कूल जाता हूँ।"
+   ]
+  },
+  {
+   "lang": "hi",
+   "text": "मछली नदी में तैरती है।",
+   "chunks": [
+    "मछली नदी में",
+    "तैरती है।"
+   ]
+  },
+  {
+   "lang": "hi",
+   "text": "मेरा छोटा भाई स्कूल जाता है।",
+   "chunks": [
+    "मेरा छोटा भाई",
+    "स्कूल जाता है।"
+   ]
+  },
+  {
+   "lang": "hi",
+   "text": "गिलास में ठंडा पानी है।",
+   "chunks": [
+    "गिलास में ठंडा",
+    "पानी है।"
+   ]
+  },
+  {
+   "lang": "hi",
+   "text": "चूल्हे में आग जल रही है।",
+   "chunks": [
+    "चूल्हे में आग",
+    "जल रही है।"
+   ]
+  },
+  {
+   "lang": "hi",
+   "text": "शाम को पहला तारा दिखता है।",
+   "chunks": [
+    "शाम को पहला",
+    "तारा दिखता है।"
+   ]
+  },
+  {
+   "lang": "hi",
+   "text": "आज बहुत बारिश हो रही है।",
+   "chunks": [
+    "आज बहुत बारिश",
+    "हो रही है।"
+   ]
+  },
+  {
+   "lang": "hi",
+   "text": "माँ हर दिन रोटी बनाती है।",
+   "chunks": [
+    "माँ हर दिन",
+    "रोटी बनाती है।"
+   ]
+  },
+  {
+   "lang": "hi",
+   "text": "टोकरी में लाल सेब रखा है।",
+   "chunks": [
+    "टोकरी में लाल",
+    "सेब रखा है।"
+   ]
+  },
+  {
+   "lang": "hi",
+   "text": "खेत में घोड़ा दौड़ रहा है।",
+   "chunks": [
+    "खेत में घोड़ा",
+    "दौड़ रहा है।"
+   ]
+  },
+  {
+   "lang": "hi",
+   "text": "फ़र्श के नीचे चूहा रहता है।",
+   "chunks": [
+    "फ़र्श के नीचे",
+    "चूहा रहता है।"
+   ]
+  },
+  {
+   "lang": "hi",
+   "text": "शहर से नदी बहती है।",
+   "chunks": [
+    "शहर से नदी",
+    "बहती है।"
+   ]
+  },
+  {
+   "lang": "hi",
+   "text": "दूर एक ऊँचा पहाड़ दिखता है।",
+   "chunks": [
+    "दूर एक ऊँचा",
+    "पहाड़ दिखता है।"
+   ]
+  },
+  {
+   "lang": "hi",
+   "text": "गाँव के पीछे जंगल शुरू होता है।",
+   "chunks": [
+    "गाँव के पीछे",
+    "जंगल शुरू होता",
+    "है।"
+   ]
+  },
+  {
+   "lang": "hi",
+   "text": "रसोई में लकड़ी की मेज़ रखी है।",
+   "chunks": [
+    "रसोई में लकड़ी",
+    "की मेज़ रखी",
+    "है।"
+   ]
+  },
+  {
+   "lang": "hi",
+   "text": "दीवार पर घड़ी नौ बजा रही है।",
+   "chunks": [
+    "दीवार पर घड़ी",
+    "नौ बजा रही",
+    "है।"
+   ]
+  },
+  {
+   "lang": "hi",
+   "text": "हम सब्ज़ी बाज़ार से लाते हैं।",
+   "chunks": [
+    "हम सब्ज़ी बाज़ार",
+    "से लाते हैं।"
+   ]
+  },
+  {
+   "lang": "hi",
+   "text": "उसे अस्पताल ले गए।",
+   "chunks": [
+    "उसे अस्पताल ले",
+    "गए।"
+   ]
+  },
+  {
+   "lang": "hi",
+   "text": "पाठ एक घंटा चलता है।",
+   "chunks": [
+    "पाठ एक घंटा",
+    "चलता है।"
+   ]
+  },
+  {
+   "lang": "hi",
+   "text": "बच्चों को आठ घंटे सोना चाहिए।",
+   "chunks": [
+    "बच्चों को आठ",
+    "घंटे सोना चाहिए।"
+   ]
+  },
+  {
+   "lang": "hi",
+   "text": "मैं दोस्त को चिट्ठी लिखना चाहता हूँ।",
+   "chunks": [
+    "मैं दोस्त को",
+    "चिट्ठी लिखना चाहता",
+    "हूँ।"
+   ]
+  },
+  {
+   "lang": "hi",
+   "text": "दरवाज़ा खोलना आसान है।",
+   "chunks": [
+    "दरवाज़ा खोलना आसान",
+    "है।"
+   ]
+  },
+  {
+   "lang": "hi",
+   "text": "यह घर बहुत बड़ा है।",
+   "chunks": [
+    "यह घर बहुत",
+    "बड़ा है।"
+   ]
+  },
+  {
+   "lang": "hi",
+   "text": "यह रेलगाड़ी बहुत तेज़ है।",
+   "chunks": [
+    "यह रेलगाड़ी बहुत",
+    "तेज़ है।"
+   ]
+  },
+  {
+   "lang": "hi",
+   "text": "रसोई का फ़र्श साफ़ है।",
+   "chunks": [
+    "रसोई का फ़र्श",
+    "साफ़ है।"
+   ]
+  },
+  {
+   "lang": "hi",
+   "text": "यह मकान बहुत पुराना है।",
+   "chunks": [
+    "यह मकान बहुत",
+    "पुराना है।"
+   ]
+  },
+  {
+   "lang": "hi",
+   "text": "मुझे संगीत सुनना पसंद है।",
+   "chunks": [
+    "मुझे संगीत सुनना",
+    "पसंद है।"
+   ]
+  },
+  {
+   "lang": "hi",
+   "text": "मेरी माँ हर शाम खाना बनाती है।",
+   "chunks": [
+    "मेरी माँ हर",
+    "शाम खाना बनाती",
+    "है।"
+   ]
+  },
+  {
+   "lang": "hi",
+   "text": "बग़ीचे में एक पक्षी गा रहा है।",
+   "chunks": [
+    "बग़ीचे में एक",
+    "पक्षी गा रहा",
+    "है।"
+   ]
+  },
+  {
+   "lang": "hi",
+   "text": "गाय हमें दूध देती है।",
+   "chunks": [
+    "गाय हमें दूध",
+    "देती है।"
+   ]
+  },
+  {
+   "lang": "hi",
+   "text": "आसमान में सिर्फ़ एक बादल है।",
+   "chunks": [
+    "आसमान में सिर्फ़",
+    "एक बादल है।"
+   ]
+  },
+  {
+   "lang": "hi",
+   "text": "वह बहन को लंबी चिट्ठी लिखता है।",
+   "chunks": [
+    "वह बहन को",
+    "लंबी चिट्ठी लिखता",
+    "है।"
+   ]
+  },
+  {
+   "lang": "hi",
+   "text": "हम गाँव जाने के लिए पुल पार करते हैं।",
+   "chunks": [
+    "हम गाँव जाने",
+    "के लिए पुल",
+    "पार करते हैं।"
+   ]
+  },
+  {
+   "lang": "hi",
+   "text": "खाने के बाद हम पार्क में टहलते हैं।",
+   "chunks": [
+    "खाने के बाद",
+    "हम पार्क में",
+    "टहलते हैं।"
+   ]
+  },
+  {
+   "lang": "hi",
+   "text": "ट्रेन छह बजे स्टेशन से निकलती है।",
+   "chunks": [
+    "ट्रेन छह बजे",
+    "स्टेशन से निकलती",
+    "है।"
+   ]
+  },
+  {
+   "lang": "hi",
+   "text": "गर्मी में बहुत पानी पीना चाहिए।",
+   "chunks": [
+    "गर्मी में बहुत",
+    "पानी पीना चाहिए।"
+   ]
+  },
+  {
+   "lang": "hi",
+   "text": "बच्चों को आँगन में खेलना पसंद है।",
+   "chunks": [
+    "बच्चों को आँगन",
+    "में खेलना पसंद",
+    "है।"
+   ]
+  },
+  {
+   "lang": "hi",
+   "text": "मुझे फ़िल्म देखना पसंद है।",
+   "chunks": [
+    "मुझे फ़िल्म देखना",
+    "पसंद है।"
+   ]
+  },
+  {
+   "lang": "hi",
+   "text": "सावधान, सूप बहुत गरम है।",
+   "chunks": [
+    "सावधान, सूप बहुत",
+    "गरम है।"
+   ]
+  },
+  {
+   "lang": "hi",
+   "text": "यह पार्क बहुत सुंदर है।",
+   "chunks": [
+    "यह पार्क बहुत",
+    "सुंदर है।"
+   ]
+  },
+  {
+   "lang": "hi",
+   "text": "मेज़ के ऊपर एक दीपक है।",
+   "chunks": [
+    "मेज़ के ऊपर",
+    "एक दीपक है।"
+   ]
+  },
+  {
+   "lang": "hi",
+   "text": "सात दिन का एक हफ़्ता होता है।",
+   "chunks": [
+    "सात दिन का",
+    "एक हफ़्ता होता",
+    "है।"
+   ]
+  },
+  {
+   "lang": "hi",
+   "text": "शहद मधुमक्खी बनाती है।",
+   "chunks": [
+    "शहद मधुमक्खी बनाती",
+    "है।"
+   ]
+  },
+  {
+   "lang": "hi",
+   "text": "वह दाहिने हाथ से कप पकड़ता है।",
+   "chunks": [
+    "वह दाहिने हाथ",
+    "से कप पकड़ता",
+    "है।"
+   ]
+  },
+  {
+   "lang": "hi",
+   "text": "गाड़ी में एक छोटा बच्चा सो रहा है।",
+   "chunks": [
+    "गाड़ी में एक",
+    "छोटा बच्चा सो",
+    "रहा है।"
+   ]
+  },
+  {
+   "lang": "hi",
+   "text": "तेज़ चाकू से रोटी काटो।",
+   "chunks": [
+    "तेज़ चाकू से",
+    "रोटी काटो।"
+   ]
+  },
+  {
+   "lang": "hi",
+   "text": "शाम के बाद रात आती है।",
+   "chunks": [
+    "शाम के बाद",
+    "रात आती है।"
+   ]
+  }
+ ],
+ "lessons": [
+  {
+   "lang": "ru",
+   "level": 1,
+   "exclude": "На столе лежит книга.",
+   "pool": [
+    "На столе лежит книга.",
+    "Утром я пью кофе.",
+    "Ночью на небе светит луна.",
+    "Во дворе лает собака.",
+    "Зимой часто идёт снег.",
+    "В реке плавает рыба.",
+    "Мы идём покупать продукты.",
+    "По дороге едет машина.",
+    "Мне нравится моя работа.",
+    "После ночи наступает утро.",
+    "В стакане холодная вода.",
+    "В печи горит огонь.",
+    "Мама печёт вкусный хлеб.",
+    "По полю бежит лошадь.",
+    "Через город течёт река.",
+    "Наш город стоит на реке.",
+    "Урок длится один час.",
+    "Этот поезд очень быстрый.",
+    "Молоко нам даёт корова.",
+    "Через реку построен мост.",
+    "В жару хочется много пить.",
+    "Этот город очень красивый.",
+    "Над столом висит лампа.",
+    "Мёд в улье делает пчела.",
+    "Хлеб режет острый нож."
+   ],
+   "stream": [
+    0.9720876209903508
+   ],
+   "phrase": "Хлеб режет острый нож.",
+   "chunks": [
+    "Хлеб режет острый",
+    "нож."
+   ],
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachDictIntro",
+     "fields": {},
+     "typed": 0,
+     "chunk": null,
+     "speak": []
+    },
+    {
+     "kind": "listen",
+     "key": "teachDictListen",
+     "fields": {},
+     "typed": 0,
+     "chunk": null,
+     "speak": [
+      "Хлеб режет острый нож."
+     ]
+    },
+    {
+     "kind": "chunk",
+     "key": "teachDictChunk",
+     "fields": {
+      "i": 1,
+      "c": "Хлеб режет острый"
+     },
+     "typed": 0,
+     "chunk": 0,
+     "speak": [
+      "Хлеб режет острый"
+     ]
+    },
+    {
+     "kind": "chunk",
+     "key": "teachDictChunk",
+     "fields": {
+      "i": 2,
+      "c": "нож."
+     },
+     "typed": 1,
+     "chunk": 1,
+     "speak": [
+      "нож."
+     ]
+    },
+    {
+     "kind": "stuck",
+     "key": "teachDictStuck",
+     "fields": {},
+     "typed": 2,
+     "chunk": null,
+     "speak": []
+    },
+    {
+     "kind": "done",
+     "key": "teachDictDone",
+     "fields": {},
+     "typed": 2,
+     "chunk": null,
+     "speak": []
+    }
+   ]
+  },
+  {
+   "lang": "ru",
+   "level": 5,
+   "exclude": "На столе лежит книга.",
+   "pool": [
+    "На столе лежит книга.",
+    "Утром я пью кофе.",
+    "Ночью на небе светит луна.",
+    "Во дворе лает собака.",
+    "Зимой часто идёт снег.",
+    "В реке плавает рыба.",
+    "У дома растёт высокое дерево.",
+    "Мы идём покупать продукты.",
+    "Вечером я люблю читать книги.",
+    "В этой комнате есть большое окно.",
+    "По дороге едет машина.",
+    "В зоопарке живёт большой слон.",
+    "Мне нравится моя работа.",
+    "После ночи наступает утро.",
+    "В стакане холодная вода.",
+    "В печи горит огонь.",
+    "Первая звезда загорается вечером.",
+    "На улице идёт сильный дождь.",
+    "Мама печёт вкусный хлеб.",
+    "В корзине лежит красное яблоко.",
+    "По полю бежит лошадь.",
+    "Под полом живёт серая мышь.",
+    "Через город течёт река.",
+    "Вдалеке видна высокая гора.",
+    "За деревней начинается густой лес.",
+    "В комнате стоит деревянный стул.",
+    "На стене висят старые часы.",
+    "Наш город стоит на реке.",
+    "Урок длится один час.",
+    "Ребёнку нужно спать восемь часов.",
+    "Я хочу писать письмо другу.",
+    "Слон — очень большой зверь.",
+    "Этот поезд очень быстрый.",
+    "Пол в комнате совсем чистый.",
+    "Мой дедушка уже очень старый.",
+    "Ужин каждый вечер готовит мать.",
+    "В саду поёт маленькая птица.",
+    "Молоко нам даёт корова.",
+    "По небу плывёт белое облако.",
+    "Сестре он пишет длинное письмо.",
+    "Через реку построен мост.",
+    "За домом растёт большой сад.",
+    "В жару хочется много пить.",
+    "Дети во дворе любят играть.",
+    "Другу всегда надо помогать.",
+    "Осторожно, суп очень горячий.",
+    "Этот город очень красивый.",
+    "Над столом висит лампа.",
+    "Семь дней — это одна неделя.",
+    "Мёд в улье делает пчела.",
+    "В коляске спит маленький ребёнок.",
+    "Хлеб режет острый нож.",
+    "После вечера наступает ночь."
+   ],
+   "stream": [
+    0.2268989102449268
+   ],
+   "phrase": "Мне нравится моя работа.",
+   "chunks": [
+    "Мне нравится моя",
+    "работа."
+   ],
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachDictIntro",
+     "fields": {},
+     "typed": 0,
+     "chunk": null,
+     "speak": []
+    },
+    {
+     "kind": "listen",
+     "key": "teachDictListen",
+     "fields": {},
+     "typed": 0,
+     "chunk": null,
+     "speak": [
+      "Мне нравится моя работа."
+     ]
+    },
+    {
+     "kind": "chunk",
+     "key": "teachDictChunk",
+     "fields": {
+      "i": 1,
+      "c": "Мне нравится моя"
+     },
+     "typed": 0,
+     "chunk": 0,
+     "speak": [
+      "Мне нравится моя"
+     ]
+    },
+    {
+     "kind": "chunk",
+     "key": "teachDictChunk",
+     "fields": {
+      "i": 2,
+      "c": "работа."
+     },
+     "typed": 1,
+     "chunk": 1,
+     "speak": [
+      "работа."
+     ]
+    },
+    {
+     "kind": "stuck",
+     "key": "teachDictStuck",
+     "fields": {},
+     "typed": 2,
+     "chunk": null,
+     "speak": []
+    },
+    {
+     "kind": "done",
+     "key": "teachDictDone",
+     "fields": {},
+     "typed": 2,
+     "chunk": null,
+     "speak": []
+    }
+   ]
+  },
+  {
+   "lang": "en",
+   "level": 1,
+   "exclude": "My house has four rooms.",
+   "pool": [
+    "My house has four rooms.",
+    "The cat drinks milk.",
+    "Open the door, please.",
+    "The fish lives in the sea.",
+    "I want to buy a new car.",
+    "The lesson lasts one hour.",
+    "This house is very big.",
+    "This train is very fast.",
+    "I like listening to music.",
+    "A week has seven days."
+   ],
+   "stream": [
+    0.9306420031934977
+   ],
+   "phrase": "A week has seven days.",
+   "chunks": [
+    "A week has",
+    "seven days."
+   ],
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachDictIntro",
+     "fields": {},
+     "typed": 0,
+     "chunk": null,
+     "speak": []
+    },
+    {
+     "kind": "listen",
+     "key": "teachDictListen",
+     "fields": {},
+     "typed": 0,
+     "chunk": null,
+     "speak": [
+      "A week has seven days."
+     ]
+    },
+    {
+     "kind": "chunk",
+     "key": "teachDictChunk",
+     "fields": {
+      "i": 1,
+      "c": "A week has"
+     },
+     "typed": 0,
+     "chunk": 0,
+     "speak": [
+      "A week has"
+     ]
+    },
+    {
+     "kind": "chunk",
+     "key": "teachDictChunk",
+     "fields": {
+      "i": 2,
+      "c": "seven days."
+     },
+     "typed": 1,
+     "chunk": 1,
+     "speak": [
+      "seven days."
+     ]
+    },
+    {
+     "kind": "stuck",
+     "key": "teachDictStuck",
+     "fields": {},
+     "typed": 2,
+     "chunk": null,
+     "speak": []
+    },
+    {
+     "kind": "done",
+     "key": "teachDictDone",
+     "fields": {},
+     "typed": 2,
+     "chunk": null,
+     "speak": []
+    }
+   ]
+  },
+  {
+   "lang": "en",
+   "level": 5,
+   "exclude": "I drink coffee every morning.",
+   "pool": [
+    "I drink coffee every morning.",
+    "The sun is shining in the sky.",
+    "My house has four rooms.",
+    "The cat drinks milk.",
+    "I am reading an interesting book.",
+    "The dog is barking outside.",
+    "Open the door, please.",
+    "In winter we often see snow.",
+    "My younger brother goes to school.",
+    "The fish lives in the sea.",
+    "I want to buy a new car.",
+    "This bag is very expensive.",
+    "The opposite of hot is cold.",
+    "After the night comes the morning.",
+    "I am thirsty — give me some water.",
+    "The fire warms the whole room.",
+    "The horse runs across the field.",
+    "We swim in the river every summer.",
+    "Mushrooms grow in the forest.",
+    "Put the plates on the table.",
+    "The clock on the wall shows nine.",
+    "We buy vegetables at the market.",
+    "They took him to the hospital.",
+    "The lesson lasts one hour.",
+    "This house is very big.",
+    "This train is very fast.",
+    "The floor in the kitchen is clean.",
+    "I like listening to music.",
+    "A small bird sings in the garden.",
+    "The cow gives us milk every day.",
+    "They walk in the park after lunch.",
+    "I want to drink a glass of juice.",
+    "Children love to play in the yard.",
+    "I asked my friend to help me.",
+    "Be careful, this soup is very hot.",
+    "Her new dress is really beautiful.",
+    "The lamp above the desk is broken.",
+    "We swim at the beach every summer.",
+    "A week has seven days.",
+    "The bee makes honey in summer.",
+    "Their youngest child is only two.",
+    "Cut the bread with a sharp knife."
+   ],
+   "stream": [
+    0.8608313514851034
+   ],
+   "phrase": "The lamp above the desk is broken.",
+   "chunks": [
+    "The lamp above",
+    "the desk is",
+    "broken."
+   ],
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachDictIntro",
+     "fields": {},
+     "typed": 0,
+     "chunk": null,
+     "speak": []
+    },
+    {
+     "kind": "listen",
+     "key": "teachDictListen",
+     "fields": {},
+     "typed": 0,
+     "chunk": null,
+     "speak": [
+      "The lamp above the desk is broken."
+     ]
+    },
+    {
+     "kind": "chunk",
+     "key": "teachDictChunk",
+     "fields": {
+      "i": 1,
+      "c": "The lamp above"
+     },
+     "typed": 0,
+     "chunk": 0,
+     "speak": [
+      "The lamp above"
+     ]
+    },
+    {
+     "kind": "chunk",
+     "key": "teachDictChunk",
+     "fields": {
+      "i": 2,
+      "c": "the desk is"
+     },
+     "typed": 1,
+     "chunk": 1,
+     "speak": [
+      "the desk is"
+     ]
+    },
+    {
+     "kind": "chunk",
+     "key": "teachDictChunk",
+     "fields": {
+      "i": 3,
+      "c": "broken."
+     },
+     "typed": 2,
+     "chunk": 2,
+     "speak": [
+      "broken."
+     ]
+    },
+    {
+     "kind": "stuck",
+     "key": "teachDictStuck",
+     "fields": {},
+     "typed": 3,
+     "chunk": null,
+     "speak": []
+    },
+    {
+     "kind": "done",
+     "key": "teachDictDone",
+     "fields": {},
+     "typed": 3,
+     "chunk": null,
+     "speak": []
+    }
+   ]
+  },
+  {
+   "lang": "zh",
+   "level": 1,
+   "exclude": "我每天早上喝咖啡。",
+   "pool": [
+    "我每天早上喝咖啡。",
+    "猫喜欢喝牛奶。",
+    "冬天经常下雪。",
+    "我没有钱买这个。",
+    "太阳在天上照耀。",
+    "狗在院子里叫。",
+    "我的房子有四个房间。",
+    "我想买一辆新车。",
+    "晚上我喜欢读书。",
+    "桌子上有一本书。",
+    "热的反义词是冷。",
+    "夜晚之后是早上。",
+    "今晚的月亮很圆。",
+    "我每天去学校。",
+    "鱼在河里游。",
+    "我有一个哥哥。",
+    "杯子里有冷水。",
+    "炉子里烧着火。",
+    "晚上出现第一颗星星。",
+    "今天下了很大的雨。",
+    "妈妈每天做面包。",
+    "篮子里有一个红色的苹果。",
+    "田野上跑着一匹马。",
+    "地板下面住着一只老鼠。",
+    "城市里流过一条河。",
+    "远处能看到一座高山。",
+    "村子后面是一片森林。",
+    "厨房里有一张木头桌子。",
+    "墙上的钟指着九点。",
+    "我们在市场买蔬菜。",
+    "他被送到了医院。",
+    "一节课上一个小时。",
+    "孩子每天要睡觉八个小时。",
+    "我想给朋友写一封信。",
+    "请帮我开窗户。",
+    "这座房子非常大。",
+    "这列火车非常快。",
+    "厨房的地板很干净。",
+    "这栋楼已经很老了。",
+    "我喜欢听音乐。",
+    "我的妈妈做晚饭。",
+    "花园里有一只鸟在唱歌。",
+    "牛给我们牛奶。",
+    "天上只有一朵云。",
+    "他给姐姐写了一封长信。",
+    "我们过桥去村子。",
+    "吃完饭我们去公园散步。",
+    "火车六点从车站出发。",
+    "天热，我想多喝水。",
+    "孩子们喜欢在院子里玩儿。",
+    "朋友有事一定要帮助。",
+    "小心，汤很热。",
+    "这个公园很美丽。",
+    "桌子上面挂着一盏灯。",
+    "七天是一个星期。",
+    "蜂蜜是蜜蜂做的。",
+    "他用右手拿杯子。",
+    "车里睡着一个小孩子。",
+    "用快刀切面包。",
+    "晚上以后是夜晚。"
+   ],
+   "stream": [
+    0.7495200899429619
+   ],
+   "phrase": "我们过桥去村子。",
+   "chunks": [
+    "我们过桥去村子。"
+   ],
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachDictIntro",
+     "fields": {},
+     "typed": 0,
+     "chunk": null,
+     "speak": []
+    },
+    {
+     "kind": "listen",
+     "key": "teachDictListen",
+     "fields": {},
+     "typed": 0,
+     "chunk": null,
+     "speak": [
+      "我们过桥去村子。"
+     ]
+    },
+    {
+     "kind": "chunk",
+     "key": "teachDictChunk",
+     "fields": {
+      "i": 1,
+      "c": "我们过桥去村子。"
+     },
+     "typed": 0,
+     "chunk": 0,
+     "speak": [
+      "我们过桥去村子。"
+     ]
+    },
+    {
+     "kind": "stuck",
+     "key": "teachDictStuck",
+     "fields": {},
+     "typed": 1,
+     "chunk": null,
+     "speak": []
+    },
+    {
+     "kind": "done",
+     "key": "teachDictDone",
+     "fields": {},
+     "typed": 1,
+     "chunk": null,
+     "speak": []
+    }
+   ]
+  },
+  {
+   "lang": "zh",
+   "level": 5,
+   "exclude": "我每天早上喝咖啡。",
+   "pool": [
+    "我每天早上喝咖啡。",
+    "猫喜欢喝牛奶。",
+    "冬天经常下雪。",
+    "我没有钱买这个。",
+    "太阳在天上照耀。",
+    "狗在院子里叫。",
+    "我的房子有四个房间。",
+    "我想买一辆新车。",
+    "晚上我喜欢读书。",
+    "桌子上有一本书。",
+    "热的反义词是冷。",
+    "夜晚之后是早上。",
+    "今晚的月亮很圆。",
+    "我每天去学校。",
+    "鱼在河里游。",
+    "我有一个哥哥。",
+    "杯子里有冷水。",
+    "炉子里烧着火。",
+    "晚上出现第一颗星星。",
+    "今天下了很大的雨。",
+    "妈妈每天做面包。",
+    "篮子里有一个红色的苹果。",
+    "田野上跑着一匹马。",
+    "地板下面住着一只老鼠。",
+    "城市里流过一条河。",
+    "远处能看到一座高山。",
+    "村子后面是一片森林。",
+    "厨房里有一张木头桌子。",
+    "墙上的钟指着九点。",
+    "我们在市场买蔬菜。",
+    "他被送到了医院。",
+    "一节课上一个小时。",
+    "孩子每天要睡觉八个小时。",
+    "我想给朋友写一封信。",
+    "请帮我开窗户。",
+    "这座房子非常大。",
+    "这列火车非常快。",
+    "厨房的地板很干净。",
+    "这栋楼已经很老了。",
+    "我喜欢听音乐。",
+    "我的妈妈做晚饭。",
+    "花园里有一只鸟在唱歌。",
+    "牛给我们牛奶。",
+    "天上只有一朵云。",
+    "他给姐姐写了一封长信。",
+    "我们过桥去村子。",
+    "吃完饭我们去公园散步。",
+    "火车六点从车站出发。",
+    "天热，我想多喝水。",
+    "孩子们喜欢在院子里玩儿。",
+    "朋友有事一定要帮助。",
+    "小心，汤很热。",
+    "这个公园很美丽。",
+    "桌子上面挂着一盏灯。",
+    "七天是一个星期。",
+    "蜂蜜是蜜蜂做的。",
+    "他用右手拿杯子。",
+    "车里睡着一个小孩子。",
+    "用快刀切面包。",
+    "晚上以后是夜晚。"
+   ],
+   "stream": [
+    0.13880901783704758
+   ],
+   "phrase": "桌子上有一本书。",
+   "chunks": [
+    "桌子上有一本书。"
+   ],
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachDictIntro",
+     "fields": {},
+     "typed": 0,
+     "chunk": null,
+     "speak": []
+    },
+    {
+     "kind": "listen",
+     "key": "teachDictListen",
+     "fields": {},
+     "typed": 0,
+     "chunk": null,
+     "speak": [
+      "桌子上有一本书。"
+     ]
+    },
+    {
+     "kind": "chunk",
+     "key": "teachDictChunk",
+     "fields": {
+      "i": 1,
+      "c": "桌子上有一本书。"
+     },
+     "typed": 0,
+     "chunk": 0,
+     "speak": [
+      "桌子上有一本书。"
+     ]
+    },
+    {
+     "kind": "stuck",
+     "key": "teachDictStuck",
+     "fields": {},
+     "typed": 1,
+     "chunk": null,
+     "speak": []
+    },
+    {
+     "kind": "done",
+     "key": "teachDictDone",
+     "fields": {},
+     "typed": 1,
+     "chunk": null,
+     "speak": []
+    }
+   ]
+  },
+  {
+   "lang": "de",
+   "level": 1,
+   "exclude": "Die Katze trinkt Milch.",
+   "pool": [
+    "Die Katze trinkt Milch.",
+    "Ich habe kein Geld.",
+    "Der Hund bellt im Hof.",
+    "Mein Haus hat vier Zimmer.",
+    "Am Abend mag ich lesen.",
+    "Der Mond ist heute voll.",
+    "Im Glas ist kaltes Wasser.",
+    "Im Ofen brennt das Feuer.",
+    "Heute fällt viel Regen.",
+    "Dieses Haus ist sehr groß.",
+    "Ich höre gern Musik.",
+    "Im Garten singt ein Vogel.",
+    "Die Kuh gibt uns Milch.",
+    "Den Honig macht die Biene."
+   ],
+   "stream": [
+    0.7933175349608064
+   ],
+   "phrase": "Im Garten singt ein Vogel.",
+   "chunks": [
+    "Im Garten singt",
+    "ein Vogel."
+   ],
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachDictIntro",
+     "fields": {},
+     "typed": 0,
+     "chunk": null,
+     "speak": []
+    },
+    {
+     "kind": "listen",
+     "key": "teachDictListen",
+     "fields": {},
+     "typed": 0,
+     "chunk": null,
+     "speak": [
+      "Im Garten singt ein Vogel."
+     ]
+    },
+    {
+     "kind": "chunk",
+     "key": "teachDictChunk",
+     "fields": {
+      "i": 1,
+      "c": "Im Garten singt"
+     },
+     "typed": 0,
+     "chunk": 0,
+     "speak": [
+      "Im Garten singt"
+     ]
+    },
+    {
+     "kind": "chunk",
+     "key": "teachDictChunk",
+     "fields": {
+      "i": 2,
+      "c": "ein Vogel."
+     },
+     "typed": 1,
+     "chunk": 1,
+     "speak": [
+      "ein Vogel."
+     ]
+    },
+    {
+     "kind": "stuck",
+     "key": "teachDictStuck",
+     "fields": {},
+     "typed": 2,
+     "chunk": null,
+     "speak": []
+    },
+    {
+     "kind": "done",
+     "key": "teachDictDone",
+     "fields": {},
+     "typed": 2,
+     "chunk": null,
+     "speak": []
+    }
+   ]
+  },
+  {
+   "lang": "de",
+   "level": 5,
+   "exclude": "Ich trinke jeden Morgen Kaffee.",
+   "pool": [
+    "Ich trinke jeden Morgen Kaffee.",
+    "Die Katze trinkt Milch.",
+    "Im Winter fällt viel Schnee.",
+    "Ich habe kein Geld.",
+    "Die Sonne scheint am Himmel.",
+    "Der Hund bellt im Hof.",
+    "Mein Haus hat vier Zimmer.",
+    "Ich möchte ein neues Auto kaufen.",
+    "Am Abend mag ich lesen.",
+    "Auf dem Tisch liegt ein Buch.",
+    "Das Gegenteil von heiß ist kalt.",
+    "Nach der Nacht kommt der Morgen.",
+    "Der Mond ist heute voll.",
+    "Ich gehe jeden Tag zur Schule.",
+    "Im Fluss schwimmt ein Fisch.",
+    "Meine Blume ist sehr schön.",
+    "Im Glas ist kaltes Wasser.",
+    "Im Ofen brennt das Feuer.",
+    "Heute fällt viel Regen.",
+    "Meine Mutter backt jeden Tag Brot.",
+    "Im Korb liegt ein roter Apfel.",
+    "Über das Feld läuft ein Pferd.",
+    "Unter dem Boden lebt eine Maus.",
+    "Durch die Stadt fließt ein Fluss.",
+    "Hinter dem Dorf beginnt der Wald.",
+    "Die Uhr an der Wand zeigt neun.",
+    "Wir kaufen Gemüse auf dem Markt.",
+    "Man brachte ihn ins Krankenhaus.",
+    "Der Unterricht dauert eine Stunde.",
+    "Dieses Haus ist sehr groß.",
+    "Dieser Zug ist sehr schnell.",
+    "Der Boden in der Küche ist sauber.",
+    "Mein Großvater ist schon sehr alt.",
+    "Ich höre gern Musik.",
+    "Im Garten singt ein Vogel.",
+    "Die Kuh gibt uns Milch.",
+    "Am Himmel steht nur eine Wolke.",
+    "Die Kinder wollen im Hof spielen.",
+    "Vorsicht, die Suppe ist sehr heiß.",
+    "Dieser Park ist sehr schön.",
+    "Über dem Tisch hängt eine Lampe.",
+    "Sieben Tage sind eine Woche.",
+    "Den Honig macht die Biene.",
+    "Im Wagen schläft ein kleines Kind.",
+    "Nach dem Abend kommt die Nacht."
+   ],
+   "stream": [
+    0.9713024923112243
+   ],
+   "phrase": "Im Wagen schläft ein kleines Kind.",
+   "chunks": [
+    "Im Wagen schläft",
+    "ein kleines Kind."
+   ],
+   "cards": [
+    {
+     "kind": "intro",
+     "key": "teachDictIntro",
+     "fields": {},
+     "typed": 0,
+     "chunk": null,
+     "speak": []
+    },
+    {
+     "kind": "listen",
+     "key": "teachDictListen",
+     "fields": {},
+     "typed": 0,
+     "chunk": null,
+     "speak": [
+      "Im Wagen schläft ein kleines Kind."
+     ]
+    },
+    {
+     "kind": "chunk",
+     "key": "teachDictChunk",
+     "fields": {
+      "i": 1,
+      "c": "Im Wagen schläft"
+     },
+     "typed": 0,
+     "chunk": 0,
+     "speak": [
+      "Im Wagen schläft"
+     ]
+    },
+    {
+     "kind": "chunk",
+     "key": "teachDictChunk",
+     "fields": {
+      "i": 2,
+      "c": "ein kleines Kind."
+     },
+     "typed": 1,
+     "chunk": 1,
+     "speak": [
+      "ein kleines Kind."
+     ]
+    },
+    {
+     "kind": "stuck",
+     "key": "teachDictStuck",
+     "fields": {},
+     "typed": 2,
+     "chunk": null,
+     "speak": []
+    },
+    {
+     "kind": "done",
+     "key": "teachDictDone",
+     "fields": {},
+     "typed": 2,
+     "chunk": null,
+     "speak": []
+    }
+   ]
+  }
+ ]
+}
