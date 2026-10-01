@@ -51,6 +51,7 @@ class TathamEngine {
     _pointer = _lib.lookupFunction<Int32 Function(Int32, Int32, Int32),
         int Function(int, int, int)>('psy_pointer');
     _key = _lib.lookupFunction<Int32 Function(Int32), int Function(int)>('psy_key');
+    _cursor = _lib.lookupFunction<Int32 Function(Int32), int Function(int)>('psy_cursor');
     _status = _lib.lookupFunction<_IntF, _IntD>('psy_status');
     _statepos = _lib.lookupFunction<_IntF, _IntD>('psy_statepos');
     _undo = _lib.lookupFunction<_IntF, _IntD>('psy_undo');
@@ -75,6 +76,7 @@ class TathamEngine {
   late final void Function(Pointer<Utf8>) _free;
   late final int Function(int, int, int) _pointer;
   late final int Function(int) _key;
+  late final int Function(int) _cursor;
   late final int Function() _status;
   late final int Function() _statepos;
   late final int Function() _undo;
@@ -223,6 +225,19 @@ class TathamEngine {
   }
 
   int key(int code) => _key(code);
+
+  /// Стрелка курсора: 0 вверх · 1 вниз · 2 влево · 3 вправо. Коды CURSOR_* берёт сам мост
+  /// (`psy_cursor` в psy_play.c), а не Dart: переставит автор enum — поедет одно место.
+  /// 🔴 У «Куба» и «Инерции» автор читает ТОЛЬКО стрелки — без этой привязки они на
+  /// Flutter не играли вовсе (замер 01.10.2026).
+  int cursor(int side) => _cursor(side);
+
+  /// Выбор под курсором — CURSOR_SELECT / CURSOR_SELECT2 (525 / 526, как в веб-мосте play.ts).
+  int select({bool second = false}) => _key(second ? 526 : 525);
+
+  /// Диагональ для «Инерции»: автор читает её цифровым блоком (MOD_NUM_KEYPAD 0x4000 | цифра).
+  /// [digit] — '7' вверх-влево, '9' вверх-вправо, '1' вниз-влево, '3' вниз-вправо.
+  int diagonal(String digit) => _key(0x4000 | digit.codeUnitAt(0));
 
   /// 0 — партия идёт, 1 — победа, −1 — проигрыш.
   int get status => _status();

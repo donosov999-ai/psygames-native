@@ -141,8 +141,15 @@ class AdaptiveState {
     List<String>? recentTemplateIds,
     List<String>? recentOutcomes,
     this.lastEventId,
+    List<String>? recentEventIds,
+    Map<String, double>? templateRatings,
+    Map<String, int>? templateGames,
+    this.lastPlayedAt,
   })  : recentTemplateIds = recentTemplateIds ?? <String>[],
-        recentOutcomes = recentOutcomes ?? <String>[];
+        recentOutcomes = recentOutcomes ?? <String>[],
+        recentEventIds = recentEventIds ?? <String>[],
+        templateRatings = templateRatings ?? <String, double>{},
+        templateGames = templateGames ?? <String, int>{};
 
   int algorithmVersion;
 
@@ -166,6 +173,20 @@ class AdaptiveState {
   /// Последнее применённое событие: защита от двойного применения.
   String? lastEventId;
 
+  /// 🔴 D1 (звено 3, 30.09): ХВОСТ применённых событий, а не одно последнее. С одним
+  /// порядок A, B, A применял A дважды (побед 3 вместо 2) — офлайн-повтор старой отправки
+  /// накручивал счёт. Хвост ограничен ([eventTail]): состояние живёт годами.
+  final List<String> recentEventIds;
+
+  /// 🔴 D3: выученный рейтинг шаблона (id → рейтинг) и сколько партий по нему сыграно.
+  /// Начальный рейтинг — мера игры в самом шаблоне; партии его выправляют. До 30.09 поле
+  /// `Template.rating` было единственным и неизменным: 20 побед по шаблону — рейтинг тот же.
+  final Map<String, double> templateRatings;
+  final Map<String, int> templateGames;
+
+  /// 🔴 D4: когда была последняя партия — от перерыва растёт неуверенность (как RD у Glicko).
+  DateTime? lastPlayedAt;
+
   Map<String, Object?> toJson() => {
         'algorithm_version': algorithmVersion,
         'adaptive_wins': adaptiveWins,
@@ -174,6 +195,10 @@ class AdaptiveState {
         'recent_template_ids': recentTemplateIds,
         'recent_outcomes': recentOutcomes,
         'last_event_id': lastEventId,
+        'recent_event_ids': recentEventIds,
+        'template_ratings': templateRatings,
+        'template_games': templateGames,
+        if (lastPlayedAt != null) 'last_played_at': lastPlayedAt!.toUtc().toIso8601String(),
       };
 
   static AdaptiveState fromJson(Map<String, Object?> j) => AdaptiveState(
@@ -184,6 +209,12 @@ class AdaptiveState {
         recentTemplateIds: (j['recent_template_ids'] as List?)?.cast<String>().toList(),
         recentOutcomes: (j['recent_outcomes'] as List?)?.cast<String>().toList(),
         lastEventId: j['last_event_id'] as String?,
+        // Поля звена 3 — необязательные: сохранения до 30.09 читаются как были.
+        recentEventIds: (j['recent_event_ids'] as List?)?.cast<String>().toList(),
+        templateRatings: (j['template_ratings'] as Map?)
+            ?.map((k, v) => MapEntry(k as String, (v as num).toDouble())),
+        templateGames: (j['template_games'] as Map?)?.map((k, v) => MapEntry(k as String, (v as num).toInt())),
+        lastPlayedAt: j['last_played_at'] == null ? null : DateTime.tryParse(j['last_played_at'] as String),
       );
 
   String encode() => jsonEncode(toJson());
