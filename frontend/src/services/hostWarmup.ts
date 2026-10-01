@@ -63,6 +63,35 @@ function stepTitle(step: PlaylistStep, lang: string): string {
   return key ? translateFor(lang, key) : step.game_id;
 }
 
+function hostLang(): string {
+  const w = hostWindow();
+  return typeof w?.__psyHostLang === 'string' ? (w.__psyHostLang as string) : 'ru';
+}
+
+/**
+ * Где человек в серии — для полоски «N/M · ⏭» в НАТИВНОМ шаге (задача 63bccf96):
+ * веб рисует её в своём каркасе (`GameShell`: `warmup-position`, `warmup-skip-step`),
+ * а нативный экран лежит поверх страницы, и полоски там не было.
+ */
+export interface WarmupHostInfo {
+  active: boolean;
+  idx: number;
+  total: number;
+  title: string;
+  evening: boolean;
+}
+
+export function hostInfo(active: boolean, meta: PlaylistMeta | null, idx: number): WarmupHostInfo {
+  const step = meta?.steps[idx];
+  return {
+    active: active && !!meta && !!step,
+    idx,
+    total: meta?.steps.length ?? 0,
+    title: step ? stepTitle(step, hostLang()) : '',
+    evening: meta?.slot === 'evening' || meta?.slot === 'night',
+  };
+}
+
 export interface WarmupStepDone {
   op: 'warmupStepDone';
   /** Номер сыгранного шага (с нуля). */
@@ -83,8 +112,7 @@ export function stepDoneMessage(
 ): WarmupStepDone | null {
   const next = meta.steps[fromIdx + 1];
   if (!next) return null;
-  const w = hostWindow();
-  const lang = typeof w?.__psyHostLang === 'string' ? (w.__psyHostLang as string) : 'ru';
+  const lang = hostLang();
   const after = meta.steps[fromIdx + 2];
   return {
     op: 'warmupStepDone',

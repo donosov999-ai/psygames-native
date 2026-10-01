@@ -137,4 +137,60 @@ void main() {
       expect(L.t(key), isNot(key), reason: 'ключ $key не попал в словарь приложения');
     }
   });
+
+  group('🔴 полоска серии в нативном шаге (63bccf96)', () {
+    Future<int> frame(WidgetTester tester, WarmupStepInfo? info) async {
+      var skips = 0;
+      final note = ValueNotifier<WarmupStepInfo?>(info);
+      await tester.pumpWidget(MaterialApp(
+        home: WarmupStepFrame(
+          info: note,
+          onSkip: () => skips += 1,
+          child: const Scaffold(body: Center(child: Text('ИГРА'))),
+        ),
+      ));
+      await tester.pump();
+      return skips;
+    }
+
+    test('ответ веба читается; неактивная зарядка — пусто', () {
+      final i = WarmupStepInfo.fromJson({'active': true, 'idx': 1, 'total': 5, 'title': 'Пары слов'})!;
+      expect(i.idx, 1);
+      expect(i.total, 5);
+      expect(WarmupStepInfo.fromJson({'active': false, 'idx': 1, 'total': 5}), isNull);
+      expect(WarmupStepInfo.fromJson(null), isNull);
+    });
+
+    testWidgets('видно, где я в серии: «2/5», и сама игра под полоской', (tester) async {
+      await frame(tester, const WarmupStepInfo(idx: 1, total: 5, title: 'Пары слов'));
+      expect(find.textContaining('2/5'), findsOneWidget);
+      expect(find.text('ИГРА'), findsOneWidget);
+      expect(find.byKey(const Key('warmup-skip-step')), findsOneWidget);
+    });
+
+    testWidgets('пока веб не ответил — полоска без номера, но на месте', (tester) async {
+      await frame(tester, null);
+      expect(find.byKey(const Key('warmup-position')), findsOneWidget);
+      expect(find.textContaining('/'), findsNothing);
+    });
+
+    testWidgets('⏭ переспрашивает: «Отмена» — остаёмся, «Пропустить» — пропуск', (tester) async {
+      var skips = 0;
+      final note = ValueNotifier<WarmupStepInfo?>(const WarmupStepInfo(idx: 1, total: 5, title: 'Пары слов'));
+      await tester.pumpWidget(MaterialApp(
+        home: WarmupStepFrame(info: note, onSkip: () => skips += 1, child: const Scaffold(body: Text('ИГРА'))),
+      ));
+      await tester.tap(find.byKey(const Key('warmup-skip-step')));
+      await tester.pumpAndSettle();
+      expect(find.textContaining('Пары слов?'), findsOneWidget);
+      await tester.tap(find.byKey(const Key('skip-step-stay')));
+      await tester.pumpAndSettle();
+      expect(skips, 0, reason: '«Отмена» не должна пропускать шаг');
+      await tester.tap(find.byKey(const Key('warmup-skip-step')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('skip-step-confirm')));
+      await tester.pumpAndSettle();
+      expect(skips, 1);
+    });
+  });
 }

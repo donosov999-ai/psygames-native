@@ -14,7 +14,7 @@ import { localSpatialHost, spatialWarmupPlaylist } from '@/src/games/spatial-cor
 import { isGameAllowed } from '@/src/constants/profiles';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { fbCorrect, fbComplete } from '@/src/services/feedback';
-import { hostLeadsBetween, postToHost, stepDoneMessage } from '@/src/services/hostWarmup';
+import { hostInfo, hostLeadsBetween, postToHost, stepDoneMessage } from '@/src/services/hostWarmup';
 
 export interface StepResult {
   /** Локальный прогон приёмки: без сессий, наград и истории. */
@@ -515,10 +515,14 @@ export function WarmupProvider({ children }: { children: React.ReactNode }) {
       advance: (fromIdx: number) => advanceToNext(fromIdx),
       goTo: (idx: number) => goToStep(idx),
       stop: () => { void stopWarmup(false).then(() => router.replace('/' as any)); },
+      /** Полоска «N/M» нативного шага (63bccf96). */
+      info: () => { const s = stateRef.current; return hostInfo(s.active, s.meta, s.currentIdx); },
+      /** ⏭ нативного шага — ровно то же, что веб-⏭ в каркасе (`GameShell.wuSkipConfirm`). */
+      skip: () => skipCurrent(),
     };
     w.__psyWarmupHost = api;
     return () => { if (w.__psyWarmupHost === api) delete w.__psyWarmupHost; };
-  }, [advanceToNext, goToStep, stopWarmup, router]);
+  }, [advanceToNext, goToStep, stopWarmup, skipCurrent, router]);
 
   // Android: системная кнопка «Назад» (◁) во время зарядки/комплекса. Навигация warmup идёт
   // через router.replace (без бэк-стека) → ◁ ничего не делал. Перехватываем: выходим из зарядки домой.

@@ -142,3 +142,21 @@ it('время зарядки вышло — прежний путь: спрос
   expect(posted).toHaveLength(0);
   expect(наМост()).toBe(true);
 });
+
+it('🔴 полоска нативного шага: info() — номер, всего, имя; skip() — как веб-⏭', async () => {
+  оболочка(['/games/digit-span', '/games/schulte']);
+  await act(async () => { TestRenderer.create(<WarmupProvider><Probe onCtx={(c) => { ctx = c; }} /></WarmupProvider>); });
+  await act(async () => {
+    ctx.startPlaylist({ duration_min: 5, weekday: 1, weekday_name: 'пн', track: 'training', track_label: '', slot: 'morning', steps: [ЦИФРЫ, ШУЛЬТЕ], est_total_sec: 120 });
+  });
+  const i = w.__psyWarmupHost.info();
+  expect(i).toMatchObject({ active: true, idx: 0, total: 2, evening: false });
+  expect(i.title).toBeTruthy();
+  expect(i.title).not.toBe('digit_span');
+  mockReplace.mockClear();
+  await act(async () => { w.__psyWarmupHost.skip(); });
+  await act(async () => { jest.advanceTimersByTime(10); });
+  expect(ctx.currentIdx).toBe(1);
+  expect(наМост()).toBe(true);   // веб-⏭ ведёт на мост с «Пропущено» — нативный ⏭ туда же
+});
+

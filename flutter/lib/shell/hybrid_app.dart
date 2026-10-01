@@ -735,6 +735,28 @@ class _HybridAppState extends State<HybridApp> {
         'window.__psyHostLang=${jsonEncode(widget.state.language)};';
   }
 
+  Future<void> _loadStepInfo(ValueNotifier<WarmupStepInfo?> into) async {
+    try {
+      final raw = await _c.runJavaScriptReturningResult(
+        'JSON.stringify(window.__psyWarmupHost && window.__psyWarmupHost.info ? window.__psyWarmupHost.info() : null)',
+      );
+      // WebKit отдаёт строку как есть, Android — ещё раз в кавычках (как в warmup_bridge.dart).
+      Object? v = raw;
+      for (var i = 0; i < 2 && v is String; i += 1) {
+        v = jsonDecode(v);
+      }
+      into.value = WarmupStepInfo.fromJson(v);
+    } catch (_) {
+      // Нет ответа — полоска остаётся без номера, ⏭ работает.
+    }
+  }
+
+  /// ⏭ нативного шага — туда же, куда веб-⏭: `skipCurrent` веба.
+  Future<void> _skipNativeStep() async {
+    _closeNativeBecausePageMoved();
+    await _c.runJavaScript('window.__psyWarmupHost && window.__psyWarmupHost.skip && window.__psyWarmupHost.skip();');
+  }
+
   Future<void> _warmupStepDone(Map<String, Object?> m) async {
     final done = WarmupStepDone.fromJson(m);
     final next = done == null ? null : HybridApp.routeOf('${widget.server.origin}${done.nextUrl}');
@@ -763,7 +785,11 @@ class _HybridAppState extends State<HybridApp> {
       case WarmupBridgeChoice.go:
         // Снять сыгранную игру и сразу открыть следующую — без страницы посередине.
         _closeNativeBecausePageMoved();
-        unawaited(_openNative(next, query: HybridApp.queryOf(done.nextUrl)));
+        unawaited(_openNative(
+          next,
+          query: HybridApp.queryOf(done.nextUrl),
+          stepInfo: WarmupStepInfo(idx: done.fromIdx + 1, total: done.total, title: done.nextTitle, evening: done.evening),
+        ));
         await _c.runJavaScript('window.__psyWarmupHost && window.__psyWarmupHost.goTo(${done.fromIdx + 1});');
       case WarmupBridgeChoice.skip:
         // Следующий шаг пропущен: страница сама уйдёт на шаг через один (или на итог),
@@ -777,7 +803,11 @@ class _HybridAppState extends State<HybridApp> {
     }
   }
 
-  Future<void> _openNative(String route, {Map<String, String> query = const {}}) async {
+  Future<void> _openNative(
+    String route, {
+    Map<String, String> query = const {},
+    WarmupStepInfo? stepInfo,
+  }) async {
     final build = HybridApp.native[route];
     if (build == null) return;
     _openedRoute = route;
@@ -786,8 +816,17 @@ class _HybridAppState extends State<HybridApp> {
     GamePreset.set(query);
     // Адрес нужен каркасу, чтобы показать правило ИМЕННО этой игры.
     GameRules.currentRoute = route;
+    // 🔴 ШАГ ЗАРЯДКИ — В РАМКЕ С ПОЛОСКОЙ «N/M · ⏭» (задача 63bccf96): веб рисует её в
+    // своём каркасе, а нативный экран лежит поверх страницы. Номер шага знает веб —
+    // спрашиваем; когда переход ведёт сама оболочка, он известен заранее.
+    final step = GamePreset.isPreset ? ValueNotifier<WarmupStepInfo?>(stepInfo) : null;
+    if (step != null && stepInfo == null) unawaited(_loadStepInfo(step));
     final result = await Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => build(widget.state)),
+      MaterialPageRoute(
+        builder: (_) => step == null
+            ? build(widget.state)
+            : WarmupStepFrame(info: step, onSkip: _skipNativeStep, child: build(widget.state)),
+      ),
     );
     // ⚠️ Отметку снимаем, ТОЛЬКО если она всё ещё наша: когда страница ушла вперёд,
     // поверх уже открыт следующий экран, и его отметку затирать нельзя.

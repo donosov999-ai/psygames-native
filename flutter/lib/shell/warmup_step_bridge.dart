@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'l10n.dart';
@@ -251,6 +252,111 @@ class _WarmupStepBridgeState extends State<WarmupStepBridge> {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Где человек в серии — ответ веба `__psyWarmupHost.info()`.
+class WarmupStepInfo {
+  const WarmupStepInfo({required this.idx, required this.total, required this.title, this.evening = false});
+
+  /// Номер ТЕКУЩЕГО шага, с нуля.
+  final int idx;
+  final int total;
+  final String title;
+  final bool evening;
+
+  static WarmupStepInfo? fromJson(Object? m) {
+    if (m is! Map || m['active'] != true) return null;
+    final idx = m['idx'];
+    final total = m['total'];
+    if (idx is! num || total is! num) return null;
+    return WarmupStepInfo(idx: idx.toInt(), total: total.toInt(), title: '${m['title'] ?? ''}', evening: m['evening'] == true);
+  }
+}
+
+/// 🔴 ПОЛОСКА СЕРИИ В НАТИВНОМ ШАГЕ — «ГДЕ Я» И ⏭ (задача 63bccf96).
+///
+/// Веб рисует её в своём каркасе (`GameShell`: `warmup-position` «N/M» и
+/// `warmup-skip-step` ⏭ с вопросом «Пропустить: <игра>?»), а нативный экран лежит
+/// ПОВЕРХ страницы — и в нативном шаге не было ни номера, ни пропуска. Отчёт
+/// игрока 08.09: «Я 7 таблиц решил, сколько ещё?». Оболочка оборачивает экран шага
+/// этой рамкой сама: каркас игры (`GameShell`) не трогается, и рамка одна на все
+/// нативные игры. Пропуск ведёт туда же, куда веб-⏭ (`skipCurrent`).
+class WarmupStepFrame extends StatelessWidget {
+  const WarmupStepFrame({super.key, required this.info, required this.onSkip, required this.child});
+
+  /// Пусто, пока веб не ответил: полоска уже стоит, номер приходит следом —
+  /// чтобы экран игры не прыгал вниз через мгновение после открытия.
+  final ValueListenable<WarmupStepInfo?> info;
+  final VoidCallback onSkip;
+  final Widget child;
+
+  Future<void> _askSkip(BuildContext context, WarmupStepInfo? i) async {
+    final yes = await showDialog<bool>(
+      context: context,
+      builder: (c) => AlertDialog(
+        title: Text(L.t('skipStep'), key: const Key('skip-step-title')),
+        content: Text('${L.t('skipGameNamed')} ${i?.title ?? ''}?', key: const Key('skip-step-body')),
+        actions: [
+          // Безопасный ответ первым и залитым — как в веб-каркасе.
+          FilledButton(
+            key: const Key('skip-step-stay'),
+            onPressed: () => Navigator.of(c).pop(false),
+            child: Text(L.t('btn_cancel')),
+          ),
+          TextButton(
+            key: const Key('skip-step-confirm'),
+            onPressed: () => Navigator.of(c).pop(true),
+            child: Text(L.t('skipStep')),
+          ),
+        ],
+      ),
+    );
+    if (yes == true) onSkip();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Material(
+      color: scheme.surface,
+      child: Column(children: [
+        SafeArea(
+          bottom: false,
+          child: ValueListenableBuilder<WarmupStepInfo?>(
+            valueListenable: info,
+            builder: (context, i, _) {
+              final accent = i?.evening == true ? const Color(0xFF7C3AED) : const Color(0xFFF59E0B);
+              final pos = i == null || i.total < 2 ? '' : ' · ${(i.idx + 1).clamp(1, i.total)}/${i.total}';
+              return SizedBox(
+                height: 36,
+                child: Row(children: [
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Text(
+                      '${i?.evening == true ? '🌙 ${L.t('complexEvening')}' : '⚡ ${L.t('complexWarmup')}'}$pos',
+                      key: const Key('warmup-position'),
+                      semanticsLabel: i == null ? null : '${L.t('unitGames')}: ${i.idx + 1}/${i.total}',
+                      style: TextStyle(color: accent, fontWeight: FontWeight.w800, letterSpacing: 0.5),
+                    ),
+                  ),
+                  IconButton(
+                    key: const Key('warmup-skip-step'),
+                    tooltip: L.t('skipStep'),
+                    visualDensity: VisualDensity.compact,
+                    onPressed: () => _askSkip(context, i),
+                    icon: Icon(Icons.skip_next, color: accent),
+                  ),
+                  const SizedBox(width: 4),
+                ]),
+              );
+            },
+          ),
+        ),
+        // Верхний отступ съеден полоской — экрану игры его второй раз не нужно.
+        Expanded(child: MediaQuery.removePadding(context: context, removeTop: true, child: child)),
+      ]),
     );
   }
 }
