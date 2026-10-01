@@ -139,6 +139,28 @@ void main() {
     await leave(tester);
   });
 
+  testWidgets('🔴 в русском интерфейсе настройки нет латинских слов — ни одного ключа словаря вместо текста',
+      (tester) async {
+    // Ключ внутри тернарника (`L.t(x ? 'a' : 'b')`) сборщик словаря не видит, и экран показывал
+    // сам ключ: до 01.10 здесь висели «pairsModeFreeHint» и «0.5с (hard)».
+    await boot(tester, level: 3);
+    final latin = <String>[];
+    void scan(String where) {
+      for (final e in find.byType(Text).evaluate()) {
+        final t = (e.widget as Text).data ?? '';
+        for (final m in RegExp(r'[A-Za-z]{3,}').allMatches(t)) {
+          latin.add('$where: «${m.group(0)}» в «$t»');
+        }
+      }
+    }
+
+    scan('уровни');
+    await chooseFree(tester, pairs: 8, previewMs: 1500);
+    scan('свободно');
+    expect('латинских слов: ${latin.length}${latin.isEmpty ? '' : ' — ${latin.take(6).join('; ')}'}', 'латинских слов: 0');
+    await leave(tester);
+  });
+
   testWidgets('без фото-показа партия начинается закрытой; число пар — выбранное', (tester) async {
     await boot(tester, level: 1);
     await chooseFree(tester, pairs: 8, photo: false);
