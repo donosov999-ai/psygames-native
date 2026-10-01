@@ -3439,7 +3439,6 @@ const translations: Translations = {
   sudokuRuleWhisper: { ru: 'Соседние цифры на зелёной линии отличаются минимум на 5.', en: 'Neighbouring digits on a green line differ by at least 5.' },
   sudokuRuleRenban: { ru: 'На фиолетовой линии — цифры подряд в любом порядке, без повторов.', en: 'Digits on a purple line form a consecutive run in any order, with no repeats.' },
   // Нативные экраны раздела «Судоку» (Flutter): полоса счётчиков, кнопки, имена правил без значков.
-  sdkHudRule: { ru: 'Правило', en: 'Rule' },
   sdkHudStage: { ru: 'Ступень', en: 'Stage' },
   sdkNextLevel: { ru: 'Следующий уровень', en: 'Next level' },
   sdkNextStage: { ru: 'Следующая ступень', en: 'Next stage' },
