@@ -55,7 +55,7 @@ class SudokuScreen extends StatefulWidget {
 
 /// Одна подпись на обе ветки раздачи: и лестницу, и режим. Второй такой же литерал
 /// в коде — это лишняя строка в долге подписей и лишний ключ при переводе.
-const _noBoards = 'Досок этого уровня нет в данных';
+String get _noBoards => L.t('sdkNoBoards');
 
 class _SudokuScreenState extends State<SudokuScreen> {
   /// Сколько ошибок до провала. На лестнице — поле ступени (`lives` выгрузки лестницы =
@@ -802,7 +802,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
 
   /// Заголовок один на экран и на разбор: вторая строка стала бы вторым долгом
   /// храповика подписей (`test/ui_text_debt_does_not_grow_test.dart`).
-  String get _title => widget.mode == null ? 'Судоку' : L.t('teachTitle');
+  String get _title => widget.mode == null ? L.t('sudoku') : L.t('teachTitle');
 
   List<LessonStep> _lessonSteps() {
     final solution = _solution;
@@ -882,22 +882,22 @@ class _SudokuScreenState extends State<SudokuScreen> {
         // ⚠️ Подпись одна и та же на оба случая: новая строка в коде — это новый долг
         // храповика подписей, а «Уровень» уже переведён на двенадцать языков.
         HudItem(
-          label: 'Уровень',
+          label: L.t('level'),
           // У пилота номер — счётчик побед: только растёт, конца нет (решение 18.09).
           value: widget.mode != null
               ? '${_side?.step ?? 1}/$sideSteps'
               : _pilot ? '${_pilotWins + 1}' : '${_ladder.level}',
           icon: _pilot ? Icons.auto_awesome : Icons.trending_up,
         ),
-        HudItem(label: 'Ошибки', value: '$_errors/$errorLimit', icon: Icons.close),
-        if (ruleLabel != null) HudItem(label: 'Правило', value: ruleLabel, icon: Icons.rule),
+        HudItem(label: L.t('errors'), value: '$_errors/$errorLimit', icon: Icons.close),
+        if (ruleLabel != null) HudItem(label: L.t('sdkHudRule'), value: ruleLabel, icon: Icons.rule),
       ],
       field: (context, height) {
         final ready = widget.mode == null ? levels != null : _sideModes != null;
         if (!ready) return const Center(child: CircularProgressIndicator());
         final side = _sideBoard;
         if (widget.mode == null ? board == null : side == null) {
-          return Center(child: Text(_failure ?? 'Доска не собралась'));
+          return Center(child: Text(_failure ?? L.t('sdkBoardFailed')));
         }
         if (widget.mode != null) {
           return ModeBoard(
@@ -933,13 +933,13 @@ class _SudokuScreenState extends State<SudokuScreen> {
       auxRow: AuxBar(children: [
         AuxAction(
           icon: Icons.undo,
-          label: 'Отменить',
+          label: L.t('btn_undo'),
           count: _history.isEmpty ? null : _history.length,
           onPressed: _history.isEmpty || _won || _lost ? null : _undo,
         ),
         AuxAction(
           icon: Icons.lightbulb_outline,
-          label: 'Подсказка',
+          label: L.t('btn_hint'),
           tint: const Color(0xFFB45309),
           count: _hintMax > 0 ? (_hintMax - _hintsUsed).clamp(0, _hintMax) : null,
           onPressed: (_hintsUsed < _hintMax && _selected != null && !_won && !_lost)
@@ -960,7 +960,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
           active: _paint != null,
           onPressed: (_won || _lost) ? null : _togglePaint,
         ),
-        AuxAction(icon: Icons.refresh, label: 'Заново', onPressed: _deal),
+        AuxAction(icon: Icons.refresh, label: L.t('restart'), onPressed: _deal),
       ]),
       toolbar: (board == null && _sideBoard == null)
           ? null
@@ -987,7 +987,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
               lostNote: _lost ? L.t('outOfLivesHint').replaceAll('{n}', '$errorLimit') : null,
             ),
       pauseActions: [
-        PauseAction(label: 'Начать заново', icon: Icons.refresh, onPressed: _deal),
+        PauseAction(label: L.t('sdkStartOver'), icon: Icons.refresh, onPressed: _deal),
         if (widget.mode == null && _genStore != null)
           PauseAction(
             label: _pilot ? L.t('sudokuPilotOff') : L.t('sudokuPilotOn'),
@@ -1018,26 +1018,26 @@ class _Step {
 
 /// Имя правила для полосы счётчиков: короткое, чтобы не рвало строку.
 String variantTitle(String variant) => switch (variant) {
-      'diagonal' => 'диагонали',
-      'antiknight' => 'ход коня',
-      'hyper' => 'доп. зоны',
-      'nonconsec' => 'не подряд',
-      'jigsaw' => 'кривые блоки',
-      'antiking' => 'ход короля',
-      'evenodd' => 'чёт-нечет',
-      'kropki' => 'точки Кропки',
-      'sandwich' => 'сэндвич',
-      'thermo' => 'термометры',
-      'arrow' => 'стрелки',
-      'thermocage' => 'термометр и суммы',
-      'killer' => 'клетки-суммы',
-      'unequal' => 'неравенства',
-      'towers' => 'небоскрёбы',
-      'thermoknight' => 'термо и конь',
-      'sandparity' => 'сэндвич и чётность',
-      'killerdiag' => 'суммы и диагонали',
-      'whisper' => 'шёпот',
-      _ => 'классика',
+      'diagonal' => L.t('sdkRule_diagonal'),
+      'antiknight' => L.t('sdkRule_antiknight'),
+      'hyper' => L.t('sdkRule_hyper'),
+      'nonconsec' => L.t('sdkRule_nonconsec'),
+      'jigsaw' => L.t('sdkRule_jigsaw'),
+      'antiking' => L.t('sdkRule_antiking'),
+      'evenodd' => L.t('sdkRule_evenodd'),
+      'kropki' => L.t('sdkRule_kropki'),
+      'sandwich' => L.t('sdkRule_sandwich'),
+      'thermo' => L.t('sdkRule_thermo'),
+      'arrow' => L.t('sdkRule_arrow'),
+      'thermocage' => L.t('sdkRule_thermocage'),
+      'killer' => L.t('sdkRule_killer'),
+      'unequal' => L.t('sdkRule_unequal'),
+      'towers' => L.t('sdkRule_towers'),
+      'thermoknight' => L.t('sdkRule_thermoknight'),
+      'sandparity' => L.t('sdkRule_sandparity'),
+      'killerdiag' => L.t('sdkRule_killerdiag'),
+      'whisper' => L.t('sdkRule_whisper'),
+      _ => L.t('sdkRule_none'),
     };
 
 /// Доска: квадрат внутри высоты, которую дал каркас.
@@ -1396,7 +1396,7 @@ class _Toolbar extends StatelessWidget {
         key: const Key('next'),
         onPressed: onNext,
         icon: Icon(won ? Icons.arrow_forward : Icons.refresh),
-        label: Text(won ? 'Следующий уровень' : 'Ещё раз'),
+        label: Text(won ? L.t('sdkNextLevel') : L.t('retry')),
       );
       final repeat = onRepeat;
       final note = won ? wonNote : lostNote;

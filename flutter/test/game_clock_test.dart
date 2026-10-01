@@ -96,7 +96,7 @@ void main() {
       home: GameShell(title: 'Проба', field: (_, _) => const SizedBox.expand()),
     ));
     expect(isGameHeld(), isFalse);
-    await tester.tap(find.byTooltip('Пауза'));
+    await tester.tap(find.byTooltip(L.t('teachPause')));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('pause-resume')), findsOneWidget, reason: 'меню паузы не открылось');
     expect(isGameHeld(), isTrue, reason: 'пауза открыта — часы партии обязаны стоять');
