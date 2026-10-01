@@ -488,6 +488,7 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
       _wim = WimHofRun(_now);
       phase = PausePhase.playing;
     });
+    _breathCues.reset();
     _syncTicker();
   }
 
@@ -513,12 +514,14 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
     final w = _wim;
     if (w != null) {
       setState(() => w.tick(_now));
+      if (w.stage == 'breaths' && _breathCues.wimBreath(w.round, w.breath)) unawaited(_buzz.medium());
       if (w.done) _completeWim(w);
       return;
     }
     final lead = _leadUntil;
     if (lead != null && _session?['phase'] == 'ready') {
       if (_now < lead) {
+        _breathCues.lead(((lead - _now) / 1000).ceil());
         setState(() {});
         return;
       }

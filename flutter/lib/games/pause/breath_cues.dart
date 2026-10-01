@@ -20,7 +20,12 @@ import 'practices.dart';
 /// Звук — по тумблеру «Звук» (`appSoundOn`: `psygames_sound_enabled` и тихий шаг зарядки),
 /// вибрация — по тумблеру «Вибрация» (`appHapticOn`, #100) через тот же нативный канал,
 /// что вибросопровождение практик (`PausePracticeHaptics.channel`).
-enum BreathCue { inhale, hold, exhale }
+///
+/// [tap] — щелчок веба `sndTap` (660 Гц, 45 мс → не короче 50 мс у `beep`, громкость 0,05):
+/// на отсчёте 3 → 2 → 1 перед первым вдохом (`breathing.tsx:232`) и на каждом вдохе
+/// Вима Хофа (`breathing.tsx:319`). Без него отсчёт шёл в тишине, и с закрытыми глазами
+/// первый вдох приходил внезапно. Своей вибрации у щелчка нет — как у веба.
+enum BreathCue { inhale, hold, exhale, tap }
 
 /// Фаза по имени шага из `assets/pause/practices.json`: `inhale`, `inhale-one`, `left-in` —
 /// вдох; `exhale`, `right-out` — выдох; `hold`, `hold-in`, `hold-out` — задержка.
@@ -37,6 +42,7 @@ const breathToneSpec = <BreathCue, (double, double, int, double)>{
   BreathCue.inhale: (330, 550, 320, .30),
   BreathCue.hold: (440, 440, 130, .19),
   BreathCue.exhale: (520, 300, 420, .30),
+  BreathCue.tap: (660, 660, 50, .21),
 };
 
 const breathToneRate = 22050;
@@ -115,7 +121,27 @@ class BreathCues {
 
   void play(BreathCue cue) {
     if (soundOn()) unawaited(sound.play(cue));
-    if (hapticOn()) unawaited(_vibrate(cue));
+    if (hapticOn() && cue != BreathCue.tap) unawaited(_vibrate(cue));
+  }
+
+  int? _leadLeft;
+  (int, int)? _wimBreath;
+
+  /// Отсчёт перед первым вдохом: [secondsLeft] — сколько целых секунд осталось (3, 2, 1).
+  /// Веб: щелчок на 3 → 2 и 2 → 1, а на старте звучит уже тон вдоха.
+  void lead(int secondsLeft) {
+    final prev = _leadLeft;
+    _leadLeft = secondsLeft;
+    if (prev != null && secondsLeft < prev && secondsLeft >= 1) play(BreathCue.tap);
+  }
+
+  /// Вдох Вима Хофа номер [breath] в раунде [round] (с единицы): один щелчок на вдох.
+  /// `true` — вдох новый: экран добавит толчок `hapticMedium`, как веб.
+  bool wimBreath(int round, int breath) {
+    if (breath < 1 || _wimBreath == (round, breath)) return false;
+    _wimBreath = (round, breath);
+    play(BreathCue.tap);
+    return true;
   }
 
   /// Вибрация веба: вдох 18 мс, задержка [14, 90, 14], выдох 60 мс.
@@ -124,7 +150,9 @@ class BreathCues {
       BreathCue.inhale => {'continuous': false, 'count': 1, 'durationMs': 18, 'strength': .35},
       BreathCue.hold => {'continuous': false, 'count': 2, 'durationMs': 14, 'strength': .35},
       BreathCue.exhale => {'continuous': true, 'count': 1, 'durationMs': 60, 'strength': .35},
+      BreathCue.tap => null,
     };
+    if (args == null) return;
     try {
       await PausePracticeHaptics.channel.invokeMethod<void>('play', args);
     } on MissingPluginException {
@@ -135,7 +163,11 @@ class BreathCues {
   }
 
   /// Новый заход — фаза снова «первая».
-  void reset() => _key = null;
+  void reset() {
+    _key = null;
+    _leadLeft = null;
+    _wimBreath = null;
+  }
 
   Future<void> dispose() => sound.dispose();
 }

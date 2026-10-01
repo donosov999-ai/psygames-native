@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/pause/breath_cues.dart';
+import 'package:psygames_flutter/games/pause/breathing.dart';
 import 'package:psygames_flutter/games/pause/practice_haptics.dart';
 import 'package:psygames_flutter/games/pause/practices.dart';
 import 'package:psygames_flutter/games/pause/screen.dart';
@@ -86,6 +87,7 @@ void main() {
             expect(tail, greaterThan(head * 1.2), reason: 'вдох не поднимается: $head → $tail');
           case BreathCue.exhale:
             expect(tail, lessThan(head / 1.2), reason: 'выдох не опускается: $head → $tail');
+          case BreathCue.tap:
           case BreathCue.hold:
             expect((tail - head).abs(), lessThan(40), reason: 'задержка не ровная: $head → $tail');
         }
@@ -144,14 +146,37 @@ void main() {
     });
   });
 
+  test('🔴 щелчок веба: отсчёт 3 → 2 → 1 — два, Вим Хоф — один на вдох; своей вибрации нет', () {
+    final s = _FakeSound();
+    final c = BreathCues(soundOn: () => true, hapticOn: () => true, sound: s);
+    for (var t = 0; t < 3000; t += 16) {
+      c.lead(((3000 - t) / 1000).ceil());
+    }
+    expect(s.played, [BreathCue.tap, BreathCue.tap], reason: 'веб breathing.tsx:232 — sndTap на 3→2 и 2→1');
+    s.played.clear();
+    var fresh = 0;
+    for (var t = 0; t <= WimHofRun.breaths * WimHofRun.breathMs; t += 16) {
+      if (c.wimBreath(1, (t ~/ WimHofRun.breathMs).clamp(0, WimHofRun.breaths))) fresh += 1;
+    }
+    expect(fresh, WimHofRun.breaths, reason: 'веб breathing.tsx:319 — sndTap на каждый вдох');
+    expect(s.played, List.filled(WimHofRun.breaths, BreathCue.tap));
+    expect(c.wimBreath(2, 1), isTrue, reason: 'второй раунд считает вдохи заново');
+    expect(vibro, isEmpty, reason: 'у щелчка своей вибрации нет — толчок Вима Хофа даёт экран');
+    final quiet = BreathCues(soundOn: () => false, hapticOn: () => true, sound: s..played.clear());
+    quiet.lead(3);
+    quiet.lead(2);
+    expect(s.played, isEmpty, reason: 'звук выключен — щелчка нет');
+  });
+
   group('🔴 экран «Дыхания»', () {
     late SharedState state;
     var now = 0;
 
-    Future<_FakeSound> open(WidgetTester tester, {Map<String, Object> prefs = const {}}) async {
+    Future<_FakeSound> open(WidgetTester tester, {Map<String, Object> prefs = const {}, Map<String, String>? preset}) async {
       SharedPreferences.setMockInitialValues(prefs);
       state = (await tester.runAsync(SharedState.open))!;
       GamePreset.clear();
+      if (preset != null) GamePreset.set(preset);
       SessionReport.sink = (_) async {};
       now = 0;
       final sound = _FakeSound();
@@ -183,18 +208,34 @@ void main() {
       await tester.pump();
     }
 
-    testWidgets('отсчёт молчит; первый вдох — тон и вибро; дальше по фазам квадрата', (tester) async {
+    testWidgets('отсчёт — два щелчка; первый вдох — тон и вибро; дальше по фазам квадрата', (tester) async {
       final sound = await open(tester);
-      await at(tester, 1500);
-      expect(sound.played, isEmpty, reason: 'во время отсчёта фаз ещё нет');
+      for (final t in [400, 1100, 2100]) {
+        await at(tester, t);
+      }
+      expect(sound.played, [BreathCue.tap, BreathCue.tap], reason: 'отсчёт 3 → 2 → 1: щелчки веба, фаз ещё нет');
+      expect(vibro, isEmpty, reason: 'у щелчка отсчёта вибрации нет');
       await at(tester, 3000);
       await at(tester, 3100);
-      expect(sound.played, [BreathCue.inhale]);
+      List<BreathCue> phases() => sound.played.where((c) => c != BreathCue.tap).toList();
+      expect(phases(), [BreathCue.inhale]);
       await at(tester, 7200);
       await at(tester, 11200);
-      expect(sound.played, [BreathCue.inhale, BreathCue.hold, BreathCue.exhale]);
+      expect(phases(), [BreathCue.inhale, BreathCue.hold, BreathCue.exhale]);
       // Двойной вибрации нет: общее вибросопровождение практик в «Дыхании» молчит.
       expect(vibro, hasLength(3), reason: 'на фазу вибрировало больше одного раза: $vibro');
+      await tester.pumpWidget(const SizedBox());
+    });
+
+    testWidgets('🔴 Вим Хоф: щелчок на каждый вдох, без тонов фаз', (tester) async {
+      final sound = await open(tester, preset: {'tech': 'wimhof'});
+      await tester.tap(find.byKey(const Key('pause-wim-agree')));
+      await tester.pump();
+      for (var k = 1; k <= 5; k += 1) {
+        await at(tester, k * WimHofRun.breathMs + 100);
+        await at(tester, k * WimHofRun.breathMs + 600);
+      }
+      expect(sound.played, List.filled(5, BreathCue.tap), reason: 'пять вдохов — пять щелчков, по одному');
       await tester.pumpWidget(const SizedBox());
     });
 
