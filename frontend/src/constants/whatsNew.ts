@@ -19,6 +19,7 @@ export const WHATS_NEW: WhatsNewEntry[] = [
     version: '2.56.3',
     date: '2026-10-01',
     ru: [
+      'Вернулся фирменный значок приложения — мозг на тёмном фоне',
       'Новая игра «Кошки» в разделе «Судоку»: по одной кошке в строке, столбце и цвете',
       'Судоку: на доске снова видны диагонали, области и подсказки вариантов',
       'Зарядка целиком в приложении: выбор, упражнения подряд и итог без переходов через сайт',
@@ -29,6 +30,7 @@ export const WHATS_NEW: WhatsNewEntry[] = [
       'Сортировка товаров: коробки схлопываются с 31-го уровня (было с 56-го), с 52-го задние ряды всегда вместе',
     ],
     en: [
+      'The app icon is ours again — the brain on a dark background',
       'New game Cats in the Sudoku section: one cat per row, column and colour',
       'Sudoku: diagonals, regions and variant hints are back on the board',
       'Warm-up runs fully in the app: picking, back-to-back exercises and the summary, no detours through the site',
