@@ -709,7 +709,7 @@ const translations: Translations = {
    * остаётся. Считать его из самой лестницы — отдельная задача 6d534161
    * («хабы: считать число вложенных игр, а не писать руками»).
    */
-  sudokuTypeClassic: { ru: 'Одна сетка · 92 ступени',   en: 'One grid · 92 steps' },
+  sudokuTypeClassic: { ru: 'Одна сетка · 96 ступеней',   en: 'One grid · 96 steps' },
   sudokuTypeSamurai: { ru: 'Пять сеток, сцепленных углами', en: 'Five grids locked at the corners' },
   sudokuTypeFractal: { ru: 'Сетка внутри каждой клетки',  en: 'A grid inside every cell' },
   sudokuGroupFootnote: {
@@ -3398,6 +3398,7 @@ const translations: Translations = {
   sudokuVariantKropki: { ru: '⦿ точки', en: '⦿ kropki' },
   sudokuVariantSandwich: { ru: '🥪 сэндвич', en: '🥪 sandwich' },
   sudokuVariantThermo: { ru: '🌡 термометр', en: '🌡 thermo' },
+  sudokuVariantWhisper: { ru: '〰 шёпот', en: '〰 whispers' },
   sudokuVariantArrow: { ru: '➳ стрелка', en: '➳ arrow' },
   sudokuVariantThermocage: { ru: '🌡+ сумма', en: '🌡+ cage' },
   sudokuVariantTowers: { ru: '🏙 небоскрёбы', en: '🏙 towers' },
@@ -3434,6 +3435,7 @@ const translations: Translations = {
   sudokuRuleSandwich: { ru: "Найди в ряду 1 и 9. Сложи цифры, зажатые МЕЖДУ ними, — это и есть число у края. Сами 1 и 9 не считаются. Ноль у края значит, что 1 и 9 стоят вплотную. Нажми на число у края — объясню именно его.", en: "Find the 1 and the 9 in the line. Add up the digits squeezed BETWEEN them — that is the edge number. The 1 and 9 themselves do not count. A zero means the 1 and 9 sit side by side. Tap an edge number and I will explain that exact one." },
   sudokuWhyNotLocal: { ru: 'Эта цифра не спорит с соседями напрямую — но в этой клетке стоит другая. Смотри строку, столбец и квадрат целиком.', en: 'This digit does not clash with its neighbours directly — but another one belongs here. Look at the whole row, column and box.' },
   sudokuRuleThermo: { ru: 'Вдоль термометра цифры строго растут от колбы.', en: 'Digits strictly increase along each thermometer from the bulb.' },
+  sudokuRuleWhisper: { ru: 'Соседние цифры на зелёной линии отличаются минимум на 5.', en: 'Neighbouring digits on a green line differ by at least 5.' },
   /**
    * ⚠️ Про ПОВТОР сказано прямо, и вот почему. Сообщение из чата обратной связи
    * 01.09.2026 (уровень 48, стрелки): «единица повторяется два раза — в чём ошибка

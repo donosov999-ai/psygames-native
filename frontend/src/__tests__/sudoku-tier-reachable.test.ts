@@ -71,10 +71,12 @@ const MEASURED_CEILING: Record<string, number> = {
    * вероятностную величину не сторожит (см. шапку), число записано для починки.
    */
   thermoknight: 5, sandparity: 5, killerdiag: 5,
+  // Немецкий шёпот (93–96), замер 01.10.2026: 58 пустых → 4 ×4 и 5 ×6 из 10, шестёрки ноль.
+  whisper: 5,
 };
 
 /** 27.08 стояло 80 — комбо-пояс 81..92 не сторожил никто (так же было в sudoku-ladder-monotonic). */
-const LAST_LEVEL = 92;
+const LAST_LEVEL = 96;   // 93–96 — немецкий шёпот (01.10.2026)
 const LEVELS = Array.from({ length: LAST_LEVEL }, (_, i) => i + 1);
 
 describe('лестница судоку требует только достижимого', () => {

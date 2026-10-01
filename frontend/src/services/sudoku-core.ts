@@ -11,7 +11,7 @@
 import { translateFor } from '../contexts/LanguageContext';
 
 export type Cell = number; // 0 = empty
-export type Variant = 'none' | 'diagonal' | 'antiknight' | 'hyper' | 'nonconsec' | 'jigsaw' | 'antiking' | 'evenodd' | 'kropki' | 'sandwich' | 'thermo' | 'arrow' | 'thermocage' | 'unequal' | 'towers' | 'sandparity' | 'thermoknight' | 'killerdiag';
+export type Variant = 'none' | 'diagonal' | 'antiknight' | 'hyper' | 'nonconsec' | 'jigsaw' | 'antiking' | 'evenodd' | 'kropki' | 'sandwich' | 'thermo' | 'arrow' | 'thermocage' | 'unequal' | 'towers' | 'sandparity' | 'thermoknight' | 'killerdiag' | 'whisper';
 
 export const HYPER_BOXES = [[1, 1], [1, 5], [5, 1], [5, 5]] as const;   // Windoku: 4 доп. зоны 3×3 (левые-верхние углы)
 export const KNIGHT = [[-2, -1], [-2, 1], [-1, -2], [-1, 2], [1, -2], [1, 2], [2, -1], [2, 1]] as const;
@@ -42,6 +42,7 @@ const VARIANT_KEY_SUFFIX: Record<Exclude<Variant, 'none'>, string> = {
   unequal: 'Unequal',
   towers: 'Towers',
   sandparity: 'Sandparity', thermoknight: 'Thermoknight', killerdiag: 'Killerdiag',
+  whisper: 'Whisper',
 };
 export function variantLabel(v: Variant, lang: string): string {
   if (v === 'none') return '';
@@ -333,7 +334,14 @@ export function levelConfig(level: number): LevelCfg {
   //   killerdiag верх:   3×2 4×5 5×8 (медиана 5, самая плотная пятёрка) — вершина
   else if (lv >= 81 && lv <= 84) variant = 'thermoknight';
   else if (lv >= 85 && lv <= 88) variant = 'sandparity';
-  else if (lv >= 89) variant = 'killerdiag';
+  else if (lv >= 89 && lv <= 92) variant = 'killerdiag';
+  /**
+   * 🔴 НЕМЕЦКИЙ ШЁПОТ — СТУПЕНИ 93–96 (01.10.2026, задача 5b0b7ca2). В КОНЕЦ лестницы, а не
+   * внутрь: вставка посредине сдвинула бы номера уровней у людей, уже прошедших дальше.
+   * Место по замеру: на 58 пустых доски шёпота встают ступенью 4–5 (как комбо-пояс 81–92),
+   * без линий не решаются логикой ни одна из 30 — правило работает, а не украшает.
+   */
+  else if (lv >= 93) variant = 'whisper';
   /**
    * 🔴 НЕРАВЕНСТВА (футосики) СОБРАНЫ, НО УРОВНЕЙ НЕ ПОЛУЧИЛИ — ЗАМЕР 26.08.2026.
    *
@@ -509,6 +517,46 @@ export function thermoFromSolution(sol: Cell[][], N: number, rnd: () => number =
         .filter(([nr, nc]) => nr >= 0 && nr < N && nc >= 0 && nc < N && !used[nr][nc]
           && !path.some(([pr, pc]) => pr === nr && pc === nc)
           && sol[nr][nc] > sol[cr][cc]);
+      if (!nb.length) break;
+      const [nr, nc] = nb[Math.floor(rnd() * nb.length)];
+      path.push([nr, nc]); cr = nr; cc = nc;
+    }
+    if (path.length >= 3) { paths.push(path); for (const [r, c] of path) used[r][c] = true; }
+  }
+  const pn: ThermoPN = Array.from({ length: N }, () => Array(N).fill(null));
+  for (const path of paths) for (let k = 0; k < path.length; k++) {
+    const [r, c] = path[k];
+    pn[r][c] = { prev: k > 0 ? path[k - 1] : null, next: k < path.length - 1 ? path[k + 1] : null };
+  }
+  return pn;
+}
+
+/**
+ * 🔴 НЕМЕЦКИЙ ШЁПОТ (пункт 3 цепочки «14 усложнений», задача 5b0b7ca2; решение Дениса 30.09
+ * «Берём»): соседние по зелёной линии цифры отличаются минимум на 5. Отсюда пятёрке на линии
+ * не стоять вовсе (ни 0, ни 10 в судоку нет), а 4 и 6 соседствуют только с 9 и 1 — в этом
+ * и сила правила: оно режет кандидатов ещё до первой цифры.
+ *
+ * Линии строятся ИЗ решения, как термометры (`thermoFromSolution`): шаг — к ортогональному
+ * соседу, чья цифра отличается на ≥ WHISPER_GAP; длина 3…6, до шести линий, без пересечений.
+ * Хранятся тем же видом prev/next — отрисовка линии и её разбор у натива общие с термометром.
+ */
+export const WHISPER_GAP = 5;
+export function whisperFromSolution(sol: Cell[][], N: number, rnd: () => number = Math.random): ThermoPN {
+  const used: boolean[][] = Array.from({ length: N }, () => Array(N).fill(false));
+  const paths: [number, number][][] = [];
+  for (let attempt = 0; attempt < 60 && paths.length < 6; attempt++) {
+    const starts: [number, number][] = [];
+    for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (!used[r][c] && sol[r][c] !== 5) starts.push([r, c]);
+    if (!starts.length) break;
+    const [sr, sc] = starts[Math.floor(rnd() * starts.length)];
+    const len = 3 + Math.floor(rnd() * 4);   // 3..6
+    const path: [number, number][] = [[sr, sc]]; let cr = sr, cc = sc;
+    for (let s = 1; s < len; s++) {
+      const nb = ORTHO.map(([dr, dc]) => [cr + dr, cc + dc] as [number, number])
+        .filter(([nr, nc]) => nr >= 0 && nr < N && nc >= 0 && nc < N && !used[nr][nc]
+          && !path.some(([pr, pc]) => pr === nr && pc === nc)
+          && Math.abs(sol[nr][nc] - sol[cr][cc]) >= WHISPER_GAP);
       if (!nb.length) break;
       const [nr, nc] = nb[Math.floor(rnd() * nb.length)];
       path.push([nr, nc]); cr = nr; cc = nc;
@@ -882,6 +930,9 @@ export interface Overlays {
   unequal?: UnequalMap;
   /** Небоскрёбы: сколько зданий видно с каждого края. 0 = подсказки нет. */
   towers?: TowersMap;
+  /** Немецкий шёпот: линии (как у термометра — prev/next по клеткам); соседи на линии
+   *  отличаются минимум на WHISPER_GAP. */
+  whisper?: ThermoPN;
 }
 
 /** Полные оверлеи из решения — до прореживания. */
@@ -912,6 +963,9 @@ export function overlaysFromSolution(sol: Cell[][], N: number, variant: Variant)
   }
   if (variant === 'towers') {
     return { towers: towersFromSolution(sol, N) };
+  }
+  if (variant === 'whisper') {
+    return { whisper: whisperFromSolution(sol, N) };
   }
   if (variant === 'unequal') {
     // Знаки СРАЗУ все; сколько показать — решает прореживание уровня, как у кропки.
@@ -976,6 +1030,17 @@ export function overlayOk(grid: Cell[][], r: number, c: number, n: number, N: nu
     if (!towersLineOk(col, ov.towers.top[c])) return false;
     if (!towersLineOk([...col].reverse(), ov.towers.bottom[c])) return false;
   }
+  if (ov.whisper) {
+    // Линия — ПОКАЗАННАЯ подсказка: единственность обязана с ней считаться.
+    const pn = ov.whisper[r][c];
+    if (pn) {
+      for (const nb of [pn.prev, pn.next]) {
+        if (!nb) continue;
+        const o = grid[nb[0]][nb[1]];
+        if (o !== 0 && Math.abs(n - o) < WHISPER_GAP) return false;
+      }
+    }
+  }
   if (ov.sandwich) {
     const check = (line: number[], want: number): boolean => {
       if (want < 0) return true;                                      // сумма СПРЯТАНА (см. thinSandwich) — не подсказка
@@ -1032,7 +1097,7 @@ export function countSolutions(grid: Cell[][], N: number, BR: number, BC: number
 // thermocage здесь ОБЯЗАН быть: единственность решения у него считается по ДВУМ
 // правилам сразу (isValid знает и цепочку, и сумму). Доска, единственная по каждому
 // правилу порознь, вместе может иметь второе решение — и наоборот.
-const UNIQUE_CHECKED: readonly Variant[] = ['none', 'diagonal', 'antiknight', 'hyper', 'nonconsec', 'antiking', 'jigsaw', 'thermo', 'arrow', 'evenodd', 'kropki', 'sandwich', 'thermocage', 'unequal', 'towers', 'sandparity', 'thermoknight', 'killerdiag'];
+const UNIQUE_CHECKED: readonly Variant[] = ['none', 'diagonal', 'antiknight', 'hyper', 'nonconsec', 'antiking', 'jigsaw', 'thermo', 'arrow', 'evenodd', 'kropki', 'sandwich', 'thermocage', 'unequal', 'towers', 'sandparity', 'thermoknight', 'killerdiag', 'whisper'];
 
 /**
  * Готовая сетка для «несоседних чисел» — БЕЗ перебора.
@@ -1061,7 +1126,7 @@ export function buildNonconsecSolution(): Cell[][] {
   return g;
 }
 
-export function generatePuzzle(blanks: number, N: number, BR: number, BC: number, variant: Variant = 'none', thin?: (ov: Overlays) => Overlays): { puzzle: Cell[][]; solution: Cell[][]; regions?: number[][]; parity?: number[][]; kropki?: { h: number[][]; v: number[][] }; sandwich?: { rows: number[]; cols: number[] }; thermo?: ThermoPN; arrow?: ArrowMap; cages?: CageMap; unequal?: UnequalMap; towers?: TowersMap } {
+export function generatePuzzle(blanks: number, N: number, BR: number, BC: number, variant: Variant = 'none', thin?: (ov: Overlays) => Overlays): { puzzle: Cell[][]; solution: Cell[][]; regions?: number[][]; parity?: number[][]; kropki?: { h: number[][]; v: number[][] }; sandwich?: { rows: number[]; cols: number[] }; thermo?: ThermoPN; arrow?: ArrowMap; cages?: CageMap; unequal?: UnequalMap; towers?: TowersMap; whisper?: ThermoPN } {
   const sol: Cell[][] = Array.from({ length: N }, () => Array(N).fill(0));
   let regions: number[][] | undefined;
   let thermo: ThermoPN | undefined;
@@ -1152,7 +1217,8 @@ export function generatePuzzle(blanks: number, N: number, BR: number, BC: number
   const sandwich = ov.sandwich;
   const unequal = ov.unequal;
   const towers = ov.towers;
-  return { puzzle, solution: sol, regions, parity, kropki, sandwich, thermo, arrow, cages, unequal, towers };
+  const whisper = ov.whisper;
+  return { puzzle, solution: sol, regions, parity, kropki, sandwich, thermo, arrow, cages, unequal, towers, whisper };
 }
 
 /**
@@ -1182,6 +1248,7 @@ export interface RejectionContext {
   kropki?: { h: number[][]; v: number[][] };
   unequal?: UnequalMap;
   towers?: TowersMap;
+  whisper?: ThermoPN;
 }
 
 export function rejectionReason(
@@ -1203,6 +1270,13 @@ export function rejectionReason(
     if (variant === 'evenodd' && ctx.parity) {
       const mark = ctx.parity[r]?.[c] ?? 0;                       // 1 = чёт, 2 = нечет, 0 = метки нет
       if ((mark === 1 && n % 2 !== 0) || (mark === 2 && n % 2 === 0)) return variantRule(variant, lang);
+    }
+    if (variant === 'whisper' && ctx.whisper) {
+      const pn = ctx.whisper[r]?.[c];
+      for (const nb of pn ? [pn.prev, pn.next] : []) {
+        const other = nb ? test[nb[0]]?.[nb[1]] ?? 0 : 0;
+        if (other && Math.abs(n - other) < WHISPER_GAP) return variantRule(variant, lang);
+      }
     }
     if (variant === 'kropki' && ctx.kropki) {
       const okDot = (dot: number, a: number, b: number): boolean => {

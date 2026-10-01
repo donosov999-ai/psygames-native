@@ -25,7 +25,7 @@
  */
 import {
   Cell, Variant, ThermoPN, ArrowMap, CageMap, isValid, generatePuzzle, shuffle, HYPER_BOXES, ORTHO,
-  Overlays, levelConfig, UnequalMap, TowersMap, towersLineOk,
+  Overlays, levelConfig, UnequalMap, TowersMap, towersLineOk, WHISPER_GAP,
 } from './sudoku-core';
 
 export type Technique =
@@ -38,12 +38,16 @@ export type Technique =
   | 'cage_sum'        // вывод из суммы клеток-группы (киллер, ThermoCage)
   | 'towers_clue'     // вывод из подсказки «сколько зданий видно с края»
   | 'unequal_chain'   // цепочка неравенств: границы протянуты через ПУСТЫХ соседей
+  | 'whisper_line'    // немецкий шёпот: кандидат без пары «±5» у ПУСТОГО соседа по линии
   | 'x_wing'          // X-wing
   | 'xy_wing'         // XY-wing: ось {a,b} и два клюва {a,c} и {b,c} — c уходит там, где видно оба
   | 'guess';          // логики не хватило — нужен перебор
 
 export const TECHNIQUE_TIER: Record<Technique, number> = {
   naked_single: 1, hidden_single: 2, locked: 3, naked_subset: 4, sandwich_sum: 4, towers_clue: 4, unequal_chain: 4,
+  // Шёпот — тот же класс вывода, что цепочка неравенств: граница через ПУСТОГО соседа.
+  // Ступень 4, как у трёх других вариантных выводов: шкала обязана быть сравнимой.
+  whisper_line: 4,
   /**
    * 🔴 СТУПЕНЬ СУММ НАЗНАЧЕНА ЗАМЕРОМ, А НЕ НА ГЛАЗ (07.09.2026). До этого дня вывод
    * из клеток-сумм не помечался ВООБЩЕ — блок в `refilter` работал, но `bump` не звал,
@@ -75,6 +79,8 @@ export interface GradeCtx {
   unequal?: UnequalMap;
   /** Небоскрёбы: сколько зданий видно с каждого края. 0 = подсказки нет. */
   towers?: TowersMap;
+  /** Немецкий шёпот: линии, соседи на которых отличаются минимум на WHISPER_GAP. */
+  whisper?: ThermoPN;
 }
 
 export interface Grade {
@@ -150,7 +156,7 @@ export function unitsFor(N: number, BR: number, BC: number, variant: Variant, re
 
 /** Оценка пазла: самая сложная техника, без которой не обойтись. */
 export function gradePuzzle(puzzle: Cell[][], ctx: GradeCtx, tierCap = 9): Grade {
-  const { N, BR, BC, variant, regions, thermo, arrow, cages, parity, kropki, sandwich, unequal, towers } = ctx;
+  const { N, BR, BC, variant, regions, thermo, arrow, cages, parity, kropki, sandwich, unequal, towers, whisper } = ctx;
   const grid = puzzle.map((row) => [...row]);
   const FULL = (1 << N) - 1;
   const cand: number[][] = Array.from({ length: N }, () => Array(N).fill(FULL));
@@ -233,6 +239,17 @@ export function gradePuzzle(puzzle: Cell[][], ctx: GradeCtx, tierCap = 9): Grade
         if (ok && parity && parity[r][c] !== 0) ok = (parity[r][c] === 1) === (v % 2 === 0);
         if (ok && unequal) ok = unequalOk(grid, r, c, v, N, unequal);
         if (ok && towers) ok = towersOk(grid, r, c, v, towers);
+        if (ok && whisper) {
+          // Занятый сосед по линии отсекает даром — цифра видна, это не приём.
+          const pn = whisper[r][c];
+          if (pn) {
+            for (const nb of [pn.prev, pn.next]) {
+              if (!nb) continue;
+              const o = grid[nb[0]][nb[1]];
+              if (o !== 0 && Math.abs(v - o) < WHISPER_GAP) ok = false;
+            }
+          }
+        }
         if (!ok) m &= ~bit(v);
       }
       cand[r][c] = m;
@@ -310,6 +327,37 @@ export function gradePuzzle(puzzle: Cell[][], ctx: GradeCtx, tierCap = 9): Grade
      * срез по заполненному — тот же старый фильтр, игроку он даётся даром, и
      * bump по нему завысил бы ступень ровно так, как её раньше занижали.
      */
+    /**
+     * ── НЕМЕЦКИЙ ШЁПОТ: кандидат v клетки на линии живёт, только если у КАЖДОГО пустого
+     * соседа по линии есть кандидат e с |v − e| ≥ WHISPER_GAP. Прогон до неподвижной точки
+     * протягивает срез вдоль линии (длина ≤ 6 — сходится за ≤ 6 проходов). Техникой
+     * (`whisper_line`) считается только вывод через ПУСТОГО соседа — как у цепочки неравенств.
+     */
+    if (whisper && выводВарианта) {
+      let usedWhisper = false;
+      for (let pass = 0; pass < N; pass++) {
+        let changed = false;
+        for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+          const pn = whisper[r][c];
+          if (!pn || grid[r][c] !== 0) continue;
+          let m = cand[r][c];
+          for (const nb of [pn.prev, pn.next]) {
+            if (!nb || grid[nb[0]][nb[1]] !== 0) continue;
+            const other = cand[nb[0]][nb[1]];
+            for (const v of bitsOf(m, N)) {
+              let partner = false;
+              for (const e of bitsOf(other, N)) if (Math.abs(v - e) >= WHISPER_GAP) { partner = true; break; }
+              if (!partner) m &= ~bit(v);
+            }
+          }
+          if (m !== cand[r][c]) { cand[r][c] = m; changed = true; usedWhisper = true; }
+          if (m === 0) return true;
+        }
+        if (!changed) break;
+      }
+      if (usedWhisper) bump('whisper_line');
+    }
+
     if (unequal && выводВарианта) {
       let usedChain = false;
       for (let pass = 0; pass < N; pass++) {
@@ -871,6 +919,11 @@ const VARIANT_TIER_CEILING: Partial<Record<Variant, number>> = {
    */
   jigsaw: 6, thermocage: 5,
   /**
+   * Немецкий шёпот (93–96) — ЗАМЕР 01.10.2026 боевым путём, по 10 досок: 50 пустых → 4 ×10,
+   * 54 → 4 ×10, 58 → 4 ×4 и 5 ×6; шестёрки ноль. Потолок 5.
+   */
+  whisper: 5,
+  /**
    * Комбо-пояс 81–92 — ЗАМЕР 29.08.2026 (combo-tiers.measure, по 15 боевых досок):
    * шестёрка у всех трёх пар — 0–1 из 15 (не массово), пятёрка достижима у всех
    * (sandparity 7/15, killerdiag 8/15 на верхних уровнях). Потолок 5.
@@ -1080,7 +1133,7 @@ export type GeneratedPuzzle = ReturnType<typeof generatePuzzle>;
  * refilter; если конкретная попытка не укладывается в бюджет, generateLogical всё
  * равно сохраняет прежний безопасный fallback через проверку единственности.
  */
-const LOGIC_VARIANTS: readonly Variant[] = ['none', 'diagonal', 'antiknight', 'hyper', 'antiking', 'evenodd', 'kropki', 'sandwich', 'jigsaw', 'nonconsec', 'thermo', 'arrow', 'thermocage', 'sandparity', 'thermoknight', 'killerdiag'];
+const LOGIC_VARIANTS: readonly Variant[] = ['none', 'diagonal', 'antiknight', 'hyper', 'antiking', 'evenodd', 'kropki', 'sandwich', 'jigsaw', 'nonconsec', 'thermo', 'arrow', 'thermocage', 'sandparity', 'thermoknight', 'killerdiag', 'whisper'];
 
 /**
  * Сколько раз проходим доску, пытаясь убрать ещё клетку. Больше трёх бюджет обычно
@@ -1134,7 +1187,7 @@ export function solvedSameBoard(grade: Grade, solution: Cell[][]): boolean {
 function gradeOf(gen: GeneratedPuzzle, N: number, BR: number, BC: number, variant: Variant): Grade {
   return gradePuzzle(gen.puzzle, {
     N, BR, BC, variant, regions: gen.regions, thermo: gen.thermo, arrow: gen.arrow, cages: gen.cages,
-    parity: gen.parity, kropki: gen.kropki, sandwich: gen.sandwich,
+    parity: gen.parity, kropki: gen.kropki, sandwich: gen.sandwich, whisper: gen.whisper,
     // ⚠️ Знаки и краевые подсказки ОБЯЗАНЫ доходить до оценщика. До 27.08.2026 их
     // здесь не было, и запасной путь оценивал unequal/towers вслепую: та же доска
     // давала «ступень 2, hidden_single» без карты и «ступень 4, unequal_chain» с ней.
@@ -1169,7 +1222,7 @@ function digByLogic(
   // увидит человек — та же дисциплина, что у сэндвича и кропки.
   const unequal = (base as { unequal?: UnequalMap }).unequal;
   const towers = (base as { towers?: TowersMap }).towers;
-  const ctx: GradeCtx = { N, BR, BC, variant, regions: base.regions, thermo: base.thermo, arrow: base.arrow, cages: base.cages, parity, kropki, sandwich, unequal, towers };
+  const ctx: GradeCtx = { N, BR, BC, variant, regions: base.regions, thermo: base.thermo, arrow: base.arrow, cages: base.cages, parity, kropki, sandwich, unequal, towers, whisper: base.whisper };
 
   // Лимит пустых держим только на новичковых уровнях, чтобы не пугать доской в дырках.
   // Дальше глубину задаёт ЛОГИКА. Старый лимит (58 к 29-му) как раз и упирался в потолок,
