@@ -3289,7 +3289,7 @@ const t: Record<string, string> = {
   "sdkRule_diagonal": "Diagonalen",
   "sdkRule_antiknight": "Anti-Springer",
   "sdkRule_hyper": "Extra-Zonen",
-  "sdkRule_nonconsec": "nicht aufeinanderfolgend",
+  "sdkRule_nonconsec": "nicht fortlaufend",
   "sdkRule_jigsaw": "krumme Blöcke",
   "sdkRule_antiking": "Anti-König",
   "sdkRule_evenodd": "gerade/ungerade",
