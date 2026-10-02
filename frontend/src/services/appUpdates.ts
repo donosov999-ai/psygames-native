@@ -1,9 +1,21 @@
 /**
  * appUpdates — проверка новой версии + «что нового» после обновления.
  *
- * Источник правды о свежей версии: https://psy-games.pro/play/version.json —
- * его кладёт CI (job play-deploy) при каждом релиз-теге. GitHub Releases не
- * подходит: репо приватный, API из приложения без токена не достучаться.
+ * Источник правды о свежей версии: https://psy-games.pro/releases.json — строка
+ * НА КАЖДУЮ ПЛАТФОРМУ: { "android": "2.56.4", "ios": "", "desktop": "" }.
+ *
+ * 🔴 ПОЧЕМУ НЕ /play/version.json (замер 02.10.2026, задача ea32be45). Его писало
+ * задание `release` выпуска Tauri; линию Tauri закрыли 07.09, и файл застыл на
+ * 2.54.24, пока приложение ушло в 2.56.4. Кнопка «Проверить обновления» и
+ * суточная автопроверка с тех пор ВСЕГДА отвечали «у вас последняя». Старый файл
+ * остаётся как есть: его читают уже установленные сборки и значок на сайте.
+ *
+ * ⚠️ ПОЧЕМУ ПО ПЛАТФОРМАМ. Магазины выпускают в разное время: Play — сразу,
+ * App Store — после ревью (на 02.10 приложения в App Store ещё нет). Одна общая
+ * версия звала бы iPhone обновляться в магазин, где сборки нет. Пустая строка
+ * платформы = «магазин её ещё не выпустил» = молчим.
+ * Пишет файл координатор при выпуске, с мака, после продакшна магазина
+ * (~/dev/psygames-checkpoints/publish-releases-json.sh <платформа> <версия>).
  *
  * «Скачать»: Android → страница в Google Play; Mac/Win → страница загрузок
  * сайта; web — просто перезагрузка (там всегда свежая сборка).
@@ -12,7 +24,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
 import Constants from 'expo-constants';
 
-const VERSION_URL = 'https://psy-games.pro/play/version.json';
+const VERSION_URL = 'https://psy-games.pro/releases.json';
 const SEEN_KEY = 'psygames_last_seen_version';
 const CHECKED_AT_KEY = 'psygames_update_checked_at';
 export const CHECK_EVERY_MS = 24 * 3600 * 1000;   // тихая автопроверка раз в сутки
@@ -35,13 +47,31 @@ export function isNewer(a: string, b: string): boolean {
 
 export interface UpdateInfo { latest: string; hasUpdate: boolean; }
 
+export type UpdatePlatform = 'android' | 'ios' | 'desktop';
+
+/** Чью строку releases.json читать. Гибрид и Tauri отдают Platform.OS === 'web' — ловим по устройству. */
+export function updatePlatform(): UpdatePlatform {
+  if (Platform.OS === 'ios') return 'ios';
+  if (Platform.OS === 'android') return 'android';
+  const ua = (typeof navigator !== 'undefined' && navigator.userAgent) || '';
+  if (/android/i.test(ua)) return 'android';
+  if (/iphone|ipad|ipod/i.test(ua)) return 'ios';
+  return 'desktop';
+}
+
+/** Свежая версия ДЛЯ ПЛАТФОРМЫ. Нет строки — магазин ещё не выпустил: '' (молчим). */
+export function latestFor(j: unknown, p: UpdatePlatform): string {
+  const v = (j as Record<string, unknown> | null)?.[p];
+  return typeof v === 'string' ? v.trim() : '';
+}
+
 /** Спросить сайт о свежей версии. Ошибки сети = «обновлений нет» (тихо). */
 export async function checkForUpdate(): Promise<UpdateInfo | null> {
   try {
     const r = await fetch(`${VERSION_URL}?ts=${Date.now()}`, { cache: 'no-store' } as any);
     if (!r.ok) return null;
     const j = await r.json();
-    const latest = String(j?.version || '');
+    const latest = latestFor(j, updatePlatform());
     if (!latest) return null;
     return { latest, hasUpdate: isNewer(latest, currentVersion()) };
   } catch { return null; }
