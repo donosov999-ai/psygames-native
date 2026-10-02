@@ -126,6 +126,18 @@
     "surprise_dir"
    ]
   ],
+  "find_differences": [
+   [
+    1,
+    33,
+    null
+   ],
+   [
+    34,
+    null,
+    "subtle"
+   ]
+  ],
   "goods_sort": [
    [
     1,

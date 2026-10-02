@@ -129,4 +129,55 @@ void main() {
       }
     }
   });
+
+  test('🔴 ПОТОЛКА НЕТ: с 34-го отличие тоньше — на 0,92 за уровень, без нижнего предела', () {
+    // Правило Дениса 06.09.2026. К 33-му на верху все четыре оси; время дальше не трогаем —
+    // вечерний слот запрещает наказание временем. Растёт величина отличия.
+    for (var l = 1; l <= fdSubtleFrom; l += 1) {
+      expect(fdSubtlety(l), 1, reason: 'L$l: отличия прежней величины');
+      expect(levelParams(l).subtlety, 1);
+    }
+    var prev = 1.0;
+    for (var l = fdSubtleFrom + 1; l <= 400; l += 1) {
+      final k = fdSubtlety(l);
+      expect(k, lessThan(prev), reason: 'L$l тоньше, чем L${l - 1}');
+      expect(k, greaterThan(0), reason: 'L$l: отличие ещё есть');
+      prev = k;
+    }
+    expect(levelParams(fdSubtleFrom + 1).subtlety, closeTo(0.92, 1e-12));
+
+    // Тонкие отличия: подмена зверя — только запасная, размер и поворот — на долю прежнего.
+    var sprites = 0, sizes = 0, rots = 0;
+    for (var seed = 0; seed < 60; seed += 1) {
+      for (final level in [34, 50, 80]) {
+        final p = levelParams(level);
+        final rnd = createRng('тонко-$seed-$level');
+        final scene = generateScene(340, 300, p.objectCount, p.spriteAlphabet, rnd);
+        final alt = withDifference(scene, p.diffCount, p.spriteAlphabet, rnd, subtlety: p.subtlety);
+        for (final i in alt.diffIdx) {
+          final a = scene[i], b = alt.shapes[i];
+          if (a.sprite != b.sprite) sprites += 1;
+          if (a.size != b.size) {
+            sizes += 1;
+            expect((a.size - b.size).abs(), closeTo(16 * p.subtlety, 1e-9), reason: 'L$level размер на 16·k');
+          }
+          if (a.rot != b.rot) {
+            rots += 1;
+            final d = (b.rot - a.rot) % 360;
+            expect(d == 90 * p.subtlety || (d - 180 * p.subtlety).abs() < 1e-9 || (d - 90 * p.subtlety).abs() < 1e-9,
+                isTrue, reason: 'L$level поворот на 90·k или 180·k, а не $d');
+          }
+        }
+      }
+    }
+    expect(sizes + rots, greaterThan(0));
+    expect(sprites, lessThan((sizes + rots) ~/ 10), reason: 'подмена зверя — редкая запасная, а не треть отличий');
+  });
+
+  test('🔴 карточка «Отличия тоньше» встаёт на тот же уровень, что и пятая ось', () {
+    final rules = jsonDecode(File('assets/level_rules.json').readAsStringSync()) as Map<String, dynamic>;
+    final ranges = ((rules['games'] as Map)['find_differences'] as List).cast<List>();
+    expect(ranges.first, [1, fdSubtleFrom, null]);
+    expect(ranges.last, [fdSubtleFrom + 1, null, 'subtle']);
+  });
 }

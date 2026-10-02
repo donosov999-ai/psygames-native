@@ -1,4 +1,4 @@
-/* psygames-level-rules-native-sources · VER 1 · 30.09.2026 */
+/* psygames-level-rules-native-sources · VER 2 · 02.10.2026 */
 /**
  * ПРАВИЛА УРОВНЕЙ ДЛЯ НАТИВНОЙ ПОЛОВИНЫ — ТАБЛИЦА «УРОВЕНЬ → ДЕЙСТВУЮЩЕЕ ПРАВИЛО».
  *
@@ -52,6 +52,7 @@ export function ruleSources(): RuleSource[] {
   };
   const игра = (имя: string) => require(`@/app/games/${имя}`);
   const товары = require('@/src/games/goods-sort/core/level');
+  const отличия = require('@/src/games/find-differences/core/levelRules');
   /* eslint-enable @typescript-eslint/no-require-imports */
   return [
     s(['cake_sort', 'pizza_sort'], игра('cake-sort').CS_RULES),
@@ -60,6 +61,7 @@ export function ruleSources(): RuleSource[] {
     s(['counter'], игра('counter').COUNTER_RULES),
     s(['cpt'], игра('cpt').CPT_RULES),
     s(['digit_span'], игра('digit-span').DS_RULES),
+    s(['find_differences'], отличия.FD_RULES),
     { ids: ['goods_sort'], rulesAt: товары.gsRulesForLevel },
     s(['hanoi'], игра('hanoi').HN_RULES),
     s(['listening_span'], игра('listening-span').LISTENINGSPAN_RULES),

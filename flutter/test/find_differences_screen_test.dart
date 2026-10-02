@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/find_differences/model.dart';
 import 'package:psygames_flutter/games/find_differences/screen.dart';
 import 'package:psygames_flutter/shell/l10n.dart';
+import 'package:psygames_flutter/shell/level_rules.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -163,5 +164,29 @@ void main() {
         await tester.pump(const Duration(milliseconds: 800));
       }
     });
+  });
+
+  testWidgets('🔴 ПОТОЛКА НЕТ: 34-й играется тонкими отличиями, а карточка правила встаёт на итоге', (tester) async {
+    // Экран раздаёт отличия с той же тонкостью, что модель: проба повторяет раздачу с subtlety
+    // уровня и попадает в каждое отличие. Не передай экран тонкость — нажатия уйдут мимо.
+    await tester.runAsync(LevelRules.load);
+    await open(tester, level: 34, seed: 'тонко');
+    final p = levelParams(34);
+    final s = sceneOnScreen(tester);
+    final rnd = createRng('тонко');
+    for (var round = 1; round <= p.rounds; round += 1) {
+      final scene = generateScene(s.width, s.height, p.objectCount, p.spriteAlphabet, rnd);
+      final alt = withDifference(scene, p.diffCount, p.spriteAlphabet, rnd, subtlety: p.subtlety);
+      expect(find.text('0/${p.diffCount}'), findsOneWidget, reason: 'раунд $round: пока ничего не найдено');
+      for (final idx in alt.diffIdx) {
+        await tapShape(tester, alt.shapes[idx]);
+      }
+      await tester.pump(const Duration(milliseconds: 800));
+    }
+    await tester.pump();
+    await tester.pump();
+    expect(state.get('${SharedState.prefix}find_differences_level_nzt48'), '35', reason: '34-й взят тонкими отличиями');
+    expect(find.text(L.t('lr_find_differences_subtle_title')), findsOneWidget,
+        reason: 'на экране итога — карточка «Отличия тоньше»: таймер раунда под ней не идёт');
   });
 }
