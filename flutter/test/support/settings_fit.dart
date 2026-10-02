@@ -57,3 +57,71 @@ Future<void> expectSettingsFit(WidgetTester tester, Future<void> Function() open
   L.useForTest('ru', (jsonDecode(File('assets/l10n/ru.json').readAsStringSync()) as Map).cast<String, String>());
   expect('$where: ${problems.isEmpty ? 'влезает' : problems.join('; ')}', '$where: влезает');
 }
+
+/// 🔴 ПАРТИЯ: ОРГАНЫ ОТВЕТА НА УЗКОМ ЭКРАНЕ — приёмка 6596a00d (§4б, решение Дениса 16.09):
+/// «ряд под полем на узком экране: рамка каждого органа целиком внутри экрана, площадь нажатия
+/// не ниже 48×48, подпись не обрезана». [open] строит экран заново и доводит его до ФАЗЫ ОТВЕТА —
+/// той, где человек нажимает: клетки, клавиши, кнопки суждения, значки ряда под полем.
+///
+/// ⚠️ «Подпись не обрезана» эта проба НЕ меряет: в пробах шрифт FlutterTest, у него каждый знак —
+/// квадрат шириной в кегль, вдвое шире настоящего. Замер 02.10.2026: «Position» на кнопке n-back —
+/// 8 × 14 = 112 пт при 92 свободных, проба кричала «обрезана», а живой шрифт кладёт слово в ~60 пт.
+/// Подписи меряются кадром на устройстве.
+///
+/// Орган — всё, что нажимается сейчас: кнопки (`ButtonStyleButton`, `IconButton`) и `InkWell`
+/// клеток и значков. `InkWell` внутри кнопки — часть кнопки, а не второй орган: у кнопки он
+/// рисует видимую плашку 40 пт, а нажимается вся рамка 48. Мерится на 360×640, en и ru.
+Future<void> expectPlayFit(WidgetTester tester, Future<void> Function() open, {required String where}) async {
+  tester.view.physicalSize = const Size(360, 640);
+  tester.view.devicePixelRatio = 1.0;
+  addTearDown(tester.view.reset);
+  final problems = <String>[];
+  for (final lang in const ['en', 'ru']) {
+    final dict = (jsonDecode(File('assets/l10n/$lang.json').readAsStringSync()) as Map).cast<String, String>();
+    L.useForTest(lang, dict);
+    // Экран прошлого прохода снимается: без этого Flutter переиспользует его состояние (у экрана без
+    // ключа — уже идущую партию), и кнопки «Начать» во втором проходе нет.
+    await tester.pumpWidget(const SizedBox());
+    await open();
+    bool insideButton(Element e) {
+      var inside = false;
+      e.visitAncestorElements((a) {
+        if (a.widget is ButtonStyleButton || a.widget is IconButton) inside = true;
+        return !inside;
+      });
+      return inside;
+    }
+
+    final organs = find.byWidgetPredicate((w) =>
+        (w is ButtonStyleButton && w.onPressed != null) ||
+        (w is IconButton && w.onPressed != null) ||
+        (w is InkWell && w.onTap != null));
+    var count = 0;
+    var inScroll = 0;
+    for (final e in organs.evaluate()) {
+      if (e.widget is InkWell && insideButton(e)) continue;
+      count++;
+      final box = e.renderObject! as RenderBox;
+      final r = box.localToGlobal(Offset.zero) & box.size;
+      final name = '${e.widget.runtimeType}${e.widget.key == null ? '' : ' ${e.widget.key}'}';
+      if (r.left < -0.5 || r.top < -0.5 || r.right > 360.5 || r.bottom > 640.5) {
+        // На поле прокрутка законна, если орган до неё достаётся: окно прокрутки целиком на экране
+        // (канон §4б, поправка «Парных картинок» 16.09 — «недостижимых карт 0»). Вне прокрутки — дефект.
+        final scroll = e.findAncestorStateOfType<ScrollableState>();
+        final vp = scroll?.context.findRenderObject() as RenderBox?;
+        final view = vp == null ? null : vp.localToGlobal(Offset.zero) & vp.size;
+        if (view == null || view.top < -0.5 || view.bottom > 640.5) {
+          problems.add('$lang: $name за краем — ${r.left.round()},${r.top.round()}…${r.right.round()},${r.bottom.round()}');
+        } else {
+          inScroll++;
+        }
+      }
+      if (r.width < 47.5 || r.height < 47.5) problems.add('$lang: $name меньше 48×48 — ${r.width.round()}×${r.height.round()}');
+    }
+    if (count == 0) problems.add('$lang: в фазе ответа не нашлось ни одного органа');
+    // ignore: avoid_print
+    print('$where · $lang: органов $count, из них достаются прокруткой $inScroll');
+  }
+  L.useForTest('ru', (jsonDecode(File('assets/l10n/ru.json').readAsStringSync()) as Map).cast<String, String>());
+  expect('$where: ${problems.isEmpty ? 'органы на месте' : problems.join('; ')}', '$where: органы на месте');
+}

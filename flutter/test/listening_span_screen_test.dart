@@ -304,4 +304,14 @@ void main() {
   testWidgets('🔴 настройка на 360×640 по-английски и по-русски: «Начать» на первом экране (ae1d918b)', (tester) async {
     await expectSettingsFit(tester, () => boot(tester, level: 12), where: 'listening-span L12');
   });
+
+  testWidgets('🔴 партия на 360×640: органы ответа целиком на экране (или в прокрутке поля), не меньше 48×48 (приёмка 6596a00d)',
+      (tester) async {
+    await expectPlayFit(tester, () async {
+      await boot(tester, level: 12);
+      await tester.tap(find.byKey(const Key('lspan-start')));
+      await listen(tester);
+    }, where: 'listening-span L12, ввод');
+    await tester.pumpWidget(const SizedBox());
+  });
 }

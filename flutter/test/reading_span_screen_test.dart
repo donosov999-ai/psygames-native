@@ -228,4 +228,14 @@ void main() {
       (tester) async {
     await expectSettingsFit(tester, () => boot(tester, level: 5), where: 'reading-span L5 (нагрузка)');
   });
+
+  testWidgets('🔴 партия на 360×640: органы ответа целиком на экране (или в прокрутке поля), не меньше 48×48 (приёмка 6596a00d)',
+      (tester) async {
+    await expectPlayFit(tester, () async {
+      await boot(tester, level: 5);
+      await tester.tap(find.byKey(const Key('rspan-start')));
+      await tester.pump();
+    }, where: 'reading-span L5, суждение');
+    await tester.pumpWidget(const SizedBox());
+  });
 }

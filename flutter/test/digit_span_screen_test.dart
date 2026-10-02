@@ -426,4 +426,14 @@ void main() {
       (tester) async {
     await expectSettingsFit(tester, () => boot(tester, level: 15), where: 'digit-span L15 (направление после показа)');
   });
+
+  testWidgets('🔴 партия на 360×640: органы ответа целиком на экране (или в прокрутке поля), не меньше 48×48 (приёмка 6596a00d)',
+      (tester) async {
+    await expectPlayFit(tester, () async {
+      await boot(tester, level: 15);
+      await tester.tap(find.byKey(const Key('ds-start')));
+      await pumpUntil(tester, () => inputOpen(tester));
+    }, where: 'digit-span L15, ввод');
+    await tester.pumpWidget(const SizedBox());
+  });
 }

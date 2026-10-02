@@ -359,4 +359,15 @@ void main() {
       (tester) async {
     await expectSettingsFit(tester, () => boot(tester, level: 16), where: 'memory-matrix L16 (ложные вспышки)');
   });
+
+  testWidgets('🔴 партия на 360×640: органы ответа целиком на экране (или в прокрутке поля), не меньше 48×48 (приёмка 6596a00d)',
+      (tester) async {
+    await expectPlayFit(tester, () async {
+      await boot(tester, level: 16);
+      await tester.tap(find.byKey(const Key('mm-start')));
+      await tester.pump();
+      await pumpUntil(tester, () => caption(tester) == L.t('mmPurpleFirst'));
+    }, where: 'memory-matrix L16, ввод');
+    await tester.pumpWidget(const SizedBox());
+  });
 }
