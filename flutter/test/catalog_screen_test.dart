@@ -104,22 +104,17 @@ void main() {
       expect(insp.every((e) => e.skillKey == 'skillInhibition'), isTrue);
     });
 
-    test('🔴 навык без приставки «Тренируем:» — на всех двенадцати языках', () {
+    test('🔴 подпись навыка — целиком, как на карточке: есть на всех двенадцати языках', () {
       final c = _catalog();
       for (final lang in ['en', 'ru', 'de', 'es', 'fr', 'it', 'pt', 'ar', 'hi', 'zh', 'ja', 'ko']) {
         L.useForTest(lang, _dict(lang));
         for (final k in c.skills) {
-          final full = L.t(k), short = skillTitle(k);
-          expect(full, isNot(k), reason: '$lang: нет строки навыка $k');
-          expect(short.trim(), isNotEmpty, reason: '$lang/$k');
-          // `skillReasoning` записан без приставки на всех языках («Reasoning») — подпись целиком.
-          if (RegExp('[:：]').hasMatch(full)) {
-            expect(short.length, lessThan(full.length), reason: '$lang/$k: «$full» — приставка не срезана');
-          } else {
-            expect(short, full, reason: '$lang/$k');
-          }
+          expect(skillTitle(k), isNot(k), reason: '$lang: нет строки навыка $k');
+          expect(skillTitle(k), L.t(k), reason: '$lang/$k: срезанная подпись в ru стоит в винительном падеже');
         }
       }
+      L.useForTest('ru', _dict('ru'));
+      expect(skillTitle('skillInhibition'), startsWith('Тренируем'));
     });
   });
 

@@ -79,16 +79,14 @@ class CatalogFilter {
   int get hashCode => Object.hash(value, skill);
 }
 
-/// Навык без приставки «Тренируем:» — для списка фильтра, где она стояла бы в каждой из 29
-/// строк. Приставка во всех двенадцати языках отделена двоеточием (`:` или `：` у ja/zh, замер
-/// 02.10 по `assets/l10n`); нет двоеточия — подпись целиком.
-String skillTitle(String key) {
-  final full = L.t(key);
-  final m = RegExp(r'^[^:：]*[:：]\s*').firstMatch(full);
-  if (m == null || m.end >= full.length) return full;
-  final rest = full.substring(m.end);
-  return rest[0].toUpperCase() + rest.substring(1);
-}
+/// Подпись навыка — ЦЕЛИКОМ, как на карточке игры («Тренируем: вербальную гибкость»).
+///
+/// 🔴 НЕ СРЕЗАТЬ ПРИСТАВКУ. Первая редакция срезала «Тренируем:» до двоеточия, и кадр с
+/// эмулятора 02.10 показал «Вербальную гибкость», «Концентрацию»: в русском остаток стоит в
+/// винительном падеже и сам по себе не читается. Приставки к тому же разные в разных языках
+/// (у ja их четыре на одно и то же), так что группами по приставке тоже не выходит. Полная
+/// подпись верна на всех двенадцати языках, а сортировка по ней сама ставит «Тренируем: …» подряд.
+String skillTitle(String key) => L.t(key);
 
 class Catalog {
   Catalog({required this.categories, required this.games, required this.entries, this.names = const {}});
