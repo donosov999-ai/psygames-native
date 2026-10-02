@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/stroop/model.dart';
@@ -32,7 +35,7 @@ void main() {
   Finder rightAnswer(WidgetTester tester) {
     final rule = tester.widget<Text>(find.byKey(const Key('stroop-rule'))).data;
     final stimulus = tester.widget<Text>(find.byKey(const Key('stroop-stimulus')));
-    final word = stroopColorsDefault.firstWhere((c) => c.ru == stimulus.data);
+    final word = stroopColorsDefault.firstWhere((c) => stroopWord(c) == stimulus.data);
     final ink = stroopColorsDefault.firstWhere((c) => _hexOf(c) == (stimulus.style!.color!.toARGB32() & 0xFFFFFF));
     final need = rule == L.t('stroopByInk') ? ink : word;
     return find.byKey(Key('stroop-answer-${need.name}'));
@@ -108,6 +111,34 @@ void main() {
     await tester.pump(const Duration(milliseconds: 260));
     // Счётчик ошибок каркаса показывает 1.
     expect(find.text('1'), findsWidgets);
+  });
+
+  testWidgets('🔴 слово-стимул и подписи кнопок — на языке интерфейса, все двенадцать языков', (tester) async {
+    // Веб показывает слово по языку, перенос брал `.ru` везде: в английской локали стимул был
+    // «КРАСНЫЙ», а слово, которого человек не читает, не мешает назвать цвет — Струп не мерил бы
+    // ничего. Ожидание — из словаря С ДИСКА (assets/l10n/<язык>.json), а не из той же функции,
+    // что у экрана: иначе подмена ключа прошла бы незамеченной.
+    final cyrillic = RegExp('[А-Яа-яЁё]');
+    for (final lang in ['ru', 'en', 'de', 'es', 'pt', 'fr', 'it', 'zh', 'ja', 'ko', 'hi', 'ar']) {
+      await L.load(lang);
+      final dict = jsonDecode(File('assets/l10n/$lang.json').readAsStringSync()) as Map<String, dynamic>;
+      await tester.pumpWidget(MaterialApp(key: ValueKey(lang), home: StroopScreen(state: state)));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(L.t('start')));
+      await tester.pump();
+      final words = <String>{};
+      for (final name in ['red', 'blue', 'green', 'yellow']) {
+        final want = (dict['color_$name'] as String).toUpperCase();
+        final label = tester
+            .widget<Text>(find.descendant(of: find.byKey(Key('stroop-answer-$name')), matching: find.byType(Text)))
+            .data;
+        expect(label, want, reason: '$lang: кнопка «$name» подписана «$label»');
+        words.add(want);
+      }
+      final word = tester.widget<Text>(find.byKey(const Key('stroop-stimulus'))).data!;
+      expect(words, contains(word), reason: '$lang: стимул «$word» не из слов языка');
+      if (lang != 'ru') expect(cyrillic.hasMatch(word), isFalse, reason: '$lang: в стимуле кириллица');
+    }
   });
 }
 
