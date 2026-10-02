@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../shell/aux_action.dart';
 import '../../shell/game_shell.dart';
+import '../../shell/hybrid_app.dart' show HybridApp;
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
@@ -42,9 +43,13 @@ import 'rules.dart';
 /// девять цветов) и `keypad.dart` (клавиши и палитра на их месте). Свой вид фрактала —
 /// карта, плитки, порталы — не трогается.
 class FractalScreen extends StatefulWidget {
-  const FractalScreen({super.key, required this.state});
+  const FractalScreen({super.key, required this.state, this.onOpen});
 
   final SharedState state;
+
+  /// Открыть другой экран по адресу. По умолчанию — хост гибрида ([HybridApp.open]); пробы
+  /// подставляют своё, чтобы проверить, КУДА ведёт дверь.
+  final void Function(String route)? onOpen;
 
   @override
   State<FractalScreen> createState() => _FractalScreenState();
@@ -298,6 +303,8 @@ class _FractalScreenState extends State<FractalScreen> {
     ));
   }
 
+  void _openDeep() => (widget.onOpen ?? HybridApp.open)?.call('/games/sudoku-fractal-deep');
+
   @override
   Widget build(BuildContext context) {
     final levels = _levels;
@@ -384,6 +391,10 @@ class _FractalScreenState extends State<FractalScreen> {
             ),
       pauseActions: [
         PauseAction(label: 'Начать заново', icon: Icons.refresh, onPressed: _deal),
+        // 🔴 ДВЕРЬ В «БЕЗДНУ» (сверка 138f7818). В вебе она стоит на экране настройки фрактала
+        // (sudoku-fractal.tsx: fractal-deep-link) — экрана настройки у натива нет, и марафонский
+        // режим стал недостижим: карточки в развилке у него нет, дверь была одна.
+        PauseAction(label: L.t('deepTitle'), icon: Icons.layers, onPressed: _openDeep),
       ],
     );
   }
