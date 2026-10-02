@@ -1621,7 +1621,7 @@ const t: Record<string, string> = {
   "sudokuFreeHubDesc": "클래식, 변형 규칙 없음: 크기와 난이도 선택",
   "sudokuTypeFree": "6×6, 9×9 · 난이도 3가지",
   "sudokuJuniorTitle": "꼬마 스도쿠",
-  "sudokuTypeJunior": "4×4, 6×6 · 18단계",
+  "sudokuTypeJunior": "4×4, 6×6 · 9단계",
   "sudokuRuleDiagonal": "두 대각선에서도 숫자가 중복되지 않습니다.",
   "sudokuRuleAntiknight": "같은 숫자는 나이트 이동 거리에 놓을 수 없습니다.",
   "sudokuRuleHyper": "추가 3×3 구역 4개에도 1–9가 중복 없이 들어갑니다.",
