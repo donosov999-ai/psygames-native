@@ -16,6 +16,28 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.56.9',
+    date: '2026-10-02',
+    ru: [
+      'Новое: «Судоку для малышей» — доски 4×4 и 6×6, звери вместо цифр, 18 ступеней',
+      '«Судоку»: бой с боссом каждые три уровня и мегабосс «Самурай» на каждом 15-м',
+      '«Судоку»: звери вместо цифр на обычной доске — выберите стиль в паузе',
+      '«Бездна»: вход из фрактала, выбор объёма и ступени; новая партия больше не стирает начатую',
+      'Wordoku: спрятанные слова на испанском, немецком, французском, итальянском и португальском',
+      '«Кошки»: короткое касание ставит ✕, долгое — открывает клетку; ошибка стоит жизни, а не оставляет кошку на доске',
+      'Самурай и фрактал засчитываются со счётом, временем и ошибками; прогресс Light Up, Train Tracks, Black Box и Same Game не теряется',
+    ],
+    en: [
+      'New: Sudoku for Little Ones — 4×4 and 6×6 boards, animals instead of digits, 18 steps',
+      'Sudoku: a boss fight every three levels and a Samurai mega-boss every 15th',
+      'Sudoku: animals instead of digits on the regular board — pick the style in the pause menu',
+      'Abyss: entry from the fractal, choice of length and stage; a new game no longer wipes the one in progress',
+      'Wordoku: hidden words in Spanish, German, French, Italian and Portuguese',
+      'Cats: a short tap marks ✕, a long press reveals the cell; a wrong reveal costs a life instead of leaving a cat on the board',
+      'Samurai and fractal games are recorded with score, time and mistakes; Light Up, Train Tracks, Black Box and Same Game keep their progress',
+    ],
+  },
+  {
     version: '2.56.8',
     date: '2026-10-02',
     ru: [
