@@ -361,6 +361,12 @@ if (!args['no-roads']) {
   for (const road of extra) {
     for (const lv of levels) {
       const c = roads.roadLevelConfig(lv, road);
+      // «Мяу — друзья»: доски — выгрузка MindLab (meow9-ladder.cjs), правила друзей в TS-генераторе
+      // нет; дорога на этих ступенях играет обычные доски «Мяу» (жизни и подсказки — свои).
+      if (c.variant === 'friends') {
+        refused.push({ level: lv, road, variant: c.variant, причина: 'доски «Мяу» — выгрузка MindLab, дорога играет обычные' });
+        continue;
+      }
       if (only && !only.has(lv)) {
         const kept = keep(lv, road);
         if (!kept.length && wasRefused(lv, road)) {

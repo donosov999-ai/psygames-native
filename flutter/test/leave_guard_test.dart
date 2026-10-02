@@ -2,11 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/fractal/screen.dart';
 import 'package:psygames_flutter/games/samurai/screen.dart';
+import 'package:psygames_flutter/games/sudoku/roads.dart';
+import 'package:psygames_flutter/games/sudoku/screen.dart';
+import 'package:psygames_flutter/games/sudoku/symbols.dart';
 import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// 🔴 ВЫХОД И «ЗАНОВО» СПРАШИВАЮТ, КОГДА В ПАРТИИ ЕСТЬ ЧТО ТЕРЯТЬ — «САМУРАЙ» И «ФРАКТАЛ».
+/// 🔴 ВЫХОД И «ЗАНОВО» СПРАШИВАЮТ, КОГДА В ПАРТИИ ЕСТЬ ЧТО ТЕРЯТЬ — «САМУРАЙ», «ФРАКТАЛ», «СУДОКУ».
 ///
 /// Сверка «веб против натива» 138f7818, задача b5df5096 п.2: веб спрашивает (`confirmExit`),
 /// натив уходил молча — стрелка «назад», «Выйти из игры» в паузе и значок «Заново» стирали
@@ -15,7 +18,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 void main() {
   late SharedState state;
 
-  setUpAll(() async => L.load('ru'));
+  setUpAll(() async {
+    await L.load('ru');
+    await WordokuWords.load();
+  });
   setUp(() async {
     SharedPreferences.setMockInitialValues({'language': 'ru'});
     state = await SharedState.open();
@@ -125,6 +131,45 @@ void main() {
     await tester.tap(find.byKey(const Key('tile0')), warnIfMissed: false);
     await tester.pump();
     await move(tester, 'cell_', 9);
+    await back(tester);
+    expect(find.byKey(const Key('confirm-loss')), findsOneWidget, reason: 'стрелка после хода спрашивает');
+    await tester.tap(find.byKey(const Key('confirm-go')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('hub')), findsOneWidget, reason: '«Выйти» вернул в развилку');
+  });
+  testWidgets('🔴 «Судоку»: после хода выход, «Заново» и смена дороги спрашивают; «Продолжить» ничего не стирает',
+      (tester) async {
+    SharedPreferences.setMockInitialValues({'language': 'ru', 'psygames_sudoku_level_nzt48': '5'});
+    state = await SharedState.open();
+    const ready = Key('cell_0_0');
+    await open(tester, SudokuScreen(state: state), ready);
+    await back(tester);
+    expect(find.byKey(const Key('confirm-loss')), findsNothing, reason: 'пустая доска уходит без вопроса');
+    expect(onScreen(ready), isFalse);
+
+    await open(tester, SudokuScreen(state: state), ready);
+    final cell = await move(tester, 'cell_', 9);
+
+    // «Заново» — спрашивает, «Продолжить игру» оставляет ход.
+    await tester.tap(find.byTooltip(L.t('restart')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('confirm-loss')), findsOneWidget, reason: '«Заново» после хода спрашивает');
+    await tester.tap(find.byKey(const Key('confirm-stay')));
+    await tester.pumpAndSettle();
+    expect(empty(tester, find.byKey(Key(cell))), isFalse, reason: 'ход на месте');
+
+    // Смена дороги в паузе — тоже новая доска: спрашивает, «Продолжить» дорогу не меняет.
+    await tester.tap(find.byTooltip(L.t('teachPause')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('${L.t('sudokuRoadEasy')} · ${L.t('label_level_short')}5'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('confirm-loss')), findsOneWidget, reason: 'смена дороги после хода спрашивает');
+    await tester.tap(find.byKey(const Key('confirm-stay')));
+    await tester.pumpAndSettle();
+    expect(state.get(sudokuRoadKey('nzt48')), isNull, reason: 'дорога не сменилась');
+    expect(empty(tester, find.byKey(Key(cell))), isFalse, reason: 'и ход на месте');
+
+    // Выход — спрашивает, «Выйти» уводит.
     await back(tester);
     expect(find.byKey(const Key('confirm-loss')), findsOneWidget, reason: 'стрелка после хода спрашивает');
     await tester.tap(find.byKey(const Key('confirm-go')));
