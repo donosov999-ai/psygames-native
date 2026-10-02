@@ -20,6 +20,7 @@ import 'dart:math';
 
 import 'package:flutter/services.dart' show AssetManifest, rootBundle;
 
+import 'roads.dart';
 import 'rules.dart';
 
 /// Ступень лестницы: что за доска выдаётся на этом уровне.
@@ -94,16 +95,22 @@ class SudokuBoard {
 
 /// Лестница судоку и доски к ней.
 class SudokuLevels {
-  SudokuLevels._(this._ladder, this._ratingRows, this._bank, this._variantBoards);
+  SudokuLevels._(this._ladder, this._ratingRows, this._bank, this._variantBoards, [this._roadBoards = const {}]);
 
   final Map<int, SudokuLevel> _ladder;
   final List<({int upTo, double rating})> _ratingRows;
   final Map<int, List<String>> _bank;                 // полоса (рейтинг×10) → задачи
   final Map<int, List<Map<String, Object?>>> _variantBoards;   // уровень → доски
 
+  /// Доски дорог «полегче» / «пожёстче» (`sudoku-road-boards.json`): дорога → уровень → доски.
+  /// Нет файла или ступени — дорога играет доски обычной дороги (жизни и подсказки у неё
+  /// всё равно свои), а банковские ступени дорога сдвигает полосой банка.
+  final Map<SudokuRoad, Map<int, List<Map<String, Object?>>>> _roadBoards;
+
   static const _ladderAsset = 'assets/levels/sudoku-ladder.json';
   static const _bankAsset = 'assets/levels/sudoku-bank.json';
   static const _variantAsset = 'assets/levels/sudoku-variant-boards.json';
+  static const _roadAsset = 'assets/levels/sudoku-road-boards.json';
 
   static Future<SudokuLevels> load() async {
     final ladderJson = jsonDecode(await rootBundle.loadString(_ladderAsset)) as Map<String, Object?>;
@@ -141,9 +148,11 @@ class SudokuLevels {
     // играются и без вариантных досок.
     final variants = <int, List<Map<String, Object?>>>{};
     var hasVariants = false;
+    var hasRoads = false;
     try {
       final manifest = await AssetManifest.loadFromAssetBundle(rootBundle);
       hasVariants = manifest.listAssets().contains(_variantAsset);
+      hasRoads = manifest.listAssets().contains(_roadAsset);
     } catch (_) {
       hasVariants = false;
     }
@@ -154,8 +163,21 @@ class SudokuLevels {
       }
     }
 
-    return SudokuLevels._(ladder, rows, bank, variants);
+    final roadBoards = <SudokuRoad, Map<int, List<Map<String, Object?>>>>{};
+    if (hasRoads) {
+      final rj = jsonDecode(await rootBundle.loadString(_roadAsset)) as Map<String, Object?>;
+      for (final b in (rj['boards'] as List).cast<Map<String, Object?>>()) {
+        final road = sudokuRoadOf(b['road'] as String?);
+        if (road == null) continue;
+        ((roadBoards[road] ??= {})[(b['level'] as num).toInt()] ??= <Map<String, Object?>>[]).add(b);
+      }
+    }
+
+    return SudokuLevels._(ladder, rows, bank, variants, roadBoards);
   }
+
+  /// Доски дорог для проб: сколько лежит на ступени у дороги.
+  int roadBoardsFor(int level, SudokuRoad road) => _roadBoards[road]?[level]?.length ?? 0;
 
   /// Ширина полосы банка — 0,1; ключом берём целое, чтобы не сравнивать дробные.
   static int _bandKey(double rating) => (rating * 10).round();
@@ -209,8 +231,10 @@ class SudokuLevels {
   }
 
   /// Доска уровня. `seed` задаёт выбор из полосы: одно и то же зерно — одна и та же доска.
-  SudokuBoard? boardFor(int level, {int seed = 0, int shift = 0}) {
+  /// [road] — дорога: на банке сдвиг полосы, на вариантной ступени — доски своей дороги.
+  SudokuBoard? boardFor(int level, {int seed = 0, int shift = 0, SudokuRoad road = defaultSudokuRoad}) {
     final cfg = config(level);
+    if (road != defaultSudokuRoad && shift == 0) shift = sudokuRoadShift(road);
     final rnd = Random(seed == 0 ? DateTime.now().microsecondsSinceEpoch : seed);
 
     if (cfg.fromBank) {
@@ -226,7 +250,8 @@ class SudokuLevels {
       );
     }
 
-    final pool = _variantBoards[level];
+    final own = road == defaultSudokuRoad ? null : _roadBoards[road]?[level];
+    final pool = (own != null && own.isNotEmpty) ? own : _variantBoards[level];
     if (pool == null || pool.isEmpty) return null;
     return _fromRow(level, pool[rnd.nextInt(pool.length)]);
   }
