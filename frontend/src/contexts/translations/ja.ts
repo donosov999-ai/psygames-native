@@ -465,6 +465,7 @@ const t: Record<string, string> = {
   "cleanRunBadge": "🔥 ノーミス{n}連続",
   "levelStarting": "レベル{n}を開始します…",
   "sameLevelRetry": "同じレベルにもう一度…",
+  "levelDownRetry": "レベル {n} に下がってもう一度…",
   "levelsInOrderHint": "ここからはレベル順に進み、難易度が上がります",
   "nextNow": "すぐ次へ",
   "retry": "もう一度",

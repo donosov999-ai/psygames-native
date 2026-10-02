@@ -1257,6 +1257,7 @@ const t: Record<string, string> = {
   "cleanRunBadge": "🔥 무실수 {n}연속",
   "levelStarting": "레벨 {n} 시작 중…",
   "sameLevelRetry": "같은 레벨 — 한 번 더…",
+  "levelDownRetry": "레벨 {n}로 내려가요 — 한 번 더…",
   "levelsInOrderHint": "이제부터 레벨이 순서대로, 난이도가 올라가요",
   "nextNow": "바로 다음",
   "retry": "한 번 더",

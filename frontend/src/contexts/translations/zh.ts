@@ -1080,6 +1080,7 @@ const t: Record<string, string> = {
   "cleanRunBadge": "🔥 连续 {n} 关全对",
   "levelStarting": "第 {n} 关启动中…",
   "sameLevelRetry": "同一关——再来一次…",
+  "levelDownRetry": "降到第 {n} 关——再来一次…",
   "levelsInOrderHint": "接下来——关卡按序推进，难度递增",
   "nextNow": "立即下一关",
   "retry": "再来一次",

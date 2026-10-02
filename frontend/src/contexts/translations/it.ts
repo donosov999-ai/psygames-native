@@ -1257,6 +1257,7 @@ const t: Record<string, string> = {
   "cleanRunBadge": "🔥 Serie di {n} puliti",
   "levelStarting": "Livello {n} in partenza…",
   "sameLevelRetry": "Stesso livello — di nuovo…",
+  "levelDownRetry": "Torni al livello {n} — di nuovo…",
   "levelsInOrderHint": "Da qui in poi — livelli in ordine, la difficoltà cresce",
   "nextNow": "Avanti subito",
   "retry": "Di nuovo",

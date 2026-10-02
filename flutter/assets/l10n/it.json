@@ -422,6 +422,7 @@
 "level":"Livello",
 "levelAlmost":"Livello {n} — quasi!",
 "levelDone":"Livello {n} superato!",
+"levelDownRetry":"Torni al livello {n} — di nuovo…",
 "lexicalDecision":"Parola o no?",
 "lexicalDecisionDesc":"Parola vera — o falsa?",
 "lexicalDecisionIntroDesc":"Il classico compito di decisione lessicale: appare una stringa nella lingua di studio — una parola vera o un falso plausibile (una o due lettere scambiate). Decidi il più in fretta possibile. Velocità e precisione riflettono quanto rapidamente le parole emergono dal tuo lessico mentale — l'indicatore chiave dell'automatismo linguistico. Per il cinese, una \"non-parola\" è una combinazione di caratteri assente dal dizionario di studio.",

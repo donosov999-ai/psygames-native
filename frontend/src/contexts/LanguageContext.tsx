@@ -2917,6 +2917,7 @@ const translations: Translations = {
   cleanRunBadge: { ru: '🔥 Серия {n} чистых', en: '🔥 Clean run {n}' },
   levelStarting: { ru: 'Уровень {n} запускается…', en: 'Starting level {n}…' },
   sameLevelRetry: { ru: 'Тот же уровень — ещё раз…', en: 'Same level — retry…' },
+  levelDownRetry: { ru: 'Уровень ниже — {n}. Ещё раз…', en: 'Down to level {n} — retry…' },
   levelsInOrderHint: { ru: 'Дальше — уровни по порядку, сложность растёт', en: 'Next up — levels in order, difficulty grows' },
   nextNow: { ru: 'Дальше сразу', en: 'Next now' },
   retry: { ru: 'Ещё раз', en: 'Retry' },

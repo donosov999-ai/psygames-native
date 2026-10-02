@@ -422,6 +422,7 @@
 "level":"Level",
 "levelAlmost":"Level {n} — almost!",
 "levelDone":"Level {n} done!",
+"levelDownRetry":"Down to level {n} — retry…",
 "lexicalDecision":"Word or Not?",
 "lexicalDecisionDesc":"Real word — or a fake?",
 "lexicalDecisionIntroDesc":"The classic lexical decision task: a string in the target language appears — a real word or a plausible fake (one or two letters swapped). Decide as fast as you can. Speed and accuracy reflect how quickly words are retrieved from your mental lexicon — the key marker of language automaticity. For Chinese, a “non-word” is a character combination not present in the training dictionary.",
