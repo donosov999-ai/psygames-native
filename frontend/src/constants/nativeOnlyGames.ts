@@ -1,4 +1,4 @@
-/* psygames-native-only-games · VER 1 · 30.09.2026 */
+/* psygames-native-only-games · VER 2 · 02.10.2026 */
 /**
  * ИГРЫ ТОЛЬКО С НАТИВНЫМ ЭКРАНОМ — БЕЗ ВЕБ-ДВОЙНИКА.
  *
@@ -39,6 +39,8 @@ export const NATIVE_ONLY_GAMES: readonly NativeOnlyGame[] = [
   { route: '/games/monster-traits?mode=missing', nameKey: 'monsterMissing', descKey: 'monsterMissingDesc' },
   { route: '/games/roll-and-bank', nameKey: 'rollAndBank', descKey: 'rollAndBankDesc' },
   { route: '/games/hidden-character', nameKey: 'hiddenCharacter', descKey: 'hiddenCharacterDesc' },
+  // «Кошки» (раздел «Судоку», PR #10): экран только нативный — без строки здесь профиль её не пропускал (4a5bb886).
+  { route: '/games/cats', nameKey: 'catsTitle', descKey: 'catsDesc' },
   // Раннер «Поиска глазами» (задача 5386c0e8, решение Дениса 30.09.2026: сразу на Flutter).
   { route: '/games/search-runner', nameKey: 'searchRunner', descKey: 'searchRunnerDesc' },
   // «Шахматы», новая игра 1 из 7 (задача 04e0a67e): тактика по двенадцати приёмам Lichess.
