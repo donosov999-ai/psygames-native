@@ -2156,6 +2156,13 @@ const translations: Translations = {
   // действие — одно слово, иначе переводчик двенадцати языков пишет три строки
   // вместо одной, а человек видит на соседних экранах разные подписи.
   tabGames: { ru: 'Игры', en: 'Games' },
+  // Каталог «Игры»: поиск и фильтр шире развилок (задача f5025027, решение Дениса 01.10).
+  catalogSearch: { ru: 'Найти игру', en: 'Find a game' },
+  catalogFilter: { ru: 'Фильтр', en: 'Filter' },
+  catalogAll: { ru: 'Все игры', en: 'All games' },
+  catalogBySection: { ru: 'Разделы', en: 'Sections' },
+  catalogBySkill: { ru: 'Навыки', en: 'Skills' },
+  catalogNothing: { ru: 'Ничего не нашлось', en: 'No games match your search' },
   tabPet: { ru: 'Питомец', en: 'Pet' },
   // ⚠️ Ключа «все игры» здесь НЕТ нарочно: он уже есть ниже (`allGames`), и
   // второй с тем же смыслом — ровно тот дубль, что ловит гейт dictionary-duplicates.

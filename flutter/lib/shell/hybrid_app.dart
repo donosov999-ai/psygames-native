@@ -104,6 +104,7 @@ import '../games/phoneme_pairs/screen.dart';
 import '../games/chinese_tones/screen.dart';
 import '../games/dictation/screen.dart';
 import '../games/rhythm_pitch/screen.dart';
+import 'catalog_screen.dart';
 import 'hub_screen.dart';
 import 'warmup_bridge.dart';
 import 'warmup_step_bridge.dart';
@@ -149,6 +150,8 @@ class HybridApp extends StatefulWidget {
         '/warmup-picker': (_) => const WarmupPickerScreen(),
         '/warmup-complete': (_) => const WarmupCompleteScreen(),
         '/warmup-bridge': (_) => const WarmupBridgeScreen(),
+        // Вкладка «Игры»: разделы, поиск и фильтр (задачи 9bd1b15d, f5025027).
+        '/games': (s) => CatalogScreen(state: s),
       };
 
   /// Игра перенесена → строится нативно. Ключ — путь маршрута веб-сборки.
@@ -859,13 +862,16 @@ class _HybridAppState extends State<HybridApp> {
     }
   }
 
-  Future<void> _openNative(
+  /// Возвращает, ушёл ли человек с экрана САМ (назад) — а не страница увела его дальше и
+  /// не выбор в развилке/каталоге открыл следующий экран. По этому признаку выбор
+  /// открывается снова, когда человек вернулся из выбранной в нём игры.
+  Future<bool> _openNative(
     String route, {
     Map<String, String> query = const {},
     WarmupStepInfo? stepInfo,
   }) async {
     final build = HybridApp.native[route] ?? HybridApp.shell[route];
-    if (build == null) return;
+    if (build == null) return false;
     _openedRoute = route;
     // Настройки шага живут ровно столько, сколько открыт экран, — как
     // `useLocalSearchParams` в вебе. См. [GamePreset].
@@ -940,13 +946,26 @@ class _HybridAppState extends State<HybridApp> {
      * нативно, остальные — в веб-половине: хаб про это ничего не знает и знать
      * не должен, иначе он станет второй оболочкой.
      */
-    if (!mounted || result is! HubCardTap) return;
+    if (!mounted || result is! HubCardTap) return !goingOn;
     final next = result.route;
-    if (HybridApp.native.containsKey(next)) {
-      await _openNative(next, query: HybridApp.queryOf(next));
-    } else {
-      await _c.loadRequest(Uri.parse('${widget.server.origin}$next'));
+    // Адрес карточки — как его пишет веб (`?mode=Light%20Up`); ключ карты ищем тем же
+    // разбором, что и у перехвата страницы.
+    final nativeNext = HybridApp.routeOf(next);
+    if (nativeNext != null && (HybridApp.native.containsKey(nativeNext) || HybridApp.shell.containsKey(nativeNext))) {
+      final cameBack = await _openNative(nativeNext, query: HybridApp.queryOf(next));
+      /*
+       * 🔴 ВЕРНУЛСЯ ИЗ ВЫБРАННОГО — СНОВА В ВЫБОР, НАТИВНЫЙ (задача f5025027).
+       *
+       * Страница под нами всё это время стояла на адресе выбора (`/games`, развилки), и
+       * после закрытия игры человек видел ВЕБ-версию того же экрана: каталог без поиска,
+       * развилку другим видом. Шаг «назад» отсюда не делаем — его сделает сам выбор, когда
+       * человек закроет и его.
+       */
+      if (mounted && cameBack) return _openNative(route, query: query);
+      return false;
     }
+    await _c.loadRequest(Uri.parse('${widget.server.origin}$next'));
+    return false;
   }
 
   /// Сброс кэша при смене вложенной сборки — см. пояснение в `initState`.

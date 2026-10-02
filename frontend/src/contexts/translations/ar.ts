@@ -3427,5 +3427,11 @@ const t: Record<string, string> = {
   "sdkRule_between": "بين الطرفين",
   "sdkRule_lockout": "القفل",
   "sdkRule_xv": "XV",
+  "catalogSearch": "ابحث عن لعبة",
+  "catalogFilter": "تصفية",
+  "catalogAll": "كل الألعاب",
+  "catalogBySection": "الأقسام",
+  "catalogBySkill": "المهارات",
+  "catalogNothing": "لا توجد ألعاب مطابقة",
 };
 export default t;

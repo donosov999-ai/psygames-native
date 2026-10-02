@@ -3431,5 +3431,11 @@ const t: Record<string, string> = {
   "sdkRule_between": "两端之间",
   "sdkRule_lockout": "锁线",
   "sdkRule_xv": "XV",
+  "catalogSearch": "查找游戏",
+  "catalogFilter": "筛选",
+  "catalogAll": "全部游戏",
+  "catalogBySection": "分区",
+  "catalogBySkill": "能力",
+  "catalogNothing": "没有匹配的游戏",
 };
 export default t;

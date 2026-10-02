@@ -3434,5 +3434,11 @@ const t: Record<string, string> = {
   "sdkRule_between": "सिरों के बीच",
   "sdkRule_lockout": "ताला",
   "sdkRule_xv": "XV",
+  "catalogSearch": "खेल खोजें",
+  "catalogFilter": "फ़िल्टर",
+  "catalogAll": "सभी खेल",
+  "catalogBySection": "खंड",
+  "catalogBySkill": "कौशल",
+  "catalogNothing": "कोई खेल नहीं मिला",
 };
 export default t;

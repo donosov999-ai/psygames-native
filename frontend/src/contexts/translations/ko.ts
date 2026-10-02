@@ -3426,5 +3426,11 @@ const t: Record<string, string> = {
   "sdkRule_between": "양 끝 사이",
   "sdkRule_lockout": "자물쇠",
   "sdkRule_xv": "XV",
+  "catalogSearch": "게임 찾기",
+  "catalogFilter": "필터",
+  "catalogAll": "모든 게임",
+  "catalogBySection": "섹션",
+  "catalogBySkill": "능력",
+  "catalogNothing": "일치하는 게임이 없습니다",
 };
 export default t;
