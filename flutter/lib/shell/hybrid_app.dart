@@ -18,6 +18,7 @@ import '../games/flanker/screen.dart';
 import '../games/gonogo/screen.dart';
 import '../games/inhibition/screen.dart';
 import '../games/iowa/screen.dart';
+import '../games/reading_span/screen.dart';
 import '../games/posner/screen.dart';
 import '../games/proofreading/screen.dart';
 import '../games/prl/screen.dart';
@@ -167,6 +168,7 @@ class HybridApp extends StatefulWidget {
         '/games/anagrams?mode=square': (s) => RingScreen(state: s),
         '/games/dots-connect': (s) => DotsConnectScreen(state: s),
         '/games/one-line': (s) => OneLineScreen(state: s),
+        '/games/reading-span': (s) => ReadingSpanScreen(state: s),
         '/games/digit-span': (s) => DigitSpanScreen(state: s),
         '/games/memory-matrix': (s) => MemoryMatrixScreen(state: s),
         '/games/corsi': (s) => CorsiScreen(state: s),
