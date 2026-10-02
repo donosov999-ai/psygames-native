@@ -43,7 +43,7 @@ void main() {
       }
     });
     await tester.pump();
-    await tester.tap(find.byTooltip('Правила'));
+    await tester.tap(find.byTooltip(L.t('btn_rules')));
     await tester.pumpAndSettle();
     final dialog = find.byKey(const Key('game-rules'));
     expect(dialog, findsOneWidget, reason: '$route: справка не открылась');

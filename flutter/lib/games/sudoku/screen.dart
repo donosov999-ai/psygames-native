@@ -45,7 +45,7 @@ class SudokuScreen extends StatefulWidget {
 
   final SharedState state;
 
-  /// Режим доски: `null` — обычная лестница на 92 ступени, иначе «Небоскрёбы» или
+  /// Режим доски: `null` — обычная лестница, иначе «Небоскрёбы» или
   /// «Неравенства» со своей мини-лестницей на 8 ступеней и своим счётчиком.
   /// В вебе это тот же экран с адресом `/games/sudoku?mode=towers`.
   final SideMode? mode;
@@ -61,10 +61,16 @@ class SudokuScreen extends StatefulWidget {
 
 /// Одна подпись на обе ветки раздачи: и лестницу, и режим. Второй такой же литерал
 /// в коде — это лишняя строка в долге подписей и лишний ключ при переводе.
-const _noBoards = 'Досок этого уровня нет в данных';
+String get _noBoards => L.t('sdkNoBoards');
 
 class _SudokuScreenState extends State<SudokuScreen> {
-  static const errorLimit = 3;   // «3 ошибки. Сыграй заново» — правило веб-версии
+  /// Сколько ошибок до провала. На лестнице — поле ступени (`lives` выгрузки лестницы =
+  /// `levelConfig.lives` веба: цена ошибки убывает к верху, задача 1fa57de3); пилот
+  /// генератора и режимы — три, как было.
+  int get errorLimit {
+    if (widget.mode != null || _pilot) return 3;
+    return _levels?.config(_ladder.level).lives ?? 3;
+  }
 
   late LevelLadder _ladder;
   SudokuLevels? _levels;
@@ -91,7 +97,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
 
   /// 🔴 ПИЛОТ ГЕНЕРАТОРА (§10 шаг 3) — ОТДЕЛЬНЫЙ ПУТЬ ЗА ФЛАГОМ, включается в меню паузы.
   /// Включён: доску выбирает рейтинг, номер уровня — счётчик побед пилота. Выключен:
-  /// лестница на 92 ступени ровно как была — ни один её ключ пилот не пишет.
+  /// основная лестница ровно как была — ни один её ключ пилот не пишет.
   GeneratorStore? _genStore;
   bool _pilot = false;
   Map<String, List<int>> _levelsOfTemplate = const {};
@@ -257,13 +263,21 @@ class _SudokuScreenState extends State<SudokuScreen> {
   @override
   void initState() {
     super.initState();
-    _ladder = LevelLadder(gameId: 'sudoku', store: SharedLevelStore(widget.state), maxLevel: 92);
+    _ladder = _ladderUpTo(SudokuLevels.fallbackLast);
     _boot();
   }
 
+  /// 🔴 ПОТОЛОК ЛЕСТНИЦЫ — ИЗ ДАННЫХ, А НЕ ЧИСЛОМ В КОДЕ (01.10.2026, задача 5b0b7ca2).
+  /// Здесь стояло `maxLevel: 92`: ступени 93–96 «немецкого шёпота» выгрузились, а победа
+  /// на 92-й оставляла человека на 92-й навсегда — новые ступени были бы недостижимы.
+  /// Поймала проба нажатиями `sudoku_whisper_screen_test.dart`, а не пробы данных.
+  LevelLadder _ladderUpTo(int last) =>
+      LevelLadder(gameId: 'sudoku', store: SharedLevelStore(widget.state), maxLevel: last);
+
   Future<void> _boot() async {
-    await _ladder.load();
     final levels = await SudokuLevels.load();
+    _ladder = _ladderUpTo(levels.lastLevel);
+    await _ladder.load();
     await WordokuWords.load();
     // Лестница нужна и в режиме: потолок подсказок берётся по номеру ступени — ровно
     // так же, как в веб-половине (там в режиме `level` держит номер ступени).
@@ -748,8 +762,8 @@ class _SudokuScreenState extends State<SudokuScreen> {
       gameType: 'sudoku',
       score: 0,
       timeSeconds: _elapsed,
-      difficulty: mode == null ? _difficultyFor(level) : null,
-      mode: mode == null ? _levelMode(level) : '${sideModeName(mode)}-$level',
+      difficulty: mode == null ? _difficultyFor(level) : _modeDifficulty(mode, level),
+      mode: mode == null ? _levelMode(level) : _modeKey(mode, level),
       errors: _errors,
       details: {
         'errors': _errors,
@@ -758,10 +772,25 @@ class _SudokuScreenState extends State<SudokuScreen> {
         'level': level,
         'variant': mode == null ? (_board?.variant ?? 'none') : sideModeName(mode),
         if (mode == null) 'road': 'normal',
+        if (mode == null) 'lives': errorLimit,
         if (_skinShown != null) 'skin': _skinShown,
       },
     ));
   }
+
+  /// Имя партии в отчёте — как у веба: режимы-лестницы `<режим>-<ступень>`, «Свободно» —
+  /// `9x9` с трудностью отдельно (app/games/sudoku.tsx, saveSession). «Киллер» в вебе писался
+  /// `killer-<сложность>` — наследие трёх кнопок; у лестницы осмысленна ступень.
+  String _modeKey(SideMode mode, int step) {
+    if (mode == SideMode.free) {
+      final n = freePreset(step).size;
+      return '${n}x$n';
+    }
+    return '${sideModeName(mode)}-$step';
+  }
+
+  String? _modeDifficulty(SideMode mode, int step) =>
+      mode == SideMode.free ? freePreset(step).difficulty : null;
 
   /// Победа в режиме — своя мини-лестница, но отчёт обязан уйти так же, как у уровней.
   void _reportModeWin(int step) {
@@ -770,7 +799,8 @@ class _SudokuScreenState extends State<SudokuScreen> {
       gameType: 'sudoku',
       score: _score(step),
       timeSeconds: _elapsed,
-      mode: '${sideModeName(mode)}-$step',
+      difficulty: _modeDifficulty(mode, step),
+      mode: _modeKey(mode, step),
       errors: _errors,
       details: {
         'errors': _errors,
@@ -794,7 +824,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
     _won = true;
     if (widget.mode != null) {
       _reportModeWin(_side?.step ?? 1);   // шаг — ДО прибавки, как в вебе
-      _side?.win();   // ступень режима — свой счётчик, лестница на 92 ступени не трогается
+      _side?.win();   // ступень режима — свой счётчик, основная лестница не трогается
       return;
     }
     if (widget.junior) {
@@ -825,6 +855,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
         'level': level,
         'variant': _board?.variant ?? 'none',
         'road': 'normal',
+        'lives': errorLimit,
         if (_skinShown != null) 'skin': _skinShown,
       },
     ));
@@ -856,9 +887,43 @@ class _SudokuScreenState extends State<SudokuScreen> {
     return out;
   }
 
-  /// Заголовок один на экран и на разбор: вторая строка стала бы вторым долгом
-  /// храповика подписей (`test/ui_text_debt_does_not_grow_test.dart`).
-  String get _title => widget.mode == null ? 'Судоку' : L.t('teachTitle');
+  /// Заголовок один на экран и на разбор — имя режима.
+  ///
+  /// 🔴 С 24.09 (коммит b658621d4) у режимов здесь стояло `L.t('teachTitle')`: над
+  /// «Небоскрёбами» и «Неравенствами» было написано «Разбор по шагам». Теперь — имя режима
+  /// теми же ключами, что у карточек развилки (задача 55b97845).
+  String get _title => switch (widget.mode) {
+        null => L.t('sudoku'),
+        SideMode.towers => L.t('sudokuTowersTitle'),
+        SideMode.unequal => L.t('sudokuUnequalTitle'),
+        SideMode.killer => L.t('sudokuModeKiller'),
+        SideMode.free => L.t('sudokuModeFree'),
+      };
+
+  /// «Киллер» и «Свободно» — классическая доска (у киллера — с суммами): её рисует обычная
+  /// доска лестницы, у которой суммы и тонировка групп уже есть (`variant_decor.dart`).
+  SudokuBoard _asLadderBoard(SideBoard side) => SudokuBoard(
+        level: side.step,
+        n: side.n,
+        br: side.br,
+        bc: side.bc,
+        variant: widget.mode == SideMode.killer ? 'killer' : 'none',
+        puzzle: side.puzzle,
+        solution: side.solution,
+        geometry: side.geometry,
+        tier: side.tier,
+      );
+
+  /// Пресет «Свободно» словами: «9×9 · Medium».
+  String _freeLabel(int step) {
+    final p = freePreset(step);
+    return '${p.size}×${p.size} · ${L.t(p.difficulty)}';
+  }
+
+  void _chooseFree(int step) {
+    _side?.choose(step);
+    _deal();
+  }
 
   List<LessonStep> _lessonSteps() {
     final solution = _solution;
@@ -938,24 +1003,38 @@ class _SudokuScreenState extends State<SudokuScreen> {
         // ⚠️ Подпись одна и та же на оба случая: новая строка в коде — это новый долг
         // храповика подписей, а «Уровень» уже переведён на двенадцать языков.
         HudItem(
-          label: 'Уровень',
+          label: L.t('level'),
           // У пилота номер — счётчик побед: только растёт, конца нет (решение 18.09).
           value: widget.junior
               ? '${_junior?.step ?? 1}/$juniorSteps'
-              : widget.mode != null
-                  ? '${_side?.step ?? 1}/$sideSteps'
-                  : _pilot ? '${_pilotWins + 1}' : '${_ladder.level}',
+              : widget.mode == SideMode.free
+                  ? _freeLabel(_side?.step ?? 1)
+                  : widget.mode != null
+                      ? '${_side?.step ?? 1}/${sideStepsOf(widget.mode!)}'
+                      : _pilot ? '${_pilotWins + 1}' : '${_ladder.level}',
           icon: _pilot ? Icons.auto_awesome : Icons.trending_up,
         ),
-        HudItem(label: 'Ошибки', value: '$_errors/$errorLimit', icon: Icons.close),
-        if (ruleLabel != null) HudItem(label: 'Правило', value: ruleLabel, icon: Icons.rule),
+        HudItem(label: L.t('errors'), value: '$_errors/$errorLimit', icon: Icons.close),
+        if (ruleLabel != null) HudItem(label: L.t('simonRule'), value: ruleLabel, icon: Icons.rule),
       ],
       field: (context, height) {
         final ready = widget.mode == null ? levels != null : _sideModes != null;
         if (!ready) return const Center(child: CircularProgressIndicator());
         final side = _sideBoard;
         if (widget.mode == null ? board == null : side == null) {
-          return Center(child: Text(_failure ?? 'Доска не собралась'));
+          return Center(child: Text(_failure ?? L.t('sdkBoardFailed')));
+        }
+        if (widget.mode == SideMode.killer || widget.mode == SideMode.free) {
+          return SudokuBoardView(
+            board: _asLadderBoard(side!),
+            grid: _grid,
+            given: _given,
+            marks: _marks,
+            colors: _colors,
+            selected: _selected,
+            height: height,
+            onTap: _select,
+          );
         }
         if (widget.mode != null) {
           return ModeBoard(
@@ -991,13 +1070,13 @@ class _SudokuScreenState extends State<SudokuScreen> {
       auxRow: AuxBar(children: [
         AuxAction(
           icon: Icons.undo,
-          label: 'Отменить',
+          label: L.t('btn_undo'),
           count: _history.isEmpty ? null : _history.length,
           onPressed: _history.isEmpty || _won || _lost ? null : _undo,
         ),
         AuxAction(
           icon: Icons.lightbulb_outline,
-          label: 'Подсказка',
+          label: L.t('btn_hint'),
           tint: const Color(0xFFB45309),
           count: _hintMax > 0 ? (_hintMax - _hintsUsed).clamp(0, _hintMax) : null,
           onPressed: (_hintsUsed < _hintMax && _selected != null && !_won && !_lost)
@@ -1018,7 +1097,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
           active: _paint != null,
           onPressed: (_won || _lost) ? null : _togglePaint,
         ),
-        AuxAction(icon: Icons.refresh, label: 'Заново', onPressed: _deal),
+        AuxAction(icon: Icons.refresh, label: L.t('restart'), onPressed: _deal),
       ]),
       toolbar: (board == null && _sideBoard == null)
           ? null
@@ -1041,9 +1120,11 @@ class _SudokuScreenState extends State<SudokuScreen> {
               wonNote: _won && _symbols.word != null
                   ? L.t('sudokuHiddenWord').replaceAll('{w}', _symbols.word!)
                   : null,
+              // Провал — словами и с числом ступени, как в вебе: «Ошибок: 2 из 2…».
+              lostNote: _lost ? L.t('outOfLivesHint').replaceAll('{n}', '$errorLimit') : null,
             ),
       pauseActions: [
-        PauseAction(label: 'Начать заново', icon: Icons.refresh, onPressed: _deal),
+        PauseAction(label: L.t('sdkStartOver'), icon: Icons.refresh, onPressed: _deal),
         if (widget.mode == null && !widget.junior && _genStore != null)
           PauseAction(
             label: _pilot ? L.t('sudokuPilotOff') : L.t('sudokuPilotOn'),
@@ -1054,6 +1135,14 @@ class _SudokuScreenState extends State<SudokuScreen> {
         // (symbols.dart); рисованные цифры — везде, это всё ещё цифры.
         if (widget.mode == null && board != null)
           PauseAction(label: L.t('digitStyle'), icon: Icons.style_outlined, onPressed: _pickSkin),
+        // «Свободно»: размер и сложность — выбор человека, как кнопки веб-экрана.
+        if (widget.mode == SideMode.free)
+          for (var step = 1; step <= sideStepsOf(SideMode.free); step++)
+            PauseAction(
+              label: _freeLabel(step),
+              icon: step == (_side?.step ?? 1) ? Icons.radio_button_checked : Icons.radio_button_unchecked,
+              onPressed: () => _chooseFree(step),
+            ),
       ],
     );
   }
@@ -1074,25 +1163,32 @@ class _Step {
 
 /// Имя правила для полосы счётчиков: короткое, чтобы не рвало строку.
 String variantTitle(String variant) => switch (variant) {
-      'diagonal' => 'диагонали',
-      'antiknight' => 'ход коня',
-      'hyper' => 'доп. зоны',
-      'nonconsec' => 'не подряд',
-      'jigsaw' => 'кривые блоки',
-      'antiking' => 'ход короля',
-      'evenodd' => 'чёт-нечет',
-      'kropki' => 'точки Кропки',
-      'sandwich' => 'сэндвич',
-      'thermo' => 'термометры',
-      'arrow' => 'стрелки',
-      'thermocage' => 'термометр и суммы',
-      'killer' => 'клетки-суммы',
-      'unequal' => 'неравенства',
-      'towers' => 'небоскрёбы',
-      'thermoknight' => 'термо и конь',
-      'sandparity' => 'сэндвич и чётность',
-      'killerdiag' => 'суммы и диагонали',
-      _ => 'классика',
+      'diagonal' => L.t('sdkRule_diagonal'),
+      'antiknight' => L.t('sdkRule_antiknight'),
+      'hyper' => L.t('sdkRule_hyper'),
+      'nonconsec' => L.t('sdkRule_nonconsec'),
+      'jigsaw' => L.t('sdkRule_jigsaw'),
+      'antiking' => L.t('sdkRule_antiking'),
+      'evenodd' => L.t('sdkRule_evenodd'),
+      'kropki' => L.t('sdkRule_kropki'),
+      'sandwich' => L.t('sdkRule_sandwich'),
+      'thermo' => L.t('sdkRule_thermo'),
+      'arrow' => L.t('sdkRule_arrow'),
+      'thermocage' => L.t('sdkRule_thermocage'),
+      'killer' => L.t('sdkRule_killer'),
+      'unequal' => L.t('sdkRule_unequal'),
+      'towers' => L.t('sdkRule_towers'),
+      'thermoknight' => L.t('sdkRule_thermoknight'),
+      'sandparity' => L.t('sdkRule_sandparity'),
+      'killerdiag' => L.t('sdkRule_killerdiag'),
+      'whisper' => L.t('sdkRule_whisper'),
+      'renban' => L.t('sdkRule_renban'),
+      'regionsum' => L.t('sdkRule_regionsum'),
+      'palindrome' => L.t('sdkRule_palindrome'),
+      'between' => L.t('sdkRule_between'),
+      'lockout' => L.t('sdkRule_lockout'),
+      'xv' => L.t('sdkRule_xv'),
+      _ => L.t('sdkRule_none'),
     };
 
 /// Доска: квадрат внутри высоты, которую дал каркас.
@@ -1215,6 +1311,21 @@ class SudokuBoardView extends StatelessWidget {
                   child: CustomPaint(
                     key: const Key('kropki-layer'),
                     painter: KropkiPainter(dots: kropkiDots(g.kropki!, n, cell), cell: cell),
+                  ),
+                ),
+              ),
+            // XV — буквы на гранях, так же поверх клеток.
+            if (g.xv != null)
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: CustomPaint(
+                    key: const Key('xv-layer'),
+                    painter: XvPainter(
+                      marks: xvMarks(g.xv!, n, cell),
+                      cell: cell,
+                      surface: scheme.surface,
+                      ink: scheme.onSurface,
+                    ),
                   ),
                 ),
               ),
@@ -1414,6 +1525,7 @@ class _Toolbar extends StatelessWidget {
     this.label,
     this.icon,
     this.wonNote,
+    this.lostNote,
   });
 
   final int n;
@@ -1440,6 +1552,9 @@ class _Toolbar extends StatelessWidget {
   /// Строка над кнопкой после победы — спрятанное слово Wordoku.
   final String? wonNote;
 
+  /// Строка над кнопкой после провала — сколько ошибок позволяла ступень.
+  final String? lostNote;
+
   @override
   Widget build(BuildContext context) {
     if (won || lost) {
@@ -1447,10 +1562,10 @@ class _Toolbar extends StatelessWidget {
         key: const Key('next'),
         onPressed: onNext,
         icon: Icon(won ? Icons.arrow_forward : Icons.refresh),
-        label: Text(won ? 'Следующий уровень' : 'Ещё раз'),
+        label: Text(won ? L.t('sdkNextLevel') : L.t('retry')),
       );
       final repeat = onRepeat;
-      final note = wonNote;
+      final note = won ? wonNote : lostNote;
       final Widget body = (lost && repeat != null)
             ? Wrap(
                 alignment: WrapAlignment.center,
@@ -1476,7 +1591,7 @@ class _Toolbar extends StatelessWidget {
                 children: [
                   Text(
                     note,
-                    key: const Key('hidden-word'),
+                    key: Key(won ? 'hidden-word' : 'lost-note'),
                     textAlign: TextAlign.center,
                     style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
                   ),

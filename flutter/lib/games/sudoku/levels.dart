@@ -3,7 +3,7 @@
 /// 🔴 ПОЧЕМУ ТАК. Веб-версия собирает доску вариантного уровня на лету логическим
 /// построителем — это `sudoku-grade.ts` (1894 строки) плюс половина ядра. Переносить его
 /// в Dart дорого и незачем: доски можно ВЫГРУЗИТЬ тем же боевым путём и возить данными.
-///   · `assets/levels/sudoku-ladder.json` — 92 ступени лестницы (размер, блоки, дырки,
+///   · `assets/levels/sudoku-ladder.json` — все ступени лестницы (размер, блоки, дырки,
 ///     вариант, потолок подсказок) и 35 полос рейтинга банка;
 ///   · `assets/levels/sudoku-bank.json` — банк классики (1835 досок, 58 полос), тот же
 ///     файл, что возит веб-версия;
@@ -32,6 +32,7 @@ class SudokuLevel {
     required this.blanks,
     required this.variant,
     required this.hintMax,
+    this.lives = 3,
   });
 
   final int level;
@@ -41,6 +42,10 @@ class SudokuLevel {
   final int blanks;
   final String variant;
   final int hintMax;
+
+  /// Сколько ошибок до провала на этой ступени — `levelConfig.lives` веба (цена ошибки
+  /// убывает к верху лестницы, задача 1fa57de3). Выгрузка без поля — прежние три.
+  final int lives;
 
   /// Доска берётся из банка, когда это классика 9×9: банк только такой.
   bool get fromBank => variant == 'none' && n == 9;
@@ -113,6 +118,7 @@ class SudokuLevels {
         blanks: (row['blanks'] as num).toInt(),
         variant: row['variant'] as String,
         hintMax: (row['hintMax'] as num).toInt(),
+        lives: (row['lives'] as num?)?.toInt() ?? 3,
       );
     }
     final rows = [
@@ -155,6 +161,10 @@ class SudokuLevels {
   static int _bandKey(double rating) => (rating * 10).round();
 
   int get lastLevel => _ladder.keys.reduce(max);
+
+  /// Потолок до загрузки ступеней — только чтобы экран было чем рисовать первый кадр;
+  /// настоящий берётся из данных ([lastLevel]) сразу после загрузки.
+  static const fallbackLast = 999;
 
   SudokuLevel config(int level) =>
       _ladder[level.clamp(1, lastLevel)] ?? _ladder[1]!;

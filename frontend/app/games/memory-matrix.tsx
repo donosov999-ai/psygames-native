@@ -1,4 +1,4 @@
-/* psygames-game-memory-matrix · VER 1 · 19.08.2026 */
+/* psygames-game-memory-matrix · VER 2 · 01.10.2026 */
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, useWindowDimensions,
@@ -174,6 +174,33 @@ export function levelParams(level: number): { gridSize: number; baseFlashes: num
   return { gridSize, baseFlashes, flashMs, seriesCount, holdMs, decoys };
 }
 
+/** Раундов в уровне. Экспортировано для эталона Flutter-переноса. */
+export const MM_TOTAL_ROUNDS = 10;
+
+/**
+ * Раздача раунда: из перетасованного пула — первая серия (она же порядок для режима
+ * «по порядку»), вторая серия (две серии только в static с L11), ложные — из ОСТАТКА пула:
+ * клетка не может быть одновременно нужной и ложной, иначе у ответа не один вариант.
+ *
+ * ⚠️ Вынесено из экрана чистой функцией, чтобы её же звал экспортёр эталона
+ * (`src/games/memory-matrix/tools/record-flutter-reference.gen.ts`): эталон снимается с того
+ * же пути, по которому раздаётся партия. Порядок обращений к случайности прежний.
+ */
+export function dealRound(
+  gs: number, need: number, two: boolean, decoysWanted: number, rng: () => number = Math.random,
+): { set1: number[]; seq: number[]; set2: number[]; decoys: number[] } {
+  const total = gs * gs;
+  const pool = Array.from({ length: total }, (_, i) => i);
+  for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
+  const занято = two ? need * 2 : need;
+  return {
+    set1: pool.slice(0, need),
+    seq: pool.slice(0, need),
+    set2: two ? pool.slice(need, need * 2) : [],
+    decoys: pool.slice(занято, занято + Math.min(decoysWanted, total - занято)),
+  };
+}
+
 const SERIES1_COLOR = '#8e2de2';   // фиолетовая серия (как GRADIENT[0])
 const SERIES2_COLOR = '#ef4444';   // красная серия
 
@@ -263,7 +290,7 @@ export default function MemoryMatrixGame() {
   const [beatBest, setBeatBest] = useState(false);   // рекорд побит в этой партии
   useEffect(() => { getBestStreak('memory_matrix').then(setBestStreak).catch(() => {}); }, []);
   const [clearedPassed, setClearedPassed] = useState(true);   // память результата уровня для <LevelCleared passed>
-  const totalRounds = 10;
+  const totalRounds = MM_TOTAL_ROUNDS;
   const levelRef = useRef(1);
   const baseFlashesRef = useRef(3);
   const holdRef = useRef(0);
@@ -334,24 +361,16 @@ export default function MemoryMatrixGame() {
   const прошлаяПодписьRef = useRef('');
 
   const newRound = (gs: number, r: number) => {
-    const total = gs * gs;
     const two = seriesCountRef.current === 2 && matrixMode === 'static';   // 2 серии — только static
     // число клеток в каждой серии (для two меньше, чтобы 2 непересекающихся набора влезли)
     // Расчёт один на экран и на пробу — см. шапку cellsNeeded.
     const need = cellsNeeded(levelRef.current, r, matrixMode, isPreset).need;
-    // непересекающиеся наборы из перетасованного пула
-    const pool = Array.from({ length: total }, (_, i) => i);
-    for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
-    const set1 = new Set(pool.slice(0, need));
-    const seq = pool.slice(0, need);                       // порядок для sequential
-    const set2 = two ? new Set(pool.slice(need, need * 2)) : new Set<number>();
-    /**
-     * ⚠️ ЛОЖНЫЕ БЕРУТСЯ ИЗ ОСТАТКА ПУЛА, а не из всей сетки: клетка не может быть
-     * одновременно нужной и ложной — иначе ответ становится неоднозначным, и проба
-     * перестаёт измерять. Столько, сколько осталось свободных.
-     */
-    const занято = two ? need * 2 : need;
-    const set3 = new Set(pool.slice(занято, занято + Math.min(decoysRef.current, total - занято)));
+    // непересекающиеся наборы из перетасованного пула; ложные — из ОСТАТКА (см. dealRound)
+    const d = dealRound(gs, need, two, decoysRef.current);
+    const set1 = new Set(d.set1);
+    const seq = d.seq;                                     // порядок для sequential
+    const set2 = new Set(d.set2);
+    const set3 = new Set(d.decoys);
 
     setLitCells(set1);
     setLitSequence(seq);
@@ -414,7 +433,11 @@ export default function MemoryMatrixGame() {
     decoysRef.current = isPreset ? 0 : p.decoys;
     flashMsRef.current = isPreset ? 1500 : p.flashMs;
     seriesCountRef.current = isPreset ? 1 : p.seriesCount;
-    if (!isPreset) setGridSize(g);
+    // 🔴 Сетка партии ставится и в шаге зарядки. Было `if (!isPreset)`: потолок доставался
+    // только раздаче ПЕРВОГО раунда, а поле, раунды 2–10 (`newRound(gridSize, …)`) и отчёт шли
+    // по желанию шага без потолка — шаг «5×5» новичку с освоенным 3×3. Поймано переносом на
+    // Flutter 01.10.2026. Повторный старт шага не растёт: потолок от потолка — тот же потолок.
+    setGridSize(g);
     setHits(0); setErrors(0); setScore(0); setRound(1);
     // Серия живёт ровно партию: перенесённая через старт, она обесценивает рекорд.
     streakRef.current = 0; setStreak(0); setBeatBest(false);
