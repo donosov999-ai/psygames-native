@@ -8,11 +8,10 @@
 /// отмечает «сюда нельзя» и ничем не рискует. Ошибкой считается только КОШКА не на
 /// своём месте — как в судоку ошибкой считается цифра не по решению.
 ///
-/// ⚠️ ЛЕСТНИЦА ЗДЕСЬ ВРЕМЕННАЯ, И ЭТО НАПИСАНО ЧЕСТНО. Ось одна — размер поля, и она
-/// упирается в 10×10: дальше расти нечем. Настоящая ось (насколько рваные области,
-/// сколько кошек ставится вынужденно) МЕРЯЕТСЯ в звене 3, задача a7987915. До тех пор
-/// уровни выше тринадцатого отличаются только раскладкой, и делать вид, что это
-/// лестница, нельзя.
+/// 🔴 ЛЕСТНИЦА — ПО МЕРЕ ТРУДНОСТИ, А НЕ ПО РАЗМЕРУ ПОЛЯ (звено 3, задача a7987915).
+/// Прежняя заглушка растила сторону 6 → 10; замер 01.10.2026 показал, что размер
+/// трудности не даёт. Теперь уровень — окно меры ([gradeCats]: нужный приём и цена), карта
+/// отбирается под окно ([dealCatsLevel]); таблица и замер — в шапке `ladder.dart`.
 library;
 
 import 'package:flutter/material.dart';
@@ -25,7 +24,8 @@ import '../../shell/lesson_player.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
-import 'generator.dart';
+import 'grade.dart';
+import 'ladder.dart';
 import 'lesson.dart';
 import 'rules.dart';
 
@@ -44,6 +44,9 @@ class _CatsScreenState extends State<CatsScreen> {
 
   late LevelLadder _ladder;
   CatsBoard? _board;
+
+  /// Мера выданной карты — уходит в отчёт партии.
+  CatsGrade? _grade;
 
   /// Что игрок поставил в каждой клетке.
   final Map<CatCell, CatMark> _marks = {};
@@ -69,10 +72,6 @@ class _CatsScreenState extends State<CatsScreen> {
     _deal();
   }
 
-  /// Сторона поля по номеру уровня. Смотри предупреждение в шапке файла: это
-  /// заглушка до звена 3, а не измеренная лестница.
-  int _sideFor(int level) => 6 + ((level - 1) ~/ 3).clamp(0, 4);
-
   /// Ключ счётчика попыток — тот же приём, что в судоку: номер попытки входит в
   /// зерно, поэтому после проигрыша приходит ДРУГАЯ доска, а не та же самая.
   String get _tryKey => '${SharedState.prefix}cats_try_${widget.state.activeProfile}';
@@ -81,10 +80,10 @@ class _CatsScreenState extends State<CatsScreen> {
 
   void _deal() {
     final level = _ladder.level;
-    final n = _sideFor(level);
-    final puzzle = generateCats(n, 'cats|L$level|A$_attempt');
+    final deal = dealCatsLevel(level, 'cats|L$level|A$_attempt');
     setState(() {
-      _board = puzzle?.board;
+      _board = deal?.puzzle.board;
+      _grade = deal?.grade;
       _marks.clear();
       _history.clear();
       _errors = 0;
@@ -124,7 +123,7 @@ class _CatsScreenState extends State<CatsScreen> {
         if (_errors >= lives) {
           _lost = true;
           _bumpAttempt();
-          _ladder.fail(errors: _errors);
+          _ladder.fail(errors: _errors, details: _report(board));
         }
         return;
       }
@@ -161,12 +160,23 @@ class _CatsScreenState extends State<CatsScreen> {
     });
   }
 
+  /// Отчёт партии: поле и мера выданной карты — по ним калибруется лестница (сколько
+  /// побед и провалов на каждом окне меры).
+  Map<String, Object?> _report(CatsBoard board) {
+    final g = _grade;
+    return {
+      'n': board.n,
+      if (g != null) ...{'tier': g.tier, 'cost': g.cost, 'steps': g.steps},
+      'hints_used': _hintsUsed,
+    };
+  }
+
   void _checkWin() {
     final board = _board;
     if (board == null) return;
     if (!catsSolved(board, _cats)) return;
     _won = true;
-    _ladder.win(errors: _errors);
+    _ladder.win(errors: _errors, details: _report(board));
   }
 
   @override

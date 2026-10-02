@@ -107,7 +107,7 @@ void main() {
 
 TolBoard _board(WidgetTester tester) => tester.widget<TolBoard>(find.byType(TolBoard));
 
-/// Минимум ходов текущей задачи — с ЭКРАНА, из счётчика «<hud_moves>: сделано/минимум».
+/// Минимум ходов текущей задачи — с ЭКРАНА, из счётчика «Ходы: сделано/минимум» (подпись — ключ `hud_moves`).
 int _minMovesOnScreen(WidgetTester tester) {
   for (final w in tester.widgetList<Semantics>(find.byType(Semantics))) {
     final l = w.properties.label;
