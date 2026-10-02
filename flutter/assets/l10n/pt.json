@@ -239,6 +239,7 @@
 "easy":"Fácil",
 "errors":"Erros",
 "exitConfirmLeave":"Sair",
+"exitConfirmLost":"A partida não será salva: o tabuleiro e o progresso serão perdidos.",
 "exitConfirmStay":"Continuar jogando",
 "eye1min":"~1 min",
 "eye3min":"~3 min",

@@ -239,6 +239,7 @@
 "easy":"やさしい",
 "errors":"ミス",
 "exitConfirmLeave":"終了する",
+"exitConfirmLost":"この対局は保存されません。盤面と進行状況は失われます。",
 "exitConfirmStay":"ゲームを続ける",
 "eye1min":"約1分",
 "eye3min":"約3分",

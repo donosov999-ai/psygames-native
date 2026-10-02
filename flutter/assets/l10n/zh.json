@@ -239,6 +239,7 @@
 "easy":"简单",
 "errors":"错误数",
 "exitConfirmLeave":"退出",
+"exitConfirmLost":"本局不会保存：棋盘和进度都会丢失。",
 "exitConfirmStay":"继续游戏",
 "eye1min":"~1分钟",
 "eye3min":"~3分钟",
