@@ -35,5 +35,136 @@
    "WINTER",
    "DRAGON"
   ]
+ },
+ "es": {
+  "9": [
+   "LABERINTO",
+   "SUBMARINO",
+   "FURGONETA",
+   "VESTUARIO",
+   "TRANQUILO",
+   "ESQUIADOR",
+   "CAMPESINO",
+   "COSTUMBRE",
+   "ARGUMENTO",
+   "POTENCIAL"
+  ],
+  "6": [
+   "PUERTA",
+   "CAMINO",
+   "PELOTA",
+   "BOSQUE",
+   "PULGAR",
+   "CUERPO",
+   "HIERBA",
+   "PASTEL",
+   "JARDIN"
+  ]
+ },
+ "de": {
+  "9": [
+   "SCHUBLADE",
+   "DSCHUNGEL",
+   "TRINKGELD",
+   "BAUERNHOF",
+   "NOTIZBUCH",
+   "KNOBLAUCH",
+   "KREISLAUF",
+   "LABYRINTH",
+   "SPITZNAME",
+   "VORSCHLAG",
+   "TANZMUSIK",
+   "RUHESTAND"
+  ],
+  "6": [
+   "ZUCKER",
+   "TASCHE",
+   "GARTEN",
+   "STRAND",
+   "KUCHEN",
+   "TRAUBE",
+   "SCHULE",
+   "KINDER"
+  ]
+ },
+ "fr": {
+  "9": [
+   "CONFITURE",
+   "MOUSTACHE",
+   "PLASTIQUE",
+   "DINOSAURE",
+   "TOURNEVIS",
+   "SIGNATURE",
+   "FRANCHISE",
+   "EXCURSION",
+   "COMPTABLE",
+   "SOUVERAIN",
+   "DYNAMIQUE",
+   "DIPLOMATE"
+  ],
+  "6": [
+   "CHEVAL",
+   "MAISON",
+   "JARDIN",
+   "CITRON",
+   "ORANGE",
+   "FRAISE",
+   "CAHIER",
+   "CRAYON",
+   "CHAISE",
+   "CAMION",
+   "GIRAFE",
+   "FOURMI",
+   "OISEAU"
+  ]
+ },
+ "it": {
+  "9": [
+   "PAVIMENTO",
+   "BERSAGLIO",
+   "COPERTINA",
+   "CESPUGLIO",
+   "MAGNETICO",
+   "TRIBUNALE",
+   "CONTABILE",
+   "COLTIVARE",
+   "CONQUISTA",
+   "MUSCOLARE"
+  ],
+  "6": [
+   "NUVOLA",
+   "LIMONE",
+   "FLAUTO",
+   "PECORA",
+   "GUANTI",
+   "SCUOLA",
+   "STORIA",
+   "LINGUA"
+  ]
+ },
+ "pt": {
+  "9": [
+   "BRINQUEDO",
+   "BRILHANTE",
+   "TABULEIRO",
+   "BANQUEIRO",
+   "TRANQUILO",
+   "SUBMARINO",
+   "INTERVALO",
+   "ESCOTILHA",
+   "SENHORITA",
+   "RESULTADO"
+  ],
+  "6": [
+   "QUEIJO",
+   "JARDIM",
+   "TAMBOR",
+   "CORUJA",
+   "OVELHA",
+   "CHAPEU",
+   "FERIAS",
+   "ESCOLA",
+   "BONECA"
+  ]
  }
 }
