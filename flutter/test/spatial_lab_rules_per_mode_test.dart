@@ -71,7 +71,7 @@ void main() {
     }
     await tester.tap(find.byKey(const Key('свободная-игра')));
     await tester.pump();
-    await tester.tap(find.byTooltip('Правила'));
+    await tester.tap(find.byTooltip(L.t('btn_rules')));
     // ⚠️ НЕ `pumpAndSettle`: на экране партии есть анимация, которая не кончается, и ожидание
     // «пока всё успокоится» висит вечно — первая редакция пробы простояла так десять минут.
     // Диалогу хватает ограниченного шага.

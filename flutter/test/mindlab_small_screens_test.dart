@@ -59,10 +59,12 @@ void main() {
       expect(card.width, greaterThanOrEqualTo(40), reason: 'карточка меньше пальца');
     });
 
-    testWidgets('«Кто спрятался?» $tag, 24 персонажа и 6 вопросов: сетка выше кнопок', (tester) async {
-      await open(tester, size, '/games/hidden-character', {'psygames_hidden_character_level_kids': '9'});
+    // Самая тесная раскладка — вершина лестницы: 28 персонажей, 6 вопросов и «или…».
+    testWidgets('«Кто спрятался?» $tag, вершина: 28 персонажей и вопросы с «или» — сетка выше кнопок', (tester) async {
+      await open(tester, size, '/games/hidden-character', {'psygames_hidden_character_level_kids': '$hiddenStepCount'});
       noError(tester);
-      final n = hiddenStep(9).suspects;
+      final n = hiddenStep(hiddenStepCount).suspects;
+      expect(find.byKey(const ValueKey('hc-or')), findsOneWidget, reason: 'на вершине есть «или…»');
       final card = rectOf(tester, 'hc-suspect-${n - 1}');
       final firstAsk = tester.getRect(find.byType(OutlinedButton).first);
       final confirm = rectOf(tester, 'hc-confirm');

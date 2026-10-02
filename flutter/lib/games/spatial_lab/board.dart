@@ -127,12 +127,14 @@ class Command {
   @override
   int get hashCode => Object.hash(kind, index, row, col, size, orient, amount);
 
+  /// Запись хода для сообщений проб и отладки — игрок её не видит, поэтому латиницей:
+  /// в словарь ей не место, а кириллица в служебной строке — лишний долг храповика подписей.
   @override
   String toString() => switch (kind) {
-    CommandKind.tile => 'плитка $index ×$amount',
-    CommandKind.block => 'блок $row,$col ×$amount',
-    CommandKind.row => 'строка $index ×$amount',
-    CommandKind.column => 'столбец $index ×$amount',
+    CommandKind.tile => 'tile $index ×$amount',
+    CommandKind.block => 'block $row,$col ×$amount',
+    CommandKind.row => 'row $index ×$amount',
+    CommandKind.column => 'column $index ×$amount',
   };
 }
 

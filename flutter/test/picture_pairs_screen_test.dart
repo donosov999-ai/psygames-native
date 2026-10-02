@@ -93,6 +93,21 @@ void main() {
     await tester.pump();
   });
 
+  testWidgets('🔴 показ идёт столько, сколько объявлен: новичку 8 карт на 3,2 с (0d6d8b28)', (tester) async {
+    // Онбординг открывает экран на уровне новичка. До 01.10 это было 0,76 с на восемь
+    // карт — меньше одной фиксации глаза на карту (отчёт 7d506dbe «мало времени»).
+    expect(LevelCfg.of(1).previewMs, 3200, reason: 'L1: 8 карт по 400 мс');
+    await boot(tester, level: 1);
+    await tester.tap(find.text(L.t('start')));
+    await tester.pump();
+    await tester.pump(Duration(milliseconds: LevelCfg.of(1).previewMs - 50));
+    expect(board(tester).every((s) => s >= 0), isTrue, reason: 'за 50 мс до конца показа все карты лицом вверх');
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(board(tester).every((s) => s < 0), isTrue, reason: 'показ кончился — карты закрыты');
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump();
+  });
+
   testWidgets('🔴 промах: ход засчитан, карты закрываются, собранного нет', (tester) async {
     await boot(tester, level: 1);
     await tester.tap(find.text(L.t('start')));

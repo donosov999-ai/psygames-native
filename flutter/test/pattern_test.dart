@@ -144,6 +144,51 @@ void main() {
     }
   });
 
+  test('🔴 варианты с приманкой у хвоста собираются теми же числами (задача 94f9c7c1)', () {
+    final sets = ref['optionSetsTail'] as List;
+    expect(sets, isNotEmpty, reason: 'эталон без раздела с хвостом — выгрузчик не перезапущен');
+    for (final raw in sets) {
+      final e = raw as Map<String, dynamic>;
+      final answer = e['answer'] as int, tail = e['tail'] as int;
+      final rng = createRng('optTail|$answer|$tail');
+      for (final rawSet in (e['sets'] as List)) {
+        final want = (rawSet as List).cast<int>();
+        final got = makeOptions(answer, rng, tail: tail);
+        expect(got, want, reason: 'ответ $answer, хвост $tail: набор');
+        expect(got.contains(answer), isTrue);
+        expect(got.toSet().length, got.length, reason: 'варианты не повторяются');
+      }
+    }
+  });
+
+  test('🔴 с приманкой у хвоста «последний + последний шаг» угадывает как случайный — и как в вебе', () {
+    for (final raw in ref['leakTail'] as List) {
+      final e = raw as Map<String, dynamic>;
+      final level = e['level'] as int;
+      final rng = createRng('leakTail|$level');
+      final n = e['n'] as int;
+      var nearMean = 0;
+      var lastStep = 0;
+      for (var i = 0; i < n; i += 1) {
+        final s = makeSequence(level, rng);
+        final tail = tailLure(s.items);
+        final opts = makeOptions(s.answer, rng, tail: tail);
+        final mean = opts.reduce((a, b) => a + b) / opts.length;
+        var byMean = opts.first, byStep = opts.first;
+        for (final v in opts) {
+          if ((v - mean).abs() < (byMean - mean).abs()) byMean = v;
+          if ((v - tail).abs() < (byStep - tail).abs()) byStep = v;
+        }
+        if (byMean == s.answer) nearMean += 1;
+        if (byStep == s.answer) lastStep += 1;
+      }
+      expect(nearMean / n, closeTo((e['nearMeanRate'] as num).toDouble(), 1e-12), reason: 'L$level: как в вебе');
+      expect(lastStep / n, closeTo((e['lastStepRate'] as num).toDouble(), 1e-12), reason: 'L$level: как в вебе');
+      // На L1 правило линейное: «последний + шаг» и есть ответ. Дальше — не лучше случайного + 6.
+      if (level > 1) expect(lastStep / n, lessThanOrEqualTo(0.31), reason: 'L$level: хвост выдаёт ответ');
+    }
+  });
+
   test('🔴 варианты НЕ выдают ответ: «ближайший к среднему» угадывает как случайный', () {
     for (final raw in ref['leak'] as List) {
       final e = raw as Map<String, dynamic>;

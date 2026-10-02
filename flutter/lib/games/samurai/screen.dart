@@ -90,7 +90,7 @@ class _SamuraiScreenState extends State<SamuraiScreen> {
     final board = levels.boardFor(_ladder.level, seed: DateTime.now().millisecondsSinceEpoch);
     setState(() {
       _board = board;
-      _failure = board == null ? 'Досок этой ступени нет в данных' : null;
+      _failure = board == null ? L.t('sdkNoBoards') : null;
       _grid = board == null ? const [] : [for (final row in board.puzzle) [...row]];
       _given = board == null ? const [] : [for (final row in board.puzzle) [for (final v in row) v != 0]];
       _history.clear();
@@ -194,7 +194,7 @@ class _SamuraiScreenState extends State<SamuraiScreen> {
   /// партии. Приём «в строке осталось одно место» здесь ВЫКЛЮЧЕН: строка поля
   /// 21×21 пересекает две сетки, и подпись «в строке 4» назвала бы не ту линию.
   /// Заголовок один на экран и на разбор: вторая строка — второй долг подписей.
-  String get _title => 'Самурай';
+  String get _title => L.t('samuraiTitle');
 
   List<LessonStep> _lessonSteps() {
     final board = _board;
@@ -263,13 +263,13 @@ class _SamuraiScreenState extends State<SamuraiScreen> {
       title: _title,
       onLesson: _lessonSteps().isEmpty ? null : _openLesson,
       hud: [
-        HudItem(label: 'Ступень', value: '${_ladder.level}', icon: Icons.trending_up),
-        HudItem(label: 'Ошибки', value: '$_errors/${_params.maxErrors}', icon: Icons.close),
-        if (board != null) HudItem(label: 'Осталось', value: '$_left', icon: Icons.grid_on),
+        HudItem(label: L.t('sdkHudStage'), value: '${_ladder.level}', icon: Icons.trending_up),
+        HudItem(label: L.t('errors'), value: '$_errors/${_params.maxErrors}', icon: Icons.close),
+        if (board != null) HudItem(label: L.t('hcLeft'), value: '$_left', icon: Icons.grid_on),
       ],
       field: (context, height) {
         if (levels == null) return const Center(child: CircularProgressIndicator());
-        if (board == null) return Center(child: Text(_failure ?? 'Доска не собралась'));
+        if (board == null) return Center(child: Text(_failure ?? L.t('sdkBoardFailed')));
         return SamuraiField(
           board: board,
           grid: _grid,
@@ -285,7 +285,7 @@ class _SamuraiScreenState extends State<SamuraiScreen> {
       auxRow: AuxBar(children: [
         AuxAction(
           icon: _zoom == SamuraiZoom.map ? Icons.zoom_in : Icons.map_outlined,
-          label: _zoom == SamuraiZoom.map ? 'Крупнее' : 'Вся фигура',
+          label: _zoom == SamuraiZoom.map ? L.t('sdkZoomCloser') : L.t('sdkWholeShape'),
           onPressed: () => setState(() {
             _zoom = _zoom == SamuraiZoom.map ? SamuraiZoom.work : SamuraiZoom.map;
             if (_zoom == SamuraiZoom.work) {
@@ -295,13 +295,13 @@ class _SamuraiScreenState extends State<SamuraiScreen> {
         ),
         AuxAction(
           icon: Icons.undo,
-          label: 'Отменить',
+          label: L.t('btn_undo'),
           onPressed: _history.isEmpty || _won || _lost ? null : _undo,
         ),
-        AuxAction(icon: Icons.refresh, label: 'Заново', onPressed: _deal),
+        AuxAction(icon: Icons.refresh, label: L.t('restart'), onPressed: _deal),
         AuxAction(
           icon: Icons.lightbulb_outline,
-          label: 'Подсказка',
+          label: L.t('btn_hint'),
           tint: const Color(0xFFB45309),
           onPressed: (_hintsUsed < _params.hintMax && _selected != null && !_won && !_lost)
               ? _hint
@@ -312,7 +312,7 @@ class _SamuraiScreenState extends State<SamuraiScreen> {
           ? null
           : _Toolbar(won: _won, lost: _lost, onDigit: _place, onErase: _erase, onNext: _deal),
       pauseActions: [
-        PauseAction(label: 'Начать заново', icon: Icons.refresh, onPressed: _deal),
+        PauseAction(label: L.t('sdkStartOver'), icon: Icons.refresh, onPressed: _deal),
       ],
     );
   }
@@ -520,7 +520,7 @@ class _Toolbar extends StatelessWidget {
           key: const Key('next'),
           onPressed: onNext,
           icon: Icon(won ? Icons.arrow_forward : Icons.refresh),
-          label: Text(won ? 'Следующая ступень' : 'Ещё раз'),
+          label: Text(won ? L.t('sdkNextStage') : L.t('retry')),
         ),
       );
     }

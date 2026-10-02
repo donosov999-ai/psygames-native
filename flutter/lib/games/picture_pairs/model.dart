@@ -11,9 +11,26 @@ import 'dart:math';
 const pairsSpriteCount = 12;
 
 /// Последний уровень, где растёт ОБЪЁМ: с L13 групп 4 + (L − 13), и на L21 их
-/// двенадцать — все картинки набора. Показ упёрся в пол 250 мс ещё на L14. Выше
-/// растёт другая ось — обмены карт после ошибки (починка 16.09, cdc75852).
+/// двенадцать — все картинки набора. Там же время показа на карту доходит до пола.
+/// Выше растёт другая ось — обмены карт после ошибки (починка 16.09, cdc75852).
 const pairsVolumeTop = 13 + pairsSpriteCount - 4;
+
+/// 🔴 Показ растёт с числом карт, а время на карту убывает плавно (отчёт 7d506dbe,
+/// задача 0d6d8b28; разбор с замером — у `previewMsPerCard` в
+/// `frontend/app/games/picture-pairs.tsx`). Было `max(250, 800 − 40·L)`: на L1
+/// восемь карт за 0,76 с — меньше одной фиксации глаза на карту, и туда же
+/// онбординг ведёт новичка. Стало: 400 мс на карту на L1, дальше в одно и то же
+/// число раз за уровень до пола 100 мс ровно на L21 — внутри пар, троек и четвёрок
+/// больше карт — дольше показ.
+const pairsPreviewPerCardStartMs = 400;
+const pairsPreviewPerCardFloorMs = 100;
+
+/// Сколько показа приходится на одну карту на уровне [level].
+int previewMsPerCard(int level) {
+  final passed = min(level, pairsVolumeTop) - 1;
+  const share = pairsPreviewPerCardFloorMs / pairsPreviewPerCardStartMs;
+  return (pairsPreviewPerCardStartMs * pow(share, passed / (pairsVolumeTop - 1))).round();
+}
 
 /// Сколько пара подсвечена перед обменом и пауза до следующей пары.
 const swapLitMs = 450;
@@ -42,7 +59,7 @@ class LevelCfg {
   /// Фото-показ перед партией — на лестнице всегда включён.
   final bool photo;
 
-  /// Сколько длится показ всех карт лицом вверх.
+  /// Сколько длится показ всех карт лицом вверх: карт × [previewMsPerCard].
   final int previewMs;
 
   /// Среднее обменов закрытых карт на одну ошибку; дробная часть — броском.
@@ -55,11 +72,12 @@ class LevelCfg {
         : level <= 12
             ? 4 + (level - 10)
             : 4 + (level - 13);
+    final pairs = min(wanted, pairsSpriteCount);
     return LevelCfg(
-      pairs: min(wanted, pairsSpriteCount),
+      pairs: pairs,
       groupSize: groupSize,
       photo: true,
-      previewMs: max(250, 800 - level * 40),
+      previewMs: pairs * groupSize * previewMsPerCard(level),
       swapsPerMiss: max(0, level - pairsVolumeTop) / 4,
     );
   }

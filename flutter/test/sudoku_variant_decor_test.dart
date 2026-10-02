@@ -66,6 +66,30 @@ void main() {
               expect(d?.arrow, isNotNull, reason: '$at: клетка стрелки $r,$c не нарисована');
               checked['arrow'] = (checked['arrow'] ?? 0) + 1;
             }
+            if (g.whisper?[r][c] != null) {
+              expect(d?.whisper, isNotNull, reason: '$at: звено линии шёпота $r,$c не нарисовано');
+              checked['whisper'] = (checked['whisper'] ?? 0) + 1;
+            }
+            if (g.renban?[r][c] != null) {
+              expect(d?.renban, isNotNull, reason: '$at: звено полосы ренбана $r,$c не нарисовано');
+              checked['renban'] = (checked['renban'] ?? 0) + 1;
+            }
+            if (g.regionsum?[r][c] != null) {
+              expect(d?.regionsum, isNotNull, reason: '$at: звено линии равных сумм $r,$c не нарисовано');
+              checked['regionsum'] = (checked['regionsum'] ?? 0) + 1;
+            }
+            if (g.palindrome?[r][c] != null) {
+              expect(d?.palindrome, isNotNull, reason: '$at: звено линии «палиндром» $r,$c не нарисовано');
+              checked['palindrome'] = (checked['palindrome'] ?? 0) + 1;
+            }
+            if (g.between?[r][c] != null) {
+              expect(d?.between, isNotNull, reason: '$at: звено линии «между концами» $r,$c не нарисовано');
+              checked['between'] = (checked['between'] ?? 0) + 1;
+            }
+            if (g.lockout?[r][c] != null) {
+              expect(d?.lockout, isNotNull, reason: '$at: звено линии «замок» $r,$c не нарисовано');
+              checked['lockout'] = (checked['lockout'] ?? 0) + 1;
+            }
             final p = g.parity?[r][c] ?? 0;
             if (p != 0) {
               expect(d?.parity, p, reason: '$at: метка чётности $r,$c не нарисована');
@@ -91,6 +115,13 @@ void main() {
           expect((layer.painter! as KropkiPainter).dots.length, want, reason: '$at: не все точки Кропки на доске');
           checked['kropki'] = (checked['kropki'] ?? 0) + want;
         }
+        final xv = g.xv;
+        if (xv != null) {
+          final want = [for (final row in xv.h) ...row, for (final row in xv.v) ...row].where((v) => v != 0).length;
+          final layer = tester.widget<CustomPaint>(find.byKey(const Key('xv-layer')));
+          expect((layer.painter! as XvPainter).marks.length, want, reason: '$at: не все знаки XV на доске');
+          checked['xv'] = (checked['xv'] ?? 0) + want;
+        }
         if (b.variant == 'diagonal' || b.variant == 'killerdiag') {
           expect(find.byKey(const Key('diagonal-layer')), findsOneWidget, reason: '$at: диагонали не нарисованы');
           checked['diagonal'] = (checked['diagonal'] ?? 0) + 1;
@@ -111,12 +142,12 @@ void main() {
       }
     }
     // Проба не пустая: каждая из шести подсказок встретилась на доске.
-    for (final kind in ['thermo', 'arrow', 'parity', 'cage', 'kropki', 'sandwich', 'diagonal', 'hyper']) {
+    for (final kind in ['thermo', 'arrow', 'parity', 'cage', 'kropki', 'sandwich', 'diagonal', 'hyper', 'whisper', 'renban', 'regionsum', 'palindrome', 'between', 'lockout', 'xv']) {
       expect(checked[kind] ?? 0, greaterThan(0), reason: 'подсказка «$kind» не встретилась ни разу — проба мимо');
     }
   });
 
-  test('🔴 показанные подсказки проверяются: чётность, точка Кропки, сумма сэндвича', () {
+  test('🔴 показанные подсказки проверяются: чётность, точка Кропки, сумма сэндвича, линии шёпота, ренбана и равных сумм', () {
     final empty = List.generate(9, (_) => List.filled(9, 0));
     final parity = List.generate(9, (_) => List.filled(9, 0))..[0][0] = 1;   // 1 — чётная
     final g1 = BoardGeometry(parity: parity);
@@ -133,5 +164,46 @@ void main() {
     final row = [for (final row in empty) [...row]]..[0] = [1, 2, 0, 9, 0, 0, 0, 0, 0];
     expect(isValid(row, 0, 2, 4, 9, 3, 3, variant: 'sandwich', geometry: g3), isFalse, reason: '2+4 ≠ 5');
     expect(isValid(row, 0, 2, 3, 9, 3, 3, variant: 'sandwich', geometry: g3), isTrue, reason: '2+3 = 5');
+
+    // Линия шёпота (0,0)–(0,1): соседи по линии отличаются минимум на 5.
+    final w = List<List<ThermoLink?>>.generate(9, (_) => List<ThermoLink?>.filled(9, null));
+    w[0][0] = const ThermoLink(next: [0, 1]);
+    w[0][1] = const ThermoLink(prev: [0, 0]);
+    final g4 = BoardGeometry(whisper: w);
+    final line = [for (final row in empty) [...row]]..[0][1] = 7;
+    expect(isValid(line, 0, 0, 3, 9, 3, 3, variant: 'whisper', geometry: g4), isFalse, reason: '|3−7| = 4 < 5');
+    expect(isValid(line, 0, 0, 2, 9, 3, 3, variant: 'whisper', geometry: g4), isTrue, reason: '|2−7| = 5');
+    expect(isValid(line, 1, 0, 3, 9, 3, 3, variant: 'whisper', geometry: g4), isTrue, reason: 'вне линии правило молчит');
+
+    // Полоса ренбана (0,0)–(0,1)–(0,2): цифры разные и подряд в любом порядке.
+    final rb = List<List<ThermoLink?>>.generate(9, (_) => List<ThermoLink?>.filled(9, null));
+    rb[0][0] = const ThermoLink(next: [0, 1]);
+    rb[0][1] = const ThermoLink(prev: [0, 0], next: [0, 2]);
+    rb[0][2] = const ThermoLink(prev: [0, 1]);
+    final g5 = BoardGeometry(renban: rb);
+    final run = [for (final row in empty) [...row]]..[0][2] = 5;
+    expect(isValid(run, 0, 0, 3, 9, 3, 3, variant: 'renban', geometry: g5), isTrue, reason: '3 и 5 — окно из трёх (3-4-5)');
+    expect(isValid(run, 0, 0, 2, 9, 3, 3, variant: 'renban', geometry: g5), isFalse, reason: '2 и 5 — шире трёх подряд');
+    expect(isValid(run, 0, 0, 7, 9, 3, 3, variant: 'renban', geometry: g5), isTrue, reason: '5 и 7 — окно 5-6-7');
+
+    // Линия равных сумм (0,2)–(0,3)–(0,4): (0,2) в блоке 0, (0,3)–(0,4) в блоке 1.
+    final rs = List<List<ThermoLink?>>.generate(9, (_) => List<ThermoLink?>.filled(9, null));
+    rs[0][2] = const ThermoLink(next: [0, 3]);
+    rs[0][3] = const ThermoLink(prev: [0, 2], next: [0, 4]);
+    rs[0][4] = const ThermoLink(prev: [0, 3]);
+    final g6 = BoardGeometry(regionsum: rs);
+    final sums = [for (final row in empty) [...row]]..[0][3] = 1;
+    sums[0][4] = 2;   // блок 1: 1+2 = 3 → в блоке 0 одиночная клетка обязана быть 3
+    expect(isValid(sums, 0, 2, 3, 9, 3, 3, variant: 'regionsum', geometry: g6), isTrue, reason: '3 = 1+2');
+    expect(isValid(sums, 0, 2, 4, 9, 3, 3, variant: 'regionsum', geometry: g6), isFalse, reason: '4 ≠ 1+2');
+
+    // XV: X между (0,0)–(0,1) — сумма 10; между (0,1)–(0,2) знака нет — не 5 и не 10.
+    final xh = List.generate(9, (_) => List.filled(9, 0))..[0][0] = 2;
+    final g7 = BoardGeometry(xv: KropkiMap(h: xh, v: List.generate(9, (_) => List.filled(9, 0))));
+    final xrow = [for (final row in empty) [...row]]..[0][1] = 3;
+    expect(isValid(xrow, 0, 0, 7, 9, 3, 3, variant: 'xv', geometry: g7), isTrue, reason: '7+3 = 10 под X');
+    expect(isValid(xrow, 0, 0, 6, 9, 3, 3, variant: 'xv', geometry: g7), isFalse, reason: '6+3 ≠ 10');
+    expect(isValid(xrow, 0, 2, 2, 9, 3, 3, variant: 'xv', geometry: g7), isFalse, reason: 'без знака 2+3 = 5 нельзя');
+    expect(isValid(xrow, 0, 2, 4, 9, 3, 3, variant: 'xv', geometry: g7), isTrue, reason: 'без знака 4+3 = 7 можно');
   });
 }
