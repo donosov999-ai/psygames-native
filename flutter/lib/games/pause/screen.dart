@@ -26,6 +26,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
+import 'package:practice_kit/practice_kit.dart';
 
 import '../../shell/app_haptics.dart';
 import '../../shell/audio_host.dart' show appSoundOn;
@@ -41,12 +42,11 @@ import 'breath_cues.dart';
 import 'breathing.dart';
 import 'eye_gym.dart';
 import 'practice_haptics.dart';
-import 'practices.dart';
 import 'stage.dart';
 
 /// Каталог практик из ассета. Пробы подают свой — из файла, без `rootBundle`.
 Future<Practices> loadPauseCatalog([AssetBundle? bundle]) async =>
-    Practices(jsonDecode(await (bundle ?? rootBundle).loadString('assets/pause/practices.json')) as Json);
+    Practices(jsonDecode(await (bundle ?? rootBundle).loadString(practiceCatalogAsset)) as Json);
 
 /// Словарь страницы зарядки: `{язык: {ключ: строка}}`.
 Future<Json> loadPauseCopy([AssetBundle? bundle]) async =>
@@ -833,7 +833,17 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
             ? EyeGymStage(run: eye, height: h, sideClear: GameShell.fieldOnlyPauseClear)
             : wim != null
             ? _WimView(screen: this, run: wim)
-            : _Playing(engine: engine, session: s!, frame: frame!, progressLabel: ps('progress'), lead: lead, leadLabel: L.t('brGetReady')),
+            : _Playing(
+                engine: engine,
+                session: s!,
+                frame: frame!,
+                progressLabel: ps('progress'),
+                lead: lead,
+                leadLabel: L.t('brGetReady'),
+                seconds: L.t('secShort'),
+                locale: _locale,
+                onEyeHit: () => _haptics.hit(s['plan'], s['elapsedMs'] as int),
+              ),
         // У Вима Хофа сессии ядра нет — итог берётся из его раундов.
         PausePhase.done => _Done(screen: this, session: s ?? const <String, dynamic>{}),
       },
@@ -1334,12 +1344,20 @@ class _Playing extends StatelessWidget {
     required this.progressLabel,
     this.lead,
     this.leadLabel = '',
+    this.seconds = 's',
+    this.locale = 'en',
+    this.onEyeHit,
   });
 
   final Practices engine;
   final Json session;
   final Json frame;
   final String progressLabel;
+
+  /// Подпись секунд в отсчёте шага («8 с»).
+  final String seconds;
+  final String locale;
+  final VoidCallback? onEyeHit;
 
   /// Секунд до первого вдоха (отсчёт «устройся поудобнее»); `null` — практика идёт.
   final int? lead;
@@ -1358,19 +1376,39 @@ class _Playing extends StatelessWidget {
         ]),
       );
     }
+    final elapsed = session['elapsedMs'] as int;
     return Column(
       key: const Key('pause-playing'),
       children: [
-        for (final c in cues)
-          Padding(
+        // 🔴 ЧТО ДЕЛАТЬ СЕЙЧАС И СКОЛЬКО ЕЩЁ — панель пакета practice_kit, та же,
+        // что в «Умном будильнике». Денис 01.10.2026: «по животу непонятно, когда
+        // держать, когда отпускать; текстов нет». Здесь было мелкое «название +
+        // текст» без отсчёта. Высота постоянная: длинная подсказка прокручивается
+        // внутри и не двигает сцену.
+        SizedBox(
+          height: 136,
+          child: SingleChildScrollView(
             padding: const EdgeInsets.fromLTRB(16, 6, 16, 0),
             child: Column(children: [
-              Text('${c['title']}', style: theme.textTheme.titleMedium, textAlign: TextAlign.center),
-              Text('${c['cue']}', style: theme.textTheme.bodyMedium, textAlign: TextAlign.center, maxLines: 3),
+              for (final c in cues)
+                StepNow(
+                  cue: stepWithBounds(c, session['plan'], elapsed),
+                  elapsedMs: elapsed,
+                  compact: cues.length > 1,
+                  unit: seconds,
+                ),
             ]),
           ),
+        ),
         Expanded(
-          child: PracticeStage(engine: engine, cues: cues, elapsed: session['elapsedMs'] as int),
+          child: PracticeStage(
+            engine: engine,
+            cues: cues,
+            elapsed: elapsed,
+            running: session['phase'] == 'running',
+            locale: locale,
+            onEyeHit: onEyeHit,
+          ),
         ),
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),

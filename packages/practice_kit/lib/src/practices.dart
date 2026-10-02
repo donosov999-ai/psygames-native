@@ -1,8 +1,8 @@
-// «Пауза» PsyGames: Dart-перенос ядра практик `frontend/src/games/pause/core`.
-// Взят у «Умного будильника» (там он уже сверен с этим ядром) и сверен здесь заново
-// с исходником ЭТОГО репозитория: test/pause_core_test.dart, эталон —
-// node flutter/tools/export-pause.cjs. Правишь ядро на TS — перенеси правку сюда тем
-// же заходом и пересними эталон.
+// Ядро практик на Dart — общее для PsyGames и «Умного будильника» (пакет practice_kit).
+// Перенос ядра на TS `frontend/src/games/pause/core` репозитория PsyGames; сверка с
+// ним — пробы приложений (PsyGames: flutter/test/pause_core_test.dart, эталон —
+// node flutter/tools/export-pause.cjs). Правишь ядро на TS — перенеси правку сюда
+// тем же заходом: копия теперь одна.
 //
 // Native Dart port v0.2.0-dev.1 / Smart Alarm 0.1.11, canonical pause/core.
 // The JSON boundary deliberately preserves original field names and plan IDs.
