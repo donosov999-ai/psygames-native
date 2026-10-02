@@ -16,6 +16,20 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.56.11',
+    date: '2026-10-02',
+    ru: [
+      'Судоку, Самурай и Фрактал помнят незаконченную партию — можно уйти и вернуться',
+      'Судоку больше не теряет партию от случайного «назад», «Заново» или смены дороги — сначала спросит',
+      'Самурай и Фрактал: в окне выхода и «Заново» снова понятный заголовок',
+    ],
+    en: [
+      'Sudoku, Samurai and Fractal remember an unfinished game — leave and come back',
+      'Sudoku no longer loses a game to a stray Back, Restart or road change — it asks first',
+      'Samurai and Fractal: the Back and Restart dialogs show a proper title again',
+    ],
+  },
+  {
     version: '2.56.10',
     date: '2026-10-02',
     ru: [
