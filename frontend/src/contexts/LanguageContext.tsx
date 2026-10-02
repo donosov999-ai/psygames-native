@@ -4109,6 +4109,8 @@ const translations: Translations = {
   hcAskRedShirt: { ru: 'Красная кофта?', en: 'Red top?' },
   hcAskSmile: { ru: 'Улыбается?', en: 'Smiling?' },
   hcAskEarring: { ru: 'Серёжка?', en: 'Earring?' },
+  hcOrMode: { ru: 'или…', en: 'or…' },
+  hcEither: { ru: '{a} или {b~}?', en: '{a} or {b~}?' },
   hcYes: { ru: 'да', en: 'yes' },
   hcNo: { ru: 'нет', en: 'no' },
   hcQuestions: { ru: 'Вопросы', en: 'Questions' },

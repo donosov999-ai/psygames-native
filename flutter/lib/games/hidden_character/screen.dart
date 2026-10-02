@@ -42,6 +42,28 @@ String featureQuestion(Feature f) => switch (f) {
       Feature.earring => L.t('hcAskEarring'),
     };
 
+/// Подпись вопроса без знака вопроса: «¿Sombrero?» → «Sombrero», «Chapeau ?» → «Chapeau».
+String _bare(String q) => q.replaceFirst(RegExp(r'^¿'), '').replaceFirst(RegExp(r'\s*[?？؟]$'), '').trim();
+
+/// Первая буква строчной — для второй половины «A или b?» там, где существительные
+/// пишутся со строчной (в шаблоне языка это `{b~}`; немецкий берёт `{b}` как есть).
+String _lowerFirst(String s) => s.isEmpty ? s : s[0].toLowerCase() + s.substring(1);
+
+/// Текст вопроса: один признак — его вопрос, пара — шаблон «{a} или {b~}?» языка.
+/// [second] — `null`, когда второй признак ещё не выбран: подпись «Шляпа или …?».
+String eitherText(Feature a, Feature? second) {
+  final b = second == null ? '…' : _bare(featureQuestion(second));
+  return L.t('hcEither')
+      .replaceAll('{a}', _bare(featureQuestion(a)))
+      .replaceAll('{b~}', second == null ? b : _lowerFirst(b))
+      .replaceAll('{b}', b);
+}
+
+String questionText(Question q) {
+  final fs = questionFeatures(q);
+  return fs.length == 1 ? featureQuestion(fs.single) : eitherText(fs[0], fs[1]);
+}
+
 class _HiddenCharacterScreenState extends State<HiddenCharacterScreen> {
   late final LevelLadder _ladder;
   late final math.Random _rnd;
@@ -50,6 +72,10 @@ class _HiddenCharacterScreenState extends State<HiddenCharacterScreen> {
   int? _chosen;
   int? _picked;
   String _note = '';
+
+  /// Режим «или…»: первое нажатие выбирает признак, второе задаёт «A или B?».
+  bool _orMode = false;
+  Feature? _orFirst;
   DateTime _started = DateTime.now();
 
   @override
@@ -71,6 +97,8 @@ class _HiddenCharacterScreenState extends State<HiddenCharacterScreen> {
     _round = HiddenRound.deal(_levelNo, _rnd);
     _chosen = null;
     _picked = null;
+    _orMode = false;
+    _orFirst = null;
     _note = L.t('hcStart');
     _started = DateTime.now();
   }
@@ -79,12 +107,41 @@ class _HiddenCharacterScreenState extends State<HiddenCharacterScreen> {
 
   void _ask(Feature f) {
     final r = _round;
-    if (r == null || _over || r.wasAsked(f)) return;
-    final yes = r.ask(f);
+    if (r == null || _over) return;
+    if (!_orMode) {
+      _askQuestion(askAbout(f));
+      return;
+    }
+    final first = _orFirst;
+    if (first == null || first == f) {
+      setState(() => _orFirst = first == f ? null : f);   // выбрать или снять первый
+      return;
+    }
+    _askQuestion(askEither(first, f));
+  }
+
+  void _askQuestion(Question q) {
+    final r = _round;
+    if (r == null || _over || r.wasAskedQuestion(q)) return;
+    final yes = r.askQuestion(q);
     setState(() {
-      _note = '${featureQuestion(f)} — ${yes ? L.t('hcYes') : L.t('hcNo')}';
+      _note = '${questionText(q)} — ${yes ? L.t('hcYes') : L.t('hcNo')}';
+      _orMode = false;
+      _orFirst = null;
       if (_chosen != null && !r.remaining.contains(_chosen)) _chosen = null;
     });
+  }
+
+  /// Можно ли ещё задать хоть одну пару с признаком [f].
+  bool _pairOpen(HiddenRound r, Feature f) =>
+      r.features.any((g) => g != f && !r.wasAskedQuestion(askEither(f, g)));
+
+  /// Показывать ли кнопку признака сейчас.
+  bool _showFeature(HiddenRound r, Feature f) {
+    if (!_orMode) return !r.wasAsked(f);
+    final first = _orFirst;
+    if (first == null) return _pairOpen(r, f);
+    return f == first || !r.wasAskedQuestion(askEither(first, f));
   }
 
   void _choose(int i) {
@@ -114,6 +171,7 @@ class _HiddenCharacterScreenState extends State<HiddenCharacterScreen> {
       'candidates_at_pick': candidates,
       'suspects': r.suspects.length,
       'features': r.features.length,
+      'or_questions': r.withOr,
     };
     final seconds = DateTime.now().difference(_started).inSeconds;
     if (won) {
@@ -130,6 +188,14 @@ class _HiddenCharacterScreenState extends State<HiddenCharacterScreen> {
     visualDensity: VisualDensity.compact,
     minimumSize: const Size(0, 36),
     padding: const EdgeInsets.symmetric(horizontal: 10),
+  );
+  /// Выбранный признак и включённое «или…» — заметно отличаются от остальных кнопок.
+  static final _compactPicked = OutlinedButton.styleFrom(
+    visualDensity: VisualDensity.compact,
+    minimumSize: const Size(0, 36),
+    padding: const EdgeInsets.symmetric(horizontal: 10),
+    backgroundColor: const Color(0x337F7FD5),
+    side: const BorderSide(color: Color(0xFF7F7FD5), width: 2),
   );
   static final _compactFilled = FilledButton.styleFrom(
     visualDensity: VisualDensity.compact,
@@ -153,21 +219,22 @@ class _HiddenCharacterScreenState extends State<HiddenCharacterScreen> {
     final r = _round;
     if (r == null) return;
     var left = r.remaining.toList()..sort();
-    final avail = [for (final f in r.features) if (!r.wasAsked(f)) f];
+    // Все ещё не заданные вопросы, включая пары «или» на ступенях 9+.
+    final avail = [for (final q in r.questions) if (!r.wasAskedQuestion(q)) q];
     final steps = <LessonStep>[];
     while (left.length > 1) {
       final masks = [for (final i in left) r.suspects[i]];
-      final q = bestQuestion(masks, avail);
+      final q = bestQuestionFor(masks, avail);
       if (q == null) break;
-      final yes = masks.where((m) => hasFeature(m, q)).length;
-      final answer = hasFeature(r.suspects[r.target], q);
-      left = [for (final i in left) if (hasFeature(r.suspects[i], q) == answer) i];
+      final yes = masks.where((m) => answersYes(m, q)).length;
+      final answer = answersYes(r.suspects[r.target], q);
+      left = [for (final i in left) if (answersYes(r.suspects[i], q) == answer) i];
       avail.remove(q);
       steps.add(LessonStep(
         payload: left.toSet(),
         techniqueKey: 'teachHiddenHalf',
         text: L.f('teachHiddenHalf', {
-          'q': featureQuestion(q),
+          'q': questionText(q),
           'yes': '$yes',
           'no': '${masks.length - yes}',
         }),
@@ -258,13 +325,24 @@ class _HiddenCharacterScreenState extends State<HiddenCharacterScreen> {
                 runSpacing: 4,
                 children: [
                   for (final f in r.features)
-                    if (!r.wasAsked(f))
+                    if (_showFeature(r, f))
                       OutlinedButton(
                         key: ValueKey('hc-ask-${f.name}'),
-                        style: _compact,
+                        style: f == _orFirst ? _compactPicked : _compact,
                         onPressed: () => _ask(f),
                         child: Text(featureQuestion(f)),
                       ),
+                  // Ступени 9+: «или…» — следующие два нажатия задают «A или B?».
+                  if (r.withOr && r.features.any((f) => _pairOpen(r, f)))
+                    OutlinedButton(
+                      key: const ValueKey('hc-or'),
+                      style: _orMode ? _compactPicked : _compact,
+                      onPressed: () => setState(() {
+                        _orMode = !_orMode;
+                        _orFirst = null;
+                      }),
+                      child: Text(_orFirst == null ? L.t('hcOrMode') : eitherText(_orFirst!, null)),
+                    ),
                   FilledButton.icon(
                     key: const ValueKey('hc-confirm'),
                     style: _compactFilled,
