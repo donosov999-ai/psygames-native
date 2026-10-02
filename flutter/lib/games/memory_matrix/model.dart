@@ -128,6 +128,28 @@ int mmReadPauseMs(String caption, String previous) {
   );
 }
 
+/// Порядок вспышек режима «по порядку»: серия и ложные вперемешку. Ложная номер j встаёт после
+/// `((j + 1) · n) ~/ (k + 1)` настоящих — ровно по ряду и без нового обращения к случайности, так
+/// что раздача остаётся раздачей веба (эталон `mm-reference.json`).
+///
+/// 🔴 До 02.10.2026 ложные в этом режиме раздавались, подпись «перечёркнутые — мимо» висела, а
+/// показ их не зажигал: ось L16 была объявлена и не исполнялась, и в обеих половинах — веб так же
+/// (сверка веб → натив 02.10). «Показать решение» при этом рисовало кресты, которых не было.
+List<({int cell, bool decoy})> mmSeqShowOrder(List<int> seq, List<int> decoys) {
+  final out = <({int cell, bool decoy})>[];
+  var d = 0;
+  for (var i = 0; i < seq.length; i++) {
+    while (d < decoys.length && ((d + 1) * seq.length) ~/ (decoys.length + 1) <= i) {
+      out.add((cell: decoys[d++], decoy: true));
+    }
+    out.add((cell: seq[i], decoy: false));
+  }
+  while (d < decoys.length) {
+    out.add((cell: decoys[d++], decoy: true));
+  }
+  return out;
+}
+
 /// Чем кончилось нажатие.
 enum MmPress {
   /// Нажатие не считается: раунд кончился или клетку уже отметили.
@@ -169,11 +191,22 @@ class MatrixRound {
   /// Отмеченные в ТЕКУЩЕЙ серии; после сбора первой серии счёт начинается заново.
   final Set<int> picked = {};
   final List<int> pickedSequence = [];
+
+  /// Собранная первая серия — для итога раунда: без неё верно введённые фиолетовые после второй
+  /// серии показывались «пропущенными» (сверка веб → натив 02.10; в вебе так же).
+  final Set<int> pickedFirst = {};
   int inputSeries = 0;
   bool over = false;
 
+  /// Нажатие, которым раунд проигран: не та клетка или верная не в свой черёд. В итоге раунда она
+  /// с крестом, даже если входит в серию, — иначе нажатая не в свой черёд горела «верно».
+  int? lostOn;
+
   /// Серия, которую вводят сейчас.
   Set<int> get target => (two && inputSeries == 1 ? set2 : set1).toSet();
+
+  /// Всё, что человек отметил за раунд, — обе серии.
+  Set<int> get pickedAll => {...pickedFirst, ...picked};
 
   MmPress tap(int cell) {
     if (over || picked.contains(cell)) return MmPress.ignored;
@@ -192,12 +225,14 @@ class MatrixRound {
     }
     if (two && hit && allFound && inputSeries == 0) {
       inputSeries = 1;
+      pickedFirst.addAll(picked);
       picked.clear();
       pickedSequence.clear();
       return MmPress.seriesDone;
     }
     if (allFound || !hit) {
       over = true;
+      if (!hit) lostOn = cell;
       return hit && allFound ? MmPress.roundWon : MmPress.roundLost;
     }
     return MmPress.hit;
