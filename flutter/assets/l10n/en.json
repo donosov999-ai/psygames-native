@@ -982,7 +982,7 @@
 "rbYourTurn":"Your turn",
 "reaction":"Reaction",
 "readingSpan":"Reading Span: Memory",
-"readingSpanDesc":"Judge sense, recall last words",
+"readingSpanDesc":"Judge each sentence’s meaning and remember its last word",
 "readingSpanJudge":"Does this sentence make sense?",
 "recallHint":"Type the last words separated by spaces in the correct order",
 "recallNow":"Recall words",

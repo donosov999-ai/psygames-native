@@ -315,7 +315,7 @@ const t: Record<string, string> = {
   "spatialGroupDesc": "Girar na cabeça, empurrar, traçar um caminho",
   "spatialGroupFootnote": "O que têm em comum: a jogada precisa ser calculada antes na cabeça — no tabuleiro quase todo movimento parece válido e não leva a nada.",
   "spatialGroupIntroDesc": "Três exercícios de rotação mental. «Rotação mental»: encontre a cópia girada de uma figura de cubos. «Giro de números»: gire um bloco 2×2 para pôr os números em ordem. «Rede de canos»: gire os canos para a água chegar a cada ponta.",
-  "readingSpanDesc": "Julgue o sentido, lembre as últimas palavras",
+  "readingSpanDesc": "Julgue o sentido de cada frase e lembre a última palavra",
   "switchingTaskDesc": "Alterne regras de número/letra",
   "visualSearchDesc": "Encontre todas as formas-alvo entre as semelhantes",
   "sdmtDesc": "Codifique símbolos por tabela de consulta",

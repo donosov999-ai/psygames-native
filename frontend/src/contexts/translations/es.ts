@@ -315,7 +315,7 @@ const t: Record<string, string> = {
   "spatialGroupDesc": "Girar en la cabeza, empujar, trazar un camino",
   "spatialGroupFootnote": "Lo común: la jugada hay que calcularla antes en la cabeza — en el tablero casi cualquier movimiento parece válido y no lleva a nada.",
   "spatialGroupIntroDesc": "Tres ejercicios de rotación mental. «Rotación mental»: encuentra la copia girada de una figura de cubos. «Giro de números»: gira un bloque 2×2 para ordenar los números. «Red de tuberías»: gira las tuberías para que el agua llegue a cada extremo.",
-  "readingSpanDesc": "Juzga el sentido, recuerda las últimas palabras",
+  "readingSpanDesc": "Juzga el sentido de cada frase y recuerda su última palabra",
   "switchingTaskDesc": "Alterna reglas de número/letra",
   "visualSearchDesc": "Encuentra todas las figuras objetivo entre las similares",
   "sdmtDesc": "Codifica símbolos con una tabla de consulta",

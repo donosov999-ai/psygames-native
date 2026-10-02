@@ -647,7 +647,7 @@ const t: Record<string, string> = {
   "spatialGroupDesc": "Girare nella testa, spingere, tracciare una via",
   "spatialGroupFootnote": "Ciò che hanno in comune: la mossa va calcolata prima nella testa — sul campo quasi ogni mossa sembra lecita e non porta da nessuna parte.",
   "spatialGroupIntroDesc": "Tre esercizi di rotazione mentale. «Rotazione mentale»: trova la copia ruotata di una figura di cubi. «Rotazione dei numeri»: ruota un blocco 2×2 per mettere i numeri in ordine. «Rete di tubi»: ruota i tubi perché l’acqua raggiunga ogni estremità.",
-  "readingSpanDesc": "Giudica il senso, ricorda le ultime parole",
+  "readingSpanDesc": "Giudica il senso di ogni frase e ricorda l'ultima parola",
   "switchingTaskDesc": "Alterna le regole numero/lettera",
   "visualSearchDesc": "Trova tutte le figure bersaglio tra quelle simili",
   "sdmtDesc": "Codifica i simboli con la tabella",

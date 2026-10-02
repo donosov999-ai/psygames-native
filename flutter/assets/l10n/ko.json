@@ -982,7 +982,7 @@
 "rbYourTurn":"내 차례",
 "reaction":"반응",
 "readingSpan":"읽기 기억폭: 기억력",
-"readingSpanDesc":"말이 되는지 판단하고, 마지막 단어를 떠올려요",
+"readingSpanDesc":"각 문장이 말이 되는지 판단하고, 그 문장의 마지막 단어를 기억해요",
 "readingSpanJudge":"이 문장은 말이 되나요?",
 "recallHint":"마지막 단어를 올바른 순서로 띄어쓰기로 구분해 입력하세요",
 "recallNow":"단어 떠올리기",

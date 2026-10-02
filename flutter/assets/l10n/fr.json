@@ -982,7 +982,7 @@
 "rbYourTurn":"À toi",
 "reaction":"Réaction",
 "readingSpan":"Reading Span : mémoire",
-"readingSpanDesc":"Juge le sens, retiens les derniers mots",
+"readingSpanDesc":"Juge le sens de chaque phrase et retiens son dernier mot",
 "readingSpanJudge":"Cette phrase a-t-elle du sens ?",
 "recallHint":"Saisis les derniers mots, séparés par des espaces, dans le bon ordre",
 "recallNow":"Restitue les mots",

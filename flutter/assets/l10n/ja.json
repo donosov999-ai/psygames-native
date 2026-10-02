@@ -982,7 +982,7 @@
 "rbYourTurn":"あなたの番",
 "reaction":"反応",
 "readingSpan":"読解スパン：記憶",
-"readingSpanDesc":"文の意味を判断し、最後の単語を覚える",
+"readingSpanDesc":"各文の意味を判断し、その文の最後の単語を覚える",
 "readingSpanJudge":"この文は意味が通りますか？",
 "recallHint":"最後の単語を、正しい順番で空白区切りで入力してください",
 "recallNow":"単語を思い出す",

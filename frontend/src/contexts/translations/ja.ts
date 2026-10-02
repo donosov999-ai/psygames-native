@@ -1712,7 +1712,7 @@ const t: Record<string, string> = {
   "skillSustainedAttention": "きたえる力：持続的注意",
   "updLatest": "最新のバージョンです",
   "benefitMath1": "電卓なしで計算する",
-  "readingSpanDesc": "文の意味を判断し、最後の単語を覚える",
+  "readingSpanDesc": "各文の意味を判断し、その文の最後の単語を覚える",
   "sdmtDesc": "対応表を見て記号を数字に置きかえる",
   "readingSpanJudge": "この文は意味が通りますか？",
   "benefitRmet3": "交渉と対話",

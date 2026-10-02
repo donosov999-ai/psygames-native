@@ -982,7 +982,7 @@
 "rbYourTurn":"轮到你",
 "reaction":"反应",
 "readingSpan":"阅读广度：记忆",
-"readingSpanDesc":"判断句意，回忆末词",
+"readingSpanDesc":"判断每句话是否合理，并记住它的最后一个词",
 "readingSpanJudge":"这个句子合理吗？",
 "recallHint":"按正确顺序输入末词，用空格分隔",
 "recallNow":"回忆单词",

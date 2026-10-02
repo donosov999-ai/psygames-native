@@ -647,7 +647,7 @@ const t: Record<string, string> = {
   "spatialGroupDesc": "Tourner dans la tête, pousser, tracer un chemin",
   "spatialGroupFootnote": "Le point commun : le coup doit être calculé d'avance dans la tête — sur le plateau presque tout coup paraît permis et ne mène nulle part.",
   "spatialGroupIntroDesc": "Trois exercices de rotation mentale. « Rotation mentale » : trouve la copie tournée d’une figure de cubes. « Rotation de chiffres » : fais pivoter un bloc 2×2 pour remettre les chiffres en ordre. « Réseau de tuyaux » : tourne les tuyaux pour que l’eau atteigne chaque extrémité.",
-  "readingSpanDesc": "Juge le sens, retiens les derniers mots",
+  "readingSpanDesc": "Juge le sens de chaque phrase et retiens son dernier mot",
   "switchingTaskDesc": "Alterne les règles chiffre/lettre",
   "visualSearchDesc": "Trouve toutes les figures cibles parmi les similaires",
   "sdmtDesc": "Code les symboles en chiffres selon la table",

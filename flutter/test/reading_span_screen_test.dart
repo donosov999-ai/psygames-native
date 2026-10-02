@@ -10,6 +10,7 @@ import 'package:psygames_flutter/games/reading_span/screen.dart';
 import 'package:psygames_flutter/shell/demo_lesson.dart';
 import 'package:psygames_flutter/shell/game_clock.dart';
 import 'package:psygames_flutter/shell/game_preset.dart';
+import 'package:psygames_flutter/shell/game_rules.dart';
 import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/lesson.dart';
 import 'package:psygames_flutter/shell/level_rules.dart';
@@ -36,6 +37,7 @@ void main() {
   setUpAll(() async {
     await L.load('ru');
     await LevelRules.load();
+    await GameRules.load();
   });
 
   Future<void> boot(WidgetTester tester, {int level = 1, bool rulesSeen = true, Map<String, String>? preset}) async {
@@ -233,6 +235,47 @@ void main() {
     final english = {for (final s in sentences) s.lastEn.toLowerCase()};
     expect(((sent.single['details'] as Map)['expected'] as String).split(' ').every(english.contains), isTrue);
   });
+
+  // Справка игры — короткая подпись `readingSpanDesc` (каркас берёт её по карточке развилки).
+  // Замер 01.10.2026: подпись теряла оба действия — en «Judge sense, recall last words» без
+  // «каждого предложения», ru «Оцените смысл и запомните слова» без «последнее» (задача cf5ff1ca).
+  for (final lang in ['ru', 'en']) {
+    testWidgets('🔴 справка из партии ($lang): смысл КАЖДОГО предложения и его ПОСЛЕДНЕЕ слово; закрыл — круг там же',
+        (tester) async {
+      await L.load(lang);
+      GameRules.currentRoute = '/games/reading-span';
+      addTearDown(() async {
+        GameRules.currentRoute = null;
+        await L.load('ru');
+      });
+      await boot(tester, level: 1);
+      await tester.tap(find.byKey(const Key('rspan-start')));
+      await tester.pump();
+      final first = lastWordOnScreen(tester);
+      await tester.tap(find.byKey(Key(senseOf[sentenceOnScreen(tester)]! ? 'rspan-sense' : 'rspan-nonsense')));
+      await tester.pump();
+      final before = sentenceOnScreen(tester);
+
+      await tester.tap(find.byIcon(Icons.help_outline));
+      await tester.pump(const Duration(milliseconds: 400));
+      final help = tester.widget<Text>(find.byKey(const Key('game-rules-text'))).data!;
+      expect(help, L.t('readingSpanDesc'));
+      if (lang == 'ru') {
+        expect(help, allOf(contains('каждого предложения'), contains('последнее слово')));
+      } else {
+        expect(help, allOf(contains('each sentence'), contains('last word')));
+        expect(RegExp('[А-Яа-яЁё]').hasMatch(help), isFalse, reason: 'в английской справке нет кириллицы: «$help»');
+      }
+      await tester.tap(find.byKey(const Key('game-rules-close')));
+      await tester.pump(const Duration(milliseconds: 400));
+
+      expect(find.byKey(const Key('game-rules')), findsNothing);
+      expect(sentenceOnScreen(tester), before, reason: 'закрыл справку — то же предложение, круг не начат заново');
+      final rest = await readSet(tester);
+      await answer(tester, [first, ...rest].join(' '));
+      expect(find.byKey(const Key('rspan-passed')), findsOneWidget, reason: 'круг после справки доигран и засчитан');
+    });
+  }
 
   testWidgets('🔴 удержание (ось 3): за ёмкостью словаря ввод открывается не сразу', (tester) async {
     final top = sentences.length - 1;   // первый уровень, где набор упёрся в словарь и пошла задержка

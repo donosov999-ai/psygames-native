@@ -315,7 +315,7 @@ const t: Record<string, string> = {
   "spatialGroupDesc": "在脑中旋转、推挤、铺出一条路",
   "spatialGroupFootnote": "共同点：这一步必须先在脑中算清——在盘面上几乎每一步看着都合法，却走进死路。",
   "spatialGroupIntroDesc": "三项心理旋转练习。«心理旋转»——找出方块图形旋转后的副本。«数字旋转»——转动2×2方块把数字排好顺序。«管道网络»——旋转管道让水流到每个端口。",
-  "readingSpanDesc": "判断句意，回忆末词",
+  "readingSpanDesc": "判断每句话是否合理，并记住它的最后一个词",
   "switchingTaskDesc": "交替数字/字母规则",
   "visualSearchDesc": "在相似图形中找出所有目标图形",
   "sdmtDesc": "用查找表为符号编码",

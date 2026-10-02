@@ -315,7 +315,7 @@ const t: Record<string, string> = {
   "spatialGroupDesc": "Im Kopf drehen, durchschieben, einen Weg legen",
   "spatialGroupFootnote": "Gemeinsam ist: der Zug muss vorher im Kopf durchgerechnet sein — auf dem Brett sieht fast jeder Zug erlaubt aus und führt ins Leere.",
   "spatialGroupIntroDesc": "Drei Übungen zur mentalen Rotation. „Mentale Rotation“ — finde die gedrehte Kopie einer Würfelfigur. „Zahlendreher“ — drehe einen 2×2-Block, um die Zahlen zu ordnen. „Rohrnetz“ — drehe die Rohre, damit das Wasser jedes Ende erreicht.",
-  "readingSpanDesc": "Sinn beurteilen, letzte Wörter merken",
+  "readingSpanDesc": "Beurteile bei jedem Satz den Sinn und merke dir sein letztes Wort",
   "switchingTaskDesc": "Zwischen Zahl-/Buchstabenregel wechseln",
   "visualSearchDesc": "Finde alle Zielformen unter ähnlichen",
   "sdmtDesc": "Symbole per Nachschlagetabelle kodieren",
