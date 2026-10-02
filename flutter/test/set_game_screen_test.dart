@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/set_game/model.dart';
 import 'package:psygames_flutter/games/set_game/screen.dart';
 import 'package:psygames_flutter/shell/l10n.dart';
+import 'package:psygames_flutter/shell/level_rules.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -136,5 +137,27 @@ void main() {
         await tester.pump(const Duration(milliseconds: 800));
       }
     });
+  });
+
+  testWidgets('🔴 ПОТОЛКА НЕТ: победа на 16-м открывает 17-й, и на итоге — карточка «время всё короче»', (tester) async {
+    // Правило Дениса 06.09.2026: с 17-го лимит на SET ниже прежних восьми секунд. Карточка — на
+    // экране итога, где таймер расклада не идёт.
+    await tester.runAsync(LevelRules.load);
+    final rnd = createRng('шестнадцатый');
+    await open(tester, level: 16, seed: 'шестнадцатый');
+    final p = levelParams(16);
+    for (var i = 1; i <= p.trials; i += 1) {
+      final board = buildBoard(rnd);
+      for (final idx in findAnySet(board)!) {
+        await tester.tap(find.byKey(Key('карта$idx')));
+        await tester.pump();
+      }
+      await tester.pump(const Duration(milliseconds: 800));
+    }
+    await tester.pump();
+    await tester.pump();
+    expect(state.get('${SharedState.prefix}set_game_level_nzt48'), '17', reason: '16-й взят');
+    expect(find.text(L.t('lr_set_game_faster_title')), findsOneWidget,
+        reason: 'на итоге — карточка правила 17-го уровня');
   });
 }

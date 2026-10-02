@@ -54,6 +54,7 @@ export function ruleSources(): RuleSource[] {
   const товары = require('@/src/games/goods-sort/core/level');
   const отличия = require('@/src/games/find-differences/core/levelRules');
   const зрительный = require('@/src/games/visual-search/core/nativeRules');
+  const сет = require('@/src/games/set-game/core/nativeRules');
   /* eslint-enable @typescript-eslint/no-require-imports */
   return [
     s(['cake_sort', 'pizza_sort'], игра('cake-sort').CS_RULES),
@@ -78,7 +79,7 @@ export function ruleSources(): RuleSource[] {
     s(['pseudoword_echo'], игра('pseudoword-echo').PSEUDOWORDECHO_RULES),
     s(['reading_span'], игра('reading-span').READINGSPAN_RULES),
     s(['semantic_sort'], игра('semantic-sort').SEMANTICSORT_RULES),
-    s(['set_game'], игра('set-game').SG_RULES),
+    s(['set_game'], [...игра('set-game').SG_RULES, ...сет.SG_NATIVE_RULES]),
     s(['spatial_span'], игра('spatial-span').SS_RULES),
     s(['stroop'], игра('stroop').STROOP_RULES),
     s(['switching_task'], игра('switching-task').SWITCH_RULES),

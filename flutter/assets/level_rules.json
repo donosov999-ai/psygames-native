@@ -545,8 +545,13 @@
    ],
    [
     11,
-    null,
+    16,
     "timelimit"
+   ],
+   [
+    17,
+    null,
+    "faster"
    ]
   ],
   "spatial_span": [
