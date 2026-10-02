@@ -501,6 +501,18 @@
     "longer8"
    ]
   ],
+  "quick_count": [
+   [
+    1,
+    41,
+    null
+   ],
+   [
+    42,
+    null,
+    "decoys"
+   ]
+  ],
   "reading_span": [
    [
     1,

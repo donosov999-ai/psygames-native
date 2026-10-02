@@ -72,7 +72,6 @@ const _baseline = <String, int>{
   'proofreading/screen.dart': 2,
   'pseudoword_echo/screen.dart': 2,
   'puzzles/screen.dart': 2,
-  'quick_count/screen.dart': 2,
   'rmet/screen.dart': 1,
   // «Ритм и высота» пришла в main (#67) после снятия базы — внесено как есть, переводит «Языки».
   'rhythm_pitch/screen.dart': 1,

@@ -54,6 +54,7 @@ export function ruleSources(): RuleSource[] {
   const товары = require('@/src/games/goods-sort/core/level');
   const шульте = require('@/src/games/schulte/core/levelRules');
   const маджонг = require('@/src/games/mahjong/nativeRules');
+  const счёт = require('@/src/games/quick-count/core/levelRules');
   /* eslint-enable @typescript-eslint/no-require-imports */
   return [
     s(['cake_sort', 'pizza_sort'], игра('cake-sort').CS_RULES),
@@ -76,6 +77,7 @@ export function ruleSources(): RuleSource[] {
     s(['picture_pairs'], игра('picture-pairs').PAIRS_RULES),
     s(['prl'], игра('prl').PRL_RULES),
     s(['pseudoword_echo'], игра('pseudoword-echo').PSEUDOWORDECHO_RULES),
+    s(['quick_count'], счёт.QC_RULES),
     s(['reading_span'], игра('reading-span').READINGSPAN_RULES),
     s(['schulte_table'], шульте.SCHULTE_RULES),
     s(['semantic_sort'], игра('semantic-sort').SEMANTICSORT_RULES),
