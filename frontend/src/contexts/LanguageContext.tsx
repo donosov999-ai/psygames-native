@@ -1520,6 +1520,8 @@ const translations: Translations = {
   teachNavigatorRoute: { ru: 'Проговаривай маршрут стрелками: «вверх, вправо, вправо, вниз» — цепочку держать легче, чем картинку. Повернули карту — поверни и стрелки вместе с ней.', en: 'Say the route as arrows — “up, right, right, down”: a chain is easier to hold than a picture. If the map is rotated, rotate the arrows with it.' },
   teachNavigatorTurns: { ru: 'Поворот считают от направления движения, а не от экрана: мысленно встань лицом по ходу. Шёл вверх и свернул вправо по экрану — это «Направо»; шёл вниз и свернул вправо по экрану — уже «Налево».', en: 'A turn is counted from the direction of travel, not from the screen: picture yourself facing forward. Going up and turning right on screen is “Right”; going down and turning right on screen is already “Left”.' },
   teachNavigatorHome: { ru: 'Веди общий счёт сдвига: сколько клеток всего ушёл вправо-влево и вверх-вниз. Дом — в обратную сторону от этой суммы: ушёл на 2 вправо и на 1 вверх — дом внизу слева, это «Юго-запад».', en: 'Keep a running total of the shift: how many cells you went right or left and up or down in all. Home lies opposite that sum: 2 right and 1 up means home is down and to the left — “South-west”.' },
+  teachTrailA: { ru: 'Ищи следующее число заранее: пока ведёшь линию к «3», глазами уже найди «4». Поиск идёт вместе с движением — так и выигрывается время.', en: 'Look for the next number ahead of time: while you draw the line to “3”, your eyes already find “4”. Searching while moving is where the time is won.' },
+  teachTrailB: { ru: 'Держи в голове пару, а не два отдельных счёта: «1 — А, 2 — Б, 3 — В». Проговаривай её — тогда переход от числа к букве не сбивает с места.', en: 'Hold the pair in mind, not two separate counts: “1 — A, 2 — B, 3 — C”. Say it aloud — then switching from number to letter won’t throw you off.' },
   spatialNet: { ru: 'Сеть труб', en: 'Pipe Network' },
   spatialTwiddle: { ru: 'Поворот чисел', en: 'Number Twist' },
   spatialSixteen: { ru: 'Сдвиг чисел', en: 'Number Slide' },
@@ -1688,7 +1690,7 @@ const translations: Translations = {
   bart:            { ru: 'BART: риск-баллон',           en: 'BART: Risk Balloon' },
   iowa:            { ru: 'Iowa: 4 колоды',              en: 'Iowa: 4 Decks' },
   stroopEmotional: { ru: 'Эмоциональный Stroop',         en: 'Emotional Stroop' },
-  spatialSpan:     { ru: 'Spatial Span (обратный)',     en: 'Spatial Span (Backward)' },
+  spatialSpan:     { ru: 'Пространственный ряд (обратный)', en: 'Spatial Span (Backward)' },
 
   // Round-6 — descriptions
   posnerDesc:          { ru: 'Реагируйте на мишень, cue может обмануть',    en: 'React to target; cue may mislead' },
@@ -2287,6 +2289,10 @@ const translations: Translations = {
   spatialLabTwiddleL5: { ru: 'Самое короткое решение — три хода, и блоки задевают общие числа.', en: 'The shortest solution is three moves, and the blocks share numbers.' },
   spatialLabTwiddleExact: { ru: 'Поле {w}×{w}. Ходов в самом коротком решении: {n}.', en: '{w}×{w} board. Moves in the shortest solution: {n}.' },
   spatialLabTwiddleBound: { ru: 'Поле {w}×{w}. Суммарный сдвиг чисел от своих мест, в клетках: {d}. Ходов — не меньше {m}.', en: '{w}×{w} board. Total distance of the numbers from their places, in cells: {d}. At least {m} moves.' },
+  // «Сдвиг чисел» на полях 4×4 и 5×5 — описание ступени ДО раздачи: нижняя оценка ходов там
+  // считается по самой доске, и на экране настройки её ещё нет (flutter/lib/games/spatial_lab/screen.dart,
+  // `_levelNote`). Строка — `spatialLabTwiddleBound` без последней фразы, на всех языках.
+  spatialLabShiftDisplacement: { ru: 'Поле {w}×{w}. Суммарный сдвиг чисел от своих мест, в клетках: {d}.', en: '{w}×{w} board. Total distance of the numbers from their places, in cells: {d}.' },
   spatialLabTwiddleNoColour: { ru: 'Числа на своих местах не подсвечиваются.', en: 'Numbers already in place are not shown in colour.' },
   spatialLabNetL1: { ru: 'Поверни одну выделенную трубу — остальные закреплены.', en: 'Turn the one highlighted pipe — the rest are locked.' },
   spatialLabNetL2: { ru: 'Одна труба повёрнута неверно. Найди её сам — подсказки и закреплённых труб нет.', en: 'One pipe is turned the wrong way. Find it yourself — no hint, nothing locked.' },
@@ -4248,7 +4254,7 @@ const translations: Translations = {
    * ⚠️ ЗАГОЛОВОК НАРОЧНО НЕ ТАКОЙ, КАК У corsi. Сначала я скопировал туда и сюда
    * одну строку, и гейт dictionary-duplicates справедливо назвал это дублем:
    * совпадение было от копипасты, а не от языка. Свёл по существу — у этой игры
-   * порядок ответа обратный ВСЕГДА (сама игра называется «Spatial Span (обратный)»),
+   * порядок ответа обратный ВСЕГДА (сама игра называется «Пространственный ряд (обратный)»),
    * у corsi он приходит только с L10. Храповик исключений остался на 29.
    */
   lr_spatial_span_hold_title: { ru: 'Пауза перед обратным ответом', en: 'A pause before the reverse answer' },
@@ -4297,6 +4303,15 @@ const translations: Translations = {
   mrAxisXYZ: { ru: 'оси X+Y+Z (3D)', en: 'X+Y+Z axes' },
   mrCubes: { ru: 'кубиков', en: 'cubes' },
   mrOblique: { ru: 'косые ракурсы', en: 'oblique' },
+  // Итог партии и подпись эталона у нативного «Вращения» (flutter/lib/games/mental_rotation/screen.dart).
+  // Веб эти числа пишет только в статистику, на экран не выводит, — в словаре модуля им нет места:
+  // его проба требует, чтобы каждый ключ звался кодом веб-игры (mental-rotation-tasks.test.ts).
+  mrReference: { ru: 'Эталон', en: 'Reference' },
+  mrSlopeLabel: { ru: 'Наклон RT по углу', en: 'RT slope by angle' },
+  mrSlopeValue: { ru: '{v} мс/град (проб: {n})', en: '{v} ms/deg ({n} trials)' },
+  mrSlopeTooFew: { ru: 'проб мало', en: 'too few trials' },
+  mrMeanRotationRt: { ru: 'Среднее время поворотных', en: 'Mean time on rotation tasks' },
+  mrRunTasks: { ru: 'Задания партии', en: 'Tasks this round' },
   bartClassicTitle: { ru: 'Классический замер (диагностика)', en: 'Classic run (diagnostic)' },
   bartClassicDesc: { ru: 'Фиксированные параметры — чистая метрика склонности к риску.', en: 'Fixed parameters — a clean risk-propensity metric.' },
   bartClassicBtn: { ru: 'Классический замер', en: 'Classic run' },

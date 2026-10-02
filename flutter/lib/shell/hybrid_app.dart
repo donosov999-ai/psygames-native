@@ -58,6 +58,7 @@ import '../games/hidden_character/screen.dart';
 import '../games/sort_tubes/screen.dart';
 import '../games/mental_rotation/screen.dart';
 import '../games/navigator/screen.dart';
+import '../games/trail_making/screen.dart';
 import '../games/samurai/screen.dart';
 import '../games/spatial_hub/screen.dart';
 import '../games/spatial_lab/screen.dart';
@@ -233,6 +234,7 @@ class HybridApp extends StatefulWidget {
         '/games/go-no-go': (s) => GoNoGoScreen(state: s),
         '/games/mental-rotation': (s) => MentalRotationScreen(state: s),
         '/games/navigator': (s) => NavigatorScreen(state: s),
+        '/games/trail-making': (s) => TrailMakingScreen(state: s),
         '/games/spatial-span': (s) => SpatialSpanScreen(state: s),
         // Все четыре упражнения лаборатории перенесены, поэтому перехват честен: адрес с
         // `?mode=` попадает в ту же строку карты, и ни один режим не остаётся в вебе.
