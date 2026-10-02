@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/spatial_span/model.dart';
 import 'package:psygames_flutter/games/spatial_span/screen.dart';
+import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -18,6 +19,7 @@ void main() {
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
     state = await SharedState.open();
+    await L.load('ru');
   });
 
   Future<void> boot(WidgetTester tester, {Random? random, Size size = const Size(390, 844)}) async {
@@ -63,7 +65,8 @@ void main() {
 
   testWidgets('🔴 ряд вспыхивает, ответ задом наперёд растит длину', (tester) async {
     await boot(tester, random: Random(42));
-    expect(find.text('Пространственный ряд'), findsOneWidget);
+    expect(find.text(L.t('spatialSpan')), findsOneWidget);
+    expect(L.t('spatialSpan'), startsWith('Пространственный ряд'), reason: 'имя из словаря, а не голый ключ');
     await tester.tap(find.byKey(const Key('показать-ряд')));
     await tester.pump();
 
@@ -98,7 +101,7 @@ void main() {
     // Прямой порядок: первая клетка ряда — заведомо не та, что ждут первой.
     await tester.tap(find.byKey(Key('клетка${row.first}')));
     await tester.pump();
-    expect(find.text('Ошибка. Тот же ряд ещё раз'), findsOneWidget,
+    expect(find.text('${L.t('incorrect')} · ${L.t('retry')}'), findsOneWidget,
         reason: 'вердикт виден сразу, а не после следующего показа');
 
     // Тот же ряд ещё раз — и вторая ошибка на той же длине заканчивает партию.
@@ -109,7 +112,9 @@ void main() {
     await tester.pump(const Duration(milliseconds: 800));
     expect(find.byKey(const Key('ещё-раз')), findsOneWidget,
         reason: 'две ошибки на одной длине — конец партии');
-    expect(find.textContaining('планка ступени'), findsOneWidget);
+    // Непройденная ступень: «охват / планка ступени» дробью.
+    // Ни одного верного ряда: охват 0 при планке первой ступени 2.
+    expect(find.text('${L.t('hud_span')}: 0 / 2'), findsOneWidget);
   });
 
   testWidgets('🔴 доска берёт сторону у поля: на 360×640 сетка целиком в кадре', (tester) async {

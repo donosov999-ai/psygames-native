@@ -20,14 +20,14 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   setUpAll(() async => L.load('ru'));
 
-  Future<Set<String>> shown(WidgetTester tester, Map<String, Object> prefs) async {
+  Future<List<String>> shownInOrder(WidgetTester tester, Map<String, Object> prefs, {String hub = _hub}) async {
     SharedPreferences.setMockInitialValues(prefs);
     final state = (await tester.runAsync(SharedState.open))!;
     await tester.runAsync(() async {
       await tester.pumpWidget(MaterialApp(
         home: HubScreen(
           state: state,
-          hubRoute: _hub,
+          hubRoute: hub,
           icon: Icons.psychology_outlined,
           gradient: const [Color(0xFF7C3AED), Color(0xFF0EA5E9)],
         ),
@@ -43,8 +43,11 @@ void main() {
         .byWidgetPredicate((w) => w.key is ValueKey<String> && (w.key! as ValueKey<String>).value.startsWith('hub-card-'))
         .evaluate()
         .map((e) => (e.widget.key! as ValueKey<String>).value.substring('hub-card-'.length))
-        .toSet();
+        .toList();
   }
+
+  Future<Set<String>> shown(WidgetTester tester, Map<String, Object> prefs, {String hub = _hub}) async =>
+      (await shownInOrder(tester, prefs, hub: hub)).toSet();
 
   String visible(String profile, List<String> routes) => jsonEncode({
         'profile': profile,
@@ -73,5 +76,29 @@ void main() {
     final cards = await shown(tester, {'psygames_active_profile': 'seniors'});
     expect(cards, isNotEmpty);
     expect(cards.length, greaterThanOrEqualTo(_seniors.length));
+  });
+
+  testWidgets('🔴 карточку, которой нет в раскладке файла, развилка показывает, если веб её открыл (4a5bb886)', (tester) async {
+    // Файл состава (выгружен 13.09) о «Кошках» не знает; веб по правилу «новое — во все профили»
+    // её дописал. Раньше развилка пересекала список веба со своей раскладкой — и «Кошки» терялись.
+    const sudoku = '/games/sudoku-hub';
+    final file = jsonEncode({
+      'профили': {
+        'seniors': {
+          'хабы': {
+            sudoku: ['/games/sudoku'],
+          },
+        },
+      },
+    });
+    final cards = await shownInOrder(tester, {
+      'psygames_active_profile': 'seniors',
+      'psygames_playlists_override': file,
+      HubScreen.visibleKey: jsonEncode({
+        'profile': 'seniors',
+        'hubs': {sudoku: ['/games/cats', '/games/sudoku']},
+      }),
+    }, hub: sudoku);
+    expect(cards, ['/games/cats', '/games/sudoku'], reason: 'нет «Кошек» или порядок не как у веба');
   });
 }
