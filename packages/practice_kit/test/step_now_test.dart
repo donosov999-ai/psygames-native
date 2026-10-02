@@ -52,6 +52,36 @@ void main() {
     expect(title.data, 'Активация');
     expect(title.style!.fontSize, greaterThanOrEqualTo(20));
     expect(tester.widget<Text>(find.byKey(const Key('step-now-cue'))).data, contains('напрягите живот'));
+    // Действие не режется в одну строку: «Уровень 2 · удержан…» на 320 pt (замер 02.10).
+    expect(title.maxLines, greaterThanOrEqualTo(2));
+  });
+
+  testWidgets('панель постоянной высоты, подсказка целиком — и короткая, и самая длинная', (tester) async {
+    final plan = abdomen();
+    final first = objects(plan['timeline']).first;
+    Future<Size> panel(String text) async {
+      await tester.pumpWidget(MaterialApp(
+        home: Scaffold(
+          body: Column(children: [
+            StepNowPanel(
+              cues: [
+                {...first, 'cue': text},
+              ],
+              plan: plan,
+              elapsedMs: first['startMs'] as int,
+              unit: 'с',
+            ),
+          ]),
+        ),
+      ));
+      final cue = tester.widget<Text>(find.byKey(const Key('step-now-cue')));
+      expect(cue.maxLines, isNull, reason: 'инструкцию не режем многоточием');
+      expect(cue.data, text);
+      return tester.getSize(find.byKey(const Key('step-now-panel')));
+    }
+    final short = await panel('Дышите.');
+    final long = await panel('Гладким краем скребка ' * 9);
+    expect(short, long, reason: 'длина подсказки не двигает сцену под панелью');
   });
 
   test('у каждого шага «Живота» есть заголовок и подсказка — показывать есть что', () {

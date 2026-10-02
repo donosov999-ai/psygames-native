@@ -1383,23 +1383,8 @@ class _Playing extends StatelessWidget {
         // 🔴 ЧТО ДЕЛАТЬ СЕЙЧАС И СКОЛЬКО ЕЩЁ — панель пакета practice_kit, та же,
         // что в «Умном будильнике». Денис 01.10.2026: «по животу непонятно, когда
         // держать, когда отпускать; текстов нет». Здесь было мелкое «название +
-        // текст» без отсчёта. Высота постоянная: длинная подсказка прокручивается
-        // внутри и не двигает сцену.
-        SizedBox(
-          height: 136,
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(16, 6, 16, 0),
-            child: Column(children: [
-              for (final c in cues)
-                StepNow(
-                  cue: stepWithBounds(c, session['plan'], elapsed),
-                  elapsedMs: elapsed,
-                  compact: cues.length > 1,
-                  unit: seconds,
-                ),
-            ]),
-          ),
-        ),
+        // текст» без отсчёта. Высота постоянная — сцена под ней не двигается.
+        StepNowPanel(cues: cues, plan: session['plan'], elapsedMs: elapsed, unit: seconds),
         Expanded(
           child: PracticeStage(
             engine: engine,
