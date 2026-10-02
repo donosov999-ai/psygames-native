@@ -9,6 +9,7 @@ import '../../shell/aux_action.dart';
 import '../../shell/boss_round.dart';
 import '../../shell/l10n.dart';
 import 'keypad.dart';
+import 'leave_guard.dart';
 import 'marks.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/level_ladder.dart';
@@ -1124,6 +1125,11 @@ class _SudokuScreenState extends State<SudokuScreen> {
     ));
   }
 
+  /// В партии есть что терять: ход, пометка, цвет, ошибка или подсказка — и она не кончилась.
+  /// Тогда выход, «Заново», смена дороги, пилота и пресета спрашивают (leave_guard.dart; веб —
+  /// `liveGame && touched`, sudoku.tsx; сверка 138f7818 п.2).
+  bool get _live => (_history.isNotEmpty || _errors > 0 || _hintsUsed > 0) && !_won && !_lost;
+
   @override
   Widget build(BuildContext context) {
     final levels = _levels;
@@ -1136,7 +1142,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
         ? variantTitle(sideModeName(widget.mode!))
         : (variant != null && variant != 'none' ? variantTitle(variant) : null);
 
-    return GameShell(
+    return LeaveGuard(live: _live, child: GameShell(
       title: _title,
       onLesson: _lessonSteps().isEmpty ? null : _openLesson,
       hud: [
@@ -1237,7 +1243,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
           active: _paint != null,
           onPressed: (_won || _lost) ? null : _togglePaint,
         ),
-        AuxAction(icon: Icons.refresh, label: L.t('restart'), onPressed: _deal),
+        AuxAction(icon: Icons.refresh, label: L.t('restart'), onPressed: () => restartGuarded(context, live: _live, deal: _deal)),
       ]),
       toolbar: (board == null && _sideBoard == null)
           ? null
@@ -1269,12 +1275,12 @@ class _SudokuScreenState extends State<SudokuScreen> {
               lostNote: _lost ? L.t('outOfLivesHint').replaceAll('{n}', '$errorLimit') : null,
             ),
       pauseActions: [
-        PauseAction(label: L.t('sdkStartOver'), icon: Icons.refresh, onPressed: _deal),
+        PauseAction(label: L.t('sdkStartOver'), icon: Icons.refresh, onPressed: () => restartGuarded(context, live: _live, deal: _deal)),
         if (widget.mode == null && !widget.junior && _genStore != null)
           PauseAction(
             label: _pilot ? L.t('sudokuPilotOff') : L.t('sudokuPilotOn'),
             icon: _pilot ? Icons.trending_up : Icons.auto_awesome,
-            onPressed: _togglePilot,
+            onPressed: () => restartGuarded(context, live: _live, deal: _togglePilot),
           ),
         // Дорога сложности — между партиями, как переключатель веб-экрана: рядом с каждой
         // её уровень, видный ДО выбора (перенос пройденного вниз без этих чисел не понять).
@@ -1284,7 +1290,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
               label: '${L.t(sudokuRoadNameKey(r))} · ${L.t('label_level_short')}'
                   '${effectiveRoadLevel(widget.state, widget.state.activeProfile, r)}',
               icon: r == _road ? Icons.radio_button_checked : Icons.radio_button_unchecked,
-              onPressed: () => _switchRoad(r),
+              onPressed: () => restartGuarded(context, live: _live, deal: () => _switchRoad(r)),
             ),
         // «Стиль цифр»: буквы внутри — только на правилах без числового смысла
         // (symbols.dart); рисованные цифры — везде, это всё ещё цифры.
@@ -1296,10 +1302,10 @@ class _SudokuScreenState extends State<SudokuScreen> {
             PauseAction(
               label: _freeLabel(step),
               icon: step == (_side?.step ?? 1) ? Icons.radio_button_checked : Icons.radio_button_unchecked,
-              onPressed: () => _chooseFree(step),
+              onPressed: () => restartGuarded(context, live: _live, deal: () => _chooseFree(step)),
             ),
       ],
-    );
+    ));
   }
 }
 
