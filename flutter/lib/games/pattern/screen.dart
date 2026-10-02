@@ -105,7 +105,8 @@ class _PatternScreenState extends State<PatternScreen> {
     _right = null;
     final s = makeSequence(_ladder.level, _rng);
     _seq = s;
-    _options = makeOptions(s.answer, _rng);
+    // Приманка у хвоста: «последний + последний шаг» стоит среди вариантов (задача 94f9c7c1).
+    _options = makeOptions(s.answer, _rng, tail: tailLure(s.items));
   }
 
   /// 🔴 МЕТРИКА ДОМЕНА «ОЦЕНКИ» — те же поля, что `saveSession` веба (`pattern.tsx:177`).
