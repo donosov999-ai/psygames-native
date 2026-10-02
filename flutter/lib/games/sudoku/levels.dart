@@ -65,6 +65,7 @@ class SudokuBoard {
     required this.geometry,
     this.tier,
     this.rating,
+    this.geometryJson = const {},
   });
 
   final int level;
@@ -81,6 +82,10 @@ class SudokuBoard {
 
   /// Рейтинг полосы банка (только у банковских досок).
   final double? rating;
+
+  /// Геометрия варианта в форме выгрузки (поля генератора TS) — для снимка незаконченной
+  /// партии в формате веба (resume.dart). У банка и малышей — пусто.
+  final Map<String, Object?> geometryJson;
 
   int get blanks {
     var k = 0;
@@ -290,6 +295,7 @@ class SudokuLevels {
       puzzle: _parse(row['puzzle'] as String, n),
       solution: _parse(row['solution'] as String, n),
       geometry: BoardGeometry.fromJson((row['geometry'] as Map).cast<String, Object?>()),
+      geometryJson: (row['geometry'] as Map).cast<String, Object?>(),
       tier: (row['tier'] as num?)?.toInt(),
     );
   }

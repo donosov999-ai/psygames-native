@@ -24,10 +24,13 @@ import 'junior.dart';
 import 'levels.dart';
 import '../../shell/lesson.dart';
 import '../../shell/lesson_player.dart';
+import '../../shell/resume_store.dart';
 import 'lesson.dart';
 import 'mode_board.dart';
 import 'modes.dart';
+import 'resume.dart';
 import 'roads.dart';
+import 'rules.dart';
 import 'symbols.dart';
 import 'variant_decor.dart';
 import '../samurai/screen.dart';
@@ -351,7 +354,115 @@ class _SudokuScreenState extends State<SudokuScreen> {
         _junior = JuniorProgress(widget.state, kids.steps.length);
       }
     });
+    if (_onRoad && await _resumeLadder()) return;
     _deal();
+  }
+
+  @override
+  void dispose() {
+    _persist();   // уход с экрана — с живым временем, а не с тем, что было на прошлом ходу
+    super.dispose();
+  }
+
+  /// 🔴 НЕЗАКОНЧЕННАЯ ПАРТИЯ ЛЕСТНИЦЫ — формат веба (resume.dart; сверка 138f7818, п.3).
+  late final ResumeStore _resume = ResumeStore(widget.state, sudokuGameId, sudokuResumeVersion);
+
+  /// Записать (или стереть, если партия кончилась). Только лестница: режимы, пилот и малыши —
+  /// своими путями. Без ожидания — экран не ждёт диска между касаниями.
+  void _persist() {
+    final board = _board;
+    if (!_onRoad || board == null || _grid.isEmpty) return;
+    if (_won || _lost) {
+      unawaited(_resume.clear());
+      return;
+    }
+    unawaited(_resume.save(sudokuSnapshot(
+      level: board.level,
+      road: _road.name,
+      variant: board.variant,
+      n: board.n,
+      br: board.br,
+      bc: board.bc,
+      puzzle: board.puzzle,
+      solution: board.solution,
+      grid: _grid,
+      given: _given,
+      colors: _colors,
+      marks: _marks,
+      geometry: board.geometryJson,
+      errors: _errors,
+      hintUses: _hintsUsed,
+      hintMax: _hintMax,
+      backtracks: _backtracks,
+      elapsed: _elapsed,
+      moves: [
+        for (final h in _history)
+          (
+            kind: switch (h.kind) { _StepKind.digit => 'digit', _StepKind.mark => 'pencil', _StepKind.color => 'color' },
+            r: h.r,
+            c: h.c,
+            from: h.was,
+            to: h.to,
+          ),
+      ],
+    )));
+  }
+
+  /// Поднять партию лестницы. Чужая ступень или дорога не поднимаются — тогда раздаётся своя
+  /// доска, и снимок она перезапишет. Банк узнаём по ступени: полоса — дорогой, как при раздаче.
+  Future<bool> _resumeLadder() async {
+    final levels = _levels;
+    final saved = await _resume.load();
+    if (levels == null || saved == null || !mounted) return false;
+    final r = sudokuFromSnapshot(saved);
+    if (r == null || r.level != _ladder.level || r.road != _road.name) return false;
+    final cfg = levels.config(r.level);
+    final board = SudokuBoard(
+      level: r.level,
+      n: r.n,
+      br: r.br,
+      bc: r.bc,
+      variant: r.variant,
+      puzzle: r.puzzle,
+      solution: r.solution,
+      geometry: BoardGeometry.fromJson(r.geometry),
+      geometryJson: r.geometry,
+      rating: cfg.fromBank ? levels.bankRating(r.level, shift: sudokuRoadShift(_road)) : null,
+    );
+    setState(() {
+      _board = board;
+      _applySymbols(board, r.level);
+      _failure = null;
+      _grid = r.grid;
+      _given = r.given;
+      _history
+        ..clear()
+        ..addAll([
+          for (final m in r.moves)
+            _Step(
+              switch (m.kind) { 'pencil' => _StepKind.mark, 'color' => _StepKind.color, _ => _StepKind.digit },
+              m.r,
+              m.c,
+              m.from,
+              m.to,
+            ),
+        ]);
+      _marks = r.marks;
+      _colors = r.colors;
+      _pencil = false;
+      _paint = null;
+      _selected = null;
+      _errors = r.errors;
+      _hintsUsed = r.hintUses;
+      _backtracks = r.backtracks;
+      // Время — с НАКОПЛЕННОГО: часы между сессиями ушли вперёд, а партия всё это время стояла.
+      _startedAt = gameNow() - r.elapsed * 1000;
+      _won = false;
+      _boss = null;
+      _lost = false;
+    });
+    _recordDeal(board);
+    return true;
   }
 
   /// Ступень малышей; `null` — обычная игра.
@@ -463,6 +574,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
       _lost = false;
     });
     _recordDeal(board);
+    _persist();   // новая доска сразу ложится своим снимком, как в вебе
   }
 
   /// Записать теневой выбор: какой шаблон выдала лестница и что предложил бы генератор.
@@ -671,9 +783,10 @@ class _SudokuScreenState extends State<SudokuScreen> {
     if (r >= _colors.length || c >= _colors[r].length) return;
     setState(() {
       final was = _colors[r][c];
-      _history.add(_Step(_StepKind.color, r, c, was));
       _colors[r][c] = toggleCellColor(was, color);
+      _history.add(_Step(_StepKind.color, r, c, was, _colors[r][c]));
     });
+    _persist();
   }
 
   /// Нажатие клавиши: в карандаше — пометка, иначе цифра. Решает общий разбор,
@@ -701,9 +814,10 @@ class _SudokuScreenState extends State<SudokuScreen> {
     if (r >= _marks.length || c >= _marks[r].length) return;
     setState(() {
       final was = _marks[r][c];
-      _history.add(_Step(_StepKind.mark, r, c, was));
       _marks[r][c] = pencilInput(was, digit);
+      _history.add(_Step(_StepKind.mark, r, c, was, _marks[r][c]));
     });
+    _persist();
   }
 
   /// Поставить цифру. Ошибкой считается расхождение с решением — так же, как в вебе:
@@ -717,7 +831,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
     setState(() {
       final was = _grid[sel.r][sel.c];
       if (was != 0 && was != value) _backtracks += 1;
-      _history.add(_Step(_StepKind.digit, sel.r, sel.c, was));
+      _history.add(_Step(_StepKind.digit, sel.r, sel.c, was, value));
       _grid[sel.r][sel.c] = value;
       if (value != 0 && solution[sel.r][sel.c] != value) {
         _errors += 1;
@@ -734,6 +848,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
       }
       _checkWin();
     });
+    _persist();
   }
 
   void _erase() => _onKey(0);
@@ -751,6 +866,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
           _colors[last.r][last.c] = last.was;
       }
     });
+    _persist();
   }
 
   /// Подсказка: открывает выбранную клетку по решению. Число подсказок на уровень
@@ -770,6 +886,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
       _hintsUsed += 1;
       _checkWin();
     });
+    _persist();
   }
 
   /// Карандаш и цвет ВЫКЛЮЧАЮТ ДРУГ ДРУГА. Иначе в цвете нажатие цифры уходило бы
@@ -1142,7 +1259,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
         ? variantTitle(sideModeName(widget.mode!))
         : (variant != null && variant != 'none' ? variantTitle(variant) : null);
 
-    return LeaveGuard(live: _live, child: GameShell(
+    return LeaveGuard(live: _live, saved: _onRoad, child: GameShell(
       title: _title,
       onLesson: _lessonSteps().isEmpty ? null : _openLesson,
       hud: [
@@ -1314,12 +1431,15 @@ enum _StepKind { digit, mark, color }
 
 /// Один шаг истории. Хранит ТО, ЧТО БЫЛО, а не то, что стало: отмена ставит обратно.
 class _Step {
-  const _Step(this.kind, this.r, this.c, this.was);
+  const _Step(this.kind, this.r, this.c, this.was, this.to);
 
   final _StepKind kind;
   final int r;
   final int c;
   final int was;
+
+  /// Что стало — нужно снимку партии (лента веба хранит from и to).
+  final int to;
 }
 
 /// Имя правила для полосы счётчиков: короткое, чтобы не рвало строку.

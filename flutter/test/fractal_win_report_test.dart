@@ -125,5 +125,6 @@ void main() {
     expect(rep['score'] as int, greaterThanOrEqualTo(fractalWinFloor), reason: 'у победы есть пол');
     expect((rep['details'] as Map)['level'], 1);
     expect(state.get('psygames_sudoku_fractal_level_nzt48'), '2', reason: 'ступень выросла');
+    expect(state.get('psygames_resume_sudoku_fractal_nzt48'), isNull, reason: 'выигранная партия не поднимается — снимок стёрт');
   });
 }
