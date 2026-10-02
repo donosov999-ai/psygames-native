@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../../shell/app_haptics.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/game_clock.dart';
 import '../../shell/game_shell.dart';
@@ -84,6 +85,18 @@ class _FractalScreenState extends State<FractalScreen> {
   bool _pencil = false;
   int? _paint;
 
+  /// 🔴 ОШИБКИ — ТОЛЬКО ДОКАЗУЕМЫЕ, как у веба (sudoku-fractal.tsx, placeDigit; сверка
+  /// 138f7818, строка 25, «высокая»). Дочерняя сетка порознь неоднозначна НАРОЧНО (порталы):
+  /// цифра, не равная хранимому решению, но не нарушающая ни одного правила, — законный ход.
+  /// Поэтому: в дочерней — повтор в строке/столбце/блоке (`conflictsInChild`), в корне — цифра
+  /// не по решению (корень единственен). Ошибки — в полосе, снимке, отчёте и счёте.
+  int _errors = 0;
+
+  /// Строка под клавишами после хода: что за красная цифра — или что клетка ещё не определена.
+  /// Держится до следующего действия (у веба — на таймере; без таймера нет мельтешения).
+  _MoveHint _hint = _MoveHint.none;
+  late final AppHaptics _haptics = AppHaptics(widget.state);
+
   /// `null` — карта, иначе номер открытой дочерней.
   int? _openChild;
   ({int? child, int r, int c})? _selected;
@@ -143,7 +156,7 @@ class _FractalScreenState extends State<FractalScreen> {
       play: p,
       marks: _marks,
       colors: _colors,
-      errors: 0,
+      errors: _errors,
       elapsed: _elapsed,
       moves: [for (final h in _history) if (h.kind == _StepKind.digit) h.move!],
     )));
@@ -159,6 +172,8 @@ class _FractalScreenState extends State<FractalScreen> {
           ..addAll([for (final m in r.moves) _Step.digit(m)]);
         _marks = r.marks;
         _colors = r.colors;
+        _errors = r.errors;
+        _hint = _MoveHint.none;
         _pencil = false;
         _paint = null;
         _openChild = null;
@@ -178,6 +193,8 @@ class _FractalScreenState extends State<FractalScreen> {
       _history.clear();
       _marks = [for (var i = 0; i < 10; i++) emptyPencilMarks(9)];
       _colors = [for (var i = 0; i < 10; i++) emptyCellColors(9)];
+      _errors = 0;
+      _hint = _MoveHint.none;
       _pencil = false;
       _paint = null;
       _openChild = null;
@@ -222,7 +239,10 @@ class _FractalScreenState extends State<FractalScreen> {
     final f = _puzzle!;
     if (child == null && !rootEditable(f.rootPuzzle, r, c)) return;
     if (child != null && f.children[child].puzzle[r][c] != 0) return;
-    setState(() => _selected = (child: child, r: r, c: c));
+    setState(() {
+      _selected = (child: child, r: r, c: c);
+      _hint = _MoveHint.none;
+    });
   }
 
   void _place(int n) {
@@ -230,8 +250,22 @@ class _FractalScreenState extends State<FractalScreen> {
     if (f == null || p == null || sel == null || _won) return;
     final res = playDigit(p, f, (child: sel.child, r: sel.r, c: sel.c), n);
     if (res == null) return;
+    final child = sel.child;
+    var hint = _MoveHint.none;
+    if (n != 0) {
+      final right = (child == null ? f.rootSolution : f.children[child].solution)[sel.r][sel.c] == n;
+      final provable = child == null ? !right : conflictsInChild(p.children[child].grid, sel.r, sel.c, n);
+      if (provable) {
+        _errors++;
+        hint = _MoveHint.red;
+        unawaited(_haptics.medium());
+      } else if (!right) {
+        hint = _MoveHint.undecided;   // не ошибка: задача здесь ещё не определена — говорим прямо
+      }
+    }
 
     setState(() {
+      _hint = hint;
       _play = res.next;
       _history.add(_Step.digit(res.move));
       // Дочерняя дошла до порога — сама возвращаем на карту: цифра ушла наверх, и это
@@ -242,14 +276,13 @@ class _FractalScreenState extends State<FractalScreen> {
       }
       if (rootSolved(res.next.rootGrid, f.rootSolution)) {
         _won = true;
-        // 🔴 ОТЧЁТ — КАК У ВЕБА (sudoku-fractal.tsx, saveSession; сверка 138f7818): до 02.10
-        // `win()` без аргументов — победа без счёта и времени. Ошибок натив пока не считает
-        // (сигнал ошибки в дочерней не подключён — та же сверка), поэтому errors = 0 честно.
+        // 🔴 ОТЧЁТ — КАК У ВЕБА (sudoku-fractal.tsx, saveSession; сверка 138f7818): счёт
+        // 4000 − ошибки·60 − время, не ниже пола.
         final level = _ladder.level;
         unawaited(_ladder.win(
-          score: max(fractalWinFloor, (4000 - min(_elapsed, fractalTimeCap)).round()),
+          score: max(fractalWinFloor, (4000 - _errors * 60 - min(_elapsed, fractalTimeCap)).round()),
           timeSeconds: _elapsed,
-          errors: 0,
+          errors: _errors,
           mode: 'fractal',
           difficulty: 'lvl$level',
           details: {'level': level, 'of': 9},
@@ -406,6 +439,7 @@ class _FractalScreenState extends State<FractalScreen> {
       hud: [
         HudItem(label: L.t('level'), value: '${_ladder.level}', icon: Icons.trending_up),
         HudItem(label: L.t('fractalOpened'), value: '$_unlocked/9', icon: Icons.lock_open),
+        HudItem(label: L.t('errors'), value: '$_errors', icon: Icons.close),
         if (open != null)
           HudItem(
             label: '${L.t('fractalChildN')} ${open + 1}',
@@ -470,6 +504,11 @@ class _FractalScreenState extends State<FractalScreen> {
       toolbar: f == null
           ? null
           : _Toolbar(
+              hint: switch (_hint) {
+                _MoveHint.red => L.t('fractalRedDigit'),
+                _MoveHint.undecided => L.t('fractalUndecided'),
+                _MoveHint.none => null,
+              },
               won: _won,
               onDigit: _onKey,
               onErase: _erase,
@@ -537,6 +576,9 @@ class _MapView extends StatelessWidget {
                   selected: selected?.child == null ? selected : null,
                   dimmed: (r, cc) => !rootEditable(puzzle.rootPuzzle, r, cc) &&
                       puzzle.rootPuzzle[r][cc] == 0,
+                  // Корень единственен: рукой поставлена не та цифра — ошибка (как у веба).
+                  wrong: (r, cc) => rootEditable(puzzle.rootPuzzle, r, cc) &&
+                      play.rootGrid[r][cc] != puzzle.rootSolution[r][cc],
                   onTap: onRootTap,
                 ),
               ),
@@ -659,6 +701,8 @@ class _ChildView extends StatelessWidget {
             keyPrefix: 'cell_',
             selected: selected?.child == child ? selected : null,
             portal: (r, cc) => isPortalCell(puzzle.portals, child, r, cc),
+            // Дочерняя порознь неоднозначна: красим только повтор в строке/столбце/блоке.
+            wrong: (r, cc) => conflictsInChild(play.children[child].grid, r, cc, play.children[child].grid[r][cc]),
             onTap: onTap,
           ),
         );
@@ -679,6 +723,7 @@ class FractalGridView extends StatelessWidget {
     required this.onTap,
     this.portal,
     this.dimmed,
+    this.wrong,
     this.marks,
     this.colors,
   });
@@ -695,6 +740,9 @@ class FractalGridView extends StatelessWidget {
   final void Function(int r, int c) onTap;
   final bool Function(int r, int c)? portal;
   final bool Function(int r, int c)? dimmed;
+
+  /// Цифра клетки — доказуемая ошибка (красим то же, за что считается ошибка).
+  final bool Function(int r, int c)? wrong;
 
   @override
   Widget build(BuildContext context) {
@@ -723,6 +771,7 @@ class FractalGridView extends StatelessWidget {
                       // Кормящая клетка корня: её приносят снизу, руками не трогают.
                       waiting: dimmed?.call(r, c) ?? false,
                       portal: portal?.call(r, c) ?? false,
+                      wrong: values[r][c] != 0 && (wrong?.call(r, c) ?? false),
                       selected: selected != null && selected!.r == r && selected!.c == c,
                       scheme: scheme,
                       onTap: onTap,
@@ -748,6 +797,7 @@ class _Cell extends StatelessWidget {
     required this.given,
     required this.waiting,
     required this.portal,
+    required this.wrong,
     required this.selected,
     required this.scheme,
     required this.onTap,
@@ -763,6 +813,9 @@ class _Cell extends StatelessWidget {
   final bool given;
   final bool waiting;
   final bool portal;
+
+  /// Цифра — доказуемая ошибка: рисуется красным.
+  final bool wrong;
   final bool selected;
   final ColorScheme scheme;
   final void Function(int r, int c) onTap;
@@ -837,7 +890,7 @@ class _Cell extends StatelessWidget {
                           style: TextStyle(
                             fontSize: size * 0.52,
                             fontWeight: given ? FontWeight.w800 : FontWeight.w500,
-                            color: given ? scheme.onSurface : scheme.primary,
+                            color: wrong ? scheme.error : given ? scheme.onSurface : scheme.primary,
                           ),
                         ),
                 ),
@@ -851,8 +904,12 @@ class _Cell extends StatelessWidget {
 }
 
 /// Липкий низ: общие клавиши раздела (`keypad.dart`) — цифры, «Стереть», палитра.
+/// Строка под клавишами после хода.
+enum _MoveHint { none, red, undecided }
+
 class _Toolbar extends StatelessWidget {
   const _Toolbar({
+    required this.hint,
     required this.won,
     required this.onDigit,
     required this.onErase,
@@ -861,6 +918,8 @@ class _Toolbar extends StatelessWidget {
     required this.onPaint,
   });
 
+  /// Строка над клавишами (`fractalRedDigit` / `fractalUndecided`) или null.
+  final String? hint;
   final bool won;
   final void Function(int) onDigit;
   final VoidCallback onErase;
@@ -881,7 +940,21 @@ class _Toolbar extends StatelessWidget {
         ),
       );
     }
-    return SudokuKeys(n: 9, onDigit: onDigit, onErase: onErase, paint: paint, onPaint: onPaint);
+    final keys = SudokuKeys(n: 9, onDigit: onDigit, onErase: onErase, paint: paint, onPaint: onPaint);
+    final h = hint;
+    if (h == null) return keys;
+    return Column(mainAxisSize: MainAxisSize.min, children: [
+      Padding(
+        padding: const EdgeInsets.fromLTRB(12, 4, 12, 2),
+        child: Text(
+          h,
+          key: const Key('fractal-move-hint'),
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.error),
+        ),
+      ),
+      keys,
+    ]);
   }
 }
 
