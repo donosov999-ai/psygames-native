@@ -36,7 +36,6 @@ const _baseline = <String, int>{
   'cpt/model.dart': 1,
   'cpt/screen.dart': 4,
   'dictation/screen.dart': 3,
-  'digit_span/screen.dart': 3,
   'faces_names/screen.dart': 1,
   'find_differences/screen.dart': 2,
   'flanker/model.dart': 1,

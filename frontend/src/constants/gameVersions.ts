@@ -30,7 +30,7 @@ export const GAME_VERSIONS: Record<string, GameVersion> = {
   'counting-hub': { ver: 1, date: '04.09.2026' },
   'cpt': { ver: 4, date: '17.09.2026' },
   'dictation': { ver: 1, date: '04.09.2026' },
-  'digit-span': { ver: 3, date: '28.08.2026' },
+  'digit-span': { ver: 4, date: '01.10.2026' },
   'dots-connect': { ver: 8, date: '17.09.2026' },
   'eye-gym': { ver: 1, date: '19.08.2026' },
   'faces-names': { ver: 2, date: '20.08.2026' },

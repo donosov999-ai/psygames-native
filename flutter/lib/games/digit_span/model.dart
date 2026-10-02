@@ -1,16 +1,31 @@
 import 'dart:math';
 
-/// «Цифровой ряд» — третий экран пилота и первый ДРУГОГО типа: здесь нет поля,
-/// по которому водят пальцем, а есть показ по таймеру и ввод цифр.
+import '../../shell/voice.dart';
+
+/// «Цифровой ряд» — правила, перенесённые из `frontend/app/games/digit-span.tsx` и сверенные с
+/// эталоном живого TS (`test/fixtures/digit-span-reference.json`; экспортёр в репо:
+/// `frontend/src/games/digit-span/tools/record-flutter-reference.gen.ts`). Считать перенос
+/// «проверенным» той же формулой, которой переносил, нельзя — такая проба зелёная всегда.
 ///
-/// Правила перенесены из `frontend/app/games/digit-span.tsx` (у этой игры нет
-/// отдельного ядра — они живут прямо в экране, как и у большинства остальных 92).
-/// Сверка идёт не на глаз: эталоны выгружены из живого TS и лежат в
-/// `test/fixtures/digit-span-reference.json`.
+/// 🔴 ПЕРЕНОС 01.10.2026 — ВТОРОЙ, ЦЕЛИКОМ. Первый (23.09) играл ОДИН ряд за уровень, а уровень
+/// веба — лесенка длин: верно → ряд длиннее, две ошибки на одной длине → конец. Не было подачи
+/// голосом и «весь ряд разом», трёх лестниц, темпа шага зарядки, а ось 9 (направление после
+/// показа) была объявлена в [LevelParams] и не исполнялась экраном.
 enum Direction { forward, backward, ascending }
+
+/// Чем подан стимул: цифру ВИДНО по одной, её СЛЫШНО, или ВЕСЬ РЯД СРАЗУ (веб `Delivery`).
+enum Delivery { screen, voice, all }
+
+/// Ступени темпа показа — живые только в шаге зарядки (веб `Pace`, см. [showTiming]).
+enum Pace { slow, normal, fast }
 
 /// Потолок объёма: выше него длина ряда больше не растёт, растут другие оси.
 const dsVolumeTop = 14;
+
+/// Паузы экрана — как в вебе: после показа до ввода, до проверки набранного, до следующего ряда.
+const dsAfterShowMs = 300;
+const dsSubmitDelayMs = 250;
+const dsNextRowMs = 600;
 
 /// Что задаёт уровень. Перенос `levelParams`.
 ///
@@ -59,12 +74,7 @@ class LevelParams {
   }
 }
 
-/// ОЖИДАЕМЫЙ ОТВЕТ — ОДНО МЕСТО НА ВСЕ ТРИ НАПРАВЛЕНИЯ.
-///
-/// ⚠️ В React-версии это правило однажды было записано дважды — в разборе ввода
-/// и в строке «было: …» после ошибки. Любой новый режим разъезжался ровно
-/// посередине: ответ считался по одному правилу, а показывался по другому.
-/// Здесь оно одно, и обе стороны зовут его.
+/// ОЖИДАЕМЫЙ ОТВЕТ — ОДНО МЕСТО НА ВСЕ ТРИ НАПРАВЛЕНИЯ: и разбор ввода, и строка «было: …».
 List<int> expectedDigits(List<int> seq, Direction dir) {
   switch (dir) {
     case Direction.backward:
@@ -76,29 +86,111 @@ List<int> expectedDigits(List<int> seq, Direction dir) {
   }
 }
 
-/// Партия: что показали, что человек ввёл, чем кончилось.
-class DigitSpanGame {
-  DigitSpanGame({required this.level, required this.direction, List<int>? sequence, Random? rnd})
-      : params = LevelParams.of(level),
-        sequence = sequence ?? _make(LevelParams.of(level).startLen, rnd ?? Random());
+/// Сколько держать весь ряд на экране: столько же, сколько шёл бы показ по одной (веб `allAtOnceMs`).
+int allAtOnceMs(int len, int gapMs) => max(600, len * gapMs);
 
+const _paceMs = {
+  Pace.slow: (showMs: 1000, gapMs: 1600),
+  Pace.normal: (showMs: 700, gapMs: 1100),
+  Pace.fast: (showMs: 450, gapMs: 750),
+};
+
+/// Темп партии: в личной игре его целиком задаёт уровень, в шаге зарядки — ступень темпа.
+({int showMs, int gapMs}) showTiming({required bool isPreset, required int level, required Pace pace}) {
+  if (!isPreset) {
+    final p = LevelParams.of(level);
+    return (showMs: p.showMs, gapMs: p.gapMs);
+  }
+  return _paceMs[pace]!;
+}
+
+/// ЧЕМ ПОДАЁМ НА САМОМ ДЕЛЕ: голос обещать нельзя, пока говорить нечем — тогда партия идёт
+/// экраном, а причина молчания написана на экране настроек. Два экранных способа отдают себя.
+Delivery effectiveDelivery(Delivery chosen, VoiceBlock? block) {
+  if (chosen == Delivery.voice) return block == null ? Delivery.voice : Delivery.screen;
+  return chosen;
+}
+
+/// Ключ лестницы для способа подачи. Экранный остаётся на прежнем `digit_span` — накопленный
+/// уровень переезжает сам; голос и «разом» — свои лестницы с первого уровня.
+String ladderIdFor(Delivery chosen, VoiceBlock? block) {
+  final eff = effectiveDelivery(chosen, block);
+  return eff == Delivery.screen ? 'digit_span' : 'digit_span_${eff.name}';
+}
+
+/// Что стоит рекордом в шапке по ходу партии: незачётная партия его не двигает даже на экране.
+int? hudRecord(int? stored, int span, bool counts) {
+  if (!counts) return stored;
+  if (stored == null) return span > 0 ? span : null;
+  return max(stored, span);
+}
+
+/// Ряд цифр — `len` раз по `floor(rng() * 10)`, как веб `generateSeq`.
+List<int> generateSeq(int len, double Function() rng) => [for (var i = 0; i < len; i++) (rng() * 10).floor()];
+
+/// Ось 9: направление разыгрывается ОДИН раз на партию, до первого ряда (веб `drawDirection`).
+Direction drawDirection(double Function() rng) => Direction.values[(rng() * Direction.values.length).floor()];
+
+/// Шаг лесенки длин — веб `spanStep`: верно → длина +1 и счёт ошибок на длине с нуля; неверно →
+/// +1 ошибка на ЭТОЙ длине, две — стоп (и стоп на двенадцатом раунде).
+({int nextLen, bool cont, int atLenErrors}) spanStep({
+  required int seqLen,
+  required int round,
+  required int atLenErrors,
+  required bool correct,
+}) {
+  if (correct) return (nextLen: seqLen + 1, cont: true, atLenErrors: 0);
+  final at = atLenErrors + 1;
+  return (nextLen: seqLen, cont: !(at >= 2 || round >= 12), atLenErrors: at);
+}
+
+/// Партия кончена — веб `spanFinished`.
+bool spanFinished(({int nextLen, bool cont, int atLenErrors}) step) => !step.cont || step.nextLen > 12;
+
+/// Метки партии в статистике — веб `sessionLabels`: шаг «Оценки» пишет свои (diff + направление),
+/// личная игра — направление и последнюю длину.
+({String difficulty, String mode}) sessionLabels({
+  required bool isPreset,
+  required String diff,
+  required Direction direction,
+  required int finalLength,
+}) =>
+    isPreset ? (difficulty: diff, mode: direction.name) : (difficulty: direction.name, mode: 'start$finalLength');
+
+/// Партия — лесенка длин уровня. Что показали, что набрано, докуда дошли.
+class DigitSpanSession {
+  DigitSpanSession({required this.level, required this.isPreset, required this.direction, required this.startLen})
+      : seqLen = startLen;
+
+  /// Уровень правил партии: в шаге зарядки — первый (веб `effLevel`).
   final int level;
+  final bool isPreset;
   final Direction direction;
-  final LevelParams params;
-  final List<int> sequence;
+  final int startLen;
 
+  int seqLen;
+  int round = 1;
+  int atLenErrors = 0;
+  int correctRounds = 0;
+  int maxSpan = 0;
+  int errors = 0;
+  bool finished = false;
+  List<int> sequence = const [];
   final List<int> entered = [];
 
-  static List<int> _make(int len, Random rnd) => List.generate(len, (_) => rnd.nextInt(10));
+  /// Новый ряд текущей длины.
+  void deal(double Function() rng) {
+    sequence = generateSeq(seqLen, rng);
+    entered.clear();
+  }
 
   List<int> get expected => expectedDigits(sequence, direction);
 
-  bool get full => entered.length >= sequence.length;
+  bool get full => entered.length >= seqLen;
 
-  /// Ввод цифры. Возвращает false, когда ряд уже набран — экран по этому
-  /// признаку гасит клавиши, а не набирает лишнее молча.
+  /// Ввод цифры. false — ряд уже набран: экран гасит клавиши, а не набирает лишнее молча.
   bool enter(int digit) {
-    if (full || digit < 0 || digit > 9) return false;
+    if (finished || full || digit < 0 || digit > 9) return false;
     entered.add(digit);
     return true;
   }
@@ -107,10 +199,8 @@ class DigitSpanGame {
     if (entered.isNotEmpty) entered.removeLast();
   }
 
-  void clear() => entered.clear();
-
-  /// Победа — только когда ряд набран ПОЛНОСТЬЮ и совпал с ожидаемым.
-  bool get isWon {
+  /// Набранный ряд целиком совпал с ожидаемым.
+  bool get rowCorrect {
     if (!full) return false;
     final e = expected;
     for (var i = 0; i < e.length; i++) {
@@ -119,12 +209,25 @@ class DigitSpanGame {
     return true;
   }
 
-  /// На какой позиции первая ошибка (для разбора после партии); -1 — ошибок нет.
-  int get firstWrong {
-    final e = expected;
-    for (var i = 0; i < entered.length && i < e.length; i++) {
-      if (entered[i] != e[i]) return i;
+  /// Сдать ряд — шаг лесенки. true — партия кончена (длина и раунд тогда не двигаются).
+  bool submit() {
+    final correct = rowCorrect;
+    final step = spanStep(seqLen: seqLen, round: round, atLenErrors: atLenErrors, correct: correct);
+    if (correct) {
+      correctRounds += 1;
+      maxSpan = max(maxSpan, seqLen);
+    } else {
+      errors += 1;
     }
-    return -1;
+    atLenErrors = step.atLenErrors;
+    if (spanFinished(step)) return finished = true;
+    if (correct) seqLen = step.nextLen;
+    round += 1;
+    return false;
   }
+
+  /// Уровень взят — хотя бы один верный ряд; шаг зарядки лестницу не двигает.
+  bool get passed => !isPreset && correctRounds >= 1;
+
+  int get score => maxSpan * 10;
 }

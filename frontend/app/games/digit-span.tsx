@@ -1,4 +1,4 @@
-/* psygames-game-digit-span · VER 3 · 28.08.2026 */
+/* psygames-game-digit-span · VER 4 · 01.10.2026 */
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, Pressable,
@@ -236,6 +236,74 @@ export function hudRecord(stored: number | null, span: number, counts: boolean):
   return Math.max(stored, span);
 }
 
+/**
+ * РЯД ЦИФР — `len` раз по `floor(rng() * 10)`. Случайность подставляется (по умолчанию
+ * Math.random): эталон для Flutter пишет живой код на записанном потоке
+ * (`src/games/digit-span/tools/record-flutter-reference.gen.ts`). Порядок обращений к
+ * случайности тот же, что был внутри экрана, — поле игрока от выноса не меняется.
+ */
+export function generateSeq(len: number, rng: () => number = Math.random): number[] {
+  const seq: number[] = [];
+  for (let i = 0; i < len; i++) seq.push(Math.floor(rng() * 10));
+  return seq;
+}
+
+/** Ось 9: направление разыгрывается ОДИН раз на партию, до первого ряда (см. startGame). */
+export function drawDirection(rng: () => number = Math.random): Direction {
+  return DIRECTIONS[Math.floor(rng() * DIRECTIONS.length)];
+}
+
+/**
+ * ШАГ ЛЕСЕНКИ ДЛИН — ОДНО МЕСТО НА ЭКРАН И ЭТАЛОН.
+ *
+ * 🔴 ПРАВИЛО НЕ СООТВЕТСТВОВАЛО СОБСТВЕННОМУ КОММЕНТАРИЮ. Написано «две ошибки
+ * НА ОДНОЙ ДЛИНЕ», а стояло `errors >= 1` — то есть две ошибки ЗА ВСЮ ПАРТИЮ:
+ * общий счётчик не сбрасывался на успехе. Ошибся на длине 4, взял её со второго
+ * раза, ошибся на 5 — партия окончена, хотя на пятёрке это была ПЕРВАЯ попытка.
+ *
+ * Спан — это докуда человек дошёл до двух ошибок на одной длине; так устроен
+ * «Спан по клеткам» рядом (`errorsAtLen`, сброс на успехе) и так устроена сама
+ * методика. Модель игрока показывает недомер около 0,1 спана — немного, но это
+ * ЗАМЕРЯЕМАЯ величина, и врать в ней нельзя даже на десятую.
+ */
+export function spanStep(o: { seqLen: number; round: number; atLenErrors: number; correct: boolean }): { nextLen: number; cont: boolean; atLenErrors: number } {
+  const { seqLen, round, correct } = o;
+  let nextLen = seqLen;
+  let cont = true;
+  // Ошибки НА ТЕКУЩЕЙ ДЛИНЕ: обнуляются, как только длина взята.
+  let atLenErrors = o.atLenErrors;
+  if (correct) {
+    nextLen = seqLen + 1;
+    atLenErrors = 0;
+  } else {
+    atLenErrors += 1;
+    if (atLenErrors >= 2 || round >= 12) cont = false;
+  }
+  return { nextLen, cont, atLenErrors };
+}
+
+/** Партия кончена: две ошибки на длине (или двенадцатый раунд), либо длина ушла за двенадцать. */
+export function spanFinished(step: { nextLen: number; cont: boolean }): boolean {
+  return !step.cont || step.nextLen > 12;
+}
+
+/**
+ * МЕТКИ ПАРТИИ В СТАТИСТИКЕ.
+ *
+ * 🔴 ПАРТИЯ БАТАРЕИ ОБЯЗАНА ЗАПИСАТЬСЯ ПОД МЕТКАМИ ШАГА. Шаг оценки
+ * предписывает difficulty 'medium' + mode 'forward' (assessment.ts, там же
+ * sessionFitsStep сверяет оба поля дословно), а игра писала difficulty=
+ * НАПРАВЛЕНИЕ ('forward') и mode='start4' — ни одно поле не совпадало, и
+ * домен wm_verbal ВСЕГДА получал молчаливый z=0 вместо замера. Свободная
+ * партия пишет как раньше; направление и последняя длина не теряются —
+ * они в details (direction, finalLength) с первого дня.
+ */
+export function sessionLabels(o: { isPreset: boolean; diff: string; direction: Direction; finalLength: number }): { difficulty: string; mode: string } {
+  return o.isPreset
+    ? { difficulty: o.diff, mode: o.direction }
+    : { difficulty: o.direction, mode: `start${o.finalLength}` };
+}
+
 export default function DigitSpanGame() {
   const { colors } = useTheme();
   const { t, language } = useLanguage();
@@ -406,12 +474,6 @@ export default function DigitSpanGame() {
     };
   }, []);
 
-  const generateSeq = (len: number) => {
-    const seq: number[] = [];
-    for (let i = 0; i < len; i++) seq.push(Math.floor(Math.random() * 10));
-    return seq;
-  };
-
   const startGame = () => {
     // Решение «этот заход не в зачёт» фиксируется ЗДЕСЬ, до первого стимула.
     // В шаге зарядки пробный заход бессмыслен: он и так не двигает уровень.
@@ -431,7 +493,7 @@ export default function DigitSpanGame() {
      */
     surpriseRef.current = !isPreset && p.surpriseDir;
     if (surpriseRef.current) {
-      dirRef.current = DIRECTIONS[Math.floor(Math.random() * DIRECTIONS.length)];
+      dirRef.current = drawDirection();
     } else {
       dirRef.current = isPreset ? direction : (p.reverse ? 'backward' : 'forward');
       if (!isPreset) setDirection(dirRef.current);
@@ -548,41 +610,25 @@ export default function DigitSpanGame() {
     const expectedStr = expected.join('');
     const correct = userInput === expectedStr;
     setLastFeedback(correct ? 'right' : 'wrong');
-    let nextLen = seqLen;
-    let cont = true;
     let updatedMax = maxSpan;
     let updatedCorrect = correctRounds;
     let updatedErrors = errors;
-    // Ошибки НА ТЕКУЩЕЙ ДЛИНЕ: обнуляются, как только длина взята.
-    let atLenErrors = errorsAtLenRef.current;
+    // Шаг лесенки — общим правилом (spanStep): ошибки считаются НА ТЕКУЩЕЙ ДЛИНЕ.
+    const step = spanStep({ seqLen, round, atLenErrors: errorsAtLenRef.current, correct });
+    const { nextLen, atLenErrors } = step;
 
     if (correct) {
       updatedCorrect += 1;
       updatedMax = Math.max(updatedMax, seqLen);
-      nextLen = seqLen + 1;
-      atLenErrors = 0;
     } else {
       updatedErrors += 1;
-      /**
-       * 🔴 ПРАВИЛО НЕ СООТВЕТСТВОВАЛО СОБСТВЕННОМУ КОММЕНТАРИЮ. Написано «две ошибки
-       * НА ОДНОЙ ДЛИНЕ», а стояло `errors >= 1` — то есть две ошибки ЗА ВСЮ ПАРТИЮ:
-       * общий счётчик не сбрасывался на успехе. Ошибся на длине 4, взял её со второго
-       * раза, ошибся на 5 — партия окончена, хотя на пятёрке это была ПЕРВАЯ попытка.
-       *
-       * Спан — это докуда человек дошёл до двух ошибок на одной длине; так устроен
-       * «Спан по клеткам» рядом (`errorsAtLen`, сброс на успехе) и так устроена сама
-       * методика. Модель игрока показывает недомер около 0,1 спана — немного, но это
-       * ЗАМЕРЯЕМАЯ величина, и врать в ней нельзя даже на десятую.
-       */
-      atLenErrors += 1;
-      if (atLenErrors >= 2 || round >= 12) cont = false;
     }
     errorsAtLenRef.current = atLenErrors;
     setCorrectRounds(updatedCorrect);
     setMaxSpan(updatedMax);
     setErrors(updatedErrors);
 
-    if (!cont || nextLen > 12) {
+    if (spanFinished(step)) {
       const finalTime = (gameNow() - startTime) / 1000;
       setElapsedTime(finalTime);
       // ⚠️ ПРОБНЫЙ ЗАХОД РАЗБИРАЕТСЯ ПЕРВЫМ. Если партия объявлена непроводимой, лестницу
@@ -618,8 +664,7 @@ export default function DigitSpanGame() {
              * партия пишет как раньше; направление и стартовая длина не теряются —
              * они в details (direction, finalLength) с первого дня.
              */
-            difficulty: isPreset ? str('diff', 'medium') : direction,
-            mode: isPreset ? dirRef.current : `start${seqLen}`,
+            ...sessionLabels({ isPreset, diff: str('diff', 'medium'), direction: dirRef.current, finalLength: seqLen }),
             errors: updatedErrors,
             details: {
               level: levelRef.current, maxSpan: updatedMax, correctRounds: updatedCorrect, finalLength: seqLen,
