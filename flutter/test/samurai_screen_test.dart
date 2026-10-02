@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/samurai/layout.dart';
 import 'package:psygames_flutter/games/samurai/screen.dart';
+import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -14,6 +15,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// 🔴 РЕШЕНИЕ ПРОБА СЧИТАЕТ САМА, СВОИМ ПЕРЕБОРОМ. Взять его из перенесённых правил
 /// было бы проверкой кода этим же кодом: одна и та же ошибка сошлась бы сама с собой.
 void main() {
+  // Пробы ищут русские подписи — словарь грузится явно (без него L.t вернёт ключ).
+  setUpAll(() async => L.load('ru'));
   late SharedState state;
 
   setUp(() async {

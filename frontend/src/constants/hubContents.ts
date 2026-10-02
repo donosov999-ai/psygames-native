@@ -218,6 +218,13 @@ export const HUB_CONTENTS: Record<string, HubSubGame[]> = {
     { route: '/games/sudoku?mode=towers', icon: 'business', nameKey: 'sudokuTowersTitle', descKey: 'sudokuTowersHubDesc', typeKey: 'sudokuTypeTowers' },
     { route: '/games/sudoku?mode=unequal', icon: 'swap-vertical', nameKey: 'sudokuUnequalTitle', descKey: 'sudokuUnequalHubDesc', typeKey: 'sudokuTypeUnequal' },
     /**
+     * «Киллер» и «Свободно» — ещё два режима той же доски (задача 55b97845, 01.10.2026). На
+     * веб-экране они жили в переключателе режимов; нативный экран перехватил /games/sudoku, и
+     * в приложении до них стало не дойти — поэтому теперь у них карточки, как у небоскрёбов.
+     */
+    { route: '/games/sudoku?mode=killer', icon: 'add-circle', nameKey: 'sudokuModeKiller', descKey: 'sudokuKillerHubDesc', typeKey: 'sudokuTypeKiller' },
+    { route: '/games/sudoku?mode=free', icon: 'shuffle', nameKey: 'sudokuModeFree', descKey: 'sudokuFreeHubDesc', typeKey: 'sudokuTypeFree' },
+    /**
      * «Кошки» (Queens / Star Battle) — решение Дениса 24.09.2026: «в развилку
      * «Судоку» пятой карточкой». Экран рождается сразу нативным
      * (flutter/lib/games/cats): веб-страницы у игры нет и не нужно — веб живёт только

@@ -77,9 +77,9 @@ void main() {
     ));
     await tester.pump();
 
-    expect(find.byTooltip('Правила'), findsOneWidget,
+    expect(find.byTooltip(L.t('btn_rules')), findsOneWidget,
         reason: 'экран ничего не передавал — кнопку обязан дать каркас');
-    await tester.tap(find.byTooltip('Правила'));
+    await tester.tap(find.byTooltip(L.t('btn_rules')));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('game-rules')), findsOneWidget);
     expect(find.text(L.t(GameRules.keyFor('/games/hanoi')!)), findsOneWidget);
@@ -100,7 +100,7 @@ void main() {
       home: GameShell(title: 'Проба', field: (_, _) => const SizedBox.shrink()),
     ));
     await tester.pump();
-    expect(find.byTooltip('Правила'), findsNothing);
+    expect(find.byTooltip(L.t('btn_rules')), findsNothing);
   });
 
   test('список игр без правила не протух: у каждой всё ещё нет ключа', () {

@@ -129,11 +129,16 @@ void main() {
     await tester.pump();
   }
 
-  /// Три ошибки в первые пустые клетки — партия проиграна.
-  Future<void> loseByThreeErrors(WidgetTester tester, int n) async {
+  /// Столько ошибок, сколько позволяет ступень, — партия проиграна. Лимит читается так же,
+  /// как его видит человек: счётчик «0/N» в шапке. С 01.10 он у каждой ступени свой
+  /// (задача 1fa57de3), прежние «ровно три» проба держать не вправе.
+  Future<void> loseByErrors(WidgetTester tester, int n) async {
+    final hud = find.byWidgetPredicate((w) => w is Text && RegExp(r'^0/\d+$').hasMatch(w.data ?? ''));
+    expect(hud, findsOneWidget, reason: 'в шапке нет счётчика ошибок «0/N»');
+    final limit = int.parse((tester.widget<Text>(hud).data!).split('/').last);
     var made = 0;
-    for (var r = 0; r < n && made < 3; r++) {
-      for (var c = 0; c < n && made < 3; c++) {
+    for (var r = 0; r < n && made < limit; r++) {
+      for (var c = 0; c < n && made < limit; c++) {
         if (digitAt(tester, r, c) != 0) continue;
         // Заведомо неверная цифра: та, что уже стоит в этой строке.
         final row = [for (var j = 0; j < n; j++) digitAt(tester, r, j)].where((v) => v != 0);
@@ -142,7 +147,7 @@ void main() {
         made++;
       }
     }
-    expect(made, 3, reason: 'проба не нашла куда поставить три ошибки');
+    expect(made, limit, reason: 'проба не нашла куда поставить $limit ошибок');
   }
 
   List<Map<String, Object?>> reports(String gameType) =>
@@ -160,7 +165,7 @@ void main() {
       // не опускает. Одного проигрыша для этой проверки мало.
       for (var round = 0; round < 3; round++) {
         await pumpUntil(tester, SudokuScreen(state: state));
-        await loseByThreeErrors(tester, 9);
+        await loseByErrors(tester, 9);
         await tester.pumpWidget(const SizedBox());
         await tester.pump();
       }
@@ -249,7 +254,7 @@ void main() {
 
     testWidgets('🔴 проигрыш в режиме тоже уходит', (tester) async {
       await pumpUntil(tester, SudokuScreen(state: state, mode: SideMode.towers));
-      await loseByThreeErrors(tester, 6);
+      await loseByErrors(tester, 6);
       await tester.pump();
       final r = reports('sudoku');
       expect(r.length, 1);

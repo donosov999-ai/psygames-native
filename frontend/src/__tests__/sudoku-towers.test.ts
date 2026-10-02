@@ -157,6 +157,37 @@ describe('небоскрёбы', () => {
     expect(towersLineOk([N, 1, 2, 3, 4, 5], N)).toBe(false);
   }, 120000);
 
+  /**
+   * 🔴 ПУСТАЯ КЛЕТКА ВПЕРЕДИ ЗАКРЫВАЕТ ВИДИМЫЕ (задача 2ab36958, 01.10.2026). Нижней границей
+   * неполного ряда стояло «сколько видно среди заполненных» — и ряд [_,2,4,1,6,3] при
+   * подсказке 2 отвергался, хотя [5,2,4,1,6,3] даёт ровно 2. Замер на эталонах правил: ядро
+   * отвергало верную цифру решения в 8 ходах из 20, оценщик срезал кандидатов неверным
+   * доводом. Перебором: граница не отвергает НИ ОДНОГО ряда, у которого есть законное
+   * добивание, — на всех неполных рядах 6×6 с одной-тремя пустыми.
+   */
+  it('🔴 неполный ряд не отвергается, если его можно добить до подсказки', () => {
+    expect(towersLineOk([0, 2, 4, 1, 6, 3], 2)).toBe(true);
+    expect(towersLineOk([0, 2, 4, 1, 6, 3], 5)).toBe(false);   // сверху: видно 3 + одна пустая = не больше 4
+    const perms: number[][] = [];
+    const walk = (cur: number[]) => {
+      if (cur.length === N) { perms.push(cur.slice()); return; }
+      for (let v = 1; v <= N; v++) if (!cur.includes(v)) { cur.push(v); walk(cur); cur.pop(); }
+    };
+    walk([]);
+    let falseReject = 0, checked = 0;
+    for (const full of perms) {
+      const clue = visibleCount(full);
+      for (let mask = 1; mask < 1 << N; mask++) {
+        const holes = [...Array(N).keys()].filter((i) => mask & (1 << i));
+        if (holes.length > 3) continue;
+        const line = full.map((v, i) => (holes.includes(i) ? 0 : v));
+        checked++;
+        if (!towersLineOk(line, clue)) falseReject++;
+      }
+    }
+    expect(`ложных отказов ${falseReject} из ${checked}`).toBe(`ложных отказов 0 из ${checked}`);
+  });
+
   it('🔴 счёт видимых зданий — на известных примерах, а не «как посчитается»', () => {
     expect(visibleCount([1, 2, 3, 4])).toBe(4);   // строго растёт — видно все
     expect(visibleCount([4, 3, 2, 1])).toBe(1);   // самое высокое первым — видно одно
