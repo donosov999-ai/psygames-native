@@ -385,8 +385,13 @@
    ],
    [
     9,
-    null,
+    26,
     "dual"
+   ],
+   [
+    27,
+    null,
+    "switch"
    ]
   ],
   "nut_sort": [

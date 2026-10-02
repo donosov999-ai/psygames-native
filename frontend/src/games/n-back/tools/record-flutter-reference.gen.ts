@@ -1,9 +1,10 @@
-/* psygames-n-back-record-flutter-reference · VER 1 · 01.10.2026 */
+/* psygames-n-back-record-flutter-reference · VER 2 · 02.10.2026 */
 /**
  * ЭТАЛОН И СЛОВАРЬ ДЛЯ FLUTTER-ПОЛОВИНЫ N-BACK. Пишет два файла:
  *   · `flutter/test/fixtures/n-back-reference.json` — правила уровней (`levelParams` L1…L60),
  *     доли приманок, разбор режима шага (`nFromModeParam`), блоки ряда
- *     (`buildNbackSequence`) и d′/точность (`core/dprime.ts`);
+ *     (`buildNbackSequence`) и d′/точность (`core/dprime.ts`); с 02.10 — ось 9: план глубины
+ *     (`nPlanFor`, `switchEvery` уровня) и блоки с глубиной на позицию (`buildNbackSequenceVar`);
  *   · `flutter/assets/l10n/n_back.json` — подписи разбора партии на двенадцати языках из
  *     `core/i18n.ts`: перевод, сделанный для веба, приезжает в приложение как есть.
  *
@@ -24,7 +25,10 @@
  *   npx jest --testMatch '**\/n-back/tools/record-flutter-reference.gen.ts'
  */
 import { levelParams, nFromModeParam, NB_VOLUME_TOP } from '@/app/games/n-back';
-import { buildNbackSequence, countLures, countMatches, lureRateFor, MATCH_RATE } from '@/src/games/nback/sequence';
+import {
+  buildNbackSequence, buildNbackSequenceVar, countLures, countLuresVar, countMatches, countMatchesVar, lureRateFor,
+  MATCH_RATE, nPlanFor,
+} from '@/src/games/nback/sequence';
 import { accuracyPercent, signalDetection, type NBackCounts } from '../core/dprime';
 import { getNBackStrings, N_BACK_LOCALES } from '../core/i18n';
 
@@ -53,7 +57,10 @@ test('эталон n-back и словарь подписей для Flutter', ()
   const levels = [];
   for (let level = 1; level <= 60; level++) {
     const p = levelParams(level);
-    levels.push({ level, n: p.N, modality: p.modality, showMs: p.showMs, gapMs: p.gapMs, lureRate: p.lureRate ?? null });
+    levels.push({
+      level, n: p.N, modality: p.modality, showMs: p.showMs, gapMs: p.gapMs, lureRate: p.lureRate ?? null,
+      switchEvery: p.switchEvery ?? null,
+    });
   }
 
   const lures = [1, 2, 3, 4, 5, 6, 7, 8].map((n) => ({ n, rate: lureRateFor(n) }));
@@ -80,6 +87,28 @@ test('эталон n-back и словарь подписей для Flutter', ()
     }
   }
 
+  // Ось 9: план глубины и блоки по нему — на тех уровнях, где смена есть, и на записанном потоке.
+  const plans = [[20, 6, 10], [20, 6, 4], [15, 6, 7], [30, 6, 5], [20, 2, 3], [20, 1, 2], [20, 6, 0]]
+    .map(([trials, n, every]) => ({ trials, n, switchEvery: every, plan: nPlanFor(trials, n, every || undefined) }));
+  const varSequences = [];
+  for (const level of [27, 29, 31, 33, 40]) {
+    for (const trials of [15, 20, 30]) {
+      for (const alphabet of [9, 10]) {
+        const p = levelParams(level);
+        const plan = nPlanFor(trials, p.N, p.switchEvery);
+        const source = mulberry32(seed++);
+        const randoms: number[] = [];
+        const rng = () => { const r = source(); randoms.push(r); return r; };
+        const seq = buildNbackSequenceVar(trials, plan, alphabet, rng, p.lureRate);
+        varSequences.push({
+          level, trials, alphabet, plan, lureRate: p.lureRate ?? null, randoms,
+          items: seq.items, matchAt: seq.matchAt, lureAt: seq.lureAt,
+          matches: countMatchesVar(seq.items, plan), lures: countLuresVar(seq.items, plan),
+        });
+      }
+    }
+  }
+
   const counts: NBackCounts[] = [
     { hits: 0, misses: 0, falseAlarms: 0, correctRejections: 0 },
     { hits: 5, misses: 0, falseAlarms: 0, correctRejections: 10 },
@@ -99,7 +128,7 @@ test('эталон n-back и словарь подписей для Flutter', ()
 
   writeFileSync(REFERENCE_PATH, JSON.stringify({
     source: 'app/games/n-back.tsx · src/games/nback/sequence.ts · src/games/n-back/core/dprime.ts',
-    volumeTop: NB_VOLUME_TOP, matchRate: MATCH_RATE, levels, lures, modes, sequences, signals,
+    volumeTop: NB_VOLUME_TOP, matchRate: MATCH_RATE, levels, lures, modes, sequences, signals, plans, varSequences,
   }, null, 0) + '\n');
 
   const strings: Record<string, unknown> = {};
@@ -108,4 +137,5 @@ test('эталон n-back и словарь подписей для Flutter', ()
 
   expect(levels).toHaveLength(60);
   expect(sequences.length).toBeGreaterThan(40);
+  expect(varSequences.length).toBe(30);
 });
