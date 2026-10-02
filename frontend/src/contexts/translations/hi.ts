@@ -3375,8 +3375,6 @@ const t: Record<string, string> = {
   "sdkDepth": "गहराई",
   "sdkNode": "नोड",
   "sdkUp": "ऊपर",
-  "sdkBoard": "बोर्ड",
-  "sdkTapMarks": "टैप करने से खाना चिह्नित होता है",
   "sdkBoardFailed": "बोर्ड नहीं बन सका",
   "sdkGameFailed": "खेल तैयार नहीं हो सका",
   "sdkNoBoards": "इस स्तर के लिए कोई बोर्ड नहीं है",

@@ -3366,8 +3366,6 @@ const t: Record<string, string> = {
   "sdkDepth": "深さ",
   "sdkNode": "ノード",
   "sdkUp": "上へ",
-  "sdkBoard": "盤面",
-  "sdkTapMarks": "タップでマスに印を付けます",
   "sdkBoardFailed": "盤面を作成できませんでした",
   "sdkGameFailed": "ゲームを準備できませんでした",
   "sdkNoBoards": "このレベルの盤面がありません",

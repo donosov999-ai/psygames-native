@@ -3367,8 +3367,6 @@ const t: Record<string, string> = {
   "sdkDepth": "깊이",
   "sdkNode": "노드",
   "sdkUp": "위로",
-  "sdkBoard": "판",
-  "sdkTapMarks": "탭하면 칸에 표시됩니다",
   "sdkBoardFailed": "판을 만들 수 없습니다",
   "sdkGameFailed": "게임을 준비할 수 없습니다",
   "sdkNoBoards": "이 레벨의 판이 없습니다",

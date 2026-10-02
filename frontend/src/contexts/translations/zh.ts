@@ -3372,8 +3372,6 @@ const t: Record<string, string> = {
   "sdkDepth": "深度",
   "sdkNode": "节点",
   "sdkUp": "向上",
-  "sdkBoard": "棋盘",
-  "sdkTapMarks": "轻点即可标记格子",
   "sdkBoardFailed": "无法生成棋盘",
   "sdkGameFailed": "无法准备本局",
   "sdkNoBoards": "此关卡暂无棋盘",

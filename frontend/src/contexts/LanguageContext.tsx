@@ -3526,8 +3526,6 @@ const translations: Translations = {
   sdkDepth: { ru: 'Глубина', en: 'Depth' },
   sdkNode: { ru: 'Узел', en: 'Node' },
   sdkUp: { ru: 'Наверх', en: 'Up' },
-  sdkBoard: { ru: 'Доска', en: 'Board' },
-  sdkTapMarks: { ru: 'Тычок отмечает клетку', en: 'A tap marks a cell' },
   sdkBoardFailed: { ru: 'Доска не собралась', en: 'The board could not be built' },
   sdkGameFailed: { ru: 'Партия не собралась', en: 'The game could not be prepared' },
   sdkNoBoards: { ru: 'Для этого уровня нет досок', en: 'No boards for this level' },

@@ -3372,8 +3372,6 @@ const t: Record<string, string> = {
   "sdkDepth": "Profundidad",
   "sdkNode": "Nodo",
   "sdkUp": "Arriba",
-  "sdkBoard": "Tablero",
-  "sdkTapMarks": "Un toque marca la casilla",
   "sdkBoardFailed": "No se pudo crear el tablero",
   "sdkGameFailed": "No se pudo preparar la partida",
   "sdkNoBoards": "No hay tableros para este nivel",

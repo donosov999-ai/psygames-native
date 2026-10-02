@@ -3367,8 +3367,6 @@ const t: Record<string, string> = {
   "sdkDepth": "Profondeur",
   "sdkNode": "Nœud",
   "sdkUp": "Remonter",
-  "sdkBoard": "Grille",
-  "sdkTapMarks": "Un appui marque la case",
   "sdkBoardFailed": "Impossible de construire la grille",
   "sdkGameFailed": "Impossible de préparer la partie",
   "sdkNoBoards": "Aucune grille pour ce niveau",

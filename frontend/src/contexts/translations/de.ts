@@ -3372,8 +3372,6 @@ const t: Record<string, string> = {
   "sdkDepth": "Tiefe",
   "sdkNode": "Knoten",
   "sdkUp": "Nach oben",
-  "sdkBoard": "Brett",
-  "sdkTapMarks": "Ein Tippen markiert das Feld",
   "sdkBoardFailed": "Das Brett ließ sich nicht erstellen",
   "sdkGameFailed": "Das Spiel ließ sich nicht vorbereiten",
   "sdkNoBoards": "Für dieses Level gibt es keine Bretter",

@@ -3368,8 +3368,6 @@ const t: Record<string, string> = {
   "sdkDepth": "العمق",
   "sdkNode": "العقدة",
   "sdkUp": "للأعلى",
-  "sdkBoard": "اللوحة",
-  "sdkTapMarks": "النقر يضع علامة على الخانة",
   "sdkBoardFailed": "تعذّر إنشاء اللوحة",
   "sdkGameFailed": "تعذّر تجهيز اللعبة",
   "sdkNoBoards": "لا توجد لوحات لهذا المستوى",
