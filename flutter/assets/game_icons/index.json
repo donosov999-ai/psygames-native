@@ -232,6 +232,7 @@
   "/games/sudoku-hub": "sudoku.webp",
   "/games/sudoku-samurai": "sudoku_samurai.webp",
   "/games/sudoku?mode=free": "sudoku.webp",
+  "/games/sudoku?mode=junior": "sudoku_junior.webp",
   "/games/sudoku?mode=killer": "puzzle_keen.webp",
   "/games/sudoku?mode=towers": "sudoku_towers.webp",
   "/games/sudoku?mode=unequal": "sudoku_unequal.webp",
