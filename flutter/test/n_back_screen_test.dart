@@ -63,12 +63,14 @@ void main() {
     await LevelRules.load();
   });
 
-  Future<void> boot(WidgetTester tester, {int level = 2, bool voice = false, bool ruleSeen = true, Map<String, String>? preset}) async {
+  Future<void> boot(WidgetTester tester,
+      {int level = 2, bool voice = false, bool ruleSeen = true, Map<String, String>? preset, Map<String, String> extra = const {}}) async {
     // Часы партии идут с поддельным временем пробы, а не с настоящими часами машины.
     gameWallMs = () => tester.binding.clock.now().millisecondsSinceEpoch;
     SharedPreferences.setMockInitialValues({
       'psygames_n_back_level_nzt48': '$level',
       if (ruleSeen) LevelRules.seenKey('n_back', 'dual'): '1',
+      ...extra,
     });
     state = await SharedState.open();
     sent.clear();
@@ -168,6 +170,65 @@ void main() {
         'попадание ${const Color(0xFF2E9E5B)} · мимо ${const Color(0xFFD9534F)}');
     await tester.tap(find.byTooltip(L.t('restart')));
     await tester.pump(const Duration(seconds: 3));
+  });
+
+  testWidgets('🔴 рекорд серии: каждое попадание +1, рекорд пишется в ключ веба и стоит в шапке', (tester) async {
+    // Веб: frontend/app/games/n-back.tsx (streakRef, bumpBestStreak) — серия попаданий подряд,
+    // ложная тревога обнуляет; ключ psygames.bestStreak.n_back общий для обеих половин гибрида.
+    await boot(tester, level: 2);
+    expect(find.byWidgetPredicate((w) => w is Semantics && (w.properties.label ?? '').startsWith('${L.t('hud_best')}: ')),
+        findsNothing, reason: 'рекорда ещё нет — плашки нет, как у веба');
+    await tester.tap(find.text(L.t('start')));
+    await tester.pump();
+    final seen = await play(tester, n: 2);
+    final matches = [for (var i = 2; i < seen.length; i++) if (seen[i] == seen[i - 2]) i].length;
+    expect(matches, greaterThan(1), reason: 'в партии есть что брать');
+    expect('ключ ${state.get(nbBestStreakKey)} · шапка ${hud(tester, L.t('hud_best'), '$matches')}', 'ключ $matches · шапка true',
+        reason: 'все $matches совпадений взяты подряд, ложных тревог нет');
+  });
+
+  testWidgets('🔴 ложная тревога обнуляет серию: рекорд — лучший отрезок, а не сумма попаданий', (tester) async {
+    await boot(tester, level: 2);
+    await tester.tap(find.text(L.t('start')));
+    await tester.pump();
+    final seen = <int>[];
+    var hits = 0;
+    var falseAlarmDone = false;
+    var after = 0;
+    var dark = true;
+    for (var step = 0; step < 4000 && find.byType(NbGrid).evaluate().isNotEmpty; step++) {
+      final lit = litCell(tester);
+      if (lit == null) {
+        dark = true;
+      } else if (dark) {
+        dark = false;
+        seen.add(lit);
+        final i = seen.length - 1;
+        final match = i >= 2 && seen[i] == seen[i - 2];
+        if (match) {
+          await tester.tap(find.byKey(const Key('nb-match')));
+          if (falseAlarmDone) {
+            after++;
+          } else {
+            hits++;
+          }
+        } else if (i >= 2 && hits >= 2 && !falseAlarmDone) {
+          await tester.tap(find.byKey(const Key('nb-match')));   // нарочно мимо
+          falseAlarmDone = true;
+        }
+      }
+      await tester.pump(const Duration(milliseconds: 50));
+    }
+    await tester.pump(const Duration(seconds: 1));
+    expect(falseAlarmDone, isTrue, reason: 'ложная тревога случилась');
+    final best = hits > after ? hits : after;
+    expect('рекорд ${state.get(nbBestStreakKey)}', 'рекорд $best',
+        reason: 'до тревоги $hits, после $after — рекорд лучший отрезок, не сумма ${hits + after}');
+  });
+
+  testWidgets('рекорд, записанный вебом, виден в нативной шапке до партии', (tester) async {
+    await boot(tester, level: 2, extra: {nbBestStreakKey: '17'});
+    expect(hud(tester, L.t('hud_best'), '17'), isTrue);
   });
 
   testWidgets('🔴 партия нажатиями: 2-back, все совпадения взяты — 100 %, уровень поднят', (tester) async {

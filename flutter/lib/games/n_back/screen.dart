@@ -78,6 +78,10 @@ class NbReadout {
 /// Синий градиента веб-экрана (`#5b86e5`): им горит клетка и подсвечен босс.
 const _accent = Color(0xFF5B86E5);
 
+/// Личный рекорд серии попаданий — ключ веба (`frontend/src/services/streak.ts`), общий
+/// для обеих половин гибрида: `psygames.` хранилище возит (SharedState.extraPrefixes).
+const nbBestStreakKey = 'psygames.bestStreak.n_back';
+
 class NBackScreen extends StatefulWidget {
   const NBackScreen({super.key, required this.state, this.voice, this.strings, this.rng});
 
@@ -123,6 +127,12 @@ class _NBackScreenState extends State<NBackScreen> {
   NbReadout? _readout;
   bool? _boss;
 
+  /// Серия попаданий подряд в зрительном потоке и её рекорд — как у веба: попадание +1,
+  /// ложная тревога обнуляет, новая партия начинает с нуля, рекорд пишется сразу, а не в
+  /// конце партии («побил себя» видно в тот момент, когда это случилось).
+  int _streak = 0;
+  int? _bestStreak;
+
   @override
   void initState() {
     super.initState();
@@ -148,6 +158,7 @@ class _NBackScreenState extends State<NBackScreen> {
     _voice = voice;
     _canSpeak = canSpeak;
     _strings = strings;
+    _bestStreak = int.tryParse(widget.state.get(nbBestStreakKey) ?? '');
     if (GamePreset.isPreset) _trials = GamePreset.num('trials', nbDefaultTrials);
     setState(_reset);
     if (GamePreset.autostart) _start();
@@ -192,6 +203,7 @@ class _NBackScreenState extends State<NBackScreen> {
     if (_phase != NbPhase.ready || _game == null) return;
     setState(() => _phase = NbPhase.playing);
     _startedAt = gameNow();
+    _streak = 0;
     _timer = gameTimeout(const Duration(milliseconds: 600), _nextTrial);
   }
 
@@ -235,8 +247,21 @@ class _NBackScreenState extends State<NBackScreen> {
     if (g == null || _phase != NbPhase.playing) return;
     final r = audio ? g.pressAudio() : g.pressVisual();
     if (r == NbPress.ignored) return;
+    if (!audio) _countStreak(r);
     _haptics.selection();
     setState(() => audio ? _lastAudio = r : _lastVisual = r);
+  }
+
+  void _countStreak(NbPress r) {
+    if (r == NbPress.falseAlarm) {
+      _streak = 0;
+      return;
+    }
+    _streak += 1;
+    if (_streak > (_bestStreak ?? 0)) {
+      _bestStreak = _streak;
+      unawaited(widget.state.set(nbBestStreakKey, '$_streak'));
+    }
   }
 
   Future<void> _finish() async {
@@ -323,6 +348,8 @@ class _NBackScreenState extends State<NBackScreen> {
         HudItem(label: 'N', value: '${g.n}', icon: Icons.layers_outlined),
         HudItem(label: L.t('round'), value: '$shown/${g.trials}', icon: Icons.repeat),
         HudItem(label: L.t('hud_correct'), value: '${g.hits + g.aHits}', icon: Icons.check_circle_outline),
+        if ((_bestStreak ?? 0) > 0)
+          HudItem(label: L.t('hud_best'), value: '$_bestStreak', icon: Icons.emoji_events_outlined),
         HudItem(label: L.t('level'), value: '${_ladder.level}', icon: Icons.flag_outlined),
       ],
       field: (context, h) => switch (_phase) {
