@@ -47,7 +47,7 @@
    "pairs": 4,
    "groupSize": 2,
    "photo": true,
-   "previewMs": 760,
+   "previewMs": 3200,
    "swapsPerMiss": 0
   },
   {
@@ -55,7 +55,7 @@
    "pairs": 5,
    "groupSize": 2,
    "photo": true,
-   "previewMs": 720,
+   "previewMs": 3730,
    "swapsPerMiss": 0
   },
   {
@@ -63,7 +63,7 @@
    "pairs": 6,
    "groupSize": 2,
    "photo": true,
-   "previewMs": 680,
+   "previewMs": 4176,
    "swapsPerMiss": 0
   },
   {
@@ -71,7 +71,7 @@
    "pairs": 7,
    "groupSize": 2,
    "photo": true,
-   "previewMs": 640,
+   "previewMs": 4550,
    "swapsPerMiss": 0
   },
   {
@@ -79,7 +79,7 @@
    "pairs": 8,
    "groupSize": 2,
    "photo": true,
-   "previewMs": 600,
+   "previewMs": 4848,
    "swapsPerMiss": 0
   },
   {
@@ -87,7 +87,7 @@
    "pairs": 9,
    "groupSize": 2,
    "photo": true,
-   "previewMs": 560,
+   "previewMs": 5094,
    "swapsPerMiss": 0
   },
   {
@@ -95,7 +95,7 @@
    "pairs": 10,
    "groupSize": 2,
    "photo": true,
-   "previewMs": 520,
+   "previewMs": 5280,
    "swapsPerMiss": 0
   },
   {
@@ -103,7 +103,7 @@
    "pairs": 11,
    "groupSize": 2,
    "photo": true,
-   "previewMs": 480,
+   "previewMs": 5412,
    "swapsPerMiss": 0
   },
   {
@@ -111,7 +111,7 @@
    "pairs": 12,
    "groupSize": 2,
    "photo": true,
-   "previewMs": 440,
+   "previewMs": 5520,
    "swapsPerMiss": 0
   },
   {
@@ -119,7 +119,7 @@
    "pairs": 4,
    "groupSize": 3,
    "photo": true,
-   "previewMs": 400,
+   "previewMs": 2568,
    "swapsPerMiss": 0
   },
   {
@@ -127,7 +127,7 @@
    "pairs": 5,
    "groupSize": 3,
    "photo": true,
-   "previewMs": 360,
+   "previewMs": 3000,
    "swapsPerMiss": 0
   },
   {
@@ -135,7 +135,7 @@
    "pairs": 6,
    "groupSize": 3,
    "photo": true,
-   "previewMs": 320,
+   "previewMs": 3366,
    "swapsPerMiss": 0
   },
   {
@@ -143,7 +143,7 @@
    "pairs": 4,
    "groupSize": 4,
    "photo": true,
-   "previewMs": 280,
+   "previewMs": 2784,
    "swapsPerMiss": 0
   },
   {
@@ -151,7 +151,7 @@
    "pairs": 5,
    "groupSize": 4,
    "photo": true,
-   "previewMs": 250,
+   "previewMs": 3240,
    "swapsPerMiss": 0
   },
   {
@@ -159,7 +159,7 @@
    "pairs": 6,
    "groupSize": 4,
    "photo": true,
-   "previewMs": 250,
+   "previewMs": 3648,
    "swapsPerMiss": 0
   },
   {
@@ -167,7 +167,7 @@
    "pairs": 7,
    "groupSize": 4,
    "photo": true,
-   "previewMs": 250,
+   "previewMs": 3948,
    "swapsPerMiss": 0
   },
   {
@@ -175,7 +175,7 @@
    "pairs": 8,
    "groupSize": 4,
    "photo": true,
-   "previewMs": 250,
+   "previewMs": 4224,
    "swapsPerMiss": 0
   },
   {
@@ -183,7 +183,7 @@
    "pairs": 9,
    "groupSize": 4,
    "photo": true,
-   "previewMs": 250,
+   "previewMs": 4428,
    "swapsPerMiss": 0
   },
   {
@@ -191,7 +191,7 @@
    "pairs": 10,
    "groupSize": 4,
    "photo": true,
-   "previewMs": 250,
+   "previewMs": 4600,
    "swapsPerMiss": 0
   },
   {
@@ -199,7 +199,7 @@
    "pairs": 11,
    "groupSize": 4,
    "photo": true,
-   "previewMs": 250,
+   "previewMs": 4708,
    "swapsPerMiss": 0
   },
   {
@@ -207,7 +207,7 @@
    "pairs": 12,
    "groupSize": 4,
    "photo": true,
-   "previewMs": 250,
+   "previewMs": 4800,
    "swapsPerMiss": 0
   },
   {
@@ -215,7 +215,7 @@
    "pairs": 12,
    "groupSize": 4,
    "photo": true,
-   "previewMs": 250,
+   "previewMs": 4800,
    "swapsPerMiss": 0.25
   },
   {
@@ -223,7 +223,7 @@
    "pairs": 12,
    "groupSize": 4,
    "photo": true,
-   "previewMs": 250,
+   "previewMs": 4800,
    "swapsPerMiss": 0.5
   },
   {
@@ -231,7 +231,7 @@
    "pairs": 12,
    "groupSize": 4,
    "photo": true,
-   "previewMs": 250,
+   "previewMs": 4800,
    "swapsPerMiss": 0.75
   },
   {
@@ -239,7 +239,7 @@
    "pairs": 12,
    "groupSize": 4,
    "photo": true,
-   "previewMs": 250,
+   "previewMs": 4800,
    "swapsPerMiss": 1
   },
   {
@@ -247,7 +247,7 @@
    "pairs": 12,
    "groupSize": 4,
    "photo": true,
-   "previewMs": 250,
+   "previewMs": 4800,
    "swapsPerMiss": 1.25
   },
   {
@@ -255,7 +255,7 @@
    "pairs": 12,
    "groupSize": 4,
    "photo": true,
-   "previewMs": 250,
+   "previewMs": 4800,
    "swapsPerMiss": 1.5
   },
   {
@@ -263,7 +263,7 @@
    "pairs": 12,
    "groupSize": 4,
    "photo": true,
-   "previewMs": 250,
+   "previewMs": 4800,
    "swapsPerMiss": 1.75
   },
   {
@@ -271,7 +271,7 @@
    "pairs": 12,
    "groupSize": 4,
    "photo": true,
-   "previewMs": 250,
+   "previewMs": 4800,
    "swapsPerMiss": 2
   },
   {
@@ -279,7 +279,7 @@
    "pairs": 12,
    "groupSize": 4,
    "photo": true,
-   "previewMs": 250,
+   "previewMs": 4800,
    "swapsPerMiss": 2.25
   },
   {
@@ -287,7 +287,7 @@
    "pairs": 12,
    "groupSize": 4,
    "photo": true,
-   "previewMs": 250,
+   "previewMs": 4800,
    "swapsPerMiss": 2.5
   },
   {
@@ -295,7 +295,7 @@
    "pairs": 12,
    "groupSize": 4,
    "photo": true,
-   "previewMs": 250,
+   "previewMs": 4800,
    "swapsPerMiss": 2.75
   },
   {
@@ -303,7 +303,7 @@
    "pairs": 12,
    "groupSize": 4,
    "photo": true,
-   "previewMs": 250,
+   "previewMs": 4800,
    "swapsPerMiss": 3
   },
   {
@@ -311,7 +311,7 @@
    "pairs": 12,
    "groupSize": 4,
    "photo": true,
-   "previewMs": 250,
+   "previewMs": 4800,
    "swapsPerMiss": 3.25
   },
   {
@@ -319,7 +319,7 @@
    "pairs": 12,
    "groupSize": 4,
    "photo": true,
-   "previewMs": 250,
+   "previewMs": 4800,
    "swapsPerMiss": 3.5
   },
   {
@@ -327,7 +327,7 @@
    "pairs": 12,
    "groupSize": 4,
    "photo": true,
-   "previewMs": 250,
+   "previewMs": 4800,
    "swapsPerMiss": 3.75
   },
   {
@@ -335,7 +335,7 @@
    "pairs": 12,
    "groupSize": 4,
    "photo": true,
-   "previewMs": 250,
+   "previewMs": 4800,
    "swapsPerMiss": 4
   },
   {
@@ -343,7 +343,7 @@
    "pairs": 12,
    "groupSize": 4,
    "photo": true,
-   "previewMs": 250,
+   "previewMs": 4800,
    "swapsPerMiss": 4.25
   },
   {
@@ -351,7 +351,7 @@
    "pairs": 12,
    "groupSize": 4,
    "photo": true,
-   "previewMs": 250,
+   "previewMs": 4800,
    "swapsPerMiss": 4.5
   },
   {
@@ -359,7 +359,7 @@
    "pairs": 12,
    "groupSize": 4,
    "photo": true,
-   "previewMs": 250,
+   "previewMs": 4800,
    "swapsPerMiss": 4.75
   },
   {
@@ -367,7 +367,7 @@
    "pairs": 12,
    "groupSize": 4,
    "photo": true,
-   "previewMs": 250,
+   "previewMs": 4800,
    "swapsPerMiss": 5
   },
   {
@@ -375,7 +375,7 @@
    "pairs": 12,
    "groupSize": 4,
    "photo": true,
-   "previewMs": 250,
+   "previewMs": 4800,
    "swapsPerMiss": 5.25
   },
   {
@@ -383,7 +383,7 @@
    "pairs": 12,
    "groupSize": 4,
    "photo": true,
-   "previewMs": 250,
+   "previewMs": 4800,
    "swapsPerMiss": 5.5
   },
   {
@@ -391,7 +391,7 @@
    "pairs": 12,
    "groupSize": 4,
    "photo": true,
-   "previewMs": 250,
+   "previewMs": 4800,
    "swapsPerMiss": 5.75
   },
   {
@@ -399,7 +399,7 @@
    "pairs": 12,
    "groupSize": 4,
    "photo": true,
-   "previewMs": 250,
+   "previewMs": 4800,
    "swapsPerMiss": 6
   },
   {
@@ -407,7 +407,7 @@
    "pairs": 12,
    "groupSize": 4,
    "photo": true,
-   "previewMs": 250,
+   "previewMs": 4800,
    "swapsPerMiss": 6.25
   },
   {
@@ -415,7 +415,7 @@
    "pairs": 12,
    "groupSize": 4,
    "photo": true,
-   "previewMs": 250,
+   "previewMs": 4800,
    "swapsPerMiss": 6.5
   },
   {
@@ -423,7 +423,7 @@
    "pairs": 12,
    "groupSize": 4,
    "photo": true,
-   "previewMs": 250,
+   "previewMs": 4800,
    "swapsPerMiss": 6.75
   },
   {
@@ -431,7 +431,7 @@
    "pairs": 12,
    "groupSize": 4,
    "photo": true,
-   "previewMs": 250,
+   "previewMs": 4800,
    "swapsPerMiss": 7
   },
   {
@@ -439,7 +439,7 @@
    "pairs": 12,
    "groupSize": 4,
    "photo": true,
-   "previewMs": 250,
+   "previewMs": 4800,
    "swapsPerMiss": 7.25
   },
   {
@@ -447,7 +447,7 @@
    "pairs": 12,
    "groupSize": 4,
    "photo": true,
-   "previewMs": 250,
+   "previewMs": 4800,
    "swapsPerMiss": 7.5
   },
   {
@@ -455,7 +455,7 @@
    "pairs": 12,
    "groupSize": 4,
    "photo": true,
-   "previewMs": 250,
+   "previewMs": 4800,
    "swapsPerMiss": 7.75
   },
   {
@@ -463,7 +463,7 @@
    "pairs": 12,
    "groupSize": 4,
    "photo": true,
-   "previewMs": 250,
+   "previewMs": 4800,
    "swapsPerMiss": 8
   },
   {
@@ -471,7 +471,7 @@
    "pairs": 12,
    "groupSize": 4,
    "photo": true,
-   "previewMs": 250,
+   "previewMs": 4800,
    "swapsPerMiss": 8.25
   },
   {
@@ -479,7 +479,7 @@
    "pairs": 12,
    "groupSize": 4,
    "photo": true,
-   "previewMs": 250,
+   "previewMs": 4800,
    "swapsPerMiss": 8.5
   },
   {
@@ -487,7 +487,7 @@
    "pairs": 12,
    "groupSize": 4,
    "photo": true,
-   "previewMs": 250,
+   "previewMs": 4800,
    "swapsPerMiss": 8.75
   },
   {
@@ -495,7 +495,7 @@
    "pairs": 12,
    "groupSize": 4,
    "photo": true,
-   "previewMs": 250,
+   "previewMs": 4800,
    "swapsPerMiss": 9
   },
   {
@@ -503,7 +503,7 @@
    "pairs": 12,
    "groupSize": 4,
    "photo": true,
-   "previewMs": 250,
+   "previewMs": 4800,
    "swapsPerMiss": 9.25
   },
   {
@@ -511,7 +511,7 @@
    "pairs": 12,
    "groupSize": 4,
    "photo": true,
-   "previewMs": 250,
+   "previewMs": 4800,
    "swapsPerMiss": 9.5
   },
   {
@@ -519,7 +519,7 @@
    "pairs": 12,
    "groupSize": 4,
    "photo": true,
-   "previewMs": 250,
+   "previewMs": 4800,
    "swapsPerMiss": 9.75
   }
  ],
