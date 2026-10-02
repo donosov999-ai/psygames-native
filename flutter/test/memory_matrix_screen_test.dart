@@ -9,6 +9,7 @@ import 'package:psygames_flutter/shell/app_haptics.dart';
 import 'package:psygames_flutter/shell/demo_lesson.dart';
 import 'package:psygames_flutter/shell/game_clock.dart';
 import 'package:psygames_flutter/shell/game_preset.dart';
+import 'package:psygames_flutter/shell/game_rules.dart';
 import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/lesson.dart';
 import 'package:psygames_flutter/shell/level_rules.dart';
@@ -307,6 +308,22 @@ void main() {
         find.byWidgetPredicate((w) => w is Semantics && (w.properties.label ?? '').startsWith('${L.t('level')}: ')),
         findsNothing,
         reason: 'в шаге играется пресет — номера личного уровня в шапке нет (как у «Корси»)');
+  });
+
+  testWidgets('🔴 справка «?» — про ЭТУ игру, а не про весь набор «Позиции» (приёмка §4б, п. 1)', (tester) async {
+    await tester.runAsync(GameRules.load);
+    GameRules.currentRoute = '/games/memory-matrix';
+    addTearDown(() => GameRules.currentRoute = null);
+    expect(GameRules.keyFor('/games/memory-matrix'), 'suitePositionsDesc',
+        reason: 'по адресу каркас находит карточку набора — потому экран и даёт свою справку');
+    await boot(tester, level: 1);
+    await tester.tap(find.byIcon(Icons.help_outline));
+    await tester.pumpAndSettle();
+    final text = tester.widget<Text>(find.byKey(const Key('game-rules-text'))).data;
+    expect(text, L.t('memoryMatrixDesc'));
+    expect(text, isNot(L.t('suitePositionsDesc')));
+    await tester.tap(find.byKey(const Key('game-rules-close')));
+    await tester.pumpAndSettle();
   });
 
   testWidgets('🔴 «Заново» снимает отметку разбора — следующая партия снова зачётная', (tester) async {
