@@ -4,6 +4,7 @@ import 'package:psygames_flutter/games/visual_search/model.dart';
 import 'package:psygames_flutter/games/visual_search/screen.dart';
 import 'package:psygames_flutter/shell/aux_action.dart';
 import 'package:psygames_flutter/shell/l10n.dart';
+import 'package:psygames_flutter/shell/level_rules.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -30,6 +31,9 @@ void main() {
     }
     SharedPreferences.setMockInitialValues({
       if (level != 1) '${SharedState.prefix}visual_search_level_nzt48': '$level',
+      // Карточки правил уровня (с 02.10.2026 экран их объявляет) — уже прочитаны: иначе окно
+      // ляжет поверх доски и заберёт нажатия пробы. Сами карточки сторожит перепись правил.
+      for (final k in ['multi', 'conj', 'closer']) LevelRules.seenKey('visual_search', k): '1',
     });
     state = await SharedState.open();
     await tester.pumpWidget(MaterialApp(
@@ -288,5 +292,16 @@ void main() {
         await tester.pump();
       }
     });
+  });
+
+  testWidgets('🔴 ПОТОЛКА НЕТ: доска 40-го раскрашена сошедшейся палитрой 40-го уровня', (tester) async {
+    // Правило Дениса 06.09.2026: с 32-го цвета палитры сходятся. Экран обязан раздавать доску
+    // палитрой своего уровня — и цель, и отвлекающих. Читаем цвета с нарисованных фигур.
+    await open(tester, level: 40, seed: 'палитра');
+    await tester.pump();
+    final shown = tester.widgetList<VsGlyph>(find.byType(VsGlyph)).map((g) => g.color).toSet();
+    expect(shown, isNotEmpty, reason: 'доска нарисована');
+    expect(shown.difference(vsPaletteFor(40).toSet()), isEmpty,
+        reason: 'на доске только цвета палитры 40-го, а не прежние: $shown');
   });
 }

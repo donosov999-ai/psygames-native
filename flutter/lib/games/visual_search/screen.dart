@@ -10,6 +10,7 @@ import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/lesson.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/level_rules.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import 'model.dart';
@@ -116,7 +117,7 @@ class _VisualSearchScreenState extends State<VisualSearchScreen> {
     _cfg = vsLevelParams(_ladder.level, r);
     _found = 0;
     _phase = _Phase.playing;
-    _target = vsPickTarget(_cfg.conjunction, vsColors, _rng);
+    _target = vsPickTarget(_cfg.conjunction, vsPaletteFor(_ladder.level), _rng);
     _items = const []; // доска раздаётся, когда известна сторона поля
   }
 
@@ -139,6 +140,7 @@ class _VisualSearchScreenState extends State<VisualSearchScreen> {
       w: inner,
       h: inner,
       rnd: _rng,
+      palette: vsPaletteFor(_ladder.level),
       decoyCount: _cfg.decoys,
     );
   }
@@ -229,6 +231,15 @@ class _VisualSearchScreenState extends State<VisualSearchScreen> {
     }
     return GameShell(
       title: L.t('visualSearch'),
+      // Правила уровня объявляются до первого нажатия уровня и на итоге. До 02.10.2026 экран
+      // их не объявлял вовсе: «несколько целей» (L4) и «цвет + форма» (L8) включались молча,
+      // хотя в таблице правил стояли (задача 7f81fbc6, вместе с «цвета ближе» с L32).
+      levelRule: LevelRuleSpot(
+        gameId: 'visual_search',
+        level: _ladder.level,
+        state: widget.state,
+        calm: (_round == 1 && _hits == 0 && _errors == 0 && _found == 0) || _phase == _Phase.result,
+      ),
       onLesson: () => openDemoLesson(context, title: L.t('visualSearch'), trials: _demoTrials()),
       hud: [
         HudItem(

@@ -53,6 +53,7 @@ export function ruleSources(): RuleSource[] {
   const игра = (имя: string) => require(`@/app/games/${имя}`);
   const товары = require('@/src/games/goods-sort/core/level');
   const отличия = require('@/src/games/find-differences/core/levelRules');
+  const зрительный = require('@/src/games/visual-search/core/nativeRules');
   /* eslint-enable @typescript-eslint/no-require-imports */
   return [
     s(['cake_sort', 'pizza_sort'], игра('cake-sort').CS_RULES),
@@ -81,7 +82,8 @@ export function ruleSources(): RuleSource[] {
     s(['spatial_span'], игра('spatial-span').SS_RULES),
     s(['stroop'], игра('stroop').STROOP_RULES),
     s(['switching_task'], игра('switching-task').SWITCH_RULES),
-    s(['visual_search'], игра('visual-search').VS_RULES),
+    // Веб-правила первыми, нативные следом: на 32-м и выше действует последнее подошедшее.
+    s(['visual_search'], [...игра('visual-search').VS_RULES, ...зрительный.VS_NATIVE_RULES]),
     s(['water_sort', 'ball_sort', 'nut_sort'], игра('water-sort').WATER_SORT_RULES),
     s(['word_pairs'], игра('word-pairs').WORDPAIRS_RULES),
   ];
