@@ -13,10 +13,12 @@ import '../../shell/shared_state.dart';
 import '../../shell/l10n.dart';
 import '../../shell/lesson.dart';
 import '../../shell/lesson_player.dart';
+import '../../shell/resume_store.dart';
 import '../sudoku/keypad.dart';
 import '../sudoku/lesson.dart';
 import '../sudoku/marks.dart';
 import '../sudoku/leave_guard.dart';
+import 'resume.dart';
 import 'levels.dart';
 import 'rules.dart';
 
@@ -106,10 +108,64 @@ class _FractalScreenState extends State<FractalScreen> {
   Future<void> _boot() async {
     await _ladder.load();
     final levels = await FractalLevels.load();
+    final saved = await _resume.load();
     if (!mounted) return;
     setState(() => _levels = levels);
+    final resumed = saved == null ? null : fractalFromSnapshot(saved);
+    if (resumed != null && resumed.level == _ladder.level) {
+      _apply(resumed);
+      return;
+    }
     _deal();
   }
+
+  @override
+  void dispose() {
+    _persist();   // уход с экрана — с живым временем, а не с тем, что было на прошлом ходу
+    super.dispose();
+  }
+
+  /// 🔴 НЕЗАКОНЧЕННАЯ ПАРТИЯ — формат веба (resume.dart; сверка 138f7818, п.3). Фрактал идёт
+  /// часами, а натив раздавал заново после любого ухода.
+  late final ResumeStore _resume = ResumeStore(widget.state, fractalGameId, fractalResumeVersion);
+
+  /// Записать (или стереть, если партия выиграна). Без ожидания — экран не ждёт диска.
+  void _persist() {
+    final f = _puzzle, p = _play;
+    if (f == null || p == null) return;
+    if (_won) {
+      unawaited(_resume.clear());
+      return;
+    }
+    unawaited(_resume.save(fractalSnapshot(
+      level: _ladder.level,
+      puzzle: f,
+      play: p,
+      marks: _marks,
+      colors: _colors,
+      errors: 0,
+      elapsed: _elapsed,
+      moves: [for (final h in _history) if (h.kind == _StepKind.digit) h.move!],
+    )));
+  }
+
+  /// Поднять партию: доска, пометки, цвет и лента цифр — те же; время — с накопленного.
+  void _apply(FractalResumed r) => setState(() {
+        _puzzle = r.puzzle;
+        _failure = null;
+        _play = r.play;
+        _history
+          ..clear()
+          ..addAll([for (final m in r.moves) _Step.digit(m)]);
+        _marks = r.marks;
+        _colors = r.colors;
+        _pencil = false;
+        _paint = null;
+        _openChild = null;
+        _selected = null;
+        _won = false;
+        _startedAt = gameNow() - r.elapsed * 1000;
+      });
 
   void _deal() {
     final levels = _levels;
@@ -129,6 +185,7 @@ class _FractalScreenState extends State<FractalScreen> {
       _won = false;
       _startedAt = gameNow();
     });
+    _persist();   // новая доска сразу ложится своим снимком, как в вебе
   }
 
   /// Раскладка пометок/цвета: 0 — корень, 1…9 — дочерние.
@@ -199,6 +256,7 @@ class _FractalScreenState extends State<FractalScreen> {
         ));
       }
     });
+    _persist();
   }
 
   /// Ластик: в карандаше чистит пометки клетки целиком, иначе стирает цифру.
@@ -231,6 +289,7 @@ class _FractalScreenState extends State<FractalScreen> {
       _history.add(_Step.note(_StepKind.mark, g, r, c, was));
       _marks[g][r][c] = pencilInput(was, digit);
     });
+    _persist();
   }
 
   void _paintCell(int? child, int r, int c, int color) {
@@ -240,6 +299,7 @@ class _FractalScreenState extends State<FractalScreen> {
       _history.add(_Step.note(_StepKind.color, g, r, c, was));
       _colors[g][r][c] = toggleCellColor(was, color);
     });
+    _persist();
   }
 
   void _undo() {
@@ -256,6 +316,7 @@ class _FractalScreenState extends State<FractalScreen> {
           _colors[last.grid][last.r][last.c] = last.was;
       }
     });
+    _persist();
   }
 
   void _togglePencil() => setState(() {
@@ -339,7 +400,7 @@ class _FractalScreenState extends State<FractalScreen> {
     final p = _play;
     final open = _openChild;
 
-    return LeaveGuard(live: _live, child: GameShell(
+    return LeaveGuard(live: _live, saved: true, child: GameShell(
       title: _title,
       onLesson: _lessonSteps().isEmpty ? null : _openLesson,
       hud: [

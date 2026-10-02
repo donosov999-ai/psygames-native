@@ -16,13 +16,16 @@ import '../../shell/l10n.dart';
 
 /// Спросить, терять ли партию. [restart] — вопрос перед «Заново», иначе — перед выходом.
 /// `true` — человек подтвердил потерю.
-Future<bool> confirmLoss(BuildContext context, {bool restart = false}) async {
+Future<bool> confirmLoss(BuildContext context, {bool restart = false, bool saved = false}) async {
   final ok = await showDialog<bool>(
     context: context,
     builder: (context) => AlertDialog(
       key: const Key('confirm-loss'),
-      title: Text(L.t(restart ? 'restartConfirmTitle' : 'exitConfirmTitle')),
-      content: Text(L.t('exitConfirmLost')),
+      // Каждый ключ — СВОИМ L.t: тернарник внутри L.t(…) embed-l10n не видит, и в словарь
+      // приложения ключ не попадает — на экране сырое «exitConfirmTitle» (02.10.2026).
+      title: Text(restart ? L.t('restartConfirmTitle') : L.t('exitConfirmTitle')),
+      // Выход из сохраняемой партии ничего не теряет — так и говорим (веб: exitConfirmSaved).
+      content: Text(saved && !restart ? L.t('exitConfirmSaved') : L.t('exitConfirmLost')),
       actions: [
         TextButton(
           key: const Key('confirm-stay'),
@@ -32,7 +35,7 @@ Future<bool> confirmLoss(BuildContext context, {bool restart = false}) async {
         FilledButton(
           key: const Key('confirm-go'),
           onPressed: () => Navigator.of(context).pop(true),
-          child: Text(L.t(restart ? 'restart' : 'exitConfirmLeave')),
+          child: Text(restart ? L.t('restart') : L.t('exitConfirmLeave')),
         ),
       ],
     ),
@@ -42,10 +45,13 @@ Future<bool> confirmLoss(BuildContext context, {bool restart = false}) async {
 
 /// Охрана выхода: пока [live], уход с экрана спрашивает; подтвердил — экран закрывается.
 class LeaveGuard extends StatelessWidget {
-  const LeaveGuard({super.key, required this.live, required this.child});
+  const LeaveGuard({super.key, required this.live, required this.child, this.saved = false});
 
   /// В партии есть что терять: ход, ошибка или подсказка — и она не кончилась.
   final bool live;
+
+  /// Партия сохраняется (ResumeStore): вопрос при выходе говорит «Партия сохранится».
+  final bool saved;
   final Widget child;
 
   @override
@@ -53,7 +59,7 @@ class LeaveGuard extends StatelessWidget {
         canPop: !live,
         onPopInvokedWithResult: (didPop, _) async {
           if (didPop) return;
-          if (await confirmLoss(context) && context.mounted) Navigator.of(context).pop();
+          if (await confirmLoss(context, saved: saved) && context.mounted) Navigator.of(context).pop();
         },
         child: child,
       );

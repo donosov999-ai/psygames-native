@@ -86,6 +86,19 @@ void main() {
 
   bool onScreen(Key ready) => find.byKey(ready).evaluate().isNotEmpty;
 
+  /// 🔴 В ДИАЛОГЕ — ТЕКСТ, А НЕ СЫРЫЕ КЛЮЧИ. 02.10.2026: заголовок выбирался тернарником внутри
+  /// L.t(…), embed-l10n его не видел, и на экране стояло «exitConfirmTitle». Проба искала диалог
+  /// по ключу виджета и была зелёной.
+  void expectDialogText(WidgetTester tester) {
+    final texts = [
+      for (final e in find.descendant(of: find.byKey(const Key('confirm-loss')), matching: find.byType(Text)).evaluate())
+        (e.widget as Text).data ?? '',
+    ];
+    expect(texts, isNotEmpty);
+    expect(texts.where((t) => RegExp(r'^[a-z]+[A-Z][A-Za-z]+$').hasMatch(t)).toList(), isEmpty,
+        reason: 'в диалоге сырой ключ словаря: $texts');
+  }
+
   testWidgets('🔴 «Самурай»: пустая доска уходит без вопроса, после хода — спрашивает', (tester) async {
     const ready = Key('cell_0_0');
     await open(tester, SamuraiScreen(state: state), ready);
@@ -97,6 +110,8 @@ void main() {
     await move(tester, 'cell_', 21);
     await back(tester);
     expect(find.byKey(const Key('confirm-loss')), findsOneWidget, reason: 'стрелка после хода спрашивает');
+    expectDialogText(tester);
+    expect(find.text(L.t('exitConfirmSaved')), findsOneWidget, reason: 'самурай хранит партию — вопрос обещает сохранение');
     await tester.tap(find.byKey(const Key('confirm-stay')));
     await tester.pumpAndSettle();
     expect(onScreen(ready), isTrue, reason: '«Продолжить игру» оставляет партию');
@@ -115,6 +130,7 @@ void main() {
     await tester.tap(find.byTooltip(L.t('restart')));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('confirm-loss')), findsOneWidget, reason: '«Заново» спрашивает');
+    expectDialogText(tester);
     await tester.tap(find.byKey(const Key('confirm-stay')));
     await tester.pumpAndSettle();
     expect(empty(tester, find.byKey(Key(cell))), isFalse, reason: 'ход на месте — партия не стёрта');
@@ -133,6 +149,8 @@ void main() {
     await move(tester, 'cell_', 9);
     await back(tester);
     expect(find.byKey(const Key('confirm-loss')), findsOneWidget, reason: 'стрелка после хода спрашивает');
+    expectDialogText(tester);
+    expect(find.text(L.t('exitConfirmSaved')), findsOneWidget, reason: 'фрактал хранит партию — вопрос обещает сохранение');
     await tester.tap(find.byKey(const Key('confirm-go')));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('hub')), findsOneWidget, reason: '«Выйти» вернул в развилку');

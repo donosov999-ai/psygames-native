@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import '../../shell/game_clock.dart';
 
 import '../../shell/aux_action.dart';
+import '../../shell/resume_store.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
@@ -32,6 +33,9 @@ import 'rules.dart';
 /// мерила её вызовом.
 /// Счёт победы — константы веба (`SAMURAI_TIME_CAP`, `SAMURAI_WIN_FLOOR` в sudoku-samurai.tsx).
 const samuraiTimeCap = 1500;
+
+/// Версия снимка незаконченной партии — та же, что у веба (`SAMURAI_RESUME_V`).
+const samuraiResumeVersion = 2;
 const samuraiWinFloor = 300;
 
 class SamuraiScreen extends StatefulWidget {
@@ -55,7 +59,7 @@ class _SamuraiScreenState extends State<SamuraiScreen> {
 
   List<List<int>> _grid = const [];
   List<List<bool>> _given = const [];
-  final List<({int r, int c, int was})> _history = [];
+  final List<({int r, int c, int was, int to})> _history = [];
 
   ({int r, int c})? _selected;
   int _errors = 0;
@@ -88,6 +92,7 @@ class _SamuraiScreenState extends State<SamuraiScreen> {
 
   @override
   void dispose() {
+    _persist();   // уход с экрана — с живым временем, а не с тем, что было на прошлом ходу
     _hCtrl.dispose();
     _vCtrl.dispose();
     super.dispose();
@@ -96,9 +101,118 @@ class _SamuraiScreenState extends State<SamuraiScreen> {
   Future<void> _boot() async {
     await _ladder.load();
     final levels = await SamuraiLevels.load();
+    final saved = await _resume.load();
     if (!mounted) return;
     setState(() => _levels = levels);
+    if (saved != null && _restore(saved)) return;
     _deal();
+  }
+
+  /// 🔴 НЕЗАКОНЧЕННАЯ ПАРТИЯ — ФОРМАТ ВЕБА (sudoku-samurai.tsx, SamuraiResume, RESUME_V 2; сверка
+  /// 138f7818, задача b5df5096 п.3). Партия идёт под час на 369 клетках, а свёрнутое приложение
+  /// натив раздавал заново. Ключ и конверт — каркаса (`ResumeStore`, как `services/resume` веба),
+  /// поля — веба: level, megaboss, solution, grid, given, marks (21×21; пометок у натива нет —
+  /// нули), errors, hintUses, elapsed, history {past: [{r, c, from, to}], future: []}.
+  /// Пишется после каждого хода, подсказки, отмены и при уходе; стирается победой, проигрышем
+  /// и новой раздачей (новая доска сразу ложится своим снимком, как в вебе).
+  late final ResumeStore _resume = ResumeStore(widget.state, 'sudoku_samurai', samuraiResumeVersion);
+
+  /// Веха мегабосса ПАРТИИ (null — обычная): ездит в снимке — поднятая обычным входом
+  /// мега-партия сохраняет свою метку, как в вебе.
+  late int? _megaboss = widget.megabossFrom;
+
+  Map<String, Object?> _snapshot() {
+    final board = _board!;
+    return {
+      'level': board.level,
+      'megaboss': _megaboss,
+      'solution': board.solution,
+      'grid': _grid,
+      'given': _given,
+      'marks': [for (var r = 0; r < samuraiSize; r++) List<int>.filled(samuraiSize, 0)],
+      'errors': _errors,
+      'hintUses': _hintsUsed,
+      'elapsed': _elapsed,
+      'history': {
+        'past': [for (final h in _history) {'r': h.r, 'c': h.c, 'from': h.was, 'to': h.to}],
+        'future': const <Object>[],
+      },
+    };
+  }
+
+  /// Записать (или стереть, если партия кончилась). Без ожидания: хранилище общее, а экран
+  /// не должен ждать диска между касаниями.
+  void _persist() {
+    if (_board == null || _grid.isEmpty) return;
+    if (_won || _lost) {
+      unawaited(_resume.clear());
+      return;
+    }
+    unawaited(_resume.save(_snapshot()));
+  }
+
+  /// Поднять партию из снимка. Чужая ступень (лестница ушла вперёд в другой сессии) и чужая веха
+  /// мегабосса не поднимаются — тогда раздаётся своя доска, и снимок она перезапишет.
+  bool _restore(Map<String, Object?> s) {
+    List<List<int>>? ints(Object? v) {
+      if (v is! List || v.length != samuraiSize) return null;
+      final out = <List<int>>[];
+      for (final row in v) {
+        if (row is! List || row.length != samuraiSize) return null;
+        out.add([for (final x in row) x is num ? x.toInt() : 0]);
+      }
+      return out;
+    }
+
+    final solution = ints(s['solution']), grid = ints(s['grid']);
+    final givenRaw = s['given'];
+    final level = (s['level'] as num?)?.toInt();
+    if (solution == null || grid == null || level == null || givenRaw is! List || givenRaw.length != samuraiSize) {
+      return false;
+    }
+    final given = [for (final row in givenRaw) [for (final x in (row as List)) x == true]];
+    if (given.any((row) => row.length != samuraiSize)) return false;
+    if (level != _ladder.level) return false;
+    final mega = (s['megaboss'] as num?)?.toInt();
+    if (widget.megabossFrom != null && mega != widget.megabossFrom) return false;
+    final past = ((s['history'] as Map?)?['past'] as List?) ?? const [];
+    final elapsed = (s['elapsed'] as num?)?.toInt() ?? 0;
+    final puzzle = [
+      for (var r = 0; r < samuraiSize; r++) [for (var c = 0; c < samuraiSize; c++) given[r][c] ? solution[r][c] : 0],
+    ];
+    var blanks = 0;
+    for (var r = 0; r < samuraiSize; r++) {
+      for (var c = 0; c < samuraiSize; c++) {
+        if (isSamuraiCell(r, c) && !given[r][c]) blanks++;
+      }
+    }
+    setState(() {
+      _board = SamuraiBoard(level: level, puzzle: puzzle, solution: solution, tier: null, blanks: blanks);
+      _failure = null;
+      _grid = grid;
+      _given = given;
+      _history
+        ..clear()
+        ..addAll([
+          for (final m in past.whereType<Map>())
+            if (m['kind'] == null || m['kind'] == 'digit')
+              (
+                r: (m['r'] as num).toInt(),
+                c: (m['c'] as num).toInt(),
+                was: (m['from'] as num?)?.toInt() ?? 0,
+                to: (m['to'] as num?)?.toInt() ?? 0,
+              ),
+        ]);
+      _selected = null;
+      _errors = (s['errors'] as num?)?.toInt() ?? 0;
+      _hintsUsed = (s['hintUses'] as num?)?.toInt() ?? 0;
+      _won = false;
+      _lost = false;
+      // Время — с НАКОПЛЕННОГО: часы между сессиями ушли вперёд, а партия всё это время стояла.
+      _startedAt = gameNow() - elapsed * 1000;
+      _megaboss = mega;
+    });
+    return true;
   }
 
   void _deal() {
@@ -117,7 +231,9 @@ class _SamuraiScreenState extends State<SamuraiScreen> {
       _won = false;
       _lost = false;
       _startedAt = gameNow();
+      _megaboss = widget.megabossFrom;
     });
+    _persist();
   }
 
   /// 🔴 ОТЧЁТ ПАРТИИ — КАК У ВЕБА (sudoku-samurai.tsx, saveSession; сверка 138f7818). До 02.10
@@ -171,7 +287,7 @@ class _SamuraiScreenState extends State<SamuraiScreen> {
     if (_given[sel.r][sel.c]) return;
 
     setState(() {
-      _history.add((r: sel.r, c: sel.c, was: _grid[sel.r][sel.c]));
+      _history.add((r: sel.r, c: sel.c, was: _grid[sel.r][sel.c], to: value));
       _grid[sel.r][sel.c] = value;
       if (value != 0 && board.solution[sel.r][sel.c] != value) {
         _errors += 1;
@@ -190,6 +306,7 @@ class _SamuraiScreenState extends State<SamuraiScreen> {
       }
       _checkWin();
     });
+    _persist();
   }
 
   void _erase() => _place(0);
@@ -200,6 +317,7 @@ class _SamuraiScreenState extends State<SamuraiScreen> {
       final last = _history.removeLast();
       _grid[last.r][last.c] = last.was;
     });
+    _persist();
   }
 
   void _hint() {
@@ -208,11 +326,12 @@ class _SamuraiScreenState extends State<SamuraiScreen> {
     if (board == null || sel == null || _won || _lost) return;
     if (_hintsUsed >= _params.hintMax) return;
     setState(() {
-      _history.add((r: sel.r, c: sel.c, was: _grid[sel.r][sel.c]));
+      _history.add((r: sel.r, c: sel.c, was: _grid[sel.r][sel.c], to: board.solution[sel.r][sel.c]));
       _grid[sel.r][sel.c] = board.solution[sel.r][sel.c];
       _hintsUsed += 1;
       _checkWin();
     });
+    _persist();
   }
 
   void _checkWin() {
@@ -229,7 +348,7 @@ class _SamuraiScreenState extends State<SamuraiScreen> {
       difficulty: 'Level $level',
       // Веха классической лестницы: «пришёл мегабоссом с уровня N», а не сам — как в вебе,
       // только у победы (sudoku-samurai.tsx, details.megaboss_from).
-      details: {..._details(level, completed: true), 'megaboss_from': ?widget.megabossFrom},
+      details: {..._details(level, completed: true), 'megaboss_from': ?_megaboss},
     ));
   }
 
@@ -317,7 +436,7 @@ class _SamuraiScreenState extends State<SamuraiScreen> {
     final levels = _levels;
     final board = _board;
 
-    return LeaveGuard(live: _live, child: GameShell(
+    return LeaveGuard(live: _live, saved: true, child: GameShell(
       title: _title,
       onLesson: _lessonSteps().isEmpty ? null : _openLesson,
       hud: [
