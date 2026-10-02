@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:psygames_flutter/shell/noise.dart';
 import 'package:psygames_flutter/shell/voice_system.dart';
 
 /// Плеер с поведением just_audio 0.10.6 в том, что важно последовательностям:
@@ -12,7 +14,9 @@ import 'package:psygames_flutter/shell/voice_system.dart';
 class _JustAudioLike implements AudioPlayer {
   bool _playing = false;
   Completer<void>? _playDone;
-  final urls = <String>[];
+
+  /// Что загружали и перематывали — по порядку: адрес записи (из её байтов) или «seek».
+  final steps = <String>[];
 
   @override
   bool get playing => _playing;
@@ -25,11 +29,14 @@ class _JustAudioLike implements AudioPlayer {
   }
 
   @override
-  Future<Duration?> setUrl(String url,
-      {Map<String, String>? headers, Duration? initialPosition, bool preload = true, dynamic tag}) async {
-    urls.add(url);
+  Future<Duration?> setAudioSource(AudioSource source,
+      {bool preload = true, int? initialIndex, Duration? initialPosition}) async {
+    steps.add(String.fromCharCodes((source as BytesAudioSource).bytes));
     return const Duration(milliseconds: 600);
   }
+
+  @override
+  Future<void> seek(Duration? position, {int? index}) async => steps.add('seek');
 
   @override
   Future<void> setSpeed(double speed) async {}
@@ -69,6 +76,8 @@ class _NoTts implements FlutterTts {
 /// интервал. С just_audio второе и все следующие `playUrl` возвращались сразу после
 /// загрузки (плеер оставался «играющим» после первой записи): пауза отсчитывалась от
 /// начала слова, а следующее слово обрывало звучащее (сверка веб → натив 02.10.2026).
+/// Записи с 02.10 качаются один раз и повторяются перемоткой — проба идёт обоими путями:
+/// новая запись (загрузка) и та же запись ещё раз (перемотка).
 void main() {
   Future<void> settle() async {
     for (var i = 0; i < 5; i++) {
@@ -76,11 +85,18 @@ void main() {
     }
   }
 
-  test('🔴 второе и третье слово ждут конца записи так же, как первое', () async {
+  test('🔴 второе слово и повтор того же слова ждут конца записи так же, как первое', () async {
     final player = _JustAudioLike();
-    final backend = SystemVoiceBackend(player: player, tts: _NoTts());
+    final backend = SystemVoiceBackend(
+      player: player,
+      tts: _NoTts(),
+      clips: RecordingClips(
+        player: JustAudioClipPlayer(player),
+        fetch: (url) async => Uint8List.fromList(url.toString().codeUnits),
+      ),
+    );
     final waited = <String>[];
-    for (final w in ['a', 'b', 'c']) {
+    for (final w in ['a', 'b', 'b', 'c']) {
       var done = false;
       final f = backend.playUrl('https://x/$w.opus', 1).then((_) => done = true);
       await settle();
@@ -88,7 +104,8 @@ void main() {
       player.finishTrack();
       await f;
     }
-    expect(waited, ['a ждёт', 'b ждёт', 'c ждёт']);
-    expect(player.urls, ['https://x/a.opus', 'https://x/b.opus', 'https://x/c.opus']);
+    expect(waited, ['a ждёт', 'b ждёт', 'b ждёт', 'c ждёт']);
+    expect(player.steps, ['https://x/a.opus', 'https://x/b.opus', 'seek', 'https://x/c.opus'],
+        reason: 'новая запись — загрузка, та же ещё раз — перемотка без новой загрузки');
   });
 }

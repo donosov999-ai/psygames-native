@@ -156,6 +156,8 @@ export const MODE_ICONS: Record<string, any> = {
   '/games/sudoku?mode=towers': require('../../assets/images/game_icons/sudoku_towers.webp'),
   '/games/sudoku?mode=unequal': require('../../assets/images/game_icons/sudoku_unequal.webp'),
   '/games/find-move': require('../../assets/images/game_icons/find_move.webp'),
+  // «Конь и ферзи» (39ad8924): своя иконка — поле с восемью ферзями и ходом коня.
+  '/games/knights-queens': require('../../assets/images/game_icons/knights_queens.webp'),
   '/games/cats': require('../../assets/images/game_icons/cats.webp'),
   // «Пасьянс-шахматы» (#133) — строка развилки шахмат без своей карточки в GAMES: иконка группы фигур.
   '/games/solitaire-chess': require('../../assets/images/game_icons/chess_group.webp'),

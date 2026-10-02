@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:psygames_flutter/games/cats/generator.dart';
+import 'package:psygames_flutter/games/cats/ladder.dart';
 import 'package:psygames_flutter/games/cats/screen.dart';
 import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
@@ -38,7 +38,7 @@ void main() {
   }
 
   /// Та же задача, что соберёт экран на первом уровне первой попытки.
-  final first = generateCats(6, 'cats|L1|A0')!;
+  final first = dealCatsLevel(1, 'cats|L1|A0')!.puzzle;
 
   Future<void> tapCell(WidgetTester tester, int r, int c, {int times = 1}) async {
     for (var i = 0; i < times; i++) {
@@ -120,7 +120,7 @@ void main() {
     // после проигрыша (решение Дениса 23.09). Без него человек получал бы ту же самую.
     expect(state.get('${SharedState.prefix}cats_try_nzt48'), '1',
         reason: 'следующая партия соберётся с другим зерном');
-    expect(generateCats(6, 'cats|L1|A1')!.board.regions, isNot(first.board.regions),
+    expect(dealCatsLevel(1, 'cats|L1|A1')!.puzzle.board.regions, isNot(first.board.regions),
         reason: 'и доска действительно другая');
   });
 

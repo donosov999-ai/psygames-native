@@ -41,7 +41,7 @@
  * В смеси (L23+) наоборот: класс уровнем больше не задаётся, и растёт именно величина — её проба и сторожит.
  */
 import { makeSequence, pickSequence } from '@/app/games/pattern';
-import { fair, readings, levelLabelKey, makeOptions, mixScale, MIX_FROM, makeSequence as рядПоЗерну, type Sequence } from '@/src/games/counting/patternSequences';
+import { fair, readings, levelLabelKey, makeOptions, tailLure, mixScale, MIX_FROM, makeSequence as рядПоЗерну, type Sequence } from '@/src/games/counting/patternSequences';
 import { LANGUAGES, translateFor } from '@/src/contexts/LanguageContext';
 
 const ПРОГОНОВ = 300;
@@ -264,6 +264,68 @@ describe('🔴 «Паттерны»: лестница без потолка', ()
         const доля = (100 * n) / рядов;
         if (Math.abs(доля - случайно) > 6) выдают.push(`${вариантов} вар.: ответ на ${i + 1}-м месте по величине в ${доля.toFixed(0)} % наборов`);
       });
+    }
+    expect(выдают.slice(0, 6)).toEqual([]);
+  });
+
+  it('🔴 приманка у хвоста: «последний + последний шаг» угадывает как случайный, и новых обходов нет', () => {
+    // Задача 94f9c7c1. Замер 01.10.2026 на VER 3 (3000 рядов на уровень): «вариант, ближайший к последнему +
+    // последний шаг» угадывал при 4 вариантах 57 % (L5), 74 % (L10), 36–41 % (L23–43) при случайных 25 — у
+    // квадратов и растущих разностей ответ лежит в 1–2 от хвоста, а шаг лесенки 2…16. Хвост = ответ (линейное
+    // правило) не считается: там «последний + шаг» и есть правило.
+    // ⚠️ ЧЁТНОСТЬ здесь меряется ОБХОДОМ, а не правилом «все варианты одной чётности»: при нечётном зазоре хвост
+    // и ответ неизбежно разной чётности (на L10 таких зазоров 100 %). Но нечётный зазор бывает только у ряда с
+    // неровной чётностью: если все члены одной чётности или чередуются, последний шаг чётный и хвост — той же
+    // чётности, что ответ. Игрок, угадывающий чётность ответа по ряду, выбирает как случайный (замер: 25,0 и 33,3 %).
+    let a = 20261001;
+    const rng = () => { a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+    const ближе = (o: number[], m: number) => [...o].sort((x, y) => Math.abs(x - m) - Math.abs(y - m))[0];
+    const чётн = (v: number) => ((v % 2) + 2) % 2;
+    const чётностьПоРяду = (items: number[]): number | null => {
+      const p = items.map(чётн);
+      if (p.every((x) => x === p[0])) return p[0];
+      if (p.every((x, i) => i === 0 || x !== p[i - 1])) return 1 - p[p.length - 1];
+      return null;
+    };
+    const выдают: string[] = [];
+    for (const вариантов of [4, 3]) {           // 4 — экран игры, 3 — арки «Числового забега»
+      const случайно = 100 / вариантов, мест = Array(вариантов).fill(0);
+      const попаданий: Record<string, number> = {};
+      let рядов = 0, поставлено = 0, должно = 0;
+      for (const уровень of [1, 5, 9, 10, 13, 17, 21, 23, 33, 43]) {
+        for (let i = 0; i < 400; i += 1) {
+          const s = рядПоЗерну(уровень, rng), хвост = tailLure(s.items), o = makeOptions(s.answer, вариантов, rng, хвост);
+          expect(o).toContain(s.answer);
+          expect(new Set(o).size).toBe(вариантов);
+          if (хвост === s.answer) continue;
+          рядов += 1;
+          // Хвост ближе шага лесенки → он обязан стоять среди вариантов, кроме случая, когда ответ крайний с его стороны.
+          const шаг = 2 * Math.max(1, Math.round(Math.abs(s.answer) * 0.075)), по = [...o].sort((x, y) => x - y);
+          if (Math.abs(хвост - s.answer) <= шаг && !(хвост > s.answer ? по[по.length - 1] === s.answer : по[0] === s.answer)) {
+            должно += 1; if (o.includes(хвост)) поставлено += 1;
+          }
+          const прикидки: Record<string, number> = {
+            'последний + последний шаг': Number(ближе(o, хвост) === s.answer),
+            'ближе к среднему': Number(ближе(o, o.reduce((x, y) => x + y, 0) / o.length) === s.answer),
+            'наибольший': Number(Math.max(...o) === s.answer),
+            'наименьший': Number(Math.min(...o) === s.answer),
+          };
+          const p = чётностьПоРяду(s.items), отбор = p === null ? o : o.filter((v) => чётн(v) === p);
+          прикидки['по чётности ряда'] = отбор.includes(s.answer) ? 1 / отбор.length : 0;
+          for (const [имя, n] of Object.entries(прикидки)) попаданий[имя] = (попаданий[имя] ?? 0) + n;
+          мест[по.indexOf(s.answer)] += 1;
+        }
+      }
+      for (const [имя, n] of Object.entries(попаданий)) {
+        const доля = (100 * n) / рядов;
+        if (доля > случайно + 6) выдают.push(`${вариантов} вар.: «${имя}» угадывает ${доля.toFixed(0)} % при случайных ${случайно.toFixed(0)}`);
+      }
+      мест.forEach((n, i) => {
+        const доля = (100 * n) / рядов;
+        if (Math.abs(доля - случайно) > 6) выдают.push(`${вариантов} вар.: ответ на ${i + 1}-м месте по величине в ${доля.toFixed(0)} % наборов`);
+      });
+      if (поставлено !== должно) выдают.push(`${вариантов} вар.: приманка поставлена в ${поставлено} наборах из ${должно}, где обязана`);
+      if (должно < 200) выдают.push(`${вариантов} вар.: близкий хвост встретился ${должно} раз — проба не мерит приманку`);
     }
     expect(выдают.slice(0, 6)).toEqual([]);
   });

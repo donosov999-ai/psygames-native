@@ -148,6 +148,14 @@ class VoiceLayer {
     return VoiceBlock.noVoice;
   }
 
+  /// Есть ли запись ИМЕННО ЭТОГО текста. «Язык озвучен» ([hasVoice]) этого не говорит:
+  /// у китайского 99 записей на 422 слога банка «Тонов», и язык считался озвученным,
+  /// хотя три слога из четырёх шли в системный голос, которого на Android часто нет.
+  bool hasRecording(String text, String lang) => sampleUrl(text, lang) != null;
+
+  /// Есть ли системный голос языка — без учёта записей.
+  Future<bool> hasSystemVoice(String lang) => backend.hasSystemVoice(voiceBcp47[lang] ?? lang);
+
   /// Есть ли чем озвучить этот язык: запись или системный голос.
   Future<bool> hasVoice(String lang) async {
     final hasSamples = (live[lang]?.isNotEmpty ?? false) ||
