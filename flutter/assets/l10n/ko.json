@@ -346,6 +346,7 @@
 "hud_card":"카드",
 "hud_correct":"정답",
 "hud_cueGain":"단서 이득",
+"hud_entered":"입력",
 "hud_errors":"오답",
 "hud_false":"오반응",
 "hud_goodDecks":"유리",
