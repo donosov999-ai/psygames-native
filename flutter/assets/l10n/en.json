@@ -238,6 +238,7 @@
 "easy":"Easy",
 "errors":"Errors",
 "exitConfirmLeave":"Leave",
+"exitConfirmLost":"This game will not be saved: the board and your progress will be lost.",
 "exitConfirmStay":"Keep playing",
 "eye1min":"~1 min",
 "eye3min":"~3 min",

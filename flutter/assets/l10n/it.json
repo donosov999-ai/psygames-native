@@ -238,6 +238,7 @@
 "easy":"Facile",
 "errors":"Errori",
 "exitConfirmLeave":"Esci",
+"exitConfirmLost":"La partita non verrà salvata: perderai il tabellone e i progressi.",
 "exitConfirmStay":"Continua a giocare",
 "eye1min":"~1 min",
 "eye3min":"~3 min",

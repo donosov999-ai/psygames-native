@@ -238,6 +238,7 @@
 "easy":"आसान",
 "errors":"त्रुटियाँ",
 "exitConfirmLeave":"बाहर निकलें",
+"exitConfirmLost":"यह बाज़ी सेव नहीं होगी: बोर्ड और प्रगति खो जाएँगे।",
 "exitConfirmStay":"खेलते रहें",
 "eye1min":"~1 मिनट",
 "eye3min":"~3 मिनट",

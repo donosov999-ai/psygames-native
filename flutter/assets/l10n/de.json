@@ -238,6 +238,7 @@
 "easy":"Leicht",
 "errors":"Fehler",
 "exitConfirmLeave":"Verlassen",
+"exitConfirmLost":"Die Partie wird nicht gespeichert: Brett und Fortschritt gehen verloren.",
 "exitConfirmStay":"Weiterspielen",
 "eye1min":"~1 Min.",
 "eye3min":"~3 Min.",
