@@ -305,6 +305,8 @@
 "fractalChildN":"Grade",
 "fractalDesc":"Atrás de cada célula da grade superior esconde-se um sudoku inteiro",
 "fractalOpened":"Abertas",
+"fractalPortalGo":"Ir para a grade",
+"fractalPortalHint":"Uma célula com anel é a mesma célula em duas grades ao mesmo tempo. Nenhuma delas revela o dígito sozinha: reduza os candidatos aqui, reduza-os ali, e a resposta é o que ambas permitem.",
 "fractalRedDigit":"Um algarismo vermelho é um erro: o mesmo já está nessa linha, coluna ou quadrado. Ele permanece no tabuleiro para que você veja o que corrigir.",
 "fractalSolutionAskAll":"Mostrar a solução do sudoku inteiro? A partida termina como revisão: o nível não conta, mas também não cai.",
 "fractalSolutionAskChild":"Mostrar a solução desta grade inferior? O nível não contará nesta partida, mas também não vai cair.",

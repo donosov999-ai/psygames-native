@@ -390,14 +390,46 @@ class _FractalScreenState extends State<FractalScreen> {
     }
   }
 
+  /// ⚠️ У ПОРТАЛА КАРАНДАШ ОБЩИЙ (сверка 138f7818, строка 24, «высокая»; веб `mark`, `twin`):
+  /// ответ там даёт ПЕРЕСЕЧЕНИЕ кандидатов двух досок, и держать в голове чужой список,
+  /// переключая экраны, человек не станет. Клетка одна — пометки пишутся в обе сетки сразу,
+  /// и один шаг отмены снимает обе.
   void _mark(int? child, int r, int c, int digit) {
     final g = _gridOf(child);
+    final link = child == null ? null : portalOf(_puzzle!.portals, child);
+    final twin = link != null && link.at[0] == r && link.at[1] == c ? link : null;
     setState(() {
       final was = _marks[g][r][c];
-      _history.add(_Step.note(_StepKind.mark, g, r, c, was));
-      _marks[g][r][c] = pencilInput(was, digit);
+      final now = pencilInput(was, digit);
+      ({int grid, int r, int c, int was})? pair;
+      if (twin != null) {
+        final tg = _gridOf(twin.other), tr = twin.otherAt[0], tc = twin.otherAt[1];
+        pair = (grid: tg, r: tr, c: tc, was: _marks[tg][tr][tc]);
+        _marks[tg][tr][tc] = now;   // тот же итог, а не второй переключатель: слои не разойдутся
+      }
+      _history.add(_Step.note(_StepKind.mark, g, r, c, was, twin: pair));
+      _marks[g][r][c] = now;
     });
     _persist();
+  }
+
+  /// Портал открытой сетки: её клетка-портал и где живёт вторая половина.
+  ({List<int> at, int other, List<int> otherAt, int digit})? get _openLink {
+    final open = _openChild, f = _puzzle;
+    return open == null || f == null ? null : portalOf(f.portals, open);
+  }
+
+  /// К клетке-близнецу — сразу в неё, с выделением (веб `fractal-portal-jump`): вывод здесь —
+  /// сравнение двух списков кандидатов, и путь «на карту, найти плитку, вспомнить клетку»
+  /// человек проделает один раз, а на второй бросит.
+  void _jumpToTwin() {
+    final link = _openLink;
+    if (link == null) return;
+    setState(() {
+      _openChild = link.other;
+      _selected = (child: link.other, r: link.otherAt[0], c: link.otherAt[1]);
+      _hint = _MoveHint.none;
+    });
   }
 
   void _paintCell(int? child, int r, int c, int color) {
@@ -420,6 +452,8 @@ class _FractalScreenState extends State<FractalScreen> {
           _play = revertMove(p, f, last.move!);
         case _StepKind.mark:
           _marks[last.grid][last.r][last.c] = last.was;
+          final t = last.twin;
+          if (t != null) _marks[t.grid][t.r][t.c] = t.was;
         case _StepKind.color:
           _colors[last.grid][last.r][last.c] = last.was;
       }
@@ -598,6 +632,17 @@ class _FractalScreenState extends State<FractalScreen> {
           : _reviewOver
               ? _ReviewOver(onRetry: _deal)
           : _Toolbar(
+              portal: _openLink == null
+                  ? null
+                  : (
+                      hint: _selected != null &&
+                              _selected!.r == _openLink!.at[0] &&
+                              _selected!.c == _openLink!.at[1]
+                          ? L.t('fractalPortalHint')
+                          : null,
+                      go: '${L.t('fractalPortalGo')} ${_openLink!.other + 1}',
+                      onGo: _jumpToTwin,
+                    ),
               solutionUsed: _surrendered,
               hint: switch (_hint) {
                 _MoveHint.red => L.t('fractalRedDigit'),
@@ -802,6 +847,7 @@ class _ChildView extends StatelessWidget {
             keyPrefix: 'cell_',
             selected: selected?.child == child ? selected : null,
             portal: (r, cc) => isPortalCell(puzzle.portals, child, r, cc),
+            portalTag: portalOf(puzzle.portals, child)?.other,
             // Дочерняя порознь неоднозначна: красим только повтор в строке/столбце/блоке.
             wrong: (r, cc) => conflictsInChild(play.children[child].grid, r, cc, play.children[child].grid[r][cc]),
             onTap: onTap,
@@ -823,6 +869,7 @@ class FractalGridView extends StatelessWidget {
     required this.selected,
     required this.onTap,
     this.portal,
+    this.portalTag,
     this.dimmed,
     this.wrong,
     this.marks,
@@ -844,6 +891,9 @@ class FractalGridView extends StatelessWidget {
 
   /// Цифра клетки — доказуемая ошибка (красим то же, за что считается ошибка).
   final bool Function(int r, int c)? wrong;
+
+  /// Номер (с нуля) сетки-близнеца портала — в углу клетки-портала, как у веба.
+  final int? portalTag;
 
   @override
   Widget build(BuildContext context) {
@@ -872,6 +922,7 @@ class FractalGridView extends StatelessWidget {
                       // Кормящая клетка корня: её приносят снизу, руками не трогают.
                       waiting: dimmed?.call(r, c) ?? false,
                       portal: portal?.call(r, c) ?? false,
+                      portalTag: portalTag,
                       wrong: values[r][c] != 0 && (wrong?.call(r, c) ?? false),
                       selected: selected != null && selected!.r == r && selected!.c == c,
                       scheme: scheme,
@@ -898,6 +949,7 @@ class _Cell extends StatelessWidget {
     required this.given,
     required this.waiting,
     required this.portal,
+    this.portalTag,
     required this.wrong,
     required this.selected,
     required this.scheme,
@@ -914,6 +966,9 @@ class _Cell extends StatelessWidget {
   final bool given;
   final bool waiting;
   final bool portal;
+
+  /// Сетка-близнец портала (с нуля): её номер в углу кольца.
+  final int? portalTag;
 
   /// Цифра — доказуемая ошибка: рисуется красным.
   final bool wrong;
@@ -974,6 +1029,16 @@ class _Cell extends StatelessWidget {
                           border: Border.all(color: scheme.tertiary, width: 1.4),
                         ),
                       ),
+                    ),
+                  ),
+                if (portal && portalTag != null)
+                  Positioned(
+                    top: 1,
+                    right: 2,
+                    child: Text(
+                      '${portalTag! + 1}',
+                      key: Key('portal_tag_$keyName'),
+                      style: TextStyle(fontSize: max(8, size * 0.26), color: scheme.tertiary, fontWeight: FontWeight.w700),
                     ),
                   ),
                 Center(
@@ -1065,6 +1130,7 @@ const _solutionFill = Color(0xFFB45309);
 
 class _Toolbar extends StatelessWidget {
   const _Toolbar({
+    required this.portal,
     required this.solutionUsed,
     required this.hint,
     required this.won,
@@ -1074,6 +1140,9 @@ class _Toolbar extends StatelessWidget {
     required this.paint,
     required this.onPaint,
   });
+
+  /// Портал открытой сетки: кнопка «В сетку N» и — на самой клетке-портале — что это за кольцо.
+  final ({String? hint, String go, VoidCallback onGo})? portal;
 
   /// Решение показано, партия доигрывается: строка-напоминание (ступень уже не засчитать).
   final bool solutionUsed;
@@ -1101,9 +1170,27 @@ class _Toolbar extends StatelessWidget {
       );
     }
     final keys = SudokuKeys(n: 9, onDigit: onDigit, onErase: onErase, paint: paint, onPaint: onPaint);
-    final h = hint;
-    if (h == null && !solutionUsed) return keys;
+    final h = hint, pt = portal;
+    if (h == null && !solutionUsed && pt == null) return keys;
+    final scheme = Theme.of(context).colorScheme;
     return Column(mainAxisSize: MainAxisSize.min, children: [
+      if (pt != null && pt.hint != null)
+        Padding(
+          padding: const EdgeInsets.fromLTRB(12, 4, 12, 0),
+          child: Text(
+            pt.hint!,
+            key: const Key('fractal-portal-hint'),
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 12, color: scheme.tertiary),
+          ),
+        ),
+      if (pt != null)
+        TextButton.icon(
+          key: const Key('fractal-portal-jump'),
+          onPressed: pt.onGo,
+          icon: Icon(Icons.compare_arrows, size: 18, color: scheme.tertiary),
+          label: Text(pt.go, style: TextStyle(color: scheme.tertiary)),
+        ),
       if (solutionUsed)
         Padding(
           padding: const EdgeInsets.fromLTRB(12, 4, 12, 0),
@@ -1139,8 +1226,12 @@ class _Step {
         grid = 0,
         r = 0,
         c = 0,
-        was = 0;
-  const _Step.note(this.kind, this.grid, this.r, this.c, this.was) : move = null;
+        was = 0,
+        twin = null;
+  const _Step.note(this.kind, this.grid, this.r, this.c, this.was, {this.twin}) : move = null;
+
+  /// Пометка клетки-портала легла и в сетку-близнеца: отмена снимает обе.
+  final ({int grid, int r, int c, int was})? twin;
 
   final _StepKind kind;
   final FractalMove? move;

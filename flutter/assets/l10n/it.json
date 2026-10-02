@@ -305,6 +305,8 @@
 "fractalChildN":"Griglia",
 "fractalDesc":"Dietro ogni casella della griglia superiore si nasconde un intero sudoku",
 "fractalOpened":"Aperte",
+"fractalPortalGo":"Vai alla griglia",
+"fractalPortalHint":"Una casella cerchiata è una sola e medesima casella in due griglie insieme. Nessuna delle due rivela la cifra da sola: restringi i candidati qui, restringili là, e la risposta è ciò che entrambe ammettono.",
 "fractalRedDigit":"Una cifra rossa è un errore: la stessa è già in quella riga, colonna o riquadro. Resta sulla griglia così vedi cosa correggere.",
 "fractalSolutionAskAll":"Mostrare la soluzione dell'intero sudoku? La partita finisce come ripasso: il livello non conta, ma non scende neppure.",
 "fractalSolutionAskChild":"Mostrare la soluzione di questa griglia inferiore? Il livello non conterà per questa partita, ma non scenderà neppure.",
