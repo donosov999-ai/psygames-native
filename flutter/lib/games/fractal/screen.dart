@@ -15,6 +15,7 @@ import '../../shell/l10n.dart';
 import '../../shell/lesson.dart';
 import '../../shell/lesson_player.dart';
 import '../../shell/resume_store.dart';
+import '../../shell/session_report.dart';
 import '../sudoku/keypad.dart';
 import '../sudoku/lesson.dart';
 import '../sudoku/marks.dart';
@@ -97,6 +98,20 @@ class _FractalScreenState extends State<FractalScreen> {
   _MoveHint _hint = _MoveHint.none;
   late final AppHaptics _haptics = AppHaptics(widget.state);
 
+  /// 🔴 «ПОКАЗАТЬ РЕШЕНИЕ» — как у веба (сверка 138f7818, строка 34, «высокая»; запрос Дениса
+  /// 18.09, отзыв 585fc14c: партия из десяти сеток без выхода к ответу). Показ — это сдача:
+  /// ступень не засчитана и не опущена; флаг живёт в снимке (`solverUsed`), иначе выход и
+  /// вход обратно отмывали бы показ.
+  bool _surrendered = false;
+
+  /// Вопрос перед показом — на месте клавиатуры, под пальцем: лампочка стоит в одном ряду с
+  /// отменой, и случайное касание не должно стоить часа работы.
+  bool _askSolution = false;
+
+  /// Разбор окончен: корень сошёлся в партии, где показывали решение. Партия больше не живая,
+  /// ответ остаётся на доске (урок головоломок 12.09: «показал — выкинуло в итог»).
+  bool _reviewOver = false;
+
   /// `null` — карта, иначе номер открытой дочерней.
   int? _openChild;
   ({int? child, int r, int c})? _selected;
@@ -146,7 +161,7 @@ class _FractalScreenState extends State<FractalScreen> {
   void _persist() {
     final f = _puzzle, p = _play;
     if (f == null || p == null) return;
-    if (_won) {
+    if (_won || _reviewOver) {
       unawaited(_resume.clear());
       return;
     }
@@ -159,6 +174,7 @@ class _FractalScreenState extends State<FractalScreen> {
       errors: _errors,
       elapsed: _elapsed,
       moves: [for (final h in _history) if (h.kind == _StepKind.digit) h.move!],
+      solverUsed: _surrendered,
     )));
   }
 
@@ -174,6 +190,9 @@ class _FractalScreenState extends State<FractalScreen> {
         _colors = r.colors;
         _errors = r.errors;
         _hint = _MoveHint.none;
+        _surrendered = r.solverUsed;
+        _askSolution = false;
+        _reviewOver = false;
         _pencil = false;
         _paint = null;
         _openChild = null;
@@ -195,6 +214,9 @@ class _FractalScreenState extends State<FractalScreen> {
       _colors = [for (var i = 0; i < 10; i++) emptyCellColors(9)];
       _errors = 0;
       _hint = _MoveHint.none;
+      _surrendered = false;
+      _askSolution = false;
+      _reviewOver = false;
       _pencil = false;
       _paint = null;
       _openChild = null;
@@ -228,7 +250,7 @@ class _FractalScreenState extends State<FractalScreen> {
       });
 
   void _select(int? child, int r, int c) {
-    if (_won) return;
+    if (_won || _reviewOver) return;
     // В цвете касание КРАСИТ, а не выбирает — как в классике; красить можно и
     // заданную клетку: цвет — бухгалтерия игрока, а не ход.
     final paint = _paint;
@@ -247,7 +269,7 @@ class _FractalScreenState extends State<FractalScreen> {
 
   void _place(int n) {
     final f = _puzzle, p = _play, sel = _selected;
-    if (f == null || p == null || sel == null || _won) return;
+    if (f == null || p == null || sel == null || _won || _reviewOver) return;
     final res = playDigit(p, f, (child: sel.child, r: sel.r, c: sel.c), n);
     if (res == null) return;
     final child = sel.child;
@@ -274,7 +296,9 @@ class _FractalScreenState extends State<FractalScreen> {
         _openChild = null;
         _selected = null;
       }
-      if (rootSolved(res.next.rootGrid, f.rootSolution)) {
+      if (rootSolved(res.next.rootGrid, f.rootSolution) && _surrendered) {
+        _finishReview();   // после показа корень дособран рукой — это разбор, а не победа (как у веба)
+      } else if (rootSolved(res.next.rootGrid, f.rootSolution)) {
         _won = true;
         // 🔴 ОТЧЁТ — КАК У ВЕБА (sudoku-fractal.tsx, saveSession; сверка 138f7818): счёт
         // 4000 − ошибки·60 − время, не ниже пола.
@@ -290,6 +314,57 @@ class _FractalScreenState extends State<FractalScreen> {
       }
     });
     _persist();
+  }
+
+  /// Показать решение — после «да» в вопросе. В дочерней — её ответ, на карте — ответ всей
+  /// судоку (`revealSolution`, обычными ходами). Показанное не отменяется: лента ходов
+  /// сбрасывается, иначе откат хода, сделанного ДО показа, разобрал бы ответ по клетке. Из
+  /// дочерней на карту не уводим — человек нажал, чтобы увидеть ответ.
+  void _reveal() {
+    final f = _puzzle, p = _play;
+    if (f == null || p == null || _won || _reviewOver) {
+      setState(() => _askSolution = false);
+      return;
+    }
+    final next = revealSolution(p, f, _openChild);
+    setState(() {
+      _askSolution = false;
+      _history.clear();
+      _surrendered = true;
+      _play = next;
+      _selected = null;
+      _hint = _MoveHint.none;
+      if (rootSolved(next.rootGrid, f.rootSolution)) _finishReview();
+    });
+    _persist();
+  }
+
+  /// Корень сошёлся в сданной партии: ступень не засчитана и не опущена, отчёт с `solver_used`
+  /// и нулевым счётом (как `закончитьРазбором` веба). Вызывается внутри setState.
+  void _finishReview() {
+    _reviewOver = true;
+    _selected = null;
+    final level = _ladder.level;
+    unawaited(SessionReport.send(
+      gameType: 'sudoku_fractal',
+      score: 0,
+      timeSeconds: _elapsed,
+      difficulty: 'lvl$level',
+      mode: 'fractal',
+      errors: _errors,
+      details: {'level': level, 'opened': 9, 'of': 9, 'solver_used': true, 'passed': false},
+    ));
+  }
+
+  /// Дочерняя сошлась целиком — её ответ показывать незачем.
+  bool _childSolved(int i) {
+    final f = _puzzle!, p = _play!;
+    for (var r = 0; r < fractalN; r++) {
+      for (var c = 0; c < fractalN; c++) {
+        if (p.children[i].grid[r][c] != f.children[i].solution[r][c]) return false;
+      }
+    }
+    return true;
   }
 
   /// Ластик: в карандаше чистит пометки клетки целиком, иначе стирает цифру.
@@ -424,7 +499,11 @@ class _FractalScreenState extends State<FractalScreen> {
 
   /// В партии есть что терять: ход, пометка или цвет — и она не кончилась. Тогда выход и «Заново»
   /// спрашивают (leave_guard.dart; сверка 138f7818 п.2).
-  bool get _live => _history.isNotEmpty && !_won;
+  bool get _live => _history.isNotEmpty && !_won && !_reviewOver;
+
+  /// Лампочка доступна, пока есть что показывать: партия идёт, а открытая сетка не сошлась.
+  bool get _canAskSolution =>
+      _puzzle != null && _play != null && !_won && !_reviewOver && (_openChild == null || !_childSolved(_openChild!));
 
   @override
   Widget build(BuildContext context) {
@@ -500,10 +579,26 @@ class _FractalScreenState extends State<FractalScreen> {
           onPressed: _won ? null : _togglePaint,
         ),
         AuxAction(icon: Icons.refresh, label: L.t('restart'), onPressed: () => restartGuarded(context, live: _live, deal: _deal)),
+        AuxAction(
+          key: const Key('show-solution'),
+          icon: Icons.lightbulb_outline,
+          label: L.t('puzzleShowSolution'),
+          tint: const Color(0xFFB45309),
+          onPressed: _canAskSolution ? () => setState(() => _askSolution = true) : null,
+        ),
       ]),
       toolbar: f == null
           ? null
+          : _askSolution
+              ? _SolutionAsk(
+                  question: open != null ? L.t('fractalSolutionAskChild') : L.t('fractalSolutionAskAll'),
+                  onCancel: () => setState(() => _askSolution = false),
+                  onConfirm: _reveal,
+                )
+          : _reviewOver
+              ? _ReviewOver(onRetry: _deal)
           : _Toolbar(
+              solutionUsed: _surrendered,
               hint: switch (_hint) {
                 _MoveHint.red => L.t('fractalRedDigit'),
                 _MoveHint.undecided => L.t('fractalUndecided'),
@@ -518,6 +613,12 @@ class _FractalScreenState extends State<FractalScreen> {
             ),
       pauseActions: [
         PauseAction(label: L.t('sdkStartOver'), icon: Icons.refresh, onPressed: () => restartGuarded(context, live: _live, deal: _deal)),
+        if (_canAskSolution)
+          PauseAction(
+            label: L.t('puzzleShowSolution'),
+            icon: Icons.lightbulb_outline,
+            onPressed: () => setState(() => _askSolution = true),
+          ),
         // 🔴 ДВЕРЬ В «БЕЗДНУ» (сверка 138f7818). В вебе она стоит на экране настройки фрактала
         // (sudoku-fractal.tsx: fractal-deep-link) — экрана настройки у натива нет, и марафонский
         // режим стал недостижим: карточки в развилке у него нет, дверь была одна.
@@ -907,8 +1008,64 @@ class _Cell extends StatelessWidget {
 /// Строка под клавишами после хода.
 enum _MoveHint { none, red, undecided }
 
+/// Вопрос «показать решение?» — на месте клавиатуры (как у веба: `fractal-solution-ask`).
+class _SolutionAsk extends StatelessWidget {
+  const _SolutionAsk({required this.question, required this.onCancel, required this.onConfirm});
+
+  final String question;
+  final VoidCallback onCancel;
+  final VoidCallback onConfirm;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+        key: const Key('fractal-solution-ask'),
+        padding: const EdgeInsets.all(12),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          Text(question, textAlign: TextAlign.center),
+          const SizedBox(height: 10),
+          Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+            OutlinedButton(key: const Key('fractal-solution-cancel'), onPressed: onCancel, child: Text(L.t('btn_cancel'))),
+            const SizedBox(width: 12),
+            FilledButton(
+              key: const Key('fractal-solution-confirm'),
+              style: FilledButton.styleFrom(backgroundColor: _solutionFill),
+              onPressed: onConfirm,
+              child: Text(L.t('puzzleShowSolution')),
+            ),
+          ]),
+        ]),
+      );
+}
+
+/// Итог разбора — ПОД показанным ответом, а не карточкой поверх него.
+class _ReviewOver extends StatelessWidget {
+  const _ReviewOver({required this.onRetry});
+
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+        key: const Key('fractal-solution-shown'),
+        padding: const EdgeInsets.all(12),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          Text(L.t('fractalSolutionUsed'), textAlign: TextAlign.center),
+          const SizedBox(height: 10),
+          FilledButton.icon(
+            key: const Key('fractal-retry'),
+            onPressed: onRetry,
+            icon: const Icon(Icons.refresh),
+            label: Text(L.t('retry')),
+          ),
+        ]),
+      );
+}
+
+/// Цвет показа решения — как у веба и лампочек головоломок.
+const _solutionFill = Color(0xFFB45309);
+
 class _Toolbar extends StatelessWidget {
   const _Toolbar({
+    required this.solutionUsed,
     required this.hint,
     required this.won,
     required this.onDigit,
@@ -917,6 +1074,9 @@ class _Toolbar extends StatelessWidget {
     required this.paint,
     required this.onPaint,
   });
+
+  /// Решение показано, партия доигрывается: строка-напоминание (ступень уже не засчитать).
+  final bool solutionUsed;
 
   /// Строка над клавишами (`fractalRedDigit` / `fractalUndecided`) или null.
   final String? hint;
@@ -942,9 +1102,20 @@ class _Toolbar extends StatelessWidget {
     }
     final keys = SudokuKeys(n: 9, onDigit: onDigit, onErase: onErase, paint: paint, onPaint: onPaint);
     final h = hint;
-    if (h == null) return keys;
+    if (h == null && !solutionUsed) return keys;
     return Column(mainAxisSize: MainAxisSize.min, children: [
-      Padding(
+      if (solutionUsed)
+        Padding(
+          padding: const EdgeInsets.fromLTRB(12, 4, 12, 0),
+          child: Text(
+            L.t('fractalSolutionUsed'),
+            key: const Key('fractal-solution-used'),
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: _solutionFill),
+          ),
+        ),
+      if (h != null)
+        Padding(
         padding: const EdgeInsets.fromLTRB(12, 4, 12, 2),
         child: Text(
           h,
