@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/mental_rotation/screen.dart';
 import 'package:psygames_flutter/games/navigator/screen.dart';
 import 'package:psygames_flutter/games/navigator/strings.dart';
+import 'package:psygames_flutter/games/trail_making/screen.dart';
 import 'package:psygames_flutter/games/spatial_hub/screen.dart';
 import 'package:psygames_flutter/games/spatial_lab/screen.dart';
 import 'package:psygames_flutter/games/spatial_span/screen.dart';
@@ -10,7 +11,7 @@ import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// ПЯТЬ ЭКРАНОВ РАЗДЕЛА ПОМЕЩАЮТСЯ В САМОЕ УЗКОЕ ОКНО, КОТОРОЕ У НАС ЕСТЬ.
+/// ШЕСТЬ ЭКРАНОВ РАЗДЕЛА ПОМЕЩАЮТСЯ В САМОЕ УЗКОЕ ОКНО, КОТОРОЕ У НАС ЕСТЬ.
 ///
 /// 📍 Урок «Поиска и счёта» 23.09.2026, записка в канал psygames: «проба РАСКЛАДКИ ловит
 /// то, чего не видит ни одна проба правил». У них два захода подряд она нашла настоящие
@@ -85,6 +86,10 @@ void main() {
     testWidgets('🔴 «Навигатор» не переполняет ${w.key}', (tester) async {
       expect(await openAt(tester, NavigatorScreen(state: state), w.value), isNull);
       expect(find.byKey(const Key('nav-rules')), findsOneWidget, reason: 'мерится экран правил, а не загрузка');
+    });
+
+    testWidgets('🔴 «Соедини цепочку» не переполняет ${w.key}', (tester) async {
+      expect(await openAt(tester, TrailMakingScreen(state: state), w.value), isNull);
     });
 
     testWidgets('🔴 Развилка не переполняет ${w.key}', (tester) async {
