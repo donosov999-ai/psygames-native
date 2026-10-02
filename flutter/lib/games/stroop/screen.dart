@@ -251,6 +251,17 @@ class _Field extends StatelessWidget {
               style: Theme.of(context).textTheme.bodySmall,
               textAlign: TextAlign.center,
             ),
+            // С L5 часть проб идёт по ДРУГОМУ правилу (до 40 % на L15): без этой строки человек
+            // узнавал бы о смене только ошибкой посреди партии.
+            if (game.params.switchRate > 0) ...[
+              const SizedBox(height: 4),
+              Text(
+                L.t('stroopLvlSwitch').replaceAll('{s}', '${(game.params.switchRate * 100).round()}'),
+                key: const Key('stroop-switch-line'),
+                style: Theme.of(context).textTheme.bodySmall,
+                textAlign: TextAlign.center,
+              ),
+            ],
             const SizedBox(height: 16),
             FilledButton(onPressed: onStart, child: Text(L.t('start'))),
           ],

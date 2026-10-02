@@ -1726,6 +1726,7 @@ const t: Record<string, string> = {
   "choiceRtLvlParams": "{n}회 시행 · {d}개 방향 · 응답 시간 {w}초",
   "simonLvlParams": "{n}회 시행 · 갈등 ~{p}% · 응답 시간 {w}초",
   "stroopLvlParams": "{n}회 시행 · 응답 시간 {w}초 · 갈등 {p}%",
+  "stroopLvlSwitch": "시행의 {s}%는 다른 규칙",
   "stroopPass": "통과 조건: 정확도 85% 이상 (시간 내 미응답은 오류 처리)",
   "stroopEmoLvlParams": "{n}개 단어 · 응답 시간 {w}초 · 감정 단어 {p}%",
   "stroopEmoPass": "통과 조건: 단어의 80% 이상에서 글자색을 정확히 답하기 (시간 초과는 오류)",

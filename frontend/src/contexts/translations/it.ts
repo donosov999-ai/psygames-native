@@ -1726,6 +1726,7 @@ const t: Record<string, string> = {
   "choiceRtLvlParams": "{n} prove · {d} direzioni · finestra di risposta {w} s",
   "simonLvlParams": "{n} prove · ~{p}% in conflitto · finestra di risposta {w} s",
   "stroopLvlParams": "{n} prove · finestra di risposta {w} s · {p}% in conflitto",
+  "stroopLvlSwitch": "{s}% delle prove con l’altra regola",
   "stroopPass": "Per superare: precisione ≥85% (non rispondere in tempo conta come errore)",
   "stroopEmoLvlParams": "{n} parole · finestra di risposta {w} s · {p}% parole emotive",
   "stroopEmoPass": "Per superare: indica il colore dell’inchiostro giusto su ≥80% delle parole (tempo scaduto = errore)",

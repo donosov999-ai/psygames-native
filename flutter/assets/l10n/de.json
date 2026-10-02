@@ -1519,6 +1519,7 @@
 "stroopHintWord":"Tippe auf die Schaltfläche mit der WORTBEDEUTUNG",
 "stroopIntroDesc":"Das Wort „ROT“ ist blau gefärbt — tippe „blau“. Trainiert kognitive Kontrolle und die Hemmung automatischer Reaktionen.",
 "stroopLvlParams":"{n} Durchgänge · Antwortfenster {w} s · {p} % Konflikt",
+"stroopLvlSwitch":"{s} % der Durchgänge nach der anderen Regel",
 "submarines":"U-Boote",
 "submarinesDesc":"Irgendwo im Meer ist eine Flotte versteckt. Tippe ein Feld an, um zu schießen: ein Punkt ist daneben, rot ist ein Treffer, dunkel heißt versenkt. Die Schiffe sind gerade und teilen sich kein Feld. Versenke die ganze Flotte, bevor dir die Schüsse ausgehen: Du hast etwas mehr, als ein kluger Bot bei derselben Flotte braucht. Mit jedem Level wird das Meer größer, die Flotte stärker und die Schüsse weniger.",
 "sudoku":"Sudoku 6×6",

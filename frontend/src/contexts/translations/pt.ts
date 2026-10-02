@@ -1592,6 +1592,7 @@ const t: Record<string, string> = {
   "choiceRtLvlParams": "{n} tentativas · {d} direções · janela de resposta {w} s",
   "simonLvlParams": "{n} tentativas · ~{p}% em conflito · janela de resposta {w} s",
   "stroopLvlParams": "{n} tentativas · janela de resposta {w} s · {p}% em conflito",
+  "stroopLvlSwitch": "{s}% das tentativas com a outra regra",
   "stroopPass": "Para passar: precisão ≥85% (não responder a tempo conta como erro)",
   "stroopEmoLvlParams": "{n} palavras · janela de resposta {w} s · {p}% palavras emocionais",
   "stroopEmoPass": "Para passar: acerte a cor da tinta em ≥80% das palavras (estourar o tempo = erro)",

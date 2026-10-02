@@ -934,6 +934,7 @@ const t: Record<string, string> = {
   "choiceRtLvlParams": "{n}試行 · {d}方向 · 回答時間 {w} 秒",
   "simonLvlParams": "{n}試行 · 不一致 ~{p}% · 回答時間 {w} 秒",
   "stroopLvlParams": "{n}試行 · 回答時間 {w} 秒 · 不一致 {p}%",
+  "stroopLvlSwitch": "{s}% の試行は別のルール",
   "stroopPass": "クリア条件：正答率85%以上（時間内に答えないとミス扱い）",
   "stroopEmoLvlParams": "{n}語 · 回答時間 {w} 秒 · 感情語 {p}%",
   "stroopEmoPass": "クリア条件：80%以上の単語で文字色を正答（時間切れはミス）",

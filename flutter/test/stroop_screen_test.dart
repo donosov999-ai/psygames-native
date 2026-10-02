@@ -113,6 +113,27 @@ void main() {
     expect(find.text('1'), findsWidgets);
   });
 
+  testWidgets('🔴 настройка уровня называет смену правила: до L4 строки нет, с L5 — доля из модели', (tester) async {
+    // Модель с L5 подмешивает пробы с другим правилом (до 40 % на L15), а настройка молчала:
+    // человек узнавал о смене правила только ошибкой посреди партии.
+    expect(StroopLevel.of(4).switchRate, 0, reason: 'до L4 смены правила нет');
+    expect(StroopLevel.of(5).switchRate, greaterThan(0), reason: 'с L5 смена правила есть');
+    for (final level in [1, 4, 5, 10, 15]) {
+      SharedPreferences.setMockInitialValues({'${SharedState.prefix}stroop_level_nzt48': '$level'});
+      state = await SharedState.open();
+      await tester.pumpWidget(MaterialApp(key: ValueKey('L$level'), home: StroopScreen(state: state)));
+      await tester.pumpAndSettle();
+      final rate = StroopLevel.of(level).switchRate;
+      final line = find.byKey(const Key('stroop-switch-line'));
+      if (rate == 0) {
+        expect(line, findsNothing, reason: 'L$level: смены правила нет, а строка есть');
+      } else {
+        expect(tester.widget<Text>(line).data, L.t('stroopLvlSwitch').replaceAll('{s}', '${(rate * 100).round()}'),
+            reason: 'L$level: доля в строке не та, что у модели');
+      }
+    }
+  });
+
   testWidgets('🔴 слово-стимул и подписи кнопок — на языке интерфейса, все двенадцать языков', (tester) async {
     // Веб показывает слово по языку, перенос брал `.ru` везде: в английской локали стимул был
     // «КРАСНЫЙ», а слово, которого человек не читает, не мешает назвать цвет — Струп не мерил бы

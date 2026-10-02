@@ -1592,6 +1592,7 @@ const t: Record<string, string> = {
   "choiceRtLvlParams": "{n} 次 · {d} 个方向 · 作答窗口 {w} 秒",
   "simonLvlParams": "{n} 次 · ~{p}% 冲突 · 作答窗口 {w} 秒",
   "stroopLvlParams": "{n} 次 · 作答窗口 {w} 秒 · {p}% 冲突",
+  "stroopLvlSwitch": "{s}% 的试次使用另一条规则",
   "stroopPass": "过关条件：正确率 ≥85%（超时未答计为错误）",
   "stroopEmoLvlParams": "{n} 个词 · 作答窗口 {w} 秒 · {p}% 情绪词",
   "stroopEmoPass": "过关条件：≥80% 的词正确说出字色（超时算错误）",

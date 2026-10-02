@@ -1519,6 +1519,7 @@
 "stroopHintWord":"Touche le bouton du SENS du mot",
 "stroopIntroDesc":"Le mot « ROUGE » est écrit en bleu — touche « bleu ». Entraîne le contrôle cognitif et l'inhibition des réponses automatiques.",
 "stroopLvlParams":"{n} essais · fenêtre de réponse {w} s · {p} % en conflit",
+"stroopLvlSwitch":"{s} % des essais selon l’autre règle",
 "submarines":"Sous-marins",
 "submarinesDesc":"Une flotte est cachée quelque part en mer. Touche une case pour tirer : un point, c’est raté ; rouge, c’est touché ; foncé, le navire est coulé. Les navires sont droits et ne partagent aucune case. Coule toute la flotte avant d’épuiser tes tirs : tu en as un peu plus qu’un robot malin n’en utilise sur la même flotte. À chaque niveau, la mer grandit, la flotte grossit et les tirs diminuent.",
 "sudoku":"Sudoku",
