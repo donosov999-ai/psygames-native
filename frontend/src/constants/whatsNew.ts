@@ -19,18 +19,14 @@ export const WHATS_NEW: WhatsNewEntry[] = [
     version: '2.56.7',
     date: '2026-10-02',
     ru: [
-      '«Конь и ферзи»: восемь ферзей и обход конём — две лестницы и разбор с приёмами',
       '«Тоны» на Android: слоги звучат живыми записями, линии тона вместо значков',
-      '«Кто спрятался?»: новые вопросы с «или»',
-      '«Кошки»: уровни растут по настоящей трудности, а не по размеру поля',
-      '«Паттерны» больше не подсказывают ответ последним шагом; головоломки и MindLab — на 12 языках',
+      '«Паттерны» больше не подсказывают ответ последним шагом',
+      'Головоломки и MindLab — на 12 языках',
     ],
     en: [
-      'Knights & Queens: eight queens and the knight\'s tour — two ladders and step-by-step lessons',
       'Tones on Android: syllables play as real recordings, with tone lines instead of symbols',
-      'Who Is Hiding?: new questions with "or"',
-      'Cats: levels grow by real difficulty, not by board size',
-      'Patterns no longer give the answer away on the last step; Puzzles and MindLab are in 12 languages',
+      'Patterns no longer give the answer away on the last step',
+      'Puzzles and MindLab are in 12 languages',
     ],
   },
   {
