@@ -3129,6 +3129,7 @@ const t: Record<string, string> = {
   "catsRuleColor": "Eine Katze pro Farbe",
   "catsRuleLine": "Eine Katze pro Zeile und Spalte",
   "catsRuleTouch": "Katzen dürfen sich nicht berühren, auch nicht diagonal",
+  "catsHowPress": "Lang drücken deckt eine Katze auf, kurz tippen setzt ein ✕",
   "catsWhyRegion": "In dieser Farbe ist nur noch ein Feld frei",
   "catsWhyRow": "In dieser Zeile ist nur noch ein Feld frei",
   "catsWhyColumn": "In dieser Spalte ist nur noch ein Feld frei",

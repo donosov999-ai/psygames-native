@@ -104,6 +104,7 @@
 "catVocab_time":"Temps",
 "catVocab_verbs":"Actions",
 "catsDesc":"Place un chat dans chaque ligne, chaque colonne et chaque couleur. Les chats ne peuvent pas se toucher, même en diagonale.",
+"catsHowPress":"Un appui long révèle un chat ; un appui court place un ✕",
 "catsRuleColor":"Un chat par couleur",
 "catsRuleLine":"Un chat par ligne et par colonne",
 "catsRuleTouch":"Les chats ne peuvent pas se toucher, même en diagonale",

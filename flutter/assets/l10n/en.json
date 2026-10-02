@@ -104,6 +104,7 @@
 "catVocab_time":"Time",
 "catVocab_verbs":"Actions",
 "catsDesc":"Place one cat in every row, every column and every colour. Cats may not touch — not even diagonally.",
+"catsHowPress":"Long press reveals a cat; a short tap marks ✕",
 "catsRuleColor":"One cat per colour",
 "catsRuleLine":"One cat per row and column",
 "catsRuleTouch":"Cats may not touch, not even diagonally",

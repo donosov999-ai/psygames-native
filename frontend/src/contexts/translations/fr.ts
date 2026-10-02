@@ -3124,6 +3124,7 @@ const t: Record<string, string> = {
   "catsRuleColor": "Un chat par couleur",
   "catsRuleLine": "Un chat par ligne et par colonne",
   "catsRuleTouch": "Les chats ne peuvent pas se toucher, même en diagonale",
+  "catsHowPress": "Un appui long révèle un chat ; un appui court place un ✕",
   "catsWhyRegion": "Il ne reste qu’une case dans cette couleur",
   "catsWhyRow": "Il ne reste qu’une case dans cette ligne",
   "catsWhyColumn": "Il ne reste qu’une case dans cette colonne",

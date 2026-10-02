@@ -3129,6 +3129,7 @@ const t: Record<string, string> = {
   "catsRuleColor": "每种颜色一只猫",
   "catsRuleLine": "每行每列各一只猫",
   "catsRuleTouch": "猫与猫不能相邻，斜向也不行",
+  "catsHowPress": "长按揭开猫，短按标记 ✕",
   "catsWhyRegion": "这种颜色只剩一个格子",
   "catsWhyRow": "这一行只剩一个格子",
   "catsWhyColumn": "这一列只剩一个格子",

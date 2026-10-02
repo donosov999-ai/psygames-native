@@ -3125,6 +3125,7 @@ const t: Record<string, string> = {
   "catsRuleColor": "قطة واحدة لكل لون",
   "catsRuleLine": "قطة واحدة في كل صف وعمود",
   "catsRuleTouch": "لا يجوز أن تتلامس القطط، ولا حتى قطريًا",
+  "catsHowPress": "الضغط المطوّل يكشف قطة، والنقرة القصيرة تضع ✕",
   "catsWhyRegion": "بقيت خانة واحدة فقط في هذا اللون",
   "catsWhyRow": "بقيت خانة واحدة فقط في هذا الصف",
   "catsWhyColumn": "بقيت خانة واحدة فقط في هذا العمود",

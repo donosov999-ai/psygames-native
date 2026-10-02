@@ -104,6 +104,7 @@
 "catVocab_time":"Tempo",
 "catVocab_verbs":"Azioni",
 "catsDesc":"Metti un gatto in ogni riga, ogni colonna e ogni colore. I gatti non possono toccarsi, nemmeno in diagonale.",
+"catsHowPress":"Tieni premuto per scoprire un gatto; un tocco breve segna ✕",
 "catsRuleColor":"Un gatto per colore",
 "catsRuleLine":"Un gatto per riga e per colonna",
 "catsRuleTouch":"I gatti non possono toccarsi, nemmeno in diagonale",

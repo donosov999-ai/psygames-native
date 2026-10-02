@@ -104,6 +104,7 @@
 "catVocab_time":"Zeit",
 "catVocab_verbs":"Handlungen",
 "catsDesc":"Setze eine Katze in jede Zeile, jede Spalte und jede Farbe. Katzen dürfen sich nicht berühren – auch nicht diagonal.",
+"catsHowPress":"Lang drücken deckt eine Katze auf, kurz tippen setzt ein ✕",
 "catsRuleColor":"Eine Katze pro Farbe",
 "catsRuleLine":"Eine Katze pro Zeile und Spalte",
 "catsRuleTouch":"Katzen dürfen sich nicht berühren, auch nicht diagonal",

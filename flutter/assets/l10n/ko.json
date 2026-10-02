@@ -104,6 +104,7 @@
 "catVocab_time":"시간",
 "catVocab_verbs":"행동",
 "catsDesc":"모든 행, 모든 열, 모든 색에 고양이를 한 마리씩 놓으세요. 고양이끼리는 대각선으로도 닿을 수 없습니다.",
+"catsHowPress":"길게 누르면 고양이를 열고, 짧게 누르면 ✕ 표시를 합니다",
 "catsRuleColor":"색마다 고양이 한 마리",
 "catsRuleLine":"행과 열마다 고양이 한 마리",
 "catsRuleTouch":"고양이끼리는 대각선으로도 닿을 수 없습니다",
