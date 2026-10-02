@@ -22,8 +22,17 @@ void main() {
   setUpAll(() async => L.load('ru'));
   tearDown(LessonUsed.reset);
 
-  Future<SharedState> freshState() async {
-    SharedPreferences.setMockInitialValues({'psygames_active_profile': 'kids'});
+  /// Профиль «дети». Карточки правил уровня помечены виденными: проба играет партию, а
+  /// не читает объявления. Сама карточка проверяется отдельной пробой ниже.
+  Future<SharedState> freshState({Map<String, Object> extra = const {}, bool rulesSeen = true}) async {
+    SharedPreferences.setMockInitialValues({
+      'psygames_active_profile': 'kids',
+      if (rulesSeen) ...{
+        for (final k in ['glued', 'last', 'apart']) 'psygames_rulehint_animal_queue_$k': '1',
+        'psygames_rulehint_kids_sort_switches': '1',
+      },
+      ...extra,
+    });
     return SharedState.open();
   }
 
@@ -32,15 +41,8 @@ void main() {
     await tester.pump(const Duration(milliseconds: 100));
   }
 
-  /// Та же раздача, что у экрана: первая удачная попытка того же генератора.
-  List<int> queueOrder(int seed, int level) {
-    final rnd = Random(seed);
-    ({AnimalQueue game, List<int> order})? g;
-    for (var i = 0; i < 20 && g == null; i += 1) {
-      g = generateQueue(queueSizeFor(level), rnd);
-    }
-    return g!.order;
-  }
+  /// Та же раздача, что у экрана: тот же генератор с тем же зерном.
+  List<int> queueOrder(int seed, int level) => generateQueue(level, Random(seed)).order;
 
   testWidgets('«Очередь зверей»: отказ не ставит зверя, верный порядок ведёт на ступень выше',
       (tester) async {
@@ -58,7 +60,7 @@ void main() {
     await tester.tap(find.byKey(ValueKey('aq-animal-${order.last}')));
     await tester.pump();
     expect(find.byKey(ValueKey('aq-animal-${order.last}')), findsOneWidget,
-        reason: 'зверь, перед которым по подсказкам ещё кто-то, встал в очередь');
+        reason: 'зверь, с которым очередь не достроить, встал в очередь');
     await tester.pump(const Duration(milliseconds: 500));
 
     for (final a in order) {
@@ -81,13 +83,15 @@ void main() {
     await settle(tester);
     expect(find.byKey(const Key('lesson-counter')), findsOneWidget, reason: 'плеер не открылся');
     expect(find.textContaining('Шаг 1 из 3'), findsOneWidget);
-    expect(find.textContaining(L.t('teachQueueFirst')), findsOneWidget, reason: 'шаг без имени приёма — показ ответа');
+    final g = generateQueue(1, Random(3));
+    final key = queueLessonKey(AnimalQueue(g.game.animals, g.game.clues), g.order.first);
+    expect(find.textContaining(L.t(key)), findsOneWidget, reason: 'шаг без имени приёма — показ ответа');
     expect(LessonUsed.inRound, isTrue);
   });
 
   List<KidsCard> kidsCards(int seed, int level, int phase) {
-    final s = KidsSortSession(Random(seed), nCards: kidsCardsFor(level));
-    return (phase == 1 ? s.phase1 : s.phase2).cards;
+    final s = KidsSortSession(Random(seed), nCards: kidsCardsFor(level), phases: kidsPhasesFor(level));
+    return s.phases[phase - 1].cards;
   }
 
   int byColor(KidsCard c) => kidsTargets.indexWhere((t) => t.color == c.color);
@@ -143,5 +147,53 @@ void main() {
     expect(find.textContaining('Шаг 1 из 3'), findsOneWidget);
     expect(find.textContaining(L.t('teachKidsSortRule')), findsOneWidget);
     expect(LessonUsed.inRound, isTrue);
+  });
+
+  testWidgets('«Очередь зверей»: дверь у головы очереди и подписи подсказок для чтеца', (tester) async {
+    final state = await freshState();
+    await tester.pumpWidget(MaterialApp(home: AnimalQueueScreen(state: state, seed: 7)));
+    await settle(tester);
+    expect(find.byKey(const ValueKey('aq-door')), findsOneWidget, reason: 'без двери направление угадывается');
+    final g = generateQueue(1, Random(7));
+    for (final c in g.game.clues) {
+      final label = tester.getSemantics(find.byKey(ValueKey('aq-clue-${c.kind.name}-${c.a}-${c.b}'))).label;
+      expect(label, isNot(contains('{')), reason: 'подстановка не сработала: $label');
+      expect(label, contains(g.game.animals[c.a]), reason: 'подсказка $c названа без своего зверя');
+    }
+  });
+
+  testWidgets('«Очередь зверей»: на первой ступени каркас объявляет дверь и сцепку', (tester) async {
+    final state = await freshState(rulesSeen: false);
+    await tester.pumpWidget(MaterialApp(home: AnimalQueueScreen(state: state, seed: 7)));
+    await settle(tester);
+    await tester.pump(const Duration(seconds: 2));
+    expect(find.byKey(const Key('level-rule-card')), findsOneWidget, reason: 'карточка правила не показана');
+    expect(find.textContaining(L.t('lr_animal_queue_glued_title')), findsOneWidget);
+  });
+
+  testWidgets('«Цвета и формы»: с пятой ступени три фазы — счётчик и разбор знают об этом', (tester) async {
+    final state = await freshState(extra: {'psygames_kids_sort_level_kids': '5'});
+    await tester.pumpWidget(MaterialApp(home: KidsSortScreen(state: state, seed: 2)));
+    await settle(tester);
+    expect(find.text('0/${kidsPhasesFor(5) * kidsCardsFor(5)}'), findsOneWidget, reason: 'счётчик карточек не знает о третьей фазе');
+    await tester.tap(find.byKey(const Key('game-lesson')));
+    await settle(tester);
+    expect(find.textContaining('Шаг 1 из 4'), findsOneWidget, reason: 'нет шага про возврат правила');
+  });
+
+  testWidgets('«Очередь зверей»: десять зверей и дверь встают в один ряд на узком телефоне', (tester) async {
+    tester.view.physicalSize = const Size(360, 640);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final state = await freshState(extra: {'psygames_animal_queue_level_kids': '14'});
+    await tester.pumpWidget(MaterialApp(home: AnimalQueueScreen(state: state, seed: 5)));
+    await settle(tester);
+    expect(tester.takeException(), isNull, reason: 'раскладка переполнилась');
+    expect(queueSizeFor(14), 10);
+    final door = tester.getRect(find.byKey(const ValueKey('aq-door')));
+    expect(door.left, greaterThanOrEqualTo(0), reason: 'дверь уехала за левый край');
+    for (var i = 0; i < 10; i += 1) {
+      expect(find.byKey(ValueKey('aq-animal-$i')), findsOneWidget);
+    }
   });
 }
