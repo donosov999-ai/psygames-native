@@ -55,6 +55,10 @@ dependencies:
   path_provider: ^2.1.5
   sqlite3: ^2.9.0
   sqlite3_flutter_libs: ^0.5.41
+  package_info_plus: ^10.2.1
+  share_plus: ^13.3.0
+  file_picker: ^13.1.0
+  url_launcher: ^6.3.2
 
 dev_dependencies:
   integration_test:
@@ -103,6 +107,11 @@ flutter:
     - assets/digits/pastel/
     - assets/digits/rainbow/
     - assets/hubs.json
+    # Вид приложения (цвета тем, тема профиля, акценты магазина) — выгрузка веба
+    # (flutter/tools/embed-look.mjs), не править руками.
+    - assets/look.json
+    # Профили для настроек — выгрузка живого TS, сторож frontend/src/__tests__/flutter-profiles-asset-fresh.test.ts
+    - assets/profiles.json
     # Иконки игр «поле в миниатюре» для строк развилок — выгрузка веб-реестра
     # (flutter/tools/embed-game-icons.mjs), не править руками.
     - assets/game_icons/
