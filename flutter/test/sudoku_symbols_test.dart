@@ -44,7 +44,7 @@ void main() {
   }
 
   Future<void> openPause(WidgetTester tester) async {
-    await tester.tap(find.byTooltip('Пауза'));
+    await tester.tap(find.byTooltip(L.t('teachPause')));
     await tester.pumpAndSettle();
   }
 

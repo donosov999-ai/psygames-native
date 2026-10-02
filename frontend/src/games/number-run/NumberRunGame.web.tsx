@@ -204,7 +204,7 @@ const NumberRunGame = forwardRef<РульЗабега, Props>(function NumberRun
             exact: (L: number, rnd: () => number) => состав.makePuzzle(состав.levelParams(L), rnd),
             pattern: (L: number, rnd: () => number) => {
               const ряд = ряды.makeSequence(L, rnd);
-              return { ...ряд, options: ряды.makeOptions(ряд.answer, 3, rnd) };
+              return { ...ряд, options: ряды.makeOptions(ряд.answer, 3, rnd, ряды.tailLure(ряд.items)) };
             },
             /**
              * Вопрос «Мат. шкалы» её же генератором. Зерно у неё строковое — берём его из генератора

@@ -24,7 +24,7 @@ void main() {
     await tester.pumpWidget(MaterialApp(home: Scaffold(body: Center(child: art))));
     final out = <int, String>{};
     for (var i = 0; i < corsiBlocks; i++) {
-      final f = find.byKey(Key('урок-блок$i'));
+      final f = find.byKey(Key('corsi-lesson-block-$i'));
       if (f.evaluate().isNotEmpty) out[i] = tester.widget<Text>(f).data!;
     }
     return out;
