@@ -78,6 +78,10 @@ class NbReadout {
 /// Синий градиента веб-экрана (`#5b86e5`): им горит клетка и подсвечен босс.
 const _accent = Color(0xFF5B86E5);
 
+/// Личный рекорд серии попаданий — ключ веба (`frontend/src/services/streak.ts`), общий
+/// для обеих половин гибрида: `psygames.` хранилище возит (SharedState.extraPrefixes).
+const nbBestStreakKey = 'psygames.bestStreak.n_back';
+
 class NBackScreen extends StatefulWidget {
   const NBackScreen({super.key, required this.state, this.voice, this.strings, this.rng});
 
@@ -123,6 +127,12 @@ class _NBackScreenState extends State<NBackScreen> {
   NbReadout? _readout;
   bool? _boss;
 
+  /// Серия попаданий подряд в зрительном потоке и её рекорд — как у веба: попадание +1,
+  /// ложная тревога обнуляет, новая партия начинает с нуля, рекорд пишется сразу, а не в
+  /// конце партии («побил себя» видно в тот момент, когда это случилось).
+  int _streak = 0;
+  int? _bestStreak;
+
   @override
   void initState() {
     super.initState();
@@ -148,6 +158,7 @@ class _NBackScreenState extends State<NBackScreen> {
     _voice = voice;
     _canSpeak = canSpeak;
     _strings = strings;
+    _bestStreak = int.tryParse(widget.state.get(nbBestStreakKey) ?? '');
     if (GamePreset.isPreset) _trials = GamePreset.num('trials', nbDefaultTrials);
     setState(_reset);
     if (GamePreset.autostart) _start();
@@ -192,6 +203,7 @@ class _NBackScreenState extends State<NBackScreen> {
     if (_phase != NbPhase.ready || _game == null) return;
     setState(() => _phase = NbPhase.playing);
     _startedAt = gameNow();
+    _streak = 0;
     _timer = gameTimeout(const Duration(milliseconds: 600), _nextTrial);
   }
 
@@ -225,7 +237,9 @@ class _NBackScreenState extends State<NBackScreen> {
   Future<void> _say(String letter) async {
     final v = _voice;
     if (v == null) return;
-    if (!await v.speakLetter(letter)) await v.speak(letter, 'en');
+    // Скорости — как у веба (tts.ts, speakLetterName): запись имени буквы — 1, синтез без
+    // записи — 1,2. Записи подбирались по длительности под окно пробы при скорости 1.
+    if (!await v.speakLetter(letter, rate: 1.0)) await v.speak(letter, 'en', rate: 1.2);
   }
 
   void _press({required bool audio}) {
@@ -233,8 +247,21 @@ class _NBackScreenState extends State<NBackScreen> {
     if (g == null || _phase != NbPhase.playing) return;
     final r = audio ? g.pressAudio() : g.pressVisual();
     if (r == NbPress.ignored) return;
+    if (!audio) _countStreak(r);
     _haptics.selection();
     setState(() => audio ? _lastAudio = r : _lastVisual = r);
+  }
+
+  void _countStreak(NbPress r) {
+    if (r == NbPress.falseAlarm) {
+      _streak = 0;
+      return;
+    }
+    _streak += 1;
+    if (_streak > (_bestStreak ?? 0)) {
+      _bestStreak = _streak;
+      unawaited(widget.state.set(nbBestStreakKey, '$_streak'));
+    }
   }
 
   Future<void> _finish() async {
@@ -321,6 +348,8 @@ class _NBackScreenState extends State<NBackScreen> {
         HudItem(label: 'N', value: '${g.n}', icon: Icons.layers_outlined),
         HudItem(label: L.t('round'), value: '$shown/${g.trials}', icon: Icons.repeat),
         HudItem(label: L.t('hud_correct'), value: '${g.hits + g.aHits}', icon: Icons.check_circle_outline),
+        if ((_bestStreak ?? 0) > 0)
+          HudItem(label: L.t('hud_best'), value: '$_bestStreak', icon: Icons.emoji_events_outlined),
         HudItem(label: L.t('level'), value: '${_ladder.level}', icon: Icons.flag_outlined),
       ],
       field: (context, h) => switch (_phase) {
@@ -521,16 +550,23 @@ class _Buttons extends StatelessWidget {
   Widget build(BuildContext context) {
     final open = game.canMatch;
     Widget button(Key key, String label, IconData icon, bool answered, NbPress last, VoidCallback onTap) {
+      final tint = _tint(last);
       return Expanded(
         child: SizedBox(
           height: 56,
           child: FilledButton.icon(
             key: key,
-            style: FilledButton.styleFrom(backgroundColor: _tint(last)),
+            // Нажатие сразу запирает кнопку — одно нажатие на пробу. Цвет «верно / мимо» нужен
+            // именно запертой кнопке: без disabled-цветов она брала серый цвет темы, и ответ на
+            // нажатие не был виден никогда (сверка веб → натив 02.10.2026).
+            style: FilledButton.styleFrom(
+              backgroundColor: tint,
+              disabledBackgroundColor: tint,
+              disabledForegroundColor: tint == null ? null : Colors.white,
+              disabledIconColor: tint == null ? null : Colors.white,
+            ),
             onPressed: open && !answered ? onTap : null,
             icon: Icon(icon),
-            // ⚠️ «Position / Sound» во всех языках — как в вебе и в справке (согласовано на
-            // 12 языках); перевести ли — открытое решение Дениса (задача 6596a00d).
             label: Text(open ? label : L.t('warmup'), maxLines: 1, overflow: TextOverflow.ellipsis),
           ),
         ),
@@ -542,9 +578,13 @@ class _Buttons extends StatelessWidget {
       child: Row(
         children: game.dual
             ? [
-                button(const Key('nb-position'), 'Position', Icons.grid_view, game.visualAnswered, lastVisual, onVisual),
+                // Подписи — на языке интерфейса (приёмка 6596a00d, 01.10.2026): английское слово в
+                // русском экране — тот же класс дефекта, что зашитый текст. Ключи уже есть в словаре
+                // с нужным переводом на 12 языках (suiteModeSimon «Позиция», label_sound «Звук»);
+                // подсказка nBackDualHint называет кнопки теми же словами.
+                button(const Key('nb-position'), L.t('suiteModeSimon'), Icons.grid_view, game.visualAnswered, lastVisual, onVisual),
                 const SizedBox(width: 12),
-                button(const Key('nb-sound'), 'Sound', Icons.volume_up_outlined, game.audioAnswered, lastAudio, onAudio),
+                button(const Key('nb-sound'), L.t('label_sound'), Icons.volume_up_outlined, game.audioAnswered, lastAudio, onAudio),
               ]
             : [button(const Key('nb-match'), L.t('match'), Icons.check, game.visualAnswered, lastVisual, onVisual)],
       ),

@@ -1,4 +1,4 @@
-/* psygames-game-n-back · VER 1 · 19.08.2026 */
+/* psygames-game-n-back · VER 2 · 01.10.2026 */
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { speakLetterName } from '@/src/services/tts';
 import { useTtsBlock } from '@/src/hooks/useTtsAvailable';
@@ -683,7 +683,7 @@ export default function NBackGame() {
                 ]}
               >
                 <Text style={styles.matchBtnText}>
-                  {waitingResponse ? (modality === 'dual' ? '👁 Position' : t('match')) : t('warmup')}
+                  {waitingResponse ? (modality === 'dual' ? `👁 ${t('suiteModeSimon')}` : t('match')) : t('warmup')}
                 </Text>
               </TouchableOpacity>
               {modality === 'dual' && (
@@ -697,7 +697,7 @@ export default function NBackGame() {
                   ]}
                 >
                   <Text style={styles.matchBtnText}>
-                    {waitingResponse ? '🔊 Sound' : t('warmup')}
+                    {waitingResponse ? `🔊 ${t('label_sound')}` : t('warmup')}
                   </Text>
                 </TouchableOpacity>
               )}
