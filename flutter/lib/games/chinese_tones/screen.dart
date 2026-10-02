@@ -45,6 +45,10 @@ class ChineseTonesScreen extends StatefulWidget {
 class _ChineseTonesScreenState extends State<ChineseTonesScreen> {
   late LevelLadder _ladder;
   Map<int, List<ZhSyllable>>? _bank;
+
+  /// Банк заданий партии — тот, что прозвучит на этом устройстве ([ctPlayableBank]).
+  /// Разбор берёт полный [_bank]: ему нужна основа во всех четырёх тонах, а таких с записью нет.
+  Map<int, List<ZhSyllable>>? _playBank;
   VoiceLayer? _voice;
   NoiseLayer? _noise;
   VoiceBlock? _block;
@@ -86,10 +90,14 @@ class _ChineseTonesScreenState extends State<ChineseTonesScreen> {
     final voice = widget.voice ?? await AudioHost.voice(widget.state);
     final noise = widget.noise ?? AudioHost.noise(widget.state);
     // Без китайского голоса упражнение невозможно по построению — говорим об этом.
-    final block = await voice.blockedReason('zh');
+    final systemVoice = await voice.hasSystemVoice('zh');
+    final playBank = ctPlayableBank(bank, systemVoice: systemVoice, hasRecording: (zh) => voice.hasRecording(zh, 'zh'));
+    final silent = playBank.values.any((l) => l.isEmpty);
+    final block = await voice.blockedReason('zh') ?? (silent ? VoiceBlock.noVoice : null);
     if (!mounted) return;
     setState(() {
       _bank = bank;
+      _playBank = silent ? bank : playBank;
       _voice = voice;
       _noise = noise;
       _block = block;
@@ -103,7 +111,7 @@ class _ChineseTonesScreenState extends State<ChineseTonesScreen> {
     final p = ctLevelParams(_ladder.level);
     setState(() {
       _params = p;
-      _trials = buildCtTrials(_bank!, p.trials, p.pinyinMode, _rng);
+      _trials = buildCtTrials(_playBank ?? _bank!, p.trials, p.pinyinMode, _rng);
       _idx = 0;
       _answered = null;
       _hits = _errors = _replays = 0;
@@ -353,7 +361,28 @@ class _ChineseTonesScreenState extends State<ChineseTonesScreen> {
             child: Semantics(
               label: _params.pinyinMode ? t.options[i] : '${L.t('ctTone')} ${i + 1}',
               child: Column(mainAxisSize: MainAxisSize.min, children: [
-                Text(t.options[i], style: TextStyle(fontSize: _params.pinyinMode ? 22 : 30, fontWeight: FontWeight.w700)),
+                if (_params.pinyinMode)
+                  Text(t.options[i], style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700))
+                else
+                  // Знаки ˊ ˋ есть не в каждом шрифте (в Roboto сборки — пустые квадраты): линия тона
+                  // рисуется сама, той же шкалой, что в разборе.
+                  Builder(
+                    builder: (context) {
+                      final ink = IconTheme.of(context).color ?? scheme.onSurface;
+                      return CustomPaint(
+                        key: Key('ct-option-line-${i + 1}'),
+                        size: const Size(46, 28),
+                        painter: _ToneLine(
+                          contour: ctToneContours[i + 1]!,
+                          color: ink,
+                          frame: ink.withValues(alpha: 0.3),
+                          lit: true,
+                          pad: 6,
+                          stroke: 4,
+                        ),
+                      );
+                    },
+                  ),
                 if (!_params.pinyinMode) Text('${i + 1}', style: const TextStyle(fontSize: 12)),
               ]),
             ),
@@ -438,7 +467,7 @@ class _CtLessonBoardState extends State<_CtLessonBoard> with SingleTickerProvide
                 const SizedBox(height: 4),
                 Text(s.zh,
                     style: TextStyle(fontSize: 28, fontWeight: FontWeight.w700, color: lit ? scheme.onSurface : scheme.onSurfaceVariant)),
-                Text('${s.pinyin} ${toneSigns[s.tone - 1]}', style: TextStyle(fontSize: 14, color: scheme.onSurfaceVariant)),
+                Text('${s.pinyin} · ${s.tone}', style: TextStyle(fontSize: 14, color: scheme.onSurfaceVariant)),
               ]),
             );
           }(),
@@ -449,16 +478,24 @@ class _CtLessonBoardState extends State<_CtLessonBoard> with SingleTickerProvide
 
 /// Линия тона в рамке шкалы: ступени 1–5 снизу вверх, точки равномерно по ширине.
 class _ToneLine extends CustomPainter {
-  _ToneLine({required this.contour, required this.color, required this.frame, required this.lit});
+  _ToneLine({
+    required this.contour,
+    required this.color,
+    required this.frame,
+    required this.lit,
+    this.pad = 8,
+    this.stroke = 6,
+  });
 
   final List<int> contour;
   final Color color;
   final Color frame;
   final bool lit;
+  final double pad;
+  final double stroke;
 
   @override
   void paint(Canvas canvas, Size size) {
-    const pad = 8.0;
     canvas.drawRRect(
       RRect.fromRectAndRadius(Rect.fromLTWH(1, 1, size.width - 2, size.height - 2), const Radius.circular(8)),
       Paint()
@@ -476,7 +513,7 @@ class _ToneLine extends CustomPainter {
       path,
       Paint()
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 6
+        ..strokeWidth = stroke
         ..strokeCap = StrokeCap.round
         ..strokeJoin = StrokeJoin.round
         ..color = color.withValues(alpha: lit ? 1 : 0.45),

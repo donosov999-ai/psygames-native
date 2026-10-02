@@ -78,6 +78,20 @@ void main() {
     return false;
   }
 
+  /// Диагональ «Инерции» на СЛУЧАЙНОМ поле: шар может стоять так, что все четыре диагонали
+  /// упираются в стену, — тогда хода нет, хотя цифровой блок работает. 02.10.2026 так покраснела
+  /// сборка TestFlight 2.56.5 на macOS (локально 5/5 зелёных). Проба про то, что диагональ доходит
+  /// до движка, а не про то, какое поле выпало: сдвинуть шар прямым ходом и попробовать снова.
+  Future<bool> anyDiagonalMoves(WidgetTester tester) async {
+    const diagonals = ['cursor-up-left', 'cursor-up-right', 'cursor-down-left', 'cursor-down-right'];
+    const straight = ['cursor-right', 'cursor-down', 'cursor-left', 'cursor-up'];
+    for (var round = 0; round < 4; round++) {
+      if (await anyArrowMoves(tester, diagonals)) return true;
+      await anyArrowMoves(tester, [...straight.skip(round), ...straight.take(round)]);
+    }
+    return false;
+  }
+
   testWidgets('🔴 «Куб»: стрелки катят куб — режим, где касание не делает ничего', (tester) async {
     await boot(tester, 'Cube');
     expect(PuzzleModes.all['Cube']!.arrows, isTrue, reason: 'премиса: у «Куба» в вебе крестовина');
@@ -89,10 +103,7 @@ void main() {
   testWidgets('🔴 «Инерция»: восемь направлений, диагональ двигает шар', (tester) async {
     await boot(tester, 'Inertia');
     expect(find.byKey(const Key('cursor-up-left')), findsOneWidget, reason: 'у «Инерции» диагонали');
-    expect(
-        await anyArrowMoves(tester,
-            ['cursor-up-left', 'cursor-up-right', 'cursor-down-left', 'cursor-down-right']),
-        isTrue,
+    expect(await anyDiagonalMoves(tester), isTrue,
         reason: 'ни одна диагональ не сделала ход — цифровой блок не доходит до движка');
   });
 

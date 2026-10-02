@@ -57,14 +57,14 @@ void main() {
     SessionReport.sink = null;
   });
 
-  Future<(FakeVoice, FakeNoise)> boot(WidgetTester tester, {bool has = true}) async {
+  Future<(FakeVoice, FakeNoise)> boot(WidgetTester tester, {bool has = true, Map<String, Map<String, String>> samples = const {}}) async {
     final v = FakeVoice(has: has);
     final n = FakeNoise();
     await tester.pumpWidget(MaterialApp(
       home: ChineseTonesScreen(
         state: state,
         random: Random(6).nextDouble,
-        voice: VoiceLayer(backend: v, soundOn: () => true),
+        voice: VoiceLayer(backend: v, soundOn: () => true, samples: samples),
         noise: NoiseLayer(backend: n, soundOn: () => true),
       ),
     ));
@@ -98,6 +98,20 @@ void main() {
     expect(state.get(SharedState.levelKey('chinese_tones', 'nzt48')), '2');
   });
 
+  testWidgets('🔴 кнопки тона — нарисованная линия, а не знак ˊ ˋ (их нет в Roboto — пустые квадраты)', (tester) async {
+    await boot(tester);
+    await tester.tap(find.byKey(const Key('ct-start')));
+    await tester.pump(const Duration(milliseconds: 450));
+    for (var i = 0; i < 4; i += 1) {
+      final option = find.byKey(Key('ct-option-$i'));
+      expect(find.descendant(of: option, matching: find.byKey(Key('ct-option-line-${i + 1}'))), findsOneWidget,
+          reason: 'кнопка ${i + 1} рисует линию своего тона');
+      final texts = tester.widgetList<Text>(find.descendant(of: option, matching: find.byType(Text))).map((t) => t.data ?? '');
+      final glyphs = texts.join().runes.where((r) => r >= 0x02B0 && r <= 0x02FF).map(String.fromCharCode).toList();
+      expect(glyphs, isEmpty, reason: 'знаки-модификаторы на кнопке ${i + 1}: $glyphs');
+    }
+  });
+
   testWidgets('🔴 слог целиком с 11-го: верно — написание из банка, под словом шум', (tester) async {
     final sent = <Map<String, dynamic>>[];
     SessionReport.sink = (j) async => sent.add(jsonDecode(j) as Map<String, dynamic>);
@@ -122,5 +136,46 @@ void main() {
     await boot(tester, has: false);
     expect(find.byKey(const Key('ct-voice-warning')), findsOneWidget);
     expect(find.textContaining('中文'), findsOneWidget);
+  });
+
+  // 🔴 Отчёт «Полиглота» (Android): «нажимаешь — и ни фига». Записи есть у 99 слогов из 422;
+  // без системного китайского голоса остальные молчали, а плашки не было (язык «озвучен»).
+  testWidgets('🔴 нет системного китайского голоса — партия только из слогов с записью, и без плашки', (tester) async {
+    final recorded = <String>{for (final l in bank.values) ...l.take(3).map((s) => s.zh)};
+    final (voice, _) = await boot(tester, has: false, samples: {'zh': {for (final z in recorded) z: 'x.opus'}});
+    expect(find.byKey(const Key('ct-voice-warning')), findsNothing, reason: 'записанных слогов хватает — играть можно');
+    await tester.tap(find.byKey(const Key('ct-start')));
+    await tester.pump(const Duration(milliseconds: 450));
+    final p = ctLevelParams(1);
+    final heard = <String>[];
+    for (var i = 0; i < p.trials; i += 1) {
+      heard.add(voice.said.isNotEmpty ? voice.said.last.$1 : '');
+      await tester.tap(find.byKey(const Key('ct-option-0')));
+      await tester.pump(const Duration(milliseconds: 1200));
+      await tester.pump(const Duration(milliseconds: 450));
+    }
+    expect(heard.where((z) => !recorded.contains(z)), isEmpty, reason: 'каждое задание — слог с записью');
+  });
+
+  testWidgets('системный китайский голос есть — банк целиком, как в вебе', (tester) async {
+    final recorded = <String>{for (final l in bank.values) ...l.take(1).map((s) => s.zh)};
+    final (voice, _) = await boot(tester, has: true, samples: {'zh': {for (final z in recorded) z: 'x.opus'}});
+    await tester.tap(find.byKey(const Key('ct-start')));
+    await tester.pump(const Duration(milliseconds: 450));
+    final heard = <String>[];
+    for (var i = 0; i < ctLevelParams(1).trials; i += 1) {
+      heard.add(voice.said.last.$1);
+      await tester.tap(find.byKey(const Key('ct-option-0')));
+      await tester.pump(const Duration(milliseconds: 1200));
+      await tester.pump(const Duration(milliseconds: 450));
+    }
+    expect(heard.where((z) => !recorded.contains(z)), isNotEmpty, reason: 'с голосом банк не сужается');
+  });
+
+  testWidgets('нет голоса, а у одного тона ни одной записи — честная плашка «нет голоса»', (tester) async {
+    final recorded = <String>{for (final t in const [1, 2, 3]) ...bank[t]!.take(3).map((s) => s.zh)};
+    await boot(tester, has: false, samples: {'zh': {for (final z in recorded) z: 'x.opus'}});
+    expect(find.byKey(const Key('ct-voice-warning')), findsOneWidget,
+        reason: 'четвёртый тон прозвучать не может — молчать о нём нельзя');
   });
 }

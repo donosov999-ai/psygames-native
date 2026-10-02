@@ -1,174 +1,186 @@
-/// СЛОВА ЭКРАНА — русская часть `core/i18n.ts`.
+/// СЛОВА ЭКРАНА — СЛОВАРЬ МОДУЛЯ ВЕБА `core/i18n.ts`, НА ДВЕНАДЦАТИ ЯЗЫКАХ.
 ///
-/// В веб-версии двенадцать языков; здесь пока один — тот, на котором играет Денис. Формулировки
-/// перенесены ДОСЛОВНО, а не пересказаны: вопрос задания — часть правил, и «как выглядит фигура,
-/// если смотреть сверху» ≠ «вид сверху». Второго набора слов в игре быть не должно.
+/// Вопросы заданий, подписи вариантов и пояснения разбора живут у веба в модуле игры
+/// (`frontend/src/games/mental-rotation/core/i18n.ts`), сразу на двенадцати языках. Сюда они
+/// приезжают файлом `assets/l10n/mental-rotation.json` (экспортёр в репо —
+/// `frontend/src/games/mental-rotation/tools/record-flutter-strings.gen.ts`) и читаются через
+/// `ModuleStrings`. Раньше здесь стояла русская копия этих строк: немец и кореец читали вопрос
+/// задания по-русски посреди своего экрана.
+///
+/// Формулировки — ДОСЛОВНО веба, а не пересказ: вопрос задания — часть правил, и «как выглядит
+/// фигура, если смотреть сверху» ≠ «вид сверху». Второго набора слов в игре быть не должно.
+///
+/// ⚠️ СЛОВАРЬ ЗАРЯЖАЕТ ЭКРАН ДО ПЕРВОГО КАДРА (`loadMentalRotationWords`), пробы — тем же
+/// вызовом. До загрузки функции ниже возвращают ключи: пустота выглядела бы «так и задумано»,
+/// а ключ на экране виден сразу и ловится пробой двенадцати языков.
 library;
 
+import 'package:flutter/services.dart' show AssetBundle;
+
+import '../../shell/l10n.dart';
+import '../../shell/module_strings.dart';
 import 'geometry.dart';
+import 'levels.dart';
+import 'net.dart';
 import 'oblique.dart';
 import 'pieces.dart';
 import 'projection.dart';
-import 'levels.dart';
 import 'rotation.dart';
+import 'same.dart';
 import 'section.dart';
 import 'task.dart';
+import 'viewpoint.dart';
 
-String kindWord(TaskKind kind) => switch (kind) {
-  TaskKind.rotation => 'Поворот',
-  TaskKind.projection => 'Проекция',
-  TaskKind.net => 'Развёртка',
-  TaskKind.viewpoint => 'Точка зрения',
-  TaskKind.same => 'Одинаковая фигура',
-  TaskKind.assembly => 'Сборка',
-  TaskKind.memory => 'Память',
-  TaskKind.formation => 'Три вида',
-  TaskKind.section => 'Срез',
-  TaskKind.missing => 'Недостающая часть',
-  TaskKind.oblique => 'Сечение',
-};
+ModuleStrings _words = ModuleStrings.empty;
 
-String viewWord(ProjectionView view) => switch (view) {
-  ProjectionView.top => 'сверху',
-  ProjectionView.front => 'спереди',
-  ProjectionView.side => 'справа',
-};
+/// Словарь модуля для текущего языка приложения. Звать при входе на экран и после смены языка.
+Future<void> loadMentalRotationWords({AssetBundle? bundle}) async {
+  _words = await ModuleStrings.load('mental-rotation', bundle: bundle);
+}
 
-String axisWord(Axis axis) => 'ось ${axis.name.toUpperCase()}';
+/// Слово модуля по ключу — для подписей экрана, которых нет среди функций ниже.
+String mrWord(String key) => _words.t(key);
 
-/// Секунды показа для «Памяти»: 4,5 — с запятой, как пишут дроби по-русски.
+/// Шаблон модуля с подстановкой — «Вариант {n}», «Только этот вид, задания уровня {level}…».
+String mrFill(String key, Map<String, Object> values) => _words.fill(key, values);
+
+String kindWord(TaskKind kind) => _words.t(switch (kind) {
+  TaskKind.rotation => 'taskRotation',
+  TaskKind.projection => 'taskProjection',
+  TaskKind.net => 'taskNet',
+  TaskKind.viewpoint => 'taskViewpoint',
+  TaskKind.same => 'taskSame',
+  TaskKind.assembly => 'taskAssembly',
+  TaskKind.memory => 'taskMemory',
+  TaskKind.formation => 'taskFormation',
+  TaskKind.section => 'taskSection',
+  TaskKind.missing => 'taskMissing',
+  TaskKind.oblique => 'taskOblique',
+});
+
+String viewWord(ProjectionView view) => _words.t(switch (view) {
+  ProjectionView.top => 'viewTop',
+  ProjectionView.front => 'viewFront',
+  ProjectionView.side => 'viewSide',
+});
+
+String axisWord(Axis axis) => _words.t(switch (axis) {
+  Axis.x => 'axisX',
+  Axis.y => 'axisY',
+  Axis.z => 'axisZ',
+});
+
+/// Секунды показа для «Памяти»: 4,5 — с запятой там, где так пишут дроби. Список языков — тот же,
+/// что у веба (`секунды` в `app/games/mental-rotation.tsx`).
 String seconds(int ms) {
   final s = ms / 1000;
-  return (s == s.roundToDouble() ? s.round().toString() : s.toStringAsFixed(1)).replaceAll(
-    '.',
-    ',',
-  );
+  final text = s == s.roundToDouble() ? s.round().toString() : s.toStringAsFixed(1);
+  return const ['ru', 'es', 'de', 'pt', 'fr', 'it'].contains(L.locale) ? text.replaceAll('.', ',') : text;
 }
 
 /// Вопрос задания. У «Проекции» и «Среза» он зависит от оси взгляда, у «Памяти» — от того,
-/// показан ли ещё эталон.
+/// показан ли ещё эталон. У «Поворота» — короткая строка веба (`hintCompact`): поле узкое.
 String promptOf(TaskKind kind, {ProjectionView? view, bool studying = false, int exposureMs = 0}) =>
     switch (kind) {
-      TaskKind.rotation => 'Найди повёрнутую копию фигуры',
+      TaskKind.rotation => _words.t('hintCompact'),
       TaskKind.memory =>
-        studying
-            ? 'Запомни фигуру — у тебя ${seconds(exposureMs)} с'
-            : 'Какая из фигур — та, что была? Она повёрнута',
-      TaskKind.projection => 'Как выглядит фигура, если смотреть ${viewWord(view!)}?',
-      TaskKind.viewpoint => 'Фигуру обходят кругом. Что видно с отмеченной точки?',
-      TaskKind.same => 'Это одна и та же фигура, только повёрнутая?',
-      TaskKind.missing => 'Какой кусок заполнит пустое место в фигуре?',
-      TaskKind.assembly => 'Какая фигура сложится из этих двух кусков?',
-      TaskKind.formation => 'Какая фигура даёт такие виды сверху, спереди и справа?',
-      TaskKind.oblique => 'Плоскость режет тело. Какой формы сечение на самом деле?',
-      TaskKind.section =>
-        'Сплошные кубики — один слой фигуры, остальные показаны пунктиром. '
-            'Как выглядит этот срез ${viewWord(view!)}?',
-      TaskKind.net => 'Какой кубик сложится из этой выкройки?',
+        studying ? _words.fill('memoryStudyPrompt', {'s': seconds(exposureMs)}) : _words.t('memoryPrompt'),
+      TaskKind.projection => _words.fill('projectionPrompt', {'view': viewWord(view!)}),
+      TaskKind.viewpoint => _words.t('viewpointPrompt'),
+      TaskKind.same => _words.t('samePrompt'),
+      TaskKind.missing => _words.t('missingPrompt'),
+      TaskKind.assembly => _words.t('assemblyPrompt'),
+      TaskKind.formation => _words.t('formationPrompt'),
+      TaskKind.oblique => _words.t('obliquePrompt'),
+      TaskKind.section => _words.fill('sectionPrompt', {'view': viewWord(view!)}),
+      TaskKind.net => _words.t('netPrompt'),
     };
 
-/// Подпись под вариантом в разборе: чем именно вариант плох.
-const String noteCorrect = 'верный ответ';
-const String noteMirror = 'зеркало';
-const String noteOther = 'другая фигура';
-const String noteOtherPlane = 'другая плоскость';
-const String noteOtherView = 'вид с другой стороны';
-const String noteEdited = 'кубик не на месте';
-const String noteWhole = 'вся фигура';
-const String noteNeighbour = 'соседний слой';
-const String noteTurned = 'повёрнут';
-const String noteSwap = 'грани переставлены';
-const String noteSeen = 'как видно на рисунке';
-const String noteShadow = 'тень на грань';
-
+/// Подпись под вариантом в разборе: чем именно вариант плох. Порядок — как у `optionNote` веба:
+/// верный вариант подписан «верный ответ» при любом виде задания, включая «Точку зрения» и
+/// «Сравнение», у которых подделка без имени.
 String flawNote(Object option, {required bool oblique}) {
+  String w(String key) => _words.t(key);
   if (option is RotationOption) {
     return switch (option.flaw) {
-      Flaw.none => noteCorrect,
-      Flaw.mirror => noteMirror,
-      Flaw.other => noteOther,
+      Flaw.none => w('optionCorrect'),
+      Flaw.mirror => w('optionMirror'),
+      Flaw.other => w('optionOther'),
     };
   }
   if (option is ProjectionOption) {
     return switch (option.flaw) {
-      ProjectionFlaw.none => noteCorrect,
-      ProjectionFlaw.otherView => noteOtherView,
-      ProjectionFlaw.editedShape => noteEdited,
+      ProjectionFlaw.none => w('optionCorrect'),
+      ProjectionFlaw.otherView => w('optionOtherView'),
+      ProjectionFlaw.editedShape => w('optionEditedShape'),
     };
   }
   if (option is PieceOption) {
     return switch (option.flaw) {
-      PieceFlaw.none => noteCorrect,
-      PieceFlaw.mirror => noteMirror,
-      PieceFlaw.oneCube => noteEdited,
-      PieceFlaw.other => noteOther,
-      PieceFlaw.otherView => noteOtherView,
+      PieceFlaw.none => w('optionCorrect'),
+      PieceFlaw.mirror => w('optionMirror'),
+      PieceFlaw.oneCube => w('optionEditedShape'),
+      PieceFlaw.other => w('optionOther'),
+      PieceFlaw.otherView => w('optionOtherView'),
     };
   }
   if (option is SectionOption) {
     return switch (option.flaw) {
-      SectionFlaw.none => noteCorrect,
-      SectionFlaw.whole => noteWhole,
-      SectionFlaw.neighbour => noteNeighbour,
-      SectionFlaw.mirror => noteMirror,
-      SectionFlaw.turned => noteTurned,
-      SectionFlaw.oneCell => noteEdited,
+      SectionFlaw.none => w('optionCorrect'),
+      SectionFlaw.whole => w('optionWholeFigure'),
+      SectionFlaw.neighbour => w('optionNeighbourLayer'),
+      SectionFlaw.mirror => w('optionMirror'),
+      SectionFlaw.turned => w('optionTurned'),
+      SectionFlaw.oneCell => w('optionEditedShape'),
     };
   }
   if (option is ObliqueOption) {
     return switch (option.flaw) {
-      ObliqueFlaw.none => noteCorrect,
-      ObliqueFlaw.seen => noteSeen,
-      ObliqueFlaw.shadow => noteShadow,
+      ObliqueFlaw.none => w('optionCorrect'),
+      ObliqueFlaw.seen => w('optionSeenAtAngle'),
+      ObliqueFlaw.shadow => w('optionShadow'),
       // «Сечение»: «другая» — это другая плоскость, а не другая фигура.
-      ObliqueFlaw.other => oblique ? noteOtherPlane : noteOther,
+      ObliqueFlaw.other => oblique ? w('optionOtherPlane') : w('optionOther'),
     };
   }
+  // «Развёртка»: подделка — зеркальная сборка или куб с переставленными гранями.
+  if (option is NetOption) {
+    return switch (option.flaw) {
+      NetFlaw.none => w('optionCorrect'),
+      NetFlaw.mirror => w('optionMirror'),
+      NetFlaw.swap => w('optionSwap'),
+    };
+  }
+  if (option is ViewpointOption) return option.isMatch ? w('optionCorrect') : '';
+  if (option is SameOption) return option.isMatch ? w('optionCorrect') : '';
   return '';
 }
 
 /// Пояснение разбора — по виду задания.
-String reviewHint(TaskKind kind) => switch (kind) {
-  TaskKind.rotation => 'Эталон поворачивается шаг за шагом к правильному ответу.',
-  TaskKind.projection =>
-    'Клетка закрашена, если вдоль этой линии взгляда стоит хотя бы один кубик.',
-  TaskKind.net =>
-    'Верный кубик складывается из выкройки; зеркальный не совместить с ним никаким поворотом.',
-  TaskKind.viewpoint =>
-    'Метка показывает, с какой стороны смотрят; эталон нарисован от нулевой отметки.',
-  TaskKind.same => 'Зеркальную копию не совместить с оригиналом никаким поворотом — в отличие от просто повёрнутой.',
-  TaskKind.missing =>
-    'Верный кусок — повёрнутая копия пустого места. У подделки переставлен кубик или она зеркальна: '
-        'никаким поворотом её в пустоту не вставить.',
-  TaskKind.assembly =>
-    'Куски можно поворачивать, но не отражать. Подделку из них не сложить: в ней переставлен кубик, '
-        'она зеркальна или это другая фигура.',
-  TaskKind.formation =>
-    'Вид — это тень фигуры на стену: клетка закрашена, если вдоль взгляда стоит хоть один кубик. '
-        'Подделка совпадает с одним-двумя видами, но хотя бы один вид у неё другой.',
-  TaskKind.section =>
-    'Срез — только кубики своего слоя, а не вся фигура: клетка закрашена, если кубик стоит в самом '
-        'слое. Проекция всей фигуры — самая частая подделка.',
-  TaskKind.memory =>
-    'Вот фигура, которую нужно было запомнить. Верный вариант — она же, только повёрнутая: смотри, '
-        'как она доворачивается. Зеркальная копия и похожая фигура — ловушки.',
-  TaskKind.oblique =>
-    'Вершины сечения лежат на рёбрах тела — там, где их пересекает плоскость. На рисунке сечение '
-        'видно под углом и кажется сплющенным; настоящая форма другая, её и нужно было найти.',
-};
+String reviewHint(TaskKind kind) => _words.t(switch (kind) {
+  TaskKind.rotation => 'reviewRotationHint',
+  TaskKind.projection => 'reviewProjectionHint',
+  TaskKind.net => 'reviewNetHint',
+  TaskKind.viewpoint => 'reviewViewpointHint',
+  TaskKind.same => 'reviewSameHint',
+  TaskKind.missing => 'reviewMissingHint',
+  TaskKind.assembly => 'reviewAssemblyHint',
+  TaskKind.formation => 'reviewFormationHint',
+  TaskKind.section => 'reviewSectionHint',
+  TaskKind.memory => 'reviewMemoryHint',
+  TaskKind.oblique => 'reviewObliqueHint',
+});
 
-/// Описание ступени на экране настройки: числа берутся из спецификации уровня, а не из памяти.
+/// Описание ступени на экране настройки — перенос `levelSummary` из `core/levelSummary.ts`:
+/// числа из спецификации уровня, а не из памяти.
 String levelSummary(int level) {
   final s = rotationLevelSpec(level);
   final axes = s.path.toSet().length;
   final a = 90 * s.path.length, b = 90 * (s.path.length + 1);
-  final turn = axes == 1
-      ? 'поворот в плоскости экрана: $a–$b°'
-      : 'поворот в объёме по двум осям, в сумме: $a–$b°';
   return [
-    'Кубиков: ${s.cubes}',
-    'вариантов: ${s.optionCount}',
-    turn,
-    if (s.foil == 'one-cube') 'подделка отличается одним кубиком',
+    _words.fill('levelCubes', {'n': s.cubes}),
+    _words.fill('levelOptions', {'n': s.optionCount}),
+    _words.fill(axes == 1 ? 'levelTurnFlat' : 'levelTurnDepth', {'a': a, 'b': b}),
+    if (s.foil == 'one-cube') _words.t('levelFoilOneCube'),
   ].join(' · ');
 }

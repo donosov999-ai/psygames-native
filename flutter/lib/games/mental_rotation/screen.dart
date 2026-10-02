@@ -119,6 +119,8 @@ class _MentalRotationScreenState extends State<MentalRotationScreen> {
 
   Future<void> _boot() async {
     await _ladder.load();
+    // Слова партии — из словаря модуля веба на языке приложения (`words.dart`).
+    await loadMentalRotationWords();
     if (!mounted) return;
     setState(() => _ready = true);
     // Шаг зарядки начинается сам — перенос веб-`useAutostartWhenReady` (отчёт Дениса 01.10.2026).
@@ -289,9 +291,13 @@ class _MentalRotationScreenState extends State<MentalRotationScreen> {
 
   // ─── экран ──────────────────────────────────────────────────────────────
 
-  /// Заголовок один на экран и на разбор: вторая такая строка — второй долг
-  /// храповика подписей (`test/ui_text_debt_does_not_grow_test.dart`).
-  String get _title => 'Мысленное вращение';
+  /// Заголовок один на экран и на разбор — имя игры из общего с вебом словаря. Подписи каркаса
+  /// берутся оттуда же (`L.t`), текст партии — из словаря модуля (`words.dart`): зашитый текст
+  /// знал бы один язык из двенадцати (храповик `test/ui_text_debt_does_not_grow_test.dart`).
+  String get _title => L.t('mentalRotation');
+
+  /// Секунды партии с единицей языка: «12.3 с», «12.3 s», «12.3 秒».
+  String _secondsText(double s) => '${s.toStringAsFixed(1)} ${L.t('secShort')}';
 
   /// Разбор объясняет ПРИЁМ: верный ответ человек и так увидит по итогу раунда,
   /// а вот чем объём берётся — нет.
@@ -313,19 +319,19 @@ class _MentalRotationScreenState extends State<MentalRotationScreen> {
       onRules: () => _showRules(context),
       hud: _phase == Phase.playing
           ? [
-              HudItem(label: 'Раунд', value: '$_round/$_trials', icon: Icons.tag),
-              HudItem(label: 'Верно', value: '$hits', icon: Icons.check),
-              HudItem(label: 'Ошибки', value: '${_records.length - hits}', icon: Icons.close),
+              HudItem(label: L.t('round'), value: '$_round/$_trials', icon: Icons.tag),
+              HudItem(label: L.t('hud_correct'), value: '$hits', icon: Icons.check),
+              HudItem(label: L.t('errors'), value: '${_records.length - hits}', icon: Icons.close),
               HudItem(
-                label: 'Время',
-                value: '${_elapsed.toStringAsFixed(1)} с',
+                label: L.t('time'),
+                value: _secondsText(_elapsed),
                 icon: Icons.timer_outlined,
               ),
             ]
           : [
-              HudItem(label: 'Уровень', value: '${_ladder.level}', icon: Icons.flag_outlined),
+              HudItem(label: L.t('level'), value: '${_ladder.level}', icon: Icons.flag_outlined),
               HudItem(
-                label: 'Достигнуто',
+                label: L.t('personalBest'),
                 value: '${_ladder.best}',
                 icon: Icons.emoji_events_outlined,
               ),
@@ -348,10 +354,10 @@ class _MentalRotationScreenState extends State<MentalRotationScreen> {
       auxRow: _phase == Phase.playing
           ? AuxBar(
               children: [
-                AuxAction(icon: Icons.refresh, label: 'Начать заново', onPressed: _startRun),
+                AuxAction(icon: Icons.refresh, label: L.t('restart'), onPressed: _startRun),
                 AuxAction(
                   icon: Icons.rotate_right,
-                  label: 'Крутить самому',
+                  label: mrWord('rotateManually'),
                   onPressed: _reviewing && _frames.length > 1 && _reviewStep + 1 < _frames.length
                       ? () {
                           _replay?.cancel();
@@ -369,7 +375,7 @@ class _MentalRotationScreenState extends State<MentalRotationScreen> {
             key: const Key('начать'),
             onPressed: _startRun,
             icon: const Icon(Icons.play_arrow),
-            label: const Text('Начать'),
+            label: Text(L.t('start')),
           ),
         ),
         Phase.playing => task == null ? null : _options(context, task),
@@ -381,18 +387,18 @@ class _MentalRotationScreenState extends State<MentalRotationScreen> {
             icon: const Icon(Icons.arrow_forward),
             label: Text(
               _practice != null
-                  ? 'К настройке'
+                  ? L.t('settings')
                   : _passed
-                  ? 'Следующий уровень'
-                  : 'Ещё раз',
+                  ? L.t('nextLabel')
+                  : L.t('retry'),
             ),
           ),
         ),
       },
       pauseActions: [
-        PauseAction(label: 'Начать заново', icon: Icons.refresh, onPressed: _startRun),
+        PauseAction(label: L.t('restart'), icon: Icons.refresh, onPressed: _startRun),
         PauseAction(
-          label: 'К настройке',
+          label: L.t('settings'),
           icon: Icons.tune,
           onPressed: () => setState(() => _phase = Phase.config),
         ),
@@ -405,10 +411,10 @@ class _MentalRotationScreenState extends State<MentalRotationScreen> {
     showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text('Задание: ${kindWord(kind)}'),
+        title: Text('${mrWord('taskLabel')}: ${kindWord(kind)}'),
         content: Text(reviewHint(kind)),
         actions: [
-          TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Понятно')),
+          TextButton(onPressed: () => Navigator.of(ctx).pop(), child: Text(L.t('btn_got_it'))),
         ],
       ),
     );
@@ -421,7 +427,7 @@ class _MentalRotationScreenState extends State<MentalRotationScreen> {
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
       children: [
-        Text('Уровень ${_ladder.level}', style: Theme.of(context).textTheme.titleLarge),
+        Text('${L.t('level')} ${_ladder.level}', style: Theme.of(context).textTheme.titleLarge),
         const SizedBox(height: 4),
         Text(levelSummary(_ladder.level), style: TextStyle(color: scheme.onSurfaceVariant)),
         const SizedBox(height: 16),
@@ -429,7 +435,7 @@ class _MentalRotationScreenState extends State<MentalRotationScreen> {
         // 🔴 ВЫБОР ВИДА — ВЫПАДАЮЩИМ СПИСКОМ (решение Дениса 17.09.2026, отчёт 1263dc58:
         // «в настройках нельзя запустить отработку одного вида заданий»). Одиннадцать видов
         // рядами занимали пол-экрана, и до кнопки «Начать» приходилось прокручивать.
-        Text('Вид заданий', style: Theme.of(context).textTheme.titleMedium),
+        Text(mrWord('practiceTitle'), style: Theme.of(context).textTheme.titleMedium),
         const SizedBox(height: 6),
         OutlinedButton(
           key: const Key('вид-заданий'),
@@ -437,7 +443,7 @@ class _MentalRotationScreenState extends State<MentalRotationScreen> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(_chosenKind == null ? 'Вперемешку' : kindWord(_chosenKind!)),
+              Text(_chosenKind == null ? mrWord('practiceMixed') : kindWord(_chosenKind!)),
               Icon(_kindListOpen ? Icons.expand_less : Icons.expand_more),
             ],
           ),
@@ -457,7 +463,7 @@ class _MentalRotationScreenState extends State<MentalRotationScreen> {
               key: const Key('список-видов'),
               shrinkWrap: true,
               children: [
-                _kindRow(null, 'Вперемешку', null),
+                _kindRow(null, mrWord('practiceMixed'), null),
                 for (final k in kindUnlock.keys) _kindRow(k, kindWord(k), kindUnlock[k]!),
               ],
             ),
@@ -466,15 +472,14 @@ class _MentalRotationScreenState extends State<MentalRotationScreen> {
           Padding(
             padding: const EdgeInsets.only(top: 8),
             child: Text(
-              'Только этот вид, задания уровня ${practiceLevel(_chosenKind!, _ladder.level)}. '
-              'Твой уровень от такой партии не меняется.',
+              mrFill('practiceNote', {'level': practiceLevel(_chosenKind!, _ladder.level)}),
               key: const Key('про-отработку'),
               style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 13),
             ),
           ),
 
         const SizedBox(height: 16),
-        Text('Заданий в партии', style: Theme.of(context).textTheme.titleMedium),
+        Text(L.t('trialsLabel'), style: Theme.of(context).textTheme.titleMedium),
         const SizedBox(height: 6),
         Wrap(
           spacing: 8,
@@ -495,7 +500,8 @@ class _MentalRotationScreenState extends State<MentalRotationScreen> {
   Widget _kindRow(TaskKind? kind, String label, int? from) {
     final selected = _chosenKind == kind;
     return ListTile(
-      key: Key('вид-${kind?.name ?? 'смесь'}'),
+      // Имя ключа — латиницей: кириллица только в видимом тексте (решение Дениса 23.09).
+      key: Key('kind-${kind?.name ?? 'mixed'}'),
       dense: true,
       selected: selected,
       leading: Icon(selected ? Icons.radio_button_checked : Icons.radio_button_unchecked, size: 18),
@@ -504,7 +510,7 @@ class _MentalRotationScreenState extends State<MentalRotationScreen> {
       // строятся не ниже его порога (решение Дениса 17.09.2026).
       subtitle: from == null || from <= _ladder.level
           ? null
-          : Text('открывается с $from-го уровня'),
+          : Text(L.f('ladderLockedAt', {'n': '$from'})),
       onTap: () => setState(() {
         _chosenKind = kind;
         _kindListOpen = false;
@@ -524,28 +530,31 @@ class _MentalRotationScreenState extends State<MentalRotationScreen> {
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
       children: [
         Text(
+          // Как у общего итога уровня веба (`LevelCleared`): «Уровень N пройден!» / «Уровень N — почти!».
           _practice != null
-              ? 'Отработка: ${kindWord(_practice!)}'
+              ? '${mrWord('practiceTitle')}: ${kindWord(_practice!)}'
               : _passed
-              ? 'Уровень пройден'
-              : 'Уровень не пройден',
+              ? L.f('levelDone', {'n': '$_level'})
+              : L.f('levelAlmost', {'n': '$_level'}),
           key: const Key('итог-партии'),
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
             color: _practice != null ? null : (_passed ? scheme.primary : scheme.error),
           ),
         ),
         const SizedBox(height: 8),
-        _line('Верно', '$hits из $_trials'),
-        _line('Время', '${_elapsed.toStringAsFixed(1)} с'),
+        _line(L.t('hud_correct'), '$hits/$_trials'),
+        _line(L.t('time'), _secondsText(_elapsed)),
         // 🔴 НАКЛОН СЧИТАЕТСЯ ТОЛЬКО ПО ПОВОРОТНЫМ ПРОБАМ. Рядом с ним — на скольких пробах он
         // посчитан: иначе «наклон 0, потому что человек ровный» не отличить от «точек было мало».
         _line(
-          'Наклон RT по углу',
-          samples >= 2 ? '${slope.toStringAsFixed(2)} мс/град (проб: $samples)' : 'проб мало',
+          L.t('mrSlopeLabel'),
+          samples >= 2
+              ? L.f('mrSlopeValue', {'v': slope.toStringAsFixed(2), 'n': '$samples'})
+              : L.t('mrSlopeTooFew'),
         ),
-        _line('Среднее время поворотных', samples > 0 ? '${meanSlopeRt(_records)} мс' : '—'),
+        _line(L.t('mrMeanRotationRt'), samples > 0 ? '${meanSlopeRt(_records)} ${L.t('msShort')}' : '—'),
         const SizedBox(height: 12),
-        Text('Задания партии', style: Theme.of(context).textTheme.titleMedium),
+        Text(L.t('mrRunTasks'), style: Theme.of(context).textTheme.titleMedium),
         for (final e in counts.entries)
           if (e.value > 0) _line(kindWord(e.key), '${e.value}'),
       ],
@@ -626,7 +635,7 @@ class _MentalRotationScreenState extends State<MentalRotationScreen> {
                         key: const Key('следующий-раунд'),
                         onPressed: _nextTrial,
                         child: Text(
-                          _records.length < _trials ? 'Следующий раунд' : 'Завершить уровень',
+                          _records.length < _trials ? mrWord('reviewNextRound') : mrWord('reviewFinishLevel'),
                         ),
                       ),
                     ),
@@ -661,7 +670,7 @@ class _MentalRotationScreenState extends State<MentalRotationScreen> {
         height: side,
         child: Center(
           child: Text(
-            option.answer ? 'Да' : 'Нет',
+            option.answer ? mrWord('answerYes') : mrWord('answerNo'),
             style: TextStyle(
               fontSize: math.max(16, math.min(26, side / 3)),
               fontWeight: FontWeight.w700,
@@ -726,7 +735,7 @@ class _OptionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Semantics(
     button: true,
-    label: 'Вариант ${index + 1}',
+    label: mrFill('a11yOption', {'n': index + 1}),
     child: InkWell(
       key: Key('вариант$index'),
       onTap: onTap,
@@ -797,7 +806,7 @@ class _TaskField extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
             ),
             child: Text(
-              'Задание: ${kindWord(task.kind)}',
+              '${mrWord('taskLabel')}: ${kindWord(task.kind)}',
               key: const Key('вид-задания'),
               style: const TextStyle(fontSize: 12),
             ),
@@ -823,7 +832,7 @@ class _TaskField extends StatelessWidget {
         Center(child: _reference(context, base)),
         if (reviewing) ...[
           const SizedBox(height: 10),
-          Text('Разбор', style: Theme.of(context).textTheme.titleMedium),
+          Text(mrWord('reviewTitle'), style: Theme.of(context).textTheme.titleMedium),
           Text(
             reviewHint(task.kind),
             key: const Key('разбор'),
@@ -860,7 +869,7 @@ class _TaskField extends StatelessWidget {
             ),
           if (frames.length > 1 && reviewStep > 0 && frames[reviewStep].axis != null)
             Text(
-              'Шаг $reviewStep: ${axisWord(frames[reviewStep].axis!)}',
+              mrFill('reviewStep', {'n': reviewStep, 'axis': axisWord(frames[reviewStep].axis!)}),
               key: const Key('шаг-разбора'),
               style: const TextStyle(fontWeight: FontWeight.w600),
             ),
@@ -912,14 +921,14 @@ class _TaskField extends StatelessWidget {
             edge: const Color(0xFF6D5587),
           ),
         ),
-        label: 'Развёртка',
+        label: kindWord(TaskKind.net),
         key: const Key('эталон-развёртка'),
       ),
       MemoryTask m =>
         studying || reviewing
             ? card(
                 art(ShapePainter(replayShape ?? m.rotation.base)),
-                label: 'Эталон',
+                label: L.t('mrReference'),
                 key: const Key('эталон-память'),
               )
             : card(
@@ -941,7 +950,7 @@ class _TaskField extends StatelessWidget {
               ),
       RotationTask r => card(
         art(ShapePainter(replayShape ?? r.base)),
-        label: 'Эталон',
+        label: L.t('mrReference'),
         key: const Key('эталон-поворот'),
       ),
       ObliqueTask o => card(
@@ -950,19 +959,19 @@ class _TaskField extends StatelessWidget {
       ),
       ViewpointTask v => card(
         art(ShapePainter(v.shape)),
-        label: 'Эталон',
+        label: L.t('mrReference'),
         key: const Key('эталон-ракурс'),
       ),
       // «Недостающая часть» и «Срез»: пустые кубики нарисованы контуром прямо на фигуре —
       // что заполнять и какой слой смотреть, видно на месте, а не угадывается.
       MissingTask m => card(
         art(ShapePainter(m.whole, ghost: m.hole)),
-        label: 'Эталон',
+        label: L.t('mrReference'),
         key: const Key('эталон-пустота'),
       ),
       SectionTask s => card(
         art(ShapePainter(s.shape, ghost: s.rest)),
-        label: 'Эталон',
+        label: L.t('mrReference'),
         key: const Key('эталон-слой'),
       ),
       FormationTask f => card(
@@ -971,9 +980,9 @@ class _TaskField extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             for (final v in [
-              (f.views.top, 'сверху'),
-              (f.views.front, 'спереди'),
-              (f.views.side, 'справа'),
+              (f.views.top, viewWord(ProjectionView.top)),
+              (f.views.front, viewWord(ProjectionView.front)),
+              (f.views.side, viewWord(ProjectionView.side)),
             ])
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 5),
@@ -1020,7 +1029,7 @@ class _TaskField extends StatelessWidget {
       ),
       ProjectionTask p => card(
         art(ShapePainter(p.shape)),
-        label: 'Эталон',
+        label: L.t('mrReference'),
         key: const Key('эталон-проекция'),
       ),
       _ => const SizedBox.shrink(),

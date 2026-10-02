@@ -32,107 +32,204 @@ enum Feature { hat, glasses, beard, redShirt, smile, earring }
 /// 0,43 · 0,65 — первые три ступени навык выбора не проверяли вовсе, седьмая была легче
 /// шестой.
 ///
-/// ⚠️ ГРАНИЦА, ПОДПИСАННАЯ ЗАМЕРОМ: при шести признаках ловушек больше ~1,5 на расклад не
-/// бывает (максимум за 2800 раскладов — 1,58). Дальше лестница растёт следующей осью —
-/// вопросами с «или» (больше вариантов вопроса — больше ловушек), не размером поля.
-({int suspects, int features, double minTraps, double maxTraps}) hiddenStep(int level) {
+/// ⚠️ ГРАНИЦА ОДИНОЧНЫХ ВОПРОСОВ, ПОДПИСАННАЯ ЗАМЕРОМ: при шести признаках ловушек больше
+/// ~1,5 на расклад не бывает (максимум за 2800 раскладов — 1,58). Дальше лестница растёт
+/// следующей осью — вопросами с «или» (ступени 9+), не размером поля.
+({int suspects, int features, double minTraps, double maxTraps, bool or}) hiddenStep(int level) {
   // Окна ловушек [от, до) — без перекрытий: при одном нижнем пороге расклады перелетали в
   // чужую полосу, и седьмая ступень выходила легче шестой (1,16 против 1,19 — поймал гейт).
   // Размер поля выбран там, где окно достижимо (замер распределений 30.09), и к верху
   // растёт длина партии: 28 персонажей — эталон 5–6 вопросов.
-  const table = <(int, int, double, double)>[
-    (8, 3, 0.0, 0.01),    // знакомство: любой вопрос годится
-    (12, 5, 0.25, 0.4),
-    (16, 6, 0.45, 0.6),
-    (24, 6, 0.65, 0.8),
-    (28, 6, 0.85, 1.0),
-    (28, 6, 1.0, 1.15),
-    (28, 6, 1.15, 1.3),
-    (16, 6, 1.3, 9.0),    // вершина при шести признаках (граница — выше)
-  ];
-  final t = table[(level - 1).clamp(0, table.length - 1)];
-  return (suspects: t.$1, features: t.$2, minTraps: t.$3, maxTraps: t.$4);
+  //
+  // 🔴 СТУПЕНИ 9+ — ВОПРОСЫ С «ИЛИ» (задача 5c011a93, замер 01.10.2026: Python-перенос того же
+  // минимакса, 40 раскладов на сочетание, 6 признаков). «Есть ли шляпа ИЛИ очки?» — 15 пар
+  // к 6 одиночным вопросам: ловушек становится больше, а лучший вопрос уже не очевиден.
+  // Медиана ловушек без «или» / с «или»: 16 перс. 1,07 / 1,85 · 24 — 0,63 / 1,90 ·
+  // 28 — 1,03 / 2,32; максимум 1,40 / 3,01. Граница 1,58 снимается этой осью.
+  final t = _hiddenTable[(level - 1).clamp(0, _hiddenTable.length - 1)];
+  return (suspects: t.$1, features: t.$2, minTraps: t.$3, maxTraps: t.$4, or: t.$5);
+}
+
+/// Сколько ступеней в таблице.
+int get hiddenStepCount => _hiddenTable.length;
+
+const _hiddenTable = <(int, int, double, double, bool)>[
+  (8, 3, 0.0, 0.01, false),    // знакомство: любой вопрос годится
+  (12, 5, 0.25, 0.4, false),
+  (16, 6, 0.45, 0.6, false),
+  (24, 6, 0.65, 0.8, false),
+  (28, 6, 0.85, 1.0, false),
+  (28, 6, 1.0, 1.15, false),
+  (28, 6, 1.15, 1.3, false),
+  (16, 6, 1.3, 1.45, false),   // вершина при шести одиночных вопросах
+  (16, 6, 1.45, 1.7, true),    // дальше — «или»
+  (24, 6, 1.7, 1.95, true),
+  (24, 6, 1.95, 2.2, true),
+  (28, 6, 2.2, 2.45, true),
+  (28, 6, 2.45, 9.0, true),    // вершина замера (максимум 3,01)
+];
+
+/// 🔴 ВОПРОС — МАСКА ПРИЗНАКОВ, СОЕДИНЁННЫХ «ИЛИ». Один бит — «есть ли шляпа?», два —
+/// «есть ли шляпа ИЛИ очки?»: ответ «да», если у спрятавшегося есть хоть один из них.
+typedef Question = int;
+
+/// Вопрос про один признак.
+Question askAbout(Feature f) => 1 << f.index;
+
+/// Вопрос «[a] или [b]?».
+Question askEither(Feature a, Feature b) => (1 << a.index) | (1 << b.index);
+
+/// Признаки вопроса — по порядку перечисления.
+List<Feature> questionFeatures(Question q) => [for (final f in Feature.values) if (q & (1 << f.index) != 0) f];
+
+/// Ответ персонажа [suspect] на вопрос [q].
+bool answersYes(int suspect, Question q) => suspect & q != 0;
+
+/// Какие вопросы можно задать: по одному признаку, а со ступени «или» — ещё все пары.
+List<Question> questionsFor(List<Feature> features, {bool withOr = false}) => [
+      for (final f in features) askAbout(f),
+      if (withOr)
+        for (var i = 0; i < features.length; i++)
+          for (var j = i + 1; j < features.length; j++) askEither(features[i], features[j]),
+    ];
+
+bool hasFeature(int mask, Feature f) => mask & (1 << f.index) != 0;
+
+/// 🔴 ПЕРЕБОР НА МНОЖЕСТВАХ-ЧИСЛАХ. Маска персонажа — число 0…63 (шесть признаков), значит
+/// любое множество персонажей — 64-битное число «какие маски на месте». Деление вопросом —
+/// одно `&` с заранее посчитанным «кто ответит да», ключ памяти — само число.
+///
+/// 📍 ЗАЧЕМ. С «или» вопросов 21 вместо 6, и прежний перебор (списки + ключ-строка) стоил
+/// замера ради: Python-перенос — 261 мс на расклад 28 персонажей против 4 мс без «или», а
+/// раздача отбирает до 120 раскладов. Здесь та же рекурсия без списков и строк.
+///
+/// ⚠️ Только для нативной сборки: 64-битные операции над int в Dart на вебе (JS) не точны.
+/// Игра нативная (NATIVE_ONLY_GAMES), на веб не собирается.
+class _Solver {
+  _Solver(this.questions) : _yes = [for (final q in questions) _yesSet(q)];
+
+  final List<Question> questions;
+  final List<int> _yes;
+  final Map<int, int> _worst = {};
+  final Map<int, double> _traps = {};
+
+  static int _yesSet(Question q) {
+    var bits = 0;
+    for (var v = 0; v < 64; v++) {
+      if (v & q != 0) bits |= 1 << v;
+    }
+    return bits;
+  }
+
+  static int setOf(Iterable<int> masks) {
+    var s = 0;
+    for (final m in masks) {
+      s |= 1 << m;
+    }
+    return s;
+  }
+
+  static int count(int s) {
+    var n = 0;
+    while (s != 0) {
+      s &= s - 1;
+      n++;
+    }
+    return n;
+  }
+
+  /// Наименьшее число вопросов, которым гарантированно находится любой из множества.
+  int worst(int s) {
+    if (s & (s - 1) == 0) return 0;   // ноль или один персонаж
+    final hit = _worst[s];
+    if (hit != null) return hit;
+    var best = 1 << 30;
+    for (final y in _yes) {
+      final yes = s & y;
+      if (yes == 0 || yes == s) continue;   // вопрос ничего не делит
+      final v = 1 + max<int>(worst(yes), worst(s & ~y));
+      if (v < best) best = v;
+    }
+    _worst[s] = best;
+    return best;
+  }
+
+  /// Цена вопроса [qi] для множества [s]: худший случай после него, `null` — не делит.
+  int? after(int s, int qi) {
+    final yes = s & _yes[qi];
+    if (yes == 0 || yes == s) return null;
+    return 1 + max<int>(worst(yes), worst(s & ~_yes[qi]));
+  }
+
+  /// Ожидание ошибочных выборов у игрока, спрашивающего наугад среди полезных вопросов.
+  double traps(int s) {
+    if (s & (s - 1) == 0) return 0;
+    final hit = _traps[s];
+    if (hit != null) return hit;
+    final best = worst(s);
+    final total = count(s);
+    var sum = 0.0, n = 0;
+    for (final y in _yes) {
+      final yes = s & y;
+      if (yes == 0 || yes == s) continue;
+      final no = s & ~y;
+      final v = 1 + max<int>(worst(yes), worst(no));
+      sum += (v > best ? 1 : 0) + count(yes) / total * traps(yes) + count(no) / total * traps(no);
+      n++;
+    }
+    final r = n == 0 ? 0.0 : sum / n;
+    _traps[s] = r;
+    return r;
+  }
+
+  /// Лучший вопрос: минимум худшего случая, при равенстве — ближе к делению пополам.
+  Question? best(int s) {
+    Question? out;
+    var bestScore = 1 << 30, bestBalance = 1 << 30;
+    final total = count(s);
+    for (var qi = 0; qi < questions.length; qi++) {
+      final score = after(s, qi);
+      if (score == null) continue;
+      final balance = (2 * count(s & _yes[qi]) - total).abs();
+      if (score < bestScore || (score == bestScore && balance < bestBalance)) {
+        out = questions[qi];
+        bestScore = score;
+        bestBalance = balance;
+      }
+    }
+    return out;
+  }
 }
 
 /// Сколько раз в среднем ошибётся в выборе вопроса игрок, спрашивающий наугад: точное
 /// ожидание по всем оставшимся и всем полезным вопросам (цель — любая из оставшихся).
-double trapDensity(List<int> masks, List<Feature> features,
-    [Map<String, int>? worst, Map<String, double>? memo]) {
-  if (masks.length <= 1) return 0;
-  final w = worst ?? <String, int>{};
-  final e = memo ?? <String, double>{};
-  final key = (List<int>.of(masks)..sort()).join(',');
-  final hit = e[key];
-  if (hit != null) return hit;
-  final best = worstCaseQuestions(masks, features, w);
-  var sum = 0.0, n = 0;
-  for (final f in features) {
-    final yes = [for (final m in masks) if (hasFeature(m, f)) m];
-    if (yes.isEmpty || yes.length == masks.length) continue;
-    final no = [for (final m in masks) if (!hasFeature(m, f)) m];
-    final v = 1 + max<int>(worstCaseQuestions(yes, features, w), worstCaseQuestions(no, features, w));
-    sum += (v > best ? 1 : 0) +
-        yes.length / masks.length * trapDensity(yes, features, w, e) +
-        no.length / masks.length * trapDensity(no, features, w, e);
-    n++;
-  }
-  final r = n == 0 ? 0.0 : sum / n;
-  e[key] = r;
-  return r;
-}
+double trapDensityFor(List<int> masks, List<Question> questions) =>
+    _Solver(questions).traps(_Solver.setOf(masks));
 
-bool hasFeature(int mask, Feature f) => mask & (1 << f.index) != 0;
+/// Наименьшее число вопросов, которым ГАРАНТИРОВАННО находится любой из [masks].
+int worstCaseFor(List<int> masks, List<Question> questions) => _Solver(questions).worst(_Solver.setOf(masks));
 
-/// Наименьшее число вопросов, которым ГАРАНТИРОВАННО находится любой из [masks]
-/// (минимакс по вопросам из [features]). Перебор с памятью: на 24 персонажах и
-/// шести признаках — доли секунды.
-int worstCaseQuestions(List<int> masks, List<Feature> features, [Map<String, int>? memo]) {
-  if (masks.length <= 1) return 0;
-  final cache = memo ?? <String, int>{};
-  final key = (List<int>.of(masks)..sort()).join(',');
-  final hit = cache[key];
-  if (hit != null) return hit;
-  var best = 1 << 30;
-  for (final f in features) {
-    final yes = [for (final m in masks) if (hasFeature(m, f)) m];
-    if (yes.isEmpty || yes.length == masks.length) continue; // вопрос ничего не делит
-    final no = [for (final m in masks) if (!hasFeature(m, f)) m];
-    final v = 1 + max<int>(worstCaseQuestions(yes, features, cache), worstCaseQuestions(no, features, cache));
-    if (v < best) best = v;
-  }
-  cache[key] = best;
-  return best;
-}
+/// Лучший вопрос из [questions]; `null` — делить нечего.
+Question? bestQuestionFor(List<int> masks, List<Question> questions) =>
+    _Solver(questions).best(_Solver.setOf(masks));
 
-/// Лучший вопрос из оставшихся: минимум худшего случая, при равенстве — ближе к
-/// делению пополам. `null` — делить нечего.
+/// То же для одиночных вопросов по признакам — прежняя форма, ей пользуются пробы.
+double trapDensity(List<int> masks, List<Feature> features) => trapDensityFor(masks, questionsFor(features));
+int worstCaseQuestions(List<int> masks, List<Feature> features) => worstCaseFor(masks, questionsFor(features));
 Feature? bestQuestion(List<int> masks, List<Feature> features) {
-  Feature? best;
-  var bestScore = 1 << 30;
-  var bestBalance = 1 << 30;
-  final memo = <String, int>{};
-  for (final f in features) {
-    final yes = [for (final m in masks) if (hasFeature(m, f)) m];
-    if (yes.isEmpty || yes.length == masks.length) continue;
-    final no = [for (final m in masks) if (!hasFeature(m, f)) m];
-    final score = 1 + max<int>(worstCaseQuestions(yes, features, memo), worstCaseQuestions(no, features, memo));
-    final balance = (yes.length - no.length).abs();
-    if (score < bestScore || (score == bestScore && balance < bestBalance)) {
-      best = f;
-      bestScore = score;
-      bestBalance = balance;
-    }
-  }
-  return best;
+  final q = bestQuestionFor(masks, questionsFor(features));
+  return q == null ? null : questionFeatures(q).single;
 }
 
 class HiddenRound {
-  HiddenRound({required this.features, required this.suspects, required this.target})
-      : optimal = worstCaseQuestions(suspects, features),
+  HiddenRound({required this.features, required this.suspects, required this.target, this.withOr = false})
+      : questions = questionsFor(features, withOr: withOr),
         remaining = {for (var i = 0; i < suspects.length; i++) i} {
     if (suspects.toSet().length != suspects.length) {
       throw ArgumentError('двое одинаковых — их не различить ни одним вопросом');
     }
+    _solver = _Solver(questions);
+    optimal = _solver.worst(_Solver.setOf(suspects));
   }
 
   /// Раздача ступени: [hiddenStep]. Признаки — случайные из шести, персонажи — разные
@@ -157,7 +254,7 @@ class HiddenRound {
       }
       all.shuffle(rnd);
       final suspects = all.take(min(step.suspects, all.length)).toList();
-      final t = trapDensity(suspects, used);
+      final t = trapDensityFor(suspects, questionsFor(used, withOr: step.or));
       final gap = t < step.minTraps ? step.minTraps - t : (t >= step.maxTraps ? t - step.maxTraps + 1e-9 : 0.0);
       if (gap < bestGap) {
         bestGap = gap;
@@ -166,11 +263,22 @@ class HiddenRound {
       }
       if (gap == 0) break;
     }
-    return HiddenRound(features: bestUsed!, suspects: bestSuspects!, target: rnd.nextInt(bestSuspects.length));
+    return HiddenRound(
+      features: bestUsed!,
+      suspects: bestSuspects!,
+      target: rnd.nextInt(bestSuspects.length),
+      withOr: step.or,
+    );
   }
 
   /// Признаки в ходу — о них можно спрашивать.
   final List<Feature> features;
+
+  /// Можно ли спрашивать «A или B?» (ступени 9+).
+  final bool withOr;
+
+  /// Все вопросы, которые можно задать.
+  final List<Question> questions;
 
   /// Персонажи: маска признаков.
   final List<int> suspects;
@@ -179,13 +287,13 @@ class HiddenRound {
   final int target;
 
   /// Эталон: вопросов в худшем случае при лучшей игре.
-  final int optimal;
+  late final int optimal;
 
   /// Кто ещё под подозрением.
   final Set<int> remaining;
 
   /// Заданные вопросы и ответы — по порядку.
-  final List<(Feature, bool)> asked = [];
+  final List<(Question, bool)> asked = [];
 
   /// Итог: `null` — ещё играем.
   bool? won;
@@ -196,32 +304,40 @@ class HiddenRound {
   /// МЕНЬШЕ (на 8-й ступени 4,78 против 5,03) и брал три звезды в 79–100 % партий.
   int mistakes = 0;
 
-  final Map<String, int> _worst = {};
+  late final _Solver _solver;
 
   /// Ловушек в раскладе — для отчёта и проб.
-  late final double traps = trapDensity(suspects, features, _worst);
+  late final double traps = _solver.traps(_Solver.setOf(suspects));
 
-  bool wasAsked(Feature f) => asked.any((a) => a.$1 == f);
+  /// Множество ещё подозреваемых — числом, для перебора.
+  int get _left => _Solver.setOf([for (final i in remaining) suspects[i]]);
 
-  /// Спросить: есть ли у спрятавшегося признак [f]. Отсекает несовпавших.
-  bool ask(Feature f) {
+  bool wasAsked(Feature f) => wasAskedQuestion(askAbout(f));
+  bool wasAskedQuestion(Question q) => asked.any((a) => a.$1 == q);
+
+  /// Спросить: есть ли у спрятавшегося признак [f].
+  bool ask(Feature f) => askQuestion(askAbout(f));
+
+  /// Спросить вопросом [q] (один признак или «A или B»). Отсекает несовпавших.
+  bool askQuestion(Question q) {
     if (won != null) throw StateError('раунд окончен');
-    if (!features.contains(f) || wasAsked(f)) throw StateError('вопрос $f нельзя');
-    final rem = [for (final i in remaining) suspects[i]];
-    final best = worstCaseQuestions(rem, features, _worst);
-    final yes = [for (final m in rem) if (hasFeature(m, f)) m];
-    final no = [for (final m in rem) if (!hasFeature(m, f)) m];
-    if (yes.isNotEmpty && no.isNotEmpty) {
-      final v = 1 + max<int>(worstCaseQuestions(yes, features, _worst), worstCaseQuestions(no, features, _worst));
+    if (!questions.contains(q) || wasAskedQuestion(q)) throw StateError('вопрос $q нельзя');
+    final s = _left;
+    final best = _solver.worst(s);
+    final v = _solver.after(s, questions.indexOf(q));
+    if (v != null) {
       if (v > best) mistakes++;
-    } else if (rem.length > 1) {
+    } else if (remaining.length > 1) {
       mistakes++;   // вопрос, который ничего не делит, — тоже потраченный ход
     }
-    final answer = hasFeature(suspects[target], f);
-    asked.add((f, answer));
-    remaining.removeWhere((i) => hasFeature(suspects[i], f) != answer);
+    final answer = answersYes(suspects[target], q);
+    asked.add((q, answer));
+    remaining.removeWhere((i) => answersYes(suspects[i], q) != answer);
     return answer;
   }
+
+  /// Лучший вопрос сейчас (для разбора): `null` — делить нечего.
+  Question? bestNow() => _solver.best(_left);
 
   /// Назвать спрятавшегося.
   bool pick(int i) {

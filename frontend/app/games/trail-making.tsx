@@ -54,7 +54,7 @@ const RU_LETTERS = 'АБВГДЕЖЗИКЛМНОПРСТУФХ';
 const EN_LETTERS = 'ABCDEFGHIJKLMNOPQRST';
 
 type GamePhase = 'intro' | 'config' | 'playing' | 'boss' | 'cleared' | 'result';
-type Mode = 'A' | 'B';
+export type Mode = 'A' | 'B';
 
 // Проход уровня: не больше стольких ошибок (+ уложиться в лимит времени уровня)
 const MAX_PASS_ERRORS = 2;
@@ -70,7 +70,8 @@ const BOSS_EVERY = 3;
 //   L1-7  — Trail-A: только числа, узлов 6 → 12, бюджет на узел 2.6с → 1.7с
 //   L8-15 — Trail-B: чередование 1→А→2→Б…, пары 4 → 11 (узлов 8 → 22), бюджет 3.3с → 2.25с
 // count — параметр makeNodes (для B это число ПАР, узлов вдвое больше).
-function levelParams(level: number): { mode: Mode; count: number; totalNodes: number; timeLimitSec: number } {
+// Наружу — для экспортёра эталона Flutter-половины (src/games/trail-making/tools/record-flutter-reference.gen.ts).
+export function levelParams(level: number): { mode: Mode; count: number; totalNodes: number; timeLimitSec: number } {
   if (level <= 7) {
     const count = 5 + level;                                  // 6 → 12 узлов
     const perNode = 2.6 - (level - 1) * 0.15;                 // 2.6с → 1.7с на узел
