@@ -65,6 +65,7 @@ const root = path.resolve(__dirname, '../..');
 const src = path.join(root, 'frontend/src');
 const outDir = path.join(root, 'flutter/assets/levels');
 const ts = require(path.join(root, 'frontend/node_modules/typescript'));
+const meow9 = require('./meow9-ladder.cjs');
 
 // ── Флаги ───────────────────────────────────────────────────────────────────────────
 const KNOWN = new Set(['levels', 'per-level', 'per-step', 'seed', 'modes', 'dry', 'no-boards', 'no-modes', 'no-rules']);
@@ -279,6 +280,15 @@ if (!args['no-boards']) {
       boards.push(...kept);
       continue;
     }
+    if (c.variant === 'friends') {
+      // «Мяу — друзья» 9×9: генератора на TS нет — доски из выгрузки MindLab (meow9-ladder.cjs).
+      const rows = meow9.friendsRows(lv, core.levelConfig, readOld(meow9.MEOW9_ASSET));
+      const line = `L${String(lv).padStart(2)} ${c.variant.padEnd(12)} ${rows.length} досок из ${meow9.MEOW9_ASSET}`;
+      console.error(line);
+      report.push(line);
+      boards.push(...rows);
+      continue;
+    }
     const taken = new Set();
     const made = [];
     for (let i = 0; i < PER_LEVEL; i++) {
@@ -388,7 +398,8 @@ if (!args['no-modes']) {
 // лестницы. Доска — полное решение с 27 пустыми клетками; ходы — 20 цифр решения и 20
 // соседних (заведомо спорных), в любую клетку: проба сама освобождает клетку перед ходом.
 if (!args['no-rules']) {
-  const variants = [...new Set(ladder.map((l) => l.variant)), 'killer', 'unequal', 'towers'];
+  // 'friends' — условие на всё решение, а не запрет хода: эталона ходов у него нет (meow9-ladder.cjs).
+  const variants = [...new Set(ladder.map((l) => l.variant).filter((v) => v !== 'friends')), 'killer', 'unequal', 'towers'];
   const out = [];
   const perRule = [];
   for (const variant of variants) {
