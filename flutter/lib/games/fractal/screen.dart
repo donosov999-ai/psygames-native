@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 
 import '../../shell/aux_action.dart';
+import '../../shell/game_clock.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
@@ -41,6 +43,10 @@ import 'rules.dart';
 /// перенос увёз только цифры. Органы теперь общие с классикой: `marks.dart` (пометки,
 /// девять цветов) и `keypad.dart` (клавиши и палитра на их месте). Свой вид фрактала —
 /// карта, плитки, порталы — не трогается.
+/// Счёт победы — константы веба (`TIME_CAP`, `WIN_FLOOR` в sudoku-fractal.tsx).
+const fractalTimeCap = 1800;
+const fractalWinFloor = 300;
+
 class FractalScreen extends StatefulWidget {
   const FractalScreen({super.key, required this.state});
 
@@ -74,6 +80,10 @@ class _FractalScreenState extends State<FractalScreen> {
   int? _openChild;
   ({int? child, int r, int c})? _selected;
   bool _won = false;
+
+  /// Начало партии по часам игры — время в отчёте, как у веба.
+  int _startedAt = gameNow();
+  int get _elapsed => (gameNow() - _startedAt) ~/ 1000;
   String? _failure;
 
   @override
@@ -111,6 +121,7 @@ class _FractalScreenState extends State<FractalScreen> {
       _openChild = null;
       _selected = null;
       _won = false;
+      _startedAt = gameNow();
     });
   }
 
@@ -168,7 +179,18 @@ class _FractalScreenState extends State<FractalScreen> {
       }
       if (rootSolved(res.next.rootGrid, f.rootSolution)) {
         _won = true;
-        unawaited(_ladder.win());
+        // 🔴 ОТЧЁТ — КАК У ВЕБА (sudoku-fractal.tsx, saveSession; сверка 138f7818): до 02.10
+        // `win()` без аргументов — победа без счёта и времени. Ошибок натив пока не считает
+        // (сигнал ошибки в дочерней не подключён — та же сверка), поэтому errors = 0 честно.
+        final level = _ladder.level;
+        unawaited(_ladder.win(
+          score: max(fractalWinFloor, (4000 - min(_elapsed, fractalTimeCap)).round()),
+          timeSeconds: _elapsed,
+          errors: 0,
+          mode: 'fractal',
+          difficulty: 'lvl$level',
+          details: {'level': level, 'of': 9},
+        ));
       }
     });
   }
