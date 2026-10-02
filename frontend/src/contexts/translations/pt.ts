@@ -3137,6 +3137,8 @@ const t: Record<string, string> = {
   "sudokuPilotOff": "Voltar à escada de níveis",
   "sudokuRepeatSame": "De novo, mesma dificuldade",
   "sudokuSkinLetters": "Letras em vez de números",
+  "sudokuSkinAnimals": "Animais em vez de números",
+  "sdkRule_friends": "🐱 ao lado de 🐭",
   "digitsCandy": "Doce",
   "sudokuHiddenWord": "Palavra escondida: {w}",
   "teachRpRhythmIntro": "Segure o ANDAMENTO, não a contagem: as batidas vêm iguais, como passos. Repita o padrão no mesmo ritmo.",

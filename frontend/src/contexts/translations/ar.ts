@@ -3133,6 +3133,8 @@ const t: Record<string, string> = {
   "sudokuPilotOff": "العودة إلى سلّم المستويات",
   "sudokuRepeatSame": "مرة أخرى بالصعوبة نفسها",
   "sudokuSkinLetters": "حروف بدل الأرقام",
+  "sudokuSkinAnimals": "حيوانات بدل الأرقام",
+  "sdkRule_friends": "🐱 بجانب 🐭",
   "digitsCandy": "حلوى",
   "sudokuHiddenWord": "الكلمة المخفية: {w}",
   "teachRpRhythmIntro": "امسك الإيقاع لا العدّ: الضربات تأتي منتظمة كالخطوات. كرّر النمط بالسرعة نفسها.",
