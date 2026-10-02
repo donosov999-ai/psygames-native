@@ -11,6 +11,7 @@ import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/lesson.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/level_rules.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import 'model.dart';
@@ -117,7 +118,7 @@ class _FindDifferencesScreenState extends State<FindDifferencesScreen> {
     // Сцена считается от РАЗМЕРА, который дал каркас: он приходит числом, и
     // объекты обязаны лечь внутрь него, а не «примерно».
     final scene = generateScene(_scene.width, _scene.height, _params.objectCount, _params.spriteAlphabet, _rng);
-    final alt = withDifference(scene, _params.diffCount, _params.spriteAlphabet, _rng);
+    final alt = withDifference(scene, _params.diffCount, _params.spriteAlphabet, _rng, subtlety: _params.subtlety);
     _left = scene;
     _right = alt.shapes;
     _diffIdx = alt.diffIdx;
@@ -207,6 +208,10 @@ class _FindDifferencesScreenState extends State<FindDifferencesScreen> {
     if (!_ready) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     return GameShell(
       title: L.t('findDiff'),
+      // Карточка правила — на экране итога: таймер раунда под ней не идёт. После победы на 33-м
+      // лестница уже на 34-м, и человек узнаёт про тонкие отличия ДО их первой партии.
+      levelRule: LevelRuleSpot(
+          gameId: 'find_differences', level: _ladder.level, state: widget.state, calm: _phase == _Phase.result),
       onLesson: () => openDemoLesson(context, title: L.t('findDiff'), trials: _demoTrials()),
       hud: [
         HudItem(label: L.t('level'), value: '${_ladder.level}', icon: Icons.flag_outlined),

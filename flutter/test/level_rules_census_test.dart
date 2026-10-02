@@ -35,6 +35,7 @@ void main() {
     '/games/mental-rotation': 'mental_rotation',
     '/games/ospan': 'ospan',
     '/games/switching-task': 'switching_task',
+    '/games/visual-search': 'visual_search',
   };
 
   setUpAll(() async {

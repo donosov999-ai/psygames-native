@@ -7,6 +7,7 @@ library;
 
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/visual_search/model.dart';
@@ -179,5 +180,54 @@ void main() {
     expect(items.every((i) => i.color == vsNeutral), isTrue);
     expect(items.where((i) => i.shape == target.shape).length, p.targetCount,
         reason: 'фигура цели встречается только у самих целей');
+  });
+
+  test('🔴 ПОТОЛКА НЕТ: с 32-го цвета палитры сходятся — на 0,92 за уровень, без предела', () {
+    // Правило Дениса 06.09.2026. К 31-му на верху все оси первого раунда (vsMaxLevel = 31).
+    for (var l = 1; l <= vsPaletteFrom; l += 1) {
+      expect(identical(vsPaletteFor(l), vsColors), isTrue, reason: 'L$l: прежняя палитра');
+    }
+    List<int> rgb(String c) => [for (var i = 0; i < 3; i += 1) int.parse(c.substring(1 + i * 2, 3 + i * 2), radix: 16)];
+    double spread(List<String> p) {
+      var worst = 0.0;
+      for (var a = 0; a < p.length; a += 1) {
+        for (var b = a + 1; b < p.length; b += 1) {
+          final x = rgb(p[a]), y = rgb(p[b]);
+          worst = math.max(worst, math.sqrt([0, 1, 2].map((i) => math.pow(x[i] - y[i], 2)).reduce((u, v) => u + v)));
+        }
+      }
+      return worst;
+    }
+    // ⚠️ ПРЕДЕЛ — РАЗРЯДНОСТЬ ЭКРАНА, А НЕ ОСИ. Цвет на экране — 8 бит на канал: замер 02.10.2026 —
+    // палитра меняется каждый уровень до 69-го, на 70-м впервые повторяется, к 98-му три цвета
+    // совпадают. Сам параметр сходится без предела (ниже); после 69-го лестницу продолжит
+    // следующая свободная ось (реф раздела, §R: 2, 3, 4, 6, 8, 9, 10).
+    var prev = spread(vsColors);
+    for (var l = vsPaletteFrom + 1; l <= 69; l += 1) {
+      final p = vsPaletteFor(l);
+      expect(p.length, vsColors.length);
+      expect(p.toSet().length, p.length, reason: 'L$l: цвета ещё различны');
+      final d = spread(p);
+      expect(d, lessThan(prev), reason: 'L$l: цвета ближе, чем на L${l - 1}');
+      prev = d;
+    }
+    for (var l = 70; l <= 400; l += 1) {
+      expect(vsColorSpread(l), lessThan(vsColorSpread(l - 1)), reason: 'L$l: разведение убывает без предела');
+    }
+    // Доска 40-го раскрашена палитрой 40-го: и цель, и отвлекающие — из неё.
+    final rnd = createRng('палитра-40');
+    final palette = vsPaletteFor(40);
+    final target = vsPickTarget(true, palette, rnd);
+    final board = vsMakeBoard(
+        count: 40, targetShape: target.shape, targetColor: target.color, targetCount: 2,
+        conjunction: true, w: 300, h: 300, rnd: rnd, palette: palette);
+    expect(board.map((i) => i.color).toSet().difference(palette.toSet()), isEmpty,
+        reason: 'на доске нет цветов вне палитры уровня');
+  });
+
+  test('🔴 карточка «Цвета ближе» встаёт на тот же уровень, что и ось', () {
+    final rules = jsonDecode(File('assets/level_rules.json').readAsStringSync()) as Map<String, dynamic>;
+    final ranges = ((rules['games'] as Map)['visual_search'] as List).cast<List>();
+    expect(ranges.last, [vsPaletteFrom + 1, null, 'closer']);
   });
 }

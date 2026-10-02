@@ -30,7 +30,9 @@ class Shape {
   int sprite;
   double x, y;
   double size;
-  int rot;
+
+  /// Поворот в градусах. Дробный с 34-го уровня: там отличие поворотом тоньше прямого угла.
+  double rot;
 
   Shape copy() => Shape(sprite: sprite, x: x, y: y, size: size, rot: rot);
 }
@@ -42,9 +44,31 @@ class FdParams {
     required this.roundTimeSec,
     required this.rounds,
     required this.spriteAlphabet,
+    this.subtlety = 1,
   });
   final int diffCount, objectCount, roundTimeSec, rounds, spriteAlphabet;
+
+  /// Во сколько раз отличие размером и поворотом меньше прежнего (1 — как было). См. [fdSubtlety].
+  final double subtlety;
 }
+
+// ───────── Пятая ось: отличие ТОНЬШЕ — с 34-го уровня, без потолка (задача 7f81fbc6) ─────────
+//
+// 🔴 ПОТОЛКА НЕТ (правило Дениса 06.09.2026). К 33-му на верху все четыре оси: отличий 6,
+// объектов 19, раунд 15 с, алфавит сузился до трёх зверей (`findDifferencesLevels` = 33).
+// Время дальше не трогаем намеренно — вечерний слот запрещает наказание временем.
+// Растёт ВЕЛИЧИНА отличия: размер меняется не на 16 точек, а на 16·k, поворот — не на 90°
+// или 180°, а на столько же ·k, где k = 0,92 за каждый уровень выше 33-го. Подмена зверя,
+// которую видно с первого взгляда, уходит в запасные: сначала тонкие отличия.
+
+/// Последний уровень прежней лестницы: до него отличия прежней величины.
+const int fdSubtleFrom = 33;
+
+/// Множитель величины отличия за каждый уровень выше [fdSubtleFrom].
+const double fdSubtleRatio = 0.92;
+
+/// Величина отличия уровня [level] относительно прежней: 1 до 33-го, дальше 0,92 за уровень.
+double fdSubtlety(int level) => level <= fdSubtleFrom ? 1 : math.pow(fdSubtleRatio, level - fdSubtleFrom).toDouble();
 
 FdParams levelParams(int level) {
   final diffCount = math.min(6, 2 + ((level - 1) / 3).floor());        // 2,2,2,3,3,3 … 6
@@ -60,6 +84,7 @@ FdParams levelParams(int level) {
     roundTimeSec: roundTimeSec,
     rounds: roundsPerLevel,
     spriteAlphabet: spriteAlphabet,
+    subtlety: fdSubtlety(level),
   );
 }
 
@@ -136,7 +161,7 @@ class Altered {
 /// 🔴 ПОДМЕНА ЗВЕРЯ ОСТАЁТСЯ ВНУТРИ АЛФАВИТА. Иначе на верхних уровнях отличие
 /// выдавало бы себя само: в сцене из трёх видов вдруг появляется четвёртый, и
 /// его видно, не сравнивая картинки вовсе, — ось сходства работала бы наоборот.
-Altered withDifference(List<Shape> scene, int diffCount, int alphabet, Rng rnd) {
+Altered withDifference(List<Shape> scene, int diffCount, int alphabet, Rng rnd, {double subtlety = 1}) {
   final altered = scene.map((s) => s.copy()).toList();
   final indices = List<int>.generate(scene.length, (i) => i);
   for (var i = indices.length - 1; i > 0; i -= 1) {
@@ -147,8 +172,10 @@ Altered withDifference(List<Shape> scene, int diffCount, int alphabet, Rng rnd) 
   }
   final diffIdx = indices.take(diffCount).toList();
   for (final i in diffIdx) {
-    // Первый способ выбирается броском, остальные идут запасными.
-    final tryChanges = [(rnd() * 3).floor(), 0, 1, 2];
+    // Первый способ выбирается броском, остальные идут запасными. С 34-го уровня бросок — только
+    // среди тонких (размер, поворот), подмена зверя остаётся запасной.
+    final first = subtlety < 1 ? 1 + (rnd() * 2).floor() : (rnd() * 3).floor();
+    final tryChanges = subtlety < 1 ? [first, 3 - first, 0] : [first, 0, 1, 2];
     var applied = false;
     for (final change in tryChanges) {
       if (applied) break;
@@ -164,7 +191,8 @@ Altered withDifference(List<Shape> scene, int diffCount, int alphabet, Rng rnd) 
         }
       } else if (change == 1) {
         final candidate = altered[i].copy();
-        candidate.size = candidate.size > 54 ? candidate.size - 16 : candidate.size + 16;
+        final delta = 16 * subtlety;
+        candidate.size = candidate.size > 54 ? candidate.size - delta : candidate.size + delta;
         var overlaps = false;
         for (var oi = 0; oi < altered.length; oi += 1) {
           if (oi != i && tooClose(candidate, altered[oi], padding: 8)) {
@@ -177,7 +205,7 @@ Altered withDifference(List<Shape> scene, int diffCount, int alphabet, Rng rnd) 
           applied = true;
         }
       } else {
-        altered[i].rot = (altered[i].rot + (rnd() < 0.5 ? 180 : 90)) % 360;
+        altered[i].rot = (altered[i].rot + (rnd() < 0.5 ? 180 : 90) * subtlety) % 360;
         applied = true;
       }
     }
