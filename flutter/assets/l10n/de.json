@@ -409,6 +409,7 @@
 "level":"Stufe",
 "levelAlmost":"Level {n} — fast!",
 "levelDone":"Level {n} geschafft!",
+"levelDownRetry":"Zurück auf Level {n} — noch mal …",
 "lexicalDecision":"Wort oder nicht?",
 "lexicalDecisionDesc":"Echtes Wort — oder Fälschung?",
 "lexicalDecisionIntroDesc":"Die klassische lexikalische Entscheidungsaufgabe: Eine Zeichenfolge in der Zielsprache erscheint — ein echtes Wort oder eine plausible Fälschung (ein bis zwei Buchstaben vertauscht). Entscheide so schnell wie möglich. Tempo und Genauigkeit zeigen, wie schnell Wörter aus deinem mentalen Lexikon abgerufen werden — der zentrale Marker für Sprachautomatisierung. Für Chinesisch gilt: Ein „Nicht-Wort“ ist eine Zeichenkombination, die nicht im Trainingswörterbuch steht.",

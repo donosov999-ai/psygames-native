@@ -409,6 +409,7 @@
 "level":"等级",
 "levelAlmost":"第 {n} 关——差一点！",
 "levelDone":"第 {n} 关通过！",
+"levelDownRetry":"降到第 {n} 关——再来一次…",
 "lexicalDecision":"是词不是词？",
 "lexicalDecisionDesc":"真单词——还是伪造的？",
 "lexicalDecisionIntroDesc":"经典的词汇判断任务：屏幕上出现目标语言的字符串——它是真单词，还是以假乱真的伪词（替换了一两个字母）。尽快做出判断。速度和准确率反映你从心理词库中提取单词的速度——语言自动化程度的关键指标。对于中文，「非词」指训练词典中不存在的汉字组合。",
