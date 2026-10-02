@@ -48,7 +48,7 @@ export const GAME_VERSIONS: Record<string, GameVersion> = {
   'mahjong': { ver: 3, date: '27.08.2026' },
   'math-slider': { ver: 3, date: '07.09.2026' },
   'math-sprint': { ver: 2, date: '07.09.2026' },
-  'memory-matrix': { ver: 1, date: '19.08.2026' },
+  'memory-matrix': { ver: 2, date: '01.10.2026' },
   'memory-palace': { ver: 1, date: '19.08.2026' },
   'mental-rotation': { ver: 12, date: '17.09.2026' },
   'mnemonics-hub': { ver: 1, date: '04.09.2026' },
