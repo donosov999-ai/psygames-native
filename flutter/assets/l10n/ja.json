@@ -1275,6 +1275,7 @@
 "sudoku":"数独",
 "sudokuColorMode":"色",
 "sudokuDesc":"各行・各列・各ブロックで数字が重複しない（6×6と9×9）",
+"sudokuFractalDeepIntroDesc":"数独の中に数独、最大3層の深さ。破線のマスから底まで潜ってそこで解くと、数字が層ごとに浮かび上がります。ルートグリッドを完成させれば勝利。ゲームは自動保存されます。",
 "sudokuFreeHubDesc":"クラシック、変則ルールなし：サイズと難易度を自由に選択",
 "sudokuGroup":"数独：3つの盤",
 "sudokuGroupDesc":"クラシック・サムライ・フラクタル",

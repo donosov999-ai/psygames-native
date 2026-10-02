@@ -1275,6 +1275,7 @@
 "sudoku":"Sudoku 6×6",
 "sudokuColorMode":"Color",
 "sudokuDesc":"Dígitos 1–6 en cada fila, columna y bloque",
+"sudokuFractalDeepIntroDesc":"Un sudoku anidado en otro sudoku, hasta tres capas de profundidad. Baja por las celdas punteadas hasta el fondo y resuelve allí: las cifras suben capa a capa. Completa la raíz y ganas. La partida se guarda sola.",
 "sudokuFreeHubDesc":"Clásico, sin variantes: tamaño y dificultad a elegir",
 "sudokuGroup":"Sudoku: tres tableros",
 "sudokuGroupDesc":"Clásico, samurái y fractal",

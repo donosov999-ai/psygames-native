@@ -1275,6 +1275,7 @@
 "sudoku":"数独 6×6",
 "sudokuColorMode":"颜色",
 "sudokuDesc":"每行、每列、每个宫格填入数字 1–6",
+"sudokuFractalDeepIntroDesc":"数独套数独，最深三层。沿虚线格一路潜到底，在那里解题：数字一层层浮上来。完成根网格即获胜。对局自动保存。",
 "sudokuFreeHubDesc":"经典，无变型规则：尺寸与难度自选",
 "sudokuGroup":"数独：三种棋盘",
 "sudokuGroupDesc":"经典、武士与分形",

@@ -1275,6 +1275,7 @@
 "sudoku":"Sudoku 6×6",
 "sudokuColorMode":"Farbe",
 "sudokuDesc":"Ziffern 1–6 in jeder Zeile, Spalte und jedem Block",
+"sudokuFractalDeepIntroDesc":"Ein Sudoku, verschachtelt in einem Sudoku, bis zu drei Ebenen tief. Tauche durch die gestrichelten Zellen bis ganz nach unten und löse dort: die Ziffern steigen Ebene für Ebene auf. Vollende das Wurzelgitter — Sieg. Die Partie speichert sich selbst.",
 "sudokuFreeHubDesc":"Klassisch, ohne Varianten: Größe und Schwierigkeit nach Wahl",
 "sudokuGroup":"Sudoku: drei Bretter",
 "sudokuGroupDesc":"Klassisch, Samurai und fraktal",

@@ -42,11 +42,11 @@ void main() {
      *
      * «Бездна» — не «фрактал поглубже», а отдельная игра: марафон с деревом до трёх
      * слоёв. Карточки в развилках у неё нет (вход — дверь из фрактала), поэтому каркас
-     * правила по адресу не найдёт. Текст при этом есть — `deepHowTo`, карточка экрана
-     * настройки веба, 12 языков; экран передаёт его в каркас сам (`onRules`, проба
-     * `deep_screen_test`). Здесь сторожим, что под ключом не пусто.
+     * правила по адресу не найдёт. Текст при этом есть — тот же, что у «?» веба
+     * (`helpMap.ts` → `sudokuFractalDeepIntroDesc`, 12 языков); экран передаёт его в каркас
+     * сам (`onRules`, проба `deep_screen_test`). Здесь сторожим, что под ключом не пусто.
      */
-    const screenGivesRule = {'/games/sudoku-fractal-deep': 'deepHowTo'};
+    const screenGivesRule = {'/games/sudoku-fractal-deep': 'sudokuFractalDeepIntroDesc'};
 
     final without = <String>[];
     for (final r in routes) {

@@ -1275,6 +1275,7 @@
 "sudoku":"Sudoku",
 "sudokuColorMode":"Couleur",
 "sudokuDesc":"Des chiffres sans répétition par ligne, colonne et bloc (6×6 et 9×9)",
+"sudokuFractalDeepIntroDesc":"Un sudoku imbriqué dans un sudoku, jusqu'à trois niveaux de profondeur. Plonge par les cases en pointillés jusqu'au fond et résous là-bas : les chiffres remontent niveau par niveau. Termine la grille racine — victoire. La partie se sauvegarde seule.",
 "sudokuFreeHubDesc":"Classique, sans variante : taille et difficulté au choix",
 "sudokuGroup":"Sudoku : trois grilles",
 "sudokuGroupDesc":"Classique, samouraï et fractal",

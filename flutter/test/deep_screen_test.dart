@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -127,13 +128,19 @@ void main() {
     expect(state.get(resumeKey), isNull, reason: 'ушёл, не начав, — снимка нет');
   });
 
-  testWidgets('🔴 «?» показывает правило «Бездны» — тот же текст, что в карточке настройки', (tester) async {
+  testWidgets('🔴 «?» показывает правило «Бездны» — тот же текст, что «?» веба', (tester) async {
     await boot(tester);
     final help = find.byTooltip(L.t('btn_rules'));
     expect(help, findsOneWidget, reason: 'по адресу каркас правила не найдёт — экран даёт его сам');
     await tester.tap(help);
     await tester.pumpAndSettle();
-    expect(tester.widget<Text>(find.byKey(const Key('game-rules-text'))).data, L.t('deepHowTo'));
+    // Ключ — из helpMap веба (introKey маршрута), сверка с исходником, а не с памятью.
+    final helpMap = File('../frontend/src/constants/helpMap.ts').readAsStringSync();
+    final entry = RegExp(r'"/games/sudoku-fractal-deep":\s*\{[^}]*"introKey":\s*"(\w+)"').firstMatch(helpMap);
+    expect(entry, isNotNull, reason: 'у веба есть справка «Бездны»');
+    final text = tester.widget<Text>(find.byKey(const Key('game-rules-text'))).data;
+    expect(text, L.t(entry!.group(1)!));
+    expect(text, isNot(entry.group(1)), reason: 'текст из словаря, а не сырой ключ');
   });
 
   testWidgets('🔴 кормимые клетки обведены пунктиром — на него ссылается карточка «как играть»', (tester) async {

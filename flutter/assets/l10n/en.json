@@ -1275,6 +1275,7 @@
 "sudoku":"Sudoku",
 "sudokuColorMode":"Color",
 "sudokuDesc":"Digits with no repeats in each row, column and box (6×6 and 9×9)",
+"sudokuFractalDeepIntroDesc":"A sudoku nested in a sudoku up to three layers deep. Dive through the dashed cells to the very bottom and solve there: digits float up layer by layer. Finish the root grid to win. The game saves itself.",
 "sudokuFreeHubDesc":"Classic, no variants: pick size and difficulty",
 "sudokuGroup":"Sudoku: three boards",
 "sudokuGroupDesc":"Classic, samurai and fractal",

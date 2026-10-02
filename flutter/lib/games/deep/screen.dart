@@ -52,6 +52,9 @@ const deepPresetKeys = <String>[
   'deepPreset_scout', 'deepPreset_trek', 'deepPreset_abyss',
   'deepPresetDesc_scout', 'deepPresetDesc_trek', 'deepPresetDesc_abyss',
 ];
+/// Справка «?» — ключ веба (`frontend/src/constants/helpMap.ts`, `/games/sudoku-fractal-deep`
+/// → introKey). Списком — чтобы `tools/embed-l10n.mjs` его собрал.
+const deepRuleKeys = <String>['sudokuFractalDeepIntroDesc'];
 const deepBandKeys = <String>[
   'sudokuTierBeginner', 'sudokuTierEasy', 'sudokuTierMedium',
   'sudokuTierHard', 'sudokuTierExpert', 'sudokuTierExtreme',
@@ -463,8 +466,9 @@ class _DeepScreenState extends State<DeepScreen> {
       title: _title,
       onLesson: _lessonSteps().isEmpty ? null : _openLesson,
       // По адресу каркас правила не найдёт: карточки «Бездны» нет ни в одной развилке
-      // (вход — дверь из фрактала), а `sudokuFractalDeepDesc` в словаре нет. Даём сами.
-      onRules: () => showGameRules(context, title: L.t('deepTitle'), ruleKey: 'deepHowTo'),
+      // (вход — дверь из фрактала), а `sudokuFractalDeepDesc` в словаре нет. Даём сами —
+      // тот же текст, что «?» веба (`helpMap.ts`: introKey маршрута).
+      onRules: () => showGameRules(context, title: L.t('deepTitle'), ruleKey: deepRuleKeys.first),
       hud: [
         HudItem(
           label: L.t('sdkDepth'),

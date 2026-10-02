@@ -1275,6 +1275,7 @@
 "sudoku":"스도쿠",
 "sudokuColorMode":"색상",
 "sudokuDesc":"각 행·열·박스에 숫자가 겹치지 않게 (6×6, 9×9)",
+"sudokuFractalDeepIntroDesc":"스도쿠 속 스도쿠, 최대 3층 깊이. 점선 칸을 따라 바닥까지 내려가 그곳에서 풀면 숫자가 층층이 떠오릅니다. 루트 그리드를 완성하면 승리. 게임은 자동 저장됩니다.",
 "sudokuFreeHubDesc":"클래식, 변형 규칙 없음: 크기와 난이도 선택",
 "sudokuGroup":"스도쿠: 세 가지 판",
 "sudokuGroupDesc":"클래식, 사무라이, 프랙탈",

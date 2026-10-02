@@ -1275,6 +1275,7 @@
 "sudoku":"Sudoku",
 "sudokuColorMode":"Colore",
 "sudokuDesc":"Cifre senza ripetizioni in riga, colonna e blocco (6×6 e 9×9)",
+"sudokuFractalDeepIntroDesc":"Un sudoku annidato in un sudoku, fino a tre strati di profondità. Scendi per le celle tratteggiate fino in fondo e risolvi lì: le cifre risalgono strato dopo strato. Completa la radice — vittoria. La partita si salva da sola.",
 "sudokuFreeHubDesc":"Classico, senza varianti: dimensione e difficoltà a scelta",
 "sudokuGroup":"Sudoku: tre griglie",
 "sudokuGroupDesc":"Classico, samurai e frattale",
