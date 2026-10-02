@@ -89,6 +89,14 @@ void main() {
     for (var k = 0; k < 9; k++) {
       await tap(tester, find.byKey(Key('tile$k')));
       expect(find.byKey(const Key('cell_0_0')), findsOneWidget, reason: 'сетка $k не открылась');
+      if (k == 0) {
+        // Одна доказуемая ошибка (повтор в строке) и ластик — ошибка остаётся в счёте.
+        final g = read(tester, 'cell_');
+        final r = [for (var i = 0; i < 9; i++) i].firstWhere((i) => g[i].contains(0) && g[i].any((v) => v != 0));
+        await tap(tester, find.byKey(Key('cell_${r}_${g[r].indexOf(0)}')));
+        await tap(tester, find.byKey(Key('digit${g[r].firstWhere((v) => v != 0)}')));
+        await tap(tester, find.byKey(const Key('erase')));
+      }
       final grid = read(tester, 'cell_');
       final sol = solve(grid);
       expect(sol, isNotNull, reason: 'дочерняя $k не решается по видимым цифрам');
@@ -123,6 +131,8 @@ void main() {
     expect(rep['mode'], 'fractal');
     expect(rep['difficulty'], 'lvl1');
     expect(rep['score'] as int, greaterThanOrEqualTo(fractalWinFloor), reason: 'у победы есть пол');
+    expect(rep['errors'], 1, reason: 'ошибка партии дошла до отчёта');
+    expect(rep['score'] as int, lessThanOrEqualTo(4000 - 60), reason: 'штраф веба: 60 очков за ошибку');
     expect((rep['details'] as Map)['level'], 1);
     expect(state.get('psygames_sudoku_fractal_level_nzt48'), '2', reason: 'ступень выросла');
     expect(state.get('psygames_resume_sudoku_fractal_nzt48'), isNull, reason: 'выигранная партия не поднимается — снимок стёрт');
