@@ -4,10 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 import '../games/corsi/screen.dart';
+import '../games/n_back/screen.dart';
 import '../games/find_move/screen.dart';
 import '../games/solitaire_chess/screen.dart';
 import '../games/picture_pairs/screen.dart';
 import '../games/digit_span/screen.dart';
+import '../games/listening_span/screen.dart';
 import '../games/ant/screen.dart';
 import '../games/bart/screen.dart';
 import '../games/choice_rt/screen.dart';
@@ -16,6 +18,7 @@ import '../games/flanker/screen.dart';
 import '../games/gonogo/screen.dart';
 import '../games/inhibition/screen.dart';
 import '../games/iowa/screen.dart';
+import '../games/reading_span/screen.dart';
 import '../games/posner/screen.dart';
 import '../games/proofreading/screen.dart';
 import '../games/prl/screen.dart';
@@ -55,6 +58,7 @@ import '../games/hidden_character/screen.dart';
 import '../games/sort_tubes/screen.dart';
 import '../games/mental_rotation/screen.dart';
 import '../games/navigator/screen.dart';
+import '../games/trail_making/screen.dart';
 import '../games/samurai/screen.dart';
 import '../games/spatial_hub/screen.dart';
 import '../games/spatial_lab/screen.dart';
@@ -165,10 +169,13 @@ class HybridApp extends StatefulWidget {
         '/games/anagrams?mode=square': (s) => RingScreen(state: s),
         '/games/dots-connect': (s) => DotsConnectScreen(state: s),
         '/games/one-line': (s) => OneLineScreen(state: s),
+        '/games/reading-span': (s) => ReadingSpanScreen(state: s),
         '/games/digit-span': (s) => DigitSpanScreen(state: s),
         '/games/memory-matrix': (s) => MemoryMatrixScreen(state: s),
         '/games/corsi': (s) => CorsiScreen(state: s),
+        '/games/n-back': (s) => NBackScreen(state: s),
         '/games/picture-pairs': (s) => PicturePairsScreen(state: s),
+        '/games/listening-span': (s) => ListeningSpanScreen(state: s),
         '/games/schulte': (s) => SchulteScreen(state: s),
         // «Пауза / Зарядка» — хаб практик; `?set=…` доходит до экрана через GamePreset.
         '/games/pause': (s) => PauseScreen(state: s),
@@ -227,6 +234,7 @@ class HybridApp extends StatefulWidget {
         '/games/go-no-go': (s) => GoNoGoScreen(state: s),
         '/games/mental-rotation': (s) => MentalRotationScreen(state: s),
         '/games/navigator': (s) => NavigatorScreen(state: s),
+        '/games/trail-making': (s) => TrailMakingScreen(state: s),
         '/games/spatial-span': (s) => SpatialSpanScreen(state: s),
         // Все четыре упражнения лаборатории перенесены, поэтому перехват честен: адрес с
         // `?mode=` попадает в ту же строку карты, и ни один режим не остаётся в вебе.

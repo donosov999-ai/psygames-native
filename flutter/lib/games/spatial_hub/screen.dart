@@ -105,6 +105,7 @@ List<HubCard> get spatialHubCards => [
     L.t('trailMaking'),
     L.t('trailMakingDesc'),
     Icons.route_outlined,
+    levelKey: 'trail_making',
   ),
   HubCard(
     '/games/navigator',
