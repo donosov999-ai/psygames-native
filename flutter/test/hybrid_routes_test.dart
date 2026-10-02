@@ -302,6 +302,7 @@ void main() {
       '/games/chess-hub',
       '/games/find-move',
       '/games/solitaire-chess',
+      '/games/knights-queens',
       '/games/choice-rt',
       '/games/cpt',
       '/games/corsi',

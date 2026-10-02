@@ -121,6 +121,7 @@ flutter:
     - assets/find_move/
     # «Шахматный пасьянс»: 720 досок 4×4, генератор tools/solitaire_chess_corpus.py
     - assets/solitaire_chess/
+    - assets/knights_queens/
     - assets/faces-names.json
     - assets/memory-palace.json
     - assets/rmet.json
