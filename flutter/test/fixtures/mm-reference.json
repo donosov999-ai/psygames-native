@@ -700,5 +700,12035 @@
    "decoys": 6,
    "free": 13
   }
+ ],
+ "source": "app/games/memory-matrix.tsx",
+ "totalRounds": 10,
+ "rules": [
+  {
+   "key": "grid6",
+   "fromLevel": 4
+  },
+  {
+   "key": "fast",
+   "fromLevel": 8
+  },
+  {
+   "key": "two_series",
+   "fromLevel": 11
+  },
+  {
+   "key": "decoys",
+   "fromLevel": 16
+  }
+ ],
+ "levelsTail": [
+  {
+   "level": 41,
+   "gridSize": 6,
+   "baseFlashes": 30,
+   "flashMs": 500,
+   "seriesCount": 2,
+   "holdMs": 18200,
+   "decoys": 6
+  },
+  {
+   "level": 42,
+   "gridSize": 6,
+   "baseFlashes": 31,
+   "flashMs": 500,
+   "seriesCount": 2,
+   "holdMs": 18900,
+   "decoys": 6
+  },
+  {
+   "level": 43,
+   "gridSize": 6,
+   "baseFlashes": 31,
+   "flashMs": 500,
+   "seriesCount": 2,
+   "holdMs": 19600,
+   "decoys": 6
+  },
+  {
+   "level": 44,
+   "gridSize": 6,
+   "baseFlashes": 32,
+   "flashMs": 500,
+   "seriesCount": 2,
+   "holdMs": 20300,
+   "decoys": 6
+  },
+  {
+   "level": 45,
+   "gridSize": 6,
+   "baseFlashes": 33,
+   "flashMs": 500,
+   "seriesCount": 2,
+   "holdMs": 21000,
+   "decoys": 6
+  },
+  {
+   "level": 46,
+   "gridSize": 6,
+   "baseFlashes": 33,
+   "flashMs": 500,
+   "seriesCount": 2,
+   "holdMs": 21700,
+   "decoys": 6
+  },
+  {
+   "level": 47,
+   "gridSize": 6,
+   "baseFlashes": 34,
+   "flashMs": 500,
+   "seriesCount": 2,
+   "holdMs": 22400,
+   "decoys": 6
+  },
+  {
+   "level": 48,
+   "gridSize": 6,
+   "baseFlashes": 35,
+   "flashMs": 500,
+   "seriesCount": 2,
+   "holdMs": 23100,
+   "decoys": 6
+  },
+  {
+   "level": 49,
+   "gridSize": 6,
+   "baseFlashes": 35,
+   "flashMs": 500,
+   "seriesCount": 2,
+   "holdMs": 23800,
+   "decoys": 6
+  },
+  {
+   "level": 50,
+   "gridSize": 6,
+   "baseFlashes": 36,
+   "flashMs": 500,
+   "seriesCount": 2,
+   "holdMs": 24500,
+   "decoys": 6
+  },
+  {
+   "level": 51,
+   "gridSize": 6,
+   "baseFlashes": 37,
+   "flashMs": 500,
+   "seriesCount": 2,
+   "holdMs": 25200,
+   "decoys": 6
+  },
+  {
+   "level": 52,
+   "gridSize": 6,
+   "baseFlashes": 37,
+   "flashMs": 500,
+   "seriesCount": 2,
+   "holdMs": 25900,
+   "decoys": 6
+  },
+  {
+   "level": 53,
+   "gridSize": 6,
+   "baseFlashes": 38,
+   "flashMs": 500,
+   "seriesCount": 2,
+   "holdMs": 26600,
+   "decoys": 6
+  },
+  {
+   "level": 54,
+   "gridSize": 6,
+   "baseFlashes": 39,
+   "flashMs": 500,
+   "seriesCount": 2,
+   "holdMs": 27300,
+   "decoys": 6
+  },
+  {
+   "level": 55,
+   "gridSize": 6,
+   "baseFlashes": 39,
+   "flashMs": 500,
+   "seriesCount": 2,
+   "holdMs": 28000,
+   "decoys": 6
+  },
+  {
+   "level": 56,
+   "gridSize": 6,
+   "baseFlashes": 40,
+   "flashMs": 500,
+   "seriesCount": 2,
+   "holdMs": 28700,
+   "decoys": 6
+  },
+  {
+   "level": 57,
+   "gridSize": 6,
+   "baseFlashes": 41,
+   "flashMs": 500,
+   "seriesCount": 2,
+   "holdMs": 29400,
+   "decoys": 6
+  },
+  {
+   "level": 58,
+   "gridSize": 6,
+   "baseFlashes": 41,
+   "flashMs": 500,
+   "seriesCount": 2,
+   "holdMs": 30100,
+   "decoys": 6
+  },
+  {
+   "level": 59,
+   "gridSize": 6,
+   "baseFlashes": 42,
+   "flashMs": 500,
+   "seriesCount": 2,
+   "holdMs": 30800,
+   "decoys": 6
+  },
+  {
+   "level": 60,
+   "gridSize": 6,
+   "baseFlashes": 43,
+   "flashMs": 500,
+   "seriesCount": 2,
+   "holdMs": 31500,
+   "decoys": 6
+  }
+ ],
+ "rounds": [
+  {
+   "level": 1,
+   "round": 1,
+   "mode": "static",
+   "preset": false,
+   "need": 3,
+   "decoys": 0,
+   "free": 6
+  },
+  {
+   "level": 1,
+   "round": 1,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 6
+  },
+  {
+   "level": 1,
+   "round": 1,
+   "mode": "sequential",
+   "preset": false,
+   "need": 3,
+   "decoys": 0,
+   "free": 6
+  },
+  {
+   "level": 1,
+   "round": 1,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 6
+  },
+  {
+   "level": 1,
+   "round": 2,
+   "mode": "static",
+   "preset": false,
+   "need": 3,
+   "decoys": 0,
+   "free": 6
+  },
+  {
+   "level": 1,
+   "round": 2,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 6
+  },
+  {
+   "level": 1,
+   "round": 2,
+   "mode": "sequential",
+   "preset": false,
+   "need": 3,
+   "decoys": 0,
+   "free": 6
+  },
+  {
+   "level": 1,
+   "round": 2,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 6
+  },
+  {
+   "level": 1,
+   "round": 3,
+   "mode": "static",
+   "preset": false,
+   "need": 3,
+   "decoys": 0,
+   "free": 6
+  },
+  {
+   "level": 1,
+   "round": 3,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 6
+  },
+  {
+   "level": 1,
+   "round": 3,
+   "mode": "sequential",
+   "preset": false,
+   "need": 3,
+   "decoys": 0,
+   "free": 6
+  },
+  {
+   "level": 1,
+   "round": 3,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 6
+  },
+  {
+   "level": 1,
+   "round": 4,
+   "mode": "static",
+   "preset": false,
+   "need": 4,
+   "decoys": 0,
+   "free": 5
+  },
+  {
+   "level": 1,
+   "round": 4,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 5
+  },
+  {
+   "level": 1,
+   "round": 4,
+   "mode": "sequential",
+   "preset": false,
+   "need": 4,
+   "decoys": 0,
+   "free": 5
+  },
+  {
+   "level": 1,
+   "round": 4,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 5
+  },
+  {
+   "level": 1,
+   "round": 5,
+   "mode": "static",
+   "preset": false,
+   "need": 4,
+   "decoys": 0,
+   "free": 5
+  },
+  {
+   "level": 1,
+   "round": 5,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 5
+  },
+  {
+   "level": 1,
+   "round": 5,
+   "mode": "sequential",
+   "preset": false,
+   "need": 4,
+   "decoys": 0,
+   "free": 5
+  },
+  {
+   "level": 1,
+   "round": 5,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 5
+  },
+  {
+   "level": 1,
+   "round": 6,
+   "mode": "static",
+   "preset": false,
+   "need": 4,
+   "decoys": 0,
+   "free": 5
+  },
+  {
+   "level": 1,
+   "round": 6,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 5
+  },
+  {
+   "level": 1,
+   "round": 6,
+   "mode": "sequential",
+   "preset": false,
+   "need": 4,
+   "decoys": 0,
+   "free": 5
+  },
+  {
+   "level": 1,
+   "round": 6,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 5
+  },
+  {
+   "level": 1,
+   "round": 7,
+   "mode": "static",
+   "preset": false,
+   "need": 5,
+   "decoys": 0,
+   "free": 4
+  },
+  {
+   "level": 1,
+   "round": 7,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 4
+  },
+  {
+   "level": 1,
+   "round": 7,
+   "mode": "sequential",
+   "preset": false,
+   "need": 5,
+   "decoys": 0,
+   "free": 4
+  },
+  {
+   "level": 1,
+   "round": 7,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 4
+  },
+  {
+   "level": 1,
+   "round": 8,
+   "mode": "static",
+   "preset": false,
+   "need": 5,
+   "decoys": 0,
+   "free": 4
+  },
+  {
+   "level": 1,
+   "round": 8,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 4
+  },
+  {
+   "level": 1,
+   "round": 8,
+   "mode": "sequential",
+   "preset": false,
+   "need": 5,
+   "decoys": 0,
+   "free": 4
+  },
+  {
+   "level": 1,
+   "round": 8,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 4
+  },
+  {
+   "level": 1,
+   "round": 9,
+   "mode": "static",
+   "preset": false,
+   "need": 5,
+   "decoys": 0,
+   "free": 4
+  },
+  {
+   "level": 1,
+   "round": 9,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 4
+  },
+  {
+   "level": 1,
+   "round": 9,
+   "mode": "sequential",
+   "preset": false,
+   "need": 5,
+   "decoys": 0,
+   "free": 4
+  },
+  {
+   "level": 1,
+   "round": 9,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 4
+  },
+  {
+   "level": 1,
+   "round": 10,
+   "mode": "static",
+   "preset": false,
+   "need": 6,
+   "decoys": 0,
+   "free": 3
+  },
+  {
+   "level": 1,
+   "round": 10,
+   "mode": "static",
+   "preset": true,
+   "need": 6,
+   "decoys": 0,
+   "free": 3
+  },
+  {
+   "level": 1,
+   "round": 10,
+   "mode": "sequential",
+   "preset": false,
+   "need": 6,
+   "decoys": 0,
+   "free": 3
+  },
+  {
+   "level": 1,
+   "round": 10,
+   "mode": "sequential",
+   "preset": true,
+   "need": 6,
+   "decoys": 0,
+   "free": 3
+  },
+  {
+   "level": 2,
+   "round": 1,
+   "mode": "static",
+   "preset": false,
+   "need": 4,
+   "decoys": 0,
+   "free": 12
+  },
+  {
+   "level": 2,
+   "round": 1,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 13
+  },
+  {
+   "level": 2,
+   "round": 1,
+   "mode": "sequential",
+   "preset": false,
+   "need": 4,
+   "decoys": 0,
+   "free": 12
+  },
+  {
+   "level": 2,
+   "round": 1,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 13
+  },
+  {
+   "level": 2,
+   "round": 2,
+   "mode": "static",
+   "preset": false,
+   "need": 4,
+   "decoys": 0,
+   "free": 12
+  },
+  {
+   "level": 2,
+   "round": 2,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 13
+  },
+  {
+   "level": 2,
+   "round": 2,
+   "mode": "sequential",
+   "preset": false,
+   "need": 4,
+   "decoys": 0,
+   "free": 12
+  },
+  {
+   "level": 2,
+   "round": 2,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 13
+  },
+  {
+   "level": 2,
+   "round": 3,
+   "mode": "static",
+   "preset": false,
+   "need": 4,
+   "decoys": 0,
+   "free": 12
+  },
+  {
+   "level": 2,
+   "round": 3,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 13
+  },
+  {
+   "level": 2,
+   "round": 3,
+   "mode": "sequential",
+   "preset": false,
+   "need": 4,
+   "decoys": 0,
+   "free": 12
+  },
+  {
+   "level": 2,
+   "round": 3,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 13
+  },
+  {
+   "level": 2,
+   "round": 4,
+   "mode": "static",
+   "preset": false,
+   "need": 5,
+   "decoys": 0,
+   "free": 11
+  },
+  {
+   "level": 2,
+   "round": 4,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 12
+  },
+  {
+   "level": 2,
+   "round": 4,
+   "mode": "sequential",
+   "preset": false,
+   "need": 5,
+   "decoys": 0,
+   "free": 11
+  },
+  {
+   "level": 2,
+   "round": 4,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 12
+  },
+  {
+   "level": 2,
+   "round": 5,
+   "mode": "static",
+   "preset": false,
+   "need": 5,
+   "decoys": 0,
+   "free": 11
+  },
+  {
+   "level": 2,
+   "round": 5,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 12
+  },
+  {
+   "level": 2,
+   "round": 5,
+   "mode": "sequential",
+   "preset": false,
+   "need": 5,
+   "decoys": 0,
+   "free": 11
+  },
+  {
+   "level": 2,
+   "round": 5,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 12
+  },
+  {
+   "level": 2,
+   "round": 6,
+   "mode": "static",
+   "preset": false,
+   "need": 5,
+   "decoys": 0,
+   "free": 11
+  },
+  {
+   "level": 2,
+   "round": 6,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 12
+  },
+  {
+   "level": 2,
+   "round": 6,
+   "mode": "sequential",
+   "preset": false,
+   "need": 5,
+   "decoys": 0,
+   "free": 11
+  },
+  {
+   "level": 2,
+   "round": 6,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 12
+  },
+  {
+   "level": 2,
+   "round": 7,
+   "mode": "static",
+   "preset": false,
+   "need": 6,
+   "decoys": 0,
+   "free": 10
+  },
+  {
+   "level": 2,
+   "round": 7,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 11
+  },
+  {
+   "level": 2,
+   "round": 7,
+   "mode": "sequential",
+   "preset": false,
+   "need": 6,
+   "decoys": 0,
+   "free": 10
+  },
+  {
+   "level": 2,
+   "round": 7,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 11
+  },
+  {
+   "level": 2,
+   "round": 8,
+   "mode": "static",
+   "preset": false,
+   "need": 6,
+   "decoys": 0,
+   "free": 10
+  },
+  {
+   "level": 2,
+   "round": 8,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 11
+  },
+  {
+   "level": 2,
+   "round": 8,
+   "mode": "sequential",
+   "preset": false,
+   "need": 6,
+   "decoys": 0,
+   "free": 10
+  },
+  {
+   "level": 2,
+   "round": 8,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 11
+  },
+  {
+   "level": 2,
+   "round": 9,
+   "mode": "static",
+   "preset": false,
+   "need": 6,
+   "decoys": 0,
+   "free": 10
+  },
+  {
+   "level": 2,
+   "round": 9,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 11
+  },
+  {
+   "level": 2,
+   "round": 9,
+   "mode": "sequential",
+   "preset": false,
+   "need": 6,
+   "decoys": 0,
+   "free": 10
+  },
+  {
+   "level": 2,
+   "round": 9,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 11
+  },
+  {
+   "level": 2,
+   "round": 10,
+   "mode": "static",
+   "preset": false,
+   "need": 7,
+   "decoys": 0,
+   "free": 9
+  },
+  {
+   "level": 2,
+   "round": 10,
+   "mode": "static",
+   "preset": true,
+   "need": 6,
+   "decoys": 0,
+   "free": 10
+  },
+  {
+   "level": 2,
+   "round": 10,
+   "mode": "sequential",
+   "preset": false,
+   "need": 7,
+   "decoys": 0,
+   "free": 9
+  },
+  {
+   "level": 2,
+   "round": 10,
+   "mode": "sequential",
+   "preset": true,
+   "need": 6,
+   "decoys": 0,
+   "free": 10
+  },
+  {
+   "level": 3,
+   "round": 1,
+   "mode": "static",
+   "preset": false,
+   "need": 5,
+   "decoys": 0,
+   "free": 20
+  },
+  {
+   "level": 3,
+   "round": 1,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 22
+  },
+  {
+   "level": 3,
+   "round": 1,
+   "mode": "sequential",
+   "preset": false,
+   "need": 5,
+   "decoys": 0,
+   "free": 20
+  },
+  {
+   "level": 3,
+   "round": 1,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 22
+  },
+  {
+   "level": 3,
+   "round": 2,
+   "mode": "static",
+   "preset": false,
+   "need": 5,
+   "decoys": 0,
+   "free": 20
+  },
+  {
+   "level": 3,
+   "round": 2,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 22
+  },
+  {
+   "level": 3,
+   "round": 2,
+   "mode": "sequential",
+   "preset": false,
+   "need": 5,
+   "decoys": 0,
+   "free": 20
+  },
+  {
+   "level": 3,
+   "round": 2,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 22
+  },
+  {
+   "level": 3,
+   "round": 3,
+   "mode": "static",
+   "preset": false,
+   "need": 5,
+   "decoys": 0,
+   "free": 20
+  },
+  {
+   "level": 3,
+   "round": 3,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 22
+  },
+  {
+   "level": 3,
+   "round": 3,
+   "mode": "sequential",
+   "preset": false,
+   "need": 5,
+   "decoys": 0,
+   "free": 20
+  },
+  {
+   "level": 3,
+   "round": 3,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 22
+  },
+  {
+   "level": 3,
+   "round": 4,
+   "mode": "static",
+   "preset": false,
+   "need": 6,
+   "decoys": 0,
+   "free": 19
+  },
+  {
+   "level": 3,
+   "round": 4,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 21
+  },
+  {
+   "level": 3,
+   "round": 4,
+   "mode": "sequential",
+   "preset": false,
+   "need": 6,
+   "decoys": 0,
+   "free": 19
+  },
+  {
+   "level": 3,
+   "round": 4,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 21
+  },
+  {
+   "level": 3,
+   "round": 5,
+   "mode": "static",
+   "preset": false,
+   "need": 6,
+   "decoys": 0,
+   "free": 19
+  },
+  {
+   "level": 3,
+   "round": 5,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 21
+  },
+  {
+   "level": 3,
+   "round": 5,
+   "mode": "sequential",
+   "preset": false,
+   "need": 6,
+   "decoys": 0,
+   "free": 19
+  },
+  {
+   "level": 3,
+   "round": 5,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 21
+  },
+  {
+   "level": 3,
+   "round": 6,
+   "mode": "static",
+   "preset": false,
+   "need": 6,
+   "decoys": 0,
+   "free": 19
+  },
+  {
+   "level": 3,
+   "round": 6,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 21
+  },
+  {
+   "level": 3,
+   "round": 6,
+   "mode": "sequential",
+   "preset": false,
+   "need": 6,
+   "decoys": 0,
+   "free": 19
+  },
+  {
+   "level": 3,
+   "round": 6,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 21
+  },
+  {
+   "level": 3,
+   "round": 7,
+   "mode": "static",
+   "preset": false,
+   "need": 7,
+   "decoys": 0,
+   "free": 18
+  },
+  {
+   "level": 3,
+   "round": 7,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 20
+  },
+  {
+   "level": 3,
+   "round": 7,
+   "mode": "sequential",
+   "preset": false,
+   "need": 7,
+   "decoys": 0,
+   "free": 18
+  },
+  {
+   "level": 3,
+   "round": 7,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 20
+  },
+  {
+   "level": 3,
+   "round": 8,
+   "mode": "static",
+   "preset": false,
+   "need": 7,
+   "decoys": 0,
+   "free": 18
+  },
+  {
+   "level": 3,
+   "round": 8,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 20
+  },
+  {
+   "level": 3,
+   "round": 8,
+   "mode": "sequential",
+   "preset": false,
+   "need": 7,
+   "decoys": 0,
+   "free": 18
+  },
+  {
+   "level": 3,
+   "round": 8,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 20
+  },
+  {
+   "level": 3,
+   "round": 9,
+   "mode": "static",
+   "preset": false,
+   "need": 7,
+   "decoys": 0,
+   "free": 18
+  },
+  {
+   "level": 3,
+   "round": 9,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 20
+  },
+  {
+   "level": 3,
+   "round": 9,
+   "mode": "sequential",
+   "preset": false,
+   "need": 7,
+   "decoys": 0,
+   "free": 18
+  },
+  {
+   "level": 3,
+   "round": 9,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 20
+  },
+  {
+   "level": 3,
+   "round": 10,
+   "mode": "static",
+   "preset": false,
+   "need": 8,
+   "decoys": 0,
+   "free": 17
+  },
+  {
+   "level": 3,
+   "round": 10,
+   "mode": "static",
+   "preset": true,
+   "need": 6,
+   "decoys": 0,
+   "free": 19
+  },
+  {
+   "level": 3,
+   "round": 10,
+   "mode": "sequential",
+   "preset": false,
+   "need": 8,
+   "decoys": 0,
+   "free": 17
+  },
+  {
+   "level": 3,
+   "round": 10,
+   "mode": "sequential",
+   "preset": true,
+   "need": 6,
+   "decoys": 0,
+   "free": 19
+  },
+  {
+   "level": 4,
+   "round": 1,
+   "mode": "static",
+   "preset": false,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 4,
+   "round": 1,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 4,
+   "round": 1,
+   "mode": "sequential",
+   "preset": false,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 4,
+   "round": 1,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 4,
+   "round": 2,
+   "mode": "static",
+   "preset": false,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 4,
+   "round": 2,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 4,
+   "round": 2,
+   "mode": "sequential",
+   "preset": false,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 4,
+   "round": 2,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 4,
+   "round": 3,
+   "mode": "static",
+   "preset": false,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 4,
+   "round": 3,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 4,
+   "round": 3,
+   "mode": "sequential",
+   "preset": false,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 4,
+   "round": 3,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 4,
+   "round": 4,
+   "mode": "static",
+   "preset": false,
+   "need": 6,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 4,
+   "round": 4,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 4,
+   "round": 4,
+   "mode": "sequential",
+   "preset": false,
+   "need": 6,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 4,
+   "round": 4,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 4,
+   "round": 5,
+   "mode": "static",
+   "preset": false,
+   "need": 6,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 4,
+   "round": 5,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 4,
+   "round": 5,
+   "mode": "sequential",
+   "preset": false,
+   "need": 6,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 4,
+   "round": 5,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 4,
+   "round": 6,
+   "mode": "static",
+   "preset": false,
+   "need": 6,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 4,
+   "round": 6,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 4,
+   "round": 6,
+   "mode": "sequential",
+   "preset": false,
+   "need": 6,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 4,
+   "round": 6,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 4,
+   "round": 7,
+   "mode": "static",
+   "preset": false,
+   "need": 7,
+   "decoys": 0,
+   "free": 29
+  },
+  {
+   "level": 4,
+   "round": 7,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 4,
+   "round": 7,
+   "mode": "sequential",
+   "preset": false,
+   "need": 7,
+   "decoys": 0,
+   "free": 29
+  },
+  {
+   "level": 4,
+   "round": 7,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 4,
+   "round": 8,
+   "mode": "static",
+   "preset": false,
+   "need": 7,
+   "decoys": 0,
+   "free": 29
+  },
+  {
+   "level": 4,
+   "round": 8,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 4,
+   "round": 8,
+   "mode": "sequential",
+   "preset": false,
+   "need": 7,
+   "decoys": 0,
+   "free": 29
+  },
+  {
+   "level": 4,
+   "round": 8,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 4,
+   "round": 9,
+   "mode": "static",
+   "preset": false,
+   "need": 7,
+   "decoys": 0,
+   "free": 29
+  },
+  {
+   "level": 4,
+   "round": 9,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 4,
+   "round": 9,
+   "mode": "sequential",
+   "preset": false,
+   "need": 7,
+   "decoys": 0,
+   "free": 29
+  },
+  {
+   "level": 4,
+   "round": 9,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 4,
+   "round": 10,
+   "mode": "static",
+   "preset": false,
+   "need": 8,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 4,
+   "round": 10,
+   "mode": "static",
+   "preset": true,
+   "need": 6,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 4,
+   "round": 10,
+   "mode": "sequential",
+   "preset": false,
+   "need": 8,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 4,
+   "round": 10,
+   "mode": "sequential",
+   "preset": true,
+   "need": 6,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 5,
+   "round": 1,
+   "mode": "static",
+   "preset": false,
+   "need": 6,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 5,
+   "round": 1,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 5,
+   "round": 1,
+   "mode": "sequential",
+   "preset": false,
+   "need": 6,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 5,
+   "round": 1,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 5,
+   "round": 2,
+   "mode": "static",
+   "preset": false,
+   "need": 6,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 5,
+   "round": 2,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 5,
+   "round": 2,
+   "mode": "sequential",
+   "preset": false,
+   "need": 6,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 5,
+   "round": 2,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 5,
+   "round": 3,
+   "mode": "static",
+   "preset": false,
+   "need": 6,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 5,
+   "round": 3,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 5,
+   "round": 3,
+   "mode": "sequential",
+   "preset": false,
+   "need": 6,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 5,
+   "round": 3,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 5,
+   "round": 4,
+   "mode": "static",
+   "preset": false,
+   "need": 7,
+   "decoys": 0,
+   "free": 29
+  },
+  {
+   "level": 5,
+   "round": 4,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 5,
+   "round": 4,
+   "mode": "sequential",
+   "preset": false,
+   "need": 7,
+   "decoys": 0,
+   "free": 29
+  },
+  {
+   "level": 5,
+   "round": 4,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 5,
+   "round": 5,
+   "mode": "static",
+   "preset": false,
+   "need": 7,
+   "decoys": 0,
+   "free": 29
+  },
+  {
+   "level": 5,
+   "round": 5,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 5,
+   "round": 5,
+   "mode": "sequential",
+   "preset": false,
+   "need": 7,
+   "decoys": 0,
+   "free": 29
+  },
+  {
+   "level": 5,
+   "round": 5,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 5,
+   "round": 6,
+   "mode": "static",
+   "preset": false,
+   "need": 7,
+   "decoys": 0,
+   "free": 29
+  },
+  {
+   "level": 5,
+   "round": 6,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 5,
+   "round": 6,
+   "mode": "sequential",
+   "preset": false,
+   "need": 7,
+   "decoys": 0,
+   "free": 29
+  },
+  {
+   "level": 5,
+   "round": 6,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 5,
+   "round": 7,
+   "mode": "static",
+   "preset": false,
+   "need": 8,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 5,
+   "round": 7,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 5,
+   "round": 7,
+   "mode": "sequential",
+   "preset": false,
+   "need": 8,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 5,
+   "round": 7,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 5,
+   "round": 8,
+   "mode": "static",
+   "preset": false,
+   "need": 8,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 5,
+   "round": 8,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 5,
+   "round": 8,
+   "mode": "sequential",
+   "preset": false,
+   "need": 8,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 5,
+   "round": 8,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 5,
+   "round": 9,
+   "mode": "static",
+   "preset": false,
+   "need": 8,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 5,
+   "round": 9,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 5,
+   "round": 9,
+   "mode": "sequential",
+   "preset": false,
+   "need": 8,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 5,
+   "round": 9,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 5,
+   "round": 10,
+   "mode": "static",
+   "preset": false,
+   "need": 9,
+   "decoys": 0,
+   "free": 27
+  },
+  {
+   "level": 5,
+   "round": 10,
+   "mode": "static",
+   "preset": true,
+   "need": 6,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 5,
+   "round": 10,
+   "mode": "sequential",
+   "preset": false,
+   "need": 9,
+   "decoys": 0,
+   "free": 27
+  },
+  {
+   "level": 5,
+   "round": 10,
+   "mode": "sequential",
+   "preset": true,
+   "need": 6,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 6,
+   "round": 1,
+   "mode": "static",
+   "preset": false,
+   "need": 7,
+   "decoys": 0,
+   "free": 29
+  },
+  {
+   "level": 6,
+   "round": 1,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 6,
+   "round": 1,
+   "mode": "sequential",
+   "preset": false,
+   "need": 7,
+   "decoys": 0,
+   "free": 29
+  },
+  {
+   "level": 6,
+   "round": 1,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 6,
+   "round": 2,
+   "mode": "static",
+   "preset": false,
+   "need": 7,
+   "decoys": 0,
+   "free": 29
+  },
+  {
+   "level": 6,
+   "round": 2,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 6,
+   "round": 2,
+   "mode": "sequential",
+   "preset": false,
+   "need": 7,
+   "decoys": 0,
+   "free": 29
+  },
+  {
+   "level": 6,
+   "round": 2,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 6,
+   "round": 3,
+   "mode": "static",
+   "preset": false,
+   "need": 7,
+   "decoys": 0,
+   "free": 29
+  },
+  {
+   "level": 6,
+   "round": 3,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 6,
+   "round": 3,
+   "mode": "sequential",
+   "preset": false,
+   "need": 7,
+   "decoys": 0,
+   "free": 29
+  },
+  {
+   "level": 6,
+   "round": 3,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 6,
+   "round": 4,
+   "mode": "static",
+   "preset": false,
+   "need": 8,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 6,
+   "round": 4,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 6,
+   "round": 4,
+   "mode": "sequential",
+   "preset": false,
+   "need": 8,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 6,
+   "round": 4,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 6,
+   "round": 5,
+   "mode": "static",
+   "preset": false,
+   "need": 8,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 6,
+   "round": 5,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 6,
+   "round": 5,
+   "mode": "sequential",
+   "preset": false,
+   "need": 8,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 6,
+   "round": 5,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 6,
+   "round": 6,
+   "mode": "static",
+   "preset": false,
+   "need": 8,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 6,
+   "round": 6,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 6,
+   "round": 6,
+   "mode": "sequential",
+   "preset": false,
+   "need": 8,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 6,
+   "round": 6,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 6,
+   "round": 7,
+   "mode": "static",
+   "preset": false,
+   "need": 9,
+   "decoys": 0,
+   "free": 27
+  },
+  {
+   "level": 6,
+   "round": 7,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 6,
+   "round": 7,
+   "mode": "sequential",
+   "preset": false,
+   "need": 9,
+   "decoys": 0,
+   "free": 27
+  },
+  {
+   "level": 6,
+   "round": 7,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 6,
+   "round": 8,
+   "mode": "static",
+   "preset": false,
+   "need": 9,
+   "decoys": 0,
+   "free": 27
+  },
+  {
+   "level": 6,
+   "round": 8,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 6,
+   "round": 8,
+   "mode": "sequential",
+   "preset": false,
+   "need": 9,
+   "decoys": 0,
+   "free": 27
+  },
+  {
+   "level": 6,
+   "round": 8,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 6,
+   "round": 9,
+   "mode": "static",
+   "preset": false,
+   "need": 9,
+   "decoys": 0,
+   "free": 27
+  },
+  {
+   "level": 6,
+   "round": 9,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 6,
+   "round": 9,
+   "mode": "sequential",
+   "preset": false,
+   "need": 9,
+   "decoys": 0,
+   "free": 27
+  },
+  {
+   "level": 6,
+   "round": 9,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 6,
+   "round": 10,
+   "mode": "static",
+   "preset": false,
+   "need": 10,
+   "decoys": 0,
+   "free": 26
+  },
+  {
+   "level": 6,
+   "round": 10,
+   "mode": "static",
+   "preset": true,
+   "need": 6,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 6,
+   "round": 10,
+   "mode": "sequential",
+   "preset": false,
+   "need": 10,
+   "decoys": 0,
+   "free": 26
+  },
+  {
+   "level": 6,
+   "round": 10,
+   "mode": "sequential",
+   "preset": true,
+   "need": 6,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 7,
+   "round": 1,
+   "mode": "static",
+   "preset": false,
+   "need": 7,
+   "decoys": 0,
+   "free": 29
+  },
+  {
+   "level": 7,
+   "round": 1,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 7,
+   "round": 1,
+   "mode": "sequential",
+   "preset": false,
+   "need": 7,
+   "decoys": 0,
+   "free": 29
+  },
+  {
+   "level": 7,
+   "round": 1,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 7,
+   "round": 2,
+   "mode": "static",
+   "preset": false,
+   "need": 7,
+   "decoys": 0,
+   "free": 29
+  },
+  {
+   "level": 7,
+   "round": 2,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 7,
+   "round": 2,
+   "mode": "sequential",
+   "preset": false,
+   "need": 7,
+   "decoys": 0,
+   "free": 29
+  },
+  {
+   "level": 7,
+   "round": 2,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 7,
+   "round": 3,
+   "mode": "static",
+   "preset": false,
+   "need": 7,
+   "decoys": 0,
+   "free": 29
+  },
+  {
+   "level": 7,
+   "round": 3,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 7,
+   "round": 3,
+   "mode": "sequential",
+   "preset": false,
+   "need": 7,
+   "decoys": 0,
+   "free": 29
+  },
+  {
+   "level": 7,
+   "round": 3,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 7,
+   "round": 4,
+   "mode": "static",
+   "preset": false,
+   "need": 8,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 7,
+   "round": 4,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 7,
+   "round": 4,
+   "mode": "sequential",
+   "preset": false,
+   "need": 8,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 7,
+   "round": 4,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 7,
+   "round": 5,
+   "mode": "static",
+   "preset": false,
+   "need": 8,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 7,
+   "round": 5,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 7,
+   "round": 5,
+   "mode": "sequential",
+   "preset": false,
+   "need": 8,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 7,
+   "round": 5,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 7,
+   "round": 6,
+   "mode": "static",
+   "preset": false,
+   "need": 8,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 7,
+   "round": 6,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 7,
+   "round": 6,
+   "mode": "sequential",
+   "preset": false,
+   "need": 8,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 7,
+   "round": 6,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 7,
+   "round": 7,
+   "mode": "static",
+   "preset": false,
+   "need": 9,
+   "decoys": 0,
+   "free": 27
+  },
+  {
+   "level": 7,
+   "round": 7,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 7,
+   "round": 7,
+   "mode": "sequential",
+   "preset": false,
+   "need": 9,
+   "decoys": 0,
+   "free": 27
+  },
+  {
+   "level": 7,
+   "round": 7,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 7,
+   "round": 8,
+   "mode": "static",
+   "preset": false,
+   "need": 9,
+   "decoys": 0,
+   "free": 27
+  },
+  {
+   "level": 7,
+   "round": 8,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 7,
+   "round": 8,
+   "mode": "sequential",
+   "preset": false,
+   "need": 9,
+   "decoys": 0,
+   "free": 27
+  },
+  {
+   "level": 7,
+   "round": 8,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 7,
+   "round": 9,
+   "mode": "static",
+   "preset": false,
+   "need": 9,
+   "decoys": 0,
+   "free": 27
+  },
+  {
+   "level": 7,
+   "round": 9,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 7,
+   "round": 9,
+   "mode": "sequential",
+   "preset": false,
+   "need": 9,
+   "decoys": 0,
+   "free": 27
+  },
+  {
+   "level": 7,
+   "round": 9,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 7,
+   "round": 10,
+   "mode": "static",
+   "preset": false,
+   "need": 10,
+   "decoys": 0,
+   "free": 26
+  },
+  {
+   "level": 7,
+   "round": 10,
+   "mode": "static",
+   "preset": true,
+   "need": 6,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 7,
+   "round": 10,
+   "mode": "sequential",
+   "preset": false,
+   "need": 10,
+   "decoys": 0,
+   "free": 26
+  },
+  {
+   "level": 7,
+   "round": 10,
+   "mode": "sequential",
+   "preset": true,
+   "need": 6,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 8,
+   "round": 1,
+   "mode": "static",
+   "preset": false,
+   "need": 8,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 8,
+   "round": 1,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 8,
+   "round": 1,
+   "mode": "sequential",
+   "preset": false,
+   "need": 8,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 8,
+   "round": 1,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 8,
+   "round": 2,
+   "mode": "static",
+   "preset": false,
+   "need": 8,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 8,
+   "round": 2,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 8,
+   "round": 2,
+   "mode": "sequential",
+   "preset": false,
+   "need": 8,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 8,
+   "round": 2,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 8,
+   "round": 3,
+   "mode": "static",
+   "preset": false,
+   "need": 8,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 8,
+   "round": 3,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 8,
+   "round": 3,
+   "mode": "sequential",
+   "preset": false,
+   "need": 8,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 8,
+   "round": 3,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 8,
+   "round": 4,
+   "mode": "static",
+   "preset": false,
+   "need": 9,
+   "decoys": 0,
+   "free": 27
+  },
+  {
+   "level": 8,
+   "round": 4,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 8,
+   "round": 4,
+   "mode": "sequential",
+   "preset": false,
+   "need": 9,
+   "decoys": 0,
+   "free": 27
+  },
+  {
+   "level": 8,
+   "round": 4,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 8,
+   "round": 5,
+   "mode": "static",
+   "preset": false,
+   "need": 9,
+   "decoys": 0,
+   "free": 27
+  },
+  {
+   "level": 8,
+   "round": 5,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 8,
+   "round": 5,
+   "mode": "sequential",
+   "preset": false,
+   "need": 9,
+   "decoys": 0,
+   "free": 27
+  },
+  {
+   "level": 8,
+   "round": 5,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 8,
+   "round": 6,
+   "mode": "static",
+   "preset": false,
+   "need": 9,
+   "decoys": 0,
+   "free": 27
+  },
+  {
+   "level": 8,
+   "round": 6,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 8,
+   "round": 6,
+   "mode": "sequential",
+   "preset": false,
+   "need": 9,
+   "decoys": 0,
+   "free": 27
+  },
+  {
+   "level": 8,
+   "round": 6,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 8,
+   "round": 7,
+   "mode": "static",
+   "preset": false,
+   "need": 10,
+   "decoys": 0,
+   "free": 26
+  },
+  {
+   "level": 8,
+   "round": 7,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 8,
+   "round": 7,
+   "mode": "sequential",
+   "preset": false,
+   "need": 10,
+   "decoys": 0,
+   "free": 26
+  },
+  {
+   "level": 8,
+   "round": 7,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 8,
+   "round": 8,
+   "mode": "static",
+   "preset": false,
+   "need": 10,
+   "decoys": 0,
+   "free": 26
+  },
+  {
+   "level": 8,
+   "round": 8,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 8,
+   "round": 8,
+   "mode": "sequential",
+   "preset": false,
+   "need": 10,
+   "decoys": 0,
+   "free": 26
+  },
+  {
+   "level": 8,
+   "round": 8,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 8,
+   "round": 9,
+   "mode": "static",
+   "preset": false,
+   "need": 10,
+   "decoys": 0,
+   "free": 26
+  },
+  {
+   "level": 8,
+   "round": 9,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 8,
+   "round": 9,
+   "mode": "sequential",
+   "preset": false,
+   "need": 10,
+   "decoys": 0,
+   "free": 26
+  },
+  {
+   "level": 8,
+   "round": 9,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 8,
+   "round": 10,
+   "mode": "static",
+   "preset": false,
+   "need": 11,
+   "decoys": 0,
+   "free": 25
+  },
+  {
+   "level": 8,
+   "round": 10,
+   "mode": "static",
+   "preset": true,
+   "need": 6,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 8,
+   "round": 10,
+   "mode": "sequential",
+   "preset": false,
+   "need": 11,
+   "decoys": 0,
+   "free": 25
+  },
+  {
+   "level": 8,
+   "round": 10,
+   "mode": "sequential",
+   "preset": true,
+   "need": 6,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 9,
+   "round": 1,
+   "mode": "static",
+   "preset": false,
+   "need": 9,
+   "decoys": 0,
+   "free": 27
+  },
+  {
+   "level": 9,
+   "round": 1,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 9,
+   "round": 1,
+   "mode": "sequential",
+   "preset": false,
+   "need": 9,
+   "decoys": 0,
+   "free": 27
+  },
+  {
+   "level": 9,
+   "round": 1,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 9,
+   "round": 2,
+   "mode": "static",
+   "preset": false,
+   "need": 9,
+   "decoys": 0,
+   "free": 27
+  },
+  {
+   "level": 9,
+   "round": 2,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 9,
+   "round": 2,
+   "mode": "sequential",
+   "preset": false,
+   "need": 9,
+   "decoys": 0,
+   "free": 27
+  },
+  {
+   "level": 9,
+   "round": 2,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 9,
+   "round": 3,
+   "mode": "static",
+   "preset": false,
+   "need": 9,
+   "decoys": 0,
+   "free": 27
+  },
+  {
+   "level": 9,
+   "round": 3,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 9,
+   "round": 3,
+   "mode": "sequential",
+   "preset": false,
+   "need": 9,
+   "decoys": 0,
+   "free": 27
+  },
+  {
+   "level": 9,
+   "round": 3,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 9,
+   "round": 4,
+   "mode": "static",
+   "preset": false,
+   "need": 10,
+   "decoys": 0,
+   "free": 26
+  },
+  {
+   "level": 9,
+   "round": 4,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 9,
+   "round": 4,
+   "mode": "sequential",
+   "preset": false,
+   "need": 10,
+   "decoys": 0,
+   "free": 26
+  },
+  {
+   "level": 9,
+   "round": 4,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 9,
+   "round": 5,
+   "mode": "static",
+   "preset": false,
+   "need": 10,
+   "decoys": 0,
+   "free": 26
+  },
+  {
+   "level": 9,
+   "round": 5,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 9,
+   "round": 5,
+   "mode": "sequential",
+   "preset": false,
+   "need": 10,
+   "decoys": 0,
+   "free": 26
+  },
+  {
+   "level": 9,
+   "round": 5,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 9,
+   "round": 6,
+   "mode": "static",
+   "preset": false,
+   "need": 10,
+   "decoys": 0,
+   "free": 26
+  },
+  {
+   "level": 9,
+   "round": 6,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 9,
+   "round": 6,
+   "mode": "sequential",
+   "preset": false,
+   "need": 10,
+   "decoys": 0,
+   "free": 26
+  },
+  {
+   "level": 9,
+   "round": 6,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 9,
+   "round": 7,
+   "mode": "static",
+   "preset": false,
+   "need": 11,
+   "decoys": 0,
+   "free": 25
+  },
+  {
+   "level": 9,
+   "round": 7,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 9,
+   "round": 7,
+   "mode": "sequential",
+   "preset": false,
+   "need": 11,
+   "decoys": 0,
+   "free": 25
+  },
+  {
+   "level": 9,
+   "round": 7,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 9,
+   "round": 8,
+   "mode": "static",
+   "preset": false,
+   "need": 11,
+   "decoys": 0,
+   "free": 25
+  },
+  {
+   "level": 9,
+   "round": 8,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 9,
+   "round": 8,
+   "mode": "sequential",
+   "preset": false,
+   "need": 11,
+   "decoys": 0,
+   "free": 25
+  },
+  {
+   "level": 9,
+   "round": 8,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 9,
+   "round": 9,
+   "mode": "static",
+   "preset": false,
+   "need": 11,
+   "decoys": 0,
+   "free": 25
+  },
+  {
+   "level": 9,
+   "round": 9,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 9,
+   "round": 9,
+   "mode": "sequential",
+   "preset": false,
+   "need": 11,
+   "decoys": 0,
+   "free": 25
+  },
+  {
+   "level": 9,
+   "round": 9,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 9,
+   "round": 10,
+   "mode": "static",
+   "preset": false,
+   "need": 12,
+   "decoys": 0,
+   "free": 24
+  },
+  {
+   "level": 9,
+   "round": 10,
+   "mode": "static",
+   "preset": true,
+   "need": 6,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 9,
+   "round": 10,
+   "mode": "sequential",
+   "preset": false,
+   "need": 12,
+   "decoys": 0,
+   "free": 24
+  },
+  {
+   "level": 9,
+   "round": 10,
+   "mode": "sequential",
+   "preset": true,
+   "need": 6,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 10,
+   "round": 1,
+   "mode": "static",
+   "preset": false,
+   "need": 9,
+   "decoys": 0,
+   "free": 27
+  },
+  {
+   "level": 10,
+   "round": 1,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 10,
+   "round": 1,
+   "mode": "sequential",
+   "preset": false,
+   "need": 9,
+   "decoys": 0,
+   "free": 27
+  },
+  {
+   "level": 10,
+   "round": 1,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 10,
+   "round": 2,
+   "mode": "static",
+   "preset": false,
+   "need": 9,
+   "decoys": 0,
+   "free": 27
+  },
+  {
+   "level": 10,
+   "round": 2,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 10,
+   "round": 2,
+   "mode": "sequential",
+   "preset": false,
+   "need": 9,
+   "decoys": 0,
+   "free": 27
+  },
+  {
+   "level": 10,
+   "round": 2,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 10,
+   "round": 3,
+   "mode": "static",
+   "preset": false,
+   "need": 9,
+   "decoys": 0,
+   "free": 27
+  },
+  {
+   "level": 10,
+   "round": 3,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 10,
+   "round": 3,
+   "mode": "sequential",
+   "preset": false,
+   "need": 9,
+   "decoys": 0,
+   "free": 27
+  },
+  {
+   "level": 10,
+   "round": 3,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 10,
+   "round": 4,
+   "mode": "static",
+   "preset": false,
+   "need": 10,
+   "decoys": 0,
+   "free": 26
+  },
+  {
+   "level": 10,
+   "round": 4,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 10,
+   "round": 4,
+   "mode": "sequential",
+   "preset": false,
+   "need": 10,
+   "decoys": 0,
+   "free": 26
+  },
+  {
+   "level": 10,
+   "round": 4,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 10,
+   "round": 5,
+   "mode": "static",
+   "preset": false,
+   "need": 10,
+   "decoys": 0,
+   "free": 26
+  },
+  {
+   "level": 10,
+   "round": 5,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 10,
+   "round": 5,
+   "mode": "sequential",
+   "preset": false,
+   "need": 10,
+   "decoys": 0,
+   "free": 26
+  },
+  {
+   "level": 10,
+   "round": 5,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 10,
+   "round": 6,
+   "mode": "static",
+   "preset": false,
+   "need": 10,
+   "decoys": 0,
+   "free": 26
+  },
+  {
+   "level": 10,
+   "round": 6,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 10,
+   "round": 6,
+   "mode": "sequential",
+   "preset": false,
+   "need": 10,
+   "decoys": 0,
+   "free": 26
+  },
+  {
+   "level": 10,
+   "round": 6,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 10,
+   "round": 7,
+   "mode": "static",
+   "preset": false,
+   "need": 11,
+   "decoys": 0,
+   "free": 25
+  },
+  {
+   "level": 10,
+   "round": 7,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 10,
+   "round": 7,
+   "mode": "sequential",
+   "preset": false,
+   "need": 11,
+   "decoys": 0,
+   "free": 25
+  },
+  {
+   "level": 10,
+   "round": 7,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 10,
+   "round": 8,
+   "mode": "static",
+   "preset": false,
+   "need": 11,
+   "decoys": 0,
+   "free": 25
+  },
+  {
+   "level": 10,
+   "round": 8,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 10,
+   "round": 8,
+   "mode": "sequential",
+   "preset": false,
+   "need": 11,
+   "decoys": 0,
+   "free": 25
+  },
+  {
+   "level": 10,
+   "round": 8,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 10,
+   "round": 9,
+   "mode": "static",
+   "preset": false,
+   "need": 11,
+   "decoys": 0,
+   "free": 25
+  },
+  {
+   "level": 10,
+   "round": 9,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 10,
+   "round": 9,
+   "mode": "sequential",
+   "preset": false,
+   "need": 11,
+   "decoys": 0,
+   "free": 25
+  },
+  {
+   "level": 10,
+   "round": 9,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 10,
+   "round": 10,
+   "mode": "static",
+   "preset": false,
+   "need": 12,
+   "decoys": 0,
+   "free": 24
+  },
+  {
+   "level": 10,
+   "round": 10,
+   "mode": "static",
+   "preset": true,
+   "need": 6,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 10,
+   "round": 10,
+   "mode": "sequential",
+   "preset": false,
+   "need": 12,
+   "decoys": 0,
+   "free": 24
+  },
+  {
+   "level": 10,
+   "round": 10,
+   "mode": "sequential",
+   "preset": true,
+   "need": 6,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 11,
+   "round": 1,
+   "mode": "static",
+   "preset": false,
+   "need": 10,
+   "decoys": 0,
+   "free": 16
+  },
+  {
+   "level": 11,
+   "round": 1,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 11,
+   "round": 1,
+   "mode": "sequential",
+   "preset": false,
+   "need": 10,
+   "decoys": 0,
+   "free": 26
+  },
+  {
+   "level": 11,
+   "round": 1,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 11,
+   "round": 2,
+   "mode": "static",
+   "preset": false,
+   "need": 10,
+   "decoys": 0,
+   "free": 16
+  },
+  {
+   "level": 11,
+   "round": 2,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 11,
+   "round": 2,
+   "mode": "sequential",
+   "preset": false,
+   "need": 10,
+   "decoys": 0,
+   "free": 26
+  },
+  {
+   "level": 11,
+   "round": 2,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 11,
+   "round": 3,
+   "mode": "static",
+   "preset": false,
+   "need": 10,
+   "decoys": 0,
+   "free": 16
+  },
+  {
+   "level": 11,
+   "round": 3,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 11,
+   "round": 3,
+   "mode": "sequential",
+   "preset": false,
+   "need": 10,
+   "decoys": 0,
+   "free": 26
+  },
+  {
+   "level": 11,
+   "round": 3,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 11,
+   "round": 4,
+   "mode": "static",
+   "preset": false,
+   "need": 11,
+   "decoys": 0,
+   "free": 14
+  },
+  {
+   "level": 11,
+   "round": 4,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 11,
+   "round": 4,
+   "mode": "sequential",
+   "preset": false,
+   "need": 11,
+   "decoys": 0,
+   "free": 25
+  },
+  {
+   "level": 11,
+   "round": 4,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 11,
+   "round": 5,
+   "mode": "static",
+   "preset": false,
+   "need": 11,
+   "decoys": 0,
+   "free": 14
+  },
+  {
+   "level": 11,
+   "round": 5,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 11,
+   "round": 5,
+   "mode": "sequential",
+   "preset": false,
+   "need": 11,
+   "decoys": 0,
+   "free": 25
+  },
+  {
+   "level": 11,
+   "round": 5,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 11,
+   "round": 6,
+   "mode": "static",
+   "preset": false,
+   "need": 11,
+   "decoys": 0,
+   "free": 14
+  },
+  {
+   "level": 11,
+   "round": 6,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 11,
+   "round": 6,
+   "mode": "sequential",
+   "preset": false,
+   "need": 11,
+   "decoys": 0,
+   "free": 25
+  },
+  {
+   "level": 11,
+   "round": 6,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 11,
+   "round": 7,
+   "mode": "static",
+   "preset": false,
+   "need": 12,
+   "decoys": 0,
+   "free": 12
+  },
+  {
+   "level": 11,
+   "round": 7,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 26
+  },
+  {
+   "level": 11,
+   "round": 7,
+   "mode": "sequential",
+   "preset": false,
+   "need": 12,
+   "decoys": 0,
+   "free": 24
+  },
+  {
+   "level": 11,
+   "round": 7,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 11,
+   "round": 8,
+   "mode": "static",
+   "preset": false,
+   "need": 12,
+   "decoys": 0,
+   "free": 12
+  },
+  {
+   "level": 11,
+   "round": 8,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 26
+  },
+  {
+   "level": 11,
+   "round": 8,
+   "mode": "sequential",
+   "preset": false,
+   "need": 12,
+   "decoys": 0,
+   "free": 24
+  },
+  {
+   "level": 11,
+   "round": 8,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 11,
+   "round": 9,
+   "mode": "static",
+   "preset": false,
+   "need": 12,
+   "decoys": 0,
+   "free": 12
+  },
+  {
+   "level": 11,
+   "round": 9,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 26
+  },
+  {
+   "level": 11,
+   "round": 9,
+   "mode": "sequential",
+   "preset": false,
+   "need": 12,
+   "decoys": 0,
+   "free": 24
+  },
+  {
+   "level": 11,
+   "round": 9,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 11,
+   "round": 10,
+   "mode": "static",
+   "preset": false,
+   "need": 13,
+   "decoys": 0,
+   "free": 10
+  },
+  {
+   "level": 11,
+   "round": 10,
+   "mode": "static",
+   "preset": true,
+   "need": 6,
+   "decoys": 0,
+   "free": 24
+  },
+  {
+   "level": 11,
+   "round": 10,
+   "mode": "sequential",
+   "preset": false,
+   "need": 13,
+   "decoys": 0,
+   "free": 23
+  },
+  {
+   "level": 11,
+   "round": 10,
+   "mode": "sequential",
+   "preset": true,
+   "need": 6,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 12,
+   "round": 1,
+   "mode": "static",
+   "preset": false,
+   "need": 11,
+   "decoys": 0,
+   "free": 14
+  },
+  {
+   "level": 12,
+   "round": 1,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 12,
+   "round": 1,
+   "mode": "sequential",
+   "preset": false,
+   "need": 11,
+   "decoys": 0,
+   "free": 25
+  },
+  {
+   "level": 12,
+   "round": 1,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 12,
+   "round": 2,
+   "mode": "static",
+   "preset": false,
+   "need": 11,
+   "decoys": 0,
+   "free": 14
+  },
+  {
+   "level": 12,
+   "round": 2,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 12,
+   "round": 2,
+   "mode": "sequential",
+   "preset": false,
+   "need": 11,
+   "decoys": 0,
+   "free": 25
+  },
+  {
+   "level": 12,
+   "round": 2,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 12,
+   "round": 3,
+   "mode": "static",
+   "preset": false,
+   "need": 11,
+   "decoys": 0,
+   "free": 14
+  },
+  {
+   "level": 12,
+   "round": 3,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 12,
+   "round": 3,
+   "mode": "sequential",
+   "preset": false,
+   "need": 11,
+   "decoys": 0,
+   "free": 25
+  },
+  {
+   "level": 12,
+   "round": 3,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 12,
+   "round": 4,
+   "mode": "static",
+   "preset": false,
+   "need": 12,
+   "decoys": 0,
+   "free": 12
+  },
+  {
+   "level": 12,
+   "round": 4,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 12,
+   "round": 4,
+   "mode": "sequential",
+   "preset": false,
+   "need": 12,
+   "decoys": 0,
+   "free": 24
+  },
+  {
+   "level": 12,
+   "round": 4,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 12,
+   "round": 5,
+   "mode": "static",
+   "preset": false,
+   "need": 12,
+   "decoys": 0,
+   "free": 12
+  },
+  {
+   "level": 12,
+   "round": 5,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 12,
+   "round": 5,
+   "mode": "sequential",
+   "preset": false,
+   "need": 12,
+   "decoys": 0,
+   "free": 24
+  },
+  {
+   "level": 12,
+   "round": 5,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 12,
+   "round": 6,
+   "mode": "static",
+   "preset": false,
+   "need": 12,
+   "decoys": 0,
+   "free": 12
+  },
+  {
+   "level": 12,
+   "round": 6,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 12,
+   "round": 6,
+   "mode": "sequential",
+   "preset": false,
+   "need": 12,
+   "decoys": 0,
+   "free": 24
+  },
+  {
+   "level": 12,
+   "round": 6,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 12,
+   "round": 7,
+   "mode": "static",
+   "preset": false,
+   "need": 13,
+   "decoys": 0,
+   "free": 10
+  },
+  {
+   "level": 12,
+   "round": 7,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 26
+  },
+  {
+   "level": 12,
+   "round": 7,
+   "mode": "sequential",
+   "preset": false,
+   "need": 13,
+   "decoys": 0,
+   "free": 23
+  },
+  {
+   "level": 12,
+   "round": 7,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 12,
+   "round": 8,
+   "mode": "static",
+   "preset": false,
+   "need": 13,
+   "decoys": 0,
+   "free": 10
+  },
+  {
+   "level": 12,
+   "round": 8,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 26
+  },
+  {
+   "level": 12,
+   "round": 8,
+   "mode": "sequential",
+   "preset": false,
+   "need": 13,
+   "decoys": 0,
+   "free": 23
+  },
+  {
+   "level": 12,
+   "round": 8,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 12,
+   "round": 9,
+   "mode": "static",
+   "preset": false,
+   "need": 13,
+   "decoys": 0,
+   "free": 10
+  },
+  {
+   "level": 12,
+   "round": 9,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 26
+  },
+  {
+   "level": 12,
+   "round": 9,
+   "mode": "sequential",
+   "preset": false,
+   "need": 13,
+   "decoys": 0,
+   "free": 23
+  },
+  {
+   "level": 12,
+   "round": 9,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 12,
+   "round": 10,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 0,
+   "free": 8
+  },
+  {
+   "level": 12,
+   "round": 10,
+   "mode": "static",
+   "preset": true,
+   "need": 6,
+   "decoys": 0,
+   "free": 24
+  },
+  {
+   "level": 12,
+   "round": 10,
+   "mode": "sequential",
+   "preset": false,
+   "need": 14,
+   "decoys": 0,
+   "free": 22
+  },
+  {
+   "level": 12,
+   "round": 10,
+   "mode": "sequential",
+   "preset": true,
+   "need": 6,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 13,
+   "round": 1,
+   "mode": "static",
+   "preset": false,
+   "need": 11,
+   "decoys": 0,
+   "free": 14
+  },
+  {
+   "level": 13,
+   "round": 1,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 13,
+   "round": 1,
+   "mode": "sequential",
+   "preset": false,
+   "need": 11,
+   "decoys": 0,
+   "free": 25
+  },
+  {
+   "level": 13,
+   "round": 1,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 13,
+   "round": 2,
+   "mode": "static",
+   "preset": false,
+   "need": 11,
+   "decoys": 0,
+   "free": 14
+  },
+  {
+   "level": 13,
+   "round": 2,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 13,
+   "round": 2,
+   "mode": "sequential",
+   "preset": false,
+   "need": 11,
+   "decoys": 0,
+   "free": 25
+  },
+  {
+   "level": 13,
+   "round": 2,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 13,
+   "round": 3,
+   "mode": "static",
+   "preset": false,
+   "need": 11,
+   "decoys": 0,
+   "free": 14
+  },
+  {
+   "level": 13,
+   "round": 3,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 13,
+   "round": 3,
+   "mode": "sequential",
+   "preset": false,
+   "need": 11,
+   "decoys": 0,
+   "free": 25
+  },
+  {
+   "level": 13,
+   "round": 3,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 13,
+   "round": 4,
+   "mode": "static",
+   "preset": false,
+   "need": 12,
+   "decoys": 0,
+   "free": 12
+  },
+  {
+   "level": 13,
+   "round": 4,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 13,
+   "round": 4,
+   "mode": "sequential",
+   "preset": false,
+   "need": 12,
+   "decoys": 0,
+   "free": 24
+  },
+  {
+   "level": 13,
+   "round": 4,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 13,
+   "round": 5,
+   "mode": "static",
+   "preset": false,
+   "need": 12,
+   "decoys": 0,
+   "free": 12
+  },
+  {
+   "level": 13,
+   "round": 5,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 13,
+   "round": 5,
+   "mode": "sequential",
+   "preset": false,
+   "need": 12,
+   "decoys": 0,
+   "free": 24
+  },
+  {
+   "level": 13,
+   "round": 5,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 13,
+   "round": 6,
+   "mode": "static",
+   "preset": false,
+   "need": 12,
+   "decoys": 0,
+   "free": 12
+  },
+  {
+   "level": 13,
+   "round": 6,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 13,
+   "round": 6,
+   "mode": "sequential",
+   "preset": false,
+   "need": 12,
+   "decoys": 0,
+   "free": 24
+  },
+  {
+   "level": 13,
+   "round": 6,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 13,
+   "round": 7,
+   "mode": "static",
+   "preset": false,
+   "need": 13,
+   "decoys": 0,
+   "free": 10
+  },
+  {
+   "level": 13,
+   "round": 7,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 26
+  },
+  {
+   "level": 13,
+   "round": 7,
+   "mode": "sequential",
+   "preset": false,
+   "need": 13,
+   "decoys": 0,
+   "free": 23
+  },
+  {
+   "level": 13,
+   "round": 7,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 13,
+   "round": 8,
+   "mode": "static",
+   "preset": false,
+   "need": 13,
+   "decoys": 0,
+   "free": 10
+  },
+  {
+   "level": 13,
+   "round": 8,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 26
+  },
+  {
+   "level": 13,
+   "round": 8,
+   "mode": "sequential",
+   "preset": false,
+   "need": 13,
+   "decoys": 0,
+   "free": 23
+  },
+  {
+   "level": 13,
+   "round": 8,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 13,
+   "round": 9,
+   "mode": "static",
+   "preset": false,
+   "need": 13,
+   "decoys": 0,
+   "free": 10
+  },
+  {
+   "level": 13,
+   "round": 9,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 26
+  },
+  {
+   "level": 13,
+   "round": 9,
+   "mode": "sequential",
+   "preset": false,
+   "need": 13,
+   "decoys": 0,
+   "free": 23
+  },
+  {
+   "level": 13,
+   "round": 9,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 13,
+   "round": 10,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 0,
+   "free": 8
+  },
+  {
+   "level": 13,
+   "round": 10,
+   "mode": "static",
+   "preset": true,
+   "need": 6,
+   "decoys": 0,
+   "free": 24
+  },
+  {
+   "level": 13,
+   "round": 10,
+   "mode": "sequential",
+   "preset": false,
+   "need": 14,
+   "decoys": 0,
+   "free": 22
+  },
+  {
+   "level": 13,
+   "round": 10,
+   "mode": "sequential",
+   "preset": true,
+   "need": 6,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 14,
+   "round": 1,
+   "mode": "static",
+   "preset": false,
+   "need": 12,
+   "decoys": 0,
+   "free": 12
+  },
+  {
+   "level": 14,
+   "round": 1,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 14,
+   "round": 1,
+   "mode": "sequential",
+   "preset": false,
+   "need": 12,
+   "decoys": 0,
+   "free": 24
+  },
+  {
+   "level": 14,
+   "round": 1,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 14,
+   "round": 2,
+   "mode": "static",
+   "preset": false,
+   "need": 12,
+   "decoys": 0,
+   "free": 12
+  },
+  {
+   "level": 14,
+   "round": 2,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 14,
+   "round": 2,
+   "mode": "sequential",
+   "preset": false,
+   "need": 12,
+   "decoys": 0,
+   "free": 24
+  },
+  {
+   "level": 14,
+   "round": 2,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 14,
+   "round": 3,
+   "mode": "static",
+   "preset": false,
+   "need": 12,
+   "decoys": 0,
+   "free": 12
+  },
+  {
+   "level": 14,
+   "round": 3,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 14,
+   "round": 3,
+   "mode": "sequential",
+   "preset": false,
+   "need": 12,
+   "decoys": 0,
+   "free": 24
+  },
+  {
+   "level": 14,
+   "round": 3,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 14,
+   "round": 4,
+   "mode": "static",
+   "preset": false,
+   "need": 13,
+   "decoys": 0,
+   "free": 10
+  },
+  {
+   "level": 14,
+   "round": 4,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 14,
+   "round": 4,
+   "mode": "sequential",
+   "preset": false,
+   "need": 13,
+   "decoys": 0,
+   "free": 23
+  },
+  {
+   "level": 14,
+   "round": 4,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 14,
+   "round": 5,
+   "mode": "static",
+   "preset": false,
+   "need": 13,
+   "decoys": 0,
+   "free": 10
+  },
+  {
+   "level": 14,
+   "round": 5,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 14,
+   "round": 5,
+   "mode": "sequential",
+   "preset": false,
+   "need": 13,
+   "decoys": 0,
+   "free": 23
+  },
+  {
+   "level": 14,
+   "round": 5,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 14,
+   "round": 6,
+   "mode": "static",
+   "preset": false,
+   "need": 13,
+   "decoys": 0,
+   "free": 10
+  },
+  {
+   "level": 14,
+   "round": 6,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 14,
+   "round": 6,
+   "mode": "sequential",
+   "preset": false,
+   "need": 13,
+   "decoys": 0,
+   "free": 23
+  },
+  {
+   "level": 14,
+   "round": 6,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 14,
+   "round": 7,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 0,
+   "free": 8
+  },
+  {
+   "level": 14,
+   "round": 7,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 26
+  },
+  {
+   "level": 14,
+   "round": 7,
+   "mode": "sequential",
+   "preset": false,
+   "need": 14,
+   "decoys": 0,
+   "free": 22
+  },
+  {
+   "level": 14,
+   "round": 7,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 14,
+   "round": 8,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 0,
+   "free": 8
+  },
+  {
+   "level": 14,
+   "round": 8,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 26
+  },
+  {
+   "level": 14,
+   "round": 8,
+   "mode": "sequential",
+   "preset": false,
+   "need": 14,
+   "decoys": 0,
+   "free": 22
+  },
+  {
+   "level": 14,
+   "round": 8,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 14,
+   "round": 9,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 0,
+   "free": 8
+  },
+  {
+   "level": 14,
+   "round": 9,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 26
+  },
+  {
+   "level": 14,
+   "round": 9,
+   "mode": "sequential",
+   "preset": false,
+   "need": 14,
+   "decoys": 0,
+   "free": 22
+  },
+  {
+   "level": 14,
+   "round": 9,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 14,
+   "round": 10,
+   "mode": "static",
+   "preset": false,
+   "need": 15,
+   "decoys": 0,
+   "free": 6
+  },
+  {
+   "level": 14,
+   "round": 10,
+   "mode": "static",
+   "preset": true,
+   "need": 6,
+   "decoys": 0,
+   "free": 24
+  },
+  {
+   "level": 14,
+   "round": 10,
+   "mode": "sequential",
+   "preset": false,
+   "need": 15,
+   "decoys": 0,
+   "free": 21
+  },
+  {
+   "level": 14,
+   "round": 10,
+   "mode": "sequential",
+   "preset": true,
+   "need": 6,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 15,
+   "round": 1,
+   "mode": "static",
+   "preset": false,
+   "need": 13,
+   "decoys": 0,
+   "free": 10
+  },
+  {
+   "level": 15,
+   "round": 1,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 15,
+   "round": 1,
+   "mode": "sequential",
+   "preset": false,
+   "need": 13,
+   "decoys": 0,
+   "free": 23
+  },
+  {
+   "level": 15,
+   "round": 1,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 15,
+   "round": 2,
+   "mode": "static",
+   "preset": false,
+   "need": 13,
+   "decoys": 0,
+   "free": 10
+  },
+  {
+   "level": 15,
+   "round": 2,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 15,
+   "round": 2,
+   "mode": "sequential",
+   "preset": false,
+   "need": 13,
+   "decoys": 0,
+   "free": 23
+  },
+  {
+   "level": 15,
+   "round": 2,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 15,
+   "round": 3,
+   "mode": "static",
+   "preset": false,
+   "need": 13,
+   "decoys": 0,
+   "free": 10
+  },
+  {
+   "level": 15,
+   "round": 3,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 15,
+   "round": 3,
+   "mode": "sequential",
+   "preset": false,
+   "need": 13,
+   "decoys": 0,
+   "free": 23
+  },
+  {
+   "level": 15,
+   "round": 3,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 15,
+   "round": 4,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 0,
+   "free": 8
+  },
+  {
+   "level": 15,
+   "round": 4,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 15,
+   "round": 4,
+   "mode": "sequential",
+   "preset": false,
+   "need": 14,
+   "decoys": 0,
+   "free": 22
+  },
+  {
+   "level": 15,
+   "round": 4,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 15,
+   "round": 5,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 0,
+   "free": 8
+  },
+  {
+   "level": 15,
+   "round": 5,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 15,
+   "round": 5,
+   "mode": "sequential",
+   "preset": false,
+   "need": 14,
+   "decoys": 0,
+   "free": 22
+  },
+  {
+   "level": 15,
+   "round": 5,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 15,
+   "round": 6,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 0,
+   "free": 8
+  },
+  {
+   "level": 15,
+   "round": 6,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 15,
+   "round": 6,
+   "mode": "sequential",
+   "preset": false,
+   "need": 14,
+   "decoys": 0,
+   "free": 22
+  },
+  {
+   "level": 15,
+   "round": 6,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 15,
+   "round": 7,
+   "mode": "static",
+   "preset": false,
+   "need": 15,
+   "decoys": 0,
+   "free": 6
+  },
+  {
+   "level": 15,
+   "round": 7,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 26
+  },
+  {
+   "level": 15,
+   "round": 7,
+   "mode": "sequential",
+   "preset": false,
+   "need": 15,
+   "decoys": 0,
+   "free": 21
+  },
+  {
+   "level": 15,
+   "round": 7,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 15,
+   "round": 8,
+   "mode": "static",
+   "preset": false,
+   "need": 15,
+   "decoys": 0,
+   "free": 6
+  },
+  {
+   "level": 15,
+   "round": 8,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 26
+  },
+  {
+   "level": 15,
+   "round": 8,
+   "mode": "sequential",
+   "preset": false,
+   "need": 15,
+   "decoys": 0,
+   "free": 21
+  },
+  {
+   "level": 15,
+   "round": 8,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 15,
+   "round": 9,
+   "mode": "static",
+   "preset": false,
+   "need": 15,
+   "decoys": 0,
+   "free": 6
+  },
+  {
+   "level": 15,
+   "round": 9,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 26
+  },
+  {
+   "level": 15,
+   "round": 9,
+   "mode": "sequential",
+   "preset": false,
+   "need": 15,
+   "decoys": 0,
+   "free": 21
+  },
+  {
+   "level": 15,
+   "round": 9,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 15,
+   "round": 10,
+   "mode": "static",
+   "preset": false,
+   "need": 16,
+   "decoys": 0,
+   "free": 4
+  },
+  {
+   "level": 15,
+   "round": 10,
+   "mode": "static",
+   "preset": true,
+   "need": 6,
+   "decoys": 0,
+   "free": 24
+  },
+  {
+   "level": 15,
+   "round": 10,
+   "mode": "sequential",
+   "preset": false,
+   "need": 16,
+   "decoys": 0,
+   "free": 20
+  },
+  {
+   "level": 15,
+   "round": 10,
+   "mode": "sequential",
+   "preset": true,
+   "need": 6,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 16,
+   "round": 1,
+   "mode": "static",
+   "preset": false,
+   "need": 13,
+   "decoys": 1,
+   "free": 10
+  },
+  {
+   "level": 16,
+   "round": 1,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 16,
+   "round": 1,
+   "mode": "sequential",
+   "preset": false,
+   "need": 13,
+   "decoys": 1,
+   "free": 23
+  },
+  {
+   "level": 16,
+   "round": 1,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 16,
+   "round": 2,
+   "mode": "static",
+   "preset": false,
+   "need": 13,
+   "decoys": 1,
+   "free": 10
+  },
+  {
+   "level": 16,
+   "round": 2,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 16,
+   "round": 2,
+   "mode": "sequential",
+   "preset": false,
+   "need": 13,
+   "decoys": 1,
+   "free": 23
+  },
+  {
+   "level": 16,
+   "round": 2,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 16,
+   "round": 3,
+   "mode": "static",
+   "preset": false,
+   "need": 13,
+   "decoys": 1,
+   "free": 10
+  },
+  {
+   "level": 16,
+   "round": 3,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 16,
+   "round": 3,
+   "mode": "sequential",
+   "preset": false,
+   "need": 13,
+   "decoys": 1,
+   "free": 23
+  },
+  {
+   "level": 16,
+   "round": 3,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 16,
+   "round": 4,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 1,
+   "free": 8
+  },
+  {
+   "level": 16,
+   "round": 4,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 16,
+   "round": 4,
+   "mode": "sequential",
+   "preset": false,
+   "need": 14,
+   "decoys": 1,
+   "free": 22
+  },
+  {
+   "level": 16,
+   "round": 4,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 16,
+   "round": 5,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 1,
+   "free": 8
+  },
+  {
+   "level": 16,
+   "round": 5,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 16,
+   "round": 5,
+   "mode": "sequential",
+   "preset": false,
+   "need": 14,
+   "decoys": 1,
+   "free": 22
+  },
+  {
+   "level": 16,
+   "round": 5,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 16,
+   "round": 6,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 1,
+   "free": 8
+  },
+  {
+   "level": 16,
+   "round": 6,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 16,
+   "round": 6,
+   "mode": "sequential",
+   "preset": false,
+   "need": 14,
+   "decoys": 1,
+   "free": 22
+  },
+  {
+   "level": 16,
+   "round": 6,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 16,
+   "round": 7,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 1,
+   "free": 8
+  },
+  {
+   "level": 16,
+   "round": 7,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 26
+  },
+  {
+   "level": 16,
+   "round": 7,
+   "mode": "sequential",
+   "preset": false,
+   "need": 15,
+   "decoys": 1,
+   "free": 21
+  },
+  {
+   "level": 16,
+   "round": 7,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 16,
+   "round": 8,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 1,
+   "free": 8
+  },
+  {
+   "level": 16,
+   "round": 8,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 26
+  },
+  {
+   "level": 16,
+   "round": 8,
+   "mode": "sequential",
+   "preset": false,
+   "need": 15,
+   "decoys": 1,
+   "free": 21
+  },
+  {
+   "level": 16,
+   "round": 8,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 16,
+   "round": 9,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 1,
+   "free": 8
+  },
+  {
+   "level": 16,
+   "round": 9,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 26
+  },
+  {
+   "level": 16,
+   "round": 9,
+   "mode": "sequential",
+   "preset": false,
+   "need": 15,
+   "decoys": 1,
+   "free": 21
+  },
+  {
+   "level": 16,
+   "round": 9,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 16,
+   "round": 10,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 1,
+   "free": 8
+  },
+  {
+   "level": 16,
+   "round": 10,
+   "mode": "static",
+   "preset": true,
+   "need": 6,
+   "decoys": 0,
+   "free": 24
+  },
+  {
+   "level": 16,
+   "round": 10,
+   "mode": "sequential",
+   "preset": false,
+   "need": 16,
+   "decoys": 1,
+   "free": 20
+  },
+  {
+   "level": 16,
+   "round": 10,
+   "mode": "sequential",
+   "preset": true,
+   "need": 6,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 17,
+   "round": 1,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 2,
+   "free": 8
+  },
+  {
+   "level": 17,
+   "round": 1,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 17,
+   "round": 1,
+   "mode": "sequential",
+   "preset": false,
+   "need": 14,
+   "decoys": 2,
+   "free": 22
+  },
+  {
+   "level": 17,
+   "round": 1,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 17,
+   "round": 2,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 2,
+   "free": 8
+  },
+  {
+   "level": 17,
+   "round": 2,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 17,
+   "round": 2,
+   "mode": "sequential",
+   "preset": false,
+   "need": 14,
+   "decoys": 2,
+   "free": 22
+  },
+  {
+   "level": 17,
+   "round": 2,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 17,
+   "round": 3,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 2,
+   "free": 8
+  },
+  {
+   "level": 17,
+   "round": 3,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 17,
+   "round": 3,
+   "mode": "sequential",
+   "preset": false,
+   "need": 14,
+   "decoys": 2,
+   "free": 22
+  },
+  {
+   "level": 17,
+   "round": 3,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 17,
+   "round": 4,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 2,
+   "free": 8
+  },
+  {
+   "level": 17,
+   "round": 4,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 17,
+   "round": 4,
+   "mode": "sequential",
+   "preset": false,
+   "need": 15,
+   "decoys": 2,
+   "free": 21
+  },
+  {
+   "level": 17,
+   "round": 4,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 17,
+   "round": 5,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 2,
+   "free": 8
+  },
+  {
+   "level": 17,
+   "round": 5,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 17,
+   "round": 5,
+   "mode": "sequential",
+   "preset": false,
+   "need": 15,
+   "decoys": 2,
+   "free": 21
+  },
+  {
+   "level": 17,
+   "round": 5,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 17,
+   "round": 6,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 2,
+   "free": 8
+  },
+  {
+   "level": 17,
+   "round": 6,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 17,
+   "round": 6,
+   "mode": "sequential",
+   "preset": false,
+   "need": 15,
+   "decoys": 2,
+   "free": 21
+  },
+  {
+   "level": 17,
+   "round": 6,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 17,
+   "round": 7,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 2,
+   "free": 8
+  },
+  {
+   "level": 17,
+   "round": 7,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 26
+  },
+  {
+   "level": 17,
+   "round": 7,
+   "mode": "sequential",
+   "preset": false,
+   "need": 16,
+   "decoys": 2,
+   "free": 20
+  },
+  {
+   "level": 17,
+   "round": 7,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 17,
+   "round": 8,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 2,
+   "free": 8
+  },
+  {
+   "level": 17,
+   "round": 8,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 26
+  },
+  {
+   "level": 17,
+   "round": 8,
+   "mode": "sequential",
+   "preset": false,
+   "need": 16,
+   "decoys": 2,
+   "free": 20
+  },
+  {
+   "level": 17,
+   "round": 8,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 17,
+   "round": 9,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 2,
+   "free": 8
+  },
+  {
+   "level": 17,
+   "round": 9,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 26
+  },
+  {
+   "level": 17,
+   "round": 9,
+   "mode": "sequential",
+   "preset": false,
+   "need": 16,
+   "decoys": 2,
+   "free": 20
+  },
+  {
+   "level": 17,
+   "round": 9,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 17,
+   "round": 10,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 2,
+   "free": 8
+  },
+  {
+   "level": 17,
+   "round": 10,
+   "mode": "static",
+   "preset": true,
+   "need": 6,
+   "decoys": 0,
+   "free": 24
+  },
+  {
+   "level": 17,
+   "round": 10,
+   "mode": "sequential",
+   "preset": false,
+   "need": 17,
+   "decoys": 2,
+   "free": 19
+  },
+  {
+   "level": 17,
+   "round": 10,
+   "mode": "sequential",
+   "preset": true,
+   "need": 6,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 18,
+   "round": 1,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 3,
+   "free": 8
+  },
+  {
+   "level": 18,
+   "round": 1,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 18,
+   "round": 1,
+   "mode": "sequential",
+   "preset": false,
+   "need": 15,
+   "decoys": 3,
+   "free": 21
+  },
+  {
+   "level": 18,
+   "round": 1,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 18,
+   "round": 2,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 3,
+   "free": 8
+  },
+  {
+   "level": 18,
+   "round": 2,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 18,
+   "round": 2,
+   "mode": "sequential",
+   "preset": false,
+   "need": 15,
+   "decoys": 3,
+   "free": 21
+  },
+  {
+   "level": 18,
+   "round": 2,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 18,
+   "round": 3,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 3,
+   "free": 8
+  },
+  {
+   "level": 18,
+   "round": 3,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 18,
+   "round": 3,
+   "mode": "sequential",
+   "preset": false,
+   "need": 15,
+   "decoys": 3,
+   "free": 21
+  },
+  {
+   "level": 18,
+   "round": 3,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 18,
+   "round": 4,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 3,
+   "free": 8
+  },
+  {
+   "level": 18,
+   "round": 4,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 18,
+   "round": 4,
+   "mode": "sequential",
+   "preset": false,
+   "need": 16,
+   "decoys": 3,
+   "free": 20
+  },
+  {
+   "level": 18,
+   "round": 4,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 18,
+   "round": 5,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 3,
+   "free": 8
+  },
+  {
+   "level": 18,
+   "round": 5,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 18,
+   "round": 5,
+   "mode": "sequential",
+   "preset": false,
+   "need": 16,
+   "decoys": 3,
+   "free": 20
+  },
+  {
+   "level": 18,
+   "round": 5,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 18,
+   "round": 6,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 3,
+   "free": 8
+  },
+  {
+   "level": 18,
+   "round": 6,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 18,
+   "round": 6,
+   "mode": "sequential",
+   "preset": false,
+   "need": 16,
+   "decoys": 3,
+   "free": 20
+  },
+  {
+   "level": 18,
+   "round": 6,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 18,
+   "round": 7,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 3,
+   "free": 8
+  },
+  {
+   "level": 18,
+   "round": 7,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 26
+  },
+  {
+   "level": 18,
+   "round": 7,
+   "mode": "sequential",
+   "preset": false,
+   "need": 17,
+   "decoys": 3,
+   "free": 19
+  },
+  {
+   "level": 18,
+   "round": 7,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 18,
+   "round": 8,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 3,
+   "free": 8
+  },
+  {
+   "level": 18,
+   "round": 8,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 26
+  },
+  {
+   "level": 18,
+   "round": 8,
+   "mode": "sequential",
+   "preset": false,
+   "need": 17,
+   "decoys": 3,
+   "free": 19
+  },
+  {
+   "level": 18,
+   "round": 8,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 18,
+   "round": 9,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 3,
+   "free": 8
+  },
+  {
+   "level": 18,
+   "round": 9,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 26
+  },
+  {
+   "level": 18,
+   "round": 9,
+   "mode": "sequential",
+   "preset": false,
+   "need": 17,
+   "decoys": 3,
+   "free": 19
+  },
+  {
+   "level": 18,
+   "round": 9,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 18,
+   "round": 10,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 3,
+   "free": 8
+  },
+  {
+   "level": 18,
+   "round": 10,
+   "mode": "static",
+   "preset": true,
+   "need": 6,
+   "decoys": 0,
+   "free": 24
+  },
+  {
+   "level": 18,
+   "round": 10,
+   "mode": "sequential",
+   "preset": false,
+   "need": 18,
+   "decoys": 3,
+   "free": 18
+  },
+  {
+   "level": 18,
+   "round": 10,
+   "mode": "sequential",
+   "preset": true,
+   "need": 6,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 19,
+   "round": 1,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 4,
+   "free": 8
+  },
+  {
+   "level": 19,
+   "round": 1,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 19,
+   "round": 1,
+   "mode": "sequential",
+   "preset": false,
+   "need": 15,
+   "decoys": 4,
+   "free": 21
+  },
+  {
+   "level": 19,
+   "round": 1,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 19,
+   "round": 2,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 4,
+   "free": 8
+  },
+  {
+   "level": 19,
+   "round": 2,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 19,
+   "round": 2,
+   "mode": "sequential",
+   "preset": false,
+   "need": 15,
+   "decoys": 4,
+   "free": 21
+  },
+  {
+   "level": 19,
+   "round": 2,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 19,
+   "round": 3,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 4,
+   "free": 8
+  },
+  {
+   "level": 19,
+   "round": 3,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 19,
+   "round": 3,
+   "mode": "sequential",
+   "preset": false,
+   "need": 15,
+   "decoys": 4,
+   "free": 21
+  },
+  {
+   "level": 19,
+   "round": 3,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 19,
+   "round": 4,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 4,
+   "free": 8
+  },
+  {
+   "level": 19,
+   "round": 4,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 19,
+   "round": 4,
+   "mode": "sequential",
+   "preset": false,
+   "need": 16,
+   "decoys": 4,
+   "free": 20
+  },
+  {
+   "level": 19,
+   "round": 4,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 19,
+   "round": 5,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 4,
+   "free": 8
+  },
+  {
+   "level": 19,
+   "round": 5,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 19,
+   "round": 5,
+   "mode": "sequential",
+   "preset": false,
+   "need": 16,
+   "decoys": 4,
+   "free": 20
+  },
+  {
+   "level": 19,
+   "round": 5,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 19,
+   "round": 6,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 4,
+   "free": 8
+  },
+  {
+   "level": 19,
+   "round": 6,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 19,
+   "round": 6,
+   "mode": "sequential",
+   "preset": false,
+   "need": 16,
+   "decoys": 4,
+   "free": 20
+  },
+  {
+   "level": 19,
+   "round": 6,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 19,
+   "round": 7,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 4,
+   "free": 8
+  },
+  {
+   "level": 19,
+   "round": 7,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 26
+  },
+  {
+   "level": 19,
+   "round": 7,
+   "mode": "sequential",
+   "preset": false,
+   "need": 17,
+   "decoys": 4,
+   "free": 19
+  },
+  {
+   "level": 19,
+   "round": 7,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 19,
+   "round": 8,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 4,
+   "free": 8
+  },
+  {
+   "level": 19,
+   "round": 8,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 26
+  },
+  {
+   "level": 19,
+   "round": 8,
+   "mode": "sequential",
+   "preset": false,
+   "need": 17,
+   "decoys": 4,
+   "free": 19
+  },
+  {
+   "level": 19,
+   "round": 8,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 19,
+   "round": 9,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 4,
+   "free": 8
+  },
+  {
+   "level": 19,
+   "round": 9,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 26
+  },
+  {
+   "level": 19,
+   "round": 9,
+   "mode": "sequential",
+   "preset": false,
+   "need": 17,
+   "decoys": 4,
+   "free": 19
+  },
+  {
+   "level": 19,
+   "round": 9,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 19,
+   "round": 10,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 4,
+   "free": 8
+  },
+  {
+   "level": 19,
+   "round": 10,
+   "mode": "static",
+   "preset": true,
+   "need": 6,
+   "decoys": 0,
+   "free": 24
+  },
+  {
+   "level": 19,
+   "round": 10,
+   "mode": "sequential",
+   "preset": false,
+   "need": 18,
+   "decoys": 4,
+   "free": 18
+  },
+  {
+   "level": 19,
+   "round": 10,
+   "mode": "sequential",
+   "preset": true,
+   "need": 6,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 20,
+   "round": 1,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 5,
+   "free": 8
+  },
+  {
+   "level": 20,
+   "round": 1,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 20,
+   "round": 1,
+   "mode": "sequential",
+   "preset": false,
+   "need": 16,
+   "decoys": 5,
+   "free": 20
+  },
+  {
+   "level": 20,
+   "round": 1,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 20,
+   "round": 2,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 5,
+   "free": 8
+  },
+  {
+   "level": 20,
+   "round": 2,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 20,
+   "round": 2,
+   "mode": "sequential",
+   "preset": false,
+   "need": 16,
+   "decoys": 5,
+   "free": 20
+  },
+  {
+   "level": 20,
+   "round": 2,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 20,
+   "round": 3,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 5,
+   "free": 8
+  },
+  {
+   "level": 20,
+   "round": 3,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 20,
+   "round": 3,
+   "mode": "sequential",
+   "preset": false,
+   "need": 16,
+   "decoys": 5,
+   "free": 20
+  },
+  {
+   "level": 20,
+   "round": 3,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 20,
+   "round": 4,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 5,
+   "free": 8
+  },
+  {
+   "level": 20,
+   "round": 4,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 20,
+   "round": 4,
+   "mode": "sequential",
+   "preset": false,
+   "need": 17,
+   "decoys": 5,
+   "free": 19
+  },
+  {
+   "level": 20,
+   "round": 4,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 20,
+   "round": 5,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 5,
+   "free": 8
+  },
+  {
+   "level": 20,
+   "round": 5,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 20,
+   "round": 5,
+   "mode": "sequential",
+   "preset": false,
+   "need": 17,
+   "decoys": 5,
+   "free": 19
+  },
+  {
+   "level": 20,
+   "round": 5,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 20,
+   "round": 6,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 5,
+   "free": 8
+  },
+  {
+   "level": 20,
+   "round": 6,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 20,
+   "round": 6,
+   "mode": "sequential",
+   "preset": false,
+   "need": 17,
+   "decoys": 5,
+   "free": 19
+  },
+  {
+   "level": 20,
+   "round": 6,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 20,
+   "round": 7,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 5,
+   "free": 8
+  },
+  {
+   "level": 20,
+   "round": 7,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 26
+  },
+  {
+   "level": 20,
+   "round": 7,
+   "mode": "sequential",
+   "preset": false,
+   "need": 18,
+   "decoys": 5,
+   "free": 18
+  },
+  {
+   "level": 20,
+   "round": 7,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 20,
+   "round": 8,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 5,
+   "free": 8
+  },
+  {
+   "level": 20,
+   "round": 8,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 26
+  },
+  {
+   "level": 20,
+   "round": 8,
+   "mode": "sequential",
+   "preset": false,
+   "need": 18,
+   "decoys": 5,
+   "free": 18
+  },
+  {
+   "level": 20,
+   "round": 8,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 20,
+   "round": 9,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 5,
+   "free": 8
+  },
+  {
+   "level": 20,
+   "round": 9,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 26
+  },
+  {
+   "level": 20,
+   "round": 9,
+   "mode": "sequential",
+   "preset": false,
+   "need": 18,
+   "decoys": 5,
+   "free": 18
+  },
+  {
+   "level": 20,
+   "round": 9,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 20,
+   "round": 10,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 5,
+   "free": 8
+  },
+  {
+   "level": 20,
+   "round": 10,
+   "mode": "static",
+   "preset": true,
+   "need": 6,
+   "decoys": 0,
+   "free": 24
+  },
+  {
+   "level": 20,
+   "round": 10,
+   "mode": "sequential",
+   "preset": false,
+   "need": 19,
+   "decoys": 5,
+   "free": 17
+  },
+  {
+   "level": 20,
+   "round": 10,
+   "mode": "sequential",
+   "preset": true,
+   "need": 6,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 21,
+   "round": 1,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 21,
+   "round": 1,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 21,
+   "round": 1,
+   "mode": "sequential",
+   "preset": false,
+   "need": 17,
+   "decoys": 6,
+   "free": 19
+  },
+  {
+   "level": 21,
+   "round": 1,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 21,
+   "round": 2,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 21,
+   "round": 2,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 21,
+   "round": 2,
+   "mode": "sequential",
+   "preset": false,
+   "need": 17,
+   "decoys": 6,
+   "free": 19
+  },
+  {
+   "level": 21,
+   "round": 2,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 21,
+   "round": 3,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 21,
+   "round": 3,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 21,
+   "round": 3,
+   "mode": "sequential",
+   "preset": false,
+   "need": 17,
+   "decoys": 6,
+   "free": 19
+  },
+  {
+   "level": 21,
+   "round": 3,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 21,
+   "round": 4,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 21,
+   "round": 4,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 21,
+   "round": 4,
+   "mode": "sequential",
+   "preset": false,
+   "need": 18,
+   "decoys": 6,
+   "free": 18
+  },
+  {
+   "level": 21,
+   "round": 4,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 21,
+   "round": 5,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 21,
+   "round": 5,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 21,
+   "round": 5,
+   "mode": "sequential",
+   "preset": false,
+   "need": 18,
+   "decoys": 6,
+   "free": 18
+  },
+  {
+   "level": 21,
+   "round": 5,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 21,
+   "round": 6,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 21,
+   "round": 6,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 21,
+   "round": 6,
+   "mode": "sequential",
+   "preset": false,
+   "need": 18,
+   "decoys": 6,
+   "free": 18
+  },
+  {
+   "level": 21,
+   "round": 6,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 21,
+   "round": 7,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 21,
+   "round": 7,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 26
+  },
+  {
+   "level": 21,
+   "round": 7,
+   "mode": "sequential",
+   "preset": false,
+   "need": 19,
+   "decoys": 6,
+   "free": 17
+  },
+  {
+   "level": 21,
+   "round": 7,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 21,
+   "round": 8,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 21,
+   "round": 8,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 26
+  },
+  {
+   "level": 21,
+   "round": 8,
+   "mode": "sequential",
+   "preset": false,
+   "need": 19,
+   "decoys": 6,
+   "free": 17
+  },
+  {
+   "level": 21,
+   "round": 8,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 21,
+   "round": 9,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 21,
+   "round": 9,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 26
+  },
+  {
+   "level": 21,
+   "round": 9,
+   "mode": "sequential",
+   "preset": false,
+   "need": 19,
+   "decoys": 6,
+   "free": 17
+  },
+  {
+   "level": 21,
+   "round": 9,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 21,
+   "round": 10,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 21,
+   "round": 10,
+   "mode": "static",
+   "preset": true,
+   "need": 6,
+   "decoys": 0,
+   "free": 24
+  },
+  {
+   "level": 21,
+   "round": 10,
+   "mode": "sequential",
+   "preset": false,
+   "need": 20,
+   "decoys": 6,
+   "free": 16
+  },
+  {
+   "level": 21,
+   "round": 10,
+   "mode": "sequential",
+   "preset": true,
+   "need": 6,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 22,
+   "round": 1,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 22,
+   "round": 1,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 22,
+   "round": 1,
+   "mode": "sequential",
+   "preset": false,
+   "need": 17,
+   "decoys": 6,
+   "free": 19
+  },
+  {
+   "level": 22,
+   "round": 1,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 22,
+   "round": 2,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 22,
+   "round": 2,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 22,
+   "round": 2,
+   "mode": "sequential",
+   "preset": false,
+   "need": 17,
+   "decoys": 6,
+   "free": 19
+  },
+  {
+   "level": 22,
+   "round": 2,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 22,
+   "round": 3,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 22,
+   "round": 3,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 22,
+   "round": 3,
+   "mode": "sequential",
+   "preset": false,
+   "need": 17,
+   "decoys": 6,
+   "free": 19
+  },
+  {
+   "level": 22,
+   "round": 3,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 22,
+   "round": 4,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 22,
+   "round": 4,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 22,
+   "round": 4,
+   "mode": "sequential",
+   "preset": false,
+   "need": 18,
+   "decoys": 6,
+   "free": 18
+  },
+  {
+   "level": 22,
+   "round": 4,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 22,
+   "round": 5,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 22,
+   "round": 5,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 22,
+   "round": 5,
+   "mode": "sequential",
+   "preset": false,
+   "need": 18,
+   "decoys": 6,
+   "free": 18
+  },
+  {
+   "level": 22,
+   "round": 5,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 22,
+   "round": 6,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 22,
+   "round": 6,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 22,
+   "round": 6,
+   "mode": "sequential",
+   "preset": false,
+   "need": 18,
+   "decoys": 6,
+   "free": 18
+  },
+  {
+   "level": 22,
+   "round": 6,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 22,
+   "round": 7,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 22,
+   "round": 7,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 26
+  },
+  {
+   "level": 22,
+   "round": 7,
+   "mode": "sequential",
+   "preset": false,
+   "need": 19,
+   "decoys": 6,
+   "free": 17
+  },
+  {
+   "level": 22,
+   "round": 7,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 22,
+   "round": 8,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 22,
+   "round": 8,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 26
+  },
+  {
+   "level": 22,
+   "round": 8,
+   "mode": "sequential",
+   "preset": false,
+   "need": 19,
+   "decoys": 6,
+   "free": 17
+  },
+  {
+   "level": 22,
+   "round": 8,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 22,
+   "round": 9,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 22,
+   "round": 9,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 26
+  },
+  {
+   "level": 22,
+   "round": 9,
+   "mode": "sequential",
+   "preset": false,
+   "need": 19,
+   "decoys": 6,
+   "free": 17
+  },
+  {
+   "level": 22,
+   "round": 9,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 22,
+   "round": 10,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 22,
+   "round": 10,
+   "mode": "static",
+   "preset": true,
+   "need": 6,
+   "decoys": 0,
+   "free": 24
+  },
+  {
+   "level": 22,
+   "round": 10,
+   "mode": "sequential",
+   "preset": false,
+   "need": 20,
+   "decoys": 6,
+   "free": 16
+  },
+  {
+   "level": 22,
+   "round": 10,
+   "mode": "sequential",
+   "preset": true,
+   "need": 6,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 23,
+   "round": 1,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 23,
+   "round": 1,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 23,
+   "round": 1,
+   "mode": "sequential",
+   "preset": false,
+   "need": 18,
+   "decoys": 6,
+   "free": 18
+  },
+  {
+   "level": 23,
+   "round": 1,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 23,
+   "round": 2,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 23,
+   "round": 2,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 23,
+   "round": 2,
+   "mode": "sequential",
+   "preset": false,
+   "need": 18,
+   "decoys": 6,
+   "free": 18
+  },
+  {
+   "level": 23,
+   "round": 2,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 23,
+   "round": 3,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 23,
+   "round": 3,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 23,
+   "round": 3,
+   "mode": "sequential",
+   "preset": false,
+   "need": 18,
+   "decoys": 6,
+   "free": 18
+  },
+  {
+   "level": 23,
+   "round": 3,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 23,
+   "round": 4,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 23,
+   "round": 4,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 23,
+   "round": 4,
+   "mode": "sequential",
+   "preset": false,
+   "need": 19,
+   "decoys": 6,
+   "free": 17
+  },
+  {
+   "level": 23,
+   "round": 4,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 23,
+   "round": 5,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 23,
+   "round": 5,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 23,
+   "round": 5,
+   "mode": "sequential",
+   "preset": false,
+   "need": 19,
+   "decoys": 6,
+   "free": 17
+  },
+  {
+   "level": 23,
+   "round": 5,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 23,
+   "round": 6,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 23,
+   "round": 6,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 23,
+   "round": 6,
+   "mode": "sequential",
+   "preset": false,
+   "need": 19,
+   "decoys": 6,
+   "free": 17
+  },
+  {
+   "level": 23,
+   "round": 6,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 23,
+   "round": 7,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 23,
+   "round": 7,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 26
+  },
+  {
+   "level": 23,
+   "round": 7,
+   "mode": "sequential",
+   "preset": false,
+   "need": 20,
+   "decoys": 6,
+   "free": 16
+  },
+  {
+   "level": 23,
+   "round": 7,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 23,
+   "round": 8,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 23,
+   "round": 8,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 26
+  },
+  {
+   "level": 23,
+   "round": 8,
+   "mode": "sequential",
+   "preset": false,
+   "need": 20,
+   "decoys": 6,
+   "free": 16
+  },
+  {
+   "level": 23,
+   "round": 8,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 23,
+   "round": 9,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 23,
+   "round": 9,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 26
+  },
+  {
+   "level": 23,
+   "round": 9,
+   "mode": "sequential",
+   "preset": false,
+   "need": 20,
+   "decoys": 6,
+   "free": 16
+  },
+  {
+   "level": 23,
+   "round": 9,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 23,
+   "round": 10,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 23,
+   "round": 10,
+   "mode": "static",
+   "preset": true,
+   "need": 6,
+   "decoys": 0,
+   "free": 24
+  },
+  {
+   "level": 23,
+   "round": 10,
+   "mode": "sequential",
+   "preset": false,
+   "need": 21,
+   "decoys": 6,
+   "free": 15
+  },
+  {
+   "level": 23,
+   "round": 10,
+   "mode": "sequential",
+   "preset": true,
+   "need": 6,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 24,
+   "round": 1,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 24,
+   "round": 1,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 24,
+   "round": 1,
+   "mode": "sequential",
+   "preset": false,
+   "need": 19,
+   "decoys": 6,
+   "free": 17
+  },
+  {
+   "level": 24,
+   "round": 1,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 24,
+   "round": 2,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 24,
+   "round": 2,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 24,
+   "round": 2,
+   "mode": "sequential",
+   "preset": false,
+   "need": 19,
+   "decoys": 6,
+   "free": 17
+  },
+  {
+   "level": 24,
+   "round": 2,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 24,
+   "round": 3,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 24,
+   "round": 3,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 24,
+   "round": 3,
+   "mode": "sequential",
+   "preset": false,
+   "need": 19,
+   "decoys": 6,
+   "free": 17
+  },
+  {
+   "level": 24,
+   "round": 3,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 24,
+   "round": 4,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 24,
+   "round": 4,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 24,
+   "round": 4,
+   "mode": "sequential",
+   "preset": false,
+   "need": 20,
+   "decoys": 6,
+   "free": 16
+  },
+  {
+   "level": 24,
+   "round": 4,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 24,
+   "round": 5,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 24,
+   "round": 5,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 24,
+   "round": 5,
+   "mode": "sequential",
+   "preset": false,
+   "need": 20,
+   "decoys": 6,
+   "free": 16
+  },
+  {
+   "level": 24,
+   "round": 5,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 24,
+   "round": 6,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 24,
+   "round": 6,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 24,
+   "round": 6,
+   "mode": "sequential",
+   "preset": false,
+   "need": 20,
+   "decoys": 6,
+   "free": 16
+  },
+  {
+   "level": 24,
+   "round": 6,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 24,
+   "round": 7,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 24,
+   "round": 7,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 26
+  },
+  {
+   "level": 24,
+   "round": 7,
+   "mode": "sequential",
+   "preset": false,
+   "need": 21,
+   "decoys": 6,
+   "free": 15
+  },
+  {
+   "level": 24,
+   "round": 7,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 24,
+   "round": 8,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 24,
+   "round": 8,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 26
+  },
+  {
+   "level": 24,
+   "round": 8,
+   "mode": "sequential",
+   "preset": false,
+   "need": 21,
+   "decoys": 6,
+   "free": 15
+  },
+  {
+   "level": 24,
+   "round": 8,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 24,
+   "round": 9,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 24,
+   "round": 9,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 26
+  },
+  {
+   "level": 24,
+   "round": 9,
+   "mode": "sequential",
+   "preset": false,
+   "need": 21,
+   "decoys": 6,
+   "free": 15
+  },
+  {
+   "level": 24,
+   "round": 9,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 24,
+   "round": 10,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 24,
+   "round": 10,
+   "mode": "static",
+   "preset": true,
+   "need": 6,
+   "decoys": 0,
+   "free": 24
+  },
+  {
+   "level": 24,
+   "round": 10,
+   "mode": "sequential",
+   "preset": false,
+   "need": 22,
+   "decoys": 6,
+   "free": 14
+  },
+  {
+   "level": 24,
+   "round": 10,
+   "mode": "sequential",
+   "preset": true,
+   "need": 6,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 25,
+   "round": 1,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 25,
+   "round": 1,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 25,
+   "round": 1,
+   "mode": "sequential",
+   "preset": false,
+   "need": 19,
+   "decoys": 6,
+   "free": 17
+  },
+  {
+   "level": 25,
+   "round": 1,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 25,
+   "round": 2,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 25,
+   "round": 2,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 25,
+   "round": 2,
+   "mode": "sequential",
+   "preset": false,
+   "need": 19,
+   "decoys": 6,
+   "free": 17
+  },
+  {
+   "level": 25,
+   "round": 2,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 25,
+   "round": 3,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 25,
+   "round": 3,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 25,
+   "round": 3,
+   "mode": "sequential",
+   "preset": false,
+   "need": 19,
+   "decoys": 6,
+   "free": 17
+  },
+  {
+   "level": 25,
+   "round": 3,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 25,
+   "round": 4,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 25,
+   "round": 4,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 25,
+   "round": 4,
+   "mode": "sequential",
+   "preset": false,
+   "need": 20,
+   "decoys": 6,
+   "free": 16
+  },
+  {
+   "level": 25,
+   "round": 4,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 25,
+   "round": 5,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 25,
+   "round": 5,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 25,
+   "round": 5,
+   "mode": "sequential",
+   "preset": false,
+   "need": 20,
+   "decoys": 6,
+   "free": 16
+  },
+  {
+   "level": 25,
+   "round": 5,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 25,
+   "round": 6,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 25,
+   "round": 6,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 25,
+   "round": 6,
+   "mode": "sequential",
+   "preset": false,
+   "need": 20,
+   "decoys": 6,
+   "free": 16
+  },
+  {
+   "level": 25,
+   "round": 6,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 25,
+   "round": 7,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 25,
+   "round": 7,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 26
+  },
+  {
+   "level": 25,
+   "round": 7,
+   "mode": "sequential",
+   "preset": false,
+   "need": 21,
+   "decoys": 6,
+   "free": 15
+  },
+  {
+   "level": 25,
+   "round": 7,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 25,
+   "round": 8,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 25,
+   "round": 8,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 26
+  },
+  {
+   "level": 25,
+   "round": 8,
+   "mode": "sequential",
+   "preset": false,
+   "need": 21,
+   "decoys": 6,
+   "free": 15
+  },
+  {
+   "level": 25,
+   "round": 8,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 25,
+   "round": 9,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 25,
+   "round": 9,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 26
+  },
+  {
+   "level": 25,
+   "round": 9,
+   "mode": "sequential",
+   "preset": false,
+   "need": 21,
+   "decoys": 6,
+   "free": 15
+  },
+  {
+   "level": 25,
+   "round": 9,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 25,
+   "round": 10,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 25,
+   "round": 10,
+   "mode": "static",
+   "preset": true,
+   "need": 6,
+   "decoys": 0,
+   "free": 24
+  },
+  {
+   "level": 25,
+   "round": 10,
+   "mode": "sequential",
+   "preset": false,
+   "need": 22,
+   "decoys": 6,
+   "free": 14
+  },
+  {
+   "level": 25,
+   "round": 10,
+   "mode": "sequential",
+   "preset": true,
+   "need": 6,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 26,
+   "round": 1,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 26,
+   "round": 1,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 26,
+   "round": 1,
+   "mode": "sequential",
+   "preset": false,
+   "need": 20,
+   "decoys": 6,
+   "free": 16
+  },
+  {
+   "level": 26,
+   "round": 1,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 26,
+   "round": 2,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 26,
+   "round": 2,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 26,
+   "round": 2,
+   "mode": "sequential",
+   "preset": false,
+   "need": 20,
+   "decoys": 6,
+   "free": 16
+  },
+  {
+   "level": 26,
+   "round": 2,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 26,
+   "round": 3,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 26,
+   "round": 3,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 26,
+   "round": 3,
+   "mode": "sequential",
+   "preset": false,
+   "need": 20,
+   "decoys": 6,
+   "free": 16
+  },
+  {
+   "level": 26,
+   "round": 3,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 26,
+   "round": 4,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 26,
+   "round": 4,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 26,
+   "round": 4,
+   "mode": "sequential",
+   "preset": false,
+   "need": 21,
+   "decoys": 6,
+   "free": 15
+  },
+  {
+   "level": 26,
+   "round": 4,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 26,
+   "round": 5,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 26,
+   "round": 5,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 26,
+   "round": 5,
+   "mode": "sequential",
+   "preset": false,
+   "need": 21,
+   "decoys": 6,
+   "free": 15
+  },
+  {
+   "level": 26,
+   "round": 5,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 26,
+   "round": 6,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 26,
+   "round": 6,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 26,
+   "round": 6,
+   "mode": "sequential",
+   "preset": false,
+   "need": 21,
+   "decoys": 6,
+   "free": 15
+  },
+  {
+   "level": 26,
+   "round": 6,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 26,
+   "round": 7,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 26,
+   "round": 7,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 26
+  },
+  {
+   "level": 26,
+   "round": 7,
+   "mode": "sequential",
+   "preset": false,
+   "need": 22,
+   "decoys": 6,
+   "free": 14
+  },
+  {
+   "level": 26,
+   "round": 7,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 26,
+   "round": 8,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 26,
+   "round": 8,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 26
+  },
+  {
+   "level": 26,
+   "round": 8,
+   "mode": "sequential",
+   "preset": false,
+   "need": 22,
+   "decoys": 6,
+   "free": 14
+  },
+  {
+   "level": 26,
+   "round": 8,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 26,
+   "round": 9,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 26,
+   "round": 9,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 26
+  },
+  {
+   "level": 26,
+   "round": 9,
+   "mode": "sequential",
+   "preset": false,
+   "need": 22,
+   "decoys": 6,
+   "free": 14
+  },
+  {
+   "level": 26,
+   "round": 9,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 26,
+   "round": 10,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 26,
+   "round": 10,
+   "mode": "static",
+   "preset": true,
+   "need": 6,
+   "decoys": 0,
+   "free": 24
+  },
+  {
+   "level": 26,
+   "round": 10,
+   "mode": "sequential",
+   "preset": false,
+   "need": 23,
+   "decoys": 6,
+   "free": 13
+  },
+  {
+   "level": 26,
+   "round": 10,
+   "mode": "sequential",
+   "preset": true,
+   "need": 6,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 27,
+   "round": 1,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 27,
+   "round": 1,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 27,
+   "round": 1,
+   "mode": "sequential",
+   "preset": false,
+   "need": 21,
+   "decoys": 6,
+   "free": 15
+  },
+  {
+   "level": 27,
+   "round": 1,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 27,
+   "round": 2,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 27,
+   "round": 2,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 27,
+   "round": 2,
+   "mode": "sequential",
+   "preset": false,
+   "need": 21,
+   "decoys": 6,
+   "free": 15
+  },
+  {
+   "level": 27,
+   "round": 2,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 27,
+   "round": 3,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 27,
+   "round": 3,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 27,
+   "round": 3,
+   "mode": "sequential",
+   "preset": false,
+   "need": 21,
+   "decoys": 6,
+   "free": 15
+  },
+  {
+   "level": 27,
+   "round": 3,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 27,
+   "round": 4,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 27,
+   "round": 4,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 27,
+   "round": 4,
+   "mode": "sequential",
+   "preset": false,
+   "need": 22,
+   "decoys": 6,
+   "free": 14
+  },
+  {
+   "level": 27,
+   "round": 4,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 27,
+   "round": 5,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 27,
+   "round": 5,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 27,
+   "round": 5,
+   "mode": "sequential",
+   "preset": false,
+   "need": 22,
+   "decoys": 6,
+   "free": 14
+  },
+  {
+   "level": 27,
+   "round": 5,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 27,
+   "round": 6,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 27,
+   "round": 6,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 27,
+   "round": 6,
+   "mode": "sequential",
+   "preset": false,
+   "need": 22,
+   "decoys": 6,
+   "free": 14
+  },
+  {
+   "level": 27,
+   "round": 6,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 27,
+   "round": 7,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 27,
+   "round": 7,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 26
+  },
+  {
+   "level": 27,
+   "round": 7,
+   "mode": "sequential",
+   "preset": false,
+   "need": 23,
+   "decoys": 6,
+   "free": 13
+  },
+  {
+   "level": 27,
+   "round": 7,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 27,
+   "round": 8,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 27,
+   "round": 8,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 26
+  },
+  {
+   "level": 27,
+   "round": 8,
+   "mode": "sequential",
+   "preset": false,
+   "need": 23,
+   "decoys": 6,
+   "free": 13
+  },
+  {
+   "level": 27,
+   "round": 8,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 27,
+   "round": 9,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 27,
+   "round": 9,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 26
+  },
+  {
+   "level": 27,
+   "round": 9,
+   "mode": "sequential",
+   "preset": false,
+   "need": 23,
+   "decoys": 6,
+   "free": 13
+  },
+  {
+   "level": 27,
+   "round": 9,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 27,
+   "round": 10,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 27,
+   "round": 10,
+   "mode": "static",
+   "preset": true,
+   "need": 6,
+   "decoys": 0,
+   "free": 24
+  },
+  {
+   "level": 27,
+   "round": 10,
+   "mode": "sequential",
+   "preset": false,
+   "need": 24,
+   "decoys": 6,
+   "free": 12
+  },
+  {
+   "level": 27,
+   "round": 10,
+   "mode": "sequential",
+   "preset": true,
+   "need": 6,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 28,
+   "round": 1,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 28,
+   "round": 1,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 28,
+   "round": 1,
+   "mode": "sequential",
+   "preset": false,
+   "need": 21,
+   "decoys": 6,
+   "free": 15
+  },
+  {
+   "level": 28,
+   "round": 1,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 28,
+   "round": 2,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 28,
+   "round": 2,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 28,
+   "round": 2,
+   "mode": "sequential",
+   "preset": false,
+   "need": 21,
+   "decoys": 6,
+   "free": 15
+  },
+  {
+   "level": 28,
+   "round": 2,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 28,
+   "round": 3,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 28,
+   "round": 3,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 28,
+   "round": 3,
+   "mode": "sequential",
+   "preset": false,
+   "need": 21,
+   "decoys": 6,
+   "free": 15
+  },
+  {
+   "level": 28,
+   "round": 3,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 28,
+   "round": 4,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 28,
+   "round": 4,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 28,
+   "round": 4,
+   "mode": "sequential",
+   "preset": false,
+   "need": 22,
+   "decoys": 6,
+   "free": 14
+  },
+  {
+   "level": 28,
+   "round": 4,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 28,
+   "round": 5,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 28,
+   "round": 5,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 28,
+   "round": 5,
+   "mode": "sequential",
+   "preset": false,
+   "need": 22,
+   "decoys": 6,
+   "free": 14
+  },
+  {
+   "level": 28,
+   "round": 5,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 28,
+   "round": 6,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 28,
+   "round": 6,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 28,
+   "round": 6,
+   "mode": "sequential",
+   "preset": false,
+   "need": 22,
+   "decoys": 6,
+   "free": 14
+  },
+  {
+   "level": 28,
+   "round": 6,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 28,
+   "round": 7,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 28,
+   "round": 7,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 26
+  },
+  {
+   "level": 28,
+   "round": 7,
+   "mode": "sequential",
+   "preset": false,
+   "need": 23,
+   "decoys": 6,
+   "free": 13
+  },
+  {
+   "level": 28,
+   "round": 7,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 28,
+   "round": 8,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 28,
+   "round": 8,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 26
+  },
+  {
+   "level": 28,
+   "round": 8,
+   "mode": "sequential",
+   "preset": false,
+   "need": 23,
+   "decoys": 6,
+   "free": 13
+  },
+  {
+   "level": 28,
+   "round": 8,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 28,
+   "round": 9,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 28,
+   "round": 9,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 26
+  },
+  {
+   "level": 28,
+   "round": 9,
+   "mode": "sequential",
+   "preset": false,
+   "need": 23,
+   "decoys": 6,
+   "free": 13
+  },
+  {
+   "level": 28,
+   "round": 9,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 28,
+   "round": 10,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 28,
+   "round": 10,
+   "mode": "static",
+   "preset": true,
+   "need": 6,
+   "decoys": 0,
+   "free": 24
+  },
+  {
+   "level": 28,
+   "round": 10,
+   "mode": "sequential",
+   "preset": false,
+   "need": 24,
+   "decoys": 6,
+   "free": 12
+  },
+  {
+   "level": 28,
+   "round": 10,
+   "mode": "sequential",
+   "preset": true,
+   "need": 6,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 29,
+   "round": 1,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 29,
+   "round": 1,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 29,
+   "round": 1,
+   "mode": "sequential",
+   "preset": false,
+   "need": 22,
+   "decoys": 6,
+   "free": 14
+  },
+  {
+   "level": 29,
+   "round": 1,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 29,
+   "round": 2,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 29,
+   "round": 2,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 29,
+   "round": 2,
+   "mode": "sequential",
+   "preset": false,
+   "need": 22,
+   "decoys": 6,
+   "free": 14
+  },
+  {
+   "level": 29,
+   "round": 2,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 29,
+   "round": 3,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 29,
+   "round": 3,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 29,
+   "round": 3,
+   "mode": "sequential",
+   "preset": false,
+   "need": 22,
+   "decoys": 6,
+   "free": 14
+  },
+  {
+   "level": 29,
+   "round": 3,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 29,
+   "round": 4,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 29,
+   "round": 4,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 29,
+   "round": 4,
+   "mode": "sequential",
+   "preset": false,
+   "need": 23,
+   "decoys": 6,
+   "free": 13
+  },
+  {
+   "level": 29,
+   "round": 4,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 29,
+   "round": 5,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 29,
+   "round": 5,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 29,
+   "round": 5,
+   "mode": "sequential",
+   "preset": false,
+   "need": 23,
+   "decoys": 6,
+   "free": 13
+  },
+  {
+   "level": 29,
+   "round": 5,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 29,
+   "round": 6,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 29,
+   "round": 6,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 29,
+   "round": 6,
+   "mode": "sequential",
+   "preset": false,
+   "need": 23,
+   "decoys": 6,
+   "free": 13
+  },
+  {
+   "level": 29,
+   "round": 6,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 29,
+   "round": 7,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 29,
+   "round": 7,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 26
+  },
+  {
+   "level": 29,
+   "round": 7,
+   "mode": "sequential",
+   "preset": false,
+   "need": 24,
+   "decoys": 6,
+   "free": 12
+  },
+  {
+   "level": 29,
+   "round": 7,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 29,
+   "round": 8,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 29,
+   "round": 8,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 26
+  },
+  {
+   "level": 29,
+   "round": 8,
+   "mode": "sequential",
+   "preset": false,
+   "need": 24,
+   "decoys": 6,
+   "free": 12
+  },
+  {
+   "level": 29,
+   "round": 8,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 29,
+   "round": 9,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 29,
+   "round": 9,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 26
+  },
+  {
+   "level": 29,
+   "round": 9,
+   "mode": "sequential",
+   "preset": false,
+   "need": 24,
+   "decoys": 6,
+   "free": 12
+  },
+  {
+   "level": 29,
+   "round": 9,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 29,
+   "round": 10,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 29,
+   "round": 10,
+   "mode": "static",
+   "preset": true,
+   "need": 6,
+   "decoys": 0,
+   "free": 24
+  },
+  {
+   "level": 29,
+   "round": 10,
+   "mode": "sequential",
+   "preset": false,
+   "need": 25,
+   "decoys": 6,
+   "free": 11
+  },
+  {
+   "level": 29,
+   "round": 10,
+   "mode": "sequential",
+   "preset": true,
+   "need": 6,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 30,
+   "round": 1,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 30,
+   "round": 1,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 30,
+   "round": 1,
+   "mode": "sequential",
+   "preset": false,
+   "need": 23,
+   "decoys": 6,
+   "free": 13
+  },
+  {
+   "level": 30,
+   "round": 1,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 30,
+   "round": 2,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 30,
+   "round": 2,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 30,
+   "round": 2,
+   "mode": "sequential",
+   "preset": false,
+   "need": 23,
+   "decoys": 6,
+   "free": 13
+  },
+  {
+   "level": 30,
+   "round": 2,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 30,
+   "round": 3,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 30,
+   "round": 3,
+   "mode": "static",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 30
+  },
+  {
+   "level": 30,
+   "round": 3,
+   "mode": "sequential",
+   "preset": false,
+   "need": 23,
+   "decoys": 6,
+   "free": 13
+  },
+  {
+   "level": 30,
+   "round": 3,
+   "mode": "sequential",
+   "preset": true,
+   "need": 3,
+   "decoys": 0,
+   "free": 33
+  },
+  {
+   "level": 30,
+   "round": 4,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 30,
+   "round": 4,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 30,
+   "round": 4,
+   "mode": "sequential",
+   "preset": false,
+   "need": 24,
+   "decoys": 6,
+   "free": 12
+  },
+  {
+   "level": 30,
+   "round": 4,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 30,
+   "round": 5,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 30,
+   "round": 5,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 30,
+   "round": 5,
+   "mode": "sequential",
+   "preset": false,
+   "need": 24,
+   "decoys": 6,
+   "free": 12
+  },
+  {
+   "level": 30,
+   "round": 5,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 30,
+   "round": 6,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 30,
+   "round": 6,
+   "mode": "static",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 30,
+   "round": 6,
+   "mode": "sequential",
+   "preset": false,
+   "need": 24,
+   "decoys": 6,
+   "free": 12
+  },
+  {
+   "level": 30,
+   "round": 6,
+   "mode": "sequential",
+   "preset": true,
+   "need": 4,
+   "decoys": 0,
+   "free": 32
+  },
+  {
+   "level": 30,
+   "round": 7,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 30,
+   "round": 7,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 26
+  },
+  {
+   "level": 30,
+   "round": 7,
+   "mode": "sequential",
+   "preset": false,
+   "need": 25,
+   "decoys": 6,
+   "free": 11
+  },
+  {
+   "level": 30,
+   "round": 7,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 30,
+   "round": 8,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 30,
+   "round": 8,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 26
+  },
+  {
+   "level": 30,
+   "round": 8,
+   "mode": "sequential",
+   "preset": false,
+   "need": 25,
+   "decoys": 6,
+   "free": 11
+  },
+  {
+   "level": 30,
+   "round": 8,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 30,
+   "round": 9,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 30,
+   "round": 9,
+   "mode": "static",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 26
+  },
+  {
+   "level": 30,
+   "round": 9,
+   "mode": "sequential",
+   "preset": false,
+   "need": 25,
+   "decoys": 6,
+   "free": 11
+  },
+  {
+   "level": 30,
+   "round": 9,
+   "mode": "sequential",
+   "preset": true,
+   "need": 5,
+   "decoys": 0,
+   "free": 31
+  },
+  {
+   "level": 30,
+   "round": 10,
+   "mode": "static",
+   "preset": false,
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 30,
+   "round": 10,
+   "mode": "static",
+   "preset": true,
+   "need": 6,
+   "decoys": 0,
+   "free": 24
+  },
+  {
+   "level": 30,
+   "round": 10,
+   "mode": "sequential",
+   "preset": false,
+   "need": 26,
+   "decoys": 6,
+   "free": 10
+  },
+  {
+   "level": 30,
+   "round": 10,
+   "mode": "sequential",
+   "preset": true,
+   "need": 6,
+   "decoys": 0,
+   "free": 30
+  }
+ ],
+ "pauses": [
+  {
+   "caption": "",
+   "prev": "",
+   "ms": 0
+  },
+  {
+   "caption": "",
+   "prev": "",
+   "ms": 0
+  },
+  {
+   "caption": "",
+   "prev": "другая",
+   "ms": 700
+  },
+  {
+   "caption": "Memorise!",
+   "prev": "",
+   "ms": 700
+  },
+  {
+   "caption": "Memorise!",
+   "prev": "Memorise!",
+   "ms": 0
+  },
+  {
+   "caption": "Memorise!",
+   "prev": "другая",
+   "ms": 700
+  },
+  {
+   "caption": "Запомните клетки!",
+   "prev": "",
+   "ms": 782
+  },
+  {
+   "caption": "Запомните клетки!",
+   "prev": "Запомните клетки!",
+   "ms": 0
+  },
+  {
+   "caption": "Запомните клетки!",
+   "prev": "другая",
+   "ms": 782
+  },
+  {
+   "caption": "🟣 Запомни ФИОЛЕТОВЫЕ · Перечёркнутые — мимо",
+   "prev": "",
+   "ms": 2024
+  },
+  {
+   "caption": "🟣 Запомни ФИОЛЕТОВЫЕ · Перечёркнутые — мимо",
+   "prev": "🟣 Запомни ФИОЛЕТОВЫЕ · Перечёркнутые — мимо",
+   "ms": 0
+  },
+  {
+   "caption": "🟣 Запомни ФИОЛЕТОВЫЕ · Перечёркнутые — мимо",
+   "prev": "другая",
+   "ms": 2024
+  },
+  {
+   "caption": "記憶してください",
+   "prev": "",
+   "ms": 700
+  },
+  {
+   "caption": "記憶してください",
+   "prev": "記憶してください",
+   "ms": 0
+  },
+  {
+   "caption": "記憶してください",
+   "prev": "другая",
+   "ms": 700
+  },
+  {
+   "caption": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "prev": "",
+   "ms": 2200
+  },
+  {
+   "caption": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "prev": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "ms": 0
+  },
+  {
+   "caption": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "prev": "другая",
+   "ms": 2200
+  }
+ ],
+ "deals": [
+  {
+   "gs": 3,
+   "need": 3,
+   "two": false,
+   "decoysWanted": 0,
+   "randoms": [
+    0.6270739405881613,
+    0.002735721180215478,
+    0.5274470399599522,
+    0.9810509674716741,
+    0.9683778982143849,
+    0.281103502959013,
+    0.6128388606011868,
+    0.7207431411370635
+   ],
+   "set1": [
+    7,
+    2,
+    6
+   ],
+   "seq": [
+    7,
+    2,
+    6
+   ],
+   "set2": [],
+   "decoys": []
+  },
+  {
+   "gs": 3,
+   "need": 4,
+   "two": false,
+   "decoysWanted": 2,
+   "randoms": [
+    0.7342509443406016,
+    0.32499843230471015,
+    0.28529605525545776,
+    0.5379551574587822,
+    0.8752879470121115,
+    0.6308333419729024,
+    0.4992015736643225,
+    0.3572446557227522
+   ],
+   "set1": [
+    5,
+    0,
+    8,
+    7
+   ],
+   "seq": [
+    5,
+    0,
+    8,
+    7
+   ],
+   "set2": [],
+   "decoys": [
+    4,
+    3
+   ]
+  },
+  {
+   "gs": 3,
+   "need": 8,
+   "two": false,
+   "decoysWanted": 6,
+   "randoms": [
+    0.7202267837710679,
+    0.03866216051392257,
+    0.4561921926215291,
+    0.07492800964973867,
+    0.7630053898319602,
+    0.481180417817086,
+    0.48672957462258637,
+    0.1618005665950477
+   ],
+   "set1": [
+    2,
+    5,
+    4,
+    1,
+    8,
+    7,
+    3,
+    0
+   ],
+   "seq": [
+    2,
+    5,
+    4,
+    1,
+    8,
+    7,
+    3,
+    0
+   ],
+   "set2": [],
+   "decoys": [
+    6
+   ]
+  },
+  {
+   "gs": 4,
+   "need": 3,
+   "two": false,
+   "decoysWanted": 0,
+   "randoms": [
+    0.9236361971125007,
+    0.33304587937891483,
+    0.2216679009143263,
+    0.08184101991355419,
+    0.23399724275805056,
+    0.5084968542214483,
+    0.0773914884775877,
+    0.9738619206473231,
+    0.6220374784898013,
+    0.6908154499251395,
+    0.7681461023166776,
+    0.3691486772149801,
+    0.7324949100147933,
+    0.8758750655688345,
+    0.5287687703967094
+   ],
+   "set1": [
+    9,
+    10,
+    13
+   ],
+   "seq": [
+    9,
+    10,
+    13
+   ],
+   "set2": [],
+   "decoys": []
+  },
+  {
+   "gs": 4,
+   "need": 4,
+   "two": false,
+   "decoysWanted": 2,
+   "randoms": [
+    0.6897749109193683,
+    0.7727432732935995,
+    0.21976301027461886,
+    0.6231788222212344,
+    0.08513720124028623,
+    0.5921649402007461,
+    0.7201022456865758,
+    0.45810421253554523,
+    0.9056215002201498,
+    0.22942897235043347,
+    0.7798634143546224,
+    0.7406128125730902,
+    0.6605600535403937,
+    0.013821420492604375,
+    0.4654014080297202
+   ],
+   "set1": [
+    10,
+    5,
+    0,
+    2
+   ],
+   "seq": [
+    10,
+    5,
+    0,
+    2
+   ],
+   "set2": [],
+   "decoys": [
+    13,
+    12
+   ]
+  },
+  {
+   "gs": 4,
+   "need": 5,
+   "two": true,
+   "decoysWanted": 0,
+   "randoms": [
+    0.5257466111797839,
+    0.002343546599149704,
+    0.6631714215036482,
+    0.20216270093806088,
+    0.5421195910312235,
+    0.07076386851258576,
+    0.004537841537967324,
+    0.9209264013916254,
+    0.9705556405242532,
+    0.21005285810679197,
+    0.9339963917154819,
+    0.3827394258696586,
+    0.02235182886943221,
+    0.05154049233533442,
+    0.45299587422050536
+   ],
+   "set1": [
+    4,
+    12,
+    3,
+    13,
+    11
+   ],
+   "seq": [
+    4,
+    12,
+    3,
+    13,
+    11
+   ],
+   "set2": [
+    5,
+    1,
+    7,
+    15,
+    10
+   ],
+   "decoys": []
+  },
+  {
+   "gs": 4,
+   "need": 7,
+   "two": true,
+   "decoysWanted": 6,
+   "randoms": [
+    0.011704753153026104,
+    0.06195825757458806,
+    0.97690763277933,
+    0.6990287057124078,
+    0.5214452685322613,
+    0.4055216880515218,
+    0.4662326325196773,
+    0.23992518591694534,
+    0.5533256039489061,
+    0.729822089895606,
+    0.2578155610244721,
+    0.15594836394302547,
+    0.7640898865647614,
+    0.5184025457128882,
+    0.19713726011104882
+   ],
+   "set1": [
+    8,
+    7,
+    11,
+    3,
+    14,
+    1,
+    5
+   ],
+   "seq": [
+    8,
+    7,
+    11,
+    3,
+    14,
+    1,
+    5
+   ],
+   "set2": [
+    12,
+    2,
+    10,
+    4,
+    6,
+    9,
+    13
+   ],
+   "decoys": [
+    15,
+    0
+   ]
+  },
+  {
+   "gs": 4,
+   "need": 8,
+   "two": false,
+   "decoysWanted": 6,
+   "randoms": [
+    0.15629516984336078,
+    0.6251922610681504,
+    0.3006645820569247,
+    0.6959542871918529,
+    0.5850091010797769,
+    0.4493990018963814,
+    0.8187595529016107,
+    0.23881455743685365,
+    0.5066176659893245,
+    0.06013806466944516,
+    0.5141839140560478,
+    0.07335842959582806,
+    0.5694546550512314,
+    0.22035978082567453,
+    0.1605476187542081
+   ],
+   "set1": [
+    1,
+    5,
+    11,
+    12,
+    6,
+    3,
+    0,
+    10
+   ],
+   "seq": [
+    1,
+    5,
+    11,
+    12,
+    6,
+    3,
+    0,
+    10
+   ],
+   "set2": [],
+   "decoys": [
+    15,
+    8,
+    13,
+    7,
+    14,
+    4
+   ]
+  },
+  {
+   "gs": 5,
+   "need": 3,
+   "two": false,
+   "decoysWanted": 0,
+   "randoms": [
+    0.19872891809791327,
+    0.8512107962742448,
+    0.1417661067098379,
+    0.8216717173345387,
+    0.7238044005353004,
+    0.6888616101350635,
+    0.2627184335142374,
+    0.919454253045842,
+    0.13086165417917073,
+    0.6322905202396214,
+    0.6980157732032239,
+    0.5872853912878782,
+    0.28342978144064546,
+    0.9378167246468365,
+    0.2870224826037884,
+    0.7302713082171977,
+    0.641974089667201,
+    0.3669367264956236,
+    0.535546236904338,
+    0.8974383221939206,
+    0.8655588570982218,
+    0.45532798068597913,
+    0.8736877245828509,
+    0.18981598201207817
+   ],
+   "set1": [
+    6,
+    0,
+    9
+   ],
+   "seq": [
+    6,
+    0,
+    9
+   ],
+   "set2": [],
+   "decoys": []
+  },
+  {
+   "gs": 5,
+   "need": 4,
+   "two": false,
+   "decoysWanted": 2,
+   "randoms": [
+    0.5019920116756111,
+    0.9174868050031364,
+    0.6913183077704161,
+    0.8021026765927672,
+    0.45741763804107904,
+    0.44834619434550405,
+    0.20228695822879672,
+    0.0835612874943763,
+    0.034126831917092204,
+    0.9967185999266803,
+    0.9220947213470936,
+    0.12932745227590203,
+    0.3927733809687197,
+    0.3880608077161014,
+    0.4443146218545735,
+    0.925671148346737,
+    0.2911371081136167,
+    0.8081638982985169,
+    0.9360414831899107,
+    0.15788966696709394,
+    0.38870389736257493,
+    0.695380300283432,
+    0.5205788270104676,
+    0.48180355597287416
+   ],
+   "set1": [
+    18,
+    24,
+    10,
+    19
+   ],
+   "seq": [
+    18,
+    24,
+    10,
+    19
+   ],
+   "set2": [],
+   "decoys": [
+    14,
+    16
+   ]
+  },
+  {
+   "gs": 5,
+   "need": 5,
+   "two": true,
+   "decoysWanted": 0,
+   "randoms": [
+    0.5115870486479253,
+    0.5299464082345366,
+    0.6081185641232878,
+    0.5901576359756291,
+    0.8507766961120069,
+    0.5380222974345088,
+    0.08002616139128804,
+    0.5305055116768926,
+    0.6077365837991238,
+    0.45032489066943526,
+    0.4800424699205905,
+    0.8435206720605493,
+    0.4199757508467883,
+    0.6702075891662389,
+    0.6815285871271044,
+    0.16081411438062787,
+    0.1785145732574165,
+    0.2761063617654145,
+    0.39591758605092764,
+    0.3769632775802165,
+    0.5825090820435435,
+    0.12748144729994237,
+    0.5970819590147585,
+    0.576538750436157
+   ],
+   "set1": [
+    3,
+    4,
+    22,
+    0,
+    21
+   ],
+   "seq": [
+    3,
+    4,
+    22,
+    0,
+    21
+   ],
+   "set2": [
+    6,
+    16,
+    2,
+    20,
+    18
+   ],
+   "decoys": []
+  },
+  {
+   "gs": 5,
+   "need": 7,
+   "two": true,
+   "decoysWanted": 6,
+   "randoms": [
+    0.2881509135477245,
+    0.07566750887781382,
+    0.5801610664930195,
+    0.9413604403380305,
+    0.15277158934623003,
+    0.013687808066606522,
+    0.6960037930402905,
+    0.6401303138118237,
+    0.554809229914099,
+    0.7364690757822245,
+    0.030439858557656407,
+    0.9280715193599463,
+    0.3264409159310162,
+    0.5152828034479171,
+    0.7497207843698561,
+    0.652462717378512,
+    0.5313678253442049,
+    0.7980521221179515,
+    0.9974781251512468,
+    0.24096742551773787,
+    0.304885839112103,
+    0.8917379032354802,
+    0.3877380422782153,
+    0.4288188854698092
+   ],
+   "set1": [
+    2,
+    14,
+    10,
+    21,
+    5,
+    23,
+    24
+   ],
+   "seq": [
+    2,
+    14,
+    10,
+    21,
+    5,
+    23,
+    24
+   ],
+   "set2": [
+    16,
+    18,
+    15,
+    8,
+    6,
+    4,
+    12
+   ],
+   "decoys": [
+    19,
+    17,
+    9,
+    11,
+    22,
+    0
+   ]
+  },
+  {
+   "gs": 5,
+   "need": 8,
+   "two": false,
+   "decoysWanted": 6,
+   "randoms": [
+    0.5663226493634284,
+    0.36011716164648533,
+    0.0705908453091979,
+    0.04816685197874904,
+    0.03677086811512709,
+    0.006773725617676973,
+    0.09120745095424354,
+    0.35417386959306896,
+    0.558275539195165,
+    0.8705981557723135,
+    0.6555668637156487,
+    0.7593450902495533,
+    0.2912685133051127,
+    0.16639575641602278,
+    0.5607174669858068,
+    0.3652596150059253,
+    0.5773118082433939,
+    0.615498737199232,
+    0.12267140857875347,
+    0.6464760373346508,
+    0.43443665909580886,
+    0.6558141396380961,
+    0.33913280349224806,
+    0.10328627657145262
+   ],
+   "set1": [
+    23,
+    15,
+    11,
+    7,
+    2,
+    24,
+    19,
+    4
+   ],
+   "seq": [
+    23,
+    15,
+    11,
+    7,
+    2,
+    24,
+    19,
+    4
+   ],
+   "set2": [],
+   "decoys": [
+    5,
+    12,
+    17,
+    18,
+    3,
+    10
+   ]
+  },
+  {
+   "gs": 6,
+   "need": 3,
+   "two": false,
+   "decoysWanted": 0,
+   "randoms": [
+    0.447958143427968,
+    0.4258096602279693,
+    0.5107000032439828,
+    0.35384935210458934,
+    0.19429797329939902,
+    0.42553471657447517,
+    0.6722058879677206,
+    0.010706712491810322,
+    0.9351906266529113,
+    0.8758229764644057,
+    0.3612087669316679,
+    0.06255525769665837,
+    0.7593659609556198,
+    0.010691954288631678,
+    0.16268356260843575,
+    0.33682218263857067,
+    0.425441567087546,
+    0.9318759795278311,
+    0.06798318517394364,
+    0.6443526034709066,
+    0.255358275026083,
+    0.772487098351121,
+    0.3922413904219866,
+    0.9520408052485436,
+    0.6501696733757854,
+    0.9126392237376422,
+    0.2597970040515065,
+    0.22073607216589153,
+    0.05050259060226381,
+    0.6484436383470893,
+    0.23389609158039093,
+    0.15437919879332185,
+    0.5878185976762325,
+    0.2912451720330864,
+    0.05151979951187968
+   ],
+   "set1": [
+    30,
+    21,
+    31
+   ],
+   "seq": [
+    30,
+    21,
+    31
+   ],
+   "set2": [],
+   "decoys": []
+  },
+  {
+   "gs": 6,
+   "need": 4,
+   "two": false,
+   "decoysWanted": 2,
+   "randoms": [
+    0.2378400256857276,
+    0.40412471746094525,
+    0.402795132715255,
+    0.4461680904496461,
+    0.22275040484964848,
+    0.6610605223104358,
+    0.9394729444757104,
+    0.3055315481033176,
+    0.06556338211521506,
+    0.37991577479988337,
+    0.36271350900642574,
+    0.31143403775058687,
+    0.021488795056939125,
+    0.7227937246207148,
+    0.23258507484570146,
+    0.2733352337963879,
+    0.0984650885220617,
+    0.9501229922752827,
+    0.9582700009923428,
+    0.8579438414890319,
+    0.35527050821110606,
+    0.05082627944648266,
+    0.480334538500756,
+    0.02007124084047973,
+    0.4043264193460345,
+    0.15312289772555232,
+    0.7535458405036479,
+    0.10866197221912444,
+    0.596819659229368,
+    0.3617145558819175,
+    0.6327476319856942,
+    0.5816023999359459,
+    0.06827191053889692,
+    0.6782937892712653,
+    0.6685305174905807
+   ],
+   "set1": [
+    15,
+    26,
+    25,
+    29
+   ],
+   "seq": [
+    15,
+    26,
+    25,
+    29
+   ],
+   "set2": [],
+   "decoys": [
+    33,
+    3
+   ]
+  },
+  {
+   "gs": 6,
+   "need": 5,
+   "two": true,
+   "decoysWanted": 0,
+   "randoms": [
+    0.6313952072523534,
+    0.14432188915088773,
+    0.7523378010373563,
+    0.388273379066959,
+    0.33968470781110227,
+    0.019686341285705566,
+    0.9379420855548233,
+    0.5133640284184366,
+    0.18761489912867546,
+    0.9335283194668591,
+    0.4546965023037046,
+    0.005934091052040458,
+    0.27321626082994044,
+    0.4177591265179217,
+    0.5792467868886888,
+    0.8462210306897759,
+    0.3408675466198474,
+    0.41574972146190703,
+    0.8484634563792497,
+    0.1616290002129972,
+    0.7009293476585299,
+    0.31848931894637644,
+    0.6521661838050932,
+    0.7586641046218574,
+    0.4808284053578973,
+    0.5014908127486706,
+    0.8111327278893441,
+    0.7975939116440713,
+    0.16546279238536954,
+    0.023680251790210605,
+    0.8686351927462965,
+    0.1437127843964845,
+    0.9129290224518627,
+    0.6185017644893378,
+    0.7199673294089735
+   ],
+   "set1": [
+    29,
+    16,
+    21,
+    3,
+    19
+   ],
+   "seq": [
+    29,
+    16,
+    21,
+    3,
+    19
+   ],
+   "set2": [
+    31,
+    24,
+    1,
+    18,
+    8
+   ],
+   "decoys": []
+  },
+  {
+   "gs": 6,
+   "need": 7,
+   "two": true,
+   "decoysWanted": 6,
+   "randoms": [
+    0.6771502960473299,
+    0.19265692122280598,
+    0.5313839064911008,
+    0.1654723146930337,
+    0.08778517786413431,
+    0.76082274899818,
+    0.28212139988318086,
+    0.5464509064331651,
+    0.2567596298176795,
+    0.6833786198403686,
+    0.7965900548733771,
+    0.3049555765464902,
+    0.23596820258535445,
+    0.19854954350739717,
+    0.6306090573780239,
+    0.7388753285631537,
+    0.29356842674314976,
+    0.48364008544012904,
+    0.6911484354641289,
+    0.6699392416048795,
+    0.5562039965298027,
+    0.6086227376945317,
+    0.5652798579540104,
+    0.4058688203804195,
+    0.06382904341444373,
+    0.06393614131957293,
+    0.8765493228565902,
+    0.3207185701467097,
+    0.42443251865915954,
+    0.634960560593754,
+    0.6050909489858896,
+    0.04615248553454876,
+    0.22983821318484843,
+    0.8030342706479132,
+    0.10510299680754542
+   ],
+   "set1": [
+    1,
+    17,
+    14,
+    34,
+    10,
+    21,
+    22
+   ],
+   "seq": [
+    1,
+    17,
+    14,
+    34,
+    10,
+    21,
+    22
+   ],
+   "set2": [
+    3,
+    31,
+    25,
+    16,
+    0,
+    19,
+    35
+   ],
+   "decoys": [
+    26,
+    29,
+    11,
+    12,
+    9,
+    30
+   ]
+  },
+  {
+   "gs": 6,
+   "need": 8,
+   "two": false,
+   "decoysWanted": 6,
+   "randoms": [
+    0.39816198823973536,
+    0.6033986730035394,
+    0.5262760161422193,
+    0.1989340395666659,
+    0.8037807932123542,
+    0.5322087784297764,
+    0.71432298514992,
+    0.20932065369561315,
+    0.1412721429951489,
+    0.5475668469443917,
+    0.39127361704595387,
+    0.5082297923509032,
+    0.20172625104896724,
+    0.4707539405208081,
+    0.6276422846131027,
+    0.08817636594176292,
+    0.9412142627406865,
+    0.6932157822884619,
+    0.8759946140926331,
+    0.48729406320489943,
+    0.11093446030281484,
+    0.7626029171515256,
+    0.24730781139805913,
+    0.8919202145189047,
+    0.19854528363794088,
+    0.60538221267052,
+    0.1971359928138554,
+    0.2046770907472819,
+    0.8076975692529231,
+    0.27803932200185955,
+    0.30622546887025237,
+    0.39592600520700216,
+    0.9503937030676752,
+    0.241845958866179,
+    0.8259950818028301
+   ],
+   "set1": [
+    24,
+    23,
+    0,
+    19,
+    5,
+    7,
+    30,
+    22
+   ],
+   "seq": [
+    24,
+    23,
+    0,
+    19,
+    5,
+    7,
+    30,
+    22
+   ],
+   "set2": [],
+   "decoys": [
+    9,
+    33,
+    28,
+    2,
+    26,
+    27
+   ]
+  }
  ]
 }
