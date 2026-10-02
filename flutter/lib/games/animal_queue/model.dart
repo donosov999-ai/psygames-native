@@ -265,6 +265,11 @@ List<QueueClue> trueClues(List<int> order, Set<ClueKind> kinds) {
         final rest = [...clues]..remove(c);
         if (countOrders(n, rest) == 1) clues.remove(c);
       }
+    } else {
+      // На первой ступени лишнее не убирается, но «➜» рядом с «🔗» той же пары — уже не
+      // подсказка, а повтор: сцепка и так говорит, кто раньше (замечено глазами, L1).
+      clues.removeWhere((c) =>
+          c.kind == ClueKind.before && clues.any((d) => d.kind == ClueKind.next && d.a == c.a && d.b == c.b));
     }
     final gap = (thinkLoad(order, clues) - target).abs();
     if (gap < bestGap) {

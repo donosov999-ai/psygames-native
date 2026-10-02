@@ -75,6 +75,9 @@ void main() {
         final wrongKind = g.game.clues.where((c) => !clueKindsFor(level).contains(c.kind));
         if (wrongKind.isNotEmpty) bad.add('L$level s$seed: вид не по ступени $wrongKind');
         if (!g.game.clues.every((c) => c.holds(g.order))) bad.add('L$level s$seed: подсказка врёт');
+        final twins = g.game.clues.where((c) => c.kind == ClueKind.before &&
+            g.game.clues.any((d) => d.kind == ClueKind.next && d.a == c.a && d.b == c.b));
+        if (twins.isNotEmpty) bad.add('L$level s$seed: «раньше» повторяет сцепку $twins');
         var q = g.game;
         for (final x in g.order) {
           final legal = q.legal();
