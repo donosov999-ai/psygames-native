@@ -111,6 +111,7 @@ class HubCard {
 /// проба `hub_icons_are_mapped_test.dart`: новое имя в веб-реестре без строки
 /// здесь — красный CI с этим именем, а не тихий пазл на экране.
 const Map<String, IconData> hubIcons = {
+  'add-circle': Icons.add_circle_outline,
   'albums': Icons.collections_outlined,
   'analytics': Icons.analytics_outlined,
   'apps': Icons.apps,
