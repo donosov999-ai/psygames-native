@@ -3161,7 +3161,7 @@ const t: Record<string, string> = {
   "teachScholarsSacrifice": "サクリファイス {move}：駒を捨ててキングの守りを開きます。",
   "teachScholarsReply": "相手の応手は強制されます：{move}。",
   "teachScholarsContinue": "続けて {move}：キングへの攻撃を休まず続けます。",
-  "animalQueue": "どうぶつの行列",
+  "animalQueue": "どうぶつのぎょうれつ",
   "animalQueueDesc": "ヒントどおりにどうぶつを並べよう：🦁 ➜ 🦊 はライオンがキツネより前という意味",
   "kidsSort": "いろとかたち",
   "kidsSortDesc": "カードを合う箱に入れよう。はじめは色で。そのあと合図なしにルールが変わる — ✓ と ✗ で新しいルールを見つけよう",
