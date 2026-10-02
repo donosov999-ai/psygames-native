@@ -14,6 +14,7 @@ import '../../shell/level_rules.dart';
 import '../../shell/preset_cap.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
+import '../../shell/suite_switch.dart';
 import 'model.dart';
 
 /// «Матрица памяти» на общем каркасе — перенос `app/games/memory-matrix.tsx` ЦЕЛИКОМ.
@@ -300,6 +301,7 @@ class _MemoryMatrixScreenState extends State<MemoryMatrixScreen> {
       ],
       field: (context, h) => _phase == MmPhase.ready
           ? _Ready(
+              state: widget.state,
               level: _ladder.level,
               gridSize: g.gridSize,
               mode: _mode,
@@ -412,6 +414,7 @@ class _MemoryMatrixScreenState extends State<MemoryMatrixScreen> {
 
 class _Ready extends StatelessWidget {
   const _Ready({
+    required this.state,
     required this.level,
     required this.gridSize,
     required this.mode,
@@ -420,6 +423,7 @@ class _Ready extends StatelessWidget {
     required this.onStart,
   });
 
+  final SharedState state;
   final int level;
   final int gridSize;
   final String mode;
@@ -439,6 +443,8 @@ class _Ready extends StatelessWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  // Набор «Позиции»: плашки Матрица · Корси · Наоборот (веб GameSuiteSwitch).
+                  SuiteSwitch(route: '/games/memory-matrix', state: state),
                   const Icon(Icons.grid_view_rounded, size: 48, color: mmSeries1Color),
                   const SizedBox(height: 8),
                   Text(L.t('memoryMatrixDesc'), textAlign: TextAlign.center, style: text.titleMedium),
