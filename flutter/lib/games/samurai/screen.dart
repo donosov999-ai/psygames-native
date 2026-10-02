@@ -34,9 +34,14 @@ const samuraiTimeCap = 1500;
 const samuraiWinFloor = 300;
 
 class SamuraiScreen extends StatefulWidget {
-  const SamuraiScreen({super.key, required this.state});
+  const SamuraiScreen({super.key, required this.state, this.megabossFrom});
 
   final SharedState state;
+
+  /// Вход мегабоссом с вехи классической лестницы (каждый 15-й уровень судоку): номер того
+  /// уровня. Доска и правила не меняются — меняется только отчёт (`details.megaboss_from`),
+  /// как в вебе (`sudoku-samurai.tsx`, megabossFrom).
+  final int? megabossFrom;
 
   @override
   State<SamuraiScreen> createState() => _SamuraiScreenState();
@@ -221,7 +226,9 @@ class _SamuraiScreenState extends State<SamuraiScreen> {
       errors: _errors,
       mode: 'samurai-level-$level',
       difficulty: 'Level $level',
-      details: _details(level, completed: true),
+      // Веха классической лестницы: «пришёл мегабоссом с уровня N», а не сам — как в вебе,
+      // только у победы (sudoku-samurai.tsx, details.megaboss_from).
+      details: {..._details(level, completed: true), 'megaboss_from': ?widget.megabossFrom},
     ));
   }
 
