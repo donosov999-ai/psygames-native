@@ -111,6 +111,7 @@ import 'game_pet.dart';
 import 'session_report.dart';
 import 'game_preset.dart';
 import 'game_rules.dart';
+import 'level_transition.dart';
 import 'game_shell.dart';
 import 'puzzle_routes.g.dart';
 import '../games/chess_blind/screen.dart';
@@ -614,6 +615,12 @@ class _HybridAppState extends State<HybridApp> {
   @override
   void initState() {
     super.initState();
+    // Ступень-переход (level_transition.dart) открывает чужую игру по маршруту — экраны
+    // знает только оболочка.
+    LevelTransition.resolve = (url) {
+      final route = HybridApp.routeOf(url);
+      return route == null ? null : HybridApp.native[route];
+    };
     // 🔴 ПРИЁМНИК ПАРТИЙ. Перенесённая игра не хранит партию сама — она отдаёт
     // результат сюда, а здесь он уходит в ТУ ЖЕ `saveSession` веб-половины,
     // которую зовёт непереносённая игра. Одна реализация на обе половины:
