@@ -159,6 +159,8 @@ export const MODE_ICONS: Record<string, any> = {
   // «Конь и ферзи» (39ad8924): своя иконка — поле с восемью ферзями и ходом коня.
   '/games/knights-queens': require('../../assets/images/game_icons/knights_queens.webp'),
   '/games/cats': require('../../assets/images/game_icons/cats.webp'),
+  // «Кто спрятался?»: строка развилки «Головоломки» (задача 4a5bb886), Nano Banana 2, 256 px.
+  '/games/hidden-character': require('../../assets/images/game_icons/hidden_character.webp'),
   // «Пасьянс-шахматы» (#133) — строка развилки шахмат без своей карточки в GAMES: иконка группы фигур.
   '/games/solitaire-chess': require('../../assets/images/game_icons/chess_group.webp'),
 };
