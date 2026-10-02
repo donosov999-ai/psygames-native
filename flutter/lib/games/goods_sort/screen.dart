@@ -52,13 +52,17 @@ class GoodsSortScreen extends StatefulWidget {
 /// Снимок партии для отмены: ход необратим по частям — каскад троек, закрытие
 /// полок и приход из очереди случаются разом.
 class _Snapshot {
-  _Snapshot(this.board, this.obstacles, this.covered, this.frozenRow, this.moves, this.score);
+  _Snapshot(this.board, this.obstacles, this.covered, this.frozenRow, this.moves, this.score, this.move);
   final GoodsBoard board;
   final List<Obstacle?> obstacles;
   final Set<String> covered;
   final int? frozenRow;
   final int moves;
   final int score;
+
+  /// Ход, сделанный ИЗ этого положения. Разбору нужно знать, каким ходом человек
+  /// пришёл туда, где стоит: обратный ему решатель пробует последним.
+  final GoodsMove move;
 }
 
 class _GoodsSortScreenState extends State<GoodsSortScreen> {
@@ -322,6 +326,7 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> {
       _frozenRow,
       _moves,
       _score,
+      (from: pick.cell, to: to),
     ));
 
     _moves += 1;
@@ -438,7 +443,18 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> {
     final level = _level;
     if (level == null || _board == null) return;
     final start = _play;
-    final solve = solveStrict(start);
+    // 🔴 ПРОЙДЕННОЕ — РЕШАТЕЛЮ (задача 978b07b4). Без истории перебор начинает с
+    // чистого листа, и второй разбор подряд открывался откатом хода, который
+    // показал первый: человек сделал шаг — разбор велит вернуть, вернул — велит
+    // снова. Почему так и что меряно — в шапке `solveStrict`.
+    final solve = solveStrict(
+      start,
+      behind: [
+        for (final s in _history)
+          GoodsPlay(level: level, board: s.board, obstacles: s.obstacles, frozenRow: s.frozenRow),
+      ],
+      lastMove: _history.isEmpty ? null : _history.last.move,
+    );
 
     // Первый шаг — само правило: без него путь выглядит набором перекладываний.
     final steps = <LessonStep>[

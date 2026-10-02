@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/goods_sort/board.dart';
+import 'package:psygames_flutter/games/goods_sort/model.dart';
 import 'package:psygames_flutter/games/goods_sort/screen.dart';
 import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/lesson.dart';
+import 'package:psygames_flutter/shell/lesson_player.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -112,6 +114,75 @@ void main() {
     // одной, иначе подпись раздаётся не замером, а константой.
     expect(seen.length, greaterThan(2),
         reason: 'все шаги подписаны одинаково — причина берётся не из доски: $seen');
+  });
+
+  testWidgets('🔴 второй разбор не велит вернуть ход, который показал первый', (tester) async {
+    // 02.10.2026, задача 978b07b4. Разбор каждый раз решал доску с чистого листа, и
+    // ход «вернуть товар, откуда взяли» стоял у перебора в почёте. Профиль nzt48
+    // играет набором «Напитки»; на его L11 телефонной лестницы первый разбор вёл
+    // товар из ниши 1 в нишу 0, а второй — после того как человек это сделал — из
+    // 0 обратно в 1. Ход берётся с ПОКАЗАННОЙ разбором доски и делается пальцем:
+    // так проверяется и решатель, и то, что экран отдаёт ему пройденное.
+    SharedPreferences.setMockInitialValues({
+      'psygames_active_profile': 'nzt48',
+      'psygames_goods_sort_level_nzt48': '11',
+    });
+    state = await SharedState.open();
+    await _boot(tester, state);
+    // Уровень, вводящий новое правило, каркас открывает карточкой поверх партии;
+    // пока она открыта, кнопки шапки под барьером.
+    await tester.pump(const Duration(seconds: 2));
+    if (find.byKey(const Key('level-rule-ok')).evaluate().isNotEmpty) {
+      await tester.tap(find.byKey(const Key('level-rule-ok')));
+      for (var i = 0; i < 8; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+    }
+
+    GoodsField onScreen() => tester.widget<GoodsField>(find.byType(GoodsField));
+    GoodsField inLesson() => tester.widget<GoodsField>(
+        find.descendant(of: find.byType(LessonPlayerScreen), matching: find.byType(GoodsField)));
+    String cells(GoodsBoard b) => b.cells.map((c) => c.join(',')).join('|');
+
+    // Доска после первого шага разбора.
+    Future<String> firstStep() async {
+      await _openLesson(tester);
+      await tester.tap(find.byKey(const Key('lesson-next')), warnIfMissed: true);
+      await tester.pump();
+      final shown = cells(inLesson().board);
+      await tester.tap(find.byKey(const Key('lesson-close')));
+      for (var i = 0; i < 12; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      return shown;
+    }
+
+    final f = onScreen();
+    final start = GoodsPlay(level: f.level, board: f.board, obstacles: f.obstacles, frozenRow: f.frozenRow);
+    final shown = await firstStep();
+
+    // Какой ход верхнего товара приводит к показанной доске.
+    ({int from, int to})? step;
+    for (var from = 0; from < start.board.cells.length && step == null; from++) {
+      for (var to = 0; to < start.board.cells.length; to++) {
+        final next = from == to ? null : start.moveTopOf(from, to);
+        if (next != null && cells(next.board) == shown) {
+          step = (from: from, to: to);
+          break;
+        }
+      }
+    }
+    expect(step, isNotNull, reason: 'первый шаг разбора не повторяется ходом верхнего товара');
+    await tester.tap(find.byKey(ValueKey('item-${step!.from}-${start.board.cells[step.from].length - 1}')));
+    await tester.pump();
+    await tester.tap(find.byKey(ValueKey('niche-${step.to}')));
+    await tester.pump();
+    expect(cells(onScreen().board), shown, reason: 'ход пальцем привёл не туда, куда показал разбор');
+
+    final again = await firstStep();
+    expect(again, isNot(cells(start.board)),
+        reason: 'второй разбор начался с отката: товар вернулся в нишу ${step.from}, '
+            'откуда первый разбор велел его взять');
   });
 
   testWidgets('партия с разбором в уровень не засчитывается', (tester) async {
