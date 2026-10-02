@@ -1041,6 +1041,14 @@ const translations: Translations = {
    * суммарно), а работает только протяжка.
    */
   puzzleDragHint: { ru: '↔ Здесь тянут пальцем, а не касаются', en: '↔ Drag here instead of tapping' },
+  puzzleHudLevel: { ru: 'Ступень', en: 'Step' },
+  puzzleHudBoard: { ru: 'Доска', en: 'Board' },
+  puzzleNextLevel: { ru: 'Следующая ступень', en: 'Next step' },
+  puzzleTapHint: { ru: 'Тычок отмечает клетку', en: 'A tap marks a cell' },
+  puzzleErrUnknownMode: { ru: 'режим {mode} движку неизвестен', en: 'the engine does not know the mode {mode}' },
+  puzzleErrNoGame: { ru: 'движок не знает игру {game}', en: 'the engine does not know the game {game}' },
+  puzzleErrEngineLoad: { ru: 'движок не загрузился: {error}', en: 'the engine failed to load: {error}' },
+  puzzleErrBuild: { ru: 'партия не собралась: {params}', en: 'the game could not be set up: {params}' },
   puzzleNoMoves: { ru: 'Ходов больше нет. Можно начать заново', en: 'No moves left. Start over if you like' },
 
   puzzleBlownUp: { ru: 'Подорвался. Отмени ход — и играй дальше', en: 'You blew up. Undo the move and carry on' },
