@@ -3140,6 +3140,8 @@ const t: Record<string, string> = {
   "sudokuPilotOff": "स्तरों की सीढ़ी पर लौटें",
   "sudokuRepeatSame": "इसी कठिनाई से फिर से",
   "sudokuSkinLetters": "अंकों की जगह अक्षर",
+  "sudokuSkinAnimals": "अंकों की जगह जानवर",
+  "sdkRule_friends": "🐱 के बगल में 🐭",
   "digitsCandy": "कैंडी",
   "sudokuHiddenWord": "छिपा हुआ शब्द: {w}",
   "teachRpRhythmIntro": "गिनती नहीं, गति पकड़िए: थापें क़दमों की तरह बराबर आती हैं। उसी गति में पैटर्न दोहराइए।",

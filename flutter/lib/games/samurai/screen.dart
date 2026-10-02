@@ -1,6 +1,9 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
+
+import '../../shell/game_clock.dart';
 
 import '../../shell/aux_action.dart';
 import '../../shell/game_shell.dart';
@@ -26,10 +29,19 @@ import 'rules.dart';
 /// играбельно: клетка выходит 16 точек. Карта показывает всю фигуру, рабочий масштаб
 /// даёт клетку ≥48 точек и листается. Арифметика вынесена в `layout.dart`, чтобы проба
 /// мерила её вызовом.
+/// Счёт победы — константы веба (`SAMURAI_TIME_CAP`, `SAMURAI_WIN_FLOOR` в sudoku-samurai.tsx).
+const samuraiTimeCap = 1500;
+const samuraiWinFloor = 300;
+
 class SamuraiScreen extends StatefulWidget {
-  const SamuraiScreen({super.key, required this.state});
+  const SamuraiScreen({super.key, required this.state, this.megabossFrom});
 
   final SharedState state;
+
+  /// Вход мегабоссом с вехи классической лестницы (каждый 15-й уровень судоку): номер того
+  /// уровня. Доска и правила не меняются — меняется только отчёт (`details.megaboss_from`),
+  /// как в вебе (`sudoku-samurai.tsx`, megabossFrom).
+  final int? megabossFrom;
 
   @override
   State<SamuraiScreen> createState() => _SamuraiScreenState();
@@ -48,6 +60,10 @@ class _SamuraiScreenState extends State<SamuraiScreen> {
   int _errors = 0;
   int _hintsUsed = 0;
   bool _won = false;
+
+  /// Начало партии по часам игры (пауза их держит) — время в отчёте, как у веба.
+  int _startedAt = gameNow();
+  int get _elapsed => (gameNow() - _startedAt) ~/ 1000;
   bool _lost = false;
   String? _failure;
   SamuraiZoom _zoom = SamuraiZoom.map;
@@ -99,8 +115,25 @@ class _SamuraiScreenState extends State<SamuraiScreen> {
       _hintsUsed = 0;
       _won = false;
       _lost = false;
+      _startedAt = gameNow();
     });
   }
+
+  /// 🔴 ОТЧЁТ ПАРТИИ — КАК У ВЕБА (sudoku-samurai.tsx, saveSession; сверка 138f7818). До 02.10
+  /// натив звал `win()` без аргументов: нативные победы не попадали ни в «лучшее время
+  /// ступени», ни в счёт, а проигрыш не писался вовсе. Счёт — формула веба: штраф за время
+  /// насыщается (партия идёт час), у победы есть пол.
+  int _score(int level) => max(samuraiWinFloor,
+      (4000 + level * 150 - _errors * 50 - min(_elapsed, samuraiTimeCap) * 2 - _hintsUsed * 60).round());
+
+  Map<String, Object?> _details(int level, {required bool completed}) => {
+        'errors': _errors,
+        'completed': completed,
+        'samurai': true,
+        'level': level,
+        'hint_uses': _hintsUsed,
+        if (!completed) 'failed_out': true,
+      };
 
   /// Тычок в клетку. На карте он ещё и ПЕРЕВОДИТ в рабочий масштаб: карта нужна, чтобы
   /// выбрать место, а ходить с клетки в 16 точек нельзя.
@@ -141,7 +174,17 @@ class _SamuraiScreenState extends State<SamuraiScreen> {
       _grid[sel.r][sel.c] = value;
       if (value != 0 && board.solution[sel.r][sel.c] != value) {
         _errors += 1;
-        if (_errors >= _params.maxErrors) _lost = true;
+        if (_errors >= _params.maxErrors) {
+          _lost = true;
+          final level = _ladder.level;
+          unawaited(_ladder.fail(
+            timeSeconds: _elapsed,
+            errors: _errors,
+            mode: 'samurai-level-$level',
+            difficulty: 'Level $level',
+            details: _details(level, completed: false),
+          ));
+        }
         return;
       }
       _checkWin();
@@ -176,7 +219,17 @@ class _SamuraiScreenState extends State<SamuraiScreen> {
     if (board == null) return;
     if (!isSolved(_grid, board.solution)) return;
     _won = true;
-    unawaited(_ladder.win());
+    final level = _ladder.level;
+    unawaited(_ladder.win(
+      score: _score(level),
+      timeSeconds: _elapsed,
+      errors: _errors,
+      mode: 'samurai-level-$level',
+      difficulty: 'Level $level',
+      // Веха классической лестницы: «пришёл мегабоссом с уровня N», а не сам — как в вебе,
+      // только у победы (sudoku-samurai.tsx, details.megaboss_from).
+      details: {..._details(level, completed: true), 'megaboss_from': ?widget.megabossFrom},
+    ));
   }
 
   int get _left {
