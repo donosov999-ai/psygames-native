@@ -74,7 +74,7 @@ void main() {
   }
 
   Future<void> pauseAction(WidgetTester tester, String label) async {
-    await tester.tap(find.byTooltip('Пауза'));
+    await tester.tap(find.byTooltip(L.t('teachPause')));
     await tester.pumpAndSettle();
     expect(find.text(label), findsOneWidget, reason: 'в меню паузы нет пункта «$label»');
     await tester.tap(find.text(label));
@@ -174,7 +174,7 @@ void main() {
     expect(state.get(store.pilotKey), isNull, reason: 'пилот не начинался');
     expect(state.get(store.stateKey), isNull,
         reason: 'открыть экран — не повод писать состояние пилота');
-    await tester.tap(find.byTooltip('Пауза'));
+    await tester.tap(find.byTooltip(L.t('teachPause')));
     await tester.pumpAndSettle();
     expect(find.text(L.t('sudokuPilotOn')), findsOneWidget, reason: 'кнопка пилота — в паузе');
   });

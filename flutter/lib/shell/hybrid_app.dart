@@ -209,6 +209,10 @@ class HybridApp extends StatefulWidget {
         // Режимы той же доски: адрес отличается только хвостом, экран — тот же.
         '/games/sudoku?mode=towers': (s) => SudokuScreen(state: s, mode: SideMode.towers),
         '/games/sudoku?mode=unequal': (s) => SudokuScreen(state: s, mode: SideMode.unequal),
+        // «Киллер» и «Свободно» — режимы переключателя веб-экрана, потерянные при переносе
+        // (задача 55b97845): карточки развилки ведут сюда.
+        '/games/sudoku?mode=killer': (s) => SudokuScreen(state: s, mode: SideMode.killer),
+        '/games/sudoku?mode=free': (s) => SudokuScreen(state: s, mode: SideMode.free),
         // «Кошки» (Queens / Star Battle) — первая игра, рождённая сразу нативной:
         // веб-страницы у неё нет вовсе, поэтому перехват не «отнимает» веб-версию,
         // а является единственным входом. Карточку в развилку кладёт координатор.

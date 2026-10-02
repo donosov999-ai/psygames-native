@@ -22,6 +22,7 @@ import 'engine.dart';
 import 'frame.dart';
 import 'lesson.dart';
 import 'ladder.dart';
+import 'step_title.dart';
 
 /// ГОЛОВОЛОМКИ ТЭТХЭМА на общем каркасе: один экран на все режимы.
 ///
@@ -444,7 +445,7 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
           : () => showGameRules(context, title: _mode.title, ruleKey: _mode.descKey!),
       hud: [
         HudItem(label: L.t('puzzleHudLevel'), value: '${_ladder.level}/${_steps.length}', icon: Icons.trending_up),
-        HudItem(label: L.t('puzzleHudBoard'), value: step.title, icon: Icons.grid_on),
+        HudItem(label: L.t('puzzleHudBoard'), value: stepTitle(step), icon: Icons.grid_on),
       ],
       field: (context, height) {
         if (_failure != null) return Center(child: Text(_failure!));
