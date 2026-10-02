@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/deep/screen.dart';
+import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -12,6 +13,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// бессмысленна: ПРОДОЛЖЕНИЕ (снимок пишется в тот же ключ и в том же виде, что у
 /// веб-версии) и ПОДЪЁМ НАВЕРХ (провалился вниз — вернись).
 void main() {
+  // Пробы ищут русские подписи — словарь грузится явно (без него L.t вернёт ключ).
+  setUpAll(() async => L.load('ru'));
   late SharedState state;
 
   Future<void> boot(WidgetTester tester) async {

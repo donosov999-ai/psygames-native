@@ -200,7 +200,9 @@ void main() {
         reason: 'и в виде .html тоже');
     expect(HybridApp.routeOf('$origin/games/sudoku'), '/games/sudoku',
         reason: 'без хвоста — обычная судоку');
-    expect(HybridApp.routeOf('$origin/games/sudoku?mode=killer'), '/games/sudoku',
+    expect(HybridApp.routeOf('$origin/games/sudoku?mode=killer'), '/games/sudoku?mode=killer');
+    expect(HybridApp.routeOf('$origin/games/sudoku?mode=free'), '/games/sudoku?mode=free');
+    expect(HybridApp.routeOf('$origin/games/sudoku?mode=zigzag'), '/games/sudoku',
         reason: 'неизвестный режим ведёт на обычный экран, а не в никуда');
     // Игру без режимов хвост не задевает.
     expect(HybridApp.routeOf('$origin/games/one-line?autostart=1'), '/games/one-line');
@@ -302,6 +304,7 @@ void main() {
       '/games/chess-hub',
       '/games/find-move',
       '/games/solitaire-chess',
+      '/games/knights-queens',
       '/games/choice-rt',
       '/games/cpt',
       '/games/corsi',
@@ -393,6 +396,8 @@ void main() {
       '/games/sudoku-hub',
       '/games/sudoku?mode=towers',
       '/games/sudoku?mode=unequal',
+      '/games/sudoku?mode=killer',
+      '/games/sudoku?mode=free',
       '/games/puzzles-hub',
       '/games/sudoku-fractal',
       '/games/sudoku-fractal-deep',

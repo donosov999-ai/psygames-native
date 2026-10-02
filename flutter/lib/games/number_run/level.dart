@@ -132,7 +132,7 @@ final RunnerTasks countingTasks = RunnerTasks(
   },
   pattern: (level, rnd) {
     final s = pattern.makeSequence(level, rnd);
-    final options = pattern.makeOptions(s.answer, rnd, count: 3);
+    final options = pattern.makeOptions(s.answer, rnd, count: 3, tail: pattern.tailLure(s.items));
     return PatternTask(items: s.items, answer: s.answer.toDouble(), options: [for (final o in options) o.toDouble()]);
   },
   // Вопрос «Мат. шкалы» её же генератором. Зерно у неё строковое — берём его из жребия уровня,

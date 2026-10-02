@@ -16,6 +16,42 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.56.8',
+    date: '2026-10-02',
+    ru: [
+      '«Судоку»: 28 новых ступеней (93–120) — немецкий шёпот, ренбан, равные суммы, палиндром, «между концами», замок и XV',
+      '«Судоку»: режимы «Киллер» и «Свободно» снова в приложении',
+      '«Судоку»: цена ошибки растёт к верху лестницы — внизу 5 ошибок, наверху 1',
+      'Экраны «Судоку» и имена ступеней головоломок — на 12 языках',
+      'Небоскрёбы: исправлена проверка неполного ряда',
+    ],
+    en: [
+      'Sudoku: 28 new stages (93–120) — German whispers, renban, equal sums, palindrome, between lines, lockout and XV',
+      'Sudoku: Killer and Free modes are back in the app',
+      'Sudoku: mistakes cost more toward the top of the ladder — 5 at the bottom, 1 at the top',
+      'Sudoku screens and puzzle stage names are in 12 languages',
+      'Skyscrapers: the check of an incomplete row is fixed',
+    ],
+  },
+  {
+    version: '2.56.7',
+    date: '2026-10-02',
+    ru: [
+      'В развилках снова видны все игры и режимы головоломок — 40 карточек пропадали из списков',
+      'Новое: «Конь и ферзи» (восемь ферзей и обход конём), «Кто спрятался?» с вопросами «или», «Кошки» с уровнями по настоящей трудности',
+      '«Тоны» на Android: слоги звучат живыми записями, линии тона вместо значков',
+      '«Паттерны» больше не подсказывают ответ последним шагом',
+      'Головоломки и MindLab — на 12 языках',
+    ],
+    en: [
+      'All games and puzzle modes are back in the hubs — 40 cards had gone missing from the lists',
+      'New: Knights & Queens (eight queens and the knight\'s tour), Who Is Hiding? with "or" questions, Cats with levels by real difficulty',
+      'Tones on Android: syllables play as real recordings, with tone lines instead of symbols',
+      'Patterns no longer give the answer away on the last step',
+      'Puzzles and MindLab are in 12 languages',
+    ],
+  },
+  {
     version: '2.56.6',
     date: '2026-10-02',
     ru: [
