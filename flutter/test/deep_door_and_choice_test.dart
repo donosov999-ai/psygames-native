@@ -40,7 +40,7 @@ void main() {
       ((jsonDecode(state.get(resumeKey)!) as Map)['state'] as Map).cast<String, Object?>();
 
   Future<void> openChooser(WidgetTester tester) async {
-    await tester.tap(find.byTooltip('Новая партия'));
+    await tester.tap(find.byTooltip(L.t('sdkNewGame')));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('deep-new')), findsOneWidget, reason: '«Новая партия» сначала спрашивает');
   }
