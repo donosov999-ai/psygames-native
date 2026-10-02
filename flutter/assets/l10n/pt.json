@@ -206,6 +206,7 @@
 "cueParity":"PARIDADE",
 "cueSize":"TAMANHO",
 "cueVowelQ":"VOGAL?",
+"deepHowTo":"A primeira grade é o topo. As células tracejadas escondem seus próprios sudokus: mergulhe até o fundo, resolva as folhas — os dígitos sobem. Complete a raiz e vença. A partida é longa e salva sozinha: volte quando quiser.",
 "deepPresetDesc_abyss":"3 camadas, um quebra-cabeça sob cada célula vazia — uma maratona de semanas",
 "deepPresetDesc_scout":"2 camadas, nove grades inferiores — para provar a mecânica",
 "deepPresetDesc_trek":"3 camadas, doze grades por nó — várias noites",

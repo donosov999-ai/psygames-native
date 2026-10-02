@@ -5,6 +5,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 
 import '../../shell/game_clock.dart';
+import '../../shell/game_rules.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/session_report.dart';
@@ -108,7 +109,22 @@ class _DeepScreenState extends State<DeepScreen> {
     final bank = await DeepBank.load();
     if (!mounted) return;
     setState(() => _bank = bank);
-    if (!_restore()) _newGame();
+    if (!_restore()) _firstEntry();
+  }
+
+  /// 🔴 ПЕРВЫЙ ВХОД — СНАЧАЛА «КАК ИГРАТЬ», ПОТОМ ДОСКА (сверка 138f7818, строка 393).
+  ///
+  /// Веб без снимка открывает экран настройки: описание, карточка `deepHowTo`, объём и
+  /// ступень, «Начать». Натив раздавал «Разведку» первой ступени молча — правило
+  /// «проваливайся в пунктирные клетки» с доски не угадывается, а «Поход» и «Бездна»
+  /// оставались за кнопкой «Новая партия». Теперь то же окно, что у «Новой партии»:
+  /// «Начать» — партия по выбору; «Отмена» — уйти, как «назад» с экрана настройки веба.
+  Future<void> _firstEntry() async {
+    final ok = await _chooseAndStart();
+    if (ok || !mounted) return;
+    final left = await Navigator.of(context).maybePop();
+    // Уйти некуда (экран открыт корнем) — пустое поле хуже партии по умолчанию.
+    if (!left && mounted && _seed.isEmpty) _newGame();
   }
 
   /// Поднять незаконченную партию — ту же, что писала веб-версия.
@@ -190,7 +206,9 @@ class _DeepScreenState extends State<DeepScreen> {
   /// всегда был 'scout', `_band` — 0, «Экспедиция» и «Бездна» были недостижимы). Окно же —
   /// и подтверждение: партия здесь идёт неделями, а «Новая партия» одним касанием затирала
   /// снимок. «Отмена» оставляет текущую партию как есть.
-  Future<void> _chooseAndStart() async {
+  ///
+  /// Возвращает, началась ли новая партия: на первом входе «Отмена» решает вызывающий.
+  Future<bool> _chooseAndStart() async {
     var preset = _preset;
     var band = _band;
     final ok = await showDialog<bool>(
@@ -201,6 +219,9 @@ class _DeepScreenState extends State<DeepScreen> {
           title: Text(L.t('deepTitle')),
           content: SingleChildScrollView(
             child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+              // Карточка «как играть» — та же, что на экране настройки веба.
+              Text(L.t('deepHowTo'), key: const Key('deep-howto'), style: const TextStyle(fontSize: 15, height: 1.35)),
+              const Divider(),
               RadioGroup<String>(
                 groupValue: preset,
                 onChanged: (v) => setLocal(() => preset = v ?? preset),
@@ -233,12 +254,13 @@ class _DeepScreenState extends State<DeepScreen> {
         ),
       ),
     );
-    if (ok != true || !mounted) return;
+    if (ok != true || !mounted) return false;
     setState(() {
       _preset = preset;
       _band = band;
     });
     _newGame();
+    return true;
   }
 
   void _newGame() {
@@ -440,6 +462,9 @@ class _DeepScreenState extends State<DeepScreen> {
     return GameShell(
       title: _title,
       onLesson: _lessonSteps().isEmpty ? null : _openLesson,
+      // По адресу каркас правила не найдёт: карточки «Бездны» нет ни в одной развилке
+      // (вход — дверь из фрактала), а `sudokuFractalDeepDesc` в словаре нет. Даём сами.
+      onRules: () => showGameRules(context, title: L.t('deepTitle'), ruleKey: 'deepHowTo'),
       hud: [
         HudItem(
           label: L.t('sdkDepth'),
@@ -452,7 +477,9 @@ class _DeepScreenState extends State<DeepScreen> {
       ],
       field: (context, height) {
         if (_failure != null) return Center(child: Text(_failure!));
-        if (!ready || node == null) return const Center(child: CircularProgressIndicator());
+        if (bank == null) return const Center(child: CircularProgressIndicator());
+        // Банк загружен, партии нет — открыто окно настройки, ждём человека, а не загрузку.
+        if (!ready || node == null) return const SizedBox.shrink();
         return LayoutBuilder(
           builder: (context, c) {
             final side = (height < c.maxWidth ? height : c.maxWidth) - 8;
@@ -567,7 +594,17 @@ class _Cell extends StatelessWidget {
             ),
             child: Stack(
               children: [
-                // Кормимая клетка помечена точкой: под ней целая судоку, и цифру туда
+                // Кольцо кормимой клетки — как у веба (`fedRing`): пунктир, пока снизу
+                // ничего не пришло, бледная сплошная — когда цифра всплыла. На него
+                // ссылается карточка «как играть» («под пунктирными клетками…»).
+                if (feed)
+                  Positioned.fill(
+                    child: CustomPaint(
+                      key: Key('feed_ring_${row}_$col'),
+                      painter: FedRingPainter(color: scheme.tertiary, dashed: value == 0),
+                    ),
+                  ),
+                // Кормимая клетка помечена стрелкой: под ней целая судоку, и цифру туда
                 // приносят снизу, а не ставят рукой.
                 if (feed && value == 0)
                   Center(
@@ -594,6 +631,40 @@ class _Cell extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Кольцо кормимой клетки: отступ 1,5, скругление 3, толщина 1 — размеры веба (`styles.fedRing`).
+/// `dashed` — пустая клетка (пунктир); заполненная — сплошное кольцо вполсилы.
+class FedRingPainter extends CustomPainter {
+  const FedRingPainter({required this.color, required this.dashed});
+
+  final Color color;
+  final bool dashed;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1
+      ..color = dashed ? color : color.withValues(alpha: 0.45);
+    final ring = RRect.fromRectAndRadius(
+      Rect.fromLTRB(1.5, 1.5, size.width - 1.5, size.height - 1.5),
+      const Radius.circular(3),
+    );
+    if (!dashed) {
+      canvas.drawRRect(ring, paint);
+      return;
+    }
+    const dash = 3.0, gap = 2.5;
+    for (final metric in (Path()..addRRect(ring)).computeMetrics()) {
+      for (var d = 0.0; d < metric.length; d += dash + gap) {
+        canvas.drawPath(metric.extractPath(d, d + dash), paint);
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(FedRingPainter old) => old.color != color || old.dashed != dashed;
 }
 
 class _Toolbar extends StatelessWidget {

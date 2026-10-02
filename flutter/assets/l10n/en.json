@@ -206,6 +206,7 @@
 "cueParity":"PARITY",
 "cueSize":"SIZE",
 "cueVowelQ":"VOWEL?",
+"deepHowTo":"The first grid is the top. Dashed cells hide their own sudokus: dive down to the bottom, solve the leaves — digits float up. Finish the root grid to win. The game is long and saves itself: come back anytime.",
 "deepPresetDesc_abyss":"3 layers, a puzzle under every empty cell — a weeks-long marathon",
 "deepPresetDesc_scout":"2 layers, nine lower grids — a taste of the mechanic",
 "deepPresetDesc_trek":"3 layers, twelve grids per node — several evenings",

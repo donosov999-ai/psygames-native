@@ -206,6 +206,7 @@
 "cueParity":"PARIDAD",
 "cueSize":"TAMAÑO",
 "cueVowelQ":"¿VOCAL?",
+"deepHowTo":"La primera cuadrícula es la cima. Las celdas punteadas esconden sus propios sudokus: baja hasta el fondo, resuelve las hojas — las cifras suben. Completa la raíz y ganas. La partida es larga y se guarda sola: vuelve cuando quieras.",
 "deepPresetDesc_abyss":"3 capas, un puzle bajo cada celda vacía — un maratón de semanas",
 "deepPresetDesc_scout":"2 capas, nueve cuadrículas inferiores — para probar la mecánica",
 "deepPresetDesc_trek":"3 capas, doce cuadrículas por nodo — varias tardes",

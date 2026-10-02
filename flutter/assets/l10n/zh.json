@@ -206,6 +206,7 @@
 "cueParity":"奇偶",
 "cueSize":"大小",
 "cueVowelQ":"元音？",
+"deepHowTo":"第一张网格是顶端。虚线格里藏着各自的数独：一路下潜到底，解开叶子——数字会浮上来。完成根网格即获胜。对局很长且自动保存：随时回来继续。",
 "deepPresetDesc_abyss":"3层，每个空格下都有谜题——数周马拉松",
 "deepPresetDesc_scout":"2层，九张下层网格——先试试机制",
 "deepPresetDesc_trek":"3层，每个节点十二张网格——够玩好几晚",

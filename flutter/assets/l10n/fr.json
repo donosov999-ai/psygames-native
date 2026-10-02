@@ -206,6 +206,7 @@
 "cueParity":"PARITÉ",
 "cueSize":"TAILLE",
 "cueVowelQ":"VOYELLE ?",
+"deepHowTo":"La première grille est le sommet. Les cases en pointillés cachent leurs propres sudokus : plonge jusqu'au fond, résous les feuilles — les chiffres remontent. Termine la grille racine pour gagner. La partie est longue et se sauvegarde seule : reviens quand tu veux.",
 "deepPresetDesc_abyss":"3 niveaux, un puzzle sous chaque case vide — un marathon de plusieurs semaines",
 "deepPresetDesc_scout":"2 niveaux, neuf grilles inférieures — pour essayer la mécanique",
 "deepPresetDesc_trek":"3 niveaux, douze grilles par nœud — plusieurs soirées",

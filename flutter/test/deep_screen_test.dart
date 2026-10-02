@@ -17,16 +17,25 @@ void main() {
   setUpAll(() async => L.load('ru'));
   late SharedState state;
 
+  const resumeKey = 'psygames_resume_sudoku_fractal_deep_nzt48';
+
+  /// Открыть «Бездну»; без снимка первый вход — окно настройки, «Начать» берёт по умолчанию.
   Future<void> boot(WidgetTester tester) async {
     await tester.runAsync(() async {
       await tester.pumpWidget(MaterialApp(home: DeepScreen(state: state)));
+      var started = false;
       for (var i = 0; i < 60; i++) {
         await tester.pump(const Duration(milliseconds: 50));
         await Future<void>.delayed(const Duration(milliseconds: 20));
+        final start = find.byKey(const Key('deep-start'));
+        if (!started && start.evaluate().isNotEmpty) {
+          await tester.tap(start);
+          started = true;
+        }
         if (find.byKey(const Key('cell_0_0')).evaluate().isNotEmpty) break;
       }
     });
-    await tester.pump();
+    await tester.pumpAndSettle();
   }
 
   Future<void> tap(WidgetTester tester, Finder f) async {
@@ -45,6 +54,98 @@ void main() {
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
     state = await SharedState.open();
+  });
+
+  /// 🔴 ПЕРВЫЙ ВХОД — «КАК ИГРАТЬ» ДО ДОСКИ (сверка 138f7818, строка 393; задача b5df5096 п.10).
+  /// Веб без снимка открывает экран настройки с карточкой `deepHowTo`; натив раздавал доску
+  /// молча, и правило «проваливайся в пунктирные клетки» с доски было не угадать.
+  testWidgets('🔴 первый вход: сначала «как играть» и выбор, доска — только после «Начать»', (tester) async {
+    await tester.runAsync(() async {
+      await tester.pumpWidget(MaterialApp(home: DeepScreen(state: state)));
+      for (var i = 0; i < 60; i++) {
+        await tester.pump(const Duration(milliseconds: 50));
+        await Future<void>.delayed(const Duration(milliseconds: 20));
+        if (find.byKey(const Key('deep-howto')).evaluate().isNotEmpty) break;
+      }
+    });
+    await tester.pumpAndSettle();
+    final howTo = find.byKey(const Key('deep-howto'));
+    expect(howTo, findsOneWidget, reason: 'без снимка экран открывается настройкой с карточкой правила');
+    expect(tester.widget<Text>(howTo).data, L.t('deepHowTo'));
+    expect(L.t('deepHowTo'), contains('пунктирн'), reason: 'карточка — текст веба, а не сырой ключ');
+    expect(find.byKey(const Key('deep-preset-abyss')), findsOneWidget, reason: 'объём выбирается тут же');
+    expect(find.byKey(const Key('cell_0_0')), findsNothing, reason: 'доска не раздаётся молча до выбора');
+    expect(state.get(resumeKey), isNull, reason: 'партии ещё нет');
+
+    await tester.runAsync(() async {
+      await tester.tap(find.byKey(const Key('deep-start')));
+      for (var i = 0; i < 40; i++) {
+        await tester.pump(const Duration(milliseconds: 50));
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+        if (find.byKey(const Key('cell_0_0')).evaluate().isNotEmpty) break;
+      }
+    });
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('cell_8_8')), findsOneWidget, reason: '«Начать» раздаёт доску');
+    expect(state.get(resumeKey), isNotNull, reason: 'и партия сразу пишется в снимок');
+  });
+
+  testWidgets('🔴 «Отмена» на первом входе — уход с экрана, партия не заводится', (tester) async {
+    await tester.runAsync(() async {
+      await tester.pumpWidget(MaterialApp(
+        home: Builder(
+          builder: (c) => Scaffold(
+            body: ElevatedButton(
+              key: const Key('hub'),
+              onPressed: () => Navigator.of(c).push(MaterialPageRoute<void>(builder: (_) => DeepScreen(state: state))),
+              child: const Text('hub'),
+            ),
+          ),
+        ),
+      ));
+      await tester.tap(find.byKey(const Key('hub')));
+      for (var i = 0; i < 60; i++) {
+        await tester.pump(const Duration(milliseconds: 50));
+        await Future<void>.delayed(const Duration(milliseconds: 20));
+        if (find.byKey(const Key('deep-cancel')).evaluate().isNotEmpty) break;
+      }
+    });
+    await tester.pumpAndSettle();
+    // Окно открыто из настоящего асинхронного хода загрузки — его продолжение ждёт
+    // настоящего цикла событий (как «Начать» в пробе двери), поэтому и «Отмена» — здесь.
+    await tester.runAsync(() async {
+      await tester.tap(find.byKey(const Key('deep-cancel')));
+      for (var i = 0; i < 40; i++) {
+        await tester.pump(const Duration(milliseconds: 50));
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+        if (find.byType(DeepScreen).evaluate().isEmpty) break;
+      }
+    });
+    await tester.pumpAndSettle();
+    expect(find.byType(DeepScreen), findsNothing, reason: '«Отмена» на настройке — назад, как «назад» с экрана настройки веба');
+    expect(find.byKey(const Key('hub')), findsOneWidget);
+    expect(state.get(resumeKey), isNull, reason: 'ушёл, не начав, — снимка нет');
+  });
+
+  testWidgets('🔴 «?» показывает правило «Бездны» — тот же текст, что в карточке настройки', (tester) async {
+    await boot(tester);
+    final help = find.byTooltip(L.t('btn_rules'));
+    expect(help, findsOneWidget, reason: 'по адресу каркас правила не найдёт — экран даёт его сам');
+    await tester.tap(help);
+    await tester.pumpAndSettle();
+    expect(tester.widget<Text>(find.byKey(const Key('game-rules-text'))).data, L.t('deepHowTo'));
+  });
+
+  testWidgets('🔴 кормимые клетки обведены пунктиром — на него ссылается карточка «как играть»', (tester) async {
+    await boot(tester);
+    final rings = tester
+        .widgetList<CustomPaint>(find.byWidgetPredicate((w) => w is CustomPaint && w.painter is FedRingPainter))
+        .map((w) => w.painter as FedRingPainter)
+        .toList();
+    expect(rings, isNotEmpty, reason: 'у кормимых клеток нет кольца');
+    expect(rings.length, find.byIcon(Icons.arrow_downward).evaluate().length,
+        reason: 'кольцо — у каждой кормимой клетки, и только у них');
+    expect(rings.every((p) => p.dashed), isTrue, reason: 'свежая партия: снизу ничего не пришло — все кольца пунктиром');
   });
 
   testWidgets('🔴 доска появляется, и партия сразу записана в снимок', (tester) async {
@@ -135,6 +236,7 @@ void main() {
     state = await SharedState.open();
     await boot(tester);
 
+    expect(find.byKey(const Key('deep-new')), findsNothing, reason: 'снимок есть — окна настройки нет, партия сразу');
     expect(find.text('1/3'), findsOneWidget, reason: 'пресет «Поход» — три слоя');
     expect(find.text('3/6'), findsOneWidget, reason: 'ступень из снимка, а не по умолчанию');
 

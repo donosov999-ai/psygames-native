@@ -206,6 +206,7 @@
 "cueParity":"PARITÄT",
 "cueSize":"GRÖSSE",
 "cueVowelQ":"VOKAL?",
+"deepHowTo":"Das erste Gitter ist die Spitze. Gestrichelte Zellen verbergen eigene Sudokus: tauche bis zum Grund, löse die Blätter — die Ziffern steigen nach oben. Vollende das Wurzelgitter — Sieg. Die Partie ist lang und speichert sich selbst: komm jederzeit zurück.",
 "deepPresetDesc_abyss":"3 Ebenen, ein Rätsel unter jeder leeren Zelle — ein wochenlanger Marathon",
 "deepPresetDesc_scout":"2 Ebenen, neun untere Gitter — die Mechanik ausprobieren",
 "deepPresetDesc_trek":"3 Ebenen, zwölf Gitter pro Knoten — mehrere Abende",

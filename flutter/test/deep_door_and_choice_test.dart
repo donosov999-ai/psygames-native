@@ -27,13 +27,20 @@ void main() {
   Future<void> bootDeep(WidgetTester tester) async {
     await tester.runAsync(() async {
       await tester.pumpWidget(MaterialApp(home: DeepScreen(state: state)));
+      var started = false;
       for (var i = 0; i < 60; i++) {
         await tester.pump(const Duration(milliseconds: 50));
         await Future<void>.delayed(const Duration(milliseconds: 20));
+        // Первый вход — окно настройки (карточка «как играть»): партия по умолчанию.
+        final start = find.byKey(const Key('deep-start'));
+        if (!started && start.evaluate().isNotEmpty) {
+          await tester.tap(start);
+          started = true;
+        }
         if (find.byKey(const Key('cell_0_0')).evaluate().isNotEmpty) break;
       }
     });
-    await tester.pump();
+    await tester.pumpAndSettle();
   }
 
   Map<String, Object?> snapshot() =>
