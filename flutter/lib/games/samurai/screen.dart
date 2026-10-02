@@ -16,6 +16,7 @@ import '../../shell/l10n.dart';
 import '../../shell/lesson.dart';
 import '../../shell/lesson_player.dart';
 import '../sudoku/lesson.dart';
+import '../sudoku/leave_guard.dart';
 import 'rules.dart';
 
 /// САМУРАЙ на общем каркасе — вторая игра раздела в переезде на Flutter.
@@ -307,12 +308,16 @@ class _SamuraiScreenState extends State<SamuraiScreen> {
     v.dispose();
   }
 
+  /// В партии есть что терять: ход, ошибка или подсказка — и она не кончилась. Тогда выход и «Заново»
+  /// спрашивают (leave_guard.dart; сверка 138f7818 п.2).
+  bool get _live => (_history.isNotEmpty || _errors > 0 || _hintsUsed > 0) && !_won && !_lost;
+
   @override
   Widget build(BuildContext context) {
     final levels = _levels;
     final board = _board;
 
-    return GameShell(
+    return LeaveGuard(live: _live, child: GameShell(
       title: _title,
       onLesson: _lessonSteps().isEmpty ? null : _openLesson,
       hud: [
@@ -351,7 +356,7 @@ class _SamuraiScreenState extends State<SamuraiScreen> {
           label: L.t('btn_undo'),
           onPressed: _history.isEmpty || _won || _lost ? null : _undo,
         ),
-        AuxAction(icon: Icons.refresh, label: L.t('restart'), onPressed: _deal),
+        AuxAction(icon: Icons.refresh, label: L.t('restart'), onPressed: () => restartGuarded(context, live: _live, deal: _deal)),
         AuxAction(
           icon: Icons.lightbulb_outline,
           label: L.t('btn_hint'),
@@ -365,9 +370,9 @@ class _SamuraiScreenState extends State<SamuraiScreen> {
           ? null
           : _Toolbar(won: _won, lost: _lost, onDigit: _place, onErase: _erase, onNext: _deal),
       pauseActions: [
-        PauseAction(label: L.t('sdkStartOver'), icon: Icons.refresh, onPressed: _deal),
+        PauseAction(label: L.t('sdkStartOver'), icon: Icons.refresh, onPressed: () => restartGuarded(context, live: _live, deal: _deal)),
       ],
-    );
+    ));
   }
 }
 

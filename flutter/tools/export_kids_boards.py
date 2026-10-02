@@ -15,6 +15,14 @@
 
 Запуск (MindLab нужен только здесь, в приложение он не едет):
     python3 flutter/tools/export_kids_boards.py > flutter/assets/levels/sudoku-kids-boards.json
+    python3 flutter/tools/export_kids_boards.py --meow9 > flutter/assets/levels/sudoku-meow9-boards.json
+
+«МЯУ — ДРУЗЬЯ» 9×9 (`--meow9`, 02.10.2026): четыре ступени основной лестницы (план v4 — уровни
+129–132; номера ставит развилка лестницы в levelConfig, здесь их нет — только порядок ступеней),
+подсказок 30 / 28 / 26 / 24, по 6 досок. Тот же отбор правилом от базы ступени; базы 124300…124600
+— те, от которых развилка (psygames-sudoku-levels-claude-mac, tools/meow9.py) нашла свои 24 доски:
+выгрузка повторяет их зёрна и доски один в один. Формат файла — как у малышей (одна дорожка),
+чтобы приложение читало его тем же `KidsBoards.parse`.
 Путь к MindLab — переменная MINDLAB_SUDOKU (по умолчанию соседний репо на этом Маке).
 
 Каждая доска проверяется перед записью: решение единственно (с правилом друзей, где оно есть),
@@ -46,14 +54,17 @@ TRACKS = [
     ('animals6', 6, 2, 3, False, 1000, [20, 16, 13]),
 ]
 
+# «Мяу — друзья» 9×9 для основной лестницы: имя, поле, блок, базы зёрен по ступеням, подсказки, досок на ступень.
+MEOW9 = ('meow9', 9, 3, 3, [124300, 124400, 124500, 124600], [30, 28, 26, 24], 6)
+
 
 def flat(grid):
     return ''.join(str(v) for row in grid for v in row)
 
 
-def boards_for(n, friends, base, clues):
+def boards_for(n, friends, base, clues, per=PER_STEP):
     out, seed = [], base
-    while len(out) < PER_STEP:
+    while len(out) < per:
         seed += 1
         if seed > base + 5000:
             raise SystemExit(f'n={n} clues={clues}: за 5000 зёрен набралось {len(out)} досок')
@@ -73,7 +84,20 @@ def boards_for(n, friends, base, clues):
     return out
 
 
+def meow9():
+    name, n, br, bc, bases, clues, per = MEOW9
+    steps = [{'givens': c, 'boards': boards_for(n, FRIENDS, b, c, per)} for b, c in zip(bases, clues)]
+    return {
+        'source': 'MindLab sudoku.py generate(9, clues, seed, friends=(1, 2)); flutter/tools/export_kids_boards.py --meow9',
+        'tracks': [{'id': name, 'n': n, 'br': br, 'bc': bc, 'friends': list(FRIENDS), 'steps': steps}],
+    }
+
+
 def main():
+    if '--meow9' in sys.argv[1:]:
+        json.dump(meow9(), sys.stdout, ensure_ascii=False, indent=1)
+        sys.stdout.write('\n')
+        return
     tracks = []
     for name, n, br, bc, friends, base, clues in TRACKS:
         fr = FRIENDS if friends else None

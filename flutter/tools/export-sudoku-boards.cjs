@@ -17,6 +17,8 @@
  *     путём, что экран (`app/games/sudoku.tsx`, buildBoard): `logicalBuilder(ступень, blanks, …,
  *     {budgetMs: 2200, tier: roadTier(ступень, дорога по умолчанию), look:
  *     selectionLookForLevel(ступень)})` и цикл шагов `runSteps` — без кадров экрана;
+ *   · sudoku-road-boards.json    — доски дорог «полегче» и «пожёстче»: по --per-road на каждую
+ *     вариантную ступень, полоса `roadTier`, пустые `roadLevelConfig` (как веб-экран на дороге);
  *   · sudoku-modes.json          — небоскрёбы и неравенства: `sideBoardForStep`, по --per-step
  *     досок на ступень мини-лестницы.
  * И эталоны правил для пробы `flutter/test/sudoku_rules_test.dart` —
@@ -51,7 +53,7 @@
  *                                                                       остальные из файла
  *   node flutter/tools/export-sudoku-boards.cjs --no-boards --no-modes — лестница, банк, эталоны
  *                                                                       правил (секунды)
- *   флаги: --per-level=12 --per-step=6 --seed=1 --modes=towers,unequal,killer,free --no-rules --dry
+ *   флаги: --per-level=12 --per-step=6 --per-road=6 --seed=1 --modes=towers,unequal,killer,free --no-roads --no-rules --dry
  *          (собрать и проверить, ничего не записывая)
  * После выгрузки: cd flutter && flutter test test/sudoku_levels_test.dart
  * Сторож расхождения веба и натива: frontend/src/__tests__/sudoku-native-boards-drift.test.ts.
@@ -65,9 +67,10 @@ const root = path.resolve(__dirname, '../..');
 const src = path.join(root, 'frontend/src');
 const outDir = path.join(root, 'flutter/assets/levels');
 const ts = require(path.join(root, 'frontend/node_modules/typescript'));
+const meow9 = require('./meow9-ladder.cjs');
 
 // ── Флаги ───────────────────────────────────────────────────────────────────────────
-const KNOWN = new Set(['levels', 'per-level', 'per-step', 'seed', 'modes', 'dry', 'no-boards', 'no-modes', 'no-rules']);
+const KNOWN = new Set(['levels', 'per-level', 'per-step', 'per-road', 'seed', 'modes', 'dry', 'no-boards', 'no-roads', 'no-modes', 'no-rules']);
 const args = {};
 for (const a of process.argv.slice(2)) {
   const m = /^--([a-z-]+)(?:=(.*))?$/.exec(a);
@@ -279,6 +282,15 @@ if (!args['no-boards']) {
       boards.push(...kept);
       continue;
     }
+    if (c.variant === 'friends') {
+      // «Мяу — друзья» 9×9: генератора на TS нет — доски из выгрузки MindLab (meow9-ladder.cjs).
+      const rows = meow9.friendsRows(lv, core.levelConfig, readOld(meow9.MEOW9_ASSET));
+      const line = `L${String(lv).padStart(2)} ${c.variant.padEnd(12)} ${rows.length} досок из ${meow9.MEOW9_ASSET}`;
+      console.error(line);
+      report.push(line);
+      boards.push(...rows);
+      continue;
+    }
     const taken = new Set();
     const made = [];
     for (let i = 0; i < PER_LEVEL; i++) {
@@ -310,6 +322,94 @@ if (!args['no-boards']) {
   write('sudoku-variant-boards.json', { выгружено: STAMP, boards });
   console.error(`вариантные доски: ${boards.length} на ${boardLevels.length} ступенях за ${Math.round((Date.now() - t0) / 1000)} с`
     + `${only ? ` (пересобраны: ${[...only].join(', ')})` : ''}`);
+}
+
+// ── 3б. Доски дорог «полегче» и «пожёстче» ─────────────────────────────────────────────
+/*
+ * 🔴 ДОРОГА — ЭТО ДРУГАЯ ДОСКА, А НЕ ДРУГАЯ ЦИФРА (задача b5df5096, сверка 138f7818). Веб на
+ * дороге строит доску со сдвинутой полосой техник (`roadTier`) и своим числом пустых
+ * (`roadLevelConfig`) — это и есть «полегче / пожёстче» (services/sudoku-roads.ts, шапка
+ * «ЧЕМ ДОРОГИ ОТЛИЧАЮТСЯ НА САМОМ ДЕЛЕ»). Нативный экран играет доски данными, поэтому для
+ * каждой вариантной ступени здесь по --per-road досок на каждую НЕобычную дорогу тем же путём,
+ * что веб-экран на этой дороге. Обычная дорога — sudoku-variant-boards.json выше. Банковские
+ * ступени дорога сдвигает полосой банка (bankRating со сдвигом), досок им не нужно.
+ */
+if (!args['no-roads']) {
+  const PER_ROAD = Number(args['per-road'] ?? 6);
+  const extra = roads.SUDOKU_ROADS.filter((r) => r !== roads.DEFAULT_SUDOKU_ROAD);
+  const levels = ladder.filter((row) => !isBankLevel(core.levelConfig(row.level))).map((row) => row.level);
+  const only = args.levels ? parseLevels(args.levels) : null;
+  const old = readOld('sudoku-road-boards.json');
+  const keep = (lv, road) => (old?.boards ?? []).filter((b) => b.level === lv && b.road === road);
+  const wasRefused = (lv, road) => (old?.отказ ?? []).some((x) => x.level === lv && x.road === road);
+  /*
+   * ⚠️ ДОРОГА НЕ ИМЕЕТ ПРАВА ИДТИ НЕ В ТУ СТОРОНУ. Замер первой выгрузки (02.10.2026): XV на
+   * «пожёстче» дал доски ступени 1 при 4 у обычной — с отрицательным условием знаки на лишних
+   * пустых клетках решают всё одиночками. Если средняя ступень досок дороги уходит от обычной
+   * НЕ туда на полступени и больше (меньше — шум шести досок против двенадцати), доски дороги
+   * на этой ступени не пишутся: дорога играет обычные, а жизни и подсказки у неё свои.
+   */
+  const normalMean = new Map();
+  for (const b of readOld('sudoku-variant-boards.json')?.boards ?? []) {
+    const m = normalMean.get(b.level) ?? { sum: 0, n: 0 };
+    m.sum += b.tier ?? 0; m.n += 1; normalMean.set(b.level, m);
+  }
+  const mean = (xs) => xs.reduce((s, x) => s + (x ?? 0), 0) / Math.max(1, xs.length);
+  const refused = [];
+  const boards = [];
+  const t0 = Date.now();
+  for (const road of extra) {
+    for (const lv of levels) {
+      const c = roads.roadLevelConfig(lv, road);
+      if (only && !only.has(lv)) {
+        const kept = keep(lv, road);
+        if (!kept.length && wasRefused(lv, road)) {
+          refused.push(...(old?.отказ ?? []).filter((x) => x.level === lv && x.road === road));
+          continue;
+        }
+        if (!kept.length || kept.some((b) => b.variant !== c.variant || b.n !== c.N)) {
+          throw Error(`дорога ${road}, ступень ${lv}: в файле ${kept.length ? `вариант ${kept[0].variant}` : 'досок нет'}, `
+            + `а levelConfig даёт ${c.variant} ${c.N}×${c.N} — пересобери её: --levels=${lv}`);
+        }
+        boards.push(...kept);
+        continue;
+      }
+      const taken = new Set();
+      const made = [];
+      for (let i = 0; i < PER_ROAD; i++) {
+        const r = buildChecked(`дорога ${road}, ступень ${lv} (${c.variant}), доска ${i + 1}`, taken, (attempt) => {
+          rngState = seedFor(BASE_SEED, 'road', road, lv, i, attempt);
+          const b = grade.logicalBuilder(lv, c.blanks, c.N, c.BR, c.BC, c.variant, {
+            budgetMs: 2200, tier: roads.roadTier(lv, road), look: grade.selectionLookForLevel(lv),
+          });
+          let best;
+          for (let n = 1; n <= Math.max(1, b.steps); n++) {
+            best = b.step(n);
+            if (b.enough(best)) break;
+          }
+          return { gen: best.gen, tier: best.grade.solved ? best.grade.tier : null, N: c.N, BR: c.BR, BC: c.BC, variant: c.variant };
+        });
+        const geometry = {};
+        for (const f of GEOMETRY_FIELDS) if (r.gen[f] != null) geometry[f] = r.gen[f];
+        made.push({ level: lv, road, variant: c.variant, n: c.N, br: c.BR, bc: c.BC,
+          puzzle: toStr(r.gen.puzzle), solution: toStr(r.gen.solution), tier: r.tier, geometry });
+      }
+      const band = roads.roadTier(lv, road);
+      const nm = normalMean.get(lv);
+      const own = mean(made.map((b) => b.tier));
+      const base = nm ? nm.sum / nm.n : null;
+      const wrongWay = base != null && (road === 'hard' ? own <= base - 0.5 : own >= base + 0.5);
+      console.error(`${road.padEnd(4)} L${String(lv).padStart(3)} ${c.variant.padEnd(12)} полоса ${band.min}–${band.max}: [${histogram(made.map((b) => b.tier))}]`
+        + (wrongWay ? `  ✗ средняя ${own.toFixed(1)} против ${base.toFixed(1)} у обычной — не пишу, дорога играет обычные` : ''));
+      if (wrongWay) {
+        refused.push({ level: lv, road, variant: c.variant, причина: `средняя ступень ${own.toFixed(1)} против ${base.toFixed(1)} у обычной` });
+        continue;
+      }
+      boards.push(...made);
+    }
+  }
+  write('sudoku-road-boards.json', { выгружено: STAMP, отказ: refused, boards });
+  console.error(`доски дорог: ${boards.length} (${extra.join(', ')} × ${levels.length} ступеней) за ${Math.round((Date.now() - t0) / 1000)} с`);
 }
 
 // ── 4. Мини-лестницы режимов ──────────────────────────────────────────────────────────
@@ -388,7 +488,8 @@ if (!args['no-modes']) {
 // лестницы. Доска — полное решение с 27 пустыми клетками; ходы — 20 цифр решения и 20
 // соседних (заведомо спорных), в любую клетку: проба сама освобождает клетку перед ходом.
 if (!args['no-rules']) {
-  const variants = [...new Set(ladder.map((l) => l.variant)), 'killer', 'unequal', 'towers'];
+  // 'friends' — условие на всё решение, а не запрет хода: эталона ходов у него нет (meow9-ladder.cjs).
+  const variants = [...new Set(ladder.map((l) => l.variant).filter((v) => v !== 'friends')), 'killer', 'unequal', 'towers'];
   const out = [];
   const perRule = [];
   for (const variant of variants) {

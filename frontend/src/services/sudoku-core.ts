@@ -11,7 +11,9 @@
 import { translateFor } from '../contexts/LanguageContext';
 
 export type Cell = number; // 0 = empty
-export type Variant = 'none' | 'diagonal' | 'antiknight' | 'hyper' | 'nonconsec' | 'jigsaw' | 'antiking' | 'evenodd' | 'kropki' | 'sandwich' | 'thermo' | 'arrow' | 'thermocage' | 'unequal' | 'towers' | 'sandparity' | 'thermoknight' | 'killerdiag' | 'whisper' | 'renban' | 'regionsum' | 'palindrome' | 'between' | 'lockout' | 'xv';
+export type Variant = 'none' | 'diagonal' | 'antiknight' | 'hyper' | 'nonconsec' | 'jigsaw' | 'antiking' | 'evenodd' | 'kropki' | 'sandwich' | 'thermo' | 'arrow' | 'thermocage' | 'unequal' | 'towers' | 'sandparity' | 'thermoknight' | 'killerdiag' | 'whisper' | 'renban' | 'regionsum' | 'palindrome' | 'between' | 'lockout' | 'xv' | 'friends';
+// 'friends' — «Мяу — друзья» 9×9 (у кота мышь рядом): генератора на TS нет, доски ступеней — только
+// выгрузкой MindLab (flutter/tools/meow9-ladder.cjs, export_kids_boards.py --meow9).
 
 export const HYPER_BOXES = [[1, 1], [1, 5], [5, 1], [5, 5]] as const;   // Windoku: 4 доп. зоны 3×3 (левые-верхние углы)
 export const KNIGHT = [[-2, -1], [-2, 1], [-1, -2], [-1, 2], [1, -2], [1, 2], [2, -1], [2, 1]] as const;
@@ -35,7 +37,7 @@ export function inHyper(r: number, c: number): readonly [number, number] | null 
 /** v1.137: подписи/правила вариантов живут в словаре LanguageContext
  *  (sudokuVariant* / sudokuRule*) — берутся через translateFor, чтобы 10
  *  оверлейных языков не падали на английский. lang — код языка ('ru'|'en'|…). */
-const VARIANT_KEY_SUFFIX: Record<Exclude<Variant, 'none'>, string> = {
+const VARIANT_KEY_SUFFIX: Record<Exclude<Variant, 'none' | 'friends'>, string> = {
   diagonal: 'Diagonal', antiknight: 'Antiknight', hyper: 'Hyper', nonconsec: 'Nonconsec',
   jigsaw: 'Jigsaw', antiking: 'Antiking', evenodd: 'Evenodd', kropki: 'Kropki',
   sandwich: 'Sandwich', thermo: 'Thermo', arrow: 'Arrow', thermocage: 'Thermocage',
@@ -50,12 +52,16 @@ const VARIANT_KEY_SUFFIX: Record<Exclude<Variant, 'none'>, string> = {
   lockout: 'Lockout',
   xv: 'Xv',
 };
+// «Мяу — друзья»: имя и правило — одна короткая строка «🐱 рядом с 🐭», та же, что у натива
+// (sdkRule_friends, 12 языков); отдельных sudokuVariant*/sudokuRule* у варианта нет.
 export function variantLabel(v: Variant, lang: string): string {
   if (v === 'none') return '';
+  if (v === 'friends') return translateFor(lang, 'sdkRule_friends');
   return translateFor(lang, 'sudokuVariant' + VARIANT_KEY_SUFFIX[v]);
 }
 export function variantRule(v: Variant, lang: string): string {
   if (v === 'none') return '';
+  if (v === 'friends') return translateFor(lang, 'sdkRule_friends');
   return translateFor(lang, 'sudokuRule' + VARIANT_KEY_SUFFIX[v]);
 }
 

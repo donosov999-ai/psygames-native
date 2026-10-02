@@ -16,6 +16,7 @@ import '../../shell/lesson_player.dart';
 import '../sudoku/keypad.dart';
 import '../sudoku/lesson.dart';
 import '../sudoku/marks.dart';
+import '../sudoku/leave_guard.dart';
 import 'levels.dart';
 import 'rules.dart';
 
@@ -327,6 +328,10 @@ class _FractalScreenState extends State<FractalScreen> {
 
   void _openDeep() => (widget.onOpen ?? HybridApp.open)?.call('/games/sudoku-fractal-deep');
 
+  /// В партии есть что терять: ход, пометка или цвет — и она не кончилась. Тогда выход и «Заново»
+  /// спрашивают (leave_guard.dart; сверка 138f7818 п.2).
+  bool get _live => _history.isNotEmpty && !_won;
+
   @override
   Widget build(BuildContext context) {
     final levels = _levels;
@@ -334,7 +339,7 @@ class _FractalScreenState extends State<FractalScreen> {
     final p = _play;
     final open = _openChild;
 
-    return GameShell(
+    return LeaveGuard(live: _live, child: GameShell(
       title: _title,
       onLesson: _lessonSteps().isEmpty ? null : _openLesson,
       hud: [
@@ -399,7 +404,7 @@ class _FractalScreenState extends State<FractalScreen> {
           active: _paint != null,
           onPressed: _won ? null : _togglePaint,
         ),
-        AuxAction(icon: Icons.refresh, label: L.t('restart'), onPressed: _deal),
+        AuxAction(icon: Icons.refresh, label: L.t('restart'), onPressed: () => restartGuarded(context, live: _live, deal: _deal)),
       ]),
       toolbar: f == null
           ? null
@@ -412,13 +417,13 @@ class _FractalScreenState extends State<FractalScreen> {
               onPaint: (i) => setState(() => _paint = i),
             ),
       pauseActions: [
-        PauseAction(label: L.t('sdkStartOver'), icon: Icons.refresh, onPressed: _deal),
+        PauseAction(label: L.t('sdkStartOver'), icon: Icons.refresh, onPressed: () => restartGuarded(context, live: _live, deal: _deal)),
         // 🔴 ДВЕРЬ В «БЕЗДНУ» (сверка 138f7818). В вебе она стоит на экране настройки фрактала
         // (sudoku-fractal.tsx: fractal-deep-link) — экрана настройки у натива нет, и марафонский
         // режим стал недостижим: карточки в развилке у него нет, дверь была одна.
         PauseAction(label: L.t('deepTitle'), icon: Icons.layers, onPressed: _openDeep),
       ],
-    );
+    ));
   }
 }
 
