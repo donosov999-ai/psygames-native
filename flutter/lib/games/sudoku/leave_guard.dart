@@ -21,7 +21,9 @@ Future<bool> confirmLoss(BuildContext context, {bool restart = false}) async {
     context: context,
     builder: (context) => AlertDialog(
       key: const Key('confirm-loss'),
-      title: Text(L.t(restart ? 'restartConfirmTitle' : 'exitConfirmTitle')),
+      // Каждый ключ — СВОИМ L.t: тернарник внутри L.t(…) embed-l10n не видит, и в словарь
+      // приложения ключ не попадает — на экране сырое «exitConfirmTitle» (02.10.2026).
+      title: Text(restart ? L.t('restartConfirmTitle') : L.t('exitConfirmTitle')),
       content: Text(L.t('exitConfirmLost')),
       actions: [
         TextButton(
@@ -32,7 +34,7 @@ Future<bool> confirmLoss(BuildContext context, {bool restart = false}) async {
         FilledButton(
           key: const Key('confirm-go'),
           onPressed: () => Navigator.of(context).pop(true),
-          child: Text(L.t(restart ? 'restart' : 'exitConfirmLeave')),
+          child: Text(restart ? L.t('restart') : L.t('exitConfirmLeave')),
         ),
       ],
     ),
