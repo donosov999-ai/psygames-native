@@ -3375,7 +3375,7 @@ const t: Record<string, string> = {
   "sudokuRuleRegionsum": "Blaue Linie: In jedem Block, den sie durchläuft, ergeben ihre Ziffern dieselbe Summe.",
   "sudokuRulePalindrome": "Eine graue Linie liest sich von beiden Enden gleich: Ziffern im gleichen Abstand von den Enden stimmen überein.",
   "sudokuRuleBetween": "Die Ziffern auf der Linie liegen streng zwischen den Ziffern in den Kreisen an ihren Enden.",
-  "sudokuRuleLockout": "Die Ziffern in den Rauten an den Enden unterscheiden sich um mindestens 4, und die Ziffern der Linie liegen außerhalb des Bereichs dazwischen.",
+  "sudokuRuleLockout": "Die Ziffern in den Rauten an den Enden unterscheiden sich um mindestens 4; die Ziffern der Linie sind weder gleich diesen Ziffern noch liegen sie dazwischen.",
   "sudokuRuleXv": "X zwischen Zellen: Summe 10, V: Summe 5. Alle Zeichen sind eingetragen: Benachbarte Zellen ohne Zeichen ergeben nie 5 oder 10.",
   "sdkRule_renban": "Renban",
   "sdkRule_regionsum": "gleiche Summen",

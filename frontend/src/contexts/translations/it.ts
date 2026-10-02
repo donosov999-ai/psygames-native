@@ -3370,7 +3370,7 @@ const t: Record<string, string> = {
   "sudokuRuleRegionsum": "Linea blu: in ogni riquadro che attraversa, le sue cifre danno la stessa somma.",
   "sudokuRulePalindrome": "Una linea grigia si legge uguale da entrambe le estremità: le cifre alla stessa distanza dalle estremità coincidono.",
   "sudokuRuleBetween": "Le cifre sulla linea stanno strettamente tra le cifre nei cerchi alle sue estremità.",
-  "sudokuRuleLockout": "Le cifre nei rombi alle estremità differiscono di almeno 4, e le cifre della linea stanno fuori dall’intervallo tra di esse.",
+  "sudokuRuleLockout": "Le cifre nei rombi alle estremità differiscono di almeno 4; le cifre della linea non sono uguali a esse né stanno tra di esse.",
   "sudokuRuleXv": "Una X tra due celle indica somma 10, una V somma 5. Sono tutti segnati: due celle vicine senza segno non sommano mai 5 né 10.",
   "sdkRule_renban": "renban",
   "sdkRule_regionsum": "somme uguali",

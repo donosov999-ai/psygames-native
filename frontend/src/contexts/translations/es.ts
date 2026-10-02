@@ -3375,7 +3375,7 @@ const t: Record<string, string> = {
   "sudokuRuleRegionsum": "Línea azul: en cada cuadro por el que pasa, sus dígitos suman lo mismo.",
   "sudokuRulePalindrome": "Una línea gris se lee igual desde ambos extremos: los dígitos a la misma distancia de los extremos coinciden.",
   "sudokuRuleBetween": "Los dígitos de la línea quedan estrictamente entre los dígitos de los círculos de sus extremos.",
-  "sudokuRuleLockout": "Los dígitos de los rombos de los extremos se diferencian en 4 o más, y los dígitos de la línea quedan fuera del intervalo entre ellos.",
+  "sudokuRuleLockout": "Los dígitos de los rombos de los extremos se diferencian en 4 o más; los dígitos de la línea no son iguales a ellos ni quedan entre ellos.",
   "sudokuRuleXv": "Una X entre celdas significa que suman 10; una V, que suman 5. Están todas marcadas: dos celdas vecinas sin signo nunca suman 5 ni 10.",
   "sdkRule_renban": "renban",
   "sdkRule_regionsum": "sumas iguales",
