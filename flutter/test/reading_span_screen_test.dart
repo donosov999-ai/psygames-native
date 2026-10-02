@@ -105,6 +105,32 @@ void main() {
     await tester.pump();
   }
 
+  testWidgets('🔴 приёмка §4б: ввод слов на 360×640 при открытой клавиатуре — поле и «Проверить» видны над ней',
+      (tester) async {
+    // Слова вспоминаются СВОБОДНО, на 12 письменностях: своя клавиатура под полем — 33 буквы на
+    // алфавит, а китайскому, японскому и хинди нужен системный ввод. Орган — клавиатура ОС, и
+    // приёмка меряет, что она не закрывает ни поле, ни кнопку ответа.
+    tester.view.physicalSize = const Size(360, 640);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    await boot(tester, level: 1);
+    await tester.tap(find.byKey(const Key('rspan-start')));
+    await tester.pump();
+    final words = await readSet(tester);
+    const keyboard = 300.0;   // клавиатура телефона на экране высотой 640 — с запасом
+    tester.view.viewInsets = const FakeViewPadding(bottom: keyboard);
+    await tester.pump();
+    const visible = Rect.fromLTRB(0, 0, 360, 640 - keyboard);
+    final field = tester.getRect(find.byKey(const Key('rspan-input')));
+    final check = tester.getRect(find.byKey(const Key('rspan-check')));
+    expect(visible.contains(field.topLeft) && field.bottom <= visible.bottom, isTrue, reason: 'поле $field, видно $visible');
+    expect(check.top >= field.bottom && check.bottom <= visible.bottom, isTrue,
+        reason: '«Проверить» под полем и над клавиатурой: $check, поле $field');
+    expect(check.height >= 48 && check.width >= 48, isTrue, reason: 'площадь нажатия $check');
+    await answer(tester, words.join(', '));
+    expect(find.byKey(const Key('rspan-passed')), findsOneWidget, reason: 'ответ засчитан при открытой клавиатуре');
+  });
+
   testWidgets('🔴 партия: прочитал, оценил, набрал слова по порядку — уровень взят, отчёт как у веба', (tester) async {
     await boot(tester, level: 1);
     await tester.tap(find.byKey(const Key('rspan-start')));

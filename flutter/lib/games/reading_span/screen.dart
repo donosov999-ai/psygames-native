@@ -223,7 +223,7 @@ class _ReadingSpanScreenState extends State<ReadingSpanScreen> {
         RspanPhase.ready => _Ready(level: _ladder.level, onStart: _start),
         RspanPhase.judge => _Judge(sentence: g!.current, language: _lang),
         RspanPhase.hold => const _Hold(),
-        RspanPhase.recall => _Recall(controller: _input, onSubmit: _check),
+        RspanPhase.recall => const _Recall(),
         RspanPhase.done => _Done(game: g!, levelNow: _ladder.level),
         RspanPhase.revealed => RspanSolution(seq: g?.seq ?? const [], language: _lang),
       },
@@ -238,10 +238,7 @@ class _ReadingSpanScreenState extends State<ReadingSpanScreen> {
       ]),
       toolbar: switch (_phase) {
         RspanPhase.judge => _JudgeButtons(last: _lastJudge, onJudge: _judge),
-        RspanPhase.recall => Padding(
-            padding: const EdgeInsets.all(12),
-            child: FilledButton(key: const Key('rspan-check'), onPressed: _check, child: Text(L.t('check'))),
-          ),
+        RspanPhase.recall => _RecallBar(controller: _input, onSubmit: _check),
         RspanPhase.done || RspanPhase.revealed => Padding(
             padding: const EdgeInsets.all(12),
             child: FilledButton.icon(
@@ -420,10 +417,7 @@ class _Hold extends StatelessWidget {
 }
 
 class _Recall extends StatelessWidget {
-  const _Recall({required this.controller, required this.onSubmit});
-
-  final TextEditingController controller;
-  final VoidCallback onSubmit;
+  const _Recall();
 
   @override
   Widget build(BuildContext context) {
@@ -435,30 +429,62 @@ class _Recall extends StatelessWidget {
           Text(L.t('recallNow'), textAlign: TextAlign.center, style: text.titleLarge?.copyWith(fontWeight: FontWeight.w800)),
           const SizedBox(height: 6),
           Text(L.t('recallHint'), textAlign: TextAlign.center, style: text.bodySmall),
-          const SizedBox(height: 16),
-          ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 460),
-            child: TextField(
-              key: const Key('rspan-input'),
-              controller: controller,
-              autofocus: true,
-              autocorrect: false,
-              enableSuggestions: false,
-              textCapitalization: TextCapitalization.none,
-              minLines: 2,
-              maxLines: 4,
-              textInputAction: TextInputAction.done,
-              onSubmitted: (_) => onSubmit(),
-              decoration: InputDecoration(
-                hintText: L.t('recallPlaceholder'),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-              ),
-            ),
-          ),
         ],
       ),
     );
   }
+}
+
+/// Ввод вспомненных слов — В РЯДУ ПОД ПОЛЕМ, вместе с «Проверить» (приёмка §4б, п. 4).
+///
+/// Орган — клавиатура ОС: слова вспоминаются свободно и на 12 письменностях, своя клавиатура
+/// под полем — 33 буквы на алфавит, а китайскому, японскому и хинди нужен системный ввод.
+/// 🔴 Поле стояло в середине экрана, и на 360×640 с открытой клавиатурой его нижние 42 пт уходили
+/// под «Проверить» (замер 02.10.2026). В ряду под полем каркас держит над клавиатурой и поле, и кнопку.
+class _RecallBar extends StatelessWidget {
+  const _RecallBar({required this.controller, required this.onSubmit});
+
+  final TextEditingController controller;
+  final VoidCallback onSubmit;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 460),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                TextField(
+                  key: const Key('rspan-input'),
+                  controller: controller,
+                  autofocus: true,
+                  autocorrect: false,
+                  enableSuggestions: false,
+                  textCapitalization: TextCapitalization.none,
+                  minLines: 2,
+                  maxLines: 3,
+                  textInputAction: TextInputAction.done,
+                  onSubmitted: (_) => onSubmit(),
+                  decoration: InputDecoration(
+                    hintText: L.t('recallPlaceholder'),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                FilledButton(
+                  key: const Key('rspan-check'),
+                  onPressed: onSubmit,
+                  style: FilledButton.styleFrom(minimumSize: const Size(0, 48)),
+                  child: Text(L.t('check')),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
 }
 
 class _Done extends StatelessWidget {
