@@ -7,15 +7,29 @@ import 'package:flutter/foundation.dart';
 
 /// 🔴 ПРОВЕРКА ОБНОВЛЕНИЙ — ТЕМ ЖЕ ПРАВИЛОМ, ЧТО У ВЕБА (`frontend/src/services/appUpdates.ts`).
 ///
-/// ⚠️ ИСТОЧНИК ЗАСТЫЛ. `psy-games.pro/play/version.json` отвечает `2.54.24` (замер 02.10.2026),
-/// а приложение уже 2.56.4: раздел `/play` сняли 09.09, и выпуск этот файл больше не обновляет.
-/// Кнопка поэтому всегда говорит «последняя версия». Перенесено как есть — чинить источник
-/// (выпуск пишет файл или проверка идёт в магазин) отдельной задачей координатора.
+/// Источник — `https://psy-games.pro/releases.json`, строка НА КАЖДУЮ ПЛАТФОРМУ:
+/// `{"android": "2.56.6", "ios": "", "desktop": ""}` (задача ea32be45, #166). Магазины выпускают
+/// в разное время; пустая строка = «магазин её ещё не выпустил» = молчим, как веб.
+/// ⚠️ Прежний `/play/version.json` застыл на 2.54.24 и всегда отвечал «у вас последняя».
+/// Запрос — из Dart, а не из страницы: у сайта нет CORS для WebView.
 class AppUpdate {
-  static const versionUrl = 'https://psy-games.pro/play/version.json';
+  static const versionUrl = 'https://psy-games.pro/releases.json';
 
   /// Запрос свежей версии; пробы подменяют его, экран зовёт как есть.
   static Future<String?> Function() fetchLatest = _fetch;
+
+  /// `updatePlatform`: чью строку releases.json читать.
+  static String platformKey() => switch (defaultTargetPlatform) {
+        TargetPlatform.iOS => 'ios',
+        TargetPlatform.android => 'android',
+        _ => 'desktop',
+      };
+
+  /// `latestFor`: свежая версия ДЛЯ ПЛАТФОРМЫ; нет строки — '' (молчим).
+  static String latestFor(Object? j, String platform) {
+    final v = j is Map ? j[platform] : null;
+    return v is String ? v.trim() : '';
+  }
 
   static Future<String?> _fetch() async {
     final client = HttpClient()..connectionTimeout = const Duration(seconds: 8);
@@ -23,8 +37,7 @@ class AppUpdate {
       final req = await client.getUrl(Uri.parse('$versionUrl?ts=${DateTime.now().millisecondsSinceEpoch}'));
       final res = await req.close().timeout(const Duration(seconds: 8));
       if (res.statusCode != 200) return null;
-      final j = jsonDecode(await res.transform(utf8.decoder).join());
-      final v = j is Map ? '${j['version'] ?? ''}' : '';
+      final v = latestFor(jsonDecode(await res.transform(utf8.decoder).join()), platformKey());
       return v.isEmpty ? null : v;
     } catch (_) {
       return null;
