@@ -349,6 +349,19 @@ void main() {
       expect(AppUpdate.isNewer('beta', '1.0.0'), isFalse);
     });
 
+    test('releases.json — строка своей платформы, пустая = молчим (как latestFor веба)', () {
+      final j = {'android': '2.56.6', 'ios': '', 'desktop': ' 3.0.0 '};
+      expect(AppUpdate.latestFor(j, 'android'), '2.56.6');
+      expect(AppUpdate.latestFor(j, 'ios'), '', reason: 'App Store ещё не выпустил — не звать обновляться');
+      expect(AppUpdate.latestFor(j, 'desktop'), '3.0.0');
+      expect(AppUpdate.latestFor(null, 'android'), '');
+      debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+      expect(AppUpdate.platformKey(), 'ios');
+      debugDefaultTargetPlatformOverride = TargetPlatform.android;
+      expect(AppUpdate.platformKey(), 'android');
+      debugDefaultTargetPlatformOverride = null;
+    });
+
     test('«Скачать» ведёт в магазин своей платформы', () {
       debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
       expect(AppUpdate.storeUrl(), contains('apps.apple.com/app/id6779208225'));
