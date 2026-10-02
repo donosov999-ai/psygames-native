@@ -1278,6 +1278,7 @@
 "sudokuGroupDesc":"Classique, samouraï et fractal",
 "sudokuGroupFootnote":"Les trois suivent une seule règle : un chiffre ne se répète jamais dans une ligne, une colonne ou un bloc. Ce qui change, c'est la grille. Chacune tient son propre compte de niveaux et son propre historique — les parties ne se mélangent jamais.",
 "sudokuHiddenWord":"Mot caché : {w}",
+"sudokuJuniorTitle":"Sudoku pour les petits",
 "sudokuKillerHubDesc":"Sommes des cages dans les coins, sans répétition dans une cage",
 "sudokuModeFree":"Libre",
 "sudokuModeKiller":"Killer",

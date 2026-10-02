@@ -828,6 +828,8 @@ const t: Record<string, string> = {
   "sudokuTypeKiller": "9×9 · 6段",
   "sudokuFreeHubDesc": "クラシック、変則ルールなし：サイズと難易度を自由に選択",
   "sudokuTypeFree": "6×6と9×9 · 難易度3種",
+  "sudokuJuniorTitle": "ちびっこ数独",
+  "sudokuTypeJunior": "4×4と6×6 · 18段",
   "sudokuRuleDiagonal": "2本の対角線上でも数字は重複しません。",
   "sudokuRuleAntiknight": "同じ数字はナイトの動きの位置に置けません。",
   "sudokuRuleHyper": "追加の3×3エリア4つにも1–9が重複なしで入ります。",

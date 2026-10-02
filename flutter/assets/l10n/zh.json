@@ -1278,6 +1278,7 @@
 "sudokuGroupDesc":"经典、武士与分形",
 "sudokuGroupFootnote":"三者规则相同：同一数字在行、列、宫中都不重复，不同的只是棋盘。每种棋盘各自计算关卡、各自记录历史，对局互不混淆。",
 "sudokuHiddenWord":"隐藏的单词：{w}",
+"sudokuJuniorTitle":"儿童数独",
 "sudokuKillerHubDesc":"笼的角上标出总和，笼内数字不重复",
 "sudokuModeFree":"自由",
 "sudokuModeKiller":"Killer",

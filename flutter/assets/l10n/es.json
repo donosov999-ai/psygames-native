@@ -1278,6 +1278,7 @@
 "sudokuGroupDesc":"Clásico, samurái y fractal",
 "sudokuGroupFootnote":"Los tres siguen una sola regla: una cifra nunca se repite en la fila, la columna ni el bloque. Lo que cambia es el tablero. Cada uno lleva su propia cuenta de niveles y su propio historial: las partidas nunca se mezclan.",
 "sudokuHiddenWord":"Palabra oculta: {w}",
+"sudokuJuniorTitle":"Sudoku para peques",
 "sudokuKillerHubDesc":"Sumas de las jaulas en las esquinas, sin repetir dentro de la jaula",
 "sudokuModeFree":"Libre",
 "sudokuModeKiller":"Killer",

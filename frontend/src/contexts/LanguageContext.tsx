@@ -3499,6 +3499,8 @@ const translations: Translations = {
   sudokuTypeKiller: { ru: '9×9 · 6 ступеней', en: '9×9 · 6 steps' },
   sudokuFreeHubDesc: { ru: 'Классика без вариантов: размер и сложность на выбор', en: 'Classic, no variants: pick size and difficulty' },
   sudokuTypeFree: { ru: '6×6 и 9×9 · 3 сложности', en: '6×6 and 9×9 · 3 levels' },
+  sudokuJuniorTitle: { ru: 'Судоку для малышей', en: 'Sudoku for Little Ones' },
+  sudokuTypeJunior: { ru: '4×4 и 6×6 · 18 ступеней', en: '4×4 and 6×6 · 18 steps' },
   sudokuRuleDiagonal: { ru: 'Цифры уникальны ещё и по двум диагоналям.', en: 'Digits are also unique along both diagonals.' },
   sudokuRuleAntiknight: { ru: 'Одинаковые цифры не стоят на расстоянии хода коня.', en: 'Equal digits cannot be a knight’s move apart.' },
   sudokuRuleHyper: { ru: 'Четыре доп. зоны 3×3 тоже содержат 1–9 без повторов.', en: 'Four extra 3×3 regions also hold 1–9 with no repeats.' },

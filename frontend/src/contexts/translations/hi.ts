@@ -1489,6 +1489,8 @@ const t: Record<string, string> = {
   "sudokuTypeKiller": "9×9 · 6 सीढ़ियाँ",
   "sudokuFreeHubDesc": "क्लासिक, बिना अतिरिक्त नियमों के: आकार और कठिनाई चुनें",
   "sudokuTypeFree": "6×6 और 9×9 · 3 कठिनाई स्तर",
+  "sudokuJuniorTitle": "छोटों के लिए सुडोकू",
+  "sudokuTypeJunior": "4×4 और 6×6 · 18 सीढ़ियाँ",
   "sudokuRuleDiagonal": "दोनों विकर्णों पर भी अंक अनोखे रहते हैं।",
   "sudokuRuleAntiknight": "समान अंक घोड़े की चाल की दूरी पर नहीं हो सकते।",
   "sudokuRuleHyper": "चार अतिरिक्त 3×3 क्षेत्र भी 1–9 बिना दोहराव रखते हैं।",

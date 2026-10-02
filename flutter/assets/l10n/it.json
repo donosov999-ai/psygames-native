@@ -1278,6 +1278,7 @@
 "sudokuGroupDesc":"Classico, samurai e frattale",
 "sudokuGroupFootnote":"Tutte e tre seguono una sola regola: una cifra non si ripete mai nella riga, nella colonna o nel blocco. Cambia solo la griglia. Ognuna tiene il proprio conteggio dei livelli e la propria storia: le partite non si mescolano mai.",
 "sudokuHiddenWord":"Parola nascosta: {w}",
+"sudokuJuniorTitle":"Sudoku per piccoli",
 "sudokuKillerHubDesc":"Somme delle gabbie negli angoli, nessuna ripetizione nella gabbia",
 "sudokuModeFree":"Libero",
 "sudokuModeKiller":"Killer",

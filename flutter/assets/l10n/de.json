@@ -1278,6 +1278,7 @@
 "sudokuGroupDesc":"Klassisch, Samurai und fraktal",
 "sudokuGroupFootnote":"Alle drei folgen einer Regel: eine Ziffer wiederholt sich nie in Zeile, Spalte oder Block. Anders ist nur das Brett. Jedes führt seine eigene Levelzählung und seine eigene Historie — die Partien vermischen sich nie.",
 "sudokuHiddenWord":"Verstecktes Wort: {w}",
+"sudokuJuniorTitle":"Sudoku für die Kleinen",
 "sudokuKillerHubDesc":"Käfigsummen in den Ecken, im Käfig keine Wiederholung",
 "sudokuModeFree":"Frei",
 "sudokuModeKiller":"Killer",

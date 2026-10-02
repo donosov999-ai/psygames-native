@@ -1278,6 +1278,7 @@
 "sudokuGroupDesc":"Classic, samurai and fractal",
 "sudokuGroupFootnote":"All three share one rule: a digit never repeats in a row, a column or a box. What differs is the board. Each keeps its own level count and its own history — games are never mixed.",
 "sudokuHiddenWord":"Hidden word: {w}",
+"sudokuJuniorTitle":"Sudoku for Little Ones",
 "sudokuKillerHubDesc":"Cage sums in the corners, no repeats inside a cage",
 "sudokuModeFree":"Free",
 "sudokuModeKiller":"Killer",

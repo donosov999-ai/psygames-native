@@ -1621,6 +1621,8 @@ const t: Record<string, string> = {
   "sudokuTypeKiller": "‏9×9 · 6 درجات",
   "sudokuFreeHubDesc": "كلاسيكي بلا قواعد إضافية: اختر الحجم والصعوبة",
   "sudokuTypeFree": "‏6×6 و9×9 · 3 مستويات صعوبة",
+  "sudokuJuniorTitle": "سودوكو للصغار",
+  "sudokuTypeJunior": "‏4×4 و6×6 · 18 درجة",
   "sudokuRuleDiagonal": "الأرقام فريدة أيضًا على القطرين.",
   "sudokuRuleAntiknight": "لا يمكن لرقمين متطابقين أن يفصل بينهما حركة حصان.",
   "sudokuRuleHyper": "أربع مناطق إضافية 3×3 تحوي أيضًا 1–9 دون تكرار.",

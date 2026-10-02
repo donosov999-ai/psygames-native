@@ -1278,6 +1278,7 @@
 "sudokuGroupDesc":"Clássico, samurai e fractal",
 "sudokuGroupFootnote":"Os três seguem uma só regra: um algarismo nunca se repete na linha, na coluna nem no bloco. O que muda é o tabuleiro. Cada um tem a sua própria contagem de níveis e o seu próprio histórico — as partidas nunca se misturam.",
 "sudokuHiddenWord":"Palavra escondida: {w}",
+"sudokuJuniorTitle":"Sudoku para pequenos",
 "sudokuKillerHubDesc":"Somas das gaiolas nos cantos, sem repetição dentro da gaiola",
 "sudokuModeFree":"Livre",
 "sudokuModeKiller":"Killer",
