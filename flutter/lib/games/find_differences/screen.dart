@@ -54,6 +54,9 @@ class _FindDifferencesScreenState extends State<FindDifferencesScreen> {
   List<int> _diffIdx = const [];
   final Set<int> _found = {};
   int _round = 1;
+
+  /// Раундов в этой партии: три и, с 34-го, лишние (`fdDrawExtraRounds`).
+  int _rounds = roundsPerLevel;
   int _roundsWon = 0;
   double _left_ = 0;
   int _elapsedMs = 0;
@@ -99,6 +102,9 @@ class _FindDifferencesScreenState extends State<FindDifferencesScreen> {
     _tick?.cancel();
     _next?.cancel();
     _params = levelParams(_ladder.level);
+    // С 34-го раундов в среднем больше (ось без предела, model.dart). Шаг зарядки — прежние три:
+    // пресет лестницу не двигает, а бюджет шага рассчитан на них.
+    _rounds = _params.rounds + (GamePreset.isPreset ? 0 : fdDrawExtraRounds(_ladder.level, _rng));
     _round = 1;
     _roundsWon = 0;
     _won = false;
@@ -151,9 +157,9 @@ class _FindDifferencesScreenState extends State<FindDifferencesScreen> {
     _next?.cancel();
     _next = Timer(const Duration(milliseconds: 700), () async {
       if (!mounted) return;
-      if (_round >= _params.rounds) {
+      if (_round >= _rounds) {
         // Уровень берётся, только если закрыты ВСЕ раунды: недобор — не проход.
-        final passed = _roundsWon >= _params.rounds;
+        final passed = _roundsWon >= _rounds;
         // Веха как в вебе: каждый третий ЗАСЧИТАННЫЙ уровень — бой «сложи подсвеченные».
         bool? boss;
         if (passed) {
@@ -216,7 +222,7 @@ class _FindDifferencesScreenState extends State<FindDifferencesScreen> {
       hud: [
         HudItem(label: L.t('level'), value: '${_ladder.level}', icon: Icons.flag_outlined),
         HudItem(label: L.t('personalBest'), value: '${_ladder.best}', icon: Icons.emoji_events_outlined),
-        HudItem(label: L.t('round'), value: '$_round/${_params.rounds}', icon: Icons.repeat),
+        HudItem(label: L.t('round'), value: '$_round/$_rounds', icon: Icons.repeat),
         HudItem(label: L.t('label_found'), value: '${_found.length}/${_diffIdx.length}', icon: Icons.search),
         // В тихом шаге показателя времени нет: считать нечего, и цифра торопила бы.
         if (!GamePreset.isCalm)
@@ -267,7 +273,7 @@ class _FindDifferencesScreenState extends State<FindDifferencesScreen> {
               padding: const EdgeInsets.all(12),
               child: Column(mainAxisSize: MainAxisSize.min, children: [
                 Text(
-                  '${_won ? L.t('nextLabel') : L.t('retry')} · ${L.t('round')} $_roundsWon/${_params.rounds}',
+                  '${_won ? L.t('nextLabel') : L.t('retry')} · ${L.t('round')} $_roundsWon/$_rounds',
                   key: const Key('итог'),
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.titleMedium,
