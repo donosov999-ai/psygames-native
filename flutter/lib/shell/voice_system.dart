@@ -139,13 +139,23 @@ class JustAudioClipPlayer implements ClipPlayer {
   JustAudioClipPlayer([AudioPlayer? player]) : _p = player ?? AudioPlayer();
   final AudioPlayer _p;
 
+  // 🔴 just_audio: `play()` возвращается СРАЗУ, если плеер уже «играет», а «играет» он и после
+  // конца записи — до pause/stop. Без паузы конца ждала только первая запись подряд: со второй
+  // `play()` возвращался сразу после загрузки (или перемотки — звук шёл сам), пауза между
+  // словами шла от начала слова, а следующее слово обрывало звучащее («Объём на слух», сверка
+  // 02.10.2026). Пауза — ДО загрузки и перемотки: тогда звук не стартует сам, и `play()` честно
+  // ждёт конца, как обещает [ClipPlayer.play].
   @override
-  Future<void> load(Uint8List bytes) => _p.setAudioSource(BytesAudioSource(bytes, contentType: 'audio/ogg'));
+  Future<void> load(Uint8List bytes) async {
+    if (_p.playing) await _p.pause();
+    await _p.setAudioSource(BytesAudioSource(bytes, contentType: 'audio/ogg'));
+  }
 
-  // После доигранной записи just_audio держит playing == true, поэтому перемотки
-  // к началу достаточно: звук пойдёт сам, а `play()` вернётся сразу.
   @override
-  Future<void> restart() => _p.seek(Duration.zero);
+  Future<void> restart() async {
+    if (_p.playing) await _p.pause();
+    await _p.seek(Duration.zero);
+  }
 
   @override
   Future<void> play(double speed) async {
