@@ -1,144 +1,42 @@
-import 'dart:async';
+import 'package:practice_kit/practice_kit.dart';
 
-import 'package:flutter/services.dart';
-
-import 'practices.dart';
-
-/// 🔴 ВИБРОСОПРОВОЖДЕНИЕ ПРАКТИК «ПАУЗЫ» — перенос из «Умного будильника»
-/// (smart-alarm-flutter/lib/core/practice_haptics.dart, тот же движок практик).
+/// 🔴 ВИБРОСОПРОВОЖДЕНИЕ ПРАКТИК «ПАУЗЫ» — из общего пакета practice_kit.
 ///
-/// Денис, 01.10.2026: «виброотклик… дребезжание при Кегеле на удержании» и «вынеси
-/// нормально в настройки всех приложений». Кегель вибрирует мягко ВСЁ удержание
-/// (шаги `*-squeeze`), на отдыхе — тишина; остальные практики — короткий сигнал
-/// смены шага. Выключатель один — «Вибрация» в настройках (`appHapticOn`).
-///
-/// Один конечный эффект на шаг, не вызов на кадр: смена шага → один `play`,
-/// пауза, уход экрана и выключатель → `stop`.
+/// Правила вибрации (что гудит, сколько, кто ведёт в параллели) — в пакете, одни
+/// с «Умным будильником»: до 02.10.2026 здесь жила урезанная копия, и «Живот»,
+/// массаж лица и попадания в режимах глаз в PsyGames не вибрировали вовсе.
+/// Своё у PsyGames — только выключатель: «Вибрация» в настройках (`appHapticOn`);
+/// выбора по видам практик здесь нет, действуют умолчания пакета.
 class PausePracticeHaptics {
   PausePracticeHaptics(this._enabled);
 
-  static const channel = MethodChannel('pro.psygames/practiceHaptics');
+  static const channel = PracticeHaptics.channel;
 
-  /// Те же умолчания, что у будильника. В PsyGames выбора по видам нет —
-  /// только общий выключатель.
-  static const modes = <String, String>{
-    'kegel': 'hold',
-    'breathing': 'phases',
-    'muscles': 'phases',
-    'eyes': 'phases',
-    'mobility': 'phases',
-    'meditation': 'phases',
-    'voice': 'phases',
-  };
-
-  /// В параллельном занятии вибрирует одна практика. Настройки «ведущей» в
-  /// PsyGames нет, поэтому ведёт Кегель: ради его удержания вибрацию и просили.
-  static const leader = 'kegel';
-
-  /// 🔴 Сила ОЩУТИМАЯ. Денис, 01.10.2026: «вибрации нет нихуя». 0,25 из 1,0 при
-  /// резкости 0,15 (и потолок 0,6 в iOS) — едва различимый гул Taptic Engine, в руке
-  /// его не слышно. Нативные стороны теперь пускают до 1,0.
-  static const strength = .8;
+  /// Сила — общая с пакетом: 0,8 из 1,0 (0,25 в руке не слышно, Денис 01.10).
+  static const strength = PracticeHaptics.defaultStrength;
 
   final bool Function() _enabled;
-  String? _key;
-  String? _last;
-  bool _disposed = false;
+  final _haptics = PracticeHaptics();
 
-  static String category(Json step) {
-    final set = step['setId'], program = step['programId'];
-    if (program == 'breath-awareness' || (set == 'relaxation' && program != 'pmr-groups')) {
-      return 'meditation';
+  Json get _config => {
+        'practiceHaptics': {'enabled': _enabled()},
+      };
+
+  void update(Json plan, int elapsedMs) => _haptics.update(plan, elapsedMs, _config);
+
+  /// Попадание в режиме глаз «поймай совпадение» / «две точки» — если ведут глаза.
+  void hit(Json plan, int elapsedMs) {
+    if (PracticeHaptics.owns(plan, elapsedMs, _config, 'eyeHit')) {
+      _haptics.event(_config, 'eyeHit');
     }
-    return switch (set) {
-      'pelvic-floor' => 'kegel',
-      'breathing' => 'breathing',
-      'relaxation' || 'isometrics' => 'muscles',
-      'eye-gym' => 'eyes',
-      'mobility' || 'postures' || 'feldenkrais' => 'mobility',
-      'face-speech' => 'voice',
-      _ => '',
-    };
-  }
-
-  static bool owns(Json plan, int elapsed, String candidate) {
-    final kinds = objects(plan['timeline'])
-        .where((s) => elapsed >= s['startMs'] && elapsed < s['endMs'])
-        .map(category)
-        .where((s) => s.isNotEmpty)
-        .toSet();
-    if (!kinds.contains(candidate)) return false;
-    return kinds.length == 1 || candidate == leader;
-  }
-
-  void update(Json plan, int elapsedMs) {
-    if (_disposed) return;
-    final step = objects(plan['timeline'])
-        .where((s) => elapsedMs >= s['startMs'] && elapsedMs < s['endMs'])
-        .where((s) => owns(plan, elapsedMs, category(s)))
-        .firstOrNull;
-    if (step == null) {
-      _last = null;
-      if (_key != null) stop();
-      return;
-    }
-    final kind = category(step);
-    _last = kind;
-    final on = _enabled();
-    final key = '${plan['id']}/${step['setId']}/${step['programId']}/${step['stepId']}/${step['startMs']}/$on';
-    if (_key == key) return;
-    stop();
-    _key = key;
-    final mode = modes[kind] ?? 'off';
-    if (!on || mode == 'off') return;
-    final id = '${step['stepId']}';
-    final squeeze = id.endsWith('squeeze');
-    final pelvic = kind == 'kegel';
-    // Отдых Кегеля в режиме удержания молчит.
-    if (pelvic && mode == 'hold' && !squeeze) return;
-    if (kind == 'breathing' && id.startsWith('hold')) return;
-    final beginning = !objects(plan['timeline']).any((s) => category(s) == kind && s['startMs'] < step['startMs']);
-    if ((kind == 'meditation' || kind == 'voice') && !beginning) return;
-    final out = id.contains('exhale') || id.endsWith('-out');
-    if (kind == 'breathing' && !(out || id.contains('inhale') || id.endsWith('-in'))) return;
-    final release = id.contains('release') || id == 'rest' || id == 'neutral';
-    final continuous = pelvic && mode == 'hold' && squeeze;
-    final remaining = (step['endMs'] as int) - elapsedMs;
-    unawaited(_send('play', {
-      'durationMs': continuous ? remaining.clamp(1, 30000) : 60,
-      'strength': strength,
-      'continuous': continuous,
-      'count': out || release ? 2 : 1,
-    }));
   }
 
   /// Конец занятия: у спокойных практик — двойной сигнал «готово».
   void complete() {
-    final last = _last;
-    stop();
-    if (_disposed || !_enabled() || last == null) return;
-    if (['eyes', 'meditation', 'mobility', 'voice'].contains(last)) {
-      unawaited(_send('play', {'durationMs': 60, 'strength': strength, 'continuous': false, 'count': 2}));
-    }
+    if (_enabled()) _haptics.complete(_config);
   }
 
-  void stop() {
-    _key = null;
-    unawaited(_send('stop'));
-  }
+  void stop() => _haptics.stop();
 
-  void dispose() {
-    stop();
-    _disposed = true;
-  }
-
-  Future<void> _send(String method, [Json? arguments]) async {
-    try {
-      await channel.invokeMethod<void>(method, arguments);
-    } on MissingPluginException {
-      // Веб и платформы без моторчика — только экран.
-    } on PlatformException {
-      // Вибрация не имеет права прервать упражнение.
-    }
-  }
+  void dispose() => _haptics.dispose();
 }
