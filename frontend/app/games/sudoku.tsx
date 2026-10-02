@@ -876,7 +876,7 @@ export default function SudokuGame() {
     routeModeApplied.current = true;
     setMode(m);
     setLevel(sideSteps[m]);
-  }, [routeParams.mode, sideSteps, sideStepsLoaded]);
+  }, [routeParams.mode, sideSteps, sideStepsLoaded, killerStep]);
 
   /**
    * Сменить дорогу МЕЖДУ партиями можно, внутри партии — нет (переключатель живёт
