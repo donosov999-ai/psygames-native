@@ -61,7 +61,6 @@ const _baseline = <String, int>{
   'pattern/screen.dart': 1,
   'phoneme_pairs/screen.dart': 3,
   'phonemic_fluency/screen.dart': 2,
-  'picture_pairs/screen.dart': 7,
   'posner/model.dart': 1,
   'posner/screen.dart': 5,
   'prl/screen.dart': 2,
