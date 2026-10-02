@@ -13,7 +13,6 @@ import 'marks.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/session_report.dart';
-import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import 'generator/contract.dart';
 import 'generator/engine.dart';
@@ -27,6 +26,7 @@ import '../../shell/lesson_player.dart';
 import 'lesson.dart';
 import 'mode_board.dart';
 import 'modes.dart';
+import 'roads.dart';
 import 'symbols.dart';
 import 'variant_decor.dart';
 import '../samurai/screen.dart';
@@ -99,8 +99,16 @@ class _SudokuScreenState extends State<SudokuScreen> {
   /// генератора и режимы — три, как было.
   int get errorLimit {
     if (widget.mode != null || _pilot) return 3;
-    return _levels?.config(_ladder.level).lives ?? 3;
+    final lives = _levels?.config(_ladder.level).lives ?? 3;
+    return _onRoad ? sudokuRoadLives(lives, _road) : lives;
   }
+
+  /// Дорога лестницы («полегче / обычная / пожёстче», roads.dart). Выбирается в паузе
+  /// между партиями, помнится в общей памяти под ключом веба.
+  SudokuRoad _road = defaultSudokuRoad;
+
+  /// Дорога действует только на лестнице: у режимов, малышей и пилота своих дорог нет.
+  bool get _onRoad => widget.mode == null && !widget.junior && !_pilot;
 
   late LevelLadder _ladder;
   SudokuLevels? _levels;
@@ -296,6 +304,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
   @override
   void initState() {
     super.initState();
+    _road = sudokuRoadOf(widget.state.get(sudokuRoadKey(widget.state.activeProfile))) ?? defaultSudokuRoad;
     _ladder = _ladderUpTo(SudokuLevels.fallbackLast);
     _boot();
   }
@@ -304,8 +313,11 @@ class _SudokuScreenState extends State<SudokuScreen> {
   /// Здесь стояло `maxLevel: 92`: ступени 93–96 «немецкого шёпота» выгрузились, а победа
   /// на 92-й оставляла человека на 92-й навсегда — новые ступени были бы недостижимы.
   /// Поймала проба нажатиями `sudoku_whisper_screen_test.dart`, а не пробы данных.
+  ///
+  /// Хранилище — дороги (`SudokuRoadStore`): лестница читает уровень ВЫБРАННОЙ дороги с
+  /// переносом пройденного вниз и пишет только её счётчик. На обычной дороге ключ прежний.
   LevelLadder _ladderUpTo(int last) =>
-      LevelLadder(gameId: 'sudoku', store: SharedLevelStore(widget.state), maxLevel: last);
+      LevelLadder(gameId: 'sudoku', store: SudokuRoadStore(widget.state, _road), maxLevel: last);
 
   Future<void> _boot() async {
     final levels = await SudokuLevels.load();
@@ -431,7 +443,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
     final levels = _levels;
     if (levels == null) return;
     final seed = DateTime.now().millisecondsSinceEpoch; // wall-clock: зерно раздачи
-    final board = levels.boardFor(_ladder.level, seed: seed);
+    final board = levels.boardFor(_ladder.level, seed: seed, road: _road);
     setState(() {
       _board = board;
       _applySymbols(board, seed);
@@ -606,6 +618,19 @@ class _SudokuScreenState extends State<SudokuScreen> {
 
   /// Включить или выключить пилот. Первое включение — старт от трудности ТЕКУЩЕЙ
   /// ступени, номер с нуля (решение Дениса 23.09.2026, В3); повторное — продолжение.
+  /// Сменить дорогу между партиями: запомнить выбор, взять уровень новой дороги (с
+  /// переносом пройденного вниз) и раздать её доску. Как `switchRoad` веб-экрана.
+  Future<void> _switchRoad(SudokuRoad next) async {
+    final levels = _levels;
+    if (next == _road || levels == null) return;
+    widget.state.set(sudokuRoadKey(widget.state.activeProfile), next.name);
+    _road = next;
+    _ladder = _ladderUpTo(levels.lastLevel);
+    await _ladder.load();
+    if (!mounted) return;
+    _deal();
+  }
+
   void _togglePilot() {
     final store = _genStore, levels = _levels;
     if (store == null || levels == null || widget.mode != null) return;
@@ -765,7 +790,8 @@ class _SudokuScreenState extends State<SudokuScreen> {
     final levels = _levels;
     if (levels == null) return 0;
     final level = widget.mode != null ? (_side?.step ?? 1) : (_pilot ? _pilotLevel : _ladder.level);
-    return levels.config(level).hintMax;
+    final hints = levels.config(level).hintMax;
+    return _onRoad ? sudokuRoadHintMax(hints, _road) : hints;
   }
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -836,7 +862,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
         'failed_out': true,
         'level': level,
         'variant': mode == null ? (_board?.variant ?? 'none') : sideModeName(mode),
-        if (mode == null) 'road': 'normal',
+        if (mode == null) 'road': _onRoad ? _road.name : defaultSudokuRoad.name,
         if (mode == null) 'lives': errorLimit,
         if (_skinShown != null) 'skin': _skinShown,
       },
@@ -919,7 +945,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
         'backtrack_count': _backtracks,
         'level': level,
         'variant': _board?.variant ?? 'none',
-        'road': 'normal',
+        'road': _onRoad ? _road.name : defaultSudokuRoad.name,
         'lives': errorLimit,
         if (_skinShown != null) 'skin': _skinShown,
       },
@@ -1250,6 +1276,16 @@ class _SudokuScreenState extends State<SudokuScreen> {
             icon: _pilot ? Icons.trending_up : Icons.auto_awesome,
             onPressed: _togglePilot,
           ),
+        // Дорога сложности — между партиями, как переключатель веб-экрана: рядом с каждой
+        // её уровень, видный ДО выбора (перенос пройденного вниз без этих чисел не понять).
+        if (_onRoad && _levels != null)
+          for (final r in SudokuRoad.values)
+            PauseAction(
+              label: '${L.t(sudokuRoadNameKey(r))} · ${L.t('label_level_short')}'
+                  '${effectiveRoadLevel(widget.state, widget.state.activeProfile, r)}',
+              icon: r == _road ? Icons.radio_button_checked : Icons.radio_button_unchecked,
+              onPressed: () => _switchRoad(r),
+            ),
         // «Стиль цифр»: буквы внутри — только на правилах без числового смысла
         // (symbols.dart); рисованные цифры — везде, это всё ещё цифры.
         if (widget.mode == null && board != null)
