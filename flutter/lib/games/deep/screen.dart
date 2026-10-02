@@ -16,6 +16,7 @@ import '../../shell/lesson.dart';
 import '../../shell/lesson_player.dart';
 import '../sudoku/lesson.dart';
 import '../fractal/rules.dart' show conflictsInChild;
+import '../sudoku/marks.dart';
 import 'portals.dart';
 import 'tree.dart';
 
@@ -30,8 +31,8 @@ import 'tree.dart';
 /// поэтому начатое в вебе продолжается здесь и наоборот.
 ///
 /// ⚠️ ЧЕГО НЕТ: приправы листьев (термометры и суммы) — в вебе это переключатель,
-/// выключенный по умолчанию; и карандашных пометок. Снимок их поля сохраняет как есть,
-/// чтобы не затереть то, что записала веб-версия.
+/// выключенный по умолчанию. Снимок с приправой не поднимается (`_restore`): дерево такой
+/// партии здесь собралось бы другим. Карандаш есть — в формате веба (`marks`).
 class DeepScreen extends StatefulWidget {
   const DeepScreen({super.key, required this.state});
 
@@ -75,6 +76,12 @@ class _DeepScreenState extends State<DeepScreen> {
   /// Ошибки партии — только доказуемые, как у веба: цифра уже стоит в строке/столбце/блоке
   /// или расходится с рукой в клетке-партнёре портала. Пишутся в снимок и в отчёт.
   int _errors = 0;
+
+  /// Карандаш — как у веба (сверка, строка 17): пометки-битмаски по тронутым узлам
+  /// (бит n−1 = цифра n), в снимке полем `marks` той же формы, что `grids`. В ленту отмены
+  /// пометки не идут — лента веба хранит только цифры.
+  final Map<String, List<List<int>>> _marks = {};
+  bool _pencil = false;
   late final AppHaptics _haptics = AppHaptics(widget.state);
 
   String _preset = 'scout';
@@ -180,10 +187,20 @@ class _DeepScreenState extends State<DeepScreen> {
           ));
         }
         _errors = (s['errors'] as num?)?.toInt() ?? 0;
-        // Поля, которых мы не умеем (пометки, время), переносим как есть.
+        _marks.clear();
+        final marks = (s['marks'] as Map?)?.cast<String, Object?>() ?? {};
+        for (final e in marks.entries) {
+          final rows = e.value;
+          if (rows is! List || rows.length != deepN) continue;   // битое — без пометок, партия цела
+          _marks[e.key] = [
+            for (final row in rows)
+              [for (var c = 0; c < deepN; c++) row is List && c < row.length && row[c] is num ? (row[c] as num).toInt() : 0],
+          ];
+        }
+        // Поля, которых мы не умеем (время, приправа), переносим как есть.
         _otherFields = {
           for (final e in s.entries)
-            if (!const {'preset', 'band', 'seed', 'path', 'grids', 'history', 'errors'}.contains(e.key))
+            if (!const {'preset', 'band', 'seed', 'path', 'grids', 'history', 'errors', 'marks'}.contains(e.key))
               e.key: e.value,
         };
         _cache.clear();
@@ -208,6 +225,7 @@ class _DeepScreenState extends State<DeepScreen> {
       'path': _path,
       'grids': _grids,
       'errors': _errors,
+      'marks': _marks,
       // ⚠️ Лента ходов пишется в том же виде, что у веб-версии (`MoveStackData`),
       // иначе после возврата в веб отмена потеряла бы историю.
       'history': {
@@ -294,6 +312,8 @@ class _DeepScreenState extends State<DeepScreen> {
       _cache.clear();
       _portals.clear();
       _errors = 0;
+      _marks.clear();
+      _pencil = false;
       // Новая партия не наследует пометки и время старой (сверка, строка 7).
       _otherFields = {};
       _selected = null;
@@ -364,6 +384,16 @@ class _DeepScreenState extends State<DeepScreen> {
     final node = _nodeAt(_path);
     if (node.puzzle[sel.r][sel.c] != 0 || _isFeed(node, sel.r, sel.c)) return;
     final grid = _gridFor(_path);
+    if (_pencil) {
+      // Карандаш по клетке, где уже стоит рука, не работает — как у веба.
+      if (grid[sel.r][sel.c] != 0) return;
+      setState(() {
+        final m = _marks.putIfAbsent(_path, () => emptyPencilMarks(deepN));
+        m[sel.r][sel.c] = pencilInput(m[sel.r][sel.c], v);
+      });
+      _save();
+      return;
+    }
     final prev = grid[sel.r][sel.c];
     if (prev == v) return;
     if (v != 0 && _provablyWrong(node, sel.r, sel.c, v)) {
@@ -372,6 +402,8 @@ class _DeepScreenState extends State<DeepScreen> {
     }
     setState(() {
       grid[sel.r][sel.c] = v;
+      // Рука закрыла клетку — карандашные следы под ней больше не о чём (как у веба).
+      if (v != 0) _marks[_path]?[sel.r][sel.c] = 0;
       _past.add((path: _path, r: sel.r, c: sel.c, prev: prev));
       _future.clear();
       _won = deepRootComplete(_nodeAt, _grids);
@@ -507,6 +539,7 @@ class _DeepScreenState extends State<DeepScreen> {
                           given: node.puzzle[r][c] != 0,
                           feed: _isFeed(node, r, c),
                           portal: false,   // разбор приёма — доска шага, без порталов
+                          marks: 0,
                           selected: m.r == r && m.c == c,
                           onTap: (_, _) {},
                         ),
@@ -578,6 +611,7 @@ class _DeepScreenState extends State<DeepScreen> {
                                 given: node.puzzle[r][col] != 0,
                                 feed: _isFeed(node, r, col),
                                 portal: pt != null && pt.cell[0] == r && pt.cell[1] == col,
+                                marks: _marks[_path]?[r][col] ?? 0,
                                 selected: _selected?.r == r && _selected?.c == col,
                                 onTap: _tap,
                               ),
@@ -618,6 +652,13 @@ class _DeepScreenState extends State<DeepScreen> {
           label: L.t('btn_undo'),
           onPressed: _past.isEmpty || _won ? null : _undo,
         ),
+        AuxAction(
+          key: const Key('pencil'),
+          icon: _pencil ? Icons.edit : Icons.edit_outlined,
+          label: L.t('sudokuPencilMode'),
+          active: _pencil,
+          onPressed: _won ? null : () => setState(() => _pencil = !_pencil),
+        ),
         AuxAction(icon: Icons.refresh, label: L.t('sdkNewGame'), onPressed: _chooseAndStart),
       ]),
       toolbar: _Toolbar(won: _won, onDigit: _place, onErase: _erase, onNext: _chooseAndStart),
@@ -637,6 +678,7 @@ class _Cell extends StatelessWidget {
     required this.given,
     required this.feed,
     required this.portal,
+    required this.marks,
     required this.selected,
     required this.onTap,
   });
@@ -650,6 +692,9 @@ class _Cell extends StatelessWidget {
 
   /// Клетка-портал листа: держит ту же цифру, что клетка соседнего листа.
   final bool portal;
+
+  /// Пометки карандаша клетки (битмаска); видны, пока в клетке нет цифры.
+  final int marks;
   final bool selected;
   final void Function(int r, int c) onTap;
 
@@ -714,6 +759,16 @@ class _Cell extends StatelessWidget {
                 if (feed && value == 0)
                   Center(
                     child: Icon(Icons.arrow_downward, size: size * 0.4, color: scheme.tertiary),
+                  ),
+                if (value == 0 && marks != 0 && !feed)
+                  Center(
+                    child: PencilMarksLayer(
+                      key: Key('marks_${row}_$col'),
+                      mask: marks,
+                      value: value,
+                      cell: size,
+                      color: scheme.onSurfaceVariant,
+                    ),
                   ),
                 Center(
                   child: Text(

@@ -255,7 +255,7 @@ void main() {
     });
     await tester.pump();
     expect(stored()['errors'], 0, reason: 'новая партия — счёт с нуля');
-    expect(stored().containsKey('marks'), isFalse, reason: 'пометки старой партии не переезжают в новую');
+    expect(stored()['marks'], isEmpty, reason: 'пометки старой партии не переезжают в новую');
   });
 
   testWidgets('🔴 снимок с приправой листьев не поднимается — у натива её нет, дерево разошлось бы', (tester) async {

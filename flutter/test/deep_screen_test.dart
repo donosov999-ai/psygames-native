@@ -220,6 +220,70 @@ void main() {
     expect(digitAt(tester, er, ec), 0, reason: 'отмена вернула клетку');
   });
 
+  /// Первая пустая клетка корня, не кормимая (у кормимых стрелка вниз).
+  ({int r, int c}) freeCell(WidgetTester tester, {({int r, int c})? skip}) {
+    for (var r = 0; r < 9; r++) {
+      for (var c = 0; c < 9; c++) {
+        if (skip != null && skip.r == r && skip.c == c) continue;
+        final arrow = find.descendant(of: find.byKey(Key('cell_${r}_$c')), matching: find.byIcon(Icons.arrow_downward));
+        if (digitAt(tester, r, c) == 0 && arrow.evaluate().isEmpty) return (r: r, c: c);
+      }
+    }
+    fail('свободной клетки нет');
+  }
+
+  List<List<int>> savedMarks(String path) {
+    final s = ((jsonDecode(state.get(resumeKey)!) as Map)['state'] as Map);
+    final m = (s['marks'] as Map)[path] as List;
+    return [for (final row in m) [for (final v in row as List) (v as num).toInt()]];
+  }
+
+  /// 🔴 КАРАНДАШ (сверка 138f7818, «Бездна» строка 17, «высокая»): без пометок многие доски
+  /// верхних полос «в голове» не решаются. Формат — веба: битмаска на клетку, по узлам.
+  testWidgets('🔴 карандаш: пометки ставятся, пишутся в снимок, ластик чистит клетку, цифра гасит', (tester) async {
+    await boot(tester);
+    final d = freeCell(tester);
+    await tap(tester, find.byKey(Key('cell_${d.r}_${d.c}')));
+    await tap(tester, find.byKey(const Key('pencil')));
+    await tap(tester, find.byKey(const Key('digit3')));
+    await tap(tester, find.byKey(const Key('digit7')));
+    expect(find.byKey(Key('marks_${d.r}_${d.c}')), findsOneWidget, reason: 'пометки видны на клетке');
+    expect(digitAt(tester, d.r, d.c), 0, reason: 'карандаш не ставит цифру');
+    expect(savedMarks('')[d.r][d.c], (1 << 2) | (1 << 6), reason: 'битмаска веба: бит n−1 = цифра n');
+
+    await tap(tester, find.byKey(const Key('digit7')));
+    expect(savedMarks('')[d.r][d.c], 1 << 2, reason: 'повторная цифра снимает пометку');
+    await tap(tester, find.byKey(const Key('erase')));
+    expect(savedMarks('')[d.r][d.c], 0, reason: 'ластик в карандаше чистит клетку целиком');
+
+    await tap(tester, find.byKey(const Key('digit5')));
+    await tap(tester, find.byKey(const Key('pencil')));   // карандаш выключен
+    await tap(tester, find.byKey(const Key('digit4')));
+    expect(digitAt(tester, d.r, d.c), 4);
+    expect(savedMarks('')[d.r][d.c], 0, reason: 'рука закрыла клетку — пометки под ней стёрты');
+    expect(find.byKey(Key('marks_${d.r}_${d.c}')), findsNothing);
+
+    await tap(tester, find.byKey(const Key('pencil')));
+    await tap(tester, find.byKey(const Key('digit2')));
+    expect(savedMarks('')[d.r][d.c], 0, reason: 'по клетке с рукой карандаш не работает — как у веба');
+  });
+
+  testWidgets('🔴 пометки из снимка веба поднимаются на свою клетку', (tester) async {
+    await boot(tester);   // партия «Разведки»: свободная клетка своей доски
+    final d = freeCell(tester);
+    await tester.pumpWidget(const SizedBox());
+    final env = (jsonDecode(state.get(resumeKey)!) as Map).cast<String, Object?>();
+    final st = (env['state'] as Map).cast<String, Object?>();
+    final marks = [for (var r = 0; r < 9; r++) List<int>.filled(9, 0)];
+    marks[d.r][d.c] = 1 | (1 << 8);
+    st['marks'] = {'': marks};   // как пишет веб: узел → битмаски
+    env['state'] = st;
+    state.set(resumeKey, jsonEncode(env));
+    await boot(tester);
+    expect(find.byKey(Key('marks_${d.r}_${d.c}')), findsOneWidget, reason: 'пометки веба поднялись');
+    expect(savedMarks('')[d.r][d.c], 1 | (1 << 8));
+  });
+
   /// 🔴 ПРОДОЛЖЕНИЕ: партия поднимается из снимка ровно той же.
   testWidgets('🔴 снимок веб-версии продолжается: то же зерно, тот же узел, те же цифры',
       (tester) async {
