@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -144,5 +145,65 @@ void main() {
       expect(find.textContaining('Шаг 1 из'), findsOneWidget);
       expect(LessonUsed.inRound, isTrue);
     });
+
+    testWidgets('🔴 ступень с «или»: два нажатия задают «A или b?», ответ отсекает, режим снимается',
+        (tester) async {
+      SharedPreferences.setMockInitialValues(
+          {'psygames_active_profile': 'kids', 'psygames_hidden_character_level_kids': '9'});
+      reports = [];
+      SessionReport.sink = (json) async => reports.add(jsonDecode(json) as Map<String, dynamic>);
+      final state = await SharedState.open();
+      await tester.pumpWidget(MaterialApp(home: HiddenCharacterScreen(state: state, seed: 21)));
+      await settle(tester);
+      final r = HiddenRound.deal(9, Random(21));
+      expect(r.withOr, isTrue, reason: 'ступень 9 — первая с «или»');
+      final a = r.features[0], b = r.features[1];
+
+      await tester.tap(find.byKey(const ValueKey('hc-or')));
+      await tester.pump();
+      await tester.tap(find.byKey(ValueKey('hc-ask-${a.name}')));
+      await tester.pump();
+      expect(find.text(eitherText(a, null)), findsOneWidget, reason: 'выбран первый — кнопка показывает «A или …?»');
+
+      await tester.tap(find.byKey(ValueKey('hc-ask-${b.name}')));
+      await tester.pump();
+      final yes = answersYes(r.suspects[r.target], askEither(a, b));
+      expect(find.text('${eitherText(a, b)} — ${yes ? L.t('hcYes') : L.t('hcNo')}'), findsOneWidget,
+          reason: 'ответ на пару — в записке');
+      expect(find.text(eitherText(a, null)), findsNothing, reason: 'режим «или» снят после вопроса');
+      expect(find.byKey(ValueKey('hc-ask-${a.name}')), findsOneWidget, reason: 'одиночный вопрос про A ещё не задан');
+    });
+  });
+
+  test('🔴 «или» — это ИЛИ: «да», если есть хоть один из признаков', () {
+    final q = askEither(Feature.hat, Feature.glasses);
+    expect(answersYes(mask([Feature.hat]), q), isTrue, reason: 'шляпа без очков — «да»');
+    expect(answersYes(mask([Feature.glasses, Feature.beard]), q), isTrue, reason: 'очки без шляпы — «да»');
+    expect(answersYes(mask([Feature.hat, Feature.glasses]), q), isTrue);
+    expect(answersYes(mask([Feature.beard]), q), isFalse, reason: 'ни шляпы, ни очков — «нет»');
+    expect(questionsFor(const [Feature.hat, Feature.glasses, Feature.beard], withOr: true).length, 6,
+        reason: '3 одиночных + 3 пары');
+    expect(questionsFor(const [Feature.hat, Feature.glasses, Feature.beard]).length, 3);
+  });
+
+  test('«или» по-русски: «Шляпа или очки?» — вторая половина со строчной', () {
+    expect(eitherText(Feature.hat, Feature.glasses), 'Шляпа или очки?');
+    expect(eitherText(Feature.hat, null), 'Шляпа или …?');
+    expect(questionText(askEither(Feature.hat, Feature.glasses)), 'Шляпа или очки?');
+    expect(questionText(askAbout(Feature.beard)), L.t('hcAskBeard'));
+  });
+
+  test('🔴 шаблон «или» во всех 12 словарях: обе половины на месте', () {
+    final dir = Directory('assets/l10n');
+    // Только словари языков (двухбуквенные имена): в той же папке лежат данные игр.
+    final files = dir.listSync().whereType<File>().where((f) => RegExp(r'/[a-z]{2}\.json$').hasMatch(f.path)).toList();
+    expect(files.length, 12);
+    for (final f in files) {
+      final d = jsonDecode(f.readAsStringSync()) as Map<String, dynamic>;
+      final t = d['hcEither'] as String?;
+      expect(t, isNotNull, reason: '${f.path}: нет hcEither');
+      expect(t!.contains('{a}') && (t.contains('{b}') || t.contains('{b~}')), isTrue, reason: '${f.path}: «$t»');
+      expect(d['hcOrMode'], isNotNull, reason: '${f.path}: нет hcOrMode');
+    }
   });
 }

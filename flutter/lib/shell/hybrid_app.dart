@@ -6,6 +6,7 @@ import 'package:webview_flutter/webview_flutter.dart';
 import '../games/corsi/screen.dart';
 import '../games/n_back/screen.dart';
 import '../games/find_move/screen.dart';
+import '../games/knights_queens/screen.dart';
 import '../games/solitaire_chess/screen.dart';
 import '../games/picture_pairs/screen.dart';
 import '../games/digit_span/screen.dart';
@@ -208,6 +209,10 @@ class HybridApp extends StatefulWidget {
         // Режимы той же доски: адрес отличается только хвостом, экран — тот же.
         '/games/sudoku?mode=towers': (s) => SudokuScreen(state: s, mode: SideMode.towers),
         '/games/sudoku?mode=unequal': (s) => SudokuScreen(state: s, mode: SideMode.unequal),
+        // «Киллер» и «Свободно» — режимы переключателя веб-экрана, потерянные при переносе
+        // (задача 55b97845): карточки развилки ведут сюда.
+        '/games/sudoku?mode=killer': (s) => SudokuScreen(state: s, mode: SideMode.killer),
+        '/games/sudoku?mode=free': (s) => SudokuScreen(state: s, mode: SideMode.free),
         // «Кошки» (Queens / Star Battle) — первая игра, рождённая сразу нативной:
         // веб-страницы у неё нет вовсе, поэтому перехват не «отнимает» веб-версию,
         // а является единственным входом. Карточку в развилку кладёт координатор.
@@ -296,6 +301,7 @@ class HybridApp extends StatefulWidget {
         '/games/chess-blind': (s) => ChessBlindScreen(state: s),
         '/games/find-move': (s) => FindMoveScreen(state: s),
         '/games/solitaire-chess': (s) => SolitaireChessScreen(state: s),
+        '/games/knights-queens': (s) => KnightsQueensScreen(state: s),
         // «Детский мат» перенесён целиком: лестница, узоры, микс, жертва и поток.
         '/games/scholars-mate': (s) => ScholarsMateScreen(state: s),
         '/games/switching-task': (s) => SwitchingTaskScreen(state: s),

@@ -111,6 +111,7 @@ class HubCard {
 /// проба `hub_icons_are_mapped_test.dart`: новое имя в веб-реестре без строки
 /// здесь — красный CI с этим именем, а не тихий пазл на экране.
 const Map<String, IconData> hubIcons = {
+  'add-circle': Icons.add_circle_outline,
   'albums': Icons.collections_outlined,
   'analytics': Icons.analytics_outlined,
   'apps': Icons.apps,
@@ -257,7 +258,13 @@ class _HubScreenState extends State<HubScreen> {
   /// видимое ТОЙ ЖЕ функцией, что и значок (`frontend/src/services/hubVisibility.ts`),
   /// и кладёт в [HubScreen.visibleKey]. Нет ключа или он посчитан для другого профиля — показываем
   /// как прежде: пустая развилка хуже лишней строки.
-  List<HubCard> _visibleFor(List<HubCard> cards) {
+  ///
+  /// 🔴 СПИСОК ВЕБА — ЦЕЛИКОМ И В ЕГО ПОРЯДКЕ, А НЕ ПЕРЕСЕЧЕНИЕ СО СВОЕЙ РАСКЛАДКОЙ (задача 4a5bb886).
+  /// Было: карточки своей раскладки (файл состава → заводской список) ∩ список веба. Веб дописывает
+  /// новые карточки, которых файл не знает («новое — во все профили», решение Дениса 02.10), а
+  /// раскладка их не содержит — пересечение выкидывало их, и «Кошки», шахматные задачи и режимы
+  /// Тэтхэма не показывались нигде. Карточку ищем по всему реестру (`hubs`, `extra`, описанные файлом).
+  List<HubCard> _visibleFor(List<HubCard> cards, Map<String, dynamic> bundle) {
     final raw = widget.state.get(HubScreen.visibleKey);
     if (raw == null || raw.isEmpty) return cards;
     try {
@@ -265,8 +272,14 @@ class _HubScreenState extends State<HubScreen> {
       if (o['profile'] != widget.state.activeProfile) return cards;
       final list = (o['hubs'] as Map<String, dynamic>?)?[widget.hubRoute] as List?;
       if (list == null) return cards;
-      final open = list.cast<String>().toSet();
-      return cards.where((c) => open.contains(c.route)).toList();
+      final byRoute = <String, HubCard>{
+        for (final l in ((bundle['hubs'] as Map<String, dynamic>?) ?? const {}).values)
+          for (final e in l as List) HubCard.fromJson(e as Map<String, dynamic>).route: HubCard.fromJson(e),
+        for (final e in ((bundle['extra'] as Map<String, dynamic>?) ?? const {}).values)
+          HubCard.fromJson(e as Map<String, dynamic>).route: HubCard.fromJson(e),
+        for (final c in cards) c.route: c,
+      };
+      return [for (final r in list.cast<String>()) ?byRoute[r]];
     } catch (_) {
       return cards;
     }
@@ -351,7 +364,7 @@ class _HubScreenState extends State<HubScreen> {
     final data = await rootBundle.load('assets/hubs.json');
     final raw = utf8.decode(data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes));
     final j = jsonDecode(raw) as Map<String, dynamic>;
-    final cards = _visibleFor(_cardsFor(j));
+    final cards = _visibleFor(_cardsFor(j), j);
     final meta = (j['meta'] as Map<String, dynamic>)[widget.hubRoute] as Map<String, dynamic>?;
     var icons = const <String, dynamic>{};
     try {

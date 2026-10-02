@@ -38,10 +38,11 @@ class DeepScreen extends StatefulWidget {
 }
 
 /// Пресеты веб-версии: глубина, сколько клеток кормится снизу, доля для порога.
+/// `title` — ключ словаря: имена пресетов те же, что у веба (`deepPreset_*`).
 const _presets = <String, ({int depth, int? feedCount, double unlockShare, String title})>{
-  'scout': (depth: 2, feedCount: 9, unlockShare: 0.24, title: 'Разведка'),
-  'trek': (depth: 3, feedCount: 12, unlockShare: 0.24, title: 'Поход'),
-  'abyss': (depth: 3, feedCount: null, unlockShare: 0.24, title: 'Бездна'),
+  'scout': (depth: 2, feedCount: 9, unlockShare: 0.24, title: 'deepPreset_scout'),
+  'trek': (depth: 3, feedCount: 12, unlockShare: 0.24, title: 'deepPreset_trek'),
+  'abyss': (depth: 3, feedCount: null, unlockShare: 0.24, title: 'deepPreset_abyss'),
 };
 
 /// Имена объёма и ступени — ключи веб-словаря (`LanguageContext.tsx`: deepPreset_*, имена
@@ -373,7 +374,7 @@ class _DeepScreenState extends State<DeepScreen> {
   }
 
   /// Заголовок один на экран и на разбор: вторая строка — второй долг подписей.
-  String get _title => 'Бездна';
+  String get _title => L.t('deepPreset_abyss');
 
   List<LessonStep> _lessonSteps() {
     if (_bank == null || _seed.isEmpty) return const [];
@@ -441,13 +442,13 @@ class _DeepScreenState extends State<DeepScreen> {
       onLesson: _lessonSteps().isEmpty ? null : _openLesson,
       hud: [
         HudItem(
-          label: 'Глубина',
+          label: L.t('sdkDepth'),
           value: '${depthOf(_path) + 1}/${_cfg.depth}',
           icon: Icons.layers,
         ),
         if (node != null)
-          HudItem(label: 'Узел', value: '$progress/${node.unlockCells}', icon: Icons.grid_on),
-        HudItem(label: 'Ступень', value: '${_band + 1}/${deepBands.length}', icon: Icons.trending_up),
+          HudItem(label: L.t('sdkNode'), value: '$progress/${node.unlockCells}', icon: Icons.grid_on),
+        HudItem(label: L.t('sdkHudStage'), value: '${_band + 1}/${deepBands.length}', icon: Icons.trending_up),
       ],
       field: (context, height) {
         if (_failure != null) return Center(child: Text(_failure!));
@@ -491,17 +492,17 @@ class _DeepScreenState extends State<DeepScreen> {
       auxRow: AuxBar(children: [
         // 🔴 Показан только там, где есть куда подниматься: на корне подъём бессмыслен.
         if (_path.isNotEmpty)
-          AuxAction(icon: Icons.arrow_upward, label: 'Наверх', onPressed: _up),
+          AuxAction(icon: Icons.arrow_upward, label: L.t('sdkUp'), onPressed: _up),
         AuxAction(
           icon: Icons.undo,
-          label: 'Отменить',
+          label: L.t('btn_undo'),
           onPressed: _past.isEmpty || _won ? null : _undo,
         ),
-        AuxAction(icon: Icons.refresh, label: 'Новая партия', onPressed: _chooseAndStart),
+        AuxAction(icon: Icons.refresh, label: L.t('sdkNewGame'), onPressed: _chooseAndStart),
       ]),
       toolbar: _Toolbar(won: _won, onDigit: _place, onErase: _erase, onNext: _chooseAndStart),
       pauseActions: [
-        PauseAction(label: 'Новая партия', icon: Icons.refresh, onPressed: _chooseAndStart),
+        PauseAction(label: L.t('sdkNewGame'), icon: Icons.refresh, onPressed: _chooseAndStart),
       ],
     );
   }
@@ -617,7 +618,7 @@ class _Toolbar extends StatelessWidget {
           key: const Key('next'),
           onPressed: onNext,
           icon: const Icon(Icons.arrow_forward),
-          label: const Text('Новая партия'),
+          label: Text(L.t('sdkNewGame')),
         ),
       );
     }

@@ -106,7 +106,7 @@ class _FractalScreenState extends State<FractalScreen> {
     final puzzle = levels.gameFor(_ladder.level, seed: DateTime.now().millisecondsSinceEpoch);
     setState(() {
       _puzzle = puzzle;
-      _failure = puzzle == null ? 'Партий этой ступени нет в данных' : null;
+      _failure = puzzle == null ? L.t('sdkNoBoards') : null;
       _play = puzzle == null ? null : startPlayState(puzzle);
       _history.clear();
       _marks = [for (var i = 0; i < 10; i++) emptyPencilMarks(9)];
@@ -265,7 +265,7 @@ class _FractalScreenState extends State<FractalScreen> {
   }
 
   /// Заголовок один на экран и на разбор: вторая строка — второй долг подписей.
-  String get _title => 'Фрактал';
+  String get _title => L.t('fractalTitle');
 
   List<LessonStep> _lessonSteps() {
     final f = _puzzle, p = _play;
@@ -316,18 +316,18 @@ class _FractalScreenState extends State<FractalScreen> {
       title: _title,
       onLesson: _lessonSteps().isEmpty ? null : _openLesson,
       hud: [
-        HudItem(label: 'Уровень', value: '${_ladder.level}', icon: Icons.trending_up),
-        HudItem(label: 'Открыто', value: '$_unlocked/9', icon: Icons.lock_open),
+        HudItem(label: L.t('level'), value: '${_ladder.level}', icon: Icons.trending_up),
+        HudItem(label: L.t('fractalOpened'), value: '$_unlocked/9', icon: Icons.lock_open),
         if (open != null)
           HudItem(
-            label: 'Сетка ${open + 1}',
+            label: '${L.t('fractalChildN')} ${open + 1}',
             value: '${_progress(open)}/${f!.children[open].unlockCells}',
             icon: Icons.grid_view,
           ),
       ],
       field: (context, height) {
         if (levels == null) return const Center(child: CircularProgressIndicator());
-        if (f == null || p == null) return Center(child: Text(_failure ?? 'Партия не собралась'));
+        if (f == null || p == null) return Center(child: Text(_failure ?? L.t('sdkGameFailed')));
         if (open == null) {
           return _MapView(
             puzzle: f,
@@ -356,10 +356,10 @@ class _FractalScreenState extends State<FractalScreen> {
         // 🔴 Показан ТОЛЬКО внутри дочерней: на карте подниматься некуда, и лишний
         // значок там сбивает — ровно та путаница, из-за которой выход не находили.
         if (open != null)
-          AuxAction(icon: Icons.map_outlined, label: 'На карту', onPressed: _toMap),
+          AuxAction(icon: Icons.map_outlined, label: L.t('sdkToMap'), onPressed: _toMap),
         AuxAction(
           icon: Icons.undo,
-          label: 'Отменить',
+          label: L.t('btn_undo'),
           count: _history.isEmpty ? null : _history.length,
           onPressed: _history.isEmpty || _won ? null : _undo,
         ),
@@ -377,7 +377,7 @@ class _FractalScreenState extends State<FractalScreen> {
           active: _paint != null,
           onPressed: _won ? null : _togglePaint,
         ),
-        AuxAction(icon: Icons.refresh, label: 'Заново', onPressed: _deal),
+        AuxAction(icon: Icons.refresh, label: L.t('restart'), onPressed: _deal),
       ]),
       toolbar: f == null
           ? null
@@ -390,7 +390,7 @@ class _FractalScreenState extends State<FractalScreen> {
               onPaint: (i) => setState(() => _paint = i),
             ),
       pauseActions: [
-        PauseAction(label: 'Начать заново', icon: Icons.refresh, onPressed: _deal),
+        PauseAction(label: L.t('sdkStartOver'), icon: Icons.refresh, onPressed: _deal),
         // 🔴 ДВЕРЬ В «БЕЗДНУ» (сверка 138f7818). В вебе она стоит на экране настройки фрактала
         // (sudoku-fractal.tsx: fractal-deep-link) — экрана настройки у натива нет, и марафонский
         // режим стал недостижим: карточки в развилке у него нет, дверь была одна.
@@ -789,7 +789,7 @@ class _Toolbar extends StatelessWidget {
           key: const Key('next'),
           onPressed: onNext,
           icon: const Icon(Icons.arrow_forward),
-          label: const Text('Следующий уровень'),
+          label: Text(L.t('sdkNextLevel')),
         ),
       );
     }
