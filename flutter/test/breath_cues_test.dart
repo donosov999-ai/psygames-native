@@ -8,7 +8,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/pause/breath_cues.dart';
 import 'package:psygames_flutter/games/pause/breathing.dart';
 import 'package:psygames_flutter/games/pause/practice_haptics.dart';
-import 'package:psygames_flutter/games/pause/practices.dart';
+import 'package:practice_kit/practice_kit.dart';
 import 'package:psygames_flutter/games/pause/screen.dart';
 import 'package:psygames_flutter/shell/app_haptics.dart';
 import 'package:psygames_flutter/shell/game_preset.dart';
@@ -45,7 +45,7 @@ double _hz(Uint8List wav, int from, int to, int rate) {
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
-  final engine = Practices(jsonDecode(File('assets/pause/practices.json').readAsStringSync()) as Json);
+  final engine = Practices(jsonDecode(File('../packages/practice_kit/assets/practices.json').readAsStringSync()) as Json);
   final copy = jsonDecode(File('assets/pause/copy.json').readAsStringSync()) as Json;
   final vibro = <Map<String, dynamic>>[];
   final m = TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;

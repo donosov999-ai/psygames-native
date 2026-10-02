@@ -3,13 +3,16 @@
 // Взято у «Умного будильника» (его экран практики уже прошёл замечания Дениса по
 // кадрам 23.09.2026), а не нарисовано заново: веб-экран `/games/pause` показывает
 // ту же картинку страницей зарядки, и перенос обязан выглядеть так же.
-// Убрано то, чего в каталоге PsyGames нет: массаж лица и три режима глаз Codex.
+// Массаж лица и три режима глаз — виджетами общего пакета practice_kit (02.10.2026:
+// каталог один на оба приложения, и в PsyGames они теперь есть).
+// ⚠️ Сама сцена (часы фазы, картинка, летающий глаз) — ещё копия будильника:
+// следующий шаг — перенести её в пакет вместе с картинками.
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:practice_kit/practice_kit.dart';
 
-import 'practices.dart';
 
 class PracticeStage extends StatelessWidget {
   const PracticeStage({
@@ -17,17 +20,27 @@ class PracticeStage extends StatelessWidget {
     required this.engine,
     required this.cues,
     required this.elapsed,
+    this.running = true,
+    this.locale = 'en',
+    this.onEyeHit,
   });
 
   final Practices engine;
   final List<Json> cues;
   final int elapsed;
+  final bool running;
+  final String locale;
+
+  /// Засчитанное попадание в режимах глаз «поймай совпадение» и «две точки».
+  final VoidCallback? onEyeHit;
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final breath = cues.where((c) => c['setId'] == 'breathing').firstOrNull;
     final eye = cues.where((c) => c['setId'] == 'eye-gym').firstOrNull;
+    // Режимы с нажатиями: свой экран мишеней вместо летающего глаза.
+    final specialEye = eye != null && ['catch-overlap', 'two-dots'].contains(eye['programId']);
     final aux = cues.where((c) => c['setId'] != 'breathing' && c['setId'] != 'eye-gym').toList();
     // Напряжение в начале и в конце шага держит картинку на месте: сменить её
     // посреди сокращения — значит показать не то, что человек сейчас делает.
@@ -40,15 +53,21 @@ class PracticeStage extends StatelessWidget {
       builder: (context, box) {
         final w = box.maxWidth, h = box.maxHeight;
         final artW = math.min(w * .7, h * 1.05), artH = math.min(h * .72, artW * 390 / 600);
+        // Массаж лица — своё поле во всю сцену, без рамки фаз.
+        final massage = picture?['setId'] == 'face-massage';
         return Semantics(
           label: cues.map((c) => c['title']).join(', '),
           child: Stack(
             children: [
-              if (picture != null)
+              if (picture != null && massage)
+                Center(
+                  child: SizedBox.square(dimension: math.min(w * .9, h * .9), child: PracticeArtwork(cue: picture)),
+                ),
+              if (picture != null && !massage)
                 Center(
                   child: SizedBox(width: artW, height: artH, child: PracticeArtwork(cue: picture)),
                 ),
-              if (phase != null)
+              if (phase != null && !(massage && breath == null))
                 Positioned.fill(
                   child: CustomPaint(
                     painter: PhaseClock(
@@ -62,7 +81,21 @@ class PracticeStage extends StatelessWidget {
                     ),
                   ),
                 ),
-              if (eye != null && eyePosition(eye) != null)
+              if (specialEye)
+                Positioned.fill(
+                  bottom: breath != null ? 64 : 0,
+                  child: EyeModes(
+                    key: ValueKey(eye['programId']),
+                    mode: eye['programId'],
+                    elapsed: elapsed,
+                    running: running,
+                    locale: locale,
+                    onHit: onEyeHit,
+                  ),
+                ),
+              if (eye != null && eye['programId'] == 'geometry-paths')
+                Positioned.fill(child: CustomPaint(painter: EyeGeometryGuide(eye['stepId'], scheme.onSurface))),
+              if (eye != null && !specialEye && eyePosition(eye) != null)
                 Builder(
                   builder: (_) {
                     final p = eyePosition(eye)!;
@@ -107,6 +140,7 @@ class PracticeStage extends StatelessWidget {
 /// `null` — шаг без мишени (ладони, взгляд вдаль).
 Offset? eyePosition(Json c) {
   final p = (c['progress'] as num).toDouble().clamp(0, 1), tau = 2 * math.pi;
+  if (c['programId'] == 'geometry-paths') return eyeGeometryPosition(c['stepId'], p * 2);
   switch (c['stepId']) {
     case 'directions':
       const dirs = [
@@ -147,6 +181,9 @@ class PracticeArtwork extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final String set = cue['setId'], program = cue['programId'];
+    if (set == 'face-massage') {
+      return FaceMassageGuide(step: cue['stepId'], program: program, progress: (cue['progress'] as num).toDouble());
+    }
     if (set == 'postures') {
       final pose = ['horse', 'cobbler', 'lotus'].firstWhere(program.contains, orElse: () => 'mountain');
       return Image.asset('assets/pause/cosmic-body/pose-$pose-phone-v1.webp', fit: BoxFit.contain);

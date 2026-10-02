@@ -9,7 +9,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:psygames_flutter/games/pause/practices.dart';
+import 'package:practice_kit/practice_kit.dart';
 import 'package:psygames_flutter/games/pause/screen.dart';
 import 'package:psygames_flutter/shell/game_preset.dart';
 import 'package:psygames_flutter/shell/session_report.dart';
@@ -18,7 +18,7 @@ import 'package:psygames_flutter/shell/voice.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
-  final engine = Practices(jsonDecode(File('assets/pause/practices.json').readAsStringSync()) as Json);
+  final engine = Practices(jsonDecode(File('../packages/practice_kit/assets/practices.json').readAsStringSync()) as Json);
   final copy = jsonDecode(File('assets/pause/copy.json').readAsStringSync()) as Json;
   late _Voice voice;
   late SharedState state;
