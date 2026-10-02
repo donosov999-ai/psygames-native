@@ -79,7 +79,6 @@ void main() {
     'games/deep/screen.dart': 13,
     'games/hanoi/screen.dart': 12,
     'games/puzzles/screen.dart': 12,
-    'games/memory_matrix/screen.dart': 12,
     'games/cake_sort/screen.dart': 11,
     'shell/hybrid_app.dart': 8,
     'games/stroop/model.dart': 8,
@@ -109,7 +108,10 @@ void main() {
   // 691 − 208. Подписи каркаса — общим словарём теми же ключами, что зовут веб-экраны игр;
   // текст партии «Вращения» и «Точек» — словарями их модулей (`lib/shell/module_strings.dart`).
   // Новых ключей семь: у каждого перевод на все двенадцать языков в том же коммите.
-  const total = 483;
+  // 01.10 — «Объём памяти»: «Матрица памяти» перенесена заново целиком, все подписи — ключи
+  // веб-словаря (задачи c1c20b36, 9d7032ab); файл ушёл из списка: −12.
+  // 02.10 — оба сведены при вливании: 691 − 208 − 12.
+  const total = 471;
 
   final counts = _scan(Directory('lib'));
 

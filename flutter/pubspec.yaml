@@ -146,6 +146,7 @@ flutter:
     - assets/pizza/tops/
     - assets/pizza/boards/
     - assets/vocab/
+    - assets/reading_span/
     - assets/pairs/
     - assets/pairs/animals/
     - assets/pairs/bio/
