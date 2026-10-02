@@ -3389,6 +3389,7 @@ const translations: Translations = {
   catsRuleColor: { ru: 'На каждый цвет — одна кошка', en: 'One cat per colour' },
   catsRuleLine: { ru: 'В каждой строке и столбце — одна кошка', en: 'One cat per row and column' },
   catsRuleTouch: { ru: 'Кошки не могут соприкасаться, даже углами', en: 'Cats may not touch, not even diagonally' },
+  catsHowPress: { ru: 'Долгое нажатие вскрывает кошку, короткое ставит пометку ✕', en: 'Long press reveals a cat; a short tap marks ✕' },
   // Имена приёмов для разбора по шагам: каждый ход в разборе назван словом, иначе
   // разбор превращается в показ ответа (правило проекта, цель Дениса 24.09.2026).
   catsWhyRegion: { ru: 'В этом цвете осталось одно место', en: 'Only one square left in this colour' },

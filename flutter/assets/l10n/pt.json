@@ -104,6 +104,7 @@
 "catVocab_time":"Tempo",
 "catVocab_verbs":"Ações",
 "catsDesc":"Coloque um gato em cada linha, cada coluna e cada cor. Os gatos não podem se tocar, nem na diagonal.",
+"catsHowPress":"Toque longo revela um gato; toque curto marca ✕",
 "catsRuleColor":"Um gato por cor",
 "catsRuleLine":"Um gato por linha e por coluna",
 "catsRuleTouch":"Os gatos não podem se tocar, nem na diagonal",

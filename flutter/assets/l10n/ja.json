@@ -104,6 +104,7 @@
 "catVocab_time":"時間",
 "catVocab_verbs":"うごき",
 "catsDesc":"どの行・列・色にも猫を1匹ずつ置こう。猫どうしは隣り合えない — 斜めもダメ。",
+"catsHowPress":"長押しで猫をひらき、短くタップすると ✕ を付けます",
 "catsRuleColor":"各色に猫は1匹",
 "catsRuleLine":"各行・各列に猫は1匹",
 "catsRuleTouch":"猫どうしは隣り合えない — 斜めもダメ",

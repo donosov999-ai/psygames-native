@@ -104,6 +104,7 @@
 "catVocab_time":"Tiempo",
 "catVocab_verbs":"Acciones",
 "catsDesc":"Coloca un gato en cada fila, cada columna y cada color. Los gatos no pueden tocarse, ni siquiera en diagonal.",
+"catsHowPress":"Mantén pulsado para descubrir un gato; un toque breve marca ✕",
 "catsRuleColor":"Un gato por color",
 "catsRuleLine":"Un gato por fila y por columna",
 "catsRuleTouch":"Los gatos no pueden tocarse, ni siquiera en diagonal",

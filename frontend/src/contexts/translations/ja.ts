@@ -3123,6 +3123,7 @@ const t: Record<string, string> = {
   "catsRuleColor": "各色に猫は1匹",
   "catsRuleLine": "各行・各列に猫は1匹",
   "catsRuleTouch": "猫どうしは隣り合えない — 斜めもダメ",
+  "catsHowPress": "長押しで猫をひらき、短くタップすると ✕ を付けます",
   "catsWhyRegion": "この色に残るマスは1つだけ",
   "catsWhyRow": "この行に残るマスは1つだけ",
   "catsWhyColumn": "この列に残るマスは1つだけ",

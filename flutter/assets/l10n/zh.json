@@ -104,6 +104,7 @@
 "catVocab_time":"时间",
 "catVocab_verbs":"动作",
 "catsDesc":"在每一行、每一列和每种颜色中各放一只猫。猫与猫不能相邻，斜向也不行。",
+"catsHowPress":"长按揭开猫，短按标记 ✕",
 "catsRuleColor":"每种颜色一只猫",
 "catsRuleLine":"每行每列各一只猫",
 "catsRuleTouch":"猫与猫不能相邻，斜向也不行",

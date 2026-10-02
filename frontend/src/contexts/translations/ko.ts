@@ -3124,6 +3124,7 @@ const t: Record<string, string> = {
   "catsRuleColor": "색마다 고양이 한 마리",
   "catsRuleLine": "행과 열마다 고양이 한 마리",
   "catsRuleTouch": "고양이끼리는 대각선으로도 닿을 수 없습니다",
+  "catsHowPress": "길게 누르면 고양이를 열고, 짧게 누르면 ✕ 표시를 합니다",
   "catsWhyRegion": "이 색에는 한 칸만 남았습니다",
   "catsWhyRow": "이 행에는 한 칸만 남았습니다",
   "catsWhyColumn": "이 열에는 한 칸만 남았습니다",
