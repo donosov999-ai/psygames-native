@@ -94,16 +94,18 @@ class SudokuBoard {
 
 /// Лестница судоку и доски к ней.
 class SudokuLevels {
-  SudokuLevels._(this._ladder, this._ratingRows, this._bank, this._variantBoards);
+  SudokuLevels._(this._ladder, this._ratingRows, this._bank, this._variantBoards, this._transit);
 
   final Map<int, SudokuLevel> _ladder;
   final List<({int upTo, double rating})> _ratingRows;
   final Map<int, List<String>> _bank;                 // полоса (рейтинг×10) → задачи
   final Map<int, List<Map<String, Object?>>> _variantBoards;   // уровень → доски
+  final Map<int, Map<String, Object?>> _transit;               // уровень → строка перехода
 
   static const _ladderAsset = 'assets/levels/sudoku-ladder.json';
   static const _bankAsset = 'assets/levels/sudoku-bank.json';
   static const _variantAsset = 'assets/levels/sudoku-variant-boards.json';
+  static const transitAsset = 'assets/levels/sudoku-ladder-transit.json';
 
   static Future<SudokuLevels> load() async {
     final ladderJson = jsonDecode(await rootBundle.loadString(_ladderAsset)) as Map<String, Object?>;
@@ -140,10 +142,11 @@ class SudokuLevels {
     // пробы. Поэтому файла, которого нет, мы просто не трогаем: банковские уровни
     // играются и без вариантных досок.
     final variants = <int, List<Map<String, Object?>>>{};
-    var hasVariants = false;
+    var hasVariants = false, hasTransit = false;
     try {
-      final manifest = await AssetManifest.loadFromAssetBundle(rootBundle);
-      hasVariants = manifest.listAssets().contains(_variantAsset);
+      final listed = (await AssetManifest.loadFromAssetBundle(rootBundle)).listAssets();
+      hasVariants = listed.contains(_variantAsset);
+      hasTransit = listed.contains(transitAsset);
     } catch (_) {
       hasVariants = false;
     }
@@ -154,13 +157,33 @@ class SudokuLevels {
       }
     }
 
-    return SudokuLevels._(ladder, rows, bank, variants);
+    final transit = <int, Map<String, Object?>>{};
+    if (hasTransit) {
+      final tj = jsonDecode(await rootBundle.loadString(transitAsset)) as Map<String, Object?>;
+      for (final r in (tj['steps'] as List).cast<Map<String, Object?>>()) {
+        transit[(r['level'] as num).toInt()] = r;
+      }
+    }
+
+    return SudokuLevels._(ladder, rows, bank, variants, transit);
   }
 
   /// Ширина полосы банка — 0,1; ключом берём целое, чтобы не сравнивать дробные.
   static int _bandKey(double rating) => (rating * 10).round();
 
   int get lastLevel => _ladder.keys.reduce(max);
+
+  /// 🔴 СТУПЕНИ В ДРУГОЙ ИГРЕ И БОССЫ ПОСЛЕ СТУПЕНИ — СТРОКОЙ ДАННЫХ, КАК ОНА ЛЕЖИТ В ФАЙЛЕ
+  /// (`assets/levels/sudoku-ladder-transit.json`, план уровней v4, задача 4e3d3443).
+  ///
+  /// Строку разбирает `LadderTransit.levelOf` / `bossOf` (`lib/shell/level_transition.dart`):
+  /// форма одна на все лестницы, и второй разборщик здесь разошёлся бы с ней молча.
+  /// `null` — ступень своя, без босса.
+  ///
+  /// ⚠️ [lastLevel] этим НЕ растёт: первая ступень в другой игре — 145-я («Кошки»), а доски
+  /// 121–144 ещё не выгружены. Подними потолок раньше досок — победа на 120-й вела бы на
+  /// пустую ступень («досок нет»), а не на следующую игру.
+  Map<String, Object?>? transitRow(int level) => _transit[level];
 
   /// Потолок до загрузки ступеней — только чтобы экран было чем рисовать первый кадр;
   /// настоящий берётся из данных ([lastLevel]) сразу после загрузки.
