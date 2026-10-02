@@ -19,11 +19,15 @@ export const WHATS_NEW: WhatsNewEntry[] = [
     version: '2.56.7',
     date: '2026-10-02',
     ru: [
+      'В развилках снова видны все игры и режимы головоломок — 40 карточек пропадали из списков',
+      'Новое: «Конь и ферзи» (восемь ферзей и обход конём), «Кто спрятался?» с вопросами «или», «Кошки» с уровнями по настоящей трудности',
       '«Тоны» на Android: слоги звучат живыми записями, линии тона вместо значков',
       '«Паттерны» больше не подсказывают ответ последним шагом',
       'Головоломки и MindLab — на 12 языках',
     ],
     en: [
+      'All games and puzzle modes are back in the hubs — 40 cards had gone missing from the lists',
+      'New: Knights & Queens (eight queens and the knight\'s tour), Who Is Hiding? with "or" questions, Cats with levels by real difficulty',
       'Tones on Android: syllables play as real recordings, with tone lines instead of symbols',
       'Patterns no longer give the answer away on the last step',
       'Puzzles and MindLab are in 12 languages',
