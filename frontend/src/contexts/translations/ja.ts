@@ -3425,5 +3425,11 @@ const t: Record<string, string> = {
   "sdkRule_between": "両端のあいだ",
   "sdkRule_lockout": "ロックアウト",
   "sdkRule_xv": "XV",
+  "catalogSearch": "ゲームを探す",
+  "catalogFilter": "絞り込み",
+  "catalogAll": "すべてのゲーム",
+  "catalogBySection": "セクション",
+  "catalogBySkill": "スキル",
+  "catalogNothing": "該当するゲームはありません",
 };
 export default t;

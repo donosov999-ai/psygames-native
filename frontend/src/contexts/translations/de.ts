@@ -3431,5 +3431,11 @@ const t: Record<string, string> = {
   "sdkRule_between": "Zwischenlinie",
   "sdkRule_lockout": "Sperrlinie",
   "sdkRule_xv": "XV",
+  "catalogSearch": "Spiel suchen",
+  "catalogFilter": "Filter",
+  "catalogAll": "Alle Spiele",
+  "catalogBySection": "Bereiche",
+  "catalogBySkill": "Fähigkeiten",
+  "catalogNothing": "Keine passenden Spiele",
 };
 export default t;

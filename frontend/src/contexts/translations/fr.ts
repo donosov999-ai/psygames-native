@@ -3426,5 +3426,11 @@ const t: Record<string, string> = {
   "sdkRule_between": "entre les bouts",
   "sdkRule_lockout": "verrou",
   "sdkRule_xv": "XV",
+  "catalogSearch": "Trouver un jeu",
+  "catalogFilter": "Filtre",
+  "catalogAll": "Tous les jeux",
+  "catalogBySection": "Sections",
+  "catalogBySkill": "Compétences",
+  "catalogNothing": "Aucun jeu ne correspond",
 };
 export default t;
