@@ -7,6 +7,7 @@ import 'package:psygames_flutter/games/tower_london/screen.dart';
 import 'package:psygames_flutter/shell/game_preset.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:psygames_flutter/shell/l10n.dart';
 
 /// ШАГ ЗАРЯДКИ ЗАДАЁТ СЛОЖНОСТЬ И ЧИСЛО ЗАДАЧ, А ЛЕСТНИЦУ НЕ ТРОГАЕТ.
 ///
@@ -37,6 +38,8 @@ Finder _hud(String label, [String? value]) =>
     find.bySemanticsLabel(RegExp('^$label: ${value ?? ''}'));
 
 void main() {
+  // Подписи экрана — из словаря (02.10.2026, задача 48ca6466): без него вместо текста ключи.
+  setUpAll(() async => L.load('ru'));
   TestWidgetsFlutterBinding.ensureInitialized();
   setUp(() => GamePreset.clear());
   tearDown(() => GamePreset.clear());
@@ -104,12 +107,13 @@ void main() {
 
 TolBoard _board(WidgetTester tester) => tester.widget<TolBoard>(find.byType(TolBoard));
 
-/// Минимум ходов текущей задачи — с ЭКРАНА, из счётчика «Ходы: сделано/минимум».
+/// Минимум ходов текущей задачи — с ЭКРАНА, из счётчика «Ходы: сделано/минимум» (подпись — ключ `hud_moves`).
 int _minMovesOnScreen(WidgetTester tester) {
   for (final w in tester.widgetList<Semantics>(find.byType(Semantics))) {
     final l = w.properties.label;
-    if (l != null && l.startsWith('Ходы: ')) {
-      return int.parse(l.substring(6).split('/')[1].trim().split('\n')[0]);
+    final head = '${L.t('hud_moves')}: ';
+    if (l != null && l.startsWith(head)) {
+      return int.parse(l.substring(head.length).split('/')[1].trim().split('\n')[0]);
     }
   }
   throw StateError('счётчика ходов на экране нет');

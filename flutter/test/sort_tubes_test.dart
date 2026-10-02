@@ -5,6 +5,17 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/sort_tubes/layout.dart';
 import 'package:psygames_flutter/games/sort_tubes/model.dart';
 
+/// Коды отказа в эталоне — те, что отдаёт веб-переливалка (TS: по-русски); у Dart они
+/// латиницей (02.10.2026, задача 48ca6466: кириллица только в видимом тексте). Сверка
+/// идёт через эту таблицу — смысл кода обязан совпасть один к одному.
+const _tsReason = <String, String>{
+  'полон': 'full',
+  'другойЦвет': 'otherColour',
+  'безТолку': 'pointless',
+  'закрыт': 'closed',
+  'пусто': 'empty',
+};
+
 /// СВЕРКА ДВИЖКА СОСУДОВ С ЖИВЫМ TS, А НЕ С СОБСТВЕННОЙ ФОРМУЛОЙ.
 ///
 /// Правила («переливалка · шарики · гайки» — один движок) перенесены из
@@ -46,7 +57,7 @@ void main() {
       }
 
       same('canPour', canPour(f, from, to), m['canPour']);
-      same('причина', refusalReason(f, from, to), m['reason']);
+      same('причина', refusalReason(f, from, to), _tsReason[m['reason']] ?? m['reason']);
       same('объём', pourAmount(f, from, to), m['amount']);
       same('верхний столбик', f.tubes[from].isEmpty ? 0 : topRun(f.tubes[from]), m['topRun']);
       same('место в цели', f.roomIn(to), m['roomTo']);

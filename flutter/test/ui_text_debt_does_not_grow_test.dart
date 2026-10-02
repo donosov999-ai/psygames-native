@@ -62,7 +62,6 @@ void main() {
     'games/schulte/screen.dart': 26,
     'games/pattern/model.dart': 24,
     'games/object_tracker/screen.dart': 24,
-    'games/sort_tubes/screen.dart': 23,
     'games/ospan/screen.dart': 21,
     'games/ospan/model.dart': 20,
     'games/number_bonds/screen.dart': 18,
@@ -71,28 +70,17 @@ void main() {
     'games/quick_count/screen.dart': 18,
     'games/math_sprint/screen.dart': 18,
     'main.dart': 16,
-    'games/goods_sort/screen.dart': 15,
     'games/samurai/screen.dart': 14,
-    'games/tower_london/screen.dart': 14,
     'games/object_tracker/model.dart': 14,
     'games/fractal/screen.dart': 13,
     'games/deep/screen.dart': 13,
-    'games/hanoi/screen.dart': 12,
     'games/puzzles/screen.dart': 12,
-    'games/cake_sort/screen.dart': 11,
-    'shell/hybrid_app.dart': 8,
+    'shell/hybrid_app.dart': 3,
     'games/stroop/model.dart': 8,
-    'games/goods_sort/board.dart': 5,
-    'games/sort_tubes/model.dart': 5,
     'shell/game_shell.dart': 4,
     'shell/hub_screen.dart': 4,
     'shell/tap_latency.dart': 4,
     'shell/web_game_screen.dart': 4,
-    'games/goods_sort/model.dart': 4,
-    'games/tower_london/board.dart': 4,
-    'games/sort_tubes/board.dart': 2,
-    'games/hanoi/board.dart': 2,
-    'games/cake_sort/board.dart': 1,
   };
 
   // 284 у соседнего раздела минус 65, погашенных «Конфликтом внимания» в этом же коммите,
@@ -111,7 +99,14 @@ void main() {
   // 01.10 — «Объём памяти»: «Матрица памяти» перенесена заново целиком, все подписи — ключи
   // веб-словаря (задачи c1c20b36, 9d7032ab); файл ушёл из списка: −12.
   // 02.10 — оба сведены при вливании: 691 − 208 − 12.
-  const total = 471;
+  // 02.10 — «Сортировки» погасили долг целиком (задача 48ca6466): двенадцать файлов семи
+  // экранов ушли из списка, 471 − 98. Готовые ключи веб-словаря там, где они есть (level,
+  // restart, btn_undo, sortRefuse*, goalLabel, tolWonPreset …), новых — 25, у каждого перевод
+  // на все двенадцать языков в том же коммите. Коды отказа пробирок — латиницей: их не
+  // видит человек, а эталон TS сверяется через таблицу в test/sort_tubes_test.dart.
+  // Там же — заголовки пяти экранов сортировок в карте перехвата (shell/hybrid_app.dart 8 → 3):
+  // waterSort, ballSort, nutSort, cakeSort, pizzaSort — готовые ключи. Итого 471 − 98 − 5.
+  const total = 368;
 
   final counts = _scan(Directory('lib'));
 

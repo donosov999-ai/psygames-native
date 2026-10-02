@@ -17,6 +17,7 @@ import 'puzzle.dart';
 import '../../shell/shared_state.dart';
 import 'board.dart';
 import 'model.dart';
+import '../../shell/l10n.dart';
 
 /// ЭКРАН ДВИЖКА СОСУДОВ: «Переливалка», «Шарики», «Гайки».
 ///
@@ -170,7 +171,7 @@ class _SortTubesScreenState extends State<SortTubesScreen> {
     setState(() {
       if (_sel == null) {
         if (field.tubes[i].isEmpty || !field.isOpen(i)) {
-          _showRefusal(field.isOpen(i) ? 'пусто' : 'закрыт');
+          _showRefusal(field.isOpen(i) ? 'empty' : 'closed');
           return;
         }
         _sel = i;
@@ -254,13 +255,24 @@ class _SortTubesScreenState extends State<SortTubesScreen> {
   /// Высота строки причины. Постоянная: см. разбор в `field`.
   static const double _captionH = 26;
 
-  static const Map<String, String> _refusalText = {
-    'полон': 'Сосуд полон — места нет',
-    'другойЦвет': 'Наверху другой цвет',
-    'безТолку': 'Толку нет: то же содержимое в другой посуде',
-    'закрыт': 'Сосуд ещё закрыт — соберите цвет',
-    'пусто': 'Сосуд пуст — брать нечего',
-  };
+  /// Причина отказа словами — по коду из `refusalReason` (коды латиницей, текст из
+  /// словаря: те же ключи, что у веб-переливалки). Каждый ключ своим `L.t` —
+  /// ключ внутри тернарника сборщик словаря не видит.
+  static String _refusalText(String code) {
+    switch (code) {
+      case 'full':
+        return L.t('sortRefuseFull');
+      case 'otherColour':
+        return L.t('sortRefuseColour');
+      case 'pointless':
+        return L.t('sortRefusePointless');
+      case 'closed':
+        return L.t('sortRefuseLocked');
+      case 'empty':
+        return L.t('sortRefuseEmpty');
+    }
+    return L.t('sortRefuseNo');
+  }
 
   /*
    * 🔴 РАЗБОР ОБЩИМ ПОИСКОМ, БЕЗ СВОЕГО УЧИТЕЛЯ.
@@ -322,13 +334,13 @@ class _SortTubesScreenState extends State<SortTubesScreen> {
         // (правило каркаса), и число рядом с партией читалось бы как обещание
         // её засчитать. Так же сделано в вебе — `goods-sort.tsx:2994` и родня.
         if (!GamePreset.isPreset)
-          HudItem(label: 'Уровень', value: '${_ladder.level}', icon: Icons.flag_outlined),
+          HudItem(label: L.t('level'), value: '${_ladder.level}', icon: Icons.flag_outlined),
         HudItem(
-          label: 'Ходы',
+          label: L.t('hud_moves'),
           value: level.moveLimit > 0 ? '$_moves/${level.moveLimit}' : '$_moves',
           icon: Icons.swap_horiz,
         ),
-        HudItem(label: 'Собрано', value: '$collected/${level.colors}', icon: Icons.task_alt),
+        HudItem(label: L.t('hud_sorted'), value: '$collected/${level.colors}', icon: Icons.task_alt),
       ],
       field: (context, h) => Column(
         children: [
@@ -348,10 +360,8 @@ class _SortTubesScreenState extends State<SortTubesScreen> {
             child: Center(
               child: Text(
                 _refusal == null
-                    ? (level.hiddenLevel
-                        ? 'Скрытый слой: «?» узнаётся ходом'
-                        : 'Собери цвет в один сосуд')
-                    : _refusalText[_refusal] ?? 'Так нельзя',
+                    ? (level.hiddenLevel ? L.t('waterSortHiddenHint') : L.t('sortGoalOneColour'))
+                    : _refusalText(_refusal!),
                 key: const ValueKey('tubes-caption'),
                 textAlign: TextAlign.center,
                 style: TextStyle(
@@ -380,8 +390,8 @@ class _SortTubesScreenState extends State<SortTubesScreen> {
         ],
       ),
       auxRow: AuxBar(children: [
-        AuxAction(icon: Icons.undo, label: 'Отменить', onPressed: _history.isEmpty ? null : _undo),
-        AuxAction(icon: Icons.refresh, label: 'Начать заново', onPressed: _restart),
+        AuxAction(icon: Icons.undo, label: L.t('btn_undo'), onPressed: _history.isEmpty ? null : _undo),
+        AuxAction(icon: Icons.refresh, label: L.t('restart'), onPressed: _restart),
       ]),
       toolbar: _won
           ? Padding(
@@ -389,13 +399,13 @@ class _SortTubesScreenState extends State<SortTubesScreen> {
               child: FilledButton.icon(
                 onPressed: _next,
                 icon: const Icon(Icons.arrow_forward),
-                label: Text('Уровень взят · $stars★ — дальше'),
+                label: Text(L.f('levelWonNext', {'s': '$stars'})),
               ),
             )
           : null,
       pauseActions: [
-        PauseAction(label: 'Начать заново', icon: Icons.refresh, onPressed: _restart),
-        if (_history.isNotEmpty) PauseAction(label: 'Отменить ход', icon: Icons.undo, onPressed: _undo),
+        PauseAction(label: L.t('restart'), icon: Icons.refresh, onPressed: _restart),
+        if (_history.isNotEmpty) PauseAction(label: L.t('btn_undo'), icon: Icons.undo, onPressed: _undo),
       ],
     );
   }
