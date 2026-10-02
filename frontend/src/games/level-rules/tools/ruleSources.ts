@@ -53,6 +53,7 @@ export function ruleSources(): RuleSource[] {
   const игра = (имя: string) => require(`@/app/games/${имя}`);
   const товары = require('@/src/games/goods-sort/core/level');
   const шульте = require('@/src/games/schulte/core/levelRules');
+  const маджонг = require('@/src/games/mahjong/nativeRules');
   /* eslint-enable @typescript-eslint/no-require-imports */
   return [
     s(['cake_sort', 'pizza_sort'], игра('cake-sort').CS_RULES),
@@ -64,7 +65,8 @@ export function ruleSources(): RuleSource[] {
     { ids: ['goods_sort'], rulesAt: товары.gsRulesForLevel },
     s(['hanoi'], игра('hanoi').HN_RULES),
     s(['listening_span'], игра('listening-span').LISTENINGSPAN_RULES),
-    s(['mahjong'], игра('mahjong').MAHJONG_RULES),
+    // Веб-правила первыми, нативные следом: на 29-м и выше действует последнее подошедшее.
+    s(['mahjong'], [...игра('mahjong').MAHJONG_RULES, ...маджонг.MJ_NATIVE_RULES]),
     s(['math_sprint'], игра('math-sprint').MS_RULES),
     s(['memory_matrix'], игра('memory-matrix').MEMORYMATRIX_RULES),
     s(['mental_rotation'], игра('mental-rotation').MR_RULES),

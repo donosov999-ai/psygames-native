@@ -4128,6 +4128,9 @@ const translations: Translations = {
   lr_listening_span_span8_title: { ru: 'Восемь слов — предел ряда', en: 'Eight words is the ceiling' },
   lr_listening_span_span8_rule: { ru: 'Длиннее ряд не станет: восемь это потолок слуховой памяти почти у всех. Дальше сокращается пауза между словами — с 0,7 секунды до 0,5.', en: 'The list stops growing here: eight is the limit of auditory span for almost everyone. What shrinks from now on is the gap between words — from 0.7 seconds down to 0.5.' },
   lr_listening_span_span8_example: { ru: 'Меньше паузы — меньше времени повторить услышанное про себя, а именно повтор и держит ряд.', en: 'A shorter gap means less time to repeat what you heard in your head — and that repetition is what holds the list.' },
+  lr_mahjong_timelimit_title: { ru: 'Время на доску', en: 'Time per board' },
+  lr_mahjong_timelimit_rule: { ru: 'Теперь на доску даётся время — часы сверху, рядом с перетасовками. Они пойдут с первого нажатия. Не успел разобрать — уровень не засчитан. С каждым уровнем времени на 4 % меньше.', en: 'The board now has a time limit — the clock is at the top, next to the shuffles. It starts with your first tap. Not cleared in time — the level does not count. Each level gives 4% less time.' },
+  lr_mahjong_timelimit_example: { ru: 'Пример: L29 — 15:00 на доску, L40 — 9:34, L50 — 6:22.', en: 'Example: L29 — 15:00 per board, L40 — 9:34, L50 — 6:22.' },
   lr_mahjong_layers2_title: { ru: 'Два слоя', en: 'Two layers' },
   lr_mahjong_layers2_rule: { ru: 'Плитки теперь лежат в 2 слоя. Брать можно только СВОБОДНУЮ плитку: на ней никто не лежит И у неё открыт левый или правый край. Тусклые плитки заблокированы.', en: 'Tiles now stack in 2 layers. You can only pick a FREE tile: nothing lies on it AND its left or right side is open. Dimmed tiles are blocked.' },
   lr_mahjong_layers2_example: { ru: 'Пример: плитка под другой плиткой или зажатая соседями с обоих боков — не нажимается, сначала освободи её.', en: 'Example: a tile under another tile, or squeezed by neighbors on both sides, cannot be tapped — free it first.' },
@@ -4579,6 +4582,7 @@ const translations: Translations = {
   // «Поиск» и «Счёт» — подписи нативных экранов: маджонг, OSpan, трекер объектов (задача 4b6f863e, 02.10.2026)
   mjShufflesLeft: { ru: 'Перетасовки', en: 'Shuffles' },
   mjCleared: { ru: 'Доска разобрана, ошибок {errors}', en: 'Board cleared, {errors} errors' },
+  mjTimeUp: { ru: 'Время вышло: на доску было {limit}', en: 'Time’s up: the board allowed {limit}' },
   mjTileA11y: { ru: 'плитка {face}', en: 'tile {face}' },
   mjTileFreeA11y: { ru: 'плитка {face}, свободна', en: 'tile {face}, free' },
   mjTileHidden: { ru: 'скрыта', en: 'hidden' },

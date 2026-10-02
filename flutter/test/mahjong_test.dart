@@ -190,4 +190,32 @@ void main() {
       expect(pairedPlaces(given).length, e['got']);
     }
   });
+
+  test('🔴 ПОТОЛКА НЕТ: с 29-го уровня время на доску, с каждым уровнем на 4 % меньше', () {
+    // Правило Дениса 06.09.2026. К 28-му у доски на верху всё, что растёт раскладкой
+    // (mahjongLevels = 28), — дальше растёт ось 2, скорость.
+    for (var l = 1; l < mahjongTimeLimitFrom; l += 1) {
+      expect(mahjongTimeLimitSec(l), isNull, reason: 'L$l: лимита нет — уровни до 29-го не тронуты');
+    }
+    expect(mahjongTimeLimitSec(29), 900);
+    expect(mahjongTimeLimitSec(40), closeTo(574.4, 0.05), reason: 'то же число, что в примере карточки (9:34)');
+    expect(mahjongTimeLimitSec(50), closeTo(381.9, 0.05), reason: 'то же число, что в примере карточки (6:22)');
+    var prev = mahjongTimeLimitSec(29)!;
+    for (var l = 30; l <= 400; l += 1) {
+      final t = mahjongTimeLimitSec(l)!;
+      expect(t, lessThan(prev), reason: 'L$l времени меньше, чем на L${l - 1}');
+      prev = t;
+    }
+    expect(mahjongLevel(60).signature, mahjongLevel(mahjongLevels).signature,
+        reason: 'раскладка на верху лестницы — растёт только время');
+    expect(mahjongWithinLimit(null, 1 << 30), isTrue);
+    expect(mahjongWithinLimit(900, 900000), isTrue, reason: 'ровно в лимит — уложился');
+    expect(mahjongWithinLimit(900, 900001), isFalse);
+  });
+
+  test('🔴 карточка «Время на доску» встаёт на тот же уровень, что и лимит', () {
+    final rules = jsonDecode(File('assets/level_rules.json').readAsStringSync()) as Map<String, dynamic>;
+    final ranges = ((rules['games'] as Map)['mahjong'] as List).cast<List>();
+    expect(ranges.last, [mahjongTimeLimitFrom, null, 'timelimit']);
+  });
 }
