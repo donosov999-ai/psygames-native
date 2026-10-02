@@ -16,6 +16,24 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.56.6',
+    date: '2026-10-02',
+    ru: [
+      '«Цифровой ряд», «Объём при чтении» и «Соедини цепочку» — теперь нативные экраны',
+      '«Матрица памяти» перенесена заново: 10 раундов, две серии, проверка по порядку',
+      '«Парные картинки»: время показа растёт с числом карт — на запоминание хватает',
+      '«Корси»: игровые часы, первая вспышка через такт, рекорд как в вебе',
+      '«Пространство» целиком на 12 языках',
+    ],
+    en: [
+      'Digit Span, Reading Span and Trail Making are now native screens',
+      'Memory Matrix rebuilt: 10 rounds, two series, in-order check',
+      'Picture Pairs: preview time grows with the number of cards — enough time to memorize',
+      'Corsi: game clock, first flash after a beat, record as on the web',
+      'The Spatial section is fully in 12 languages',
+    ],
+  },
+  {
     version: '2.56.5',
     date: '2026-10-02',
     ru: [
