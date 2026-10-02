@@ -240,6 +240,7 @@
 "errors":"ミス",
 "exitConfirmLeave":"終了する",
 "exitConfirmLost":"この対局は保存されません。盤面と進行状況は失われます。",
+"exitConfirmSaved":"対局は保存されます。戻ればこの続きから再開できます。",
 "exitConfirmStay":"ゲームを続ける",
 "exitConfirmTitle":"ゲームを終了しますか？",
 "eye1min":"約1分",

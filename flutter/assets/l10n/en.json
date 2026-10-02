@@ -240,6 +240,7 @@
 "errors":"Errors",
 "exitConfirmLeave":"Leave",
 "exitConfirmLost":"This game will not be saved: the board and your progress will be lost.",
+"exitConfirmSaved":"Your game will be saved — come back and pick up where you left off.",
 "exitConfirmStay":"Keep playing",
 "exitConfirmTitle":"Leave the game?",
 "eye1min":"~1 min",

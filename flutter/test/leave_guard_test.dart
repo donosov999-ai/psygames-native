@@ -105,6 +105,7 @@ void main() {
     await back(tester);
     expect(find.byKey(const Key('confirm-loss')), findsOneWidget, reason: 'стрелка после хода спрашивает');
     expectDialogText(tester);
+    expect(find.text(L.t('exitConfirmSaved')), findsOneWidget, reason: 'самурай хранит партию — вопрос обещает сохранение');
     await tester.tap(find.byKey(const Key('confirm-stay')));
     await tester.pumpAndSettle();
     expect(onScreen(ready), isTrue, reason: '«Продолжить игру» оставляет партию');
@@ -143,6 +144,7 @@ void main() {
     await back(tester);
     expect(find.byKey(const Key('confirm-loss')), findsOneWidget, reason: 'стрелка после хода спрашивает');
     expectDialogText(tester);
+    expect(find.text(L.t('exitConfirmLost')), findsOneWidget, reason: 'у фрактала снимка пока нет — вопрос честно говорит о потере');
     await tester.tap(find.byKey(const Key('confirm-go')));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('hub')), findsOneWidget, reason: '«Выйти» вернул в развилку');

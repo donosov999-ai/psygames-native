@@ -240,6 +240,7 @@
 "errors":"Fehler",
 "exitConfirmLeave":"Verlassen",
 "exitConfirmLost":"Die Partie wird nicht gespeichert: Brett und Fortschritt gehen verloren.",
+"exitConfirmSaved":"Die Partie wird gespeichert — komm zurück und mach dort weiter, wo du aufgehört hast.",
 "exitConfirmStay":"Weiterspielen",
 "exitConfirmTitle":"Spiel verlassen?",
 "eye1min":"~1 Min.",

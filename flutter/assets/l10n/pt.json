@@ -240,6 +240,7 @@
 "errors":"Erros",
 "exitConfirmLeave":"Sair",
 "exitConfirmLost":"A partida não será salva: o tabuleiro e o progresso serão perdidos.",
+"exitConfirmSaved":"A partida será salva — volte e continue de onde parou.",
 "exitConfirmStay":"Continuar jogando",
 "exitConfirmTitle":"Sair do jogo?",
 "eye1min":"~1 min",

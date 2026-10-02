@@ -240,6 +240,7 @@
 "errors":"Ошибки",
 "exitConfirmLeave":"Выйти",
 "exitConfirmLost":"Партия не сохранится: доска и прогресс пропадут.",
+"exitConfirmSaved":"Партия сохранится — вернётесь и продолжите с этого места.",
 "exitConfirmStay":"Продолжить игру",
 "exitConfirmTitle":"Выйти из игры?",
 "eye1min":"~1 мин",

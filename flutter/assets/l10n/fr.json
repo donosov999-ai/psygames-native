@@ -240,6 +240,7 @@
 "errors":"Erreurs",
 "exitConfirmLeave":"Quitter",
 "exitConfirmLost":"La partie ne sera pas sauvegardée : le plateau et votre progression seront perdus.",
+"exitConfirmSaved":"La partie sera sauvegardée — revenez et reprenez où vous en étiez.",
 "exitConfirmStay":"Continuer à jouer",
 "exitConfirmTitle":"Quitter la partie ?",
 "eye1min":"~1 min",

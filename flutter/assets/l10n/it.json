@@ -240,6 +240,7 @@
 "errors":"Errori",
 "exitConfirmLeave":"Esci",
 "exitConfirmLost":"La partita non verrà salvata: perderai il tabellone e i progressi.",
+"exitConfirmSaved":"La partita verrà salvata: torna e riprendi da dove eri rimasto.",
 "exitConfirmStay":"Continua a giocare",
 "exitConfirmTitle":"Uscire dal gioco?",
 "eye1min":"~1 min",

@@ -240,6 +240,7 @@
 "errors":"错误数",
 "exitConfirmLeave":"退出",
 "exitConfirmLost":"本局不会保存：棋盘和进度都会丢失。",
+"exitConfirmSaved":"本局会自动保存，回来后可从中断处继续。",
 "exitConfirmStay":"继续游戏",
 "exitConfirmTitle":"退出游戏？",
 "eye1min":"~1分钟",

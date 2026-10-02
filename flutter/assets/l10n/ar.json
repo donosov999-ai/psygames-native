@@ -240,6 +240,7 @@
 "errors":"الأخطاء",
 "exitConfirmLeave":"خروج",
 "exitConfirmLost":"لن يتم حفظ هذه الجولة: ستفقد اللوحة والتقدّم.",
+"exitConfirmSaved":"سيتم حفظ الجولة — عُد وواصل من حيث توقفت.",
 "exitConfirmStay":"متابعة اللعب",
 "exitConfirmTitle":"الخروج من اللعبة؟",
 "eye1min":"~1 د",

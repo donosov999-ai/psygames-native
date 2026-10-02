@@ -240,6 +240,7 @@
 "errors":"त्रुटियाँ",
 "exitConfirmLeave":"बाहर निकलें",
 "exitConfirmLost":"यह बाज़ी सेव नहीं होगी: बोर्ड और प्रगति खो जाएँगे।",
+"exitConfirmSaved":"आपकी बाज़ी सेव हो जाएगी — लौटकर वहीं से जारी रखें जहाँ छोड़ा था।",
 "exitConfirmStay":"खेलते रहें",
 "exitConfirmTitle":"गेम से बाहर निकलें?",
 "eye1min":"~1 मिनट",
