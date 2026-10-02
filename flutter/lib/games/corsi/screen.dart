@@ -1,10 +1,12 @@
-import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
 
-import '../../shell/game_preset.dart';
+import '../../shell/app_haptics.dart';
 import '../../shell/aux_action.dart';
+import '../../shell/game_clock.dart';
+import '../../shell/game_preset.dart';
+import '../../shell/boss_round.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
@@ -27,6 +29,13 @@ enum Phase { ready, show, hold, recall, done }
 /// Что показать в поле после нажатия: верно, промах или ничего.
 enum Feedback { none, right, wrong }
 
+/// Личный рекорд размаха — тот же ключ, что у веб-половины (`bumpPersonalBest('corsi', 'span')`).
+///
+/// ⚠️ Мост пока не возит веб-пространство `psygames.`: `SharedState.set` отбрасывает ключ молча
+/// (задача координатору d3eeeba9) — рекорд живёт до выхода с экрана. Ключ оставлен веб-ским нарочно:
+/// после правки моста рекорд станет общим без переноса данных.
+const corsiBestSpanKey = 'psygames.best.span.corsi';
+
 class CorsiScreen extends StatefulWidget {
   const CorsiScreen({super.key, required this.state});
 
@@ -47,13 +56,28 @@ class _CorsiScreenState extends State<CorsiScreen> {
 
   /// Человек попросил ответ: партия кончается без зачёта, блоки показывают порядок.
   bool _revealed = false;
-  Timer? _timer;
-  DateTime? _startedAt;
+
+  /// Итог боя с боссом на вехе лестницы; null — боя в этой партии не было.
+  bool? _boss;
+
+  /// Все паузы — на игровых часах каркаса: пауза приложения останавливает показ и замер.
+  GameTimer? _timer;
+  int? _startedAt;
+
+  /// Длительность партии в секундах — для строки итога.
+  int _seconds = 0;
+
+  /// Рекорд размаха; null — рекорда ещё нет.
+  int? _bestSpan;
+
+  /// Вибрация — через общий выключатель «Вибрация» (веб `psygames_haptic_enabled`).
+  late final AppHaptics _haptics = AppHaptics(widget.state);
 
   @override
   void initState() {
     super.initState();
     _ladder = LevelLadder(gameId: 'corsi', store: SharedLevelStore(widget.state));
+    _bestSpan = int.tryParse(widget.state.get(corsiBestSpanKey) ?? '');
     _boot();
   }
 
@@ -73,30 +97,47 @@ class _CorsiScreenState extends State<CorsiScreen> {
 
   void _reset() {
     _timer?.cancel();
-    _game = CorsiGame(level: _ladder.level);
+    // В шаге зарядки и «Оценки» правила задаёт шаг: длина ряда, темп и направление
+    // (см. LevelParams.preset). Уровень человека — только потолок длины.
+    _game = GamePreset.isPreset
+        ? CorsiGame(
+            level: _ladder.level,
+            params: LevelParams.preset(
+              level: _ladder.level,
+              want: GamePreset.num('startLen', 3),
+              reverse: GamePreset.str('mode', 'forward') == 'backward',
+            ),
+          )
+        : CorsiGame(level: _ladder.level);
     _phase = Phase.ready;
     _feedback = Feedback.none;
     _lit = null;
     _revealed = false;
+    _boss = null;
     _startedAt = null;
+    _seconds = 0;
     // Новая раздача — партия снова зачётная. Без этого одна открытая карточка
     // разбора замораживала лестницу: отметка общая на всё приложение.
     LessonUsed.reset();
   }
 
   void _start() {
-    _startedAt ??= DateTime.now();
+    _startedAt ??= gameNow();
     _showSequence();
   }
 
-  /// Показ ряда: блок горит `flashMs`, следующий начинается через `tickMs`.
+  /// Показ ряда: блок горит `flashMs`, следующий начинается через `tickMs`. Первый — тоже через
+  /// `tickMs`, как веб-интервал: секунда «разгона» на то, чтобы перевести взгляд на доску.
   void _showSequence() {
     setState(() {
       _phase = Phase.show;
       _feedback = Feedback.none;
       _lit = null;
     });
-    _flash(0);
+    _timer?.cancel();
+    _timer = gameTimeout(Duration(milliseconds: _game!.params.tickMs), () {
+      if (mounted) _flash(0);
+    });
   }
 
   void _flash(int i) {
@@ -106,16 +147,16 @@ class _CorsiScreenState extends State<CorsiScreen> {
       // Выше потолка объёма между показом и вводом стоит задержка — ось сложности.
       setState(() => _phase = g.params.holdMs > 0 ? Phase.hold : Phase.recall);
       if (g.params.holdMs == 0) return;
-      _timer = Timer(Duration(milliseconds: g.params.holdMs), () {
+      _timer = gameTimeout(Duration(milliseconds: g.params.holdMs), () {
         if (mounted) setState(() => _phase = Phase.recall);
       });
       return;
     }
     setState(() => _lit = g.sequence[i]);
-    _timer = Timer(Duration(milliseconds: g.params.flashMs), () {
+    _timer = gameTimeout(Duration(milliseconds: g.params.flashMs), () {
       if (!mounted) return;
       setState(() => _lit = null);
-      _timer = Timer(
+      _timer = gameTimeout(
         Duration(milliseconds: g.params.tickMs - g.params.flashMs),
         () => _flash(i + 1),
       );
@@ -131,9 +172,19 @@ class _CorsiScreenState extends State<CorsiScreen> {
       return;
     }
     final won = outcome == TapOutcome.roundWon;
+    if (won) {
+      _haptics.medium();
+      // Рекорд — по ходу, как веб `bumpPersonalBest`: «дошёл дальше, чем когда-либо» видно сразу.
+      if (g.span > (_bestSpan ?? 0)) {
+        _bestSpan = g.span;
+        widget.state.set(corsiBestSpanKey, '${g.span}');
+      }
+    } else {
+      _haptics.heavy();
+    }
     setState(() => _feedback = won ? Feedback.right : Feedback.wrong);
     // Паузы взяты из веб-версии: после промаха человек успевает понять, где сбился.
-    _timer = Timer(Duration(milliseconds: won ? 600 : 700), () {
+    _timer = gameTimeout(Duration(milliseconds: won ? 600 : 700), () {
       if (!mounted) return;
       if (g.finished) {
         _finish();
@@ -160,23 +211,48 @@ class _CorsiScreenState extends State<CorsiScreen> {
     });
   }
 
-  void _finish() {
+  Future<void> _finish() async {
     final g = _game!;
-    final seconds = _startedAt == null
-        ? 0
-        : DateTime.now().difference(_startedAt!).inSeconds;
+    final seconds = _startedAt == null ? 0 : ((gameNow() - _startedAt!) / 1000).round();
+    _seconds = seconds;
+    /*
+     * 🔴 МЕТКИ ПАРТИИ — КАК У ВЕБ-ЭКРАНА, А В ШАГЕ «ОЦЕНКИ» — МЕТКИ ШАГА.
+     * «Оценка» опознаёт партию по difficulty и mode ДОСЛОВНО (sessionFitsStep,
+     * frontend/src/services/assessment.ts) и берёт метрику из details.span. Без
+     * этого домен «пространственная рабочая память» молча считался средним
+     * (z = 0): замер 30.09.2026 — партия уходила с difficulty = уровень, без
+     * details. Вне шага — как пишет corsi.tsx: difficulty = направление,
+     * mode = L<уровень>.
+     */
+    final direction = g.params.reverse ? 'backward' : 'forward';
+    final preset = GamePreset.isPreset;
+    final difficulty = preset ? GamePreset.str('diff', 'medium') : direction;
+    final mode = preset ? direction : 'L${g.level}';
+    final details = <String, Object?>{'level': g.level, 'span': g.span};
+    // Уровень взят, если человек повторил ряд той длины, с которой уровень начинается.
+    // Веха как в вебе (corsi.tsx, BOSS_EVERY = 3): каждый третий ЗАСЧИТАННЫЙ уровень —
+    // бой «сложи подсвеченные», резкая смена правила: память позиций → счёт чисел.
+    // Бой идёт ДО итога партии; пока он открыт, поле держит последний отклик и нажатий
+    // не принимает (_tap ждёт Feedback.none), а «спокойного момента» для правила
+    // уровня ещё нет — карточка правила не встанет поверх боя.
+    bool? boss;
+    if (g.passed) {
+      boss = await BossRound.winThenBoss(context, _ladder,
+          type: BossType.counting,
+          color: const Color(0xFF0083B0),
+          win: () => _ladder.win(score: g.score, timeSeconds: seconds, errors: g.errors,
+              mode: mode, difficulty: difficulty, details: details));
+    } else {
+      await _ladder.fail(score: g.score, timeSeconds: seconds, errors: g.errors,
+          mode: mode, difficulty: difficulty, details: details);
+    }
+    if (!mounted) return;
     setState(() {
       _phase = Phase.done;
       _feedback = Feedback.none;
       _lit = null;
+      _boss = boss;
     });
-    final mode = g.params.reverse ? 'backward' : 'forward';
-    // Уровень взят, если человек повторил ряд той длины, с которой уровень начинается.
-    if (g.passed) {
-      _ladder.win(score: g.score, timeSeconds: seconds, errors: g.errors, mode: mode);
-    } else {
-      _ladder.fail(score: g.score, timeSeconds: seconds, errors: g.errors, mode: mode);
-    }
   }
 
   @override
@@ -190,11 +266,20 @@ class _CorsiScreenState extends State<CorsiScreen> {
       levelRule: LevelRuleSpot(gameId: 'corsi', level: _ladder.level, state: widget.state, calm: _phase == Phase.ready || _phase == Phase.done),
       title: L.t('corsi'),
       onLesson: () => openDemoLesson(context, title: L.t('corsi'), trials: corsiLessonTrials()),
+      // Шапка — как у веба: охват, длина показа / набрано, рекорд, уровень. Ошибок в шапке нет
+      // НАМЕРЕННО (corsi.tsx): при подстройке сложности ошибка — норма, красный счётчик наказывает
+      // за то, чего требует обучение.
       hud: [
-        HudItem(label: L.t('level'), value: '${_ladder.level}', icon: Icons.flag_outlined),
-        HudItem(label: L.t('personalBest'), value: '${_ladder.best}', icon: Icons.emoji_events_outlined),
         HudItem(label: L.t('hud_span'), value: '${g.span}', icon: Icons.straighten),
-        HudItem(label: L.t('errors'), value: '${g.errors}', icon: Icons.close),
+        _phase == Phase.show
+            ? HudItem(label: L.t('lengthLabel'), value: '${g.sequence.length}', icon: Icons.visibility_outlined)
+            : HudItem(
+                label: L.t('hud_entered'),
+                value: '${g.answer.length}/${g.sequence.length}',
+                icon: Icons.touch_app_outlined),
+        if (_bestSpan != null)
+          HudItem(label: L.t('hud_best'), value: '$_bestSpan', icon: Icons.emoji_events_outlined),
+        if (!GamePreset.isPreset) HudItem(label: L.t('level'), value: '${_ladder.level}', icon: Icons.flag_outlined),
       ],
       field: (context, h) => _Board(
         game: g,
@@ -222,10 +307,27 @@ class _CorsiScreenState extends State<CorsiScreen> {
       toolbar: _phase == Phase.done
           ? Padding(
               padding: const EdgeInsets.all(12),
-              child: FilledButton.icon(
-                onPressed: () => setState(_reset),
-                icon: const Icon(Icons.arrow_forward),
-                label: Text(g.passed && !_revealed ? L.t('nextLabel') : L.t('retry')),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  BossOutcomeLine(_boss),
+                  // Итог партии: счёт, время, ошибки — то, что веб показывает экраном итога.
+                  if (!_revealed)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Text(
+                        '${L.t('score')}: ${g.score} · ${L.t('time')}: ${_seconds ~/ 60}:${(_seconds % 60).toString().padLeft(2, '0')}'
+                        ' · ${L.t('errors')}: ${g.errors}',
+                        key: const Key('corsi-result'),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  FilledButton.icon(
+                    onPressed: () => setState(_reset),
+                    icon: const Icon(Icons.arrow_forward),
+                    label: Text(g.passed && !_revealed ? L.t('nextLabel') : L.t('retry')),
+                  ),
+                ],
               ),
             )
           : null,
@@ -362,13 +464,13 @@ class _Block extends StatelessWidget {
       color: fill,
       borderRadius: BorderRadius.circular(10),
       child: InkWell(
-        key: Key('блок$index'),
+        key: Key('corsi-block-$index'),
         borderRadius: BorderRadius.circular(10),
         onTap: enabled ? () => onTap(index) : null,
         child: order > 0
             ? Center(
                 child: Text('$order',
-                    key: Key('порядок$index'),
+                    key: Key('corsi-order-$index'),
                     style: TextStyle(fontWeight: FontWeight.w800, color: scheme.onPrimaryContainer)),
               )
             : const SizedBox.expand(),
@@ -495,7 +597,7 @@ class CorsiLessonArt extends StatelessWidget {
               : Center(
                   child: Text(
                     missed ? '?' : '${step + 1}',
-                    key: Key('урок-блок$i'),
+                    key: Key('corsi-lesson-block-$i'),
                     style: TextStyle(
                       fontWeight: FontWeight.w800,
                       fontSize: side * 0.42,
