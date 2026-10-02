@@ -81,7 +81,6 @@ const _baseline = <String, int>{
   'samurai/levels.dart': 1,
   'samurai/screen.dart': 1,
   'scholars_mate/screen.dart': 2,
-  'schulte/screen.dart': 2,
   'sdmt/screen.dart': 1,
   'semantic_sort/screen.dart': 2,
   'set_game/screen.dart': 2,

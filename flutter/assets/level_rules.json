@@ -508,6 +508,18 @@
     "load"
    ]
   ],
+  "schulte_table": [
+   [
+    1,
+    18,
+    null
+   ],
+   [
+    19,
+    null,
+    "timelimit"
+   ]
+  ],
   "semantic_sort": [
    [
     1,

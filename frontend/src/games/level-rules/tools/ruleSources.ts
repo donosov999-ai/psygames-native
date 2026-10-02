@@ -1,4 +1,4 @@
-/* psygames-level-rules-native-sources · VER 1 · 30.09.2026 */
+/* psygames-level-rules-native-sources · VER 2 · 02.10.2026 */
 /**
  * ПРАВИЛА УРОВНЕЙ ДЛЯ НАТИВНОЙ ПОЛОВИНЫ — ТАБЛИЦА «УРОВЕНЬ → ДЕЙСТВУЮЩЕЕ ПРАВИЛО».
  *
@@ -52,6 +52,7 @@ export function ruleSources(): RuleSource[] {
   };
   const игра = (имя: string) => require(`@/app/games/${имя}`);
   const товары = require('@/src/games/goods-sort/core/level');
+  const шульте = require('@/src/games/schulte/core/levelRules');
   /* eslint-enable @typescript-eslint/no-require-imports */
   return [
     s(['cake_sort', 'pizza_sort'], игра('cake-sort').CS_RULES),
@@ -74,6 +75,7 @@ export function ruleSources(): RuleSource[] {
     s(['prl'], игра('prl').PRL_RULES),
     s(['pseudoword_echo'], игра('pseudoword-echo').PSEUDOWORDECHO_RULES),
     s(['reading_span'], игра('reading-span').READINGSPAN_RULES),
+    s(['schulte_table'], шульте.SCHULTE_RULES),
     s(['semantic_sort'], игра('semantic-sort').SEMANTICSORT_RULES),
     s(['set_game'], игра('set-game').SG_RULES),
     s(['spatial_span'], игра('spatial-span').SS_RULES),
