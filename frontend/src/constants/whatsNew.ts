@@ -16,6 +16,42 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.56.6',
+    date: '2026-10-02',
+    ru: [
+      '«Цифровой ряд», «Объём при чтении» и «Соедини цепочку» — теперь нативные экраны',
+      '«Матрица памяти» перенесена заново: 10 раундов, две серии, проверка по порядку',
+      '«Парные картинки»: время показа растёт с числом карт — на запоминание хватает',
+      '«Корси»: игровые часы, первая вспышка через такт, рекорд как в вебе',
+      '«Пространство» целиком на 12 языках',
+    ],
+    en: [
+      'Digit Span, Reading Span and Trail Making are now native screens',
+      'Memory Matrix rebuilt: 10 rounds, two series, in-order check',
+      'Picture Pairs: preview time grows with the number of cards — enough time to memorize',
+      'Corsi: game clock, first flash after a beat, record as on the web',
+      'The Spatial section is fully in 12 languages',
+    ],
+  },
+  {
+    version: '2.56.5',
+    date: '2026-10-02',
+    ru: [
+      'Развилка «Объём памяти», n-back и «Объём на слух» — теперь нативные экраны: быстрее и без подвисаний',
+      '«Парные картинки»: режим «Свободно» — сам выбираешь число пар и время показа, прерванную партию можно продолжить',
+      '«Числовой забег» переехал на новый движок',
+      'У режимов в развилках появились свои иконки',
+      'Кегель на iPhone: вибрация через системный мотор — ощутимее',
+    ],
+    en: [
+      'Memory Span hub, n-back and Listening Span are now native screens: faster, no stalls',
+      'Picture Pairs: Free mode — choose the number of pairs and the preview time, and resume an interrupted game',
+      'Number Run moved to the new engine',
+      'Modes in the hubs now have their own icons',
+      'Kegel on iPhone: vibration through the system motor — easier to feel',
+    ],
+  },
+  {
     version: '2.56.4',
     date: '2026-10-01',
     ru: [
