@@ -10,6 +10,7 @@ import '../../shell/game_shell.dart';
 import '../../shell/session_report.dart';
 import '../../shell/shared_state.dart';
 import '../../shell/l10n.dart';
+import '../../shell/level_ladder.dart';
 import '../../shell/lesson.dart';
 import '../../shell/lesson_player.dart';
 import '../sudoku/lesson.dart';
@@ -342,6 +343,9 @@ class _DeepScreenState extends State<DeepScreen> {
         'touched': _grids.length,
       },
     ));
+    // Своей лестницы у «Бездны» нет, а босс «Судоку» на ней стоит (уровни 128, 176):
+    // итог ступени-переходу — отсюда (level_transition.dart).
+    LevelLadder.reportOutcome(true);
   }
 
   void _undo() {
