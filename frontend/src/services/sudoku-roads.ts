@@ -176,7 +176,10 @@ export function roadLevelConfig(level: number, road: SudokuRoad): LevelCfg {
   // Подсказка — вторая валюта партии. На лёгкой её на одну больше, на тяжёлой на одну
   // меньше; ноль допустим и означает ровно то, что написано: подсказок нет.
   const hintMax = road === 'easy' ? cfg.hintMax + 1 : Math.max(0, cfg.hintMax - 1);
-  return { ...cfg, blanks, hintMax };
+  // Цена ошибки сдвигается так же, как подсказка: «полегче» прощает на одну больше,
+  // «пожёстче» — на одну меньше, но не ниже одной (ноль ошибок = партия без права хода).
+  const lives = road === 'easy' ? cfg.lives + 1 : Math.max(1, cfg.lives - 1);
+  return { ...cfg, blanks, hintMax, lives };
 }
 
 /** Ключи словаря: подпись дороги. Возвращаются отсюда, чтобы гейт сверял их механически. */
