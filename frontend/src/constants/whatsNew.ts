@@ -16,6 +16,24 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.56.8',
+    date: '2026-10-02',
+    ru: [
+      '«Судоку»: 28 новых ступеней (93–120) — немецкий шёпот, ренбан, равные суммы, палиндром, «между концами», замок и XV',
+      '«Судоку»: режимы «Киллер» и «Свободно» снова в приложении',
+      '«Судоку»: цена ошибки растёт к верху лестницы — внизу 5 ошибок, наверху 1',
+      'Экраны «Судоку» и имена ступеней головоломок — на 12 языках',
+      'Небоскрёбы: исправлена проверка неполного ряда',
+    ],
+    en: [
+      'Sudoku: 28 new stages (93–120) — German whispers, renban, equal sums, palindrome, between lines, lockout and XV',
+      'Sudoku: Killer and Free modes are back in the app',
+      'Sudoku: mistakes cost more toward the top of the ladder — 5 at the bottom, 1 at the top',
+      'Sudoku screens and puzzle stage names are in 12 languages',
+      'Skyscrapers: the check of an incomplete row is fixed',
+    ],
+  },
+  {
     version: '2.56.7',
     date: '2026-10-02',
     ru: [
