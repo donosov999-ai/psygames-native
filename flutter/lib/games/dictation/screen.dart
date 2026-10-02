@@ -18,6 +18,7 @@ import '../../shell/voice.dart';
 import '../cloze/model.dart';
 import '../languages/json_asset.dart';
 import '../languages/lang_names.dart';
+import '../languages/lang_picker.dart';
 import '../vocab_srs/typing.dart';
 import 'lesson.dart';
 import 'model.dart';
@@ -406,15 +407,14 @@ class _DictationScreenState extends State<DictationScreen> {
           const SizedBox(height: 12),
           Text(L.t('langToTrain'), style: theme.textTheme.titleSmall),
           const SizedBox(height: 6),
-          Wrap(spacing: 8, runSpacing: 8, children: [
-            for (final l in _langs)
-              ChoiceChip(
-                key: Key('dict-lang-$l'),
-                label: Text(_names.name(l)),
-                selected: _target == l,
-                onSelected: (_) => _pickLang(l),
-              ),
-          ]),
+          LangDropdown(
+            key: const Key('dict-lang'),
+            keyPrefix: 'dict-lang',
+            langs: _langs,
+            value: _target,
+            label: _names.name,
+            onChanged: _pickLang,
+          ),
           const SizedBox(height: 12),
           Text('${L.t('level')} ${_ladder.level}', style: theme.textTheme.titleMedium),
           if (!_keyboard) _warn(const Key('dict-keyboard-warning'), Icons.desktop_windows_outlined, L.t('dictationNeedsKeyboard')),

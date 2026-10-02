@@ -201,8 +201,12 @@ void main() {
 
     testWidgets('китайский: место расхождения подчёркнуто в пиньине, иероглиф целиком', (tester) async {
       await boot(tester);
-      await tester.tap(find.byKey(const Key('ph-lang-zh')));
+      // Язык выбирается выпадающей строкой (общий LangDropdown): открыть, выбрать пункт.
+      await tester.tap(find.byKey(const Key('ph-lang')));
       await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.tap(find.byKey(const Key('ph-lang-zh')).last);
+      await tester.pump(const Duration(milliseconds: 400));
       await tester.tap(find.byKey(const Key('game-lesson')));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 400));

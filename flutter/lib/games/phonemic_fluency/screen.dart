@@ -12,6 +12,7 @@ import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import '../languages/json_asset.dart';
 import '../languages/lang_names.dart';
+import '../languages/lang_picker.dart';
 import 'model.dart';
 
 /// «Беглость речи» (COWAT) — экран раздела «Языки» на Flutter. Правила и сверка
@@ -230,10 +231,14 @@ class _PhonemicFluencyScreenState extends State<PhonemicFluencyScreen> {
           const SizedBox(height: 12),
           Text(L.t('wordLangLabel'), style: theme.textTheme.titleSmall),
           const SizedBox(height: 6),
-          Wrap(spacing: 8, runSpacing: 8, children: [
-            for (final l in _data!.wordLangs)
-              _choice(Key('pf-lang-$l'), _names.label(l), _wordLang == l, () => _pickWordLang(l)),
-          ]),
+          LangDropdown(
+            key: const Key('pf-lang'),
+            keyPrefix: 'pf-lang',
+            langs: _data!.wordLangs,
+            value: _wordLang,
+            label: _names.label,
+            onChanged: _pickWordLang,
+          ),
           const SizedBox(height: 12),
           Text(L.t('duration'), style: theme.textTheme.titleSmall),
           const SizedBox(height: 6),

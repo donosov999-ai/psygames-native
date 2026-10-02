@@ -11,6 +11,7 @@ import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import '../languages/bilingual.dart';
 import '../languages/lang_names.dart';
+import '../languages/lang_picker.dart';
 import '../languages/json_asset.dart';
 import 'model.dart';
 import 'typing.dart';
@@ -506,6 +507,7 @@ class _VocabSrsScreenState extends State<VocabSrsScreen> {
             bilingual: _bilingual,
             second: _second,
             bilingualDesc: _names.bilingualDesc(_targetLang, _second),
+            langLabel: _names.name,
             secondChoices: [for (final l in _langs) if (l != _targetLang) l],
             onLang: (l) {
               setState(() => _targetLang = l);
@@ -570,6 +572,7 @@ class _Config extends StatelessWidget {
     required this.second,
     required this.bilingualDesc,
     required this.secondChoices,
+    required this.langLabel,
     required this.onLang,
     required this.onLimit,
     required this.onDirection,
@@ -593,6 +596,7 @@ class _Config extends StatelessWidget {
   /// Подпись режима «два языка сразу» с подставленной парой.
   final String bilingualDesc;
   final List<String> secondChoices;
+  final String Function(String) langLabel;
   final void Function(String) onLang;
   final void Function(int) onLimit;
   final void Function(VocabDirection) onDirection;
@@ -629,12 +633,13 @@ class _Config extends StatelessWidget {
           // чинится одной строкой.
           Text(L.t('language')),
           const SizedBox(height: 6),
-          DropdownButtonFormField<String>(
+          LangDropdown(
             key: const Key('vocab-lang'),
-            initialValue: langs.contains(targetLang) ? targetLang : null,
-            decoration: const InputDecoration(border: OutlineInputBorder(), isDense: true),
-            items: [for (final l in langs) DropdownMenuItem(value: l, child: Text(l.toUpperCase()))],
-            onChanged: (v) => v == null ? null : onLang(v),
+            keyPrefix: 'vocab-lang',
+            langs: langs,
+            value: targetLang,
+            label: langLabel,
+            onChanged: onLang,
           ),
           const SizedBox(height: 8),
 
@@ -651,12 +656,13 @@ class _Config extends StatelessWidget {
           ),
           if (bilingual) ...[
             const SizedBox(height: 6),
-            DropdownButtonFormField<String>(
+            LangDropdown(
               key: const Key('vocab-lang2'),
-              initialValue: secondChoices.contains(second) ? second : null,
-              decoration: const InputDecoration(border: OutlineInputBorder(), isDense: true),
-              items: [for (final l in secondChoices) DropdownMenuItem(value: l, child: Text(l.toUpperCase()))],
-              onChanged: (v) => v == null ? null : onSecond(v),
+              keyPrefix: 'vocab-lang2',
+              langs: secondChoices,
+              value: second,
+              label: langLabel,
+              onChanged: onSecond,
             ),
           ],
           const SizedBox(height: 16),

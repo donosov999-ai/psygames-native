@@ -75,7 +75,12 @@ void main() {
 
   testWidgets('🔴 выбор языка слов ложится в тот же ключ, что у веба, и меняет букву', (tester) async {
     await boot(tester, () => 1000);
-    await tester.tap(find.byKey(const Key('pf-lang-en')));
+    // Язык выбирается выпадающей строкой (общий LangDropdown): открыть, выбрать пункт.
+    await tester.tap(find.byKey(const Key('pf-lang')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.tap(find.byKey(const Key('pf-lang-en')).last);
+    await tester.pump(const Duration(milliseconds: 400));
     await tester.pump();
     expect(state.get('psygames_phonemic_fluency_wordlang_nzt48'), 'en');
     await tester.tap(find.byKey(const Key('pf-start')));

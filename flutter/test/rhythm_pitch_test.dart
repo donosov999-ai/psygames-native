@@ -125,6 +125,23 @@ void main() {
     expect(fl.accuracy, closeTo(d(fw['accuracy']), 1e-9), reason: 'пол допуска: точность');
     expect(fl.meanTimingErrorMs, closeTo(d(fw['meanTimingErrorMs']), 1e-9), reason: 'пол допуска: ошибка');
     expect([fl.matchedTaps, fl.missingTaps, fl.extraTaps], [fw['matchedTaps'], fw['missingTaps'], fw['extraTaps']], reason: 'пол допуска: пары');
+    // Счёт по интервалам: опоздание старта, пропуск при опоздании, растянутый темп,
+    // случайное нажатие до эха, пустой ответ — на 1-м, 21-м и 31-м уровнях.
+    final byCase = <String, double>{};
+    for (final raw in ref['intervalScores'] as List) {
+      final c = raw as Map<String, dynamic>;
+      final r = generateRhythmPitchRound('${c['seed']}', c['level'] as int, 'rhythm-echo') as RhythmEchoRound;
+      final got = scoreRhythmTiming(r, [for (final v in c['taps'] as List) d(v)], 7000, 25);
+      final w = c['timing'] as Map<String, dynamic>;
+      final at = 'интервалы ур.${c['level']} ${c['what']}';
+      expect(got.accuracy, closeTo(d(w['accuracy']), 1e-9), reason: '$at: точность');
+      expect(got.meanTimingErrorMs, closeTo(d(w['meanTimingErrorMs']), 1e-9), reason: '$at: ошибка');
+      expect([got.matchedTaps, got.missingTaps, got.extraTaps], [w['matchedTaps'], w['missingTaps'], w['extraTaps']], reason: at);
+      byCase['${c['level']} ${c['what']}'] = got.accuracy;
+    }
+    for (final l in const [1, 21, 31]) {
+      expect(byCase['$l late800'], byCase['$l late300'], reason: 'ур.$l: опоздание старта ничего не стоит');
+    }
     final pd = generateRhythmPitchRound('daily-2026-09-30', 2, 'pitch-path') as PitchPathRound;
     final ps = generateRhythmPitchRound('daily-2026-09-30', 14, 'pitch-path') as PitchPathRound;
     const o = RpScoreOptions(durationMs: 8000, calibrationOffsetMs: 12.5, calibrationSamples: 4, replayCount: 0);
