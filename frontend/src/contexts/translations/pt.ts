@@ -1486,6 +1486,8 @@ const t: Record<string, string> = {
   "sudokuTypeKiller": "9×9 · 6 degraus",
   "sudokuFreeHubDesc": "Clássico, sem variantes: tamanho e dificuldade à escolha",
   "sudokuTypeFree": "6×6 e 9×9 · 3 dificuldades",
+  "sudokuJuniorTitle": "Sudoku para pequenos",
+  "sudokuTypeJunior": "4×4 e 6×6 · 18 degraus",
   "sudokuRuleDiagonal": "Os dígitos também são únicos nas duas diagonais.",
   "sudokuRuleAntiknight": "Dígitos iguais não podem estar a um pulo de cavalo.",
   "sudokuRuleHyper": "Quatro zonas extras 3×3 também contêm 1–9 sem repetição.",

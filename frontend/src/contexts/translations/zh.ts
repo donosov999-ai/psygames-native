@@ -1486,6 +1486,8 @@ const t: Record<string, string> = {
   "sudokuTypeKiller": "9×9 · 6级",
   "sudokuFreeHubDesc": "经典，无变型规则：尺寸与难度自选",
   "sudokuTypeFree": "6×6 与 9×9 · 3 种难度",
+  "sudokuJuniorTitle": "儿童数独",
+  "sudokuTypeJunior": "4×4 与 6×6 · 18级",
   "sudokuRuleDiagonal": "两条对角线上的数字也不能重复。",
   "sudokuRuleAntiknight": "相同数字不能互为马步位置。",
   "sudokuRuleHyper": "四个附加 3×3 宫同样包含 1–9 且不重复。",

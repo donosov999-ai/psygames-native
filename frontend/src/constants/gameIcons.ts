@@ -159,6 +159,8 @@ export const MODE_ICONS: Record<string, any> = {
   // «Свободно» — классика без вариантов, как сама судоку.
   '/games/sudoku?mode=killer': require('../../assets/images/game_icons/puzzle_keen.webp'),
   '/games/sudoku?mode=free': require('../../assets/images/game_icons/sudoku.webp'),
+  // «Судоку для малышей»: звери из «Пар» (flutter/assets/pairs/animals) в клетках — те же, что на доске.
+  '/games/sudoku?mode=junior': require('../../assets/images/game_icons/sudoku_junior.webp'),
   '/games/find-move': require('../../assets/images/game_icons/find_move.webp'),
   // «Конь и ферзи» (39ad8924): своя иконка — поле с восемью ферзями и ходом коня.
   '/games/knights-queens': require('../../assets/images/game_icons/knights_queens.webp'),

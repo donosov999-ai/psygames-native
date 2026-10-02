@@ -1,4 +1,4 @@
-/* psygames-hub-contents · VER 2 · 18.09.2026 */
+/* psygames-hub-contents · VER 3 · 02.10.2026 */
 /**
  * СОСТАВ РАЗВИЛОК — ОДИН СПИСОК НА ЭКРАН И НА ЗНАЧОК.
  *
@@ -224,6 +224,12 @@ export const HUB_CONTENTS: Record<string, HubSubGame[]> = {
      */
     { route: '/games/sudoku?mode=killer', icon: 'add-circle', nameKey: 'sudokuModeKiller', descKey: 'sudokuKillerHubDesc', typeKey: 'sudokuTypeKiller' },
     { route: '/games/sudoku?mode=free', icon: 'shuffle', nameKey: 'sudokuModeFree', descKey: 'sudokuFreeHubDesc', typeKey: 'sudokuTypeFree' },
+    /**
+     * «Судоку для малышей» (задача d87a4605, 02.10.2026): доски 4×4 и 6×6, звери вместо цифр,
+     * своя мини-лестница (flutter/lib/games/sudoku/junior.dart). Экран только нативный —
+     * поэтому маршрут ещё и в NATIVE_ONLY_GAMES, иначе профиль карточку не пропустит.
+     */
+    { route: '/games/sudoku?mode=junior', icon: 'paw', nameKey: 'sudokuJuniorTitle', descKey: 'sudokuSkinAnimals', typeKey: 'sudokuTypeJunior' },
     /**
      * «Кошки» (Queens / Star Battle) — решение Дениса 24.09.2026: «в развилку
      * «Судоку» пятой карточкой». Экран рождается сразу нативным
