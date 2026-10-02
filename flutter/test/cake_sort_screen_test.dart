@@ -5,6 +5,7 @@ import 'package:psygames_flutter/games/cake_sort/layout.dart';
 import 'package:psygames_flutter/games/cake_sort/screen.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:psygames_flutter/shell/l10n.dart';
 
 /// ПРОБА ИГРАЕТ ПАРТИЮ ПАЛЬЦЕМ, а не зовёт правила.
 ///
@@ -36,6 +37,8 @@ List<List<int>> _plates(WidgetTester tester) =>
     tester.widget<CakeTable>(find.byType(CakeTable)).board.plates;
 
 void main() {
+  // Подписи экрана — из словаря (02.10.2026, задача 48ca6466): без него вместо текста ключи.
+  setUpAll(() async => L.load('ru'));
   late SharedState state;
 
   setUp(() async {

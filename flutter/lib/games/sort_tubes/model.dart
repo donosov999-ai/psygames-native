@@ -181,13 +181,13 @@ int topRun(List<int> t) {
 /// первой правке, и игра начнёт называть причину там, где ход разрешён.
 String? refusalReason(TubeField f, int from, int to) {
   if (from == to) return null;
-  if (!f.isOpen(from) || !f.isOpen(to)) return 'закрыт';
+  if (!f.isOpen(from) || !f.isOpen(to)) return 'closed';
   final a = f.tubes[from];
   final b = f.tubes[to];
-  if (a.isEmpty) return 'пусто';
-  if (f.roomIn(to) == 0) return 'полон';
-  if (b.isNotEmpty && topColor(b) != topColor(a)) return 'другойЦвет';
-  return canPour(f, from, to) ? null : 'безТолку';
+  if (a.isEmpty) return 'empty';
+  if (f.roomIn(to) == 0) return 'full';
+  if (b.isNotEmpty && topColor(b) != topColor(a)) return 'otherColour';
+  return canPour(f, from, to) ? null : 'pointless';
 }
 
 /// Разрешён ли перелив.

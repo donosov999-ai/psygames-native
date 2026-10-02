@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'layout.dart';
 import 'model.dart';
+import '../../shell/l10n.dart';
 
 /// Шкурка движка сосудов: одно правило хода, разный вид.
 ///
@@ -362,12 +363,12 @@ class _Tube extends StatelessWidget {
   }
 
   String _label(List<int> tube) {
-    if (tube.isEmpty) return 'Сосуд ${index + 1}: пусто';
+    if (tube.isEmpty) return '${L.t('a11yVessel')} ${index + 1}: ${L.t('a11yEmpty')}';
     final marks = <String>[];
     for (var d = 0; d < tube.length; d += 1) {
       marks.add(layerVisible(field, hidden, index, d) ? palette[tube[d] % palette.length].mark : '?');
     }
-    return 'Сосуд ${index + 1}: ${marks.join(' ')}';
+    return '${L.t('a11yVessel')} ${index + 1}: ${marks.join(' ')}';
   }
 }
 

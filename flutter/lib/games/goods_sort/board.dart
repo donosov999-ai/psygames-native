@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'layout.dart';
 import 'model.dart';
+import '../../shell/l10n.dart';
 
 /// Что держит человек: ниша и место товара в ней.
 ///
@@ -381,11 +382,12 @@ class _Niche extends StatelessWidget {
   }
 
   String _label(List<int> cell, int cap) {
-    if (obstacle?.kind == 'blocked') return 'Ниша ${index + 1}: заперта';
-    if (obstacle?.kind == 'locked') return 'Ниша ${index + 1}: откроется через ${obstacle!.movesLeft}';
-    if (frozen) return 'Ниша ${index + 1}: примёрзший ряд';
-    if (cell.isEmpty) return 'Ниша ${index + 1}: пусто, место $cap';
-    return 'Ниша ${index + 1}: товаров ${cell.length} из $cap';
+    final name = '${L.t('a11yNiche')} ${index + 1}';
+    if (obstacle?.kind == 'blocked') return '$name: ${L.t('a11yShelfBlocked')}';
+    if (obstacle?.kind == 'locked') return '$name: ${L.t('a11yShelfOpensIn')} ${obstacle!.movesLeft}';
+    if (frozen) return '$name: ${L.t('a11yShelfFrozen')}';
+    if (cell.isEmpty) return '$name: ${L.f('a11yNicheRoom', {'c': '$cap'})}';
+    return '$name: ${L.f('a11yNicheGoods', {'n': '${cell.length}', 'c': '$cap'})}';
   }
 }
 

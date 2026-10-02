@@ -5,6 +5,7 @@ import 'package:psygames_flutter/games/goods_sort/layout.dart';
 import 'package:psygames_flutter/games/goods_sort/screen.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:psygames_flutter/shell/l10n.dart';
 
 /// ПРОБА ИГРАЕТ ПАРТИЮ ПАЛЬЦЕМ, а не зовёт правила.
 ///
@@ -41,6 +42,8 @@ Future<void> _tapMove(WidgetTester tester, String item, int toNiche) async {
 }
 
 void main() {
+  // Подписи экрана — из словаря (02.10.2026, задача 48ca6466): без него вместо текста ключи.
+  setUpAll(() async => L.load('ru'));
   late SharedState state;
 
   setUp(() async {

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'model.dart';
+import '../../shell/l10n.dart';
 
 /// ПОЛЕ «ХАНОЙСКОЙ БАШНИ»: стержни, диски, два способа хода.
 ///
@@ -72,8 +73,8 @@ class HanoiBoard extends StatelessWidget {
                             button: true,
                             selected: selected == i,
                             label: state.pegs[i].isEmpty
-                                ? 'Стержень ${i + 1}: пусто'
-                                : 'Стержень ${i + 1}: дисков ${state.pegs[i].length}, верхний ${state.pegs[i].last}',
+                                ? '${L.t('a11yPeg')} ${i + 1}: ${L.t('a11yEmpty')}'
+                                : '${L.t('a11yPeg')} ${i + 1}: ${L.f('a11yHanoiPeg', {'n': '${state.pegs[i].length}', 't': '${state.pegs[i].last}'})}',
                             child: Container(
                               key: ValueKey('peg-$i'),
                               width: pegW,
