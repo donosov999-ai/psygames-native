@@ -5,12 +5,14 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../shell/app_haptics.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/game_clock.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
+import '../../shell/lesson.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/preset_cap.dart';
 import '../../shell/resume_store.dart';
@@ -144,9 +146,19 @@ class _PicturePairsScreenState extends State<PicturePairsScreen> with WidgetsBin
 
   /// Пара, которая сейчас меняется местами.
   List<int>? _swapPair;
-  Timer? _timer;
-  final Stopwatch _clock = Stopwatch();
-  Timer? _tick;
+  GameTimer? _timer;
+
+  /// Время партии — на игровых часах (`gameNow`), как у веба: пауза, разбор и уход в фон в
+  /// партию не входят (был `Stopwatch` — минуты в меню паузы шли в time_seconds и снимали
+  /// очки, сверка веб → натив 02.10.2026). Идущий отрезок — с [_clockFrom], набежавшее до
+  /// него — в [_clockDone]; обмены после ошибки часы останавливают.
+  int? _clockFrom;
+  double _clockDone = 0;
+  GameTimer? _tick;
+
+  /// Вибрация хода — через общий выключатель «Вибрация», как у веба (FlipCard, haptics.ts):
+  /// открыл карту — лёгкая, собрал группу — средняя, промах — сильная.
+  late final AppHaptics _haptics = AppHaptics(widget.state);
 
   @override
   void initState() {
@@ -208,10 +220,13 @@ class _PicturePairsScreenState extends State<PicturePairsScreen> with WidgetsBin
     _duel = null;
     _tick?.cancel();
     _tick = null;
-    _clock
-      ..stop()
-      ..reset();
+    _clockFrom = null;
+    _clockDone = 0;
     _elapsedBase = 0;
+    // Новая раздача — партия снова зачётная: отметку разбора снимает новая раздача, как у
+    // «Корси» и соседних экранов. Без этого разбор, открытый в свободной партии, молча
+    // делал незачётной следующую партию уровня.
+    LessonUsed.reset();
     if (GamePreset.isPreset) {
       // Шаг зарядки — свободная партия по шагу (веб: режим single). Число пар — желание шага,
       // но не больше освоенного + 1 (`capPresetByLevel`); показ — из шага, по умолчанию 3 с.
@@ -272,8 +287,8 @@ class _PicturePairsScreenState extends State<PicturePairsScreen> with WidgetsBin
     _reset();
   }
 
-  /// Секунды партии: набежавшие до подъёма из снимка плюс секундомер.
-  double get _elapsed => _elapsedBase + _clock.elapsed.inMilliseconds / 1000;
+  /// Секунды партии: набежавшие до подъёма из снимка плюс игровые часы.
+  double get _elapsed => _elapsedBase + _clockDone + (_clockFrom == null ? 0 : (gameNow() - _clockFrom!) / 1000);
 
   /// «Заново»: новая партия, недоигранная запись стирается (веб: startGame → clearResume).
   void _restart() {
@@ -303,14 +318,22 @@ class _PicturePairsScreenState extends State<PicturePairsScreen> with WidgetsBin
   }
 
   void _startClock() {
-    _clock.start();
-    _tick ??= Timer.periodic(const Duration(milliseconds: 250), (_) {
+    _clockFrom ??= gameNow();
+    _tick ??= gameInterval(const Duration(milliseconds: 250), () {
       if (mounted) setState(() {});
     });
   }
 
+  /// Остановить часы, не гася перерисовку: отрезок уходит в набежавшее.
+  void _holdClock() {
+    final from = _clockFrom;
+    if (from == null) return;
+    _clockDone += (gameNow() - from) / 1000;
+    _clockFrom = null;
+  }
+
   void _stopClock() {
-    _clock.stop();
+    _holdClock();
     _tick?.cancel();
     _tick = null;
   }
@@ -328,7 +351,7 @@ class _PicturePairsScreenState extends State<PicturePairsScreen> with WidgetsBin
       return;
     }
     setState(() => _phase = Phase.preview);
-    _timer = Timer(Duration(milliseconds: g.cfg.previewMs), () {
+    _timer = gameTimeout(Duration(milliseconds: g.cfg.previewMs), () {
       if (!mounted) return;
       setState(() => _phase = Phase.play);
       _startClock();
@@ -345,11 +368,21 @@ class _PicturePairsScreenState extends State<PicturePairsScreen> with WidgetsBin
     }
     final r = g.tap(i);
     if (r == TapResult.ignored) return;
+    switch (r) {
+      case TapResult.opened:
+        _haptics.selection();
+      case TapResult.groupMatched:
+        _haptics.medium();
+      case TapResult.groupMissed:
+        _haptics.heavy();
+      case TapResult.ignored:
+        break;
+    }
     setState(() {});
     _changed();
     if (r == TapResult.groupMatched) {
       _locked = true;
-      _timer = Timer(const Duration(milliseconds: 400), () {
+      _timer = gameTimeout(const Duration(milliseconds: 400), () {
         if (!mounted) return;
         setState(() {
           g.settleMatch();
@@ -363,7 +396,7 @@ class _PicturePairsScreenState extends State<PicturePairsScreen> with WidgetsBin
       });
     } else if (r == TapResult.groupMissed) {
       _locked = true;
-      _timer = Timer(const Duration(milliseconds: 800), () {
+      _timer = gameTimeout(const Duration(milliseconds: 800), () {
         if (!mounted) return;
         setState(g.settleMiss);
         final swaps = swapsAfterMiss(g.cfg.swapsPerMiss, _rnd.nextDouble);
@@ -381,7 +414,7 @@ class _PicturePairsScreenState extends State<PicturePairsScreen> with WidgetsBin
   /// время навязано игрой и в счёт не идёт.
   void _runSwaps(int count) {
     final g = _game!;
-    _clock.stop();
+    _holdClock();
     void step(int left) {
       if (!mounted) return;
       final closed = g.closed;
@@ -390,25 +423,25 @@ class _PicturePairsScreenState extends State<PicturePairsScreen> with WidgetsBin
           _swapPair = null;
           _locked = false;
         });
-        _clock.start();
+        _clockFrom ??= gameNow();
         return;
       }
       final a = closed[_rnd.nextInt(closed.length)];
       final rest = closed.where((c) => c != a).toList();
       final b = rest[_rnd.nextInt(rest.length)];
       setState(() => _swapPair = [a, b]);
-      _timer = Timer(const Duration(milliseconds: swapLitMs), () {
+      _timer = gameTimeout(const Duration(milliseconds: swapLitMs), () {
         if (!mounted) return;
         setState(() {
           g.swap(a, b);
           _swapPair = null;
         });
         _changed();
-        _timer = Timer(const Duration(milliseconds: swapGapMs), () => step(left - 1));
+        _timer = gameTimeout(const Duration(milliseconds: swapGapMs), () => step(left - 1));
       });
     }
 
-    _timer = Timer(const Duration(milliseconds: swapGapMs), () => step(count));
+    _timer = gameTimeout(const Duration(milliseconds: swapGapMs), () => step(count));
   }
 
   /// Ход игрока в дуэли. Пока ходит бот, поле заперто.
@@ -514,6 +547,8 @@ class _PicturePairsScreenState extends State<PicturePairsScreen> with WidgetsBin
             'preview_ms': g.cfg.photo ? g.cfg.previewMs : 0,
             'extra_moves': g.extraMoves,
             ..._memoryDetails(g),
+            // Партия с открытым разбором — с той же меткой, что пишет лестница уровней.
+            if (LessonUsed.inRound) 'lesson': true,
           },
         ),
       );
@@ -1156,13 +1191,28 @@ class PairCardView extends StatelessWidget {
             ),
             child: Icon(lit ? Icons.swap_horiz : theme.icon, color: Colors.white70, size: size * (lit ? 0.42 : 0.32)),
           );
-    return SizedBox(
-      width: size,
-      height: size,
-      child: Material(
-        borderRadius: BorderRadius.circular(10),
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(key: Key('$keyPrefixкарта$index'), onTap: onTap, child: face),
+    // Карта для скринридера — как у веба (picture-pairs.tsx, a11yLabel): закрытую называем
+    // только номером, иначе игра теряет смысл; открытую — номером и картинкой, собранную — ещё
+    // и «найдена». Ключи — каждый своим L.t: сборщик словаря видит только литералы.
+    final open = card.flipped || card.matched;
+    final label = open
+        ? '${L.t('a11yCard')} ${index + 1}, ${card.symbol + 1}${card.matched ? ', ${L.t('a11yFound')}' : ''}'
+        : '${L.t('a11yCard')} ${index + 1}';
+    return Semantics(
+      label: label,
+      button: true,
+      enabled: onTap != null,
+      // Подпись своя, поэтому дочерние узлы не читаются, — и тогда нажатие отдаём сами.
+      onTap: onTap,
+      excludeSemantics: true,
+      child: SizedBox(
+        width: size,
+        height: size,
+        child: Material(
+          borderRadius: BorderRadius.circular(10),
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(key: Key('$keyPrefixкарта$index'), onTap: onTap, child: face),
+        ),
       ),
     );
   }
