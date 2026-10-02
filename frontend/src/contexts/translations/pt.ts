@@ -3374,7 +3374,7 @@ const t: Record<string, string> = {
   "sudokuRuleRegionsum": "Linha azul: em cada quadro por onde passa, os seus dígitos somam o mesmo valor.",
   "sudokuRulePalindrome": "Uma linha cinza é lida da mesma forma a partir de ambas as pontas: os dígitos à mesma distância das pontas são iguais.",
   "sudokuRuleBetween": "Os dígitos da linha ficam estritamente entre os dígitos dos círculos nas suas pontas.",
-  "sudokuRuleLockout": "Os dígitos dos losangos nas pontas diferem em pelo menos 4, e os dígitos da linha ficam fora do intervalo entre eles.",
+  "sudokuRuleLockout": "Os dígitos dos losangos nas pontas diferem em pelo menos 4; os dígitos da linha não são iguais a eles nem ficam entre eles.",
   "sdkRule_renban": "renban",
   "sdkRule_regionsum": "somas iguais",
   "sdkRule_palindrome": "palíndromo",

@@ -3368,7 +3368,7 @@ const t: Record<string, string> = {
   "sudokuRuleRegionsum": "青い線：通過する各ブロックで、線上の数字の合計が同じになります。",
   "sudokuRulePalindrome": "灰色の線は、どちらの端から読んでも同じです。両端から同じ距離にある数字は一致します。",
   "sudokuRuleBetween": "線上の数字は、両端の丸の数字のうち小さい方より大きく、大きい方より小さくなります。",
-  "sudokuRuleLockout": "線の両端のひし形の数字は差が4以上で、線上の数字はその2つの数字の範囲の外になります。",
+  "sudokuRuleLockout": "線の両端のひし形の数字は差が4以上で、線上の数字はそのどちらとも等しくなく、2つの数字のあいだにも入りません。",
   "sdkRule_renban": "レンバン",
   "sdkRule_regionsum": "同じ合計",
   "sdkRule_palindrome": "回文",
