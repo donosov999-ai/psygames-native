@@ -295,6 +295,8 @@
 "eyeStereoShortTitle":"立体",
 "facesNames":"人脸与名字",
 "facesNamesDesc":"把一张脸和名字、事实连起来",
+"feedbackFabLabel":"反馈问题",
+"feedbackTitle":"💬 哪里不对？",
 "field":"区域",
 "find":"查找",
 "findDiff":"找不同",

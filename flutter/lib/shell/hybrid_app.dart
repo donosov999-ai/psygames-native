@@ -113,6 +113,8 @@ import 'session_report.dart';
 import 'game_preset.dart';
 import 'game_rules.dart';
 import 'game_shell.dart';
+import 'game_clock.dart';
+import 'web_game_screen.dart';
 import 'puzzle_routes.g.dart';
 import '../games/chess_blind/screen.dart';
 import '../games/chess_hub/screen.dart';
@@ -650,6 +652,19 @@ class _HybridAppState extends State<HybridApp> {
       _openedRoute = null;
       await _c.runJavaScript("location.replace('${widget.server.origin}/');");
     };
+    GameExit.feedback = () {
+      if (!mounted) return;
+      final route = Uri.parse(GameRules.currentRoute ?? '/games');
+      final params = {...route.queryParameters, ...GamePreset.params};
+      final source = route.replace(queryParameters: params.isEmpty ? null : params).toString();
+      final url = Uri.parse('${widget.server.origin}/feedback')
+          .replace(queryParameters: {'sourceRoute': source}).toString();
+      Navigator.of(context).push(MaterialPageRoute<void>(
+        builder: (_) => GameHoldScope(child: WebGameScreen(
+          title: L.t('feedbackTitle'), url: url, state: widget.state,
+        )),
+      ));
+    };
     _c = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..addJavaScriptChannel(
@@ -726,6 +741,7 @@ class _HybridAppState extends State<HybridApp> {
   void dispose() {
     SessionReport.sink = null;
     GameExit.home = null;
+    GameExit.feedback = null;
     // Хук снимается вместе с хостом: оставленный, он звал бы мёртвый WebView.
     if (HybridApp.open == _open) HybridApp.open = null;
     if (HybridApp.runJs == _runJs) HybridApp.runJs = null;

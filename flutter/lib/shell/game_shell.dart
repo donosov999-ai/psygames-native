@@ -252,6 +252,8 @@ class GameShell extends StatelessWidget {
 class GameExit {
   /// Ставит [HybridApp]; пусто — значит главной нет (настольная проба), и пункт не рисуем.
   static VoidCallback? home;
+  /// Opens the shared feedback form without leaving/restarting the game.
+  static VoidCallback? feedback;
 }
 
 /// Пауза во весь экран — как в веб-версии, а не лист снизу.
@@ -347,6 +349,9 @@ class _PauseScreen extends StatelessWidget {
                           Navigator.of(context).pop();
                           a.onPressed();
                         }),
+                      if (GameExit.feedback != null)
+                        button(L.t('feedbackFabLabel'), Icons.chat_bubble_outline,
+                            GameExit.feedback!, key: const Key('pause-feedback')),
                       // Шаг назад: туда, откуда пришли, — в развилку раздела.
                       button(L.t('pauseExitGame'), Icons.exit_to_app, () {
                         Navigator.of(context).pop();
