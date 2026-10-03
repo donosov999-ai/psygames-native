@@ -153,7 +153,7 @@ class HybridApp extends StatefulWidget {
         '/warmup-complete': (_) => const WarmupCompleteScreen(),
         '/warmup-bridge': (_) => const WarmupBridgeScreen(),
         // Вкладка «Игры»: разделы, поиск и фильтр (задачи 9bd1b15d, f5025027).
-        '/games': (s) => CatalogScreen(state: s),
+        '/games': (s) => CatalogScreen(state: s, initialQuery: GamePreset.params['search'] ?? ''),
       };
 
   /// Игра перенесена → строится нативно. Ключ — путь маршрута веб-сборки.

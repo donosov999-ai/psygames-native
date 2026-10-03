@@ -6,6 +6,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/shell/catalog.dart';
 import 'package:psygames_flutter/shell/catalog_screen.dart';
 import 'package:psygames_flutter/shell/hub_screen.dart';
+import 'package:psygames_flutter/shell/hybrid_app.dart';
+import 'package:psygames_flutter/shell/game_preset.dart';
 import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -63,6 +65,23 @@ void main() {
   });
 
   group('модель', () {
+    test('shell passes the home search query to the native catalog', () {
+      GamePreset.set({'search': 'Мосты'});
+      addTearDown(GamePreset.clear);
+      final screen = HybridApp.shell['/games']!(state) as CatalogScreen;
+      expect(screen.initialQuery, 'Мосты');
+    });
+    testWidgets('home query opens catalog already filtered and can be cleared', (t) async {
+      await _open(t, CatalogScreen(state: state, catalog: _catalog(), initialQuery: '  Bridges  '));
+      expect(find.byKey(const ValueKey('catalog-flat')), findsOneWidget);
+      final field = t.widget<TextField>(find.byKey(const ValueKey('catalog-search')));
+      expect(field.controller!.text, 'Bridges');
+      expect(find.byType(ListTile), findsWidgets);
+      await t.tap(find.byKey(const ValueKey('catalog-search-clear')));
+      await t.pump();
+      expect(find.byKey(const ValueKey('catalog-sections')), findsOneWidget);
+      expect(t.takeException(), isNull);
+    });
     test('🔴 поиск видит ВСЕ игры: записи GAMES и каждую карточку за развилками', () {
       final c = _catalog();
       final hubs = _asset('assets/hubs.json')['hubs'] as Map<String, dynamic>;

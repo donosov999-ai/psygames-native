@@ -25,9 +25,10 @@ import 'shared_state.dart';
 ///
 /// Нажатие возвращает маршрут оболочке ([HubCardTap]) — открывает она, как из развилки.
 class CatalogScreen extends StatefulWidget {
-  const CatalogScreen({super.key, required this.state, this.catalog});
+  const CatalogScreen({super.key, required this.state, this.catalog, this.initialQuery = ''});
 
   final SharedState state;
+  final String initialQuery;
 
   /// Готовый каталог — для проб; в приложении грузится из ассетов.
   final Catalog? catalog;
@@ -52,6 +53,8 @@ class _CatalogScreenState extends State<CatalogScreen> {
   @override
   void initState() {
     super.initState();
+    _query = widget.initialQuery.trim();
+    _search.text = _query;
     _boot();
   }
 
