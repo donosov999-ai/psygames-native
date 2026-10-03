@@ -199,7 +199,7 @@ class GameShell extends StatelessWidget {
    */
   /// Справка по адресу открытой игры; null — правила для неё нет.
   VoidCallback? _rulesByRoute(BuildContext context) {
-    final key = GameRules.keyFor(GameRules.currentRoute);
+    final key = GameRules.fullKeyFor(GameRules.currentRoute);
     if (key == null) return null;
     return () => showGameRules(context, title: title, ruleKey: key);
   }
@@ -235,7 +235,7 @@ class GameShell extends StatelessWidget {
       builder: (_) => GameHoldScope(
         child: _PauseScreen(
           title: title,
-          ruleKey: GameRules.keyFor(GameRules.currentRoute),
+          ruleKey: GameRules.fullKeyFor(GameRules.currentRoute),
           hud: hud,
           actions: actions,
           onLeave: () => _leave(context),

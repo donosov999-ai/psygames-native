@@ -85,7 +85,7 @@ void main() {
     await tester.tap(find.byTooltip(L.t('btn_rules')));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('game-rules')), findsOneWidget);
-    expect(find.text(L.t(GameRules.keyFor('/games/hanoi')!)), findsOneWidget);
+    expect(find.text(L.t(GameRules.fullKeyFor('/games/hanoi')!)), findsOneWidget);
   });
 
   testWidgets('🔴 режим с хвостом получает СВОЁ правило, а не общее у игры', (tester) async {
@@ -107,8 +107,8 @@ void main() {
   });
 
   test('full help uses the shared web registry, including deep mode', () {
-    expect(GameRules.keyFor('/games/sudoku-fractal-deep'), 'sudokuFractalDeepIntroDesc');
-    expect(GameRules.keyFor('/games/hanoi?lang=en'), 'hanoiIntroDesc');
+    expect(GameRules.fullKeyFor('/games/sudoku-fractal-deep'), 'sudokuFractalDeepIntroDesc');
+    expect(GameRules.fullKeyFor('/games/hanoi?lang=en'), 'hanoiIntroDesc');
   });
 
   test('all shared help entries have RU and EN text', () async {
@@ -117,7 +117,7 @@ void main() {
       await L.load(locale);
       for (final entry in help.entries) {
         final key = entry.value['introKey'] as String;
-        expect(GameRules.keyFor(entry.key as String), key, reason: '${entry.key} $locale');
+        expect(GameRules.fullKeyFor(entry.key as String), key, reason: '${entry.key} $locale');
         expect(L.t(key).trim(), isNotEmpty);
         expect(L.t(key), isNot(key));
       }

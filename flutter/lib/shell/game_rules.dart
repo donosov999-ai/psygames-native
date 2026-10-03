@@ -105,7 +105,8 @@ class GameRules {
   ///
   /// ⚠️ Сперва ищем адрес ЦЕЛИКОМ, с хвостом: за `/games/puzzles?mode=Bridges`
   /// стоит своя игра со своим правилом, и общее правило головоломок тут соврало бы.
-  static String? keyFor(String? route) {
+  /// Full help for overlays; keep short catalog rules separate.
+  static String? fullKeyFor(String? route) {
     if (route == null) return null;
     final uri = Uri.tryParse(route);
     final mode = uri?.queryParameters['mode'];
@@ -113,6 +114,11 @@ class GameRules {
         '${uri.path}${mode == null ? '' : '?mode=$mode'}';
     final full = _fullByRoute[normalized];
     if (full != null && L.has(full)) return full;
+    return keyFor(route);
+  }
+
+  static String? keyFor(String? route) {
+    if (route == null) return null;
     final direct = _byRoute[route] ?? _byRoute[route.split('?').first];
     if (direct != null) return direct;
     /*
