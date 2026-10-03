@@ -570,7 +570,8 @@ class _HybridAppState extends State<HybridApp> {
 
 
   /// Экран сняли МЫ, потому что страница ушла вперёд, — а не человек кнопкой.
-  bool _closedByPage = false;
+  final Set<Route<dynamic>> _pagesClosedByWeb = {};
+  Route<dynamic>? _openedPage;
 
   /// Какой нативный экран сейчас открыт поверх страницы.
   ///
@@ -798,11 +799,15 @@ class _HybridAppState extends State<HybridApp> {
    * не заменяет кода: вот ровно этот случай.
    */
   void _closeNativeBecausePageMoved() {
-    if (_openedRoute == null || !mounted) return;
+    final page = _openedPage;
+    if (_openedRoute == null || !mounted || page == null || !page.isActive) return;
     // Возврата страницы назад быть не должно: она ушла вперёд НАМЕРЕННО, и
     // `history.back()` вернул бы человека в игру, из которой зарядка его вывела.
-    _closedByPage = true;
-    Navigator.of(context).pop();
+    _pagesClosedByWeb.add(page);
+    final navigator = Navigator.of(context);
+    // Pause and feedback are routes above the game, not the game itself.
+    navigator.popUntil((candidate) => identical(candidate, page));
+    navigator.removeRoute(page);
   }
 
   /*
@@ -917,8 +922,7 @@ class _HybridAppState extends State<HybridApp> {
     // спрашиваем; когда переход ведёт сама оболочка, он известен заранее.
     final step = GamePreset.isPreset ? ValueNotifier<WarmupStepInfo?>(stepInfo) : null;
     if (step != null && stepInfo == null) unawaited(_loadStepInfo(step));
-    final result = await Navigator.of(context).push(
-      MaterialPageRoute(
+    final page = MaterialPageRoute<dynamic>(
         // «Заново» в паузе любой игры — пересоздание экрана в RestartScope (restart_scope.dart).
         builder: (_) => step == null
             ? RestartScope(builder: (_) => build(widget.state))
@@ -927,8 +931,9 @@ class _HybridAppState extends State<HybridApp> {
                 onSkip: _skipNativeStep,
                 child: RestartScope(builder: (_) => build(widget.state)),
               ),
-      ),
-    );
+      );
+    _openedPage = page;
+    final result = await Navigator.of(context).push(page);
     // ⚠️ Отметку снимаем, ТОЛЬКО если она всё ещё наша: когда страница ушла вперёд,
     // поверх уже открыт следующий экран, и его отметку затирать нельзя.
     /*
@@ -940,13 +945,13 @@ class _HybridAppState extends State<HybridApp> {
      * экрана, а тот читает его после `await`. Бьёт по любой зарядке, где
      * нативный экран сменяется нативным.
      */
-    if (routeOwnsPreset(_openedRoute, route)) {
+    if (identical(_openedPage, page)) {
+      _openedPage = null;
       _openedRoute = null;
       GamePreset.clear();
     }
-    if (GameRules.currentRoute == route) GameRules.currentRoute = null;
-    final closedByPage = _closedByPage;
-    _closedByPage = false;
+    if (_openedPage == null && GameRules.currentRoute == route) GameRules.currentRoute = null;
+    final closedByPage = _pagesClosedByWeb.remove(page);
     // 🔴 СТРАНИЦА ПОД НАМИ ОСТАЛАСЬ НА АДРЕСЕ ИГРЫ. Перехват срабатывает ПОСЛЕ
     // того, как роутер уже сменил адрес, — значит под нативным экраном веб-половина
     // стоит на той же игре. Не вернуть её назад — человек, закрыв нативный экран,
