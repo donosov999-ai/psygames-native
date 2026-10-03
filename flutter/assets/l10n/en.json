@@ -278,6 +278,8 @@
 "eyeStereoShortTitle":"Stereo",
 "facesNames":"Faces & Names",
 "facesNamesDesc":"Link a face to a name and a fact",
+"feedbackFabLabel":"Send feedback",
+"feedbackTitle":"💬 What’s wrong?",
 "field":"Field",
 "find":"Find",
 "findDiff":"Find Differences",

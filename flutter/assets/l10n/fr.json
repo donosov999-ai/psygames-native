@@ -278,6 +278,8 @@
 "eyeStereoShortTitle":"Stéréo",
 "facesNames":"Visages et noms",
 "facesNamesDesc":"Reliez un visage à un nom et à un détail",
+"feedbackFabLabel":"Signaler un problème",
+"feedbackTitle":"💬 Qu'est-ce qui cloche ?",
 "field":"Plateau",
 "find":"Trouve",
 "findDiff":"Trouve les différences",

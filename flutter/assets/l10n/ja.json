@@ -278,6 +278,8 @@
 "eyeStereoShortTitle":"ステレオ",
 "facesNames":"顔と名前",
 "facesNamesDesc":"顔と名前と、その人の一言を結びつけます",
+"feedbackFabLabel":"フィードバックを送る",
+"feedbackTitle":"💬 どうしましたか？",
 "field":"フィールド",
 "find":"探す",
 "findDiff":"間違い探し",

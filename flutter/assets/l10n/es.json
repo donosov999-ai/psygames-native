@@ -278,6 +278,8 @@
 "eyeStereoShortTitle":"Estéreo",
 "facesNames":"Caras y nombres",
 "facesNamesDesc":"Asocia una cara con un nombre y un dato",
+"feedbackFabLabel":"Enviar comentarios",
+"feedbackTitle":"💬 ¿Qué va mal?",
 "field":"Campo",
 "find":"Encuentra",
 "findDiff":"Encuentra las diferencias",
