@@ -488,10 +488,26 @@ class HybridApp extends StatefulWidget {
      * документа. Одно написание в карте, оба — при разборе.
      */
     if (query.isNotEmpty) {
-      final decoded = Uri.decodeFull(query);
-      if (decoded != query && native.containsKey('$r$decoded')) return '$r$decoded';
-      final encoded = Uri.encodeFull(query);
-      if (encoded != query && native.containsKey('$r$encoded')) return '$r$encoded';
+      // Only registered selectors identify a screen. Language, level and
+      // warmup settings must not turn a mode link into the base game.
+      try {
+        final actual = Uri.splitQueryString(query.substring(1));
+        String? best;
+        var specificity = 0;
+        for (final key in native.keys) {
+          final separator = key.indexOf('?');
+          if (separator < 0 || key.substring(0, separator) != r) continue;
+          final selectors = Uri.splitQueryString(key.substring(separator + 1));
+          if (selectors.length > specificity &&
+              selectors.entries.every((e) => actual[e.key] == e.value)) {
+            best = key;
+            specificity = selectors.length;
+          }
+        }
+        if (best != null) return best;
+      } on FormatException {
+        // Malformed query is not a reason to crash the navigation delegate.
+      }
     }
     return native.containsKey(r) ? r : null;
   }
