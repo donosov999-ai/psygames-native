@@ -29,8 +29,9 @@ class Practices {
   Json set(String id) => catalog.firstWhere((s) => s['id'] == id);
   Json program(String id, [String? programId]) {
     final s = set(id);
-    return objects(s['programs'])
-        .firstWhere((p) => p['id'] == (programId ?? s['defaultProgramId']));
+    return objects(
+      s['programs'],
+    ).firstWhere((p) => p['id'] == (programId ?? s['defaultProgramId']));
   }
 
   /// Что занимает выбранная программа: своё, если задано, иначе ресурсы набора
@@ -38,7 +39,9 @@ class Practices {
   List<String> resources(String setId, [String? programId]) {
     try {
       final p = program(setId, programId);
-      return List<String>.from(p['resources'] ?? set(setId)['resources'] ?? const []);
+      return List<String>.from(
+        p['resources'] ?? set(setId)['resources'] ?? const [],
+      );
     } on StateError {
       return const [];
     }
@@ -47,8 +50,11 @@ class Practices {
   /// Общий ресурс двух практик — развилка «либо-либо». Внимание целиком не делится
   /// ни с чем (`getResourceConflict` ядра на TS).
   List<String> resourceConflict(Json a, Json b) {
-    final left = resources(a['setId'], a['programId']), right = resources(b['setId'], b['programId']);
-    if (left.contains('attention') || right.contains('attention')) return const ['attention'];
+    final left = resources(a['setId'], a['programId']),
+        right = resources(b['setId'], b['programId']);
+    if (left.contains('attention') || right.contains('attention')) {
+      return const ['attention'];
+    }
     return left.where(right.contains).toList();
   }
 
@@ -78,12 +84,11 @@ class Practices {
       )
       .toSet()
       .toList();
-  List<String> priorExperience(List<Json> selections) =>
-      _resolve(selections)
-          .where((i) => i['program']['requiresPriorExperience'] == true)
-          .map((i) => '${i['set']['id']}/${i['program']['id']}')
-          .toSet()
-          .toList();
+  List<String> priorExperience(List<Json> selections) => _resolve(selections)
+      .where((i) => i['program']['requiresPriorExperience'] == true)
+      .map((i) => '${i['set']['id']}/${i['program']['id']}')
+      .toSet()
+      .toList();
 
   String? _parallelIssue(Json i, Json r) {
     final p = i['program'], s = i['set'];
@@ -152,7 +157,10 @@ class Practices {
       var clash = false;
       for (var i = 0; i < resolved.length && !clash; i++) {
         for (var j = i + 1; j < resolved.length; j++) {
-          if (resourceConflict(resolved[i]['selection'], resolved[j]['selection']).isNotEmpty) {
+          if (resourceConflict(
+            resolved[i]['selection'],
+            resolved[j]['selection'],
+          ).isNotEmpty) {
             clash = true;
             break;
           }
@@ -195,7 +203,10 @@ class Practices {
     // Guided massage is a single pass, not an endless repetition on one area.
     // Fit both sides into short sessions; longer sessions finish with rest.
     if (item['program']['singlePass'] == true) {
-      final total = steps.fold<int>(0, (sum, s) => sum + (s['durationMs'] as int));
+      final total = steps.fold<int>(
+        0,
+        (sum, s) => sum + (s['durationMs'] as int),
+      );
       final span = math.min(total, end - start);
       var consumed = 0, cursor = start;
       for (final step in steps) {
@@ -223,6 +234,7 @@ class Practices {
     ...values.where((i) => i['set']['id'] == 'breathing'),
     ...values.where((i) => i['set']['id'] != 'breathing'),
   ];
+
   /// 🔴 КОДЫ, КОТОРЫЕ ВЫРАЖАЮТ МНЕНИЕ, А НЕ НЕВОЗМОЖНОСТЬ ПОСТРОИТЬ ПЛАН.
   ///
   /// Денис, автор приложения, 24.09.2026: «я решил, или кто другой — он
@@ -268,7 +280,9 @@ class Practices {
       final parallel = <Json>[];
       working = [];
       for (final i in resolved) {
-        final clash = parallel.any((t) => resourceConflict(t['selection'], i['selection']).isNotEmpty);
+        final clash = parallel.any(
+          (t) => resourceConflict(t['selection'], i['selection']).isNotEmpty,
+        );
         if (_parallelIssue(i, r) == null && !clash) {
           parallel.add(i);
         } else {
@@ -304,7 +318,8 @@ class Practices {
         if (lane == 0 && breath != null) {
           raw = breath;
         } else if (item['set']['id'] == 'eye-gym' ||
-            item['program']['singlePass'] == true || breath == null) {
+            item['program']['singlePass'] == true ||
+            breath == null) {
           raw = _lane(item, r['locale'], lane, cursor, end);
         } else {
           raw = List.generate(breath.length, (j) {
@@ -313,7 +328,8 @@ class Practices {
             if (item['set']['id'] == 'pelvic-floor') {
               final exhale =
                   (b['stepId'] as String).contains('exhale') ||
-                  (b['stepId'] as String).endsWith('-out');
+                  ((b['stepId'] as String).endsWith('-out') &&
+                      b['stepId'] != 'hold-out');
               step = steps.firstWhere(
                 (s) => s['id'] == (exhale ? 'long-squeeze' : 'long-release'),
                 orElse: () => steps[exhale ? 0 : math.min(1, steps.length - 1)],
@@ -485,10 +501,9 @@ Json _complete(Json s, int elapsed) => {
   'result': {
     'planId': s['plan']['id'],
     'durationMs': s['plan']['durationMs'],
-    'completedSetIds': objects(s['plan']['selections'])
-        .map((i) => i['setId'])
-        .toSet()
-        .toList(),
+    'completedSetIds': objects(
+      s['plan']['selections'],
+    ).map((i) => i['setId']).toSet().toList(),
     'completion': 1,
     'adherence': 1,
     'interruptedCount': s['interruptedCount'],
@@ -520,9 +535,9 @@ Json sessionAction(Json s, String action, int now, [int extra = 30000]) {
   final elapsed = elapsedTime(s, now);
   final Json p = s['plan'];
   if (action == 'skip') {
-    final ends = objects(p['timeline'])
-        .map((i) => i['endMs'] as int)
-        .where((v) => v > elapsed);
+    final ends = objects(
+      p['timeline'],
+    ).map((i) => i['endMs'] as int).where((v) => v > elapsed);
     final target = ends.fold<int>(p['durationMs'], math.min);
     return target >= p['durationMs']
         ? _complete(s, p['durationMs'])

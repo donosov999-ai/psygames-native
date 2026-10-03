@@ -52,7 +52,9 @@ class PracticeStage extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, box) {
         final w = box.maxWidth, h = box.maxHeight;
-        final artW = math.min(w * .7, h * 1.05), artH = math.min(h * .72, artW * 390 / 600);
+        final split = breath != null && picture != null && eye == null;
+        final sceneWidth = split ? w * .7 : w;
+        final artW = math.min(sceneWidth * .7, h * 1.05), artH = math.min(h * .72, artW * 390 / 600);
         // Массаж лица — своё поле во всю сцену, без рамки фаз.
         final massage = picture?['setId'] == 'face-massage';
         return Semantics(
@@ -64,11 +66,12 @@ class PracticeStage extends StatelessWidget {
                   child: SizedBox.square(dimension: math.min(w * .9, h * .9), child: PracticeArtwork(cue: picture)),
                 ),
               if (picture != null && !massage)
-                Center(
-                  child: SizedBox(width: artW, height: artH, child: PracticeArtwork(cue: picture)),
+                Positioned(left: 0, top: 0, bottom: 0, width: sceneWidth,
+                  child: Center(child: SizedBox(width: artW, height: artH, child: PracticeArtwork(cue: picture))),
                 ),
               if (phase != null && !(massage && breath == null))
                 Positioned.fill(
+                  right: split ? w * .3 : 0,
                   child: CustomPaint(
                     painter: PhaseClock(
                       cue: phase,
@@ -77,8 +80,17 @@ class PracticeStage extends StatelessWidget {
                       track: scheme.onSurface.withValues(alpha: .22),
                       run: scheme.primary,
                       dotColor: const Color(0xff5bd8d0),
-                      crowded: picture != null,
+                      crowded: eye == null ? true : picture != null,
                     ),
+                  ),
+                ),
+              if (breath != null && eye == null)
+                Align(
+                  alignment: picture == null ? const Alignment(0, -.2) : const Alignment(1, -.2),
+                  child: SizedBox.square(
+                    dimension: picture == null ? math.min(w * .6, h * .5) : math.min(w * .3, h * .28),
+                    child: BreathVisual(breath: breath,
+                      muscle: cues.where((c) => c['setId'] == 'pelvic-floor').firstOrNull),
                   ),
                 ),
               if (specialEye)
