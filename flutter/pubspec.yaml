@@ -105,6 +105,7 @@ flutter:
     - assets/hubs.json
     # Каталог «Игры» — выгрузка games.ts (frontend/src/__tests__/flutter-catalog-asset-fresh.test.ts).
     - assets/catalog.json
+    - assets/game_help_routes.json
     # Иконки игр «поле в миниатюре» для строк развилок — выгрузка веб-реестра
     # (flutter/tools/embed-game-icons.mjs), не править руками.
     - assets/game_icons/

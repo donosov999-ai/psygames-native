@@ -106,10 +106,42 @@ void main() {
     expect(find.byTooltip(L.t('btn_rules')), findsNothing);
   });
 
-  test('список игр, чьё правило даёт экран, не протух: по адресу его всё ещё не найти', () {
-    // Иначе запись переживёт саму причину: появись карточка «Бездны» в развилке, каркас
-    // найдёт её описание сам, и два источника правила разойдутся молча.
-    expect(GameRules.keyFor('/games/sudoku-fractal-deep'), isNull,
-        reason: 'каркас нашёл правило по адресу — убери адрес из списка исключений');
+  test('full help uses the shared web registry, including deep mode', () {
+    expect(GameRules.keyFor('/games/sudoku-fractal-deep'), 'sudokuFractalDeepIntroDesc');
+    expect(GameRules.keyFor('/games/hanoi?lang=en'), 'hanoiIntroDesc');
+  });
+
+  test('all shared help entries have RU and EN text', () async {
+    final help = jsonDecode(File('assets/game_help_routes.json').readAsStringSync()) as Map;
+    for (final locale in ['ru', 'en']) {
+      await L.load(locale);
+      for (final entry in help.entries) {
+        final key = entry.value['introKey'] as String;
+        expect(GameRules.keyFor(entry.key as String), key, reason: '${entry.key} $locale');
+        expect(L.t(key).trim(), isNotEmpty);
+        expect(L.t(key), isNot(key));
+      }
+    }
+    await L.load('ru');
+  });
+
+  testWidgets('pause contains readable help and reachable controls on small screen', (tester) async {
+    tester.view.physicalSize = const Size(320, 568);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    GameRules.currentRoute = '/games/hanoi';
+    addTearDown(() => GameRules.currentRoute = null);
+    await tester.pumpWidget(MaterialApp(home: GameShell(
+      title: 'Hanoi', field: (_, _) => const SizedBox.shrink(),
+    )));
+    await tester.tap(find.byIcon(Icons.pause));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('pause-rules')), findsOneWidget);
+    await tester.ensureVisible(find.byKey(const Key('pause-resume')));
+    await tester.tap(find.byKey(const Key('pause-resume')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('pause-rules')), findsNothing);
+    expect(tester.takeException(), isNull);
   });
 }

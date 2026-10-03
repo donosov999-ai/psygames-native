@@ -53,13 +53,13 @@ Future<void> showGameRules(
 /// ОДИН экран из тридцати восьми). Поэтому каркас спрашивает правило сам, по
 /// адресу открытой игры, а экран об этом ничего не знает.
 ///
-/// Ключ берётся из того же реестра развилок, что и карточки: у каждой карточки
-/// есть `descKey` — то самое описание, которое человек читает в каталоге. Второго
-/// источника правил не заводим: разошлись бы молча.
+/// Полная справка экспортируется из веб-реестра HELP_MAP. Короткое описание
+/// карточки остаётся запасным вариантом для адресов без полной справки.
 class GameRules {
   GameRules._();
 
   static Map<String, String> _byRoute = const {};
+  static Map<String, String> _fullByRoute = const {};
 
   /// Адрес игры, открытой поверх страницы; ставит оболочка. Пусто — игра открыта
   /// не через перехват (настольная проба), и правило искать не по чему.
@@ -91,6 +91,11 @@ class GameRules {
         if (route != null && key != null && key.isNotEmpty) out[route] = key;
       }
       _byRoute = out;
+      final helpBytes = await rootBundle.load('assets/game_help_routes.json');
+      final help = jsonDecode(utf8.decode(helpBytes.buffer.asUint8List(
+          helpBytes.offsetInBytes, helpBytes.lengthInBytes))) as Map<String, dynamic>;
+      _fullByRoute = help.map((route, entry) =>
+          MapEntry(route, (entry as Map<String, dynamic>)['introKey'] as String));
     } catch (_) {
       // Реестр не прочитался — справки не будет, но игра откроется.
     }
@@ -102,6 +107,12 @@ class GameRules {
   /// стоит своя игра со своим правилом, и общее правило головоломок тут соврало бы.
   static String? keyFor(String? route) {
     if (route == null) return null;
+    final uri = Uri.tryParse(route);
+    final mode = uri?.queryParameters['mode'];
+    final normalized = uri == null ? route :
+        '${uri.path}${mode == null ? '' : '?mode=$mode'}';
+    final full = _fullByRoute[normalized];
+    if (full != null && L.has(full)) return full;
     final direct = _byRoute[route] ?? _byRoute[route.split('?').first];
     if (direct != null) return direct;
     /*
