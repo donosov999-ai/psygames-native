@@ -3396,6 +3396,7 @@ const translations: Translations = {
   catsRuleColor: { ru: 'На каждый цвет — одна кошка', en: 'One cat per colour' },
   catsRuleLine: { ru: 'В каждой строке и столбце — одна кошка', en: 'One cat per row and column' },
   catsRuleTouch: { ru: 'Кошки не могут соприкасаться, даже углами', en: 'Cats may not touch, not even diagonally' },
+  catsHowPress: { ru: 'Долгое нажатие вскрывает кошку, короткое ставит пометку ✕', en: 'Long press reveals a cat; a short tap marks ✕' },
   // Имена приёмов для разбора по шагам: каждый ход в разборе назван словом, иначе
   // разбор превращается в показ ответа (правило проекта, цель Дениса 24.09.2026).
   catsWhyRegion: { ru: 'В этом цвете осталось одно место', en: 'Only one square left in this colour' },
@@ -3408,6 +3409,8 @@ const translations: Translations = {
   sudokuRepeatSame: { ru: 'Ещё раз эту же', en: 'Same difficulty again' },
   // Значки вместо цифр (задача f1e1ff9c): пункт паузы и спрятанное слово Wordoku после победы.
   sudokuSkinLetters: { ru: 'Буквы вместо цифр', en: 'Letters instead of digits' },
+  sudokuSkinAnimals: { ru: 'Звери вместо цифр', en: 'Animals instead of digits' },
+  sdkRule_friends: { ru: '🐱 рядом с 🐭', en: '🐱 next to 🐭' },
   digitsCandy: { ru: 'Конфетные', en: 'Candy' },
   sudokuHiddenWord: { ru: 'Спрятанное слово: {w}', en: 'Hidden word: {w}' },
   sudokuPencilHint: { ru: 'Выбери клетку и жми цифры — они встанут в угол мелким. Повторный тап снимает пометку.', en: 'Pick a cell and tap digits — they go into the corner as small marks. Tap again to remove one.' },
@@ -3503,6 +3506,8 @@ const translations: Translations = {
   sudokuTypeKiller: { ru: '9×9 · 6 ступеней', en: '9×9 · 6 steps' },
   sudokuFreeHubDesc: { ru: 'Классика без вариантов: размер и сложность на выбор', en: 'Classic, no variants: pick size and difficulty' },
   sudokuTypeFree: { ru: '6×6 и 9×9 · 3 сложности', en: '6×6 and 9×9 · 3 levels' },
+  sudokuJuniorTitle: { ru: 'Судоку для малышей', en: 'Sudoku for Little Ones' },
+  sudokuTypeJunior: { ru: '4×4 и 6×6 · 9 ступеней', en: '4×4 and 6×6 · 9 steps' },
   sudokuRuleDiagonal: { ru: 'Цифры уникальны ещё и по двум диагоналям.', en: 'Digits are also unique along both diagonals.' },
   sudokuRuleAntiknight: { ru: 'Одинаковые цифры не стоят на расстоянии хода коня.', en: 'Equal digits cannot be a knight’s move apart.' },
   sudokuRuleHyper: { ru: 'Четыре доп. зоны 3×3 тоже содержат 1–9 без повторов.', en: 'Four extra 3×3 regions also hold 1–9 with no repeats.' },

@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'package:flutter/services.dart';
 
 import '../../shell/l10n.dart';
+import '../../shell/level_ladder.dart' show LevelStore;
 import 'engine.dart';
 
 /// ЛЕСТНИЦЫ СЕМИ СЕТОК ТЭТХЭМА — те же пять ступеней, что у веб-версии.
@@ -130,8 +131,29 @@ class PuzzleMode {
   /// как «эмодзи», и без имени незрячий человек не узнает, что ставит.
   final List<String> digitNames;
 
-  /// Ключ прогресса: тот же, что пишет веб-версия.
-  String get levelKey => 'puzzles_${engineName.toLowerCase()}';
+  /// Ключ прогресса: тот же, что пишет веб-версия (`puzzles.tsx`: нижний регистр, пробелы → `_`).
+  ///
+  /// 🔴 02.10.2026 (сверка 138f7818): здесь был только нижний регистр, и у четырёх режимов с
+  /// пробелом в имени — Light Up, Train Tracks, Black Box, Same Game — натив писал
+  /// `puzzles_light up`, а веб `puzzles_light_up`: прогресс из веба не читался. Проба сравнивала
+  /// ключ натива с правилом самого натива и потому молчала.
+  String get levelKey => 'puzzles_${engineName.toLowerCase().replaceAll(RegExp(r'\s+'), '_')}';
+
+  /// Прежний нативный ключ (с пробелом) — только чтобы перенести уже набранный на нём прогресс.
+  String? get legacyLevelKey => engineName.contains(' ') ? 'puzzles_${engineName.toLowerCase()}' : null;
+}
+
+/// Перенести уровень со старого нативного ключа ([PuzzleMode.legacyLevelKey]) на общий с вебом:
+/// берётся БОЛЬШЕЕ из двух — ни прогресс из веба, ни набранный нативно с 30.09 не теряются.
+Future<void> migrateLegacyLevel(PuzzleMode mode, LevelStore store) async {
+  final old = mode.legacyLevelKey;
+  if (old == null) return;
+  for (final what in const ['level', 'best']) {
+    final was = await store.readInt('$old.$what');
+    if (was == null) continue;
+    final now = await store.readInt('${mode.levelKey}.$what');
+    if (now == null || now < was) await store.writeInt('${mode.levelKey}.$what', was);
+  }
 }
 
 /// ВСЕ 42 РЕЖИМА — ИЗ АССЕТА, СОБРАННОГО ИЗ ВЕБ-МОСТА.

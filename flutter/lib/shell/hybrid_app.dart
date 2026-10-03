@@ -212,6 +212,8 @@ class HybridApp extends StatefulWidget {
         // Режимы той же доски: адрес отличается только хвостом, экран — тот же.
         '/games/sudoku?mode=towers': (s) => SudokuScreen(state: s, mode: SideMode.towers),
         '/games/sudoku?mode=unequal': (s) => SudokuScreen(state: s, mode: SideMode.unequal),
+        // «Судоку для малышей» (4×4, звери) — только нативно: доски строит junior.dart.
+        '/games/sudoku?mode=junior': (s) => SudokuScreen(state: s, junior: true),
         // «Киллер» и «Свободно» — режимы переключателя веб-экрана, потерянные при переносе
         // (задача 55b97845): карточки развилки ведут сюда.
         '/games/sudoku?mode=killer': (s) => SudokuScreen(state: s, mode: SideMode.killer),

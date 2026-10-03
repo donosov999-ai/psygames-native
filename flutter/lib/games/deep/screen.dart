@@ -45,6 +45,17 @@ const _presets = <String, ({int depth, int? feedCount, double unlockShare, Strin
   'abyss': (depth: 3, feedCount: null, unlockShare: 0.24, title: 'deepPreset_abyss'),
 };
 
+/// Имена объёма и ступени — ключи веб-словаря (`LanguageContext.tsx`: deepPreset_*, имена
+/// ступеней DEEP_BANDS из `fractal-deep.ts`). Списком — чтобы `tools/embed-l10n.mjs` их собрал.
+const deepPresetKeys = <String>[
+  'deepPreset_scout', 'deepPreset_trek', 'deepPreset_abyss',
+  'deepPresetDesc_scout', 'deepPresetDesc_trek', 'deepPresetDesc_abyss',
+];
+const deepBandKeys = <String>[
+  'sudokuTierBeginner', 'sudokuTierEasy', 'sudokuTierMedium',
+  'sudokuTierHard', 'sudokuTierExpert', 'sudokuTierExtreme',
+];
+
 class _DeepScreenState extends State<DeepScreen> {
   static const resumeVersion = 1;
   static const gameId = 'sudoku_fractal_deep';
@@ -173,6 +184,61 @@ class _DeepScreenState extends State<DeepScreen> {
       'savedAt': DateTime.now().millisecondsSinceEpoch, // wall-clock: отметка сохранения
       'state': state,
     }));
+  }
+
+  /// 🔴 ВЫБОР ОБЪЁМА И СТУПЕНИ — как экран настройки веба (сверка 138f7818: в нативе `_preset`
+  /// всегда был 'scout', `_band` — 0, «Экспедиция» и «Бездна» были недостижимы). Окно же —
+  /// и подтверждение: партия здесь идёт неделями, а «Новая партия» одним касанием затирала
+  /// снимок. «Отмена» оставляет текущую партию как есть.
+  Future<void> _chooseAndStart() async {
+    var preset = _preset;
+    var band = _band;
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setLocal) => AlertDialog(
+          key: const Key('deep-new'),
+          title: Text(L.t('deepTitle')),
+          content: SingleChildScrollView(
+            child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+              RadioGroup<String>(
+                groupValue: preset,
+                onChanged: (v) => setLocal(() => preset = v ?? preset),
+                child: Column(mainAxisSize: MainAxisSize.min, children: [
+                  for (final k in _presets.keys)
+                    RadioListTile<String>(
+                      key: Key('deep-preset-$k'),
+                      value: k,
+                      title: Text(L.t('deepPreset_$k')),
+                      subtitle: Text(L.t('deepPresetDesc_$k')),
+                    ),
+                ]),
+              ),
+              const Divider(),
+              Wrap(spacing: 6, runSpacing: 6, children: [
+                for (var i = 0; i < deepBands.length; i++)
+                  ChoiceChip(
+                    key: Key('deep-band-$i'),
+                    label: Text(L.t(deepBandKeys[i])),
+                    selected: band == i,
+                    onSelected: (_) => setLocal(() => band = i),
+                  ),
+              ]),
+            ]),
+          ),
+          actions: [
+            TextButton(key: const Key('deep-cancel'), onPressed: () => Navigator.pop(ctx, false), child: Text(L.t('btn_cancel'))),
+            FilledButton(key: const Key('deep-start'), onPressed: () => Navigator.pop(ctx, true), child: Text(L.t('start'))),
+          ],
+        ),
+      ),
+    );
+    if (ok != true || !mounted) return;
+    setState(() {
+      _preset = preset;
+      _band = band;
+    });
+    _newGame();
   }
 
   void _newGame() {
@@ -432,11 +498,11 @@ class _DeepScreenState extends State<DeepScreen> {
           label: L.t('btn_undo'),
           onPressed: _past.isEmpty || _won ? null : _undo,
         ),
-        AuxAction(icon: Icons.refresh, label: L.t('sdkNewGame'), onPressed: _newGame),
+        AuxAction(icon: Icons.refresh, label: L.t('sdkNewGame'), onPressed: _chooseAndStart),
       ]),
-      toolbar: _Toolbar(won: _won, onDigit: _place, onErase: _erase, onNext: _newGame),
+      toolbar: _Toolbar(won: _won, onDigit: _place, onErase: _erase, onNext: _chooseAndStart),
       pauseActions: [
-        PauseAction(label: L.t('sdkNewGame'), icon: Icons.refresh, onPressed: _newGame),
+        PauseAction(label: L.t('sdkNewGame'), icon: Icons.refresh, onPressed: _chooseAndStart),
       ],
     );
   }

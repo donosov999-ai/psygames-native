@@ -493,7 +493,7 @@ class _HubScreenState extends State<HubScreen> {
         ],
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          tooltip: 'Назад',
+          tooltip: L.t('back'),
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),

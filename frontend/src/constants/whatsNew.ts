@@ -16,6 +16,54 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.56.11',
+    date: '2026-10-02',
+    ru: [
+      'Судоку, Самурай и Фрактал помнят незаконченную партию — можно уйти и вернуться',
+      'Судоку больше не теряет партию от случайного «назад», «Заново» или смены дороги — сначала спросит',
+      'Самурай и Фрактал: в окне выхода и «Заново» снова понятный заголовок',
+    ],
+    en: [
+      'Sudoku, Samurai and Fractal remember an unfinished game — leave and come back',
+      'Sudoku no longer loses a game to a stray Back, Restart or road change — it asks first',
+      'Samurai and Fractal: the Back and Restart dialogs show a proper title again',
+    ],
+  },
+  {
+    version: '2.56.10',
+    date: '2026-10-02',
+    ru: [
+      'В судоку можно выбрать дорогу: полегче, обычная или пожёстче — у каждой свой уровень',
+      'Самурай и Фрактал больше не теряют партию от случайного «назад» или «Заново» — сначала спросят',
+    ],
+    en: [
+      'Sudoku now has three roads — easier, normal or harder — each with its own level',
+      'Samurai and Fractal no longer lose a game to a stray Back or Restart — they ask first',
+    ],
+  },
+  {
+    version: '2.56.9',
+    date: '2026-10-02',
+    ru: [
+      'Новое: «Судоку для малышей» — доски 4×4 и 6×6, звери вместо цифр, 9 ступеней',
+      '«Судоку»: бой с боссом каждые три уровня и мегабосс «Самурай» на каждом 15-м',
+      '«Судоку»: звери вместо цифр на обычной доске — выберите стиль в паузе',
+      '«Бездна»: вход из фрактала, выбор объёма и ступени; новая партия больше не стирает начатую',
+      'Wordoku: спрятанные слова на испанском, немецком, французском, итальянском и португальском',
+      '«Кошки»: короткое касание ставит ✕, долгое — открывает клетку; ошибка стоит жизни, а не оставляет кошку на доске',
+      'Самурай и фрактал засчитываются со счётом, временем и ошибками; прогресс Light Up, Train Tracks, Black Box и Same Game не теряется',
+    ],
+    en: [
+      'New: Sudoku for Little Ones — 4×4 and 6×6 boards, animals instead of digits, 9 steps',
+      'Sudoku: a boss fight every three levels and a Samurai mega-boss every 15th',
+      'Sudoku: animals instead of digits on the regular board — pick the style in the pause menu',
+      'Abyss: entry from the fractal, choice of length and stage; a new game no longer wipes the one in progress',
+      'Wordoku: hidden words in Spanish, German, French, Italian and Portuguese',
+      'Cats: a short tap marks ✕, a long press reveals the cell; a wrong reveal costs a life instead of leaving a cat on the board',
+      'Samurai and fractal games are recorded with score, time and mistakes; Light Up, Train Tracks, Black Box and Same Game keep their progress',
+    ],
+  },
+  {
     version: '2.56.8',
     date: '2026-10-02',
     ru: [

@@ -1,18 +1,24 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 
 import '../../shell/aux_action.dart';
+import '../../shell/game_clock.dart';
 import '../../shell/game_shell.dart';
+import '../../shell/hybrid_app.dart' show HybridApp;
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import '../../shell/l10n.dart';
 import '../../shell/lesson.dart';
 import '../../shell/lesson_player.dart';
+import '../../shell/resume_store.dart';
 import '../sudoku/keypad.dart';
 import '../sudoku/lesson.dart';
 import '../sudoku/marks.dart';
+import '../sudoku/leave_guard.dart';
+import 'resume.dart';
 import 'levels.dart';
 import 'rules.dart';
 
@@ -41,10 +47,18 @@ import 'rules.dart';
 /// перенос увёз только цифры. Органы теперь общие с классикой: `marks.dart` (пометки,
 /// девять цветов) и `keypad.dart` (клавиши и палитра на их месте). Свой вид фрактала —
 /// карта, плитки, порталы — не трогается.
+/// Счёт победы — константы веба (`TIME_CAP`, `WIN_FLOOR` в sudoku-fractal.tsx).
+const fractalTimeCap = 1800;
+const fractalWinFloor = 300;
+
 class FractalScreen extends StatefulWidget {
-  const FractalScreen({super.key, required this.state});
+  const FractalScreen({super.key, required this.state, this.onOpen});
 
   final SharedState state;
+
+  /// Открыть другой экран по адресу. По умолчанию — хост гибрида ([HybridApp.open]); пробы
+  /// подставляют своё, чтобы проверить, КУДА ведёт дверь.
+  final void Function(String route)? onOpen;
 
   @override
   State<FractalScreen> createState() => _FractalScreenState();
@@ -74,6 +88,10 @@ class _FractalScreenState extends State<FractalScreen> {
   int? _openChild;
   ({int? child, int r, int c})? _selected;
   bool _won = false;
+
+  /// Начало партии по часам игры — время в отчёте, как у веба.
+  int _startedAt = gameNow();
+  int get _elapsed => (gameNow() - _startedAt) ~/ 1000;
   String? _failure;
 
   @override
@@ -90,10 +108,64 @@ class _FractalScreenState extends State<FractalScreen> {
   Future<void> _boot() async {
     await _ladder.load();
     final levels = await FractalLevels.load();
+    final saved = await _resume.load();
     if (!mounted) return;
     setState(() => _levels = levels);
+    final resumed = saved == null ? null : fractalFromSnapshot(saved);
+    if (resumed != null && resumed.level == _ladder.level) {
+      _apply(resumed);
+      return;
+    }
     _deal();
   }
+
+  @override
+  void dispose() {
+    _persist();   // уход с экрана — с живым временем, а не с тем, что было на прошлом ходу
+    super.dispose();
+  }
+
+  /// 🔴 НЕЗАКОНЧЕННАЯ ПАРТИЯ — формат веба (resume.dart; сверка 138f7818, п.3). Фрактал идёт
+  /// часами, а натив раздавал заново после любого ухода.
+  late final ResumeStore _resume = ResumeStore(widget.state, fractalGameId, fractalResumeVersion);
+
+  /// Записать (или стереть, если партия выиграна). Без ожидания — экран не ждёт диска.
+  void _persist() {
+    final f = _puzzle, p = _play;
+    if (f == null || p == null) return;
+    if (_won) {
+      unawaited(_resume.clear());
+      return;
+    }
+    unawaited(_resume.save(fractalSnapshot(
+      level: _ladder.level,
+      puzzle: f,
+      play: p,
+      marks: _marks,
+      colors: _colors,
+      errors: 0,
+      elapsed: _elapsed,
+      moves: [for (final h in _history) if (h.kind == _StepKind.digit) h.move!],
+    )));
+  }
+
+  /// Поднять партию: доска, пометки, цвет и лента цифр — те же; время — с накопленного.
+  void _apply(FractalResumed r) => setState(() {
+        _puzzle = r.puzzle;
+        _failure = null;
+        _play = r.play;
+        _history
+          ..clear()
+          ..addAll([for (final m in r.moves) _Step.digit(m)]);
+        _marks = r.marks;
+        _colors = r.colors;
+        _pencil = false;
+        _paint = null;
+        _openChild = null;
+        _selected = null;
+        _won = false;
+        _startedAt = gameNow() - r.elapsed * 1000;
+      });
 
   void _deal() {
     final levels = _levels;
@@ -111,7 +183,9 @@ class _FractalScreenState extends State<FractalScreen> {
       _openChild = null;
       _selected = null;
       _won = false;
+      _startedAt = gameNow();
     });
+    _persist();   // новая доска сразу ложится своим снимком, как в вебе
   }
 
   /// Раскладка пометок/цвета: 0 — корень, 1…9 — дочерние.
@@ -168,9 +242,21 @@ class _FractalScreenState extends State<FractalScreen> {
       }
       if (rootSolved(res.next.rootGrid, f.rootSolution)) {
         _won = true;
-        unawaited(_ladder.win());
+        // 🔴 ОТЧЁТ — КАК У ВЕБА (sudoku-fractal.tsx, saveSession; сверка 138f7818): до 02.10
+        // `win()` без аргументов — победа без счёта и времени. Ошибок натив пока не считает
+        // (сигнал ошибки в дочерней не подключён — та же сверка), поэтому errors = 0 честно.
+        final level = _ladder.level;
+        unawaited(_ladder.win(
+          score: max(fractalWinFloor, (4000 - min(_elapsed, fractalTimeCap)).round()),
+          timeSeconds: _elapsed,
+          errors: 0,
+          mode: 'fractal',
+          difficulty: 'lvl$level',
+          details: {'level': level, 'of': 9},
+        ));
       }
     });
+    _persist();
   }
 
   /// Ластик: в карандаше чистит пометки клетки целиком, иначе стирает цифру.
@@ -203,6 +289,7 @@ class _FractalScreenState extends State<FractalScreen> {
       _history.add(_Step.note(_StepKind.mark, g, r, c, was));
       _marks[g][r][c] = pencilInput(was, digit);
     });
+    _persist();
   }
 
   void _paintCell(int? child, int r, int c, int color) {
@@ -212,6 +299,7 @@ class _FractalScreenState extends State<FractalScreen> {
       _history.add(_Step.note(_StepKind.color, g, r, c, was));
       _colors[g][r][c] = toggleCellColor(was, color);
     });
+    _persist();
   }
 
   void _undo() {
@@ -228,6 +316,7 @@ class _FractalScreenState extends State<FractalScreen> {
           _colors[last.grid][last.r][last.c] = last.was;
       }
     });
+    _persist();
   }
 
   void _togglePencil() => setState(() {
@@ -298,6 +387,12 @@ class _FractalScreenState extends State<FractalScreen> {
     ));
   }
 
+  void _openDeep() => (widget.onOpen ?? HybridApp.open)?.call('/games/sudoku-fractal-deep');
+
+  /// В партии есть что терять: ход, пометка или цвет — и она не кончилась. Тогда выход и «Заново»
+  /// спрашивают (leave_guard.dart; сверка 138f7818 п.2).
+  bool get _live => _history.isNotEmpty && !_won;
+
   @override
   Widget build(BuildContext context) {
     final levels = _levels;
@@ -305,7 +400,7 @@ class _FractalScreenState extends State<FractalScreen> {
     final p = _play;
     final open = _openChild;
 
-    return GameShell(
+    return LeaveGuard(live: _live, saved: true, child: GameShell(
       title: _title,
       onLesson: _lessonSteps().isEmpty ? null : _openLesson,
       hud: [
@@ -370,7 +465,7 @@ class _FractalScreenState extends State<FractalScreen> {
           active: _paint != null,
           onPressed: _won ? null : _togglePaint,
         ),
-        AuxAction(icon: Icons.refresh, label: L.t('restart'), onPressed: _deal),
+        AuxAction(icon: Icons.refresh, label: L.t('restart'), onPressed: () => restartGuarded(context, live: _live, deal: _deal)),
       ]),
       toolbar: f == null
           ? null
@@ -383,9 +478,13 @@ class _FractalScreenState extends State<FractalScreen> {
               onPaint: (i) => setState(() => _paint = i),
             ),
       pauseActions: [
-        PauseAction(label: L.t('sdkStartOver'), icon: Icons.refresh, onPressed: _deal),
+        PauseAction(label: L.t('sdkStartOver'), icon: Icons.refresh, onPressed: () => restartGuarded(context, live: _live, deal: _deal)),
+        // 🔴 ДВЕРЬ В «БЕЗДНУ» (сверка 138f7818). В вебе она стоит на экране настройки фрактала
+        // (sudoku-fractal.tsx: fractal-deep-link) — экрана настройки у натива нет, и марафонский
+        // режим стал недостижим: карточки в развилке у него нет, дверь была одна.
+        PauseAction(label: L.t('deepTitle'), icon: Icons.layers, onPressed: _openDeep),
       ],
-    );
+    ));
   }
 }
 
