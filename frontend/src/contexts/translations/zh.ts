@@ -2,6 +2,15 @@
 // 493 ключей, переведены с английской базы. Не править руками — регенерировать воркфлоу.
 // Вычитка: Claude 12.06.2026 (skillAttention/skillFocus swap, 序列记忆, 主访问码). При регенерации воркфлоу — НЕ затирать, мерджить через git diff.
 const t: Record<string, string> = {
+  "theme_selection": "外观",
+  "theme_light": "浅色",
+  "theme_dark": "深色",
+  "theme_system": "跟随系统",
+  "theme_profile": "个人模式默认",
+  "sudokuTryIndependently": "独立尝试",
+  "sudokuPracticeOnly": "练习尝试 — 不提升等级或评分。",
+  "sudokuLessonUnavailable": "目前没有同等难度的其他棋盘用于单独教学。",
+  "sudokuPracticeExample": "独立练习示例",
   "home": "首页",
   "statistics": "统计",
   "settings": "设置",
@@ -3436,5 +3445,10 @@ const t: Record<string, string> = {
   "sdkRule_between": "两端之间",
   "sdkRule_lockout": "锁线",
   "sdkRule_xv": "XV",
+  "catalogSearch": "查找游戏",
+  "catalogFilter": "筛选",
+  "catalogBySection": "分区",
+  "catalogBySkill": "能力",
+  "catalogNothing": "没有匹配的游戏",
 };
 export default t;

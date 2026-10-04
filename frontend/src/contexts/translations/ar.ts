@@ -1,6 +1,15 @@
 // AUTO-GENERATED translation overlay (ar). Источник: транскреация с EN-базы (856 ключей).
 // ⚠️ НЕ ПОДКЛЮЧЁН в LANGUAGES — ждёт RTL-захода (I18nManager). Не править руками.
 const t: Record<string, string> = {
+  "theme_selection": "المظهر",
+  "theme_light": "فاتح",
+  "theme_dark": "داكن",
+  "theme_system": "النظام",
+  "theme_profile": "حسب الملف",
+  "sudokuTryIndependently": "جرّب دون مساعدة",
+  "sudokuPracticeOnly": "محاولة تدريب — لا يرتفع المستوى أو التقييم.",
+  "sudokuLessonUnavailable": "لا توجد لوحة أخرى بهذه الصعوبة لدرس منفصل.",
+  "sudokuPracticeExample": "مثال تدريبي منفصل",
   "welcomeUnlock": "فتح",
   "homeSwitchHint": "اضغط على الشريحة لتبديل الملف الشخصي",
   "a11ySwitchProfile": "تبديل الملف الشخصي",
@@ -3432,5 +3441,10 @@ const t: Record<string, string> = {
   "sdkRule_between": "بين الطرفين",
   "sdkRule_lockout": "القفل",
   "sdkRule_xv": "XV",
+  "catalogSearch": "ابحث عن لعبة",
+  "catalogFilter": "تصفية",
+  "catalogBySection": "الأقسام",
+  "catalogBySkill": "المهارات",
+  "catalogNothing": "لا توجد ألعاب مطابقة",
 };
 export default t;

@@ -1,6 +1,15 @@
 // AUTO-GENERATED translation overlay (it). Источник: транскреация с EN-базы (856 ключей).
 // Не править руками — регенерировать.
 const t: Record<string, string> = {
+  "theme_selection": "Aspetto",
+  "theme_light": "Chiaro",
+  "theme_dark": "Scuro",
+  "theme_system": "Sistema",
+  "theme_profile": "Predefinito del profilo",
+  "sudokuTryIndependently": "Prova senza aiuto",
+  "sudokuPracticeOnly": "Tentativo di pratica — nessun aumento di livello o valutazione.",
+  "sudokuLessonUnavailable": "Non è disponibile un’altra griglia di questa difficoltà per una lezione separata.",
+  "sudokuPracticeExample": "Esempio di pratica separato",
   "welcomeUnlock": "Sblocca",
   "homeSwitchHint": "tocca il chip per cambiare profilo",
   "a11ySwitchProfile": "Cambia profilo",
@@ -3431,5 +3440,10 @@ const t: Record<string, string> = {
   "sdkRule_between": "tra gli estremi",
   "sdkRule_lockout": "lucchetto",
   "sdkRule_xv": "XV",
+  "catalogSearch": "Cerca un gioco",
+  "catalogFilter": "Filtro",
+  "catalogBySection": "Sezioni",
+  "catalogBySkill": "Abilità",
+  "catalogNothing": "Nessun gioco trovato",
 };
 export default t;

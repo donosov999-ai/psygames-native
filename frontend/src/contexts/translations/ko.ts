@@ -1,6 +1,15 @@
 // AUTO-GENERATED translation overlay (ko). Источник: транскреация с EN-базы (856 ключей).
 // Не править руками — регенерировать. Нужна вычитка нативом до сторов.
 const t: Record<string, string> = {
+  "theme_selection": "화면 모드",
+  "theme_light": "라이트",
+  "theme_dark": "다크",
+  "theme_system": "시스템",
+  "theme_profile": "프로필 기본값",
+  "sudokuTryIndependently": "혼자 도전",
+  "sudokuPracticeOnly": "연습 시도 — 레벨과 평점은 올라가지 않습니다.",
+  "sudokuLessonUnavailable": "별도 수업에 사용할 같은 난이도의 다른 판이 없습니다.",
+  "sudokuPracticeExample": "별도의 연습 예제",
   "welcomeUnlock": "잠금 해제",
   "homeSwitchHint": "칩을 눌러 프로필 전환",
   "a11ySwitchProfile": "프로필 전환",
@@ -3431,5 +3440,10 @@ const t: Record<string, string> = {
   "sdkRule_between": "양 끝 사이",
   "sdkRule_lockout": "자물쇠",
   "sdkRule_xv": "XV",
+  "catalogSearch": "게임 찾기",
+  "catalogFilter": "필터",
+  "catalogBySection": "섹션",
+  "catalogBySkill": "능력",
+  "catalogNothing": "일치하는 게임이 없습니다",
 };
 export default t;
