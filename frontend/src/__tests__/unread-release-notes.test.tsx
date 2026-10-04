@@ -1,6 +1,9 @@
+/// <reference types="node" />
 import React from 'react';
 import renderer, { act } from 'react-test-renderer';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import fs from 'fs';
+import path from 'path';
 import { WHATS_NEW, type WhatsNewEntry } from '../constants/whatsNew';
 import { unreadReleaseNotes } from '../services/releaseNotes';
 import WhatsNewModal from '../components/WhatsNewModal';
@@ -46,8 +49,6 @@ describe('all skipped release notes', () => {
     expect(unreadReleaseNotes('2.56.12', 'unknown').map((e) => e.version)).toEqual(['2.56.12']);
   });
   test('single popup belongs to app root, not a remounting Home screen', () => {
-    const fs = require('fs');
-    const path = require('path');
     const app = path.resolve(__dirname, '../../app');
     expect(fs.readFileSync(path.join(app, '_layout.tsx'), 'utf8').match(/<WhatsNewModal\s*\/>/g)).toHaveLength(1);
     expect(fs.readFileSync(path.join(app, 'index.tsx'), 'utf8')).not.toContain('WhatsNewModal');
