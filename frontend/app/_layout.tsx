@@ -25,6 +25,7 @@ import { warmLevelCache } from '@/src/services/levelCache';
 import UnlockToast from '@/src/components/UnlockToast';
 import AppErrorBoundary from '@/src/components/AppErrorBoundary';
 import UpdateGate from '@/src/components/UpdateGate';
+import WhatsNewModal from '@/src/components/WhatsNewModal';
 import GameHelpOverlay from '@/src/components/GameHelpOverlay';
 import OrientationGuard from '@/src/components/OrientationGuard';
 import FeedbackWidget from '@/src/components/FeedbackWidget';
@@ -153,6 +154,8 @@ function RootLayoutNav() {
           первый запуск сразу стартует на FREE (см. ProfileContext). */}
       {/* Desktop-only авто-апдейтер (Tauri). На web/Android — no-op. */}
       <UpdateGate />
+      {/* One notice per app launch, independent of Home/catalog navigation. */}
+      <WhatsNewModal />
       {/* Глобальная «?»-справка игр (сама прячется вне /games/* через HELP_MAP) */}
       <GameHelpOverlay />
       {/* Тап по локальному напоминанию → запуск зарядки/вечернего комплекса */}
