@@ -5,7 +5,7 @@
  * Поддерживается руками при каждом релизе: короткие человеческие пункты
  * (не коммиты). ru/en — история версий техническая, на остальных языках
  * показывается en (переводить каждый релиз на 12 языков нереально).
- * Держим последние ~10 значимых версий, старое вычищаем.
+ * Историю не обрезаем: человек может пропустить несколько обновлений.
  */
 export interface WhatsNewEntry {
   version: string;        // '1.148.0'
@@ -19,12 +19,14 @@ export const WHATS_NEW: WhatsNewEntry[] = [
     version: '2.56.12',
     date: '2026-10-04',
     ru: [
+      'После обновления показываются все изменения с последней просмотренной версии, включая пропущенные выпуски',
       'Светлую, тёмную или системную тему можно выбрать в настройках — выбор сохраняется и применяется в играх',
       'Учитель судоку объясняет на отдельной доске; ответы и подсказки делают попытку учебной, без повышения уровня',
       'Поиск игр на главной и в каталоге; полная справка и обратная связь доступны из паузы',
       'Обновлены порталы и пометки в «Бездне», разбор «Фрактала» и решатель «Товаров»',
     ],
     en: [
+      'After an update, see every change since your last viewed version, including skipped releases',
       'Choose light, dark or system appearance in Settings — your choice persists and applies to games',
       'The Sudoku teacher uses a separate board; revealed answers and hints mark an attempt as practice, without level advancement',
       'Find games from Home and the catalog; full help and feedback are available in Pause',
