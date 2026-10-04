@@ -51,6 +51,9 @@ void main() {
   /// Пауза → «Стиль цифр» → лист выбора.
   Future<void> openStyles(WidgetTester tester) async {
     await openPause(tester);
+    // Full pause help can put this action below the fold on small screens.
+    await tester.ensureVisible(find.text(L.t('digitStyle')));
+    await tester.pumpAndSettle();
     await tester.tap(find.text(L.t('digitStyle')));
     await tester.pumpAndSettle();
   }

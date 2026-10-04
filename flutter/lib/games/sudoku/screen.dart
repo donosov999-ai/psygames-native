@@ -555,7 +555,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
     if (mode != null) {
       final modes = _sideModes, side = _side;
       if (modes == null || side == null) return;
-      final seed = DateTime.now().millisecondsSinceEpoch;
+      final seed = DateTime.now().millisecondsSinceEpoch; // wall-clock: зерно независимой раздачи
       final board = sudokuDistinctBoard<SideBoard>(
         draw: (i) => modes.boardFor(mode, side.step, seed: seed + i),
         identity: (b) => sudokuAnswerId(b.puzzle, b.solution),
@@ -1260,7 +1260,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
   Future<void> _openLesson() async {
     if (_solution == null || _grid.isEmpty) return;
     final activeId = _answerId;
-    final seed = DateTime.now().microsecondsSinceEpoch;
+    final seed = DateTime.now().microsecondsSinceEpoch; // wall-clock: зерно учебной раздачи
     // Select from the SAME step/road/template source. Never alter digits or
     // geometry to fake another puzzle: variant constraints may depend on them.
     final side = widget.mode == null ? null : sudokuDistinctBoard<SideBoard>(

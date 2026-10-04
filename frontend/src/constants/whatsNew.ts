@@ -16,6 +16,22 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.56.12',
+    date: '2026-10-04',
+    ru: [
+      'Светлую, тёмную или системную тему можно выбрать в настройках — выбор сохраняется и применяется в играх',
+      'Учитель судоку объясняет на отдельной доске; ответы и подсказки делают попытку учебной, без повышения уровня',
+      'Поиск игр на главной и в каталоге; полная справка и обратная связь доступны из паузы',
+      'Обновлены порталы и пометки в «Бездне», разбор «Фрактала» и решатель «Товаров»',
+    ],
+    en: [
+      'Choose light, dark or system appearance in Settings — your choice persists and applies to games',
+      'The Sudoku teacher uses a separate board; revealed answers and hints mark an attempt as practice, without level advancement',
+      'Find games from Home and the catalog; full help and feedback are available in Pause',
+      'Updated Abyss portals and notes, Fractal review and the Goods solver',
+    ],
+  },
+  {
     version: '2.56.11',
     date: '2026-10-02',
     ru: [
