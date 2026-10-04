@@ -1,6 +1,10 @@
 // AUTO-GENERATED translation overlay (ko). Источник: транскреация с EN-базы (856 ключей).
 // Не править руками — регенерировать. Нужна вычитка нативом до сторов.
 const t: Record<string, string> = {
+  "sudokuTryIndependently": "혼자 도전",
+  "sudokuPracticeOnly": "연습 시도 — 레벨과 평점은 올라가지 않습니다.",
+  "sudokuLessonUnavailable": "별도 수업에 사용할 같은 난이도의 다른 판이 없습니다.",
+  "sudokuPracticeExample": "별도의 연습 예제",
   "welcomeUnlock": "잠금 해제",
   "homeSwitchHint": "칩을 눌러 프로필 전환",
   "a11ySwitchProfile": "프로필 전환",

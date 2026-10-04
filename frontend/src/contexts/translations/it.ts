@@ -1,6 +1,10 @@
 // AUTO-GENERATED translation overlay (it). Источник: транскреация с EN-базы (856 ключей).
 // Не править руками — регенерировать.
 const t: Record<string, string> = {
+  "sudokuTryIndependently": "Prova senza aiuto",
+  "sudokuPracticeOnly": "Tentativo di pratica — nessun aumento di livello o valutazione.",
+  "sudokuLessonUnavailable": "Non è disponibile un’altra griglia di questa difficoltà per una lezione separata.",
+  "sudokuPracticeExample": "Esempio di pratica separato",
   "welcomeUnlock": "Sblocca",
   "homeSwitchHint": "tocca il chip per cambiare profilo",
   "a11ySwitchProfile": "Cambia profilo",

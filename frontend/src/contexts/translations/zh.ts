@@ -2,6 +2,10 @@
 // 493 ключей, переведены с английской базы. Не править руками — регенерировать воркфлоу.
 // Вычитка: Claude 12.06.2026 (skillAttention/skillFocus swap, 序列记忆, 主访问码). При регенерации воркфлоу — НЕ затирать, мерджить через git diff.
 const t: Record<string, string> = {
+  "sudokuTryIndependently": "独立尝试",
+  "sudokuPracticeOnly": "练习尝试 — 不提升等级或评分。",
+  "sudokuLessonUnavailable": "目前没有同等难度的其他棋盘用于单独教学。",
+  "sudokuPracticeExample": "独立练习示例",
   "home": "首页",
   "statistics": "统计",
   "settings": "设置",

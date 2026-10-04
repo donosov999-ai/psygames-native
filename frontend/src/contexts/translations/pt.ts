@@ -2,6 +2,10 @@
 // 493 ключей, переведены с английской базы. Не править руками — регенерировать воркфлоу.
 // zh/hi — машинное качество, нужна вычитка нативом до сторов.
 const t: Record<string, string> = {
+  "sudokuTryIndependently": "Tentar sem ajuda",
+  "sudokuPracticeOnly": "Tentativa de prática — sem aumento de nível ou classificação.",
+  "sudokuLessonUnavailable": "Não há outro tabuleiro desta dificuldade para uma lição separada.",
+  "sudokuPracticeExample": "Exemplo de prática separado",
   "home": "Início",
   "statistics": "Estatísticas",
   "settings": "Ajustes",

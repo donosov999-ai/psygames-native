@@ -1,6 +1,10 @@
 // AUTO-GENERATED translation overlay (ar). Источник: транскреация с EN-базы (856 ключей).
 // ⚠️ НЕ ПОДКЛЮЧЁН в LANGUAGES — ждёт RTL-захода (I18nManager). Не править руками.
 const t: Record<string, string> = {
+  "sudokuTryIndependently": "جرّب دون مساعدة",
+  "sudokuPracticeOnly": "محاولة تدريب — لا يرتفع المستوى أو التقييم.",
+  "sudokuLessonUnavailable": "لا توجد لوحة أخرى بهذه الصعوبة لدرس منفصل.",
+  "sudokuPracticeExample": "مثال تدريبي منفصل",
   "welcomeUnlock": "فتح",
   "homeSwitchHint": "اضغط على الشريحة لتبديل الملف الشخصي",
   "a11ySwitchProfile": "تبديل الملف الشخصي",

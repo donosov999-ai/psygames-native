@@ -5,6 +5,10 @@
 //   Аббревиатуры тестов (Stroop/SDMT/WCST/N-back/BART/SET/Cloze...) оставлены латиницей — международные термины.
 //   ⚠️ Стилистику деванагари подтвердить носителем. При регенерации воркфлоу — НЕ затирать, мерджить через git diff.
 const t: Record<string, string> = {
+  "sudokuTryIndependently": "स्वयं प्रयास करें",
+  "sudokuPracticeOnly": "अभ्यास प्रयास — स्तर या रेटिंग नहीं बढ़ती।",
+  "sudokuLessonUnavailable": "अलग पाठ के लिए इस कठिनाई का कोई दूसरा बोर्ड उपलब्ध नहीं है।",
+  "sudokuPracticeExample": "अलग अभ्यास उदाहरण",
   "home": "होम",
   "statistics": "आँकड़े",
   "settings": "सेटिंग्स",

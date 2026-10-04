@@ -1,6 +1,10 @@
 // AUTO-GENERATED translation overlay (ja). Источник: транскреация с EN-базы (856 ключей).
 // Не править руками — регенерировать. Нужна вычитка нативом до сторов.
 const t: Record<string, string> = {
+  "sudokuTryIndependently": "自力で挑戦",
+  "sudokuPracticeOnly": "練習の試行 — レベルと評価は上がりません。",
+  "sudokuLessonUnavailable": "別のレッスン用に同じ難易度の別の盤面がありません。",
+  "sudokuPracticeExample": "別の練習例",
   "welcomeUnlock": "解放する",
   "homeSwitchHint": "プロフィールを切り替えるにはチップをタップ",
   "a11ySwitchProfile": "プロフィールを切り替え",
