@@ -1,3 +1,4 @@
+/* psygames-sudoku-attempt · VER 1 · 04.10.2026 */
 export const SUDOKU_REVEALED_KEY = 'psygames_sudoku_revealed_boards';
 
 /** Same answer identity as Flutter; never trust a restored board as independent

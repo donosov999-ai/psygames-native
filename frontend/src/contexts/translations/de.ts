@@ -2,6 +2,11 @@
 // 493 ключей, переведены с английской базы. Не править руками — регенерировать воркфлоу.
 // zh/hi — машинное качество, нужна вычитка нативом до сторов.
 const t: Record<string, string> = {
+  "theme_selection": "Darstellung",
+  "theme_light": "Hell",
+  "theme_dark": "Dunkel",
+  "theme_system": "System",
+  "theme_profile": "Profilstandard",
   "sudokuTryIndependently": "Selbst versuchen",
   "sudokuPracticeOnly": "Übungsversuch — keine Erhöhung von Level oder Wertung.",
   "sudokuLessonUnavailable": "Für eine eigene Lektion ist kein anderes Brett dieser Schwierigkeit verfügbar.",
@@ -3442,7 +3447,6 @@ const t: Record<string, string> = {
   "sdkRule_xv": "XV",
   "catalogSearch": "Spiel suchen",
   "catalogFilter": "Filter",
-  "catalogAll": "Alle Spiele",
   "catalogBySection": "Bereiche",
   "catalogBySkill": "Fähigkeiten",
   "catalogNothing": "Keine passenden Spiele",

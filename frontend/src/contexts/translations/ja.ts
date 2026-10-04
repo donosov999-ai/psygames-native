@@ -1,6 +1,11 @@
 // AUTO-GENERATED translation overlay (ja). Источник: транскреация с EN-базы (856 ключей).
 // Не править руками — регенерировать. Нужна вычитка нативом до сторов.
 const t: Record<string, string> = {
+  "theme_selection": "外観",
+  "theme_light": "ライト",
+  "theme_dark": "ダーク",
+  "theme_system": "システム",
+  "theme_profile": "プロフィール設定",
   "sudokuTryIndependently": "自力で挑戦",
   "sudokuPracticeOnly": "練習の試行 — レベルと評価は上がりません。",
   "sudokuLessonUnavailable": "別のレッスン用に同じ難易度の別の盤面がありません。",
@@ -3436,7 +3441,6 @@ const t: Record<string, string> = {
   "sdkRule_xv": "XV",
   "catalogSearch": "ゲームを探す",
   "catalogFilter": "絞り込み",
-  "catalogAll": "すべてのゲーム",
   "catalogBySection": "セクション",
   "catalogBySkill": "スキル",
   "catalogNothing": "該当するゲームはありません",

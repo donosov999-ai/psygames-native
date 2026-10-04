@@ -167,7 +167,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
       isExpanded: true,
       decoration: InputDecoration(labelText: L.t('catalogFilter'), border: const OutlineInputBorder(), isDense: true),
       items: [
-        DropdownMenuItem<CatalogFilter?>(value: null, child: Text(L.t('catalogAll'))),
+        DropdownMenuItem<CatalogFilter?>(value: null, child: Text(L.t('allGames'))),
         DropdownMenuItem<CatalogFilter?>(value: _sectionsHeader, enabled: false, child: header(L.t('catalogBySection'))),
         for (final cat in c.categories)
           DropdownMenuItem<CatalogFilter?>(

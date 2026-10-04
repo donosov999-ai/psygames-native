@@ -486,7 +486,7 @@ class _HubScreenState extends State<HubScreen> {
               initialValue: _skill ?? '',
               onSelected: (v) => setState(() => _skill = v.isEmpty ? null : v),
               itemBuilder: (_) => [
-                PopupMenuItem<String>(value: '', child: Text(L.t('catalogAll'))),
+                PopupMenuItem<String>(value: '', child: Text(L.t('allGames'))),
                 for (final k in skills) PopupMenuItem<String>(value: k, child: Text(skillTitle(k))),
               ],
             ),

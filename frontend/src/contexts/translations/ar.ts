@@ -1,6 +1,11 @@
 // AUTO-GENERATED translation overlay (ar). Источник: транскреация с EN-базы (856 ключей).
 // ⚠️ НЕ ПОДКЛЮЧЁН в LANGUAGES — ждёт RTL-захода (I18nManager). Не править руками.
 const t: Record<string, string> = {
+  "theme_selection": "المظهر",
+  "theme_light": "فاتح",
+  "theme_dark": "داكن",
+  "theme_system": "النظام",
+  "theme_profile": "حسب الملف",
   "sudokuTryIndependently": "جرّب دون مساعدة",
   "sudokuPracticeOnly": "محاولة تدريب — لا يرتفع المستوى أو التقييم.",
   "sudokuLessonUnavailable": "لا توجد لوحة أخرى بهذه الصعوبة لدرس منفصل.",
@@ -3438,7 +3443,6 @@ const t: Record<string, string> = {
   "sdkRule_xv": "XV",
   "catalogSearch": "ابحث عن لعبة",
   "catalogFilter": "تصفية",
-  "catalogAll": "كل الألعاب",
   "catalogBySection": "الأقسام",
   "catalogBySkill": "المهارات",
   "catalogNothing": "لا توجد ألعاب مطابقة",

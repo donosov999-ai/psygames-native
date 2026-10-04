@@ -61,11 +61,11 @@ interface Translations {
 }
 
 const translations: Translations = {
-  theme_selection: {"ru":"Тема оформления","en":"Appearance","es":"Apariencia","de":"Darstellung","zh":"外观","hi":"रूप","pt":"Aparência","fr":"Apparence","it":"Aspetto","ja":"外観","ko":"화면 모드","ar":"المظهر"},
-  theme_light: {"ru":"Светлая","en":"Light","es":"Claro","de":"Hell","zh":"浅色","hi":"हल्का","pt":"Claro","fr":"Clair","it":"Chiaro","ja":"ライト","ko":"라이트","ar":"فاتح"},
-  theme_dark: {"ru":"Тёмная","en":"Dark","es":"Oscuro","de":"Dunkel","zh":"深色","hi":"गहरा","pt":"Escuro","fr":"Sombre","it":"Scuro","ja":"ダーク","ko":"다크","ar":"داكن"},
-  theme_system: {"ru":"Как в системе","en":"System","es":"Sistema","de":"System","zh":"跟随系统","hi":"सिस्टम","pt":"Sistema","fr":"Système","it":"Sistema","ja":"システム","ko":"시스템","ar":"النظام"},
-  theme_profile: {"ru":"По профилю","en":"Profile default","es":"Según el perfil","de":"Profilstandard","zh":"个人模式默认","hi":"प्रोफ़ाइल डिफ़ॉल्ट","pt":"Padrão do perfil","fr":"Selon le profil","it":"Predefinito del profilo","ja":"プロフィール設定","ko":"프로필 기본값","ar":"حسب الملف"},
+  theme_selection: { ru: 'Тема оформления', en: 'Appearance' },
+  theme_light: { ru: 'Светлая', en: 'Light' },
+  theme_dark: { ru: 'Тёмная', en: 'Dark' },
+  theme_system: { ru: 'Как в системе', en: 'System' },
+  theme_profile: { ru: 'По профилю', en: 'Profile default' },
   // welcomeUnlock — кнопка разблокировки кода в настройках (остальной welcome-блок удалён с WelcomeModal, v1.129.0)
   welcomeUnlock: { ru: 'Разблокировать', en: 'Unlock' },
 
@@ -2168,7 +2168,6 @@ const translations: Translations = {
   // Каталог «Игры»: поиск и фильтр шире развилок (задача f5025027, решение Дениса 01.10).
   catalogSearch: { ru: 'Найти игру', en: 'Find a game' },
   catalogFilter: { ru: 'Фильтр', en: 'Filter' },
-  catalogAll: { ru: 'Все игры', en: 'All games' },
   catalogBySection: { ru: 'Разделы', en: 'Sections' },
   catalogBySkill: { ru: 'Навыки', en: 'Skills' },
   catalogNothing: { ru: 'Ничего не нашлось', en: 'No games match your search' },

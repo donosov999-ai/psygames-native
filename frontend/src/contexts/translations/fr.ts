@@ -1,6 +1,11 @@
 // AUTO-GENERATED translation overlay (fr). Источник: транскреация с EN-базы (856 ключей).
 // Не править руками — регенерировать.
 const t: Record<string, string> = {
+  "theme_selection": "Apparence",
+  "theme_light": "Clair",
+  "theme_dark": "Sombre",
+  "theme_system": "Système",
+  "theme_profile": "Selon le profil",
   "sudokuTryIndependently": "Essayer sans aide",
   "sudokuPracticeOnly": "Essai d’entraînement — le niveau et le classement ne montent pas.",
   "sudokuLessonUnavailable": "Aucune autre grille de cette difficulté n’est disponible pour une leçon séparée.",
@@ -3437,7 +3442,6 @@ const t: Record<string, string> = {
   "sdkRule_xv": "XV",
   "catalogSearch": "Trouver un jeu",
   "catalogFilter": "Filtre",
-  "catalogAll": "Tous les jeux",
   "catalogBySection": "Sections",
   "catalogBySkill": "Compétences",
   "catalogNothing": "Aucun jeu ne correspond",
