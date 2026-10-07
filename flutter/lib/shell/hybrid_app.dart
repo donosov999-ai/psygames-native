@@ -96,6 +96,7 @@ import 'stats_screen.dart';
 import 'streak_calendar_screen.dart';
 import 'assessment_result_screen.dart';
 import 'onboarding_screen.dart';
+import 'info_screens.dart';
 import 'walking_pet.dart';
 import 'web_theme.dart';
 import '../games/sorting_hub/screen.dart';
@@ -658,12 +659,24 @@ class _HybridAppState extends State<HybridApp> {
     StreakCalendarScreen.route,
     AssessmentResultScreen.route,
     OnboardingScreen.route,
+    SourcesScreen.route,
+    CollectionScreen.route,
+    AchievementsScreen.route,
+    LeaguesScreen.route,
   ];
 
   /// Экраны по модели веба, которые НЕ вкладки полосы: страница уходит на них своим переходом
   /// (`router.push`/`replace`), а тело показывает нативный рисунок. Полоса — по правилу веба
   /// (`tabBar.ts`): на календаре стоит, на итоге оценки её нет.
-  static const _bodyPages = {StreakCalendarScreen.route, AssessmentResultScreen.route, OnboardingScreen.route};
+  static const _bodyPages = {
+    StreakCalendarScreen.route,
+    AssessmentResultScreen.route,
+    OnboardingScreen.route,
+    SourcesScreen.route,
+    CollectionScreen.route,
+    AchievementsScreen.route,
+    LeaguesScreen.route,
+  };
 
   /// Что показывает тело: страницу (0) или нативную вкладку.
   ///
@@ -1294,6 +1307,11 @@ class _HybridAppState extends State<HybridApp> {
             const AssessmentResultScreen(),
             // Знакомство (a8aa91e0): подбор и обучение — страница, полосы нет (noBar веба).
             OnboardingScreen(origin: widget.server.origin),
+            // Источники, коллекция, достижения, лиги (78165c68, 8111eea4, 56660caa, ac902ebf) — страницы по модели.
+            const SourcesScreen(),
+            const CollectionScreen(),
+            const AchievementsScreen(),
+            const LeaguesScreen(),
           ],
         ),
       ),

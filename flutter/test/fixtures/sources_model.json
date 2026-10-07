@@ -1,0 +1,599 @@
+{
+ "v": 1,
+ "title": "Источники",
+ "back": "Назад",
+ "intro": "Данные и графика, взятые из открытых источников, — и условия, на которых они используются.",
+ "cards": [
+  {
+   "name": "HSK 3.0 (ivankra/hsk30)",
+   "what": "Пиньинь, тоны и уровни для китайских слов. Первоисточник — список Министерства образования КНР.",
+   "license": "MIT",
+   "credit": "Ivan Krasilnikov · Shawky · Pleco Inc.",
+   "url": "https://github.com/ivankra/hsk30"
+  },
+  {
+   "name": "Записи произношения Викисловаря",
+   "what": "Живые записи произношения слов: 632 записи на русском, немецком и английском. Читают носители языка — участники Викисловаря и проекта Lingua Libre.",
+   "license": "CC BY-SA",
+   "credit": "Авторы Викисловаря и Lingua Libre — полный список ниже",
+   "url": "https://commons.wikimedia.org/wiki/Category:Pronunciation"
+  },
+  {
+   "name": "Шахматные фигуры Cburnett",
+   "what": "Векторные шахматные фигуры на доске в упражнении «Доска в уме».",
+   "license": "BSD-3-Clause",
+   "credit": "Colin M.L. Burnett",
+   "url": "https://en.wikipedia.org/wiki/User:Cburnett/GFDL_images/Chess"
+  }
+ ],
+ "voices": {
+  "title": "Кто читает слова",
+  "rows": [
+   {
+    "author": "—",
+    "license": "CC BY 2.0 fr",
+    "count": "127"
+   },
+   {
+    "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+    "license": "CC BY-SA 4.0",
+    "count": "122"
+   },
+   {
+    "author": "Association Shtooka, Judith Franck",
+    "license": "CC BY 3.0 us",
+    "count": "121"
+   },
+   {
+    "author": "Kampy",
+    "license": "CC BY-SA 3.0",
+    "count": "69"
+   },
+   {
+    "author": "Speaker: Rodelar Recorder: Rodelar",
+    "license": "CC BY-SA 4.0",
+    "count": "67"
+   },
+   {
+    "author": "Speaker: AdrianAbdulBaha Recorder: AdrianAbdulBaha",
+    "license": "CC BY-SA 4.0",
+    "count": "66"
+   },
+   {
+    "author": "Jeuwre",
+    "license": "CC BY-SA 4.0",
+    "count": "32"
+   },
+   {
+    "author": "Alexandra Poelzlbauers, Vion Nicolas",
+    "license": "CC BY 2.0 fr",
+    "count": "30"
+   },
+   {
+    "author": "Commander Keane",
+    "license": "CC BY-SA 4.0",
+    "count": "29"
+   },
+   {
+    "author": "Сергей Сахно, Vion Nicolas",
+    "license": "CC BY 3.0 us",
+    "count": "27"
+   },
+   {
+    "author": "Dvortygirl",
+    "license": "CC BY-SA 3.0",
+    "count": "26"
+   },
+   {
+    "author": "Gulnara Streit",
+    "license": "CC BY 2.0 fr",
+    "count": "19"
+   },
+   {
+    "author": "joni",
+    "license": "CC BY-SA 3.0",
+    "count": "16"
+   },
+   {
+    "author": "1640max",
+    "license": "CC BY-SA 4.0",
+    "count": "14"
+   },
+   {
+    "author": "Andrés Samael Cortina Ramírez",
+    "license": "CC0",
+    "count": "10"
+   },
+   {
+    "author": "Speaker: Juliano P. Junho Recorder: Jjunho",
+    "license": "CC BY-SA 4.0",
+    "count": "10"
+   },
+   {
+    "author": "Speaker: MedK1 Recorder: MedK1",
+    "license": "CC0",
+    "count": "10"
+   },
+   {
+    "author": "Speaker: Nelson Ricardo 2500 Recorder: Nelson Ricardo 2500",
+    "license": "CC BY-SA 4.0",
+    "count": "10"
+   },
+   {
+    "author": "User:Tosca",
+    "license": "CC BY-SA 3.0",
+    "count": "10"
+   },
+   {
+    "author": "Speaker: Rodrigo5260 Recorder: Rodrigo5260",
+    "license": "CC0",
+    "count": "9"
+   },
+   {
+    "author": "—",
+    "license": "CC BY-SA 3.0",
+    "count": "9"
+   },
+   {
+    "author": "Speaker: JnpoJuwan Recorder: JnpoJuwan",
+    "license": "CC0",
+    "count": "8"
+   },
+   {
+    "author": "Speaker: Millars Recorder: Millars",
+    "license": "CC BY-SA 4.0",
+    "count": "8"
+   },
+   {
+    "author": "T.Voekler",
+    "license": "CC BY-SA 3.0",
+    "count": "8"
+   },
+   {
+    "author": "Speaker: Back ache Recorder: Back ache",
+    "license": "CC BY-SA 4.0",
+    "count": "7"
+   },
+   {
+    "author": "The Shtooka Project",
+    "license": "CC BY 2.0 fr",
+    "count": "6"
+   },
+   {
+    "author": "Bleibein",
+    "license": "CC BY-SA 3.0",
+    "count": "5"
+   },
+   {
+    "author": "Pill",
+    "license": "CC BY-SA 3.0",
+    "count": "5"
+   },
+   {
+    "author": "Priwo",
+    "license": "Public domain",
+    "count": "5"
+   },
+   {
+    "author": "Speaker: Rodrigo5260 Recorder: Rodrigo5260",
+    "license": "CC BY-SA 4.0",
+    "count": "4"
+   },
+   {
+    "author": "Speaker: Vealhurl Recorder: Vealhurl",
+    "license": "CC BY-SA 4.0",
+    "count": "4"
+   },
+   {
+    "author": "No machine-readable author provided. Redlinux assumed (based on copyright claims",
+    "license": "Public domain",
+    "count": "3"
+   },
+   {
+    "author": "Speaker: DomesticFrog Recorder: DomesticFrog",
+    "license": "CC BY-SA 4.0",
+    "count": "3"
+   },
+   {
+    "author": "Speaker: Naomi Persephone Amethyst Recorder: NaomiAmethyst",
+    "license": "CC BY-SA 4.0",
+    "count": "3"
+   },
+   {
+    "author": "UofG Language Modules",
+    "license": "CC BY-SA 4.0",
+    "count": "3"
+   },
+   {
+    "author": "Alhen",
+    "license": "CC BY 2.5",
+    "count": "2"
+   },
+   {
+    "author": "Dinock90",
+    "license": "CC BY-SA 4.0",
+    "count": "2"
+   },
+   {
+    "author": "Edward Montgomery Harrington",
+    "license": "CC BY-SA 3.0",
+    "count": "2"
+   },
+   {
+    "author": "Mattadjwic",
+    "license": "CC BY 4.0",
+    "count": "2"
+   },
+   {
+    "author": "Myrkur",
+    "license": "CC BY-SA 3.0",
+    "count": "2"
+   },
+   {
+    "author": "Oceancetaceen Alice Chodura",
+    "license": "CC BY-SA 3.0",
+    "count": "2"
+   },
+   {
+    "author": "Speaker: Cinemantique Recorder: Cinemantique",
+    "license": "CC BY-SA 4.0",
+    "count": "2"
+   },
+   {
+    "author": "Tbhotch",
+    "license": "CC BY-SA 4.0",
+    "count": "2"
+   },
+   {
+    "author": "—",
+    "license": "Public domain",
+    "count": "2"
+   },
+   {
+    "author": "ATMarsden",
+    "license": "CC BY 4.0",
+    "count": "1"
+   },
+   {
+    "author": "Achim Raschka (talk)",
+    "license": "CC BY-SA 3.0",
+    "count": "1"
+   },
+   {
+    "author": "Akafinland",
+    "license": "Public domain",
+    "count": "1"
+   },
+   {
+    "author": "Alhen",
+    "license": "CC BY-SA 3.0",
+    "count": "1"
+   },
+   {
+    "author": "Aliphee",
+    "license": "CC BY-SA 4.0",
+    "count": "1"
+   },
+   {
+    "author": "Atcovi",
+    "license": "CC BY-SA 4.0",
+    "count": "1"
+   },
+   {
+    "author": "Audio sample provided by The Shtooka Project",
+    "license": "CC BY 2.0 fr",
+    "count": "1"
+   },
+   {
+    "author": "Bleibein",
+    "license": "CC BY-SA 4.0",
+    "count": "1"
+   },
+   {
+    "author": "Brett",
+    "license": "CC0",
+    "count": "1"
+   },
+   {
+    "author": "Carlos Valenzuela",
+    "license": "Public domain",
+    "count": "1"
+   },
+   {
+    "author": "Commander Keane, CC BY-SA 4.0, via Wikimedia Commons",
+    "license": "CC BY-SA 4.0",
+    "count": "1"
+   },
+   {
+    "author": "Dvortygirl",
+    "license": "Public domain",
+    "count": "1"
+   },
+   {
+    "author": "Hans-Joachim Fröde; alias Acf; native speaker",
+    "license": "CC BY-SA 3.0",
+    "count": "1"
+   },
+   {
+    "author": "Hschier",
+    "license": "CC BY 3.0",
+    "count": "1"
+   },
+   {
+    "author": "Jaiganesh.kumaran",
+    "license": "CC0",
+    "count": "1"
+   },
+   {
+    "author": "Jeuwre",
+    "license": "CC BY-SA 3.0",
+    "count": "1"
+   },
+   {
+    "author": "Kampy",
+    "license": "CC BY 3.0",
+    "count": "1"
+   },
+   {
+    "author": "Luiz Torro",
+    "license": "CC BY-SA 3.0",
+    "count": "1"
+   },
+   {
+    "author": "Malafaya",
+    "license": "CC BY-SA 3.0",
+    "count": "1"
+   },
+   {
+    "author": "Matthew Norris",
+    "license": "CC BY-SA 4.0",
+    "count": "1"
+   },
+   {
+    "author": "Memie",
+    "license": "CC BY-SA 3.0",
+    "count": "1"
+   },
+   {
+    "author": "MiER",
+    "license": "CC BY-SA 3.0",
+    "count": "1"
+   },
+   {
+    "author": "Myriam Dechamps",
+    "license": "CC BY-SA 3.0",
+    "count": "1"
+   },
+   {
+    "author": "Myriam Dechamps",
+    "license": "CC BY-SA 4.0",
+    "count": "1"
+   },
+   {
+    "author": "No machine-readable author provided. Baryonic Being~commonswiki assumed (based o",
+    "license": "Public domain",
+    "count": "1"
+   },
+   {
+    "author": "No machine-readable author provided. Celestianpower assumed (based on copyright ",
+    "license": "Public domain",
+    "count": "1"
+   },
+   {
+    "author": "No machine-readable author provided. Chris Melville assumed (based on copyright ",
+    "license": "Public domain",
+    "count": "1"
+   },
+   {
+    "author": "No machine-readable author provided. Cyrotux assumed (based on copyright claims)",
+    "license": "CC BY-SA 2.5",
+    "count": "1"
+   },
+   {
+    "author": "No machine-readable author provided. Denelson83 assumed (based on copyright clai",
+    "license": "CC BY-SA 3.0",
+    "count": "1"
+   },
+   {
+    "author": "No machine-readable author provided. Josemoya assumed (based on copyright claims",
+    "license": "CC BY-SA 3.0",
+    "count": "1"
+   },
+   {
+    "author": "No machine-readable author provided. Malafaya assumed (based on copyright claims",
+    "license": "CC BY-SA 3.0",
+    "count": "1"
+   },
+   {
+    "author": "No machine-readable author provided. S.~commonswiki assumed (based on copyright ",
+    "license": "Public domain",
+    "count": "1"
+   },
+   {
+    "author": "No machine-readable author provided. Stuart H assumed (based on copyright claims",
+    "license": "Public domain",
+    "count": "1"
+   },
+   {
+    "author": "No machine-readable author provided. Tawker assumed (based on copyright claims).",
+    "license": "CC BY-SA 3.0",
+    "count": "1"
+   },
+   {
+    "author": "No machine-readable author provided. TheDaveRoss assumed (based on copyright cla",
+    "license": "CC BY-SA 3.0",
+    "count": "1"
+   },
+   {
+    "author": "Nonviktis",
+    "license": "CC BY-SA 4.0",
+    "count": "1"
+   },
+   {
+    "author": "Peter Isotalo",
+    "license": "CC BY-SA 3.0",
+    "count": "1"
+   },
+   {
+    "author": "Pogrebnoj-Alexandroff",
+    "license": "CC BY 3.0",
+    "count": "1"
+   },
+   {
+    "author": "Pogrebnoj-Alexandroff",
+    "license": "CC BY-SA 2.5",
+    "count": "1"
+   },
+   {
+    "author": "Rovdyr",
+    "license": "CC BY 2.5",
+    "count": "1"
+   },
+   {
+    "author": "Ser be etre shi",
+    "license": "CC0",
+    "count": "1"
+   },
+   {
+    "author": "Sicherlich",
+    "license": "CC BY-SA 3.0",
+    "count": "1"
+   },
+   {
+    "author": "Speaker: Aquild Recorder: Aquild",
+    "license": "CC BY 4.0",
+    "count": "1"
+   },
+   {
+    "author": "Speaker: CaroEspinoza Recorder: CaroEspinoza",
+    "license": "CC0",
+    "count": "1"
+   },
+   {
+    "author": "Speaker: Delta Atelo Recorder: Delta Atelo",
+    "license": "CC BY-SA 4.0",
+    "count": "1"
+   },
+   {
+    "author": "Speaker: Exilexi Recorder: Exilexi",
+    "license": "CC BY-SA 4.0",
+    "count": "1"
+   },
+   {
+    "author": "Speaker: Florenciac Recorder: Florenciac",
+    "license": "CC BY-SA 4.0",
+    "count": "1"
+   },
+   {
+    "author": "Speaker: I learned some phrases Recorder: I learned some phrases",
+    "license": "CC BY-SA 4.0",
+    "count": "1"
+   },
+   {
+    "author": "Speaker: Julie Samothrace Recorder: Julie Samothrace",
+    "license": "CC BY-SA 4.0",
+    "count": "1"
+   },
+   {
+    "author": "Speaker: Marreromarco Recorder: Marreromarco",
+    "license": "CC BY-SA 4.0",
+    "count": "1"
+   },
+   {
+    "author": "Speaker: Nattes à chat Recorder: Nattes à chat",
+    "license": "CC BY-SA 4.0",
+    "count": "1"
+   },
+   {
+    "author": "Speaker: Precision27 Recorder: Precision27",
+    "license": "CC BY 4.0",
+    "count": "1"
+   },
+   {
+    "author": "Speaker: Stríðsdrengur Recorder: Stríðsdrengur",
+    "license": "CC0",
+    "count": "1"
+   },
+   {
+    "author": "StMH",
+    "license": "CC BY-SA 3.0",
+    "count": "1"
+   },
+   {
+    "author": "Streit Goula, Streit Eric, Vion Nicolas (Shtooka Project)",
+    "license": "CC BY 2.0 fr",
+    "count": "1"
+   },
+   {
+    "author": "T.Voekler",
+    "license": "Public domain",
+    "count": "1"
+   },
+   {
+    "author": "Timwi at English Wikipedia",
+    "license": "Public domain",
+    "count": "1"
+   },
+   {
+    "author": "Tino no",
+    "license": "CC BY 4.0",
+    "count": "1"
+   },
+   {
+    "author": "Tosca",
+    "license": "CC BY-SA 3.0",
+    "count": "1"
+   },
+   {
+    "author": "Tsca.bot",
+    "license": "CC BY 2.0 fr",
+    "count": "1"
+   },
+   {
+    "author": "recorded by TheDaveRoss",
+    "license": "CC BY-SA 3.0",
+    "count": "1"
+   },
+   {
+    "author": "unjourparfait",
+    "license": "Public domain",
+    "count": "1"
+   },
+   {
+    "author": "user:Chris Melville",
+    "license": "Public domain",
+    "count": "1"
+   },
+   {
+    "author": "Сергей Сахно, Vion Nicolas",
+    "license": "CC BY 2.0 fr",
+    "count": "1"
+   },
+   {
+    "author": "—",
+    "license": "CC BY-SA 2.5",
+    "count": "1"
+   },
+   {
+    "author": "Logictheo",
+    "license": "CC BY-SA 3.0",
+    "count": "6"
+   },
+   {
+    "author": "Twocs",
+    "license": "CC BY-SA 3.0",
+    "count": "2"
+   },
+   {
+    "author": "Commander Keane",
+    "license": "CC BY-SA 4.0",
+    "count": "1"
+   },
+   {
+    "author": "EncycloPetey",
+    "license": "CC BY-SA 3.0",
+    "count": "1"
+   }
+  ]
+ }
+}

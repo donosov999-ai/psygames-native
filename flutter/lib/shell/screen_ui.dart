@@ -14,7 +14,7 @@ class ScreenUi {
 
   /// Адреса, чьи экраны рисует оболочка по модели. Веб узнаёт их из `window.__psyHostScreens`.
   /// `#…` — не адрес, а окно экрана (переключатель профилей живёт на Главной).
-  static const routes = {'/', '#switcher', '/statistics', '/streak-calendar', '/assessment-result', '/onboarding'};
+  static const routes = {'/', '#switcher', '/statistics', '/streak-calendar', '/assessment-result', '/onboarding', '/sources', '/collection', '/achievements', '/leagues'};
 
   static final _models = <String, ValueNotifier<Map<String, Object?>?>>{};
 

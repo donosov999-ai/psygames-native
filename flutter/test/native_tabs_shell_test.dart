@@ -19,6 +19,7 @@ import 'package:psygames_flutter/shell/stats_screen.dart';
 import 'package:psygames_flutter/shell/streak_calendar_screen.dart';
 import 'package:psygames_flutter/shell/assessment_result_screen.dart';
 import 'package:psygames_flutter/shell/onboarding_screen.dart';
+import 'package:psygames_flutter/shell/info_screens.dart';
 import 'package:psygames_flutter/shell/walking_pet.dart';
 import 'package:psygames_flutter/shell/web_game_screen.dart';
 import 'package:psygames_flutter/shell/web_theme.dart';
@@ -509,7 +510,7 @@ void main() {
     await settle(t, () => find.byKey(const ValueKey('home-header')).evaluate().isNotEmpty);
     expect(find.byKey(const ValueKey('home-header')), findsOneWidget);
     expect(t.widget<NativeTabBar>(find.byType(NativeTabBar)).active, '/');
-    expect(page().js.any((s) => s.contains('window.__psyHostScreens=["/","#switcher","/statistics","/streak-calendar","/assessment-result","/onboarding"]')), isTrue,
+    expect(page().js.any((s) => s.contains('window.__psyHostScreens=["/","#switcher","/statistics","/streak-calendar","/assessment-result","/onboarding","/sources","/collection","/achievements","/leagues"]')), isTrue,
         reason: 'веб узнаёт, какие экраны рисуем мы');
     // Вкладка «Игры» и назад — Главная та же, модель жива.
     await toGames(t);
@@ -667,6 +668,26 @@ void main() {
     await route(t, '/');
     await settle(t, () => find.byKey(const ValueKey('goal-sheet')).evaluate().isNotEmpty);
     expect(find.byKey(const ValueKey('goal-sheet')), findsOneWidget);
+  });
+
+  testWidgets('🔴 источники, коллекция, достижения, лиги — нативные страницы с полосой; «назад» — по истории', (t) async {
+    await mount(t);
+    for (final (path, file, k) in [
+      (SourcesScreen.route, 'sources_model.json', 'sources-screen'),
+      (CollectionScreen.route, 'collection_model.json', 'collection-screen'),
+      (AchievementsScreen.route, 'achievements_model.json', 'achievements-screen'),
+      (LeaguesScreen.route, 'leagues_model.json', 'leagues-screen'),
+    ]) {
+      await route(t, path);
+      page().emit(SharedState.channel, {'op': 'screenUi', 'route': path, 'model': fixture(file)});
+      await settle(t, () => find.byKey(ValueKey(k)).evaluate().isNotEmpty);
+      expect(find.byKey(ValueKey(k)), findsOneWidget, reason: path);
+      expect(find.byType(NativeTabBar), findsOneWidget, reason: '$path: tabBarVisible веба — полоса есть');
+      page().js.clear();
+      await t.binding.handlePopRoute();
+      await t.pump();
+      expect(page().js.any((s) => s.contains('__psyBack')), isTrue, reason: '$path: «назад» — по истории страницы');
+    }
   });
 
   testWidgets('итог оценки без модели 6 с — сама страница', (t) async {

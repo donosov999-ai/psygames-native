@@ -6,7 +6,7 @@
  * закрыл давнюю дыру — уведомление BSD-3 о шахматных фигурах существовало
  * константой и нигде не показывалось.
  */
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Linking } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -16,11 +16,34 @@ import { SOURCES } from '@/src/constants/sources';
 import { VOICE_LIVE_CREDITS } from '@/src/constants/voiceLive.generated';
 import { LETTER_VOICE_CREDITS } from '@/src/constants/letterVoice.generated';
 import { FAB_CLEARANCE } from '@/src/services/fabPosition';
+import { postScreenModel, registerScreenActions } from '@/src/services/hostScreens';
 
 export default function SourcesScreen() {
   const { colors } = useTheme();
   const { t } = useLanguage();
   const router = useRouter();
+
+  /**
+   * 🔴 ПОД ОБОЛОЧКОЙ «ИСТОЧНИКИ» РИСУЕТ FLUTTER (задача 78165c68, `services/hostScreens.ts`).
+   * Модель — те же строки, что ниже; ссылку открывает веб тем же `Linking.openURL`.
+   */
+  const sourcesModel = {
+    v: 1,
+    title: t('sourcesTitle'), back: t('back'), intro: t('sourcesIntro'),
+    cards: SOURCES.map((и) => ({ name: и.name, what: t(и.key), license: и.license, credit: и.credit ?? null, url: и.url })),
+    voices: {
+      title: t('voiceCreditsTitle'),
+      rows: [...VOICE_LIVE_CREDITS, ...LETTER_VOICE_CREDITS].map((к) => ({ author: к.author, license: к.license, count: String(к.count) })),
+    },
+  };
+  const sourcesKey = JSON.stringify(sourcesModel);
+  useEffect(() => { postScreenModel('/sources', JSON.parse(sourcesKey)); }, [sourcesKey]);
+  const sourcesActs = useRef({ router });
+  useEffect(() => { sourcesActs.current = { router }; });
+  useEffect(() => registerScreenActions('/sources', {
+    back: () => sourcesActs.current.router.back(),
+    open: (url: string) => { Linking.openURL(String(url)).catch(() => {}); },
+  }), []);
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
