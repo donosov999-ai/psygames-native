@@ -99,6 +99,9 @@ import 'streak_calendar_screen.dart';
 import 'assessment_result_screen.dart';
 import 'onboarding_screen.dart';
 import 'friends_screen.dart';
+import 'shop_screen.dart';
+import 'whats_new_screen.dart';
+import 'pet_screen.dart';
 import 'info_screens.dart';
 import 'walking_pet.dart';
 import 'web_theme.dart';
@@ -716,6 +719,9 @@ class _HybridAppState extends State<HybridApp> {
     AchievementsScreen.route,
     LeaguesScreen.route,
     FriendsScreen.route,
+    ShopScreen.route,
+    WhatsNewScreen.route,
+    PetScreen.route,
   ];
 
   /// Экраны по модели веба, которые НЕ вкладки полосы: страница уходит на них своим переходом
@@ -730,6 +736,8 @@ class _HybridAppState extends State<HybridApp> {
     AchievementsScreen.route,
     LeaguesScreen.route,
     FriendsScreen.route,
+    ShopScreen.route,
+    WhatsNewScreen.route,
   };
 
   /// Что показывает тело: страницу (0) или нативную вкладку.
@@ -1417,6 +1425,12 @@ class _HybridAppState extends State<HybridApp> {
             const LeaguesScreen(),
             // «Друзья» (7bb8035b) — страница по модели; сервер круга держит веб.
             const FriendsScreen(),
+            // «Магазин» (9424da3a) — страница по модели; покупки и баланс держит веб.
+            ShopScreen(origin: widget.server.origin),
+            // «Что нового» (84df0687): список версий — модель веба, проверку обновлений делает оболочка.
+            const WhatsNewScreen(),
+            // «Питомец» (d1e147b0) — вкладка по модели веба; кадры — тем же PetFrames, что у гуляки.
+            PetScreen(origin: widget.server.origin),
           ],
                 ),
               ),
@@ -1458,7 +1472,8 @@ class _HybridAppState extends State<HybridApp> {
       Positioned.fill(child: scaffold),
       // Питомец страницы скрыт вместе с ней — на нативной вкладке гуляет питомец оболочки
       // (облик и реплики — у веба, мостом `__psyPet`). Ниже кнопки отзыва, как `zIndex` веба.
-      if (_nativeTab != null && bar)
+      // На вкладке «Питомец» гуляки нет — питомец и так на экране (как `routeAllowed` веба).
+      if (_nativeTab != null && _nativeTab != PetScreen.route && bar)
         WalkingPet(
           origin: widget.server.origin,
           lift: NativeTabs.height,

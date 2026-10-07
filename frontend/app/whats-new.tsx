@@ -15,11 +15,36 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { isRTLLang } from '@/src/services/rtl';
 import { WHATS_NEW } from '@/src/constants/whatsNew';
 import { checkForUpdate, currentVersion, updateUrl } from '@/src/services/appUpdates';
+import { postScreenModel, registerScreenActions } from '@/src/services/hostScreens';
+
+/**
+ * Пункты версии на языке человека. Записи «что нового» лежат на двух языках (`e.ru`/`e.en`) —
+ * долг двуязычных строк (`screen-language-fallback.test.ts`); одна развилка на разметку и модель.
+ */
+function entryItems(e: (typeof WHATS_NEW)[number], language: string): string[] {
+  return language === 'ru' ? e.ru : e.en;
+}
 
 export default function WhatsNewScreen() {
   const { colors } = useTheme();
   const { t, language } = useLanguage();
   const [checking, setChecking] = React.useState(false);
+
+  /**
+   * 🔴 ПОД ОБОЛОЧКОЙ «ЧТО НОВОГО» РИСУЕТ FLUTTER (задача 84df0687, `services/hostScreens.ts`).
+   * Список версий — те же записи `WHATS_NEW`. «Проверить обновления» оболочка делает сама
+   * (`AppUpdate`, запрос из Dart): у сайта нет CORS для WebView, и `checkForUpdate` страницы
+   * в гибриде всегда отвечал бы «не удалось проверить».
+   */
+  const whatsNewKey = JSON.stringify({
+    v: 1,
+    title: t('versionHistory'), back: t('a11yBack'), backIcon: isRTLLang(language) ? 'arrow-forward' : 'arrow-back',
+    primary: colors.primary,
+    check: `${t('updCheckBtn')} · v${currentVersion()}`,
+    entries: WHATS_NEW.map((e) => ({ version: `v${e.version}`, date: e.date, items: entryItems(e, language) })),
+  });
+  React.useEffect(() => { postScreenModel('/whats-new', JSON.parse(whatsNewKey)); }, [whatsNewKey]);
+  React.useEffect(() => registerScreenActions('/whats-new', { back: () => goBackOrHome() }), []);
 
   const doCheck = async () => {
     setChecking(true);
@@ -67,7 +92,7 @@ export default function WhatsNewScreen() {
               <Text style={[styles.ver, { color: colors.text }]}>v{e.version}</Text>
               <Text style={[styles.date, { color: colors.textSecondary }]}>{e.date}</Text>
             </View>
-            {(language === 'ru' ? e.ru : e.en).map((it, i) => (
+            {entryItems(e, language).map((it, i) => (
               <View key={i} style={styles.row}>
                 <Text style={[styles.dot, { color: colors.primary }]}>•</Text>
                 <Text style={[styles.item, { color: colors.text }]}>{it}</Text>

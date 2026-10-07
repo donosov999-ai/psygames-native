@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, Redirect } from 'expo-router';
@@ -18,7 +18,9 @@ import { PROFILE_BACKGROUNDS } from '@/src/constants/profileBackgrounds';
 import { PROFILE_BADGES } from '@/src/constants/profileBadges';
 import { PROFILES } from '@/src/constants/profiles';
 import {
-  ABILITIES, Ability, AbilityCounts, buyAbility, getAbilityCounts, useAbility,
+  ABILITIES, Ability, AbilityCounts, buyAbility, getAbilityCounts,
+  // Сервисная трата, не хук React: под своим именем линт принимает её за хук внутри колбэка.
+  useAbility as spendAbility,
 } from '@/src/services/abilities';
 import {
   COSMETICS, Cosmetic, getUnlocked, unlockCosmetic, getEquipped, equipCosmetic, unequipCosmetic,
@@ -27,6 +29,7 @@ import { getPetAccessory, setPetAccessory } from '@/src/services/pet';
 import { avatarImage } from '@/src/constants/avatars';
 import { sndToken, sndTap, sndWrong, sndCorrect, getSoundPack, setSoundPack as applySoundPack } from '@/src/services/feedback';
 import { a11yDecor } from '@/src/services/a11y';
+import { assetUri, postScreenModel, registerScreenActions } from '@/src/services/hostScreens';
 
 /**
  * ЧТО ПОКАЗЫВАЮТ ДВЕ КНОПКИ КАРТОЧКИ СПОСОБНОСТИ — одним решением на обе.
@@ -52,6 +55,62 @@ export function abilityButtons(
 ): { buy: BuyState; use: UseState } {
   const buy: BuyState = have >= max ? 'full' : balance >= cost ? 'buy' : 'need-more';
   return { buy, use: usable ? (have > 0 ? 'ready' : 'empty') : null };
+}
+
+/**
+ * СОСТОЯНИЕ СТРОКИ КОСМЕТИКИ — одно решение на разметку экрана и на модель оболочки
+ * (`shopModel` ниже): куплено ли, надето ли, хватает ли очков, каким цветом рамка и кнопка.
+ * ⚠️ Звук-пак и вещь питомца — глобальные (не по профилю), поэтому «надето» у них своё.
+ */
+export function cosmeticRow(
+  c: Cosmetic,
+  s: { unlocked: string[]; soundPack: string | null; petAcc: string | null; equipped: Record<string, string>; balance: number; primary: string },
+) {
+  const owned = s.unlocked.includes(c.id);
+  const isSound = c.type === 'sound';
+  const isPet = c.type === 'pet';
+  const on = isSound ? s.soundPack === c.value : isPet ? s.petAcc === c.value : s.equipped[c.type] === c.id;
+  const canAfford = s.balance >= c.cost;
+  // sound value может быть составным "waveform:pitch" — акцент кнопки берём из темы, не парсим цвет из него
+  const accent = c.type === 'accent' || c.type === 'frame' ? c.value : s.primary;
+  return { owned, isSound, isPet, on, canAfford, accent };
+}
+
+/** Значок вещи питомца в квадрате строки. */
+export function petAccEmoji(v: string): string {
+  return v === 'bow' ? '🎀' : v === 'party_hat' ? '🥳' : v === 'bow_tie' ? '🎩' : '👓';
+}
+
+/** Вкладки разделов: тип (null — все), значок, подпись для чтеца. */
+const SHOP_CATS = [
+  [null, 'apps', 'a11yCatAll'], ['ability', 'flash', 'a11yCatAbility'],
+  ['accent', 'color-palette', 'a11yCatAccent'], ['sound', 'musical-notes', 'a11yCatSound'],
+  ['frame', 'scan', 'a11yCatFrame'], ['title', 'pricetag', 'a11yCatTitle'], ['avatar', 'person', 'a11yCatAvatar'], ['pet', 'paw', 'a11yCatPet'],
+  ['digits', 'calculator', 'a11yCatDigits'], ['theme', 'map', 'a11yCatTheme'], ['background', 'image', 'a11yCatBackground'], ['badge', 'ribbon', 'a11yCatBadge'],
+] as const;
+
+/** Косметические разделы по порядку: тип и ключ заголовка. */
+const SHOP_SECTIONS = [
+  ['accent', 'shopAccentSection'], ['sound', 'shopSoundSection'], ['frame', 'shopFrameSection'],
+  ['title', 'shopTitleSection'], ['avatar', 'shopAvatarSection'], ['pet', 'shopPetSection'],
+  ['digits', 'shopDigitsSection'], ['theme', 'shopThemeSection'],
+  ['background', 'shopBackgroundSection'], ['badge', 'shopBadgeSection'],
+] as const;
+
+/** Товары раздела. Свой дефолтный арт профиля не продаётся — он и так применяется бесплатно. */
+function shopItems(type: string, profileId: string | undefined): Cosmetic[] {
+  return COSMETICS.filter((c) => c.type === type)
+    .filter((c) => !(
+      ((c.type === 'theme' || c.type === 'background' || c.type === 'badge') && c.value === profileId) ||
+      (c.type === 'digits' && c.value === defaultStyleForProfile(profileId))
+    ));
+}
+
+/** Имя товара: у арта профиля — имя профиля. */
+function cosmeticName(c: Cosmetic, t: (k: string) => string): string {
+  return (c.type === 'theme' || c.type === 'background' || c.type === 'badge')
+    ? (PROFILES.find((p) => p.id === c.value)?.display_name ?? t(c.nameKey))
+    : t(c.nameKey);
 }
 
 /**
@@ -88,6 +147,19 @@ function ShopScreenBody() {
   // а на экране меняется только число в углу — этого мало, чтобы понять, что случилось.
   const [note, setNote] = useState<string | null>(null);
   const [wager, setWager] = useState<WagerState>({ kind: 'none' });   // ставка «всё или ничего»
+  /**
+   * 🔴 ОДНА ТРАТА ЗА РАЗ (задача 9424da3a: «быстрое двойное нажатие не списывает дважды»).
+   * Проверка «хватает ли очков» смотрит на баланс из состояния, а он обновляется только после
+   * `reload()`. Второе нажатие, пришедшее раньше, видело старый баланс и списывало ещё раз —
+   * с кнопки оболочки два действия прилетают быстрее, чем веб успевает перерисоваться.
+   * Пока трата идёт, следующие нажатия молча отбрасываются.
+   */
+  const spending = useRef(false);
+  const once = useCallback(async (fn: () => Promise<void>) => {
+    if (spending.current) return;
+    spending.current = true;
+    try { await fn(); } finally { spending.current = false; }
+  }, []);
 
   const reload = useCallback(async () => {
     const pid = profile?.id;
@@ -103,20 +175,20 @@ function ShopScreenBody() {
 
   useFocusEffect(useCallback(() => { reload(); }, [reload]));
 
-  const buy = async (c: Cosmetic) => {
+  const buy = (c: Cosmetic) => once(async () => {
     const pid = profile?.id;
     if (!pid) return;
     if (balance < c.cost) { sndWrong(); return; }
     const ok = await spendTokens(pid, c.cost);
     if (ok) { await unlockCosmetic(pid, c.id); sndToken(); await reload(); }
     else sndWrong();
-  };
+  });
 
   /**
    * Купить штуку способности. Причина отказа проговаривается: «не хватает очков» и
    * «в кошельке уже максимум» — разные ответы, и кнопка, молчащая на оба, врёт.
    */
-  const buyAb = async (a: Ability) => {
+  const buyAb = (a: Ability) => once(async () => {
     const pid = profile?.id;
     if (!pid) return;
     const r = await buyAbility(pid, a.id);
@@ -128,7 +200,7 @@ function ShopScreenBody() {
       setNote(r.reason === 'full' ? t('abilityFull') : t('needMoreTokens'));
     }
     await reload();
-  };
+  });
 
   /**
    * Применить «Щит серии» прямо из кошелька.
@@ -137,19 +209,19 @@ function ShopScreenBody() {
    * порядке нажатие на целой серии съедало бы щит впустую — самая обидная из
    * возможных трат: заплатил и ничего не произошло.
    */
-  const useShield = async () => {
+  const useShield = () => once(async () => {
     const pid = profile?.id;
     if (!pid) return;
     const broken = await checkInStreakRepairable(pid);
     if (!broken) { sndWrong(); setNote(t('abilityStreakIntact')); return; }
-    if (!(await useAbility(pid, 'streak_shield'))) { sndWrong(); setNote(t('abilityNoneLeft')); return; }
+    if (!(await spendAbility(pid, 'streak_shield'))) { sndWrong(); setNote(t('abilityNoneLeft')); return; }
     const r = await repairCheckInStreak(pid);
     sndToken();
     setNote(r.ok
       ? t('abilityStreakRestored').replace('{n}', String(r.streak))
       : t('abilityStreakStale'));
     await reload();
-  };
+  });
 
   const toggleEquip = async (c: Cosmetic) => {
     const pid = profile?.id;
@@ -185,7 +257,7 @@ function ShopScreenBody() {
    * `{count > 0 && <Text>…</Text>}` выглядит в исходнике живой, а на экране её нет
    * ровно у того, кто ещё ничего не купил, — то есть у всех, кому она и нужна.
    */
-  const placeWagerNow = async () => {
+  const placeWagerNow = () => once(async () => {
     const pid = profile?.id;
     if (!pid) return;
     const ok = await placeWager(pid);
@@ -194,7 +266,7 @@ function ShopScreenBody() {
       setNote(`${t('wagerTitle')}: −${WAGER_STAKE} ⭐ · ${t('wagerDay').replace('{d}', '1').replace('{t}', String(WAGER_DAYS))}`);
     }
     await reload();
-  };
+  });
 
   const renderAbility = (a: Ability) => {
     const have = abilities[a.id] ?? 0;
@@ -242,13 +314,7 @@ function ShopScreenBody() {
   };
 
   const renderItem = (c: Cosmetic) => {
-    const owned = unlocked.includes(c.id);
-    const isSound = c.type === 'sound';
-    const isPet = c.type === 'pet';
-    const on = isSound ? soundPack === c.value : isPet ? petAcc === c.value : equipped[c.type] === c.id;
-    const canAfford = balance >= c.cost;
-    // sound value может быть составным "waveform:pitch" — акцент кнопки берём из темы, не парсим цвет из него
-    const accent = c.type === 'accent' || c.type === 'frame' ? c.value : colors.primary;
+    const { owned, isSound, isPet, on, canAfford, accent } = cosmeticRow(c, { unlocked, soundPack, petAcc, equipped, balance, primary: colors.primary });
     return (
       <View key={c.id} style={[styles.row, { backgroundColor: colors.surface, borderColor: on ? accent : colors.border, borderWidth: on ? 2 : 1 }]}>
         {c.type === 'sound' ? (
@@ -267,7 +333,7 @@ function ShopScreenBody() {
           <Image {...a11yDecor} source={avatarImage(c.value)} style={[styles.swatch, { backgroundColor: colors.background }]} resizeMode="cover" />
         ) : c.type === 'pet' ? (
           <View style={[styles.swatch, { backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center' }]}>
-            <Text style={{ fontSize: 20 }}>{c.value === 'bow' ? '🎀' : c.value === 'party_hat' ? '🥳' : c.value === 'bow_tie' ? '🎩' : '👓'}</Text>
+            <Text style={{ fontSize: 20 }}>{petAccEmoji(c.value)}</Text>
           </View>
         ) : c.type === 'digits' ? (
           <View style={[styles.swatch, { backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center' }]}>
@@ -285,9 +351,7 @@ function ShopScreenBody() {
         {/* minWidth:0 — при крупном шрифте блок с текстом ужимается, а не выдавливает кнопку Купить/Надеть за край */}
         <View style={{ flex: 1, minWidth: 0 }}>
           <Text style={{ color: colors.text, fontWeight: '700', fontSize: 15 }}>
-            {(c.type === 'theme' || c.type === 'background' || c.type === 'badge')
-              ? (PROFILES.find((p) => p.id === c.value)?.display_name ?? t(c.nameKey))
-              : t(c.nameKey)}
+            {cosmeticName(c, t)}
           </Text>
           <Text style={{ color: colors.textSecondary, fontSize: 12, marginTop: 2, lineHeight: 16 }}>{t(c.descKey)}</Text>
           <Text style={{ color: owned ? colors.textSecondary : colors.text, fontSize: 13, fontWeight: '700', marginTop: 3 }}>
@@ -315,6 +379,41 @@ function ShopScreenBody() {
     );
   };
 
+  /**
+   * 🔴 ПОД ОБОЛОЧКОЙ «МАГАЗИН» РИСУЕТ FLUTTER (задача 9424da3a, `services/hostScreens.ts`).
+   * Модель — те же решения, что у разметки ниже: `abilityButtons`, `cosmeticRow`, `shopItems`,
+   * `cosmeticName`, `SHOP_CATS`/`SHOP_SECTIONS`. Покупки и надевание — те же функции экрана.
+   */
+  const shopKey = JSON.stringify(shopModel({
+    balance, unlocked, equipped, soundPack, petAcc, cat, abilities, note, wager,
+    profileId: profile?.id, rtl: isRTLLang(language),
+  }, t, colors));
+  useEffect(() => { postScreenModel('/shop', JSON.parse(shopKey)); }, [shopKey]);
+  const shopActs = useRef({ buy, buyAb, useShield, placeWagerNow, toggleSound, togglePetAcc, toggleEquip });
+  useEffect(() => { shopActs.current = { buy, buyAb, useShield, placeWagerNow, toggleSound, togglePetAcc, toggleEquip }; });
+  useEffect(() => registerScreenActions('/shop', {
+    back: () => goBackOrHome(),
+    cat: (id: string | null) => {
+      if (id === null || SHOP_CATS.some(([c]) => c === id)) setCat(id);
+    },
+    buyAbility: (id: string) => {
+      const a = ABILITIES.find((x) => x.id === id);
+      if (a) shopActs.current.buyAb(a);
+    },
+    useShield: () => { shopActs.current.useShield(); },
+    wager: () => { shopActs.current.placeWagerNow(); },
+    buy: (id: string) => {
+      const c = COSMETICS.find((x) => x.id === id);
+      if (c) shopActs.current.buy(c);
+    },
+    toggle: (id: string) => {
+      const c = COSMETICS.find((x) => x.id === id);
+      if (!c) return;
+      const a = shopActs.current;
+      if (c.type === 'sound') a.toggleSound(c); else if (c.type === 'pet') a.togglePetAcc(c); else a.toggleEquip(c);
+    },
+  }), []);
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
@@ -332,12 +431,7 @@ function ShopScreenBody() {
       {/* v1.155: фильтр-категории (иконки, без новых i18n-ключей) — магазин был
           длинной лентой без навигации (аудит). null = показать все секции. */}
       <View style={styles.catRow}>
-        {([
-          [null, 'apps', 'a11yCatAll'], ['ability', 'flash', 'a11yCatAbility'],
-          ['accent', 'color-palette', 'a11yCatAccent'], ['sound', 'musical-notes', 'a11yCatSound'],
-          ['frame', 'scan', 'a11yCatFrame'], ['title', 'pricetag', 'a11yCatTitle'], ['avatar', 'person', 'a11yCatAvatar'], ['pet', 'paw', 'a11yCatPet'],
-          ['digits', 'calculator', 'a11yCatDigits'], ['theme', 'map', 'a11yCatTheme'], ['background', 'image', 'a11yCatBackground'], ['badge', 'ribbon', 'a11yCatBadge'],
-        ] as const).map(([c, icon, labelKey]) => {
+        {SHOP_CATS.map(([c, icon, labelKey]) => {
           const on = cat === c;
           return (
             <TouchableOpacity key={String(c)} onPress={() => setCat(c)} activeOpacity={0.75}
@@ -409,25 +503,14 @@ function ShopScreenBody() {
           </>
         ) : null}
 
-        {([
-          ['accent', 'shopAccentSection'], ['sound', 'shopSoundSection'], ['frame', 'shopFrameSection'],
-          ['title', 'shopTitleSection'], ['avatar', 'shopAvatarSection'], ['pet', 'shopPetSection'],
-          ['digits', 'shopDigitsSection'], ['theme', 'shopThemeSection'],
-          ['background', 'shopBackgroundSection'], ['badge', 'shopBadgeSection'],
-        ] as const).filter(([type]) => !cat || cat === type).map(([type, sectionKey], i) => (
+        {SHOP_SECTIONS.filter(([type]) => !cat || cat === type).map(([type, sectionKey], i) => (
           <React.Fragment key={type}>
             {/* Первая косметическая секция прижата к верху, только если над ней ничего
                 нет: при показе всех разделов выше стоят способности. */}
             <Text style={[styles.section, { color: colors.textSecondary, marginTop: i === 0 && cat && cat !== 'ability' ? 0 : 20 }]}>
               {t(sectionKey)}
             </Text>
-            {COSMETICS.filter((c) => c.type === type)
-              /* Свой дефолтный арт профиля не продаётся — он и так применяется бесплатно. */
-              .filter((c) => !(
-                ((c.type === 'theme' || c.type === 'background' || c.type === 'badge') && c.value === profile?.id) ||
-                (c.type === 'digits' && c.value === defaultStyleForProfile(profile?.id))
-              ))
-              .map(renderItem)}
+            {shopItems(type, profile?.id).map(renderItem)}
           </React.Fragment>
         ))}
 
@@ -437,6 +520,101 @@ function ShopScreenBody() {
       </ScrollView>
     </SafeAreaView>
   );
+}
+
+type ShopState = {
+  balance: number;
+  unlocked: string[];
+  equipped: Record<string, string>;
+  soundPack: string | null;
+  petAcc: string | null;
+  cat: string | null;
+  abilities: AbilityCounts;
+  note: string | null;
+  wager: WagerState;
+  profileId: string | undefined;
+  rtl: boolean;
+};
+
+/** Квадрат-образец товара — то же ветвление по типу, что у разметки строки. */
+function swatchOf(c: Cosmetic, accent: string): object {
+  switch (c.type) {
+    case 'sound': return { kind: 'icon', icon: 'musical-notes', color: accent };
+    case 'frame': return { kind: 'frame', color: c.value };
+    case 'title': return { kind: 'text', text: c.value };
+    case 'avatar': return { kind: 'image', uri: assetUri(avatarImage(c.value)) };
+    case 'pet': return { kind: 'text', text: petAccEmoji(c.value) };
+    case 'digits': return { kind: 'digits', uri: assetUri(digitsForStyle(c.value as any)[5]) };
+    case 'theme': return { kind: 'image', uri: assetUri(themeArtByKey(c.value)) };
+    case 'background': return { kind: 'image', uri: assetUri(PROFILE_BACKGROUNDS[c.value]) };
+    case 'badge': return { kind: 'image', uri: assetUri(PROFILE_BADGES[c.value]) };
+    default: return { kind: 'color', color: c.value };
+  }
+}
+
+/** Модель «Магазина» для оболочки: строки готовы, решения — общие с разметкой. */
+function shopModel(s: ShopState, t: (key: string) => string, colors: { primary: string }) {
+  const w = s.wager;
+  return {
+    v: 1,
+    title: t('shop'), back: t('a11yBack'), backIcon: s.rtl ? 'arrow-forward' : 'arrow-back',
+    primary: colors.primary, balance: String(s.balance),
+    cats: SHOP_CATS.map(([id, icon, labelKey]) => ({ id, icon, label: t(labelKey), on: s.cat === id })),
+    note: s.note,
+    abilities: !s.cat || s.cat === 'ability' ? {
+      title: t('shopAbilitySection'),
+      rows: ABILITIES.map((a) => {
+        const have = s.abilities[a.id] ?? 0;
+        const usable = a.id === 'streak_shield';
+        const st = abilityButtons({ have, max: a.max, cost: a.cost, balance: s.balance, usable });
+        return {
+          id: a.id, icon: a.icon, name: t(a.nameKey), desc: t(a.descKey),
+          price: `${a.cost} ⭐ · ${t('abilityInWallet').replace('{n}', String(have))}`,
+          buy: {
+            label: st.buy === 'full' ? t('abilityFull') : st.buy === 'buy' ? t('buy') : t('needMoreTokens'),
+            enabled: st.buy === 'buy',
+          },
+          use: usable ? { label: t('abilityUse'), ready: st.use === 'ready' } : null,
+        };
+      }),
+      hint: t('shopAbilityHint'),
+      wager: w.kind === 'active'
+        ? {
+          active: true, title: t('wagerTitle'),
+          day: `${t('wagerDay').replace('{d}', String(w.daysDone)).replace('{t}', String(w.daysTotal))} · +${w.prize} ⭐`,
+          dots: `${'●'.repeat(w.daysDone)}${'○'.repeat(Math.max(0, w.daysTotal - w.daysDone))}`,
+          btn: null,
+        }
+        : {
+          active: false, title: t('wagerTitle'),
+          desc: (w.kind === 'lost' ? t('wagerLostMsg') + ' ' : '')
+            + t('wagerDesc').replace('{stake}', String(WAGER_STAKE)).replace('{prize}', String(WAGER_PRIZE)),
+          btn: {
+            label: s.balance >= WAGER_STAKE ? t('wagerPlace').replace('{n}', String(WAGER_STAKE)) : t('needMoreTokens'),
+            enabled: s.balance >= WAGER_STAKE,
+          },
+        },
+    } : null,
+    sections: SHOP_SECTIONS.filter(([type]) => !s.cat || s.cat === type).map(([type, sectionKey]) => ({
+      type,
+      title: t(sectionKey),
+      // Первый раздел прижат к верху, только когда над ним нет способностей.
+      first: !!s.cat && s.cat !== 'ability',
+      items: shopItems(type, s.profileId).map((c) => {
+        const r = cosmeticRow(c, { unlocked: s.unlocked, soundPack: s.soundPack, petAcc: s.petAcc, equipped: s.equipped, balance: s.balance, primary: colors.primary });
+        return {
+          id: c.id, name: cosmeticName(c, t), desc: t(c.descKey),
+          price: r.owned ? t('ownedBadge') : `${c.cost} ⭐`,
+          owned: r.owned, on: r.on, accent: r.accent,
+          swatch: swatchOf(c, r.accent),
+          btn: r.owned
+            ? { label: r.on ? t('equipped') : t('equip'), enabled: true }
+            : { label: r.canAfford ? t('buy') : t('needMoreTokens'), enabled: r.canAfford },
+        };
+      }),
+    })),
+    earnHint: t('shopEarnHint'),
+  };
 }
 
 const styles = StyleSheet.create({
