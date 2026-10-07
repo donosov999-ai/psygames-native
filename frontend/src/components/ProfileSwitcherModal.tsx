@@ -26,6 +26,7 @@ import { GAMES } from '@/src/constants/games';
 import { profileBadge } from '@/src/constants/profileBadges';
 import { a11yDecor, a11yModal } from '@/src/services/a11y';
 import { getTokens } from '@/src/services/tokens';
+import { assetUri, postScreenModel, registerScreenActions } from '@/src/services/hostScreens';
 
 const OWNER_TG = 'Denis_On999';
 
@@ -123,6 +124,100 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
       Alert.alert('Не удалось открыть Telegram', `Напиши вручную: @${OWNER_TG}`);
     });
   };
+
+  /**
+   * 🔴 ПОД ОБОЛОЧКОЙ ПЕРЕКЛЮЧАТЕЛЬ РИСУЕТ FLUTTER (задача 5b3513bd, `services/hostScreens.ts`).
+   * Нативная Главная открывает свой лист выбора, а этот компонент (он смонтирован на Главной под
+   * оболочкой) отдаёт модель: профили с тем же доступом, кошельками и подписями, карточки закрытых
+   * и окно кода — ровно то, что рисует разметка ниже. Решения (доступ, код, переключение) — здесь.
+   */
+  const [redeemSeq, setRedeemSeq] = React.useState(0);
+  // Кошельки для листа оболочки — без ожидания `visible`: лист открывает оболочка, не этот компонент.
+  const [allWallets, setAllWallets] = React.useState<Record<string, number>>({});
+  React.useEffect(() => {
+    let alive = true;
+    Promise.all(allProfiles.map((pr) => getTokens(pr.id).then((v) => [pr.id, v] as const)))
+      .then((pairs) => { if (alive) setAllWallets(Object.fromEntries(pairs)); })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, [allProfiles, profile.id]);
+  React.useEffect(() => {
+    const switchable = allProfiles.filter(isSwitchable);
+    const tierBadge = (p: ProfileDef) =>
+      p.tier === 'trial' ? { kind: 'trial', text: t('badgeNoCode'), bg: '#22c55e', fg: textOn('#22c55e') }
+        : p.tier === 'owner' ? { kind: 'owner', text: 'OWNER · ЛИЧНО', bg: '#6b7280', fg: '#fff' } : null;
+    const ru = language === 'ru';
+    postScreenModel('#switcher', {
+      v: 1,
+      activeId: profile.id,
+      title: `👤 ${t('a11ySwitchProfile')}`,
+      intro: t('switcherIntro'),
+      closeLabel: t('close'),
+      profiles: switchable.map((p) => {
+        const locked = !isAccessible(p.id);
+        return {
+          id: p.id,
+          name: t('profileName_' + p.id),
+          desc: t('profileDesc_' + p.id),
+          minutes: p.session_minutes ? `⏱ ${p.session_minutes.replace('мин', t('unitMin'))}` : null,
+          wallet: !locked && (wallets[p.id] ?? allWallets[p.id] ?? 0) > 0 ? `⭐ ${wallets[p.id] ?? allWallets[p.id]}` : null,
+          badge: assetUri(profileBadge(p.id)),
+          emoji: p.emoji,
+          color: p.color,
+          active: p.id === profile.id,
+          locked,
+          tier: tierBadge(p),
+        };
+      }),
+      codeEntry: CODE_ENTRY_ENABLED,
+      codeButton: '🔑 У меня уже есть код — ввести',
+      code: {
+        title: '🔑 Код доступа',
+        hint: 'Введи код, чтобы разблокировать тематический профиль.',
+        placeholder: 'например, CHESS-NZT-2026 или EXC-260822-A4F2-1B8C3D',
+        cancel: 'Отмена',
+        unlock: 'Разблокировать',
+        unlockFg: textOn('#10b981'),
+        error: codeError,
+        redeemed: redeemSeq,
+      },
+      details: Object.fromEntries(switchable.map((p) => [p.id, {
+        emoji: p.emoji,
+        name: p.display_name,
+        audience: p.audience ? `👥 ${ru ? p.audience : (p.audience_en ?? p.audience)}` : null,
+        hook: p.sales_hook ? (ru ? p.sales_hook : (p.sales_hook_en ?? p.sales_hook)) : null,
+        hookSource: p.sales_hook_source ? `📚 ${ru ? p.sales_hook_source : (p.sales_hook_source_en ?? p.sales_hook_source)}` : null,
+        color: p.color,
+        long: p.long_description ? (ru ? p.long_description : (p.long_description_en ?? p.long_description)) : null,
+        chips: [
+          p.session_minutes ? `⏱ ${ru ? p.session_minutes : p.session_minutes.replace('мин', 'min')}` : null,
+          p.warmup_enabled ? '☀️ Утренняя Зарядка' : null,
+          p.financial_brain_day_enabled ? '💰 Financial Brain Day' : null,
+          p.assessment_enabled ? '📊 G1 Assessment' : null,
+        ].filter(Boolean),
+        gamesTitle: `🎮 ${p.allowed_games === 'all' ? `Все тренажёры: ${GAMES.length}` : `Тренажёров в профиле: ${(p.allowed_games as string[]).length}`}`,
+        games: p.allowed_games === 'all' ? [] : (p.allowed_games as string[]).flatMap((id) => {
+          const game = GAMES.find((g) => g.id === id);
+          return game ? [{ emoji: CATEGORY_EMOJI[game.category] || '•', name: t(game.nameKey) }] : [];
+        }),
+        locked: !isAccessible(p.id),
+        soon: '🔒 Скоро',
+        switchText: '✓ Переключиться на этот профиль',
+        currentText: '✓ Это твой текущий профиль',
+      }])),
+    });
+  }, [allProfiles, profile.id, isAccessible, wallets, allWallets, language, t, codeError, redeemSeq]);
+  React.useEffect(() => registerScreenActions('#switcher', {
+    switch: (id: string) => { if (isAccessible(id as any) && id !== profile.id) switchProfile(id as any); },
+    redeem: (code: string) => {
+      setCodeError(null);
+      redeemCode(code).then((id) => {
+        if (id) { setCodeError(null); setRedeemSeq((n) => n + 1); }
+        else setCodeError('Неверный код. Проверь и попробуй ещё раз.');
+      }).catch(() => setCodeError('Неверный код. Проверь и попробуй ещё раз.'));
+    },
+    clearError: () => setCodeError(null),
+  }), [isAccessible, profile.id, switchProfile, redeemCode]);
 
   const handleProfileClick = (p: ProfileDef) => {
     if (p.id === profile.id) {

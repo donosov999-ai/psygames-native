@@ -38,7 +38,7 @@ void main() {
       await tester.pumpWidget(MaterialApp(home: HybridApp.native[route]!(state)));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 50));
-      if (find.byTooltip('Пауза').evaluate().isNotEmpty) guilty.add(route);
+      if (find.byTooltip(L.t('teachPause')).evaluate().isNotEmpty) guilty.add(route);
     }
     expect(guilty, isEmpty, reason: 'развилка построена как игра — на ней пауза');
   });

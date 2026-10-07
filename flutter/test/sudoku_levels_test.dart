@@ -21,17 +21,28 @@ void main() {
     levels = await SudokuLevels.load();
   });
 
-  test('лестница на месте: 92 ступени', () {
-    expect(levels.lastLevel, 92);
+  test('лестница на месте: 132 ступени', () {
+    expect(levels.lastLevel, 132);
     expect(levels.config(1).n, 6, reason: 'первые ступени — 6×6');
     expect(levels.config(9).variant, 'diagonal');
     expect(levels.config(62).variant, 'jigsaw', reason: 'кривые блоки переехали на 62–65 (23.09)');
     expect(levels.config(54).variant, 'none', reason: 'на 54–61 встал пояс ALS из банка');
+    expect(levels.config(93).variant, 'whisper', reason: 'немецкий шёпот — 93–96 (задача 5b0b7ca2)');
+    expect(levels.config(97).variant, 'renban', reason: 'ренбан — 97–100 (задача 031a7684)');
+    expect(levels.config(101).variant, 'regionsum', reason: 'равные суммы — 101–104 (задача b0a1feef)');
+    expect(levels.config(105).variant, 'palindrome', reason: 'палиндром — 105–108 (задача 25679487)');
+    expect(levels.config(109).variant, 'between', reason: 'между концами — 109–112 (задача 25679487)');
+    expect(levels.config(113).variant, 'lockout', reason: 'замок — 113–116 (задача 25679487)');
+    expect(levels.config(117).variant, 'xv', reason: 'XV — 117–120 (задача 7eacd001)');
+    expect(levels.config(120).variant, 'xv');
+    expect(levels.config(121).variant, 'argyle', reason: 'аргайл — 121–124, сразу за XV (задача 2345d346)');
+    expect(levels.config(125).variant, 'littlekiller', reason: 'малый киллер — 125–128 (задача 2dddd227)');
+    expect(levels.config(129).variant, 'xsums', reason: 'X-суммы — 129–132 (задача 5ea317fc)');
   });
 
-  test('🔴 у каждой из 92 ступеней есть хотя бы одна доска', () {
+  test('🔴 у каждой ступени лестницы есть хотя бы одна доска', () {
     final empty = <int>[];
-    for (var lv = 1; lv <= 92; lv++) {
+    for (var lv = 1; lv <= levels.lastLevel; lv++) {
       if (levels.boardsFor(lv) == 0) empty.add(lv);
     }
     expect(empty, isEmpty, reason: 'ступени без досок: ${empty.take(10).join(', ')}');
@@ -45,7 +56,7 @@ void main() {
   test('🔴 каждая доска целая: подсказки совпадают с решением, решение законно', () {
     final broken = <String>[];
     var checked = 0;
-    for (var lv = 1; lv <= 92; lv++) {
+    for (var lv = 1; lv <= levels.lastLevel; lv++) {
       final count = levels.boardsFor(lv);
       final cfg = levels.config(lv);
       final take = cfg.fromBank ? 3 : count;
@@ -121,8 +132,8 @@ void main() {
       expect(board.variant, 'none');
       expect(board.geometry.regions, isNull);
     }
-    // 9–53, 62–65, 81–92 — вариантные: рейтинга нет, зато есть измеренная ступень.
-    for (final lv in [9, 42, 62, 81, 92]) {
+    // 9–53, 62–65, 81–132 — вариантные: рейтинга нет, зато есть измеренная ступень.
+    for (final lv in [9, 42, 62, 81, 92, 96, 100, 104, 108, 112, 116, 120, 124, 128, 132]) {
       final board = levels.boardFor(lv, seed: 7)!;
       expect(board.rating, isNull, reason: 'L$lv — вариантная доска, не банк');
       expect(board.tier, isNotNull, reason: 'у вариантной доски мера посчитана при выгрузке');

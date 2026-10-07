@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/sort_tubes/board.dart';
 import 'package:psygames_flutter/games/sort_tubes/layout.dart';
 import 'package:psygames_flutter/games/sort_tubes/screen.dart';
+import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -42,6 +43,8 @@ Future<void> _tapPour(WidgetTester tester, int from, int to) async {
 }
 
 void main() {
+  // Подписи экрана — из словаря (02.10.2026, задача 48ca6466): без него вместо текста ключи.
+  setUpAll(() async => L.load('ru'));
   late SharedState state;
 
   setUp(() async {
@@ -122,7 +125,7 @@ void main() {
     await _tapPour(tester, 0, 1);
     await tester.pump();
     final caption = tester.widget<Text>(find.byKey(const ValueKey('tubes-caption')));
-    expect(caption.data, contains('полон'), reason: 'причина обязана быть названа');
+    expect(caption.data, L.t('sortRefuseFull'), reason: 'причина обязана быть названа');
     expect(caption.style?.color, isNot(const Color(0xFF8A8F98)), reason: 'и выделена, а не слита с подсказкой');
 
     // Вторая причина — «пусто»: взять из пустого сосуда нечего.

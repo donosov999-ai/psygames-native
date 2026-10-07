@@ -3,10 +3,12 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
+import 'catalog.dart';
 import 'level_ladder.dart';
 import 'shared_level_store.dart';
 import 'l10n.dart';
 import 'shared_state.dart';
+import 'web_theme.dart';
 
 /// РАЗВИЛКА (хаб) — ОБЩИЙ ЭКРАН НА ВСЕ РАЗДЕЛЫ.
 ///
@@ -111,13 +113,16 @@ class HubCard {
 /// проба `hub_icons_are_mapped_test.dart`: новое имя в веб-реестре без строки
 /// здесь — красный CI с этим именем, а не тихий пазл на экране.
 const Map<String, IconData> hubIcons = {
+  'add-circle': Icons.add_circle_outline,
   'albums': Icons.collections_outlined,
   'analytics': Icons.analytics_outlined,
   'apps': Icons.apps,
   'apps-outline': Icons.apps,
   'arrow-forward': Icons.arrow_forward,
   'basket': Icons.shopping_basket_outlined,
+  'bed-outline': Icons.bed_outlined,
   'boat': Icons.directions_boat_outlined,
+  'body': Icons.accessibility_new,
   'book': Icons.menu_book_outlined,
   'browsers': Icons.web_outlined,
   'bulb': Icons.lightbulb_outline,
@@ -148,6 +153,7 @@ const Map<String, IconData> hubIcons = {
   'eye-outline': Icons.visibility_outlined,
   'flash': Icons.flash_on_outlined,
   'flask': Icons.science_outlined,
+  'flower-outline': Icons.local_florist_outlined,
   'funnel': Icons.filter_alt_outlined,
   'git-branch': Icons.account_tree_outlined,
   'git-branch-outline': Icons.account_tree_outlined,
@@ -163,6 +169,7 @@ const Map<String, IconData> hubIcons = {
   'home': Icons.home_outlined,
   'keypad': Icons.dialpad,
   'layers': Icons.layers_outlined,
+  'leaf': Icons.eco_outlined,
   'link': Icons.link,
   'list-outline': Icons.list_alt_outlined,
   'locate': Icons.my_location,
@@ -223,6 +230,12 @@ class _HubScreenState extends State<HubScreen> {
   String _pick = 'Выбери упражнение';
   final Map<String, int> _levels = {};
 
+  /// Поиск и фильтр внутри развилки (задача f5025027): строки ищутся тем же [Catalog], что
+  /// и во вкладке «Игры», — на языке экрана, по-английски и по-русски.
+  Catalog? _catalog;
+  String _query = '';
+  String? _skill;
+
   @override
   void initState() {
     super.initState();
@@ -257,7 +270,13 @@ class _HubScreenState extends State<HubScreen> {
   /// видимое ТОЙ ЖЕ функцией, что и значок (`frontend/src/services/hubVisibility.ts`),
   /// и кладёт в [HubScreen.visibleKey]. Нет ключа или он посчитан для другого профиля — показываем
   /// как прежде: пустая развилка хуже лишней строки.
-  List<HubCard> _visibleFor(List<HubCard> cards) {
+  ///
+  /// 🔴 СПИСОК ВЕБА — ЦЕЛИКОМ И В ЕГО ПОРЯДКЕ, А НЕ ПЕРЕСЕЧЕНИЕ СО СВОЕЙ РАСКЛАДКОЙ (задача 4a5bb886).
+  /// Было: карточки своей раскладки (файл состава → заводской список) ∩ список веба. Веб дописывает
+  /// новые карточки, которых файл не знает («новое — во все профили», решение Дениса 02.10), а
+  /// раскладка их не содержит — пересечение выкидывало их, и «Кошки», шахматные задачи и режимы
+  /// Тэтхэма не показывались нигде. Карточку ищем по всему реестру (`hubs`, `extra`, описанные файлом).
+  List<HubCard> _visibleFor(List<HubCard> cards, Map<String, dynamic> bundle) {
     final raw = widget.state.get(HubScreen.visibleKey);
     if (raw == null || raw.isEmpty) return cards;
     try {
@@ -265,8 +284,14 @@ class _HubScreenState extends State<HubScreen> {
       if (o['profile'] != widget.state.activeProfile) return cards;
       final list = (o['hubs'] as Map<String, dynamic>?)?[widget.hubRoute] as List?;
       if (list == null) return cards;
-      final open = list.cast<String>().toSet();
-      return cards.where((c) => open.contains(c.route)).toList();
+      final byRoute = <String, HubCard>{
+        for (final l in ((bundle['hubs'] as Map<String, dynamic>?) ?? const {}).values)
+          for (final e in l as List) HubCard.fromJson(e as Map<String, dynamic>).route: HubCard.fromJson(e),
+        for (final e in ((bundle['extra'] as Map<String, dynamic>?) ?? const {}).values)
+          HubCard.fromJson(e as Map<String, dynamic>).route: HubCard.fromJson(e),
+        for (final c in cards) c.route: c,
+      };
+      return [for (final r in list.cast<String>()) ?byRoute[r]];
     } catch (_) {
       return cards;
     }
@@ -351,7 +376,7 @@ class _HubScreenState extends State<HubScreen> {
     final data = await rootBundle.load('assets/hubs.json');
     final raw = utf8.decode(data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes));
     final j = jsonDecode(raw) as Map<String, dynamic>;
-    final cards = _visibleFor(_cardsFor(j));
+    final cards = _visibleFor(_cardsFor(j), j);
     final meta = (j['meta'] as Map<String, dynamic>)[widget.hubRoute] as Map<String, dynamic>?;
     var icons = const <String, dynamic>{};
     try {
@@ -374,6 +399,12 @@ class _HubScreenState extends State<HubScreen> {
       await ladder.load();
       _levels[c.route] = ladder.level;
     }
+    Catalog? catalog;
+    try {
+      catalog = await Catalog.load();
+    } catch (_) {
+      // Нет каталога — развилка без поиска, как прежде.
+    }
     if (!mounted) return;
     // 🔴 КЛЮЧ СЛОВАРЯ ПРЕЖДЕ ТЕКСТА: `meta` несёт ключи, снятые с веб-экрана
     // развилки (embed-hubs.mjs), а русский текст — только запасной путь для
@@ -385,6 +416,7 @@ class _HubScreenState extends State<HubScreen> {
 
     setState(() {
       _cards = cards;
+      _catalog = catalog;
       _icons = icons;
       _title = tr('titleKey', meta?['title'] as String?);
       _desc = tr('descKey', meta?['desc'] as String?);
@@ -393,20 +425,45 @@ class _HubScreenState extends State<HubScreen> {
     });
   }
 
+  CatalogEntry? _entry(HubCard c) {
+    for (final e in _catalog?.entries ?? const <CatalogEntry>[]) {
+      if (e.route == c.route) return e;
+    }
+    return null;
+  }
+
+  /// Навыки карточек этой развилки. Один навык на всех (сорок режимов Тэтхэма наследуют
+  /// навык «Головоломок») — фильтра нет: список из одной строки ничего не отбирает.
+  List<String> _skills(List<HubCard> cards) {
+    final s = {for (final c in cards) ?_entry(c)?.skillKey}.toList()
+      ..sort((a, b) => skillTitle(a).compareTo(skillTitle(b)));
+    return s;
+  }
+
+  bool _shows(HubCard c) {
+    final e = _entry(c);
+    if (_skill != null && e?.skillKey != _skill) return false;
+    if (_query.trim().isEmpty) return true;
+    if (e != null) return _catalog!.matches(e, _query, null);
+    return c.name.toLowerCase().contains(_query.trim().toLowerCase());
+  }
+
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final cards = _cards;
+    final all = _cards;
+    final cards = all?.where(_shows).toList();
+    final skills = all == null ? const <String>[] : _skills(all);
     return Scaffold(
       appBar: AppBar(
         title: Text(_title.isEmpty ? 'Развилка' : _title),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          tooltip: 'Назад',
+          tooltip: L.t('back'),
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
-      body: cards == null
+      body: all == null
           ? const Center(child: CircularProgressIndicator())
           : ListView(
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
@@ -443,8 +500,54 @@ class _HubScreenState extends State<HubScreen> {
                   ),
                 ),
                 const SizedBox(height: 16),
+                /*
+                 * 🔴 ПОИСК НАД КАРТОЧКАМИ, ФИЛЬТР НИЖЕ — РЕШЕНИЕ ДЕНИСА 04.10.2026 (99628ecf, п. 4):
+                 * «в каждом хабе также видимый поиск над карточками, ниже фильтр… не подменять этот UX
+                 * поиском в AppBar». Первая редакция (02.10) прятала поиск значком в верхней панели,
+                 * потому что поле сдвигало девятую карточку «Конфликта внимания» за экран 390×844; это
+                 * решение Денис отменил — развилка прокручивается. Фильтр — только по осмысленным
+                 * признакам: навыков у карточек меньше двух — его нет (у «Головоломок» навык один).
+                 */
+                if (_catalog != null) ...[
+                  TextField(
+                    key: const ValueKey('hub-search'),
+                    // Рисунок — поле поиска веба (`HomeCatalogSearch.tsx`), как во вкладке «Игры».
+                    style: WebTheme.fieldText(context),
+                    textInputAction: TextInputAction.search,
+                    decoration: WebTheme.field(context, hint: L.t('catalogSearch')),
+                    onChanged: (v) => setState(() => _query = v),
+                  ),
+                  if (skills.length >= 2) ...[
+                    const SizedBox(height: 8),
+                    Semantics(
+                      label: L.t('catalogFilter'),
+                      child: DropdownButtonFormField<String?>(
+                      key: const ValueKey('hub-filter'),
+                      initialValue: _skill,
+                      isExpanded: true,
+                      decoration: WebTheme.field(context),
+                      dropdownColor: WebTheme.of(context).surface,
+                      style: WebTheme.fieldText(context),
+                      iconEnabledColor: WebTheme.of(context).textSecondary,
+                      items: [
+                        DropdownMenuItem<String?>(value: null, child: Text(L.t('allGames'))),
+                        for (final k in skills)
+                          DropdownMenuItem<String?>(value: k, child: Text(skillTitle(k), overflow: TextOverflow.ellipsis)),
+                      ],
+                      onChanged: (v) => setState(() => _skill = v),
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 12),
+                ],
                 Text(_pick, style: TextStyle(color: scheme.onSurfaceVariant)),
                 const SizedBox(height: 8),
+                if (cards!.isEmpty)
+                  Padding(
+                    key: const ValueKey('hub-nothing'),
+                    padding: const EdgeInsets.symmetric(vertical: 24),
+                    child: Text(L.t('catalogNothing'), textAlign: TextAlign.center),
+                  ),
                 for (final c in cards)
                   Card(
                     margin: const EdgeInsets.only(bottom: 8),

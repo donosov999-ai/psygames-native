@@ -52,17 +52,21 @@ void main() {
   /// владелец — раздел «Слова», и гасить их ему. Ключи в общем словаре под это
   /// есть не все, часть требует перевода на 12 языков — это отдельная работа.
   ///
+  /// 01.10 — раздел «Судоку» перевёл свои экраны (EN основной, решение Дениса 01.10):
+  /// «Судоку» 31→0, «Самурай» 14→0, «Фрактал» 13→0, «Головоломки» 12→0, оболочка 4→2
+  /// (подсказки «Пауза»/«Правила»; две оставшиеся — распознавание чужих подписей «Заново»), «Бездна» 13→1 (осталось зерно раздачи — данные, общие с вебом); сумма 691→611.
+  /// 01.10 — оболочка: подсказки «Пауза»/«Правила» и «Назад» развилки — из словаря
+  /// (EN основной): game_shell 4→2, hub_screen 4→3.
+  ///
   /// Долг на 23.09.2026, пофайлово. МЕНЯТЬ ТОЛЬКО В МЕНЬШУЮ СТОРОНУ.
   ///
   /// Перевёл экран — опусти его число. Файла нет в списке — значит он обязан
   /// быть чистым: так новый перенос не добавляет долга молча.
   const debt = <String, int>{
-    'games/sudoku/screen.dart': 31,
     'games/math_slider/screen.dart': 27,
     'games/schulte/screen.dart': 26,
     'games/pattern/model.dart': 24,
     'games/object_tracker/screen.dart': 24,
-    'games/sort_tubes/screen.dart': 23,
     'games/ospan/screen.dart': 21,
     'games/ospan/model.dart': 20,
     'games/number_bonds/screen.dart': 18,
@@ -71,28 +75,14 @@ void main() {
     'games/quick_count/screen.dart': 18,
     'games/math_sprint/screen.dart': 18,
     'main.dart': 16,
-    'games/goods_sort/screen.dart': 15,
-    'games/samurai/screen.dart': 14,
-    'games/tower_london/screen.dart': 14,
     'games/object_tracker/model.dart': 14,
-    'games/fractal/screen.dart': 13,
-    'games/deep/screen.dart': 13,
-    'games/hanoi/screen.dart': 12,
-    'games/puzzles/screen.dart': 12,
-    'games/cake_sort/screen.dart': 11,
-    'shell/hybrid_app.dart': 8,
+    'games/deep/screen.dart': 1,
+    'shell/hybrid_app.dart': 3,
     'games/stroop/model.dart': 8,
-    'games/goods_sort/board.dart': 5,
-    'games/sort_tubes/model.dart': 5,
-    'shell/game_shell.dart': 4,
-    'shell/hub_screen.dart': 4,
+    'shell/game_shell.dart': 2,
+    'shell/hub_screen.dart': 3,
     'shell/tap_latency.dart': 4,
     'shell/web_game_screen.dart': 4,
-    'games/goods_sort/model.dart': 4,
-    'games/tower_london/board.dart': 4,
-    'games/sort_tubes/board.dart': 2,
-    'games/hanoi/board.dart': 2,
-    'games/cake_sort/board.dart': 1,
   };
 
   // 284 у соседнего раздела минус 65, погашенных «Конфликтом внимания» в этом же коммите,
@@ -110,8 +100,15 @@ void main() {
   // Новых ключей семь: у каждого перевод на все двенадцать языков в том же коммите.
   // 01.10 — «Объём памяти»: «Матрица памяти» перенесена заново целиком, все подписи — ключи
   // веб-словаря (задачи c1c20b36, 9d7032ab); файл ушёл из списка: −12.
-  // 02.10 — оба сведены при вливании: 691 − 208 − 12.
-  const total = 471;
+  // 02.10 — оба сведены при вливании: 691 − 208 − 12. Затем цепочка «Судоку» (#123: нативные
+  // экраны раздела по-английски, 691 → 611 у себя): все три погашения вместе — 390 по счёту пробы.
+  // 02.10 — подсказки каркаса «Назад» развилки (#122): hub_screen 4 → 3.
+  // 02.10 — «Сортировки» погасили долг целиком (задача 48ca6466): двенадцать файлов семи
+  // экранов ушли из списка (−98) и заголовки пяти экранов в карте перехвата —
+  // shell/hybrid_app.dart 8 → 3 (−5). Новых ключей 25, у каждого перевод на все двенадцать
+  // языков в том же коммите. Коды отказа пробирок — латиницей: их не видит человек.
+  // Сведено с main 07.10: 389 − 98 − 5 = 286.
+  const total = 286;
 
   final counts = _scan(Directory('lib'));
 

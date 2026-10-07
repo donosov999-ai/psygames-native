@@ -39,7 +39,7 @@ class SudokuKeys extends StatelessWidget {
   final String Function(int)? label;
 
   /// Картинка клавиши цифры `v` (рисованные наборы веба); `null` — надпись.
-  final Widget Function(int)? icon;
+  final Widget? Function(int)? icon;
 
   @override
   Widget build(BuildContext context) {

@@ -139,7 +139,7 @@ export const COSMETICS: Cosmetic[] = [
 ];
 
 const uKey = (pid: string) => `psygames_cosmetics_unlocked_${pid}`;
-const eKey = (pid: string) => `psygames_cosmetics_equipped_${pid}`;
+export const eKey = (pid: string) => `psygames_cosmetics_equipped_${pid}`;
 
 export async function getUnlocked(profileId: string): Promise<string[]> {
   try { const raw = await AsyncStorage.getItem(uKey(profileId)); return raw ? JSON.parse(raw) : []; }

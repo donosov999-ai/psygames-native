@@ -125,7 +125,7 @@ export const FEEDBACK_OPEN_EVENT = 'psygames-feedback-open';
 /** v1.125.0: пользовательская галочка «Чат с разработчиками» в настройках.
  *  Тестировщик может СКРЫТЬ плавающую кнопку, если она мешает (репорт
  *  «кнопка мешается в игре»). По умолчанию видна. Ключ '0' = скрыта. */
-const DEVCHAT_KEY = 'psygames_devchat_on';
+export const DEVCHAT_KEY = 'psygames_devchat_on';
 export async function getDevChatVisible(): Promise<boolean> {
   try { return (await AsyncStorage.getItem(DEVCHAT_KEY)) !== '0'; } catch { return true; }
 }

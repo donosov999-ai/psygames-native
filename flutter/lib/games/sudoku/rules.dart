@@ -160,6 +160,62 @@ class SandwichClues {
   }
 }
 
+/// 🔴 МАЛЫЙ КИЛЛЕР (пункт 8 цепочки «14 усложнений», задача 2dddd227) — перенос `LittleKillerClue`
+/// ядра (sudoku-core.ts): число со стрелкой снаружи доски — сумма цифр на диагонали, цифры на ней
+/// МОГУТ повторяться. Стрелки смотрят только вниз: (r, c) — первая клетка у края, шаг внутрь —
+/// (1, [dc]); гнездо в поле — сверху, слева или справа, по одной подсказке на гнездо.
+class LittleKillerClue {
+  const LittleKillerClue({required this.r, required this.c, required this.dc, required this.sum});
+  final int r, c, dc, sum;
+
+  static List<LittleKillerClue>? fromJson(Object? v) {
+    if (v is! List) return null;
+    return [
+      for (final e in v)
+        if (e is Map)
+          LittleKillerClue(
+            r: (e['r'] as num).toInt(),
+            c: (e['c'] as num).toInt(),
+            dc: (e['dc'] as num).toInt(),
+            sum: (e['sum'] as num).toInt(),
+          ),
+    ];
+  }
+
+  Map<String, Object?> toJson() => {'r': r, 'c': c, 'dr': 1, 'dc': dc, 'sum': sum};
+
+  /// Лежит ли клетка на диагонали подсказки.
+  bool on(int rr, int cc) => rr >= r && (dc == 1 ? rr - cc == r - c : rr + cc == r + c);
+
+  /// Клетки диагонали — от края внутрь.
+  List<(int, int)> cells(int n) => [
+        for (var rr = r, cc = c; rr >= 0 && rr < n && cc >= 0 && cc < n; rr += 1, cc += dc) (rr, cc),
+      ];
+
+  /// Гнездо в поле: сторона и номер (у верхнего поля −1 и n — углы).
+  ({String side, int i}) get slot =>
+      r == 0 ? (side: 'top', i: c - dc) : (side: dc == 1 ? 'left' : 'right', i: r - 1);
+}
+
+/// Не спорит ли цифра с суммами диагоналей по известным цифрам (`littleKillerOk` ядра): известные
+/// плюс по 1 на пустую не больше суммы, известные плюс по n на пустую — не меньше.
+bool littleKillerOk(List<List<int>> grid, int r, int c, int val, List<LittleKillerClue> clues, int n) {
+  for (final k in clues) {
+    if (!k.on(r, c)) continue;
+    var s = 0, e = 0;
+    for (final (i, j) in k.cells(n)) {
+      final v = i == r && j == c ? val : grid[i][j];
+      if (v == 0) {
+        e++;
+      } else {
+        s += v;
+      }
+    }
+    if (s + e > k.sum || s + n * e < k.sum) return false;
+  }
+  return true;
+}
+
 /// Геометрия доски: то, что у варианта сверх строки, столбца и блока.
 ///
 /// 🔴 01.10.2026 (задача 450c0211): до этого дня здесь НЕ разбирались `parity`, `kropki` и
@@ -178,6 +234,15 @@ class BoardGeometry {
     this.parity,
     this.kropki,
     this.sandwich,
+    this.whisper,
+    this.renban,
+    this.regionsum,
+    this.palindrome,
+    this.between,
+    this.lockout,
+    this.xv,
+    this.littleKiller,
+    this.xsums,
   });
   final List<List<int>>? regions;
   final List<List<ThermoLink?>>? thermo;
@@ -190,6 +255,35 @@ class BoardGeometry {
   final List<List<int>>? parity;
   final KropkiMap? kropki;
   final SandwichClues? sandwich;
+
+  /// Зелёные линии «немецкого шёпота»: соседи по линии отличаются минимум на [whisperGap].
+  /// Тот же вид prev/next, что у термометра (`whisperFromSolution` веба).
+  final List<List<ThermoLink?>>? whisper;
+
+  /// Фиолетовые линии ренбана: цифры на линии разные и идут подряд в любом порядке.
+  final List<List<ThermoLink?>>? renban;
+
+  /// Синие линии равных сумм: в каждом блоке, через который идёт линия, сумма её цифр одна.
+  final List<List<ThermoLink?>>? regionsum;
+
+  /// Серая линия читается одинаково с обоих концов: цифры на равном расстоянии от концов совпадают.
+  final List<List<ThermoLink?>>? palindrome;
+
+  /// Цифры на линии лежат строго между цифрами в кружках на её концах.
+  final List<List<ThermoLink?>>? between;
+
+  /// Цифры в ромбах на концах линии отличаются минимум на 4, а цифры линии лежат вне промежутка между ними.
+  final List<List<ThermoLink?>>? lockout;
+
+  /// XV: знаки на гранях (1 = V, сумма 5; 2 = X, сумма 10), показаны ВСЕ — та же форма h/v,
+  /// что у точек Кропки.
+  final KropkiMap? xv;
+
+  /// Малый киллер: суммы диагоналей по стрелкам снаружи доски.
+  final List<LittleKillerClue>? littleKiller;
+
+  /// X-суммы: слева у строк и сверху у столбцов, −1 — скрыта; форма — как у сэндвича.
+  final SandwichClues? xsums;
 
   static BoardGeometry fromJson(Map<String, Object?> v) => BoardGeometry(
         regions: v['regions'] == null ? null : _grid(v['regions']),
@@ -209,6 +303,39 @@ class BoardGeometry {
         parity: v['parity'] == null ? null : _grid(v['parity']),
         kropki: KropkiMap.fromJson(v['kropki']),
         sandwich: SandwichClues.fromJson(v['sandwich']),
+        xv: KropkiMap.fromJson(v['xv']),
+        littleKiller: LittleKillerClue.fromJson(v['littlekiller']),
+        xsums: SandwichClues.fromJson(v['xsums']),
+        whisper: v['whisper'] == null
+            ? null
+            : (v['whisper'] as List)
+                .map((row) => (row as List).map(ThermoLink.fromJson).toList())
+                .toList(),
+        renban: v['renban'] == null
+            ? null
+            : (v['renban'] as List)
+                .map((row) => (row as List).map(ThermoLink.fromJson).toList())
+                .toList(),
+        regionsum: v['regionsum'] == null
+            ? null
+            : (v['regionsum'] as List)
+                .map((row) => (row as List).map(ThermoLink.fromJson).toList())
+                .toList(),
+        palindrome: v['palindrome'] == null
+            ? null
+            : (v['palindrome'] as List)
+                .map((row) => (row as List).map(ThermoLink.fromJson).toList())
+                .toList(),
+        between: v['between'] == null
+            ? null
+            : (v['between'] as List)
+                .map((row) => (row as List).map(ThermoLink.fromJson).toList())
+                .toList(),
+        lockout: v['lockout'] == null
+            ? null
+            : (v['lockout'] as List)
+                .map((row) => (row as List).map(ThermoLink.fromJson).toList())
+                .toList(),
       );
 }
 
@@ -225,6 +352,10 @@ int visibleCount(List<int> line) {
 /// у неполного проверяются границы: сколько видно минимум и максимум при любом добивании.
 /// Оценка сверху намеренно грубая — она не отбросит верную доску, а неверную поймает
 /// проверка полного ряда.
+///
+/// 🔴 Нижняя граница — по началу ряда до первой пустой (+1, если самого высокого там нет),
+/// а не «видно среди заполненных»: пустая клетка впереди закрывает видимые. `[_,2,4,1,6,3]`
+/// при подсказке 2 законен (`[5,…]`). Перенос починки `towersLineOk` веба (задача 2ab36958).
 bool towersLineOk(List<int> line, int clue) {
   if (clue == 0) return true;
   if (!line.any((v) => v == 0)) return visibleCount(line) == clue;
@@ -233,8 +364,50 @@ bool towersLineOk(List<int> line, int clue) {
     if (v == 0) { blanks++; continue; }
     if (v > tallest) { seen++; tallest = v; }
   }
-  return clue >= seen && clue <= seen + blanks;
+  var head = 0, headTop = 0;
+  for (final v in line) {
+    if (v == 0) break;
+    if (v > headTop) { head++; headTop = v; }
+  }
+  final low = head + (headTop == line.length ? 0 : 1);
+  return clue >= low && clue <= seen + blanks;
 }
+
+/// 🔴 АРГАЙЛ (пункт 10 цепочки «14 усложнений», задача 2345d346) — перенос `argylePeers` ядра
+/// (sudoku-core.ts): восемь отмеченных диагоналей узора «ромб» на 9×9, на каждой цифры не
+/// повторяются. Разности r−c ±1 (по 8 клеток) и ±4 (по 5), суммы r+c 7 и 9 (по 8) и 4 и 12 (по 5).
+const argyleDiffs = [-4, -1, 1, 4];
+const argyleSums = [4, 7, 9, 12];
+
+/// Клетки диагоналей узора, на которых лежит (r, c), — без неё самой.
+List<(int, int)> argylePeers(int r, int c, int n) {
+  final out = <(int, int)>[];
+  if (n != 9) return out;
+  if (argyleDiffs.contains(r - c)) {
+    for (var i = 0; i < n; i++) {
+      final j = i - (r - c);
+      if (j >= 0 && j < n && i != r) out.add((i, j));
+    }
+  }
+  if (argyleSums.contains(r + c)) {
+    for (var i = 0; i < n; i++) {
+      final j = r + c - i;
+      if (j >= 0 && j < n && i != r) out.add((i, j));
+    }
+  }
+  return out;
+}
+
+/// Диагонали узора отрезками в долях клетки (x — столбец, y — строка) — `argyleSegments` ядра:
+/// через центры клеток до краёв доски. r−c = k → y = x + k; r+c = m → y = m + 1 − x.
+List<(double, double, double, double)> argyleSegments([int n = 9]) => [
+      for (final k in argyleDiffs)
+        k > 0 ? (0.0, k.toDouble(), (n - k).toDouble(), n.toDouble()) : ((-k).toDouble(), 0.0, n.toDouble(), (n + k).toDouble()),
+      for (final m in argyleSums)
+        m + 1 <= n
+            ? (0.0, (m + 1).toDouble(), (m + 1).toDouble(), 0.0)
+            : ((m + 1 - n).toDouble(), n.toDouble(), n.toDouble(), (m + 1 - n).toDouble()),
+    ];
 
 /// Законен ли ход: поставить `val` в клетку (`r`, `c`) на доске `grid`.
 ///
@@ -276,7 +449,11 @@ bool isValid(
     }
   }
 
-  if (variant == 'diagonal' || variant == 'killerdiag') {
+  if (variant == 'argyle') {
+    for (final (i, j) in argylePeers(r, c, n)) {
+      if (grid[i][j] == val) return false;   // восемь диагоналей узора
+    }
+  } else if (variant == 'diagonal' || variant == 'killerdiag') {
     if (r == c) {
       for (var i = 0; i < n; i++) {
         if (grid[i][i] == val) return false;
@@ -388,8 +565,124 @@ bool isValid(
   return true;
 }
 
+/// Наименьшая разница соседей по линии шёпота — `WHISPER_GAP` веба.
+const whisperGap = 5;
+
+/// Все клетки линии (prev/next), на которой стоит (r, c); пусто — клетка не на линии.
+/// Перенос `lineCells` веба.
+List<List<int>> lineCells(List<List<ThermoLink?>> pn, int r, int c) {
+  if (pn[r][c] == null) return const [];
+  var cur = [r, c];
+  for (var guard = 0; guard < 81; guard++) {
+    final prev = pn[cur[0]][cur[1]]!.prev;
+    if (prev == null) break;
+    cur = prev;
+  }
+  final out = <List<int>>[];
+  for (var guard = 0; guard < 81; guard++) {
+    out.add(cur);
+    final next = pn[cur[0]][cur[1]]!.next;
+    if (next == null) break;
+    cur = next;
+  }
+  return out;
+}
+
+/// Линия равных сумм не нарушена цифрой [val] в (r, c): у каждого блока линии коридор
+/// возможных сумм (заполненное + наименьшее/наибольшее добивание разными цифрами), и все
+/// коридоры пересекаются. Перенос `regionSumOk` веба; блоки — 3×3 у 9×9, 2×3 у 6×6.
+bool regionSumOk(List<List<int>> grid, int r, int c, int val, List<List<ThermoLink?>> pn, int n) {
+  final cells = lineCells(pn, r, c);
+  if (cells.isEmpty) return true;
+  final br = n == 6 ? 2 : 3, bc = 3;
+  final sums = <int, int>{}, empties = <int, int>{};
+  for (final cell in cells) {
+    final box = cell[0] ~/ br * (n ~/ bc) + cell[1] ~/ bc;
+    final v = cell[0] == r && cell[1] == c ? val : grid[cell[0]][cell[1]];
+    sums[box] = (sums[box] ?? 0) + v;
+    if (v == 0) empties[box] = (empties[box] ?? 0) + 1;
+  }
+  var lo = -1 << 30, hi = 1 << 30;
+  for (final box in sums.keys) {
+    final k = empties[box] ?? 0, sum = sums[box]!;
+    final low = sum + k * (k + 1) ~/ 2, high = sum + k * n - k * (k - 1) ~/ 2;
+    if (low > lo) lo = low;
+    if (high < hi) hi = high;
+  }
+  return lo <= hi;
+}
+
+/// Цифра [val] в (r, c) не спорит с зеркальной клеткой линии-палиндрома. Перенос
+/// `palindromeOk` веба.
+bool palindromeOk(List<List<int>> grid, int r, int c, int val, List<List<ThermoLink?>> pn) {
+  final cells = lineCells(pn, r, c);
+  if (cells.isEmpty) return true;
+  final i = cells.indexWhere((cell) => cell[0] == r && cell[1] == c);
+  final m = cells[cells.length - 1 - i];
+  if (m[0] == r && m[1] == c) return true;   // середина нечётной линии
+  final o = grid[m[0]][m[1]];
+  return o == 0 || o == val;
+}
+
+/// Цифра [val] в (r, c) не ломает линию «между концами»: при обоих известных концах средние
+/// строго между ними; при одном — все средние по одну сторону от него. Перенос `betweenOk` веба.
+bool betweenOk(List<List<int>> grid, int r, int c, int val, List<List<ThermoLink?>> pn) {
+  final cells = lineCells(pn, r, c);
+  if (cells.isEmpty) return true;
+  int at(List<int> cell) => cell[0] == r && cell[1] == c ? val : grid[cell[0]][cell[1]];
+  final a = at(cells.first), b = at(cells.last);
+  final mids = [for (final cell in cells.sublist(1, cells.length - 1)) at(cell)].where((v) => v != 0).toList();
+  if (a != 0 && b != 0) {
+    if (a == b) return false;
+    final lo = a < b ? a : b, hi = a < b ? b : a;
+    return mids.every((v) => v > lo && v < hi);
+  }
+  final end = a != 0 ? a : b;
+  if (end == 0 || mids.isEmpty) return true;
+  return mids.every((v) => v > end) || mids.every((v) => v < end);
+}
+
+/// Цифра [val] в (r, c) не ломает lockout-линию: при обоих известных концах они отличаются
+/// минимум на 4, а средние вне отрезка между ними; при одном — средние ему не равны. Перенос
+/// `lockoutOk` веба.
+bool lockoutOk(List<List<int>> grid, int r, int c, int val, List<List<ThermoLink?>> pn) {
+  final cells = lineCells(pn, r, c);
+  if (cells.isEmpty) return true;
+  int at(List<int> cell) => cell[0] == r && cell[1] == c ? val : grid[cell[0]][cell[1]];
+  final a = at(cells.first), b = at(cells.last);
+  final mids = [for (final cell in cells.sublist(1, cells.length - 1)) at(cell)].where((v) => v != 0).toList();
+  if (a != 0 && b != 0) {
+    if ((a - b).abs() < 4) return false;
+    final lo = a < b ? a : b, hi = a < b ? b : a;
+    return mids.every((v) => v < lo || v > hi);
+  }
+  final end = a != 0 ? a : b;
+  return end == 0 || mids.every((v) => v != end);
+}
+
+/// Линия ренбана не нарушена цифрой [val] в (r, c): на линии нет повторов, и разброс
+/// известных цифр не шире её длины. Перенос `renbanOk` веба.
+bool renbanOk(List<List<int>> grid, int r, int c, int val, List<List<ThermoLink?>> pn) {
+  final cells = lineCells(pn, r, c);
+  if (cells.isEmpty) return true;
+  final vals = <int>[];
+  for (final cell in cells) {
+    final v = cell[0] == r && cell[1] == c ? val : grid[cell[0]][cell[1]];
+    if (v == 0) continue;
+    if (vals.contains(v)) return false;
+    vals.add(v);
+  }
+  var lo = vals.first, hi = vals.first;
+  for (final v in vals) {
+    if (v < lo) lo = v;
+    if (v > hi) hi = v;
+  }
+  return hi - lo <= cells.length - 1;
+}
+
 /// Не нарушает ли цифра [val] в клетке (r, c) ПОКАЗАННЫЕ подсказки — перенос `overlayOk`
-/// из `frontend/src/services/sudoku-core.ts`: метки чётности, точки Кропки, суммы сэндвича.
+/// из `frontend/src/services/sudoku-core.ts`: метки чётности, точки Кропки, суммы сэндвича,
+/// линии шёпота, ренбана и равных сумм.
 bool overlayOk(List<List<int>> grid, int r, int c, int val, int n, BoardGeometry g) {
   final parity = g.parity;
   if (parity != null) {
@@ -412,6 +705,21 @@ bool overlayOk(List<List<int>> grid, int r, int c, int val, int n, BoardGeometry
       if (nb != 0 && !rel(d, val, nb)) return false;
     }
   }
+  final whisper = g.whisper;
+  if (whisper != null) {
+    final link = whisper[r][c];
+    if (link != null) {
+      for (final nb in [link.prev, link.next]) {
+        if (nb == null) continue;
+        final o = grid[nb[0]][nb[1]];
+        if (o != 0 && (val - o).abs() < whisperGap) return false;
+      }
+    }
+  }
+  final renban = g.renban;
+  if (renban != null && !renbanOk(grid, r, c, val, renban)) return false;
+  final regionsum = g.regionsum;
+  if (regionsum != null && !regionSumOk(grid, r, c, val, regionsum, n)) return false;
   final sandwich = g.sandwich;
   if (sandwich != null) {
     bool check(List<int> line, int want) {
@@ -432,7 +740,57 @@ bool overlayOk(List<List<int>> grid, int r, int c, int val, int n, BoardGeometry
     final col = [for (var i = 0; i < n; i++) grid[i][c]]..[r] = val;
     if (!check(col, sandwich.cols[c])) return false;
   }
+  final palindrome = g.palindrome;
+  if (palindrome != null && !palindromeOk(grid, r, c, val, palindrome)) return false;
+  final between = g.between;
+  if (between != null && !betweenOk(grid, r, c, val, between)) return false;
+  final lockout = g.lockout;
+  if (lockout != null && !lockoutOk(grid, r, c, val, lockout)) return false;
+  final xv = g.xv;
+  if (xv != null) {
+    // XV с отрицательным условием (перенос `xvOk` веба): X → сумма 10, V → 5, без знака — ни то, ни другое.
+    final edges = <(int, int, int)>[
+      if (c < n - 1) (xv.h[r][c], r, c + 1),
+      if (c > 0) (xv.h[r][c - 1], r, c - 1),
+      if (r < n - 1) (xv.v[r][c], r + 1, c),
+      if (r > 0) (xv.v[r - 1][c], r - 1, c),
+    ];
+    for (final (d, nr, nc) in edges) {
+      final o = grid[nr][nc];
+      if (o == 0) continue;
+      final sum = val + o;
+      if (d == 2 ? sum != 10 : d == 1 ? sum != 5 : sum == 5 || sum == 10) return false;
+    }
+  }
+  final lk = g.littleKiller;
+  if (lk != null && !littleKillerOk(grid, r, c, val, lk, n)) return false;
+  final xs = g.xsums;
+  if (xs != null) {
+    final row = [...grid[r]]..[c] = val;
+    if (!xsumLineOk(row, xs.rows[r], n)) return false;
+    final col = [for (final line in grid) line[c]]..[r] = val;
+    if (!xsumLineOk(col, xs.cols[c], n)) return false;
+  }
   return true;
+}
+
+/// 🔴 X-СУММЫ (пункт 9 цепочки «14 усложнений», задача 5ea317fc) — перенос `xsumLineOk` ядра: число у
+/// края — сумма первых X цифр с этой стороны, X — первая из них (входит в сумму). Пока первая цифра
+/// пуста — молчим; известна — сумма первых X клеток в коридоре: известные плюс по 1 на пустую не
+/// больше подсказки, плюс по n на пустую — не меньше. −1 — подсказка скрыта.
+bool xsumLineOk(List<int> line, int clue, int n) {
+  if (clue < 0) return true;
+  final x = line[0];
+  if (x == 0) return true;
+  var s = 0, e = 0;
+  for (var k = 0; k < x; k++) {
+    if (line[k] == 0) {
+      e++;
+    } else {
+      s += line[k];
+    }
+  }
+  return s + e <= clue && clue <= s + n * e;
 }
 
 bool _knightHit(List<List<int>> grid, int r, int c, int val, int n) {

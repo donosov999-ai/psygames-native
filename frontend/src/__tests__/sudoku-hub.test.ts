@@ -320,7 +320,7 @@ describe('экран развилки: меню, а не партия', () => {
     }
   });
 
-  it('с развилки только уходят — шесть переходов и кнопка назад', () => {
+  it('с развилки только уходят — девять переходов и кнопка назад', () => {
     expect([...SCREEN.matchAll(/router\.push\(/g)].length).toBeGreaterThanOrEqual(1);
     expect(SCREEN).toContain('goBackOrHome()');
     // 27.08.2026 (70b58bbe): к трём доскам добавились карточки режимов классической
@@ -329,8 +329,19 @@ describe('экран развилки: меню, а не партия', () => {
     // 30.09.2026: шестая — «Кошки» (Queens / Star Battle), решение Дениса 24.09 «в
     // развилку «Судоку»». Число поднято осознанно, а не чтобы позеленеть: состав
     // развилки — это решение, и проба держит его поимённо ниже, а не только счётом.
-    expect(SUDOKU_CARDS.length).toBe(6);
+    // 02.10.2026: седьмая и восьмая — режимы «Киллер» и «Свободно» (задача 55b97845: при
+    // переносе на Flutter они пропали, в вебе были кнопками режима), тот же экран ?mode=….
+    // 02.10.2026: девятая — «Судоку для малышей» (?mode=junior, задача d87a4605): экран
+    // нативный с #160, а без карточки до него не было входа ни в одном профиле.
+    // 07.10.2026: развилка «Головоломки» распущена (решение Дениса 18.09, ca6f3e00) — её заводской запас
+    // разложен по развилкам, где режимы стоят в файле состава. В «Судоку» легли восемь сеток Тэтхэма
+    // (Чёт-нечет, Solo, Towers, Unequal, Keen, Singles, Filling, Undead) — их человек видел здесь и раньше,
+    // теперь заводской список совпадает с файлом. Свои карточки развилки — по-прежнему девять.
+    const тэтхэм = SUDOKU_CARDS.filter((c) => c.route.startsWith('/games/puzzles?mode='));
+    expect(тэтхэм.length).toBe(8);
+    expect(SUDOKU_CARDS.length - тэтхэм.length).toBe(9);
     expect(SUDOKU_CARDS.map((c) => c.route)).toContain('/games/cats');
+    expect(SUDOKU_CARDS.map((c) => c.route)).toEqual(expect.arrayContaining(['/games/sudoku?mode=killer', '/games/sudoku?mode=free', '/games/sudoku?mode=junior']));
     expect(SUDOKU_CARDS.every((c) => c.route.startsWith('/games/'))).toBe(true);
   });
 

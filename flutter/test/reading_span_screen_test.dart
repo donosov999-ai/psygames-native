@@ -1,14 +1,18 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:psygames_flutter/games/languages/fresh_pool.dart';
 import 'package:psygames_flutter/games/reading_span/model.dart';
 import 'package:psygames_flutter/games/reading_span/screen.dart';
 import 'package:psygames_flutter/shell/demo_lesson.dart';
 import 'package:psygames_flutter/shell/game_clock.dart';
 import 'package:psygames_flutter/shell/game_preset.dart';
+import 'package:psygames_flutter/shell/game_rules.dart';
 import 'package:psygames_flutter/shell/l10n.dart';
+import 'package:psygames_flutter/shell/lesson.dart';
 import 'package:psygames_flutter/shell/level_rules.dart';
 import 'package:psygames_flutter/shell/session_report.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
@@ -33,6 +37,7 @@ void main() {
   setUpAll(() async {
     await L.load('ru');
     await LevelRules.load();
+    await GameRules.load();
   });
 
   Future<void> boot(WidgetTester tester, {int level = 1, bool rulesSeen = true, Map<String, String>? preset}) async {
@@ -102,6 +107,32 @@ void main() {
     await tester.pump();
   }
 
+  testWidgets('🔴 приёмка §4б: ввод слов на 360×640 при открытой клавиатуре — поле и «Проверить» видны над ней',
+      (tester) async {
+    // Слова вспоминаются СВОБОДНО, на 12 письменностях: своя клавиатура под полем — 33 буквы на
+    // алфавит, а китайскому, японскому и хинди нужен системный ввод. Орган — клавиатура ОС, и
+    // приёмка меряет, что она не закрывает ни поле, ни кнопку ответа.
+    tester.view.physicalSize = const Size(360, 640);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    await boot(tester, level: 1);
+    await tester.tap(find.byKey(const Key('rspan-start')));
+    await tester.pump();
+    final words = await readSet(tester);
+    const keyboard = 300.0;   // клавиатура телефона на экране высотой 640 — с запасом
+    tester.view.viewInsets = const FakeViewPadding(bottom: keyboard);
+    await tester.pump();
+    const visible = Rect.fromLTRB(0, 0, 360, 640 - keyboard);
+    final field = tester.getRect(find.byKey(const Key('rspan-input')));
+    final check = tester.getRect(find.byKey(const Key('rspan-check')));
+    expect(visible.contains(field.topLeft) && field.bottom <= visible.bottom, isTrue, reason: 'поле $field, видно $visible');
+    expect(check.top >= field.bottom && check.bottom <= visible.bottom, isTrue,
+        reason: '«Проверить» под полем и над клавиатурой: $check, поле $field');
+    expect(check.height >= 48 && check.width >= 48, isTrue, reason: 'площадь нажатия $check');
+    await answer(tester, words.join(', '));
+    expect(find.byKey(const Key('rspan-passed')), findsOneWidget, reason: 'ответ засчитан при открытой клавиатуре');
+  });
+
   testWidgets('🔴 партия: прочитал, оценил, набрал слова по порядку — уровень взят, отчёт как у веба', (tester) async {
     await boot(tester, level: 1);
     await tester.tap(find.byKey(const Key('rspan-start')));
@@ -132,6 +163,64 @@ void main() {
     expect(hud(tester, L.t('level'), '1'), isTrue);
   });
 
+  testWidgets('🔴 кнопки суждения читаются: контраст подписи и фона не ниже 4,5 : 1 (WCAG AA)', (tester) async {
+    double contrast(Color a, Color b) {
+      final la = a.computeLuminance(), lb = b.computeLuminance();
+      return (max(la, lb) + 0.05) / (min(la, lb) + 0.05);
+    }
+
+    await boot(tester, level: 1);
+    await tester.tap(find.byKey(const Key('rspan-start')));
+    await tester.pump();
+    final ratios = <String>[];
+    for (final key in ['rspan-sense', 'rspan-nonsense']) {
+      final label = tester.widget<RichText>(find.descendant(of: find.byKey(Key(key)), matching: find.byType(RichText)).last);
+      final fill = tester
+          .widget<Material>(find.descendant(of: find.byKey(Key(key)), matching: find.byType(Material)).first)
+          .color!;
+      final r = contrast(label.text.style!.color!, fill);
+      if (r < 4.5) ratios.add('$key ${r.toStringAsFixed(2)}');
+    }
+    expect(ratios, isEmpty, reason: 'белый на зелёном #22C55E был ≈2,3 : 1');
+  });
+
+  testWidgets('🔴 «Заново» снимает отметку разбора — следующий круг снова зачётный', (tester) async {
+    await boot(tester, level: 1);
+    LessonUsed.mark();
+    await tester.tap(find.byTooltip(L.t('restart')).first);
+    await tester.pump();
+    expect(LessonUsed.inRound, isFalse);
+  });
+
+  testWidgets('🔴 предложения разбора помечены виденными — в партию они не придут с готовым ответом', (tester) async {
+    await boot(tester, level: 1);
+    await tester.tap(find.byKey(const Key('game-lesson')));
+    await tester.pumpAndSettle();
+    final seen = readSeen(state, 'reading_span').toSet();
+    final shown = readingSpanLessonSentences(sentences).map((s) => s.en).toSet();
+    expect(shown.difference(seen), isEmpty, reason: 'показанное в разборе — в запасе виденного');
+    await tester.tap(find.byKey(const Key('lesson-close')));
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets('🔴 третий провал подряд опускает уровень — итог говорит «уровень ниже», а не «тот же уровень»',
+      (tester) async {
+    await boot(tester, level: 2);
+    final notes = <String>[];
+    for (var round = 0; round < 3; round++) {
+      if (round > 0) {
+        await tester.tap(find.byKey(const Key('rspan-again')));
+        await tester.pump();
+      }
+      await tester.tap(find.byKey(const Key('rspan-start')));
+      await tester.pump();
+      await readSet(tester);
+      await answer(tester, 'мимо');
+      notes.add(tester.widget<Text>(find.byKey(const Key('rspan-retry-note'))).data!);
+    }
+    expect(notes, [L.t('sameLevelRetry'), L.t('sameLevelRetry'), L.t('levelDownRetry').replaceAll('{n}', '1')]);
+  });
+
   testWidgets('🔴 интерфейс на английском — предложения и слова английские', (tester) async {
     await L.load('en');
     addTearDown(() => L.load('ru'));
@@ -146,6 +235,58 @@ void main() {
     final english = {for (final s in sentences) s.lastEn.toLowerCase()};
     expect(((sent.single['details'] as Map)['expected'] as String).split(' ').every(english.contains), isTrue);
   });
+
+  // Подпись игры `readingSpanDesc` — карточка развилки и экран старта. Замер 01.10.2026: она теряла
+  // оба действия — en «Judge sense, recall last words» без «каждого предложения», ru «Оцените смысл
+  // и запомните слова» без «последнее» (задача cf5ff1ca). Справка из партии с 2.56.12 — полный текст
+  // правил из общего реестра (`GameRules.fullKeyFor`, у этой игры `readingSpanIntroDesc`).
+  final cyrillic = RegExp('[А-Яа-яЁё]');
+  for (final lang in ['ru', 'en']) {
+    testWidgets('🔴 подпись и справка ($lang): смысл КАЖДОГО предложения и его ПОСЛЕДНЕЕ слово; закрыл — круг там же',
+        (tester) async {
+      await L.load(lang);
+      GameRules.currentRoute = '/games/reading-span';
+      addTearDown(() async {
+        GameRules.currentRoute = null;
+        await L.load('ru');
+      });
+      await boot(tester, level: 1);
+      final desc = L.t('readingSpanDesc');
+      expect(find.text(desc), findsOneWidget, reason: 'подпись игры на экране старта');
+      if (lang == 'ru') {
+        expect(desc, allOf(contains('каждого предложения'), contains('последнее слово')));
+      } else {
+        expect(desc, allOf(contains('each sentence'), contains('last word')));
+        expect(cyrillic.hasMatch(desc), isFalse, reason: 'в английской подписи нет кириллицы: «$desc»');
+      }
+
+      await tester.tap(find.byKey(const Key('rspan-start')));
+      await tester.pump();
+      final first = lastWordOnScreen(tester);
+      await tester.tap(find.byKey(Key(senseOf[sentenceOnScreen(tester)]! ? 'rspan-sense' : 'rspan-nonsense')));
+      await tester.pump();
+      final before = sentenceOnScreen(tester);
+
+      await tester.tap(find.byIcon(Icons.help_outline));
+      await tester.pump(const Duration(milliseconds: 400));
+      final help = tester.widget<Text>(find.byKey(const Key('game-rules-text'))).data!;
+      expect(help, L.t(GameRules.fullKeyFor('/games/reading-span')!));
+      if (lang == 'ru') {
+        expect(help, allOf(contains('смысл'), contains('последнее слово')));
+      } else {
+        expect(help, allOf(contains('makes sense'), contains('last word')));
+        expect(cyrillic.hasMatch(help), isFalse, reason: 'в английской справке нет кириллицы: «$help»');
+      }
+      await tester.tap(find.byKey(const Key('game-rules-close')));
+      await tester.pump(const Duration(milliseconds: 400));
+
+      expect(find.byKey(const Key('game-rules')), findsNothing);
+      expect(sentenceOnScreen(tester), before, reason: 'закрыл справку — то же предложение, круг не начат заново');
+      final rest = await readSet(tester);
+      await answer(tester, [first, ...rest].join(' '));
+      expect(find.byKey(const Key('rspan-passed')), findsOneWidget, reason: 'круг после справки доигран и засчитан');
+    });
+  }
 
   testWidgets('🔴 удержание (ось 3): за ёмкостью словаря ввод открывается не сразу', (tester) async {
     final top = sentences.length - 1;   // первый уровень, где набор упёрся в словарь и пошла задержка
@@ -183,13 +324,18 @@ void main() {
     final solution = tester.widget<RspanSolution>(find.byType(RspanSolution));
     expect(solution.seq.length, RspanLevelParams.of(3, sentences.length).setSize, reason: 'раскрыт весь набор');
     expect(solution.seq.first.ru, first, reason: 'тот же набор, что шёл в партии');
-    final labels = find
-        .byWidgetPredicate((w) => w is Semantics && (w.properties.label ?? '').startsWith('rspan-sol-'))
+    for (var i = 0; i < solution.seq.length; i++) {
+      final ok = solution.seq[i].ok;
+      expect(find.byKey(Key('rspan-sol-$i-${ok ? 'sense' : 'nonsense'}')), findsOneWidget,
+          reason: 'пометка смысла — по флагу предложения, как засчитывает игра');
+    }
+    // Скринридер читает строку словами, а не отладочный id (сверка веб → натив 02.10.2026).
+    final spoken = find
+        .byWidgetPredicate((w) => w is Semantics && (w.properties.label ?? '').startsWith('1. '))
         .evaluate()
         .map((e) => (e.widget as Semantics).properties.label!)
-        .toList();
-    expect(labels, [for (var i = 0; i < solution.seq.length; i++) 'rspan-sol-$i-${solution.seq[i].ok ? 'sense' : 'nonsense'}'],
-        reason: 'пометка смысла — по флагу предложения, как засчитывает игра');
+        .single;
+    expect(spoken, '1. ${solution.seq.first.ru} — ${solution.seq.first.ok ? L.t('makesSense') : L.t('nonsense')}');
     expect(solution.answer, [for (final s in solution.seq) s.lastRu.toLowerCase()]);
     expect(sent, isEmpty, reason: 'показанное решение в статистику и лестницу не идёт');
     expect(hud(tester, L.t('level'), '3'), isTrue);

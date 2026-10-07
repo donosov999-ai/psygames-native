@@ -1,7 +1,8 @@
 import React from 'react';
+import { goBackOrHome } from '@/src/utils/nav';
 import { hookConsoleErrors } from '@/src/services/crumbs';
 import { installNativeSessionBridge } from '@/src/services/nativeSessionBridge';
-import { Stack } from 'expo-router';
+import { Stack, router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { ThemeProvider, useTheme } from '@/src/contexts/ThemeContext';
@@ -25,6 +26,7 @@ import { warmLevelCache } from '@/src/services/levelCache';
 import UnlockToast from '@/src/components/UnlockToast';
 import AppErrorBoundary from '@/src/components/AppErrorBoundary';
 import UpdateGate from '@/src/components/UpdateGate';
+import WhatsNewModal from '@/src/components/WhatsNewModal';
 import GameHelpOverlay from '@/src/components/GameHelpOverlay';
 import OrientationGuard from '@/src/components/OrientationGuard';
 import FeedbackWidget from '@/src/components/FeedbackWidget';
@@ -153,6 +155,8 @@ function RootLayoutNav() {
           первый запуск сразу стартует на FREE (см. ProfileContext). */}
       {/* Desktop-only авто-апдейтер (Tauri). На web/Android — no-op. */}
       <UpdateGate />
+      {/* One notice per app launch, independent of Home/catalog navigation. */}
+      <WhatsNewModal />
       {/* Глобальная «?»-справка игр (сама прячется вне /games/* через HELP_MAP) */}
       <GameHelpOverlay />
       {/* Тап по локальному напоминанию → запуск зарядки/вечернего комплекса */}
@@ -189,6 +193,19 @@ export default function RootLayout() {
    * уровень вместо достигнутого. Одно пакетное чтение на весь запуск.
    */
   React.useEffect(() => { void warmLevelCache(); }, []);
+
+  /*
+   * 🔴 ПЕРЕХОД ПО ВКЛАДКЕ ИЗ ОБОЛОЧКИ (задача 5136754e, 07.10.2026). Нижней полосой владеет натив;
+   * нажатие на вкладку, которую рисует страница, уводит страницу ТЕМ ЖЕ `router.replace`, что и
+   * веб-полоса: вкладки не копятся в истории, и «назад» из веб-игры приходит на свою вкладку.
+   */
+  React.useEffect(() => {
+    (globalThis as any).__psyReplace = (route: string) => router.replace(route as any);
+    // Веб-игра из нативного каталога — В ИСТОРИЮ (`push`): «назад» из неё вернёт на вкладку «Игры».
+    (globalThis as any).__psyPush = (route: string) => router.push(route as any);
+    // Системная «назад» Android на странице (07.10.2026): тот же `goBackOrHome`, что у кнопки «назад» веба.
+    (globalThis as any).__psyBack = () => goBackOrHome();
+  }, []);
 
   React.useEffect(() => {
     let cancelled = false;

@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/pause/practice_haptics.dart';
-import 'package:psygames_flutter/games/pause/practices.dart';
+import 'package:practice_kit/practice_kit.dart';
 import 'package:psygames_flutter/games/pause/screen.dart';
 import 'package:psygames_flutter/shell/game_preset.dart';
 import 'package:psygames_flutter/shell/voice.dart';
@@ -23,7 +23,7 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   final calls = <MethodCall>[];
   final messenger = TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
-  final engine = Practices(jsonDecode(File('assets/pause/practices.json').readAsStringSync()) as Json);
+  final engine = Practices(jsonDecode(File('../packages/practice_kit/assets/practices.json').readAsStringSync()) as Json);
 
   setUp(() {
     calls.clear();
@@ -119,16 +119,20 @@ void main() {
   });
 
   test('🔴 канал реализован на обеих платформах, а не только в пробе', () {
-    final kt = File('android/app/src/main/kotlin/pro/psygames/psygames_flutter/MainActivity.kt').readAsStringSync();
-    expect(kt, contains('"pro.psygames/practiceHaptics"'));
-    expect(File('android/app/src/main/kotlin/pro/psygames/psygames_flutter/PracticeHaptics.kt').readAsStringSync(),
+    // Нативная часть — пакет practice_kit; приложение регистрирует его как плагин.
+    const kit = '../packages/practice_kit';
+    final pubspec = File('$kit/pubspec.yaml').readAsStringSync();
+    expect(RegExp('pluginClass: PracticeKitPlugin').allMatches(pubspec).length, 2, reason: 'android и ios');
+    final kt = File('$kit/android/src/main/kotlin/pro/psygames/practice_kit/PracticeKitPlugin.kt').readAsStringSync();
+    expect(kt, contains('"pro.psygames.practice_kit/haptics"'));
+    expect(File('$kit/android/src/main/kotlin/pro/psygames/practice_kit/PracticeKitHaptics.kt').readAsStringSync(),
         allOf(contains('"play"'), contains('"stop"'), contains('createOneShot')));
-    expect(File('android/app/src/main/AndroidManifest.xml').readAsStringSync(),
+    expect(File('$kit/android/src/main/AndroidManifest.xml').readAsStringSync(),
         contains('android.permission.VIBRATE'), reason: 'Vibrator без разрешения молчит');
-    final swift = File('ios/Runner/AppDelegate.swift').readAsStringSync();
-    expect(swift, contains('"pro.psygames/practiceHaptics"'));
-    expect(swift, contains('PracticeHapticsPlugin.register(with: registrar)'));
+    final swift = File('$kit/ios/practice_kit/Sources/practice_kit/PracticeKitPlugin.swift').readAsStringSync();
+    expect(swift, contains('"pro.psygames.practice_kit/haptics"'));
     expect(swift, contains('.hapticContinuous'));
+    expect(PausePracticeHaptics.channel.name, 'pro.psygames.practice_kit/haptics');
   });
 
   group('🔴 экран «Паузы»', () {
