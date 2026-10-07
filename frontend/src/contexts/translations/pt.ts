@@ -2,6 +2,15 @@
 // 493 ключей, переведены с английской базы. Не править руками — регенерировать воркфлоу.
 // zh/hi — машинное качество, нужна вычитка нативом до сторов.
 const t: Record<string, string> = {
+  "theme_selection": "Aparência",
+  "theme_light": "Claro",
+  "theme_dark": "Escuro",
+  "theme_system": "Sistema",
+  "theme_profile": "Padrão do perfil",
+  "sudokuTryIndependently": "Tentar sem ajuda",
+  "sudokuPracticeOnly": "Tentativa de prática — sem aumento de nível ou classificação.",
+  "sudokuLessonUnavailable": "Não há outro tabuleiro desta dificuldade para uma lição separada.",
+  "sudokuPracticeExample": "Exemplo de prática separado",
   "home": "Início",
   "statistics": "Estatísticas",
   "settings": "Ajustes",
@@ -1486,6 +1495,8 @@ const t: Record<string, string> = {
   "sudokuTypeKiller": "9×9 · 6 degraus",
   "sudokuFreeHubDesc": "Clássico, sem variantes: tamanho e dificuldade à escolha",
   "sudokuTypeFree": "6×6 e 9×9 · 3 dificuldades",
+  "sudokuJuniorTitle": "Sudoku para pequenos",
+  "sudokuTypeJunior": "4×4 e 6×6 · 9 degraus",
   "sudokuRuleDiagonal": "Os dígitos também são únicos nas duas diagonais.",
   "sudokuRuleAntiknight": "Dígitos iguais não podem estar a um pulo de cavalo.",
   "sudokuRuleHyper": "Quatro zonas extras 3×3 também contêm 1–9 sem repetição.",
@@ -3129,6 +3140,7 @@ const t: Record<string, string> = {
   "catsRuleColor": "Um gato por cor",
   "catsRuleLine": "Um gato por linha e por coluna",
   "catsRuleTouch": "Os gatos não podem se tocar, nem na diagonal",
+  "catsHowPress": "Toque longo revela um gato; toque curto marca ✕",
   "catsWhyRegion": "Nesta cor só resta uma casa",
   "catsWhyRow": "Nesta linha só resta uma casa",
   "catsWhyColumn": "Nesta coluna só resta uma casa",
@@ -3137,6 +3149,8 @@ const t: Record<string, string> = {
   "sudokuPilotOff": "Voltar à escada de níveis",
   "sudokuRepeatSame": "De novo, mesma dificuldade",
   "sudokuSkinLetters": "Letras em vez de números",
+  "sudokuSkinAnimals": "Animais em vez de números",
+  "sdkRule_friends": "🐱 ao lado de 🐭",
   "digitsCandy": "Doce",
   "sudokuHiddenWord": "Palavra escondida: {w}",
   "teachRpRhythmIntro": "Segure o ANDAMENTO, não a contagem: as batidas vêm iguais, como passos. Repita o padrão no mesmo ritmo.",
@@ -3431,5 +3445,10 @@ const t: Record<string, string> = {
   "sdkRule_between": "entre as pontas",
   "sdkRule_lockout": "cadeado",
   "sdkRule_xv": "XV",
+  "catalogSearch": "Encontrar um jogo",
+  "catalogFilter": "Filtro",
+  "catalogBySection": "Seções",
+  "catalogBySkill": "Habilidades",
+  "catalogNothing": "Nenhum jogo encontrado",
 };
 export default t;

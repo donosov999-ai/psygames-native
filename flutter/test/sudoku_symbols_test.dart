@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/sudoku/screen.dart';
@@ -49,6 +51,9 @@ void main() {
   /// Пауза → «Стиль цифр» → лист выбора.
   Future<void> openStyles(WidgetTester tester) async {
     await openPause(tester);
+    // Full pause help can put this action below the fold on small screens.
+    await tester.ensureVisible(find.text(L.t('digitStyle')));
+    await tester.pumpAndSettle();
     await tester.tap(find.text(L.t('digitStyle')));
     await tester.pumpAndSettle();
   }
@@ -154,6 +159,34 @@ void main() {
     }
   });
 
+  test('🔴 звери: картинки и значки разные, файлы на месте; на 4, 6 и 9 — свои наборы', () {
+    for (final n in [4, 6, 9]) {
+      final s = SudokuSymbols.animals(n);
+      expect(s.isDigits, isFalse, reason: 'поле $n');
+      final imgs = [for (var v = 1; v <= n; v++) s.image(v)!];
+      expect(imgs.toSet().length, n, reason: 'поле $n: картинки повторяются');
+      expect({for (var v = 1; v <= n; v++) s.glyph(v)}.length, n, reason: 'поле $n: значки пометок повторяются');
+      for (final a in imgs) {
+        expect(File(a).existsSync(), isTrue, reason: 'нет ассета $a');
+      }
+    }
+    expect(SudokuSymbols.animals(5).isDigits, isTrue, reason: 'на поле без набора — цифры');
+    expect(SkinChoice.parse('animals').skin, SudokuSkin.animals);
+    expect(SkinChoice.parse('animals').name, 'animals', reason: 'выбор переживает запись');
+  });
+
+  test('🔴 звери только там, где у цифры нет числового смысла', () {
+    const solution = [[1, 2, 3, 4], [3, 4, 1, 2], [2, 1, 4, 3], [4, 3, 2, 1]];
+    for (final v in ['thermo', 'arrow', 'kropki', 'sandwich', 'evenodd', 'nonconsec', 'killerdiag']) {
+      final s = symbolsFor(skin: SudokuSkin.animals, variant: v, solution: solution, language: 'ru', seed: 3);
+      expect(s.isDigits, isTrue, reason: '$v: зверь спрятал бы правило');
+    }
+    for (final v in symbolicVariants) {
+      final s = symbolsFor(skin: SudokuSkin.animals, variant: v, solution: solution, language: 'ru', seed: 3);
+      expect(s.images, isNotNull, reason: '$v: звери положены');
+    }
+  });
+
   test('🔴 буквы только там, где у цифры нет числового смысла', () {
     const solution = [[1, 2], [2, 1]];
     for (final v in ['thermo', 'arrow', 'kropki', 'sandwich', 'evenodd', 'nonconsec', 'thermocage',
@@ -241,6 +274,27 @@ void main() {
         reason: 'буквы, которые ничего не сделают, не предлагаются');
     expect(find.byKey(const Key('skin-drawn-candy')), findsOneWidget,
         reason: 'рисованные — это всё ещё цифры, на термометрах положены');
+  });
+
+  testWidgets('🔴 звери: на клавишах и на доске — картинки «Пар» своей цифры, выбор помнится', (tester) async {
+    await boot(tester, {ladderKey: '5'});
+    await pickSkin(tester, const Key('skin-animals'));
+    expect(state.get(skinKey), 'animals', reason: 'выбор значков помнится у профиля');
+    final picks = animalPicks[9]!;
+    for (var v = 1; v <= 9; v++) {
+      expect(imagesIn(tester, find.byKey(Key('digit$v'))).map((i) => i.asset), [animalImage(picks[v - 1])],
+          reason: 'клавиша $v — свой зверь');
+    }
+    var pictured = 0;
+    for (var r = 0; r < 9; r++) {
+      for (var c = 0; c < 9; c++) {
+        for (final i in imagesIn(tester, find.byKey(Key('cell_${r}_$c')))) {
+          expect(i.asset, animalImage(picks[int.parse(i.label) - 1]), reason: 'клетка $r,$c: зверь не той цифры');
+          pictured++;
+        }
+      }
+    }
+    expect(pictured, greaterThan(20), reason: 'подсказки задания нарисованы зверями');
   });
 
   testWidgets('🔴 рисованные цифры веба: на доске и на клавишах — картинки набора', (tester) async {

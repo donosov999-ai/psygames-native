@@ -2,6 +2,15 @@
 // 493 ключей, переведены с английской базы. Не править руками — регенерировать воркфлоу.
 // Вычитка: Claude 12.06.2026 (skillAttention/skillFocus swap, 序列记忆, 主访问码). При регенерации воркфлоу — НЕ затирать, мерджить через git diff.
 const t: Record<string, string> = {
+  "theme_selection": "外观",
+  "theme_light": "浅色",
+  "theme_dark": "深色",
+  "theme_system": "跟随系统",
+  "theme_profile": "个人模式默认",
+  "sudokuTryIndependently": "独立尝试",
+  "sudokuPracticeOnly": "练习尝试 — 不提升等级或评分。",
+  "sudokuLessonUnavailable": "目前没有同等难度的其他棋盘用于单独教学。",
+  "sudokuPracticeExample": "独立练习示例",
   "home": "首页",
   "statistics": "统计",
   "settings": "设置",
@@ -1486,6 +1495,8 @@ const t: Record<string, string> = {
   "sudokuTypeKiller": "9×9 · 6级",
   "sudokuFreeHubDesc": "经典，无变型规则：尺寸与难度自选",
   "sudokuTypeFree": "6×6 与 9×9 · 3 种难度",
+  "sudokuJuniorTitle": "儿童数独",
+  "sudokuTypeJunior": "4×4 与 6×6 · 9级",
   "sudokuRuleDiagonal": "两条对角线上的数字也不能重复。",
   "sudokuRuleAntiknight": "相同数字不能互为马步位置。",
   "sudokuRuleHyper": "四个附加 3×3 宫同样包含 1–9 且不重复。",
@@ -3129,6 +3140,7 @@ const t: Record<string, string> = {
   "catsRuleColor": "每种颜色一只猫",
   "catsRuleLine": "每行每列各一只猫",
   "catsRuleTouch": "猫与猫不能相邻，斜向也不行",
+  "catsHowPress": "长按揭开猫，短按标记 ✕",
   "catsWhyRegion": "这种颜色只剩一个格子",
   "catsWhyRow": "这一行只剩一个格子",
   "catsWhyColumn": "这一列只剩一个格子",
@@ -3137,6 +3149,8 @@ const t: Record<string, string> = {
   "sudokuPilotOff": "返回关卡阶梯",
   "sudokuRepeatSame": "同样难度再来一次",
   "sudokuSkinLetters": "用字母代替数字",
+  "sudokuSkinAnimals": "用动物代替数字",
+  "sdkRule_friends": "🐱在🐭旁边",
   "digitsCandy": "糖果",
   "sudokuHiddenWord": "隐藏的单词：{w}",
   "teachRpRhythmIntro": "抓住节奏的速度，而不是数拍子：敲击像脚步一样均匀。用同样的速度重复这个节奏。",
@@ -3431,5 +3445,10 @@ const t: Record<string, string> = {
   "sdkRule_between": "两端之间",
   "sdkRule_lockout": "锁线",
   "sdkRule_xv": "XV",
+  "catalogSearch": "查找游戏",
+  "catalogFilter": "筛选",
+  "catalogBySection": "分区",
+  "catalogBySkill": "能力",
+  "catalogNothing": "没有匹配的游戏",
 };
 export default t;

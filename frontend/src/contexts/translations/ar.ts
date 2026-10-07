@@ -1,6 +1,15 @@
 // AUTO-GENERATED translation overlay (ar). Источник: транскреация с EN-базы (856 ключей).
 // ⚠️ НЕ ПОДКЛЮЧЁН в LANGUAGES — ждёт RTL-захода (I18nManager). Не править руками.
 const t: Record<string, string> = {
+  "theme_selection": "المظهر",
+  "theme_light": "فاتح",
+  "theme_dark": "داكن",
+  "theme_system": "النظام",
+  "theme_profile": "حسب الملف",
+  "sudokuTryIndependently": "جرّب دون مساعدة",
+  "sudokuPracticeOnly": "محاولة تدريب — لا يرتفع المستوى أو التقييم.",
+  "sudokuLessonUnavailable": "لا توجد لوحة أخرى بهذه الصعوبة لدرس منفصل.",
+  "sudokuPracticeExample": "مثال تدريبي منفصل",
   "welcomeUnlock": "فتح",
   "homeSwitchHint": "اضغط على الشريحة لتبديل الملف الشخصي",
   "a11ySwitchProfile": "تبديل الملف الشخصي",
@@ -1621,6 +1630,8 @@ const t: Record<string, string> = {
   "sudokuTypeKiller": "‏9×9 · 6 درجات",
   "sudokuFreeHubDesc": "كلاسيكي بلا قواعد إضافية: اختر الحجم والصعوبة",
   "sudokuTypeFree": "‏6×6 و9×9 · 3 مستويات صعوبة",
+  "sudokuJuniorTitle": "سودوكو للصغار",
+  "sudokuTypeJunior": "‏4×4 و6×6 · 9 درجات",
   "sudokuRuleDiagonal": "الأرقام فريدة أيضًا على القطرين.",
   "sudokuRuleAntiknight": "لا يمكن لرقمين متطابقين أن يفصل بينهما حركة حصان.",
   "sudokuRuleHyper": "أربع مناطق إضافية 3×3 تحوي أيضًا 1–9 دون تكرار.",
@@ -3125,6 +3136,7 @@ const t: Record<string, string> = {
   "catsRuleColor": "قطة واحدة لكل لون",
   "catsRuleLine": "قطة واحدة في كل صف وعمود",
   "catsRuleTouch": "لا يجوز أن تتلامس القطط، ولا حتى قطريًا",
+  "catsHowPress": "الضغط المطوّل يكشف قطة، والنقرة القصيرة تضع ✕",
   "catsWhyRegion": "بقيت خانة واحدة فقط في هذا اللون",
   "catsWhyRow": "بقيت خانة واحدة فقط في هذا الصف",
   "catsWhyColumn": "بقيت خانة واحدة فقط في هذا العمود",
@@ -3133,6 +3145,8 @@ const t: Record<string, string> = {
   "sudokuPilotOff": "العودة إلى سلّم المستويات",
   "sudokuRepeatSame": "مرة أخرى بالصعوبة نفسها",
   "sudokuSkinLetters": "حروف بدل الأرقام",
+  "sudokuSkinAnimals": "حيوانات بدل الأرقام",
+  "sdkRule_friends": "🐱 بجانب 🐭",
   "digitsCandy": "حلوى",
   "sudokuHiddenWord": "الكلمة المخفية: {w}",
   "teachRpRhythmIntro": "امسك الإيقاع لا العدّ: الضربات تأتي منتظمة كالخطوات. كرّر النمط بالسرعة نفسها.",
@@ -3427,5 +3441,10 @@ const t: Record<string, string> = {
   "sdkRule_between": "بين الطرفين",
   "sdkRule_lockout": "القفل",
   "sdkRule_xv": "XV",
+  "catalogSearch": "ابحث عن لعبة",
+  "catalogFilter": "تصفية",
+  "catalogBySection": "الأقسام",
+  "catalogBySkill": "المهارات",
+  "catalogNothing": "لا توجد ألعاب مطابقة",
 };
 export default t;

@@ -1,6 +1,15 @@
 // AUTO-GENERATED translation overlay (fr). Источник: транскреация с EN-базы (856 ключей).
 // Не править руками — регенерировать.
 const t: Record<string, string> = {
+  "theme_selection": "Apparence",
+  "theme_light": "Clair",
+  "theme_dark": "Sombre",
+  "theme_system": "Système",
+  "theme_profile": "Selon le profil",
+  "sudokuTryIndependently": "Essayer sans aide",
+  "sudokuPracticeOnly": "Essai d’entraînement — le niveau et le classement ne montent pas.",
+  "sudokuLessonUnavailable": "Aucune autre grille de cette difficulté n’est disponible pour une leçon séparée.",
+  "sudokuPracticeExample": "Exemple d’entraînement séparé",
   "welcomeUnlock": "Débloquer",
   "homeSwitchHint": "touche la pastille pour changer de profil",
   "a11ySwitchProfile": "Changer de profil",
@@ -1620,6 +1629,8 @@ const t: Record<string, string> = {
   "sudokuTypeKiller": "9×9 · 6 paliers",
   "sudokuFreeHubDesc": "Classique, sans variante : taille et difficulté au choix",
   "sudokuTypeFree": "6×6 et 9×9 · 3 difficultés",
+  "sudokuJuniorTitle": "Sudoku pour les petits",
+  "sudokuTypeJunior": "4×4 et 6×6 · 9 paliers",
   "sudokuRuleDiagonal": "Les chiffres sont aussi uniques sur les deux diagonales.",
   "sudokuRuleAntiknight": "Deux chiffres identiques ne peuvent être à un saut de cavalier.",
   "sudokuRuleHyper": "Quatre zones extra 3×3 contiennent aussi 1–9 sans répétition.",
@@ -3124,6 +3135,7 @@ const t: Record<string, string> = {
   "catsRuleColor": "Un chat par couleur",
   "catsRuleLine": "Un chat par ligne et par colonne",
   "catsRuleTouch": "Les chats ne peuvent pas se toucher, même en diagonale",
+  "catsHowPress": "Un appui long révèle un chat ; un appui court place un ✕",
   "catsWhyRegion": "Il ne reste qu’une case dans cette couleur",
   "catsWhyRow": "Il ne reste qu’une case dans cette ligne",
   "catsWhyColumn": "Il ne reste qu’une case dans cette colonne",
@@ -3132,6 +3144,8 @@ const t: Record<string, string> = {
   "sudokuPilotOff": "Revenir à l’échelle des niveaux",
   "sudokuRepeatSame": "Encore, même difficulté",
   "sudokuSkinLetters": "Des lettres au lieu des chiffres",
+  "sudokuSkinAnimals": "Animaux au lieu des chiffres",
+  "sdkRule_friends": "🐱 à côté de 🐭",
   "digitsCandy": "Bonbon",
   "sudokuHiddenWord": "Mot caché : {w}",
   "teachRpRhythmIntro": "Garde le TEMPO, pas le compte : les coups arrivent réguliers, comme des pas. Reproduis le motif au même tempo.",
@@ -3426,5 +3440,10 @@ const t: Record<string, string> = {
   "sdkRule_between": "entre les bouts",
   "sdkRule_lockout": "verrou",
   "sdkRule_xv": "XV",
+  "catalogSearch": "Trouver un jeu",
+  "catalogFilter": "Filtre",
+  "catalogBySection": "Sections",
+  "catalogBySkill": "Compétences",
+  "catalogNothing": "Aucun jeu ne correspond",
 };
 export default t;

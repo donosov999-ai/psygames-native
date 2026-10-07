@@ -38,13 +38,20 @@ void main() {
   Future<void> boot(WidgetTester tester, Widget screen, String firstCell) async {
     await tester.runAsync(() async {
       await tester.pumpWidget(MaterialApp(home: screen));
+      var started = false;
       for (var i = 0; i < 80; i++) {
         await tester.pump(const Duration(milliseconds: 50));
         await Future<void>.delayed(const Duration(milliseconds: 20));
+        // «Бездна» без снимка открывается окном настройки — «Начать» по умолчанию.
+        final start = find.byKey(const Key('deep-start'));
+        if (!started && start.evaluate().isNotEmpty) {
+          await tester.tap(start);
+          started = true;
+        }
         if (find.byKey(Key(firstCell)).evaluate().isNotEmpty) break;
       }
     });
-    await tester.pump();
+    await tester.pumpAndSettle();
   }
 
   /// Экраны раздела и клетка, по которой видно, что доска раздана.

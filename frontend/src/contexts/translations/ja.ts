@@ -1,6 +1,15 @@
 // AUTO-GENERATED translation overlay (ja). Источник: транскреация с EN-базы (856 ключей).
 // Не править руками — регенерировать. Нужна вычитка нативом до сторов.
 const t: Record<string, string> = {
+  "theme_selection": "外観",
+  "theme_light": "ライト",
+  "theme_dark": "ダーク",
+  "theme_system": "システム",
+  "theme_profile": "プロフィール設定",
+  "sudokuTryIndependently": "自力で挑戦",
+  "sudokuPracticeOnly": "練習の試行 — レベルと評価は上がりません。",
+  "sudokuLessonUnavailable": "別のレッスン用に同じ難易度の別の盤面がありません。",
+  "sudokuPracticeExample": "別の練習例",
   "welcomeUnlock": "解放する",
   "homeSwitchHint": "プロフィールを切り替えるにはチップをタップ",
   "a11ySwitchProfile": "プロフィールを切り替え",
@@ -828,6 +837,8 @@ const t: Record<string, string> = {
   "sudokuTypeKiller": "9×9 · 6段",
   "sudokuFreeHubDesc": "クラシック、変則ルールなし：サイズと難易度を自由に選択",
   "sudokuTypeFree": "6×6と9×9 · 難易度3種",
+  "sudokuJuniorTitle": "ちびっこ数独",
+  "sudokuTypeJunior": "4×4と6×6 · 9段",
   "sudokuRuleDiagonal": "2本の対角線上でも数字は重複しません。",
   "sudokuRuleAntiknight": "同じ数字はナイトの動きの位置に置けません。",
   "sudokuRuleHyper": "追加の3×3エリア4つにも1–9が重複なしで入ります。",
@@ -3123,6 +3134,7 @@ const t: Record<string, string> = {
   "catsRuleColor": "各色に猫は1匹",
   "catsRuleLine": "各行・各列に猫は1匹",
   "catsRuleTouch": "猫どうしは隣り合えない — 斜めもダメ",
+  "catsHowPress": "長押しで猫をひらき、短くタップすると ✕ を付けます",
   "catsWhyRegion": "この色に残るマスは1つだけ",
   "catsWhyRow": "この行に残るマスは1つだけ",
   "catsWhyColumn": "この列に残るマスは1つだけ",
@@ -3131,6 +3143,8 @@ const t: Record<string, string> = {
   "sudokuPilotOff": "レベルの階段に戻る",
   "sudokuRepeatSame": "同じ難しさでもう一度",
   "sudokuSkinLetters": "数字の代わりに文字",
+  "sudokuSkinAnimals": "数字のかわりに どうぶつ",
+  "sdkRule_friends": "🐱は🐭のとなり",
   "digitsCandy": "キャンディ",
   "sudokuHiddenWord": "隠された言葉：{w}",
   "teachRpRhythmIntro": "拍を数えるのではなく、テンポをつかみます。打音は足音のように均等に来ます。同じテンポで型を繰り返しましょう。",
@@ -3425,5 +3439,10 @@ const t: Record<string, string> = {
   "sdkRule_between": "両端のあいだ",
   "sdkRule_lockout": "ロックアウト",
   "sdkRule_xv": "XV",
+  "catalogSearch": "ゲームを探す",
+  "catalogFilter": "絞り込み",
+  "catalogBySection": "セクション",
+  "catalogBySkill": "スキル",
+  "catalogNothing": "該当するゲームはありません",
 };
 export default t;

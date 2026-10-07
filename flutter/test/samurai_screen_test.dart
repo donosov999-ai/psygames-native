@@ -1,5 +1,8 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:psygames_flutter/shell/session_report.dart';
 import 'package:psygames_flutter/games/samurai/layout.dart';
 import 'package:psygames_flutter/games/samurai/screen.dart';
 import 'package:psygames_flutter/shell/l10n.dart';
@@ -200,6 +203,9 @@ void main() {
   });
 
   testWidgets('🔴 доска доигрывается нажатиями, и ступень растёт', (tester) async {
+    final reports = <Map<String, dynamic>>[];
+    SessionReport.sink = (json) async => reports.add(jsonDecode(json) as Map<String, dynamic>);
+    addTearDown(() => SessionReport.sink = null);
     await boot(tester);
     final grid = readGrid(tester);
     final solution = [for (final row in grid) [...row]];
@@ -217,5 +223,37 @@ void main() {
     expect(find.text('Следующая ступень'), findsOneWidget);
     // Ступень записана в тот же ключ, что у веб-версии.
     expect(state.get('psygames_sudoku_samurai_level_nzt48'), '2');
+    // 🔴 Отчёт — как у веба (сверка 138f7818: до 02.10 `win()` уходил пустым).
+    final r = reports.single;
+    expect(r['game_type'], 'sudoku_samurai');
+    expect(r['mode'], 'samurai-level-1');
+    expect(r['difficulty'], 'Level 1');
+    expect(r['errors'], 0);
+    expect(r['score'] as int, greaterThanOrEqualTo(samuraiWinFloor), reason: 'у победы есть пол');
+    expect((r['details'] as Map)['completed'], isTrue);
+    expect((r['details'] as Map)['samurai'], isTrue);
+  });
+
+  testWidgets('🔴 десятая ошибка на 1-й ступени — проигрыш записан отчётом', (tester) async {
+    final reports = <Map<String, dynamic>>[];
+    SessionReport.sink = (json) async => reports.add(jsonDecode(json) as Map<String, dynamic>);
+    addTearDown(() => SessionReport.sink = null);
+    await boot(tester);
+    final grid = readGrid(tester);
+    final solution = [for (final row in grid) [...row]];
+    expect(solve(solution), isTrue);
+    final empty = [for (final cell in cells) if (grid[cell[0]][cell[1]] == 0) cell];
+    for (var i = 0; i < 10; i++) {
+      final e = empty[i];
+      await tapCell(tester, e[0], e[1]);
+      await tester.tap(find.byKey(Key('digit${solution[e[0]][e[1]] % 9 + 1}')));
+      await tester.pump();
+    }
+    expect(reports, hasLength(1), reason: 'проигрыш не записан');
+    final r = reports.single;
+    expect(r['score'], 0);
+    expect(r['errors'], 10);
+    expect((r['details'] as Map)['completed'], isFalse);
+    expect((r['details'] as Map)['failed_out'], isTrue);
   });
 }

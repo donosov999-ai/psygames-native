@@ -1,6 +1,15 @@
 // AUTO-GENERATED translation overlay (ko). Источник: транскреация с EN-базы (856 ключей).
 // Не править руками — регенерировать. Нужна вычитка нативом до сторов.
 const t: Record<string, string> = {
+  "theme_selection": "화면 모드",
+  "theme_light": "라이트",
+  "theme_dark": "다크",
+  "theme_system": "시스템",
+  "theme_profile": "프로필 기본값",
+  "sudokuTryIndependently": "혼자 도전",
+  "sudokuPracticeOnly": "연습 시도 — 레벨과 평점은 올라가지 않습니다.",
+  "sudokuLessonUnavailable": "별도 수업에 사용할 같은 난이도의 다른 판이 없습니다.",
+  "sudokuPracticeExample": "별도의 연습 예제",
   "welcomeUnlock": "잠금 해제",
   "homeSwitchHint": "칩을 눌러 프로필 전환",
   "a11ySwitchProfile": "프로필 전환",
@@ -1620,6 +1629,8 @@ const t: Record<string, string> = {
   "sudokuTypeKiller": "9×9 · 6단계",
   "sudokuFreeHubDesc": "클래식, 변형 규칙 없음: 크기와 난이도 선택",
   "sudokuTypeFree": "6×6, 9×9 · 난이도 3가지",
+  "sudokuJuniorTitle": "꼬마 스도쿠",
+  "sudokuTypeJunior": "4×4, 6×6 · 9단계",
   "sudokuRuleDiagonal": "두 대각선에서도 숫자가 중복되지 않습니다.",
   "sudokuRuleAntiknight": "같은 숫자는 나이트 이동 거리에 놓을 수 없습니다.",
   "sudokuRuleHyper": "추가 3×3 구역 4개에도 1–9가 중복 없이 들어갑니다.",
@@ -3124,6 +3135,7 @@ const t: Record<string, string> = {
   "catsRuleColor": "색마다 고양이 한 마리",
   "catsRuleLine": "행과 열마다 고양이 한 마리",
   "catsRuleTouch": "고양이끼리는 대각선으로도 닿을 수 없습니다",
+  "catsHowPress": "길게 누르면 고양이를 열고, 짧게 누르면 ✕ 표시를 합니다",
   "catsWhyRegion": "이 색에는 한 칸만 남았습니다",
   "catsWhyRow": "이 행에는 한 칸만 남았습니다",
   "catsWhyColumn": "이 열에는 한 칸만 남았습니다",
@@ -3132,6 +3144,8 @@ const t: Record<string, string> = {
   "sudokuPilotOff": "레벨 사다리로 돌아가기",
   "sudokuRepeatSame": "같은 난이도로 한 번 더",
   "sudokuSkinLetters": "숫자 대신 글자",
+  "sudokuSkinAnimals": "숫자 대신 동물",
+  "sdkRule_friends": "🐱 옆에 🐭",
   "digitsCandy": "사탕",
   "sudokuHiddenWord": "숨은 단어: {w}",
   "teachRpRhythmIntro": "박자를 세지 말고 템포를 잡으세요: 두드림은 발걸음처럼 고르게 옵니다. 같은 템포로 패턴을 반복하세요.",
@@ -3426,5 +3440,10 @@ const t: Record<string, string> = {
   "sdkRule_between": "양 끝 사이",
   "sdkRule_lockout": "자물쇠",
   "sdkRule_xv": "XV",
+  "catalogSearch": "게임 찾기",
+  "catalogFilter": "필터",
+  "catalogBySection": "섹션",
+  "catalogBySkill": "능력",
+  "catalogNothing": "일치하는 게임이 없습니다",
 };
 export default t;
