@@ -90,6 +90,7 @@ import '../games/pause/screen.dart';
 import 'asset_server.dart';
 import 'l10n.dart';
 import 'feedback_fab.dart';
+import 'feedback_screen.dart';
 import 'home_screen.dart';
 import 'profile_switcher.dart';
 import 'screen_ui.dart';
@@ -99,6 +100,9 @@ import 'streak_calendar_screen.dart';
 import 'assessment_result_screen.dart';
 import 'onboarding_screen.dart';
 import 'friends_screen.dart';
+import 'shop_screen.dart';
+import 'whats_new_screen.dart';
+import 'pet_screen.dart';
 import 'info_screens.dart';
 import 'walking_pet.dart';
 import 'web_theme.dart';
@@ -130,8 +134,6 @@ import 'game_preset.dart';
 import 'game_rules.dart';
 import 'level_transition.dart';
 import 'game_shell.dart';
-import 'game_clock.dart';
-import 'web_game_screen.dart';
 import 'puzzle_routes.g.dart';
 import '../games/chess_blind/screen.dart';
 import '../games/chess_hub/screen.dart';
@@ -716,6 +718,9 @@ class _HybridAppState extends State<HybridApp> {
     AchievementsScreen.route,
     LeaguesScreen.route,
     FriendsScreen.route,
+    ShopScreen.route,
+    WhatsNewScreen.route,
+    PetScreen.route,
   ];
 
   /// Экраны по модели веба, которые НЕ вкладки полосы: страница уходит на них своим переходом
@@ -730,6 +735,8 @@ class _HybridAppState extends State<HybridApp> {
     AchievementsScreen.route,
     LeaguesScreen.route,
     FriendsScreen.route,
+    ShopScreen.route,
+    WhatsNewScreen.route,
   };
 
   /// Что показывает тело: страницу (0) или нативную вкладку.
@@ -779,16 +786,48 @@ class _HybridAppState extends State<HybridApp> {
     await _c.runJavaScript('window.__psyReplace ? window.__psyReplace($target) : location.replace($full);');
   }
 
-  /// Форма отзыва — второй страницей поверх (`/feedback?sourceRoute=`), откуда бы ни звали: из
-  /// паузы игры ([GameExit.feedback]) или кнопкой на нативной вкладке ([FeedbackFab]).
-  void _openFeedback(String source) {
-    final url = Uri.parse('${widget.server.origin}/feedback')
-        .replace(queryParameters: {'sourceRoute': source}).toString();
-    Navigator.of(context).push(MaterialPageRoute<void>(
-      builder: (_) => GameHoldScope(child: WebGameScreen(
-        title: L.t('feedbackTitle'), url: url, state: widget.state,
-      )),
-    ));
+  /// Лист отзыва поверх всего, пока он открыт; null — закрыт.
+  Route<void>? _feedbackRoute;
+
+  /// Страница уже сказала «открыто» на этот лист: только после этого её «закрыто» закрывает лист.
+  /// Иначе старая модель (`open: false`, пришедшая до `open`) захлопнула бы лист сразу.
+  bool _feedbackSeenOpen = false;
+
+  /// Форма отзыва — нативный лист по модели окна `#feedback` ОСНОВНОЙ страницы (задача c092cd47),
+  /// откуда бы ни звали: из игры ([GameExit.feedback]) или кнопкой на нативной вкладке ([FeedbackFab]).
+  /// Второго экземпляра страницы (`/feedback`) больше нет — с ним приходили «Что нового» поверх формы
+  /// и закрытие игры сообщением Главной. Снимок — кадр нативного экрана ДО листа: страница под ним
+  /// устарела; забирает его страница с нашего же сервера ([AssetServer.putShot]).
+  Future<void> _openFeedback(String source) async {
+    if (_feedbackRoute != null) return;
+    final png = await FeedbackHost.snap();
+    if (!mounted || _feedbackRoute != null) return;
+    final shot = png == null ? null : widget.server.putShot(png);
+    _showFeedback();
+    await ScreenUi.act(FeedbackHost.route, 'open', [source, shot]);
+  }
+
+  void _showFeedback() {
+    if (_feedbackRoute != null || !mounted) return;
+    _feedbackSeenOpen = false;
+    final r = FeedbackHost.sheetRoute();
+    _feedbackRoute = r;
+    Navigator.of(context).push(r).whenComplete(() {
+      if (_feedbackRoute == r) _feedbackRoute = null;
+    });
+  }
+
+  /// Модель окна: открыла страница (кнопка отзыва на веб-экране, окно правил) — показать лист;
+  /// закрыла (после «спасибо», 3,2 с; с потерянной записью — 9 с) — убрать лист.
+  void _onFeedbackModel() {
+    final open = ScreenUi.model(FeedbackHost.route).value?['open'] == true;
+    if (open) {
+      _showFeedback();
+      _feedbackSeenOpen = true;
+      return;
+    }
+    final r = _feedbackRoute;
+    if (_feedbackSeenOpen && r != null && r.isActive && mounted) Navigator.of(context).removeRoute(r);
   }
 
   /// Игра из нативного каталога: перенесённая — нативно поверх, остальная — страницей В ИСТОРИЮ
@@ -1006,6 +1045,7 @@ class _HybridAppState extends State<HybridApp> {
     for (final r in _bodyTabs) {
       ScreenUi.model(r).addListener(_onScreenModel);
     }
+    ScreenUi.model(FeedbackHost.route).addListener(_onFeedbackModel);
     PetBridge.probe = _runJs;
     // Перенесённая игра по START_ROUTE: перехват на первой загрузке не срабатывает
     // (это не переход, а первый адрес), поэтому открываем нативный экран сами.
@@ -1027,6 +1067,7 @@ class _HybridAppState extends State<HybridApp> {
     for (final r in _bodyTabs) {
       ScreenUi.model(r).removeListener(_onScreenModel);
     }
+    ScreenUi.model(FeedbackHost.route).removeListener(_onFeedbackModel);
     for (final t in _modelTimers.values) {
       t.cancel();
     }
@@ -1095,6 +1136,31 @@ class _HybridAppState extends State<HybridApp> {
    * страницы на тот же шаг — для перехвата это «тот же экран» (`RouteAction.keep`).
    */
 
+  /// Метка «поверх страницы нативный экран» (`window.__psyNativeOver`, задача 5f9d4ea0): пока она
+  /// стоит, `saveSession` страницы принимает только партии оболочки — веб-копия игры под нативным
+  /// экраном стартует сама (SDMT при `wu=1`) и сохранила бы партию, которую человек не играл
+  /// (`frontend/src/services/hostSessions.ts`). Метка — номер открытия: снятие старого экрана не
+  /// снимает метку следующего.
+  String? _nativeOver;
+  int _nativeOverSeq = 0;
+
+  String _markNativeOver(String route) {
+    final token = '${++_nativeOverSeq} $route';
+    _nativeOver = token;
+    unawaited(_c.runJavaScript('window.__psyNativeOver=${jsonEncode(token)};').catchError((Object _) {}));
+    return token;
+  }
+
+  /// Снять метку — через 1,5 с: на «назад» веб-копия размонтируется и может сохранить недоигранное,
+  /// это тоже фантом. Новый нативный экран за это время ставит свою метку, и старая её не трогает.
+  void _unmarkNativeOver(String token) {
+    if (_nativeOver == token) _nativeOver = null;
+    unawaited(_c
+        .runJavaScript('(function(t){setTimeout(function(){if(window.__psyNativeOver===t)window.__psyNativeOver=null;},1500);})'
+            '(${jsonEncode(token)});')
+        .catchError((Object _) {}));
+  }
+
   /// Какие адреса оболочка рисует сама и на каком языке говорит человек — по этому
   /// веб решает, отдать ли переход между шагами зарядки оболочке.
   String _hostWarmupJs() {
@@ -1104,6 +1170,8 @@ class _HybridAppState extends State<HybridApp> {
     }.toList()
       ..sort();
     return 'window.__psyHostNativeRoutes=${jsonEncode(routes)};'
+        // Страница перезагрузилась под открытым нативным экраном — метка возвращается (5f9d4ea0).
+        'window.__psyNativeOver=${jsonEncode(_nativeOver)};'
         'window.__psyHostLang=${jsonEncode(widget.state.language)};'
         // Полосой владеет оболочка — веб свою не рисует (`BottomTabBar.tsx`).
         'window.__psyNativeTabs=true;'
@@ -1214,6 +1282,7 @@ class _HybridAppState extends State<HybridApp> {
     final build = HybridApp.native[route] ?? HybridApp.shell[route];
     if (build == null) return false;
     _openedRoute = route;
+    final over = _markNativeOver(route);
     // Настройки шага живут ровно столько, сколько открыт экран, — как
     // `useLocalSearchParams` в вебе. См. [GamePreset].
     GamePreset.set(query);
@@ -1254,6 +1323,7 @@ class _HybridAppState extends State<HybridApp> {
       _openedRoute = null;
       GamePreset.clear();
     }
+    _unmarkNativeOver(over);
     if (_openedPage == null && GameRules.currentRoute == route) GameRules.currentRoute = null;
     final closedByPage = _pagesClosedByWeb.remove(page);
     // 🔴 СТРАНИЦА ПОД НАМИ ОСТАЛАСЬ НА АДРЕСЕ ИГРЫ. Перехват срабатывает ПОСЛЕ
@@ -1417,6 +1487,12 @@ class _HybridAppState extends State<HybridApp> {
             const LeaguesScreen(),
             // «Друзья» (7bb8035b) — страница по модели; сервер круга держит веб.
             const FriendsScreen(),
+            // «Магазин» (9424da3a) — страница по модели; покупки и баланс держит веб.
+            ShopScreen(origin: widget.server.origin),
+            // «Что нового» (84df0687): список версий — модель веба, проверку обновлений делает оболочка.
+            const WhatsNewScreen(),
+            // «Питомец» (d1e147b0) — вкладка по модели веба; кадры — тем же PetFrames, что у гуляки.
+            PetScreen(origin: widget.server.origin),
           ],
                 ),
               ),
@@ -1458,7 +1534,8 @@ class _HybridAppState extends State<HybridApp> {
       Positioned.fill(child: scaffold),
       // Питомец страницы скрыт вместе с ней — на нативной вкладке гуляет питомец оболочки
       // (облик и реплики — у веба, мостом `__psyPet`). Ниже кнопки отзыва, как `zIndex` веба.
-      if (_nativeTab != null && bar)
+      // На вкладке «Питомец» гуляки нет — питомец и так на экране (как `routeAllowed` веба).
+      if (_nativeTab != null && _nativeTab != PetScreen.route && bar)
         WalkingPet(
           origin: widget.server.origin,
           lift: NativeTabs.height,

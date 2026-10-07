@@ -265,6 +265,19 @@ String teachStepText(TeachStep step, String Function(String) t) => t(teachStepKe
  * половины целей находится семьями, и это навык, который переносится на любое
  * колесо, а не ответ на одно.
  *
+ * 🔴 ТОТ ЖЕ ПРИЁМ С ЯКОРЕМ НА КОНЦЕ — КОГДА ОБЩИХ НАЧАЛ НЕТ ВОВСЕ (07.10.2026).
+ * 30.09 разбор без семей честно пропускался: по всем наборам таких 0–3 %. Но
+ * разбор предлагается только на ступенях 1–3, а мерил я по всем наборам. Когда у
+ * анаграмм появился язык слов, перепись разборов покраснела: у английского ПЕРВОЙ
+ * ступени семей по началу нет (abuse, aces, base, cause, cease, cubes, sauce,
+ * scuba). То же на L1 у de, es, it. Всего 6 ступеней из 30 (10 языков × L1–3).
+ * Зато у этих слов общие ОКОНЧАНИЯ: -se ×4, у немецкого -ch ×3.
+ * Это не выдумка ради охвата, а та же «семья» с другим якорем: закрепи конец и
+ * перебирай начало. Замер по тем же наборам — ступеней 1–3 без разбора стало
+ * 1 из 30 (остался es L3); на L1–60: en 1 → 0, de 5 → 0, ru 10 → 4.
+ * Окончание берётся ТОЛЬКО при пустых семьях по началу: начало осталось главным
+ * приёмом, у него и замер шире.
+ *
  * ⚠️ Регистр здесь не поднимается вовсе: цели и буквы колеса лежат в данных в
  * одном регистре, а `upJs` менял бы длину немецких слов с `ß`.
  */
@@ -279,6 +292,15 @@ enum AllWordsTechnique {
 
   /// Одиночка: родни по началу нет.
   single,
+
+  /// Осмотр, когда общих начал нет, а общие ОКОНЧАНИЯ есть.
+  lookEnd,
+
+  /// Слово из семьи по окончанию: конец тот же, начало другое.
+  familyEnd,
+
+  /// Одиночка разбора по окончаниям: родни нет ни по началу, ни по концу.
+  singleEnd,
 }
 
 /// Шаг разбора «Все слова».
@@ -297,7 +319,8 @@ class AllWordsTeachStep {
   /// Слово шага (у осмотра пусто).
   final String word;
 
-  /// Начало семьи — две первые буквы (у одиночки — его собственные).
+  /// Кусок семьи — две первые буквы, а у приёмов «по концу» — две последние
+  /// (у одиночки — его собственные).
   final String prefix;
 
   /// Индексы плиток колеса, по порядку ввода.
@@ -314,6 +337,11 @@ class AllWordsTeachStep {
 const allWordsPrefixLength = 2;
 
 String _prefixOf(String w) => w.runes.take(allWordsPrefixLength).map(String.fromCharCode).join();
+
+String _suffixOf(String w) {
+  final r = w.runes.toList();
+  return String.fromCharCodes(r.length <= allWordsPrefixLength ? r : r.sublist(r.length - allWordsPrefixLength));
+}
 
 /// Индексы плиток, собирающих слово. Каждая плитка — один раз НА СЛОВО: слова
 /// набираются по отдельности, и одна плитка служит многим словам.
@@ -336,40 +364,49 @@ List<int> _tilesFor(String word, List<String> letters) {
 }
 
 /// Разбор колеса «Все слова»: осмотр, семьи от большой к малой, одиночки в конце.
+/// Семьи — по началу; общих начал нет вовсе — по окончанию (см. шапку раздела).
 ///
-/// Порядок полностью детерминирован (размер семьи, затем начало по алфавиту;
+/// Порядок полностью детерминирован (размер семьи, затем кусок по алфавиту;
 /// внутри — от коротких к длинным, затем по алфавиту): один и тот же набор всегда
 /// разбирается одинаково, и проба может сверить его число в число.
 List<AllWordsTeachStep> allWordsLesson(List<String> targets, List<String> letters) {
   if (targets.length < 2) return const [];
-  final families = <String, List<String>>{};
-  for (final w in targets) {
-    families.putIfAbsent(_prefixOf(w), () => []).add(w);
-  }
   int byWord(String a, String b) {
     final l = a.runes.length.compareTo(b.runes.length);
     return l != 0 ? l : a.compareTo(b);
   }
 
-  final big = families.entries.where((e) => e.value.length > 1).toList()
-    ..sort((a, b) {
-      final s = b.value.length.compareTo(a.value.length);
-      return s != 0 ? s : a.key.compareTo(b.key);
-    });
-  final singles = [
-    for (final e in families.entries)
-      if (e.value.length == 1) e.value.single,
-  ]..sort(byWord);
+  (List<MapEntry<String, List<String>>>, List<String>) familiesBy(String Function(String) pieceOf) {
+    final families = <String, List<String>>{};
+    for (final w in targets) {
+      families.putIfAbsent(pieceOf(w), () => []).add(w);
+    }
+    final big = families.entries.where((e) => e.value.length > 1).toList()
+      ..sort((a, b) {
+        final s = b.value.length.compareTo(a.value.length);
+        return s != 0 ? s : a.key.compareTo(b.key);
+      });
+    final singles = [
+      for (final e in families.entries)
+        if (e.value.length == 1) e.value.single,
+    ]..sort(byWord);
+    return (big, singles);
+  }
 
-  // Семей нет — приём не к чему приложить, и разбор честно отсутствует (кнопки не
-  // будет). Замер 30.09.2026 по десяти языкам: таких наборов 0–3 % (ko 0 из 3000,
-  // ja 29 из 970). Выдумывать им другой приём ради охвата значило бы учить наугад.
+  final byStart = familiesBy(_prefixOf);
+  final atEnd = byStart.$1.isEmpty;
+  final (big, singles) = atEnd ? familiesBy(_suffixOf) : byStart;
+  final pieceOf = atEnd ? _suffixOf : _prefixOf;
+
+  // Семей нет ни по началу, ни по концу — приём не к чему приложить, и разбор честно
+  // отсутствует (кнопки не будет). Замер 07.10.2026: на ступенях 1–3 так 1 случай
+  // из 30 (es L3). Выдумывать третий приём ради охвата значило бы учить наугад.
   if (big.isEmpty) return const [];
 
   final inFamilies = big.fold<int>(0, (n, e) => n + e.value.length);
   final steps = <AllWordsTeachStep>[
     AllWordsTeachStep(
-      technique: AllWordsTechnique.look,
+      technique: atEnd ? AllWordsTechnique.lookEnd : AllWordsTechnique.look,
       word: '',
       prefix: big.first.key,
       place: const [],
@@ -382,7 +419,7 @@ List<AllWordsTeachStep> allWordsLesson(List<String> targets, List<String> letter
       final place = _tilesFor(w, letters);
       if (place.isEmpty) return const []; // слово не из этого колеса — разбор врал бы
       steps.add(AllWordsTeachStep(
-        technique: AllWordsTechnique.family,
+        technique: atEnd ? AllWordsTechnique.familyEnd : AllWordsTechnique.family,
         word: w,
         prefix: e.key,
         place: place,
@@ -395,9 +432,9 @@ List<AllWordsTeachStep> allWordsLesson(List<String> targets, List<String> letter
     final place = _tilesFor(w, letters);
     if (place.isEmpty) return const [];
     steps.add(AllWordsTeachStep(
-      technique: AllWordsTechnique.single,
+      technique: atEnd ? AllWordsTechnique.singleEnd : AllWordsTechnique.single,
       word: w,
-      prefix: _prefixOf(w),
+      prefix: pieceOf(w),
       place: place,
       n: 1,
       total: targets.length,
@@ -411,15 +448,22 @@ const teachAllWordsKeys = <String>[
   'teachAllWordsLook',
   'teachAllWordsFamily',
   'teachAllWordsSingle',
+  'teachAllWordsLookEnd',
+  'teachAllWordsFamilyEnd',
+  'teachAllWordsSingleEnd',
 ];
 
 String teachAllWordsKey(AllWordsTechnique t) => switch (t) {
       AllWordsTechnique.look => 'teachAllWordsLook',
       AllWordsTechnique.family => 'teachAllWordsFamily',
       AllWordsTechnique.single => 'teachAllWordsSingle',
+      AllWordsTechnique.lookEnd => 'teachAllWordsLookEnd',
+      AllWordsTechnique.familyEnd => 'teachAllWordsFamilyEnd',
+      AllWordsTechnique.singleEnd => 'teachAllWordsSingleEnd',
     };
 
-/// Объяснение шага. Подстановки: {piece} — начало, {word} — слово, {n}, {total}.
+/// Объяснение шага. Подстановки: {piece} — кусок семьи (начало или конец), {word} —
+/// слово, {n}, {total}.
 String teachAllWordsText(AllWordsTeachStep s, String Function(String) t) =>
     t(teachAllWordsKey(s.technique))
         .replaceAll('{piece}', s.prefix.toUpperCase())

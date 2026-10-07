@@ -63,6 +63,65 @@ const List<String> vsColors = ['#60a5fa', '#fbbf24', '#f472b6'];
 /// а обычная тройка проваливает тританопию (голубой сливается с розовым).
 const List<String> vsColorsCb = ['#56b4e9', '#fc8d62', '#e78ac3'];
 
+// ───────── Цвета сходятся и раундов больше — с 32-го уровня, без потолка (задача 7f81fbc6) ─────────
+//
+// 🔴 ПОТОЛКА НЕТ (правило Дениса 06.09.2026). К 31-му на верху все оси первого раунда:
+// предметов 72, целей до 4, конъюнкция «форма + цвет», приманок 6 (`vsMaxLevel` = 31).
+// Дальше растут две вещи:
+// · сходство ЦВЕТОВ — три цвета палитры сходятся к своему среднему: остаток пути до пола
+//   `vsColorFloor` сокращается на 0,92 за уровень. Цель по-прежнему одна пара «форма + цвет», а
+//   отвлекающий делит с ней ровно один признак; меняется только то, насколько чужой цвет отличим
+//   от своего. Без пола в 8 битах палитра повторялась бы с 70-го, а к 98-му три цвета совпали бы:
+//   соседние уровни одинаковы, а цель неотличима. Пол — восприятие, а не потолок: рядом живая ось;
+// · ЧИСЛО РАУНДОВ — живая ось без предела: в среднем на раунд больше каждые `vsExtraTrialEvery`
+//   уровней, а ошибок можно столько же (`vsErrorsAllowed`). Дробная часть разыгрывается в каждой
+//   партии, поэтому среднее растёт на КАЖДОМ уровне и соседние уровни не совпадают никогда.
+// Уровни 1…31 — прежняя палитра и прежние раунды, байт в байт: лишних бросков там нет.
+
+/// Последний уровень прежней палитры.
+const int vsPaletteFrom = 31;
+
+/// Во сколько раз сокращается остаток пути цветов к полу с каждым уровнем выше [vsPaletteFrom].
+const double vsPaletteRatio = 0.92;
+
+/// Ниже этой доли прежнего разведения цвета не сходятся: дальше цель не отличить по цвету.
+const double vsColorFloor = 0.25;
+
+/// Насколько разведены цвета на уровне [level]: 1 до 31-го, дальше к полу 0,25 — строго ближе
+/// на каждом уровне, но никогда не ниже пола.
+double vsColorSpread(int level) => level <= vsPaletteFrom
+    ? 1
+    : vsColorFloor + (1 - vsColorFloor) * math.pow(vsPaletteRatio, level - vsPaletteFrom).toDouble();
+
+/// Через сколько уровней выше [vsPaletteFrom] в партии в среднем на один раунд больше.
+const double vsExtraTrialEvery = 8;
+
+/// Среднее число лишних раундов в партии: 0 до 31-го, дальше +1/8 за уровень, без предела.
+double vsExtraTrialsMean(int level) => level <= vsPaletteFrom ? 0 : (level - vsPaletteFrom) / vsExtraTrialEvery;
+
+/// Лишних раундов в этой партии: целая часть среднего всегда, ещё один — с вероятностью дробной.
+/// До 32-го генератор не трогается вовсе — раздача прежняя.
+int vsDrawExtraTrials(int level, Rng rnd) {
+  final mean = vsExtraTrialsMean(level);
+  if (mean <= 0) return 0;
+  final whole = mean.floor();
+  return whole + (rnd() < mean - whole ? 1 : 0);
+}
+
+/// Палитра уровня: до 31-го — [vsColors] как есть, дальше её цвета стянуты к среднему.
+List<String> vsPaletteFor(int level) {
+  final k = vsColorSpread(level);
+  if (k >= 1) return vsColors;
+  final rgb = [
+    for (final c in vsColors)
+      [for (var i = 0; i < 3; i += 1) int.parse(c.substring(1 + i * 2, 3 + i * 2), radix: 16)]
+  ];
+  final mid = [for (var i = 0; i < 3; i += 1) rgb.map((c) => c[i]).reduce((a, b) => a + b) / rgb.length];
+  String hex(List<double> v) =>
+      '#${v.map((x) => x.round().clamp(0, 255).toRadixString(16).padLeft(2, '0')).join()}';
+  return [for (final c in rgb) hex([for (var i = 0; i < 3; i += 1) mid[i] + (c[i] - mid[i]) * k])];
+}
+
 /// Сторона предмета и его чувствительной области — порог нажатия.
 const double vsItemSize = 32;
 

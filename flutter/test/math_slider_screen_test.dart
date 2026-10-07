@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/math_slider/model.dart';
 import 'package:psygames_flutter/games/math_slider/screen.dart';
+import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -12,6 +13,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// ответ, проба знает из той же раздачи по зерну — уровень задаёт зерно
 /// `math-slider-<уровень>`, поэтому доска у экрана и у пробы одна.
 void main() {
+  setUpAll(() async {
+    // Подписи — из общего словаря, как в приложении (экран переведён на L.t, задача 4b6f863e).
+    TestWidgetsFlutterBinding.ensureInitialized();
+    await L.load('ru');
+  });
+
   late SharedState state;
 
   Future<void> open(WidgetTester tester, {int level = 1}) async {
@@ -67,7 +74,7 @@ void main() {
     final training = generateTrainingQuestion('math-slider-1');
 
     await open(tester);
-    expect(find.text('Математическая шкала'), findsOneWidget);
+    expect(find.text(L.t('mathSlider')), findsOneWidget);
     expect(find.byKey(const Key('тренировка')), findsOneWidget, reason: 'первой идёт проба');
     expect(find.text(training.text), findsOneWidget);
 
@@ -75,7 +82,7 @@ void main() {
     await dragTo(tester, training.scale, training.answer);
     await tester.tap(find.byKey(const Key('подтвердить')));
     await tester.pump();
-    expect(find.text('проба'), findsOneWidget, reason: 'счётчик заданий ещё не начался');
+    expect(find.text(L.t('sliderTrialValue')), findsOneWidget, reason: 'счётчик заданий ещё не начался');
     await tester.tap(find.byKey(const Key('дальше')));
     await tester.pump();
 
@@ -94,7 +101,7 @@ void main() {
     }
 
     expect(find.byKey(const Key('итог')), findsOneWidget);
-    expect(find.text('Следующий уровень'), findsOneWidget, reason: 'точность ≥ 90% — уровень взят');
+    expect(find.text(L.t('nextLabel')), findsOneWidget, reason: 'точность ≥ 90% — уровень взят');
   });
 
   testWidgets('🔴 куда бы ни попал палец, оценка прилипает к шагу шкалы', (tester) async {
@@ -138,7 +145,7 @@ void main() {
     expect(find.byKey(const Key('подтвердить')), findsOneWidget, reason: 'без касания ничего не засчитано');
 
     await dragTo(tester, training.scale, training.answer);
-    expect(find.text('Отпусти — засчитаю через 3 секунды'), findsOneWidget);
+    expect(find.text(L.f('sliderReleaseHint', {'n': '3'})), findsOneWidget);
     await tester.pump(const Duration(milliseconds: 2500));
     expect(find.byKey(const Key('разбор')), findsNothing, reason: 'до трёх секунд ещё рано');
     await tester.pump(const Duration(milliseconds: 700));
@@ -190,7 +197,7 @@ void main() {
       await tester.pump();
     }
 
-    expect(find.text('Ещё раз'), findsOneWidget, reason: '80% — уровень не взят');
+    expect(find.text(L.t('retry')), findsOneWidget, reason: '80% — уровень не взят');
     expect(find.textContaining('нужно 90%'), findsOneWidget);
   });
 
@@ -215,6 +222,6 @@ void main() {
       await tester.pump();
     }
 
-    expect(find.text('Ещё раз'), findsOneWidget, reason: 'точность ниже 90% — уровень не взят');
+    expect(find.text(L.t('retry')), findsOneWidget, reason: 'точность ниже 90% — уровень не взят');
   });
 }

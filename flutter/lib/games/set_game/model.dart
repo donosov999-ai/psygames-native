@@ -109,14 +109,31 @@ class SetParams {
   /// Раскладов в серии.
   final int trials;
 
-  /// Лимит секунд на расклад; 0 — без лимита.
-  final int timeLimit;
+  /// Лимит секунд на расклад; 0 — без лимита. Дробный с 17-го уровня (см. [setTimeFloorUntil]).
+  final double timeLimit;
 }
+
+// ─────── Лимит ниже восьми секунд — с 17-го уровня, без потолка (задача 7f81fbc6) ───────
+//
+// 🔴 ПОТОЛКА НЕТ (правило Дениса 06.09.2026). Лестница росла до 16-го: раскладов 15 к 10-му,
+// лимит на SET 26 → 8 с к 16-му — и дальше 16-й повторялся без конца. Восемь секунд были
+// пределом ОСИ, а не игры: с 17-го лимит продолжает сжиматься — на 5 % за уровень, без
+// нижнего предела. Уровни 1…16 — прежние, байт в байт.
+
+/// Последний уровень, где лимит держит пол в 8 секунд.
+const int setTimeFloorUntil = 16;
+
+/// Во сколько раз меньше времени на SET с каждым уровнем выше [setTimeFloorUntil].
+const double setTimeRatio = 0.95;
 
 SetParams levelParams(int level) {
   final trials = math.min(15, 5 + level);            // L1=6 → L10=15
   final over = math.max(0, level - 10);
-  final timeLimit = over > 0 ? math.max(8, 30 - over * 4) : 0;   // L11≈26 с → L15=10 с
+  final double timeLimit = over <= 0
+      ? 0
+      : level <= setTimeFloorUntil
+          ? math.max(8, 30 - over * 4).toDouble()      // L11≈26 с → L15=10 с, L16 — 8 с
+          : 8 * math.pow(setTimeRatio, level - setTimeFloorUntil).toDouble();
   return SetParams(trials: trials, timeLimit: timeLimit);
 }
 

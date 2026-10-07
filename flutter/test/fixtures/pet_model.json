@@ -1,0 +1,215 @@
+{
+ "v": 1,
+ "back": "Назад",
+ "backIcon": "arrow-back",
+ "name": "Синапс",
+ "nameRaw": "",
+ "nameMax": 20,
+ "namePlaceholder": "Синапс",
+ "rename": "Переименовать питомца",
+ "apply": "Применить",
+ "bubble": "Этот жест щекочет ✨",
+ "portrait": {
+  "state": "idle",
+  "specs": {
+   "idle": {
+    "kind": "frames",
+    "uris": [
+     "/assets/assets/images/pet/cat/idle0.webp",
+     "/assets/assets/images/pet/cat/idle1.webp",
+     "/assets/assets/images/pet/cat/idle2.webp",
+     "/assets/assets/images/pet/cat/idle3.webp",
+     "/assets/assets/images/pet/cat/idle4.webp",
+     "/assets/assets/images/pet/cat/idle5.webp",
+     "/assets/assets/images/pet/cat/idle6.webp"
+    ],
+    "frames": 7,
+    "tickMs": 240,
+    "accessory": null
+   },
+   "groom": {
+    "kind": "frames",
+    "uris": [
+     "/assets/assets/images/pet/cat/groom0.webp",
+     "/assets/assets/images/pet/cat/groom1.webp",
+     "/assets/assets/images/pet/cat/groom2.webp",
+     "/assets/assets/images/pet/cat/groom3.webp",
+     "/assets/assets/images/pet/cat/groom4.webp",
+     "/assets/assets/images/pet/cat/groom5.webp",
+     "/assets/assets/images/pet/cat/groom6.webp"
+    ],
+    "frames": 7,
+    "tickMs": 149,
+    "accessory": null
+   },
+   "wiggle": {
+    "kind": "frames",
+    "uris": [
+     "/assets/assets/images/pet/cat/wiggle0.webp",
+     "/assets/assets/images/pet/cat/wiggle1.webp",
+     "/assets/assets/images/pet/cat/wiggle2.webp",
+     "/assets/assets/images/pet/cat/wiggle3.webp",
+     "/assets/assets/images/pet/cat/wiggle4.webp",
+     "/assets/assets/images/pet/cat/wiggle5.webp",
+     "/assets/assets/images/pet/cat/wiggle6.webp"
+    ],
+    "frames": 7,
+    "tickMs": 86,
+    "accessory": null
+   },
+   "eat": {
+    "kind": "frames",
+    "uris": [
+     "/assets/assets/images/pet/cat/eat0.webp",
+     "/assets/assets/images/pet/cat/eat1.webp",
+     "/assets/assets/images/pet/cat/eat2.webp",
+     "/assets/assets/images/pet/cat/eat3.webp",
+     "/assets/assets/images/pet/cat/eat4.webp",
+     "/assets/assets/images/pet/cat/eat5.webp",
+     "/assets/assets/images/pet/cat/eat6.webp"
+    ],
+    "frames": 7,
+    "tickMs": 114,
+    "accessory": null
+   }
+  },
+  "treat": null
+ },
+ "stageName": "Импульс",
+ "stageHint": "Растёт после каждой завершённой тренировки",
+ "growth": {
+  "frac": 0.1,
+  "text": "Тренировок: 12 · до стадии «Созвездие» ещё 18"
+ },
+ "feed": {
+  "fed": false,
+  "label": "🍪 Угостить · 40 ⭐",
+  "needMore": null
+ },
+ "care": [
+  {
+   "id": "wash",
+   "emoji": "🫧",
+   "label": "Помыть",
+   "a11y": "Помыть",
+   "enabled": true,
+   "accent": true
+  },
+  {
+   "id": "stroke",
+   "emoji": "🤚",
+   "label": "Погладить",
+   "a11y": "Погладить",
+   "enabled": true,
+   "accent": false
+  },
+  {
+   "id": "play",
+   "emoji": "🎮",
+   "label": "Поиграть",
+   "a11y": "Поиграть",
+   "enabled": true,
+   "accent": false
+  }
+ ],
+ "lookReason": "Пора помыть — неделя без мытья",
+ "skinTitle": "Как выглядит Синапс",
+ "skins": [
+  {
+   "id": "cat",
+   "on": true,
+   "locked": false,
+   "label": "Нейро-кот",
+   "a11y": "Нейро-кот",
+   "still": {
+    "kind": "frames",
+    "uris": [
+     "/assets/assets/images/pet/cat/idle0.webp",
+     "/assets/assets/images/pet/cat/idle1.webp",
+     "/assets/assets/images/pet/cat/idle2.webp",
+     "/assets/assets/images/pet/cat/idle3.webp",
+     "/assets/assets/images/pet/cat/idle4.webp",
+     "/assets/assets/images/pet/cat/idle5.webp",
+     "/assets/assets/images/pet/cat/idle6.webp"
+    ],
+    "frames": 7,
+    "tickMs": 240,
+    "accessory": null
+   }
+  },
+  {
+   "id": "robot",
+   "on": false,
+   "locked": false,
+   "label": "Робот",
+   "a11y": "Робот",
+   "still": {
+    "kind": "frames",
+    "uris": [
+     "/assets/assets/images/pet/robot/idle0.webp",
+     "/assets/assets/images/pet/robot/idle1.webp",
+     "/assets/assets/images/pet/robot/idle2.webp",
+     "/assets/assets/images/pet/robot/idle3.webp"
+    ],
+    "frames": 4,
+    "tickMs": 420,
+    "accessory": null
+   }
+  },
+  {
+   "id": "constellation",
+   "on": false,
+   "locked": false,
+   "label": "Нейрон",
+   "a11y": "Нейрон",
+   "still": {
+    "kind": "frames",
+    "uris": [
+     "/assets/assets/images/pet/constellation/idle0.webp",
+     "/assets/assets/images/pet/constellation/idle1.webp",
+     "/assets/assets/images/pet/constellation/idle2.webp",
+     "/assets/assets/images/pet/constellation/idle3.webp"
+    ],
+    "frames": 4,
+    "tickMs": 420,
+    "accessory": null
+   }
+  }
+ ],
+ "level": "3",
+ "levelLabel": "Уровень",
+ "total": "12",
+ "totalLabel": "тренировок",
+ "advice": {
+  "title": "💡 Совет Синапса",
+  "color": "#e55fa2",
+  "body": "Слабее всего — Логика. Поиграй в «Пространственная лаборатория», чтобы подтянуть эту шкалу",
+  "a11y": "Совет Синапса: Пространственная лаборатория"
+ },
+ "skills": [
+  {
+   "key": "memory",
+   "label": "Память",
+   "value": 24,
+   "color": "#8a68f5"
+  },
+  {
+   "key": "attention",
+   "label": "Внимание",
+   "value": 24,
+   "color": "#25b989"
+  },
+  {
+   "key": "logic",
+   "label": "Логика",
+   "value": 0,
+   "color": "#e55fa2"
+  },
+  {
+   "key": "speed",
+   "label": "Скорость",
+   "value": 0,
+   "color": "#4a91ed"
+  }
+ ]
+}

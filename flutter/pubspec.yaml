@@ -162,6 +162,8 @@ flutter:
     - assets/rmet/
     - assets/words/
     - assets/rings/
+    # Филворды: пулы слов из живого TS (экспортёр src/games/fillwords/tools/record-flutter-reference.gen.ts).
+    - assets/fillwords/
     - assets/l10n/
     - assets/puzzles/
     - assets/voice/

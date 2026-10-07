@@ -57,7 +57,8 @@ class _ObjectTrackerScreenState extends State<ObjectTrackerScreen> with SingleTi
   @override
   void initState() {
     super.initState();
-    _ladder = LevelLadder(gameId: 'object_tracker', store: SharedLevelStore(widget.state), maxLevel: trackerLevels);
+    // Потолка нет (правило Дениса 06.09): выше 41-го растёт скорость — см. model.dart.
+    _ladder = LevelLadder(gameId: 'object_tracker', store: SharedLevelStore(widget.state), maxLevel: 999);
     _ticker = createTicker(_onTick);
     _boot();
   }
@@ -84,7 +85,8 @@ class _ObjectTrackerScreenState extends State<ObjectTrackerScreen> with SingleTi
   /// Как в вебе (`object-tracker.tsx`: `Math.min(LEVELS, num('level', lvl.level))`):
   /// шаг несёт уровень по правилу «освоенный минус 20 %», а потолок лестницы
   /// держится и здесь — выше генератор не растёт. Зерно строится от него же.
-  int get _playLevel => math.min(trackerLevels, GamePreset.num('level', _ladder.level));
+  /// Уровень шага зарядки — но не выше предела лестницы: с 02.10.2026 это 999, а не прежний потолок 41.
+  int get _playLevel => math.min(_ladder.maxLevel, GamePreset.num('level', _ladder.level));
 
   String get _seed => 'object-tracker-$_playLevel';
 
@@ -165,22 +167,22 @@ class _ObjectTrackerScreenState extends State<ObjectTrackerScreen> with SingleTi
   String get _line {
     switch (_phase) {
       case _Phase.preview:
-        return 'Запомни отмеченные шарики — их ${_round!.targetCount}';
+        return L.f('trkPreview', {'n': '${_round!.targetCount}'});
       case _Phase.moving:
-        return 'Следи за ними взглядом';
+        return L.t('trkMoving');
       case _Phase.selection:
-        return 'Отметь те, за которыми следил';
+        return L.t('trkSelect');
       case _Phase.result:
         final m = _result!;
         return isPassed(m)
-            ? 'Верно ${m.hits} из ${m.hits + m.misses}, лишних ${m.falseSelections}'
-            : 'Верно ${m.hits} из ${m.hits + m.misses}, лишних ${m.falseSelections} — уровень не взят';
+            ? L.f('trkResultWin', {'hits': '${m.hits}', 'total': '${m.hits + m.misses}', 'extra': '${m.falseSelections}'})
+            : L.f('trkResultFail', {'hits': '${m.hits}', 'total': '${m.hits + m.misses}', 'extra': '${m.falseSelections}'});
     }
   }
 
   /// Заголовок один на экран и на разбор: вторая такая строка — второй долг
   /// храповика подписей (`test/ui_text_debt_does_not_grow_test.dart`).
-  String get _title => 'Трекер объектов';
+  String get _title => L.t('objectTracker');
 
   /// Разбор объясняет ПРИЁМ: верный ответ человек и так увидит по итогу раунда,
   /// а вот чем объём берётся — нет.
@@ -198,13 +200,13 @@ class _ObjectTrackerScreenState extends State<ObjectTrackerScreen> with SingleTi
       title: _title,
       onLesson: () => openDemoLesson(context, title: _title, trials: _demoTrials()),
       hud: [
-        HudItem(label: 'Уровень', value: '$_playLevel', icon: Icons.flag_outlined),
-        HudItem(label: 'Достигнуто', value: '${_ladder.best}', icon: Icons.emoji_events_outlined),
-        HudItem(label: 'Целей', value: '${round.targetCount}', icon: Icons.adjust),
+        HudItem(label: L.t('level'), value: '$_playLevel', icon: Icons.flag_outlined),
+        HudItem(label: L.t('personalBest'), value: '${_ladder.best}', icon: Icons.emoji_events_outlined),
+        HudItem(label: L.t('trkTargets'), value: '${round.targetCount}', icon: Icons.adjust),
         HudItem(
-          label: _phase == _Phase.moving ? 'Осталось' : 'Отмечено',
+          label: _phase == _Phase.moving ? L.t('timeLeftLabel') : L.t('puzzleHudMarked'),
           value: _phase == _Phase.moving
-              ? '${(left / 1000).ceil()} с'
+              ? '${(left / 1000).ceil()} ${L.t('secShort')}'
               : '${_selected.length}/${round.targetCount}',
           icon: _phase == _Phase.moving ? Icons.timer_outlined : Icons.check_circle_outline,
         ),
@@ -223,11 +225,11 @@ class _ObjectTrackerScreenState extends State<ObjectTrackerScreen> with SingleTi
       auxRow: AuxBar(children: [
         AuxAction(
           icon: Icons.slow_motion_video,
-          label: 'Щадящий режим',
+          label: L.t('trkGentle'),
           active: _reduced,
           onPressed: _phase == _Phase.preview ? () => setState(() => _reduced = !_reduced) : null,
         ),
-        AuxAction(icon: Icons.refresh, label: 'Начать заново', onPressed: () => setState(_reset)),
+        AuxAction(icon: Icons.refresh, label: L.t('restart'), onPressed: () => setState(_reset)),
       ]),
       toolbar: Padding(
         padding: const EdgeInsets.all(12),
@@ -239,33 +241,33 @@ class _ObjectTrackerScreenState extends State<ObjectTrackerScreen> with SingleTi
               key: const Key('поехали'),
               onPressed: _begin,
               icon: const Icon(Icons.play_arrow),
-              label: const Text('Поехали'),
+              label: Text(L.t('onbSlideGoTitle')),
             ),
           if (_phase == _Phase.moving && _reduced)
             FilledButton.icon(
               key: const Key('шаг'),
               onPressed: _step,
               icon: const Icon(Icons.skip_next),
-              label: const Text('Шаг'),
+              label: Text(L.t('hud_step')),
             ),
           if (_phase == _Phase.selection)
             FilledButton.icon(
               key: const Key('готово'),
               onPressed: _selected.isEmpty ? null : _submit,
               icon: const Icon(Icons.check),
-              label: const Text('Готово'),
+              label: Text(L.t('storyDone')),
             ),
           if (_phase == _Phase.result)
             FilledButton.icon(
               key: const Key('дальше'),
               onPressed: () => setState(_reset),
               icon: Icon(isPassed(_result!) ? Icons.arrow_forward : Icons.refresh),
-              label: Text(isPassed(_result!) ? 'Следующий уровень' : 'Ещё раз'),
+              label: Text(isPassed(_result!) ? L.t('nextLabel') : L.t('retry')),
             ),
         ]),
       ),
       pauseActions: [
-        PauseAction(label: 'Начать заново', icon: Icons.refresh, onPressed: () => setState(_reset)),
+        PauseAction(label: L.t('restart'), icon: Icons.refresh, onPressed: () => setState(_reset)),
       ],
     );
   }
@@ -368,10 +370,12 @@ class _Ball extends StatelessWidget {
       top: topPx,
       child: Semantics(
         button: enabled,
-        label: 'шарик ${index + 1}'
-            '${marked ? ', цель' : ''}'
-            '${chosen ? ', выбран' : ''}'
-            '${revealed ? ', была целью' : ''}',
+        label: [
+          L.f('trkBallA11y', {'n': '${index + 1}'}),
+          if (marked) L.t('trkA11yTarget'),
+          if (chosen) L.t('trkA11yChosen'),
+          if (revealed) L.t('trkA11yWasTarget'),
+        ].join(', '),
         child: GestureDetector(
           onTap: enabled ? onTap : null,
           child: Container(
