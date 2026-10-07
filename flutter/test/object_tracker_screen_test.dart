@@ -126,6 +126,49 @@ void main() {
     expect(labelOf(tester, target), contains('была целью'), reason: 'после круга показывают правду');
   });
 
+  testWidgets('🔴 ПОТОЛКА НЕТ: победа на 41-м открывает 42-й, а экран 50-го раздаёт круг 50-го', (tester) async {
+    // Правило Дениса 06.09.2026. До 02.10.2026 лестница стояла на maxLevel: 41, а экран
+    // зажимал уровень до 41-го — номер дальше не рос. Подписи не читаем: проба переживёт перевод.
+    final round = generateObjectTrackerRound('object-tracker-41', 41);
+    await open(tester, level: 41);
+    await tester.tap(find.byKey(const Key('поехали')));
+    await tester.pump();
+    for (var t = 0; t < round.durationMs + 200; t += 16) {
+      await tester.pump(const Duration(milliseconds: 16));
+      if (find.byKey(const Key('готово')).evaluate().isNotEmpty) break;
+    }
+    for (final id in round.targetIds) {
+      await tester.tap(find.byKey(Key('шарик${round.initialWorld.objects.indexWhere((o) => o.id == id)}')));
+      await tester.pump();
+    }
+    await tester.tap(find.byKey(const Key('готово')));
+    await tester.pump();
+    await tester.pump();
+    expect(state.get('${SharedState.prefix}object_tracker_level_nzt48'), '42', reason: 'уровень вырос за 41-й');
+
+    await open(tester, level: 50);
+    final field = tester.getRect(find.byKey(const Key('поле')));
+    final side = field.width;
+    double offBy(ObjectTrackerRound r) {
+      final d = side * r.objectRadius * 2 < 48 ? 48.0 : side * r.objectRadius * 2;
+      var sum = 0.0;
+      for (var i = 0; i < r.objectCount; i += 1) {
+        final o = r.initialWorld.objects[i];
+        final left = (o.x * side - d / 2).clamp(0.0, side - d);
+        final top = (o.y * side - d / 2).clamp(0.0, side - d);
+        sum += (Offset(field.left + left + d / 2, field.top + top + d / 2) -
+                tester.getCenter(find.byKey(Key('шарик$i'))))
+            .distance;
+      }
+      return sum / r.objectCount;
+    }
+
+    expect(offBy(generateObjectTrackerRound('object-tracker-50', 50)), lessThan(1.0),
+        reason: 'шарики стоят там, где их поставил генератор 50-го уровня');
+    expect(offBy(generateObjectTrackerRound('object-tracker-41', 41)), greaterThan(5.0),
+        reason: 'а не 41-го — экран не зажимает уровень');
+  });
+
   testWidgets('🔴 РАСКЛАДКА: поле квадратное, помещается и не режет шарики — 360×640 и 390×844', (tester) async {
     for (final screen in [const Size(360, 640), const Size(390, 844)]) {
       // Уровень 41 — самый плотный: 12 шариков, им же и проверяем зажим по краям.

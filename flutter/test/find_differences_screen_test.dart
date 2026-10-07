@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/find_differences/model.dart';
 import 'package:psygames_flutter/games/find_differences/screen.dart';
+import 'package:psygames_flutter/shell/game_preset.dart';
 import 'package:psygames_flutter/shell/l10n.dart';
+import 'package:psygames_flutter/shell/level_rules.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -163,5 +165,104 @@ void main() {
         await tester.pump(const Duration(milliseconds: 800));
       }
     });
+  });
+
+  testWidgets('🔴 ПОТОЛКА НЕТ: 34-й играется тонкими отличиями, а карточка правила встаёт на итоге', (tester) async {
+    // Экран раздаёт отличия с той же тонкостью, что модель: проба повторяет раздачу с subtlety
+    // уровня и попадает в каждое отличие. Не передай экран тонкость — нажатия уйдут мимо.
+    await tester.runAsync(LevelRules.load);
+    await open(tester, level: 34, seed: 'тонко');
+    final p = levelParams(34);
+    final s = sceneOnScreen(tester);
+    final rnd = createRng('тонко');
+    // Экран сперва разыгрывает лишние раунды (с 34-го), потом раздаёт сцены — проба повторяет порядок.
+    final rounds = p.rounds + fdDrawExtraRounds(34, rnd);
+    expect(find.text('1/$rounds'), findsOneWidget, reason: 'в полосе — раундов в этой партии');
+    for (var round = 1; round <= rounds; round += 1) {
+      final scene = generateScene(s.width, s.height, p.objectCount, p.spriteAlphabet, rnd);
+      final alt = withDifference(scene, p.diffCount, p.spriteAlphabet, rnd, subtlety: p.subtlety);
+      expect(find.text('0/${p.diffCount}'), findsOneWidget, reason: 'раунд $round: пока ничего не найдено');
+      for (final idx in alt.diffIdx) {
+        await tapShape(tester, alt.shapes[idx]);
+      }
+      await tester.pump(const Duration(milliseconds: 800));
+    }
+    await tester.pump();
+    await tester.pump();
+    expect(state.get('${SharedState.prefix}find_differences_level_nzt48'), '35', reason: '34-й взят тонкими отличиями');
+    expect(find.text(L.t('lr_find_differences_subtle_title')), findsOneWidget,
+        reason: 'на экране итога — карточка «Отличия тоньше»: таймер раунда под ней не идёт');
+  });
+
+  testWidgets('🔴 ПОТОЛКА НЕТ: с 34-го в партии лишние раунды — взять уровень можно, только закрыв все', (tester) async {
+    // На 57-м среднее лишних раундов ровно 3 (по одному каждые 8 уровней) — партия из 6, а не 3.
+    await open(tester, level: 33, seed: 'раунды');
+    expect(find.text('1/$roundsPerLevel'), findsOneWidget, reason: 'до 34-го партия прежняя — 3 раунда');
+    await open(tester, level: 57, seed: 'раунды');
+    expect(find.text('1/6'), findsOneWidget, reason: 'на 57-м — 6 раундов');
+    // Шаг зарядки — прежние три: пресет лестницу не двигает, а бюджет шага рассчитан на них.
+    GamePreset.set({'wu': '1'});
+    addTearDown(GamePreset.clear);
+    await open(tester, level: 57, seed: 'раунды');
+    expect(find.text('1/$roundsPerLevel'), findsOneWidget, reason: 'в шаге зарядки лишних раундов нет');
+  });
+
+  testWidgets('🔴 лишние раунды ИГРАЮТСЯ: на 49-м уровень берётся только после 5-го раунда, а не 3-го', (tester) async {
+    // На 49-м среднее лишних раундов ровно 2. Проба повторяет раздачу экрана тем же зерном.
+    await open(tester, level: 49, seed: 'раунды-игра');
+    final p = levelParams(49);
+    final s = sceneOnScreen(tester);
+    final rnd = createRng('раунды-игра');
+    final rounds = p.rounds + fdDrawExtraRounds(49, rnd);
+    expect(rounds, 5);
+    for (var round = 1; round <= rounds; round += 1) {
+      expect(find.byKey(const Key('итог')), findsNothing, reason: 'до конца $round-го раунда итога нет');
+      expect(find.text('$round/$rounds'), findsOneWidget, reason: 'идёт раунд $round из $rounds');
+      final scene = generateScene(s.width, s.height, p.objectCount, p.spriteAlphabet, rnd);
+      final alt = withDifference(scene, p.diffCount, p.spriteAlphabet, rnd, subtlety: p.subtlety);
+      for (final idx in alt.diffIdx) {
+        await tapShape(tester, alt.shapes[idx]);
+      }
+      await tester.pump(const Duration(milliseconds: 800));
+    }
+    await tester.pump();
+    await tester.pump();
+    expect(state.get('${SharedState.prefix}find_differences_level_nzt48'), '50', reason: 'пять раундов закрыты — уровень взят');
+  });
+
+  testWidgets('🔴 лишний раунд не прощается: на 49-м 4 из 5 закрыты, пятый истёк — уровень не взят', (tester) async {
+    await open(tester, level: 49, seed: 'раунды-игра');
+    final p = levelParams(49);
+    final s = sceneOnScreen(tester);
+    final rnd = createRng('раунды-игра');
+    final rounds = p.rounds + fdDrawExtraRounds(49, rnd);
+    for (var round = 1; round < rounds; round += 1) {
+      final scene = generateScene(s.width, s.height, p.objectCount, p.spriteAlphabet, rnd);
+      final alt = withDifference(scene, p.diffCount, p.spriteAlphabet, rnd, subtlety: p.subtlety);
+      for (final idx in alt.diffIdx) {
+        await tapShape(tester, alt.shapes[idx]);
+      }
+      await tester.pump(const Duration(milliseconds: 800));
+    }
+    expect(find.text('$rounds/$rounds'), findsOneWidget, reason: 'дошли до последнего раунда');
+    await tester.pump(Duration(seconds: p.roundTimeSec + 1));
+    await tester.pump(const Duration(milliseconds: 800));
+    await tester.pump();
+    expect(find.byKey(const Key('итог')), findsOneWidget, reason: 'время последнего раунда вышло — итог');
+    expect(state.get('${SharedState.prefix}find_differences_level_nzt48'), '49', reason: '4 из 5 — уровень не взят');
+  });
+
+  testWidgets('🔴 шаг зарядки задаёт число отличий сам (?diffCount=) — но не выше уровня + 1', (tester) async {
+    // Сторож каркаса 44f7e4e0: веб читает diffCount шага (`find-differences.tsx:401`), натив молча
+    // играл число уровня. На 10-м по уровню 5 отличий; шаг «Детей» просит 2 — их и играем.
+    expect(levelParams(10).diffCount, 5, reason: 'премиса: на 10-м уровне 5 отличий');
+    GamePreset.set({'wu': '1', 'diffCount': '2'});
+    addTearDown(GamePreset.clear);
+    await open(tester, level: 10, seed: 'шаг');
+    expect(find.text('0/2'), findsOneWidget, reason: 'шаг просит 2 отличия — их и раздаём');
+    // На 1-м по уровню 2; шаг просит 9 — потолок «освоенное + 1» = 3.
+    GamePreset.set({'wu': '1', 'diffCount': '9'});
+    await open(tester, level: 1, seed: 'шаг');
+    expect(find.text('0/3'), findsOneWidget, reason: 'не выше освоенного больше чем на одно');
   });
 }
