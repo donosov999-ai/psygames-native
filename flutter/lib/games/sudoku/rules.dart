@@ -242,6 +242,7 @@ class BoardGeometry {
     this.lockout,
     this.xv,
     this.littleKiller,
+    this.xsums,
   });
   final List<List<int>>? regions;
   final List<List<ThermoLink?>>? thermo;
@@ -281,6 +282,9 @@ class BoardGeometry {
   /// Малый киллер: суммы диагоналей по стрелкам снаружи доски.
   final List<LittleKillerClue>? littleKiller;
 
+  /// X-суммы: слева у строк и сверху у столбцов, −1 — скрыта; форма — как у сэндвича.
+  final SandwichClues? xsums;
+
   static BoardGeometry fromJson(Map<String, Object?> v) => BoardGeometry(
         regions: v['regions'] == null ? null : _grid(v['regions']),
         thermo: v['thermo'] == null
@@ -301,6 +305,7 @@ class BoardGeometry {
         sandwich: SandwichClues.fromJson(v['sandwich']),
         xv: KropkiMap.fromJson(v['xv']),
         littleKiller: LittleKillerClue.fromJson(v['littlekiller']),
+        xsums: SandwichClues.fromJson(v['xsums']),
         whisper: v['whisper'] == null
             ? null
             : (v['whisper'] as List)
@@ -759,7 +764,33 @@ bool overlayOk(List<List<int>> grid, int r, int c, int val, int n, BoardGeometry
   }
   final lk = g.littleKiller;
   if (lk != null && !littleKillerOk(grid, r, c, val, lk, n)) return false;
+  final xs = g.xsums;
+  if (xs != null) {
+    final row = [...grid[r]]..[c] = val;
+    if (!xsumLineOk(row, xs.rows[r], n)) return false;
+    final col = [for (final line in grid) line[c]]..[r] = val;
+    if (!xsumLineOk(col, xs.cols[c], n)) return false;
+  }
   return true;
+}
+
+/// 🔴 X-СУММЫ (пункт 9 цепочки «14 усложнений», задача 5ea317fc) — перенос `xsumLineOk` ядра: число у
+/// края — сумма первых X цифр с этой стороны, X — первая из них (входит в сумму). Пока первая цифра
+/// пуста — молчим; известна — сумма первых X клеток в коридоре: известные плюс по 1 на пустую не
+/// больше подсказки, плюс по n на пустую — не меньше. −1 — подсказка скрыта.
+bool xsumLineOk(List<int> line, int clue, int n) {
+  if (clue < 0) return true;
+  final x = line[0];
+  if (x == 0) return true;
+  var s = 0, e = 0;
+  for (var k = 0; k < x; k++) {
+    if (line[k] == 0) {
+      e++;
+    } else {
+      s += line[k];
+    }
+  }
+  return s + e <= clue && clue <= s + n * e;
 }
 
 bool _knightHit(List<List<int>> grid, int r, int c, int val, int n) {

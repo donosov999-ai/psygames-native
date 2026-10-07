@@ -117,9 +117,16 @@ class GameRules {
     return keyFor(route);
   }
 
+  /// Голый адрес открывает режим по умолчанию (`puzzle_routes.g.dart`: `/games/puzzles` — «Чёт-нечет»).
+  /// С 07.10.2026 карточка этого режима стоит в «Судоку» явным `?mode=Unruly` (роспуск «Головоломок»,
+  /// ca6f3e00) — голому адресу правило берём у неё. Только адрес БЕЗ параметров: у `?mode=<другой>`
+  /// своя карточка, и подменять его правило умолчанием было бы враньём.
+  static const _defaultModeRoute = {'/games/puzzles': '/games/puzzles?mode=Unruly'};
+
   static String? keyFor(String? route) {
     if (route == null) return null;
-    final direct = _byRoute[route] ?? _byRoute[route.split('?').first];
+    final alias = route.contains('?') ? null : _defaultModeRoute[route];
+    final direct = _byRoute[route] ?? _byRoute[route.split('?').first] ?? (alias == null ? null : _byRoute[alias]);
     if (direct != null) return direct;
     /*
      * ⚠️ ИГРА МОЖЕТ НЕ ЛЕЖАТЬ КАРТОЧКОЙ НИ В ОДНОЙ РАЗВИЛКЕ, а правило у неё

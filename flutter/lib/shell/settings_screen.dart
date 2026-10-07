@@ -47,10 +47,13 @@ class SettingsScreen extends StatefulWidget {
   static const pet = '${SharedState.prefix}pet_on';
   static const petScale = '${SharedState.prefix}pet_scale';
 
+  /// Гуляет ли питомец по экрану: '1' — да; по умолчанию НЕТ — сидит у края и живёт (ed85e191).
+  static const petWalk = '${SharedState.prefix}pet_walk';
+
   /// Ключи, которые веб-половина читает при запуске: сменились — страницу надо перезагрузить,
   /// иначе она останется в старом виде (см. `hybrid_app.dart`, возврат из настроек).
   static const watched = <String>[
-    AppLook.overrideKey, sound, volume, music, haptic, colorblind, devChat, pet, petScale, 'language',
+    AppLook.overrideKey, sound, volume, music, haptic, colorblind, devChat, pet, petScale, petWalk, 'language',
     '${SharedState.prefix}active_profile', playlists,
   ];
 
@@ -134,6 +137,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool get _colorblind => _s.get(SettingsScreen.colorblind) == 'true';
   bool get _devChat => _s.get(SettingsScreen.devChat) != '0';
   bool get _pet => _s.get(SettingsScreen.pet) != '0';
+  bool get _petWalks => _s.get(SettingsScreen.petWalk) == '1';
   int get _volume => (int.tryParse(_s.get(SettingsScreen.volume) ?? '') ?? 80).clamp(0, 100);
   double get _petScale =>
       (double.tryParse(_s.get(SettingsScreen.petScale) ?? '') ?? 1).clamp(SettingsScreen.petMin, SettingsScreen.petMax);
@@ -801,6 +805,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               toggle('devchat', Icons.chat_bubble_outline, L.t('devChatToggle'), _devChat,
                   (v) => _put(SettingsScreen.devChat, v ? '1' : '0')),
               toggle('pet', Icons.pets_outlined, L.t('petSynapse'), _pet, (v) => _put(SettingsScreen.pet, v ? '1' : '0')),
+              // Гуляет ли по экрану (решение Дениса 07.10, ed85e191): по умолчанию сидит у края.
+              if (_pet)
+                toggle('petwalk', Icons.directions_walk, L.t('petWalks'), _petWalks,
+                    (v) => _put(SettingsScreen.petWalk, v ? '1' : '0')),
               if (_pet)
                 card(Column(children: [
                   Row(children: [

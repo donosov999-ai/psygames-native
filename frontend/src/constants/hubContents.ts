@@ -346,6 +346,15 @@ export const HUB_CONTENTS: Record<string, HubSubGame[]> = {
   ],
 
 
+  /* ——— Релаксация (07.10.2026, решение Дениса b271f702: практики дня — в развилку) ——— */
+  '/games/relaxation-hub': [
+    { route: '/games/breathing', icon: 'flower-outline', nameKey: 'breathing', descKey: 'breathingDesc' },
+    { route: '/games/pause', icon: 'body', nameKey: 'pause', descKey: 'pauseDesc' },
+    { route: '/games/eye-gym', icon: 'eye', nameKey: 'eyeGym', descKey: 'eyeGymDesc' },
+    // Ночной набор («Не спится») — серия слота night, не игра: запускает её экран `/warmup-night`.
+    { route: '/warmup-night', icon: 'bed-outline', nameKey: 'slotNight', descKey: 'slotNightDesc' },
+  ],
+
   /* ——— Счёт и слова ——— */
   '/games/counting-hub': [
     { route: '/games/counter', icon: 'list-outline', nameKey: 'counter', descKey: 'counterDesc' },
@@ -504,6 +513,13 @@ const УПОМЯНУТО_ЗАВОДСКИМ_ФАЙЛОМ: ReadonlySet<string> = 
   return все;
 })();
 
+/**
+ * Карточки развилок, которые ведут не в игру, а в набор, открытый всем профилям. «Ночная» —
+ * серия слота `night` («Не спится»): в реестре игр её нет, и правило профиля без этой строки
+ * прятало бы карточку у всех (сторож every-native-card-visible).
+ */
+export const ROUTES_OPEN_TO_ALL: readonly string[] = ['/warmup-night'];
+
 export function visibleHubCards(
   hubRoute: string,
   allowed: Set<string>,
@@ -552,6 +568,9 @@ export function visibleHubCards(
   /* Игра только с нативным экраном (`nativeOnlyGames.ts`) в веб-реестре `GAMES` не числится —
      и правило профиля её не пропускало ни у кого, даже у «вся библиотека». Новое — всем. */
   for (const r of NATIVE_ONLY_ROUTES) открыто.add(r);
+  /* Карточка-не-игра «Ночная» (развилка «Релаксация», 07.10.2026): ночной набор по профилю не
+     фильтруется нарочно (`buildNightPlaylist`) — значит и его карточка открыта всем. */
+  for (const r of ROUTES_OPEN_TO_ALL) открыто.add(r);
   for (const c of карточки) {
     const без = c.route.split('?')[0];
     if (без !== c.route && открыто.has(без)) открыто.add(c.route);

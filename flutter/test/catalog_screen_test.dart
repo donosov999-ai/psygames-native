@@ -5,9 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/shell/catalog.dart';
 import 'package:psygames_flutter/shell/catalog_screen.dart';
+import 'package:psygames_flutter/shell/game_tile.dart';
 import 'package:psygames_flutter/shell/hub_screen.dart';
-import 'package:psygames_flutter/shell/hybrid_app.dart';
-import 'package:psygames_flutter/shell/game_preset.dart';
 import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -45,7 +44,7 @@ Future<void> _open(WidgetTester t, Widget screen, {Size size = const Size(390, 8
     for (var i = 0; i < 60; i++) {
       await t.pump(const Duration(milliseconds: 50));
       await Future<void>.delayed(const Duration(milliseconds: 50));
-      if (find.byType(ListTile).evaluate().isNotEmpty) break;
+      if (find.byType(ListTile).evaluate().isNotEmpty || find.byType(GameTile).evaluate().isNotEmpty) break;
     }
   });
   await t.pump();
@@ -65,12 +64,6 @@ void main() {
   });
 
   group('модель', () {
-    test('shell passes the home search query to the native catalog', () {
-      GamePreset.set({'search': 'Мосты'});
-      addTearDown(GamePreset.clear);
-      final screen = HybridApp.shell['/games']!(state) as CatalogScreen;
-      expect(screen.initialQuery, 'Мосты');
-    });
     testWidgets('home query opens catalog already filtered and can be cleared', (t) async {
       await _open(t, CatalogScreen(state: state, catalog: _catalog(), initialQuery: '  Bridges  '));
       expect(find.byKey(const ValueKey('catalog-flat')), findsOneWidget);
@@ -163,12 +156,16 @@ void main() {
       await t.pumpAndSettle();
       expect(find.text('SKILLS'), findsWidgets, reason: 'группа навыков в списке');
       final label = skillTitle('skillInhibition');
-      // Список фильтра длинный (6 разделов + 29 навыков) и строит только видимые строки.
-      await t.scrollUntilVisible(find.text(label), 200, scrollable: find.byType(Scrollable).last);
-      await t.tap(find.text(label).last);
+      // Список фильтра длинный (6 разделов + 29 навыков) и строит только видимые строки. Ищем
+      // ТОЛЬКО в меню: та же подпись навыка стоит и на плитках под ним.
+      final menu = find.byType(Scrollable).last;
+      final item = find.descendant(of: menu, matching: find.text(label));
+      await t.scrollUntilVisible(item, 200, scrollable: menu);
+      await t.tap(item.last);
       await t.pumpAndSettle();
       expect(find.byKey(const ValueKey('catalog-flat')), findsOneWidget);
-      final flat = find.descendant(of: find.byKey(const ValueKey('catalog-flat')), matching: find.byType(Scrollable));
+      // Выдача — в той же прокрутке, что поиск и фильтр (99628ecf: «всё в том же окне»).
+      final flat = find.descendant(of: find.byKey(const ValueKey('catalog-list')), matching: find.byType(Scrollable)).first;
       await t.scrollUntilVisible(find.byKey(const ValueKey('catalog-row-/games/stroop')), 300, scrollable: flat);
       expect(find.byKey(const ValueKey('catalog-row-/games/stroop')), findsOneWidget);
       // Шульте — навык «внимание»: в списке «торможения» её нет нигде, даже ниже.
@@ -197,7 +194,7 @@ void main() {
         for (var i = 0; i < 60; i++) {
           await t.pump(const Duration(milliseconds: 50));
           await Future<void>.delayed(const Duration(milliseconds: 50));
-          if (find.byType(ListTile).evaluate().isNotEmpty) break;
+          if (find.byType(ListTile).evaluate().isNotEmpty || find.byType(GameTile).evaluate().isNotEmpty) break;
         }
       });
       await _type(t, const ValueKey('catalog-search'), 'bridges');
@@ -211,8 +208,8 @@ void main() {
       await state.set(HubScreen.visibleKey,
           jsonEncode({'profile': state.activeProfile, 'hubs': {}, 'catalog': ['schulte_table', 'puzzles_hub']}));
       await _open(t, CatalogScreen(state: state));
-      expect(find.byKey(const ValueKey('catalog-row-/games/schulte')), findsOneWidget);
-      expect(find.byKey(const ValueKey('catalog-row-/games/stroop')), findsNothing, reason: 'профиль её не открывает');
+      expect(find.byKey(const ValueKey('catalog-tile-/games/schulte')), findsOneWidget);
+      expect(find.byKey(const ValueKey('catalog-tile-/games/stroop')), findsNothing, reason: 'профиль её не открывает');
       await _type(t, const ValueKey('catalog-search'), 'stroop');
       expect(find.byKey(const ValueKey('catalog-row-/games/stroop')), findsOneWidget,
           reason: 'решение Дениса: поиск не режется профилем');
@@ -221,8 +218,48 @@ void main() {
     testWidgets('список посчитан для ДРУГОГО профиля — не применяется', (t) async {
       await state.set(HubScreen.visibleKey, jsonEncode({'profile': 'kids', 'hubs': {}, 'catalog': ['schulte_table']}));
       await _open(t, CatalogScreen(state: state));
-      // Первая строка раздела «Память» — развилка «Объём памяти»: чужой список её бы спрятал.
-      expect(find.byKey(const ValueKey('catalog-row-/games/span')), findsOneWidget);
+      // Первая плитка раздела «Память» — развилка «Объём памяти»: чужой список её бы спрятал.
+      expect(find.byKey(const ValueKey('catalog-tile-/games/span')), findsOneWidget);
+    });
+
+    testWidgets('🔴 по умолчанию — ПЛИТКИ веба, не строки; строки — только при поиске; очистка возвращает плитки', (t) async {
+      await _open(t, CatalogScreen(state: state, embedded: true));
+      expect(find.byKey(const ValueKey('catalog-sections')), findsOneWidget);
+      expect(find.byType(GameTile), findsWidgets);
+      expect(find.byType(ListTile), findsNothing, reason: 'правило 4e679f41: плитки→список без согласования нельзя');
+      expect(find.byType(AppBar), findsNothing, reason: 'вкладка оболочки: своей панели нет, нижние вкладки на месте');
+      await _type(t, const ValueKey('catalog-search'), 'bridges');
+      expect(find.byType(GameTile), findsNothing);
+      expect(find.byKey(const ValueKey('catalog-row-/games/puzzles?mode=Bridges')), findsOneWidget);
+      await t.tap(find.byKey(const ValueKey('catalog-search-clear')));
+      await t.pump();
+      expect(find.byType(GameTile), findsWidgets);
+    });
+
+    testWidgets('🔴 плитка развилки — счётчик игр; звёзды уровней — из общей памяти, как у веба', (t) async {
+      await state.set(HubScreen.visibleKey, jsonEncode({
+        'profile': state.activeProfile,
+        'hubs': {'/games/span': ['/games/digit-span', '/games/corsi']},
+        'catalog': ['span_group', 'schulte_table'],
+      }));
+      await state.set('psygames_schulte_table_stars_${state.activeProfile}', jsonEncode({'1': 3, '2': 1, '3': 0}));
+      await _open(t, CatalogScreen(state: state, embedded: true));
+      final span = find.byKey(const ValueKey('catalog-tile-/games/span'));
+      expect(find.descendant(of: span, matching: find.byKey(const ValueKey('tile-hubcount'))), findsOneWidget);
+      expect(find.descendant(of: span, matching: find.text('2')), findsOneWidget, reason: 'число — состав профиля');
+      final schulte = find.byKey(const ValueKey('catalog-tile-/games/schulte'));
+      expect(find.descendant(of: schulte, matching: find.text('⭐ 2/15')), findsOneWidget,
+          reason: 'useAllLevelStars: уровни со звёздами > 0');
+      expect(find.descendant(of: schulte, matching: find.byKey(const ValueKey('tile-hubcount'))), findsNothing);
+    });
+
+    testWidgets('🔴 во вкладке игру открывает оболочка — экран не снимается', (t) async {
+      String? opened;
+      await _open(t, CatalogScreen(state: state, embedded: true, onOpen: (r) => opened = r));
+      await t.tap(find.byKey(const ValueKey('catalog-tile-/games/span')));
+      await t.pump();
+      expect(opened, '/games/span');
+      expect(find.byType(CatalogScreen), findsOneWidget);
     });
 
     testWidgets('русский экран: подписи по-русски, поиск по английскому имени работает', (t) async {
@@ -244,9 +281,9 @@ void main() {
               state: state, hubRoute: '/games/spatial-hub', icon: Icons.extension, gradient: const [Colors.blue, Colors.indigo]));
       final before = find.byType(ListTile).evaluate().length;
       expect(before, greaterThan(1));
-      expect(find.byKey(const ValueKey('hub-search')), findsNothing, reason: 'поле не занимает места, пока не открыто');
-      await t.tap(find.byKey(const ValueKey('hub-search-toggle')));
-      await t.pump();
+      // Решение Дениса 04.10 (99628ecf, п. 4): видимый поиск НАД карточками, не значком в панели.
+      expect(find.byKey(const ValueKey('hub-search')), findsOneWidget);
+      expect(find.byKey(const ValueKey('hub-search-toggle')), findsNothing);
       // Состав развилки зависит от раскладки профиля (режимы Тэтхэма разнесены по тематическим):
       // у профиля по умолчанию здесь «Чёрный ящик», и в адресе у него пробел (`Black%20Box`).
       await _type(t, const ValueKey('hub-search'), 'чёрный');
