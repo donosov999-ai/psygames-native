@@ -22,7 +22,7 @@ jest.mock('expo-router', () => {
     useRouter: () => router,
     useLocalSearchParams: () => ({}),
     usePathname: () => '/friends',
-    useFocusEffect: (cb: () => void | (() => void)) => { require('react').useEffect(cb, [cb]); },
+    useFocusEffect: (cb: () => void | (() => void)) => { require('react').useEffect(cb, [cb]); },   // eslint-disable-line @typescript-eslint/no-require-imports
     useNavigation: () => nav,
     Stack: { Screen: () => null },
     router,
@@ -31,7 +31,7 @@ jest.mock('expo-router', () => {
 const mockBack = jest.fn();
 jest.mock('@/src/utils/nav', () => ({ ...jest.requireActual('@/src/utils/nav'), goBackOrHome: () => mockBack() }));
 jest.mock('react-native-safe-area-context', () => {
-  const RN = require('react-native');
+  const RN = require('react-native');   // eslint-disable-line @typescript-eslint/no-require-imports
   const insets = { top: 0, right: 0, bottom: 0, left: 0 };
   const frame = { x: 0, y: 0, width: 390, height: 844 };
   return {
@@ -118,7 +118,7 @@ async function смонтировать(host = true) {
 
 /** Тексты веб-экрана — те, что он рисует сам: модель обязана нести их же. */
 function тексты(r: any): string[] {
-  return r.root.findAllByType(require('react-native').Text).map((n: any) => [n.props.children].flat().join(''));
+  return r.root.findAllByType(require('react-native').Text).map((n: any) => [n.props.children].flat().join(''));   // eslint-disable-line @typescript-eslint/no-require-imports
 }
 
 function образец(name: string, m: object) {

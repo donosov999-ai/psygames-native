@@ -14,7 +14,7 @@
  */
 // Лист без React: 14 мс против 3298 мс у экрана (замер 06.09.2026).
 import { liveRowsForFreeze, levelCfg, GS_RULES, OBSTACLE_PLANS, SHAPES, gridFor,
-  obstaclePlan, pickFrozen } from '@/src/games/goods-sort/core/level';
+  pickFrozen } from '@/src/games/goods-sort/core/level';
 
 declare const __dirname: string;
 declare function require(m: string): any;
