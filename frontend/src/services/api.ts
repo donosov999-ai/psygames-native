@@ -716,8 +716,13 @@ export const getBestResults = async (gameType: string): Promise<GameSession | nu
   return filtered[0];
 };
 
-export const getStats = async (gameType: string): Promise<GameStats> => {
-  const all = await readAll();
+export const getStats = async (gameType: string): Promise<GameStats> => statsOfSessions(gameType, await readAll());
+
+/**
+ * Итоги одной игры по ЗАДАННЫМ партиям — без чтения хранилища. «Прогресс» считает ими карточки
+ * по партиям выбранного охвата (профиль / все игры), как баланс над ними (задача a6b99ecc).
+ */
+export function statsOfSessions(gameType: string, all: GameSession[]): GameStats {
   const sessions = all.filter((s) => s.game_type === gameType);
 
   if (!sessions.length) {
@@ -755,7 +760,7 @@ export const getStats = async (gameType: string): Promise<GameStats> => {
     outcome_known: sessions.filter((s) => typeof s.passed === 'boolean').length,
     worst_time: sorted.length ? sorted[sorted.length - 1].time_seconds : 0,
   };
-};
+}
 
 export const getAllStats = async (): Promise<GameStats[]> => {
   const types = await listGameTypes();
