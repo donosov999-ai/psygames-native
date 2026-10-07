@@ -1406,7 +1406,7 @@ class _HybridAppState extends State<HybridApp> {
             // «Прогресс» по модели веба (6ff4a966): считает страница под ним на `/statistics`.
             StatsScreen(onTab: _selectTab),
             // Календарь серии (cd77367d) и итог оценки (455d71b1) — страницы, не вкладки.
-            const StreakCalendarScreen(),
+            StreakCalendarScreen(state: widget.state),
             const AssessmentResultScreen(),
             // Знакомство (a8aa91e0): подбор и обучение — страница, полосы нет (noBar веба).
             OnboardingScreen(origin: widget.server.origin),

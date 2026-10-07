@@ -1,0 +1,299 @@
+{
+ "v": 1,
+ "title": "🔥 Streak calendar",
+ "primary": "#a855f7",
+ "labels": {
+  "back": "Back",
+  "prev": "Previous month",
+  "next": "Next month"
+ },
+ "metrics": [
+  {
+   "emoji": "🔥",
+   "value": "5",
+   "label": "Current streak",
+   "border": "#E5E5EA"
+  },
+  {
+   "emoji": "🏆",
+   "value": "5",
+   "label": "Personal best",
+   "border": "#f97316"
+  },
+  {
+   "emoji": "📅",
+   "value": "5",
+   "label": "Training days",
+   "border": "#E5E5EA"
+  }
+ ],
+ "bestCaption": "This is your longest streak of all time",
+ "month": {
+  "title": "October 2026",
+  "canNext": false
+ },
+ "weekdays": [
+  "M",
+  "T",
+  "W",
+  "T",
+  "F",
+  "S",
+  "S"
+ ],
+ "cells": [
+  null,
+  null,
+  null,
+  {
+   "day": 1,
+   "trained": true,
+   "left": false,
+   "right": true,
+   "today": false,
+   "a11y": "October 1, 2026. Training completed"
+  },
+  {
+   "day": 2,
+   "trained": true,
+   "left": true,
+   "right": true,
+   "today": false,
+   "a11y": "October 2, 2026. Training completed"
+  },
+  {
+   "day": 3,
+   "trained": true,
+   "left": true,
+   "right": true,
+   "today": false,
+   "a11y": "October 3, 2026. Training completed"
+  },
+  {
+   "day": 4,
+   "trained": true,
+   "left": true,
+   "right": false,
+   "today": false,
+   "a11y": "October 4, 2026. Training completed"
+  },
+  {
+   "day": 5,
+   "trained": true,
+   "left": false,
+   "right": false,
+   "today": false,
+   "a11y": "October 5, 2026. Training completed"
+  },
+  {
+   "day": 6,
+   "trained": false,
+   "left": false,
+   "right": false,
+   "today": false,
+   "a11y": "October 6, 2026. No training"
+  },
+  {
+   "day": 7,
+   "trained": false,
+   "left": false,
+   "right": false,
+   "today": true,
+   "a11y": "October 7, 2026. No training"
+  },
+  {
+   "day": 8,
+   "trained": false,
+   "left": false,
+   "right": false,
+   "today": false,
+   "a11y": "October 8, 2026. No training"
+  },
+  {
+   "day": 9,
+   "trained": false,
+   "left": false,
+   "right": false,
+   "today": false,
+   "a11y": "October 9, 2026. No training"
+  },
+  {
+   "day": 10,
+   "trained": false,
+   "left": false,
+   "right": false,
+   "today": false,
+   "a11y": "October 10, 2026. No training"
+  },
+  {
+   "day": 11,
+   "trained": false,
+   "left": false,
+   "right": false,
+   "today": false,
+   "a11y": "October 11, 2026. No training"
+  },
+  {
+   "day": 12,
+   "trained": false,
+   "left": false,
+   "right": false,
+   "today": false,
+   "a11y": "October 12, 2026. No training"
+  },
+  {
+   "day": 13,
+   "trained": false,
+   "left": false,
+   "right": false,
+   "today": false,
+   "a11y": "October 13, 2026. No training"
+  },
+  {
+   "day": 14,
+   "trained": false,
+   "left": false,
+   "right": false,
+   "today": false,
+   "a11y": "October 14, 2026. No training"
+  },
+  {
+   "day": 15,
+   "trained": false,
+   "left": false,
+   "right": false,
+   "today": false,
+   "a11y": "October 15, 2026. No training"
+  },
+  {
+   "day": 16,
+   "trained": false,
+   "left": false,
+   "right": false,
+   "today": false,
+   "a11y": "October 16, 2026. No training"
+  },
+  {
+   "day": 17,
+   "trained": false,
+   "left": false,
+   "right": false,
+   "today": false,
+   "a11y": "October 17, 2026. No training"
+  },
+  {
+   "day": 18,
+   "trained": false,
+   "left": false,
+   "right": false,
+   "today": false,
+   "a11y": "October 18, 2026. No training"
+  },
+  {
+   "day": 19,
+   "trained": false,
+   "left": false,
+   "right": false,
+   "today": false,
+   "a11y": "October 19, 2026. No training"
+  },
+  {
+   "day": 20,
+   "trained": false,
+   "left": false,
+   "right": false,
+   "today": false,
+   "a11y": "October 20, 2026. No training"
+  },
+  {
+   "day": 21,
+   "trained": false,
+   "left": false,
+   "right": false,
+   "today": false,
+   "a11y": "October 21, 2026. No training"
+  },
+  {
+   "day": 22,
+   "trained": false,
+   "left": false,
+   "right": false,
+   "today": false,
+   "a11y": "October 22, 2026. No training"
+  },
+  {
+   "day": 23,
+   "trained": false,
+   "left": false,
+   "right": false,
+   "today": false,
+   "a11y": "October 23, 2026. No training"
+  },
+  {
+   "day": 24,
+   "trained": false,
+   "left": false,
+   "right": false,
+   "today": false,
+   "a11y": "October 24, 2026. No training"
+  },
+  {
+   "day": 25,
+   "trained": false,
+   "left": false,
+   "right": false,
+   "today": false,
+   "a11y": "October 25, 2026. No training"
+  },
+  {
+   "day": 26,
+   "trained": false,
+   "left": false,
+   "right": false,
+   "today": false,
+   "a11y": "October 26, 2026. No training"
+  },
+  {
+   "day": 27,
+   "trained": false,
+   "left": false,
+   "right": false,
+   "today": false,
+   "a11y": "October 27, 2026. No training"
+  },
+  {
+   "day": 28,
+   "trained": false,
+   "left": false,
+   "right": false,
+   "today": false,
+   "a11y": "October 28, 2026. No training"
+  },
+  {
+   "day": 29,
+   "trained": false,
+   "left": false,
+   "right": false,
+   "today": false,
+   "a11y": "October 29, 2026. No training"
+  },
+  {
+   "day": 30,
+   "trained": false,
+   "left": false,
+   "right": false,
+   "today": false,
+   "a11y": "October 30, 2026. No training"
+  },
+  {
+   "day": 31,
+   "trained": false,
+   "left": false,
+   "right": false,
+   "today": false,
+   "a11y": "October 31, 2026. No training"
+  },
+  null
+ ],
+ "empty": null
+}

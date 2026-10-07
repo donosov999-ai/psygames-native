@@ -1,0 +1,259 @@
+{
+ "today": {
+  "y": 2026,
+  "m": 10,
+  "d": 7
+ },
+ "cases": [
+  {
+   "history": [
+    {
+     "date": "2026-10-07",
+     "completed": true,
+     "weekday": 1,
+     "duration_min": 5,
+     "track": "training",
+     "total_score": 10,
+     "steps_done": 1,
+     "steps_total": 1
+    },
+    {
+     "date": "2026-10-06",
+     "completed": true,
+     "weekday": 1,
+     "duration_min": 5,
+     "track": "training",
+     "total_score": 10,
+     "steps_done": 1,
+     "steps_total": 1
+    },
+    {
+     "date": "2026-10-05",
+     "completed": true,
+     "weekday": 1,
+     "duration_min": 5,
+     "track": "training",
+     "total_score": 10,
+     "steps_done": 1,
+     "steps_total": 1
+    }
+   ],
+   "streak": 3,
+   "longest": 3
+  },
+  {
+   "history": [
+    {
+     "date": "2026-10-06",
+     "completed": true,
+     "weekday": 1,
+     "duration_min": 5,
+     "track": "training",
+     "total_score": 10,
+     "steps_done": 1,
+     "steps_total": 1
+    },
+    {
+     "date": "2026-10-05",
+     "completed": true,
+     "weekday": 1,
+     "duration_min": 5,
+     "track": "training",
+     "total_score": 10,
+     "steps_done": 1,
+     "steps_total": 1
+    },
+    {
+     "date": "2026-10-03",
+     "completed": true,
+     "weekday": 1,
+     "duration_min": 5,
+     "track": "training",
+     "total_score": 10,
+     "steps_done": 1,
+     "steps_total": 1
+    },
+    {
+     "date": "2026-10-02",
+     "completed": true,
+     "weekday": 1,
+     "duration_min": 5,
+     "track": "training",
+     "total_score": 10,
+     "steps_done": 1,
+     "steps_total": 1
+    }
+   ],
+   "streak": 4,
+   "longest": 4
+  },
+  {
+   "history": [
+    {
+     "date": "2026-10-06",
+     "completed": true,
+     "weekday": 1,
+     "duration_min": 5,
+     "track": "training",
+     "total_score": 10,
+     "steps_done": 1,
+     "steps_total": 1
+    },
+    {
+     "date": "2026-10-03",
+     "completed": true,
+     "weekday": 1,
+     "duration_min": 5,
+     "track": "training",
+     "total_score": 10,
+     "steps_done": 1,
+     "steps_total": 1
+    },
+    {
+     "date": "2026-10-02",
+     "completed": true,
+     "weekday": 1,
+     "duration_min": 5,
+     "track": "training",
+     "total_score": 10,
+     "steps_done": 1,
+     "steps_total": 1
+    },
+    {
+     "date": "2026-10-01",
+     "completed": true,
+     "weekday": 1,
+     "duration_min": 5,
+     "track": "training",
+     "total_score": 10,
+     "steps_done": 1,
+     "steps_total": 1
+    }
+   ],
+   "streak": 1,
+   "longest": 3
+  },
+  {
+   "history": [
+    {
+     "date": "2026-10-07",
+     "completed": true,
+     "weekday": 1,
+     "duration_min": 5,
+     "track": "training",
+     "total_score": 10,
+     "steps_done": 1,
+     "steps_total": 1
+    },
+    {
+     "date": "2026-10-06",
+     "completed": true,
+     "weekday": 1,
+     "duration_min": 5,
+     "track": "rest",
+     "total_score": 10,
+     "steps_done": 1,
+     "steps_total": 1
+    },
+    {
+     "date": "2026-10-05",
+     "completed": true,
+     "weekday": 1,
+     "duration_min": 5,
+     "track": "training",
+     "total_score": 10,
+     "steps_done": 1,
+     "steps_total": 1
+    },
+    {
+     "date": "2026-10-04",
+     "completed": false,
+     "weekday": 1,
+     "duration_min": 5,
+     "track": "training",
+     "total_score": 10,
+     "steps_done": 1,
+     "steps_total": 1
+    },
+    {
+     "date": "2026-10-02",
+     "completed": true,
+     "weekday": 1,
+     "duration_min": 5,
+     "track": "training",
+     "total_score": 10,
+     "steps_done": 1,
+     "steps_total": 1
+    }
+   ],
+   "streak": 2,
+   "longest": 2
+  },
+  {
+   "history": [
+    {
+     "date": "2026-09-28",
+     "completed": true,
+     "weekday": 1,
+     "duration_min": 5,
+     "track": "training",
+     "total_score": 10,
+     "steps_done": 1,
+     "steps_total": 1
+    },
+    {
+     "date": "2026-09-30",
+     "completed": true,
+     "weekday": 1,
+     "duration_min": 5,
+     "track": "training",
+     "total_score": 10,
+     "steps_done": 1,
+     "steps_total": 1
+    },
+    {
+     "date": "2026-10-01",
+     "completed": true,
+     "weekday": 1,
+     "duration_min": 5,
+     "track": "training",
+     "total_score": 10,
+     "steps_done": 1,
+     "steps_total": 1
+    },
+    {
+     "date": "2026-10-04",
+     "completed": true,
+     "weekday": 1,
+     "duration_min": 5,
+     "track": "training",
+     "total_score": 10,
+     "steps_done": 1,
+     "steps_total": 1
+    },
+    {
+     "date": "2026-10-04",
+     "completed": true,
+     "weekday": 1,
+     "duration_min": 5,
+     "track": "training",
+     "total_score": 10,
+     "steps_done": 1,
+     "steps_total": 1
+    },
+    {
+     "date": "2026-10-06",
+     "completed": true,
+     "weekday": 1,
+     "duration_min": 5,
+     "track": "training",
+     "total_score": 10,
+     "steps_done": 1,
+     "steps_total": 1
+    }
+   ],
+   "streak": 2,
+   "longest": 3
+  }
+ ]
+}

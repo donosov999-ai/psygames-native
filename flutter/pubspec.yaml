@@ -137,6 +137,8 @@ flutter:
     - assets/sources.json
     # Лиги и рамки — таблицы веба для модели «Лиг» на Dart (tools/embed-progression.mjs, вариант Б).
     - assets/progression.json
+    # Даты календаря серии на 12 языках — шаблоны ICU (tools/embed-calendar.mjs, вариант Б).
+    - assets/calendar_locales.json
     # Иконки игр «поле в миниатюре» для строк развилок — выгрузка веб-реестра
     # (flutter/tools/embed-game-icons.mjs), не править руками.
     - assets/game_icons/
