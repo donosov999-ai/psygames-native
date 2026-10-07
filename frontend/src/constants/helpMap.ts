@@ -417,6 +417,11 @@ export const HELP_MAP: Record<string, HelpEntry> = {
     "skillKey": "skillInhibition",
     "introKey": "simonIntroDesc"
   },
+  "/games/relaxation-hub": {
+    "nameKey": "relaxationGroup",
+    "skillKey": "skillRecovery",
+    "introKey": "relaxationGroupIntroDesc"
+  },
   "/games/breathing": {
     "nameKey": "breathing",
     "skillKey": "skillRecovery",

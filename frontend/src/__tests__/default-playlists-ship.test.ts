@@ -66,9 +66,9 @@ describe('заводской состав из сборки', () => {
     const с = заводскойСостав()!;
     expect(Object.keys(с.профили.chess?.сетка ?? {}).length).toBe(7);
     // 78 потоков (39 профилей + 39 развилок) и 13 серий «все игры развилки» (с 17.09.2026, задача 12470af9).
-    // 07.10.2026: развилка «Головоломки» распущена (решение Дениса 18.09, ca6f3e00): её три потока и серия сняты — 75 потоков и 12 серий.
-    expect(с.наборы.filter((н) => н.id.startsWith('поток-')).length).toBe(75);
-    expect(с.наборы.filter((н) => н.id.startsWith('серия-хаб-')).length).toBe(12);
+    // 07.10.2026: −3 потока и −1 серия распущенных «Головоломок» (ca6f3e00), +3 и +1 «Релаксации» (b271f702).
+    expect(с.наборы.filter((н) => н.id.startsWith('поток-')).length).toBe(78);
+    expect(с.наборы.filter((н) => н.id.startsWith('серия-хаб-')).length).toBe(13);
   });
 });
 
@@ -84,6 +84,8 @@ const РАЗВИЛКА_ПОТОКА: Record<string, string> = {
   spatial: '/games/spatial-hub', sorting: '/games/sorting-hub',
   counting: '/games/counting-hub', words: '/games/words-hub', hearing: '/games/hearing-hub',
   languages: '/games/languages-hub',
+  // 07.10.2026 — «Релаксация» (решение Дениса b271f702).
+  relaxation: '/games/relaxation-hub',
 };
 
 describe('поток развилки — только её игры', () => {
@@ -216,7 +218,7 @@ describe('серия хаба — все игры развилки', () => {
     return свои.has(ш.game_route) || (ш.mode !== undefined && свои.has(`${ш.game_route}?mode=${encodeURIComponent(ш.mode)}`));
   };
 
-  it('🔴 у каждой из 13 развилок есть непустая серия, и в ней только игры этой развилки', () => {
+  it('🔴 у каждой из 14 развилок есть непустая серия, и в ней только игры этой развилки', () => {
     const с = заводскойСостав()!;
     const изФайла = (с.профили.odv999?.хабы ?? {}) as Record<string, ЭлементХаба[]>;
     const беды: string[] = [];

@@ -1765,6 +1765,7 @@ String variantTitle(String variant) => switch (variant) {
       'xv' => L.t('sdkRule_xv'),
       'argyle' => L.t('sdkRule_argyle'),
       'littlekiller' => L.t('sdkRule_littlekiller'),
+      'xsums' => L.t('sdkRule_xsums'),
       'friends' => L.t('sdkRule_friends'),
       _ => L.t('sdkRule_none'),
     };
@@ -1806,9 +1807,11 @@ class SudokuBoardView extends StatelessWidget {
         final avail = (height < c.maxWidth ? height : c.maxWidth) - 16;
         final n = board.n;
         final g = board.geometry;
-        final sw = g.sandwich;
+        // Суммы сэндвича и X-суммы — одной формы ({rows, cols}) и одной вёрсткой: полосой над доской и
+        // слева, как в вебе (`clueCols` 0,6 клетки). Ключ — с именем правила.
+        final sw = g.sandwich ?? g.xsums;
+        final swKey = g.sandwich != null ? 'sandwich' : 'xsums';
         final lk = g.littleKiller;
-        // Суммы сэндвича — полосой над доской и слева, как в вебе (`clueCols` 0,6 клетки).
         // Малый киллер — кольцом сверху, слева и справа (стрелки смотрят только вниз): поле 0,75 клетки,
         // по ширине два поля. 0,6 не хватило: «24» со стрелкой вылезали на 9 px (проба 320 px).
         final cell = avail / (n + (sw != null ? 0.6 : 0) + (lk != null ? 1.5 : 0));
@@ -1966,11 +1969,11 @@ class SudokuBoardView extends StatelessWidget {
             children: [
               Row(mainAxisSize: MainAxisSize.min, children: [
                 SizedBox(width: gutter),
-                for (var col = 0; col < n; col++) clue('sandwich-col-$col', sw.cols[col], cell, gutter),
+                for (var col = 0; col < n; col++) clue('$swKey-col-$col', sw.cols[col], cell, gutter),
               ]),
               Row(mainAxisSize: MainAxisSize.min, children: [
                 Column(children: [
-                  for (var r = 0; r < n; r++) clue('sandwich-row-$r', sw.rows[r], gutter, cell),
+                  for (var r = 0; r < n; r++) clue('$swKey-row-$r', sw.rows[r], gutter, cell),
                 ]),
                 boardGrid,
               ]),

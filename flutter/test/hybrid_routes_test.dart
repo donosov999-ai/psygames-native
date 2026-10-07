@@ -318,6 +318,7 @@ void main() {
       '/games/dots-connect',
       '/games/counter',
       '/games/counting-hub',
+      '/games/relaxation-hub',
       '/games/faces-names',
       '/games/find-differences',
       '/games/scholars-mate',
