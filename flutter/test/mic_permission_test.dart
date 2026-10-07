@@ -11,7 +11,7 @@ import 'package:webview_flutter_platform_interface/webview_flutter_platform_inte
 /// молча отклонял — с 2.56.0 голос в 0 отзывах из 13. Здесь:
 ///   · решение по запросу страницы: только микрофон; Android — сначала приложению, отказ человека —
 ///     отказ странице; iOS — окно показывает WebKit; камера и смешанные запросы — отказ без вопросов;
-///   · сторож носителей: разрешения в манифесте, строка Info.plist, канал MainActivity, основной WebView
+///   · сторож носителей: разрешения в манифесте, строка Info.plist, канал MicPermission.kt, основной WebView
 ///     создаётся с выдачей (`MicPermission.pageController`).
 class _Req extends PlatformWebViewPermissionRequest {
   _Req(Set<WebViewPermissionResourceType> types) : super(types: types);
@@ -74,7 +74,7 @@ void main() {
     expect(asked, 0);
   });
 
-  test('🔴 носители: разрешения манифеста, строка Info.plist, канал MainActivity, основной WebView с выдачей', () {
+  test('🔴 носители: разрешения манифеста, строка Info.plist, канал MicPermission.kt, основной WebView с выдачей', () {
     final manifest = File('android/app/src/main/AndroidManifest.xml').readAsStringSync();
     expect(manifest, contains('<uses-permission android:name="android.permission.RECORD_AUDIO"/>'));
     expect(manifest, contains('<uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS"/>'));
@@ -82,9 +82,14 @@ void main() {
     final usage = RegExp(r'<key>NSMicrophoneUsageDescription</key>\s*<string>([^<]{20,})</string>').firstMatch(plist);
     expect(usage, isNotNull, reason: 'без строки iOS не даст микрофон (а захват без неё роняет приложение)');
     expect(RegExp('[А-Яа-яЁё]').hasMatch(usage!.group(1)!), isFalse, reason: 'английский — основной язык');
-    final activity = File('android/app/src/main/kotlin/pro/psygames/psygames_flutter/MainActivity.kt').readAsStringSync();
-    expect(activity, contains('"psygames/mic"'));
-    expect(activity, contains('Manifest.permission.RECORD_AUDIO'));
+    const kt = 'android/app/src/main/kotlin/pro/psygames/psygames_flutter';
+    final channel = File('$kt/MicPermission.kt').readAsStringSync();
+    expect(channel, contains('"psygames/mic"'));
+    expect(channel, contains('Manifest.permission.RECORD_AUDIO'));
+    // Канал — отдельным файлом: MainActivity держит без своих каналов сторож вибрации.
+    final activity = File('$kt/MainActivity.kt').readAsStringSync();
+    expect(activity, contains('mic.attach(flutterEngine)'));
+    expect(activity, contains('mic.onResult(requestCode, grantResults)'));
     final app = File('lib/shell/hybrid_app.dart').readAsStringSync();
     expect(app, contains('_c = MicPermission.pageController()'));
   });
