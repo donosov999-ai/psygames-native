@@ -2634,7 +2634,7 @@ const t: Record<string, string> = {
   "shopAbilitySection": "⚡ Fähigkeiten — Verbrauchsgegenstände. Sie lösen die Aufgabe nicht für dich: Sie geben eine Runde oder Serie zurück.",
   "shopAbilityHint": "Jede Fähigkeit kostet mehr, als eine Runde je einbringen kann — Gewinn ist damit unmöglich.",
   "a11yCatAbility": "Fähigkeiten",
-  "abName_second_life": "Zweites Leben",
+  "abName_second_life": "Zweites Leben (Zielscheiben)",
   "abDesc_second_life": "Zielscheiben: Die Runde endet nicht beim letzten Leben. Eine pro Runde, und diese Runde hebt kein Level.",
   "abName_practice_run": "Probelauf",
   "abDesc_practice_run": "Messspiele: Die Runde wird nirgends gespeichert — keine Punkte, kein Level, keine Statistik. Ausprobieren ohne Folgen.",

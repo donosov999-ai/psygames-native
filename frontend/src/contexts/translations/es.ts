@@ -2634,7 +2634,7 @@ const t: Record<string, string> = {
   "shopAbilitySection": "⚡ Habilidades: se gastan por unidades. No resuelven la tarea por ti: devuelven una partida o una racha.",
   "shopAbilityHint": "Cada habilidad cuesta más de lo que una partida puede dar: comprarla para ganar puntos es imposible.",
   "a11yCatAbility": "Habilidades",
-  "abName_second_life": "Segunda vida",
+  "abName_second_life": "Segunda vida (Dianas)",
   "abDesc_second_life": "Dianas: la partida no termina en la última vida. Una por partida, y esa partida no sube de nivel.",
   "abName_practice_run": "Intento de prueba",
   "abDesc_practice_run": "Juegos de medición: la partida no se registra en ningún sitio: ni puntos, ni nivel, ni estadísticas. Prueba sin consecuencias.",

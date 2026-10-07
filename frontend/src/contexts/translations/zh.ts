@@ -2634,7 +2634,7 @@ const t: Record<string, string> = {
   "shopAbilitySection": "⚡ 能力道具——按个消耗。它们不会替你完成任务，只是把一局或连续天数还给你。",
   "shopAbilityHint": "每个能力的价格都高于一局能带来的上限——买它来赚分是不可能的。",
   "a11yCatAbility": "能力道具",
-  "abName_second_life": "第二条命",
+  "abName_second_life": "第二条命（靶子）",
   "abDesc_second_life": "靶子：最后一条命时不结束本局。每局限一次，且该局不会提升等级。",
   "abName_practice_run": "试练局",
   "abDesc_practice_run": "测量类练习：本局不会被记录——没有积分、不影响等级、不进统计。放心尝试。",
