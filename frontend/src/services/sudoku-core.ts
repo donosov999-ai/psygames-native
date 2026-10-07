@@ -76,7 +76,8 @@ export function argyleSegments(N = 9): [number, number, number, number][] {
  * (r, c) — первая клетка диагонали у края, (dr, dc) — шаг внутрь.
  */
 export type LittleKillerClue = { r: number; c: number; dr: 1; dc: 1 | -1; sum: number };
-/** Сколько диагоналей показать. Порядок величины — как у сборников (8–12); точное число — замер. */
+/** Сколько диагоналей показать. На трудность число почти не влияет: 10 → 5 диагоналей — цена вывода
+ *  145 → 127, ступень 4 (замер 07.10, копание добирает своё); ось трудности — `digCap` ступени. */
 export const LITTLE_KILLER_CLUES = 10;
 
 /** Лежит ли клетка на диагонали подсказки. */
@@ -140,10 +141,11 @@ export function littleKillerOk(grid: Cell[][], r: number, c: number, n: number, 
  * входит в сумму: подсказка 6 при первой 2 — это 2 + следующая 4). Сверено 07.10 по четырём языкам:
  * logic-masters.de (000LZO), janko.at (Varianten/053), cn.sudoku.today (前X数和数独), разбор на русском.
  * Подсказки — слева у строк и сверху у столбцов, как поля сэндвича (вёрстка та же); часть скрыта
- * (−1), иначе 18 сумм решают доску за человека. Форма — та же `{ rows, cols }`, что у сэндвича.
+ * (−1). Форма — та же `{ rows, cols }`, что у сэндвича.
  */
 export type XsumsClues = { rows: number[]; cols: number[] };
-/** Сколько из 18 сумм показать. Точное число — по замеру трудности. */
+/** Сколько из 18 сумм показать. На трудность число почти не влияет: 12 → 6 сумм — цена вывода
+ *  125 → 115, ступень 4 (замер 07.10, копание добирает своё); ось трудности — `digCap` ступени. */
 export const XSUMS_SHOWN = 12;
 
 /** Сумма первых X цифр ряда, X — первая цифра. */
@@ -434,7 +436,17 @@ export function generateThermoCages(sol: Cell[][], N: number, rnd: () => number 
 }
 
 // SUDOKU-LVL: уровневая прогрессия. 1–4 = 6×6, 5–8 = 9×9, 9–13 = диагональ, далее фазы-варианты.
-export interface LevelCfg { size: 6 | 9; N: number; BR: number; BC: number; blanks: number; variant: Variant; hintMax: number; lives: number; }
+export interface LevelCfg {
+  size: 6 | 9; N: number; BR: number; BC: number; blanks: number; variant: Variant; hintMax: number; lives: number;
+  /**
+   * Сколько клеток 9×9 логический путь вправе выкопать на ступени (по умолчанию MAX_BLANKS_9 = 64) —
+   * ось трудности внутри блока у правил-подсказок. ЗАМЕР 07.10.2026 (8 досок): X-суммы 64 → 70 —
+   * цена вывода 129 → 151, малый киллер 145 → 159; к 76 рост насыщается (156 / 163). А «меньше
+   * подсказок правила» трудность НЕ поднимает: X-суммы 12 → 6 сумм — цена 125 → 115, малый киллер
+   * 10 → 5 диагоналей — 145 → 127 (копание добирает своё). Скрипты: ~/dev/psygames/sudoku-chat/measure/.
+   */
+  digCap?: number;
+}
 export function levelConfig(level: number): LevelCfg {
   const lv = Math.max(1, level);
   const size: 6 | 9 = lv <= 4 ? 6 : 9;
