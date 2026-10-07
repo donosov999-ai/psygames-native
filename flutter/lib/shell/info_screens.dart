@@ -1,7 +1,10 @@
+import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'feedback_fab.dart' show FabRules;
+import 'achievements_model.dart';
+import 'collection_model.dart';
 import 'ion_icon.dart';
 import 'progression.dart';
 import 'screen_ui.dart';
@@ -32,6 +35,7 @@ class ModelPage extends StatefulWidget {
     required this.builder,
     this.safeTop = true,
     this.compute,
+    this.own,
   });
   final String route;
   final String screenKey;
@@ -41,6 +45,9 @@ class ModelPage extends StatefulWidget {
   /// 🔴 МОДЕЛЬ НА DART (задача d6a60b02, вариант Б): экран считает её сам и страницу не ждёт. Нет —
   /// модель приходит от веб-экрана под оболочкой ([ScreenUi]), как раньше.
   final Future<Map<String, Object?>> Function()? compute;
+
+  /// Своя модель с состоянием (вариант Б): экран меняет её сам — подсказка по тапу, листание.
+  final ValueListenable<Map<String, Object?>?>? own;
 
   @override
   State<ModelPage> createState() => _ModelPageState();
@@ -65,6 +72,9 @@ class _ModelPageState extends State<ModelPage> {
 
   @override
   Widget build(BuildContext context) {
+    if (widget.own case final listenable?) {
+      return ValueListenableBuilder<_M?>(valueListenable: listenable, builder: (context, m, _) => _page(context, m));
+    }
     final own = _own;
     if (own != null) {
       return FutureBuilder<_M>(future: own, builder: (context, snap) => _page(context, snap.data));
@@ -250,14 +260,57 @@ class SourcesScreen extends StatelessWidget {
 
 // ── «Коллекция» ──────────────────────────────────────────────────────────────────────────────────
 
-class CollectionScreen extends StatelessWidget {
-  const CollectionScreen({super.key});
+class CollectionScreen extends StatefulWidget {
+  const CollectionScreen({super.key, this.state});
   static const route = '/collection';
+
+  /// Есть — модель считается на Dart, подсказка по тапу — здесь же (вариант Б,
+  /// `collection_model.dart`); нет — модель и подсказка у веба.
+  final SharedState? state;
+
+  @override
+  State<CollectionScreen> createState() => _CollectionScreenState();
+}
+
+class _CollectionScreenState extends State<CollectionScreen> {
+  static const route = CollectionScreen.route;
+  final ValueNotifier<_M?> _own = ValueNotifier(null);
+  ({List<Figure> figures, int earned, String primary})? _in;
+
+  @override
+  void initState() {
+    super.initState();
+    final state = widget.state;
+    if (state != null) {
+      collectionInputsFor(state).then((v) {
+        if (!mounted) return;
+        _in = v;
+        _own.value = collectionModel(v.figures, v.earned, primary: v.primary);
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _own.dispose();
+    super.dispose();
+  }
+
+  /// Тап по фигурке: своя подсказка (вариант Б) или действие веба.
+  void _tap(int i) {
+    final v = _in;
+    if (widget.state == null || v == null) {
+      ScreenUi.act(route, 'tap', [i]);
+      return;
+    }
+    _own.value = collectionModel(v.figures, v.earned, primary: v.primary, hint: howToOpen(v.figures, v.earned, i));
+  }
 
   @override
   Widget build(BuildContext context) => ModelPage(
     route: route,
     screenKey: 'collection-screen',
+    own: widget.state == null ? null : _own,
     builder: (context, m) {
       final web = WebTheme.of(context);
       final primary = cssColor(m['primary'], Theme.of(context).colorScheme.primary); // цвет профиля веба
@@ -318,7 +371,7 @@ class CollectionScreen extends StatelessWidget {
                         excludeSemantics: true,
                         child: GestureDetector(
                           key: ValueKey('collection-figure-$i'),
-                          onTap: () => ScreenUi.act(route, 'tap', [i]),
+                          onTap: () => _tap(i),
                           child: Opacity(
                             opacity: f['owned'] == true ? 1 : 0.55,
                             child: Container(
@@ -372,14 +425,18 @@ class CollectionScreen extends StatelessWidget {
 // ── «Достижения» ─────────────────────────────────────────────────────────────────────────────────
 
 class AchievementsScreen extends StatelessWidget {
-  const AchievementsScreen({super.key});
+  const AchievementsScreen({super.key, this.state});
   static const route = '/achievements';
   static const _gold = Color(0xFFFBBF24);
+
+  /// Есть — модель считается на Dart ([achievementsModelFor], вариант Б); нет — приходит от веба.
+  final SharedState? state;
 
   @override
   Widget build(BuildContext context) => ModelPage(
     route: route,
     screenKey: 'achievements-screen',
+    compute: state == null ? null : () => achievementsModelFor(state!),
     builder: (context, m) {
       final web = WebTheme.of(context);
       return Column(

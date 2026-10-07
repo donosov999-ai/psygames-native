@@ -139,6 +139,10 @@ flutter:
     - assets/progression.json
     # Даты календаря серии на 12 языках — шаблоны ICU (tools/embed-calendar.mjs, вариант Б).
     - assets/calendar_locales.json
+    # Фигурки коллекции — таблица веба для модели на Dart (tools/embed-collection.mjs, вариант Б).
+    - assets/collection.json
+    # Достижения и разделы экрана — таблица веба для модели на Dart (tools/embed-achievements.mjs, вариант Б).
+    - assets/achievements.json
     # Иконки игр «поле в миниатюре» для строк развилок — выгрузка веб-реестра
     # (flutter/tools/embed-game-icons.mjs), не править руками.
     - assets/game_icons/

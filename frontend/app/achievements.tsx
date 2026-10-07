@@ -42,6 +42,18 @@ function achDesc(a: { desc_ru: string; desc_en: string }, language: string): str
   return language === 'ru' ? a.desc_ru : a.desc_en;
 }
 
+/**
+ * Разделы экрана — на уровне модуля: их же выгружает `flutter/tools/embed-achievements.mjs` для
+ * модели на Dart (задача d6a60b02, вариант Б). Правка подписи без пересборки краснеет в CI.
+ */
+const CATEGORIES = [
+  { key: 'milestone', label_ru: '🏁 Вехи', label_en: '🏁 Milestones' },
+  { key: 'volume',    label_ru: '🎮 Объём', label_en: '🎮 Volume' },
+  { key: 'streak',    label_ru: '🔥 Серии', label_en: '🔥 Streaks' },
+  { key: 'breadth',   label_ru: '🌈 Разнообразие', label_en: '🌈 Breadth' },
+  { key: 'quality',   label_ru: '⭐ Качество', label_en: '⭐ Quality' },
+];
+
 export function humanDate(key: string, language: string): string {
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(key || ''));
   if (!m) return String(key || '');
@@ -88,14 +100,6 @@ function AchievementsScreenBody() {
     acc[a.category].push(a);
     return acc;
   }, {} as Record<string, typeof ACHIEVEMENTS>);
-
-  const CATEGORIES = [
-    { key: 'milestone', label_ru: '🏁 Вехи', label_en: '🏁 Milestones' },
-    { key: 'volume',    label_ru: '🎮 Объём', label_en: '🎮 Volume' },
-    { key: 'streak',    label_ru: '🔥 Серии', label_en: '🔥 Streaks' },
-    { key: 'breadth',   label_ru: '🌈 Разнообразие', label_en: '🌈 Breadth' },
-    { key: 'quality',   label_ru: '⭐ Качество', label_en: '⭐ Quality' },
-  ];
 
   /**
    * 🔴 ПОД ОБОЛОЧКОЙ ДОСТИЖЕНИЯ РИСУЕТ FLUTTER (задача 56660caa, `services/hostScreens.ts`).
