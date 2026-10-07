@@ -3,6 +3,7 @@ import 'package:flutter/services.dart' show rootBundle;
 
 import '../../shell/aux_action.dart';
 import '../../shell/game_shell.dart';
+import '../../shell/l10n.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/lesson.dart';
@@ -72,7 +73,8 @@ class _OneLineScreenState extends State<OneLineScreen> {
   }
 
   /// ⚠️ Название одной строкой: второй литерал — второе место переводить.
-  static const _title = 'Одна линия';
+  /// Подписи экрана — из общего с вебом словаря (`L.t`): зашитый текст знал бы один язык из двенадцати.
+  String get _title => L.t('oneLine');
 
   /*
    * 🔴 РАЗБОР ИДЁТ ПО ЭТАЛОНУ УРОВНЯ, А НЕ ПО СВОЕМУ ПОИСКУ.
@@ -121,10 +123,10 @@ class _OneLineScreenState extends State<OneLineScreen> {
       // и искать заново нечего.
       onLesson: level.solutionEdgeIds.isEmpty ? null : _openLesson,
       hud: [
-        HudItem(label: 'Уровень', value: '${_ladder.level}', icon: Icons.flag_outlined),
-        HudItem(label: 'Достигнуто', value: '${_ladder.best}', icon: Icons.emoji_events_outlined),
+        HudItem(label: L.t('level'), value: '${_ladder.level}', icon: Icons.flag_outlined),
+        HudItem(label: L.t('personalBest'), value: '${_ladder.best}', icon: Icons.emoji_events_outlined),
         HudItem(
-            label: 'Пройдено',
+            label: L.t('spatialDone'),
             value: '${game.passesDone}/${level.totalPasses}',
             icon: Icons.timeline),
       ],
@@ -137,13 +139,13 @@ class _OneLineScreenState extends State<OneLineScreen> {
       auxRow: AuxBar(children: [
         AuxAction(
           icon: Icons.undo,
-          label: 'Отменить',
+          label: L.t('btn_undo'),
           onPressed: game.trail.isEmpty ? null : () => setState(game.undo),
         ),
-        AuxAction(icon: Icons.refresh, label: 'Начать заново', onPressed: _restart),
+        AuxAction(icon: Icons.refresh, label: L.t('restart'), onPressed: _restart),
         AuxAction(
           icon: Icons.lightbulb_outline,
-          label: 'Показать решение',
+          label: L.t('puzzleShowSolution'),
           tint: const Color(0xFFB45309),
           onPressed: _won ? null : _showSolution,
         ),
@@ -154,14 +156,14 @@ class _OneLineScreenState extends State<OneLineScreen> {
               child: FilledButton.icon(
                 onPressed: _next,
                 icon: const Icon(Icons.arrow_forward),
-                label: const Text('Следующий уровень'),
+                label: Text(L.t('nextLabel')),
               ),
             )
           : null,
       pauseActions: [
-        PauseAction(label: 'Начать заново', icon: Icons.refresh, onPressed: _restart),
+        PauseAction(label: L.t('restart'), icon: Icons.refresh, onPressed: _restart),
         PauseAction(
-            label: 'Показать решение', icon: Icons.lightbulb_outline, onPressed: _showSolution),
+            label: L.t('puzzleShowSolution'), icon: Icons.lightbulb_outline, onPressed: _showSolution),
       ],
     );
   }

@@ -7,6 +7,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { FAB_CLEARANCE } from '@/src/services/fabPosition';
 import CategorySections from '@/src/components/CategorySections';
 import { CATEGORY_ORDER } from '@/src/constants/games';
+import { useLocalSearchParams } from 'expo-router';
 
 /**
  * ВКЛАДКА «ИГРЫ» — ВЕСЬ КАТАЛОГ, ДЕВЯТЬ РАЗДЕЛОВ.
@@ -27,6 +28,8 @@ import { CATEGORY_ORDER } from '@/src/constants/games';
 export default function GamesScreen() {
   const { colors } = useTheme();
   const { t } = useLanguage();
+  // «Все развилки ›» с Главной открывает вкладку только с развилками (`?filter=hubs`, 07.10.2026).
+  const { filter } = useLocalSearchParams<{ filter?: string }>();
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
@@ -37,7 +40,7 @@ export default function GamesScreen() {
         <View style={styles.head}>
           <Text style={[styles.title, { color: colors.text }]}>{t('tabGames')}</Text>
         </View>
-        <CategorySections categories={CATEGORY_ORDER} />
+        <CategorySections categories={CATEGORY_ORDER} onlyHubs={filter === 'hubs'} />
       </ScrollView>
     </SafeAreaView>
   );

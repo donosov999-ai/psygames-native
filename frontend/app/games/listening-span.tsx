@@ -1,4 +1,4 @@
-/* psygames-game-listening-span · VER 2 · 23.08.2026 */
+/* psygames-game-listening-span · VER 3 · 01.10.2026 */
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, ScrollView,
@@ -38,7 +38,7 @@ const ON_GRAD = onGradientText(GRADIENT[0], GRADIENT[1]);
 const ON_GRAD_SOFT = onGradientTextMuted(ON_GRAD);
 const GAME_ID = 'listening_span';
 const TARGETLANG_KEY = `psygames_${GAME_ID}_targetlang`;
-const ROUNDS = 2;
+export const ROUNDS = 2;
 
 // Listening span: K слов целевого языка озвучиваются по одному (экран слов НЕ показывает),
 // затем recall — сетка из K услышанных + K дистракторов; тапать услышанные В ТОМ ЖЕ ПОРЯДКЕ.
@@ -143,6 +143,7 @@ export function похожесть(a: string, b: string): number {
  */
 export function подобратьОтвлекающие(
   pool: readonly string[], озвученные: readonly string[], нужно: number, доля: number,
+  rng: () => number = Math.random,
 ): string[] {
   const занято = new Set(озвученные);
   const свободные = pool.filter((w) => !занято.has(w));
@@ -150,7 +151,7 @@ export function подобратьОтвлекающие(
   const счёт = близостьКОзвученным(свободные, озвученные);
   const порядок = [...свободные].sort((a, b) => (счёт.get(b) ?? 0) - (счёт.get(a) ?? 0));
   const взятые = порядок.slice(0, похожих);
-  const остаток = shuffle(порядок.slice(похожих));
+  const остаток = shuffle(порядок.slice(похожих), rng);
   return [...взятые, ...остаток].slice(0, нужно);
 }
 
@@ -164,10 +165,10 @@ function близостьКОзвученным(свободные: readonly str
   return m;
 }
 
-function shuffle<T>(arr: T[]): T[] {
+function shuffle<T>(arr: T[], rng: () => number = Math.random): T[] {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
+    const j = Math.floor(rng() * (i + 1));
     [a[i], a[j]] = [a[j], a[i]];
   }
   return a;
@@ -199,7 +200,7 @@ function shuffle<T>(arr: T[]): T[] {
  */
 const МИН_ОЗВУЧЕННЫХ = 8 * ROUNDS * 3;
 
-function wordPool(targetLang: string): string[] {
+export function wordPool(targetLang: string): string[] {
   const все = Array.from(new Set(
     TRANSLATION_VOCAB
       .map((e) => e[targetLang])
@@ -207,6 +208,24 @@ function wordPool(targetLang: string): string[] {
   ));
   const озвученные = все.filter((w) => voiceUrl(w, targetLang) !== null);
   return озвученные.length >= МИН_ОЗВУЧЕННЫХ ? озвученные : все;
+}
+
+/**
+ * Раздача раунда: озвучиваемые слова (сначала то, чего человек ещё не слышал), к ним
+ * отвлекающие по доле сходства, и всё вместе вперемешку — сетка ввода.
+ *
+ * ⚠️ ВСЯ СЛУЧАЙНОСТЬ РАУНДА — ЧЕРЕЗ ОДИН `rng` И В ОДНОМ ПОРЯДКЕ: отбор невиданного,
+ * тасовка обычных отвлекающих, тасовка сетки. Эту функцию зовёт и игра, и экспортёр
+ * эталона Flutter-переноса (`src/games/listening-span/tools/record-flutter-reference.gen.ts`):
+ * эталон снимается с того же пути, по которому играет человек, а не с его пересказа.
+ */
+export function dealRound(
+  pool: readonly string[], seen: readonly string[], span: number, similarShare: number,
+  rng: () => number = Math.random,
+): { spoken: string[]; grid: string[]; seen: string[] } {
+  const res = pickFreshFrom(pool, span, seen, (w) => w, rng);
+  const words = [...res.picked, ...подобратьОтвлекающие(pool, res.picked, span, similarShare, rng)];
+  return { spoken: words.slice(0, span), grid: shuffle(words, rng), seen: res.seen };
 }
 
 export default function ListeningSpanGame() {
@@ -334,14 +353,12 @@ export default function ListeningSpanGame() {
      */
     const pool = wordPool(tlRef.current);
     const seen = await readSeen('listening_span', profile?.id);
-    const res = pickFreshFrom(pool, span, seen, (w) => w);
-    await writeSeen('listening_span', profile?.id, res.seen);
-    const spokenPick = res.picked;
     // Ось 7: отвлекающие тем похожее, чем выше уровень. Доля из lvlParams, не из воздуха.
-    const words = [...spokenPick, ...подобратьОтвлекающие(pool, spokenPick, span, similarRef.current)];
-    const spokenWords = words.slice(0, span);
+    const deal = dealRound(pool, seen, span, similarRef.current);
+    await writeSeen('listening_span', profile?.id, deal.seen);
+    const spokenWords = deal.spoken;
     setSpoken(spokenWords);
-    setGrid(shuffle(words));
+    setGrid(deal.grid);
     setPicked([]);
     setWrongIdx(null);
     lockRef.current = false;

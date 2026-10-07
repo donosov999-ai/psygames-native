@@ -987,7 +987,7 @@ function buildPelvicLaneOnBreath(
   const squeeze = item.program.steps.find((step) => step.id === 'long-squeeze') ?? item.program.steps[0]!;
   const release = item.program.steps.find((step) => step.id === 'long-release') ?? item.program.steps[1] ?? item.program.steps[0]!;
   return breathingLane.map((breathStep) => {
-    const exhale = breathStep.stepId.includes('exhale') || breathStep.stepId.endsWith('-out');
+    const exhale = breathStep.stepId.includes('exhale') || (breathStep.stepId.endsWith('-out') && breathStep.stepId !== 'hold-out');
     return localizeStep(item, exhale ? squeeze : release, locale, lane, breathStep.startMs, breathStep.endMs);
   });
 }

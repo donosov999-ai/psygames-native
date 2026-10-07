@@ -1,0 +1,17 @@
+{
+ "data": {
+  "psygames_active_profile": "odv999",
+  "psygames_sudoku_level_odv999": "92",
+  "psygames_pet_name": "Синапс 🐾",
+  "psygames_unlocked_themed": "[\"chess\"]",
+  "psygames_device_id": "НЕ-ПЕРЕНОСИТСЯ",
+  "language": "ru",
+  "psygames.bestStreak.sudoku": "7"
+ },
+ "code": "eyJ2IjoxLCJ0cyI6MTc5MDg4MDAwMDAwMCwibiI6NCwiZGF0YSI6eyJwc3lnYW1lc19hY3RpdmVfcHJvZmlsZSI6Im9kdjk5OSIsInBzeWdhbWVzX3N1ZG9rdV9sZXZlbF9vZHY5OTkiOiI5MiIsInBzeWdhbWVzX3BldF9uYW1lIjoi0KHQuNC90LDQv9GBIPCfkL4iLCJwc3lnYW1lc191bmxvY2tlZF90aGVtZWQiOiJbXCJjaGVzc1wiXSJ9fQ==",
+ "backup": "{\n  \"app\": \"PsyGames-Backup\",\n  \"format\": 1,\n  \"app_version\": \"2.56.4\",\n  \"exported_at\": \"2026-10-02T00:00:00.000Z\",\n  \"device\": \"ios\",\n  \"data\": {\n    \"psygames_active_profile\": \"odv999\",\n    \"psygames_sudoku_level_odv999\": \"92\",\n    \"psygames_pet_name\": \"Синапс 🐾\",\n    \"psygames_unlocked_themed\": \"[\\\"chess\\\"]\",\n    \"psygames_device_id\": \"НЕ-ПЕРЕНОСИТСЯ\"\n  }\n}",
+ "nativeStyleAccepted": {
+  "ok": true,
+  "count": 1
+ }
+}

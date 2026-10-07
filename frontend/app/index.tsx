@@ -18,7 +18,9 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { useWarmup } from '@/src/contexts/WarmupContext';
 import { useProfile } from '@/src/contexts/ProfileContext';
-import CategorySections from '@/src/components/CategorySections';
+import CategorySections, { groupBySection, sectionCols } from '@/src/components/CategorySections';
+import { useScreenSize } from '@/src/hooks/useScreenWidth';
+import HomeCatalogSearch from '@/src/components/HomeCatalogSearch';
 import { показыватьБлок } from '@/src/constants/homeBlocks';
 import { FAB_CLEARANCE } from '@/src/services/fabPosition';
 import { favouriteCategories } from '@/src/services/favouriteCategories';
@@ -43,13 +45,16 @@ import {
   buildMorningWarmupPlaylist, buildEveningWarmupPlaylist, buildFixedPlaylist, getCurrentWeekday, loadWarmupHistory, computeStreak, WarmupHistoryEntry,
   currentSlot, WarmupSlot,
 } from '@/src/services/warmup';
-import WhatsNewModal from '@/src/components/WhatsNewModal';
 import { checkForUpdateDaily, updateUrl } from '@/src/services/appUpdates';
 import { Linking } from 'react-native';
 import { getUnlocked } from '@/src/services/achievements';
 import { ACHIEVEMENTS } from '@/src/services/achievements';
 import ProfileSwitcherModal from '@/src/components/ProfileSwitcherModal';
-import { PetStill, PetSkin } from '@/src/components/pet/PetSprite';
+import { PetStill, PetSkin, petRenderSpec } from '@/src/components/pet/PetSprite';
+import { buildHomeModel } from '@/src/services/homeModel';
+import { postScreenModel, registerScreenActions } from '@/src/services/hostScreens';
+import { catalogSearchRoute } from '@/src/services/catalogSearchRoute';
+import { pickGoalLine } from '@/src/services/goalPetLines';
 import { getPetStats, PetStage, getPetSkin } from '@/src/services/pet';
 import { IS_WEB_DEMO } from '@/src/services/buildTarget';
 import DemoLanding from '@/src/components/DemoLanding';
@@ -63,11 +68,12 @@ import DailyGoalCard from '@/src/components/DailyGoalCard';
 import StreakGoalSheet from '@/src/components/StreakGoalSheet';
 import {
   askReason, goalReward, loadGoalAskedAt, loadStreakGoal, noticeReached, rememberAsked,
-  saveStreakGoal, startGoal, type AskReason, type GoalDays, type StreakGoal,
+  saveStreakGoal, startGoal, GOAL_DAYS, type AskReason, type GoalDays, type StreakGoal,
 } from '@/src/services/streakGoal';
-import { suggestGoal, type Suggestion } from '@/src/services/goalSuggest';
+import { suggestGoal, suggestLabelKey, type Suggestion } from '@/src/services/goalSuggest';
 import {
   loadGoalCard, saveDailyGoal, dismissGoalCard, markGoalOutcome, GoalCardData, GoalOutcome,
+  DAY_GOAL_MAX_LEN, DAY_GOAL_EXAMPLE_KEYS,
 } from '@/src/services/dailyGoal';
 
 const MAX_CONTAINER_WIDTH = 1100;
@@ -114,6 +120,14 @@ export default function HomeScreen() {
 
 function FullHome() {
   const homeScrollRef = React.useRef<ScrollView>(null);
+  const { w: winW } = useScreenSize();
+  /**
+   * 🔴 ПЕРЕЧИТАТЬ ЭКРАН ПО ПРОСЬБЕ ОБОЛОЧКИ. Главную рисует Flutter, а эта страница стоит под ним
+   * на «/» и фокуса не теряет: после нативной игры (она ложится поверх, адрес страницы прежний)
+   * «Сегодня», монеты и рекомендации застыли бы. Оболочка зовёт действие `refresh`, счётчик
+   * растёт, и все эффекты фокуса ниже отрабатывают заново — так же, как при возврате на экран.
+   */
+  const [обновление, обновить] = useState(0);
   const { colors } = useTheme();
   const { t, language } = useLanguage();
   const router = useRouter();
@@ -142,10 +156,11 @@ function FullHome() {
   // З1: длительность выбирается в пикере и запоминается — превью на главной
   // обязано считаться той же цифрой, иначе карточка обещает не тот набор.
   useFocusEffect(useCallback(() => {
+    void обновление; // действие оболочки `refresh` (см. ниже) перечитывает экран
     AsyncStorage.getItem('psygames_warmup_duration')
       .then((v: string | null) => { const n = Number(v); setDuration(n === 10 || n === 15 ? (n as 10 | 15) : 5); })
       .catch(() => {});
-  }, []));
+  }, [обновление]));
   const [history, setHistory] = useState<WarmupHistoryEntry[]>([]);
   const [streak, setStreak] = useState(0);
 
@@ -173,12 +188,14 @@ function FullHome() {
   const [petSkin, setPetSkinState] = useState<PetSkin>('cat');   // v1.140: скин в шапке
   const [resumeGame, setResumeGame] = useState<GameConfig | null>(null);
   useFocusEffect(useCallback(() => {
+    void обновление; // действие оболочки `refresh` (см. ниже) перечитывает экран
     getPetStats().then((s) => setPetStage(s.stage)).catch(() => {});
     getPetSkin().then(setPetSkinState).catch(() => {});
-  }, []));
+  }, [обновление]));
   // Незаконченная партия перечитывается при каждом возврате на главную: после первого
   // хода карточка появляется, после завершения/сброса исчезает. URL берём только из GAMES.
   useFocusEffect(useCallback(() => {
+    void обновление; // действие оболочки `refresh` (см. ниже) перечитывает экран
     let active = true;
     setResumeGame(null);
     listResumable(profile.id)
@@ -189,7 +206,7 @@ function FullHome() {
         if (active) setResumeGame(null);
       });
     return () => { active = false; };
-  }, [profile.id]));
+  }, [profile.id, обновление]));
   /**
    * «Рекомендуем сегодня» — партии человека и отметка времени, на которую собран набор.
    *
@@ -216,12 +233,13 @@ function FullHome() {
    */
   const [today, setToday] = useState<TodaySummary>({ rows: [], total: 0, rounds: 0, dayStreak: 0 });
   useFocusEffect(useCallback(() => {
+    void обновление; // действие оболочки `refresh` (см. ниже) перечитывает экран
     let active = true;
     todayEarnings(profile.id)
       .then((s) => { if (active) setToday(s); })
       .catch(() => {});
     return () => { active = false; };
-  }, [profile.id]));
+  }, [profile.id, обновление]));
 
   /*
    * 🎯 ЦЕЛЬ — СКОЛЬКО ДНЕЙ ПОДРЯД. Окно приходит при заходе, когда для него есть
@@ -237,6 +255,7 @@ function FullHome() {
   const [goalAsk, setGoalAsk] = useState<AskReason | null>(null);
   const [goalSuggestion, setGoalSuggestion] = useState<Suggestion | null>(null);
   useFocusEffect(useCallback(() => {
+    void обновление; // действие оболочки `refresh` (см. ниже) перечитывает экран
     let active = true;
     (async () => {
       const [saved, marks, lastAskedAt] = await Promise.all([
@@ -263,7 +282,7 @@ function FullHome() {
       }));
     })().catch(() => {});
     return () => { active = false; };
-  }, [profile.id, today.dayStreak]));
+  }, [profile.id, today.dayStreak, обновление]));
 
   const onGoalPick = useCallback(async (days: GoalDays) => {
     // Награда — только за ДОШЕДШУЮ цель, и ровно один раз: `reachedAt` уже
@@ -307,12 +326,13 @@ function FullHome() {
    */
   const [goalCard, setGoalCard] = useState<GoalCardData>({ state: 'hidden', goal: null });
   useFocusEffect(useCallback(() => {
+    void обновление; // действие оболочки `refresh` (см. ниже) перечитывает экран
     let active = true;
     loadGoalCard(profile.id)
       .then((c) => { if (active) setGoalCard(c); })
       .catch(() => {});
     return () => { active = false; };
-  }, [profile.id]));
+  }, [profile.id, обновление]));
   // Пустой ввод целью не становится: сервис ничего не пишет и отдаёт null, а карточка
   // остаётся приглашением — вместо того чтобы весь день показывать пустую строку.
   const onGoalSave = useCallback(async (raw: string) => {
@@ -342,13 +362,14 @@ function FullHome() {
     }
   }, [profile.id]);
   useFocusEffect(useCallback(() => {
+    void обновление; // действие оболочки `refresh` (см. ниже) перечитывает экран
     let active = true;
     setRecoAt(Date.now());
     getSessions()
       .then((all) => { if (active) setSessions(all); })
       .catch(() => { if (active) setSessions([]); });
     return () => { active = false; };
-  }, [profile.id]));
+  }, [profile.id, обновление]));
   // Профиль отдаём целиком: отбор сам режет каталог по allowed_games. Передавать сюда
   // готовый список игр нельзя — так протекал дневной перерыв (см. шапку recommend.ts).
   /**
@@ -400,11 +421,12 @@ function FullHome() {
   // градиента, который сейчас на экране, а не от одного «представительного».
   const onSlot = onGradientText(SLOT_TINT[slotNow][0], SLOT_TINT[slotNow][1]);
   const onSlotSoft = onGradientTextMuted(onSlot);
-  useFocusEffect(useCallback(() => { setSlotNow(currentSlot()); }, []));
+  useFocusEffect(useCallback(() => { void обновление; setSlotNow(currentSlot()); }, [обновление]));
   const prevTokensRef = useRef<number | null>(null);
   const prevLevelRef = useRef<number | null>(null);
   const [wagerToast, setWagerToast] = useState<{ kind: 'won' | 'lost'; amount: number } | null>(null);
   useFocusEffect(useCallback(() => {
+    void обновление; // действие оболочки `refresh` (см. ниже) перечитывает экран
     if (!profile?.id) return;
     (async () => {
       const ci = await dailyCheckIn(profile.id);   // T2: отметка дня + бонус токенов (раз в сутки)
@@ -429,7 +451,7 @@ function FullHome() {
       setTitleLabel(await getEquippedTitle(profile.id, language));
       setAvatarKey(await getEquippedAvatarKey(profile.id));
     })();
-  }, [profile?.id, language]));
+  }, [profile?.id, language, обновление]));
   const lvl = levelInfo(tokens);
   // S1: фоновая музыка меню — играет на главной (если включена в настройках), стоп при уходе в игру.
   // v1.122.0: ждём getMusicEnabled(). startMusic() читает флаг синхронно, а грузится он из
@@ -442,6 +464,7 @@ function FullHome() {
   }, []));
 
   useEffect(() => {
+    void обновление; // действие оболочки `refresh` (см. ниже) перечитывает экран
     if (!profileReady) return;
     let active = true;
     (async () => {
@@ -463,7 +486,7 @@ function FullHome() {
       setAchievementsCount(unlocked.length);
     })();
     return () => { active = false; };
-  }, [profile.id, profileReady, router]);
+  }, [profile.id, profileReady, router, обновление]);
 
   /*
    * ⚠️ РАСЧЁТ ШИРИНЫ КАРТОЧЕК УЕХАЛ В `components/CategorySections`, вместе с
@@ -524,6 +547,7 @@ function FullHome() {
    */
   const [заработано, setЗаработано] = useState(0);
   useFocusEffect(useCallback(() => {
+    void обновление; // действие оболочки `refresh` (см. ниже) перечитывает экран
     let жив = true;
     (async () => {
       if (!profile?.id) { if (жив) setЗаработано(0); return; }
@@ -531,7 +555,7 @@ function FullHome() {
       if (жив) setЗаработано(n);
     })();
     return () => { жив = false; };
-  }, [profile?.id]));
+  }, [profile?.id, обновление]));
   const сундук = useMemo(() => chestState(заработано), [заработано]);
   const доЗамка = useMemo(() => levelsToNextLock(уровеньИгрока), [уровеньИгрока]);
 
@@ -560,6 +584,94 @@ function FullHome() {
   // isRest убран в v1.182: навязанных дней отдыха нет, среда стала тренировочной,
   // а утренняя карточка схлопнута в общую кнопку «Зарядка».
   const isMeasurement = todayPreview.track.startsWith('measure');
+
+  /**
+   * 🔴 ПОД ОБОЛОЧКОЙ ЭТОТ ЭКРАН РИСУЕТ FLUTTER (задача 7c88c0b8, `services/hostScreens.ts`).
+   * Модель — перекладка УЖЕ посчитанного выше в вид без React (`services/homeModel.ts`); второго
+   * расчёта нет. Вне оболочки `postScreenModel` молчит, и экран работает как раньше.
+   */
+  const homeModel = useMemo(() => buildHomeModel({
+    t,
+    profile: { id: profile.id, color: profile.color, emoji: profile.emoji, warmup_enabled: profile.warmup_enabled },
+    colors,
+    showBlock: (key) => показыватьБлок(key as any, блокиГлавной),
+    profileBg,
+    logo: logoForProfile(profile?.id),
+    logoPlate: logoPlateBg,
+    tokens,
+    level: lvl,
+    streak,
+    pet: petRenderSpec(petSkin, 'idle', null, null),
+    chipImage: avatarKey && avatarImage(avatarKey) ? avatarImage(avatarKey) : profileBadge(badgeOverride ?? profile.id),
+    frameColor,
+    titleLabel,
+    achievementsCount,
+    update: updAvail,
+    streakToast,
+    wagerToast,
+    levelUp,
+    ladder: ближайшийЗамок && доЗамка !== null ? { n: доЗамка, titleKey: ближайшийЗамок.titleKey } : null,
+    chest: { face: сундук.next ? сундук.next.face : null, left: сундук.left, have: сундук.have, all: фигурки().length, ratio: сундук.ratio },
+    resume: resumeGame,
+    goalCard: { state: goalCard.state, goal: goalCard.goal },
+    goalMaxLen: DAY_GOAL_MAX_LEN,
+    goalExampleKeys: DAY_GOAL_EXAMPLE_KEYS,
+    today,
+    todayRowsMax: TODAY_ROWS_MAX,
+    dayStreakForMult: DAY_STREAK_FOR_MULT,
+    gameName: (id) => { const g = GAMES.find((x) => x.id === id); return g ? t(g.nameKey) : null; },
+    reco,
+    recoParams: recoParams(),
+    warmup: profile.warmup_enabled
+      ? { gradient: SLOT_TINT[slotNow], image: FEATURE_ICONS.warmup, slotKey: 'slot' + slotNow.charAt(0).toUpperCase() + slotNow.slice(1) }
+      : null,
+    pause: { gradient: HERO_EYE as [string, string] },
+    challenge: {
+      game: todayChallenge.game, difficultyKey: todayChallenge.difficulty,
+      done: isChallengeDoneToday(challengeStreak), streak: challengeStreak.streak,
+    },
+    favourites: любимыеРазделы.flatMap((cat) => {
+      const все = groupBySection(visibleGames, партийПоИгре)[cat] ?? [];
+      if (!все.length) return [];
+      const видно = все.slice(0, sectionCols(winW));
+      return [{ category: cat, total: все.length, routes: видно.map((g) => g.route), hidden: все.length - видно.length }];
+    }),
+    goalSheet: goalAsk !== null && goalSuggestion !== null
+      ? {
+          line: pickGoalLine(language, goalAsk).text,
+          petState: petRenderSpec(petSkin, pickGoalLine(language, goalAsk).state, null, null),
+          options: GOAL_DAYS,
+          chosen: goalSuggestion.days,
+          whyKey: suggestLabelKey(goalSuggestion),
+          basis: goalSuggestion.basis,
+          games: today.rounds, tokens: today.total, streak: today.dayStreak,
+        }
+      : null,
+  }), [t, language, profile, colors, блокиГлавной, profileBg, logoPlateBg, tokens, lvl, streak, petSkin, avatarKey,
+    badgeOverride, frameColor, titleLabel, achievementsCount, updAvail, streakToast, wagerToast, levelUp, ближайшийЗамок,
+    доЗамка, сундук, resumeGame, goalCard, today, reco, slotNow, todayChallenge, challengeStreak, любимыеРазделы,
+    партийПоИгре, goalAsk, goalSuggestion, visibleGames, winW]);
+  useEffect(() => { postScreenModel('/', homeModel); }, [homeModel]);
+  /**
+   * Нажатия нативной Главной. Переходы делает оболочка сама (адреса в модели); сюда приходит
+   * только то, что меняет данные или требует веб-логики: цели, вызов дня, поиск, обновление.
+   * ⚠️ Действия держат ref на свежие обработчики: регистрация одна на монтирование, а замыкания
+   * обработчиков меняются с каждым состоянием.
+   */
+  const homeActs = useRef({ onGoalSave, onGoalDismiss, onGoalOutcome, onGoalPick, onGoalSkip, startDailyChallenge, updAvail });
+  // Свежие обработчики для действий оболочки (пересоздаются рендером; действия регистрируются один раз).
+  useEffect(() => { homeActs.current = { onGoalSave, onGoalDismiss, onGoalOutcome, onGoalPick, onGoalSkip, startDailyChallenge, updAvail }; });
+  useEffect(() => registerScreenActions('/', {
+    refresh: () => обновить((n) => n + 1),
+    goalSave: (raw: string) => { void homeActs.current.onGoalSave(raw); },
+    goalDismiss: () => { void homeActs.current.onGoalDismiss(); },
+    goalOutcome: (o: GoalOutcome) => { void homeActs.current.onGoalOutcome(o); },
+    goalPick: (d: GoalDays) => { void homeActs.current.onGoalPick(d); },
+    goalSkip: () => { void homeActs.current.onGoalSkip(); },
+    challenge: () => { void homeActs.current.startDailyChallenge(); },
+    search: (q: string) => router.push(catalogSearchRoute(q) as any),
+    update: () => { Linking.openURL(updateUrl()).catch(() => {}); },
+  }), [router]);
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -903,7 +1015,6 @@ function FullHome() {
       </View>
 
       {/* v1.148: «Что нового» после обновления — один раз при росте версии */}
-      <WhatsNewModal />
 
       {/* Profile switcher modal — открывается чипом или 👤 кнопкой */}
       <ProfileSwitcherModal visible={switcherOpen} onClose={() => setSwitcherOpen(false)} />
@@ -928,6 +1039,7 @@ function FullHome() {
           if (savedHomeScrollY > 0) homeScrollRef.current?.scrollTo({ y: savedHomeScrollY, animated: false });
         }}
       >
+        <HomeCatalogSearch />
         {/*
           Ближайшая дверь. Стоит ПЕРЕД «продолжить игру»: это не действие, а
           обещание, и читается оно до того, как рука ушла в игру. Пропадает само,
@@ -1252,18 +1364,20 @@ function FullHome() {
               `pauseDesc` уже перечисляла и дыхание, и глаза.
               Отдельные экраны /games/eye-gym и /games/breathing НЕ удалены: они
               остаются в разделах и в «Зарядке», убран только дубль на главной. */}
+          {/* 07.10.2026 (решение Дениса, b271f702): «Пауза», дыхание и глаза — в развилке «Релаксация»;
+              практика дня ведёт в неё. */}
           <TouchableOpacity
             accessibilityRole="button" style={styles.heroCardWrap}
-            onPress={() => router.push('/games/pause' as any)} activeOpacity={0.85}>
+            onPress={() => router.push('/games/relaxation-hub' as any)} activeOpacity={0.85}>
             <GradientSurface colors={HERO_EYE as [string, string]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.heroCard}>
               <View style={styles.heroTopRow}>
                 <Ionicons name="leaf-outline" size={26} color={ON_EYE.color} />
               </View>
-              <Text style={[styles.heroTitle, { color: ON_EYE.color }]} numberOfLines={2}>{t('pause')}</Text>
-              <Text style={[styles.heroSub, { color: ON_EYE_SOFT }]} numberOfLines={3}>{t('pauseDesc')}</Text>
+              <Text style={[styles.heroTitle, { color: ON_EYE.color }]} numberOfLines={2}>{t('relaxationGroup')}</Text>
+              <Text style={[styles.heroSub, { color: ON_EYE_SOFT }]} numberOfLines={3}>{t('relaxationGroupDesc')}</Text>
               <View style={[styles.heroCta, { backgroundColor: '#FFF' }]}>
-                <Ionicons name="play" size={14} color="#185a9d" />
-                <Text style={[styles.heroCtaText, { color: '#185a9d' }]}>{t('ctaStart')}</Text>
+                <Ionicons name="chevron-forward" size={14} color="#185a9d" />
+                <Text style={[styles.heroCtaText, { color: '#185a9d' }]}>{t('ctaChoose')}</Text>
               </View>
             </GradientSurface>
           </TouchableOpacity>
@@ -1327,6 +1441,12 @@ function FullHome() {
             <CategorySections categories={любимыеРазделы} rows={1} playsByGame={партийПоИгре} />
           </>
         )}
+        {/* Вход во все развилки (отзыв Дениса d0d95c80, решение 07.10.2026, b271f702). */}
+        <TouchableOpacity
+          accessibilityRole="button" testID="home-all-forks" style={styles.allForks}
+          onPress={() => router.replace('/games?filter=hubs' as any)}>
+          <Text style={[styles.allForksText, { color: colors.primary }]}>{`${t('allForks')} ›`}</Text>
+        </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );
@@ -1334,6 +1454,8 @@ function FullHome() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
+  allForks: { alignSelf: 'center', minHeight: 48, justifyContent: 'center', paddingHorizontal: 16, marginTop: 8 },
+  allForksText: { fontSize: 15, fontWeight: '700' },
   header: {
     paddingHorizontal: 20,
     // Ритм ужат (было 16/8): четыре яруса подряд с воздухом вокруг каждого съедали
