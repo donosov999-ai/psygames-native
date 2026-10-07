@@ -49,6 +49,10 @@ class GoodsSortScreen extends StatefulWidget {
   State<GoodsSortScreen> createState() => _GoodsSortScreenState();
 }
 
+/// Сколько разбор вправе думать на нажатии. Задача 747a6ece: время разбора на
+/// эмуляторе Android ≤ 1 с; остаток секунды — на сборку шагов и переход.
+const Duration _lessonDeadline = Duration(milliseconds: 700);
+
 /// Снимок партии для отмены: ход необратим по частям — каскад троек, закрытие
 /// полок и приход из очереди случаются разом.
 class _Snapshot {
@@ -435,7 +439,10 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> {
     int goods(GoodsPlay p) => p.board.cells.fold<int>(0, (n, c) => n + c.length);
     if (goods(after) < goods(before)) return L.t('teachGoodsWhyTriple');
     if (after.board.cells[m.from].isEmpty) return L.t('teachGoodsWhyFree');
-    if (before.board.cells[m.to].isNotEmpty) return L.t('teachGoodsWhyStack');
+    // «К своему виду» — только когда сверху и правда свой: на мягком уровне и на
+    // джокере путь кладёт товар и на чужой (запасной перебор, 07.10.2026).
+    final dst = before.board.cells[m.to];
+    if (dst.isNotEmpty && dst.last == before.board.cells[m.from].last) return L.t('teachGoodsWhyStack');
     return L.t('teachGoodsWhyRoom');
   }
 
@@ -454,6 +461,9 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> {
           GoodsPlay(level: level, board: s.board, obstacles: s.obstacles, frozenRow: s.frozenRow),
       ],
       lastMove: _history.isEmpty ? null : _history.last.move,
+      // Человек ждёт разбора на нажатии: дольше — показываем правило, а не
+      // зависаем (задача 747a6ece, замер — в шапке `solveStrict`).
+      deadline: _lessonDeadline,
     );
 
     // Первый шаг — само правило: без него путь выглядит набором перекладываний.

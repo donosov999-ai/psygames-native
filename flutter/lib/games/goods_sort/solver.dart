@@ -25,10 +25,17 @@
 ///      названные виды» или «освободить ниши». Искать полную разборку там, где
 ///      хватит трёх ходов, значит учить длинному пути.
 ///
-/// ⚠️ РЕШАТЕЛЬ ТОЛЬКО СТРОГИЙ — ЭТО ЗАМЕР, А НЕ НЕДОСМОТР (оригинал, 23.08.2026):
-/// мягкий перебор шире, упирается в бюджет и ТЕРЯЕТ 56 подсказок из 150, не
-/// находя ни одной новой. Для нас это безопасно вдвойне: строгий ход законен и
-/// на мягком уровне, значит найденный путь человек повторит при любом правиле.
+/// ⚠️ ОСНОВНОЙ ПЕРЕБОР ТОЛЬКО СТРОГИЙ — ЭТО ЗАМЕР, А НЕ НЕДОСМОТР (оригинал,
+/// 23.08.2026): мягкий перебор шире, упирается в бюджет и ТЕРЯЕТ 56 подсказок
+/// из 150, не находя ни одной новой. Строгий ход законен и на мягком уровне,
+/// значит найденный путь человек повторит при любом правиле.
+///
+/// 🔴 НО ТОЛЬКО ОСНОВНОЙ (07.10.2026, задача 747a6ece). Замер 23.08 говорит о
+/// мягком переборе ВМЕСТО строгого. Когда строгий не нашёл ничего, терять уже
+/// нечего, и тогда идёт запасной — «лучший по оценке» по настоящим правилам
+/// уровня (`_solveBest`). Он нашёл путь там, где строгого нет вовсе: мягкий
+/// «Микс» 1200 L26 и строгий с джокером «Питомцы» 1200 L54. Подробности и
+/// замеры — у `solveStrict` и `_nicheCodes`.
 library;
 
 import 'model.dart';
@@ -69,39 +76,101 @@ class GoodsSolve {
 /// Ниша упакована в одно число: до четырёх товаров по четыре бита плюс ёмкость
 /// в старших. Типы перенумерованы локально 1..15 — товар в игре это индекс из
 /// сорока с лишним, в четыре бита он не влезет, а на одной доске типов не
-/// больше десяти.
+/// больше двенадцати.
+///
+/// ⚠️ ВИДЫ ОЧЕРЕДИ И ЗАДНИХ РЯДОВ — ТОЖЕ В КАРТЕ (07.10.2026). Карта строилась по
+/// одной доске, и вид, которого на ней ещё нет, получал общий запасной номер 15:
+/// два разных вида из очереди после прихода полки становились в ключе одним.
 Map<int, int> _buildTypeMap(GoodsBoard board) {
   final map = <int, int>{};
   var next = 1;
-  for (final cell in board.cells) {
-    for (final t in cell) {
-      if (!map.containsKey(t)) map[t] = next++;
+  void add(Iterable<int> goods) {
+    for (final t in goods) {
+      if (!map.containsKey(t)) map[t] = next < 15 ? next++ : 15;
     }
+  }
+
+  for (final cell in board.cells) {
+    add(cell);
+  }
+  for (final shelf in board.queue) {
+    add(shelf.cell);
+  }
+  for (final b in board.back ?? const <List<int>>[]) {
+    add(b);
   }
   return map;
 }
 
-/// Снимок положения строкой. Ниши равноправны, поэтому числа сортируются.
+/// Что делает нишу не ровней другой, кроме содержимого: считается один раз на
+/// перебор — места на доске не меняются, меняется только то, что на них лежит.
+class _Places {
+  _Places(GoodsPlay start)
+      : goal = start.level.goal.kind == 'free' ? start.level.goal.niches.toSet() : const {},
+        rowOf = [for (var i = 0; i < start.board.cells.length; i += 1) start.level.rowOfNiche(i)];
+
+  /// Ниши цели «освободить» — по месту, как их проверяет `goalMet`.
+  final Set<int> goal;
+
+  /// Ряд каждой ниши — для примёрзшего ряда.
+  final List<int> rowOf;
+}
+
+/// Код ниши одним числом: содержимое, ёмкость и всё, что делает её НЕ РОВНЕЙ
+/// другой с тем же содержимым.
+///
+/// 🔴 НИШИ РАВНОПРАВНЫ НЕ ВСЕГДА (07.10.2026, задача 747a6ece). Ключ сортирует
+/// ниши: две доски, где те же стопки лежат по другим местам, — одно положение.
+/// Это верно, пока место ничего не решает, а решает оно у ниши цели
+/// «освободить», в примёрзшем ряду и под препятствием. Прежде замки шли в ключ
+/// отдельной строкой ПО МЕСТАМ, а ниши — сортированными: какая стопка под
+/// замком, ключ не знал. Теперь эти признаки — в коде самой ниши. Заодно ёмкости
+/// 1 и 2 больше не одна «пустая ниша» для симметрии: прежний код складывал их
+/// в одну группу `cap <= 2`.
+///
+/// ⚠️ ЧЕГО В КОДЕ НЕТ — И ЭТО ЗАМЕРЫ ТОГО ЖЕ ДНЯ, А НЕ НЕДОСМОТР. Старт 720
+/// уровней, «без пути» и длина пути против прежнего решателя:
+///   · место в оседающем столбце: ключ строго по местам — без пути 22 вместо
+///     трёх, худший перебор 21 с: без симметрии пустых ветвление съедает бюджет;
+///   · «рядом с заслоном» (тройка по соседству его снимает): без пути 5 против 2;
+///   · джокер в основном переборе ([jokers] = false): с ним путь длиннее на 98
+///     стартах, до 387 ходов вместо 25 — основной перебор кладёт на джокер только
+///     свой вид, то есть для него это обычная ниша. Запасной ходит по настоящим
+///     правилам, и ему признак нужен.
+List<int> _nicheCodes(GoodsPlay play, Map<int, int> types, _Places places, {required bool jokers}) {
+  final board = play.board;
+  final n = board.cells.length;
+  final codes = List<int>.filled(n, 0);
+  final frozenRow = play.frozenRow;
+  for (var i = 0; i < n; i += 1) {
+    final cell = board.cells[i];
+    var packed = 0;
+    for (var j = 0; j < cell.length && j < 4; j += 1) {
+      packed |= (types[cell[j]] ?? 15) << (j * 4);
+    }
+    // Ёмкость обязана быть В КЛЮЧЕ: две пустые ниши на два и на четыре — РАЗНЫЕ
+    // состояния, и склеить их значило бы объявить решаемой доску без решения.
+    var code = (board.capOf(i) << 16) | packed;
+    if (jokers && board.isJoker(i)) code |= 1 << 20;
+    if (places.goal.contains(i)) code |= 1 << 21;
+    if (frozenRow != null && places.rowOf[i] == frozenRow) code |= 1 << 22;
+    final o = i < play.obstacles.length ? play.obstacles[i] : null;
+    if (o != null) code |= (o.kind == 'locked' ? 1 + (o.movesLeft < 29 ? o.movesLeft : 29) : 31) << 23;
+    codes[i] = code;
+  }
+  return codes;
+}
+
+/// Снимок положения строкой: коды ниш по возрастанию.
 ///
 /// ⚠️ ПРЕПЯТСТВИЯ — ЧАСТЬ СНИМКА. Две одинаковые доски, у одной замок на три
 /// хода, у другой на один, — РАЗНЫЕ положения: из второй через ход открывается
 /// ниша, из первой нет. Склей их, и перебор объявит тупиком ветку, которая
 /// через два хода оживает.
-String _stateKey(GoodsPlay play, Map<int, int> types) {
+String _stateKey(GoodsPlay play, List<int> nicheCodes) {
   final board = play.board;
-  final n = board.cells.length;
-  final codes = List<int>.filled(n, 0);
-  for (var i = 0; i < n; i += 1) {
-    final cell = board.cells[i];
-    var packed = 0;
-    for (var j = 0; j < cell.length && j < 8; j += 1) {
-      packed |= (types[cell[j]] ?? 15) << (j * 4);
-    }
-    // Ёмкость обязана быть В КЛЮЧЕ: две пустые ниши на два и на четыре — РАЗНЫЕ
-    // состояния, и склеить их значило бы объявить решаемой доску без решения.
-    codes[i] = (board.capOf(i) << 16) | (packed & 0xFFFF);
-  }
-  codes.sort();
+  final n = nicheCodes.length;
+  final codes = [...nicheCodes]..sort();
   // 🔴 ОЧЕРЕДЬ И ЗАДНИЕ РЯДЫ — ЧАСТЬ СОСТОЯНИЯ. Две доски с одинаковым
   // содержимым ниш, но разными остатками, — разные: у одной впереди ещё пять
   // полок, у другой ни одной. Склей их — и перебор объявит решаемой партию,
@@ -115,11 +184,7 @@ String _stateKey(GoodsPlay play, Map<int, int> types) {
     chars[i * 2 + 1] = (codes[i] >> 16) & 0xFFFF;
   }
   chars[n * 2] = (tail * 251 + spines) & 0xFFFF;
-  final locks = StringBuffer();
-  for (final o in play.obstacles) {
-    locks.writeCharCode(o == null ? 0 : (o.kind == 'locked' ? 1 + o.movesLeft : 1));
-  }
-  return '${String.fromCharCodes(chars)}$locks${play.frozenRow ?? -1}';
+  return '${String.fromCharCodes(chars)}${play.frozenRow ?? -1}';
 }
 
 /// Глубина ограничена, иначе падает стек: перебор идёт вглубь и только потом
@@ -157,23 +222,219 @@ const int _maxDepth = 500;
 /// положение. Замер того же дня с одним запретом: на 120 уровнях «Микса» (обе
 /// лестницы) осталось 9 переносов того же товара туда и обратно, и в каждом из
 /// девяти путь без обратного хода находился за 28–93 узла.
+///
+/// 🔴 ЗАПАСНОЙ ПЕРЕБОР ПО ПРАВИЛАМ САМОГО УРОВНЯ (07.10.2026, задача 747a6ece).
+/// Не нашёл строгий — ищет `_solveBest`: «лучший по оценке», с той укладкой,
+/// что у уровня (на мягком — куда угодно, на строгом — к своему виду и на
+/// джокер). Зачем: на мягком «Миксе» 1200 L26 строгого пути нет вовсе — места
+/// вне льда одна ниша, а освободить надо две, — и разбор показывал одно
+/// правило вместо пути, хотя по правилам уровня он в девять ходов. Почему не
+/// заменить им основной: поиск в глубину на 720 стартах дешевле (медиана 25
+/// узлов), а «лучший по оценке» платит за узел все ходы сразу. Поэтому запасной
+/// идёт ПОСЛЕ, с бюджетом в десятую часть: узел у него раз в десять дороже.
+///
+/// [deadline] — потолок по ЧАСАМ поверх потолка по узлам; его ставит экран.
+/// Узлы одинаковы на любой машине, а человек ждёт секунды: замер 07.10.2026
+/// посреди партии (после 5, 10 и 20 случайных ходов, 2 131 положение) — медиана
+/// 0 мс, p99 до 3 мс, но три положения стоили 0,76–1,9 с на маке, а телефон
+/// медленнее.
+/// Пробы часов не ставят: им нужен один ответ на любой машине.
 GoodsSolve solveStrict(
   GoodsPlay start, {
   int budget = 20000,
   bool Function(GoodsPlay)? done,
   Iterable<GoodsPlay> behind = const [],
   GoodsMove? lastMove,
+  Duration? deadline,
 }) {
-  if (behind.isEmpty) return _solveStrict(start, budget, done, const [], lastMove);
-  final ahead = _solveStrict(start, budget, done, behind, lastMove);
-  if (ahead.solvable) return ahead;
-  final any = _solveStrict(start, budget, done, const [], lastMove);
+  final clock = Stopwatch()..start();
+  bool late() => deadline != null && clock.elapsed >= deadline;
+  var nodes = 0;
+  if (behind.isNotEmpty) {
+    final ahead = _solveStrict(start, budget, done, behind, lastMove, late);
+    if (ahead.solvable) return ahead;
+    nodes += ahead.nodes;
+  }
+  final any = _solveStrict(start, budget, done, const [], lastMove, late);
+  nodes += any.nodes;
+  if (any.solvable) {
+    return GoodsSolve(solvable: true, exhausted: false, path: any.path, nodes: nodes);
+  }
+  if (late()) return GoodsSolve(solvable: false, exhausted: true, path: const [], nodes: nodes);
+  final best = _solveBest(start, budget ~/ 10, done, behind, lastMove, late);
   return GoodsSolve(
-    solvable: any.solvable,
-    exhausted: any.exhausted,
-    path: any.path,
-    nodes: ahead.nodes + any.nodes,
+    solvable: best.solvable,
+    exhausted: !best.solvable && (any.exhausted || best.exhausted),
+    path: best.path,
+    nodes: nodes + best.nodes,
   );
+}
+
+/// Узел запасного перебора: положение, как в него пришли и во что оно обходится.
+class _Node {
+  _Node(this.play, this.parent, this.move, this.g, this.f);
+  final GoodsPlay play;
+  final _Node? parent;
+  final GoodsMove? move;
+  final int g;
+  final double f;
+}
+
+/// Куча по оценке: меньшая `f` — раньше, при равной — та, что дальше от начала.
+class _Heap {
+  final _items = <_Node>[];
+
+  bool get isEmpty => _items.isEmpty;
+
+  bool _before(_Node a, _Node b) => a.f < b.f || (a.f == b.f && a.g > b.g);
+
+  void _swap(int i, int j) {
+    final t = _items[i];
+    _items[i] = _items[j];
+    _items[j] = t;
+  }
+
+  void add(_Node n) {
+    _items.add(n);
+    var i = _items.length - 1;
+    while (i > 0) {
+      final p = (i - 1) >> 1;
+      if (!_before(_items[i], _items[p])) break;
+      _swap(i, p);
+      i = p;
+    }
+  }
+
+  _Node removeFirst() {
+    final top = _items.first;
+    final last = _items.removeLast();
+    if (_items.isNotEmpty) {
+      _items[0] = last;
+      var i = 0;
+      while (true) {
+        final l = 2 * i + 1;
+        final r = l + 1;
+        var m = i;
+        if (l < _items.length && _before(_items[l], _items[m])) m = l;
+        if (r < _items.length && _before(_items[r], _items[m])) m = r;
+        if (m == i) break;
+        _swap(i, m);
+        i = m;
+      }
+    }
+    return top;
+  }
+}
+
+/// Оценка «сколько ещё ходов»: на каждую нужную тройку вида — сколько товаров не
+/// хватает в его лучших нишах; товар очереди и задних рядов — две трети хода
+/// (два перекладывания на тройку). При цели «освободить» каждый товар в нише цели
+/// стоит двух: его надо увезти, и ему нужно место.
+double _estimate(GoodsPlay play) {
+  final board = play.board;
+  final goal = play.level.goal;
+  final per = <int, List<int>>{};
+  for (final cell in board.cells) {
+    final local = <int, int>{};
+    for (final t in cell) {
+      local[t] = (local[t] ?? 0) + 1;
+    }
+    local.forEach((t, n) => (per[t] ??= []).add(n));
+  }
+  var h = 0.0;
+  per.forEach((t, counts) {
+    if (goal.kind == 'pick' && !goal.types.contains(t)) return;
+    counts.sort((a, b) => b - a);
+    final total = counts.fold<int>(0, (s, n) => s + n);
+    final triples = total ~/ kTriple;
+    for (var k = 0; k < triples && k < counts.length; k += 1) {
+      h += kTriple - counts[k];
+    }
+    h += total - triples * kTriple;
+  });
+  if (goal.kind == 'free') {
+    for (final i in goal.niches) {
+      if (i < board.cells.length) h += 2 * board.cells[i].length;
+    }
+  }
+  final queued = board.queue.fold<int>(0, (s, x) => s + x.cell.length);
+  final back = (board.back ?? const <List<int>>[]).fold<int>(0, (s, x) => s + x.length);
+  return h + (queued + back) * 2 / 3;
+}
+
+/// Запасной перебор: «лучший по оценке» (A* с оценкой втрое тяжелее пройденного)
+/// по настоящим правилам укладки уровня. Ходит тоже только верхним товаром — путь
+/// человек повторит через `GoodsPlay.moveTopOf`, как и путь основного перебора.
+GoodsSolve _solveBest(
+  GoodsPlay start,
+  int budget,
+  bool Function(GoodsPlay)? done,
+  Iterable<GoodsPlay> behind,
+  GoodsMove? lastMove,
+  bool Function() late,
+) {
+  final from0 = GoodsPlay(
+    level: start.level,
+    board: collapseTriples(start.board),
+    obstacles: start.obstacles,
+    frozenRow: start.frozenRow,
+    frozenType: start.frozenType,
+  );
+  final types = _buildTypeMap(from0.board);
+  final places = _Places(from0);
+  bool reached(GoodsPlay p) => done != null ? done(p) : p.won;
+  final closed = <String>{};
+  final root = _stateKey(from0, _nicheCodes(from0, types, places, jokers: true));
+  for (final p in behind) {
+    final key = _stateKey(p, _nicheCodes(p, types, places, jokers: true));
+    if (key != root) closed.add(key);
+  }
+  final open = _Heap()..add(_Node(from0, null, null, 0, 3 * _estimate(from0)));
+  var nodes = 0;
+  while (!open.isEmpty) {
+    final node = open.removeFirst();
+    final play = node.play;
+    if (reached(play)) {
+      final path = <GoodsMove>[];
+      for (_Node? x = node; x != null && x.move != null; x = x.parent) {
+        path.add(x.move!);
+      }
+      return GoodsSolve(solvable: true, exhausted: false, path: List.unmodifiable(path.reversed), nodes: nodes);
+    }
+    final codes = _nicheCodes(play, types, places, jokers: true);
+    if (!closed.add(_stateKey(play, codes))) continue;
+    if (++nodes > budget || ((nodes & 15) == 0 && late())) {
+      return GoodsSolve(solvable: false, exhausted: true, path: const [], nodes: nodes);
+    }
+    final board = play.board;
+    final last = node.move ?? lastMove;
+    // Симметрия пустых — та же, что в основном переборе: по одной на код ниши.
+    final emptyCodes = <int>[];
+    final firstEmpty = List<bool>.filled(board.cells.length, false);
+    for (var i = 0; i < board.cells.length; i += 1) {
+      if (!play.usable(i) || board.cells[i].isNotEmpty || emptyCodes.contains(codes[i])) continue;
+      emptyCodes.add(codes[i]);
+      firstEmpty[i] = true;
+    }
+    for (var from = 0; from < board.cells.length; from += 1) {
+      if (!play.usable(from) || board.cells[from].isEmpty) continue;
+      final src = board.cells[from];
+      for (var to = 0; to < board.cells.length; to += 1) {
+        if (to == from || !play.usable(to)) continue;
+        if (!board.canPlace(to, src.last, play.level.strict)) continue;
+        if (board.cells[to].isEmpty) {
+          if (!firstEmpty[to]) continue;
+          // Одинокий товар в пустую нишу-ровню — тот же расклад, только ход потрачен.
+          if (src.length == 1 && (codes[from] >> 16) == (codes[to] >> 16)) continue;
+        }
+        final next = play.moveTopOf(from, to);
+        if (next == null) continue;
+        final back = last != null && from == last.to && to == last.from ? 1 : 0;
+        open.add(_Node(next, node, (from: from, to: to), node.g + 1, node.g + 1 + back + 3 * _estimate(next)));
+      }
+    }
+  }
+  return GoodsSolve(solvable: false, exhausted: false, path: const [], nodes: nodes);
 }
 
 GoodsSolve _solveStrict(
@@ -182,11 +443,15 @@ GoodsSolve _solveStrict(
   bool Function(GoodsPlay)? done,
   Iterable<GoodsPlay> behind,
   GoodsMove? lastMove,
+  bool Function() late,
 ) {
   final seen = <String>{};
   final path = <GoodsMove>[];
   var nodes = 0;
   var exhausted = false;
+  // Бюджет кончился — перебор остановлен целиком. Не то же, что `exhausted`:
+  // ветка, упёршаяся в предел глубины, обрывается одна, остальные идут дальше.
+  var outOfBudget = false;
 
   // Сложенные тройки убираются ДО перебора: иначе первый же узел оказался бы
   // положением, которого в игре не бывает.
@@ -198,13 +463,14 @@ GoodsSolve _solveStrict(
     frozenType: start.frozenType,
   );
   final types = _buildTypeMap(from0.board);
+  final places = _Places(from0);
   bool reached(GoodsPlay p) => done != null ? done(p) : p.won;
 
   // Пройденное — как уже осмотренное. Корень исключается: человек мог отменой
   // вернуться туда, где уже стоял, и запрет на корень оборвал бы перебор сразу.
-  final root = _stateKey(from0, types);
+  final root = _stateKey(from0, _nicheCodes(from0, types, places, jokers: false));
   for (final p in behind) {
-    final key = _stateKey(p, types);
+    final key = _stateKey(p, _nicheCodes(p, types, places, jokers: false));
     if (key != root) seen.add(key);
   }
 
@@ -214,38 +480,39 @@ GoodsSolve _solveStrict(
       exhausted = true;
       return false;
     }
-    if (++nodes > budget) {
+    if (++nodes > budget || ((nodes & 63) == 0 && late())) {
       exhausted = true;
+      outOfBudget = true;
       return false;
     }
-    final key = _stateKey(play, types);
+    final codes = _nicheCodes(play, types, places, jokers: false);
+    final key = _stateKey(play, codes);
     if (seen.contains(key)) return false;
     seen.add(key);
 
     final board = play.board;
     final last = path.isNotEmpty ? path.last : lastMove;
+    // Полка закрывается ЦЕЛОЙ тройкой — три одинаковых и больше ничего, — и
+    // только тогда сверху приходит полка из очереди. Пока очередь не пуста,
+    // тройка в смешанной нише виды тратит, а очередь не двигает.
+    final closing = board.col != null && board.queue.isNotEmpty;
 
-    // СИММЕТРИЯ ПУСТЫХ НИШ: две пустые ниши одной ёмкости неразличимы, и
+    // СИММЕТРИЯ ПУСТЫХ НИШ: две пустые ниши с одним кодом неразличимы, и
     // считать их разными ветками значит раздувать ветвление во столько раз,
-    // сколько на доске пустых. ⚠️ У донора приёма ёмкость одна на доску, у нас
-    // три — поэтому оставляем по одной пустой НА КАЖДУЮ ЁМКОСТЬ, а не одну
-    // вообще. Без Map и без массива: ёмкости в игре ровно три, а аллокация
-    // повторялась бы на каждом узле перебора.
-    var firstEmpty2 = -1, firstEmpty3 = -1, firstEmpty4 = -1;
+    // сколько на доске пустых. ⚠️ У донора приёма ниши одинаковы, у нас нет:
+    // ёмкость, джокер, лёд, цель и препятствия — всё это в коде ниши, поэтому
+    // оставляем по одной пустой НА КАЖДЫЙ КОД, а не одну вообще.
+    final firstEmpty = List<bool>.filled(board.cells.length, false);
+    final emptyCodes = <int>[];
     for (var i = 0; i < board.cells.length; i += 1) {
       if (!play.usable(i) || board.cells[i].isNotEmpty) continue;
-      final cap = board.capOf(i);
-      if (cap <= 2) {
-        if (firstEmpty2 < 0) firstEmpty2 = i;
-      } else if (cap == 3) {
-        if (firstEmpty3 < 0) firstEmpty3 = i;
-      } else if (firstEmpty4 < 0) {
-        firstEmpty4 = i;
-      }
+      if (emptyCodes.contains(codes[i])) continue;
+      emptyCodes.add(codes[i]);
+      firstEmpty[i] = true;
     }
 
-    // ПОРЯДОК ХОДОВ РЕШАЕТ ВСЁ: сначала складывающие тройку, потом к своему
-    // типу, и лишь потом переезды в пустую нишу.
+    // ПОРЯДОК ХОДОВ РЕШАЕТ ВСЁ: сначала закрывающие полку, потом складывающие
+    // тройку, потом к своему типу, и лишь потом переезды в пустую нишу.
     final moves = <({int from, int to, int rank})>[];
     for (var from = 0; from < board.cells.length; from += 1) {
       if (!play.usable(from)) continue;
@@ -265,31 +532,64 @@ GoodsSolve _solveStrict(
         // Строгая укладка. ⚠️ Проверяется ЗДЕСЬ, а не в `GoodsPlay.move`: у
         // уровня правило бывает мягким, а перебор всегда строгий — и это
         // безопасно, потому что строгий ход законен и на мягком уровне.
+        // ⚠️ Чужой вид на джокер игра пускает, а этот перебор — нет, и это
+        // замер 07.10.2026: с такими ходами путь удлинился на 98 стартах из 717,
+        // на строгих уровнях с джокером до 387 ходов вместо 25 — на джокер годится
+        // любой товар, и перебор в глубину тонет в перестановках. Где без джокера
+        // не обойтись («Питомцы» 1200 L54), путь находит запасной перебор: он
+        // ходит по настоящим правилам и ищет короткое.
         if (dst.isNotEmpty && dst.last != type) continue;
         if (dst.isEmpty) {
-          final cap = board.capOf(to);
-          final first = cap <= 2 ? firstEmpty2 : (cap == 3 ? firstEmpty3 : firstEmpty4);
-          if (first != to) continue; // симметрия пустых
+          if (!firstEmpty[to]) continue; // симметрия пустых
           // НЕ РАЗБИРАТЬ СОБРАННОЕ: ниша из одного типа переезжать в пустую не
           // должна — это перестановка кучки с места на место. ⚠️ Только когда
           // пустая НЕ ПРОСТОРНЕЕ: переезд из ниши на два в пустую на четыре
-          // бывает единственным способом собрать тройку.
-          if (srcUniform && cap <= board.capOf(from)) continue;
+          // бывает единственным способом собрать тройку. И только между
+          // нишами-ровнями (код без ёмкости и содержимого): кучку из ниши цели
+          // «освободить» как раз и надо увезти — 07.10.2026 запрет делал такие
+          // уровни нерешаемыми для разбора.
+          if (srcUniform && board.capOf(to) <= board.capOf(from) && (codes[from] >> 20) == (codes[to] >> 20)) {
+            continue;
+          }
         }
         var sameCount = 0;
         for (final t in dst) {
           if (t == type) sameCount += 1;
         }
-        var rank = sameCount + 1 >= kTriple ? 0 : (dst.isNotEmpty ? 1 : 2);
-        // Обратный ход — последним (см. `lastMove`). Тройку не трогаем: ход,
-        // который её складывает, хорош при любом прошлом.
-        if (rank > 0 && last != null && from == last.to && to == last.from) rank = 3;
+        final int rank;
+        if (sameCount + 1 >= kTriple) {
+          final back = board.back;
+          final closes = closing &&
+              sameCount == dst.length &&
+              dst.length + 1 == kTriple &&
+              (back == null || back[to].isEmpty);
+          rank = closes ? 0 : 1;
+        } else if (last != null && from == last.to && to == last.from) {
+          // Обратный ход — последним (см. `lastMove`). Тройку не трогаем: ход,
+          // который её складывает, хорош при любом прошлом.
+          rank = 5;
+        } else if (places.goal.contains(to)) {
+          // Цель «освободить»: класть в её нишу — работать против цели.
+          rank = 4;
+        } else if (places.goal.contains(from)) {
+          // …а увозить из неё — к цели, сразу после троек. Без этого перебор,
+          // различающий ниши цели (см. `_nicheCodes`), блуждал: путь со старта
+          // удлинился на 39 уровнях с этой целью, до 304 ходов вместо 33.
+          rank = 2;
+        } else {
+          rank = dst.isNotEmpty ? 2 : 3;
+        }
         moves.add((from: from, to: to, rank: rank));
       }
     }
     moves.sort((a, b) => a.rank - b.rank);
 
     for (final m in moves) {
+      // ⚠️ Бюджет кончился — выходим СРАЗУ. Без этой строки каждый узел стека
+      // доигрывал оставшиеся ходы, и на каждом строилась новая доска: при
+      // глубине в сотни ходов «упёрся в 20 000 узлов» стоило секунды, а не
+      // доли секунды (замер 07.10.2026: до 21 с на одном уровне).
+      if (outOfBudget) return false;
       final next = play.moveTopOf(m.from, m.to);
       if (next == null) continue;
       path.add((from: m.from, to: m.to));
