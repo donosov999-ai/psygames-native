@@ -104,6 +104,7 @@ flutter:
     - assets/digits/pastel/
     - assets/digits/rainbow/
     - assets/hubs.json
+    - assets/game_suites.json
     # Каталог «Игры» — выгрузка games.ts (frontend/src/__tests__/flutter-catalog-asset-fresh.test.ts).
     - assets/catalog.json
     - assets/game_help_routes.json
