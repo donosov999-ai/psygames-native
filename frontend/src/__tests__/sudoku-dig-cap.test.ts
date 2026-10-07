@@ -26,7 +26,11 @@ function boards(digCap: number | undefined, seed: number) {
 
 describe('лимит копания ступени', () => {
   it('без поля на ступени — общий лимит 64', () => {
-    expect(levelConfig(129).digCap).toBeUndefined();
+    // 07.10.2026: ступень «без поля» ищется, а не берётся номером — 129 была пустой, пока #256 не поставил
+    // туда X-суммы с лимитом 70 (лестница 120 → 132).
+    const безПоля = Array.from({ length: 132 }, (_, i) => i + 1).find((n) => levelConfig(n).digCap === undefined);
+    expect(безПоля).toBeDefined();
+    expect(levelConfig(безПоля!).digCap).toBeUndefined();
     for (const b of boards(undefined, 7)) expect(blanksOf(b.gen.puzzle)).toBeLessThanOrEqual(64);
   });
 
