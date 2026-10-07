@@ -272,7 +272,8 @@ class SchulteGame {
     required this.alphabet,
     bool? lettersFirst,
     Random? rnd,
-  })  : params = LevelParams.of(level),
+    LevelParams? override,
+  })  : params = override ?? LevelParams.of(level),
         _rnd = rnd ?? Random() {
     // Жребий оси 9: с цифры или с буквы. До объявления правило скрыто от игрока.
     this.lettersFirst =

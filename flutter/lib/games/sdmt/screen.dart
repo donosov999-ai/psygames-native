@@ -107,6 +107,9 @@ class _SdmtScreenState extends State<SdmtScreen> {
 
   int get _duration => widget.seconds ?? _params.durationSec;
 
+  /// Попадания: с целью уровня — «12/20»; у шага зарядки цели нет (веб `sdmt.tsx:207`), и «/0» там — ложь.
+  String get _hitsText => _params.targetHits > 0 ? '$_hits/${_params.targetHits}' : '$_hits';
+
   void _reset() {
     // Новая партия — снова зачётная. Отметку «разбор смотрели» ставит плеер, а
     // снимать её обязана новая раздача (договор shell/lesson.dart): без этого
@@ -114,6 +117,13 @@ class _SdmtScreenState extends State<SdmtScreen> {
     LessonUsed.reset();
     _tick?.cancel();
     _params = levelParams(_ladder.level);
+    // ШАГ ЗАРЯДКИ — СВОЙ ЗАМЕР: длительность шага (`?duration=`, 60 по умолчанию), классические 9
+    // символов и без цели по попаданиям — как веб (`sdmt.tsx:203–207`). Без этого «Оценка» мерила
+    // темп на параметрах личного уровня (50 или 45 с, другой набор символов), и замер шага не
+    // сравнивался с вебом (сторож каркаса 44f7e4e0, задача 50139f1d).
+    if (GamePreset.isPreset) {
+      _params = SdmtParams(durationSec: GamePreset.num('duration', 60), symbolCount: 9, targetHits: 0);
+    }
     // Легенда перемешивается на КАЖДУЮ партию: заученная превращает пробу
     // скорости обработки в замер моторики.
     _keymap = buildKeymap(_params.symbolCount, _rng);
@@ -242,7 +252,7 @@ class _SdmtScreenState extends State<SdmtScreen> {
         ),
         HudItem(
           label: L.t('hud_correct'),
-          value: '$_hits/${_params.targetHits}',
+          value: _hitsText,
           icon: Icons.check_circle_outline,
         ),
         HudItem(label: L.t('hud_errors'), value: '$_errors', icon: Icons.error_outline),
@@ -308,8 +318,8 @@ class _SdmtScreenState extends State<SdmtScreen> {
           children: [
             Text(
               _won
-                  ? '${L.t('nextLabel')} · $_hits/${_params.targetHits} · $accuracy%'
-                  : '${L.t('retry')} · $_hits/${_params.targetHits} · $accuracy% < ${(sdmtAccuracyToPass * 100).round()}%',
+                  ? '${L.t('nextLabel')} · $_hitsText · $accuracy%'
+                  : '${L.t('retry')} · $_hitsText · $accuracy% < ${(sdmtAccuracyToPass * 100).round()}%',
               key: const Key('итог'),
               textAlign: TextAlign.center,
               style: text.titleMedium,

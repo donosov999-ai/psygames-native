@@ -12,6 +12,7 @@ import '../../shell/game_shell.dart';
 import '../../shell/lesson.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/level_rules.dart';
+import '../../shell/preset_cap.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import 'model.dart';
@@ -118,12 +119,32 @@ class _SchulteScreenState extends State<SchulteScreen> {
     _startedAt = null;
     _frozenMs = 0;
     _elapsed = Duration.zero;
-    _game = SchulteGame(level: _ladder.level, alphabet: _alphabet);
-    _limitSec = schulteTimeLimitSec(_ladder.level);
+    final preset = _presetParams();
+    _game = SchulteGame(level: _ladder.level, alphabet: _alphabet, override: preset);
+    // Таблица шага — не таблица уровня: лимит времени уровня к ней не относится (у веба его нет).
+    _limitSec = preset != null ? null : schulteTimeLimitSec(_ladder.level);
     _timedOut = false;
     _phase = _Phase.ready;
     _ruleRevealed = !_game!.params.surpriseStart;
     _won = false;
+  }
+
+  /// ШАГ ЗАРЯДКИ — СВОЯ ТАБЛИЦА: числа по порядку, сторона `?size=` шага (по умолчанию 5), но не
+  /// больше освоенной больше чем на одну; с 7×7 по уровню — как просит шаг. Перенос веб-пресета
+  /// (`schulte.tsx:470–479`, `capPresetByLevel`). Без этого натив молча играл таблицу уровня —
+  /// с буквами, обратным порядком и цветом (сторож каркаса 44f7e4e0, задача 50139f1d).
+  LevelParams? _presetParams() {
+    if (!GamePreset.isPreset) return null;
+    final atLevel = LevelParams.of(_ladder.level).gridSize;
+    final size = capPresetByLevel(want: GamePreset.num('size', 5), atLevel: atLevel, atTop: atLevel >= 7);
+    return LevelParams(
+      gridSize: size,
+      contentMode: ContentMode.numbers,
+      direction: Direction.forward,
+      colorMode: false,
+      surpriseStart: false,
+      moving: false,
+    );
   }
 
   void _start() {
