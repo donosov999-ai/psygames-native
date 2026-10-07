@@ -29,7 +29,7 @@ export default function SourcesScreen() {
    */
   const sourcesModel = {
     v: 1,
-    title: t('sourcesTitle'), back: t('back'), intro: t('sourcesIntro'),
+    title: t('sourcesTitle'), back: t('back'), intro: t('sourcesIntro'), primary: colors.primary,
     cards: SOURCES.map((и) => ({ name: и.name, what: t(и.key), license: и.license, credit: и.credit ?? null, url: и.url })),
     voices: {
       title: t('voiceCreditsTitle'),

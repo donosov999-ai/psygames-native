@@ -58,7 +58,7 @@ export default function CollectionScreen() {
   };
   const collectionModel = {
     v: 1,
-    title: t('collectionTitle'), back: t('a11yBack'),
+    title: t('collectionTitle'), back: t('a11yBack'), primary: colors.primary,
     sub: t('collectionSub').replace('{have}', String(сундук.have)).replace('{all}', String(фигурки().length)).replace('{earned}', String(заработано)),
     hint: подсказка,
     figures: фигурки().map((f, i) => {

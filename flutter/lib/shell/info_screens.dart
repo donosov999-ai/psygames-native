@@ -76,7 +76,7 @@ class SourcesScreen extends StatelessWidget {
     safeTop: false,
     builder: (context, m) {
       final web = WebTheme.of(context);
-      final primary = Theme.of(context).colorScheme.primary;
+      final primary = cssColor(m['primary'], Theme.of(context).colorScheme.primary); // цвет профиля веба
       final voices = _map(m['voices']);
       Widget card(List<Widget> children) => Container(
         padding: const EdgeInsets.all(14),
@@ -218,7 +218,7 @@ class CollectionScreen extends StatelessWidget {
     screenKey: 'collection-screen',
     builder: (context, m) {
       final web = WebTheme.of(context);
-      final primary = Theme.of(context).colorScheme.primary;
+      final primary = cssColor(m['primary'], Theme.of(context).colorScheme.primary); // цвет профиля веба
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
