@@ -5,6 +5,15 @@
 //   Аббревиатуры тестов (Stroop/SDMT/WCST/N-back/BART/SET/Cloze...) оставлены латиницей — международные термины.
 //   ⚠️ Стилистику деванагари подтвердить носителем. При регенерации воркфлоу — НЕ затирать, мерджить через git diff.
 const t: Record<string, string> = {
+  "theme_selection": "रूप",
+  "theme_light": "हल्का",
+  "theme_dark": "गहरा",
+  "theme_system": "सिस्टम",
+  "theme_profile": "प्रोफ़ाइल डिफ़ॉल्ट",
+  "sudokuTryIndependently": "स्वयं प्रयास करें",
+  "sudokuPracticeOnly": "अभ्यास प्रयास — स्तर या रेटिंग नहीं बढ़ती।",
+  "sudokuLessonUnavailable": "अलग पाठ के लिए इस कठिनाई का कोई दूसरा बोर्ड उपलब्ध नहीं है।",
+  "sudokuPracticeExample": "अलग अभ्यास उदाहरण",
   "home": "होम",
   "statistics": "आँकड़े",
   "settings": "सेटिंग्स",
@@ -3439,5 +3448,10 @@ const t: Record<string, string> = {
   "sdkRule_between": "सिरों के बीच",
   "sdkRule_lockout": "ताला",
   "sdkRule_xv": "XV",
+  "catalogSearch": "खेल खोजें",
+  "catalogFilter": "फ़िल्टर",
+  "catalogBySection": "खंड",
+  "catalogBySkill": "कौशल",
+  "catalogNothing": "कोई खेल नहीं मिला",
 };
 export default t;

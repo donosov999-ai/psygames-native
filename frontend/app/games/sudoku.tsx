@@ -11,6 +11,7 @@ import { onGradientText, onGradientTextMuted, textOn } from '@/src/services/onGr
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage, translateFor } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
+import { SUDOKU_REVEALED_KEY, sudokuEducational } from '@/src/services/sudoku-attempt';
 import GameResult from '@/src/components/GameResult';
 import GameShell from '@/src/components/GameShell';
 import { FieldHeightUp } from '@/src/components/GameFieldHeight';
@@ -481,6 +482,8 @@ interface SudokuResume {
   towers?: TowersMap | null;
   errors: number;
   hintUses: number;
+  /** Native attempt guard; optional for older v4 snapshots. */
+  answersRevealed?: boolean;
   hintMax: number;
   backtrackCount: number;
   /** Накопленные секунды, а не момент старта: между сессиями настенные часы уходят вперёд. */
@@ -758,6 +761,7 @@ export default function SudokuGame() {
   const [over, setOver] = useState(false);   // жизни кончились (3 ошибки) → game over + рестарт
   const [rulesOpen, setRulesOpen] = useState(false);   // v1.111.0: справка правил уровня (тап по бейджу / авто при первом входе)
   const [hintUses, setHintUses] = useState(0);
+  const [answersRevealed, setAnswersRevealed] = useState(false);
   const [backtrackCount, setBacktrackCount] = useState(0);
   const [startTime, setStartTime] = useState(0);
   const [elapsedTime, setElapsedTime] = useState(0);
@@ -1074,6 +1078,7 @@ export default function SudokuGame() {
     setErrors(0);
     setOver(false);
     setHintUses(0);
+    setAnswersRevealed(false);
     setBacktrackCount(0);
     setBossWon(null);
     setPhase('playing');
@@ -1090,7 +1095,7 @@ export default function SudokuGame() {
     puzzle, solution, grid, given, cellColors, marks,
     regions, cages, cageSums, cageAnchors, parityMarks, kropki, sandwich, thermo, arrow, whisper, renban, regionsum, palindrome, between, lockout, xv,
     unequal: unequalMap, towers: towersMap,
-    errors, hintUses, hintMax, backtrackCount,
+    errors, hintUses, hintMax, backtrackCount, answersRevealed,
     elapsed: elapsedTime,
     history: hist.serialize(),
   });
@@ -1120,6 +1125,7 @@ export default function SudokuGame() {
     setThermo(s.thermo); setArrow(s.arrow); setWhisper(s.whisper ?? null); setRenban(s.renban ?? null); setRegionsum(s.regionsum ?? null); setPalindrome(s.palindrome ?? null); setBetween(s.between ?? null); setLockout(s.lockout ?? null); setXv(s.xv ?? null);
     setUnequalMap(s.unequal ?? null); setTowersMap(s.towers ?? null);   // старые снимки полей не имеют
     setErrors(s.errors); setHintUses(s.hintUses); setHintMax(s.hintMax); setBacktrackCount(s.backtrackCount);
+    setAnswersRevealed(s.answersRevealed !== false);
     setSelected(null); setOver(false); setBossWon(null);
     hist.restore(s.history);
     // Таймер продолжаем с накопленного: настенные часы между сессиями ушли вперёд,
@@ -1355,6 +1361,24 @@ export default function SudokuGame() {
       if (timerRef.current) clearInterval(timerRef.current);
       const finalTime = (gameNow() - startTime) / 1000;
       setElapsedTime(finalTime);
+      // A native practice attempt may resume here through the hybrid shell.
+      // Close this gate BEFORE any of the level/side/boss progression branches.
+      let revealedLedger: string | null;
+      try { revealedLedger = await AsyncStorage.getItem(SUDOKU_REVEALED_KEY); }
+      catch { revealedLedger = '["*"]'; }
+      if (sudokuEducational(solution, answersRevealed, hintUses, revealedLedger)) {
+        setAnswersRevealed(true);
+        await saveSession({
+          passed: false, game_type: 'sudoku', score: 0,
+          time_seconds: finalTime, errors,
+          mode: mode === 'levels' ? `level-${level}` : `${mode}-${level}`,
+          details: { lesson: true, answers_revealed: true, independent: false,
+            completed: false, practice_completed: true, hint_uses: hintUses },
+        }).catch((e) => console.error(e));
+        if (profile?.id) clearResume(GAME_ID, profile.id).catch(() => {});
+        setPhase('result');
+        return;
+      }
       // SUDOKU-LVL: уровни — сохранить прогресс на следующий уровень (счёт растёт с уровнем)
       const pidDone = profile?.id;
       if (mode === 'levels' && pidDone) {
@@ -2698,13 +2722,25 @@ export default function SudokuGame() {
           фазу result, у которой рендера для них не было, — после победы человек
           смотрел в пустой экран (Денис, 28.08, скрин с «Судоку» и белым полем).
           Гейт: sudoku-result-coverage.test.ts. */}
-      {phase === 'result' && (mode === 'free' || mode === 'killer') && (
+      {phase === 'result' && answersRevealed && (
+        <View style={styles.overWrap}>
+          <View style={[styles.overCard, { backgroundColor: colors.surface }]}>
+            <Text style={[styles.overTitle, { color: colors.text }]}>{t('sudokuPracticeOnly')}</Text>
+            <TouchableOpacity accessibilityRole="button" style={styles.startBtn} onPress={() => setPhase('config')}>
+              <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
+                <Text style={styles.startBtnText}>{t('sudokuMenu')}</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
+      {phase === 'result' && !answersRevealed && (mode === 'free' || mode === 'killer') && (
         <GameResult score={Math.max(0, Math.round(2000 - errors * 50 - elapsedTime * 2))}
           time={elapsedTime} errors={errors}
           onPlayAgain={() => setPhase('config')} onGoHome={() => goBackOrHome()}
           gradient={GRADIENT as [string, string]} />
       )}
-      {phase === 'result' && (mode === 'towers' || mode === 'unequal') && (
+      {phase === 'result' && !answersRevealed && (mode === 'towers' || mode === 'unequal') && (
         <View style={styles.overWrap}>
           <View style={[styles.overCard, { backgroundColor: colors.surface }]}>
             <Text style={styles.overEmoji}>🎉</Text>
@@ -2727,7 +2763,7 @@ export default function SudokuGame() {
           </View>
         </View>
       )}
-      {phase === 'result' && mode === 'levels' && (
+      {phase === 'result' && !answersRevealed && mode === 'levels' && (
         <View style={styles.overWrap}>
           <View style={[styles.overCard, { backgroundColor: colors.surface }]}>
             <Text style={styles.overEmoji}>🎉</Text>

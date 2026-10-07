@@ -5,7 +5,7 @@
  * Поддерживается руками при каждом релизе: короткие человеческие пункты
  * (не коммиты). ru/en — история версий техническая, на остальных языках
  * показывается en (переводить каждый релиз на 12 языков нереально).
- * Держим последние ~10 значимых версий, старое вычищаем.
+ * Историю не обрезаем: человек может пропустить несколько обновлений.
  */
 export interface WhatsNewEntry {
   version: string;        // '1.148.0'
@@ -15,6 +15,38 @@ export interface WhatsNewEntry {
 }
 
 export const WHATS_NEW: WhatsNewEntry[] = [
+  {
+    version: '2.56.12',
+    date: '2026-10-04',
+    ru: [
+      'После обновления показываются все изменения с последней просмотренной версии, включая пропущенные выпуски',
+      'Светлую, тёмную или системную тему можно выбрать в настройках — выбор сохраняется и применяется в играх',
+      'Учитель судоку объясняет на отдельной доске; ответы и подсказки делают попытку учебной, без повышения уровня',
+      'Поиск игр на главной и в каталоге; полная справка и обратная связь доступны из паузы',
+      'Обновлены порталы и пометки в «Бездне», разбор «Фрактала» и решатель «Товаров»',
+    ],
+    en: [
+      'After an update, see every change since your last viewed version, including skipped releases',
+      'Choose light, dark or system appearance in Settings — your choice persists and applies to games',
+      'The Sudoku teacher uses a separate board; revealed answers and hints mark an attempt as practice, without level advancement',
+      'Find games from Home and the catalog; full help and feedback are available in Pause',
+      'Updated Abyss portals and notes, Fractal review and the Goods solver',
+    ],
+  },
+  {
+    version: '2.56.11',
+    date: '2026-10-02',
+    ru: [
+      'Судоку, Самурай и Фрактал помнят незаконченную партию — можно уйти и вернуться',
+      'Судоку больше не теряет партию от случайного «назад», «Заново» или смены дороги — сначала спросит',
+      'Самурай и Фрактал: в окне выхода и «Заново» снова понятный заголовок',
+    ],
+    en: [
+      'Sudoku, Samurai and Fractal remember an unfinished game — leave and come back',
+      'Sudoku no longer loses a game to a stray Back, Restart or road change — it asks first',
+      'Samurai and Fractal: the Back and Restart dialogs show a proper title again',
+    ],
+  },
   {
     version: '2.56.10',
     date: '2026-10-02',
@@ -75,14 +107,14 @@ export const WHATS_NEW: WhatsNewEntry[] = [
       'Новое: «Конь и ферзи» (восемь ферзей и обход конём), «Кто спрятался?» с вопросами «или», «Кошки» с уровнями по настоящей трудности',
       '«Тоны» на Android: слоги звучат живыми записями, линии тона вместо значков',
       '«Паттерны» больше не подсказывают ответ последним шагом',
-      'Головоломки и MindLab — на 12 языках',
+      'Головоломки и новые игры — на 12 языках',
     ],
     en: [
       'All games and puzzle modes are back in the hubs — 40 cards had gone missing from the lists',
       'New: Knights & Queens (eight queens and the knight\'s tour), Who Is Hiding? with "or" questions, Cats with levels by real difficulty',
       'Tones on Android: syllables play as real recordings, with tone lines instead of symbols',
       'Patterns no longer give the answer away on the last step',
-      'Puzzles and MindLab are in 12 languages',
+      'Puzzles and new games are in 12 languages',
     ],
   },
   {

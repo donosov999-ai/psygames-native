@@ -202,6 +202,9 @@ void main() {
         reason: 'без хвоста — обычная судоку');
     expect(HybridApp.routeOf('$origin/games/sudoku?mode=killer'), '/games/sudoku?mode=killer');
     expect(HybridApp.routeOf('$origin/games/sudoku?mode=free'), '/games/sudoku?mode=free');
+    for (final tail in ['mode=towers&lang=ru', 'lang=ru&mode=towers&level=3', 'wu=1&mode=towers']) {
+      expect(HybridApp.routeOf('$origin/games/sudoku?$tail'), '/games/sudoku?mode=towers');
+    }
     expect(HybridApp.routeOf('$origin/games/sudoku?mode=zigzag'), '/games/sudoku',
         reason: 'неизвестный режим ведёт на обычный экран, а не в никуда');
     // Игру без режимов хвост не задевает.
@@ -468,7 +471,7 @@ void main() {
 
     // И ссылка из веба с языком в хвосте тоже попадает в свой режим.
     expect(HybridApp.routeOf('https://psygames.app/games/anagrams?lang=ru&mode=cross'),
-        anyOf('/games/anagrams?mode=cross', '/games/anagrams'),
+        '/games/anagrams?mode=cross',
         reason: 'хвост с двумя параметрами не должен терять режим');
   });
 

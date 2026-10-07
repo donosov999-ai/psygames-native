@@ -22,10 +22,10 @@ import 'generator/shadow.dart';
 import 'generator/store.dart';
 import 'junior.dart';
 import 'levels.dart';
-import '../../shell/lesson.dart';
 import '../../shell/lesson_player.dart';
 import '../../shell/resume_store.dart';
 import 'lesson.dart';
+import 'attempt.dart';
 import 'mode_board.dart';
 import 'modes.dart';
 import 'resume.dart';
@@ -176,6 +176,21 @@ class _SudokuScreenState extends State<SudokuScreen> {
   ({int r, int c})? _selected;
   int _errors = 0;
   int _hintsUsed = 0;
+  bool _answersRevealed = false;
+  late final _revealed = SudokuRevealedBoards(widget.state);
+  String get _answerId => sudokuAnswerId(
+      _sideBoard?.puzzle ?? _board!.puzzle, _solution!);
+  bool get _assisted => _answersRevealed || _hintsUsed > 0;
+  String? _avoidAnswerId;
+  bool _rejectIndependent(String id) => id == _avoidAnswerId || _revealed.contains(id);
+  void _newIndependentBoard() {
+    if (_solution != null) _avoidAnswerId = _answerId;
+    _deal();
+  }
+
+  void _beginAttempt() {
+    _answersRevealed = _solution != null && _revealed.contains(_answerId);
+  }
 
   /// 🔴 ЗНАЧКИ ВМЕСТО ЦИФР (задача f1e1ff9c): предпочтение игрока и набор значков
   /// выданной доски. Внутри игра живёт цифрами — значок меняет только то, что видно.
@@ -392,6 +407,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
       geometry: board.geometryJson,
       errors: _errors,
       hintUses: _hintsUsed,
+      answersRevealed: _answersRevealed,
       hintMax: _hintMax,
       backtracks: _backtracks,
       elapsed: _elapsed,
@@ -454,6 +470,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
       _selected = null;
       _errors = r.errors;
       _hintsUsed = r.hintUses;
+      _answersRevealed = r.answersRevealed || r.hintUses > 0 || _revealed.contains(_answerId);
       _backtracks = r.backtracks;
       // Время — с НАКОПЛЕННОГО: часы между сессиями ушли вперёд, а партия всё это время стояла.
       _startedAt = gameNow() - r.elapsed * 1000;
@@ -461,6 +478,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
       _boss = null;
       _lost = false;
     });
+    if (_answersRevealed) await _revealed.mark(_answerId);
     _recordDeal(board);
     return true;
   }
@@ -476,9 +494,18 @@ class _SudokuScreenState extends State<SudokuScreen> {
     final junior = _junior, kids = _kids;
     if (junior == null || kids == null) return;
     final seed = DateTime.now().millisecondsSinceEpoch; // wall-clock: зерно раздачи
-    final board = kids.board(junior.step, seed);
+    final board = sudokuDistinctBoard<SudokuBoard>(
+      draw: (i) => kids.board(junior.step, seed + i),
+      identity: (b) => sudokuAnswerId(b.puzzle, b.solution),
+      reject: _rejectIndependent,
+    );
+    if (board == null) {
+      setState(() { _board = null; _grid = const []; _failure = _noBoards; });
+      return;
+    }
     setState(() {
       _board = board;
+      _beginAttempt();
       _applySymbols(board, seed);
       _failure = null;
       _grid = [for (final row in board.puzzle) [...row]];
@@ -528,9 +555,15 @@ class _SudokuScreenState extends State<SudokuScreen> {
     if (mode != null) {
       final modes = _sideModes, side = _side;
       if (modes == null || side == null) return;
-      final board = modes.boardFor(mode, side.step, seed: DateTime.now().millisecondsSinceEpoch); // wall-clock: зерно раздачи
+      final seed = DateTime.now().millisecondsSinceEpoch; // wall-clock: зерно независимой раздачи
+      final board = sudokuDistinctBoard<SideBoard>(
+        draw: (i) => modes.boardFor(mode, side.step, seed: seed + i),
+        identity: (b) => sudokuAnswerId(b.puzzle, b.solution),
+        reject: _rejectIndependent,
+      );
       setState(() {
         _sideBoard = board;
+        _beginAttempt();
         _failure = board == null ? _noBoards : null;
         _grid = board == null ? const [] : [for (final row in board.puzzle) [...row]];
         _given = board == null ? const [] : [for (final row in board.puzzle) [for (final v in row) v != 0]];
@@ -555,9 +588,14 @@ class _SudokuScreenState extends State<SudokuScreen> {
     final levels = _levels;
     if (levels == null) return;
     final seed = DateTime.now().millisecondsSinceEpoch; // wall-clock: зерно раздачи
-    final board = levels.boardFor(_ladder.level, seed: seed, road: _road);
+    final board = sudokuDistinctBoard<SudokuBoard>(
+      draw: (i) => levels.boardFor(_ladder.level, seed: seed + i, road: _road),
+      identity: (b) => sudokuAnswerId(b.puzzle, b.solution),
+      reject: _rejectIndependent,
+    );
     setState(() {
       _board = board;
+      _beginAttempt();
       _applySymbols(board, seed);
       _failure = board == null ? _noBoards : null;
       _grid = board == null ? const [] : [for (final row in board.puzzle) [...row]];
@@ -638,8 +676,17 @@ class _SudokuScreenState extends State<SudokuScreen> {
       board = levels.boardFor(source, seed: seed);
       t = templateForLevel(levels, source);
     }
+    if (board != null && _rejectIndependent(sudokuAnswerId(board.puzzle, board.solution))) {
+      final level = source;
+      board = sudokuDistinctBoard<SudokuBoard>(
+        draw: (i) => levels.boardFor(level, seed: seed + i),
+        identity: (b) => sudokuAnswerId(b.puzzle, b.solution),
+        reject: _rejectIndependent,
+      );
+    }
     setState(() {
       _board = board;
+      _beginAttempt();
       _applySymbols(board, seed);
       _pilotTemplate = t;
       _pilotLevel = source;
@@ -837,7 +884,9 @@ class _SudokuScreenState extends State<SudokuScreen> {
         _errors += 1;
         if (_errors >= errorLimit) {
           _lost = true;
-          if (_pilot) {
+          if (_assisted) {
+            _reportEducational(completed: false);
+          } else if (_pilot) {
             _pilotFinish(Outcome.failed);
           } else {
             _recordOutcome(Outcome.failed);
@@ -884,6 +933,8 @@ class _SudokuScreenState extends State<SudokuScreen> {
       // разгадку, поэтому отмена ставила ту же цифру заново и выглядела сломанной.
       _grid[sel.r][sel.c] = solution[sel.r][sel.c];
       _hintsUsed += 1;
+      _answersRevealed = true;
+      unawaited(_revealed.mark(_answerId));
       _checkWin();
     });
     _persist();
@@ -1023,6 +1074,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
   }
 
   void _checkWin() {
+    if (_won || _lost) return;
     final solution = _solution;
     if (solution == null) return;
     for (var r = 0; r < _n; r++) {
@@ -1031,6 +1083,10 @@ class _SudokuScreenState extends State<SudokuScreen> {
       }
     }
     _won = true;
+    if (_assisted) {
+      _reportEducational(completed: true);
+      return;
+    }
     if (widget.mode != null) {
       _reportModeWin(_side?.step ?? 1);   // шаг — ДО прибавки, как в вебе
       _side?.win();   // ступень режима — свой счётчик, основная лестница не трогается
@@ -1068,6 +1124,26 @@ class _SudokuScreenState extends State<SudokuScreen> {
         if (_skinShown != null) 'skin': _skinShown,
       },
     )));
+  }
+
+  /// One gate before every progression branch. Reports remain visible as
+  /// practice, but cannot earn a level, adaptive rating or independent score.
+  void _reportEducational({required bool completed}) {
+    final level = widget.junior ? (_junior?.step ?? 1)
+        : widget.mode != null ? (_side?.step ?? 1)
+        : _pilot ? _pilotLevel : _ladder.level;
+    unawaited(SessionReport.send(
+      gameType: 'sudoku', score: 0, timeSeconds: _elapsed, errors: _errors,
+      mode: widget.junior ? 'junior-$level'
+          : widget.mode != null ? _modeKey(widget.mode!, level)
+          : _pilot ? 'adaptive' : _levelMode(level),
+      details: {
+        'lesson': true, 'answers_revealed': true, 'independent': false,
+        'completed': false, 'practice_completed': completed,
+        'hint_uses': _hintsUsed, 'errors': _errors,
+        'variant': widget.mode != null ? sideModeName(widget.mode!) : _board?.variant,
+      },
+    ));
   }
 
   /// Победа и веха — порядок веба: на каждом 15-м уровне приглашение в «Самурая»
@@ -1125,10 +1201,8 @@ class _SudokuScreenState extends State<SudokuScreen> {
   /// из своего словаря (у приёмов подстановки — ключом их не передать) и нарисовать
   /// доску СВОИМ же виджетом, чтобы разбор выглядел как партия.
   ///
-  /// ⚠️ Разбор идёт от НЫНЕШНЕЙ доски, а не от начальной: человек жмёт кнопку,
-  /// когда застрял, и объяснять ему первые десять ходов, которые он уже сделал,
-  /// значит потерять его на первом же шаге.
-  String _teachText(String key, Map<String, String> args) {
+  /// Разбор использует отдельный пример той же ступени, а не ответы партии.
+  String _teachText(String key, Map<String, String> args, SudokuSymbols symbols) {
     var out = switch (key) {
       'teachSudokuNaked' => L.t('teachSudokuNaked'),
       'teachSudokuHiddenRow' => L.t('teachSudokuHiddenRow'),
@@ -1139,7 +1213,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
     for (final e in args.entries) {
       // Цифра в тексте разбора — тем же значком, что на доске: «цифре Л», а не «цифре 5»,
       // которой человек на доске не видит.
-      final v = e.key == 'd' ? _symbols.glyph(int.tryParse(e.value) ?? 0) : e.value;
+      final v = e.key == 'd' ? symbols.glyph(int.tryParse(e.value) ?? 0) : e.value;
       out = out.replaceAll('{${e.key}}', v.isEmpty ? e.value : v);
     }
     return out;
@@ -1183,42 +1257,71 @@ class _SudokuScreenState extends State<SudokuScreen> {
     _deal();
   }
 
-  List<LessonStep> _lessonSteps() {
-    final solution = _solution;
-    if (solution == null || _grid.isEmpty) return const [];
-    final board = _board;
-    final side = _sideBoard;
-    return sudokuLessonSteps(
-      say: _teachText,
-      grid: _grid,
-      solution: solution,
-      n: _n,
-      br: side?.br ?? board?.br ?? 3,
-      bc: side?.bc ?? board?.bc ?? 3,
-    );
-  }
-
   Future<void> _openLesson() async {
-    final steps = _lessonSteps();
+    if (_solution == null || _grid.isEmpty) return;
+    final activeId = _answerId;
+    final seed = DateTime.now().microsecondsSinceEpoch; // wall-clock: зерно учебной раздачи
+    // Select from the SAME step/road/template source. Never alter digits or
+    // geometry to fake another puzzle: variant constraints may depend on them.
+    final side = widget.mode == null ? null : sudokuDistinctBoard<SideBoard>(
+      draw: (i) => _sideModes?.boardFor(widget.mode!, _side!.step, seed: seed + i),
+      identity: (b) => sudokuAnswerId(b.puzzle, b.solution),
+      reject: (id) => id == activeId,
+    );
+    final board = widget.mode != null ? null : sudokuDistinctBoard<SudokuBoard>(
+      draw: (i) => widget.junior
+          ? _kids?.board(_junior!.step, seed + i)
+          : _levels?.boardFor(_pilot ? _pilotLevel : _ladder.level,
+              seed: seed + i, road: _pilot ? defaultSudokuRoad : _road),
+      identity: (b) => sudokuAnswerId(b.puzzle, b.solution),
+      reject: (id) => id == activeId,
+    );
+    if (board == null && side == null) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(L.t('sudokuLessonUnavailable'))));
+      return;
+    }
+    final puzzle = side?.puzzle ?? board!.puzzle;
+    final solution = side?.solution ?? board!.solution;
+    final n = side?.n ?? board!.n;
+    final br = side?.br ?? board!.br;
+    final bc = side?.bc ?? board!.bc;
+    final geometry = side?.geometry ?? board!.geometry;
+    final variant = widget.mode == SideMode.killer ? 'killer'
+        : widget.mode == SideMode.free ? 'none'
+        : side != null ? sideModeName(widget.mode!) : board!.variant;
+    final symbols = board == null ? SudokuSymbols.digits(n) : symbolsFor(
+      skin: _choice.skin, style: _choice.style, variant: board.variant,
+      solution: solution, language: widget.state.language, seed: seed,
+    );
+    final steps = sudokuLessonSteps(
+      say: (key, args) => _teachText(key, args, symbols),
+      grid: puzzle, solution: solution, n: n, br: br, bc: bc,
+      candidates: (g, r, c) => [for (var d = 1; d <= n; d++)
+        if (isValid(g, r, c, d, n, br, bc, variant: variant, geometry: geometry)) d],
+    );
     if (steps.isEmpty) return;
-    LessonUsed.mark();
-    final board = _board;
-    final side = _sideBoard;
+    // Persist BEFORE displaying the first answer. This board must never be
+    // redealt as an independent attempt, even after exit/restart/profile change.
+    await _revealed.mark(sudokuAnswerId(puzzle, solution));
+    if (!mounted) return;
+    final given = [for (final row in puzzle) [for (final v in row) v != 0]];
     await Navigator.of(context).push(MaterialPageRoute<void>(
       builder: (_) => LessonPlayerScreen(
-        title: _title,
+        title: '$_title · ${L.t('sudokuPracticeExample')}',
         steps: steps,
+        onNewBoard: _newIndependentBoard,
+        newBoardLabel: L.t('sudokuTryIndependently'),
         board: (context, sideLen, shown) {
           final i = shown.clamp(0, steps.length - 1);
           final m = steps[i].payload as SudokuMove;
-          final marks = [for (var r = 0; r < _n; r += 1) List<int>.filled(_n, 0)];
-          final colors = [for (var r = 0; r < _n; r += 1) List<int>.filled(_n, 0)];
+          final marks = [for (var r = 0; r < n; r += 1) List<int>.filled(n, 0)];
+          final colors = [for (var r = 0; r < n; r += 1) List<int>.filled(n, 0)];
           if (widget.mode != null && side != null) {
             return ModeBoard(
               board: side,
               mode: widget.mode!,
               grid: m.grid,
-              given: _given,
+              given: given,
               marks: marks,
               colors: colors,
               selected: (r: m.r, c: m.c),
@@ -1229,13 +1332,13 @@ class _SudokuScreenState extends State<SudokuScreen> {
           return SudokuBoardView(
             board: board!,
             grid: m.grid,
-            given: _given,
+            given: given,
             marks: marks,
             colors: colors,
             selected: (r: m.r, c: m.c),
             height: sideLen,
             onTap: (_, _) {},
-            symbols: _symbols,
+            symbols: symbols,
           );
         },
       ),
@@ -1261,7 +1364,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
 
     return LeaveGuard(live: _live, saved: _onRoad, child: GameShell(
       title: _title,
-      onLesson: _lessonSteps().isEmpty ? null : _openLesson,
+      onLesson: _solution == null || _grid.isEmpty ? null : _openLesson,
       hud: [
         // ⚠️ Подпись одна и та же на оба случая: новая строка в коде — это новый долг
         // храповика подписей, а «Уровень» уже переведён на двенадцать языков.
@@ -1370,7 +1473,8 @@ class _SudokuScreenState extends State<SudokuScreen> {
               lost: _lost,
               onDigit: _onKey,
               onErase: _erase,
-              onNext: _deal,
+              onNext: _newIndependentBoard,
+              nextLabel: _assisted ? L.t('sudokuTryIndependently') : null,
               onRepeat: (_pilot && _lost && _repeatable != null)
                   ? () => _dealPilot(repeat: true)
                   : null,
@@ -1384,7 +1488,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
                       final src = _symbols.image(v);
                       return src == null ? null : Image.asset(src, width: 30, height: 30, semanticLabel: '$v');
                     },
-              wonNote: _won && _symbols.word != null
+              wonNote: _won && _assisted ? L.t('sudokuPracticeOnly') : _won && _symbols.word != null
                   ? L.t('sudokuHiddenWord').replaceAll('{w}', _symbols.word!)
                   : null,
               boss: _won ? _boss : null,
@@ -1801,6 +1905,7 @@ class _Toolbar extends StatelessWidget {
     required this.onDigit,
     required this.onErase,
     required this.onNext,
+    this.nextLabel,
     this.onRepeat,
     required this.paint,
     required this.onPaint,
@@ -1817,6 +1922,7 @@ class _Toolbar extends StatelessWidget {
   final void Function(int) onDigit;
   final VoidCallback onErase;
   final VoidCallback onNext;
+  final String? nextLabel;
 
   /// «Ещё раз эту же» — только у пилота и только после проигрыша: та же трудность,
   /// другая доска. `null` — кнопки нет (лестница, режимы, победа).
@@ -1848,7 +1954,7 @@ class _Toolbar extends StatelessWidget {
         key: const Key('next'),
         onPressed: onNext,
         icon: Icon(won ? Icons.arrow_forward : Icons.refresh),
-        label: Text(won ? L.t('sdkNextLevel') : L.t('retry')),
+        label: Text(nextLabel ?? (won ? L.t('sdkNextLevel') : L.t('retry'))),
       );
       final repeat = onRepeat;
       final note = won ? wonNote : lostNote;

@@ -91,6 +91,7 @@ Map<String, Object?> sudokuSnapshot({
   required int backtracks,
   required int elapsed,
   required List<SudokuResumeMove> moves,
+  bool answersRevealed = false,
 }) =>
     {
       'mode': 'levels',
@@ -109,6 +110,7 @@ Map<String, Object?> sudokuSnapshot({
       ...webGeometry(geometry),
       'errors': errors,
       'hintUses': hintUses,
+      'answersRevealed': answersRevealed,
       'hintMax': hintMax,
       'backtrackCount': backtracks,
       'elapsed': elapsed,
@@ -141,6 +143,7 @@ class SudokuResumed {
     required this.backtracks,
     required this.elapsed,
     required this.moves,
+    this.answersRevealed = false,
   });
 
   final int level;
@@ -152,6 +155,7 @@ class SudokuResumed {
   final Map<String, Object?> geometry;
   final int errors, hintUses, backtracks, elapsed;
   final List<SudokuResumeMove> moves;
+  final bool answersRevealed;
 }
 
 List<List<int>>? _ints(Object? v, int n) {
@@ -210,6 +214,9 @@ SudokuResumed? sudokuFromSnapshot(Map<String, Object?> s) {
     geometry: exportGeometry(s),
     errors: _int(s['errors']) ?? 0,
     hintUses: _int(s['hintUses']) ?? 0,
+    // Old v4 attempts never persisted lesson usage. Their independence cannot
+    // be proved: keep the board playable, but classify completion as practice.
+    answersRevealed: !s.containsKey('answersRevealed') || s['answersRevealed'] == true || s['lesson'] == true,
     backtracks: _int(s['backtrackCount']) ?? 0,
     elapsed: _int(s['elapsed']) ?? 0,
     moves: moves,
