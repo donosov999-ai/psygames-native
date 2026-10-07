@@ -15,6 +15,7 @@ import '../../shell/level_ladder.dart';
 import '../../shell/level_rules.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
+import '../../shell/suite_switch.dart';
 import 'model.dart';
 
 /// «Кубики Корси» на общем каркасе.
@@ -290,6 +291,8 @@ class _CorsiScreenState extends State<CorsiScreen> {
         height: h,
         onStart: _start,
         onTap: _tap,
+        // Набор «Позиции»: плашки Матрица · Корси · Наоборот (веб GameSuiteSwitch).
+        suiteSwitch: SuiteSwitch(route: '/games/corsi', state: widget.state),
       ),
       auxRow: AuxBar(children: [
         AuxAction(
@@ -349,6 +352,7 @@ class _Board extends StatelessWidget {
     required this.height,
     required this.onStart,
     required this.onTap,
+    this.suiteSwitch,
   });
 
   final CorsiGame game;
@@ -360,6 +364,9 @@ class _Board extends StatelessWidget {
   final VoidCallback onStart;
   final void Function(int) onTap;
 
+  /// Переключатель режимов набора — только на экране настройки, до партии.
+  final Widget? suiteSwitch;
+
   @override
   Widget build(BuildContext context) {
     if (phase == Phase.ready) {
@@ -367,6 +374,7 @@ class _Board extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            ?suiteSwitch,
             Text(
               game.params.reverse ? L.t('reproduceBackward') : L.t('reproduceForward'),
               textAlign: TextAlign.center,

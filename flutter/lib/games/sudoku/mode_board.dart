@@ -17,6 +17,7 @@ library;
 
 import 'package:flutter/material.dart';
 
+import 'highlight.dart';
 import 'marks.dart';
 import 'modes.dart';
 
@@ -128,18 +129,20 @@ class ModeBoard extends StatelessWidget {
   Widget _cell(ColorScheme scheme, int r, int c, double cell) {
     final v = grid[r][c];
     final isGiven = given[r][c];
-    final isSel = selected != null && selected!.r == r && selected!.c == c;
     final mask = r < marks.length && c < marks[r].length ? marks[r][c] : 0;
     final paint = r < colors.length && c < colors[r].length ? colors[r][c] : noSudokuColor;
+    // Подсветка — та же, что на доске лестницы (`highlight.dart`, перенос cellBackground веба).
+    final look = sudokuCellLook(grid, board.solution, selected, r, c);
     return SizedBox(
       width: cell,
       height: cell,
       child: Material(
-        color: isSel
-            ? scheme.primaryContainer
-            : (paint >= 0 && paint < sudokuColorCount
-                ? cellColors[paint].withValues(alpha: 0.35)
-                : scheme.surface),
+        color: sudokuCellBackground(
+          look,
+          surface: scheme.surface,
+          dark: scheme.brightness == Brightness.dark,
+          mark: paint >= 0 && paint < sudokuColorCount ? cellColors[paint] : null,
+        ),
         child: InkWell(
           key: Key('cell_${r}_$c'),
           onTap: () => onTap(r, c),
@@ -166,7 +169,7 @@ class ModeBoard extends StatelessWidget {
                       style: TextStyle(
                         fontSize: cell * 0.5,
                         fontWeight: isGiven ? FontWeight.w800 : FontWeight.w500,
-                        color: isGiven ? scheme.onSurface : scheme.primary,
+                        color: sudokuDigitInk(look, given: isGiven, scheme: scheme),
                       ),
                     ),
             ),

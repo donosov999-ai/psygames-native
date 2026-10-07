@@ -55,6 +55,42 @@ function evalAfter(src, marker) {
   return null;
 }
 
+/*
+ * 🔴 ИМЯ СТУПЕНИ — ЧАСТЯМИ НА КЛЮЧИ СЛОВАРЯ (задача 92e1b615, 01.10.2026).
+ *
+ * Имя в sections/*.ts — русская строка («9×9, 10 мин», «Крест 7×7», «6×6, хитрая»), а
+ * основной язык — английский. Веб эти имена не показывает, нужны они только нативной
+ * полосе «Доска». Имена собраны из десятка повторяющихся частей, поэтому здесь каждое
+ * раскладывается на части `{key, n}` (ключ словаря + число/размер) или `{text}` (размер как
+ * есть), а экран собирает их на языке человека (`lib/games/puzzles/step_title.dart`).
+ * Разбор живёт ЗДЕСЬ, а не в Dart: в коде экрана не остаётся русских слов, и новое имя,
+ * которого разбор не знает, роняет выгрузку — а не уезжает человеку по-русски.
+ */
+const DIFFICULTY = {
+  'лёгкая': 'tathamDiffEasy', 'обычная': 'tathamDiffNormal', 'средняя': 'tathamDiffMedium',
+  'трудная': 'tathamDiffHard', 'хитрая': 'tathamDiffTricky', 'крайняя': 'tathamDiffExtreme',
+  'запредельная': 'tathamDiffUnreasonable', 'начальная': 'tathamDiffBasic', 'продвинутая': 'tathamDiffAdvanced',
+};
+const NUMBER_WORDS = { 'восемь': 8, 'пятнадцать': 15, 'девятнадцать': 19, 'двадцать четыре': 24, 'тридцать пять': 35 };
+function stepPart(p, whole) {
+  if (/^\d+×\d+$/.test(p)) return { text: p };
+  if (DIFFICULTY[p]) return { key: DIFFICULTY[p] };
+  if (p === 'Восьмиугольник') return { key: 'tathamOctagon' };
+  if (p === 'с направлением') return { key: 'tathamOrientable' };
+  let m = /^(Случайная|Крест) (\d+×\d+)$/.exec(p);
+  if (m) return { key: m[1] === 'Крест' ? 'tathamCross' : 'tathamRandom', n: m[2] };
+  m = /^(\d+) (мин|цвета|цветов|места|мест)$/.exec(p);
+  if (m) return { key: m[2] === 'мин' ? 'tathamMines' : m[2].startsWith('цвет') ? 'tathamColours' : 'tathamPegs', n: m[1] };
+  m = /^поворот (\d+×\d+)$/.exec(p);
+  if (m) return { key: 'tathamRotation', n: m[1] };
+  m = /^(.+?)(?: плиток)?$/.exec(p);
+  if (m && NUMBER_WORDS[m[1]]) return { key: 'tathamTiles', n: String(NUMBER_WORDS[m[1]]) };
+  if (!/[А-Яа-яЁё]/.test(p)) return { text: p };   // латиница и цифры — как есть
+  throw new Error(`имя ступени «${whole}»: часть «${p}» не разбирается — добавь шаблон в stepPart `
+    + '(flutter/tools/embed-puzzle-modes.mjs) и ключ в LanguageContext + 10 накладок');
+}
+const stepParts = (name) => name.split(', ').map((p) => stepPart(p, name));
+
 const modes = {};
 let withLadder = 0;
 for (const f of readdirSync(SECTIONS).sort()) {
@@ -64,7 +100,7 @@ for (const f of readdirSync(SECTIONS).sort()) {
   const table = evalAfter(src, 'export const РЕЖИМЫ_РАЗДЕЛА');
   if (!table) continue;
   for (const [engineName, m] of Object.entries(table)) {
-    const steps = (m['лестница'] ?? []).map((s) => ({ title: s['имя'], params: s['параметры'] }));
+    const steps = (m['лестница'] ?? []).map((s) => ({ title: s['имя'], params: s['параметры'], parts: stepParts(s['имя']) }));
     if (steps.length) withLadder++;
     modes[engineName] = {
       engineName,

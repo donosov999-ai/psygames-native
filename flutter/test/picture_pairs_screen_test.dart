@@ -3,10 +3,14 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/picture_pairs/model.dart';
 import 'package:psygames_flutter/games/picture_pairs/screen.dart';
+import 'package:psygames_flutter/shell/game_clock.dart';
 import 'package:psygames_flutter/shell/l10n.dart';
+import 'package:psygames_flutter/shell/lesson.dart';
+import 'package:psygames_flutter/shell/session_report.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'support/settings_fit.dart';
@@ -29,7 +33,18 @@ void main() {
   // теста вешало второй тест файла (замер 30.09, 0 % ЦП, 10 минут).
   setUpAll(() async => L.load('ru'));
 
+  final sent = <Map<String, dynamic>>[];
+  tearDown(() {
+    gameWallMs = () => DateTime.now().millisecondsSinceEpoch;
+    SessionReport.sink = null;
+    LessonUsed.reset();
+  });
+
   Future<void> boot(WidgetTester tester, {int level = 1, int seed = 7}) async {
+    // Показ, снятие группы и обмены идут на игровых часах — им нужно поддельное время пробы.
+    gameWallMs = () => tester.binding.clock.now().millisecondsSinceEpoch;
+    sent.clear();
+    SessionReport.sink = (json) async => sent.add(jsonDecode(json) as Map<String, dynamic>);
     SharedPreferences.setMockInitialValues({'psygames_picture_pairs_level_nzt48': '$level'});
     state = await SharedState.open();
     await tester.pumpWidget(MaterialApp(home: PicturePairsScreen(state: state, rnd: Random(seed), theme: theme)));
@@ -90,6 +105,145 @@ void main() {
     expect(hud('level', '2'), isTrue, reason: 'лестница подняла уровень');
     // Экран разбирается ВНУТРИ теста: 48 картинок грузятся настоящей асинхронностью,
     // и живое дерево после конца теста вешало его сборку (замер 30.09: 10 минут, 0 % ЦП).
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump();
+  });
+
+  /// Собрать уровень по раскладу, увиденному на показе; [midHold] — сколько простоять на
+  /// паузе посреди партии (пауза каркаса держит игровые часы — `holdGame`).
+  Future<void> playLevel(WidgetTester tester, {required int level, Duration midHold = Duration.zero}) async {
+    await tester.tap(find.text(L.t('start')));
+    await tester.pump();
+    final seen = board(tester);
+    await tester.pump(Duration(milliseconds: LevelCfg.of(level).previewMs + 50));
+    final groups = <int, List<int>>{};
+    for (var i = 0; i < seen.length; i++) {
+      groups.putIfAbsent(seen[i], () => []).add(i);
+    }
+    var first = true;
+    for (final g in groups.values) {
+      for (final i in g) {
+        await tapCard(tester, i);
+      }
+      await tester.pump(const Duration(milliseconds: 450));
+      if (first && midHold > Duration.zero) {
+        final release = holdGame();
+        await tester.pump(midHold);
+        release();
+        await tester.pump();
+      }
+      first = false;
+    }
+  }
+
+  testWidgets('🔴 время партии — по игровым часам: полминуты на паузе в отчёт не входят', (tester) async {
+    // Был Stopwatch: минуты в меню паузы и в разборе шли в time_seconds и снимали очки уровня
+    // (2 за секунду) — сверка веб → натив 02.10.2026; веб считает по gameNow.
+    await boot(tester, level: 1);
+    await playLevel(tester, level: 1, midHold: const Duration(seconds: 30));
+    expect(find.text(L.t('nextLabel')), findsOneWidget, reason: 'уровень пройден');
+    final t = sent.single['time_seconds'] as int;
+    expect(t, lessThan(10), reason: 'партия шла пару секунд, 30 секунд паузы — не партия; в отчёте $t');
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump();
+  });
+
+  testWidgets('🔴 показ стоит под паузой: карты не закрываются, пока партия на паузе', (tester) async {
+    await boot(tester, level: 1);
+    await tester.tap(find.text(L.t('start')));
+    await tester.pump();
+    final release = holdGame();
+    await tester.pump(Duration(milliseconds: LevelCfg.of(1).previewMs + 2000));
+    expect(board(tester).every((s) => s >= 0), isTrue, reason: 'на паузе показ не сгорает');
+    release();
+    await tester.pump(Duration(milliseconds: LevelCfg.of(1).previewMs + 50));
+    expect(board(tester).every((s) => s < 0), isTrue, reason: 'после паузы показ дошёл до конца');
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump();
+  });
+
+  testWidgets('🔴 ход отзывается вибрацией: карта — лёгкая, группа — средняя, промах — сильная', (tester) async {
+    final kinds = <String>[];
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(SystemChannels.platform, (call) async {
+      if (call.method == 'HapticFeedback.vibrate') kinds.add('${call.arguments}');
+      return null;
+    });
+    addTearDown(() => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(SystemChannels.platform, null));
+    await boot(tester, level: 1);
+    await tester.tap(find.text(L.t('start')));
+    await tester.pump();
+    final seen = board(tester);
+    await tester.pump(Duration(milliseconds: LevelCfg.of(1).previewMs + 50));
+    final a = 0;
+    final mate = List.generate(seen.length, (i) => i).firstWhere((i) => i != a && seen[i] == seen[a]);
+    final other = List.generate(seen.length, (i) => i).firstWhere((i) => seen[i] != seen[a]);
+    await tapCard(tester, a);
+    await tapCard(tester, mate);
+    await tester.pump(const Duration(milliseconds: 450));
+    final oMate = List.generate(seen.length, (i) => i).firstWhere((i) => i != other && seen[i] != seen[other] && seen[i] != seen[a]);
+    await tapCard(tester, other);
+    await tapCard(tester, oMate);
+    await tester.pump(const Duration(milliseconds: 850));
+    expect(kinds, [
+      'HapticFeedbackType.selectionClick',
+      'HapticFeedbackType.mediumImpact',
+      'HapticFeedbackType.selectionClick',
+      'HapticFeedbackType.heavyImpact',
+    ]);
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump();
+  });
+
+  testWidgets('🔴 карта читается скринридером: закрытая — только номер, открытая — номер и картинка', (tester) async {
+    await boot(tester, level: 1);
+    await tester.tap(find.text(L.t('start')));
+    await tester.pump();
+    final seen = board(tester);
+    await tester.pump(Duration(milliseconds: LevelCfg.of(1).previewMs + 50));
+    String label(int i) => tester
+        .widget<Semantics>(find.ancestor(of: find.byKey(Key('карта$i')), matching: find.byType(Semantics)).first)
+        .properties
+        .label!;
+    expect(label(0), '${L.t('a11yCard')} 1', reason: 'закрытую карту не называем — иначе игра теряет смысл');
+    await tapCard(tester, 0);
+    expect(label(0), '${L.t('a11yCard')} 1, ${seen[0] + 1}');
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump();
+  });
+
+  testWidgets('🔴 отметку разбора снимает новая раздача — партия снова зачётная, как у «Корси»', (tester) async {
+    await boot(tester, level: 1);
+    LessonUsed.mark();
+    await tester.tap(find.byTooltip(L.t('restart')).first);
+    await tester.pump();
+    expect(LessonUsed.inRound, isFalse);
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump();
+  });
+
+  testWidgets('🔴 свободная партия с открытым разбором уходит в отчёт с меткой lesson, как партия уровня',
+      (tester) async {
+    await boot(tester, level: 1);
+    await tester.tap(find.text(L.t('sudokuModeFree')));
+    await tester.pump();
+    await tester.tap(find.text(L.t('start')));
+    await tester.pump();
+    final seen = board(tester);
+    expect(seen.length, 12, reason: 'свободная партия — шесть пар по умолчанию');
+    await tester.pump(const Duration(milliseconds: 550));
+    LessonUsed.mark(); // разбор открыт посреди партии
+    final groups = <int, List<int>>{};
+    for (var i = 0; i < seen.length; i++) {
+      groups.putIfAbsent(seen[i], () => []).add(i);
+    }
+    for (final g in groups.values) {
+      for (final i in g) {
+        await tapCard(tester, i);
+      }
+      await tester.pump(const Duration(milliseconds: 450));
+    }
+    final d = sent.single['details'] as Map;
+    expect('${sent.single['difficulty']} · lesson ${d['lesson']}', '6 pairs · lesson true');
     await tester.pumpWidget(const SizedBox());
     await tester.pump();
   });

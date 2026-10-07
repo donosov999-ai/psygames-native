@@ -22,6 +22,7 @@ import 'engine.dart';
 import 'frame.dart';
 import 'lesson.dart';
 import 'ladder.dart';
+import 'step_title.dart';
 
 /// ГОЛОВОЛОМКИ ТЭТХЭМА на общем каркасе: один экран на все режимы.
 ///
@@ -123,7 +124,7 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
     await PuzzleModes.load();
     final mode = PuzzleModes.all[widget.mode];
     if (mode == null) {
-      if (mounted) setState(() => _failure = 'режим ${widget.mode} движку неизвестен');
+      if (mounted) setState(() => _failure = L.f('puzzleErrUnknownMode', {'mode': widget.mode}));
       return;
     }
     _modeOrNull = mode;
@@ -136,7 +137,7 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
       final engine = TathamEngine.openPlatform(path: widget.libraryPath);
       final index = engine.indexOf(_mode.engineName);
       if (index < 0) {
-        setState(() => _failure = 'движок не знает игру ${_mode.engineName}');
+        setState(() => _failure = L.f('puzzleErrNoGame', {'game': _mode.engineName}));
         return;
       }
       // ⚠️ ПОРЯДОК ВАЖЕН: ступени известны только после открытия игры, а потолок
@@ -145,9 +146,11 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
       _steps = resolveSteps(_mode, engine, index);
       _genPool = ladderPool(gameId: _mode.levelKey, stepKeys: [for (final s in _steps) s.params]);
       _shadow = GeneratorShadow(GeneratorStore(widget.state, gameId: _mode.levelKey));
+      final levelStore = SharedLevelStore(widget.state);
+      await migrateLegacyLevel(_mode, levelStore);
       _ladder = LevelLadder(
         gameId: _mode.levelKey,
-        store: SharedLevelStore(widget.state),
+        store: levelStore,
         maxLevel: _steps.length,
         // Партию веб пишет типом `puzzles` с режимом рядом (puzzles.tsx) — так же и здесь,
         // иначе в статистике её нет нигде. Уровень — по-прежнему у каждого режима свой.
@@ -166,7 +169,7 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
     } catch (e) {
       // ⚠️ Библиотеки может не быть (сборка под платформу — отдельная задача).
       // Тогда экран честно говорит об этом, а не показывает вечную загрузку.
-      if (mounted) setState(() => _failure = 'движок не загрузился: $e');
+      if (mounted) setState(() => _failure = L.f('puzzleErrEngineLoad', {'error': '$e'}));
     }
   }
 
@@ -238,7 +241,7 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
     }
     final ok = engine.start(_gameIndex, step.params, DateTime.now().millisecondsSinceEpoch % 100000);
     setState(() {
-      _failure = ok ? null : 'партия не собралась: ${step.params}';
+      _failure = ok ? null : L.f('puzzleErrBuild', {'params': step.params});
       _won = false;
       if (ok) {
         _palette = engine.colours;
@@ -443,8 +446,8 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
           ? null
           : () => showGameRules(context, title: _mode.title, ruleKey: _mode.descKey!),
       hud: [
-        HudItem(label: 'Ступень', value: '${_ladder.level}/${_steps.length}', icon: Icons.trending_up),
-        HudItem(label: 'Доска', value: step.title, icon: Icons.grid_on),
+        HudItem(label: L.t('puzzleHudLevel'), value: '${_ladder.level}/${_steps.length}', icon: Icons.trending_up),
+        HudItem(label: L.t('puzzleHudBoard'), value: stepTitle(step), icon: Icons.grid_on),
       ],
       field: (context, height) {
         if (_failure != null) return Center(child: Text(_failure!));
@@ -636,7 +639,7 @@ class _Toolbar extends StatelessWidget {
           key: const Key('next'),
           onPressed: onNext,
           icon: const Icon(Icons.arrow_forward),
-          label: const Text('Следующая ступень'),
+          label: Text(L.t('puzzleNextLevel')),
         ),
       );
     }
@@ -644,7 +647,7 @@ class _Toolbar extends StatelessWidget {
       // Singles: ввод только тычками, ряд клавиш был бы обманом.
       // Там, где касание не делает ничего, — подсказка «тяни» (веб, `ТОЛЬКО_ПРОТЯЖКА`):
       // без неё доска выглядит сломанной — жмёшь, и ничего.
-      final idle = mode.dragOnly ? L.t('puzzleDragHint') : 'Тычок отмечает клетку';
+      final idle = mode.dragOnly ? L.t('puzzleDragHint') : L.t('puzzleTapHint');
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
         child: Text(status.isEmpty ? idle : status,
