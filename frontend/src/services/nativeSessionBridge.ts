@@ -18,7 +18,25 @@
  * подписчиков, отправку на сервер и очередь неотправленного. Вторая реализация
  * разошлась бы с первой в ту же неделю и молча.
  */
-import { saveSession, type GameSession } from '@/src/services/api';
+import { makeId, saveSession, type GameSession } from '@/src/services/api';
+
+/**
+ * 🔴 КАКИЕ ПАРТИИ ПРИШЛИ ОТ НАТИВНОЙ ПОЛОВИНЫ — по `id`.
+ *
+ * Под нативным экраном в WebView живёт веб-копия той же игры, и часть игр
+ * (SDMT при `wu=1`) стартует сама, идёт по своим часам и сохраняет партию,
+ * которую человек не играл. 06.10.2026, 2.56.12 (отчёт 02d98918): после SDMT в
+ * зарядке ушли ДВА «шаг готов» — оболочка поставила два моста, первый снялся
+ * пустым и остановил зарядку, человек оказался на главной. Зарядке нужно отличать
+ * сыгранную нативно партию от фантома веб-копии: `saveSession` копирует объект,
+ * но `id` переносит — по нему и узнаём.
+ */
+const fromHost = new Set<string>();
+
+/** Партия сохранена нативной половиной гибрида (не веб-копией игры под ней). */
+export function isHostSession(s: { id?: string } | null | undefined): boolean {
+  return !!s?.id && fromHost.has(s.id);
+}
 
 /** Отчёты, пришедшие ДО регистрации приёмника, не выбрасываются. */
 const queue: GameSession[] = [];
@@ -37,6 +55,8 @@ async function accept(raw: unknown): Promise<void> {
     console.warn('[мост] партия без имени игры — отброшена', raw);
     return;
   }
+  if (!raw.id) raw.id = makeId();
+  fromHost.add(raw.id);
   if (!ready) { queue.push(raw); return; }
   await saveSession(raw);
 }
@@ -54,5 +74,5 @@ export function installNativeSessionBridge(): void {
 }
 
 /** Только для проб. */
-export const __test = { queue, accept, reset: () => { queue.length = 0; ready = false;
+export const __test = { queue, accept, reset: () => { queue.length = 0; ready = false; fromHost.clear();
   if (typeof window !== 'undefined') delete (window as unknown as Record<string, unknown>).__psySaveSession; } };
