@@ -95,6 +95,14 @@ flutter:
   # the material Icons class.
   uses-material-design: true
 
+  # Значки веба — ТЕМ ЖЕ шрифтом Ionicons (`@expo/vector-icons`), а не похожими Material:
+  # главные экраны переносятся без подмены рисунка (правило Дениса 4e679f41). Шрифт и таблица
+  # кодов (`lib/shell/ionicons.g.dart`) выгружаются сторожем `flutter-ionicons-fresh`.
+  fonts:
+    - family: Ionicons
+      fonts:
+        - asset: assets/fonts/Ionicons.ttf
+
   # 🔴 КАЖДЫЙ КАТАЛОГ ОБЪЯВЛЯЕТСЯ ПОИМЁННО, ВКЛЮЧАЯ ВЛОЖЕННЫЕ.
   #
   # 📍 Строка вида `- assets/words/` берёт ТОЛЬКО файлы самой папки: вложенные
@@ -116,6 +124,9 @@ flutter:
     - assets/game_suites.json
     # Каталог «Игры» — выгрузка games.ts (frontend/src/__tests__/flutter-catalog-asset-fresh.test.ts).
     - assets/catalog.json
+    # Правила нижней полосы — выгрузка tabBar.ts (frontend/src/__tests__/flutter-tabs-asset-fresh.test.ts).
+    - assets/tabs.json
+    - assets/web_theme.json
     - assets/game_help_routes.json
     # Вид приложения (цвета тем, тема профиля, акценты магазина) — выгрузка веба
     # (flutter/tools/embed-look.mjs), не править руками.
@@ -125,6 +136,8 @@ flutter:
     # Иконки игр «поле в миниатюре» для строк развилок — выгрузка веб-реестра
     # (flutter/tools/embed-game-icons.mjs), не править руками.
     - assets/game_icons/
+    # Превью игр фоном плиток вкладки «Игры» — копия веба (`flutter-catalog-asset-fresh.test.ts`), не править руками.
+    - assets/game_thumbs/
     - assets/level_rules.json
     # Корпус позиций «Доски в уме»: 2000 задач Lichess (CC0). Каталог объявлен
     # ПОИМЁННО — строка вида «- assets/x/» берёт только файлы самой папки, и

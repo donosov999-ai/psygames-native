@@ -56,6 +56,8 @@ const LINE_VARIANTS: { variant: Variant; levels: number[]; cap?: number; promise
   // Малый киллер 125–128: свой приём little_killer_sum (ступень 4) — под потолком 3 не решается
   // ни одна доска (замер раздела 07.10: 0/24), поэтому обещание не нужно, держит сам приём.
   { variant: 'littlekiller', levels: [125, 126, 127, 128] },
+  // X-суммы 129–132: свой приём xsum_clue (ступень 4) — под потолком 3 замер раздела 1/24.
+  { variant: 'xsums', levels: [129, 130, 131, 132] },
 ];
 
 describe.each(LINE_VARIANTS)('«$variant» заслуживает своё имя на досках, которые получает человек', ({ variant, levels, cap = 3, promise }) => {

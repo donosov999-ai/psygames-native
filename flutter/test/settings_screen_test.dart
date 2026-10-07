@@ -64,6 +64,7 @@ void main() {
     expect(sw('music').value, isFalse);
     expect(sw('devchat').value, isTrue);
     expect(sw('pet').value, isTrue);
+    expect(sw('petwalk').value, isFalse, reason: 'ed85e191: по умолчанию сидит у края, не гуляет');
     expect(sw('colorblind').value, isFalse);
     expect(find.text('80%'), findsOneWidget);
     expect(find.text('100%'), findsOneWidget);
@@ -81,8 +82,11 @@ void main() {
     expect(state.get(SettingsScreen.colorblind), 'true', reason: 'ThemeContext: String(v)');
     await tap(t, 'settings-devchat');
     expect(state.get(SettingsScreen.devChat), '0', reason: "appFeedback.ts: on ? '1' : '0'");
+    await tap(t, 'settings-petwalk');
+    expect(state.get(SettingsScreen.petWalk), '1', reason: "pet.ts setPetWalks: on ? '1' : '0'");
     await tap(t, 'settings-pet');
     expect(state.get(SettingsScreen.pet), '0', reason: "pet.ts: on ? '1' : '0'");
+    expect(find.byKey(const Key('settings-petwalk')), findsNothing, reason: 'питомец выключен — гулять некому');
     // Тема — четыре варианта, как у веба с 2.56.12: «по профилю» ключ удаляет (ThemeContext.setThemeMode).
     await tap(t, 'settings-theme-dark');
     expect(state.get(AppLook.overrideKey), 'dark');

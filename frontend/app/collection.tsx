@@ -1,5 +1,5 @@
 /* psygames-collection-screen · VER 1 · 03.09.2026 */
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, router } from 'expo-router';
@@ -11,6 +11,7 @@ import { useProfile } from '@/src/contexts/ProfileContext';
    врал бы, когда пороги переопределены файлом настроек. */
 import { фигурки, chestState, earnedTotal } from '@/src/services/collection';
 import { FAB_CLEARANCE } from '@/src/services/fabPosition';
+import { postScreenModel, registerScreenActions } from '@/src/services/hostScreens';
 
 /**
  * ВИТРИНА КОЛЛЕКЦИИ — задача 6e564484, шаг 2 «место, куда возвращаешься».
@@ -45,6 +46,39 @@ export default function CollectionScreen() {
   }, [profile?.id]));
 
   const сундук = chestState(заработано);
+
+  /**
+   * 🔴 ПОД ОБОЛОЧКОЙ КОЛЛЕКЦИЮ РИСУЕТ FLUTTER (задача 8111eea4, `services/hostScreens.ts`).
+   * Пороги, собранность и подсказка к закрытой фигурке — здесь; тап по фигурке — действие `tap`.
+   */
+  const подсказкаДля = (i: number): string | null => {
+    const f = фигурки()[i];
+    if (!f || i < сундук.have) return null;
+    return t('collectionHowToOpen').replace('{name}', t(`fig${f.key}`)).replace('{n}', String(Math.max(0, f.at - заработано)));
+  };
+  const collectionModel = {
+    v: 1,
+    title: t('collectionTitle'), back: t('a11yBack'), primary: colors.primary,
+    sub: t('collectionSub').replace('{have}', String(сундук.have)).replace('{all}', String(фигурки().length)).replace('{earned}', String(заработано)),
+    hint: подсказка,
+    figures: фигурки().map((f, i) => {
+      const собрана = i < сундук.have;
+      const имя = t(`fig${f.key}`);
+      return {
+        key: f.key, face: f.face, name: имя, owned: собрана,
+        price: собрана ? `⭐${f.at}` : t('collectionLocked').replace('{n}', String(f.at)),
+        a11y: собрана ? имя : `${имя} — ${t('collectionLocked').replace('{n}', String(f.at))}`,
+      };
+    }),
+  };
+  const collectionKey = JSON.stringify(collectionModel);
+  useEffect(() => { postScreenModel('/collection', JSON.parse(collectionKey)); }, [collectionKey]);
+  const collectionActs = useRef({ подсказкаДля });
+  useEffect(() => { collectionActs.current = { подсказкаДля }; });
+  useEffect(() => registerScreenActions('/collection', {
+    back: () => router.back(),
+    tap: (i: number) => setПодсказка(collectionActs.current.подсказкаДля(Number(i))),
+  }), []);
 
   return (
     <SafeAreaView style={[styles.root, { backgroundColor: colors.background }]}>
