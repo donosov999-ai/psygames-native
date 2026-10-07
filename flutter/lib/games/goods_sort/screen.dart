@@ -380,13 +380,13 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> {
   String _goalText(GoodsLevel level) {
     switch (level.goal.kind) {
       case 'pick':
-        return 'Убрать названные';
+        return L.t('goalShortPick');
       case 'free':
-        return 'Освободить ниши';
+        return L.t('goalShortFree');
       case 'moves':
-        return 'Уложиться в ходы';
+        return L.t('goalShortMoves');
       default:
-        return 'Убрать всё';
+        return L.t('goalShortAll');
     }
   }
 
@@ -407,7 +407,7 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> {
   /// (замер и список — `test/goods_solver_test.dart`).
   ///
   /// Заголовок один на экран и на разбор: вторая строка — второй долг подписей.
-  String get _title => 'Сортировка товаров';
+  String get _title => L.t('goodsSort');
 
   /// Положение партии целиком — доска ПЛЮС препятствия и примёрзший ряд. Именно
   /// его видит решатель, иначе он проложил бы путь сквозь запертую нишу.
@@ -524,15 +524,15 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> {
         // (правило каркаса), и число рядом с партией читалось бы как обещание
         // её засчитать. Так же сделано в вебе — `goods-sort.tsx:2994` и родня.
         if (!GamePreset.isPreset)
-          HudItem(label: 'Уровень', value: '${_ladder.level}', icon: Icons.flag_outlined),
+          HudItem(label: L.t('level'), value: '${_ladder.level}', icon: Icons.flag_outlined),
         HudItem(
-          label: 'Ходы',
+          label: L.t('hud_moves'),
           value: level.moveLimit > 0 ? '$_moves/${level.moveLimit}' : '$_moves',
           icon: Icons.swap_horiz,
         ),
         if (progress != null)
-          HudItem(label: 'Цель', value: '${progress.done}/${progress.total}', icon: Icons.task_alt),
-        HudItem(label: 'Очки', value: '$_score', icon: Icons.star_outline),
+          HudItem(label: L.t('goalLabel'), value: '${progress.done}/${progress.total}', icon: Icons.task_alt),
+        HudItem(label: L.t('score'), value: '$_score', icon: Icons.star_outline),
       ],
       field: (context, h) => GoodsField(
         level: level,
@@ -554,8 +554,8 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> {
         }),
       ),
       auxRow: AuxBar(children: [
-        AuxAction(icon: Icons.undo, label: 'Отменить', onPressed: _history.isEmpty ? null : _undo),
-        AuxAction(icon: Icons.refresh, label: 'Начать заново', onPressed: _restart),
+        AuxAction(icon: Icons.undo, label: L.t('btn_undo'), onPressed: _history.isEmpty ? null : _undo),
+        AuxAction(icon: Icons.refresh, label: L.t('restart'), onPressed: _restart),
         // Витрина наборов — одним нажатием ИЗ ПАРТИИ, а не экраном перед игрой.
         AuxAction(
           key: const Key('goods-set-pick'),
@@ -571,7 +571,7 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> {
               child: FilledButton.icon(
                 onPressed: _next,
                 icon: const Icon(Icons.arrow_forward),
-                label: Text('Уровень взят · ${starsForMoves(_moves, level.reference)}★ — дальше'),
+                label: Text(L.f('levelWonNext', {'s': '${starsForMoves(_moves, level.reference)}'})),
               ),
             )
           : _lost
@@ -580,13 +580,13 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> {
                   child: FilledButton.icon(
                     onPressed: _restart,
                     icon: const Icon(Icons.refresh),
-                    label: const Text('Ходы кончились — ещё раз'),
+                    label: Text(L.t('outOfMovesRetry')),
                   ),
                 )
               : null,
       pauseActions: [
-        PauseAction(label: 'Начать заново', icon: Icons.refresh, onPressed: _restart),
-        if (_history.isNotEmpty) PauseAction(label: 'Отменить ход', icon: Icons.undo, onPressed: _undo),
+        PauseAction(label: L.t('restart'), icon: Icons.refresh, onPressed: _restart),
+        if (_history.isNotEmpty) PauseAction(label: L.t('btn_undo'), icon: Icons.undo, onPressed: _undo),
       ],
     );
   }

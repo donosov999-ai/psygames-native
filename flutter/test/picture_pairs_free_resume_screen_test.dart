@@ -134,8 +134,50 @@ void main() {
     expect(hud('hud_correct', '6/6'), isTrue);
     final s = sent.single;
     expect('${s['difficulty']} / ${s['mode']}', '6 pairs / photo-500ms');
-    expect(s['details'], {'moves': 6, 'optimal': 6, 'photo_memory_mode': true, 'preview_ms': 500, 'extra_moves': 0});
+    // Метрики памяти MindLab (cd9685ec): идеальная память считается по раскладу с показа.
+    final ideal = idealMemoryMoves(seen, 2);
+    expect(s['details'], {
+      'moves': 6,
+      'optimal': 6,
+      'photo_memory_mode': true,
+      'preview_ms': 500,
+      'extra_moves': 0,
+      'ideal_moves': ideal,
+      'efficiency': double.parse((ideal / 6).toStringAsFixed(2)),
+      'perseverations': 0,
+    });
+    expect(find.byKey(const Key('pp-ideal')), findsOneWidget, reason: 'итог сравнивает с идеальной памятью');
+    expect(tester.widget<Text>(find.byKey(const Key('pp-ideal'))).data,
+        L.t('pairsIdealMoves').replaceAll('{n}', '$ideal'));
     expect(state.get(levelKey), '3', reason: 'свободная партия лестницу не двигает');
+    await leave(tester);
+  });
+
+  testWidgets('🔴 персеверация в отчёте: тот же промах дважды — одна; эффективность — идеальные на ходы',
+      (tester) async {
+    await boot(tester, level: 3);
+    await chooseFree(tester, pairs: 6, previewMs: 500);
+    await tester.tap(find.byKey(const Key('pp-start')));
+    await tester.pump();
+    final seen = board(tester);
+    await tester.pump(const Duration(milliseconds: 550));
+    // Две карты с разными картинками: первый промах — разведка, второй тот же — персеверация.
+    final a = 0;
+    final b = List.generate(seen.length, (i) => i).firstWhere((i) => seen[i] != seen[a]);
+    for (var k = 0; k < 2; k++) {
+      await tapCard(tester, a);
+      await tapCard(tester, b);
+      await tester.pump(const Duration(milliseconds: 850));
+    }
+    for (final places in groupsOf(seen).values) {
+      await collect(tester, places);
+    }
+    final s = sent.single;
+    final ideal = idealMemoryMoves(seen, 2);
+    final details = s['details'] as Map;
+    expect('${details['moves']} ходов, персевераций ${details['perseverations']}', '8 ходов, персевераций 1');
+    expect(details['ideal_moves'], ideal);
+    expect(details['efficiency'], double.parse((ideal / 8).toStringAsFixed(2)));
     await leave(tester);
   });
 

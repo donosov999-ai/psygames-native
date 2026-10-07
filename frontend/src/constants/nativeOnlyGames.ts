@@ -17,6 +17,8 @@
  * ⚠️ В вебе такой адрес по-прежнему ведёт в пустоту. Живых людей это не касается:
  * развилки в приложении нативные, а веб-версии на сайте нет.
  */
+import type { LevelRule } from '@/src/components/LevelRules';
+
 export interface NativeOnlyGame {
   route: string;
   /** Ключи словаря — те же, что у карточки в `defaultPlaylists.json`. */
@@ -54,3 +56,24 @@ export const NATIVE_ONLY_GAMES: readonly NativeOnlyGame[] = [
 ];
 
 export const NATIVE_ONLY_ROUTES: readonly string[] = NATIVE_ONLY_GAMES.map((g) => g.route);
+
+/**
+ * ПРАВИЛА УРОВНЕЙ НАТИВНЫХ ИГР — с какого уровня каркас объявляет новую механику карточкой
+ * (`lr_<игра>_<ключ>_{title,rule,example}` в словаре). Таблицу для Flutter выгружает
+ * `src/games/level-rules/tools/export-level-rules.gen.ts`.
+ *
+ * ⚠️ МЕХАНИКА ЖИВЁТ В DART, А НЕ ЗДЕСЬ (02.10.2026, задача e95b7e2f). Уровни обязаны совпасть
+ * с её кодом: «Очередь зверей» — `clueKindsFor`, «Цвета и формы» — `kidsPhasesFor`
+ * (`flutter/lib/games/…/model.dart`). Сверяют пробы `animal_queue_test.dart` и
+ * `kids_sort_test.dart` по выгруженной таблице: разойдутся — карточка объявит механику не
+ * на той ступени.
+ */
+export const ANIMAL_QUEUE_RULES: LevelRule[] = [
+  { key: 'glued', fromLevel: 1 },   // дверь 🚪 и «сразу за» 🔗
+  { key: 'last', fromLevel: 3 },    // «последний» 🏁
+  { key: 'apart', fromLevel: 5 },   // «не рядом» 🚫
+];
+
+export const KIDS_SORT_RULES: LevelRule[] = [
+  { key: 'switches', fromLevel: 5 },   // правило меняется больше одного раза
+];
