@@ -1,4 +1,4 @@
-/* psygames-game-n-back · VER 1 · 19.08.2026 */
+/* psygames-game-n-back · VER 3 · 02.10.2026 */
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { speakLetterName } from '@/src/services/tts';
 import { useTtsBlock } from '@/src/hooks/useTtsAvailable';
@@ -52,6 +52,7 @@ import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 /** Экспортирован для гейта `level-rule-threshold`: пороги сверяются с механикой исполнением, а не разбором исходника. */
 export const NB_RULES: LevelRule[] = [
   { key: 'dual', fromLevel: 9 },   // lr_n_back_dual_*
+  { key: 'switch', fromLevel: 27 },   // lr_n_back_switch_* — ось 9, см. NB_SWITCH_FROM
 ];
 
 const GRADIENT = ['#5b86e5', '#36d1dc'];
@@ -69,7 +70,7 @@ type GamePhase = 'intro' | 'config' | 'playing' | 'boss' | 'cleared' | 'result';
 const BOSS_EVERY = 3;   // веха-босс каждые 3 уровня (резкая смена: рабочая память → счёт)
 type Modality = 'single' | 'dual';   // single = visual only (legacy); dual = visual + audio (Brain Workshop style)
 
-import { buildNbackSequence } from '@/src/games/nback/sequence';
+import { buildNbackSequence, buildNbackSequenceVar, nPlanFor } from '@/src/games/nback/sequence';
 
 const AUDIO_LETTERS = ['B', 'D', 'F', 'H', 'K', 'L', 'M', 'Q', 'R', 'T'];   // consonants only — no confusion with positions
 
@@ -132,11 +133,32 @@ const speakLetter = (letter: string) => { void speakLetterName(letter); };
  */
 export const NB_VOLUME_TOP = 13;   // на этом уровне N упирается в 6 — дальше держит растущий интервал
 
-export function levelParams(level: number): { N: number; modality: Modality; showMs: number; gapMs: number; lureRate?: number } {
+/**
+ * 🔴 ОСЬ 9 — ГЛУБИНА МЕНЯЕТСЯ ВНУТРИ ПАРТИИ (задача 103cd98d, 02.10.2026).
+ *
+ * С L27 — первого уровня, где приманки уже упёрлись в 0,45 (L26), — партия чередует глубину
+ * N и N − 1 отрезками по `switchEvery` проб: 10 на L27, каждый уровень на одну пробу короче,
+ * до 4 на L33. После смены повтор на прежнем лаге — приманка: старое правило тянет нажать.
+ * Пока растёт эта ось, удержание (ось 3) стоит на значении L26: две оси в одной полосе дали
+ * бы обрыв вместо ступени. С L34 удержание снова растёт — потолка нет.
+ * ⚠️ Объявлено и исполняется в одном коммите: план глубины (`nPlanFor`), генератор с глубиной
+ * на позицию (`buildNbackSequenceVar`) и проверка ответа по позиции, правило уровня 'switch'.
+ */
+export const NB_SWITCH_FROM = 27;
+export const NB_SWITCH_START = 10;
+export const NB_SWITCH_FLOOR = 4;
+
+export function levelParams(level: number): { N: number; modality: Modality; showMs: number; gapMs: number; lureRate?: number; switchEvery?: number } {
   if (level <= 5) return { N: level, modality: 'single', showMs: 700, gapMs: 1100 };
   if (level <= 8) { const f = level - 5; return { N: 5, modality: 'single', showMs: Math.max(450, 700 - f * 80), gapMs: Math.max(700, 1100 - f * 130) }; }
   const dl = level - 8;
-  const hold = Math.max(0, level - NB_VOLUME_TOP) * 200;   // ось 3: дольше держать цепочку
+  // Ось 3: дольше держать цепочку. В полосе оси 9 (L27…L33) стоит, дальше растёт снова.
+  const switchFloorLevel = NB_SWITCH_FROM + (NB_SWITCH_START - NB_SWITCH_FLOOR);
+  const holdLevels = level < NB_SWITCH_FROM
+    ? Math.max(0, level - NB_VOLUME_TOP)
+    : (NB_SWITCH_FROM - 1 - NB_VOLUME_TOP) + Math.max(0, level - switchFloorLevel);
+  const hold = holdLevels * 200;
+  const switchEvery = level >= NB_SWITCH_FROM ? Math.max(NB_SWITCH_FLOOR, NB_SWITCH_START - (level - NB_SWITCH_FROM)) : undefined;
   /**
    * 🔴 ОСЬ 5 — ПРИМАНКИ. Стимул, совпадающий с позицией N±1 назад: рука тянется
    * нажать, а совпадения нет. Бьёт по d′ напрямую, не трогая глубину.
@@ -157,7 +179,7 @@ export function levelParams(level: number): { N: number; modality: Modality; sho
    * не исполняется, — это ровно тот дефект, что найден сегодня трижды.
    */
   const lureRate = Math.min(0.45, 0.2 + Math.max(0, level - NB_VOLUME_TOP) * 0.02);
-  return { N: Math.min(6, 1 + dl), modality: 'dual', showMs: 700, gapMs: 1100 + hold, lureRate };   // L9=2-back dual → растёт до 6
+  return { N: Math.min(6, 1 + dl), modality: 'dual', showMs: 700, gapMs: 1100 + hold, lureRate, ...(switchEvery ? { switchEvery } : {}) };   // L9=2-back dual → растёт до 6
 }
 
 /**
@@ -279,6 +301,13 @@ export default function NBackGame() {
   const gapMsRef = useRef(1100);
   /** Доля приманок текущего уровня — ось 5, см. levelParams. */
   const lureRateRef = useRef<number | undefined>(undefined);
+  /** План глубины партии по позициям (ось 9): `nPlanFor`, у пресета — постоянная N. */
+  const nPlanRef = useRef<number[]>([]);
+  const switchEveryRef = useRef<number | undefined>(undefined);
+  /** Полоса «Теперь N-back» на пробе, где глубина сменилась. */
+  const [switchNote, setSwitchNote] = useState<number | null>(null);
+  /** План глубин для вёрстки: реф читают таймеры, а рисует экран — из состояния. */
+  const [nPlan, setNPlan] = useState<number[]>([]);
 
   useEffect(() => {
     return () => {
@@ -294,6 +323,7 @@ export default function NBackGame() {
       showMsRef.current = p.showMs;
       gapMsRef.current = p.gapMs;
       lureRateRef.current = p.lureRate;   // ось 5: доля приманок от УРОВНЯ, а не от глубины
+      switchEveryRef.current = p.switchEvery;   // ось 9: глубина меняется внутри партии
       setNLevel(p.N);
       /**
        * 🔴 БЕЗ РЕЧИ ДВОЙНОЙ РЕЖИМ — ЭТО ОБМАН СЧЁТА. Итог берётся по ХУДШЕМУ из
@@ -333,8 +363,11 @@ export default function NBackGame() {
     const nForBlock = isPreset
       ? capPresetByLevel({ want: nLevel, atLevel: levelParams(lvl.level).N, atTop: lvl.level >= 14 })
       : levelParams(lvl.level).N;
-    seqRef.current = buildNbackSequence(trials, nForBlock, 9, Math.random, lureRateRef.current);
-    audioSeqRef.current = buildNbackSequence(trials, nForBlock, AUDIO_LETTERS.length, Math.random, lureRateRef.current);
+    nPlanRef.current = nPlanFor(trials, nForBlock, isPreset ? undefined : switchEveryRef.current);
+    setNPlan(nPlanRef.current);
+    setSwitchNote(null);
+    seqRef.current = buildNbackSequenceVar(trials, nPlanRef.current, 9, Math.random, lureRateRef.current);
+    audioSeqRef.current = buildNbackSequenceVar(trials, nPlanRef.current, AUDIO_LETTERS.length, Math.random, lureRateRef.current);
     setTimeout(() => runTrial([], [], -1), 600);
   };
 
@@ -344,7 +377,11 @@ export default function NBackGame() {
       finishGame(vHist, aHist);
       return;
     }
-    const canMatch = newIdx >= nLevel;
+    // Глубина ЭТОЙ пробы — по плану партии (ось 9); без плана — как прежде, N уровня.
+    const nHere = nPlanRef.current[newIdx] ?? nLevel;
+    const canMatch = newIdx >= nHere;
+    if (newIdx > 0 && nPlanRef.current[newIdx - 1] !== undefined && nPlanRef.current[newIdx - 1] !== nHere) setSwitchNote(nHere);
+    else if (newIdx > 0) setSwitchNote(null);
     /**
      * Стимул БЕРЁТСЯ из заготовленного блока, а не бросается сейчас. Доля целей
      * и число луров заданы точно (`src/games/nback/sequence.ts`).
@@ -382,12 +419,12 @@ export default function NBackGame() {
         // Auto-evaluate non-response
         if (canMatch) {
           if (!answeredRef.current) {
-            const isMatch = vStim === vHist[newIdx - nLevel];
+            const isMatch = vStim === vHist[newIdx - nHere];
             if (isMatch) { statsRef.current.misses++; setMisses((m) => m + 1); }
             else { statsRef.current.correctRejections++; setCorrectRejections((c) => c + 1); }
           }
           if (modality === 'dual' && !aAnsweredRef.current) {
-            const isMatch = aStim === aHist[newIdx - nLevel];
+            const isMatch = aStim === aHist[newIdx - nHere];
             // ⚠️ Только в `statsRef`: эти числа уходят в итог партии, но не
             // показываются по ходу — состояние React без читателя гоняло бы
             // перерисовку всего экрана на каждой пробе впустую.
@@ -404,7 +441,7 @@ export default function NBackGame() {
     if (!waitingResponse || answeredRef.current) return;
     answeredRef.current = true;
     const stimulus = history[currentIdx];
-    const target = history[currentIdx - nLevel];
+    const target = history[currentIdx - (nPlanRef.current[currentIdx] ?? nLevel)];
     if (stimulus === target) {
       statsRef.current.hits++; setHits((h) => h + 1); hapticSuccess(); petSay('good');
       // Серия ведётся здесь же: рекорд обновляется по ходу, а не в конце партии —
@@ -421,7 +458,7 @@ export default function NBackGame() {
     if (!waitingResponse || aAnsweredRef.current) return;
     aAnsweredRef.current = true;
     const stimulus = audioHistory[currentIdx];
-    const target = audioHistory[currentIdx - nLevel];
+    const target = audioHistory[currentIdx - (nPlanRef.current[currentIdx] ?? nLevel)];
     if (stimulus === target) { statsRef.current.aHits++; setAHits((h) => h + 1); hapticSuccess(); petSay('good'); }
     else { statsRef.current.aFalseAlarms++; hapticError(); petSay('bad'); }
   };
@@ -501,6 +538,7 @@ export default function NBackGame() {
           // если локальный ключ потерян (переустановка, сброс профиля).
           level: levelRef.current,
           n: nLevel,
+          ...(switchEveryRef.current && !isPreset ? { switch_every: switchEveryRef.current } : {}),
           n_trials: trials,
           hits, misses, falseAlarms, correctRejections, accuracy,
           d_prime: dPrime,
@@ -652,7 +690,7 @@ export default function NBackGame() {
            * которой человек соревнуется сам с собой.
            */
           hud={[
-            { key: 'n', icon: 'layers', label: 'N', value: nLevel, tone: 'accent' as const },
+            { key: 'n', icon: 'layers', label: 'N', value: nPlan[currentIdx] ?? nLevel, tone: 'accent' as const },
             { key: 'round', icon: 'repeat', label: t('round'), value: `${currentIdx + 1}/${trials}` },
             /**
              * В дуальном режиме попаданий ДВА ряда — зрительный и слуховой, и
@@ -683,7 +721,7 @@ export default function NBackGame() {
                 ]}
               >
                 <Text style={styles.matchBtnText}>
-                  {waitingResponse ? (modality === 'dual' ? '👁 Position' : t('match')) : t('warmup')}
+                  {waitingResponse ? (modality === 'dual' ? `👁 ${t('suiteModeSimon')}` : t('match')) : t('warmup')}
                 </Text>
               </TouchableOpacity>
               {modality === 'dual' && (
@@ -697,7 +735,7 @@ export default function NBackGame() {
                   ]}
                 >
                   <Text style={styles.matchBtnText}>
-                    {waitingResponse ? '🔊 Sound' : t('warmup')}
+                    {waitingResponse ? `🔊 ${t('label_sound')}` : t('warmup')}
                   </Text>
                 </TouchableOpacity>
               )}
@@ -725,9 +763,14 @@ export default function NBackGame() {
                 <Text style={[styles.letterText, { color: textOn(GRADIENT[1]) }]}>{activeLetter}</Text>
               </View>
             )}
+            {switchNote !== null && (
+              <Text testID="nb-switch-note" style={[styles.hintText, { color: colors.text, fontWeight: '700' }]}>
+                {t('nBackSwitchNow').replace('{n}', String(switchNote))}
+              </Text>
+            )}
             <Text style={[styles.hintText, { color: colors.textSecondary }]}>
               {modality === 'dual'
-                ? t('nBackDualHint').replace(/\{n\}/g, String(nLevel))
+                ? t('nBackDualHint').replace(/\{n\}/g, String(nPlan[currentIdx] ?? nLevel))
                 : t('nBackHint')}
             </Text>
           </View>
