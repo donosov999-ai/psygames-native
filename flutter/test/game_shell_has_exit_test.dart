@@ -49,7 +49,7 @@ void main() {
 
   testWidgets('🔴 из игры выходят через паузу, даже когда раздел не дал onBack', (tester) async {
     await openGame(tester);
-    await tester.tap(find.byTooltip('Пауза'));
+    await tester.tap(find.byTooltip(L.t('teachPause')));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('pause-leave')), findsOneWidget, reason: 'в паузе нет выхода');
     await tester.tap(find.byKey(const Key('pause-leave')));
@@ -78,7 +78,7 @@ void main() {
 
   testWidgets('🔴 пауза — во весь экран, со счётчиками и подписями из словаря', (tester) async {
     await openGame(tester);
-    await tester.tap(find.byTooltip('Пауза'));
+    await tester.tap(find.byTooltip(L.t('teachPause')));
     await tester.pumpAndSettle();
     // Образец Дениса 23.09.2026: счётчики сверху, «Продолжить игру» главной кнопкой.
     expect(find.text('Раунд'), findsOneWidget, reason: 'счётчиков в паузе нет');
@@ -93,7 +93,7 @@ void main() {
   testWidgets('🔴 «На главную» появляется только когда оболочка её знает', (tester) async {
     GameExit.home = null;
     await openGame(tester);
-    await tester.tap(find.byTooltip('Пауза'));
+    await tester.tap(find.byTooltip(L.t('teachPause')));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('pause-home')), findsNothing,
         reason: 'без оболочки главной нет — рисовать кнопку в никуда нельзя');
@@ -102,7 +102,7 @@ void main() {
 
     var home = 0;
     GameExit.home = () => home++;
-    await tester.tap(find.byTooltip('Пауза'));
+    await tester.tap(find.byTooltip(L.t('teachPause')));
     await tester.pumpAndSettle();
     expect(find.text(L.t('goHome')), findsOneWidget);
     await tester.tap(find.byKey(const Key('pause-home')));
