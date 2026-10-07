@@ -120,7 +120,7 @@ export default function AssessmentResultScreen() {
         const dom = DOMAINS.find(d => d.id === s.domain)!;
         return {
           id: s.domain,
-          label: language === 'ru' ? dom.label_ru : dom.label_en,
+          label: domLabel(dom, language),
           meta: `z = ${s.z_score >= 0 ? '+' : ''}${s.z_score.toFixed(1)} · ${t('percentileN').replace('{n}', String(s.percentile))}`,
           color: levelColor(s.level),
           badge: s.level === 'weak' ? t('domainWeak') : s.level === 'strong' ? t('domainStrong') : t('domainAvg'),
@@ -183,7 +183,7 @@ export default function AssessmentResultScreen() {
                 <View style={[styles.rowDot, { backgroundColor: color }]} />
                 <View style={styles.rowMain}>
                   <Text style={[styles.rowDomain, { color: colors.text }]}>
-                    {language === 'ru' ? dom.label_ru : dom.label_en}
+                    {domLabel(dom, language)}
                   </Text>
                   <Text style={[styles.rowMeta, { color: colors.textSecondary }]}>
                     z = {s.z_score >= 0 ? '+' : ''}{s.z_score.toFixed(1)} · {t('percentileN').replace('{n}', String(s.percentile))}
@@ -266,6 +266,15 @@ export default function AssessmentResultScreen() {
  * Геометрия радара: кольца, оси, многоугольник, точки и подписи — числами. Одна для SVG ниже и
  * для нативной оболочки (модель экрана): у Flutter своего расчёта нет. Вынесено 07.10.2026.
  */
+
+/**
+ * Названия доменов замера лежат в справочнике с полями `_ru`/`_en` (долг двуязычных строк). Одна
+ * развилка на разметку, модель оболочки и подписи паутины.
+ */
+export function domLabel(dom: { label_ru: string; label_en: string }, language: string): string {
+  return language === 'ru' ? dom.label_ru : dom.label_en;
+}
+
 export function radarGeometry(scores: readonly { domain: string; z_score: number; level: string }[], language: string) {
   const SIZE = 320;
   const cx = SIZE / 2;
@@ -302,7 +311,7 @@ export function radarGeometry(scores: readonly { domain: string; z_score: number
       const dom = DOMAINS.find(d => d.id === s.domain)!;
       return {
         x: cx + lblR * Math.cos(angle(i)), y: cy + lblR * Math.sin(angle(i)),
-        text: (language === 'ru' ? dom.label_ru : dom.label_en).slice(0, 12),
+        text: domLabel(dom, language).slice(0, 12),
       };
     }),
   };

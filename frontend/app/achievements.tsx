@@ -26,6 +26,22 @@ import { postScreenModel, registerScreenActions } from '@/src/services/hostScree
  *
  * Непонятную строку возвращаем как есть: показать сырое лучше, чем «Invalid Date».
  */
+
+/**
+ * Подписи разделов и достижений лежат в справочнике с полями `_ru`/`_en` (долг двуязычных строк,
+ * `screen-language-fallback.test.ts`). Одна развилка на разметку экрана и на модель оболочки —
+ * иначе каждая копия считалась бы новым долгом.
+ */
+function catLabel(cat: { label_ru: string; label_en: string }, language: string): string {
+  return language === 'ru' ? cat.label_ru : cat.label_en;
+}
+function achName(a: { name_ru: string; name_en: string }, language: string): string {
+  return language === 'ru' ? a.name_ru : a.name_en;
+}
+function achDesc(a: { desc_ru: string; desc_en: string }, language: string): string {
+  return language === 'ru' ? a.desc_ru : a.desc_en;
+}
+
 export function humanDate(key: string, language: string): string {
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(key || ''));
   if (!m) return String(key || '');
@@ -91,13 +107,13 @@ function AchievementsScreenBody() {
     back: t('a11yBack'), rtl: isRTLLang(language),
     sections: CATEGORIES.map((cat) => ({
       key: cat.key,
-      title: language === 'ru' ? cat.label_ru : cat.label_en,
+      title: catLabel(cat, language),
       cards: (grouped[cat.key] || []).map((a) => {
         const date = unlocked.find((u) => u.id === a.id)?.date;
         return {
           id: a.id, emoji: a.emoji, unlocked: unlockedSet.has(a.id),
-          name: language === 'ru' ? a.name_ru : a.name_en,
-          desc: language === 'ru' ? a.desc_ru : a.desc_en,
+          name: achName(a, language),
+          desc: achDesc(a, language),
           date: date ? humanDate(date, language) : null,
         };
       }),
@@ -126,7 +142,7 @@ function AchievementsScreenBody() {
         {CATEGORIES.map(cat => (
           <View key={cat.key} style={styles.section}>
             <Text style={[styles.sectionTitle, { color: colors.text }]}>
-              {language === 'ru' ? cat.label_ru : cat.label_en}
+              {catLabel(cat, language)}
             </Text>
             <View style={styles.grid}>
               {(grouped[cat.key] || []).map(a => {
@@ -144,10 +160,10 @@ function AchievementsScreenBody() {
                         узкая по построению (две в ряд), и длинные названия в неё
                         в одну строку не влезают ни при каком шрифте. */}
                     <Text style={[styles.cardName, { color: colors.text }]} numberOfLines={2}>
-                      {language === 'ru' ? a.name_ru : a.name_en}
+                      {achName(a, language)}
                     </Text>
                     <Text style={[styles.cardDesc, { color: colors.textSecondary }]} numberOfLines={2}>
-                      {language === 'ru' ? a.desc_ru : a.desc_en}
+                      {achDesc(a, language)}
                     </Text>
                     {date && (
                       <Text style={[styles.cardDate, { color: '#fbbf24' }]}>{humanDate(date, language)}</Text>
