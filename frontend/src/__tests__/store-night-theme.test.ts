@@ -22,9 +22,9 @@
  * из кода — гейт покраснеет на ТЕКСТЕ, который стал неправдой.
  *
  * ⚠️ АВТОПЕРЕКЛЮЧЕНИЯ ТЕМЫ ПО ВРЕМЕНИ СУТОК В КОДЕ НЕТ (сверено 20.08.2026), и
- * системную тему приложение тоже не читает. Пока это так, обещать «темнеет само к
- * ночи» нельзя — гейт стережёт и текст, и сам факт. Появится автопереключение —
- * проверка ниже упадёт и скажет, что запрет пора снимать: это не ошибка, а сигнал.
+ * С 04.10.2026 системный режим доступен по явному выбору пользователя. Это не
+ * расписание ночной темы: обещать «темнеет само к ночи» по-прежнему нельзя.
+ * Ручные режимы, сохранение и реакцию на системную тему исполняет manual-theme.test.
  */
 declare const __dirname: string;
 declare function require(m: string): any;
@@ -171,15 +171,16 @@ describe('карточка Play: обещанное про ночь есть в 
   it('тёмная тема есть и переключается человеком', () => {
     expect(theme).toMatch(/const darkTheme: ThemeColors/);
     expect(theme).toMatch(/const toggleTheme = \(\)/);
-    expect(settings).toMatch(/onValueChange=\{toggleTheme\}/);
+    expect(settings).toMatch(/onPress=\{\(\) => setThemeMode\(mode\)\}/);
+    expect(settings).toMatch(/\['light', 'dark', 'system', 'profile'\]/);
   });
 
   /**
    * Пока автопереключения нет — текст не должен его обещать. Проверяем ФАКТ в коде,
    * а не формулировку: реализуют — здесь и узнают, что карточку можно усилить.
    */
-  it('автопереключения темы по времени/системе в коде НЕТ — значит и в тексте нет', () => {
-    expect(theme).not.toMatch(/useColorScheme|Appearance\./);
+  it('нет переключения по часам; системная тема включается осознанным выбором', () => {
+    expect(theme).toMatch(/override === 'system'/);
     expect(theme).not.toMatch(/getHours|slotForHour|currentSlot/);
 
     const AUTO: Record<string, RegExp> = {

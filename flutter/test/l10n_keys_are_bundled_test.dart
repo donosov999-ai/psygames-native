@@ -49,6 +49,52 @@ void main() {
             'node flutter/tools/embed-l10n.mjs');
   });
 
+  test('🔴 ключ ВНУТРИ выражения — тернарника, switch, ?? — тоже обязан лежать в словаре', () {
+    // 02.10.2026, «Самурай»/«Фрактал» (#213): `L.t(restart ? 'restartConfirmTitle' : 'exitConfirmTitle')`
+    // — embed-l10n берёт только `L.t('литерал')`, оба ключа в словарь не попали, в заголовке диалога
+    // стоял сырой ключ. Проба выше смотрит тоже только литерал первым аргументом — была слепа.
+    // Второй случай того же класса за два дня (01.10 «Парные картинки», #121). Здесь вызов разбирается
+    // до закрывающей скобки, и КАЖДЫЙ строковый литерал-идентификатор внутри сверяется со словарём.
+    final ru = jsonDecode(File('assets/l10n/ru.json').readAsStringSync()) as Map<String, dynamic>;
+    final head = RegExp(r'\bL\.[tf]\(');
+    final literal = RegExp(r"'([a-zA-Z_][a-zA-Z0-9_]*)'");
+    final missing = <String>{};
+    var inside = 0;
+    for (final f in Directory('lib').listSync(recursive: true).whereType<File>()) {
+      if (!f.path.endsWith('.dart')) continue;
+      final src = withoutComments(f.readAsStringSync());
+      for (final m in head.allMatches(src)) {
+        var depth = 1, j = m.end;
+        while (j < src.length && depth > 0) {
+          final ch = src[j];
+          if (ch == '(') depth++;
+          if (ch == ')') depth--;
+          j++;
+        }
+        final arg = src.substring(m.end, j - 1).trim();
+        if (RegExp(r"^'[a-zA-Z_][a-zA-Z0-9_]*'(\s*,|$)").hasMatch(arg)) continue;   // простой случай — выше
+        final keyPart = arg.split(RegExp(r",\s*\{")).first;   // L.f('k', {...}) — подстановки не ключи
+        // Не ключи: куски внутри \${…} (составной ключ собирается списком `const …Keys`) и ключи карт ['…'].
+        var expr = keyPart;
+        for (var n = 0; n < 4; n++) {
+          expr = expr.replaceAll(RegExp(r'\$\{[^{}]*\}'), r'$X');
+        }
+        expr = expr.replaceAll(RegExp(r"\[\s*'[^']*'\s*\]"), '[X]');
+        // И аргументы вложенных вызовов — `LevelRules.textKey(id, rule, 'title')` строит ключ сам.
+        for (var n = 0; n < 4; n++) {
+          expr = expr.replaceAll(RegExp(r'[A-Za-z_][\w.]*\([^()]*\)'), 'X');
+        }
+        for (final k in literal.allMatches(expr)) {
+          inside++;
+          if (!ru.containsKey(k.group(1))) missing.add('${k.group(1)} (${f.path})');
+        }
+      }
+    }
+    expect(inside, greaterThan(0), reason: 'ни одного ключа внутри выражений — не сломан ли разбор');
+    expect(missing.toList()..sort(), isEmpty,
+        reason: 'ключ внутри выражения не собран — экран покажет САМ КЛЮЧ. Каждый ключ — своим L.t(\'…\')');
+  });
+
   test('во всех двенадцати языках собран ОДИН И ТОТ ЖЕ набор ключей', () {
     // ⚠️ В той же папке лежат НЕ словари, а данные упражнений
     // (`stop-signal.json`, `proofreading-scripts.json`, …). Перебирать папку
