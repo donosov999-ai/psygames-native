@@ -119,6 +119,8 @@ for (const [file, fields] of [
   // Каталог «Игры» (задача f5025027): названия, описания, навыки и разделы — из выгрузки games.ts.
   ['assets/catalog.json', ['nameKey', 'descKey', 'skillKey', 'titleKey']],
   ['assets/game_help_routes.json', ['introKey']],
+  // Имена игр в листе деталей профиля (настройки на Flutter, задача eae0879c).
+  ['assets/profiles.json', ['nameKey']],
 ]) {
   let data;
   // 🔴 НЕТ ФАЙЛА — пропустить можно; ЕСТЬ, НО НЕ ЧИТАЕТСЯ — СТОП. Замер 01.10.2026: после

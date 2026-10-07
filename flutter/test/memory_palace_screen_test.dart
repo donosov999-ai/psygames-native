@@ -15,6 +15,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/memory_palace/model.dart';
 import 'package:psygames_flutter/games/memory_palace/screen.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
+import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
@@ -27,6 +28,9 @@ void main() {
   });
 
   setUp(() async {
+    // Язык — явно: проба сверяет русский текст, а до загрузки словаря приложение теперь
+    // английское (L._locale = 'en', правило «EN основной»). Раньше она держалась на 'ru' молча.
+    L.useForTest('ru', const {});
     SharedPreferences.setMockInitialValues({});
     state = await SharedState.open();
   });

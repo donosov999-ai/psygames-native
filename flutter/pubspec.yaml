@@ -60,6 +60,10 @@ dependencies:
   # глаз и массаж лица. Решение Дениса 02.10.2026: «чиню один раз — и там, и там».
   practice_kit:
     path: ../packages/practice_kit
+  package_info_plus: ^10.2.1
+  share_plus: ^13.3.0
+  file_picker: ^13.1.0
+  url_launcher: ^6.3.2
 
 dev_dependencies:
   webview_flutter_platform_interface: ^2.15.1
@@ -113,6 +117,11 @@ flutter:
     # Каталог «Игры» — выгрузка games.ts (frontend/src/__tests__/flutter-catalog-asset-fresh.test.ts).
     - assets/catalog.json
     - assets/game_help_routes.json
+    # Вид приложения (цвета тем, тема профиля, акценты магазина) — выгрузка веба
+    # (flutter/tools/embed-look.mjs), не править руками.
+    - assets/look.json
+    # Профили для настроек — выгрузка живого TS, сторож frontend/src/__tests__/flutter-profiles-asset-fresh.test.ts
+    - assets/profiles.json
     # Иконки игр «поле в миниатюре» для строк развилок — выгрузка веб-реестра
     # (flutter/tools/embed-game-icons.mjs), не править руками.
     - assets/game_icons/

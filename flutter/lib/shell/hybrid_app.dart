@@ -1,3 +1,5 @@
+import 'app_look.dart';
+import 'settings_screen.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
@@ -155,6 +157,8 @@ class HybridApp extends StatefulWidget {
         '/warmup-bridge': (_) => const WarmupBridgeScreen(),
         // Вкладка «Игры»: разделы, поиск и фильтр (задачи 9bd1b15d, f5025027).
         '/games': (s) => CatalogScreen(state: s, initialQuery: GamePreset.params['search'] ?? ''),
+        // Настройки на Flutter (задача eae0879c) — пишут те же ключи, что веб.
+        '/settings': (s) => SettingsScreen(state: s),
       };
 
   /// Игра перенесена → строится нативно. Ключ — путь маршрута веб-сборки.
@@ -620,6 +624,8 @@ class _HybridAppState extends State<HybridApp> {
     }
     final was = L.locale;
     await widget.state.applyFromWeb(message);
+    // Веб сменил тему, профиль или надетый акцент — нативные экраны следом (app_look.dart).
+    AppLook.refresh(widget.state);
     final now = L.resolve(widget.state.language);
     if (now != was) {
       await L.load(now);
@@ -744,6 +750,7 @@ class _HybridAppState extends State<HybridApp> {
     HybridApp.open = _open;
     HybridApp.runJs = _runJs;
     WarmupUi.run = _runUi;
+    SettingsScreen.webEval = _runJs;
     // Перенесённая игра по START_ROUTE: перехват на первой загрузке не срабатывает
     // (это не переход, а первый адрес), поэтому открываем нативный экран сами.
     final first = HybridApp.routeOf('${widget.server.origin}${HybridApp.startRoute}');
@@ -763,6 +770,7 @@ class _HybridAppState extends State<HybridApp> {
     if (HybridApp.open == _open) HybridApp.open = null;
     if (HybridApp.runJs == _runJs) HybridApp.runJs = null;
     if (WarmupUi.run == _runUi) WarmupUi.run = null;
+    if (SettingsScreen.webEval == _runJs) SettingsScreen.webEval = null;
     super.dispose();
   }
 
@@ -943,6 +951,8 @@ class _HybridAppState extends State<HybridApp> {
     // своём каркасе, а нативный экран лежит поверх страницы. Номер шага знает веб —
     // спрашиваем; когда переход ведёт сама оболочка, он известен заранее.
     final step = GamePreset.isPreset ? ValueNotifier<WarmupStepInfo?>(stepInfo) : null;
+    // Снимок ключей, которые веб читает при запуске: после нативных настроек сравним.
+    final watchedBefore = _watchedSnapshot();
     if (step != null && stepInfo == null) unawaited(_loadStepInfo(step));
     final page = MaterialPageRoute<dynamic>(
         // «Заново» в паузе любой игры — пересоздание экрана в RestartScope (restart_scope.dart).
@@ -994,10 +1004,25 @@ class _HybridAppState extends State<HybridApp> {
      * Поэтому: выбрали карточку — идём сразу туда, шаг назад не нужен вовсе.
      */
     final goingOn = result is HubCardTap || closedByPage;
+    /*
+     * 🔴 НАТИВНЫЕ НАСТРОЙКИ ПОМЕНЯЛИ ТО, ЧТО ВЕБ ЧИТАЕТ ОДИН РАЗ ПРИ ЗАПУСКЕ.
+     * Тема, язык, профиль, звук, питомец живут у веба в памяти контекстов
+     * (`ThemeContext`, `feedback.ts`…): новый снимок в localStorage их не обновит, и
+     * человек вернулся бы в старый вид. Поэтому страница уходит назад и
+     * ПЕРЕЗАГРУЖАЕТСЯ — тогда снимок вливается до её кода (`bootstrapJs`).
+     * ⚠️ Перезагрузка — по событию `popstate`, а не следом: `history.back()` в WebKit
+     * асинхронный, и перезагрузка в том же такте застала бы страницу на старом адресе.
+     */
+    // `takeWebDirty` — после переноса кодом / восстановления копии: прогресс переписан целиком.
+    final reloadWeb = (_watchedSnapshot() != watchedBefore) | SettingsScreen.takeWebDirty();
     if (mounted && !goingOn) {
-      await _c.runJavaScript(
-        "if (String(location.pathname).indexOf('$route') >= 0) history.back();",
-      );
+      await _c.runJavaScript(reloadWeb
+          ? "(function(){var d=false;function r(){if(d)return;d=true;location.reload();}"
+              "if(String(location.pathname).indexOf('$route')>=0){window.addEventListener('popstate',r,{once:true});history.back();setTimeout(r,800);}else r();})();"
+          : "if (String(location.pathname).indexOf('$route') >= 0) history.back();");
+    } else if (mounted && reloadWeb && result is HubCardTap && HybridApp.native.containsKey(result.route)) {
+      // Дальше откроется нативный экран, а страница под ним осталась бы в старом виде.
+      await _c.runJavaScript('location.reload();');
     }
     // Вернулись из нативной игры — страница обязана перечитать прогресс,
     // иначе на карте уровней останется старое число.
@@ -1028,6 +1053,8 @@ class _HybridAppState extends State<HybridApp> {
     await _c.loadRequest(Uri.parse('${widget.server.origin}$next'));
     return false;
   }
+
+  String _watchedSnapshot() => [for (final k in SettingsScreen.watched) widget.state.get(k) ?? ''].join('\u0001');
 
   /// Сброс кэша при смене вложенной сборки — см. пояснение в `initState`.
   Future<void> _dropStaleCache() async {
