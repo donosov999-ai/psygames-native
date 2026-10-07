@@ -16,6 +16,26 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.56.18',
+    date: '2026-10-07',
+    en: [
+      'Proofread: a new task, Word search — find words by dragging across the letters or tapping them, with a hint and a word list',
+      'Proofread on an English phone shows Latin letters (it used to show Cyrillic), and a warm-up step keeps its own grid size',
+      'Number Span: the walkthrough now plays on the game’s own rows and counts answers by the game’s rule',
+      'Connect the Dots and One Line: a warm-up step and the daily challenge start at the level they set, not at your saved level',
+      'Shop: Second life now says right in its name that it works in Targets',
+      'Sources, Leagues, Streak calendar, Collection and Achievements are calculated natively — they open faster',
+    ],
+    ru: [
+      '«Корректура»: новое задание «Филворды» — ищите слова протягиванием по буквам или тапами, с подсказкой и списком слов',
+      '«Корректура» на английском телефоне показывает латиницу (раньше была кириллица), а шаг зарядки держит свой размер поля',
+      '«Цифровой ряд»: разбор идёт на рядах самой игры и засчитывает ответ по её правилу',
+      '«Соедини точки» и «Одна линия»: шаг зарядки и вызов дня открывают свой уровень, а не сохранённый',
+      'Магазин: «Вторая жизнь» прямо в названии говорит, что работает в «Мишенях»',
+      '«Источники», «Лиги», календарь серии, «Коллекция» и «Достижения» считаются нативно — открываются быстрее',
+    ],
+  },
+  {
     version: '2.56.17',
     date: '2026-10-07',
     en: [

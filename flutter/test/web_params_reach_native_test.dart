@@ -30,7 +30,6 @@ const lostWithReason = <String, Map<String, String>>{
   },
   '/games/proofreading': {
     'series': 'задача f4bb47dc («Внимание»)',
-    'taskMode': 'филворды не перенесены; шахматная зарядка шлёт fillwords (chessWarmup.ts:225) — «Внимание»',
   },
   '/games/schulte': {
     'series': 'задача 1b6338c1 («Поиск»)',

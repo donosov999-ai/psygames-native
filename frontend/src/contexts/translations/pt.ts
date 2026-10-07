@@ -2634,7 +2634,7 @@ const t: Record<string, string> = {
   "shopAbilitySection": "⚡ Habilidades — consumíveis, uma por vez. Não resolvem a tarefa por você: devolvem uma partida ou uma sequência.",
   "shopAbilityHint": "Cada habilidade custa mais do que uma partida pode render — comprá-la para lucrar é impossível.",
   "a11yCatAbility": "Habilidades",
-  "abName_second_life": "Segunda vida",
+  "abName_second_life": "Segunda vida (Alvos)",
   "abDesc_second_life": "Alvos: a partida não termina na última vida. Uma por partida, e essa partida não sobe de nível.",
   "abName_practice_run": "Rodada de teste",
   "abDesc_practice_run": "Jogos de medição: a partida não é registrada em lugar nenhum — sem pontos, sem nível, sem estatísticas. Experimente sem consequências.",
@@ -3637,5 +3637,8 @@ const t: Record<string, string> = {
   "relaxationGroupFootnote": "Aqui nada é medido nem pontuado: é uma pausa entre treinos, não um teste.",
   "relaxationGroupIntroDesc": "Três pausas curtas: um ritmo de respiração, uma alternância entre olhos e respiração e exercícios que descansam a vista depois da tela.\n\nAqui nada é medido. A atenção e a memória de trabalho se recuperam nas pausas — depois, o próximo jogo flui melhor.",
   "allForks": "Todas as bifurcações",
+  "sourceWiktionaryVoiceName": "Gravações de pronúncia do Wikcionário",
+  "sourceWiktionaryVoiceCredit": "Autores do Wikcionário e da Lingua Libre — lista completa abaixo",
+  "sourceCburnettName": "Peças de xadrez de Cburnett",
 };
 export default t;

@@ -1,0 +1,108 @@
+{
+ "leagues": [
+  {
+   "id": "seed",
+   "from": 0,
+   "nameKey": "leagueSeed"
+  },
+  {
+   "id": "spark",
+   "from": 400,
+   "nameKey": "leagueSpark"
+  },
+  {
+   "id": "focus",
+   "from": 1200,
+   "nameKey": "leagueFocus"
+  },
+  {
+   "id": "flow",
+   "from": 2600,
+   "nameKey": "leagueFlow"
+  },
+  {
+   "id": "edge",
+   "from": 5000,
+   "nameKey": "leagueEdge"
+  },
+  {
+   "id": "peak",
+   "from": 9000,
+   "nameKey": "leaguePeak"
+  },
+  {
+   "id": "super",
+   "from": 15000,
+   "nameKey": "leagueSuper"
+  },
+  {
+   "id": "ultra",
+   "from": 40000,
+   "nameKey": "leagueUltra"
+  },
+  {
+   "id": "legend",
+   "from": 100000,
+   "nameKey": "leagueLegend"
+  },
+  {
+   "id": "limit",
+   "from": 250000,
+   "nameKey": "leagueLimit"
+  }
+ ],
+ "ranksPerLeague": 3,
+ "frames": [
+  {
+   "id": "sprout",
+   "nameKey": "frameSprout",
+   "league": "seed"
+  },
+  {
+   "id": "spark",
+   "nameKey": "frameSpark",
+   "league": "spark"
+  },
+  {
+   "id": "compass",
+   "nameKey": "frameCompass",
+   "league": "focus"
+  },
+  {
+   "id": "current",
+   "nameKey": "frameCurrent",
+   "league": "flow"
+  },
+  {
+   "id": "blade",
+   "nameKey": "frameBlade",
+   "league": "edge"
+  },
+  {
+   "id": "summit",
+   "nameKey": "frameSummit",
+   "league": "peak"
+  },
+  {
+   "id": "surge",
+   "nameKey": "frameSurge",
+   "league": "super"
+  },
+  {
+   "id": "aurora",
+   "nameKey": "frameAurora",
+   "league": "ultra"
+  },
+  {
+   "id": "crown",
+   "nameKey": "frameCrown",
+   "league": "legend"
+  },
+  {
+   "id": "infinity",
+   "nameKey": "frameInfinity",
+   "league": "limit"
+  }
+ ],
+ "seasonDays": 30
+}

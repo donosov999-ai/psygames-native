@@ -1,8 +1,15 @@
+import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'feedback_fab.dart' show FabRules;
+import 'achievements_model.dart';
+import 'collection_model.dart';
 import 'ion_icon.dart';
+import 'progression.dart';
 import 'screen_ui.dart';
+import 'shared_state.dart';
+import 'sources_model.dart';
 import 'web_theme.dart';
 
 /// ЧЕТЫРЕ СТРАНИЦЫ ПО МОДЕЛИ ВЕБА: «Источники», «Коллекция», «Достижения», «Лиги»
@@ -20,26 +27,59 @@ String _s(Object? v) => v == null ? '' : '$v';
 
 /// Общий каркас страницы по модели: ждём модель, фон веба, умолчания текста веба. Им же пользуются
 /// «Друзья» (`friends_screen.dart`).
-class ModelPage extends StatelessWidget {
-  const ModelPage({super.key, required this.route, required this.screenKey, required this.builder, this.safeTop = true});
+class ModelPage extends StatefulWidget {
+  const ModelPage({
+    super.key,
+    required this.route,
+    required this.screenKey,
+    required this.builder,
+    this.safeTop = true,
+    this.compute,
+    this.own,
+  });
   final String route;
   final String screenKey;
   final bool safeTop;
   final Widget Function(BuildContext context, Map<String, Object?> m) builder;
 
+  /// 🔴 МОДЕЛЬ НА DART (задача d6a60b02, вариант Б): экран считает её сам и страницу не ждёт. Нет —
+  /// модель приходит от веб-экрана под оболочкой ([ScreenUi]), как раньше.
+  final Future<Map<String, Object?>> Function()? compute;
+
+  /// Своя модель с состоянием (вариант Б): экран меняет её сам — подсказка по тапу, листание.
+  final ValueListenable<Map<String, Object?>?>? own;
+
+  @override
+  State<ModelPage> createState() => _ModelPageState();
+}
+
+class _ModelPageState extends State<ModelPage> {
+  Future<Map<String, Object?>>? _own;
+
+  @override
+  void initState() {
+    super.initState();
+    _own = widget.compute?.call();
+  }
+
+  Widget _page(BuildContext context, _M? m) => Material(
+    key: ValueKey(widget.screenKey),
+    color: WebTheme.of(context).background,
+    child: m == null
+        ? Center(child: CircularProgressIndicator(key: ValueKey('${widget.screenKey}-loading')))
+        : WebTheme.textDefaults(context, SafeArea(top: widget.safeTop, bottom: false, child: widget.builder(context, m))),
+  );
+
   @override
   Widget build(BuildContext context) {
-    final web = WebTheme.of(context);
-    return ValueListenableBuilder<_M?>(
-      valueListenable: ScreenUi.model(route),
-      builder: (context, m, _) => Material(
-        key: ValueKey(screenKey),
-        color: web.background,
-        child: m == null
-            ? Center(child: CircularProgressIndicator(key: ValueKey('$screenKey-loading')))
-            : WebTheme.textDefaults(context, SafeArea(top: safeTop, bottom: false, child: builder(context, m))),
-      ),
-    );
+    if (widget.own case final listenable?) {
+      return ValueListenableBuilder<_M?>(valueListenable: listenable, builder: (context, m, _) => _page(context, m));
+    }
+    final own = _own;
+    if (own != null) {
+      return FutureBuilder<_M>(future: own, builder: (context, snap) => _page(context, snap.data));
+    }
+    return ValueListenableBuilder<_M?>(valueListenable: ScreenUi.model(widget.route), builder: (context, m, _) => _page(context, m));
   }
 }
 
@@ -66,13 +106,24 @@ Widget circleBack(BuildContext context, String key, String label, String ion, Vo
 // ── «Источники» ──────────────────────────────────────────────────────────────────────────────────
 
 class SourcesScreen extends StatelessWidget {
-  const SourcesScreen({super.key});
+  const SourcesScreen({super.key, this.state});
   static const route = '/sources';
+
+  /// Есть — модель считается на Dart ([sourcesModelFor], вариант Б); нет — приходит от веба.
+  final SharedState? state;
+
+  /// Ссылка источника — во внешнем браузере, без веба. Пробы подменяют.
+  static Future<void> Function(String url) openUrl = (url) async {
+    try {
+      await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+    } catch (_) {/* браузера нет — молча, как `Linking.openURL(…).catch` веба */}
+  };
 
   @override
   Widget build(BuildContext context) => ModelPage(
     route: route,
     screenKey: 'sources-screen',
+    compute: state == null ? null : () => sourcesModelFor(state!),
     // У веба корень без SafeAreaView, сверху свой отступ 56.
     safeTop: false,
     builder: (context, m) {
@@ -153,7 +204,7 @@ class SourcesScreen extends StatelessWidget {
                       child: GestureDetector(
                         key: ValueKey('sources-link-${c['name']}'),
                         behavior: HitTestBehavior.opaque,
-                        onTap: () => ScreenUi.act(route, 'open', [c['url']]),
+                        onTap: () => state == null ? ScreenUi.act(route, 'open', [c['url']]) : openUrl(_s(c['url'])),
                         child: ConstrainedBox(
                           constraints: const BoxConstraints(minHeight: 48),
                           child: Align(
@@ -209,14 +260,57 @@ class SourcesScreen extends StatelessWidget {
 
 // ── «Коллекция» ──────────────────────────────────────────────────────────────────────────────────
 
-class CollectionScreen extends StatelessWidget {
-  const CollectionScreen({super.key});
+class CollectionScreen extends StatefulWidget {
+  const CollectionScreen({super.key, this.state});
   static const route = '/collection';
+
+  /// Есть — модель считается на Dart, подсказка по тапу — здесь же (вариант Б,
+  /// `collection_model.dart`); нет — модель и подсказка у веба.
+  final SharedState? state;
+
+  @override
+  State<CollectionScreen> createState() => _CollectionScreenState();
+}
+
+class _CollectionScreenState extends State<CollectionScreen> {
+  static const route = CollectionScreen.route;
+  final ValueNotifier<_M?> _own = ValueNotifier(null);
+  ({List<Figure> figures, int earned, String primary})? _in;
+
+  @override
+  void initState() {
+    super.initState();
+    final state = widget.state;
+    if (state != null) {
+      collectionInputsFor(state).then((v) {
+        if (!mounted) return;
+        _in = v;
+        _own.value = collectionModel(v.figures, v.earned, primary: v.primary);
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _own.dispose();
+    super.dispose();
+  }
+
+  /// Тап по фигурке: своя подсказка (вариант Б) или действие веба.
+  void _tap(int i) {
+    final v = _in;
+    if (widget.state == null || v == null) {
+      ScreenUi.act(route, 'tap', [i]);
+      return;
+    }
+    _own.value = collectionModel(v.figures, v.earned, primary: v.primary, hint: howToOpen(v.figures, v.earned, i));
+  }
 
   @override
   Widget build(BuildContext context) => ModelPage(
     route: route,
     screenKey: 'collection-screen',
+    own: widget.state == null ? null : _own,
     builder: (context, m) {
       final web = WebTheme.of(context);
       final primary = cssColor(m['primary'], Theme.of(context).colorScheme.primary); // цвет профиля веба
@@ -277,7 +371,7 @@ class CollectionScreen extends StatelessWidget {
                         excludeSemantics: true,
                         child: GestureDetector(
                           key: ValueKey('collection-figure-$i'),
-                          onTap: () => ScreenUi.act(route, 'tap', [i]),
+                          onTap: () => _tap(i),
                           child: Opacity(
                             opacity: f['owned'] == true ? 1 : 0.55,
                             child: Container(
@@ -331,14 +425,18 @@ class CollectionScreen extends StatelessWidget {
 // ── «Достижения» ─────────────────────────────────────────────────────────────────────────────────
 
 class AchievementsScreen extends StatelessWidget {
-  const AchievementsScreen({super.key});
+  const AchievementsScreen({super.key, this.state});
   static const route = '/achievements';
   static const _gold = Color(0xFFFBBF24);
+
+  /// Есть — модель считается на Dart ([achievementsModelFor], вариант Б); нет — приходит от веба.
+  final SharedState? state;
 
   @override
   Widget build(BuildContext context) => ModelPage(
     route: route,
     screenKey: 'achievements-screen',
+    compute: state == null ? null : () => achievementsModelFor(state!),
     builder: (context, m) {
       final web = WebTheme.of(context);
       return Column(
@@ -461,13 +559,17 @@ class AchievementsScreen extends StatelessWidget {
 // ── «Лиги» ───────────────────────────────────────────────────────────────────────────────────────
 
 class LeaguesScreen extends StatelessWidget {
-  const LeaguesScreen({super.key});
+  const LeaguesScreen({super.key, this.state});
   static const route = '/leagues';
+
+  /// Есть — модель считается на Dart ([leaguesModelFor], вариант Б); нет — приходит от веба.
+  final SharedState? state;
 
   @override
   Widget build(BuildContext context) => ModelPage(
     route: route,
     screenKey: 'leagues-screen',
+    compute: state == null ? null : () => leaguesModelFor(state!),
     builder: (context, m) {
       final web = WebTheme.of(context);
       final primary = cssColor(m['primary'], Theme.of(context).colorScheme.primary);
