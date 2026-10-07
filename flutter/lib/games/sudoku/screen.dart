@@ -27,6 +27,7 @@ import '../../shell/lesson_player.dart';
 import '../../shell/resume_store.dart';
 import 'lesson.dart';
 import 'attempt.dart';
+import 'highlight.dart';
 import 'mode_board.dart';
 import 'modes.dart';
 import 'resume.dart';
@@ -1681,6 +1682,7 @@ class SudokuBoardView extends StatelessWidget {
                                 ? colors[r][col]
                                 : noSudokuColor,
                             selected: selected != null && selected!.r == r && selected!.c == col,
+                            look: sudokuCellLook(grid, board.solution, selected, r, col),
                             scheme: scheme,
                             onTap: onTap,
                             glyph: symbols?.glyph,
@@ -1769,6 +1771,7 @@ class _Cell extends StatelessWidget {
     required this.mask,
     required this.paint,
     required this.selected,
+    required this.look,
     required this.scheme,
     required this.onTap,
     this.glyph,
@@ -1800,6 +1803,9 @@ class _Cell extends StatelessWidget {
   final int mask;
   final int paint;
   final bool selected;
+
+  /// Подсветка клетки: совпадение с выбранной цифрой, её строка/столбец, ошибка (`highlight.dart`).
+  final SudokuCellLook look;
   final ColorScheme scheme;
   final void Function(int r, int c) onTap;
 
@@ -1814,7 +1820,7 @@ class _Cell extends StatelessWidget {
   /// контраст важнее единообразия начертания.
   Widget? _picture() {
     final src = value == 0 ? null : image?.call(value);
-    if (src == null || selected || paint >= 0 || !decorFreeVariants.contains(board.variant)) return null;
+    if (src == null || selected || look.wrong || paint >= 0 || !decorFreeVariants.contains(board.variant)) return null;
     return Image.asset(src, width: size * 0.72, height: size * 0.72, semanticLabel: '$value');
   }
 
@@ -1845,13 +1851,15 @@ class _Cell extends StatelessWidget {
       width: size,
       height: size,
       child: Material(
-        // ⚠️ ВЫБОР ВИДЕН ПОВЕРХ КРАСКИ. Если крашеная клетка перестаёт показывать,
-        // что она выбрана, человек в режиме цифр теряет, куда сейчас пишет.
-        color: selected
-            ? scheme.primaryContainer
-            : (paint >= 0 && paint < sudokuColorCount
-                ? cellColors[paint].withValues(alpha: 0.35)
-                : (cageTint(scheme.surface, decor?.cageId ?? -1) ?? scheme.surface)),
+        // ⚠️ ВЫБОР ВИДЕН ПОВЕРХ КРАСКИ, ОШИБКА — ПОВЕРХ ВЫБОРА. Если крашеная клетка перестаёт
+        // показывать, что она выбрана, человек в режиме цифр теряет, куда сейчас пишет.
+        color: sudokuCellBackground(
+          look,
+          surface: scheme.surface,
+          dark: scheme.brightness == Brightness.dark,
+          cageId: decor?.cageId ?? -1,
+          mark: paint >= 0 && paint < sudokuColorCount ? cellColors[paint] : null,
+        ),
         child: InkWell(
           key: Key('cell_${row}_$col'),
           onTap: () => onTap(row, col),
@@ -1887,7 +1895,7 @@ class _Cell extends StatelessWidget {
                       style: TextStyle(
                         fontSize: size * 0.52,
                         fontWeight: given ? FontWeight.w800 : FontWeight.w500,
-                        color: given ? scheme.onSurface : scheme.primary,
+                        color: sudokuDigitInk(look, given: given, scheme: scheme),
                       ),
                     ),
               ),
