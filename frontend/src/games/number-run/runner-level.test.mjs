@@ -14,7 +14,7 @@ import {solveCourse,stationaryWins,exactDelta} from './runner-levels.mjs';
 import {initial,step,resume,setTarget,replay} from './runner-core.mjs';
 import {generateSprintProblem} from '../counting/mathSprintCore.ts';
 import {levelParams,makePuzzle} from '../counting/numberBondsLadder.ts';
-import {makeSequence,makeOptions} from '../counting/patternSequences.ts';
+import {makeSequence,makeOptions,tailLure} from '../counting/patternSequences.ts';
 import {levelParams as ospanLevel} from '../counting/ospanLadder.ts';
 import {registerHooks} from 'node:module';
 // Ядро «Мат. шкалы» импортирует соседей без расширения (./work) — так пишет Metro. Node такие пути не находит; крючок
@@ -25,7 +25,7 @@ const {formatExpression}=await import('../math-slider/core/expression.ts');
 const tasks={
  blitz:(L,rnd)=>generateSprintProblem(L,rnd),
  exact:(L,rnd)=>makePuzzle(levelParams(L),rnd),
- pattern:(L,rnd)=>{const seq=makeSequence(L,rnd);return {...seq,options:makeOptions(seq.answer,3,rnd)};},
+ pattern:(L,rnd)=>{const seq=makeSequence(L,rnd);return {...seq,options:makeOptions(seq.answer,3,rnd,tailLure(seq.items))};},
  scale:(L,rnd)=>{const q=generateMathSliderQuestions(`run-${Math.floor(rnd()*1e9)}`,Math.min(52,L),1)[0];return {prompt:formatExpression(q.expression,'en'),min:q.scale.min,max:q.scale.max,answer:q.answer,ticks:q.scale.ticks};},
  memory:L=>ospanLevel(L),
 };

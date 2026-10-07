@@ -17,27 +17,26 @@ import 'package:psygames_flutter/games/hidden_character/model.dart';
 void main() {
   /// Партия игрока наугад по раскладу [r]: сколько ошибочных выборов.
   int randomMistakes(HiddenRound r, Random rnd) {
-    final play = HiddenRound(features: r.features, suspects: r.suspects, target: r.target);
+    final play = HiddenRound(features: r.features, suspects: r.suspects, target: r.target, withOr: r.withOr);
     while (play.remaining.length > 1) {
-      final useful = play.features.where((f) {
-        if (play.wasAsked(f)) return false;
-        final y = play.remaining.where((i) => hasFeature(play.suspects[i], f)).length;
+      final useful = play.questions.where((q) {
+        if (play.wasAskedQuestion(q)) return false;
+        final y = play.remaining.where((i) => answersYes(play.suspects[i], q)).length;
         return y > 0 && y < play.remaining.length;
       }).toList();
       if (useful.isEmpty) break;
-      play.ask(useful[rnd.nextInt(useful.length)]);
+      play.askQuestion(useful[rnd.nextInt(useful.length)]);
     }
     return play.mistakes;
   }
 
   /// Партия лучшего игрока: всегда вопрос с наименьшим худшим случаем.
   int bestMistakes(HiddenRound r) {
-    final play = HiddenRound(features: r.features, suspects: r.suspects, target: r.target);
+    final play = HiddenRound(features: r.features, suspects: r.suspects, target: r.target, withOr: r.withOr);
     while (play.remaining.length > 1) {
-      final avail = play.features.where((f) => !play.wasAsked(f)).toList();
-      final q = bestQuestion([for (final i in play.remaining) play.suspects[i]], avail);
+      final q = play.bestNow();
       if (q == null) break;
-      play.ask(q);
+      play.askQuestion(q);
     }
     return play.mistakes;
   }
@@ -45,12 +44,12 @@ void main() {
   test('🔴 мера честная: ловушки расклада = среднее ошибок у 2000 игроков наугад', () {
     // Ловушки считаются точной рекурсией; если формула врёт, лестница держится на вымысле.
     final rnd = Random(42);
-    for (final lv in [3, 5, 8]) {
+    for (final lv in [3, 5, 8, 10, 13]) {
       final r = HiddenRound.deal(lv, rnd);
       var sum = 0;
       const n = 2000;
       for (var g = 0; g < n; g++) {
-        final t = HiddenRound(features: r.features, suspects: r.suspects, target: rnd.nextInt(r.suspects.length));
+        final t = HiddenRound(features: r.features, suspects: r.suspects, target: rnd.nextInt(r.suspects.length), withOr: r.withOr);
         sum += randomMistakes(t, rnd);
       }
       expect(sum / n, closeTo(r.traps, 0.06),
@@ -60,7 +59,7 @@ void main() {
 
   test('🔴 каждая раздача попадает в окно своей ступени; окна идут вверх без перекрытий', () {
     final rnd = Random(97);
-    for (var lv = 1; lv <= 8; lv++) {
+    for (var lv = 1; lv <= hiddenStepCount; lv++) {
       final st = hiddenStep(lv);
       if (lv > 1) {
         expect(st.minTraps, greaterThanOrEqualTo(hiddenStep(lv - 1).maxTraps),
@@ -87,13 +86,15 @@ void main() {
 
     expect(threeStars(1), 1.0, reason: 'первая ступень — знакомство: любой вопрос годится');
     final top = threeStars(8);
-    expect(top, lessThanOrEqualTo(0.10), reason: 'на верху три звезды наугад — редкость; вышло $top');
+    expect(top, lessThanOrEqualTo(0.10), reason: 'на верху одиночных вопросов три звезды наугад — редкость; вышло $top');
     expect(threeStars(4), greaterThan(top), reason: 'середина лестницы щедрее вершины');
+    final orTop = threeStars(hiddenStepCount);
+    expect(orTop, lessThanOrEqualTo(top), reason: 'вершина с «или» не щедрее вершины без него; вышло $orTop');
   });
 
   test('🔴 лучший игрок не ошибается ни на одной ступени — звёзды за выбор, а не за удачу', () {
     final rnd = Random(5);
-    for (var lv = 1; lv <= 8; lv++) {
+    for (var lv = 1; lv <= hiddenStepCount; lv++) {
       for (var d = 0; d < 30; d++) {
         expect(bestMistakes(HiddenRound.deal(lv, rnd)), 0, reason: 'ступень $lv: эталонная игра засчитана ошибкой');
       }

@@ -3,7 +3,7 @@
 /// 🔴 ПОЧЕМУ ТАК. Веб-версия собирает доску вариантного уровня на лету логическим
 /// построителем — это `sudoku-grade.ts` (1894 строки) плюс половина ядра. Переносить его
 /// в Dart дорого и незачем: доски можно ВЫГРУЗИТЬ тем же боевым путём и возить данными.
-///   · `assets/levels/sudoku-ladder.json` — 92 ступени лестницы (размер, блоки, дырки,
+///   · `assets/levels/sudoku-ladder.json` — все ступени лестницы (размер, блоки, дырки,
 ///     вариант, потолок подсказок) и 35 полос рейтинга банка;
 ///   · `assets/levels/sudoku-bank.json` — банк классики (1835 досок, 58 полос), тот же
 ///     файл, что возит веб-версия;
@@ -20,6 +20,7 @@ import 'dart:math';
 
 import 'package:flutter/services.dart' show AssetManifest, rootBundle;
 
+import 'roads.dart';
 import 'rules.dart';
 
 /// Ступень лестницы: что за доска выдаётся на этом уровне.
@@ -32,6 +33,7 @@ class SudokuLevel {
     required this.blanks,
     required this.variant,
     required this.hintMax,
+    this.lives = 3,
   });
 
   final int level;
@@ -41,6 +43,10 @@ class SudokuLevel {
   final int blanks;
   final String variant;
   final int hintMax;
+
+  /// Сколько ошибок до провала на этой ступени — `levelConfig.lives` веба (цена ошибки
+  /// убывает к верху лестницы, задача 1fa57de3). Выгрузка без поля — прежние три.
+  final int lives;
 
   /// Доска берётся из банка, когда это классика 9×9: банк только такой.
   bool get fromBank => variant == 'none' && n == 9;
@@ -59,6 +65,7 @@ class SudokuBoard {
     required this.geometry,
     this.tier,
     this.rating,
+    this.geometryJson = const {},
   });
 
   final int level;
@@ -76,6 +83,10 @@ class SudokuBoard {
   /// Рейтинг полосы банка (только у банковских досок).
   final double? rating;
 
+  /// Геометрия варианта в форме выгрузки (поля генератора TS) — для снимка незаконченной
+  /// партии в формате веба (resume.dart). У банка и малышей — пусто.
+  final Map<String, Object?> geometryJson;
+
   int get blanks {
     var k = 0;
     for (final row in puzzle) {
@@ -89,16 +100,25 @@ class SudokuBoard {
 
 /// Лестница судоку и доски к ней.
 class SudokuLevels {
-  SudokuLevels._(this._ladder, this._ratingRows, this._bank, this._variantBoards);
+  SudokuLevels._(this._ladder, this._ratingRows, this._bank, this._variantBoards, this._transit,
+      [this._roadBoards = const {}]);
 
   final Map<int, SudokuLevel> _ladder;
   final List<({int upTo, double rating})> _ratingRows;
   final Map<int, List<String>> _bank;                 // полоса (рейтинг×10) → задачи
   final Map<int, List<Map<String, Object?>>> _variantBoards;   // уровень → доски
+  final Map<int, Map<String, Object?>> _transit;               // уровень → строка перехода
+
+  /// Доски дорог «полегче» / «пожёстче» (`sudoku-road-boards.json`): дорога → уровень → доски.
+  /// Нет файла или ступени — дорога играет доски обычной дороги (жизни и подсказки у неё
+  /// всё равно свои), а банковские ступени дорога сдвигает полосой банка.
+  final Map<SudokuRoad, Map<int, List<Map<String, Object?>>>> _roadBoards;
 
   static const _ladderAsset = 'assets/levels/sudoku-ladder.json';
   static const _bankAsset = 'assets/levels/sudoku-bank.json';
   static const _variantAsset = 'assets/levels/sudoku-variant-boards.json';
+  static const transitAsset = 'assets/levels/sudoku-ladder-transit.json';
+  static const _roadAsset = 'assets/levels/sudoku-road-boards.json';
 
   static Future<SudokuLevels> load() async {
     final ladderJson = jsonDecode(await rootBundle.loadString(_ladderAsset)) as Map<String, Object?>;
@@ -113,6 +133,7 @@ class SudokuLevels {
         blanks: (row['blanks'] as num).toInt(),
         variant: row['variant'] as String,
         hintMax: (row['hintMax'] as num).toInt(),
+        lives: (row['lives'] as num?)?.toInt() ?? 3,
       );
     }
     final rows = [
@@ -134,10 +155,12 @@ class SudokuLevels {
     // пробы. Поэтому файла, которого нет, мы просто не трогаем: банковские уровни
     // играются и без вариантных досок.
     final variants = <int, List<Map<String, Object?>>>{};
-    var hasVariants = false;
+    var hasVariants = false, hasTransit = false, hasRoads = false;
     try {
-      final manifest = await AssetManifest.loadFromAssetBundle(rootBundle);
-      hasVariants = manifest.listAssets().contains(_variantAsset);
+      final listed = (await AssetManifest.loadFromAssetBundle(rootBundle)).listAssets();
+      hasVariants = listed.contains(_variantAsset);
+      hasTransit = listed.contains(transitAsset);
+      hasRoads = listed.contains(_roadAsset);
     } catch (_) {
       hasVariants = false;
     }
@@ -148,13 +171,50 @@ class SudokuLevels {
       }
     }
 
-    return SudokuLevels._(ladder, rows, bank, variants);
+    final transit = <int, Map<String, Object?>>{};
+    if (hasTransit) {
+      final tj = jsonDecode(await rootBundle.loadString(transitAsset)) as Map<String, Object?>;
+      for (final r in (tj['steps'] as List).cast<Map<String, Object?>>()) {
+        transit[(r['level'] as num).toInt()] = r;
+      }
+    }
+
+    final roadBoards = <SudokuRoad, Map<int, List<Map<String, Object?>>>>{};
+    if (hasRoads) {
+      final rj = jsonDecode(await rootBundle.loadString(_roadAsset)) as Map<String, Object?>;
+      for (final b in (rj['boards'] as List).cast<Map<String, Object?>>()) {
+        final road = sudokuRoadOf(b['road'] as String?);
+        if (road == null) continue;
+        ((roadBoards[road] ??= {})[(b['level'] as num).toInt()] ??= <Map<String, Object?>>[]).add(b);
+      }
+    }
+
+    return SudokuLevels._(ladder, rows, bank, variants, transit, roadBoards);
   }
+
+  /// Доски дорог для проб: сколько лежит на ступени у дороги.
+  int roadBoardsFor(int level, SudokuRoad road) => _roadBoards[road]?[level]?.length ?? 0;
 
   /// Ширина полосы банка — 0,1; ключом берём целое, чтобы не сравнивать дробные.
   static int _bandKey(double rating) => (rating * 10).round();
 
   int get lastLevel => _ladder.keys.reduce(max);
+
+  /// 🔴 СТУПЕНИ В ДРУГОЙ ИГРЕ И БОССЫ ПОСЛЕ СТУПЕНИ — СТРОКОЙ ДАННЫХ, КАК ОНА ЛЕЖИТ В ФАЙЛЕ
+  /// (`assets/levels/sudoku-ladder-transit.json`, план уровней v4, задача 4e3d3443).
+  ///
+  /// Строку разбирает `LadderTransit.levelOf` / `bossOf` (`lib/shell/level_transition.dart`):
+  /// форма одна на все лестницы, и второй разборщик здесь разошёлся бы с ней молча.
+  /// `null` — ступень своя, без босса.
+  ///
+  /// ⚠️ [lastLevel] этим НЕ растёт: первая ступень в другой игре — 145-я («Кошки»), а доски
+  /// 121–144 ещё не выгружены. Подними потолок раньше досок — победа на 120-й вела бы на
+  /// пустую ступень («досок нет»), а не на следующую игру.
+  Map<String, Object?>? transitRow(int level) => _transit[level];
+
+  /// Потолок до загрузки ступеней — только чтобы экран было чем рисовать первый кадр;
+  /// настоящий берётся из данных ([lastLevel]) сразу после загрузки.
+  static const fallbackLast = 999;
 
   SudokuLevel config(int level) =>
       _ladder[level.clamp(1, lastLevel)] ?? _ladder[1]!;
@@ -199,8 +259,10 @@ class SudokuLevels {
   }
 
   /// Доска уровня. `seed` задаёт выбор из полосы: одно и то же зерно — одна и та же доска.
-  SudokuBoard? boardFor(int level, {int seed = 0, int shift = 0}) {
+  /// [road] — дорога: на банке сдвиг полосы, на вариантной ступени — доски своей дороги.
+  SudokuBoard? boardFor(int level, {int seed = 0, int shift = 0, SudokuRoad road = defaultSudokuRoad}) {
     final cfg = config(level);
+    if (road != defaultSudokuRoad && shift == 0) shift = sudokuRoadShift(road);
     final rnd = Random(seed == 0 ? DateTime.now().microsecondsSinceEpoch : seed);
 
     if (cfg.fromBank) {
@@ -216,7 +278,8 @@ class SudokuLevels {
       );
     }
 
-    final pool = _variantBoards[level];
+    final own = road == defaultSudokuRoad ? null : _roadBoards[road]?[level];
+    final pool = (own != null && own.isNotEmpty) ? own : _variantBoards[level];
     if (pool == null || pool.isEmpty) return null;
     return _fromRow(level, pool[rnd.nextInt(pool.length)]);
   }
@@ -232,6 +295,7 @@ class SudokuLevels {
       puzzle: _parse(row['puzzle'] as String, n),
       solution: _parse(row['solution'] as String, n),
       geometry: BoardGeometry.fromJson((row['geometry'] as Map).cast<String, Object?>()),
+      geometryJson: (row['geometry'] as Map).cast<String, Object?>(),
       tier: (row['tier'] as num?)?.toInt(),
     );
   }

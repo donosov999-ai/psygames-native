@@ -45,7 +45,6 @@
  "lib/games/pattern/screen.dart": 23,
  "lib/games/picture_pairs/screen.dart": 5,
  "lib/games/puzzles/engine.dart": 1,
- "lib/games/puzzles/screen.dart": 8,
  "lib/games/quick_count/screen.dart": 26,
  "lib/games/roll_and_bank/model.dart": 4,
  "lib/games/samurai/screen.dart": 14,
@@ -71,8 +70,8 @@
  "lib/games/traffic_jam/model.dart": 8,
  "lib/main.dart": 16,
  "lib/shell/asset_server.dart": 1,
- "lib/shell/game_shell.dart": 4,
- "lib/shell/hub_screen.dart": 10,
+ "lib/shell/game_shell.dart": 2,
+ "lib/shell/hub_screen.dart": 9,
  "lib/shell/hybrid_app.dart": 8,
  "lib/shell/tap_latency.dart": 5,
  "lib/shell/web_game_screen.dart": 4
