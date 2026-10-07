@@ -585,7 +585,13 @@ export function levelConfig(level: number): LevelCfg {
     ? Math.min(24, 8 + lv * 3)                                   // L1..4 → 11,14,17,20
     : Math.min(58, 34 + (lv - 5));                               // L5+ → 34..58, без сбросов на границах правил
   const hintMax = lv <= 4 ? 3 : lv <= 8 ? 2 : 1;
-  return { size, N, BR, BC, blanks, variant, hintMax, lives: livesFor(lv) };
+  // Ось трудности ВНУТРИ блока у правил-подсказок — лимит копания (`digCap`, PR #258), а не число
+  // подсказок: замер раздела 07.10 — X-суммы 64 → 70 цена 129 → 151, малый киллер 145 → 159;
+  // к 76 насыщается (выкапывается не больше ~68). Ступени блока: 64 → 67 → 70 → 70.
+  const digCap = variant === 'littlekiller' || variant === 'xsums'
+    ? [64, 67, 70, 70][(lv - 1) % 4]
+    : undefined;
+  return { size, N, BR, BC, blanks, variant, hintMax, lives: livesFor(lv), ...(digCap ? { digCap } : {}) };
 }
 
 /**
