@@ -19,6 +19,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { useWarmup } from '@/src/contexts/WarmupContext';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import CategorySections from '@/src/components/CategorySections';
+import HomeCatalogSearch from '@/src/components/HomeCatalogSearch';
 import { показыватьБлок } from '@/src/constants/homeBlocks';
 import { FAB_CLEARANCE } from '@/src/services/fabPosition';
 import { favouriteCategories } from '@/src/services/favouriteCategories';
@@ -43,7 +44,6 @@ import {
   buildMorningWarmupPlaylist, buildEveningWarmupPlaylist, buildFixedPlaylist, getCurrentWeekday, loadWarmupHistory, computeStreak, WarmupHistoryEntry,
   currentSlot, WarmupSlot,
 } from '@/src/services/warmup';
-import WhatsNewModal from '@/src/components/WhatsNewModal';
 import { checkForUpdateDaily, updateUrl } from '@/src/services/appUpdates';
 import { Linking } from 'react-native';
 import { getUnlocked } from '@/src/services/achievements';
@@ -903,7 +903,6 @@ function FullHome() {
       </View>
 
       {/* v1.148: «Что нового» после обновления — один раз при росте версии */}
-      <WhatsNewModal />
 
       {/* Profile switcher modal — открывается чипом или 👤 кнопкой */}
       <ProfileSwitcherModal visible={switcherOpen} onClose={() => setSwitcherOpen(false)} />
@@ -928,6 +927,7 @@ function FullHome() {
           if (savedHomeScrollY > 0) homeScrollRef.current?.scrollTo({ y: savedHomeScrollY, animated: false });
         }}
       >
+        <HomeCatalogSearch />
         {/*
           Ближайшая дверь. Стоит ПЕРЕД «продолжить игру»: это не действие, а
           обещание, и читается оно до того, как рука ушла в игру. Пропадает само,

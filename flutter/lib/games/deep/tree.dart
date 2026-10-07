@@ -78,6 +78,10 @@ class DeepPick {
   final double rating;
 }
 
+/// Сторона портала у листа (`portals.dart`): своя портальная клетка, снятая подсказка,
+/// лист-партнёр и его клетка, общая цифра.
+typedef DeepPortalSide = ({List<int> cell, List<int> drop, String partnerPath, List<int> partnerCell, int digit});
+
 /// Полный узел: то же плюс решение.
 class DeepNode extends DeepPick {
   const DeepNode({
@@ -88,9 +92,13 @@ class DeepNode extends DeepPick {
     required super.feedCells,
     required super.rating,
     required this.solution,
+    this.portal,
   });
 
   final List<List<int>> solution;
+
+  /// Лист — сторона портала (подсказка уже снята, порог пересчитан); иначе null.
+  final DeepPortalSide? portal;
 }
 
 // ─────────────────────────── путь ───────────────────────────

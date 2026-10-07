@@ -77,7 +77,7 @@ export default function SettingsScreen() {
 }
 
 function SettingsScreenBody() {
-  const { colors, isDark, toggleTheme, colorblind, setColorblind } = useTheme();
+  const { colors, isDark, themeMode, setThemeMode, colorblind, setColorblind } = useTheme();
   const { t, language, setLanguage } = useLanguage();
   const {
     profile, switchProfile, allProfiles,
@@ -743,16 +743,21 @@ function SettingsScreenBody() {
               color={colors.primary}
             />
             <Text style={[styles.settingLabel, { color: colors.text }]}>
-              {t('darkTheme')}
+              {t('theme_selection')}
             </Text>
           </View>
-          <Switch
-            accessibilityLabel={t('darkTheme')}
-            value={isDark}
-            onValueChange={toggleTheme}
-            trackColor={{ false: colors.border, true: colors.primary }}
-            thumbColor="#FFFFFF"
-          />
+        </View>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
+          {(['light', 'dark', 'system', 'profile'] as const).map(mode => (
+            <TouchableOpacity key={mode} accessibilityRole="radio"
+              accessibilityState={{ selected: themeMode === mode }}
+              onPress={() => setThemeMode(mode)}
+              style={{ padding: 12, borderRadius: 12, borderWidth: 2,
+                borderColor: themeMode === mode ? colors.primary : colors.border,
+                backgroundColor: colors.surface }}>
+              <Text style={{ color: colors.text }}>{t(`theme_${mode}`)}</Text>
+            </TouchableOpacity>
+          ))}
         </View>
 
         {/* Sound */}

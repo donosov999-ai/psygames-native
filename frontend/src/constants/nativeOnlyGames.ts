@@ -1,4 +1,4 @@
-/* psygames-native-only-games · VER 2 · 02.10.2026 */
+/* psygames-native-only-games · VER 3 · 02.10.2026 */
 /**
  * ИГРЫ ТОЛЬКО С НАТИВНЫМ ЭКРАНОМ — БЕЗ ВЕБ-ДВОЙНИКА.
  *
@@ -49,6 +49,8 @@ export const NATIVE_ONLY_GAMES: readonly NativeOnlyGame[] = [
   { route: '/games/solitaire-chess', nameKey: 'solitaireChess', descKey: 'solitaireChessDesc' },
   // «Шахматы», новая игра 3 из 7 (задача 39ad8924): «Восемь ферзей» и «Обход конём» одним экраном.
   { route: '/games/knights-queens', nameKey: 'knightsQueens', descKey: 'knightsQueensDesc' },
+  // «Судоку для малышей» (раздел «Судоку», #160; задача d87a4605): 4×4 и 6×6 со зверями — только натив.
+  { route: '/games/sudoku?mode=junior', nameKey: 'sudokuJuniorTitle', descKey: 'sudokuSkinAnimals' },
 ];
 
 export const NATIVE_ONLY_ROUTES: readonly string[] = NATIVE_ONLY_GAMES.map((g) => g.route);

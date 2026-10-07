@@ -134,11 +134,55 @@ const int _maxDepth = 500;
 ///
 /// ⚠️ БЮДЖЕТ ВАЖНЕЕ, ЧЕМ КАЖЕТСЯ. Перебор без потолка на плотной доске уходит в
 /// минуты, а человек ждёт. Упёрлись — честно говорим `exhausted`, а не «нет».
+///
+/// [behind] — положения, где партия УЖЕ побывала (история ходов экрана).
+///
+/// 🔴 БЕЗ НИХ ПОДСКАЗКА ОТМЕНЯЕТ САМА СЕБЯ. Перебор каждый раз начинается с
+/// чистого листа, и ход «вернуть товар туда, откуда его взяли» у него в
+/// почёте: это укладка на свой вид, второй по рангу ход после тройки. Из
+/// положения, где партия только что была, решение находится снова — и
+/// перебор отдаёт путь, начатый с отката. Замер 02.10.2026, задача 978b07b4:
+/// цепочка «ход = голова свежего решения» на всех 720 уровнях (шесть наборов ×
+/// две лестницы) дошла до победы на 155, а на 549 зациклилась туда-обратно.
+/// Поэтому пройденное сначала исключается из перебора.
+///
+/// ⚠️ ИСКЛЮЧАЕТСЯ ПРЕДПОЧТИТЕЛЬНО, А НЕ НАВСЕГДА. Если человек зашёл в тупик,
+/// вернуться — единственный путь, и молчать о нём было бы хуже отката. Не
+/// нашлось пути мимо пройденного — перебор повторяется без запрета.
+///
+/// [lastMove] — ход, которым партия пришла в [start]. Ход ровно обратный ему
+/// перебор пробует ПОСЛЕДНИМ — и на первом шаге, и внутри пути. Запрета на
+/// пройденное тут мало: замок тикает с каждым ходом, заслон снимается тройкой
+/// по соседству, и тот же товар, вернувшийся на место, даёт уже ДРУГОЕ
+/// положение. Замер того же дня с одним запретом: на 120 уровнях «Микса» (обе
+/// лестницы) осталось 9 переносов того же товара туда и обратно, и в каждом из
+/// девяти путь без обратного хода находился за 28–93 узла.
 GoodsSolve solveStrict(
   GoodsPlay start, {
   int budget = 20000,
   bool Function(GoodsPlay)? done,
+  Iterable<GoodsPlay> behind = const [],
+  GoodsMove? lastMove,
 }) {
+  if (behind.isEmpty) return _solveStrict(start, budget, done, const [], lastMove);
+  final ahead = _solveStrict(start, budget, done, behind, lastMove);
+  if (ahead.solvable) return ahead;
+  final any = _solveStrict(start, budget, done, const [], lastMove);
+  return GoodsSolve(
+    solvable: any.solvable,
+    exhausted: any.exhausted,
+    path: any.path,
+    nodes: ahead.nodes + any.nodes,
+  );
+}
+
+GoodsSolve _solveStrict(
+  GoodsPlay start,
+  int budget,
+  bool Function(GoodsPlay)? done,
+  Iterable<GoodsPlay> behind,
+  GoodsMove? lastMove,
+) {
   final seen = <String>{};
   final path = <GoodsMove>[];
   var nodes = 0;
@@ -156,6 +200,14 @@ GoodsSolve solveStrict(
   final types = _buildTypeMap(from0.board);
   bool reached(GoodsPlay p) => done != null ? done(p) : p.won;
 
+  // Пройденное — как уже осмотренное. Корень исключается: человек мог отменой
+  // вернуться туда, где уже стоял, и запрет на корень оборвал бы перебор сразу.
+  final root = _stateKey(from0, types);
+  for (final p in behind) {
+    final key = _stateKey(p, types);
+    if (key != root) seen.add(key);
+  }
+
   bool walk(GoodsPlay play, int depth) {
     if (reached(play)) return true;
     if (depth >= _maxDepth) {
@@ -171,6 +223,7 @@ GoodsSolve solveStrict(
     seen.add(key);
 
     final board = play.board;
+    final last = path.isNotEmpty ? path.last : lastMove;
 
     // СИММЕТРИЯ ПУСТЫХ НИШ: две пустые ниши одной ёмкости неразличимы, и
     // считать их разными ветками значит раздувать ветвление во столько раз,
@@ -227,7 +280,10 @@ GoodsSolve solveStrict(
         for (final t in dst) {
           if (t == type) sameCount += 1;
         }
-        final rank = sameCount + 1 >= kTriple ? 0 : (dst.isNotEmpty ? 1 : 2);
+        var rank = sameCount + 1 >= kTriple ? 0 : (dst.isNotEmpty ? 1 : 2);
+        // Обратный ход — последним (см. `lastMove`). Тройку не трогаем: ход,
+        // который её складывает, хорош при любом прошлом.
+        if (rank > 0 && last != null && from == last.to && to == last.from) rank = 3;
         moves.add((from: from, to: to, rank: rank));
       }
     }
@@ -257,8 +313,13 @@ GoodsSolve solveStrict(
 /// 🔴 В ВЕБЕ ПРЕЖНЯЯ ПОДСКАЗКА НАЗЫВАЛА ХОДЫ, КОТОРЫЕ ИГРА ОТВЕРГАЛА: она не
 /// знала ни строгой укладки, ни ёмкостей, и замер 22.08.2026 дал от 29 до 91 %
 /// незаконных подсказок. Здесь ход берётся из настоящего решения.
-GoodsMove? hintMove(GoodsPlay play, {int budget = 20000}) =>
-    solveStrict(play, budget: budget).firstMove;
+GoodsMove? hintMove(
+  GoodsPlay play, {
+  int budget = 20000,
+  Iterable<GoodsPlay> behind = const [],
+  GoodsMove? lastMove,
+}) =>
+    solveStrict(play, budget: budget, behind: behind, lastMove: lastMove).firstMove;
 
 /// Есть ли ход вообще — распознавание тупика.
 ///

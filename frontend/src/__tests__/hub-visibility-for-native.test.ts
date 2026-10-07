@@ -5,7 +5,7 @@
  * натива считает `hubVisibility` (кладётся в `psygames_hub_visible`); проба сверяет его
  * со значком по КАЖДОМУ профилю и КАЖДОЙ развилке.
  */
-import { GAMES } from '@/src/constants/games';
+import { GAMES, visibleInCatalog } from '@/src/constants/games';
 import { PROFILES, filterAllowedGames } from '@/src/constants/profiles';
 import { hubBadgeCount, HUB_CONTENTS } from '@/src/constants/hubContents';
 import { hubVisibility, HUB_VISIBLE_KEY } from '@/src/services/hubVisibility';
@@ -23,6 +23,15 @@ describe('состав развилок для нативной половины
     expect(v.profile).toBe(p.id);
     const можно = new Set(filterAllowedGames(p).map((g) => g.route));
     for (const route of hubs) expect([route, v.hubs[route]?.length]).toEqual([route, hubBadgeCount(route, можно)]);
+  });
+
+  it.each(PROFILES.map((p) => [p.id, p] as const))('%s: каталог для натива = список вкладки «Игры»', (_id, p) => {
+    expect(hubVisibility(p).catalog).toEqual(visibleInCatalog(filterAllowedGames(p), p.id).map((g) => g.id));
+  });
+
+  it('каталог тоже режется профилем: хоть у одного профиля он короче соседнего', () => {
+    const lens = new Set(PROFILES.map((p) => hubVisibility(p).catalog.length));
+    expect(lens.size).toBeGreaterThan(1);
   });
 
   it('правило профиля РЕАЛЬНО режет: хоть у одного профиля развилка короче заводской', () => {
