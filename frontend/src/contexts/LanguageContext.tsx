@@ -3519,6 +3519,7 @@ const translations: Translations = {
   sudokuVariantLockout: { ru: '🔷 замок', en: '🔷 lockout' },
   sudokuVariantXv: { ru: '✖ XV', en: '✖ XV' },
   sudokuVariantArgyle: { ru: '◇ аргайл', en: '◇ argyle' },
+  sudokuVariantLittlekiller: { ru: '↘ малый киллер', en: '↘ little killer' },
   sudokuVariantArrow: { ru: '➳ стрелка', en: '➳ arrow' },
   sudokuVariantThermocage: { ru: '🌡+ сумма', en: '🌡+ cage' },
   sudokuVariantTowers: { ru: '🏙 небоскрёбы', en: '🏙 towers' },
@@ -3569,6 +3570,7 @@ const translations: Translations = {
   sudokuRuleLockout: { ru: 'Цифры в ромбах на концах линии отличаются минимум на 4, а цифры линии не равны им и не лежат между ними.', en: 'Digits in the diamonds at the ends differ by at least 4; line digits are neither equal to them nor between them.' },
   sudokuRuleXv: { ru: 'X между клетками — сумма 10, V — сумма 5. Показаны все: без знака сумма соседей не 5 и не 10.', en: 'X between cells means they sum to 10, V means 5. All are shown: unmarked neighbours never sum to 5 or 10.' },
   sudokuRuleArgyle: { ru: 'Пунктиром отмечены восемь коротких диагоналей узора «ромб»: ни на одной цифры не повторяются.', en: 'Eight short diagonals of the diamond pattern are dashed: digits never repeat along any of them.' },
+  sudokuRuleLittlekiller: { ru: 'Число со стрелкой снаружи доски — сумма цифр на диагонали, куда смотрит стрелка. Цифры на этой диагонали могут повторяться.', en: 'A number with an arrow outside the grid is the sum of the digits along the diagonal it points to. Digits may repeat along that diagonal.' },
   // Нативные экраны раздела «Судоку» (Flutter): полоса счётчиков, кнопки, имена правил без значков.
   sdkHudStage: { ru: 'Ступень', en: 'Stage' },
   sdkNextLevel: { ru: 'Следующий уровень', en: 'Next level' },
@@ -3611,6 +3613,7 @@ const translations: Translations = {
   sdkRule_lockout: { ru: 'замок', en: 'lockout' },
   sdkRule_xv: { ru: 'XV', en: 'XV' },
   sdkRule_argyle: { ru: 'аргайл', en: 'argyle' },
+  sdkRule_littlekiller: { ru: 'малый киллер', en: 'little killer' },
   // Части имён ступеней Тэтхэма для нативной полосы «Доска» ({n} — число или размер).
   tathamDiffEasy: { ru: 'лёгкая', en: 'easy' },
   tathamDiffNormal: { ru: 'обычная', en: 'normal' },

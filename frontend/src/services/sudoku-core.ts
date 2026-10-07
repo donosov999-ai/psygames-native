@@ -11,7 +11,7 @@
 import { translateFor } from '../contexts/LanguageContext';
 
 export type Cell = number; // 0 = empty
-export type Variant = 'none' | 'diagonal' | 'antiknight' | 'hyper' | 'nonconsec' | 'jigsaw' | 'antiking' | 'evenodd' | 'kropki' | 'sandwich' | 'thermo' | 'arrow' | 'thermocage' | 'unequal' | 'towers' | 'sandparity' | 'thermoknight' | 'killerdiag' | 'whisper' | 'renban' | 'regionsum' | 'palindrome' | 'between' | 'lockout' | 'xv' | 'argyle' | 'friends';
+export type Variant = 'none' | 'diagonal' | 'antiknight' | 'hyper' | 'nonconsec' | 'jigsaw' | 'antiking' | 'evenodd' | 'kropki' | 'sandwich' | 'thermo' | 'arrow' | 'thermocage' | 'unequal' | 'towers' | 'sandparity' | 'thermoknight' | 'killerdiag' | 'whisper' | 'renban' | 'regionsum' | 'palindrome' | 'between' | 'lockout' | 'xv' | 'argyle' | 'littlekiller' | 'friends';
 // 'friends' — «Мяу — друзья» 9×9 (у кота мышь рядом): генератора на TS нет, доски ступеней — только
 // выгрузкой MindLab (flutter/tools/meow9-ladder.cjs, export_kids_boards.py --meow9).
 
@@ -64,6 +64,76 @@ export function argyleSegments(N = 9): [number, number, number, number][] {
   return out;
 }
 
+/**
+ * 🔴 МАЛЫЙ КИЛЛЕР (пункт 8 цепочки «14 усложнений», задача 2dddd227; решение Дениса 30.09 «Берём»).
+ * Число снаружи доски со стрелкой — сумма цифр на диагонали, куда смотрит стрелка. Цифры на такой
+ * диагонали МОГУТ повторяться (если их не запрещают строка, столбец и блок) — сверено 07.10 по трём
+ * языкам: sudokustreak.com/en/types/little-killer, sudoku.by/little-killer, zhuanlan.zhihu.com/p/667286724
+ * («箭头对角线上数字可以重复»).
+ * Подсказки смотрят только ВНИЗ: ↘ с верхнего и левого поля, ↙ с верхнего и правого. Поле под доской
+ * не нужно, и одно гнездо поля держит не больше одной подсказки. Диагонали короче трёх клеток не
+ * берём: одна клетка — это данная цифра, две — почти она.
+ * (r, c) — первая клетка диагонали у края, (dr, dc) — шаг внутрь.
+ */
+export type LittleKillerClue = { r: number; c: number; dr: 1; dc: 1 | -1; sum: number };
+/** Сколько диагоналей показать. Порядок величины — как у сборников (8–12); точное число — замер. */
+export const LITTLE_KILLER_CLUES = 10;
+
+/** Лежит ли клетка на диагонали подсказки. */
+export function onLittleKiller(k: LittleKillerClue, r: number, c: number): boolean {
+  return r >= k.r && (k.dc === 1 ? r - c === k.r - k.c : r + c === k.r + k.c);
+}
+
+/** Клетки диагонали подсказки — от края внутрь. */
+export function littleKillerCells(k: LittleKillerClue, N: number): [number, number][] {
+  const out: [number, number][] = [];
+  for (let r = k.r, c = k.c; r >= 0 && r < N && c >= 0 && c < N; r += k.dr, c += k.dc) out.push([r, c]);
+  return out;
+}
+
+/** Гнездо подсказки в поле: сторона и номер (у верхнего поля −1 и N — углы). */
+export function littleKillerSlot(k: LittleKillerClue): { side: 'top' | 'left' | 'right'; i: number } {
+  if (k.r === 0) return { side: 'top', i: k.c - k.dc };
+  return k.dc === 1 ? { side: 'left', i: k.r - 1 } : { side: 'right', i: k.r - 1 };
+}
+
+/** Подсказки из решения: `count` случайных диагоналей длиной от 3, по одной на гнездо. */
+export function littleKillerFromSolution(sol: Cell[][], N: number, count = LITTLE_KILLER_CLUES): LittleKillerClue[] {
+  const all: LittleKillerClue[] = [];
+  for (let c = 0; c <= N - 3; c++) all.push({ r: 0, c, dr: 1, dc: 1, sum: 0 });        // ↘ с верха
+  for (let r = 1; r <= N - 3; r++) all.push({ r, c: 0, dr: 1, dc: 1, sum: 0 });        // ↘ слева
+  for (let c = 2; c < N; c++) all.push({ r: 0, c, dr: 1, dc: -1, sum: 0 });            // ↙ с верха
+  for (let r = 1; r <= N - 3; r++) all.push({ r, c: N - 1, dr: 1, dc: -1, sum: 0 });   // ↙ справа
+  const taken = new Set<string>();
+  const out: LittleKillerClue[] = [];
+  for (const k of shuffle(all)) {
+    if (out.length >= count) break;
+    const s = littleKillerSlot(k);
+    if (taken.has(s.side + s.i)) continue;
+    taken.add(s.side + s.i);
+    out.push({ ...k, sum: littleKillerCells(k, N).reduce((t, [r, c]) => t + sol[r][c], 0) });
+  }
+  return out;
+}
+
+/**
+ * Не спорит ли цифра `n` в (r, c) с суммами диагоналей — по ИЗВЕСТНЫМ цифрам: известные плюс по
+ * единице на каждую пустую не больше суммы, известные плюс по N на пустую — не меньше. Повтор цифр
+ * на диагонали разрешён, поэтому других ограничений у правила нет.
+ */
+export function littleKillerOk(grid: Cell[][], r: number, c: number, n: number, clues: LittleKillerClue[], N: number): boolean {
+  for (const k of clues) {
+    if (!onLittleKiller(k, r, c)) continue;
+    let s = 0, e = 0;
+    for (const [i, j] of littleKillerCells(k, N)) {
+      const v = i === r && j === c ? n : grid[i][j];
+      if (v === 0) e++; else s += v;
+    }
+    if (s + e > k.sum || s + N * e < k.sum) return false;
+  }
+  return true;
+}
+
 export function inHyper(r: number, c: number): readonly [number, number] | null {
   for (const [hr, hc] of HYPER_BOXES) if (r >= hr && r < hr + 3 && c >= hc && c < hc + 3) return [hr, hc];
   return null;
@@ -87,6 +157,7 @@ const VARIANT_KEY_SUFFIX: Record<Exclude<Variant, 'none' | 'friends'>, string> =
   lockout: 'Lockout',
   xv: 'Xv',
   argyle: 'Argyle',
+  littlekiller: 'Littlekiller',
 };
 // «Мяу — друзья»: имя и правило — одна короткая строка «🐱 рядом с 🐭», та же, что у натива
 // (sdkRule_friends, 12 языков); отдельных sudokuVariant*/sudokuRule* у варианта нет.
@@ -1407,6 +1478,8 @@ export interface Overlays {
   lockout?: ThermoPN;
   /** XV: знаки на гранях (1 = V, сумма 5; 2 = X, сумма 10); показаны все. */
   xv?: XvMap;
+  /** Малый киллер: суммы диагоналей по стрелкам снаружи доски. */
+  littlekiller?: LittleKillerClue[];
 }
 
 /** Полные оверлеи из решения — до прореживания. */
@@ -1456,6 +1529,9 @@ export function overlaysFromSolution(sol: Cell[][], N: number, variant: Variant)
   }
   if (variant === 'xv') {
     return { xv: xvFromSolution(sol, N) };
+  }
+  if (variant === 'littlekiller') {
+    return { littlekiller: littleKillerFromSolution(sol, N) };
   }
   if (variant === 'lockout') {
     return { lockout: lockoutFromSolution(sol, N) };
@@ -1543,6 +1619,7 @@ export function overlayOk(grid: Cell[][], r: number, c: number, n: number, N: nu
   if (ov.between && !betweenOk(grid, r, c, n, ov.between)) return false;   // линия — показанная подсказка
   if (ov.lockout && !lockoutOk(grid, r, c, n, ov.lockout)) return false;   // линия — показанная подсказка
   if (ov.xv && !xvOk(grid, r, c, n, ov.xv, N)) return false;   // знаки и их отсутствие — подсказка
+  if (ov.littlekiller && !littleKillerOk(grid, r, c, n, ov.littlekiller, N)) return false;   // суммы диагоналей — подсказка
   if (ov.sandwich) {
     const check = (line: number[], want: number): boolean => {
       if (want < 0) return true;                                      // сумма СПРЯТАНА (см. thinSandwich) — не подсказка
@@ -1599,7 +1676,7 @@ export function countSolutions(grid: Cell[][], N: number, BR: number, BC: number
 // thermocage здесь ОБЯЗАН быть: единственность решения у него считается по ДВУМ
 // правилам сразу (isValid знает и цепочку, и сумму). Доска, единственная по каждому
 // правилу порознь, вместе может иметь второе решение — и наоборот.
-const UNIQUE_CHECKED: readonly Variant[] = ['none', 'diagonal', 'antiknight', 'hyper', 'nonconsec', 'antiking', 'jigsaw', 'thermo', 'arrow', 'evenodd', 'kropki', 'sandwich', 'thermocage', 'unequal', 'towers', 'sandparity', 'thermoknight', 'killerdiag', 'whisper', 'renban', 'regionsum', 'palindrome', 'between', 'lockout', 'xv', 'argyle'];
+const UNIQUE_CHECKED: readonly Variant[] = ['none', 'diagonal', 'antiknight', 'hyper', 'nonconsec', 'antiking', 'jigsaw', 'thermo', 'arrow', 'evenodd', 'kropki', 'sandwich', 'thermocage', 'unequal', 'towers', 'sandparity', 'thermoknight', 'killerdiag', 'whisper', 'renban', 'regionsum', 'palindrome', 'between', 'lockout', 'xv', 'argyle', 'littlekiller'];
 
 /**
  * Готовая сетка для «несоседних чисел» — БЕЗ перебора.
@@ -1628,7 +1705,7 @@ export function buildNonconsecSolution(): Cell[][] {
   return g;
 }
 
-export function generatePuzzle(blanks: number, N: number, BR: number, BC: number, variant: Variant = 'none', thin?: (ov: Overlays) => Overlays): { puzzle: Cell[][]; solution: Cell[][]; regions?: number[][]; parity?: number[][]; kropki?: { h: number[][]; v: number[][] }; sandwich?: { rows: number[]; cols: number[] }; thermo?: ThermoPN; arrow?: ArrowMap; cages?: CageMap; unequal?: UnequalMap; towers?: TowersMap; whisper?: ThermoPN; renban?: ThermoPN; regionsum?: ThermoPN; palindrome?: ThermoPN; between?: ThermoPN; lockout?: ThermoPN; xv?: XvMap } {
+export function generatePuzzle(blanks: number, N: number, BR: number, BC: number, variant: Variant = 'none', thin?: (ov: Overlays) => Overlays): { puzzle: Cell[][]; solution: Cell[][]; regions?: number[][]; parity?: number[][]; kropki?: { h: number[][]; v: number[][] }; sandwich?: { rows: number[]; cols: number[] }; thermo?: ThermoPN; arrow?: ArrowMap; cages?: CageMap; unequal?: UnequalMap; towers?: TowersMap; whisper?: ThermoPN; renban?: ThermoPN; regionsum?: ThermoPN; palindrome?: ThermoPN; between?: ThermoPN; lockout?: ThermoPN; xv?: XvMap; littlekiller?: LittleKillerClue[] } {
   const sol: Cell[][] = Array.from({ length: N }, () => Array(N).fill(0));
   let regions: number[][] | undefined;
   let thermo: ThermoPN | undefined;
@@ -1726,7 +1803,8 @@ export function generatePuzzle(blanks: number, N: number, BR: number, BC: number
   const between = ov.between;
   const lockout = ov.lockout;
   const xv = ov.xv;
-  return { puzzle, solution: sol, regions, parity, kropki, sandwich, thermo, arrow, cages, unequal, towers, whisper, renban, regionsum, palindrome, between, lockout, xv };
+  const littlekiller = ov.littlekiller;
+  return { puzzle, solution: sol, regions, parity, kropki, sandwich, thermo, arrow, cages, unequal, towers, whisper, renban, regionsum, palindrome, between, lockout, xv, littlekiller };
 }
 
 /**
@@ -1765,6 +1843,7 @@ export interface RejectionContext {
   between?: ThermoPN;
   lockout?: ThermoPN;
   xv?: XvMap;
+  littlekiller?: LittleKillerClue[];
 }
 
 export function rejectionReason(
@@ -1804,7 +1883,7 @@ export function rejectionReason(
       && overlayOk(test, r, c, n, N, {
         parity: ctx.parity, kropki: ctx.kropki, sandwich: ctx.sandwich, unequal: ctx.unequal, towers: ctx.towers,
         whisper: ctx.whisper, renban: ctx.renban, regionsum: ctx.regionsum, palindrome: ctx.palindrome,
-        between: ctx.between, lockout: ctx.lockout, xv: ctx.xv,
+        between: ctx.between, lockout: ctx.lockout, xv: ctx.xv, littlekiller: ctx.littlekiller,
       });
     if (!ruleOk) return variant !== 'none' ? variantRule(variant, lang) : translateFor(lang, 'sudokuKillerRule');
   }
