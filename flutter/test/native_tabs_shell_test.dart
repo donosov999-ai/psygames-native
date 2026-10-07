@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -11,6 +12,7 @@ import 'package:psygames_flutter/shell/hybrid_app.dart';
 import 'package:psygames_flutter/shell/level_rules.dart';
 import 'package:psygames_flutter/shell/native_tabs.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
+import 'package:psygames_flutter/shell/walking_pet.dart';
 import 'package:psygames_flutter/shell/web_game_screen.dart';
 import 'package:psygames_flutter/shell/web_theme.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -62,6 +64,10 @@ class RecController extends wv.PlatformWebViewController {
   RecController(super.params) : super.implementation();
   final channels = <String, void Function(wv.JavaScriptMessage)>{};
   final js = <String>[];
+
+  /// Ответы веб-питомца на вопросы моста (`__psyPet.ask`); `null` — моста на странице нет.
+  Map<String, Object? Function(Object? arg)>? pet;
+  final petAsked = <String>[];
   void emit(String channel, Map<String, Object?> message) =>
       channels[channel]?.call(wv.JavaScriptMessage(message: jsonEncode(message)));
   @override
@@ -81,9 +87,21 @@ class RecController extends wv.PlatformWebViewController {
   @override
   Future<void> clearLocalStorage() async {}
   @override
-  Future<void> runJavaScript(String javaScript) async => js.add(javaScript);
+  Future<void> runJavaScript(String javaScript) async {
+    js.add(javaScript);
+    final m = RegExp(r'__psyPet\.ask\(("[^"]*"), ("[^"]*"), (.*)\);$').firstMatch(javaScript);
+    if (m != null && pet != null) {
+      final id = jsonDecode(m.group(1)!) as String;
+      final op = jsonDecode(m.group(2)!) as String;
+      petAsked.add(op);
+      final data = pet![op]?.call(jsonDecode(m.group(3)!));
+      emit(SharedState.channel, {'op': 'petAnswer', 'id': id, 'data': data});
+    }
+  }
+
   @override
-  Future<Object> runJavaScriptReturningResult(String javaScript) async => 'null';
+  Future<Object> runJavaScriptReturningResult(String javaScript) async =>
+      javaScript.contains('__psyPet') && pet != null ? true : 'null';
 }
 
 class RecDelegate extends wv.PlatformNavigationDelegate {
@@ -105,6 +123,9 @@ void main() {
 
   setUp(() async {
     resetHarnessSingletons();
+    PetBridge.reset();
+    WalkingPet.lastX = null;
+    WalkingPet.randomForTest = null;
     SharedPreferences.setMockInitialValues({});
     state = await SharedState.open();
     await GameRules.load();
@@ -315,4 +336,143 @@ void main() {
         const Offset(390 - 6 - 48, 844 - 6 - 48));
     expect(FabRules.readSpot('{"fx":"5","fy":1}'), isNull, reason: 'мусор — «не сохранено»');
   });
+
+  /// Веб-питомец страницы: облик кота с вещью на нулевом кадре, реплики и встреча.
+  Map<String, Object? Function(Object? arg)> petPage({bool visible = true, Object? first, Object? line}) => {
+        'config': (_) => {
+              'visible': visible,
+              'size': 56,
+              'skin': 'cat',
+              'specs': {
+                for (final st in ['idle', 'walk', 'wave', 'jump', 'celebrate', 'sleepcurl', 'yawn'])
+                  st: {
+                    'kind': 'frames',
+                    'uris': ['/assets/assets/images/pet/cat/${st}0.h.webp', '/assets/assets/images/pet/cat/${st}1.h.webp'],
+                    'frames': 2,
+                    'tickMs': 300,
+                    'accessory': {
+                      'uri': '/assets/assets/images/pet/accessories/hat.h.png',
+                      'boxes': [
+                        {'left': 0.27, 'top': -0.2, 'size': 0.46},
+                        null,
+                      ],
+                    },
+                  },
+              },
+              'cycles': {'yawn': 1820, 'sleepcurl': 2480},
+              'fidgets': ['yawn'],
+              'sleepPoses': ['sleepcurl'],
+              'walk': {
+                'size': 56, 'speed': 34, 'pauseMin': 3000, 'pauseSpan': 5000, 'speechMin': 20000,
+                'speechSpan': 20000, 'speechShow': 4000, 'firstSpeechMin': 4000, 'firstSpeechSpan': 4000,
+                'greetShow': 6000,
+              },
+            },
+        'first': (_) => first,
+        'line': (_) => line ?? {'text': 'Мяу'},
+        'petted': (_) => {'text': 'Мур'},
+        'coach': (skill) => '/games/one-line',
+      };
+
+  Future<void> petMount(WidgetTester t, Map<String, Object? Function(Object? arg)> answers) async {
+    await mount(t);
+    page().pet = answers;
+    await toGames(t);
+    await t.pump(const Duration(milliseconds: 50));
+  }
+
+  testWidgets('🔴 на нативной вкладке гуляет питомец: облик и кадры — от веба, над полосой', (t) async {
+    await petMount(t, petPage());
+    final pet = find.byKey(const ValueKey('walking-pet-body'));
+    expect(pet, findsOneWidget);
+    expect(page().petAsked.first, 'config');
+    final img = t.widget<Image>(find.descendant(of: pet, matching: find.byType(Image)).first);
+    expect((img.image as NetworkImage).url, '${server.origin}/assets/assets/images/pet/cat/idle0.h.webp',
+        reason: 'кадр — адрес веб-сборки с хешем, а не придуманное имя');
+    final r = t.getRect(pet);
+    expect(r.size, const Size(56, 56));
+    expect(r.bottom, 844 - 6 - 58, reason: 'над полосой вкладок на 6, как BOTTOM_BAR_LIFT веба');
+    // Вещь — на месте нулевого кадра, в долях размера.
+    expect(t.getRect(find.byKey(const ValueKey('pet-accessory'))).topLeft,
+        Offset(r.left + 0.27 * 56, r.top - 0.2 * 56));
+    // Нет на веб-вкладке.
+    await t.tap(find.byKey(const ValueKey('native-tab-/statistics')));
+    await t.pump();
+    expect(find.byKey(const ValueKey('walking-pet-body')), findsNothing);
+  });
+
+  testWidgets('🔴 питомец гуляет: через 1,2 с идёт, мордой по ходу, и приходит в полосу 10–90 %', (t) async {
+    await petMount(t, petPage());
+    final x0 = t.getRect(find.byKey(const ValueKey('walking-pet-body'))).left;
+    await t.pump(const Duration(milliseconds: 1300));
+    expect(find.byKey(const ValueKey('pet-frames-walk')), findsOneWidget, reason: 'в пути — кадры ходьбы');
+    await t.pump(const Duration(seconds: 12));
+    final x1 = t.getRect(find.byKey(const ValueKey('walking-pet-body'))).left;
+    expect(x1, isNot(x0));
+    expect(x1 >= 390 * 0.10 - 0.5 && x1 <= 390 * 0.90 - 56 + 0.5, isTrue, reason: 'x=$x1');
+  });
+
+  testWidgets('🔴 встреча от веба доходит до пузыря и не повторяется при новом заходе', (t) async {
+    // Ноль — самая ранняя болтовня (4-я секунда), то есть ВНУТРИ окна встречи 1,3–7,3 с.
+    WalkingPet.randomForTest = _Zero();
+    await petMount(t, petPage(first: {'state': 'wave', 'text': 'Серия 4, до цели 26', 'showMs': 6000}));
+    await t.pump(const Duration(milliseconds: 1400));
+    expect(find.text('Серия 4, до цели 26'), findsOneWidget);
+    // Болтовня (4–8 с) встречу не затирает: она держится свои 6 с.
+    await t.pump(const Duration(seconds: 5));
+    expect(find.text('Серия 4, до цели 26'), findsOneWidget);
+    await t.pump(const Duration(seconds: 2));
+    expect(find.text('Серия 4, до цели 26'), findsNothing);
+    await t.tap(find.byKey(const ValueKey('native-tab-/')));
+    await t.pump();
+    await toGames(t);
+    await t.pump(const Duration(seconds: 2));
+    expect(page().petAsked.where((o) => o == 'first').length, 1, reason: 'встреча — раз за запуск');
+  });
+
+  testWidgets('тап — экран питомца тем же router.push; тренерский пузырь — игра слабой шкалы', (t) async {
+    await petMount(t, petPage(line: {'text': 'Память отстаёт — сыграем?', 'skill': 'memory'}));
+    await t.tap(find.byKey(const ValueKey('walking-pet-body')));
+    await t.pump(const Duration(milliseconds: 500));
+    expect(page().js.any((s) => s.contains('__psyPush("/pet")')), isTrue);
+
+    // Первая болтовня — на 4–8 с и держится 4 с: идём по полсекунды, пока не появится.
+    for (var i = 0; i < 20 && find.text('Память отстаёт — сыграем?').evaluate().isEmpty; i++) {
+      await t.pump(const Duration(milliseconds: 500));
+    }
+    expect(find.text('Память отстаёт — сыграем?'), findsOneWidget);
+    await t.tap(find.byKey(const ValueKey('walking-pet-bubble')));
+    await settle(t, () => find.byType(OneLineScreen).evaluate().isNotEmpty);
+    expect(page().petAsked, contains('coach'));
+    expect(find.byType(OneLineScreen), findsOneWidget, reason: 'перенесённая игра — нативно поверх');
+  });
+
+  testWidgets('питомец выключен в настройках — его нет; страница без моста — его нет', (t) async {
+    await petMount(t, petPage(visible: false));
+    expect(find.byKey(const ValueKey('walking-pet-body')), findsNothing);
+  });
+
+  testWidgets('щадящий режим системы: стоит на месте, кадры не листает', (t) async {
+    await mount(t);
+    page().pet = petPage();
+    t.platformDispatcher.accessibilityFeaturesTestValue = const FakeAccessibilityFeatures(disableAnimations: true);
+    addTearDown(t.platformDispatcher.clearAccessibilityFeaturesTestValue);
+    await toGames(t);
+    await t.pump(const Duration(milliseconds: 50));
+    final x0 = t.getRect(find.byKey(const ValueKey('walking-pet'))).left;
+    final img0 = (t.widget<Opacity>(find.descendant(of: find.byKey(const ValueKey('pet-frames-idle')), matching: find.byType(Opacity)).first)).opacity;
+    await t.pump(const Duration(seconds: 10));
+    expect(t.getRect(find.byKey(const ValueKey('walking-pet'))).left, x0, reason: 'место колонки не меняется — не ходит');
+    expect(find.byKey(const ValueKey('pet-frames-walk')), findsNothing);
+    expect((t.widget<Opacity>(find.descendant(of: find.byKey(const ValueKey('pet-frames-idle')), matching: find.byType(Opacity)).first)).opacity, img0);
+  });
+}
+
+class _Zero implements Random {
+  @override
+  double nextDouble() => 0;
+  @override
+  int nextInt(int max) => 0;
+  @override
+  bool nextBool() => false;
 }

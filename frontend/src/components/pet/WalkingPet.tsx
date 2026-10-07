@@ -22,8 +22,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import PetSprite, {
-  PetAccessory, PetSkin, PetState, PET_FIDGETS, PET_SLEEP_POSES, petCycleMs, petHasState,
+  PetAccessory, PetSkin, PetState, PET_FIDGETS, PET_SLEEP_POSES, petCycleMs, petHasState, petRenderSpec,
 } from '@/src/components/pet/PetSprite';
+import { postToHost } from '@/src/services/hostWarmup';
 import {
   consumeRecentRecord, currentPetLook, getPetAccessory, getPetScale,
   getPetSkinChoice, getPetStats, getPetVisible, PET_SCALE_DEFAULT, PET_SCALE_EVENT,
@@ -105,6 +106,164 @@ const BOTTOM_BAR_LIFT = (pathname: string): number =>
   (pathname.startsWith('/games/') || pathname.startsWith('/warmup-picker') ? TOOLBAR_H : 0)
   + (tabBarVisible(pathname) ? TAB_BAR_H : 0);
 
+/**
+ * ПЕРВОЕ СЛОВО ПОСЛЕ ПРИХОДА: праздник рекорда, иначе встреча (см. эффект ниже).
+ *
+ * Вынесено из эффекта 07.10.2026: тот же повод спрашивает нативная оболочка, когда
+ * человек приходит на вкладку, которую она рисует сама (мост `__psyPet`). Две копии
+ * решения «что сказать первым» разошлись бы — и поздоровались бы дважды.
+ * `alive` — эффект ушёл, пока ждали хранилище: отвечаем молчанием.
+ */
+export type FirstWord = { record: true; text: string } | { record: false; state: PetState; text: string };
+export async function firstWord(pid: string | null, lang: string, alive: () => boolean = () => true): Promise<FirstWord | null> {
+  if (await consumeRecentRecord()) {
+    if (!alive()) return null;
+    return { record: true, text: pickRecordLine(lang).text };
+  }
+  if (!alive() || greetedThisRun) return null;
+  if (!pid) return null;
+  // Сначала самая дешёвая проверка: сегодня уже здоровались?
+  const было = await loadGreetedDay(pid);
+  const сейчас = new Date();
+  if (!alive()) return null;
+  if (greetedToday(было, сейчас)) { greetedThisRun = true; return null; }
+  const [цель, метки, спрошено] = await Promise.all([
+    loadStreakGoal(pid), loadDayMarks(pid), loadGoalAskedAt(pid),
+  ]);
+  if (!alive()) return null;
+  const серия = streakFromDays(метки, сейчас);
+  const g = цель ? noticeReached(цель, серия, сейчас) : null;
+  const реплика = pickGreeting(lang, {
+    // 🔴 Окно цели говорит на том же экране. Повод у него сильнее — питомец
+    // молчит, чтобы не выходило два голоса разом (разбор в petGreeting.ts).
+    ask: askReason({ goal: g, streak: серия, lastAskedAt: спрошено, now: сейчас }),
+    progress: goalProgress(g, серия),
+    playedToday: метки.includes(dayKey(сейчас)),
+  });
+  if (!реплика) return null;
+  greetedThisRun = true;
+  await markGreeted(pid, сейчас);
+  if (!alive()) return null;
+  return { record: false, state: реплика.state, text: реплика.text };
+}
+
+/** Контекст болтовни: стадия, слабейшая шкала, когда играли последний раз. */
+export interface PetTalkContext { stage: PetStage; weakSkill?: PetSkill; lastSessionAt: number | null }
+export async function petTalkContext(): Promise<PetTalkContext> {
+  const s = await getPetStats();
+  // Тренер зовёт в слабейшую шкалу — только когда прогресс уже есть
+  // (совсем нулёвому пользователю рекомендация «память отстаёт» = шум).
+  const entries = Object.entries(s.skills) as [PetSkill, number][];
+  const min = entries.reduce((a, b) => (b[1] < a[1] ? b : a));
+  const ss = await getSessions().catch(() => []);
+  const last = ss.length ? ss[ss.length - 1]?.timestamp : null;
+  return {
+    stage: s.stage,
+    weakSkill: s.total >= 5 ? min[0] : undefined,
+    lastSessionAt: last ? Date.parse(last) || null : null,
+  };
+}
+
+/**
+ * Тренерский пузырь: случайная игра слабой шкалы.
+ * `game.route`, а НЕ `/games/${game.id}`: у 35 игр из 61 id не совпадает с именем файла
+ * экрана, и собранный из id адрес открывает «Unmatched Route» вместо игры.
+ */
+export function coachRoute(skill: PetSkill): string | null {
+  const cats = skill === 'logic' ? ['logic', 'intuition']
+    : skill === 'speed' ? ['action']
+    : [skill as string];
+  const pool = GAMES.filter((g) => cats.includes(g.category));
+  const game = pool[Math.floor(Math.random() * pool.length)];
+  return game ? game.route : null;
+}
+
+/**
+ * 🔴 ВКЛАДКИ, КОТОРЫЕ РИСУЕТ НАТИВНАЯ ОБОЛОЧКА, — ТАМ ГУЛЯЕТ ЕЁ ПИТОМЕЦ, А НЕ ЭТОТ.
+ *
+ * Страница на таком адресе скрыта под нативным экраном, и этот гуляка ходил бы невидимо —
+ * и, хуже, невидимо «здоровался»: встреча раз в сутки ушла бы в пустоту. Список адресов
+ * ставит оболочка (`window.__psyNativeTabRoutes`), в браузере его нет.
+ */
+function наНативнойВкладке(pathname: string): boolean {
+  const routes = (globalThis as any).__psyNativeTabRoutes;
+  return Array.isArray(routes) && routes.includes(pathname);
+}
+
+/** Язык и профиль для моста: мост живёт вне React, а отвечать должен на языке экрана. */
+const живое = { язык: 'ru', профиль: null as string | null };
+
+/**
+ * МОСТ ДЛЯ НАТИВНОГО ГУЛЯКИ (`flutter/lib/shell/walking_pet.dart`, задачи 99628ecf, 5136754e).
+ *
+ * Оболочка сама только ходит и листает кадры. Что сказать, как выглядеть, куда звать —
+ * спрашивает здесь, у тех же функций, что и этот гуляка: вторая копия решений на Dart
+ * разошлась бы при первой правке реплик или облика. Ответ — обратным сообщением
+ * `{ op: 'petAnswer', id, data }`: часть ответов ждёт хранилище, а вызов скрипта из
+ * оболочки обещаний не дожидается.
+ */
+export const PET_WALK = {
+  size: PET_SIZE, speed: WALK_SPEED, pauseMin: PAUSE_MIN, pauseSpan: PAUSE_SPAN,
+  speechMin: SPEECH_MIN, speechSpan: SPEECH_SPAN, speechShow: SPEECH_SHOW,
+  firstSpeechMin: FIRST_SPEECH_MIN, firstSpeechSpan: FIRST_SPEECH_SPAN, greetShow: GREET_SHOW,
+};
+
+export async function petHostAnswer(op: string, arg?: unknown): Promise<unknown> {
+  switch (op) {
+    case 'config': {
+      const [visible, scale, accessory, look, ctx, choice] = await Promise.all([
+        getPetVisible(), getPetScale(), getPetAccessory(), currentPetLook(), petTalkContext(), getPetSkinChoice(),
+      ]);
+      const skin = resolvePetSkin(choice, ctx.stage);
+      const fidgets = PET_FIDGETS.filter((st) => petHasState(skin, st));
+      const states = Array.from(new Set<PetState>(['walk', 'idle', 'wave', 'jump', 'celebrate', ...PET_SLEEP_POSES, ...fidgets]));
+      return {
+        visible,
+        size: Math.round(PET_SIZE * scale),
+        skin,
+        specs: Object.fromEntries(states.map((st) => [st, petRenderSpec(skin, st, accessory, look)])),
+        cycles: Object.fromEntries(states.map((st) => [st, petCycleMs(skin, st)])),
+        fidgets,
+        sleepPoses: PET_SLEEP_POSES,
+        walk: PET_WALK,
+      };
+    }
+    case 'line': {
+      const c = await petTalkContext();
+      return pickPetLine(живое.язык, {
+        hour: new Date().getHours(),
+        stage: c.stage,
+        minutesSinceLastSession: c.lastSessionAt != null ? (Date.now() - c.lastSessionAt) / 60000 : null,
+        weakSkill: c.weakSkill,
+      });
+    }
+    case 'petted':
+      return pickPettedLine(живое.язык);
+    case 'first': {
+      const w = await firstWord(живое.профиль, живое.язык);
+      if (!w) return null;
+      return w.record
+        ? { state: 'celebrate', text: w.text, showMs: 5000 }
+        : { state: w.state, text: w.text, showMs: GREET_SHOW };
+    }
+    case 'coach':
+      return typeof arg === 'string' ? coachRoute(arg as PetSkill) : null;
+    default:
+      return null;
+  }
+}
+
+function поставитьМост() {
+  (globalThis as any).__psyPet = {
+    ask(id: string, op: string, arg?: unknown) {
+      petHostAnswer(op, arg)
+        .then((data) => postToHost({ op: 'petAnswer', id, data }))
+        .catch(() => postToHost({ op: 'petAnswer', id, data: null }));
+      return true;
+    },
+  };
+}
+
 export default function WalkingPet() {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
@@ -120,7 +279,15 @@ export default function WalkingPet() {
    */
   const профиль = useProfileOptional();
   const profileIdRef = React.useRef<string | null>(профиль?.profile.id ?? null);
-  React.useEffect(() => { profileIdRef.current = профиль?.profile.id ?? null; }, [профиль]);
+  React.useEffect(() => {
+    profileIdRef.current = профиль?.profile.id ?? null;
+    живое.профиль = профиль?.profile.id ?? null;
+  }, [профиль]);
+  React.useEffect(() => { живое.язык = language; }, [language]);
+  // Мост ставится всегда: он лишь отвечает на вопросы, а в браузере их некому задавать.
+  // Условие «оболочка объявила вкладки» зависело бы от того, кто успел раньше — скрипт
+  // хоста или первый рендер.
+  React.useEffect(() => { поставитьМост(); }, []);
   /**
    * До какого момента пузырь ЗАНЯТ важной репликой (встреча, праздник рекорда).
    *
@@ -160,6 +327,7 @@ export default function WalkingPet() {
     pathname.startsWith('/games/') || pathname.startsWith('/pet') || pathname.startsWith('/onboarding')
     || pathname.startsWith('/warmup-bridge') || pathname.startsWith('/warmup-complete')
     || pathname.startsWith('/assessment-result')
+    || наНативнойВкладке(pathname)
   );
   const active = petOn && routeAllowed;
 
@@ -176,20 +344,13 @@ export default function WalkingPet() {
     getPetVisible().then(setPetOn).catch(() => {});
     getPetScale().then(setScale).catch(() => {});
     getPetAccessory().then(setAccessory).catch(() => {});
-    getPetStats().then(async (s) => {
-      stageRef.current = s.stage;
-      // Тренер зовёт в слабейшую шкалу — только когда прогресс уже есть
-      // (совсем нулёвому пользователю рекомендация «память отстаёт» = шум).
-      const entries = Object.entries(s.skills) as [PetSkill, number][];
-      const min = entries.reduce((a, b) => (b[1] < a[1] ? b : a));
-      weakSkillRef.current = s.total >= 5 ? min[0] : undefined;
+    petTalkContext().then(async (c) => {
+      stageRef.current = c.stage;
+      weakSkillRef.current = c.weakSkill;
+      lastSessionAtRef.current = c.lastSessionAt;
       // Скин: выбор может быть 'auto' — эволюция по стадии.
       const choice = await getPetSkinChoice();
-      setSkin(resolvePetSkin(choice, s.stage));
-    }).catch(() => {});
-    getSessions().then((ss) => {
-      const last = ss.length ? ss[ss.length - 1]?.timestamp : null;
-      lastSessionAtRef.current = last ? Date.parse(last) || null : null;
+      setSkin(resolvePetSkin(choice, c.stage));
     }).catch(() => {});
     /**
      * 🔴 ВИД ПО ЗАБОТЕ. Ради него и рисовались восемь шкал внешности: не кормили —
@@ -215,8 +376,9 @@ export default function WalkingPet() {
     let alive = true;
     const id = setTimeout(async () => {
       if (!alive) return;
-      if (await consumeRecentRecord()) {
-        if (!alive) return;
+      const слово = await firstWord(profileIdRef.current, langRef.current, () => alive);
+      if (!alive || !слово) return;
+      if (слово.record) {
         /**
          * ПРАЗДНИК РЕКОРДА — состояние `celebrate` (задача 00218752). Своих кадров у
          * него пока нет ни в одном паке, и `PetSprite` сам подставляет `jump`. Но
@@ -225,38 +387,13 @@ export default function WalkingPet() {
          * таких места и не забыть ни одного.
          */
         setSprite('celebrate');
-        setBubble({ text: pickRecordLine(langRef.current).text });
+        setBubble({ text: слово.text });
         busyUntilRef.current = Date.now() + 5000;
         setTimeout(() => { if (alive) { setSprite('idle'); setBubble(null); } }, 5000);
         return;
       }
-      if (!alive || greetedThisRun) return;
-      const pid = profileIdRef.current;
-      if (!pid) return;
-      // Сначала самая дешёвая проверка: сегодня уже здоровались?
-      const было = await loadGreetedDay(pid);
-      const сейчас = new Date();
-      if (!alive) return;
-      if (greetedToday(было, сейчас)) { greetedThisRun = true; return; }
-      const [цель, метки, спрошено] = await Promise.all([
-        loadStreakGoal(pid), loadDayMarks(pid), loadGoalAskedAt(pid),
-      ]);
-      if (!alive) return;
-      const серия = streakFromDays(метки, сейчас);
-      const g = цель ? noticeReached(цель, серия, сейчас) : null;
-      const реплика = pickGreeting(langRef.current, {
-        // 🔴 Окно цели говорит на том же экране. Повод у него сильнее — питомец
-        // молчит, чтобы не выходило два голоса разом (разбор в petGreeting.ts).
-        ask: askReason({ goal: g, streak: серия, lastAskedAt: спрошено, now: сейчас }),
-        progress: goalProgress(g, серия),
-        playedToday: метки.includes(dayKey(сейчас)),
-      });
-      if (!реплика) return;
-      greetedThisRun = true;
-      await markGreeted(pid, сейчас);
-      if (!alive) return;
-      setSprite(реплика.state);
-      setBubble({ text: реплика.text });
+      setSprite(слово.state);
+      setBubble({ text: слово.text });
       busyUntilRef.current = Date.now() + GREET_SHOW;
       setTimeout(() => { if (alive) { setSprite('idle'); setBubble(null); } }, GREET_SHOW);
     }, 1300);
@@ -506,15 +643,8 @@ export default function WalkingPet() {
           activeOpacity={0.7}
           onPress={() => {
             // Тренерский пузырь: тап открывает случайную игру слабой шкалы.
-            const cats = bubble.skill === 'logic' ? ['logic', 'intuition']
-              : bubble.skill === 'speed' ? ['action']
-              : [bubble.skill as string];
-            const pool = GAMES.filter((g) => cats.includes(g.category));
-            const game = pool[Math.floor(Math.random() * pool.length)];
-            // game.route, а НЕ `/games/${game.id}`: у 35 игр из 61 id не совпадает
-            // с именем файла экрана, и собранный из id адрес открывает
-            // «Unmatched Route» вместо игры.
-            if (game) { setBubble(null); router.push(game.route as any); }
+            const route = bubble.skill ? coachRoute(bubble.skill) : null;
+            if (route) { setBubble(null); router.push(route as any); }
           }}
           style={[styles.bubble, {
             backgroundColor: colors.surface,

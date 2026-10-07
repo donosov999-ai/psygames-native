@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
-import 'package:flutter/services.dart' show rootBundle;
+import 'package:flutter/services.dart' show AssetManifest, rootBundle;
 
 /// Раздаёт вложенную в приложение веб-сборку по http://127.0.0.1 — ВНУТРИ самого
 /// приложения, без сети и без чужих серверов.
@@ -24,6 +24,33 @@ class AssetServer {
   final int port;
 
   String get origin => 'http://127.0.0.1:$port';
+
+  /// ИМЯ БЕЗ ХЕША → ФАЙЛ СБОРКИ (`assets/images/pet/cat/idle0.webp` →
+  /// `assets/web/assets/assets/images/pet/cat/idle0.<хеш>.webp`).
+  ///
+  /// 📍 Замер 07.10.2026 по вложенной сборке: питомец в шапке нативной игры (`game_pet.dart`)
+  /// с 23.09 просил `/assets/images/pet/<облик>/<вид>0.webp`, а такого файла нет — экспорт веба
+  /// кладёт картинки под хешированными именами. Сервер честно отвечал 404, `errorBuilder`
+  /// рисовал пустоту, и в шапке 36 перенесённых игр стоял пустой кружок. Нативу нужен способ
+  /// назвать картинку веба по её исходному пути — вот он: при промахе файл ищется по имени
+  /// без хеша. Хеш — 32 шестнадцатеричных знака перед расширением, как пишет экспорт Expo.
+  static Map<String, String> unhashedIndex(Iterable<String> keys) {
+    final re = RegExp(r'^' + RegExp.escape('$_root/assets/') + r'(.+)\.[0-9a-f]{32}\.(\w+)$');
+    return {
+      for (final k in keys)
+        if (re.firstMatch(k) case final m?) '${m.group(1)}.${m.group(2)}': k,
+    };
+  }
+
+  Map<String, String>? _unhashed;
+  Future<String?> _byUnhashed(String rel) async {
+    try {
+      _unhashed ??= unhashedIndex((await AssetManifest.loadFromAssetBundle(rootBundle)).listAssets());
+    } catch (_) {
+      _unhashed = const {};
+    }
+    return _unhashed![rel];
+  }
 
   static const _root = 'assets/web';
 
@@ -71,6 +98,14 @@ class AssetServer {
 
     // Маршруты без расширения — это страницы: /games/one-line → games/one-line.html.
     final file = path.split('/').last.contains('.');
+    // Файл веба по исходному имени, без хеша экспорта (см. [unhashedIndex]).
+    if (data == null && file) {
+      final hashed = await _byUnhashed(path.substring(1));
+      if (hashed != null) {
+        data = await _read(hashed);
+        if (data != null) key = hashed;
+      }
+    }
     if (data == null && !file) {
       data = await _read('$key.html');
       if (data != null) key = '$key.html';

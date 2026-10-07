@@ -89,6 +89,7 @@ import 'asset_server.dart';
 import 'l10n.dart';
 import 'feedback_fab.dart';
 import 'native_tabs.dart';
+import 'walking_pet.dart';
 import 'web_theme.dart';
 import '../games/sorting_hub/screen.dart';
 import '../games/faces_names/screen.dart';
@@ -676,6 +677,8 @@ class _HybridAppState extends State<HybridApp> {
       final m = jsonDecode(message);
       // Модель экрана зарядки, который рисуем мы (`warmup_screens.dart`).
       if (WarmupUi.accept(m)) return;
+      // Ответ веб-питомца нативному гуляке (`walking_pet.dart`).
+      if (PetBridge.accept(m)) return;
       if (m is Map && m['op'] == 'warmupStepDone') {
         unawaited(_warmupStepDone(Map<String, Object?>.from(m)));
         return;
@@ -842,6 +845,8 @@ class _HybridAppState extends State<HybridApp> {
     HybridApp.open = _open;
     HybridApp.runJs = _runJs;
     WarmupUi.run = _runUi;
+    PetBridge.run = (js) => _c.runJavaScript(js);
+    PetBridge.probe = _runJs;
     // Перенесённая игра по START_ROUTE: перехват на первой загрузке не срабатывает
     // (это не переход, а первый адрес), поэтому открываем нативный экран сами.
     final first = HybridApp.routeOf('${widget.server.origin}${HybridApp.startRoute}');
@@ -857,6 +862,8 @@ class _HybridAppState extends State<HybridApp> {
     SessionReport.sink = null;
     GameExit.home = null;
     GameExit.feedback = null;
+    PetBridge.run = null;
+    PetBridge.probe = null;
     // Хук снимается вместе с хостом: оставленный, он звал бы мёртвый WebView.
     if (HybridApp.open == _open) HybridApp.open = null;
     if (HybridApp.runJs == _runJs) HybridApp.runJs = null;
@@ -930,7 +937,9 @@ class _HybridAppState extends State<HybridApp> {
     return 'window.__psyHostNativeRoutes=${jsonEncode(routes)};'
         'window.__psyHostLang=${jsonEncode(widget.state.language)};'
         // Полосой владеет оболочка — веб свою не рисует (`BottomTabBar.tsx`).
-        'window.__psyNativeTabs=true;';
+        'window.__psyNativeTabs=true;'
+        // На этих вкладках гуляет питомец оболочки — веб своего прячет (`WalkingPet.tsx`).
+        'window.__psyNativeTabRoutes=${jsonEncode(NativeTabs.native.toList())};';
   }
 
   Future<void> _loadStepInfo(ValueNotifier<WarmupStepInfo?> into) async {
@@ -1186,6 +1195,16 @@ class _HybridAppState extends State<HybridApp> {
     // пересоздала бы WebView вместе со страницей.
     return Stack(children: [
       Positioned.fill(child: scaffold),
+      // Питомец страницы скрыт вместе с ней — на нативной вкладке гуляет питомец оболочки
+      // (облик и реплики — у веба, мостом `__psyPet`). Ниже кнопки отзыва, как `zIndex` веба.
+      if (_nativeTab != null && bar)
+        WalkingPet(
+          origin: widget.server.origin,
+          lift: NativeTabs.height,
+          accent: WebTheme.accent(widget.state),
+          onOpenPet: () => _openFromCatalog('/pet'),
+          onOpenRoute: _openFromCatalog,
+        ),
       if (_nativeTab != null && bar) FeedbackFab(state: widget.state, onOpen: () => _openFeedback(_nativeTab!)),
     ]);
   }
