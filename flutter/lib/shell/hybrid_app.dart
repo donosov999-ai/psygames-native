@@ -98,6 +98,7 @@ import 'stats_screen.dart';
 import 'streak_calendar_screen.dart';
 import 'assessment_result_screen.dart';
 import 'onboarding_screen.dart';
+import 'friends_screen.dart';
 import 'info_screens.dart';
 import 'walking_pet.dart';
 import 'web_theme.dart';
@@ -660,6 +661,7 @@ class _HybridAppState extends State<HybridApp> {
     CollectionScreen.route,
     AchievementsScreen.route,
     LeaguesScreen.route,
+    FriendsScreen.route,
   ];
 
   /// Экраны по модели веба, которые НЕ вкладки полосы: страница уходит на них своим переходом
@@ -673,6 +675,7 @@ class _HybridAppState extends State<HybridApp> {
     CollectionScreen.route,
     AchievementsScreen.route,
     LeaguesScreen.route,
+    FriendsScreen.route,
   };
 
   /// Что показывает тело: страницу (0) или нативную вкладку.
@@ -1332,6 +1335,8 @@ class _HybridAppState extends State<HybridApp> {
             const CollectionScreen(),
             const AchievementsScreen(),
             const LeaguesScreen(),
+            // «Друзья» (7bb8035b) — страница по модели; сервер круга держит веб.
+            const FriendsScreen(),
           ],
         ),
       ),
