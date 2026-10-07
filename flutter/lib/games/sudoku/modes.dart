@@ -1,4 +1,10 @@
-/// РЕЖИМЫ КЛАССИЧЕСКОЙ ДОСКИ: «Небоскрёбы» и «Неравенства».
+/// РЕЖИМЫ КЛАССИЧЕСКОЙ ДОСКИ: «Небоскрёбы», «Неравенства», «Киллер» и «Свободно».
+///
+/// 🔴 «КИЛЛЕР» И «СВОБОДНО» ВЕРНУЛИСЬ 01.10.2026 (задача 55b97845). На веб-экране это два из
+/// пяти режимов переключателя; нативный экран перехватил `/games/sudoku`, и до них в
+/// приложении стало не дойти. «Киллер» — 6 ступеней `KILLER_LADDER` (классическая доска +
+/// суммы поверх), счётчик — ключ веба `psygames_sudoku_killer_step_<профиль>`. «Свободно» —
+/// без прогресса: «ступень» = выбранный пресет (1–3 — 6×6 лёгкая/средняя/сложная, 4–6 — 9×9).
 ///
 /// 🔴 ЭТО НЕ ОТДЕЛЬНЫЕ ИГРЫ, А РЕЖИМЫ ТОГО ЖЕ ЭКРАНА. В вебе они открываются адресом
 /// `/games/sudoku?mode=towers` и `?mode=unequal`: та же доска, но правило другое, своя
@@ -23,19 +29,37 @@ import 'package:flutter/services.dart' show AssetManifest, rootBundle;
 import '../../shell/shared_state.dart';
 import 'rules.dart';
 
-/// Режим доски. `none` — обычная лестница на 92 ступени.
-enum SideMode { towers, unequal }
+/// Режим доски. `null` у экрана — обычная лестница.
+enum SideMode { towers, unequal, killer, free }
 
-String sideModeName(SideMode m) => m == SideMode.towers ? 'towers' : 'unequal';
+String sideModeName(SideMode m) => m.name;
 
 SideMode? sideModeFrom(String? s) => switch (s) {
       'towers' => SideMode.towers,
       'unequal' => SideMode.unequal,
+      'killer' => SideMode.killer,
+      'free' => SideMode.free,
       _ => null,
     };
 
-/// Ступеней в мини-лестнице режима — восемь, как в вебе.
+/// Ступеней в мини-лестнице небоскрёбов и неравенств — восемь, как в вебе.
 const sideSteps = 8;
+
+/// Ступеней у режима: у «Киллера» — `KILLER_LADDER` веба (6), у «Свободно» — 6 пресетов.
+int sideStepsOf(SideMode m) => switch (m) {
+      SideMode.killer || SideMode.free => 6,
+      _ => sideSteps,
+    };
+
+/// Ключи сложностей «Свободно» зовутся из пресета, а не литералом — список для
+/// `tools/embed-l10n.mjs` (без него сборщик словаря их не увидит).
+const freeDifficultyKeys = <String>['easy', 'medium', 'hard'];
+
+/// Пресет «Свободно» по номеру: размер и ключ сложности словаря.
+({int size, String difficulty}) freePreset(int step) {
+  final i = (step.clamp(1, 6)) - 1;
+  return (size: i < 3 ? 6 : 9, difficulty: const ['easy', 'medium', 'hard'][i % 3]);
+}
 
 /// Доска режима: задание, решение и его подсказки.
 class SideBoard {
@@ -47,6 +71,7 @@ class SideBoard {
     required this.puzzle,
     required this.solution,
     required this.geometry,
+    this.geometryJson = const {},
     this.tier,
   });
 
@@ -61,8 +86,12 @@ class SideBoard {
   final List<List<int>> puzzle;
   final List<List<int>> solution;
 
-  /// Подсказки по краям (небоскрёбы) или знаки между клетками (неравенства).
+  /// Подсказки по краям (небоскрёбы), знаки между клетками (неравенства) или клетки-суммы
+  /// (киллер).
   final BoardGeometry geometry;
+
+  /// Та же геометрия в форме выгрузки — для снимка незаконченной партии (resume.dart).
+  final Map<String, Object?> geometryJson;
   final int? tier;
 }
 
@@ -99,6 +128,10 @@ class SideModes {
             puzzle: _parse(row['puzzle'] as String),
             solution: _parse(row['solution'] as String),
             tier: (row['tier'] as num?)?.toInt(),
+            geometryJson: {
+              for (final k in const ['towers', 'unequal', 'cages'])
+                if (row[k] != null) k: row[k],
+            },
             geometry: BoardGeometry(
               towers: row['towers'] == null
                   ? null
@@ -106,6 +139,7 @@ class SideModes {
               unequal: row['unequal'] == null
                   ? null
                   : UnequalMap.fromJson((row['unequal'] as Map).cast<String, Object?>()),
+              cages: CageMap.fromJson(row['cages']),
             ),
           ));
         }
@@ -136,7 +170,7 @@ class SideModes {
 
   /// Доска ступени. Одно зерно — одна и та же доска.
   SideBoard? boardFor(SideMode mode, int step, {int seed = 0}) {
-    final pool = _boards[sideModeName(mode)]?[step.clamp(1, sideSteps)];
+    final pool = _boards[sideModeName(mode)]?[step.clamp(1, sideStepsOf(mode))];
     if (pool == null || pool.isEmpty) return null;
     final rnd = Random(seed == 0 ? DateTime.now().microsecondsSinceEpoch : seed);
     return pool[rnd.nextInt(pool.length)];
@@ -160,13 +194,18 @@ class SideProgress {
   int get step {
     final raw = state.get(key);
     final n = int.tryParse(raw ?? '') ?? 1;
-    return n.clamp(1, sideSteps);
+    return n.clamp(1, sideStepsOf(mode));
   }
 
-  /// Прошёл ступень — следующая. Выше восьмой лестница не идёт: там её конец,
-  /// и упираться в потолок молча нельзя, поэтому число держится на восьми.
+  /// Прошёл ступень — следующая. Выше последней лестница не идёт: там её конец,
+  /// и упираться в потолок молча нельзя, поэтому число держится на последней.
+  /// У «Свободно» прогресса нет: ступень — выбор человека, победа его не меняет.
   void win() {
-    final next = (step + 1).clamp(1, sideSteps);
+    if (mode == SideMode.free) return;
+    final next = (step + 1).clamp(1, sideStepsOf(mode));
     state.set(key, '$next');
   }
+
+  /// Выбор пресета «Свободно» (и любой ступени режима) — тем же ключом.
+  void choose(int step) => state.set(key, '${step.clamp(1, sideStepsOf(mode))}');
 }

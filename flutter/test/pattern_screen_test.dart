@@ -2,12 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/pattern/model.dart';
 import 'package:psygames_flutter/games/pattern/screen.dart';
+import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// ПАРТИЯ ИГРАЕТСЯ НАЖАТИЯМИ. Что за ряд на экране, проба узнаёт из КЛЕТОК,
 /// а не из состояния: читает подписи и сама решает, какую кнопку жать.
 void main() {
+  setUpAll(() async {
+    // Подписи — из общего словаря, как в приложении (экран переведён на L.t, задача 4b6f863e).
+    TestWidgetsFlutterBinding.ensureInitialized();
+    await L.load('ru');
+  });
+
   late SharedState state;
   var opens = 0;
 
@@ -49,7 +56,7 @@ void main() {
     for (var i = 1; i <= trialsPerRound; i += 1) {
       expect(find.text('$i/$trialsPerRound'), findsOneWidget, reason: 'проба $i');
       final seq = makeSequence(1, rng);
-      makeOptions(seq.answer, rng);   // тот же бросок, что у экрана
+      makeOptions(seq.answer, rng, tail: tailLure(seq.items));   // тот же бросок, что у экрана
       expect(rowOnScreen(tester), seq.items.map(showNumber).toList(),
           reason: 'на экране тот ряд, что раздал генератор');
       expect(find.byKey(const Key('клетка-вопрос')), findsOneWidget);
@@ -57,7 +64,7 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 800));
     }
-    expect(find.text('Следующий уровень'), findsOneWidget, reason: 'десять из десяти — уровень взят');
+    expect(find.text(L.t('nextLabel')), findsOneWidget, reason: 'десять из десяти — уровень взят');
     expect(find.textContaining('звёзд 3'), findsOneWidget, reason: 'без ошибок и без подсказки — три звезды');
   });
 
@@ -67,7 +74,7 @@ void main() {
       await open(tester, level: level, seed: 'кнопки$level');
       for (var i = 0; i < 3; i += 1) {
         final seq = makeSequence(level, rng);
-        final opts = makeOptions(seq.answer, rng);
+        final opts = makeOptions(seq.answer, rng, tail: tailLure(seq.items));
         for (final o in opts) {
           expect(find.byKey(Key('ответ$o')), findsOneWidget, reason: 'L$level кнопка $o на экране');
         }
@@ -83,16 +90,16 @@ void main() {
     final rng = createRng('подсказка');
     await open(tester, seed: 'подсказка');
     final seq = makeSequence(1, rng);
-    makeOptions(seq.answer, rng);
+    makeOptions(seq.answer, rng, tail: tailLure(seq.items));
 
     expect(find.byKey(const Key('подсказка')), findsNothing);
-    await tester.tap(find.bySemanticsLabel('Подсказка'));
+    await tester.tap(find.bySemanticsLabel(L.t('btn_hint')));
     await tester.pump();
-    expect(find.text(patternClassRu[seq.classKey]!), findsOneWidget, reason: 'первая ступень — класс ряда');
+    expect(find.text(L.t(seq.classKey)), findsOneWidget, reason: 'первая ступень — класс ряда');
 
-    await tester.tap(find.bySemanticsLabel('Ещё подсказка'));
+    await tester.tap(find.bySemanticsLabel(L.t('hintMoreRule')));
     await tester.pump();
-    expect(find.text(fillParams(patternRuleRu[seq.ruleKey]!, seq.ruleParams)), findsOneWidget,
+    expect(find.text(fillParams(L.t(seq.ruleKey), seq.ruleParams)), findsOneWidget,
         reason: 'вторая ступень — само правило');
 
     // Партия без ошибок, но с подсказкой: потолок две звезды.
@@ -103,7 +110,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 800));
       if (i < trialsPerRound) {
         s = makeSequence(1, rng);
-        makeOptions(s.answer, rng);
+        makeOptions(s.answer, rng, tail: tailLure(s.items));   // та же тень экрана (на L1 хвост = ответ)
       }
     }
     expect(find.textContaining('звёзд 2'), findsOneWidget, reason: 'подсказка опускает потолок до двух');
@@ -114,13 +121,13 @@ void main() {
     await open(tester, seed: 'порог');
     for (var i = 1; i <= trialsPerRound; i += 1) {
       final seq = makeSequence(1, rng);
-      final opts = makeOptions(seq.answer, rng);
+      final opts = makeOptions(seq.answer, rng, tail: tailLure(seq.items));
       final wrong = opts.firstWhere((o) => o != seq.answer);
       await tester.tap(find.byKey(Key('ответ${i <= 4 ? wrong : seq.answer}')));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 800));
     }
-    expect(find.text('Ещё раз'), findsOneWidget, reason: '60% — уровень не взят');
+    expect(find.text(L.t('retry')), findsOneWidget, reason: '60% — уровень не взят');
     expect(find.textContaining('нужно 70%'), findsOneWidget);
   });
 

@@ -6,6 +6,7 @@ import 'package:psygames_flutter/games/math_sprint/screen.dart';
 import 'package:psygames_flutter/games/number_bonds/screen.dart';
 import 'package:psygames_flutter/games/object_tracker/screen.dart';
 import 'package:psygames_flutter/games/ospan/screen.dart';
+import 'package:psygames_flutter/games/pattern/screen.dart';
 import 'package:psygames_flutter/games/quick_count/screen.dart';
 import 'package:psygames_flutter/games/schulte/screen.dart';
 import 'package:psygames_flutter/shell/l10n.dart';
@@ -14,7 +15,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 /// 🔴 НА АНГЛИЙСКОМ ТЕЛЕФОНЕ ЭКРАНЫ «ПОИСКА» И «СЧЁТА» ГОВОРЯТ ПО-АНГЛИЙСКИ (задача 4b6f863e).
 ///
-/// Решение Дениса 01.10.2026: основной язык — английский. До перевода эти восемь экранов
+/// Решение Дениса 01.10.2026: основной язык — английский. До перевода эти девять экранов
 /// показывали англоязычному человеку русские подписи. Храповик `ui_text_debt` считает
 /// литералы в исходнике, а эта проба смотрит на ЭКРАН: открывает каждый с английским
 /// словарём и английским языком профиля и ищет кириллицу во всех надписях и во всех
@@ -22,6 +23,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// русский набор букв, который игра выбрала не по языку, и текст, собранный из данных.
 void main() {
   final cyrillic = RegExp('[А-Яа-яЁё]');
+  final decimalComma = RegExp(r'\d,\d');
 
   setUpAll(() async {
     TestWidgetsFlutterBinding.ensureInitialized();
@@ -37,6 +39,7 @@ void main() {
     'object_tracker': (s) => ObjectTrackerScreen(state: s),
     'schulte': (s) => SchulteScreen(state: s),
     'math_slider': (s) => MathSliderScreen(state: s),
+    'pattern': (s) => PatternScreen(state: s),
   };
 
   for (final entry in screens.entries) {
@@ -65,6 +68,11 @@ void main() {
       final russian = shown.where(cyrillic.hasMatch).toSet().toList();
       expect(russian, isEmpty,
           reason: '${entry.key} на английском показывает русский текст: $russian');
+      // Русская запятая в дроби — тоже русский текст, только кириллицы в ней нет. Снимок эмулятора
+      // 02.10.2026: шкала «Математической шкалы» шла «6,25 · 12,5 · 18,75» при английском языке.
+      final commaFractions = shown.where(decimalComma.hasMatch).toSet().toList();
+      expect(commaFractions, isEmpty,
+          reason: '${entry.key} на английском пишет дроби через запятую: $commaFractions');
     });
   }
 }

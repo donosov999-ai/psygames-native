@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import 'layout.dart';
 import 'model.dart';
+import '../../shell/l10n.dart';
 
 /// Шкурка круглой игры: торты или пицца. Правило хода одно, различается еда.
 ///
@@ -391,7 +392,7 @@ class CakeZoom extends StatelessWidget {
                       height: target,
                       child: Semantics(
                         button: true,
-                        label: 'Кусок ${plate[k] + 1}',
+                        label: '${L.t('cakeSortSlice')} ${plate[k] + 1}',
                         child: GestureDetector(
                           key: ValueKey('slice-$k'),
                           behavior: HitTestBehavior.opaque,

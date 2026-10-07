@@ -153,7 +153,7 @@ export const GAMES: GameConfig[] = [
     icon: 'search',
     route: '/games/proofreading',
     category: 'attention',
-    mergedInto: 'attention_conflict',
+    mergedInto: 'search_group',
   },
   {
     id: 'find_differences',
@@ -399,7 +399,7 @@ export const GAMES: GameConfig[] = [
     icon: 'bulb',
     route: '/games/mnemonics',
     category: 'memory',
-    mergedInto: 'mnemonics_group',
+    mergedInto: 'span_group',
   },
   // ⚠️ id менять нельзя: этим ключом уже записаны уровень, звёзды, незаконченная
   // партия и game_type в истории сессий — переименование стирает весь прогресс.
@@ -525,7 +525,7 @@ export const GAMES: GameConfig[] = [
     // operation span: объём памяти под нагрузкой счётом. 04.09.2026 Денис решил
     // спор в пользу счёта: «в двух хабах не надо, я думал передвинуть» (отчёт
     // a0df2925). Карточка держит ровно одного родителя, и это «Счёт».
-    mergedInto: 'counting_group',
+    mergedInto: 'span_group',
   },
   {
     id: 'spatial_span',
@@ -1187,7 +1187,7 @@ export const GAMES: GameConfig[] = [
     icon: 'flash',
     route: '/games/quick-count',
     category: 'attention',
-    mergedInto: 'search_group',
+    mergedInto: 'counting_group',
   },
   {
     id: 'cpt',
@@ -1403,26 +1403,6 @@ export const GAMES: GameConfig[] = [
   },
   {
     /**
-     * Развилка «Головоломки» (10.09.2026, решение Дениса «берём все»). Головоломки
-     * Саймона Тэтхэма на ОДНОМ экране: доски раздают его движки, правила знает его код,
-     * рисуем своим SVG. Разбор — `src/games/tatham-bridge/README.md`.
-     * ⚠️ С 13.09.2026 режимы РАЗНЕСЕНЫ по тематическим развилкам, здесь осталось четыре.
-     * Переносят карточку ФАЙЛОМ состава (`defaultPlaylists.json`, редактор составов), а не
-     * строкой в `HUB_CONTENTS`: тот — заводской запас. Маршрут и прогресс при переносе не
-     * трогаются. Живая раскладка — `STRUCTURE.md`.
-     */
-    id: 'puzzles_group',
-    nameKey: 'puzzlesGroup',
-    descKey: 'puzzlesGroupDesc',
-    skillKey: 'skillLogic',
-    gradient: ['#0f766e', '#f59e0b'],
-    icon: 'extension-puzzle',
-    route: '/games/puzzles-hub',
-    category: 'logic',
-    hub: true,
-  },
-  {
-    /**
      * Экран всех сорока: режим приходит параметром `?mode=<движок>`. Карточки в
      * каталоге у него нет — вход только через развилку, поэтому `hideFromMenu`.
      */
@@ -1435,7 +1415,9 @@ export const GAMES: GameConfig[] = [
     route: '/games/puzzles',
     category: 'logic',
     hideFromMenu: true,
-    mergedInto: 'puzzles_group',
+    // 07.10.2026: развилка «Головоломки» распущена (решение Дениса 18.09, ca6f3e00) — режимы стоят в
+    // тематических развилках, а сама запись (по умолчанию «Чёт-нечет») открывает «Судоку», где он теперь живёт.
+    mergedInto: 'sudoku_group',
   },
   {
     /** Развилка «Ментальная ротация» (09.09.2026): ротация фигур, поворот чисел, сеть труб. */

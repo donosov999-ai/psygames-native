@@ -149,19 +149,34 @@ class _SdmtScreenState extends State<SdmtScreen> {
     });
   }
 
+  /// 🔴 МЕТРИКА ДОМЕНА «ОЦЕНКИ» — те же поля, что `saveSession` веба (`sdmt.tsx:262`).
+  /// «Оценка» (`assessment.ts`, `extractMetric`) читает из details `rate_per_min`;
+  /// без него домен молча получал z = 0, то есть «средний» при любой партии.
+  Map<String, Object?> _details(double accuracy) => {
+        'level': _ladder.level,
+        'rate_per_min': _duration > 0 ? (_hits / _duration * 60).round() : 0,
+        'accuracy': (accuracy * 100).round(),
+        'hits': _hits,
+        'target_hits': _params.targetHits,
+        'n_symbols': _params.symbolCount,
+      };
+
   Future<void> _finish() async {
     _tick?.cancel();
     final total = _hits + _errors;
     final accuracy = total > 0 ? _hits / total : 0.0;
     final passed =
         _hits >= _params.targetHits && accuracy >= sdmtAccuracyToPass;
+    final details = _details(accuracy);
     // Веха как в вебе: каждый третий ЗАСЧИТАННЫЙ уровень — бой «сложи подсвеченные».
     bool? boss;
     if (passed) {
       boss = await BossRound.winThenBoss(context, _ladder,
-          type: BossType.counting, color: const Color(0xFF0F2027));
+          type: BossType.counting,
+          color: const Color(0xFF0F2027),
+          win: () => _ladder.win(details: details));
     } else {
-      await _ladder.fail();
+      await _ladder.fail(details: details);
     }
     if (!mounted) return;
     setState(() {

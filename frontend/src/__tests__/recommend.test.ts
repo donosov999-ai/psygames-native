@@ -177,7 +177,6 @@ describe('🔴 рекомендуется только разрешённое п
       'counting_group', 'words_group', 'hearing_group', 'search_group',
       'mnemonics_group', 'languages_group',
       'sorting_group',
-      'puzzles_group',
       'spatial_group',
       'chess_group',
     ];

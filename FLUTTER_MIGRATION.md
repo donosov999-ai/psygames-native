@@ -75,9 +75,12 @@
      `BossRound.winThenBoss(context, _ladder, type:, color:)` вместо `_ladder.win()`,
      `BossOutcomeLine(_boss)` в итоге партии; тип — `config.type` веб-экрана, цвет —
      `GRADIENT[0]`. Проба — `flutter/test/support/boss_probe.dart`. Подключены 9 экранов
-     «Поиска и счёта» и `corsi` (раздел «Объём памяти», 01.10); ещё без боя: ant, choice-rt, cpt, flanker, go-no-go,
-     inhibition, posner, proofreading, simon, stop-signal, stroop, stroop-emotional,
-     sudoku, switching-task.
+     «Поиска и счёта», `corsi` (раздел «Объём памяти», 01.10) и `sudoku` (01.10, мешок заданий +
+     мегабосс — ниже); ещё без боя: ant, choice-rt, cpt, flanker, go-no-go, inhibition, posner,
+     proofreading, simon, stop-signal, stroop, stroop-emotional, switching-task.
+     Мегабосс (`MEGA_BOSS_EVERY = 15`, ТОЛЬКО `sudoku` → `sudoku-samurai`): каждый 15-й
+     уровень вместо боя — приглашение в «Самурая» с меткой вехи (`details.megaboss_from`);
+     во Flutter — `sudoku/screen.dart` `_offerMegaBoss`, проба `test/sudoku_boss_test.dart`.
 
 6. 🔴 **Подписи — из словаря, а не строками в коде.** `L.t('ключ')`
    (`flutter/lib/shell/l10n.dart`), ключ завести в `frontend/src/contexts/LanguageContext.tsx`,
@@ -133,6 +136,7 @@
 | ✅ | `sudoku-hub` | psygames-sudoku-claude-mac | 23.09 | нативно на ОБЩЕМ экране каркаса (`shell/hub_screen.dart`), 6 карточек (шестая — «Кошки», 01.10); перехват включён — все пять старых ведут в нативное, включая режимы «Небоскрёбы» и «Неравенства» (`?mode=`), для которых разбор адреса перестал срезать хвост |
 | ✅ | `cats` | psygames-sudoku-claude-mac | 01.10 | 🆕 **РОДИЛАСЬ НАТИВНОЙ — веб-страницы нет и не будет** (решение Дениса 24.09, PR #10): адрес `/games/cats` есть только внутри приложения, его перехватывает `flutter/lib/games/cats/`. Это не «не перенесено»: переносить нечего. Карточка в развилке «Судоку» (`hubContents.ts`, `hubs.json`), подписи `cats*` в словаре 12 языков |
 | ✅ | `puzzles-hub` | psygames-sudoku-claude-mac | 23.09 | нативно на том же общем экране, 40 карточек; карточки ведут в веб-половину головоломок, пока движок не собран нативно — куда открывать, решает оболочка |
+| ✅ | `hidden-character` | psygames-sudoku-claude-mac | 30.09 | 🆕 **РОДИЛАСЬ НАТИВНОЙ — веб-страницы нет** (импорт MindLab «Кто спрятался?», e675a6ff8; принята разделом задачей 5c011a93): адрес `/games/hidden-character` есть только внутри приложения, его перехватывает `flutter/lib/games/hidden_character/`, карточка — в развилке «Головоломки» (`hubs.json`). Лестница по ловушкам и вопросы с «или» (ступени 9–13) — PR #104 |
 | ✅ | `schulte` | psygames-search-claude-mac | 23.09 | тап-игра: 18 ступеней, позднее правило и убегающие клетки; правила сверены с живым TS (с 02.10.2026 с L19 время на таблицу, без потолка — задача 7f81fbc6) |
 | ✅ | `mahjong` | psygames-search-claude-mac | 23.09 | тап-игра: 84 раскладки ресурсом, раздача решаема по построению, скрытые лица с L10 (с 02.10.2026 с L29 время на доску, без потолка — задача 7f81fbc6) |
 | ✅ | `math-slider` | psygames-search-claude-mac | 23.09 | первая игра с ПЕРЕТАСКИВАНИЕМ: 13 полос лестницы и раздача по зерну сверены с живым TS (96 вопросов побайтно), проба ведёт маркер пальцем. ⚠️ три мутации из пяти сперва НЕ покраснели — дыры в пробах названы в сообщении коммита |

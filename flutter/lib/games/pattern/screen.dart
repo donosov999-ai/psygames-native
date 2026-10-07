@@ -105,8 +105,21 @@ class _PatternScreenState extends State<PatternScreen> {
     _right = null;
     final s = makeSequence(_ladder.level, _rng);
     _seq = s;
-    _options = makeOptions(s.answer, _rng);
+    // Приманка у хвоста: «последний + последний шаг» стоит среди вариантов (задача 94f9c7c1).
+    _options = makeOptions(s.answer, _rng, tail: tailLure(s.items));
   }
+
+  /// 🔴 МЕТРИКА ДОМЕНА «ОЦЕНКИ» — те же поля, что `saveSession` веба (`pattern.tsx:177`).
+  /// Биомаркер — ДОЛЯ `hit_rate` (норма в `assessment.ts` 0,8 ± 0,2), а не сырые
+  /// попадания: число проб задаёт шаг, и 12 из 15 давало бы z = +8 за длину партии.
+  Map<String, Object?> _details() => {
+        'level': _ladder.level,
+        'hits': _hits,
+        'errors': _errors,
+        'trials': _trials,
+        'hint_used': _hintUsed,
+        'hit_rate': _trials > 0 ? double.parse((_hits / _trials).toStringAsFixed(3)) : 0,
+      };
 
   Future<void> _answer(int value) async {
     if (_phase != _Phase.playing) return;
@@ -124,10 +137,11 @@ class _PatternScreenState extends State<PatternScreen> {
       if (!mounted) return;
       if (_round >= _trials) {
         final passed = _hits / _trials >= passHitRate;
+        final details = _details();
         if (passed) {
-          await _ladder.win();
+          await _ladder.win(details: details);
         } else {
-          await _ladder.fail();
+          await _ladder.fail(details: details);
         }
         if (!mounted) return;
         setState(() {
@@ -153,7 +167,7 @@ class _PatternScreenState extends State<PatternScreen> {
 
   /// Заголовок один на экран и на разбор: вторая такая строка — второй долг
   /// храповика подписей (`test/ui_text_debt_does_not_grow_test.dart`).
-  String get _title => 'Паттерны';
+  String get _title => L.t('pattern');
 
   /// Разбор объясняет ПРИЁМ: верный ответ человек и так увидит по итогу раунда,
   /// а вот чем объём берётся — нет.
@@ -169,11 +183,11 @@ class _PatternScreenState extends State<PatternScreen> {
       title: _title,
       onLesson: () => openDemoLesson(context, title: _title, trials: _demoTrials()),
       hud: [
-        HudItem(label: 'Уровень', value: '${_ladder.level}', icon: Icons.flag_outlined),
-        HudItem(label: 'Достигнуто', value: '${_ladder.best}', icon: Icons.emoji_events_outlined),
-        HudItem(label: 'Проба', value: '$_round/$_trials', icon: Icons.repeat),
-        HudItem(label: 'Верно', value: '$_hits', icon: Icons.check_circle_outline),
-        HudItem(label: 'Ошибки', value: '$_errors', icon: Icons.error_outline),
+        HudItem(label: L.t('level'), value: '${_ladder.level}', icon: Icons.flag_outlined),
+        HudItem(label: L.t('personalBest'), value: '${_ladder.best}', icon: Icons.emoji_events_outlined),
+        HudItem(label: L.t('round'), value: '$_round/$_trials', icon: Icons.repeat),
+        HudItem(label: L.t('hud_correct'), value: '$_hits', icon: Icons.check_circle_outline),
+        HudItem(label: L.t('errors'), value: '$_errors', icon: Icons.error_outline),
       ],
       field: (context, h) => _Field(
         seq: seq,
@@ -185,8 +199,8 @@ class _PatternScreenState extends State<PatternScreen> {
         AuxAction(
           icon: Icons.lightbulb_outline,
           label: _hintStage == 0
-              ? 'Подсказка'
-              : (_hintStage == 1 ? 'Ещё подсказка' : 'Подсказка использована'),
+              ? L.t('btn_hint')
+              : (_hintStage == 1 ? L.t('hintMoreRule') : L.t('hintUsed')),
           active: _hintStage > 0,
           onPressed: _phase == _Phase.playing && _hintStage < 2
               ? () => setState(() {
@@ -195,11 +209,11 @@ class _PatternScreenState extends State<PatternScreen> {
                   })
               : null,
         ),
-        AuxAction(icon: Icons.refresh, label: 'Начать заново', onPressed: () => setState(_reset)),
+        AuxAction(icon: Icons.refresh, label: L.t('restart'), onPressed: () => setState(_reset)),
       ]),
       toolbar: _toolbar(context),
       pauseActions: [
-        PauseAction(label: 'Начать заново', icon: Icons.refresh, onPressed: () => setState(_reset)),
+        PauseAction(label: L.t('restart'), icon: Icons.refresh, onPressed: () => setState(_reset)),
       ],
     );
   }
@@ -212,7 +226,9 @@ class _PatternScreenState extends State<PatternScreen> {
         padding: const EdgeInsets.all(12),
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           Text(
-            _won ? 'Уровень взят: $percent% верных, звёзд $_stars' : 'Верных $percent% — нужно 70%',
+            _won
+                ? L.f('patResultWin', {'p': '$percent', 'stars': '$_stars'})
+                : L.f('qcResultFail', {'p': '$percent', 'need': '${(passHitRate * 100).round()}'}),
             key: const Key('итог'),
             textAlign: TextAlign.center,
             style: text.titleMedium,
@@ -222,7 +238,7 @@ class _PatternScreenState extends State<PatternScreen> {
             key: const Key('дальше'),
             onPressed: () => setState(_reset),
             icon: Icon(_won ? Icons.arrow_forward : Icons.refresh),
-            label: Text(_won ? 'Следующий уровень' : 'Ещё раз'),
+            label: Text(_won ? L.t('nextLabel') : L.t('retry')),
           ),
         ]),
       );
@@ -272,7 +288,7 @@ class _Field extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text('Какое число продолжает ряд?', style: text.bodyMedium, textAlign: TextAlign.center),
+            Text(L.t('patternHint'), style: text.bodyMedium, textAlign: TextAlign.center),
             SizedBox(height: math.min(16, height * 0.04)),
             Wrap(
               key: const Key('ряд'),
@@ -282,7 +298,7 @@ class _Field extends StatelessWidget {
               children: [
                 for (var i = 0; i < labels.length; i += 1)
                   Container(
-                    key: Key(i == labels.length - 1 ? 'клетка-вопрос' : 'клетка$i'),
+                    key: i == labels.length - 1 ? const Key('клетка-вопрос') : Key('клетка$i'),
                     // ⚠️ ШИРИНА КЛЕТКИ ЗАДАЁТСЯ ЧИСЛОМ ПРАВИЛА, а не минимумом:
                     // с `minWidth` контейнер растягивался на всю ширину поля, и
                     // ряд вставал СТОЛБЦОМ — поймано пробой раскладки.
@@ -328,7 +344,7 @@ class _Field extends StatelessWidget {
                 ),
                 child: Column(mainAxisSize: MainAxisSize.min, children: [
                   Text(
-                    patternClassRu[seq.classKey] ?? seq.classKey,
+                    L.t(seq.classKey),
                     textAlign: TextAlign.center,
                     style: const TextStyle(fontWeight: FontWeight.w700),
                   ),
@@ -336,7 +352,7 @@ class _Field extends StatelessWidget {
                     Padding(
                       padding: const EdgeInsets.only(top: 4),
                       child: Text(
-                        fillParams(patternRuleRu[seq.ruleKey] ?? seq.ruleKey, seq.ruleParams),
+                        fillParams(L.t(seq.ruleKey), seq.ruleParams),
                         textAlign: TextAlign.center,
                         style: text.bodySmall,
                       ),
