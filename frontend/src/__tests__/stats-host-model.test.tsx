@@ -27,6 +27,9 @@ jest.mock('expo-router', () => {
     router: r,
   };
 });
+// «Назад» — правило веба `goBackOrHome`; здесь только запоминаем вызов.
+const mockBack = jest.fn();
+jest.mock('@/src/utils/nav', () => ({ ...jest.requireActual('@/src/utils/nav'), goBackOrHome: () => mockBack() }));
 // ИИ-дайджест ходит в сеть — здесь он молчит (как без ключа).
 jest.mock('@/src/services/aiInsight', () => ({
   getAiInsight: async () => null, toneForProfile: () => 'neutral', isoWeekKey: () => '2026-W41',
@@ -106,6 +109,19 @@ describe('«Прогресс» под оболочкой', () => {
     await осесть();
     expect(last().scope.isAll).toBe(true);
     expect(числа(last())).toEqual([16, 12, 4]);
+  });
+
+  it('🔴 refresh перечитывает хранилище; back — goBackOrHome веба', async () => {
+    const { last } = await смонтировать(true);
+    const было = last().totalPlayed;
+    const raw = JSON.parse((await AsyncStorage.getItem('psygames_sessions'))!);
+    await AsyncStorage.setItem('psygames_sessions', JSON.stringify([...raw, ...партии('women', 'sudoku', 3).map((x) => ({ ...x, id: `new-${x.id}` }))]));
+    await TestRenderer.act(async () => { (globalThis as any).__psyScreenUi['/statistics'].refresh(); });
+    await осесть();
+    expect([было, last().totalPlayed]).toEqual([было, было.replace('32', '35')]);
+    mockBack.mockClear();
+    await TestRenderer.act(async () => { (globalThis as any).__psyScreenUi['/statistics'].back(); });
+    expect(mockBack).toHaveBeenCalledTimes(1);
   });
 
   it('карточки игр и история — готовыми строками; образец для Flutter', async () => {
