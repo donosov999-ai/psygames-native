@@ -1271,6 +1271,7 @@ class _HybridAppState extends State<HybridApp> {
                 onOpen: _openFromCatalog,
                 onTab: _selectTab,
                 onSwitcher: _openSwitcher,
+                active: _bodyIndex() == 1,
               ),
             ),
             // Вкладка «Игры» живёт рядом со страницей, а не поверх неё: поиск и фильтр

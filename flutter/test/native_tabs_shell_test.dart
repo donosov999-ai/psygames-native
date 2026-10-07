@@ -652,6 +652,23 @@ void main() {
         reason: 'на Главной «назад» не перехватываем — система закрывает приложение');
   });
 
+  testWidgets('🔴 окно цели серии Главной не всплывает поверх другого экрана тела (знакомство)', (t) async {
+    // Живой замер 07.10.2026: на свежей установке окно «сколько дней подряд» легло поверх знакомства —
+    // Главная стоит в теле всегда, а её последняя модель несла goalSheet.
+    await mount(t);
+    final home = fixture('home_model_ru.json'); // с окном цели (homeModel() его снимает нарочно)
+    expect(home['goalSheet'], isNotNull, reason: 'образец Главной несёт окно цели');
+    await route(t, '/onboarding');
+    page().emit(SharedState.channel, {'op': 'screenUi', 'route': '/', 'model': home});
+    page().emit(SharedState.channel, {'op': 'screenUi', 'route': OnboardingScreen.route, 'model': fixture('onboarding_model.json')});
+    await settle(t, () => find.byKey(const ValueKey('onboarding-quiz')).evaluate().isNotEmpty);
+    expect(find.byKey(const ValueKey('goal-sheet')), findsNothing, reason: 'Главная не на экране — окна нет');
+    // Вернулись на Главную — окно открывается, как у веба.
+    await route(t, '/');
+    await settle(t, () => find.byKey(const ValueKey('goal-sheet')).evaluate().isNotEmpty);
+    expect(find.byKey(const ValueKey('goal-sheet')), findsOneWidget);
+  });
+
   testWidgets('итог оценки без модели 6 с — сама страница', (t) async {
     await mount(t);
     await route(t, '/assessment-result');
