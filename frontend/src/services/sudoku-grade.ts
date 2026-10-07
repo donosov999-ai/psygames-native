@@ -28,6 +28,7 @@ import {
   Overlays, levelConfig, UnequalMap, TowersMap, towersLineOk, WHISPER_GAP, renbanOk, lineCells, regionSumOk, palindromeOk, betweenOk, lockoutOk, xvOk, XvMap, LittleKillerClue, littleKillerOk, littleKillerCells, XsumsClues, xsumsOk, cipherOk, encodeCipher,
 } from './sudoku-core';
 import { borderCounts, samePartition, solvePartition } from './sudoku-chaos';
+import { decodeGridS, digS, encodeGridS, generateSolutionS, logicS } from './sudoku-schrodinger';
 
 export type Technique =
   | 'naked_single'    // в клетке остался один кандидат
@@ -53,6 +54,7 @@ export type Technique =
   | 'xsum_clue'  // X-суммы: первая цифра X без раскладки суммы первых X клеток; коридор суммы внутри них
   | 'cipher_code'  // шифр: кандидаты одной буквы общие; однозначная буква забирает свою цифру у остальных
   | 'region_border'  // самосборка: границы областей выведены по подсказкам границ и напечатанным цифрам (sudoku-chaos.ts)
+  | 'schrodinger_cell'  // клетки Шрёдингера: вынужден вариант-пара или место пары в ряду (sudoku-schrodinger.ts)
   | 'guess';          // логики не хватило — нужен перебор
 
 export const TECHNIQUE_TIER: Record<Technique, number> = {
@@ -61,6 +63,7 @@ export const TECHNIQUE_TIER: Record<Technique, number> = {
   xsum_clue: 4,   // X-суммы: класс выводов варианта
   cipher_code: 4,   // шифр: класс выводов варианта
   region_border: 4,   // самосборка: вывод границ — класс выводов варианта
+  schrodinger_cell: 4,   // клетки Шрёдингера: вывод про пару — класс выводов варианта
   lockout_window: 4,   // замок: кандидат вне годной пары концов lockout-линии
   between_window: 4,   // между концами: кандидат вне любого окна между концами линии
   // Палиндром: кандидаты зеркальных клеток пересекаются. Ступень 4 — как у всего КЛАССА выводов
@@ -2575,12 +2578,44 @@ function generateChaos(
   return { ...plain, fellBack: true };
 }
 
+/**
+ * 🔴 КЛЕТКИ ШРЁДИНГЕРА — МЕРА (пункт 13, задача f46c796c). Доска — коды `encodeS` (цифры 0–9, пары).
+ * Решатель — точное покрытие (sudoku-schrodinger.ts): только вынужденные шаги. Простые шаги стоят
+ * как одиночки, шаги про пару — ступень 4; не дошёл — доска не решается логикой.
+ */
+export function gradeSchrodinger(puzzle: number[][], tierCap = 9): Grade {
+  const l = logicS(decodeGridS(puzzle));
+  const pt = TECHNIQUE_TIER.schrodinger_cell;
+  if (!l.solved || (l.pairSteps > 0 && tierCap < pt)) {
+    return { solved: false, tier: TECHNIQUE_TIER.guess, hardest: 'guess', steps: l.steps, cost: l.steps };
+  }
+  const plain = l.steps - l.pairSteps;
+  return {
+    solved: true, tier: l.pairSteps ? pt : 2, hardest: l.pairSteps ? 'schrodinger_cell' : 'hidden_single',
+    steps: l.steps, cost: plain * TECHNIQUE_TIER.hidden_single + l.pairSteps * pt, grid: encodeGridS(l.grid!),
+  };
+}
+
+/** Доска Шрёдингера: полная сетка перебором, задача — снятием клеток, пока мера доходит до той же сетки. */
+function generateSchrodinger(
+  N: number, opts: { digCap?: number },
+): { gen: GeneratedPuzzle; grade: Grade; dug: number; fellBack: boolean; budgetSpent: boolean } {
+  const sol = generateSolutionS(Math.random);
+  const puzzle = digS(sol, Math.random, opts.digCap ?? N * N);
+  const enc = encodeGridS(puzzle);
+  return {
+    gen: { puzzle: enc, solution: encodeGridS(sol) } as GeneratedPuzzle,
+    grade: gradeSchrodinger(enc), dug: enc.flat().filter((v) => v === 0).length, fellBack: false, budgetSpent: false,
+  };
+}
+
 export function generateLogical(
   level: number, blanksCap: number, N: number, BR: number, BC: number, variant: Variant,
   opts: { budgetMs?: number; tier?: { min: number; max: number }; digCap?: number; fogSeeds?: number } = {},
 ): { gen: GeneratedPuzzle; grade: Grade; dug: number; fellBack: boolean; budgetSpent: boolean } {
   if (variant === 'fog') return generateFog(level, blanksCap, N, BR, BC, opts);
   if (variant === 'chaos') return generateChaos(level, blanksCap, N, BR, BC, opts);
+  if (variant === 'schrodinger') return generateSchrodinger(N, opts);
   const budget = opts.budgetMs ?? 2200;
   // Лимит копания ступени (`digCap` в levelConfig); явное число — для замеров и гейтов.
   const digCap = opts.digCap ?? levelConfig(level).digCap;

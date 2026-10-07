@@ -906,6 +906,9 @@ class _SudokuScreenState extends State<SudokuScreen> {
     return !fogRevealed(fog, _grid, board.solution)[r][c];
   }
 
+  /// Доска клеток Шрёдингера: в клетке до двух цифр 0–9 (код `schroCode`), клавиша «0» (задача f46c796c).
+  bool get _isSchro => _sideBoard == null && _board?.variant == 'schrodinger';
+
   void _select(int r, int c) {
     if (_won || _lost) return;
     final paint = _paint;
@@ -977,6 +980,10 @@ class _SudokuScreenState extends State<SudokuScreen> {
     if (solution == null || sel == null || _won || _lost) return;
     if (_given[sel.r][sel.c]) return;   // подсказку задания не трогаем
     if (_fogged(sel.r, sel.c)) return;   // отмена вернула туман над выбранной клеткой
+    if (_isSchro) {
+      _placeSchro(sel, solution, value);
+      return;
+    }
 
     setState(() {
       final was = _grid[sel.r][sel.c];
@@ -1000,6 +1007,39 @@ class _SudokuScreenState extends State<SudokuScreen> {
         }
         return;
       }
+      _checkWin();
+    });
+    _persist();
+  }
+
+  /// Ход клетки Шрёдингера: клавиша добавляет цифру или убирает её; «Стереть» чистит клетку. Ошибка —
+  /// только ДОБАВЛЕННАЯ цифра, которой нет в ответе: одна верная из пары — клетка не дописана, не ошибка.
+  void _placeSchro(({int r, int c}) sel, List<List<int>> solution, int value) {
+    final was = _grid[sel.r][sel.c];
+    final next = value == 0 ? 0 : schroToggle(was, value);
+    if (next == was) return;
+    setState(() {
+      _history.add(_Step(_StepKind.digit, sel.r, sel.c, was, next));
+      _grid[sel.r][sel.c] = next;
+      final added = schroDigits(next).length > schroDigits(was).length;
+      if (added && schroWrong(next, solution[sel.r][sel.c])) {
+        final d = value % 10;
+        _whyKey = schroConflict(_grid, sel.r, sel.c, d) ? null : 'sudokuWhyNotLocal';
+        _errors += 1;
+        if (_errors >= errorLimit) {
+          _lost = true;
+          if (_assisted) {
+            _reportEducational(completed: false);
+          } else if (_pilot) {
+            _pilotFinish(Outcome.failed);
+          } else {
+            _recordOutcome(Outcome.failed);
+            _reportLoss();
+          }
+        }
+        return;
+      }
+      _whyKey = null;
       _checkWin();
     });
     _persist();
@@ -1663,6 +1703,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
           : _Toolbar(
               why: _whyKey == null ? null : L.t(_whyKey!),
               n: _n,
+              zero: _isSchro,
               won: _won,
               lost: _lost,
               onDigit: _onKey,
@@ -1747,6 +1788,14 @@ class _Step {
 }
 
 /// Имя правила для полосы счётчиков: короткое, чтобы не рвало строку.
+/// Подсветка клетки Шрёдингера: ошибка — цифра, которой нет в ответе; одна верная цифра из пары —
+/// клетка не дописана, не ошибка (общая `sudokuCellLook` сравнивает код целиком).
+SudokuCellLook schroLook(SudokuBoard board, SudokuCellLook look, int v, int r, int c) {
+  if (board.variant != 'schrodinger') return look;
+  return (selected: look.selected, sameValue: look.sameValue, sameLine: look.sameLine,
+      wrong: v != 0 && schroWrong(v, board.solution[r][c]));
+}
+
 String variantTitle(String variant) => switch (variant) {
       'diagonal' => L.t('sdkRule_diagonal'),
       'antiknight' => L.t('sdkRule_antiknight'),
@@ -1779,6 +1828,7 @@ String variantTitle(String variant) => switch (variant) {
       'cipher' => L.t('sdkRule_cipher'),
       'fog' => L.t('sdkRule_fog'),
       'chaos' => L.t('sdkRule_chaos'),
+      'schrodinger' => L.t('sdkRule_schrodinger'),
       'friends' => L.t('sdkRule_friends'),
       _ => L.t('sdkRule_none'),
     };
@@ -1876,7 +1926,7 @@ class SudokuBoardView extends StatelessWidget {
                                 ? colors[r][col]
                                 : noSudokuColor,
                             selected: selected != null && selected!.r == r && selected!.c == col,
-                            look: sudokuCellLook(grid, board.solution, selected, r, col),
+                            look: schroLook(board, sudokuCellLook(grid, board.solution, selected, r, col), grid[r][col], r, col),
                             scheme: scheme,
                             onTap: onTap,
                             glyph: symbols?.glyph,
@@ -2171,9 +2221,13 @@ class _Cell extends StatelessWidget {
                       glyph: glyph,
                     )
                   : _picture() ?? Text(
-                      value == 0 ? '' : (glyph?.call(value) ?? '$value'),
+                      value == 0
+                          ? ''
+                          : board.variant == 'schrodinger'
+                              ? schroDigits(value).join(' ')   // клетка Шрёдингера: одна цифра 0–9 или пара
+                              : (glyph?.call(value) ?? '$value'),
                       style: TextStyle(
-                        fontSize: size * 0.52,
+                        fontSize: board.variant == 'schrodinger' && value >= 100 ? size * 0.34 : size * 0.52,
                         fontWeight: given ? FontWeight.w800 : FontWeight.w500,
                         color: sudokuDigitInk(look, given: given, scheme: scheme),
                       ),
@@ -2246,6 +2300,7 @@ class _Cell extends StatelessWidget {
 class _Toolbar extends StatelessWidget {
   const _Toolbar({
     this.why,
+    this.zero = false,
     required this.n,
     required this.won,
     required this.lost,
@@ -2264,6 +2319,9 @@ class _Toolbar extends StatelessWidget {
   });
 
   final int n;
+
+  /// Клавиша «0» — у клеток Шрёдингера.
+  final bool zero;
   final bool won;
   final bool lost;
   final void Function(int) onDigit;
@@ -2347,7 +2405,7 @@ class _Toolbar extends StatelessWidget {
       );
     }
     final keys = SudokuKeys(
-        n: n, onDigit: onDigit, onErase: onErase, paint: paint, onPaint: onPaint, label: label, icon: icon);
+        n: n, onDigit: onDigit, onErase: onErase, paint: paint, onPaint: onPaint, label: label, icon: icon, zero: zero);
     final w = why;
     if (w == null) return keys;
     return Column(mainAxisSize: MainAxisSize.min, children: [
