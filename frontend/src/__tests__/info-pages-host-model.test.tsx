@@ -25,7 +25,7 @@ jest.mock('expo-router', () => {
     useLocalSearchParams: () => params,
     useGlobalSearchParams: () => params,
     usePathname: () => '/',
-    useFocusEffect: (cb: () => void | (() => void)) => { require('react').useEffect(cb, [cb]); },
+    useFocusEffect: (cb: () => void | (() => void)) => { require('react').useEffect(cb, [cb]); },   // eslint-disable-line @typescript-eslint/no-require-imports
     useNavigation: () => nav,
     Redirect: () => null,
     Stack: { Screen: () => null },
@@ -35,7 +35,7 @@ jest.mock('expo-router', () => {
 const mockBack = jest.fn();
 jest.mock('@/src/utils/nav', () => ({ ...jest.requireActual('@/src/utils/nav'), goBackOrHome: () => mockBack() }));
 jest.mock('react-native-safe-area-context', () => {
-  const RN = require('react-native');
+  const RN = require('react-native');   // eslint-disable-line @typescript-eslint/no-require-imports
   const insets = { top: 0, right: 0, bottom: 0, left: 0 };
   const frame = { x: 0, y: 0, width: 390, height: 844 };
   return {
