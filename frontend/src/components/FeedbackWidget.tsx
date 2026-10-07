@@ -25,7 +25,7 @@ import {
   ActivityIndicator, ScrollView, DeviceEventEmitter, PanResponder,
 } from 'react-native';
 import {
-  FAB_SIZE, FAB_BOTTOM, readSpot, toSpot, spotToPixels, isDrag, type FabSpot,
+  FAB_SIZE, FAB_BOTTOM, FAB_SPOT_KEY, FAB_COLOR, readSpot, toSpot, spotToPixels, isDrag, type FabSpot,
 } from '@/src/services/fabPosition';
 import { useScreenSize } from '@/src/hooks/useScreenWidth';
 
@@ -57,7 +57,6 @@ import { нужноПереспросить } from '@/src/services/feedbackTooSh
  * Правило `import/first` право: импорт после кода читается как условный, хотя
  * он таким не бывает.
  */
-const FAB_SPOT_KEY = 'psygames_feedback_fab_spot';
 
 const KINDS: { key: FeedbackKind; emoji: string; labelKey: string }[] = [
   { key: 'confusion', emoji: '🤷', labelKey: 'fbKindConfusion' },
@@ -553,11 +552,11 @@ export default function FeedbackWidget() {
         onPress={openSheet}
         activeOpacity={0.85}
         accessibilityLabel={t('feedbackFabLabel')}
-        style={[styles.fabInner, { backgroundColor: '#ef4444' }, drag ? { opacity: 1 } : null]}
+        style={[styles.fabInner, { backgroundColor: FAB_COLOR }, drag ? { opacity: 1 } : null]}
       >
         {capturing
-          ? <ActivityIndicator size="small" color={textOn('#ef4444')} />
-          : <Ionicons name="chatbubble-ellipses" size={19} color={textOn('#ef4444')} />}
+          ? <ActivityIndicator size="small" color={textOn(FAB_COLOR)} />
+          : <Ionicons name="chatbubble-ellipses" size={19} color={textOn(FAB_COLOR)} />}
       </TouchableOpacity>
       </View>}
 

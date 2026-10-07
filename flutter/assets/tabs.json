@@ -1,0 +1,48 @@
+{
+ "height": 58,
+ "tabs": [
+  {
+   "route": "/",
+   "icon": "home",
+   "labelKey": "home"
+  },
+  {
+   "route": "/games",
+   "icon": "game-controller",
+   "labelKey": "tabGames"
+  },
+  {
+   "route": "/warmup-picker",
+   "icon": "flash",
+   "labelKey": "warmupPickerTitle"
+  },
+  {
+   "route": "/statistics",
+   "icon": "stats-chart",
+   "labelKey": "progress"
+  },
+  {
+   "route": "/pet",
+   "icon": "paw",
+   "labelKey": "tabPet"
+  }
+ ],
+ "noBar": [
+  "/games/",
+  "/onboarding",
+  "/warmup-bridge",
+  "/warmup-complete",
+  "/assessment-result"
+ ],
+ "fab": {
+  "size": 48,
+  "bottom": 92,
+  "clearance": 156,
+  "edge": 6,
+  "dragThreshold": 8,
+  "color": "#ef4444",
+  "iconColor": "#2b0c0c",
+  "spotKey": "psygames_feedback_fab_spot",
+  "visibleKey": "psygames_devchat_on"
+ }
+}

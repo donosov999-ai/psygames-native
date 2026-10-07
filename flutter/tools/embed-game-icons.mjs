@@ -45,7 +45,8 @@ export function readRegistry(text) {
 /** Адрес строки → файл из `MODE_ICONS` (режимы и экраны без записи в GAMES; ключ — адрес целиком). */
 export function readModes(text) {
   const out = {};
-  const re = /^\s*'(\/games\/[^']+)':\s*require\('\.\.\/\.\.\/assets\/images\/game_icons\/([^']+)'\)/gm;
+  // Адрес — любой экран приложения (07.10.2026: «Ночная» развилки «Релаксация» живёт на `/warmup-night`).
+  const re = /^\s*'(\/[^']+)':\s*require\('\.\.\/\.\.\/assets\/images\/game_icons\/([^']+)'\)/gm;
   for (let m; (m = re.exec(text)); ) out[m[1]] = m[2];
   return out;
 }

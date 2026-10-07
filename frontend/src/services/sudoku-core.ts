@@ -11,7 +11,7 @@
 import { translateFor } from '../contexts/LanguageContext';
 
 export type Cell = number; // 0 = empty
-export type Variant = 'none' | 'diagonal' | 'antiknight' | 'hyper' | 'nonconsec' | 'jigsaw' | 'antiking' | 'evenodd' | 'kropki' | 'sandwich' | 'thermo' | 'arrow' | 'thermocage' | 'unequal' | 'towers' | 'sandparity' | 'thermoknight' | 'killerdiag' | 'whisper' | 'renban' | 'regionsum' | 'palindrome' | 'between' | 'lockout' | 'xv' | 'argyle' | 'littlekiller' | 'friends';
+export type Variant = 'none' | 'diagonal' | 'antiknight' | 'hyper' | 'nonconsec' | 'jigsaw' | 'antiking' | 'evenodd' | 'kropki' | 'sandwich' | 'thermo' | 'arrow' | 'thermocage' | 'unequal' | 'towers' | 'sandparity' | 'thermoknight' | 'killerdiag' | 'whisper' | 'renban' | 'regionsum' | 'palindrome' | 'between' | 'lockout' | 'xv' | 'argyle' | 'littlekiller' | 'xsums' | 'friends';
 // 'friends' — «Мяу — друзья» 9×9 (у кота мышь рядом): генератора на TS нет, доски ступеней — только
 // выгрузкой MindLab (flutter/tools/meow9-ladder.cjs, export_kids_boards.py --meow9).
 
@@ -76,7 +76,8 @@ export function argyleSegments(N = 9): [number, number, number, number][] {
  * (r, c) — первая клетка диагонали у края, (dr, dc) — шаг внутрь.
  */
 export type LittleKillerClue = { r: number; c: number; dr: 1; dc: 1 | -1; sum: number };
-/** Сколько диагоналей показать. Порядок величины — как у сборников (8–12); точное число — замер. */
+/** Сколько диагоналей показать. На трудность число почти не влияет: 10 → 5 диагоналей — цена вывода
+ *  145 → 127, ступень 4 (замер 07.10, копание добирает своё); ось трудности — `digCap` ступени. */
 export const LITTLE_KILLER_CLUES = 10;
 
 /** Лежит ли клетка на диагонали подсказки. */
@@ -134,6 +135,55 @@ export function littleKillerOk(grid: Cell[][], r: number, c: number, n: number, 
   return true;
 }
 
+/**
+ * 🔴 X-СУММЫ (пункт 9 цепочки «14 усложнений», задача 5ea317fc; решение Дениса 30.09 «Берём»).
+ * Число у края строки или столбца — сумма первых X цифр с этой стороны, где X — первая из них (она
+ * входит в сумму: подсказка 6 при первой 2 — это 2 + следующая 4). Сверено 07.10 по четырём языкам:
+ * logic-masters.de (000LZO), janko.at (Varianten/053), cn.sudoku.today (前X数和数独), разбор на русском.
+ * Подсказки — слева у строк и сверху у столбцов, как поля сэндвича (вёрстка та же); часть скрыта
+ * (−1). Форма — та же `{ rows, cols }`, что у сэндвича.
+ */
+export type XsumsClues = { rows: number[]; cols: number[] };
+/** Сколько из 18 сумм показать. На трудность число почти не влияет: 12 → 6 сумм — цена вывода
+ *  125 → 115, ступень 4 (замер 07.10, копание добирает своё); ось трудности — `digCap` ступени. */
+export const XSUMS_SHOWN = 12;
+
+/** Сумма первых X цифр ряда, X — первая цифра. */
+export function xsumOf(line: readonly number[]): number {
+  let t = 0;
+  for (let k = 0; k < line[0]; k++) t += line[k];
+  return t;
+}
+
+export function xsumsFromSolution(sol: Cell[][], N: number, shown = XSUMS_SHOWN): XsumsClues {
+  const rows = sol.map((row) => xsumOf(row));
+  const cols = Array.from({ length: N }, (_, c) => xsumOf(sol.map((row) => row[c])));
+  const hide = shuffle(Array.from({ length: 2 * N }, (_, i) => i)).slice(0, Math.max(0, 2 * N - shown));
+  for (const i of hide) { if (i < N) rows[i] = -1; else cols[i - N] = -1; }
+  return { rows, cols };
+}
+
+/**
+ * Не спорит ли ряд с подсказкой по ИЗВЕСТНЫМ цифрам. Пока первая цифра пуста, X неизвестен — молчим;
+ * известна — сумма её первых X клеток держится в коридоре: известные плюс по 1 на пустую не больше
+ * подсказки, известные плюс по N на пустую — не меньше.
+ */
+export function xsumLineOk(line: readonly number[], clue: number, N: number): boolean {
+  if (clue < 0) return true;
+  const x = line[0];
+  if (x === 0) return true;
+  let s = 0, e = 0;
+  for (let k = 0; k < x; k++) { if (line[k] === 0) e++; else s += line[k]; }
+  return s + e <= clue && clue <= s + N * e;
+}
+
+export function xsumsOk(grid: Cell[][], r: number, c: number, n: number, xs: XsumsClues, N: number): boolean {
+  const row = grid[r].slice(); row[c] = n;
+  if (!xsumLineOk(row, xs.rows[r], N)) return false;
+  const col = grid.map((x) => x[c]); col[r] = n;
+  return xsumLineOk(col, xs.cols[c], N);
+}
+
 export function inHyper(r: number, c: number): readonly [number, number] | null {
   for (const [hr, hc] of HYPER_BOXES) if (r >= hr && r < hr + 3 && c >= hc && c < hc + 3) return [hr, hc];
   return null;
@@ -158,6 +208,7 @@ const VARIANT_KEY_SUFFIX: Record<Exclude<Variant, 'none' | 'friends'>, string> =
   xv: 'Xv',
   argyle: 'Argyle',
   littlekiller: 'Littlekiller',
+  xsums: 'Xsums',
 };
 // «Мяу — друзья»: имя и правило — одна короткая строка «🐱 рядом с 🐭», та же, что у натива
 // (sdkRule_friends, 12 языков); отдельных sudokuVariant*/sudokuRule* у варианта нет.
@@ -385,7 +436,17 @@ export function generateThermoCages(sol: Cell[][], N: number, rnd: () => number 
 }
 
 // SUDOKU-LVL: уровневая прогрессия. 1–4 = 6×6, 5–8 = 9×9, 9–13 = диагональ, далее фазы-варианты.
-export interface LevelCfg { size: 6 | 9; N: number; BR: number; BC: number; blanks: number; variant: Variant; hintMax: number; lives: number; }
+export interface LevelCfg {
+  size: 6 | 9; N: number; BR: number; BC: number; blanks: number; variant: Variant; hintMax: number; lives: number;
+  /**
+   * Сколько клеток 9×9 логический путь вправе выкопать на ступени (по умолчанию MAX_BLANKS_9 = 64) —
+   * ось трудности внутри блока у правил-подсказок. ЗАМЕР 07.10.2026 (8 досок): X-суммы 64 → 70 —
+   * цена вывода 129 → 151, малый киллер 145 → 159; к 76 рост насыщается (156 / 163). А «меньше
+   * подсказок правила» трудность НЕ поднимает: X-суммы 12 → 6 сумм — цена 125 → 115, малый киллер
+   * 10 → 5 диагоналей — 145 → 127 (копание добирает своё). Скрипты: ~/dev/psygames/sudoku-chat/measure/.
+   */
+  digCap?: number;
+}
 export function levelConfig(level: number): LevelCfg {
   const lv = Math.max(1, level);
   const size: 6 | 9 = lv <= 4 ? 6 : 9;
@@ -485,7 +546,9 @@ export function levelConfig(level: number): LevelCfg {
   else if (lv >= 121 && lv <= 124) variant = 'argyle';
   // 125–128 «малый киллер» (6aecf181 п.8, задача 2dddd227) — тем же порядком: готовое правило
   // сразу за аргайлом, блоки плана сдвинуты ещё на +4.
-  else if (lv >= 125) variant = 'littlekiller';
+  else if (lv >= 125 && lv <= 128) variant = 'littlekiller';
+  // 129–132 «X-суммы» (6aecf181 п.9, задача 5ea317fc) — тем же порядком, сразу за малым киллером.
+  else if (lv >= 129) variant = 'xsums';
   /**
    * 🔴 НЕРАВЕНСТВА (футосики) СОБРАНЫ, НО УРОВНЕЙ НЕ ПОЛУЧИЛИ — ЗАМЕР 26.08.2026.
    *
@@ -522,7 +585,13 @@ export function levelConfig(level: number): LevelCfg {
     ? Math.min(24, 8 + lv * 3)                                   // L1..4 → 11,14,17,20
     : Math.min(58, 34 + (lv - 5));                               // L5+ → 34..58, без сбросов на границах правил
   const hintMax = lv <= 4 ? 3 : lv <= 8 ? 2 : 1;
-  return { size, N, BR, BC, blanks, variant, hintMax, lives: livesFor(lv) };
+  // Ось трудности ВНУТРИ блока у правил-подсказок — лимит копания (`digCap`, PR #258), а не число
+  // подсказок: замер раздела 07.10 — X-суммы 64 → 70 цена 129 → 151, малый киллер 145 → 159;
+  // к 76 насыщается (выкапывается не больше ~68). Ступени блока: 64 → 67 → 70 → 70.
+  const digCap = variant === 'littlekiller' || variant === 'xsums'
+    ? [64, 67, 70, 70][(lv - 1) % 4]
+    : undefined;
+  return { size, N, BR, BC, blanks, variant, hintMax, lives: livesFor(lv), ...(digCap ? { digCap } : {}) };
 }
 
 /**
@@ -1483,6 +1552,8 @@ export interface Overlays {
   xv?: XvMap;
   /** Малый киллер: суммы диагоналей по стрелкам снаружи доски. */
   littlekiller?: LittleKillerClue[];
+  /** X-суммы: слева у строк и сверху у столбцов; −1 — подсказка скрыта. */
+  xsums?: XsumsClues;
 }
 
 /** Полные оверлеи из решения — до прореживания. */
@@ -1535,6 +1606,9 @@ export function overlaysFromSolution(sol: Cell[][], N: number, variant: Variant)
   }
   if (variant === 'littlekiller') {
     return { littlekiller: littleKillerFromSolution(sol, N) };
+  }
+  if (variant === 'xsums') {
+    return { xsums: xsumsFromSolution(sol, N) };
   }
   if (variant === 'lockout') {
     return { lockout: lockoutFromSolution(sol, N) };
@@ -1623,6 +1697,7 @@ export function overlayOk(grid: Cell[][], r: number, c: number, n: number, N: nu
   if (ov.lockout && !lockoutOk(grid, r, c, n, ov.lockout)) return false;   // линия — показанная подсказка
   if (ov.xv && !xvOk(grid, r, c, n, ov.xv, N)) return false;   // знаки и их отсутствие — подсказка
   if (ov.littlekiller && !littleKillerOk(grid, r, c, n, ov.littlekiller, N)) return false;   // суммы диагоналей — подсказка
+  if (ov.xsums && !xsumsOk(grid, r, c, n, ov.xsums, N)) return false;   // X-суммы — подсказка
   if (ov.sandwich) {
     const check = (line: number[], want: number): boolean => {
       if (want < 0) return true;                                      // сумма СПРЯТАНА (см. thinSandwich) — не подсказка
@@ -1679,7 +1754,7 @@ export function countSolutions(grid: Cell[][], N: number, BR: number, BC: number
 // thermocage здесь ОБЯЗАН быть: единственность решения у него считается по ДВУМ
 // правилам сразу (isValid знает и цепочку, и сумму). Доска, единственная по каждому
 // правилу порознь, вместе может иметь второе решение — и наоборот.
-const UNIQUE_CHECKED: readonly Variant[] = ['none', 'diagonal', 'antiknight', 'hyper', 'nonconsec', 'antiking', 'jigsaw', 'thermo', 'arrow', 'evenodd', 'kropki', 'sandwich', 'thermocage', 'unequal', 'towers', 'sandparity', 'thermoknight', 'killerdiag', 'whisper', 'renban', 'regionsum', 'palindrome', 'between', 'lockout', 'xv', 'argyle', 'littlekiller'];
+const UNIQUE_CHECKED: readonly Variant[] = ['none', 'diagonal', 'antiknight', 'hyper', 'nonconsec', 'antiking', 'jigsaw', 'thermo', 'arrow', 'evenodd', 'kropki', 'sandwich', 'thermocage', 'unequal', 'towers', 'sandparity', 'thermoknight', 'killerdiag', 'whisper', 'renban', 'regionsum', 'palindrome', 'between', 'lockout', 'xv', 'argyle', 'littlekiller', 'xsums'];
 
 /**
  * Готовая сетка для «несоседних чисел» — БЕЗ перебора.
@@ -1708,7 +1783,7 @@ export function buildNonconsecSolution(): Cell[][] {
   return g;
 }
 
-export function generatePuzzle(blanks: number, N: number, BR: number, BC: number, variant: Variant = 'none', thin?: (ov: Overlays) => Overlays): { puzzle: Cell[][]; solution: Cell[][]; regions?: number[][]; parity?: number[][]; kropki?: { h: number[][]; v: number[][] }; sandwich?: { rows: number[]; cols: number[] }; thermo?: ThermoPN; arrow?: ArrowMap; cages?: CageMap; unequal?: UnequalMap; towers?: TowersMap; whisper?: ThermoPN; renban?: ThermoPN; regionsum?: ThermoPN; palindrome?: ThermoPN; between?: ThermoPN; lockout?: ThermoPN; xv?: XvMap; littlekiller?: LittleKillerClue[] } {
+export function generatePuzzle(blanks: number, N: number, BR: number, BC: number, variant: Variant = 'none', thin?: (ov: Overlays) => Overlays): { puzzle: Cell[][]; solution: Cell[][]; regions?: number[][]; parity?: number[][]; kropki?: { h: number[][]; v: number[][] }; sandwich?: { rows: number[]; cols: number[] }; thermo?: ThermoPN; arrow?: ArrowMap; cages?: CageMap; unequal?: UnequalMap; towers?: TowersMap; whisper?: ThermoPN; renban?: ThermoPN; regionsum?: ThermoPN; palindrome?: ThermoPN; between?: ThermoPN; lockout?: ThermoPN; xv?: XvMap; littlekiller?: LittleKillerClue[]; xsums?: XsumsClues } {
   const sol: Cell[][] = Array.from({ length: N }, () => Array(N).fill(0));
   let regions: number[][] | undefined;
   let thermo: ThermoPN | undefined;
@@ -1807,7 +1882,8 @@ export function generatePuzzle(blanks: number, N: number, BR: number, BC: number
   const lockout = ov.lockout;
   const xv = ov.xv;
   const littlekiller = ov.littlekiller;
-  return { puzzle, solution: sol, regions, parity, kropki, sandwich, thermo, arrow, cages, unequal, towers, whisper, renban, regionsum, palindrome, between, lockout, xv, littlekiller };
+  const xsums = ov.xsums;
+  return { puzzle, solution: sol, regions, parity, kropki, sandwich, thermo, arrow, cages, unequal, towers, whisper, renban, regionsum, palindrome, between, lockout, xv, littlekiller, xsums };
 }
 
 /**
@@ -1847,6 +1923,7 @@ export interface RejectionContext {
   lockout?: ThermoPN;
   xv?: XvMap;
   littlekiller?: LittleKillerClue[];
+  xsums?: XsumsClues;
 }
 
 export function rejectionReason(
@@ -1886,7 +1963,7 @@ export function rejectionReason(
       && overlayOk(test, r, c, n, N, {
         parity: ctx.parity, kropki: ctx.kropki, sandwich: ctx.sandwich, unequal: ctx.unequal, towers: ctx.towers,
         whisper: ctx.whisper, renban: ctx.renban, regionsum: ctx.regionsum, palindrome: ctx.palindrome,
-        between: ctx.between, lockout: ctx.lockout, xv: ctx.xv, littlekiller: ctx.littlekiller,
+        between: ctx.between, lockout: ctx.lockout, xv: ctx.xv, littlekiller: ctx.littlekiller, xsums: ctx.xsums,
       });
     if (!ruleOk) return variant !== 'none' ? variantRule(variant, lang) : translateFor(lang, 'sudokuKillerRule');
   }

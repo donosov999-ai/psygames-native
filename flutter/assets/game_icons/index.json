@@ -64,6 +64,7 @@
   "puzzlesUnruly": "puzzles.webp",
   "quickCount": "quick_count.webp",
   "readingSpan": "reading_span.webp",
+  "relaxationGroup": "relaxation_group.webp",
   "rhythmPitch": "rhythm_pitch.webp",
   "rmet": "rmet.webp",
   "samuraiTitle": "sudoku_samurai.webp",
@@ -203,6 +204,7 @@
   "/games/puzzles?mode=Untangle": "puzzle_untangle.webp",
   "/games/quick-count": "quick_count.webp",
   "/games/reading-span": "reading_span.webp",
+  "/games/relaxation-hub": "relaxation_group.webp",
   "/games/rhythm-pitch": "rhythm_pitch.webp",
   "/games/rmet": "rmet.webp",
   "/games/scholars-mate": "scholars_mate.webp",
@@ -243,6 +245,7 @@
   "/games/water-sort": "water_sort.webp",
   "/games/wcst": "wcst.webp",
   "/games/word-pairs": "word_pairs.webp",
-  "/games/words-hub": "words_group.webp"
+  "/games/words-hub": "words_group.webp",
+  "/warmup-night": "warmup_night.webp"
  }
 }
