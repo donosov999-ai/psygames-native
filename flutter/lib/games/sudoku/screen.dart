@@ -28,6 +28,7 @@ import 'lesson.dart';
 import 'attempt.dart';
 import 'mode_board.dart';
 import 'reject_why.dart';
+import 'rule_help.dart';
 import 'modes.dart';
 import 'resume.dart';
 import 'roads.dart';
@@ -914,6 +915,43 @@ class _SudokuScreenState extends State<SudokuScreen> {
 
   void _erase() => _onKey(0);
 
+  /// Правило доски на экране: у режима — сам режим («Свободно» правила не добавляет), у лестницы,
+  /// пилота и малышей — вариант выданной доски.
+  String get _ruleNow {
+    final mode = widget.mode;
+    if (mode == SideMode.killer) return 'killer';
+    if (mode == SideMode.free) return 'none';
+    if (mode != null) return sideModeName(mode);
+    return _board?.variant ?? 'none';
+  }
+
+  /// Есть ли у правила доски своя справка (текст правила в словаре).
+  bool get _hasRuleHelp => _ruleNow != 'none' && sudokuRuleTextKey(_ruleNow) != null;
+
+  /// Карточка «новое правило» — пока человек её не закрыл и пока партия идёт. Если правило
+  /// умещается в своё имя в полосе («🐱 рядом с 🐭» у «Мяу — друзья»), карточка его бы только
+  /// повторила — её нет, правило остаётся в паузе.
+  bool get _ruleBanner =>
+      _hasRuleHelp &&
+      !_won &&
+      !_lost &&
+      L.t(sudokuRuleTextKey(_ruleNow)!) != _ruleTitle() &&
+      !sudokuRuleSeen(widget.state, _ruleNow);
+
+  String _ruleTitle() => _ruleNow == 'killer' ? L.t('sudokuModeKiller') : variantTitle(_ruleNow);
+
+  /// «Видел правило» — тот же флаг, что ставит веб (`psygames_sudoku_rulehint_<правило>`).
+  void _ackRule() {
+    widget.state.set(sudokuRuleSeenKey(_ruleNow), '1');
+    if (mounted) setState(() {});
+  }
+
+  Future<void> _openRuleHelp() async {
+    final rule = _ruleNow;
+    _ackRule();
+    await showSudokuRuleHelp(context, rule: rule, title: _ruleTitle(), n: _n);
+  }
+
   /// Причина отказа на той доске, что в игре: режим (небоскрёбы, неравенства) или лестница.
   String? _rejectWhy(int r, int c, int v) {
     final side = _sideBoard, mode = widget.mode;
@@ -1407,15 +1445,24 @@ class _SudokuScreenState extends State<SudokuScreen> {
         HudItem(label: L.t('errors'), value: '$_errors/$errorLimit', icon: Icons.close),
         if (ruleLabel != null) HudItem(label: L.t('simonRule'), value: ruleLabel, icon: Icons.rule),
       ],
-      field: (context, height) {
+      field: (context, fieldHeight) {
         final ready = widget.mode == null ? levels != null : _sideModes != null;
         if (!ready) return const Center(child: CircularProgressIndicator());
         final side = _sideBoard;
         if (widget.mode == null ? board == null : side == null) {
           return Center(child: Text(_failure ?? L.t('sdkBoardFailed')));
         }
+        // Карточка «новое правило» забирает свою полосу у поля — доска не уезжает под неё.
+        final banner = _ruleBanner;
+        final height = banner ? fieldHeight - SudokuRuleBanner.height : fieldHeight;
+        Widget withBanner(Widget boardView) => !banner
+            ? boardView
+            : Column(children: [
+                SudokuRuleBanner(rule: _ruleNow, onMore: _openRuleHelp, onClose: _ackRule),
+                Expanded(child: boardView),
+              ]);
         if (widget.mode == SideMode.killer || widget.mode == SideMode.free) {
-          return SudokuBoardView(
+          return withBanner(SudokuBoardView(
             board: _asLadderBoard(side!),
             grid: _grid,
             given: _given,
@@ -1424,10 +1471,10 @@ class _SudokuScreenState extends State<SudokuScreen> {
             selected: _selected,
             height: height,
             onTap: _select,
-          );
+          ));
         }
         if (widget.mode != null) {
-          return ModeBoard(
+          return withBanner(ModeBoard(
             board: side!,
             mode: widget.mode!,
             grid: _grid,
@@ -1437,9 +1484,9 @@ class _SudokuScreenState extends State<SudokuScreen> {
             selected: _selected,
             height: height,
             onTap: _select,
-          );
+          ));
         }
-        return SudokuBoardView(
+        return withBanner(SudokuBoardView(
           board: board!,
           grid: _grid,
           given: _given,
@@ -1449,7 +1496,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
           height: height,
           onTap: _select,
           symbols: _symbols,
-        );
+        ));
       },
       // 🔴 ЧЕТЫРЕ ЗНАЧКА, КАК В ВЕБЕ, А НЕ ТРИ. Первая редакция нативного экрана
       // увезла к людям только отмену, «заново» и подсказку — без карандаша и цвета
@@ -1522,6 +1569,9 @@ class _SudokuScreenState extends State<SudokuScreen> {
             ),
       pauseActions: [
         PauseAction(label: L.t('sdkStartOver'), icon: Icons.refresh, onPressed: () => restartGuarded(context, live: _live, deal: _deal)),
+        // Правило доски — окно со схемой, как бейдж варианта у веба (b5df5096 п.5).
+        if (_hasRuleHelp)
+          PauseAction(label: '${L.t('simonRule')}: ${_ruleTitle()}', icon: Icons.rule, onPressed: _openRuleHelp),
         if (widget.mode == null && !widget.junior && _genStore != null)
           PauseAction(
             label: _pilot ? L.t('sudokuPilotOff') : L.t('sudokuPilotOn'),
