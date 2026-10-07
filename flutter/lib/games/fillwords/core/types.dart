@@ -229,4 +229,13 @@ class FillwordsPool {
 abstract class FillwordsRng {
   /// Дробное в [0, 1).
   double next();
+
+  /// Целое в [0, max); при max <= 0 — 0 (`int` веба).
+  int nextInt(int max);
+
+  /// Случайный элемент; пустой список → null.
+  T? pick<T>(List<T> items);
+
+  /// Перемешивание НА МЕСТЕ (Фишер–Йетс); возвращает тот же список.
+  List<T> shuffle<T>(List<T> items);
 }
