@@ -216,15 +216,63 @@ int idealMemoryMoves(List<int> deck, int groupSize) {
   return moves;
 }
 
+/// 👯 ПОХОЖИЕ ПАРЫ (задача a944dd36; Papa Meias: «сложность: размер поля, число пар, похожие
+/// (трудные) пары»). Двойник — та же картинка на ЖЁЛТОЙ карточке, и это ДРУГАЯ пара: собрать
+/// надо обычную с обычной, жёлтую с жёлтой. Номер карты несёт и картинку, и карточку:
+/// картинка + [pairsSpriteCount] × вариант (0 — обычная карточка, 1 — жёлтая).
+///
+/// 📍 ПОЧЕМУ ЦВЕТ КАРТОЧКИ, А НЕ ЗЕРКАЛО — замер 02.10.2026 по всем 108 картинкам девяти наборов
+/// на карте 48 пт (картинка 39 пт, худший случай — 1x):
+///   · фон карточки виден на 54–74 % лица у восьми наборов и на 34 % у «мозга» (там картинки во
+///     весь квадрат, остаётся рамка 4 пт). Жёлтый отстоит от фона лица на ΔE 73 в светлой теме и
+///     107 в тёмной, от зелёного «собрано» — на 70. Различим у КАЖДОЙ картинки;
+///   · зеркало различимо только у несимметричных: силуэт расходится с отражением (1 − IoU масок
+///     ≥ 0,10) у 42 картинок из 108, у «мозга» — у 0 из 12. Ступенью для всех наборов оно быть
+///     не может.
+int pairsSpriteOf(int symbol) => symbol % pairsSpriteCount;
+
+/// Карта — жёлтый двойник.
+bool pairsIsTwin(int symbol) => symbol >= pairsSpriteCount;
+
 /// 🧸 МАЛЫШИ — движок MindLab «Пары» (Papa Meias, abstract-games-core engines/mindlab/kids/pairs.py)
 /// режимом «Парных картинок». Решение Дениса 30.09.2026, задача cd9685ec: движки MindLab добавляем
 /// нативно — «Пары» похожи на «Парные картинки», значит это их режим.
 ///
 /// Как в движке: поле растёт ступенями 4 → 8 → 12 пар (`KID_PAIRS`: tiny, junior, standard),
 /// показа нет, часов нет. Партию оценивают не временем, а ходами против идеальной памяти на том
-/// же раскладе ([idealMemoryMoves]) — «эталон для оценки ребёнка». После третьей ступени дальше
-/// ведёт лестница уровней: тройки, четвёрки, обмены.
-const pairsKidsSteps = <int>[4, 8, 12];
+/// же раскладе ([idealMemoryMoves]) — «эталон для оценки ребёнка».
+///
+/// После 12 пар картинки набора кончаются, и лестница растёт ПОХОЖИМИ ПАРАМИ (a944dd36): на тех
+/// же 12 парах двойников 2 → 4 → 6, потом поле растёт двойниками — 16, 20, 24 пары, где каждая
+/// картинка лежит и обычной парой, и жёлтой. `twins` — сколько пар на поле жёлтые.
+const pairsKidsSteps = <({int pairs, int twins})>[
+  (pairs: 4, twins: 0),
+  (pairs: 8, twins: 0),
+  (pairs: 12, twins: 0),
+  (pairs: 12, twins: 2),
+  (pairs: 12, twins: 4),
+  (pairs: 12, twins: 6),
+  (pairs: 16, twins: 8),
+  (pairs: 20, twins: 10),
+  (pairs: 24, twins: 12),
+];
+
+/// Правила ступени «Малышей»: пары без показа и обменов. Число пар не режется по набору
+/// картинок — с двойниками пар бывает больше, чем картинок.
+LevelCfg pairsKidsCfg(({int pairs, int twins}) step) =>
+    LevelCfg(pairs: step.pairs, groupSize: 2, photo: false, previewMs: 0, swapsPerMiss: 0);
+
+/// Колода ступени: `pairs − twins` разных картинок обычными парами, и у `twins` из них — ещё
+/// жёлтая пара-двойник.
+List<int> pairsKidsDeck(({int pairs, int twins}) step, Random rnd) {
+  final plain = step.pairs - step.twins;
+  if (plain > pairsSpriteCount || step.twins > plain) {
+    throw ArgumentError('step needs $plain sprites and ${step.twins} twins of them');
+  }
+  final chosen = (List.generate(pairsSpriteCount, (i) => i)..shuffle(rnd)).take(plain).toList();
+  final symbols = [...chosen, for (final s in chosen.take(step.twins)) s + pairsSpriteCount];
+  return [for (final s in symbols) ...[s, s]]..shuffle(rnd);
+}
 
 /// Звёзды за партию по эффективности (ходы идеальной памяти / ходы ребёнка).
 ///
@@ -403,13 +451,14 @@ class PairsGame {
 
 /// СВОБОДНАЯ ПАРТИЯ (веб: режим `single`) — число пар и фото-показ выбирает человек.
 /// Всегда ПАРЫ и без обменов после ошибки: тройки, четвёрки и обмены — оси лестницы
-/// уровней, свободная партия их не берёт.
+/// уровней, свободная партия их не берёт. [groupSize] меняет только дуэль: она бывает и на
+/// тройках (a944dd36).
 const pairsFreeCounts = <int>[6, 8, 10, 12];
 const pairsFreePreviewMs = <int>[500, 1500, 3000];
 
-LevelCfg pairsFreeCfg({required int pairs, required bool photo, required int previewMs}) => LevelCfg(
+LevelCfg pairsFreeCfg({required int pairs, required bool photo, required int previewMs, int groupSize = 2}) => LevelCfg(
       pairs: min(pairs, pairsSpriteCount),
-      groupSize: 2,
+      groupSize: groupSize,
       photo: photo,
       previewMs: photo ? previewMs : 0,
       swapsPerMiss: 0,

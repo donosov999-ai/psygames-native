@@ -14,6 +14,7 @@ import 'package:psygames_flutter/shell/session_report.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:psygames_flutter/shell/voice.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'support/settings_fit.dart';
 
 /// Голос для проб: записывает, ЧТО и на каком языке сказано, и умеет «не иметь голоса».
 class _FakeVoice implements VoiceBackend {
@@ -48,6 +49,9 @@ class _FakeVoice implements VoiceBackend {
 void main() {
   late SharedState state;
   late _FakeVoice backend;
+
+  /// Тумблер звука человека — проба переключает его посреди захода.
+  var soundIsOn = true;
 
   /// Сколько слов прозвучало к концу прошлого раунда: первое слово раунда звучит в тот же
   /// кадр, что и старт, — раньше, чем проба начала бы слушать.
@@ -86,7 +90,7 @@ void main() {
     if (preset != null) GamePreset.set(preset);
     backend = _FakeVoice(system: voice);
     heardBefore = 0;
-    final layer = VoiceLayer(backend: backend, soundOn: () => true);
+    final layer = VoiceLayer(backend: backend, soundOn: () => soundIsOn);
     // Поток на ЦЕЛОМ состоянии: на дроби он сходится к ≈0,22 и выдаёт почти одно и то же (01.10.2026).
     var st = 4242;
     double rng() {
@@ -102,6 +106,7 @@ void main() {
   }
 
   tearDown(() {
+    soundIsOn = true;
     gameWallMs = () => DateTime.now().millisecondsSinceEpoch;
     GamePreset.clear();
     SessionReport.sink = null;
@@ -141,6 +146,7 @@ void main() {
   testWidgets('🔴 партия на слух: два раунда в порядке звучания — уровень взят, отчёт как у веба', (tester) async {
     await boot(tester, level: 1);
     expect(find.byKey(const Key('lspan-start')), findsOneWidget);
+    final t0 = tester.binding.clock.now();
     await tester.tap(find.byKey(const Key('lspan-start')));
     await tester.pump();
 
@@ -165,6 +171,10 @@ void main() {
     expect('${s['difficulty']} / ${s['mode']}', 'L1 / 3-span · en', reason: 'метки — как пишет веб-экран');
     expect(s['details'], {'level': 1, 'span': 3, 'errors': 0, 'target_lang': 'en'});
     expect(s['time_seconds'] as int, inInclusiveRange(4, 60), reason: 'секунды партии, а не отметка времени');
+    // Секунда вступления перед первым словом — не партия: веб её не считает (listening-span.tsx).
+    final upperMs = tester.binding.clock.now().difference(t0).inMilliseconds;
+    expect((s['time_seconds'] as int) * 1000, lessThanOrEqualTo(upperMs - 500),
+        reason: 'время партии без секунды вступления: всего прошло не больше $upperMs мс');
     expect(backend.langs.toSet(), {'en-US'}, reason: 'слова звучат голосом изучаемого языка');
   });
 
@@ -213,6 +223,24 @@ void main() {
     expect(grid, findsNothing);
     expect(find.byKey(const Key('lspan-start')), findsOneWidget, reason: 'остались на экране настройки');
     expect(sent, isEmpty);
+  });
+
+  testWidgets('🔴 звук включили — предупреждение «включите звук» уходит и не возвращается на следующей партии',
+      (tester) async {
+    soundIsOn = false;
+    await boot(tester, level: 1);
+    await tester.tap(find.byKey(const Key('lspan-start')));
+    await tester.pump();
+    expect(find.text(L.t('voiceSoundOff')), findsOneWidget, reason: 'звук выключен — партии нет, на экране причина');
+    soundIsOn = true;
+    await tester.tap(find.byKey(const Key('lspan-start')));
+    await tester.pump();
+    expect(find.byKey(const Key('lspan-start')), findsNothing, reason: 'звук включён — партия пошла');
+    await tester.tap(find.byTooltip(L.t('restart')).first);
+    await tester.pump();
+    expect(find.byKey(const Key('lspan-start')), findsOneWidget, reason: 'снова экран старта');
+    expect(find.text(L.t('voiceSoundOff')), findsNothing, reason: 'устаревшее предупреждение не висит');
+    await tester.pump(const Duration(seconds: 10));
   });
 
   testWidgets('выбор языка — выпадающий список из словаря, без языка приложения; выбор запоминается', (tester) async {
@@ -298,5 +326,19 @@ void main() {
     await tester.tap(find.text(L.t('ctaGotIt')));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('lspan-start')), findsOneWidget, reason: 'после «Понятно» — экран старта');
+  });
+
+  testWidgets('🔴 настройка на 360×640 по-английски и по-русски: «Начать» на первом экране (ae1d918b)', (tester) async {
+    await expectSettingsFit(tester, () => boot(tester, level: 12), where: 'listening-span L12');
+  });
+
+  testWidgets('🔴 партия на 360×640: органы ответа целиком на экране (или в прокрутке поля), не меньше 48×48 (приёмка 6596a00d)',
+      (tester) async {
+    await expectPlayFit(tester, () async {
+      await boot(tester, level: 12);
+      await tester.tap(find.byKey(const Key('lspan-start')));
+      await listen(tester);
+    }, where: 'listening-span L12, ввод');
+    await tester.pumpWidget(const SizedBox());
   });
 }

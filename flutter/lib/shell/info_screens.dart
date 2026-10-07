@@ -18,13 +18,14 @@ _M _map(Object? v) => v is Map ? Map<String, Object?>.from(v) : const {};
 List<_M> _list(Object? v) => v is List ? [for (final x in v) _map(x)] : const [];
 String _s(Object? v) => v == null ? '' : '$v';
 
-/// Общий каркас страницы по модели: ждём модель, фон веба, умолчания текста веба.
-class _ModelPage extends StatelessWidget {
-  const _ModelPage({required this.route, required this.screenKey, required this.builder, this.safeTop = true});
+/// Общий каркас страницы по модели: ждём модель, фон веба, умолчания текста веба. Им же пользуются
+/// «Друзья» (`friends_screen.dart`).
+class ModelPage extends StatelessWidget {
+  const ModelPage({super.key, required this.route, required this.screenKey, required this.builder, this.safeTop = true});
   final String route;
   final String screenKey;
   final bool safeTop;
-  final Widget Function(BuildContext context, _M m) builder;
+  final Widget Function(BuildContext context, Map<String, Object?> m) builder;
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +43,7 @@ class _ModelPage extends StatelessWidget {
   }
 }
 
-Widget _circleBack(BuildContext context, String key, String label, String ion, VoidCallback onTap, {bool filled = true}) {
+Widget circleBack(BuildContext context, String key, String label, String ion, VoidCallback onTap, {bool filled = true}) {
   final web = WebTheme.of(context);
   return Semantics(
     button: true,
@@ -69,7 +70,7 @@ class SourcesScreen extends StatelessWidget {
   static const route = '/sources';
 
   @override
-  Widget build(BuildContext context) => _ModelPage(
+  Widget build(BuildContext context) => ModelPage(
     route: route,
     screenKey: 'sources-screen',
     // У веба корень без SafeAreaView, сверху свой отступ 56.
@@ -94,7 +95,7 @@ class SourcesScreen extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(16, 56, 16, 12),
             child: Row(
               children: [
-                _circleBack(context, 'sources-back', _s(m['back']), 'arrow-back', () => ScreenUi.act(route, 'back')),
+                circleBack(context, 'sources-back', _s(m['back']), 'arrow-back', () => ScreenUi.act(route, 'back')),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
@@ -213,7 +214,7 @@ class CollectionScreen extends StatelessWidget {
   static const route = '/collection';
 
   @override
-  Widget build(BuildContext context) => _ModelPage(
+  Widget build(BuildContext context) => ModelPage(
     route: route,
     screenKey: 'collection-screen',
     builder: (context, m) {
@@ -230,7 +231,7 @@ class CollectionScreen extends StatelessWidget {
             ),
             child: Row(
               children: [
-                _circleBack(context, 'collection-exit', _s(m['back']), 'arrow-back', () => ScreenUi.act(route, 'back'), filled: false),
+                circleBack(context, 'collection-exit', _s(m['back']), 'arrow-back', () => ScreenUi.act(route, 'back'), filled: false),
                 Expanded(
                   child: Text(
                     _s(m['title']),
@@ -335,7 +336,7 @@ class AchievementsScreen extends StatelessWidget {
   static const _gold = Color(0xFFFBBF24);
 
   @override
-  Widget build(BuildContext context) => _ModelPage(
+  Widget build(BuildContext context) => ModelPage(
     route: route,
     screenKey: 'achievements-screen',
     builder: (context, m) {
@@ -347,7 +348,7 @@ class AchievementsScreen extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
             child: Row(
               children: [
-                _circleBack(
+                circleBack(
                   context,
                   'achievements-back',
                   _s(m['back']),
@@ -464,7 +465,7 @@ class LeaguesScreen extends StatelessWidget {
   static const route = '/leagues';
 
   @override
-  Widget build(BuildContext context) => _ModelPage(
+  Widget build(BuildContext context) => ModelPage(
     route: route,
     screenKey: 'leagues-screen',
     builder: (context, m) {
@@ -479,7 +480,7 @@ class LeaguesScreen extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             child: Row(
               children: [
-                _circleBack(context, 'leagues-back', _s(m['back']), _s(m['backIcon']), () => ScreenUi.act(route, 'back'), filled: false),
+                circleBack(context, 'leagues-back', _s(m['back']), _s(m['backIcon']), () => ScreenUi.act(route, 'back'), filled: false),
                 Expanded(
                   child: Text(
                     _s(m['title']),
