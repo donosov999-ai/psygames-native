@@ -5,8 +5,11 @@
  * ЗАМЕР ДО. На L13 N упирается в 6; L14…L60 побайтово одинаковы — 47 клонов.
  * Подтверждено ИГРОЙ: L13, L14, L16 на живом билде — «repeats 6 back», L12 — «5 back».
  * ЗАМЕР ПОСЛЕ. Ось 3: интервал между стимулами растёт на 200 мс за уровень.
+ * С 02.10.2026 в полосе L27…L33 вместо интервала растёт ось 9 — глубина меняется внутри
+ * партии всё чаще (задача 103cd98d); с L34 интервал растёт снова. На каждой ступени растёт
+ * ровно одна ось — две в одной полосе дали бы обрыв вместо ступени.
  */
-import { levelParams, NB_VOLUME_TOP } from '@/app/games/n-back';
+import { levelParams, NB_SWITCH_FLOOR, NB_SWITCH_FROM, NB_SWITCH_START, NB_VOLUME_TOP } from '@/app/games/n-back';
 
 const подпись = (l: number) => JSON.stringify(levelParams(l));
 
@@ -33,9 +36,20 @@ describe('n-back: лестница различает соседние уров�
     expect(`клонов: ${клоны.length}${клоны.length ? ' — ' + клоны.slice(0, 6).join(', ') : ''}`).toBe('клонов: 0');
   });
 
-  it('🔴 выше L13 растёт именно интервал, монотонно', () => {
+  it('🔴 выше L13 растёт интервал — кроме полосы оси 9, где он стоит, а смена глубины учащается', () => {
+    const floorAt = NB_SWITCH_FROM + (NB_SWITCH_START - NB_SWITCH_FLOOR);
+    const wrong: string[] = [];
     for (let L = NB_VOLUME_TOP + 1; L <= 60; L++) {
-      expect(`L${L}: ${levelParams(L).gapMs}`).toBe(`L${L}: ${levelParams(L - 1).gapMs + 200}`);
+      const gapStep = levelParams(L).gapMs - levelParams(L - 1).gapMs;
+      const inSwitchBand = L >= NB_SWITCH_FROM && L <= floorAt;
+      if (inSwitchBand ? gapStep !== 0 : gapStep !== 200) wrong.push(`L${L}: интервал +${gapStep}`);
     }
+    expect(`нарушений: ${wrong.join(', ') || '—'}`).toBe('нарушений: —');
+  });
+
+  it('🔴 ось 9: с L27 глубина меняется внутри партии — каждые 10 проб, на уровень чаще, до 4 на L33', () => {
+    expect(levelParams(NB_SWITCH_FROM - 1).switchEvery).toBeUndefined();
+    expect([27, 28, 30, 33, 34, 60].map((L) => `L${L}:${levelParams(L).switchEvery}`).join(' '))
+      .toBe('L27:10 L28:9 L30:7 L33:4 L34:4 L60:4');
   });
 });
