@@ -9,6 +9,7 @@ import '../../shell/game_clock.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/l10n.dart';
 import '../../shell/game_shell.dart';
+import '../../shell/lesson.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/level_rules.dart';
 import '../../shell/preset_cap.dart';
@@ -36,11 +37,9 @@ const mmSeries2Color = Color(0xFFEF4444);
 const _correctColor = Color(0xFF22C55E);
 const _wrongColor = Color(0xFFDC2626);
 
-/// Рекорд серии подряд — тот же ключ, что у веб-половины (`services/streak.ts`).
-///
-/// ⚠️ Мост пока не возит веб-пространство `psygames.`: `SharedState.set` отбрасывает этот ключ
-/// молча, и рекорд живёт до выхода с экрана (замер 01.10.2026, задача координатору d3eeeba9).
-/// Ключ оставлен веб-ским нарочно: после правки моста рекорд станет общим без переноса данных.
+/// Рекорд серии подряд — тот же ключ, что у веб-половины (`services/streak.ts`). Мост возит
+/// веб-пространство `psygames.` (`SharedState.extraPrefixes`, выпуск 2.56.5): рекорд общий с вебом
+/// и переживает выход с экрана.
 const mmBestStreakKey = 'psygames.bestStreak.memory_matrix';
 
 /// Высота строки подписи над полем.
@@ -79,6 +78,9 @@ class _MemoryMatrixScreenState extends State<MemoryMatrixScreen> {
 
   /// Клетка, горящая сейчас в режиме «по порядку»; -1 — ни одна.
   int _active = -1;
+
+  /// Горящая сейчас клетка «по порядку» — ложная (с крестом).
+  bool _activeDecoy = false;
 
   /// Подпись, которую человек уже прочёл: тот же текст второй раз паузы не получает.
   String _prevCaption = '';
@@ -141,6 +143,11 @@ class _MemoryMatrixScreenState extends State<MemoryMatrixScreen> {
     _active = -1;
     _beatBest = false;
     _startedAt = null;
+    // Новая раздача — партия снова зачётная (договор lesson.dart, как у «Корси» и ospan). Без
+    // этого разбор, открытый посреди партии или на её итоге, молча делал незачётной и следующую
+    // партию после «Заново» / «Далее». Разбор на экране старта по-прежнему снимает зачёт своей
+    // партии: это правило каркаса, не экрана (сверка веб → натив 02.10).
+    LessonUsed.reset();
   }
 
   void _start() {
@@ -177,13 +184,20 @@ class _MemoryMatrixScreenState extends State<MemoryMatrixScreen> {
         _after(pause + g.singleShowMs, _openInput);
       }
     } else {
+      // По одной, ложные (с L16) — вперемешку с серией и с крестом, как в показе «картинкой».
       final flash = g.seqFlashMs;
-      for (var i = 0; i < r.seq.length; i++) {
-        final cell = r.seq[i];
-        _after(pause + i * (flash + mmSeqGapMs), () => setState(() => _active = cell));
+      final show = mmSeqShowOrder(r.seq, r.decoys);
+      for (var i = 0; i < show.length; i++) {
+        final s = show[i];
+        _after(
+            pause + i * (flash + mmSeqGapMs),
+            () => setState(() {
+                  _active = s.cell;
+                  _activeDecoy = s.decoy;
+                }));
         _after(pause + i * (flash + mmSeqGapMs) + flash, () => setState(() => _active = -1));
       }
-      _after(pause + r.seq.length * (flash + mmSeqGapMs) + mmSeqTailMs, _openInput);
+      _after(pause + show.length * (flash + mmSeqGapMs) + mmSeqTailMs, _openInput);
     }
   }
 
@@ -211,7 +225,8 @@ class _MemoryMatrixScreenState extends State<MemoryMatrixScreen> {
     if (res == MmPress.roundLost) {
       _haptics.heavy();
     } else {
-      _haptics.selection();
+      // Клетка — лёгкий щелчок, собранный раунд — отклик сильнее (у веба успех — двойной импульс).
+      res == MmPress.roundWon ? _haptics.medium() : _haptics.selection();
       if (g.streak > _bestStreak) {
         // Рекорд празднуем, когда он побит, а не в конце партии (веб: bumpBestStreak).
         if (_bestStreak > 0) _beatBest = true;
@@ -270,6 +285,9 @@ class _MemoryMatrixScreenState extends State<MemoryMatrixScreen> {
       case MmPhase.feedback:
         return _lastRoundWon ? L.t('matrixGood') : L.t('matrixMissed');
       case MmPhase.done:
+        // Шаг зарядки идёт мимо лестницы и зачёта не имеет (`passed` в нём всегда false): «Промах»
+        // выходил и при нуле ошибок (сверка веб → натив 02.10).
+        if (g.preset) return L.t('done');
         return g.passed ? L.t('matrixGood') : L.t('matrixMissed');
       case MmPhase.revealed:
         return L.t('puzzleShowSolution');
@@ -288,7 +306,8 @@ class _MemoryMatrixScreenState extends State<MemoryMatrixScreen> {
       title: L.t('memoryMatrix'),
       onLesson: () => openDemoLesson(context, title: L.t('memoryMatrix'), trials: memoryMatrixLessonTrials()),
       hud: [
-        HudItem(label: L.t('level'), value: '${_ladder.level}', icon: Icons.flag_outlined),
+        // В шаге зарядки играется пресет, а не личный уровень — номер уровня там неправда (как «Корси»).
+        if (!GamePreset.isPreset) HudItem(label: L.t('level'), value: '${_ladder.level}', icon: Icons.flag_outlined),
         HudItem(label: L.t('round'), value: '${g.round}/$mmTotalRounds', icon: Icons.repeat),
         HudItem(label: L.t('hud_correct'), value: '${g.hits}', icon: Icons.check_circle_outline),
         HudItem(label: L.t('hud_streak'), value: '${g.streak}', icon: Icons.local_fire_department_outlined),
@@ -386,14 +405,16 @@ class _MemoryMatrixScreenState extends State<MemoryMatrixScreen> {
           if (_showingSeries > 0 && r.decoys.contains(i)) return MmCellState.wrong;   // ложная: не запоминать
           return MmCellState.idle;
         }
-        return _active == i ? MmCellState.lit : MmCellState.idle;
+        if (_active != i) return MmCellState.idle;
+        return _activeDecoy ? MmCellState.wrong : MmCellState.lit;
       case MmPhase.input:
         if (!r.picked.contains(i)) return MmCellState.idle;
         return r.target.contains(i) ? MmCellState.correct : MmCellState.wrong;
       case MmPhase.feedback:
       case MmPhase.done:
         final inAny = in1 || in2;
-        final picked = r.picked.contains(i);
+        final picked = r.pickedAll.contains(i);
+        if (i == r.lostOn) return MmCellState.wrong;
         if (inAny && !picked) return MmCellState.missed;
         if (inAny && picked) return MmCellState.correct;
         if (!inAny && picked) return MmCellState.wrong;
@@ -539,8 +560,9 @@ class _MatrixGridViewState extends State<MatrixGridView> {
               child: Row(
                 children: [
                   for (var col = 0; col < n; col++)
-                    _Cell(
+                    MatrixCellView(
                       index: row * n + col,
+                      gridSize: n,
                       size: cell,
                       state: widget.stateOf(row * n + col),
                       order: widget.orderOf?.call(row * n + col),
@@ -578,9 +600,14 @@ class _MatrixGridViewState extends State<MatrixGridView> {
   }
 }
 
-class _Cell extends StatelessWidget {
-  const _Cell({
+/// Клетка поля. Скринридер слышит место и состояние словами, как у веба (`cellLabel`):
+/// «Строка 2, колонка 3, горит». До 02.10.2026 подпись была отладочной — «mm-cell-7-lit»,
+/// без строки и столбца и не переведённая; пробы теперь читают [state] самой клетки.
+class MatrixCellView extends StatelessWidget {
+  const MatrixCellView({
+    super.key,
     required this.index,
+    required this.gridSize,
     required this.size,
     required this.state,
     required this.order,
@@ -589,11 +616,24 @@ class _Cell extends StatelessWidget {
   });
 
   final int index;
+  final int gridSize;
   final double size;
   final MmCellState state;
   final int? order;
   final String keyPrefix;
   final ValueChanged<int>? onTap;
+
+  /// Подпись для скринридера — те же ключи словаря, что у веб-экрана.
+  String get a11yLabel {
+    final what = switch (state) {
+      MmCellState.lit || MmCellState.lit2 => L.t('a11yLit'),
+      MmCellState.correct => L.t('a11yCorrect'),
+      MmCellState.wrong => L.t('a11yWrong'),
+      MmCellState.missed => L.t('a11yMissed'),
+      MmCellState.idle => L.t('a11yEmpty'),
+    };
+    return '${L.t('a11yRow')} ${index ~/ gridSize + 1}, ${L.t('a11yCol')} ${index % gridSize + 1}, $what';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -613,7 +653,7 @@ class _Cell extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(3),
         child: Semantics(
-          label: '$keyPrefix$index-${state.name}',
+          label: a11yLabel,
           child: Material(
             color: fill,
             borderRadius: BorderRadius.circular(8),
