@@ -69,6 +69,18 @@ Map<(int, int), SudokuExampleMark>? sudokuExampleGrid(String variant) {
       m[(0, 0)] = (digit: '3', kind: SudokuExampleKind.source);
       m[(3, 3)] = (digit: '3', kind: SudokuExampleKind.banned);
       return m;
+    case 'argyle':
+      // Кусок узора: короткая диагональ (r+c = 4 в схеме) — тройка на ней запрещает тройку по всей линии.
+      for (var i = 0; i < 5; i++) {
+        m[(i, 4 - i)] = (digit: null, kind: SudokuExampleKind.zone);
+      }
+      for (var i = 1; i < 5; i++) {
+        m[(i, i - 1)] = (digit: null, kind: SudokuExampleKind.zone);
+      }
+      m[(2, 2)] = (digit: '3', kind: SudokuExampleKind.source);
+      m[(4, 0)] = (digit: '3', kind: SudokuExampleKind.banned);
+      m[(0, 4)] = (digit: '3', kind: SudokuExampleKind.banned);
+      return m;
     case 'hyper':
       for (var r = 1; r <= 3; r++) {
         for (var c = 1; c <= 3; c++) {

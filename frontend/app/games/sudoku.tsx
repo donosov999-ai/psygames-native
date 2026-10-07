@@ -85,7 +85,7 @@ const SUDOKU_BENEFITS = [
 import {
   Cell, Variant, ThermoPN, ArrowMap, SudokuDifficultyTier, UnequalMap, TowersMap,
   dimsForSize, blanksFor, killerBlanksForStep, killerStepCount, generateCages,
-  sudokuDifficultyTier, variantLabel, variantRule, shuffle, generatePuzzle, HYPER_BOXES,
+  sudokuDifficultyTier, variantLabel, variantRule, shuffle, generatePuzzle, HYPER_BOXES, argyleSegments,
   rejectionReason, cageMapFrom,
 } from '@/src/services/sudoku-core';
 import { gradePuzzle, logicalBuilder, selectionLookForLevel } from '@/src/services/sudoku-grade';
@@ -2362,6 +2362,15 @@ export default function SudokuGame() {
               stroke={colors.textSecondary} strokeWidth={1.5} strokeDasharray="7,6" opacity={0.6} />
             <Line x1={cellSize * N} y1={0} x2={0} y2={cellSize * N}
               stroke={colors.textSecondary} strokeWidth={1.5} strokeDasharray="7,6" opacity={0.6} />
+          </Svg>
+        )}
+        {/* Аргайл: восемь коротких диагоналей узора — тем же пунктиром, что «диагонали». */}
+        {variant === 'argyle' && (
+          <Svg width={cellSize * N} height={cellSize * N} style={{ position: 'absolute', top: 0, left: 0 }} pointerEvents="none">
+            {argyleSegments(N).map(([x1, y1, x2, y2], i) => (
+              <Line key={i} x1={x1 * cellSize} y1={y1 * cellSize} x2={x2 * cellSize} y2={y2 * cellSize}
+                stroke={colors.textSecondary} strokeWidth={1.5} strokeDasharray="7,6" opacity={0.6} />
+            ))}
           </Svg>
         )}
         {/* v1.113.0: доп. зоны (Windoku) — рамка поверх сетки, НЕ заливка клеток (та гасла от

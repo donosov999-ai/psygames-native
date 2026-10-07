@@ -11,7 +11,7 @@
 import { translateFor } from '../contexts/LanguageContext';
 
 export type Cell = number; // 0 = empty
-export type Variant = 'none' | 'diagonal' | 'antiknight' | 'hyper' | 'nonconsec' | 'jigsaw' | 'antiking' | 'evenodd' | 'kropki' | 'sandwich' | 'thermo' | 'arrow' | 'thermocage' | 'unequal' | 'towers' | 'sandparity' | 'thermoknight' | 'killerdiag' | 'whisper' | 'renban' | 'regionsum' | 'palindrome' | 'between' | 'lockout' | 'xv' | 'friends';
+export type Variant = 'none' | 'diagonal' | 'antiknight' | 'hyper' | 'nonconsec' | 'jigsaw' | 'antiking' | 'evenodd' | 'kropki' | 'sandwich' | 'thermo' | 'arrow' | 'thermocage' | 'unequal' | 'towers' | 'sandparity' | 'thermoknight' | 'killerdiag' | 'whisper' | 'renban' | 'regionsum' | 'palindrome' | 'between' | 'lockout' | 'xv' | 'argyle' | 'friends';
 // 'friends' — «Мяу — друзья» 9×9 (у кота мышь рядом): генератора на TS нет, доски ступеней — только
 // выгрузкой MindLab (flutter/tools/meow9-ladder.cjs, export_kids_boards.py --meow9).
 
@@ -27,6 +27,41 @@ export function dimsForSize(size: 6 | 9) {
 export function blanksFor(size: 6 | 9, diff: 'easy' | 'medium' | 'hard') {
   if (size === 9) return diff === 'easy' ? 36 : diff === 'medium' ? 46 : 54;   // из 81
   return diff === 'easy' ? 12 : diff === 'medium' ? 18 : 24;                    // из 36
+}
+
+/**
+ * 🔴 АРГАЙЛ (пункт 10 цепочки «14 усложнений», задача 2345d346; решение Дениса 30.09 «Берём»).
+ * Узор «ромб» поверх 9×9: восемь отмеченных диагоналей, на каждой цифры не повторяются.
+ * Диагонали задаются разностью r−c (±1 — по 8 клеток, ±4 — по 5) и суммой r+c (7 и 9 — по 8
+ * клеток, 4 и 12 — по 5). Это классическая раскладка Argyle (アーガイル): обобщение варианта
+ * «диагонали» с двух главных на восемь коротких. Ни одна диагональ не полная (≤ 8 клеток), поэтому
+ * правило режет кандидатов как сосед, но «единственного места» в диагонали не даёт.
+ */
+export const ARGYLE_DIFFS = [-4, -1, 1, 4] as const;
+export const ARGYLE_SUMS = [4, 7, 9, 12] as const;
+
+/** Клетки отмеченных диагоналей аргайла, на которых лежит (r, c) — без неё самой. */
+export function argylePeers(r: number, c: number, N: number): [number, number][] {
+  const out: [number, number][] = [];
+  if (N !== 9) return out;
+  if ((ARGYLE_DIFFS as readonly number[]).includes(r - c)) {
+    for (let i = 0; i < N; i++) { const j = i - (r - c); if (j >= 0 && j < N && i !== r) out.push([i, j]); }
+  }
+  if ((ARGYLE_SUMS as readonly number[]).includes(r + c)) {
+    for (let i = 0; i < N; i++) { const j = r + c - i; if (j >= 0 && j < N && i !== r) out.push([i, j]); }
+  }
+  return out;
+}
+
+/**
+ * Диагонали узора отрезками в долях клетки ([x1, y1, x2, y2], x — столбец, y — строка): линия идёт
+ * через центры клеток и кончается на краях доски. r−c = k → y = x + k; r+c = m → y = m + 1 − x.
+ */
+export function argyleSegments(N = 9): [number, number, number, number][] {
+  const out: [number, number, number, number][] = [];
+  for (const k of ARGYLE_DIFFS) out.push(k > 0 ? [0, k, N - k, N] : [-k, 0, N, N + k]);
+  for (const m of ARGYLE_SUMS) out.push(m + 1 <= N ? [0, m + 1, m + 1, 0] : [m + 1 - N, N, N, m + 1 - N]);
+  return out;
 }
 
 export function inHyper(r: number, c: number): readonly [number, number] | null {
@@ -51,6 +86,7 @@ const VARIANT_KEY_SUFFIX: Record<Exclude<Variant, 'none' | 'friends'>, string> =
   between: 'Between',
   lockout: 'Lockout',
   xv: 'Xv',
+  argyle: 'Argyle',
 };
 // «Мяу — друзья»: имя и правило — одна короткая строка «🐱 рядом с 🐭», та же, что у натива
 // (sdkRule_friends, 12 языков); отдельных sudokuVariant*/sudokuRule* у варианта нет.
@@ -1228,6 +1264,8 @@ export function isValid(grid: Cell[][], r: number, c: number, val: number, N: nu
   if (variant === 'diagonal' || variant === 'killerdiag') {
     if (r === c) { for (let i = 0; i < N; i++) if (grid[i][i] === val) return false; }                 // главная диагональ
     if (r + c === N - 1) { for (let i = 0; i < N; i++) if (grid[i][N - 1 - i] === val) return false; }  // побочная
+  } else if (variant === 'argyle') {
+    for (const [i, j] of argylePeers(r, c, N)) if (grid[i][j] === val) return false;   // восемь диагоналей узора
   } else if (variant === 'antiknight') {
     for (const [dr, dc] of KNIGHT) { const nr = r + dr, nc = c + dc; if (nr >= 0 && nr < N && nc >= 0 && nc < N && grid[nr][nc] === val) return false; }
   } else if (variant === 'thermoknight') {
@@ -1557,7 +1595,7 @@ export function countSolutions(grid: Cell[][], N: number, BR: number, BC: number
 // thermocage здесь ОБЯЗАН быть: единственность решения у него считается по ДВУМ
 // правилам сразу (isValid знает и цепочку, и сумму). Доска, единственная по каждому
 // правилу порознь, вместе может иметь второе решение — и наоборот.
-const UNIQUE_CHECKED: readonly Variant[] = ['none', 'diagonal', 'antiknight', 'hyper', 'nonconsec', 'antiking', 'jigsaw', 'thermo', 'arrow', 'evenodd', 'kropki', 'sandwich', 'thermocage', 'unequal', 'towers', 'sandparity', 'thermoknight', 'killerdiag', 'whisper', 'renban', 'regionsum', 'palindrome', 'between', 'lockout', 'xv'];
+const UNIQUE_CHECKED: readonly Variant[] = ['none', 'diagonal', 'antiknight', 'hyper', 'nonconsec', 'antiking', 'jigsaw', 'thermo', 'arrow', 'evenodd', 'kropki', 'sandwich', 'thermocage', 'unequal', 'towers', 'sandparity', 'thermoknight', 'killerdiag', 'whisper', 'renban', 'regionsum', 'palindrome', 'between', 'lockout', 'xv', 'argyle'];
 
 /**
  * Готовая сетка для «несоседних чисел» — БЕЗ перебора.

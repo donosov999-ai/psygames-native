@@ -307,6 +307,42 @@ bool towersLineOk(List<int> line, int clue) {
   return clue >= low && clue <= seen + blanks;
 }
 
+/// 🔴 АРГАЙЛ (пункт 10 цепочки «14 усложнений», задача 2345d346) — перенос `argylePeers` ядра
+/// (sudoku-core.ts): восемь отмеченных диагоналей узора «ромб» на 9×9, на каждой цифры не
+/// повторяются. Разности r−c ±1 (по 8 клеток) и ±4 (по 5), суммы r+c 7 и 9 (по 8) и 4 и 12 (по 5).
+const argyleDiffs = [-4, -1, 1, 4];
+const argyleSums = [4, 7, 9, 12];
+
+/// Клетки диагоналей узора, на которых лежит (r, c), — без неё самой.
+List<(int, int)> argylePeers(int r, int c, int n) {
+  final out = <(int, int)>[];
+  if (n != 9) return out;
+  if (argyleDiffs.contains(r - c)) {
+    for (var i = 0; i < n; i++) {
+      final j = i - (r - c);
+      if (j >= 0 && j < n && i != r) out.add((i, j));
+    }
+  }
+  if (argyleSums.contains(r + c)) {
+    for (var i = 0; i < n; i++) {
+      final j = r + c - i;
+      if (j >= 0 && j < n && i != r) out.add((i, j));
+    }
+  }
+  return out;
+}
+
+/// Диагонали узора отрезками в долях клетки (x — столбец, y — строка) — `argyleSegments` ядра:
+/// через центры клеток до краёв доски. r−c = k → y = x + k; r+c = m → y = m + 1 − x.
+List<(double, double, double, double)> argyleSegments([int n = 9]) => [
+      for (final k in argyleDiffs)
+        k > 0 ? (0.0, k.toDouble(), (n - k).toDouble(), n.toDouble()) : ((-k).toDouble(), 0.0, n.toDouble(), (n + k).toDouble()),
+      for (final m in argyleSums)
+        m + 1 <= n
+            ? (0.0, (m + 1).toDouble(), (m + 1).toDouble(), 0.0)
+            : ((m + 1 - n).toDouble(), n.toDouble(), n.toDouble(), (m + 1 - n).toDouble()),
+    ];
+
 /// Законен ли ход: поставить `val` в клетку (`r`, `c`) на доске `grid`.
 ///
 /// Порядок веток повторяет живой TS. `variant` — имя варианта строкой, как в лестнице
@@ -347,7 +383,11 @@ bool isValid(
     }
   }
 
-  if (variant == 'diagonal' || variant == 'killerdiag') {
+  if (variant == 'argyle') {
+    for (final (i, j) in argylePeers(r, c, n)) {
+      if (grid[i][j] == val) return false;   // восемь диагоналей узора
+    }
+  } else if (variant == 'diagonal' || variant == 'killerdiag') {
     if (r == c) {
       for (var i = 0; i < n; i++) {
         if (grid[i][i] == val) return false;
