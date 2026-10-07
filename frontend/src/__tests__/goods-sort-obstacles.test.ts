@@ -14,7 +14,7 @@
  */
 // Лист без React: 14 мс против 3298 мс у экрана (замер 06.09.2026).
 import { liveRowsForFreeze, levelCfg, GS_RULES, OBSTACLE_PLANS, SHAPES, gridFor,
-  obstaclePlan } from '@/src/games/goods-sort/core/level';
+  pickFrozen } from '@/src/games/goods-sort/core/level';
 
 declare const __dirname: string;
 declare function require(m: string): any;
@@ -234,5 +234,74 @@ describe('примёрзший ряд выбирается живым', () => {
 
   it('на чистой доске морозить можно все ряды кроме верхнего', () => {
     expect(liveRowsForFreeze(full(12), none(12), 3, 4)).toEqual([1, 2, 3]);
+  });
+
+  it('препятствия читаются по НИШЕ, а не по месту: дыра сдвигает номера', () => {
+    // Вырезано место 0, значит ниша 2 стоит на месте 3, ниша 3 — на месте 4.
+    // Заперты обе — в ряду 1 остаётся одна открытая ниша (место 5), ряд не живой.
+    // Прежнее чтение по номеру места видело запертой одну (место 3 → ниша 3) и
+    // предлагало ряд 1.
+    const mask = full(9);
+    mask[0] = false;
+    const obs = none(8);
+    obs[2] = { kind: 'blocked' }; obs[3] = { kind: 'blocked' };
+    expect(liveRowsForFreeze(mask, obs, 3, 3)).toEqual([2]);
+  });
+});
+
+/**
+ * 🔴 ВИД ЛЬДА СОБИРАЕТСЯ ВНЕ РЯДА (задача 747a6ece, 07.10.2026).
+ *
+ * Лёд снимается тройкой своего вида, а в примёрзший ряд нельзя ни положить, ни
+ * взять. Выгрузка 25.09 ставила вид, не глядя, где лежат его товары: у 44 уровней
+ * из 720 часть тройки сидела во льду, десять из них не проходились вовсе.
+ */
+describe('примёрзший ряд растапливается своим видом', () => {
+  const full = (n: number) => Array(n).fill(true);
+  const none = (n: number) => Array(n).fill(null);
+  // Ряд 0 — ниши 0..2, ряд 1 — 3..5, ряд 2 — 6..8. Вид 1: две в ряду 0 и одна в
+  // ряду 1. Вид 2: ниши 0, 1, 6. Вид 3: по одному в каждом ряду.
+  const cells = [[1, 2], [1, 2], [3], [1], [3], [], [2], [3], []];
+  /** Поток случайных чисел с учётом вызовов: выгрузка идёт одним зерном на лестницу. */
+  const поток = (...xs: number[]) => {
+    const r = { calls: 0, next: () => xs[r.calls++] ?? 0 };
+    return r;
+  };
+
+  it('выпал вид, чья тройка частью во льду, — берётся следующий, ряд тот же', () => {
+    const r = поток(0, 0);                 // вид 1, ряд 1: третий товар вида 1 — в ряду 1
+    expect(pickFrozen(cells, full(9), none(9), 3, 3, r.next)).toEqual({ row: 1, type: 2 });
+    expect(r.calls).toBe(2);
+  });
+
+  it('годная пара остаётся той, что выпала', () => {
+    const r = поток(0.5, 0);               // вид 2, ряд 1: все три вида 2 вне ряда
+    expect(pickFrozen(cells, full(9), none(9), 3, 3, r.next)).toEqual({ row: 1, type: 2 });
+    expect(r.calls).toBe(2);
+  });
+
+  it('в выпавшем ряду не годится ни один вид — берётся следующий ряд', () => {
+    // В ряду 2 лежит по товару каждого вида: снаружи у всех по два.
+    const tight = [[1, 2], [3, 1], [], [2, 3], [], [], [1], [2], [3]];
+    const r = поток(0, 0.9);               // вид 1, ряд 2
+    expect(pickFrozen(tight, full(9), none(9), 3, 3, r.next)).toEqual({ row: 1, type: 1 });
+    expect(r.calls).toBe(2);
+  });
+
+  it('товар под препятствием в тройку не считается', () => {
+    // Вид 2 — ниши 0, 1 и 6, но ниша 6 под замком: снаружи открыто два.
+    const locked = [[2, 3], [2, 3], [3], [], [], [], [2], [], []];
+    const obs = none(9);
+    obs[6] = { kind: 'locked', movesLeft: 3 };
+    const r = поток(0, 0);                 // вид 2, ряд 1
+    expect(pickFrozen(locked, full(9), obs, 3, 3, r.next)).toEqual({ row: 1, type: 3 });
+  });
+
+  it('живых рядов нет — льда нет, и второго вызова случайности тоже нет', () => {
+    const obs = none(9);
+    for (let i = 3; i < 9; i++) obs[i] = { kind: 'blocked' };
+    const r = поток(0, 0);
+    expect(pickFrozen(cells, full(9), obs, 3, 3, r.next)).toBeNull();
+    expect(r.calls).toBe(1);
   });
 });

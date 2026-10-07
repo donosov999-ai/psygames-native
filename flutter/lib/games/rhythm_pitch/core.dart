@@ -440,15 +440,31 @@ class RhythmTimingScore {
   final int matchedTaps;
 }
 
+/// Счёт ритма по РИСУНКУ, а не от конца звучания — `scoreRhythmTiming` веба VER 3
+/// (решение Дениса 30.09.2026, задача a57a2b44). Образец прикладывается к нажатиям с
+/// любым общим сдвигом, берётся лучший; кандидаты — прежняя привязка к концу звучания
+/// и каждая пара «нажатие ↔ такт» (минимум суммы |остаток − сдвиг| лежит на медиане
+/// остатков, то есть на одном из них). Замер до/после — в шапке веб-функции и в
+/// `frontend/scripts/rhythm-pitch-pass-rate.measure.test.ts`.
 RhythmTimingScore scoreRhythmTiming(
     RhythmEchoRound round, List<double> taps, double responseStartedAtMs, double calibrationOffsetMs) {
-  final expected = [for (final b in round.beats) responseStartedAtMs + b.onsetMs];
+  final onsets = [for (final b in round.beats) b.onsetMs];
   final corrected = [for (final t in taps) t - calibrationOffsetMs];
   final tol = math.max(100.0, round.unitMs * 0.3);
-  final a = alignTapsToBeats(expected, corrected, tol);
+  final shifts = <double>[responseStartedAtMs, for (final t in corrected) for (final o in onsets) t - o];
+  TapAlignment? best;
+  var bestCost = double.infinity;
+  for (final shift in shifts) {
+    final a = alignTapsToBeats([for (final o in onsets) shift + o], corrected, tol);
+    final cost = a.errorsMs.fold<double>(0, (s, e) => s + e) + (a.missingTaps + a.extraTaps) * tol * 1.5;
+    if (cost < bestCost) {
+      best = a;
+      bestCost = cost;
+    }
+  }
+  final a = best!;
   final timing = a.errorsMs.fold<double>(0, (s, e) => s + e);
-  final count = (a.missingTaps + a.extraTaps) * tol * 1.5;
-  final accuracy = _clamp(1 - (timing + count) / (round.beatCount * tol), 0, 1);
+  final accuracy = _clamp(1 - bestCost / (round.beatCount * tol), 0, 1);
   return RhythmTimingScore(
     accuracy,
     a.errorsMs.isEmpty ? tol : timing / a.errorsMs.length,

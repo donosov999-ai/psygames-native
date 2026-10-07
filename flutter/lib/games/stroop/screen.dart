@@ -107,9 +107,9 @@ class _StroopScreenState extends State<StroopScreen> {
     return [
       for (final d in stroopDemoTrials(palette))
         DemoTrial(
-          text: d.trial.word.ru,
+          text: stroopWord(d.trial.word),
           color: _hex(d.trial.ink.hex),
-          answer: byName(stroopCorrect(d.trial, d.rule)).ru,
+          answer: stroopWord(byName(stroopCorrect(d.trial, d.rule))),
           ruleKey: d.rule == 'ink' ? 'stroopByInk' : 'stroopByWord',
         ),
     ];
@@ -187,6 +187,25 @@ class _StroopScreenState extends State<StroopScreen> {
   }
 }
 
+/// Слово цвета на языке интерфейса — из общего словаря, заглавными, как в вебе.
+///
+/// 🔴 СЛОВО — ПОЛОВИНА ПРОБЫ. Струп мерит, как прочитанное слово мешает назвать цвет
+/// чернил; слово, которого человек не читает бегло, не мешает, и разность времён уже
+/// не интерференция. Веб брал слово по языку (`language === 'ru' ? word.ru : word.en`),
+/// перенос взял `.ru` везде — в английской локали стимул был «КРАСНЫЙ». Ключи
+/// `color_*` переведены на все двенадцать языков: немец читает ROT, японец 赤.
+/// Каждый ключ — своим `L.t('…')`: сборщик словаря видит только литерал.
+String stroopWord(StroopColor c) {
+  final word = switch (c.name) {
+    'red' => L.t('color_red'),
+    'blue' => L.t('color_blue'),
+    'green' => L.t('color_green'),
+    'yellow' => L.t('color_yellow'),
+    _ => throw ArgumentError.value(c.name, 'name', 'no dictionary word for this colour'),
+  };
+  return word.toUpperCase();
+}
+
 Color _hex(String hex) => Color(int.parse(hex.substring(1), radix: 16) | 0xFF000000);
 
 class _Field extends StatelessWidget {
@@ -232,6 +251,17 @@ class _Field extends StatelessWidget {
               style: Theme.of(context).textTheme.bodySmall,
               textAlign: TextAlign.center,
             ),
+            // С L5 часть проб идёт по ДРУГОМУ правилу (до 40 % на L15): без этой строки человек
+            // узнавал бы о смене только ошибкой посреди партии.
+            if (game.params.switchRate > 0) ...[
+              const SizedBox(height: 4),
+              Text(
+                L.t('stroopLvlSwitch').replaceAll('{s}', '${(game.params.switchRate * 100).round()}'),
+                key: const Key('stroop-switch-line'),
+                style: Theme.of(context).textTheme.bodySmall,
+                textAlign: TextAlign.center,
+              ),
+            ],
             const SizedBox(height: 16),
             FilledButton(onPressed: onStart, child: Text(L.t('start'))),
           ],
@@ -275,7 +305,7 @@ class _Field extends StatelessWidget {
               _DecoyRow(glyphs: decoys.take(2).toList()),
               const SizedBox(height: 12),
               Text(
-                t.word.ru,
+                stroopWord(t.word),
                 key: const Key('stroop-stimulus'),
                 textAlign: TextAlign.center,
                 style: TextStyle(
@@ -385,7 +415,7 @@ class _Answers extends StatelessWidget {
                         foregroundColor: _hex(stroopLabelColor(c.hex)),
                         padding: EdgeInsets.zero,
                       ),
-                      child: FittedBox(child: Text(c.ru, style: const TextStyle(fontWeight: FontWeight.w700))),
+                      child: FittedBox(child: Text(stroopWord(c), style: const TextStyle(fontWeight: FontWeight.w700))),
                     ),
                   ),
                   ),
