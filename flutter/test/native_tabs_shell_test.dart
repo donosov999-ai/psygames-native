@@ -19,6 +19,7 @@ import 'package:psygames_flutter/shell/stats_screen.dart';
 import 'package:psygames_flutter/shell/streak_calendar_screen.dart';
 import 'package:psygames_flutter/shell/assessment_result_screen.dart';
 import 'package:psygames_flutter/shell/onboarding_screen.dart';
+import 'package:psygames_flutter/shell/info_screens.dart';
 import 'package:psygames_flutter/shell/walking_pet.dart';
 import 'package:psygames_flutter/shell/web_game_screen.dart';
 import 'package:psygames_flutter/shell/web_theme.dart';
@@ -509,7 +510,7 @@ void main() {
     await settle(t, () => find.byKey(const ValueKey('home-header')).evaluate().isNotEmpty);
     expect(find.byKey(const ValueKey('home-header')), findsOneWidget);
     expect(t.widget<NativeTabBar>(find.byType(NativeTabBar)).active, '/');
-    expect(page().js.any((s) => s.contains('window.__psyHostScreens=["/","#switcher","/statistics","/streak-calendar","/assessment-result","/onboarding"]')), isTrue,
+    expect(page().js.any((s) => s.contains('window.__psyHostScreens=["/","#switcher","/statistics","/streak-calendar","/assessment-result","/onboarding","/sources","/collection","/achievements","/leagues"]')), isTrue,
         reason: 'веб узнаёт, какие экраны рисуем мы');
     // Вкладка «Игры» и назад — Главная та же, модель жива.
     await toGames(t);
@@ -627,6 +628,66 @@ void main() {
     await t.tap(find.byKey(const ValueKey('onboarding-exit')));
     await t.pump();
     expect(page().js.any((s) => s.contains('["/onboarding"].skipPicker()')), isTrue);
+  });
+
+  testWidgets('🔴 системная «назад»: страница — по её истории, вкладка — на Главную, Главная — выход', (t) async {
+    // Живой замер 07.10.2026: «назад» на календаре серии закрывала приложение целиком.
+    await mount(t);
+    await route(t, '/streak-calendar');
+    page().js.clear();
+    final onPage = await t.binding.handlePopRoute();
+    await t.pump();
+    expect(onPage, isTrue, reason: 'оболочка сама обработала «назад», приложение не закрылось');
+    expect(page().js.any((s) => s.contains('__psyBack')), isTrue, reason: 'назад по истории страницы — goBackOrHome веба');
+    await route(t, '/statistics');
+    page().js.clear();
+    await t.binding.handlePopRoute();
+    await t.pump();
+    expect(page().js.any((s) => s.contains('__psyReplace("/")')), isTrue, reason: 'с вкладки — на Главную');
+    expect(active(t), '/');
+    await route(t, '/');
+    page().js.clear();
+    await t.binding.handlePopRoute();
+    await t.pump();
+    expect(page().js.where((s) => s.contains('__psyBack') || s.contains('__psyReplace')), isEmpty,
+        reason: 'на Главной «назад» не перехватываем — система закрывает приложение');
+  });
+
+  testWidgets('🔴 окно цели серии Главной не всплывает поверх другого экрана тела (знакомство)', (t) async {
+    // Живой замер 07.10.2026: на свежей установке окно «сколько дней подряд» легло поверх знакомства —
+    // Главная стоит в теле всегда, а её последняя модель несла goalSheet.
+    await mount(t);
+    final home = fixture('home_model_ru.json'); // с окном цели (homeModel() его снимает нарочно)
+    expect(home['goalSheet'], isNotNull, reason: 'образец Главной несёт окно цели');
+    await route(t, '/onboarding');
+    page().emit(SharedState.channel, {'op': 'screenUi', 'route': '/', 'model': home});
+    page().emit(SharedState.channel, {'op': 'screenUi', 'route': OnboardingScreen.route, 'model': fixture('onboarding_model.json')});
+    await settle(t, () => find.byKey(const ValueKey('onboarding-quiz')).evaluate().isNotEmpty);
+    expect(find.byKey(const ValueKey('goal-sheet')), findsNothing, reason: 'Главная не на экране — окна нет');
+    // Вернулись на Главную — окно открывается, как у веба.
+    await route(t, '/');
+    await settle(t, () => find.byKey(const ValueKey('goal-sheet')).evaluate().isNotEmpty);
+    expect(find.byKey(const ValueKey('goal-sheet')), findsOneWidget);
+  });
+
+  testWidgets('🔴 источники, коллекция, достижения, лиги — нативные страницы с полосой; «назад» — по истории', (t) async {
+    await mount(t);
+    for (final (path, file, k) in [
+      (SourcesScreen.route, 'sources_model.json', 'sources-screen'),
+      (CollectionScreen.route, 'collection_model.json', 'collection-screen'),
+      (AchievementsScreen.route, 'achievements_model.json', 'achievements-screen'),
+      (LeaguesScreen.route, 'leagues_model.json', 'leagues-screen'),
+    ]) {
+      await route(t, path);
+      page().emit(SharedState.channel, {'op': 'screenUi', 'route': path, 'model': fixture(file)});
+      await settle(t, () => find.byKey(ValueKey(k)).evaluate().isNotEmpty);
+      expect(find.byKey(ValueKey(k)), findsOneWidget, reason: path);
+      expect(find.byType(NativeTabBar), findsOneWidget, reason: '$path: tabBarVisible веба — полоса есть');
+      page().js.clear();
+      await t.binding.handlePopRoute();
+      await t.pump();
+      expect(page().js.any((s) => s.contains('__psyBack')), isTrue, reason: '$path: «назад» — по истории страницы');
+    }
   });
 
   testWidgets('итог оценки без модели 6 с — сама страница', (t) async {

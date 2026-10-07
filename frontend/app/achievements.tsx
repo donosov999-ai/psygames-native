@@ -10,6 +10,7 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { isRTLLang } from '@/src/services/rtl';
 import { ACHIEVEMENTS, getUnlocked, UnlockedRecord } from '@/src/services/achievements';
+import { postScreenModel, registerScreenActions } from '@/src/services/hostScreens';
 
 /**
  * ДАТА ОТКРЫТИЯ — ПО-ЧЕЛОВЕЧЕСКИ, А НЕ КАК В ХРАНИЛИЩЕ.
@@ -79,6 +80,33 @@ function AchievementsScreenBody() {
     { key: 'breadth',   label_ru: '🌈 Разнообразие', label_en: '🌈 Breadth' },
     { key: 'quality',   label_ru: '⭐ Качество', label_en: '⭐ Quality' },
   ];
+
+  /**
+   * 🔴 ПОД ОБОЛОЧКОЙ ДОСТИЖЕНИЯ РИСУЕТ FLUTTER (задача 56660caa, `services/hostScreens.ts`).
+   * Правила открытия не трогаются: модель — те же группы, названия, даты (`humanDate`).
+   */
+  const achievementsModel = {
+    v: 1,
+    title: `🏆 ${t('achievementsTitle')} ${unlocked.length}/${ACHIEVEMENTS.length}`,
+    back: t('a11yBack'), rtl: isRTLLang(language),
+    sections: CATEGORIES.map((cat) => ({
+      key: cat.key,
+      title: language === 'ru' ? cat.label_ru : cat.label_en,
+      cards: (grouped[cat.key] || []).map((a) => {
+        const date = unlocked.find((u) => u.id === a.id)?.date;
+        return {
+          id: a.id, emoji: a.emoji, unlocked: unlockedSet.has(a.id),
+          name: language === 'ru' ? a.name_ru : a.name_en,
+          desc: language === 'ru' ? a.desc_ru : a.desc_en,
+          date: date ? humanDate(date, language) : null,
+        };
+      }),
+    })),
+    footer: t('achievementsFooter').replace('{n}', String(ACHIEVEMENTS.length - unlocked.length)),
+  };
+  const achievementsKey = JSON.stringify(achievementsModel);
+  useEffect(() => { postScreenModel('/achievements', JSON.parse(achievementsKey)); }, [achievementsKey]);
+  useEffect(() => registerScreenActions('/achievements', { back: () => goBackOrHome() }), []);
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>

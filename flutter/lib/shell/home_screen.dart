@@ -27,9 +27,15 @@ class HomeScreen extends StatefulWidget {
     required this.onTab,
     required this.onSwitcher,
     this.kit,
+    this.active = true,
   });
 
   final SharedState state;
+
+  /// Главная на экране, а не спрятана в теле оболочки рядом с другими экранами. Окно цели серии
+  /// открывается только у видимой Главной (живой замер 07.10.2026: на свежей установке оно легло
+  /// поверх нативного знакомства). `IndexedStack` скрытых детей не выключает, поэтому — флагом.
+  final bool active;
 
   /// Сервер раздачи: картинки модели — адреса веб-сборки.
   final String origin;
@@ -82,6 +88,14 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
+  bool get _onScreen => widget.active;
+
+  @override
+  void didUpdateWidget(HomeScreen old) {
+    super.didUpdateWidget(old);
+    if (old.active != widget.active) WidgetsBinding.instance.addPostFrameCallback((_) => _onModel());
+  }
+
   void _act(String action, [List<Object?> args = const []]) => ScreenUi.act(HomeScreen.route, action, args);
 
   String _url(String u) => u.startsWith('http') ? u : '${widget.origin}$u';
@@ -90,7 +104,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void _onModel() {
     if (!mounted) return;
     final sheet = _map(ScreenUi.model(HomeScreen.route).value?['goalSheet']);
-    if (sheet.isNotEmpty && !_sheetOpen) {
+    if (sheet.isNotEmpty && !_sheetOpen && _onScreen) {
       _sheetOpen = true;
       showGeneralDialog<void>(
         context: context,
@@ -98,7 +112,7 @@ class _HomeScreenState extends State<HomeScreen> {
         barrierColor: const Color(0x8C000000),
         pageBuilder: (ctx, _, _) => _GoalSheet(origin: widget.origin, close: () => Navigator.of(ctx).pop(), act: _act),
       ).whenComplete(() => _sheetOpen = false);
-    } else if (sheet.isEmpty && _sheetOpen) {
+    } else if ((sheet.isEmpty || !_onScreen) && _sheetOpen) {
       Navigator.of(context).maybePop();
     }
   }

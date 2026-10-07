@@ -1,4 +1,5 @@
 import React from 'react';
+import { goBackOrHome } from '@/src/utils/nav';
 import { hookConsoleErrors } from '@/src/services/crumbs';
 import { installNativeSessionBridge } from '@/src/services/nativeSessionBridge';
 import { Stack, router } from 'expo-router';
@@ -202,6 +203,8 @@ export default function RootLayout() {
     (globalThis as any).__psyReplace = (route: string) => router.replace(route as any);
     // Веб-игра из нативного каталога — В ИСТОРИЮ (`push`): «назад» из неё вернёт на вкладку «Игры».
     (globalThis as any).__psyPush = (route: string) => router.push(route as any);
+    // Системная «назад» Android на странице (07.10.2026): тот же `goBackOrHome`, что у кнопки «назад» веба.
+    (globalThis as any).__psyBack = () => goBackOrHome();
   }, []);
 
   React.useEffect(() => {

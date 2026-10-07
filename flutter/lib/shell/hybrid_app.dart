@@ -98,6 +98,7 @@ import 'stats_screen.dart';
 import 'streak_calendar_screen.dart';
 import 'assessment_result_screen.dart';
 import 'onboarding_screen.dart';
+import 'info_screens.dart';
 import 'walking_pet.dart';
 import 'web_theme.dart';
 import '../games/sorting_hub/screen.dart';
@@ -655,12 +656,24 @@ class _HybridAppState extends State<HybridApp> {
     StreakCalendarScreen.route,
     AssessmentResultScreen.route,
     OnboardingScreen.route,
+    SourcesScreen.route,
+    CollectionScreen.route,
+    AchievementsScreen.route,
+    LeaguesScreen.route,
   ];
 
   /// Экраны по модели веба, которые НЕ вкладки полосы: страница уходит на них своим переходом
   /// (`router.push`/`replace`), а тело показывает нативный рисунок. Полоса — по правилу веба
   /// (`tabBar.ts`): на календаре стоит, на итоге оценки её нет.
-  static const _bodyPages = {StreakCalendarScreen.route, AssessmentResultScreen.route, OnboardingScreen.route};
+  static const _bodyPages = {
+    StreakCalendarScreen.route,
+    AssessmentResultScreen.route,
+    OnboardingScreen.route,
+    SourcesScreen.route,
+    CollectionScreen.route,
+    AchievementsScreen.route,
+    LeaguesScreen.route,
+  };
 
   /// Что показывает тело: страницу (0) или нативную вкладку.
   ///
@@ -1291,6 +1304,7 @@ class _HybridAppState extends State<HybridApp> {
                 onOpen: _openFromCatalog,
                 onTab: _selectTab,
                 onSwitcher: _openSwitcher,
+                active: _bodyIndex() == 1,
               ),
             ),
             // Вкладка «Игры» живёт рядом со страницей, а не поверх неё: поиск и фильтр
@@ -1313,6 +1327,11 @@ class _HybridAppState extends State<HybridApp> {
             const AssessmentResultScreen(),
             // Знакомство (a8aa91e0): подбор и обучение — страница, полосы нет (noBar веба).
             OnboardingScreen(origin: widget.server.origin),
+            // Источники, коллекция, достижения, лиги (78165c68, 8111eea4, 56660caa, ac902ebf) — страницы по модели.
+            const SourcesScreen(),
+            const CollectionScreen(),
+            const AchievementsScreen(),
+            const LeaguesScreen(),
           ],
         ),
       ),
@@ -1326,9 +1345,26 @@ class _HybridAppState extends State<HybridApp> {
     );
     // Кнопку отзыва на страницах рисует веб; на нативной вкладке страница скрыта вместе с ней —
     // кнопка оболочки встаёт на то же место окна.
-    // ⚠️ Корень — всегда Stack: смена корня между Scaffold и Stack при переходе по вкладкам
-    // пересоздала бы WebView вместе со страницей.
-    return Stack(children: [
+    // ⚠️ Корень — всегда Stack (под постоянной обёрткой PopScope): смена корня между Scaffold и Stack
+    // при переходе по вкладкам пересоздала бы WebView вместе со страницей.
+    //
+    // 🔴 СИСТЕМНАЯ «НАЗАД» ANDROID (живой замер на эмуляторе 07.10.2026: на календаре серии, «Прогрессе»
+    // и любой странице она закрывала приложение целиком — обработчика не было ни здесь, ни в main).
+    // Правило: на Главной — выход из приложения; на другой вкладке — на Главную; на странице — назад по
+    // её истории тем же `goBackOrHome`, что у кнопки «назад» веба (`window.__psyBack`). Игры поверх —
+    // свои маршруты Navigator, их «назад» сюда не доходит.
+    final here = _nativeTab ?? _pagePath;
+    return PopScope(
+      canPop: here == '/',
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
+        if (NativeTabs.tabs.any((t) => t.route == here)) {
+          unawaited(_selectTab('/'));
+        } else {
+          unawaited(_c.runJavaScript('window.__psyBack ? window.__psyBack() : history.back();'));
+        }
+      },
+      child: Stack(children: [
       Positioned.fill(child: scaffold),
       // Питомец страницы скрыт вместе с ней — на нативной вкладке гуляет питомец оболочки
       // (облик и реплики — у веба, мостом `__psyPet`). Ниже кнопки отзыва, как `zIndex` веба.
@@ -1342,6 +1378,7 @@ class _HybridAppState extends State<HybridApp> {
         ),
       // Кнопка отзыва веба стоит везде, кроме формы отзыва, — с полосой и без (итог оценки).
       if (_nativeTab != null) FeedbackFab(state: widget.state, onOpen: () => _openFeedback(_nativeTab!)),
-    ]);
+    ]),
+    );
   }
 }
