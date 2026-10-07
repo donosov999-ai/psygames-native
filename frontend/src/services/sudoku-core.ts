@@ -11,7 +11,7 @@
 import { translateFor } from '../contexts/LanguageContext';
 
 export type Cell = number; // 0 = empty
-export type Variant = 'none' | 'diagonal' | 'antiknight' | 'hyper' | 'nonconsec' | 'jigsaw' | 'antiking' | 'evenodd' | 'kropki' | 'sandwich' | 'thermo' | 'arrow' | 'thermocage' | 'unequal' | 'towers' | 'sandparity' | 'thermoknight' | 'killerdiag' | 'whisper' | 'renban' | 'regionsum' | 'palindrome' | 'between' | 'lockout' | 'xv' | 'argyle' | 'littlekiller' | 'xsums' | 'cipher' | 'fog' | 'chaos' | 'schrodinger' | 'doublers' | 'negators' | 'killer' | 'friends';
+export type Variant = 'none' | 'diagonal' | 'antiknight' | 'hyper' | 'nonconsec' | 'jigsaw' | 'antiking' | 'evenodd' | 'kropki' | 'sandwich' | 'thermo' | 'arrow' | 'thermocage' | 'unequal' | 'towers' | 'sandparity' | 'thermoknight' | 'killerdiag' | 'whisper' | 'renban' | 'regionsum' | 'palindrome' | 'between' | 'lockout' | 'xv' | 'argyle' | 'littlekiller' | 'xsums' | 'cipher' | 'fog' | 'chaos' | 'schrodinger' | 'doublers' | 'negators' | 'killer' | 'wordoku' | 'animals' | 'friends';
 // 'friends' — «Мяу — друзья» 9×9 (у кота мышь рядом): генератора на TS нет, доски ступеней — только
 // выгрузкой MindLab (flutter/tools/meow9-ladder.cjs, export_kids_boards.py --meow9).
 
@@ -242,7 +242,7 @@ export function inHyper(r: number, c: number): readonly [number, number] | null 
 /** v1.137: подписи/правила вариантов живут в словаре LanguageContext
  *  (sudokuVariant* / sudokuRule*) — берутся через translateFor, чтобы 10
  *  оверлейных языков не падали на английский. lang — код языка ('ru'|'en'|…). */
-const VARIANT_KEY_SUFFIX: Record<Exclude<Variant, 'none' | 'friends' | 'killer'>, string> = {
+const VARIANT_KEY_SUFFIX: Record<Exclude<Variant, 'none' | 'friends' | 'killer' | 'wordoku' | 'animals'>, string> = {
   diagonal: 'Diagonal', antiknight: 'Antiknight', hyper: 'Hyper', nonconsec: 'Nonconsec',
   jigsaw: 'Jigsaw', antiking: 'Antiking', evenodd: 'Evenodd', kropki: 'Kropki',
   sandwich: 'Sandwich', thermo: 'Thermo', arrow: 'Arrow', thermocage: 'Thermocage',
@@ -274,12 +274,17 @@ export function variantLabel(v: Variant, lang: string): string {
   if (v === 'none') return '';
   if (v === 'friends') return translateFor(lang, 'sdkRule_friends');
   if (v === 'killer') return translateFor(lang, 'sudokuModeKiller');
+  // Wordoku и звери на лестнице (08.10) — классика значками: строки скина (12 языков), без новых ключей.
+  if (v === 'wordoku') return translateFor(lang, 'sudokuSkinLetters');
+  if (v === 'animals') return translateFor(lang, 'sudokuSkinAnimals');
   return translateFor(lang, 'sudokuVariant' + VARIANT_KEY_SUFFIX[v]);
 }
 export function variantRule(v: Variant, lang: string): string {
   if (v === 'none') return '';
   if (v === 'friends') return translateFor(lang, 'sdkRule_friends');
   if (v === 'killer') return translateFor(lang, 'sudokuKillerRule');
+  if (v === 'wordoku') return translateFor(lang, 'sudokuSkinLetters');
+  if (v === 'animals') return translateFor(lang, 'sudokuSkinAnimals');
   return translateFor(lang, 'sudokuRule' + VARIANT_KEY_SUFFIX[v]);
 }
 
@@ -1817,7 +1822,7 @@ export function countSolutions(grid: Cell[][], N: number, BR: number, BC: number
 // thermocage здесь ОБЯЗАН быть: единственность решения у него считается по ДВУМ
 // правилам сразу (isValid знает и цепочку, и сумму). Доска, единственная по каждому
 // правилу порознь, вместе может иметь второе решение — и наоборот.
-const UNIQUE_CHECKED: readonly Variant[] = ['none', 'diagonal', 'antiknight', 'hyper', 'nonconsec', 'antiking', 'jigsaw', 'thermo', 'arrow', 'evenodd', 'kropki', 'sandwich', 'thermocage', 'unequal', 'towers', 'sandparity', 'thermoknight', 'killerdiag', 'whisper', 'renban', 'regionsum', 'palindrome', 'between', 'lockout', 'xv', 'argyle', 'littlekiller', 'xsums', 'cipher', 'fog', 'killer'];
+const UNIQUE_CHECKED: readonly Variant[] = ['none', 'diagonal', 'antiknight', 'hyper', 'nonconsec', 'antiking', 'jigsaw', 'thermo', 'arrow', 'evenodd', 'kropki', 'sandwich', 'thermocage', 'unequal', 'towers', 'sandparity', 'thermoknight', 'killerdiag', 'whisper', 'renban', 'regionsum', 'palindrome', 'between', 'lockout', 'xv', 'argyle', 'littlekiller', 'xsums', 'cipher', 'fog', 'killer', 'wordoku', 'animals'];
 
 /**
  * Готовая сетка для «несоседних чисел» — БЕЗ перебора.

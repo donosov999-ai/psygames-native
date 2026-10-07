@@ -35,6 +35,9 @@ String? variantRuleKey(String variant) {
   if (variant == 'none') return null;
   if (variant == 'friends') return 'sdkRule_friends';   // как у веба: одна строка «🐱 рядом с 🐭»
   if (variant == 'killer') return 'sudokuKillerRule';   // режим «Киллер»: у веба вариант 'none' + группы
+  // Wordoku и звери на лестнице — классика значками: правило — строка значков (12 языков).
+  if (variant == 'wordoku') return 'sudokuSkinLetters';
+  if (variant == 'animals') return 'sudokuSkinAnimals';
   final key = 'sudokuRule${variant[0].toUpperCase()}${variant.substring(1)}';
   return sudokuRuleKeys.contains(key) ? key : null;
 }
