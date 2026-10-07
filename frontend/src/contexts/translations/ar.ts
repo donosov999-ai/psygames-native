@@ -1859,7 +1859,7 @@ const t: Record<string, string> = {
   "slotMorning": "صباحًا",
   "slotMorningDesc": "أيقظ ذهنك لليوم",
   "slotNight": "ليلًا",
-  "slotNightDesc": "لا تستطيع النوم — تنفّس فقط، بلا نقاط",
+  "slotNightDesc": "لا تستطيع النوم — ألغاز بلا عجلة، ثم تنفّس",
   "slotNightNote": "ليس تدريبًا: لا نقاط ولا سلسلة أيام",
   "warmupPickerHint": "اختير حسب وقت اليوم — يمكنك أخذ أي واحد آخر",
   "warmupPickerTitle": "تدريب",

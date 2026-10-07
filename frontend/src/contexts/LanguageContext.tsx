@@ -875,7 +875,7 @@ const translations: Translations = {
   slotMorningDesc:  { ru: 'Разогнать голову на день', en: 'Get your head going for the day' },
   slotDayDesc:      { ru: 'Короткий перерыв в работе', en: 'A short break from work' },
   slotEveningDesc:  { ru: 'Спокойные игры и дыхание', en: 'Calm games and breathing' },
-  slotNightDesc:    { ru: 'Не спится — только дыхание, без счёта', en: 'Can’t sleep — breathing only, no score' },
+  slotNightDesc:    { ru: 'Не спится — головоломки без спешки, потом дыхание', en: 'Can’t sleep — unhurried puzzles, then breathing' },
   slotNightNote:    { ru: 'Это не тренировка: очки не начисляются и стрик не растёт', en: 'Not a workout: no points, no streak' },
   restart: { ru: 'Заново', en: 'Restart' },
   a11yResetLevel: { ru: 'Начать заново с первого уровня', en: 'Restart from level one' },

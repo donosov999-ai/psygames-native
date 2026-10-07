@@ -1863,7 +1863,7 @@ const t: Record<string, string> = {
   "slotMorning": "早晨",
   "slotMorningDesc": "让头脑为一天开机",
   "slotNight": "夜间",
-  "slotNightDesc": "睡不着——只做呼吸，不计分",
+  "slotNightDesc": "睡不着——不赶时间的谜题，然后呼吸",
   "slotNightNote": "这不是训练：不计分，也不算连续天数",
   "warmupPickerHint": "按当前时段推荐，你也可以选其他任意一组",
   "warmupPickerTitle": "训练",

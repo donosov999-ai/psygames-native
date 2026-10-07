@@ -1863,7 +1863,7 @@ const t: Record<string, string> = {
   "slotMorning": "De manhã",
   "slotMorningDesc": "Acordar a cabeça para o dia",
   "slotNight": "Madrugada",
-  "slotNightDesc": "Sem sono — só respiração, sem pontos",
+  "slotNightDesc": "Sem sono — quebra-cabeças sem pressa, depois respiração",
   "slotNightNote": "Não é treino: sem pontos nem sequência",
   "warmupPickerHint": "Escolhido pela hora do dia — você pode pegar qualquer outro",
   "warmupPickerTitle": "Treino",
