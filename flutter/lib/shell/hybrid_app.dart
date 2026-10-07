@@ -1412,7 +1412,7 @@ class _HybridAppState extends State<HybridApp> {
             OnboardingScreen(origin: widget.server.origin),
             // Источники, коллекция, достижения, лиги (78165c68, 8111eea4, 56660caa, ac902ebf) — страницы по модели.
             SourcesScreen(state: widget.state),
-            const CollectionScreen(),
+            CollectionScreen(state: widget.state),
             const AchievementsScreen(),
             LeaguesScreen(state: widget.state),
             // «Друзья» (7bb8035b) — страница по модели; сервер круга держит веб.

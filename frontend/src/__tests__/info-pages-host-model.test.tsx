@@ -170,6 +170,39 @@ describe('Коллекция под оболочкой', () => {
       expect(last().hint).toBe(null);
     }
     образец('collection_model.json', m);
+    // Входы эталона для Dart (вариант Б) — ключи хранилища, на которых построена модель, и тап.
+    образец('collection_input.json', { storage: { psygames_earned_total_v1: JSON.stringify({ nzt48: 500 }) }, tap: собрано });
+    await TestRenderer.act(async () => { ui().tap(собрано); });
+    образец('collection_model_hint.json', last());
+  });
+
+  it('EN: пороги из файла настроек, заработанного нет — баланс токенов; образец для Dart', async () => {
+    await AsyncStorage.setItem('language', 'en');
+    // Токены и пороги — тем же путём, что в приложении: у обоих кэш в памяти модуля, и запись в
+    // хранилище мимо них в общем прогоне не видна (замер: «0 of 12 · ⭐0» при 778 в хранилище).
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { addTokens } = require('@/src/services/tokens');
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { установитьПорогиФигурок } = require('@/src/services/collection');
+    await addTokens('nzt48', 778);
+    const коллекция = { Acorn: 100, Pebble: 300, Shell: 700 };
+    await AsyncStorage.setItem('psygames_playlists_override', JSON.stringify({ профили: {}, коллекция }));
+    установитьПорогиФигурок(коллекция);
+    try {
+      const { last } = await смонтировать('/collection');
+      const m = last();
+      expect(m.figures.slice(0, 3).map((f: any) => f.owned)).toEqual([true, true, true]);
+      expect(/[А-Яа-яЁё]/.test(JSON.stringify(m))).toBe(false);
+      образец('collection_model_en.json', m);
+      const storage: Record<string, string> = {};
+      for (const k of ['psygames_tokens_v1', 'psygames_playlists_override', 'psygames_earned_total_v1']) {
+        const v = await AsyncStorage.getItem(k);
+        if (v != null) storage[k] = v;
+      }
+      образец('collection_input_en.json', { storage, tap: null });
+    } finally {
+      установитьПорогиФигурок(null);
+    }
   });
 });
 
