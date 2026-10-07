@@ -223,6 +223,7 @@ void main() {
     expect(find.text('Следующая ступень'), findsOneWidget);
     // Ступень записана в тот же ключ, что у веб-версии.
     expect(state.get('psygames_sudoku_samurai_level_nzt48'), '2');
+    expect(state.get('psygames_sudoku_samurai_stars_nzt48'), '{"1":3}', reason: 'звёзды карты уровней');
     // 🔴 Отчёт — как у веба (сверка 138f7818: до 02.10 `win()` уходил пустым).
     final r = reports.single;
     expect(r['game_type'], 'sudoku_samurai');

@@ -549,9 +549,12 @@ const ACCESSORY_INSET: Record<PetAccessory, { top: number; height: number }> = {
   bow_tie:   { top: 0.287, height: 0.426 },   // замер bow_blue.png тем же правилом
 };
 
-function AccessoryOverlay({ kind, size, skin, state, frame }: {
-  kind: PetAccessory; size: number; skin: PetSkin; state: PetState; frame: number;
-}) {
+/**
+ * МЕСТО ВЕЩИ НА КАДРЕ — одна формула для веба и для нативной оболочки (`petRenderSpec`).
+ * `null` — на этом кадре вещи нет.
+ */
+function accessoryBox(kind: PetAccessory, size: number, skin: PetSkin, state: PetState, frame: number):
+  { left: number; top: number; size: number } | null {
   const mount = ACCESSORY_MOUNT[kind];
   // ⚠️ Якорь ТЕКУЩЕГО кадра, а не idle0. Кадр компонент и так знает — он им
   // анимирует; брать чужой и была та самая «бабочка на пузе».
@@ -591,7 +594,15 @@ function AccessoryOverlay({ kind, size, skin, state, frame }: {
     : mount.edge === 'top'  ? ay - img * ins.top
     :                         ay - img * (ins.top + ins.height / 2);
   const left = ax - img / 2;
+  return { left, top, size: img };
+}
 
+function AccessoryOverlay({ kind, size, skin, state, frame }: {
+  kind: PetAccessory; size: number; skin: PetSkin; state: PetState; frame: number;
+}) {
+  const box = accessoryBox(kind, size, skin, state, frame);
+  if (!box) return null;
+  const { left, top, size: img } = box;
   return (
     // Обёртка ради pointerEvents: у Image его нет ни в пропсах, ни в стиле,
     // а тап должен доставаться питомцу под аксессуаром.
@@ -607,28 +618,11 @@ function AccessoryOverlay({ kind, size, skin, state, frame }: {
   );
 }
 
-export default function PetSprite({ state, size = 56, skin = 'cat', accessory = null, look = null, subject = false }: {
-  state: PetState; size?: number; skin?: PetSkin; accessory?: PetAccessory | null;
-  /** Вид по заботе (`petLook`) — подменяет ПОКОЙ одним неподвижным кадром. */
-  look?: { axis: string; stage: number } | null;
-  /**
-   * 🔴 ЭТОТ ПИТОМЕЦ И ЕСТЬ СОДЕРЖИМОЕ ЭКРАНА, А НЕ ФОН.
-   *
-   * 📍 Денис 11.09.2026 со снимком экрана питомца: «не шевелится, фото статика».
-   *
-   * Щадящий режим гасит кадры ВЕЗДЕ (см. ниже), и это верно для гуляки внизу и для
-   * мини-аватара в шапке: они движутся сами по себе всё время, пока человек занят
-   * другим, — ровно то, из-за чего настройку и включают. Но на экране `/pet` питомец
-   * не фон: человек пришёл СМОТРЕТЬ на него, экран о нём и называется его именем.
-   * Замерший портрет там читается не как бережность, а как не загрузившаяся картинка,
-   * что Денис и написал.
-   *
-   * Поэтому носитель, который объявил себя `subject`, продолжает дышать. Правило
-   * узкое намеренно: по умолчанию `false`, и ни гуляка, ни шапка его не получают.
-   */
-  subject?: boolean;
-}) {
-  useChannel();                                   // приехал облик канала — перерисуемся
+/**
+ * КАКИЕ КАДРЫ И В КАКОМ ТЕМПЕ ЛИСТАЕТ СОСТОЯНИЕ — одно правило для `PetSprite` и для
+ * описания, которое забирает нативная оболочка (`petRenderSpec`).
+ */
+function кадрыСостояния(skin: PetSkin, state: PetState, look: { axis: string; stage: number } | null | undefined) {
   const видЗаботы = state === 'idle' ? petLookFrame(skin, look) : null;
   const кан = видЗаботы ? undefined : изКанала(skin, state);
     // Кадры берём по РАЗРЕШЁННОМУ состоянию: у `celebrate`/`eat` своих пока нет.
@@ -655,6 +649,80 @@ export default function PetSprite({ state, size = 56, skin = 'cat', accessory = 
     : (ТАКТ_ИЗМЕРЕН[состояниеКадров]
         ? FRAME_MS[состояниеКадров]
         : Math.max(60, Math.round((FRAME_MS[состояниеКадров] * 4) / Math.max(1, кадров))));
+  return { видЗаботы, кан, frames, кадров, тактМс };
+}
+
+/**
+ * Адрес картинки сборки: на вебе `require()` отдаёт `{ uri }` (замер бандла 07.10.2026:
+ * `/assets/assets/images/pet/cat/idle0.<хеш>.webp`), строка — уже адрес. `testUri` —
+ * то же самое в пробах jest: без него проба сверяла бы пустые строки и зеленела вслепую.
+ */
+function адрес(src: any): string {
+  if (typeof src === 'string') return src;
+  if (src && typeof src.uri === 'string') return src.uri;
+  if (src && typeof src.testUri === 'string') return src.testUri;
+  return '';
+}
+
+export interface PetRenderSpec {
+  /** `strip` — одна лента кадров канала (кадр i — i-я доля ширины); `frames` — картинка на кадр. */
+  kind: 'strip' | 'frames';
+  uris: string[];
+  frames: number;
+  tickMs: number;
+  /** Вещь на каждом кадре, в долях размера питомца; `null` на кадре — вещи там нет. */
+  accessory: { uri: string; boxes: ({ left: number; top: number; size: number } | null)[] } | null;
+}
+
+/**
+ * ОПИСАНИЕ КАДРОВ ДЛЯ НАТИВНОЙ ОБОЛОЧКИ (задачи 99628ecf, 5136754e).
+ *
+ * 📍 07.10.2026 вкладку «Игры» рисует Flutter, и страница со своим гулякой скрыта под ней.
+ * Облик питомца — это канал, вшитые кадры, вид по заботе и вещь по якорям кадра; второй
+ * копией на Dart это разошлось бы при первой правке. Поэтому оболочка спрашивает здесь
+ * ГОТОВОЕ описание (мостом `__psyPet`), а сама только листает кадры и ходит. Правило одно с
+ * `PetSprite`: те же `кадрыСостояния` и `accessoryBox`.
+ */
+export function petRenderSpec(
+  skin: PetSkin, state: PetState, accessory: PetAccessory | null, look: { axis: string; stage: number } | null,
+): PetRenderSpec {
+  const { видЗаботы, кан, frames, кадров, тактМс } = кадрыСостояния(skin, state, look);
+  const вещь = accessory && !видЗаботы
+    ? {
+        uri: адрес(ACCESSORY_IMG[accessory]),
+        boxes: Array.from({ length: кадров }, (_, i) => accessoryBox(accessory, 1, skin, state, i)),
+      }
+    : null;
+  // ⚠️ Лента канала — по адресу СЕРВИСА (`strip`), а не `stripUri`: втянутая копия
+  // `local` — это `blob:` страницы, и из оболочки её не прочесть.
+  return кан
+    ? { kind: 'strip', uris: [кан.strip], frames: кадров, tickMs: тактМс, accessory: вещь }
+    : { kind: 'frames', uris: frames.map(адрес), frames: кадров, tickMs: тактМс, accessory: вещь };
+}
+
+export default function PetSprite({ state, size = 56, skin = 'cat', accessory = null, look = null, subject = false }: {
+  state: PetState; size?: number; skin?: PetSkin; accessory?: PetAccessory | null;
+  /** Вид по заботе (`petLook`) — подменяет ПОКОЙ одним неподвижным кадром. */
+  look?: { axis: string; stage: number } | null;
+  /**
+   * 🔴 ЭТОТ ПИТОМЕЦ И ЕСТЬ СОДЕРЖИМОЕ ЭКРАНА, А НЕ ФОН.
+   *
+   * 📍 Денис 11.09.2026 со снимком экрана питомца: «не шевелится, фото статика».
+   *
+   * Щадящий режим гасит кадры ВЕЗДЕ (см. ниже), и это верно для гуляки внизу и для
+   * мини-аватара в шапке: они движутся сами по себе всё время, пока человек занят
+   * другим, — ровно то, из-за чего настройку и включают. Но на экране `/pet` питомец
+   * не фон: человек пришёл СМОТРЕТЬ на него, экран о нём и называется его именем.
+   * Замерший портрет там читается не как бережность, а как не загрузившаяся картинка,
+   * что Денис и написал.
+   *
+   * Поэтому носитель, который объявил себя `subject`, продолжает дышать. Правило
+   * узкое намеренно: по умолчанию `false`, и ни гуляка, ни шапка его не получают.
+   */
+  subject?: boolean;
+}) {
+  useChannel();                                   // приехал облик канала — перерисуемся
+  const { видЗаботы, кан, frames, кадров, тактМс } = кадрыСостояния(skin, state, look);
   const [frame, setFrame] = React.useState(0);
   const reduced = useReducedMotion();
   React.useEffect(() => {

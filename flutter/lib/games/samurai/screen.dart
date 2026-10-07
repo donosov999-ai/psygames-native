@@ -18,6 +18,7 @@ import '../../shell/lesson.dart';
 import '../../shell/lesson_player.dart';
 import '../sudoku/lesson.dart';
 import '../sudoku/leave_guard.dart';
+import '../sudoku/level_map.dart';
 import 'rules.dart';
 
 /// САМУРАЙ на общем каркасе — вторая игра раздела в переезде на Flutter.
@@ -215,6 +216,22 @@ class _SamuraiScreenState extends State<SamuraiScreen> {
     return true;
   }
 
+  /// Карта уровней: пройденный — переиграть (`LevelLadder.pick`), потолок не трогается.
+  Future<void> _openLevelMap() async {
+    final picked = await showLevelMap(
+      context,
+      current: _ladder.level,
+      best: _ladder.best,
+      last: samuraiMaxLevel,
+      stars: levelStarsOf(widget.state, 'sudoku_samurai'),
+    );
+    if (picked == null || !mounted) return;
+    await restartGuarded(context, live: _live, deal: () async {
+      await _ladder.pick(picked);
+      if (mounted) _deal();
+    });
+  }
+
   void _deal() {
     final levels = _levels;
     if (levels == null) return;
@@ -340,6 +357,7 @@ class _SamuraiScreenState extends State<SamuraiScreen> {
     if (!isSolved(_grid, board.solution)) return;
     _won = true;
     final level = _ladder.level;
+    unawaited(saveLevelStars(widget.state, 'sudoku_samurai', level, samuraiStars(_errors, _hintsUsed)));
     unawaited(_ladder.win(
       score: _score(level),
       timeSeconds: _elapsed,
@@ -490,6 +508,8 @@ class _SamuraiScreenState extends State<SamuraiScreen> {
           : _Toolbar(won: _won, lost: _lost, onDigit: _place, onErase: _erase, onNext: _deal),
       pauseActions: [
         PauseAction(label: L.t('sdkStartOver'), icon: Icons.refresh, onPressed: () => restartGuarded(context, live: _live, deal: _deal)),
+        // Карта уровней — вернуться на пройденный (сверка «Самурай» строка 4, b5df5096 п.4).
+        PauseAction(label: L.t('sudokuModeLevels'), icon: Icons.map_outlined, onPressed: _openLevelMap),
       ],
     ));
   }

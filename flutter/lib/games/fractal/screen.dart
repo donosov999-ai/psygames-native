@@ -20,6 +20,7 @@ import '../sudoku/keypad.dart';
 import '../sudoku/lesson.dart';
 import '../sudoku/marks.dart';
 import '../sudoku/leave_guard.dart';
+import '../sudoku/level_map.dart';
 import 'resume.dart';
 import 'levels.dart';
 import 'rules.dart';
@@ -227,6 +228,22 @@ class _FractalScreenState extends State<FractalScreen> {
     _persist();   // новая доска сразу ложится своим снимком, как в вебе
   }
 
+  /// Карта уровней: пройденный — переиграть (`LevelLadder.pick`), потолок не трогается.
+  Future<void> _openLevelMap() async {
+    final picked = await showLevelMap(
+      context,
+      current: _ladder.level,
+      best: _ladder.best,
+      last: fractalMaxLevel,
+      stars: levelStarsOf(widget.state, 'sudoku_fractal'),
+    );
+    if (picked == null || !mounted) return;
+    await restartGuarded(context, live: _live, deal: () async {
+      await _ladder.pick(picked);
+      if (mounted) _deal();
+    });
+  }
+
   /// Раскладка пометок/цвета: 0 — корень, 1…9 — дочерние.
   static int _gridOf(int? child) => child == null ? 0 : child + 1;
 
@@ -303,6 +320,7 @@ class _FractalScreenState extends State<FractalScreen> {
         // 🔴 ОТЧЁТ — КАК У ВЕБА (sudoku-fractal.tsx, saveSession; сверка 138f7818): счёт
         // 4000 − ошибки·60 − время, не ниже пола.
         final level = _ladder.level;
+        unawaited(saveLevelStars(widget.state, 'sudoku_fractal', level, fractalStars(_errors)));
         unawaited(_ladder.win(
           score: max(fractalWinFloor, (4000 - _errors * 60 - min(_elapsed, fractalTimeCap)).round()),
           timeSeconds: _elapsed,
@@ -658,6 +676,8 @@ class _FractalScreenState extends State<FractalScreen> {
             ),
       pauseActions: [
         PauseAction(label: L.t('sdkStartOver'), icon: Icons.refresh, onPressed: () => restartGuarded(context, live: _live, deal: _deal)),
+        // Карта уровней — вернуться на пройденный (сверка строка 303, b5df5096 п.4).
+        PauseAction(label: L.t('sudokuModeLevels'), icon: Icons.map_outlined, onPressed: _openLevelMap),
         if (_canAskSolution)
           PauseAction(
             label: L.t('puzzleShowSolution'),

@@ -72,12 +72,12 @@ const APP_ROUTES = [
  */
 const HUB_REASONS = {
   '/games/chess-hub': 'развилка: два шахматных упражнения (scholars-mate / chess-blind), каждое проверяется своим маршрутом',
-  '/games/puzzles-hub': 'развилка: сорок головоломок Тэтхэма, все на одном экране /games/puzzles с параметром ?mode= — проверяется он, а не сорок карточек',
   '/games/span': 'развилка: три игры на объём памяти (digit-span / corsi / spatial-span), каждая проверяется своим маршрутом',
   '/games/attention-conflict': 'развилка: четыре игры на конфликт внимания (stroop / stroop-emotional / flanker / simon), каждая проверяется своим маршрутом',
   '/games/sudoku-hub': 'развилка: три судоку (классическая / самурай / фрактальная), каждая проверяется своим маршрутом',
   // Девять развилок 04.09.2026. У всех устройство одно: список карточек, каждая
   // ведёт в игру, и та проверяется своим маршрутом. Поля у развилки нет.
+  '/games/relaxation-hub': 'развилка: три передышки (breathing / pause / eye-gym), каждая проверяется своим маршрутом',
   '/games/counting-hub': 'развилка: четыре пробы на счёт (counter / math-slider / math-sprint / number-bonds), каждая проверяется своим маршрутом',
   '/games/words-hub': 'развилка: шесть проб на словарь (vocab-srs / semantic-sort / cloze / lexical-decision / anagrams / phonemic-fluency), каждая проверяется своим маршрутом',
   '/games/hearing-hub': 'развилка: три пробы на слух (phoneme-pairs / chinese-tones / pseudoword-echo), каждая проверяется своим маршрутом',

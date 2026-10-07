@@ -160,6 +160,62 @@ class SandwichClues {
   }
 }
 
+/// 🔴 МАЛЫЙ КИЛЛЕР (пункт 8 цепочки «14 усложнений», задача 2dddd227) — перенос `LittleKillerClue`
+/// ядра (sudoku-core.ts): число со стрелкой снаружи доски — сумма цифр на диагонали, цифры на ней
+/// МОГУТ повторяться. Стрелки смотрят только вниз: (r, c) — первая клетка у края, шаг внутрь —
+/// (1, [dc]); гнездо в поле — сверху, слева или справа, по одной подсказке на гнездо.
+class LittleKillerClue {
+  const LittleKillerClue({required this.r, required this.c, required this.dc, required this.sum});
+  final int r, c, dc, sum;
+
+  static List<LittleKillerClue>? fromJson(Object? v) {
+    if (v is! List) return null;
+    return [
+      for (final e in v)
+        if (e is Map)
+          LittleKillerClue(
+            r: (e['r'] as num).toInt(),
+            c: (e['c'] as num).toInt(),
+            dc: (e['dc'] as num).toInt(),
+            sum: (e['sum'] as num).toInt(),
+          ),
+    ];
+  }
+
+  Map<String, Object?> toJson() => {'r': r, 'c': c, 'dr': 1, 'dc': dc, 'sum': sum};
+
+  /// Лежит ли клетка на диагонали подсказки.
+  bool on(int rr, int cc) => rr >= r && (dc == 1 ? rr - cc == r - c : rr + cc == r + c);
+
+  /// Клетки диагонали — от края внутрь.
+  List<(int, int)> cells(int n) => [
+        for (var rr = r, cc = c; rr >= 0 && rr < n && cc >= 0 && cc < n; rr += 1, cc += dc) (rr, cc),
+      ];
+
+  /// Гнездо в поле: сторона и номер (у верхнего поля −1 и n — углы).
+  ({String side, int i}) get slot =>
+      r == 0 ? (side: 'top', i: c - dc) : (side: dc == 1 ? 'left' : 'right', i: r - 1);
+}
+
+/// Не спорит ли цифра с суммами диагоналей по известным цифрам (`littleKillerOk` ядра): известные
+/// плюс по 1 на пустую не больше суммы, известные плюс по n на пустую — не меньше.
+bool littleKillerOk(List<List<int>> grid, int r, int c, int val, List<LittleKillerClue> clues, int n) {
+  for (final k in clues) {
+    if (!k.on(r, c)) continue;
+    var s = 0, e = 0;
+    for (final (i, j) in k.cells(n)) {
+      final v = i == r && j == c ? val : grid[i][j];
+      if (v == 0) {
+        e++;
+      } else {
+        s += v;
+      }
+    }
+    if (s + e > k.sum || s + n * e < k.sum) return false;
+  }
+  return true;
+}
+
 /// Геометрия доски: то, что у варианта сверх строки, столбца и блока.
 ///
 /// 🔴 01.10.2026 (задача 450c0211): до этого дня здесь НЕ разбирались `parity`, `kropki` и
@@ -185,6 +241,8 @@ class BoardGeometry {
     this.between,
     this.lockout,
     this.xv,
+    this.littleKiller,
+    this.xsums,
   });
   final List<List<int>>? regions;
   final List<List<ThermoLink?>>? thermo;
@@ -221,6 +279,12 @@ class BoardGeometry {
   /// что у точек Кропки.
   final KropkiMap? xv;
 
+  /// Малый киллер: суммы диагоналей по стрелкам снаружи доски.
+  final List<LittleKillerClue>? littleKiller;
+
+  /// X-суммы: слева у строк и сверху у столбцов, −1 — скрыта; форма — как у сэндвича.
+  final SandwichClues? xsums;
+
   static BoardGeometry fromJson(Map<String, Object?> v) => BoardGeometry(
         regions: v['regions'] == null ? null : _grid(v['regions']),
         thermo: v['thermo'] == null
@@ -240,6 +304,8 @@ class BoardGeometry {
         kropki: KropkiMap.fromJson(v['kropki']),
         sandwich: SandwichClues.fromJson(v['sandwich']),
         xv: KropkiMap.fromJson(v['xv']),
+        littleKiller: LittleKillerClue.fromJson(v['littlekiller']),
+        xsums: SandwichClues.fromJson(v['xsums']),
         whisper: v['whisper'] == null
             ? null
             : (v['whisper'] as List)
@@ -307,6 +373,42 @@ bool towersLineOk(List<int> line, int clue) {
   return clue >= low && clue <= seen + blanks;
 }
 
+/// 🔴 АРГАЙЛ (пункт 10 цепочки «14 усложнений», задача 2345d346) — перенос `argylePeers` ядра
+/// (sudoku-core.ts): восемь отмеченных диагоналей узора «ромб» на 9×9, на каждой цифры не
+/// повторяются. Разности r−c ±1 (по 8 клеток) и ±4 (по 5), суммы r+c 7 и 9 (по 8) и 4 и 12 (по 5).
+const argyleDiffs = [-4, -1, 1, 4];
+const argyleSums = [4, 7, 9, 12];
+
+/// Клетки диагоналей узора, на которых лежит (r, c), — без неё самой.
+List<(int, int)> argylePeers(int r, int c, int n) {
+  final out = <(int, int)>[];
+  if (n != 9) return out;
+  if (argyleDiffs.contains(r - c)) {
+    for (var i = 0; i < n; i++) {
+      final j = i - (r - c);
+      if (j >= 0 && j < n && i != r) out.add((i, j));
+    }
+  }
+  if (argyleSums.contains(r + c)) {
+    for (var i = 0; i < n; i++) {
+      final j = r + c - i;
+      if (j >= 0 && j < n && i != r) out.add((i, j));
+    }
+  }
+  return out;
+}
+
+/// Диагонали узора отрезками в долях клетки (x — столбец, y — строка) — `argyleSegments` ядра:
+/// через центры клеток до краёв доски. r−c = k → y = x + k; r+c = m → y = m + 1 − x.
+List<(double, double, double, double)> argyleSegments([int n = 9]) => [
+      for (final k in argyleDiffs)
+        k > 0 ? (0.0, k.toDouble(), (n - k).toDouble(), n.toDouble()) : ((-k).toDouble(), 0.0, n.toDouble(), (n + k).toDouble()),
+      for (final m in argyleSums)
+        m + 1 <= n
+            ? (0.0, (m + 1).toDouble(), (m + 1).toDouble(), 0.0)
+            : ((m + 1 - n).toDouble(), n.toDouble(), n.toDouble(), (m + 1 - n).toDouble()),
+    ];
+
 /// Законен ли ход: поставить `val` в клетку (`r`, `c`) на доске `grid`.
 ///
 /// Порядок веток повторяет живой TS. `variant` — имя варианта строкой, как в лестнице
@@ -347,7 +449,11 @@ bool isValid(
     }
   }
 
-  if (variant == 'diagonal' || variant == 'killerdiag') {
+  if (variant == 'argyle') {
+    for (final (i, j) in argylePeers(r, c, n)) {
+      if (grid[i][j] == val) return false;   // восемь диагоналей узора
+    }
+  } else if (variant == 'diagonal' || variant == 'killerdiag') {
     if (r == c) {
       for (var i = 0; i < n; i++) {
         if (grid[i][i] == val) return false;
@@ -656,7 +762,35 @@ bool overlayOk(List<List<int>> grid, int r, int c, int val, int n, BoardGeometry
       if (d == 2 ? sum != 10 : d == 1 ? sum != 5 : sum == 5 || sum == 10) return false;
     }
   }
+  final lk = g.littleKiller;
+  if (lk != null && !littleKillerOk(grid, r, c, val, lk, n)) return false;
+  final xs = g.xsums;
+  if (xs != null) {
+    final row = [...grid[r]]..[c] = val;
+    if (!xsumLineOk(row, xs.rows[r], n)) return false;
+    final col = [for (final line in grid) line[c]]..[r] = val;
+    if (!xsumLineOk(col, xs.cols[c], n)) return false;
+  }
   return true;
+}
+
+/// 🔴 X-СУММЫ (пункт 9 цепочки «14 усложнений», задача 5ea317fc) — перенос `xsumLineOk` ядра: число у
+/// края — сумма первых X цифр с этой стороны, X — первая из них (входит в сумму). Пока первая цифра
+/// пуста — молчим; известна — сумма первых X клеток в коридоре: известные плюс по 1 на пустую не
+/// больше подсказки, плюс по n на пустую — не меньше. −1 — подсказка скрыта.
+bool xsumLineOk(List<int> line, int clue, int n) {
+  if (clue < 0) return true;
+  final x = line[0];
+  if (x == 0) return true;
+  var s = 0, e = 0;
+  for (var k = 0; k < x; k++) {
+    if (line[k] == 0) {
+      e++;
+    } else {
+      s += line[k];
+    }
+  }
+  return s + e <= clue && clue <= s + n * e;
 }
 
 bool _knightHit(List<List<int>> grid, int r, int c, int val, int n) {

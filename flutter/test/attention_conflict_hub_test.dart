@@ -46,7 +46,8 @@ void main() {
 
   test('🔴 все карточки ведут на НАТИВНЫЕ экраны — и в заводском составе, и в раскладке каждого профиля', () {
     // Слепое = красное: пустой состав дал бы зелёный цикл без единой сверки.
-    expect(defaultCards().length, 9, reason: 'девять карточек развилки в assets/hubs.json');
+    // 07.10.2026: переезды по решению Дениса 18.09 (задача 668bcc73): «Корректура» уехала в «Поиск глазами» — 9 → 8.
+    expect(defaultCards().length, 8, reason: 'восемь карточек развилки в assets/hubs.json');
     final sets = <String, List<String>>{'заводской состав': routesOf(defaultCards())};
     for (final e in (bundle['layouts'] as Map<String, dynamic>? ?? const {}).entries) {
       final cards = (e.value as Map<String, dynamic>)[hub] as List?;
