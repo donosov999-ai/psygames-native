@@ -1778,6 +1778,7 @@ String variantTitle(String variant) => switch (variant) {
       'xsums' => L.t('sdkRule_xsums'),
       'cipher' => L.t('sdkRule_cipher'),
       'fog' => L.t('sdkRule_fog'),
+      'chaos' => L.t('sdkRule_chaos'),
       'friends' => L.t('sdkRule_friends'),
       _ => L.t('sdkRule_none'),
     };
@@ -1884,6 +1885,7 @@ class SudokuBoardView extends StatelessWidget {
                             cageSum: cageSumAt(r, col),
                             letter: cipherLetterAt(g, r, col),
                             fogged: fogOpen != null && !fogOpen[r][col],
+                            borderClue: g.chaos == null || g.chaos![r][col] < 0 ? null : g.chaos![r][col],
                           ),
                       ],
                     ),
@@ -2022,6 +2024,7 @@ class _Cell extends StatelessWidget {
     this.cageSum,
     this.letter,
     this.fogged = false,
+    this.borderClue,
   });
 
   final double size;
@@ -2040,6 +2043,9 @@ class _Cell extends StatelessWidget {
 
   /// Клетка под туманом: ни цифры, ни пометок, касание не выбирает её (туман войны, efb63126).
   final bool fogged;
+
+  /// Самосборка: сколько сторон клетки — граница области; `null` — подсказки нет (задача 6cee3610).
+  final int? borderClue;
 
   /// Значок цифры; `null` — сама цифра.
   final String Function(int)? glyph;
@@ -2084,18 +2090,20 @@ class _Cell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final regions = board.geometry.regions;
+    // Самосборка: областей на доске нет — толстая черта только по краю, внутри её выводит игрок.
+    final chaos = regions == null && board.variant == 'chaos';
     final bool thickTop = regions != null
         ? _regionEdge(row, col, row - 1, col)
-        : row % board.br == 0;
+        : chaos ? row == 0 : row % board.br == 0;
     final bool thickLeft = regions != null
         ? _regionEdge(row, col, row, col - 1)
-        : col % board.bc == 0;
+        : chaos ? col == 0 : col % board.bc == 0;
     final bool thickBottom = regions != null
         ? _regionEdge(row, col, row + 1, col)
-        : row == board.n - 1 || (row + 1) % board.br == 0;
+        : row == board.n - 1 || (!chaos && (row + 1) % board.br == 0);
     final bool thickRight = regions != null
         ? _regionEdge(row, col, row, col + 1)
-        : col == board.n - 1 || (col + 1) % board.bc == 0;
+        : col == board.n - 1 || (!chaos && (col + 1) % board.bc == 0);
     final border = Border(
       top: _side(thickTop),
       left: _side(thickLeft),
@@ -2189,6 +2197,28 @@ class _Cell extends StatelessWidget {
                           style: TextStyle(fontSize: size * 0.24 < 8 ? 8 : size * 0.24, fontWeight: FontWeight.w800, color: scheme.tertiary),
                         ),
                       ),
+              if (borderClue != null)
+                Positioned(
+                  left: 2,
+                  top: 2,
+                  child: Container(
+                    key: Key('border-clue-${row}_$col'),
+                    padding: const EdgeInsets.symmetric(horizontal: 2),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: scheme.tertiary, width: 1),
+                      borderRadius: BorderRadius.circular(3),
+                    ),
+                    child: Text(
+                      '$borderClue',
+                      style: TextStyle(
+                        fontSize: size * 0.24 < 8 ? 8 : size * 0.24,
+                        height: 1.1,
+                        fontWeight: FontWeight.w800,
+                        color: scheme.tertiary,
+                      ),
+                    ),
+                  ),
+                ),
               if (cageSum != null)
                 Positioned(
                   left: 3,

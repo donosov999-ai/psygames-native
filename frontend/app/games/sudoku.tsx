@@ -485,6 +485,8 @@ interface SudokuResume {
   cipher?: number[][] | null;
   /** Туман: окна старта (1 — открыто); расчистку натив выводит из сетки. В старых снимках поля нет — ?? null. */
   fog?: number[][] | null;
+  /** Самосборка: подсказки границ (−1 — нет); областей в снимке нет — их выводит игрок. ?? null. */
+  chaos?: number[][] | null;
   /** Поля режимов towers/unequal; в старых снимках отсутствуют — читать с ?? null. */
   unequal?: UnequalMap | null;
   towers?: TowersMap | null;
@@ -719,7 +721,8 @@ export default function SudokuGame() {
   const [littlekiller, setLittlekiller] = useState<LittleKillerClue[] | null>(null);
   const [xsums, setXsums] = useState<XsumsClues | null>(null);
   const [cipher, setCipher] = useState<number[][] | null>(null);
-  const [fog, setFog] = useState<number[][] | null>(null);   // туман: рисует и расчищает натив, веб хранит окна для снимка   // шифр: буквы рисует натив, как поля малого киллера   // X-суммы: то же, что малый киллер, — поля рисует натив
+  const [fog, setFog] = useState<number[][] | null>(null);
+  const [chaos, setChaos] = useState<number[][] | null>(null);   // самосборка: подсказки границ рисует натив   // туман: рисует и расчищает натив, веб хранит окна для снимка   // шифр: буквы рисует натив, как поля малого киллера   // X-суммы: то же, что малый киллер, — поля рисует натив
   const [xv, setXv] = useState<{ h: number[][]; v: number[][] } | null>(null);   // XV: знаки на гранях, показаны все   // замок
   const [arrow, setArrow] = useState<ArrowMap | null>(null);   // arrow: кружок (сумма) + стрелка
   const [unequalMap, setUnequalMap] = useState<UnequalMap | null>(null);   // unequal: знаки </> на гранях
@@ -1072,6 +1075,7 @@ export default function SudokuGame() {
     setXsums((built as { xsums?: XsumsClues }).xsums ?? null);
     setCipher((built as { cipher?: number[][] }).cipher ?? null);
     setFog((built as { fog?: number[][] }).fog ?? null);
+    setChaos((built as { chaos?: number[][] }).chaos ?? null);
     setArrow(ar ?? null);
     // Карты режимов towers/unequal: на прочих досках их нет — чистим до null.
     const sideMaps = built as { unequal?: UnequalMap; towers?: TowersMap };
@@ -1114,7 +1118,7 @@ export default function SudokuGame() {
   const snapshot = (): SudokuResume => ({
     mode, level, road, difficulty, size, variant, dims,
     puzzle, solution, grid, given, cellColors, marks,
-    regions, cages, cageSums, cageAnchors, parityMarks, kropki, sandwich, thermo, arrow, whisper, renban, regionsum, palindrome, between, lockout, xv, littlekiller, xsums, cipher, fog,
+    regions, cages, cageSums, cageAnchors, parityMarks, kropki, sandwich, thermo, arrow, whisper, renban, regionsum, palindrome, between, lockout, xv, littlekiller, xsums, cipher, fog, chaos,
     unequal: unequalMap, towers: towersMap,
     errors, hintUses, hintMax, backtrackCount, answersRevealed,
     elapsed: elapsedTime,
@@ -1143,7 +1147,7 @@ export default function SudokuGame() {
     setPencil(false);
     setRegions(s.regions); setCages(s.cages); setCageSums(s.cageSums); setCageAnchors(s.cageAnchors);
     setParityMarks(s.parityMarks); setKropki(s.kropki); setSandwich(s.sandwich);
-    setThermo(s.thermo); setArrow(s.arrow); setWhisper(s.whisper ?? null); setRenban(s.renban ?? null); setRegionsum(s.regionsum ?? null); setPalindrome(s.palindrome ?? null); setBetween(s.between ?? null); setLockout(s.lockout ?? null); setXv(s.xv ?? null); setLittlekiller(s.littlekiller ?? null); setXsums(s.xsums ?? null); setCipher(s.cipher ?? null); setFog(s.fog ?? null);
+    setThermo(s.thermo); setArrow(s.arrow); setWhisper(s.whisper ?? null); setRenban(s.renban ?? null); setRegionsum(s.regionsum ?? null); setPalindrome(s.palindrome ?? null); setBetween(s.between ?? null); setLockout(s.lockout ?? null); setXv(s.xv ?? null); setLittlekiller(s.littlekiller ?? null); setXsums(s.xsums ?? null); setCipher(s.cipher ?? null); setFog(s.fog ?? null); setChaos(s.chaos ?? null);
     setUnequalMap(s.unequal ?? null); setTowersMap(s.towers ?? null);   // старые снимки полей не имеют
     setErrors(s.errors); setHintUses(s.hintUses); setHintMax(s.hintMax); setBacktrackCount(s.backtrackCount);
     setAnswersRevealed(s.answersRevealed !== false);

@@ -11,7 +11,7 @@
 import { translateFor } from '../contexts/LanguageContext';
 
 export type Cell = number; // 0 = empty
-export type Variant = 'none' | 'diagonal' | 'antiknight' | 'hyper' | 'nonconsec' | 'jigsaw' | 'antiking' | 'evenodd' | 'kropki' | 'sandwich' | 'thermo' | 'arrow' | 'thermocage' | 'unequal' | 'towers' | 'sandparity' | 'thermoknight' | 'killerdiag' | 'whisper' | 'renban' | 'regionsum' | 'palindrome' | 'between' | 'lockout' | 'xv' | 'argyle' | 'littlekiller' | 'xsums' | 'cipher' | 'fog' | 'friends';
+export type Variant = 'none' | 'diagonal' | 'antiknight' | 'hyper' | 'nonconsec' | 'jigsaw' | 'antiking' | 'evenodd' | 'kropki' | 'sandwich' | 'thermo' | 'arrow' | 'thermocage' | 'unequal' | 'towers' | 'sandparity' | 'thermoknight' | 'killerdiag' | 'whisper' | 'renban' | 'regionsum' | 'palindrome' | 'between' | 'lockout' | 'xv' | 'argyle' | 'littlekiller' | 'xsums' | 'cipher' | 'fog' | 'chaos' | 'friends';
 // 'friends' — «Мяу — друзья» 9×9 (у кота мышь рядом): генератора на TS нет, доски ступеней — только
 // выгрузкой MindLab (flutter/tools/meow9-ladder.cjs, export_kids_boards.py --meow9).
 
@@ -261,6 +261,7 @@ const VARIANT_KEY_SUFFIX: Record<Exclude<Variant, 'none' | 'friends'>, string> =
   xsums: 'Xsums',
   cipher: 'Cipher',
   fog: 'Fog',
+  chaos: 'Chaos',
 };
 // «Мяу — друзья»: имя и правило — одна короткая строка «🐱 рядом с 🐭», та же, что у натива
 // (sdkRule_friends, 12 языков); отдельных sudokuVariant*/sudokuRule* у варианта нет.
@@ -1457,10 +1458,10 @@ export function towersLineOk(line: readonly number[], clue: number): boolean {
 
 export function isValid(grid: Cell[][], r: number, c: number, val: number, N: number, BR: number, BC: number, variant: Variant = 'none', regions?: number[][], thermo?: ThermoPN, arrow?: ArrowMap, cages?: CageMap, unequal?: UnequalMap, towers?: TowersMap): boolean {
   for (let i = 0; i < N; i++) if (grid[r][i] === val || grid[i][c] === val) return false;
-  if (variant === 'jigsaw' && regions) {
+  if ((variant === 'jigsaw' || variant === 'chaos') && regions) {
     const reg = regions[r][c];
     for (let i = 0; i < N; i++) for (let j = 0; j < N; j++) if (regions[i][j] === reg && grid[i][j] === val) return false;   // бокс заменён регионом
-  } else {
+  } else if (variant !== 'chaos') {   // самосборка без разбиения: блоков нет, области игрок выводит сам
     const br = Math.floor(r / BR) * BR, bc = Math.floor(c / BC) * BC;
     for (let i = 0; i < BR; i++) for (let j = 0; j < BC; j++) if (grid[br + i][bc + j] === val) return false;
   }
@@ -1842,7 +1843,7 @@ export function buildNonconsecSolution(): Cell[][] {
   return g;
 }
 
-export function generatePuzzle(blanks: number, N: number, BR: number, BC: number, variant: Variant = 'none', thin?: (ov: Overlays) => Overlays): { puzzle: Cell[][]; solution: Cell[][]; regions?: number[][]; parity?: number[][]; kropki?: { h: number[][]; v: number[][] }; sandwich?: { rows: number[]; cols: number[] }; thermo?: ThermoPN; arrow?: ArrowMap; cages?: CageMap; unequal?: UnequalMap; towers?: TowersMap; whisper?: ThermoPN; renban?: ThermoPN; regionsum?: ThermoPN; palindrome?: ThermoPN; between?: ThermoPN; lockout?: ThermoPN; xv?: XvMap; littlekiller?: LittleKillerClue[]; xsums?: XsumsClues; cipher?: number[][]; fog?: number[][] } {
+export function generatePuzzle(blanks: number, N: number, BR: number, BC: number, variant: Variant = 'none', thin?: (ov: Overlays) => Overlays): { puzzle: Cell[][]; solution: Cell[][]; regions?: number[][]; parity?: number[][]; kropki?: { h: number[][]; v: number[][] }; sandwich?: { rows: number[]; cols: number[] }; thermo?: ThermoPN; arrow?: ArrowMap; cages?: CageMap; unequal?: UnequalMap; towers?: TowersMap; whisper?: ThermoPN; renban?: ThermoPN; regionsum?: ThermoPN; palindrome?: ThermoPN; between?: ThermoPN; lockout?: ThermoPN; xv?: XvMap; littlekiller?: LittleKillerClue[]; xsums?: XsumsClues; cipher?: number[][]; fog?: number[][]; chaos?: number[][] } {
   const sol: Cell[][] = Array.from({ length: N }, () => Array(N).fill(0));
   let regions: number[][] | undefined;
   let thermo: ThermoPN | undefined;
@@ -2013,7 +2014,8 @@ export function rejectionReason(
    * видимые правила разрешают, остались без слова). Теперь база jigsaw — строка, столбец и
    * область; конфликт в области виден на доске так же, как в квадрате у классики.
    */
-  if (!isValid(test, r, c, n, N, BR, BC, variant === 'jigsaw' ? 'jigsaw' : 'none', ctx.regions)) return '';
+  // Самосборка: база — строка и столбец (областей на доске нет, их выводит игрок).
+  if (!isValid(test, r, c, n, N, BR, BC, variant === 'jigsaw' || variant === 'chaos' ? variant : 'none', ctx.regions)) return '';
 
   /**
    * 2. Правило варианта нарушено ДОКАЗУЕМО — вот теперь называем именно его.

@@ -176,7 +176,7 @@ if (!DRY) fs.copyFileSync(path.join(src, 'services/sudoku-bank/boards.json'), pa
 console.error(`лестница: ${LAST} ступеней, полос банка ${bank.RATING_LADDER.length}; банк скопирован${DRY ? ' (--dry: не записано)' : ''}`);
 
 // ── 2. Проверка доски тем же ядром ────────────────────────────────────────────────────
-const GEOMETRY_FIELDS = ['regions', 'parity', 'kropki', 'sandwich', 'thermo', 'arrow', 'cages', 'whisper', 'renban', 'regionsum', 'palindrome', 'between', 'lockout', 'xv', 'littlekiller', 'xsums', 'cipher', 'fog'];
+const GEOMETRY_FIELDS = ['regions', 'parity', 'kropki', 'sandwich', 'thermo', 'arrow', 'cages', 'whisper', 'renban', 'regionsum', 'palindrome', 'between', 'lockout', 'xv', 'littlekiller', 'xsums', 'cipher', 'fog', 'chaos'];
 const MODE_FIELDS = ['towers', 'unequal'];
 /** Поля, которые ядро проверяет как ПОКАЗАННЫЕ подсказки (`overlayOk`): единственность и мера
  *  обязаны их видеть. Пропустить поле — доска «не единственна» (01.10: так выгрузка сама
@@ -193,6 +193,15 @@ function defect(gen, N, BR, BC, variant, tier) {
   }
   const P = gen.puzzle, S = gen.solution;
   const ov = Object.fromEntries(OVERLAY_FIELDS.map((f) => [f, gen[f]]));
+  // Самосборка: областей в доске нет — их обязаны вывести подсказки границ; дальше доска проверяется
+  // как кривые блоки по выведенным областям (единственность цифр — перебором).
+  let regions = gen.regions, countAs = variant;
+  if (gen.chaos) {
+    if (gen.regions) return 'разбиение самосборки уехало в доску — игрок увидел бы ответ';
+    const cg = grade.gradeChaos(P, gen.chaos, N, BR, BC);
+    if (!cg.regions) return 'подсказки границ не выводят разбиение';
+    regions = cg.regions; countAs = 'jigsaw';
+  }
   for (let r = 0; r < N; r++) {
     for (let c = 0; c < N; c++) {
       const v = S[r][c];
@@ -200,7 +209,7 @@ function defect(gen, N, BR, BC, variant, tier) {
       if (P[r][c] !== 0 && P[r][c] !== v) return `подсказка ${r},${c} не совпадает с решением`;
       const g = S.map((row) => row.slice());
       g[r][c] = 0;
-      if (!core.isValid(g, r, c, v, N, BR, BC, variant, gen.regions, gen.thermo, gen.arrow, gen.cages, gen.unequal, gen.towers)
+      if (!core.isValid(g, r, c, v, N, BR, BC, variant, regions, gen.thermo, gen.arrow, gen.cages, gen.unequal, gen.towers)
         || !core.overlayOk(g, r, c, v, N, ov)) return `решение нарушает правило «${variant}» в ${r},${c}`;
     }
   }
@@ -208,12 +217,13 @@ function defect(gen, N, BR, BC, variant, tier) {
   // Замер 01.10.2026: из 876 досок бюджет кончился у двух (L36 kropki, L44 thermo), обе на
   // деле единственны (582 747 и 445 371 шаг); пересборка такой доски дешевле лишних 30 с.
   const budget = { steps: 400000 };
-  const solutions = core.countSolutions(P.map((row) => row.slice()), N, BR, BC, variant, gen.regions, 2,
+  const solutions = core.countSolutions(P.map((row) => row.slice()), N, BR, BC, countAs, regions, 2,
     budget, gen.thermo, gen.arrow, gen.cages, ov);
   if (budget.steps < 0) return 'перебор не уложился в 400 000 шагов — единственность не доказана';
   if (solutions !== 1) return solutions === 0 ? 'решений нет' : 'решение НЕ единственно';
   // Туман — не подсказка, а закрытый обзор: мера та, что копала доску, — под туманом (gradeFog).
-  const again = gen.fog ? grade.gradeFog(P, gen.fog, { N, BR, BC, variant: 'none' })
+  const again = gen.chaos ? grade.gradeChaos(P, gen.chaos, N, BR, BC)
+    : gen.fog ? grade.gradeFog(P, gen.fog, { N, BR, BC, variant: 'none' })
     : grade.gradePuzzle(P, { N, BR, BC, variant, regions: gen.regions, thermo: gen.thermo, arrow: gen.arrow,
       cages: gen.cages, ...ov });
   if (!again.solved) return 'мера не закрывает доску';
@@ -631,6 +641,20 @@ if (!args['no-rules']) {
       `${JSON.stringify({ выгружено: STAMP, источник: 'flutter/tools/export-sudoku-boards.cjs', puzzle: fb.puzzle, solution: fb.solution, fog: fb.fog, tier: fogGen.grade.tier, steps })}\n`);
   }
   console.error(`эталон тумана: ходов ${steps.length}, на старте открыто ${grade.fogRevealed(fb.fog, fb.puzzle, fb.solution).flat().filter(Boolean).length} из 81, ступень ${fogGen.grade.tier}`);
+
+  // ── 5в. Эталон самосборки: доска боевым путём и её области (ответ — только для пробы натива) ──
+  // Натив разбиение не решает — игрок выводит его сам; проба сверяет подсказки границ с ответом
+  // своим счётом, рисунок доски без блоков и проверку хода без блоков.
+  rngState = seedFor(BASE_SEED, 'rules', 'chaos');
+  const chaosGen = grade.generateLogical(141, 81, 9, 3, 3, 'chaos', { budgetMs: 600000, tier: { min: 1, max: 6 } });
+  if (chaosGen.fellBack) throw Error('эталон самосборки: генератор ушёл запасным путём');
+  const cgb = chaosGen.gen;
+  const chaosGrade = grade.gradeChaos(cgb.puzzle, cgb.chaos, 9, 3, 3);
+  if (!DRY) {
+    fs.writeFileSync(path.join(root, 'flutter/test/fixtures/sudoku-chaos-reference.json'),
+      `${JSON.stringify({ выгружено: STAMP, источник: 'flutter/tools/export-sudoku-boards.cjs', puzzle: cgb.puzzle, solution: cgb.solution, chaos: cgb.chaos, regions: chaosGrade.regions, tier: chaosGrade.tier })}\n`);
+  }
+  console.error(`эталон самосборки: подсказок границ ${cgb.chaos.flat().filter((v) => v >= 0).length}, цифр ${cgb.puzzle.flat().filter((v) => v).length}, ступень ${chaosGrade.tier}`);
 }
 
 console.error(DRY ? '--dry: собрано и проверено, файлы не тронуты' : `записано в ${path.relative(root, outDir)}/`);
