@@ -1,4 +1,4 @@
-/* psygames-warmup-night-launch · VER 1 · 07.10.2026 */
+/* psygames-warmup-night-launch · VER 2 · 07.10.2026 */
 /**
  * 🔴 КАРТОЧКА «НОЧНАЯ» РАЗВИЛКИ «РЕЛАКСАЦИЯ» ЗАПУСКАЕТ НОЧНОЙ НАБОР (решение Дениса 07.10.2026,
  * b271f702: ночной набор переезжает с Главной в развилку).
@@ -15,6 +15,8 @@ jest.mock('@/src/contexts/ThemeContext', () => {
   const theme = { colors: { background: '#000', primary: '#a855f7' } };
   return { useTheme: () => theme };
 });
+const mockLang = { t: (k: string) => k };
+jest.mock('@/src/contexts/LanguageContext', () => ({ useLanguage: () => mockLang }));
 
 /* eslint-disable @typescript-eslint/no-require-imports -- загрузка ПОСЛЕ jest.mock */
 const TestRenderer = require('react-test-renderer');

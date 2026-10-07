@@ -1,4 +1,4 @@
-/* psygames-warmup-night-launch · VER 2 · 07.10.2026 */
+/* psygames-warmup-night-launch · VER 3 · 07.10.2026 */
 /**
  * ЗАПУСК «НОЧНОЙ» ЗАРЯДКИ («Не спится») ИЗ РАЗВИЛКИ «РЕЛАКСАЦИЯ».
  *
@@ -13,6 +13,7 @@ import { ActivityIndicator, Pressable, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '@/src/contexts/ThemeContext';
+import { useLanguage } from '@/src/contexts/LanguageContext';
 import { useWarmup } from '@/src/contexts/WarmupContext';
 import { goBackOrHome } from '@/src/utils/nav';
 
@@ -24,6 +25,7 @@ export async function nightDuration(): Promise<5 | 10 | 15> {
 
 export default function WarmupNightLaunch() {
   const { colors } = useTheme();
+  const { t } = useLanguage();
   const warmup = useWarmup();
   const started = useRef(false);
   /* Выход — на случай, если запуск не подменил адрес: без него человек застрял бы на крутилке
@@ -40,7 +42,7 @@ export default function WarmupNightLaunch() {
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background }}>
       <ActivityIndicator size="large" color={colors.primary} />
       {stuck && (
-        <Pressable testID="warmup-night-close" accessibilityRole="button" onPress={goBackOrHome} style={{ marginTop: 24, padding: 12 }}>
+        <Pressable testID="warmup-night-close" accessibilityRole="button" accessibilityLabel={t('close')} onPress={goBackOrHome} style={{ marginTop: 24, padding: 12 }}>
           <Ionicons name="close" size={28} color={colors.text} />
         </Pressable>
       )}
