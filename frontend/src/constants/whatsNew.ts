@@ -16,6 +16,34 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.56.14',
+    date: '2026-10-07',
+    ru: [
+      '«Судоку»: подсветка цифр вернулась — одинаковые цифры, строка и столбец; неверная цифра снова красная',
+      '«Судоку»: неверная цифра объясняет, какое правило нарушено — для вариантов с суммами, кривыми блоками и киллера',
+      '«Судоку»: боссы на каждой смене правил и не реже чем через 10 ступеней; «Самурай» и «Фрактал» — большие боссы: в бой сразу или позже',
+      'N-back: на высоких уровнях глубина меняется прямо внутри партии',
+      '«Парные картинки», «Матрица памяти» и «Reading Span» доведены до веб-версии: честный итог раунда, ввод слов над клавиатурой, поддержка экранного диктора',
+      'Набор «Позиции»: «Кубики Корси» и «Наоборот» открываются прямо из развилки',
+      'Игры «Сортировки» говорят на языке игрока; «Очередь зверей» и «Цвета и формы» теперь заставляют подумать',
+      'Экран знакомства и настройки показывают настоящее число игр — 131',
+      'Зарядка больше не выкидывает на главную между упражнениями',
+      'Практики: крупно «что делать сейчас» с отсчётом и полной подсказкой; «Живот» вибрирует, пока держишь; новые массаж лица и режимы глаз; шар дыхания рядом с упражнением для тела; картинки — по центру рамки фаз',
+    ],
+    en: [
+      'Sudoku: digit highlighting is back — matching digits, row and column; a wrong digit is red again',
+      'Sudoku: a wrong digit now says which rule it breaks — including sum variants, jigsaw blocks and killer',
+      'Sudoku: a boss at every rule change and at least every 10 steps; Samurai and Fractal are big bosses — fight now or later',
+      'N-back: at high levels the depth now changes within a single game',
+      'Picture Pairs, Memory Matrix and Reading Span now match the web version: a fair round result, word entry above the keyboard, screen reader support',
+      'Positions set: Corsi Blocks and Backward open straight from the hub',
+      'Sorting games speak your language; Animal Queue and Colours and Shapes now make you think',
+      'Onboarding and Settings show the real number of games — 131',
+      'Warm-up no longer drops to the home screen between exercises',
+      'Practices: a big “what to do now” with a countdown and the full instruction; the abdomen exercise vibrates while you hold; new face massage and eye modes; a breathing ball next to the body exercise; pictures sit centred in the phase frame',
+    ],
+  },
+  {
     version: '2.56.13',
     date: '2026-10-07',
     ru: [

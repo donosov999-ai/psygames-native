@@ -204,7 +204,7 @@ css = css.replace(/color-mix\(in srgb, (#[0-9a-f]{6}) (\d+)%, transparent\)/gi, 
   const n = parseInt(hex.slice(1), 16);
   return `rgba(${n >> 16},${(n >> 8) & 255},${n & 255},${Number(percent) / 100})`;
 });
-const guides = path.join(root, 'flutter/assets/pause/guides');
+const guides = path.join(root, 'packages/practice_kit/assets/guides');
 fs.rmSync(guides, { recursive: true, force: true });
 fs.mkdirSync(guides, { recursive: true });
 let guideCount = 0;
@@ -245,12 +245,12 @@ fs.writeFileSync(path.join(root, 'flutter/assets/pause/copy.json'), JSON.stringi
 console.log(`подписи страницы: ${Object.keys(pageCopy).length} языков, ${Object.keys(pageCopy.ru).length} строк → flutter/assets/pause/copy.json`);
 
 // Фигуры тела и позы — те же webp, что у веб-страницы (652 КБ, а не 9,3 МБ PNG настольной версии).
-const bodies = path.join(root, 'flutter/assets/pause/cosmic-body');
+const bodies = path.join(root, 'packages/practice_kit/assets/cosmic-body');
 fs.rmSync(bodies, { recursive: true, force: true });
 fs.mkdirSync(bodies, { recursive: true });
 const webp = fs.readdirSync(path.join(warmup, 'assets/cosmic-body')).filter((f) => f.endsWith('.webp'));
 for (const f of webp) fs.copyFileSync(path.join(warmup, 'assets/cosmic-body', f), path.join(bodies, f));
-console.log(`картинки: ${guideCount} SVG шагов → flutter/assets/pause/guides, ${webp.length} webp → flutter/assets/pause/cosmic-body`);
+console.log(`картинки: ${guideCount} SVG шагов → packages/practice_kit/assets/guides, ${webp.length} webp → packages/practice_kit/assets/cosmic-body`);
 
 /*
  * 🔴 «ГИМНАСТИКА ДЛЯ ГЛАЗ» — ЭТАЛОН С ЖИВОГО ЭКРАНА `frontend/app/games/eye-gym.tsx`.

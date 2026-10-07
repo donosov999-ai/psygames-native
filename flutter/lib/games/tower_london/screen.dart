@@ -225,7 +225,7 @@ class _TowerLondonScreenState extends State<TowerLondonScreen> {
    */
   /// ⚠️ Название одной строкой на весь экран: второй литерал был бы вторым местом,
   /// где его переводить, и первым, где забудут.
-  static const _title = 'Башня Лондона';
+  static String get _title => L.t('towerLondon');
 
   Future<void> _openLesson() async {
     final from = _state;
@@ -275,15 +275,15 @@ class _TowerLondonScreenState extends State<TowerLondonScreen> {
       hud: [
         // Счётчик уровня при шаге зарядки скрыт: шаг лестницу не двигает.
         if (!GamePreset.isPreset)
-          HudItem(label: 'Уровень', value: '${_ladder.level}', icon: Icons.flag_outlined),
-        HudItem(label: 'Задача', value: '$_round/$rounds', icon: Icons.repeat),
+          HudItem(label: L.t('level'), value: '${_ladder.level}', icon: Icons.flag_outlined),
+        HudItem(label: L.t('hud_puzzle'), value: '$_round/$rounds', icon: Icons.repeat),
         // Ходы ПРОТИВ МИНИМУМА: игра именно про план, и без минимума человек не
         // знает, хорошо ли он спланировал.
-        HudItem(label: 'Ходы', value: '$_moves/${puzzle.minMoves}', icon: Icons.swap_horiz),
-        HudItem(label: 'Лишние', value: '$_extra', icon: Icons.trending_up),
+        HudItem(label: L.t('hud_moves'), value: '$_moves/${puzzle.minMoves}', icon: Icons.swap_horiz),
+        HudItem(label: L.t('mtExtra'), value: '$_extra', icon: Icons.trending_up),
         // Ошибка здесь — попытка положить шар на ПОЛНЫЙ стержень. Она не
         // отнимает ход, но показывается: молчащий отказ читается как поломка.
-        HudItem(label: 'Ошибки', value: '$_errors', icon: Icons.error_outline),
+        HudItem(label: L.t('errors'), value: '$_errors', icon: Icons.error_outline),
       ],
       field: (context, h) => TolBoard(
         state: st,
@@ -297,8 +297,8 @@ class _TowerLondonScreenState extends State<TowerLondonScreen> {
         }),
       ),
       auxRow: AuxBar(children: [
-        AuxAction(icon: Icons.undo, label: 'Отменить', onPressed: _history.isEmpty ? null : _undo),
-        AuxAction(icon: Icons.refresh, label: 'Начать заново', onPressed: _restart),
+        AuxAction(icon: Icons.undo, label: L.t('btn_undo'), onPressed: _history.isEmpty ? null : _undo),
+        AuxAction(icon: Icons.refresh, label: L.t('restart'), onPressed: _restart),
       ]),
       toolbar: _done
           ? Padding(
@@ -316,8 +316,8 @@ class _TowerLondonScreenState extends State<TowerLondonScreen> {
                             // зашитого русского в файле не прибавлялось, и он прав —
                             // в приложении двенадцать языков.
                             ? L.f('tolWonPreset', {'e': '$_extra', 'r': '$rounds'})
-                            : 'Партия взята: лишних ходов $_extra из $rounds · дальше уровень ${_ladder.level}')
-                        : 'Лишних ходов $_extra при пороге $rounds — партия не взята',
+                            : '${L.f('tolWonPreset', {'e': '$_extra', 'r': '$rounds'})} · ${L.f('nextLevelBtn', {'n': '${_ladder.level}'})}')
+                        : L.f('tolFailedPreset', {'e': '$_extra', 'r': '$rounds'}),
                     key: const ValueKey('tol-result'),
                     textAlign: TextAlign.center,
                     style: const TextStyle(fontWeight: FontWeight.w700),
@@ -326,15 +326,15 @@ class _TowerLondonScreenState extends State<TowerLondonScreen> {
                   FilledButton.icon(
                     onPressed: _restart,
                     icon: Icon(_passed ? Icons.arrow_forward : Icons.refresh),
-                    label: Text(_passed ? 'Дальше' : 'Ещё раз'),
+                    label: Text(_passed ? L.t('eyeStereoNext') : L.t('retry')),
                   ),
                 ],
               ),
             )
           : null,
       pauseActions: [
-        PauseAction(label: 'Начать заново', icon: Icons.refresh, onPressed: _restart),
-        if (_history.isNotEmpty) PauseAction(label: 'Отменить ход', icon: Icons.undo, onPressed: _undo),
+        PauseAction(label: L.t('restart'), icon: Icons.refresh, onPressed: _restart),
+        if (_history.isNotEmpty) PauseAction(label: L.t('btn_undo'), icon: Icons.undo, onPressed: _undo),
       ],
     );
   }
