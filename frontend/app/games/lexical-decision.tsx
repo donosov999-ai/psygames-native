@@ -443,6 +443,8 @@ export default function LexicalDecisionGame() {
   };
 
   // playing-фаза — на едином каркасе GameShell (слово в скролл-поле, две кнопки ответа прибиты к низу)
+  // Метка языка — в билингво и в зарядке; партия «По норме?» одноязычная, ей метка не нужна.
+  const меткаЯзыка = (билингво || isPreset) && !(normPlay && !isPreset);
   const renderPlaying = () => {
     const trial = trials[idx];
     if (!trial) return null;
@@ -473,7 +475,7 @@ export default function LexicalDecisionGame() {
            *
            * ⚠️ Код языка, а не название: «Английский» распирает пилюлю шапки.
            */
-          ...(((билингво && !normPlay) || isPreset) && trials[idx]?.язык
+          ...(меткаЯзыка && trials[idx]?.язык
             ? [{ key: 'bilang', icon: 'language' as const, label: t('bilingualMode'),
                 value: паройЯзыков(String(trials[idx]?.язык), билингво ? [tgt, второйЯзык] : []),
                 tone: 'accent' as const }]
@@ -499,7 +501,7 @@ export default function LexicalDecisionGame() {
               activeOpacity={0.8}
             >
               <Ionicons name="checkmark" size={28} color="#fff" />
-              <Text style={styles.bigButtonText}>{t(normPlay ? 'ldNormBtn' : 'ldWordBtn')}</Text>
+              <Text style={styles.bigButtonText}>{normPlay ? t('ldNormBtn') : t('ldWordBtn')}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               accessibilityRole="button"
@@ -508,7 +510,7 @@ export default function LexicalDecisionGame() {
               activeOpacity={0.8}
             >
               <Ionicons name="close" size={28} color="#fff" />
-              <Text style={styles.bigButtonText}>{t(normPlay ? 'ldNotNormBtn' : 'ldNonwordBtn')}</Text>
+              <Text style={styles.bigButtonText}>{normPlay ? t('ldNotNormBtn') : t('ldNonwordBtn')}</Text>
             </TouchableOpacity>
           </View>
         }
@@ -528,7 +530,7 @@ export default function LexicalDecisionGame() {
           мультиязычности, какой язык пишется; обозначение мелкое». Переход
           отмечается стрелкой и заливкой, повтор языка — спокойным серым.
         */}
-        {((билингво && !normPlay) || isPreset) && (
+        {меткаЯзыка && (
           <LanguageBadge
             язык={trial.язык}
             сменился={idx > 0 && trials[idx - 1]?.язык !== undefined && trials[idx - 1]?.язык !== trial.язык}
@@ -547,7 +549,7 @@ export default function LexicalDecisionGame() {
             <Text style={{ color: colors.textSecondary, fontSize: 14, textAlign: 'center' }}>{t(`nsRule_${trial.ns.rule}`)}</Text>
           </View>
         )}
-        <Text style={[styles.hint, { color: colors.textSecondary }]}>{t(normPlay ? 'ldNormHint' : 'ldHint')}</Text>
+        <Text style={[styles.hint, { color: colors.textSecondary }]}>{normPlay ? t('ldNormHint') : t('ldHint')}</Text>
       </GameShell>
     );
   };
