@@ -86,6 +86,7 @@ import '../games/object_tracker/screen.dart';
 import '../games/pattern/screen.dart';
 import '../games/quick_count/screen.dart';
 import '../games/schulte/screen.dart';
+import '../games/schulte/series_screen.dart';
 import '../games/pause/screen.dart';
 import 'asset_server.dart';
 import 'l10n.dart';
@@ -188,6 +189,8 @@ class HybridApp extends StatefulWidget {
         '/games/picture-pairs': (s) => PicturePairsScreen(state: s),
         '/games/listening-span': (s) => ListeningSpanScreen(state: s),
         '/games/schulte': (s) => SchulteScreen(state: s),
+        // Серия блоков — шаг зарядки `schulte-blocks` шлёт `?series=1` (задача 1b6338c1).
+        '/games/schulte?series=1': (s) => SchulteSeriesScreen(state: s),
         // «Пауза / Зарядка» — хаб практик; `?set=…` доходит до экрана через GamePreset.
         '/games/pause': (s) => PauseScreen(state: s),
         // «Дыхание» слито в «Паузу» (решение Дениса 30.09): тот же экран, режим дыхания,

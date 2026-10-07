@@ -15,6 +15,7 @@ import '../../shell/level_rules.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import 'model.dart';
+import 'series_screen.dart';
 
 /// «Таблица Шульте» на общем каркасе — первая перенесённая тап-игра раздела.
 ///
@@ -248,6 +249,7 @@ class _SchulteScreenState extends State<SchulteScreen> {
         height: h,
         onStart: _start,
         onTap: _tap,
+        door: GamePreset.isPreset ? null : SchulteSeriesDoor(state: widget.state, ladderSize: g.params.gridSize),
       ),
       auxRow: AuxBar(children: [
         AuxAction(
@@ -300,6 +302,7 @@ class _Field extends StatelessWidget {
     required this.height,
     required this.onStart,
     required this.onTap,
+    this.door,
   });
 
   final SchulteGame game;
@@ -309,6 +312,9 @@ class _Field extends StatelessWidget {
   final double height;
   final VoidCallback onStart;
   final void Function(int) onTap;
+
+  /// Дверь серии блоков под «Начать» (веб `schulte.tsx:888`); в шаге зарядки её нет.
+  final Widget? door;
 
   /// Фраза целиком на каждое сочетание «что ищем × в каком порядке»: склейка
   /// «Ищи $что $куда» не переводится — в других языках другой порядок слов.
@@ -344,6 +350,7 @@ class _Field extends StatelessWidget {
               ),
             const SizedBox(height: 12),
             FilledButton(onPressed: onStart, child: Text(L.t('start'))),
+            if (door != null) ...[const SizedBox(height: 16), door!],
           ],
         ),
       );
