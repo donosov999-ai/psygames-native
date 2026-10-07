@@ -85,12 +85,12 @@ function input(over: Partial<HomeModelInput> = {}): HomeModelInput {
 describe('модель Главной — раскладка того, что посчитал веб', () => {
   it('🔴 порядок блоков — как в разметке; набор профиля убирает блок', () => {
     expect(buildHomeModel(input()).blocks.map((b) => b.kind))
-      .toEqual(['search', 'ladder', 'chest', 'resume', 'goal', 'today', 'reco', 'practices', 'favourites']);
+      .toEqual(['search', 'ladder', 'chest', 'resume', 'goal', 'today', 'reco', 'practices', 'favourites', 'allForks']);
     const без = buildHomeModel(input({ showBlock: (k) => k !== 'рекомендации' && k !== 'сегодня' }));
-    expect(без.blocks.map((b) => b.kind)).toEqual(['search', 'ladder', 'chest', 'resume', 'goal', 'practices', 'favourites']);
+    expect(без.blocks.map((b) => b.kind)).toEqual(['search', 'ladder', 'chest', 'resume', 'goal', 'practices', 'favourites', 'allForks']);
     // Блоки со своими условиями: нет замка, нет партии, закрытая цель, нет любимых — блока нет.
     const пусто = buildHomeModel(input({ ladder: null, resume: null, goalCard: { state: 'hidden', goal: null }, favourites: [], reco: [] }));
-    expect(пусто.blocks.map((b) => b.kind)).toEqual(['search', 'chest', 'today', 'practices']);
+    expect(пусто.blocks.map((b) => b.kind)).toEqual(['search', 'chest', 'today', 'practices', 'allForks']);
   });
 
   it('🔴 тексты — тем же словарём и с теми же подстановками', () => {
@@ -130,12 +130,17 @@ describe('модель Главной — раскладка того, что п
     expect(reco.cards[1].sub).toBe(t('recoDoneToday'));
     expect(reco.cards[1].cta.text).toBe(t('ctaRepeat'));
     const practices = buildHomeModel(input()).blocks.find((b) => b.kind === 'practices') as any;
-    expect(practices.cards.map((c: any) => c.id)).toEqual(['warmup', 'pause', 'challenge']);
+    // 07.10.2026 (b271f702): вместо «Паузы» — развилка «Релаксация», куда пауза, дыхание и глаза переехали.
+    expect(practices.cards.map((c: any) => c.id)).toEqual(['warmup', 'relaxation', 'challenge']);
+    expect(practices.cards[1].href).toBe('/games/relaxation-hub');
+    // Внизу Главной — вход во все развилки.
+    const blocks = buildHomeModel(input()).blocks;
+    expect(blocks[blocks.length - 1]).toEqual({ kind: 'allForks', label: `${t('allForks')} ›`, href: '/games?filter=hubs' });
     expect(practices.cards[2].action).toBe('challenge');
     expect(practices.cards[0].sub).toBe(`${t('slotMorning')} · ${t('slotMorningDesc')}`);
     // Профиль без зарядки — карточки зарядки нет.
     const без = buildHomeModel(input({ warmup: null })).blocks.find((b) => b.kind === 'practices') as any;
-    expect(без.cards.map((c: any) => c.id)).toEqual(['pause', 'challenge']);
+    expect(без.cards.map((c: any) => c.id)).toEqual(['relaxation', 'challenge']);
   });
 
   it('окно цели: основание — только под предложенным и только с числом', () => {

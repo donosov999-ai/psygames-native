@@ -75,6 +75,7 @@ export const GAME_VERSIONS: Record<string, GameVersion> = {
   'puzzles': { ver: 13, date: '17.09.2026' },
   'quick-count': { ver: 2, date: '17.09.2026' },
   'reading-span': { ver: 3, date: '01.10.2026' },
+  'relaxation-hub': { ver: 1, date: '07.10.2026' },
   'rhythm-pitch': { ver: 2, date: '20.08.2026' },
   'rmet': { ver: 2, date: '27.08.2026' },
   'scholars-mate': { ver: 3, date: '17.09.2026' },

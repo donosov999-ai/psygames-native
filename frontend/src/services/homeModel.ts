@@ -75,6 +75,8 @@ export type HomeBlock =
     }
   | { kind: 'reco'; title: string; hint: string; cards: HeroCard[] }
   | { kind: 'practices'; title: string; cards: HeroCard[] }
+  /** Ссылка внизу Главной на все развилки (решение Дениса 07.10.2026, b271f702). */
+  | { kind: 'allForks'; label: string; href: string }
   | {
       kind: 'favourites'; title: string; allLabel: string;
       /** Разделы как у `CategorySections rows={1}`: адреса плиток в порядке показа, всего в разделе, «ещё N ›». */
@@ -259,13 +261,15 @@ export function buildHomeModel(i: HomeModelInput): HomeModel {
         label: t('warmupPickerTitle'),
       });
     }
+    // 07.10.2026 (решение Дениса, b271f702): «Пауза», дыхание и глаза живут в развилке «Релаксация» —
+    // практика дня ведёт в неё, а не в одно упражнение.
     const pl = onLook(i.pause.gradient[0], i.pause.gradient[1]);
     cards.push({
-      id: 'pause', href: '/games/pause', gradient: i.pause.gradient, look: pl,
+      id: 'relaxation', href: '/games/relaxation-hub', gradient: i.pause.gradient, look: pl,
       icon: { ion: 'leaf-outline', size: 26 }, chip: null, chipBg: pl.scrim20,
-      title: t('pause'), sub: t('pauseDesc'),
-      cta: { ion: 'play', text: t('ctaStart'), bg: '#FFF', fg: '#185a9d' },
-      label: t('pause'),
+      title: t('relaxationGroup'), sub: t('relaxationGroupDesc'),
+      cta: { ion: 'chevron-forward', text: t('ctaChoose'), bg: '#FFF', fg: '#185a9d' },
+      label: t('relaxationGroup'),
     });
     const cg: [string, string] = [i.challenge.game.gradient[0], i.challenge.game.gradient[i.challenge.game.gradient.length - 1]];
     const cl = onLook(cg[0], cg[1]);
@@ -287,6 +291,9 @@ export function buildHomeModel(i: HomeModelInput): HomeModel {
       })),
     });
   }
+
+  // Внизу — вход во все развилки (отзыв Дениса d0d95c80: «кнопку-ссылку на хабы»).
+  blocks.push({ kind: 'allForks', label: `${t('allForks')} ›`, href: '/games?filter=hubs' });
 
   const sheet = i.goalSheet;
   return {

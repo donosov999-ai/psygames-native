@@ -211,6 +211,23 @@ void main() {
     expect(Navigator.of(t.element(find.byType(NativeTabBar))).canPop(), isFalse, reason: 'ничего не легло поверх');
   });
 
+  testWidgets('🔴 /games?filter=hubs — вкладка со списком только развилок; ?search= после него фильтр снимает', (t) async {
+    await mount(t);
+    await route(t, '/games?filter=hubs');
+    await settle(t, () => find.byKey(const ValueKey('catalog-flat')).evaluate().isNotEmpty);
+    expect(active(t), '/games');
+    final rows = find.descendant(of: find.byKey(const ValueKey('catalog-flat')), matching: find.byWidgetPredicate(
+        (w) => w.key is ValueKey && '${(w.key! as ValueKey).value}'.startsWith('catalog-row-')));
+    final routes = [for (final e in rows.evaluate()) '${(e.widget.key! as ValueKey).value}'.substring('catalog-row-'.length)];
+    expect(routes, contains('/games/relaxation-hub'));
+    final catalog = (jsonDecode(File('assets/catalog.json').readAsStringSync()) as Map)['games'] as List;
+    final hubs = {for (final g in catalog.cast<Map>()) if (g['hub'] == true) g['route']};
+    expect(routes.every(hubs.contains), isTrue, reason: 'в списке только развилки: $routes');
+    await route(t, '/games?search=${Uri.encodeQueryComponent('Мосты')}');
+    await settle(t, () => find.byKey(const ValueKey('catalog-search')).evaluate().isNotEmpty);
+    expect(t.widget<TextField>(find.byKey(const ValueKey('catalog-search'))).controller!.text, 'Мосты');
+  });
+
   testWidgets('🔴 на адресе игры полосы нет; назад на /games — снова вкладка с полосой', (t) async {
     await mount(t);
     await route(t, '/statistics');

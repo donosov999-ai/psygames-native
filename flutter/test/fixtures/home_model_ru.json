@@ -245,8 +245,8 @@
      "label": "Зарядка"
     },
     {
-     "id": "pause",
-     "href": "/games/pause",
+     "id": "relaxation",
+     "href": "/games/relaxation-hub",
      "gradient": [
       "#43cea2",
       "#185a9d"
@@ -264,15 +264,15 @@
      },
      "chip": null,
      "chipBg": "transparent",
-     "title": "Глаза и дыхание",
-     "sub": "Плюс лицо, осанка, расслабление и подвижность — короткая телесная пауза без оценок",
+     "title": "Релаксация",
+     "sub": "Дыхание, глаза, пауза — короткий отдых для головы",
      "cta": {
-      "ion": "play",
-      "text": "СТАРТ",
+      "ion": "chevron-forward",
+      "text": "ВЫБРАТЬ",
       "bg": "#FFF",
       "fg": "#185a9d"
      },
-     "label": "Глаза и дыхание"
+     "label": "Релаксация"
     },
     {
      "id": "challenge",
@@ -322,6 +322,11 @@
      "more": "ещё 4 ›"
     }
    ]
+  },
+  {
+   "kind": "allForks",
+   "label": "Все развилки ›",
+   "href": "/games?filter=hubs"
   }
  ],
  "goalSheet": {

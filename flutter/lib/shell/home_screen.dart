@@ -240,6 +240,8 @@ class _HomeScreenState extends State<HomeScreen> {
         return _HeroBlock(b: b, origin: widget.origin, onOpen: widget.onOpen, act: _act, ion: 'leaf-outline', iconSize: 19, accent: const Color(0xFF10B981));
       case 'favourites':
         return _Favourites(b: b, kit: _kit, state: widget.state, onOpen: widget.onOpen, onTab: widget.onTab);
+      case 'allForks':
+        return _AllForks(b: b, onTab: widget.onTab);
     }
     return const SizedBox.shrink();
   }
@@ -1371,4 +1373,33 @@ class _GoalSheet extends StatelessWidget {
       },
     );
   }
+}
+
+/// «Все развилки ›» внизу Главной (решение Дениса 07.10.2026, b271f702) — `allForks` веба: по центру,
+/// цветом профиля, 15/700, высота нажатия 48. Ведёт на вкладку «Игры» с фильтром «только развилки».
+class _AllForks extends StatelessWidget {
+  const _AllForks({required this.b, required this.onTab});
+  final _M b;
+  final ValueChanged<String> onTab;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.only(top: 8),
+        child: Center(
+          child: Semantics(
+            button: true,
+            child: GestureDetector(
+              key: const ValueKey('home-all-forks'),
+              behavior: HitTestBehavior.opaque,
+              onTap: () => onTab(_s(b['href'])),
+              child: Container(
+                constraints: const BoxConstraints(minHeight: 48),
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                alignment: Alignment.center,
+                child: Text(_s(b['label']), style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: _accentOf(context))),
+              ),
+            ),
+          ),
+        ),
+      );
 }

@@ -84,9 +84,11 @@ export interface Props {
    * порядок каталога.
    */
   playsByGame?: Readonly<Record<string, number>>;
+  /** Только развилки — вход «Все развилки» с Главной (`/games?filter=hubs`, 07.10.2026). */
+  onlyHubs?: boolean;
 }
 
-export default function CategorySections({ categories, rows, playsByGame }: Props) {
+export default function CategorySections({ categories, rows, playsByGame, onlyHubs }: Props) {
   const { colors } = useTheme();
   const { t } = useLanguage();
   /*
@@ -112,8 +114,8 @@ export default function CategorySections({ categories, rows, playsByGame }: Prop
   const isWeb = Platform.OS === 'web';
 
   const visibleGames = useMemo(
-    () => visibleInCatalog(filterAllowedGames(profile), profile?.id),
-    [profile],
+    () => visibleInCatalog(filterAllowedGames(profile), profile?.id).filter((g) => !onlyHubs || g.hub),
+    [profile, onlyHubs],
   );
 
   /**

@@ -190,6 +190,8 @@ export const GAMES: GameConfig[] = [
     icon: 'eye',
     route: '/games/eye-gym',
     category: 'attention',
+    // 07.10.2026: в развилке «Релаксация» (решение Дениса, b271f702) — карточка в сетке не дублируется.
+    mergedInto: 'relaxation_group',
     /**
      * 04.09.2026: карточка вернулась в сетку. Комментарий, стоявший здесь,
      * обещал «заметную карточку вверху главной» — а её не стало 26.08, когда
@@ -850,6 +852,7 @@ export const GAMES: GameConfig[] = [
     icon: 'body',
     route: '/games/pause',
     category: 'recovery',
+    mergedInto: 'relaxation_group',
   },
   {
     id: 'dots_connect',
@@ -1255,6 +1258,23 @@ export const GAMES: GameConfig[] = [
   },
   // RECOVERY (восстановление — не-когнитивные передышки)
   {
+    /**
+     * Развилка «Релаксация» (07.10.2026, решение Дениса по отзывам b364739b, d16dc8d5, d0d95c80):
+     * «практики дня — это тоже типа хабов». Дыхание, «Глаза и дыхание» и гимнастика для глаз
+     * жили только наверху Главной и вразброс по каталогу, ни в одной развилке. Здесь ничего
+     * не меряется — категория `recovery`, как у самих практик.
+     */
+    id: 'relaxation_group',
+    nameKey: 'relaxationGroup',
+    descKey: 'relaxationGroupDesc',
+    skillKey: 'skillRecovery',
+    gradient: ['#0f766e', '#36d1dc'],
+    icon: 'leaf',
+    route: '/games/relaxation-hub',
+    category: 'recovery',
+    hub: true,
+  },
+  {
     id: 'breathing',
     nameKey: 'breathing',
     descKey: 'breathingDesc',
@@ -1263,6 +1283,7 @@ export const GAMES: GameConfig[] = [
     icon: 'flower-outline',
     route: '/games/breathing',
     category: 'recovery',
+    mergedInto: 'relaxation_group',
   },
   {
     /**

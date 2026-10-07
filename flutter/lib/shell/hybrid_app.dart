@@ -115,6 +115,7 @@ import '../games/phoneme_pairs/screen.dart';
 import '../games/chinese_tones/screen.dart';
 import '../games/dictation/screen.dart';
 import '../games/rhythm_pitch/screen.dart';
+import 'catalog.dart';
 import 'catalog_screen.dart';
 import 'hub_screen.dart';
 import 'warmup_bridge.dart';
@@ -307,6 +308,14 @@ class HybridApp extends StatefulWidget {
             SearchHubScreen(state: s, isNative: native.containsKey),
         '/games/counting-hub': (s) =>
             CountingHubScreen(state: s, isNative: native.containsKey),
+        // Развилка «Релаксация» (07.10.2026, b271f702): состав — данными (hubs.json), вид — общий хаб.
+        '/games/relaxation-hub': (s) => HubScreen(
+              state: s,
+              hubRoute: '/games/relaxation-hub',
+              icon: Icons.spa_outlined,
+              gradient: const [Color(0xFF0F766E), Color(0xFF36D1DC)],
+              isNative: native.containsKey,
+            ),
         // Развилка «Объём памяти» — адрес без хвоста `-hub`, развилкой её делает
         // запись в `assets/hubs.json`. Неперенесённые карточки открывает
         // веб-половина: какую чем — решает оболочка, а не хаб.
@@ -606,6 +615,7 @@ class _HybridAppState extends State<HybridApp> {
   String? _nativeTab;
   bool _tabsReady = false;
   String _catalogQuery = '';
+  CatalogFilter? _catalogFilter;
   int _catalogGen = 0;
 
   /// Адрес страницы сменился — где показывать человека: нативная вкладка или страница.
@@ -619,6 +629,7 @@ class _HybridAppState extends State<HybridApp> {
     if (path.isEmpty) path = '/';
     final tab = NativeTabs.native.contains(path) || _bodyPages.contains(path) ? path : null;
     final search = tab == null ? null : uri.queryParameters['search'];
+    final hubsOnly = tab == '/games' && uri.queryParameters['filter'] == 'hubs';
     if (!mounted) return tab != null;
     setState(() {
       _pagePath = path;
@@ -626,6 +637,13 @@ class _HybridAppState extends State<HybridApp> {
       // Поиск, начатый на главной (`catalogSearchRoute`, задача Кодекса d4a39beb9), доезжает в поле.
       if (search != null && search.trim().isNotEmpty) {
         _catalogQuery = search;
+        _catalogFilter = null;
+        _catalogGen++;
+      }
+      // «Все развилки ›» с Главной (b271f702): вкладка открывается с фильтром «только развилки».
+      if (hubsOnly) {
+        _catalogQuery = '';
+        _catalogFilter = const CatalogFilter.hubs();
         _catalogGen++;
       }
     });
@@ -680,7 +698,13 @@ class _HybridAppState extends State<HybridApp> {
 
   /// Нажатие на нижнюю вкладку: тело переключается сразу, страница уводится `router.replace`.
   Future<void> _selectTab(String route) async {
-    setState(() => _nativeTab = NativeTabs.native.contains(route) ? route : null);
+    // Адрес может нести параметры вкладки (`/games?filter=hubs`) — вкладку выбирает путь, а параметры
+    // разбирает тот же `_onPagePath`, что и смену адреса от страницы: тело переключается сразу.
+    if (Uri.parse(route).hasQuery) {
+      _onPagePath('${widget.server.origin}$route');
+    } else {
+      setState(() => _nativeTab = NativeTabs.native.contains(route) ? route : null);
+    }
     final target = jsonEncode(route);
     final full = jsonEncode('${widget.server.origin}$route');
     await _c.runJavaScript('window.__psyReplace ? window.__psyReplace($target) : location.replace($full);');
@@ -1257,6 +1281,7 @@ class _HybridAppState extends State<HybridApp> {
                 state: widget.state,
                 embedded: true,
                 initialQuery: _catalogQuery,
+                initialFilter: _catalogFilter,
                 onOpen: _openFromCatalog,
               )
             else

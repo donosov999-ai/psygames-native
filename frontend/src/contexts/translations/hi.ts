@@ -3462,5 +3462,10 @@ const t: Record<string, string> = {
   "catalogBySection": "खंड",
   "catalogBySkill": "कौशल",
   "catalogNothing": "कोई खेल नहीं मिला",
+  "relaxationGroup": "विश्राम",
+  "relaxationGroupDesc": "साँस, आँखें, विराम — मन के लिए छोटा आराम",
+  "relaxationGroupFootnote": "यहाँ कुछ भी मापा या आँका नहीं जाता: यह अभ्यासों के बीच का विराम है, परीक्षण नहीं।",
+  "relaxationGroupIntroDesc": "तीन छोटे विराम: साँस की लय, आँखों और साँस का बारी-बारी अभ्यास, और स्क्रीन के बाद नज़र को आराम देने वाले व्यायाम।\n\nयहाँ कुछ नहीं मापा जाता। ध्यान और कार्यशील स्मृति विराम में लौटती हैं — उसके बाद अगला खेल सहज चलता है।",
+  "allForks": "सभी शाखाएँ",
 };
 export default t;

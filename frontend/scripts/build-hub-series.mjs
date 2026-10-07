@@ -44,6 +44,8 @@ const РАЗВИЛКА_ПОТОКА = {
   puzzles: '/games/puzzles-hub', spatial: '/games/spatial-hub', sorting: '/games/sorting-hub',
   counting: '/games/counting-hub', words: '/games/words-hub', hearing: '/games/hearing-hub',
   languages: '/games/languages-hub',
+  // 07.10.2026 — «Релаксация» (решение Дениса b271f702).
+  relaxation: '/games/relaxation-hub',
 };
 
 /* ── снимок состава ─────────────────────────────────────────────────────── */

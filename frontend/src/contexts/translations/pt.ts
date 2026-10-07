@@ -3459,5 +3459,10 @@ const t: Record<string, string> = {
   "catalogBySection": "Seções",
   "catalogBySkill": "Habilidades",
   "catalogNothing": "Nenhum jogo encontrado",
+  "relaxationGroup": "Relaxamento",
+  "relaxationGroupDesc": "Respiração, olhos, pausa — um breve descanso para a mente",
+  "relaxationGroupFootnote": "Aqui nada é medido nem pontuado: é uma pausa entre treinos, não um teste.",
+  "relaxationGroupIntroDesc": "Três pausas curtas: um ritmo de respiração, uma alternância entre olhos e respiração e exercícios que descansam a vista depois da tela.\n\nAqui nada é medido. A atenção e a memória de trabalho se recuperam nas pausas — depois, o próximo jogo flui melhor.",
+  "allForks": "Todas as bifurcações",
 };
 export default t;

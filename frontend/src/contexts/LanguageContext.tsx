@@ -2529,6 +2529,11 @@ const translations: Translations = {
   countingGroup: { ru: 'Счёт', en: 'Counting' },
   countingGroupDesc: { ru: 'Числа в уме: пересчёт, прикидка, скорость', en: 'Numbers in the head: counting, estimating, speed' },
   countingGroupFootnote: { ru: 'Разные подходы к одному навыку: удержать число, прикинуть, посчитать быстро, разложить на слагаемые, продолжить ряд.', en: 'Different takes on one skill: hold a number, estimate, count fast, split into parts, continue a series.' },
+  // 07.10.2026 — развилка «Релаксация» (b271f702).
+  allForks: { ru: 'Все развилки', en: 'All forks' },
+  relaxationGroup: { ru: 'Релаксация', en: 'Relaxation' },
+  relaxationGroupDesc: { ru: 'Дыхание, глаза, пауза — короткий отдых для головы', en: 'Breathing, eyes, a pause — a short rest for the mind' },
+  relaxationGroupFootnote: { ru: 'Здесь ничего не меряется и не оценивается: это передышка между тренировками, а не проба.', en: 'Nothing is measured or scored here: this is a break between workouts, not a test.' },
   wordsGroup: { ru: 'Слова', en: 'Words' },
   wordsGroupDesc: { ru: 'Словарь и извлечение слова из памяти', en: 'Vocabulary and pulling a word out of memory' },
   wordsGroupFootnote: { ru: 'От узнавания слова до извлечения его из памяти без подсказки — по нарастанию усилия.', en: 'From recognising a word to pulling it out unaided — in order of effort.' },
@@ -3877,6 +3882,10 @@ const translations: Translations = {
   countingGroupIntroDesc: {
     ru: 'Четыре подхода к одному навыку. «Счётчик» держит число в уме, пока прибавляются новые; «Ползунок» просит прикинуть величину без вычисления; «Спринт» гонит простые примеры на скорость; «Связки» раскладывают число на слагаемые.\n\nСчёт в уме — не про арифметику как таковую. Он держится на рабочей памяти: промежуточный результат надо удержать, пока считаешь следующий шаг. Поэтому счёт проседает от усталости раньше, чем чтение или речь, и по нему заметно, в какой ты форме.',
     en: 'Four takes on one skill. Counter holds a number while new ones are added; Slider asks you to estimate without computing; Sprint pushes simple sums for speed; Bonds split a number into parts.\n\nMental arithmetic is not really about arithmetic. It rests on working memory: you must hold an intermediate result while computing the next step. That is why counting degrades with fatigue earlier than reading or speech — and why it shows what shape you are in.',
+  },
+  relaxationGroupIntroDesc: {
+    ru: 'Три короткие передышки: «Дыхание» задаёт ритм вдоха и выдоха, «Глаза и дыхание» чередует одно с другим, «Гимнастика для глаз» разгружает взгляд после экрана.\n\nЗдесь ничего не меряется. Внимание и рабочая память восстанавливаются в паузах — после короткого перерыва следующая игра идёт ровнее.',
+    en: 'Three short breaks: Breathing paces your inhale and exhale, Eyes & breathing alternates the two, Eye Gymnastics rests your eyes after the screen.\n\nNothing is measured here. Attention and working memory recover during pauses — after a short break the next game goes more smoothly.',
   },
   wordsGroupIntroDesc: {
     ru: 'Шесть упражнений на словарь, от узнавания к извлечению. Узнать слово в списке легко: правильный ответ лежит перед глазами. Вспомнить его без подсказки — другая работа, и именно она держит живую речь.\n\nПорядок внутри развилки по нарастанию усилия: словарь с интервальными повторами, сортировка по смыслу, пропущенное слово в фразе, «слово это или не слово», анаграммы и, наконец, беглость — назвать как можно больше слов на букву за минуту.',

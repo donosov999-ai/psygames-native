@@ -3459,5 +3459,10 @@ const t: Record<string, string> = {
   "catalogBySection": "分区",
   "catalogBySkill": "能力",
   "catalogNothing": "没有匹配的游戏",
+  "relaxationGroup": "放松",
+  "relaxationGroupDesc": "呼吸、眼睛、暂停——让大脑短暂休息",
+  "relaxationGroupFootnote": "这里不做任何测量或评分：这是训练间隙的休息，而不是测试。",
+  "relaxationGroupIntroDesc": "三种短暂休息：呼吸节奏、眼睛与呼吸交替练习，以及看屏幕后放松双眼的体操。\n\n这里不做任何测量。注意力和工作记忆在休息中恢复——之后下一局会更顺畅。",
+  "allForks": "全部分支",
 };
 export default t;

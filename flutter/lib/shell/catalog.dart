@@ -82,10 +82,17 @@ class CatalogEntry {
 class CatalogFilter {
   const CatalogFilter.section(this.value) : skill = false;
   const CatalogFilter.skill(this.value) : skill = true;
+
+  /// Только развилки — вход «Все развилки ›» с Главной (`/games?filter=hubs`, решение Дениса 07.10.2026).
+  const CatalogFilter.hubs()
+      : value = hubsValue,
+        skill = false;
+  static const hubsValue = '#hubs';
+
   final String value;
   final bool skill;
 
-  bool accepts(CatalogEntry e) => skill ? e.skillKey == value : e.category == value;
+  bool accepts(CatalogEntry e) => value == hubsValue ? e.hub : (skill ? e.skillKey == value : e.category == value);
 
   @override
   bool operator ==(Object other) => other is CatalogFilter && other.value == value && other.skill == skill;

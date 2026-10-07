@@ -3454,5 +3454,10 @@ const t: Record<string, string> = {
   "catalogBySection": "섹션",
   "catalogBySkill": "능력",
   "catalogNothing": "일치하는 게임이 없습니다",
+  "relaxationGroup": "휴식",
+  "relaxationGroupDesc": "호흡, 눈, 쉼 — 머리를 위한 짧은 휴식",
+  "relaxationGroupFootnote": "여기서는 아무것도 측정하거나 점수를 매기지 않습니다. 훈련 사이의 휴식이지 테스트가 아닙니다.",
+  "relaxationGroupIntroDesc": "짧은 휴식 세 가지: 호흡 리듬, 눈과 호흡을 번갈아 하는 연습, 화면을 본 뒤 눈을 쉬게 하는 체조.\n\n여기서는 아무것도 측정하지 않습니다. 주의력과 작업 기억은 휴식 중에 회복되고, 다음 게임이 더 부드럽게 진행됩니다.",
+  "allForks": "모든 갈래",
 };
 export default t;

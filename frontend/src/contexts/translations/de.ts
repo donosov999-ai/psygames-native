@@ -3459,5 +3459,10 @@ const t: Record<string, string> = {
   "catalogBySection": "Bereiche",
   "catalogBySkill": "Fähigkeiten",
   "catalogNothing": "Keine passenden Spiele",
+  "relaxationGroup": "Entspannung",
+  "relaxationGroupDesc": "Atmung, Augen, Pause — eine kurze Erholung für den Kopf",
+  "relaxationGroupFootnote": "Hier wird nichts gemessen oder bewertet: eine Atempause zwischen den Trainings, kein Test.",
+  "relaxationGroupIntroDesc": "Drei kurze Pausen: ein Atemrhythmus, ein Wechsel von Augen und Atmung und Übungen, die den Blick nach dem Bildschirm entlasten.\n\nHier wird nichts gemessen. Aufmerksamkeit und Arbeitsgedächtnis erholen sich in Pausen — danach läuft das nächste Spiel ruhiger.",
+  "allForks": "Alle Abzweigungen",
 };
 export default t;

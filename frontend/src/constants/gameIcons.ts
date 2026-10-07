@@ -89,6 +89,7 @@ export const GAME_ICONS: Record<string, any> = {
   // маленькая; у развилки из развилок («Языки») — их игры поочерёдно; у трёх игр («Шахматы») 4-й слот пуст.
   // Собраны КОДОМ из иконок самих игр, не генерацией: ~/dev/psygames/memory-hearing-chat/icons/compose-group-tiles.py.
   chess_group: require('../../assets/images/game_icons/chess_group.webp'),
+  relaxation_group: require('../../assets/images/game_icons/relaxation_group.webp'),
   counting_group: require('../../assets/images/game_icons/counting_group.webp'),
   hearing_group: require('../../assets/images/game_icons/hearing_group.webp'),
   languages_group: require('../../assets/images/game_icons/languages_group.webp'),
@@ -169,6 +170,9 @@ export const MODE_ICONS: Record<string, any> = {
   '/games/hidden-character': require('../../assets/images/game_icons/hidden_character.webp'),
   // «Пасьянс-шахматы» (#133) — строка развилки шахмат без своей карточки в GAMES: иконка группы фигур.
   '/games/solitaire-chess': require('../../assets/images/game_icons/chess_group.webp'),
+  // «Ночная» в «Релаксации» (07.10.2026, b271f702): та же картинка, что у ночной карточки Главной
+  // (feature_icons/night.webp, копия байт в байт — выгрузка в приложение читает только game_icons/).
+  '/warmup-night': require('../../assets/images/game_icons/warmup_night.webp'),
 };
 
 /** Кастомная иконка игры по id (undefined → GameCard покажет Ionicons-фолбэк). */

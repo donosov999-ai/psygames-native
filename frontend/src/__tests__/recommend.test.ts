@@ -175,6 +175,7 @@ describe('🔴 рекомендуется только разрешённое п
     const HUBS = [
       'span_group', 'attention_conflict', 'sudoku_group',
       'counting_group', 'words_group', 'hearing_group', 'search_group',
+      'relaxation_group',
       'mnemonics_group', 'languages_group',
       'sorting_group',
       'puzzles_group',

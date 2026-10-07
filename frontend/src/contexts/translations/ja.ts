@@ -3453,5 +3453,10 @@ const t: Record<string, string> = {
   "catalogBySection": "セクション",
   "catalogBySkill": "スキル",
   "catalogNothing": "該当するゲームはありません",
+  "relaxationGroup": "リラクゼーション",
+  "relaxationGroupDesc": "呼吸・目・休憩 — 頭を少し休める",
+  "relaxationGroupFootnote": "ここでは何も測定・採点しません。トレーニングの合間の休憩で、テストではありません。",
+  "relaxationGroupIntroDesc": "3つの短い休憩：呼吸のリズム、目と呼吸の交互の練習、画面の後に目を休める体操。\n\nここでは何も測定しません。注意力と作業記憶は休憩中に回復し、次のゲームがスムーズになります。",
+  "allForks": "すべての分岐",
 };
 export default t;

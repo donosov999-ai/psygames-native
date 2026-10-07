@@ -28,12 +28,16 @@ class CatalogScreen extends StatefulWidget {
     required this.state,
     this.catalog,
     this.initialQuery = '',
+    this.initialFilter,
     this.embedded = false,
     this.onOpen,
   });
 
   final SharedState state;
   final String initialQuery;
+
+  /// Фильтр при открытии — `?filter=hubs` от «Все развилки ›» Главной.
+  final CatalogFilter? initialFilter;
 
   /// Готовый каталог — для проб; в приложении грузится из ассетов.
   final Catalog? catalog;
@@ -64,6 +68,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
   void initState() {
     super.initState();
     _query = widget.initialQuery.trim();
+    _filter = widget.initialFilter;
     _search.text = _query;
     _boot();
   }
@@ -166,6 +171,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
       iconEnabledColor: WebTheme.of(context).textSecondary,
       items: [
         DropdownMenuItem<CatalogFilter?>(value: null, child: Text(L.t('allGames'))),
+        DropdownMenuItem<CatalogFilter?>(value: const CatalogFilter.hubs(), child: Text(L.t('allForks'))),
         DropdownMenuItem<CatalogFilter?>(value: _sectionsHeader, enabled: false, child: header(L.t('catalogBySection'))),
         for (final cat in c.categories)
           DropdownMenuItem<CatalogFilter?>(

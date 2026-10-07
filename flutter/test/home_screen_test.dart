@@ -98,7 +98,7 @@ void main() {
 
   testWidgets('🔴 лента — блоки в порядке веба', (t) async {
     await mount(t);
-    final order = ['home-search', 'home-ladder', 'home-chest', 'home-resume', 'home-goal', 'home-today', 'home-reco', 'home-practices', 'home-favourites'];
+    final order = ['home-search', 'home-ladder', 'home-chest', 'home-resume', 'home-goal', 'home-today', 'home-reco', 'home-practices', 'home-favourites', 'home-all-forks'];
     double? last;
     for (final k in order) {
       await scrollTo(t, k);
@@ -131,8 +131,18 @@ void main() {
     await t.tap(key('home-card-challenge'));
     await t.pump();
     expect(js.last, contains('["/"].challenge('), reason: 'вызов дня ставит отметку на вебе и уводит туда же');
-    await t.tap(key('home-card-pause'));
-    expect(opened.last, '/games/pause');
+    // 07.10.2026 (b271f702): практика дня ведёт в развилку «Релаксация», а не в одну «Паузу».
+    await t.tap(key('home-card-relaxation'));
+    expect(opened.last, '/games/relaxation-hub');
+  });
+
+  testWidgets('🔴 «Все развилки ›» внизу Главной — вкладка «Игры» с фильтром «только развилки»', (t) async {
+    await mount(t);
+    await scrollTo(t, 'home-all-forks');
+    final b = (model['blocks'] as List).cast<Map>().firstWhere((b) => b['kind'] == 'allForks');
+    expect(find.descendant(of: key('home-all-forks'), matching: find.text('${b['label']}')), findsOneWidget);
+    await t.tap(key('home-all-forks'));
+    expect(tabs, ['/games?filter=hubs']);
   });
 
   testWidgets('цель дня: свёрнутый вопрос раскрывается, пустое не сохраняется, текст уходит вебу', (t) async {

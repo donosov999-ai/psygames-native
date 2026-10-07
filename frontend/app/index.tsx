@@ -1364,18 +1364,20 @@ function FullHome() {
               `pauseDesc` уже перечисляла и дыхание, и глаза.
               Отдельные экраны /games/eye-gym и /games/breathing НЕ удалены: они
               остаются в разделах и в «Зарядке», убран только дубль на главной. */}
+          {/* 07.10.2026 (решение Дениса, b271f702): «Пауза», дыхание и глаза — в развилке «Релаксация»;
+              практика дня ведёт в неё. */}
           <TouchableOpacity
             accessibilityRole="button" style={styles.heroCardWrap}
-            onPress={() => router.push('/games/pause' as any)} activeOpacity={0.85}>
+            onPress={() => router.push('/games/relaxation-hub' as any)} activeOpacity={0.85}>
             <GradientSurface colors={HERO_EYE as [string, string]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.heroCard}>
               <View style={styles.heroTopRow}>
                 <Ionicons name="leaf-outline" size={26} color={ON_EYE.color} />
               </View>
-              <Text style={[styles.heroTitle, { color: ON_EYE.color }]} numberOfLines={2}>{t('pause')}</Text>
-              <Text style={[styles.heroSub, { color: ON_EYE_SOFT }]} numberOfLines={3}>{t('pauseDesc')}</Text>
+              <Text style={[styles.heroTitle, { color: ON_EYE.color }]} numberOfLines={2}>{t('relaxationGroup')}</Text>
+              <Text style={[styles.heroSub, { color: ON_EYE_SOFT }]} numberOfLines={3}>{t('relaxationGroupDesc')}</Text>
               <View style={[styles.heroCta, { backgroundColor: '#FFF' }]}>
-                <Ionicons name="play" size={14} color="#185a9d" />
-                <Text style={[styles.heroCtaText, { color: '#185a9d' }]}>{t('ctaStart')}</Text>
+                <Ionicons name="chevron-forward" size={14} color="#185a9d" />
+                <Text style={[styles.heroCtaText, { color: '#185a9d' }]}>{t('ctaChoose')}</Text>
               </View>
             </GradientSurface>
           </TouchableOpacity>
@@ -1439,6 +1441,12 @@ function FullHome() {
             <CategorySections categories={любимыеРазделы} rows={1} playsByGame={партийПоИгре} />
           </>
         )}
+        {/* Вход во все развилки (отзыв Дениса d0d95c80, решение 07.10.2026, b271f702). */}
+        <TouchableOpacity
+          accessibilityRole="button" testID="home-all-forks" style={styles.allForks}
+          onPress={() => router.replace('/games?filter=hubs' as any)}>
+          <Text style={[styles.allForksText, { color: colors.primary }]}>{`${t('allForks')} ›`}</Text>
+        </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );
@@ -1446,6 +1454,8 @@ function FullHome() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
+  allForks: { alignSelf: 'center', minHeight: 48, justifyContent: 'center', paddingHorizontal: 16, marginTop: 8 },
+  allForksText: { fontSize: 15, fontWeight: '700' },
   header: {
     paddingHorizontal: 20,
     // Ритм ужат (было 16/8): четыре яруса подряд с воздухом вокруг каждого съедали
