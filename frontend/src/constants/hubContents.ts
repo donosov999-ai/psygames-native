@@ -1,4 +1,4 @@
-/* psygames-hub-contents · VER 2 · 18.09.2026 */
+/* psygames-hub-contents · VER 3 · 02.10.2026 */
 /**
  * СОСТАВ РАЗВИЛОК — ОДИН СПИСОК НА ЭКРАН И НА ЗНАЧОК.
  *
@@ -33,6 +33,8 @@
 import type React from 'react';
 import type { Ionicons } from '@expo/vector-icons';
 import { visibleSuiteCards } from './gameSuites';
+
+import { NATIVE_ONLY_ROUTES } from '@/src/constants/nativeOnlyGames';
 
 export interface HubSubGame {
   /** Куда уводит карточка. */
@@ -133,6 +135,9 @@ export const HUB_CONTENTS: Record<string, HubSubGame[]> = {
     // «Шахматный пасьянс» (01.10.2026, задача 66b3d2ac): тоже только нативный экран —
     // адрес в `nativeOnlyGames.ts`, экран в `flutter/lib/games/solitaire_chess`.
     { route: '/games/solitaire-chess', icon: 'extension-puzzle', nameKey: 'solitaireChess', descKey: 'solitaireChessDesc', typeKey: 'chessTypeSolitaire' },
+    // «Конь и ферзи» (01.10.2026, задача 39ad8924): только нативный экран —
+    // адрес в `nativeOnlyGames.ts`, экран в `flutter/lib/games/knights_queens`.
+    { route: '/games/knights-queens', icon: 'extension-puzzle', nameKey: 'knightsQueens', descKey: 'knightsQueensDesc', typeKey: 'chessTypeKnightsQueens' },
   ],
 
   /* ——— Внимание ——— */
@@ -213,6 +218,19 @@ export const HUB_CONTENTS: Record<string, HubSubGame[]> = {
     { route: '/games/sudoku?mode=towers', icon: 'business', nameKey: 'sudokuTowersTitle', descKey: 'sudokuTowersHubDesc', typeKey: 'sudokuTypeTowers' },
     { route: '/games/sudoku?mode=unequal', icon: 'swap-vertical', nameKey: 'sudokuUnequalTitle', descKey: 'sudokuUnequalHubDesc', typeKey: 'sudokuTypeUnequal' },
     /**
+     * «Киллер» и «Свободно» — ещё два режима той же доски (задача 55b97845, 01.10.2026). На
+     * веб-экране они жили в переключателе режимов; нативный экран перехватил /games/sudoku, и
+     * в приложении до них стало не дойти — поэтому теперь у них карточки, как у небоскрёбов.
+     */
+    { route: '/games/sudoku?mode=killer', icon: 'add-circle', nameKey: 'sudokuModeKiller', descKey: 'sudokuKillerHubDesc', typeKey: 'sudokuTypeKiller' },
+    { route: '/games/sudoku?mode=free', icon: 'shuffle', nameKey: 'sudokuModeFree', descKey: 'sudokuFreeHubDesc', typeKey: 'sudokuTypeFree' },
+    /**
+     * «Судоку для малышей» (задача d87a4605, 02.10.2026): доски 4×4 и 6×6, звери вместо цифр,
+     * своя мини-лестница (flutter/lib/games/sudoku/junior.dart). Экран только нативный —
+     * поэтому маршрут ещё и в NATIVE_ONLY_GAMES, иначе профиль карточку не пропустит.
+     */
+    { route: '/games/sudoku?mode=junior', icon: 'paw', nameKey: 'sudokuJuniorTitle', descKey: 'sudokuSkinAnimals', typeKey: 'sudokuTypeJunior' },
+    /**
      * «Кошки» (Queens / Star Battle) — решение Дениса 24.09.2026: «в развилку
      * «Судоку» пятой карточкой». Экран рождается сразу нативным
      * (flutter/lib/games/cats): веб-страницы у игры нет и не нужно — веб живёт только
@@ -257,6 +275,9 @@ export const HUB_CONTENTS: Record<string, HubSubGame[]> = {
    */
   '/games/puzzles-hub': [
     { route: '/games/puzzles', icon: 'ellipse', nameKey: 'puzzlesUnruly', descKey: 'puzzlesUnrulyDesc' },
+    // «Кто спрятался?» — карточка жила только в файле состава у двух профилей, в реестре её не
+    // было: у остальных одиннадцати игра была недостижима (задача 4a5bb886).
+    { route: '/games/hidden-character', icon: 'eye-off', nameKey: 'hiddenCharacter', descKey: 'hiddenCharacterDesc' },
     { route: '/games/puzzles?mode=Mines', icon: 'warning', nameKey: 'puzzlesMines', descKey: 'puzzlesMinesDesc' },
     { route: '/games/puzzles?mode=Mosaic', icon: 'grid-outline', nameKey: 'puzzlesMosaic', descKey: 'puzzlesMosaicDesc' },
     { route: '/games/puzzles?mode=Pattern', icon: 'grid', nameKey: 'puzzlesPattern', descKey: 'puzzlesPatternDesc' },
@@ -470,6 +491,35 @@ export function заводскиеКарточкиХаба(hubRoute: string): Hu
   return HUB_CONTENTS[hubRoute] ?? [];
 }
 
+/**
+ * Что знает заводской файл состава: развилки, которые он курирует (есть список хоть у одного
+ * профиля), и все карточки, которые он упоминает. Развилку, которую файл не курирует, профили
+ * берут из реестра целиком — дописывать туда нечего; карточка, которую курируемая развилка не
+ * упоминает нигде, появилась ПОСЛЕ выгрузки файла — она и есть «новая».
+ */
+const КУРИРУЕТ_ЗАВОДСКОЙ_ФАЙЛ = new Set<string>();
+const УПОМЯНУТО_ЗАВОДСКИМ_ФАЙЛОМ: ReadonlySet<string> = (() => {
+  const все = new Set<string>();
+  const обойти = (узел: unknown): void => {
+    if (Array.isArray(узел)) { узел.forEach(обойти); return; }
+    if (!узел || typeof узел !== 'object') return;
+    for (const [ключ, значение] of Object.entries(узел as Record<string, unknown>)) {
+      if (ключ === 'хабы' && значение && typeof значение === 'object') {
+        for (const [развилка, список] of Object.entries(значение as Record<string, unknown>)) {
+          if (Array.isArray(список)) КУРИРУЕТ_ЗАВОДСКОЙ_ФАЙЛ.add(развилка);
+          if (Array.isArray(список)) for (const э of список) {
+            if (typeof э === 'string') все.add(э);
+            else if (э && typeof (э as { маршрут?: unknown }).маршрут === 'string') все.add((э as { маршрут: string }).маршрут);
+          }
+        }
+      } else обойти(значение);
+    }
+  };
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  обойти(require('@/src/constants/defaultPlaylists.json'));
+  return все;
+})();
+
 export function visibleHubCards(
   hubRoute: string,
   allowed: Set<string>,
@@ -477,6 +527,23 @@ export function visibleHubCards(
 ): { card: HubSubGame; route: string; tag: string }[] {
   const заводские = HUB_CONTENTS[hubRoute] ?? [];
   const списокИзФайла = переопределениеХабов?.[hubRoute];
+  /*
+   * 🔴 НОВОЕ — ВО ВСЕ ПРОФИЛИ, ПРИБОРКА ПОТОМ (решение Дениса 02.10.2026: «все новые что
+   * добавляем — во все профили, чтобы не было такого, что работа сделана, а её не видно нигде»).
+   *
+   * Файл состава выгружен 13.09, а карточки в реестре появлялись и после: «Кошки», шахматные
+   * задачи, 36 режимов Тэтхэма. Файл о них не знает — и список из файла их просто не содержал:
+   * замер 02.10 на 13 профилях — 40 из 117 карточек нативных развилок не видны НИГДЕ.
+   * Поэтому карточка реестра, которой НЕ ЗНАЕТ НИ ОДИН файл — ни заводской (снимок всего, что было
+   * на момент выгрузки), ни сохранённый владельцем, — дописывается в конец. Известную карточку
+   * файл по-прежнему убирает пропуском (договор редактора состава, проба playlist-override); новую
+   * — показываем всем, а убрать её у профиля — уже приборка. Новые игры при этом вносятся и в
+   * заводской файл во все профили (сторож every-native-card-visible.test.ts).
+   */
+  const упомянутоФайлом = new Set<string>(УПОМЯНУТО_ЗАВОДСКИМ_ФАЙЛОМ);
+  for (const список of Object.values(переопределениеХабов ?? {})) {
+    for (const э of список) упомянутоФайлом.add(typeof э === 'string' ? э : э.маршрут);
+  }
   /* Порядок берётся из файла; карточка, которой нет в заводском реестре, просто
      не находится — придумать её файлом нельзя (см. шапку выше). */
   const карточки = списокИзФайла
@@ -489,6 +556,7 @@ export function visibleHubCards(
                    nameKey: э.имя, descKey: э.описание ?? э.имя } as HubSubGame;
         })
         .filter((c): c is HubSubGame => Boolean(c))
+        .concat(КУРИРУЕТ_ЗАВОДСКОЙ_ФАЙЛ.has(hubRoute) ? заводские.filter((c) => !упомянутоФайлом.has(c.route)) : [])
     : заводские;
   /**
    * ⚠️ РЕЖИМ ДОСКИ ОТКРЫТ ВМЕСТЕ С САМОЙ ДОСКОЙ. «Небоскрёбы» живут по адресу
@@ -497,6 +565,9 @@ export function visibleHubCards(
    * исчезли бы у ВСЕХ профилей: такого маршрута в списке разрешённого нет ни у кого.
    */
   const открыто = new Set(allowed);
+  /* Игра только с нативным экраном (`nativeOnlyGames.ts`) в веб-реестре `GAMES` не числится —
+     и правило профиля её не пропускало ни у кого, даже у «вся библиотека». Новое — всем. */
+  for (const r of NATIVE_ONLY_ROUTES) открыто.add(r);
   for (const c of карточки) {
     const без = c.route.split('?')[0];
     if (без !== c.route && открыто.has(без)) открыто.add(c.route);

@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -207,6 +208,91 @@ void main() {
     expect(hint, solveStrict(start).path.first);
     expect(start.moveTopOf(hint!.from, hint.to), isNotNull,
         reason: 'подсказку обязана принять сама игра');
+  });
+
+  /// 🔴 ПОДСКАЗКА ЗА ПОДСКАЗКОЙ: НЕ ТУДА-ОБРАТНО, А ДО ПОБЕДЫ.
+  ///
+  /// 02.10.2026, задача 978b07b4. Решатель каждый раз начинал с чистого листа, а
+  /// ход «вернуть товар, откуда взяли» у него в почёте — это укладка на свой вид.
+  /// Замер: партия, где каждый ход — голова свежего решения, на 720 уровнях
+  /// (шесть наборов × две лестницы × 60) дошла до победы на 155 и на 549
+  /// закончилась циклом туда-обратно. Разбор на экране решает так же, с текущего
+  /// положения, и второй разбор подряд открывался откатом первого.
+  ///
+  /// ⚠️ «ТОТ ЖЕ ТОВАР НАЗАД» МЕРИТСЯ ОТДЕЛЬНО ОТ ВОЗВРАТА В ПОЛОЖЕНИЕ. Замок тикает
+  /// с каждым ходом, и товар, вернувшийся на место, даёт уже другое положение:
+  /// один запрет на пройденное оставил девять таких переносов, и ни один не был
+  /// нужен — путь без него находился всегда.
+  test('🔴 подсказка за подсказкой не ходит туда-обратно и доводит до победы', () {
+    String position(GoodsPlay p) => [
+          p.board.cells.map((c) => c.join(',')).join('|'),
+          p.board.queue.length,
+          (p.board.back ?? const <List<int>>[]).fold<int>(0, (n, b) => n + b.length),
+          p.obstacles.map((o) => o == null ? '-' : '${o.kind}${o.movesLeft}').join(),
+          p.frozenRow,
+        ].join('#');
+
+    // Наборов шесть, и у каждого своя выгрузка уровней: профиль играет своим
+    // набором (nzt48 — «Напитки», дети — «Игрушки»), и один «Микс» живого не покрывает.
+    final files = [
+      for (final set in (jsonDecode(File('assets/levels/goods_sets.json').readAsStringSync())
+          as Map<String, dynamic>)['sets'] as List)
+        (set as Map<String, dynamic>)['file'] as String,
+    ];
+    expect(files, hasLength(greaterThanOrEqualTo(6)), reason: 'наборы не прочитались — проба не о том');
+    for (final (file, width) in [
+      for (final f in files)
+        for (final w in [390.0, 1200.0]) (f, w),
+    ]) {
+      final ladder = GoodsLevelSet.fromJsonString(
+        File('assets/levels/$file').readAsStringSync(),
+        width: width,
+      );
+      final bad = <String>[];
+      var won = 0;
+      for (var lv = 1; lv <= ladder.levels.length; lv++) {
+        var play = GoodsPlay.start(ladder.byLevel(lv));
+        // Без пути с самого начала цепочке не с чего начаться — это другая проба.
+        if (!solveStrict(play).solvable) continue;
+        final behind = <GoodsPlay>[];
+        final visited = {position(play)};
+        GoodsMove? last;
+        int? lastType;
+        var steps = 0;
+        while (!play.won && steps < 200) {
+          final m = hintMove(play, behind: behind, lastMove: last);
+          if (m == null) {
+            bad.add('L$lv, шаг $steps: подсказки нет');
+            break;
+          }
+          final type = play.board.cells[m.from].last;
+          if (last != null && m.from == last.to && m.to == last.from && type == lastType) {
+            bad.add('L$lv, шаг $steps: тот же товар назад, ${m.from}→${m.to}');
+          }
+          final next = play.moveTopOf(m.from, m.to);
+          if (next == null) {
+            bad.add('L$lv, шаг $steps: игра не приняла подсказку ${m.from}→${m.to}');
+            break;
+          }
+          behind.add(play);
+          play = next;
+          last = m;
+          lastType = type;
+          steps++;
+          if (!visited.add(position(play))) {
+            bad.add('L$lv, шаг $steps: вернулись в пройденное положение');
+            break;
+          }
+        }
+        if (play.won) {
+          won++;
+        } else if (steps >= 200) {
+          bad.add('L$lv: за 200 подсказок победы нет');
+        }
+      }
+      expect(bad, isEmpty, reason: '$file, ширина $width');
+      expect(won, greaterThan(50), reason: '$file, ширина $width: цепочка почти не доходит до победы — проба не о том');
+    }
   });
 
   test('🔴 тупик: разобранная доска тупиком НЕ считается', () {

@@ -2,6 +2,23 @@
  "_": "СГЕНЕРИРОВАНО, руками не править: npx jest --testMatch '**/level-rules/tools/*.gen.ts' (из frontend). Отрезок: [с уровня, по уровень или null — до конца, ключ правила или null — правила нет]. Тексты — ключи словаря lr_<игра>_<ключ>_title|rule|example.",
  "maxLevel": 400,
  "games": {
+  "animal_queue": [
+   [
+    1,
+    2,
+    "glued"
+   ],
+   [
+    3,
+    4,
+    "last"
+   ],
+   [
+    5,
+    null,
+    "apart"
+   ]
+  ],
   "ball_sort": [
    [
     1,
@@ -240,6 +257,18 @@
     "pegs5"
    ]
   ],
+  "kids_sort": [
+   [
+    1,
+    4,
+    null
+   ],
+   [
+    5,
+    null,
+    "switches"
+   ]
+  ],
   "listening_span": [
    [
     1,
@@ -385,8 +414,13 @@
    ],
    [
     9,
-    null,
+    26,
     "dual"
+   ],
+   [
+    27,
+    null,
+    "switch"
    ]
   ],
   "nut_sort": [

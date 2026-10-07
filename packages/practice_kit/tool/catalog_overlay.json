@@ -1,0 +1,741 @@
+{
+  "_comment": [
+    "Надстройка каталога практик поверх ядра на TS (frontend/src/games/pause/core).",
+    "Перенесена из «Умного будильника» (tool/export_overlay.json) 02.10.2026: каталог теперь один на оба приложения.",
+    "Что здесь: набор «Массаж лица (гуаша)», три режима глаз (geometry-paths, catch-overlap, two-dots) и предупреждение массажа.",
+    "Правка — только здесь, не в assets/practices.json: выгрузка flutter/tools/export-pause.cjs перезаписывает файл.",
+    "Попало в ядро на TS — выгрузка остановится с ошибкой «уже есть в ядре», и надстройку пора сократить."
+  ],
+  "sets": [
+    {
+      "after": "eye-gym",
+      "set": {
+        "id": "face-massage",
+        "title": {
+          "ru": "Массаж лица · гуаша и руками",
+          "en": "Face massage · gua sha & hands"
+        },
+        "summary": {
+          "ru": "Отдельные режимы для челюсти, щёк и лба. Нужны чистые руки; для гуаша — гладкий скребок. Без давления на глаза и шею.",
+          "en": "Separate jaw, cheek and forehead modes. Clean hands; gua sha requires a smooth tool. No pressure on eyes or neck."
+        },
+        "status": "extension",
+        "defaultEnabled": false,
+        "contexts": [
+          "home"
+        ],
+        "parallelClass": "solo",
+        "warningIds": [
+          "general-stop",
+          "face-massage"
+        ],
+        "defaultProgramId": "gua-sha-jaw",
+        "programs": [
+          {
+            "id": "gua-sha-jaw",
+            "title": {
+              "ru": "Гуаша · линия челюсти",
+              "en": "Gua sha · jawline"
+            },
+            "description": {
+              "ru": "Нужен гладкий скребок гуаша. Сначала подготовка, затем обе стороны и отдых. Схема зеркальная: ваша левая сторона слева на экране. Таймер — ориентир интерфейса, не обязательная дозировка. Это уход, не лечение и не обещание изменения формы лица.",
+              "en": "A smooth gua sha tool is needed. Preparation, both sides, then rest. Mirrored guide: your left is on the left of the screen. The timer is an interface guide, not a required dose. This is self-care, not treatment or a promise to reshape the face."
+            },
+            "singlePass": true,
+            "steps": [
+              {
+                "id": "prepare",
+                "title": {
+                  "ru": "Подготовка",
+                  "en": "Preparation"
+                },
+                "cue": {
+                  "ru": "Вымойте руки и очистите гладкий скребок по инструкции производителя. Нанесите привычное средство для скольжения. Давление едва ощутимое; не работайте по раздражённой коже.",
+                  "en": "Wash your hands and clean the smooth tool as its manufacturer directs. Apply your usual product for slip. Use a feather-light touch; avoid irritated skin."
+                },
+                "durationMs": 15000,
+                "attention": "low",
+                "channel": "guide",
+                "motion": "face"
+              },
+              {
+                "id": "jaw-left",
+                "title": {
+                  "ru": "Линия челюсти · левая сторона",
+                  "en": "Jawline · left"
+                },
+                "cue": {
+                  "ru": "Гладким краем скребка легко проведите от подбородка вдоль линии челюсти к уху, не переходя на шею. Верните скребок к началу без контакта с кожей. Без нажима и растяжения кожи.",
+                  "en": "Glide the smooth edge of the tool gently from the chin along the jawline toward the ear, staying off the neck. Lift off to return to the starting point. Do not press or stretch the skin."
+                },
+                "durationMs": 20000,
+                "attention": "low",
+                "channel": "guide",
+                "motion": "face"
+              },
+              {
+                "id": "jaw-right",
+                "title": {
+                  "ru": "Линия челюсти · правая сторона",
+                  "en": "Jawline · right"
+                },
+                "cue": {
+                  "ru": "Гладким краем скребка легко проведите от подбородка вдоль линии челюсти к уху, не переходя на шею. Верните скребок к началу без контакта с кожей. Без нажима и растяжения кожи.",
+                  "en": "Glide the smooth edge of the tool gently from the chin along the jawline toward the ear, staying off the neck. Lift off to return to the starting point. Do not press or stretch the skin."
+                },
+                "durationMs": 20000,
+                "attention": "low",
+                "channel": "guide",
+                "motion": "face"
+              },
+              {
+                "id": "rest",
+                "title": {
+                  "ru": "Отдых",
+                  "en": "Rest"
+                },
+                "cue": {
+                  "ru": "Уберите скребок или руки от лица. Отдохните. Боль и синяки не являются целью. Продолжать до конца таймера не обязательно.",
+                  "en": "Remove the tool or hands from your face. Rest. Pain and bruises are not the goal. You need not continue until the timer ends."
+                },
+                "durationMs": 10000,
+                "attention": "low",
+                "channel": "guide",
+                "motion": "face"
+              }
+            ]
+          },
+          {
+            "id": "gua-sha-cheeks",
+            "title": {
+              "ru": "Гуаша · щёки",
+              "en": "Gua sha · cheeks"
+            },
+            "description": {
+              "ru": "Нужен гладкий скребок гуаша. Сначала подготовка, затем обе стороны и отдых. Схема зеркальная: ваша левая сторона слева на экране. Таймер — ориентир интерфейса, не обязательная дозировка. Это уход, не лечение и не обещание изменения формы лица.",
+              "en": "A smooth gua sha tool is needed. Preparation, both sides, then rest. Mirrored guide: your left is on the left of the screen. The timer is an interface guide, not a required dose. This is self-care, not treatment or a promise to reshape the face."
+            },
+            "singlePass": true,
+            "steps": [
+              {
+                "id": "prepare",
+                "title": {
+                  "ru": "Подготовка",
+                  "en": "Preparation"
+                },
+                "cue": {
+                  "ru": "Вымойте руки и очистите гладкий скребок по инструкции производителя. Нанесите привычное средство для скольжения. Давление едва ощутимое; не работайте по раздражённой коже.",
+                  "en": "Wash your hands and clean the smooth tool as its manufacturer directs. Apply your usual product for slip. Use a feather-light touch; avoid irritated skin."
+                },
+                "durationMs": 15000,
+                "attention": "low",
+                "channel": "guide",
+                "motion": "face"
+              },
+              {
+                "id": "cheeks-left",
+                "title": {
+                  "ru": "Щёки · левая сторона",
+                  "en": "Cheeks · left"
+                },
+                "cue": {
+                  "ru": "Гладким краем скребка легко проведите от середины щеки к уху, ниже области глаз. Верните скребок к началу без контакта с кожей. Без нажима и растяжения кожи.",
+                  "en": "Glide the smooth edge of the tool gently from the middle of the cheek toward the ear, below the eye area. Lift off to return to the starting point. Do not press or stretch the skin."
+                },
+                "durationMs": 20000,
+                "attention": "low",
+                "channel": "guide",
+                "motion": "face"
+              },
+              {
+                "id": "cheeks-right",
+                "title": {
+                  "ru": "Щёки · правая сторона",
+                  "en": "Cheeks · right"
+                },
+                "cue": {
+                  "ru": "Гладким краем скребка легко проведите от середины щеки к уху, ниже области глаз. Верните скребок к началу без контакта с кожей. Без нажима и растяжения кожи.",
+                  "en": "Glide the smooth edge of the tool gently from the middle of the cheek toward the ear, below the eye area. Lift off to return to the starting point. Do not press or stretch the skin."
+                },
+                "durationMs": 20000,
+                "attention": "low",
+                "channel": "guide",
+                "motion": "face"
+              },
+              {
+                "id": "rest",
+                "title": {
+                  "ru": "Отдых",
+                  "en": "Rest"
+                },
+                "cue": {
+                  "ru": "Уберите скребок или руки от лица. Отдохните. Боль и синяки не являются целью. Продолжать до конца таймера не обязательно.",
+                  "en": "Remove the tool or hands from your face. Rest. Pain and bruises are not the goal. You need not continue until the timer ends."
+                },
+                "durationMs": 10000,
+                "attention": "low",
+                "channel": "guide",
+                "motion": "face"
+              }
+            ]
+          },
+          {
+            "id": "gua-sha-forehead",
+            "title": {
+              "ru": "Гуаша · лоб",
+              "en": "Gua sha · forehead"
+            },
+            "description": {
+              "ru": "Нужен гладкий скребок гуаша. Сначала подготовка, затем обе стороны и отдых. Схема зеркальная: ваша левая сторона слева на экране. Таймер — ориентир интерфейса, не обязательная дозировка. Это уход, не лечение и не обещание изменения формы лица.",
+              "en": "A smooth gua sha tool is needed. Preparation, both sides, then rest. Mirrored guide: your left is on the left of the screen. The timer is an interface guide, not a required dose. This is self-care, not treatment or a promise to reshape the face."
+            },
+            "singlePass": true,
+            "steps": [
+              {
+                "id": "prepare",
+                "title": {
+                  "ru": "Подготовка",
+                  "en": "Preparation"
+                },
+                "cue": {
+                  "ru": "Вымойте руки и очистите гладкий скребок по инструкции производителя. Нанесите привычное средство для скольжения. Давление едва ощутимое; не работайте по раздражённой коже.",
+                  "en": "Wash your hands and clean the smooth tool as its manufacturer directs. Apply your usual product for slip. Use a feather-light touch; avoid irritated skin."
+                },
+                "durationMs": 15000,
+                "attention": "low",
+                "channel": "guide",
+                "motion": "face"
+              },
+              {
+                "id": "forehead-left",
+                "title": {
+                  "ru": "Лоб · левая сторона",
+                  "en": "Forehead · left"
+                },
+                "cue": {
+                  "ru": "Гладким краем скребка легко проведите от середины лба к виску, выше бровей. Верните скребок к началу без контакта с кожей. Без нажима и растяжения кожи.",
+                  "en": "Glide the smooth edge of the tool gently from the middle of the forehead toward the temple, above the eyebrows. Lift off to return to the starting point. Do not press or stretch the skin."
+                },
+                "durationMs": 20000,
+                "attention": "low",
+                "channel": "guide",
+                "motion": "face"
+              },
+              {
+                "id": "forehead-right",
+                "title": {
+                  "ru": "Лоб · правая сторона",
+                  "en": "Forehead · right"
+                },
+                "cue": {
+                  "ru": "Гладким краем скребка легко проведите от середины лба к виску, выше бровей. Верните скребок к началу без контакта с кожей. Без нажима и растяжения кожи.",
+                  "en": "Glide the smooth edge of the tool gently from the middle of the forehead toward the temple, above the eyebrows. Lift off to return to the starting point. Do not press or stretch the skin."
+                },
+                "durationMs": 20000,
+                "attention": "low",
+                "channel": "guide",
+                "motion": "face"
+              },
+              {
+                "id": "rest",
+                "title": {
+                  "ru": "Отдых",
+                  "en": "Rest"
+                },
+                "cue": {
+                  "ru": "Уберите скребок или руки от лица. Отдохните. Боль и синяки не являются целью. Продолжать до конца таймера не обязательно.",
+                  "en": "Remove the tool or hands from your face. Rest. Pain and bruises are not the goal. You need not continue until the timer ends."
+                },
+                "durationMs": 10000,
+                "attention": "low",
+                "channel": "guide",
+                "motion": "face"
+              }
+            ]
+          },
+          {
+            "id": "gua-sha-face",
+            "title": {
+              "ru": "Гуаша · челюсть, щёки и лоб",
+              "en": "Gua sha · jaw, cheeks & forehead"
+            },
+            "description": {
+              "ru": "Нужен гладкий скребок гуаша. Сначала подготовка, затем обе стороны и отдых. Схема зеркальная: ваша левая сторона слева на экране. Таймер — ориентир интерфейса, не обязательная дозировка. Это уход, не лечение и не обещание изменения формы лица.",
+              "en": "A smooth gua sha tool is needed. Preparation, both sides, then rest. Mirrored guide: your left is on the left of the screen. The timer is an interface guide, not a required dose. This is self-care, not treatment or a promise to reshape the face."
+            },
+            "singlePass": true,
+            "steps": [
+              {
+                "id": "prepare",
+                "title": {
+                  "ru": "Подготовка",
+                  "en": "Preparation"
+                },
+                "cue": {
+                  "ru": "Вымойте руки и очистите гладкий скребок по инструкции производителя. Нанесите привычное средство для скольжения. Давление едва ощутимое; не работайте по раздражённой коже.",
+                  "en": "Wash your hands and clean the smooth tool as its manufacturer directs. Apply your usual product for slip. Use a feather-light touch; avoid irritated skin."
+                },
+                "durationMs": 15000,
+                "attention": "low",
+                "channel": "guide",
+                "motion": "face"
+              },
+              {
+                "id": "jaw-left",
+                "title": {
+                  "ru": "Линия челюсти · левая сторона",
+                  "en": "Jawline · left"
+                },
+                "cue": {
+                  "ru": "Гладким краем скребка легко проведите от подбородка вдоль линии челюсти к уху, не переходя на шею. Верните скребок к началу без контакта с кожей. Без нажима и растяжения кожи.",
+                  "en": "Glide the smooth edge of the tool gently from the chin along the jawline toward the ear, staying off the neck. Lift off to return to the starting point. Do not press or stretch the skin."
+                },
+                "durationMs": 20000,
+                "attention": "low",
+                "channel": "guide",
+                "motion": "face"
+              },
+              {
+                "id": "jaw-right",
+                "title": {
+                  "ru": "Линия челюсти · правая сторона",
+                  "en": "Jawline · right"
+                },
+                "cue": {
+                  "ru": "Гладким краем скребка легко проведите от подбородка вдоль линии челюсти к уху, не переходя на шею. Верните скребок к началу без контакта с кожей. Без нажима и растяжения кожи.",
+                  "en": "Glide the smooth edge of the tool gently from the chin along the jawline toward the ear, staying off the neck. Lift off to return to the starting point. Do not press or stretch the skin."
+                },
+                "durationMs": 20000,
+                "attention": "low",
+                "channel": "guide",
+                "motion": "face"
+              },
+              {
+                "id": "cheeks-left",
+                "title": {
+                  "ru": "Щёки · левая сторона",
+                  "en": "Cheeks · left"
+                },
+                "cue": {
+                  "ru": "Гладким краем скребка легко проведите от середины щеки к уху, ниже области глаз. Верните скребок к началу без контакта с кожей. Без нажима и растяжения кожи.",
+                  "en": "Glide the smooth edge of the tool gently from the middle of the cheek toward the ear, below the eye area. Lift off to return to the starting point. Do not press or stretch the skin."
+                },
+                "durationMs": 20000,
+                "attention": "low",
+                "channel": "guide",
+                "motion": "face"
+              },
+              {
+                "id": "cheeks-right",
+                "title": {
+                  "ru": "Щёки · правая сторона",
+                  "en": "Cheeks · right"
+                },
+                "cue": {
+                  "ru": "Гладким краем скребка легко проведите от середины щеки к уху, ниже области глаз. Верните скребок к началу без контакта с кожей. Без нажима и растяжения кожи.",
+                  "en": "Glide the smooth edge of the tool gently from the middle of the cheek toward the ear, below the eye area. Lift off to return to the starting point. Do not press or stretch the skin."
+                },
+                "durationMs": 20000,
+                "attention": "low",
+                "channel": "guide",
+                "motion": "face"
+              },
+              {
+                "id": "forehead-left",
+                "title": {
+                  "ru": "Лоб · левая сторона",
+                  "en": "Forehead · left"
+                },
+                "cue": {
+                  "ru": "Гладким краем скребка легко проведите от середины лба к виску, выше бровей. Верните скребок к началу без контакта с кожей. Без нажима и растяжения кожи.",
+                  "en": "Glide the smooth edge of the tool gently from the middle of the forehead toward the temple, above the eyebrows. Lift off to return to the starting point. Do not press or stretch the skin."
+                },
+                "durationMs": 20000,
+                "attention": "low",
+                "channel": "guide",
+                "motion": "face"
+              },
+              {
+                "id": "forehead-right",
+                "title": {
+                  "ru": "Лоб · правая сторона",
+                  "en": "Forehead · right"
+                },
+                "cue": {
+                  "ru": "Гладким краем скребка легко проведите от середины лба к виску, выше бровей. Верните скребок к началу без контакта с кожей. Без нажима и растяжения кожи.",
+                  "en": "Glide the smooth edge of the tool gently from the middle of the forehead toward the temple, above the eyebrows. Lift off to return to the starting point. Do not press or stretch the skin."
+                },
+                "durationMs": 20000,
+                "attention": "low",
+                "channel": "guide",
+                "motion": "face"
+              },
+              {
+                "id": "rest",
+                "title": {
+                  "ru": "Отдых",
+                  "en": "Rest"
+                },
+                "cue": {
+                  "ru": "Уберите скребок или руки от лица. Отдохните. Боль и синяки не являются целью. Продолжать до конца таймера не обязательно.",
+                  "en": "Remove the tool or hands from your face. Rest. Pain and bruises are not the goal. You need not continue until the timer ends."
+                },
+                "durationMs": 10000,
+                "attention": "low",
+                "channel": "guide",
+                "motion": "face"
+              }
+            ]
+          },
+          {
+            "id": "manual-forehead",
+            "title": {
+              "ru": "Руками · расходящийся массаж лба",
+              "en": "Hands · outward forehead massage"
+            },
+            "description": {
+              "ru": "Массаж руками, без скребка. Сначала подготовка, затем обе стороны и отдых. Схема зеркальная: ваша левая сторона слева на экране. Таймер — ориентир интерфейса, не обязательная дозировка. Это уход, не лечение и не обещание изменения формы лица.",
+              "en": "Use your hands, no tool. Preparation, both sides, then rest. Mirrored guide: your left is on the left of the screen. The timer is an interface guide, not a required dose. This is self-care, not treatment or a promise to reshape the face."
+            },
+            "singlePass": true,
+            "steps": [
+              {
+                "id": "prepare",
+                "title": {
+                  "ru": "Подготовка",
+                  "en": "Preparation"
+                },
+                "cue": {
+                  "ru": "Вымойте руки. Используйте привычное средство для скольжения. Прикасайтесь легко, не тяните кожу. При боли остановитесь.",
+                  "en": "Wash your hands. Use your usual product for slip. Touch lightly without pulling the skin. Stop if painful."
+                },
+                "durationMs": 15000,
+                "attention": "low",
+                "channel": "guide",
+                "motion": "face"
+              },
+              {
+                "id": "forehead-left",
+                "title": {
+                  "ru": "Лоб · левая сторона",
+                  "en": "Forehead · left"
+                },
+                "cue": {
+                  "ru": "Подушечками пальцев легко проведите от середины лба к виску, выше бровей. Верните пальцы к началу без контакта с кожей. Без нажима и растяжения кожи.",
+                  "en": "Glide your fingertips gently from the middle of the forehead toward the temple, above the eyebrows. Lift off to return to the starting point. Do not press or stretch the skin."
+                },
+                "durationMs": 20000,
+                "attention": "low",
+                "channel": "guide",
+                "motion": "face"
+              },
+              {
+                "id": "forehead-right",
+                "title": {
+                  "ru": "Лоб · правая сторона",
+                  "en": "Forehead · right"
+                },
+                "cue": {
+                  "ru": "Подушечками пальцев легко проведите от середины лба к виску, выше бровей. Верните пальцы к началу без контакта с кожей. Без нажима и растяжения кожи.",
+                  "en": "Glide your fingertips gently from the middle of the forehead toward the temple, above the eyebrows. Lift off to return to the starting point. Do not press or stretch the skin."
+                },
+                "durationMs": 20000,
+                "attention": "low",
+                "channel": "guide",
+                "motion": "face"
+              },
+              {
+                "id": "rest",
+                "title": {
+                  "ru": "Отдых",
+                  "en": "Rest"
+                },
+                "cue": {
+                  "ru": "Уберите скребок или руки от лица. Отдохните. Боль и синяки не являются целью. Продолжать до конца таймера не обязательно.",
+                  "en": "Remove the tool or hands from your face. Rest. Pain and bruises are not the goal. You need not continue until the timer ends."
+                },
+                "durationMs": 10000,
+                "attention": "low",
+                "channel": "guide",
+                "motion": "face"
+              }
+            ]
+          },
+          {
+            "id": "manual-jaw",
+            "title": {
+              "ru": "Руками · от подбородка к ушам",
+              "en": "Hands · chin to ears"
+            },
+            "description": {
+              "ru": "Массаж руками, без скребка. Сначала подготовка, затем обе стороны и отдых. Схема зеркальная: ваша левая сторона слева на экране. Таймер — ориентир интерфейса, не обязательная дозировка. Это уход, не лечение и не обещание изменения формы лица.",
+              "en": "Use your hands, no tool. Preparation, both sides, then rest. Mirrored guide: your left is on the left of the screen. The timer is an interface guide, not a required dose. This is self-care, not treatment or a promise to reshape the face."
+            },
+            "singlePass": true,
+            "steps": [
+              {
+                "id": "prepare",
+                "title": {
+                  "ru": "Подготовка",
+                  "en": "Preparation"
+                },
+                "cue": {
+                  "ru": "Вымойте руки. Используйте привычное средство для скольжения. Прикасайтесь легко, не тяните кожу. При боли остановитесь.",
+                  "en": "Wash your hands. Use your usual product for slip. Touch lightly without pulling the skin. Stop if painful."
+                },
+                "durationMs": 15000,
+                "attention": "low",
+                "channel": "guide",
+                "motion": "face"
+              },
+              {
+                "id": "jaw-left",
+                "title": {
+                  "ru": "Линия челюсти · левая сторона",
+                  "en": "Jawline · left"
+                },
+                "cue": {
+                  "ru": "Подушечками пальцев легко проведите от подбородка вдоль линии челюсти к уху, не переходя на шею. Верните пальцы к началу без контакта с кожей. Без нажима и растяжения кожи.",
+                  "en": "Glide your fingertips gently from the chin along the jawline toward the ear, staying off the neck. Lift off to return to the starting point. Do not press or stretch the skin."
+                },
+                "durationMs": 20000,
+                "attention": "low",
+                "channel": "guide",
+                "motion": "face"
+              },
+              {
+                "id": "jaw-right",
+                "title": {
+                  "ru": "Линия челюсти · правая сторона",
+                  "en": "Jawline · right"
+                },
+                "cue": {
+                  "ru": "Подушечками пальцев легко проведите от подбородка вдоль линии челюсти к уху, не переходя на шею. Верните пальцы к началу без контакта с кожей. Без нажима и растяжения кожи.",
+                  "en": "Glide your fingertips gently from the chin along the jawline toward the ear, staying off the neck. Lift off to return to the starting point. Do not press or stretch the skin."
+                },
+                "durationMs": 20000,
+                "attention": "low",
+                "channel": "guide",
+                "motion": "face"
+              },
+              {
+                "id": "rest",
+                "title": {
+                  "ru": "Отдых",
+                  "en": "Rest"
+                },
+                "cue": {
+                  "ru": "Уберите скребок или руки от лица. Отдохните. Боль и синяки не являются целью. Продолжать до конца таймера не обязательно.",
+                  "en": "Remove the tool or hands from your face. Rest. Pain and bruises are not the goal. You need not continue until the timer ends."
+                },
+                "durationMs": 10000,
+                "attention": "low",
+                "channel": "guide",
+                "motion": "face"
+              }
+            ]
+          }
+        ],
+        "resources": [
+          "hands",
+          "face"
+        ]
+      }
+    }
+  ],
+  "programs": [
+    {
+      "set": "eye-gym",
+      "before": "gaze-fixation",
+      "programs": [
+        {
+          "id": "geometry-paths",
+          "title": {
+            "ru": "Геометрические траектории",
+            "en": "Geometric paths"
+          },
+          "description": {
+            "ru": "Следите взглядом за точкой по контуру: сердечко, ромб, крест, треугольник, прямоугольник, круг и восьмёрка. Не напрягайте глаза, моргайте свободно. При дискомфорте остановитесь.",
+            "en": "Follow the target along a heart, diamond, cross, triangle, rectangle, circle and figure eight. Avoid strain and blink freely. Stop if uncomfortable."
+          },
+          "status": "extension",
+          "steps": [
+            {
+              "id": "heart",
+              "title": {
+                "ru": "Сердечко",
+                "en": "Heart"
+              },
+              "cue": {
+                "ru": "Следите за точкой по контуру без напряжения.",
+                "en": "Follow the target along the outline without straining."
+              },
+              "durationMs": 12000,
+              "attention": "peak",
+              "channel": "focus",
+              "motion": "eyes"
+            },
+            {
+              "id": "diamond",
+              "title": {
+                "ru": "Ромб",
+                "en": "Diamond"
+              },
+              "cue": {
+                "ru": "Следите за точкой по контуру без напряжения.",
+                "en": "Follow the target along the outline without straining."
+              },
+              "durationMs": 12000,
+              "attention": "peak",
+              "channel": "focus",
+              "motion": "eyes"
+            },
+            {
+              "id": "cross",
+              "title": {
+                "ru": "Крест",
+                "en": "Cross"
+              },
+              "cue": {
+                "ru": "Следите за точкой по контуру без напряжения.",
+                "en": "Follow the target along the outline without straining."
+              },
+              "durationMs": 12000,
+              "attention": "peak",
+              "channel": "focus",
+              "motion": "eyes"
+            },
+            {
+              "id": "triangle",
+              "title": {
+                "ru": "Треугольник",
+                "en": "Triangle"
+              },
+              "cue": {
+                "ru": "Следите за точкой по контуру без напряжения.",
+                "en": "Follow the target along the outline without straining."
+              },
+              "durationMs": 12000,
+              "attention": "peak",
+              "channel": "focus",
+              "motion": "eyes"
+            },
+            {
+              "id": "rectangle",
+              "title": {
+                "ru": "Прямоугольник",
+                "en": "Rectangle"
+              },
+              "cue": {
+                "ru": "Следите за точкой по контуру без напряжения.",
+                "en": "Follow the target along the outline without straining."
+              },
+              "durationMs": 12000,
+              "attention": "peak",
+              "channel": "focus",
+              "motion": "eyes"
+            },
+            {
+              "id": "circle",
+              "title": {
+                "ru": "Круг",
+                "en": "Circle"
+              },
+              "cue": {
+                "ru": "Следите за точкой по контуру без напряжения.",
+                "en": "Follow the target along the outline without straining."
+              },
+              "durationMs": 12000,
+              "attention": "peak",
+              "channel": "focus",
+              "motion": "eyes"
+            },
+            {
+              "id": "figure-eight",
+              "title": {
+                "ru": "Восьмёрка",
+                "en": "Figure eight"
+              },
+              "cue": {
+                "ru": "Следите за точкой по контуру без напряжения.",
+                "en": "Follow the target along the outline without straining."
+              },
+              "durationMs": 12000,
+              "attention": "peak",
+              "channel": "focus",
+              "motion": "eyes"
+            }
+          ]
+        },
+        {
+          "id": "catch-overlap",
+          "title": {
+            "ru": "Поймай совпадение",
+            "en": "Catch the overlap"
+          },
+          "description": {
+            "ru": "Круг и кольцо движутся. Нажмите на игровое поле, когда круг полностью внутри кольца. За одно совпадение засчитывается одно попадание. Это игра на внимание, не лечение зрения.",
+            "en": "The disc and ring move. Tap the play area when the disc is fully inside the ring. Each overlap counts once. This is an attention game, not vision treatment."
+          },
+          "parallelClass": "attention",
+          "status": "extension",
+          "steps": [
+            {
+              "id": "catch-overlap",
+              "title": {
+                "ru": "Поймай совпадение",
+                "en": "Catch the overlap"
+              },
+              "cue": {
+                "ru": "Нажмите на поле, когда круг целиком внутри кольца. При дискомфорте остановитесь.",
+                "en": "Tap the area when the disc is fully inside the ring. Stop if uncomfortable."
+              },
+              "durationMs": 60000,
+              "attention": "peak",
+              "channel": "focus",
+              "motion": "eyes"
+            }
+          ],
+          "resources": [
+            "attention"
+          ]
+        },
+        {
+          "id": "two-dots",
+          "title": {
+            "ru": "Две точки",
+            "en": "Two dots"
+          },
+          "description": {
+            "ru": "Две точки плавно сближаются и расходятся. Смотрите между ними спокойно, моргайте свободно. Не пытайтесь силой сводить глаза или добиваться двоения. Нажимать не нужно; это не лечение зрения.",
+            "en": "Two dots gently move closer and farther apart. Look between them comfortably and blink freely. Do not force your eyes to cross or seek double vision. No tapping is needed; this is not vision treatment."
+          },
+          "status": "extension",
+          "steps": [
+            {
+              "id": "two-dots",
+              "title": {
+                "ru": "Две точки",
+                "en": "Two dots"
+              },
+              "cue": {
+                "ru": "Спокойно смотрите между точками, не напрягайте глаза. Нажимать не нужно. При дискомфорте остановитесь.",
+                "en": "Look comfortably between the dots without straining. No tapping needed. Stop if uncomfortable."
+              },
+              "durationMs": 30000,
+              "attention": "peak",
+              "channel": "focus",
+              "motion": "eyes"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "warnings": {
+    "face-massage": {
+      "ru": "Очень лёгкое касание, без боли и синяков. Не массируйте повреждённую, воспалённую или отёчную кожу, область глаз и шею. При заболеваниях кожи или кровообращения, диабете, приёме разжижающих кровь препаратов, беременности или недавней процедуре сначала уточните допустимость у специалиста. Скребок должен быть чистым, гладким и без сколов. Эти режимы не заменяют лечение.",
+      "en": "Use a very light touch, without pain or bruising. Avoid broken, inflamed or swollen skin, the eye area and neck. Ask a qualified clinician first if you have skin or circulation conditions, diabetes, take blood thinners, are pregnant or recently had a procedure. The tool must be clean, smooth and unchipped. These modes do not replace treatment."
+    }
+  }
+}

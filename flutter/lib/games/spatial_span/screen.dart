@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/l10n.dart';
+import '../../shell/game_preset.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/level_rules.dart';
@@ -71,6 +72,9 @@ class _SpatialSpanScreenState extends State<SpatialSpanScreen> {
       _ready = true;
       _game = SpatialSpanGame(level: _ladder.level, random: widget.random);
     });
+    // Шаг зарядки начинается сам — перенос веб-`useAutostartWhenReady` (spatial-span.tsx:263;
+    // отчёт Дениса 01.10.2026: «каждое упражнение надо вручную»). Один раз, после загрузки уровня.
+    if (GamePreset.autostart) _start();
   }
 
   void _restart() {
@@ -167,9 +171,10 @@ class _SpatialSpanScreenState extends State<SpatialSpanScreen> {
     if (mounted) setState(() {});
   }
 
-  /// Заголовок один на экран и на разбор: вторая такая строка — второй долг
-  /// храповика подписей (`test/ui_text_debt_does_not_grow_test.dart`).
-  String get _title => 'Пространственный ряд';
+  /// Заголовок один на экран и на разбор. Все подписи экрана — из общего с вебом словаря
+  /// (`L.t`), теми же ключами, что зовёт веб-экран `app/games/spatial-span.tsx`: зашитый текст
+  /// знал бы один язык из двенадцати (храповик `test/ui_text_debt_does_not_grow_test.dart`).
+  String get _title => L.t('spatialSpan');
 
   /// Разбор объясняет ПРИЁМ: верный ответ человек и так увидит по итогу раунда,
   /// а вот чем объём берётся — нет.
@@ -190,22 +195,20 @@ class _SpatialSpanScreenState extends State<SpatialSpanScreen> {
       onRules: () => showDialog<void>(
         context: context,
         builder: (ctx) => AlertDialog(
-          title: const Text('Пространственный ряд'),
-          content: const Text(
-            'Клетки вспыхивают по одной. Повтори их В ОБРАТНОМ ПОРЯДКЕ — от последней к первой. '
-            'Ряд растёт, пока получается; две ошибки на одной длине заканчивают партию.',
-          ),
+          title: Text(_title),
+          // Правила — те же, что у веб-справки этой игры (`helpMap.ts`: introKey).
+          content: Text(L.t('spatialSpanIntroDesc')),
           actions: [
-            TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Понятно')),
+            TextButton(onPressed: () => Navigator.of(ctx).pop(), child: Text(L.t('btn_got_it'))),
           ],
         ),
       ),
       hud: [
-        HudItem(label: 'Уровень', value: '${_ladder.level}', icon: Icons.flag_outlined),
-        HudItem(label: 'Достигнуто', value: '${_ladder.best}', icon: Icons.emoji_events_outlined),
-        HudItem(label: 'Спан', value: '${g.span}', icon: Icons.straighten),
+        HudItem(label: L.t('level'), value: '${_ladder.level}', icon: Icons.flag_outlined),
+        HudItem(label: L.t('personalBest'), value: '${_ladder.best}', icon: Icons.emoji_events_outlined),
+        HudItem(label: L.t('hud_span'), value: '${g.span}', icon: Icons.straighten),
         HudItem(
-          label: 'Ошибки на длине',
+          label: L.t('hud_errors'),
           value: '${g.errorsAtLength}/2',
           icon: Icons.close,
         ),
@@ -220,7 +223,7 @@ class _SpatialSpanScreenState extends State<SpatialSpanScreen> {
       ),
       auxRow: AuxBar(
         children: [
-          AuxAction(icon: Icons.refresh, label: 'Начать заново', onPressed: _restart),
+          AuxAction(icon: Icons.refresh, label: L.t('restart'), onPressed: _restart),
         ],
       ),
       toolbar: switch (_phase) {
@@ -230,7 +233,7 @@ class _SpatialSpanScreenState extends State<SpatialSpanScreen> {
             key: const Key('показать-ряд'),
             onPressed: _start,
             icon: const Icon(Icons.play_arrow),
-            label: const Text('Показать ряд'),
+            label: Text(L.t('start')),
           ),
         ),
         Phase.done => Padding(
@@ -239,13 +242,13 @@ class _SpatialSpanScreenState extends State<SpatialSpanScreen> {
             key: const Key('ещё-раз'),
             onPressed: _restart,
             icon: const Icon(Icons.arrow_forward),
-            label: Text(g.passed ? 'Следующий уровень' : 'Ещё раз'),
+            label: Text(g.passed ? L.t('nextLabel') : L.t('retry')),
           ),
         ),
         _ => null,
       },
       pauseActions: [
-        PauseAction(label: 'Начать заново', icon: Icons.refresh, onPressed: _restart),
+        PauseAction(label: L.t('restart'), icon: Icons.refresh, onPressed: _restart),
       ],
     );
   }
@@ -275,18 +278,20 @@ class _Field extends StatelessWidget {
     final n = game.params.gridSize;
     // 🔴 ВЕРДИКТ ВИДЕН СРАЗУ. Первый вариант оставлял «Повтори…» и после ошибки — человек не
     // понимал, кончился ли ввод, и тыкал дальше в уже закрытый ряд. Нашла это проба.
+    // Подписи собраны из ключей веб-экрана той же игры (`watchSequence`, `reproduceBackward`,
+    // `hud_span`, `lengthLabel`): у каждого перевод на двенадцать языков уже есть. Непройденная
+    // ступень показывает «охват / планка ступени» — дробью, склонять число в двенадцати языках нечем.
+    final span = '${L.t('hud_span')}: ${game.span}';
     final note = phase == Phase.done
-        ? (game.passed
-              ? 'Уровень пройден. Спан: ${game.span}'
-              : 'Спан: ${game.span} — планка ступени ${game.params.startSpan}')
+        ? (game.passed ? '${L.t('done')} $span' : '$span / ${game.params.startSpan}')
         : lastAnswer == false
-        ? 'Ошибка. Тот же ряд ещё раз'
+        ? '${L.t('incorrect')} · ${L.t('retry')}'
         : lastAnswer == true
-        ? 'Верно'
+        ? L.t('hud_correct')
         : switch (phase) {
-            Phase.ready => 'Сетка $n×$n, ряд из ${game.params.startSpan} клеток',
-            Phase.show => 'Смотри и запоминай',
-            _ => 'Повтори В ОБРАТНОМ ПОРЯДКЕ: ${game.entered.length}/${game.expected.length}',
+            Phase.ready => '$n×$n · ${L.t('lengthLabel')}: ${game.params.startSpan}',
+            Phase.show => L.t('watchSequence'),
+            _ => '${L.t('reproduceBackward')}: ${game.entered.length}/${game.expected.length}',
           };
 
     return LayoutBuilder(

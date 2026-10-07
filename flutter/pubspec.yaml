@@ -55,8 +55,14 @@ dependencies:
   path_provider: ^2.1.5
   sqlite3: ^2.9.0
   sqlite3_flutter_libs: ^0.5.41
+  # 🔴 Практики «Паузы» — ОБЩИЙ пакет с «Умным будильником» (packages/practice_kit):
+  # ядро, каталог, вибрация с нативной частью, панель «что делать сейчас», режимы
+  # глаз и массаж лица. Решение Дениса 02.10.2026: «чиню один раз — и там, и там».
+  practice_kit:
+    path: ../packages/practice_kit
 
 dev_dependencies:
+  webview_flutter_platform_interface: ^2.15.1
   integration_test:
     sdk: flutter
   flutter_test:
@@ -103,6 +109,10 @@ flutter:
     - assets/digits/pastel/
     - assets/digits/rainbow/
     - assets/hubs.json
+    - assets/game_suites.json
+    # Каталог «Игры» — выгрузка games.ts (frontend/src/__tests__/flutter-catalog-asset-fresh.test.ts).
+    - assets/catalog.json
+    - assets/game_help_routes.json
     # Иконки игр «поле в миниатюре» для строк развилок — выгрузка веб-реестра
     # (flutter/tools/embed-game-icons.mjs), не править руками.
     - assets/game_icons/
@@ -121,6 +131,7 @@ flutter:
     - assets/find_move/
     # «Шахматный пасьянс»: 720 досок 4×4, генератор tools/solitaire_chess_corpus.py
     - assets/solitaire_chess/
+    - assets/knights_queens/
     - assets/faces-names.json
     - assets/memory-palace.json
     - assets/rmet.json
@@ -134,8 +145,6 @@ flutter:
     - assets/voice/
     - assets/spatial/
     - assets/pause/
-    - assets/pause/guides/
-    - assets/pause/cosmic-body/
     - assets/eye_stereograms/
     - assets/goods/
     - assets/tubes/

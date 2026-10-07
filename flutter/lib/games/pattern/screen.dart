@@ -105,8 +105,21 @@ class _PatternScreenState extends State<PatternScreen> {
     _right = null;
     final s = makeSequence(_ladder.level, _rng);
     _seq = s;
-    _options = makeOptions(s.answer, _rng);
+    // Приманка у хвоста: «последний + последний шаг» стоит среди вариантов (задача 94f9c7c1).
+    _options = makeOptions(s.answer, _rng, tail: tailLure(s.items));
   }
+
+  /// 🔴 МЕТРИКА ДОМЕНА «ОЦЕНКИ» — те же поля, что `saveSession` веба (`pattern.tsx:177`).
+  /// Биомаркер — ДОЛЯ `hit_rate` (норма в `assessment.ts` 0,8 ± 0,2), а не сырые
+  /// попадания: число проб задаёт шаг, и 12 из 15 давало бы z = +8 за длину партии.
+  Map<String, Object?> _details() => {
+        'level': _ladder.level,
+        'hits': _hits,
+        'errors': _errors,
+        'trials': _trials,
+        'hint_used': _hintUsed,
+        'hit_rate': _trials > 0 ? double.parse((_hits / _trials).toStringAsFixed(3)) : 0,
+      };
 
   Future<void> _answer(int value) async {
     if (_phase != _Phase.playing) return;
@@ -124,10 +137,11 @@ class _PatternScreenState extends State<PatternScreen> {
       if (!mounted) return;
       if (_round >= _trials) {
         final passed = _hits / _trials >= passHitRate;
+        final details = _details();
         if (passed) {
-          await _ladder.win();
+          await _ladder.win(details: details);
         } else {
-          await _ladder.fail();
+          await _ladder.fail(details: details);
         }
         if (!mounted) return;
         setState(() {

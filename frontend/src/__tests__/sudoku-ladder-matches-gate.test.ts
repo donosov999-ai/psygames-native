@@ -44,6 +44,35 @@ describe('лестница судоку и гейт уровней', () => {
     expect(пустые).toEqual([]);
   });
 
+  it('🔴 карточка «Судоку» на каждом языке называет ровно последнюю ступень', () => {
+    /**
+     * 🔴 02.10.2026: скрипт новых правил поднимал в подписи карточки ПЕРВОЕ число строки,
+     * а в японской «1つの盤 · 104段» первое число — «одна сетка». Четыре ветки подряд несли
+     * «116つの盤 · 104段», и ни одна проба этого не видела. Здесь в подписи на каждом языке
+     * допустимы только два числа: последняя ступень и «1».
+     */
+    const last = число('app/games/sudoku.tsx', 'SUDOKU_LAST_LEVEL');
+    const texts: Record<string, string> = {};
+    const ctx: string = fs.readFileSync(path.join(__dirname, '../contexts/LanguageContext.tsx'), 'utf8');
+    const base = /sudokuTypeClassic: \{ ru: '([^']*)',\s*en: '([^']*)'/.exec(ctx);
+    expect(base).not.toBeNull();
+    texts.ru = base![1];
+    texts.en = base![2];
+    const dir = path.join(__dirname, '../contexts/translations');
+    for (const f of fs.readdirSync(dir).filter((x: string) => x.endsWith('.ts'))) {
+      const m = /"sudokuTypeClassic": "([^"]*)"/.exec(fs.readFileSync(path.join(dir, f), 'utf8'));
+      if (m) texts[f.replace(/\.ts$/, '')] = m[1];
+    }
+    expect(Object.keys(texts).length).toBeGreaterThanOrEqual(12);
+    const wrong = Object.entries(texts)
+      .filter(([, t]) => {
+        const nums = (t.match(/\d+/g) || []).map(Number);
+        return !nums.includes(last) || nums.some((x) => x !== last && x !== 1);
+      })
+      .map(([lang, t]) => `${lang}: ${t}`);
+    expect(wrong).toEqual([]);
+  });
+
   it('🔴 верхний пояс не безымянный: у 81+ своя подпись', () => {
     /**
      * 🔴 СПРАШИВАЕМ ПОВЕДЕНИЕ, А НЕ ЛИТЕРАЛ В ЭКРАНЕ. До 23.09.2026 проба искала
