@@ -1,4 +1,4 @@
-/* psygames-tatham-bridge-play · VER 3 · 17.09.2026
+/* psygames-tatham-bridge-play · VER 4 · 01.10.2026 (psy_solve_explain — печать решателя для имени приёма)
  *
  * ИГРАБЕЛЬНЫЙ СЛОЙ: одна реализация — все сорок головоломок.
  *
@@ -329,6 +329,8 @@ EMSCRIPTEN_KEEPALIVE int psy_status(void) { return ПАРТИЯ ? midend_status(
  * протяжки считался ходом. Канон позицию наружу не отдаёт — геттер дописан заплатой в `build.sh`.
  */
 int psy_midend_statepos(midend *me);
+/** Подменить `me->aux_info` и вернуть прежнее (заплата midend.c в build_tatham*.sh). */
+char *psy_midend_swap_aux(midend *me, char *aux);
 EMSCRIPTEN_KEEPALIVE int psy_statepos(void) { return ПАРТИЯ ? psy_midend_statepos(ПАРТИЯ) : 0; }
 EMSCRIPTEN_KEEPALIVE int psy_undo(void) { return ПАРТИЯ && midend_can_undo(ПАРТИЯ) ? ход(midend_process_key(ПАРТИЯ, -1, -1, 'u')) : 0; }
 EMSCRIPTEN_KEEPALIVE int psy_redo(void) { return ПАРТИЯ && midend_can_redo(ПАРТИЯ) ? ход(midend_process_key(ПАРТИЯ, -1, -1, 'r')) : 0; }
@@ -342,4 +344,80 @@ EMSCRIPTEN_KEEPALIVE int psy_solve(void)
     if (!ПАРТИЯ || midend_solve(ПАРТИЯ) != NULL) return 0;
     ХОД_БЫЛ = 1;                 /* решение почти везде приезжает с анимацией */
     return 1;
+}
+
+/*
+ * 🔴 РЕШЕНИЕ С РАССУЖДЕНИЯМИ АВТОРА — ОТСЮДА БЕРЁТСЯ ИМЯ ПРИЁМА (задача 23773004).
+ *
+ * Разбор знает, ЧТО появилось на доске (разность кадров), но не ПОЧЕМУ. Почему — знает
+ * решатель автора и печатает это строками: «Clue full; setting unlit to IMPOSSIBLE»,
+ * «ruling out placement …». Нативная сборка перенаправляет его `printf` сюда (`psy_diag.h`
+ * + `-DSOLVER_DIAGNOSTICS`), и на время `midend_solve` мы эти строки ловим.
+ *
+ * ⚠️ ЛОВИМ ТОЛЬКО РЕШЕНИЕ. Генерация досок гоняет тот же решатель сотни раз и печатает
+ * столько же — без флага `ЛОВИМ` вызов возвращается сразу, даже не форматируя строку.
+ * В веб-сборке перенаправления нет: там вернётся пустая печать, и разбор останется без
+ * имён, как был.
+ */
+static char *ПЕЧАТЬ = NULL;
+static size_t печ_длина = 0, печ_ёмкость = 0;
+static int ЛОВИМ = 0;
+
+int psy_diag_vprintf(const char *fmt, va_list ap)
+{
+    int n;
+    char кусок[512];
+    if (!ЛОВИМ) return 0;
+    n = vsnprintf(кусок, sizeof кусок, fmt, ap);
+    if (n <= 0) return n;
+    if ((size_t)n >= sizeof кусок) n = (int)sizeof кусок - 1;
+    if (печ_длина + (size_t)n + 1 > печ_ёмкость) {
+        печ_ёмкость = (печ_длина + (size_t)n + 1) * 2;
+        ПЕЧАТЬ = sresize(ПЕЧАТЬ, печ_ёмкость, char);
+    }
+    memcpy(ПЕЧАТЬ + печ_длина, кусок, (size_t)n);
+    печ_длина += (size_t)n;
+    ПЕЧАТЬ[печ_длина] = '\0';
+    return n;
+}
+
+int psy_diag_printf(const char *fmt, ...)
+{
+    va_list ap; int n;
+    if (!ЛОВИМ) return 0;
+    va_start(ap, fmt);
+    n = psy_diag_vprintf(fmt, ap);
+    va_end(ap);
+    return n;
+}
+
+/** Решить и вернуть печать решателя строками. NULL — решения нет (как 0 у `psy_solve`). */
+EMSCRIPTEN_KEEPALIVE char *psy_solve_explain(void)
+{
+    const char *ошибка;
+    if (!ПАРТИЯ) return NULL;
+    печ_длина = 0;
+    if (ПЕЧАТЬ) ПЕЧАТЬ[0] = '\0';
+    /*
+     * 🔴 РЕШАЕМ БЕЗ ГОТОВОГО РЕШЕНИЯ. При генерации автор кладёт решение в `aux`, и почти
+     * каждый solve_game его просто отдаёт, НЕ рассуждая (dominosa.c:2612 `if (aux)`). Замер
+     * 01.10: с aux печать пришла у 1 движка из 9 — Light Up, единственного, кто решает сам.
+     * Поэтому aux на время решения убираем; движок, который без него не умеет (Untangle,
+     * Netslide), решаем с aux — тогда разбор без имён, как раньше.
+     */
+    ЛОВИМ = 1;
+    {
+        char *готовое = psy_midend_swap_aux(ПАРТИЯ, NULL);
+        ошибка = midend_solve(ПАРТИЯ);
+        psy_midend_swap_aux(ПАРТИЯ, готовое);
+    }
+    ЛОВИМ = 0;
+    if (ошибка != NULL) {
+        печ_длина = 0;
+        if (ПЕЧАТЬ) ПЕЧАТЬ[0] = '\0';
+        ошибка = midend_solve(ПАРТИЯ);
+    }
+    if (ошибка != NULL) return NULL;
+    ХОД_БЫЛ = 1;
+    return dupstr(ПЕЧАТЬ ? ПЕЧАТЬ : "");
 }
