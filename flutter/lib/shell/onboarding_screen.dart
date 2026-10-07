@@ -67,12 +67,11 @@ class OnboardingScreen extends StatelessWidget {
     return Column(
       children: [
         // Выход закреплён сверху (отчёт Дениса 03.09) — не прокручивается и не пропадает.
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-          decoration: BoxDecoration(border: Border(bottom: hair)),
-          child: Align(
-            alignment: AlignmentDirectional.centerStart,
+        // По ширине содержимого и по центру: у веба экран `alignItems: center`, полоса не тянется.
+        Center(
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(border: Border(bottom: hair)),
             child: Semantics(
               button: true,
               label: _s(m['exit']),
@@ -241,26 +240,31 @@ class OnboardingScreen extends StatelessWidget {
           ),
         ),
         // «Пропустить» прибито к низу экрана (отчёт 8f6557d8): второй, крупный выход у большого пальца.
-        Container(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-          decoration: BoxDecoration(
-            color: web.background,
-            border: Border(top: hair),
-          ),
-          child: GestureDetector(
-            key: const ValueKey('onboarding-skip-footer'),
-            onTap: busy ? null : () => _act('skipPicker'),
-            child: Container(
-              constraints: const BoxConstraints(minHeight: 48),
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: web.surface,
-                border: Border.all(color: web.border),
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: Text(
-                _s(m['exit']),
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: web.text),
+        // По ширине содержимого и по центру — как у веба (`alignItems: center` экрана).
+        Center(
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+            decoration: BoxDecoration(
+              color: web.background,
+              border: Border(top: hair),
+            ),
+            child: GestureDetector(
+              key: const ValueKey('onboarding-skip-footer'),
+              onTap: busy ? null : () => _act('skipPicker'),
+              child: Container(
+                height: 48,
+                decoration: BoxDecoration(
+                  color: web.surface,
+                  border: Border.all(color: web.border),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Center(
+                  widthFactor: 1,
+                  child: Text(
+                    _s(m['exit']),
+                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: web.text),
+                  ),
+                ),
               ),
             ),
           ),
