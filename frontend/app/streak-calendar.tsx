@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Redirect, useFocusEffect } from 'expo-router';
@@ -9,6 +9,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { isRTLLang } from '@/src/services/rtl';
 import { isWebDemo } from '@/src/services/buildTarget';
 import { goBackOrHome } from '@/src/utils/nav';
+import { postScreenModel, registerScreenActions } from '@/src/services/hostScreens';
 import {
   completedWarmupDateKeys,
   computeLongestStreak,
@@ -79,6 +80,23 @@ function StreakCalendarScreenBody() {
     return () => { active = false; };
   }, []));
 
+  /**
+   * 🔴 ПОД ОБОЛОЧКОЙ КАЛЕНДАРЬ РИСУЕТ FLUTTER (задача cd77367d, `services/hostScreens.ts`).
+   * Модель — та же раскладка, что ниже: клетки месяца, полоски серии, «сегодня», подписи для
+   * чтения вслух — посчитаны здесь теми же функциями. Месяц листает действие `month`.
+   */
+  const reload = useCallback(() => { loadWarmupHistory().then(setHistory); }, []);
+  useEffect(() => registerScreenActions('/streak-calendar', {
+    month: (delta: number) => setShownMonth((value) => {
+      const now = new Date();
+      const next = new Date(value.getFullYear(), value.getMonth() + (delta > 0 ? 1 : -1), 1);
+      // Вперёд дальше текущего месяца нельзя — как выключенная стрелка веба.
+      return next > new Date(now.getFullYear(), now.getMonth(), 1) ? value : next;
+    }),
+    back: () => goBackOrHome(),
+    refresh: reload,
+  }), [reload]);
+
   const locale = LOCALES[language] || 'en-US';
   const days = useMemo(() => new Set(completedWarmupDateKeys(history)), [history]);
   const cells = useMemo(() => monthCells(shownMonth), [shownMonth]);
@@ -96,6 +114,42 @@ function StreakCalendarScreenBody() {
   const moveMonth = (delta: number) => {
     setShownMonth((value) => new Date(value.getFullYear(), value.getMonth() + delta, 1));
   };
+
+  const todayKey = localDateKey(now);
+  const calendarModel = {
+    v: 1,
+    title: `🔥 ${t('streakCalendarTitle')}`,
+    primary: colors.primary,
+    labels: { back: t('a11yBack'), prev: t('streakPreviousMonth'), next: t('streakNextMonth') },
+    metrics: [
+      { emoji: '🔥', value: String(currentStreak), label: t('streakCurrent'), border: colors.border },
+      { emoji: '🏆', value: String(bestStreak), label: t('personalBest'), border: '#f97316' },
+      { emoji: '📅', value: String(days.size), label: t('streakTrainingDays'), border: colors.border },
+    ],
+    bestCaption: t('streakBestCaption'),
+    month: { title: monthTitle, canNext: !isCurrentMonth },
+    weekdays,
+    cells: cells.map((day, index) => {
+      if (day === null) return null;
+      const key = dateKey(shownMonth.getFullYear(), shownMonth.getMonth(), day);
+      const trained = days.has(key);
+      const column = index % 7;
+      const spokenDate = new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'long', year: 'numeric' })
+        .format(new Date(shownMonth.getFullYear(), shownMonth.getMonth(), day));
+      return {
+        day,
+        trained,
+        left: trained && column > 0 && days.has(shiftedDateKey(key, -1)),
+        right: trained && column < 6 && days.has(shiftedDateKey(key, 1)),
+        today: key === todayKey,
+        a11y: `${spokenDate}. ${t(trained ? 'streakTrainingDay' : 'streakNoTraining')}`,
+      };
+    }),
+    empty: days.size === 0 ? t('streakEmpty') : null,
+  };
+  // Шлём, только когда модель изменилась: экран лёгкий, а строка — простой и честный ключ.
+  const calendarKey = JSON.stringify(calendarModel);
+  useEffect(() => { postScreenModel('/streak-calendar', JSON.parse(calendarKey)); }, [calendarKey]);
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>

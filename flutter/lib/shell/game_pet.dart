@@ -72,8 +72,22 @@ class GamePet extends StatefulWidget {
   /// Включён ли питомец у человека. Ключ общий с веб-половиной.
   static bool enabled(SharedState s) => s.get('${SharedState.prefix}pet_on') != 'false';
 
-  /// Выбранный облик: кот по умолчанию, как и в вебе.
-  static String skin(SharedState s) => s.get('${SharedState.prefix}pet_skin') ?? 'cat';
+  /// Выбранный облик — `getPetSkinChoice` + `resolvePetSkin` веба: робот и созвездие как есть,
+  /// всё прочее — кот. ⚠️ Выбор `auto` (эволюция по стадии) тоже значит кот: в путь он шёл
+  /// как есть, и `/assets/images/pet/auto/…` давал пустой кружок (замер 07.10.2026).
+  static String skin(SharedState s) {
+    final v = s.get('${SharedState.prefix}pet_skin');
+    return v == 'robot' || v == 'constellation' ? v! : 'cat';
+  }
+
+  /// Кадр по исходному имени веба — сервер раздачи найдёт его без хеша экспорта
+  /// (`AssetServer.unhashedIndex`).
+  static String frameUrl(String origin, SharedState s, PetMood mood) =>
+      '$origin/assets/images/pet/${skin(s)}/${_look[mood]}0.webp';
+
+  @visibleForTesting
+  static List<String> frameUrlsForTest(SharedState s) =>
+      [for (final m in PetMood.values) frameUrl('http://127.0.0.1', s, m)];
 
   @override
   State<GamePet> createState() => _GamePetState();
@@ -98,8 +112,7 @@ class _GamePetState extends State<GamePet> {
   @override
   Widget build(BuildContext context) {
     if (!GamePet.enabled(widget.state)) return const SizedBox.shrink();
-    final look = _look[_shown]!;
-    final url = '${widget.origin}/assets/images/pet/${GamePet.skin(widget.state)}/${look}0.webp';
+    final url = GamePet.frameUrl(widget.origin, widget.state, _shown);
     return Container(
       width: widget.size,
       height: widget.size,

@@ -51,6 +51,8 @@ Future<void> main() async {
   await GameRules.load();   // правила игр — из того же реестра, что карточки развилок
   await LevelRules.load();  // правила УРОВНЕЙ — до первого экрана, иначе шапка не узнает о правиле
   final server = await AssetServer.start();
+  // iOS отбирает слушающий сокет у приложения в фоне — при возврате сервер встаёт заново (TN2277).
+  server.reviveOnResume();
   // Приложение ушло в фон — часы партии стоят (как скрытая вкладка в вебе), задача 430d1299.
   installGameClockLifecycle();
   runApp(PsyGamesPilotApp(state: state, server: server));
