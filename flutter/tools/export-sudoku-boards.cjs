@@ -563,8 +563,10 @@ if (!args['no-rules']) {
         if (val !== sol[r][c]) {
           const placed = g.map((row) => row.slice());
           placed[r][c] = val;
-          const why = core.rejectionReason(placed, r, c, val, N, BR, BC, variant, 'ru', {
+          // Киллер — режим без варианта с клетками-суммами: экран веба зовёт причину с 'none'.
+          const why = core.rejectionReason(placed, r, c, val, N, BR, BC, killer ? 'none' : variant, 'ru', {
             regions: extras.regions, thermo: extras.thermo, arrow: extras.arrow, cages: extras.cages,
+            sandwich: extras.sandwich,
             unequal: extras.unequal, towers: extras.towers, parity: extras.parity, kropki: extras.kropki,
             whisper: extras.whisper, renban: extras.renban, regionsum: extras.regionsum,
             palindrome: extras.palindrome, between: extras.between, lockout: extras.lockout, xv: extras.xv,

@@ -3,10 +3,13 @@
 /// 🔴 ПОВОД — три ночных отчёта Вали 22.08 («удаляю программу»): неверная цифра оставалась в
 /// клетке без объяснения, рос только счётчик (сверка «веб против натива» 138f7818, строка 122).
 ///
-/// Три честных ответа, как у веба:
-///   1. нарушено БАЗОВОЕ правило (строка, столбец, квадрат) — молчим: конфликт человек видит сам;
+/// Три честных ответа, как у веба (сверка бит в бит — эталон `sudoku-rules-reference.json`, поле
+/// `why` у неверных ходов, выгрузка живого `rejectionReason`):
+///   1. нарушено БАЗОВОЕ правило (строка, столбец, квадрат; у «кривых блоков» — их ОБЛАСТЬ, не
+///      квадрат 3×3, которого на доске нет) — молчим: конфликт человек видит сам;
 ///   2. ДОКАЗУЕМО нарушено правило варианта (включая показанные подсказки — метки чётности,
-///      точки, линии: натив держит их в той же `isValid`) — называем именно его;
+///      точки, суммы сэндвича, линии: натив держит их в той же `isValid`) — называем именно его;
+///      у режима «Киллер» — правило киллера;
 ///   3. доказать вину нечем — так и говорим: конфликт не местный, смотри строку, столбец и
 ///      квадрат целиком. ⚠️ Первая редакция веба тут винила вариант — замер 22.08: ложных
 ///      обвинений в сэндвиче 100 %, кропки 95,7 %, термометре 95,2 %. Уверенно неправильное
@@ -24,13 +27,14 @@ const sudokuRuleKeys = <String>[
   'sudokuRuleUnequal', 'sudokuRuleTowers', 'sudokuRuleSandparity', 'sudokuRuleThermoknight',
   'sudokuRuleKillerdiag', 'sudokuRuleWhisper', 'sudokuRuleRenban', 'sudokuRuleRegionsum',
   'sudokuRulePalindrome', 'sudokuRuleBetween', 'sudokuRuleLockout', 'sudokuRuleXv',
-  'sdkRule_friends', 'sudokuWhyNotLocal',
+  'sdkRule_friends', 'sudokuKillerRule', 'sudokuWhyNotLocal',
 ];
 
 /// Ключ полного правила варианта; null — у варианта правила в словаре нет.
 String? variantRuleKey(String variant) {
   if (variant == 'none') return null;
   if (variant == 'friends') return 'sdkRule_friends';   // как у веба: одна строка «🐱 рядом с 🐭»
+  if (variant == 'killer') return 'sudokuKillerRule';   // режим «Киллер»: у веба вариант 'none' + группы
   final key = 'sudokuRule${variant[0].toUpperCase()}${variant.substring(1)}';
   return sudokuRuleKeys.contains(key) ? key : null;
 }
@@ -50,9 +54,15 @@ String? rejectionKey(
 }) {
   final test = [for (final row in grid) [...row]];
   test[r][c] = 0;
-  // 1. Базовое правило — тот же вызов, что `isValid(..., 'none')` веба.
-  if (!isValid(test, r, c, v, n, br, bc)) return null;
-  // 2. Правило варианта нарушено доказуемо — называем его.
+  // 1. Базовое правило. У «кривых блоков» база — строка, столбец и ОБЛАСТЬ (07.10: веб сверял
+  //    стандартный квадрат 3×3 и молчал на конфликте в квадрате, которого на доске нет).
+  final base = variant == 'jigsaw'
+      ? isValid(test, r, c, v, n, br, bc, variant: 'jigsaw', geometry: BoardGeometry(regions: geometry?.regions))
+      : isValid(test, r, c, v, n, br, bc);
+  if (!base) return null;
+  // 2. Правило варианта нарушено доказуемо — называем его; `isValid` с геометрией держит и
+  //    показанные подсказки (`overlayOk`). Киллер у натива — вариант 'killer' (у веба — 'none' с
+  //    группами; ответ один и тот же — `sudokuKillerRule`, сверено эталоном).
   if (variant != 'none' && !isValid(test, r, c, v, n, br, bc, variant: variant, geometry: geometry)) {
     return variantRuleKey(variant) ?? 'sudokuWhyNotLocal';
   }
