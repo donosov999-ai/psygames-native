@@ -3525,6 +3525,7 @@ const translations: Translations = {
   sudokuVariantLittlekiller: { ru: '↘ малый киллер', en: '↘ little killer' },
   sudokuVariantXsums: { ru: '∑ X-суммы', en: '∑ X-sums' },
   sudokuVariantCipher: { ru: 'Ⓐ шифр', en: 'Ⓐ cipher' },
+  sudokuVariantFog: { ru: '☁ туман', en: '☁ fog' },
   sudokuVariantArrow: { ru: '➳ стрелка', en: '➳ arrow' },
   sudokuVariantThermocage: { ru: '🌡+ сумма', en: '🌡+ cage' },
   sudokuVariantTowers: { ru: '🏙 небоскрёбы', en: '🏙 towers' },
@@ -3578,6 +3579,7 @@ const translations: Translations = {
   sudokuRuleLittlekiller: { ru: 'Число со стрелкой снаружи доски — сумма цифр на диагонали, куда смотрит стрелка. Цифры на этой диагонали могут повторяться.', en: 'A number with an arrow outside the grid is the sum of the digits along the diagonal it points to. Digits may repeat along that diagonal.' },
   sudokuRuleXsums: { ru: 'Число у края строки или столбца — сумма первых X цифр с этой стороны, где X — первая из них (она тоже входит в сумму).', en: 'A number at the edge of a row or column is the sum of the first X digits from that side, where X is the first of those digits (it counts too).' },
   sudokuRuleCipher: { ru: 'Часть подсказок показана буквами. Одинаковые буквы — одинаковые цифры, разные буквы — разные цифры. Код выводится вместе с доской.', en: 'Some clues are shown as letters. The same letter is always the same digit, different letters are different digits. Work out the code along with the grid.' },
+  sudokuRuleFog: { ru: 'Доска под туманом. Верная цифра в открытой клетке — подсказка или ваш ход — расчищает клетки прямо над ней, под ней, слева и справа. Неверная цифра не расчищает ничего.', en: 'The grid is covered in fog. A correct digit in an open cell — a given or yours — clears the cells directly above, below, left and right of it. A wrong digit clears nothing.' },
   // Нативные экраны раздела «Судоку» (Flutter): полоса счётчиков, кнопки, имена правил без значков.
   sdkHudStage: { ru: 'Ступень', en: 'Stage' },
   sdkNextLevel: { ru: 'Следующий уровень', en: 'Next level' },
@@ -3623,6 +3625,7 @@ const translations: Translations = {
   sdkRule_littlekiller: { ru: 'малый киллер', en: 'little killer' },
   sdkRule_xsums: { ru: 'X-суммы', en: 'X-sums' },
   sdkRule_cipher: { ru: 'шифр', en: 'cipher' },
+  sdkRule_fog: { ru: 'туман', en: 'fog' },
   // Части имён ступеней Тэтхэма для нативной полосы «Доска» ({n} — число или размер).
   tathamDiffEasy: { ru: 'лёгкая', en: 'easy' },
   tathamDiffNormal: { ru: 'обычная', en: 'normal' },
