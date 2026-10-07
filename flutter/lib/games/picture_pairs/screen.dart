@@ -958,13 +958,13 @@ class _Ready extends StatelessWidget {
                       showSelectedIcon: false,
                       onSelectionChanged: (v) => onGroup(v.first),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 8),
                     Text(group == 3 ? L.t('pairsTriplesCount') : L.t('pairsCount'), style: text.titleSmall),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 4),
                     _pairsChips(),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 8),
                     Text(L.t('pairsBotMemory'), style: text.titleSmall),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 4),
                     SegmentedButton<PairsBotLevel>(
                       key: const Key('pp-bot'),
                       segments: [
@@ -984,7 +984,9 @@ class _Ready extends StatelessWidget {
                       textAlign: TextAlign.center,
                       style: text.bodySmall,
                     ),
-                    const SizedBox(height: 16),
+                    // Отступы «Дуэли» плотнее остальных режимов: с выбором «пары/тройки» у неё три
+                    // группы выбора, и на 360×640 настройки уходили за 1,1 экрана (замер 07.10: 68 пт).
+                    const SizedBox(height: 8),
                   ] else if (mode == PairsMode.levels) ...[
                     Text(
                       '${L.t('pairsLvlPairs').replaceAll('{n}', '${cfg.pairs}')} · '
