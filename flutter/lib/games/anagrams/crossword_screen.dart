@@ -12,19 +12,19 @@ import 'crossword.dart';
 import 'crossword_board.dart';
 import 'model.dart';
 import 'teach.dart';
+import 'word_lang.dart';
 
 /// Экран «Кроссворд» — третий режим анаграмм.
 ///
 /// Слова из одного набора букв вписаны в сетку и пересекаются: открытая буква —
 /// половина соседнего слова. Порядок свободный, лимита времени нет.
-///
-/// ⚠️ Перехват в гибриде не включается, пока не готов четвёртый режим:
-/// `HybridApp.routeOf` срезает `?query`, и одна строка карты накрыла бы их разом.
 class CrosswordScreen extends StatefulWidget {
-  const CrosswordScreen({super.key, required this.state, this.locale = 'ru'});
+  const CrosswordScreen({super.key, required this.state, this.locale});
 
   final SharedState state;
-  final String locale;
+
+  /// Язык слов. Не задан — [anagramWordLang]; пробы задают его явно.
+  final String? locale;
 
   @override
   State<CrosswordScreen> createState() => _CrosswordScreenState();
@@ -32,6 +32,7 @@ class CrosswordScreen extends StatefulWidget {
 
 class _CrosswordScreenState extends State<CrosswordScreen> {
   late LevelLadder _ladder;
+  late final String _lang = widget.locale ?? anagramWordLang(widget.state, AnagramMode.cross);
   WordBank? _bank;
   Crossword? _cw;
   List<String> _letters = const [];
@@ -51,7 +52,7 @@ class _CrosswordScreenState extends State<CrosswordScreen> {
 
   Future<void> _boot() async {
     await _ladder.load();
-    final bank = await WordBank.load(widget.locale);
+    final bank = await WordBank.load(_lang);
     if (!mounted) return;
     setState(() {
       _bank = bank;
@@ -238,6 +239,7 @@ class _CrosswordScreenState extends State<CrosswordScreen> {
       ),
       pauseActions: [
         PauseAction(label: L.t('shuffleBtn'), icon: Icons.shuffle, onPressed: _shuffle),
+        anagramWordLangAction(context, widget.state, AnagramMode.cross, _lang),
       ],
     );
   }
