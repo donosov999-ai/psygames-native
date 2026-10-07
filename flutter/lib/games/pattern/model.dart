@@ -605,44 +605,41 @@ double cellHeight(double font) => font >= 24 ? 64 : (font >= 20 ? 56 : 48);
 
 // ────────────────────────── Подписи классов и правил ─────────────────────────
 //
-// Перенос русских строк из словаря веб-версии (LanguageContext, patternClass*/
-// patternRule*) — не сочинение заново: подсказка обязана звучать теми же словами,
-// что в нынешнем приложении, иначе игрок увидит два разных объяснения одного ряда.
+// Подписи — КЛЮЧИ общего словаря (LanguageContext, patternClass*/patternRule*): экран зовёт
+// `L.t(seq.classKey)` и `fillParams(L.t(seq.ruleKey), seq.ruleParams)`, и подсказка звучит
+// теми же словами, что в вебе, — на языке игрока (задача 4b6f863e; раньше здесь лежали
+// русские копии, и англичанин видел правило по-русски). Ключ берётся ИЗ ДАННЫХ ряда,
+// поэтому все ключи перечислены списком: его читает сборщик словаря
+// (`flutter/tools/embed-l10n.mjs`), иначе ключ не попал бы в assets/l10n.
 // Плейсхолдеры {a}/{b}/{c}/{n} заполняются числами правила (`ruleParams`).
-
-const Map<String, String> patternClassRu = {
-  'patternClassArithmetic': 'Арифметическая прогрессия',
-  'patternClassGeometric': 'Геометрическая прогрессия',
-  'patternClassSquares': 'Квадраты чисел',
-  'patternClassCubes': 'Кубы чисел',
-  'patternClassSquaresCubes': 'Квадраты и кубы',
-  'patternClassFibonacci': 'Похоже на Фибоначчи',
-  'patternClassGrowingDiff': 'Растущая разность',
-  'patternClassLookSay': '«Посмотри и скажи»',
-  'patternClassLookSayHint': '«Посмотри и скажи» (нужна подсказка)',
-  'patternClassInterleaved': 'Два переплетённых ряда',
-  'patternClassLinear': 'Умножь и прибавь',
-  'patternClassTwoOps': 'Два действия по очереди',
-  'patternClassInterMixed': 'Два разных ряда через один',
-  'patternClassSignFlip': 'Знак меняется каждый шаг',
-  'patternClassMixed': 'Любой из трудных рядов — числа растут с уровнем',
-};
-
-const Map<String, String> patternRuleRu = {
-  'patternRuleArithmetic': 'Каждый член больше на {n}',
-  'patternRuleGeometric': 'Каждый член умножается на {n}',
-  'patternRuleSquares': 'n²: {a}², {b}², {c}², …',
-  'patternRuleCubes': 'n³: {a}³, {b}³, …',
-  'patternRuleFibonacci': 'Сумма двух предыдущих',
-  'patternRuleGrowingDiff': 'Разность растёт на 1 каждый шаг ({a}, {b}, …)',
-  'patternRuleLookSay': 'Читай предыдущий вслух: «один 1» → 11, «два 1 один 2» …',
-  'patternRuleInterleaved':
-      'Позиции 1,3,5… растут на {a}; позиции 2,4… на {b}. Нужна следующая нечётная',
-  'patternRuleLinear': 'Каждое число — предыдущее × {a}, потом {b}',
-  'patternRuleTwoOps': 'Действия чередуются: {a}, потом {b}, снова {a}…',
-  'patternRuleInterMixed':
-      'Позиции 1,3,5…: каждый раз {a}; позиции 2,4…: {b}. Нужна следующая нечётная',
-};
+const patternLabelKeys = <String>[
+  'patternClassArithmetic',
+  'patternClassGeometric',
+  'patternClassSquares',
+  'patternClassCubes',
+  'patternClassSquaresCubes',
+  'patternClassFibonacci',
+  'patternClassGrowingDiff',
+  'patternClassLookSay',
+  'patternClassLookSayHint',
+  'patternClassInterleaved',
+  'patternClassLinear',
+  'patternClassTwoOps',
+  'patternClassInterMixed',
+  'patternClassSignFlip',
+  'patternClassMixed',
+  'patternRuleArithmetic',
+  'patternRuleGeometric',
+  'patternRuleSquares',
+  'patternRuleCubes',
+  'patternRuleFibonacci',
+  'patternRuleGrowingDiff',
+  'patternRuleLookSay',
+  'patternRuleInterleaved',
+  'patternRuleLinear',
+  'patternRuleTwoOps',
+  'patternRuleInterMixed',
+];
 
 String fillParams(String template, Map<String, Object>? params) {
   if (params == null) return template;

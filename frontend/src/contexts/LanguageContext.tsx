@@ -3709,10 +3709,10 @@ const translations: Translations = {
   patternClassInterleaved: { ru: 'Два переплетённых ряда', en: 'Two interleaved series' },
   patternRuleArithmetic: { ru: 'Каждый член больше на {n}', en: 'Each term +{n}' },
   patternRuleGeometric: { ru: 'Каждый член умножается на {n}', en: 'Each term ×{n}' },
-  patternRuleSquares: { ru: 'n²: {a}², {b}², {c}², …', en: 'n²: {a}², {b}², …' },
+  patternRuleSquares: { ru: 'n²: {a}², {b}², {c}², …', en: 'n²: {a}², {b}², {c}², …' },
   patternRuleCubes: { ru: 'n³: {a}³, {b}³, …', en: 'n³: {a}³, {b}³, …' },
   patternRuleFibonacci: { ru: 'Сумма двух предыдущих', en: 'Sum of the previous two' },
-  patternRuleGrowingDiff: { ru: 'Разность растёт на 1 каждый шаг ({a}, {b}, …)', en: 'Difference grows by 1 each step' },
+  patternRuleGrowingDiff: { ru: 'Разность растёт на 1 каждый шаг ({a}, {b}, …)', en: 'Difference grows by 1 each step ({a}, {b}, …)' },
   patternRuleLookSay: { ru: 'Читай предыдущий вслух: «один 1» → 11, «два 1 один 2» …', en: 'Read the previous term aloud: "one 1" → 11' },
   patternRuleInterleaved: { ru: 'Позиции 1,3,5… растут на {a}; позиции 2,4… на {b}. Нужна следующая нечётная', en: 'Odd positions +{a}, even +{b}' },
   patternClassLinear: { ru: 'Умножь и прибавь', en: 'Multiply, then add' },
@@ -4829,7 +4829,7 @@ const translations: Translations = {
   ospanResultFail: { ru: 'Промахов {n} — уровень берётся только за чистое вспоминание', en: '{n} slips — a level counts only with a perfect recall' },
   ospanRecallPrompt: { ru: 'Назови буквы по порядку — их {n}', en: 'Name the letters in order — there are {n}' },
   ospanYouSaid: { ru: 'ты назвал: {x}', en: 'you entered: {x}' },
-  trkPreview: { ru: 'Запомни отмеченные шарики — их {n}', en: 'Remember the marked balls — there are {n}' },
+  trkPreview: { ru: 'Запомни отмеченные шарики — их {n}', en: 'Remember the marked balls: {n}' },
   trkMoving: { ru: 'Следи за ними взглядом', en: 'Follow them with your eyes' },
   trkSelect: { ru: 'Отметь те, за которыми следил', en: 'Mark the ones you followed' },
   trkResultWin: { ru: 'Верно {hits} из {total}, лишних {extra}', en: '{hits} of {total} correct, {extra} extra' },
@@ -4874,6 +4874,8 @@ const translations: Translations = {
   sliderConfirm: { ru: 'Подтвердить', en: 'Confirm' },
   sliderTrainingNote: { ru: 'Тренировка — эта попытка не сохраняется', en: 'Practice — this try isn’t saved' },
   sliderMarkerA11y: { ru: 'маркер, оценка {x}', en: 'marker, estimate {x}' },
+  // «Счёт» — подписи нативного экрана «Паттерны» (задача 4b6f863e, 02.10.2026)
+  patResultWin: { ru: 'Уровень взят: {p}% верных, звёзд {stars}', en: 'Level cleared: {p}% correct, {stars} stars' },
   // >>> SCREEN_STRINGS
 };
 

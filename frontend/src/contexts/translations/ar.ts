@@ -3595,5 +3595,6 @@ const t: Record<string, string> = {
   "lr_kids_sort_switches_title": "القاعدة تعود",
   "lr_kids_sort_switches_rule": "من الآن تتغير القاعدة أكثر من مرة: اللون، ثم الشكل، ثم اللون من جديد. وفي كل مرة العلامة الوحيدة هي ✗ حيث كنت محقًا قبل لحظة.",
   "lr_kids_sort_switches_example": "مثال: ترتّب حسب الشكل فتحصل على ✓ ✓ ✓ ثم ✗: عُد إلى اللون.",
+  "patResultWin": "اجتزت المستوى: {p}% صحيحة، {stars} نجوم",
 };
 export default t;

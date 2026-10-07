@@ -3593,5 +3593,6 @@ const t: Record<string, string> = {
   "lr_kids_sort_switches_title": "ルールがもどってくる",
   "lr_kids_sort_switches_rule": "ここからはルールが何回も変わるよ。色、つぎに形、そしてまた色。しるしは毎回ひとつだけ — さっきまで正しかったところに ✗ が出ること。",
   "lr_kids_sort_switches_example": "たとえば：形で分けていて ✓ ✓ ✓ のあとに ✗ が出たら、色にもどそう。",
+  "patResultWin": "レベルクリア：正答率 {p}%、星 {stars}",
 };
 export default t;

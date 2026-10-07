@@ -3422,7 +3422,7 @@ const t: Record<string, string> = {
   "ospanResultFail": "{n} errori — il livello vale solo con un ricordo perfetto",
   "ospanRecallPrompt": "Di’ le lettere in ordine: sono {n}",
   "ospanYouSaid": "hai scritto: {x}",
-  "trkPreview": "Ricorda le palline segnate: sono {n}",
+  "trkPreview": "Ricorda le palline segnate: {n}",
   "trkMoving": "Seguile con lo sguardo",
   "trkSelect": "Segna quelle che hai seguito",
   "trkResultWin": "{hits} su {total} giuste, {extra} in più",
@@ -3594,5 +3594,6 @@ const t: Record<string, string> = {
   "lr_kids_sort_switches_title": "La regola ritorna",
   "lr_kids_sort_switches_rule": "Da ora la regola cambia più di una volta: colore, poi forma, poi di nuovo colore. Ogni volta l'unico segnale è una ✗ dove un attimo prima avevi ragione.",
   "lr_kids_sort_switches_example": "Esempio: dividi per forma, ✓ ✓ ✓, poi una ✗: torna al colore.",
+  "patResultWin": "Livello superato: {p}% di risposte giuste, {stars} stelle",
 };
 export default t;

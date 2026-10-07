@@ -3594,5 +3594,6 @@ const t: Record<string, string> = {
   "lr_kids_sort_switches_title": "규칙이 돌아와요",
   "lr_kids_sort_switches_rule": "이제부터 규칙은 여러 번 바뀌어요. 색깔, 그다음 모양, 그리고 다시 색깔. 신호는 매번 하나뿐이에요 — 방금까지 맞았던 곳에 나오는 ✗.",
   "lr_kids_sort_switches_example": "예: 모양으로 나누다가 ✓ ✓ ✓ 다음에 ✗ 가 나오면 색깔로 돌아가요.",
+  "patResultWin": "레벨 통과: 정답률 {p}%, 별 {stars}개",
 };
 export default t;

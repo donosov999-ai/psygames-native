@@ -3594,5 +3594,6 @@ const t: Record<string, string> = {
   "lr_kids_sort_switches_title": "La règle revient",
   "lr_kids_sort_switches_rule": "Désormais la règle change plus d'une fois : couleur, puis forme, puis de nouveau couleur. À chaque fois, le seul signe est un ✗ là où tu avais juste un instant plus tôt.",
   "lr_kids_sort_switches_example": "Exemple : tu tries par forme, ✓ ✓ ✓, puis un ✗ : reviens à la couleur.",
+  "patResultWin": "Niveau réussi : {p} % de bonnes réponses, {stars} étoiles",
 };
 export default t;

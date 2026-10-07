@@ -3430,7 +3430,7 @@ const t: Record<string, string> = {
   "ospanResultFail": "{n} चूक — स्तर तभी गिना जाता है जब सब बिना गलती याद हो",
   "ospanRecallPrompt": "अक्षर क्रम से बताइए — कुल {n} हैं",
   "ospanYouSaid": "आपने लिखा: {x}",
-  "trkPreview": "चिह्नित गेंदें याद रखिए — कुल {n} हैं",
+  "trkPreview": "चिह्नित गेंदें याद रखिए: {n}",
   "trkMoving": "उन्हें नज़रों से देखते रहिए",
   "trkSelect": "जिनका पीछा किया, उन्हें चिह्नित कीजिए",
   "trkResultWin": "{total} में से {hits} सही, {extra} अतिरिक्त",
@@ -3602,5 +3602,6 @@ const t: Record<string, string> = {
   "lr_kids_sort_switches_title": "नियम लौट आता है",
   "lr_kids_sort_switches_rule": "अब से नियम एक से ज़्यादा बार बदलेगा: रंग, फिर आकार, फिर दोबारा रंग। हर बार एक ही संकेत है — ✗ वहाँ, जहाँ अभी-अभी सही था।",
   "lr_kids_sort_switches_example": "उदाहरण: तुम आकार से छाँट रहे हो, ✓ ✓ ✓, फिर ✗: वापस रंग पर जाओ।",
+  "patResultWin": "स्तर पूरा: {p}% सही, {stars} सितारे",
 };
 export default t;

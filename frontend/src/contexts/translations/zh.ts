@@ -3599,5 +3599,6 @@ const t: Record<string, string> = {
   "lr_kids_sort_switches_title": "规则会变回来",
   "lr_kids_sort_switches_rule": "从现在起，规则会变不止一次：先颜色，再形状，再回到颜色。每次唯一的信号都是：刚才还对的地方出现了 ✗。",
   "lr_kids_sort_switches_example": "例如：你按形状分，✓ ✓ ✓，然后出现 ✗：回到颜色。",
+  "patResultWin": "过关：正确率 {p}%，{stars} 颗星",
 };
 export default t;
