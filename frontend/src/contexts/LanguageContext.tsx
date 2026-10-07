@@ -2378,6 +2378,7 @@ const translations: Translations = {
   puzzleSecondNoTrack: { ru: 'Нет рельсов', en: 'No track' },
   puzzleSecondNoBridge: { ru: 'Нет моста', en: 'No bridge' },
   puzzleSecondToPrev: { ru: 'К предыдущей', en: 'To previous' },
+  puzzleSecondWhite: { ru: 'Белая', en: 'White' },   // Unruly: правая кнопка автора — пустая → белая → чёрная (unruly.c, interpret_move)
   puzzleNextStep: { ru: 'Следующий шаг', en: 'Next step' },
   // Имена приёмов учителя головоломок Тэтхэма (flutter/lib/games/puzzles/techniques.dart): приём по смыслу, общий для всех игр.
   teachLogicClueFull: { ru: 'Число уже набрано — остальным клеткам этой подсказки ничего не достаётся.', en: 'The number is already reached — the clue\'s other cells get nothing.' },

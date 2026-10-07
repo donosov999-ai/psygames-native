@@ -2922,6 +2922,7 @@ const t: Record<string, string> = {
   "puzzleSecondNoTrack": "線路なし",
   "puzzleSecondNoBridge": "橋なし",
   "puzzleSecondToPrev": "前のマスへ",
+  "puzzleSecondWhite": "白",
   "puzzleNextStep": "次の手",
   "teachLogicClueFull": "数字はもう満たされています。このヒントの残りのマスには何も入りません。",
   "teachLogicClueNeedsAll": "ヒントが求める数は残りの空きマスの数とちょうど同じです。だから全部埋まります。",

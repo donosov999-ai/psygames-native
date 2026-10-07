@@ -2923,6 +2923,7 @@ const t: Record<string, string> = {
   "puzzleSecondNoTrack": "Nessun binario",
   "puzzleSecondNoBridge": "Nessun ponte",
   "puzzleSecondToPrev": "Al precedente",
+  "puzzleSecondWhite": "Bianca",
   "puzzleNextStep": "Passo successivo",
   "teachLogicClueFull": "Il numero è già raggiunto: le altre caselle di questo indizio non ricevono nulla.",
   "teachLogicClueNeedsAll": "L'indizio richiede esattamente tante quante sono le caselle libere rimaste: quindi sono tutte occupate.",
