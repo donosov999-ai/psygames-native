@@ -66,6 +66,9 @@ void main() {
     for (final b in boards) {
       final variant = b['variant'] as String;
       if (variant == 'none' || variant == 'jigsaw') continue;   // своего правила сверх блока нет
+      // Туман (137–140) правило ДОПУСТИМОСТИ цифр не меняет — он закрывает клетки; эталон
+      // тумана проверяет перенос («ответ совпадает с живым TS»), а не разборчивость.
+      if (variant == 'fog') continue;
       final n = (b['n'] as num).toInt(), br = (b['br'] as num).toInt(), bc = (b['bc'] as num).toInt();
       final grid = (b['grid'] as List).map((row) => (row as List).cast<num>().map((x) => x.toInt()).toList()).toList();
       var byRule = 0;
