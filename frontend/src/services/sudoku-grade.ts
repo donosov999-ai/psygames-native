@@ -1640,6 +1640,9 @@ export function markerDensity(level: number, variant: Variant): number {
    *     полоса 2..3 при 0.19 дала 0 попаданий из 8 (сплошные единицы) — копатель
    *     откатывал каждое выкалывание, будившее цепочку (tier > max).
    */
+  // Лестница (уровни 9+, блок неравенств 153+ по письму 2d8320ed): доля по месту в четвёрке блока —
+  // от щедрой 0.30 к скупой 0.15, тем же приёмом «техника та же, мест меньше». Ключи 1..8 — режим.
+  if (variant === 'unequal' && level > 8) return [0.30, 0.24, 0.19, 0.15][bandPos(level)] as number;
   if (variant === 'unequal') return [0.15, 0.15, 0.30, 0.30, 0.24, 0.24, 0.19, 0.19][Math.min(7, Math.max(0, level - 1))];
   return 1;
 }
@@ -1732,7 +1735,7 @@ export type GeneratedPuzzle = ReturnType<typeof generatePuzzle>;
  * refilter; если конкретная попытка не укладывается в бюджет, generateLogical всё
  * равно сохраняет прежний безопасный fallback через проверку единственности.
  */
-const LOGIC_VARIANTS: readonly Variant[] = ['none', 'diagonal', 'antiknight', 'hyper', 'antiking', 'evenodd', 'kropki', 'sandwich', 'jigsaw', 'nonconsec', 'thermo', 'arrow', 'thermocage', 'sandparity', 'thermoknight', 'killerdiag', 'whisper', 'renban', 'regionsum', 'palindrome', 'between', 'lockout', 'xv', 'argyle', 'littlekiller', 'xsums', 'cipher', 'killer'];
+const LOGIC_VARIANTS: readonly Variant[] = ['none', 'diagonal', 'antiknight', 'hyper', 'antiking', 'evenodd', 'kropki', 'sandwich', 'jigsaw', 'nonconsec', 'thermo', 'arrow', 'thermocage', 'sandparity', 'thermoknight', 'killerdiag', 'whisper', 'renban', 'regionsum', 'palindrome', 'between', 'lockout', 'xv', 'argyle', 'littlekiller', 'xsums', 'cipher', 'killer', 'towers', 'unequal'];
 
 /**
  * Сколько раз проходим доску, пытаясь убрать ещё клетку. Больше трёх бюджет обычно
@@ -1801,7 +1804,9 @@ function digByLogic(
   level: number, blanksCap: number, N: number, BR: number, BC: number, variant: Variant, deadline: number,
   tierMax?: number, digCap?: number,
 ): { gen: GeneratedPuzzle; grade: Grade; dug: number } | null {
-  const base = generatePuzzle(0, N, BR, BC, variant);   // blanks=0 → только решение и структура варианта
+  // Неравенства: знаки прорежены ДО копания (overlayThinner) — полный набор из 144 решает доску сам
+  // (замер 26.08: 58 пустых при всех знаках). Копаем тем, что увидит человек.
+  const base = generatePuzzle(0, N, BR, BC, variant, variant === 'unequal' ? overlayThinner(level, variant, N) : undefined);   // blanks=0 → только решение и структура варианта
   const sol = base.solution;
   // Шифр: копаем по цифрам, а мерим задачу игрока — подсказки на клетках-буквах там буквы. Сетка
   // букв — с полной доски (blanks=0: каждая клетка-буква ещё подсказка).
@@ -2647,7 +2652,7 @@ function generateSchrodinger(
 
 export function generateLogical(
   level: number, blanksCap: number, N: number, BR: number, BC: number, variant: Variant,
-  opts: { budgetMs?: number; tier?: { min: number; max: number }; digCap?: number; fogSeeds?: number } = {},
+  opts: { budgetMs?: number; tier?: { min: number; max: number }; digCap?: number; fogSeeds?: number; logic?: boolean } = {},
 ): { gen: GeneratedPuzzle; grade: Grade; dug: number; fellBack: boolean; budgetSpent: boolean } {
   if (variant === 'fog') return generateFog(level, blanksCap, N, BR, BC, opts);
   if (variant === 'chaos') return generateChaos(level, blanksCap, N, BR, BC, opts);
@@ -2669,7 +2674,9 @@ export function generateLogical(
     : monotonicBandForLevel(level);              // лестница обещает не меньше, чем уровнем раньше
   const dist = (t: number) => (t < min ? min - t : t > max ? t - max : 0);
 
-  if (LOGIC_VARIANTS.includes(variant)) {
+  // logic: false — путь как до логического (режим «Неравенства» держит свою мини-лестницу им: 08.10
+  // небоскрёбы и неравенства ушли в LOGIC_VARIANTS ради лестницы, а режим меняться не должен).
+  if (opts.logic !== false && LOGIC_VARIANTS.includes(variant)) {
     let best: { gen: GeneratedPuzzle; grade: Grade; dug: number } | null = null;
     for (let attempt = 0; attempt < 5; attempt++) {
       const r = digByLogic(level, blanksCap, N, BR, BC, variant, until, max, digCap);

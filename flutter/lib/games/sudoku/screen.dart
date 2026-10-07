@@ -1553,8 +1553,22 @@ class _SudokuScreenState extends State<SudokuScreen> {
               onTap: (_, _) {},
             );
           }
+          final asMode = ladderModeOf(board!);
+          if (asMode != null) {
+            return ModeBoard(
+              board: ladderAsSide(board),
+              mode: asMode,
+              grid: m.grid,
+              given: given,
+              marks: marks,
+              colors: colors,
+              selected: (r: m.r, c: m.c),
+              height: sideLen,
+              onTap: (_, _) {},
+            );
+          }
           return SudokuBoardView(
-            board: board!,
+            board: board,
             grid: m.grid,
             given: given,
             marks: marks,
@@ -1648,8 +1662,24 @@ class _SudokuScreenState extends State<SudokuScreen> {
             onTap: _select,
           ));
         }
+        // Небоскрёбы и неравенства — варианты ЛЕСТНИЦЫ (блоки 153+, письмо раздела уровней 2d8320ed):
+        // кольцо подсказок и знаки между клетками рисует поле режимов, а не общее поле.
+        final asMode = ladderModeOf(board!);
+        if (asMode != null) {
+          return withBanner(ModeBoard(
+            board: ladderAsSide(board),
+            mode: asMode,
+            grid: _grid,
+            given: _given,
+            marks: _marks,
+            colors: _colors,
+            selected: _selected,
+            height: height,
+            onTap: _select,
+          ));
+        }
         return withBanner(SudokuBoardView(
-          board: board!,
+          board: board,
           grid: _grid,
           given: _given,
           marks: _marks,
@@ -1795,6 +1825,20 @@ SudokuCellLook schroLook(SudokuBoard board, SudokuCellLook look, int v, int r, i
   return (selected: look.selected, sameValue: look.sameValue, sameLine: look.sameLine,
       wrong: v != 0 && schroWrong(v, board.solution[r][c]));
 }
+
+/// Доска лестницы, которую рисует поле режимов: небоскрёбы (кольцо подсказок) и неравенства (знаки
+/// между клетками). `null` — общее поле.
+SideMode? ladderModeOf(SudokuBoard b) => switch (b.variant) {
+      'towers' => SideMode.towers,
+      'unequal' => SideMode.unequal,
+      _ => null,
+    };
+
+/// Доска лестницы в форме доски режима — те же поля, ступень — номер уровня.
+SideBoard ladderAsSide(SudokuBoard b) => SideBoard(
+      step: b.level, n: b.n, br: b.br, bc: b.bc, puzzle: b.puzzle, solution: b.solution,
+      geometry: b.geometry, geometryJson: b.geometryJson, tier: b.tier,
+    );
 
 String variantTitle(String variant) => switch (variant) {
       'diagonal' => L.t('sdkRule_diagonal'),
