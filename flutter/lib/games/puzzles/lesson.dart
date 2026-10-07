@@ -1,7 +1,10 @@
 library;
 
+import 'package:flutter/foundation.dart' show visibleForTesting;
+
 import '../../shell/lesson.dart';
 import 'engine.dart';
+import 'techniques.dart';
 
 /// 🔴 РАЗБОР ДЛЯ ГОЛОВОЛОМОК ТЭТХЭМА — БЕЗ ЕДИНОЙ СТРОКИ ПРО КОНКРЕТНУЮ ИГРУ.
 ///
@@ -15,9 +18,9 @@ import 'engine.dart';
 ///
 /// ⚠️ ЧЕГО ЭТОТ ГЕНЕРАТОР НЕ ДЕЛАЕТ, И ВРАТЬ ОБ ЭТОМ НЕЛЬЗЯ. Он показывает, ЧТО
 /// поставить, но не объясняет ПОЧЕМУ: движок отдаёт решение одним ходом, а не
-/// цепочкой рассуждений. Имя приёма приходит отдельным слоем (звено 3 цепочки
-/// 240b0113) — у Solo/Towers/Unequal/Keen его печатает сам движок
-/// (`solver_show_working`), остальным его выводит общий классификатор.
+/// цепочкой рассуждений. Имя приёма приходит отдельным слоем (`techniques.dart`,
+/// задача 23773004): решатель автора печатает рассуждения, мост их ловит, и
+/// шаг получает ключ приёма по своей клетке. Шаг без строки печати остаётся без имени.
 /// Рукописный учитель объясняет лучше, и там, где он есть, берётся он.
 class TathamLesson extends LessonSource {
   TathamLesson(this._engine, {required this.canSolve, required this.gameName});
@@ -27,6 +30,11 @@ class TathamLesson extends LessonSource {
   /// Флаг САМОГО автора (`game.can_solve`), а не наш список: список устаревает молча.
   final bool canSolve;
   final String gameName;
+
+  /// Рассуждения решателя последнего разбора, строками автора. Для слоя имён приёмов и
+  /// для замера «какие строки печатает движок» — человеку не показываются.
+  @visibleForTesting
+  List<String> lastWorking = const [];
 
   @override
   // ⚠️ Строка машинная, без русского текста: это пометка для реестра охвата и
@@ -42,7 +50,11 @@ class TathamLesson extends LessonSource {
     if (!canSolve) return const [];
     final before = _engine.draw();
     final at = _engine.statePos;
-    if (!_engine.solve()) return const [];
+    // Решаем С ПЕЧАТЬЮ решателя: из неё приходит имя приёма (задача 23773004). Движок
+    // без печати или старая библиотека дают пустой список — разбор остаётся, как был.
+    final working = _engine.solveExplain();
+    if (working == null) return const [];
+    lastWorking = working;
     final after = _engine.draw();
     // Доску возвращаем игроку ровно такой, какой взяли: разбор показывает решение,
     // а не решает за человека. Без этого «Разбор» превратился бы в «Сдаться».
@@ -50,7 +62,9 @@ class TathamLesson extends LessonSource {
     while (_engine.statePos != at && guard++ < 64) {
       if (!_engine.undo()) break;
     }
-    return _stepsFromDiff(before, after);
+    final grid = gridOf(after);
+    return nameSteps(_stepsFromDiff(before, after), techniqueByCell(working),
+        grid == null ? null : (b) => grid.cellAt(b.x, b.y));
   }
 
   /// Разность двух кадров: примитивы, которых в исходном не было.
@@ -76,7 +90,7 @@ class TathamLesson extends LessonSource {
 
     final placed = <_Placed>[];
     for (final line in fresh) {
-      final p = _positionOf(line);
+      final p = positionOf(line);
       if (p != null) placed.add(_Placed(p.$1, p.$2, line));
     }
     if (placed.isEmpty) return const [];
@@ -86,41 +100,36 @@ class TathamLesson extends LessonSource {
      * заливка клетки И текст поверх неё: два примитива, один ход. Шаг на каждый
      * примитив показал бы человеку два шага там, где ход один.
      *
-     * Размер клетки НЕ зашиваем и не угадываем: берём наименьший положительный
-     * разрыв между соседними координатами появившихся примитивов. У сетки это и
-     * есть сторона клетки, а если разрывов нет — группировать нечего, и каждый
-     * примитив остаётся своим шагом. Так правило работает и на сетке, и на графе.
+     * Сетку берём у ПОЛНОГО кадра (`gridOf`): автор рисует каждую клетку с обрезкой по
+     * ней или фоном её размера, и повтор этих примитивов даёт сторону и угол сетки.
+     * ⚠️ Было: сторона = наименьший разрыв координат у появившихся примитивов. Замер
+     * 01.10 на Light Up: значок лампы стоит в 4 точках от кружка, вышло 4 вместо 32 —
+     * клетка дробилась на восемь шагов, и ни один шаг не совпадал с клеткой печати.
+     * Сетки нет (граф) — каждый примитив остаётся своим шагом, как раньше.
      */
-    final grid = _guessGrid(placed);
-    final buckets = <String, List<_Placed>>{};
+    final grid = gridOf(after);
+    final buckets = <(int, int), List<_Placed>>{};
     for (final p in placed) {
-      final key = grid == 0 ? '${p.x}:${p.y}' : '${p.x ~/ grid}:${p.y ~/ grid}';
+      final key = grid == null ? (p.x, p.y) : grid.cellAt(p.x, p.y);
       (buckets[key] ??= []).add(p);
     }
-    final groups = buckets.values.toList()
-      ..sort((a, b) {
-        final ay = a.first.y, by = b.first.y;
-        return ay != by ? ay.compareTo(by) : a.first.x.compareTo(b.first.x);
-      });
+    final cells = buckets.keys.toList()
+      ..sort((a, b) => a.$2 != b.$2 ? a.$2.compareTo(b.$2) : a.$1.compareTo(b.$1));
 
-    final side = grid == 0 ? 1 : grid;
     return [
-      for (final g in groups)
+      for (final c in cells)
         LessonStep(
-          box: LessonBox(
-            g.map((p) => p.x).reduce((a, b) => a < b ? a : b),
-            g.map((p) => p.y).reduce((a, b) => a < b ? a : b),
-            side,
-            side,
-            LessonBoxKind.place,
-          ),
-          payload: g.map((p) => p.line).toList(growable: false),
+          box: grid == null
+              ? LessonBox(c.$1, c.$2, 1, 1, LessonBoxKind.place)
+              : LessonBox(grid.ox + c.$1 * grid.side, grid.oy + c.$2 * grid.side, grid.side, grid.side,
+                  LessonBoxKind.place),
+          payload: buckets[c]!.map((p) => p.line).toList(growable: false),
         ),
     ];
   }
 
   /// Первые две координаты примитива. Null — у примитива их нет (`N`, `U`, `D`).
-  static (int, int)? _positionOf(String line) {
+  static (int, int)? positionOf(String line) {
     final parts = line.split(' ');
     if (parts.length < 3) return null;
     switch (parts[0]) {
@@ -146,26 +155,62 @@ class TathamLesson extends LessonSource {
         return null;
     }
   }
-
-  /// Сторона клетки по наименьшему положительному разрыву координат; 0 — сетки нет.
-  static int _guessGrid(List<_Placed> placed) {
-    final xs = placed.map((p) => p.x).toSet().toList()..sort();
-    final ys = placed.map((p) => p.y).toSet().toList()..sort();
-    var best = 0;
-    for (final axis in [xs, ys]) {
-      for (var i = 1; i < axis.length; i++) {
-        final d = axis[i] - axis[i - 1];
-        if (d > 0 && (best == 0 || d < best)) best = d;
-      }
-    }
-    // ⚠️ Слишком мелкий разрыв — это не клетка, а толщина рамки: такой шаг
-    // разнёс бы одну клетку по нескольким вёдрам. Ниже четырёх не считаем сеткой.
-    return best < 4 ? 0 : best;
-  }
 }
 
 class _Placed {
   const _Placed(this.x, this.y, this.line);
   final int x, y;
   final String line;
+}
+
+/// Сетка кадра: сторона клетки и угол клетки (0,0) в точках экрана.
+class FrameGrid {
+  const FrameGrid(this.side, this.ox, this.oy);
+  final int side, ox, oy;
+
+  /// Клетка, в которую попадает точка экрана.
+  (int, int) cellAt(int x, int y) => ((x - ox) ~/ side, (y - oy) ~/ side);
+}
+
+int _gcd(int a, int b) => b == 0 ? a.abs() : _gcd(b, a % b);
+
+/// 🔴 СЕТКА ПО ТОМУ, КАК АВТОР РИСУЕТ КЛЕТКУ, А НЕ ПО ТАБЛИЦЕ ИГР.
+///
+/// Каждую клетку движок рисует одинаково: обрезка `K x y s s` или фон `R x y s s c` размером
+/// с клетку. Берём такие примитивы с одной подписью (тип + размер + цвет), повторённые ≥4 раз,
+/// НОД сдвигов между ними — сторона клетки, наименьшая позиция по модулю стороны — угол.
+/// Размер примитива должен быть со сторону (±1: у Rectangles фон 25 при шаге 24), иначе это
+/// не клетка, а значок внутри неё. Побеждает подпись с наибольшим числом повторов.
+/// Замер 01.10 по полному кадру: Light Up 32/16, Tents 32, Dominosa 32/24, Slant 32/0,
+/// Rectangles 24/18, Map 20/20, Pearl 31/15, Net 32/15.
+FrameGrid? gridOf(List<String> frame) {
+  final groups = <String, List<(int, int)>>{};
+  for (final line in frame) {
+    final parts = line.split(' ');
+    if ((parts[0] != 'K' && parts[0] != 'R') || parts.length < 5) continue;
+    final x = int.tryParse(parts[1]), y = int.tryParse(parts[2]);
+    final w = int.tryParse(parts[3]), h = int.tryParse(parts[4]);
+    if (x == null || y == null || w == null || h == null || w < 8 || (w - h).abs() > 1) continue;
+    (groups['${parts[0]} ${parts.skip(3).join(' ')}'] ??= []).add((x, y));
+  }
+  FrameGrid? best;
+  var bestCount = 0;
+  for (final e in groups.entries) {
+    final pts = e.value;
+    if (pts.length < 4) continue;
+    final w = int.parse(e.key.split(' ')[1]);
+    final x0 = pts.map((p) => p.$1).reduce((a, b) => a < b ? a : b);
+    final y0 = pts.map((p) => p.$2).reduce((a, b) => a < b ? a : b);
+    var g = 0;
+    for (final p in pts) {
+      g = _gcd(g, p.$1 - x0);
+      g = _gcd(g, p.$2 - y0);
+    }
+    if (g < 8 || (w - g).abs() > 1) continue;
+    if (pts.length > bestCount) {
+      bestCount = pts.length;
+      best = FrameGrid(g, x0 % g, y0 % g);
+    }
+  }
+  return best;
 }

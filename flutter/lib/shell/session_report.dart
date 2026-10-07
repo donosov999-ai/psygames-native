@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'game_preset.dart';
+
 /// ПАРТИЯ, СЫГРАННАЯ НАТИВНО, ОБЯЗАНА ДОЕХАТЬ ДО ВЕБ-ПОЛОВИНЫ.
 ///
 /// 🔴 ЧТО БЫЛО СЛОМАНО. Перенесённые экраны писали только УРОВЕНЬ
@@ -46,6 +48,16 @@ class SessionReport {
   }) async {
     final f = sink;
     if (f == null) return;
+    // 🔴 Партия ступени чужой лестницы несёт метку ступени (`LevelTransition`): по ней
+    // статистика отличит «Кошек» на 145-й ступени «Судоку» от обычной партии «Кошек».
+    // Стоит здесь, а не в лестнице: «Бездна» шлёт партию мимо [LevelLadder].
+    final marked = GamePreset.isTransit
+        ? {
+            ...?details,
+            'ladderGame': GamePreset.params['ladderGame'],
+            'ladderLevel': int.tryParse(GamePreset.params['ladderLevel'] ?? '') ?? 0,
+          }
+        : details;
     final body = <String, Object?>{
       'game_type': gameType,
       'score': score,
@@ -53,7 +65,7 @@ class SessionReport {
       'difficulty': ?difficulty,
       'mode': ?mode,
       'errors': ?errors,
-      if (details != null && details.isNotEmpty) 'details': details,
+      if (marked != null && marked.isNotEmpty) 'details': marked,
     };
     await f(jsonEncode(body));
   }

@@ -54,18 +54,30 @@ for g in $GAMES; do echo "GAME($g)" >> "$WORK/gen/generated-games.h"; done
 } > "$WORK/gen/combined-list.c"
 
 # Те же две заплаты, что у хостовой и iOS-сборки: канон не трогаем, правим копии.
-sed 's/return state->completed ? +1 : 0;/return state->completed >= 0 ? +1 : 0;/' \
-  "$SRC/unfinished/slide.c" > "$WORK/patched/slide.c"
+# -DSOLVER_DIAGNOSTICS (учитель, задача 23773004): у slide.c под этим выключателем устаревший код
+# (board_text_format с тремя аргументами вместо четырёх) — печать ему выключаем, остальные движки печатают.
+{ echo '#undef SOLVER_DIAGNOSTICS'; sed 's/return state->completed ? +1 : 0;/return state->completed >= 0 ? +1 : 0;/' \
+  "$SRC/unfinished/slide.c"; } > "$WORK/patched/slide.c"
 grep -q 'return state->completed >= 0 ? +1 : 0;' "$WORK/patched/slide.c" \
   || { echo "заплата slide.c не легла: канон изменился"; exit 4; }
+# pearl.c читает solver_show_working под SOLVER_DIAGNOSTICS, а объявляет её только для автономного
+# решателя (pearl.c:49–52) — без заплаты -DSOLVER_DIAGNOSTICS не собирается. Добавляем ветку #elif.
+perl -pe 's/^(static bool solver_show_working = false;)$/$1\n#elif defined SOLVER_DIAGNOSTICS\nstatic const bool solver_show_working = true;/' \
+  "$SRC/pearl.c" > "$WORK/patched/pearl.c"
+grep -q 'static const bool solver_show_working = true;' "$WORK/patched/pearl.c" \
+  || { echo "заплата pearl.c не легла: канон изменился"; exit 4; }
+grep -q 'char \*aux_info;' "$SRC/midend.c" \
+  || { echo "заплата midend.c не легла: нет поля aux_info"; exit 3; }
 grep -q 'int nstates, statesize, statepos;' "$SRC/midend.c" \
   || { echo "заплата midend.c не легла: нет поля statepos"; exit 4; }
-{ cat "$SRC/midend.c"; printf '\nint psy_midend_statepos(midend *me) { return me->statepos; }\n'; } \
+{ cat "$SRC/midend.c"; printf '\nint psy_midend_statepos(midend *me) { return me->statepos; }\n'; \
+  printf 'char *psy_midend_swap_aux(midend *me, char *aux) { char *old = me->aux_info; me->aux_info = aux; return old; }\n'; } \
   > "$WORK/patched/midend.c"
 
 SRCS=""
 for g in $GAMES; do
   if [ "$g" = "slide" ]; then SRCS="$SRCS $WORK/patched/slide.c"
+  elif [ "$g" = "pearl" ]; then SRCS="$SRCS $WORK/patched/pearl.c"
   elif [ -f "$SRC/$g.c" ]; then SRCS="$SRCS $SRC/$g.c"
   else SRCS="$SRCS $SRC/unfinished/$g.c"; fi
 done
@@ -89,7 +101,7 @@ for abi in arm64-v8a armeabi-v7a x86_64; do
   # «dlopen failed: cannot locate symbol "atan2"» — все 42 головоломки не открывались в релизе
   # 2.56.1 (проверка на эмуляторе ДО заливки). Компоновщик по умолчанию разрешает неразрешённые
   # символы в .so, и ошибка всплывала только при загрузке. --no-undefined валит сборку здесь же.
-  "$CC" --target=$TARGET$API -O2 -DCOMBINED -fvisibility=hidden -fPIC \
+  "$CC" --target=$TARGET$API -O2 -DCOMBINED -DSOLVER_DIAGNOSTICS -include "$BRIDGE/psy_diag.h" -fvisibility=hidden -fPIC \
     -I"$WORK/gen" -I"$SRC" -shared -o "$OUT/$abi/libtatham.so" $SRCS \
     -lm -Wl,--no-undefined 2> "$WORK/build-$abi.err" || {
       grep -E "error:" "$WORK/build-$abi.err" | head -5; exit 5; }

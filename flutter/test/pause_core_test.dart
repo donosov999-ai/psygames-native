@@ -1,7 +1,7 @@
 // «Пауза»: Dart-перенос ядра практик против ЖИВОГО ядра на TS.
 //
 // Ядро одно — `frontend/src/games/pause/core/engine.ts`; веб-экран `/games/pause`
-// исполняет его напрямую. Dart-перенос (`lib/games/pause/practices.dart`) взят у
+// исполняет его напрямую. Dart-перенос (пакет practice_kit, `lib/src/practices.dart`) взят у
 // «Умного будильника», где уже сверен с этим же ядром, — но эталон здесь снят
 // заново с исходника ЭТОГО репозитория (`node flutter/tools/export-pause.cjs`):
 // эталон замораживает перенос, а не источник.
@@ -13,20 +13,36 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:psygames_flutter/games/pause/practices.dart';
+import 'package:practice_kit/practice_kit.dart';
 
 List _fixture() => jsonDecode(
       utf8.decode(gzip.decode(File('test/fixtures/pause-reference.json.gz').readAsBytesSync())),
     ) as List;
 
 void main() {
-  final engine = Practices(jsonDecode(File('assets/pause/practices.json').readAsStringSync()));
+  final engine = Practices(jsonDecode(File('../packages/practice_kit/assets/practices.json').readAsStringSync()));
   final cases = _fixture();
 
-  test('каталог — тот же, что у веб-экрана: 10 наборов, 42 программы', () {
-    expect(engine.catalog.length, 10);
-    final programs = engine.catalog.fold<int>(0, (n, s) => n + (s['programs'] as List).length);
+  // Каталог общий с «Умным будильником» (пакет practice_kit): ядро на TS плюс
+  // надстройка пакета — массаж лица и три режима глаз. Ядерная часть обязана
+  // совпадать с веб-экраном, а сверх неё — ровно надстройка, и ничего больше.
+  test('каталог: ядро — то же, что у веб-экрана (10 наборов, 42 программы), сверх — только надстройка', () {
+    final overlay = jsonDecode(File('../packages/practice_kit/tool/catalog_overlay.json').readAsStringSync()) as Json;
+    final extraSets = {for (final s in objects(overlay['sets'])) (s['set'] as Json)['id']};
+    final extraPrograms = {
+      for (final p in objects(overlay['programs']))
+        for (final program in objects(p['programs'])) '${p['set']}/${program['id']}',
+    };
+    expect(extraSets, {'face-massage'});
+    expect(extraPrograms, {'eye-gym/geometry-paths', 'eye-gym/catch-overlap', 'eye-gym/two-dots'});
+    final core = engine.catalog.where((s) => !extraSets.contains(s['id'])).toList();
+    expect(core.length, 10);
+    final programs = core.fold<int>(
+      0,
+      (n, s) => n + objects(s['programs']).where((p) => !extraPrograms.contains('${s['id']}/${p['id']}')).length,
+    );
     expect(programs, 42);
+    expect(engine.catalog.length, 11);
   });
 
   test('эталон не пустой и содержит отказы: иначе сверка отказов слепа', () {

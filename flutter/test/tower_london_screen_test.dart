@@ -5,6 +5,7 @@ import 'package:psygames_flutter/games/tower_london/model.dart';
 import 'package:psygames_flutter/games/tower_london/screen.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:psygames_flutter/shell/l10n.dart';
 
 /// ПРОБА ИГРАЕТ ПАРТИЮ ПАЛЬЦЕМ: доходит ли экран до поля, виден ли ЦЕЛЕВОЙ
 /// расклад, считается ли ход тапом и перетаскиванием, отличается ли отказ по
@@ -34,6 +35,8 @@ Future<void> _tapMove(WidgetTester tester, int from, int to) async {
 }
 
 void main() {
+  // Подписи экрана — из словаря (02.10.2026, задача 48ca6466): без него вместо текста ключи.
+  setUpAll(() async => L.load('ru'));
   late SharedState state;
 
   setUp(() async {
@@ -106,7 +109,7 @@ void main() {
      */
     expect(
       find.byWidgetPredicate((w) =>
-          w is Semantics && (w.properties.label ?? '').startsWith('Ходы: 1/')),
+          w is Semantics && (w.properties.label ?? '').startsWith('${L.t('hud_moves')}: 1/')),
       findsOneWidget,
       reason: 'ход перетаскиванием обязан быть посчитан',
     );
