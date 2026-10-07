@@ -16,6 +16,20 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.56.13',
+    date: '2026-10-07',
+    ru: [
+      'Отзыв из игры снова под рукой: значок в шапке каждой игры, в паузе — сразу под «Продолжить»; кнопка «Отправить» больше не прячется под клавиатурой',
+      '«Фрактал»: портал играется — прыжок к близнецу, общий карандаш и номер близнеца',
+      'Головоломки Тэтхэма: разбор называет приём на каждом шаге',
+    ],
+    en: [
+      'Feedback from a game is back at hand: an icon in every game header and right below Resume in the pause menu; Send no longer hides under the keyboard',
+      'Fractal: portals are playable — jump to the twin, shared pencil marks and the twin number',
+      'Tatham puzzles: the walkthrough names the technique at every step',
+    ],
+  },
+  {
     version: '2.56.12',
     date: '2026-10-04',
     ru: [
