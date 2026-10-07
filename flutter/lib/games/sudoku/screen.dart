@@ -34,7 +34,6 @@ import 'roads.dart';
 import 'rules.dart';
 import 'symbols.dart';
 import 'variant_decor.dart';
-import '../samurai/screen.dart';
 
 /// СУДОКУ на общем каркасе — первый экран раздела в переезде на Flutter.
 ///
@@ -68,15 +67,12 @@ void fillSudokuBossBag(List<BossType> bag) => _sudokuBossBag
   ..clear()
   ..addAll(bag);
 
-/// Мегабосс — каждые столько уровней ВМЕСТО обычного боя (15 кратно 3), как
-/// `MEGA_BOSS_EVERY` веба: приглашение в «Самурая» с меткой вехи.
-const sudokuMegaBossEvery = 15;
-
-/// 🔴 ДО ЭТОГО УРОВНЯ — МЕГАБОСС ПО СЕТКЕ 15, ПОСЛЕ — БОСС ИЗ ФАЙЛА ЛЕСТНИЦЫ (решение
-/// раздела 4666318d, 02.10.2026, задача 4e3d3443). С 81-й две системы боссов наложились бы:
-/// сетка 15 даёт «Самурая» на 90/105/120, а план уровней v4 — своих боссов на 96/112/128…
-/// (`assets/levels/sudoku-ladder-transit.json`). На ≥81 решает файл; мешок остаётся.
-const sudokuMegaBossLastLevel = 80;
+/// 🔴 БОСС — ОДНА СИСТЕМА, ИЗ ФАЙЛА ЛЕСТНИЦЫ (решение Дениса 07.10.2026, задача 4e3d3443):
+/// «босса чаще или реже — лучше привязать к смене модели генерации, но минимум каждые 10
+/// уровней». Места и игры — `assets/levels/sudoku-ladder-transit.json`: последняя ступень
+/// каждой модели (правило, банк, размер, игра-переход) и промежуточный, где модель длиннее
+/// 10 ступеней. Мегабосс веба «каждый 15-й» снят: две системы наложились бы друг на друга.
+/// Бой из мешка на кратных трём — не босс лестницы, а 15-секундная разминка; он остаётся.
 
 /// Имя и описание босса из файла лестницы — словами самих игр, без новых ключей словаря.
 const _ladderBossText = <String, (String, String)>{
@@ -1160,63 +1156,29 @@ class _SudokuScreenState extends State<SudokuScreen> {
     ));
   }
 
-  /// Победа и веха — порядок веба: на каждом 15-м уровне приглашение в «Самурая»
-  /// (мегабосс), на остальных кратных трём — бой из мешка. Уровень берётся у лестницы ДО
-  /// победы, «засчитано ли» — из её ответа (не пресет зарядки, не партия с разбором):
-  /// экран этих признаков сам не придумывает — как `BossRound.winThenBoss`.
+  /// Победа и веха. Уровень берётся у лестницы ДО победы, «засчитано ли» — из её ответа
+  /// (не пресет зарядки, не партия с разбором): экран этих признаков сам не придумывает —
+  /// как `BossRound.winThenBoss`. Босс из файла лестницы вытесняет бой из мешка: один босс
+  /// на победу.
   Future<void> _winWithBoss(Future<bool> Function() win) async {
     final played = _ladder.level;
     final counted = await win();
     if (!counted || !mounted) return;
-    if (played > sudokuMegaBossLastLevel) {
-      final boss = LadderTransit.bossOf(_levels?.transitRow(played));
-      if (boss != null) {
-        await _offerLadderBoss(played, boss);
-        return;   // один босс на победу: мешок на этой ступени не стреляет
-      }
-    } else if (played % sudokuMegaBossEvery == 0) {
-      await _offerMegaBoss(played);
+    final boss = LadderTransit.bossOf(_levels?.transitRow(played));
+    if (boss != null) {
+      await _offerLadderBoss(played, boss);
       return;
     }
     if (!BossRound.due(played)) return;
-    final boss = await BossRound.afterWin(context,
+    final beaten = await BossRound.afterWin(context,
         counted: counted, playedLevel: played, type: nextSudokuBoss(_bossRnd), color: sudokuBossColor);
-    if (mounted && boss != null) setState(() => _boss = boss);
+    if (mounted && beaten != null) setState(() => _boss = beaten);
   }
 
   final _bossRnd = math.Random();
 
-  /// Мегабосс — приглашение, а не принуждение (как в вебе): партия на час, человек вправе
-  /// пойти позже; уровень уже засчитан, «Позже» ничего не отнимает.
-  Future<void> _offerMegaBoss(int level) async {
-    final go = await showDialog<bool>(
-      context: context,
-      builder: (c) => AlertDialog(
-        key: const Key('megaboss-offer'),
-        title: Text('⚔️ ${L.t('megaBossTitle')}'),
-        content: Text(L.t('megaBossOffer')),
-        actions: [
-          TextButton(
-            key: const Key('megaboss-later'),
-            onPressed: () => Navigator.of(c).pop(false),
-            child: Text(L.t('updLater')),
-          ),
-          FilledButton(
-            key: const Key('megaboss-go'),
-            onPressed: () => Navigator.of(c).pop(true),
-            child: Text(L.t('megaBossGo')),
-          ),
-        ],
-      ),
-    );
-    if (go != true || !mounted) return;
-    await Navigator.of(context).push(MaterialPageRoute<void>(
-      builder: (_) => SamuraiScreen(state: widget.state, megabossFrom: level),
-    ));
-  }
-
-  /// Босс из файла лестницы — то же приглашение, что у мегабосса: уровень уже засчитан,
-  /// «Позже» ничего не отнимает. Игра и её уровень — из строки (`LadderTransit.bossOf`).
+  /// Босс из файла лестницы — приглашение, а не принуждение: партия длинная, уровень уже
+  /// засчитан, «Позже» ничего не отнимает. Игра и её уровень — из строки (`LadderTransit.bossOf`).
   ///
   /// ⚠️ ХОЗЯИН БОССА — ВРЕМЕННАЯ ЛЕСТНИЦА В ПАМЯТИ, НЕ [_ladder]. Босс плана не держит
   /// (`blocks: false`), и переход на любом возврате делает хозяину +1. Победа на доске
