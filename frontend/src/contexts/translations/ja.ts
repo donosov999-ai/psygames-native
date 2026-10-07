@@ -1301,7 +1301,7 @@ const t: Record<string, string> = {
   "sudokuGroup": "数独：3つの盤",
   "sudokuGroupDesc": "クラシック・サムライ・フラクタル",
   "sudokuPickBoard": "盤を選ぶ",
-  "sudokuTypeClassic": "1つの盤 · 132段",
+  "sudokuTypeClassic": "1つの盤 · 136段",
   "sudokuTypeSamurai": "角で組み合った5つの盤",
   "sudokuTypeFractal": "マスの中にもう一つの盤",
   "sudokuGroupFootnote": "3つとも規則は同じで、数字は行・列・ブロックの中で重複しません。違うのは盤だけです。それぞれが自分のレベルと自分の履歴を持ち、対局が混ざることはありません。",
