@@ -90,6 +90,7 @@ import '../games/pause/screen.dart';
 import 'asset_server.dart';
 import 'l10n.dart';
 import 'feedback_fab.dart';
+import 'feedback_screen.dart';
 import 'home_screen.dart';
 import 'profile_switcher.dart';
 import 'screen_ui.dart';
@@ -133,8 +134,6 @@ import 'game_preset.dart';
 import 'game_rules.dart';
 import 'level_transition.dart';
 import 'game_shell.dart';
-import 'game_clock.dart';
-import 'web_game_screen.dart';
 import 'puzzle_routes.g.dart';
 import '../games/chess_blind/screen.dart';
 import '../games/chess_hub/screen.dart';
@@ -787,16 +786,48 @@ class _HybridAppState extends State<HybridApp> {
     await _c.runJavaScript('window.__psyReplace ? window.__psyReplace($target) : location.replace($full);');
   }
 
-  /// Форма отзыва — второй страницей поверх (`/feedback?sourceRoute=`), откуда бы ни звали: из
-  /// паузы игры ([GameExit.feedback]) или кнопкой на нативной вкладке ([FeedbackFab]).
-  void _openFeedback(String source) {
-    final url = Uri.parse('${widget.server.origin}/feedback')
-        .replace(queryParameters: {'sourceRoute': source}).toString();
-    Navigator.of(context).push(MaterialPageRoute<void>(
-      builder: (_) => GameHoldScope(child: WebGameScreen(
-        title: L.t('feedbackTitle'), url: url, state: widget.state,
-      )),
-    ));
+  /// Лист отзыва поверх всего, пока он открыт; null — закрыт.
+  Route<void>? _feedbackRoute;
+
+  /// Страница уже сказала «открыто» на этот лист: только после этого её «закрыто» закрывает лист.
+  /// Иначе старая модель (`open: false`, пришедшая до `open`) захлопнула бы лист сразу.
+  bool _feedbackSeenOpen = false;
+
+  /// Форма отзыва — нативный лист по модели окна `#feedback` ОСНОВНОЙ страницы (задача c092cd47),
+  /// откуда бы ни звали: из игры ([GameExit.feedback]) или кнопкой на нативной вкладке ([FeedbackFab]).
+  /// Второго экземпляра страницы (`/feedback`) больше нет — с ним приходили «Что нового» поверх формы
+  /// и закрытие игры сообщением Главной. Снимок — кадр нативного экрана ДО листа: страница под ним
+  /// устарела; забирает его страница с нашего же сервера ([AssetServer.putShot]).
+  Future<void> _openFeedback(String source) async {
+    if (_feedbackRoute != null) return;
+    final png = await FeedbackHost.snap();
+    if (!mounted || _feedbackRoute != null) return;
+    final shot = png == null ? null : widget.server.putShot(png);
+    _showFeedback();
+    await ScreenUi.act(FeedbackHost.route, 'open', [source, shot]);
+  }
+
+  void _showFeedback() {
+    if (_feedbackRoute != null || !mounted) return;
+    _feedbackSeenOpen = false;
+    final r = FeedbackHost.sheetRoute();
+    _feedbackRoute = r;
+    Navigator.of(context).push(r).whenComplete(() {
+      if (_feedbackRoute == r) _feedbackRoute = null;
+    });
+  }
+
+  /// Модель окна: открыла страница (кнопка отзыва на веб-экране, окно правил) — показать лист;
+  /// закрыла (после «спасибо», 3,2 с; с потерянной записью — 9 с) — убрать лист.
+  void _onFeedbackModel() {
+    final open = ScreenUi.model(FeedbackHost.route).value?['open'] == true;
+    if (open) {
+      _showFeedback();
+      _feedbackSeenOpen = true;
+      return;
+    }
+    final r = _feedbackRoute;
+    if (_feedbackSeenOpen && r != null && r.isActive && mounted) Navigator.of(context).removeRoute(r);
   }
 
   /// Игра из нативного каталога: перенесённая — нативно поверх, остальная — страницей В ИСТОРИЮ
@@ -1014,6 +1045,7 @@ class _HybridAppState extends State<HybridApp> {
     for (final r in _bodyTabs) {
       ScreenUi.model(r).addListener(_onScreenModel);
     }
+    ScreenUi.model(FeedbackHost.route).addListener(_onFeedbackModel);
     PetBridge.probe = _runJs;
     // Перенесённая игра по START_ROUTE: перехват на первой загрузке не срабатывает
     // (это не переход, а первый адрес), поэтому открываем нативный экран сами.
@@ -1035,6 +1067,7 @@ class _HybridAppState extends State<HybridApp> {
     for (final r in _bodyTabs) {
       ScreenUi.model(r).removeListener(_onScreenModel);
     }
+    ScreenUi.model(FeedbackHost.route).removeListener(_onFeedbackModel);
     for (final t in _modelTimers.values) {
       t.cancel();
     }

@@ -379,7 +379,6 @@
 "facesNamesDesc":"Asocia una cara con un nombre y un dato",
 "facesNamesIntroDesc":"Memoria asociativa: memoriza un retrato, el nombre exacto y un dato sobre la persona, y luego recupera cada parte por separado. Es el fallo cotidiano de «la cara me suena, pero no sé cómo se llama»: reconocer un rostro y recuperar la palabra asociada son capacidades distintas, y la segunda se apaga antes.",
 "feedbackFabLabel":"Enviar comentarios",
-"feedbackTitle":"💬 ¿Qué va mal?",
 "field":"Campo",
 "find":"Encuentra",
 "findDiff":"Encuentra las diferencias",

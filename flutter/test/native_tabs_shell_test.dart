@@ -8,6 +8,7 @@ import 'package:psygames_flutter/games/one_line/screen.dart';
 import 'package:psygames_flutter/shell/asset_server.dart';
 import 'package:psygames_flutter/shell/catalog_screen.dart';
 import 'package:psygames_flutter/shell/feedback_fab.dart';
+import 'package:psygames_flutter/shell/feedback_screen.dart';
 import 'package:psygames_flutter/shell/friends_screen.dart';
 import 'package:psygames_flutter/shell/shop_screen.dart';
 import 'package:psygames_flutter/shell/whats_new_screen.dart';
@@ -337,12 +338,42 @@ void main() {
     expect(r, const Rect.fromLTWH(14, 844 - 92 - 48, 48, 48));
     expect(r.bottom <= t.getRect(find.byType(NativeTabBar)).top, isTrue, reason: 'над полосой, а не под ней');
 
+    // Форма — окно `#feedback` ОСНОВНОЙ страницы (c092cd47), а не второй экземпляр на `/feedback`.
     await t.tap(fab);
-    await t.pump();
+    await settle(t, () => page().js.any((s) => s.contains('["#feedback"].open(')));
+    expect(page().js.any((s) => s.contains('["#feedback"].open("/games",null)')), isTrue,
+        reason: 'источник — вкладка; кадра-корня в пробе нет — снимка нет');
+    expect(find.byType(WebGameScreen), findsNothing);
+    await t.pump(const Duration(milliseconds: 300)); // первый кадр перехода маршрут «за сценой» (HeroController)
+    expect(find.byType(FeedbackScreen), findsOneWidget);
+    // Старая модель «закрыто», пришедшая до «открыто», лист не захлопывает.
+    final m = (jsonDecode(File('test/fixtures/feedback_model.json').readAsStringSync()) as Map).cast<String, Object?>();
+    page().emit(SharedState.channel, {'op': 'screenUi', 'route': '#feedback', 'model': {...m, 'open': false}});
+    await t.pump(const Duration(milliseconds: 300));
+    expect(find.byType(FeedbackScreen), findsOneWidget);
+    page().emit(SharedState.channel, {'op': 'screenUi', 'route': '#feedback', 'model': m});
+    await t.pump(const Duration(milliseconds: 300));
+    expect(find.byKey(const ValueKey('feedback-sheet')), findsOneWidget);
+    // Страница закрыла окно (после «спасибо») — лист убран.
+    page().emit(SharedState.channel, {'op': 'screenUi', 'route': '#feedback', 'model': {...m, 'open': false}});
+    await t.pump(const Duration(milliseconds: 100));
     await t.pump(const Duration(milliseconds: 400));
-    final form = t.widget<WebGameScreen>(find.byType(WebGameScreen));
-    expect(Uri.parse(form.url).path, '/feedback');
-    expect(Uri.parse(form.url).queryParameters['sourceRoute'], '/games');
+    expect(find.byType(FeedbackScreen), findsNothing);
+  });
+
+  testWidgets('🔴 форму открыла страница (кнопка веб-экрана, окно правил) — лист; «закрыть» — действие и лист убран', (t) async {
+    await mount(t);
+    final m = (jsonDecode(File('test/fixtures/feedback_model.json').readAsStringSync()) as Map).cast<String, Object?>();
+    page().emit(SharedState.channel, {'op': 'screenUi', 'route': '#feedback', 'model': m});
+    await t.pump(const Duration(milliseconds: 300));
+    await t.pump(const Duration(milliseconds: 300));
+    expect(find.byType(FeedbackScreen), findsOneWidget);
+    page().js.clear();
+    await t.tap(find.byKey(const ValueKey('feedback-close')));
+    await t.pump(const Duration(milliseconds: 100));
+    await t.pump(const Duration(milliseconds: 400));
+    expect(page().js.any((s) => s.contains('["#feedback"].close()')), isTrue);
+    expect(find.byType(FeedbackScreen), findsNothing);
   });
 
   testWidgets('кнопка отзыва скрыта, если человек выключил её в настройках', (t) async {
@@ -540,7 +571,7 @@ void main() {
     await settle(t, () => find.byKey(const ValueKey('home-header')).evaluate().isNotEmpty);
     expect(find.byKey(const ValueKey('home-header')), findsOneWidget);
     expect(t.widget<NativeTabBar>(find.byType(NativeTabBar)).active, '/');
-    expect(page().js.any((s) => s.contains('window.__psyHostScreens=["/","#switcher","/statistics","/streak-calendar","/assessment-result","/onboarding","/sources","/collection","/achievements","/leagues","/friends","/shop","/whats-new","/pet"]')), isTrue,
+    expect(page().js.any((s) => s.contains('window.__psyHostScreens=["/","#switcher","/statistics","/streak-calendar","/assessment-result","/onboarding","/sources","/collection","/achievements","/leagues","/friends","/shop","/whats-new","/pet","#feedback"]')), isTrue,
         reason: 'веб узнаёт, какие экраны рисуем мы');
     // Вкладка «Игры» и назад — Главная та же, модель жива.
     await toGames(t);
