@@ -1,10 +1,13 @@
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/bart/model.dart';
 import 'package:psygames_flutter/games/bart/screen.dart';
+import 'package:psygames_flutter/shell/game_preset.dart';
 import 'package:psygames_flutter/shell/l10n.dart';
+import 'package:psygames_flutter/shell/session_report.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -187,5 +190,49 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('bart-verdict')), findsOneWidget);
     expect(state.get(_levelKey), '6', reason: 'классика подвинула лестницу');
+  });
+
+  testWidgets('🔴 шаг «Оценки»: партия в условиях шага и с метрикой домена в details', (tester) async {
+    // «Оценка» читает метрику домена из details партии (assessment.ts, extractMetric): без неё
+    // домен молча «средний». Условие — шага, как его собирает stepToParams (warmup.ts), а не
+    // уровня: норма домена снята в нём.
+    final sent = <Map<String, dynamic>>[];
+    SessionReport.sink = (j) async => sent.add(jsonDecode(j) as Map<String, dynamic>);
+    GamePreset.set({'wu': '1', 'diff': 'medium', 'mode': '10b', 'balloons': '10'});
+    addTearDown(() {
+      SessionReport.sink = null;
+      GamePreset.clear();
+    });
+    await tester.pumpWidget(MaterialApp(home: BartScreen(state: state, rnd: Random(7))));
+    // Каждый шар — три накачки и в банк (или взрыв раньше).
+    var balloons = 0, cashes = 0;
+    for (var guard = 0; guard < 60 && sent.isEmpty; guard++) {
+      if (find.byKey(const Key('bart-pump')).evaluate().isEmpty) {
+        await tester.pump(const Duration(milliseconds: 100));
+        continue;
+      }
+      var n = 0;
+      while (n < 3 && !popped()) {
+        await tester.tap(find.byKey(const Key('bart-pump')));
+        await tester.pump();
+        n++;
+      }
+      balloons++;
+      if (popped()) {
+        await tester.pump(const Duration(milliseconds: bartPopMs + 50));
+      } else {
+        await tester.tap(find.byKey(const Key('bart-cash')));
+        await tester.pump();
+        cashes++;
+        await tester.pump(const Duration(milliseconds: bartCashMs + 50));
+      }
+    }
+    expect(balloons, 10, reason: 'шаров — шага (10), а не уровня');
+    expect(cashes, greaterThan(0), reason: 'ни одного шара в банке — метрики нет вовсе');
+    final r = sent.single;
+    expect([r['difficulty'], r['mode']], ['medium', '10b'], reason: 'метки шага');
+    final d = r['details'] as Map<String, dynamic>;
+    expect(d['balloons'], 10);
+    expect(d['adj_avg_pumps'], 3.0, reason: 'каждый целый шар — три накачки: среднее ровно 3,0 ($d)');
   });
 }
