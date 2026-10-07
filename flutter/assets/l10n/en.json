@@ -24,6 +24,7 @@
 "a11yShelfOpensIn":"opens in",
 "a11yVessel":"Vessel",
 "a11yWrong":"Wrong",
+"achievementsFooter":"Achievements are checked after each game. {n} left.",
 "achievementsTitle":"Achievements",
 "alert_backup_copied":"Backup copied ✓",
 "alert_backup_restored":"Backup restored ✓",

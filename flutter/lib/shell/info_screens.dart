@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'feedback_fab.dart' show FabRules;
+import 'achievements_model.dart';
 import 'collection_model.dart';
 import 'ion_icon.dart';
 import 'progression.dart';
@@ -424,14 +425,18 @@ class _CollectionScreenState extends State<CollectionScreen> {
 // ── «Достижения» ─────────────────────────────────────────────────────────────────────────────────
 
 class AchievementsScreen extends StatelessWidget {
-  const AchievementsScreen({super.key});
+  const AchievementsScreen({super.key, this.state});
   static const route = '/achievements';
   static const _gold = Color(0xFFFBBF24);
+
+  /// Есть — модель считается на Dart ([achievementsModelFor], вариант Б); нет — приходит от веба.
+  final SharedState? state;
 
   @override
   Widget build(BuildContext context) => ModelPage(
     route: route,
     screenKey: 'achievements-screen',
+    compute: state == null ? null : () => achievementsModelFor(state!),
     builder: (context, m) {
       final web = WebTheme.of(context);
       return Column(

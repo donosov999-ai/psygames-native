@@ -24,6 +24,7 @@
 "a11yShelfOpensIn":"abre em",
 "a11yVessel":"Recipiente",
 "a11yWrong":"Errado",
+"achievementsFooter":"As conquistas são verificadas após cada partida. Faltam {n}.",
 "achievementsTitle":"Conquistas",
 "alert_backup_copied":"Backup copiado ✓",
 "alert_backup_restored":"Backup restaurado ✓",

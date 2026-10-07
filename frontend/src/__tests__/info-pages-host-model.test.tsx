@@ -225,6 +225,40 @@ describe('Достижения под оболочкой', () => {
     await TestRenderer.act(async () => { ui().back(); });
     expect(mockBack).toHaveBeenCalledTimes(1);
     образец('achievements_model.json', m);
+    // Входы эталона для Dart (вариант Б) — ключ хранилища, на котором построена модель.
+    образец('achievements_input.json', { storage: { psygames_achievements_unlocked: await AsyncStorage.getItem('psygames_achievements_unlocked') } });
+  });
+
+  it('EN: неисправные записи — без даты, сырая строка, переполнение даты, повтор и чужой id; образец для Dart', async () => {
+    await AsyncStorage.setItem('language', 'en');
+    const записи = [
+      { id: 'streak_3', date: '2026-02-30' }, // переполнение — 2 марта, как new Date(г, м, д)
+      { id: 'first_warmup', date: 'вчера' }, // непонятное — как есть
+      { id: 'corsi_7', date: '' }, // пустая дата — открыто без даты
+      { id: 'polyglot_100', date: '2026-00-10' }, // месяц 00 — декабрь прошлого года
+      { id: 'streak_3', date: '2026-05-17' }, // повтор: дата — первой записи, в счёте — обе
+      { id: 'retired_badge', date: '2026-01-01' }, // id, которого в таблице нет: в счёте есть, карточки нет
+      { id: 'fast_schulte', date: '0026-01-05' }, // год 0–99 — 1900-е, как у new Date
+    ];
+    await AsyncStorage.setItem('psygames_achievements_unlocked', JSON.stringify(записи));
+    const { last } = await смонтировать('/achievements');
+    const m = last();
+    expect(m.title).toContain(`${записи.length}/`);
+    const карточки = m.sections.flatMap((s: any) => s.cards);
+    expect(карточки.find((c: any) => c.id === 'first_warmup').date).toBe('вчера');
+    expect(карточки.find((c: any) => c.id === 'corsi_7')).toMatchObject({ unlocked: true, date: null });
+    образец('achievements_model_en.json', m);
+    образец('achievements_input_en.json', { storage: { psygames_achievements_unlocked: JSON.stringify(записи) } });
+  });
+
+  it('дата открытия на 12 языках — оракул шаблонов ICU для Dart', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { humanDate } = require('../../app/achievements');
+    const языки = ['ru', 'en', 'es', 'pt', 'hi', 'zh', 'de', 'fr', 'it', 'ja', 'ko', 'ar'];
+    const даты = ['2026-01-05', '2026-05-17', '2026-10-07', '2027-12-31', '2028-02-29', '2026-02-30', '2026-13-01', '1999-07-09', 'bad', ''];
+    const rows = языки.flatMap((lang) => даты.map((date) => ({ lang, date, out: humanDate(date, lang) })));
+    expect(rows.find((r) => r.lang === 'ru' && r.date === 'bad')!.out).toBe('bad');
+    образец('achievements_dates_oracle.json', rows);
   });
 });
 

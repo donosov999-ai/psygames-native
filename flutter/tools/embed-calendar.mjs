@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// ДАТЫ КАЛЕНДАРЯ СЕРИИ НА 12 ЯЗЫКАХ — ШАБЛОНАМИ ICU, А НЕ ВТОРОЙ РЕАЛИЗАЦИЕЙ (d6a60b02, вариант Б).
+// ДАТЫ КАЛЕНДАРЯ СЕРИИ И ДОСТИЖЕНИЙ НА 12 ЯЗЫКАХ — ШАБЛОНАМИ ICU, А НЕ ВТОРОЙ РЕАЛИЗАЦИЕЙ (d6a60b02, вариант Б).
 //
 // Веб-календарь (`frontend/app/streak-calendar.tsx`) пишет «месяц год», узкие дни недели и дату для
 // чтения вслух через `Intl.DateTimeFormat` — это ICU с данными CLDR. Пакета `intl` во Flutter нет, и
@@ -10,7 +10,7 @@
 // ⚠️ ВНЕ ПРОВЕРКИ CI «Сгенерированное совпадает»: строки зависят от версии ICU у Node (CLDR меняет
 // формы между выпусками), а Node на раннере не тот, что на маке, — проверка краснела бы не по делу.
 // Пересобирать вручную вместе с эталоном: `node flutter/tools/embed-calendar.mjs` и
-// `WRITE=1 npx jest progress-pages-host-model` — на одном и том же Node.
+// `WRITE=1 npx jest progress-pages-host-model info-pages-host-model` — на одном и том же Node.
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -36,14 +36,20 @@ for (const [lang, locale] of Object.entries(LOCALES)) {
   };
   const monthYear = [];
   const spoken = [];
+  // Дата открытия достижения (`humanDate` в `frontend/app/achievements.tsx`): короткий месяц, язык —
+  // голый код (`ru`, а не `ru-RU`), как его передаёт экран. Замер 07.10: на 12 языках итог и цифры
+  // те же, что с регионом, но шаблон снимается тем же вызовом, что у веба.
+  const short = [];
   for (let month = 0; month < 12; month++) {
+    short.push(one(one(new Date(YEAR, month, DAY).toLocaleDateString(lang, { day: 'numeric', month: 'short', year: 'numeric' }),
+      '{y}', y), '{d}', d));
     monthYear.push(one(new Intl.DateTimeFormat(locale, { month: 'long', year: 'numeric' }).format(new Date(YEAR, month, 1)), '{y}', y));
     spoken.push(one(one(new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'long', year: 'numeric' })
       .format(new Date(YEAR, month, DAY)), '{y}', y), '{d}', d));
   }
   // Понедельник 01.01.2024 и шесть дней за ним — как у веба.
   const weekdays = [...Array(7)].map((_, i) => new Intl.DateTimeFormat(locale, { weekday: 'narrow' }).format(new Date(2024, 0, 1 + i)));
-  out.locales[lang] = { digits, monthYear, spoken, weekdays };
+  out.locales[lang] = { digits, monthYear, spoken, weekdays, short };
 }
 writeFileSync(join(HERE, '..', 'assets', 'calendar_locales.json'), `${JSON.stringify(out, null, 1)}\n`, 'utf8');
 console.log(`языков: ${Object.keys(out.locales).length} (Node ${out.node}, ICU ${out.icu}) → assets/calendar_locales.json`);

@@ -41,6 +41,11 @@ class CalendarLocales {
       ((_of(lang)['spoken']! as List)[month - 1] as String).replaceFirst('{d}', _num(lang, day)).replaceFirst('{y}', _num(lang, year));
 
   List<String> weekdays(String lang) => (_of(lang)['weekdays']! as List).cast<String>();
+
+  /// Короткая дата (`toLocaleDateString(язык, {day, month: 'short', year})` веба) — дата открытия
+  /// достижения (`achievements_model.dart`).
+  String shortDate(String lang, int year, int month, int day) =>
+      ((_of(lang)['short']! as List)[month - 1] as String).replaceFirst('{d}', _num(lang, day)).replaceFirst('{y}', _num(lang, year));
 }
 
 /// Календарная дата без времени и пояса.

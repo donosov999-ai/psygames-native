@@ -24,6 +24,7 @@
 "a11yShelfOpensIn":"s’ouvre dans",
 "a11yVessel":"Récipient",
 "a11yWrong":"Faux",
+"achievementsFooter":"Les succès sont vérifiés après chaque partie. Il en reste {n}.",
 "achievementsTitle":"Succès",
 "alert_backup_copied":"Sauvegarde copiée ✓",
 "alert_backup_restored":"Sauvegarde restaurée ✓",

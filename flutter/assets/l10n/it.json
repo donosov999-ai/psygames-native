@@ -24,6 +24,7 @@
 "a11yShelfOpensIn":"si apre tra",
 "a11yVessel":"Recipiente",
 "a11yWrong":"Sbagliato",
+"achievementsFooter":"Gli obiettivi si controllano dopo ogni partita. Ne restano {n}.",
 "achievementsTitle":"Obiettivi",
 "alert_backup_copied":"Backup copiato ✓",
 "alert_backup_restored":"Backup ripristinato ✓",

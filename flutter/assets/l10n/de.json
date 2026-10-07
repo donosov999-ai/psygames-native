@@ -24,6 +24,7 @@
 "a11yShelfOpensIn":"öffnet in",
 "a11yVessel":"Gefäß",
 "a11yWrong":"Falsch",
+"achievementsFooter":"Erfolge werden nach jedem Spiel geprüft. Noch {n} offen.",
 "achievementsTitle":"Erfolge",
 "alert_backup_copied":"Backup kopiert ✓",
 "alert_backup_restored":"Backup wiederhergestellt ✓",
