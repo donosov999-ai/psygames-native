@@ -124,7 +124,7 @@ function SettingsScreenBody() {
   const [hapticOn, setHapticOn] = React.useState(true);
   const [musicOn, setMusicOnState] = React.useState(false);
   const [devChatOn, setDevChatOn] = React.useState(true);   // v1.125: кнопка «Чат с разработчиками»
-  const [petOn, setPetOn] = React.useState(true);           // гуляющий питомец «Синапс» (независим от чата)
+  const [petOn, setPetOn] = React.useState(false);          // гуляющий питомец «Синапс» (независим от чата); по умолчанию выкл. (ed85e191)
   const [petScale, setPetScaleState] = React.useState(1);
   React.useEffect(() => {
     (async () => {
