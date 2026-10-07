@@ -16,6 +16,7 @@ import '../../shell/shared_state.dart';
 import '../../shell/voice.dart';
 import '../languages/json_asset.dart';
 import '../languages/lang_names.dart';
+import '../languages/lang_picker.dart';
 import '../lexical_decision/model.dart';
 import '../hearing_common/lesson_cue.dart';
 import 'lesson.dart';
@@ -349,16 +350,14 @@ class _PseudowordEchoScreenState extends State<PseudowordEchoScreen> {
           const SizedBox(height: 12),
           Text(L.t('langToTrain'), style: theme.textTheme.titleSmall),
           const SizedBox(height: 6),
-          Wrap(spacing: 8, runSpacing: 8, children: [
-            for (final l in echoLangs)
-              if (l != _base)
-                ChoiceChip(
-                  key: Key('echo-lang-$l'),
-                  label: Text(_names.name(l)),
-                  selected: _target == l,
-                  onSelected: (_) => _pickLang(l),
-                ),
-          ]),
+          LangDropdown(
+            key: const Key('echo-lang'),
+            keyPrefix: 'echo-lang',
+            langs: [for (final l in echoLangs) if (l != _base) l],
+            value: _target,
+            label: _names.name,
+            onChanged: _pickLang,
+          ),
           const SizedBox(height: 4),
           Text(L.t('pwEchoUnsupportedNote'), style: theme.textTheme.bodySmall),
           const SizedBox(height: 12),

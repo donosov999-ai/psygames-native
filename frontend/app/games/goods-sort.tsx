@@ -1,4 +1,4 @@
-/* psygames-game-goods-sort · VER 4 · 09.09.2026 */
+/* psygames-game-goods-sort · VER 5 · 07.10.2026 */
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, ScrollView, Image, ImageBackground, Animated, Easing, PanResponder, DimensionValue,
@@ -109,7 +109,7 @@ import {
   goalMet, levelWon, goalPlan, goalProgress, goodName, goodSetForProfile, goodsHasSomethingToLose,
   gridFor, gsLayout, gsRulesForLevel, hasPair, hiddenInfo, isNarrow, miniMap, SCROLL_FROM,
   ITEM_FLOOR, hideDeepSpots, itemAtX, jokerNiches, jokersForBoard, levelCfg, liveRowsForFreeze,
-  monochromeLevel, moveReference, movesExhausted, movingNiches, nicheAtPoint, nicheRect,
+  pickFrozen, monochromeLevel, moveReference, movesExhausted, movingNiches, nicheAtPoint, nicheRect,
   nicheShift, pairHintVisible, placementOk, poolBitesAt, poolForLevel, provenUnsolvable,
   removeTriple, revealUncovered, rowOfNiche, scoreForClears, sessionDetails, setAvailable,
   setThumbBox, shelfForProfile, setUnlockLevel, shapeFor, shiftCoveredAfterTake, solvableStrict,
@@ -1057,9 +1057,8 @@ export default function GoodsSortGame() {
     const cov = new Set<string>(hiddenInfo(L) ? spots : shuffle(spots).slice(0, cfg.obst.covered));
     setCovered(cov);
 
-    let frozenRow = -1;
     /**
-     * Примёрзший ряд: тип, тройка которого действительно есть на доске.
+     * Примёрзший ряд: тип, тройка которого собирается ВНЕ ряда (`pickFrozen`).
      *
      * Ряд берём не любой, а ЖИВОЙ: в нём должно остаться минимум две открытые
      * ниши (маска не вырезала, замок не занял). Иначе заморозка либо ничего не
@@ -1068,15 +1067,13 @@ export default function GoodsSortGame() {
      * заморозка сейчас нигде не встречается с замками, но правку планов это
      * переживёт, а без проверки — нет. Видно на форсированной раскладке
      * blocked 2 + locked 1 + frozenRow, 19.08.2026.
+     *
+     * 🔴 07.10.2026: вид раньше брался любой, и часть его тройки бывала во льду —
+     * лёд не сходил никогда. Выбор переехал в ядро, его же зовёт выгрузка уровней.
      */
-    if (cfg.obst.frozenRow) {
-      const present = Array.from(new Set(built.flat()));
-      const type = present[Math.floor(Math.random() * present.length)] ?? -1;
-      const live = liveRowsForFreeze(cfg.mask, obs, cfg.cols, cfg.rows);
-      const row = live.length ? live[Math.floor(Math.random() * live.length)] : -1;
-      if (type >= 0 && row >= 0) { setFrozen({ row, type }); frozenRow = row; }
-      else setFrozen(null);
-    } else setFrozen(null);
+    const frozenPick = cfg.obst.frozenRow ? pickFrozen(built, cfg.mask, obs, cfg.cols, cfg.rows) : null;
+    setFrozen(frozenPick);
+    const frozenRow = frozenPick ? frozenPick.row : -1;
 
     /**
      * Цель раскладываем ПОСЛЕДНЕЙ — ей нужно видеть и раздачу, и препятствия.
