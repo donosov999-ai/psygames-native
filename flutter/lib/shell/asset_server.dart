@@ -1,8 +1,9 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode, visibleForTesting;
 import 'package:flutter/services.dart' show rootBundle;
+import 'package:flutter/widgets.dart' show AppLifecycleListener;
 
 /// Раздаёт вложенную в приложение веб-сборку по http://127.0.0.1 — ВНУТРИ самого
 /// приложения, без сети и без чужих серверов.
@@ -20,8 +21,25 @@ import 'package:flutter/services.dart' show rootBundle;
 class AssetServer {
   AssetServer._(this._server, this.port);
 
-  final HttpServer _server;
+  /*
+   * 🔴 iOS ОТБИРАЕТ СЛУШАЮЩИЙ СОКЕТ У ПРИЛОЖЕНИЯ В ФОНЕ — СЕРВЕР ОБЯЗАН ПОДНИМАТЬСЯ ЗАНОВО.
+   *
+   * 📍 Скриншоты Дениса 07.10.2026, TestFlight 2.56.13. В 2:52 вкладка «Игры» с картинками; затем
+   * переход в другое приложение (отправить скриншот); в 2:54 на экране питомца весь текст на месте,
+   * а картинок нет ни одной: ни кота, ни трёх обликов. Apple TN2277 «Networking and Multitasking»:
+   * у приостановленного приложения система может забрать ресурсы слушающего сокета, и после
+   * возврата он «мёртв» — соединения к нему не проходят. Страница уже загружена и живёт, текст
+   * рисует; а каждая НОВАЯ картинка (раздача `no-store`) идёт в мёртвый порт и остаётся пустой.
+   * ⚠️ Симулятор так не делает (замер 07.10: в фоне порт молчит, после возврата снова 200) — на
+   * нём дефект не воспроизводится, поэтому проба `asset_server_revive_test.dart` отбирает сокет сама.
+   *
+   * Поэтому при каждом возврате приложения ([reviveOnResume]) сервер проверяет себя запросом к
+   * себе же и, если не ответил, встаёт заново на ТОМ ЖЕ порту: порт — это origin страницы, а на
+   * origin у WebKit заведён `localStorage`.
+   */
+  HttpServer _server;
   final int port;
+  bool _alive = true;
 
   String get origin => 'http://127.0.0.1:$port';
 
@@ -51,18 +69,83 @@ class AssetServer {
   }
 
   Future<void> _serve() async {
-    await for (final req in _server) {
+    final server = _server;
+    try {
+      await for (final req in server) {
+        try {
+          await _answer(req);
+        } catch (_) {
+          req.response.statusCode = HttpStatus.internalServerError;
+          await req.response.close();
+        }
+      }
+    } catch (_) {
+      // Поток сокета оборвался ошибкой — сокет отобран; ниже он помечается мёртвым.
+    }
+    if (identical(server, _server)) _alive = false;
+  }
+
+  /// Отвечает ли сервер сам себе. Любой ответ — жив; отказ соединения или молчание — мёртв.
+  Future<bool> _answers() async {
+    final client = HttpClient()..connectionTimeout = const Duration(seconds: 1);
+    try {
+      final req = await client.getUrl(Uri.parse('$origin$_probe')).timeout(const Duration(seconds: 2));
+      final res = await req.close().timeout(const Duration(seconds: 2));
+      await res.drain<void>();
+      return true;
+    } catch (_) {
+      return false;
+    } finally {
+      client.close(force: true);
+    }
+  }
+
+  static const _probe = '/__psy_alive';
+
+  /// Сервер жив — `true` сразу. Мёртв — встать заново на том же порту (до 5 попыток).
+  /// Возвращает, отвечает ли сервер после проверки.
+  Future<bool> ensureAlive() async {
+    if (_alive && await _answers()) return true;
+    try {
+      await _server.close(force: true);
+    } catch (_) {}
+    for (var i = 0; i < 5; i++) {
       try {
-        await _answer(req);
-      } catch (_) {
-        req.response.statusCode = HttpStatus.internalServerError;
-        await req.response.close();
+        _server = await HttpServer.bind(InternetAddress.loopbackIPv4, port);
+        _alive = true;
+        unawaited(_serve());
+        if (kDebugMode) debugPrint('[раздача] сокет поднят заново на $port');
+        return true;
+      } on SocketException {
+        await Future<void>.delayed(const Duration(milliseconds: 200));
       }
     }
+    return false;
+  }
+
+  AppLifecycleListener? _lifecycle;
+
+  /// Проверять себя при каждом возврате приложения из фона (см. шапку класса).
+  void reviveOnResume() {
+    _lifecycle ??= AppLifecycleListener(onResume: () => unawaited(ensureAlive()));
+  }
+
+  /// Пробам: сокет отобран, как iOS делает у приложения в фоне. [silent] — сервер об этом не узнал
+  /// (поток сокета не закрылся): тогда отличить живой от мёртвого может только запрос к себе.
+  @visibleForTesting
+  Future<void> debugDropSocket({bool silent = false}) async {
+    await _server.close(force: true);
+    await Future<void>.delayed(const Duration(milliseconds: 20));
+    if (silent) _alive = true;
   }
 
   Future<void> _answer(HttpRequest req) async {
     var path = Uri.decodeComponent(req.uri.path);
+    if (path == _probe) {
+      req.response.statusCode = HttpStatus.noContent;
+      await req.response.close();
+      return;
+    }
     if (path.endsWith('/')) path += 'index.html';
     if (path == '/index.html' || path.isEmpty) path = '/index.html';
 
@@ -170,5 +253,9 @@ class AssetServer {
     }
   }
 
-  Future<void> stop() => _server.close(force: true);
+  Future<void> stop() {
+    _lifecycle?.dispose();
+    _lifecycle = null;
+    return _server.close(force: true);
+  }
 }
