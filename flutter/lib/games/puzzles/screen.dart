@@ -146,9 +146,11 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
       _steps = resolveSteps(_mode, engine, index);
       _genPool = ladderPool(gameId: _mode.levelKey, stepKeys: [for (final s in _steps) s.params]);
       _shadow = GeneratorShadow(GeneratorStore(widget.state, gameId: _mode.levelKey));
+      final levelStore = SharedLevelStore(widget.state);
+      await migrateLegacyLevel(_mode, levelStore);
       _ladder = LevelLadder(
         gameId: _mode.levelKey,
-        store: SharedLevelStore(widget.state),
+        store: levelStore,
         maxLevel: _steps.length,
         // Партию веб пишет типом `puzzles` с режимом рядом (puzzles.tsx) — так же и здесь,
         // иначе в статистике её нет нигде. Уровень — по-прежнему у каждого режима свой.

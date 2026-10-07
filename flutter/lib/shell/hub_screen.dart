@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
+import 'catalog.dart';
 import 'level_ladder.dart';
 import 'shared_level_store.dart';
 import 'l10n.dart';
@@ -224,6 +225,13 @@ class _HubScreenState extends State<HubScreen> {
   String _pick = 'Выбери упражнение';
   final Map<String, int> _levels = {};
 
+  /// Поиск и фильтр внутри развилки (задача f5025027): строки ищутся тем же [Catalog], что
+  /// и во вкладке «Игры», — на языке экрана, по-английски и по-русски.
+  Catalog? _catalog;
+  String _query = '';
+  String? _skill;
+  bool _searching = false;
+
   @override
   void initState() {
     super.initState();
@@ -387,6 +395,12 @@ class _HubScreenState extends State<HubScreen> {
       await ladder.load();
       _levels[c.route] = ladder.level;
     }
+    Catalog? catalog;
+    try {
+      catalog = await Catalog.load();
+    } catch (_) {
+      // Нет каталога — развилка без поиска, как прежде.
+    }
     if (!mounted) return;
     // 🔴 КЛЮЧ СЛОВАРЯ ПРЕЖДЕ ТЕКСТА: `meta` несёт ключи, снятые с веб-экрана
     // развилки (embed-hubs.mjs), а русский текст — только запасной путь для
@@ -398,6 +412,7 @@ class _HubScreenState extends State<HubScreen> {
 
     setState(() {
       _cards = cards;
+      _catalog = catalog;
       _icons = icons;
       _title = tr('titleKey', meta?['title'] as String?);
       _desc = tr('descKey', meta?['desc'] as String?);
@@ -406,20 +421,83 @@ class _HubScreenState extends State<HubScreen> {
     });
   }
 
+  CatalogEntry? _entry(HubCard c) {
+    for (final e in _catalog?.entries ?? const <CatalogEntry>[]) {
+      if (e.route == c.route) return e;
+    }
+    return null;
+  }
+
+  /// Навыки карточек этой развилки. Один навык на всех (сорок режимов Тэтхэма наследуют
+  /// навык «Головоломок») — фильтра нет: список из одной строки ничего не отбирает.
+  List<String> _skills(List<HubCard> cards) {
+    final s = {for (final c in cards) ?_entry(c)?.skillKey}.toList()
+      ..sort((a, b) => skillTitle(a).compareTo(skillTitle(b)));
+    return s;
+  }
+
+  bool _shows(HubCard c) {
+    final e = _entry(c);
+    if (_skill != null && e?.skillKey != _skill) return false;
+    if (_query.trim().isEmpty) return true;
+    if (e != null) return _catalog!.matches(e, _query, null);
+    return c.name.toLowerCase().contains(_query.trim().toLowerCase());
+  }
+
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final cards = _cards;
+    final all = _cards;
+    final cards = all?.where(_shows).toList();
+    final skills = all == null ? const <String>[] : _skills(all);
     return Scaffold(
+      /*
+       * 🔴 ПОИСК И ФИЛЬТР — В ВЕРХНЕЙ ПАНЕЛИ, А НЕ НАД КАРТОЧКАМИ (задача f5025027).
+       * Замер пробами развилок 02.10: поле с выпадающим списком над карточками сдвигало их на
+       * ~120 точек, одной строкой — на ~60, и девятая карточка «Конфликта внимания» уходила за
+       * экран 390×844: развилка переставала показывать выбор целиком. В панели поиск не
+       * стоит ни точки, пока его не открыли. Полная раскладка Chess & Go — во вкладке «Игры».
+       */
       appBar: AppBar(
-        title: Text(_title.isEmpty ? 'Развилка' : _title),
+        title: _searching
+            ? TextField(
+                key: const ValueKey('hub-search'),
+                autofocus: true,
+                decoration: InputDecoration(hintText: L.t('catalogSearch'), border: InputBorder.none),
+                onChanged: (v) => setState(() => _query = v),
+              )
+            : Text(_title.isEmpty ? 'Развилка' : _title),
+        actions: [
+          if (_catalog != null)
+            IconButton(
+              key: const ValueKey('hub-search-toggle'),
+              tooltip: L.t('catalogSearch'),
+              icon: Icon(_searching ? Icons.close : Icons.search),
+              onPressed: () => setState(() {
+                _searching = !_searching;
+                if (!_searching) _query = '';
+              }),
+            ),
+          if (skills.length >= 2)
+            PopupMenuButton<String>(
+              key: const ValueKey('hub-filter'),
+              tooltip: L.t('catalogFilter'),
+              icon: Icon(Icons.filter_list, color: _skill == null ? null : scheme.primary),
+              initialValue: _skill ?? '',
+              onSelected: (v) => setState(() => _skill = v.isEmpty ? null : v),
+              itemBuilder: (_) => [
+                PopupMenuItem<String>(value: '', child: Text(L.t('allGames'))),
+                for (final k in skills) PopupMenuItem<String>(value: k, child: Text(skillTitle(k))),
+              ],
+            ),
+        ],
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          tooltip: 'Назад',
+          tooltip: L.t('back'),
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
-      body: cards == null
+      body: all == null
           ? const Center(child: CircularProgressIndicator())
           : ListView(
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
@@ -458,6 +536,12 @@ class _HubScreenState extends State<HubScreen> {
                 const SizedBox(height: 16),
                 Text(_pick, style: TextStyle(color: scheme.onSurfaceVariant)),
                 const SizedBox(height: 8),
+                if (cards!.isEmpty)
+                  Padding(
+                    key: const ValueKey('hub-nothing'),
+                    padding: const EdgeInsets.symmetric(vertical: 24),
+                    child: Text(L.t('catalogNothing'), textAlign: TextAlign.center),
+                  ),
                 for (final c in cards)
                   Card(
                     margin: const EdgeInsets.only(bottom: 8),

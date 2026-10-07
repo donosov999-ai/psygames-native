@@ -18,6 +18,7 @@ import { текстОтправки } from '@/src/services/liveFieldText';
 import { textOn } from '@/src/services/onGradientText';
 import { pushCrumb } from '@/src/services/crumbs';
 import { параметрыЭкранаДляОтзыва } from '@/src/services/feedbackGameState';
+import { feedbackSource } from '@/src/services/feedbackSource';
 import React from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, Modal, TextInput,
@@ -76,6 +77,7 @@ export default function FeedbackWidget() {
    * `useLocalSearchParams` отдал бы параметры корня, где их нет никогда.
    */
   const параметрыЭкрана = useGlobalSearchParams();
+  const source = feedbackSource(pathname, параметрыЭкрана.sourceRoute);
   // Крошка навигации: каждый экран — шаг траектории репорта (steps, §3.1).
   React.useEffect(() => { if (pathname) pushCrumb(`screen ${pathname}`); }, [pathname]);
   // RTL: кнопка зеркалится к правому краю (а «?»-справка уходит влево) — не конфликтуем
@@ -373,16 +375,22 @@ export default function FeedbackWidget() {
     return () => sub.remove();
   }, []);
 
-  if (!FEEDBACK_ENABLED || hidden) return null;
+  React.useEffect(() => {
+    if (pathname === '/feedback') openSheetRef.current();
+  }, [pathname]);
 
-  const gameId = pathname.startsWith('/games/')
-    ? pathname.replace('/games/', '').replace(/\/+$/, '') || undefined
+  if (!FEEDBACK_ENABLED) return null;
+
+  const gameId = source.screen.startsWith('/games/')
+    ? source.screen.replace('/games/', '').replace(/\/+$/, '') || undefined
     : undefined;
 
   const openSheet = async () => {
     if (capturing) return;                 // защита от дабл-тапа во время съёмки
     setCapturing(true);
-    const s = await captureScreenshot();   // снимаем ДО показа шторки
+    // This WebView cannot capture the native board behind it. Do not attach a
+    // blank form screenshot as evidence of the game.
+    const s = pathname === '/feedback' ? null : await captureScreenshot();
     setCapturing(false);
     setShot(s);
     // Читаем сохранённый уровень запущенной игры по тому же ключу, что и
@@ -476,7 +484,7 @@ export default function FeedbackWidget() {
       // Пустое сообщение читается в выгрузке как «потерялось»; ставим явную
       // пометку, чтобы было видно: смысл в записи, расшифровать её.
       message: текст.trim() || '[голосом, без текста]',
-      screen: pathname,
+      screen: source.screen,
       gameId,
       shot: attachShot ? shot : null,
       // ⚠️ peak ОБЯЗАТЕЛЕН. Здесь собирали объект из трёх полей и роняли четвёртое,
@@ -495,7 +503,7 @@ export default function FeedbackWidget() {
         language, theme: colors.background,
         profile: profile.id, profileName: profile.display_name,
         level,
-        route_params: параметрыЭкранаДляОтзыва(параметрыЭкрана),
+        route_params: параметрыЭкранаДляОтзыва(pathname === '/feedback' ? source.params : параметрыЭкрана),
       },
     });
     sendingRef.current = false;
@@ -531,7 +539,7 @@ export default function FeedbackWidget() {
 
   return (
     <>
-      <View
+      {!hidden && pathname !== '/feedback' && <View
         {...pan.panHandlers}
         style={[
           styles.fab,
@@ -551,7 +559,7 @@ export default function FeedbackWidget() {
           ? <ActivityIndicator size="small" color={textOn('#ef4444')} />
           : <Ionicons name="chatbubble-ellipses" size={19} color={textOn('#ef4444')} />}
       </TouchableOpacity>
-      </View>
+      </View>}
 
       <Modal visible={open} animationType="slide" transparent onRequestClose={() => setOpen(false)}>
         <View {...a11yModal} style={styles.backdrop}>

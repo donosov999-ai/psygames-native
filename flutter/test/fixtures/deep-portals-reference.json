@@ -1,0 +1,13271 @@
+{
+ "выгружено": "node flutter/tools/export-deep-portals.cjs (живой fractal-deep.ts: deepPortalsFor, portalOfLeaf)",
+ "presets": [
+  {
+   "key": "scout",
+   "depth": 2,
+   "feedCount": 9,
+   "unlockShare": 0.24
+  },
+  {
+   "key": "trek",
+   "depth": 3,
+   "feedCount": 12,
+   "unlockShare": 0.24
+  },
+  {
+   "key": "abyss",
+   "depth": 3,
+   "feedCount": "all",
+   "unlockShare": 0.24
+  }
+ ],
+ "bands": [
+  {
+   "band": 0,
+   "rating": 1.2
+  },
+  {
+   "band": 3,
+   "rating": 3.2
+  },
+  {
+   "band": 5,
+   "rating": 5.7
+  }
+ ],
+ "cases": [
+  {
+   "seed": "бездна-эталон-порталов",
+   "preset": "scout",
+   "band": 0,
+   "parentPath": "",
+   "portals": [
+    {
+     "aPath": "1,5",
+     "bPath": "8,2",
+     "aCell": [
+      7,
+      8
+     ],
+     "bCell": [
+      0,
+      4
+     ],
+     "aDrop": [
+      6,
+      8
+     ],
+     "bDrop": [
+      8,
+      7
+     ],
+     "digit": 9
+    },
+    {
+     "aPath": "2,0",
+     "bPath": "2,3",
+     "aCell": [
+      1,
+      3
+     ],
+     "bCell": [
+      2,
+      5
+     ],
+     "aDrop": [
+      1,
+      1
+     ],
+     "bDrop": [
+      0,
+      3
+     ],
+     "digit": 6
+    }
+   ],
+   "leaves": [
+    {
+     "path": "1,5",
+     "cell": [
+      7,
+      8
+     ],
+     "drop": [
+      6,
+      8
+     ],
+     "partnerPath": "8,2",
+     "partnerCell": [
+      0,
+      4
+     ],
+     "digit": 9,
+     "blanks": 46,
+     "unlockCells": 12
+    },
+    {
+     "path": "8,2",
+     "cell": [
+      0,
+      4
+     ],
+     "drop": [
+      8,
+      7
+     ],
+     "partnerPath": "1,5",
+     "partnerCell": [
+      7,
+      8
+     ],
+     "digit": 9,
+     "blanks": 49,
+     "unlockCells": 12
+    },
+    {
+     "path": "2,0",
+     "cell": [
+      1,
+      3
+     ],
+     "drop": [
+      1,
+      1
+     ],
+     "partnerPath": "2,3",
+     "partnerCell": [
+      2,
+      5
+     ],
+     "digit": 6,
+     "blanks": 49,
+     "unlockCells": 12
+    },
+    {
+     "path": "2,3",
+     "cell": [
+      2,
+      5
+     ],
+     "drop": [
+      0,
+      3
+     ],
+     "partnerPath": "2,0",
+     "partnerCell": [
+      1,
+      3
+     ],
+     "digit": 6,
+     "blanks": 52,
+     "unlockCells": 13
+    }
+   ]
+  },
+  {
+   "seed": "бездна-эталон-порталов",
+   "preset": "scout",
+   "band": 3,
+   "parentPath": "",
+   "portals": [],
+   "leaves": []
+  },
+  {
+   "seed": "бездна-эталон-порталов",
+   "preset": "scout",
+   "band": 5,
+   "parentPath": "",
+   "portals": [
+    {
+     "aPath": "1,5",
+     "bPath": "8,1",
+     "aCell": [
+      1,
+      0
+     ],
+     "bCell": [
+      7,
+      8
+     ],
+     "aDrop": [
+      2,
+      2
+     ],
+     "bDrop": [
+      8,
+      5
+     ],
+     "digit": 5
+    },
+    {
+     "aPath": "2,3",
+     "bPath": "8,7",
+     "aCell": [
+      2,
+      8
+     ],
+     "bCell": [
+      5,
+      4
+     ],
+     "aDrop": [
+      7,
+      8
+     ],
+     "bDrop": [
+      5,
+      3
+     ],
+     "digit": 1
+    }
+   ],
+   "leaves": [
+    {
+     "path": "1,5",
+     "cell": [
+      1,
+      0
+     ],
+     "drop": [
+      2,
+      2
+     ],
+     "partnerPath": "8,1",
+     "partnerCell": [
+      7,
+      8
+     ],
+     "digit": 5,
+     "blanks": 53,
+     "unlockCells": 13
+    },
+    {
+     "path": "8,1",
+     "cell": [
+      7,
+      8
+     ],
+     "drop": [
+      8,
+      5
+     ],
+     "partnerPath": "1,5",
+     "partnerCell": [
+      1,
+      0
+     ],
+     "digit": 5,
+     "blanks": 54,
+     "unlockCells": 13
+    },
+    {
+     "path": "2,3",
+     "cell": [
+      2,
+      8
+     ],
+     "drop": [
+      7,
+      8
+     ],
+     "partnerPath": "8,7",
+     "partnerCell": [
+      5,
+      4
+     ],
+     "digit": 1,
+     "blanks": 55,
+     "unlockCells": 14
+    },
+    {
+     "path": "8,7",
+     "cell": [
+      5,
+      4
+     ],
+     "drop": [
+      5,
+      3
+     ],
+     "partnerPath": "2,3",
+     "partnerCell": [
+      2,
+      8
+     ],
+     "digit": 1,
+     "blanks": 56,
+     "unlockCells": 14
+    }
+   ]
+  },
+  {
+   "seed": "бездна-эталон-порталов",
+   "preset": "trek",
+   "band": 0,
+   "parentPath": "1,5",
+   "portals": [
+    {
+     "aPath": "1,5/7,7",
+     "bPath": "1,5/5,0",
+     "aCell": [
+      5,
+      5
+     ],
+     "bCell": [
+      2,
+      3
+     ],
+     "aDrop": [
+      4,
+      5
+     ],
+     "bDrop": [
+      1,
+      3
+     ],
+     "digit": 1
+    },
+    {
+     "aPath": "1,5/8,0",
+     "bPath": "1,5/3,5",
+     "aCell": [
+      1,
+      8
+     ],
+     "bCell": [
+      0,
+      1
+     ],
+     "aDrop": [
+      2,
+      7
+     ],
+     "bDrop": [
+      2,
+      1
+     ],
+     "digit": 7
+    }
+   ],
+   "leaves": [
+    {
+     "path": "1,5/7,7",
+     "cell": [
+      5,
+      5
+     ],
+     "drop": [
+      4,
+      5
+     ],
+     "partnerPath": "1,5/5,0",
+     "partnerCell": [
+      2,
+      3
+     ],
+     "digit": 1,
+     "blanks": 51,
+     "unlockCells": 13
+    },
+    {
+     "path": "1,5/5,0",
+     "cell": [
+      2,
+      3
+     ],
+     "drop": [
+      1,
+      3
+     ],
+     "partnerPath": "1,5/7,7",
+     "partnerCell": [
+      5,
+      5
+     ],
+     "digit": 1,
+     "blanks": 52,
+     "unlockCells": 13
+    },
+    {
+     "path": "1,5/8,0",
+     "cell": [
+      1,
+      8
+     ],
+     "drop": [
+      2,
+      7
+     ],
+     "partnerPath": "1,5/3,5",
+     "partnerCell": [
+      0,
+      1
+     ],
+     "digit": 7,
+     "blanks": 54,
+     "unlockCells": 13
+    },
+    {
+     "path": "1,5/3,5",
+     "cell": [
+      0,
+      1
+     ],
+     "drop": [
+      2,
+      1
+     ],
+     "partnerPath": "1,5/8,0",
+     "partnerCell": [
+      1,
+      8
+     ],
+     "digit": 7,
+     "blanks": 58,
+     "unlockCells": 14
+    }
+   ]
+  },
+  {
+   "seed": "бездна-эталон-порталов",
+   "preset": "trek",
+   "band": 0,
+   "parentPath": "8,7",
+   "portals": [
+    {
+     "aPath": "8,7/2,3",
+     "bPath": "8,7/6,2",
+     "aCell": [
+      4,
+      5
+     ],
+     "bCell": [
+      1,
+      7
+     ],
+     "aDrop": [
+      5,
+      1
+     ],
+     "bDrop": [
+      5,
+      0
+     ],
+     "digit": 3
+    },
+    {
+     "aPath": "8,7/5,6",
+     "bPath": "8,7/3,4",
+     "aCell": [
+      4,
+      0
+     ],
+     "bCell": [
+      3,
+      4
+     ],
+     "aDrop": [
+      3,
+      2
+     ],
+     "bDrop": [
+      3,
+      5
+     ],
+     "digit": 1
+    }
+   ],
+   "leaves": [
+    {
+     "path": "8,7/2,3",
+     "cell": [
+      4,
+      5
+     ],
+     "drop": [
+      5,
+      1
+     ],
+     "partnerPath": "8,7/6,2",
+     "partnerCell": [
+      1,
+      7
+     ],
+     "digit": 3,
+     "blanks": 50,
+     "unlockCells": 12
+    },
+    {
+     "path": "8,7/6,2",
+     "cell": [
+      1,
+      7
+     ],
+     "drop": [
+      5,
+      0
+     ],
+     "partnerPath": "8,7/2,3",
+     "partnerCell": [
+      4,
+      5
+     ],
+     "digit": 3,
+     "blanks": 58,
+     "unlockCells": 14
+    },
+    {
+     "path": "8,7/5,6",
+     "cell": [
+      4,
+      0
+     ],
+     "drop": [
+      3,
+      2
+     ],
+     "partnerPath": "8,7/3,4",
+     "partnerCell": [
+      3,
+      4
+     ],
+     "digit": 1,
+     "blanks": 49,
+     "unlockCells": 12
+    },
+    {
+     "path": "8,7/3,4",
+     "cell": [
+      3,
+      4
+     ],
+     "drop": [
+      3,
+      5
+     ],
+     "partnerPath": "8,7/5,6",
+     "partnerCell": [
+      4,
+      0
+     ],
+     "digit": 1,
+     "blanks": 51,
+     "unlockCells": 13
+    }
+   ]
+  },
+  {
+   "seed": "бездна-эталон-порталов",
+   "preset": "trek",
+   "band": 0,
+   "parentPath": "2,0",
+   "portals": [
+    {
+     "aPath": "2,0/2,7",
+     "bPath": "2,0/0,3",
+     "aCell": [
+      0,
+      0
+     ],
+     "bCell": [
+      2,
+      4
+     ],
+     "aDrop": [
+      0,
+      1
+     ],
+     "bDrop": [
+      3,
+      4
+     ],
+     "digit": 4
+    },
+    {
+     "aPath": "2,0/5,6",
+     "bPath": "2,0/4,8",
+     "aCell": [
+      2,
+      0
+     ],
+     "bCell": [
+      6,
+      8
+     ],
+     "aDrop": [
+      3,
+      0
+     ],
+     "bDrop": [
+      7,
+      8
+     ],
+     "digit": 7
+    }
+   ],
+   "leaves": [
+    {
+     "path": "2,0/2,7",
+     "cell": [
+      0,
+      0
+     ],
+     "drop": [
+      0,
+      1
+     ],
+     "partnerPath": "2,0/0,3",
+     "partnerCell": [
+      2,
+      4
+     ],
+     "digit": 4,
+     "blanks": 52,
+     "unlockCells": 13
+    },
+    {
+     "path": "2,0/0,3",
+     "cell": [
+      2,
+      4
+     ],
+     "drop": [
+      3,
+      4
+     ],
+     "partnerPath": "2,0/2,7",
+     "partnerCell": [
+      0,
+      0
+     ],
+     "digit": 4,
+     "blanks": 58,
+     "unlockCells": 14
+    },
+    {
+     "path": "2,0/5,6",
+     "cell": [
+      2,
+      0
+     ],
+     "drop": [
+      3,
+      0
+     ],
+     "partnerPath": "2,0/4,8",
+     "partnerCell": [
+      6,
+      8
+     ],
+     "digit": 7,
+     "blanks": 55,
+     "unlockCells": 14
+    },
+    {
+     "path": "2,0/4,8",
+     "cell": [
+      6,
+      8
+     ],
+     "drop": [
+      7,
+      8
+     ],
+     "partnerPath": "2,0/5,6",
+     "partnerCell": [
+      2,
+      0
+     ],
+     "digit": 7,
+     "blanks": 50,
+     "unlockCells": 12
+    }
+   ]
+  },
+  {
+   "seed": "бездна-эталон-порталов",
+   "preset": "trek",
+   "band": 0,
+   "parentPath": "2,1",
+   "portals": [
+    {
+     "aPath": "2,1/6,8",
+     "bPath": "2,1/8,3",
+     "aCell": [
+      0,
+      3
+     ],
+     "bCell": [
+      5,
+      2
+     ],
+     "aDrop": [
+      4,
+      3
+     ],
+     "bDrop": [
+      1,
+      7
+     ],
+     "digit": 7
+    },
+    {
+     "aPath": "2,1/1,6",
+     "bPath": "2,1/6,0",
+     "aCell": [
+      4,
+      4
+     ],
+     "bCell": [
+      1,
+      1
+     ],
+     "aDrop": [
+      0,
+      1
+     ],
+     "bDrop": [
+      2,
+      1
+     ],
+     "digit": 2
+    }
+   ],
+   "leaves": [
+    {
+     "path": "2,1/6,8",
+     "cell": [
+      0,
+      3
+     ],
+     "drop": [
+      4,
+      3
+     ],
+     "partnerPath": "2,1/8,3",
+     "partnerCell": [
+      5,
+      2
+     ],
+     "digit": 7,
+     "blanks": 50,
+     "unlockCells": 12
+    },
+    {
+     "path": "2,1/8,3",
+     "cell": [
+      5,
+      2
+     ],
+     "drop": [
+      1,
+      7
+     ],
+     "partnerPath": "2,1/6,8",
+     "partnerCell": [
+      0,
+      3
+     ],
+     "digit": 7,
+     "blanks": 58,
+     "unlockCells": 14
+    },
+    {
+     "path": "2,1/1,6",
+     "cell": [
+      4,
+      4
+     ],
+     "drop": [
+      0,
+      1
+     ],
+     "partnerPath": "2,1/6,0",
+     "partnerCell": [
+      1,
+      1
+     ],
+     "digit": 2,
+     "blanks": 50,
+     "unlockCells": 12
+    },
+    {
+     "path": "2,1/6,0",
+     "cell": [
+      1,
+      1
+     ],
+     "drop": [
+      2,
+      1
+     ],
+     "partnerPath": "2,1/1,6",
+     "partnerCell": [
+      4,
+      4
+     ],
+     "digit": 2,
+     "blanks": 56,
+     "unlockCells": 14
+    }
+   ]
+  },
+  {
+   "seed": "бездна-эталон-порталов",
+   "preset": "trek",
+   "band": 3,
+   "parentPath": "3,1",
+   "portals": [
+    {
+     "aPath": "3,1/5,5",
+     "bPath": "3,1/8,2",
+     "aCell": [
+      4,
+      3
+     ],
+     "bCell": [
+      3,
+      7
+     ],
+     "aDrop": [
+      8,
+      7
+     ],
+     "bDrop": [
+      8,
+      1
+     ],
+     "digit": 5
+    },
+    {
+     "aPath": "3,1/0,8",
+     "bPath": "3,1/8,3",
+     "aCell": [
+      8,
+      8
+     ],
+     "bCell": [
+      4,
+      7
+     ],
+     "aDrop": [
+      6,
+      8
+     ],
+     "bDrop": [
+      7,
+      0
+     ],
+     "digit": 2
+    }
+   ],
+   "leaves": [
+    {
+     "path": "3,1/5,5",
+     "cell": [
+      4,
+      3
+     ],
+     "drop": [
+      8,
+      7
+     ],
+     "partnerPath": "3,1/8,2",
+     "partnerCell": [
+      3,
+      7
+     ],
+     "digit": 5,
+     "blanks": 54,
+     "unlockCells": 13
+    },
+    {
+     "path": "3,1/8,2",
+     "cell": [
+      3,
+      7
+     ],
+     "drop": [
+      8,
+      1
+     ],
+     "partnerPath": "3,1/5,5",
+     "partnerCell": [
+      4,
+      3
+     ],
+     "digit": 5,
+     "blanks": 56,
+     "unlockCells": 14
+    },
+    {
+     "path": "3,1/0,8",
+     "cell": [
+      8,
+      8
+     ],
+     "drop": [
+      6,
+      8
+     ],
+     "partnerPath": "3,1/8,3",
+     "partnerCell": [
+      4,
+      7
+     ],
+     "digit": 2,
+     "blanks": 57,
+     "unlockCells": 14
+    },
+    {
+     "path": "3,1/8,3",
+     "cell": [
+      4,
+      7
+     ],
+     "drop": [
+      7,
+      0
+     ],
+     "partnerPath": "3,1/0,8",
+     "partnerCell": [
+      8,
+      8
+     ],
+     "digit": 2,
+     "blanks": 55,
+     "unlockCells": 14
+    }
+   ]
+  },
+  {
+   "seed": "бездна-эталон-порталов",
+   "preset": "trek",
+   "band": 3,
+   "parentPath": "1,7",
+   "portals": [
+    {
+     "aPath": "1,7/6,3",
+     "bPath": "1,7/7,3",
+     "aCell": [
+      8,
+      7
+     ],
+     "bCell": [
+      8,
+      6
+     ],
+     "aDrop": [
+      3,
+      7
+     ],
+     "bDrop": [
+      2,
+      4
+     ],
+     "digit": 7
+    },
+    {
+     "aPath": "1,7/3,8",
+     "bPath": "1,7/6,2",
+     "aCell": [
+      1,
+      8
+     ],
+     "bCell": [
+      8,
+      3
+     ],
+     "aDrop": [
+      6,
+      6
+     ],
+     "bDrop": [
+      6,
+      3
+     ],
+     "digit": 9
+    }
+   ],
+   "leaves": [
+    {
+     "path": "1,7/6,3",
+     "cell": [
+      8,
+      7
+     ],
+     "drop": [
+      3,
+      7
+     ],
+     "partnerPath": "1,7/7,3",
+     "partnerCell": [
+      8,
+      6
+     ],
+     "digit": 7,
+     "blanks": 57,
+     "unlockCells": 14
+    },
+    {
+     "path": "1,7/7,3",
+     "cell": [
+      8,
+      6
+     ],
+     "drop": [
+      2,
+      4
+     ],
+     "partnerPath": "1,7/6,3",
+     "partnerCell": [
+      8,
+      7
+     ],
+     "digit": 7,
+     "blanks": 54,
+     "unlockCells": 13
+    },
+    {
+     "path": "1,7/3,8",
+     "cell": [
+      1,
+      8
+     ],
+     "drop": [
+      6,
+      6
+     ],
+     "partnerPath": "1,7/6,2",
+     "partnerCell": [
+      8,
+      3
+     ],
+     "digit": 9,
+     "blanks": 56,
+     "unlockCells": 14
+    },
+    {
+     "path": "1,7/6,2",
+     "cell": [
+      8,
+      3
+     ],
+     "drop": [
+      6,
+      3
+     ],
+     "partnerPath": "1,7/3,8",
+     "partnerCell": [
+      1,
+      8
+     ],
+     "digit": 9,
+     "blanks": 56,
+     "unlockCells": 14
+    }
+   ]
+  },
+  {
+   "seed": "бездна-эталон-порталов",
+   "preset": "trek",
+   "band": 3,
+   "parentPath": "0,6",
+   "portals": [
+    {
+     "aPath": "0,6/6,0",
+     "bPath": "0,6/5,6",
+     "aCell": [
+      1,
+      8
+     ],
+     "bCell": [
+      1,
+      3
+     ],
+     "aDrop": [
+      1,
+      0
+     ],
+     "bDrop": [
+      1,
+      5
+     ],
+     "digit": 4
+    },
+    {
+     "aPath": "0,6/7,2",
+     "bPath": "0,6/1,1",
+     "aCell": [
+      3,
+      7
+     ],
+     "bCell": [
+      1,
+      5
+     ],
+     "aDrop": [
+      0,
+      2
+     ],
+     "bDrop": [
+      1,
+      4
+     ],
+     "digit": 2
+    }
+   ],
+   "leaves": [
+    {
+     "path": "0,6/6,0",
+     "cell": [
+      1,
+      8
+     ],
+     "drop": [
+      1,
+      0
+     ],
+     "partnerPath": "0,6/5,6",
+     "partnerCell": [
+      1,
+      3
+     ],
+     "digit": 4,
+     "blanks": 54,
+     "unlockCells": 13
+    },
+    {
+     "path": "0,6/5,6",
+     "cell": [
+      1,
+      3
+     ],
+     "drop": [
+      1,
+      5
+     ],
+     "partnerPath": "0,6/6,0",
+     "partnerCell": [
+      1,
+      8
+     ],
+     "digit": 4,
+     "blanks": 56,
+     "unlockCells": 14
+    },
+    {
+     "path": "0,6/7,2",
+     "cell": [
+      3,
+      7
+     ],
+     "drop": [
+      0,
+      2
+     ],
+     "partnerPath": "0,6/1,1",
+     "partnerCell": [
+      1,
+      5
+     ],
+     "digit": 2,
+     "blanks": 56,
+     "unlockCells": 14
+    },
+    {
+     "path": "0,6/1,1",
+     "cell": [
+      1,
+      5
+     ],
+     "drop": [
+      1,
+      4
+     ],
+     "partnerPath": "0,6/7,2",
+     "partnerCell": [
+      3,
+      7
+     ],
+     "digit": 2,
+     "blanks": 54,
+     "unlockCells": 13
+    }
+   ]
+  },
+  {
+   "seed": "бездна-эталон-порталов",
+   "preset": "trek",
+   "band": 3,
+   "parentPath": "7,1",
+   "portals": [
+    {
+     "aPath": "7,1/8,6",
+     "bPath": "7,1/4,0",
+     "aCell": [
+      8,
+      4
+     ],
+     "bCell": [
+      6,
+      7
+     ],
+     "aDrop": [
+      6,
+      4
+     ],
+     "bDrop": [
+      7,
+      3
+     ],
+     "digit": 5
+    },
+    {
+     "aPath": "7,1/0,7",
+     "bPath": "7,1/3,6",
+     "aCell": [
+      1,
+      6
+     ],
+     "bCell": [
+      8,
+      8
+     ],
+     "aDrop": [
+      0,
+      5
+     ],
+     "bDrop": [
+      6,
+      3
+     ],
+     "digit": 9
+    }
+   ],
+   "leaves": [
+    {
+     "path": "7,1/8,6",
+     "cell": [
+      8,
+      4
+     ],
+     "drop": [
+      6,
+      4
+     ],
+     "partnerPath": "7,1/4,0",
+     "partnerCell": [
+      6,
+      7
+     ],
+     "digit": 5,
+     "blanks": 54,
+     "unlockCells": 13
+    },
+    {
+     "path": "7,1/4,0",
+     "cell": [
+      6,
+      7
+     ],
+     "drop": [
+      7,
+      3
+     ],
+     "partnerPath": "7,1/8,6",
+     "partnerCell": [
+      8,
+      4
+     ],
+     "digit": 5,
+     "blanks": 55,
+     "unlockCells": 14
+    },
+    {
+     "path": "7,1/0,7",
+     "cell": [
+      1,
+      6
+     ],
+     "drop": [
+      0,
+      5
+     ],
+     "partnerPath": "7,1/3,6",
+     "partnerCell": [
+      8,
+      8
+     ],
+     "digit": 9,
+     "blanks": 56,
+     "unlockCells": 14
+    },
+    {
+     "path": "7,1/3,6",
+     "cell": [
+      8,
+      8
+     ],
+     "drop": [
+      6,
+      3
+     ],
+     "partnerPath": "7,1/0,7",
+     "partnerCell": [
+      1,
+      6
+     ],
+     "digit": 9,
+     "blanks": 54,
+     "unlockCells": 13
+    }
+   ]
+  },
+  {
+   "seed": "бездна-эталон-порталов",
+   "preset": "trek",
+   "band": 5,
+   "parentPath": "1,5",
+   "portals": [
+    {
+     "aPath": "1,5/0,8",
+     "bPath": "1,5/6,0",
+     "aCell": [
+      1,
+      5
+     ],
+     "bCell": [
+      3,
+      1
+     ],
+     "aDrop": [
+      0,
+      5
+     ],
+     "bDrop": [
+      1,
+      0
+     ],
+     "digit": 8
+    },
+    {
+     "aPath": "1,5/4,0",
+     "bPath": "1,5/4,4",
+     "aCell": [
+      0,
+      8
+     ],
+     "bCell": [
+      4,
+      0
+     ],
+     "aDrop": [
+      8,
+      4
+     ],
+     "bDrop": [
+      2,
+      4
+     ],
+     "digit": 3
+    }
+   ],
+   "leaves": [
+    {
+     "path": "1,5/0,8",
+     "cell": [
+      1,
+      5
+     ],
+     "drop": [
+      0,
+      5
+     ],
+     "partnerPath": "1,5/6,0",
+     "partnerCell": [
+      3,
+      1
+     ],
+     "digit": 8,
+     "blanks": 54,
+     "unlockCells": 13
+    },
+    {
+     "path": "1,5/6,0",
+     "cell": [
+      3,
+      1
+     ],
+     "drop": [
+      1,
+      0
+     ],
+     "partnerPath": "1,5/0,8",
+     "partnerCell": [
+      1,
+      5
+     ],
+     "digit": 8,
+     "blanks": 55,
+     "unlockCells": 14
+    },
+    {
+     "path": "1,5/4,0",
+     "cell": [
+      0,
+      8
+     ],
+     "drop": [
+      8,
+      4
+     ],
+     "partnerPath": "1,5/4,4",
+     "partnerCell": [
+      4,
+      0
+     ],
+     "digit": 3,
+     "blanks": 53,
+     "unlockCells": 13
+    },
+    {
+     "path": "1,5/4,4",
+     "cell": [
+      4,
+      0
+     ],
+     "drop": [
+      2,
+      4
+     ],
+     "partnerPath": "1,5/4,0",
+     "partnerCell": [
+      0,
+      8
+     ],
+     "digit": 3,
+     "blanks": 53,
+     "unlockCells": 13
+    }
+   ]
+  },
+  {
+   "seed": "бездна-эталон-порталов",
+   "preset": "trek",
+   "band": 5,
+   "parentPath": "8,7",
+   "portals": [
+    {
+     "aPath": "8,7/7,3",
+     "bPath": "8,7/1,0",
+     "aCell": [
+      5,
+      3
+     ],
+     "bCell": [
+      3,
+      3
+     ],
+     "aDrop": [
+      4,
+      3
+     ],
+     "bDrop": [
+      7,
+      7
+     ],
+     "digit": 8
+    },
+    {
+     "aPath": "8,7/8,1",
+     "bPath": "8,7/7,7",
+     "aCell": [
+      7,
+      3
+     ],
+     "bCell": [
+      3,
+      6
+     ],
+     "aDrop": [
+      1,
+      7
+     ],
+     "bDrop": [
+      1,
+      3
+     ],
+     "digit": 8
+    }
+   ],
+   "leaves": [
+    {
+     "path": "8,7/7,3",
+     "cell": [
+      5,
+      3
+     ],
+     "drop": [
+      4,
+      3
+     ],
+     "partnerPath": "8,7/1,0",
+     "partnerCell": [
+      3,
+      3
+     ],
+     "digit": 8,
+     "blanks": 50,
+     "unlockCells": 12
+    },
+    {
+     "path": "8,7/1,0",
+     "cell": [
+      3,
+      3
+     ],
+     "drop": [
+      7,
+      7
+     ],
+     "partnerPath": "8,7/7,3",
+     "partnerCell": [
+      5,
+      3
+     ],
+     "digit": 8,
+     "blanks": 54,
+     "unlockCells": 13
+    },
+    {
+     "path": "8,7/8,1",
+     "cell": [
+      7,
+      3
+     ],
+     "drop": [
+      1,
+      7
+     ],
+     "partnerPath": "8,7/7,7",
+     "partnerCell": [
+      3,
+      6
+     ],
+     "digit": 8,
+     "blanks": 56,
+     "unlockCells": 14
+    },
+    {
+     "path": "8,7/7,7",
+     "cell": [
+      3,
+      6
+     ],
+     "drop": [
+      1,
+      3
+     ],
+     "partnerPath": "8,7/8,1",
+     "partnerCell": [
+      7,
+      3
+     ],
+     "digit": 8,
+     "blanks": 57,
+     "unlockCells": 14
+    }
+   ]
+  },
+  {
+   "seed": "бездна-эталон-порталов",
+   "preset": "trek",
+   "band": 5,
+   "parentPath": "2,2",
+   "portals": [
+    {
+     "aPath": "2,2/6,1",
+     "bPath": "2,2/4,1",
+     "aCell": [
+      7,
+      0
+     ],
+     "bCell": [
+      0,
+      0
+     ],
+     "aDrop": [
+      6,
+      0
+     ],
+     "bDrop": [
+      6,
+      1
+     ],
+     "digit": 3
+    },
+    {
+     "aPath": "2,2/8,7",
+     "bPath": "2,2/6,2",
+     "aCell": [
+      6,
+      1
+     ],
+     "bCell": [
+      1,
+      7
+     ],
+     "aDrop": [
+      2,
+      6
+     ],
+     "bDrop": [
+      2,
+      2
+     ],
+     "digit": 6
+    }
+   ],
+   "leaves": [
+    {
+     "path": "2,2/6,1",
+     "cell": [
+      7,
+      0
+     ],
+     "drop": [
+      6,
+      0
+     ],
+     "partnerPath": "2,2/4,1",
+     "partnerCell": [
+      0,
+      0
+     ],
+     "digit": 3,
+     "blanks": 54,
+     "unlockCells": 13
+    },
+    {
+     "path": "2,2/4,1",
+     "cell": [
+      0,
+      0
+     ],
+     "drop": [
+      6,
+      1
+     ],
+     "partnerPath": "2,2/6,1",
+     "partnerCell": [
+      7,
+      0
+     ],
+     "digit": 3,
+     "blanks": 53,
+     "unlockCells": 13
+    },
+    {
+     "path": "2,2/8,7",
+     "cell": [
+      6,
+      1
+     ],
+     "drop": [
+      2,
+      6
+     ],
+     "partnerPath": "2,2/6,2",
+     "partnerCell": [
+      1,
+      7
+     ],
+     "digit": 6,
+     "blanks": 53,
+     "unlockCells": 13
+    },
+    {
+     "path": "2,2/6,2",
+     "cell": [
+      1,
+      7
+     ],
+     "drop": [
+      2,
+      2
+     ],
+     "partnerPath": "2,2/8,7",
+     "partnerCell": [
+      6,
+      1
+     ],
+     "digit": 6,
+     "blanks": 55,
+     "unlockCells": 14
+    }
+   ]
+  },
+  {
+   "seed": "бездна-эталон-порталов",
+   "preset": "trek",
+   "band": 5,
+   "parentPath": "2,3",
+   "portals": [
+    {
+     "aPath": "2,3/5,0",
+     "bPath": "2,3/4,8",
+     "aCell": [
+      7,
+      3
+     ],
+     "bCell": [
+      6,
+      8
+     ],
+     "aDrop": [
+      8,
+      0
+     ],
+     "bDrop": [
+      4,
+      1
+     ],
+     "digit": 3
+    },
+    {
+     "aPath": "2,3/3,5",
+     "bPath": "2,3/8,6",
+     "aCell": [
+      5,
+      2
+     ],
+     "bCell": [
+      8,
+      2
+     ],
+     "aDrop": [
+      5,
+      7
+     ],
+     "bDrop": [
+      3,
+      2
+     ],
+     "digit": 3
+    }
+   ],
+   "leaves": [
+    {
+     "path": "2,3/5,0",
+     "cell": [
+      7,
+      3
+     ],
+     "drop": [
+      8,
+      0
+     ],
+     "partnerPath": "2,3/4,8",
+     "partnerCell": [
+      6,
+      8
+     ],
+     "digit": 3,
+     "blanks": 54,
+     "unlockCells": 13
+    },
+    {
+     "path": "2,3/4,8",
+     "cell": [
+      6,
+      8
+     ],
+     "drop": [
+      4,
+      1
+     ],
+     "partnerPath": "2,3/5,0",
+     "partnerCell": [
+      7,
+      3
+     ],
+     "digit": 3,
+     "blanks": 55,
+     "unlockCells": 14
+    },
+    {
+     "path": "2,3/3,5",
+     "cell": [
+      5,
+      2
+     ],
+     "drop": [
+      5,
+      7
+     ],
+     "partnerPath": "2,3/8,6",
+     "partnerCell": [
+      8,
+      2
+     ],
+     "digit": 3,
+     "blanks": 54,
+     "unlockCells": 13
+    },
+    {
+     "path": "2,3/8,6",
+     "cell": [
+      8,
+      2
+     ],
+     "drop": [
+      3,
+      2
+     ],
+     "partnerPath": "2,3/3,5",
+     "partnerCell": [
+      5,
+      2
+     ],
+     "digit": 3,
+     "blanks": 56,
+     "unlockCells": 14
+    }
+   ]
+  },
+  {
+   "seed": "бездна-эталон-порталов",
+   "preset": "abyss",
+   "band": 0,
+   "parentPath": "0,0",
+   "portals": [
+    {
+     "aPath": "0,0/0,1",
+     "bPath": "0,0/2,4",
+     "aCell": [
+      2,
+      7
+     ],
+     "bCell": [
+      2,
+      3
+     ],
+     "aDrop": [
+      5,
+      6
+     ],
+     "bDrop": [
+      0,
+      2
+     ],
+     "digit": 4
+    },
+    {
+     "aPath": "0,0/5,2",
+     "bPath": "0,0/3,0",
+     "aCell": [
+      0,
+      5
+     ],
+     "bCell": [
+      7,
+      8
+     ],
+     "aDrop": [
+      5,
+      4
+     ],
+     "bDrop": [
+      7,
+      7
+     ],
+     "digit": 8
+    }
+   ],
+   "leaves": [
+    {
+     "path": "0,0/0,1",
+     "cell": [
+      2,
+      7
+     ],
+     "drop": [
+      5,
+      6
+     ],
+     "partnerPath": "0,0/2,4",
+     "partnerCell": [
+      2,
+      3
+     ],
+     "digit": 4,
+     "blanks": 45,
+     "unlockCells": 11
+    },
+    {
+     "path": "0,0/2,4",
+     "cell": [
+      2,
+      3
+     ],
+     "drop": [
+      0,
+      2
+     ],
+     "partnerPath": "0,0/0,1",
+     "partnerCell": [
+      2,
+      7
+     ],
+     "digit": 4,
+     "blanks": 50,
+     "unlockCells": 12
+    },
+    {
+     "path": "0,0/5,2",
+     "cell": [
+      0,
+      5
+     ],
+     "drop": [
+      5,
+      4
+     ],
+     "partnerPath": "0,0/3,0",
+     "partnerCell": [
+      7,
+      8
+     ],
+     "digit": 8,
+     "blanks": 45,
+     "unlockCells": 11
+    },
+    {
+     "path": "0,0/3,0",
+     "cell": [
+      7,
+      8
+     ],
+     "drop": [
+      7,
+      7
+     ],
+     "partnerPath": "0,0/5,2",
+     "partnerCell": [
+      0,
+      5
+     ],
+     "digit": 8,
+     "blanks": 52,
+     "unlockCells": 13
+    }
+   ]
+  },
+  {
+   "seed": "бездна-эталон-порталов",
+   "preset": "abyss",
+   "band": 0,
+   "parentPath": "0,1",
+   "portals": [
+    {
+     "aPath": "0,1/7,6",
+     "bPath": "0,1/3,2",
+     "aCell": [
+      7,
+      3
+     ],
+     "bCell": [
+      3,
+      8
+     ],
+     "aDrop": [
+      1,
+      3
+     ],
+     "bDrop": [
+      1,
+      5
+     ],
+     "digit": 9
+    },
+    {
+     "aPath": "0,1/4,8",
+     "bPath": "0,1/3,1",
+     "aCell": [
+      1,
+      6
+     ],
+     "bCell": [
+      1,
+      1
+     ],
+     "aDrop": [
+      5,
+      7
+     ],
+     "bDrop": [
+      7,
+      5
+     ],
+     "digit": 4
+    }
+   ],
+   "leaves": [
+    {
+     "path": "0,1/7,6",
+     "cell": [
+      7,
+      3
+     ],
+     "drop": [
+      1,
+      3
+     ],
+     "partnerPath": "0,1/3,2",
+     "partnerCell": [
+      3,
+      8
+     ],
+     "digit": 9,
+     "blanks": 57,
+     "unlockCells": 14
+    },
+    {
+     "path": "0,1/3,2",
+     "cell": [
+      3,
+      8
+     ],
+     "drop": [
+      1,
+      5
+     ],
+     "partnerPath": "0,1/7,6",
+     "partnerCell": [
+      7,
+      3
+     ],
+     "digit": 9,
+     "blanks": 57,
+     "unlockCells": 14
+    },
+    {
+     "path": "0,1/4,8",
+     "cell": [
+      1,
+      6
+     ],
+     "drop": [
+      5,
+      7
+     ],
+     "partnerPath": "0,1/3,1",
+     "partnerCell": [
+      1,
+      1
+     ],
+     "digit": 4,
+     "blanks": 50,
+     "unlockCells": 12
+    },
+    {
+     "path": "0,1/3,1",
+     "cell": [
+      1,
+      1
+     ],
+     "drop": [
+      7,
+      5
+     ],
+     "partnerPath": "0,1/4,8",
+     "partnerCell": [
+      1,
+      6
+     ],
+     "digit": 4,
+     "blanks": 52,
+     "unlockCells": 13
+    }
+   ]
+  },
+  {
+   "seed": "бездна-эталон-порталов",
+   "preset": "abyss",
+   "band": 0,
+   "parentPath": "0,3",
+   "portals": [
+    {
+     "aPath": "0,3/8,6",
+     "bPath": "0,3/2,3",
+     "aCell": [
+      4,
+      8
+     ],
+     "bCell": [
+      4,
+      3
+     ],
+     "aDrop": [
+      0,
+      2
+     ],
+     "bDrop": [
+      5,
+      2
+     ],
+     "digit": 7
+    },
+    {
+     "aPath": "0,3/6,4",
+     "bPath": "0,3/0,8",
+     "aCell": [
+      7,
+      6
+     ],
+     "bCell": [
+      8,
+      2
+     ],
+     "aDrop": [
+      7,
+      4
+     ],
+     "bDrop": [
+      4,
+      7
+     ],
+     "digit": 3
+    }
+   ],
+   "leaves": [
+    {
+     "path": "0,3/8,6",
+     "cell": [
+      4,
+      8
+     ],
+     "drop": [
+      0,
+      2
+     ],
+     "partnerPath": "0,3/2,3",
+     "partnerCell": [
+      4,
+      3
+     ],
+     "digit": 7,
+     "blanks": 52,
+     "unlockCells": 13
+    },
+    {
+     "path": "0,3/2,3",
+     "cell": [
+      4,
+      3
+     ],
+     "drop": [
+      5,
+      2
+     ],
+     "partnerPath": "0,3/8,6",
+     "partnerCell": [
+      4,
+      8
+     ],
+     "digit": 7,
+     "blanks": 52,
+     "unlockCells": 13
+    },
+    {
+     "path": "0,3/6,4",
+     "cell": [
+      7,
+      6
+     ],
+     "drop": [
+      7,
+      4
+     ],
+     "partnerPath": "0,3/0,8",
+     "partnerCell": [
+      8,
+      2
+     ],
+     "digit": 3,
+     "blanks": 50,
+     "unlockCells": 12
+    },
+    {
+     "path": "0,3/0,8",
+     "cell": [
+      8,
+      2
+     ],
+     "drop": [
+      4,
+      7
+     ],
+     "partnerPath": "0,3/6,4",
+     "partnerCell": [
+      7,
+      6
+     ],
+     "digit": 3,
+     "blanks": 51,
+     "unlockCells": 13
+    }
+   ]
+  },
+  {
+   "seed": "бездна-эталон-порталов",
+   "preset": "abyss",
+   "band": 0,
+   "parentPath": "0,5",
+   "portals": [
+    {
+     "aPath": "0,5/8,0",
+     "bPath": "0,5/3,1",
+     "aCell": [
+      2,
+      6
+     ],
+     "bCell": [
+      3,
+      1
+     ],
+     "aDrop": [
+      7,
+      7
+     ],
+     "bDrop": [
+      5,
+      3
+     ],
+     "digit": 5
+    },
+    {
+     "aPath": "0,5/8,4",
+     "bPath": "0,5/1,1",
+     "aCell": [
+      2,
+      6
+     ],
+     "bCell": [
+      7,
+      1
+     ],
+     "aDrop": [
+      0,
+      7
+     ],
+     "bDrop": [
+      0,
+      0
+     ],
+     "digit": 2
+    }
+   ],
+   "leaves": [
+    {
+     "path": "0,5/8,0",
+     "cell": [
+      2,
+      6
+     ],
+     "drop": [
+      7,
+      7
+     ],
+     "partnerPath": "0,5/3,1",
+     "partnerCell": [
+      3,
+      1
+     ],
+     "digit": 5,
+     "blanks": 50,
+     "unlockCells": 12
+    },
+    {
+     "path": "0,5/3,1",
+     "cell": [
+      3,
+      1
+     ],
+     "drop": [
+      5,
+      3
+     ],
+     "partnerPath": "0,5/8,0",
+     "partnerCell": [
+      2,
+      6
+     ],
+     "digit": 5,
+     "blanks": 50,
+     "unlockCells": 12
+    },
+    {
+     "path": "0,5/8,4",
+     "cell": [
+      2,
+      6
+     ],
+     "drop": [
+      0,
+      7
+     ],
+     "partnerPath": "0,5/1,1",
+     "partnerCell": [
+      7,
+      1
+     ],
+     "digit": 2,
+     "blanks": 54,
+     "unlockCells": 13
+    },
+    {
+     "path": "0,5/1,1",
+     "cell": [
+      7,
+      1
+     ],
+     "drop": [
+      0,
+      0
+     ],
+     "partnerPath": "0,5/8,4",
+     "partnerCell": [
+      2,
+      6
+     ],
+     "digit": 2,
+     "blanks": 50,
+     "unlockCells": 12
+    }
+   ]
+  },
+  {
+   "seed": "бездна-эталон-порталов",
+   "preset": "abyss",
+   "band": 3,
+   "parentPath": "0,0",
+   "portals": [
+    {
+     "aPath": "0,0/1,5",
+     "bPath": "0,0/0,2",
+     "aCell": [
+      7,
+      2
+     ],
+     "bCell": [
+      8,
+      3
+     ],
+     "aDrop": [
+      2,
+      4
+     ],
+     "bDrop": [
+      5,
+      5
+     ],
+     "digit": 4
+    },
+    {
+     "aPath": "0,0/5,8",
+     "bPath": "0,0/2,6",
+     "aCell": [
+      2,
+      1
+     ],
+     "bCell": [
+      7,
+      8
+     ],
+     "aDrop": [
+      1,
+      7
+     ],
+     "bDrop": [
+      0,
+      6
+     ],
+     "digit": 2
+    }
+   ],
+   "leaves": [
+    {
+     "path": "0,0/1,5",
+     "cell": [
+      7,
+      2
+     ],
+     "drop": [
+      2,
+      4
+     ],
+     "partnerPath": "0,0/0,2",
+     "partnerCell": [
+      8,
+      3
+     ],
+     "digit": 4,
+     "blanks": 54,
+     "unlockCells": 13
+    },
+    {
+     "path": "0,0/0,2",
+     "cell": [
+      8,
+      3
+     ],
+     "drop": [
+      5,
+      5
+     ],
+     "partnerPath": "0,0/1,5",
+     "partnerCell": [
+      7,
+      2
+     ],
+     "digit": 4,
+     "blanks": 54,
+     "unlockCells": 13
+    },
+    {
+     "path": "0,0/5,8",
+     "cell": [
+      2,
+      1
+     ],
+     "drop": [
+      1,
+      7
+     ],
+     "partnerPath": "0,0/2,6",
+     "partnerCell": [
+      7,
+      8
+     ],
+     "digit": 2,
+     "blanks": 53,
+     "unlockCells": 13
+    },
+    {
+     "path": "0,0/2,6",
+     "cell": [
+      7,
+      8
+     ],
+     "drop": [
+      0,
+      6
+     ],
+     "partnerPath": "0,0/5,8",
+     "partnerCell": [
+      2,
+      1
+     ],
+     "digit": 2,
+     "blanks": 55,
+     "unlockCells": 14
+    }
+   ]
+  },
+  {
+   "seed": "бездна-эталон-порталов",
+   "preset": "abyss",
+   "band": 3,
+   "parentPath": "0,1",
+   "portals": [
+    {
+     "aPath": "0,1/0,2",
+     "bPath": "0,1/6,4",
+     "aCell": [
+      2,
+      1
+     ],
+     "bCell": [
+      4,
+      4
+     ],
+     "aDrop": [
+      3,
+      2
+     ],
+     "bDrop": [
+      2,
+      4
+     ],
+     "digit": 5
+    },
+    {
+     "aPath": "0,1/4,8",
+     "bPath": "0,1/8,0",
+     "aCell": [
+      4,
+      1
+     ],
+     "bCell": [
+      5,
+      2
+     ],
+     "aDrop": [
+      5,
+      2
+     ],
+     "bDrop": [
+      0,
+      4
+     ],
+     "digit": 1
+    }
+   ],
+   "leaves": [
+    {
+     "path": "0,1/0,2",
+     "cell": [
+      2,
+      1
+     ],
+     "drop": [
+      3,
+      2
+     ],
+     "partnerPath": "0,1/6,4",
+     "partnerCell": [
+      4,
+      4
+     ],
+     "digit": 5,
+     "blanks": 56,
+     "unlockCells": 14
+    },
+    {
+     "path": "0,1/6,4",
+     "cell": [
+      4,
+      4
+     ],
+     "drop": [
+      2,
+      4
+     ],
+     "partnerPath": "0,1/0,2",
+     "partnerCell": [
+      2,
+      1
+     ],
+     "digit": 5,
+     "blanks": 55,
+     "unlockCells": 14
+    },
+    {
+     "path": "0,1/4,8",
+     "cell": [
+      4,
+      1
+     ],
+     "drop": [
+      5,
+      2
+     ],
+     "partnerPath": "0,1/8,0",
+     "partnerCell": [
+      5,
+      2
+     ],
+     "digit": 1,
+     "blanks": 56,
+     "unlockCells": 14
+    },
+    {
+     "path": "0,1/8,0",
+     "cell": [
+      5,
+      2
+     ],
+     "drop": [
+      0,
+      4
+     ],
+     "partnerPath": "0,1/4,8",
+     "partnerCell": [
+      4,
+      1
+     ],
+     "digit": 1,
+     "blanks": 56,
+     "unlockCells": 14
+    }
+   ]
+  },
+  {
+   "seed": "бездна-эталон-порталов",
+   "preset": "abyss",
+   "band": 3,
+   "parentPath": "0,3",
+   "portals": [
+    {
+     "aPath": "0,3/0,8",
+     "bPath": "0,3/1,7",
+     "aCell": [
+      4,
+      3
+     ],
+     "bCell": [
+      3,
+      4
+     ],
+     "aDrop": [
+      7,
+      3
+     ],
+     "bDrop": [
+      3,
+      0
+     ],
+     "digit": 3
+    },
+    {
+     "aPath": "0,3/5,1",
+     "bPath": "0,3/3,6",
+     "aCell": [
+      1,
+      3
+     ],
+     "bCell": [
+      5,
+      3
+     ],
+     "aDrop": [
+      1,
+      7
+     ],
+     "bDrop": [
+      1,
+      3
+     ],
+     "digit": 3
+    }
+   ],
+   "leaves": [
+    {
+     "path": "0,3/0,8",
+     "cell": [
+      4,
+      3
+     ],
+     "drop": [
+      7,
+      3
+     ],
+     "partnerPath": "0,3/1,7",
+     "partnerCell": [
+      3,
+      4
+     ],
+     "digit": 3,
+     "blanks": 52,
+     "unlockCells": 13
+    },
+    {
+     "path": "0,3/1,7",
+     "cell": [
+      3,
+      4
+     ],
+     "drop": [
+      3,
+      0
+     ],
+     "partnerPath": "0,3/0,8",
+     "partnerCell": [
+      4,
+      3
+     ],
+     "digit": 3,
+     "blanks": 55,
+     "unlockCells": 14
+    },
+    {
+     "path": "0,3/5,1",
+     "cell": [
+      1,
+      3
+     ],
+     "drop": [
+      1,
+      7
+     ],
+     "partnerPath": "0,3/3,6",
+     "partnerCell": [
+      5,
+      3
+     ],
+     "digit": 3,
+     "blanks": 54,
+     "unlockCells": 13
+    },
+    {
+     "path": "0,3/3,6",
+     "cell": [
+      5,
+      3
+     ],
+     "drop": [
+      1,
+      3
+     ],
+     "partnerPath": "0,3/5,1",
+     "partnerCell": [
+      1,
+      3
+     ],
+     "digit": 3,
+     "blanks": 54,
+     "unlockCells": 13
+    }
+   ]
+  },
+  {
+   "seed": "бездна-эталон-порталов",
+   "preset": "abyss",
+   "band": 3,
+   "parentPath": "0,4",
+   "portals": [
+    {
+     "aPath": "0,4/5,7",
+     "bPath": "0,4/3,4",
+     "aCell": [
+      5,
+      1
+     ],
+     "bCell": [
+      7,
+      6
+     ],
+     "aDrop": [
+      8,
+      4
+     ],
+     "bDrop": [
+      8,
+      3
+     ],
+     "digit": 6
+    },
+    {
+     "aPath": "0,4/7,0",
+     "bPath": "0,4/4,7",
+     "aCell": [
+      0,
+      3
+     ],
+     "bCell": [
+      2,
+      7
+     ],
+     "aDrop": [
+      5,
+      4
+     ],
+     "bDrop": [
+      6,
+      1
+     ],
+     "digit": 5
+    }
+   ],
+   "leaves": [
+    {
+     "path": "0,4/5,7",
+     "cell": [
+      5,
+      1
+     ],
+     "drop": [
+      8,
+      4
+     ],
+     "partnerPath": "0,4/3,4",
+     "partnerCell": [
+      7,
+      6
+     ],
+     "digit": 6,
+     "blanks": 56,
+     "unlockCells": 14
+    },
+    {
+     "path": "0,4/3,4",
+     "cell": [
+      7,
+      6
+     ],
+     "drop": [
+      8,
+      3
+     ],
+     "partnerPath": "0,4/5,7",
+     "partnerCell": [
+      5,
+      1
+     ],
+     "digit": 6,
+     "blanks": 56,
+     "unlockCells": 14
+    },
+    {
+     "path": "0,4/7,0",
+     "cell": [
+      0,
+      3
+     ],
+     "drop": [
+      5,
+      4
+     ],
+     "partnerPath": "0,4/4,7",
+     "partnerCell": [
+      2,
+      7
+     ],
+     "digit": 5,
+     "blanks": 55,
+     "unlockCells": 14
+    },
+    {
+     "path": "0,4/4,7",
+     "cell": [
+      2,
+      7
+     ],
+     "drop": [
+      6,
+      1
+     ],
+     "partnerPath": "0,4/7,0",
+     "partnerCell": [
+      0,
+      3
+     ],
+     "digit": 5,
+     "blanks": 54,
+     "unlockCells": 13
+    }
+   ]
+  },
+  {
+   "seed": "бездна-эталон-порталов",
+   "preset": "abyss",
+   "band": 5,
+   "parentPath": "0,0",
+   "portals": [
+    {
+     "aPath": "0,0/0,1",
+     "bPath": "0,0/2,8",
+     "aCell": [
+      2,
+      4
+     ],
+     "bCell": [
+      3,
+      2
+     ],
+     "aDrop": [
+      7,
+      6
+     ],
+     "bDrop": [
+      3,
+      8
+     ],
+     "digit": 5
+    },
+    {
+     "aPath": "0,0/0,5",
+     "bPath": "0,0/4,7",
+     "aCell": [
+      2,
+      2
+     ],
+     "bCell": [
+      8,
+      4
+     ],
+     "aDrop": [
+      0,
+      2
+     ],
+     "bDrop": [
+      4,
+      5
+     ],
+     "digit": 6
+    }
+   ],
+   "leaves": [
+    {
+     "path": "0,0/0,1",
+     "cell": [
+      2,
+      4
+     ],
+     "drop": [
+      7,
+      6
+     ],
+     "partnerPath": "0,0/2,8",
+     "partnerCell": [
+      3,
+      2
+     ],
+     "digit": 5,
+     "blanks": 54,
+     "unlockCells": 13
+    },
+    {
+     "path": "0,0/2,8",
+     "cell": [
+      3,
+      2
+     ],
+     "drop": [
+      3,
+      8
+     ],
+     "partnerPath": "0,0/0,1",
+     "partnerCell": [
+      2,
+      4
+     ],
+     "digit": 5,
+     "blanks": 56,
+     "unlockCells": 14
+    },
+    {
+     "path": "0,0/0,5",
+     "cell": [
+      2,
+      2
+     ],
+     "drop": [
+      0,
+      2
+     ],
+     "partnerPath": "0,0/4,7",
+     "partnerCell": [
+      8,
+      4
+     ],
+     "digit": 6,
+     "blanks": 53,
+     "unlockCells": 13
+    },
+    {
+     "path": "0,0/4,7",
+     "cell": [
+      8,
+      4
+     ],
+     "drop": [
+      4,
+      5
+     ],
+     "partnerPath": "0,0/0,5",
+     "partnerCell": [
+      2,
+      2
+     ],
+     "digit": 6,
+     "blanks": 54,
+     "unlockCells": 13
+    }
+   ]
+  },
+  {
+   "seed": "бездна-эталон-порталов",
+   "preset": "abyss",
+   "band": 5,
+   "parentPath": "0,2",
+   "portals": [
+    {
+     "aPath": "0,2/0,4",
+     "bPath": "0,2/3,5",
+     "aCell": [
+      2,
+      1
+     ],
+     "bCell": [
+      0,
+      6
+     ],
+     "aDrop": [
+      0,
+      1
+     ],
+     "bDrop": [
+      0,
+      4
+     ],
+     "digit": 8
+    },
+    {
+     "aPath": "0,2/1,7",
+     "bPath": "0,2/8,6",
+     "aCell": [
+      3,
+      6
+     ],
+     "bCell": [
+      1,
+      3
+     ],
+     "aDrop": [
+      2,
+      6
+     ],
+     "bDrop": [
+      7,
+      4
+     ],
+     "digit": 2
+    }
+   ],
+   "leaves": [
+    {
+     "path": "0,2/0,4",
+     "cell": [
+      2,
+      1
+     ],
+     "drop": [
+      0,
+      1
+     ],
+     "partnerPath": "0,2/3,5",
+     "partnerCell": [
+      0,
+      6
+     ],
+     "digit": 8,
+     "blanks": 56,
+     "unlockCells": 14
+    },
+    {
+     "path": "0,2/3,5",
+     "cell": [
+      0,
+      6
+     ],
+     "drop": [
+      0,
+      4
+     ],
+     "partnerPath": "0,2/0,4",
+     "partnerCell": [
+      2,
+      1
+     ],
+     "digit": 8,
+     "blanks": 54,
+     "unlockCells": 13
+    },
+    {
+     "path": "0,2/1,7",
+     "cell": [
+      3,
+      6
+     ],
+     "drop": [
+      2,
+      6
+     ],
+     "partnerPath": "0,2/8,6",
+     "partnerCell": [
+      1,
+      3
+     ],
+     "digit": 2,
+     "blanks": 50,
+     "unlockCells": 12
+    },
+    {
+     "path": "0,2/8,6",
+     "cell": [
+      1,
+      3
+     ],
+     "drop": [
+      7,
+      4
+     ],
+     "partnerPath": "0,2/1,7",
+     "partnerCell": [
+      3,
+      6
+     ],
+     "digit": 2,
+     "blanks": 56,
+     "unlockCells": 14
+    }
+   ]
+  },
+  {
+   "seed": "бездна-эталон-порталов",
+   "preset": "abyss",
+   "band": 5,
+   "parentPath": "0,4",
+   "portals": [
+    {
+     "aPath": "0,4/4,3",
+     "bPath": "0,4/7,7",
+     "aCell": [
+      7,
+      6
+     ],
+     "bCell": [
+      5,
+      3
+     ],
+     "aDrop": [
+      6,
+      6
+     ],
+     "bDrop": [
+      4,
+      7
+     ],
+     "digit": 4
+    },
+    {
+     "aPath": "0,4/0,7",
+     "bPath": "0,4/1,0",
+     "aCell": [
+      1,
+      0
+     ],
+     "bCell": [
+      4,
+      5
+     ],
+     "aDrop": [
+      1,
+      1
+     ],
+     "bDrop": [
+      4,
+      6
+     ],
+     "digit": 4
+    }
+   ],
+   "leaves": [
+    {
+     "path": "0,4/4,3",
+     "cell": [
+      7,
+      6
+     ],
+     "drop": [
+      6,
+      6
+     ],
+     "partnerPath": "0,4/7,7",
+     "partnerCell": [
+      5,
+      3
+     ],
+     "digit": 4,
+     "blanks": 55,
+     "unlockCells": 14
+    },
+    {
+     "path": "0,4/7,7",
+     "cell": [
+      5,
+      3
+     ],
+     "drop": [
+      4,
+      7
+     ],
+     "partnerPath": "0,4/4,3",
+     "partnerCell": [
+      7,
+      6
+     ],
+     "digit": 4,
+     "blanks": 55,
+     "unlockCells": 14
+    },
+    {
+     "path": "0,4/0,7",
+     "cell": [
+      1,
+      0
+     ],
+     "drop": [
+      1,
+      1
+     ],
+     "partnerPath": "0,4/1,0",
+     "partnerCell": [
+      4,
+      5
+     ],
+     "digit": 4,
+     "blanks": 50,
+     "unlockCells": 12
+    },
+    {
+     "path": "0,4/1,0",
+     "cell": [
+      4,
+      5
+     ],
+     "drop": [
+      4,
+      6
+     ],
+     "partnerPath": "0,4/0,7",
+     "partnerCell": [
+      1,
+      0
+     ],
+     "digit": 4,
+     "blanks": 55,
+     "unlockCells": 14
+    }
+   ]
+  },
+  {
+   "seed": "бездна-эталон-порталов",
+   "preset": "abyss",
+   "band": 5,
+   "parentPath": "0,6",
+   "portals": [
+    {
+     "aPath": "0,6/3,7",
+     "bPath": "0,6/4,1",
+     "aCell": [
+      7,
+      1
+     ],
+     "bCell": [
+      2,
+      1
+     ],
+     "aDrop": [
+      1,
+      1
+     ],
+     "bDrop": [
+      2,
+      7
+     ],
+     "digit": 1
+    },
+    {
+     "aPath": "0,6/8,5",
+     "bPath": "0,6/7,8",
+     "aCell": [
+      8,
+      3
+     ],
+     "bCell": [
+      2,
+      5
+     ],
+     "aDrop": [
+      1,
+      4
+     ],
+     "bDrop": [
+      6,
+      5
+     ],
+     "digit": 7
+    }
+   ],
+   "leaves": [
+    {
+     "path": "0,6/3,7",
+     "cell": [
+      7,
+      1
+     ],
+     "drop": [
+      1,
+      1
+     ],
+     "partnerPath": "0,6/4,1",
+     "partnerCell": [
+      2,
+      1
+     ],
+     "digit": 1,
+     "blanks": 54,
+     "unlockCells": 13
+    },
+    {
+     "path": "0,6/4,1",
+     "cell": [
+      2,
+      1
+     ],
+     "drop": [
+      2,
+      7
+     ],
+     "partnerPath": "0,6/3,7",
+     "partnerCell": [
+      7,
+      1
+     ],
+     "digit": 1,
+     "blanks": 55,
+     "unlockCells": 14
+    },
+    {
+     "path": "0,6/8,5",
+     "cell": [
+      8,
+      3
+     ],
+     "drop": [
+      1,
+      4
+     ],
+     "partnerPath": "0,6/7,8",
+     "partnerCell": [
+      2,
+      5
+     ],
+     "digit": 7,
+     "blanks": 56,
+     "unlockCells": 14
+    },
+    {
+     "path": "0,6/7,8",
+     "cell": [
+      2,
+      5
+     ],
+     "drop": [
+      6,
+      5
+     ],
+     "partnerPath": "0,6/8,5",
+     "partnerCell": [
+      8,
+      3
+     ],
+     "digit": 7,
+     "blanks": 55,
+     "unlockCells": 14
+    }
+   ]
+  },
+  {
+   "seed": "abyss-portal-ref",
+   "preset": "scout",
+   "band": 0,
+   "parentPath": "",
+   "portals": [
+    {
+     "aPath": "1,7",
+     "bPath": "3,7",
+     "aCell": [
+      0,
+      5
+     ],
+     "bCell": [
+      0,
+      6
+     ],
+     "aDrop": [
+      6,
+      5
+     ],
+     "bDrop": [
+      2,
+      4
+     ],
+     "digit": 2
+    }
+   ],
+   "leaves": [
+    {
+     "path": "1,7",
+     "cell": [
+      0,
+      5
+     ],
+     "drop": [
+      6,
+      5
+     ],
+     "partnerPath": "3,7",
+     "partnerCell": [
+      0,
+      6
+     ],
+     "digit": 2,
+     "blanks": 51,
+     "unlockCells": 13
+    },
+    {
+     "path": "3,7",
+     "cell": [
+      0,
+      6
+     ],
+     "drop": [
+      2,
+      4
+     ],
+     "partnerPath": "1,7",
+     "partnerCell": [
+      0,
+      5
+     ],
+     "digit": 2,
+     "blanks": 49,
+     "unlockCells": 12
+    }
+   ]
+  },
+  {
+   "seed": "abyss-portal-ref",
+   "preset": "scout",
+   "band": 3,
+   "parentPath": "",
+   "portals": [
+    {
+     "aPath": "4,1",
+     "bPath": "1,8",
+     "aCell": [
+      7,
+      5
+     ],
+     "bCell": [
+      7,
+      1
+     ],
+     "aDrop": [
+      6,
+      5
+     ],
+     "bDrop": [
+      0,
+      0
+     ],
+     "digit": 8
+    },
+    {
+     "aPath": "7,2",
+     "bPath": "5,4",
+     "aCell": [
+      4,
+      5
+     ],
+     "bCell": [
+      8,
+      7
+     ],
+     "aDrop": [
+      7,
+      6
+     ],
+     "bDrop": [
+      7,
+      7
+     ],
+     "digit": 1
+    }
+   ],
+   "leaves": [
+    {
+     "path": "4,1",
+     "cell": [
+      7,
+      5
+     ],
+     "drop": [
+      6,
+      5
+     ],
+     "partnerPath": "1,8",
+     "partnerCell": [
+      7,
+      1
+     ],
+     "digit": 8,
+     "blanks": 55,
+     "unlockCells": 14
+    },
+    {
+     "path": "1,8",
+     "cell": [
+      7,
+      1
+     ],
+     "drop": [
+      0,
+      0
+     ],
+     "partnerPath": "4,1",
+     "partnerCell": [
+      7,
+      5
+     ],
+     "digit": 8,
+     "blanks": 53,
+     "unlockCells": 13
+    },
+    {
+     "path": "7,2",
+     "cell": [
+      4,
+      5
+     ],
+     "drop": [
+      7,
+      6
+     ],
+     "partnerPath": "5,4",
+     "partnerCell": [
+      8,
+      7
+     ],
+     "digit": 1,
+     "blanks": 56,
+     "unlockCells": 14
+    },
+    {
+     "path": "5,4",
+     "cell": [
+      8,
+      7
+     ],
+     "drop": [
+      7,
+      7
+     ],
+     "partnerPath": "7,2",
+     "partnerCell": [
+      4,
+      5
+     ],
+     "digit": 1,
+     "blanks": 56,
+     "unlockCells": 14
+    }
+   ]
+  },
+  {
+   "seed": "abyss-portal-ref",
+   "preset": "scout",
+   "band": 5,
+   "parentPath": "",
+   "portals": [
+    {
+     "aPath": "2,2",
+     "bPath": "4,4",
+     "aCell": [
+      6,
+      4
+     ],
+     "bCell": [
+      0,
+      2
+     ],
+     "aDrop": [
+      8,
+      3
+     ],
+     "bDrop": [
+      8,
+      5
+     ],
+     "digit": 1
+    },
+    {
+     "aPath": "6,4",
+     "bPath": "8,5",
+     "aCell": [
+      7,
+      0
+     ],
+     "bCell": [
+      8,
+      1
+     ],
+     "aDrop": [
+      5,
+      6
+     ],
+     "bDrop": [
+      0,
+      6
+     ],
+     "digit": 4
+    }
+   ],
+   "leaves": [
+    {
+     "path": "2,2",
+     "cell": [
+      6,
+      4
+     ],
+     "drop": [
+      8,
+      3
+     ],
+     "partnerPath": "4,4",
+     "partnerCell": [
+      0,
+      2
+     ],
+     "digit": 1,
+     "blanks": 53,
+     "unlockCells": 13
+    },
+    {
+     "path": "4,4",
+     "cell": [
+      0,
+      2
+     ],
+     "drop": [
+      8,
+      5
+     ],
+     "partnerPath": "2,2",
+     "partnerCell": [
+      6,
+      4
+     ],
+     "digit": 1,
+     "blanks": 54,
+     "unlockCells": 13
+    },
+    {
+     "path": "6,4",
+     "cell": [
+      7,
+      0
+     ],
+     "drop": [
+      5,
+      6
+     ],
+     "partnerPath": "8,5",
+     "partnerCell": [
+      8,
+      1
+     ],
+     "digit": 4,
+     "blanks": 55,
+     "unlockCells": 14
+    },
+    {
+     "path": "8,5",
+     "cell": [
+      8,
+      1
+     ],
+     "drop": [
+      0,
+      6
+     ],
+     "partnerPath": "6,4",
+     "partnerCell": [
+      7,
+      0
+     ],
+     "digit": 4,
+     "blanks": 54,
+     "unlockCells": 13
+    }
+   ]
+  },
+  {
+   "seed": "abyss-portal-ref",
+   "preset": "trek",
+   "band": 0,
+   "parentPath": "5,7",
+   "portals": [
+    {
+     "aPath": "5,7/4,0",
+     "bPath": "5,7/5,6",
+     "aCell": [
+      2,
+      4
+     ],
+     "bCell": [
+      0,
+      2
+     ],
+     "aDrop": [
+      5,
+      0
+     ],
+     "bDrop": [
+      7,
+      8
+     ],
+     "digit": 1
+    },
+    {
+     "aPath": "5,7/1,3",
+     "bPath": "5,7/5,8",
+     "aCell": [
+      4,
+      0
+     ],
+     "bCell": [
+      2,
+      1
+     ],
+     "aDrop": [
+      0,
+      3
+     ],
+     "bDrop": [
+      0,
+      1
+     ],
+     "digit": 4
+    }
+   ],
+   "leaves": [
+    {
+     "path": "5,7/4,0",
+     "cell": [
+      2,
+      4
+     ],
+     "drop": [
+      5,
+      0
+     ],
+     "partnerPath": "5,7/5,6",
+     "partnerCell": [
+      0,
+      2
+     ],
+     "digit": 1,
+     "blanks": 58,
+     "unlockCells": 14
+    },
+    {
+     "path": "5,7/5,6",
+     "cell": [
+      0,
+      2
+     ],
+     "drop": [
+      7,
+      8
+     ],
+     "partnerPath": "5,7/4,0",
+     "partnerCell": [
+      2,
+      4
+     ],
+     "digit": 1,
+     "blanks": 52,
+     "unlockCells": 13
+    },
+    {
+     "path": "5,7/1,3",
+     "cell": [
+      4,
+      0
+     ],
+     "drop": [
+      0,
+      3
+     ],
+     "partnerPath": "5,7/5,8",
+     "partnerCell": [
+      2,
+      1
+     ],
+     "digit": 4,
+     "blanks": 50,
+     "unlockCells": 12
+    },
+    {
+     "path": "5,7/5,8",
+     "cell": [
+      2,
+      1
+     ],
+     "drop": [
+      0,
+      1
+     ],
+     "partnerPath": "5,7/1,3",
+     "partnerCell": [
+      4,
+      0
+     ],
+     "digit": 4,
+     "blanks": 50,
+     "unlockCells": 12
+    }
+   ]
+  },
+  {
+   "seed": "abyss-portal-ref",
+   "preset": "trek",
+   "band": 0,
+   "parentPath": "1,0",
+   "portals": [
+    {
+     "aPath": "1,0/4,2",
+     "bPath": "1,0/7,7",
+     "aCell": [
+      5,
+      7
+     ],
+     "bCell": [
+      5,
+      6
+     ],
+     "aDrop": [
+      4,
+      5
+     ],
+     "bDrop": [
+      7,
+      3
+     ],
+     "digit": 9
+    }
+   ],
+   "leaves": [
+    {
+     "path": "1,0/4,2",
+     "cell": [
+      5,
+      7
+     ],
+     "drop": [
+      4,
+      5
+     ],
+     "partnerPath": "1,0/7,7",
+     "partnerCell": [
+      5,
+      6
+     ],
+     "digit": 9,
+     "blanks": 45,
+     "unlockCells": 11
+    },
+    {
+     "path": "1,0/7,7",
+     "cell": [
+      5,
+      6
+     ],
+     "drop": [
+      7,
+      3
+     ],
+     "partnerPath": "1,0/4,2",
+     "partnerCell": [
+      5,
+      7
+     ],
+     "digit": 9,
+     "blanks": 50,
+     "unlockCells": 12
+    }
+   ]
+  },
+  {
+   "seed": "abyss-portal-ref",
+   "preset": "trek",
+   "band": 0,
+   "parentPath": "8,5",
+   "portals": [
+    {
+     "aPath": "8,5/8,5",
+     "bPath": "8,5/8,1",
+     "aCell": [
+      3,
+      7
+     ],
+     "bCell": [
+      4,
+      6
+     ],
+     "aDrop": [
+      7,
+      6
+     ],
+     "bDrop": [
+      4,
+      7
+     ],
+     "digit": 7
+    },
+    {
+     "aPath": "8,5/7,3",
+     "bPath": "8,5/5,7",
+     "aCell": [
+      3,
+      0
+     ],
+     "bCell": [
+      6,
+      0
+     ],
+     "aDrop": [
+      4,
+      2
+     ],
+     "bDrop": [
+      2,
+      1
+     ],
+     "digit": 5
+    }
+   ],
+   "leaves": [
+    {
+     "path": "8,5/8,5",
+     "cell": [
+      3,
+      7
+     ],
+     "drop": [
+      7,
+      6
+     ],
+     "partnerPath": "8,5/8,1",
+     "partnerCell": [
+      4,
+      6
+     ],
+     "digit": 7,
+     "blanks": 46,
+     "unlockCells": 12
+    },
+    {
+     "path": "8,5/8,1",
+     "cell": [
+      4,
+      6
+     ],
+     "drop": [
+      4,
+      7
+     ],
+     "partnerPath": "8,5/8,5",
+     "partnerCell": [
+      3,
+      7
+     ],
+     "digit": 7,
+     "blanks": 58,
+     "unlockCells": 14
+    },
+    {
+     "path": "8,5/7,3",
+     "cell": [
+      3,
+      0
+     ],
+     "drop": [
+      4,
+      2
+     ],
+     "partnerPath": "8,5/5,7",
+     "partnerCell": [
+      6,
+      0
+     ],
+     "digit": 5,
+     "blanks": 49,
+     "unlockCells": 12
+    },
+    {
+     "path": "8,5/5,7",
+     "cell": [
+      6,
+      0
+     ],
+     "drop": [
+      2,
+      1
+     ],
+     "partnerPath": "8,5/7,3",
+     "partnerCell": [
+      3,
+      0
+     ],
+     "digit": 5,
+     "blanks": 58,
+     "unlockCells": 14
+    }
+   ]
+  },
+  {
+   "seed": "abyss-portal-ref",
+   "preset": "trek",
+   "band": 0,
+   "parentPath": "3,7",
+   "portals": [
+    {
+     "aPath": "3,7/7,2",
+     "bPath": "3,7/6,2",
+     "aCell": [
+      6,
+      0
+     ],
+     "bCell": [
+      0,
+      5
+     ],
+     "aDrop": [
+      8,
+      7
+     ],
+     "bDrop": [
+      5,
+      3
+     ],
+     "digit": 7
+    },
+    {
+     "aPath": "3,7/5,4",
+     "bPath": "3,7/4,0",
+     "aCell": [
+      4,
+      1
+     ],
+     "bCell": [
+      8,
+      5
+     ],
+     "aDrop": [
+      0,
+      6
+     ],
+     "bDrop": [
+      5,
+      6
+     ],
+     "digit": 5
+    }
+   ],
+   "leaves": [
+    {
+     "path": "3,7/7,2",
+     "cell": [
+      6,
+      0
+     ],
+     "drop": [
+      8,
+      7
+     ],
+     "partnerPath": "3,7/6,2",
+     "partnerCell": [
+      0,
+      5
+     ],
+     "digit": 7,
+     "blanks": 49,
+     "unlockCells": 12
+    },
+    {
+     "path": "3,7/6,2",
+     "cell": [
+      0,
+      5
+     ],
+     "drop": [
+      5,
+      3
+     ],
+     "partnerPath": "3,7/7,2",
+     "partnerCell": [
+      6,
+      0
+     ],
+     "digit": 7,
+     "blanks": 49,
+     "unlockCells": 12
+    },
+    {
+     "path": "3,7/5,4",
+     "cell": [
+      4,
+      1
+     ],
+     "drop": [
+      0,
+      6
+     ],
+     "partnerPath": "3,7/4,0",
+     "partnerCell": [
+      8,
+      5
+     ],
+     "digit": 5,
+     "blanks": 49,
+     "unlockCells": 12
+    },
+    {
+     "path": "3,7/4,0",
+     "cell": [
+      8,
+      5
+     ],
+     "drop": [
+      5,
+      6
+     ],
+     "partnerPath": "3,7/5,4",
+     "partnerCell": [
+      4,
+      1
+     ],
+     "digit": 5,
+     "blanks": 58,
+     "unlockCells": 14
+    }
+   ]
+  },
+  {
+   "seed": "abyss-portal-ref",
+   "preset": "trek",
+   "band": 3,
+   "parentPath": "1,4",
+   "portals": [
+    {
+     "aPath": "1,4/4,6",
+     "bPath": "1,4/8,3",
+     "aCell": [
+      0,
+      1
+     ],
+     "bCell": [
+      4,
+      8
+     ],
+     "aDrop": [
+      5,
+      1
+     ],
+     "bDrop": [
+      7,
+      8
+     ],
+     "digit": 3
+    },
+    {
+     "aPath": "1,4/1,7",
+     "bPath": "1,4/5,0",
+     "aCell": [
+      6,
+      6
+     ],
+     "bCell": [
+      3,
+      7
+     ],
+     "aDrop": [
+      0,
+      3
+     ],
+     "bDrop": [
+      8,
+      0
+     ],
+     "digit": 7
+    }
+   ],
+   "leaves": [
+    {
+     "path": "1,4/4,6",
+     "cell": [
+      0,
+      1
+     ],
+     "drop": [
+      5,
+      1
+     ],
+     "partnerPath": "1,4/8,3",
+     "partnerCell": [
+      4,
+      8
+     ],
+     "digit": 3,
+     "blanks": 52,
+     "unlockCells": 13
+    },
+    {
+     "path": "1,4/8,3",
+     "cell": [
+      4,
+      8
+     ],
+     "drop": [
+      7,
+      8
+     ],
+     "partnerPath": "1,4/4,6",
+     "partnerCell": [
+      0,
+      1
+     ],
+     "digit": 3,
+     "blanks": 56,
+     "unlockCells": 14
+    },
+    {
+     "path": "1,4/1,7",
+     "cell": [
+      6,
+      6
+     ],
+     "drop": [
+      0,
+      3
+     ],
+     "partnerPath": "1,4/5,0",
+     "partnerCell": [
+      3,
+      7
+     ],
+     "digit": 7,
+     "blanks": 55,
+     "unlockCells": 14
+    },
+    {
+     "path": "1,4/5,0",
+     "cell": [
+      3,
+      7
+     ],
+     "drop": [
+      8,
+      0
+     ],
+     "partnerPath": "1,4/1,7",
+     "partnerCell": [
+      6,
+      6
+     ],
+     "digit": 7,
+     "blanks": 54,
+     "unlockCells": 13
+    }
+   ]
+  },
+  {
+   "seed": "abyss-portal-ref",
+   "preset": "trek",
+   "band": 3,
+   "parentPath": "2,5",
+   "portals": [
+    {
+     "aPath": "2,5/5,8",
+     "bPath": "2,5/1,8",
+     "aCell": [
+      1,
+      3
+     ],
+     "bCell": [
+      4,
+      1
+     ],
+     "aDrop": [
+      8,
+      8
+     ],
+     "bDrop": [
+      7,
+      1
+     ],
+     "digit": 8
+    },
+    {
+     "aPath": "2,5/1,0",
+     "bPath": "2,5/2,5",
+     "aCell": [
+      4,
+      7
+     ],
+     "bCell": [
+      7,
+      2
+     ],
+     "aDrop": [
+      5,
+      2
+     ],
+     "bDrop": [
+      6,
+      0
+     ],
+     "digit": 7
+    }
+   ],
+   "leaves": [
+    {
+     "path": "2,5/5,8",
+     "cell": [
+      1,
+      3
+     ],
+     "drop": [
+      8,
+      8
+     ],
+     "partnerPath": "2,5/1,8",
+     "partnerCell": [
+      4,
+      1
+     ],
+     "digit": 8,
+     "blanks": 54,
+     "unlockCells": 13
+    },
+    {
+     "path": "2,5/1,8",
+     "cell": [
+      4,
+      1
+     ],
+     "drop": [
+      7,
+      1
+     ],
+     "partnerPath": "2,5/5,8",
+     "partnerCell": [
+      1,
+      3
+     ],
+     "digit": 8,
+     "blanks": 54,
+     "unlockCells": 13
+    },
+    {
+     "path": "2,5/1,0",
+     "cell": [
+      4,
+      7
+     ],
+     "drop": [
+      5,
+      2
+     ],
+     "partnerPath": "2,5/2,5",
+     "partnerCell": [
+      7,
+      2
+     ],
+     "digit": 7,
+     "blanks": 54,
+     "unlockCells": 13
+    },
+    {
+     "path": "2,5/2,5",
+     "cell": [
+      7,
+      2
+     ],
+     "drop": [
+      6,
+      0
+     ],
+     "partnerPath": "2,5/1,0",
+     "partnerCell": [
+      4,
+      7
+     ],
+     "digit": 7,
+     "blanks": 54,
+     "unlockCells": 13
+    }
+   ]
+  },
+  {
+   "seed": "abyss-portal-ref",
+   "preset": "trek",
+   "band": 3,
+   "parentPath": "2,6",
+   "portals": [
+    {
+     "aPath": "2,6/1,8",
+     "bPath": "2,6/5,5",
+     "aCell": [
+      0,
+      7
+     ],
+     "bCell": [
+      2,
+      3
+     ],
+     "aDrop": [
+      7,
+      3
+     ],
+     "bDrop": [
+      2,
+      8
+     ],
+     "digit": 4
+    },
+    {
+     "aPath": "2,6/7,3",
+     "bPath": "2,6/8,7",
+     "aCell": [
+      2,
+      1
+     ],
+     "bCell": [
+      4,
+      8
+     ],
+     "aDrop": [
+      3,
+      1
+     ],
+     "bDrop": [
+      3,
+      1
+     ],
+     "digit": 4
+    }
+   ],
+   "leaves": [
+    {
+     "path": "2,6/1,8",
+     "cell": [
+      0,
+      7
+     ],
+     "drop": [
+      7,
+      3
+     ],
+     "partnerPath": "2,6/5,5",
+     "partnerCell": [
+      2,
+      3
+     ],
+     "digit": 4,
+     "blanks": 54,
+     "unlockCells": 13
+    },
+    {
+     "path": "2,6/5,5",
+     "cell": [
+      2,
+      3
+     ],
+     "drop": [
+      2,
+      8
+     ],
+     "partnerPath": "2,6/1,8",
+     "partnerCell": [
+      0,
+      7
+     ],
+     "digit": 4,
+     "blanks": 54,
+     "unlockCells": 13
+    },
+    {
+     "path": "2,6/7,3",
+     "cell": [
+      2,
+      1
+     ],
+     "drop": [
+      3,
+      1
+     ],
+     "partnerPath": "2,6/8,7",
+     "partnerCell": [
+      4,
+      8
+     ],
+     "digit": 4,
+     "blanks": 55,
+     "unlockCells": 14
+    },
+    {
+     "path": "2,6/8,7",
+     "cell": [
+      4,
+      8
+     ],
+     "drop": [
+      3,
+      1
+     ],
+     "partnerPath": "2,6/7,3",
+     "partnerCell": [
+      2,
+      1
+     ],
+     "digit": 4,
+     "blanks": 53,
+     "unlockCells": 13
+    }
+   ]
+  },
+  {
+   "seed": "abyss-portal-ref",
+   "preset": "trek",
+   "band": 3,
+   "parentPath": "5,4",
+   "portals": [
+    {
+     "aPath": "5,4/3,4",
+     "bPath": "5,4/4,7",
+     "aCell": [
+      2,
+      1
+     ],
+     "bCell": [
+      3,
+      3
+     ],
+     "aDrop": [
+      7,
+      5
+     ],
+     "bDrop": [
+      4,
+      6
+     ],
+     "digit": 3
+    }
+   ],
+   "leaves": [
+    {
+     "path": "5,4/3,4",
+     "cell": [
+      2,
+      1
+     ],
+     "drop": [
+      7,
+      5
+     ],
+     "partnerPath": "5,4/4,7",
+     "partnerCell": [
+      3,
+      3
+     ],
+     "digit": 3,
+     "blanks": 54,
+     "unlockCells": 13
+    },
+    {
+     "path": "5,4/4,7",
+     "cell": [
+      3,
+      3
+     ],
+     "drop": [
+      4,
+      6
+     ],
+     "partnerPath": "5,4/3,4",
+     "partnerCell": [
+      2,
+      1
+     ],
+     "digit": 3,
+     "blanks": 54,
+     "unlockCells": 13
+    }
+   ]
+  },
+  {
+   "seed": "abyss-portal-ref",
+   "preset": "trek",
+   "band": 5,
+   "parentPath": "6,4",
+   "portals": [
+    {
+     "aPath": "6,4/3,0",
+     "bPath": "6,4/8,1",
+     "aCell": [
+      5,
+      3
+     ],
+     "bCell": [
+      8,
+      8
+     ],
+     "aDrop": [
+      0,
+      5
+     ],
+     "bDrop": [
+      5,
+      6
+     ],
+     "digit": 3
+    },
+    {
+     "aPath": "6,4/6,5",
+     "bPath": "6,4/3,2",
+     "aCell": [
+      8,
+      6
+     ],
+     "bCell": [
+      3,
+      6
+     ],
+     "aDrop": [
+      3,
+      3
+     ],
+     "bDrop": [
+      5,
+      7
+     ],
+     "digit": 6
+    }
+   ],
+   "leaves": [
+    {
+     "path": "6,4/3,0",
+     "cell": [
+      5,
+      3
+     ],
+     "drop": [
+      0,
+      5
+     ],
+     "partnerPath": "6,4/8,1",
+     "partnerCell": [
+      8,
+      8
+     ],
+     "digit": 3,
+     "blanks": 55,
+     "unlockCells": 14
+    },
+    {
+     "path": "6,4/8,1",
+     "cell": [
+      8,
+      8
+     ],
+     "drop": [
+      5,
+      6
+     ],
+     "partnerPath": "6,4/3,0",
+     "partnerCell": [
+      5,
+      3
+     ],
+     "digit": 3,
+     "blanks": 54,
+     "unlockCells": 13
+    },
+    {
+     "path": "6,4/6,5",
+     "cell": [
+      8,
+      6
+     ],
+     "drop": [
+      3,
+      3
+     ],
+     "partnerPath": "6,4/3,2",
+     "partnerCell": [
+      3,
+      6
+     ],
+     "digit": 6,
+     "blanks": 53,
+     "unlockCells": 13
+    },
+    {
+     "path": "6,4/3,2",
+     "cell": [
+      3,
+      6
+     ],
+     "drop": [
+      5,
+      7
+     ],
+     "partnerPath": "6,4/6,5",
+     "partnerCell": [
+      8,
+      6
+     ],
+     "digit": 6,
+     "blanks": 50,
+     "unlockCells": 12
+    }
+   ]
+  },
+  {
+   "seed": "abyss-portal-ref",
+   "preset": "trek",
+   "band": 5,
+   "parentPath": "1,4",
+   "portals": [
+    {
+     "aPath": "1,4/8,2",
+     "bPath": "1,4/7,7",
+     "aCell": [
+      6,
+      8
+     ],
+     "bCell": [
+      1,
+      2
+     ],
+     "aDrop": [
+      8,
+      2
+     ],
+     "bDrop": [
+      8,
+      3
+     ],
+     "digit": 4
+    },
+    {
+     "aPath": "1,4/7,6",
+     "bPath": "1,4/5,0",
+     "aCell": [
+      7,
+      7
+     ],
+     "bCell": [
+      5,
+      4
+     ],
+     "aDrop": [
+      0,
+      3
+     ],
+     "bDrop": [
+      3,
+      6
+     ],
+     "digit": 5
+    }
+   ],
+   "leaves": [
+    {
+     "path": "1,4/8,2",
+     "cell": [
+      6,
+      8
+     ],
+     "drop": [
+      8,
+      2
+     ],
+     "partnerPath": "1,4/7,7",
+     "partnerCell": [
+      1,
+      2
+     ],
+     "digit": 4,
+     "blanks": 54,
+     "unlockCells": 13
+    },
+    {
+     "path": "1,4/7,7",
+     "cell": [
+      1,
+      2
+     ],
+     "drop": [
+      8,
+      3
+     ],
+     "partnerPath": "1,4/8,2",
+     "partnerCell": [
+      6,
+      8
+     ],
+     "digit": 4,
+     "blanks": 56,
+     "unlockCells": 14
+    },
+    {
+     "path": "1,4/7,6",
+     "cell": [
+      7,
+      7
+     ],
+     "drop": [
+      0,
+      3
+     ],
+     "partnerPath": "1,4/5,0",
+     "partnerCell": [
+      5,
+      4
+     ],
+     "digit": 5,
+     "blanks": 53,
+     "unlockCells": 13
+    },
+    {
+     "path": "1,4/5,0",
+     "cell": [
+      5,
+      4
+     ],
+     "drop": [
+      3,
+      6
+     ],
+     "partnerPath": "1,4/7,6",
+     "partnerCell": [
+      7,
+      7
+     ],
+     "digit": 5,
+     "blanks": 55,
+     "unlockCells": 14
+    }
+   ]
+  },
+  {
+   "seed": "abyss-portal-ref",
+   "preset": "trek",
+   "band": 5,
+   "parentPath": "8,5",
+   "portals": [
+    {
+     "aPath": "8,5/0,2",
+     "bPath": "8,5/5,8",
+     "aCell": [
+      1,
+      4
+     ],
+     "bCell": [
+      2,
+      6
+     ],
+     "aDrop": [
+      2,
+      3
+     ],
+     "bDrop": [
+      2,
+      8
+     ],
+     "digit": 4
+    },
+    {
+     "aPath": "8,5/6,3",
+     "bPath": "8,5/3,1",
+     "aCell": [
+      5,
+      5
+     ],
+     "bCell": [
+      5,
+      2
+     ],
+     "aDrop": [
+      0,
+      3
+     ],
+     "bDrop": [
+      7,
+      3
+     ],
+     "digit": 1
+    }
+   ],
+   "leaves": [
+    {
+     "path": "8,5/0,2",
+     "cell": [
+      1,
+      4
+     ],
+     "drop": [
+      2,
+      3
+     ],
+     "partnerPath": "8,5/5,8",
+     "partnerCell": [
+      2,
+      6
+     ],
+     "digit": 4,
+     "blanks": 53,
+     "unlockCells": 13
+    },
+    {
+     "path": "8,5/5,8",
+     "cell": [
+      2,
+      6
+     ],
+     "drop": [
+      2,
+      8
+     ],
+     "partnerPath": "8,5/0,2",
+     "partnerCell": [
+      1,
+      4
+     ],
+     "digit": 4,
+     "blanks": 55,
+     "unlockCells": 14
+    },
+    {
+     "path": "8,5/6,3",
+     "cell": [
+      5,
+      5
+     ],
+     "drop": [
+      0,
+      3
+     ],
+     "partnerPath": "8,5/3,1",
+     "partnerCell": [
+      5,
+      2
+     ],
+     "digit": 1,
+     "blanks": 53,
+     "unlockCells": 13
+    },
+    {
+     "path": "8,5/3,1",
+     "cell": [
+      5,
+      2
+     ],
+     "drop": [
+      7,
+      3
+     ],
+     "partnerPath": "8,5/6,3",
+     "partnerCell": [
+      5,
+      5
+     ],
+     "digit": 1,
+     "blanks": 53,
+     "unlockCells": 13
+    }
+   ]
+  },
+  {
+   "seed": "abyss-portal-ref",
+   "preset": "trek",
+   "band": 5,
+   "parentPath": "4,4",
+   "portals": [
+    {
+     "aPath": "4,4/1,4",
+     "bPath": "4,4/7,2",
+     "aCell": [
+      8,
+      3
+     ],
+     "bCell": [
+      5,
+      5
+     ],
+     "aDrop": [
+      8,
+      1
+     ],
+     "bDrop": [
+      0,
+      4
+     ],
+     "digit": 1
+    },
+    {
+     "aPath": "4,4/6,8",
+     "bPath": "4,4/7,4",
+     "aCell": [
+      0,
+      2
+     ],
+     "bCell": [
+      8,
+      0
+     ],
+     "aDrop": [
+      3,
+      1
+     ],
+     "bDrop": [
+      4,
+      3
+     ],
+     "digit": 4
+    }
+   ],
+   "leaves": [
+    {
+     "path": "4,4/1,4",
+     "cell": [
+      8,
+      3
+     ],
+     "drop": [
+      8,
+      1
+     ],
+     "partnerPath": "4,4/7,2",
+     "partnerCell": [
+      5,
+      5
+     ],
+     "digit": 1,
+     "blanks": 50,
+     "unlockCells": 12
+    },
+    {
+     "path": "4,4/7,2",
+     "cell": [
+      5,
+      5
+     ],
+     "drop": [
+      0,
+      4
+     ],
+     "partnerPath": "4,4/1,4",
+     "partnerCell": [
+      8,
+      3
+     ],
+     "digit": 1,
+     "blanks": 53,
+     "unlockCells": 13
+    },
+    {
+     "path": "4,4/6,8",
+     "cell": [
+      0,
+      2
+     ],
+     "drop": [
+      3,
+      1
+     ],
+     "partnerPath": "4,4/7,4",
+     "partnerCell": [
+      8,
+      0
+     ],
+     "digit": 4,
+     "blanks": 54,
+     "unlockCells": 13
+    },
+    {
+     "path": "4,4/7,4",
+     "cell": [
+      8,
+      0
+     ],
+     "drop": [
+      4,
+      3
+     ],
+     "partnerPath": "4,4/6,8",
+     "partnerCell": [
+      0,
+      2
+     ],
+     "digit": 4,
+     "blanks": 55,
+     "unlockCells": 14
+    }
+   ]
+  },
+  {
+   "seed": "abyss-portal-ref",
+   "preset": "abyss",
+   "band": 0,
+   "parentPath": "0,1",
+   "portals": [
+    {
+     "aPath": "0,1/5,4",
+     "bPath": "0,1/1,3",
+     "aCell": [
+      4,
+      0
+     ],
+     "bCell": [
+      4,
+      6
+     ],
+     "aDrop": [
+      6,
+      0
+     ],
+     "bDrop": [
+      4,
+      7
+     ],
+     "digit": 2
+    },
+    {
+     "aPath": "0,1/4,6",
+     "bPath": "0,1/2,1",
+     "aCell": [
+      7,
+      7
+     ],
+     "bCell": [
+      3,
+      4
+     ],
+     "aDrop": [
+      3,
+      2
+     ],
+     "bDrop": [
+      8,
+      3
+     ],
+     "digit": 1
+    }
+   ],
+   "leaves": [
+    {
+     "path": "0,1/5,4",
+     "cell": [
+      4,
+      0
+     ],
+     "drop": [
+      6,
+      0
+     ],
+     "partnerPath": "0,1/1,3",
+     "partnerCell": [
+      4,
+      6
+     ],
+     "digit": 2,
+     "blanks": 52,
+     "unlockCells": 13
+    },
+    {
+     "path": "0,1/1,3",
+     "cell": [
+      4,
+      6
+     ],
+     "drop": [
+      4,
+      7
+     ],
+     "partnerPath": "0,1/5,4",
+     "partnerCell": [
+      4,
+      0
+     ],
+     "digit": 2,
+     "blanks": 50,
+     "unlockCells": 12
+    },
+    {
+     "path": "0,1/4,6",
+     "cell": [
+      7,
+      7
+     ],
+     "drop": [
+      3,
+      2
+     ],
+     "partnerPath": "0,1/2,1",
+     "partnerCell": [
+      3,
+      4
+     ],
+     "digit": 1,
+     "blanks": 54,
+     "unlockCells": 13
+    },
+    {
+     "path": "0,1/2,1",
+     "cell": [
+      3,
+      4
+     ],
+     "drop": [
+      8,
+      3
+     ],
+     "partnerPath": "0,1/4,6",
+     "partnerCell": [
+      7,
+      7
+     ],
+     "digit": 1,
+     "blanks": 58,
+     "unlockCells": 14
+    }
+   ]
+  },
+  {
+   "seed": "abyss-portal-ref",
+   "preset": "abyss",
+   "band": 0,
+   "parentPath": "0,2",
+   "portals": [
+    {
+     "aPath": "0,2/4,3",
+     "bPath": "0,2/3,3",
+     "aCell": [
+      5,
+      5
+     ],
+     "bCell": [
+      2,
+      2
+     ],
+     "aDrop": [
+      4,
+      8
+     ],
+     "bDrop": [
+      1,
+      7
+     ],
+     "digit": 2
+    },
+    {
+     "aPath": "0,2/0,5",
+     "bPath": "0,2/5,4",
+     "aCell": [
+      8,
+      3
+     ],
+     "bCell": [
+      2,
+      3
+     ],
+     "aDrop": [
+      8,
+      8
+     ],
+     "bDrop": [
+      5,
+      5
+     ],
+     "digit": 1
+    }
+   ],
+   "leaves": [
+    {
+     "path": "0,2/4,3",
+     "cell": [
+      5,
+      5
+     ],
+     "drop": [
+      4,
+      8
+     ],
+     "partnerPath": "0,2/3,3",
+     "partnerCell": [
+      2,
+      2
+     ],
+     "digit": 2,
+     "blanks": 50,
+     "unlockCells": 12
+    },
+    {
+     "path": "0,2/3,3",
+     "cell": [
+      2,
+      2
+     ],
+     "drop": [
+      1,
+      7
+     ],
+     "partnerPath": "0,2/4,3",
+     "partnerCell": [
+      5,
+      5
+     ],
+     "digit": 2,
+     "blanks": 45,
+     "unlockCells": 11
+    },
+    {
+     "path": "0,2/0,5",
+     "cell": [
+      8,
+      3
+     ],
+     "drop": [
+      8,
+      8
+     ],
+     "partnerPath": "0,2/5,4",
+     "partnerCell": [
+      2,
+      3
+     ],
+     "digit": 1,
+     "blanks": 50,
+     "unlockCells": 12
+    },
+    {
+     "path": "0,2/5,4",
+     "cell": [
+      2,
+      3
+     ],
+     "drop": [
+      5,
+      5
+     ],
+     "partnerPath": "0,2/0,5",
+     "partnerCell": [
+      8,
+      3
+     ],
+     "digit": 1,
+     "blanks": 46,
+     "unlockCells": 12
+    }
+   ]
+  },
+  {
+   "seed": "abyss-portal-ref",
+   "preset": "abyss",
+   "band": 0,
+   "parentPath": "0,3",
+   "portals": [
+    {
+     "aPath": "0,3/2,7",
+     "bPath": "0,3/5,8",
+     "aCell": [
+      3,
+      6
+     ],
+     "bCell": [
+      2,
+      2
+     ],
+     "aDrop": [
+      2,
+      6
+     ],
+     "bDrop": [
+      4,
+      8
+     ],
+     "digit": 1
+    },
+    {
+     "aPath": "0,3/3,3",
+     "bPath": "0,3/1,8",
+     "aCell": [
+      1,
+      6
+     ],
+     "bCell": [
+      4,
+      3
+     ],
+     "aDrop": [
+      6,
+      6
+     ],
+     "bDrop": [
+      4,
+      0
+     ],
+     "digit": 1
+    }
+   ],
+   "leaves": [
+    {
+     "path": "0,3/2,7",
+     "cell": [
+      3,
+      6
+     ],
+     "drop": [
+      2,
+      6
+     ],
+     "partnerPath": "0,3/5,8",
+     "partnerCell": [
+      2,
+      2
+     ],
+     "digit": 1,
+     "blanks": 50,
+     "unlockCells": 12
+    },
+    {
+     "path": "0,3/5,8",
+     "cell": [
+      2,
+      2
+     ],
+     "drop": [
+      4,
+      8
+     ],
+     "partnerPath": "0,3/2,7",
+     "partnerCell": [
+      3,
+      6
+     ],
+     "digit": 1,
+     "blanks": 58,
+     "unlockCells": 14
+    },
+    {
+     "path": "0,3/3,3",
+     "cell": [
+      1,
+      6
+     ],
+     "drop": [
+      6,
+      6
+     ],
+     "partnerPath": "0,3/1,8",
+     "partnerCell": [
+      4,
+      3
+     ],
+     "digit": 1,
+     "blanks": 50,
+     "unlockCells": 12
+    },
+    {
+     "path": "0,3/1,8",
+     "cell": [
+      4,
+      3
+     ],
+     "drop": [
+      4,
+      0
+     ],
+     "partnerPath": "0,3/3,3",
+     "partnerCell": [
+      1,
+      6
+     ],
+     "digit": 1,
+     "blanks": 55,
+     "unlockCells": 14
+    }
+   ]
+  },
+  {
+   "seed": "abyss-portal-ref",
+   "preset": "abyss",
+   "band": 0,
+   "parentPath": "0,5",
+   "portals": [
+    {
+     "aPath": "0,5/7,4",
+     "bPath": "0,5/3,3",
+     "aCell": [
+      5,
+      5
+     ],
+     "bCell": [
+      1,
+      2
+     ],
+     "aDrop": [
+      3,
+      7
+     ],
+     "bDrop": [
+      4,
+      2
+     ],
+     "digit": 6
+    },
+    {
+     "aPath": "0,5/1,2",
+     "bPath": "0,5/5,8",
+     "aCell": [
+      4,
+      4
+     ],
+     "bCell": [
+      4,
+      3
+     ],
+     "aDrop": [
+      4,
+      0
+     ],
+     "bDrop": [
+      4,
+      0
+     ],
+     "digit": 7
+    }
+   ],
+   "leaves": [
+    {
+     "path": "0,5/7,4",
+     "cell": [
+      5,
+      5
+     ],
+     "drop": [
+      3,
+      7
+     ],
+     "partnerPath": "0,5/3,3",
+     "partnerCell": [
+      1,
+      2
+     ],
+     "digit": 6,
+     "blanks": 54,
+     "unlockCells": 13
+    },
+    {
+     "path": "0,5/3,3",
+     "cell": [
+      1,
+      2
+     ],
+     "drop": [
+      4,
+      2
+     ],
+     "partnerPath": "0,5/7,4",
+     "partnerCell": [
+      5,
+      5
+     ],
+     "digit": 6,
+     "blanks": 50,
+     "unlockCells": 12
+    },
+    {
+     "path": "0,5/1,2",
+     "cell": [
+      4,
+      4
+     ],
+     "drop": [
+      4,
+      0
+     ],
+     "partnerPath": "0,5/5,8",
+     "partnerCell": [
+      4,
+      3
+     ],
+     "digit": 7,
+     "blanks": 51,
+     "unlockCells": 13
+    },
+    {
+     "path": "0,5/5,8",
+     "cell": [
+      4,
+      3
+     ],
+     "drop": [
+      4,
+      0
+     ],
+     "partnerPath": "0,5/1,2",
+     "partnerCell": [
+      4,
+      4
+     ],
+     "digit": 7,
+     "blanks": 58,
+     "unlockCells": 14
+    }
+   ]
+  },
+  {
+   "seed": "abyss-portal-ref",
+   "preset": "abyss",
+   "band": 3,
+   "parentPath": "0,1",
+   "portals": [
+    {
+     "aPath": "0,1/6,5",
+     "bPath": "0,1/7,7",
+     "aCell": [
+      1,
+      2
+     ],
+     "bCell": [
+      3,
+      6
+     ],
+     "aDrop": [
+      7,
+      2
+     ],
+     "bDrop": [
+      2,
+      8
+     ],
+     "digit": 2
+    },
+    {
+     "aPath": "0,1/2,1",
+     "bPath": "0,1/3,7",
+     "aCell": [
+      4,
+      7
+     ],
+     "bCell": [
+      2,
+      2
+     ],
+     "aDrop": [
+      5,
+      2
+     ],
+     "bDrop": [
+      5,
+      1
+     ],
+     "digit": 3
+    }
+   ],
+   "leaves": [
+    {
+     "path": "0,1/6,5",
+     "cell": [
+      1,
+      2
+     ],
+     "drop": [
+      7,
+      2
+     ],
+     "partnerPath": "0,1/7,7",
+     "partnerCell": [
+      3,
+      6
+     ],
+     "digit": 2,
+     "blanks": 55,
+     "unlockCells": 14
+    },
+    {
+     "path": "0,1/7,7",
+     "cell": [
+      3,
+      6
+     ],
+     "drop": [
+      2,
+      8
+     ],
+     "partnerPath": "0,1/6,5",
+     "partnerCell": [
+      1,
+      2
+     ],
+     "digit": 2,
+     "blanks": 54,
+     "unlockCells": 13
+    },
+    {
+     "path": "0,1/2,1",
+     "cell": [
+      4,
+      7
+     ],
+     "drop": [
+      5,
+      2
+     ],
+     "partnerPath": "0,1/3,7",
+     "partnerCell": [
+      2,
+      2
+     ],
+     "digit": 3,
+     "blanks": 56,
+     "unlockCells": 14
+    },
+    {
+     "path": "0,1/3,7",
+     "cell": [
+      2,
+      2
+     ],
+     "drop": [
+      5,
+      1
+     ],
+     "partnerPath": "0,1/2,1",
+     "partnerCell": [
+      4,
+      7
+     ],
+     "digit": 3,
+     "blanks": 55,
+     "unlockCells": 14
+    }
+   ]
+  },
+  {
+   "seed": "abyss-portal-ref",
+   "preset": "abyss",
+   "band": 3,
+   "parentPath": "0,2",
+   "portals": [
+    {
+     "aPath": "0,2/3,8",
+     "bPath": "0,2/1,8",
+     "aCell": [
+      4,
+      6
+     ],
+     "bCell": [
+      0,
+      3
+     ],
+     "aDrop": [
+      5,
+      7
+     ],
+     "bDrop": [
+      2,
+      3
+     ],
+     "digit": 3
+    },
+    {
+     "aPath": "0,2/0,7",
+     "bPath": "0,2/0,5",
+     "aCell": [
+      2,
+      2
+     ],
+     "bCell": [
+      5,
+      7
+     ],
+     "aDrop": [
+      3,
+      6
+     ],
+     "bDrop": [
+      3,
+      7
+     ],
+     "digit": 6
+    }
+   ],
+   "leaves": [
+    {
+     "path": "0,2/3,8",
+     "cell": [
+      4,
+      6
+     ],
+     "drop": [
+      5,
+      7
+     ],
+     "partnerPath": "0,2/1,8",
+     "partnerCell": [
+      0,
+      3
+     ],
+     "digit": 3,
+     "blanks": 55,
+     "unlockCells": 14
+    },
+    {
+     "path": "0,2/1,8",
+     "cell": [
+      0,
+      3
+     ],
+     "drop": [
+      2,
+      3
+     ],
+     "partnerPath": "0,2/3,8",
+     "partnerCell": [
+      4,
+      6
+     ],
+     "digit": 3,
+     "blanks": 54,
+     "unlockCells": 13
+    },
+    {
+     "path": "0,2/0,7",
+     "cell": [
+      2,
+      2
+     ],
+     "drop": [
+      3,
+      6
+     ],
+     "partnerPath": "0,2/0,5",
+     "partnerCell": [
+      5,
+      7
+     ],
+     "digit": 6,
+     "blanks": 54,
+     "unlockCells": 13
+    },
+    {
+     "path": "0,2/0,5",
+     "cell": [
+      5,
+      7
+     ],
+     "drop": [
+      3,
+      7
+     ],
+     "partnerPath": "0,2/0,7",
+     "partnerCell": [
+      2,
+      2
+     ],
+     "digit": 6,
+     "blanks": 55,
+     "unlockCells": 14
+    }
+   ]
+  },
+  {
+   "seed": "abyss-portal-ref",
+   "preset": "abyss",
+   "band": 3,
+   "parentPath": "0,4",
+   "portals": [
+    {
+     "aPath": "0,4/6,5",
+     "bPath": "0,4/7,8",
+     "aCell": [
+      2,
+      5
+     ],
+     "bCell": [
+      6,
+      1
+     ],
+     "aDrop": [
+      4,
+      4
+     ],
+     "bDrop": [
+      6,
+      4
+     ],
+     "digit": 5
+    },
+    {
+     "aPath": "0,4/8,1",
+     "bPath": "0,4/5,4",
+     "aCell": [
+      1,
+      7
+     ],
+     "bCell": [
+      5,
+      1
+     ],
+     "aDrop": [
+      5,
+      6
+     ],
+     "bDrop": [
+      1,
+      4
+     ],
+     "digit": 5
+    }
+   ],
+   "leaves": [
+    {
+     "path": "0,4/6,5",
+     "cell": [
+      2,
+      5
+     ],
+     "drop": [
+      4,
+      4
+     ],
+     "partnerPath": "0,4/7,8",
+     "partnerCell": [
+      6,
+      1
+     ],
+     "digit": 5,
+     "blanks": 54,
+     "unlockCells": 13
+    },
+    {
+     "path": "0,4/7,8",
+     "cell": [
+      6,
+      1
+     ],
+     "drop": [
+      6,
+      4
+     ],
+     "partnerPath": "0,4/6,5",
+     "partnerCell": [
+      2,
+      5
+     ],
+     "digit": 5,
+     "blanks": 56,
+     "unlockCells": 14
+    },
+    {
+     "path": "0,4/8,1",
+     "cell": [
+      1,
+      7
+     ],
+     "drop": [
+      5,
+      6
+     ],
+     "partnerPath": "0,4/5,4",
+     "partnerCell": [
+      5,
+      1
+     ],
+     "digit": 5,
+     "blanks": 54,
+     "unlockCells": 13
+    },
+    {
+     "path": "0,4/5,4",
+     "cell": [
+      5,
+      1
+     ],
+     "drop": [
+      1,
+      4
+     ],
+     "partnerPath": "0,4/8,1",
+     "partnerCell": [
+      1,
+      7
+     ],
+     "digit": 5,
+     "blanks": 55,
+     "unlockCells": 14
+    }
+   ]
+  },
+  {
+   "seed": "abyss-portal-ref",
+   "preset": "abyss",
+   "band": 3,
+   "parentPath": "0,5",
+   "portals": [
+    {
+     "aPath": "0,5/8,1",
+     "bPath": "0,5/7,4",
+     "aCell": [
+      7,
+      2
+     ],
+     "bCell": [
+      0,
+      7
+     ],
+     "aDrop": [
+      6,
+      4
+     ],
+     "bDrop": [
+      8,
+      7
+     ],
+     "digit": 6
+    },
+    {
+     "aPath": "0,5/7,0",
+     "bPath": "0,5/7,8",
+     "aCell": [
+      8,
+      4
+     ],
+     "bCell": [
+      3,
+      7
+     ],
+     "aDrop": [
+      5,
+      3
+     ],
+     "bDrop": [
+      8,
+      4
+     ],
+     "digit": 9
+    }
+   ],
+   "leaves": [
+    {
+     "path": "0,5/8,1",
+     "cell": [
+      7,
+      2
+     ],
+     "drop": [
+      6,
+      4
+     ],
+     "partnerPath": "0,5/7,4",
+     "partnerCell": [
+      0,
+      7
+     ],
+     "digit": 6,
+     "blanks": 54,
+     "unlockCells": 13
+    },
+    {
+     "path": "0,5/7,4",
+     "cell": [
+      0,
+      7
+     ],
+     "drop": [
+      8,
+      7
+     ],
+     "partnerPath": "0,5/8,1",
+     "partnerCell": [
+      7,
+      2
+     ],
+     "digit": 6,
+     "blanks": 55,
+     "unlockCells": 14
+    },
+    {
+     "path": "0,5/7,0",
+     "cell": [
+      8,
+      4
+     ],
+     "drop": [
+      5,
+      3
+     ],
+     "partnerPath": "0,5/7,8",
+     "partnerCell": [
+      3,
+      7
+     ],
+     "digit": 9,
+     "blanks": 56,
+     "unlockCells": 14
+    },
+    {
+     "path": "0,5/7,8",
+     "cell": [
+      3,
+      7
+     ],
+     "drop": [
+      8,
+      4
+     ],
+     "partnerPath": "0,5/7,0",
+     "partnerCell": [
+      8,
+      4
+     ],
+     "digit": 9,
+     "blanks": 53,
+     "unlockCells": 13
+    }
+   ]
+  },
+  {
+   "seed": "abyss-portal-ref",
+   "preset": "abyss",
+   "band": 5,
+   "parentPath": "0,1",
+   "portals": [
+    {
+     "aPath": "0,1/6,3",
+     "bPath": "0,1/7,6",
+     "aCell": [
+      6,
+      0
+     ],
+     "bCell": [
+      3,
+      8
+     ],
+     "aDrop": [
+      4,
+      6
+     ],
+     "bDrop": [
+      2,
+      8
+     ],
+     "digit": 6
+    },
+    {
+     "aPath": "0,1/3,8",
+     "bPath": "0,1/1,6",
+     "aCell": [
+      0,
+      3
+     ],
+     "bCell": [
+      7,
+      3
+     ],
+     "aDrop": [
+      0,
+      8
+     ],
+     "bDrop": [
+      7,
+      5
+     ],
+     "digit": 1
+    }
+   ],
+   "leaves": [
+    {
+     "path": "0,1/6,3",
+     "cell": [
+      6,
+      0
+     ],
+     "drop": [
+      4,
+      6
+     ],
+     "partnerPath": "0,1/7,6",
+     "partnerCell": [
+      3,
+      8
+     ],
+     "digit": 6,
+     "blanks": 53,
+     "unlockCells": 13
+    },
+    {
+     "path": "0,1/7,6",
+     "cell": [
+      3,
+      8
+     ],
+     "drop": [
+      2,
+      8
+     ],
+     "partnerPath": "0,1/6,3",
+     "partnerCell": [
+      6,
+      0
+     ],
+     "digit": 6,
+     "blanks": 53,
+     "unlockCells": 13
+    },
+    {
+     "path": "0,1/3,8",
+     "cell": [
+      0,
+      3
+     ],
+     "drop": [
+      0,
+      8
+     ],
+     "partnerPath": "0,1/1,6",
+     "partnerCell": [
+      7,
+      3
+     ],
+     "digit": 1,
+     "blanks": 53,
+     "unlockCells": 13
+    },
+    {
+     "path": "0,1/1,6",
+     "cell": [
+      7,
+      3
+     ],
+     "drop": [
+      7,
+      5
+     ],
+     "partnerPath": "0,1/3,8",
+     "partnerCell": [
+      0,
+      3
+     ],
+     "digit": 1,
+     "blanks": 50,
+     "unlockCells": 12
+    }
+   ]
+  },
+  {
+   "seed": "abyss-portal-ref",
+   "preset": "abyss",
+   "band": 5,
+   "parentPath": "0,2",
+   "portals": [
+    {
+     "aPath": "0,2/7,7",
+     "bPath": "0,2/0,7",
+     "aCell": [
+      2,
+      8
+     ],
+     "bCell": [
+      5,
+      5
+     ],
+     "aDrop": [
+      2,
+      0
+     ],
+     "bDrop": [
+      2,
+      7
+     ],
+     "digit": 4
+    },
+    {
+     "aPath": "0,2/3,6",
+     "bPath": "0,2/3,0",
+     "aCell": [
+      3,
+      6
+     ],
+     "bCell": [
+      4,
+      6
+     ],
+     "aDrop": [
+      3,
+      4
+     ],
+     "bDrop": [
+      8,
+      6
+     ],
+     "digit": 5
+    }
+   ],
+   "leaves": [
+    {
+     "path": "0,2/7,7",
+     "cell": [
+      2,
+      8
+     ],
+     "drop": [
+      2,
+      0
+     ],
+     "partnerPath": "0,2/0,7",
+     "partnerCell": [
+      5,
+      5
+     ],
+     "digit": 4,
+     "blanks": 54,
+     "unlockCells": 13
+    },
+    {
+     "path": "0,2/0,7",
+     "cell": [
+      5,
+      5
+     ],
+     "drop": [
+      2,
+      7
+     ],
+     "partnerPath": "0,2/7,7",
+     "partnerCell": [
+      2,
+      8
+     ],
+     "digit": 4,
+     "blanks": 56,
+     "unlockCells": 14
+    },
+    {
+     "path": "0,2/3,6",
+     "cell": [
+      3,
+      6
+     ],
+     "drop": [
+      3,
+      4
+     ],
+     "partnerPath": "0,2/3,0",
+     "partnerCell": [
+      4,
+      6
+     ],
+     "digit": 5,
+     "blanks": 54,
+     "unlockCells": 13
+    },
+    {
+     "path": "0,2/3,0",
+     "cell": [
+      4,
+      6
+     ],
+     "drop": [
+      8,
+      6
+     ],
+     "partnerPath": "0,2/3,6",
+     "partnerCell": [
+      3,
+      6
+     ],
+     "digit": 5,
+     "blanks": 56,
+     "unlockCells": 14
+    }
+   ]
+  },
+  {
+   "seed": "abyss-portal-ref",
+   "preset": "abyss",
+   "band": 5,
+   "parentPath": "0,4",
+   "portals": [
+    {
+     "aPath": "0,4/7,2",
+     "bPath": "0,4/8,3",
+     "aCell": [
+      4,
+      2
+     ],
+     "bCell": [
+      7,
+      4
+     ],
+     "aDrop": [
+      2,
+      0
+     ],
+     "bDrop": [
+      0,
+      6
+     ],
+     "digit": 9
+    },
+    {
+     "aPath": "0,4/5,6",
+     "bPath": "0,4/5,0",
+     "aCell": [
+      4,
+      2
+     ],
+     "bCell": [
+      0,
+      2
+     ],
+     "aDrop": [
+      2,
+      7
+     ],
+     "bDrop": [
+      7,
+      0
+     ],
+     "digit": 5
+    }
+   ],
+   "leaves": [
+    {
+     "path": "0,4/7,2",
+     "cell": [
+      4,
+      2
+     ],
+     "drop": [
+      2,
+      0
+     ],
+     "partnerPath": "0,4/8,3",
+     "partnerCell": [
+      7,
+      4
+     ],
+     "digit": 9,
+     "blanks": 56,
+     "unlockCells": 14
+    },
+    {
+     "path": "0,4/8,3",
+     "cell": [
+      7,
+      4
+     ],
+     "drop": [
+      0,
+      6
+     ],
+     "partnerPath": "0,4/7,2",
+     "partnerCell": [
+      4,
+      2
+     ],
+     "digit": 9,
+     "blanks": 53,
+     "unlockCells": 13
+    },
+    {
+     "path": "0,4/5,6",
+     "cell": [
+      4,
+      2
+     ],
+     "drop": [
+      2,
+      7
+     ],
+     "partnerPath": "0,4/5,0",
+     "partnerCell": [
+      0,
+      2
+     ],
+     "digit": 5,
+     "blanks": 54,
+     "unlockCells": 13
+    },
+    {
+     "path": "0,4/5,0",
+     "cell": [
+      0,
+      2
+     ],
+     "drop": [
+      7,
+      0
+     ],
+     "partnerPath": "0,4/5,6",
+     "partnerCell": [
+      4,
+      2
+     ],
+     "digit": 5,
+     "blanks": 56,
+     "unlockCells": 14
+    }
+   ]
+  },
+  {
+   "seed": "abyss-portal-ref",
+   "preset": "abyss",
+   "band": 5,
+   "parentPath": "0,5",
+   "portals": [
+    {
+     "aPath": "0,5/7,2",
+     "bPath": "0,5/4,4",
+     "aCell": [
+      5,
+      6
+     ],
+     "bCell": [
+      8,
+      6
+     ],
+     "aDrop": [
+      4,
+      3
+     ],
+     "bDrop": [
+      6,
+      1
+     ],
+     "digit": 4
+    },
+    {
+     "aPath": "0,5/1,5",
+     "bPath": "0,5/6,8",
+     "aCell": [
+      2,
+      7
+     ],
+     "bCell": [
+      8,
+      0
+     ],
+     "aDrop": [
+      3,
+      5
+     ],
+     "bDrop": [
+      4,
+      0
+     ],
+     "digit": 4
+    }
+   ],
+   "leaves": [
+    {
+     "path": "0,5/7,2",
+     "cell": [
+      5,
+      6
+     ],
+     "drop": [
+      4,
+      3
+     ],
+     "partnerPath": "0,5/4,4",
+     "partnerCell": [
+      8,
+      6
+     ],
+     "digit": 4,
+     "blanks": 50,
+     "unlockCells": 12
+    },
+    {
+     "path": "0,5/4,4",
+     "cell": [
+      8,
+      6
+     ],
+     "drop": [
+      6,
+      1
+     ],
+     "partnerPath": "0,5/7,2",
+     "partnerCell": [
+      5,
+      6
+     ],
+     "digit": 4,
+     "blanks": 55,
+     "unlockCells": 14
+    },
+    {
+     "path": "0,5/1,5",
+     "cell": [
+      2,
+      7
+     ],
+     "drop": [
+      3,
+      5
+     ],
+     "partnerPath": "0,5/6,8",
+     "partnerCell": [
+      8,
+      0
+     ],
+     "digit": 4,
+     "blanks": 53,
+     "unlockCells": 13
+    },
+    {
+     "path": "0,5/6,8",
+     "cell": [
+      8,
+      0
+     ],
+     "drop": [
+      4,
+      0
+     ],
+     "partnerPath": "0,5/1,5",
+     "partnerCell": [
+      2,
+      7
+     ],
+     "digit": 4,
+     "blanks": 56,
+     "unlockCells": 14
+    }
+   ]
+  },
+  {
+   "seed": "бездна-1727853000000-417",
+   "preset": "scout",
+   "band": 0,
+   "parentPath": "",
+   "portals": [
+    {
+     "aPath": "5,2",
+     "bPath": "6,5",
+     "aCell": [
+      7,
+      5
+     ],
+     "bCell": [
+      1,
+      0
+     ],
+     "aDrop": [
+      5,
+      3
+     ],
+     "bDrop": [
+      1,
+      3
+     ],
+     "digit": 6
+    },
+    {
+     "aPath": "1,3",
+     "bPath": "3,3",
+     "aCell": [
+      5,
+      5
+     ],
+     "bCell": [
+      0,
+      8
+     ],
+     "aDrop": [
+      6,
+      4
+     ],
+     "bDrop": [
+      7,
+      6
+     ],
+     "digit": 1
+    }
+   ],
+   "leaves": [
+    {
+     "path": "5,2",
+     "cell": [
+      7,
+      5
+     ],
+     "drop": [
+      5,
+      3
+     ],
+     "partnerPath": "6,5",
+     "partnerCell": [
+      1,
+      0
+     ],
+     "digit": 6,
+     "blanks": 52,
+     "unlockCells": 13
+    },
+    {
+     "path": "6,5",
+     "cell": [
+      1,
+      0
+     ],
+     "drop": [
+      1,
+      3
+     ],
+     "partnerPath": "5,2",
+     "partnerCell": [
+      7,
+      5
+     ],
+     "digit": 6,
+     "blanks": 50,
+     "unlockCells": 12
+    },
+    {
+     "path": "1,3",
+     "cell": [
+      5,
+      5
+     ],
+     "drop": [
+      6,
+      4
+     ],
+     "partnerPath": "3,3",
+     "partnerCell": [
+      0,
+      8
+     ],
+     "digit": 1,
+     "blanks": 52,
+     "unlockCells": 13
+    },
+    {
+     "path": "3,3",
+     "cell": [
+      0,
+      8
+     ],
+     "drop": [
+      7,
+      6
+     ],
+     "partnerPath": "1,3",
+     "partnerCell": [
+      5,
+      5
+     ],
+     "digit": 1,
+     "blanks": 49,
+     "unlockCells": 12
+    }
+   ]
+  },
+  {
+   "seed": "бездна-1727853000000-417",
+   "preset": "scout",
+   "band": 3,
+   "parentPath": "",
+   "portals": [
+    {
+     "aPath": "4,8",
+     "bPath": "5,1",
+     "aCell": [
+      2,
+      7
+     ],
+     "bCell": [
+      5,
+      8
+     ],
+     "aDrop": [
+      6,
+      1
+     ],
+     "bDrop": [
+      6,
+      1
+     ],
+     "digit": 3
+    }
+   ],
+   "leaves": [
+    {
+     "path": "4,8",
+     "cell": [
+      2,
+      7
+     ],
+     "drop": [
+      6,
+      1
+     ],
+     "partnerPath": "5,1",
+     "partnerCell": [
+      5,
+      8
+     ],
+     "digit": 3,
+     "blanks": 54,
+     "unlockCells": 13
+    },
+    {
+     "path": "5,1",
+     "cell": [
+      5,
+      8
+     ],
+     "drop": [
+      6,
+      1
+     ],
+     "partnerPath": "4,8",
+     "partnerCell": [
+      2,
+      7
+     ],
+     "digit": 3,
+     "blanks": 55,
+     "unlockCells": 14
+    }
+   ]
+  },
+  {
+   "seed": "бездна-1727853000000-417",
+   "preset": "scout",
+   "band": 5,
+   "parentPath": "",
+   "portals": [
+    {
+     "aPath": "1,0",
+     "bPath": "5,6",
+     "aCell": [
+      6,
+      1
+     ],
+     "bCell": [
+      0,
+      2
+     ],
+     "aDrop": [
+      4,
+      8
+     ],
+     "bDrop": [
+      4,
+      6
+     ],
+     "digit": 6
+    },
+    {
+     "aPath": "0,8",
+     "bPath": "3,2",
+     "aCell": [
+      4,
+      7
+     ],
+     "bCell": [
+      1,
+      3
+     ],
+     "aDrop": [
+      5,
+      3
+     ],
+     "bDrop": [
+      5,
+      6
+     ],
+     "digit": 7
+    }
+   ],
+   "leaves": [
+    {
+     "path": "1,0",
+     "cell": [
+      6,
+      1
+     ],
+     "drop": [
+      4,
+      8
+     ],
+     "partnerPath": "5,6",
+     "partnerCell": [
+      0,
+      2
+     ],
+     "digit": 6,
+     "blanks": 53,
+     "unlockCells": 13
+    },
+    {
+     "path": "5,6",
+     "cell": [
+      0,
+      2
+     ],
+     "drop": [
+      4,
+      6
+     ],
+     "partnerPath": "1,0",
+     "partnerCell": [
+      6,
+      1
+     ],
+     "digit": 6,
+     "blanks": 55,
+     "unlockCells": 14
+    },
+    {
+     "path": "0,8",
+     "cell": [
+      4,
+      7
+     ],
+     "drop": [
+      5,
+      3
+     ],
+     "partnerPath": "3,2",
+     "partnerCell": [
+      1,
+      3
+     ],
+     "digit": 7,
+     "blanks": 54,
+     "unlockCells": 13
+    },
+    {
+     "path": "3,2",
+     "cell": [
+      1,
+      3
+     ],
+     "drop": [
+      5,
+      6
+     ],
+     "partnerPath": "0,8",
+     "partnerCell": [
+      4,
+      7
+     ],
+     "digit": 7,
+     "blanks": 56,
+     "unlockCells": 14
+    }
+   ]
+  },
+  {
+   "seed": "бездна-1727853000000-417",
+   "preset": "trek",
+   "band": 0,
+   "parentPath": "1,1",
+   "portals": [
+    {
+     "aPath": "1,1/6,7",
+     "bPath": "1,1/7,2",
+     "aCell": [
+      0,
+      1
+     ],
+     "bCell": [
+      7,
+      5
+     ],
+     "aDrop": [
+      0,
+      6
+     ],
+     "bDrop": [
+      8,
+      1
+     ],
+     "digit": 1
+    },
+    {
+     "aPath": "1,1/0,7",
+     "bPath": "1,1/7,0",
+     "aCell": [
+      4,
+      7
+     ],
+     "bCell": [
+      3,
+      2
+     ],
+     "aDrop": [
+      0,
+      7
+     ],
+     "bDrop": [
+      8,
+      1
+     ],
+     "digit": 8
+    }
+   ],
+   "leaves": [
+    {
+     "path": "1,1/6,7",
+     "cell": [
+      0,
+      1
+     ],
+     "drop": [
+      0,
+      6
+     ],
+     "partnerPath": "1,1/7,2",
+     "partnerCell": [
+      7,
+      5
+     ],
+     "digit": 1,
+     "blanks": 50,
+     "unlockCells": 12
+    },
+    {
+     "path": "1,1/7,2",
+     "cell": [
+      7,
+      5
+     ],
+     "drop": [
+      8,
+      1
+     ],
+     "partnerPath": "1,1/6,7",
+     "partnerCell": [
+      0,
+      1
+     ],
+     "digit": 1,
+     "blanks": 50,
+     "unlockCells": 12
+    },
+    {
+     "path": "1,1/0,7",
+     "cell": [
+      4,
+      7
+     ],
+     "drop": [
+      0,
+      7
+     ],
+     "partnerPath": "1,1/7,0",
+     "partnerCell": [
+      3,
+      2
+     ],
+     "digit": 8,
+     "blanks": 54,
+     "unlockCells": 13
+    },
+    {
+     "path": "1,1/7,0",
+     "cell": [
+      3,
+      2
+     ],
+     "drop": [
+      8,
+      1
+     ],
+     "partnerPath": "1,1/0,7",
+     "partnerCell": [
+      4,
+      7
+     ],
+     "digit": 8,
+     "blanks": 58,
+     "unlockCells": 14
+    }
+   ]
+  },
+  {
+   "seed": "бездна-1727853000000-417",
+   "preset": "trek",
+   "band": 0,
+   "parentPath": "8,5",
+   "portals": [
+    {
+     "aPath": "8,5/5,7",
+     "bPath": "8,5/3,6",
+     "aCell": [
+      8,
+      6
+     ],
+     "bCell": [
+      4,
+      0
+     ],
+     "aDrop": [
+      8,
+      7
+     ],
+     "bDrop": [
+      4,
+      6
+     ],
+     "digit": 2
+    },
+    {
+     "aPath": "8,5/5,4",
+     "bPath": "8,5/4,6",
+     "aCell": [
+      8,
+      1
+     ],
+     "bCell": [
+      6,
+      6
+     ],
+     "aDrop": [
+      1,
+      1
+     ],
+     "bDrop": [
+      6,
+      2
+     ],
+     "digit": 6
+    }
+   ],
+   "leaves": [
+    {
+     "path": "8,5/5,7",
+     "cell": [
+      8,
+      6
+     ],
+     "drop": [
+      8,
+      7
+     ],
+     "partnerPath": "8,5/3,6",
+     "partnerCell": [
+      4,
+      0
+     ],
+     "digit": 2,
+     "blanks": 45,
+     "unlockCells": 11
+    },
+    {
+     "path": "8,5/3,6",
+     "cell": [
+      4,
+      0
+     ],
+     "drop": [
+      4,
+      6
+     ],
+     "partnerPath": "8,5/5,7",
+     "partnerCell": [
+      8,
+      6
+     ],
+     "digit": 2,
+     "blanks": 58,
+     "unlockCells": 14
+    },
+    {
+     "path": "8,5/5,4",
+     "cell": [
+      8,
+      1
+     ],
+     "drop": [
+      1,
+      1
+     ],
+     "partnerPath": "8,5/4,6",
+     "partnerCell": [
+      6,
+      6
+     ],
+     "digit": 6,
+     "blanks": 50,
+     "unlockCells": 12
+    },
+    {
+     "path": "8,5/4,6",
+     "cell": [
+      6,
+      6
+     ],
+     "drop": [
+      6,
+      2
+     ],
+     "partnerPath": "8,5/5,4",
+     "partnerCell": [
+      8,
+      1
+     ],
+     "digit": 6,
+     "blanks": 45,
+     "unlockCells": 11
+    }
+   ]
+  },
+  {
+   "seed": "бездна-1727853000000-417",
+   "preset": "trek",
+   "band": 0,
+   "parentPath": "5,2",
+   "portals": [
+    {
+     "aPath": "5,2/7,6",
+     "bPath": "5,2/4,4",
+     "aCell": [
+      7,
+      4
+     ],
+     "bCell": [
+      6,
+      3
+     ],
+     "aDrop": [
+      4,
+      5
+     ],
+     "bDrop": [
+      6,
+      7
+     ],
+     "digit": 8
+    }
+   ],
+   "leaves": [
+    {
+     "path": "5,2/7,6",
+     "cell": [
+      7,
+      4
+     ],
+     "drop": [
+      4,
+      5
+     ],
+     "partnerPath": "5,2/4,4",
+     "partnerCell": [
+      6,
+      3
+     ],
+     "digit": 8,
+     "blanks": 50,
+     "unlockCells": 12
+    },
+    {
+     "path": "5,2/4,4",
+     "cell": [
+      6,
+      3
+     ],
+     "drop": [
+      6,
+      7
+     ],
+     "partnerPath": "5,2/7,6",
+     "partnerCell": [
+      7,
+      4
+     ],
+     "digit": 8,
+     "blanks": 51,
+     "unlockCells": 13
+    }
+   ]
+  },
+  {
+   "seed": "бездна-1727853000000-417",
+   "preset": "trek",
+   "band": 0,
+   "parentPath": "6,6",
+   "portals": [
+    {
+     "aPath": "6,6/4,3",
+     "bPath": "6,6/7,1",
+     "aCell": [
+      4,
+      3
+     ],
+     "bCell": [
+      6,
+      6
+     ],
+     "aDrop": [
+      5,
+      3
+     ],
+     "bDrop": [
+      7,
+      6
+     ],
+     "digit": 4
+    },
+    {
+     "aPath": "6,6/2,3",
+     "bPath": "6,6/1,3",
+     "aCell": [
+      4,
+      6
+     ],
+     "bCell": [
+      2,
+      8
+     ],
+     "aDrop": [
+      4,
+      5
+     ],
+     "bDrop": [
+      2,
+      0
+     ],
+     "digit": 3
+    }
+   ],
+   "leaves": [
+    {
+     "path": "6,6/4,3",
+     "cell": [
+      4,
+      3
+     ],
+     "drop": [
+      5,
+      3
+     ],
+     "partnerPath": "6,6/7,1",
+     "partnerCell": [
+      6,
+      6
+     ],
+     "digit": 4,
+     "blanks": 58,
+     "unlockCells": 14
+    },
+    {
+     "path": "6,6/7,1",
+     "cell": [
+      6,
+      6
+     ],
+     "drop": [
+      7,
+      6
+     ],
+     "partnerPath": "6,6/4,3",
+     "partnerCell": [
+      4,
+      3
+     ],
+     "digit": 4,
+     "blanks": 50,
+     "unlockCells": 12
+    },
+    {
+     "path": "6,6/2,3",
+     "cell": [
+      4,
+      6
+     ],
+     "drop": [
+      4,
+      5
+     ],
+     "partnerPath": "6,6/1,3",
+     "partnerCell": [
+      2,
+      8
+     ],
+     "digit": 3,
+     "blanks": 50,
+     "unlockCells": 12
+    },
+    {
+     "path": "6,6/1,3",
+     "cell": [
+      2,
+      8
+     ],
+     "drop": [
+      2,
+      0
+     ],
+     "partnerPath": "6,6/2,3",
+     "partnerCell": [
+      4,
+      6
+     ],
+     "digit": 3,
+     "blanks": 58,
+     "unlockCells": 14
+    }
+   ]
+  },
+  {
+   "seed": "бездна-1727853000000-417",
+   "preset": "trek",
+   "band": 3,
+   "parentPath": "2,0",
+   "portals": [
+    {
+     "aPath": "2,0/2,1",
+     "bPath": "2,0/0,4",
+     "aCell": [
+      4,
+      5
+     ],
+     "bCell": [
+      5,
+      3
+     ],
+     "aDrop": [
+      4,
+      2
+     ],
+     "bDrop": [
+      2,
+      6
+     ],
+     "digit": 2
+    },
+    {
+     "aPath": "2,0/3,4",
+     "bPath": "2,0/2,3",
+     "aCell": [
+      6,
+      2
+     ],
+     "bCell": [
+      7,
+      6
+     ],
+     "aDrop": [
+      3,
+      0
+     ],
+     "bDrop": [
+      5,
+      6
+     ],
+     "digit": 8
+    }
+   ],
+   "leaves": [
+    {
+     "path": "2,0/2,1",
+     "cell": [
+      4,
+      5
+     ],
+     "drop": [
+      4,
+      2
+     ],
+     "partnerPath": "2,0/0,4",
+     "partnerCell": [
+      5,
+      3
+     ],
+     "digit": 2,
+     "blanks": 56,
+     "unlockCells": 14
+    },
+    {
+     "path": "2,0/0,4",
+     "cell": [
+      5,
+      3
+     ],
+     "drop": [
+      2,
+      6
+     ],
+     "partnerPath": "2,0/2,1",
+     "partnerCell": [
+      4,
+      5
+     ],
+     "digit": 2,
+     "blanks": 52,
+     "unlockCells": 13
+    },
+    {
+     "path": "2,0/3,4",
+     "cell": [
+      6,
+      2
+     ],
+     "drop": [
+      3,
+      0
+     ],
+     "partnerPath": "2,0/2,3",
+     "partnerCell": [
+      7,
+      6
+     ],
+     "digit": 8,
+     "blanks": 54,
+     "unlockCells": 13
+    },
+    {
+     "path": "2,0/2,3",
+     "cell": [
+      7,
+      6
+     ],
+     "drop": [
+      5,
+      6
+     ],
+     "partnerPath": "2,0/3,4",
+     "partnerCell": [
+      6,
+      2
+     ],
+     "digit": 8,
+     "blanks": 55,
+     "unlockCells": 14
+    }
+   ]
+  },
+  {
+   "seed": "бездна-1727853000000-417",
+   "preset": "trek",
+   "band": 3,
+   "parentPath": "3,7",
+   "portals": [
+    {
+     "aPath": "3,7/0,6",
+     "bPath": "3,7/5,8",
+     "aCell": [
+      2,
+      0
+     ],
+     "bCell": [
+      8,
+      1
+     ],
+     "aDrop": [
+      1,
+      7
+     ],
+     "bDrop": [
+      2,
+      8
+     ],
+     "digit": 9
+    },
+    {
+     "aPath": "3,7/2,5",
+     "bPath": "3,7/4,6",
+     "aCell": [
+      5,
+      1
+     ],
+     "bCell": [
+      6,
+      0
+     ],
+     "aDrop": [
+      0,
+      1
+     ],
+     "bDrop": [
+      3,
+      5
+     ],
+     "digit": 7
+    }
+   ],
+   "leaves": [
+    {
+     "path": "3,7/0,6",
+     "cell": [
+      2,
+      0
+     ],
+     "drop": [
+      1,
+      7
+     ],
+     "partnerPath": "3,7/5,8",
+     "partnerCell": [
+      8,
+      1
+     ],
+     "digit": 9,
+     "blanks": 55,
+     "unlockCells": 14
+    },
+    {
+     "path": "3,7/5,8",
+     "cell": [
+      8,
+      1
+     ],
+     "drop": [
+      2,
+      8
+     ],
+     "partnerPath": "3,7/0,6",
+     "partnerCell": [
+      2,
+      0
+     ],
+     "digit": 9,
+     "blanks": 55,
+     "unlockCells": 14
+    },
+    {
+     "path": "3,7/2,5",
+     "cell": [
+      5,
+      1
+     ],
+     "drop": [
+      0,
+      1
+     ],
+     "partnerPath": "3,7/4,6",
+     "partnerCell": [
+      6,
+      0
+     ],
+     "digit": 7,
+     "blanks": 54,
+     "unlockCells": 13
+    },
+    {
+     "path": "3,7/4,6",
+     "cell": [
+      6,
+      0
+     ],
+     "drop": [
+      3,
+      5
+     ],
+     "partnerPath": "3,7/2,5",
+     "partnerCell": [
+      5,
+      1
+     ],
+     "digit": 7,
+     "blanks": 55,
+     "unlockCells": 14
+    }
+   ]
+  },
+  {
+   "seed": "бездна-1727853000000-417",
+   "preset": "trek",
+   "band": 3,
+   "parentPath": "8,8",
+   "portals": [
+    {
+     "aPath": "8,8/1,7",
+     "bPath": "8,8/4,1",
+     "aCell": [
+      6,
+      0
+     ],
+     "bCell": [
+      3,
+      8
+     ],
+     "aDrop": [
+      7,
+      4
+     ],
+     "bDrop": [
+      5,
+      8
+     ],
+     "digit": 6
+    },
+    {
+     "aPath": "8,8/1,2",
+     "bPath": "8,8/8,3",
+     "aCell": [
+      8,
+      8
+     ],
+     "bCell": [
+      0,
+      3
+     ],
+     "aDrop": [
+      6,
+      8
+     ],
+     "bDrop": [
+      5,
+      3
+     ],
+     "digit": 7
+    }
+   ],
+   "leaves": [
+    {
+     "path": "8,8/1,7",
+     "cell": [
+      6,
+      0
+     ],
+     "drop": [
+      7,
+      4
+     ],
+     "partnerPath": "8,8/4,1",
+     "partnerCell": [
+      3,
+      8
+     ],
+     "digit": 6,
+     "blanks": 55,
+     "unlockCells": 14
+    },
+    {
+     "path": "8,8/4,1",
+     "cell": [
+      3,
+      8
+     ],
+     "drop": [
+      5,
+      8
+     ],
+     "partnerPath": "8,8/1,7",
+     "partnerCell": [
+      6,
+      0
+     ],
+     "digit": 6,
+     "blanks": 54,
+     "unlockCells": 13
+    },
+    {
+     "path": "8,8/1,2",
+     "cell": [
+      8,
+      8
+     ],
+     "drop": [
+      6,
+      8
+     ],
+     "partnerPath": "8,8/8,3",
+     "partnerCell": [
+      0,
+      3
+     ],
+     "digit": 7,
+     "blanks": 54,
+     "unlockCells": 13
+    },
+    {
+     "path": "8,8/8,3",
+     "cell": [
+      0,
+      3
+     ],
+     "drop": [
+      5,
+      3
+     ],
+     "partnerPath": "8,8/1,2",
+     "partnerCell": [
+      8,
+      8
+     ],
+     "digit": 7,
+     "blanks": 57,
+     "unlockCells": 14
+    }
+   ]
+  },
+  {
+   "seed": "бездна-1727853000000-417",
+   "preset": "trek",
+   "band": 3,
+   "parentPath": "6,5",
+   "portals": [
+    {
+     "aPath": "6,5/7,7",
+     "bPath": "6,5/6,3",
+     "aCell": [
+      5,
+      2
+     ],
+     "bCell": [
+      7,
+      7
+     ],
+     "aDrop": [
+      5,
+      1
+     ],
+     "bDrop": [
+      4,
+      7
+     ],
+     "digit": 3
+    },
+    {
+     "aPath": "6,5/6,6",
+     "bPath": "6,5/6,1",
+     "aCell": [
+      0,
+      0
+     ],
+     "bCell": [
+      1,
+      0
+     ],
+     "aDrop": [
+      2,
+      7
+     ],
+     "bDrop": [
+      0,
+      6
+     ],
+     "digit": 7
+    }
+   ],
+   "leaves": [
+    {
+     "path": "6,5/7,7",
+     "cell": [
+      5,
+      2
+     ],
+     "drop": [
+      5,
+      1
+     ],
+     "partnerPath": "6,5/6,3",
+     "partnerCell": [
+      7,
+      7
+     ],
+     "digit": 3,
+     "blanks": 53,
+     "unlockCells": 13
+    },
+    {
+     "path": "6,5/6,3",
+     "cell": [
+      7,
+      7
+     ],
+     "drop": [
+      4,
+      7
+     ],
+     "partnerPath": "6,5/7,7",
+     "partnerCell": [
+      5,
+      2
+     ],
+     "digit": 3,
+     "blanks": 55,
+     "unlockCells": 14
+    },
+    {
+     "path": "6,5/6,6",
+     "cell": [
+      0,
+      0
+     ],
+     "drop": [
+      2,
+      7
+     ],
+     "partnerPath": "6,5/6,1",
+     "partnerCell": [
+      1,
+      0
+     ],
+     "digit": 7,
+     "blanks": 54,
+     "unlockCells": 13
+    },
+    {
+     "path": "6,5/6,1",
+     "cell": [
+      1,
+      0
+     ],
+     "drop": [
+      0,
+      6
+     ],
+     "partnerPath": "6,5/6,6",
+     "partnerCell": [
+      0,
+      0
+     ],
+     "digit": 7,
+     "blanks": 55,
+     "unlockCells": 14
+    }
+   ]
+  },
+  {
+   "seed": "бездна-1727853000000-417",
+   "preset": "trek",
+   "band": 5,
+   "parentPath": "0,1",
+   "portals": [
+    {
+     "aPath": "0,1/6,1",
+     "bPath": "0,1/7,2",
+     "aCell": [
+      5,
+      3
+     ],
+     "bCell": [
+      1,
+      3
+     ],
+     "aDrop": [
+      1,
+      4
+     ],
+     "bDrop": [
+      4,
+      4
+     ],
+     "digit": 3
+    },
+    {
+     "aPath": "0,1/0,0",
+     "bPath": "0,1/3,7",
+     "aCell": [
+      1,
+      6
+     ],
+     "bCell": [
+      1,
+      5
+     ],
+     "aDrop": [
+      5,
+      4
+     ],
+     "bDrop": [
+      2,
+      1
+     ],
+     "digit": 8
+    }
+   ],
+   "leaves": [
+    {
+     "path": "0,1/6,1",
+     "cell": [
+      5,
+      3
+     ],
+     "drop": [
+      1,
+      4
+     ],
+     "partnerPath": "0,1/7,2",
+     "partnerCell": [
+      1,
+      3
+     ],
+     "digit": 3,
+     "blanks": 55,
+     "unlockCells": 14
+    },
+    {
+     "path": "0,1/7,2",
+     "cell": [
+      1,
+      3
+     ],
+     "drop": [
+      4,
+      4
+     ],
+     "partnerPath": "0,1/6,1",
+     "partnerCell": [
+      5,
+      3
+     ],
+     "digit": 3,
+     "blanks": 54,
+     "unlockCells": 13
+    },
+    {
+     "path": "0,1/0,0",
+     "cell": [
+      1,
+      6
+     ],
+     "drop": [
+      5,
+      4
+     ],
+     "partnerPath": "0,1/3,7",
+     "partnerCell": [
+      1,
+      5
+     ],
+     "digit": 8,
+     "blanks": 54,
+     "unlockCells": 13
+    },
+    {
+     "path": "0,1/3,7",
+     "cell": [
+      1,
+      5
+     ],
+     "drop": [
+      2,
+      1
+     ],
+     "partnerPath": "0,1/0,0",
+     "partnerCell": [
+      1,
+      6
+     ],
+     "digit": 8,
+     "blanks": 53,
+     "unlockCells": 13
+    }
+   ]
+  },
+  {
+   "seed": "бездна-1727853000000-417",
+   "preset": "trek",
+   "band": 5,
+   "parentPath": "8,7",
+   "portals": [
+    {
+     "aPath": "8,7/6,0",
+     "bPath": "8,7/5,2",
+     "aCell": [
+      4,
+      1
+     ],
+     "bCell": [
+      0,
+      4
+     ],
+     "aDrop": [
+      1,
+      6
+     ],
+     "bDrop": [
+      0,
+      5
+     ],
+     "digit": 6
+    },
+    {
+     "aPath": "8,7/2,0",
+     "bPath": "8,7/0,3",
+     "aCell": [
+      5,
+      2
+     ],
+     "bCell": [
+      4,
+      3
+     ],
+     "aDrop": [
+      4,
+      8
+     ],
+     "bDrop": [
+      2,
+      3
+     ],
+     "digit": 5
+    }
+   ],
+   "leaves": [
+    {
+     "path": "8,7/6,0",
+     "cell": [
+      4,
+      1
+     ],
+     "drop": [
+      1,
+      6
+     ],
+     "partnerPath": "8,7/5,2",
+     "partnerCell": [
+      0,
+      4
+     ],
+     "digit": 6,
+     "blanks": 53,
+     "unlockCells": 13
+    },
+    {
+     "path": "8,7/5,2",
+     "cell": [
+      0,
+      4
+     ],
+     "drop": [
+      0,
+      5
+     ],
+     "partnerPath": "8,7/6,0",
+     "partnerCell": [
+      4,
+      1
+     ],
+     "digit": 6,
+     "blanks": 55,
+     "unlockCells": 14
+    },
+    {
+     "path": "8,7/2,0",
+     "cell": [
+      5,
+      2
+     ],
+     "drop": [
+      4,
+      8
+     ],
+     "partnerPath": "8,7/0,3",
+     "partnerCell": [
+      4,
+      3
+     ],
+     "digit": 5,
+     "blanks": 55,
+     "unlockCells": 14
+    },
+    {
+     "path": "8,7/0,3",
+     "cell": [
+      4,
+      3
+     ],
+     "drop": [
+      2,
+      3
+     ],
+     "partnerPath": "8,7/2,0",
+     "partnerCell": [
+      5,
+      2
+     ],
+     "digit": 5,
+     "blanks": 53,
+     "unlockCells": 13
+    }
+   ]
+  },
+  {
+   "seed": "бездна-1727853000000-417",
+   "preset": "trek",
+   "band": 5,
+   "parentPath": "8,0",
+   "portals": [
+    {
+     "aPath": "8,0/2,1",
+     "bPath": "8,0/2,2",
+     "aCell": [
+      8,
+      6
+     ],
+     "bCell": [
+      1,
+      1
+     ],
+     "aDrop": [
+      8,
+      0
+     ],
+     "bDrop": [
+      5,
+      6
+     ],
+     "digit": 3
+    },
+    {
+     "aPath": "8,0/2,5",
+     "bPath": "8,0/6,5",
+     "aCell": [
+      3,
+      3
+     ],
+     "bCell": [
+      2,
+      8
+     ],
+     "aDrop": [
+      4,
+      2
+     ],
+     "bDrop": [
+      7,
+      5
+     ],
+     "digit": 3
+    }
+   ],
+   "leaves": [
+    {
+     "path": "8,0/2,1",
+     "cell": [
+      8,
+      6
+     ],
+     "drop": [
+      8,
+      0
+     ],
+     "partnerPath": "8,0/2,2",
+     "partnerCell": [
+      1,
+      1
+     ],
+     "digit": 3,
+     "blanks": 54,
+     "unlockCells": 13
+    },
+    {
+     "path": "8,0/2,2",
+     "cell": [
+      1,
+      1
+     ],
+     "drop": [
+      5,
+      6
+     ],
+     "partnerPath": "8,0/2,1",
+     "partnerCell": [
+      8,
+      6
+     ],
+     "digit": 3,
+     "blanks": 50,
+     "unlockCells": 12
+    },
+    {
+     "path": "8,0/2,5",
+     "cell": [
+      3,
+      3
+     ],
+     "drop": [
+      4,
+      2
+     ],
+     "partnerPath": "8,0/6,5",
+     "partnerCell": [
+      2,
+      8
+     ],
+     "digit": 3,
+     "blanks": 55,
+     "unlockCells": 14
+    },
+    {
+     "path": "8,0/6,5",
+     "cell": [
+      2,
+      8
+     ],
+     "drop": [
+      7,
+      5
+     ],
+     "partnerPath": "8,0/2,5",
+     "partnerCell": [
+      3,
+      3
+     ],
+     "digit": 3,
+     "blanks": 54,
+     "unlockCells": 13
+    }
+   ]
+  },
+  {
+   "seed": "бездна-1727853000000-417",
+   "preset": "trek",
+   "band": 5,
+   "parentPath": "1,0",
+   "portals": [
+    {
+     "aPath": "1,0/7,8",
+     "bPath": "1,0/8,6",
+     "aCell": [
+      2,
+      3
+     ],
+     "bCell": [
+      4,
+      7
+     ],
+     "aDrop": [
+      2,
+      4
+     ],
+     "bDrop": [
+      7,
+      8
+     ],
+     "digit": 3
+    },
+    {
+     "aPath": "1,0/3,6",
+     "bPath": "1,0/7,7",
+     "aCell": [
+      7,
+      0
+     ],
+     "bCell": [
+      8,
+      1
+     ],
+     "aDrop": [
+      8,
+      0
+     ],
+     "bDrop": [
+      6,
+      8
+     ],
+     "digit": 4
+    }
+   ],
+   "leaves": [
+    {
+     "path": "1,0/7,8",
+     "cell": [
+      2,
+      3
+     ],
+     "drop": [
+      2,
+      4
+     ],
+     "partnerPath": "1,0/8,6",
+     "partnerCell": [
+      4,
+      7
+     ],
+     "digit": 3,
+     "blanks": 56,
+     "unlockCells": 14
+    },
+    {
+     "path": "1,0/8,6",
+     "cell": [
+      4,
+      7
+     ],
+     "drop": [
+      7,
+      8
+     ],
+     "partnerPath": "1,0/7,8",
+     "partnerCell": [
+      2,
+      3
+     ],
+     "digit": 3,
+     "blanks": 54,
+     "unlockCells": 13
+    },
+    {
+     "path": "1,0/3,6",
+     "cell": [
+      7,
+      0
+     ],
+     "drop": [
+      8,
+      0
+     ],
+     "partnerPath": "1,0/7,7",
+     "partnerCell": [
+      8,
+      1
+     ],
+     "digit": 4,
+     "blanks": 54,
+     "unlockCells": 13
+    },
+    {
+     "path": "1,0/7,7",
+     "cell": [
+      8,
+      1
+     ],
+     "drop": [
+      6,
+      8
+     ],
+     "partnerPath": "1,0/3,6",
+     "partnerCell": [
+      7,
+      0
+     ],
+     "digit": 4,
+     "blanks": 53,
+     "unlockCells": 13
+    }
+   ]
+  },
+  {
+   "seed": "бездна-1727853000000-417",
+   "preset": "abyss",
+   "band": 0,
+   "parentPath": "0,1",
+   "portals": [
+    {
+     "aPath": "0,1/7,5",
+     "bPath": "0,1/1,3",
+     "aCell": [
+      4,
+      3
+     ],
+     "bCell": [
+      5,
+      8
+     ],
+     "aDrop": [
+      3,
+      6
+     ],
+     "bDrop": [
+      1,
+      8
+     ],
+     "digit": 6
+    },
+    {
+     "aPath": "0,1/8,7",
+     "bPath": "0,1/8,2",
+     "aCell": [
+      8,
+      5
+     ],
+     "bCell": [
+      8,
+      2
+     ],
+     "aDrop": [
+      8,
+      2
+     ],
+     "bDrop": [
+      8,
+      0
+     ],
+     "digit": 3
+    }
+   ],
+   "leaves": [
+    {
+     "path": "0,1/7,5",
+     "cell": [
+      4,
+      3
+     ],
+     "drop": [
+      3,
+      6
+     ],
+     "partnerPath": "0,1/1,3",
+     "partnerCell": [
+      5,
+      8
+     ],
+     "digit": 6,
+     "blanks": 52,
+     "unlockCells": 13
+    },
+    {
+     "path": "0,1/1,3",
+     "cell": [
+      5,
+      8
+     ],
+     "drop": [
+      1,
+      8
+     ],
+     "partnerPath": "0,1/7,5",
+     "partnerCell": [
+      4,
+      3
+     ],
+     "digit": 6,
+     "blanks": 50,
+     "unlockCells": 12
+    },
+    {
+     "path": "0,1/8,7",
+     "cell": [
+      8,
+      5
+     ],
+     "drop": [
+      8,
+      2
+     ],
+     "partnerPath": "0,1/8,2",
+     "partnerCell": [
+      8,
+      2
+     ],
+     "digit": 3,
+     "blanks": 45,
+     "unlockCells": 11
+    },
+    {
+     "path": "0,1/8,2",
+     "cell": [
+      8,
+      2
+     ],
+     "drop": [
+      8,
+      0
+     ],
+     "partnerPath": "0,1/8,7",
+     "partnerCell": [
+      8,
+      5
+     ],
+     "digit": 3,
+     "blanks": 56,
+     "unlockCells": 14
+    }
+   ]
+  },
+  {
+   "seed": "бездна-1727853000000-417",
+   "preset": "abyss",
+   "band": 0,
+   "parentPath": "0,3",
+   "portals": [
+    {
+     "aPath": "0,3/3,6",
+     "bPath": "0,3/6,2",
+     "aCell": [
+      1,
+      4
+     ],
+     "bCell": [
+      7,
+      2
+     ],
+     "aDrop": [
+      0,
+      6
+     ],
+     "bDrop": [
+      1,
+      0
+     ],
+     "digit": 1
+    },
+    {
+     "aPath": "0,3/8,6",
+     "bPath": "0,3/8,5",
+     "aCell": [
+      4,
+      0
+     ],
+     "bCell": [
+      7,
+      1
+     ],
+     "aDrop": [
+      5,
+      4
+     ],
+     "bDrop": [
+      1,
+      1
+     ],
+     "digit": 4
+    }
+   ],
+   "leaves": [
+    {
+     "path": "0,3/3,6",
+     "cell": [
+      1,
+      4
+     ],
+     "drop": [
+      0,
+      6
+     ],
+     "partnerPath": "0,3/6,2",
+     "partnerCell": [
+      7,
+      2
+     ],
+     "digit": 1,
+     "blanks": 54,
+     "unlockCells": 13
+    },
+    {
+     "path": "0,3/6,2",
+     "cell": [
+      7,
+      2
+     ],
+     "drop": [
+      1,
+      0
+     ],
+     "partnerPath": "0,3/3,6",
+     "partnerCell": [
+      1,
+      4
+     ],
+     "digit": 1,
+     "blanks": 45,
+     "unlockCells": 11
+    },
+    {
+     "path": "0,3/8,6",
+     "cell": [
+      4,
+      0
+     ],
+     "drop": [
+      5,
+      4
+     ],
+     "partnerPath": "0,3/8,5",
+     "partnerCell": [
+      7,
+      1
+     ],
+     "digit": 4,
+     "blanks": 50,
+     "unlockCells": 12
+    },
+    {
+     "path": "0,3/8,5",
+     "cell": [
+      7,
+      1
+     ],
+     "drop": [
+      1,
+      1
+     ],
+     "partnerPath": "0,3/8,6",
+     "partnerCell": [
+      4,
+      0
+     ],
+     "digit": 4,
+     "blanks": 50,
+     "unlockCells": 12
+    }
+   ]
+  },
+  {
+   "seed": "бездна-1727853000000-417",
+   "preset": "abyss",
+   "band": 0,
+   "parentPath": "0,5",
+   "portals": [
+    {
+     "aPath": "0,5/6,3",
+     "bPath": "0,5/6,7",
+     "aCell": [
+      7,
+      6
+     ],
+     "bCell": [
+      5,
+      8
+     ],
+     "aDrop": [
+      5,
+      4
+     ],
+     "bDrop": [
+      6,
+      6
+     ],
+     "digit": 6
+    },
+    {
+     "aPath": "0,5/8,1",
+     "bPath": "0,5/1,4",
+     "aCell": [
+      6,
+      4
+     ],
+     "bCell": [
+      0,
+      0
+     ],
+     "aDrop": [
+      1,
+      3
+     ],
+     "bDrop": [
+      1,
+      4
+     ],
+     "digit": 3
+    }
+   ],
+   "leaves": [
+    {
+     "path": "0,5/6,3",
+     "cell": [
+      7,
+      6
+     ],
+     "drop": [
+      5,
+      4
+     ],
+     "partnerPath": "0,5/6,7",
+     "partnerCell": [
+      5,
+      8
+     ],
+     "digit": 6,
+     "blanks": 49,
+     "unlockCells": 12
+    },
+    {
+     "path": "0,5/6,7",
+     "cell": [
+      5,
+      8
+     ],
+     "drop": [
+      6,
+      6
+     ],
+     "partnerPath": "0,5/6,3",
+     "partnerCell": [
+      7,
+      6
+     ],
+     "digit": 6,
+     "blanks": 50,
+     "unlockCells": 12
+    },
+    {
+     "path": "0,5/8,1",
+     "cell": [
+      6,
+      4
+     ],
+     "drop": [
+      1,
+      3
+     ],
+     "partnerPath": "0,5/1,4",
+     "partnerCell": [
+      0,
+      0
+     ],
+     "digit": 3,
+     "blanks": 50,
+     "unlockCells": 12
+    },
+    {
+     "path": "0,5/1,4",
+     "cell": [
+      0,
+      0
+     ],
+     "drop": [
+      1,
+      4
+     ],
+     "partnerPath": "0,5/8,1",
+     "partnerCell": [
+      6,
+      4
+     ],
+     "digit": 3,
+     "blanks": 54,
+     "unlockCells": 13
+    }
+   ]
+  },
+  {
+   "seed": "бездна-1727853000000-417",
+   "preset": "abyss",
+   "band": 0,
+   "parentPath": "0,6",
+   "portals": [
+    {
+     "aPath": "0,6/5,0",
+     "bPath": "0,6/1,6",
+     "aCell": [
+      8,
+      6
+     ],
+     "bCell": [
+      8,
+      1
+     ],
+     "aDrop": [
+      7,
+      8
+     ],
+     "bDrop": [
+      3,
+      0
+     ],
+     "digit": 7
+    },
+    {
+     "aPath": "0,6/1,1",
+     "bPath": "0,6/2,1",
+     "aCell": [
+      0,
+      4
+     ],
+     "bCell": [
+      5,
+      4
+     ],
+     "aDrop": [
+      1,
+      7
+     ],
+     "bDrop": [
+      6,
+      5
+     ],
+     "digit": 7
+    }
+   ],
+   "leaves": [
+    {
+     "path": "0,6/5,0",
+     "cell": [
+      8,
+      6
+     ],
+     "drop": [
+      7,
+      8
+     ],
+     "partnerPath": "0,6/1,6",
+     "partnerCell": [
+      8,
+      1
+     ],
+     "digit": 7,
+     "blanks": 58,
+     "unlockCells": 14
+    },
+    {
+     "path": "0,6/1,6",
+     "cell": [
+      8,
+      1
+     ],
+     "drop": [
+      3,
+      0
+     ],
+     "partnerPath": "0,6/5,0",
+     "partnerCell": [
+      8,
+      6
+     ],
+     "digit": 7,
+     "blanks": 56,
+     "unlockCells": 14
+    },
+    {
+     "path": "0,6/1,1",
+     "cell": [
+      0,
+      4
+     ],
+     "drop": [
+      1,
+      7
+     ],
+     "partnerPath": "0,6/2,1",
+     "partnerCell": [
+      5,
+      4
+     ],
+     "digit": 7,
+     "blanks": 49,
+     "unlockCells": 12
+    },
+    {
+     "path": "0,6/2,1",
+     "cell": [
+      5,
+      4
+     ],
+     "drop": [
+      6,
+      5
+     ],
+     "partnerPath": "0,6/1,1",
+     "partnerCell": [
+      0,
+      4
+     ],
+     "digit": 7,
+     "blanks": 50,
+     "unlockCells": 12
+    }
+   ]
+  },
+  {
+   "seed": "бездна-1727853000000-417",
+   "preset": "abyss",
+   "band": 3,
+   "parentPath": "0,0",
+   "portals": [
+    {
+     "aPath": "0,0/6,1",
+     "bPath": "0,0/8,0",
+     "aCell": [
+      7,
+      7
+     ],
+     "bCell": [
+      4,
+      6
+     ],
+     "aDrop": [
+      2,
+      6
+     ],
+     "bDrop": [
+      0,
+      1
+     ],
+     "digit": 3
+    },
+    {
+     "aPath": "0,0/8,4",
+     "bPath": "0,0/3,1",
+     "aCell": [
+      7,
+      2
+     ],
+     "bCell": [
+      0,
+      2
+     ],
+     "aDrop": [
+      1,
+      0
+     ],
+     "bDrop": [
+      8,
+      5
+     ],
+     "digit": 9
+    }
+   ],
+   "leaves": [
+    {
+     "path": "0,0/6,1",
+     "cell": [
+      7,
+      7
+     ],
+     "drop": [
+      2,
+      6
+     ],
+     "partnerPath": "0,0/8,0",
+     "partnerCell": [
+      4,
+      6
+     ],
+     "digit": 3,
+     "blanks": 55,
+     "unlockCells": 14
+    },
+    {
+     "path": "0,0/8,0",
+     "cell": [
+      4,
+      6
+     ],
+     "drop": [
+      0,
+      1
+     ],
+     "partnerPath": "0,0/6,1",
+     "partnerCell": [
+      7,
+      7
+     ],
+     "digit": 3,
+     "blanks": 52,
+     "unlockCells": 13
+    },
+    {
+     "path": "0,0/8,4",
+     "cell": [
+      7,
+      2
+     ],
+     "drop": [
+      1,
+      0
+     ],
+     "partnerPath": "0,0/3,1",
+     "partnerCell": [
+      0,
+      2
+     ],
+     "digit": 9,
+     "blanks": 55,
+     "unlockCells": 14
+    },
+    {
+     "path": "0,0/3,1",
+     "cell": [
+      0,
+      2
+     ],
+     "drop": [
+      8,
+      5
+     ],
+     "partnerPath": "0,0/8,4",
+     "partnerCell": [
+      7,
+      2
+     ],
+     "digit": 9,
+     "blanks": 56,
+     "unlockCells": 14
+    }
+   ]
+  },
+  {
+   "seed": "бездна-1727853000000-417",
+   "preset": "abyss",
+   "band": 3,
+   "parentPath": "0,1",
+   "portals": [
+    {
+     "aPath": "0,1/3,3",
+     "bPath": "0,1/5,2",
+     "aCell": [
+      6,
+      7
+     ],
+     "bCell": [
+      2,
+      3
+     ],
+     "aDrop": [
+      7,
+      4
+     ],
+     "bDrop": [
+      6,
+      6
+     ],
+     "digit": 5
+    },
+    {
+     "aPath": "0,1/3,2",
+     "bPath": "0,1/4,1",
+     "aCell": [
+      5,
+      5
+     ],
+     "bCell": [
+      1,
+      3
+     ],
+     "aDrop": [
+      3,
+      8
+     ],
+     "bDrop": [
+      1,
+      4
+     ],
+     "digit": 4
+    }
+   ],
+   "leaves": [
+    {
+     "path": "0,1/3,3",
+     "cell": [
+      6,
+      7
+     ],
+     "drop": [
+      7,
+      4
+     ],
+     "partnerPath": "0,1/5,2",
+     "partnerCell": [
+      2,
+      3
+     ],
+     "digit": 5,
+     "blanks": 57,
+     "unlockCells": 14
+    },
+    {
+     "path": "0,1/5,2",
+     "cell": [
+      2,
+      3
+     ],
+     "drop": [
+      6,
+      6
+     ],
+     "partnerPath": "0,1/3,3",
+     "partnerCell": [
+      6,
+      7
+     ],
+     "digit": 5,
+     "blanks": 54,
+     "unlockCells": 13
+    },
+    {
+     "path": "0,1/3,2",
+     "cell": [
+      5,
+      5
+     ],
+     "drop": [
+      3,
+      8
+     ],
+     "partnerPath": "0,1/4,1",
+     "partnerCell": [
+      1,
+      3
+     ],
+     "digit": 4,
+     "blanks": 53,
+     "unlockCells": 13
+    },
+    {
+     "path": "0,1/4,1",
+     "cell": [
+      1,
+      3
+     ],
+     "drop": [
+      1,
+      4
+     ],
+     "partnerPath": "0,1/3,2",
+     "partnerCell": [
+      5,
+      5
+     ],
+     "digit": 4,
+     "blanks": 56,
+     "unlockCells": 14
+    }
+   ]
+  },
+  {
+   "seed": "бездна-1727853000000-417",
+   "preset": "abyss",
+   "band": 3,
+   "parentPath": "0,2",
+   "portals": [
+    {
+     "aPath": "0,2/5,3",
+     "bPath": "0,2/6,6",
+     "aCell": [
+      4,
+      1
+     ],
+     "bCell": [
+      2,
+      4
+     ],
+     "aDrop": [
+      5,
+      6
+     ],
+     "bDrop": [
+      5,
+      4
+     ],
+     "digit": 4
+    },
+    {
+     "aPath": "0,2/0,0",
+     "bPath": "0,2/1,6",
+     "aCell": [
+      0,
+      2
+     ],
+     "bCell": [
+      6,
+      6
+     ],
+     "aDrop": [
+      3,
+      2
+     ],
+     "bDrop": [
+      5,
+      0
+     ],
+     "digit": 9
+    }
+   ],
+   "leaves": [
+    {
+     "path": "0,2/5,3",
+     "cell": [
+      4,
+      1
+     ],
+     "drop": [
+      5,
+      6
+     ],
+     "partnerPath": "0,2/6,6",
+     "partnerCell": [
+      2,
+      4
+     ],
+     "digit": 4,
+     "blanks": 52,
+     "unlockCells": 13
+    },
+    {
+     "path": "0,2/6,6",
+     "cell": [
+      2,
+      4
+     ],
+     "drop": [
+      5,
+      4
+     ],
+     "partnerPath": "0,2/5,3",
+     "partnerCell": [
+      4,
+      1
+     ],
+     "digit": 4,
+     "blanks": 52,
+     "unlockCells": 13
+    },
+    {
+     "path": "0,2/0,0",
+     "cell": [
+      0,
+      2
+     ],
+     "drop": [
+      3,
+      2
+     ],
+     "partnerPath": "0,2/1,6",
+     "partnerCell": [
+      6,
+      6
+     ],
+     "digit": 9,
+     "blanks": 55,
+     "unlockCells": 14
+    },
+    {
+     "path": "0,2/1,6",
+     "cell": [
+      6,
+      6
+     ],
+     "drop": [
+      5,
+      0
+     ],
+     "partnerPath": "0,2/0,0",
+     "partnerCell": [
+      0,
+      2
+     ],
+     "digit": 9,
+     "blanks": 56,
+     "unlockCells": 14
+    }
+   ]
+  },
+  {
+   "seed": "бездна-1727853000000-417",
+   "preset": "abyss",
+   "band": 3,
+   "parentPath": "0,4",
+   "portals": [
+    {
+     "aPath": "0,4/3,5",
+     "bPath": "0,4/1,3",
+     "aCell": [
+      8,
+      2
+     ],
+     "bCell": [
+      5,
+      5
+     ],
+     "aDrop": [
+      1,
+      4
+     ],
+     "bDrop": [
+      6,
+      8
+     ],
+     "digit": 9
+    },
+    {
+     "aPath": "0,4/0,7",
+     "bPath": "0,4/5,3",
+     "aCell": [
+      7,
+      8
+     ],
+     "bCell": [
+      6,
+      3
+     ],
+     "aDrop": [
+      1,
+      6
+     ],
+     "bDrop": [
+      8,
+      7
+     ],
+     "digit": 8
+    }
+   ],
+   "leaves": [
+    {
+     "path": "0,4/3,5",
+     "cell": [
+      8,
+      2
+     ],
+     "drop": [
+      1,
+      4
+     ],
+     "partnerPath": "0,4/1,3",
+     "partnerCell": [
+      5,
+      5
+     ],
+     "digit": 9,
+     "blanks": 55,
+     "unlockCells": 14
+    },
+    {
+     "path": "0,4/1,3",
+     "cell": [
+      5,
+      5
+     ],
+     "drop": [
+      6,
+      8
+     ],
+     "partnerPath": "0,4/3,5",
+     "partnerCell": [
+      8,
+      2
+     ],
+     "digit": 9,
+     "blanks": 55,
+     "unlockCells": 14
+    },
+    {
+     "path": "0,4/0,7",
+     "cell": [
+      7,
+      8
+     ],
+     "drop": [
+      1,
+      6
+     ],
+     "partnerPath": "0,4/5,3",
+     "partnerCell": [
+      6,
+      3
+     ],
+     "digit": 8,
+     "blanks": 54,
+     "unlockCells": 13
+    },
+    {
+     "path": "0,4/5,3",
+     "cell": [
+      6,
+      3
+     ],
+     "drop": [
+      8,
+      7
+     ],
+     "partnerPath": "0,4/0,7",
+     "partnerCell": [
+      7,
+      8
+     ],
+     "digit": 8,
+     "blanks": 53,
+     "unlockCells": 13
+    }
+   ]
+  },
+  {
+   "seed": "бездна-1727853000000-417",
+   "preset": "abyss",
+   "band": 5,
+   "parentPath": "0,0",
+   "portals": [
+    {
+     "aPath": "0,0/2,0",
+     "bPath": "0,0/2,3",
+     "aCell": [
+      1,
+      5
+     ],
+     "bCell": [
+      5,
+      7
+     ],
+     "aDrop": [
+      5,
+      7
+     ],
+     "bDrop": [
+      4,
+      1
+     ],
+     "digit": 2
+    },
+    {
+     "aPath": "0,0/3,7",
+     "bPath": "0,0/5,8",
+     "aCell": [
+      2,
+      2
+     ],
+     "bCell": [
+      1,
+      8
+     ],
+     "aDrop": [
+      5,
+      4
+     ],
+     "bDrop": [
+      7,
+      5
+     ],
+     "digit": 6
+    }
+   ],
+   "leaves": [
+    {
+     "path": "0,0/2,0",
+     "cell": [
+      1,
+      5
+     ],
+     "drop": [
+      5,
+      7
+     ],
+     "partnerPath": "0,0/2,3",
+     "partnerCell": [
+      5,
+      7
+     ],
+     "digit": 2,
+     "blanks": 53,
+     "unlockCells": 13
+    },
+    {
+     "path": "0,0/2,3",
+     "cell": [
+      5,
+      7
+     ],
+     "drop": [
+      4,
+      1
+     ],
+     "partnerPath": "0,0/2,0",
+     "partnerCell": [
+      1,
+      5
+     ],
+     "digit": 2,
+     "blanks": 55,
+     "unlockCells": 14
+    },
+    {
+     "path": "0,0/3,7",
+     "cell": [
+      2,
+      2
+     ],
+     "drop": [
+      5,
+      4
+     ],
+     "partnerPath": "0,0/5,8",
+     "partnerCell": [
+      1,
+      8
+     ],
+     "digit": 6,
+     "blanks": 54,
+     "unlockCells": 13
+    },
+    {
+     "path": "0,0/5,8",
+     "cell": [
+      1,
+      8
+     ],
+     "drop": [
+      7,
+      5
+     ],
+     "partnerPath": "0,0/3,7",
+     "partnerCell": [
+      2,
+      2
+     ],
+     "digit": 6,
+     "blanks": 55,
+     "unlockCells": 14
+    }
+   ]
+  },
+  {
+   "seed": "бездна-1727853000000-417",
+   "preset": "abyss",
+   "band": 5,
+   "parentPath": "0,1",
+   "portals": [
+    {
+     "aPath": "0,1/2,7",
+     "bPath": "0,1/8,7",
+     "aCell": [
+      7,
+      0
+     ],
+     "bCell": [
+      4,
+      7
+     ],
+     "aDrop": [
+      0,
+      8
+     ],
+     "bDrop": [
+      3,
+      8
+     ],
+     "digit": 7
+    },
+    {
+     "aPath": "0,1/1,5",
+     "bPath": "0,1/4,7",
+     "aCell": [
+      5,
+      6
+     ],
+     "bCell": [
+      2,
+      0
+     ],
+     "aDrop": [
+      8,
+      3
+     ],
+     "bDrop": [
+      3,
+      2
+     ],
+     "digit": 8
+    }
+   ],
+   "leaves": [
+    {
+     "path": "0,1/2,7",
+     "cell": [
+      7,
+      0
+     ],
+     "drop": [
+      0,
+      8
+     ],
+     "partnerPath": "0,1/8,7",
+     "partnerCell": [
+      4,
+      7
+     ],
+     "digit": 7,
+     "blanks": 54,
+     "unlockCells": 13
+    },
+    {
+     "path": "0,1/8,7",
+     "cell": [
+      4,
+      7
+     ],
+     "drop": [
+      3,
+      8
+     ],
+     "partnerPath": "0,1/2,7",
+     "partnerCell": [
+      7,
+      0
+     ],
+     "digit": 7,
+     "blanks": 56,
+     "unlockCells": 14
+    },
+    {
+     "path": "0,1/1,5",
+     "cell": [
+      5,
+      6
+     ],
+     "drop": [
+      8,
+      3
+     ],
+     "partnerPath": "0,1/4,7",
+     "partnerCell": [
+      2,
+      0
+     ],
+     "digit": 8,
+     "blanks": 53,
+     "unlockCells": 13
+    },
+    {
+     "path": "0,1/4,7",
+     "cell": [
+      2,
+      0
+     ],
+     "drop": [
+      3,
+      2
+     ],
+     "partnerPath": "0,1/1,5",
+     "partnerCell": [
+      5,
+      6
+     ],
+     "digit": 8,
+     "blanks": 50,
+     "unlockCells": 12
+    }
+   ]
+  },
+  {
+   "seed": "бездна-1727853000000-417",
+   "preset": "abyss",
+   "band": 5,
+   "parentPath": "0,2",
+   "portals": [
+    {
+     "aPath": "0,2/3,6",
+     "bPath": "0,2/7,6",
+     "aCell": [
+      7,
+      0
+     ],
+     "bCell": [
+      2,
+      8
+     ],
+     "aDrop": [
+      5,
+      6
+     ],
+     "bDrop": [
+      6,
+      6
+     ],
+     "digit": 6
+    },
+    {
+     "aPath": "0,2/6,2",
+     "bPath": "0,2/5,4",
+     "aCell": [
+      7,
+      2
+     ],
+     "bCell": [
+      5,
+      5
+     ],
+     "aDrop": [
+      8,
+      2
+     ],
+     "bDrop": [
+      5,
+      0
+     ],
+     "digit": 3
+    }
+   ],
+   "leaves": [
+    {
+     "path": "0,2/3,6",
+     "cell": [
+      7,
+      0
+     ],
+     "drop": [
+      5,
+      6
+     ],
+     "partnerPath": "0,2/7,6",
+     "partnerCell": [
+      2,
+      8
+     ],
+     "digit": 6,
+     "blanks": 54,
+     "unlockCells": 13
+    },
+    {
+     "path": "0,2/7,6",
+     "cell": [
+      2,
+      8
+     ],
+     "drop": [
+      6,
+      6
+     ],
+     "partnerPath": "0,2/3,6",
+     "partnerCell": [
+      7,
+      0
+     ],
+     "digit": 6,
+     "blanks": 53,
+     "unlockCells": 13
+    },
+    {
+     "path": "0,2/6,2",
+     "cell": [
+      7,
+      2
+     ],
+     "drop": [
+      8,
+      2
+     ],
+     "partnerPath": "0,2/5,4",
+     "partnerCell": [
+      5,
+      5
+     ],
+     "digit": 3,
+     "blanks": 54,
+     "unlockCells": 13
+    },
+    {
+     "path": "0,2/5,4",
+     "cell": [
+      5,
+      5
+     ],
+     "drop": [
+      5,
+      0
+     ],
+     "partnerPath": "0,2/6,2",
+     "partnerCell": [
+      7,
+      2
+     ],
+     "digit": 3,
+     "blanks": 56,
+     "unlockCells": 14
+    }
+   ]
+  },
+  {
+   "seed": "бездна-1727853000000-417",
+   "preset": "abyss",
+   "band": 5,
+   "parentPath": "0,3",
+   "portals": [
+    {
+     "aPath": "0,3/0,5",
+     "bPath": "0,3/4,7",
+     "aCell": [
+      5,
+      3
+     ],
+     "bCell": [
+      6,
+      0
+     ],
+     "aDrop": [
+      4,
+      3
+     ],
+     "bDrop": [
+      8,
+      5
+     ],
+     "digit": 3
+    },
+    {
+     "aPath": "0,3/3,3",
+     "bPath": "0,3/3,1",
+     "aCell": [
+      0,
+      2
+     ],
+     "bCell": [
+      1,
+      8
+     ],
+     "aDrop": [
+      0,
+      0
+     ],
+     "bDrop": [
+      1,
+      4
+     ],
+     "digit": 5
+    }
+   ],
+   "leaves": [
+    {
+     "path": "0,3/0,5",
+     "cell": [
+      5,
+      3
+     ],
+     "drop": [
+      4,
+      3
+     ],
+     "partnerPath": "0,3/4,7",
+     "partnerCell": [
+      6,
+      0
+     ],
+     "digit": 3,
+     "blanks": 53,
+     "unlockCells": 13
+    },
+    {
+     "path": "0,3/4,7",
+     "cell": [
+      6,
+      0
+     ],
+     "drop": [
+      8,
+      5
+     ],
+     "partnerPath": "0,3/0,5",
+     "partnerCell": [
+      5,
+      3
+     ],
+     "digit": 3,
+     "blanks": 54,
+     "unlockCells": 13
+    },
+    {
+     "path": "0,3/3,3",
+     "cell": [
+      0,
+      2
+     ],
+     "drop": [
+      0,
+      0
+     ],
+     "partnerPath": "0,3/3,1",
+     "partnerCell": [
+      1,
+      8
+     ],
+     "digit": 5,
+     "blanks": 50,
+     "unlockCells": 12
+    },
+    {
+     "path": "0,3/3,1",
+     "cell": [
+      1,
+      8
+     ],
+     "drop": [
+      1,
+      4
+     ],
+     "partnerPath": "0,3/3,3",
+     "partnerCell": [
+      0,
+      2
+     ],
+     "digit": 5,
+     "blanks": 55,
+     "unlockCells": 14
+    }
+   ]
+  },
+  {
+   "seed": "Бездна  Проба_Пробелов",
+   "preset": "scout",
+   "band": 0,
+   "parentPath": "",
+   "portals": [
+    {
+     "aPath": "2,2",
+     "bPath": "5,1",
+     "aCell": [
+      6,
+      6
+     ],
+     "bCell": [
+      4,
+      5
+     ],
+     "aDrop": [
+      8,
+      3
+     ],
+     "bDrop": [
+      5,
+      6
+     ],
+     "digit": 4
+    }
+   ],
+   "leaves": [
+    {
+     "path": "2,2",
+     "cell": [
+      6,
+      6
+     ],
+     "drop": [
+      8,
+      3
+     ],
+     "partnerPath": "5,1",
+     "partnerCell": [
+      4,
+      5
+     ],
+     "digit": 4,
+     "blanks": 50,
+     "unlockCells": 12
+    },
+    {
+     "path": "5,1",
+     "cell": [
+      4,
+      5
+     ],
+     "drop": [
+      5,
+      6
+     ],
+     "partnerPath": "2,2",
+     "partnerCell": [
+      6,
+      6
+     ],
+     "digit": 4,
+     "blanks": 50,
+     "unlockCells": 12
+    }
+   ]
+  },
+  {
+   "seed": "Бездна  Проба_Пробелов",
+   "preset": "scout",
+   "band": 3,
+   "parentPath": "",
+   "portals": [
+    {
+     "aPath": "7,4",
+     "bPath": "6,3",
+     "aCell": [
+      7,
+      8
+     ],
+     "bCell": [
+      4,
+      4
+     ],
+     "aDrop": [
+      3,
+      8
+     ],
+     "bDrop": [
+      3,
+      3
+     ],
+     "digit": 1
+    },
+    {
+     "aPath": "6,6",
+     "bPath": "5,0",
+     "aCell": [
+      6,
+      7
+     ],
+     "bCell": [
+      0,
+      2
+     ],
+     "aDrop": [
+      4,
+      8
+     ],
+     "bDrop": [
+      0,
+      3
+     ],
+     "digit": 6
+    }
+   ],
+   "leaves": [
+    {
+     "path": "7,4",
+     "cell": [
+      7,
+      8
+     ],
+     "drop": [
+      3,
+      8
+     ],
+     "partnerPath": "6,3",
+     "partnerCell": [
+      4,
+      4
+     ],
+     "digit": 1,
+     "blanks": 55,
+     "unlockCells": 14
+    },
+    {
+     "path": "6,3",
+     "cell": [
+      4,
+      4
+     ],
+     "drop": [
+      3,
+      3
+     ],
+     "partnerPath": "7,4",
+     "partnerCell": [
+      7,
+      8
+     ],
+     "digit": 1,
+     "blanks": 56,
+     "unlockCells": 14
+    },
+    {
+     "path": "6,6",
+     "cell": [
+      6,
+      7
+     ],
+     "drop": [
+      4,
+      8
+     ],
+     "partnerPath": "5,0",
+     "partnerCell": [
+      0,
+      2
+     ],
+     "digit": 6,
+     "blanks": 54,
+     "unlockCells": 13
+    },
+    {
+     "path": "5,0",
+     "cell": [
+      0,
+      2
+     ],
+     "drop": [
+      0,
+      3
+     ],
+     "partnerPath": "6,6",
+     "partnerCell": [
+      6,
+      7
+     ],
+     "digit": 6,
+     "blanks": 52,
+     "unlockCells": 13
+    }
+   ]
+  },
+  {
+   "seed": "Бездна  Проба_Пробелов",
+   "preset": "scout",
+   "band": 5,
+   "parentPath": "",
+   "portals": [
+    {
+     "aPath": "2,2",
+     "bPath": "1,4",
+     "aCell": [
+      3,
+      0
+     ],
+     "bCell": [
+      5,
+      3
+     ],
+     "aDrop": [
+      5,
+      3
+     ],
+     "bDrop": [
+      3,
+      8
+     ],
+     "digit": 3
+    },
+    {
+     "aPath": "2,4",
+     "bPath": "6,6",
+     "aCell": [
+      8,
+      2
+     ],
+     "bCell": [
+      4,
+      6
+     ],
+     "aDrop": [
+      7,
+      2
+     ],
+     "bDrop": [
+      7,
+      8
+     ],
+     "digit": 9
+    }
+   ],
+   "leaves": [
+    {
+     "path": "2,2",
+     "cell": [
+      3,
+      0
+     ],
+     "drop": [
+      5,
+      3
+     ],
+     "partnerPath": "1,4",
+     "partnerCell": [
+      5,
+      3
+     ],
+     "digit": 3,
+     "blanks": 53,
+     "unlockCells": 13
+    },
+    {
+     "path": "1,4",
+     "cell": [
+      5,
+      3
+     ],
+     "drop": [
+      3,
+      8
+     ],
+     "partnerPath": "2,2",
+     "partnerCell": [
+      3,
+      0
+     ],
+     "digit": 3,
+     "blanks": 55,
+     "unlockCells": 14
+    },
+    {
+     "path": "2,4",
+     "cell": [
+      8,
+      2
+     ],
+     "drop": [
+      7,
+      2
+     ],
+     "partnerPath": "6,6",
+     "partnerCell": [
+      4,
+      6
+     ],
+     "digit": 9,
+     "blanks": 53,
+     "unlockCells": 13
+    },
+    {
+     "path": "6,6",
+     "cell": [
+      4,
+      6
+     ],
+     "drop": [
+      7,
+      8
+     ],
+     "partnerPath": "2,4",
+     "partnerCell": [
+      8,
+      2
+     ],
+     "digit": 9,
+     "blanks": 56,
+     "unlockCells": 14
+    }
+   ]
+  },
+  {
+   "seed": "Бездна  Проба_Пробелов",
+   "preset": "trek",
+   "band": 0,
+   "parentPath": "7,6",
+   "portals": [
+    {
+     "aPath": "7,6/3,6",
+     "bPath": "7,6/2,7",
+     "aCell": [
+      4,
+      1
+     ],
+     "bCell": [
+      1,
+      0
+     ],
+     "aDrop": [
+      6,
+      8
+     ],
+     "bDrop": [
+      6,
+      3
+     ],
+     "digit": 2
+    },
+    {
+     "aPath": "7,6/0,2",
+     "bPath": "7,6/4,1",
+     "aCell": [
+      5,
+      4
+     ],
+     "bCell": [
+      7,
+      3
+     ],
+     "aDrop": [
+      7,
+      5
+     ],
+     "bDrop": [
+      5,
+      5
+     ],
+     "digit": 9
+    }
+   ],
+   "leaves": [
+    {
+     "path": "7,6/3,6",
+     "cell": [
+      4,
+      1
+     ],
+     "drop": [
+      6,
+      8
+     ],
+     "partnerPath": "7,6/2,7",
+     "partnerCell": [
+      1,
+      0
+     ],
+     "digit": 2,
+     "blanks": 49,
+     "unlockCells": 12
+    },
+    {
+     "path": "7,6/2,7",
+     "cell": [
+      1,
+      0
+     ],
+     "drop": [
+      6,
+      3
+     ],
+     "partnerPath": "7,6/3,6",
+     "partnerCell": [
+      4,
+      1
+     ],
+     "digit": 2,
+     "blanks": 50,
+     "unlockCells": 12
+    },
+    {
+     "path": "7,6/0,2",
+     "cell": [
+      5,
+      4
+     ],
+     "drop": [
+      7,
+      5
+     ],
+     "partnerPath": "7,6/4,1",
+     "partnerCell": [
+      7,
+      3
+     ],
+     "digit": 9,
+     "blanks": 49,
+     "unlockCells": 12
+    },
+    {
+     "path": "7,6/4,1",
+     "cell": [
+      7,
+      3
+     ],
+     "drop": [
+      5,
+      5
+     ],
+     "partnerPath": "7,6/0,2",
+     "partnerCell": [
+      5,
+      4
+     ],
+     "digit": 9,
+     "blanks": 50,
+     "unlockCells": 12
+    }
+   ]
+  },
+  {
+   "seed": "Бездна  Проба_Пробелов",
+   "preset": "trek",
+   "band": 0,
+   "parentPath": "5,1",
+   "portals": [
+    {
+     "aPath": "5,1/5,0",
+     "bPath": "5,1/2,0",
+     "aCell": [
+      5,
+      8
+     ],
+     "bCell": [
+      8,
+      8
+     ],
+     "aDrop": [
+      5,
+      7
+     ],
+     "bDrop": [
+      4,
+      7
+     ],
+     "digit": 3
+    }
+   ],
+   "leaves": [
+    {
+     "path": "5,1/5,0",
+     "cell": [
+      5,
+      8
+     ],
+     "drop": [
+      5,
+      7
+     ],
+     "partnerPath": "5,1/2,0",
+     "partnerCell": [
+      8,
+      8
+     ],
+     "digit": 3,
+     "blanks": 58,
+     "unlockCells": 14
+    },
+    {
+     "path": "5,1/2,0",
+     "cell": [
+      8,
+      8
+     ],
+     "drop": [
+      4,
+      7
+     ],
+     "partnerPath": "5,1/5,0",
+     "partnerCell": [
+      5,
+      8
+     ],
+     "digit": 3,
+     "blanks": 54,
+     "unlockCells": 13
+    }
+   ]
+  },
+  {
+   "seed": "Бездна  Проба_Пробелов",
+   "preset": "trek",
+   "band": 0,
+   "parentPath": "1,8",
+   "portals": [
+    {
+     "aPath": "1,8/8,3",
+     "bPath": "1,8/6,2",
+     "aCell": [
+      1,
+      7
+     ],
+     "bCell": [
+      8,
+      6
+     ],
+     "aDrop": [
+      2,
+      1
+     ],
+     "bDrop": [
+      6,
+      4
+     ],
+     "digit": 3
+    },
+    {
+     "aPath": "1,8/4,6",
+     "bPath": "1,8/4,0",
+     "aCell": [
+      1,
+      1
+     ],
+     "bCell": [
+      2,
+      0
+     ],
+     "aDrop": [
+      6,
+      5
+     ],
+     "bDrop": [
+      5,
+      0
+     ],
+     "digit": 2
+    }
+   ],
+   "leaves": [
+    {
+     "path": "1,8/8,3",
+     "cell": [
+      1,
+      7
+     ],
+     "drop": [
+      2,
+      1
+     ],
+     "partnerPath": "1,8/6,2",
+     "partnerCell": [
+      8,
+      6
+     ],
+     "digit": 3,
+     "blanks": 52,
+     "unlockCells": 13
+    },
+    {
+     "path": "1,8/6,2",
+     "cell": [
+      8,
+      6
+     ],
+     "drop": [
+      6,
+      4
+     ],
+     "partnerPath": "1,8/8,3",
+     "partnerCell": [
+      1,
+      7
+     ],
+     "digit": 3,
+     "blanks": 56,
+     "unlockCells": 14
+    },
+    {
+     "path": "1,8/4,6",
+     "cell": [
+      1,
+      1
+     ],
+     "drop": [
+      6,
+      5
+     ],
+     "partnerPath": "1,8/4,0",
+     "partnerCell": [
+      2,
+      0
+     ],
+     "digit": 2,
+     "blanks": 54,
+     "unlockCells": 13
+    },
+    {
+     "path": "1,8/4,0",
+     "cell": [
+      2,
+      0
+     ],
+     "drop": [
+      5,
+      0
+     ],
+     "partnerPath": "1,8/4,6",
+     "partnerCell": [
+      1,
+      1
+     ],
+     "digit": 2,
+     "blanks": 51,
+     "unlockCells": 13
+    }
+   ]
+  },
+  {
+   "seed": "Бездна  Проба_Пробелов",
+   "preset": "trek",
+   "band": 0,
+   "parentPath": "7,7",
+   "portals": [
+    {
+     "aPath": "7,7/0,0",
+     "bPath": "7,7/1,0",
+     "aCell": [
+      6,
+      0
+     ],
+     "bCell": [
+      1,
+      4
+     ],
+     "aDrop": [
+      2,
+      2
+     ],
+     "bDrop": [
+      0,
+      4
+     ],
+     "digit": 3
+    },
+    {
+     "aPath": "7,7/4,0",
+     "bPath": "7,7/2,5",
+     "aCell": [
+      7,
+      5
+     ],
+     "bCell": [
+      3,
+      4
+     ],
+     "aDrop": [
+      6,
+      2
+     ],
+     "bDrop": [
+      0,
+      2
+     ],
+     "digit": 6
+    }
+   ],
+   "leaves": [
+    {
+     "path": "7,7/0,0",
+     "cell": [
+      6,
+      0
+     ],
+     "drop": [
+      2,
+      2
+     ],
+     "partnerPath": "7,7/1,0",
+     "partnerCell": [
+      1,
+      4
+     ],
+     "digit": 3,
+     "blanks": 49,
+     "unlockCells": 12
+    },
+    {
+     "path": "7,7/1,0",
+     "cell": [
+      1,
+      4
+     ],
+     "drop": [
+      0,
+      4
+     ],
+     "partnerPath": "7,7/0,0",
+     "partnerCell": [
+      6,
+      0
+     ],
+     "digit": 3,
+     "blanks": 58,
+     "unlockCells": 14
+    },
+    {
+     "path": "7,7/4,0",
+     "cell": [
+      7,
+      5
+     ],
+     "drop": [
+      6,
+      2
+     ],
+     "partnerPath": "7,7/2,5",
+     "partnerCell": [
+      3,
+      4
+     ],
+     "digit": 6,
+     "blanks": 50,
+     "unlockCells": 12
+    },
+    {
+     "path": "7,7/2,5",
+     "cell": [
+      3,
+      4
+     ],
+     "drop": [
+      0,
+      2
+     ],
+     "partnerPath": "7,7/4,0",
+     "partnerCell": [
+      7,
+      5
+     ],
+     "digit": 6,
+     "blanks": 51,
+     "unlockCells": 13
+    }
+   ]
+  },
+  {
+   "seed": "Бездна  Проба_Пробелов",
+   "preset": "trek",
+   "band": 3,
+   "parentPath": "6,4",
+   "portals": [
+    {
+     "aPath": "6,4/5,3",
+     "bPath": "6,4/3,3",
+     "aCell": [
+      2,
+      5
+     ],
+     "bCell": [
+      5,
+      8
+     ],
+     "aDrop": [
+      2,
+      1
+     ],
+     "bDrop": [
+      4,
+      3
+     ],
+     "digit": 6
+    },
+    {
+     "aPath": "6,4/8,3",
+     "bPath": "6,4/4,2",
+     "aCell": [
+      4,
+      1
+     ],
+     "bCell": [
+      1,
+      2
+     ],
+     "aDrop": [
+      4,
+      0
+     ],
+     "bDrop": [
+      5,
+      8
+     ],
+     "digit": 5
+    }
+   ],
+   "leaves": [
+    {
+     "path": "6,4/5,3",
+     "cell": [
+      2,
+      5
+     ],
+     "drop": [
+      2,
+      1
+     ],
+     "partnerPath": "6,4/3,3",
+     "partnerCell": [
+      5,
+      8
+     ],
+     "digit": 6,
+     "blanks": 56,
+     "unlockCells": 14
+    },
+    {
+     "path": "6,4/3,3",
+     "cell": [
+      5,
+      8
+     ],
+     "drop": [
+      4,
+      3
+     ],
+     "partnerPath": "6,4/5,3",
+     "partnerCell": [
+      2,
+      5
+     ],
+     "digit": 6,
+     "blanks": 55,
+     "unlockCells": 14
+    },
+    {
+     "path": "6,4/8,3",
+     "cell": [
+      4,
+      1
+     ],
+     "drop": [
+      4,
+      0
+     ],
+     "partnerPath": "6,4/4,2",
+     "partnerCell": [
+      1,
+      2
+     ],
+     "digit": 5,
+     "blanks": 55,
+     "unlockCells": 14
+    },
+    {
+     "path": "6,4/4,2",
+     "cell": [
+      1,
+      2
+     ],
+     "drop": [
+      5,
+      8
+     ],
+     "partnerPath": "6,4/8,3",
+     "partnerCell": [
+      4,
+      1
+     ],
+     "digit": 5,
+     "blanks": 54,
+     "unlockCells": 13
+    }
+   ]
+  },
+  {
+   "seed": "Бездна  Проба_Пробелов",
+   "preset": "trek",
+   "band": 3,
+   "parentPath": "6,3",
+   "portals": [
+    {
+     "aPath": "6,3/1,2",
+     "bPath": "6,3/4,6",
+     "aCell": [
+      5,
+      7
+     ],
+     "bCell": [
+      7,
+      1
+     ],
+     "aDrop": [
+      1,
+      7
+     ],
+     "bDrop": [
+      1,
+      3
+     ],
+     "digit": 9
+    },
+    {
+     "aPath": "6,3/5,0",
+     "bPath": "6,3/6,7",
+     "aCell": [
+      7,
+      5
+     ],
+     "bCell": [
+      3,
+      6
+     ],
+     "aDrop": [
+      7,
+      0
+     ],
+     "bDrop": [
+      2,
+      8
+     ],
+     "digit": 2
+    }
+   ],
+   "leaves": [
+    {
+     "path": "6,3/1,2",
+     "cell": [
+      5,
+      7
+     ],
+     "drop": [
+      1,
+      7
+     ],
+     "partnerPath": "6,3/4,6",
+     "partnerCell": [
+      7,
+      1
+     ],
+     "digit": 9,
+     "blanks": 55,
+     "unlockCells": 14
+    },
+    {
+     "path": "6,3/4,6",
+     "cell": [
+      7,
+      1
+     ],
+     "drop": [
+      1,
+      3
+     ],
+     "partnerPath": "6,3/1,2",
+     "partnerCell": [
+      5,
+      7
+     ],
+     "digit": 9,
+     "blanks": 57,
+     "unlockCells": 14
+    },
+    {
+     "path": "6,3/5,0",
+     "cell": [
+      7,
+      5
+     ],
+     "drop": [
+      7,
+      0
+     ],
+     "partnerPath": "6,3/6,7",
+     "partnerCell": [
+      3,
+      6
+     ],
+     "digit": 2,
+     "blanks": 54,
+     "unlockCells": 13
+    },
+    {
+     "path": "6,3/6,7",
+     "cell": [
+      3,
+      6
+     ],
+     "drop": [
+      2,
+      8
+     ],
+     "partnerPath": "6,3/5,0",
+     "partnerCell": [
+      7,
+      5
+     ],
+     "digit": 2,
+     "blanks": 57,
+     "unlockCells": 14
+    }
+   ]
+  },
+  {
+   "seed": "Бездна  Проба_Пробелов",
+   "preset": "trek",
+   "band": 3,
+   "parentPath": "6,6",
+   "portals": [
+    {
+     "aPath": "6,6/6,0",
+     "bPath": "6,6/7,3",
+     "aCell": [
+      8,
+      7
+     ],
+     "bCell": [
+      5,
+      1
+     ],
+     "aDrop": [
+      7,
+      2
+     ],
+     "bDrop": [
+      5,
+      8
+     ],
+     "digit": 8
+    },
+    {
+     "aPath": "6,6/4,7",
+     "bPath": "6,6/3,8",
+     "aCell": [
+      4,
+      7
+     ],
+     "bCell": [
+      1,
+      1
+     ],
+     "aDrop": [
+      7,
+      3
+     ],
+     "bDrop": [
+      0,
+      3
+     ],
+     "digit": 6
+    }
+   ],
+   "leaves": [
+    {
+     "path": "6,6/6,0",
+     "cell": [
+      8,
+      7
+     ],
+     "drop": [
+      7,
+      2
+     ],
+     "partnerPath": "6,6/7,3",
+     "partnerCell": [
+      5,
+      1
+     ],
+     "digit": 8,
+     "blanks": 55,
+     "unlockCells": 14
+    },
+    {
+     "path": "6,6/7,3",
+     "cell": [
+      5,
+      1
+     ],
+     "drop": [
+      5,
+      8
+     ],
+     "partnerPath": "6,6/6,0",
+     "partnerCell": [
+      8,
+      7
+     ],
+     "digit": 8,
+     "blanks": 54,
+     "unlockCells": 13
+    },
+    {
+     "path": "6,6/4,7",
+     "cell": [
+      4,
+      7
+     ],
+     "drop": [
+      7,
+      3
+     ],
+     "partnerPath": "6,6/3,8",
+     "partnerCell": [
+      1,
+      1
+     ],
+     "digit": 6,
+     "blanks": 54,
+     "unlockCells": 13
+    },
+    {
+     "path": "6,6/3,8",
+     "cell": [
+      1,
+      1
+     ],
+     "drop": [
+      0,
+      3
+     ],
+     "partnerPath": "6,6/4,7",
+     "partnerCell": [
+      4,
+      7
+     ],
+     "digit": 6,
+     "blanks": 54,
+     "unlockCells": 13
+    }
+   ]
+  },
+  {
+   "seed": "Бездна  Проба_Пробелов",
+   "preset": "trek",
+   "band": 3,
+   "parentPath": "5,0",
+   "portals": [
+    {
+     "aPath": "5,0/8,6",
+     "bPath": "5,0/8,7",
+     "aCell": [
+      0,
+      7
+     ],
+     "bCell": [
+      1,
+      6
+     ],
+     "aDrop": [
+      3,
+      8
+     ],
+     "bDrop": [
+      1,
+      5
+     ],
+     "digit": 2
+    },
+    {
+     "aPath": "5,0/2,0",
+     "bPath": "5,0/2,4",
+     "aCell": [
+      7,
+      2
+     ],
+     "bCell": [
+      1,
+      1
+     ],
+     "aDrop": [
+      0,
+      7
+     ],
+     "bDrop": [
+      1,
+      7
+     ],
+     "digit": 8
+    }
+   ],
+   "leaves": [
+    {
+     "path": "5,0/8,6",
+     "cell": [
+      0,
+      7
+     ],
+     "drop": [
+      3,
+      8
+     ],
+     "partnerPath": "5,0/8,7",
+     "partnerCell": [
+      1,
+      6
+     ],
+     "digit": 2,
+     "blanks": 55,
+     "unlockCells": 14
+    },
+    {
+     "path": "5,0/8,7",
+     "cell": [
+      1,
+      6
+     ],
+     "drop": [
+      1,
+      5
+     ],
+     "partnerPath": "5,0/8,6",
+     "partnerCell": [
+      0,
+      7
+     ],
+     "digit": 2,
+     "blanks": 54,
+     "unlockCells": 13
+    },
+    {
+     "path": "5,0/2,0",
+     "cell": [
+      7,
+      2
+     ],
+     "drop": [
+      0,
+      7
+     ],
+     "partnerPath": "5,0/2,4",
+     "partnerCell": [
+      1,
+      1
+     ],
+     "digit": 8,
+     "blanks": 56,
+     "unlockCells": 14
+    },
+    {
+     "path": "5,0/2,4",
+     "cell": [
+      1,
+      1
+     ],
+     "drop": [
+      1,
+      7
+     ],
+     "partnerPath": "5,0/2,0",
+     "partnerCell": [
+      7,
+      2
+     ],
+     "digit": 8,
+     "blanks": 54,
+     "unlockCells": 13
+    }
+   ]
+  },
+  {
+   "seed": "Бездна  Проба_Пробелов",
+   "preset": "trek",
+   "band": 5,
+   "parentPath": "3,5",
+   "portals": [
+    {
+     "aPath": "3,5/3,3",
+     "bPath": "3,5/3,8",
+     "aCell": [
+      1,
+      4
+     ],
+     "bCell": [
+      7,
+      8
+     ],
+     "aDrop": [
+      5,
+      6
+     ],
+     "bDrop": [
+      4,
+      0
+     ],
+     "digit": 6
+    }
+   ],
+   "leaves": [
+    {
+     "path": "3,5/3,3",
+     "cell": [
+      1,
+      4
+     ],
+     "drop": [
+      5,
+      6
+     ],
+     "partnerPath": "3,5/3,8",
+     "partnerCell": [
+      7,
+      8
+     ],
+     "digit": 6,
+     "blanks": 54,
+     "unlockCells": 13
+    },
+    {
+     "path": "3,5/3,8",
+     "cell": [
+      7,
+      8
+     ],
+     "drop": [
+      4,
+      0
+     ],
+     "partnerPath": "3,5/3,3",
+     "partnerCell": [
+      1,
+      4
+     ],
+     "digit": 6,
+     "blanks": 54,
+     "unlockCells": 13
+    }
+   ]
+  },
+  {
+   "seed": "Бездна  Проба_Пробелов",
+   "preset": "trek",
+   "band": 5,
+   "parentPath": "6,6",
+   "portals": [
+    {
+     "aPath": "6,6/1,1",
+     "bPath": "6,6/7,7",
+     "aCell": [
+      4,
+      3
+     ],
+     "bCell": [
+      8,
+      3
+     ],
+     "aDrop": [
+      4,
+      5
+     ],
+     "bDrop": [
+      7,
+      1
+     ],
+     "digit": 4
+    },
+    {
+     "aPath": "6,6/3,5",
+     "bPath": "6,6/0,5",
+     "aCell": [
+      5,
+      5
+     ],
+     "bCell": [
+      4,
+      0
+     ],
+     "aDrop": [
+      5,
+      1
+     ],
+     "bDrop": [
+      5,
+      7
+     ],
+     "digit": 3
+    }
+   ],
+   "leaves": [
+    {
+     "path": "6,6/1,1",
+     "cell": [
+      4,
+      3
+     ],
+     "drop": [
+      4,
+      5
+     ],
+     "partnerPath": "6,6/7,7",
+     "partnerCell": [
+      8,
+      3
+     ],
+     "digit": 4,
+     "blanks": 53,
+     "unlockCells": 13
+    },
+    {
+     "path": "6,6/7,7",
+     "cell": [
+      8,
+      3
+     ],
+     "drop": [
+      7,
+      1
+     ],
+     "partnerPath": "6,6/1,1",
+     "partnerCell": [
+      4,
+      3
+     ],
+     "digit": 4,
+     "blanks": 54,
+     "unlockCells": 13
+    },
+    {
+     "path": "6,6/3,5",
+     "cell": [
+      5,
+      5
+     ],
+     "drop": [
+      5,
+      1
+     ],
+     "partnerPath": "6,6/0,5",
+     "partnerCell": [
+      4,
+      0
+     ],
+     "digit": 3,
+     "blanks": 54,
+     "unlockCells": 13
+    },
+    {
+     "path": "6,6/0,5",
+     "cell": [
+      4,
+      0
+     ],
+     "drop": [
+      5,
+      7
+     ],
+     "partnerPath": "6,6/3,5",
+     "partnerCell": [
+      5,
+      5
+     ],
+     "digit": 3,
+     "blanks": 54,
+     "unlockCells": 13
+    }
+   ]
+  },
+  {
+   "seed": "Бездна  Проба_Пробелов",
+   "preset": "trek",
+   "band": 5,
+   "parentPath": "3,2",
+   "portals": [
+    {
+     "aPath": "3,2/8,1",
+     "bPath": "3,2/4,7",
+     "aCell": [
+      2,
+      6
+     ],
+     "bCell": [
+      2,
+      0
+     ],
+     "aDrop": [
+      0,
+      5
+     ],
+     "bDrop": [
+      0,
+      6
+     ],
+     "digit": 6
+    },
+    {
+     "aPath": "3,2/2,2",
+     "bPath": "3,2/1,7",
+     "aCell": [
+      6,
+      4
+     ],
+     "bCell": [
+      3,
+      2
+     ],
+     "aDrop": [
+      8,
+      1
+     ],
+     "bDrop": [
+      1,
+      6
+     ],
+     "digit": 5
+    }
+   ],
+   "leaves": [
+    {
+     "path": "3,2/8,1",
+     "cell": [
+      2,
+      6
+     ],
+     "drop": [
+      0,
+      5
+     ],
+     "partnerPath": "3,2/4,7",
+     "partnerCell": [
+      2,
+      0
+     ],
+     "digit": 6,
+     "blanks": 56,
+     "unlockCells": 14
+    },
+    {
+     "path": "3,2/4,7",
+     "cell": [
+      2,
+      0
+     ],
+     "drop": [
+      0,
+      6
+     ],
+     "partnerPath": "3,2/8,1",
+     "partnerCell": [
+      2,
+      6
+     ],
+     "digit": 6,
+     "blanks": 54,
+     "unlockCells": 13
+    },
+    {
+     "path": "3,2/2,2",
+     "cell": [
+      6,
+      4
+     ],
+     "drop": [
+      8,
+      1
+     ],
+     "partnerPath": "3,2/1,7",
+     "partnerCell": [
+      3,
+      2
+     ],
+     "digit": 5,
+     "blanks": 54,
+     "unlockCells": 13
+    },
+    {
+     "path": "3,2/1,7",
+     "cell": [
+      3,
+      2
+     ],
+     "drop": [
+      1,
+      6
+     ],
+     "partnerPath": "3,2/2,2",
+     "partnerCell": [
+      6,
+      4
+     ],
+     "digit": 5,
+     "blanks": 54,
+     "unlockCells": 13
+    }
+   ]
+  },
+  {
+   "seed": "Бездна  Проба_Пробелов",
+   "preset": "trek",
+   "band": 5,
+   "parentPath": "8,1",
+   "portals": [
+    {
+     "aPath": "8,1/4,3",
+     "bPath": "8,1/3,1",
+     "aCell": [
+      7,
+      7
+     ],
+     "bCell": [
+      8,
+      0
+     ],
+     "aDrop": [
+      8,
+      7
+     ],
+     "bDrop": [
+      1,
+      2
+     ],
+     "digit": 4
+    },
+    {
+     "aPath": "8,1/5,7",
+     "bPath": "8,1/2,3",
+     "aCell": [
+      2,
+      5
+     ],
+     "bCell": [
+      2,
+      5
+     ],
+     "aDrop": [
+      7,
+      2
+     ],
+     "bDrop": [
+      8,
+      6
+     ],
+     "digit": 8
+    }
+   ],
+   "leaves": [
+    {
+     "path": "8,1/4,3",
+     "cell": [
+      7,
+      7
+     ],
+     "drop": [
+      8,
+      7
+     ],
+     "partnerPath": "8,1/3,1",
+     "partnerCell": [
+      8,
+      0
+     ],
+     "digit": 4,
+     "blanks": 56,
+     "unlockCells": 14
+    },
+    {
+     "path": "8,1/3,1",
+     "cell": [
+      8,
+      0
+     ],
+     "drop": [
+      1,
+      2
+     ],
+     "partnerPath": "8,1/4,3",
+     "partnerCell": [
+      7,
+      7
+     ],
+     "digit": 4,
+     "blanks": 50,
+     "unlockCells": 12
+    },
+    {
+     "path": "8,1/5,7",
+     "cell": [
+      2,
+      5
+     ],
+     "drop": [
+      7,
+      2
+     ],
+     "partnerPath": "8,1/2,3",
+     "partnerCell": [
+      2,
+      5
+     ],
+     "digit": 8,
+     "blanks": 54,
+     "unlockCells": 13
+    },
+    {
+     "path": "8,1/2,3",
+     "cell": [
+      2,
+      5
+     ],
+     "drop": [
+      8,
+      6
+     ],
+     "partnerPath": "8,1/5,7",
+     "partnerCell": [
+      2,
+      5
+     ],
+     "digit": 8,
+     "blanks": 50,
+     "unlockCells": 12
+    }
+   ]
+  },
+  {
+   "seed": "Бездна  Проба_Пробелов",
+   "preset": "abyss",
+   "band": 0,
+   "parentPath": "0,1",
+   "portals": [
+    {
+     "aPath": "0,1/6,8",
+     "bPath": "0,1/1,8",
+     "aCell": [
+      0,
+      7
+     ],
+     "bCell": [
+      0,
+      0
+     ],
+     "aDrop": [
+      2,
+      7
+     ],
+     "bDrop": [
+      7,
+      3
+     ],
+     "digit": 1
+    },
+    {
+     "aPath": "0,1/0,1",
+     "bPath": "0,1/1,4",
+     "aCell": [
+      6,
+      0
+     ],
+     "bCell": [
+      8,
+      3
+     ],
+     "aDrop": [
+      8,
+      0
+     ],
+     "bDrop": [
+      2,
+      7
+     ],
+     "digit": 6
+    }
+   ],
+   "leaves": [
+    {
+     "path": "0,1/6,8",
+     "cell": [
+      0,
+      7
+     ],
+     "drop": [
+      2,
+      7
+     ],
+     "partnerPath": "0,1/1,8",
+     "partnerCell": [
+      0,
+      0
+     ],
+     "digit": 1,
+     "blanks": 50,
+     "unlockCells": 12
+    },
+    {
+     "path": "0,1/1,8",
+     "cell": [
+      0,
+      0
+     ],
+     "drop": [
+      7,
+      3
+     ],
+     "partnerPath": "0,1/6,8",
+     "partnerCell": [
+      0,
+      7
+     ],
+     "digit": 1,
+     "blanks": 45,
+     "unlockCells": 11
+    },
+    {
+     "path": "0,1/0,1",
+     "cell": [
+      6,
+      0
+     ],
+     "drop": [
+      8,
+      0
+     ],
+     "partnerPath": "0,1/1,4",
+     "partnerCell": [
+      8,
+      3
+     ],
+     "digit": 6,
+     "blanks": 50,
+     "unlockCells": 12
+    },
+    {
+     "path": "0,1/1,4",
+     "cell": [
+      8,
+      3
+     ],
+     "drop": [
+      2,
+      7
+     ],
+     "partnerPath": "0,1/0,1",
+     "partnerCell": [
+      6,
+      0
+     ],
+     "digit": 6,
+     "blanks": 50,
+     "unlockCells": 12
+    }
+   ]
+  },
+  {
+   "seed": "Бездна  Проба_Пробелов",
+   "preset": "abyss",
+   "band": 0,
+   "parentPath": "0,2",
+   "portals": [
+    {
+     "aPath": "0,2/6,1",
+     "bPath": "0,2/7,0",
+     "aCell": [
+      7,
+      8
+     ],
+     "bCell": [
+      3,
+      7
+     ],
+     "aDrop": [
+      5,
+      0
+     ],
+     "bDrop": [
+      3,
+      0
+     ],
+     "digit": 7
+    },
+    {
+     "aPath": "0,2/6,0",
+     "bPath": "0,2/1,8",
+     "aCell": [
+      3,
+      4
+     ],
+     "bCell": [
+      1,
+      7
+     ],
+     "aDrop": [
+      4,
+      5
+     ],
+     "bDrop": [
+      1,
+      1
+     ],
+     "digit": 3
+    }
+   ],
+   "leaves": [
+    {
+     "path": "0,2/6,1",
+     "cell": [
+      7,
+      8
+     ],
+     "drop": [
+      5,
+      0
+     ],
+     "partnerPath": "0,2/7,0",
+     "partnerCell": [
+      3,
+      7
+     ],
+     "digit": 7,
+     "blanks": 58,
+     "unlockCells": 14
+    },
+    {
+     "path": "0,2/7,0",
+     "cell": [
+      3,
+      7
+     ],
+     "drop": [
+      3,
+      0
+     ],
+     "partnerPath": "0,2/6,1",
+     "partnerCell": [
+      7,
+      8
+     ],
+     "digit": 7,
+     "blanks": 49,
+     "unlockCells": 12
+    },
+    {
+     "path": "0,2/6,0",
+     "cell": [
+      3,
+      4
+     ],
+     "drop": [
+      4,
+      5
+     ],
+     "partnerPath": "0,2/1,8",
+     "partnerCell": [
+      1,
+      7
+     ],
+     "digit": 3,
+     "blanks": 52,
+     "unlockCells": 13
+    },
+    {
+     "path": "0,2/1,8",
+     "cell": [
+      1,
+      7
+     ],
+     "drop": [
+      1,
+      1
+     ],
+     "partnerPath": "0,2/6,0",
+     "partnerCell": [
+      3,
+      4
+     ],
+     "digit": 3,
+     "blanks": 58,
+     "unlockCells": 14
+    }
+   ]
+  },
+  {
+   "seed": "Бездна  Проба_Пробелов",
+   "preset": "abyss",
+   "band": 0,
+   "parentPath": "0,3",
+   "portals": [
+    {
+     "aPath": "0,3/0,0",
+     "bPath": "0,3/4,4",
+     "aCell": [
+      0,
+      8
+     ],
+     "bCell": [
+      7,
+      1
+     ],
+     "aDrop": [
+      4,
+      6
+     ],
+     "bDrop": [
+      6,
+      4
+     ],
+     "digit": 4
+    },
+    {
+     "aPath": "0,3/4,3",
+     "bPath": "0,3/1,6",
+     "aCell": [
+      7,
+      8
+     ],
+     "bCell": [
+      5,
+      7
+     ],
+     "aDrop": [
+      6,
+      8
+     ],
+     "bDrop": [
+      2,
+      7
+     ],
+     "digit": 8
+    }
+   ],
+   "leaves": [
+    {
+     "path": "0,3/0,0",
+     "cell": [
+      0,
+      8
+     ],
+     "drop": [
+      4,
+      6
+     ],
+     "partnerPath": "0,3/4,4",
+     "partnerCell": [
+      7,
+      1
+     ],
+     "digit": 4,
+     "blanks": 50,
+     "unlockCells": 12
+    },
+    {
+     "path": "0,3/4,4",
+     "cell": [
+      7,
+      1
+     ],
+     "drop": [
+      6,
+      4
+     ],
+     "partnerPath": "0,3/0,0",
+     "partnerCell": [
+      0,
+      8
+     ],
+     "digit": 4,
+     "blanks": 58,
+     "unlockCells": 14
+    },
+    {
+     "path": "0,3/4,3",
+     "cell": [
+      7,
+      8
+     ],
+     "drop": [
+      6,
+      8
+     ],
+     "partnerPath": "0,3/1,6",
+     "partnerCell": [
+      5,
+      7
+     ],
+     "digit": 8,
+     "blanks": 52,
+     "unlockCells": 13
+    },
+    {
+     "path": "0,3/1,6",
+     "cell": [
+      5,
+      7
+     ],
+     "drop": [
+      2,
+      7
+     ],
+     "partnerPath": "0,3/4,3",
+     "partnerCell": [
+      7,
+      8
+     ],
+     "digit": 8,
+     "blanks": 58,
+     "unlockCells": 14
+    }
+   ]
+  },
+  {
+   "seed": "Бездна  Проба_Пробелов",
+   "preset": "abyss",
+   "band": 0,
+   "parentPath": "0,4",
+   "portals": [
+    {
+     "aPath": "0,4/2,0",
+     "bPath": "0,4/3,0",
+     "aCell": [
+      3,
+      1
+     ],
+     "bCell": [
+      8,
+      5
+     ],
+     "aDrop": [
+      6,
+      6
+     ],
+     "bDrop": [
+      7,
+      2
+     ],
+     "digit": 7
+    },
+    {
+     "aPath": "0,4/5,5",
+     "bPath": "0,4/6,3",
+     "aCell": [
+      2,
+      0
+     ],
+     "bCell": [
+      6,
+      7
+     ],
+     "aDrop": [
+      2,
+      2
+     ],
+     "bDrop": [
+      5,
+      7
+     ],
+     "digit": 6
+    }
+   ],
+   "leaves": [
+    {
+     "path": "0,4/2,0",
+     "cell": [
+      3,
+      1
+     ],
+     "drop": [
+      6,
+      6
+     ],
+     "partnerPath": "0,4/3,0",
+     "partnerCell": [
+      8,
+      5
+     ],
+     "digit": 7,
+     "blanks": 54,
+     "unlockCells": 13
+    },
+    {
+     "path": "0,4/3,0",
+     "cell": [
+      8,
+      5
+     ],
+     "drop": [
+      7,
+      2
+     ],
+     "partnerPath": "0,4/2,0",
+     "partnerCell": [
+      3,
+      1
+     ],
+     "digit": 7,
+     "blanks": 49,
+     "unlockCells": 12
+    },
+    {
+     "path": "0,4/5,5",
+     "cell": [
+      2,
+      0
+     ],
+     "drop": [
+      2,
+      2
+     ],
+     "partnerPath": "0,4/6,3",
+     "partnerCell": [
+      6,
+      7
+     ],
+     "digit": 6,
+     "blanks": 57,
+     "unlockCells": 14
+    },
+    {
+     "path": "0,4/6,3",
+     "cell": [
+      6,
+      7
+     ],
+     "drop": [
+      5,
+      7
+     ],
+     "partnerPath": "0,4/5,5",
+     "partnerCell": [
+      2,
+      0
+     ],
+     "digit": 6,
+     "blanks": 54,
+     "unlockCells": 13
+    }
+   ]
+  },
+  {
+   "seed": "Бездна  Проба_Пробелов",
+   "preset": "abyss",
+   "band": 3,
+   "parentPath": "0,0",
+   "portals": [
+    {
+     "aPath": "0,0/7,8",
+     "bPath": "0,0/8,4",
+     "aCell": [
+      3,
+      6
+     ],
+     "bCell": [
+      6,
+      4
+     ],
+     "aDrop": [
+      0,
+      6
+     ],
+     "bDrop": [
+      6,
+      5
+     ],
+     "digit": 7
+    },
+    {
+     "aPath": "0,0/1,5",
+     "bPath": "0,0/4,7",
+     "aCell": [
+      3,
+      1
+     ],
+     "bCell": [
+      8,
+      0
+     ],
+     "aDrop": [
+      0,
+      1
+     ],
+     "bDrop": [
+      4,
+      5
+     ],
+     "digit": 3
+    }
+   ],
+   "leaves": [
+    {
+     "path": "0,0/7,8",
+     "cell": [
+      3,
+      6
+     ],
+     "drop": [
+      0,
+      6
+     ],
+     "partnerPath": "0,0/8,4",
+     "partnerCell": [
+      6,
+      4
+     ],
+     "digit": 7,
+     "blanks": 55,
+     "unlockCells": 14
+    },
+    {
+     "path": "0,0/8,4",
+     "cell": [
+      6,
+      4
+     ],
+     "drop": [
+      6,
+      5
+     ],
+     "partnerPath": "0,0/7,8",
+     "partnerCell": [
+      3,
+      6
+     ],
+     "digit": 7,
+     "blanks": 55,
+     "unlockCells": 14
+    },
+    {
+     "path": "0,0/1,5",
+     "cell": [
+      3,
+      1
+     ],
+     "drop": [
+      0,
+      1
+     ],
+     "partnerPath": "0,0/4,7",
+     "partnerCell": [
+      8,
+      0
+     ],
+     "digit": 3,
+     "blanks": 52,
+     "unlockCells": 13
+    },
+    {
+     "path": "0,0/4,7",
+     "cell": [
+      8,
+      0
+     ],
+     "drop": [
+      4,
+      5
+     ],
+     "partnerPath": "0,0/1,5",
+     "partnerCell": [
+      3,
+      1
+     ],
+     "digit": 3,
+     "blanks": 54,
+     "unlockCells": 13
+    }
+   ]
+  },
+  {
+   "seed": "Бездна  Проба_Пробелов",
+   "preset": "abyss",
+   "band": 3,
+   "parentPath": "0,2",
+   "portals": [
+    {
+     "aPath": "0,2/4,5",
+     "bPath": "0,2/5,4",
+     "aCell": [
+      1,
+      5
+     ],
+     "bCell": [
+      6,
+      7
+     ],
+     "aDrop": [
+      3,
+      3
+     ],
+     "bDrop": [
+      5,
+      6
+     ],
+     "digit": 3
+    },
+    {
+     "aPath": "0,2/2,2",
+     "bPath": "0,2/2,6",
+     "aCell": [
+      3,
+      0
+     ],
+     "bCell": [
+      1,
+      6
+     ],
+     "aDrop": [
+      7,
+      8
+     ],
+     "bDrop": [
+      4,
+      8
+     ],
+     "digit": 1
+    }
+   ],
+   "leaves": [
+    {
+     "path": "0,2/4,5",
+     "cell": [
+      1,
+      5
+     ],
+     "drop": [
+      3,
+      3
+     ],
+     "partnerPath": "0,2/5,4",
+     "partnerCell": [
+      6,
+      7
+     ],
+     "digit": 3,
+     "blanks": 54,
+     "unlockCells": 13
+    },
+    {
+     "path": "0,2/5,4",
+     "cell": [
+      6,
+      7
+     ],
+     "drop": [
+      5,
+      6
+     ],
+     "partnerPath": "0,2/4,5",
+     "partnerCell": [
+      1,
+      5
+     ],
+     "digit": 3,
+     "blanks": 54,
+     "unlockCells": 13
+    },
+    {
+     "path": "0,2/2,2",
+     "cell": [
+      3,
+      0
+     ],
+     "drop": [
+      7,
+      8
+     ],
+     "partnerPath": "0,2/2,6",
+     "partnerCell": [
+      1,
+      6
+     ],
+     "digit": 1,
+     "blanks": 56,
+     "unlockCells": 14
+    },
+    {
+     "path": "0,2/2,6",
+     "cell": [
+      1,
+      6
+     ],
+     "drop": [
+      4,
+      8
+     ],
+     "partnerPath": "0,2/2,2",
+     "partnerCell": [
+      3,
+      0
+     ],
+     "digit": 1,
+     "blanks": 54,
+     "unlockCells": 13
+    }
+   ]
+  },
+  {
+   "seed": "Бездна  Проба_Пробелов",
+   "preset": "abyss",
+   "band": 3,
+   "parentPath": "0,4",
+   "portals": [
+    {
+     "aPath": "0,4/6,7",
+     "bPath": "0,4/0,6",
+     "aCell": [
+      4,
+      1
+     ],
+     "bCell": [
+      4,
+      0
+     ],
+     "aDrop": [
+      2,
+      7
+     ],
+     "bDrop": [
+      3,
+      0
+     ],
+     "digit": 3
+    },
+    {
+     "aPath": "0,4/0,1",
+     "bPath": "0,4/4,6",
+     "aCell": [
+      4,
+      3
+     ],
+     "bCell": [
+      5,
+      6
+     ],
+     "aDrop": [
+      7,
+      5
+     ],
+     "bDrop": [
+      4,
+      6
+     ],
+     "digit": 9
+    }
+   ],
+   "leaves": [
+    {
+     "path": "0,4/6,7",
+     "cell": [
+      4,
+      1
+     ],
+     "drop": [
+      2,
+      7
+     ],
+     "partnerPath": "0,4/0,6",
+     "partnerCell": [
+      4,
+      0
+     ],
+     "digit": 3,
+     "blanks": 55,
+     "unlockCells": 14
+    },
+    {
+     "path": "0,4/0,6",
+     "cell": [
+      4,
+      0
+     ],
+     "drop": [
+      3,
+      0
+     ],
+     "partnerPath": "0,4/6,7",
+     "partnerCell": [
+      4,
+      1
+     ],
+     "digit": 3,
+     "blanks": 56,
+     "unlockCells": 14
+    },
+    {
+     "path": "0,4/0,1",
+     "cell": [
+      4,
+      3
+     ],
+     "drop": [
+      7,
+      5
+     ],
+     "partnerPath": "0,4/4,6",
+     "partnerCell": [
+      5,
+      6
+     ],
+     "digit": 9,
+     "blanks": 54,
+     "unlockCells": 13
+    },
+    {
+     "path": "0,4/4,6",
+     "cell": [
+      5,
+      6
+     ],
+     "drop": [
+      4,
+      6
+     ],
+     "partnerPath": "0,4/0,1",
+     "partnerCell": [
+      4,
+      3
+     ],
+     "digit": 9,
+     "blanks": 54,
+     "unlockCells": 13
+    }
+   ]
+  },
+  {
+   "seed": "Бездна  Проба_Пробелов",
+   "preset": "abyss",
+   "band": 3,
+   "parentPath": "0,5",
+   "portals": [
+    {
+     "aPath": "0,5/6,4",
+     "bPath": "0,5/8,4",
+     "aCell": [
+      6,
+      6
+     ],
+     "bCell": [
+      5,
+      4
+     ],
+     "aDrop": [
+      3,
+      1
+     ],
+     "bDrop": [
+      0,
+      4
+     ],
+     "digit": 5
+    },
+    {
+     "aPath": "0,5/4,1",
+     "bPath": "0,5/7,1",
+     "aCell": [
+      1,
+      2
+     ],
+     "bCell": [
+      8,
+      7
+     ],
+     "aDrop": [
+      2,
+      1
+     ],
+     "bDrop": [
+      1,
+      8
+     ],
+     "digit": 5
+    }
+   ],
+   "leaves": [
+    {
+     "path": "0,5/6,4",
+     "cell": [
+      6,
+      6
+     ],
+     "drop": [
+      3,
+      1
+     ],
+     "partnerPath": "0,5/8,4",
+     "partnerCell": [
+      5,
+      4
+     ],
+     "digit": 5,
+     "blanks": 55,
+     "unlockCells": 14
+    },
+    {
+     "path": "0,5/8,4",
+     "cell": [
+      5,
+      4
+     ],
+     "drop": [
+      0,
+      4
+     ],
+     "partnerPath": "0,5/6,4",
+     "partnerCell": [
+      6,
+      6
+     ],
+     "digit": 5,
+     "blanks": 55,
+     "unlockCells": 14
+    },
+    {
+     "path": "0,5/4,1",
+     "cell": [
+      1,
+      2
+     ],
+     "drop": [
+      2,
+      1
+     ],
+     "partnerPath": "0,5/7,1",
+     "partnerCell": [
+      8,
+      7
+     ],
+     "digit": 5,
+     "blanks": 57,
+     "unlockCells": 14
+    },
+    {
+     "path": "0,5/7,1",
+     "cell": [
+      8,
+      7
+     ],
+     "drop": [
+      1,
+      8
+     ],
+     "partnerPath": "0,5/4,1",
+     "partnerCell": [
+      1,
+      2
+     ],
+     "digit": 5,
+     "blanks": 52,
+     "unlockCells": 13
+    }
+   ]
+  },
+  {
+   "seed": "Бездна  Проба_Пробелов",
+   "preset": "abyss",
+   "band": 5,
+   "parentPath": "0,1",
+   "portals": [
+    {
+     "aPath": "0,1/1,3",
+     "bPath": "0,1/2,5",
+     "aCell": [
+      8,
+      4
+     ],
+     "bCell": [
+      2,
+      6
+     ],
+     "aDrop": [
+      0,
+      7
+     ],
+     "bDrop": [
+      8,
+      8
+     ],
+     "digit": 4
+    },
+    {
+     "aPath": "0,1/2,4",
+     "bPath": "0,1/5,6",
+     "aCell": [
+      5,
+      2
+     ],
+     "bCell": [
+      3,
+      3
+     ],
+     "aDrop": [
+      0,
+      5
+     ],
+     "bDrop": [
+      3,
+      4
+     ],
+     "digit": 9
+    }
+   ],
+   "leaves": [
+    {
+     "path": "0,1/1,3",
+     "cell": [
+      8,
+      4
+     ],
+     "drop": [
+      0,
+      7
+     ],
+     "partnerPath": "0,1/2,5",
+     "partnerCell": [
+      2,
+      6
+     ],
+     "digit": 4,
+     "blanks": 53,
+     "unlockCells": 13
+    },
+    {
+     "path": "0,1/2,5",
+     "cell": [
+      2,
+      6
+     ],
+     "drop": [
+      8,
+      8
+     ],
+     "partnerPath": "0,1/1,3",
+     "partnerCell": [
+      8,
+      4
+     ],
+     "digit": 4,
+     "blanks": 56,
+     "unlockCells": 14
+    },
+    {
+     "path": "0,1/2,4",
+     "cell": [
+      5,
+      2
+     ],
+     "drop": [
+      0,
+      5
+     ],
+     "partnerPath": "0,1/5,6",
+     "partnerCell": [
+      3,
+      3
+     ],
+     "digit": 9,
+     "blanks": 55,
+     "unlockCells": 14
+    },
+    {
+     "path": "0,1/5,6",
+     "cell": [
+      3,
+      3
+     ],
+     "drop": [
+      3,
+      4
+     ],
+     "partnerPath": "0,1/2,4",
+     "partnerCell": [
+      5,
+      2
+     ],
+     "digit": 9,
+     "blanks": 56,
+     "unlockCells": 14
+    }
+   ]
+  },
+  {
+   "seed": "Бездна  Проба_Пробелов",
+   "preset": "abyss",
+   "band": 5,
+   "parentPath": "0,3",
+   "portals": [
+    {
+     "aPath": "0,3/6,8",
+     "bPath": "0,3/1,0",
+     "aCell": [
+      2,
+      7
+     ],
+     "bCell": [
+      2,
+      0
+     ],
+     "aDrop": [
+      2,
+      3
+     ],
+     "bDrop": [
+      2,
+      3
+     ],
+     "digit": 4
+    },
+    {
+     "aPath": "0,3/3,0",
+     "bPath": "0,3/1,6",
+     "aCell": [
+      3,
+      7
+     ],
+     "bCell": [
+      5,
+      4
+     ],
+     "aDrop": [
+      4,
+      5
+     ],
+     "bDrop": [
+      0,
+      4
+     ],
+     "digit": 9
+    }
+   ],
+   "leaves": [
+    {
+     "path": "0,3/6,8",
+     "cell": [
+      2,
+      7
+     ],
+     "drop": [
+      2,
+      3
+     ],
+     "partnerPath": "0,3/1,0",
+     "partnerCell": [
+      2,
+      0
+     ],
+     "digit": 4,
+     "blanks": 55,
+     "unlockCells": 14
+    },
+    {
+     "path": "0,3/1,0",
+     "cell": [
+      2,
+      0
+     ],
+     "drop": [
+      2,
+      3
+     ],
+     "partnerPath": "0,3/6,8",
+     "partnerCell": [
+      2,
+      7
+     ],
+     "digit": 4,
+     "blanks": 55,
+     "unlockCells": 14
+    },
+    {
+     "path": "0,3/3,0",
+     "cell": [
+      3,
+      7
+     ],
+     "drop": [
+      4,
+      5
+     ],
+     "partnerPath": "0,3/1,6",
+     "partnerCell": [
+      5,
+      4
+     ],
+     "digit": 9,
+     "blanks": 55,
+     "unlockCells": 14
+    },
+    {
+     "path": "0,3/1,6",
+     "cell": [
+      5,
+      4
+     ],
+     "drop": [
+      0,
+      4
+     ],
+     "partnerPath": "0,3/3,0",
+     "partnerCell": [
+      3,
+      7
+     ],
+     "digit": 9,
+     "blanks": 53,
+     "unlockCells": 13
+    }
+   ]
+  },
+  {
+   "seed": "Бездна  Проба_Пробелов",
+   "preset": "abyss",
+   "band": 5,
+   "parentPath": "0,6",
+   "portals": [
+    {
+     "aPath": "0,6/3,2",
+     "bPath": "0,6/0,7",
+     "aCell": [
+      1,
+      8
+     ],
+     "bCell": [
+      6,
+      6
+     ],
+     "aDrop": [
+      1,
+      6
+     ],
+     "bDrop": [
+      6,
+      3
+     ],
+     "digit": 4
+    },
+    {
+     "aPath": "0,6/7,0",
+     "bPath": "0,6/1,6",
+     "aCell": [
+      2,
+      5
+     ],
+     "bCell": [
+      1,
+      1
+     ],
+     "aDrop": [
+      4,
+      4
+     ],
+     "bDrop": [
+      0,
+      6
+     ],
+     "digit": 4
+    }
+   ],
+   "leaves": [
+    {
+     "path": "0,6/3,2",
+     "cell": [
+      1,
+      8
+     ],
+     "drop": [
+      1,
+      6
+     ],
+     "partnerPath": "0,6/0,7",
+     "partnerCell": [
+      6,
+      6
+     ],
+     "digit": 4,
+     "blanks": 53,
+     "unlockCells": 13
+    },
+    {
+     "path": "0,6/0,7",
+     "cell": [
+      6,
+      6
+     ],
+     "drop": [
+      6,
+      3
+     ],
+     "partnerPath": "0,6/3,2",
+     "partnerCell": [
+      1,
+      8
+     ],
+     "digit": 4,
+     "blanks": 53,
+     "unlockCells": 13
+    },
+    {
+     "path": "0,6/7,0",
+     "cell": [
+      2,
+      5
+     ],
+     "drop": [
+      4,
+      4
+     ],
+     "partnerPath": "0,6/1,6",
+     "partnerCell": [
+      1,
+      1
+     ],
+     "digit": 4,
+     "blanks": 54,
+     "unlockCells": 13
+    },
+    {
+     "path": "0,6/1,6",
+     "cell": [
+      1,
+      1
+     ],
+     "drop": [
+      0,
+      6
+     ],
+     "partnerPath": "0,6/7,0",
+     "partnerCell": [
+      2,
+      5
+     ],
+     "digit": 4,
+     "blanks": 53,
+     "unlockCells": 13
+    }
+   ]
+  },
+  {
+   "seed": "Бездна  Проба_Пробелов",
+   "preset": "abyss",
+   "band": 5,
+   "parentPath": "0,7",
+   "portals": [
+    {
+     "aPath": "0,7/1,6",
+     "bPath": "0,7/5,0",
+     "aCell": [
+      0,
+      2
+     ],
+     "bCell": [
+      7,
+      3
+     ],
+     "aDrop": [
+      2,
+      8
+     ],
+     "bDrop": [
+      8,
+      0
+     ],
+     "digit": 7
+    },
+    {
+     "aPath": "0,7/5,2",
+     "bPath": "0,7/4,5",
+     "aCell": [
+      5,
+      3
+     ],
+     "bCell": [
+      6,
+      0
+     ],
+     "aDrop": [
+      4,
+      4
+     ],
+     "bDrop": [
+      4,
+      3
+     ],
+     "digit": 4
+    }
+   ],
+   "leaves": [
+    {
+     "path": "0,7/1,6",
+     "cell": [
+      0,
+      2
+     ],
+     "drop": [
+      2,
+      8
+     ],
+     "partnerPath": "0,7/5,0",
+     "partnerCell": [
+      7,
+      3
+     ],
+     "digit": 7,
+     "blanks": 56,
+     "unlockCells": 14
+    },
+    {
+     "path": "0,7/5,0",
+     "cell": [
+      7,
+      3
+     ],
+     "drop": [
+      8,
+      0
+     ],
+     "partnerPath": "0,7/1,6",
+     "partnerCell": [
+      0,
+      2
+     ],
+     "digit": 7,
+     "blanks": 54,
+     "unlockCells": 13
+    },
+    {
+     "path": "0,7/5,2",
+     "cell": [
+      5,
+      3
+     ],
+     "drop": [
+      4,
+      4
+     ],
+     "partnerPath": "0,7/4,5",
+     "partnerCell": [
+      6,
+      0
+     ],
+     "digit": 4,
+     "blanks": 53,
+     "unlockCells": 13
+    },
+    {
+     "path": "0,7/4,5",
+     "cell": [
+      6,
+      0
+     ],
+     "drop": [
+      4,
+      3
+     ],
+     "partnerPath": "0,7/5,2",
+     "partnerCell": [
+      5,
+      3
+     ],
+     "digit": 4,
+     "blanks": 53,
+     "unlockCells": 13
+    }
+   ]
+  }
+ ]
+}
