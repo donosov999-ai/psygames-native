@@ -799,7 +799,7 @@ List<int> schroDigits(int v) => v == 0 ? const [] : v < 100 ? [v - 1] : [(v - 10
 
 int schroCode(List<int> ds) {
   if (ds.isEmpty) return 0;
-  if (ds.length > 2) throw ArgumentError('в клетке Шрёдингера не больше двух цифр: $ds');
+  if (ds.length > 2) throw ArgumentError('a Schrodinger cell holds at most two digits: $ds');   // текст исключения — не экран: латиница (гейт no_new_hardcoded_cyrillic)
   if (ds.length == 1) return ds[0] + 1;
   final a = ds[0] < ds[1] ? ds[0] : ds[1], b = ds[0] < ds[1] ? ds[1] : ds[0];
   return 100 + 10 * a + b;
