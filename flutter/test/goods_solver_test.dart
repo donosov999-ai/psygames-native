@@ -244,7 +244,7 @@ void main() {
   /// работать, и редкое тяжёлое положение подвешивало бы экран на секунды.
   test('🔴 потолок по часам: разбор не думает дольше отпущенного', () {
     // Берём старт, которому нужно заметно больше узлов, чем проверка часов
-    // пропускает между взглядами (раз в 64 узла).
+    // пропускает между взглядами (раз в 16 узлов).
     GoodsPlay? heavy;
     for (final (file, width) in allLadders()) {
       final ladder = GoodsLevelSet.fromJsonString(File('assets/levels/$file').readAsStringSync(), width: width);

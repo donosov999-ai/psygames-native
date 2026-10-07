@@ -403,7 +403,10 @@ GoodsSolve _solveBest(
     }
     final codes = _nicheCodes(play, types, places, jokers: true);
     if (!closed.add(_stateKey(play, codes))) continue;
-    if (++nodes > budget || ((nodes & 15) == 0 && late())) {
+    // Часы — на КАЖДОМ узле: узел запасного разворачивает все ходы сразу, на
+    // мягкой доске эмулятора это десятки миллисекунд, и проверка раз в 16 узлов
+    // перескакивала потолок 700 мс на полсекунды (замер 07.10.2026: 1 227 мс).
+    if (++nodes > budget || late()) {
       return GoodsSolve(solvable: false, exhausted: true, path: const [], nodes: nodes);
     }
     final board = play.board;
@@ -480,7 +483,7 @@ GoodsSolve _solveStrict(
       exhausted = true;
       return false;
     }
-    if (++nodes > budget || ((nodes & 63) == 0 && late())) {
+    if (++nodes > budget || ((nodes & 15) == 0 && late())) {
       exhausted = true;
       outOfBudget = true;
       return false;
