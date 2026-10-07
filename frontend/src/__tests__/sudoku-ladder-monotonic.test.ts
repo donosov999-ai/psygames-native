@@ -22,7 +22,7 @@ import { effectiveBand, targetTier } from '../services/sudoku-grade';
 import { levelConfig } from '../services/sudoku-core';
 import { roadTier, SUDOKU_ROADS, type SudokuRoad } from '../services/sudoku-roads';
 
-const LAST_LEVEL = 92;   // 27.08 стояло 80 — комбо-пояс 81..92 не сторожил никто
+const LAST_LEVEL = 120;   // 27.08 стояло 80 — комбо-пояс 81..92 не сторожил никто; 93–96 шёпот (01.10); 117–120 XV (02.10)
 
 /** Полоса, которую экран РЕАЛЬНО передаёт генератору: `tier: roadTier(lv, road)`. */
 const полосаИгрока = (lv: number, road: SudokuRoad) => roadTier(lv, road);

@@ -71,13 +71,13 @@ void main() {
       for (var i = 0; i < 200; i++) {
         await tester.pump(const Duration(milliseconds: 50));
         await Future<void>.delayed(const Duration(milliseconds: 20));
-        if (find.byTooltip('Правила').evaluate().isNotEmpty) break;
+        if (find.byTooltip(L.t('btn_rules')).evaluate().isNotEmpty) break;
       }
     });
     await tester.pump();
 
-    expect(find.byTooltip('Правила'), findsOneWidget, reason: 'кнопки справки нет');
-    await tester.tap(find.byTooltip('Правила'));
+    expect(find.byTooltip(L.t('btn_rules')), findsOneWidget, reason: 'кнопки справки нет');
+    await tester.tap(find.byTooltip(L.t('btn_rules')));
     await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('game-rules')), findsOneWidget, reason: 'справка не открылась');

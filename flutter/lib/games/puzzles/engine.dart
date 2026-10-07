@@ -56,6 +56,11 @@ class TathamEngine {
     _statepos = _lib.lookupFunction<_IntF, _IntD>('psy_statepos');
     _undo = _lib.lookupFunction<_IntF, _IntD>('psy_undo');
     _solve = _lib.lookupFunction<_IntF, _IntD>('psy_solve');
+    // Печать решателя для имени приёма (задача 23773004). Старые сборки библиотеки её не
+    // знают — тогда разбор идёт без имён, как раньше, а не падает на поиске символа.
+    _solveExplain = _lib.providesSymbol('psy_solve_explain')
+        ? _lib.lookupFunction<Pointer<Utf8> Function(), Pointer<Utf8> Function()>('psy_solve_explain')
+        : null;
     _statusText =
         _lib.lookupFunction<Pointer<Utf8> Function(), Pointer<Utf8> Function()>('psy_status_text');
   }
@@ -81,6 +86,7 @@ class TathamEngine {
   late final int Function() _statepos;
   late final int Function() _undo;
   late final int Function() _solve;
+  late final Pointer<Utf8> Function()? _solveExplain;
   late final Pointer<Utf8> Function() _statusText;
 
   /// Имя файла библиотеки для этой машины.
@@ -250,6 +256,22 @@ class TathamEngine {
 
   /// Показать решение. Возвращает false там, где движок решать отказывается.
   bool solve() => _solve() != 0;
+
+  /// Решить и вернуть рассуждения решателя автора строками (`psy_solve_explain`).
+  /// null — решать отказался; пустой список — решил молча (движок без печати, веб-сборка
+  /// или библиотека старше 01.10.2026). Строки на английском автора: в имя приёма их
+  /// переводит словарь приёмов, человеку они не показываются.
+  List<String>? solveExplain() {
+    final explain = _solveExplain;
+    if (explain == null) return solve() ? const [] : null;
+    final p = explain();
+    if (p == nullptr) return null;
+    try {
+      return p.toDartString().split('\n').where((s) => s.trim().isNotEmpty).toList();
+    } finally {
+      _free(p);
+    }
+  }
 
   String get statusText => _statusText().toDartString();
 }

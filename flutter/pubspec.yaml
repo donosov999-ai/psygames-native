@@ -57,6 +57,7 @@ dependencies:
   sqlite3_flutter_libs: ^0.5.41
 
 dev_dependencies:
+  webview_flutter_platform_interface: ^2.15.1
   integration_test:
     sdk: flutter
   flutter_test:
@@ -103,6 +104,9 @@ flutter:
     - assets/digits/pastel/
     - assets/digits/rainbow/
     - assets/hubs.json
+    # Каталог «Игры» — выгрузка games.ts (frontend/src/__tests__/flutter-catalog-asset-fresh.test.ts).
+    - assets/catalog.json
+    - assets/game_help_routes.json
     # Иконки игр «поле в миниатюре» для строк развилок — выгрузка веб-реестра
     # (flutter/tools/embed-game-icons.mjs), не править руками.
     - assets/game_icons/
@@ -121,6 +125,7 @@ flutter:
     - assets/find_move/
     # «Шахматный пасьянс»: 720 досок 4×4, генератор tools/solitaire_chess_corpus.py
     - assets/solitaire_chess/
+    - assets/knights_queens/
     - assets/faces-names.json
     - assets/memory-palace.json
     - assets/rmet.json
