@@ -113,6 +113,7 @@ flutter:
     - assets/catalog.json
     # Правила нижней полосы — выгрузка tabBar.ts (frontend/src/__tests__/flutter-tabs-asset-fresh.test.ts).
     - assets/tabs.json
+    - assets/web_theme.json
     - assets/game_help_routes.json
     # Иконки игр «поле в миниатюре» для строк развилок — выгрузка веб-реестра
     # (flutter/tools/embed-game-icons.mjs), не править руками.

@@ -1,6 +1,10 @@
-/* psygames-flutter-tabs-asset-fresh · VER 1 · 07.10.2026 */
+/* psygames-flutter-tabs-asset-fresh · VER 2 · 07.10.2026 */
 /**
  * ПРАВИЛА НИЖНЕЙ ПОЛОСЫ ДЛЯ НАТИВНОЙ ОБОЛОЧКИ — ВЫГРУЗКОЙ ИЗ ЖИВОГО TS (задача 5136754e).
+ *
+ * VER 2: плюс кнопка отзыва (`fab`) — на нативной вкладке её рисует оболочка, а место, порог
+ * перетаскивания, ключ запомненного места и ключ «скрыть кнопку» живут в `fabPosition.ts` и
+ * `appFeedback.ts`.
  *
  * Пять вкладок, их значки и подписи, адреса без полосы живут в `src/services/tabBar.ts`. Натив
  * читает `flutter/assets/tabs.json`; без выгрузки правило на Dart отстало бы от веба молча —
@@ -10,6 +14,9 @@
  *   WRITE=1 npx jest -i --runTestsByPath src/__tests__/flutter-tabs-asset-fresh.test.ts
  */
 import { TABS, NO_TAB_BAR_PREFIXES, TAB_BAR_H, tabBarVisible } from '@/src/services/tabBar';
+import { FAB_SIZE, FAB_BOTTOM, EDGE, DRAG_THRESHOLD, FAB_SPOT_KEY, FAB_COLOR } from '@/src/services/fabPosition';
+import { textOn } from '@/src/services/onGradientText';
+import { DEVCHAT_KEY } from '@/src/services/appFeedback';
 
 declare function require(id: string): any;
 declare const __dirname: string;
@@ -19,7 +26,11 @@ const path = require('path') as { resolve(...p: string[]): string };
 const OUT = path.resolve(__dirname, '../../../flutter/assets/tabs.json');
 
 function build(): string {
-  return `${JSON.stringify({ height: TAB_BAR_H, tabs: TABS, noBar: NO_TAB_BAR_PREFIXES }, null, 1)}\n`;
+  const fab = {
+    size: FAB_SIZE, bottom: FAB_BOTTOM, edge: EDGE, dragThreshold: DRAG_THRESHOLD,
+    color: FAB_COLOR, iconColor: textOn(FAB_COLOR), spotKey: FAB_SPOT_KEY, visibleKey: DEVCHAT_KEY,
+  };
+  return `${JSON.stringify({ height: TAB_BAR_H, tabs: TABS, noBar: NO_TAB_BAR_PREFIXES, fab }, null, 1)}\n`;
 }
 
 describe('flutter/assets/tabs.json — правила нижней полосы', () => {

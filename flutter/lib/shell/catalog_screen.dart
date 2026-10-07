@@ -8,6 +8,7 @@ import 'game_tile.dart';
 import 'hub_screen.dart';
 import 'l10n.dart';
 import 'shared_state.dart';
+import 'web_theme.dart';
 
 /// ВКЛАДКА «ИГРЫ» НА FLUTTER — ПЛИТКИ ВЕБА, ПОИСК НАД НИМИ, ФИЛЬТР ПОД ПОИСКОМ (задачи 99628ecf, de8ac1eb).
 ///
@@ -164,7 +165,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
   @override
   Widget build(BuildContext context) {
     final c = _catalog;
-    final scheme = Theme.of(context).colorScheme;
+    final web = WebTheme.of(context);
     final body = c == null
         ? const Center(child: CircularProgressIndicator())
         : ListView(
@@ -177,23 +178,25 @@ class _CatalogScreenState extends State<CatalogScreen> {
                   // Заголовок вкладки — как `app/games.tsx`: 24/800, сверху 8, снизу 14.
                   padding: const EdgeInsets.only(top: 8, bottom: 14),
                   child: Text(L.t('tabGames'),
-                      style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: scheme.onSurface)),
+                      style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: web.text)),
                 )
               else
                 const SizedBox(height: 8),
               TextField(
                 key: const ValueKey('catalog-search'),
                 controller: _search,
-                decoration: InputDecoration(
-                  prefixIcon: const Icon(Icons.search),
-                  hintText: L.t('catalogSearch'),
-                  border: const OutlineInputBorder(),
-                  isDense: true,
-                  suffixIcon: _query.isEmpty
+                // Поле — как единственное поле поиска веба (`HomeCatalogSearch.tsx`), не Material.
+                style: WebTheme.fieldText(context),
+                textInputAction: TextInputAction.search,
+                decoration: WebTheme.field(
+                  context,
+                  hint: L.t('catalogSearch'),
+                  suffix: _query.isEmpty
                       ? null
                       : IconButton(
                           key: const ValueKey('catalog-search-clear'),
-                          icon: const Icon(Icons.close),
+                          tooltip: L.t('clear'),
+                          icon: Icon(Icons.close, color: web.textSecondary),
                           onPressed: () => setState(() {
                             _search.clear();
                             _query = '';
@@ -209,7 +212,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
             ],
           );
     // Вкладка без своего Scaffold — поле ввода всё равно обязано стоять на Material.
-    if (widget.embedded) return Material(type: MaterialType.transparency, child: body);
+    if (widget.embedded) return Material(color: web.background, child: body);
     return Scaffold(appBar: AppBar(title: Text(L.t('tabGames'))), body: body);
   }
 
@@ -217,11 +220,17 @@ class _CatalogScreenState extends State<CatalogScreen> {
     Widget header(String text) => Text(text.toUpperCase(),
         style: TextStyle(
             fontSize: 12, fontWeight: FontWeight.w800, letterSpacing: 0.6, color: Theme.of(context).colorScheme.primary));
-    return DropdownButtonFormField<CatalogFilter?>(
+    // Подписи над полем нет (рисунок поля веба); что это фильтр, экранный чтец слышит меткой.
+    return Semantics(
+      label: L.t('catalogFilter'),
+      child: DropdownButtonFormField<CatalogFilter?>(
       key: const ValueKey('catalog-filter'),
       initialValue: _filter,
       isExpanded: true,
-      decoration: InputDecoration(labelText: L.t('catalogFilter'), border: const OutlineInputBorder(), isDense: true),
+      decoration: WebTheme.field(context),
+      dropdownColor: WebTheme.of(context).surface,
+      style: WebTheme.fieldText(context),
+      iconEnabledColor: WebTheme.of(context).textSecondary,
       items: [
         DropdownMenuItem<CatalogFilter?>(value: null, child: Text(L.t('allGames'))),
         DropdownMenuItem<CatalogFilter?>(value: _sectionsHeader, enabled: false, child: header(L.t('catalogBySection'))),
@@ -242,6 +251,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
           ),
       ],
       onChanged: (v) => setState(() => _filter = v),
+      ),
     );
   }
 
@@ -301,7 +311,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
       });
 
   Widget _sectionHeader(CatalogCategory cat, int count) {
-    final scheme = Theme.of(context).colorScheme;
+    final web = WebTheme.of(context);
     final color = Color(cat.color);
     // Как `CategorySections` (styles.sectionHeader): черта 4×18, значок 20, название 17/700, число 13/600.
     return Padding(
@@ -314,9 +324,9 @@ class _CatalogScreenState extends State<CatalogScreen> {
         const SizedBox(width: 8),
         Expanded(
             child:
-                Text(cat.title, style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: scheme.onSurface))),
+                Text(cat.title, style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: web.text))),
         // Число — сколько в разделе всего, как в веб-вкладке.
-        Text('$count', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: scheme.onSurfaceVariant)),
+        Text('$count', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: web.textSecondary)),
       ]),
     );
   }

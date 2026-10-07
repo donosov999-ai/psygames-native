@@ -4,7 +4,9 @@ import 'dart:ui' show ImageFilter;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
+import 'feedback_fab.dart';
 import 'l10n.dart';
+import 'web_theme.dart';
 
 /// НИЖНЯЯ ПОЛОСА — У ОБОЛОЧКИ FLUTTER (задача 5136754e, решение Дениса 07.10.2026).
 ///
@@ -15,7 +17,8 @@ import 'l10n.dart';
 /// Правила — не копия: пять вкладок, значки, подписи и адреса без полосы оболочка читает из
 /// выгрузки `tabBar.ts` (`assets/tabs.json`, сторож `flutter-tabs-asset-fresh.test.ts`).
 /// Рисунок — перенос веб-полосы: стекло 0,72 с размытием 24, волосяная кромка сверху, высота 58 +
-/// низ безопасной зоны, значок 22 и подпись 11/600, активная — цветом акцента.
+/// низ безопасной зоны, значок 22 и подпись 11/600, активная — акцентом профиля или надетым в
+/// магазине ([WebTheme.accent]), невыбранная — `textSecondary`.
 class TabDef {
   const TabDef({required this.route, required this.icon, required this.labelKey});
   final String route;
@@ -47,6 +50,7 @@ class NativeTabs {
         TabDef(route: t['route'] as String, icon: t['icon'] as String, labelKey: t['labelKey'] as String),
     ];
     noBar = (j['noBar'] as List).cast<String>();
+    FabRules.use(j['fab'] as Map<String, dynamic>?);
   }
 
   /// `tabBarVisible` веба.
@@ -83,7 +87,7 @@ class NativeTabBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final dark = Theme.of(context).brightness == Brightness.dark;
     final bottom = MediaQuery.paddingOf(context).bottom;
-    final idle = Theme.of(context).colorScheme.onSurfaceVariant;
+    final idle = WebTheme.of(context).textSecondary; // BottomTabBar.tsx: невыбранная — textSecondary
     return ClipRect(
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),

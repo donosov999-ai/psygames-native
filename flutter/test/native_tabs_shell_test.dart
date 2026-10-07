@@ -5,12 +5,16 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/one_line/screen.dart';
 import 'package:psygames_flutter/shell/asset_server.dart';
 import 'package:psygames_flutter/shell/catalog_screen.dart';
+import 'package:psygames_flutter/shell/feedback_fab.dart';
 import 'package:psygames_flutter/shell/game_rules.dart';
 import 'package:psygames_flutter/shell/hybrid_app.dart';
 import 'package:psygames_flutter/shell/level_rules.dart';
 import 'package:psygames_flutter/shell/native_tabs.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
+import 'package:psygames_flutter/shell/web_game_screen.dart';
+import 'package:psygames_flutter/shell/web_theme.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:webview_flutter/webview_flutter.dart' show WebViewWidget;
 import 'package:webview_flutter_platform_interface/webview_flutter_platform_interface.dart' as wv;
 
 import 'hybrid_overlay_route_repro_test.dart' show FakeWidget, resetHarnessSingletons;
@@ -29,7 +33,10 @@ import 'hybrid_overlay_route_repro_test.dart' show FakeWidget, resetHarnessSingl
 ///   · игра из плитки — нативный экран поверх, после него человек снова во вкладке с полосой;
 ///   · поиск во вкладке переживает уход на другую вкладку и обратно (99628ecf, п. 6);
 ///   · загрузка документа (первый адрес, `location.replace`) тоже определяет вкладку, а скрипт
-///     хоста говорит вебу, что полоса нативная (`__psyNativeTabs`).
+///     хоста говорит вебу, что полоса нативная (`__psyNativeTabs`);
+///   · страница (WebView) не пересоздаётся при переходах по вкладкам;
+///   · цвета — веба: фон `#F5F5F7`, активная вкладка — акцент профиля, надетый акцент главнее;
+///   · на нативной вкладке есть кнопка отзыва веба: место, форма, скрытие настройкой, перетаскивание.
 class RecWebViewPlatform extends wv.WebViewPlatform {
   final controllers = <RecController>[];
   final delegates = <RecDelegate>[];
@@ -103,6 +110,7 @@ void main() {
     await GameRules.load();
     await LevelRules.load();
     await NativeTabs.load();
+    await WebTheme.load();
     server = await AssetServer.start();
     web = RecWebViewPlatform();
     wv.WebViewPlatform.instance = web;
@@ -122,7 +130,10 @@ void main() {
     await t.pump();
   }
 
-  Future<void> mount(WidgetTester t) async {
+  Future<void> mount(WidgetTester t, {Map<String, String> prefs = const {}}) async {
+    for (final e in prefs.entries) {
+      await state.set(e.key, e.value);
+    }
     t.view.physicalSize = const Size(780, 1688);
     t.view.devicePixelRatio = 2;
     addTearDown(t.view.reset);
@@ -228,5 +239,80 @@ void main() {
     await settle(t, () => find.byKey(const ValueKey('catalog-sections')).evaluate().isNotEmpty);
     expect(catalogShown(), isTrue);
     expect(page().js.any((s) => s.contains('window.__psyNativeTabs=true;')), isTrue);
+  });
+
+  Future<void> toGames(WidgetTester t) async {
+    await t.tap(find.byKey(const ValueKey('native-tab-/games')));
+    await settle(t, () => find.byKey(const ValueKey('catalog-sections')).evaluate().isNotEmpty);
+  }
+
+  testWidgets('🔴 страница не пересоздаётся при переходах по вкладкам', (t) async {
+    await mount(t);
+    final before = t.element(find.byType(WebViewWidget, skipOffstage: false));
+    await toGames(t);
+    await t.tap(find.byKey(const ValueKey('native-tab-/statistics')));
+    await t.pump();
+    await toGames(t);
+    expect(identical(t.element(find.byType(WebViewWidget, skipOffstage: false)), before), isTrue,
+        reason: 'WebView тот же — страница и её состояние живы');
+    expect(web.controllers.length, 1);
+  });
+
+  testWidgets('🔴 цвета веба: фон #F5F5F7, активная вкладка — акцент профиля, надетый акцент главнее', (t) async {
+    await mount(t);
+    expect(t.widget<Scaffold>(find.byType(Scaffold).first).backgroundColor, const Color(0xFFF5F5F7));
+    expect(t.widget<NativeTabBar>(find.byType(NativeTabBar)).accent, const Color(0xFFA855F7), reason: 'nzt48');
+    await toGames(t);
+    final active = t.widget<Icon>(
+        find.descendant(of: find.byKey(const ValueKey('native-tab-/games')), matching: find.byType(Icon)));
+    expect(active.color, const Color(0xFFA855F7));
+    final idle = t.widget<Icon>(find.descendant(of: find.byKey(const ValueKey('native-tab-/')), matching: find.byType(Icon)));
+    expect(idle.color, const Color(0xFF6E6E73), reason: 'невыбранная — textSecondary веба');
+  });
+
+  testWidgets('надетый в магазине акцент красит активную вкладку', (t) async {
+    await mount(t, prefs: {'psygames_cosmetics_equipped_nzt48': '{"accent":"accent_neon"}'});
+    expect(t.widget<NativeTabBar>(find.byType(NativeTabBar)).accent, const Color(0xFF00E5A0));
+  });
+
+  testWidgets('🔴 на нативной вкладке — кнопка отзыва веба на её месте; нажатие открывает форму', (t) async {
+    await mount(t);
+    expect(find.byKey(const ValueKey('feedback-fab')), findsNothing, reason: 'на странице кнопку рисует веб');
+    await toGames(t);
+    final fab = find.byKey(const ValueKey('feedback-fab'));
+    expect(fab, findsOneWidget);
+    final r = t.getRect(fab);
+    // Окно 390×844, безопасной зоны в пробе нет: слева 14, снизу 92 (`FAB_BOTTOM`), сторона 48.
+    expect(r, const Rect.fromLTWH(14, 844 - 92 - 48, 48, 48));
+    expect(r.bottom <= t.getRect(find.byType(NativeTabBar)).top, isTrue, reason: 'над полосой, а не под ней');
+
+    await t.tap(fab);
+    await t.pump();
+    await t.pump(const Duration(milliseconds: 400));
+    final form = t.widget<WebGameScreen>(find.byType(WebGameScreen));
+    expect(Uri.parse(form.url).path, '/feedback');
+    expect(Uri.parse(form.url).queryParameters['sourceRoute'], '/games');
+  });
+
+  testWidgets('кнопка отзыва скрыта, если человек выключил её в настройках', (t) async {
+    await mount(t, prefs: {'psygames_devchat_on': '0'});
+    await toGames(t);
+    expect(find.byKey(const ValueKey('feedback-fab')), findsNothing);
+  });
+
+  testWidgets('кнопку отзыва можно перетащить: место запоминается долей экрана, подрезается под экран', (t) async {
+    await mount(t);
+    await toGames(t);
+    final fab = find.byKey(const ValueKey('feedback-fab'));
+    await t.drag(fab, const Offset(200, -300));
+    await t.pump();
+    final spot = FabRules.readSpot(state.get('psygames_feedback_fab_spot'));
+    expect(spot, isNotNull);
+    expect(t.getRect(fab).topLeft, const Offset(214, 844 - 92 - 48 - 300));
+    expect(find.byType(WebGameScreen), findsNothing, reason: 'перетаскивание — не нажатие');
+    // Подрезка: доля 1×1 — правый нижний угол внутри безопасной зоны, а не за краем.
+    expect(FabRules.spotToPixels(const Offset(1, 1), const Size(390, 844), EdgeInsets.zero),
+        const Offset(390 - 6 - 48, 844 - 6 - 48));
+    expect(FabRules.readSpot('{"fx":"5","fy":1}'), isNull, reason: 'мусор — «не сохранено»');
   });
 }

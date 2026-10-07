@@ -8,6 +8,7 @@ import 'level_ladder.dart';
 import 'shared_level_store.dart';
 import 'l10n.dart';
 import 'shared_state.dart';
+import 'web_theme.dart';
 
 /// РАЗВИЛКА (хаб) — ОБЩИЙ ЭКРАН НА ВСЕ РАЗДЕЛЫ.
 ///
@@ -506,28 +507,31 @@ class _HubScreenState extends State<HubScreen> {
                 if (_catalog != null) ...[
                   TextField(
                     key: const ValueKey('hub-search'),
-                    decoration: InputDecoration(
-                      prefixIcon: const Icon(Icons.search),
-                      hintText: L.t('catalogSearch'),
-                      border: const OutlineInputBorder(),
-                      isDense: true,
-                    ),
+                    // Рисунок — поле поиска веба (`HomeCatalogSearch.tsx`), как во вкладке «Игры».
+                    style: WebTheme.fieldText(context),
+                    textInputAction: TextInputAction.search,
+                    decoration: WebTheme.field(context, hint: L.t('catalogSearch')),
                     onChanged: (v) => setState(() => _query = v),
                   ),
                   if (skills.length >= 2) ...[
                     const SizedBox(height: 8),
-                    DropdownButtonFormField<String?>(
+                    Semantics(
+                      label: L.t('catalogFilter'),
+                      child: DropdownButtonFormField<String?>(
                       key: const ValueKey('hub-filter'),
                       initialValue: _skill,
                       isExpanded: true,
-                      decoration: InputDecoration(
-                          labelText: L.t('catalogFilter'), border: const OutlineInputBorder(), isDense: true),
+                      decoration: WebTheme.field(context),
+                      dropdownColor: WebTheme.of(context).surface,
+                      style: WebTheme.fieldText(context),
+                      iconEnabledColor: WebTheme.of(context).textSecondary,
                       items: [
                         DropdownMenuItem<String?>(value: null, child: Text(L.t('allGames'))),
                         for (final k in skills)
                           DropdownMenuItem<String?>(value: k, child: Text(skillTitle(k), overflow: TextOverflow.ellipsis)),
                       ],
                       onChanged: (v) => setState(() => _skill = v),
+                      ),
                     ),
                   ],
                   const SizedBox(height: 12),

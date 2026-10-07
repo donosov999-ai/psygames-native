@@ -87,7 +87,9 @@ import '../games/schulte/screen.dart';
 import '../games/pause/screen.dart';
 import 'asset_server.dart';
 import 'l10n.dart';
+import 'feedback_fab.dart';
 import 'native_tabs.dart';
+import 'web_theme.dart';
 import '../games/sorting_hub/screen.dart';
 import '../games/faces_names/screen.dart';
 import '../games/memory_palace/screen.dart';
@@ -630,6 +632,18 @@ class _HybridAppState extends State<HybridApp> {
     await _c.runJavaScript('window.__psyReplace ? window.__psyReplace($target) : location.replace($full);');
   }
 
+  /// Форма отзыва — второй страницей поверх (`/feedback?sourceRoute=`), откуда бы ни звали: из
+  /// паузы игры ([GameExit.feedback]) или кнопкой на нативной вкладке ([FeedbackFab]).
+  void _openFeedback(String source) {
+    final url = Uri.parse('${widget.server.origin}/feedback')
+        .replace(queryParameters: {'sourceRoute': source}).toString();
+    Navigator.of(context).push(MaterialPageRoute<void>(
+      builder: (_) => GameHoldScope(child: WebGameScreen(
+        title: L.t('feedbackTitle'), url: url, state: widget.state,
+      )),
+    ));
+  }
+
   /// Игра из нативного каталога: перенесённая — нативно поверх, остальная — страницей В ИСТОРИЮ
   /// (`router.push`), чтобы «назад» из неё вернул на вкладку «Игры».
   Future<void> _openFromCatalog(String route) async {
@@ -745,14 +759,7 @@ class _HybridAppState extends State<HybridApp> {
       if (!mounted) return;
       final route = Uri.parse(GameRules.currentRoute ?? '/games');
       final params = {...route.queryParameters, ...GamePreset.params};
-      final source = route.replace(queryParameters: params.isEmpty ? null : params).toString();
-      final url = Uri.parse('${widget.server.origin}/feedback')
-          .replace(queryParameters: {'sourceRoute': source}).toString();
-      Navigator.of(context).push(MaterialPageRoute<void>(
-        builder: (_) => GameHoldScope(child: WebGameScreen(
-          title: L.t('feedbackTitle'), url: url, state: widget.state,
-        )),
-      ));
+      _openFeedback(route.replace(queryParameters: params.isEmpty ? null : params).toString());
     };
     _c = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
@@ -824,6 +831,12 @@ class _HybridAppState extends State<HybridApp> {
       }).catchError((Object _) {
         // Нет выгрузки — полосы нет, страница работает как раньше.
       }));
+    }
+    if (!WebTheme.loaded) {
+      // До загрузки палитра — значения веба по умолчанию; выгрузка лишь уточняет их.
+      unawaited(WebTheme.load().then((_) {
+        if (mounted) setState(() {});
+      }).catchError((Object _) {}));
     }
     _pagePath = Uri.tryParse(HybridApp.startRoute)?.path ?? '/';
     HybridApp.open = _open;
@@ -1130,7 +1143,9 @@ class _HybridAppState extends State<HybridApp> {
   Widget build(BuildContext context) {
     final path = _nativeTab ?? _pagePath;
     final bar = _tabsReady && NativeTabs.barVisible(path);
-    return Scaffold(
+    final scaffold = Scaffold(
+      // Полоса под часами и фон вкладки — `colors.background` веба, а не цвет семени Material.
+      backgroundColor: WebTheme.of(context).background,
       body: SafeArea(
         bottom: !bar,
         child: IndexedStack(
@@ -1161,9 +1176,17 @@ class _HybridAppState extends State<HybridApp> {
           ? NativeTabBar(
               active: NativeTabs.activeTab(path),
               onTap: _selectTab,
-              accent: Theme.of(context).colorScheme.primary,
+              accent: WebTheme.accent(widget.state),
             )
           : null,
     );
+    // Кнопку отзыва на страницах рисует веб; на нативной вкладке страница скрыта вместе с ней —
+    // кнопка оболочки встаёт на то же место окна.
+    // ⚠️ Корень — всегда Stack: смена корня между Scaffold и Stack при переходе по вкладкам
+    // пересоздала бы WebView вместе со страницей.
+    return Stack(children: [
+      Positioned.fill(child: scaffold),
+      if (_nativeTab != null && bar) FeedbackFab(state: widget.state, onOpen: () => _openFeedback(_nativeTab!)),
+    ]);
   }
 }
