@@ -26,6 +26,8 @@ export const WHATS_NEW: WhatsNewEntry[] = [
       'Набор «Позиции»: «Кубики Корси» и «Наоборот» открываются прямо из развилки',
       'Игры «Сортировки» говорят на языке игрока; «Очередь зверей» и «Цвета и формы» теперь заставляют подумать',
       'Экран знакомства и настройки показывают настоящее число игр — 131',
+      'Зарядка больше не выкидывает на главную между упражнениями',
+      'Практики: крупно «что делать сейчас» с отсчётом и полной подсказкой; «Живот» вибрирует, пока держишь; новые массаж лица и режимы глаз; шар дыхания рядом с упражнением для тела; картинки — по центру рамки фаз',
     ],
     en: [
       'Sudoku: digit highlighting is back — matching digits, row and column; a wrong digit is red again',
@@ -35,6 +37,8 @@ export const WHATS_NEW: WhatsNewEntry[] = [
       'Positions set: Corsi Blocks and Backward open straight from the hub',
       'Sorting games speak your language; Animal Queue and Colours and Shapes now make you think',
       'Onboarding and Settings show the real number of games — 131',
+      'Warm-up no longer drops to the home screen between exercises',
+      'Practices: a big “what to do now” with a countdown and the full instruction; the abdomen exercise vibrates while you hold; new face massage and eye modes; a breathing ball next to the body exercise; pictures sit centred in the phase frame',
     ],
   },
   {
