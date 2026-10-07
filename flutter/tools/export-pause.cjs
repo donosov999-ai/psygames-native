@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/* psygames-export-pause · VER 1 · 30.09.2026 · psygames-warmup-claude-mac */
+/* psygames-export-pause · VER 2 · 02.10.2026 · psygames-warmup-claude-mac */
 /**
  * «ПАУЗА» НА FLUTTER: КАТАЛОГ И ЭТАЛОНЫ — ПРОГОНОМ ЖИВОГО ЯДРА НА TS.
  *
@@ -10,7 +10,8 @@
  * исходника этого репозитория: эталон замораживает перенос, а не источник.
  *
  * Пишет:
- *   · `flutter/assets/pause/practices.json` — каталог, предупреждения, строки;
+ *   · `packages/practice_kit/assets/practices.json` — каталог (ядро + надстройка
+ *     пакета), предупреждения, строки — общий с «Умным будильником»;
  *   · `flutter/test/fixtures/pause-reference.json.gz` — планы, кадры и сессии
  *     на каждую программу и на смешанные режимы (parallel, charge), плюс отказы.
  *
@@ -52,13 +53,34 @@ function load(file) {
 
 const e = load(path.join(core, 'engine.ts'));
 
-const assetFile = path.join(root, 'flutter/assets/pause/practices.json');
+// 🔴 Каталог практик — ОДИН на PsyGames и «Умный будильник»: пакет practice_kit
+// (решение Дениса 02.10.2026, «чиню один раз — и там, и там»). Поверх ядра —
+// надстройка пакета (массаж лица, три режима глаз), как раньше у будильника;
+// попала в ядро — выгрузка падает, и надстройку пора сократить.
+const kit = path.join(root, 'packages/practice_kit');
+const overlay = JSON.parse(fs.readFileSync(path.join(kit, 'tool/catalog_overlay.json'), 'utf8'));
+const catalog = JSON.parse(JSON.stringify(e.PRACTICE_CATALOG));
+for (const { after, set } of overlay.sets) {
+  if (catalog.some((s) => s.id === set.id)) throw Error(`набор ${set.id} уже есть в ядре — надстройку пора сократить`);
+  catalog.splice(catalog.findIndex((s) => s.id === after) + 1, 0, set);
+}
+for (const { set, before, programs } of overlay.programs) {
+  const target = catalog.find((s) => s.id === set);
+  for (const program of programs) {
+    if (target.programs.some((p) => p.id === program.id)) throw Error(`программа ${set}/${program.id} уже есть в ядре`);
+  }
+  target.programs.splice(target.programs.findIndex((p) => p.id === before), 0, ...programs);
+}
+for (const id of Object.keys(overlay.warnings)) {
+  if (id in e.WARNING_TEXT) throw Error(`предупреждение ${id} уже есть в ядре — надстройку пора сократить`);
+}
+const assetFile = path.join(kit, 'assets/practices.json');
 fs.mkdirSync(path.dirname(assetFile), { recursive: true });
 fs.writeFileSync(
   assetFile,
   JSON.stringify({
-    catalog: e.PRACTICE_CATALOG,
-    warnings: e.WARNING_TEXT,
+    catalog,
+    warnings: { ...overlay.warnings, ...e.WARNING_TEXT },
     strings: e.PAUSE_STRINGS,
     // Подписи занятых ресурсов (задача f5dfd582): «занимает: глаза» на 12 языках.
     resources: { labels: e.RESOURCE_TEXT, uses: e.RESOURCE_USES_TEXT },
@@ -319,5 +341,5 @@ console.log(`глаза: ${eye.SEQUENCE.length} шагов, ${patterns.length} �
 const fixtureFile = path.join(root, 'flutter/test/fixtures/pause-reference.json.gz');
 fs.writeFileSync(fixtureFile, gzipSync(JSON.stringify(cases), { level: 9 }));
 const failed = cases.filter((c) => c.issues).length;
-console.log(`каталог: ${e.PRACTICE_CATALOG.length} наборов, ${all.length} программ → ${path.relative(root, assetFile)}`);
+console.log(`каталог: ${catalog.length} наборов, ${catalog.reduce((n, s) => n + s.programs.length, 0)} программ (ядро ${all.length}) → ${path.relative(root, assetFile)}`);
 console.log(`эталон: ${cases.length} случаев (${failed} отказов) → ${path.relative(root, fixtureFile)}, ${fs.statSync(fixtureFile).size} байт`);

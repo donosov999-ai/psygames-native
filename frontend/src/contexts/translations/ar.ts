@@ -1,6 +1,15 @@
 // AUTO-GENERATED translation overlay (ar). Источник: транскреация с EN-базы (856 ключей).
 // ⚠️ НЕ ПОДКЛЮЧЁН в LANGUAGES — ждёт RTL-захода (I18nManager). Не править руками.
 const t: Record<string, string> = {
+  "theme_selection": "المظهر",
+  "theme_light": "فاتح",
+  "theme_dark": "داكن",
+  "theme_system": "النظام",
+  "theme_profile": "حسب الملف",
+  "sudokuTryIndependently": "جرّب دون مساعدة",
+  "sudokuPracticeOnly": "محاولة تدريب — لا يرتفع المستوى أو التقييم.",
+  "sudokuLessonUnavailable": "لا توجد لوحة أخرى بهذه الصعوبة لدرس منفصل.",
+  "sudokuPracticeExample": "مثال تدريبي منفصل",
   "welcomeUnlock": "فتح",
   "homeSwitchHint": "اضغط على الشريحة لتبديل الملف الشخصي",
   "a11ySwitchProfile": "تبديل الملف الشخصي",
@@ -2887,6 +2896,15 @@ const t: Record<string, string> = {
   "puzzleSecondNoBridge": "لا جسر",
   "puzzleSecondToPrev": "إلى السابق",
   "puzzleNextStep": "الخطوة التالية",
+  "teachLogicClueFull": "الرقم اكتمل بالفعل — بقية خانات هذا التلميح لا تأخذ شيئًا.",
+  "teachLogicClueNeedsAll": "يحتاج التلميح بالضبط إلى عدد الخانات الفارغة المتبقية — إذن تُشغَل كلها.",
+  "teachLogicOnlyPlace": "لا مكان آخر له — هنا فقط.",
+  "teachLogicRuleOut": "مستبعد: هذا الخيار سيخالف قاعدة.",
+  "teachLogicAllAgree": "كل الاحتمالات المتبقية تتفق هنا — إذن هذا هو الجواب.",
+  "teachLogicPair": "هذه الخانات مرتبطة: إذا عرفت واحدة عرفت الأخرى.",
+  "teachLogicConnect": "وإلا سينقطع جزء من اللوحة.",
+  "teachLogicNoShortLoop": "وإلا ستنغلق حلقة في مكان لا يجب أن تكون فيه.",
+  "teachLogicTrial": "لا تكفي حيلة بسيطة: هنا جرّب الحلّال عدة خيارات.",
   "puzzleSelect": "التقاط",
   "numberRun": "سباق الأرقام",
   "numberRunRule": "قُد رقمك على الطريق: الأزرق يضيف والأحمر يطرح. عند العمود اختر الجهة التي مجموع كومتها أكبر، وعند الجدران اختر أصغر طرح. المنصة الخضراء تقفز بك فوق الفجوة وفوق رقم أحمر كبير. عند خط النهاية يحطم رقمك من الجدران قدر ما يستطيع.",
@@ -3432,5 +3450,10 @@ const t: Record<string, string> = {
   "sdkRule_between": "بين الطرفين",
   "sdkRule_lockout": "القفل",
   "sdkRule_xv": "XV",
+  "catalogSearch": "ابحث عن لعبة",
+  "catalogFilter": "تصفية",
+  "catalogBySection": "الأقسام",
+  "catalogBySkill": "المهارات",
+  "catalogNothing": "لا توجد ألعاب مطابقة",
 };
 export default t;

@@ -1,6 +1,15 @@
 // AUTO-GENERATED translation overlay (ja). Источник: транскреация с EN-базы (856 ключей).
 // Не править руками — регенерировать. Нужна вычитка нативом до сторов.
 const t: Record<string, string> = {
+  "theme_selection": "外観",
+  "theme_light": "ライト",
+  "theme_dark": "ダーク",
+  "theme_system": "システム",
+  "theme_profile": "プロフィール設定",
+  "sudokuTryIndependently": "自力で挑戦",
+  "sudokuPracticeOnly": "練習の試行 — レベルと評価は上がりません。",
+  "sudokuLessonUnavailable": "別のレッスン用に同じ難易度の別の盤面がありません。",
+  "sudokuPracticeExample": "別の練習例",
   "welcomeUnlock": "解放する",
   "homeSwitchHint": "プロフィールを切り替えるにはチップをタップ",
   "a11ySwitchProfile": "プロフィールを切り替え",
@@ -2885,6 +2894,15 @@ const t: Record<string, string> = {
   "puzzleSecondNoBridge": "橋なし",
   "puzzleSecondToPrev": "前のマスへ",
   "puzzleNextStep": "次の手",
+  "teachLogicClueFull": "数字はもう満たされています。このヒントの残りのマスには何も入りません。",
+  "teachLogicClueNeedsAll": "ヒントが求める数は残りの空きマスの数とちょうど同じです。だから全部埋まります。",
+  "teachLogicOnlyPlace": "ほかに入る場所はありません。ここだけです。",
+  "teachLogicRuleOut": "除外：この選択肢はルールに反します。",
+  "teachLogicAllAgree": "残りのどの可能性でもここは同じです。だからこれが答えです。",
+  "teachLogicPair": "これらのマスはつながっています。片方がわかれば、もう片方もわかります。",
+  "teachLogicConnect": "そうしないと盤の一部が切り離されてしまいます。",
+  "teachLogicNoShortLoop": "そうしないと、あってはいけない場所で輪が閉じてしまいます。",
+  "teachLogicTrial": "簡単な手筋では解けません。ここではソルバーが候補を試しました。",
   "puzzleSelect": "つかむ",
   "numberRun": "ナンバーラン",
   "numberRunRule": "自分の数を道に沿って進めます。青は足し、赤は引きます。柱の前では積み上がった数の合計で左右を選び、壁の前では引く数が一番小さい壁を選びます。緑の踏切板は切れ目も大きな赤い数も跳び越えます。ゴールでは、数が壊せるだけ壁を突き破ります。",
@@ -3430,5 +3448,10 @@ const t: Record<string, string> = {
   "sdkRule_between": "両端のあいだ",
   "sdkRule_lockout": "ロックアウト",
   "sdkRule_xv": "XV",
+  "catalogSearch": "ゲームを探す",
+  "catalogFilter": "絞り込み",
+  "catalogBySection": "セクション",
+  "catalogBySkill": "スキル",
+  "catalogNothing": "該当するゲームはありません",
 };
 export default t;

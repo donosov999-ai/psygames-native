@@ -1,6 +1,15 @@
 // AUTO-GENERATED translation overlay (it). Источник: транскреация с EN-базы (856 ключей).
 // Не править руками — регенерировать.
 const t: Record<string, string> = {
+  "theme_selection": "Aspetto",
+  "theme_light": "Chiaro",
+  "theme_dark": "Scuro",
+  "theme_system": "Sistema",
+  "theme_profile": "Predefinito del profilo",
+  "sudokuTryIndependently": "Prova senza aiuto",
+  "sudokuPracticeOnly": "Tentativo di pratica — nessun aumento di livello o valutazione.",
+  "sudokuLessonUnavailable": "Non è disponibile un’altra griglia di questa difficoltà per una lezione separata.",
+  "sudokuPracticeExample": "Esempio di pratica separato",
   "welcomeUnlock": "Sblocca",
   "homeSwitchHint": "tocca il chip per cambiare profilo",
   "a11ySwitchProfile": "Cambia profilo",
@@ -2886,6 +2895,15 @@ const t: Record<string, string> = {
   "puzzleSecondNoBridge": "Nessun ponte",
   "puzzleSecondToPrev": "Al precedente",
   "puzzleNextStep": "Passo successivo",
+  "teachLogicClueFull": "Il numero è già raggiunto: le altre caselle di questo indizio non ricevono nulla.",
+  "teachLogicClueNeedsAll": "L'indizio richiede esattamente tante quante sono le caselle libere rimaste: quindi sono tutte occupate.",
+  "teachLogicOnlyPlace": "Non ha nessun altro posto: solo qui.",
+  "teachLogicRuleOut": "Scartato: questa opzione violerebbe una regola.",
+  "teachLogicAllAgree": "Tutte le opzioni rimaste concordano qui: quindi è questa la risposta.",
+  "teachLogicPair": "Queste caselle sono legate: se ne conosci una, conosci anche l'altra.",
+  "teachLogicConnect": "Altrimenti una parte del tabellone resterebbe isolata.",
+  "teachLogicNoShortLoop": "Altrimenti si chiuderebbe un anello dove non deve.",
+  "teachLogicTrial": "Nessuna tecnica semplice basta: qui il risolutore ha provato varie opzioni.",
   "puzzleSelect": "Prendi",
   "numberRun": "Corsa dei numeri",
   "numberRunRule": "Guida il tuo numero lungo la strada: il blu aggiunge, il rosso sottrae. Davanti a un palo scegli il lato in base alla somma della sua pila; davanti ai muri, il meno più piccolo. La rampa verde ti lancia oltre un varco e sopra un grande rosso. Al traguardo il tuo numero sfonda tutti i muri che può.",
@@ -3431,5 +3449,10 @@ const t: Record<string, string> = {
   "sdkRule_between": "tra gli estremi",
   "sdkRule_lockout": "lucchetto",
   "sdkRule_xv": "XV",
+  "catalogSearch": "Cerca un gioco",
+  "catalogFilter": "Filtro",
+  "catalogBySection": "Sezioni",
+  "catalogBySkill": "Abilità",
+  "catalogNothing": "Nessun gioco trovato",
 };
 export default t;

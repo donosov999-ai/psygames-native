@@ -2,6 +2,15 @@
 // 493 ключей, переведены с английской базы. Не править руками — регенерировать воркфлоу.
 // zh/hi — машинное качество, нужна вычитка нативом до сторов.
 const t: Record<string, string> = {
+  "theme_selection": "Aparência",
+  "theme_light": "Claro",
+  "theme_dark": "Escuro",
+  "theme_system": "Sistema",
+  "theme_profile": "Padrão do perfil",
+  "sudokuTryIndependently": "Tentar sem ajuda",
+  "sudokuPracticeOnly": "Tentativa de prática — sem aumento de nível ou classificação.",
+  "sudokuLessonUnavailable": "Não há outro tabuleiro desta dificuldade para uma lição separada.",
+  "sudokuPracticeExample": "Exemplo de prática separado",
   "home": "Início",
   "statistics": "Estatísticas",
   "settings": "Ajustes",
@@ -2891,6 +2900,15 @@ const t: Record<string, string> = {
   "puzzleSecondNoBridge": "Sem ponte",
   "puzzleSecondToPrev": "Ao anterior",
   "puzzleNextStep": "Próximo passo",
+  "teachLogicClueFull": "O número já foi atingido — as outras casas desta pista não recebem nada.",
+  "teachLogicClueNeedsAll": "A pista precisa de exatamente tantas quantas casas livres restam — então todas são ocupadas.",
+  "teachLogicOnlyPlace": "Não há outro lugar para isso — só aqui.",
+  "teachLogicRuleOut": "Descartado: essa opção quebraria uma regra.",
+  "teachLogicAllAgree": "Todas as opções restantes concordam aqui — então essa é a resposta.",
+  "teachLogicPair": "Estas casas estão ligadas: sabendo uma, você sabe a outra.",
+  "teachLogicConnect": "Senão, uma parte do tabuleiro ficaria isolada.",
+  "teachLogicNoShortLoop": "Senão, um laço se fecharia onde não deve.",
+  "teachLogicTrial": "Nenhuma técnica simples resolve isto: aqui o resolvedor testou opções.",
   "puzzleSelect": "Pegar",
   "numberRun": "Corrida dos números",
   "numberRunRule": "Conduza o seu número pela estrada: o azul soma, o vermelho subtrai. Diante de um poste, escolha o lado pela soma da pilha; diante dos muros, o menor menos. A rampa verde atira você por cima de uma falha e de um vermelho grande. Na chegada, o seu número derruba quantos muros conseguir.",
@@ -3436,5 +3454,10 @@ const t: Record<string, string> = {
   "sdkRule_between": "entre as pontas",
   "sdkRule_lockout": "cadeado",
   "sdkRule_xv": "XV",
+  "catalogSearch": "Encontrar um jogo",
+  "catalogFilter": "Filtro",
+  "catalogBySection": "Seções",
+  "catalogBySkill": "Habilidades",
+  "catalogNothing": "Nenhum jogo encontrado",
 };
 export default t;

@@ -1,6 +1,15 @@
 // AUTO-GENERATED translation overlay (ko). Источник: транскреация с EN-базы (856 ключей).
 // Не править руками — регенерировать. Нужна вычитка нативом до сторов.
 const t: Record<string, string> = {
+  "theme_selection": "화면 모드",
+  "theme_light": "라이트",
+  "theme_dark": "다크",
+  "theme_system": "시스템",
+  "theme_profile": "프로필 기본값",
+  "sudokuTryIndependently": "혼자 도전",
+  "sudokuPracticeOnly": "연습 시도 — 레벨과 평점은 올라가지 않습니다.",
+  "sudokuLessonUnavailable": "별도 수업에 사용할 같은 난이도의 다른 판이 없습니다.",
+  "sudokuPracticeExample": "별도의 연습 예제",
   "welcomeUnlock": "잠금 해제",
   "homeSwitchHint": "칩을 눌러 프로필 전환",
   "a11ySwitchProfile": "프로필 전환",
@@ -2886,6 +2895,15 @@ const t: Record<string, string> = {
   "puzzleSecondNoBridge": "다리 없음",
   "puzzleSecondToPrev": "이전 칸으로",
   "puzzleNextStep": "다음 단계",
+  "teachLogicClueFull": "숫자가 이미 채워졌습니다. 이 힌트의 나머지 칸에는 아무것도 들어가지 않습니다.",
+  "teachLogicClueNeedsAll": "힌트가 필요로 하는 수가 남은 빈칸 수와 정확히 같습니다. 그러니 모두 채워집니다.",
+  "teachLogicOnlyPlace": "다른 곳에는 들어갈 수 없습니다. 오직 여기뿐입니다.",
+  "teachLogicRuleOut": "제외: 이 선택은 규칙을 어깁니다.",
+  "teachLogicAllAgree": "남은 모든 경우가 여기서 같습니다. 그러니 이것이 답입니다.",
+  "teachLogicPair": "이 칸들은 연결되어 있습니다. 하나를 알면 다른 하나도 알 수 있습니다.",
+  "teachLogicConnect": "그렇지 않으면 판의 일부가 떨어져 나갑니다.",
+  "teachLogicNoShortLoop": "그렇지 않으면 있어서는 안 될 곳에서 고리가 닫힙니다.",
+  "teachLogicTrial": "간단한 기법으로는 안 됩니다. 여기서는 풀이기가 여러 경우를 시도했습니다.",
   "puzzleSelect": "잡기",
   "numberRun": "숫자 달리기",
   "numberRunRule": "숫자를 길 위로 몰고 갑니다. 파랑은 더하고 빨강은 뺍니다. 기둥 앞에서는 쌓인 수의 합을 보고 쪽을 고르고, 벽 앞에서는 가장 작은 빼기를 고릅니다. 초록 발판은 끊긴 곳과 큰 빨간 수 위로 넘겨 줍니다. 결승에서는 숫자가 부술 수 있는 만큼 벽을 부숩니다.",
@@ -3431,5 +3449,10 @@ const t: Record<string, string> = {
   "sdkRule_between": "양 끝 사이",
   "sdkRule_lockout": "자물쇠",
   "sdkRule_xv": "XV",
+  "catalogSearch": "게임 찾기",
+  "catalogFilter": "필터",
+  "catalogBySection": "섹션",
+  "catalogBySkill": "능력",
+  "catalogNothing": "일치하는 게임이 없습니다",
 };
 export default t;

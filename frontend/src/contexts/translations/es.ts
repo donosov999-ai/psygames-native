@@ -2,6 +2,15 @@
 // 493 ключей, переведены с английской базы. Не править руками — регенерировать воркфлоу.
 // zh/hi — машинное качество, нужна вычитка нативом до сторов.
 const t: Record<string, string> = {
+  "theme_selection": "Apariencia",
+  "theme_light": "Claro",
+  "theme_dark": "Oscuro",
+  "theme_system": "Sistema",
+  "theme_profile": "Según el perfil",
+  "sudokuTryIndependently": "Intentar sin ayuda",
+  "sudokuPracticeOnly": "Intento de práctica — no sube el nivel ni la puntuación.",
+  "sudokuLessonUnavailable": "No hay otro tablero de esta dificultad para una lección separada.",
+  "sudokuPracticeExample": "Ejemplo de práctica separado",
   "home": "Inicio",
   "statistics": "Estadísticas",
   "settings": "Ajustes",
@@ -2891,6 +2900,15 @@ const t: Record<string, string> = {
   "puzzleSecondNoBridge": "Sin puente",
   "puzzleSecondToPrev": "Al anterior",
   "puzzleNextStep": "Siguiente paso",
+  "teachLogicClueFull": "El número ya está completo: las demás casillas de esta pista no reciben nada.",
+  "teachLogicClueNeedsAll": "La pista necesita exactamente tantas como casillas libres quedan, así que se ocupan todas.",
+  "teachLogicOnlyPlace": "No tiene otro sitio posible: solo aquí.",
+  "teachLogicRuleOut": "Descartado: esta opción rompería una regla.",
+  "teachLogicAllAgree": "Todas las opciones que quedan coinciden aquí, así que esa es la respuesta.",
+  "teachLogicPair": "Estas casillas están ligadas: si conoces una, conoces la otra.",
+  "teachLogicConnect": "Si no, una parte del tablero quedaría aislada.",
+  "teachLogicNoShortLoop": "Si no, se cerraría un bucle donde no debe haberlo.",
+  "teachLogicTrial": "Ninguna técnica sencilla lo resuelve: aquí el solucionador probó opciones.",
   "puzzleSelect": "Tomar",
   "numberRun": "Carrera numérica",
   "numberRunRule": "Conduce tu número por la carretera: el azul suma, el rojo resta. Ante un poste, elige el lado por la suma de su pila; ante los muros, el menor de los menos. La rampa verde te lanza sobre un hueco y sobre un rojo grande. En la meta tu número rompe tantos muros como pueda.",
@@ -3436,5 +3454,10 @@ const t: Record<string, string> = {
   "sdkRule_between": "entre extremos",
   "sdkRule_lockout": "candado",
   "sdkRule_xv": "XV",
+  "catalogSearch": "Buscar un juego",
+  "catalogFilter": "Filtro",
+  "catalogBySection": "Secciones",
+  "catalogBySkill": "Habilidades",
+  "catalogNothing": "Ningún juego coincide",
 };
 export default t;

@@ -61,6 +61,11 @@ interface Translations {
 }
 
 const translations: Translations = {
+  theme_selection: { ru: 'Тема оформления', en: 'Appearance' },
+  theme_light: { ru: 'Светлая', en: 'Light' },
+  theme_dark: { ru: 'Тёмная', en: 'Dark' },
+  theme_system: { ru: 'Как в системе', en: 'System' },
+  theme_profile: { ru: 'По профилю', en: 'Profile default' },
   // welcomeUnlock — кнопка разблокировки кода в настройках (остальной welcome-блок удалён с WelcomeModal, v1.129.0)
   welcomeUnlock: { ru: 'Разблокировать', en: 'Unlock' },
 
@@ -1258,6 +1263,10 @@ const translations: Translations = {
   teachDone: { ru: 'Доска решена. Следующую попробуйте сами — теми же приёмами.', en: 'Solved. Try the next board on your own with the same tricks.' },
   teachNotCounted: { ru: 'Партия с разбором не засчитывается в уровень.', en: 'A round with a walkthrough does not count toward your level.' },
   teachNewBoard: { ru: 'Новая доска', en: 'New board' },
+  sudokuTryIndependently: { ru: "Попробовать самостоятельно", en: "Try independently", de: "Selbst versuchen", es: "Intentar sin ayuda", fr: "Essayer sans aide", it: "Prova senza aiuto", pt: "Tentar sem ajuda", ar: "جرّب دون مساعدة", hi: "स्वयं प्रयास करें", ja: "自力で挑戦", zh: "独立尝试", ko: "혼자 도전" },
+  sudokuPracticeOnly: { ru: "Учебная попытка — уровень и рейтинг не повышаются.", en: "Practice attempt — no level or rating increase.", de: "Übungsversuch — keine Erhöhung von Level oder Wertung.", es: "Intento de práctica — no sube el nivel ni la puntuación.", fr: "Essai d’entraînement — le niveau et le classement ne montent pas.", it: "Tentativo di pratica — nessun aumento di livello o valutazione.", pt: "Tentativa de prática — sem aumento de nível ou classificação.", ar: "محاولة تدريب — لا يرتفع المستوى أو التقييم.", hi: "अभ्यास प्रयास — स्तर या रेटिंग नहीं बढ़ती।", ja: "練習の試行 — レベルと評価は上がりません。", zh: "练习尝试 — 不提升等级或评分。", ko: "연습 시도 — 레벨과 평점은 올라가지 않습니다." },
+  sudokuLessonUnavailable: { ru: "Для отдельного разбора сейчас нет другой доски этой сложности.", en: "No other board at this difficulty is available for a separate lesson.", de: "Für eine eigene Lektion ist kein anderes Brett dieser Schwierigkeit verfügbar.", es: "No hay otro tablero de esta dificultad para una lección separada.", fr: "Aucune autre grille de cette difficulté n’est disponible pour une leçon séparée.", it: "Non è disponibile un’altra griglia di questa difficoltà per una lezione separata.", pt: "Não há outro tabuleiro desta dificuldade para uma lição separada.", ar: "لا توجد لوحة أخرى بهذه الصعوبة لدرس منفصل.", hi: "अलग पाठ के लिए इस कठिनाई का कोई दूसरा बोर्ड उपलब्ध नहीं है।", ja: "別のレッスン用に同じ難易度の別の盤面がありません。", zh: "目前没有同等难度的其他棋盘用于单独教学。", ko: "별도 수업에 사용할 같은 난이도의 다른 판이 없습니다." },
+  sudokuPracticeExample: { ru: "Отдельный учебный пример", en: "Separate practice example", de: "Separates Übungsbeispiel", es: "Ejemplo de práctica separado", fr: "Exemple d’entraînement séparé", it: "Esempio di pratica separato", pt: "Exemplo de prática separado", ar: "مثال تدريبي منفصل", hi: "अलग अभ्यास उदाहरण", ja: "別の練習例", zh: "独立练习示例", ko: "별도의 연습 예제" },
   teachPlay: { ru: 'Смотреть', en: 'Play' },
   teachPause: { ru: 'Пауза', en: 'Pause' },
   puzzleErrorShown: { ru: 'Красным отмечено, где нарушено правило', en: 'Red marks where a rule is broken' },
@@ -2156,6 +2165,12 @@ const translations: Translations = {
   // действие — одно слово, иначе переводчик двенадцати языков пишет три строки
   // вместо одной, а человек видит на соседних экранах разные подписи.
   tabGames: { ru: 'Игры', en: 'Games' },
+  // Каталог «Игры»: поиск и фильтр шире развилок (задача f5025027, решение Дениса 01.10).
+  catalogSearch: { ru: 'Найти игру', en: 'Find a game' },
+  catalogFilter: { ru: 'Фильтр', en: 'Filter' },
+  catalogBySection: { ru: 'Разделы', en: 'Sections' },
+  catalogBySkill: { ru: 'Навыки', en: 'Skills' },
+  catalogNothing: { ru: 'Ничего не нашлось', en: 'No games match your search' },
   tabPet: { ru: 'Питомец', en: 'Pet' },
   // ⚠️ Ключа «все игры» здесь НЕТ нарочно: он уже есть ниже (`allGames`), и
   // второй с тем же смыслом — ровно тот дубль, что ловит гейт dictionary-duplicates.
@@ -2339,6 +2354,16 @@ const translations: Translations = {
   puzzleSecondNoBridge: { ru: 'Нет моста', en: 'No bridge' },
   puzzleSecondToPrev: { ru: 'К предыдущей', en: 'To previous' },
   puzzleNextStep: { ru: 'Следующий шаг', en: 'Next step' },
+  // Имена приёмов учителя головоломок Тэтхэма (flutter/lib/games/puzzles/techniques.dart): приём по смыслу, общий для всех игр.
+  teachLogicClueFull: { ru: 'Число уже набрано — остальным клеткам этой подсказки ничего не достаётся.', en: 'The number is already reached — the clue\'s other cells get nothing.' },
+  teachLogicClueNeedsAll: { ru: 'Подсказке нужно ровно столько, сколько свободных клеток осталось, — значит, заняты все.', en: 'The clue needs exactly as many as there are free cells left — so all of them are taken.' },
+  teachLogicOnlyPlace: { ru: 'Больше этому негде быть — только здесь.', en: 'There is nowhere else for it — only here.' },
+  teachLogicRuleOut: { ru: 'Отбрасываем: такой вариант нарушил бы правило.', en: 'Ruled out: this option would break a rule.' },
+  teachLogicAllAgree: { ru: 'Во всех оставшихся вариантах здесь одно и то же — значит, так и есть.', en: 'Every remaining option agrees here — so that is the answer.' },
+  teachLogicPair: { ru: 'Эти клетки связаны: известна одна — известна и другая.', en: 'These cells are linked: knowing one gives the other.' },
+  teachLogicConnect: { ru: 'Иначе часть поля окажется отрезанной.', en: 'Otherwise part of the board would be cut off.' },
+  teachLogicNoShortLoop: { ru: 'Иначе замкнулась бы петля там, где её быть не должно.', en: 'Otherwise a loop would close where it must not.' },
+  teachLogicTrial: { ru: 'Простым приёмом не берётся: здесь решатель перебирал варианты.', en: 'No simple technique gets this: the solver had to try options here.' },
   puzzleSelect: { ru: 'Взять', en: 'Select' },
   pauseExitGame: { ru: 'Выйти из упражнения', en: 'Leave exercise' },
   pauseSoundOff: { ru: 'Тихий режим', en: 'Quiet mode' },

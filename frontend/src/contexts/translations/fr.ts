@@ -1,6 +1,15 @@
 // AUTO-GENERATED translation overlay (fr). Источник: транскреация с EN-базы (856 ключей).
 // Не править руками — регенерировать.
 const t: Record<string, string> = {
+  "theme_selection": "Apparence",
+  "theme_light": "Clair",
+  "theme_dark": "Sombre",
+  "theme_system": "Système",
+  "theme_profile": "Selon le profil",
+  "sudokuTryIndependently": "Essayer sans aide",
+  "sudokuPracticeOnly": "Essai d’entraînement — le niveau et le classement ne montent pas.",
+  "sudokuLessonUnavailable": "Aucune autre grille de cette difficulté n’est disponible pour une leçon séparée.",
+  "sudokuPracticeExample": "Exemple d’entraînement séparé",
   "welcomeUnlock": "Débloquer",
   "homeSwitchHint": "touche la pastille pour changer de profil",
   "a11ySwitchProfile": "Changer de profil",
@@ -2886,6 +2895,15 @@ const t: Record<string, string> = {
   "puzzleSecondNoBridge": "Pas de pont",
   "puzzleSecondToPrev": "Vers le précédent",
   "puzzleNextStep": "Étape suivante",
+  "teachLogicClueFull": "Le nombre est déjà atteint : les autres cases de cet indice ne reçoivent rien.",
+  "teachLogicClueNeedsAll": "L'indice demande exactement autant que de cases libres restantes : elles sont donc toutes prises.",
+  "teachLogicOnlyPlace": "Il n'a nulle part ailleurs où aller : seulement ici.",
+  "teachLogicRuleOut": "Écarté : cette option enfreindrait une règle.",
+  "teachLogicAllAgree": "Toutes les options restantes sont d'accord ici : c'est donc la réponse.",
+  "teachLogicPair": "Ces cases sont liées : si tu connais l'une, tu connais l'autre.",
+  "teachLogicConnect": "Sinon, une partie du plateau serait coupée du reste.",
+  "teachLogicNoShortLoop": "Sinon, une boucle se fermerait là où elle ne doit pas.",
+  "teachLogicTrial": "Aucune technique simple ne suffit : ici, le solveur a essayé des options.",
   "puzzleSelect": "Saisir",
   "numberRun": "Course des nombres",
   "numberRunRule": "Guide ton nombre sur la route : le bleu ajoute, le rouge retranche. Devant un poteau, choisis le côté selon la somme de sa pile ; devant les murs, le plus petit moins. Le tremplin vert te propulse par-dessus une brèche et un gros rouge. À l’arrivée, ton nombre brise autant de murs qu’il le peut.",
@@ -3431,5 +3449,10 @@ const t: Record<string, string> = {
   "sdkRule_between": "entre les bouts",
   "sdkRule_lockout": "verrou",
   "sdkRule_xv": "XV",
+  "catalogSearch": "Trouver un jeu",
+  "catalogFilter": "Filtre",
+  "catalogBySection": "Sections",
+  "catalogBySkill": "Compétences",
+  "catalogNothing": "Aucun jeu ne correspond",
 };
 export default t;

@@ -5,7 +5,7 @@
  * Поддерживается руками при каждом релизе: короткие человеческие пункты
  * (не коммиты). ru/en — история версий техническая, на остальных языках
  * показывается en (переводить каждый релиз на 12 языков нереально).
- * Держим последние ~10 значимых версий, старое вычищаем.
+ * Историю не обрезаем: человек может пропустить несколько обновлений.
  */
 export interface WhatsNewEntry {
   version: string;        // '1.148.0'
@@ -15,6 +15,38 @@ export interface WhatsNewEntry {
 }
 
 export const WHATS_NEW: WhatsNewEntry[] = [
+  {
+    version: '2.56.13',
+    date: '2026-10-07',
+    ru: [
+      'Отзыв из игры снова под рукой: значок в шапке каждой игры, в паузе — сразу под «Продолжить»; кнопка «Отправить» больше не прячется под клавиатурой',
+      '«Фрактал»: портал играется — прыжок к близнецу, общий карандаш и номер близнеца',
+      'Головоломки Тэтхэма: разбор называет приём на каждом шаге',
+    ],
+    en: [
+      'Feedback from a game is back at hand: an icon in every game header and right below Resume in the pause menu; Send no longer hides under the keyboard',
+      'Fractal: portals are playable — jump to the twin, shared pencil marks and the twin number',
+      'Tatham puzzles: the walkthrough names the technique at every step',
+    ],
+  },
+  {
+    version: '2.56.12',
+    date: '2026-10-04',
+    ru: [
+      'После обновления показываются все изменения с последней просмотренной версии, включая пропущенные выпуски',
+      'Светлую, тёмную или системную тему можно выбрать в настройках — выбор сохраняется и применяется в играх',
+      'Учитель судоку объясняет на отдельной доске; ответы и подсказки делают попытку учебной, без повышения уровня',
+      'Поиск игр на главной и в каталоге; полная справка и обратная связь доступны из паузы',
+      'Обновлены порталы и пометки в «Бездне», разбор «Фрактала» и решатель «Товаров»',
+    ],
+    en: [
+      'After an update, see every change since your last viewed version, including skipped releases',
+      'Choose light, dark or system appearance in Settings — your choice persists and applies to games',
+      'The Sudoku teacher uses a separate board; revealed answers and hints mark an attempt as practice, without level advancement',
+      'Find games from Home and the catalog; full help and feedback are available in Pause',
+      'Updated Abyss portals and notes, Fractal review and the Goods solver',
+    ],
+  },
   {
     version: '2.56.11',
     date: '2026-10-02',
@@ -89,14 +121,14 @@ export const WHATS_NEW: WhatsNewEntry[] = [
       'Новое: «Конь и ферзи» (восемь ферзей и обход конём), «Кто спрятался?» с вопросами «или», «Кошки» с уровнями по настоящей трудности',
       '«Тоны» на Android: слоги звучат живыми записями, линии тона вместо значков',
       '«Паттерны» больше не подсказывают ответ последним шагом',
-      'Головоломки и MindLab — на 12 языках',
+      'Головоломки и новые игры — на 12 языках',
     ],
     en: [
       'All games and puzzle modes are back in the hubs — 40 cards had gone missing from the lists',
       'New: Knights & Queens (eight queens and the knight\'s tour), Who Is Hiding? with "or" questions, Cats with levels by real difficulty',
       'Tones on Android: syllables play as real recordings, with tone lines instead of symbols',
       'Patterns no longer give the answer away on the last step',
-      'Puzzles and MindLab are in 12 languages',
+      'Puzzles and new games are in 12 languages',
     ],
   },
   {

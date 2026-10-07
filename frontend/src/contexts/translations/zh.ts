@@ -2,6 +2,15 @@
 // 493 ключей, переведены с английской базы. Не править руками — регенерировать воркфлоу.
 // Вычитка: Claude 12.06.2026 (skillAttention/skillFocus swap, 序列记忆, 主访问码). При регенерации воркфлоу — НЕ затирать, мерджить через git diff.
 const t: Record<string, string> = {
+  "theme_selection": "外观",
+  "theme_light": "浅色",
+  "theme_dark": "深色",
+  "theme_system": "跟随系统",
+  "theme_profile": "个人模式默认",
+  "sudokuTryIndependently": "独立尝试",
+  "sudokuPracticeOnly": "练习尝试 — 不提升等级或评分。",
+  "sudokuLessonUnavailable": "目前没有同等难度的其他棋盘用于单独教学。",
+  "sudokuPracticeExample": "独立练习示例",
   "home": "首页",
   "statistics": "统计",
   "settings": "设置",
@@ -2891,6 +2900,15 @@ const t: Record<string, string> = {
   "puzzleSecondNoBridge": "无桥",
   "puzzleSecondToPrev": "连到上一格",
   "puzzleNextStep": "下一步",
+  "teachLogicClueFull": "数字已经够了——这条提示的其余格子不再分到任何东西。",
+  "teachLogicClueNeedsAll": "提示需要的数量正好等于剩下的空格数——所以这些格子全都要占上。",
+  "teachLogicOnlyPlace": "它没有别的地方可去——只能在这里。",
+  "teachLogicRuleOut": "排除：这个选项会违反规则。",
+  "teachLogicAllAgree": "剩下的所有可能在这里都一样——所以答案就是它。",
+  "teachLogicPair": "这些格子相互关联：知道一个，就知道另一个。",
+  "teachLogicConnect": "否则棋盘的一部分会被隔断。",
+  "teachLogicNoShortLoop": "否则会在不该出现的地方形成闭环。",
+  "teachLogicTrial": "简单的技巧解决不了：这里求解器尝试了多种可能。",
   "puzzleSelect": "选取",
   "numberRun": "数字奔跑",
   "numberRunRule": "驾着你的数字沿路前进：蓝色加，红色减。遇到立柱，按两边数字之和选一侧；遇到墙，选减得最少的那面。绿色跳板把你抛过断口，也能越过大红数字。到终点，你的数字能撞破多少面墙就撞破多少。",
@@ -3436,5 +3454,10 @@ const t: Record<string, string> = {
   "sdkRule_between": "两端之间",
   "sdkRule_lockout": "锁线",
   "sdkRule_xv": "XV",
+  "catalogSearch": "查找游戏",
+  "catalogFilter": "筛选",
+  "catalogBySection": "分区",
+  "catalogBySkill": "能力",
+  "catalogNothing": "没有匹配的游戏",
 };
 export default t;

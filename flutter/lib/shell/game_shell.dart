@@ -150,6 +150,9 @@ class GameShell extends StatelessWidget {
               onRules: onRules ?? _rulesByRoute(context),
               onLesson: onLesson,
               onPause: () => _pause(context),
+              // Отзыв из игры — значком в шапке, а не только пунктом паузы (задача e780e5b0):
+              // нативная игра закрывает плавающую веб-кнопку, и 2.56.11 не давал написать вовсе.
+              onFeedback: GameExit.feedback,
               levelRuleTitle: hasRule ? L.t(LevelRules.textKey(spot.gameId, ruleKey, 'title')) : null,
               onLevelRule: hasRule ? () => showLevelRule(context, spot.gameId, ruleKey) : null,
             ),
@@ -199,7 +202,7 @@ class GameShell extends StatelessWidget {
    */
   /// Справка по адресу открытой игры; null — правила для неё нет.
   VoidCallback? _rulesByRoute(BuildContext context) {
-    final key = GameRules.keyFor(GameRules.currentRoute);
+    final key = GameRules.fullKeyFor(GameRules.currentRoute);
     if (key == null) return null;
     return () => showGameRules(context, title: title, ruleKey: key);
   }
@@ -234,6 +237,8 @@ class GameShell extends StatelessWidget {
       // (game_clock.dart, задача 430d1299). Без этого игра под паузой жила дальше.
       builder: (_) => GameHoldScope(
         child: _PauseScreen(
+          title: title,
+          ruleKey: GameRules.fullKeyFor(GameRules.currentRoute),
           hud: hud,
           actions: actions,
           onLeave: () => _leave(context),
@@ -252,6 +257,8 @@ class GameShell extends StatelessWidget {
 class GameExit {
   /// Ставит [HybridApp]; пусто — значит главной нет (настольная проба), и пункт не рисуем.
   static VoidCallback? home;
+  /// Opens the shared feedback form without leaving/restarting the game.
+  static VoidCallback? feedback;
 }
 
 /// Пауза во весь экран — как в веб-версии, а не лист снизу.
@@ -260,7 +267,10 @@ class GameExit {
 /// главной кнопкой, ниже служебные пункты, и ДВА ухода в конце. Лист снизу на три
 /// пункта, который стоял здесь до этого, не давал ни выхода, ни счётчиков.
 class _PauseScreen extends StatelessWidget {
-  const _PauseScreen({required this.hud, required this.actions, required this.onLeave});
+  const _PauseScreen({required this.title, this.ruleKey, required this.hud, required this.actions, required this.onLeave});
+
+  final String title;
+  final String? ruleKey;
 
   final List<HudItem> hud;
   final List<PauseAction> actions;
@@ -339,9 +349,26 @@ class _PauseScreen extends StatelessWidget {
                 child: SingleChildScrollView(
                   child: Column(
                     children: [
+                      Text(title, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700)),
+                      // «Продолжить» и «Отзыв» — над блоком правил (задача e780e5b0): блок до 280 px
+                      // уводил отзыв за нижний край, и найти его можно было только прокруткой.
                       button(L.t('exitConfirmStay'), Icons.play_arrow,
                           () => Navigator.of(context).pop(),
                           primary: true, key: const Key('pause-resume')),
+                      if (GameExit.feedback != null)
+                        button(L.t('feedbackFabLabel'), Icons.chat_bubble_outline,
+                            GameExit.feedback!, key: const Key('pause-feedback')),
+                      if (ruleKey != null)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          child: SizedBox(
+                            height: (MediaQuery.sizeOf(context).height * .35).clamp(100.0, 280.0),
+                            child: SingleChildScrollView(
+                              key: const Key('pause-rules'),
+                              child: Text(L.t(ruleKey!), style: const TextStyle(fontSize: 16, height: 1.35)),
+                            ),
+                          ),
+                        ),
                       for (final a in actions)
                         button(a.label, a.icon, () {
                           Navigator.of(context).pop();
@@ -394,6 +421,7 @@ class _Header extends StatelessWidget {
     this.onPause,
     this.onLevelRule,
     this.levelRuleTitle,
+    this.onFeedback,
   });
   final String title;
   final VoidCallback? onBack;
@@ -402,9 +430,16 @@ class _Header extends StatelessWidget {
   final VoidCallback? onPause;
   final VoidCallback? onLevelRule;
   final String? levelRuleTitle;
+  final VoidCallback? onFeedback;
 
+  // На узком окне кнопки шапки компактнее: с отзывом их бывает до шести плюс питомец,
+  // и на 320 px ряд обычных 48-px кнопок не помещается.
   @override
-  Widget build(BuildContext context) => Padding(
+  Widget build(BuildContext context) => IconButtonTheme(
+      data: IconButtonThemeData(
+          style: IconButton.styleFrom(
+              visualDensity: MediaQuery.sizeOf(context).width < 380 ? VisualDensity.compact : null)),
+      child: Padding(
         padding: const EdgeInsets.fromLTRB(8, 6, 8, 2),
         child: Row(
           children: [
@@ -442,11 +477,18 @@ class _Header extends StatelessWidget {
               ),
             if (onRules != null)
               IconButton(onPressed: onRules, icon: const Icon(Icons.help_outline), tooltip: L.t('btn_rules')),
+            if (onFeedback != null)
+              IconButton(
+                key: const Key('game-feedback'),
+                onPressed: onFeedback,
+                icon: const Icon(Icons.chat_bubble_outline),
+                tooltip: L.t('feedbackFabLabel'),
+              ),
             if (onBack != null)
               IconButton(onPressed: onBack, icon: const Icon(Icons.arrow_back), tooltip: L.t('back')),
           ],
         ),
-      );
+      ));
 }
 
 class _HudRow extends StatelessWidget {

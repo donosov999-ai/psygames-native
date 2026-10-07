@@ -17,6 +17,7 @@ on:
     branches: [main]
     paths:
       - 'flutter/**'
+      - 'packages/practice_kit/**'
       - '.github/workflows/flutter-pilot.yml'
       - 'frontend/src/contexts/LanguageContext.tsx'
       - 'frontend/src/contexts/translations/**'
@@ -27,6 +28,7 @@ on:
   pull_request:
     paths:
       - 'flutter/**'
+      - 'packages/practice_kit/**'
       - '.github/workflows/flutter-pilot.yml'
       - 'frontend/src/contexts/LanguageContext.tsx'
       - 'frontend/src/contexts/translations/**'
@@ -103,6 +105,15 @@ jobs:
         run: flutter analyze
       - name: Пробы — все зелёные
         run: flutter test --reporter expanded
+      # Практики — общий пакет с «Умным будильником» (packages/practice_kit): ядро,
+      # каталог, вибрация с нативной частью. Его пробы — здесь же: починка пакета
+      # уходит в оба приложения, и проверяться должна до слияния, а не после.
+      - name: Пакет practice_kit — анализатор и пробы
+        working-directory: packages/practice_kit
+        run: |
+          flutter pub get
+          flutter analyze
+          flutter test --reporter expanded
 
   android:
     name: Сборка Android (вес для замера)

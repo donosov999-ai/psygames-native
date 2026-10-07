@@ -141,6 +141,8 @@ void main() {
 
     await tester.tap(find.byTooltip(L.t('teachPause')));
     await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('9×9 · Средне'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('9×9 · Средне'));
     await tester.pumpAndSettle();
     expect(sideOf(tester), 9, reason: 'выбран 9×9');

@@ -102,7 +102,12 @@ void main() {
   testWidgets('🔴 «Самурай», «Фрактал», «Бездна»', (tester) async {
     await expectEnglish(tester, 'Самурай', SamuraiScreen(state: state), ready: cell);
     await expectEnglish(tester, 'Фрактал', FractalScreen(state: state));
-    await expectEnglish(tester, 'Бездна', DeepScreen(state: state));
+    // Первый вход «Бездны» — окно настройки: карточка «как играть», объём, ступени.
+    await expectEnglish(tester, 'Бездна', DeepScreen(state: state), also: () {
+      final howTo = find.byKey(const Key('deep-howto'));
+      expect(howTo, findsOneWidget, reason: 'первый вход «Бездны» — с карточкой «как играть»');
+      expect(tester.widget<Text>(howTo).data, startsWith('The first grid is the top.'));
+    });
   });
 
   testWidgets('🔴 «Кошки» и «Кто спрятался?»', (tester) async {

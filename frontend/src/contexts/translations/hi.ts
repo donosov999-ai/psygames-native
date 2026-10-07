@@ -5,6 +5,15 @@
 //   Аббревиатуры тестов (Stroop/SDMT/WCST/N-back/BART/SET/Cloze...) оставлены латиницей — международные термины.
 //   ⚠️ Стилистику деванагари подтвердить носителем. При регенерации воркфлоу — НЕ затирать, мерджить через git diff.
 const t: Record<string, string> = {
+  "theme_selection": "रूप",
+  "theme_light": "हल्का",
+  "theme_dark": "गहरा",
+  "theme_system": "सिस्टम",
+  "theme_profile": "प्रोफ़ाइल डिफ़ॉल्ट",
+  "sudokuTryIndependently": "स्वयं प्रयास करें",
+  "sudokuPracticeOnly": "अभ्यास प्रयास — स्तर या रेटिंग नहीं बढ़ती।",
+  "sudokuLessonUnavailable": "अलग पाठ के लिए इस कठिनाई का कोई दूसरा बोर्ड उपलब्ध नहीं है।",
+  "sudokuPracticeExample": "अलग अभ्यास उदाहरण",
   "home": "होम",
   "statistics": "आँकड़े",
   "settings": "सेटिंग्स",
@@ -2894,6 +2903,15 @@ const t: Record<string, string> = {
   "puzzleSecondNoBridge": "कोई पुल नहीं",
   "puzzleSecondToPrev": "पिछले से जोड़ें",
   "puzzleNextStep": "अगला चरण",
+  "teachLogicClueFull": "संख्या पहले ही पूरी हो चुकी है — इस संकेत के बाकी खानों को कुछ नहीं मिलेगा।",
+  "teachLogicClueNeedsAll": "संकेत को ठीक उतने ही चाहिए जितने खाली खाने बचे हैं — इसलिए सभी भरे जाएँगे।",
+  "teachLogicOnlyPlace": "इसके लिए और कोई जगह नहीं है — सिर्फ़ यहीं।",
+  "teachLogicRuleOut": "हटा दिया: यह विकल्प किसी नियम को तोड़ देता।",
+  "teachLogicAllAgree": "बची हुई सभी संभावनाएँ यहाँ एक जैसी हैं — इसलिए उत्तर यही है।",
+  "teachLogicPair": "ये खाने जुड़े हुए हैं: एक पता हो तो दूसरा भी पता चल जाता है।",
+  "teachLogicConnect": "वरना बोर्ड का एक हिस्सा कट जाएगा।",
+  "teachLogicNoShortLoop": "वरना वहाँ एक बंद घेरा बन जाता जहाँ उसे नहीं होना चाहिए।",
+  "teachLogicTrial": "कोई आसान तरकीब यहाँ काम नहीं करती: यहाँ हल करने वाले ने विकल्प आज़माए।",
   "puzzleSelect": "चुनें",
   "numberRun": "अंक दौड़",
   "numberRunRule": "अपनी संख्या को सड़क पर चलाइए: नीला जोड़ता है, लाल घटाता है। खंभे के आगे उस तरफ़ जाइए जिसके ढेर का जोड़ बड़ा हो; दीवारों पर सबसे छोटा घटाव चुनिए। हरा रैंप खाई के पार और बड़ी लाल संख्या के ऊपर से उछाल देता है। अंत में आपकी संख्या जितनी दीवारें तोड़ सके, तोड़ देती है।",
@@ -3439,5 +3457,10 @@ const t: Record<string, string> = {
   "sdkRule_between": "सिरों के बीच",
   "sdkRule_lockout": "ताला",
   "sdkRule_xv": "XV",
+  "catalogSearch": "खेल खोजें",
+  "catalogFilter": "फ़िल्टर",
+  "catalogBySection": "खंड",
+  "catalogBySkill": "कौशल",
+  "catalogNothing": "कोई खेल नहीं मिला",
 };
 export default t;

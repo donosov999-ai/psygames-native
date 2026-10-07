@@ -2,6 +2,15 @@
 // 493 ключей, переведены с английской базы. Не править руками — регенерировать воркфлоу.
 // zh/hi — машинное качество, нужна вычитка нативом до сторов.
 const t: Record<string, string> = {
+  "theme_selection": "Darstellung",
+  "theme_light": "Hell",
+  "theme_dark": "Dunkel",
+  "theme_system": "System",
+  "theme_profile": "Profilstandard",
+  "sudokuTryIndependently": "Selbst versuchen",
+  "sudokuPracticeOnly": "Übungsversuch — keine Erhöhung von Level oder Wertung.",
+  "sudokuLessonUnavailable": "Für eine eigene Lektion ist kein anderes Brett dieser Schwierigkeit verfügbar.",
+  "sudokuPracticeExample": "Separates Übungsbeispiel",
   "home": "Start",
   "statistics": "Statistik",
   "settings": "Einstellungen",
@@ -2891,6 +2900,15 @@ const t: Record<string, string> = {
   "puzzleSecondNoBridge": "Keine Brücke",
   "puzzleSecondToPrev": "Zum Vorgänger",
   "puzzleNextStep": "Nächster Schritt",
+  "teachLogicClueFull": "Die Zahl ist schon erreicht – die übrigen Felder dieses Hinweises bekommen nichts.",
+  "teachLogicClueNeedsAll": "Der Hinweis braucht genau so viele, wie freie Felder übrig sind – also sind alle belegt.",
+  "teachLogicOnlyPlace": "Es gibt keinen anderen Platz dafür – nur hier.",
+  "teachLogicRuleOut": "Ausgeschlossen: Diese Möglichkeit würde eine Regel brechen.",
+  "teachLogicAllAgree": "Alle verbleibenden Möglichkeiten stimmen hier überein – also ist das die Antwort.",
+  "teachLogicPair": "Diese Felder hängen zusammen: Kennst du eins, kennst du das andere.",
+  "teachLogicConnect": "Sonst wäre ein Teil des Feldes abgeschnitten.",
+  "teachLogicNoShortLoop": "Sonst würde sich eine Schleife schließen, wo keine sein darf.",
+  "teachLogicTrial": "Mit einem einfachen Kniff geht das nicht: Hier hat der Löser Möglichkeiten durchprobiert.",
   "puzzleSelect": "Greifen",
   "numberRun": "Zahlenlauf",
   "numberRunRule": "Lenke deine Zahl über die Straße: Blau addiert, Rot zieht ab. An einem Pfosten wählst du die Seite nach der Summe ihres Stapels, an Wänden das kleinere Minus. Die grüne Rampe schleudert dich über eine Lücke und über ein großes Rot. Im Ziel durchbricht deine Zahl so viele Wände, wie sie schafft.",
@@ -3436,5 +3454,10 @@ const t: Record<string, string> = {
   "sdkRule_between": "Zwischenlinie",
   "sdkRule_lockout": "Sperrlinie",
   "sdkRule_xv": "XV",
+  "catalogSearch": "Spiel suchen",
+  "catalogFilter": "Filter",
+  "catalogBySection": "Bereiche",
+  "catalogBySkill": "Fähigkeiten",
+  "catalogNothing": "Keine passenden Spiele",
 };
 export default t;
