@@ -92,6 +92,7 @@ import 'home_screen.dart';
 import 'profile_switcher.dart';
 import 'screen_ui.dart';
 import 'native_tabs.dart';
+import 'stats_screen.dart';
 import 'walking_pet.dart';
 import 'web_theme.dart';
 import '../games/sorting_hub/screen.dart';
@@ -629,7 +630,7 @@ class _HybridAppState extends State<HybridApp> {
   }
 
   /// Нативные вкладки в порядке детей тела после страницы (индекс 0 — страница).
-  static const _bodyTabs = [HomeScreen.route, '/games'];
+  static const _bodyTabs = [HomeScreen.route, '/games', StatsScreen.route];
 
   /// Что показывает тело: страницу (0) или нативную вкладку.
   ///
@@ -1245,6 +1246,8 @@ class _HybridAppState extends State<HybridApp> {
               )
             else
               const SizedBox.shrink(),
+            // «Прогресс» по модели веба (6ff4a966): считает страница под ним на `/statistics`.
+            StatsScreen(onTab: _selectTab),
           ],
         ),
       ),

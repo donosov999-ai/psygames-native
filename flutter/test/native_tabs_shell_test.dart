@@ -15,6 +15,7 @@ import 'package:psygames_flutter/shell/hybrid_app.dart';
 import 'package:psygames_flutter/shell/level_rules.dart';
 import 'package:psygames_flutter/shell/native_tabs.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
+import 'package:psygames_flutter/shell/stats_screen.dart';
 import 'package:psygames_flutter/shell/walking_pet.dart';
 import 'package:psygames_flutter/shell/web_game_screen.dart';
 import 'package:psygames_flutter/shell/web_theme.dart';
@@ -399,8 +400,8 @@ void main() {
     // Вещь — на месте нулевого кадра, в долях размера.
     expect(t.getRect(find.byKey(const ValueKey('pet-accessory'))).topLeft,
         Offset(r.left + 0.27 * 56, r.top - 0.2 * 56));
-    // Нет на веб-вкладке.
-    await t.tap(find.byKey(const ValueKey('native-tab-/statistics')));
+    // Нет на веб-вкладке (там гуляет питомец самой страницы). «Прогресс» с 07.10 нативный — берём «Зарядку».
+    await t.tap(find.byKey(const ValueKey('native-tab-/warmup-picker')));
     await t.pump();
     expect(find.byKey(const ValueKey('walking-pet-body')), findsNothing);
   });
@@ -488,7 +489,7 @@ void main() {
     await settle(t, () => find.byKey(const ValueKey('home-header')).evaluate().isNotEmpty);
     expect(find.byKey(const ValueKey('home-header')), findsOneWidget);
     expect(t.widget<NativeTabBar>(find.byType(NativeTabBar)).active, '/');
-    expect(page().js.any((s) => s.contains('window.__psyHostScreens=["/","#switcher"]')), isTrue,
+    expect(page().js.any((s) => s.contains('window.__psyHostScreens=["/","#switcher","/statistics"]')), isTrue,
         reason: 'веб узнаёт, какие экраны рисуем мы');
     // Вкладка «Игры» и назад — Главная та же, модель жива.
     await toGames(t);
@@ -529,6 +530,41 @@ void main() {
     Navigator.of(t.element(find.byType(NativeTabBar, skipOffstage: false))).pop();
     await settle(t, () => page().js.any((s) => s.contains('["/"].refresh(')));
     expect(page().js.any((s) => s.contains('["/"].refresh(')), isTrue);
+  });
+
+  Map<String, Object?> statsModel() =>
+      (jsonDecode(File('test/fixtures/stats_model.json').readAsStringSync()) as Map).cast<String, Object?>();
+
+  testWidgets('🔴 вкладка «Прогресс» — нативный экран по модели страницы; охват уходит вебу действием', (t) async {
+    await mount(t);
+    await t.tap(find.byKey(const ValueKey('native-tab-/statistics')));
+    await t.pump();
+    expect(page().js.any((s) => s.contains('__psyReplace("/statistics")')), isTrue, reason: 'страница уведена на тот же адрес');
+    expect(find.byKey(const ValueKey('stats-loading')), findsOneWidget, reason: 'модели ещё нет — ждём');
+    page().emit(SharedState.channel, {'op': 'screenUi', 'route': StatsScreen.route, 'model': statsModel()});
+    await settle(t, () => find.byKey(const ValueKey('stats-screen')).evaluate().isNotEmpty);
+    expect(active(t), '/statistics');
+    expect(find.byKey(const ValueKey('stats-hero')), findsOneWidget);
+    page().js.clear();
+    await t.tap(find.byKey(const ValueKey('stats-scope-all')));
+    await t.pump();
+    expect(page().js.any((s) => s.contains('["/statistics"].scope(true)')), isTrue);
+    // Адрес от страницы (ссылка «Прогресс» с Главной) тоже выбирает вкладку, а не страницу.
+    await toGames(t);
+    await route(t, '/statistics');
+    expect(active(t), '/statistics');
+    expect(find.byKey(const ValueKey('stats-hero')), findsOneWidget);
+  });
+
+  testWidgets('«Прогресс» без модели 6 с — сама страница; модель пришла — нативный', (t) async {
+    await mount(t);
+    await route(t, '/statistics');
+    await t.pump(const Duration(seconds: 7));
+    await t.pump();
+    expect(find.byType(WebViewWidget), findsOneWidget, reason: 'страница видна (не за сценой)');
+    page().emit(SharedState.channel, {'op': 'screenUi', 'route': StatsScreen.route, 'model': statsModel()});
+    await settle(t, () => find.byKey(const ValueKey('stats-screen')).evaluate().isNotEmpty);
+    expect(find.byKey(const ValueKey('stats-hero')), findsOneWidget);
   });
 }
 
