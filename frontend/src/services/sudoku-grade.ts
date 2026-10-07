@@ -27,6 +27,7 @@ import {
   Cell, Variant, ThermoPN, ArrowMap, CageMap, isValid, generatePuzzle, shuffle, HYPER_BOXES, ORTHO,
   Overlays, levelConfig, UnequalMap, TowersMap, towersLineOk, WHISPER_GAP, renbanOk, lineCells, regionSumOk, palindromeOk, betweenOk, lockoutOk, xvOk, XvMap, LittleKillerClue, littleKillerOk, littleKillerCells, XsumsClues, xsumsOk, cipherOk, encodeCipher,
 } from './sudoku-core';
+import { borderCounts, samePartition, solvePartition } from './sudoku-chaos';
 
 export type Technique =
   | 'naked_single'    // в клетке остался один кандидат
@@ -51,6 +52,7 @@ export type Technique =
   | 'little_killer_sum'  // малый киллер: кандидат вне коридора суммы диагонали по кандидатам соседей
   | 'xsum_clue'  // X-суммы: первая цифра X без раскладки суммы первых X клеток; коридор суммы внутри них
   | 'cipher_code'  // шифр: кандидаты одной буквы общие; однозначная буква забирает свою цифру у остальных
+  | 'region_border'  // самосборка: границы областей выведены по подсказкам границ и напечатанным цифрам (sudoku-chaos.ts)
   | 'guess';          // логики не хватило — нужен перебор
 
 export const TECHNIQUE_TIER: Record<Technique, number> = {
@@ -58,6 +60,7 @@ export const TECHNIQUE_TIER: Record<Technique, number> = {
   little_killer_sum: 4,   // малый киллер: класс выводов варианта
   xsum_clue: 4,   // X-суммы: класс выводов варианта
   cipher_code: 4,   // шифр: класс выводов варианта
+  region_border: 4,   // самосборка: вывод границ — класс выводов варианта
   lockout_window: 4,   // замок: кандидат вне годной пары концов lockout-линии
   between_window: 4,   // между концами: кандидат вне любого окна между концами линии
   // Палиндром: кандидаты зеркальных клеток пересекаются. Ступень 4 — как у всего КЛАССА выводов
@@ -2519,11 +2522,65 @@ function generateFog(
   return { ...base, gen: { ...base.gen, fog: Array.from({ length: N }, () => Array(N).fill(1)) }, fellBack: true };
 }
 
+/**
+ * 🔴 САМОСБОРКА — МЕРА (пункт 12, задача 6cee3610). Сначала разбиение: подсказки границ и
+ * напечатанные цифры (`solvePartition`, перенос решателя «Палисада» + свой вывод на цифрах); не
+ * выведено целиком — доска не решается. Потом цифры — мерой кривых блоков по выведенным областям.
+ * Ступень — не ниже 4 (`region_border`), длина и цена — сумма двух слоёв.
+ */
+export function gradeChaos(puzzle: Cell[][], clues: number[][], N: number, BR: number, BC: number, tierCap = 9): Grade & { regions: number[][] | null } {
+  const pt = TECHNIQUE_TIER.region_border;
+  const part = tierCap >= pt ? solvePartition(clues, puzzle, N) : { regions: null, passes: 0, byDigits: 0 };
+  if (!part.regions) return { solved: false, tier: TECHNIQUE_TIER.guess, hardest: 'guess', steps: part.passes, cost: part.passes * pt, regions: null };
+  const g = gradePuzzle(puzzle, { N, BR, BC, variant: 'jigsaw', regions: part.regions }, tierCap);
+  const steps = g.steps + part.passes, cost = g.cost + part.passes * pt;
+  if (!g.solved) return { ...g, steps, cost, regions: part.regions };
+  return { ...g, tier: Math.max(g.tier, pt), hardest: g.tier > pt ? g.hardest : 'region_border', steps, cost, regions: part.regions };
+}
+
+/**
+ * Доска самосборки: логическая доска кривых блоков (`generateLogical` 'jigsaw'), её разбиение
+ * прячется, взамен — подсказки границ. Снимаются все, без которых разбиение по-прежнему выводится
+ * (как у `palisade.c`: «strip away unnecessary clues»). Решатель «Палисада» не всесилен — при
+ * всех подсказках он выводит разбиение у 13 досок из 18 (замер 07.10), поэтому заходы повторяются,
+ * как и у Тэтхэма. Не вышло в бюджет — обычная доска, `fellBack`.
+ */
+function generateChaos(
+  level: number, blanksCap: number, N: number, BR: number, BC: number,
+  opts: { budgetMs?: number; tier?: { min: number; max: number }; digCap?: number },
+): { gen: GeneratedPuzzle; grade: Grade; dug: number; fellBack: boolean; budgetSpent: boolean } {
+  const deadline = Date.now() + (opts.budgetMs ?? 2200);
+  for (let attempt = 0; attempt < 24; attempt++) {
+    const left = deadline - Date.now();
+    if (attempt > 0 && left <= 0) break;
+    const base = generateLogical(level, blanksCap, N, BR, BC, 'jigsaw', { ...opts, budgetMs: Math.max(400, left) });
+    const regions = base.gen.regions;
+    if (!regions || base.fellBack) continue;
+    const puzzle = base.gen.puzzle;
+    const all = borderCounts(regions, N);
+    const first = solvePartition(all, puzzle, N);
+    if (!first.regions || !samePartition(first.regions, regions)) continue;
+    const clues = all.map((row) => [...row]);
+    for (const p of shuffle(Array.from({ length: N * N }, (_, i) => i))) {
+      const r = Math.floor(p / N), c = p % N, keep = clues[r][c];
+      clues[r][c] = -1;
+      const s = solvePartition(clues, puzzle, N);
+      if (!s.regions || !samePartition(s.regions, regions)) clues[r][c] = keep;
+    }
+    const { regions: _hidden, ...rest } = base.gen;
+    void _hidden;   // разбиение игроку не показывается — его выводят
+    return { gen: { ...rest, chaos: clues }, grade: gradeChaos(puzzle, clues, N, BR, BC), dug: base.dug, fellBack: false, budgetSpent: Date.now() >= deadline };
+  }
+  const plain = generateLogical(level, blanksCap, N, BR, BC, 'none', opts);
+  return { ...plain, fellBack: true };
+}
+
 export function generateLogical(
   level: number, blanksCap: number, N: number, BR: number, BC: number, variant: Variant,
   opts: { budgetMs?: number; tier?: { min: number; max: number }; digCap?: number; fogSeeds?: number } = {},
 ): { gen: GeneratedPuzzle; grade: Grade; dug: number; fellBack: boolean; budgetSpent: boolean } {
   if (variant === 'fog') return generateFog(level, blanksCap, N, BR, BC, opts);
+  if (variant === 'chaos') return generateChaos(level, blanksCap, N, BR, BC, opts);
   const budget = opts.budgetMs ?? 2200;
   // Лимит копания ступени (`digCap` в levelConfig); явное число — для замеров и гейтов.
   const digCap = opts.digCap ?? levelConfig(level).digCap;

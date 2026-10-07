@@ -245,6 +245,7 @@ class BoardGeometry {
     this.xsums,
     this.cipher,
     this.fog,
+    this.chaos,
   });
   final List<List<int>>? regions;
   final List<List<ThermoLink?>>? thermo;
@@ -293,6 +294,10 @@ class BoardGeometry {
   /// Туман: окна старта (1 — открыто). Что открыто сейчас, выводит `fogRevealed` из сетки.
   final List<List<int>>? fog;
 
+  /// Самосборка: подсказка границ в клетке — сколько её сторон лежат на границе области (край доски
+  /// тоже граница), −1 — подсказки нет. Самих областей у доски нет: их выводит игрок.
+  final List<List<int>>? chaos;
+
   static BoardGeometry fromJson(Map<String, Object?> v) => BoardGeometry(
         regions: v['regions'] == null ? null : _grid(v['regions']),
         thermo: v['thermo'] == null
@@ -316,6 +321,7 @@ class BoardGeometry {
         xsums: SandwichClues.fromJson(v['xsums']),
         cipher: v['cipher'] == null ? null : _grid(v['cipher']),
         fog: v['fog'] == null ? null : _grid(v['fog']),
+        chaos: v['chaos'] == null ? null : _grid(v['chaos']),
         whisper: v['whisper'] == null
             ? null
             : (v['whisper'] as List)
@@ -443,14 +449,14 @@ bool isValid(
 
   // Блок или регион кривых блоков.
   final regions = g.regions;
-  if (variant == 'jigsaw' && regions != null) {
+  if ((variant == 'jigsaw' || variant == 'chaos') && regions != null) {
     final reg = regions[r][c];
     for (var i = 0; i < n; i++) {
       for (var j = 0; j < n; j++) {
         if (regions[i][j] == reg && grid[i][j] == val) return false;
       }
     }
-  } else {
+  } else if (variant != 'chaos') {   // самосборка: блоков нет, области игрок выводит сам
     final r0 = (r ~/ br) * br, c0 = (c ~/ bc) * bc;
     for (var i = 0; i < br; i++) {
       for (var j = 0; j < bc; j++) {
