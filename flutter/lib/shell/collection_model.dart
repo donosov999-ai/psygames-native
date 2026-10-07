@@ -3,6 +3,7 @@ import 'dart:math' as math;
 
 import 'asset_json.dart';
 import 'l10n.dart';
+import 'playlist_fields.dart';
 import 'shared_state.dart';
 import 'web_theme.dart';
 
@@ -43,7 +44,7 @@ Map<String, Object?>? _json(String? raw) {
 List<Figure> figuresWith(List<Figure> base, SharedState state) {
   final saved = _json(state.get('psygames_playlists_override'));
   // `загрузить` веба: без раздела «профили» состав не читается вовсе.
-  final own = saved != null && saved['профили'] is Map ? saved['коллекция'] : null;
+  final own = saved != null && saved[PlaylistFields.profiles] is Map ? saved[PlaylistFields.collection] : null;
   if (own is! Map) return base;
   return [for (final f in base) own[f.key] is num ? (key: f.key, at: (own[f.key] as num).toInt(), face: f.face, nameKey: f.nameKey) : f];
 }
