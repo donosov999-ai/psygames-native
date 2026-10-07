@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:ui' show PlatformDispatcher;
 
-import 'package:flutter/foundation.dart' show visibleForTesting;
+import 'package:flutter/foundation.dart' show ChangeNotifier, visibleForTesting;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'l10n.dart';
@@ -34,7 +34,7 @@ import 'l10n.dart';
 /// Поэтому рядом с префиксом живёт ЯВНЫЙ список исключений [extraKeys], а гейт
 /// `bridge_carries_every_web_key_test.dart` сверяет его с живым исходником веба:
 /// появится второй голый ключ — проба покраснеет и назовёт его.
-class SharedState {
+class SharedState extends ChangeNotifier {
   SharedState(this._prefs);
 
   static const prefix = 'psygames_';
@@ -114,12 +114,20 @@ class SharedState {
 
   Future<void> set(String key, String value) async {
     if (!owns(key)) return;
+    final changed = get(key) != value;
     await _prefs.setString(key, value);
+    if (changed && (key == 'psygames_theme_override' || key == 'psygames_active_profile')) {
+      notifyListeners();
+    }
   }
 
   Future<void> remove(String key) async {
     if (!owns(key)) return;
+    final changed = get(key) != null;
     await _prefs.remove(key);
+    if (changed && (key == 'psygames_theme_override' || key == 'psygames_active_profile')) {
+      notifyListeners();
+    }
   }
 
   /// Ключ уровня ровно в том виде, в каком его пишет нынешняя веб-сборка.

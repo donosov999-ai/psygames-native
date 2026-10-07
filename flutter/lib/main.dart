@@ -4,6 +4,7 @@ import 'games/dots_connect/screen.dart';
 import 'games/digit_span/screen.dart';
 import 'games/one_line/screen.dart';
 import 'shell/asset_server.dart';
+import 'shell/app_theme.dart';
 import 'shell/game_clock.dart';
 import 'shell/game_rules.dart';
 import 'shell/l10n.dart';
@@ -59,9 +60,12 @@ class PsyGamesPilotApp extends StatelessWidget {
   final AssetServer server;
 
   @override
-  Widget build(BuildContext context) => MaterialApp(
+  Widget build(BuildContext context) => ListenableBuilder(
+      listenable: state,
+      builder: (context, _) => MaterialApp(
         title: 'PsyGames — пилот Flutter',
         debugShowCheckedModeBanner: false,
+        themeMode: appThemeMode(state),
         theme: ThemeData(colorSchemeSeed: const Color(0xFF7F7FD5), useMaterial3: true),
         darkTheme: ThemeData(
           colorSchemeSeed: const Color(0xFF7F7FD5),
@@ -69,7 +73,7 @@ class PsyGamesPilotApp extends StatelessWidget {
           useMaterial3: true,
         ),
         home: HybridApp(state: state, server: server),
-      );
+      ));
 }
 
 /// Список того, что есть. Настоящей главной у пилота нет.
