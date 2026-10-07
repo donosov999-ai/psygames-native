@@ -83,8 +83,15 @@ void main() {
     expect(state.get(SettingsScreen.devChat), '0', reason: "appFeedback.ts: on ? '1' : '0'");
     await tap(t, 'settings-pet');
     expect(state.get(SettingsScreen.pet), '0', reason: "pet.ts: on ? '1' : '0'");
-    await tap(t, 'settings-theme');
-    expect(state.get(AppLook.overrideKey), anyOf('dark', 'light'));
+    // Тема — четыре варианта, как у веба с 2.56.12: «по профилю» ключ удаляет (ThemeContext.setThemeMode).
+    await tap(t, 'settings-theme-dark');
+    expect(state.get(AppLook.overrideKey), 'dark');
+    await tap(t, 'settings-theme-system');
+    expect(state.get(AppLook.overrideKey), 'system');
+    await tap(t, 'settings-theme-light');
+    expect(state.get(AppLook.overrideKey), 'light');
+    await tap(t, 'settings-theme-profile');
+    expect(state.get(AppLook.overrideKey), isNull, reason: "веб: mode === 'profile' → removeItem");
   });
 
   testWidgets('громкость: ±10 в пределах 0…100, ползунок спрятан при выключенном звуке', (t) async {

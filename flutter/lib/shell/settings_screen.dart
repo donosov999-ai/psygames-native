@@ -138,13 +138,62 @@ class _SettingsScreenState extends State<SettingsScreen> {
   double get _petScale =>
       (double.tryParse(_s.get(SettingsScreen.petScale) ?? '') ?? 1).clamp(SettingsScreen.petMin, SettingsScreen.petMax);
 
+  /// Выбор темы — ряд из четырёх, ключи словаря литералами (сборщик видит только `L.t('…')`).
+  Widget _themeChoice({required bool dark}) {
+    final mode = switch (_s.get(AppLook.overrideKey)) { 'light' => 'light', 'dark' => 'dark', 'system' => 'system', _ => 'profile' };
+    final accent = AppLook.accentOf(_s);
+    Color tok(String n) => AppLook.token(n, dark: dark);
+    final labels = {
+      'light': L.t('theme_light'),
+      'dark': L.t('theme_dark'),
+      'system': L.t('theme_system'),
+      'profile': L.t('theme_profile'),
+    };
+    // Та же карточка, что у соседних строк (`card` в build): фон surface, отступ 8.
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(color: tok('surface'), borderRadius: BorderRadius.circular(16)),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(children: [
+          Icon(dark ? Icons.dark_mode : Icons.light_mode, color: accent, size: 24),
+          const SizedBox(width: 12),
+          Text(L.t('theme_selection'), style: TextStyle(color: tok('text'), fontSize: 16, fontWeight: FontWeight.w500)),
+        ]),
+        const SizedBox(height: 12),
+        Wrap(spacing: 8, runSpacing: 8, children: [
+          for (final m in const ['light', 'dark', 'system', 'profile'])
+            ChoiceChip(
+              key: Key('settings-theme-$m'),
+              label: Text(labels[m]!),
+              selected: mode == m,
+              selectedColor: accent,
+              labelStyle: TextStyle(color: mode == m ? Colors.white : tok('text'), fontWeight: FontWeight.w600),
+              backgroundColor: tok('card'),
+              side: BorderSide(color: tok('border')),
+              showCheckmark: false,
+              onSelected: (_) => _setTheme(m),
+            ),
+        ]),
+      ]),
+    );
+  }
+
   Future<void> _put(String key, String value) async {
     await _s.set(key, value);
     if (mounted) setState(() {});
   }
 
-  Future<void> _setTheme(bool dark) async {
-    await _s.set(AppLook.overrideKey, dark ? 'dark' : 'light');
+  /// 🔴 ТЕМА — ЧЕТЫРЕ ВАРИАНТА, КАК У ВЕБА С 2.56.12 (`settings.tsx`, `ThemeContext.setThemeMode`):
+  /// светлая / тёмная / системная пишут `psygames_theme_override`, «по профилю» ключ УДАЛЯЕТ.
+  /// Всё приложение перекрашивает `app_theme.dart` (MaterialApp слушает общую память), этот
+  /// экран — `AppLook` тем же правилом.
+  Future<void> _setTheme(String mode) async {
+    if (mode == 'profile') {
+      await _s.remove(AppLook.overrideKey);
+    } else {
+      await _s.set(AppLook.overrideKey, mode);
+    }
     AppLook.refresh(_s);
     if (mounted) setState(() {});
   }
@@ -712,7 +761,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               padding: const EdgeInsets.fromLTRB(20, 0, 20, 28),
               child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
               if (_profiles.list.isNotEmpty) _profileSection(dark: dark),
-              toggle('theme', dark ? Icons.dark_mode : Icons.light_mode, L.t('darkTheme'), dark, _setTheme),
+              _themeChoice(dark: dark),
               toggle('sound', _sound ? Icons.volume_up : Icons.volume_off, L.t('label_sound'), _sound,
                   (v) => _put(SettingsScreen.sound, '$v')),
               // Громкость — только при включённом звуке (задача fe7f2020): ползунок под

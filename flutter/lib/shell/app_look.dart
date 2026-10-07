@@ -1,6 +1,7 @@
 library;
 
 import 'dart:convert';
+import 'dart:ui' show PlatformDispatcher;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -56,6 +57,8 @@ class AppLook {
   static bool isDark(SharedState s) {
     final o = s.get(overrideKey);
     if (o == 'dark' || o == 'light') return o == 'dark';
+    // «Системная» (с 2.56.12, как `appThemeMode` в app_theme.dart) — яркость телефона.
+    if (o == 'system') return PlatformDispatcher.instance.platformBrightness == Brightness.dark;
     return _profile(s.activeProfile)['mood'] != 'light';
   }
 
