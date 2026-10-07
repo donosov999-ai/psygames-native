@@ -557,7 +557,22 @@ if (!args['no-rules']) {
         g[r][c] = 0;
         const ok = judge(g, r, c, val);
         if (!ok && plain(g, r, c, val)) byRule++;
-        cases.push({ r, c, val, ok });
+        // Причина отказа неверной цифры — живой `rejectionReason` (словарь в выгрузке — заглушка,
+        // отдаёт КЛЮЧ): '' — молчим (базовый конфликт), иначе ключ правила или sudokuWhyNotLocal.
+        // Геометрия — полная (клетки-суммы, линии, метки): контракт функции, его и сверяет натив.
+        if (val !== sol[r][c]) {
+          const placed = g.map((row) => row.slice());
+          placed[r][c] = val;
+          const why = core.rejectionReason(placed, r, c, val, N, BR, BC, variant, 'ru', {
+            regions: extras.regions, thermo: extras.thermo, arrow: extras.arrow, cages: extras.cages,
+            unequal: extras.unequal, towers: extras.towers, parity: extras.parity, kropki: extras.kropki,
+            whisper: extras.whisper, renban: extras.renban, regionsum: extras.regionsum,
+            palindrome: extras.palindrome, between: extras.between, lockout: extras.lockout, xv: extras.xv,
+          });
+          cases.push({ r, c, val, ok, why });
+        } else {
+          cases.push({ r, c, val, ok });
+        }
       }
       const entry = { variant, n: N, br: BR, bc: BC, solution: sol, grid, extras, cases };
       if (!best || byRule > best.byRule) best = { entry, byRule };
