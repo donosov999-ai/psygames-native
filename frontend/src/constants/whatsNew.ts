@@ -16,6 +16,38 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.56.15',
+    date: '2026-10-07',
+    ru: [
+      'Новая главная: вкладки внизу, каталог «Игры» плитками с поиском, «Прогресс», календарь серии и итог оценки — быстрее и без прыжков',
+      'Новая развилка «Релаксация»: дыхание, глаза, пауза и ночной набор в одном месте; внизу главной — «Все развилки»',
+      'Питомец по умолчанию сидит у края и не закрывает «Сегодня», но здоровается и живёт; гулять по экрану — переключатель в Настройках',
+      '«Источники», «Коллекция», «Достижения» и «Лиги» открываются нативно',
+      'iOS: экран питомца больше не пустеет после возврата в приложение',
+      '«Судоку»: три новых правила — «аргайл», «малый киллер» и «X-суммы»; лестница выросла до 132 ступеней',
+      '«Судоку»: новое правило объясняется при первой встрече — со схемой, и всегда доступно из паузы',
+      '«Судоку», «Фрактальная судоку» и «Самурай»: карта уровней — можно вернуться на любой пройденный и добрать звёзды',
+      '«Судоку»: незаконченная партия в «Небоскрёбах», «Неравенствах», «Киллере» и «Свободно» продолжается с того же места',
+      'Настройки стали нативными: тема, звук, вибрация, питомец, язык — и нативные игры теперь идут за выбранной темой',
+      'Головоломки разложены по темам: отдельной развилки «Головоломки» больше нет, каждая головоломка — в своём разделе',
+      '«Корректура» — в «Поиске глазами», «Быстрый счёт» — в «Счёте», OSpan и «Мнемоника: порядок» — в «Объёме памяти»',
+    ],
+    en: [
+      'New Home: tabs at the bottom, a tiled Games catalog with search, Progress, streak calendar and assessment results — faster, no jumps',
+      'New Relaxation hub: breathing, eyes, pause and the night set in one place; an All hubs link at the bottom of Home',
+      'By default the pet sits at the edge and no longer covers Today, but still greets you and stays lively; walking around is a switch in Settings',
+      'Sources, Collection, Achievements and Leagues now open natively',
+      'iOS: the pet screen no longer goes blank after you switch back to the app',
+      'Sudoku: three new rules — Argyle, Little Killer and X-sums; the ladder grows to 132 steps',
+      'Sudoku: a new rule is explained the first time you meet it — with a diagram, and it stays one tap away in the pause menu',
+      'Sudoku, Fractal Sudoku and Samurai: a level map — go back to any level you have passed and earn more stars',
+      'Sudoku: an unfinished game in Towers, Futoshiki, Killer and Free resumes right where you left it',
+      'Settings are native now: theme, sound, vibration, pet, language — and native games follow your chosen theme',
+      'Puzzles are sorted by theme: the separate Puzzles hub is gone, every puzzle now sits in its own section',
+      'Proofread moved to Visual Search, Quick Count to Counting, OSpan and Mnemonics: Sequence to Memory Span',
+    ],
+  },
+  {
     version: '2.56.14',
     date: '2026-10-07',
     ru: [

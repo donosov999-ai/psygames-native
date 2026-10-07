@@ -26,6 +26,23 @@ export async function setPetVisible(on: boolean): Promise<void> {
   try { await AsyncStorage.setItem(PET_KEY, on ? '1' : '0'); } catch {}
 }
 
+/**
+ * ГУЛЯЕТ ЛИ ПИТОМЕЦ ПО ЭКРАНУ (решение Дениса 07.10.2026, задача ed85e191 — «питомец перекрывает
+ * «Сегодня»»): по умолчанию НЕТ. Питомец при этом НЕ выключен: сидит у края над полосой, здоровается,
+ * говорит, зевает и дремлет — нет только переходов по экрану. '1' — гуляет, как раньше.
+ * ⚠️ Отдельный ключ, а не `psygames_pet_on`: первая правка (#251) прятала питомца целиком, и вместе
+ * с прогулкой пропадали встреча и мелочи безделья — «сидит» ≠ «молчит».
+ */
+const WALK_KEY = 'psygames_pet_walk';
+export async function getPetWalks(): Promise<boolean> {
+  try { return (await AsyncStorage.getItem(WALK_KEY)) === '1'; } catch { return false; }
+}
+export async function setPetWalks(on: boolean): Promise<void> {
+  try { await AsyncStorage.setItem(WALK_KEY, on ? '1' : '0'); } catch {}
+}
+/** Живое применение тумблера «Гуляет по экрану»: настройки шлют, питомец подхватывает сразу. */
+export const PET_WALK_EVENT = 'psygames-pet-walk';
+
 /** Масштаб гуляющего питомца (ползунок в настройках): 0.6×..1.8×, дефолт 1.
  *  Касается ТОЛЬКО прогулочного оверлея — аватар в шапке и экран /pet имеют
  *  свои фиксированные размеры (там масштаб решает раскладка, не вкус). */

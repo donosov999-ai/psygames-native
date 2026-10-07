@@ -36,7 +36,8 @@ void main() {
         m.group(1)!: m.group(2)!,
     };
     final modes = {
-      for (final m in RegExp(r"^\s*'(/games/[^']+)':\s*require\('\.\./\.\./assets/images/game_icons/([^']+)'\)", multiLine: true)
+      // Адрес — любой экран (07.10.2026: «Ночная» развилки «Релаксация» на `/warmup-night`), как в выгрузке.
+      for (final m in RegExp(r"^\s*'(/[^']+)':\s*require\('\.\./\.\./assets/images/game_icons/([^']+)'\)", multiLine: true)
           .allMatches(reg))
         m.group(1)!: m.group(2)!,
     };

@@ -97,8 +97,10 @@ void main() {
      * Поэтому ищем карточку, которой в ЗАВОДСКОМ списке нет вовсе, — она может
      * прийти только из раскладки.
      */
+    // 07.10.2026: «Мосты» уехали в «Пространство» (задача 62eea286) — берём «Заливку», её тоже нет
+    // в заводском списке «Сортировки».
     final onlyFromLayout = find.byKey(
-      const ValueKey('hub-card-/games/puzzles?mode=Bridges'),
+      const ValueKey('hub-card-/games/puzzles?mode=Flood'),
       skipOffstage: false,
     );
     await tester.scrollUntilVisible(onlyFromLayout, 200,

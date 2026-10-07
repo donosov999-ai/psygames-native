@@ -1,0 +1,1406 @@
+{
+ "v": 1,
+ "activeId": "free",
+ "title": "👤 Switch profile",
+ "intro": "Each profile has its own set of games and warm-up playlist. Themed profiles unlock with an access code — tap a locked profile to see details.",
+ "closeLabel": "Close",
+ "profiles": [
+  {
+   "id": "whatsnew",
+   "name": "What's new",
+   "desc": "New and reworked over 3 months",
+   "minutes": "⏱ 5-15 min",
+   "wallet": null,
+   "badge": null,
+   "emoji": "🆕",
+   "color": "#22c55e",
+   "active": false,
+   "locked": false,
+   "tier": null
+  },
+  {
+   "id": "women",
+   "name": "Micro-relax",
+   "desc": "Addictive casual games for micro-breaks: pairs, spot-the-difference, hidden object, sudoku",
+   "minutes": "⏱ 5-10 min",
+   "wallet": null,
+   "badge": "/assets/assets/images/profiles/women.webp",
+   "emoji": "🌸",
+   "color": "#ec4899",
+   "active": false,
+   "locked": false,
+   "tier": null
+  },
+  {
+   "id": "free",
+   "name": "Standard",
+   "desc": "9 trainers · a curated set to start with",
+   "minutes": "⏱ 3-10 min",
+   "wallet": null,
+   "badge": "/assets/assets/images/profiles/free.webp",
+   "emoji": "🎁",
+   "color": "#f59e0b",
+   "active": true,
+   "locked": false,
+   "tier": {
+    "kind": "trial",
+    "text": "no code",
+    "bg": "#22c55e",
+    "fg": "#062311"
+   }
+  },
+  {
+   "id": "kids",
+   "name": "Kids 7-12",
+   "desc": "Memory · counting · reaction · no complex abstractions",
+   "minutes": "⏱ 3-5 min",
+   "wallet": null,
+   "badge": "/assets/assets/images/profiles/kids.webp",
+   "emoji": "🧒",
+   "color": "#10b981",
+   "active": false,
+   "locked": false,
+   "tier": null
+  },
+  {
+   "id": "seniors",
+   "name": "50+ Prevention",
+   "desc": "Memory · processing speed · slowing aging",
+   "minutes": "⏱ 10-15 min",
+   "wallet": null,
+   "badge": "/assets/assets/images/profiles/seniors.webp",
+   "emoji": "👴",
+   "color": "#8b5cf6",
+   "active": false,
+   "locked": false,
+   "tier": null
+  },
+  {
+   "id": "chess",
+   "name": "Chess Player",
+   "desc": "Move calculation · spatial · sustained attention",
+   "minutes": "⏱ 10-25 min",
+   "wallet": null,
+   "badge": "/assets/assets/images/profiles/chess.webp",
+   "emoji": "♟",
+   "color": "#1f2937",
+   "active": false,
+   "locked": false,
+   "tier": null
+  },
+  {
+   "id": "drivers",
+   "name": "Reaction PRO",
+   "desc": "Split-second decisions · when the cost of error is life",
+   "minutes": "⏱ 12-15 min",
+   "wallet": null,
+   "badge": "/assets/assets/images/profiles/drivers.webp",
+   "emoji": "⚡",
+   "color": "#f97316",
+   "active": false,
+   "locked": false,
+   "tier": null
+  },
+  {
+   "id": "execs",
+   "name": "Entrepreneurs",
+   "desc": "Decisions under pressure · risk · WM · flexibility",
+   "minutes": "⏱ 15-25 min",
+   "wallet": null,
+   "badge": "/assets/assets/images/profiles/execs.webp",
+   "emoji": "💼",
+   "color": "#0f766e",
+   "active": false,
+   "locked": false,
+   "tier": null
+  },
+  {
+   "id": "students",
+   "name": "Students PRO",
+   "desc": "Focus · memory · speed · SAT / GMAT / GRE / IELTS",
+   "minutes": "⏱ 10-15 min",
+   "wallet": null,
+   "badge": "/assets/assets/images/profiles/students.webp",
+   "emoji": "🎓",
+   "color": "#f97316",
+   "active": false,
+   "locked": false,
+   "tier": null
+  },
+  {
+   "id": "nzt48",
+   "name": "NZT-48 (full)",
+   "desc": "Full prefrontal battery · maximum",
+   "minutes": "⏱ 25-40 min",
+   "wallet": null,
+   "badge": "/assets/assets/images/profiles/nzt48.webp",
+   "emoji": "💊",
+   "color": "#a855f7",
+   "active": false,
+   "locked": false,
+   "tier": null
+  },
+  {
+   "id": "vasilyeva",
+   "name": "Speed Reading PRO",
+   "desc": "Visual field · eye speed · text retention",
+   "minutes": "⏱ 8-12 min",
+   "wallet": null,
+   "badge": "/assets/assets/images/profiles/vasilyeva.webp",
+   "emoji": "📖",
+   "color": "#0ea5e9",
+   "active": false,
+   "locked": false,
+   "tier": null
+  },
+  {
+   "id": "polyglot",
+   "name": "Languages / Polyglot",
+   "desc": "For languages: verbal memory · associations · fluency · scripts",
+   "minutes": "⏱ 10-15 min",
+   "wallet": null,
+   "badge": "/assets/assets/images/profiles/polyglot.webp",
+   "emoji": "🗣",
+   "color": "#6366f1",
+   "active": false,
+   "locked": false,
+   "tier": null
+  }
+ ],
+ "codeEntry": false,
+ "codeButton": "🔑 У меня уже есть код — ввести",
+ "code": {
+  "title": "🔑 Код доступа",
+  "hint": "Введи код, чтобы разблокировать тематический профиль.",
+  "placeholder": "например, CHESS-NZT-2026 или EXC-260822-A4F2-1B8C3D",
+  "cancel": "Отмена",
+  "unlock": "Разблокировать",
+  "unlockFg": "#032117",
+  "error": null,
+  "redeemed": 0
+ },
+ "details": {
+  "whatsnew": {
+   "emoji": "🆕",
+   "name": "Новинки",
+   "audience": "👥 See what changed",
+   "hook": null,
+   "hookSource": null,
+   "color": "#22c55e",
+   "long": "A shelf for fresh work: new exercises and those substantially reworked — new mechanics, new levels, a new look. Bug fixes do not go here; they live in “What’s new”. The list is computed from dates and refreshes itself: a game leaves three months after the change.",
+   "chips": [
+    "⏱ 5-15 min",
+    "☀️ Утренняя Зарядка"
+   ],
+   "gamesTitle": "🎮 Тренажёров в профиле: 15",
+   "games": [
+    {
+     "emoji": "🧠",
+     "name": "Memory Palace"
+    },
+    {
+     "emoji": "🧠",
+     "name": "Rhythm & Pitch"
+    },
+    {
+     "emoji": "🧠",
+     "name": "Navigator"
+    },
+    {
+     "emoji": "🎯",
+     "name": "Object Tracker"
+    },
+    {
+     "emoji": "🧠",
+     "name": "Faces & Names"
+    },
+    {
+     "emoji": "🧩",
+     "name": "One Line"
+    },
+    {
+     "emoji": "🧩",
+     "name": "Dots Connect"
+    },
+    {
+     "emoji": "🧩",
+     "name": "Goods Sort"
+    },
+    {
+     "emoji": "🧩",
+     "name": "Samurai"
+    },
+    {
+     "emoji": "🧩",
+     "name": "SET: Triples"
+    },
+    {
+     "emoji": "🧩",
+     "name": "Fractal Sudoku"
+    },
+    {
+     "emoji": "🎯",
+     "name": "Find Differences"
+    },
+    {
+     "emoji": "•",
+     "name": "PRL: Reversal Learning"
+    },
+    {
+     "emoji": "🧠",
+     "name": "Mahjong"
+    },
+    {
+     "emoji": "⚡",
+     "name": "Math Slider"
+    }
+   ],
+   "locked": false,
+   "soon": "🔒 Скоро",
+   "switchText": "✓ Переключиться на этот профиль",
+   "currentText": "✓ Это твой текущий профиль"
+  },
+  "women": {
+   "emoji": "🌸",
+   "name": "Микро-релакс",
+   "audience": "👥 Everyone · micro-breaks + dopamine (mostly female audience)",
+   "hook": "🌸 5 minutes of delightfully addictive downtime — guilt-free. And it genuinely trains memory.",
+   "hookSource": null,
+   "color": "#ec4899",
+   "long": "Eleven of the most binge-worthy games in a \"5 minutes in line / on the bus / before bed\" format. Genres straight from the top mobile charts — Memory Match, Find the Difference, Hidden Object (Visual Search), Wordscapes-style word puzzles, sudoku, SET, visual memory, Schulte tables, typo hunting, arcade targets. The goal is the joy of micro-wins — a dopamine hit every 30-60 seconds. Along the way it keeps memory, attention, and verbal skills in shape. For anyone who wants light cognitive downtime on a break — especially women 25-55, moms, HR and teachers, nurses, sales pros.",
+   "chips": [
+    "⏱ 5-10 min",
+    "☀️ Утренняя Зарядка",
+    "📊 G1 Assessment"
+   ],
+   "gamesTitle": "🎮 Тренажёров в профиле: 31",
+   "games": [
+    {
+     "emoji": "🧠",
+     "name": "Picture Pairs"
+    },
+    {
+     "emoji": "🧠",
+     "name": "Memory Matrix"
+    },
+    {
+     "emoji": "🎯",
+     "name": "Find Differences"
+    },
+    {
+     "emoji": "🎯",
+     "name": "Visual Search"
+    },
+    {
+     "emoji": "🎯",
+     "name": "Schulte: Attention"
+    },
+    {
+     "emoji": "🎯",
+     "name": "Proofread: Focus"
+    },
+    {
+     "emoji": "🧩",
+     "name": "Goods Sort"
+    },
+    {
+     "emoji": "🧩",
+     "name": "Test Tubes"
+    },
+    {
+     "emoji": "🧩",
+     "name": "Ball Sort"
+    },
+    {
+     "emoji": "🧩",
+     "name": "Nut Sort"
+    },
+    {
+     "emoji": "🧩",
+     "name": "Cake Sort"
+    },
+    {
+     "emoji": "🧩",
+     "name": "Pizza"
+    },
+    {
+     "emoji": "🧩",
+     "name": "Anagrams"
+    },
+    {
+     "emoji": "🧩",
+     "name": "Sudoku"
+    },
+    {
+     "emoji": "🧩",
+     "name": "SET: Triples"
+    },
+    {
+     "emoji": "⚡",
+     "name": "Targets: Reaction"
+    },
+    {
+     "emoji": "🧩",
+     "name": "Trail Making"
+    },
+    {
+     "emoji": "🧠",
+     "name": "Scholar’s mate"
+    },
+    {
+     "emoji": "🧩",
+     "name": "Dots Connect"
+    },
+    {
+     "emoji": "🧩",
+     "name": "One Line"
+    },
+    {
+     "emoji": "🧠",
+     "name": "Board in Mind"
+    },
+    {
+     "emoji": "🧠",
+     "name": "Vocab SRS"
+    },
+    {
+     "emoji": "🧠",
+     "name": "Word Sort"
+    },
+    {
+     "emoji": "🧩",
+     "name": "Cloze"
+    },
+    {
+     "emoji": "⚡",
+     "name": "Word or Not?"
+    },
+    {
+     "emoji": "🧩",
+     "name": "Phonemic Fluency (COWAT)"
+    },
+    {
+     "emoji": "🧠",
+     "name": "Story Recall: detail memory"
+    },
+    {
+     "emoji": "🎯",
+     "name": "Phonemes: Minimal Pairs"
+    },
+    {
+     "emoji": "🎯",
+     "name": "Chinese Tones"
+    },
+    {
+     "emoji": "🧠",
+     "name": "Echo: Pseudowords"
+    },
+    {
+     "emoji": "🎯",
+     "name": "Dictation"
+    }
+   ],
+   "locked": false,
+   "soon": "🔒 Скоро",
+   "switchText": "✓ Переключиться на этот профиль",
+   "currentText": "✓ Это твой текущий профиль"
+  },
+  "free": {
+   "emoji": "🎁",
+   "name": "Стандарт",
+   "audience": "👥 First look at the app",
+   "hook": "🎁 10 trainers, no code needed — one from each category.",
+   "hookSource": null,
+   "color": "#f59e0b",
+   "long": "The starter set — no code needed. One trainer from each category: Schulte tables (attention), Picture Pairs (memory), Targets (reaction), Math Sprint + Counter, Spot the Difference, Anagrams, Tower of Hanoi, Goods Sort, N-back (working memory — light version), the Scholar's Mate drill and Trail Making. Themed profiles unlock with an access code.",
+   "chips": [
+    "⏱ 3-10 min",
+    "☀️ Утренняя Зарядка"
+   ],
+   "gamesTitle": "🎮 Тренажёров в профиле: 20",
+   "games": [
+    {
+     "emoji": "🧠",
+     "name": "Picture Pairs"
+    },
+    {
+     "emoji": "🎯",
+     "name": "Schulte: Attention"
+    },
+    {
+     "emoji": "🧩",
+     "name": "Tower of Hanoi"
+    },
+    {
+     "emoji": "⚡",
+     "name": "Mental Math Sprint"
+    },
+    {
+     "emoji": "🧠",
+     "name": "N-back: Working memory"
+    },
+    {
+     "emoji": "🎯",
+     "name": "Find Differences"
+    },
+    {
+     "emoji": "🧩",
+     "name": "Anagrams"
+    },
+    {
+     "emoji": "⚡",
+     "name": "Counter: Math"
+    },
+    {
+     "emoji": "⚡",
+     "name": "Targets: Reaction"
+    },
+    {
+     "emoji": "🧩",
+     "name": "Goods Sort"
+    },
+    {
+     "emoji": "🧩",
+     "name": "Trail Making"
+    },
+    {
+     "emoji": "🧠",
+     "name": "Scholar’s mate"
+    },
+    {
+     "emoji": "🧠",
+     "name": "Word Pairs: Memory"
+    },
+    {
+     "emoji": "🧠",
+     "name": "Memory Matrix"
+    },
+    {
+     "emoji": "🎯",
+     "name": "Visual Search"
+    },
+    {
+     "emoji": "🎯",
+     "name": "Quick Count"
+    },
+    {
+     "emoji": "🧩",
+     "name": "Patterns: Reasoning"
+    },
+    {
+     "emoji": "🧠",
+     "name": "Mahjong"
+    },
+    {
+     "emoji": "🧩",
+     "name": "Tower of London"
+    },
+    {
+     "emoji": "🧠",
+     "name": "Story Recall: detail memory"
+    }
+   ],
+   "locked": false,
+   "soon": "🔒 Скоро",
+   "switchText": "✓ Переключиться на этот профиль",
+   "currentText": "✓ Это твой текущий профиль"
+  },
+  "kids": {
+   "emoji": "🧒",
+   "name": "Дети 7-12",
+   "audience": "👥 Kids 7-12, parents",
+   "hook": "🧒 A learning center in your pocket. 5 minutes after school — visible progress by the end of the term.",
+   "hookSource": null,
+   "color": "#10b981",
+   "long": "Ten games a 7-12 year old understands with no explanation needed: picture pairs, spot the difference, Tower of Hanoi, mental math, Schulte tables, target reaction, anagrams, 6×6 sudoku. Sessions are short (3-5 min), with positive reinforcement and personal records. Great for parents, learning centers, and elementary school.",
+   "chips": [
+    "⏱ 3-5 min",
+    "☀️ Утренняя Зарядка"
+   ],
+   "gamesTitle": "🎮 Тренажёров в профиле: 27",
+   "games": [
+    {
+     "emoji": "🧠",
+     "name": "Picture Pairs"
+    },
+    {
+     "emoji": "🎯",
+     "name": "Find Differences"
+    },
+    {
+     "emoji": "🧩",
+     "name": "Tower of Hanoi"
+    },
+    {
+     "emoji": "⚡",
+     "name": "Targets: Reaction"
+    },
+    {
+     "emoji": "🧠",
+     "name": "Memory Matrix"
+    },
+    {
+     "emoji": "🧠",
+     "name": "Memory Palace"
+    },
+    {
+     "emoji": "🎯",
+     "name": "Schulte: Attention"
+    },
+    {
+     "emoji": "🧩",
+     "name": "Anagrams"
+    },
+    {
+     "emoji": "⚡",
+     "name": "Mental Math Sprint"
+    },
+    {
+     "emoji": "⚡",
+     "name": "Counter: Math"
+    },
+    {
+     "emoji": "🧩",
+     "name": "Sudoku"
+    },
+    {
+     "emoji": "🧩",
+     "name": "Dots Connect"
+    },
+    {
+     "emoji": "🧩",
+     "name": "One Line"
+    },
+    {
+     "emoji": "🎯",
+     "name": "Object Tracker"
+    },
+    {
+     "emoji": "🧠",
+     "name": "Scholar’s mate"
+    },
+    {
+     "emoji": "🧩",
+     "name": "Trail Making"
+    },
+    {
+     "emoji": "🧠",
+     "name": "Board in Mind"
+    },
+    {
+     "emoji": "🧠",
+     "name": "Vocab SRS"
+    },
+    {
+     "emoji": "🧠",
+     "name": "Word Sort"
+    },
+    {
+     "emoji": "🧩",
+     "name": "Cloze"
+    },
+    {
+     "emoji": "⚡",
+     "name": "Word or Not?"
+    },
+    {
+     "emoji": "🧩",
+     "name": "Phonemic Fluency (COWAT)"
+    },
+    {
+     "emoji": "🧠",
+     "name": "Story Recall: detail memory"
+    },
+    {
+     "emoji": "🎯",
+     "name": "Phonemes: Minimal Pairs"
+    },
+    {
+     "emoji": "🎯",
+     "name": "Chinese Tones"
+    },
+    {
+     "emoji": "🧠",
+     "name": "Echo: Pseudowords"
+    },
+    {
+     "emoji": "🎯",
+     "name": "Dictation"
+    }
+   ],
+   "locked": false,
+   "soon": "🔒 Скоро",
+   "switchText": "✓ Переключиться на этот профиль",
+   "currentText": "✓ Это твой текущий профиль"
+  },
+  "seniors": {
+   "emoji": "👴",
+   "name": "50+ профилактика",
+   "audience": "👥 Adults 50-75+, medical centers, active-aging programs",
+   "hook": "👴 Slow cognitive aging by 7-10 years. 15 minutes a day — critical for prevention.",
+   "hookSource": "📚 ACTIVE trial — Rebok et al., 2014, JAMA Intern Med — 10 hours speed training → effects persist 10+ years (N=2832)",
+   "color": "#8b5cf6",
+   "long": "A program designed to slow cognitive aging. Memory (Picture Pairs, Memory Matrix, Word Pairs, Mnemonics), processing speed (SDMT — the gold standard), executive function (Trail Making A+B), attention (Schulte tables), everyday arithmetic (Counter, Anagrams). No heavy working-memory-under-load tasks. Suited for self-guided practice and medical centers.",
+   "chips": [
+    "⏱ 10-15 min",
+    "☀️ Утренняя Зарядка",
+    "📊 G1 Assessment"
+   ],
+   "gamesTitle": "🎮 Тренажёров в профиле: 20",
+   "games": [
+    {
+     "emoji": "🧠",
+     "name": "Picture Pairs"
+    },
+    {
+     "emoji": "🎯",
+     "name": "Schulte: Attention"
+    },
+    {
+     "emoji": "🧠",
+     "name": "Mnemonics: Sequence"
+    },
+    {
+     "emoji": "⚡",
+     "name": "SDMT: Symbol→Digit"
+    },
+    {
+     "emoji": "🧠",
+     "name": "Memory Matrix"
+    },
+    {
+     "emoji": "🧠",
+     "name": "Word Pairs: Memory"
+    },
+    {
+     "emoji": "🧩",
+     "name": "Trail Making"
+    },
+    {
+     "emoji": "⚡",
+     "name": "Counter: Math"
+    },
+    {
+     "emoji": "🧩",
+     "name": "Anagrams"
+    },
+    {
+     "emoji": "🧠",
+     "name": "Faces & Names"
+    },
+    {
+     "emoji": "🧠",
+     "name": "Navigator"
+    },
+    {
+     "emoji": "🧠",
+     "name": "Memory Palace"
+    },
+    {
+     "emoji": "🧩",
+     "name": "Dots Connect"
+    },
+    {
+     "emoji": "🧠",
+     "name": "Scholar’s mate"
+    },
+    {
+     "emoji": "🧠",
+     "name": "Story Recall: detail memory"
+    },
+    {
+     "emoji": "🧠",
+     "name": "Reading Span: Memory"
+    },
+    {
+     "emoji": "🎯",
+     "name": "Quick Count"
+    },
+    {
+     "emoji": "⚡",
+     "name": "Number Bonds: Math"
+    },
+    {
+     "emoji": "🧠",
+     "name": "Word Sort"
+    },
+    {
+     "emoji": "🎯",
+     "name": "Eye Gymnastics"
+    }
+   ],
+   "locked": false,
+   "soon": "🔒 Скоро",
+   "switchText": "✓ Переключиться на этот профиль",
+   "currentText": "✓ Это твой текущий профиль"
+  },
+  "chess": {
+   "emoji": "♟",
+   "name": "Шахматист",
+   "audience": "👥 Chess players, coaches, chess schools",
+   "hook": "♟ Train what Carlsen and Caruana work on between tournaments. +100-150 ELO in 3 months.",
+   "hookSource": "📚 Burgoyne et al., 2016, Intelligence — meta-analysis chess+cognition (r=0.24 fluid intelligence ↔ ELO)",
+   "color": "#1f2937",
+   "long": "Trains the cognitive functions that matter most in chess: spatial visualization of positions (Mental Rotation), planning moves ahead (Tower of London), holding a calculation line in mind (N-back), sustained attention through long games (CPT, 4-12 min). Suited for tournament players rated 1500+ ELO and for coaches.",
+   "chips": [
+    "⏱ 10-25 min",
+    "☀️ Утренняя Зарядка",
+    "📊 G1 Assessment"
+   ],
+   "gamesTitle": "🎮 Тренажёров в профиле: 28",
+   "games": [
+    {
+     "emoji": "🧠",
+     "name": "Corsi Blocks"
+    },
+    {
+     "emoji": "🎯",
+     "name": "CPT: Sustained Attention"
+    },
+    {
+     "emoji": "🧩",
+     "name": "Tower of London"
+    },
+    {
+     "emoji": "⚡",
+     "name": "Choice RT: Speed"
+    },
+    {
+     "emoji": "🧩",
+     "name": "Mental Rotation"
+    },
+    {
+     "emoji": "🧩",
+     "name": "Spatial Lab"
+    },
+    {
+     "emoji": "🧩",
+     "name": "Patterns: Reasoning"
+    },
+    {
+     "emoji": "🧩",
+     "name": "SET: Triples"
+    },
+    {
+     "emoji": "🧩",
+     "name": "Sudoku"
+    },
+    {
+     "emoji": "🎯",
+     "name": "Schulte: Attention"
+    },
+    {
+     "emoji": "🧠",
+     "name": "Board in Mind"
+    },
+    {
+     "emoji": "🧠",
+     "name": "Scholar’s mate"
+    },
+    {
+     "emoji": "🧩",
+     "name": "Dots Connect"
+    },
+    {
+     "emoji": "🧩",
+     "name": "One Line"
+    },
+    {
+     "emoji": "🧠",
+     "name": "Navigator"
+    },
+    {
+     "emoji": "🎯",
+     "name": "Object Tracker"
+    },
+    {
+     "emoji": "🧩",
+     "name": "Anagrams"
+    },
+    {
+     "emoji": "🧩",
+     "name": "Trail Making"
+    },
+    {
+     "emoji": "🧠",
+     "name": "Vocab SRS"
+    },
+    {
+     "emoji": "🧠",
+     "name": "Word Sort"
+    },
+    {
+     "emoji": "🧩",
+     "name": "Cloze"
+    },
+    {
+     "emoji": "⚡",
+     "name": "Word or Not?"
+    },
+    {
+     "emoji": "🧩",
+     "name": "Phonemic Fluency (COWAT)"
+    },
+    {
+     "emoji": "🧠",
+     "name": "Story Recall: detail memory"
+    },
+    {
+     "emoji": "🎯",
+     "name": "Phonemes: Minimal Pairs"
+    },
+    {
+     "emoji": "🎯",
+     "name": "Chinese Tones"
+    },
+    {
+     "emoji": "🧠",
+     "name": "Echo: Pseudowords"
+    },
+    {
+     "emoji": "🎯",
+     "name": "Dictation"
+    }
+   ],
+   "locked": false,
+   "soon": "🔒 Скоро",
+   "switchText": "✓ Переключиться на этот профиль",
+   "currentText": "✓ Это твой текущий профиль"
+  },
+  "drivers": {
+   "emoji": "⚡",
+   "name": "Реакция ПРО",
+   "audience": "👥 Pilots · surgeons · controllers · military · pro drivers",
+   "hook": "⚡ Decisions in seconds. Training for those whose cost of error = a life.",
+   "hookSource": "📚 Roenker et al., 2003, Human Factors — speed-of-processing training cuts driving errors by 31% (vs control)",
+   "color": "#f97316",
+   "long": "A program for professions where reaction is mission-critical: pilots, surgeons, air and rail traffic controllers, military personnel, critical care physicians, professional drivers (including F1, rally, VIP). The same cognitive paradigms research links to split-second accuracy under stress: sustained attention (CPT), choice reaction (Choice RT, Targets), rapid peripheral scanning (Visual Search, Find Differences), impulse inhibition (Attention Conflict), executive switching (Trail Making), context retention (N-back). Used in medical and aviation training.",
+   "chips": [
+    "⏱ 12-15 min",
+    "☀️ Утренняя Зарядка",
+    "📊 G1 Assessment"
+   ],
+   "gamesTitle": "🎮 Тренажёров в профиле: 20",
+   "games": [
+    {
+     "emoji": "🧠",
+     "name": "N-back: Working memory"
+    },
+    {
+     "emoji": "🎯",
+     "name": "CPT: Sustained Attention"
+    },
+    {
+     "emoji": "🧩",
+     "name": "Trail Making"
+    },
+    {
+     "emoji": "⚡",
+     "name": "Choice RT: Speed"
+    },
+    {
+     "emoji": "🎯",
+     "name": "Schulte: Attention"
+    },
+    {
+     "emoji": "🎯",
+     "name": "Visual Search"
+    },
+    {
+     "emoji": "🎯",
+     "name": "Find Differences"
+    },
+    {
+     "emoji": "⚡",
+     "name": "Targets: Reaction"
+    },
+    {
+     "emoji": "⚡",
+     "name": "Attention Conflict"
+    },
+    {
+     "emoji": "🧠",
+     "name": "Navigator"
+    },
+    {
+     "emoji": "🧩",
+     "name": "Anagrams"
+    },
+    {
+     "emoji": "🧠",
+     "name": "Scholar’s mate"
+    },
+    {
+     "emoji": "🎯",
+     "name": "Posner Cuing: Attention"
+    },
+    {
+     "emoji": "🎯",
+     "name": "ANT: Attention Networks"
+    },
+    {
+     "emoji": "⚡",
+     "name": "SDMT: Symbol→Digit"
+    },
+    {
+     "emoji": "🧩",
+     "name": "Task Switching"
+    },
+    {
+     "emoji": "🎯",
+     "name": "Quick Count"
+    },
+    {
+     "emoji": "⚡",
+     "name": "Counter: Math"
+    },
+    {
+     "emoji": "⚡",
+     "name": "Math Slider"
+    },
+    {
+     "emoji": "🎯",
+     "name": "Proofread: Focus"
+    }
+   ],
+   "locked": false,
+   "soon": "🔒 Скоро",
+   "switchText": "✓ Переключиться на этот профиль",
+   "currentText": "✓ Это твой текущий профиль"
+  },
+  "execs": {
+   "emoji": "💼",
+   "name": "Предприниматели",
+   "audience": "👥 CEOs, business owners, executive coaching",
+   "hook": "💼 Better decisions under pressure. A mistake costs a million — training costs 15 minutes a day.",
+   "hookSource": null,
+   "color": "#0f766e",
+   "long": "Trains the skills business runs on: risk assessment (BART, Iowa, PRL — three classic paradigms), working memory under load (Dual N-back), sustained attention (CPT), impulse control (Stroop/Flanker), multitasking (Switching), strategic planning (Tower of London), trend recognition (Pattern). Includes Financial Brain Day every 2 weeks.",
+   "chips": [
+    "⏱ 15-25 min",
+    "☀️ Утренняя Зарядка",
+    "💰 Financial Brain Day",
+    "📊 G1 Assessment"
+   ],
+   "gamesTitle": "🎮 Тренажёров в профиле: 20",
+   "games": [
+    {
+     "emoji": "🧠",
+     "name": "N-back: Working memory"
+    },
+    {
+     "emoji": "🎯",
+     "name": "CPT: Sustained Attention"
+    },
+    {
+     "emoji": "🧩",
+     "name": "Tower of London"
+    },
+    {
+     "emoji": "⚡",
+     "name": "Attention Conflict"
+    },
+    {
+     "emoji": "•",
+     "name": "BART: Risk Balloon"
+    },
+    {
+     "emoji": "•",
+     "name": "Iowa: 4 Decks"
+    },
+    {
+     "emoji": "•",
+     "name": "PRL: Reversal Learning"
+    },
+    {
+     "emoji": "🧩",
+     "name": "Task Switching"
+    },
+    {
+     "emoji": "⚡",
+     "name": "Mental Math Sprint"
+    },
+    {
+     "emoji": "🧩",
+     "name": "Dots Connect"
+    },
+    {
+     "emoji": "🧩",
+     "name": "One Line"
+    },
+    {
+     "emoji": "🧠",
+     "name": "Faces & Names"
+    },
+    {
+     "emoji": "🧠",
+     "name": "Memory Palace"
+    },
+    {
+     "emoji": "🧩",
+     "name": "Anagrams"
+    },
+    {
+     "emoji": "🧠",
+     "name": "Scholar’s mate"
+    },
+    {
+     "emoji": "🧩",
+     "name": "Trail Making"
+    },
+    {
+     "emoji": "•",
+     "name": "WCST: Rules"
+    },
+    {
+     "emoji": "🧠",
+     "name": "Reading Span: Memory"
+    },
+    {
+     "emoji": "🧩",
+     "name": "SET: Triples"
+    },
+    {
+     "emoji": "⚡",
+     "name": "Counter: Math"
+    }
+   ],
+   "locked": false,
+   "soon": "🔒 Скоро",
+   "switchText": "✓ Переключиться на этот профиль",
+   "currentText": "✓ Это твой текущий профиль"
+  },
+  "students": {
+   "emoji": "🎓",
+   "name": "Студенты PRO",
+   "audience": "👥 High schoolers · GMAT/GRE/IELTS/TOEFL candidates · MBA prep",
+   "hook": "🎓 3.5 hours of GMAT without focus fading. A perfect score on high-stakes exams. Get your brain marathon-ready.",
+   "hookSource": "📚 Sala & Gobet, 2017, Educational Research Review — cognitive training improves academic outcomes (d=0.30 transfer effect)",
+   "color": "#f97316",
+   "long": "Gets your brain ready for MARATHON exams — Russian state exams (EGE/OGE) and international ones (GMAT 3.5 h, GRE 3.7 h, IELTS 2.8 h, TOEFL 3 h, SAT 3.0 h). Speed arithmetic (Math Sprint, Counter — critical for the GMAT/GRE quant section), working memory while reading (Reading Span — for long passages in reading comp), information retention (Story Recall), long-haul concentration (Schulte tables, N-back), pattern recognition (Pattern — Quantitative Reasoning), verbal flexibility (Anagrams — verbal section), visual memory (Memory Matrix — diagrams/charts). Suited for self-study, tutoring centers, and MBA-prep schools.",
+   "chips": [
+    "⏱ 10-15 min",
+    "☀️ Утренняя Зарядка",
+    "📊 G1 Assessment"
+   ],
+   "gamesTitle": "🎮 Тренажёров в профиле: 20",
+   "games": [
+    {
+     "emoji": "🧠",
+     "name": "Reading Span: Memory"
+    },
+    {
+     "emoji": "🎯",
+     "name": "Schulte: Attention"
+    },
+    {
+     "emoji": "🧩",
+     "name": "Patterns: Reasoning"
+    },
+    {
+     "emoji": "⚡",
+     "name": "Mental Math Sprint"
+    },
+    {
+     "emoji": "🧠",
+     "name": "N-back: Working memory"
+    },
+    {
+     "emoji": "🧠",
+     "name": "Story Recall: detail memory"
+    },
+    {
+     "emoji": "🧠",
+     "name": "Memory Matrix"
+    },
+    {
+     "emoji": "🧩",
+     "name": "Anagrams"
+    },
+    {
+     "emoji": "⚡",
+     "name": "Counter: Math"
+    },
+    {
+     "emoji": "🧠",
+     "name": "Memory Palace"
+    },
+    {
+     "emoji": "🧠",
+     "name": "Faces & Names"
+    },
+    {
+     "emoji": "🧩",
+     "name": "Dots Connect"
+    },
+    {
+     "emoji": "🧩",
+     "name": "One Line"
+    },
+    {
+     "emoji": "🧠",
+     "name": "Scholar’s mate"
+    },
+    {
+     "emoji": "🧩",
+     "name": "Trail Making"
+    },
+    {
+     "emoji": "🧠",
+     "name": "Mnemonics: Sequence"
+    },
+    {
+     "emoji": "🧠",
+     "name": "Word Pairs: Memory"
+    },
+    {
+     "emoji": "🧩",
+     "name": "Cloze"
+    },
+    {
+     "emoji": "🧠",
+     "name": "Listening Span"
+    },
+    {
+     "emoji": "🎯",
+     "name": "Proofread: Focus"
+    }
+   ],
+   "locked": false,
+   "soon": "🔒 Скоро",
+   "switchText": "✓ Переключиться на этот профиль",
+   "currentText": "✓ Это твой текущий профиль"
+  },
+  "nzt48": {
+   "emoji": "💊",
+   "name": "NZT-48 (полный)",
+   "audience": "👥 Biohackers, serious cognitive training",
+   "hook": "💊 NZT-48 from the movie — but real. A full CANTAB-grade prefrontal battery.",
+   "hookSource": "📚 Jaeggi et al., 2008, PNAS — Dual N-back training improves fluid intelligence (transfer effect on IQ, d=0.65)",
+   "color": "#a855f7",
+   "long": "The public counterpart of the personal program built by Denis. Nine of the most science-backed trainers: Dual N-back (WM), CPT (sustained attention), Mental Rotation 3D (spatial), Stroop/Flanker (inhibition), Switching (flexibility), Tower of London (planning), SDMT (speed), BART (risk), Phonemic Fluency (verbal). A 25-40 minute program. Includes Financial Brain Day every 2 weeks.",
+   "chips": [
+    "⏱ 25-40 min",
+    "☀️ Утренняя Зарядка",
+    "💰 Financial Brain Day",
+    "📊 G1 Assessment"
+   ],
+   "gamesTitle": "🎮 Все тренажёры: 95",
+   "games": [],
+   "locked": false,
+   "soon": "🔒 Скоро",
+   "switchText": "✓ Переключиться на этот профиль",
+   "currentText": "✓ Это твой текущий профиль"
+  },
+  "vasilyeva": {
+   "emoji": "📖",
+   "name": "Скорочтение PRO",
+   "audience": "👥 Speed-reading schools · tutors · executives",
+   "hook": "📖 Visual span 30% wider by week 4. Retention of what you read +40%.",
+   "hookSource": "📚 Edwards et al., 2005, J Gerontol — UFOV training expands visual span 22-35% (10-15 hours practice)",
+   "color": "#0ea5e9",
+   "long": "Speed reading rests on 4 subsystems: ① VISUAL SPAN / periphery — capturing more words per fixation (Schulte tables); ② SACCADES — fewer eye jumps across the line (Visual Search, Proofreading); ③ RETENTION & COMPREHENSION of what you read (Reading Span, Story Recall); ④ SUPPRESSING SUBVOCALIZATION — the inner voice that caps your speed. This profile builds ①②③ through games + verbal fluency (Phonemic Fluency); ④ is trained by paced reading (RSVP mode) — a separate reading module. Used in speed-reading schools, tutoring centers, and corporate fast-reading programs for executives.",
+   "chips": [
+    "⏱ 8-12 min",
+    "☀️ Утренняя Зарядка",
+    "📊 G1 Assessment"
+   ],
+   "gamesTitle": "🎮 Тренажёров в профиле: 20",
+   "games": [
+    {
+     "emoji": "🧠",
+     "name": "Reading Span: Memory"
+    },
+    {
+     "emoji": "🎯",
+     "name": "Schulte: Attention"
+    },
+    {
+     "emoji": "🧩",
+     "name": "Anagrams"
+    },
+    {
+     "emoji": "⚡",
+     "name": "SDMT: Symbol→Digit"
+    },
+    {
+     "emoji": "🎯",
+     "name": "Visual Search"
+    },
+    {
+     "emoji": "🎯",
+     "name": "Proofread: Focus"
+    },
+    {
+     "emoji": "🎯",
+     "name": "Find Differences"
+    },
+    {
+     "emoji": "🧠",
+     "name": "Story Recall: detail memory"
+    },
+    {
+     "emoji": "🧩",
+     "name": "Phonemic Fluency (COWAT)"
+    },
+    {
+     "emoji": "🎯",
+     "name": "Object Tracker"
+    },
+    {
+     "emoji": "🧠",
+     "name": "Mnemonics: Sequence"
+    },
+    {
+     "emoji": "🧩",
+     "name": "Trail Making"
+    },
+    {
+     "emoji": "🧠",
+     "name": "Scholar’s mate"
+    },
+    {
+     "emoji": "🎯",
+     "name": "Quick Count"
+    },
+    {
+     "emoji": "🧩",
+     "name": "Cloze"
+    },
+    {
+     "emoji": "⚡",
+     "name": "Word or Not?"
+    },
+    {
+     "emoji": "🧠",
+     "name": "Word Pairs: Memory"
+    },
+    {
+     "emoji": "🧠",
+     "name": "Word Sort"
+    },
+    {
+     "emoji": "🎯",
+     "name": "Posner Cuing: Attention"
+    },
+    {
+     "emoji": "🧠",
+     "name": "Vocab SRS"
+    }
+   ],
+   "locked": false,
+   "soon": "🔒 Скоро",
+   "switchText": "✓ Переключиться на этот профиль",
+   "currentText": "✓ Это твой текущий профиль"
+  },
+  "polyglot": {
+   "emoji": "🗣",
+   "name": "Языки / Полиглот",
+   "audience": "👥 Language learners · polyglots · language courses",
+   "hook": "🗣 Build the verbal memory and fluency that language learning stands on. A brain primed for languages — alongside Duolingo, not instead of it.",
+   "hookSource": "📚 Gathercole & Baddeley, 1990, J Memory & Language — phonological working memory predicts vocabulary acquisition (foundational)",
+   "color": "#6366f1",
+   "long": "The cognitive foundation of language learning. Verbal working memory (Reading Span, OSPAN, N-back — a known predictor of how fast vocabulary is absorbed), word↔meaning associative memory (Word Pairs), word retrieval fluency (Phonemic Fluency), spelling and letter work (Anagrams), recognizing an unfamiliar script — Latin/Cyrillic/Greek/Devanagari/Hiragana/Hanzi (Proofreading and Schulte with script choice), switching between systems / bilingual control (Switching). NOT a replacement for Duolingo/Anki — it trains the cognitive systems language learning relies on. For language learners, polyglots, and language schools.",
+   "chips": [
+    "⏱ 10-15 min",
+    "☀️ Утренняя Зарядка",
+    "📊 G1 Assessment"
+   ],
+   "gamesTitle": "🎮 Тренажёров в профиле: 22",
+   "games": [
+    {
+     "emoji": "🧠",
+     "name": "Word Pairs: Memory"
+    },
+    {
+     "emoji": "🧠",
+     "name": "Vocab SRS"
+    },
+    {
+     "emoji": "🧠",
+     "name": "Word Sort"
+    },
+    {
+     "emoji": "🧩",
+     "name": "Cloze"
+    },
+    {
+     "emoji": "⚡",
+     "name": "Word or Not?"
+    },
+    {
+     "emoji": "🎯",
+     "name": "Proofread: Focus"
+    },
+    {
+     "emoji": "🧩",
+     "name": "Anagrams"
+    },
+    {
+     "emoji": "⚡",
+     "name": "SDMT: Symbol→Digit"
+    },
+    {
+     "emoji": "🧠",
+     "name": "Reading Span: Memory"
+    },
+    {
+     "emoji": "🧠",
+     "name": "OSpan: Math+Memory"
+    },
+    {
+     "emoji": "🧠",
+     "name": "N-back: Working memory"
+    },
+    {
+     "emoji": "🧩",
+     "name": "Phonemic Fluency (COWAT)"
+    },
+    {
+     "emoji": "🧩",
+     "name": "Task Switching"
+    },
+    {
+     "emoji": "🎯",
+     "name": "Phonemes: Minimal Pairs"
+    },
+    {
+     "emoji": "🧠",
+     "name": "Echo: Pseudowords"
+    },
+    {
+     "emoji": "🧠",
+     "name": "Listening Span"
+    },
+    {
+     "emoji": "🧠",
+     "name": "Rhythm & Pitch"
+    },
+    {
+     "emoji": "🧩",
+     "name": "Trail Making"
+    },
+    {
+     "emoji": "🧠",
+     "name": "Scholar’s mate"
+    },
+    {
+     "emoji": "🎯",
+     "name": "Chinese Tones"
+    },
+    {
+     "emoji": "🎯",
+     "name": "Dictation"
+    },
+    {
+     "emoji": "🧠",
+     "name": "Story Recall: detail memory"
+    }
+   ],
+   "locked": false,
+   "soon": "🔒 Скоро",
+   "switchText": "✓ Переключиться на этот профиль",
+   "currentText": "✓ Это твой текущий профиль"
+  }
+ }
+}

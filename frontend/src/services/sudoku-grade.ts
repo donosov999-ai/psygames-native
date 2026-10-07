@@ -25,7 +25,7 @@
  */
 import {
   Cell, Variant, ThermoPN, ArrowMap, CageMap, isValid, generatePuzzle, shuffle, HYPER_BOXES, ORTHO,
-  Overlays, levelConfig, UnequalMap, TowersMap, towersLineOk, WHISPER_GAP, renbanOk, lineCells, regionSumOk, palindromeOk, betweenOk, lockoutOk, xvOk, XvMap, LittleKillerClue, littleKillerOk, littleKillerCells, XsumsClues, xsumsOk,
+  Overlays, levelConfig, UnequalMap, TowersMap, towersLineOk, WHISPER_GAP, renbanOk, lineCells, regionSumOk, palindromeOk, betweenOk, lockoutOk, xvOk, XvMap, LittleKillerClue, littleKillerOk, littleKillerCells, XsumsClues, xsumsOk, cipherOk, encodeCipher,
 } from './sudoku-core';
 
 export type Technique =
@@ -50,12 +50,14 @@ export type Technique =
   | 'xv_pair'  // XV: кандидату нет пары у ПУСТОГО соседа (знак — 5/10, без знака — не 5 и не 10)
   | 'little_killer_sum'  // малый киллер: кандидат вне коридора суммы диагонали по кандидатам соседей
   | 'xsum_clue'  // X-суммы: первая цифра X без раскладки суммы первых X клеток; коридор суммы внутри них
+  | 'cipher_code'  // шифр: кандидаты одной буквы общие; однозначная буква забирает свою цифру у остальных
   | 'guess';          // логики не хватило — нужен перебор
 
 export const TECHNIQUE_TIER: Record<Technique, number> = {
   xv_pair: 4,   // XV: класс выводов варианта
   little_killer_sum: 4,   // малый киллер: класс выводов варианта
   xsum_clue: 4,   // X-суммы: класс выводов варианта
+  cipher_code: 4,   // шифр: класс выводов варианта
   lockout_window: 4,   // замок: кандидат вне годной пары концов lockout-линии
   between_window: 4,   // между концами: кандидат вне любого окна между концами линии
   // Палиндром: кандидаты зеркальных клеток пересекаются. Ступень 4 — как у всего КЛАССА выводов
@@ -122,6 +124,8 @@ export interface GradeCtx {
   littlekiller?: LittleKillerClue[];
   /** X-суммы: слева у строк и сверху у столбцов, −1 — подсказка скрыта. */
   xsums?: XsumsClues;
+  /** Шифр: номер буквы в клетке-подсказке (1..9 = A..I), 0 — не буква; клетка-буква в задании пустая. */
+  cipher?: number[][];
 }
 
 export interface Grade {
@@ -197,7 +201,7 @@ export function unitsFor(N: number, BR: number, BC: number, variant: Variant, re
 
 /** Оценка пазла: самая сложная техника, без которой не обойтись. */
 export function gradePuzzle(puzzle: Cell[][], ctx: GradeCtx, tierCap = 9): Grade {
-  const { N, BR, BC, variant, regions, thermo, arrow, cages, parity, kropki, sandwich, unequal, towers, whisper, renban, regionsum, palindrome, between, lockout, xv, littlekiller, xsums } = ctx;
+  const { N, BR, BC, variant, regions, thermo, arrow, cages, parity, kropki, sandwich, unequal, towers, whisper, renban, regionsum, palindrome, between, lockout, xv, littlekiller, xsums, cipher } = ctx;
   const grid = puzzle.map((row) => [...row]);
   const FULL = (1 << N) - 1;
   const cand: number[][] = Array.from({ length: N }, () => Array(N).fill(FULL));
@@ -301,6 +305,7 @@ export function gradePuzzle(puzzle: Cell[][], ctx: GradeCtx, tierCap = 9): Grade
         if (ok && xv && !xvOk(grid, r, c, v, xv, N)) ok = false;   // XV против известных соседей — даром
         if (ok && littlekiller && !littleKillerOk(grid, r, c, v, littlekiller, N)) ok = false;   // сумма против известных цифр — даром
         if (ok && xsums && !xsumsOk(grid, r, c, v, xsums, N)) ok = false;   // X-сумма против известных цифр — даром
+        if (ok && cipher && !cipherOk(grid, r, c, v, cipher, N)) ok = false;   // буквы против известных цифр — даром
         if (!ok) m &= ~bit(v);
       }
       cand[r][c] = m;
@@ -713,6 +718,36 @@ export function gradePuzzle(puzzle: Cell[][], ctx: GradeCtx, tierCap = 9): Grade
         if (!changed) break;
       }
       if (usedXs) bump('xsum_clue');
+    }
+
+    /**
+     * ── ШИФР: у всех клеток одной буквы кандидаты общие (пересечение; поставленная цифра — её бит),
+     * а однозначная буква забирает свою цифру у остальных букв. Срез по известным цифрам — даром,
+     * выше; свести кандидатов по всей доске и вывести код — приём игрока (`cipher_code`, ступень 4).
+     */
+    if (cipher && выводВарианта) {
+      let usedCipher = false;
+      for (let pass = 0; pass < N; pass++) {
+        let changed = false;
+        const common = new Array<number>(N + 1).fill(FULL);
+        for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+          const L = cipher[r][c];
+          if (L) common[L] &= grid[r][c] !== 0 ? bit(grid[r][c]) : cand[r][c];
+        }
+        for (let L = 1; L <= N; L++) {
+          const m = common[L];
+          if (m && (m & (m - 1)) === 0) for (let M = 1; M <= N; M++) if (M !== L) common[M] &= ~m;
+        }
+        for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+          const L = cipher[r][c];
+          if (!L || grid[r][c] !== 0) continue;
+          const next = cand[r][c] & common[L];
+          if (next !== cand[r][c]) { cand[r][c] = next; changed = true; usedCipher = true; }
+          if (next === 0) return true;
+        }
+        if (!changed) break;
+      }
+      if (usedCipher) bump('cipher_code');
     }
 
     if (unequal && выводВарианта) {
@@ -1398,6 +1433,11 @@ const VARIANT_TIER_CEILING: Partial<Record<Variant, number>> = {
    *  0,15 с на доску. Потолок 4. Рычаг трудности внутри блока — лимит копания `digCap` (64 → 70: цена
    *  129 → 151), а НЕ число показанных сумм: 12 → 6 сумм — цена 125 → 115 (замеры 07.10). */
   xsums: 5,
+  /** Шифр (план — 133+) — ЗАМЕР 07.10.2026 боевым путём (`generateLogical`, полоса 4..6, 5 цифр шифруются,
+   *  половина их подсказок — буквами), по 8 досок при лимите 64 и 70: ступень 4 у 16 из 16, приём
+   *  `cipher_code` — самый трудный у всех; без букв не решается 0 из 16, под потолком 3 — 0 из 16;
+   *  единственны 16 из 16; пустых ~54, букв ~7 (3–4 вида). Потолок 4. */
+  cipher: 4,
   /**
    * Комбо-пояс 81–92 — ЗАМЕР 29.08.2026 (combo-tiers.measure, по 15 боевых досок):
    * шестёрка у всех трёх пар — 0–1 из 15 (не массово), пятёрка достижима у всех
@@ -1616,7 +1656,7 @@ export type GeneratedPuzzle = ReturnType<typeof generatePuzzle>;
  * refilter; если конкретная попытка не укладывается в бюджет, generateLogical всё
  * равно сохраняет прежний безопасный fallback через проверку единственности.
  */
-const LOGIC_VARIANTS: readonly Variant[] = ['none', 'diagonal', 'antiknight', 'hyper', 'antiking', 'evenodd', 'kropki', 'sandwich', 'jigsaw', 'nonconsec', 'thermo', 'arrow', 'thermocage', 'sandparity', 'thermoknight', 'killerdiag', 'whisper', 'renban', 'regionsum', 'palindrome', 'between', 'lockout', 'xv', 'argyle', 'littlekiller', 'xsums'];
+const LOGIC_VARIANTS: readonly Variant[] = ['none', 'diagonal', 'antiknight', 'hyper', 'antiking', 'evenodd', 'kropki', 'sandwich', 'jigsaw', 'nonconsec', 'thermo', 'arrow', 'thermocage', 'sandparity', 'thermoknight', 'killerdiag', 'whisper', 'renban', 'regionsum', 'palindrome', 'between', 'lockout', 'xv', 'argyle', 'littlekiller', 'xsums', 'cipher'];
 
 /**
  * Сколько раз проходим доску, пытаясь убрать ещё клетку. Больше трёх бюджет обычно
@@ -1670,7 +1710,7 @@ export function solvedSameBoard(grade: Grade, solution: Cell[][]): boolean {
 function gradeOf(gen: GeneratedPuzzle, N: number, BR: number, BC: number, variant: Variant): Grade {
   return gradePuzzle(gen.puzzle, {
     N, BR, BC, variant, regions: gen.regions, thermo: gen.thermo, arrow: gen.arrow, cages: gen.cages,
-    parity: gen.parity, kropki: gen.kropki, sandwich: gen.sandwich, whisper: gen.whisper, renban: gen.renban, regionsum: gen.regionsum, palindrome: gen.palindrome, between: gen.between, lockout: gen.lockout, xv: gen.xv, littlekiller: gen.littlekiller, xsums: gen.xsums,
+    parity: gen.parity, kropki: gen.kropki, sandwich: gen.sandwich, whisper: gen.whisper, renban: gen.renban, regionsum: gen.regionsum, palindrome: gen.palindrome, between: gen.between, lockout: gen.lockout, xv: gen.xv, littlekiller: gen.littlekiller, xsums: gen.xsums, cipher: gen.cipher,
     // ⚠️ Знаки и краевые подсказки ОБЯЗАНЫ доходить до оценщика. До 27.08.2026 их
     // здесь не было, и запасной путь оценивал unequal/towers вслепую: та же доска
     // давала «ступень 2, hidden_single» без карты и «ступень 4, unequal_chain» с ней.
@@ -1687,6 +1727,10 @@ function digByLogic(
 ): { gen: GeneratedPuzzle; grade: Grade; dug: number } | null {
   const base = generatePuzzle(0, N, BR, BC, variant);   // blanks=0 → только решение и структура варианта
   const sol = base.solution;
+  // Шифр: копаем по цифрам, а мерим задачу игрока — подсказки на клетках-буквах там буквы. Сетка
+  // букв — с полной доски (blanks=0: каждая клетка-буква ещё подсказка).
+  const letters = base.cipher ?? null;
+  const view = (p: Cell[][]) => (letters ? encodeCipher(p, letters) : null);
   const puzzle = sol.map((row) => [...row]);
   // Потолок техники приходит СНАРУЖИ, когда партия идёт по дороге сложности
   // (services/sudoku-roads): у «полегче» он на ступень ниже, у «пожёстче» — выше.
@@ -1739,7 +1783,8 @@ function digByLogic(
       const keep = puzzle[r][c];
       puzzle[r][c] = 0;
       if (parity) parity[r][c] = Math.random() < dens ? (sol[r][c] % 2 === 0 ? 1 : 2) : 0;
-      const g = gradePuzzle(puzzle, ctx);
+      const enc = view(puzzle);
+      const g = enc ? gradePuzzle(enc.puzzle, { ...ctx, cipher: enc.cipher }) : gradePuzzle(puzzle, ctx);
       // Сеть безопасности: решатель обязан прийти К ТОЙ ЖЕ доске (см. solvedSameBoard).
       if (!g.solved || g.tier > max || !solvedSameBoard(g, sol)) { puzzle[r][c] = keep; if (parity) parity[r][c] = 0; }
       else { dug++; removed++; }
@@ -1750,6 +1795,8 @@ function digByLogic(
   // это нормальное судоку; гнать её на дорогой путь ради лишних клеток не стоит: замер
   // показал 4–20 с на пазл для nonconsec именно там.
   if (dug < Math.min(cap, blanksCap, 30)) return null;
+  const enc = view(puzzle);
+  if (enc) return { gen: { ...base, puzzle: enc.puzzle, cipher: enc.cipher }, grade: gradePuzzle(enc.puzzle, { ...ctx, cipher: enc.cipher }), dug };
   const gen: GeneratedPuzzle = { ...base, puzzle, parity, kropki, sandwich };
   return { gen, grade: gradePuzzle(puzzle, ctx), dug };
 }
