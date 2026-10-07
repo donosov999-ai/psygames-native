@@ -16,6 +16,26 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.56.15',
+    date: '2026-10-07',
+    ru: [
+      '«Судоку»: новое правило объясняется при первой встрече — со схемой, и всегда доступно из паузы',
+      '«Судоку», «Фрактальная судоку» и «Самурай»: карта уровней — можно вернуться на любой пройденный и добрать звёзды',
+      '«Судоку»: незаконченная партия в «Небоскрёбах», «Неравенствах», «Киллере» и «Свободно» продолжается с того же места',
+      'Настройки стали нативными: тема, звук, вибрация, питомец, язык — и нативные игры теперь идут за выбранной темой',
+      'Головоломки разложены по темам: отдельной развилки «Головоломки» больше нет, каждая головоломка — в своём разделе',
+      '«Корректура» — в «Поиске глазами», «Быстрый счёт» — в «Счёте», OSpan и «Мнемоника: порядок» — в «Объёме памяти»',
+    ],
+    en: [
+      'Sudoku: a new rule is explained the first time you meet it — with a diagram, and it stays one tap away in the pause menu',
+      'Sudoku, Fractal Sudoku and Samurai: a level map — go back to any level you have passed and earn more stars',
+      'Sudoku: an unfinished game in Towers, Futoshiki, Killer and Free resumes right where you left it',
+      'Settings are native now: theme, sound, vibration, pet, language — and native games follow your chosen theme',
+      'Puzzles are sorted by theme: the separate Puzzles hub is gone, every puzzle now sits in its own section',
+      'Proofread moved to Visual Search, Quick Count to Counting, OSpan and Mnemonics: Sequence to Memory Span',
+    ],
+  },
+  {
     version: '2.56.14',
     date: '2026-10-07',
     ru: [
