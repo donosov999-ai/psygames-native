@@ -1,4 +1,4 @@
-/* psygames-friends-screen · VER 1 · 21.08.2026 */
+/* psygames-friends-screen · VER 2 · 07.10.2026 */
 /**
  * ЭКРАН «ДРУЗЬЯ» — ВИД НА УЖЕ ОПУБЛИКОВАННЫЕ ОЧКИ, И НИЧЕГО СВЕРХ ТОГО.
  *
@@ -41,7 +41,7 @@
  * всегда на виду, а остальные пять в одном касании. Сам случай «в эту игру круг
  * не играл» экран называет по имени и прямо зовёт выбрать другую.
  */
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator, Platform, ScrollView, StyleSheet, Text, TextInput,
   TouchableOpacity, View,
@@ -54,6 +54,7 @@ import { FAB_CLEARANCE } from '@/src/services/fabPosition';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { isRTLLang } from '@/src/services/rtl';
 import { goBackOrHome } from '@/src/utils/nav';
+import { postScreenModel, registerScreenActions } from '@/src/services/hostScreens';
 import { a11yBtn, a11yHeader } from '@/src/services/a11y';
 import { LEADERBOARD_GAMES, LeaderboardGameId } from '@/src/services/leaderboard';
 import {
@@ -124,6 +125,9 @@ export default function FriendsScreen() {
   const [copied, setCopied] = useState<'ok' | 'fail' | null>(null);
   const [pending, setPending] = useState<string | null>(null);
   const [dropFailed, setDropFailed] = useState(false);
+  // Номер последнего набора из поля оболочки: она сверяет им, что модель ответила на её последний
+  // знак, и только тогда ставит в поле нормализованный код (иначе быстрый набор теряет буквы).
+  const [draftSeq, setDraftSeq] = useState(0);
 
   const loadCircle = useCallback(() => {
     let alive = true;
@@ -176,8 +180,35 @@ export default function FriendsScreen() {
     else setDropFailed(true);
   }, []);
 
+  /* Набор кода и открытие подтверждения — одним путём и для поля веба, и для поля оболочки. */
+  const onDraft = useCallback((v: string) => { setDraft(normalizeCode(v).slice(0, CODE_LEN)); setAdded(null); }, []);
+  const onAsk = useCallback((id: string) => { setPending(id); setDropFailed(false); }, []);
+
   const view = friendsView(friends, rows);
   const back = isRTLLang(language) ? 'chevron-forward' : 'chevron-back';
+
+  /**
+   * 🔴 ПОД ОБОЛОЧКОЙ «ДРУЗЕЙ» РИСУЕТ FLUTTER (задача 7bb8035b, `services/hostScreens.ts`).
+   * Модель — те же строки и те же развилки, что в разметке ниже (`friendsModel` в конце файла);
+   * сервер, нормализацию кода и правило «что рисовать» по-прежнему держит веб. Код в буфер кладёт
+   * оболочка (у скрытой страницы нет фокуса — `clipboard` откажет) и сообщает итог действием `copied`.
+   */
+  const friendsKey = JSON.stringify(friendsModel({
+    myCode, friends, rows, game, draft, draftSeq, added, sending, copied, pending, dropFailed, view, back,
+  }, t, colors));
+  useEffect(() => { postScreenModel('/friends', JSON.parse(friendsKey)); }, [friendsKey]);
+  const friendsActs = useRef({ onAdd, onDrop });
+  useEffect(() => { friendsActs.current = { onAdd, onDrop }; });
+  useEffect(() => registerScreenActions('/friends', {
+    back: () => goBackOrHome(),
+    copied: (ok: boolean) => setCopied(ok ? 'ok' : 'fail'),
+    draft: (v: string, seq: number) => { onDraft(String(v ?? '')); setDraftSeq(Number(seq) || 0); },
+    add: () => { friendsActs.current.onAdd(); },
+    game: (id: string) => { if ((GAME_IDS as string[]).includes(id)) setGame(id as LeaderboardGameId); },
+    ask: (id: string) => onAsk(String(id)),
+    cancel: () => setPending(null),
+    drop: (id: string) => { friendsActs.current.onDrop(String(id)); },
+  }), [onDraft, onAsk]);
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -227,7 +258,7 @@ export default function FriendsScreen() {
           <TextInput
             value={draft}
             /* Нормализует сервис — пробелы, дефисы и регистр это тот же код. */
-            onChangeText={(v) => { setDraft(normalizeCode(v).slice(0, CODE_LEN)); setAdded(null); }}
+            onChangeText={onDraft}
             placeholder={t('friendsCodePlaceholder')}
             placeholderTextColor={colors.textSecondary}
             autoCapitalize="characters"
@@ -353,7 +384,7 @@ export default function FriendsScreen() {
                   <Text style={[styles.name, { color: colors.text }]} numberOfLines={1}>{f.name}</Text>
                   <TouchableOpacity
                     {...a11yBtn(t('friendsRemove'))}
-                    onPress={() => { setPending(f.id); setDropFailed(false); }}
+                    onPress={() => onAsk(f.id)}
                     style={styles.dropBtn}
                   >
                     <Ionicons name="person-remove-outline" size={19} color={colors.error} />
@@ -396,6 +427,86 @@ export default function FriendsScreen() {
       </ScrollView>
     </SafeAreaView>
   );
+}
+
+type FriendsState = {
+  myCode: string | null | undefined;
+  friends: Friend[] | null | undefined;
+  rows: FriendScore[] | null | undefined;
+  game: LeaderboardGameId;
+  draft: string;
+  draftSeq: number;
+  added: AddResult | null;
+  sending: boolean;
+  copied: 'ok' | 'fail' | null;
+  pending: string | null;
+  dropFailed: boolean;
+  view: ReturnType<typeof friendsView>;
+  back: string;
+};
+
+/**
+ * Модель для оболочки — те же ключи словаря и те же развилки, что разметка экрана: пять состояний
+ * таблицы по `friendsView`, пять исходов добавления, подтверждение разрыва со словами о взаимности.
+ * Подписи-«метки» (`label`) — заглавными, как `textTransform: 'uppercase'` веба.
+ */
+function friendsModel(s: FriendsState, t: (key: string) => string, colors: { primary: string; error: string; success: string }) {
+  const { view, added, friends, game } = s;
+  return {
+    v: 1,
+    title: t('friendsTitle'), back: t('a11yBack'), backIcon: s.back,
+    primary: colors.primary, error: colors.error, success: colors.success, meBg: colors.primary + '18',
+    my: {
+      label: t('friendsMyCode').toUpperCase(),
+      state: s.myCode === undefined ? 'loading' : s.myCode === null ? 'offline' : 'code',
+      offline: t('friendsCodeOffline'),
+      code: s.myCode ?? null,
+      shown: s.myCode ? grouped(s.myCode) : null,
+      copy: t('copy'),
+      copied: s.copied === null ? null : { ok: s.copied === 'ok', text: s.copied === 'ok' ? t('copied') : t('copyManually') },
+      hint: t('friendsMyCodeHint'),
+    },
+    add: {
+      label: t('friendsAddTitle').toUpperCase(), a11y: t('friendsAddTitle'),
+      draft: s.draft, seq: s.draftSeq, placeholder: t('friendsCodePlaceholder'), btn: t('friendsAddBtn'),
+      ready: isCodeComplete(s.draft) && !s.sending, sending: s.sending,
+      note: added?.kind === 'added' ? { ok: true, text: t('friendsAdded').replace('{name}', added.friend.name) }
+        : added?.kind === 'not-found' ? { ok: false, text: t('friendsNotFound') }
+          : added?.kind === 'self' ? { ok: false, text: t('friendsSelfCode') }
+            : added?.kind === 'full' ? { ok: false, text: t('friendsCircleFull').replace('{n}', String(added.max)) }
+              : added?.kind === 'offline' ? { ok: false, text: t('friendsAddOffline') }
+                : null,
+    },
+    table: {
+      title: t('friendsTableTitle'),
+      chips: GAME_IDS.map((id) => ({ id, label: t(NAME_KEY[id]), on: id === game })),
+      kind: view.kind,
+      empty: view.kind === 'offline' ? t('friendsViewOffline')
+        : view.kind === 'no-friends' ? t('friendsViewNoFriends')
+          : view.kind === 'nobody-played' ? t('friendsViewNobodyPlayed').replace('{game}', t(NAME_KEY[game]))
+            : null,
+      rows: view.kind === 'rows'
+        ? view.rows.map((r, i) => ({
+          id: r.id, rank: String(i + 1), me: r.isMe,
+          name: r.isMe ? `${r.name} · ${t('friendsMe')}` : r.name,
+          score: FORMAT[game](r.score),
+        }))
+        : [],
+    },
+    scoresOnly: t('friendsScoresOnly'),
+    circle: friends != null && friends.length > 0
+      ? {
+        title: t('friendsCircle').replace('{n}', String(friends.length)),
+        remove: t('friendsRemove'),
+        rows: friends.map((f) => ({
+          id: f.id, name: f.name, pending: s.pending === f.id,
+          warn: t('friendsRemoveMutual').replace('{name}', f.name),
+        })),
+        confirm: t('friendsRemoveConfirm'), cancel: t('btn_cancel'),
+        failed: s.dropFailed ? t('friendsRemoveFailed') : null,
+      }
+      : null,
+  };
 }
 
 const styles = StyleSheet.create({
