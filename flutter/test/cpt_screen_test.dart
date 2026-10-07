@@ -1,11 +1,14 @@
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/cpt/model.dart';
 import 'package:psygames_flutter/games/cpt/screen.dart';
+import 'package:psygames_flutter/shell/game_preset.dart';
 import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/level_rules.dart';
+import 'package:psygames_flutter/shell/session_report.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -237,5 +240,32 @@ void main() {
     expect(find.text(L.t('sameLevelRetry')), findsNothing,
         reason: 'оборванная партия засчитана провалом');
     expect(state.get(_levelKey), '4', reason: 'оборванная партия подвинула лестницу');
+  });
+
+  testWidgets('🔴 шаг «Оценки»: партия в условиях шага и с метрикой домена в details', (tester) async {
+    // «Оценка» читает метрику домена из details партии (assessment.ts, extractMetric): без неё
+    // домен молча «средний». Условие — шага, как его собирает stepToParams (warmup.ts), а не
+    // уровня: норма домена снята в нём.
+    final sent = <Map<String, dynamic>>[];
+    SessionReport.sink = (j) async => sent.add(jsonDecode(j) as Map<String, dynamic>);
+    GamePreset.set({'wu': '1', 'mode': '2min'});
+    addTearDown(() {
+      SessionReport.sink = null;
+      GamePreset.clear();
+    });
+    await tester.pumpWidget(MaterialApp(
+        home: CptScreen(state: state, rnd: Random(11), clock: fakeClock(tester))));
+    // Партия до конца времени шага: жмём на каждую X (уровень 1 — X-режим).
+    String? prev;
+    for (var i = 0; i < 200 && sent.isEmpty; i++) {
+      final seen = await playTrial(tester, 1, prev: prev, decide: (l, c, p) => l == 'X');
+      if (seen != null) prev = seen.letter;
+    }
+    final r = sent.single;
+    expect(r['time_seconds'], inInclusiveRange(120, 124),
+        reason: 'длительность — шага «2min», а не уровня (90 с): ${r['time_seconds']} с');
+    final d = r['details'] as Map<String, dynamic>;
+    expect(d['rt_variability'], isA<double>(), reason: 'CV-RT не дошёл до партии ($d)');
+    expect(d['rt_variability'] as double, inInclusiveRange(0.0, 1.0));
   });
 }
