@@ -160,6 +160,62 @@ class SandwichClues {
   }
 }
 
+/// 🔴 МАЛЫЙ КИЛЛЕР (пункт 8 цепочки «14 усложнений», задача 2dddd227) — перенос `LittleKillerClue`
+/// ядра (sudoku-core.ts): число со стрелкой снаружи доски — сумма цифр на диагонали, цифры на ней
+/// МОГУТ повторяться. Стрелки смотрят только вниз: (r, c) — первая клетка у края, шаг внутрь —
+/// (1, [dc]); гнездо в поле — сверху, слева или справа, по одной подсказке на гнездо.
+class LittleKillerClue {
+  const LittleKillerClue({required this.r, required this.c, required this.dc, required this.sum});
+  final int r, c, dc, sum;
+
+  static List<LittleKillerClue>? fromJson(Object? v) {
+    if (v is! List) return null;
+    return [
+      for (final e in v)
+        if (e is Map)
+          LittleKillerClue(
+            r: (e['r'] as num).toInt(),
+            c: (e['c'] as num).toInt(),
+            dc: (e['dc'] as num).toInt(),
+            sum: (e['sum'] as num).toInt(),
+          ),
+    ];
+  }
+
+  Map<String, Object?> toJson() => {'r': r, 'c': c, 'dr': 1, 'dc': dc, 'sum': sum};
+
+  /// Лежит ли клетка на диагонали подсказки.
+  bool on(int rr, int cc) => rr >= r && (dc == 1 ? rr - cc == r - c : rr + cc == r + c);
+
+  /// Клетки диагонали — от края внутрь.
+  List<(int, int)> cells(int n) => [
+        for (var rr = r, cc = c; rr >= 0 && rr < n && cc >= 0 && cc < n; rr += 1, cc += dc) (rr, cc),
+      ];
+
+  /// Гнездо в поле: сторона и номер (у верхнего поля −1 и n — углы).
+  ({String side, int i}) get slot =>
+      r == 0 ? (side: 'top', i: c - dc) : (side: dc == 1 ? 'left' : 'right', i: r - 1);
+}
+
+/// Не спорит ли цифра с суммами диагоналей по известным цифрам (`littleKillerOk` ядра): известные
+/// плюс по 1 на пустую не больше суммы, известные плюс по n на пустую — не меньше.
+bool littleKillerOk(List<List<int>> grid, int r, int c, int val, List<LittleKillerClue> clues, int n) {
+  for (final k in clues) {
+    if (!k.on(r, c)) continue;
+    var s = 0, e = 0;
+    for (final (i, j) in k.cells(n)) {
+      final v = i == r && j == c ? val : grid[i][j];
+      if (v == 0) {
+        e++;
+      } else {
+        s += v;
+      }
+    }
+    if (s + e > k.sum || s + n * e < k.sum) return false;
+  }
+  return true;
+}
+
 /// Геометрия доски: то, что у варианта сверх строки, столбца и блока.
 ///
 /// 🔴 01.10.2026 (задача 450c0211): до этого дня здесь НЕ разбирались `parity`, `kropki` и
@@ -185,6 +241,7 @@ class BoardGeometry {
     this.between,
     this.lockout,
     this.xv,
+    this.littleKiller,
   });
   final List<List<int>>? regions;
   final List<List<ThermoLink?>>? thermo;
@@ -221,6 +278,9 @@ class BoardGeometry {
   /// что у точек Кропки.
   final KropkiMap? xv;
 
+  /// Малый киллер: суммы диагоналей по стрелкам снаружи доски.
+  final List<LittleKillerClue>? littleKiller;
+
   static BoardGeometry fromJson(Map<String, Object?> v) => BoardGeometry(
         regions: v['regions'] == null ? null : _grid(v['regions']),
         thermo: v['thermo'] == null
@@ -240,6 +300,7 @@ class BoardGeometry {
         kropki: KropkiMap.fromJson(v['kropki']),
         sandwich: SandwichClues.fromJson(v['sandwich']),
         xv: KropkiMap.fromJson(v['xv']),
+        littleKiller: LittleKillerClue.fromJson(v['littlekiller']),
         whisper: v['whisper'] == null
             ? null
             : (v['whisper'] as List)
@@ -696,6 +757,8 @@ bool overlayOk(List<List<int>> grid, int r, int c, int val, int n, BoardGeometry
       if (d == 2 ? sum != 10 : d == 1 ? sum != 5 : sum == 5 || sum == 10) return false;
     }
   }
+  final lk = g.littleKiller;
+  if (lk != null && !littleKillerOk(grid, r, c, val, lk, n)) return false;
   return true;
 }
 

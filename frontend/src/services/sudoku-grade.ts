@@ -25,7 +25,7 @@
  */
 import {
   Cell, Variant, ThermoPN, ArrowMap, CageMap, isValid, generatePuzzle, shuffle, HYPER_BOXES, ORTHO,
-  Overlays, levelConfig, UnequalMap, TowersMap, towersLineOk, WHISPER_GAP, renbanOk, lineCells, regionSumOk, palindromeOk, betweenOk, lockoutOk, xvOk, XvMap,
+  Overlays, levelConfig, UnequalMap, TowersMap, towersLineOk, WHISPER_GAP, renbanOk, lineCells, regionSumOk, palindromeOk, betweenOk, lockoutOk, xvOk, XvMap, LittleKillerClue, littleKillerOk, littleKillerCells,
 } from './sudoku-core';
 
 export type Technique =
@@ -47,10 +47,12 @@ export type Technique =
   | 'between_window'  // кандидат вне любого окна между концами линии
   | 'lockout_window'  // кандидат вне годной пары концов lockout-линии
   | 'xv_pair'  // XV: кандидату нет пары у ПУСТОГО соседа (знак — 5/10, без знака — не 5 и не 10)
+  | 'little_killer_sum'  // малый киллер: кандидат вне коридора суммы диагонали по кандидатам соседей
   | 'guess';          // логики не хватило — нужен перебор
 
 export const TECHNIQUE_TIER: Record<Technique, number> = {
   xv_pair: 4,   // XV: класс выводов варианта
+  little_killer_sum: 4,   // малый киллер: класс выводов варианта
   lockout_window: 4,   // замок: кандидат вне годной пары концов lockout-линии
   between_window: 4,   // между концами: кандидат вне любого окна между концами линии
   // Палиндром: кандидаты зеркальных клеток пересекаются. Ступень 4 — как у всего КЛАССА выводов
@@ -106,6 +108,8 @@ export interface GradeCtx {
   lockout?: ThermoPN;
   /** XV: знаки на гранях, показаны все (отрицательное условие). */
   xv?: XvMap;
+  /** Малый киллер: суммы диагоналей по стрелкам снаружи доски (цифры на диагонали могут повторяться). */
+  littlekiller?: LittleKillerClue[];
 }
 
 export interface Grade {
@@ -181,7 +185,7 @@ export function unitsFor(N: number, BR: number, BC: number, variant: Variant, re
 
 /** Оценка пазла: самая сложная техника, без которой не обойтись. */
 export function gradePuzzle(puzzle: Cell[][], ctx: GradeCtx, tierCap = 9): Grade {
-  const { N, BR, BC, variant, regions, thermo, arrow, cages, parity, kropki, sandwich, unequal, towers, whisper, renban, regionsum, palindrome, between, lockout, xv } = ctx;
+  const { N, BR, BC, variant, regions, thermo, arrow, cages, parity, kropki, sandwich, unequal, towers, whisper, renban, regionsum, palindrome, between, lockout, xv, littlekiller } = ctx;
   const grid = puzzle.map((row) => [...row]);
   const FULL = (1 << N) - 1;
   const cand: number[][] = Array.from({ length: N }, () => Array(N).fill(FULL));
@@ -283,6 +287,7 @@ export function gradePuzzle(puzzle: Cell[][], ctx: GradeCtx, tierCap = 9): Grade
         if (ok && between && !betweenOk(grid, r, c, v, between)) ok = false;   // против известных цифр — даром
         if (ok && lockout && !lockoutOk(grid, r, c, v, lockout)) ok = false;   // против известных цифр — даром
         if (ok && xv && !xvOk(grid, r, c, v, xv, N)) ok = false;   // XV против известных соседей — даром
+        if (ok && littlekiller && !littleKillerOk(grid, r, c, v, littlekiller, N)) ok = false;   // сумма против известных цифр — даром
         if (!ok) m &= ~bit(v);
       }
       cand[r][c] = m;
@@ -610,6 +615,43 @@ export function gradePuzzle(puzzle: Cell[][], ctx: GradeCtx, tierCap = 9): Grade
         if (!changed) break;
       }
       if (usedXv) bump('xv_pair');
+    }
+
+    /**
+     * ── МАЛЫЙ КИЛЛЕР: коридор суммы по КАНДИДАТАМ. Кандидат v пустой клетки диагонали живёт, только
+     * если сумма − v укладывается между наименьшим и наибольшим, что могут дать остальные клетки
+     * (известная цифра или крайний кандидат пустой). Срез по одним известным цифрам — даром, выше;
+     * протянуть границы через ПУСТЫХ соседей — приём игрока (`little_killer_sum`, ступень 4).
+     */
+    if (littlekiller && выводВарианта) {
+      let usedLk = false;
+      for (let pass = 0; pass < N; pass++) {
+        let changed = false;
+        for (const k of littlekiller) {
+          const cells = littleKillerCells(k, N);
+          let lo = 0, hi = 0;
+          for (const [i, j] of cells) {
+            if (grid[i][j] !== 0) { lo += grid[i][j]; hi += grid[i][j]; continue; }
+            if (!cand[i][j]) return true;
+            lo += loVal(cand[i][j]); hi += hiVal(cand[i][j]);
+          }
+          if (lo > k.sum || hi < k.sum) return true;
+          for (const [i, j] of cells) {
+            if (grid[i][j] !== 0) continue;
+            const m = cand[i][j];
+            const restLo = lo - loVal(m), restHi = hi - hiVal(m);
+            let keep = m;
+            for (const v of bitsOf(m, N)) if (k.sum - v < restLo || k.sum - v > restHi) keep &= ~bit(v);
+            if (keep !== m) {
+              cand[i][j] = keep; changed = true; usedLk = true;
+              if (keep === 0) return true;
+              lo += loVal(keep) - loVal(m); hi += hiVal(keep) - hiVal(m);
+            }
+          }
+        }
+        if (!changed) break;
+      }
+      if (usedLk) bump('little_killer_sum');
     }
 
     if (unequal && выводВарианта) {
@@ -1203,6 +1245,12 @@ const VARIANT_TIER_CEILING: Partial<Record<Variant, number>> = {
    *  24: диагонали узора режут кандидатов как сосед, своего приёма у правила нет (как у XV).
    *  Потолок 4 — наибольшая ступень, до которой дотянулись хотя бы две доски из восьми. */
   argyle: 4,
+  /** Малый киллер (план — 181–184) — ЗАМЕР 07.10.2026 боевым путём (`generateLogical`, полоса 4..6,
+   *  10 диагоналей), по 8 досок на 50/56/62 пустых: ступень 4 — 22 из 24, пятёрка — 2 (одна на 56,
+   *  одна на 62). Без сумм не решается 0 из 24, под потолком 3 — 0 из 24: приём `little_killer_sum`
+   *  нужен почти каждой доске (самый трудный приём у 21 из 24). Все 24 — логическим путём, 0,3–1,2 с.
+   *  Потолок 4: пятёрка ни на одной толщине не набрала двух досок из восьми. */
+  littlekiller: 4,
   /**
    * Комбо-пояс 81–92 — ЗАМЕР 29.08.2026 (combo-tiers.measure, по 15 боевых досок):
    * шестёрка у всех трёх пар — 0–1 из 15 (не массово), пятёрка достижима у всех
@@ -1413,7 +1461,7 @@ export type GeneratedPuzzle = ReturnType<typeof generatePuzzle>;
  * refilter; если конкретная попытка не укладывается в бюджет, generateLogical всё
  * равно сохраняет прежний безопасный fallback через проверку единственности.
  */
-const LOGIC_VARIANTS: readonly Variant[] = ['none', 'diagonal', 'antiknight', 'hyper', 'antiking', 'evenodd', 'kropki', 'sandwich', 'jigsaw', 'nonconsec', 'thermo', 'arrow', 'thermocage', 'sandparity', 'thermoknight', 'killerdiag', 'whisper', 'renban', 'regionsum', 'palindrome', 'between', 'lockout', 'xv', 'argyle'];
+const LOGIC_VARIANTS: readonly Variant[] = ['none', 'diagonal', 'antiknight', 'hyper', 'antiking', 'evenodd', 'kropki', 'sandwich', 'jigsaw', 'nonconsec', 'thermo', 'arrow', 'thermocage', 'sandparity', 'thermoknight', 'killerdiag', 'whisper', 'renban', 'regionsum', 'palindrome', 'between', 'lockout', 'xv', 'argyle', 'littlekiller'];
 
 /**
  * Сколько раз проходим доску, пытаясь убрать ещё клетку. Больше трёх бюджет обычно
@@ -1467,7 +1515,7 @@ export function solvedSameBoard(grade: Grade, solution: Cell[][]): boolean {
 function gradeOf(gen: GeneratedPuzzle, N: number, BR: number, BC: number, variant: Variant): Grade {
   return gradePuzzle(gen.puzzle, {
     N, BR, BC, variant, regions: gen.regions, thermo: gen.thermo, arrow: gen.arrow, cages: gen.cages,
-    parity: gen.parity, kropki: gen.kropki, sandwich: gen.sandwich, whisper: gen.whisper, renban: gen.renban, regionsum: gen.regionsum, palindrome: gen.palindrome, between: gen.between, lockout: gen.lockout, xv: gen.xv,
+    parity: gen.parity, kropki: gen.kropki, sandwich: gen.sandwich, whisper: gen.whisper, renban: gen.renban, regionsum: gen.regionsum, palindrome: gen.palindrome, between: gen.between, lockout: gen.lockout, xv: gen.xv, littlekiller: gen.littlekiller,
     // ⚠️ Знаки и краевые подсказки ОБЯЗАНЫ доходить до оценщика. До 27.08.2026 их
     // здесь не было, и запасной путь оценивал unequal/towers вслепую: та же доска
     // давала «ступень 2, hidden_single» без карты и «ступень 4, unequal_chain» с ней.
@@ -1502,7 +1550,7 @@ function digByLogic(
   // увидит человек — та же дисциплина, что у сэндвича и кропки.
   const unequal = (base as { unequal?: UnequalMap }).unequal;
   const towers = (base as { towers?: TowersMap }).towers;
-  const ctx: GradeCtx = { N, BR, BC, variant, regions: base.regions, thermo: base.thermo, arrow: base.arrow, cages: base.cages, parity, kropki, sandwich, unequal, towers, whisper: base.whisper, renban: base.renban, regionsum: base.regionsum, palindrome: base.palindrome, between: base.between, lockout: base.lockout, xv: base.xv };
+  const ctx: GradeCtx = { N, BR, BC, variant, regions: base.regions, thermo: base.thermo, arrow: base.arrow, cages: base.cages, parity, kropki, sandwich, unequal, towers, whisper: base.whisper, renban: base.renban, regionsum: base.regionsum, palindrome: base.palindrome, between: base.between, lockout: base.lockout, xv: base.xv, littlekiller: base.littlekiller };
 
   // Лимит пустых держим только на новичковых уровнях, чтобы не пугать доской в дырках.
   // Дальше глубину задаёт ЛОГИКА. Старый лимит (58 к 29-му) как раз и упирался в потолок,
