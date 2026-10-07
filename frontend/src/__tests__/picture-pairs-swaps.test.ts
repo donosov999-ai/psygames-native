@@ -85,7 +85,9 @@ async function войтиВПартию(r: any) {
   await tick(50);
   const открытое = r.root.findAll((n: any) => n.props?.lr?.open === true)[0];
   if (открытое) { await TestRenderer.act(async () => { открытое.props.lr.setOpen(false); }); await settle(); }
-  await tick(400);   // показ на этих уровнях 250 мс
+  // Ждём объявленный показ уровня: с 01.10 он от числа карт (задача 0d6d8b28) — 48 карт, 4,8 с.
+  const { levelCfg } = require('@/app/games/picture-pairs');
+  await tick(levelCfg(mockLevel).previewMs + 150);
 }
 
 /** Ошибка наверняка: первая карта и три других, среди которых есть картинка не как у первой. */

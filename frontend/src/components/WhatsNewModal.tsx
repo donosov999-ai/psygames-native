@@ -1,14 +1,15 @@
 /**
  * WhatsNewModal — «Что нового» после обновления (запрос Дениса 23.07).
- * Показывается на главной один раз при росте версии (сравнение с
- * psygames_last_seen_version); полная история — экран /whats-new.
+ * Общий корень показывает ВСЕ версии после последней просмотренной, включая
+ * пропущенные обновления. Сохраняем просмотр только по кнопке «Понятно».
  */
 import React from 'react';
 import { Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
-import { WHATS_NEW } from '@/src/constants/whatsNew';
-import { currentVersion, getSeenVersion, isNewer, setSeenVersion } from '@/src/services/appUpdates';
+import { type WhatsNewEntry } from '@/src/constants/whatsNew';
+import { currentVersion, getSeenVersion, setSeenVersion } from '@/src/services/appUpdates';
+import { unreadReleaseNotes } from '@/src/services/releaseNotes';
 import { a11yModal } from '@/src/services/a11y';
 import { getMyFixedReports, markShown, type FixedReport } from '@/src/services/feedbackLoop';
 
@@ -16,47 +17,61 @@ export default function WhatsNewModal() {
   const { colors } = useTheme();
   const { t, language } = useLanguage();
   const [visible, setVisible] = React.useState(false);
+  // Форма отзыва из нативной игры открывается вторым WebView на /feedback с тем же
+  // хранилищем (задача e780e5b0): окно версий там всплывало бы поверх формы. Адрес —
+  // из window, а не из роутера: окно монтируется в корне и в пробах без роутера.
+  const onFeedbackPage = typeof window !== 'undefined' && window.location?.pathname === '/feedback';
+  const [entries, setEntries] = React.useState<WhatsNewEntry[]>([]);
   // v1.165 — обратный контур: что починили ПО РЕПОРТАМ этого человека. Раньше он
   // писал в пустоту: правки по его словам уезжали в Play, а он об этом не узнавал.
   // Пустой список — обычное дело (нет репортов / нет сети), блок просто не рисуется.
   const [mine, setMine] = React.useState<FixedReport[]>([]);
 
   React.useEffect(() => {
+    let active = true;
     (async () => {
       const seen = await getSeenVersion();
       const cur = currentVersion();
-      if (!seen) { await setSeenVersion(cur); return; }   // первая установка — не показываем
-      if (isNewer(cur, seen)) {
+      if (!seen) { if (active) await setSeenVersion(cur); return; }
+      const unread = unreadReleaseNotes(cur, seen);
+      if (active && unread.length) {
+        setEntries(unread);
         setVisible(true);
-        setMine(await getMyFixedReports());
+        // Network is optional and must not delay the update notice or its acknowledgement.
+        void getMyFixedReports().then((reports) => { if (active) setMine(reports); }).catch(() => {});
       }
-    })();
+    })().catch(() => {});
+    return () => { active = false; };
   }, []);
 
   const close = async () => {
     setVisible(false);
-    await markShown(mine.map((r) => r.id));
     await setSeenVersion(currentVersion());
+    void markShown(mine.map((r) => r.id)).catch(() => {});
   };
 
-  if (!visible) return null;
+  if (!visible || onFeedbackPage) return null;
   const cur = currentVersion();
-  // Все записи новее «уже виденной» (обычно одна — текущая)
-  const entry = WHATS_NEW.find((e) => e.version === cur) || WHATS_NEW[0];
-  const items = language === 'ru' ? entry.ru : entry.en;
 
   return (
-    <Modal transparent animationType="fade" visible onRequestClose={close}>
+    <Modal transparent animationType="fade" visible onRequestClose={() => setVisible(false)}>
       <View {...a11yModal} style={styles.backdrop}>
         <View style={[styles.card, { backgroundColor: colors.surface }]}>
           <Text style={[styles.title, { color: colors.text }]}>
-            🎁 {t('whatsNewTitle')} v{entry.version}
+            🎁 {t('whatsNewTitle')} v{cur}
           </Text>
           <ScrollView style={{ maxHeight: 340 }} showsVerticalScrollIndicator={false}>
-            {items.map((it, i) => (
-              <View key={i} style={styles.row}>
+            {entries.map((entry) => (
+              <View key={entry.version} testID={`release-notes-${entry.version}`} style={styles.release}>
+                <Text accessibilityRole="header" style={[styles.version, { color: colors.primary }]}>
+                  v{entry.version} · {entry.date}
+                </Text>
+                {(language === 'ru' ? entry.ru : entry.en).map((it, i) => (
+                  <View key={i} style={styles.row}>
                 <Text style={[styles.dot, { color: colors.primary }]}>•</Text>
                 <Text style={[styles.item, { color: colors.text }]}>{it}</Text>
+                  </View>
+                ))}
               </View>
             ))}
 
@@ -92,7 +107,7 @@ export default function WhatsNewModal() {
             )}
           </ScrollView>
           <TouchableOpacity
-            accessibilityRole="button" onPress={close} style={[styles.btn, { backgroundColor: colors.primary }]}>
+            testID="whats-new-close" accessibilityRole="button" onPress={close} style={[styles.btn, { backgroundColor: colors.primary }]}>
             <Text style={styles.btnText}>{t('setGotIt')}</Text>
           </TouchableOpacity>
         </View>
@@ -105,6 +120,8 @@ const styles = StyleSheet.create({
   backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.55)', justifyContent: 'center', alignItems: 'center', padding: 24 },
   card: { borderRadius: 18, padding: 20, width: '100%', maxWidth: 440, gap: 12 },
   title: { fontSize: 17, fontWeight: '800', textAlign: 'center' },
+  release: { marginBottom: 14 },
+  version: { fontSize: 14, fontWeight: '800', marginBottom: 8 },
   row: { flexDirection: 'row', gap: 8, marginBottom: 8, alignItems: 'flex-start' },
   dot: { fontSize: 14, fontWeight: '900', lineHeight: 19 },
   item: { fontSize: 13.5, lineHeight: 19, flex: 1 },

@@ -1,0 +1,702 @@
+{
+  "/games/schulte": {
+    "nameKey": "schulteTable",
+    "skillKey": "skillAttention",
+    "introKey": "schulteIntroDesc"
+  },
+  "/games/proofreading": {
+    "nameKey": "proofreading",
+    "skillKey": "skillFocus",
+    "introKey": "proofreadingIntroDesc"
+  },
+  "/games/find-differences": {
+    "nameKey": "findDiff",
+    "skillKey": "skillDetailAttention",
+    "introKey": "findDiffIntroDesc"
+  },
+  "/games/object-tracker": {
+    "nameKey": "objectTracker",
+    "skillKey": "skillAttention",
+    "introKey": "objectTrackerIntroDesc"
+  },
+  "/games/eye-gym": {
+    "nameKey": "eyeGym",
+    "skillKey": "skillEyeRelax",
+    "introKey": "eyeGymIntroDesc"
+  },
+  "/games/goods-sort": {
+    "nameKey": "goodsSort",
+    "skillKey": "skillPlanningWM",
+    "introKey": "goodsSortIntroDesc"
+  },
+  "/games/word-pairs": {
+    "nameKey": "wordPairs",
+    "skillKey": "skillMemory",
+    "introKey": "wordPairsIntroDesc"
+  },
+  "/games/vocab-srs": {
+    "nameKey": "vocabSrs",
+    "skillKey": "skillVocabulary",
+    "introKey": "vocabSrsIntroDesc"
+  },
+  "/games/semantic-sort": {
+    "nameKey": "semanticSort",
+    "skillKey": "skillVocabulary",
+    "introKey": "semanticSortIntroDesc"
+  },
+  "/games/cloze": {
+    "nameKey": "cloze",
+    "skillKey": "skillVocabulary",
+    "introKey": "clozeIntroDesc"
+  },
+  "/games/lexical-decision": {
+    "nameKey": "lexicalDecision",
+    "skillKey": "skillVocabulary",
+    "introKey": "lexicalDecisionIntroDesc"
+  },
+  "/games/phoneme-pairs": {
+    "nameKey": "phonemePairs",
+    "skillKey": "skillListening",
+    "introKey": "phonemePairsIntroDesc"
+  },
+  "/games/dictation": {
+    "nameKey": "dictation",
+    "skillKey": "skillListening",
+    "introKey": "dictationIntroDesc"
+  },
+  "/games/chinese-tones": {
+    "nameKey": "chineseTones",
+    "skillKey": "skillListening",
+    "introKey": "chineseTonesIntroDesc"
+  },
+  "/games/pseudoword-echo": {
+    "nameKey": "pseudowordEcho",
+    "skillKey": "skillListening",
+    "introKey": "pseudowordEchoIntroDesc"
+  },
+  "/games/rhythm-pitch": {
+    "nameKey": "rhythmPitch",
+    "skillKey": "skillListening",
+    "introKey": "rhythmPitchIntroDesc"
+  },
+  "/games/listening-span": {
+    "nameKey": "listeningSpan",
+    "skillKey": "skillWorkingMemory",
+    "introKey": "listeningSpanIntroDesc"
+  },
+  "/games/scholars-mate": {
+    "nameKey": "scholarsMate",
+    "skillKey": "skillChessCalc",
+    "introKey": "scholarsMateIntroDesc"
+  },
+  "/games/chess-blind": {
+    "nameKey": "chessBlind",
+    "skillKey": "skillVisualMemory",
+    "introKey": "chessBlindIntroDesc"
+  },
+  "/games/mnemonics": {
+    "nameKey": "mnemonics",
+    "skillKey": "skillSequence",
+    "introKey": "mnemonicsIntroDesc"
+  },
+  "/games/memory-palace": {
+    "nameKey": "memoryPalace",
+    "skillKey": "skillSequence",
+    "introKey": "memoryPalaceIntroDesc"
+  },
+  "/games/n-back": {
+    "nameKey": "nBack",
+    "skillKey": "skillWorkingMemory",
+    "introKey": "nBackIntroDesc"
+  },
+  "/games/digit-span": {
+    "nameKey": "digitSpan",
+    "skillKey": "skillShortTermMemory",
+    "introKey": "digitSpanIntroDesc"
+  },
+  "/games/memory-matrix": {
+    "nameKey": "memoryMatrix",
+    "skillKey": "skillVisualMemory",
+    "introKey": "memoryMatrixIntroDesc"
+  },
+  "/games/picture-pairs": {
+    "nameKey": "picturePairs",
+    "skillKey": "skillVisualMemory",
+    "introKey": "picturePairsIntroDesc"
+  },
+  "/games/faces-names": {
+    "nameKey": "facesNames",
+    "skillKey": "skillMemory",
+    "introKey": "facesNamesIntroDesc"
+  },
+  "/games/mahjong": {
+    "nameKey": "mahjong",
+    "skillKey": "skillVisualSearch",
+    "introKey": "mahjongIntroDesc"
+  },
+  "/games/reading-span": {
+    "nameKey": "readingSpan",
+    "skillKey": "skillWorkingMemory",
+    "introKey": "readingSpanIntroDesc"
+  },
+  "/games/corsi": {
+    "nameKey": "corsi",
+    "skillKey": "skillVisualMemory",
+    "introKey": "corsiIntroDesc"
+  },
+  "/games/ospan": {
+    "nameKey": "ospan",
+    "skillKey": "skillWorkingMemory",
+    "introKey": "ospanIntroDesc"
+  },
+  "/games/spatial-span": {
+    "nameKey": "spatialSpan",
+    "skillKey": "skillVisualMemory",
+    "introKey": "spatialSpanIntroDesc"
+  },
+  "/games/navigator": {
+    "nameKey": "navigator",
+    "skillKey": "skillSpatial",
+    "introKey": "navigatorIntroDesc"
+  },
+  "/games/span": {
+    "nameKey": "spanGroup",
+    "skillKey": "skillShortTermMemory",
+    "introKey": "spanGroupIntroDesc"
+  },
+  "/games/hanoi": {
+    "nameKey": "hanoi",
+    "skillKey": "skillProblemSolving",
+    "introKey": "hanoiIntroDesc"
+  },
+  "/games/sudoku-hub": {
+    "nameKey": "sudokuGroup",
+    "skillKey": "skillLogic",
+    "introKey": "sudokuGroupIntroDesc"
+  },
+  "/games/sudoku": {
+    "nameKey": "sudoku",
+    "skillKey": "skillLogic",
+    "introKey": "sudokuIntroDesc"
+  },
+  "/games/sudoku-samurai": {
+    "nameKey": "samuraiTitle",
+    "skillKey": "skillLogic",
+    "introKey": "samuraiTitleIntroDesc"
+  },
+  "/games/sudoku-fractal": {
+    "nameKey": "fractalTitle",
+    "skillKey": "skillLogic",
+    "introKey": "fractalTitleIntroDesc"
+  },
+  "/games/sudoku-fractal-deep": {
+    "nameKey": "deepTitle",
+    "skillKey": "skillLogic",
+    "introKey": "sudokuFractalDeepIntroDesc"
+  },
+  "/games/anagrams": {
+    "nameKey": "anagrams",
+    "skillKey": "skillVerbal",
+    "introKey": "anagramsIntroDesc"
+  },
+  "/games/pattern": {
+    "nameKey": "pattern",
+    "skillKey": "skillReasoning",
+    "introKey": "patternIntroDesc"
+  },
+  "/games/set-game": {
+    "nameKey": "setGame",
+    "skillKey": "skillReasoning",
+    "introKey": "setGameIntroDesc"
+  },
+  "/games/mental-rotation": {
+    "nameKey": "mentalRotation",
+    "skillKey": "skillSpatial",
+    "introKey": "mentalRotationIntroDesc"
+  },
+  "/games/spatial-lab": {
+    "nameKey": "spatialLab",
+    "skillKey": "skillSpatial",
+    "introKey": "spatialLabIntroDesc"
+  },
+  "/games/tower-london": {
+    "nameKey": "towerLondon",
+    "skillKey": "skillPlanning",
+    "introKey": "towerLondonIntroDesc"
+  },
+  "/games/cake-sort": {
+    "nameKey": "cakeSort",
+    "skillKey": "skillPlanning",
+    "introKey": "cakeSortIntroDesc"
+  },
+  "/games/pizza-sort": {
+    "nameKey": "pizzaSort",
+    "skillKey": "skillPlanning",
+    "introKey": "pizzaSortIntroDesc"
+  },
+  "/games/ball-sort": {
+    "nameKey": "ballSort",
+    "skillKey": "skillPlanning",
+    "introKey": "ballSortIntroDesc"
+  },
+  "/games/nut-sort": {
+    "nameKey": "nutSort",
+    "skillKey": "skillPlanning",
+    "introKey": "nutSortIntroDesc"
+  },
+  "/games/water-sort": {
+    "nameKey": "waterSort",
+    "skillKey": "skillPlanning",
+    "introKey": "waterSortIntroDesc"
+  },
+  "/games/pause": {
+    "nameKey": "pause",
+    "skillKey": "skillRecovery",
+    "introKey": "pauseIntroDesc"
+  },
+  "/games/dots-connect": {
+    "nameKey": "dotsConnect",
+    "skillKey": "skillPlanning",
+    "introKey": "dotsConnectIntroDesc"
+  },
+  "/games/one-line": {
+    "nameKey": "oneLine",
+    "skillKey": "skillPlanning",
+    "introKey": "oneLineIntroDesc"
+  },
+  "/games/attention-conflict": {
+    "nameKey": "attentionConflict",
+    "skillKey": "skillInhibition",
+    "introKey": "attentionConflictIntroDesc"
+  },
+  "/games/inhibition": {
+    "nameKey": "inhibition",
+    "skillKey": "skillInhibition",
+    "introKey": "inhibitionIntroDesc"
+  },
+  "/games/stroop": {
+    "nameKey": "stroop",
+    "skillKey": "skillInhibition",
+    "introKey": "stroopIntroDesc"
+  },
+  "/games/go-no-go": {
+    "nameKey": "goNoGo",
+    "skillKey": "skillInhibition",
+    "introKey": "goNoGoIntroDesc"
+  },
+  "/games/stop-signal": {
+    "nameKey": "stopSignal",
+    "skillKey": "skillInhibition",
+    "introKey": "stopSignalIntroDesc"
+  },
+  "/games/trail-making": {
+    "nameKey": "trailMaking",
+    "skillKey": "skillSwitching",
+    "introKey": "trailMakingIntroDesc"
+  },
+  "/games/switching-task": {
+    "nameKey": "switchingTask",
+    "skillKey": "skillSwitching",
+    "introKey": "switchingTaskIntroDesc"
+  },
+  "/games/wcst": {
+    "nameKey": "wcst",
+    "skillKey": "skillSwitching",
+    "introKey": "wcstIntroDesc"
+  },
+  "/games/flanker": {
+    "nameKey": "flanker",
+    "skillKey": "skillInhibition",
+    "introKey": "flankerIntroDesc"
+  },
+  "/games/stroop-emotional": {
+    "nameKey": "stroopEmotional",
+    "skillKey": "skillInhibition",
+    "introKey": "stroopEmotionalIntroDesc"
+  },
+  "/games/bart": {
+    "nameKey": "bart",
+    "skillKey": "skillRisk",
+    "introKey": "bartIntroDesc"
+  },
+  "/games/iowa": {
+    "nameKey": "iowa",
+    "skillKey": "skillRisk",
+    "introKey": "iowaIntroDesc"
+  },
+  "/games/prl": {
+    "nameKey": "prl",
+    "skillKey": "skillRisk",
+    "introKey": "prlIntroDesc"
+  },
+  "/games/counter": {
+    "nameKey": "counter",
+    "skillKey": "skillMath",
+    "introKey": "counterIntroDesc"
+  },
+  "/games/number-run": {
+    "nameKey": "numberRun",
+    "skillKey": "skillMath",
+    "introKey": "numberRunIntroDesc"
+  },
+  "/games/math-slider": {
+    "nameKey": "mathSlider",
+    "skillKey": "skillMath",
+    "introKey": "mathSliderIntroDesc"
+  },
+  "/games/math-sprint": {
+    "nameKey": "mathSprint",
+    "skillKey": "skillMath",
+    "introKey": "mathSprintIntroDesc"
+  },
+  "/games/number-bonds": {
+    "nameKey": "numberBonds",
+    "skillKey": "skillMath",
+    "introKey": "numberBondsIntroDesc"
+  },
+  "/games/targets": {
+    "nameKey": "targets",
+    "skillKey": "skillReaction",
+    "introKey": "targetsIntroDesc"
+  },
+  "/games/choice-rt": {
+    "nameKey": "choiceRt",
+    "skillKey": "skillReaction",
+    "introKey": "choiceRtIntroDesc"
+  },
+  "/games/visual-search": {
+    "nameKey": "visualSearch",
+    "skillKey": "skillFocus",
+    "introKey": "visualSearchIntroDesc"
+  },
+  "/games/sdmt": {
+    "nameKey": "sdmt",
+    "skillKey": "skillProcessingSpeed",
+    "introKey": "sdmtIntroDesc"
+  },
+  "/games/posner": {
+    "nameKey": "posner",
+    "skillKey": "skillFocus",
+    "introKey": "posnerIntroDesc"
+  },
+  "/games/ant": {
+    "nameKey": "ant",
+    "skillKey": "skillFocus",
+    "introKey": "antIntroDesc"
+  },
+  "/games/quick-count": {
+    "nameKey": "quickCount",
+    "skillKey": "skillAttention",
+    "introKey": "quickCountIntroDesc"
+  },
+  "/games/cpt": {
+    "nameKey": "cpt",
+    "skillKey": "skillSustainedAttention",
+    "introKey": "cptIntroDesc"
+  },
+  "/games/phonemic-fluency": {
+    "nameKey": "phonemic",
+    "skillKey": "skillVerbal",
+    "introKey": "phonemicIntroDesc"
+  },
+  "/games/story-recall": {
+    "nameKey": "story",
+    "skillKey": "skillMemory",
+    "introKey": "storyIntroDesc"
+  },
+  "/games/rmet": {
+    "nameKey": "rmet",
+    "skillKey": "skillSocial",
+    "introKey": "rmetIntroDesc"
+  },
+  "/games/simon": {
+    "nameKey": "simon",
+    "skillKey": "skillInhibition",
+    "introKey": "simonIntroDesc"
+  },
+  "/games/breathing": {
+    "nameKey": "breathing",
+    "skillKey": "skillRecovery",
+    "introKey": "breathingIntroDesc"
+  },
+  "/games/counting-hub": {
+    "nameKey": "countingGroup",
+    "skillKey": "skillMath",
+    "introKey": "countingGroupIntroDesc"
+  },
+  "/games/words-hub": {
+    "nameKey": "wordsGroup",
+    "skillKey": "skillVocabulary",
+    "introKey": "wordsGroupIntroDesc"
+  },
+  "/games/hearing-hub": {
+    "nameKey": "hearingGroup",
+    "skillKey": "skillListening",
+    "introKey": "hearingGroupIntroDesc"
+  },
+  "/games/search-hub": {
+    "nameKey": "searchGroup",
+    "skillKey": "skillVisualSearch",
+    "introKey": "searchGroupIntroDesc"
+  },
+  "/games/mnemonics-hub": {
+    "nameKey": "mnemonicsGroup",
+    "skillKey": "skillSequence",
+    "introKey": "mnemonicsGroupIntroDesc"
+  },
+  "/games/languages-hub": {
+    "nameKey": "languagesGroup",
+    "skillKey": "skillVocabulary",
+    "introKey": "languagesGroupIntroDesc"
+  },
+  "/games/chess-hub": {
+    "nameKey": "chessGroup",
+    "skillKey": "skillVisualMemory",
+    "introKey": "chessGroupIntroDesc"
+  },
+  "/games/sorting-hub": {
+    "nameKey": "sortingGroup",
+    "skillKey": "skillPlanningWM",
+    "introKey": "sortingGroupIntroDesc"
+  },
+  "/games/puzzles": {
+    "nameKey": "puzzlesUnruly",
+    "skillKey": "skillLogic",
+    "introKey": "puzzlesUnrulyIntroDesc"
+  },
+  "/games/spatial-hub": {
+    "nameKey": "spatialGroup",
+    "skillKey": "skillSpatial",
+    "introKey": "spatialGroupIntroDesc"
+  },
+  "/games/puzzles?mode=Mines": {
+    "nameKey": "puzzlesMines",
+    "skillKey": "skillLogic",
+    "introKey": "puzzlesMinesIntroDesc"
+  },
+  "/games/puzzles?mode=Mosaic": {
+    "nameKey": "puzzlesMosaic",
+    "skillKey": "skillLogic",
+    "introKey": "puzzlesMosaicIntroDesc"
+  },
+  "/games/puzzles?mode=Pattern": {
+    "nameKey": "puzzlesPattern",
+    "skillKey": "skillLogic",
+    "introKey": "puzzlesPatternIntroDesc"
+  },
+  "/games/puzzles?mode=Range": {
+    "nameKey": "puzzlesRange",
+    "skillKey": "skillLogic",
+    "introKey": "puzzlesRangeIntroDesc"
+  },
+  "/games/puzzles?mode=Magnets": {
+    "nameKey": "puzzlesMagnets",
+    "skillKey": "skillLogic",
+    "introKey": "puzzlesMagnetsIntroDesc"
+  },
+  "/games/puzzles?mode=Galaxies": {
+    "nameKey": "puzzlesGalaxies",
+    "skillKey": "skillLogic",
+    "introKey": "puzzlesGalaxiesIntroDesc"
+  },
+  "/games/puzzles?mode=Palisade": {
+    "nameKey": "puzzlesPalisade",
+    "skillKey": "skillLogic",
+    "introKey": "puzzlesPalisadeIntroDesc"
+  },
+  "/games/puzzles?mode=Unruly": {
+    "nameKey": "puzzlesUnruly",
+    "skillKey": "skillLogic",
+    "introKey": "puzzlesUnrulyIntroDesc"
+  },
+  "/games/puzzles?mode=Slant": {
+    "nameKey": "puzzlesSlant",
+    "skillKey": "skillLogic",
+    "introKey": "puzzlesSlantIntroDesc"
+  },
+  "/games/puzzles?mode=Black Box": {
+    "nameKey": "puzzlesBlackBox",
+    "skillKey": "skillLogic",
+    "introKey": "puzzlesBlackBoxIntroDesc"
+  },
+  "/games/puzzles?mode=Guess": {
+    "nameKey": "puzzlesGuess",
+    "skillKey": "skillLogic",
+    "introKey": "puzzlesGuessIntroDesc"
+  },
+  "/games/puzzles?mode=Light Up": {
+    "nameKey": "puzzlesLightUp",
+    "skillKey": "skillLogic",
+    "introKey": "puzzlesLightUpIntroDesc"
+  },
+  "/games/puzzles?mode=Tents": {
+    "nameKey": "puzzlesTents",
+    "skillKey": "skillLogic",
+    "introKey": "puzzlesTentsIntroDesc"
+  },
+  "/games/puzzles?mode=Dominosa": {
+    "nameKey": "puzzlesDominosa",
+    "skillKey": "skillLogic",
+    "introKey": "puzzlesDominosaIntroDesc"
+  },
+  "/games/puzzles?mode=Rectangles": {
+    "nameKey": "puzzlesRectangles",
+    "skillKey": "skillLogic",
+    "introKey": "puzzlesRectanglesIntroDesc"
+  },
+  "/games/puzzles?mode=Map": {
+    "nameKey": "puzzlesMap",
+    "skillKey": "skillLogic",
+    "introKey": "puzzlesMapIntroDesc"
+  },
+  "/games/puzzles?mode=Pegs": {
+    "nameKey": "puzzlesPegs",
+    "skillKey": "skillLogic",
+    "introKey": "puzzlesPegsDesc"
+  },
+  "/games/puzzles?mode=Flood": {
+    "nameKey": "puzzlesFlood",
+    "skillKey": "skillLogic",
+    "introKey": "puzzlesFloodDesc"
+  },
+  "/games/puzzles?mode=Same Game": {
+    "nameKey": "puzzlesSameGame",
+    "skillKey": "skillLogic",
+    "introKey": "puzzlesSameGameDesc"
+  },
+  "/games/puzzles?mode=Signpost": {
+    "nameKey": "puzzlesSignpost",
+    "skillKey": "skillLogic",
+    "introKey": "puzzlesSignpostDesc"
+  },
+  "/games/puzzles?mode=Inertia": {
+    "nameKey": "puzzlesInertia",
+    "skillKey": "skillLogic",
+    "introKey": "puzzlesInertiaDesc"
+  },
+  "/games/puzzles?mode=Loopy": {
+    "nameKey": "puzzlesLoopy",
+    "skillKey": "skillLogic",
+    "introKey": "puzzlesLoopyDesc"
+  },
+  "/games/puzzles?mode=Pearl": {
+    "nameKey": "puzzlesPearl",
+    "skillKey": "skillLogic",
+    "introKey": "puzzlesPearlDesc"
+  },
+  "/games/puzzles?mode=Bridges": {
+    "nameKey": "puzzlesBridges",
+    "skillKey": "skillLogic",
+    "introKey": "puzzlesBridgesDesc"
+  },
+  "/games/puzzles?mode=Train Tracks": {
+    "nameKey": "puzzlesTracks",
+    "skillKey": "skillLogic",
+    "introKey": "puzzlesTracksDesc"
+  },
+  "/games/puzzles?mode=Slide": {
+    "nameKey": "puzzlesSlide",
+    "skillKey": "skillLogic",
+    "introKey": "puzzlesSlideIntroDesc"
+  },
+  "/games/puzzles?mode=Sokoban": {
+    "nameKey": "puzzlesSokoban",
+    "skillKey": "skillLogic",
+    "introKey": "puzzlesSokobanIntroDesc"
+  },
+  "/games/puzzles?mode=Net": {
+    "nameKey": "puzzlesNet",
+    "skillKey": "skillLogic",
+    "introKey": "puzzlesNetIntroDesc"
+  },
+  "/games/puzzles?mode=Netslide": {
+    "nameKey": "puzzlesNetslide",
+    "skillKey": "skillLogic",
+    "introKey": "puzzlesNetslideIntroDesc"
+  },
+  "/games/puzzles?mode=Twiddle": {
+    "nameKey": "puzzlesTwiddle",
+    "skillKey": "skillLogic",
+    "introKey": "puzzlesTwiddleIntroDesc"
+  },
+  "/games/puzzles?mode=Cube": {
+    "nameKey": "puzzlesCube",
+    "skillKey": "skillLogic",
+    "introKey": "puzzlesCubeIntroDesc"
+  },
+  "/games/puzzles?mode=Flip": {
+    "nameKey": "puzzlesFlip",
+    "skillKey": "skillLogic",
+    "introKey": "puzzlesFlipIntroDesc"
+  },
+  "/games/puzzles?mode=Sixteen": {
+    "nameKey": "puzzlesSixteen",
+    "skillKey": "skillLogic",
+    "introKey": "puzzlesSixteenIntroDesc"
+  },
+  "/games/puzzles?mode=Fifteen": {
+    "nameKey": "puzzlesFifteen",
+    "skillKey": "skillLogic",
+    "introKey": "puzzlesFifteenIntroDesc"
+  },
+  "/games/puzzles?mode=Untangle": {
+    "nameKey": "puzzlesUntangle",
+    "skillKey": "skillLogic",
+    "introKey": "puzzlesUntangleIntroDesc"
+  },
+  "/games/puzzles?mode=Solo": {
+    "nameKey": "puzzlesSolo",
+    "skillKey": "skillLogic",
+    "introKey": "puzzlesSoloDesc"
+  },
+  "/games/puzzles?mode=Towers": {
+    "nameKey": "puzzlesTowers",
+    "skillKey": "skillLogic",
+    "introKey": "puzzlesTowersDesc"
+  },
+  "/games/puzzles?mode=Unequal": {
+    "nameKey": "puzzlesUnequal",
+    "skillKey": "skillLogic",
+    "introKey": "puzzlesUnequalDesc"
+  },
+  "/games/puzzles?mode=Keen": {
+    "nameKey": "puzzlesKeen",
+    "skillKey": "skillLogic",
+    "introKey": "puzzlesKeenDesc"
+  },
+  "/games/puzzles?mode=Singles": {
+    "nameKey": "puzzlesSingles",
+    "skillKey": "skillLogic",
+    "introKey": "puzzlesSinglesDesc"
+  },
+  "/games/puzzles?mode=Filling": {
+    "nameKey": "puzzlesFilling",
+    "skillKey": "skillLogic",
+    "introKey": "puzzlesFillingDesc"
+  },
+  "/games/puzzles?mode=Undead": {
+    "nameKey": "puzzlesUndead",
+    "skillKey": "skillLogic",
+    "introKey": "puzzlesUndeadDesc"
+  },
+  "/games/anagrams?mode=classic": {
+    "nameKey": "classicLabel",
+    "skillKey": "skillVerbal",
+    "introKey": "anagramClassicIntroDesc"
+  },
+  "/games/anagrams?mode=all": {
+    "nameKey": "anagramAllWords",
+    "skillKey": "skillVerbal",
+    "introKey": "anagramAllIntroDesc"
+  },
+  "/games/anagrams?mode=cross": {
+    "nameKey": "anagramCrossword",
+    "skillKey": "skillVerbal",
+    "introKey": "anagramCrossIntroDesc"
+  },
+  "/games/anagrams?mode=square": {
+    "nameKey": "anagramSquare",
+    "skillKey": "skillVerbal",
+    "introKey": "anagramSquareIntroDesc"
+  }
+}

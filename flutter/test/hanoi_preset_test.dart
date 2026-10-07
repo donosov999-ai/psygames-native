@@ -7,6 +7,7 @@ import 'package:psygames_flutter/shell/game_preset.dart';
 import 'package:psygames_flutter/shell/preset_cap.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:psygames_flutter/shell/l10n.dart';
 
 /// ШАГ ЗАРЯДКИ ИГРАЕТ СВОЮ ДОСКУ И НЕ ТРОГАЕТ ЛИЧНЫЙ УРОВЕНЬ.
 ///
@@ -44,6 +45,8 @@ Finder _hud(String label, [String? value]) =>
     find.bySemanticsLabel(RegExp('^$label: ${value ?? ''}'));
 
 void main() {
+  // Подписи экрана — из словаря (02.10.2026, задача 48ca6466): без него вместо текста ключи.
+  setUpAll(() async => L.load('ru'));
   setUp(() => GamePreset.clear());
   tearDown(() => GamePreset.clear());
 

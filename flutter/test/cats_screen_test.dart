@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:psygames_flutter/games/cats/generator.dart';
+import 'package:psygames_flutter/games/cats/ladder.dart';
 import 'package:psygames_flutter/games/cats/screen.dart';
 import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
@@ -9,9 +10,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// 🔴 ПАРТИЯ В «КОШКАХ» ИГРАЕТСЯ НАЖАТИЯМИ, А НЕ ВЫЗОВОМ ПРАВИЛ.
 ///
 /// Правила и генератор сверены отдельно (`cats_rules_test.dart`,
-/// `cats_generator_test.dart`). Здесь проверяется ПРОДУКТ: доска появляется, тычок
-/// гоняет клетку по кругу, кошка не на своём месте отнимает жизнь, партия доигрывается
-/// до победы и ступень растёт.
+/// `cats_generator_test.dart`). Здесь проверяется ПРОДУКТ: доска появляется, короткий
+/// тычок ставит и снимает ✕, долгое нажатие вскрывает кошку (мимо — красный ✕ и минус
+/// жизнь, с вибрацией), партия доигрывается до победы и ступень растёт.
+///
+/// ⚠️ 02.10.2026, замечание Дениса: тычок гонял клетку по кругу пусто → ✕ → кошка, и
+/// кошка вставала в ЛЮБУЮ клетку — неверная оставалась на доске, пока не расставишь всех.
 ///
 /// ⚠️ ПРОБА ЗНАЕТ РАЗГАДКУ ЧЕСТНО: зерно экрана складывается из номера уровня и номера
 /// попытки (`cats|L1|A0`), и проба собирает ту же задачу тем же генератором. Читать
@@ -38,7 +42,7 @@ void main() {
   }
 
   /// Та же задача, что соберёт экран на первом уровне первой попытки.
-  final first = generateCats(6, 'cats|L1|A0')!;
+  final first = dealCatsLevel(1, 'cats|L1|A0')!.puzzle;
 
   Future<void> tapCell(WidgetTester tester, int r, int c, {int times = 1}) async {
     for (var i = 0; i < times; i++) {
@@ -47,20 +51,66 @@ void main() {
     }
   }
 
-  testWidgets('🔴 тычок гоняет клетку по кругу: пусто → ✕ → кошка → пусто', (tester) async {
+  /// Долгое нажатие — вскрыть кошку.
+  Future<void> reveal(WidgetTester tester, int r, int c) async {
+    await tester.longPress(find.byKey(Key('cell_${r}_$c')));
+    await tester.pump();
+  }
+
+  testWidgets('🔴 короткий тычок — только пометка ✕: ставит и снимает, кошку не ставит никогда', (tester) async {
     await boot(tester);
-    expect(find.byKey(const Key('cross_0_0')), findsNothing);
-    expect(find.byKey(const Key('cat_0_0')), findsNothing);
+    final right = first.board.solution[0];
+    for (var i = 0; i < 4; i++) {
+      await tapCell(tester, 0, right);
+      expect(find.byKey(Key('cat_0_$right')), findsNothing, reason: 'тычок $i не ставит кошку даже на её место');
+      expect(find.byKey(Key('cross_0_$right')), i.isEven ? findsOneWidget : findsNothing,
+          reason: 'тычок ${i + 1}: ✕ ${i.isEven ? 'стоит' : 'снят'}');
+    }
+  });
 
-    await tapCell(tester, 0, 0);
-    expect(find.byKey(const Key('cross_0_0')), findsOneWidget, reason: 'первый тычок — пометка ✕');
+  testWidgets('🔴 долгое нажатие вскрывает: в разгадке — кошка насовсем, мимо — красный ✕ без кошки', (tester) async {
+    await boot(tester);
+    final right = first.board.solution[0];
+    final wrong = [for (var c = 0; c < 6; c++) c].firstWhere((c) => c != right);
 
-    await tapCell(tester, 0, 0);
-    expect(find.byKey(const Key('cat_0_0')), findsOneWidget, reason: 'второй — кошка');
-    expect(find.byKey(const Key('cross_0_0')), findsNothing);
+    await tapCell(tester, 0, right);   // сначала пометка — вскрытие её заменяет
+    await reveal(tester, 0, right);
+    expect(find.byKey(Key('cat_0_$right')), findsOneWidget, reason: 'кошка вскрыта на своём месте');
+    await tapCell(tester, 0, right);
+    expect(find.byKey(Key('cat_0_$right')), findsOneWidget, reason: 'вскрытая кошка тычком не снимается');
 
-    await tapCell(tester, 0, 0);
-    expect(find.byKey(const Key('cat_0_0')), findsNothing, reason: 'третий — снова пусто');
+    await reveal(tester, 0, wrong);
+    expect(find.byKey(Key('cat_0_$wrong')), findsNothing, reason: 'мимо — кошка НЕ ставится');
+    expect(find.byKey(Key('miss_0_$wrong')), findsOneWidget, reason: 'мимо — красный ✕');
+    await tapCell(tester, 0, wrong);
+    expect(find.byKey(Key('miss_0_$wrong')), findsOneWidget, reason: 'промах тычком не стирается');
+  });
+
+  testWidgets('🔴 вскрытие отзывается вибрацией: в разгадке — средней, мимо — сильной; тумблер выключен — тишина',
+      (tester) async {
+    final calls = <String>[];
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(SystemChannels.platform, (call) async {
+      if (call.method == 'HapticFeedback.vibrate') calls.add('${call.arguments}');
+      return null;
+    });
+    addTearDown(() => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(SystemChannels.platform, null));
+    await boot(tester);
+    final right = first.board.solution[0];
+    final wrong = [for (var c = 0; c < 6; c++) c].firstWhere((c) => c != right);
+
+    await tapCell(tester, 1, 0);
+    final afterTap = calls.length;
+    await reveal(tester, 0, right);
+    await reveal(tester, 0, wrong);
+    expect(calls.sublist(afterTap).where((c) => c.contains('Impact')).toList(),
+        ['HapticFeedbackType.mediumImpact', 'HapticFeedbackType.heavyImpact'],
+        reason: 'кошка — средний толчок, промах — сильный');
+
+    state.set('${SharedState.prefix}haptic_enabled', 'false');
+    final before = calls.length;
+    await reveal(tester, 2, first.board.solution[2]);
+    expect(calls.sublist(before).where((c) => c.contains('Impact')), isEmpty,
+        reason: 'вибрация выключена в настройках — экран молчит');
   });
 
   /// ⚠️ ЖИЗНИ ЧИТАЮТСЯ У СВОЕГО СЧЁТЧИКА, А НЕ ПОИСКОМ ЦИФРЫ ПО ЭКРАНУ.
@@ -82,10 +132,10 @@ void main() {
     expect(find.bySemanticsLabel(RegExp('${RegExp.escape(lives)}: 3')), findsOneWidget,
         reason: 'три жизни целы после пометки');
 
-    // Вторым тычком та же клетка становится кошкой — и это ошибка.
-    await tapCell(tester, 0, wrong);
+    // Вскрытие той же клетки — кошки там нет, это ошибка.
+    await reveal(tester, 0, wrong);
     expect(find.bySemanticsLabel(RegExp('${RegExp.escape(lives)}: 2')), findsOneWidget,
-        reason: 'жизнь снята за кошку не на своём месте');
+        reason: 'жизнь снята за вскрытие мимо');
     semantics.dispose();
   });
 
@@ -94,7 +144,7 @@ void main() {
     expect(find.byKey(const Key('next')), findsNothing);
 
     for (var r = 0; r < 6; r++) {
-      await tapCell(tester, r, first.board.solution[r], times: 2);
+      await reveal(tester, r, first.board.solution[r]);
     }
 
     expect(find.byKey(const Key('next')), findsOneWidget, reason: 'победа видна человеку');
@@ -109,7 +159,7 @@ void main() {
     for (var r = 0; r < 6 && made < 3; r++) {
       for (var c = 0; c < 6 && made < 3; c++) {
         if (first.board.solution[r] == c) continue;
-        await tapCell(tester, r, c, times: 2);
+        await reveal(tester, r, c);
         made++;
       }
     }
@@ -120,7 +170,7 @@ void main() {
     // после проигрыша (решение Дениса 23.09). Без него человек получал бы ту же самую.
     expect(state.get('${SharedState.prefix}cats_try_nzt48'), '1',
         reason: 'следующая партия соберётся с другим зерном');
-    expect(generateCats(6, 'cats|L1|A1')!.board.regions, isNot(first.board.regions),
+    expect(dealCatsLevel(1, 'cats|L1|A1')!.puzzle.board.regions, isNot(first.board.regions),
         reason: 'и доска действительно другая');
   });
 
@@ -162,5 +212,6 @@ void main() {
     expect(find.text(L.t('catsTitle')), findsWidgets);
     expect(L.t('catsTitle'), isNot('catsTitle'), reason: 'ключ заведён в словаре');
     expect(L.t('catsRuleTouch'), isNot('catsRuleTouch'));
+    expect(L.t('catsHowPress'), isNot('catsHowPress'), reason: 'как играть: долгое нажатие и ✕');
   });
 }

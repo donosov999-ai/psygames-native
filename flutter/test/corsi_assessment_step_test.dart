@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/corsi/model.dart';
 import 'package:psygames_flutter/games/corsi/screen.dart';
+import 'package:psygames_flutter/shell/game_clock.dart';
 import 'package:psygames_flutter/shell/game_preset.dart';
 import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/level_rules.dart';
@@ -46,11 +47,12 @@ void main() {
   tearDown(() {
     GamePreset.clear();
     SessionReport.sink = null;
+    gameWallMs = () => DateTime.now().millisecondsSinceEpoch;
   });
 
   int? litBlock(WidgetTester tester) {
     for (var i = 0; i < corsiBlocks; i++) {
-      final f = find.byKey(Key('блок$i'));
+      final f = find.byKey(Key('corsi-block-$i'));
       if (f.evaluate().isEmpty) continue;
       final m = tester.widget<Material>(find.ancestor(of: f, matching: find.byType(Material)).first);
       if (m.color == Theme.of(tester.element(f)).colorScheme.primary) return i;
@@ -58,17 +60,21 @@ void main() {
     return null;
   }
 
+  /// Ряд по вспышкам. Новая вспышка — и после тёмного кадра, и когда горящий блок сменился
+  /// другим без тёмного кадра между ними.
   Future<List<int>> watch(WidgetTester tester) async {
     final seen = <int>[];
     var dark = true;
+    int? last;
     for (var i = 0; i < 120; i++) {
       final lit = litBlock(tester);
       if (lit == null) {
         dark = true;
-      } else if (dark) {
+      } else if (dark || lit != last) {
         seen.add(lit);
         dark = false;
       }
+      last = lit;
       await tester.pump(const Duration(milliseconds: 50));
     }
     return seen;
@@ -91,6 +97,8 @@ void main() {
 
   testWidgets('🔴 шаг «Оценки»: стартует сам, прямой ряд из 4 у 12-го уровня, отчёт опознаётся шагом',
       (tester) async {
+    // Паузы показа — на игровых часах каркаса: им нужно поддельное время пробы.
+    gameWallMs = () => tester.binding.clock.now().millisecondsSinceEpoch;
     GamePreset.set({'wu': '1', 'diff': 'medium', 'mode': 'forward', 'startLen': '4'});
     await tester.pumpWidget(MaterialApp(home: CorsiScreen(state: state)));
     await tester.pump();
@@ -100,18 +108,25 @@ void main() {
     final seq = await watch(tester);
     expect(seq.length, 4, reason: 'длина ряда — из шага (startLen=4), а не 8 от 12-го уровня');
     for (final b in seq) {
-      await tester.tap(find.byKey(Key('блок$b')));
+      await tester.tap(find.byKey(Key('corsi-block-$b')));
       await tester.pump();
     }
     expect(hud(tester, 'hud_span', '4'), isTrue,
         reason: 'ряд в ПРЯМОМ порядке засчитан: шаг forward, хотя 12-й уровень играет обратным');
+    // Пауза после верного ряда — 600 мс, и всё это время последний нажатый блок горит цветом
+    // вспышки. Начни смотреть сразу — подсветка нажатия запишется первым блоком нового ряда, а
+    // его настоящая первая вспышка потеряется: она загорается в том же кадре, без тёмного
+    // промежутка. Тогда «заведомо неверный» блок пробы совпадал с настоящим первым примерно в
+    // одном случае из восьми: нажатие засчитывалось верным, игра ждала продолжения, и показа
+    // больше не было — «ряд показан: []» (CI PR #152 и замер на маке 02.10.2026: 4 провала из 28).
+    await tester.pump(const Duration(milliseconds: 650));
 
     // Две ошибки подряд заканчивают партию — классический Корси.
     for (var miss = 0; miss < 2; miss++) {
       final next = await watch(tester);
       expect(next, isNotEmpty, reason: 'ряд показан');
       final wrong = List.generate(corsiBlocks, (i) => i).firstWhere((i) => i != next.first);
-      await tester.tap(find.byKey(Key('блок$wrong')));
+      await tester.tap(find.byKey(Key('corsi-block-$wrong')));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 800));
     }

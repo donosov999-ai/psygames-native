@@ -12,7 +12,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// рядом УРОВЕНЬ из общей с вебом памяти и вернуть маршрут наверх — открывать игру
 /// должна оболочка. Плюс шапка: та же, что у веб-развилки, а не общая заглушка.
 Future<void> boot(WidgetTester tester, Widget hub) async {
-  tester.view.physicalSize = const Size(780, 1688);
+  // 07.10.2026: карточек 6 → 8 (OSpan и «Мнемоника» приехали, задача 668bcc73) — на 390×844 список
+  // прокручивается и строится лениво; проба «лишних карточек нет» считает построенные, поэтому экран выше.
+  tester.view.physicalSize = const Size(780, 2600);
   tester.view.devicePixelRatio = 2;
   addTearDown(tester.view.reset);
   await tester.runAsync(() async {
@@ -52,9 +54,12 @@ void main() {
     '/games/reading-span': 'Reading Span: память',
     '/games/n-back': 'N-back: оперативная память',
     '/games/picture-pairs': 'Парные картинки',
+    // 07.10.2026: переезды по решению Дениса 18.09 (задача 668bcc73): OSpan из «Счёта» и «Мнемоника: порядок» из «Мнемотехник».
+    '/games/ospan': 'OSpan: счёт+память',
+    '/games/mnemonics': 'Мнемоника: порядок',
   };
 
-  testWidgets('показывает все шесть упражнений раздела, каждое своим названием', (tester) async {
+  testWidgets('показывает все восемь упражнений раздела, каждое своим названием', (tester) async {
     final state = await SharedState.open();
     await boot(tester, SpanHubScreen(state: state, isNative: (r) => true));
     for (final e in exercises.entries) {

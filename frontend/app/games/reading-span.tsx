@@ -1,4 +1,4 @@
-/* psygames-game-reading-span · VER 2 · 23.08.2026 */
+/* psygames-game-reading-span · VER 3 · 01.10.2026 */
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, TextInput,
@@ -43,10 +43,10 @@ const RS_BENEFITS = [
   { icon: 'sync-outline', textKey: 'benefitRs3' },
 ];
 
-interface SentenceItem { ru: string; en: string; ok: boolean; lastRu: string; lastEn: string; }
+export interface SentenceItem { ru: string; en: string; ok: boolean; lastRu: string; lastEn: string; }
 
 // Each sentence has a sensibility judgment (true = makes sense). Last word is what subject must recall.
-const SENTENCES: SentenceItem[] = [
+export const SENTENCES: SentenceItem[] = [
   { ru: 'Кошка пьёт молоко из миски.',           en: 'The cat drinks milk from the bowl.',     ok: true,  lastRu: 'миски',     lastEn: 'bowl' },
   { ru: 'Солнце светит ночью на крыше.',          en: 'The sun shines at night on the roof.',   ok: false, lastRu: 'крыше',     lastEn: 'roof' },
   { ru: 'Дети играют в парке возле дома.',        en: 'Children play in the park near home.',   ok: true,  lastRu: 'дома',      lastEn: 'home' },
@@ -148,6 +148,38 @@ export function levelParams(level: number, poolSize: number): { setSize: number;
 }
 
 type GamePhase = 'intro' | 'config' | 'playing' | 'recall' | 'cleared' | 'result';
+
+/**
+ * Проверка воспоминания: последние слова набора в ПОРЯДКЕ показа против того, что
+ * человек набрал (через пробел, запятую или точку с запятой; регистр не важен).
+ * Слово на своём месте — попадание; не то слово или пропуск — ошибка.
+ *
+ * ⚠️ Вынесено из экрана чистой функцией, чтобы её же звал экспортёр эталона Flutter-переноса
+ * (`src/games/reading-span/tools/record-flutter-reference.gen.ts`): эталон снимается с того же
+ * пути, по которому проверяется человек.
+ */
+export function recallScore(
+  seq: readonly SentenceItem[], language: string, input: string,
+): { hits: number; errors: number; expected: string[] } {
+  const expected = seq.map(s => language !== 'ru' ? s.lastEn : s.lastRu).map(x => x.toLowerCase().trim());
+  const given = input.toLowerCase().split(/[\s,;]+/).filter(Boolean).map(x => x.trim());
+  let hits = 0, errors = 0;
+  for (let i = 0; i < expected.length; i++) {
+    if (given[i] === expected[i]) hits++;
+    else errors++;
+  }
+  return { hits, errors, expected };
+}
+
+/** Метка трудности партии по размеру набора — как её пишет отчёт. */
+export function sessionDifficulty(setSize: number): 'easy' | 'medium' | 'hard' {
+  return setSize <= 3 ? 'easy' : setSize <= 5 ? 'medium' : 'hard';
+}
+
+/** Счёт партии: слова дороже суждений, ошибка стоит половину слова. */
+export function sessionScore(hits: number, judgeHits: number, errors: number): number {
+  return Math.max(0, hits * 100 + judgeHits * 30 - errors * 50);
+}
 
 
 export default function ReadingSpanGame() {
@@ -253,13 +285,7 @@ export default function ReadingSpanGame() {
   };
 
   const handleRecallSubmit = async () => {
-    const expected = seq.map(s => language !== 'ru' ? s.lastEn : s.lastRu).map(x => x.toLowerCase().trim());
-    const given = recallInput.toLowerCase().split(/[\s,;]+/).filter(Boolean).map(x => x.trim());
-    let h = 0, e = 0;
-    for (let i = 0; i < expected.length; i++) {
-      if (given[i] === expected[i]) h++;
-      else e++;
-    }
+    const { hits: h, errors: e, expected } = recallScore(seq, language, recallInput);
     setHits(h); setErrors(e);
     if (timerRef.current) clearInterval(timerRef.current);
     const finalTime = (gameNow() - startTime) / 1000;
@@ -277,9 +303,9 @@ export default function ReadingSpanGame() {
       await saveSession({
         passed,
         game_type: 'reading_span',
-        score: Math.max(0, h * 100 + judgeHits * 30 - e * 50),
+        score: sessionScore(h, judgeHits, e),
         time_seconds: finalTime,
-        difficulty: setSize <= 3 ? 'easy' : setSize <= 5 ? 'medium' : 'hard',
+        difficulty: sessionDifficulty(setSize),
         mode: `${setSize}-set`,
         errors: e,
         details: { level: levelRef.current, judgments: judgeHits, recalled: h, expected: expected.join(' ') },
@@ -420,7 +446,7 @@ export default function ReadingSpanGame() {
       )}
       {phase === 'result' && (
         <GameResult
-          score={Math.max(0, hits * 100 + judgeHits * 30 - errors * 50)}
+          score={sessionScore(hits, judgeHits, errors)}
           time={elapsedTime} errors={errors}
           onPlayAgain={() => setPhase('config')} onGoHome={() => goBackOrHome()}
           gradient={GRADIENT as [string, string]} />

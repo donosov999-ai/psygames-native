@@ -9,6 +9,7 @@ import '../../shell/l10n.dart';
 import '../../shell/lesson.dart';
 import '../../shell/lesson_player.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/level_rules.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import 'model.dart';
@@ -18,8 +19,14 @@ import 'model.dart';
 ///
 /// Вверху карточка, внизу две коробки-образца: красный круг и синий квадрат.
 /// Нажатие на коробку кладёт карточку туда; после каждого ответа — ✓ или ✗.
-/// Сначала верно «по цвету», на середине серии правило молча меняется на «по
-/// форме», как у движка: догадаться о смене ребёнок может только по ✗.
+/// Сначала верно «по цвету», потом правило молча меняется на «по форме», с пятой
+/// ступени — и обратно: догадаться о смене ребёнок может только по ✗.
+///
+/// 🔴 СЕРИЯ ЗАСЧИТЫВАЕТСЯ НЕ ВСЕГДА (доработка 02.10.2026, задача e95b7e2f). Прежде любая
+/// досмотренная серия поднимала ступень, и ребёнок, раскладывавший всё по цвету, уходил к
+/// сменам правила, которых не замечал. Теперь ступень растёт, если в каждой фазе не больше
+/// ошибок, чем позволяет критерий пробы ([KidsSortSession.passed]); иначе — провал, и
+/// третий подряд опускает ступень.
 class KidsSortScreen extends StatefulWidget {
   const KidsSortScreen({super.key, required this.state, this.seed});
 
@@ -41,12 +48,12 @@ class _KidsSortScreenState extends State<KidsSortScreen> {
   bool? _lastOk;
   Timer? _flash;
 
-  bool get _done => _session != null && _phase == 2 && _index >= _session!.nCards;
+  bool get _done => _session != null && _phase == _session!.phases.length && _index >= _session!.nCards;
 
   KidsCard? get _card {
     final s = _session;
     if (s == null || _done) return null;
-    return (_phase == 1 ? s.phase1 : s.phase2).cards[_index];
+    return s.phases[_phase - 1].cards[_index];
   }
 
   @override
@@ -71,7 +78,11 @@ class _KidsSortScreenState extends State<KidsSortScreen> {
 
   void _deal() {
     _flash?.cancel();
-    _session = KidsSortSession(_rnd, nCards: kidsCardsFor(_ladder.level));
+    _session = KidsSortSession(
+      _rnd,
+      nCards: kidsCardsFor(_ladder.level),
+      phases: kidsPhasesFor(_ladder.level),
+    );
     _phase = 1;
     _index = 0;
     _lastOk = null;
@@ -86,8 +97,8 @@ class _KidsSortScreenState extends State<KidsSortScreen> {
     setState(() {
       _lastOk = ok;
       _index += 1;
-      // Смена правила молчит: вторая фаза начинается сразу за первой.
-      if (_phase == 1 && _index >= s.nCards) {
+      // Смена правила молчит: следующая фаза начинается сразу за прошлой.
+      if (_phase < s.phases.length && _index >= s.nCards) {
         _phase = 2;
         _index = 0;
       }
@@ -100,18 +111,16 @@ class _KidsSortScreenState extends State<KidsSortScreen> {
   Future<void> _next() async {
     final s = _session;
     if (s == null) return;
-    await _ladder.win(errors: s.errors);
+    if (s.passed) {
+      await _ladder.win(errors: s.errors);
+    } else {
+      await _ladder.fail(errors: s.errors);
+    }
     if (!mounted) return;
     setState(_deal);
   }
 
   void _restart() => setState(_deal);
-
-  /// Звёзды по доле верных: вся серия без ошибок — три, до одной пятой ошибок — две.
-  int _stars(KidsSortSession s) {
-    if (s.errors == 0) return 3;
-    return s.errors * 5 <= s.total ? 2 : 1;
-  }
 
   /*
    * РАЗБОР — три шага словами на образцах, без чужой партии: как класть по
@@ -121,9 +130,11 @@ class _KidsSortScreenState extends State<KidsSortScreen> {
   Future<void> _openLesson() async {
     // Имя кончается на `Keys` — по нему сборщик словаря (embed-l10n.mjs) находит
     // ключи, которые зовутся не литералом `L.t('…')`.
-    const lessonKeys = ['teachKidsSortRule', 'teachKidsSortSwitch', 'teachKidsSortShape'];
+    const lessonKeys = ['teachKidsSortRule', 'teachKidsSortSwitch', 'teachKidsSortShape', 'teachKidsSortAgain'];
+    // Четвёртый шаг — про то, что правило возвращается: он нужен, только когда смен больше одной.
+    final keys = kidsPhasesFor(_ladder.level) > 2 ? lessonKeys : lessonKeys.take(3);
     final steps = [
-      for (final k in lessonKeys) LessonStep(techniqueKey: k, text: L.t(k)),
+      for (final k in keys) LessonStep(techniqueKey: k, text: L.t(k)),
     ];
     LessonUsed.mark();
     await Navigator.of(context).push(MaterialPageRoute<void>(
@@ -157,12 +168,18 @@ class _KidsSortScreenState extends State<KidsSortScreen> {
     return GameShell(
       title: L.t('kidsSort'),
       onLesson: _openLesson,
+      levelRule: LevelRuleSpot(
+        gameId: 'kids_sort',
+        level: _ladder.level,
+        state: widget.state,
+        calm: (_phase == 1 && _index == 0) || _done,
+      ),
       hud: [
         HudItem(label: L.t('level'), value: '${_ladder.level}', icon: Icons.flag_outlined),
         HudItem(label: L.t('errors'), value: '${s.errors}', icon: Icons.error_outline),
         HudItem(
           label: L.t('kidsSortCards'),
-          value: '${(_phase - 1) * s.nCards + min(_index, s.nCards)}/${2 * s.nCards}',
+          value: '${(_phase - 1) * s.nCards + min(_index, s.nCards)}/${s.phases.length * s.nCards}',
           icon: Icons.style_outlined,
         ),
       ],
@@ -230,7 +247,7 @@ class _KidsSortScreenState extends State<KidsSortScreen> {
                 key: const ValueKey('ks-next'),
                 onPressed: _next,
                 icon: const Icon(Icons.arrow_forward),
-                label: Text('${'★' * _stars(s)} · ${L.t('level')} ${_ladder.level + 1}'),
+                label: Text('${'★' * s.stars} · ${L.t('level')} ${s.passed ? _ladder.level + 1 : _ladder.level}'),
               ),
             )
           : null,

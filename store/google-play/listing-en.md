@@ -14,7 +14,7 @@ PsyGames: Brain Training
 
 Запасной:
 ```
-Schulte tables, Stroop, N-back, sudoku: 75 memory and focus trainers
+Schulte tables, Stroop, N-back, sudoku: 131 memory and focus trainers
 ```
 24 символов
 
@@ -22,13 +22,13 @@ Schulte tables, Stroop, N-back, sudoku: 75 memory and focus trainers
 
 ## 2. КРАТКОЕ ОПИСАНИЕ — 80 символов
 ```
-Remember it the first time and stop drifting. 75 exercises, offline, no ads
+Remember it the first time and stop drifting. 131 exercises, offline, no ads
 ```
 75 символов · рекомендую
 
 Запасной:
 ```
-Memory, focus, thinking speed. 75 exercises. Offline, no ads
+Memory, focus, thinking speed. 131 exercises. Offline, no ads
 ```
 60 символов
 
@@ -43,7 +43,7 @@ Hear a foreign language and catch sounds that used to blur into noise.
 
 That's not a gift you're born with. It's trained — and here you can see by how much.
 
-PsyGames is brain training and brain games: 75 exercises and puzzles for memory, attention, logic and thinking speed. Not another "test your IQ", but training with results you can measure.
+PsyGames is brain training and brain games: 131 exercises and puzzles for memory, attention, logic and thinking speed. Not another "test your IQ", but training with results you can measure.
 
 MEMORY GAMES
 Train visual memory with Corsi blocks, matrices and matching pairs. Build working memory with N-back, operation span and reading span. Hold a pattern in mind and reproduce it later.
@@ -52,7 +52,7 @@ ATTENTION AND FOCUS
 Improve concentration with Schulte tables, Spot the Difference, Posner and Flanker tasks. Practise staying on task despite interruptions.
 
 LOGIC AND PUZZLES
-Solve brain puzzles: Sudoku with 15 rule variants, Tower of Hanoi, Tower of London, SET, anagrams, water sort, goods sort, mahjong and chess puzzles. Plan several moves ahead.
+Solve brain puzzles: Sudoku with 24 rule variants, Tower of Hanoi, Tower of London, SET, anagrams, water sort, goods sort, mahjong and chess puzzles. Plan several moves ahead.
 
 SPATIAL THINKING
 Mental rotation: turn a shape in your mind and find its match. A meta-analysis of 206 studies (Uttal et al., 2013) found spatial skills are trainable in children and adults, and they are linked to success in science and engineering.
@@ -75,7 +75,7 @@ Most brain apps get deleted in three days: no visible progress. This one is buil
 • Points for accuracy and speed, a shop of frames and titles
 
 WHAT'S INSIDE
-• 75 exercises for memory, attention, logic, speed and control
+• 131 exercises for memory, attention, logic, speed and control
 • Warm-up in one button: morning, daytime, evening and night
 • Dark theme, and a night set for when you can't sleep: 4-7-8 breathing on a dimmed screen, no points, no streak
 • 12 profiles: languages, kids, 50+, focus, reaction, founders and more

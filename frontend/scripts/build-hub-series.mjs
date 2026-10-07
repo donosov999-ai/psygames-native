@@ -41,7 +41,7 @@ const ЗАНОВО = process.argv.includes('--force');
 const РАЗВИЛКА_ПОТОКА = {
   span: '/games/span', mnemonics: '/games/mnemonics-hub', chess: '/games/chess-hub',
   conflict: '/games/attention-conflict', search: '/games/search-hub', sudoku: '/games/sudoku-hub',
-  puzzles: '/games/puzzles-hub', spatial: '/games/spatial-hub', sorting: '/games/sorting-hub',
+  spatial: '/games/spatial-hub', sorting: '/games/sorting-hub',
   counting: '/games/counting-hub', words: '/games/words-hub', hearing: '/games/hearing-hub',
   languages: '/games/languages-hub',
 };

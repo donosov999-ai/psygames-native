@@ -543,8 +543,23 @@ Sequence makeSequence(int level, Rng rng) {
 /// ответа, и приём «бери ближайший к среднему» угадывал 73–85 % при случайных 25 %.
 /// Промежутки между соседями берутся независимо и одинаково, место ответа
 /// случайно, а лесенка сдвигается к нему.
-List<int> makeOptions(int answer, Rng rng, {int count = 4}) {
+///
+/// 🔴 ПРИМАНКА У ХВОСТА (задача 94f9c7c1, 01.10.2026; перенос patternSequences.ts
+/// VER 4). [tail] — «последний + последний шаг» ([tailLure]): число, которое
+/// получает игрок, прочитавший ряд, но не понявший правило. Замер по 3000 рядов
+/// на уровень: у квадратов и растущих разностей ответ лежит в 1–2 от хвоста, а шаг
+/// лесенки 2…16 — ближайшим к хвосту вариантом оказывался сам ответ: 57 % на L5,
+/// 74 % на L10, 36–41 % на смеси при случайных 25. Хвост ближе шага лесенки —
+/// лесенка РАВНОМЕРНАЯ с шагом |хвост − ответ|: хвост стоит среди вариантов соседом
+/// ответа (кроме случая, когда ответ крайний с его стороны), тесной пары нет.
+/// Хвост далеко или совпал с ответом (линейное правило) — путь прежний до броска.
+List<int> makeOptions(int answer, Rng rng, {int count = 4, int? tail}) {
   final unit = 2 * math.max(1, jsRound(answer.abs() * 0.075).toInt()).toInt();
+  final gap = tail == null ? 0 : (tail - answer).abs();
+  if (gap > 0 && gap <= unit) {
+    final at = _rnd(rng, count);
+    return _shuffle([for (var i = 0; i < count; i += 1) answer + (i - at) * gap], rng);
+  }
   final place = _rnd(rng, count);
   final at = <int>[0];
   for (var i = 1; i < count; i += 1) {
@@ -552,6 +567,10 @@ List<int> makeOptions(int answer, Rng rng, {int count = 4}) {
   }
   return _shuffle([for (final x in at) answer + x - at[place]], rng);
 }
+
+/// Хвост ряда — «последний + последний шаг»: так продолжает ряд тот, кто видит
+/// шаг, но не видит правила.
+int tailLure(List<int> items) => items.last + (items.last - items[items.length - 2]);
 
 /// Порог прохождения партии — семь попаданий из десяти.
 const double passHitRate = 0.7;

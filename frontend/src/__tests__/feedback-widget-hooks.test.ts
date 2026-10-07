@@ -31,11 +31,11 @@ describe('FeedbackWidget: хуки только до раннего возвра
   const src = fs.readFileSync(FILE, 'utf8') as string;
 
   it('ранний возврат на месте — виджет умеет прятаться', () => {
-    expect(src).toContain('if (!FEEDBACK_ENABLED || hidden) return null;');
+    expect(src).toContain('if (!FEEDBACK_ENABLED) return null;');
   });
 
   it('после раннего возврата хуков НЕТ', () => {
-    const i = src.indexOf('if (!FEEDBACK_ENABLED || hidden) return null;');
+    const i = src.indexOf('if (!FEEDBACK_ENABLED) return null;');
     expect(i).toBeGreaterThan(0);
     // Хвост компонента — до первой функции верхнего уровня после него.
     const after = src.slice(i);
