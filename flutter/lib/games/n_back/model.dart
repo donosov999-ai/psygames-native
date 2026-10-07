@@ -6,14 +6,22 @@ import 'dart:math';
 /// `test/n_back_test.dart` сверяет его с эталоном, снятым прогоном ЖИВОГО TS
 /// (`frontend/src/games/n-back/tools/record-flutter-reference.gen.ts`):
 ///   · правила уровня — `levelParams` из `app/games/n-back.tsx`;
-///   · блок ряда — `buildNbackSequence` из `src/games/nback/sequence.ts`, на том же
-///     потоке случайных чисел и в том же порядке вызовов;
+///   · блок ряда — `buildNbackSequence` / `buildNbackSequenceVar` из `src/games/nback/sequence.ts`,
+///     на том же потоке случайных чисел и в том же порядке вызовов; план глубины — `nPlanFor`;
 ///   · d′ и точность — `src/games/n-back/core/dprime.ts`.
 /// После правки любого из трёх веб-файлов эталон переснимается тем экспортёром.
 
 /// Уровень, на котором глубина упирается в 6: выше лестницу держит растущий интервал
 /// между стимулами (ось задержки) и доля приманок (ось 5).
 const nbVolumeTop = 13;
+
+/// 🔴 ОСЬ 9 — ГЛУБИНА МЕНЯЕТСЯ ВНУТРИ ПАРТИИ (задача 103cd98d, 02.10.2026). С L27 (приманки
+/// упёрлись в 0,45 на L26) партия чередует N и N − 1 отрезками по `switchEvery` проб: 10 на L27,
+/// на уровень короче, до 4 на L33. Пока растёт эта ось, удержание стоит; с L34 растёт снова.
+/// Порт `NB_SWITCH_*` из `app/games/n-back.tsx`.
+const nbSwitchFrom = 27;
+const nbSwitchStart = 10;
+const nbSwitchFloor = 4;
 
 /// Доля целей в блоке. Фиксирована и НЕ является ручкой сложности: она задаёт величину
 /// измеряемого эффекта, и крутить ею сложность значит ломать мерку.
@@ -41,6 +49,7 @@ class NbLevelParams {
     required this.showMs,
     required this.gapMs,
     this.lureRate,
+    this.switchEvery,
   });
 
   /// Глубина: с чем сравнивать — со стимулом n назад.
@@ -55,6 +64,9 @@ class NbLevelParams {
 
   /// Доля приманок, заданная УРОВНЕМ (ось 5); `null` — по глубине ([lureRateFor]).
   final double? lureRate;
+
+  /// Ось 9: глубина чередуется N и N − 1 отрезками по столько проб; `null` — постоянная N.
+  final int? switchEvery;
 
   /// L1–5: одиночный поток, N = уровень · L6–8: N = 5 быстрее · L9+: двойной поток,
   /// N растёт до 6; выше [nbVolumeTop] — интервал +200 мс за уровень и приманки до 0,45.
@@ -72,7 +84,12 @@ class NbLevelParams {
       );
     }
     final dl = level - 8;
-    final hold = max(0, level - nbVolumeTop) * 200;
+    // Удержание (ось 3): в полосе оси 9 стоит, дальше растёт снова — одна ось на ступень.
+    const switchFloorLevel = nbSwitchFrom + (nbSwitchStart - nbSwitchFloor);
+    final int holdLevels = level < nbSwitchFrom
+        ? max(0, level - nbVolumeTop)
+        : (nbSwitchFrom - 1 - nbVolumeTop) + max(0, level - switchFloorLevel);
+    final hold = holdLevels * 200;
     final lureRate = min(0.45, 0.2 + max(0, level - nbVolumeTop) * 0.02);
     return NbLevelParams(
       n: min(6, 1 + dl),
@@ -80,6 +97,7 @@ class NbLevelParams {
       showMs: 700,
       gapMs: 1100 + hold,
       lureRate: lureRate,
+      switchEvery: level >= nbSwitchFrom ? max(nbSwitchFloor, nbSwitchStart - (level - nbSwitchFrom)) : null,
     );
   }
 }
@@ -125,28 +143,42 @@ List<T> _shuffle<T>(NbRng rng, List<T> list) {
   return out;
 }
 
-/// Блок с ТОЧНЫМ числом целей и приманок: сборка повторяется, пока посчитанное в готовом
-/// ряду не совпадёт с заказанным (40 попыток; не вышло — последняя сборка, а не падение
-/// посреди партии). Порт `buildNbackSequence` один к одному, включая порядок вызовов ГПСЧ.
-NbackSequence buildNbackSequence(int trials, int n, int alphabet, NbRng rng, [double? lureRate]) {
+/// Блок с ТОЧНЫМ числом целей и приманок при постоянной глубине — частный случай
+/// [buildNbackSequenceVar]; выход тот же до последней цифры. Порт `buildNbackSequence`.
+NbackSequence buildNbackSequence(int trials, int n, int alphabet, NbRng rng, [double? lureRate]) =>
+    buildNbackSequenceVar(trials, List.filled(trials, n), alphabet, rng, lureRate ?? lureRateFor(n));
+
+/// План глубины партии (ось 9): отрезками по [switchEvery] проб глубина чередуется n, n − 1, n…
+/// Без [switchEvery] — постоянная n. Порт `nPlanFor`.
+List<int> nbPlanFor(int trials, int n, [int? switchEvery]) {
+  if (switchEvery == null || switchEvery <= 0 || n < 2) return List.filled(trials, n);
+  return [for (var i = 0; i < trials; i++) (i ~/ switchEvery).isEven ? n : n - 1];
+}
+
+/// Блок с ТОЧНЫМ числом целей и приманок для глубины на каждую позицию: сборка повторяется,
+/// пока посчитанное в готовом ряду не совпадёт с заказанным (40 попыток; не вышло — последняя
+/// сборка, а не падение посреди партии). Порт `buildNbackSequenceVar` один к одному, включая
+/// порядок вызовов ГПСЧ.
+NbackSequence buildNbackSequenceVar(int trials, List<int> nAt, int alphabet, NbRng rng, [double? lureRate]) {
+  final rate = lureRate ?? lureRateFor(nAt.reduce(max));
   NbackSequence? last;
   for (var attempt = 0; attempt < 40; attempt++) {
-    final built = _buildOnce(trials, n, alphabet, rng, lureRate);
+    final built = _buildOnce(trials, nAt, alphabet, rng, rate);
     last = built;
-    if (countMatches(built.items, n) == built.matchAt.length &&
-        countLures(built.items, n) == built.lureAt.length) {
+    if (countMatchesVar(built.items, nAt) == built.matchAt.length &&
+        countLuresVar(built.items, nAt) == built.lureAt.length) {
       return built;
     }
   }
   return last!;
 }
 
-NbackSequence _buildOnce(int trials, int n, int alphabet, NbRng rng, double? lureRate) {
+NbackSequence _buildOnce(int trials, List<int> nAt, int alphabet, NbRng rng, double lureRate) {
   final items = List<int>.filled(trials, -1);
-  // Совпадение возможно только с позиции n: доли считаются от них, а не от длины блока.
-  final eligible = [for (var i = n; i < trials; i++) i];
+  // Совпадение возможно только с позиции глубины: доли считаются от них, а не от длины блока.
+  final eligible = [for (var i = 0; i < trials; i++) if (i >= nAt[i]) i];
   final matchCount = (eligible.length * nbMatchRate).round();
-  final lureCount = (eligible.length * (lureRate ?? lureRateFor(n))).round();
+  final lureCount = (eligible.length * lureRate).round();
 
   final shuffled = _shuffle(rng, eligible);
   int cut(int k) => min(k, shuffled.length);   // как `slice` в JS: за краем — до края
@@ -157,6 +189,7 @@ NbackSequence _buildOnce(int trials, int n, int alphabet, NbRng rng, double? lur
   final isLure = lureAt.toSet();
 
   for (var i = 0; i < trials; i++) {
+    final n = nAt[i];
     if (isMatch.contains(i)) {
       items[i] = items[i - n];
       continue;
@@ -190,18 +223,25 @@ NbackSequence _buildOnce(int trials, int n, int alphabet, NbRng rng, double? lur
 }
 
 /// Настоящее число совпадений в готовом ряду.
-int countMatches(List<int> items, int n) {
+int countMatches(List<int> items, int n) => countMatchesVar(items, List.filled(items.length, n));
+
+/// То же для глубины на каждую позицию.
+int countMatchesVar(List<int> items, List<int> nAt) {
   var c = 0;
-  for (var i = n; i < items.length; i++) {
-    if (items[i] == items[i - n]) c += 1;
+  for (var i = 0; i < items.length; i++) {
+    if (i >= nAt[i] && items[i] == items[i - nAt[i]]) c += 1;
   }
   return c;
 }
 
 /// Настоящее число приманок: повтор на лаге n±1, не являющийся совпадением.
-int countLures(List<int> items, int n) {
+int countLures(List<int> items, int n) => countLuresVar(items, List.filled(items.length, n));
+
+/// То же для глубины на каждую позицию: лаги nAt[i] ± 1.
+int countLuresVar(List<int> items, List<int> nAt) {
   var c = 0;
   for (var i = 0; i < items.length; i++) {
+    final n = nAt[i];
     if (i - n >= 0 && items[i] == items[i - n]) continue;
     for (final lag in [n - 1, n + 1]) {
       if (lag > 0 && i - lag >= 0 && items[i] == items[i - lag]) {
@@ -298,14 +338,26 @@ class NbackGame {
     required this.trials,
     required this.modality,
     double? lureRate,
+    int? switchEvery,
     NbRng? rng,
-  }) : _rng = rng ?? Random().nextDouble {
-    visual = buildNbackSequence(trials, n, nbCells, _rng, lureRate);
+  })  : _rng = rng ?? Random().nextDouble,
+        plan = nbPlanFor(trials, n, switchEvery) {
+    visual = buildNbackSequenceVar(trials, plan, nbCells, _rng, lureRate ?? lureRateFor(n));
     // Слуховой блок строится всегда, как в вебе: поток случайных чисел не зависит от режима.
-    audio = buildNbackSequence(trials, n, nbAudioLetters.length, _rng, lureRate);
+    audio = buildNbackSequenceVar(trials, plan, nbAudioLetters.length, _rng, lureRate ?? lureRateFor(n));
   }
 
+  /// Глубина уровня (метки отчёта, шаг зарядки); на пробе действует [nHere].
   final int n;
+
+  /// План глубины партии по пробам (ось 9); у постоянной глубины — везде [n].
+  final List<int> plan;
+
+  /// Глубина ТЕКУЩЕЙ пробы: с чем сравнивать — со стимулом [nHere] назад.
+  int get nHere => index >= 0 && index < plan.length ? plan[index] : n;
+
+  /// На этой пробе глубина сменилась — экран объявляет «Теперь N-back».
+  bool get switchedHere => index > 0 && index < plan.length && plan[index] != plan[index - 1];
   final int trials;
   final NbModality modality;
   final NbRng _rng;
@@ -322,8 +374,8 @@ class NbackGame {
   int hits = 0, misses = 0, falseAlarms = 0, correctRejections = 0;
   int aHits = 0, aMisses = 0, aFalseAlarms = 0, aCorrectRejections = 0;
 
-  /// Отвечать можно с пробы n: раньше сравнивать не с чем.
-  bool get canMatch => index >= n;
+  /// Отвечать можно с пробы глубины: раньше сравнивать не с чем.
+  bool get canMatch => index >= nHere;
   bool get started => index >= 0;
   bool get finished => index >= trials;
 
@@ -331,8 +383,8 @@ class NbackGame {
   int? get cell => started && !finished ? visual.items[index] : null;
   String? get letter => dual && started && !finished ? nbAudioLetters[audio.items[index]] : null;
 
-  bool get isVisualMatch => canMatch && visual.items[index] == visual.items[index - n];
-  bool get isAudioMatch => canMatch && audio.items[index] == audio.items[index - n];
+  bool get isVisualMatch => canMatch && visual.items[index] == visual.items[index - nHere];
+  bool get isAudioMatch => canMatch && audio.items[index] == audio.items[index - nHere];
 
   /// Следующая проба. `false` — проб больше нет, партия кончилась.
   bool next() {

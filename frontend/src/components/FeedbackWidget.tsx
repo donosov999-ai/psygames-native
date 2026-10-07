@@ -18,6 +18,7 @@ import { текстОтправки } from '@/src/services/liveFieldText';
 import { textOn } from '@/src/services/onGradientText';
 import { pushCrumb } from '@/src/services/crumbs';
 import { параметрыЭкранаДляОтзыва } from '@/src/services/feedbackGameState';
+import { feedbackSource } from '@/src/services/feedbackSource';
 import React from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, Modal, TextInput,
@@ -76,6 +77,7 @@ export default function FeedbackWidget() {
    * `useLocalSearchParams` отдал бы параметры корня, где их нет никогда.
    */
   const параметрыЭкрана = useGlobalSearchParams();
+  const source = feedbackSource(pathname, параметрыЭкрана.sourceRoute);
   // Крошка навигации: каждый экран — шаг траектории репорта (steps, §3.1).
   React.useEffect(() => { if (pathname) pushCrumb(`screen ${pathname}`); }, [pathname]);
   // RTL: кнопка зеркалится к правому краю (а «?»-справка уходит влево) — не конфликтуем
@@ -373,16 +375,22 @@ export default function FeedbackWidget() {
     return () => sub.remove();
   }, []);
 
-  if (!FEEDBACK_ENABLED || hidden) return null;
+  React.useEffect(() => {
+    if (pathname === '/feedback') openSheetRef.current();
+  }, [pathname]);
 
-  const gameId = pathname.startsWith('/games/')
-    ? pathname.replace('/games/', '').replace(/\/+$/, '') || undefined
+  if (!FEEDBACK_ENABLED) return null;
+
+  const gameId = source.screen.startsWith('/games/')
+    ? source.screen.replace('/games/', '').replace(/\/+$/, '') || undefined
     : undefined;
 
   const openSheet = async () => {
     if (capturing) return;                 // защита от дабл-тапа во время съёмки
     setCapturing(true);
-    const s = await captureScreenshot();   // снимаем ДО показа шторки
+    // This WebView cannot capture the native board behind it. Do not attach a
+    // blank form screenshot as evidence of the game.
+    const s = pathname === '/feedback' ? null : await captureScreenshot();
     setCapturing(false);
     setShot(s);
     // Читаем сохранённый уровень запущенной игры по тому же ключу, что и
@@ -476,7 +484,7 @@ export default function FeedbackWidget() {
       // Пустое сообщение читается в выгрузке как «потерялось»; ставим явную
       // пометку, чтобы было видно: смысл в записи, расшифровать её.
       message: текст.trim() || '[голосом, без текста]',
-      screen: pathname,
+      screen: source.screen,
       gameId,
       shot: attachShot ? shot : null,
       // ⚠️ peak ОБЯЗАТЕЛЕН. Здесь собирали объект из трёх полей и роняли четвёртое,
@@ -495,7 +503,7 @@ export default function FeedbackWidget() {
         language, theme: colors.background,
         profile: profile.id, profileName: profile.display_name,
         level,
-        route_params: параметрыЭкранаДляОтзыва(параметрыЭкрана),
+        route_params: параметрыЭкранаДляОтзыва(pathname === '/feedback' ? source.params : параметрыЭкрана),
       },
     });
     sendingRef.current = false;
@@ -531,7 +539,7 @@ export default function FeedbackWidget() {
 
   return (
     <>
-      <View
+      {!hidden && pathname !== '/feedback' && <View
         {...pan.panHandlers}
         style={[
           styles.fab,
@@ -551,12 +559,12 @@ export default function FeedbackWidget() {
           ? <ActivityIndicator size="small" color={textOn('#ef4444')} />
           : <Ionicons name="chatbubble-ellipses" size={19} color={textOn('#ef4444')} />}
       </TouchableOpacity>
-      </View>
+      </View>}
 
       <Modal visible={open} animationType="slide" transparent onRequestClose={() => setOpen(false)}>
         <View {...a11yModal} style={styles.backdrop}>
           <View style={[styles.sheet, { backgroundColor: colors.surface }]}>
-            <ScrollView contentContainerStyle={{ padding: 20 }} keyboardShouldPersistTaps="handled">
+            <ScrollView style={styles.sheetScroll} contentContainerStyle={{ padding: 20 }} keyboardShouldPersistTaps="handled">
               <View style={styles.header}>
                 <Text style={[styles.title, { color: colors.text }]}>
                   {t('feedbackTitle')}
@@ -820,6 +828,17 @@ export default function FeedbackWidget() {
                     </TouchableOpacity>
                   )}
 
+                </>
+              )}
+              </>)}
+            </ScrollView>
+            {/* 🔴 ОТПРАВКА — ПОД ПРОКРУТКОЙ, А НЕ ВНУТРИ НЕЁ (задача e780e5b0, 07.10.2026).
+               Замер на emulator-5570, 2.56.12: форма в игре открывается вторым WebView, при
+               открытой клавиатуре «Отправить» уходила под неё — виден был край кнопки, и
+               тестировщик писал «окно падает вниз, нажать нельзя». Закреплённый низ листа
+               всегда над клавиатурой: прокручивается только содержимое над ним. */}
+            {tab === 'form' && !sent && (
+              <View testID="feedback-send-area" style={[styles.footer, { borderTopColor: colors.border }]}>
                   {askSilent ? (
                     /* 🔴 РАЗВИЛКА ВМЕСТО «ОТПРАВИТЬ». Кнопка отправки здесь не просто
                        отключена — её нет: отключённая кнопка при живом намерении врёт
@@ -903,10 +922,8 @@ export default function FeedbackWidget() {
                         : <Text style={styles.sendText}>{t('send')}</Text>}
                     </TouchableOpacity>
                   )}
-                </>
-              )}
-              </>)}
-            </ScrollView>
+              </View>
+            )}
           </View>
         </View>
       </Modal>
@@ -957,6 +974,8 @@ const styles = StyleSheet.create({
   },
   backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'flex-end' },
   sheet: { borderTopLeftRadius: 22, borderTopRightRadius: 22, maxHeight: '88%' },
+  sheetScroll: { flexGrow: 0, flexShrink: 1 },
+  footer: { paddingHorizontal: 20, paddingTop: 10, paddingBottom: 16, borderTopWidth: StyleSheet.hairlineWidth },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
   title: { fontSize: 19, fontWeight: '800' },
   ctx: { fontSize: 12, fontWeight: '700', marginBottom: 4 },   // строка контекста: профиль · игра · уровень

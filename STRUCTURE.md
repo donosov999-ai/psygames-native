@@ -1,11 +1,11 @@
-<!-- STRUCTURE.md · СОБИРАЕТСЯ, РУКАМИ НЕ ПРАВИТЬ · 2026-10-01 20:47 · коммит bf951a728 -->
+<!-- STRUCTURE.md · СОБИРАЕТСЯ, РУКАМИ НЕ ПРАВИТЬ · 2026-10-02 08:40 · коммит 972cbedc3 -->
 # PsyGames — структура: игры, развилки, потоки, профили
 
 > 🔴 **ЭТОТ ФАЙЛ СОБИРАЕТСЯ, А НЕ ПИШЕТСЯ.** Пересобрать: `node frontend/scripts/build-structure.mjs`
 > из корня репозитория. Правка руками пропадёт при следующей сборке — и, что хуже,
 > соврёт до неё. Числа сняты из тех же данных, что показывает приложение.
 >
-> Снято 2026-10-01 20:47 на коммите `bf951a728`. Копия для Дениса лежит в Obsidian:
+> Снято 2026-10-02 08:40 на коммите `972cbedc3`. Копия для Дениса лежит в Obsidian:
 > `PsyGames/Структура игр и развилок.md` — обе печатает один прогон.
 
 > ⚙️ **Состав правится не здесь и не в коде, а ФАЙЛОМ настроек.**
@@ -167,7 +167,7 @@
 - **Пятнашки** — `/games/puzzles` `?mode=Fifteen`
 - **Распутать** — `/games/puzzles` `?mode=Untangle`
 
-### Судоку: три доски · `/games/sudoku-hub` — 12
+### Судоку: три доски · `/games/sudoku-hub` — 14
 
 - **Судоку** — `/games/sudoku`
 - **Самурай** — `/games/sudoku-samurai`
@@ -181,6 +181,8 @@
 - **Лишние числа** — `/games/puzzles` `?mode=Singles`
 - **Заполнение областей** — `/games/puzzles` `?mode=Filling`
 - **Нежить** — `/games/puzzles` `?mode=Undead`
+- **Кошки** — `/games/cats`
+- **Судоку** — `/games/sudoku` `?mode=junior`
 
 ### Слова · `/games/words-hub` — 7
 
@@ -342,7 +344,6 @@
 | N-back: оперативная память | `n_back` | `/games/n-back` | Объём памяти |
 | OSpan: счёт+память | `ospan` | `/games/ospan` | Счёт |
 | Reading Span: память | `reading_span` | `/games/reading-span` | Объём памяти |
-| Spatial Span (обратный) | `spatial_span` | `/games/spatial-span` | Объём памяти |
 | Story Recall: память на детали | `story_recall` | `/games/story-recall` | Слова |
 | Дворец памяти | `memory_palace` | `/games/memory-palace` | Мнемотехники |
 | Детский мат | `scholars_mate` | `/games/scholars-mate` | Шахматы |
@@ -358,6 +359,7 @@
 | Объём памяти | `span_group` | `/games/span` | — |
 | Парные картинки | `picture_pairs` | `/games/picture-pairs` | Объём памяти |
 | Пары слов: память | `word_pairs` | `/games/word-pairs` | Мнемотехники |
+| Пространственный ряд (обратный) | `spatial_span` | `/games/spatial-span` | Объём памяти |
 | Ритм и высота | `rhythm_pitch` | `/games/rhythm-pitch` | Слух |
 | Слова | `words_group` | `/games/words-hub` | Языки |
 | Словарь SRS | `vocab_srs` | `/games/vocab-srs` | Слова |

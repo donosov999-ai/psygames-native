@@ -1,4 +1,4 @@
-/* psygames-native-only-games · VER 1 · 30.09.2026 */
+/* psygames-native-only-games · VER 3 · 02.10.2026 */
 /**
  * ИГРЫ ТОЛЬКО С НАТИВНЫМ ЭКРАНОМ — БЕЗ ВЕБ-ДВОЙНИКА.
  *
@@ -17,6 +17,8 @@
  * ⚠️ В вебе такой адрес по-прежнему ведёт в пустоту. Живых людей это не касается:
  * развилки в приложении нативные, а веб-версии на сайте нет.
  */
+import type { LevelRule } from '@/src/components/LevelRules';
+
 export interface NativeOnlyGame {
   route: string;
   /** Ключи словаря — те же, что у карточки в `defaultPlaylists.json`. */
@@ -39,6 +41,8 @@ export const NATIVE_ONLY_GAMES: readonly NativeOnlyGame[] = [
   { route: '/games/monster-traits?mode=missing', nameKey: 'monsterMissing', descKey: 'monsterMissingDesc' },
   { route: '/games/roll-and-bank', nameKey: 'rollAndBank', descKey: 'rollAndBankDesc' },
   { route: '/games/hidden-character', nameKey: 'hiddenCharacter', descKey: 'hiddenCharacterDesc' },
+  // «Кошки» (раздел «Судоку», PR #10): экран только нативный — без строки здесь профиль её не пропускал (4a5bb886).
+  { route: '/games/cats', nameKey: 'catsTitle', descKey: 'catsDesc' },
   // Раннер «Поиска глазами» (задача 5386c0e8, решение Дениса 30.09.2026: сразу на Flutter).
   { route: '/games/search-runner', nameKey: 'searchRunner', descKey: 'searchRunnerDesc' },
   // «Шахматы», новая игра 1 из 7 (задача 04e0a67e): тактика по двенадцати приёмам Lichess.
@@ -47,6 +51,29 @@ export const NATIVE_ONLY_GAMES: readonly NativeOnlyGame[] = [
   { route: '/games/solitaire-chess', nameKey: 'solitaireChess', descKey: 'solitaireChessDesc' },
   // «Шахматы», новая игра 3 из 7 (задача 39ad8924): «Восемь ферзей» и «Обход конём» одним экраном.
   { route: '/games/knights-queens', nameKey: 'knightsQueens', descKey: 'knightsQueensDesc' },
+  // «Судоку для малышей» (раздел «Судоку», #160; задача d87a4605): 4×4 и 6×6 со зверями — только натив.
+  { route: '/games/sudoku?mode=junior', nameKey: 'sudokuJuniorTitle', descKey: 'sudokuSkinAnimals' },
 ];
 
 export const NATIVE_ONLY_ROUTES: readonly string[] = NATIVE_ONLY_GAMES.map((g) => g.route);
+
+/**
+ * ПРАВИЛА УРОВНЕЙ НАТИВНЫХ ИГР — с какого уровня каркас объявляет новую механику карточкой
+ * (`lr_<игра>_<ключ>_{title,rule,example}` в словаре). Таблицу для Flutter выгружает
+ * `src/games/level-rules/tools/export-level-rules.gen.ts`.
+ *
+ * ⚠️ МЕХАНИКА ЖИВЁТ В DART, А НЕ ЗДЕСЬ (02.10.2026, задача e95b7e2f). Уровни обязаны совпасть
+ * с её кодом: «Очередь зверей» — `clueKindsFor`, «Цвета и формы» — `kidsPhasesFor`
+ * (`flutter/lib/games/…/model.dart`). Сверяют пробы `animal_queue_test.dart` и
+ * `kids_sort_test.dart` по выгруженной таблице: разойдутся — карточка объявит механику не
+ * на той ступени.
+ */
+export const ANIMAL_QUEUE_RULES: LevelRule[] = [
+  { key: 'glued', fromLevel: 1 },   // дверь 🚪 и «сразу за» 🔗
+  { key: 'last', fromLevel: 3 },    // «последний» 🏁
+  { key: 'apart', fromLevel: 5 },   // «не рядом» 🚫
+];
+
+export const KIDS_SORT_RULES: LevelRule[] = [
+  { key: 'switches', fromLevel: 5 },   // правило меняется больше одного раза
+];
