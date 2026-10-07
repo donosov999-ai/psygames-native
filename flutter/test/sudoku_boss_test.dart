@@ -11,8 +11,6 @@ import 'package:psygames_flutter/shell/lesson.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'support/boss_probe.dart';
-
 /// 🔴 БОЙ С БОССОМ И МЕГАБОСС В НАТИВНОЙ «СУДОКУ» (задача 217f50de).
 ///
 /// В вебе (`frontend/app/games/sudoku.tsx`) после каждого третьего засчитанного уровня
@@ -103,27 +101,39 @@ void main() {
       await finish(tester, level);
     }
 
-    testWidgets('🔴 веха: после 3-го уровня бой из мешка и его итог в итоге партии, после 2-го — боя нет',
+    // Веха «Судоку» — строка `boss` файла лестницы (решение Дениса 07.10.2026: смена модели
+    // генерации, минимум каждые 10), а не «каждый третий»: 4 — конец доски 6×6, 3 — середина.
+    testWidgets('🔴 веха: после 4-го уровня (конец модели) бой из мешка и его итог в итоге партии, после 3-го — боя нет',
         (tester) async {
       fillSudokuBossBag(const [BossType.lightning, BossType.finderror]);   // тянется с конца
-      await expectBossAfterWin(
-        tester,
-        play: (level) => play(tester, level),
-        won: find.text('Следующий уровень'),
-        hudKey: 'bossHudFinderror',
-      );
+      await play(tester, 4);
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(find.byKey(const Key('boss-round')), findsOneWidget, reason: 'после победы на 4-м уровне боя нет');
+      await tester.pump(BossRound.introTime);
+      expect(tester.widget<Text>(find.byKey(const Key('boss-hud'))).data, '⚔️ ${L.t('bossHudFinderror')}');
+      await tester.pump(const Duration(seconds: BossRound.roundSeconds + 1));
+      await tester.pump(BossRound.doneTime);
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('boss-round')), findsNothing, reason: 'бой не закрылся');
+      expect(find.text('Следующий уровень'), findsWidgets, reason: 'после боя нет итога взятого уровня');
+      expect(find.byKey(const Key('boss-outcome')), findsOneWidget, reason: 'итог боя не показан в итоге партии');
+
+      await play(tester, 3);
+      await tester.pump(const Duration(seconds: 3));
+      expect(find.byKey(const Key('boss-round')), findsNothing, reason: '3 — середина модели: «каждый третий» снят');
+      expect(find.byKey(const Key('boss-outcome')), findsNothing);
     });
 
-    testWidgets('🔴 мешок тянется только на вехе: после 2-го уровня задание не тратится', (tester) async {
+    testWidgets('🔴 мешок тянется только на вехе: после 3-го уровня задание не тратится', (tester) async {
       fillSudokuBossBag(const [BossType.lightning, BossType.finderror]);
-      await play(tester, 2);
+      await play(tester, 3);
       await tester.pump(const Duration(seconds: 3));
       expect(find.byKey(const Key('boss-round')), findsNothing);
-      await play(tester, 3);
+      await play(tester, 4);
       await tester.pump(const Duration(milliseconds: 500));
       await tester.pump(BossRound.introTime);
       expect(tester.widget<Text>(find.byKey(const Key('boss-hud'))).data, '⚔️ ${L.t('bossHudFinderror')}',
-          reason: 'на 3-м пришло не первое задание мешка — значит, 2-й уровень его потратил');
+          reason: 'на 4-м пришло не первое задание мешка — значит, 3-й уровень его потратил');
       await tester.pump(const Duration(seconds: BossRound.roundSeconds + 1));
       await tester.pump(BossRound.doneTime);
       await tester.pumpAndSettle();
@@ -131,7 +141,7 @@ void main() {
 
     testWidgets('🔴 партия с разбором вехи не открывает — ни боя, ни босса лестницы', (tester) async {
       fillSudokuBossBag(const [BossType.finderror]);
-      for (final level in [3, 4]) {
+      for (final level in [4, 8]) {
         await boot(tester, level);
         LessonUsed.mark();   // как будто человек открыл разбор в этой партии
         await finish(tester, level);

@@ -78,9 +78,14 @@ void main() {
     }
   });
 
-  test('босс не держит, и его уровень — в пределах той игры', () {
+  test('большие боссы — семь мест плана v4, все на концах моделей; остальные — бой из мешка', () {
+    final big = [for (final r in bosses) if (r['bossGame'] != null) r['level']];
+    expect(big, [96, 112, 128, 144, 160, 176, 192]);
+  });
+
+  test('большой босс не держит, и его уровень — в пределах той игры', () {
     const top = {'/games/sudoku-samurai': samuraiMaxLevel, '/games/sudoku-fractal': fractalMaxLevel};
-    for (final r in bosses) {
+    for (final r in bosses.where((r) => r['bossGame'] != null)) {
       expect(r['bossBlocks'], isFalse, reason: 'босс ${r['level']}: по модели e1cde091 не держит');
       final lv = r['bossLevel'];
       if (lv == null) continue;

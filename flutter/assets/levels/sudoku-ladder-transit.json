@@ -1,187 +1,127 @@
 {
- "_about": "Ступени лестницы «Судоку», которые играются в ДРУГОЙ игре, и боссы. БОССЫ — решение Дениса 07.10.2026: «босса чаще или реже — лучше привязать к смене модели генерации, но минимум каждые 10 уровней». Босс стоит на последней ступени каждой модели (правило, банк, размер доски, игра-переход; 204 — переход в генератор); где модель длиннее 10 ступеней — промежуточный (bossWhy: interim), шаг не больше 10. Одна система вместо мегабосса каждого 15-го. Игра: «Самурай» и «Фрактал» по очереди, «Бездна» на 128 и 176 (марафон). bossLevel растёт с лестницей: самурай ceil(L·12/204), фрактал ceil(L·30/204); у «Бездны» лестницы нет. gameLevel — уровень чужой игры (вход в новое правило с её ступеней 1→4). Разбор строк — LadderTransit.levelOf / bossOf (lib/shell/level_transition.dart).",
+ "_about": "Ступени лестницы «Судоку», которые играются в ДРУГОЙ игре, и боссы. БОССЫ — решение Дениса 07.10.2026: «босса чаще или реже — лучше привязать к смене модели генерации, но минимум каждые 10 уровней». Одно правило вместо трёх (мегабосс каждый 15-й, мешок каждый 3-й, фиксированные места): строка с boss: true — на последней ступени каждой модели (правило, банк, размер доски, игра-переход; 204 — переход в генератор) и промежуточная (bossWhy: interim), где модель длиннее 10 ступеней; шаг ≤ 10. 48 строк. С bossGame — большой босс в другой игре (LadderTransit.bossOf): 96 «Самурай», 112 «Фрактал», 128 «Бездна», 144 «Самурай» 10/12, 160 «Фрактал» 25/30, 176 «Бездна», 192 «Самурай» 12/12; без bossLevel — уровень человека в той игре. Без bossGame — бой из мешка экрана «Судоку». Схема — с разделом «Судоку» (журнал 92c42801). gameLevel — уровень чужой игры (вход в новое правило с её ступеней 1→4).",
  "source": "sudoku-chat/ladder-80-204.json",
  "steps": [
   {
    "level": 4,
    "kind": "board",
    "variant": "none",
-   "boss": true,
-   "bossGame": "/games/sudoku-samurai",
-   "bossBlocks": false,
-   "bossLevel": 1
+   "boss": true
   },
   {
    "level": 8,
    "kind": "board",
    "variant": "none",
-   "boss": true,
-   "bossGame": "/games/sudoku-fractal",
-   "bossBlocks": false,
-   "bossLevel": 2
+   "boss": true
   },
   {
    "level": 13,
    "kind": "board",
    "variant": "diagonal",
-   "boss": true,
-   "bossGame": "/games/sudoku-samurai",
-   "bossBlocks": false,
-   "bossLevel": 1
+   "boss": true
   },
   {
    "level": 17,
    "kind": "board",
    "variant": "antiknight",
-   "boss": true,
-   "bossGame": "/games/sudoku-fractal",
-   "bossBlocks": false,
-   "bossLevel": 3
+   "boss": true
   },
   {
    "level": 21,
    "kind": "board",
    "variant": "hyper",
-   "boss": true,
-   "bossGame": "/games/sudoku-samurai",
-   "bossBlocks": false,
-   "bossLevel": 2
+   "boss": true
   },
   {
    "level": 25,
    "kind": "board",
    "variant": "nonconsec",
-   "boss": true,
-   "bossGame": "/games/sudoku-fractal",
-   "bossBlocks": false,
-   "bossLevel": 4
+   "boss": true
   },
   {
    "level": 29,
    "kind": "board",
    "variant": "antiking",
-   "boss": true,
-   "bossGame": "/games/sudoku-samurai",
-   "bossBlocks": false,
-   "bossLevel": 2
+   "boss": true
   },
   {
    "level": 33,
    "kind": "board",
    "variant": "evenodd",
-   "boss": true,
-   "bossGame": "/games/sudoku-fractal",
-   "bossBlocks": false,
-   "bossLevel": 5
+   "boss": true
   },
   {
    "level": 37,
    "kind": "board",
    "variant": "kropki",
-   "boss": true,
-   "bossGame": "/games/sudoku-samurai",
-   "bossBlocks": false,
-   "bossLevel": 3
+   "boss": true
   },
   {
    "level": 41,
    "kind": "board",
    "variant": "sandwich",
-   "boss": true,
-   "bossGame": "/games/sudoku-fractal",
-   "bossBlocks": false,
-   "bossLevel": 7
+   "boss": true
   },
   {
    "level": 45,
    "kind": "board",
    "variant": "thermo",
-   "boss": true,
-   "bossGame": "/games/sudoku-samurai",
-   "bossBlocks": false,
-   "bossLevel": 3
+   "boss": true
   },
   {
    "level": 49,
    "kind": "board",
    "variant": "arrow",
-   "boss": true,
-   "bossGame": "/games/sudoku-fractal",
-   "bossBlocks": false,
-   "bossLevel": 8
+   "boss": true
   },
   {
    "level": 53,
    "kind": "board",
    "variant": "thermocage",
-   "boss": true,
-   "bossGame": "/games/sudoku-samurai",
-   "bossBlocks": false,
-   "bossLevel": 4
+   "boss": true
   },
   {
    "level": 61,
    "kind": "board",
    "variant": "none",
-   "boss": true,
-   "bossGame": "/games/sudoku-fractal",
-   "bossBlocks": false,
-   "bossLevel": 9
+   "boss": true
   },
   {
    "level": 65,
    "kind": "board",
    "variant": "jigsaw",
-   "boss": true,
-   "bossGame": "/games/sudoku-samurai",
-   "bossBlocks": false,
-   "bossLevel": 4
+   "boss": true
   },
   {
    "level": 75,
    "kind": "board",
    "variant": "none",
    "boss": true,
-   "bossGame": "/games/sudoku-fractal",
-   "bossBlocks": false,
-   "bossLevel": 12,
    "bossWhy": "interim"
   },
   {
    "level": 80,
    "kind": "board",
    "variant": "none",
-   "boss": true,
-   "bossGame": "/games/sudoku-samurai",
-   "bossBlocks": false,
-   "bossLevel": 5
+   "boss": true
   },
   {
    "level": 84,
    "kind": "board",
    "variant": "thermoknight",
-   "boss": true,
-   "bossGame": "/games/sudoku-fractal",
-   "bossBlocks": false,
-   "bossLevel": 13
+   "boss": true
   },
   {
    "level": 88,
    "kind": "board",
    "variant": "sandparity",
-   "boss": true,
-   "bossGame": "/games/sudoku-samurai",
-   "bossBlocks": false,
-   "bossLevel": 6
+   "boss": true
   },
   {
    "level": 92,
    "kind": "board",
    "variant": "killerdiag",
-   "boss": true,
-   "bossGame": "/games/sudoku-fractal",
-   "bossBlocks": false,
-   "bossLevel": 14
+   "boss": true
   },
   {
    "level": 96,
@@ -189,71 +129,51 @@
    "variant": "whisper",
    "boss": true,
    "bossGame": "/games/sudoku-samurai",
-   "bossBlocks": false,
-   "bossLevel": 6
+   "bossBlocks": false
   },
   {
    "level": 100,
    "kind": "board",
    "variant": "renban",
-   "boss": true,
-   "bossGame": "/games/sudoku-fractal",
-   "bossBlocks": false,
-   "bossLevel": 15
+   "boss": true
   },
   {
    "level": 104,
    "kind": "board",
    "variant": "regionsum",
-   "boss": true,
-   "bossGame": "/games/sudoku-samurai",
-   "bossBlocks": false,
-   "bossLevel": 7
+   "boss": true
   },
   {
    "level": 108,
    "kind": "board",
    "variant": "palindrome",
-   "boss": true,
-   "bossGame": "/games/sudoku-fractal",
-   "bossBlocks": false,
-   "bossLevel": 16
+   "boss": true
   },
   {
    "level": 112,
    "kind": "board",
    "variant": "between",
    "boss": true,
-   "bossGame": "/games/sudoku-samurai",
-   "bossBlocks": false,
-   "bossLevel": 7
+   "bossGame": "/games/sudoku-fractal",
+   "bossBlocks": false
   },
   {
    "level": 116,
    "kind": "board",
    "variant": "lockout",
-   "boss": true,
-   "bossGame": "/games/sudoku-fractal",
-   "bossBlocks": false,
-   "bossLevel": 18
+   "boss": true
   },
   {
    "level": 120,
    "kind": "board",
    "variant": "xv",
-   "boss": true,
-   "bossGame": "/games/sudoku-samurai",
-   "bossBlocks": false,
-   "bossLevel": 8
+   "boss": true
   },
   {
    "level": 124,
    "kind": "board",
    "variant": "none+wordoku",
-   "boss": true,
-   "bossGame": "/games/sudoku-fractal",
-   "bossBlocks": false,
-   "bossLevel": 19
+   "boss": true
   },
   {
    "level": 128,
@@ -267,37 +187,28 @@
    "level": 132,
    "kind": "board",
    "variant": "meowfriends",
-   "boss": true,
-   "bossGame": "/games/sudoku-samurai",
-   "bossBlocks": false,
-   "bossLevel": 8
+   "boss": true
   },
   {
    "level": 136,
    "kind": "board",
    "variant": "killer",
-   "boss": true,
-   "bossGame": "/games/sudoku-fractal",
-   "bossBlocks": false,
-   "bossLevel": 20
+   "boss": true
   },
   {
    "level": 140,
    "kind": "board",
    "variant": "towers",
-   "boss": true,
-   "bossGame": "/games/sudoku-samurai",
-   "bossBlocks": false,
-   "bossLevel": 9
+   "boss": true
   },
   {
    "level": 144,
    "kind": "board",
    "variant": "unequal",
    "boss": true,
-   "bossGame": "/games/sudoku-fractal",
+   "bossGame": "/games/sudoku-samurai",
    "bossBlocks": false,
-   "bossLevel": 22
+   "bossLevel": 10
   },
   {
    "level": 145,
@@ -330,10 +241,7 @@
    "gameLevel": 4,
    "blockStep": 4,
    "blockSize": 4,
-   "boss": true,
-   "bossGame": "/games/sudoku-samurai",
-   "bossBlocks": false,
-   "bossLevel": 9
+   "boss": true
   },
   {
    "level": 149,
@@ -366,10 +274,7 @@
    "gameLevel": 4,
    "blockStep": 4,
    "blockSize": 4,
-   "boss": true,
-   "bossGame": "/games/sudoku-fractal",
-   "bossBlocks": false,
-   "bossLevel": 23
+   "boss": true
   },
   {
    "level": 153,
@@ -402,10 +307,7 @@
    "gameLevel": 4,
    "blockStep": 4,
    "blockSize": 4,
-   "boss": true,
-   "bossGame": "/games/sudoku-samurai",
-   "bossBlocks": false,
-   "bossLevel": 10
+   "boss": true
   },
   {
    "level": 157,
@@ -441,7 +343,7 @@
    "boss": true,
    "bossGame": "/games/sudoku-fractal",
    "bossBlocks": false,
-   "bossLevel": 24
+   "bossLevel": 25
   },
   {
    "level": 161,
@@ -474,10 +376,7 @@
    "gameLevel": 4,
    "blockStep": 4,
    "blockSize": 4,
-   "boss": true,
-   "bossGame": "/games/sudoku-samurai",
-   "bossBlocks": false,
-   "bossLevel": 10
+   "boss": true
   },
   {
    "level": 165,
@@ -510,10 +409,7 @@
    "gameLevel": 4,
    "blockStep": 4,
    "blockSize": 4,
-   "boss": true,
-   "bossGame": "/games/sudoku-fractal",
-   "bossBlocks": false,
-   "bossLevel": 25
+   "boss": true
   },
   {
    "level": 169,
@@ -546,10 +442,7 @@
    "gameLevel": 4,
    "blockStep": 4,
    "blockSize": 4,
-   "boss": true,
-   "bossGame": "/games/sudoku-samurai",
-   "bossBlocks": false,
-   "bossLevel": 11
+   "boss": true
   },
   {
    "level": 173,
@@ -590,28 +483,19 @@
    "level": 180,
    "kind": "board",
    "variant": "argyle",
-   "boss": true,
-   "bossGame": "/games/sudoku-fractal",
-   "bossBlocks": false,
-   "bossLevel": 27
+   "boss": true
   },
   {
    "level": 184,
    "kind": "board",
    "variant": "littlekiller",
-   "boss": true,
-   "bossGame": "/games/sudoku-samurai",
-   "bossBlocks": false,
-   "bossLevel": 11
+   "boss": true
   },
   {
    "level": 188,
    "kind": "board",
    "variant": "xsums",
-   "boss": true,
-   "bossGame": "/games/sudoku-fractal",
-   "bossBlocks": false,
-   "bossLevel": 28
+   "boss": true
   },
   {
    "level": 192,
@@ -626,28 +510,19 @@
    "level": 196,
    "kind": "board",
    "variant": "fog",
-   "boss": true,
-   "bossGame": "/games/sudoku-fractal",
-   "bossBlocks": false,
-   "bossLevel": 29
+   "boss": true
   },
   {
    "level": 200,
    "kind": "board",
    "variant": "chaos",
-   "boss": true,
-   "bossGame": "/games/sudoku-samurai",
-   "bossBlocks": false,
-   "bossLevel": 12
+   "boss": true
   },
   {
    "level": 204,
    "kind": "board",
    "variant": "rulebreakers",
-   "boss": true,
-   "bossGame": "/games/sudoku-fractal",
-   "bossBlocks": false,
-   "bossLevel": 30
+   "boss": true
   }
  ]
 }

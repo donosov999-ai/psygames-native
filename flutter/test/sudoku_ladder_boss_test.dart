@@ -9,13 +9,14 @@ import 'package:psygames_flutter/shell/level_transition.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// 🔴 БОССЫ ЛЕСТНИЦЫ «СУДОКУ» — ОДНА СИСТЕМА, ИЗ ФАЙЛА (задача 4e3d3443, решение Дениса
+/// 🔴 БОССЫ ЛЕСТНИЦЫ «СУДОКУ» — ОДНО ПРАВИЛО, ИЗ ФАЙЛА (задача 4e3d3443, решение Дениса
 /// 07.10.2026: «босса чаще или реже — лучше привязать к смене модели генерации, но минимум
-/// каждые 10 уровней»).
+/// каждые 10 уровней»; схема — с разделом «Судоку», 92c42801).
 ///
-/// Босс стоит на последней ступени каждой модели (`sudoku-ladder-transit.json`) и на
-/// промежуточной, где модель длиннее 10 ступеней (75 внутри банка 66–80). Мегабосса «каждый
-/// 15-й» больше нет. Бой из мешка на кратных трём остаётся, но на ступени босса молчит.
+/// Веха — строка `boss` в `sudoku-ladder-transit.json`: конец каждой модели и промежуточная
+/// (75 внутри банка 66–80). Со `bossGame` — большой босс в другой игре (96, 112, 128, 144,
+/// 160, 176, 192) приглашением «Позже / В бой»; без него — бой из мешка. Мегабосса «каждый
+/// 15-й» и мешка «каждый 3-й» больше нет.
 ///
 /// Партии играются НАЖАТИЯМИ. Решение берётся из выгрузки той же ступени: доску на экране
 /// узнаём по подсказкам среди досок уровня, — решатель без правил линий тут не годится.
@@ -102,7 +103,7 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('🔴 96: победа на доске → приглашение босса из файла, «Самурай»', (tester) async {
+  testWidgets('🔴 96: победа на доске → приглашение большого босса из файла, «Самурай»', (tester) async {
     await play(tester, 96);
     expect(find.byKey(const Key('ladderboss-offer')), findsOneWidget);
     expect(find.byKey(const Key('boss-round')), findsNothing, reason: 'один босс на победу: мешок молчит');
@@ -122,7 +123,7 @@ void main() {
     expect(state.get(ladderKey), '97', reason: 'хозяин босса — временная лестница: доска дала +1, босс — ничего');
   });
 
-  testWidgets('96 → «Позже»: уровень не отнят, чужая игра не открыта', (tester) async {
+  testWidgets('96 → «Позже»: уровень не отнят, чужая игра не открыта, мешок не добирает', (tester) async {
     await play(tester, 96);
     await tester.tap(find.byKey(const Key('ladderboss-later')));
     // Кадрами, а не одним скачком: окно закрывается анимацией, и только после неё
@@ -130,15 +131,14 @@ void main() {
     for (var i = 0; i < 6; i++) {
       await tester.pump(const Duration(milliseconds: 500));
     }
-    expect(find.byKey(const Key('boss-round')), findsNothing,
-        reason: '96 кратна 3: после «Позже» мешок не должен добирать второго босса');
+    expect(find.byKey(const Key('boss-round')), findsNothing, reason: 'после «Позже» второго босса быть не должно');
     await drainBag(tester);
     expect(opened, isEmpty);
     expect(state.get(ladderKey), '97');
   });
 
-  testWidgets('116: босс из файла — «Фрактал»', (tester) async {
-    await play(tester, 116);
+  testWidgets('112: большой босс из файла — «Фрактал»', (tester) async {
+    await play(tester, 112);
     expect(find.text('⚔️ ${L.t('bossTitle')}: ${L.t('fractalTitle')}'), findsOneWidget);
     await tester.tap(find.byKey(const Key('ladderboss-go')));
     await tester.pumpAndSettle();
@@ -148,40 +148,45 @@ void main() {
     await tester.tap(find.byKey(const Key('fake-win')));
     await tester.pump(const Duration(milliseconds: 50));
     await tester.pumpAndSettle();
-    expect(state.get(ladderKey), '117');
+    expect(state.get(ladderKey), '113');
   });
 
-  testWidgets('🔴 15, 90, 105 (кратны 15, не смена модели): мегабосса больше нет, босса нет', (tester) async {
-    for (final level in [15, 90, 105]) {
-      await play(tester, level);
-      expect(find.byKey(const Key('ladderboss-offer')), findsNothing, reason: 'L$level: в файле босса нет');
-      expect(state.get(ladderKey), '${level + 1}', reason: 'L$level: победа засчитана');
-      await drainBag(tester);
-    }
-  });
-
-  testWidgets('🔴 99 (≥81, кратна 3, в файле босса нет): мешок остаётся', (tester) async {
-    await play(tester, 99);
-    expect(state.get(ladderKey), '100');
-    expect(find.byKey(const Key('ladderboss-offer')), findsNothing);
+  /// Бой из мешка открылся (а большого приглашения нет) — и доигран до конца.
+  Future<void> expectBag(WidgetTester tester, int level) async {
     for (var i = 0; i < 6; i++) {
       await tester.pump(const Duration(milliseconds: 500));
     }
-    expect(find.byKey(const Key('boss-round')), findsOneWidget, reason: 'на ≥81 без босса из файла бой из мешка не выключен');
+    expect(find.byKey(const Key('ladderboss-offer')), findsNothing, reason: 'L$level: большого босса тут нет');
+    expect(find.byKey(const Key('boss-round')), findsOneWidget, reason: 'L$level: конец модели — бой из мешка');
     await drainBag(tester);
-  });
+  }
 
-  testWidgets('95: без босса', (tester) async {
-    await play(tester, 95);
-    expect(state.get(ladderKey), '96');
-    expect(find.byKey(const Key('ladderboss-offer')), findsNothing);
+  testWidgets('🔴 конец модели без большого босса — бой из мешка: 13 (диагонали), 61 (банк), 100 (ренбан)',
+      (tester) async {
+    for (final level in [13, 61, 100]) {
+      await play(tester, level);
+      expect(state.get(ladderKey), '${level + 1}');
+      await expectBag(tester, level);
+    }
   });
 
   testWidgets('🔴 75: промежуточный босс внутри банка 66–80 (модель длиннее 10 ступеней)', (tester) async {
     await play(tester, 75);
     expect(state.get(ladderKey), '76');
-    expect(find.byKey(const Key('ladderboss-offer')), findsOneWidget);
-    expect(find.text('⚔️ ${L.t('bossTitle')}: ${L.t('fractalTitle')}'), findsOneWidget);
+    await expectBag(tester, 75);
+  });
+
+  testWidgets('🔴 середина модели — никакого боя: 3, 6, 9 («каждый 3-й» снят), 15, 90, 105 («каждый 15-й» снят), 95, 99',
+      (tester) async {
+    for (final level in [3, 6, 9, 15, 90, 105, 95, 99]) {
+      await play(tester, level);
+      expect(state.get(ladderKey), '${level + 1}', reason: 'L$level: победа засчитана');
+      for (var i = 0; i < 6; i++) {
+        await tester.pump(const Duration(milliseconds: 500));
+      }
+      expect(find.byKey(const Key('boss-round')), findsNothing, reason: 'L$level: не конец модели');
+      expect(find.byKey(const Key('ladderboss-offer')), findsNothing, reason: 'L$level');
+    }
   });
 }
 

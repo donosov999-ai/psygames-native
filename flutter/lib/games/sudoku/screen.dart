@@ -67,12 +67,13 @@ void fillSudokuBossBag(List<BossType> bag) => _sudokuBossBag
   ..clear()
   ..addAll(bag);
 
-/// 🔴 БОСС — ОДНА СИСТЕМА, ИЗ ФАЙЛА ЛЕСТНИЦЫ (решение Дениса 07.10.2026, задача 4e3d3443):
+/// 🔴 БОСС — ОДНО ПРАВИЛО, ИЗ ФАЙЛА ЛЕСТНИЦЫ (решение Дениса 07.10.2026, задача 4e3d3443):
 /// «босса чаще или реже — лучше привязать к смене модели генерации, но минимум каждые 10
-/// уровней». Места и игры — `assets/levels/sudoku-ladder-transit.json`: последняя ступень
-/// каждой модели (правило, банк, размер, игра-переход) и промежуточный, где модель длиннее
-/// 10 ступеней. Мегабосс веба «каждый 15-й» снят: две системы наложились бы друг на друга.
-/// Бой из мешка на кратных трём — не босс лестницы, а 15-секундная разминка; он остаётся.
+/// уровней». Места — строки с `boss: true` в `assets/levels/sudoku-ladder-transit.json`:
+/// последняя ступень каждой модели (правило, банк, размер, игра-переход) и промежуточная,
+/// где модель длиннее 10 ступеней. Со `bossGame` — большой босс в другой игре (приглашение),
+/// без него — бой из мешка. Мегабосс веба «каждый 15-й» и мешок «каждый 3-й» сняты: три
+/// системы наложились бы друг на друга (схема — с разделом «Судоку», 92c42801).
 
 /// Имя и описание босса из файла лестницы — словами самих игр, без новых ключей словаря.
 const _ladderBossText = <String, (String, String)>{
@@ -1157,22 +1158,22 @@ class _SudokuScreenState extends State<SudokuScreen> {
   }
 
   /// Победа и веха. Уровень берётся у лестницы ДО победы, «засчитано ли» — из её ответа
-  /// (не пресет зарядки, не партия с разбором): экран этих признаков сам не придумывает —
-  /// как `BossRound.winThenBoss`. Босс из файла лестницы вытесняет бой из мешка: один босс
-  /// на победу.
+  /// (не пресет зарядки, не партия с разбором): экран этих признаков сам не придумывает.
+  /// Веха — только строка `boss` файла лестницы; формулы шага в экране нет, иначе у мест
+  /// боссов было бы две правды.
   Future<void> _winWithBoss(Future<bool> Function() win) async {
     final played = _ladder.level;
     final counted = await win();
     if (!counted || !mounted) return;
-    final boss = LadderTransit.bossOf(_levels?.transitRow(played));
-    if (boss != null) {
-      await _offerLadderBoss(played, boss);
+    final row = _levels?.transitRow(played);
+    if (row?['boss'] != true) return;
+    final big = LadderTransit.bossOf(row);
+    if (big != null) {
+      await _offerLadderBoss(played, big);
       return;
     }
-    if (!BossRound.due(played)) return;
-    final beaten = await BossRound.afterWin(context,
-        counted: counted, playedLevel: played, type: nextSudokuBoss(_bossRnd), color: sudokuBossColor);
-    if (mounted && beaten != null) setState(() => _boss = beaten);
+    final beaten = await openBossRound(context, type: nextSudokuBoss(_bossRnd), color: sudokuBossColor);
+    if (mounted) setState(() => _boss = beaten);
   }
 
   final _bossRnd = math.Random();
