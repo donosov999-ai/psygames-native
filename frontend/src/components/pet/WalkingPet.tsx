@@ -22,12 +22,13 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import PetSprite, {
-  PetAccessory, PetSkin, PetState, PET_FIDGETS, PET_SLEEP_POSES, petCycleMs, petHasState,
+  PetAccessory, PetSkin, PetState, PET_FIDGETS, PET_SLEEP_POSES, petCycleMs, petHasState, petRenderSpec,
 } from '@/src/components/pet/PetSprite';
+import { postToHost } from '@/src/services/hostWarmup';
 import {
   consumeRecentRecord, currentPetLook, getPetAccessory, getPetScale,
-  getPetSkinChoice, getPetStats, getPetVisible, PET_SCALE_DEFAULT, PET_SCALE_EVENT,
-  PET_VISIBLE_EVENT, pickPetLine, pickPettedLine, pickRecordLine, resolvePetSkin, PetStage,
+  getPetSkinChoice, getPetStats, getPetVisible, getPetWalks, PET_SCALE_DEFAULT, PET_SCALE_EVENT,
+  PET_VISIBLE_EVENT, PET_WALK_EVENT, pickPetLine, pickPettedLine, pickRecordLine, resolvePetSkin, PetStage,
 } from '@/src/services/pet';
 import { type PetLook } from '@/src/services/petLook';
 import type { PetLine, PetSkill } from '@/src/services/petLines';
@@ -105,6 +106,172 @@ const BOTTOM_BAR_LIFT = (pathname: string): number =>
   (pathname.startsWith('/games/') || pathname.startsWith('/warmup-picker') ? TOOLBAR_H : 0)
   + (tabBarVisible(pathname) ? TAB_BAR_H : 0);
 
+/**
+ * ПЕРВОЕ СЛОВО ПОСЛЕ ПРИХОДА: праздник рекорда, иначе встреча (см. эффект ниже).
+ *
+ * Вынесено из эффекта 07.10.2026: тот же повод спрашивает нативная оболочка, когда
+ * человек приходит на вкладку, которую она рисует сама (мост `__psyPet`). Две копии
+ * решения «что сказать первым» разошлись бы — и поздоровались бы дважды.
+ * `alive` — эффект ушёл, пока ждали хранилище: отвечаем молчанием.
+ */
+export type FirstWord = { record: true; text: string } | { record: false; state: PetState; text: string };
+export async function firstWord(pid: string | null, lang: string, alive: () => boolean = () => true): Promise<FirstWord | null> {
+  if (await consumeRecentRecord()) {
+    if (!alive()) return null;
+    return { record: true, text: pickRecordLine(lang).text };
+  }
+  if (!alive() || greetedThisRun) return null;
+  if (!pid) return null;
+  // Сначала самая дешёвая проверка: сегодня уже здоровались?
+  const было = await loadGreetedDay(pid);
+  const сейчас = new Date();
+  if (!alive()) return null;
+  if (greetedToday(было, сейчас)) { greetedThisRun = true; return null; }
+  const [цель, метки, спрошено] = await Promise.all([
+    loadStreakGoal(pid), loadDayMarks(pid), loadGoalAskedAt(pid),
+  ]);
+  if (!alive()) return null;
+  const серия = streakFromDays(метки, сейчас);
+  const g = цель ? noticeReached(цель, серия, сейчас) : null;
+  const реплика = pickGreeting(lang, {
+    // 🔴 Окно цели говорит на том же экране. Повод у него сильнее — питомец
+    // молчит, чтобы не выходило два голоса разом (разбор в petGreeting.ts).
+    ask: askReason({ goal: g, streak: серия, lastAskedAt: спрошено, now: сейчас }),
+    progress: goalProgress(g, серия),
+    playedToday: метки.includes(dayKey(сейчас)),
+  });
+  if (!реплика) return null;
+  greetedThisRun = true;
+  await markGreeted(pid, сейчас);
+  if (!alive()) return null;
+  return { record: false, state: реплика.state, text: реплика.text };
+}
+
+/** Контекст болтовни: стадия, слабейшая шкала, когда играли последний раз. */
+export interface PetTalkContext { stage: PetStage; weakSkill?: PetSkill; lastSessionAt: number | null }
+export async function petTalkContext(): Promise<PetTalkContext> {
+  const s = await getPetStats();
+  // Тренер зовёт в слабейшую шкалу — только когда прогресс уже есть
+  // (совсем нулёвому пользователю рекомендация «память отстаёт» = шум).
+  const entries = Object.entries(s.skills) as [PetSkill, number][];
+  const min = entries.reduce((a, b) => (b[1] < a[1] ? b : a));
+  const ss = await getSessions().catch(() => []);
+  const last = ss.length ? ss[ss.length - 1]?.timestamp : null;
+  return {
+    stage: s.stage,
+    weakSkill: s.total >= 5 ? min[0] : undefined,
+    lastSessionAt: last ? Date.parse(last) || null : null,
+  };
+}
+
+/**
+ * Тренерский пузырь: случайная игра слабой шкалы.
+ * `game.route`, а НЕ `/games/${game.id}`: у 35 игр из 61 id не совпадает с именем файла
+ * экрана, и собранный из id адрес открывает «Unmatched Route» вместо игры.
+ */
+export function coachRoute(skill: PetSkill): string | null {
+  const cats = skill === 'logic' ? ['logic', 'intuition']
+    : skill === 'speed' ? ['action']
+    : [skill as string];
+  const pool = GAMES.filter((g) => cats.includes(g.category));
+  const game = pool[Math.floor(Math.random() * pool.length)];
+  return game ? game.route : null;
+}
+
+/**
+ * 🔴 ВКЛАДКИ, КОТОРЫЕ РИСУЕТ НАТИВНАЯ ОБОЛОЧКА, — ТАМ ГУЛЯЕТ ЕЁ ПИТОМЕЦ, А НЕ ЭТОТ.
+ *
+ * Страница на таком адресе скрыта под нативным экраном, и этот гуляка ходил бы невидимо —
+ * и, хуже, невидимо «здоровался»: встреча раз в сутки ушла бы в пустоту. Список адресов
+ * ставит оболочка (`window.__psyNativeTabRoutes`), в браузере его нет.
+ */
+function наНативнойВкладке(pathname: string): boolean {
+  const routes = (globalThis as any).__psyNativeTabRoutes;
+  return Array.isArray(routes) && routes.includes(pathname);
+}
+
+/** Язык и профиль для моста: мост живёт вне React, а отвечать должен на языке экрана. */
+const живое = { язык: 'ru', профиль: null as string | null };
+
+/**
+ * МОСТ ДЛЯ НАТИВНОГО ГУЛЯКИ (`flutter/lib/shell/walking_pet.dart`, задачи 99628ecf, 5136754e).
+ *
+ * Оболочка сама только ходит и листает кадры. Что сказать, как выглядеть, куда звать —
+ * спрашивает здесь, у тех же функций, что и этот гуляка: вторая копия решений на Dart
+ * разошлась бы при первой правке реплик или облика. Ответ — обратным сообщением
+ * `{ op: 'petAnswer', id, data }`: часть ответов ждёт хранилище, а вызов скрипта из
+ * оболочки обещаний не дожидается.
+ */
+export const PET_WALK = {
+  size: PET_SIZE, speed: WALK_SPEED, pauseMin: PAUSE_MIN, pauseSpan: PAUSE_SPAN,
+  speechMin: SPEECH_MIN, speechSpan: SPEECH_SPAN, speechShow: SPEECH_SHOW,
+  firstSpeechMin: FIRST_SPEECH_MIN, firstSpeechSpan: FIRST_SPEECH_SPAN, greetShow: GREET_SHOW,
+};
+
+/** Где сидит питомец, когда не гуляет: правый край полосы прогулки — подальше от кнопки отзыва слева. */
+export function petSeatX(width: number, size: number): number {
+  return Math.max(width * 0.10 + 40, width * 0.90 - size);
+}
+
+export async function petHostAnswer(op: string, arg?: unknown): Promise<unknown> {
+  switch (op) {
+    case 'config': {
+      const [visible, scale, accessory, look, ctx, choice, walks] = await Promise.all([
+        getPetVisible(), getPetScale(), getPetAccessory(), currentPetLook(), petTalkContext(), getPetSkinChoice(),
+        getPetWalks(),
+      ]);
+      const skin = resolvePetSkin(choice, ctx.stage);
+      const fidgets = PET_FIDGETS.filter((st) => petHasState(skin, st));
+      const states = Array.from(new Set<PetState>(['walk', 'idle', 'wave', 'jump', 'celebrate', ...PET_SLEEP_POSES, ...fidgets]));
+      return {
+        visible,
+        // Гуляет ли (по умолчанию нет — сидит у края, но живёт: см. `getPetWalks`).
+        walks,
+        size: Math.round(PET_SIZE * scale),
+        skin,
+        specs: Object.fromEntries(states.map((st) => [st, petRenderSpec(skin, st, accessory, look)])),
+        cycles: Object.fromEntries(states.map((st) => [st, petCycleMs(skin, st)])),
+        fidgets,
+        sleepPoses: PET_SLEEP_POSES,
+        walk: PET_WALK,
+      };
+    }
+    case 'line': {
+      const c = await petTalkContext();
+      return pickPetLine(живое.язык, {
+        hour: new Date().getHours(),
+        stage: c.stage,
+        minutesSinceLastSession: c.lastSessionAt != null ? (Date.now() - c.lastSessionAt) / 60000 : null,
+        weakSkill: c.weakSkill,
+      });
+    }
+    case 'petted':
+      return pickPettedLine(живое.язык);
+    case 'first': {
+      const w = await firstWord(живое.профиль, живое.язык);
+      if (!w) return null;
+      return w.record
+        ? { state: 'celebrate', text: w.text, showMs: 5000 }
+        : { state: w.state, text: w.text, showMs: GREET_SHOW };
+    }
+    case 'coach':
+      return typeof arg === 'string' ? coachRoute(arg as PetSkill) : null;
+    default:
+      return null;
+  }
+}
+
+function поставитьМост() {
+  (globalThis as any).__psyPet = {
+    ask(id: string, op: string, arg?: unknown) {
+      petHostAnswer(op, arg)
+        .then((data) => postToHost({ op: 'petAnswer', id, data }))
+        .catch(() => postToHost({ op: 'petAnswer', id, data: null }));
+      return true;
+    },
+  };
+}
+
 export default function WalkingPet() {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
@@ -120,7 +287,15 @@ export default function WalkingPet() {
    */
   const профиль = useProfileOptional();
   const profileIdRef = React.useRef<string | null>(профиль?.profile.id ?? null);
-  React.useEffect(() => { profileIdRef.current = профиль?.profile.id ?? null; }, [профиль]);
+  React.useEffect(() => {
+    profileIdRef.current = профиль?.profile.id ?? null;
+    живое.профиль = профиль?.profile.id ?? null;
+  }, [профиль]);
+  React.useEffect(() => { живое.язык = language; }, [language]);
+  // Мост ставится всегда: он лишь отвечает на вопросы, а в браузере их некому задавать.
+  // Условие «оболочка объявила вкладки» зависело бы от того, кто успел раньше — скрипт
+  // хоста или первый рендер.
+  React.useEffect(() => { поставитьМост(); }, []);
   /**
    * До какого момента пузырь ЗАНЯТ важной репликой (встреча, праздник рекорда).
    *
@@ -132,6 +307,8 @@ export default function WalkingPet() {
   const busyUntilRef = React.useRef(0);
 
   const [petOn, setPetOn] = React.useState(true);
+  // Гуляет ли по экрану; по умолчанию нет (ed85e191) — сидит у края, но живёт.
+  const [walks, setWalks] = React.useState(false);
   const [skin, setSkin] = React.useState<PetSkin>('cat');
   const [accessory, setAccessory] = React.useState<PetAccessory | null>(null);
   // Масштаб из настроек (ползунок): применяется живо через DeviceEventEmitter.
@@ -160,6 +337,7 @@ export default function WalkingPet() {
     pathname.startsWith('/games/') || pathname.startsWith('/pet') || pathname.startsWith('/onboarding')
     || pathname.startsWith('/warmup-bridge') || pathname.startsWith('/warmup-complete')
     || pathname.startsWith('/assessment-result')
+    || наНативнойВкладке(pathname)
   );
   const active = petOn && routeAllowed;
 
@@ -174,22 +352,16 @@ export default function WalkingPet() {
   // после выхода из настроек тумблер применится, после /pet скин обновится.
   React.useEffect(() => {
     getPetVisible().then(setPetOn).catch(() => {});
+    getPetWalks().then(setWalks).catch(() => {});
     getPetScale().then(setScale).catch(() => {});
     getPetAccessory().then(setAccessory).catch(() => {});
-    getPetStats().then(async (s) => {
-      stageRef.current = s.stage;
-      // Тренер зовёт в слабейшую шкалу — только когда прогресс уже есть
-      // (совсем нулёвому пользователю рекомендация «память отстаёт» = шум).
-      const entries = Object.entries(s.skills) as [PetSkill, number][];
-      const min = entries.reduce((a, b) => (b[1] < a[1] ? b : a));
-      weakSkillRef.current = s.total >= 5 ? min[0] : undefined;
+    petTalkContext().then(async (c) => {
+      stageRef.current = c.stage;
+      weakSkillRef.current = c.weakSkill;
+      lastSessionAtRef.current = c.lastSessionAt;
       // Скин: выбор может быть 'auto' — эволюция по стадии.
       const choice = await getPetSkinChoice();
-      setSkin(resolvePetSkin(choice, s.stage));
-    }).catch(() => {});
-    getSessions().then((ss) => {
-      const last = ss.length ? ss[ss.length - 1]?.timestamp : null;
-      lastSessionAtRef.current = last ? Date.parse(last) || null : null;
+      setSkin(resolvePetSkin(choice, c.stage));
     }).catch(() => {});
     /**
      * 🔴 ВИД ПО ЗАБОТЕ. Ради него и рисовались восемь шкал внешности: не кормили —
@@ -215,8 +387,9 @@ export default function WalkingPet() {
     let alive = true;
     const id = setTimeout(async () => {
       if (!alive) return;
-      if (await consumeRecentRecord()) {
-        if (!alive) return;
+      const слово = await firstWord(profileIdRef.current, langRef.current, () => alive);
+      if (!alive || !слово) return;
+      if (слово.record) {
         /**
          * ПРАЗДНИК РЕКОРДА — состояние `celebrate` (задача 00218752). Своих кадров у
          * него пока нет ни в одном паке, и `PetSprite` сам подставляет `jump`. Но
@@ -225,38 +398,13 @@ export default function WalkingPet() {
          * таких места и не забыть ни одного.
          */
         setSprite('celebrate');
-        setBubble({ text: pickRecordLine(langRef.current).text });
+        setBubble({ text: слово.text });
         busyUntilRef.current = Date.now() + 5000;
         setTimeout(() => { if (alive) { setSprite('idle'); setBubble(null); } }, 5000);
         return;
       }
-      if (!alive || greetedThisRun) return;
-      const pid = profileIdRef.current;
-      if (!pid) return;
-      // Сначала самая дешёвая проверка: сегодня уже здоровались?
-      const было = await loadGreetedDay(pid);
-      const сейчас = new Date();
-      if (!alive) return;
-      if (greetedToday(было, сейчас)) { greetedThisRun = true; return; }
-      const [цель, метки, спрошено] = await Promise.all([
-        loadStreakGoal(pid), loadDayMarks(pid), loadGoalAskedAt(pid),
-      ]);
-      if (!alive) return;
-      const серия = streakFromDays(метки, сейчас);
-      const g = цель ? noticeReached(цель, серия, сейчас) : null;
-      const реплика = pickGreeting(langRef.current, {
-        // 🔴 Окно цели говорит на том же экране. Повод у него сильнее — питомец
-        // молчит, чтобы не выходило два голоса разом (разбор в petGreeting.ts).
-        ask: askReason({ goal: g, streak: серия, lastAskedAt: спрошено, now: сейчас }),
-        progress: goalProgress(g, серия),
-        playedToday: метки.includes(dayKey(сейчас)),
-      });
-      if (!реплика) return;
-      greetedThisRun = true;
-      await markGreeted(pid, сейчас);
-      if (!alive) return;
-      setSprite(реплика.state);
-      setBubble({ text: реплика.text });
+      setSprite(слово.state);
+      setBubble({ text: слово.text });
       busyUntilRef.current = Date.now() + GREET_SHOW;
       setTimeout(() => { if (alive) { setSprite('idle'); setBubble(null); } }, GREET_SHOW);
     }, 1300);
@@ -273,7 +421,10 @@ export default function WalkingPet() {
     const subOn = DeviceEventEmitter.addListener(PET_VISIBLE_EVENT, (on: boolean) => {
       setPetOn(!!on);
     });
-    return () => { subScale.remove(); subOn.remove(); };
+    const subWalk = DeviceEventEmitter.addListener(PET_WALK_EVENT, (on: boolean) => {
+      setWalks(!!on);
+    });
+    return () => { subScale.remove(); subOn.remove(); subWalk.remove(); };
   }, []);
 
   // Позиция/язык в ref'ах: таймеры-замыкания живут дольше рендера, а
@@ -331,11 +482,29 @@ export default function WalkingPet() {
   const reducedRef = React.useRef(reduced);
   React.useEffect(() => { skinRef.current = skin; }, [skin]);
   React.useEffect(() => { reducedRef.current = reduced; }, [reduced]);
+  const walksRef = React.useRef(walks);
   // Размер в ref: step() живёт в замыкании эффекта, а перезапускать прогулку
   // на каждый сдвиг ползунка нельзя (шторм таймеров при живом драге).
   const size = Math.round(PET_SIZE * scale);
   const sizeRef = React.useRef(size);
   sizeRef.current = size;
+
+  /*
+   * Не гуляет — сидит на своём месте, и место ставится ДО кадра (layout-эффект): иначе первый кадр
+   * показал бы кота у левого края, а следующий — скачок вправо. Прогулку выключили на ходу —
+   * проход обрывается здесь же, а цикл продолжает отдых на месте (см. `step`).
+   */
+  React.useLayoutEffect(() => {
+    walksRef.current = walks;
+    if (walks) return;
+    const seat = petSeatX(width, size);
+    x.stopAnimation();
+    x.setValue(seat);
+    posRef.current = seat;
+    flip.setValue(-1);
+    // `x` и `flip` — постоянные значения анимации (useRef), в зависимостях им не место.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [walks, width, size]);
 
   React.useEffect(() => {
     if (!active) return;
@@ -343,7 +512,58 @@ export default function WalkingPet() {
     const timers: ReturnType<typeof setTimeout>[] = [];
     const later = (fn: () => void, ms: number) => { const id = setTimeout(() => { if (alive) fn(); }, ms); timers.push(id); };
 
+    /** Отдых на месте: покой, затем мелочь безделья или дрёма — и следующий шаг. */
+    const rest = () => {
+      setSprite('idle');
+      const pause = PAUSE_MIN + Math.random() * PAUSE_SPAN;
+      if (pause > 5500) {
+        /**
+         * Затяжной отдых → задремал. Поза сна теперь случайная из семи, а не
+         * всегда клубок: питомец на экране часами, и одна и та же поза сна
+         * читается как «картинка залипла».
+         */
+        const поза = PET_SLEEP_POSES[Math.floor(Math.random() * PET_SLEEP_POSES.length)];
+        later(() => { if (!walkingRef.current) setSprite(поза); }, 4000);
+      } else if (!reducedRef.current) {
+        /**
+         * 🔴 МЕЛОЧИ БЕЗДЕЛЬЯ — ради них состояния и рисовались.
+         *
+         * Кот на коротком отдыхе зевает, чешется, гоняется за хвостом,
+         * оглядывается. Без этого двадцать дорисованных состояний остались бы
+         * мёртвым грузом в сборке: их бы никто не вызывал, и «весело» бы не
+         * стало — а Денис просил ровно этого.
+         *
+         * ⚠️ Возврат в покой считается по ДЛИНЕ ЦИКЛА, а не круглым числом:
+         * у зевка семь кадров по 260 мс, у чесания семь по 130 — обрыв на
+         * середине выглядит как рывок. Мелочь запускается, только если весь
+         * цикл успевает пройти до следующего перехода.
+         */
+        /**
+         * ⚠️ Только те мелочи, что у ОБЛИКА есть своими кадрами. У робота и
+         * Созвездия их нет, и `PetSprite` подставил бы замену: `tailchase`
+         * заменяется ходьбой, и робот «пошёл» бы, стоя на месте. Лучше
+         * ничего, чем движение не по делу.
+         */
+        const доступные = PET_FIDGETS.filter((st) => petHasState(skinRef.current, st));
+        if (!доступные.length) { later(step, pause); return; }
+        const мелочь = доступные[Math.floor(Math.random() * доступные.length)];
+        const цикл = petCycleMs(skinRef.current, мелочь);
+        const старт = 700;
+        if (старт + цикл < pause - 300) {
+          later(() => { if (!walkingRef.current) setSprite(мелочь); }, старт);
+          later(() => { if (!walkingRef.current) setSprite('idle'); }, старт + цикл);
+        }
+      }
+      later(step, pause);
+    };
+
     const step = () => {
+      /*
+       * 🔴 НЕ ГУЛЯЕТ — СИДИТ, НО ЖИВЁТ (ed85e191, решение Дениса 07.10.2026). Переходов нет, всё
+       * остальное как на отдыхе после прохода: покой, мелочи безделья, дрёма; реплики и встреча идут
+       * своими таймерами. Место — у правого края полосы прогулки (`petSeatX`).
+       */
+      if (!walksRef.current) { rest(); return; }
       const W = widthRef.current;
       // Гуляем в полосе 10%..90% ширины (координата — левый край спрайта)
       const min = W * 0.10;
@@ -366,49 +586,9 @@ export default function WalkingPet() {
         // которую записал слушатель выше, а не недостигнутую цель.
         if (finished) posRef.current = target;
         walkingRef.current = false;
-        if (finished && alive) {
-          setSprite('idle');
-          const pause = PAUSE_MIN + Math.random() * PAUSE_SPAN;
-          if (pause > 5500) {
-            /**
-             * Затяжной отдых → задремал. Поза сна теперь случайная из семи, а не
-             * всегда клубок: питомец на экране часами, и одна и та же поза сна
-             * читается как «картинка залипла».
-             */
-            const поза = PET_SLEEP_POSES[Math.floor(Math.random() * PET_SLEEP_POSES.length)];
-            later(() => { if (!walkingRef.current) setSprite(поза); }, 4000);
-          } else if (!reducedRef.current) {
-            /**
-             * 🔴 МЕЛОЧИ БЕЗДЕЛЬЯ — ради них состояния и рисовались.
-             *
-             * Кот на коротком отдыхе зевает, чешется, гоняется за хвостом,
-             * оглядывается. Без этого двадцать дорисованных состояний остались бы
-             * мёртвым грузом в сборке: их бы никто не вызывал, и «весело» бы не
-             * стало — а Денис просил ровно этого.
-             *
-             * ⚠️ Возврат в покой считается по ДЛИНЕ ЦИКЛА, а не круглым числом:
-             * у зевка семь кадров по 260 мс, у чесания семь по 130 — обрыв на
-             * середине выглядит как рывок. Мелочь запускается, только если весь
-             * цикл успевает пройти до следующего перехода.
-             */
-            /**
-             * ⚠️ Только те мелочи, что у ОБЛИКА есть своими кадрами. У робота и
-             * Созвездия их нет, и `PetSprite` подставил бы замену: `tailchase`
-             * заменяется ходьбой, и робот «пошёл» бы, стоя на месте. Лучше
-             * ничего, чем движение не по делу.
-             */
-            const доступные = PET_FIDGETS.filter((st) => petHasState(skinRef.current, st));
-            if (!доступные.length) { later(step, pause); return; }
-            const мелочь = доступные[Math.floor(Math.random() * доступные.length)];
-            const цикл = petCycleMs(skinRef.current, мелочь);
-            const старт = 700;
-            if (старт + цикл < pause - 300) {
-              later(() => { if (!walkingRef.current) setSprite(мелочь); }, старт);
-              later(() => { if (!walkingRef.current) setSprite('idle'); }, старт + цикл);
-            }
-          }
-          later(step, pause);
-        }
+        if (finished && alive) rest();
+        // Прогулку выключили на ходу (тумблер в настройках): проход оборван, но жизнь на месте идёт.
+        else if (alive && !walksRef.current) rest();
       });
     };
 
@@ -506,15 +686,8 @@ export default function WalkingPet() {
           activeOpacity={0.7}
           onPress={() => {
             // Тренерский пузырь: тап открывает случайную игру слабой шкалы.
-            const cats = bubble.skill === 'logic' ? ['logic', 'intuition']
-              : bubble.skill === 'speed' ? ['action']
-              : [bubble.skill as string];
-            const pool = GAMES.filter((g) => cats.includes(g.category));
-            const game = pool[Math.floor(Math.random() * pool.length)];
-            // game.route, а НЕ `/games/${game.id}`: у 35 игр из 61 id не совпадает
-            // с именем файла экрана, и собранный из id адрес открывает
-            // «Unmatched Route» вместо игры.
-            if (game) { setBubble(null); router.push(game.route as any); }
+            const route = bubble.skill ? coachRoute(bubble.skill) : null;
+            if (route) { setBubble(null); router.push(route as any); }
           }}
           style={[styles.bubble, {
             backgroundColor: colors.surface,

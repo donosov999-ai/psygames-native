@@ -387,33 +387,40 @@ class KropkiPainter extends CustomPainter {
 }
 
 /// Диагонали (`diagonal`, `killerdiag`) — одной цельной линией через доску, серым пунктиром,
+/// восемь коротких диагоналей аргайла (`argyleSegments`) тем же пунктиром,
 /// и рамки доп. зон «гипера» — как в вебе (`app/games/sudoku.tsx`: Svg Line 7,6 и Rect rx 4).
 /// Рамка, а не заливка: заливка гасла от подсветки строки выделения (отчёт Вали «то
 /// голубые то нет»).
 class BoardLinesPainter extends CustomPainter {
-  BoardLinesPainter({required this.diagonals, required this.hyper, required this.n, required this.ink});
+  BoardLinesPainter({required this.diagonals, required this.hyper, required this.n, required this.ink, this.argyle = false});
   final bool diagonals;
   final bool hyper;
+  final bool argyle;
   final int n;
   final Color ink;
 
   @override
   void paint(Canvas canvas, Size size) {
     final cell = size.width / n;
-    if (diagonals) {
-      final p = Paint()
-        ..color = ink.withValues(alpha: 0.6)
-        ..strokeWidth = 1.5;
-      void dashed(Offset a, Offset b) {
-        final len = (b - a).distance;
-        final dir = (b - a) / len;
-        for (var t = 0.0; t < len; t += 13) {
-          canvas.drawLine(a + dir * t, a + dir * math.min(t + 7, len), p);
-        }
+    final line = Paint()
+      ..color = ink.withValues(alpha: 0.6)
+      ..strokeWidth = 1.5;
+    void dashed(Offset a, Offset b) {
+      final len = (b - a).distance;
+      final dir = (b - a) / len;
+      for (var t = 0.0; t < len; t += 13) {
+        canvas.drawLine(a + dir * t, a + dir * math.min(t + 7, len), line);
       }
+    }
 
+    if (diagonals) {
       dashed(Offset.zero, Offset(size.width, size.height));
       dashed(Offset(size.width, 0), Offset(0, size.height));
+    }
+    if (argyle) {
+      for (final (x1, y1, x2, y2) in argyleSegments(n)) {
+        dashed(Offset(x1 * cell, y1 * cell), Offset(x2 * cell, y2 * cell));
+      }
     }
     if (hyper) {
       final p = Paint()
@@ -434,5 +441,5 @@ class BoardLinesPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(BoardLinesPainter old) =>
-      old.diagonals != diagonals || old.hyper != hyper || old.n != n || old.ink != ink;
+      old.diagonals != diagonals || old.hyper != hyper || old.argyle != argyle || old.n != n || old.ink != ink;
 }

@@ -135,6 +135,7 @@ void main() {
     expect(rep['score'] as int, lessThanOrEqualTo(4000 - 60), reason: 'штраф веба: 60 очков за ошибку');
     expect((rep['details'] as Map)['level'], 1);
     expect(state.get('psygames_sudoku_fractal_level_nzt48'), '2', reason: 'ступень выросла');
+    expect(state.get('psygames_sudoku_fractal_stars_nzt48'), '{"1":2}', reason: 'одна ошибка — две звезды (формула веба)');
     expect(state.get('psygames_resume_sudoku_fractal_nzt48'), isNull, reason: 'выигранная партия не поднимается — снимок стёрт');
   });
 }

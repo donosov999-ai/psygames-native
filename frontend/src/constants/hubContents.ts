@@ -109,10 +109,11 @@ export const HUB_CONTENTS: Record<string, HubSubGame[]> = {
      * дававшей второй вход, просто нет.
      */
     { route: '/games/picture-pairs', icon: 'copy', nameKey: 'picturePairs', descKey: 'picturePairsDesc' },
+    { route: '/games/ospan', icon: 'calculator', nameKey: 'ospan', descKey: 'ospanDesc' },
+    { route: '/games/mnemonics', icon: 'bulb', nameKey: 'mnemonics', descKey: 'mnemonicsDesc' },
   ],
 
   '/games/mnemonics-hub': [
-    { route: '/games/mnemonics', icon: 'bulb', nameKey: 'mnemonics', descKey: 'mnemonicsDesc' },
     { route: '/games/memory-palace', icon: 'home', nameKey: 'memoryPalace', descKey: 'memoryPalaceDesc' },
     { route: '/games/faces-names', icon: 'person', nameKey: 'facesNames', descKey: 'facesNamesDesc' },
     { route: '/games/word-pairs', icon: 'link', nameKey: 'wordPairs', descKey: 'wordPairsDesc' },
@@ -138,6 +139,9 @@ export const HUB_CONTENTS: Record<string, HubSubGame[]> = {
     // «Конь и ферзи» (01.10.2026, задача 39ad8924): только нативный экран —
     // адрес в `nativeOnlyGames.ts`, экран в `flutter/lib/games/knights_queens`.
     { route: '/games/knights-queens', icon: 'extension-puzzle', nameKey: 'knightsQueens', descKey: 'knightsQueensDesc', typeKey: 'chessTypeKnightsQueens' },
+    { route: '/games/puzzles?mode=Signpost', icon: 'navigate', nameKey: 'puzzlesSignpost', descKey: 'puzzlesSignpostDesc' },
+    { route: '/games/puzzles?mode=Pegs', icon: 'disc', nameKey: 'puzzlesPegs', descKey: 'puzzlesPegsDesc' },
+    { route: '/games/puzzles?mode=Inertia', icon: 'diamond', nameKey: 'puzzlesInertia', descKey: 'puzzlesInertiaDesc' },
   ],
 
   /* ——— Внимание ——— */
@@ -170,7 +174,6 @@ export const HUB_CONTENTS: Record<string, HubSubGame[]> = {
     // Корректурная проба Бурдона всегда была тестом концентрации, а не словарём:
     // механика — удержание внимания на однообразном материале. Экран НЕ режем,
     // филворды едут вместе с ним (решение Дениса 12.09.2026).
-    { route: '/games/proofreading', icon: 'create-outline', nameKey: 'proofreading', descKey: 'proofreadingDesc' },
   ],
 
   '/games/search-hub': [
@@ -184,7 +187,6 @@ export const HUB_CONTENTS: Record<string, HubSubGame[]> = {
     { route: '/games/find-differences', icon: 'copy', nameKey: 'findDiff', descKey: 'findDiffDesc' },
     { route: '/games/mahjong', icon: 'grid', nameKey: 'mahjong', descKey: 'mahjongDesc' },
     { route: '/games/schulte', icon: 'apps', nameKey: 'schulteTable', descKey: 'schulteTableDesc' },
-    { route: '/games/quick-count', icon: 'eye', nameKey: 'quickCount', descKey: 'quickCountDesc' },
     { route: '/games/object-tracker', icon: 'locate', nameKey: 'objectTracker', descKey: 'objectTrackerDesc' },
     /**
      * SDMT и SET пришли 12.09.2026 из расформированной «Гибкости» (задача
@@ -195,6 +197,12 @@ export const HUB_CONTENTS: Record<string, HubSubGame[]> = {
      */
     { route: '/games/sdmt', icon: 'swap-horizontal', nameKey: 'sdmt', descKey: 'sdmtDesc' },
     { route: '/games/set-game', icon: 'apps', nameKey: 'setGame', descKey: 'setGameDesc' },
+    { route: '/games/proofreading', icon: 'create-outline', nameKey: 'proofreading', descKey: 'proofreadingDesc' },
+    // «Кто спрятался?» — карточка жила только в файле состава у двух профилей, в реестре её не
+    // было: у остальных одиннадцати игра была недостижима (задача 4a5bb886).
+    { route: '/games/hidden-character', icon: 'eye-off', nameKey: 'hiddenCharacter', descKey: 'hiddenCharacterDesc' },
+    { route: '/games/puzzles?mode=Map', icon: 'map', nameKey: 'puzzlesMap', descKey: 'puzzlesMapDesc' },
+    { route: '/games/puzzles?mode=Dominosa', icon: 'apps', nameKey: 'puzzlesDominosa', descKey: 'puzzlesDominosaDesc' },
   ],
 
   /* ——— Логика ——— */
@@ -240,6 +248,14 @@ export const HUB_CONTENTS: Record<string, HubSubGame[]> = {
      * у каждой перехваченной игры.
      */
     { route: '/games/cats', icon: 'paw', nameKey: 'catsTitle', descKey: 'catsDesc', typeKey: 'catsType' },
+    { route: '/games/puzzles?mode=Unruly', icon: 'ellipse', nameKey: 'puzzlesUnruly', descKey: 'puzzlesUnrulyDesc' },
+    { route: '/games/puzzles?mode=Singles', icon: 'remove-circle', nameKey: 'puzzlesSingles', descKey: 'puzzlesSinglesDesc' },
+    { route: '/games/puzzles?mode=Undead', icon: 'skull', nameKey: 'puzzlesUndead', descKey: 'puzzlesUndeadDesc' },
+    { route: '/games/puzzles?mode=Keen', icon: 'calculator', nameKey: 'puzzlesKeen', descKey: 'puzzlesKeenDesc' },
+    { route: '/games/puzzles?mode=Solo', icon: 'apps-outline', nameKey: 'puzzlesSolo', descKey: 'puzzlesSoloDesc' },
+    { route: '/games/puzzles?mode=Towers', icon: 'business', nameKey: 'puzzlesTowers', descKey: 'puzzlesTowersDesc' },
+    { route: '/games/puzzles?mode=Unequal', icon: 'swap-vertical', nameKey: 'puzzlesUnequal', descKey: 'puzzlesUnequalDesc' },
+    { route: '/games/puzzles?mode=Filling', icon: 'color-fill', nameKey: 'puzzlesFilling', descKey: 'puzzlesFillingDesc' },
   ],
 
 
@@ -259,65 +275,6 @@ export const HUB_CONTENTS: Record<string, HubSubGame[]> = {
    * ⚠️ Строка `visibleHubCards` сама открывает `?mode=…`, когда профилю открыт голый
    * путь `/games/puzzles`, — своей записи в каталоге режимам не нужно.
    */
-  /**
-   * 🔴 ЭТОТ СПИСОК — НЕ ТО, ЧТО ВИДИТ ЧЕЛОВЕК. С 13.09.2026 сорок две головоломки РАЗНЕСЕНЫ ПО
-   * ТЕМАМ файлом состава (`defaultPlaylists.json`, у всех профилей): Пространство 10 · Сортировка 9 ·
-   * Судоку 7 · Счёт 7 · Поиск глазами 5 · здесь, в «Головоломках», 4. Живая раскладка поимённо —
-   * в собранном `STRUCTURE.md`; приложение читает файл (`переопределениеХабов` в `visibleHubCards`).
-   *
-   * Здесь остались все сорок карточек как ЗАВОДСКОЙ ЗАПАС: из него берутся значки и словарные ключи,
-   * когда файл называет карточку голым маршрутом, и его показывает редактор составов. Если файла
-   * нет вовсе — человек увидит этот список целиком, одной кучей.
-   *
-   * 📍 Случай 18.09.2026: координатор по этому списку сказал Денису «35 из 37 головоломок лежат
-   * одной кучей» — на экране их было четыре. Про состав развилки спрашивать ФАЙЛ, не этот массив.
-   * Порядок повторяет `names.ts` и держится проверкой при сборке этого файла.
-   */
-  '/games/puzzles-hub': [
-    { route: '/games/puzzles', icon: 'ellipse', nameKey: 'puzzlesUnruly', descKey: 'puzzlesUnrulyDesc' },
-    // «Кто спрятался?» — карточка жила только в файле состава у двух профилей, в реестре её не
-    // было: у остальных одиннадцати игра была недостижима (задача 4a5bb886).
-    { route: '/games/hidden-character', icon: 'eye-off', nameKey: 'hiddenCharacter', descKey: 'hiddenCharacterDesc' },
-    { route: '/games/puzzles?mode=Mines', icon: 'warning', nameKey: 'puzzlesMines', descKey: 'puzzlesMinesDesc' },
-    { route: '/games/puzzles?mode=Mosaic', icon: 'grid-outline', nameKey: 'puzzlesMosaic', descKey: 'puzzlesMosaicDesc' },
-    { route: '/games/puzzles?mode=Pattern', icon: 'grid', nameKey: 'puzzlesPattern', descKey: 'puzzlesPatternDesc' },
-    { route: '/games/puzzles?mode=Singles', icon: 'remove-circle', nameKey: 'puzzlesSingles', descKey: 'puzzlesSinglesDesc' },
-    { route: '/games/puzzles?mode=Range', icon: 'eye', nameKey: 'puzzlesRange', descKey: 'puzzlesRangeDesc' },
-    { route: '/games/puzzles?mode=Light%20Up', icon: 'bulb', nameKey: 'puzzlesLightUp', descKey: 'puzzlesLightUpDesc' },
-    { route: '/games/puzzles?mode=Tents', icon: 'triangle', nameKey: 'puzzlesTents', descKey: 'puzzlesTentsDesc' },
-    { route: '/games/puzzles?mode=Magnets', icon: 'magnet', nameKey: 'puzzlesMagnets', descKey: 'puzzlesMagnetsDesc' },
-    { route: '/games/puzzles?mode=Undead', icon: 'skull', nameKey: 'puzzlesUndead', descKey: 'puzzlesUndeadDesc' },
-    { route: '/games/puzzles?mode=Keen', icon: 'calculator', nameKey: 'puzzlesKeen', descKey: 'puzzlesKeenDesc' },
-    { route: '/games/puzzles?mode=Solo', icon: 'apps-outline', nameKey: 'puzzlesSolo', descKey: 'puzzlesSoloDesc' },
-    { route: '/games/puzzles?mode=Towers', icon: 'business', nameKey: 'puzzlesTowers', descKey: 'puzzlesTowersDesc' },
-    { route: '/games/puzzles?mode=Unequal', icon: 'swap-vertical', nameKey: 'puzzlesUnequal', descKey: 'puzzlesUnequalDesc' },
-    { route: '/games/puzzles?mode=Rectangles', icon: 'square-outline', nameKey: 'puzzlesRectangles', descKey: 'puzzlesRectanglesDesc' },
-    { route: '/games/puzzles?mode=Filling', icon: 'color-fill', nameKey: 'puzzlesFilling', descKey: 'puzzlesFillingDesc' },
-    { route: '/games/puzzles?mode=Palisade', icon: 'browsers', nameKey: 'puzzlesPalisade', descKey: 'puzzlesPalisadeDesc' },
-    { route: '/games/puzzles?mode=Galaxies', icon: 'planet', nameKey: 'puzzlesGalaxies', descKey: 'puzzlesGalaxiesDesc' },
-    { route: '/games/puzzles?mode=Map', icon: 'map', nameKey: 'puzzlesMap', descKey: 'puzzlesMapDesc' },
-    { route: '/games/puzzles?mode=Loopy', icon: 'git-network', nameKey: 'puzzlesLoopy', descKey: 'puzzlesLoopyDesc' },
-    { route: '/games/puzzles?mode=Pearl', icon: 'ellipse-outline', nameKey: 'puzzlesPearl', descKey: 'puzzlesPearlDesc' },
-    { route: '/games/puzzles?mode=Slant', icon: 'chevron-forward', nameKey: 'puzzlesSlant', descKey: 'puzzlesSlantDesc' },
-    { route: '/games/puzzles?mode=Bridges', icon: 'git-merge', nameKey: 'puzzlesBridges', descKey: 'puzzlesBridgesDesc' },
-    { route: '/games/puzzles?mode=Train%20Tracks', icon: 'train', nameKey: 'puzzlesTracks', descKey: 'puzzlesTracksDesc' },
-    { route: '/games/puzzles?mode=Signpost', icon: 'navigate', nameKey: 'puzzlesSignpost', descKey: 'puzzlesSignpostDesc' },
-    { route: '/games/puzzles?mode=Dominosa', icon: 'apps', nameKey: 'puzzlesDominosa', descKey: 'puzzlesDominosaDesc' },
-    { route: '/games/puzzles?mode=Untangle', icon: 'share-social', nameKey: 'puzzlesUntangle', descKey: 'puzzlesUntangleDesc' },
-    { route: '/games/puzzles?mode=Net', icon: 'git-network-outline', nameKey: 'puzzlesNet', descKey: 'puzzlesNetDesc' },
-    { route: '/games/puzzles?mode=Netslide', icon: 'shuffle', nameKey: 'puzzlesNetslide', descKey: 'puzzlesNetslideDesc' },
-    { route: '/games/puzzles?mode=Twiddle', icon: 'sync-circle', nameKey: 'puzzlesTwiddle', descKey: 'puzzlesTwiddleDesc' },
-    { route: '/games/puzzles?mode=Sixteen', icon: 'repeat', nameKey: 'puzzlesSixteen', descKey: 'puzzlesSixteenDesc' },
-    { route: '/games/puzzles?mode=Fifteen', icon: 'swap-horizontal', nameKey: 'puzzlesFifteen', descKey: 'puzzlesFifteenDesc' },
-    { route: '/games/puzzles?mode=Flip', icon: 'contrast', nameKey: 'puzzlesFlip', descKey: 'puzzlesFlipDesc' },
-    { route: '/games/puzzles?mode=Cube', icon: 'cube', nameKey: 'puzzlesCube', descKey: 'puzzlesCubeDesc' },
-    { route: '/games/puzzles?mode=Black%20Box', icon: 'cube-outline', nameKey: 'puzzlesBlackBox', descKey: 'puzzlesBlackBoxDesc' },
-    { route: '/games/puzzles?mode=Guess', icon: 'color-palette', nameKey: 'puzzlesGuess', descKey: 'puzzlesGuessDesc' },
-    { route: '/games/puzzles?mode=Flood', icon: 'water', nameKey: 'puzzlesFlood', descKey: 'puzzlesFloodDesc' },
-    { route: '/games/puzzles?mode=Same%20Game', icon: 'albums', nameKey: 'puzzlesSameGame', descKey: 'puzzlesSameGameDesc' },
-    { route: '/games/puzzles?mode=Pegs', icon: 'disc', nameKey: 'puzzlesPegs', descKey: 'puzzlesPegsDesc' },
-    { route: '/games/puzzles?mode=Inertia', icon: 'diamond', nameKey: 'puzzlesInertia', descKey: 'puzzlesInertiaDesc' },
-  ],
 
   /**
    * 🔴 ПЯТЬ, А НЕ ТРИ (решение Дениса 11.09.2026). Две последние — из папки `unfinished`
@@ -349,6 +306,21 @@ export const HUB_CONTENTS: Record<string, HubSubGame[]> = {
     { route: '/games/one-line', icon: 'analytics', nameKey: 'oneLine', descKey: 'oneLineDesc' },
     { route: '/games/trail-making', icon: 'git-network', nameKey: 'trailMaking', descKey: 'trailMakingDesc' },
     { route: '/games/navigator', icon: 'navigate', nameKey: 'navigator', descKey: 'navigatorDesc' },
+    { route: '/games/puzzles?mode=Galaxies', icon: 'planet', nameKey: 'puzzlesGalaxies', descKey: 'puzzlesGalaxiesDesc' },
+    { route: '/games/puzzles?mode=Loopy', icon: 'git-network', nameKey: 'puzzlesLoopy', descKey: 'puzzlesLoopyDesc' },
+    { route: '/games/puzzles?mode=Pearl', icon: 'ellipse-outline', nameKey: 'puzzlesPearl', descKey: 'puzzlesPearlDesc' },
+    { route: '/games/puzzles?mode=Slant', icon: 'chevron-forward', nameKey: 'puzzlesSlant', descKey: 'puzzlesSlantDesc' },
+    { route: '/games/puzzles?mode=Bridges', icon: 'git-merge', nameKey: 'puzzlesBridges', descKey: 'puzzlesBridgesDesc' },
+    { route: '/games/puzzles?mode=Train%20Tracks', icon: 'train', nameKey: 'puzzlesTracks', descKey: 'puzzlesTracksDesc' },
+    { route: '/games/puzzles?mode=Untangle', icon: 'share-social', nameKey: 'puzzlesUntangle', descKey: 'puzzlesUntangleDesc' },
+    { route: '/games/puzzles?mode=Net', icon: 'git-network-outline', nameKey: 'puzzlesNet', descKey: 'puzzlesNetDesc' },
+    { route: '/games/puzzles?mode=Netslide', icon: 'shuffle', nameKey: 'puzzlesNetslide', descKey: 'puzzlesNetslideDesc' },
+    { route: '/games/puzzles?mode=Twiddle', icon: 'sync-circle', nameKey: 'puzzlesTwiddle', descKey: 'puzzlesTwiddleDesc' },
+    { route: '/games/puzzles?mode=Sixteen', icon: 'repeat', nameKey: 'puzzlesSixteen', descKey: 'puzzlesSixteenDesc' },
+    { route: '/games/puzzles?mode=Fifteen', icon: 'swap-horizontal', nameKey: 'puzzlesFifteen', descKey: 'puzzlesFifteenDesc' },
+    { route: '/games/puzzles?mode=Flip', icon: 'contrast', nameKey: 'puzzlesFlip', descKey: 'puzzlesFlipDesc' },
+    { route: '/games/puzzles?mode=Cube', icon: 'cube', nameKey: 'puzzlesCube', descKey: 'puzzlesCubeDesc' },
+    { route: '/games/puzzles?mode=Black%20Box', icon: 'cube-outline', nameKey: 'puzzlesBlackBox', descKey: 'puzzlesBlackBoxDesc' },
   ],
   '/games/sorting-hub': [
     { route: '/games/goods-sort', icon: 'basket', nameKey: 'goodsSort', descKey: 'goodsSortDesc' },
@@ -369,8 +341,19 @@ export const HUB_CONTENTS: Record<string, HubSubGame[]> = {
      */
     { route: '/games/hanoi', icon: 'layers', nameKey: 'hanoi', descKey: 'hanoiDesc' },
     { route: '/games/tower-london', icon: 'git-branch', nameKey: 'towerLondon', descKey: 'towerLondonDesc' },
+    { route: '/games/puzzles?mode=Flood', icon: 'water', nameKey: 'puzzlesFlood', descKey: 'puzzlesFloodDesc' },
+    { route: '/games/puzzles?mode=Same%20Game', icon: 'albums', nameKey: 'puzzlesSameGame', descKey: 'puzzlesSameGameDesc' },
   ],
 
+
+  /* ——— Релаксация (07.10.2026, решение Дениса b271f702: практики дня — в развилку) ——— */
+  '/games/relaxation-hub': [
+    { route: '/games/breathing', icon: 'flower-outline', nameKey: 'breathing', descKey: 'breathingDesc' },
+    { route: '/games/pause', icon: 'body', nameKey: 'pause', descKey: 'pauseDesc' },
+    { route: '/games/eye-gym', icon: 'eye', nameKey: 'eyeGym', descKey: 'eyeGymDesc' },
+    // Ночной набор («Не спится») — серия слота night, не игра: запускает её экран `/warmup-night`.
+    { route: '/warmup-night', icon: 'bed-outline', nameKey: 'slotNight', descKey: 'slotNightDesc' },
+  ],
 
   /* ——— Счёт и слова ——— */
   '/games/counting-hub': [
@@ -380,7 +363,6 @@ export const HUB_CONTENTS: Record<string, HubSubGame[]> = {
     { route: '/games/math-sprint', icon: 'flash', nameKey: 'mathSprint', descKey: 'mathSprintDesc' },
     { route: '/games/number-bonds', icon: 'git-merge', nameKey: 'numberBonds', descKey: 'numberBondsDesc' },
     // 04.09.2026: перенесён из «Объёма памяти» по решению Дениса (отчёт a0df2925)
-    { route: '/games/ospan', icon: 'calculator', nameKey: 'ospan', descKey: 'ospanDesc' },
     /**
      * «Паттерны» пришли 12.09.2026 из расформированной «Гибкости» (вариант Г,
      * задача 8f0b0428). ⚠️ Расхождение названо Денису ДО решения и осталось:
@@ -389,6 +371,17 @@ export const HUB_CONTENTS: Record<string, HubSubGame[]> = {
      * счёт, по навыку вывод правила. Не сойдётся на замере — кандидат в «Судоку».
      */
     { route: '/games/pattern', icon: 'trending-up', nameKey: 'pattern', descKey: 'patternDesc' },
+    { route: '/games/quick-count', icon: 'eye', nameKey: 'quickCount', descKey: 'quickCountDesc' },
+    { route: '/games/puzzles?mode=Mines', icon: 'warning', nameKey: 'puzzlesMines', descKey: 'puzzlesMinesDesc' },
+    { route: '/games/puzzles?mode=Mosaic', icon: 'grid-outline', nameKey: 'puzzlesMosaic', descKey: 'puzzlesMosaicDesc' },
+    { route: '/games/puzzles?mode=Pattern', icon: 'grid', nameKey: 'puzzlesPattern', descKey: 'puzzlesPatternDesc' },
+    { route: '/games/puzzles?mode=Range', icon: 'eye', nameKey: 'puzzlesRange', descKey: 'puzzlesRangeDesc' },
+    { route: '/games/puzzles?mode=Light%20Up', icon: 'bulb', nameKey: 'puzzlesLightUp', descKey: 'puzzlesLightUpDesc' },
+    { route: '/games/puzzles?mode=Tents', icon: 'triangle', nameKey: 'puzzlesTents', descKey: 'puzzlesTentsDesc' },
+    { route: '/games/puzzles?mode=Magnets', icon: 'magnet', nameKey: 'puzzlesMagnets', descKey: 'puzzlesMagnetsDesc' },
+    { route: '/games/puzzles?mode=Rectangles', icon: 'square-outline', nameKey: 'puzzlesRectangles', descKey: 'puzzlesRectanglesDesc' },
+    { route: '/games/puzzles?mode=Palisade', icon: 'browsers', nameKey: 'puzzlesPalisade', descKey: 'puzzlesPalisadeDesc' },
+    { route: '/games/puzzles?mode=Guess', icon: 'color-palette', nameKey: 'puzzlesGuess', descKey: 'puzzlesGuessDesc' },
   ],
 
   '/games/words-hub': [
@@ -520,6 +513,13 @@ const УПОМЯНУТО_ЗАВОДСКИМ_ФАЙЛОМ: ReadonlySet<string> = 
   return все;
 })();
 
+/**
+ * Карточки развилок, которые ведут не в игру, а в набор, открытый всем профилям. «Ночная» —
+ * серия слота `night` («Не спится»): в реестре игр её нет, и правило профиля без этой строки
+ * прятало бы карточку у всех (сторож every-native-card-visible).
+ */
+export const ROUTES_OPEN_TO_ALL: readonly string[] = ['/warmup-night'];
+
 export function visibleHubCards(
   hubRoute: string,
   allowed: Set<string>,
@@ -568,6 +568,9 @@ export function visibleHubCards(
   /* Игра только с нативным экраном (`nativeOnlyGames.ts`) в веб-реестре `GAMES` не числится —
      и правило профиля её не пропускало ни у кого, даже у «вся библиотека». Новое — всем. */
   for (const r of NATIVE_ONLY_ROUTES) открыто.add(r);
+  /* Карточка-не-игра «Ночная» (развилка «Релаксация», 07.10.2026): ночной набор по профилю не
+     фильтруется нарочно (`buildNightPlaylist`) — значит и его карточка открыта всем. */
+  for (const r of ROUTES_OPEN_TO_ALL) открыто.add(r);
   for (const c of карточки) {
     const без = c.route.split('?')[0];
     if (без !== c.route && открыто.has(без)) открыто.add(c.route);

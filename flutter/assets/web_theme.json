@@ -1,0 +1,102 @@
+{
+ "light": {
+  "background": "#F5F5F7",
+  "surface": "#FFFFFF",
+  "card": "#FFFFFF",
+  "text": "#1C1C1E",
+  "textSecondary": "#6E6E73",
+  "primary": "#007AFF",
+  "border": "#E5E5EA",
+  "success": "#34C759",
+  "error": "#FF3B30",
+  "warning": "#FF9500"
+ },
+ "dark": {
+  "background": "#000000",
+  "surface": "#1C1C1E",
+  "card": "#2C2C2E",
+  "text": "#FFFFFF",
+  "textSecondary": "#8E8E93",
+  "primary": "#0A84FF",
+  "border": "#38383A",
+  "success": "#30D158",
+  "error": "#FF453A",
+  "warning": "#FF9F0A"
+ },
+ "profiles": {
+  "nzt48": {
+   "mood": "light",
+   "accent": "#a855f7"
+  },
+  "execs": {
+   "mood": "dark",
+   "accent": "#14b8a6"
+  },
+  "drivers": {
+   "mood": "dark",
+   "accent": "#f97316"
+  },
+  "chess": {
+   "mood": "dark",
+   "accent": "#eab308"
+  },
+  "odv999": {
+   "mood": "dark",
+   "accent": "#fbbf24"
+  },
+  "whatsnew": {
+   "mood": "dark",
+   "accent": "#22c55e"
+  },
+  "women": {
+   "mood": "light",
+   "accent": "#ec4899"
+  },
+  "kids": {
+   "mood": "light",
+   "accent": "#10b981"
+  },
+  "seniors": {
+   "mood": "light",
+   "accent": "#7c3aed"
+  },
+  "students": {
+   "mood": "light",
+   "accent": "#f97316"
+  },
+  "vasilyeva": {
+   "mood": "light",
+   "accent": "#0ea5e9"
+  },
+  "free": {
+   "mood": "light",
+   "accent": "#f59e0b"
+  },
+  "polyglot": {
+   "mood": "light",
+   "accent": "#6366f1"
+  }
+ },
+ "fallback": {
+  "mood": "dark",
+  "accent": "#0A84FF"
+ },
+ "cosmeticAccents": {
+  "accent_gold": "#f5b50a",
+  "accent_neon": "#00e5a0",
+  "accent_ocean": "#0aa6ff",
+  "accent_rose": "#ff4d8d",
+  "accent_emerald": "#10b981",
+  "accent_lavender": "#8b5cf6",
+  "accent_crimson": "#dc2626",
+  "accent_cyan": "#06b6d4",
+  "accent_tangerine": "#f97316",
+  "accent_indigo": "#4f46e5",
+  "accent_coral": "#fb7185",
+  "accent_slate": "#64748b",
+  "accent_copper": "#b45309",
+  "accent_mint": "#2dd4bf",
+  "accent_magenta": "#d946ef"
+ },
+ "equippedKey": "psygames_cosmetics_equipped_{profile}"
+}

@@ -176,12 +176,12 @@ if (!DRY) fs.copyFileSync(path.join(src, 'services/sudoku-bank/boards.json'), pa
 console.error(`лестница: ${LAST} ступеней, полос банка ${bank.RATING_LADDER.length}; банк скопирован${DRY ? ' (--dry: не записано)' : ''}`);
 
 // ── 2. Проверка доски тем же ядром ────────────────────────────────────────────────────
-const GEOMETRY_FIELDS = ['regions', 'parity', 'kropki', 'sandwich', 'thermo', 'arrow', 'cages', 'whisper', 'renban', 'regionsum', 'palindrome', 'between', 'lockout', 'xv'];
+const GEOMETRY_FIELDS = ['regions', 'parity', 'kropki', 'sandwich', 'thermo', 'arrow', 'cages', 'whisper', 'renban', 'regionsum', 'palindrome', 'between', 'lockout', 'xv', 'littlekiller', 'xsums'];
 const MODE_FIELDS = ['towers', 'unequal'];
 /** Поля, которые ядро проверяет как ПОКАЗАННЫЕ подсказки (`overlayOk`): единственность и мера
  *  обязаны их видеть. Пропустить поле — доска «не единственна» (01.10: так выгрузка сама
  *  поймала линии шёпота, не попавшие в прежний явный список). */
-const OVERLAY_FIELDS = ['parity', 'kropki', 'sandwich', 'unequal', 'towers', 'whisper', 'renban', 'regionsum', 'palindrome', 'between', 'lockout', 'xv'];
+const OVERLAY_FIELDS = ['parity', 'kropki', 'sandwich', 'unequal', 'towers', 'whisper', 'renban', 'regionsum', 'palindrome', 'between', 'lockout', 'xv', 'littlekiller', 'xsums'];
 const toStr = (g) => g.map((row) => row.join('')).join('');
 
 /** Причина брака или null. `gen` — результат генератора, `tier` — что пойдёт в файл. */
@@ -495,7 +495,12 @@ if (!args['no-modes']) {
 // соседних (заведомо спорных), в любую клетку: проба сама освобождает клетку перед ходом.
 if (!args['no-rules']) {
   // 'friends' — условие на всё решение, а не запрет хода: эталона ходов у него нет (meow9-ladder.cjs).
-  const variants = [...new Set(ladder.map((l) => l.variant).filter((v) => v !== 'friends')), 'killer', 'unequal', 'towers'];
+  // RULES_AHEAD — правила, собранные раньше своих ступеней (номера ставит раздел уровней, план
+  // LEVELS_PLAN.md): натив сверяется с живым ядром уже сейчас, а не после раскладки лестницы.
+  const RULES_AHEAD = ['argyle', 'littlekiller', 'xsums'];
+  const onLadder = new Set(ladder.map((l) => l.variant));
+  const variants = [...new Set(ladder.map((l) => l.variant).filter((v) => v !== 'friends')), 'killer', 'unequal', 'towers',
+    ...RULES_AHEAD.filter((v) => !onLadder.has(v))];
   const out = [];
   const perRule = [];
   for (const variant of variants) {
@@ -570,6 +575,7 @@ if (!args['no-rules']) {
             unequal: extras.unequal, towers: extras.towers, parity: extras.parity, kropki: extras.kropki,
             whisper: extras.whisper, renban: extras.renban, regionsum: extras.regionsum,
             palindrome: extras.palindrome, between: extras.between, lockout: extras.lockout, xv: extras.xv,
+            littlekiller: extras.littlekiller, xsums: extras.xsums,
           });
           cases.push({ r, c, val, ok, why });
         } else {

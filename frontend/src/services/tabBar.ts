@@ -1,4 +1,4 @@
-/* psygames-tab-bar · VER 1 · 07.09.2026 */
+/* psygames-tab-bar · VER 2 · 07.10.2026 */
 /**
  * НИЖНИЙ ТУЛБАР: КУДА ВЕДУТ ВКЛАДКИ И ГДЕ ЕГО НЕ ДОЛЖНО БЫТЬ.
  *
@@ -43,6 +43,15 @@ export const TABS: readonly TabDef[] = [
 ] as const;
 
 /**
+ * Начала адресов, где полосы нет. Списком, а не условием в функции: тот же список читает
+ * нативная полоса оболочки (`flutter/assets/tabs.json`, сторож `flutter-tabs-asset-fresh`) —
+ * второе правило на Dart разошлось бы с этим молча (задача 5136754e, 07.10.2026).
+ */
+export const NO_TAB_BAR_PREFIXES: readonly string[] = [
+  '/games/', '/onboarding', '/warmup-bridge', '/warmup-complete', '/assessment-result',
+] as const;
+
+/**
  * Где полосы быть НЕ должно.
  *
  * 🔴 ВНУТРИ ИГРЫ — ГЛАВНОЕ. Доска считается от высоты экрана; отнять у неё 58 px
@@ -55,13 +64,7 @@ export const TABS: readonly TabDef[] = [
  * некуда уйти.
  */
 export function tabBarVisible(pathname: string): boolean {
-  return !(
-    pathname.startsWith('/games/')
-    || pathname.startsWith('/onboarding')
-    || pathname.startsWith('/warmup-bridge')
-    || pathname.startsWith('/warmup-complete')
-    || pathname.startsWith('/assessment-result')
-  );
+  return !NO_TAB_BAR_PREFIXES.some((p) => pathname.startsWith(p));
 }
 
 /**

@@ -33,6 +33,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { isGameAllowed } from '@/src/constants/profiles';
 import { getAiInsight, toneForProfile, isoWeekKey } from '@/src/services/aiInsight';
+import { postScreenModel, registerScreenActions } from '@/src/services/hostScreens';
 
 /**
  * 🔴 ВЫХОД В WEB-DEMO — В ОБЁРТКЕ БЕЗ ХУКОВ, А НЕ ПЕРВОЙ СТРОКОЙ ЭКРАНА.
@@ -204,6 +205,106 @@ function StatisticsScreenBody() {
   const totalGames = stats.reduce((s, x) => s + x.total_sessions, 0);
   const totalTime = stats.reduce((s, x) => s + (isFinite(x.total_time) && x.total_time > 0 && x.total_time <= 86400 * 365 ? x.total_time : 0), 0);
   const formatTotal = (s: number) => s >= 3600 ? `${(s / 3600).toFixed(1)}${t('unitHourShort')}` : `${Math.round(s / 60)}${t('unitMinShort')}`;
+
+  /**
+   * 🔴 ПОД ОБОЛОЧКОЙ ЭТОТ ЭКРАН РИСУЕТ FLUTTER (задача 6ff4a966, `services/hostScreens.ts`).
+   * Модель — перекладка того, что рисует разметка ниже, ТЕМИ ЖЕ функциями (formatTime, вердикты,
+   * подписи дней, sparkBars). Вне оболочки `postScreenModel` молчит.
+   */
+  const statsModel = useMemo(() => {
+    const shownStats = stats.filter((st) => st.total_sessions > 0 && (scopeAll || isGameAllowed(profile, st.game_type)));
+    const areaLabel = (a: string) => t(`cat${a.charAt(0).toUpperCase()}${a.slice(1)}`);
+    const weak = weakestArea(areas);
+    return {
+      v: 1,
+      title: t('statistics'),
+      primary: colors.primary,
+      labels: { back: t('a11yBack'), refresh: t('a11yRefresh'), summary: t('statsTabSummary'), history: t('statsTabHistory') },
+      loading,
+      scope: { profile: `${profile.emoji} ${t('profileName_' + profile.id)}`, all: t('allGames'), isAll: scopeAll },
+      totalPlayed: loading ? null : t('totalPlayedCompleted').replace('{n}', String(stats.reduce((sum, st) => sum + st.total_sessions, 0))),
+      hero: {
+        tokens, tokensLabel: t('tokensLabel'), level: `Lv ${lvl.level}`, levelTitle: t(lvl.titleKey),
+        streak: streakDays, streakLabel: t('streakLabel'), progress: lvl.span !== null ? lvl.progress : null,
+        games: `${totalGames} ${t('gamesPlayed')}`, time: `${formatTotal(totalTime)} ${t('inGameTime')}`,
+      },
+      areas: areas.length > 0 ? {
+        title: t('areaBalanceTitle'), hint: t('areaBalanceHint'),
+        rows: areas.map((a) => {
+          const pct = Math.round(a.share * 100);
+          const trendPct = a.trend === null ? null : Math.round(a.trend * 100);
+          return {
+            area: a.area, label: areaLabel(a.area), pct, text: `${pct}% · ${a.sessions}`,
+            a11y: `${areaLabel(a.area)}: ${pct}%, ${a.sessions}`,
+            trend: trendPct !== null && trendPct !== 0
+              ? { up: trendPct > 0, text: (trendPct > 0 ? t('areaTrendUp') : t('areaTrendDown')).replace('{n}', String(Math.abs(trendPct))) }
+              : null,
+          };
+        }),
+        weak: weak ? t('areaBalanceWeak').replace('{area}', areaLabel(weak)) : null,
+      } : null,
+      ai: aiDigest ? { title: `📅 ${t('weekInReview')}`, text: aiDigest } : null,
+      games: shownStats.flatMap((stat) => {
+        const cfg = getGameConfig(stat.game_type);
+        if (!cfg) return [];
+        const arr = sessionsByGame[stat.game_type] ?? [];
+        const shown = arr.slice(-12);
+        const best = arr.length ? Math.max(...arr) : 0;
+        const avg = arr.length ? Math.round(arr.reduce((a, b) => a + b, 0) / arr.length) : 0;
+        return [{
+          id: stat.game_type, name: t(cfg.nameKey), icon: cfg.icon,
+          gradient: [...(cfg.gradient as string[])],
+          stats: [
+            { label: stat.outcome_known > 0 ? t('statPassedOfPlayed') : t('totalGames'),
+              value: stat.outcome_known > 0 ? `${stat.passed_sessions}/${stat.total_sessions}` : String(stat.total_sessions) },
+            { label: t('statFastest'), value: stat.best_results.length > 0 ? formatTime(stat.best_results[0].time_seconds) : '-' },
+            { label: t('statSlowest'), value: stat.worst_time > 0 ? formatTime(stat.worst_time) : '-' },
+            { label: t('averageTime'), value: formatTime(stat.average_time) },
+          ],
+          spark: arr.length >= 2 ? {
+            caption: t('statScoreBars').replace('{n}', String(shown.length)), bars: sparkBars(shown),
+            color: (cfg.gradient as string[])[1], older: t('statOlder'), newer: t('statNewer'),
+            numbers: best > 0 ? t('scoreBestAvg').replace('{best}', String(best)).replace('{avg}', String(avg)) : t('trendRecentGames'),
+          } : null,
+        }];
+      }),
+      empty: stats.every((st) => st.total_sessions === 0) ? t('statsEmptyHint') : null,
+      history: view.kind === 'days'
+        ? {
+            kind: 'days',
+            days: view.days.map((day) => ({
+              label: dayLabel(day.dateKey),
+              entries: day.entries.map((e) => {
+                const cfg = getGameConfig(e.gameType)!;
+                const value = formatResult(e.value, e.unit);
+                const verdict = verdictText(e);
+                const level = e.level === null ? '' : t('historyLevelShort').replace('{n}', String(e.level));
+                return {
+                  name: t(cfg.nameKey), icon: cfg.icon, color: (cfg.gradient as string[])[0], verdict, verdictColor: verdictColor(e),
+                  level: level || null, value, time: timeLabel(e.timestamp),
+                  label: `${t(cfg.nameKey)}${level ? ', ' + level : ''}, ${timeLabel(e.timestamp)}, ${value}, ${verdict}`,
+                };
+              }),
+            })),
+            tail: view.days.length >= MAX_HISTORY_DAYS ? t('historyTailHint').replace('{n}', String(MAX_HISTORY_DAYS)) : null,
+          }
+        : {
+            kind: view.kind, icon: view.kind === 'empty' ? 'time-outline' : 'funnel-outline',
+            title: t(view.titleKey), hint: t(view.hintKey), cta: t(view.ctaKey), action: view.kind === 'empty' ? 'home' : 'scopeAll',
+          },
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- форматтеры экрана пересоздаются каждым рендером; модель зависит от данных
+  }, [stats, scopeAll, profile, areas, aiDigest, sessionsByGame, tokens, streakDays, loading, historyDays, sessions.length, language, colors.primary, t]);
+  useEffect(() => { postScreenModel('/statistics', statsModel); }, [statsModel]);
+  // Свежая `loadStats` для действия оболочки: функция пересоздаётся каждым рендером, а действия
+  // регистрируются один раз.
+  const statsActs = React.useRef({ loadStats });
+  useEffect(() => { statsActs.current = { loadStats }; });
+  useEffect(() => registerScreenActions('/statistics', {
+    scope: (all: boolean) => setScopeAll(!!all),
+    refresh: () => { void statsActs.current.loadStats(); },
+    back: () => goBackOrHome(),
+  }), []);
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -595,19 +696,25 @@ function StatisticsScreenBody() {
   );
 }
 
-// D1.2: мини-спарклайн тренда очков (бары; нормализация min..max; ramp прозрачности старое→свежее)
-function Sparkline({ data, color }: { data: number[]; color: string }) {
-  if (data.length < 2) return null;
+/**
+ * Столбики спарклайна: высота 5..24 по размаху min..max, прозрачность от старых к свежим.
+ * Одна формула для веба и нативной оболочки (модель экрана) — вынесено 07.10.2026.
+ */
+export function sparkBars(data: readonly number[]): { h: number; op: number }[] {
+  if (data.length < 2) return [];
   const max = Math.max(...data);
   const min = Math.min(...data);
   const span = max - min || 1;
+  return data.map((v, i) => ({ h: 5 + Math.round(((v - min) / span) * 19), op: 0.35 + 0.65 * (i / (data.length - 1)) }));
+}
+
+// D1.2: мини-спарклайн тренда очков (бары; нормализация min..max; ramp прозрачности старое→свежее)
+function Sparkline({ data, color }: { data: number[]; color: string }) {
+  const bars = sparkBars(data);
+  if (!bars.length) return null;
   return (
     <View style={{ flexDirection: 'row', alignItems: 'flex-end', height: 26, gap: 2, marginTop: 6 }}>
-      {data.map((v, i) => {
-        const h = 5 + Math.round(((v - min) / span) * 19);
-        const op = 0.35 + 0.65 * (i / (data.length - 1));
-        return <View key={i} style={{ flex: 1, height: h, backgroundColor: color, borderRadius: 2, opacity: op }} />;
-      })}
+      {bars.map((b, i) => <View key={i} style={{ flex: 1, height: b.h, backgroundColor: color, borderRadius: 2, opacity: b.op }} />)}
     </View>
   );
 }
