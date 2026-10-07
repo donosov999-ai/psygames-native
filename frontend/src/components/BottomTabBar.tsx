@@ -1,4 +1,4 @@
-/* psygames-bottom-tab-bar · VER 1 · 07.09.2026 */
+/* psygames-bottom-tab-bar · VER 2 · 07.10.2026 */
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -66,6 +66,12 @@ export default function BottomTabBar() {
   const { colors, isDark } = useTheme();
   const { t } = useLanguage();
 
+  /*
+   * 🔴 ВКЛАДКАМИ ВЛАДЕЕТ ОБОЛОЧКА (задача 5136754e, 07.10.2026). В приложении полоса нативная:
+   * оболочка Flutter ставит `window.__psyNativeTabs` и рисует свою полосу ПОД WebView. Нарисуй
+   * веб свою — у человека две полосы одна над другой.
+   */
+  if ((globalThis as any).__psyNativeTabs) return null;
   if (!tabBarVisible(pathname)) return null;
   const активная = activeTab(pathname);
   const стекло = glass(!!isDark);

@@ -1,46 +1,60 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show rootBundle;
 
 import 'catalog.dart';
+import 'catalog_kit.dart';
+import 'game_tile.dart';
 import 'hub_screen.dart';
 import 'l10n.dart';
 import 'shared_state.dart';
+import 'web_theme.dart';
 
-/// ВКЛАДКА «ИГРЫ» НА FLUTTER — РАЗДЕЛЫ, ПОИСК И ФИЛЬТР (задачи 9bd1b15d, f5025027).
+/// ВКЛАДКА «ИГРЫ» НА FLUTTER — ПЛИТКИ ВЕБА, ПОИСК НАД НИМИ, ФИЛЬТР ПОД ПОИСКОМ (задачи 99628ecf, de8ac1eb).
 ///
-/// 📍 Решение Дениса 01.10 (скрин Chess & Go): «поиск по играм, как у нас в шахматах, и
-/// фильтр, как у них, снизу»; «фильтр ШИРЕ, чем количество хабов — выпадающим списком»;
-/// «поиск и фильтры пока НЕ фильтруются по профилю». Образец — `lib/hub/catalog_screen.dart`
-/// в Chess & Go: поле «Найти игру», под ним выпадающий список, при поиске — плоский список.
+/// 📍 Решение Дениса 04.10.2026 (99628ecf) и правило 4e679f41: по умолчанию — цветные двухколоночные
+/// плитки старого веба (`app/games.tsx` → `CategorySections` → `GameCard`, перенос — [GameTile]);
+/// поиск прямо НАД развилками, фильтр ПОД ним; строки найденных игр — только при непустом запросе или
+/// фильтре, в том же окне; очистка и «Все игры» возвращают плитки. Первая редакция (#207, 02.10) рисовала
+/// постоянные строки на отдельном экране — это и было названо несогласованным упрощением.
 ///
-/// Без поиска экран — та же вкладка, что в вебе (`app/games.tsx` → `CategorySections`):
-/// шесть разделов, в каждом сначала развилки, потом одиночные игры, ровно список профиля.
-/// Список считает веб (`hubVisibility().catalog`, ключ [HubScreen.visibleKey]); правило
-/// профиля здесь не переписано.
+/// Экран живёт ВКЛАДКОЙ нативной оболочки ([embedded]): своей верхней панели нет, нижние вкладки на
+/// месте, игру открывает оболочка ([onOpen]). Отдельным экраном (без [embedded]) — только в пробах.
 ///
-/// Фильтр — 6 разделов и 29 навыков (замер 02.10: развилок 13). Поиск и фильтр идут по ВСЕМ
-/// играм, включая карточки за развилками ([Catalog.entries]).
-///
-/// Нажатие возвращает маршрут оболочке ([HubCardTap]) — открывает она, как из развилки.
+/// Разделы по умолчанию — ровно список профиля: его считает веб той же функцией, что рисует свою
+/// вкладку (`hubVisibility().catalog`, ключ [HubScreen.visibleKey]). Поиск и фильтр — по ВСЕМ играм,
+/// включая карточки за развилками ([Catalog.entries]) — решение Дениса 01.10.
 class CatalogScreen extends StatefulWidget {
-  const CatalogScreen({super.key, required this.state, this.catalog, this.initialQuery = ''});
+  const CatalogScreen({
+    super.key,
+    required this.state,
+    this.catalog,
+    this.initialQuery = '',
+    this.initialFilter,
+    this.embedded = false,
+    this.onOpen,
+  });
 
   final SharedState state;
   final String initialQuery;
 
+  /// Фильтр при открытии — `?filter=hubs` от «Все развилки ›» Главной.
+  final CatalogFilter? initialFilter;
+
   /// Готовый каталог — для проб; в приложении грузится из ассетов.
   final Catalog? catalog;
+
+  /// Вкладка оболочки: без верхней панели, заголовок — в прокрутке, как на вебе.
+  final bool embedded;
+
+  /// Кто открывает игру. Нет — экран снимается и отдаёт маршрут наверх ([HubCardTap]).
+  final void Function(String route)? onOpen;
 
   @override
   State<CatalogScreen> createState() => _CatalogScreenState();
 }
 
 class _CatalogScreenState extends State<CatalogScreen> {
-  Catalog? _catalog;
-  Map<String, dynamic> _icons = const {};
-  Map<String, dynamic> _hubs = const {};
+  CatalogKit? _kit;
+  Catalog? get _catalog => _kit?.catalog;
   String _query = '';
   CatalogFilter? _filter;
   final _search = TextEditingController();
@@ -54,6 +68,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
   void initState() {
     super.initState();
     _query = widget.initialQuery.trim();
+    _filter = widget.initialFilter;
     _search.text = _query;
     _boot();
   }
@@ -64,110 +79,99 @@ class _CatalogScreenState extends State<CatalogScreen> {
     super.dispose();
   }
 
-  Future<Map<String, dynamic>> _json(String path) async {
-    final b = await rootBundle.load(path);
-    return jsonDecode(utf8.decode(b.buffer.asUint8List(b.offsetInBytes, b.lengthInBytes))) as Map<String, dynamic>;
-  }
-
   Future<void> _boot() async {
-    final catalog = widget.catalog ?? await Catalog.load();
-    var icons = const <String, dynamic>{};
-    var hubs = const <String, dynamic>{};
-    try {
-      icons = await _json('assets/game_icons/index.json');
-    } catch (_) {
-      // Нет карты иконок — строки со значками, каталог работает.
-    }
-    try {
-      hubs = await _json('assets/hubs.json');
-    } catch (_) {
-      // Нет состава — число на развилке не показываем.
-    }
+    final kit = await CatalogKit.load(catalog: widget.catalog);
     if (!mounted) return;
-    setState(() {
-      _catalog = catalog;
-      _icons = icons;
-      _hubs = hubs;
-    });
+    setState(() => _kit = kit);
   }
 
-  /// Видимое профилю: список веба, если посчитан для ТЕКУЩЕГО профиля; иначе — всё, что не
-  /// спрятано из меню (пустой каталог хуже лишней строки, как и в [HubScreen]).
-  ({Set<String>? games, Map<String, int> hubCount}) _visible() {
-    final counts = <String, int>{
-      for (final e in ((_hubs['hubs'] as Map<String, dynamic>?) ?? const {}).entries) e.key: (e.value as List).length,
-    };
-    final raw = widget.state.get(HubScreen.visibleKey);
-    if (raw == null || raw.isEmpty) return (games: null, hubCount: counts);
-    try {
-      final o = jsonDecode(raw) as Map<String, dynamic>;
-      if (o['profile'] != widget.state.activeProfile) return (games: null, hubCount: counts);
-      for (final e in ((o['hubs'] as Map<String, dynamic>?) ?? const {}).entries) {
-        counts[e.key] = (e.value as List).length;
-      }
-      final list = o['catalog'] as List?;
-      return (games: list?.cast<String>().toSet(), hubCount: counts);
-    } catch (_) {
-      return (games: null, hubCount: counts);
+  ({Set<String>? games, Map<String, int> hubCount}) _visible() => _kit!.visible(widget.state);
+
+  String? _iconFile(CatalogEntry e) => _kit!.iconFile(e);
+
+  void _open(CatalogEntry e) {
+    final open = widget.onOpen;
+    if (open != null) {
+      open(e.route);
+    } else {
+      Navigator.of(context).pop(HubCardTap(e.route));
     }
   }
 
-  void _open(CatalogEntry e) => Navigator.of(context).pop(HubCardTap(e.route));
+  bool get _searching => _query.trim().isNotEmpty || _filter != null;
 
   @override
   Widget build(BuildContext context) {
     final c = _catalog;
-    return Scaffold(
-      appBar: AppBar(title: Text(L.t('tabGames'))),
-      body: c == null
-          ? const Center(child: CircularProgressIndicator())
-          : Column(
-              children: [
+    final web = WebTheme.of(context);
+    final body = c == null
+        ? const Center(child: CircularProgressIndicator())
+        : ListView(
+            key: const ValueKey('catalog-list'),
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            children: [
+              if (widget.embedded)
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-                  child: Column(children: [
-                    TextField(
-                      key: const ValueKey('catalog-search'),
-                      controller: _search,
-                      decoration: InputDecoration(
-                        prefixIcon: const Icon(Icons.search),
-                        hintText: L.t('catalogSearch'),
-                        border: const OutlineInputBorder(),
-                        isDense: true,
-                        suffixIcon: _query.isEmpty
-                            ? null
-                            : IconButton(
-                                key: const ValueKey('catalog-search-clear'),
-                                icon: const Icon(Icons.close),
-                                onPressed: () => setState(() {
-                                  _search.clear();
-                                  _query = '';
-                                }),
-                              ),
-                      ),
-                      onChanged: (v) => setState(() => _query = v),
-                    ),
-                    const SizedBox(height: 8),
-                    _filterField(c),
-                  ]),
+                  // Заголовок вкладки — как `app/games.tsx`: 24/800, сверху 8, снизу 14.
+                  padding: const EdgeInsets.only(top: 8, bottom: 14),
+                  child: Text(L.t('tabGames'),
+                      style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: web.text)),
+                )
+              else
+                const SizedBox(height: 8),
+              TextField(
+                key: const ValueKey('catalog-search'),
+                controller: _search,
+                // Поле — как единственное поле поиска веба (`HomeCatalogSearch.tsx`), не Material.
+                style: WebTheme.fieldText(context),
+                textInputAction: TextInputAction.search,
+                decoration: WebTheme.field(
+                  context,
+                  hint: L.t('catalogSearch'),
+                  suffix: _query.isEmpty
+                      ? null
+                      : IconButton(
+                          key: const ValueKey('catalog-search-clear'),
+                          tooltip: L.t('clear'),
+                          icon: Icon(Icons.close, color: web.textSecondary),
+                          onPressed: () => setState(() {
+                            _search.clear();
+                            _query = '';
+                          }),
+                        ),
                 ),
-                Expanded(child: _query.trim().isEmpty && _filter == null ? _sections(c) : _flat(c)),
-              ],
-            ),
-    );
+                onChanged: (v) => setState(() => _query = v),
+              ),
+              const SizedBox(height: 8),
+              _filterField(c),
+              const SizedBox(height: 12),
+              if (_searching) _flat(c) else _sections(c),
+            ],
+          );
+    // Вкладка без своего Scaffold — поле ввода всё равно обязано стоять на Material.
+    if (widget.embedded) return Material(color: web.background, child: WebTheme.textDefaults(context, body));
+    return Scaffold(appBar: AppBar(title: Text(L.t('tabGames'))), body: body);
   }
 
   Widget _filterField(Catalog c) {
     Widget header(String text) => Text(text.toUpperCase(),
         style: TextStyle(
             fontSize: 12, fontWeight: FontWeight.w800, letterSpacing: 0.6, color: Theme.of(context).colorScheme.primary));
-    return DropdownButtonFormField<CatalogFilter?>(
+    // Подписи над полем нет (рисунок поля веба); что это фильтр, экранный чтец слышит меткой.
+    return Semantics(
+      label: L.t('catalogFilter'),
+      child: DropdownButtonFormField<CatalogFilter?>(
       key: const ValueKey('catalog-filter'),
       initialValue: _filter,
       isExpanded: true,
-      decoration: InputDecoration(labelText: L.t('catalogFilter'), border: const OutlineInputBorder(), isDense: true),
+      decoration: WebTheme.field(context),
+      dropdownColor: WebTheme.of(context).surface,
+      style: WebTheme.fieldText(context),
+      iconEnabledColor: WebTheme.of(context).textSecondary,
       items: [
         DropdownMenuItem<CatalogFilter?>(value: null, child: Text(L.t('allGames'))),
+        DropdownMenuItem<CatalogFilter?>(value: const CatalogFilter.hubs(), child: Text(L.t('allForks'))),
         DropdownMenuItem<CatalogFilter?>(value: _sectionsHeader, enabled: false, child: header(L.t('catalogBySection'))),
         for (final cat in c.categories)
           DropdownMenuItem<CatalogFilter?>(
@@ -186,66 +190,65 @@ class _CatalogScreenState extends State<CatalogScreen> {
           ),
       ],
       onChanged: (v) => setState(() => _filter = v),
+      ),
     );
   }
 
-  /// Без поиска — разделы веба: развилки первыми, потом одиночные, в порядке `GAMES`.
+  /// Без поиска — разделы веба плитками: развилки первыми, потом одиночные, в порядке `GAMES`.
   Widget _sections(Catalog c) {
     final v = _visible();
     final shown = [for (final g in c.games) if (v.games?.contains(g.id) ?? !g.hidden) g];
-    return ListView(
+    return Column(
       key: const ValueKey('catalog-sections'),
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         for (final cat in c.categories)
-          if (shown.any((g) => g.category == cat.id)) ...[
-            _sectionHeader(cat, shown.where((g) => g.category == cat.id).length),
-            for (final g in [
-              ...shown.where((g) => g.category == cat.id && g.hub),
-              ...shown.where((g) => g.category == cat.id && !g.hub),
-            ])
-              _row(g, hubCount: g.hub ? v.hubCount[g.route] : null),
-          ],
+          if (shown.any((g) => g.category == cat.id))
+            Padding(
+              // Раздел — отступ 24 снизу (`CategorySections`, styles.section).
+              padding: const EdgeInsets.only(bottom: 24),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                _sectionHeader(cat, shown.where((g) => g.category == cat.id).length),
+                _grid([
+                  ...shown.where((g) => g.category == cat.id && g.hub),
+                  ...shown.where((g) => g.category == cat.id && !g.hub),
+                ], v.hubCount),
+              ]),
+            ),
       ],
     );
   }
 
-  Widget _sectionHeader(CatalogCategory cat, int count) {
-    final scheme = Theme.of(context).colorScheme;
-    return Padding(
-      key: ValueKey('catalog-section-${cat.id}'),
-      padding: const EdgeInsets.only(top: 16, bottom: 8),
-      child: Row(children: [
-        Container(
-            width: 4, height: 18, decoration: BoxDecoration(color: Color(cat.color), borderRadius: BorderRadius.circular(2))),
-        const SizedBox(width: 8),
-        Expanded(child: Text(cat.title, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700))),
-        // Число — сколько в разделе всего, как в веб-вкладке.
-        Text('$count', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: scheme.onSurfaceVariant)),
-      ]),
-    );
-  }
+  /// Сетка веба — общая с Главной ([CatalogKit.grid]).
+  Widget _grid(List<CatalogEntry> games, Map<String, int> hubCount) => CatalogKit.grid(
+        context,
+        [for (final g in games) (_) => _kit!.tile(widget.state, g, hubCount: hubCount, onTap: () => _open(g))],
+        keys: [for (final g in games) ValueKey('catalog-tile-${g.route}')],
+      );
 
-  /// Поиск или фильтр — плоский список по алфавиту, по ВСЕМ играм.
+  Widget _sectionHeader(CatalogCategory cat, int count) =>
+      CatalogKit.sectionHeader(context, cat, count, key: ValueKey('catalog-section-${cat.id}'));
+
+  /// Поиск или фильтр — строки найденного по алфавиту, по ВСЕМ играм, в том же окне.
   Widget _flat(Catalog c) {
     final found = c.find(_query, _filter)..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
     if (found.isEmpty) {
-      return Center(
+      return Padding(
         key: const ValueKey('catalog-nothing'),
-        child: Padding(padding: const EdgeInsets.all(24), child: Text(L.t('catalogNothing'), textAlign: TextAlign.center)),
+        padding: const EdgeInsets.all(24),
+        child: Text(L.t('catalogNothing'), textAlign: TextAlign.center),
       );
     }
     final counts = _visible().hubCount;
-    return ListView(
+    return Column(
       key: const ValueKey('catalog-flat'),
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
       children: [for (final e in found) _row(e, hubCount: e.hub ? counts[e.route] : null)],
     );
   }
 
   Widget _row(CatalogEntry e, {int? hubCount}) {
     final scheme = Theme.of(context).colorScheme;
-    final file = ((_icons['byNameKey'] as Map?)?[e.nameKey] ?? (_icons['byRoute'] as Map?)?[e.route]) as String?;
+    final file = _iconFile(e);
     final skill = e.skillKey == null ? '' : L.t(e.skillKey!);
     return Card(
       margin: const EdgeInsets.only(bottom: 8),

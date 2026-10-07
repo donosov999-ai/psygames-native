@@ -15,7 +15,10 @@
 /// стороны; `cells` клеток-сумм восстанавливаются из `cageOf`. Без геометрии доска варианта
 /// поднялась бы, а проверять ходы было бы нечем.
 ///
-/// Только лестница (`mode: 'levels'`): режимы, пилот генератора и малыши — своими путями.
+/// Лестница (`mode: 'levels'`) и четыре режима (`towers`, `unequal`, `killer`, `free`; в `level`
+/// — ступень режима, как у веба). ⚠️ Слот у режима СВОЙ (`psygames_resume_sudoku_<режим>_<профиль>`),
+/// а не общий, как у веба: в общем слоте ход в «Небоскрёбах» стирал бы недорешённую доску
+/// лестницы. Пилот генератора и малыши не сохраняются.
 library;
 
 /// Версия снимка — та же, что у веба (`SUDOKU_RESUME_V`).
@@ -25,7 +28,7 @@ const sudokuResumeVersion = 4;
 const sudokuGameId = 'sudoku';
 
 /// Поля геометрии, которые веб держит в снимке под теми же именами, что и выгрузка.
-const _sameNamed = ['regions', 'kropki', 'sandwich', 'thermo', 'arrow', 'whisper', 'renban', 'regionsum', 'palindrome', 'between', 'lockout', 'xv'];
+const _sameNamed = ['regions', 'kropki', 'sandwich', 'thermo', 'arrow', 'whisper', 'renban', 'regionsum', 'palindrome', 'between', 'lockout', 'xv', 'littlekiller', 'xsums'];
 
 /// Геометрия выгрузки (`SudokuBoard.geometryJson`) → поля снимка веба.
 Map<String, Object?> webGeometry(Map<String, Object?> g) {
@@ -72,6 +75,7 @@ typedef SudokuResumeMove = ({String kind, int r, int c, int from, int to});
 
 /// Снимок в форме `SudokuResume` веба.
 Map<String, Object?> sudokuSnapshot({
+  String mode = 'levels',
   required int level,
   required String road,
   required String variant,
@@ -94,7 +98,7 @@ Map<String, Object?> sudokuSnapshot({
   bool answersRevealed = false,
 }) =>
     {
-      'mode': 'levels',
+      'mode': mode,
       'level': level,
       'road': road,
       'difficulty': 'medium',
@@ -170,9 +174,9 @@ List<List<int>>? _ints(Object? v, int n) {
 
 int? _int(Object? v) => v is num ? v.toInt() : null;
 
-/// Разобрать снимок лестницы; `null` — не лестница или форма не та (экран раздаст свою доску).
-SudokuResumed? sudokuFromSnapshot(Map<String, Object?> s) {
-  if (s['mode'] != 'levels') return null;
+/// Разобрать снимок; `null` — партия другого режима или форма не та (экран раздаст свою доску).
+SudokuResumed? sudokuFromSnapshot(Map<String, Object?> s, {String mode = 'levels'}) {
+  if (s['mode'] != mode) return null;
   final dims = s['dims'];
   final level = _int(s['level']);
   final variant = s['variant'];

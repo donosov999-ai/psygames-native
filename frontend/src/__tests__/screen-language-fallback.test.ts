@@ -103,7 +103,7 @@ describe('запасной язык экрана', () => {
  */
 const TWO_LANG_DEBT: Record<string, { max: number; why: string }> = {
   'achievements.tsx': { max: 3, why: 'cat.label_*, a.name_*, a.desc_* — 30 достижений и разделы лежат в справочнике с полями _ru/_en' },
-  'assessment-result.tsx': { max: 2, why: 'dom.label_* — названия доменов замера в справочнике с полями _ru/_en' },
+  'assessment-result.tsx': { max: 1, why: 'dom.label_* — названия доменов замера в справочнике с полями _ru/_en (одна развилка `domLabel` на разметку, модель оболочки и паутину)' },
   'settings.tsx': { max: 4, why: 'audience, sales_hook, long_description, session_minutes — продающие тексты 12 профилей' },
   'whats-new.tsx': { max: 1, why: 'e.ru/e.en — сами записи «что нового» пишутся на двух языках; перевод каждой версии на 12 языков это редакторское решение' },
   'pet.tsx': { max: 1, why: 'не строка: `const ru = …` для РУССКОЙ плюрализации (три формы), словарём не заменяется' },

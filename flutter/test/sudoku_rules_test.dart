@@ -29,7 +29,11 @@ void main() {
   test('есть что сверять: вариант на каждое правило лестницы и режимов, по 40 ходов, лестница целиком', () {
     // Числа не зашиты: новое правило лестницы обязано приехать в эталоны само (выгрузка).
     final ladderVariants = {for (final l in ladder) l['variant'] as String};
-    expect(boards.length, ladderVariants.length + 3, reason: 'варианты лестницы + killer, unequal, towers');
+    // Правила, собранные раньше своих ступеней (RULES_AHEAD выгрузки): встанут на лестницу — уйдут отсюда.
+    const rulesAhead = {'argyle', 'littlekiller', 'xsums'};
+    expect(boards.length, ladderVariants.length + 3 + rulesAhead.difference(ladderVariants).length,
+        reason: 'варианты лестницы + killer, unequal, towers + правила впереди лестницы');
+    expect({for (final b in boards) b['variant'] as String}, containsAll(rulesAhead));
     expect(ladder.length, greaterThanOrEqualTo(100));
     final cases = boards.fold<int>(0, (s, b) => s + (b['cases'] as List).length);
     expect(cases, boards.length * 40);

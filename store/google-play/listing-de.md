@@ -52,7 +52,7 @@ AUFMERKSAMKEIT UND KONZENTRATION
 Verbessere Konzentration mit Schulte-Tabellen, Fehlersuche, Posner-Test und Flanker-Aufgabe. Bleib trotz Ablenkung bei der Sache.
 
 LOGIK UND RÄTSEL
-Löse Denkrätsel: Sudoku mit 22 Regelvarianten, Türme von Hanoi, Turm von London, SET und Anagramme. Plane mehrere Züge voraus.
+Löse Denkrätsel: Sudoku mit 25 Regelvarianten, Türme von Hanoi, Turm von London, SET und Anagramme. Plane mehrere Züge voraus.
 
 DENKGESCHWINDIGKEIT UND REAKTION
 Trainiere Reaktion, Kopfrechnen und Selbstkontrolle mit Stroop-Test, Go/No-Go, Rechnen auf Zeit und Trail Making.

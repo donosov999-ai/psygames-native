@@ -1,0 +1,295 @@
+{
+ "v": 1,
+ "title": "🏆 Достижения 2/32",
+ "back": "Назад",
+ "rtl": false,
+ "sections": [
+  {
+   "key": "milestone",
+   "title": "🏁 Вехи",
+   "cards": [
+    {
+     "id": "first_warmup",
+     "emoji": "⚡",
+     "unlocked": false,
+     "name": "Первая Зарядка",
+     "desc": "Заверши Утреннюю Зарядку",
+     "date": null
+    },
+    {
+     "id": "first_assessment",
+     "emoji": "📊",
+     "unlocked": false,
+     "name": "Первый профиль",
+     "desc": "Пройди оценку профиля",
+     "date": null
+    },
+    {
+     "id": "first_financial",
+     "emoji": "💰",
+     "unlocked": false,
+     "name": "vmPFC чекап",
+     "desc": "Заверши Financial Brain Day",
+     "date": null
+    }
+   ]
+  },
+  {
+   "key": "volume",
+   "title": "🎮 Объём",
+   "cards": [
+    {
+     "id": "first_session",
+     "emoji": "🎯",
+     "unlocked": true,
+     "name": "Первая игра",
+     "desc": "Сыграй любую игру",
+     "date": "1 окт. 2026 г."
+    },
+    {
+     "id": "sessions_10",
+     "emoji": "🎮",
+     "unlocked": true,
+     "name": "10 сессий",
+     "desc": "Сыграй 10 игр",
+     "date": "5 окт. 2026 г."
+    },
+    {
+     "id": "sessions_50",
+     "emoji": "💪",
+     "unlocked": false,
+     "name": "50 сессий",
+     "desc": "Сыграй 50 игр",
+     "date": null
+    },
+    {
+     "id": "sessions_100",
+     "emoji": "💯",
+     "unlocked": false,
+     "name": "Сотня",
+     "desc": "Сыграй 100 игр",
+     "date": null
+    },
+    {
+     "id": "sessions_500",
+     "emoji": "🏆",
+     "unlocked": false,
+     "name": "Полтысячи",
+     "desc": "Сыграй 500 игр",
+     "date": null
+    },
+    {
+     "id": "challenge_20_total",
+     "emoji": "🎯",
+     "unlocked": false,
+     "name": "Двадцатка",
+     "desc": "20 вызовов дня всего",
+     "date": null
+    },
+    {
+     "id": "breathing_10",
+     "emoji": "🌬️",
+     "unlocked": false,
+     "name": "Дыхание ×10",
+     "desc": "10 дыхательных сессий",
+     "date": null
+    },
+    {
+     "id": "breathing_30",
+     "emoji": "🧘",
+     "unlocked": false,
+     "name": "Дыхание ×30",
+     "desc": "30 дыхательных сессий",
+     "date": null
+    },
+    {
+     "id": "polyglot_100",
+     "emoji": "🌍",
+     "unlocked": false,
+     "name": "Полиглот-сотня",
+     "desc": "100 языковых сессий",
+     "date": null
+    }
+   ]
+  },
+  {
+   "key": "streak",
+   "title": "🔥 Серии",
+   "cards": [
+    {
+     "id": "streak_3",
+     "emoji": "🔥",
+     "unlocked": false,
+     "name": "3 дня подряд",
+     "desc": "3 дня Зарядки подряд",
+     "date": null
+    },
+    {
+     "id": "streak_7",
+     "emoji": "🔥🔥",
+     "unlocked": false,
+     "name": "Неделя",
+     "desc": "Неделя без пропуска",
+     "date": null
+    },
+    {
+     "id": "streak_30",
+     "emoji": "🔥🔥🔥",
+     "unlocked": false,
+     "name": "Месяц",
+     "desc": "Месяц подряд",
+     "date": null
+    },
+    {
+     "id": "streak_100",
+     "emoji": "🌟",
+     "unlocked": false,
+     "name": "Сто дней",
+     "desc": "100 дней без пропуска",
+     "date": null
+    },
+    {
+     "id": "challenge_7",
+     "emoji": "🎲",
+     "unlocked": false,
+     "name": "Неделя вызовов",
+     "desc": "7 вызовов дня подряд",
+     "date": null
+    },
+    {
+     "id": "challenge_30",
+     "emoji": "🗓️",
+     "unlocked": false,
+     "name": "Месяц вызовов",
+     "desc": "30 вызовов дня подряд",
+     "date": null
+    },
+    {
+     "id": "breathing_streak_7",
+     "emoji": "🌊",
+     "unlocked": false,
+     "name": "Неделя дыхания",
+     "desc": "7 дней дыхания подряд",
+     "date": null
+    }
+   ]
+  },
+  {
+   "key": "breadth",
+   "title": "🌈 Разнообразие",
+   "cards": [
+    {
+     "id": "all_categories",
+     "emoji": "🌈",
+     "unlocked": false,
+     "name": "Все категории",
+     "desc": "Сыграй из всех 6 категорий",
+     "date": null
+    },
+    {
+     "id": "twenty_unique",
+     "emoji": "🎲",
+     "unlocked": false,
+     "name": "20 разных игр",
+     "desc": "Попробуй 20 разных игр",
+     "date": null
+    },
+    {
+     "id": "all_44_games",
+     "emoji": "🎖️",
+     "unlocked": false,
+     "name": "Все игры",
+     "desc": "Хотя бы по разу — весь каталог",
+     "date": null
+    }
+   ]
+  },
+  {
+   "key": "quality",
+   "title": "⭐ Качество",
+   "cards": [
+    {
+     "id": "perfect_warmup",
+     "emoji": "⭐",
+     "unlocked": false,
+     "name": "Идеальная Зарядка",
+     "desc": "Завершить серию без ошибок",
+     "date": null
+    },
+    {
+     "id": "fast_schulte",
+     "emoji": "🚀",
+     "unlocked": false,
+     "name": "Скорость Шульте",
+     "desc": "Schulte 5×5 < 30 сек",
+     "date": null
+    },
+    {
+     "id": "flanker_low",
+     "emoji": "🛡️",
+     "unlocked": false,
+     "name": "Тормоз стальной",
+     "desc": "Фланкер: помехи тормозят меньше чем на 30 мс",
+     "date": null
+    },
+    {
+     "id": "corsi_7",
+     "emoji": "🧠",
+     "unlocked": false,
+     "name": "Span 7 Corsi",
+     "desc": "Достигни Corsi span = 7",
+     "date": null
+    },
+    {
+     "id": "cpt_no_omission",
+     "emoji": "👁️",
+     "unlocked": false,
+     "name": "CPT 0 пропусков",
+     "desc": "Заверши CPT без omission errors",
+     "date": null
+    },
+    {
+     "id": "chess_blind_5",
+     "emoji": "♟️",
+     "unlocked": false,
+     "name": "Слепой взгляд",
+     "desc": "Слепые шахматы: пройди уровень 5",
+     "date": null
+    },
+    {
+     "id": "chess_blind_10",
+     "emoji": "👑",
+     "unlocked": false,
+     "name": "Гроссмейстер памяти",
+     "desc": "Слепые шахматы: пройди уровень 10",
+     "date": null
+    },
+    {
+     "id": "scholars_mate_5",
+     "emoji": "♞",
+     "unlocked": false,
+     "name": "Видит мат",
+     "desc": "Детский мат: пройди уровень 5",
+     "date": null
+    },
+    {
+     "id": "scholars_mate_10",
+     "emoji": "⚔️",
+     "unlocked": false,
+     "name": "Матовая сеть",
+     "desc": "Детский мат: пройди уровень 10",
+     "date": null
+    },
+    {
+     "id": "clean_run_5",
+     "emoji": "🔥",
+     "unlocked": false,
+     "name": "Чистая пятёрка",
+     "desc": "5 чистых раундов подряд (0 ошибок)",
+     "date": null
+    }
+   ]
+  }
+ ],
+ "footer": "Достижения проверяются после каждой игры. 30 осталось."
+}
