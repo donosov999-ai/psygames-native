@@ -7,7 +7,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:practice_kit/practice_kit.dart';
 import 'package:psygames_flutter/games/pause/practice_haptics.dart';
 import 'package:psygames_flutter/games/pause/screen.dart';
-import 'package:psygames_flutter/games/pause/stage.dart';
 import 'package:psygames_flutter/shell/game_preset.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:psygames_flutter/shell/voice.dart';
