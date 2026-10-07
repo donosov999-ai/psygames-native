@@ -4,10 +4,10 @@ import 'dart:typed_data';
 
 import 'package:flutter/services.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:practice_kit/practice_kit.dart';
 
 import '../../shell/noise.dart' show BytesAudioSource, wavFromPcm16;
 import 'practice_haptics.dart';
-import 'practices.dart';
 
 /// 🔴 СИГНАЛЫ СМЕНЫ ФАЗЫ ДЫХАНИЯ — РАЗНЫЕ НА ВДОХ, ЗАДЕРЖКУ И ВЫДОХ (задача b9964dff).
 ///
@@ -27,7 +27,7 @@ import 'practices.dart';
 /// первый вдох приходил внезапно. Своей вибрации у щелчка нет — как у веба.
 enum BreathCue { inhale, hold, exhale, tap }
 
-/// Фаза по имени шага из `assets/pause/practices.json`: `inhale`, `inhale-one`, `left-in` —
+/// Фаза по имени шага из каталога пакета practice_kit (`assets/practices.json`): `inhale`, `inhale-one`, `left-in` —
 /// вдох; `exhale`, `right-out` — выдох; `hold`, `hold-in`, `hold-out` — задержка.
 BreathCue? breathCueOf(String stepId) {
   if (stepId.startsWith('hold')) return BreathCue.hold;
