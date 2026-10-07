@@ -255,15 +255,15 @@ class HybridApp extends StatefulWidget {
         '/games/spatial-hub': (s) => SpatialHubScreen(state: s),
         '/games/goods-sort': (s) => GoodsSortScreen(state: s),
       '/games/water-sort': (s) => SortTubesScreen(
-            state: s, gameId: 'water_sort', title: 'Пробирки', skin: TubeSkin.water),
+            state: s, gameId: 'water_sort', title: L.t('waterSort'), skin: TubeSkin.water),
       '/games/ball-sort': (s) => SortTubesScreen(
-            state: s, gameId: 'ball_sort', title: 'Сортировка шариков', skin: TubeSkin.balls),
+            state: s, gameId: 'ball_sort', title: L.t('ballSort'), skin: TubeSkin.balls),
       '/games/nut-sort': (s) => SortTubesScreen(
-            state: s, gameId: 'nut_sort', title: 'Сортировка гаек', skin: TubeSkin.nuts),
+            state: s, gameId: 'nut_sort', title: L.t('nutSort'), skin: TubeSkin.nuts),
       '/games/cake-sort': (s) => CakeSortScreen(
-            state: s, gameId: 'cake_sort', title: 'Торты', skin: CakeSkin.cake),
+            state: s, gameId: 'cake_sort', title: L.t('cakeSort'), skin: CakeSkin.cake),
       '/games/pizza-sort': (s) => CakeSortScreen(
-            state: s, gameId: 'pizza_sort', title: 'Пицца', skin: CakeSkin.pizza),
+            state: s, gameId: 'pizza_sort', title: L.t('pizzaSort'), skin: CakeSkin.pizza),
       '/games/hanoi': (s) => HanoiScreen(state: s),
       '/games/tower-london': (s) => TowerLondonScreen(state: s),
       // MindLab (решение Дениса 30.09.2026): только нативные, веб-двойника у них нет.

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'model.dart';
+import '../../shell/l10n.dart';
 
 /// Цвета шаров. ⚠️ Вторая опора рядом с цветом — БУКВА на шаре: шары
 /// различаются оттенком, и при дальтонизме красный с зелёным сходятся.
@@ -82,7 +83,7 @@ class TolBoard extends StatelessWidget {
                   state: goal,
                   height: fieldHeight * 0.62,
                   width: goalW,
-                  title: 'Цель',
+                  title: L.t('goalLabel'),
                   interactive: false,
                   selected: null,
                   onTapPeg: (_) {},
@@ -274,8 +275,8 @@ class _Peg extends StatelessWidget {
           button: true,
           selected: selected,
           label: peg.isEmpty
-              ? 'Стержень ${index + 1}: пусто, мест $cap'
-              : 'Стержень ${index + 1}: ${peg.join(' ')}, мест $cap',
+              ? '${L.t('a11yPeg')} ${index + 1}: ${L.t('a11yEmpty')}, ${L.f('a11yPegRoom', {'c': '$cap'})}'
+              : '${L.t('a11yPeg')} ${index + 1}: ${peg.join(' ')}, ${L.f('a11yPegRoom', {'c': '$cap'})}',
           child: column(candidate.isNotEmpty),
         ),
       ),
