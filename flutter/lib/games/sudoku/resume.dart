@@ -28,7 +28,7 @@ const sudokuResumeVersion = 4;
 const sudokuGameId = 'sudoku';
 
 /// Поля геометрии, которые веб держит в снимке под теми же именами, что и выгрузка.
-const _sameNamed = ['regions', 'kropki', 'sandwich', 'thermo', 'arrow', 'whisper', 'renban', 'regionsum', 'palindrome', 'between', 'lockout', 'xv', 'littlekiller', 'xsums'];
+const _sameNamed = ['regions', 'kropki', 'sandwich', 'thermo', 'arrow', 'whisper', 'renban', 'regionsum', 'palindrome', 'between', 'lockout', 'xv', 'littlekiller', 'xsums', 'cipher'];
 
 /// Геометрия выгрузки (`SudokuBoard.geometryJson`) → поля снимка веба.
 Map<String, Object?> webGeometry(Map<String, Object?> g) {
