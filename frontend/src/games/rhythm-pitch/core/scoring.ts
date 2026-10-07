@@ -1,4 +1,4 @@
-/* psygames-rhythm-pitch-scoring · VER 2 · 22.08.2026 */
+/* psygames-rhythm-pitch-scoring · VER 3 · 30.09.2026 */
 import type {
   PitchDirection,
   PitchPathRound,
@@ -130,19 +130,51 @@ export function alignTapsToBeats(
   return { errorsMs, missingTaps, extraTaps };
 }
 
+/**
+ * 🔴 СЧЁТ ПО ИНТЕРВАЛАМ, А НЕ ОТ КОНЦА ЗВУЧАНИЯ (решение Дениса 30.09.2026, задача a57a2b44).
+ *
+ * ЧТО БЫЛО. Такт `i` ждали ровно в «конец звучания + доля i»: эхо обязано было
+ * начаться в тот же миг, когда стих звук. Замер исполнением ядра
+ * (`scripts/rhythm-pitch-pass-rate.measure.test.ts`, 16 ритмических уровней × 24 зерна):
+ * БЕЗУПРЕЧНЫЙ ритм, начатый через 300 мс после конца звука, — а это обычная реакция
+ * человека, — не засчитывался НИ НА ОДНОМ уровне: 0 %. Мерилась не память на ритм,
+ * а готовность нажать в долю секунды после тишины. INTEGRATION.md §2 предупреждал об
+ * этом с 19.08.
+ *
+ * ЧТО СТАЛО. Важен РИСУНОК — промежутки между ударами, — а не момент старта. Образец
+ * прикладывается к нажатиям с любым общим сдвигом, и берётся лучший. Кандидаты сдвига:
+ * прежняя привязка к концу звучания (поэтому новая оценка никогда не ниже старой) и
+ * каждая пара «нажатие j ↔ такт k». Этого набора достаточно: при выбранных парах цена
+ * — сумма |остаток − сдвиг|, её минимум лежит на медиане остатков, а медиана всегда
+ * совпадает с одним из остатков (или любая точка между двумя средними годится) — то
+ * есть с одним из кандидатов. Перебор — десятки кандидатов на выравнивание по 12×16,
+ * это мгновенно.
+ *
+ * ⚠️ Поправка задержки устройства на счёт ритма теперь не влияет: общий сдвиг всех
+ * нажатий поглощается подбором. Она остаётся в итоге партии как замер устройства.
+ */
 export function scoreRhythmTiming(
   round: RhythmEchoRound,
   observedTapTimesMs: readonly number[],
   responseStartedAtMs: number,
   calibrationOffsetMs: number,
 ): RhythmTimingScore {
-  const expected = round.beats.map((beat) => responseStartedAtMs + beat.onsetMs);
+  const onsets = round.beats.map((beat) => beat.onsetMs);
   const corrected = observedTapTimesMs.map((tap) => tap - calibrationOffsetMs);
   const toleranceMs = Math.max(100, round.unitMs * 0.3);
-  const { errorsMs, missingTaps, extraTaps } = alignTapsToBeats(expected, corrected, toleranceMs);
+  const shifts = [responseStartedAtMs];
+  for (const tap of corrected) for (const onset of onsets) shifts.push(tap - onset);
+  let best: TapAlignment | null = null;
+  let bestCost = Infinity;
+  for (const shift of shifts) {
+    const alignment = alignTapsToBeats(onsets.map((onset) => shift + onset), corrected, toleranceMs);
+    const cost = alignment.errorsMs.reduce((total, error) => total + error, 0)
+      + (alignment.missingTaps + alignment.extraTaps) * toleranceMs * 1.5;
+    if (cost < bestCost) { best = alignment; bestCost = cost; }
+  }
+  const { errorsMs, missingTaps, extraTaps } = best as TapAlignment;
   const timingPenalty = errorsMs.reduce((total, error) => total + error, 0);
-  const countPenalty = (missingTaps + extraTaps) * toleranceMs * 1.5;
-  const accuracy = clamp(1 - (timingPenalty + countPenalty) / (round.beatCount * toleranceMs), 0, 1);
+  const accuracy = clamp(1 - bestCost / (round.beatCount * toleranceMs), 0, 1);
   return {
     accuracy,
     meanTimingErrorMs: errorsMs.length === 0 ? toleranceMs : timingPenalty / errorsMs.length,
