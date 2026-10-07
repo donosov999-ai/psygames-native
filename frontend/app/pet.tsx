@@ -18,8 +18,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { isRTLLang } from '@/src/services/rtl';
-import PetSprite, { PetAccessory, PetSkin, PetState, PetStill } from '@/src/components/pet/PetSprite';
-import PetTreat from '@/src/components/pet/PetTreat';
+import PetSprite, { PetAccessory, PetSkin, PetState, PetStill, petRenderSpec } from '@/src/components/pet/PetSprite';
+import PetTreat, { ЛАКОМСТВО, ротНаКадре } from '@/src/components/pet/PetTreat';
+import { postScreenModel, registerScreenActions } from '@/src/services/hostScreens';
 import { useScreenSize } from '@/src/hooks/useScreenWidth';
 import {
   getFedToday, getPetAccessory, getPetName, getPetSkinChoice, getPetStats, markFedToday,
@@ -53,6 +54,27 @@ function ruTrainings(n: number): string {
   if (m10 === 1 && m100 !== 11) return 'тренировка';
   if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return 'тренировки';
   return 'тренировок';
+}
+
+/** Совет по самой отстающей шкале: игра из её категории, доступная профилю (см. разметку). */
+function petAdvice(stats: PetStats | null, profile: Parameters<typeof isGameAllowed>[0]) {
+  if (!stats) return null;
+  const weakest = SKILL_ORDER.reduce((a, b) => (stats.skills[a] <= stats.skills[b] ? a : b));
+  if (stats.skills[weakest] >= 100) return null;   // всё на максимуме — советовать нечего
+  const pool = GAMES.filter((g) => CATEGORY_TO_SKILL[g.category] === weakest && isGameAllowed(profile, g.id));
+  if (!pool.length) return null;
+  return { weakest, pick: pool[stats.total % pool.length] };   // без случайности: совет стабилен в пределах сессии
+}
+
+/** Полоса роста: доля и остаток до следующей стадии, на последней — до следующего уровня. */
+function petGrowth(total: number) {
+  const nextStageAt = total < 10 ? 10 : total < 30 ? 30 : null;
+  const prevStageAt = total < 10 ? 0 : total < 30 ? 10 : 30;
+  const target = nextStageAt ?? (Math.floor(total / 5) + 1) * 5;
+  const base = nextStageAt ? prevStageAt : Math.floor(total / 5) * 5;
+  const left = Math.max(0, target - total);
+  const frac = Math.max(0, Math.min(1, (total - base) / Math.max(1, target - base)));
+  return { nextStageAt, left, frac };
 }
 
 export default function PetScreen() {
@@ -225,6 +247,87 @@ export default function PetScreen() {
   const skin: PetSkin = resolvePetSkin(skinChoice, stage);
   const shownName = petName || t('petName');
 
+  /**
+   * 🔴 ПОД ОБОЛОЧКОЙ «ПИТОМЦА» РИСУЕТ FLUTTER (задача d1e147b0, `services/hostScreens.ts`).
+   * Модель — те же решения, что у разметки ниже: стадия, полоса роста (`petGrowth`), кормление за
+   * очки, мытьё раз в день, замки обликов, совет по слабой шкале (`petAdvice`). Кадры портрета —
+   * готовыми описаниями `petRenderSpec` на каждое действие (покой, умывается, ёрзает, ест), лакомство —
+   * эмодзи облика и точка рта (`ротНаКадре`). Действия — те же функции экрана.
+   */
+  const advice = petAdvice(stats, profile);
+  const growth = stats ? petGrowth(stats.total) : null;
+  const petActs = React.useRef({ feed, wash, pet, pickSkin, advice });
+  React.useEffect(() => { petActs.current = { feed, wash, pet, pickSkin, advice }; });
+  React.useEffect(() => registerScreenActions('/pet', {
+    back: () => goBackOrHome(),
+    saveName: (v: string) => {
+      const next = String(v ?? '').slice(0, 20);
+      setPetNameState(next);
+      setPetName(next).catch(() => {});
+    },
+    feed: () => { petActs.current.feed(); },
+    wash: () => { petActs.current.wash(); },
+    stroke: () => { petActs.current.pet(); },
+    skin: (id: string) => {
+      if (['cat', 'robot', 'constellation'].includes(id)) petActs.current.pickSkin(id as PetSkinChoice);
+    },
+    advice: () => {
+      const a = petActs.current.advice;
+      if (a) router.push(a.pick.route as any);
+    },
+    // «Поиграть» честно ведёт в игру (шкалы — из настоящих партий), как кнопка разметки.
+    play: () => router.push('/games' as any),
+  }), []);
+
+  const petModel = {
+    v: 1,
+    care: [
+      { id: 'wash', emoji: '🫧', label: мытьДоступно ? t('petWash') : t('petWashedToday'), a11y: t('petWash'), enabled: мытьДоступно, accent: мытьДоступно },
+      { id: 'stroke', emoji: '🤚', label: t('petStroke'), a11y: t('petStroke'), enabled: true, accent: false },
+      { id: 'play', emoji: '🎮', label: t('petPlay'), a11y: t('petPlay'), enabled: true, accent: false },
+    ],
+    back: t('a11yBack'), backIcon: isRTLLang(language) ? 'arrow-forward' : 'arrow-back',
+    name: shownName, nameRaw: petName, nameMax: 20, namePlaceholder: t('petName'), rename: t('petRename'), apply: t('apply'),
+    bubble: greeting,
+    portrait: {
+      state: действие ?? 'idle',
+      specs: Object.fromEntries((['idle', 'groom', 'wiggle', 'eat'] as PetState[]).map((st) => [st, petRenderSpec(skin, st, accessory, null)])),
+      treat: действие === 'eat' && ротНаКадре(skin) ? { emoji: ЛАКОМСТВО[skin] ?? '🍪', mouth: ротНаКадре(skin) } : null,
+    },
+    stageName, stageHint: t('petGrowsHint'),
+    growth: growth ? {
+      frac: growth.frac,
+      text: `${t('petTrainingsDone').replace('{n}', String(total))} · ${growth.nextStageAt
+        ? t('petUntilNextStage').replace('{n}', String(growth.left)).replace('{stage}', t(`petStage${total < 10 ? 2 : 3}`))
+        : t('petUntilNextLevel').replace('{n}', String(growth.left))}`,
+    } : null,
+    feed: {
+      fed, label: fed ? `❤️ ${t('petFedToday')}` : `🍪 ${t('petFeed')} · ${PET_FEED_COST} ⭐`,
+      needMore: !fed && balance < PET_FEED_COST ? t('needMoreTokens') : null,
+    },
+    lookReason: look && look.reason !== 'growing' ? t(`petLook_${look.reason}`) : null,
+    skinTitle: t('petSkinSectionTitle').replace('{name}', shownName),
+    skins: (['cat', 'robot', 'constellation'] as PetSkinChoice[]).map((sk) => {
+      const заперт = нарядыЗаперты && sk !== БАЗОВЫЙ;
+      const подпись = t(sk === 'cat' ? 'petSkinCat' : sk === 'robot' ? 'petSkinRobot' : 'petSkinConstellation');
+      return {
+        id: sk, on: skinChoice === sk || (sk === 'cat' && skinChoice === 'auto'), locked: заперт,
+        label: сказали === sk && порогНарядов !== null ? t('ladderLockedAt').replace('{n}', String(порогНарядов)) : подпись,
+        a11y: заперт ? `${подпись} — ${t('ladderLockedAt').replace('{n}', String(порогНарядов))}` : подпись,
+        still: petRenderSpec(sk as PetSkin, 'idle', null, null),
+      };
+    }),
+    level: String(stats?.level ?? 1), levelLabel: t('level'),
+    total: String(total), totalLabel: ru ? ruTrainings(total) : t(total === 1 ? 'unitTrainingOne' : 'unitTrainings'),
+    advice: advice ? {
+      title: `💡 ${t('petAdviceTitle')}`, color: SKILL_COLORS[advice.weakest],
+      body: t('petAdviceBody').replace('{skill}', skillLabel(advice.weakest)).replace('{game}', t(advice.pick.nameKey)),
+      a11y: `${t('petAdviceTitle')}: ${t(advice.pick.nameKey)}`,
+    } : null,
+    skills: SKILL_ORDER.map((k) => ({ key: k, label: skillLabel(k), value: stats?.skills[k] ?? 0, color: SKILL_COLORS[k] })),
+  };
+  const petKey = JSON.stringify(petModel);
+  React.useEffect(() => { postScreenModel('/pet', JSON.parse(petKey)); }, [petKey]);
   if (webDemo) return <Redirect href="/" />;
 
   return (
@@ -296,12 +399,7 @@ export default function PetScreen() {
             следующего уровня, чтобы полоса не упиралась в тупик. */}
         {stats && (() => {
           const total = stats.total;
-          const nextStageAt = total < 10 ? 10 : total < 30 ? 30 : null;
-          const prevStageAt = total < 10 ? 0 : total < 30 ? 10 : 30;
-          const target = nextStageAt ?? (Math.floor(total / 5) + 1) * 5;
-          const base = nextStageAt ? prevStageAt : Math.floor(total / 5) * 5;
-          const left = Math.max(0, target - total);
-          const frac = Math.max(0, Math.min(1, (total - base) / Math.max(1, target - base)));
+          const { nextStageAt, left, frac } = petGrowth(total);
           return (
             <View style={{ width: '82%', maxWidth: 320, marginTop: 6, gap: 5 }}>
               <View style={{ height: 6, borderRadius: 3, backgroundColor: colors.border, overflow: 'hidden' }}>
@@ -476,12 +574,8 @@ export default function PetScreen() {
             ней делать. Берём самую отстающую и предлагаем игру из ЕЁ категории —
             связь «шкала → игры» уже есть, ею пользуется тренерский пузырь питомца.
             Игру выбираем среди доступных профилю, иначе совет упрётся в замок. */}
-        {stats && (() => {
-          const weakest = SKILL_ORDER.reduce((a, b) => (stats.skills[a] <= stats.skills[b] ? a : b));
-          if (stats.skills[weakest] >= 100) return null;   // всё на максимуме — советовать нечего
-          const pool = GAMES.filter((g) => CATEGORY_TO_SKILL[g.category] === weakest && isGameAllowed(profile, g.id));
-          if (!pool.length) return null;
-          const pick = pool[stats.total % pool.length];   // без случайности: совет стабилен в пределах сессии
+        {stats && advice && (() => {
+          const { weakest, pick } = advice;
           // Переход строго по pick.route, а НЕ по `/games/${pick.id}`: id и имя
           // файла экрана совпадают лишь у 26 игр из 61 (schulte_table лежит в
           // /games/schulte), для остальных 35 собранный из id адрес открывал

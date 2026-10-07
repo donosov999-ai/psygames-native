@@ -11,6 +11,7 @@ import 'package:psygames_flutter/shell/feedback_fab.dart';
 import 'package:psygames_flutter/shell/friends_screen.dart';
 import 'package:psygames_flutter/shell/shop_screen.dart';
 import 'package:psygames_flutter/shell/whats_new_screen.dart';
+import 'package:psygames_flutter/shell/pet_screen.dart';
 import 'package:psygames_flutter/shell/home_screen.dart';
 import 'package:psygames_flutter/shell/screen_ui.dart';
 import 'package:psygames_flutter/shell/game_rules.dart';
@@ -539,7 +540,7 @@ void main() {
     await settle(t, () => find.byKey(const ValueKey('home-header')).evaluate().isNotEmpty);
     expect(find.byKey(const ValueKey('home-header')), findsOneWidget);
     expect(t.widget<NativeTabBar>(find.byType(NativeTabBar)).active, '/');
-    expect(page().js.any((s) => s.contains('window.__psyHostScreens=["/","#switcher","/statistics","/streak-calendar","/assessment-result","/onboarding","/sources","/collection","/achievements","/leagues","/friends","/shop","/whats-new"]')), isTrue,
+    expect(page().js.any((s) => s.contains('window.__psyHostScreens=["/","#switcher","/statistics","/streak-calendar","/assessment-result","/onboarding","/sources","/collection","/achievements","/leagues","/friends","/shop","/whats-new","/pet"]')), isTrue,
         reason: 'веб узнаёт, какие экраны рисуем мы');
     // Вкладка «Игры» и назад — Главная та же, модель жива.
     await toGames(t);
@@ -734,24 +735,38 @@ void main() {
     await settle(t, () => find.byKey(const ValueKey('home-header')).evaluate().isNotEmpty);
   }
 
+  testWidgets('🔴 «Питомец» — нативная вкладка по модели веба; гуляки на ней нет (питомец и так на экране)', (t) async {
+    await mount(t);
+    await nativeHome(t);
+    await t.tap(find.byKey(const ValueKey('native-tab-/pet')));
+    await t.pump();
+    page().emit(SharedState.channel, {'op': 'screenUi', 'route': PetScreen.route, 'model': fixture('pet_model.json')});
+    await settle(t, () => find.byKey(const ValueKey('pet-screen')).evaluate().isNotEmpty);
+    expect(find.byKey(const ValueKey('pet-screen')), findsOneWidget);
+    expect(find.byKey(const ValueKey('native-cover')), findsOneWidget, reason: 'нативный слой, не страница');
+    expect(active(t), '/pet');
+    expect(find.byType(WalkingPet), findsNothing);
+  });
+
   testWidgets('🔴 с нативной вкладки на страницу — без прыжка: прежний экран держится до «painted» страницы', (t) async {
-    // Замер 07.10 на эмуляторе: Главная → «Питомец» показывала 2 кадра старого кадра страницы и 3 кадра
-    // веб-Главной, прежде чем появлялся «Питомец» (Денис: «то веб-вью, то флаттер — перескакивает»).
+    // Замер 07.10 на эмуляторе: Главная → «Питомец» (тогда веб-вкладка) показывала 2 кадра старого кадра
+    // страницы и 3 кадра веб-Главной (Денис: «то веб-вью, то флаттер — перескакивает»). «Питомец» с тех пор
+    // нативный — веб-вкладка здесь «Зарядка».
     await mount(t);
     await nativeHome(t);
     expect(t.element(find.byType(WebViewWidget)).mounted, isTrue, reason: 'страница под нативным слоем на сцене — рисуется');
     page().js.clear();
-    await t.tap(find.byKey(const ValueKey('native-tab-/pet')));
+    await t.tap(find.byKey(const ValueKey('native-tab-/warmup-picker')));
     await t.pump();
     expect(find.byKey(const ValueKey('native-cover')), findsOneWidget, reason: 'страница ещё рисует новый адрес');
     expect(find.byKey(const ValueKey('home-header')), findsOneWidget);
     // Страница сообщила новый адрес (её `router.replace`) — вкладка подсвечена, а слой всё ещё держится:
     // адрес сменился раньше, чем веб нарисовал экран.
-    await route(t, '/pet');
-    expect(active(t), '/pet');
+    await route(t, '/warmup-picker');
+    expect(active(t), '/warmup-picker');
     expect(find.byKey(const ValueKey('native-cover')), findsOneWidget, reason: 'адрес — ещё не кадр');
     final (script, gen) = paintedAsk();
-    expect(script, contains('p="/pet"'));
+    expect(script, contains('p="/warmup-picker"'));
     page().emit(SharedState.channel, {'op': 'painted', 'gen': gen - 1});
     await t.pump();
     expect(find.byKey(const ValueKey('native-cover')), findsOneWidget, reason: 'ответ на прошлый уход не снимает');
@@ -760,21 +775,18 @@ void main() {
     await t.pump(const Duration(milliseconds: 50));
     await t.pump(const Duration(milliseconds: 50));
     expect(find.byKey(const ValueKey('native-cover')), findsNothing, reason: 'страница нарисовала — слой снят');
-    // Назад на нативную вкладку — без ожидания.
-    await t.tap(find.byKey(const ValueKey('native-tab-/')));
-    await t.pump();
-    expect(find.byKey(const ValueKey('home-header')), findsOneWidget);
+    // Возврат на нативную вкладку проверяют пробы вкладок выше; «Зарядка» сама открывает нативный экран поверх.
   });
 
   testWidgets('🔴 страница ушла сама (кнопка Главной → веб-экран) — тоже ждём; молчит — снимаем через 0,7 с', (t) async {
     await mount(t);
     await nativeHome(t);
     page().js.clear();
-    page().emit(SharedState.channel, {'op': 'route', 'url': '${server.origin}/pet'});
+    page().emit(SharedState.channel, {'op': 'route', 'url': '${server.origin}/warmup-night'});
     await t.pump(const Duration(milliseconds: 50));
     await t.pump(const Duration(milliseconds: 50));
     expect(find.byKey(const ValueKey('native-cover')), findsOneWidget);
-    expect(paintedAsk().$1, contains('p="/pet"'));
+    expect(paintedAsk().$1, contains('p="/warmup-night"'));
     await t.pump(const Duration(milliseconds: 500));
     expect(find.byKey(const ValueKey('native-cover')), findsOneWidget, reason: 'до 0,7 с держим');
     await t.pump(const Duration(milliseconds: 300));
