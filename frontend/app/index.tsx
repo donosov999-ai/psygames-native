@@ -659,7 +659,8 @@ function FullHome() {
    * обработчиков меняются с каждым состоянием.
    */
   const homeActs = useRef({ onGoalSave, onGoalDismiss, onGoalOutcome, onGoalPick, onGoalSkip, startDailyChallenge, updAvail });
-  homeActs.current = { onGoalSave, onGoalDismiss, onGoalOutcome, onGoalPick, onGoalSkip, startDailyChallenge, updAvail };
+  // Свежие обработчики для действий оболочки (пересоздаются рендером; действия регистрируются один раз).
+  useEffect(() => { homeActs.current = { onGoalSave, onGoalDismiss, onGoalOutcome, onGoalPick, onGoalSkip, startDailyChallenge, updAvail }; });
   useEffect(() => registerScreenActions('/', {
     refresh: () => обновить((n) => n + 1),
     goalSave: (raw: string) => { void homeActs.current.onGoalSave(raw); },
