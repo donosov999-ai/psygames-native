@@ -474,6 +474,22 @@ class HybridApp extends StatefulWidget {
   /// `warmup_bridge.dart`. Снимается вместе с хостом, как [open].
   static Future<Object?> Function(String js)? runJs;
 
+  /// 🔴 ВАРИАНТЫ ПЕРЕНЕСЁННЫХ ИГР, КОТОРЫЕ ПОКА УМЕЕТ ТОЛЬКО СТРАНИЦА (07.10.2026).
+  ///
+  /// «Корректура»: серию блоков (`series` — вход «Блоки корректуры» в зарядке,
+  /// `warmupEntries.ts`) и задание «филворды» (`taskMode` — шаг шахматной зарядки,
+  /// `chessWarmup.ts`) нативный экран не читает. Перехват открывал вместо них одну
+  /// обычную партию с буквами — молча. Такие адреса остаются на странице, где оба
+  /// варианта есть; голый адрес и обычные шаги зарядки — по-прежнему натив.
+  /// Строка снимается, когда натив прочитает параметр (задачи f4bb47dc, caaa1596).
+  ///
+  /// ⚠️ Имя параметра здесь не пишется слитно со знаком равенства: сторож
+  /// `web_params_reach_native_test.dart` принял бы такое написание за чтение
+  /// параметра нативом — а натив их по-прежнему не читает.
+  static final Map<String, bool Function(Map<String, String> q)> _pageOnlyVariants = {
+    '/games/proofreading': (q) => q['series'] == '1' || q['series'] == 'true' || q['taskMode'] == 'fillwords',
+  };
+
   /// Путь маршрута из любого вида ссылки: и `…/games/one-line.html`, и
   /// `file:///…/games/one-line`, и с якорем или запросом.
   static String? routeOf(String url) {
@@ -489,6 +505,16 @@ class HybridApp extends StatefulWidget {
     final i = u.indexOf('/games/');
     if (i < 0) return null;
     final r = u.substring(i);
+    final pageOnly = _pageOnlyVariants[r];
+    if (pageOnly != null && query.length > 1) {
+      try {
+        if (pageOnly(Uri.splitQueryString(query.substring(1)))) return null;
+      } on FormatException {
+        // Битый хвост — не повод ронять переход: решает обычный разбор ниже.
+      } on ArgumentError {
+        // Битая кодировка (`%zz`) бросает это, а не FormatException.
+      }
+    }
     /*
      * 🔴 СНАЧАЛА ИЩЕМ АДРЕС ВМЕСТЕ С ХВОСТОМ, И ТОЛЬКО ПОТОМ БЕЗ НЕГО.
      *
@@ -526,6 +552,8 @@ class HybridApp extends StatefulWidget {
         if (best != null) return best;
       } on FormatException {
         // Malformed query is not a reason to crash the navigation delegate.
+      } on ArgumentError {
+        // Bad percent-encoding (`%zz`) throws this, not FormatException.
       }
     }
     return native.containsKey(r) ? r : null;
