@@ -20,6 +20,7 @@ export const WHATS_NEW: WhatsNewEntry[] = [
     date: '2026-10-07',
     ru: [
       '«Судоку»: подсветка цифр вернулась — одинаковые цифры, строка и столбец; неверная цифра снова красная',
+      '«Судоку»: неверная цифра объясняет, какое правило нарушено — для вариантов с суммами, кривыми блоками и киллера',
       '«Судоку»: боссы на каждой смене правил и не реже чем через 10 ступеней; «Самурай» и «Фрактал» — большие боссы: в бой сразу или позже',
       'N-back: на высоких уровнях глубина меняется прямо внутри партии',
       '«Парные картинки», «Матрица памяти» и «Reading Span» доведены до веб-версии: честный итог раунда, ввод слов над клавиатурой, поддержка экранного диктора',
@@ -31,6 +32,7 @@ export const WHATS_NEW: WhatsNewEntry[] = [
     ],
     en: [
       'Sudoku: digit highlighting is back — matching digits, row and column; a wrong digit is red again',
+      'Sudoku: a wrong digit now says which rule it breaks — including sum variants, jigsaw blocks and killer',
       'Sudoku: a boss at every rule change and at least every 10 steps; Samurai and Fractal are big bosses — fight now or later',
       'N-back: at high levels the depth now changes within a single game',
       'Picture Pairs, Memory Matrix and Reading Span now match the web version: a fair round result, word entry above the keyboard, screen reader support',
