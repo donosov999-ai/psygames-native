@@ -265,15 +265,21 @@ class _PetScreenState extends State<PetScreen> with SingleTickerProviderStateMix
             child: Container(
               constraints: const BoxConstraints(minHeight: 48),
               padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 20),
-              alignment: Alignment.center,
               decoration: BoxDecoration(
                 color: fed ? web.surface : _violet,
                 border: Border.all(color: fed ? web.border : _violet, width: 1.5),
                 borderRadius: BorderRadius.circular(16),
               ),
-              child: Text(
-                _s(feed['label']),
-                style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w800, color: fed ? web.textSecondary : Colors.white),
+              // По ширине текста и по центру строки, как у веба: кнопка не растягивается на всю ширину.
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    _s(feed['label']),
+                    style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w800, color: fed ? web.textSecondary : Colors.white),
+                  ),
+                ],
               ),
             ),
           ),
