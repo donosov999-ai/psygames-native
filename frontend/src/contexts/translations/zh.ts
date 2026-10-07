@@ -879,6 +879,7 @@ const t: Record<string, string> = {
   "streakNoTraining": "未训练",
   "petSynapse": "突触宠物",
   "petSize": "宠物大小",
+  "petWalks": "在屏幕上走动",
   "gamePaused": "⏸ 已暂停 — 正在填写反馈",
   "brDimHint": "💡 睡前调暗屏幕，更容易入睡",
   "a11yBack": "返回",

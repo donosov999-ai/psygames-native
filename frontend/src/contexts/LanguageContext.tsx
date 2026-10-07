@@ -2256,6 +2256,7 @@ const translations: Translations = {
   resumeGameTitle: { ru: 'Продолжить: {game}', en: 'Continue: {game}' },
   petSynapse: { ru: 'Питомец Синапс', en: 'Synapse pet' },
   petSize: { ru: 'Размер питомца', en: 'Pet size' },
+  petWalks: { ru: 'Гуляет по экрану', en: 'Walks around the screen' },
   gamePaused: { ru: '⏸ Пауза — пишете отзыв', en: '⏸ Paused — writing feedback' },
   // --- выход из живой партии: вопрос вместо молчаливой потери доски, v1.205 ---
   exitConfirmTitle: { ru: 'Выйти из игры?', en: 'Leave the game?' },

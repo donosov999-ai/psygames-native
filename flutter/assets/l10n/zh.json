@@ -1062,6 +1062,7 @@
 "personalBest":"个人最佳",
 "petSize":"宠物大小",
 "petSynapse":"突触宠物",
+"petWalks":"在屏幕上走动",
 "phPairsConfigDesc":"听一个单词，选出刚才说的是哪一个——ship 还是 sheep？训练音位听辨。",
 "phPairsLvlAuto":"第 {n} 级——随成绩自动提升：试次更多 → 覆盖全部词对 → 不再有视觉提示",
 "phPairsPickHint":"刚才听到的是什么？选出那个词。",

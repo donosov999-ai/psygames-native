@@ -1062,6 +1062,7 @@
 "personalBest":"Personal best",
 "petSize":"Pet size",
 "petSynapse":"Synapse pet",
+"petWalks":"Walks around the screen",
 "phPairsConfigDesc":"Listen to the word and pick what you heard — ship or sheep? Trains phonemic hearing.",
 "phPairsLvlAuto":"Lv {n} — grows with results: more trials → all pairs → no visual hints",
 "phPairsPickHint":"What did you hear? Pick the word.",

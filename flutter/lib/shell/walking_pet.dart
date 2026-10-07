@@ -138,6 +138,7 @@ class PetSpec {
 class PetConfig {
   PetConfig(Map j)
     : visible = j['visible'] != false,
+      walks = j['walks'] == true,
       size = (j['size'] as num?)?.toDouble() ?? 56,
       specs = {for (final e in ((j['specs'] as Map?) ?? const {}).entries) '${e.key}': ?PetSpec.fromJson(e.value)},
       cycles = {for (final e in ((j['cycles'] as Map?) ?? const {}).entries) '${e.key}': (e.value as num).toInt()},
@@ -146,6 +147,10 @@ class PetConfig {
       walk = Map<String, num>.from((j['walk'] as Map?) ?? const {});
 
   final bool visible;
+
+  /// Гуляет ли по экрану. По умолчанию НЕТ (ed85e191): сидит у края полосы и живёт — покой, мелочи
+  /// безделья, дрёма, встреча и реплики; переходов нет.
+  final bool walks;
   final double size;
   final Map<String, PetSpec> specs;
   final Map<String, int> cycles;
@@ -181,6 +186,10 @@ class WalkingPet extends StatefulWidget {
 
   /// Где питомец остановился — после возврата на вкладку продолжит оттуда (`posRef` веба).
   static double? lastX;
+
+  /// Где сидит питомец, когда не гуляет: правый край полосы прогулки — подальше от кнопки отзыва
+  /// слева. Та же формула, что `petSeatX` в `WalkingPet.tsx`.
+  static double seatX(double width, double size) => max(width * 0.10 + 40, width * 0.90 - size);
 
   /// Случайность для проб, когда питомца строит оболочка (`Math.random = () => 0` у веба).
   @visibleForTesting
@@ -270,6 +279,15 @@ class _WalkingPetState extends State<WalkingPet> with TickerProviderStateMixin {
     final w = MediaQuery.sizeOf(context).width;
     final lo = w * 0.10;
     final hi = max(lo + 40, w * 0.90 - c.size);
+    if (!c.walks) {
+      // Не гуляет — сидит у правого края полосы (место ставит `build`), отдыхает на месте. Позиция
+      // запоминается: включат прогулку — пойдёт отсюда, а не от левого края.
+      _pos = hi;
+      _xAnim = AlwaysStoppedAnimation(hi);
+      _flipAnim = const AlwaysStoppedAnimation(-1);
+      _rest();
+      return;
+    }
     final target = lo + _rnd.nextDouble() * (hi - lo);
     final dist = (target - _pos).abs();
     final from = _flipAnim.value;
@@ -286,36 +304,42 @@ class _WalkingPetState extends State<WalkingPet> with TickerProviderStateMixin {
       if (!mounted || _x.status != AnimationStatus.completed) return;
       _pos = target;
       _walking = false;
-      setState(() => _sprite = 'idle');
-      final pause = c.ms('pauseMin', 3000) + (_rnd.nextDouble() * c.ms('pauseSpan', 5000)).round();
-      if (pause > 5500) {
-        // Затяжной отдых → задремал; поза сна случайная, а не всегда клубок.
-        final poses = c.sleepPoses.where(c.specs.containsKey).toList();
-        if (poses.isNotEmpty) {
-          final pose = poses[_rnd.nextInt(poses.length)];
-          _later(4000, () {
-            if (!_walking) setState(() => _sprite = pose);
+      _rest();
+    });
+  }
+
+  /// Отдых на месте: покой, затем мелочь безделья или дрёма — и следующий шаг.
+  void _rest() {
+    final c = _cfg!;
+    setState(() => _sprite = 'idle');
+    final pause = c.ms('pauseMin', 3000) + (_rnd.nextDouble() * c.ms('pauseSpan', 5000)).round();
+    if (pause > 5500) {
+      // Затяжной отдых → задремал; поза сна случайная, а не всегда клубок.
+      final poses = c.sleepPoses.where(c.specs.containsKey).toList();
+      if (poses.isNotEmpty) {
+        final pose = poses[_rnd.nextInt(poses.length)];
+        _later(4000, () {
+          if (!_walking) setState(() => _sprite = pose);
+        });
+      }
+    } else if (!MediaQuery.disableAnimationsOf(context)) {
+      // Мелочь безделья — только если её цикл целиком успевает до следующего шага.
+      final ok = c.fidgets.where(c.specs.containsKey).toList();
+      if (ok.isNotEmpty) {
+        final f = ok[_rnd.nextInt(ok.length)];
+        final cycle = c.cycles[f] ?? 0;
+        const start = 700;
+        if (start + cycle < pause - 300) {
+          _later(start, () {
+            if (!_walking) setState(() => _sprite = f);
+          });
+          _later(start + cycle, () {
+            if (!_walking) setState(() => _sprite = 'idle');
           });
         }
-      } else if (!MediaQuery.disableAnimationsOf(context)) {
-        // Мелочь безделья — только если её цикл целиком успевает до следующего шага.
-        final ok = c.fidgets.where(c.specs.containsKey).toList();
-        if (ok.isNotEmpty) {
-          final f = ok[_rnd.nextInt(ok.length)];
-          final cycle = c.cycles[f] ?? 0;
-          const start = 700;
-          if (start + cycle < pause - 300) {
-            _later(start, () {
-              if (!_walking) setState(() => _sprite = f);
-            });
-            _later(start + cycle, () {
-              if (!_walking) setState(() => _sprite = 'idle');
-            });
-          }
-        }
       }
-      _later(pause, _step);
-    });
+    }
+    _later(pause, _step);
   }
 
   Future<void> _firstWord() async {
@@ -422,7 +446,8 @@ class _WalkingPetState extends State<WalkingPet> with TickerProviderStateMixin {
     return AnimatedBuilder(
       animation: Listenable.merge([_x, _flip]),
       builder: (context, _) => Positioned(
-        left: _xAnim.value,
+        // Не гуляет — место у правого края полосы с первого кадра (как `petSeatX` веба), без скачка.
+        left: c.walks ? _xAnim.value : WalkingPet.seatX(MediaQuery.sizeOf(context).width, c.size),
         bottom: bottom,
         // Питомец стоит в Stack оболочки ПОВЕРХ Scaffold — без своего Material текст пузыря берёт
         // запасной стиль Flutter: жёлтое двойное подчёркивание (живой замер на эмуляторе 07.10.2026).
@@ -476,7 +501,7 @@ class _WalkingPetState extends State<WalkingPet> with TickerProviderStateMixin {
                   onLongPress: _pet,
                   child: Transform(
                     alignment: Alignment.center,
-                    transform: Matrix4.diagonal3Values(_flipAnim.value, 1, 1),
+                    transform: Matrix4.diagonal3Values(c.walks ? _flipAnim.value : -1, 1, 1),
                     child: spec == null
                         ? SizedBox.square(dimension: c.size)
                         : PetFrames(

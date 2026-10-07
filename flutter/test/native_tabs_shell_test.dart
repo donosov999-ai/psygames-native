@@ -364,9 +364,10 @@ void main() {
   });
 
   /// Веб-питомец страницы: облик кота с вещью на нулевом кадре, реплики и встреча.
-  Map<String, Object? Function(Object? arg)> petPage({bool visible = true, Object? first, Object? line}) => {
+  Map<String, Object? Function(Object? arg)> petPage({bool visible = true, bool walks = true, Object? first, Object? line}) => {
         'config': (_) => {
               'visible': visible,
+              'walks': walks,
               'size': 56,
               'skin': 'cat',
               'specs': {
@@ -475,6 +476,31 @@ void main() {
     await settle(t, () => find.byType(OneLineScreen).evaluate().isNotEmpty);
     expect(page().petAsked, contains('coach'));
     expect(find.byType(OneLineScreen), findsOneWidget, reason: 'перенесённая игра — нативно поверх');
+  });
+
+  testWidgets('🔴 не гуляет (по умолчанию, ed85e191) — сидит у правого края, но живёт: мелочи безделья и встреча', (t) async {
+    // Ноль случайности: отдых 3 с — короткий, значит мелочь безделья (зевок 1,82 с) успевает.
+    WalkingPet.randomForTest = _Zero();
+    await petMount(t, petPage(walks: false, first: {'state': 'wave', 'text': 'Серия 4, до цели 26', 'showMs': 6000}));
+    final seat = WalkingPet.seatX(390, 56);
+    expect(t.getRect(find.byKey(const ValueKey('walking-pet'))).left, seat, reason: 'с первого кадра — на своём месте');
+    var walked = false, yawned = false;
+    for (var i = 0; i < 120; i++) {
+      await t.pump(const Duration(milliseconds: 100));
+      walked |= find.byKey(const ValueKey('pet-frames-walk')).evaluate().isNotEmpty;
+      yawned |= find.byKey(const ValueKey('pet-frames-yawn')).evaluate().isNotEmpty;
+      expect(t.getRect(find.byKey(const ValueKey('walking-pet'))).left, seat, reason: 'не сходит с места (${i * 100} мс)');
+    }
+    expect(walked, isFalse, reason: 'кадров ходьбы нет');
+    expect(yawned, isTrue, reason: 'мелочь безделья на месте — играет');
+    expect(page().petAsked, contains('first'), reason: 'встреча спрошена');
+  });
+
+  testWidgets('встреча доходит до пузыря и у сидящего питомца', (t) async {
+    WalkingPet.randomForTest = _Zero();
+    await petMount(t, petPage(walks: false, first: {'state': 'wave', 'text': 'Серия 4, до цели 26', 'showMs': 6000}));
+    await t.pump(const Duration(milliseconds: 1400));
+    expect(find.text('Серия 4, до цели 26'), findsOneWidget);
   });
 
   testWidgets('питомец выключен в настройках — его нет; страница без моста — его нет', (t) async {

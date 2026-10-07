@@ -1357,6 +1357,7 @@ const t: Record<string, string> = {
   "label_correct_excl": "正解！",
   "label_selected": "選択中",
   "petSize": "ペットの大きさ",
+  "petWalks": "画面を歩き回る",
   "a11ySelected": "選択中",
   "bridgeJustPlayed": "✓ 実施ずみ",
   "shape_triangle": "三角",

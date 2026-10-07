@@ -27,8 +27,8 @@ import PetSprite, {
 import { postToHost } from '@/src/services/hostWarmup';
 import {
   consumeRecentRecord, currentPetLook, getPetAccessory, getPetScale,
-  getPetSkinChoice, getPetStats, getPetVisible, PET_SCALE_DEFAULT, PET_SCALE_EVENT,
-  PET_VISIBLE_EVENT, pickPetLine, pickPettedLine, pickRecordLine, resolvePetSkin, PetStage,
+  getPetSkinChoice, getPetStats, getPetVisible, getPetWalks, PET_SCALE_DEFAULT, PET_SCALE_EVENT,
+  PET_VISIBLE_EVENT, PET_WALK_EVENT, pickPetLine, pickPettedLine, pickRecordLine, resolvePetSkin, PetStage,
 } from '@/src/services/pet';
 import { type PetLook } from '@/src/services/petLook';
 import type { PetLine, PetSkill } from '@/src/services/petLines';
@@ -208,17 +208,25 @@ export const PET_WALK = {
   firstSpeechMin: FIRST_SPEECH_MIN, firstSpeechSpan: FIRST_SPEECH_SPAN, greetShow: GREET_SHOW,
 };
 
+/** Где сидит питомец, когда не гуляет: правый край полосы прогулки — подальше от кнопки отзыва слева. */
+export function petSeatX(width: number, size: number): number {
+  return Math.max(width * 0.10 + 40, width * 0.90 - size);
+}
+
 export async function petHostAnswer(op: string, arg?: unknown): Promise<unknown> {
   switch (op) {
     case 'config': {
-      const [visible, scale, accessory, look, ctx, choice] = await Promise.all([
+      const [visible, scale, accessory, look, ctx, choice, walks] = await Promise.all([
         getPetVisible(), getPetScale(), getPetAccessory(), currentPetLook(), petTalkContext(), getPetSkinChoice(),
+        getPetWalks(),
       ]);
       const skin = resolvePetSkin(choice, ctx.stage);
       const fidgets = PET_FIDGETS.filter((st) => petHasState(skin, st));
       const states = Array.from(new Set<PetState>(['walk', 'idle', 'wave', 'jump', 'celebrate', ...PET_SLEEP_POSES, ...fidgets]));
       return {
         visible,
+        // Гуляет ли (по умолчанию нет — сидит у края, но живёт: см. `getPetWalks`).
+        walks,
         size: Math.round(PET_SIZE * scale),
         skin,
         specs: Object.fromEntries(states.map((st) => [st, petRenderSpec(skin, st, accessory, look)])),
@@ -299,6 +307,8 @@ export default function WalkingPet() {
   const busyUntilRef = React.useRef(0);
 
   const [petOn, setPetOn] = React.useState(true);
+  // Гуляет ли по экрану; по умолчанию нет (ed85e191) — сидит у края, но живёт.
+  const [walks, setWalks] = React.useState(false);
   const [skin, setSkin] = React.useState<PetSkin>('cat');
   const [accessory, setAccessory] = React.useState<PetAccessory | null>(null);
   // Масштаб из настроек (ползунок): применяется живо через DeviceEventEmitter.
@@ -342,6 +352,7 @@ export default function WalkingPet() {
   // после выхода из настроек тумблер применится, после /pet скин обновится.
   React.useEffect(() => {
     getPetVisible().then(setPetOn).catch(() => {});
+    getPetWalks().then(setWalks).catch(() => {});
     getPetScale().then(setScale).catch(() => {});
     getPetAccessory().then(setAccessory).catch(() => {});
     petTalkContext().then(async (c) => {
@@ -410,7 +421,10 @@ export default function WalkingPet() {
     const subOn = DeviceEventEmitter.addListener(PET_VISIBLE_EVENT, (on: boolean) => {
       setPetOn(!!on);
     });
-    return () => { subScale.remove(); subOn.remove(); };
+    const subWalk = DeviceEventEmitter.addListener(PET_WALK_EVENT, (on: boolean) => {
+      setWalks(!!on);
+    });
+    return () => { subScale.remove(); subOn.remove(); subWalk.remove(); };
   }, []);
 
   // Позиция/язык в ref'ах: таймеры-замыкания живут дольше рендера, а
@@ -468,11 +482,29 @@ export default function WalkingPet() {
   const reducedRef = React.useRef(reduced);
   React.useEffect(() => { skinRef.current = skin; }, [skin]);
   React.useEffect(() => { reducedRef.current = reduced; }, [reduced]);
+  const walksRef = React.useRef(walks);
   // Размер в ref: step() живёт в замыкании эффекта, а перезапускать прогулку
   // на каждый сдвиг ползунка нельзя (шторм таймеров при живом драге).
   const size = Math.round(PET_SIZE * scale);
   const sizeRef = React.useRef(size);
   sizeRef.current = size;
+
+  /*
+   * Не гуляет — сидит на своём месте, и место ставится ДО кадра (layout-эффект): иначе первый кадр
+   * показал бы кота у левого края, а следующий — скачок вправо. Прогулку выключили на ходу —
+   * проход обрывается здесь же, а цикл продолжает отдых на месте (см. `step`).
+   */
+  React.useLayoutEffect(() => {
+    walksRef.current = walks;
+    if (walks) return;
+    const seat = petSeatX(width, size);
+    x.stopAnimation();
+    x.setValue(seat);
+    posRef.current = seat;
+    flip.setValue(-1);
+    // `x` и `flip` — постоянные значения анимации (useRef), в зависимостях им не место.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [walks, width, size]);
 
   React.useEffect(() => {
     if (!active) return;
@@ -480,7 +512,58 @@ export default function WalkingPet() {
     const timers: ReturnType<typeof setTimeout>[] = [];
     const later = (fn: () => void, ms: number) => { const id = setTimeout(() => { if (alive) fn(); }, ms); timers.push(id); };
 
+    /** Отдых на месте: покой, затем мелочь безделья или дрёма — и следующий шаг. */
+    const rest = () => {
+      setSprite('idle');
+      const pause = PAUSE_MIN + Math.random() * PAUSE_SPAN;
+      if (pause > 5500) {
+        /**
+         * Затяжной отдых → задремал. Поза сна теперь случайная из семи, а не
+         * всегда клубок: питомец на экране часами, и одна и та же поза сна
+         * читается как «картинка залипла».
+         */
+        const поза = PET_SLEEP_POSES[Math.floor(Math.random() * PET_SLEEP_POSES.length)];
+        later(() => { if (!walkingRef.current) setSprite(поза); }, 4000);
+      } else if (!reducedRef.current) {
+        /**
+         * 🔴 МЕЛОЧИ БЕЗДЕЛЬЯ — ради них состояния и рисовались.
+         *
+         * Кот на коротком отдыхе зевает, чешется, гоняется за хвостом,
+         * оглядывается. Без этого двадцать дорисованных состояний остались бы
+         * мёртвым грузом в сборке: их бы никто не вызывал, и «весело» бы не
+         * стало — а Денис просил ровно этого.
+         *
+         * ⚠️ Возврат в покой считается по ДЛИНЕ ЦИКЛА, а не круглым числом:
+         * у зевка семь кадров по 260 мс, у чесания семь по 130 — обрыв на
+         * середине выглядит как рывок. Мелочь запускается, только если весь
+         * цикл успевает пройти до следующего перехода.
+         */
+        /**
+         * ⚠️ Только те мелочи, что у ОБЛИКА есть своими кадрами. У робота и
+         * Созвездия их нет, и `PetSprite` подставил бы замену: `tailchase`
+         * заменяется ходьбой, и робот «пошёл» бы, стоя на месте. Лучше
+         * ничего, чем движение не по делу.
+         */
+        const доступные = PET_FIDGETS.filter((st) => petHasState(skinRef.current, st));
+        if (!доступные.length) { later(step, pause); return; }
+        const мелочь = доступные[Math.floor(Math.random() * доступные.length)];
+        const цикл = petCycleMs(skinRef.current, мелочь);
+        const старт = 700;
+        if (старт + цикл < pause - 300) {
+          later(() => { if (!walkingRef.current) setSprite(мелочь); }, старт);
+          later(() => { if (!walkingRef.current) setSprite('idle'); }, старт + цикл);
+        }
+      }
+      later(step, pause);
+    };
+
     const step = () => {
+      /*
+       * 🔴 НЕ ГУЛЯЕТ — СИДИТ, НО ЖИВЁТ (ed85e191, решение Дениса 07.10.2026). Переходов нет, всё
+       * остальное как на отдыхе после прохода: покой, мелочи безделья, дрёма; реплики и встреча идут
+       * своими таймерами. Место — у правого края полосы прогулки (`petSeatX`).
+       */
+      if (!walksRef.current) { rest(); return; }
       const W = widthRef.current;
       // Гуляем в полосе 10%..90% ширины (координата — левый край спрайта)
       const min = W * 0.10;
@@ -503,49 +586,9 @@ export default function WalkingPet() {
         // которую записал слушатель выше, а не недостигнутую цель.
         if (finished) posRef.current = target;
         walkingRef.current = false;
-        if (finished && alive) {
-          setSprite('idle');
-          const pause = PAUSE_MIN + Math.random() * PAUSE_SPAN;
-          if (pause > 5500) {
-            /**
-             * Затяжной отдых → задремал. Поза сна теперь случайная из семи, а не
-             * всегда клубок: питомец на экране часами, и одна и та же поза сна
-             * читается как «картинка залипла».
-             */
-            const поза = PET_SLEEP_POSES[Math.floor(Math.random() * PET_SLEEP_POSES.length)];
-            later(() => { if (!walkingRef.current) setSprite(поза); }, 4000);
-          } else if (!reducedRef.current) {
-            /**
-             * 🔴 МЕЛОЧИ БЕЗДЕЛЬЯ — ради них состояния и рисовались.
-             *
-             * Кот на коротком отдыхе зевает, чешется, гоняется за хвостом,
-             * оглядывается. Без этого двадцать дорисованных состояний остались бы
-             * мёртвым грузом в сборке: их бы никто не вызывал, и «весело» бы не
-             * стало — а Денис просил ровно этого.
-             *
-             * ⚠️ Возврат в покой считается по ДЛИНЕ ЦИКЛА, а не круглым числом:
-             * у зевка семь кадров по 260 мс, у чесания семь по 130 — обрыв на
-             * середине выглядит как рывок. Мелочь запускается, только если весь
-             * цикл успевает пройти до следующего перехода.
-             */
-            /**
-             * ⚠️ Только те мелочи, что у ОБЛИКА есть своими кадрами. У робота и
-             * Созвездия их нет, и `PetSprite` подставил бы замену: `tailchase`
-             * заменяется ходьбой, и робот «пошёл» бы, стоя на месте. Лучше
-             * ничего, чем движение не по делу.
-             */
-            const доступные = PET_FIDGETS.filter((st) => petHasState(skinRef.current, st));
-            if (!доступные.length) { later(step, pause); return; }
-            const мелочь = доступные[Math.floor(Math.random() * доступные.length)];
-            const цикл = petCycleMs(skinRef.current, мелочь);
-            const старт = 700;
-            if (старт + цикл < pause - 300) {
-              later(() => { if (!walkingRef.current) setSprite(мелочь); }, старт);
-              later(() => { if (!walkingRef.current) setSprite('idle'); }, старт + цикл);
-            }
-          }
-          later(step, pause);
-        }
+        if (finished && alive) rest();
+        // Прогулку выключили на ходу (тумблер в настройках): проход оборван, но жизнь на месте идёт.
+        else if (alive && !walksRef.current) rest();
       });
     };
 
