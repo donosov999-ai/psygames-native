@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart' show debugPrint, kDebugMode, visibleForTesting;
 import 'package:flutter/services.dart' show AssetManifest, rootBundle;
@@ -129,6 +130,22 @@ class AssetServer {
 
   static const _probe = '/__psy_alive';
 
+  /// Снимок нативного экрана для формы отзыва (задача c092cd47): страница под нативным экраном
+  /// устарела, поэтому кадр снимает оболочка, а страница забирает его отсюда по адресу — без
+  /// мегабайтной строки base64 в `runJavaScript`. Хранится один, последний: снимок нужен ровно до
+  /// отправки, и копить кадры экранов человека в памяти незачем.
+  static const shotPrefix = '/__psy_shot/';
+  final Map<String, Uint8List> _shots = {};
+  int _shotSeq = 0;
+
+  /// Положить снимок (PNG) и получить его адрес на этом сервере.
+  String putShot(Uint8List png) {
+    _shots.clear();
+    final path = '$shotPrefix${++_shotSeq}.png';
+    _shots[path] = png;
+    return path;
+  }
+
   /// Сервер жив — `true` сразу. Мёртв — встать заново на том же порту (до 5 попыток).
   /// Возвращает, отвечает ли сервер после проверки.
   Future<bool> ensureAlive() async {
@@ -170,6 +187,17 @@ class AssetServer {
     var path = Uri.decodeComponent(req.uri.path);
     if (path == _probe) {
       req.response.statusCode = HttpStatus.noContent;
+      await req.response.close();
+      return;
+    }
+    if (path.startsWith(shotPrefix)) {
+      final png = _shots[path];
+      req.response.statusCode = png == null ? HttpStatus.notFound : HttpStatus.ok;
+      req.response.headers.set(HttpHeaders.cacheControlHeader, 'no-store');
+      if (png != null) {
+        req.response.headers.contentType = ContentType('image', 'png');
+        req.response.add(png);
+      }
       await req.response.close();
       return;
     }
