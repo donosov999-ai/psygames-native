@@ -34,13 +34,14 @@ import 'model.dart';
 /// в вебе. НЕЗАКОНЧЕННАЯ ПАРТИЯ пишется снимком в форме веб-сессии ([pairsSnapshot]) и
 /// поднимается при входе: свернул приложение посреди расклада — расклад на месте.
 ///
-/// ДУЭЛЬ (задача cd9685ec, механика MindLab Punchline) — пары по очереди с ботом, у которого
-/// память на N последних карт ([PairsBotLevel]). Лестницу не двигает и снимком не пишется:
-/// ход бота — часть партии, поднять его из снимка честно нельзя.
+/// ДУЭЛЬ (задача cd9685ec, механика MindLab Punchline) — пары или тройки (a944dd36) по очереди
+/// с ботом, у которого память на N последних карт ([PairsBotLevel]). Лестницу не двигает и
+/// снимком не пишется: ход бота — часть партии, поднять его из снимка честно нельзя.
 enum Phase { ready, preview, play, won, revealed }
 
 /// Режим экрана: лестница уровней, свободная партия, дуэль с ботом или «Малыши» — движок
-/// MindLab «Пары» ступенями 4 → 8 → 12 пар с оценкой против идеальной памяти ([pairsKidsSteps]).
+/// MindLab «Пары» ступенями 4 → 8 → 12 пар и дальше похожими парами, с оценкой против
+/// идеальной памяти ([pairsKidsSteps]).
 enum PairsMode { levels, free, duel, kids }
 
 /// Отложенная запись партии — как в вебе и у «Дворца памяти»: подряд идущие касания дают
@@ -112,9 +113,12 @@ class _PicturePairsScreenState extends State<PicturePairsScreen> with WidgetsBin
   /// `photoMemoryMode`, `previewMs`).
   bool _free = false;
 
-  /// Дуэль с ботом: свой режим, пары и память бота выбирает человек.
+  /// Дуэль с ботом: свой режим, пары или тройки и память бота выбирает человек.
   bool _duelMode = false;
   PairsBotLevel _botLevel = PairsBotLevel.kitten;
+
+  /// Карт в группе дуэли: 2 — пары, 3 — тройки, как в самом Punchline.
+  int _duelGroup = 2;
   PairsDuel? _duel;
   GameTimer? _botTimer;
 
@@ -245,13 +249,18 @@ class _PicturePairsScreenState extends State<PicturePairsScreen> with WidgetsBin
             rnd: _rnd,
           )
         : _duelMode
-            // Дуэль — классические пары без показа: память набирается ходами обоих.
-            ? PairsGame(level: _ladder.level, cfg: pairsFreeCfg(pairs: _freePairs, photo: false, previewMs: 0), rnd: _rnd)
+            // Дуэль — пары или тройки без показа: память набирается ходами обоих.
+            ? PairsGame(
+                level: _ladder.level,
+                cfg: pairsFreeCfg(pairs: _freePairs, photo: false, previewMs: 0, groupSize: _duelGroup),
+                rnd: _rnd,
+              )
             : _kidsMode
-                // «Малыши» — как движок MindLab: пары без показа, поле по ступени.
+                // «Малыши» — как движок MindLab: пары без показа, поле и двойники — по ступени.
                 ? PairsGame(
                     level: _ladder.level,
-                    cfg: pairsFreeCfg(pairs: pairsKidsSteps[_kidsStep], photo: false, previewMs: 0),
+                    cfg: pairsKidsCfg(pairsKidsSteps[_kidsStep]),
+                    deck: pairsKidsDeck(pairsKidsSteps[_kidsStep], _rnd),
                     rnd: _rnd,
                   )
                 : PairsGame(level: _ladder.level, rnd: _rnd);
@@ -491,11 +500,12 @@ class _PicturePairsScreenState extends State<PicturePairsScreen> with WidgetsBin
         gameType: 'picture_pairs',
         score: duel.playerGroups,
         timeSeconds: _elapsed.round(),
-        difficulty: '${g.groups} pairs',
+        difficulty: g.cfg.groupSize == 3 ? '${g.groups} triples' : '${g.groups} pairs',
         mode: 'duel-${duel.bot.level.name}',
         errors: duel.playerMisses,
         details: {
           'pairs': g.groups,
+          'group_size': g.cfg.groupSize,
           'player_pairs': duel.playerGroups,
           'bot_pairs': duel.botGroups,
           'bot': duel.bot.level.name,
@@ -574,7 +584,14 @@ class _PicturePairsScreenState extends State<PicturePairsScreen> with WidgetsBin
         difficulty: '${g.groups} pairs',
         mode: 'kids',
         errors: g.errors,
-        details: {'step': played + 1, 'pairs': g.groups, 'moves': g.moves, 'stars': stars, ..._memoryDetails(g)},
+        details: {
+          'step': played + 1,
+          'pairs': g.groups,
+          'twins': pairsKidsSteps[played].twins,
+          'moves': g.moves,
+          'stars': stars,
+          ..._memoryDetails(g),
+        },
       ),
     );
   }
@@ -635,7 +652,9 @@ class _PicturePairsScreenState extends State<PicturePairsScreen> with WidgetsBin
           ? _Ready(
               level: _ladder.level,
               mode: _mode,
+              theme: theme,
               bot: _botLevel,
+              group: _duelGroup,
               kidsStep: _kidsStep,
               pairs: _freePairs,
               photo: _photo,
@@ -643,6 +662,10 @@ class _PicturePairsScreenState extends State<PicturePairsScreen> with WidgetsBin
               onMode: (m) => setState(() => _setMode(m)),
               onBot: (b) => setState(() {
                 _botLevel = b;
+                _reset();
+              }),
+              onGroup: (n) => setState(() {
+                _duelGroup = n;
                 _reset();
               }),
               onPairs: (n) => setState(() {
@@ -730,7 +753,7 @@ class _PicturePairsScreenState extends State<PicturePairsScreen> with WidgetsBin
                       Padding(
                         padding: const EdgeInsets.only(bottom: 8),
                         child: Text(
-                          L.t('pairsKidsUp').replaceAll('{p}', '${pairsKidsSteps[_kidsStep]}'),
+                          L.t('pairsKidsUp').replaceAll('{p}', '${pairsKidsSteps[_kidsStep].pairs}'),
                           key: const Key('pp-kids-up'),
                           textAlign: TextAlign.center,
                           style: Theme.of(context).textTheme.titleMedium,
@@ -764,13 +787,16 @@ class _Ready extends StatelessWidget {
   const _Ready({
     required this.level,
     required this.mode,
+    required this.theme,
     required this.bot,
+    required this.group,
     required this.kidsStep,
     required this.pairs,
     required this.photo,
     required this.previewMs,
     required this.onMode,
     required this.onBot,
+    required this.onGroup,
     required this.onPairs,
     required this.onPhoto,
     required this.onPreview,
@@ -778,13 +804,18 @@ class _Ready extends StatelessWidget {
   });
   final int level;
   final PairsMode mode;
+  final PairsTheme theme;
   final PairsBotLevel bot;
+
+  /// Карт в группе дуэли: 2 или 3.
+  final int group;
   final int kidsStep;
   final int pairs;
   final bool photo;
   final int previewMs;
   final ValueChanged<PairsMode> onMode;
   final ValueChanged<PairsBotLevel> onBot;
+  final ValueChanged<int> onGroup;
   final ValueChanged<int> onPairs;
   final ValueChanged<bool> onPhoto;
   final ValueChanged<int> onPreview;
@@ -869,7 +900,7 @@ class _Ready extends StatelessWidget {
                     switch (mode) {
                       PairsMode.levels => L.t('pairsModeLevelsHint'),
                       PairsMode.free => L.t('pairsModeFreeHint'),
-                      PairsMode.duel => L.t('pairsDuelHint'),
+                      PairsMode.duel => group == 3 ? L.t('pairsDuelHintTriples') : L.t('pairsDuelHint'),
                       PairsMode.kids => L.t('pairsKidsHint'),
                     },
                     textAlign: TextAlign.center,
@@ -881,19 +912,59 @@ class _Ready extends StatelessWidget {
                       L.t('pairsKidsStep')
                           .replaceAll('{n}', '${kidsStep + 1}')
                           .replaceAll('{m}', '${pairsKidsSteps.length}')
-                          .replaceAll('{p}', '${pairsKidsSteps[kidsStep]}'),
+                          .replaceAll('{p}', '${pairsKidsSteps[kidsStep].pairs}'),
                       key: const Key('pp-kids-step'),
                       textAlign: TextAlign.center,
                       style: text.titleMedium,
                     ),
+                    // Похожие пары объявляются ДО партии — правилом и живыми картами той же игры:
+                    // одна картинка на обычной и на жёлтой карточке.
+                    if (pairsKidsSteps[kidsStep].twins > 0) ...[
+                      const SizedBox(height: 10),
+                      Text(L.t('pairsKidsTwins'), key: const Key('pp-kids-twins'), textAlign: TextAlign.center),
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          for (final symbol in const [0, pairsSpriteCount])
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: pairsCardGap / 2),
+                              child: PairCardView(
+                                index: symbol,
+                                card: PairCard(symbol),
+                                size: 56,
+                                theme: theme,
+                                faceUp: true,
+                                lit: false,
+                                onTap: null,
+                                keyPrefix: 'twin-',
+                              ),
+                            ),
+                        ],
+                      ),
+                    ],
                     const SizedBox(height: 16),
                   ] else if (mode == PairsMode.duel) ...[
-                    Text(L.t('pairsCount'), style: text.titleSmall),
-                    const SizedBox(height: 6),
+                    SegmentedButton<int>(
+                      key: const Key('pp-group'),
+                      segments: [
+                        ButtonSegment(value: 2, label: Text(L.t('pairsDuelPairs'), key: const Key('pp-group-2'))),
+                        ButtonSegment(
+                          value: 3,
+                          label: Text(L.t('lr_picture_pairs_triple_title'), key: const Key('pp-group-3')),
+                        ),
+                      ],
+                      selected: {group},
+                      showSelectedIcon: false,
+                      onSelectionChanged: (v) => onGroup(v.first),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(group == 3 ? L.t('pairsTriplesCount') : L.t('pairsCount'), style: text.titleSmall),
+                    const SizedBox(height: 4),
                     _pairsChips(),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 8),
                     Text(L.t('pairsBotMemory'), style: text.titleSmall),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 4),
                     SegmentedButton<PairsBotLevel>(
                       key: const Key('pp-bot'),
                       segments: [
@@ -913,7 +984,9 @@ class _Ready extends StatelessWidget {
                       textAlign: TextAlign.center,
                       style: text.bodySmall,
                     ),
-                    const SizedBox(height: 16),
+                    // Отступы «Дуэли» плотнее остальных режимов: с выбором «пары/тройки» у неё три
+                    // группы выбора, и на 360×640 настройки уходили за 1,1 экрана (замер 07.10: 68 пт).
+                    const SizedBox(height: 8),
                   ] else if (mode == PairsMode.levels) ...[
                     Text(
                       '${L.t('pairsLvlPairs').replaceAll('{n}', '${cfg.pairs}')} · '
@@ -1068,6 +1141,9 @@ class _Field extends StatelessWidget {
   }
 }
 
+/// Карточка двойника ([pairsIsTwin]) — жёлтая. Почему цвет и почему этот: замер у [pairsSpriteOf].
+const pairsTwinColor = Color(0xFFFCD34D);
+
 /// Карта поля — ОДНА для партии и для разбора. Разбор, нарисованный «похоже», учил
 /// бы не той игре: здесь и картинка, и рубашка, и подсветка обмена — те же.
 class PairCardView extends StatelessWidget {
@@ -1107,12 +1183,16 @@ class PairCardView extends StatelessWidget {
         ? Container(
             key: Key('$keyPrefixлицо$index'),
             decoration: BoxDecoration(
-              color: card.matched ? const Color(0xFF22C55E) : scheme.surface,
+              color: card.matched
+                  ? const Color(0xFF22C55E)
+                  : pairsIsTwin(card.symbol)
+                      ? pairsTwinColor
+                      : scheme.surface,
               border: marked ? Border.all(color: scheme.primary, width: 4) : null,
               borderRadius: BorderRadius.circular(10),
             ),
             padding: EdgeInsets.all(size * 0.09),
-            child: Image.asset(theme.sprites[card.symbol], fit: BoxFit.contain),
+            child: Image.asset(theme.sprites[pairsSpriteOf(card.symbol)], fit: BoxFit.contain),
           )
         : Container(
             key: lit ? Key('$keyPrefixобмен$index') : null,
@@ -1203,14 +1283,20 @@ class PairsLessonArt extends StatelessWidget {
 /// Примеры разбора — ИЗ ГЕНЕРАТОРА САМОЙ ИГРЫ: колоды тянет `PairsGame`, уровень задаёт
 /// размер группы, обмены — ось с L22 (`pairsVolumeTop`).
 ///
-/// Три приёма, и каждый про то, на чём здесь ошибаются:
+/// Четыре приёма, и каждый про то, на чём здесь ошибаются:
 /// · места, а не картинки — на показе картинка привязывается к месту (L1, пары);
 /// · группа целиком — у троек и четвёрок держать ВСЕ места одной картинки (L10);
-/// · обмен — подсвеченная пара переехала, перенести картинку в памяти (с L22).
+/// · обмен — подсвеченная пара переехала, перенести картинку в памяти (с L22);
+/// · похожие пары — картинку держать вместе с цветом карточки («Малыши» с четвёртой ступени).
 List<DemoTrial> pairsLessonTrials(PairsTheme theme, {Random? rnd}) {
   final r = rnd ?? Random(930);
   final pairs = PairsGame(level: 1, rnd: r);
   final triples = PairsGame(level: 10, rnd: r);
+  // Колода двойников — генератором «Малышей», на малом поле: две картинки, у каждой обычная
+  // и жёлтая пара.
+  const twinStep = (pairs: 4, twins: 2);
+  final twins = PairsGame(level: 1, cfg: pairsKidsCfg(twinStep), deck: pairsKidsDeck(twinStep, r), rnd: r);
+  final twinSymbol = twins.cards.map((c) => c.symbol).firstWhere(pairsIsTwin);
   List<int> placesOf(PairsGame g, int symbol) =>
       [for (var i = 0; i < g.cards.length; i++) if (g.cards[i].symbol == symbol) i];
   final closed = [for (var i = 0; i < pairs.cards.length; i++) i];
@@ -1232,6 +1318,11 @@ List<DemoTrial> pairsLessonTrials(PairsTheme theme, {Random? rnd}) {
       text: '',
       rule: L.t('teachPicturePairsSwap'),
       art: PairsLessonArt(game: pairs, theme: theme, swapPair: [a, b]),
+    ),
+    DemoTrial(
+      text: '',
+      rule: L.t('teachPicturePairsTwins'),
+      art: PairsLessonArt(game: twins, theme: theme, marked: placesOf(twins, twinSymbol)),
     ),
   ];
 }
