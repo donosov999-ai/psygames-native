@@ -206,7 +206,8 @@ class _FriendsScreenState extends State<FriendsScreen> {
             fillColor: web.background,
             isDense: true,
             constraints: const BoxConstraints(minHeight: 48),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+            // Высота — ровно minHeight 48 веба (кадры 07.10: с отступом 11 поле выходило на 3,5 точки выше).
+            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: web.border, width: 1.5)),
             enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: web.border, width: 1.5)),
             focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: web.border, width: 1.5)),
