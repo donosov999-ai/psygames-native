@@ -85,7 +85,7 @@ const SUDOKU_BENEFITS = [
 import {
   Cell, Variant, ThermoPN, ArrowMap, SudokuDifficultyTier, UnequalMap, TowersMap,
   dimsForSize, blanksFor, killerBlanksForStep, killerStepCount, generateCages,
-  sudokuDifficultyTier, variantLabel, variantRule, shuffle, generatePuzzle, HYPER_BOXES, argyleSegments,
+  sudokuDifficultyTier, variantLabel, variantRule, shuffle, generatePuzzle, HYPER_BOXES, argyleSegments, LittleKillerClue,
   rejectionReason, cageMapFrom,
 } from '@/src/services/sudoku-core';
 import { gradePuzzle, logicalBuilder, selectionLookForLevel } from '@/src/services/sudoku-grade';
@@ -477,6 +477,8 @@ interface SudokuResume {
   lockout?: ThermoPN | null;
   /** XV (117–120); в старых снимках поля нет — читать с ?? null. */
   xv?: { h: number[][]; v: number[][] } | null;
+  /** Малый киллер (план — 181–184); в старых снимках поля нет — читать с ?? null. */
+  littlekiller?: LittleKillerClue[] | null;
   /** Поля режимов towers/unequal; в старых снимках отсутствуют — читать с ?? null. */
   unequal?: UnequalMap | null;
   towers?: TowersMap | null;
@@ -703,6 +705,12 @@ export default function SudokuGame() {
   const [palindrome, setPalindrome] = useState<ThermoPN | null>(null);   // палиндром
   const [between, setBetween] = useState<ThermoPN | null>(null);   // между концами
   const [lockout, setLockout] = useState<ThermoPN | null>(null);
+  /**
+   * Малый киллер: суммы диагоналей снаружи доски. ⚠️ Кольцо подсказок рисует только натив: маршрут
+   * /games/sudoku в приложении нативный (flutter/lib/shell/hybrid_app.dart), веб-экран человеку не
+   * открывается. Здесь поле держится ради общего снимка партии и причины отказа цифры.
+   */
+  const [littlekiller, setLittlekiller] = useState<LittleKillerClue[] | null>(null);
   const [xv, setXv] = useState<{ h: number[][]; v: number[][] } | null>(null);   // XV: знаки на гранях, показаны все   // замок
   const [arrow, setArrow] = useState<ArrowMap | null>(null);   // arrow: кружок (сумма) + стрелка
   const [unequalMap, setUnequalMap] = useState<UnequalMap | null>(null);   // unequal: знаки </> на гранях
@@ -1051,6 +1059,7 @@ export default function SudokuGame() {
     setBetween((built as { between?: ThermoPN }).between ?? null);
     setLockout((built as { lockout?: ThermoPN }).lockout ?? null);
     setXv((built as { xv?: { h: number[][]; v: number[][] } }).xv ?? null);
+    setLittlekiller((built as { littlekiller?: LittleKillerClue[] }).littlekiller ?? null);
     setArrow(ar ?? null);
     // Карты режимов towers/unequal: на прочих досках их нет — чистим до null.
     const sideMaps = built as { unequal?: UnequalMap; towers?: TowersMap };
@@ -1093,7 +1102,7 @@ export default function SudokuGame() {
   const snapshot = (): SudokuResume => ({
     mode, level, road, difficulty, size, variant, dims,
     puzzle, solution, grid, given, cellColors, marks,
-    regions, cages, cageSums, cageAnchors, parityMarks, kropki, sandwich, thermo, arrow, whisper, renban, regionsum, palindrome, between, lockout, xv,
+    regions, cages, cageSums, cageAnchors, parityMarks, kropki, sandwich, thermo, arrow, whisper, renban, regionsum, palindrome, between, lockout, xv, littlekiller,
     unequal: unequalMap, towers: towersMap,
     errors, hintUses, hintMax, backtrackCount, answersRevealed,
     elapsed: elapsedTime,
@@ -1122,7 +1131,7 @@ export default function SudokuGame() {
     setPencil(false);
     setRegions(s.regions); setCages(s.cages); setCageSums(s.cageSums); setCageAnchors(s.cageAnchors);
     setParityMarks(s.parityMarks); setKropki(s.kropki); setSandwich(s.sandwich);
-    setThermo(s.thermo); setArrow(s.arrow); setWhisper(s.whisper ?? null); setRenban(s.renban ?? null); setRegionsum(s.regionsum ?? null); setPalindrome(s.palindrome ?? null); setBetween(s.between ?? null); setLockout(s.lockout ?? null); setXv(s.xv ?? null);
+    setThermo(s.thermo); setArrow(s.arrow); setWhisper(s.whisper ?? null); setRenban(s.renban ?? null); setRegionsum(s.regionsum ?? null); setPalindrome(s.palindrome ?? null); setBetween(s.between ?? null); setLockout(s.lockout ?? null); setXv(s.xv ?? null); setLittlekiller(s.littlekiller ?? null);
     setUnequalMap(s.unequal ?? null); setTowersMap(s.towers ?? null);   // старые снимки полей не имеют
     setErrors(s.errors); setHintUses(s.hintUses); setHintMax(s.hintMax); setBacktrackCount(s.backtrackCount);
     setAnswersRevealed(s.answersRevealed !== false);
@@ -1309,6 +1318,7 @@ export default function SudokuGame() {
         between: between ?? undefined,
         lockout: lockout ?? undefined,
         xv: xv ?? undefined,
+        littlekiller: littlekiller ?? undefined,
         arrow: arrow ?? undefined,
         parity: parityMarks ?? undefined,
         kropki: kropki ?? undefined,

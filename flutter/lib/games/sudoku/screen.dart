@@ -1649,6 +1649,7 @@ String variantTitle(String variant) => switch (variant) {
       'lockout' => L.t('sdkRule_lockout'),
       'xv' => L.t('sdkRule_xv'),
       'argyle' => L.t('sdkRule_argyle'),
+      'littlekiller' => L.t('sdkRule_littlekiller'),
       'friends' => L.t('sdkRule_friends'),
       _ => L.t('sdkRule_none'),
     };
@@ -1691,8 +1692,11 @@ class SudokuBoardView extends StatelessWidget {
         final n = board.n;
         final g = board.geometry;
         final sw = g.sandwich;
+        final lk = g.littleKiller;
         // Суммы сэндвича — полосой над доской и слева, как в вебе (`clueCols` 0,6 клетки).
-        final cell = avail / (n + (sw != null ? 0.6 : 0));
+        // Малый киллер — кольцом сверху, слева и справа (стрелки смотрят только вниз): поле 0,75 клетки,
+        // по ширине два поля. 0,6 не хватило: «24» со стрелкой вылезали на 9 px (проба 320 px).
+        final cell = avail / (n + (sw != null ? 0.6 : 0) + (lk != null ? 1.5 : 0));
         final side = cell * n;
         final gutter = avail - side;
         final cages = g.cages;
@@ -1794,6 +1798,52 @@ class SudokuBoardView extends StatelessWidget {
               ),
           ]),
         );
+        if (lk != null) {
+          // Гнездо поля → подсказка; стрелка — значком, а не символом шрифта.
+          final ring = cell * 0.75;
+          final bySlot = {for (final k in lk) '${k.slot.side}${k.slot.i}': k};
+          Widget lkClue(String side, int i, double w, double h) {
+            final k = bySlot['$side$i'];
+            return SizedBox(
+              width: w,
+              height: h,
+              child: k == null
+                  ? null
+                  : Padding(
+                      key: Key('lk-$side-$i'),
+                      padding: const EdgeInsets.all(1),
+                      // Двузначная сумма со стрелкой обязана влезть в узкое поле при любой ширине экрана.
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text('${k.sum}',
+                                style: TextStyle(fontSize: cell * 0.3, fontWeight: FontWeight.w700, color: scheme.onSurface)),
+                            Icon(k.dc == 1 ? Icons.south_east : Icons.south_west, size: cell * 0.22, color: scheme.onSurfaceVariant),
+                          ],
+                        ),
+                      ),
+                    ),
+            );
+          }
+
+          boardGrid = Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(mainAxisSize: MainAxisSize.min, children: [
+                lkClue('top', -1, ring, ring),
+                for (var col = 0; col < n; col++) lkClue('top', col, cell, ring),
+                lkClue('top', n, ring, ring),
+              ]),
+              Row(mainAxisSize: MainAxisSize.min, children: [
+                Column(children: [for (var r = 0; r < n; r++) lkClue('left', r, ring, cell)]),
+                boardGrid,
+                Column(children: [for (var r = 0; r < n; r++) lkClue('right', r, ring, cell)]),
+              ]),
+            ],
+          );
+        }
         if (sw != null) {
           boardGrid = Column(
             mainAxisSize: MainAxisSize.min,
