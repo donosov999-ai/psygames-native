@@ -13,6 +13,7 @@ import 'leave_guard.dart';
 import 'marks.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/level_transition.dart';
 import '../../shell/session_report.dart';
 import '../../shell/shared_state.dart';
 import 'generator/contract.dart';
@@ -26,6 +27,7 @@ import '../../shell/lesson_player.dart';
 import '../../shell/resume_store.dart';
 import 'lesson.dart';
 import 'attempt.dart';
+import 'highlight.dart';
 import 'mode_board.dart';
 import 'reject_why.dart';
 import 'level_map.dart';
@@ -36,7 +38,6 @@ import 'roads.dart';
 import 'rules.dart';
 import 'symbols.dart';
 import 'variant_decor.dart';
-import '../samurai/screen.dart';
 
 /// СУДОКУ на общем каркасе — первый экран раздела в переезде на Flutter.
 ///
@@ -70,9 +71,20 @@ void fillSudokuBossBag(List<BossType> bag) => _sudokuBossBag
   ..clear()
   ..addAll(bag);
 
-/// Мегабосс — каждые столько уровней ВМЕСТО обычного боя (15 кратно 3), как
-/// `MEGA_BOSS_EVERY` веба: приглашение в «Самурая» с меткой вехи.
-const sudokuMegaBossEvery = 15;
+/// 🔴 БОСС — ОДНО ПРАВИЛО, ИЗ ФАЙЛА ЛЕСТНИЦЫ (решение Дениса 07.10.2026, задача 4e3d3443):
+/// «босса чаще или реже — лучше привязать к смене модели генерации, но минимум каждые 10
+/// уровней». Места — строки с `boss: true` в `assets/levels/sudoku-ladder-transit.json`:
+/// последняя ступень каждой модели (правило, банк, размер, игра-переход) и промежуточная,
+/// где модель длиннее 10 ступеней. Со `bossGame` — большой босс в другой игре (приглашение),
+/// без него — бой из мешка. Мегабосс веба «каждый 15-й» и мешок «каждый 3-й» сняты: три
+/// системы наложились бы друг на друга (схема — с разделом «Судоку», 92c42801).
+
+/// Имя и описание босса из файла лестницы — словами самих игр, без новых ключей словаря.
+const _ladderBossText = <String, (String, String)>{
+  '/games/sudoku-samurai': ('samuraiTitle', 'samuraiDesc'),
+  '/games/sudoku-fractal': ('fractalTitle', 'fractalDesc'),
+  '/games/sudoku-fractal-deep': ('deepTitle', 'deepDesc'),
+};
 
 /// Цвет боя — первый цвет градиента судоку в вебе (`GRADIENT[0]`).
 const sudokuBossColor = Color(0xFF7F7FD5);
@@ -1301,43 +1313,49 @@ class _SudokuScreenState extends State<SudokuScreen> {
     ));
   }
 
-  /// Победа и веха — порядок веба: на каждом 15-м уровне приглашение в «Самурая»
-  /// (мегабосс), на остальных кратных трём — бой из мешка. Уровень берётся у лестницы ДО
-  /// победы, «засчитано ли» — из её ответа (не пресет зарядки, не партия с разбором):
-  /// экран этих признаков сам не придумывает — как `BossRound.winThenBoss`.
+  /// Победа и веха. Уровень берётся у лестницы ДО победы, «засчитано ли» — из её ответа
+  /// (не пресет зарядки, не партия с разбором): экран этих признаков сам не придумывает.
+  /// Веха — только строка `boss` файла лестницы; формулы шага в экране нет, иначе у мест
+  /// боссов было бы две правды.
   Future<void> _winWithBoss(Future<bool> Function() win) async {
     final played = _ladder.level;
     final counted = await win();
     if (!counted || !mounted) return;
-    if (played % sudokuMegaBossEvery == 0) {
-      await _offerMegaBoss(played);
+    final row = _levels?.transitRow(played);
+    if (row?['boss'] != true) return;
+    final big = LadderTransit.bossOf(row);
+    if (big != null) {
+      await _offerLadderBoss(played, big);
       return;
     }
-    if (!BossRound.due(played)) return;
-    final boss = await BossRound.afterWin(context,
-        counted: counted, playedLevel: played, type: nextSudokuBoss(_bossRnd), color: sudokuBossColor);
-    if (mounted && boss != null) setState(() => _boss = boss);
+    final beaten = await openBossRound(context, type: nextSudokuBoss(_bossRnd), color: sudokuBossColor);
+    if (mounted) setState(() => _boss = beaten);
   }
 
   final _bossRnd = math.Random();
 
-  /// Мегабосс — приглашение, а не принуждение (как в вебе): партия на час, человек вправе
-  /// пойти позже; уровень уже засчитан, «Позже» ничего не отнимает.
-  Future<void> _offerMegaBoss(int level) async {
+  /// Босс из файла лестницы — приглашение, а не принуждение: партия длинная, уровень уже
+  /// засчитан, «Позже» ничего не отнимает. Игра и её уровень — из строки (`LadderTransit.bossOf`).
+  ///
+  /// ⚠️ ХОЗЯИН БОССА — ВРЕМЕННАЯ ЛЕСТНИЦА В ПАМЯТИ, НЕ [_ladder]. Босс плана не держит
+  /// (`blocks: false`), и переход на любом возврате делает хозяину +1. Победа на доске
+  /// свой +1 уже дала — с [_ladder] хозяином человек перепрыгнул бы ступень.
+  Future<void> _offerLadderBoss(int level, LadderTransit boss) async {
+    final text = _ladderBossText[boss.game];
     final go = await showDialog<bool>(
       context: context,
       builder: (c) => AlertDialog(
-        key: const Key('megaboss-offer'),
-        title: Text('⚔️ ${L.t('megaBossTitle')}'),
-        content: Text(L.t('megaBossOffer')),
+        key: const Key('ladderboss-offer'),
+        title: Text('⚔️ ${L.t('bossTitle')}: ${text == null ? '' : L.t(text.$1)}'),
+        content: text == null ? null : Text(L.t(text.$2)),
         actions: [
           TextButton(
-            key: const Key('megaboss-later'),
+            key: const Key('ladderboss-later'),
             onPressed: () => Navigator.of(c).pop(false),
             child: Text(L.t('updLater')),
           ),
           FilledButton(
-            key: const Key('megaboss-go'),
+            key: const Key('ladderboss-go'),
             onPressed: () => Navigator.of(c).pop(true),
             child: Text(L.t('megaBossGo')),
           ),
@@ -1345,9 +1363,10 @@ class _SudokuScreenState extends State<SudokuScreen> {
       ),
     );
     if (go != true || !mounted) return;
-    await Navigator.of(context).push(MaterialPageRoute<void>(
-      builder: (_) => SamuraiScreen(state: widget.state, megabossFrom: level),
-    ));
+    final host = LevelLadder(gameId: 'sudoku', store: MemoryLevelStore(), maxLevel: _ladder.maxLevel);
+    await host.pick(level);   // метка партии босса — ступень, на которой он встретился
+    if (!mounted) return;
+    await LevelTransition.play(context, state: widget.state, host: host, step: boss);
   }
 
   /// 🔴 РАЗБОР СУДОКУ: ПОЧЕМУ ЭТА ЦИФРА, А НЕ «ВОТ ОТВЕТ».
@@ -1834,6 +1853,7 @@ class SudokuBoardView extends StatelessWidget {
                                 ? colors[r][col]
                                 : noSudokuColor,
                             selected: selected != null && selected!.r == r && selected!.c == col,
+                            look: sudokuCellLook(grid, board.solution, selected, r, col),
                             scheme: scheme,
                             onTap: onTap,
                             glyph: symbols?.glyph,
@@ -1922,6 +1942,7 @@ class _Cell extends StatelessWidget {
     required this.mask,
     required this.paint,
     required this.selected,
+    required this.look,
     required this.scheme,
     required this.onTap,
     this.glyph,
@@ -1953,6 +1974,9 @@ class _Cell extends StatelessWidget {
   final int mask;
   final int paint;
   final bool selected;
+
+  /// Подсветка клетки: совпадение с выбранной цифрой, её строка/столбец, ошибка (`highlight.dart`).
+  final SudokuCellLook look;
   final ColorScheme scheme;
   final void Function(int r, int c) onTap;
 
@@ -1967,7 +1991,7 @@ class _Cell extends StatelessWidget {
   /// контраст важнее единообразия начертания.
   Widget? _picture() {
     final src = value == 0 ? null : image?.call(value);
-    if (src == null || selected || paint >= 0 || !decorFreeVariants.contains(board.variant)) return null;
+    if (src == null || selected || look.wrong || paint >= 0 || !decorFreeVariants.contains(board.variant)) return null;
     return Image.asset(src, width: size * 0.72, height: size * 0.72, semanticLabel: '$value');
   }
 
@@ -1998,13 +2022,15 @@ class _Cell extends StatelessWidget {
       width: size,
       height: size,
       child: Material(
-        // ⚠️ ВЫБОР ВИДЕН ПОВЕРХ КРАСКИ. Если крашеная клетка перестаёт показывать,
-        // что она выбрана, человек в режиме цифр теряет, куда сейчас пишет.
-        color: selected
-            ? scheme.primaryContainer
-            : (paint >= 0 && paint < sudokuColorCount
-                ? cellColors[paint].withValues(alpha: 0.35)
-                : (cageTint(scheme.surface, decor?.cageId ?? -1) ?? scheme.surface)),
+        // ⚠️ ВЫБОР ВИДЕН ПОВЕРХ КРАСКИ, ОШИБКА — ПОВЕРХ ВЫБОРА. Если крашеная клетка перестаёт
+        // показывать, что она выбрана, человек в режиме цифр теряет, куда сейчас пишет.
+        color: sudokuCellBackground(
+          look,
+          surface: scheme.surface,
+          dark: scheme.brightness == Brightness.dark,
+          cageId: decor?.cageId ?? -1,
+          mark: paint >= 0 && paint < sudokuColorCount ? cellColors[paint] : null,
+        ),
         child: InkWell(
           key: Key('cell_${row}_$col'),
           onTap: () => onTap(row, col),
@@ -2040,7 +2066,7 @@ class _Cell extends StatelessWidget {
                       style: TextStyle(
                         fontSize: size * 0.52,
                         fontWeight: given ? FontWeight.w800 : FontWeight.w500,
-                        color: given ? scheme.onSurface : scheme.primary,
+                        color: sudokuDigitInk(look, given: given, scheme: scheme),
                       ),
                     ),
               ),

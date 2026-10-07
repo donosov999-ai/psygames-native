@@ -17,6 +17,7 @@ export 'src/step_now.dart';
 export 'src/eye_modes.dart';
 export 'src/eye_geometry.dart';
 export 'src/face_massage_guide.dart';
+export 'src/stage.dart';
 export 'src/breath_visual.dart';
 
 /// Путь каталога практик в ассетах пакета — грузить через rootBundle приложения.

@@ -1,4 +1,4 @@
-/* psygames-nback-sequence · VER 1 · 26.08.2026 */
+/* psygames-nback-sequence · VER 2 · 02.10.2026 */
 /**
  * ПОСЛЕДОВАТЕЛЬНОСТЬ N-BACK СТРОИТСЯ ЗАРАНЕЕ И ПО КВОТЕ, А НЕ БРОСКОМ МОНЕТЫ.
  *
@@ -104,18 +104,44 @@ export function buildNbackSequence(
    * партии у человека. Расхождение при этом остаётся видимым: `matchAt`/`lureAt`
    * говорят, что заказывалось, а сам массив — что вышло.
    */
+  return buildNbackSequenceVar(trials, new Array(trials).fill(n), alphabet, rng, lureRate ?? lureRateFor(n));
+}
+
+/**
+ * 🔴 ГЛУБИНА НА КАЖДУЮ ПОЗИЦИЮ — ось 9, «глубина меняется внутри партии» (02.10.2026).
+ *
+ * `nAt[i]` — с чем сравнивать стимул `i`: со стимулом `nAt[i]` назад. Постоянная глубина —
+ * частный случай, и `buildNbackSequence` зовёт эту функцию с постоянным `nAt`: порядок шагов
+ * и расход ГПСЧ те же, поэтому прежние блоки выходят ДО ПОСЛЕДНЕЙ ЦИФРЫ (это сторожит эталон
+ * Flutter `n-back-reference.json`). Матч — повтор на лаге `nAt[i]`, приманка — на `nAt[i] ± 1`.
+ * После смены глубины повтор на ПРЕЖНЕМ лаге — ровно приманка: старое правило тянет
+ * ответить, а по новому это не совпадение.
+ */
+export function buildNbackSequenceVar(
+  trials: number, nAt: readonly number[], alphabet: number, rng: Rng, lureRate?: number,
+): NbackSequence {
+  const rate = lureRate ?? lureRateFor(Math.max(...nAt));
   let last: NbackSequence | null = null;
   for (let attempt = 0; attempt < 40; attempt++) {
-    const built = buildOnce(trials, n, alphabet, rng, lureRate);
+    const built = buildOnce(trials, nAt, alphabet, rng, rate);
     last = built;
-    if (countMatches(built.items, n) === built.matchAt.length
-      && countLures(built.items, n) === built.lureAt.length) return built;
+    if (countMatchesVar(built.items, nAt) === built.matchAt.length
+      && countLuresVar(built.items, nAt) === built.lureAt.length) return built;
   }
   return last as NbackSequence;
 }
 
+/**
+ * План глубины партии: отрезками по `switchEvery` проб глубина чередуется `n`, `n − 1`, `n`…
+ * Без `switchEvery` — постоянная `n`, как было.
+ */
+export function nPlanFor(trials: number, n: number, switchEvery?: number): number[] {
+  if (!switchEvery || n < 2) return new Array(trials).fill(n);
+  return Array.from({ length: trials }, (_, i) => (Math.floor(i / switchEvery) % 2 === 0 ? n : n - 1));
+}
+
 function buildOnce(
-  trials: number, n: number, alphabet: number, rng: Rng, lureRate?: number,
+  trials: number, nAt: readonly number[], alphabet: number, rng: Rng, lureRate: number,
 ): NbackSequence {
   const items: number[] = new Array(trials).fill(-1);
 
@@ -125,10 +151,10 @@ function buildOnce(
    * с большой глубиной доля выходила бы заниженной молча.
    */
   const eligible: number[] = [];
-  for (let i = n; i < trials; i++) eligible.push(i);
+  for (let i = 0; i < trials; i++) if (i >= nAt[i]) eligible.push(i);
 
   const matchCount = Math.round(eligible.length * MATCH_RATE);
-  const lureCount = Math.round(eligible.length * (lureRate ?? lureRateFor(n)));
+  const lureCount = Math.round(eligible.length * lureRate);
 
   const shuffled = shuffle(rng, eligible);
   const matchAt = shuffled.slice(0, matchCount).sort((a, b) => a - b);
@@ -143,6 +169,7 @@ function buildOnce(
   const isLure = new Set(lureAt);
 
   for (let i = 0; i < trials; i++) {
+    const n = nAt[i];
     if (isMatch.has(i)) { items[i] = items[i - n]; continue; }
 
     /**
@@ -189,15 +216,26 @@ function buildOnce(
 
 /** Настоящее число совпадений в готовой последовательности — для проверок. */
 export function countMatches(items: readonly number[], n: number): number {
+  return countMatchesVar(items, new Array(items.length).fill(n));
+}
+
+/** То же для глубины на каждую позицию. */
+export function countMatchesVar(items: readonly number[], nAt: readonly number[]): number {
   let c = 0;
-  for (let i = n; i < items.length; i++) if (items[i] === items[i - n]) c += 1;
+  for (let i = 0; i < items.length; i++) if (i >= nAt[i] && items[i] === items[i - nAt[i]]) c += 1;
   return c;
 }
 
 /** Настоящее число луров: повтор на лаге n±1, не являющийся матчем. */
 export function countLures(items: readonly number[], n: number): number {
+  return countLuresVar(items, new Array(items.length).fill(n));
+}
+
+/** То же для глубины на каждую позицию: лаги `nAt[i] ± 1`. */
+export function countLuresVar(items: readonly number[], nAt: readonly number[]): number {
   let c = 0;
   for (let i = 0; i < items.length; i++) {
+    const n = nAt[i];
     if (i - n >= 0 && items[i] === items[i - n]) continue;   // это матч, не лур
     for (const lag of [n - 1, n + 1]) {
       if (lag > 0 && i - lag >= 0 && items[i] === items[i - lag]) { c += 1; break; }

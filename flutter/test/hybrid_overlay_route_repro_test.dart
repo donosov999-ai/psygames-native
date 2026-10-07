@@ -30,6 +30,8 @@ class FakeWebViewPlatform extends wv.WebViewPlatform {
 class FakeController extends wv.PlatformWebViewController {
   FakeController(super.params) : super.implementation();
   final channels = <String, void Function(wv.JavaScriptMessage)>{};
+  /// Что оболочка выполнила в странице — для проб перехода зарядки (`goTo`, `stop`).
+  final js = <String>[];
   void emit(String channel, Map<String, Object?> message) => channels[channel]?.call(wv.JavaScriptMessage(message: jsonEncode(message)));
   @override Future<void> setJavaScriptMode(wv.JavaScriptMode mode) async {}
   @override Future<void> addJavaScriptChannel(wv.JavaScriptChannelParams p) async { channels[p.name] = p.onMessageReceived; }
@@ -39,7 +41,7 @@ class FakeController extends wv.PlatformWebViewController {
   @override Future<void> loadRequest(wv.LoadRequestParams params) async {}
   @override Future<void> clearCache() async {}
   @override Future<void> clearLocalStorage() async {}
-  @override Future<void> runJavaScript(String js) async {}
+  @override Future<void> runJavaScript(String js) async => this.js.add(js);
   @override Future<Object> runJavaScriptReturningResult(String js) async => 'null';
 }
 

@@ -42,7 +42,6 @@ import 'breath_cues.dart';
 import 'breathing.dart';
 import 'eye_gym.dart';
 import 'practice_haptics.dart';
-import 'stage.dart';
 
 /// Каталог практик из ассета. Пробы подают свой — из файла, без `rootBundle`.
 Future<Practices> loadPauseCatalog([AssetBundle? bundle]) async =>
