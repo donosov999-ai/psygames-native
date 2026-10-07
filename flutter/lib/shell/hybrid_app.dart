@@ -154,6 +154,15 @@ import 'warmup_screens.dart';
 /// Прогресс общий: [SharedState] вливает снимок в страницу до её кода и ловит
 /// каждую запись обратно.
 class HybridApp extends StatefulWidget {
+  /// Скрипт страницы: дождаться адреса [path] (не дольше 60 кадров), ещё два кадра — и сказать
+  /// оболочке `painted`. Адрес сверяется так же, как в [_onPagePath]: без `.html` и `/index`.
+  static String paintedScript(int gen, String path) =>
+      '(function(){var g=$gen,p=${jsonEncode(path)},n=0;'
+      'var post=function(){try{window.${SharedState.channel}.postMessage(JSON.stringify({op:"painted",gen:g}));}catch(e){}};'
+      'var here=function(){var x=location.pathname.replace(/\\.html\$/,"").replace(/\\/index\$/,"");return x||"/";};'
+      'var wait=function(){if(here()!==p&&n++<60){requestAnimationFrame(wait);return;}'
+      'requestAnimationFrame(function(){requestAnimationFrame(post);});};wait();})();';
+
   const HybridApp({super.key, required this.state, required this.server});
 
   final SharedState state;
@@ -630,6 +639,7 @@ class _HybridAppState extends State<HybridApp> {
     final search = tab == null ? null : uri.queryParameters['search'];
     final hubsOnly = tab == '/games' && uri.queryParameters['filter'] == 'hubs';
     if (!mounted) return tab != null;
+    final before = _shownIndex();
     setState(() {
       _pagePath = path;
       _nativeTab = tab;
@@ -646,8 +656,52 @@ class _HybridAppState extends State<HybridApp> {
         _catalogGen++;
       }
     });
+    _holdUntilPainted(before, path);
     return tab != null;
   }
+
+  /*
+   * 🔴 БЕЗ ПРЫЖКА С НАТИВНОГО ЭКРАНА НА СТРАНИЦУ (Денис 07.10.2026: «то веб-вью, то флаттер — перескакивает»).
+   *
+   * Замер на эмуляторе 07.10, Главная → «Питомец», запись экрана 20 кадров/с: после нажатия 2 кадра
+   * показывали СТАРЫЙ кадр страницы (питомец с прошлого визита), 3 кадра — веб-Главную, и только потом
+   * новый экран. Две причины:
+   *   · страница под нативным экраном не рисовалась (IndexedStack её не показывает), и, открывшись,
+   *     WebView отдавал последний кадр, снятый до ухода;
+   *   · тело переключалось на страницу СРАЗУ, а веб рисует новый адрес на кадр-другой позже.
+   * Поэтому страница теперь всегда стоит под нативным слоем и рисуется (слой — сверху, непрозрачный и
+   * забирает касания), а уход с нативного экрана на страницу ждёт, пока она нарисует новый адрес:
+   * скрипт в странице дожидается адреса и двух кадров и шлёт `painted`. Ответа нет за [_holdMax] —
+   * открываем всё равно: прежний экран дольше держать хуже, чем мигнуть.
+   */
+  int? _holdIndex;
+  int _holdGen = 0;
+  Timer? _holdTimer;
+  static const _holdMax = Duration(milliseconds: 700);
+
+  /// Что тело показывает СЕЙЧАС: пока страница рисует новый адрес — прежний нативный экран.
+  int _shownIndex() => _holdIndex ?? _bodyIndex();
+
+  /// Тело ушло с нативного экрана [before] на страницу — держать его до `painted` от страницы.
+  void _holdUntilPainted(int before, String path) {
+    final next = _bodyIndex();
+    if (next != 0 || before == 0) {
+      if (_holdIndex != null) _release(_holdGen);
+      return;
+    }
+    final gen = ++_holdGen;
+    setState(() => _holdIndex = before);
+    _holdTimer?.cancel();
+    _holdTimer = Timer(_holdMax, () => _release(gen));
+    unawaited(_c.runJavaScript(HybridApp.paintedScript(gen, path)).catchError((Object _) => _release(gen)));
+  }
+
+  void _release(Object? gen) {
+    if (gen != _holdGen || _holdIndex == null || !mounted) return;
+    _holdTimer?.cancel();
+    setState(() => _holdIndex = null);
+  }
+
 
   /// Нативные вкладки в порядке детей тела после страницы (индекс 0 — страница).
   static const _bodyTabs = [
@@ -716,7 +770,9 @@ class _HybridAppState extends State<HybridApp> {
     if (Uri.parse(route).hasQuery) {
       _onPagePath('${widget.server.origin}$route');
     } else {
+      final before = _shownIndex();
       setState(() => _nativeTab = NativeTabs.native.contains(route) ? route : null);
+      _holdUntilPainted(before, route);
     }
     final target = jsonEncode(route);
     final full = jsonEncode('${widget.server.origin}$route');
@@ -771,6 +827,11 @@ class _HybridAppState extends State<HybridApp> {
       if (PetBridge.accept(m)) return;
       // Модель главного экрана, который рисуем мы (`screen_ui.dart`, `hostScreens.ts`).
       if (ScreenUi.accept(m)) return;
+      // Страница нарисовала новый адрес — прежний нативный экран можно снять (см. [_holdUntilPainted]).
+      if (m is Map && m['op'] == 'painted') {
+        _release(m['gen']);
+        return;
+      }
       if (m is Map && m['op'] == 'warmupStepDone') {
         unawaited(_warmupStepDone(Map<String, Object?>.from(m)));
         return;
@@ -969,6 +1030,7 @@ class _HybridAppState extends State<HybridApp> {
     for (final t in _modelTimers.values) {
       t.cancel();
     }
+    _holdTimer?.cancel();
     PetBridge.probe = null;
     // Хук снимается вместе с хостом: оставленный, он звал бы мёртвый WebView.
     if (HybridApp.open == _open) HybridApp.open = null;
@@ -1284,20 +1346,38 @@ class _HybridAppState extends State<HybridApp> {
   Widget build(BuildContext context) {
     final path = _nativeTab ?? _pagePath;
     final bar = _tabsReady && NativeTabs.barVisible(path);
+    final shown = _shownIndex();
     final scaffold = Scaffold(
       // Полоса под часами и фон вкладки — `colors.background` веба, а не цвет семени Material.
       backgroundColor: WebTheme.of(context).background,
       body: SafeArea(
         bottom: !bar,
-        child: IndexedStack(
-          index: _bodyIndex(),
+        child: Stack(
+          fit: StackFit.expand,
           children: [
-            Stack(
+          // Страница — всегда под нативным слоем и всегда рисуется (см. [_holdUntilPainted]); чтец экрана
+          // её не видит, пока она закрыта.
+          ExcludeSemantics(
+            excluding: shown != 0,
+            child: Stack(
               children: [
                 WebViewWidget(controller: _c),
                 if (_loading) const Center(child: CircularProgressIndicator()),
               ],
             ),
+          ),
+          Offstage(
+            offstage: shown == 0,
+            // Слой непрозрачный и забирает касания целиком: страница под ним не должна ни
+            // просвечивать, ни ловить нажатия мимо нативных кнопок.
+            child: Listener(
+              key: const ValueKey('native-cover'),
+              behavior: HitTestBehavior.opaque,
+              child: ColoredBox(
+                color: WebTheme.of(context).background,
+                child: IndexedStack(
+          index: shown == 0 ? 0 : shown - 1,
+          children: [
             // Главная по модели веба (7c88c0b8): страница под ней на «/» считает, мы рисуем.
             HomeAccent(
               color: WebTheme.accent(widget.state),
@@ -1307,7 +1387,7 @@ class _HybridAppState extends State<HybridApp> {
                 onOpen: _openFromCatalog,
                 onTab: _selectTab,
                 onSwitcher: _openSwitcher,
-                active: _bodyIndex() == 1,
+                active: shown == 1,
               ),
             ),
             // Вкладка «Игры» живёт рядом со страницей, а не поверх неё: поиск и фильтр
@@ -1337,6 +1417,11 @@ class _HybridAppState extends State<HybridApp> {
             const LeaguesScreen(),
             // «Друзья» (7bb8035b) — страница по модели; сервер круга держит веб.
             const FriendsScreen(),
+          ],
+                ),
+              ),
+            ),
+          ),
           ],
         ),
       ),
