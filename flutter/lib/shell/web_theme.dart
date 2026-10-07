@@ -103,6 +103,27 @@ class WebTheme {
     return WebColors.hex(profileAccents[profile] ?? fallbackAccent);
   }
 
+  /// УМОЛЧАНИЯ ТЕКСТА ВЕБА для экранов, которые рисует оболочка.
+  ///
+  /// 📍 Пара кадров 07.10.2026: нативный текст выходил шире веба на ту же строку — «Ещё ⭐135 — и
+  /// новая фигурка · собрано 0/12» переносился на вторую строку, и вся лента Главной съезжала вниз.
+  /// Причина — умолчания Material 3: межбуквенный 0,25 и межстрочный 1,43; у React Native — 0 и
+  /// «normal» (метрики шрифта). Здесь ставятся умолчания веба: размер 14, цвет `text`, межбуквенный
+  /// 0, межстрочный — по шрифту. Явные стили экранов поверх них работают как раньше.
+  static Widget textDefaults(BuildContext context, Widget child) {
+    final base = Theme.of(context).textTheme.bodyMedium;
+    return DefaultTextStyle(
+      style: TextStyle(
+        fontFamily: base?.fontFamily,
+        fontFamilyFallback: base?.fontFamilyFallback,
+        fontSize: 14,
+        letterSpacing: 0,
+        color: of(context).text,
+      ),
+      child: child,
+    );
+  }
+
   /// Текст поля: размер у веба не задан — берётся 14 по умолчанию React Native, цвет `text`.
   /// ⚠️ Через тему, а не голым TextStyle: голый затирает семейство шрифта темы (кадр 07.10 —
   /// значение фильтра квадратами).

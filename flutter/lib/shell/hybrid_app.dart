@@ -88,6 +88,9 @@ import '../games/pause/screen.dart';
 import 'asset_server.dart';
 import 'l10n.dart';
 import 'feedback_fab.dart';
+import 'home_screen.dart';
+import 'profile_switcher.dart';
+import 'screen_ui.dart';
 import 'native_tabs.dart';
 import 'walking_pet.dart';
 import 'web_theme.dart';
@@ -625,6 +628,40 @@ class _HybridAppState extends State<HybridApp> {
     return tab != null;
   }
 
+  /// Нативные вкладки в порядке детей тела после страницы (индекс 0 — страница).
+  static const _bodyTabs = [HomeScreen.route, '/games'];
+
+  /// Что показывает тело: страницу (0) или нативную вкладку.
+  ///
+  /// ⚠️ Главная рисуется по модели страницы. Пока модели нет — экран ждёт со значком
+  /// загрузки; не пришла за [_modelWait] (старая вложенная сборка, сбой страницы) — показываем саму
+  /// страницу: веб-экран лучше пустого.
+  int _bodyIndex() {
+    final tab = _nativeTab;
+    if (tab == null) return 0;
+    final i = _bodyTabs.indexOf(tab) + 1;
+    if (i == 0) return 0;
+    if (!ScreenUi.routes.contains(tab) || ScreenUi.model(tab).value != null) return i;
+    _modelTimers[tab] ??= Timer(_modelWait, () {
+      if (mounted) setState(() => _modelGaveUp.add(tab));
+    });
+    return _modelGaveUp.contains(tab) ? 0 : i;
+  }
+
+  static const _modelWait = Duration(seconds: 6);
+  final _modelTimers = <String, Timer>{};
+  final _modelGaveUp = <String>{};
+
+  void _onScreenModel() {
+    if (!mounted) return;
+    final came = {for (final r in _modelGaveUp) if (ScreenUi.model(r).value != null) r};
+    if (came.isEmpty) return;
+    setState(() => _modelGaveUp.removeAll(came));
+  }
+
+  /// Чип профиля на нативной Главной — нативный переключатель профилей (5b3513bd).
+  void _openSwitcher() => openProfileSwitcher(context, widget.server.origin);
+
   /// Нажатие на нижнюю вкладку: тело переключается сразу, страница уводится `router.replace`.
   Future<void> _selectTab(String route) async {
     setState(() => _nativeTab = NativeTabs.native.contains(route) ? route : null);
@@ -679,6 +716,8 @@ class _HybridAppState extends State<HybridApp> {
       if (WarmupUi.accept(m)) return;
       // Ответ веб-питомца нативному гуляке (`walking_pet.dart`).
       if (PetBridge.accept(m)) return;
+      // Модель главного экрана, который рисуем мы (`screen_ui.dart`, `hostScreens.ts`).
+      if (ScreenUi.accept(m)) return;
       if (m is Map && m['op'] == 'warmupStepDone') {
         unawaited(_warmupStepDone(Map<String, Object?>.from(m)));
         return;
@@ -846,6 +885,10 @@ class _HybridAppState extends State<HybridApp> {
     HybridApp.runJs = _runJs;
     WarmupUi.run = _runUi;
     PetBridge.run = (js) => _c.runJavaScript(js);
+    ScreenUi.run = (js) => _c.runJavaScript(js);
+    for (final r in _bodyTabs) {
+      ScreenUi.model(r).addListener(_onScreenModel);
+    }
     PetBridge.probe = _runJs;
     // Перенесённая игра по START_ROUTE: перехват на первой загрузке не срабатывает
     // (это не переход, а первый адрес), поэтому открываем нативный экран сами.
@@ -863,6 +906,13 @@ class _HybridAppState extends State<HybridApp> {
     GameExit.home = null;
     GameExit.feedback = null;
     PetBridge.run = null;
+    ScreenUi.run = null;
+    for (final r in _bodyTabs) {
+      ScreenUi.model(r).removeListener(_onScreenModel);
+    }
+    for (final t in _modelTimers.values) {
+      t.cancel();
+    }
     PetBridge.probe = null;
     // Хук снимается вместе с хостом: оставленный, он звал бы мёртвый WebView.
     if (HybridApp.open == _open) HybridApp.open = null;
@@ -939,7 +989,9 @@ class _HybridAppState extends State<HybridApp> {
         // Полосой владеет оболочка — веб свою не рисует (`BottomTabBar.tsx`).
         'window.__psyNativeTabs=true;'
         // На этих вкладках гуляет питомец оболочки — веб своего прячет (`WalkingPet.tsx`).
-        'window.__psyNativeTabRoutes=${jsonEncode(NativeTabs.native.toList())};';
+        'window.__psyNativeTabRoutes=${jsonEncode(NativeTabs.native.toList())};'
+        // Эти экраны рисуем по модели — веб-экран под нами отдаёт её (`hostScreens.ts`).
+        'window.__psyHostScreens=${jsonEncode(ScreenUi.routes.toList())};';
   }
 
   Future<void> _loadStepInfo(ValueNotifier<WarmupStepInfo?> into) async {
@@ -1111,6 +1163,10 @@ class _HybridAppState extends State<HybridApp> {
     // Вернулись из нативной игры — страница обязана перечитать прогресс,
     // иначе на карте уровней останется старое число.
     if (mounted) await _c.runJavaScript(widget.state.bootstrapJs());
+    // Под игрой стояла Главная по модели — страница под ней фокуса не теряла и сама не
+    // перечитает «Сегодня», монеты и рекомендации; просим (`refresh`, `app/index.tsx`).
+    final tab = _nativeTab;
+    if (mounted && tab != null && ScreenUi.routes.contains(tab)) await ScreenUi.act(tab, 'refresh');
     /*
      * 🔴 РАЗВИЛКА ВЕРНУЛА ВЫБРАННЫЙ МАРШРУТ. Перенесённую игру открываем
      * нативно, остальные — в веб-половине: хаб про это ничего не знает и знать
@@ -1158,13 +1214,24 @@ class _HybridAppState extends State<HybridApp> {
       body: SafeArea(
         bottom: !bar,
         child: IndexedStack(
-          index: _nativeTab == null ? 0 : 1,
+          index: _bodyIndex(),
           children: [
             Stack(
               children: [
                 WebViewWidget(controller: _c),
                 if (_loading) const Center(child: CircularProgressIndicator()),
               ],
+            ),
+            // Главная по модели веба (7c88c0b8): страница под ней на «/» считает, мы рисуем.
+            HomeAccent(
+              color: WebTheme.accent(widget.state),
+              child: HomeScreen(
+                state: widget.state,
+                origin: widget.server.origin,
+                onOpen: _openFromCatalog,
+                onTab: _selectTab,
+                onSwitcher: _openSwitcher,
+              ),
             ),
             // Вкладка «Игры» живёт рядом со страницей, а не поверх неё: поиск и фильтр
             // переживают уход на другую вкладку и игру (99628ecf, п. 6).

@@ -37,6 +37,7 @@
  "fab": {
   "size": 48,
   "bottom": 92,
+  "clearance": 156,
   "edge": 6,
   "dragThreshold": 8,
   "color": "#ef4444",

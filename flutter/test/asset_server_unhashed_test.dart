@@ -63,6 +63,8 @@ void main() {
   });
 
   test('живой сервер отдаёт картинку питомца по имени без хеша (если веб вложен)', () async {
+    // ⚠️ flutter_test глушит сеть заглушкой (ответ 400 на всё) — до сервера запрос бы не дошёл.
+    HttpOverrides.global = null;
     final server = await AssetServer.start();
     addTearDown(server.stop);
     if (!await server.has('index.html')) {

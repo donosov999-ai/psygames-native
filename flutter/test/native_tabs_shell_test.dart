@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -7,6 +8,8 @@ import 'package:psygames_flutter/games/one_line/screen.dart';
 import 'package:psygames_flutter/shell/asset_server.dart';
 import 'package:psygames_flutter/shell/catalog_screen.dart';
 import 'package:psygames_flutter/shell/feedback_fab.dart';
+import 'package:psygames_flutter/shell/home_screen.dart';
+import 'package:psygames_flutter/shell/screen_ui.dart';
 import 'package:psygames_flutter/shell/game_rules.dart';
 import 'package:psygames_flutter/shell/hybrid_app.dart';
 import 'package:psygames_flutter/shell/level_rules.dart';
@@ -124,6 +127,7 @@ void main() {
   setUp(() async {
     resetHarnessSingletons();
     PetBridge.reset();
+    ScreenUi.reset();
     WalkingPet.lastX = null;
     WalkingPet.randomForTest = null;
     SharedPreferences.setMockInitialValues({});
@@ -469,6 +473,62 @@ void main() {
     expect(t.getRect(find.byKey(const ValueKey('walking-pet'))).left, x0, reason: 'место колонки не меняется — не ходит');
     expect(find.byKey(const ValueKey('pet-frames-walk')), findsNothing);
     expect((t.widget<Opacity>(find.descendant(of: find.byKey(const ValueKey('pet-frames-idle')), matching: find.byType(Opacity)).first)).opacity, img0);
+  });
+
+  Map<String, Object?> homeModel() =>
+      (jsonDecode(File('test/fixtures/home_model_ru.json').readAsStringSync()) as Map).cast<String, Object?>()..['goalSheet'] = null;
+
+  testWidgets('🔴 «/» от страницы — нативная Главная; рисуется, как только пришла модель', (t) async {
+    await mount(t);
+    web.delegates.first.finished!('${server.origin}/'); // загрузка документа: скрипт хоста + выбор вкладки
+    await t.pump();
+    expect(find.byKey(const ValueKey('home-loading')), findsOneWidget, reason: 'модели ещё нет — ждём, а не пустота');
+    expect(find.byType(NativeTabBar), findsOneWidget);
+    page().emit(SharedState.channel, {'op': 'screenUi', 'route': '/', 'model': homeModel()});
+    await settle(t, () => find.byKey(const ValueKey('home-header')).evaluate().isNotEmpty);
+    expect(find.byKey(const ValueKey('home-header')), findsOneWidget);
+    expect(t.widget<NativeTabBar>(find.byType(NativeTabBar)).active, '/');
+    expect(page().js.any((s) => s.contains('window.__psyHostScreens=["/","#switcher"]')), isTrue,
+        reason: 'веб узнаёт, какие экраны рисуем мы');
+    // Вкладка «Игры» и назад — Главная та же, модель жива.
+    await toGames(t);
+    await t.tap(find.byKey(const ValueKey('native-tab-/')));
+    await t.pump();
+    expect(find.byKey(const ValueKey('home-header')), findsOneWidget);
+    expect(page().js.any((s) => s.contains('__psyReplace("/")')), isTrue);
+  });
+
+  testWidgets('🔴 модель не пришла за 6 с — показываем саму страницу, а не вечную загрузку', (t) async {
+    await mount(t);
+    await route(t, '/');
+    await t.pump(const Duration(seconds: 7));
+    await t.pump();
+    expect(find.byType(WebViewWidget), findsOneWidget, reason: 'страница видна (не за сценой)');
+    expect(find.byKey(const ValueKey('home-loading')), findsNothing);
+    page().emit(SharedState.channel, {'op': 'screenUi', 'route': '/', 'model': homeModel()});
+    await settle(t, () => find.byKey(const ValueKey('home-header')).evaluate().isNotEmpty);
+    expect(find.byKey(const ValueKey('home-header')), findsOneWidget, reason: 'модель пришла — снова нативная');
+  });
+
+  testWidgets('🔴 после игры поверх Главная просит веб перечитать «Сегодня» и монеты', (t) async {
+    await mount(t);
+    await route(t, '/');
+    page().emit(SharedState.channel, {'op': 'screenUi', 'route': '/', 'model': homeModel()});
+    await settle(t, () => find.byKey(const ValueKey('home-header')).evaluate().isNotEmpty);
+    page().js.clear();
+    // Игра с карточки Главной — нативно поверх; страница под ней остаётся на «/».
+    await t.scrollUntilVisible(find.byKey(const ValueKey('home-card-schulte_table')), 200,
+        scrollable: find.descendant(of: find.byKey(const ValueKey('home-list')), matching: find.byType(Scrollable)).first);
+    await t.ensureVisible(find.byKey(const ValueKey('home-card-schulte_table')));
+    await t.pump();
+    await t.tap(find.byKey(const ValueKey('home-card-schulte_table')));
+    for (var i = 0; i < 10; i++) {
+      await t.pump(const Duration(milliseconds: 100));
+    }
+    expect(find.byType(HomeScreen).hitTestable(), findsNothing, reason: 'игра легла поверх');
+    Navigator.of(t.element(find.byType(NativeTabBar, skipOffstage: false))).pop();
+    await settle(t, () => page().js.any((s) => s.contains('["/"].refresh(')));
+    expect(page().js.any((s) => s.contains('["/"].refresh(')), isTrue);
   });
 }
 

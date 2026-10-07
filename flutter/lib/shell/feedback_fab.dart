@@ -22,6 +22,9 @@ class FabRules {
 
   static double size = 48;
   static double bottom = 92;
+
+  /// Сколько места снизу занято кнопкой, питомцем и полосой — отступ низа ленты (`FAB_CLEARANCE`).
+  static double clearance = 156;
   static double edge = 6;
   static double dragThreshold = 8;
   static Color color = const Color(0xFFEF4444);
@@ -35,6 +38,7 @@ class FabRules {
     if (j == null) return;
     size = (j['size'] as num).toDouble();
     bottom = (j['bottom'] as num).toDouble();
+    clearance = (j['clearance'] as num?)?.toDouble() ?? clearance;
     edge = (j['edge'] as num).toDouble();
     dragThreshold = (j['dragThreshold'] as num).toDouble();
     color = _hex(j['color'] as String);

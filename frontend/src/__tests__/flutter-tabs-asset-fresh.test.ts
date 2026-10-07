@@ -1,4 +1,4 @@
-/* psygames-flutter-tabs-asset-fresh · VER 2 · 07.10.2026 */
+/* psygames-flutter-tabs-asset-fresh · VER 3 · 07.10.2026 */
 /**
  * ПРАВИЛА НИЖНЕЙ ПОЛОСЫ ДЛЯ НАТИВНОЙ ОБОЛОЧКИ — ВЫГРУЗКОЙ ИЗ ЖИВОГО TS (задача 5136754e).
  *
@@ -14,7 +14,7 @@
  *   WRITE=1 npx jest -i --runTestsByPath src/__tests__/flutter-tabs-asset-fresh.test.ts
  */
 import { TABS, NO_TAB_BAR_PREFIXES, TAB_BAR_H, tabBarVisible } from '@/src/services/tabBar';
-import { FAB_SIZE, FAB_BOTTOM, EDGE, DRAG_THRESHOLD, FAB_SPOT_KEY, FAB_COLOR } from '@/src/services/fabPosition';
+import { FAB_SIZE, FAB_BOTTOM, FAB_CLEARANCE, EDGE, DRAG_THRESHOLD, FAB_SPOT_KEY, FAB_COLOR } from '@/src/services/fabPosition';
 import { textOn } from '@/src/services/onGradientText';
 import { DEVCHAT_KEY } from '@/src/services/appFeedback';
 
@@ -27,7 +27,7 @@ const OUT = path.resolve(__dirname, '../../../flutter/assets/tabs.json');
 
 function build(): string {
   const fab = {
-    size: FAB_SIZE, bottom: FAB_BOTTOM, edge: EDGE, dragThreshold: DRAG_THRESHOLD,
+    size: FAB_SIZE, bottom: FAB_BOTTOM, clearance: FAB_CLEARANCE, edge: EDGE, dragThreshold: DRAG_THRESHOLD,
     color: FAB_COLOR, iconColor: textOn(FAB_COLOR), spotKey: FAB_SPOT_KEY, visibleKey: DEVCHAT_KEY,
   };
   return `${JSON.stringify({ height: TAB_BAR_H, tabs: TABS, noBar: NO_TAB_BAR_PREFIXES, fab }, null, 1)}\n`;

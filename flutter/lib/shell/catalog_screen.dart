@@ -1,9 +1,7 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show rootBundle;
 
 import 'catalog.dart';
+import 'catalog_kit.dart';
 import 'game_tile.dart';
 import 'hub_screen.dart';
 import 'l10n.dart';
@@ -50,20 +48,9 @@ class CatalogScreen extends StatefulWidget {
   State<CatalogScreen> createState() => _CatalogScreenState();
 }
 
-/// Значки разделов (`CATEGORY_META.icon`, Ionicons) → Material.
-const _categoryIcons = <String, IconData>{
-  'library-outline': Icons.menu_book_outlined,
-  'eye-outline': Icons.visibility_outlined,
-  'extension-puzzle-outline': Icons.extension_outlined,
-  'sparkles-outline': Icons.auto_awesome_outlined,
-  'flash-outline': Icons.flash_on_outlined,
-  'flower-outline': Icons.local_florist_outlined,
-};
-
 class _CatalogScreenState extends State<CatalogScreen> {
-  Catalog? _catalog;
-  Map<String, dynamic> _icons = const {};
-  Map<String, dynamic> _hubs = const {};
+  CatalogKit? _kit;
+  Catalog? get _catalog => _kit?.catalog;
   String _query = '';
   CatalogFilter? _filter;
   final _search = TextEditingController();
@@ -87,69 +74,15 @@ class _CatalogScreenState extends State<CatalogScreen> {
     super.dispose();
   }
 
-  Future<Map<String, dynamic>> _json(String path) async {
-    final b = await rootBundle.load(path);
-    return jsonDecode(utf8.decode(b.buffer.asUint8List(b.offsetInBytes, b.lengthInBytes))) as Map<String, dynamic>;
-  }
-
   Future<void> _boot() async {
-    final catalog = widget.catalog ?? await Catalog.load();
-    var icons = const <String, dynamic>{};
-    var hubs = const <String, dynamic>{};
-    try {
-      icons = await _json('assets/game_icons/index.json');
-    } catch (_) {
-      // Нет карты иконок — плитки с глифом, каталог работает.
-    }
-    try {
-      hubs = await _json('assets/hubs.json');
-    } catch (_) {
-      // Нет состава — число на развилке не показываем.
-    }
+    final kit = await CatalogKit.load(catalog: widget.catalog);
     if (!mounted) return;
-    setState(() {
-      _catalog = catalog;
-      _icons = icons;
-      _hubs = hubs;
-    });
+    setState(() => _kit = kit);
   }
 
-  /// Видимое профилю: список веба, если посчитан для ТЕКУЩЕГО профиля; иначе — всё, что не
-  /// спрятано из меню (пустой каталог хуже лишней строки, как и в [HubScreen]).
-  ({Set<String>? games, Map<String, int> hubCount}) _visible() {
-    final counts = <String, int>{
-      for (final e in ((_hubs['hubs'] as Map<String, dynamic>?) ?? const {}).entries) e.key: (e.value as List).length,
-    };
-    final raw = widget.state.get(HubScreen.visibleKey);
-    if (raw == null || raw.isEmpty) return (games: null, hubCount: counts);
-    try {
-      final o = jsonDecode(raw) as Map<String, dynamic>;
-      if (o['profile'] != widget.state.activeProfile) return (games: null, hubCount: counts);
-      for (final e in ((o['hubs'] as Map<String, dynamic>?) ?? const {}).entries) {
-        counts[e.key] = (e.value as List).length;
-      }
-      final list = o['catalog'] as List?;
-      return (games: list?.cast<String>().toSet(), hubCount: counts);
-    } catch (_) {
-      return (games: null, hubCount: counts);
-    }
-  }
+  ({Set<String>? games, Map<String, int> hubCount}) _visible() => _kit!.visible(widget.state);
 
-  /// Пройдено уровней — как `useAllLevelStars` веба: ключ `psygames_<игра>_stars_<профиль>`,
-  /// карта «уровень → звёзды», считаются уровни со звёздами больше нуля.
-  int _starsCompleted(String id) {
-    final raw = widget.state.get('psygames_${id}_stars_${widget.state.activeProfile}');
-    if (raw == null || raw.isEmpty) return 0;
-    try {
-      final m = jsonDecode(raw) as Map<String, dynamic>;
-      return m.values.where((v) => v is num && v > 0).length;
-    } catch (_) {
-      return 0;
-    }
-  }
-
-  String? _iconFile(CatalogEntry e) =>
-      ((_icons['byNameKey'] as Map?)?[e.nameKey] ?? (_icons['byRoute'] as Map?)?[e.route]) as String?;
+  String? _iconFile(CatalogEntry e) => _kit!.iconFile(e);
 
   void _open(CatalogEntry e) {
     final open = widget.onOpen;
@@ -212,7 +145,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
             ],
           );
     // Вкладка без своего Scaffold — поле ввода всё равно обязано стоять на Material.
-    if (widget.embedded) return Material(color: web.background, child: body);
+    if (widget.embedded) return Material(color: web.background, child: WebTheme.textDefaults(context, body));
     return Scaffold(appBar: AppBar(title: Text(L.t('tabGames'))), body: body);
   }
 
@@ -280,56 +213,15 @@ class _CatalogScreenState extends State<CatalogScreen> {
     );
   }
 
-  /// Сетка веба: `repeat(auto-fill, minmax(150px | 170px, 1fr))`, зазор 10, высота = ширина × 1,06.
-  Widget _grid(List<CatalogEntry> games, Map<String, int> hubCount) => LayoutBuilder(builder: (context, box) {
-        const gap = 10.0;
-        final minTile = MediaQuery.sizeOf(context).width < 480 ? 150.0 : 170.0;
-        final cols = ((box.maxWidth + gap) / (minTile + gap)).floor().clamp(1, 6);
-        final w = (box.maxWidth - gap * (cols - 1)) / cols;
-        return Wrap(spacing: gap, runSpacing: gap, children: [
-          for (final g in games)
-            SizedBox(
-              key: ValueKey('catalog-tile-${g.route}'),
-              width: w,
-              height: w * 1.06,
-              child: GameTile(
-                title: g.name,
-                description: g.desc,
-                skill: g.skillKey == null ? '' : L.t(g.skillKey!),
-                gradient: g.gradient.length >= 2 ? g.gradient : const [Color(0xFF667EEA), Color(0xFF764BA2)],
-                look: g.look ?? TileLook.fallback,
-                iconFile: _iconFile(g),
-                glyph: hubIcon(g.icon),
-                thumbFile: g.thumb,
-                thumbOpacity: g.thumbOpacity,
-                hubCount: g.hub ? hubCount[g.route] : null,
-                starsCompleted: g.id == null ? 0 : _starsCompleted(g.id!),
-                onTap: () => _open(g),
-              ),
-            ),
-        ]);
-      });
+  /// Сетка веба — общая с Главной ([CatalogKit.grid]).
+  Widget _grid(List<CatalogEntry> games, Map<String, int> hubCount) => CatalogKit.grid(
+        context,
+        [for (final g in games) (_) => _kit!.tile(widget.state, g, hubCount: hubCount, onTap: () => _open(g))],
+        keys: [for (final g in games) ValueKey('catalog-tile-${g.route}')],
+      );
 
-  Widget _sectionHeader(CatalogCategory cat, int count) {
-    final web = WebTheme.of(context);
-    final color = Color(cat.color);
-    // Как `CategorySections` (styles.sectionHeader): черта 4×18, значок 20, название 17/700, число 13/600.
-    return Padding(
-      key: ValueKey('catalog-section-${cat.id}'),
-      padding: const EdgeInsets.only(left: 4, bottom: 12),
-      child: Row(children: [
-        Container(width: 4, height: 18, decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(2))),
-        const SizedBox(width: 8),
-        Icon(_categoryIcons[cat.icon] ?? Icons.apps, size: 20, color: color),
-        const SizedBox(width: 8),
-        Expanded(
-            child:
-                Text(cat.title, style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: web.text))),
-        // Число — сколько в разделе всего, как в веб-вкладке.
-        Text('$count', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: web.textSecondary)),
-      ]),
-    );
-  }
+  Widget _sectionHeader(CatalogCategory cat, int count) =>
+      CatalogKit.sectionHeader(context, cat, count, key: ValueKey('catalog-section-${cat.id}'));
 
   /// Поиск или фильтр — строки найденного по алфавиту, по ВСЕМ играм, в том же окне.
   Widget _flat(Catalog c) {

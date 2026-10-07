@@ -91,6 +91,14 @@ flutter:
   # the material Icons class.
   uses-material-design: true
 
+  # Значки веба — ТЕМ ЖЕ шрифтом Ionicons (`@expo/vector-icons`), а не похожими Material:
+  # главные экраны переносятся без подмены рисунка (правило Дениса 4e679f41). Шрифт и таблица
+  # кодов (`lib/shell/ionicons.g.dart`) выгружаются сторожем `flutter-ionicons-fresh`.
+  fonts:
+    - family: Ionicons
+      fonts:
+        - asset: assets/fonts/Ionicons.ttf
+
   # 🔴 КАЖДЫЙ КАТАЛОГ ОБЪЯВЛЯЕТСЯ ПОИМЁННО, ВКЛЮЧАЯ ВЛОЖЕННЫЕ.
   #
   # 📍 Строка вида `- assets/words/` берёт ТОЛЬКО файлы самой папки: вложенные
