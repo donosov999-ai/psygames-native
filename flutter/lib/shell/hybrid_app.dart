@@ -1306,9 +1306,26 @@ class _HybridAppState extends State<HybridApp> {
     );
     // Кнопку отзыва на страницах рисует веб; на нативной вкладке страница скрыта вместе с ней —
     // кнопка оболочки встаёт на то же место окна.
-    // ⚠️ Корень — всегда Stack: смена корня между Scaffold и Stack при переходе по вкладкам
-    // пересоздала бы WebView вместе со страницей.
-    return Stack(children: [
+    // ⚠️ Корень — всегда Stack (под постоянной обёрткой PopScope): смена корня между Scaffold и Stack
+    // при переходе по вкладкам пересоздала бы WebView вместе со страницей.
+    //
+    // 🔴 СИСТЕМНАЯ «НАЗАД» ANDROID (живой замер на эмуляторе 07.10.2026: на календаре серии, «Прогрессе»
+    // и любой странице она закрывала приложение целиком — обработчика не было ни здесь, ни в main).
+    // Правило: на Главной — выход из приложения; на другой вкладке — на Главную; на странице — назад по
+    // её истории тем же `goBackOrHome`, что у кнопки «назад» веба (`window.__psyBack`). Игры поверх —
+    // свои маршруты Navigator, их «назад» сюда не доходит.
+    final here = _nativeTab ?? _pagePath;
+    return PopScope(
+      canPop: here == '/',
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
+        if (NativeTabs.tabs.any((t) => t.route == here)) {
+          unawaited(_selectTab('/'));
+        } else {
+          unawaited(_c.runJavaScript('window.__psyBack ? window.__psyBack() : history.back();'));
+        }
+      },
+      child: Stack(children: [
       Positioned.fill(child: scaffold),
       // Питомец страницы скрыт вместе с ней — на нативной вкладке гуляет питомец оболочки
       // (облик и реплики — у веба, мостом `__psyPet`). Ниже кнопки отзыва, как `zIndex` веба.
@@ -1322,6 +1339,7 @@ class _HybridAppState extends State<HybridApp> {
         ),
       // Кнопка отзыва веба стоит везде, кроме формы отзыва, — с полосой и без (итог оценки).
       if (_nativeTab != null) FeedbackFab(state: widget.state, onOpen: () => _openFeedback(_nativeTab!)),
-    ]);
+    ]),
+    );
   }
 }

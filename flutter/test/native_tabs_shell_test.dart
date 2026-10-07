@@ -629,6 +629,29 @@ void main() {
     expect(page().js.any((s) => s.contains('["/onboarding"].skipPicker()')), isTrue);
   });
 
+  testWidgets('🔴 системная «назад»: страница — по её истории, вкладка — на Главную, Главная — выход', (t) async {
+    // Живой замер 07.10.2026: «назад» на календаре серии закрывала приложение целиком.
+    await mount(t);
+    await route(t, '/streak-calendar');
+    page().js.clear();
+    final onPage = await t.binding.handlePopRoute();
+    await t.pump();
+    expect(onPage, isTrue, reason: 'оболочка сама обработала «назад», приложение не закрылось');
+    expect(page().js.any((s) => s.contains('__psyBack')), isTrue, reason: 'назад по истории страницы — goBackOrHome веба');
+    await route(t, '/statistics');
+    page().js.clear();
+    await t.binding.handlePopRoute();
+    await t.pump();
+    expect(page().js.any((s) => s.contains('__psyReplace("/")')), isTrue, reason: 'с вкладки — на Главную');
+    expect(active(t), '/');
+    await route(t, '/');
+    page().js.clear();
+    await t.binding.handlePopRoute();
+    await t.pump();
+    expect(page().js.where((s) => s.contains('__psyBack') || s.contains('__psyReplace')), isEmpty,
+        reason: 'на Главной «назад» не перехватываем — система закрывает приложение');
+  });
+
   testWidgets('итог оценки без модели 6 с — сама страница', (t) async {
     await mount(t);
     await route(t, '/assessment-result');
