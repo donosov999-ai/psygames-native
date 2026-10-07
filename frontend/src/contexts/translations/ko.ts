@@ -2629,7 +2629,7 @@ const t: Record<string, string> = {
   "shopAbilitySection": "⚡ 능력 — 하나씩 소모됩니다. 문제를 대신 풀어 주지 않고, 한 판이나 연속 기록을 되돌려 줍니다.",
   "shopAbilityHint": "모든 능력은 한 판이 줄 수 있는 최대치보다 비쌉니다. 벌기 위해 사는 것은 불가능합니다.",
   "a11yCatAbility": "능력",
-  "abName_second_life": "두 번째 목숨",
+  "abName_second_life": "두 번째 목숨 (표적)",
   "abDesc_second_life": "표적: 마지막 목숨에서 판이 끝나지 않습니다. 한 판에 하나, 그 판은 레벨을 올리지 않습니다.",
   "abName_practice_run": "연습 시도",
   "abDesc_practice_run": "측정형 게임: 이 판은 어디에도 기록되지 않습니다. 점수도 레벨도 통계도 변하지 않습니다. 부담 없이 시도하세요.",

@@ -2629,7 +2629,7 @@ const t: Record<string, string> = {
   "shopAbilitySection": "⚡ Capacités — consommables à l’unité. Elles ne résolvent pas la tâche à ta place : elles rendent une partie ou une série.",
   "shopAbilityHint": "Chaque capacité coûte plus que ce qu’une partie peut rapporter : impossible d’en tirer un profit.",
   "a11yCatAbility": "Capacités",
-  "abName_second_life": "Seconde vie",
+  "abName_second_life": "Seconde vie (Cibles)",
   "abDesc_second_life": "Cibles : la partie ne s’arrête pas à la dernière vie. Une par partie, et cette partie ne fait pas monter de niveau.",
   "abName_practice_run": "Essai libre",
   "abDesc_practice_run": "Jeux de mesure : la partie n’est enregistrée nulle part — ni points, ni niveau, ni statistiques. Essaie sans conséquences.",

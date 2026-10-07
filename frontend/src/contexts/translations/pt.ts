@@ -2634,7 +2634,7 @@ const t: Record<string, string> = {
   "shopAbilitySection": "⚡ Habilidades — consumíveis, uma por vez. Não resolvem a tarefa por você: devolvem uma partida ou uma sequência.",
   "shopAbilityHint": "Cada habilidade custa mais do que uma partida pode render — comprá-la para lucrar é impossível.",
   "a11yCatAbility": "Habilidades",
-  "abName_second_life": "Segunda vida",
+  "abName_second_life": "Segunda vida (Alvos)",
   "abDesc_second_life": "Alvos: a partida não termina na última vida. Uma por partida, e essa partida não sobe de nível.",
   "abName_practice_run": "Rodada de teste",
   "abDesc_practice_run": "Jogos de medição: a partida não é registrada em lugar nenhum — sem pontos, sem nível, sem estatísticas. Experimente sem consequências.",

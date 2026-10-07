@@ -2628,7 +2628,7 @@ const t: Record<string, string> = {
   "shopAbilitySection": "⚡ アビリティ — 1個ずつ消費します。課題を代わりに解くことはありません。1局や連続記録を取り戻すためのものです。",
   "shopAbilityHint": "どのアビリティも1局で得られる上限より高い価格です。稼ぐ目的で買うことはできません。",
   "a11yCatAbility": "アビリティ",
-  "abName_second_life": "セカンドライフ",
+  "abName_second_life": "セカンドライフ（ターゲット）",
   "abDesc_second_life": "ターゲット：最後の1機で終了しません。1局に1回まで、その局ではレベルは上がりません。",
   "abName_practice_run": "お試しプレイ",
   "abDesc_practice_run": "測定系の課題：この局はどこにも記録されません。ポイントもレベルも統計も動きません。気兼ねなく試せます。",
