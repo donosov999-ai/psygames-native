@@ -1624,6 +1624,7 @@
 "stroopHintWord":"Toca el botón con el SIGNIFICADO de la palabra",
 "stroopIntroDesc":"La palabra \"ROJO\" está pintada de azul: toca \"azul\". Entrena el control cognitivo y la inhibición de respuestas automáticas.",
 "stroopLvlParams":"{n} ensayos · ventana de respuesta {w} s · {p}% en conflicto",
+"stroopLvlSwitch":"{s}% de los ensayos con la otra regla",
 "submarines":"Submarinos",
 "submarinesDesc":"En algún lugar del mar se esconde una flota. Toca una casilla para disparar: un punto es agua, rojo es tocado, oscuro significa hundido. Los barcos son rectos y no comparten casillas. Hunde toda la flota antes de quedarte sin disparos: tienes un poco más de los que necesita un bot listo con la misma flota. En cada nivel el mar es más grande, la flota mayor y los disparos menos.",
 "sudoku":"Sudoku 6×6",

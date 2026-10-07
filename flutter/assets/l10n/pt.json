@@ -1624,6 +1624,7 @@
 "stroopHintWord":"Toque no botão com o SIGNIFICADO da palavra",
 "stroopIntroDesc":"A palavra \"VERMELHO\" está pintada de azul — toque em \"azul\". Treina o controle cognitivo e a inibição de respostas automáticas.",
 "stroopLvlParams":"{n} tentativas · janela de resposta {w} s · {p}% em conflito",
+"stroopLvlSwitch":"{s}% das tentativas com a outra regra",
 "submarines":"Submarinos",
 "submarinesDesc":"Em algum lugar do mar há uma frota escondida. Toque numa casa para atirar: um ponto é água, vermelho é acerto, escuro significa afundado. Os navios são retos e não dividem casas. Afunde toda a frota antes que acabem os tiros: você tem um pouco mais do que um robô esperto precisa com a mesma frota. A cada nível o mar fica maior, a frota mais forte e os tiros menos.",
 "sudoku":"Sudoku 6×6",

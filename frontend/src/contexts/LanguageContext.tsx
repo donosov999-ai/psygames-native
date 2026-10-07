@@ -3757,6 +3757,8 @@ const translations: Translations = {
   choiceRtLvlParams: { ru: '{n} проб · {d} направления · окно ответа {w} с', en: '{n} trials · {d} directions · {w} s response window' },
   simonLvlParams: { ru: '{n} проб · конфликтных ~{p}% · окно ответа {w} с', en: '{n} trials · ~{p}% conflict · {w} s response window' },
   stroopLvlParams: { ru: '{n} проб · окно ответа {w} с · конфликтных {p}%', en: '{n} trials · {w} s response window · {p}% conflict trials' },
+  // С L5 часть проб идёт по ДРУГОМУ правилу (switchRate, до 40 % на L15) — экран настройки обязан это назвать.
+  stroopLvlSwitch: { ru: '{s}% проб — по другому правилу', en: '{s}% of trials use the other rule' },
   stroopPass: { ru: 'Проход уровня: точность ≥85% (не успел ответить = ошибка)', en: 'To pass: ≥85% accuracy (missing the response window counts as an error)' },
   stroopEmoLvlParams: { ru: '{n} слов · окно ответа {w} с · эмоциональных слов {p}%', en: '{n} words · {w} s to answer · {p}% emotional words' },
   stroopEmoPass: { ru: 'Проход уровня: назвать цвет верно в ≥80% слов (не успел — ошибка)', en: 'To pass: name the ink color correctly on ≥80% of words (timeout counts as an error)' },

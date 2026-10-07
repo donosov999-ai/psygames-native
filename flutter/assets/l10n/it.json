@@ -1624,6 +1624,7 @@
 "stroopHintWord":"Tocca il pulsante con il SIGNIFICATO della parola",
 "stroopIntroDesc":"La parola \"ROSSO\" è scritta in blu — tocca \"blu\". Allena il controllo cognitivo e l'inibizione delle risposte automatiche.",
 "stroopLvlParams":"{n} prove · finestra di risposta {w} s · {p}% in conflitto",
+"stroopLvlSwitch":"{s}% delle prove con l’altra regola",
 "submarines":"Sottomarini",
 "submarinesDesc":"Da qualche parte nel mare è nascosta una flotta. Tocca una casella per sparare: un punto è acqua, rosso è colpito, scuro vuol dire affondato. Le navi sono dritte e non condividono caselle. Affonda tutta la flotta prima di finire i colpi: ne hai un po’ più di quanti ne servano a un robot furbo con la stessa flotta. A ogni livello il mare è più grande, la flotta più forte e i colpi di meno.",
 "sudoku":"Sudoku",

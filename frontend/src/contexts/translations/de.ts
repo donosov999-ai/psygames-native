@@ -1593,6 +1593,7 @@ const t: Record<string, string> = {
   "choiceRtLvlParams": "{n} Durchgänge · {d} Richtungen · Antwortfenster {w} s",
   "simonLvlParams": "{n} Durchgänge · ~{p} % Konflikt · Antwortfenster {w} s",
   "stroopLvlParams": "{n} Durchgänge · Antwortfenster {w} s · {p} % Konflikt",
+  "stroopLvlSwitch": "{s} % der Durchgänge nach der anderen Regel",
   "stroopPass": "Zum Bestehen: ≥85 % Genauigkeit (verpasstes Zeitfenster zählt als Fehler)",
   "stroopEmoLvlParams": "{n} Wörter · Antwortfenster {w} s · {p} % emotionale Wörter",
   "stroopEmoPass": "Zum Bestehen: Nenne bei ≥80 % der Wörter die Schriftfarbe richtig (Zeitablauf = Fehler)",

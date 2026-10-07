@@ -1624,6 +1624,7 @@
 "stroopHintWord":"Tap the button with the word MEANING",
 "stroopIntroDesc":"The word \"RED\" is painted blue — tap \"blue\". Trains cognitive control and inhibition of automatic responses.",
 "stroopLvlParams":"{n} trials · {w} s response window · {p}% conflict trials",
+"stroopLvlSwitch":"{s}% of trials use the other rule",
 "submarines":"Submarines",
 "submarinesDesc":"A fleet is hidden somewhere at sea. Tap a cell to fire: a dot is a miss, red is a hit, dark means the ship is sunk. Ships are straight and never overlap, but may stand side by side. Sink the whole fleet before you run out of shots: you get slightly more than a smart bot needs on the same fleet. Each level the sea gets bigger, the fleet larger and the shots fewer.",
 "sudoku":"Sudoku",
