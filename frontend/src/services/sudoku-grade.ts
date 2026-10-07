@@ -1307,7 +1307,8 @@ const VARIANT_TIER_CEILING: Partial<Record<Variant, number>> = {
   /** X-суммы (план — 185–188) — ЗАМЕР 07.10.2026 боевым путём (`generateLogical`, полоса 4..6, 12 сумм
    *  из 18), по 8 досок на 50/56/62 пустых: ступень 4 у 24 из 24, приём `xsum_clue` — самый трудный у
    *  всех 24; без сумм не решается 0 из 24, под потолком 3 — 1 из 24; все копаются до 64 пустых,
-   *  0,15 с на доску. Потолок 4. Рычаг трудности внутри блока — число показанных сумм (XSUMS_SHOWN). */
+   *  0,15 с на доску. Потолок 4. Рычаг трудности внутри блока — лимит копания `digCap` (64 → 70: цена
+   *  129 → 151), а НЕ число показанных сумм: 12 → 6 сумм — цена 125 → 115 (замеры 07.10). */
   xsums: 4,
   /**
    * Комбо-пояс 81–92 — ЗАМЕР 29.08.2026 (combo-tiers.measure, по 15 боевых досок):
@@ -1586,7 +1587,7 @@ function gradeOf(gen: GeneratedPuzzle, N: number, BR: number, BC: number, varian
 /** Одна попытка копания от логики. Возвращает null, если вариант не по этому пути. */
 function digByLogic(
   level: number, blanksCap: number, N: number, BR: number, BC: number, variant: Variant, deadline: number,
-  tierMax?: number,
+  tierMax?: number, digCap?: number,
 ): { gen: GeneratedPuzzle; grade: Grade; dug: number } | null {
   const base = generatePuzzle(0, N, BR, BC, variant);   // blanks=0 → только решение и структура варианта
   const sol = base.solution;
@@ -1622,7 +1623,8 @@ function digByLogic(
   // показала обратное. Сэндвич — вариант-ОВЕРЛЕЙ: его подсказки ДОБАВЛЯЮТ игроку сведения,
   // значит доске нужно МЕНЬШЕ подсказок при равной трудности, а лимит был скопирован с
   // классики, где такой прибавки нет.
-  const cap = level <= 8 ? blanksCap : (N === 9 ? MAX_BLANKS_9 : N * N);
+  // Лимит 9×9 — поле ступени `digCap` (levelConfig), иначе общий: ось трудности внутри блока.
+  const cap = level <= 8 ? blanksCap : (N === 9 ? (digCap ?? MAX_BLANKS_9) : N * N);
   let dug = 0;
   /**
    * 🔴 ПРОХОДОВ НЕСКОЛЬКО, А НЕ ОДИН. Клетка, которую нельзя было убрать в начале
@@ -2205,9 +2207,11 @@ export function лучшеПодПолосу(
 
 export function generateLogical(
   level: number, blanksCap: number, N: number, BR: number, BC: number, variant: Variant,
-  opts: { budgetMs?: number; tier?: { min: number; max: number } } = {},
+  opts: { budgetMs?: number; tier?: { min: number; max: number }; digCap?: number } = {},
 ): { gen: GeneratedPuzzle; grade: Grade; dug: number; fellBack: boolean; budgetSpent: boolean } {
   const budget = opts.budgetMs ?? 2200;
+  // Лимит копания ступени (`digCap` в levelConfig); явное число — для замеров и гейтов.
+  const digCap = opts.digCap ?? levelConfig(level).digCap;
   const until = Date.now() + budget;
   /**
    * Полоса техник — целевая сложность партии. Обычно её задаёт уровень; дорога
@@ -2224,7 +2228,7 @@ export function generateLogical(
   if (LOGIC_VARIANTS.includes(variant)) {
     let best: { gen: GeneratedPuzzle; grade: Grade; dug: number } | null = null;
     for (let attempt = 0; attempt < 5; attempt++) {
-      const r = digByLogic(level, blanksCap, N, BR, BC, variant, until, max);
+      const r = digByLogic(level, blanksCap, N, BR, BC, variant, until, max, digCap);
       // Второй ключ — цена вывода, как и в сборщике выше: при равной ступени доска дороже.
       if (r && (!best || dist(r.grade.tier) < dist(best.grade.tier)
         || (dist(r.grade.tier) === dist(best.grade.tier) && r.grade.cost > best.grade.cost))) best = r;
