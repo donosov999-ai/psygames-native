@@ -135,6 +135,8 @@ flutter:
     - assets/profiles.json
     # «Источники» — данные веба для модели на Dart (tools/embed-sources.mjs, вариант Б).
     - assets/sources.json
+    # Лиги и рамки — таблицы веба для модели «Лиг» на Dart (tools/embed-progression.mjs, вариант Б).
+    - assets/progression.json
     # Иконки игр «поле в миниатюре» для строк развилок — выгрузка веб-реестра
     # (flutter/tools/embed-game-icons.mjs), не править руками.
     - assets/game_icons/

@@ -3,6 +3,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import 'feedback_fab.dart' show FabRules;
 import 'ion_icon.dart';
+import 'progression.dart';
 import 'screen_ui.dart';
 import 'shared_state.dart';
 import 'sources_model.dart';
@@ -501,13 +502,17 @@ class AchievementsScreen extends StatelessWidget {
 // ── «Лиги» ───────────────────────────────────────────────────────────────────────────────────────
 
 class LeaguesScreen extends StatelessWidget {
-  const LeaguesScreen({super.key});
+  const LeaguesScreen({super.key, this.state});
   static const route = '/leagues';
+
+  /// Есть — модель считается на Dart ([leaguesModelFor], вариант Б); нет — приходит от веба.
+  final SharedState? state;
 
   @override
   Widget build(BuildContext context) => ModelPage(
     route: route,
     screenKey: 'leagues-screen',
+    compute: state == null ? null : () => leaguesModelFor(state!),
     builder: (context, m) {
       final web = WebTheme.of(context);
       final primary = cssColor(m['primary'], Theme.of(context).colorScheme.primary);

@@ -95,11 +95,12 @@ jobs:
           node tools/embed-puzzle-modes.mjs > /dev/null
           node tools/embed-puzzle-routes.mjs > /dev/null
           node tools/embed-sources.mjs > /dev/null
+          node tools/embed-progression.mjs > /dev/null
           node tools/embed-l10n.mjs > /dev/null
           node tools/embed-look.mjs > /dev/null
-          if ! git diff --quiet -- assets/hubs.json assets/puzzles/modes.json assets/l10n assets/look.json assets/sources.json lib/shell/puzzle_routes.g.dart; then
-            git diff --stat -- assets/hubs.json assets/puzzles/modes.json assets/l10n assets/look.json assets/sources.json lib/shell/puzzle_routes.g.dart
-            echo "::error title=Сгенерированное устарело::пересобери: cd flutter && node tools/embed-hubs.mjs && node tools/embed-puzzle-modes.mjs && node tools/embed-puzzle-routes.mjs && node tools/embed-sources.mjs && node tools/embed-l10n.mjs && node tools/embed-look.mjs — и закоммить"
+          if ! git diff --quiet -- assets/hubs.json assets/puzzles/modes.json assets/l10n assets/look.json assets/sources.json assets/progression.json lib/shell/puzzle_routes.g.dart; then
+            git diff --stat -- assets/hubs.json assets/puzzles/modes.json assets/l10n assets/look.json assets/sources.json assets/progression.json lib/shell/puzzle_routes.g.dart
+            echo "::error title=Сгенерированное устарело::пересобери: cd flutter && node tools/embed-hubs.mjs && node tools/embed-puzzle-modes.mjs && node tools/embed-puzzle-routes.mjs && node tools/embed-sources.mjs && node tools/embed-progression.mjs && node tools/embed-l10n.mjs && node tools/embed-look.mjs — и закоммить"
             exit 1
           fi
 

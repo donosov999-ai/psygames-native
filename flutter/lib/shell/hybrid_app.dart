@@ -1414,7 +1414,7 @@ class _HybridAppState extends State<HybridApp> {
             SourcesScreen(state: widget.state),
             const CollectionScreen(),
             const AchievementsScreen(),
-            const LeaguesScreen(),
+            LeaguesScreen(state: widget.state),
             // «Друзья» (7bb8035b) — страница по модели; сервер круга держит веб.
             const FriendsScreen(),
           ],

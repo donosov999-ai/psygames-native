@@ -125,6 +125,8 @@ for (const [file, fields] of [
   ['assets/profiles.json', ['nameKey']],
   // «Источники» считают модель на Dart (`sources_model.dart`): `L.t(src.key)` и подписи-ключи.
   ['assets/sources.json', ['key', 'nameKey', 'creditKey']],
+  // «Лиги» считают модель на Dart (`progression.dart`): `L.t(league.nameKey)`, `L.t(frame.nameKey)`.
+  ['assets/progression.json', ['nameKey']],
 ]) {
   let data;
   // 🔴 НЕТ ФАЙЛА — пропустить можно; ЕСТЬ, НО НЕ ЧИТАЕТСЯ — СТОП. Замер 01.10.2026: после
