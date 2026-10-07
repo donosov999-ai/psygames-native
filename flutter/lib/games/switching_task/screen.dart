@@ -25,6 +25,23 @@ import '../../shell/shared_state.dart';
 import '../../shell/tap_latency.dart';
 import 'model.dart';
 
+/// Поля партии для «Оценки» — как веб (`switching-task.tsx`, saveSession details). Домен
+/// «Гибкость» читает `switch_cost_ms` (норма 150±80); без ключа домен молча «средний».
+/// Формула — `switchCostMs`, та же, что в вебе и в итоге партии.
+///
+/// 🔴 НЕ ОПРЕДЕЛЕНА — НЕ ПИШЕТСЯ. Веб в таком случае пишет число-мусор: пустое плечо он
+/// считает нулём, и «Оценка» (`extractMetric`) берёт его как измерение. Нет ключа —
+/// домен честно «без данных», а не фантастический z.
+Map<String, Object?> switchingSessionDetails(SwitchingGame g) {
+  final rt = g.meanRtMs;
+  return {
+    'level': g.level,
+    'mean_rt': ?rt,
+    if (g.switchRts.isNotEmpty && g.repeatRts.isNotEmpty) 'switch_cost_ms': g.switchCost,
+    'n_trials': g.trialsTotal,
+  };
+}
+
 enum SwitchPhase { ready, playing, done }
 
 /// Порог прохода уровня — 80 % верных, как в веб-версии (`accuracy >= 0.8`).
@@ -112,7 +129,12 @@ class _SwitchingTaskScreenState extends State<SwitchingTaskScreen> {
 
   void _reset() {
     _timer?.cancel();
-    _game = SwitchingGame(level: _ladder.level, mode: widget.mode, nowMs: widget.clock);
+    // Шаг «Оценки» и зарядки задаёт длину партии, как в вебе (`num('trials', p.trials)`).
+    _game = SwitchingGame(
+        level: _ladder.level,
+        mode: widget.mode,
+        nowMs: widget.clock,
+        trialsOverride: GamePreset.isPreset ? GamePreset.num('trials', SwitchLevel.of(_ladder.level).trials) : null);
     _phase = SwitchPhase.ready;
     _flash = null;
     _passed = false;
@@ -191,9 +213,9 @@ class _SwitchingTaskScreenState extends State<SwitchingTaskScreen> {
       _passed = passed;
     });
     if (passed) {
-      _ladder.win();
+      _ladder.win(details: switchingSessionDetails(g));
     } else {
-      _ladder.fail();
+      _ladder.fail(details: switchingSessionDetails(g));
     }
   }
 

@@ -13,6 +13,24 @@ import '../../shell/shared_state.dart';
 import '../../shell/tap_latency.dart';
 import 'model.dart';
 
+/// Поля партии для «Оценки» — как веб (`flanker.tsx`, saveSession details). Домен
+/// «Тормозный контроль» читает `flanker_effect_ms` (норма 70±30); без ключа домен у
+/// любого человека молча «средний». Формула — та же, что показывает итог партии.
+///
+/// 🔴 НЕ ОПРЕДЕЛЕНА — НЕ ПИШЕТСЯ. Веб в таком случае пишет число-мусор: пустое плечо (нет конфликтных или согласованных верных) он
+/// считает нулём, и «Оценка» (`extractMetric`) берёт его как измерение. Нет ключа —
+/// домен честно «без данных», а не фантастический z.
+Map<String, Object?> flankerSessionDetails(FlankerGame g) {
+  final effect = g.flankerEffectMs;
+  final rt = g.meanRtMs;
+  return {
+    'level': g.level,
+    'mean_rt': ?rt,
+    'flanker_effect_ms': ?effect,
+    'n_trials': g.trialsTotal,
+  };
+}
+
 /// «Стрелки» — фланкерная проба Эриксена на Flutter.
 ///
 /// Экран держит ДВА срока подряд: подготовительный интервал 500–1100 мс, потом
@@ -77,7 +95,13 @@ class _FlankerScreenState extends State<FlankerScreen> {
 
   void _reset() {
     _timer?.cancel();
-    _game = FlankerGame(level: _ladder.level, nowMs: widget.clock, rnd: widget.rnd);
+    // Шаг «Оценки» и зарядки задаёт длину партии, как в вебе (`num('trials', 20)`): норма
+    // домена снята в условиях шага, а не уровня.
+    _game = FlankerGame(
+        level: _ladder.level,
+        nowMs: widget.clock,
+        rnd: widget.rnd,
+        trialsOverride: GamePreset.isPreset ? GamePreset.num('trials', 20) : null);
     _phase = FlankerPhase.ready;
     _flash = null;
     _passed = false;
@@ -161,9 +185,9 @@ class _FlankerScreenState extends State<FlankerScreen> {
       _passed = passed;
     });
     if (passed) {
-      _ladder.win();
+      _ladder.win(details: flankerSessionDetails(g));
     } else {
-      _ladder.fail();
+      _ladder.fail(details: flankerSessionDetails(g));
     }
   }
 
