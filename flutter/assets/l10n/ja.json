@@ -1062,6 +1062,7 @@
 "personalBest":"自己ベスト",
 "petSize":"ペットの大きさ",
 "petSynapse":"ペット「シナプス」",
+"petWalks":"画面を歩き回る",
 "phPairsConfigDesc":"単語を聞いて、どちらが聞こえたか選びます — ship か sheep か。音の聞き分けを鍛えます。",
 "phPairsLvlAuto":"Lv {n} — 成績で自動成長：試行増加 → 全ペア → ヒントなし",
 "phPairsPickHint":"何が聞こえた？ 単語を選んで。",

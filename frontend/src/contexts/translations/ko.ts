@@ -1056,6 +1056,7 @@ const t: Record<string, string> = {
   "streakNoTraining": "훈련 없음",
   "petSynapse": "펫 시냅스",
   "petSize": "펫 크기",
+  "petWalks": "화면을 돌아다님",
   "gamePaused": "⏸ 일시정지 — 피드백 작성 중",
   "brDimHint": "💡 자기 전엔 화면 밝기를 낮추세요 — 잠들기 쉬워집니다",
   "a11yBack": "뒤로",

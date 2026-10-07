@@ -882,6 +882,7 @@ const t: Record<string, string> = {
   "streakNoTraining": "ट्रेनिंग नहीं",
   "petSynapse": "पालतू साइनैप्स",
   "petSize": "पालतू का आकार",
+  "petWalks": "स्क्रीन पर घूमता है",
   "gamePaused": "⏸ रुका हुआ — फ़ीडबैक लिख रहे हैं",
   "brDimHint": "💡 सोने से पहले स्क्रीन की चमक कम करें — नींद जल्दी आती है",
   "a11yBack": "वापस",

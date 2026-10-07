@@ -879,6 +879,7 @@ const t: Record<string, string> = {
   "streakNoTraining": "Sin entrenamiento",
   "petSynapse": "Mascota Sinapsis",
   "petSize": "Tamaño de la mascota",
+  "petWalks": "Pasea por la pantalla",
   "gamePaused": "⏸ En pausa — escribiendo comentario",
   "brDimHint": "💡 Antes de dormir, baja el brillo — ayuda a conciliar el sueño",
   "a11yBack": "Atrás",

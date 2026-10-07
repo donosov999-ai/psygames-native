@@ -1062,6 +1062,7 @@
 "personalBest":"개인 최고 기록",
 "petSize":"펫 크기",
 "petSynapse":"펫 시냅스",
+"petWalks":"화면을 돌아다님",
 "phPairsConfigDesc":"단어를 듣고 무엇이었는지 고르세요 — ship인가 sheep인가? 음소 변별을 훈련해요.",
 "phPairsLvlAuto":"Lv {n} — 결과에 따라 자동 상승: 시행 증가 → 모든 쌍 → 힌트 없음",
 "phPairsPickHint":"무엇을 들었나요? 단어를 고르세요.",
