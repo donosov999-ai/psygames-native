@@ -3636,5 +3636,6 @@ const t: Record<string, string> = {
   "sourceWiktionaryVoiceName": "تسجيلات النطق من ويكاموس",
   "sourceWiktionaryVoiceCredit": "مؤلفو ويكاموس وLingua Libre — القائمة الكاملة أدناه",
   "sourceCburnettName": "قطع الشطرنج من Cburnett",
+  "synapseNextLine": "العبارة التالية",
 };
 export default t;

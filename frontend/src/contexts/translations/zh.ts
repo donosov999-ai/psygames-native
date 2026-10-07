@@ -3640,5 +3640,6 @@ const t: Record<string, string> = {
   "sourceWiktionaryVoiceName": "维基词典发音录音",
   "sourceWiktionaryVoiceCredit": "维基词典和 Lingua Libre 的作者——完整名单见下方",
   "sourceCburnettName": "Cburnett 国际象棋棋子",
+  "synapseNextLine": "下一句",
 };
 export default t;

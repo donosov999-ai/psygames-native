@@ -3634,5 +3634,6 @@ const t: Record<string, string> = {
   "sourceWiktionaryVoiceName": "ウィクショナリーの発音録音",
   "sourceWiktionaryVoiceCredit": "ウィクショナリーと Lingua Libre の投稿者 — 全員の一覧は下に",
   "sourceCburnettName": "Cburnett のチェスの駒",
+  "synapseNextLine": "次のひとこと",
 };
 export default t;

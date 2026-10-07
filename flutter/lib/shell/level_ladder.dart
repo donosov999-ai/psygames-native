@@ -1,6 +1,9 @@
+import 'package:synapse_advisor/synapse_advisor.dart' show Outcome;
+
 import 'game_preset.dart';
 import 'lesson.dart';
 import 'session_report.dart';
+import '../synapse/synapse_feed.dart';
 
 /// Лестница уровней игры — перенос хука usePersistentLevel из React-версии.
 ///
@@ -149,6 +152,7 @@ class LevelLadder {
     bool report = true,
   }) async {
     _failStreak = 0;
+    final before = _level;
     // Пресет — шаг зарядки, разбор — партия с показанным решением. В обоих
     // случаях лестница меряла бы не человека, поэтому не двигается.
     final lesson = LessonUsed.inRound;
@@ -162,6 +166,8 @@ class LevelLadder {
       await _save();
     }
     if (report) {
+      // Синапсу (852e4b4a): исход и уровень до/после — их знает только лестница.
+      SynapseFeed.expect(outcome: lesson ? Outcome.lesson : Outcome.won, level: _level, levelBefore: before);
       await SessionReport.send(
         gameType: sessionType ?? gameId,
         score: score,
@@ -203,12 +209,14 @@ class LevelLadder {
     bool report = true,
   }) async {
     final lesson = LessonUsed.inRound;
+    final before = _level;
     LessonUsed.reset();   // см. [win]: отметку съедает партия, которую она не засчитала
     if (_frozen || lesson) {
       // Ни пресет, ни переход, ни партия с разбором не копят провалов: иначе три шага зарядки
       // подряд (или три подсмотренных решения) опустили бы личный уровень, который
       // человек в этих партиях и не защищал.
       if (report) {
+        SynapseFeed.expect(outcome: lesson ? Outcome.lesson : Outcome.finished, level: _level, levelBefore: before);
         await SessionReport.send(
           gameType: sessionType ?? gameId,
           score: score,
@@ -229,6 +237,7 @@ class LevelLadder {
     }
     await _save();
     if (report) {
+      SynapseFeed.expect(outcome: Outcome.finished, level: _level, levelBefore: before);
       await SessionReport.send(
         gameType: sessionType ?? gameId,
         score: score,

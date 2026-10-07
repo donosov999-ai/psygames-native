@@ -3640,5 +3640,6 @@ const t: Record<string, string> = {
   "sourceWiktionaryVoiceName": "Ausspracheaufnahmen aus dem Wiktionary",
   "sourceWiktionaryVoiceCredit": "Autoren von Wiktionary und Lingua Libre – vollständige Liste unten",
   "sourceCburnettName": "Schachfiguren von Cburnett",
+  "synapseNextLine": "Nächster Satz",
 };
 export default t;

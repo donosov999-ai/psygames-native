@@ -106,6 +106,7 @@ import 'pet_screen.dart';
 import 'info_screens.dart';
 import 'walking_pet.dart';
 import 'web_theme.dart';
+import '../synapse/synapse_feed.dart';
 import '../games/sorting_hub/screen.dart';
 import '../games/faces_names/screen.dart';
 import '../games/memory_palace/screen.dart';
@@ -936,6 +937,8 @@ class _HybridAppState extends State<HybridApp> {
     // 4,2 МБ впустую.
     PetHost.state = widget.state;
     PetHost.origin = widget.server.origin;
+    // Синапс (852e4b4a) пишет реплики по партиям в общую память — ту же, что у веба.
+    SynapseFeed.state = widget.state;
     SessionReport.sink = (json) async {
       await _c.runJavaScript('window.__psySaveSession && window.__psySaveSession($json);');
     };
@@ -1064,6 +1067,7 @@ class _HybridAppState extends State<HybridApp> {
   @override
   void dispose() {
     SessionReport.sink = null;
+    if (SynapseFeed.state == widget.state) SynapseFeed.state = null;
     GameExit.home = null;
     GameExit.feedback = null;
     PetBridge.run = null;
@@ -1496,7 +1500,7 @@ class _HybridAppState extends State<HybridApp> {
             // «Что нового» (84df0687): список версий — модель веба, проверку обновлений делает оболочка.
             const WhatsNewScreen(),
             // «Питомец» (d1e147b0) — вкладка по модели веба; кадры — тем же PetFrames, что у гуляки.
-            PetScreen(origin: widget.server.origin),
+            PetScreen(origin: widget.server.origin, state: widget.state),
           ],
                 ),
               ),

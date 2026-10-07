@@ -2263,6 +2263,8 @@ const translations: Translations = {
   streakNoTraining: { ru: 'Без тренировки', en: 'No training' },
   resumeGameTitle: { ru: 'Продолжить: {game}', en: 'Continue: {game}' },
   petSynapse: { ru: 'Питомец Синапс', en: 'Synapse pet' },
+  // Синапс говорит после партии (задача 852e4b4a): кнопка в пузыре на экране питомца листает реплики.
+  synapseNextLine: { ru: 'Следующая фраза', en: 'Next line' },
   petSize: { ru: 'Размер питомца', en: 'Pet size' },
   petWalks: { ru: 'Гуляет по экрану', en: 'Walks around the screen' },
   gamePaused: { ru: '⏸ Пауза — пишете отзыв', en: '⏸ Paused — writing feedback' },

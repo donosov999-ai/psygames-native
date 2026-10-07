@@ -1962,6 +1962,7 @@
 "switchingTask":"任务切换",
 "switchingTaskDesc":"交替数字/字母规则",
 "switchingTaskIntroDesc":"你会看到一个数字+字母的组合，例如“3A”。彩色提示告诉你任务：数字——该数字是奇数还是偶数？字母——该字母是元音还是辅音？任务会随机切换。训练认知灵活性并测量切换代价。",
+"synapseNextLine":"下一句",
 "tabGames":"游戏",
 "tabPet":"伙伴",
 "tapNodeToReplay":"点击已完成的节点即可重玩并获得更多星星",
