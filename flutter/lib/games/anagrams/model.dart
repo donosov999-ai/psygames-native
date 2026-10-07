@@ -89,7 +89,10 @@ class WordBank {
 
   static Future<WordBank> load(String locale, {AssetBundle? bundle}) async {
     final code = resolve(locale);
-    final raw = await (bundle ?? rootBundle).loadString('assets/words/$code.json');
+    // Байты, а не loadString: тот кэширует БУДУЩЕЕ, и вторая проба в файле ждёт будущее из
+    // зоны первой вечно (а файлы от 50 КБ он ещё и разбирает в изоляте). Как `L.load`.
+    final data = await (bundle ?? rootBundle).load('assets/words/$code.json');
+    final raw = utf8.decode(data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes));
     final packs = [
       for (final e in jsonDecode(raw) as List)
         WordPack(
