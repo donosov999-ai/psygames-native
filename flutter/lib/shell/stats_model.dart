@@ -1,8 +1,8 @@
 import 'dart:convert';
 
 import 'package:flutter/painting.dart' show Color;
-import 'package:flutter/services.dart' show rootBundle;
 
+import 'asset_json.dart';
 import 'collection_model.dart' show hexOf;
 import 'l10n.dart';
 import 'profiles.dart';
@@ -377,15 +377,9 @@ String jsKey(Object? v) => v is num ? jsNumStr(v) : '$v';
 
 final _assets = <String, Map<String, Object?>>{};
 
-/// Ассет сборки, разобранный один раз. Байтами и своим `utf8.decode`, а не `rootBundle.loadString`:
-/// 📍 замер 07.10 — во второй пробе виджетов одного файла `loadString('assets/catalog.json')` (36 КБ,
-/// строка из кэша `rootBundle`) не завершался, экран ждал модель вечно; чтение байтами проходит (тот
-/// же приём у `WebTheme.load`). Заодно каталог не разбирается заново на каждую запись в хранилище.
-Future<Map<String, Object?>> _asset(String path) async {
-  if (_assets[path] case final hit?) return hit;
-  final b = await rootBundle.load(path);
-  return _assets[path] = (jsonDecode(utf8.decode(b.buffer.asUint8List(b.offsetInBytes, b.lengthInBytes))) as Map).cast<String, Object?>();
-}
+/// Ассет сборки, разобранный один раз (байтами — `asset_json.dart`): каталог не разбирается заново на
+/// каждую запись в хранилище.
+Future<Map<String, Object?>> _asset(String path) async => _assets[path] ??= await loadJsonAsset(path);
 
 /// Данные «Прогресса» этого человека из общей памяти.
 Future<StatsInputs> statsInputsFor(SharedState state, {int? now, Wall wall = deviceWall}) async {

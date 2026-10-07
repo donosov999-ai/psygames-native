@@ -1,8 +1,6 @@
-import 'dart:convert';
 import 'dart:math' as math;
 
-import 'package:flutter/services.dart' show rootBundle;
-
+import 'asset_json.dart';
 import 'l10n.dart';
 
 /// КАЛЕНДАРЬ СЕРИИ — РАСЧЁТ НА DART (задача d6a60b02, вариант Б, третий экран).
@@ -23,7 +21,7 @@ class CalendarLocales {
   static CalendarLocales? _cache;
 
   static Future<CalendarLocales> load() async => _cache ??= CalendarLocales.fromJson(
-    (jsonDecode(await rootBundle.loadString('assets/calendar_locales.json')) as Map).cast<String, Object?>(),
+    await loadJsonAsset('assets/calendar_locales.json'),
   );
 
   /// Язык человека; незнакомый — `en` (как `LOCALES[language] || 'en-US'` веба).

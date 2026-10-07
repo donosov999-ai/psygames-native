@@ -1,8 +1,6 @@
-import 'dart:convert';
 import 'dart:math' as math;
 
-import 'package:flutter/services.dart' show rootBundle;
-
+import 'asset_json.dart';
 import 'sessions.dart';
 
 /// БАЛАНС, ИСТОРИЯ И УРОВЕНЬ «ПРОГРЕССА» НА DART (задача d6a60b02, вариант Б).
@@ -47,7 +45,7 @@ class StatsRules {
 
   static StatsRules? _cache;
   static Future<StatsRules> load() async =>
-      _cache ??= StatsRules.fromJson((jsonDecode(await rootBundle.loadString('assets/stats_rules.json')) as Map).cast<String, Object?>());
+      _cache ??= StatsRules.fromJson(await loadJsonAsset('assets/stats_rules.json'));
 }
 
 /// Миг (мс от эпохи) → местные часы устройства: поля года, месяца, дня, часа и минуты.

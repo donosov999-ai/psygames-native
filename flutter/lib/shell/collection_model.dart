@@ -1,8 +1,7 @@
 import 'dart:convert';
 import 'dart:math' as math;
 
-import 'package:flutter/services.dart' show rootBundle;
-
+import 'asset_json.dart';
 import 'l10n.dart';
 import 'shared_state.dart';
 import 'web_theme.dart';
@@ -27,7 +26,7 @@ class CollectionData {
   ];
 
   static Future<List<Figure>> load() async =>
-      _cache ??= fromJson((jsonDecode(await rootBundle.loadString('assets/collection.json')) as Map).cast<String, Object?>());
+      _cache ??= fromJson(await loadJsonAsset('assets/collection.json'));
 }
 
 Map<String, Object?>? _json(String? raw) {

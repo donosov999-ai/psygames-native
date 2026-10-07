@@ -1,7 +1,6 @@
 import 'dart:convert';
 
-import 'package:flutter/services.dart' show rootBundle;
-
+import 'asset_json.dart';
 import 'l10n.dart';
 import 'shared_state.dart';
 import 'streak_calendar_model.dart' show CalendarLocales;
@@ -44,7 +43,7 @@ class AchievementsData {
   static AchievementsData? _cache;
 
   static Future<AchievementsData> load() async => _cache ??= AchievementsData.fromJson(
-    (jsonDecode(await rootBundle.loadString('assets/achievements.json')) as Map).cast<String, Object?>(),
+    await loadJsonAsset('assets/achievements.json'),
   );
 }
 
