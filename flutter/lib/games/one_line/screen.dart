@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
 import '../../shell/aux_action.dart';
+import '../../shell/game_preset.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/level_ladder.dart';
@@ -29,6 +30,10 @@ class OneLineScreen extends StatefulWidget {
 class _OneLineScreenState extends State<OneLineScreen> {
   OneLineLevelSet? _set;
   late LevelLadder _ladder;
+
+  /// Уровень партии: из адреса (шаг зарядки по правилу «освоенный −20 %», вызов дня) важнее
+  /// сохранённого — как в вебе (`num('level', lvl.level)`). Сторож параметров #273, задача 3e685a46.
+  int get _playLevel => GamePreset.num('level', _ladder.level);
   OneLineGame? _game;
   bool _won = false;
 
@@ -45,12 +50,12 @@ class _OneLineScreenState extends State<OneLineScreen> {
     final set = OneLineLevelSet.fromJsonString(raw);
     setState(() {
       _set = set;
-      _game = OneLineGame(set.byLevel(_ladder.level));
+      _game = OneLineGame(set.byLevel(_playLevel));
     });
   }
 
   void _restart() => setState(() {
-        _game = OneLineGame(_set!.byLevel(_ladder.level));
+        _game = OneLineGame(_set!.byLevel(_playLevel));
         _won = false;
       });
 
@@ -123,7 +128,7 @@ class _OneLineScreenState extends State<OneLineScreen> {
       // и искать заново нечего.
       onLesson: level.solutionEdgeIds.isEmpty ? null : _openLesson,
       hud: [
-        HudItem(label: L.t('level'), value: '${_ladder.level}', icon: Icons.flag_outlined),
+        HudItem(label: L.t('level'), value: '$_playLevel', icon: Icons.flag_outlined),
         HudItem(label: L.t('personalBest'), value: '${_ladder.best}', icon: Icons.emoji_events_outlined),
         HudItem(
             label: L.t('spatialDone'),
