@@ -18,6 +18,7 @@ import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:psygames_flutter/shell/stats_screen.dart';
 import 'package:psygames_flutter/shell/streak_calendar_screen.dart';
 import 'package:psygames_flutter/shell/assessment_result_screen.dart';
+import 'package:psygames_flutter/shell/onboarding_screen.dart';
 import 'package:psygames_flutter/shell/walking_pet.dart';
 import 'package:psygames_flutter/shell/web_game_screen.dart';
 import 'package:psygames_flutter/shell/web_theme.dart';
@@ -491,7 +492,7 @@ void main() {
     await settle(t, () => find.byKey(const ValueKey('home-header')).evaluate().isNotEmpty);
     expect(find.byKey(const ValueKey('home-header')), findsOneWidget);
     expect(t.widget<NativeTabBar>(find.byType(NativeTabBar)).active, '/');
-    expect(page().js.any((s) => s.contains('window.__psyHostScreens=["/","#switcher","/statistics","/streak-calendar","/assessment-result"]')), isTrue,
+    expect(page().js.any((s) => s.contains('window.__psyHostScreens=["/","#switcher","/statistics","/streak-calendar","/assessment-result","/onboarding"]')), isTrue,
         reason: 'веб узнаёт, какие экраны рисуем мы');
     // Вкладка «Игры» и назад — Главная та же, модель жива.
     await toGames(t);
@@ -597,6 +598,18 @@ void main() {
     expect(find.byKey(const ValueKey('assessment-hero')), findsOneWidget);
     expect(find.byType(NativeTabBar), findsNothing);
     expect(find.byType(FeedbackFab), findsOneWidget);
+  });
+
+  testWidgets('🔴 /onboarding — нативное знакомство без полосы; выбор игры уходит вебу', (t) async {
+    await mount(t);
+    await route(t, '/onboarding');
+    page().emit(SharedState.channel, {'op': 'screenUi', 'route': OnboardingScreen.route, 'model': fixture('onboarding_model.json')});
+    await settle(t, () => find.byKey(const ValueKey('onboarding-quiz')).evaluate().isNotEmpty);
+    expect(find.byType(NativeTabBar), findsNothing, reason: 'noBar веба: на знакомстве полосы нет');
+    page().js.clear();
+    await t.tap(find.byKey(const ValueKey('onboarding-exit')));
+    await t.pump();
+    expect(page().js.any((s) => s.contains('["/onboarding"].skipPicker()')), isTrue);
   });
 
   testWidgets('итог оценки без модели 6 с — сама страница', (t) async {

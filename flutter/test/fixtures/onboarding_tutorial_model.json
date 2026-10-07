@@ -1,0 +1,27 @@
+{
+ "v": 1,
+ "mode": "tutorial",
+ "busy": false,
+ "rtl": false,
+ "counter": "1 / 8",
+ "skip": "Пропустить",
+ "slide": {
+  "emoji": "🧠",
+  "gradient": [
+   "#7c3aed",
+   "#ec4899"
+  ],
+  "title": "Добро пожаловать в PsyGames",
+  "body": "75 когнитивных игр — память, внимание, логика, контроль, счёт, скорость. Каждая измеряет конкретный психометрический биомаркер.",
+  "finalHint": null
+ },
+ "dots": {
+  "count": 8,
+  "active": 0
+ },
+ "main": {
+  "label": "ДАЛЬШЕ",
+  "icon": "arrow-forward"
+ },
+ "secondary": null
+}

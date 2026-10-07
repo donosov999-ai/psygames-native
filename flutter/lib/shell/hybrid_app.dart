@@ -95,6 +95,7 @@ import 'native_tabs.dart';
 import 'stats_screen.dart';
 import 'streak_calendar_screen.dart';
 import 'assessment_result_screen.dart';
+import 'onboarding_screen.dart';
 import 'walking_pet.dart';
 import 'web_theme.dart';
 import '../games/sorting_hub/screen.dart';
@@ -632,12 +633,19 @@ class _HybridAppState extends State<HybridApp> {
   }
 
   /// Нативные вкладки в порядке детей тела после страницы (индекс 0 — страница).
-  static const _bodyTabs = [HomeScreen.route, '/games', StatsScreen.route, StreakCalendarScreen.route, AssessmentResultScreen.route];
+  static const _bodyTabs = [
+    HomeScreen.route,
+    '/games',
+    StatsScreen.route,
+    StreakCalendarScreen.route,
+    AssessmentResultScreen.route,
+    OnboardingScreen.route,
+  ];
 
   /// Экраны по модели веба, которые НЕ вкладки полосы: страница уходит на них своим переходом
   /// (`router.push`/`replace`), а тело показывает нативный рисунок. Полоса — по правилу веба
   /// (`tabBar.ts`): на календаре стоит, на итоге оценки её нет.
-  static const _bodyPages = {StreakCalendarScreen.route, AssessmentResultScreen.route};
+  static const _bodyPages = {StreakCalendarScreen.route, AssessmentResultScreen.route, OnboardingScreen.route};
 
   /// Что показывает тело: страницу (0) или нативную вкладку.
   ///
@@ -1258,6 +1266,8 @@ class _HybridAppState extends State<HybridApp> {
             // Календарь серии (cd77367d) и итог оценки (455d71b1) — страницы, не вкладки.
             const StreakCalendarScreen(),
             const AssessmentResultScreen(),
+            // Знакомство (a8aa91e0): подбор и обучение — страница, полосы нет (noBar веба).
+            OnboardingScreen(origin: widget.server.origin),
           ],
         ),
       ),
