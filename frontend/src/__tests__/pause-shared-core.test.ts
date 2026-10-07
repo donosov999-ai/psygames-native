@@ -52,6 +52,22 @@ function coreFiles(): string[] {
 }
 
 describe('ядро «Паузы» пригодно для второго приложения', () => {
+  it('задержка после выдоха не включает сокращение Кегеля', () => {
+    const square = PRACTICE_CATALOG.find(s => s.id === 'breathing')!.programs
+      .find(p => p.steps.some(s => s.id === 'hold-out'))!;
+    const selections = [{ setId: 'breathing', programId: square.id },
+      { setId: 'pelvic-floor', programId: 'balanced' }] as const;
+    const plan = createPracticePlan({mode: 'parallel', selections,
+      durationMs: 60_000, locale: 'ru', guideMode: 'visual', context: 'home',
+      soloCompletions: {'breathing': 99, 'pelvic-floor': 99},
+      acknowledgedWarnings: getRequiredWarnings(selections)});
+    const holds = plan.timeline.filter(s => s.setId === 'breathing' && s.stepId === 'hold-out');
+    expect(holds.length).toBeGreaterThan(0);
+    for (const hold of holds) {
+      expect(plan.timeline.find(s => s.setId === 'pelvic-floor' && s.startMs === hold.startMs)!.stepId)
+        .toBe('long-release');
+    }
+  });
   it('срез комментариев работает — иначе весь гейт ложный', () => {
     const probe = "/* тут написано react-native */\nconst a = 1; // и тут document.body\nconst b = 'живой';";
     const cut = stripComments(probe);
