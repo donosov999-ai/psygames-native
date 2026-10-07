@@ -564,7 +564,7 @@ export default function FeedbackWidget() {
       <Modal visible={open} animationType="slide" transparent onRequestClose={() => setOpen(false)}>
         <View {...a11yModal} style={styles.backdrop}>
           <View style={[styles.sheet, { backgroundColor: colors.surface }]}>
-            <ScrollView contentContainerStyle={{ padding: 20 }} keyboardShouldPersistTaps="handled">
+            <ScrollView style={styles.sheetScroll} contentContainerStyle={{ padding: 20 }} keyboardShouldPersistTaps="handled">
               <View style={styles.header}>
                 <Text style={[styles.title, { color: colors.text }]}>
                   {t('feedbackTitle')}
@@ -828,6 +828,17 @@ export default function FeedbackWidget() {
                     </TouchableOpacity>
                   )}
 
+                </>
+              )}
+              </>)}
+            </ScrollView>
+            {/* 🔴 ОТПРАВКА — ПОД ПРОКРУТКОЙ, А НЕ ВНУТРИ НЕЁ (задача e780e5b0, 07.10.2026).
+               Замер на emulator-5570, 2.56.12: форма в игре открывается вторым WebView, при
+               открытой клавиатуре «Отправить» уходила под неё — виден был край кнопки, и
+               тестировщик писал «окно падает вниз, нажать нельзя». Закреплённый низ листа
+               всегда над клавиатурой: прокручивается только содержимое над ним. */}
+            {tab === 'form' && !sent && (
+              <View testID="feedback-send-area" style={[styles.footer, { borderTopColor: colors.border }]}>
                   {askSilent ? (
                     /* 🔴 РАЗВИЛКА ВМЕСТО «ОТПРАВИТЬ». Кнопка отправки здесь не просто
                        отключена — её нет: отключённая кнопка при живом намерении врёт
@@ -911,10 +922,8 @@ export default function FeedbackWidget() {
                         : <Text style={styles.sendText}>{t('send')}</Text>}
                     </TouchableOpacity>
                   )}
-                </>
-              )}
-              </>)}
-            </ScrollView>
+              </View>
+            )}
           </View>
         </View>
       </Modal>
@@ -965,6 +974,8 @@ const styles = StyleSheet.create({
   },
   backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'flex-end' },
   sheet: { borderTopLeftRadius: 22, borderTopRightRadius: 22, maxHeight: '88%' },
+  sheetScroll: { flexGrow: 0, flexShrink: 1 },
+  footer: { paddingHorizontal: 20, paddingTop: 10, paddingBottom: 16, borderTopWidth: StyleSheet.hairlineWidth },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
   title: { fontSize: 19, fontWeight: '800' },
   ctx: { fontSize: 12, fontWeight: '700', marginBottom: 4 },   // строка контекста: профиль · игра · уровень

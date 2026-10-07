@@ -150,6 +150,9 @@ class GameShell extends StatelessWidget {
               onRules: onRules ?? _rulesByRoute(context),
               onLesson: onLesson,
               onPause: () => _pause(context),
+              // Отзыв из игры — значком в шапке, а не только пунктом паузы (задача e780e5b0):
+              // нативная игра закрывает плавающую веб-кнопку, и 2.56.11 не давал написать вовсе.
+              onFeedback: GameExit.feedback,
               levelRuleTitle: hasRule ? L.t(LevelRules.textKey(spot.gameId, ruleKey, 'title')) : null,
               onLevelRule: hasRule ? () => showLevelRule(context, spot.gameId, ruleKey) : null,
             ),
@@ -347,6 +350,14 @@ class _PauseScreen extends StatelessWidget {
                   child: Column(
                     children: [
                       Text(title, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700)),
+                      // «Продолжить» и «Отзыв» — над блоком правил (задача e780e5b0): блок до 280 px
+                      // уводил отзыв за нижний край, и найти его можно было только прокруткой.
+                      button(L.t('exitConfirmStay'), Icons.play_arrow,
+                          () => Navigator.of(context).pop(),
+                          primary: true, key: const Key('pause-resume')),
+                      if (GameExit.feedback != null)
+                        button(L.t('feedbackFabLabel'), Icons.chat_bubble_outline,
+                            GameExit.feedback!, key: const Key('pause-feedback')),
                       if (ruleKey != null)
                         Padding(
                           padding: const EdgeInsets.symmetric(vertical: 16),
@@ -358,17 +369,11 @@ class _PauseScreen extends StatelessWidget {
                             ),
                           ),
                         ),
-                      button(L.t('exitConfirmStay'), Icons.play_arrow,
-                          () => Navigator.of(context).pop(),
-                          primary: true, key: const Key('pause-resume')),
                       for (final a in actions)
                         button(a.label, a.icon, () {
                           Navigator.of(context).pop();
                           a.onPressed();
                         }),
-                      if (GameExit.feedback != null)
-                        button(L.t('feedbackFabLabel'), Icons.chat_bubble_outline,
-                            GameExit.feedback!, key: const Key('pause-feedback')),
                       // Шаг назад: туда, откуда пришли, — в развилку раздела.
                       button(L.t('pauseExitGame'), Icons.exit_to_app, () {
                         Navigator.of(context).pop();
@@ -416,6 +421,7 @@ class _Header extends StatelessWidget {
     this.onPause,
     this.onLevelRule,
     this.levelRuleTitle,
+    this.onFeedback,
   });
   final String title;
   final VoidCallback? onBack;
@@ -424,9 +430,16 @@ class _Header extends StatelessWidget {
   final VoidCallback? onPause;
   final VoidCallback? onLevelRule;
   final String? levelRuleTitle;
+  final VoidCallback? onFeedback;
 
+  // На узком окне кнопки шапки компактнее: с отзывом их бывает до шести плюс питомец,
+  // и на 320 px ряд обычных 48-px кнопок не помещается.
   @override
-  Widget build(BuildContext context) => Padding(
+  Widget build(BuildContext context) => IconButtonTheme(
+      data: IconButtonThemeData(
+          style: IconButton.styleFrom(
+              visualDensity: MediaQuery.sizeOf(context).width < 380 ? VisualDensity.compact : null)),
+      child: Padding(
         padding: const EdgeInsets.fromLTRB(8, 6, 8, 2),
         child: Row(
           children: [
@@ -464,11 +477,18 @@ class _Header extends StatelessWidget {
               ),
             if (onRules != null)
               IconButton(onPressed: onRules, icon: const Icon(Icons.help_outline), tooltip: L.t('btn_rules')),
+            if (onFeedback != null)
+              IconButton(
+                key: const Key('game-feedback'),
+                onPressed: onFeedback,
+                icon: const Icon(Icons.chat_bubble_outline),
+                tooltip: L.t('feedbackFabLabel'),
+              ),
             if (onBack != null)
               IconButton(onPressed: onBack, icon: const Icon(Icons.arrow_back), tooltip: L.t('back')),
           ],
         ),
-      );
+      ));
 }
 
 class _HudRow extends StatelessWidget {
