@@ -9,6 +9,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { GAMES, sessionGameType } from '@/src/constants/games';
 import { getSupabase, SUPABASE_TABLE } from '@/src/services/supabase';
 import { IS_WEB_DEMO } from '@/src/services/buildTarget';
+import { phantomSession } from '@/src/services/hostSessions';
 /**
  * ⚠️ НАЧИСЛЕНИЕ ИМПОРТИРУЕТСЯ ОБЫЧНО, А НЕ `await import(...)`, как соседи ниже.
  * Ленивый импорт здесь брали от круговой зависимости, но её у этой пары нет: earn
@@ -565,6 +566,16 @@ export const saveSession = async (session: GameSession): Promise<GameSession> =>
   // psygames:training-complete, в detail.session добавлены demo/sessionId).
   if (IS_WEB_DEMO) {
     notifyWebHost(stored);
+    return stored;
+  }
+  /**
+   * 🔴 ФАНТОМ ВЕБ-КОПИИ ПОД НАТИВНЫМ ЭКРАНОМ НЕ ЗАСЧИТЫВАЕТСЯ (задача 5f9d4ea0, `hostSessions.ts`).
+   * Пока поверх страницы открыт нативный экран, человек играет в нём, а не в странице; партию
+   * оттуда приносит оболочка (`__psySaveSession`). Всё прочее, что страница сохранит в это время, —
+   * веб-копия игры, стартовавшая сама: без этой строки — вторая запись, токены и серия за неигранное.
+   */
+  if (phantomSession(stored)) {
+    console.warn(`[мост] партия веб-копии ${stored.game_type} под нативным экраном не засчитана`);
     return stored;
   }
   validateSession(stored);   // non-blocking schema check (warnings only)

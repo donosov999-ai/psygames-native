@@ -1030,6 +1030,31 @@ class _HybridAppState extends State<HybridApp> {
    * страницы на тот же шаг — для перехвата это «тот же экран» (`RouteAction.keep`).
    */
 
+  /// Метка «поверх страницы нативный экран» (`window.__psyNativeOver`, задача 5f9d4ea0): пока она
+  /// стоит, `saveSession` страницы принимает только партии оболочки — веб-копия игры под нативным
+  /// экраном стартует сама (SDMT при `wu=1`) и сохранила бы партию, которую человек не играл
+  /// (`frontend/src/services/hostSessions.ts`). Метка — номер открытия: снятие старого экрана не
+  /// снимает метку следующего.
+  String? _nativeOver;
+  int _nativeOverSeq = 0;
+
+  String _markNativeOver(String route) {
+    final token = '${++_nativeOverSeq} $route';
+    _nativeOver = token;
+    unawaited(_c.runJavaScript('window.__psyNativeOver=${jsonEncode(token)};').catchError((Object _) {}));
+    return token;
+  }
+
+  /// Снять метку — через 1,5 с: на «назад» веб-копия размонтируется и может сохранить недоигранное,
+  /// это тоже фантом. Новый нативный экран за это время ставит свою метку, и старая её не трогает.
+  void _unmarkNativeOver(String token) {
+    if (_nativeOver == token) _nativeOver = null;
+    unawaited(_c
+        .runJavaScript('(function(t){setTimeout(function(){if(window.__psyNativeOver===t)window.__psyNativeOver=null;},1500);})'
+            '(${jsonEncode(token)});')
+        .catchError((Object _) {}));
+  }
+
   /// Какие адреса оболочка рисует сама и на каком языке говорит человек — по этому
   /// веб решает, отдать ли переход между шагами зарядки оболочке.
   String _hostWarmupJs() {
@@ -1039,6 +1064,8 @@ class _HybridAppState extends State<HybridApp> {
     }.toList()
       ..sort();
     return 'window.__psyHostNativeRoutes=${jsonEncode(routes)};'
+        // Страница перезагрузилась под открытым нативным экраном — метка возвращается (5f9d4ea0).
+        'window.__psyNativeOver=${jsonEncode(_nativeOver)};'
         'window.__psyHostLang=${jsonEncode(widget.state.language)};'
         // Полосой владеет оболочка — веб свою не рисует (`BottomTabBar.tsx`).
         'window.__psyNativeTabs=true;'
@@ -1149,6 +1176,7 @@ class _HybridAppState extends State<HybridApp> {
     final build = HybridApp.native[route] ?? HybridApp.shell[route];
     if (build == null) return false;
     _openedRoute = route;
+    final over = _markNativeOver(route);
     // Настройки шага живут ровно столько, сколько открыт экран, — как
     // `useLocalSearchParams` в вебе. См. [GamePreset].
     GamePreset.set(query);
@@ -1189,6 +1217,7 @@ class _HybridAppState extends State<HybridApp> {
       _openedRoute = null;
       GamePreset.clear();
     }
+    _unmarkNativeOver(over);
     if (_openedPage == null && GameRules.currentRoute == route) GameRules.currentRoute = null;
     final closedByPage = _pagesClosedByWeb.remove(page);
     // 🔴 СТРАНИЦА ПОД НАМИ ОСТАЛАСЬ НА АДРЕСЕ ИГРЫ. Перехват срабатывает ПОСЛЕ
