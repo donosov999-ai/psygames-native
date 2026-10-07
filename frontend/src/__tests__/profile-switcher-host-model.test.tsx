@@ -99,7 +99,10 @@ describe('переключатель профилей под оболочкой'
     const fs = require('fs');
     const path = require('path');
     const file = path.resolve(__dirname, '../../../flutter/test/fixtures/switcher_model.json');
-    const now = `${JSON.stringify(last(), null, 1)}\n`;
+    // Картинка в jest — путь файла ОТНОСИТЕЛЬНО папки проверки (`../../…/<папка>/frontend/assets/…`):
+    // в образце он зависел бы от того, где лежит копия, и на CI образец «устаревал» бы сам. Приводим
+    // к виду адреса сборки без хеша (`/assets/assets/…` — его отдаёт AssetServer по имени).
+    const now = `${JSON.stringify(last(), null, 1)}\n`.replace(/"(?:\.\.\/)+[^"]*?\/frontend\/(assets\/[^"]+)"/g, '"/assets/$1"');
     if (process.env.WRITE === '1') fs.writeFileSync(file, now, 'utf8');
     const was = fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : '';
     expect({ fresh: was === now, regenerate: 'cd frontend && WRITE=1 npx jest -i --runTestsByPath src/__tests__/profile-switcher-host-model.test.tsx' })
