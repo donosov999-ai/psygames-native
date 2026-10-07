@@ -10,6 +10,7 @@ import '../../shell/game_preset.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/lesson.dart';
+import '../../shell/preset_cap.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/level_rules.dart';
 import '../../shell/shared_level_store.dart';
@@ -102,6 +103,13 @@ class _FindDifferencesScreenState extends State<FindDifferencesScreen> {
     _tick?.cancel();
     _next?.cancel();
     _params = levelParams(_ladder.level);
+    // Шаг зарядки задаёт число отличий сам (`?diffCount=`, профиль «Дети» шлёт 2–3) — но не выше
+    // освоенного больше чем на одно: веб `find-differences.tsx:401`, `capPresetByLevel`. Без этого
+    // натив молча играл число отличий уровня (сторож каркаса 44f7e4e0, задача 50139f1d).
+    if (GamePreset.isPreset) {
+      final want = GamePreset.num('diffCount', _params.diffCount);
+      _params = _params.withDiffCount(capPresetByLevel(want: want, atLevel: _params.diffCount));
+    }
     // С 34-го раундов в среднем больше (ось без предела, model.dart). Шаг зарядки — прежние три:
     // пресет лестницу не двигает, а бюджет шага рассчитан на них.
     _rounds = _params.rounds + (GamePreset.isPreset ? 0 : fdDrawExtraRounds(_ladder.level, _rng));

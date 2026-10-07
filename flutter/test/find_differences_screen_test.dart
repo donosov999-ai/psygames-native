@@ -251,4 +251,18 @@ void main() {
     expect(find.byKey(const Key('итог')), findsOneWidget, reason: 'время последнего раунда вышло — итог');
     expect(state.get('${SharedState.prefix}find_differences_level_nzt48'), '49', reason: '4 из 5 — уровень не взят');
   });
+
+  testWidgets('🔴 шаг зарядки задаёт число отличий сам (?diffCount=) — но не выше уровня + 1', (tester) async {
+    // Сторож каркаса 44f7e4e0: веб читает diffCount шага (`find-differences.tsx:401`), натив молча
+    // играл число уровня. На 10-м по уровню 5 отличий; шаг «Детей» просит 2 — их и играем.
+    expect(levelParams(10).diffCount, 5, reason: 'премиса: на 10-м уровне 5 отличий');
+    GamePreset.set({'wu': '1', 'diffCount': '2'});
+    addTearDown(GamePreset.clear);
+    await open(tester, level: 10, seed: 'шаг');
+    expect(find.text('0/2'), findsOneWidget, reason: 'шаг просит 2 отличия — их и раздаём');
+    // На 1-м по уровню 2; шаг просит 9 — потолок «освоенное + 1» = 3.
+    GamePreset.set({'wu': '1', 'diffCount': '9'});
+    await open(tester, level: 1, seed: 'шаг');
+    expect(find.text('0/3'), findsOneWidget, reason: 'не выше освоенного больше чем на одно');
+  });
 }

@@ -50,6 +50,16 @@ class FdParams {
 
   /// Во сколько раз отличие размером и поворотом меньше прежнего (1 — как было). См. [fdSubtlety].
   final double subtlety;
+
+  /// Те же параметры с другим числом отличий — для шага зарядки, который задаёт его сам.
+  FdParams withDiffCount(int n) => FdParams(
+        diffCount: n,
+        objectCount: objectCount,
+        roundTimeSec: roundTimeSec,
+        rounds: rounds,
+        spriteAlphabet: spriteAlphabet,
+        subtlety: subtlety,
+      );
 }
 
 // ───────── Пятая и шестая оси: отличие ТОНЬШЕ и раундов БОЛЬШЕ — с 34-го уровня, без потолка ─────────
