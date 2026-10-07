@@ -91,6 +91,7 @@ import 'asset_server.dart';
 import 'l10n.dart';
 import 'feedback_fab.dart';
 import 'feedback_screen.dart';
+import 'mic_permission.dart';
 import 'home_screen.dart';
 import 'profile_switcher.dart';
 import 'screen_ui.dart';
@@ -958,7 +959,8 @@ class _HybridAppState extends State<HybridApp> {
       final params = {...route.queryParameters, ...GamePreset.params};
       _openFeedback(route.replace(queryParameters: params.isEmpty ? null : params).toString());
     };
-    _c = WebViewController()
+    // Голос в отзыве: микрофон по запросу страницы и звук без жеста (`mic_permission.dart`).
+    _c = MicPermission.pageController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..addJavaScriptChannel(
         SharedState.channel,

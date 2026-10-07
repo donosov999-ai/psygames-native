@@ -15,6 +15,13 @@
     <uses-permission android:name="android.permission.INTERNET"/>
     <!-- Вибросопровождение практик «Паузы» (PracticeHaptics.kt): Vibrator без него молчит. -->
     <uses-permission android:name="android.permission.VIBRATE"/>
+    <!-- 🎤 Голосовая заметка в отзыве (c092cd47). Записывает страница (getUserMedia в WebView), но Android
+         отдаёт WebView микрофон только приложению, которому человек выдал RECORD_AUDIO (спрашивает
+         MainActivity, канал psygames/mic, и только по нажатию «Записать голосом»). MODIFY_AUDIO_SETTINGS
+         WebView нужен для захвата звука. Замер 07.10.2026: в APK 2.56.15 разрешения нет — с 2.56.0
+         голос в 0 отзывах из 13 (на 2.54.22 — в 2 из 25). Сторож — flutter/test/mic_permission_test.dart. -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS"/>
     <!-- networkSecurityConfig: открытый http разрешён только на 127.0.0.1 — туда WebView ходит
          за веб-частью; без него релиз даёт ERR_CLEARTEXT_NOT_PERMITTED (res/xml/network_security_config.xml). -->
     <application
