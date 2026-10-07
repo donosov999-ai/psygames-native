@@ -26,7 +26,7 @@ const sudokuRuleKeys = <String>[
   'sudokuRuleSandwich', 'sudokuRuleThermo', 'sudokuRuleArrow', 'sudokuRuleThermocage',
   'sudokuRuleUnequal', 'sudokuRuleTowers', 'sudokuRuleSandparity', 'sudokuRuleThermoknight',
   'sudokuRuleKillerdiag', 'sudokuRuleWhisper', 'sudokuRuleRenban', 'sudokuRuleRegionsum',
-  'sudokuRulePalindrome', 'sudokuRuleBetween', 'sudokuRuleLockout', 'sudokuRuleXv', 'sudokuRuleArgyle', 'sudokuRuleLittlekiller', 'sudokuRuleXsums', 'sudokuRuleCipher', 'sudokuRuleFog', 'sudokuRuleChaos', 'sudokuRuleSchrodinger',
+  'sudokuRulePalindrome', 'sudokuRuleBetween', 'sudokuRuleLockout', 'sudokuRuleXv', 'sudokuRuleArgyle', 'sudokuRuleLittlekiller', 'sudokuRuleXsums', 'sudokuRuleCipher', 'sudokuRuleFog', 'sudokuRuleChaos', 'sudokuRuleSchrodinger', 'sudokuRuleDoublers', 'sudokuRuleNegators',
   'sdkRule_friends', 'sudokuKillerRule', 'sudokuWhyNotLocal',
 ];
 

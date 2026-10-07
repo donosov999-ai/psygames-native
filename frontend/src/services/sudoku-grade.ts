@@ -29,6 +29,7 @@ import {
 } from './sudoku-core';
 import { borderCounts, samePartition, solvePartition } from './sudoku-chaos';
 import { decodeGridS, digS, encodeGridS, generateSolutionS, logicS } from './sudoku-schrodinger';
+import { generateBoardM, logicM, type ModKind } from './sudoku-modifiers';
 
 export type Technique =
   | 'naked_single'    // в клетке остался один кандидат
@@ -55,6 +56,7 @@ export type Technique =
   | 'cipher_code'  // шифр: кандидаты одной буквы общие; однозначная буква забирает свою цифру у остальных
   | 'region_border'  // самосборка: границы областей выведены по подсказкам границ и напечатанным цифрам (sudoku-chaos.ts)
   | 'schrodinger_cell'  // клетки Шрёдингера: вынужден вариант-пара или место пары в ряду (sudoku-schrodinger.ts)
+  | 'modifier_sum'  // удвоители/отрицательные: вариант клетки, с которым взвешенная сумма группы не набирается (sudoku-modifiers.ts)
   | 'guess';          // логики не хватило — нужен перебор
 
 export const TECHNIQUE_TIER: Record<Technique, number> = {
@@ -64,6 +66,7 @@ export const TECHNIQUE_TIER: Record<Technique, number> = {
   cipher_code: 4,   // шифр: класс выводов варианта
   region_border: 4,   // самосборка: вывод границ — класс выводов варианта
   schrodinger_cell: 4,   // клетки Шрёдингера: вывод про пару — класс выводов варианта
+  modifier_sum: 4,   // удвоители/отрицательные: вывод на взвешенных суммах — класс выводов варианта
   lockout_window: 4,   // замок: кандидат вне годной пары концов lockout-линии
   between_window: 4,   // между концами: кандидат вне любого окна между концами линии
   // Палиндром: кандидаты зеркальных клеток пересекаются. Ступень 4 — как у всего КЛАССА выводов
@@ -2596,6 +2599,39 @@ export function gradeSchrodinger(puzzle: number[][], tierCap = 9): Grade {
   };
 }
 
+/**
+ * 🔴 УДВОИТЕЛИ И ОТРИЦАТЕЛЬНЫЕ — МЕРА (пункт 13, типы 2 и 3). Решатель — точное покрытие с суммами
+ * групп сбоку (sudoku-modifiers.ts): вынужденные шаги — как одиночки, вывод на взвешенных суммах —
+ * ступень 4. Не дошёл до конца — доска не решается логикой.
+ */
+export function gradeModifiers(puzzle: Cell[][], cages: CageMap, kind: ModKind, tierCap = 9): Grade {
+  const l = logicM(puzzle, cages, kind);
+  const pt = TECHNIQUE_TIER.modifier_sum;
+  if (!l.solved || (l.cageSteps > 0 && tierCap < pt)) {
+    return { solved: false, tier: TECHNIQUE_TIER.guess, hardest: 'guess', steps: l.steps, cost: l.steps };
+  }
+  const plain = l.steps - l.cageSteps;
+  return {
+    solved: true, tier: l.cageSteps ? pt : 2, hardest: l.cageSteps ? 'modifier_sum' : 'hidden_single',
+    steps: l.steps, cost: plain * TECHNIQUE_TIER.hidden_single + l.cageSteps * pt, grid: l.state!.digits,
+  };
+}
+
+/** Доска удвоителей/отрицательных: заходы, пока группы не выведут нарушителей (обычно с первого). */
+function generateModifiers(
+  kind: ModKind, opts: { digCap?: number },
+): { gen: GeneratedPuzzle; grade: Grade; dug: number; fellBack: boolean; budgetSpent: boolean } {
+  for (let attempt = 0; attempt < 20; attempt++) {
+    const b = generateBoardM(kind, Math.random, opts.digCap ?? 81);
+    if (!b) continue;
+    return {
+      gen: { puzzle: b.puzzle, solution: b.solution.digits, cages: b.cages } as GeneratedPuzzle,
+      grade: gradeModifiers(b.puzzle, b.cages, kind), dug: b.puzzle.flat().filter((v) => v === 0).length, fellBack: false, budgetSpent: false,
+    };
+  }
+  throw Error(`доска «${kind}» не собралась за 20 заходов`);
+}
+
 /** Доска Шрёдингера: полная сетка перебором, задача — снятием клеток, пока мера доходит до той же сетки. */
 function generateSchrodinger(
   N: number, opts: { digCap?: number },
@@ -2616,6 +2652,7 @@ export function generateLogical(
   if (variant === 'fog') return generateFog(level, blanksCap, N, BR, BC, opts);
   if (variant === 'chaos') return generateChaos(level, blanksCap, N, BR, BC, opts);
   if (variant === 'schrodinger') return generateSchrodinger(N, opts);
+  if (variant === 'doublers' || variant === 'negators') return generateModifiers(variant, opts);
   const budget = opts.budgetMs ?? 2200;
   // Лимит копания ступени (`digCap` в levelConfig); явное число — для замеров и гейтов.
   const digCap = opts.digCap ?? levelConfig(level).digCap;

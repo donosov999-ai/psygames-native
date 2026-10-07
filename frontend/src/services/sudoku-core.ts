@@ -11,7 +11,7 @@
 import { translateFor } from '../contexts/LanguageContext';
 
 export type Cell = number; // 0 = empty
-export type Variant = 'none' | 'diagonal' | 'antiknight' | 'hyper' | 'nonconsec' | 'jigsaw' | 'antiking' | 'evenodd' | 'kropki' | 'sandwich' | 'thermo' | 'arrow' | 'thermocage' | 'unequal' | 'towers' | 'sandparity' | 'thermoknight' | 'killerdiag' | 'whisper' | 'renban' | 'regionsum' | 'palindrome' | 'between' | 'lockout' | 'xv' | 'argyle' | 'littlekiller' | 'xsums' | 'cipher' | 'fog' | 'chaos' | 'schrodinger' | 'friends';
+export type Variant = 'none' | 'diagonal' | 'antiknight' | 'hyper' | 'nonconsec' | 'jigsaw' | 'antiking' | 'evenodd' | 'kropki' | 'sandwich' | 'thermo' | 'arrow' | 'thermocage' | 'unequal' | 'towers' | 'sandparity' | 'thermoknight' | 'killerdiag' | 'whisper' | 'renban' | 'regionsum' | 'palindrome' | 'between' | 'lockout' | 'xv' | 'argyle' | 'littlekiller' | 'xsums' | 'cipher' | 'fog' | 'chaos' | 'schrodinger' | 'doublers' | 'negators' | 'friends';
 // 'friends' — «Мяу — друзья» 9×9 (у кота мышь рядом): генератора на TS нет, доски ступеней — только
 // выгрузкой MindLab (flutter/tools/meow9-ladder.cjs, export_kids_boards.py --meow9).
 
@@ -263,6 +263,8 @@ const VARIANT_KEY_SUFFIX: Record<Exclude<Variant, 'none' | 'friends'>, string> =
   fog: 'Fog',
   chaos: 'Chaos',
   schrodinger: 'Schrodinger',
+  doublers: 'Doublers',
+  negators: 'Negators',
 };
 // «Мяу — друзья»: имя и правило — одна короткая строка «🐱 рядом с 🐭», та же, что у натива
 // (sdkRule_friends, 12 языков); отдельных sudokuVariant*/sudokuRule* у варианта нет.

@@ -1829,6 +1829,8 @@ String variantTitle(String variant) => switch (variant) {
       'fog' => L.t('sdkRule_fog'),
       'chaos' => L.t('sdkRule_chaos'),
       'schrodinger' => L.t('sdkRule_schrodinger'),
+      'doublers' => L.t('sdkRule_doublers'),
+      'negators' => L.t('sdkRule_negators'),
       'friends' => L.t('sdkRule_friends'),
       _ => L.t('sdkRule_none'),
     };

@@ -568,10 +568,14 @@ bool isValid(
         if (v == val) return false;   // цифры внутри группы не повторяются
         filled += v;
       }
-      final rest = cages.sum[id] - filled - val;
-      // Остаток обязан набираться РАЗНЫМИ цифрами: минимум 1+2+…, максимум N+(N−1)+…
-      if (rest < (empty * (empty + 1)) ~/ 2) return false;
-      if (rest > empty * n - (empty * (empty - 1)) ~/ 2) return false;
+      // Удвоители и отрицательные (п.13, f46c796c): сумма группы ВЗВЕШЕНА скрытыми клетками, которых
+      // игрок не видит, — по сумме ход не судим (выдали бы место нарушителя); повтор цифры — судим.
+      if (variant != 'doublers' && variant != 'negators') {
+        final rest = cages.sum[id] - filled - val;
+        // Остаток обязан набираться РАЗНЫМИ цифрами: минимум 1+2+…, максимум N+(N−1)+…
+        if (rest < (empty * (empty + 1)) ~/ 2) return false;
+        if (rest > empty * n - (empty * (empty - 1)) ~/ 2) return false;
+      }
     }
   }
 
