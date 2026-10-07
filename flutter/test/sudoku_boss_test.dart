@@ -3,7 +3,6 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:psygames_flutter/games/samurai/screen.dart';
 import 'package:psygames_flutter/games/sudoku/levels.dart';
 import 'package:psygames_flutter/games/sudoku/screen.dart';
 import 'package:psygames_flutter/shell/boss_round.dart';
@@ -11,8 +10,6 @@ import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/lesson.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import 'support/boss_probe.dart';
 
 /// 🔴 БОЙ С БОССОМ И МЕГАБОСС В НАТИВНОЙ «СУДОКУ» (задача 217f50de).
 ///
@@ -35,10 +32,11 @@ void main() {
       expect(names, {for (final t in sudokuBossTypes) t.name});
     });
 
-    test('веха боя и мегабосса — те же числа, что у веба', () {
+    // Мегабосс веба «каждый 15-й» в нативе снят решением Дениса 07.10.2026 — боссы
+    // лестницы ставит файл (`sudoku_ladder_boss_test.dart`); веха мешка — как у веба.
+    test('веха боя — то же число, что у веба', () {
       int webConst(String name) => int.parse(RegExp('const $name = (\\d+);').firstMatch(web)!.group(1)!);
       expect(BossRound.every, webConst('BOSS_EVERY'));
-      expect(sudokuMegaBossEvery, webConst('MEGA_BOSS_EVERY'));
     });
 
     test('мешок: каждые три вехи — все три задания, без повторов внутри тройки', () {
@@ -103,72 +101,55 @@ void main() {
       await finish(tester, level);
     }
 
-    testWidgets('🔴 веха: после 3-го уровня бой из мешка и его итог в итоге партии, после 2-го — боя нет',
+    // Веха «Судоку» — строка `boss` файла лестницы (решение Дениса 07.10.2026: смена модели
+    // генерации, минимум каждые 10), а не «каждый третий»: 4 — конец доски 6×6, 3 — середина.
+    testWidgets('🔴 веха: после 4-го уровня (конец модели) бой из мешка и его итог в итоге партии, после 3-го — боя нет',
         (tester) async {
       fillSudokuBossBag(const [BossType.lightning, BossType.finderror]);   // тянется с конца
-      await expectBossAfterWin(
-        tester,
-        play: (level) => play(tester, level),
-        won: find.text('Следующий уровень'),
-        hudKey: 'bossHudFinderror',
-      );
+      await play(tester, 4);
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(find.byKey(const Key('boss-round')), findsOneWidget, reason: 'после победы на 4-м уровне боя нет');
+      await tester.pump(BossRound.introTime);
+      expect(tester.widget<Text>(find.byKey(const Key('boss-hud'))).data, '⚔️ ${L.t('bossHudFinderror')}');
+      await tester.pump(const Duration(seconds: BossRound.roundSeconds + 1));
+      await tester.pump(BossRound.doneTime);
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('boss-round')), findsNothing, reason: 'бой не закрылся');
+      expect(find.text('Следующий уровень'), findsWidgets, reason: 'после боя нет итога взятого уровня');
+      expect(find.byKey(const Key('boss-outcome')), findsOneWidget, reason: 'итог боя не показан в итоге партии');
+
+      await play(tester, 3);
+      await tester.pump(const Duration(seconds: 3));
+      expect(find.byKey(const Key('boss-round')), findsNothing, reason: '3 — середина модели: «каждый третий» снят');
+      expect(find.byKey(const Key('boss-outcome')), findsNothing);
     });
 
-    testWidgets('🔴 мешок тянется только на вехе: после 2-го уровня задание не тратится', (tester) async {
+    testWidgets('🔴 мешок тянется только на вехе: после 3-го уровня задание не тратится', (tester) async {
       fillSudokuBossBag(const [BossType.lightning, BossType.finderror]);
-      await play(tester, 2);
+      await play(tester, 3);
       await tester.pump(const Duration(seconds: 3));
       expect(find.byKey(const Key('boss-round')), findsNothing);
-      await play(tester, 3);
+      await play(tester, 4);
       await tester.pump(const Duration(milliseconds: 500));
       await tester.pump(BossRound.introTime);
       expect(tester.widget<Text>(find.byKey(const Key('boss-hud'))).data, '⚔️ ${L.t('bossHudFinderror')}',
-          reason: 'на 3-м пришло не первое задание мешка — значит, 2-й уровень его потратил');
+          reason: 'на 4-м пришло не первое задание мешка — значит, 3-й уровень его потратил');
       await tester.pump(const Duration(seconds: BossRound.roundSeconds + 1));
       await tester.pump(BossRound.doneTime);
       await tester.pumpAndSettle();
     });
 
-    testWidgets('🔴 партия с разбором вехи не открывает — ни боя, ни мегабосса', (tester) async {
+    testWidgets('🔴 партия с разбором вехи не открывает — ни боя, ни босса лестницы', (tester) async {
       fillSudokuBossBag(const [BossType.finderror]);
-      for (final level in [3, 15]) {
+      for (final level in [4, 8]) {
         await boot(tester, level);
         LessonUsed.mark();   // как будто человек открыл разбор в этой партии
         await finish(tester, level);
         await tester.pump(const Duration(seconds: 3));
         expect(find.byKey(const Key('boss-round')), findsNothing, reason: 'L$level: разбор — победа не засчитана');
-        expect(find.byKey(const Key('megaboss-offer')), findsNothing, reason: 'L$level');
+        expect(find.byKey(const Key('ladderboss-offer')), findsNothing, reason: 'L$level');
         LessonUsed.reset();
       }
-    });
-
-    testWidgets('🔴 мегабосс на 15-м: приглашение вместо боя, «Позже» не отнимает уровень', (tester) async {
-      fillSudokuBossBag(const [BossType.lightning]);
-      await play(tester, 15);
-      await tester.pumpAndSettle();
-      expect(find.byKey(const Key('megaboss-offer')), findsOneWidget, reason: 'на 15-м — приглашение в «Самурая»');
-      expect(find.byKey(const Key('boss-round')), findsNothing, reason: 'мегабосс вытесняет обычный бой');
-      expect(state.get(ladderKey), '16', reason: 'уровень засчитан до приглашения');
-      // Текст — словом, а не ключом: ключи megaBoss* Dart зовёт впервые, без пересборки
-      // словаря диалог показал бы «megaBossTitle».
-      expect(find.text('⚔️ ${L.t('megaBossTitle')}'), findsOneWidget);
-      expect(L.t('megaBossTitle'), isNot('megaBossTitle'), reason: 'ключ не собран в словарь Flutter');
-      expect(L.t('megaBossGo'), isNot('megaBossGo'));
-      await tester.tap(find.byKey(const Key('megaboss-later')));
-      await tester.pumpAndSettle();
-      expect(find.byKey(const Key('megaboss-offer')), findsNothing);
-      expect(find.text('Следующий уровень'), findsOneWidget, reason: '«Позже» возвращает к итогу партии');
-      expect(find.byType(SamuraiScreen), findsNothing);
-    });
-
-    testWidgets('мегабосс: «В бой» открывает «Самурая» с меткой вехи', (tester) async {
-      await play(tester, 15);
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('megaboss-go')));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 400));
-      expect(find.byType(SamuraiScreen), findsOneWidget);
-      expect(tester.widget<SamuraiScreen>(find.byType(SamuraiScreen)).megabossFrom, 15);
     });
   });
 }
