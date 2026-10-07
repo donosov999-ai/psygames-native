@@ -12,6 +12,7 @@ import '../../shell/lesson.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
+import '../counting_common/generator_shadow.dart';
 import 'model.dart';
 
 /// «Математическая шкала» на общем каркасе — первая перенесённая игра с
@@ -53,6 +54,10 @@ class _MathSliderScreenState extends State<MathSliderScreen> {
 
   Timer? _auto;
   Timer? _advance;
+
+  /// Тень генератора уровней (звено 4, задача 4e584381): раздача с новой партией, исход до лестницы.
+  late final LadderShadow _shadow =
+      LadderShadow(widget.state, gameId: 'math_slider', stepKeys: sliderStepKeys);
   final Stopwatch _watch = Stopwatch();
   bool _ready = false;
 
@@ -100,6 +105,7 @@ class _MathSliderScreenState extends State<MathSliderScreen> {
     _auto?.cancel();
     _advance?.cancel();
     _questions = generateMathSliderQuestions(_seed, _playLevel, trialsPerRound);
+    _shadow.deal(_playLevel);
     _training = generateTrainingQuestion(_seed);
     _trials.clear();
     _phase = _Phase.training;
@@ -180,6 +186,7 @@ class _MathSliderScreenState extends State<MathSliderScreen> {
       return;
     }
     final won = _accuracy >= passAccuracy;
+    _shadow.outcome(passed: won, errors: _outside);
     if (won) {
       await _ladder.win();
     } else {

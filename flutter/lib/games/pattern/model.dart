@@ -483,6 +483,25 @@ final List<Sequence Function(Rng, int)> _mix = [
 /// Масштаб чисел смеси: растёт на единицу каждые два уровня и не упирается ни во что.
 int mixScale(int level) => level < mixFrom ? 1 : 1 + ((level - mixFrom) / 2).floor();
 
+/// Имя ступени для пула генератора уровней (звено 4, задача 4e584381) — из КЛАССА ряда, а не из
+/// номера уровня (договор `ladderPool`): `arithmetic-1`, `arithmetic-2`, `geometric-1`, …
+/// Выше [mixFrom] — смесь трудных классов, у неё растут только числа (`mixScale`): `mix-<масштаб>`.
+String patternStepKey(int level) {
+  var from = 1;
+  for (final b in _bands) {
+    if (level <= b.upTo) {
+      final name = b.label.replaceFirst('patternClass', '');
+      return '${name[0].toLowerCase()}${name.substring(1)}-${level - from + 1}';
+    }
+    from = b.upTo + 1;
+  }
+  return 'mix-${mixScale(level)}';
+}
+
+/// Ступени, у которых лестница НАЗЫВАЕТ класс ряда: 1…[mixFrom] − 1. Смесь дальше — открытый хвост:
+/// её ось — масштаб чисел без потолка, конечным списком ступеней её не выразить.
+final List<String> patternStepKeys = [for (var l = 1; l < mixFrom; l++) patternStepKey(l)];
+
 Sequence pickSequence(int level, Rng rng) {
   for (final b in _bands) {
     if (level <= b.upTo) return b.gen(rng);

@@ -790,6 +790,30 @@ const int _bandSize = 4;
 
 double _bandT(int level) => ((level - 1) % _bandSize) / (_bandSize - 1);
 
+/// Имена полос для ступеней генератора уровней (звено 4, задача 4e584381) — в порядке [_bands].
+/// Имя ступени строится из них, а не из номера (договор `ladderPool`): вставят полосу в середину —
+/// имена остальных не поедут. Проба сверяет, что имён столько же, сколько полос.
+const List<String> sliderBandNames = [
+  'addition', 'subtraction', 'multiplication', 'division', 'decimal', 'square',
+  'percent', 'discount', 'proportion', 'cube-nested', 'linear-equation', 'root-estimation',
+];
+
+/// Сколько полос по четыре уровня у лестницы (до квадратных уравнений).
+final int sliderBandCount = _bands.length;
+
+/// Имя ступени: `addition-1` … `root-estimation-4`, потом `quad-equation-1…4`; выше 52-го —
+/// фигуры-интегралы, открытый хвост.
+String sliderStepKey(int level) {
+  final l = math.max(1, level);
+  final band = ((l - 1) / _bandSize).floor();
+  if (band < _bands.length) return '${sliderBandNames[band]}-${(l - 1) % _bandSize + 1}';
+  if (l <= sliderMaxLevel) return 'quad-equation-${l - _bands.length * _bandSize}';
+  return 'integral-${l - sliderMaxLevel}';
+}
+
+/// Ступени, которые лестница ОБЕЩАЕТ: 1…[sliderMaxLevel].
+final List<String> sliderStepKeys = [for (var l = 1; l <= sliderMaxLevel; l++) sliderStepKey(l)];
+
 _Fam _expressionForLevel(int level, Rng rng) {
   final bandIndex = ((level - 1) / _bandSize).floor();
   if (bandIndex < _bands.length) return _bands[bandIndex](rng, _bandT(level));
