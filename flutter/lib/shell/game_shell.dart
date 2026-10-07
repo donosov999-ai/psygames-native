@@ -199,7 +199,7 @@ class GameShell extends StatelessWidget {
    */
   /// Справка по адресу открытой игры; null — правила для неё нет.
   VoidCallback? _rulesByRoute(BuildContext context) {
-    final key = GameRules.keyFor(GameRules.currentRoute);
+    final key = GameRules.fullKeyFor(GameRules.currentRoute);
     if (key == null) return null;
     return () => showGameRules(context, title: title, ruleKey: key);
   }
@@ -234,6 +234,8 @@ class GameShell extends StatelessWidget {
       // (game_clock.dart, задача 430d1299). Без этого игра под паузой жила дальше.
       builder: (_) => GameHoldScope(
         child: _PauseScreen(
+          title: title,
+          ruleKey: GameRules.fullKeyFor(GameRules.currentRoute),
           hud: hud,
           actions: actions,
           onLeave: () => _leave(context),
@@ -252,6 +254,8 @@ class GameShell extends StatelessWidget {
 class GameExit {
   /// Ставит [HybridApp]; пусто — значит главной нет (настольная проба), и пункт не рисуем.
   static VoidCallback? home;
+  /// Opens the shared feedback form without leaving/restarting the game.
+  static VoidCallback? feedback;
 }
 
 /// Пауза во весь экран — как в веб-версии, а не лист снизу.
@@ -260,7 +264,10 @@ class GameExit {
 /// главной кнопкой, ниже служебные пункты, и ДВА ухода в конце. Лист снизу на три
 /// пункта, который стоял здесь до этого, не давал ни выхода, ни счётчиков.
 class _PauseScreen extends StatelessWidget {
-  const _PauseScreen({required this.hud, required this.actions, required this.onLeave});
+  const _PauseScreen({required this.title, this.ruleKey, required this.hud, required this.actions, required this.onLeave});
+
+  final String title;
+  final String? ruleKey;
 
   final List<HudItem> hud;
   final List<PauseAction> actions;
@@ -339,6 +346,18 @@ class _PauseScreen extends StatelessWidget {
                 child: SingleChildScrollView(
                   child: Column(
                     children: [
+                      Text(title, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700)),
+                      if (ruleKey != null)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          child: SizedBox(
+                            height: (MediaQuery.sizeOf(context).height * .35).clamp(100.0, 280.0),
+                            child: SingleChildScrollView(
+                              key: const Key('pause-rules'),
+                              child: Text(L.t(ruleKey!), style: const TextStyle(fontSize: 16, height: 1.35)),
+                            ),
+                          ),
+                        ),
                       button(L.t('exitConfirmStay'), Icons.play_arrow,
                           () => Navigator.of(context).pop(),
                           primary: true, key: const Key('pause-resume')),
@@ -347,6 +366,9 @@ class _PauseScreen extends StatelessWidget {
                           Navigator.of(context).pop();
                           a.onPressed();
                         }),
+                      if (GameExit.feedback != null)
+                        button(L.t('feedbackFabLabel'), Icons.chat_bubble_outline,
+                            GameExit.feedback!, key: const Key('pause-feedback')),
                       // Шаг назад: туда, откуда пришли, — в развилку раздела.
                       button(L.t('pauseExitGame'), Icons.exit_to_app, () {
                         Navigator.of(context).pop();
@@ -411,7 +433,7 @@ class _Header extends StatelessWidget {
             IconButton(
               onPressed: onPause,
               icon: const Icon(Icons.pause),
-              tooltip: 'Пауза',
+              tooltip: L.t('teachPause'),
             ),
             Expanded(
               child: Text(title,
@@ -441,7 +463,7 @@ class _Header extends StatelessWidget {
                 tooltip: L.t('teachButton'),
               ),
             if (onRules != null)
-              IconButton(onPressed: onRules, icon: const Icon(Icons.help_outline), tooltip: 'Правила'),
+              IconButton(onPressed: onRules, icon: const Icon(Icons.help_outline), tooltip: L.t('btn_rules')),
             if (onBack != null)
               IconButton(onPressed: onBack, icon: const Icon(Icons.arrow_back), tooltip: L.t('back')),
           ],

@@ -40,9 +40,11 @@ void main() {
     await tester.pump();
   }
 
-  test('🔴 доски обоих режимов лежат данными: 8 ступеней у каждого', () {
+  // Ступеней у режимов разное число (небоскрёбы и неравенства — 8, киллер — 6, «Свободно» —
+  // 6 пресетов): проба берёт его у самого режима, а не одной восьмёркой на всех.
+  test('🔴 доски каждого режима лежат данными: на каждой его ступени', () {
     for (final mode in SideMode.values) {
-      for (var step = 1; step <= sideSteps; step++) {
+      for (var step = 1; step <= sideStepsOf(mode); step++) {
         expect(modes.boardsFor(mode, step), greaterThan(0),
             reason: '${sideModeName(mode)}: ступень $step без досок');
       }
@@ -68,7 +70,7 @@ void main() {
     for (final mode in SideMode.values) {
       final variant = sideModeName(mode);
       var checked = 0;
-      for (var step = 1; step <= sideSteps; step++) {
+      for (var step = 1; step <= sideStepsOf(mode); step++) {
         for (var i = 0; i < modes.boardsFor(mode, step); i++) {
           final b = modes.boardAt(mode, step, i)!;
           checked++;
@@ -93,7 +95,7 @@ void main() {
           }
         }
       }
-      expect(checked, 48, reason: '$variant: проверено досок $checked');
+      expect(checked, sideStepsOf(mode) * 6, reason: '$variant: проверено досок $checked (по 6 на ступень)');
     }
   });
 
@@ -123,7 +125,7 @@ void main() {
     expect(board, isNotNull);
 
     expect(state.get('psygames_sudoku_level_nzt48'), '42',
-        reason: 'лестница на 92 ступени в режиме не двигается');
+        reason: 'основная лестница в режиме не двигается');
     expect(progress.key, 'psygames_sudoku_towers_step_nzt48',
         reason: 'ключ ступени — тот же, что пишет веб-половина');
   });

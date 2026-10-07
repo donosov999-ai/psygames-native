@@ -13,7 +13,7 @@
  * что и значок, и кладёт в общую память (`psygames_hub_visible`); мост везёт ключ сам,
  * нативная развилка показывает ровно этот список.
  */
-import { GAMES } from '@/src/constants/games';
+import { GAMES, visibleInCatalog } from '@/src/constants/games';
 import { filterAllowedGames, type ProfileDef } from '@/src/constants/profiles';
 import { visibleHubCards } from '@/src/constants/hubContents';
 
@@ -24,6 +24,12 @@ export interface HubVisibility {
   profile: string;
   /** Маршрут развилки → маршруты видимых карточек (порядок веба). */
   hubs: Record<string, string[]>;
+  /**
+   * Игры вкладки «Игры» для этого профиля — `id` в порядке `GAMES`, ровно тот список, что
+   * рисует `CategorySections` (`visibleInCatalog(filterAllowedGames(профиль))`). Нативный
+   * каталог (задача f5025027) раскладывает его по разделам и правила профиля не пересчитывает.
+   */
+  catalog: string[];
 }
 
 export function hubVisibility(profile: ProfileDef): HubVisibility {
@@ -32,5 +38,6 @@ export function hubVisibility(profile: ProfileDef): HubVisibility {
   for (const g of GAMES) {
     if (g.hub) hubs[g.route] = visibleHubCards(g.route, можно, (k) => k).map((c) => c.route);
   }
-  return { profile: profile.id, hubs };
+  const catalog = visibleInCatalog(filterAllowedGames(profile), profile.id).map((g) => g.id);
+  return { profile: profile.id, hubs, catalog };
 }
