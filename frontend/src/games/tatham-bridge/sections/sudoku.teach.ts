@@ -8,5 +8,8 @@
  * Режимы раздела: Solo, Towers, Unequal, Keen, Singles, Filling, Undead.
  */
 import type { УчительРежима } from '../teach/types';
+import { учительUnruly } from '../teach/unruly';
 
-export const УЧИТЕЛЯ_РАЗДЕЛА: Record<string, УчительРежима> = {};
+export const УЧИТЕЛЯ_РАЗДЕЛА: Record<string, УчительРежима> = {
+  Unruly: учительUnruly,
+};

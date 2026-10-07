@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'games/dots_connect/screen.dart';
 import 'games/digit_span/screen.dart';
 import 'games/one_line/screen.dart';
+import 'shell/app_look.dart';
 import 'shell/asset_server.dart';
 import 'shell/app_theme.dart';
 import 'shell/game_clock.dart';
@@ -45,9 +46,13 @@ Future<void> main() async {
   // Язык берётся у общей памяти, а не задаётся числом в коде: его пишет веб-половина
   // (ключ `language`), и мост возит его через границу — см. SharedState.extraKeys.
   await L.load(state.language);
+  // Вид — тем же правилом, что у веба: профиль, ручной выбор, надетый акцент (app_look.dart).
+  await AppLook.load(state);
   await GameRules.load();   // правила игр — из того же реестра, что карточки развилок
   await LevelRules.load();  // правила УРОВНЕЙ — до первого экрана, иначе шапка не узнает о правиле
   final server = await AssetServer.start();
+  // iOS отбирает слушающий сокет у приложения в фоне — при возврате сервер встаёт заново (TN2277).
+  server.reviveOnResume();
   // Приложение ушло в фон — часы партии стоят (как скрытая вкладка в вебе), задача 430d1299.
   installGameClockLifecycle();
   runApp(PsyGamesPilotApp(state: state, server: server));
@@ -60,10 +65,13 @@ class PsyGamesPilotApp extends StatelessWidget {
   final AssetServer server;
 
   @override
+  // 🔴 `title` видно на Android в списке недавних приложений — имя продукта, а не рабочая
+  // пометка: было «PsyGames — пилот Flutter». Тема — выбор человека из общей памяти
+  // (`app_theme.dart`, ключ psygames_theme_override, как у веба).
   Widget build(BuildContext context) => ListenableBuilder(
       listenable: state,
       builder: (context, _) => MaterialApp(
-        title: 'PsyGames — пилот Flutter',
+        title: 'PsyGames',
         debugShowCheckedModeBanner: false,
         themeMode: appThemeMode(state),
         theme: ThemeData(colorSchemeSeed: const Color(0xFF7F7FD5), useMaterial3: true),

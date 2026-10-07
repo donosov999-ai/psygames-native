@@ -417,6 +417,11 @@ export const HELP_MAP: Record<string, HelpEntry> = {
     "skillKey": "skillInhibition",
     "introKey": "simonIntroDesc"
   },
+  "/games/relaxation-hub": {
+    "nameKey": "relaxationGroup",
+    "skillKey": "skillRecovery",
+    "introKey": "relaxationGroupIntroDesc"
+  },
   "/games/breathing": {
     "nameKey": "breathing",
     "skillKey": "skillRecovery",
@@ -461,11 +466,6 @@ export const HELP_MAP: Record<string, HelpEntry> = {
     "nameKey": "sortingGroup",
     "skillKey": "skillPlanningWM",
     "introKey": "sortingGroupIntroDesc"
-  },
-  "/games/puzzles-hub": {
-    "nameKey": "puzzlesGroup",
-    "skillKey": "skillLogic",
-    "introKey": "puzzlesUnrulyIntroDesc"
   },
   "/games/puzzles": {
     "nameKey": "puzzlesUnruly",
