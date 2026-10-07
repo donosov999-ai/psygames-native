@@ -1,0 +1,400 @@
+{
+ "v": 1,
+ "profileId": "nzt48",
+ "background": {
+  "image": "/assets/backgrounds/nzt48.webp",
+  "tint": "#a855f72E",
+  "veil": "#F5F5F7"
+ },
+ "toasts": {
+  "streak": {
+   "text": "+15 ⭐",
+   "bg": "#ef4444",
+   "fg": "#2b0c0c"
+  },
+  "wager": {
+   "text": "The wager paid off! +120 ⭐",
+   "emoji": "🏆",
+   "bg": "#22c55e"
+  },
+  "levelUp": {
+   "title": "Level 4!",
+   "sub": "Expert"
+  }
+ },
+ "header": {
+  "logo": "/assets/logos/nzt48.png",
+  "logoPlate": "#12151AC7",
+  "tokens": 800,
+  "level": "Lv 4",
+  "streak": 6,
+  "streakLabel": "Streak: 6",
+  "friendsLabel": "Friends",
+  "league": 0.25,
+  "leaguesLabel": "Leagues",
+  "pet": {
+   "kind": "frames",
+   "uris": [
+    "/assets/images/pet/cat/idle0.webp",
+    "/assets/images/pet/cat/idle1.webp",
+    "/assets/images/pet/cat/idle2.webp",
+    "/assets/images/pet/cat/idle3.webp",
+    "/assets/images/pet/cat/idle4.webp",
+    "/assets/images/pet/cat/idle5.webp",
+    "/assets/images/pet/cat/idle6.webp"
+   ],
+   "frames": 7,
+   "tickMs": 240,
+   "accessory": null
+  },
+  "petLabel": "Synapse pet",
+  "chip": {
+   "name": "NZT-48 (full)",
+   "image": "/assets/avatars/fox.png",
+   "emoji": "💊",
+   "bg": "#FFFFFFF2",
+   "border": "#fbbf24",
+   "borderWidth": 2.5
+  },
+  "title": "Мастер",
+  "onPhoto": true,
+  "achievements": 7,
+  "labels": {
+   "achievements": "Achievements",
+   "shop": "Shop",
+   "statistics": "Statistics",
+   "settings": "Settings"
+  },
+  "subtitle": "Train Your Brain · tap the chip to switch profile",
+  "update": {
+   "text": "Update available v2.57.0 · Download"
+  }
+ },
+ "blocks": [
+  {
+   "kind": "search",
+   "placeholder": "Find a game",
+   "button": "Games · Filter"
+  },
+  {
+   "kind": "ladder",
+   "text": "120 more to unlock: Undo a move"
+  },
+  {
+   "kind": "chest",
+   "face": "🦊",
+   "text": "⭐35 more for a new figure · 3/12 collected",
+   "ratio": 0.6,
+   "label": "⭐35 more for a new figure · 3/12 collected — Open collection"
+  },
+  {
+   "kind": "resume",
+   "title": "Continue: Schulte: Attention",
+   "sub": "Training: concentration",
+   "gradient": [
+    "#667eea",
+    "#764ba2"
+   ],
+   "href": "/games/schulte",
+   "label": "Continue: Schulte: Attention"
+  },
+  {
+   "kind": "goal",
+   "state": "review",
+   "goalText": "Пройти три судоку",
+   "outcome": null,
+   "reward": 30,
+   "roundsToday": 7,
+   "maxLen": 90,
+   "texts": {
+    "dayGoalTitle": "Why today",
+    "dayGoalCloseA11y": "Hide the goal card for today",
+    "dayGoalAsk": "What is today for?",
+    "dayGoalSave": "Keep it",
+    "dayGoalAskHint": "One line in your own words: what today’s training is for. Only you see it.",
+    "dayGoalPlaceholder": "In your own words",
+    "notNow": "Not now",
+    "dayGoalExamplesTitle": "It can sound like this:",
+    "dayGoalTodayLine": "Your goal for today:",
+    "dayGoalRoundsNone": "No rounds yet today",
+    "dayGoalReview": "How did it go?",
+    "dayGoalYes": "Did it",
+    "dayGoalNo": "Not today",
+    "dayGoalDoneNote": "Noted. We’ll ask again tomorrow.",
+    "dayGoalMissedNote": "That happens. The goal is still there — tomorrow is a day too.",
+    "dayGoalRewardNeedsRound": "Goal points come on a day with rounds played.",
+    "rounds": "Rounds toward it today: 7",
+    "rewardNote": "+30 ⭐ for the goal you reached",
+    "yesFg": "#062311"
+   },
+   "examples": [
+    "— not mixing up names at the meeting",
+    "— doing the sums in my head at the till",
+    "— not losing the thread mid-sentence"
+   ]
+  },
+  {
+   "kind": "today",
+   "title": "Today",
+   "total": 70,
+   "totalLabel": "Earned so far today: 70",
+   "rows": [
+    {
+     "name": "Schulte: Attention",
+     "rounds": "rounds: 3",
+     "doubled": true,
+     "gain": 40
+    },
+    {
+     "name": "Sudoku",
+     "rounds": "rounds: 1",
+     "doubled": false,
+     "gain": 15
+    },
+    {
+     "name": "Corsi Blocks",
+     "rounds": "rounds: 2",
+     "doubled": false,
+     "gain": 10
+    }
+   ],
+   "empty": null,
+   "more": "and 1 more — full list in statistics",
+   "streakNote": "5 days in a row — double per round"
+  },
+  {
+   "kind": "reco",
+   "title": "Recommended today",
+   "hint": "Three exercises for today — the set stays until tomorrow",
+   "cards": [
+    {
+     "id": "sudoku",
+     "href": "/games/sudoku?calm=1",
+     "gradient": [
+      "#7f7fd5",
+      "#86a8e7"
+     ],
+     "look": {
+      "fg": "#181b28",
+      "soft": "#181b28",
+      "scrim20": "rgba(255, 255, 255, 0.2)",
+      "scrim35": "rgba(255, 255, 255, 0.35)",
+      "veil": null
+     },
+     "icon": {
+      "ion": "apps",
+      "size": 26
+     },
+     "chip": null,
+     "chipBg": "rgba(255, 255, 255, 0.35)",
+     "title": "Sudoku",
+     "sub": "You are growing here",
+     "cta": {
+      "ion": "play",
+      "text": "START",
+      "bg": "rgba(255, 255, 255, 0.35)",
+      "fg": "#181b28"
+     },
+     "label": "Sudoku — You are growing here"
+    },
+    {
+     "id": "corsi",
+     "href": "/games/corsi?calm=1",
+     "gradient": [
+      "#0083B0",
+      "#00B4DB"
+     ],
+     "look": {
+      "fg": "#000c10",
+      "soft": "#000c10",
+      "scrim20": "rgba(255, 255, 255, 0.2)",
+      "scrim35": "rgba(255, 255, 255, 0.35)",
+      "veil": null
+     },
+     "icon": {
+      "ion": "grid",
+      "size": 26
+     },
+     "chip": "✓",
+     "chipBg": "rgba(255, 255, 255, 0.35)",
+     "title": "Corsi Blocks",
+     "sub": "Played today",
+     "cta": {
+      "ion": "play",
+      "text": "REPEAT",
+      "bg": "rgba(255, 255, 255, 0.35)",
+      "fg": "#000c10"
+     },
+     "label": "Corsi Blocks — Played today"
+    }
+   ]
+  },
+  {
+   "kind": "practices",
+   "title": "Practices of the day",
+   "cards": [
+    {
+     "id": "warmup",
+     "href": "/warmup-picker",
+     "gradient": [
+      "#7b4397",
+      "#dc2430"
+     ],
+     "look": {
+      "fg": "#fcf7f9",
+      "soft": "#fcf7f9",
+      "scrim20": "rgba(0, 0, 0, 0.2)",
+      "scrim35": "rgba(0, 0, 0, 0.35)",
+      "veil": null
+     },
+     "icon": {
+      "image": "/assets/icons/warmup.png",
+      "size": 30
+     },
+     "chip": "🔥6",
+     "chipBg": "rgba(0, 0, 0, 0.2)",
+     "title": "Workout",
+     "sub": "Evening · Calm games and breathing",
+     "cta": {
+      "ion": "chevron-forward",
+      "text": "CHOOSE",
+      "bg": "rgba(0, 0, 0, 0.35)",
+      "fg": "#fcf7f9"
+     },
+     "label": "Workout"
+    },
+    {
+     "id": "relaxation",
+     "href": "/games/relaxation-hub",
+     "gradient": [
+      "#43cea2",
+      "#185a9d"
+     ],
+     "look": {
+      "fg": "#000000",
+      "soft": "#000000",
+      "scrim20": "transparent",
+      "scrim35": "transparent",
+      "veil": "rgba(67, 206, 162, 0.31)"
+     },
+     "icon": {
+      "ion": "leaf-outline",
+      "size": 26
+     },
+     "chip": null,
+     "chipBg": "transparent",
+     "title": "Relaxation",
+     "sub": "Breathing, eyes, a pause — a short rest for the mind",
+     "cta": {
+      "ion": "chevron-forward",
+      "text": "CHOOSE",
+      "bg": "#FFF",
+      "fg": "#185a9d"
+     },
+     "label": "Relaxation"
+    },
+    {
+     "id": "challenge",
+     "href": null,
+     "action": "challenge",
+     "gradient": [
+      "#5b86e5",
+      "#36d1dc"
+     ],
+     "look": {
+      "fg": "#0d1f29",
+      "soft": "#0d1f29",
+      "scrim20": "rgba(255, 255, 255, 0.2)",
+      "scrim35": "rgba(255, 255, 255, 0.35)",
+      "veil": null
+     },
+     "icon": {
+      "ion": "flash",
+      "size": 26
+     },
+     "chip": "✓",
+     "chipBg": "rgba(255, 255, 255, 0.35)",
+     "title": "Daily challenge",
+     "sub": "N-back: Working memory · Hard",
+     "cta": {
+      "ion": "play",
+      "text": "REPEAT",
+      "bg": "rgba(255, 255, 255, 0.35)",
+      "fg": "#0d1f29"
+     },
+     "label": "Daily challenge"
+    }
+   ]
+  },
+  {
+   "kind": "favourites",
+   "title": "What you play most",
+   "allLabel": "All games ›",
+   "sections": [
+    {
+     "category": "memory",
+     "total": 9,
+     "routes": [
+      "/games/corsi",
+      "/games/n-back"
+     ],
+     "more": "7 more ›"
+    },
+    {
+     "category": "logic",
+     "total": 2,
+     "routes": [
+      "/games/sudoku",
+      "/games/hanoi"
+     ],
+     "more": null
+    }
+   ]
+  },
+  {
+   "kind": "allForks",
+   "label": "All forks ›",
+   "href": "/games?filter=hubs"
+  }
+ ],
+ "goalSheet": {
+  "pet": {
+   "kind": "frames",
+   "uris": [
+    "/assets/images/pet/cat/idle0.webp",
+    "/assets/images/pet/cat/idle1.webp",
+    "/assets/images/pet/cat/idle2.webp",
+    "/assets/images/pet/cat/idle3.webp",
+    "/assets/images/pet/cat/idle4.webp",
+    "/assets/images/pet/cat/idle5.webp",
+    "/assets/images/pet/cat/idle6.webp"
+   ],
+   "frames": 7,
+   "tickMs": 240,
+   "accessory": null
+  },
+  "line": "Возьмём серию?",
+  "options": [
+   {
+    "days": 7,
+    "text": "7 days",
+    "why": null,
+    "chosen": false
+   },
+   {
+    "days": 14,
+    "text": "14 days",
+    "why": "Your longest streak so far: 9 days in a row",
+    "chosen": true
+   },
+   {
+    "days": 30,
+    "text": "30 days",
+    "why": null,
+    "chosen": false
+   }
+  ],
+  "today": "Today: 7 games · 70 ⭐ · streak 5",
+  "skip": "Not now"
+ }
+}
