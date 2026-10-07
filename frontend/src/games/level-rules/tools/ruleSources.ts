@@ -1,4 +1,4 @@
-/* psygames-level-rules-native-sources · VER 2 · 02.10.2026 */
+/* psygames-level-rules-native-sources · VER 3 · 07.10.2026 */
 /**
  * ПРАВИЛА УРОВНЕЙ ДЛЯ НАТИВНОЙ ПОЛОВИНЫ — ТАБЛИЦА «УРОВЕНЬ → ДЕЙСТВУЮЩЕЕ ПРАВИЛО».
  *
@@ -55,8 +55,11 @@ export function ruleSources(): RuleSource[] {
   const отличия = require('@/src/games/find-differences/core/levelRules');
   const зрительный = require('@/src/games/visual-search/core/nativeRules');
   const сет = require('@/src/games/set-game/core/nativeRules');
+  // Игры без веб-экрана: механика в Dart, таблица уровней — в списке нативных игр.
+  const nativeOnly = require('@/src/constants/nativeOnlyGames');
   /* eslint-enable @typescript-eslint/no-require-imports */
   return [
+    s(['animal_queue'], nativeOnly.ANIMAL_QUEUE_RULES),
     s(['cake_sort', 'pizza_sort'], игра('cake-sort').CS_RULES),
     s(['chess_blind'], игра('chess-blind').CHESSBLIND_RULES),
     s(['corsi'], игра('corsi').CORSI_RULES),
@@ -66,6 +69,7 @@ export function ruleSources(): RuleSource[] {
     s(['find_differences'], отличия.FD_RULES),
     { ids: ['goods_sort'], rulesAt: товары.gsRulesForLevel },
     s(['hanoi'], игра('hanoi').HN_RULES),
+    s(['kids_sort'], nativeOnly.KIDS_SORT_RULES),
     s(['listening_span'], игра('listening-span').LISTENINGSPAN_RULES),
     s(['mahjong'], игра('mahjong').MAHJONG_RULES),
     s(['math_sprint'], игра('math-sprint').MS_RULES),

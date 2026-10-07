@@ -7,6 +7,7 @@ import 'package:psygames_flutter/games/spatial_lab/board.dart';
 import 'package:psygames_flutter/games/spatial_lab/deal.dart';
 import 'package:psygames_flutter/games/spatial_lab/screen.dart';
 import 'package:psygames_flutter/games/spatial_lab/twiddle.dart';
+import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -34,6 +35,7 @@ void main() {
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
     state = await SharedState.open();
+    await L.load('ru');
   });
 
   Future<void> boot(WidgetTester tester, {int seed = 42, Size size = const Size(390, 844)}) async {
@@ -59,8 +61,8 @@ void main() {
     await tester.tap(find.byKey(Key('клетка$cell')));
     await tester.pump();
     final button = switch (c.kind) {
-      CommandKind.row => c.amount > 0 ? 'строка-вправо' : 'строка-влево',
-      CommandKind.column => c.amount > 0 ? 'столбец-вниз' : 'столбец-вверх',
+      CommandKind.row => c.amount > 0 ? 'shift-row-right' : 'shift-row-left',
+      CommandKind.column => c.amount > 0 ? 'shift-col-down' : 'shift-col-up',
       _ => c.amount > 0 ? 'вправо' : 'влево',
     };
     await tester.tap(find.byKey(Key(button)));
@@ -92,7 +94,7 @@ void main() {
 
   testWidgets('🔴 «Поворот чисел»: ступень собирается решением ядра', (tester) async {
     await solve(tester, LabMode.twiddle, 1);
-    expect(find.text('Собрано!'), findsOneWidget);
+    expect(find.text(L.t('spatialLabSolved')), findsOneWidget);
     expect(find.byKey(const Key('дальше')), findsOneWidget);
     // Односторонняя лестница: победа поднимает ступень.
     expect(find.text('2'), findsWidgets, reason: 'уровень вырос до второго');
@@ -100,36 +102,36 @@ void main() {
 
   testWidgets('🔴 «Сеть труб»: ступень собирается решением ядра', (tester) async {
     await solve(tester, LabMode.net, 1);
-    expect(find.text('Собрано!'), findsOneWidget);
-    expect(find.text('Открытых концов: 0'), findsNothing, reason: 'после победы строка про победу');
+    expect(find.text(L.t('spatialLabSolved')), findsOneWidget);
+    expect(find.text(L.f('spatialLabOpenEnds', {'n': '0'})), findsNothing, reason: 'после победы строка про победу');
   });
 
   testWidgets('🔴 «Сдвиг чисел»: строка и столбец ездят по кругу', (tester) async {
     await solve(tester, LabMode.sixteen, 1);
-    expect(find.text('Собрано!'), findsOneWidget);
+    expect(find.text(L.t('spatialLabSolved')), findsOneWidget);
   });
 
   testWidgets('🔴 «Сеть со сдвигом»: источник едет вместе со строкой', (tester) async {
     await solve(tester, LabMode.netslide, 1);
-    expect(find.text('Собрано!'), findsOneWidget);
+    expect(find.text(L.t('spatialLabSolved')), findsOneWidget);
   });
 
   testWidgets('🔴 отмена возвращает поле, а свободная игра не двигает лестницу', (tester) async {
     await boot(tester);
     await tester.tap(find.byKey(const Key('свободная-игра')));
     await tester.pump();
-    expect(find.text('свободно'), findsOneWidget);
+    expect(find.text(L.t('spatialFreePlay')), findsOneWidget);
 
     await tester.tap(find.byKey(const Key('клетка0')));
     await tester.pump();
     await tester.tap(find.byKey(const Key('вправо')));
     await tester.pump();
-    expect(find.byTooltip('Отменить'), findsOneWidget);
-    await tester.tap(find.byTooltip('Отменить'));
+    expect(find.byTooltip(L.t('btn_undo')), findsOneWidget);
+    await tester.tap(find.byTooltip(L.t('btn_undo')));
     await tester.pump();
 
     // Свободная раздача лестницу не трогает ни при каком исходе.
-    await tester.tap(find.byTooltip('Настройка'));
+    await tester.tap(find.byTooltip(L.t('settings')));
     await tester.pump();
     expect(find.text('1'), findsWidgets, reason: 'уровень остался первым');
   });

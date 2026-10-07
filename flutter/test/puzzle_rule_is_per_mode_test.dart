@@ -72,13 +72,15 @@ void main() {
     final verbs = RegExp(r'Тапни|Нажми|Тяни|Протяни|стрелк', caseSensitive: false);
     // 30.09.2026: Колышки, Указатели и Инерция переехали в «Шахматы» (задача 9425fa7b) вместе с
     // правилами, принятыми здесь, — требование «чем ходить» едет с ними по имени, а не по владельцу.
-    const moved = {'Pegs', 'Signpost', 'Inertia'};
+    // 07.10.2026: Замкнутая и Жемчужная петли, Мосты и Рельсы переехали в «Пространство»
+    // (решение Дениса 18.09, задача 62eea286) — требование тоже едет с ними по имени.
+    const moved = {'Pegs', 'Signpost', 'Inertia', 'Loopy', 'Pearl', 'Bridges', 'Train Tracks'};
     final mine = PuzzleModes.all.values
         .where((m) => m.owner == 'psygames-sorting-claude-mac' || moved.contains(m.engineName))
         .toList();
     expect(mine.length, 9, reason: 'раздел потерял режимы — проверять стало нечего');
-    expect(mine.where((m) => m.owner == 'psygames-sorting-claude-mac').length, 6,
-        reason: 'у «Сортировки» после переезда трёх режимов в «Шахматы» — шесть своих');
+    expect(mine.where((m) => m.owner == 'psygames-sorting-claude-mac').length, 2,
+        reason: 'у «Сортировки» после переездов в «Шахматы» (3) и «Пространство» (4) — два своих');
     final silent = mine
         .where((m) => !verbs.hasMatch(m.rule ?? ''))
         .map((m) => m.engineName)

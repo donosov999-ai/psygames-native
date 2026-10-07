@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'dart:io';
 import 'dart:math';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -51,9 +53,78 @@ void main() {
     expect(s.answer(2, c, 1), isTrue);
   });
 
-  test('лестница: от шести карточек в фазе до двенадцати', () {
+  test('лестница: от шести карточек до двенадцати, потом растут смены правила — без потолка', () {
     expect(kidsCardsFor(1), 6);
     expect(kidsCardsFor(4), 12);
-    expect(kidsCardsFor(30), 12);
+    expect(kidsPhasesFor(4), 2);
+    expect(kidsPhasesFor(5), 3, reason: 'с пятой ступени правило возвращается');
+    expect(kidsPhasesFor(60), greaterThan(kidsPhasesFor(30)), reason: 'смены растут дальше');
+    expect(kidsCardsFor(30), 4, reason: 'фаза короче, когда смен много, но не меньше четырёх карточек');
+  });
+
+  int byColor(KidsCard c) => kidsTargets.indexWhere((t) => t.color == c.color);
+  int byShape(KidsCard c) => kidsTargets.indexWhere((t) => t.shape == c.shape);
+  int byRule(KidsRule r, KidsCard c) => r == KidsRule.color ? byColor(c) : byShape(c);
+
+  test('🔴 после смены правила каждая карточка конфликтная — персеверацию видно на каждой', () {
+    // 02.10.2026, задача e95b7e2f. Движок раздавал карточки случайно, и половина карточек
+    // фазы вела в одну коробку по любому правилу: ответ по старому правилу на них был
+    // верным, и персеверация пряталась. Ребёнок, который держится старого правила, должен
+    // ошибиться на КАЖДОЙ карточке после смены.
+    final bad = <String>[];
+    for (var level = 1; level <= 20; level += 1) {
+      for (var seed = 1; seed <= 10; seed += 1) {
+        final s = KidsSortSession(Random(seed * 13 + level), nCards: kidsCardsFor(level), phases: kidsPhasesFor(level));
+        for (final c in s.phase1.cards) {
+          s.answer(1, c, byColor(c));
+        }
+        var expected = 0;
+        for (var p = 2; p <= s.phases.length; p += 1) {
+          // Держится правила прошлой фазы.
+          for (final c in s.phases[p - 1].cards) {
+            s.answer(p, c, byRule(s.phases[p - 2].rule, c));
+          }
+          expected += s.nCards;
+          final half = s.phases[p - 1].cards.where((c) => c.color == KidsColor.red).length;
+          if (half * 2 != s.nCards) bad.add('L$level s$seed фаза $p: красных $half из ${s.nCards}');
+        }
+        if (s.perseverative != expected) bad.add('L$level s$seed: персевераций ${s.perseverative} из $expected');
+      }
+    }
+    expect(bad, isEmpty);
+  });
+
+  test('🔴 серия засчитана, если смену заметил; три звезды — только неизбежные ✗', () {
+    final s = KidsSortSession(Random(5), nCards: kidsCardsFor(8), phases: kidsPhasesFor(8));
+    expect(s.switches, 3);
+    // Внимательный: держит правило, пока не увидит ✗, потом переходит на другое.
+    var rule = KidsRule.color;
+    for (var p = 1; p <= s.phases.length; p += 1) {
+      for (final c in s.phases[p - 1].cards) {
+        if (!s.answer(p, c, byRule(rule, c))) {
+          rule = rule == KidsRule.color ? KidsRule.shape : KidsRule.color;
+        }
+      }
+    }
+    expect(s.errors, s.switches, reason: 'по одной ✗ на смену');
+    expect(s.passed, isTrue);
+    expect(s.stars, 3, reason: 'неизбежные ✗ звёзд не отнимают');
+
+    // Держится цвета до конца — серия не засчитана.
+    final stuck = KidsSortSession(Random(5), nCards: kidsCardsFor(8), phases: kidsPhasesFor(8));
+    for (var p = 1; p <= stuck.phases.length; p += 1) {
+      for (final c in stuck.phases[p - 1].cards) {
+        stuck.answer(p, c, byColor(c));
+      }
+    }
+    expect(stuck.passed, isFalse);
+    expect(stuck.stars, 1);
+  });
+
+  test('🔴 карточка правила объявляет смены на той ступени, где они появляются', () {
+    final ranges = (jsonDecode(File('assets/level_rules.json').readAsStringSync())['games']
+        as Map<String, dynamic>)['kids_sort'] as List;
+    final from = (ranges.firstWhere((r) => (r as List)[2] == 'switches') as List)[0] as int;
+    expect(from, List.generate(60, (i) => i + 1).firstWhere((l) => kidsPhasesFor(l) > 2));
   });
 }

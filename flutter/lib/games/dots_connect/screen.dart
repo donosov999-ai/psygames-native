@@ -3,10 +3,12 @@ import 'package:flutter/services.dart' show rootBundle;
 
 import '../../shell/aux_action.dart';
 import '../../shell/game_shell.dart';
+import '../../shell/l10n.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/lesson.dart';
 import '../../shell/lesson_player.dart';
+import '../../shell/module_strings.dart';
 import '../../shell/shared_state.dart';
 import 'board.dart';
 import 'model.dart';
@@ -27,6 +29,10 @@ class _DotsConnectScreenState extends State<DotsConnectScreen> {
   DotsGame? _game;
   bool _won = false;
 
+  /// Текст партии — из словаря модуля веба (`assets/l10n/dots-connect.json`): «Покрытие» есть
+  /// только у этой игры, в общем словаре его нет.
+  ModuleStrings? _strings;
+
   @override
   void initState() {
     super.initState();
@@ -37,8 +43,11 @@ class _DotsConnectScreenState extends State<DotsConnectScreen> {
   Future<void> _boot() async {
     final raw = await rootBundle.loadString('assets/levels/dots_connect.json');
     await _ladder.load();
+    final strings = await ModuleStrings.load('dots-connect');
     final set = DotsLevelSet.fromJsonString(raw);
+    if (!mounted) return;
     setState(() {
+      _strings = strings;
       _set = set;
       _game = DotsGame(set.byLevel(_ladder.level));
     });
@@ -67,7 +76,8 @@ class _DotsConnectScreenState extends State<DotsConnectScreen> {
   }
 
   /// ⚠️ Название одной строкой: второй литерал — второе место переводить.
-  static const _title = 'Соедини точки';
+  /// Подписи каркаса — из общего с вебом словаря (`L.t`): зашитый текст знал бы один язык из двенадцати.
+  String get _title => L.t('dotsConnect');
 
   /*
    * 🔴 РАЗБОР БЕРЁТ ГОТОВОЕ РЕШЕНИЕ, А НЕ ИЩЕТ СВОЁ.
@@ -105,7 +115,8 @@ class _DotsConnectScreenState extends State<DotsConnectScreen> {
   Widget build(BuildContext context) {
     final set = _set;
     final game = _game;
-    if (set == null || game == null) {
+    final strings = _strings;
+    if (set == null || game == null || strings == null) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
     final level = game.level;
@@ -115,10 +126,10 @@ class _DotsConnectScreenState extends State<DotsConnectScreen> {
       // собирал уровень, и искать заново нечего.
       onLesson: level.solution.isEmpty ? null : _openLesson,
       hud: [
-        HudItem(label: 'Уровень', value: '${_ladder.level}', icon: Icons.flag_outlined),
-        HudItem(label: 'Достигнуто', value: '${_ladder.best}', icon: Icons.emoji_events_outlined),
+        HudItem(label: L.t('level'), value: '${_ladder.level}', icon: Icons.flag_outlined),
+        HudItem(label: L.t('personalBest'), value: '${_ladder.best}', icon: Icons.emoji_events_outlined),
         HudItem(
-            label: 'Занято',
+            label: strings.t('hudCoverage'),
             value: '${game.filledCells}/${level.playableCells}',
             icon: Icons.grid_4x4),
       ],
@@ -131,15 +142,15 @@ class _DotsConnectScreenState extends State<DotsConnectScreen> {
       auxRow: AuxBar(children: [
         AuxAction(
           icon: Icons.undo,
-          label: 'Отменить',
+          label: L.t('btn_undo'),
           onPressed: game.paths.isEmpty
               ? null
               : () => setState(() => game.clearPath(game.paths.keys.last)),
         ),
-        AuxAction(icon: Icons.refresh, label: 'Начать заново', onPressed: _restart),
+        AuxAction(icon: Icons.refresh, label: L.t('restart'), onPressed: _restart),
         AuxAction(
           icon: Icons.lightbulb_outline,
-          label: 'Показать решение',
+          label: L.t('puzzleShowSolution'),
           tint: const Color(0xFFB45309),
           onPressed: _won ? null : _showSolution,
         ),
@@ -150,13 +161,13 @@ class _DotsConnectScreenState extends State<DotsConnectScreen> {
               child: FilledButton.icon(
                 onPressed: _next,
                 icon: const Icon(Icons.arrow_forward),
-                label: const Text('Следующий уровень'),
+                label: Text(L.t('nextLabel')),
               ),
             )
           : null,
       pauseActions: [
-        PauseAction(label: 'Начать заново', icon: Icons.refresh, onPressed: _restart),
-        PauseAction(label: 'Показать решение', icon: Icons.lightbulb_outline, onPressed: _showSolution),
+        PauseAction(label: L.t('restart'), icon: Icons.refresh, onPressed: _restart),
+        PauseAction(label: L.t('puzzleShowSolution'), icon: Icons.lightbulb_outline, onPressed: _showSolution),
       ],
     );
   }

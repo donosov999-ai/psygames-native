@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/shell/game_preset.dart';
 import 'package:psygames_flutter/shell/hybrid_app.dart';
@@ -28,7 +29,17 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// под пробу сама, держать список руками не нужно.
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
-  setUpAll(() async => L.load('ru'));
+  setUpAll(() async {
+    await L.load('ru');
+    // Игры со звуком («Объём на слух», #114) создают системный голос, а он — плеер just_audio.
+    // Конструктор плеера сразу зовёт платформенный `disposeAllPlayers`; в пробе платформы нет,
+    // и MissingPluginException прилетает АСИНХРОННО — валит пробу по времени, а не по делу.
+    // На Linux CI она успевала уйти после конца пробы, на macOS-сборке TestFlight 2.56.5 — нет
+    // (02.10.2026). Отвечаем пустым ответом: проба про кнопку «Начать», не про звук.
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+        const MethodChannel('com.ryanheise.just_audio.methods'),
+        (call) async => call.method == 'init' ? null : <String, dynamic>{});
+  });
   tearDown(GamePreset.clear);
 
   /// Адреса шагов зарядок — те, что ведут в нативную игру.

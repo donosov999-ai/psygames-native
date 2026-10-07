@@ -8,5 +8,10 @@
  * Режимы раздела: Slide, Sokoban, Net, Netslide, Twiddle, Cube, Flip, Sixteen, Fifteen, Untangle.
  */
 import type { УчительРежима } from '../teach/types';
+import { учительBlackBox } from '../teach/blackbox';
+import { учительSlant } from '../teach/slant';
 
-export const УЧИТЕЛЯ_РАЗДЕЛА: Record<string, УчительРежима> = {};
+export const УЧИТЕЛЯ_РАЗДЕЛА: Record<string, УчительРежима> = {
+  Slant: учительSlant,
+  'Black Box': учительBlackBox,
+};
