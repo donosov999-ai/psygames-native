@@ -942,27 +942,39 @@ class _Ready extends StatelessWidget {
                       title: Text(L.t('label_photo_memory')),
                       subtitle: Text(L.t('desc_photo_memory'), style: text.bodySmall),
                     ),
+                    // Три длительности показа — один сегментный ряд (как выбор бота в «Дуэли»):
+                    // фишками «0.5s (Hard)» они вставали в три ряда по 48 пт, и с режимами «Малыши» и
+                    // «Дуэль» настройки ушли за 1,1 экрана (замер 07.10 на 360×640: прокрутка 84 пт).
+                    // Секунды и готовая тройка «Легко/Средне/Сложно» из словаря — как в вебе.
                     if (photo)
-                      Wrap(
-                        spacing: 8,
-                        alignment: WrapAlignment.center,
-                        children: [
+                      SegmentedButton<int>(
+                        key: const Key('pp-preview'),
+                        segments: [
                           for (final ms in pairsFreePreviewMs)
-                            ChoiceChip(
-                              key: Key('pp-preview-$ms'),
-                              // Секунды + готовая тройка «Легко/Средне/Сложно» из словаря, как в вебе.
-                              label: Text(
-                                '${_secs(ms)}${L.t('secShort')} '
-                                '(${ms == 500
-                                    ? L.t('hard')
-                                    : ms == 1500
-                                    ? L.t('medium')
-                                    : L.t('easy')})',
+                            ButtonSegment(
+                              value: ms,
+                              label: Column(
+                                key: Key('pp-preview-$ms'),
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text('${_secs(ms)}${L.t('secShort')}', maxLines: 1, overflow: TextOverflow.ellipsis),
+                                  Text(
+                                    ms == 500
+                                        ? L.t('hard')
+                                        : ms == 1500
+                                        ? L.t('medium')
+                                        : L.t('easy'),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: text.bodySmall,
+                                  ),
+                                ],
                               ),
-                              selected: ms == previewMs,
-                              onSelected: (_) => onPreview(ms),
                             ),
                         ],
+                        selected: {previewMs},
+                        showSelectedIcon: false,
+                        onSelectionChanged: (v) => onPreview(v.first),
                       ),
                     const SizedBox(height: 16),
                   ],
