@@ -53,7 +53,7 @@ export const GAME_VERSIONS: Record<string, GameVersion> = {
   'mental-rotation': { ver: 12, date: '17.09.2026' },
   'mnemonics-hub': { ver: 1, date: '04.09.2026' },
   'mnemonics': { ver: 1, date: '19.08.2026' },
-  'n-back': { ver: 1, date: '19.08.2026' },
+  'n-back': { ver: 3, date: '02.10.2026' },
   'navigator': { ver: 3, date: '17.09.2026' },
   'number-bonds': { ver: 2, date: '06.09.2026' },
   'number-run': { ver: 4, date: '17.09.2026' },
