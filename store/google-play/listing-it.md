@@ -18,7 +18,7 @@ PsyGames: Allena la mente
 ## 2. КРАТКОЕ ОПИСАНИЕ — 80 символов
 
 ```
-Memoria, concentrazione e logica: 75 esercizi offline, senza pubblicità
+Memoria, concentrazione e logica: 131 esercizi offline, senza pubblicità
 ```
 
 ---
@@ -33,7 +33,7 @@ Ascolti una lingua straniera e distingui suoni che prima sembravano uguali.
 
 Non è un talento riservato a pochi. Si può allenare — e qui puoi misurare i progressi.
 
-PsyGames offre giochi mentali, rompicapo e 75 esercizi per memoria, attenzione, logica e rapidità. Non è l'ennesimo test che indovina il tuo QI, ma pratica con risultati misurabili.
+PsyGames offre giochi mentali, rompicapo e 131 esercizi per memoria, attenzione, logica e rapidità. Non è l'ennesimo test che indovina il tuo QI, ma pratica con risultati misurabili.
 
 GIOCHI DI MEMORIA
 Allena la memoria visiva con blocchi di Corsi, matrici, coppie e storie. Rafforza la memoria di lavoro con N-back, Operation Span e Reading Span.
@@ -42,7 +42,7 @@ ATTENZIONE E CONCENTRAZIONE
 Migliora la concentrazione con tabelle di Schulte, trova le differenze, compiti di Posner e Flanker. Resta sull'attività tra notifiche, rumore e interruzioni.
 
 LOGICA E ROMPICAPI
-Risolvi giochi di logica: Sudoku con 15 varianti di regole, Torre di Hanoi, Torre di Londra, SET e anagrammi. Pianifica più mosse prima della risposta ovvia.
+Risolvi giochi di logica: Sudoku con 22 varianti di regole, Torre di Hanoi, Torre di Londra, SET e anagrammi. Pianifica più mosse prima della risposta ovvia.
 
 VELOCITÀ DI PENSIERO E REAZIONE
 Allena riflessi, calcolo mentale e controllo cognitivo con Stroop, Go/No-Go, operazioni a tempo e Trail Making. Rispondi più velocemente senza perdere precisione.
@@ -58,7 +58,7 @@ Molte app ripetono la stessa prova senza mostrare il cambiamento. PsyGames adatt
 • Sfida giornaliera e traguardi mantengono chiaro il prossimo obiettivo
 
 COSA TROVI NELL'APP
-• 75 esercizi per memoria, attenzione, logica, velocità e controllo
+• 131 esercizi per memoria, attenzione, logica, velocità e controllo
 • Riscaldamenti mattina, giorno, sera e notte pronti con un tocco
 • Tema scuro e un set notturno per quando non arriva il sonno: respirazione 4-7-8, schermo attenuato, senza punti né serie
 • 12 profili: lingue, bambini, 50+, concentrazione, reazione, studenti e altro

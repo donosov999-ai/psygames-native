@@ -319,3 +319,37 @@ List<List<int>> parse81(String s) => [
 
 /// Обратно в строку — для слепков в пробах.
 String encode81(List<List<int>> b) => b.map((row) => row.join()).join();
+
+/// ПОКАЗАТЬ РЕШЕНИЕ — перенос `revealSolution` (`fractal-sudoku.ts`): ответ ставится ОБЫЧНЫМИ
+/// ходами движка, поэтому пороги, всплытие цифр наверх и порталы отрабатывают сами. В дочерней
+/// (`child`) — только её ответ; на карте (`null`) — все девять сеток и затем корень.
+FractalPlayState revealSolution(FractalPlayState state, FractalPuzzle f, int? child) {
+  var s = state;
+  void put(int? ch, int r, int c, int n) {
+    final res = playDigit(s, f, (child: ch, r: r, c: c), n);
+    if (res != null) s = res.next;
+  }
+
+  void fillChild(int i) {
+    final t = f.children[i];
+    for (var r = 0; r < fractalN; r++) {
+      for (var c = 0; c < fractalN; c++) {
+        if (t.puzzle[r][c] == 0) put(i, r, c, t.solution[r][c]);
+      }
+    }
+  }
+
+  if (child != null) {
+    fillChild(child);
+    return s;
+  }
+  for (var i = 0; i < f.children.length; i++) {
+    fillChild(i);
+  }
+  for (var r = 0; r < fractalN; r++) {
+    for (var c = 0; c < fractalN; c++) {
+      put(null, r, c, f.rootSolution[r][c]);
+    }
+  }
+  return s;
+}

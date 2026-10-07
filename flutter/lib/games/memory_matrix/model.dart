@@ -1,20 +1,28 @@
 import 'dart:math';
 
-/// «Матрица памяти» — четвёртая перенесённая игра и вторая про ТАП по полю.
+/// «Матрица памяти» — правила, перенесённые из `frontend/app/games/memory-matrix.tsx` и
+/// сверенные с эталоном живого TS (`test/fixtures/mm-reference.json`; экспортёр в репо:
+/// `frontend/src/games/memory-matrix/tools/record-flutter-reference.gen.ts`). Считать перенос
+/// «проверенным» той же формулой, которой переносил, нельзя — такая проба зелёная всегда.
 ///
-/// Взята по жалобам Дениса на вёрстку: за 45 дней у неё две жалобы, и она из
-/// того класса («тап и соединение»), где WebView врёт про размеры сильнее всего.
-///
-/// Правила перенесены из `frontend/app/games/memory-matrix.tsx` и сверены с
-/// эталонами, выгруженными прогоном живого TS (`test/fixtures/mm-reference.json`).
-/// Считать перенос «проверенным» той же формулой, которой переносил, нельзя —
-/// такая проба зелёная всегда.
+/// 🔴 ПЕРЕНОС 01.10.2026 — ВТОРОЙ, ЦЕЛИКОМ. Первый (23.09) перенёс лестницу, но не игру:
+/// один раунд вместо десяти, одна серия вместо двух с L11, без режима «по порядку», ложные
+/// без креста, отметка снималась повторным нажатием, отчёт без меток. Здесь — партия веба:
+/// [MatrixLevel] из [mmTotalRounds] раундов, раунд — [MatrixRound] с вводом `handleCellPress`.
 
 /// Потолок объёма: выше него поле и скорость на пределе, растут другие оси.
 const mmVolumeTop = 15;
 
 /// Сколько клеток поля отдаётся под ложные вспышки.
 const decoyRoom = 6;
+
+/// Раундов в уровне — веб `MM_TOTAL_ROUNDS`.
+const mmTotalRounds = 10;
+
+/// Паузы показа «по порядку» и итога раунда — как в вебе.
+const mmSeqGapMs = 200;
+const mmSeqTailMs = 300;
+const mmFeedbackMs = 900;
 
 /// Что задаёт уровень.
 class LevelParams {
@@ -78,64 +86,218 @@ Needed cellsNeeded(int level, int round, String mode, {bool preset = false}) {
   return Needed(need: need, decoys: decoys, free: total - (two ? need * 2 : need));
 }
 
-/// Партия: какие клетки загорались и какие человек отметил.
-class MemoryMatrixGame {
-  MemoryMatrixGame({
-    required this.level,
-    this.round = 1,
-    this.mode = 'static',
-    Set<int>? target,
-    Set<int>? decoys,
-    Random? rnd,
-  })  : params = LevelParams.of(level),
-        need = cellsNeeded(level, round, mode) {
-    final r = rnd ?? Random();
-    final total = params.gridSize * params.gridSize;
-    if (target != null) {
-      _target.addAll(target);
-    } else {
-      while (_target.length < need.need) {
-        _target.add(r.nextInt(total));
-      }
-    }
-    if (decoys != null) {
-      _decoys.addAll(decoys);
-    } else {
-      while (_decoys.length < need.decoys) {
-        final c = r.nextInt(total);
-        if (!_target.contains(c)) _decoys.add(c);
-      }
-    }
+/// Пауза на чтение подписи перед первой вспышкой — веб `паузаНаЧтение` (жалоба Вали 7be44621:
+/// «пока читаешь задание, клетки закрываются»). 46 мс на знак, не меньше 700 и не больше 2200;
+/// ноль — если эту же строку человек уже читал. ⚠️ Знаки — единицы UTF-16, как `length` в JS.
+int mmReadPauseMs(String caption, String previous) {
+  if (caption == previous) return 0;
+  return min(2200, max(700, caption.length * 46));
+}
+
+/// Раздача раунда — веб `dealRound`: из перетасованного пула первая серия (она же порядок для
+/// режима «по порядку»), вторая серия, ложные — из ОСТАТКА пула. Тасовка — Фишер–Йетс с конца,
+/// `floor(rng() * (i + 1))`: иной порядок обращений к случайности дал бы другое поле.
+({List<int> set1, List<int> seq, List<int> set2, List<int> decoys}) mmDealRound(
+  int gridSize,
+  int need,
+  bool two,
+  int decoysWanted,
+  double Function() rng,
+) {
+  final total = gridSize * gridSize;
+  final pool = List<int>.generate(total, (i) => i);
+  for (var i = pool.length - 1; i > 0; i--) {
+    final j = (rng() * (i + 1)).floor();
+    final t = pool[i];
+    pool[i] = pool[j];
+    pool[j] = t;
   }
+  // Как JS `slice`: границы за краем пула режутся, «конец раньше начала» — пусто.
+  List<int> slice(int from, int to) {
+    final a = min(max(0, from), total);
+    final b = min(max(a, to), total);
+    return pool.sublist(a, b);
+  }
+
+  final taken = two ? need * 2 : need;
+  return (
+    set1: slice(0, need),
+    seq: slice(0, need),
+    set2: two ? slice(need, need * 2) : <int>[],
+    decoys: slice(taken, taken + min(decoysWanted, total - taken)),
+  );
+}
+
+/// Порядок вспышек режима «по порядку»: серия и ложные вперемешку. Ложная номер j встаёт после
+/// `((j + 1) · n) ~/ (k + 1)` настоящих — ровно по ряду и без нового обращения к случайности, так
+/// что раздача остаётся раздачей веба (эталон `mm-reference.json`).
+///
+/// 🔴 До 02.10.2026 ложные в этом режиме раздавались, подпись «перечёркнутые — мимо» висела, а
+/// показ их не зажигал: ось L16 была объявлена и не исполнялась, и в обеих половинах — веб так же
+/// (сверка веб → натив 02.10). «Показать решение» при этом рисовало кресты, которых не было.
+List<({int cell, bool decoy})> mmSeqShowOrder(List<int> seq, List<int> decoys) {
+  final out = <({int cell, bool decoy})>[];
+  var d = 0;
+  for (var i = 0; i < seq.length; i++) {
+    while (d < decoys.length && ((d + 1) * seq.length) ~/ (decoys.length + 1) <= i) {
+      out.add((cell: decoys[d++], decoy: true));
+    }
+    out.add((cell: seq[i], decoy: false));
+  }
+  while (d < decoys.length) {
+    out.add((cell: decoys[d++], decoy: true));
+  }
+  return out;
+}
+
+/// Чем кончилось нажатие.
+enum MmPress {
+  /// Нажатие не считается: раунд кончился или клетку уже отметили.
+  ignored,
+
+  /// Верная клетка, раунд продолжается.
+  hit,
+
+  /// Первая серия собрана — дальше вторая (две серии, static).
+  seriesDone,
+
+  /// Раунд собран целиком.
+  roundWon,
+
+  /// Не та клетка (или не в свой черёд) — раунд кончается.
+  roundLost,
+}
+
+/// Раунд: что показали и что человек нажал. Ввод — веб `handleCellPress`.
+class MatrixRound {
+  MatrixRound({
+    required this.mode,
+    required this.two,
+    required this.set1,
+    required this.seq,
+    required this.set2,
+    required this.decoys,
+  });
+
+  final String mode;
+
+  /// Две серии: сначала вводится первая (фиолетовая), затем вторая (красная).
+  final bool two;
+  final List<int> set1;
+  final List<int> seq;
+  final List<int> set2;
+  final List<int> decoys;
+
+  /// Отмеченные в ТЕКУЩЕЙ серии; после сбора первой серии счёт начинается заново.
+  final Set<int> picked = {};
+  final List<int> pickedSequence = [];
+
+  /// Собранная первая серия — для итога раунда: без неё верно введённые фиолетовые после второй
+  /// серии показывались «пропущенными» (сверка веб → натив 02.10; в вебе так же).
+  final Set<int> pickedFirst = {};
+  int inputSeries = 0;
+  bool over = false;
+
+  /// Нажатие, которым раунд проигран: не та клетка или верная не в свой черёд. В итоге раунда она
+  /// с крестом, даже если входит в серию, — иначе нажатая не в свой черёд горела «верно».
+  int? lostOn;
+
+  /// Серия, которую вводят сейчас.
+  Set<int> get target => (two && inputSeries == 1 ? set2 : set1).toSet();
+
+  /// Всё, что человек отметил за раунд, — обе серии.
+  Set<int> get pickedAll => {...pickedFirst, ...picked};
+
+  MmPress tap(int cell) {
+    if (over || picked.contains(cell)) return MmPress.ignored;
+    picked.add(cell);
+    pickedSequence.add(cell);
+    final t = target;
+    final hit = mode == 'static' ? t.contains(cell) : cell == seq[pickedSequence.length - 1];
+    var allFound = false;
+    if (mode == 'static') {
+      allFound = t.every(picked.contains);
+    } else {
+      allFound = pickedSequence.length >= seq.length;
+      for (var i = 0; allFound && i < pickedSequence.length; i++) {
+        if (pickedSequence[i] != seq[i]) allFound = false;
+      }
+    }
+    if (two && hit && allFound && inputSeries == 0) {
+      inputSeries = 1;
+      pickedFirst.addAll(picked);
+      picked.clear();
+      pickedSequence.clear();
+      return MmPress.seriesDone;
+    }
+    if (allFound || !hit) {
+      over = true;
+      if (!hit) lostOn = cell;
+      return hit && allFound ? MmPress.roundWon : MmPress.roundLost;
+    }
+    return MmPress.hit;
+  }
+}
+
+/// Уровень — [mmTotalRounds] раундов. Очки, серия подряд и зачёт — как в вебе.
+class MatrixLevel {
+  MatrixLevel({required this.level, required this.mode, required this.gridSize, this.preset = false})
+      : params = LevelParams.of(level);
 
   final int level;
-  final int round;
   final String mode;
+
+  /// Сторона поля партии: по уровню, а в шаге зарядки — желание шага под потолком уровня.
+  final int gridSize;
+
+  /// Шаг зарядки идёт мимо лестницы: три клетки, 1,5 с показа, одна серия, без задержки и ложных.
+  final bool preset;
   final LevelParams params;
-  final Needed need;
 
-  final Set<int> _target = {};
-  final Set<int> _decoys = {};
-  final Set<int> picked = {};
+  int round = 0;
+  int hits = 0;
+  int errors = 0;
+  int score = 0;
+  int streak = 0;
+  MatrixRound? current;
 
-  Set<int> get target => Set.unmodifiable(_target);
-  Set<int> get decoys => Set.unmodifiable(_decoys);
-  int get total => params.gridSize * params.gridSize;
+  int get flashMs => preset ? 1500 : params.flashMs;
+  int get holdMs => preset ? 0 : params.holdMs;
+  int get decoysWanted => preset ? 0 : params.decoys;
+  bool get two => (preset ? 1 : params.seriesCount) == 2 && mode == 'static';
 
-  /// Отметить клетку. Повторное нажатие снимает отметку — так человек
-  /// исправляет промах, не начиная круг заново.
-  void tap(int cell) {
-    if (cell < 0 || cell >= total) return;
-    if (!picked.remove(cell)) picked.add(cell);
+  /// Показ одной серии на этом раунде (static): чуть короче с каждым раундом, не меньше 0,5 с.
+  int get singleShowMs => max(500, flashMs - round * 60);
+
+  /// Вспышка одной клетки в режиме «по порядку».
+  int get seqFlashMs => max(400, 700 - round * 30);
+
+  bool get lastRound => round >= mmTotalRounds;
+
+  /// Уровень взят: не больше одной ошибки за десять раундов. В шаге зарядки — не зачёт.
+  bool get passed => !preset && errors <= 1;
+
+  MatrixRound nextRound(double Function() rng) {
+    round += 1;
+    final need = cellsNeeded(level, round, mode, preset: preset).need;
+    final d = mmDealRound(gridSize, need, two, decoysWanted, rng);
+    return current = MatrixRound(mode: mode, two: two, set1: d.set1, seq: d.seq, set2: d.set2, decoys: d.decoys);
   }
 
-  bool get full => picked.length >= _target.length;
-
-  /// Победа — отмечены ровно нужные клетки. Лишняя отметка так же губительна,
-  /// как пропуск: иначе выигрывала бы стратегия «отметить всё поле».
-  bool get isWon => picked.length == _target.length && picked.containsAll(_target);
-
-  /// Ложные вспышки, на которые человек всё-таки нажал, — по ним видно, работает
-  /// ли ось помех или человек их попросту не замечает.
-  Set<int> get decoysTaken => picked.intersection(_decoys);
+  MmPress tap(int cell) {
+    final r = current;
+    if (r == null) return MmPress.ignored;
+    final res = r.tap(cell);
+    if (res == MmPress.ignored) return res;
+    if (res == MmPress.roundLost) {
+      errors += 1;
+      score = max(0, score - 5);
+      streak = 0;
+    } else {
+      hits += 1;
+      score += 10;
+      streak += 1;
+    }
+    return res;
+  }
 }

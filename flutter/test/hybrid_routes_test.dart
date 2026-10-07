@@ -34,6 +34,8 @@ void main() {
       '$origin/games/listening-span.html?level=10',
       '$origin/games/schulte',
       '$origin/games/schulte.html?level=3',
+      '$origin/games/reading-span',
+      '$origin/games/reading-span.html?wu=1&setSize=4',
       '$origin/games/mahjong',
       '$origin/games/math-slider',
       '$origin/games/math-slider.html?level=21',
@@ -73,6 +75,8 @@ void main() {
       '$origin/games/mental-rotation.html?level=12',
       '$origin/games/navigator',
       '$origin/games/navigator.html?level=9&mode=home-direction',
+      '$origin/games/trail-making',
+      '$origin/games/trail-making.html?mode=A&count=7',
       '$origin/games/spatial-span',
       '$origin/games/spatial-lab',
       '$origin/games/spatial-lab?mode=netslide',
@@ -196,7 +200,12 @@ void main() {
         reason: 'и в виде .html тоже');
     expect(HybridApp.routeOf('$origin/games/sudoku'), '/games/sudoku',
         reason: 'без хвоста — обычная судоку');
-    expect(HybridApp.routeOf('$origin/games/sudoku?mode=killer'), '/games/sudoku',
+    expect(HybridApp.routeOf('$origin/games/sudoku?mode=killer'), '/games/sudoku?mode=killer');
+    expect(HybridApp.routeOf('$origin/games/sudoku?mode=free'), '/games/sudoku?mode=free');
+    for (final tail in ['mode=towers&lang=ru', 'lang=ru&mode=towers&level=3', 'wu=1&mode=towers']) {
+      expect(HybridApp.routeOf('$origin/games/sudoku?$tail'), '/games/sudoku?mode=towers');
+    }
+    expect(HybridApp.routeOf('$origin/games/sudoku?mode=zigzag'), '/games/sudoku',
         reason: 'неизвестный режим ведёт на обычный экран, а не в никуда');
     // Игру без режимов хвост не задевает.
     expect(HybridApp.routeOf('$origin/games/one-line?autostart=1'), '/games/one-line');
@@ -217,7 +226,6 @@ void main() {
       '$origin/statistics',
       '$origin/games/one-liner',   // похожее имя — не наша игра
       '$origin/games/mental-rotation-lab',   // и это: лаборатория ещё в вебе
-      '$origin/games/trail-making',   // «Соедини цепочку» — ещё в вебе, переносится следующей
     ]) {
       expect(HybridApp.routeOf(url), isNull, reason: url);
     }
@@ -299,6 +307,7 @@ void main() {
       '/games/chess-hub',
       '/games/find-move',
       '/games/solitaire-chess',
+      '/games/knights-queens',
       '/games/choice-rt',
       '/games/cpt',
       '/games/corsi',
@@ -373,6 +382,7 @@ void main() {
       '/games/proofreading',
       '/games/quick-count',
       '/games/schulte',
+      '/games/reading-span',
       '/games/sdmt',
       '/games/set-game',
       '/games/simon',
@@ -389,12 +399,17 @@ void main() {
       '/games/sudoku-hub',
       '/games/sudoku?mode=towers',
       '/games/sudoku?mode=unequal',
+      // «Судоку для малышей» (4×4, звери) — только нативно, 01.10.2026.
+      '/games/sudoku?mode=junior',
+      '/games/sudoku?mode=killer',
+      '/games/sudoku?mode=free',
       '/games/puzzles-hub',
       '/games/sudoku-fractal',
       '/games/sudoku-fractal-deep',
       '/games/sudoku-samurai',
       '/games/targets',
       '/games/tower-london',
+      '/games/trail-making',
       '/games/water-sort',
       '/games/wcst',
     });
@@ -456,7 +471,7 @@ void main() {
 
     // И ссылка из веба с языком в хвосте тоже попадает в свой режим.
     expect(HybridApp.routeOf('https://psygames.app/games/anagrams?lang=ru&mode=cross'),
-        anyOf('/games/anagrams?mode=cross', '/games/anagrams'),
+        '/games/anagrams?mode=cross',
         reason: 'хвост с двумя параметрами не должен терять режим');
   });
 

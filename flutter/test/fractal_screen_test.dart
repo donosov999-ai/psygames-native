@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/fractal/screen.dart';
+import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -10,6 +11,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// ПРОДУКТ: карта с корнем и девятью плитками, вход в дочернюю, ПОДЪЁМ ОБРАТНО
 /// (отзыв af047c78), кормление корня снизу и возврат на карту в момент открытия.
 void main() {
+  // Пробы ищут русские подписи — словарь грузится явно (без него L.t вернёт ключ).
+  setUpAll(() async => L.load('ru'));
   late SharedState state;
 
   setUp(() async {
@@ -48,7 +51,7 @@ void main() {
 
   testWidgets('🔴 карта: корень крупно и девять плиток дочерних', (tester) async {
     await boot(tester);
-    expect(find.text('Фрактал'), findsOneWidget);
+    expect(find.text(L.t('fractalTitle')), findsOneWidget);
     expect(find.byKey(const Key('root_0_0')), findsOneWidget);
     expect(find.byKey(const Key('root_8_8')), findsOneWidget);
     for (var i = 0; i < 9; i++) {

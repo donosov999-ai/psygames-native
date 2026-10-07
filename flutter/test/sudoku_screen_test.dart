@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/sudoku/screen.dart';
+import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -15,6 +16,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// ошибкой в решателе, и проба осталась бы зелёной. Здесь простой перебор на десять
 /// строк — он ничего не знает про варианты и ходит только по классике.
 void main() {
+  // Пробы ищут русские подписи — словарь грузится явно (без него L.t вернёт ключ).
+  setUpAll(() async => L.load('ru'));
   late SharedState state;
 
   setUp(() async {
@@ -107,7 +110,8 @@ void main() {
     await tester.tap(find.byKey(Key('digit${solution[er][ec]}')));
     await tester.pump();
     expect(digitAt(tester, er, ec), solution[er][ec]);
-    expect(find.text('0/3'), findsOneWidget, reason: 'верный ход — не ошибка');
+    // Ступень 5 — лимит 4 (цена ошибки по ступеням, levelConfig.lives, задача 1fa57de3).
+    expect(find.text('0/4'), findsOneWidget, reason: 'верный ход — не ошибка');
 
     // Неверная цифра в другую пустую клетку — счётчик ошибок растёт.
     late int wr, wc;
@@ -122,7 +126,7 @@ void main() {
     await tester.pump();
     await tester.tap(find.byKey(Key('digit$wrong')));
     await tester.pump();
-    expect(find.text('1/3'), findsOneWidget, reason: 'digit мимо решения — ошибка');
+    expect(find.text('1/4'), findsOneWidget, reason: 'digit мимо решения — ошибка');
   });
 
   testWidgets('🔴 уровень доигрывается нажатиями до конца, и лестница растёт', (tester) async {

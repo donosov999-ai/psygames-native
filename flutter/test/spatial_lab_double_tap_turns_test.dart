@@ -7,6 +7,7 @@ import 'package:psygames_flutter/games/spatial_lab/deal.dart';
 import 'package:psygames_flutter/games/spatial_lab/screen.dart';
 import 'package:psygames_flutter/games/spatial_lab/twiddle.dart';
 import 'package:psygames_flutter/shell/aux_action.dart';
+import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -42,6 +43,7 @@ void main() {
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
     state = await SharedState.open();
+    await L.load('ru');
   });
 
   /// Управляемые часы: проба двигает время сама и мерит порог точно, без настоящих пауз.
@@ -76,7 +78,7 @@ void main() {
   /// Был ли в партии ход: «Отменить» включена только при непустой истории.
   bool moved(WidgetTester tester) {
     final undo = tester.widget<AuxAction>(
-      find.byWidgetPredicate((w) => w is AuxAction && w.label == 'Отменить'),
+      find.byWidgetPredicate((w) => w is AuxAction && w.label == L.t('btn_undo')),
     );
     return undo.onPressed != null;
   }
@@ -150,7 +152,7 @@ void main() {
     // В свободной игре начальный выбор раздачи — клетка 0 (`deal.dart`, createDeal).
     await start(tester, LabMode.net);
     await tapCell(tester, 0);
-    await tester.tap(find.byTooltip('Новая раздача'));
+    await tester.tap(find.byTooltip(L.t('spatialLabNew')));
     await tester.pump();
     await tapCell(tester, 0, ms: 100);
     expect(moved(tester), isFalse, reason: 'первое касание по свежему полю обязано только выбрать');

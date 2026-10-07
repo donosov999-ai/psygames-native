@@ -1,5 +1,5 @@
 /// РИСУНОК ВАРИАНТОВ НА НАТИВНОЙ ДОСКЕ — термометры, стрелки, клетки-суммы, метки
-/// чётности, точки Кропки.
+/// чётности, точки Кропки, линии шёпота, ренбана и равных сумм.
 ///
 /// 🔴 ЗАЧЕМ (задача 450c0211, 01.10.2026). Нативная доска с переноса 23.09 рисовала только
 /// рамки клеток: на ступенях 30–53 и 81–92 в шапке стояло «Правило: термометры», а на поле
@@ -26,6 +26,24 @@ Color blendColor(Color base, Color over, double t) => Color.lerp(base, over, t)!
 /// Акценты судоку веба: `GRADIENT` и оттенки групп `CAGE_ACCENTS`.
 const sudokuAccent = Color(0xFF7F7FD5);
 const sudokuAccent2 = Color(0xFF86A8E7);
+
+/// Зелёная линия «немецкого шёпота» — `#22C55E` веба.
+const whisperGreen = Color(0xFF22C55E);
+
+/// Синяя линия равных сумм — `#3B82F6` веба.
+const regionSumBlue = Color(0xFF3B82F6);
+
+/// Линия «палиндром» — `#9CA3AF` веба.
+const palindromeColor = Color(0xFF9CA3AF);
+
+/// Линия «между концами» — `#6B7280` веба.
+const betweenColor = Color(0xFF6B7280);
+
+/// Линия «замок» — `#0EA5E9` веба.
+const lockoutColor = Color(0xFF0EA5E9);
+
+/// Фиолетовая полоса ренбана — `#A855F7` веба, бледная (доля 0,32), чтобы цифра читалась.
+const renbanPurple = Color(0xFFA855F7);
 const cageAccents = [
   Color(0xFF7F7FD5), Color(0xFF86A8E7), Color(0xFFD58A7F),
   Color(0xFF7FD5A8), Color(0xFFD5C97F), Color(0xFFB07FD5),
@@ -36,7 +54,7 @@ const double seam = 1.5;
 
 /// Что нарисовать в одной клетке (под цифрой).
 class CellDecor {
-  const CellDecor({this.thermo, this.arrow, this.parity = 0, this.cageId = -1});
+  const CellDecor({this.thermo, this.arrow, this.parity = 0, this.cageId = -1, this.whisper, this.renban, this.regionsum, this.palindrome, this.between, this.lockout});
 
   /// Звено термометра; колба — у клетки без `prev`.
   final ThermoLink? thermo;
@@ -50,7 +68,30 @@ class CellDecor {
   /// Номер группы-суммы; −1 — вне групп.
   final int cageId;
 
-  bool get isEmpty => thermo == null && arrow == null && parity == 0 && cageId < 0;
+  /// Звено зелёной линии шёпота — как термометр, но без колбы.
+  final ThermoLink? whisper;
+
+  /// Звено полосы ренбана — широкая бледная, кружок в центре клетки сглаживает повороты.
+  final ThermoLink? renban;
+
+  /// Звено синей линии равных сумм — тонкая, как шёпот.
+  final ThermoLink? regionsum;
+
+  /// Звено линии «палиндром».
+  final ThermoLink? palindrome;
+
+  /// Звено линии «между концами».
+  final ThermoLink? between;
+
+  /// Звено линии «замок».
+  final ThermoLink? lockout;
+
+  bool get isEmpty =>
+      thermo == null && arrow == null && parity == 0 && cageId < 0 && whisper == null && renban == null &&
+      regionsum == null &&
+      palindrome == null &&
+      between == null &&
+      lockout == null;
 }
 
 /// Рисунок клетки по геометрии доски; `null` — рисовать нечего.
@@ -60,6 +101,12 @@ CellDecor? cellDecorFor(BoardGeometry g, int r, int c) {
     arrow: g.arrow?[r][c],
     parity: g.parity?[r][c] ?? 0,
     cageId: g.cages?.cageOf[r][c] ?? -1,
+    whisper: g.whisper?[r][c],
+    renban: g.renban?[r][c],
+    regionsum: g.regionsum?[r][c],
+    palindrome: g.palindrome?[r][c],
+    between: g.between?[r][c],
+    lockout: g.lockout?[r][c],
   );
   return d.isEmpty ? null : d;
 }
@@ -68,7 +115,7 @@ CellDecor? cellDecorFor(BoardGeometry g, int r, int c) {
 Color? cageTint(Color surface, int cageId) =>
     cageId < 0 ? null : blendColor(surface, cageAccents[cageId % cageAccents.length], 0.16);
 
-/// Рисует трубку термометра, стрелку и метку чётности ПОД цифрой клетки.
+/// Рисует трубку термометра, линию шёпота, стрелку и метку чётности ПОД цифрой клетки.
 class CellDecorPainter extends CustomPainter {
   CellDecorPainter({required this.decor, required this.surface, required this.row, required this.col});
 
@@ -120,6 +167,93 @@ class CellDecorPainter extends CustomPainter {
       }
       if (t.prev == null) {
         canvas.drawCircle(Offset(cell / 2, cell / 2), cell * 0.21, paint);   // колба
+      }
+    }
+    final rb = decor.renban;
+    if (rb != null) {
+      // Ренбан — как в вебе (`app/games/sudoku.tsx`): полоса 0,34 клетки (не тоньше 6),
+      // бледная — под цифрой; кружок в центре закрывает стык на повороте.
+      final thick = math.max(6.0, (cell * 0.34).roundToDouble());
+      final paint = Paint()..color = blendColor(surface, renbanPurple, 0.32);
+      canvas.drawCircle(Offset(cell / 2, cell / 2), thick / 2, paint);
+      for (final nb in [rb.prev, rb.next]) {
+        if (nb != null) canvas.drawRect(segment(size, row, col, nb, thick), paint);
+      }
+    }
+    final rs = decor.regionsum;
+    if (rs != null) {
+      // Равные суммы — синяя тонкая линия, как шёпот (`app/games/sudoku.tsx`).
+      final thick = math.max(3.0, (cell * 0.16).roundToDouble());
+      final paint = Paint()..color = blendColor(surface, regionSumBlue, 0.6);
+      for (final nb in [rs.prev, rs.next]) {
+        if (nb != null) canvas.drawRect(segment(size, row, col, nb, thick), paint);
+      }
+    }
+    final palindromeLink = decor.palindrome;
+    if (palindromeLink != null) {
+      // палиндром — как в вебе (`app/games/sudoku.tsx`).
+      final thick = math.max(3.0, (cell * 0.16).roundToDouble());
+      final paint = Paint()..color = blendColor(surface, palindromeColor, 0.6);
+      for (final nb in [palindromeLink.prev, palindromeLink.next]) {
+        if (nb != null) canvas.drawRect(segment(size, row, col, nb, thick), paint);
+      }
+    }
+    final betweenLink = decor.between;
+    if (betweenLink != null) {
+      // между концами — как в вебе (`app/games/sudoku.tsx`).
+      final thick = math.max(3.0, (cell * 0.16).roundToDouble());
+      final paint = Paint()..color = blendColor(surface, betweenColor, 0.6);
+      for (final nb in [betweenLink.prev, betweenLink.next]) {
+        if (nb != null) canvas.drawRect(segment(size, row, col, nb, thick), paint);
+      }
+      // Концы линии — кружки (как кружок стрелки): в них цифры-границы.
+      if (betweenLink.prev == null || betweenLink.next == null) {
+        canvas.drawCircle(Offset(cell / 2, cell / 2), cell * 0.4, Paint()..color = surface);
+        canvas.drawCircle(
+          Offset(cell / 2, cell / 2),
+          cell * 0.4,
+          Paint()
+            ..color = paint.color
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = math.max(2.0, (cell * 0.07).roundToDouble()),
+        );
+      }
+    }
+    final lockoutLink = decor.lockout;
+    if (lockoutLink != null) {
+      // замок — как в вебе (`app/games/sudoku.tsx`).
+      final thick = math.max(3.0, (cell * 0.16).roundToDouble());
+      final paint = Paint()..color = blendColor(surface, lockoutColor, 0.6);
+      for (final nb in [lockoutLink.prev, lockoutLink.next]) {
+        if (nb != null) canvas.drawRect(segment(size, row, col, nb, thick), paint);
+      }
+      // Концы — ромбы (повёрнутый квадрат): в них цифры, «запирающие» середину шкалы.
+      if (lockoutLink.prev == null || lockoutLink.next == null) {
+        final h = cell * 0.4;
+        final diamond = Path()
+          ..moveTo(cell / 2, cell / 2 - h)
+          ..lineTo(cell / 2 + h, cell / 2)
+          ..lineTo(cell / 2, cell / 2 + h)
+          ..lineTo(cell / 2 - h, cell / 2)
+          ..close();
+        canvas.drawPath(diamond, Paint()..color = surface);
+        canvas.drawPath(
+          diamond,
+          Paint()
+            ..color = paint.color
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = math.max(2.0, (cell * 0.07).roundToDouble()),
+        );
+      }
+    }
+    final w = decor.whisper;
+    if (w != null) {
+      // Шёпот — та же трубка и тот же зазор у границы, что у термометра, но без колбы:
+      // у линии нет начала, правило симметрично.
+      final thick = math.max(3.0, (cell * 0.16).roundToDouble());
+      final paint = Paint()..color = blendColor(surface, whisperGreen, 0.6);
+      for (final nb in [w.prev, w.next]) {
+        if (nb != null) canvas.drawRect(segment(size, row, col, nb, thick), paint);
       }
     }
     final a = decor.arrow;
@@ -180,6 +314,55 @@ List<KropkiDot> kropkiDots(KropkiMap k, int n, double cell) => [
           if (r < n - 1 && k.v[r][c] != 0) KropkiDot(Offset((c + 0.5) * cell, (r + 1) * cell), k.v[r][c] == 2),
         ],
     ];
+
+/// Знак XV на грани: центр в координатах доски и буква.
+class XvMark {
+  const XvMark(this.center, this.isX);
+  final Offset center;
+  final bool isX;
+}
+
+/// Знаки XV по всей доске — поверх клеток, на гранях (как точки Кропки).
+List<XvMark> xvMarks(KropkiMap xv, int n, double cell) => [
+      for (var r = 0; r < n; r++)
+        for (var c = 0; c < n; c++) ...[
+          if (c < n - 1 && xv.h[r][c] != 0) XvMark(Offset((c + 1) * cell, (r + 0.5) * cell), xv.h[r][c] == 2),
+          if (r < n - 1 && xv.v[r][c] != 0) XvMark(Offset((c + 0.5) * cell, (r + 1) * cell), xv.v[r][c] == 2),
+        ],
+    ];
+
+/// XV — буква в кружке на грани, как знак неравенства веба (пилюля 0,36 клетки).
+class XvPainter extends CustomPainter {
+  XvPainter({required this.marks, required this.cell, required this.surface, required this.ink});
+  final List<XvMark> marks;
+  final double cell;
+  final Color surface;
+  final Color ink;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rad = cell * 0.18;
+    final edge = Paint()
+      ..color = const Color(0xFF777777)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1;
+    for (final m in marks) {
+      canvas.drawCircle(m.center, rad, Paint()..color = surface);
+      canvas.drawCircle(m.center, rad, edge);
+      final tp = TextPainter(
+        text: TextSpan(
+          text: m.isX ? 'X' : 'V',
+          style: TextStyle(color: ink, fontSize: math.max(9.0, (cell * 0.26).roundToDouble()), fontWeight: FontWeight.w800),
+        ),
+        textDirection: TextDirection.ltr,
+      )..layout();
+      tp.paint(canvas, m.center - Offset(tp.width / 2, tp.height / 2));
+    }
+  }
+
+  @override
+  bool shouldRepaint(XvPainter old) => old.marks != marks || old.cell != cell || old.surface != surface || old.ink != ink;
+}
 
 class KropkiPainter extends CustomPainter {
   KropkiPainter({required this.dots, required this.cell});

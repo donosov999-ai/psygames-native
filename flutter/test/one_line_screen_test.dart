@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:psygames_flutter/games/one_line/board.dart';
@@ -34,13 +35,15 @@ void main() {
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
     state = await SharedState.open();
+    await L.load('ru');
   });
 
   testWidgets('экран доходит до доски, а не висит на загрузке', (tester) async {
     await _boot(tester, state);
     expect(find.byType(CircularProgressIndicator), findsNothing);
     expect(find.byType(OneLineBoard), findsOneWidget);
-    expect(find.text('Одна линия'), findsOneWidget);
+    expect(find.text(L.t('oneLine')), findsOneWidget);
+    expect(L.t('oneLine'), 'Одна линия', reason: 'название из словаря, а не голый ключ');
   });
 
   testWidgets('первый уровень проходится пальцем по доске', (tester) async {
@@ -68,7 +71,7 @@ void main() {
       await tester.pump();
     }
 
-    expect(find.text('Следующий уровень'), findsOneWidget,
+    expect(find.text(L.t('nextLabel')), findsOneWidget,
         reason: 'маршрут пройден по доске — экран обязан предложить следующий уровень');
     expect(find.text('${level.totalPasses}/${level.totalPasses}'), findsOneWidget);
   });

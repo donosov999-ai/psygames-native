@@ -13,9 +13,10 @@
  * что и значок, и кладёт в общую память (`psygames_hub_visible`); мост везёт ключ сам,
  * нативная развилка показывает ровно этот список.
  */
-import { GAMES } from '@/src/constants/games';
+import { GAMES, visibleInCatalog } from '@/src/constants/games';
 import { filterAllowedGames, type ProfileDef } from '@/src/constants/profiles';
 import { visibleHubCards } from '@/src/constants/hubContents';
+import { GAME_SUITES } from '@/src/constants/gameSuites';
 
 export const HUB_VISIBLE_KEY = 'psygames_hub_visible';
 
@@ -24,6 +25,19 @@ export interface HubVisibility {
   profile: string;
   /** Маршрут развилки → маршруты видимых карточек (порядок веба). */
   hubs: Record<string, string[]>;
+  /**
+   * Набор (`gameSuites.ts`) → открытые профилю режимы, в порядке набора. Нативный переключатель
+   * режимов показывает ровно их — как веб-`GameSuiteSwitch`, тем же правилом профиля. Без этого
+   * поля нативный экран не знал, какие плашки можно показать: у «Позиций» детям открыта одна
+   * «Матрица», профилю «chess» — один «Корси» (замер 02.10.2026 по 13 профилям).
+   */
+  suites: Record<string, string[]>;
+  /**
+   * Игры вкладки «Игры» для этого профиля — `id` в порядке `GAMES`, ровно тот список, что
+   * рисует `CategorySections` (`visibleInCatalog(filterAllowedGames(профиль))`). Нативный
+   * каталог (задача f5025027) раскладывает его по разделам и правила профиля не пересчитывает.
+   */
+  catalog: string[];
 }
 
 export function hubVisibility(profile: ProfileDef): HubVisibility {
@@ -32,5 +46,8 @@ export function hubVisibility(profile: ProfileDef): HubVisibility {
   for (const g of GAMES) {
     if (g.hub) hubs[g.route] = visibleHubCards(g.route, можно, (k) => k).map((c) => c.route);
   }
-  return { profile: profile.id, hubs };
+  const suites: Record<string, string[]> = {};
+  for (const suite of GAME_SUITES) suites[suite.id] = suite.modes.filter((m) => можно.has(m.route)).map((m) => m.route);
+  const catalog = visibleInCatalog(filterAllowedGames(profile), profile.id).map((g) => g.id);
+  return { profile: profile.id, hubs, suites, catalog };
 }
