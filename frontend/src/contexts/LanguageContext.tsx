@@ -3527,6 +3527,7 @@ const translations: Translations = {
   sudokuVariantCipher: { ru: 'Ⓐ шифр', en: 'Ⓐ cipher' },
   sudokuVariantFog: { ru: '☁ туман', en: '☁ fog' },
   sudokuVariantChaos: { ru: '▦ самосборка', en: '▦ chaos construction' },
+  sudokuVariantSchrodinger: { ru: '◐ Шрёдингер', en: '◐ Schrödinger' },
   sudokuVariantArrow: { ru: '➳ стрелка', en: '➳ arrow' },
   sudokuVariantThermocage: { ru: '🌡+ сумма', en: '🌡+ cage' },
   sudokuVariantTowers: { ru: '🏙 небоскрёбы', en: '🏙 towers' },
@@ -3582,6 +3583,7 @@ const translations: Translations = {
   sudokuRuleCipher: { ru: 'Часть подсказок показана буквами. Одинаковые буквы — одинаковые цифры, разные буквы — разные цифры. Код выводится вместе с доской.', en: 'Some clues are shown as letters. The same letter is always the same digit, different letters are different digits. Work out the code along with the grid.' },
   sudokuRuleFog: { ru: 'Доска под туманом. Верная цифра в открытой клетке — подсказка или ваш ход — расчищает клетки прямо над ней, под ней, слева и справа. Неверная цифра не расчищает ничего.', en: 'The grid is covered in fog. A correct digit in an open cell — a given or yours — clears the cells directly above, below, left and right of it. A wrong digit clears nothing.' },
   sudokuRuleChaos: { ru: 'Блоков нет: доска делится на 9 областей по 9 клеток, связанных сторонами, и в каждой строке, столбце и области цифры 1–9 по разу. Границы областей выведите сами. Маленькое число в клетке — сколько её сторон лежат на границе области (край доски тоже граница). Отмечайте области цветом.', en: 'There are no boxes: the grid splits into 9 regions of 9 cells joined by their sides, and every row, column and region holds 1–9 once. Work out the region borders yourself. The small number in a cell is how many of its sides lie on a region border (the grid edge counts). Mark regions with colours.' },
+  sudokuRuleSchrodinger: { ru: 'Цифры от 0 до 9: в каждой строке, столбце и блоке каждая цифра по разу. Поэтому в каждой строке, столбце и блоке ровно одна клетка держит две цифры — клетка Шрёдингера; где она, выведите сами. Нажмите вторую цифру — она встанет в ту же клетку.', en: 'Digits 0 to 9: every row, column and box holds each digit once. So in every row, column and box exactly one cell holds two digits — a Schrödinger cell; work out where it is. Press a second digit to put it in the same cell.' },
   // Нативные экраны раздела «Судоку» (Flutter): полоса счётчиков, кнопки, имена правил без значков.
   sdkHudStage: { ru: 'Ступень', en: 'Stage' },
   sdkNextLevel: { ru: 'Следующий уровень', en: 'Next level' },
@@ -3629,6 +3631,7 @@ const translations: Translations = {
   sdkRule_cipher: { ru: 'шифр', en: 'cipher' },
   sdkRule_fog: { ru: 'туман', en: 'fog' },
   sdkRule_chaos: { ru: 'самосборка', en: 'chaos construction' },
+  sdkRule_schrodinger: { ru: 'клетки Шрёдингера', en: 'Schrödinger cells' },
   // Части имён ступеней Тэтхэма для нативной полосы «Доска» ({n} — число или размер).
   tathamDiffEasy: { ru: 'лёгкая', en: 'easy' },
   tathamDiffNormal: { ru: 'обычная', en: 'normal' },
