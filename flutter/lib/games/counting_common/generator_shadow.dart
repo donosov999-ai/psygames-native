@@ -14,6 +14,9 @@
 /// модулю не хватает адаптера «лестничная игра», его сейчас пишет каждый потребитель.
 library;
 
+import 'dart:math' as math;
+
+import '../../shell/game_clock.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/generator/contract.dart';
 import '../../shell/generator/engine.dart';
@@ -37,6 +40,7 @@ class LadderShadow {
   final GeneratorShadow _shadow;
   Template? _given;
   String _eventId = '';
+  static final math.Random _idTail = math.Random();
 
   /// Шаблон текущей раздачи; `null` — партии в тени нет (хвост, шаг зарядки, исход уже записан).
   Template? get given => _given;
@@ -45,7 +49,9 @@ class LadderShadow {
   void deal(int level) {
     final at = level - 1;
     _given = !GamePreset.isPreset && at >= 0 && at < pool.length ? pool[at] : null;
-    _eventId = '$gameId-${DateTime.now().microsecondsSinceEpoch}';
+    // Id раздачи — для идемпотентности исхода (D1), а не замер времени. Часы — игровые: храповик
+    // game_clock_discipline запрещает настенные; случайный хвост разводит две раздачи одной мс.
+    _eventId = '$gameId-${gameNow()}-${_idTail.nextInt(1 << 30)}';
     final given = _given;
     if (given != null) _shadow.recordDeal(level: level, given: given, pool: pool, mode: Leniency.normal);
   }
