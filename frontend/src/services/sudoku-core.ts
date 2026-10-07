@@ -11,7 +11,7 @@
 import { translateFor } from '../contexts/LanguageContext';
 
 export type Cell = number; // 0 = empty
-export type Variant = 'none' | 'diagonal' | 'antiknight' | 'hyper' | 'nonconsec' | 'jigsaw' | 'antiking' | 'evenodd' | 'kropki' | 'sandwich' | 'thermo' | 'arrow' | 'thermocage' | 'unequal' | 'towers' | 'sandparity' | 'thermoknight' | 'killerdiag' | 'whisper' | 'renban' | 'regionsum' | 'palindrome' | 'between' | 'lockout' | 'xv' | 'argyle' | 'littlekiller' | 'xsums' | 'cipher' | 'friends';
+export type Variant = 'none' | 'diagonal' | 'antiknight' | 'hyper' | 'nonconsec' | 'jigsaw' | 'antiking' | 'evenodd' | 'kropki' | 'sandwich' | 'thermo' | 'arrow' | 'thermocage' | 'unequal' | 'towers' | 'sandparity' | 'thermoknight' | 'killerdiag' | 'whisper' | 'renban' | 'regionsum' | 'palindrome' | 'between' | 'lockout' | 'xv' | 'argyle' | 'littlekiller' | 'xsums' | 'cipher' | 'fog' | 'friends';
 // 'friends' — «Мяу — друзья» 9×9 (у кота мышь рядом): генератора на TS нет, доски ступеней — только
 // выгрузкой MindLab (flutter/tools/meow9-ladder.cjs, export_kids_boards.py --meow9).
 
@@ -260,6 +260,7 @@ const VARIANT_KEY_SUFFIX: Record<Exclude<Variant, 'none' | 'friends'>, string> =
   littlekiller: 'Littlekiller',
   xsums: 'Xsums',
   cipher: 'Cipher',
+  fog: 'Fog',
 };
 // «Мяу — друзья»: имя и правило — одна короткая строка «🐱 рядом с 🐭», та же, что у натива
 // (sdkRule_friends, 12 языков); отдельных sudokuVariant*/sudokuRule* у варианта нет.
@@ -1808,7 +1809,7 @@ export function countSolutions(grid: Cell[][], N: number, BR: number, BC: number
 // thermocage здесь ОБЯЗАН быть: единственность решения у него считается по ДВУМ
 // правилам сразу (isValid знает и цепочку, и сумму). Доска, единственная по каждому
 // правилу порознь, вместе может иметь второе решение — и наоборот.
-const UNIQUE_CHECKED: readonly Variant[] = ['none', 'diagonal', 'antiknight', 'hyper', 'nonconsec', 'antiking', 'jigsaw', 'thermo', 'arrow', 'evenodd', 'kropki', 'sandwich', 'thermocage', 'unequal', 'towers', 'sandparity', 'thermoknight', 'killerdiag', 'whisper', 'renban', 'regionsum', 'palindrome', 'between', 'lockout', 'xv', 'argyle', 'littlekiller', 'xsums', 'cipher'];
+const UNIQUE_CHECKED: readonly Variant[] = ['none', 'diagonal', 'antiknight', 'hyper', 'nonconsec', 'antiking', 'jigsaw', 'thermo', 'arrow', 'evenodd', 'kropki', 'sandwich', 'thermocage', 'unequal', 'towers', 'sandparity', 'thermoknight', 'killerdiag', 'whisper', 'renban', 'regionsum', 'palindrome', 'between', 'lockout', 'xv', 'argyle', 'littlekiller', 'xsums', 'cipher', 'fog'];
 
 /**
  * Готовая сетка для «несоседних чисел» — БЕЗ перебора.
@@ -1837,7 +1838,7 @@ export function buildNonconsecSolution(): Cell[][] {
   return g;
 }
 
-export function generatePuzzle(blanks: number, N: number, BR: number, BC: number, variant: Variant = 'none', thin?: (ov: Overlays) => Overlays): { puzzle: Cell[][]; solution: Cell[][]; regions?: number[][]; parity?: number[][]; kropki?: { h: number[][]; v: number[][] }; sandwich?: { rows: number[]; cols: number[] }; thermo?: ThermoPN; arrow?: ArrowMap; cages?: CageMap; unequal?: UnequalMap; towers?: TowersMap; whisper?: ThermoPN; renban?: ThermoPN; regionsum?: ThermoPN; palindrome?: ThermoPN; between?: ThermoPN; lockout?: ThermoPN; xv?: XvMap; littlekiller?: LittleKillerClue[]; xsums?: XsumsClues; cipher?: number[][] } {
+export function generatePuzzle(blanks: number, N: number, BR: number, BC: number, variant: Variant = 'none', thin?: (ov: Overlays) => Overlays): { puzzle: Cell[][]; solution: Cell[][]; regions?: number[][]; parity?: number[][]; kropki?: { h: number[][]; v: number[][] }; sandwich?: { rows: number[]; cols: number[] }; thermo?: ThermoPN; arrow?: ArrowMap; cages?: CageMap; unequal?: UnequalMap; towers?: TowersMap; whisper?: ThermoPN; renban?: ThermoPN; regionsum?: ThermoPN; palindrome?: ThermoPN; between?: ThermoPN; lockout?: ThermoPN; xv?: XvMap; littlekiller?: LittleKillerClue[]; xsums?: XsumsClues; cipher?: number[][]; fog?: number[][] } {
   const sol: Cell[][] = Array.from({ length: N }, () => Array(N).fill(0));
   let regions: number[][] | undefined;
   let thermo: ThermoPN | undefined;

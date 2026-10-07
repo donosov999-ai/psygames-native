@@ -244,6 +244,7 @@ class BoardGeometry {
     this.littleKiller,
     this.xsums,
     this.cipher,
+    this.fog,
   });
   final List<List<int>>? regions;
   final List<List<ThermoLink?>>? thermo;
@@ -289,6 +290,9 @@ class BoardGeometry {
   /// Шифр: номер буквы (1..9 = A..I) в клетке-подсказке, 0 — не буква; клетка-буква в задании пустая.
   final List<List<int>>? cipher;
 
+  /// Туман: окна старта (1 — открыто). Что открыто сейчас, выводит `fogRevealed` из сетки.
+  final List<List<int>>? fog;
+
   static BoardGeometry fromJson(Map<String, Object?> v) => BoardGeometry(
         regions: v['regions'] == null ? null : _grid(v['regions']),
         thermo: v['thermo'] == null
@@ -311,6 +315,7 @@ class BoardGeometry {
         littleKiller: LittleKillerClue.fromJson(v['littlekiller']),
         xsums: SandwichClues.fromJson(v['xsums']),
         cipher: v['cipher'] == null ? null : _grid(v['cipher']),
+        fog: v['fog'] == null ? null : _grid(v['fog']),
         whisper: v['whisper'] == null
             ? null
             : (v['whisper'] as List)
@@ -779,6 +784,33 @@ bool overlayOk(List<List<int>> grid, int r, int c, int val, int n, BoardGeometry
     if (!xsumLineOk(col, xs.cols[c], n)) return false;
   }
   return true;
+}
+
+/// 🔴 ТУМАН ВОЙНЫ (пункт 11 цепочки «14 усложнений», задача efb63126) — перенос `fogRevealed` ядра.
+/// Открыто: окна старта плюс каскад — каждая ВЕРНАЯ цифра в открытой клетке (подсказка или ход)
+/// расчищает соседей крестом: сверху, снизу, слева, справа. Неверная цифра не расчищает ничего,
+/// цифра под туманом — тоже. Состояние выводится из сетки целиком: отмена хода возвращает туман,
+/// снимку партии хранить нечего, кроме окон.
+List<List<bool>> fogRevealed(List<List<int>> fog0, List<List<int>> grid, List<List<int>> solution) {
+  final n = fog0.length;
+  final open = [for (final row in fog0) [for (final v in row) v != 0]];
+  var more = true;
+  while (more) {
+    more = false;
+    for (var r = 0; r < n; r++) {
+      for (var c = 0; c < n; c++) {
+        if (!open[r][c] || grid[r][c] == 0 || grid[r][c] != solution[r][c]) continue;
+        for (final (dr, dc) in const [(-1, 0), (1, 0), (0, -1), (0, 1)]) {
+          final rr = r + dr, cc = c + dc;
+          if (rr >= 0 && rr < n && cc >= 0 && cc < n && !open[rr][cc]) {
+            open[rr][cc] = true;
+            more = true;
+          }
+        }
+      }
+    }
+  }
+  return open;
 }
 
 /// 🔴 ШИФР (пункт 2 цепочки «14 усложнений», задача 1f8fbd7f) — перенос `cipherOk` ядра: часть подсказок
