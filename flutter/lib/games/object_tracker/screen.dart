@@ -85,7 +85,8 @@ class _ObjectTrackerScreenState extends State<ObjectTrackerScreen> with SingleTi
   /// Как в вебе (`object-tracker.tsx`: `Math.min(LEVELS, num('level', lvl.level))`):
   /// шаг несёт уровень по правилу «освоенный минус 20 %», а потолок лестницы
   /// держится и здесь — выше генератор не растёт. Зерно строится от него же.
-  int get _playLevel => GamePreset.num('level', _ladder.level);
+  /// Уровень шага зарядки — но не выше предела лестницы: с 02.10.2026 это 999, а не прежний потолок 41.
+  int get _playLevel => math.min(_ladder.maxLevel, GamePreset.num('level', _ladder.level));
 
   String get _seed => 'object-tracker-$_playLevel';
 
