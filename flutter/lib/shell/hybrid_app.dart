@@ -862,13 +862,35 @@ class _HybridAppState extends State<HybridApp> {
     await _c.runJavaScript('window.__psyWarmupHost && window.__psyWarmupHost.skip && window.__psyWarmupHost.skip();');
   }
 
+  /// Шаг зарядки, переход с которого оболочка уже ведёт или только что провела.
+  int? _stepDoneFrom;
+  DateTime? _stepDoneAt;
+
   Future<void> _warmupStepDone(Map<String, Object?> m) async {
+    /*
+     * 🔴 ОДИН ШАГ — ОДИН ПЕРЕХОД. 06.10.2026, 2.56.12 (отчёт 02d98918): после SDMT
+     * пришли ДВА `warmupStepDone{fromIdx:2}` — партию сохранили и нативный экран, и
+     * веб-копия игры под ним. Встали два моста; первый снялся пустым (`case null`),
+     * закрыл уже открытый следующий шаг и остановил зарядку — человек на главной.
+     * Веб теперь шлёт «готов» один раз (`WarmupContext`), а здесь — второй замок:
+     * повтор того же шага в пределах минуты не новый переход. Минута — меньше
+     * любого шага зарядки, поэтому новый заход того же номера она не съест.
+     */
+    final from = m['fromIdx'];
+    final now = DateTime.now();
+    if (from is num && from.toInt() == _stepDoneFrom &&
+        _stepDoneAt != null && now.difference(_stepDoneAt!) < const Duration(minutes: 1)) {
+      return;
+    }
+    if (from is num) {
+      _stepDoneFrom = from.toInt();
+      _stepDoneAt = now;
+    }
     final done = WarmupStepDone.fromJson(m);
     final next = done == null ? null : HybridApp.routeOf('${widget.server.origin}${done.nextUrl}');
     // 🔴 ВЕБ ЖДЁТ ОТВЕТА: свой переход он в этом случае не планирует. Вести не можем
     // (экран уже закрыт, следующий шаг не наш) — возвращаем переход вебу.
     if (done == null || next == null || _openedRoute == null || !mounted) {
-      final from = m['fromIdx'];
       if (from is num) {
         await _c.runJavaScript('window.__psyWarmupHost && window.__psyWarmupHost.advance(${from.toInt()});');
       }
