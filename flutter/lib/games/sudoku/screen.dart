@@ -1651,6 +1651,7 @@ String variantTitle(String variant) => switch (variant) {
       'argyle' => L.t('sdkRule_argyle'),
       'littlekiller' => L.t('sdkRule_littlekiller'),
       'xsums' => L.t('sdkRule_xsums'),
+      'cipher' => L.t('sdkRule_cipher'),
       'friends' => L.t('sdkRule_friends'),
       _ => L.t('sdkRule_none'),
     };
@@ -1752,6 +1753,7 @@ class SudokuBoardView extends StatelessWidget {
                             image: symbols?.image,
                             decor: cellDecorFor(g, r, col),
                             cageSum: cageSumAt(r, col),
+                            letter: cipherLetterAt(g, r, col),
                           ),
                       ],
                     ),
@@ -1887,6 +1889,7 @@ class _Cell extends StatelessWidget {
     this.image,
     this.decor,
     this.cageSum,
+    this.letter,
   });
 
   final double size;
@@ -1899,6 +1902,9 @@ class _Cell extends StatelessWidget {
 
   /// Сумма группы — у её угловой клетки; `null` — не угол.
   final int? cageSum;
+
+  /// Буква шифра (A..I) клетки-подсказки: в пустой — крупно вместо цифры, после хода — в углу.
+  final String? letter;
 
   /// Значок цифры; `null` — сама цифра.
   final String Function(int)? glyph;
@@ -2003,6 +2009,24 @@ class _Cell extends StatelessWidget {
                       ),
                     ),
               ),
+              if (letter != null)
+                value == 0 && mask == 0
+                    ? Center(
+                        child: Text(
+                          letter!,
+                          key: Key('letter_${row}_$col'),
+                          style: TextStyle(fontSize: size * 0.5, fontWeight: FontWeight.w800, color: scheme.tertiary),
+                        ),
+                      )
+                    : Positioned(
+                        right: 3,
+                        top: 1,
+                        child: Text(
+                          letter!,
+                          key: Key('letter_${row}_$col'),
+                          style: TextStyle(fontSize: size * 0.24 < 8 ? 8 : size * 0.24, fontWeight: FontWeight.w800, color: scheme.tertiary),
+                        ),
+                      ),
               if (cageSum != null)
                 Positioned(
                   left: 3,

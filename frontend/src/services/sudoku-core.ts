@@ -11,7 +11,7 @@
 import { translateFor } from '../contexts/LanguageContext';
 
 export type Cell = number; // 0 = empty
-export type Variant = 'none' | 'diagonal' | 'antiknight' | 'hyper' | 'nonconsec' | 'jigsaw' | 'antiking' | 'evenodd' | 'kropki' | 'sandwich' | 'thermo' | 'arrow' | 'thermocage' | 'unequal' | 'towers' | 'sandparity' | 'thermoknight' | 'killerdiag' | 'whisper' | 'renban' | 'regionsum' | 'palindrome' | 'between' | 'lockout' | 'xv' | 'argyle' | 'littlekiller' | 'xsums' | 'friends';
+export type Variant = 'none' | 'diagonal' | 'antiknight' | 'hyper' | 'nonconsec' | 'jigsaw' | 'antiking' | 'evenodd' | 'kropki' | 'sandwich' | 'thermo' | 'arrow' | 'thermocage' | 'unequal' | 'towers' | 'sandparity' | 'thermoknight' | 'killerdiag' | 'whisper' | 'renban' | 'regionsum' | 'palindrome' | 'between' | 'lockout' | 'xv' | 'argyle' | 'littlekiller' | 'xsums' | 'cipher' | 'friends';
 // 'friends' — «Мяу — друзья» 9×9 (у кота мышь рядом): генератора на TS нет, доски ступеней — только
 // выгрузкой MindLab (flutter/tools/meow9-ladder.cjs, export_kids_boards.py --meow9).
 
@@ -184,6 +184,56 @@ export function xsumsOk(grid: Cell[][], r: number, c: number, n: number, xs: Xsu
   return xsumLineOk(col, xs.cols[c], N);
 }
 
+/**
+ * 🔴 ШИФР (пункт 2 цепочки «14 усложнений», задача 1f8fbd7f; решение Дениса 30.09 «Берём»).
+ * Часть цифр решения зашифрована буквами: у такой цифры часть подсказок показана её буквой,
+ * остальные — открыто. Одинаковые буквы — одинаковые цифры, разные буквы — разные цифры; код
+ * выводится вместе с доской. Образцы правила: gmpuzzles.com/blog/tag/cipher.
+ * 🔴 БУКВЫ ОБЯЗАНЫ БЫТЬ СМЕШАНЫ С ЦИФРАМИ. Первая редакция шифровала КАЖДУЮ подсказку зашифрованной
+ * цифры — замер 07.10: перестановка зашифрованных цифр давала другое верное решение, доска была
+ * единственной лишь с точностью до неё (это и есть «просто замена значка», пункт 1); генератор не
+ * смог выкопать ни одной доски (0–3 пустых при 45 буквах, 8 из 8 — запасным путём). Открытые
+ * подсказки той же цифры ломают симметрию: по ним и выводится, какая буква — какая цифра.
+ * Клетка-буква — НЕ данная цифра: в задании 0, буква лежит в оверлее `cipher` (номер 1..9 = A..I).
+ */
+export const CIPHER_DIGITS = 5;
+/** Доля подсказок зашифрованной цифры, показанных буквой. Точное число — по замеру. */
+export const CIPHER_SHARE = 0.5;
+export const CIPHER_LETTERS = 'ABCDEFGHI';
+
+/**
+ * Буквы на полной доске: `count` цифр шифруются своими буквами, и у каждой из них буквой показана
+ * доля `share` клеток (остальные открыто). Сетка фиксируется до копания — копание лишь убирает
+ * подсказки, а какая из оставшихся буква, а какая цифра, не меняется.
+ */
+export function cipherLetters(sol: Cell[][], N: number, count = CIPHER_DIGITS, share = CIPHER_SHARE): number[][] {
+  const key = new Array<number>(N + 1).fill(0);
+  const digits = shuffle(Array.from({ length: N }, (_, i) => i + 1)).slice(0, Math.min(count, N - 1));
+  const letters = shuffle(Array.from({ length: N }, (_, i) => i + 1));
+  digits.forEach((d, i) => { key[d] = letters[i]; });
+  return sol.map((row) => row.map((v) => (key[v] && Math.random() < share ? key[v] : 0)));
+}
+
+/** Задание с цифрами-подсказками → задание игрока: подсказки на клетках-буквах становятся буквами. */
+export function encodeCipher(puzzle: Cell[][], letters: number[][]): { puzzle: Cell[][]; cipher: number[][] } {
+  const cipher = puzzle.map((row, r) => row.map((v, c) => (v !== 0 ? letters[r][c] : 0)));
+  return { puzzle: puzzle.map((row, r) => row.map((v, c) => (cipher[r][c] ? 0 : v))), cipher };
+}
+
+/** Не спорит ли цифра n в (r, c) с буквами: та же буква — та же цифра, другая буква — другая. */
+export function cipherOk(grid: Cell[][], r: number, c: number, n: number, cipher: number[][], N: number): boolean {
+  const L = cipher[r][c];
+  if (!L) return true;
+  for (let i = 0; i < N; i++) for (let j = 0; j < N; j++) {
+    const M = cipher[i][j];
+    if (!M || (i === r && j === c)) continue;
+    const v = grid[i][j];
+    if (v === 0) continue;
+    if (M === L ? v !== n : v === n) return false;
+  }
+  return true;
+}
+
 export function inHyper(r: number, c: number): readonly [number, number] | null {
   for (const [hr, hc] of HYPER_BOXES) if (r >= hr && r < hr + 3 && c >= hc && c < hc + 3) return [hr, hc];
   return null;
@@ -209,6 +259,7 @@ const VARIANT_KEY_SUFFIX: Record<Exclude<Variant, 'none' | 'friends'>, string> =
   argyle: 'Argyle',
   littlekiller: 'Littlekiller',
   xsums: 'Xsums',
+  cipher: 'Cipher',
 };
 // «Мяу — друзья»: имя и правило — одна короткая строка «🐱 рядом с 🐭», та же, что у натива
 // (sdkRule_friends, 12 языков); отдельных sudokuVariant*/sudokuRule* у варианта нет.
@@ -1539,6 +1590,8 @@ export interface Overlays {
   littlekiller?: LittleKillerClue[];
   /** X-суммы: слева у строк и сверху у столбцов; −1 — подсказка скрыта. */
   xsums?: XsumsClues;
+  /** Шифр: номер буквы (1..9 = A..I) в клетке-подсказке, 0 — не буква. */
+  cipher?: number[][];
 }
 
 /** Полные оверлеи из решения — до прореживания. */
@@ -1683,6 +1736,7 @@ export function overlayOk(grid: Cell[][], r: number, c: number, n: number, N: nu
   if (ov.xv && !xvOk(grid, r, c, n, ov.xv, N)) return false;   // знаки и их отсутствие — подсказка
   if (ov.littlekiller && !littleKillerOk(grid, r, c, n, ov.littlekiller, N)) return false;   // суммы диагоналей — подсказка
   if (ov.xsums && !xsumsOk(grid, r, c, n, ov.xsums, N)) return false;   // X-суммы — подсказка
+  if (ov.cipher && !cipherOk(grid, r, c, n, ov.cipher, N)) return false;   // буквы шифра — подсказка
   if (ov.sandwich) {
     const check = (line: number[], want: number): boolean => {
       if (want < 0) return true;                                      // сумма СПРЯТАНА (см. thinSandwich) — не подсказка
@@ -1739,7 +1793,7 @@ export function countSolutions(grid: Cell[][], N: number, BR: number, BC: number
 // thermocage здесь ОБЯЗАН быть: единственность решения у него считается по ДВУМ
 // правилам сразу (isValid знает и цепочку, и сумму). Доска, единственная по каждому
 // правилу порознь, вместе может иметь второе решение — и наоборот.
-const UNIQUE_CHECKED: readonly Variant[] = ['none', 'diagonal', 'antiknight', 'hyper', 'nonconsec', 'antiking', 'jigsaw', 'thermo', 'arrow', 'evenodd', 'kropki', 'sandwich', 'thermocage', 'unequal', 'towers', 'sandparity', 'thermoknight', 'killerdiag', 'whisper', 'renban', 'regionsum', 'palindrome', 'between', 'lockout', 'xv', 'argyle', 'littlekiller', 'xsums'];
+const UNIQUE_CHECKED: readonly Variant[] = ['none', 'diagonal', 'antiknight', 'hyper', 'nonconsec', 'antiking', 'jigsaw', 'thermo', 'arrow', 'evenodd', 'kropki', 'sandwich', 'thermocage', 'unequal', 'towers', 'sandparity', 'thermoknight', 'killerdiag', 'whisper', 'renban', 'regionsum', 'palindrome', 'between', 'lockout', 'xv', 'argyle', 'littlekiller', 'xsums', 'cipher'];
 
 /**
  * Готовая сетка для «несоседних чисел» — БЕЗ перебора.
@@ -1768,7 +1822,7 @@ export function buildNonconsecSolution(): Cell[][] {
   return g;
 }
 
-export function generatePuzzle(blanks: number, N: number, BR: number, BC: number, variant: Variant = 'none', thin?: (ov: Overlays) => Overlays): { puzzle: Cell[][]; solution: Cell[][]; regions?: number[][]; parity?: number[][]; kropki?: { h: number[][]; v: number[][] }; sandwich?: { rows: number[]; cols: number[] }; thermo?: ThermoPN; arrow?: ArrowMap; cages?: CageMap; unequal?: UnequalMap; towers?: TowersMap; whisper?: ThermoPN; renban?: ThermoPN; regionsum?: ThermoPN; palindrome?: ThermoPN; between?: ThermoPN; lockout?: ThermoPN; xv?: XvMap; littlekiller?: LittleKillerClue[]; xsums?: XsumsClues } {
+export function generatePuzzle(blanks: number, N: number, BR: number, BC: number, variant: Variant = 'none', thin?: (ov: Overlays) => Overlays): { puzzle: Cell[][]; solution: Cell[][]; regions?: number[][]; parity?: number[][]; kropki?: { h: number[][]; v: number[][] }; sandwich?: { rows: number[]; cols: number[] }; thermo?: ThermoPN; arrow?: ArrowMap; cages?: CageMap; unequal?: UnequalMap; towers?: TowersMap; whisper?: ThermoPN; renban?: ThermoPN; regionsum?: ThermoPN; palindrome?: ThermoPN; between?: ThermoPN; lockout?: ThermoPN; xv?: XvMap; littlekiller?: LittleKillerClue[]; xsums?: XsumsClues; cipher?: number[][] } {
   const sol: Cell[][] = Array.from({ length: N }, () => Array(N).fill(0));
   let regions: number[][] | undefined;
   let thermo: ThermoPN | undefined;
@@ -1829,6 +1883,13 @@ export function generatePuzzle(blanks: number, N: number, BR: number, BC: number
     : (variant === 'thermoknight' && !thermo) ? 'antiknight'                      // комбо теряет ось → живёт оставшейся
     : (variant === 'killerdiag' && !cages) ? 'diagonal'
     : variant;   // фолбэк генерации → чекаем как классику
+  // Шифр: единственность считается по задаче игрока — подсказки на клетках-буквах там буквы, не цифры.
+  const letters = variant === 'cipher' ? cipherLetters(sol, N) : null;
+  const solutions = (p: Cell[][]) => {
+    if (!letters) return countSolutions(p, N, BR, BC, effVariant, regions, 2, { steps: 8000 }, thermo, arrow, (effVariant === 'thermocage' || effVariant === 'killerdiag') ? cages : undefined, ov);
+    const enc = encodeCipher(p, letters);
+    return countSolutions(enc.puzzle, N, BR, BC, 'none', undefined, 2, { steps: 8000 }, undefined, undefined, undefined, { ...ov, cipher: enc.cipher });
+  };
   if (UNIQUE_CHECKED.includes(effVariant)) {
     // v1.111.0 — dig-with-uniqueness: выкалываем клетку только если решение остаётся
     // ЕДИНСТВЕННЫМ (иначе честный игрок мог поставить цифру второго решения и получить
@@ -1843,7 +1904,7 @@ export function generatePuzzle(blanks: number, N: number, BR: number, BC: number
       const r = Math.floor(p / N), c = p % N;
       const keep = puzzle[r][c];
       puzzle[r][c] = 0;
-      if (countSolutions(puzzle, N, BR, BC, effVariant, regions, 2, { steps: 8000 }, thermo, arrow, (effVariant === 'thermocage' || effVariant === 'killerdiag') ? cages : undefined, ov) !== 1) puzzle[r][c] = keep;
+      if (solutions(puzzle) !== 1) puzzle[r][c] = keep;
       else dug++;
     }
   } else {
@@ -1868,6 +1929,10 @@ export function generatePuzzle(blanks: number, N: number, BR: number, BC: number
   const xv = ov.xv;
   const littlekiller = ov.littlekiller;
   const xsums = ov.xsums;
+  if (letters) {
+    const enc = encodeCipher(puzzle, letters);
+    return { puzzle: enc.puzzle, solution: sol, cipher: enc.cipher };
+  }
   return { puzzle, solution: sol, regions, parity, kropki, sandwich, thermo, arrow, cages, unequal, towers, whisper, renban, regionsum, palindrome, between, lockout, xv, littlekiller, xsums };
 }
 
@@ -1909,6 +1974,7 @@ export interface RejectionContext {
   xv?: XvMap;
   littlekiller?: LittleKillerClue[];
   xsums?: XsumsClues;
+  cipher?: number[][];
 }
 
 export function rejectionReason(
@@ -1948,7 +2014,7 @@ export function rejectionReason(
       && overlayOk(test, r, c, n, N, {
         parity: ctx.parity, kropki: ctx.kropki, sandwich: ctx.sandwich, unequal: ctx.unequal, towers: ctx.towers,
         whisper: ctx.whisper, renban: ctx.renban, regionsum: ctx.regionsum, palindrome: ctx.palindrome,
-        between: ctx.between, lockout: ctx.lockout, xv: ctx.xv, littlekiller: ctx.littlekiller, xsums: ctx.xsums,
+        between: ctx.between, lockout: ctx.lockout, xv: ctx.xv, littlekiller: ctx.littlekiller, xsums: ctx.xsums, cipher: ctx.cipher,
       });
     if (!ruleOk) return variant !== 'none' ? variantRule(variant, lang) : translateFor(lang, 'sudokuKillerRule');
   }

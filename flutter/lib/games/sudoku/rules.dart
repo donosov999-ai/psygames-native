@@ -243,6 +243,7 @@ class BoardGeometry {
     this.xv,
     this.littleKiller,
     this.xsums,
+    this.cipher,
   });
   final List<List<int>>? regions;
   final List<List<ThermoLink?>>? thermo;
@@ -285,6 +286,9 @@ class BoardGeometry {
   /// X-суммы: слева у строк и сверху у столбцов, −1 — скрыта; форма — как у сэндвича.
   final SandwichClues? xsums;
 
+  /// Шифр: номер буквы (1..9 = A..I) в клетке-подсказке, 0 — не буква; клетка-буква в задании пустая.
+  final List<List<int>>? cipher;
+
   static BoardGeometry fromJson(Map<String, Object?> v) => BoardGeometry(
         regions: v['regions'] == null ? null : _grid(v['regions']),
         thermo: v['thermo'] == null
@@ -306,6 +310,7 @@ class BoardGeometry {
         xv: KropkiMap.fromJson(v['xv']),
         littleKiller: LittleKillerClue.fromJson(v['littlekiller']),
         xsums: SandwichClues.fromJson(v['xsums']),
+        cipher: v['cipher'] == null ? null : _grid(v['cipher']),
         whisper: v['whisper'] == null
             ? null
             : (v['whisper'] as List)
@@ -764,12 +769,40 @@ bool overlayOk(List<List<int>> grid, int r, int c, int val, int n, BoardGeometry
   }
   final lk = g.littleKiller;
   if (lk != null && !littleKillerOk(grid, r, c, val, lk, n)) return false;
+  final ci = g.cipher;
+  if (ci != null && !cipherOk(grid, r, c, val, ci, n)) return false;
   final xs = g.xsums;
   if (xs != null) {
     final row = [...grid[r]]..[c] = val;
     if (!xsumLineOk(row, xs.rows[r], n)) return false;
     final col = [for (final line in grid) line[c]]..[r] = val;
     if (!xsumLineOk(col, xs.cols[c], n)) return false;
+  }
+  return true;
+}
+
+/// 🔴 ШИФР (пункт 2 цепочки «14 усложнений», задача 1f8fbd7f) — перенос `cipherOk` ядра: часть подсказок
+/// показана буквами (A..I); одинаковые буквы — одинаковые цифры, разные буквы — разные цифры.
+const cipherLetters = 'ABCDEFGHI';
+
+/// Буква клетки шифра или null.
+String? cipherLetterAt(BoardGeometry g, int r, int c) {
+  final l = g.cipher?[r][c] ?? 0;
+  return l > 0 && l <= cipherLetters.length ? cipherLetters[l - 1] : null;
+}
+
+/// Не спорит ли цифра в клетке-букве с другими буквами по уже поставленным цифрам.
+bool cipherOk(List<List<int>> grid, int r, int c, int val, List<List<int>> cipher, int n) {
+  final l = cipher[r][c];
+  if (l == 0) return true;
+  for (var i = 0; i < n; i++) {
+    for (var j = 0; j < n; j++) {
+      final m = cipher[i][j];
+      if (m == 0 || (i == r && j == c)) continue;
+      final v = grid[i][j];
+      if (v == 0) continue;
+      if (m == l ? v != val : v == val) return false;
+    }
   }
   return true;
 }

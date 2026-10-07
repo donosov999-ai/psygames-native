@@ -30,7 +30,7 @@ void main() {
     // Числа не зашиты: новое правило лестницы обязано приехать в эталоны само (выгрузка).
     final ladderVariants = {for (final l in ladder) l['variant'] as String};
     // Правила, собранные раньше своих ступеней (RULES_AHEAD выгрузки): встанут на лестницу — уйдут отсюда.
-    const rulesAhead = {'argyle', 'littlekiller', 'xsums'};
+    const rulesAhead = {'argyle', 'littlekiller', 'xsums', 'cipher'};
     expect(boards.length, ladderVariants.length + 3 + rulesAhead.difference(ladderVariants).length,
         reason: 'варианты лестницы + killer, unequal, towers + правила впереди лестницы');
     expect({for (final b in boards) b['variant'] as String}, containsAll(rulesAhead));
