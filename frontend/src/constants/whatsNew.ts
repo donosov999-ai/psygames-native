@@ -19,6 +19,7 @@ export const WHATS_NEW: WhatsNewEntry[] = [
     version: '2.56.17',
     date: '2026-10-07',
     en: [
+      'Feedback opens right over the current screen, and a screenshot of native games is attached again',
       'Sudoku: a new rule, Cipher — some clues are letters, and you work out the code together with the grid; the ladder grows to 136 steps',
       'Sudoku: Little Killer and X-sums blocks get harder steps',
       'Native Shop, What’s New and Pet tab: they open faster and follow your theme; the shop guards against a double charge',
@@ -30,6 +31,7 @@ export const WHATS_NEW: WhatsNewEntry[] = [
       'First launch: the bottom Skip button is full width; on Home the link now reads All hubs',
     ],
     ru: [
+      'Отзыв открывается прямо поверх текущего экрана, и к нему снова прикладывается снимок нативной игры',
       '«Судоку»: новое правило «шифр» — часть подсказок буквами, код выводится вместе с доской; лестница выросла до 136 ступеней',
       '«Судоку»: у «малого киллера» и «X-сумм» блоки стали труднее',
       '«Магазин», «Что нового» и вкладка «Питомец» стали нативными: открываются быстрее и идут за темой; магазин защищён от двойного списания',
