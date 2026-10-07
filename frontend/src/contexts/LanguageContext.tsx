@@ -733,7 +733,7 @@ const translations: Translations = {
   },
   sudokuGroupIntroDesc: {
     ru: 'Это не отдельное упражнение, а развилка: карточка открывает три доски одной головоломки. Правило у всех одно — цифра не повторяется в строке, столбце и блоке.\n\nКлассическая доска растёт лестницей: с уровнями приходят правила-варианты, а дорога сложности задаёт, насколько трудной техникой берётся ступень. Самурай и фрактальная — длинные формы, они живут часами: у самурая пять сеток делят угловые блоки, у фрактальной ответ вложенной сетки становится цифрой в клетке верхней. Выбери доску внутри.',
-    en: 'This is not an exercise but a fork: the card opens three boards of one puzzle. The rule is the same in all of them — a digit never repeats in a row, a column or a box.\n\nThe classic board climbs a ladder: levels bring variant rules, and the difficulty road sets how hard a technique each step demands. Samurai and fractal are long forms that live for hours: samurai has five grids sharing corner blocks, while in the fractal one the answer of a nested grid becomes the digit in the cell above. Pick a board inside.',
+    en: 'This is not an exercise but a hub: the card opens three boards of one puzzle. The rule is the same in all of them — a digit never repeats in a row, a column or a box.\n\nThe classic board climbs a ladder: levels bring variant rules, and the difficulty road sets how hard a technique each step demands. Samurai and fractal are long forms that live for hours: samurai has five grids sharing corner blocks, while in the fractal one the answer of a nested grid becomes the digit in the cell above. Pick a board inside.',
   },
   easy: { ru: 'Легко', en: 'Easy' },
   medium: { ru: 'Средне', en: 'Medium' },
@@ -2550,7 +2550,7 @@ const translations: Translations = {
   countingGroupDesc: { ru: 'Числа в уме: пересчёт, прикидка, скорость', en: 'Numbers in the head: counting, estimating, speed' },
   countingGroupFootnote: { ru: 'Разные подходы к одному навыку: удержать число, прикинуть, посчитать быстро, разложить на слагаемые, продолжить ряд.', en: 'Different takes on one skill: hold a number, estimate, count fast, split into parts, continue a series.' },
   // 07.10.2026 — развилка «Релаксация» (b271f702).
-  allForks: { ru: 'Все развилки', en: 'All forks' },
+  allForks: { ru: 'Все развилки', en: 'All hubs' },
   relaxationGroup: { ru: 'Релаксация', en: 'Relaxation' },
   relaxationGroupDesc: { ru: 'Дыхание, глаза, пауза — короткий отдых для головы', en: 'Breathing, eyes, a pause — a short rest for the mind' },
   relaxationGroupFootnote: { ru: 'Здесь ничего не меряется и не оценивается: это передышка между тренировками, а не проба.', en: 'Nothing is measured or scored here: this is a break between workouts, not a test.' },
@@ -3958,7 +3958,7 @@ const translations: Translations = {
   },
   spanGroupIntroDesc: {
     ru: 'Это не отдельное упражнение, а развилка: карточка открывает группу тестов на охват памяти. Внутри — цифры и пространство, прямой порядок и обратный.\n\nПрямой порядок показывает, сколько элементов удаётся удержать. Обратный требует ещё и вертеть их в уме, ничего не потеряв, — потому и даётся заметно хуже. Выбери нужный вариант внутри.',
-    en: 'This is not an exercise but a fork: the card opens a group of memory-span tests. Inside — digits and space, forward order and backward.\n\nForward order shows how many items you can hold. Backward also demands turning them over in your mind without dropping any — which is why it comes out noticeably worse. Pick the variant you want inside.',
+    en: 'This is not an exercise but a hub: the card opens a group of memory-span tests. Inside — digits and space, forward order and backward.\n\nForward order shows how many items you can hold. Backward also demands turning them over in your mind without dropping any — which is why it comes out noticeably worse. Pick the variant you want inside.',
   },
   samuraiTitleIntroDesc: {
     ru: 'Пять сеток 9×9, сцепленных углами: каждый угловой блок принадлежит сразу двум сеткам. Правила обычной судоку действуют в каждой сетке отдельно.\n\nВся трудность в общих блоках. Цифра, поставленная в углу, меняет расклад сразу в двух сетках, поэтому решать их по очереди не выйдет — приходится держать в голове обе.',
@@ -3970,7 +3970,7 @@ const translations: Translations = {
   },
   attentionConflictIntroDesc: {
     ru: 'Это не отдельное упражнение, а развилка: карточка открывает группу тестов на подавление автоматической реакции.\n\nОбщее у них одно — правильный ответ спорит с тем, который просится сам. Прочитать слово легче, чем назвать цвет, которым оно написано. Нажать на всё подряд легче, чем вовремя удержаться. Тренируется именно этот зазор между «хочется» и «надо». Выбери нужный тест внутри.',
-    en: 'This is not an exercise but a fork: the card opens a group of tests on suppressing an automatic response.\n\nThey share one thing — the correct answer competes with the one that suggests itself. Reading a word is easier than naming the colour it is printed in. Pressing everything is easier than holding back at the right moment. What gets trained is exactly that gap between the easy move and the right one. Pick the test you want inside.',
+    en: 'This is not an exercise but a hub: the card opens a group of tests on suppressing an automatic response.\n\nThey share one thing — the correct answer competes with the one that suggests itself. Reading a word is easier than naming the colour it is printed in. Pressing everything is easier than holding back at the right moment. What gets trained is exactly that gap between the easy move and the right one. Pick the test you want inside.',
   },
 
   // ── Подписи чисел в шапке игры (v1.176). Каждая цифра в HUD обязана иметь
