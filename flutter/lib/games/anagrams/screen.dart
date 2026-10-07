@@ -303,7 +303,7 @@ class _AnagramsScreenState extends State<AnagramsScreen> {
       pauseActions: [
         PauseAction(label: L.t('shuffleBtn'), icon: Icons.shuffle, onPressed: _shuffle),
         PauseAction(label: L.t('skip'), icon: Icons.skip_next_outlined, onPressed: _giveUp),
-        anagramWordLangAction(context, widget.state, AnagramMode.classic, _lang),
+        if (!anagramWordLangFromStep()) anagramWordLangAction(context, widget.state, AnagramMode.classic, _lang),
       ],
     );
   }

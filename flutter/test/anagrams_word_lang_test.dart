@@ -186,5 +186,19 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('${L.t('wordLangLabel')} · DE'), findsOneWidget, reason: 'партия не перешла на немецкий');
     });
+
+    testWidgets('🔴 язык задаёт шаг — выбора в паузе нет, выбор человека не тронут', (tester) async {
+      // Шаг сильнее выбора: пункт пересобрал бы экран на тот же язык шага, и человек решил
+      // бы, что выбор сломан.
+      final s = await stateWith({'language': 'en', key: 'de'});
+      GamePreset.set({'wu': '1', 'targetLang': 'es'});
+      await tester.pumpWidget(MaterialApp(home: RestartScope(builder: (_) => AnagramsScreen(state: s))));
+      await waitBoard(tester, AnagramBoard);
+      await tester.tap(find.byTooltip(L.t('teachPause')));
+      await tester.pumpAndSettle();
+      expect(find.text(L.t('restart')), findsOneWidget, reason: 'пауза не открылась — проверять было бы нечего');
+      expect(find.textContaining(L.t('wordLangLabel')), findsNothing, reason: 'шаг задал язык, а выбор в паузе остался');
+      expect(s.get(key), 'de', reason: 'язык шага записался поверх выбора человека');
+    });
   });
 }

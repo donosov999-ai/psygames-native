@@ -251,7 +251,7 @@ class _AllWordsScreenState extends State<AllWordsScreen> {
       ),
       pauseActions: [
         PauseAction(label: L.t('shuffleBtn'), icon: Icons.shuffle, onPressed: _shuffle),
-        anagramWordLangAction(context, widget.state, AnagramMode.all, _lang),
+        if (!anagramWordLangFromStep()) anagramWordLangAction(context, widget.state, AnagramMode.all, _lang),
       ],
     );
   }

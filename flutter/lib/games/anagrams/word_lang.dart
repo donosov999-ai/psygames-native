@@ -57,17 +57,23 @@ List<String> anagramLangsOf(AnagramMode mode) => [
 /// Ключ выбора — `wordLangKey('anagrams', профиль)` веба: по игре И по профилю.
 String anagramWordLangKey(String profile) => 'psygames_anagrams_wordlang_$profile';
 
+bool _ofGame(String? l) => l != null && anagramGameLangs.contains(l);
+
+/// Язык задаёт шаг зарядки или потока (`targetLang`) — выбор в паузе тогда не нужен:
+/// шаг сильнее выбора, и пересборка вернула бы тот же язык, а человек решил бы, что
+/// выбор сломан.
+bool anagramWordLangFromStep() => _ofGame(GamePreset.str('targetLang', ''));
+
 /// Язык слов для партии в режиме [mode].
 String anagramWordLang(SharedState state, AnagramMode mode) {
-  bool ofGame(String? l) => l != null && anagramGameLangs.contains(l);
   final fromStep = GamePreset.str('targetLang', '');
   final saved = state.get(anagramWordLangKey(state.activeProfile));
   final ui = state.language;
-  final chosen = ofGame(fromStep)
+  final chosen = _ofGame(fromStep)
       ? fromStep
-      : ofGame(saved)
+      : _ofGame(saved)
           ? saved!
-          : ofGame(ui)
+          : _ofGame(ui)
               ? ui
               : 'en';
   return anagramLangsOf(mode).contains(chosen) ? chosen : 'en';

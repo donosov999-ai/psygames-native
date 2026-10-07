@@ -239,7 +239,7 @@ class _CrosswordScreenState extends State<CrosswordScreen> {
       ),
       pauseActions: [
         PauseAction(label: L.t('shuffleBtn'), icon: Icons.shuffle, onPressed: _shuffle),
-        anagramWordLangAction(context, widget.state, AnagramMode.cross, _lang),
+        if (!anagramWordLangFromStep()) anagramWordLangAction(context, widget.state, AnagramMode.cross, _lang),
       ],
     );
   }
