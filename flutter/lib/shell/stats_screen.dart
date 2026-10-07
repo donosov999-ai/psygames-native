@@ -493,16 +493,14 @@ class _GameCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Row(
+                  // Колонки сверху, как у веба (`statRow` — ряд с растяжением): подпись в две строки не сдвигает соседей вниз.
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     for (final r in _list(g['stats']))
                       Expanded(
                         child: Column(
                           children: [
-                            Text(
-                              _s(r['label']),
-                              textAlign: TextAlign.center,
-                              style: TextStyle(fontSize: 12, color: web.textSecondary),
-                            ),
+                            Text(_s(r['label']), style: TextStyle(fontSize: 12, color: web.textSecondary)),
                             const SizedBox(height: 4),
                             Text(
                               _s(r['value']),
