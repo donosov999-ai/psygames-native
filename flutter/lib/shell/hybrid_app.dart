@@ -100,6 +100,7 @@ import 'assessment_result_screen.dart';
 import 'onboarding_screen.dart';
 import 'friends_screen.dart';
 import 'shop_screen.dart';
+import 'whats_new_screen.dart';
 import 'info_screens.dart';
 import 'walking_pet.dart';
 import 'web_theme.dart';
@@ -718,6 +719,7 @@ class _HybridAppState extends State<HybridApp> {
     LeaguesScreen.route,
     FriendsScreen.route,
     ShopScreen.route,
+    WhatsNewScreen.route,
   ];
 
   /// Экраны по модели веба, которые НЕ вкладки полосы: страница уходит на них своим переходом
@@ -733,6 +735,7 @@ class _HybridAppState extends State<HybridApp> {
     LeaguesScreen.route,
     FriendsScreen.route,
     ShopScreen.route,
+    WhatsNewScreen.route,
   };
 
   /// Что показывает тело: страницу (0) или нативную вкладку.
@@ -1422,6 +1425,8 @@ class _HybridAppState extends State<HybridApp> {
             const FriendsScreen(),
             // «Магазин» (9424da3a) — страница по модели; покупки и баланс держит веб.
             ShopScreen(origin: widget.server.origin),
+            // «Что нового» (84df0687): список версий — модель веба, проверку обновлений делает оболочка.
+            const WhatsNewScreen(),
           ],
                 ),
               ),
