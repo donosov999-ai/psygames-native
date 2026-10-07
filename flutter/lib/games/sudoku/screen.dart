@@ -28,6 +28,7 @@ import 'lesson.dart';
 import 'attempt.dart';
 import 'mode_board.dart';
 import 'reject_why.dart';
+import 'level_map.dart';
 import 'rule_help.dart';
 import 'modes.dart';
 import 'resume.dart';
@@ -915,6 +916,28 @@ class _SudokuScreenState extends State<SudokuScreen> {
 
   void _erase() => _onKey(0);
 
+  /// Карта уровней: пройденный уровень — переиграть; потолок (`best`) выбор не трогает. На дороге
+  /// счётчик хранит только максимум (`SudokuRoadStore`), поэтому выбранный уровень играется до
+  /// конца захода, а после перезапуска человек снова на своём максимуме — прогресс не теряется.
+  Future<void> _openLevelMap() async {
+    final levels = _levels;
+    if (levels == null) return;
+    final picked = await showLevelMap(
+      context,
+      current: _ladder.level,
+      best: _ladder.best,
+      last: levels.lastLevel,
+      stars: levelStarsOf(widget.state, 'sudoku'),
+    );
+    if (picked == null || !mounted) return;
+    await restartGuarded(context, live: _live, deal: () => _playLevel(picked));
+  }
+
+  Future<void> _playLevel(int level) async {
+    await _ladder.pick(level);
+    if (mounted) _deal();
+  }
+
   /// Правило доски на экране: у режима — сам режим («Свободно» правила не добавляет), у лестницы,
   /// пилота и малышей — вариант выданной доски.
   String get _ruleNow {
@@ -1165,6 +1188,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
     }
     _recordOutcome(_hintsUsed > 0 ? Outcome.assisted : Outcome.passed);
     final level = _ladder.level;
+    unawaited(saveLevelStars(widget.state, 'sudoku', level, sudokuStars(_errors)));   // звёзды карты уровней
     // Трудность и подробности — как у веба (app/games/sudoku.tsx, saveSession победы).
     // До 30.09 лестница умела слать только номер: трудностью уходило «54», а не «hard»,
     // и без дороги — история сравнила бы уровень 12 лёгкой и тяжёлой дорог между собой.
@@ -1569,6 +1593,9 @@ class _SudokuScreenState extends State<SudokuScreen> {
             ),
       pauseActions: [
         PauseAction(label: L.t('sdkStartOver'), icon: Icons.refresh, onPressed: () => restartGuarded(context, live: _live, deal: _deal)),
+        // Карта уровней лестницы — вернуться на пройденный (b5df5096 п.4; у веба — карта на экране настройки).
+        if (widget.mode == null && !widget.junior && !_pilot && _levels != null)
+          PauseAction(label: L.t('sudokuModeLevels'), icon: Icons.map_outlined, onPressed: _openLevelMap),
         // Правило доски — окно со схемой, как бейдж варианта у веба (b5df5096 п.5).
         if (_hasRuleHelp)
           PauseAction(label: '${L.t('simonRule')}: ${_ruleTitle()}', icon: Icons.rule, onPressed: _openRuleHelp),
