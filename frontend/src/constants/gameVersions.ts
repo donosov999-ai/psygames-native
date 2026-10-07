@@ -71,7 +71,6 @@ export const GAME_VERSIONS: Record<string, GameVersion> = {
   'prl': { ver: 3, date: '17.09.2026' },
   'proofreading': { ver: 7, date: '17.09.2026' },
   'pseudoword-echo': { ver: 1, date: '19.08.2026' },
-  'puzzles-hub': { ver: 2, date: '10.09.2026' },
   'puzzles': { ver: 13, date: '17.09.2026' },
   'quick-count': { ver: 2, date: '17.09.2026' },
   'reading-span': { ver: 3, date: '01.10.2026' },

@@ -97,7 +97,8 @@ void main() {
     test('🔴 карточка без своей записи берёт раздел и навык у развилки', () {
       final c = _catalog();
       final bridges = c.entries.firstWhere((e) => e.route == '/games/puzzles?mode=Bridges');
-      final hub = c.games.firstWhere((g) => g.route == '/games/puzzles-hub');
+      // 07.10.2026: развилка «Головоломки» распущена (решение Дениса 18.09, ca6f3e00) — «Мосты» стоят в «Пространстве».
+      final hub = c.games.firstWhere((g) => g.route == '/games/spatial-hub');
       expect([bridges.category, bridges.skillKey], [hub.category, hub.skillKey]);
       final stroop = c.entries.where((e) => e.route == '/games/stroop').toList();
       expect(stroop, hasLength(1), reason: 'повторов нет: игра GAMES и карточка развилки — одна строка');
@@ -234,15 +235,16 @@ void main() {
   });
 
   group('развилка', () {
-    testWidgets('🔴 «Головоломки»: поиск по-русски сужает развилку; фильтра нет — навык у всех один', (t) async {
+    // 07.10.2026: развилка «Головоломки» распущена (решение Дениса 18.09, ca6f3e00): «Чёрный ящик» теперь в «Пространстве»; навыков там несколько,
+    // поэтому проверка «фильтра нет» ушла вместе с развилкой — поиск проверяется здесь.
+    testWidgets('🔴 «Пространство»: поиск по-русски сужает развилку', (t) async {
       await _open(
           t,
           HubScreen(
-              state: state, hubRoute: '/games/puzzles-hub', icon: Icons.extension, gradient: const [Colors.blue, Colors.indigo]));
+              state: state, hubRoute: '/games/spatial-hub', icon: Icons.extension, gradient: const [Colors.blue, Colors.indigo]));
       final before = find.byType(ListTile).evaluate().length;
       expect(before, greaterThan(1));
       expect(find.byKey(const ValueKey('hub-search')), findsNothing, reason: 'поле не занимает места, пока не открыто');
-      expect(find.byKey(const ValueKey('hub-filter')), findsNothing);
       await t.tap(find.byKey(const ValueKey('hub-search-toggle')));
       await t.pump();
       // Состав развилки зависит от раскладки профиля (режимы Тэтхэма разнесены по тематическим):
@@ -269,7 +271,7 @@ void main() {
       await t.pumpAndSettle();
       expect(find.byKey(const ValueKey('hub-card-/games/stroop')), findsOneWidget);
       final shown = find.byType(ListTile).evaluate().length;
-      expect(shown, lessThan(9), reason: 'фильтр отбирает, а не показывает все 9');
+      expect(shown, lessThan(8), reason: 'фильтр отбирает, а не показывает все 8 (Корректура уехала в «Поиск глазами»)');
     });
   });
 }

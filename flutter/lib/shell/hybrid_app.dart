@@ -234,13 +234,6 @@ class HybridApp extends StatefulWidget {
               gradient: const [Color(0xFF3B2F7A), Color(0xFF5B4D9E)],
               isNative: native.containsKey,
             ),
-        '/games/puzzles-hub': (s) => HubScreen(
-              state: s,
-              hubRoute: '/games/puzzles-hub',
-              icon: Icons.extension,
-              gradient: const [Color(0xFF0F766E), Color(0xFFF59E0B)],
-              isNative: native.containsKey,
-            ),
         '/games/sudoku-samurai': (s) => SamuraiScreen(state: s),
         '/games/sudoku-fractal': (s) => FractalScreen(state: s),
         '/games/sudoku-fractal-deep': (s) => DeepScreen(state: s),

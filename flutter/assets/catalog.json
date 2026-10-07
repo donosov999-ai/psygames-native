@@ -100,7 +100,6 @@
 {"id":"languages_group","route":"/games/languages-hub","nameKey":"languagesGroup","descKey":"languagesGroupDesc","skillKey":"skillVocabulary","category":"memory","icon":"language","gradient":["#0891b2","#a855f7"],"hub":true},
 {"id":"chess_group","route":"/games/chess-hub","nameKey":"chessGroup","descKey":"chessGroupDesc","skillKey":"skillVisualMemory","category":"memory","icon":"grid","gradient":["#8e5b2f","#2f2a24"],"hub":true},
 {"id":"sorting_group","route":"/games/sorting-hub","nameKey":"sortingGroup","descKey":"sortingGroupDesc","skillKey":"skillPlanningWM","category":"logic","icon":"funnel","gradient":["#f7971e","#0ea5e9"],"hub":true},
-{"id":"puzzles_group","route":"/games/puzzles-hub","nameKey":"puzzlesGroup","descKey":"puzzlesGroupDesc","skillKey":"skillLogic","category":"logic","icon":"extension-puzzle","gradient":["#0f766e","#f59e0b"],"hub":true},
 {"id":"puzzles","route":"/games/puzzles","nameKey":"puzzlesUnruly","descKey":"puzzlesUnrulyRule","skillKey":"skillLogic","category":"logic","icon":"grid","gradient":["#0f766e","#f59e0b"],"hideFromMenu":true},
 {"id":"spatial_group","route":"/games/spatial-hub","nameKey":"spatialGroup","descKey":"spatialGroupDesc","skillKey":"skillSpatial","category":"logic","icon":"cube","gradient":["#5614b0","#dbd65c"],"hub":true}
 ]

@@ -93,7 +93,6 @@ export const GAME_ICONS: Record<string, any> = {
   hearing_group: require('../../assets/images/game_icons/hearing_group.webp'),
   languages_group: require('../../assets/images/game_icons/languages_group.webp'),
   mnemonics_group: require('../../assets/images/game_icons/mnemonics_group.webp'),
-  puzzles_group: require('../../assets/images/game_icons/puzzles_group.webp'),
   search_group: require('../../assets/images/game_icons/search_group.webp'),
   sorting_group: require('../../assets/images/game_icons/sorting_group.webp'),
   spatial_group: require('../../assets/images/game_icons/spatial_group.webp'),

@@ -214,7 +214,7 @@ void main() {
   test('🔴 развилки раздела открываются нативно', () {
     const origin = 'http://127.0.0.1:54321';
     expect(HybridApp.routeOf('$origin/games/sudoku-hub'), '/games/sudoku-hub');
-    expect(HybridApp.routeOf('$origin/games/puzzles-hub'), '/games/puzzles-hub');
+    expect(HybridApp.routeOf('$origin/games/spatial-hub'), '/games/spatial-hub');
   });
 
   test('🔴 неперенесённые игры и прочие страницы остаются в вебе', () {
@@ -403,7 +403,6 @@ void main() {
       '/games/sudoku?mode=junior',
       '/games/sudoku?mode=killer',
       '/games/sudoku?mode=free',
-      '/games/puzzles-hub',
       '/games/sudoku-fractal',
       '/games/sudoku-fractal-deep',
       '/games/sudoku-samurai',
@@ -423,7 +422,7 @@ void main() {
    *
    * Перехват их адресов включён 23.09.2026, когда замер показал, что открываются
    * все 42 режима. Проверяем не «сколько ключей в карте» (это сверка карты с самой
-   * собой), а то, что КАЖДАЯ карточка развилки `/games/puzzles-hub` и `/games/spatial-hub`
+   * собой), а то, что КАЖДАЯ карточка головоломок во всех тематических развилках (с 07.10.2026 «Головоломок» нет)
    * узнаётся разбором адреса. Разойдётся кодировка хвоста — проба назовёт карточку.
    */
   test('🔴 каждая карточка головоломок с развилки узнаётся разбором адреса', () {
