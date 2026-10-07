@@ -17,6 +17,10 @@ export default function WhatsNewModal() {
   const { colors } = useTheme();
   const { t, language } = useLanguage();
   const [visible, setVisible] = React.useState(false);
+  // Форма отзыва из нативной игры открывается вторым WebView на /feedback с тем же
+  // хранилищем (задача e780e5b0): окно версий там всплывало бы поверх формы. Адрес —
+  // из window, а не из роутера: окно монтируется в корне и в пробах без роутера.
+  const onFeedbackPage = typeof window !== 'undefined' && window.location?.pathname === '/feedback';
   const [entries, setEntries] = React.useState<WhatsNewEntry[]>([]);
   // v1.165 — обратный контур: что починили ПО РЕПОРТАМ этого человека. Раньше он
   // писал в пустоту: правки по его словам уезжали в Play, а он об этом не узнавал.
@@ -46,7 +50,7 @@ export default function WhatsNewModal() {
     void markShown(mine.map((r) => r.id)).catch(() => {});
   };
 
-  if (!visible) return null;
+  if (!visible || onFeedbackPage) return null;
   const cur = currentVersion();
 
   return (
