@@ -44,6 +44,11 @@ class CalendarLocales {
 
   /// Короткая дата (`toLocaleDateString(язык, {day, month: 'short', year})` веба) — дата открытия
   /// достижения (`achievements_model.dart`).
+  /// День и месяц словом (`Intl.DateTimeFormat(язык, {day, month: 'long'})` веба) — подпись дня в
+  /// истории «Прогресса» (`stats_model.dart`).
+  String dayMonth(String lang, int month, int day) =>
+      ((_of(lang)['dayMonth']! as List)[month - 1] as String).replaceFirst('{d}', _num(lang, day));
+
   String shortDate(String lang, int year, int month, int day) =>
       ((_of(lang)['short']! as List)[month - 1] as String).replaceFirst('{d}', _num(lang, day)).replaceFirst('{y}', _num(lang, year));
 }

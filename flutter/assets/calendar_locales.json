@@ -54,6 +54,20 @@
     "{d} окт. {y} г.",
     "{d} нояб. {y} г.",
     "{d} дек. {y} г."
+   ],
+   "dayMonth": [
+    "{d} января",
+    "{d} февраля",
+    "{d} марта",
+    "{d} апреля",
+    "{d} мая",
+    "{d} июня",
+    "{d} июля",
+    "{d} августа",
+    "{d} сентября",
+    "{d} октября",
+    "{d} ноября",
+    "{d} декабря"
    ]
   },
   "en": {
@@ -108,6 +122,20 @@
     "Oct {d}, {y}",
     "Nov {d}, {y}",
     "Dec {d}, {y}"
+   ],
+   "dayMonth": [
+    "January {d}",
+    "February {d}",
+    "March {d}",
+    "April {d}",
+    "May {d}",
+    "June {d}",
+    "July {d}",
+    "August {d}",
+    "September {d}",
+    "October {d}",
+    "November {d}",
+    "December {d}"
    ]
   },
   "es": {
@@ -162,6 +190,20 @@
     "{d} oct {y}",
     "{d} nov {y}",
     "{d} dic {y}"
+   ],
+   "dayMonth": [
+    "{d} de enero",
+    "{d} de febrero",
+    "{d} de marzo",
+    "{d} de abril",
+    "{d} de mayo",
+    "{d} de junio",
+    "{d} de julio",
+    "{d} de agosto",
+    "{d} de septiembre",
+    "{d} de octubre",
+    "{d} de noviembre",
+    "{d} de diciembre"
    ]
   },
   "pt": {
@@ -216,6 +258,20 @@
     "{d} de out. de {y}",
     "{d} de nov. de {y}",
     "{d} de dez. de {y}"
+   ],
+   "dayMonth": [
+    "{d} de janeiro",
+    "{d} de fevereiro",
+    "{d} de março",
+    "{d} de abril",
+    "{d} de maio",
+    "{d} de junho",
+    "{d} de julho",
+    "{d} de agosto",
+    "{d} de setembro",
+    "{d} de outubro",
+    "{d} de novembro",
+    "{d} de dezembro"
    ]
   },
   "hi": {
@@ -270,6 +326,20 @@
     "{d} अक्टू॰ {y}",
     "{d} नव॰ {y}",
     "{d} दिस॰ {y}"
+   ],
+   "dayMonth": [
+    "{d} जनवरी",
+    "{d} फ़रवरी",
+    "{d} मार्च",
+    "{d} अप्रैल",
+    "{d} मई",
+    "{d} जून",
+    "{d} जुलाई",
+    "{d} अगस्त",
+    "{d} सितंबर",
+    "{d} अक्टूबर",
+    "{d} नवंबर",
+    "{d} दिसंबर"
    ]
   },
   "zh": {
@@ -324,6 +394,20 @@
     "{y}年10月{d}日",
     "{y}年11月{d}日",
     "{y}年12月{d}日"
+   ],
+   "dayMonth": [
+    "1月{d}日",
+    "2月{d}日",
+    "3月{d}日",
+    "4月{d}日",
+    "5月{d}日",
+    "6月{d}日",
+    "7月{d}日",
+    "8月{d}日",
+    "9月{d}日",
+    "10月{d}日",
+    "11月{d}日",
+    "12月{d}日"
    ]
   },
   "de": {
@@ -378,6 +462,20 @@
     "{d}. Okt. {y}",
     "{d}. Nov. {y}",
     "{d}. Dez. {y}"
+   ],
+   "dayMonth": [
+    "{d}. Januar",
+    "{d}. Februar",
+    "{d}. März",
+    "{d}. April",
+    "{d}. Mai",
+    "{d}. Juni",
+    "{d}. Juli",
+    "{d}. August",
+    "{d}. September",
+    "{d}. Oktober",
+    "{d}. November",
+    "{d}. Dezember"
    ]
   },
   "fr": {
@@ -432,6 +530,20 @@
     "{d} oct. {y}",
     "{d} nov. {y}",
     "{d} déc. {y}"
+   ],
+   "dayMonth": [
+    "{d} janvier",
+    "{d} février",
+    "{d} mars",
+    "{d} avril",
+    "{d} mai",
+    "{d} juin",
+    "{d} juillet",
+    "{d} août",
+    "{d} septembre",
+    "{d} octobre",
+    "{d} novembre",
+    "{d} décembre"
    ]
   },
   "it": {
@@ -486,6 +598,20 @@
     "{d} ott {y}",
     "{d} nov {y}",
     "{d} dic {y}"
+   ],
+   "dayMonth": [
+    "{d} gennaio",
+    "{d} febbraio",
+    "{d} marzo",
+    "{d} aprile",
+    "{d} maggio",
+    "{d} giugno",
+    "{d} luglio",
+    "{d} agosto",
+    "{d} settembre",
+    "{d} ottobre",
+    "{d} novembre",
+    "{d} dicembre"
    ]
   },
   "ja": {
@@ -540,6 +666,20 @@
     "{y}年10月{d}日",
     "{y}年11月{d}日",
     "{y}年12月{d}日"
+   ],
+   "dayMonth": [
+    "1月{d}日",
+    "2月{d}日",
+    "3月{d}日",
+    "4月{d}日",
+    "5月{d}日",
+    "6月{d}日",
+    "7月{d}日",
+    "8月{d}日",
+    "9月{d}日",
+    "10月{d}日",
+    "11月{d}日",
+    "12月{d}日"
    ]
   },
   "ko": {
@@ -594,6 +734,20 @@
     "{y}년 10월 {d}일",
     "{y}년 11월 {d}일",
     "{y}년 12월 {d}일"
+   ],
+   "dayMonth": [
+    "1월 {d}일",
+    "2월 {d}일",
+    "3월 {d}일",
+    "4월 {d}일",
+    "5월 {d}일",
+    "6월 {d}일",
+    "7월 {d}일",
+    "8월 {d}일",
+    "9월 {d}일",
+    "10월 {d}일",
+    "11월 {d}일",
+    "12월 {d}일"
    ]
   },
   "ar": {
@@ -648,6 +802,20 @@
     "{d} أكتوبر {y}",
     "{d} نوفمبر {y}",
     "{d} ديسمبر {y}"
+   ],
+   "dayMonth": [
+    "{d} يناير",
+    "{d} فبراير",
+    "{d} مارس",
+    "{d} أبريل",
+    "{d} مايو",
+    "{d} يونيو",
+    "{d} يوليو",
+    "{d} أغسطس",
+    "{d} سبتمبر",
+    "{d} أكتوبر",
+    "{d} نوفمبر",
+    "{d} ديسمبر"
    ]
   }
  }

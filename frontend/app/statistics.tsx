@@ -62,7 +62,7 @@ function StatisticsScreenBody() {
   // переключение не ходит в хранилище, иначе клик по вкладке давал бы спиннер.
   const [tab, setTab] = useState<'summary' | 'history'>('summary');
   const [sessions, setSessions] = useState<GameSession[]>([]);
-  const { profile } = useProfile();
+  const { profile, ready: profileReady } = useProfile();
   const [scopeAll, setScopeAll] = useState(false);  // false = текущий профиль, true = все игры
   const [tokens, setTokens] = useState(0);          // D1: токены/уровень/стрик в герое
   const [streakDays, setStreakDays] = useState(0);
@@ -124,7 +124,34 @@ function StatisticsScreenBody() {
     return () => { alive = false; };
   }, [profileId]);
   // v1.115.0: недельный ИИ-дайджест — кэш на ISO-неделю (isoWeekKey), молчаливый null = карточка просто не рисуется
-  const [aiDigest, setAiDigest] = useState<string | null>(null);
+  const [digest, setDigest] = useState<{ pid: string; text: string } | null>(null);
+  const aiDigest = digest && digest.pid === profileId ? digest.text : null;   // чужой профиль — не наш дайджест
+  /**
+   * 🔴 ДАЙДЖЕСТ — ВЫБРАННОГО ПРОФИЛЯ, И ПРИ ХОЛОДНОМ ЗАХОДЕ (как очки и серия выше, a6b99ecc; d6a60b02).
+   * Запрос стоял в `loadStats` и уходил с профилем момента монтирования: на холодном заходе это профиль
+   * по умолчанию, и карточка читала чужой кэш недели — а Dart-модель «Прогресса» читает кэш выбранного.
+   * Теперь — когда профиль готов и партии прочитаны; смена профиля — свой дайджест. Компактный
+   * агрегат за последние 7 дней, не сырой дамп партий.
+   */
+  useEffect(() => {
+    if (!profileReady || !profileId || loading) return;
+    let alive = true;
+    const weekAgo = Date.now() - 7 * 86400_000;
+    const thisWeek = sessions.filter((s) => s.timestamp && new Date(s.timestamp).getTime() >= weekAgo);
+    const byWeekday: Record<number, number> = {};
+    for (const s of thisWeek) { if (s.timestamp) { const wd = new Date(s.timestamp).getDay(); byWeekday[wd] = (byWeekday[wd] || 0) + 1; } }
+    const totalGamesLocal = sessions.filter((s) => !!s.game_type).length;
+    getStreak(profileId)
+      .then((streak) => getAiInsight(
+        'weekly_digest', profileId, isoWeekKey(), language, toneForProfile(profileId),
+        { sessionsThisWeek: thisWeek.length, uniqueGamesThisWeek: new Set(thisWeek.map((s) => s.game_type)).size,
+          currentStreakDays: streak, sessionsByWeekday: byWeekday, totalGamesEver: totalGamesLocal },
+      ))
+      .then((text) => { if (alive && text) setDigest({ pid: profileId, text }); })
+      .catch(() => {});
+    return () => { alive = false; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- партии читаются на момент готовности; новый запрос — на смену профиля, кэш недельный
+  }, [profileReady, profileId, loading]);
 
   useEffect(() => {
     loadStats();
@@ -132,24 +159,10 @@ function StatisticsScreenBody() {
 
   const loadStats = async () => {
     try {
-      let freshStreak = 0;
-      if (profile?.id) { setTokens(await getTokens(profile.id)); freshStreak = await getStreak(profile.id); setStreakDays(freshStreak); }
+      if (profile?.id) { setTokens(await getTokens(profile.id)); setStreakDays(await getStreak(profile.id)); }
       // D1.2: сгруппировать очки по играм в хронологии для спарклайнов
       const allSessions = await getSessions();
       setSessions(allSessions);   // сырые сессии — вкладкам «Сводка» и «История»; карточки считаются из них по охвату
-      // Недельный дайджест — компактный агрегат за последние 7 дней (не сырой дамп сессий)
-      if (profile?.id) {
-        const weekAgo = Date.now() - 7 * 86400_000;
-        const thisWeek = allSessions.filter((s) => s.timestamp && new Date(s.timestamp).getTime() >= weekAgo);
-        const byWeekday: Record<number, number> = {};
-        for (const s of thisWeek) { if (s.timestamp) { const wd = new Date(s.timestamp).getDay(); byWeekday[wd] = (byWeekday[wd] || 0) + 1; } }
-        const totalGamesLocal = allSessions.filter((s) => !!s.game_type).length;
-        getAiInsight(
-          'weekly_digest', profile.id, isoWeekKey(), language, toneForProfile(profile.id),
-          { sessionsThisWeek: thisWeek.length, uniqueGamesThisWeek: new Set(thisWeek.map((s) => s.game_type)).size,
-            currentStreakDays: freshStreak, sessionsByWeekday: byWeekday, totalGamesEver: totalGamesLocal },
-        ).then((text) => { if (text) setAiDigest(text); }).catch(() => {});
-      }
     } catch (error) {
       console.error('Error loading stats:', error);
     } finally {

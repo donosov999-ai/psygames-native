@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import 'feedback_fab.dart' show FabRules;
 import 'ion_icon.dart';
 import 'screen_ui.dart';
+import 'shared_state.dart';
+import 'stats_model.dart';
+import 'training_history.dart' show Wall, deviceWall;
 import 'web_theme.dart';
 
 /// «ПРОГРЕСС» `/statistics` НА FLUTTER — ПЕРЕНОС `frontend/app/statistics.tsx` (задача 6ff4a966, правило 4e679f41).
@@ -12,10 +15,22 @@ import 'web_theme.dart';
 /// считает веб-экран, стоящий под оболочкой. Здесь нет ни одного расчёта. Вкладки «Сводка» и
 /// «История» переключаются здесь (обе части — в модели, как у веба на одной загрузке); охват
 /// «профиль / все игры» меняет расчёт — действие веба `scope`; «Обновить» — `refresh`; «Назад» — `back`.
+///
+/// 🔴 ВАРИАНТ Б (задача d6a60b02): есть [state] — модель считается на Dart (`stats_model.dart`) и
+/// пересчитывается по каждой записи в общую память (партия, очки, дайджест недели от веба); охват и
+/// «Обновить» — здесь же. Нет — модель и действия у веба, как раньше.
 class StatsScreen extends StatefulWidget {
-  const StatsScreen({super.key, required this.onTab});
+  const StatsScreen({super.key, required this.onTab, this.state});
 
   static const route = '/statistics';
+
+  final SharedState? state;
+
+  /// Часы экрана (миг «сейчас» и перевод в местное время). Пробы подменяют.
+  @visibleForTesting
+  static int Function() now = () => DateTime.now().millisecondsSinceEpoch;
+  @visibleForTesting
+  static Wall wall = deviceWall;
 
   /// Переход на вкладку (пустая история зовёт сыграть — на Главную, как `router.replace('/')` веба).
   /// «Назад» шапки — действие веба `back` (`goBackOrHome`): куда возвращаться, знает история страницы.
@@ -34,142 +49,207 @@ double _d(Object? v, [double f = 0]) => v is num ? v.toDouble() : f;
 class _StatsScreenState extends State<StatsScreen> {
   String _tab = 'summary';
 
-  void _act(String a, [List<Object?> args = const []]) => ScreenUi.act(StatsScreen.route, a, args);
+  // ── Своя модель (вариант Б) ──
+  StatsInputs? _in;
+
+  /// Свой расчёт не удался (нет данных сборки, битое) — экран берёт модель страницы, как раньше:
+  /// веб-расчёт лучше пустого экрана.
+  bool _failed = false;
+  bool _scopeAll = false;
+  int _gen = 0;
+  ({StatsInputs inp, bool all, String grey})? _memoKey;
+  _M? _memo;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.state?.addListener(_reload);
+    _reload();
+  }
+
+  @override
+  void dispose() {
+    widget.state?.removeListener(_reload);
+    super.dispose();
+  }
+
+  /// Перечитать общую память: последнее чтение побеждает, устаревшее отбрасывается.
+  void _reload() {
+    final state = widget.state;
+    if (state == null) return;
+    final gen = ++_gen;
+    statsInputsFor(state, now: StatsScreen.now(), wall: StatsScreen.wall).then(
+      (v) {
+        if (mounted && gen == _gen) setState(() => _in = v);
+      },
+      onError: (Object e) {
+        debugPrint('StatsScreen: свой расчёт не удался — модель страницы ($e)');
+        if (mounted && gen == _gen) setState(() => _failed = true);
+      },
+    );
+  }
+
+  _M? _own(WebColors web) {
+    final inp = _in;
+    if (inp == null) return null;
+    final key = (inp: inp, all: _scopeAll, grey: cssUpper(web.textSecondary));
+    if (_memoKey case final k? when identical(k.inp, inp) && k.all == key.all && k.grey == key.grey) return _memo;
+    _memoKey = key;
+    return _memo = statsModel(inp, scopeAll: _scopeAll, textSecondary: key.grey);
+  }
+
+  /// Охват и «Обновить» — свои (вариант Б); «Назад» и всё без своей модели — действия веба.
+  bool get _own0 => widget.state != null && !_failed;
+
+  void _act(String a, [List<Object?> args = const []]) {
+    if (_own0 && a == 'scope') {
+      setState(() => _scopeAll = args.isNotEmpty && args.first == true);
+      return;
+    }
+    if (_own0 && a == 'refresh') {
+      _reload();
+      return;
+    }
+    ScreenUi.act(StatsScreen.route, a, args);
+  }
 
   @override
   Widget build(BuildContext context) {
-    final web = WebTheme.of(context);
-    final accent = Theme.of(context).colorScheme.primary;
+    if (_own0) return _page(context, _own(WebTheme.of(context)));
     return ValueListenableBuilder<_M?>(
       valueListenable: ScreenUi.model(StatsScreen.route),
-      builder: (context, m, _) {
-        if (m == null) {
-          return ColoredBox(
-            color: web.background,
-            child: const Center(child: CircularProgressIndicator(key: ValueKey('stats-loading'))),
-          );
-        }
-        final labels = _map(m['labels']);
-        final scope = _map(m['scope']);
-        final primary = cssColor(m['primary'], accent);
-        return Material(
-          key: const ValueKey('stats-screen'),
-          color: web.background,
-          child: WebTheme.textDefaults(
-            context,
-            SafeArea(
-              bottom: false,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                    child: Row(
-                      children: [
-                        _round(
-                          context,
-                          'stats-back',
-                          _s(labels['back']),
-                          Directionality.of(context) == TextDirection.rtl ? 'arrow-forward' : 'arrow-back',
-                          () => _act('back'),
-                        ),
-                        Expanded(
-                          child: Text(
-                            _s(m['title']),
-                            textAlign: TextAlign.center,
-                            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: web.text),
-                          ),
-                        ),
-                        _round(context, 'stats-refresh', _s(labels['refresh']), 'refresh', () => _act('refresh')),
-                      ],
+      builder: (context, m, _) => _page(context, m),
+    );
+  }
+
+  Widget _page(BuildContext context, _M? m) {
+    final web = WebTheme.of(context);
+    final accent = Theme.of(context).colorScheme.primary;
+    if (m == null) {
+      return ColoredBox(
+        color: web.background,
+        child: const Center(child: CircularProgressIndicator(key: ValueKey('stats-loading'))),
+      );
+    }
+    final labels = _map(m['labels']);
+    final scope = _map(m['scope']);
+    final primary = cssColor(m['primary'], accent);
+    return Material(
+      key: const ValueKey('stats-screen'),
+      color: web.background,
+      child: WebTheme.textDefaults(
+        context,
+        SafeArea(
+          bottom: false,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                child: Row(
+                  children: [
+                    _round(
+                      context,
+                      'stats-back',
+                      _s(labels['back']),
+                      Directionality.of(context) == TextDirection.rtl ? 'arrow-forward' : 'arrow-back',
+                      () => _act('back'),
                     ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 10),
-                    child: Row(
-                      children: [
-                        for (final (id, key) in [('summary', 'summary'), ('history', 'history')]) ...[
-                          if (id == 'history') const SizedBox(width: 8),
-                          Expanded(
-                            child: Semantics(
-                              selected: _tab == id,
-                              button: true,
-                              child: GestureDetector(
-                                key: ValueKey('stats-tab-$id'),
-                                behavior: HitTestBehavior.opaque,
-                                onTap: () => setState(() => _tab = id),
-                                child: Container(
-                                  constraints: const BoxConstraints(minHeight: 48),
-                                  alignment: Alignment.center,
-                                  decoration: BoxDecoration(
-                                    border: Border(bottom: BorderSide(color: _tab == id ? primary : Colors.transparent, width: 3)),
-                                  ),
-                                  child: Text(
-                                    _s(labels[key]),
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w800,
-                                      color: _tab == id ? primary : web.textSecondary,
-                                    ),
-                                  ),
+                    Expanded(
+                      child: Text(
+                        _s(m['title']),
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: web.text),
+                      ),
+                    ),
+                    _round(context, 'stats-refresh', _s(labels['refresh']), 'refresh', () => _act('refresh')),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 10),
+                child: Row(
+                  children: [
+                    for (final (id, key) in [('summary', 'summary'), ('history', 'history')]) ...[
+                      if (id == 'history') const SizedBox(width: 8),
+                      Expanded(
+                        child: Semantics(
+                          selected: _tab == id,
+                          button: true,
+                          child: GestureDetector(
+                            key: ValueKey('stats-tab-$id'),
+                            behavior: HitTestBehavior.opaque,
+                            onTap: () => setState(() => _tab = id),
+                            child: Container(
+                              constraints: const BoxConstraints(minHeight: 48),
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(
+                                border: Border(bottom: BorderSide(color: _tab == id ? primary : Colors.transparent, width: 3)),
+                              ),
+                              child: Text(
+                                _s(labels[key]),
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w800,
+                                  color: _tab == id ? primary : web.textSecondary,
                                 ),
                               ),
                             ),
                           ),
-                        ],
-                      ],
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 10),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: _scope(
-                            context,
-                            'stats-scope-profile',
-                            _s(scope['profile']),
-                            scope['isAll'] != true,
-                            primary,
-                            () => _act('scope', [false]),
-                          ),
                         ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: _scope(
-                            context,
-                            'stats-scope-all',
-                            _s(scope['all']),
-                            scope['isAll'] == true,
-                            primary,
-                            () => _act('scope', [true]),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  if (m['totalPlayed'] != null)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 10),
-                      child: Text(
-                        _s(m['totalPlayed']),
-                        textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 12, color: web.textSecondary),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 10),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: _scope(
+                        context,
+                        'stats-scope-profile',
+                        _s(scope['profile']),
+                        scope['isAll'] != true,
+                        primary,
+                        () => _act('scope', [false]),
                       ),
                     ),
-                  Expanded(
-                    child: m['loading'] == true
-                        ? Center(child: CircularProgressIndicator(color: primary))
-                        : _tab == 'summary'
-                        ? _Summary(m: m, primary: primary)
-                        : _History(m: m, primary: primary, act: _act, onTab: widget.onTab),
-                  ),
-                ],
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _scope(
+                        context,
+                        'stats-scope-all',
+                        _s(scope['all']),
+                        scope['isAll'] == true,
+                        primary,
+                        () => _act('scope', [true]),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
+              if (m['totalPlayed'] != null)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: Text(
+                    _s(m['totalPlayed']),
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 12, color: web.textSecondary),
+                  ),
+                ),
+              Expanded(
+                child: m['loading'] == true
+                    ? Center(child: CircularProgressIndicator(color: primary))
+                    : _tab == 'summary'
+                    ? _Summary(m: m, primary: primary)
+                    : _History(m: m, primary: primary, act: _act, onTab: widget.onTab),
+              ),
+            ],
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 

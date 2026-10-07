@@ -1,0 +1,444 @@
+{
+ "v": 1,
+ "title": "Statistics",
+ "primary": "#0ea5e9",
+ "labels": {
+  "back": "Back",
+  "refresh": "Refresh",
+  "summary": "Summary",
+  "history": "History"
+ },
+ "loading": false,
+ "scope": {
+  "profile": "📖 Speed Reading PRO",
+  "all": "All games",
+  "isAll": false
+ },
+ "totalPlayed": "Total played: 20 games (completed)",
+ "hero": {
+  "tokens": 4321,
+  "tokensLabel": "Tokens",
+  "level": "Lv 8",
+  "levelTitle": "Guru",
+  "streak": 0,
+  "streakLabel": "Streak",
+  "progress": 0.515,
+  "games": "20 completed games",
+  "time": "49m in game"
+ },
+ "areas": {
+  "title": "Training balance",
+  "hint": "How your training is split across areas. Not a rating of ability — we do not measure that and do not claim to: this is what you actually train and what you skip.",
+  "rows": [
+   {
+    "area": "recovery",
+    "label": "Recovery",
+    "pct": 32,
+    "text": "32% · 6",
+    "a11y": "Recovery: 32%, 6",
+    "trend": {
+     "up": true,
+     "text": "score up 18% — last 2 weeks vs the 2 before"
+    }
+   },
+   {
+    "area": "logic",
+    "label": "Logic & Decisions",
+    "pct": 26,
+    "text": "26% · 5",
+    "a11y": "Logic & Decisions: 26%, 5",
+    "trend": null
+   },
+   {
+    "area": "attention",
+    "label": "Attention",
+    "pct": 21,
+    "text": "21% · 4",
+    "a11y": "Attention: 21%, 4",
+    "trend": null
+   },
+   {
+    "area": "memory",
+    "label": "Memory",
+    "pct": 21,
+    "text": "21% · 4",
+    "a11y": "Memory: 21%, 4",
+    "trend": null
+   }
+  ],
+  "weak": null
+ },
+ "ai": null,
+ "games": [
+  {
+   "id": "schulte_table",
+   "name": "Schulte: Attention",
+   "icon": "grid",
+   "gradient": [
+    "#667eea",
+    "#764ba2"
+   ],
+   "stats": [
+    {
+     "label": "Total Games",
+     "value": "4"
+    },
+    {
+     "label": "Fastest",
+     "value": "35s"
+    },
+    {
+     "label": "Slowest",
+     "value": "1:01"
+    },
+    {
+     "label": "Average Time",
+     "value": "45s"
+    }
+   ],
+   "spark": {
+    "caption": "Each bar = score for one attempt, last 4",
+    "bars": [
+     {
+      "h": 5,
+      "op": 0.35
+     },
+     {
+      "h": 5,
+      "op": 0.5666666666666667
+     },
+     {
+      "h": 24,
+      "op": 0.7833333333333333
+     },
+     {
+      "h": 24,
+      "op": 1
+     }
+    ],
+    "color": "#764ba2",
+    "older": "older",
+    "newer": "newer",
+    "numbers": "Score — best 36 · avg 31"
+   }
+  },
+  {
+   "id": "sudoku",
+   "name": "Sudoku",
+   "icon": "apps",
+   "gradient": [
+    "#7f7fd5",
+    "#86a8e7"
+   ],
+   "stats": [
+    {
+     "label": "Passed / played",
+     "value": "2/4"
+    },
+    {
+     "label": "Fastest",
+     "value": "0.4s"
+    },
+    {
+     "label": "Slowest",
+     "value": "7:00"
+    },
+    {
+     "label": "Average Time",
+     "value": "4:12"
+    }
+   ],
+   "spark": {
+    "caption": "Each bar = score for one attempt, last 4",
+    "bars": [
+     {
+      "h": 24,
+      "op": 0.35
+     },
+     {
+      "h": 24,
+      "op": 0.5666666666666667
+     },
+     {
+      "h": 15,
+      "op": 0.7833333333333333
+     },
+     {
+      "h": 5,
+      "op": 1
+     }
+    ],
+    "color": "#86a8e7",
+    "older": "older",
+    "newer": "newer",
+    "numbers": "Score — best 1500 · avg 1275"
+   }
+  },
+  {
+   "id": "breathing",
+   "name": "Breathing",
+   "icon": "flower-outline",
+   "gradient": [
+    "#5b86e5",
+    "#36d1dc"
+   ],
+   "stats": [
+    {
+     "label": "Total Games",
+     "value": "6"
+    },
+    {
+     "label": "Fastest",
+     "value": "2:00"
+    },
+    {
+     "label": "Slowest",
+     "value": "2:00"
+    },
+    {
+     "label": "Average Time",
+     "value": "2:00"
+    }
+   ],
+   "spark": {
+    "caption": "Each bar = score for one attempt, last 6",
+    "bars": [
+     {
+      "h": 5,
+      "op": 0.35
+     },
+     {
+      "h": 10,
+      "op": 0.48
+     },
+     {
+      "h": 15,
+      "op": 0.61
+     },
+     {
+      "h": 15,
+      "op": 0.74
+     },
+     {
+      "h": 19,
+      "op": 0.87
+     },
+     {
+      "h": 24,
+      "op": 1
+     }
+    ],
+    "color": "#36d1dc",
+    "older": "older",
+    "newer": "newer",
+    "numbers": "Score — best 14 · avg 12"
+   }
+  }
+ ],
+ "empty": null,
+ "history": {
+  "kind": "days",
+  "days": [
+   {
+    "label": "Today",
+    "entries": [
+     {
+      "name": "Schulte: Attention",
+      "icon": "grid",
+      "color": "#667eea",
+      "verdict": "first time",
+      "verdictColor": "#6E6E73",
+      "level": "lv 2",
+      "value": "—",
+      "time": "15:34",
+      "label": "Schulte: Attention, lv 2, 15:34, —, first time"
+     },
+     {
+      "name": "Sudoku",
+      "icon": "apps",
+      "color": "#7f7fd5",
+      "verdict": "new difficulty",
+      "verdictColor": "#6E6E73",
+      "level": "lv 3",
+      "value": "900",
+      "time": "14:35",
+      "label": "Sudoku, lv 3, 14:35, 900, new difficulty"
+     },
+     {
+      "name": "Sudoku",
+      "icon": "apps",
+      "color": "#7f7fd5",
+      "verdict": "300 worse",
+      "verdictColor": "#9e2b2b",
+      "level": "lv 12",
+      "value": "1200",
+      "time": "14:34",
+      "label": "Sudoku, lv 12, 14:34, 1200, 300 worse"
+     },
+     {
+      "name": "Sudoku",
+      "icon": "apps",
+      "color": "#7f7fd5",
+      "verdict": "same as last time",
+      "verdictColor": "#6E6E73",
+      "level": "lv 12",
+      "value": "1500",
+      "time": "13:34",
+      "label": "Sudoku, lv 12, 13:34, 1500, same as last time"
+     },
+     {
+      "name": "Sudoku",
+      "icon": "apps",
+      "color": "#7f7fd5",
+      "verdict": "first time",
+      "verdictColor": "#6E6E73",
+      "level": "lv 12",
+      "value": "1500",
+      "time": "12:34",
+      "label": "Sudoku, lv 12, 12:34, 1500, first time"
+     }
+    ]
+   },
+   {
+    "label": "Yesterday",
+    "entries": [
+     {
+      "name": "Schulte: Attention",
+      "icon": "grid",
+      "color": "#667eea",
+      "verdict": "new difficulty",
+      "verdictColor": "#6E6E73",
+      "level": "lv 2",
+      "value": "1:01",
+      "time": "16:34",
+      "label": "Schulte: Attention, lv 2, 16:34, 1:01, new difficulty"
+     },
+     {
+      "name": "Breathing",
+      "icon": "flower-outline",
+      "color": "#5b86e5",
+      "verdict": "1 better",
+      "verdictColor": "#1f6b4a",
+      "level": null,
+      "value": "14",
+      "time": "15:34",
+      "label": "Breathing, 15:34, 14, 1 better"
+     }
+    ]
+   },
+   {
+    "label": "October 5",
+    "entries": [
+     {
+      "name": "Schulte: Attention",
+      "icon": "grid",
+      "color": "#667eea",
+      "verdict": "5s better",
+      "verdictColor": "#1f6b4a",
+      "level": "lv 1",
+      "value": "35s",
+      "time": "17:34",
+      "label": "Schulte: Attention, lv 1, 17:34, 35s, 5s better"
+     }
+    ]
+   },
+   {
+    "label": "October 4",
+    "entries": [
+     {
+      "name": "Schulte: Attention",
+      "icon": "grid",
+      "color": "#667eea",
+      "verdict": "first time",
+      "verdictColor": "#6E6E73",
+      "level": "lv 1",
+      "value": "40s",
+      "time": "17:34",
+      "label": "Schulte: Attention, lv 1, 17:34, 40s, first time"
+     }
+    ]
+   },
+   {
+    "label": "October 3",
+    "entries": [
+     {
+      "name": "Breathing",
+      "icon": "flower-outline",
+      "color": "#5b86e5",
+      "verdict": "1 better",
+      "verdictColor": "#1f6b4a",
+      "level": null,
+      "value": "13",
+      "time": "15:34",
+      "label": "Breathing, 15:34, 13, 1 better"
+     }
+    ]
+   },
+   {
+    "label": "October 1",
+    "entries": [
+     {
+      "name": "Breathing",
+      "icon": "flower-outline",
+      "color": "#5b86e5",
+      "verdict": "same as last time",
+      "verdictColor": "#6E6E73",
+      "level": null,
+      "value": "12",
+      "time": "15:34",
+      "label": "Breathing, 15:34, 12, same as last time"
+     }
+    ]
+   },
+   {
+    "label": "September 21",
+    "entries": [
+     {
+      "name": "Breathing",
+      "icon": "flower-outline",
+      "color": "#5b86e5",
+      "verdict": "1 better",
+      "verdictColor": "#1f6b4a",
+      "level": null,
+      "value": "12",
+      "time": "17:34",
+      "label": "Breathing, 17:34, 12, 1 better"
+     }
+    ]
+   },
+   {
+    "label": "September 19",
+    "entries": [
+     {
+      "name": "Breathing",
+      "icon": "flower-outline",
+      "color": "#5b86e5",
+      "verdict": "1 better",
+      "verdictColor": "#1f6b4a",
+      "level": null,
+      "value": "11",
+      "time": "17:34",
+      "label": "Breathing, 17:34, 11, 1 better"
+     }
+    ]
+   },
+   {
+    "label": "September 17",
+    "entries": [
+     {
+      "name": "Breathing",
+      "icon": "flower-outline",
+      "color": "#5b86e5",
+      "verdict": "first time",
+      "verdictColor": "#6E6E73",
+      "level": null,
+      "value": "10",
+      "time": "17:34",
+      "label": "Breathing, 17:34, 10, first time"
+     }
+    ]
+   }
+  ],
+  "tail": null
+ }
+}

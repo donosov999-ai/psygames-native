@@ -16,7 +16,6 @@ import 'package:psygames_flutter/shell/hybrid_app.dart';
 import 'package:psygames_flutter/shell/level_rules.dart';
 import 'package:psygames_flutter/shell/native_tabs.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
-import 'package:psygames_flutter/shell/stats_screen.dart';
 import 'package:psygames_flutter/shell/streak_calendar_screen.dart';
 import 'package:psygames_flutter/shell/assessment_result_screen.dart';
 import 'package:psygames_flutter/shell/onboarding_screen.dart';
@@ -580,38 +579,34 @@ void main() {
     expect(page().js.any((s) => s.contains('["/"].refresh(')), isTrue);
   });
 
-  Map<String, Object?> statsModel() =>
-      (jsonDecode(File('test/fixtures/stats_model.json').readAsStringSync()) as Map).cast<String, Object?>();
-
-  testWidgets('🔴 вкладка «Прогресс» — нативный экран по модели страницы; охват уходит вебу действием', (t) async {
+  testWidgets('🔴 вкладка «Прогресс» — нативный экран по СВОЕЙ модели (вариант Б); охват — здесь же, без веба', (t) async {
     await mount(t);
     await t.tap(find.byKey(const ValueKey('native-tab-/statistics')));
     await t.pump();
     expect(page().js.any((s) => s.contains('__psyReplace("/statistics")')), isTrue, reason: 'страница уведена на тот же адрес');
-    expect(find.byKey(const ValueKey('stats-loading')), findsOneWidget, reason: 'модели ещё нет — ждём');
-    page().emit(SharedState.channel, {'op': 'screenUi', 'route': StatsScreen.route, 'model': statsModel()});
-    await settle(t, () => find.byKey(const ValueKey('stats-screen')).evaluate().isNotEmpty);
+    // Модели от страницы нет и не будет — экран считает сам (`stats_model.dart`).
+    await settle(t, () => find.byKey(const ValueKey('stats-hero')).evaluate().isNotEmpty);
     expect(active(t), '/statistics');
     expect(find.byKey(const ValueKey('stats-hero')), findsOneWidget);
     page().js.clear();
     await t.tap(find.byKey(const ValueKey('stats-scope-all')));
     await t.pump();
-    expect(page().js.any((s) => s.contains('["/statistics"].scope(true)')), isTrue);
+    expect(page().js.any((s) => s.contains('["/statistics"].scope(')), isFalse, reason: 'охват — свой, веб не зовём');
     // Адрес от страницы (ссылка «Прогресс» с Главной) тоже выбирает вкладку, а не страницу.
     await toGames(t);
     await route(t, '/statistics');
     expect(active(t), '/statistics');
+    await settle(t, () => find.byKey(const ValueKey('stats-hero')).evaluate().isNotEmpty);
     expect(find.byKey(const ValueKey('stats-hero')), findsOneWidget);
   });
 
-  testWidgets('«Прогресс» без модели 6 с — сама страница; модель пришла — нативный', (t) async {
+  testWidgets('«Прогресс» модели страницы не ждёт: через 7 с — по-прежнему нативный, страница не всплывает', (t) async {
     await mount(t);
     await route(t, '/statistics');
+    await settle(t, () => find.byKey(const ValueKey('stats-hero')).evaluate().isNotEmpty);
     await t.pump(const Duration(seconds: 7));
     await t.pump();
-    expect(find.byKey(const ValueKey('native-cover')), findsNothing, reason: 'страница видна: нативный слой снят');
-    page().emit(SharedState.channel, {'op': 'screenUi', 'route': StatsScreen.route, 'model': statsModel()});
-    await settle(t, () => find.byKey(const ValueKey('stats-screen')).evaluate().isNotEmpty);
+    expect(find.byKey(const ValueKey('native-cover')), findsOneWidget, reason: 'запасной показ страницы — только тем, кто ждёт её модели');
     expect(find.byKey(const ValueKey('stats-hero')), findsOneWidget);
   });
 

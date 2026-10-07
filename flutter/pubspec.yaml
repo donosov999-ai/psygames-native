@@ -143,6 +143,8 @@ flutter:
     - assets/collection.json
     # Достижения и разделы экрана — таблица веба для модели на Dart (tools/embed-achievements.mjs, вариант Б).
     - assets/achievements.json
+    # Числа правил «Прогресса» — константы веба для модели на Dart (tools/embed-stats.mjs, вариант Б).
+    - assets/stats_rules.json
     # Иконки игр «поле в миниатюре» для строк развилок — выгрузка веб-реестра
     # (flutter/tools/embed-game-icons.mjs), не править руками.
     - assets/game_icons/
