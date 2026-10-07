@@ -1,7 +1,9 @@
 import 'dart:convert';
 
+import 'package:flutter/material.dart' show Color;
 import 'package:flutter/services.dart' show rootBundle;
 
+import 'game_tile.dart';
 import 'l10n.dart';
 
 /// КАТАЛОГ ИГР: ЧТО ЕСТЬ, ГДЕ ЛЕЖИТ, ПО ЧЕМУ ИЩЕТСЯ (задачи f5025027, 9bd1b15d).
@@ -38,6 +40,10 @@ class CatalogEntry {
     this.hub = false,
     this.hubRoute,
     this.hidden = false,
+    this.gradient = const [],
+    this.look,
+    this.thumb,
+    this.thumbOpacity = 0.22,
   });
 
   final String route;
@@ -59,6 +65,14 @@ class CatalogEntry {
   /// Вне меню (`hideFromMenu`) или в песочнице: в разделах по умолчанию не стоит, поиском
   /// находится. Нужен только запасному списку, когда веб ещё не прислал каталог профиля.
   final bool hidden;
+
+  /// Плитка вкладки «Игры» (задача 99628ecf): градиент игры, готовые цвета веб-карточки и превью
+  /// фоном — всё из выгрузки `GAMES` (`flutter-catalog-asset-fresh.test.ts`). У карточки за
+  /// развилкой их нет — она рисуется строкой только в выдаче поиска.
+  final List<Color> gradient;
+  final TileLook? look;
+  final String? thumb;
+  final double thumbOpacity;
 
   String get name => nameKey.isEmpty ? route : L.t(nameKey);
   String get desc => descKey.isEmpty ? '' : L.t(descKey);
@@ -150,6 +164,13 @@ class Catalog {
           category: g['category'] as String?,
           hub: g['hub'] == true,
           hidden: g['hideFromMenu'] == true || g['sandbox'] == true,
+          gradient: [
+            for (final h in (g['gradient'] as List? ?? const []).cast<String>())
+              Color(int.parse('ff${h.replaceFirst('#', '')}', radix: 16)),
+          ],
+          look: TileLook.fromJson(g['look']),
+          thumb: g['thumb'] as String?,
+          thumbOpacity: (g['thumbOpacity'] as num?)?.toDouble() ?? 0.22,
         ),
     ];
     final byRoute = {for (final g in games) g.route: g};

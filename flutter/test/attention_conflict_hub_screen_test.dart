@@ -67,14 +67,21 @@ void main() {
     for (final k in ['suiteStroop', 'suiteArrows', 'suiteStream', 'targets', 'wcst']) {
       final name = L.t(k);
       expect(name, isNot(k), reason: 'ключ $k не переведён');
+      // С 07.10 над карточками стоит поиск (решение Дениса 04.10, 99628ecf) — нижние за краем.
+      await tester.scrollUntilVisible(find.text(name), 120, scrollable: find.byType(Scrollable).first);
       expect(find.text(name), findsWidgets, reason: 'на карточке «$name», а не ключ $k');
     }
 
+    // Назад к началу развилки: заголовок есть и в верхней панели, искать по нему нельзя.
+    await tester.fling(find.byType(Scrollable).first, const Offset(0, 3000), 5000);
+    await tester.pumpAndSettle();
     // ЗНАЧОК «НАТИВНО» У КАЖДОЙ ВИДИМОЙ КАРТОЧКИ — обе стороны одним прибором.
     final cards = find.byWidgetPredicate((w) =>
         w.key is ValueKey<String> && (w.key! as ValueKey<String>).value.startsWith('hub-card-'));
     final visible = cards.evaluate().length;
-    expect(visible, greaterThan(3), reason: 'карточки вообще построились');
+    // Порог — «построились», а не «сколько влезло»: с 07.10 над карточками поиск и фильтр
+    // (решение Дениса 04.10), на первом экране их три. Все девять проверяются прокруткой ниже.
+    expect(visible, greaterThan(1), reason: 'карточки вообще построились');
     expect(find.byIcon(Icons.bolt), findsNWidgets(visible),
         reason: 'значок «нативно» у каждой видимой карточки');
 
@@ -106,10 +113,13 @@ void main() {
           ),
         )));
     await tester.tap(find.text('open'));
-    await settle(find.byKey(const ValueKey('hub-card-/games/wcst')));
+    await settle(find.byType(ListTile));
     // Карточку сперва прокрутить в видимую зону, как выше: с 30.09.2026 шапка
-    // развилки несёт описание из веба («Подавление автоматического…»), карточки
-    // сдвинулись вниз, и нажатие по карточке за краем уходило мимо — маршрута нет.
+    // развилки несёт описание из веба («Подавление автоматического…»), с 07.10 над
+    // карточками ещё и поиск — последняя карточка не построена, пока до неё не долистали.
+    await tester.scrollUntilVisible(find.byKey(const ValueKey('hub-card-/games/wcst')), 120,
+        scrollable: find.byType(Scrollable).first);
+    // Построена — ещё не значит целиком на экране: середина могла остаться за краем.
     await tester.ensureVisible(find.byKey(const ValueKey('hub-card-/games/wcst')));
     await tester.pump();
     await tester.tap(find.byKey(const ValueKey('hub-card-/games/wcst')));

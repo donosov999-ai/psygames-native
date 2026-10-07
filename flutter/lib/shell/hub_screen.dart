@@ -230,7 +230,6 @@ class _HubScreenState extends State<HubScreen> {
   Catalog? _catalog;
   String _query = '';
   String? _skill;
-  bool _searching = false;
 
   @override
   void initState() {
@@ -451,46 +450,8 @@ class _HubScreenState extends State<HubScreen> {
     final cards = all?.where(_shows).toList();
     final skills = all == null ? const <String>[] : _skills(all);
     return Scaffold(
-      /*
-       * 🔴 ПОИСК И ФИЛЬТР — В ВЕРХНЕЙ ПАНЕЛИ, А НЕ НАД КАРТОЧКАМИ (задача f5025027).
-       * Замер пробами развилок 02.10: поле с выпадающим списком над карточками сдвигало их на
-       * ~120 точек, одной строкой — на ~60, и девятая карточка «Конфликта внимания» уходила за
-       * экран 390×844: развилка переставала показывать выбор целиком. В панели поиск не
-       * стоит ни точки, пока его не открыли. Полная раскладка Chess & Go — во вкладке «Игры».
-       */
       appBar: AppBar(
-        title: _searching
-            ? TextField(
-                key: const ValueKey('hub-search'),
-                autofocus: true,
-                decoration: InputDecoration(hintText: L.t('catalogSearch'), border: InputBorder.none),
-                onChanged: (v) => setState(() => _query = v),
-              )
-            : Text(_title.isEmpty ? 'Развилка' : _title),
-        actions: [
-          if (_catalog != null)
-            IconButton(
-              key: const ValueKey('hub-search-toggle'),
-              tooltip: L.t('catalogSearch'),
-              icon: Icon(_searching ? Icons.close : Icons.search),
-              onPressed: () => setState(() {
-                _searching = !_searching;
-                if (!_searching) _query = '';
-              }),
-            ),
-          if (skills.length >= 2)
-            PopupMenuButton<String>(
-              key: const ValueKey('hub-filter'),
-              tooltip: L.t('catalogFilter'),
-              icon: Icon(Icons.filter_list, color: _skill == null ? null : scheme.primary),
-              initialValue: _skill ?? '',
-              onSelected: (v) => setState(() => _skill = v.isEmpty ? null : v),
-              itemBuilder: (_) => [
-                PopupMenuItem<String>(value: '', child: Text(L.t('allGames'))),
-                for (final k in skills) PopupMenuItem<String>(value: k, child: Text(skillTitle(k))),
-              ],
-            ),
-        ],
+        title: Text(_title.isEmpty ? 'Развилка' : _title),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           tooltip: L.t('back'),
@@ -534,6 +495,43 @@ class _HubScreenState extends State<HubScreen> {
                   ),
                 ),
                 const SizedBox(height: 16),
+                /*
+                 * 🔴 ПОИСК НАД КАРТОЧКАМИ, ФИЛЬТР НИЖЕ — РЕШЕНИЕ ДЕНИСА 04.10.2026 (99628ecf, п. 4):
+                 * «в каждом хабе также видимый поиск над карточками, ниже фильтр… не подменять этот UX
+                 * поиском в AppBar». Первая редакция (02.10) прятала поиск значком в верхней панели,
+                 * потому что поле сдвигало девятую карточку «Конфликта внимания» за экран 390×844; это
+                 * решение Денис отменил — развилка прокручивается. Фильтр — только по осмысленным
+                 * признакам: навыков у карточек меньше двух — его нет (у «Головоломок» навык один).
+                 */
+                if (_catalog != null) ...[
+                  TextField(
+                    key: const ValueKey('hub-search'),
+                    decoration: InputDecoration(
+                      prefixIcon: const Icon(Icons.search),
+                      hintText: L.t('catalogSearch'),
+                      border: const OutlineInputBorder(),
+                      isDense: true,
+                    ),
+                    onChanged: (v) => setState(() => _query = v),
+                  ),
+                  if (skills.length >= 2) ...[
+                    const SizedBox(height: 8),
+                    DropdownButtonFormField<String?>(
+                      key: const ValueKey('hub-filter'),
+                      initialValue: _skill,
+                      isExpanded: true,
+                      decoration: InputDecoration(
+                          labelText: L.t('catalogFilter'), border: const OutlineInputBorder(), isDense: true),
+                      items: [
+                        DropdownMenuItem<String?>(value: null, child: Text(L.t('allGames'))),
+                        for (final k in skills)
+                          DropdownMenuItem<String?>(value: k, child: Text(skillTitle(k), overflow: TextOverflow.ellipsis)),
+                      ],
+                      onChanged: (v) => setState(() => _skill = v),
+                    ),
+                  ],
+                  const SizedBox(height: 12),
+                ],
                 Text(_pick, style: TextStyle(color: scheme.onSurfaceVariant)),
                 const SizedBox(height: 8),
                 if (cards!.isEmpty)

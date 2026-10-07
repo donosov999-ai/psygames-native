@@ -116,6 +116,8 @@ for (const [file, fields] of [
   ['assets/puzzles/modes.json', ['titleKey', 'digitNames', 'secondKey', 'secondPickKey']],
   // Каталог «Игры» (задача f5025027): названия, описания, навыки и разделы — из выгрузки games.ts.
   ['assets/catalog.json', ['nameKey', 'descKey', 'skillKey', 'titleKey']],
+  // Подписи нижней полосы оболочки (задача 5136754e) — из выгрузки tabBar.ts.
+  ['assets/tabs.json', ['labelKey']],
   ['assets/game_help_routes.json', ['introKey']],
 ]) {
   let data;

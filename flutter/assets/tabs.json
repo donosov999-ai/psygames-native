@@ -1,0 +1,37 @@
+{
+ "height": 58,
+ "tabs": [
+  {
+   "route": "/",
+   "icon": "home",
+   "labelKey": "home"
+  },
+  {
+   "route": "/games",
+   "icon": "game-controller",
+   "labelKey": "tabGames"
+  },
+  {
+   "route": "/warmup-picker",
+   "icon": "flash",
+   "labelKey": "warmupPickerTitle"
+  },
+  {
+   "route": "/statistics",
+   "icon": "stats-chart",
+   "labelKey": "progress"
+  },
+  {
+   "route": "/pet",
+   "icon": "paw",
+   "labelKey": "tabPet"
+  }
+ ],
+ "noBar": [
+  "/games/",
+  "/onboarding",
+  "/warmup-bridge",
+  "/warmup-complete",
+  "/assessment-result"
+ ]
+}

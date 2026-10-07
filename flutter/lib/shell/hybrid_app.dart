@@ -87,6 +87,7 @@ import '../games/schulte/screen.dart';
 import '../games/pause/screen.dart';
 import 'asset_server.dart';
 import 'l10n.dart';
+import 'native_tabs.dart';
 import '../games/sorting_hub/screen.dart';
 import '../games/faces_names/screen.dart';
 import '../games/memory_palace/screen.dart';
@@ -153,8 +154,8 @@ class HybridApp extends StatefulWidget {
         '/warmup-picker': (_) => const WarmupPickerScreen(),
         '/warmup-complete': (_) => const WarmupCompleteScreen(),
         '/warmup-bridge': (_) => const WarmupBridgeScreen(),
-        // Вкладка «Игры»: разделы, поиск и фильтр (задачи 9bd1b15d, f5025027).
-        '/games': (s) => CatalogScreen(state: s, initialQuery: GamePreset.params['search'] ?? ''),
+        // ⚠️ `/games` здесь больше НЕТ: вкладка «Игры» — не экран поверх страницы, а вкладка
+        // оболочки рядом с ней (`NativeTabs.native`, задача 5136754e). См. `_onPagePath`.
       };
 
   /// Игра перенесена → строится нативно. Ключ — путь маршрута веб-сборки.
@@ -583,6 +584,65 @@ class _HybridAppState extends State<HybridApp> {
   String? _openedRoute;
   final _marks = WebMarkTimer();
 
+  /*
+   * 🔴 ВКЛАДКИ — У ОБОЛОЧКИ (задачи 5136754e, 99628ecf; решение Дениса 07.10.2026).
+   * Тело — две вкладки рядом (IndexedStack): страница в WebView и нативная «Игры». Полоса снизу —
+   * нативная, по правилам `tabBar.ts` ([NativeTabs]); веб свою прячет (`__psyNativeTabs`).
+   * Источник правды о том, где человек, — адрес страницы: оболочка уводит страницу на вкладку
+   * тем же `router.replace`, что и веб-полоса, поэтому «назад» из веб-игры приходит на `/games`, и
+   * эта смена адреса выбирает нативную вкладку, а не кладёт каталог поверх.
+   */
+  String _pagePath = '/';
+  String? _nativeTab;
+  bool _tabsReady = false;
+  String _catalogQuery = '';
+  int _catalogGen = 0;
+
+  /// Адрес страницы сменился — где показывать человека: нативная вкладка или страница.
+  /// Возвращает, была ли это нативная вкладка (тогда перехвату делать нечего).
+  bool _onPagePath(String url) {
+    final uri = Uri.tryParse(url);
+    if (uri == null) return false;
+    var path = uri.path;
+    if (path.endsWith('.html')) path = path.substring(0, path.length - 5);
+    if (path.endsWith('/index')) path = path.substring(0, path.length - 6);
+    if (path.isEmpty) path = '/';
+    final tab = NativeTabs.native.contains(path) ? path : null;
+    final search = tab == null ? null : uri.queryParameters['search'];
+    if (!mounted) return tab != null;
+    setState(() {
+      _pagePath = path;
+      _nativeTab = tab;
+      // Поиск, начатый на главной (`catalogSearchRoute`, задача Кодекса d4a39beb9), доезжает в поле.
+      if (search != null && search.trim().isNotEmpty) {
+        _catalogQuery = search;
+        _catalogGen++;
+      }
+    });
+    return tab != null;
+  }
+
+  /// Нажатие на нижнюю вкладку: тело переключается сразу, страница уводится `router.replace`.
+  Future<void> _selectTab(String route) async {
+    setState(() => _nativeTab = NativeTabs.native.contains(route) ? route : null);
+    final target = jsonEncode(route);
+    final full = jsonEncode('${widget.server.origin}$route');
+    await _c.runJavaScript('window.__psyReplace ? window.__psyReplace($target) : location.replace($full);');
+  }
+
+  /// Игра из нативного каталога: перенесённая — нативно поверх, остальная — страницей В ИСТОРИЮ
+  /// (`router.push`), чтобы «назад» из неё вернул на вкладку «Игры».
+  Future<void> _openFromCatalog(String route) async {
+    final native = HybridApp.routeOf('${widget.server.origin}$route');
+    if (native != null) {
+      await _openNative(native, query: HybridApp.queryOf(route));
+      return;
+    }
+    final target = jsonEncode(route);
+    final full = jsonEncode('${widget.server.origin}$route');
+    await _c.runJavaScript('window.__psyPush ? window.__psyPush($target) : location.assign($full);');
+  }
+
   /// Сообщение от веб-половины. Кроме записи в общую память здесь одно особое
   /// действие: смена ЯЗЫКА должна доехать до нативных экранов сразу.
   ///
@@ -608,6 +668,11 @@ class _HybridAppState extends State<HybridApp> {
       }
       if (m is Map && m['op'] == 'route') {
         final url = '${m['url']}';
+        if (_onPagePath(url)) {
+          // Страница пришла на нативную вкладку: экран поверх, если он был, уходит вместе с ней.
+          if (_openedRoute != null) _closeNativeBecausePageMoved();
+          return;
+        }
         final route = HybridApp.routeOf(url);
         switch (routeAction(_openedRoute, route)) {
           case RouteAction.keep:
@@ -721,7 +786,10 @@ class _HybridAppState extends State<HybridApp> {
           _c.runJavaScript(widget.state.bootstrapJs());
           _c.runJavaScript(_hostWarmupJs());
         },
-        onPageFinished: (_) {
+        onPageFinished: (url) {
+          // Загрузка документа (первый адрес, `location.replace`) смену адреса через History API
+          // не шлёт — вкладку определяем здесь.
+          _onPagePath(url);
           _c.runJavaScript(widget.state.bootstrapJs());
           _c.runJavaScript(_hostWarmupJs());
           if (tapLatencyProbe) {
@@ -748,6 +816,16 @@ class _HybridAppState extends State<HybridApp> {
     // ⚠️ Сбрасываем ТОЛЬКО кэш и только при смене отпечатка. `clearLocalStorage`
     // здесь звать нельзя ни в каком виде: на нём держится весь прогресс.
     unawaited(_dropStaleCache());
+    if (NativeTabs.tabs.isNotEmpty) {
+      _tabsReady = true;
+    } else {
+      unawaited(NativeTabs.load().then((_) {
+        if (mounted) setState(() => _tabsReady = true);
+      }).catchError((Object _) {
+        // Нет выгрузки — полосы нет, страница работает как раньше.
+      }));
+    }
+    _pagePath = Uri.tryParse(HybridApp.startRoute)?.path ?? '/';
     HybridApp.open = _open;
     HybridApp.runJs = _runJs;
     WarmupUi.run = _runUi;
@@ -837,7 +915,9 @@ class _HybridAppState extends State<HybridApp> {
     }.toList()
       ..sort();
     return 'window.__psyHostNativeRoutes=${jsonEncode(routes)};'
-        'window.__psyHostLang=${jsonEncode(widget.state.language)};';
+        'window.__psyHostLang=${jsonEncode(widget.state.language)};'
+        // Полосой владеет оболочка — веб свою не рисует (`BottomTabBar.tsx`).
+        'window.__psyNativeTabs=true;';
   }
 
   Future<void> _loadStepInfo(ValueNotifier<WarmupStepInfo?> into) async {
@@ -1047,14 +1127,43 @@ class _HybridAppState extends State<HybridApp> {
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-        body: SafeArea(
-          child: Stack(
-            children: [
-              WebViewWidget(controller: _c),
-              if (_loading) const Center(child: CircularProgressIndicator()),
-            ],
-          ),
+  Widget build(BuildContext context) {
+    final path = _nativeTab ?? _pagePath;
+    final bar = _tabsReady && NativeTabs.barVisible(path);
+    return Scaffold(
+      body: SafeArea(
+        bottom: !bar,
+        child: IndexedStack(
+          index: _nativeTab == null ? 0 : 1,
+          children: [
+            Stack(
+              children: [
+                WebViewWidget(controller: _c),
+                if (_loading) const Center(child: CircularProgressIndicator()),
+              ],
+            ),
+            // Вкладка «Игры» живёт рядом со страницей, а не поверх неё: поиск и фильтр
+            // переживают уход на другую вкладку и игру (99628ecf, п. 6).
+            if (_tabsReady)
+              CatalogScreen(
+                key: ValueKey('catalog-tab-$_catalogGen'),
+                state: widget.state,
+                embedded: true,
+                initialQuery: _catalogQuery,
+                onOpen: _openFromCatalog,
+              )
+            else
+              const SizedBox.shrink(),
+          ],
         ),
-      );
+      ),
+      bottomNavigationBar: bar
+          ? NativeTabBar(
+              active: NativeTabs.activeTab(path),
+              onTap: _selectTab,
+              accent: Theme.of(context).colorScheme.primary,
+            )
+          : null,
+    );
+  }
 }

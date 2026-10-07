@@ -1,7 +1,7 @@
 import React from 'react';
 import { hookConsoleErrors } from '@/src/services/crumbs';
 import { installNativeSessionBridge } from '@/src/services/nativeSessionBridge';
-import { Stack } from 'expo-router';
+import { Stack, router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { ThemeProvider, useTheme } from '@/src/contexts/ThemeContext';
@@ -192,6 +192,17 @@ export default function RootLayout() {
    * уровень вместо достигнутого. Одно пакетное чтение на весь запуск.
    */
   React.useEffect(() => { void warmLevelCache(); }, []);
+
+  /*
+   * 🔴 ПЕРЕХОД ПО ВКЛАДКЕ ИЗ ОБОЛОЧКИ (задача 5136754e, 07.10.2026). Нижней полосой владеет натив;
+   * нажатие на вкладку, которую рисует страница, уводит страницу ТЕМ ЖЕ `router.replace`, что и
+   * веб-полоса: вкладки не копятся в истории, и «назад» из веб-игры приходит на свою вкладку.
+   */
+  React.useEffect(() => {
+    (globalThis as any).__psyReplace = (route: string) => router.replace(route as any);
+    // Веб-игра из нативного каталога — В ИСТОРИЮ (`push`): «назад» из неё вернёт на вкладку «Игры».
+    (globalThis as any).__psyPush = (route: string) => router.push(route as any);
+  }, []);
 
   React.useEffect(() => {
     let cancelled = false;

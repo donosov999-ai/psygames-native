@@ -111,10 +111,14 @@ flutter:
     - assets/hubs.json
     # Каталог «Игры» — выгрузка games.ts (frontend/src/__tests__/flutter-catalog-asset-fresh.test.ts).
     - assets/catalog.json
+    # Правила нижней полосы — выгрузка tabBar.ts (frontend/src/__tests__/flutter-tabs-asset-fresh.test.ts).
+    - assets/tabs.json
     - assets/game_help_routes.json
     # Иконки игр «поле в миниатюре» для строк развилок — выгрузка веб-реестра
     # (flutter/tools/embed-game-icons.mjs), не править руками.
     - assets/game_icons/
+    # Превью игр фоном плиток вкладки «Игры» — копия веба (`flutter-catalog-asset-fresh.test.ts`), не править руками.
+    - assets/game_thumbs/
     - assets/level_rules.json
     # Корпус позиций «Доски в уме»: 2000 задач Lichess (CC0). Каталог объявлен
     # ПОИМЁННО — строка вида «- assets/x/» берёт только файлы самой папки, и
