@@ -27,6 +27,7 @@ import {
   Cell, Variant, ThermoPN, ArrowMap, CageMap, isValid, generatePuzzle, shuffle, HYPER_BOXES, ORTHO,
   Overlays, levelConfig, UnequalMap, TowersMap, towersLineOk, WHISPER_GAP, renbanOk, lineCells, regionSumOk, palindromeOk, betweenOk, lockoutOk, xvOk, XvMap, LittleKillerClue, littleKillerOk, littleKillerCells, XsumsClues, xsumsOk, cipherOk, encodeCipher,
 } from './sudoku-core';
+import { borderCounts, samePartition, solvePartition } from './sudoku-chaos';
 
 export type Technique =
   | 'naked_single'    // в клетке остался один кандидат
@@ -51,6 +52,7 @@ export type Technique =
   | 'little_killer_sum'  // малый киллер: кандидат вне коридора суммы диагонали по кандидатам соседей
   | 'xsum_clue'  // X-суммы: первая цифра X без раскладки суммы первых X клеток; коридор суммы внутри них
   | 'cipher_code'  // шифр: кандидаты одной буквы общие; однозначная буква забирает свою цифру у остальных
+  | 'region_border'  // самосборка: границы областей выведены по подсказкам границ и напечатанным цифрам (sudoku-chaos.ts)
   | 'guess';          // логики не хватило — нужен перебор
 
 export const TECHNIQUE_TIER: Record<Technique, number> = {
@@ -58,6 +60,7 @@ export const TECHNIQUE_TIER: Record<Technique, number> = {
   little_killer_sum: 4,   // малый киллер: класс выводов варианта
   xsum_clue: 4,   // X-суммы: класс выводов варианта
   cipher_code: 4,   // шифр: класс выводов варианта
+  region_border: 4,   // самосборка: вывод границ — класс выводов варианта
   lockout_window: 4,   // замок: кандидат вне годной пары концов lockout-линии
   between_window: 4,   // между концами: кандидат вне любого окна между концами линии
   // Палиндром: кандидаты зеркальных клеток пересекаются. Ступень 4 — как у всего КЛАССА выводов
@@ -152,6 +155,9 @@ export interface Grade {
   /** Доска, к которой решатель пришёл. Гейт сверяет её с эталоном: если пруннинг где-то
    *  неверен, решатель «решит» ЧУЖУЮ сетку и объявит единственность там, где её нет. */
   grid?: Cell[][];
+  /** Решатель встал (не противоречие, а нехватка приёмов): докуда дошёл и какой ступенью. Нужно
+   *  туману — там решают кусками, открывая доску по ходу (`gradeFog`). */
+  partial?: { grid: Cell[][]; tier: number; hardest: Technique };
 }
 
 const bit = (v: number) => 1 << (v - 1);
@@ -1272,7 +1278,79 @@ export function gradePuzzle(puzzle: Cell[][], ctx: GradeCtx, tierCap = 9): Grade
     if (empty === 0) return { solved: true, tier: Math.max(1, maxTier), hardest, steps: stepsUsed, cost: costUsed, grid: grid.map((row) => [...row]) };
     if (!steps.some((f) => f())) break;
   }
-  return { solved: false, tier: TECHNIQUE_TIER.guess, hardest: 'guess', steps: stepsUsed, cost: costUsed };
+  return {
+    solved: false, tier: TECHNIQUE_TIER.guess, hardest: 'guess', steps: stepsUsed, cost: costUsed,
+    partial: { grid: grid.map((row) => [...row]), tier: Math.max(1, maxTier), hardest },
+  };
+}
+
+/**
+ * 🔴 ТУМАН ВОЙНЫ — МЕРА ПОД ТУМАНОМ (пункт 11 цепочки «14 усложнений», задача efb63126).
+ *
+ * Приёмка карточки: «оценщик видит только открытое — иначе туман превращает логику в угадайку».
+ * Поэтому решатель идёт кусками: видит подсказки только в открытых клетках (и свои выводы); ставит
+ * всё, что может вывести (`gradePuzzle`); каждая цифра в ОТКРЫТОЙ клетке — напечатанная или
+ * поставленная — открывает соседей крестом (`fogRevealed`), там появляются новые подсказки, и круг
+ * повторяется. Вывод
+ * в клетке под туманом засчитывается как знание (игрок держит его в голове), но тумана не
+ * расчищает: поставить туда цифру нельзя. Доска решена, когда известна вся и открыта вся. Ступень —
+ * наибольшая по кругам, длина и цена — сумма по кругам.
+ *
+ * Почему открывают и подсказки, а не только ходы игрока: иначе лишняя подсказка МЕШАЕТ — в клетке,
+ * где игрок поставил бы цифру и расчистил туман, стоит напечатанная и ничего не расчищает. Мера
+ * тогда не монотонна, и копание с полной доски не стартует вовсе: замер 07.10, 72 доски из 72
+ * ушли запасным. С правилом «любая видимая цифра» лишняя подсказка только помогает.
+ */
+export function gradeFog(puzzle: Cell[][], open0: number[][], ctx: GradeCtx, tierCap = 9): Grade & { rounds: number } {
+  const N = ctx.N;
+  const open = open0.map((row) => row.map((v) => v !== 0));
+  const known = puzzle.map((row, r) => row.map((v, c) => (open[r][c] ? v : 0)));
+  let tier = 0, steps = 0, cost = 0, rounds = 0;
+  let hardest: Technique = 'naked_single';
+  // Каскад — той же `fogRevealed`, что и у экранов: выводы решателя верны по построению, поэтому
+  // сетка знаний сама себе решение. Открывшиеся подсказки ложатся в знание, и круг повторяется.
+  const spread = () => {
+    let any = false;
+    for (;;) {
+      const o = fogRevealed(open0, known, known);
+      let more = false;
+      for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+        if (!o[r][c] || open[r][c]) continue;
+        open[r][c] = true;
+        more = any = true;
+        if (puzzle[r][c] !== 0 && known[r][c] === 0) known[r][c] = puzzle[r][c];
+      }
+      if (!more) return any;
+    }
+  };
+  spread();
+  // Круг — самой простой ступенью, что даёт хоть одну цифру; после неё сразу каскад. Игрок не
+  // лезет в тяжёлый приём, пока поставленная цифра может открыть новые подсказки, — иначе мера
+  // завышает ступень (замер 07.10: до этого правила «под туманом строже» 70 из 72 при ступени 7
+  // там, где хватало расчистки).
+  for (; rounds < N * N; rounds++) {
+    let moved = false;
+    for (let t = 1; t <= tierCap && !moved; t++) {
+      const g = gradePuzzle(known, ctx, t);
+      const after = g.solved ? g.grid : g.partial?.grid;
+      if (!after) return { solved: false, tier: TECHNIQUE_TIER.guess, hardest: 'guess', steps, cost, rounds };   // противоречие
+      for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+        if (known[r][c] !== 0 || after[r][c] === 0) continue;
+        known[r][c] = after[r][c];
+        moved = true;
+      }
+      if (!moved) continue;
+      steps += g.steps; cost += g.cost;
+      const gt = g.solved ? g.tier : g.partial!.tier;
+      if (gt > tier) { tier = gt; hardest = g.solved ? g.hardest : g.partial!.hardest; }
+    }
+    if (!moved) break;
+    spread();
+  }
+  const solved = known.every((row) => row.every((v) => v !== 0)) && open.every((row) => row.every(Boolean));
+  return solved
+    ? { solved: true, tier: Math.max(1, tier), hardest, steps, cost, rounds, grid: known.map((row) => [...row]) }
+    : { solved: false, tier: TECHNIQUE_TIER.guess, hardest: 'guess', steps, cost, rounds };
 }
 
 function combos(arr: number[], k: number): number[][] {
@@ -2348,10 +2426,169 @@ export function лучшеПодПолосу(
   return кандидат.grade.cost > текущий.grade.cost;
 }
 
+/**
+ * Что открыто при данной сетке: окна старта плюс каскад — каждая ВЕРНАЯ цифра в открытой клетке
+ * (подсказка или ход игрока) расчищает соседей КРЕСТОМ: сверху, снизу, слева, справа. Неверная
+ * цифра не расчищает ничего. Состояние тумана выводится из сетки целиком — хранить его в снимке
+ * партии не нужно.
+ *
+ * 🔴 Почему крест, а не 3×3, как в жанре. Там туман прячет условия (клетки киллера, термометры), а
+ * подсказок почти нет; у нас под туманом классика с ~29 подсказками, и расчистка 3×3 по цепочке
+ * подсказок открывает почти всё сразу. Замер 07.10 парой (та же доска без тумана и под ним): 3×3 —
+ * на старте открыто 63–69 клеток из 81, туман строже ступенью на 6–10 досках из 12; крест — открыто
+ * ≈ 50, строже на 28 из 36 (ступени 1–3 → 2–5), цена +26–40 %, сборка ≈ 2 с. Окна старта — 3×3.
+ */
+export function fogRevealed(fog0: number[][], grid: Cell[][], solution: Cell[][]): boolean[][] {
+  const N = fog0.length;
+  const open = fog0.map((row) => row.map((v) => v !== 0));
+  let more = true;
+  while (more) {
+    more = false;
+    for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+      if (!open[r][c] || grid[r][c] === 0 || grid[r][c] !== solution[r][c]) continue;
+      for (let dr = -1; dr <= 1; dr++) for (let dc = -1; dc <= 1; dc++) {
+        if (dr !== 0 && dc !== 0) continue;
+        const rr = r + dr, cc = c + dc;
+        if (rr >= 0 && rr < N && cc >= 0 && cc < N && !open[rr][cc]) { open[rr][cc] = true; more = true; }
+      }
+    }
+  }
+  return open;
+}
+
+/** Окон 3×3, открытых на старте тумана (ступень может передать своё — `fogSeeds`). */
+export const FOG_SEEDS = 2;
+
+/** Открытый старт тумана: окна 3×3 вокруг клеток-семян. */
+export function fogOpen(seeds: [number, number][], N: number): number[][] {
+  const open = Array.from({ length: N }, () => Array(N).fill(0));
+  for (const [r, c] of seeds) for (let dr = -1; dr <= 1; dr++) for (let dc = -1; dc <= 1; dc++) {
+    const rr = r + dr, cc = c + dc;
+    if (rr >= 0 && rr < N && cc >= 0 && cc < N) open[rr][cc] = 1;
+  }
+  return open;
+}
+
+/**
+ * Доска тумана — КОПАЕТСЯ ПОД ТУМАНОМ. Первый вариант брал готовую логическую доску и открывал
+ * окна, пока мера под туманом не дойдёт до конца; замер 07.10 (18+18 досок): 34 ушли запасным, у
+ * двух дошедших на старте открыто 65 клеток из 81 — тумана нет. Причина устройства: доска,
+ * выкопанная до предела для полного обзора, держится на подсказках по всей сетке, и из окна их не
+ * видно. Поэтому порядок обратный: сперва окна (FOG_SEEDS штук 3×3 со случайным центром не у
+ * края), потом копание с мерой `gradeFog` — клетка уходит, только если доска по-прежнему решается
+ * логикой, ВИДЯ ЛИШЬ ОТКРЫТОЕ (приёмка карточки efb63126). Решилась логикой — значит и решение
+ * одно: каждый шаг вынужден, как у `digByLogic`.
+ */
+function digFog(
+  level: number, blanksCap: number, N: number, BR: number, BC: number, deadline: number,
+  tierMax: number, digCap: number | undefined, seedsN: number,
+): { gen: GeneratedPuzzle; grade: Grade; dug: number } | null {
+  const base = generatePuzzle(0, N, BR, BC, 'none');
+  const sol = base.solution;
+  const puzzle = sol.map((row) => [...row]);
+  const ctx: GradeCtx = { N, BR, BC, variant: 'none' };
+  const seeds: [number, number][] = Array.from({ length: seedsN }, () => [1 + Math.floor(Math.random() * (N - 2)), 1 + Math.floor(Math.random() * (N - 2))]);
+  const open = fogOpen(seeds, N);
+  const cap = level <= 8 ? blanksCap : (N === 9 ? (digCap ?? MAX_BLANKS_9) : N * N);
+  let dug = 0;
+  for (let pass = 0; pass < DIG_PASSES; pass++) {
+    let removed = 0;
+    for (const p of shuffle(Array.from({ length: N * N }, (_, i) => i))) {
+      if (dug >= cap || Date.now() > deadline) break;
+      const r = Math.floor(p / N), c = p % N;
+      if (puzzle[r][c] === 0) continue;
+      const keep = puzzle[r][c];
+      puzzle[r][c] = 0;
+      const g = gradeFog(puzzle, open, ctx, tierMax);
+      if (!g.solved || g.tier > tierMax || !solvedSameBoard(g, sol)) puzzle[r][c] = keep;
+      else { dug++; removed++; }
+    }
+    if (removed === 0 || dug >= cap || Date.now() > deadline) break;
+  }
+  if (dug < Math.min(cap, blanksCap, 30)) return null;
+  return { gen: { ...base, puzzle, fog: open }, grade: gradeFog(puzzle, open, ctx, tierMax), dug };
+}
+
+/**
+ * Заходы `digFog` до конца бюджета; берётся доска в полосе ступени с самым глубоким копанием.
+ * Ни одной — обычная логическая доска без тумана, `fellBack` (туман открыт целиком).
+ */
+function generateFog(
+  level: number, blanksCap: number, N: number, BR: number, BC: number,
+  opts: { budgetMs?: number; tier?: { min: number; max: number }; digCap?: number; fogSeeds?: number },
+): { gen: GeneratedPuzzle; grade: Grade; dug: number; fellBack: boolean; budgetSpent: boolean } {
+  const band = opts.tier ?? targetTier(level);
+  const deadline = Date.now() + (opts.budgetMs ?? 2200);
+  let best: { gen: GeneratedPuzzle; grade: Grade; dug: number } | null = null;
+  const score = (x: { grade: Grade; dug: number }) => (x.grade.tier >= band.min ? 1000 : x.grade.tier * 100) + x.dug;
+  do {
+    const r = digFog(level, blanksCap, N, BR, BC, deadline, band.max, opts.digCap, opts.fogSeeds ?? FOG_SEEDS);
+    if (r && (!best || score(r) > score(best))) best = r;
+  } while (Date.now() < deadline && !(best && best.grade.tier >= band.min));
+  if (best) return { ...best, fellBack: false, budgetSpent: Date.now() >= deadline };
+  const base = generateLogical(level, blanksCap, N, BR, BC, 'none', opts);
+  return { ...base, gen: { ...base.gen, fog: Array.from({ length: N }, () => Array(N).fill(1)) }, fellBack: true };
+}
+
+/**
+ * 🔴 САМОСБОРКА — МЕРА (пункт 12, задача 6cee3610). Сначала разбиение: подсказки границ и
+ * напечатанные цифры (`solvePartition`, перенос решателя «Палисада» + свой вывод на цифрах); не
+ * выведено целиком — доска не решается. Потом цифры — мерой кривых блоков по выведенным областям.
+ * Ступень — не ниже 4 (`region_border`), длина и цена — сумма двух слоёв.
+ */
+export function gradeChaos(puzzle: Cell[][], clues: number[][], N: number, BR: number, BC: number, tierCap = 9): Grade & { regions: number[][] | null } {
+  const pt = TECHNIQUE_TIER.region_border;
+  const part = tierCap >= pt ? solvePartition(clues, puzzle, N) : { regions: null, passes: 0, byDigits: 0 };
+  if (!part.regions) return { solved: false, tier: TECHNIQUE_TIER.guess, hardest: 'guess', steps: part.passes, cost: part.passes * pt, regions: null };
+  const g = gradePuzzle(puzzle, { N, BR, BC, variant: 'jigsaw', regions: part.regions }, tierCap);
+  const steps = g.steps + part.passes, cost = g.cost + part.passes * pt;
+  if (!g.solved) return { ...g, steps, cost, regions: part.regions };
+  return { ...g, tier: Math.max(g.tier, pt), hardest: g.tier > pt ? g.hardest : 'region_border', steps, cost, regions: part.regions };
+}
+
+/**
+ * Доска самосборки: логическая доска кривых блоков (`generateLogical` 'jigsaw'), её разбиение
+ * прячется, взамен — подсказки границ. Снимаются все, без которых разбиение по-прежнему выводится
+ * (как у `palisade.c`: «strip away unnecessary clues»). Решатель «Палисада» не всесилен — при
+ * всех подсказках он выводит разбиение у 13 досок из 18 (замер 07.10), поэтому заходы повторяются,
+ * как и у Тэтхэма. Не вышло в бюджет — обычная доска, `fellBack`.
+ */
+function generateChaos(
+  level: number, blanksCap: number, N: number, BR: number, BC: number,
+  opts: { budgetMs?: number; tier?: { min: number; max: number }; digCap?: number },
+): { gen: GeneratedPuzzle; grade: Grade; dug: number; fellBack: boolean; budgetSpent: boolean } {
+  const deadline = Date.now() + (opts.budgetMs ?? 2200);
+  for (let attempt = 0; attempt < 24; attempt++) {
+    const left = deadline - Date.now();
+    if (attempt > 0 && left <= 0) break;
+    const base = generateLogical(level, blanksCap, N, BR, BC, 'jigsaw', { ...opts, budgetMs: Math.max(400, left) });
+    const regions = base.gen.regions;
+    if (!regions || base.fellBack) continue;
+    const puzzle = base.gen.puzzle;
+    const all = borderCounts(regions, N);
+    const first = solvePartition(all, puzzle, N);
+    if (!first.regions || !samePartition(first.regions, regions)) continue;
+    const clues = all.map((row) => [...row]);
+    for (const p of shuffle(Array.from({ length: N * N }, (_, i) => i))) {
+      const r = Math.floor(p / N), c = p % N, keep = clues[r][c];
+      clues[r][c] = -1;
+      const s = solvePartition(clues, puzzle, N);
+      if (!s.regions || !samePartition(s.regions, regions)) clues[r][c] = keep;
+    }
+    const { regions: _hidden, ...rest } = base.gen;
+    void _hidden;   // разбиение игроку не показывается — его выводят
+    return { gen: { ...rest, chaos: clues }, grade: gradeChaos(puzzle, clues, N, BR, BC), dug: base.dug, fellBack: false, budgetSpent: Date.now() >= deadline };
+  }
+  const plain = generateLogical(level, blanksCap, N, BR, BC, 'none', opts);
+  return { ...plain, fellBack: true };
+}
+
 export function generateLogical(
   level: number, blanksCap: number, N: number, BR: number, BC: number, variant: Variant,
-  opts: { budgetMs?: number; tier?: { min: number; max: number }; digCap?: number } = {},
+  opts: { budgetMs?: number; tier?: { min: number; max: number }; digCap?: number; fogSeeds?: number } = {},
 ): { gen: GeneratedPuzzle; grade: Grade; dug: number; fellBack: boolean; budgetSpent: boolean } {
+  if (variant === 'fog') return generateFog(level, blanksCap, N, BR, BC, opts);
+  if (variant === 'chaos') return generateChaos(level, blanksCap, N, BR, BC, opts);
   const budget = opts.budgetMs ?? 2200;
   // Лимит копания ступени (`digCap` в levelConfig); явное число — для замеров и гейтов.
   const digCap = opts.digCap ?? levelConfig(level).digCap;
