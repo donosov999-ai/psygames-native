@@ -5,6 +5,7 @@ import 'package:flutter/painting.dart' show Color;
 import 'asset_json.dart';
 import 'collection_model.dart' show hexOf;
 import 'l10n.dart';
+import 'playlist_fields.dart';
 import 'profiles.dart';
 import 'sessions.dart';
 import 'shared_state.dart';
@@ -71,7 +72,7 @@ class ProfileAccess {
     } else {
       try {
         final v = jsonDecode(raw);
-        final own = v is Map ? v['профили'] : null;
+        final own = v is Map ? v[PlaylistFields.profiles] : null;
         layer = own is Map || own is List ? own : null;
       } catch (_) {
         layer = profilesJson['factoryOverlay'];
@@ -80,8 +81,8 @@ class ProfileAccess {
     final mine = layer is Map ? layer[p.id] : null;
     final m = mine is Map ? mine : const {};
     return ProfileAccess(
-      allowed: m.containsKey('игры') ? m['игры'] : p.raw['allowed_games'],
-      closed: m.containsKey('убрать') ? m['убрать'] : p.raw['closed_games'],
+      allowed: m.containsKey(PlaylistFields.games) ? m[PlaylistFields.games] : p.raw['allowed_games'],
+      closed: m.containsKey(PlaylistFields.remove) ? m[PlaylistFields.remove] : p.raw['closed_games'],
       alwaysAllowed: {...((profilesJson['alwaysAllowed'] as List?) ?? const []).cast<String>()},
     );
   }

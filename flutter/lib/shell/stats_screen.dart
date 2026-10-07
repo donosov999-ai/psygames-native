@@ -83,7 +83,7 @@ class _StatsScreenState extends State<StatsScreen> {
         if (mounted && gen == _gen) setState(() => _in = v);
       },
       onError: (Object e) {
-        debugPrint('StatsScreen: свой расчёт не удался — модель страницы ($e)');
+        debugPrint('StatsScreen: own model failed, using the page model ($e)');
         if (mounted && gen == _gen) setState(() => _failed = true);
       },
     );
