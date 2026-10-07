@@ -9,7 +9,7 @@
  */
 
 import GradientSurface from '@/src/components/GradientSurface';
-import { textOn, onGradientText, onGradientTextMuted } from '@/src/services/onGradientText';
+import { textOn, onGradientText, onGradientTextMuted, withAlpha } from '@/src/services/onGradientText';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import Svg, { Polygon, Line, Circle, Text as SvgText, G } from 'react-native-svg';
@@ -111,6 +111,8 @@ export default function AssessmentResultScreen() {
       hero: {
         emoji: '🎯', title: t('cogProfileTitle'), subtitle: `${result.date} · ${t('domains12')}`,
         gradient: GRADIENT, color: ON_GRAD.color, soft: ON_GRAD_SOFT,
+        // Вуаль контраста `GradientSurface` (плашка и кнопка «Сохранить» — на том же градиенте).
+        veil: ON_GRAD.veil ? withAlpha(ON_GRAD.veil, ON_GRAD.veilAlpha) : null,
       },
       radar: radarGeometry(result.scores, language),
       domainsTitle: t('byDomain'),

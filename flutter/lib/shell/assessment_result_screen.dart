@@ -34,7 +34,10 @@ class AssessmentResultScreen extends StatelessWidget {
           );
         }
         final hero = _map(m['hero']);
-        final grad = [for (final c in (hero['gradient'] as List? ?? const [])) cssColor(c)];
+        // Вуаль `GradientSurface` веба ровная по всей плашке — наложить её на каждую точку градиента
+        // то же самое, что положить слоем сверху.
+        final veil = cssColor(hero['veil']);
+        final grad = [for (final c in (hero['gradient'] as List? ?? const [])) Color.alphaBlend(veil, cssColor(c))];
         final onGrad = cssColor(hero['color'], Colors.white);
         final ai = _map(m['ai']);
         final recs = _list(m['recs']);
@@ -294,15 +297,21 @@ class _Radar extends StatelessWidget {
     return Semantics(
       key: const ValueKey('assessment-radar'),
       container: true,
-      child: CustomPaint(size: Size.square(size), painter: RadarPainter(g)),
+      child: CustomPaint(
+        size: Size.square(size),
+        painter: RadarPainter(g, text: DefaultTextStyle.of(context).style),
+      ),
     );
   }
 }
 
 @visibleForTesting
 class RadarPainter extends CustomPainter {
-  RadarPainter(this.g);
+  RadarPainter(this.g, {this.text = const TextStyle()});
   final Map<String, Object?> g;
+
+  /// Шрифт экрана: у рисовальщика нет DefaultTextStyle, без него подписи шли бы шрифтом по умолчанию.
+  final TextStyle text;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -359,7 +368,7 @@ class RadarPainter extends CustomPainter {
       final tp = TextPainter(
         text: TextSpan(
           text: _s(l['text']),
-          style: const TextStyle(fontSize: 9, color: Color(0xFF94A3B8)),
+          style: text.copyWith(fontSize: 9, color: const Color(0xFF94A3B8)),
         ),
         textDirection: TextDirection.ltr,
       )..layout();
