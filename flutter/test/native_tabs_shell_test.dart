@@ -526,7 +526,7 @@ void main() {
     await route(t, '/');
     await t.pump(const Duration(seconds: 7));
     await t.pump();
-    expect(find.byType(WebViewWidget), findsOneWidget, reason: 'страница видна (не за сценой)');
+    expect(find.byKey(const ValueKey('native-cover')), findsNothing, reason: 'страница видна: нативный слой снят');
     expect(find.byKey(const ValueKey('home-loading')), findsNothing);
     page().emit(SharedState.channel, {'op': 'screenUi', 'route': '/', 'model': homeModel()});
     await settle(t, () => find.byKey(const ValueKey('home-header')).evaluate().isNotEmpty);
@@ -583,7 +583,7 @@ void main() {
     await route(t, '/statistics');
     await t.pump(const Duration(seconds: 7));
     await t.pump();
-    expect(find.byType(WebViewWidget), findsOneWidget, reason: 'страница видна (не за сценой)');
+    expect(find.byKey(const ValueKey('native-cover')), findsNothing, reason: 'страница видна: нативный слой снят');
     page().emit(SharedState.channel, {'op': 'screenUi', 'route': StatsScreen.route, 'model': statsModel()});
     await settle(t, () => find.byKey(const ValueKey('stats-screen')).evaluate().isNotEmpty);
     expect(find.byKey(const ValueKey('stats-hero')), findsOneWidget);
@@ -692,12 +692,72 @@ void main() {
     }
   });
 
+  /// Скрипт «нарисовала» последнего ухода на страницу и его номер.
+  (String, int) paintedAsk() {
+    final script = page().js.lastWhere((s) => s.contains('"painted"'));
+    return (script, int.parse(RegExp(r'var g=(\d+)').firstMatch(script)!.group(1)!));
+  }
+
+  Future<void> nativeHome(WidgetTester t) async {
+    await route(t, '/');
+    page().emit(SharedState.channel, {'op': 'screenUi', 'route': '/', 'model': homeModel()});
+    await settle(t, () => find.byKey(const ValueKey('home-header')).evaluate().isNotEmpty);
+  }
+
+  testWidgets('🔴 с нативной вкладки на страницу — без прыжка: прежний экран держится до «painted» страницы', (t) async {
+    // Замер 07.10 на эмуляторе: Главная → «Питомец» показывала 2 кадра старого кадра страницы и 3 кадра
+    // веб-Главной, прежде чем появлялся «Питомец» (Денис: «то веб-вью, то флаттер — перескакивает»).
+    await mount(t);
+    await nativeHome(t);
+    expect(t.element(find.byType(WebViewWidget)).mounted, isTrue, reason: 'страница под нативным слоем на сцене — рисуется');
+    page().js.clear();
+    await t.tap(find.byKey(const ValueKey('native-tab-/pet')));
+    await t.pump();
+    expect(find.byKey(const ValueKey('native-cover')), findsOneWidget, reason: 'страница ещё рисует новый адрес');
+    expect(find.byKey(const ValueKey('home-header')), findsOneWidget);
+    // Страница сообщила новый адрес (её `router.replace`) — вкладка подсвечена, а слой всё ещё держится:
+    // адрес сменился раньше, чем веб нарисовал экран.
+    await route(t, '/pet');
+    expect(active(t), '/pet');
+    expect(find.byKey(const ValueKey('native-cover')), findsOneWidget, reason: 'адрес — ещё не кадр');
+    final (script, gen) = paintedAsk();
+    expect(script, contains('p="/pet"'));
+    page().emit(SharedState.channel, {'op': 'painted', 'gen': gen - 1});
+    await t.pump();
+    expect(find.byKey(const ValueKey('native-cover')), findsOneWidget, reason: 'ответ на прошлый уход не снимает');
+    page().emit(SharedState.channel, {'op': 'painted', 'gen': gen});
+    // Снят ответом, а не запасным сроком 0,7 с: ждём заметно меньше.
+    await t.pump(const Duration(milliseconds: 50));
+    await t.pump(const Duration(milliseconds: 50));
+    expect(find.byKey(const ValueKey('native-cover')), findsNothing, reason: 'страница нарисовала — слой снят');
+    // Назад на нативную вкладку — без ожидания.
+    await t.tap(find.byKey(const ValueKey('native-tab-/')));
+    await t.pump();
+    expect(find.byKey(const ValueKey('home-header')), findsOneWidget);
+  });
+
+  testWidgets('🔴 страница ушла сама (кнопка Главной → веб-экран) — тоже ждём; молчит — снимаем через 0,7 с', (t) async {
+    await mount(t);
+    await nativeHome(t);
+    page().js.clear();
+    page().emit(SharedState.channel, {'op': 'route', 'url': '${server.origin}/shop'});
+    await t.pump(const Duration(milliseconds: 50));
+    await t.pump(const Duration(milliseconds: 50));
+    expect(find.byKey(const ValueKey('native-cover')), findsOneWidget);
+    expect(paintedAsk().$1, contains('p="/shop"'));
+    await t.pump(const Duration(milliseconds: 500));
+    expect(find.byKey(const ValueKey('native-cover')), findsOneWidget, reason: 'до 0,7 с держим');
+    await t.pump(const Duration(milliseconds: 300));
+    await t.pump();
+    expect(find.byKey(const ValueKey('native-cover')), findsNothing, reason: 'страница молчит — прежний экран не держим вечно');
+  });
+
   testWidgets('итог оценки без модели 6 с — сама страница', (t) async {
     await mount(t);
     await route(t, '/assessment-result');
     await t.pump(const Duration(seconds: 7));
     await t.pump();
-    expect(find.byType(WebViewWidget), findsOneWidget, reason: 'страница видна (не за сценой)');
+    expect(find.byKey(const ValueKey('native-cover')), findsNothing, reason: 'страница видна: нативный слой снят');
   });
 }
 
