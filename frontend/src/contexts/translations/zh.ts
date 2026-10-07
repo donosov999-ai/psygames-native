@@ -2923,6 +2923,7 @@ const t: Record<string, string> = {
   "puzzleSecondNoTrack": "无轨",
   "puzzleSecondNoBridge": "无桥",
   "puzzleSecondToPrev": "连到上一格",
+  "puzzleSecondWhite": "白色",
   "puzzleNextStep": "下一步",
   "teachLogicClueFull": "数字已经够了——这条提示的其余格子不再分到任何东西。",
   "teachLogicClueNeedsAll": "提示需要的数量正好等于剩下的空格数——所以这些格子全都要占上。",

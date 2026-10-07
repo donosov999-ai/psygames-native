@@ -2918,6 +2918,7 @@ const t: Record<string, string> = {
   "puzzleSecondNoTrack": "Pas de rail",
   "puzzleSecondNoBridge": "Pas de pont",
   "puzzleSecondToPrev": "Vers le précédent",
+  "puzzleSecondWhite": "Blanche",
   "puzzleNextStep": "Étape suivante",
   "teachLogicClueFull": "Le nombre est déjà atteint : les autres cases de cet indice ne reçoivent rien.",
   "teachLogicClueNeedsAll": "L'indice demande exactement autant que de cases libres restantes : elles sont donc toutes prises.",

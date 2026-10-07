@@ -2919,6 +2919,7 @@ const t: Record<string, string> = {
   "puzzleSecondNoTrack": "لا سكة",
   "puzzleSecondNoBridge": "لا جسر",
   "puzzleSecondToPrev": "إلى السابق",
+  "puzzleSecondWhite": "أبيض",
   "puzzleNextStep": "الخطوة التالية",
   "teachLogicClueFull": "الرقم اكتمل بالفعل — بقية خانات هذا التلميح لا تأخذ شيئًا.",
   "teachLogicClueNeedsAll": "يحتاج التلميح بالضبط إلى عدد الخانات الفارغة المتبقية — إذن تُشغَل كلها.",

@@ -2923,6 +2923,7 @@ const t: Record<string, string> = {
   "puzzleSecondNoTrack": "Sem via",
   "puzzleSecondNoBridge": "Sem ponte",
   "puzzleSecondToPrev": "Ao anterior",
+  "puzzleSecondWhite": "Branca",
   "puzzleNextStep": "Próximo passo",
   "teachLogicClueFull": "O número já foi atingido — as outras casas desta pista não recebem nada.",
   "teachLogicClueNeedsAll": "A pista precisa de exatamente tantas quantas casas livres restam — então todas são ocupadas.",

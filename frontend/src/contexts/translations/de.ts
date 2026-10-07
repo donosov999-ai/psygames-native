@@ -2923,6 +2923,7 @@ const t: Record<string, string> = {
   "puzzleSecondNoTrack": "Kein Gleis",
   "puzzleSecondNoBridge": "Keine Brücke",
   "puzzleSecondToPrev": "Zum Vorgänger",
+  "puzzleSecondWhite": "Weiß",
   "puzzleNextStep": "Nächster Schritt",
   "teachLogicClueFull": "Die Zahl ist schon erreicht – die übrigen Felder dieses Hinweises bekommen nichts.",
   "teachLogicClueNeedsAll": "Der Hinweis braucht genau so viele, wie freie Felder übrig sind – also sind alle belegt.",

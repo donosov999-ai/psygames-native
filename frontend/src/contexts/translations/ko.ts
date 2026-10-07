@@ -2918,6 +2918,7 @@ const t: Record<string, string> = {
   "puzzleSecondNoTrack": "선로 없음",
   "puzzleSecondNoBridge": "다리 없음",
   "puzzleSecondToPrev": "이전 칸으로",
+  "puzzleSecondWhite": "흰색",
   "puzzleNextStep": "다음 단계",
   "teachLogicClueFull": "숫자가 이미 채워졌습니다. 이 힌트의 나머지 칸에는 아무것도 들어가지 않습니다.",
   "teachLogicClueNeedsAll": "힌트가 필요로 하는 수가 남은 빈칸 수와 정확히 같습니다. 그러니 모두 채워집니다.",

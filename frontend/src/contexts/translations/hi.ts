@@ -2926,6 +2926,7 @@ const t: Record<string, string> = {
   "puzzleSecondNoTrack": "कोई पटरी नहीं",
   "puzzleSecondNoBridge": "कोई पुल नहीं",
   "puzzleSecondToPrev": "पिछले से जोड़ें",
+  "puzzleSecondWhite": "सफ़ेद",
   "puzzleNextStep": "अगला चरण",
   "teachLogicClueFull": "संख्या पहले ही पूरी हो चुकी है — इस संकेत के बाकी खानों को कुछ नहीं मिलेगा।",
   "teachLogicClueNeedsAll": "संकेत को ठीक उतने ही चाहिए जितने खाली खाने बचे हैं — इसलिए सभी भरे जाएँगे।",
