@@ -350,6 +350,8 @@
 "fractalChildN":"Grid",
 "fractalDesc":"Behind every cell of the top grid hides a whole sudoku",
 "fractalOpened":"Opened",
+"fractalPortalGo":"Go to grid",
+"fractalPortalHint":"A ringed cell is one and the same cell in two grids at once. Neither grid names its digit alone: narrow the candidates here, narrow them there, and the answer is what both allow.",
 "fractalRedDigit":"A red digit is a mistake: the same one already stands in this row, column or box. It stays on the board so you can see what to fix.",
 "fractalSolutionAskAll":"Show the answer to the whole sudoku? The game ends as a review: the level won't count, but it won't drop either.",
 "fractalSolutionAskChild":"Show the answer to this lower grid? The level won't count for this game, but it won't drop either.",
