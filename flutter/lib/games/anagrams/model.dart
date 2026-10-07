@@ -87,8 +87,19 @@ class WordBank {
   /// Язык без своего набора получает английский — так же, как в вебе.
   static String resolve(String locale) => locales.contains(locale) ? locale : 'en';
 
+  static final _cache = <String, WordBank>{};
+
   static Future<WordBank> load(String locale, {AssetBundle? bundle}) async {
     final code = resolve(locale);
+    // Готовый банк — ОДИН на язык, как у `RingPacks`: читать и разбирать 57–791 КБ на каждый
+    // заход незачем. 📍 07.10.2026: без кэша `crossword_test` звал загрузку на каждую сетку
+    // эталона (40+ раз), и в CI (Linux) процесс flutter_tester падал с segfault — 3 прогона из
+    // 3, только с этой правкой; локально (macOS) зелёно. Механизм не установлен; кэш
+    // возвращает прежнее «один раз на язык», которое давал кэш строки у `loadString`.
+    if (bundle == null) {
+      final have = _cache[code];
+      if (have != null) return have;
+    }
     // Байты, а не loadString: тот кэширует БУДУЩЕЕ, и вторая проба в файле ждёт будущее из
     // зоны первой вечно (а файлы от 50 КБ он ещё и разбирает в изоляте). Как `L.load`.
     final data = await (bundle ?? rootBundle).load('assets/words/$code.json');
@@ -100,7 +111,9 @@ class WordBank {
           words: [for (final w in e['words'] as List) w as String],
         ),
     ];
-    return WordBank._(code, packs);
+    final bank = WordBank._(code, packs);
+    if (bundle == null) _cache[code] = bank;
+    return bank;
   }
 
   int get packCount => _packs.length;
