@@ -15,11 +15,13 @@ import 'package:webview_flutter_platform_interface/webview_flutter_platform_inte
 ///     создаётся с выдачей (`MicPermission.pageController`).
 class _Req extends PlatformWebViewPermissionRequest {
   _Req(Set<WebViewPermissionResourceType> types) : super(types: types);
-  String? out;
+  // Родитель неизменяемый (@immutable) — ответ копим в списке, а не в поле.
+  final List<String> answers = [];
+  String? get out => answers.isEmpty ? null : answers.last;
   @override
-  Future<void> grant() async => out = 'grant';
+  Future<void> grant() async => answers.add('grant');
   @override
-  Future<void> deny() async => out = 'deny';
+  Future<void> deny() async => answers.add('deny');
 }
 
 void main() {
