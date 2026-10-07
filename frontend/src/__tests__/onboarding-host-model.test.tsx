@@ -120,7 +120,7 @@ describe('Знакомство под оболочкой', () => {
     const path = require('path');
     const file = path.resolve(__dirname, '../../../flutter/test/fixtures/onboarding_model.json');
     // Картинка в jest — путь файла относительно папки проверки; приводим к адресу сборки без хеша.
-    const now = `${JSON.stringify(after, null, 1)}\n`.replace(/"(?:\.\.\/)+[^"]*?\/frontend\/(assets\/[^"]+)"/g, '"/assets/$1"');
+    const now = `${JSON.stringify(after, null, 1)}\n`.replace(/"(?:\.\.\/)+(?:[^"]*?\/frontend\/)?(assets\/[^"]+)"/g, '"/assets/$1"');
     if (process.env.WRITE === '1') fs.writeFileSync(file, now, 'utf8');
     expect({ fresh: fs.existsSync(file) && fs.readFileSync(file, 'utf8') === now, regenerate: 'cd frontend && WRITE=1 npx jest src/__tests__/onboarding-host-model.test.tsx' })
       .toEqual({ fresh: true, regenerate: expect.any(String) });
