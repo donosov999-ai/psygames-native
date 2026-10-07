@@ -29,6 +29,7 @@ import 'lesson.dart';
 import 'attempt.dart';
 import 'highlight.dart';
 import 'mode_board.dart';
+import 'reject_why.dart';
 import 'modes.dart';
 import 'resume.dart';
 import 'roads.dart';
@@ -187,6 +188,10 @@ class _SudokuScreenState extends State<SudokuScreen> {
 
   ({int r, int c})? _selected;
   int _errors = 0;
+
+  /// Почему последняя цифра не подошла — ключ словаря (`reject_why.dart`); живёт до следующей
+  /// верной цифры или новой раздачи, как строка веба (`rejectWhy`).
+  String? _whyKey;
   int _hintsUsed = 0;
   bool _answersRevealed = false;
   late final _revealed = SudokuRevealedBoards(widget.state);
@@ -481,6 +486,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
       _paint = null;
       _selected = null;
       _errors = r.errors;
+      _whyKey = null;
       _hintsUsed = r.hintUses;
       _answersRevealed = r.answersRevealed || r.hintUses > 0 || _revealed.contains(_answerId);
       _backtracks = r.backtracks;
@@ -526,6 +532,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
       _resetNotes(board.n);
       _selected = null;
       _errors = 0;
+      _whyKey = null;
       _startedAt = gameNow();
       _hintsUsed = 0;
       _backtracks = 0;
@@ -583,6 +590,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
         _resetNotes(board?.n ?? 0);
         _selected = null;
         _errors = 0;
+        _whyKey = null;
         _startedAt = gameNow();
         _hintsUsed = 0;
         _backtracks = 0;
@@ -616,6 +624,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
       _resetNotes(board?.n ?? 0);
       _selected = null;
       _errors = 0;
+      _whyKey = null;
       _startedAt = gameNow();
       _hintsUsed = 0;
       _backtracks = 0;
@@ -715,6 +724,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
       _resetNotes(board?.n ?? 0);
       _selected = null;
       _errors = 0;
+      _whyKey = null;
       _startedAt = gameNow();
       _hintsUsed = 0;
       _backtracks = 0;
@@ -892,7 +902,9 @@ class _SudokuScreenState extends State<SudokuScreen> {
       if (was != 0 && was != value) _backtracks += 1;
       _history.add(_Step(_StepKind.digit, sel.r, sel.c, was, value));
       _grid[sel.r][sel.c] = value;
+      if (value != 0 && solution[sel.r][sel.c] == value) _whyKey = null;
       if (value != 0 && solution[sel.r][sel.c] != value) {
+        _whyKey = _rejectWhy(sel.r, sel.c, value);
         _errors += 1;
         if (_errors >= errorLimit) {
           _lost = true;
@@ -913,6 +925,18 @@ class _SudokuScreenState extends State<SudokuScreen> {
   }
 
   void _erase() => _onKey(0);
+
+  /// Причина отказа на той доске, что в игре: режим (небоскрёбы, неравенства) или лестница.
+  String? _rejectWhy(int r, int c, int v) {
+    final side = _sideBoard, mode = widget.mode;
+    if (side != null && mode != null) {
+      return rejectionKey(_grid, r, c, v,
+          n: side.n, br: side.br, bc: side.bc, variant: sideModeName(mode), geometry: side.geometry);
+    }
+    final b = _board;
+    if (b == null) return null;
+    return rejectionKey(_grid, r, c, v, n: b.n, br: b.br, bc: b.bc, variant: b.variant, geometry: b.geometry);
+  }
 
   void _undo() {
     if (_history.isEmpty || _won || _lost) return;
@@ -1487,6 +1511,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
       toolbar: (board == null && _sideBoard == null)
           ? null
           : _Toolbar(
+              why: _whyKey == null ? null : L.t(_whyKey!),
               n: _n,
               won: _won,
               lost: _lost,
@@ -1925,6 +1950,7 @@ class _Cell extends StatelessWidget {
 /// сделана в веб-версии 23.09 (отзывы Дениса «почему цифры не в два ряда»).
 class _Toolbar extends StatelessWidget {
   const _Toolbar({
+    this.why,
     required this.n,
     required this.won,
     required this.lost,
@@ -1972,6 +1998,9 @@ class _Toolbar extends StatelessWidget {
 
   /// Строка над кнопкой после провала — сколько ошибок позволяла ступень.
   final String? lostNote;
+
+  /// Почему последняя цифра не подошла (строка над клавишами); null — строки нет.
+  final String? why;
 
   @override
   Widget build(BuildContext context) {
@@ -2022,7 +2051,21 @@ class _Toolbar extends StatelessWidget {
               ),
       );
     }
-    return SudokuKeys(
+    final keys = SudokuKeys(
         n: n, onDigit: onDigit, onErase: onErase, paint: paint, onPaint: onPaint, label: label, icon: icon);
+    final w = why;
+    if (w == null) return keys;
+    return Column(mainAxisSize: MainAxisSize.min, children: [
+      Padding(
+        padding: const EdgeInsets.fromLTRB(12, 4, 12, 2),
+        child: Text(
+          w,
+          key: const Key('sudoku-why'),
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.error),
+        ),
+      ),
+      keys,
+    ]);
   }
 }

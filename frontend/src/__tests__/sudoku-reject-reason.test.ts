@@ -22,9 +22,10 @@
  * весь пазл, для неё не существовало.
  */
 import {
-  rejectionReason, isValid, levelConfig, variantRule,
+  rejectionReason, isValid, levelConfig, variantRule, cageMapFrom,
   type Cell, type Variant,
 } from '@/src/services/sudoku-core';
+import { translateFor } from '@/src/contexts/LanguageContext';
 import { generateLogical } from '@/src/services/sudoku-grade';
 
 declare const __dirname: string;
@@ -165,5 +166,50 @@ describe('🔴 причина доезжает до экрана', () => {
 
   it('верная цифра причину гасит — иначе она висит до конца партии', () => {
     expect(SCREEN).toMatch(/solution\[r\]\[c\] === n\) setRejectWhy\(''\)/);
+  });
+});
+
+/**
+ * 🔴 ТРИ ДЫРЫ, НАЙДЕННЫЕ 07.10.2026 СВЕРКОЙ С ЭТАЛОНОМ ПРАВИЛ (flutter/test/fixtures/
+ * sudoku-rules-reference.json): у неверной цифры, которую видимые правила РАЗРЕШАЮТ или
+ * запрещают доказуемо, объяснение было не то.
+ */
+describe('🔴 причина отказа: кривые блоки, сэндвич, киллер (07.10.2026)', () => {
+  const empty = (): Cell[][] => Array.from({ length: 9 }, () => Array(9).fill(0) as Cell[]);
+  const notLocal = translateFor('ru', 'sudokuWhyNotLocal');
+
+  // Области-«полосы»: (r + c) % 9 — по клетке в каждой строке и столбце, НЕ квадраты 3×3.
+  const stripes = Array.from({ length: 9 }, (_, r) => Array.from({ length: 9 }, (_, c) => (r + c) % 9));
+
+  it('кривые блоки: конфликт в ОБЛАСТИ — молчим (он виден на доске)', () => {
+    const g = empty();
+    g[0][1] = 9;                                                     // область (0+1)%9 = 1
+    expect(rejectionReason(g, 1, 0, 9, 9, 3, 3, 'jigsaw', 'ru', { regions: stripes })).toBe('');
+  });
+
+  it('кривые блоки: «конфликт» в стандартном квадрате 3×3, которого на доске нет, — НЕ молчим', () => {
+    const g = empty();
+    g[0][0] = 9;                                                     // тот же квадрат 3×3, другая область
+    const reason = rejectionReason(g, 1, 1, 9, 9, 3, 3, 'jigsaw', 'ru', { regions: stripes });
+    expect(reason).not.toBe('');
+    expect(reason).toBe(notLocal);
+  });
+
+  it('сэндвич: сумма между 1 и 9 нарушена — называем правило сэндвича', () => {
+    const g = empty();
+    g[0][0] = 1; g[0][1] = 2; g[0][2] = 3; g[0][4] = 9;              // между ними 2 + 3 + ? = 9 → ? = 4
+    const sandwich = { rows: [9, -1, -1, -1, -1, -1, -1, -1, -1], cols: Array(9).fill(-1) };
+    expect(rejectionReason(g, 0, 3, 5, 9, 3, 3, 'sandwich', 'ru', { sandwich })).toBe(variantRule('sandwich', 'ru'));
+    expect(rejectionReason(g, 0, 3, 5, 9, 3, 3, 'sandparity', 'ru', { sandwich })).toBe(variantRule('sandparity', 'ru'));
+  });
+
+  it('киллер (режим без варианта): сумма группы нарушена — называем правило киллера', () => {
+    const g = empty();
+    const cageOf = Array.from({ length: 9 }, () => Array(9).fill(-1));
+    cageOf[0][0] = 0; cageOf[0][1] = 0;                              // группа из двух клеток, сумма 3
+    g[0][0] = 1;
+    const cages = cageMapFrom(cageOf, [3], [0], 9);
+    expect(rejectionReason(g, 0, 1, 4, 9, 3, 3, 'none', 'ru', { cages })).toBe(translateFor('ru', 'sudokuKillerRule'));
+    expect(rejectionReason(g, 0, 1, 4, 9, 3, 3, 'none', 'ru')).toBe(notLocal);   // без групп — классика, винить некого
   });
 });

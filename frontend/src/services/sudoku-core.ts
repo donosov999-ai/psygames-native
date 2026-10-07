@@ -1712,6 +1712,8 @@ export interface RejectionContext {
   cages?: CageMap;
   parity?: number[][];
   kropki?: { h: number[][]; v: number[][] };
+  /** Суммы сэндвича (07.10.2026: раньше в причину не передавались вовсе — см. шаг 2). */
+  sandwich?: { rows: number[]; cols: number[] };
   unequal?: UnequalMap;
   towers?: TowersMap;
   whisper?: ThermoPN;
@@ -1730,49 +1732,39 @@ export function rejectionReason(
   const test = grid.map((row) => [...row]);
   test[r][c] = 0;
 
-  // 1. Базовое правило нарушено — конфликт человек видит сам, доска его подсвечивает.
-  if (!isValid(test, r, c, n, N, BR, BC, 'none')) return '';
+  /**
+   * 1. Базовое правило нарушено — конфликт человек видит сам, доска его подсвечивает.
+   *
+   * 🔴 07.10.2026 — У «КРИВЫХ БЛОКОВ» БАЗА — ИХ ОБЛАСТИ, А НЕ КВАДРАТЫ 3×3. Первая редакция
+   * сверяла базу по стандартным квадратам и у jigsaw молчала на ФАНТОМНОМ конфликте —
+   * в квадрате, которого на доске нет (замер эталона правил: 12 из 20 неверных цифр, которые
+   * видимые правила разрешают, остались без слова). Теперь база jigsaw — строка, столбец и
+   * область; конфликт в области виден на доске так же, как в квадрате у классики.
+   */
+  if (!isValid(test, r, c, n, N, BR, BC, variant === 'jigsaw' ? 'jigsaw' : 'none', ctx.regions)) return '';
 
-  // 2. Правило варианта нарушено ДОКАЗУЕМО — вот теперь называем именно его.
-  if (variant !== 'none') {
-    if (!isValid(test, r, c, n, N, BR, BC, variant, ctx.regions, ctx.thermo, ctx.arrow, ctx.cages, ctx.unequal, ctx.towers)) {
-      return variantRule(variant, lang);
-    }
-    // Метки движок не проверяет — проверяем здесь, руками и точно.
-    if (variant === 'evenodd' && ctx.parity) {
-      const mark = ctx.parity[r]?.[c] ?? 0;                       // 1 = чёт, 2 = нечет, 0 = метки нет
-      if ((mark === 1 && n % 2 !== 0) || (mark === 2 && n % 2 === 0)) return variantRule(variant, lang);
-    }
-    if (variant === 'whisper' && ctx.whisper) {
-      const pn = ctx.whisper[r]?.[c];
-      for (const nb of pn ? [pn.prev, pn.next] : []) {
-        const other = nb ? test[nb[0]]?.[nb[1]] ?? 0 : 0;
-        if (other && Math.abs(n - other) < WHISPER_GAP) return variantRule(variant, lang);
-      }
-    }
-    if (variant === 'renban' && ctx.renban && !renbanOk(test, r, c, n, ctx.renban)) return variantRule(variant, lang);
-    if (variant === 'regionsum' && ctx.regionsum && !regionSumOk(test, r, c, n, ctx.regionsum, N, BR, BC)) return variantRule(variant, lang);
-    if (variant === 'palindrome' && ctx.palindrome && !palindromeOk(test, r, c, n, ctx.palindrome)) return variantRule(variant, lang);
-    if (variant === 'between' && ctx.between && !betweenOk(test, r, c, n, ctx.between)) return variantRule(variant, lang);
-    if (variant === 'lockout' && ctx.lockout && !lockoutOk(test, r, c, n, ctx.lockout)) return variantRule(variant, lang);
-    if (variant === 'xv' && ctx.xv && !xvOk(test, r, c, n, ctx.xv, N)) return variantRule(variant, lang);
-    if (variant === 'kropki' && ctx.kropki) {
-      const okDot = (dot: number, a: number, b: number): boolean => {
-        if (dot === 1) return Math.abs(a - b) === 1;              // белая: разница в единицу
-        if (dot === 2) return a === b * 2 || b === a * 2;         // чёрная: вдвое
-        return true;                                              // точки нет — ограничения нет
-      };
-      const near: [number, number, number][] = [
-        [r, c - 1, ctx.kropki.h[r]?.[c - 1] ?? 0],
-        [r, c + 1, ctx.kropki.h[r]?.[c] ?? 0],
-        [r - 1, c, ctx.kropki.v[r - 1]?.[c] ?? 0],
-        [r + 1, c, ctx.kropki.v[r]?.[c] ?? 0],
-      ];
-      for (const [nr, nc, dot] of near) {
-        const other = test[nr]?.[nc] ?? 0;
-        if (dot && other && !okDot(dot, n, other)) return variantRule(variant, lang);
-      }
-    }
+  /**
+   * 2. Правило варианта нарушено ДОКАЗУЕМО — вот теперь называем именно его.
+   *
+   * Правило — это движок (`isValid` с геометрией варианта) И показанные подсказки
+   * (`overlayOk`: метки чётности, точки Кропки, суммы сэндвича, линии шёпота, ренбана, равных
+   * сумм, палиндрома, «между концами», замка, знаки XV) — ровно та пара, что решает «можно ли
+   * поставить» в нативе (`isValid` в rules.dart держит обе) и в эталоне правил.
+   * 🔴 07.10.2026: до этого подсказки проверялись по одной, и двух не было вовсе — суммы
+   * сэндвича (ни в sandwich, ни в sandparity) и метки чётности в sandparity: цифра, которую
+   * отвергла сумма, получала «конфликт не местный».
+   * 🔴 07.10.2026: КИЛЛЕР — режим без варианта (variant 'none') с клетками-суммами. Шаг
+   * пропускался целиком, и нарушение суммы группы называлось «не местным». Теперь клетки-суммы
+   * сами включают шаг, а правило называется киллерское (`sudokuKillerRule`).
+   */
+  if (variant !== 'none' || ctx.cages) {
+    const ruleOk = isValid(test, r, c, n, N, BR, BC, variant, ctx.regions, ctx.thermo, ctx.arrow, ctx.cages, ctx.unequal, ctx.towers)
+      && overlayOk(test, r, c, n, N, {
+        parity: ctx.parity, kropki: ctx.kropki, sandwich: ctx.sandwich, unequal: ctx.unequal, towers: ctx.towers,
+        whisper: ctx.whisper, renban: ctx.renban, regionsum: ctx.regionsum, palindrome: ctx.palindrome,
+        between: ctx.between, lockout: ctx.lockout, xv: ctx.xv,
+      });
+    if (!ruleOk) return variant !== 'none' ? variantRule(variant, lang) : translateFor(lang, 'sudokuKillerRule');
   }
 
   /**

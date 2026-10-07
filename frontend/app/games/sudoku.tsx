@@ -86,7 +86,7 @@ import {
   Cell, Variant, ThermoPN, ArrowMap, SudokuDifficultyTier, UnequalMap, TowersMap,
   dimsForSize, blanksFor, killerBlanksForStep, killerStepCount, generateCages,
   sudokuDifficultyTier, variantLabel, variantRule, shuffle, generatePuzzle, HYPER_BOXES,
-  rejectionReason,
+  rejectionReason, cageMapFrom,
 } from '@/src/services/sudoku-core';
 import { gradePuzzle, logicalBuilder, selectionLookForLevel } from '@/src/services/sudoku-grade';
 // Небоскрёбы и неравенства — режимы со своими мини-лестницами (решение 70b58bbe:
@@ -1314,6 +1314,11 @@ export default function SudokuGame() {
         kropki: kropki ?? undefined,
         unequal: unequalMap ?? undefined,
         towers: towersMap ?? undefined,
+        // 07.10.2026: суммы сэндвича и клетки-суммы (киллер, термо+суммы) в причину не
+        // передавались — нарушение суммы называлось «конфликт не местный».
+        sandwich: sandwich ?? undefined,
+        cages: cages && (mode === 'killer' || variant === 'thermocage')
+          ? cageMapFrom(cages, cageSums, cageAnchors, N) : undefined,
       }));
       const ne = errors + 1;
       setErrors(ne);
