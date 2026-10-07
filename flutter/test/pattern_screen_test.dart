@@ -49,7 +49,7 @@ void main() {
     for (var i = 1; i <= trialsPerRound; i += 1) {
       expect(find.text('$i/$trialsPerRound'), findsOneWidget, reason: 'проба $i');
       final seq = makeSequence(1, rng);
-      makeOptions(seq.answer, rng);   // тот же бросок, что у экрана
+      makeOptions(seq.answer, rng, tail: tailLure(seq.items));   // тот же бросок, что у экрана
       expect(rowOnScreen(tester), seq.items.map(showNumber).toList(),
           reason: 'на экране тот ряд, что раздал генератор');
       expect(find.byKey(const Key('клетка-вопрос')), findsOneWidget);
@@ -67,7 +67,7 @@ void main() {
       await open(tester, level: level, seed: 'кнопки$level');
       for (var i = 0; i < 3; i += 1) {
         final seq = makeSequence(level, rng);
-        final opts = makeOptions(seq.answer, rng);
+        final opts = makeOptions(seq.answer, rng, tail: tailLure(seq.items));
         for (final o in opts) {
           expect(find.byKey(Key('ответ$o')), findsOneWidget, reason: 'L$level кнопка $o на экране');
         }
@@ -83,7 +83,7 @@ void main() {
     final rng = createRng('подсказка');
     await open(tester, seed: 'подсказка');
     final seq = makeSequence(1, rng);
-    makeOptions(seq.answer, rng);
+    makeOptions(seq.answer, rng, tail: tailLure(seq.items));
 
     expect(find.byKey(const Key('подсказка')), findsNothing);
     await tester.tap(find.bySemanticsLabel('Подсказка'));
@@ -103,7 +103,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 800));
       if (i < trialsPerRound) {
         s = makeSequence(1, rng);
-        makeOptions(s.answer, rng);
+        makeOptions(s.answer, rng, tail: tailLure(s.items));   // та же тень экрана (на L1 хвост = ответ)
       }
     }
     expect(find.textContaining('звёзд 2'), findsOneWidget, reason: 'подсказка опускает потолок до двух');
@@ -114,7 +114,7 @@ void main() {
     await open(tester, seed: 'порог');
     for (var i = 1; i <= trialsPerRound; i += 1) {
       final seq = makeSequence(1, rng);
-      final opts = makeOptions(seq.answer, rng);
+      final opts = makeOptions(seq.answer, rng, tail: tailLure(seq.items));
       final wrong = opts.firstWhere((o) => o != seq.answer);
       await tester.tap(find.byKey(Key('ответ${i <= 4 ? wrong : seq.answer}')));
       await tester.pump();

@@ -111,6 +111,22 @@ Map<int, List<ZhSyllable>> zhBankFromJson(Map<dynamic, dynamic> j) => {
         int.parse('${e.key}'): [for (final s in (e.value as List)) ZhSyllable('${(s as Map)['zh']}', '${s['pinyin']}')],
     };
 
+/// 🔴 БАНК, КОТОРЫЙ ПРОЗВУЧИТ. Отчёт «Полиглота» (Android 2.53.8): «нажимаешь — и ни
+/// фига, не проговаривает; на айфоне нормально». Замер 01.10.2026: записи есть у 99 слогов
+/// банка из 422 (23 %), остальные «Тоны» отдают системному голосу. На iPhone китайский голос
+/// встроен, на Android его часто нет — и три слога из четырёх молчали, а плашка «нет голоса»
+/// не показывалась: язык считался озвученным, раз у него есть хоть одна запись.
+/// Без системного китайского голоса партия строится только из слогов с записью (22–28 на
+/// тон); голос есть — банк целиком, как в вебе.
+Map<int, List<ZhSyllable>> ctPlayableBank(
+  Map<int, List<ZhSyllable>> bank, {
+  required bool systemVoice,
+  required bool Function(String zh) hasRecording,
+}) {
+  if (systemVoice) return bank;
+  return {for (final e in bank.entries) e.key: [for (final s in e.value) if (hasRecording(s.zh)) s]};
+}
+
 class CtTrial {
   const CtTrial(this.syll, this.tone, this.options, this.correctIdx);
   final ZhSyllable syll;

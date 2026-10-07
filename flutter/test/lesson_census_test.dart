@@ -155,6 +155,13 @@ void main() {
           for (var i = 0; i < 20; i++) {
             await tester.pump(const Duration(milliseconds: 30));
             await Future<void>.delayed(const Duration(milliseconds: 10));
+            if (e.key == '/games/sudoku-fractal-deep' &&
+                find.byKey(const Key('deep-start')).evaluate().isNotEmpty) {
+              // New first-entry settings require the user's explicit Start.
+              await tester.pumpAndSettle();
+              await tester.tap(find.byKey(const Key('deep-start')));
+              await tester.pumpAndSettle();
+            }
             if (find.byKey(const Key('game-lesson')).evaluate().isNotEmpty) break;
           }
         });

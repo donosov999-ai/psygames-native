@@ -88,7 +88,8 @@ describe('picture-pairs: поле не заходит под кнопку отз
         await settle(); await tick(50);
         const правило = r.root.findAll((n: any) => n.props?.lr?.open === true)[0];
         if (правило) { await TestRenderer.act(async () => { правило.props.lr.setOpen(false); }); await settle(); }
-        await tick(400);
+        // Мерим поле в ПАРТИИ, как до 01.10: ждём объявленный показ L37 (от числа карт, 0d6d8b28).
+        await tick(levelCfg(37).previewMs + 150);
 
         /** Именно ScrollView, а не любой узел с теми же пропами: у View `contentContainerStyle` молча игнорируется. */
         const имяТипа = (n: any) => (typeof n.type === 'string' ? n.type : n.type?.displayName || n.type?.name || '');

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:psygames_flutter/games/dots_connect/board.dart';
@@ -18,6 +19,8 @@ void main() {
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
     state = await SharedState.open();
+    // Заголовок экрана — из словаря (`L.t('dotsConnect')`), а не русский литерал.
+    await L.load('ru');
   });
 
   testWidgets('экран доходит до доски, а не висит на загрузке', (tester) async {
@@ -32,6 +35,7 @@ void main() {
     await tester.pump();
     expect(find.byType(CircularProgressIndicator), findsNothing);
     expect(find.byType(DotsBoard), findsOneWidget);
-    expect(find.text('Соедини точки'), findsOneWidget);
+    expect(find.text(L.t('dotsConnect')), findsOneWidget);
+    expect(L.t('dotsConnect'), 'Соедини точки', reason: 'заголовок из словаря, а не голый ключ');
   });
 }

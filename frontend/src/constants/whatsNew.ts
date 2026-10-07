@@ -5,7 +5,7 @@
  * Поддерживается руками при каждом релизе: короткие человеческие пункты
  * (не коммиты). ru/en — история версий техническая, на остальных языках
  * показывается en (переводить каждый релиз на 12 языков нереально).
- * Держим последние ~10 значимых версий, старое вычищаем.
+ * Историю не обрезаем: человек может пропустить несколько обновлений.
  */
 export interface WhatsNewEntry {
   version: string;        // '1.148.0'
@@ -15,6 +15,144 @@ export interface WhatsNewEntry {
 }
 
 export const WHATS_NEW: WhatsNewEntry[] = [
+  {
+    version: '2.56.12',
+    date: '2026-10-04',
+    ru: [
+      'После обновления показываются все изменения с последней просмотренной версии, включая пропущенные выпуски',
+      'Светлую, тёмную или системную тему можно выбрать в настройках — выбор сохраняется и применяется в играх',
+      'Учитель судоку объясняет на отдельной доске; ответы и подсказки делают попытку учебной, без повышения уровня',
+      'Поиск игр на главной и в каталоге; полная справка и обратная связь доступны из паузы',
+      'Обновлены порталы и пометки в «Бездне», разбор «Фрактала» и решатель «Товаров»',
+    ],
+    en: [
+      'After an update, see every change since your last viewed version, including skipped releases',
+      'Choose light, dark or system appearance in Settings — your choice persists and applies to games',
+      'The Sudoku teacher uses a separate board; revealed answers and hints mark an attempt as practice, without level advancement',
+      'Find games from Home and the catalog; full help and feedback are available in Pause',
+      'Updated Abyss portals and notes, Fractal review and the Goods solver',
+    ],
+  },
+  {
+    version: '2.56.11',
+    date: '2026-10-02',
+    ru: [
+      'Судоку, Самурай и Фрактал помнят незаконченную партию — можно уйти и вернуться',
+      'Судоку больше не теряет партию от случайного «назад», «Заново» или смены дороги — сначала спросит',
+      'Самурай и Фрактал: в окне выхода и «Заново» снова понятный заголовок',
+    ],
+    en: [
+      'Sudoku, Samurai and Fractal remember an unfinished game — leave and come back',
+      'Sudoku no longer loses a game to a stray Back, Restart or road change — it asks first',
+      'Samurai and Fractal: the Back and Restart dialogs show a proper title again',
+    ],
+  },
+  {
+    version: '2.56.10',
+    date: '2026-10-02',
+    ru: [
+      'В судоку можно выбрать дорогу: полегче, обычная или пожёстче — у каждой свой уровень',
+      'Самурай и Фрактал больше не теряют партию от случайного «назад» или «Заново» — сначала спросят',
+    ],
+    en: [
+      'Sudoku now has three roads — easier, normal or harder — each with its own level',
+      'Samurai and Fractal no longer lose a game to a stray Back or Restart — they ask first',
+    ],
+  },
+  {
+    version: '2.56.9',
+    date: '2026-10-02',
+    ru: [
+      'Новое: «Судоку для малышей» — доски 4×4 и 6×6, звери вместо цифр, 9 ступеней',
+      '«Судоку»: бой с боссом каждые три уровня и мегабосс «Самурай» на каждом 15-м',
+      '«Судоку»: звери вместо цифр на обычной доске — выберите стиль в паузе',
+      '«Бездна»: вход из фрактала, выбор объёма и ступени; новая партия больше не стирает начатую',
+      'Wordoku: спрятанные слова на испанском, немецком, французском, итальянском и португальском',
+      '«Кошки»: короткое касание ставит ✕, долгое — открывает клетку; ошибка стоит жизни, а не оставляет кошку на доске',
+      'Самурай и фрактал засчитываются со счётом, временем и ошибками; прогресс Light Up, Train Tracks, Black Box и Same Game не теряется',
+    ],
+    en: [
+      'New: Sudoku for Little Ones — 4×4 and 6×6 boards, animals instead of digits, 9 steps',
+      'Sudoku: a boss fight every three levels and a Samurai mega-boss every 15th',
+      'Sudoku: animals instead of digits on the regular board — pick the style in the pause menu',
+      'Abyss: entry from the fractal, choice of length and stage; a new game no longer wipes the one in progress',
+      'Wordoku: hidden words in Spanish, German, French, Italian and Portuguese',
+      'Cats: a short tap marks ✕, a long press reveals the cell; a wrong reveal costs a life instead of leaving a cat on the board',
+      'Samurai and fractal games are recorded with score, time and mistakes; Light Up, Train Tracks, Black Box and Same Game keep their progress',
+    ],
+  },
+  {
+    version: '2.56.8',
+    date: '2026-10-02',
+    ru: [
+      '«Судоку»: 28 новых ступеней (93–120) — немецкий шёпот, ренбан, равные суммы, палиндром, «между концами», замок и XV',
+      '«Судоку»: режимы «Киллер» и «Свободно» снова в приложении',
+      '«Судоку»: цена ошибки растёт к верху лестницы — внизу 5 ошибок, наверху 1',
+      'Экраны «Судоку» и имена ступеней головоломок — на 12 языках',
+      'Небоскрёбы: исправлена проверка неполного ряда',
+    ],
+    en: [
+      'Sudoku: 28 new stages (93–120) — German whispers, renban, equal sums, palindrome, between lines, lockout and XV',
+      'Sudoku: Killer and Free modes are back in the app',
+      'Sudoku: mistakes cost more toward the top of the ladder — 5 at the bottom, 1 at the top',
+      'Sudoku screens and puzzle stage names are in 12 languages',
+      'Skyscrapers: the check of an incomplete row is fixed',
+    ],
+  },
+  {
+    version: '2.56.7',
+    date: '2026-10-02',
+    ru: [
+      'В развилках снова видны все игры и режимы головоломок — 40 карточек пропадали из списков',
+      'Новое: «Конь и ферзи» (восемь ферзей и обход конём), «Кто спрятался?» с вопросами «или», «Кошки» с уровнями по настоящей трудности',
+      '«Тоны» на Android: слоги звучат живыми записями, линии тона вместо значков',
+      '«Паттерны» больше не подсказывают ответ последним шагом',
+      'Головоломки и новые игры — на 12 языках',
+    ],
+    en: [
+      'All games and puzzle modes are back in the hubs — 40 cards had gone missing from the lists',
+      'New: Knights & Queens (eight queens and the knight\'s tour), Who Is Hiding? with "or" questions, Cats with levels by real difficulty',
+      'Tones on Android: syllables play as real recordings, with tone lines instead of symbols',
+      'Patterns no longer give the answer away on the last step',
+      'Puzzles and new games are in 12 languages',
+    ],
+  },
+  {
+    version: '2.56.6',
+    date: '2026-10-02',
+    ru: [
+      '«Цифровой ряд», «Объём при чтении» и «Соедини цепочку» — теперь нативные экраны',
+      '«Матрица памяти» перенесена заново: 10 раундов, две серии, проверка по порядку',
+      '«Парные картинки»: время показа растёт с числом карт — на запоминание хватает',
+      '«Корси»: игровые часы, первая вспышка через такт, рекорд как в вебе',
+      '«Пространство» целиком на 12 языках',
+    ],
+    en: [
+      'Digit Span, Reading Span and Trail Making are now native screens',
+      'Memory Matrix rebuilt: 10 rounds, two series, in-order check',
+      'Picture Pairs: preview time grows with the number of cards — enough time to memorize',
+      'Corsi: game clock, first flash after a beat, record as on the web',
+      'The Spatial section is fully in 12 languages',
+    ],
+  },
+  {
+    version: '2.56.5',
+    date: '2026-10-02',
+    ru: [
+      'Развилка «Объём памяти», n-back и «Объём на слух» — теперь нативные экраны: быстрее и без подвисаний',
+      '«Парные картинки»: режим «Свободно» — сам выбираешь число пар и время показа, прерванную партию можно продолжить',
+      '«Числовой забег» переехал на новый движок',
+      'У режимов в развилках появились свои иконки',
+      'Кегель на iPhone: вибрация через системный мотор — ощутимее',
+    ],
+    en: [
+      'Memory Span hub, n-back and Listening Span are now native screens: faster, no stalls',
+      'Picture Pairs: Free mode — choose the number of pairs and the preview time, and resume an interrupted game',
+      'Number Run moved to the new engine',
+      'Modes in the hubs now have their own icons',
+      'Kegel on iPhone: vibration through the system motor — easier to feel',
+    ],
+  },
   {
     version: '2.56.4',
     date: '2026-10-01',

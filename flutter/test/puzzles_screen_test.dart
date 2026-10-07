@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:psygames_flutter/shell/level_ladder.dart';
 import 'package:psygames_flutter/games/puzzles/engine.dart';
 import 'package:psygames_flutter/games/puzzles/frame.dart';
 import 'package:psygames_flutter/games/puzzles/ladder.dart';
@@ -147,7 +148,9 @@ void main() {
   test('🔴 ключ прогресса у каждого режима общий с веб-версией', () async {
     await PuzzleModes.load();
     for (final e in PuzzleModes.all.entries) {
-      expect(e.value.levelKey, 'puzzles_${e.key.toLowerCase()}',
+      // Правило ВЕБА (puzzles.tsx: `.toLowerCase().replace(/\s+/g, '_')`), а не натива: проба,
+      // сверявшая натив с его же правилом, 02.10 молчала о ключе с пробелом у четырёх режимов.
+      expect(e.value.levelKey, 'puzzles_${e.key.toLowerCase().replaceAll(RegExp(r'\s+'), '_')}',
           reason: 'разойдётся ключ — разойдётся и прогресс, причём молча');
       expect(e.value.titleKey.isNotEmpty, isTrue,
           reason: '${e.key}: без ключа словаря название не переведётся');
@@ -155,6 +158,26 @@ void main() {
         expect(st.params.isNotEmpty, isTrue, reason: '${e.key}: пустые параметры ступени');
       }
     }
+  });
+
+  test('🔴 режимы с пробелом: ключ как в вебе, набранный нативно уровень переносится — большее из двух', () async {
+    await PuzzleModes.load();
+    final light = PuzzleModes.all['Light Up']!;
+    expect(light.levelKey, 'puzzles_light_up');
+    expect(PuzzleModes.all['Same Game']!.levelKey, 'puzzles_same_game');
+    expect([for (final m in PuzzleModes.all.values) if (m.legacyLevelKey != null) m.engineName]..sort(),
+        ['Black Box', 'Light Up', 'Same Game', 'Train Tracks']);
+    // Нативно набрано 5, из веба пришло 3 — остаётся 5; и наоборот, веб 7 больше натива 5 — остаётся 7.
+    final store = MemoryLevelStore();
+    await store.writeInt('puzzles_light up.level', 5);
+    await store.writeInt('puzzles_light_up.level', 3);
+    await migrateLegacyLevel(light, store);
+    expect(await store.readInt('puzzles_light_up.level'), 5);
+    await store.writeInt('puzzles_light_up.level', 7);
+    await migrateLegacyLevel(light, store);
+    expect(await store.readInt('puzzles_light_up.level'), 7, reason: 'перенос не имеет права понизить уровень');
+    // Режим без пробела — переносить нечего.
+    expect(PuzzleModes.all['Net']!.legacyLevelKey, isNull);
   });
 
   test('у каждого режима есть владелец — иначе чинить будет некому', () async {

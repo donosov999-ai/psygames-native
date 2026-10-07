@@ -26,11 +26,13 @@ const подпись = (l: number) => JSON.stringify(levelCfg(l));
 describe('picture-pairs: лестница различает соседние уровни', () => {
   it('замер ДО зафиксирован: объём кончается на L21 — там, где кончаются картинки набора', () => {
     expect(`верх объёма L${PAIRS_VOLUME_TOP}, картинок ${SPRITE_COUNT}`).toBe('верх объёма L21, картинок 12');
+    // Показ с 01.10.2026 считается от числа карт (задача 0d6d8b28, проба
+    // `picture-pairs-preview-grows-with-cards`): на верху объёма 48 карт по 100 мс.
     const top = levelCfg(PAIRS_VOLUME_TOP);
-    expect(`${top.pairs} групп по ${top.groupSize}, показ ${top.previewMs} мс`).toBe('12 групп по 4, показ 250 мс');
+    expect(`${top.pairs} групп по ${top.groupSize}, показ ${top.previewMs} мс`).toBe('12 групп по 4, показ 4800 мс');
     // выше по прежним осям не растёт — иначе замер ДО был бы про другое
     const L60 = levelCfg(60);
-    expect(`${L60.pairs} групп по ${L60.groupSize}, показ ${L60.previewMs} мс`).toBe('12 групп по 4, показ 250 мс');
+    expect(`${L60.pairs} групп по ${L60.groupSize}, показ ${L60.previewMs} мс`).toBe('12 групп по 4, показ 4800 мс');
   });
 
   it('ниже верха лестница НЕ тронута — обменов в прежней полосе нет', () => {

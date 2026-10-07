@@ -1,4 +1,4 @@
-/* psygames-native-only-games · VER 1 · 30.09.2026 */
+/* psygames-native-only-games · VER 3 · 02.10.2026 */
 /**
  * ИГРЫ ТОЛЬКО С НАТИВНЫМ ЭКРАНОМ — БЕЗ ВЕБ-ДВОЙНИКА.
  *
@@ -39,12 +39,18 @@ export const NATIVE_ONLY_GAMES: readonly NativeOnlyGame[] = [
   { route: '/games/monster-traits?mode=missing', nameKey: 'monsterMissing', descKey: 'monsterMissingDesc' },
   { route: '/games/roll-and-bank', nameKey: 'rollAndBank', descKey: 'rollAndBankDesc' },
   { route: '/games/hidden-character', nameKey: 'hiddenCharacter', descKey: 'hiddenCharacterDesc' },
+  // «Кошки» (раздел «Судоку», PR #10): экран только нативный — без строки здесь профиль её не пропускал (4a5bb886).
+  { route: '/games/cats', nameKey: 'catsTitle', descKey: 'catsDesc' },
   // Раннер «Поиска глазами» (задача 5386c0e8, решение Дениса 30.09.2026: сразу на Flutter).
   { route: '/games/search-runner', nameKey: 'searchRunner', descKey: 'searchRunnerDesc' },
   // «Шахматы», новая игра 1 из 7 (задача 04e0a67e): тактика по двенадцати приёмам Lichess.
   { route: '/games/find-move', nameKey: 'findMove', descKey: 'findMoveDesc' },
   // «Шахматы», новая игра 2 из 7 (задача 66b3d2ac): каждый ход — взятие, остаётся одна фигура.
   { route: '/games/solitaire-chess', nameKey: 'solitaireChess', descKey: 'solitaireChessDesc' },
+  // «Шахматы», новая игра 3 из 7 (задача 39ad8924): «Восемь ферзей» и «Обход конём» одним экраном.
+  { route: '/games/knights-queens', nameKey: 'knightsQueens', descKey: 'knightsQueensDesc' },
+  // «Судоку для малышей» (раздел «Судоку», #160; задача d87a4605): 4×4 и 6×6 со зверями — только натив.
+  { route: '/games/sudoku?mode=junior', nameKey: 'sudokuJuniorTitle', descKey: 'sudokuSkinAnimals' },
 ];
 
 export const NATIVE_ONLY_ROUTES: readonly string[] = NATIVE_ONLY_GAMES.map((g) => g.route);
