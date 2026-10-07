@@ -109,10 +109,11 @@ export const HUB_CONTENTS: Record<string, HubSubGame[]> = {
      * дававшей второй вход, просто нет.
      */
     { route: '/games/picture-pairs', icon: 'copy', nameKey: 'picturePairs', descKey: 'picturePairsDesc' },
+    { route: '/games/ospan', icon: 'calculator', nameKey: 'ospan', descKey: 'ospanDesc' },
+    { route: '/games/mnemonics', icon: 'bulb', nameKey: 'mnemonics', descKey: 'mnemonicsDesc' },
   ],
 
   '/games/mnemonics-hub': [
-    { route: '/games/mnemonics', icon: 'bulb', nameKey: 'mnemonics', descKey: 'mnemonicsDesc' },
     { route: '/games/memory-palace', icon: 'home', nameKey: 'memoryPalace', descKey: 'memoryPalaceDesc' },
     { route: '/games/faces-names', icon: 'person', nameKey: 'facesNames', descKey: 'facesNamesDesc' },
     { route: '/games/word-pairs', icon: 'link', nameKey: 'wordPairs', descKey: 'wordPairsDesc' },
@@ -170,7 +171,6 @@ export const HUB_CONTENTS: Record<string, HubSubGame[]> = {
     // Корректурная проба Бурдона всегда была тестом концентрации, а не словарём:
     // механика — удержание внимания на однообразном материале. Экран НЕ режем,
     // филворды едут вместе с ним (решение Дениса 12.09.2026).
-    { route: '/games/proofreading', icon: 'create-outline', nameKey: 'proofreading', descKey: 'proofreadingDesc' },
   ],
 
   '/games/search-hub': [
@@ -184,7 +184,6 @@ export const HUB_CONTENTS: Record<string, HubSubGame[]> = {
     { route: '/games/find-differences', icon: 'copy', nameKey: 'findDiff', descKey: 'findDiffDesc' },
     { route: '/games/mahjong', icon: 'grid', nameKey: 'mahjong', descKey: 'mahjongDesc' },
     { route: '/games/schulte', icon: 'apps', nameKey: 'schulteTable', descKey: 'schulteTableDesc' },
-    { route: '/games/quick-count', icon: 'eye', nameKey: 'quickCount', descKey: 'quickCountDesc' },
     { route: '/games/object-tracker', icon: 'locate', nameKey: 'objectTracker', descKey: 'objectTrackerDesc' },
     /**
      * SDMT и SET пришли 12.09.2026 из расформированной «Гибкости» (задача
@@ -195,6 +194,7 @@ export const HUB_CONTENTS: Record<string, HubSubGame[]> = {
      */
     { route: '/games/sdmt', icon: 'swap-horizontal', nameKey: 'sdmt', descKey: 'sdmtDesc' },
     { route: '/games/set-game', icon: 'apps', nameKey: 'setGame', descKey: 'setGameDesc' },
+    { route: '/games/proofreading', icon: 'create-outline', nameKey: 'proofreading', descKey: 'proofreadingDesc' },
   ],
 
   /* ——— Логика ——— */
@@ -380,7 +380,6 @@ export const HUB_CONTENTS: Record<string, HubSubGame[]> = {
     { route: '/games/math-sprint', icon: 'flash', nameKey: 'mathSprint', descKey: 'mathSprintDesc' },
     { route: '/games/number-bonds', icon: 'git-merge', nameKey: 'numberBonds', descKey: 'numberBondsDesc' },
     // 04.09.2026: перенесён из «Объёма памяти» по решению Дениса (отчёт a0df2925)
-    { route: '/games/ospan', icon: 'calculator', nameKey: 'ospan', descKey: 'ospanDesc' },
     /**
      * «Паттерны» пришли 12.09.2026 из расформированной «Гибкости» (вариант Г,
      * задача 8f0b0428). ⚠️ Расхождение названо Денису ДО решения и осталось:
@@ -389,6 +388,7 @@ export const HUB_CONTENTS: Record<string, HubSubGame[]> = {
      * счёт, по навыку вывод правила. Не сойдётся на замере — кандидат в «Судоку».
      */
     { route: '/games/pattern', icon: 'trending-up', nameKey: 'pattern', descKey: 'patternDesc' },
+    { route: '/games/quick-count', icon: 'eye', nameKey: 'quickCount', descKey: 'quickCountDesc' },
   ],
 
   '/games/words-hub': [

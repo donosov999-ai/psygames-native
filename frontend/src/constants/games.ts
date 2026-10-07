@@ -153,7 +153,7 @@ export const GAMES: GameConfig[] = [
     icon: 'search',
     route: '/games/proofreading',
     category: 'attention',
-    mergedInto: 'attention_conflict',
+    mergedInto: 'search_group',
   },
   {
     id: 'find_differences',
@@ -399,7 +399,7 @@ export const GAMES: GameConfig[] = [
     icon: 'bulb',
     route: '/games/mnemonics',
     category: 'memory',
-    mergedInto: 'mnemonics_group',
+    mergedInto: 'span_group',
   },
   // ⚠️ id менять нельзя: этим ключом уже записаны уровень, звёзды, незаконченная
   // партия и game_type в истории сессий — переименование стирает весь прогресс.
@@ -525,7 +525,7 @@ export const GAMES: GameConfig[] = [
     // operation span: объём памяти под нагрузкой счётом. 04.09.2026 Денис решил
     // спор в пользу счёта: «в двух хабах не надо, я думал передвинуть» (отчёт
     // a0df2925). Карточка держит ровно одного родителя, и это «Счёт».
-    mergedInto: 'counting_group',
+    mergedInto: 'span_group',
   },
   {
     id: 'spatial_span',
@@ -1187,7 +1187,7 @@ export const GAMES: GameConfig[] = [
     icon: 'flash',
     route: '/games/quick-count',
     category: 'attention',
-    mergedInto: 'search_group',
+    mergedInto: 'counting_group',
   },
   {
     id: 'cpt',
