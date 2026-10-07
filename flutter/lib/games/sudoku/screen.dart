@@ -13,6 +13,7 @@ import 'leave_guard.dart';
 import 'marks.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/level_transition.dart';
 import '../../shell/session_report.dart';
 import '../../shell/shared_state.dart';
 import 'generator/contract.dart';
@@ -70,6 +71,19 @@ void fillSudokuBossBag(List<BossType> bag) => _sudokuBossBag
 /// Мегабосс — каждые столько уровней ВМЕСТО обычного боя (15 кратно 3), как
 /// `MEGA_BOSS_EVERY` веба: приглашение в «Самурая» с меткой вехи.
 const sudokuMegaBossEvery = 15;
+
+/// 🔴 ДО ЭТОГО УРОВНЯ — МЕГАБОСС ПО СЕТКЕ 15, ПОСЛЕ — БОСС ИЗ ФАЙЛА ЛЕСТНИЦЫ (решение
+/// раздела 4666318d, 02.10.2026, задача 4e3d3443). С 81-й две системы боссов наложились бы:
+/// сетка 15 даёт «Самурая» на 90/105/120, а план уровней v4 — своих боссов на 96/112/128…
+/// (`assets/levels/sudoku-ladder-transit.json`). На ≥81 решает файл; мешок остаётся.
+const sudokuMegaBossLastLevel = 80;
+
+/// Имя и описание босса из файла лестницы — словами самих игр, без новых ключей словаря.
+const _ladderBossText = <String, (String, String)>{
+  '/games/sudoku-samurai': ('samuraiTitle', 'samuraiDesc'),
+  '/games/sudoku-fractal': ('fractalTitle', 'fractalDesc'),
+  '/games/sudoku-fractal-deep': ('deepTitle', 'deepDesc'),
+};
 
 /// Цвет боя — первый цвет градиента судоку в вебе (`GRADIENT[0]`).
 const sudokuBossColor = Color(0xFF7F7FD5);
@@ -1154,7 +1168,13 @@ class _SudokuScreenState extends State<SudokuScreen> {
     final played = _ladder.level;
     final counted = await win();
     if (!counted || !mounted) return;
-    if (played % sudokuMegaBossEvery == 0) {
+    if (played > sudokuMegaBossLastLevel) {
+      final boss = LadderTransit.bossOf(_levels?.transitRow(played));
+      if (boss != null) {
+        await _offerLadderBoss(played, boss);
+        return;   // один босс на победу: мешок на этой ступени не стреляет
+      }
+    } else if (played % sudokuMegaBossEvery == 0) {
       await _offerMegaBoss(played);
       return;
     }
@@ -1193,6 +1213,41 @@ class _SudokuScreenState extends State<SudokuScreen> {
     await Navigator.of(context).push(MaterialPageRoute<void>(
       builder: (_) => SamuraiScreen(state: widget.state, megabossFrom: level),
     ));
+  }
+
+  /// Босс из файла лестницы — то же приглашение, что у мегабосса: уровень уже засчитан,
+  /// «Позже» ничего не отнимает. Игра и её уровень — из строки (`LadderTransit.bossOf`).
+  ///
+  /// ⚠️ ХОЗЯИН БОССА — ВРЕМЕННАЯ ЛЕСТНИЦА В ПАМЯТИ, НЕ [_ladder]. Босс плана не держит
+  /// (`blocks: false`), и переход на любом возврате делает хозяину +1. Победа на доске
+  /// свой +1 уже дала — с [_ladder] хозяином человек перепрыгнул бы ступень.
+  Future<void> _offerLadderBoss(int level, LadderTransit boss) async {
+    final text = _ladderBossText[boss.game];
+    final go = await showDialog<bool>(
+      context: context,
+      builder: (c) => AlertDialog(
+        key: const Key('ladderboss-offer'),
+        title: Text('⚔️ ${L.t('bossTitle')}: ${text == null ? '' : L.t(text.$1)}'),
+        content: text == null ? null : Text(L.t(text.$2)),
+        actions: [
+          TextButton(
+            key: const Key('ladderboss-later'),
+            onPressed: () => Navigator.of(c).pop(false),
+            child: Text(L.t('updLater')),
+          ),
+          FilledButton(
+            key: const Key('ladderboss-go'),
+            onPressed: () => Navigator.of(c).pop(true),
+            child: Text(L.t('megaBossGo')),
+          ),
+        ],
+      ),
+    );
+    if (go != true || !mounted) return;
+    final host = LevelLadder(gameId: 'sudoku', store: MemoryLevelStore(), maxLevel: _ladder.maxLevel);
+    await host.pick(level);   // метка партии босса — ступень, на которой он встретился
+    if (!mounted) return;
+    await LevelTransition.play(context, state: widget.state, host: host, step: boss);
   }
 
   /// 🔴 РАЗБОР СУДОКУ: ПОЧЕМУ ЭТА ЦИФРА, А НЕ «ВОТ ОТВЕТ».
