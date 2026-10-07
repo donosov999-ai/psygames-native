@@ -9,8 +9,8 @@
  */
 
 import GradientSurface from '@/src/components/GradientSurface';
-import { textOn, onGradientText, onGradientTextMuted } from '@/src/services/onGradientText';
-import React, { useEffect, useState } from 'react';
+import { textOn, onGradientText, onGradientTextMuted, withAlpha } from '@/src/services/onGradientText';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import Svg, { Polygon, Line, Circle, Text as SvgText, G } from 'react-native-svg';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -27,11 +27,17 @@ import {
   AssessmentResult, DOMAINS, Domain, UserProfile,
 } from '@/src/services/assessment';
 import { getAiInsight, toneForProfile } from '@/src/services/aiInsight';
+import { postScreenModel, registerScreenActions } from '@/src/services/hostScreens';
 
 const GRADIENT = ['#7c3aed', '#ec4899'];
 // Текст на плашке итога считаем по ОБОИМ концам: зашитый белый давал 3.53.
 const ON_GRAD = onGradientText(GRADIENT[0], GRADIENT[1]);
 const ON_GRAD_SOFT = onGradientTextMuted(ON_GRAD);
+
+/** Цвет уровня домена — один для строки списка и точки радара. */
+export function levelColor(level: string): string {
+  return level === 'weak' ? '#f43f5e' : level === 'strong' ? '#22c55e' : '#fbbf24';
+}
 
 export default function AssessmentResultScreen() {
   const router = useRouter();
@@ -92,6 +98,56 @@ export default function AssessmentResultScreen() {
   const goHome = () => router.replace('/' as any);
   const replay = () => warmup.startAssessment();
 
+  /**
+   * 🔴 ПОД ОБОЛОЧКОЙ ИТОГ ОЦЕНКИ РИСУЕТ FLUTTER (задача 455d71b1, `services/hostScreens.ts`).
+   * Расчёт, сохранение итога и остановка батареи остаются здесь (эффект выше) — натив только
+   * рисует модель: тексты, цвета уровней, геометрию радара (`radarGeometry` — та же, что у SVG).
+   */
+  const resultModel = useMemo(() => {
+    if (!result) return { v: 1, loading: t('calcResults') };
+    return {
+      v: 1,
+      loading: null,
+      hero: {
+        emoji: '🎯', title: t('cogProfileTitle'), subtitle: `${result.date} · ${t('domains12')}`,
+        gradient: GRADIENT, color: ON_GRAD.color, soft: ON_GRAD_SOFT,
+        // Вуаль контраста `GradientSurface` (плашка и кнопка «Сохранить» — на том же градиенте).
+        veil: ON_GRAD.veil ? withAlpha(ON_GRAD.veil, ON_GRAD.veilAlpha) : null,
+      },
+      radar: radarGeometry(result.scores, language),
+      domainsTitle: t('byDomain'),
+      domains: result.scores.map((s) => {
+        const dom = DOMAINS.find(d => d.id === s.domain)!;
+        return {
+          id: s.domain,
+          label: language === 'ru' ? dom.label_ru : dom.label_en,
+          meta: `z = ${s.z_score >= 0 ? '+' : ''}${s.z_score.toFixed(1)} · ${t('percentileN').replace('{n}', String(s.percentile))}`,
+          color: levelColor(s.level),
+          badge: s.level === 'weak' ? t('domainWeak') : s.level === 'strong' ? t('domainStrong') : t('domainAvg'),
+        };
+      }),
+      ai: aiText ? { title: `✨ ${t('insightTitle')}`, text: aiText, color: GRADIENT[0] } : null,
+      recsTitle: `💡 ${t('recommendedGames')}`,
+      recs: recommendations.flatMap((gameId) => {
+        const g = GAMES.find(x => x.id === gameId);
+        return g ? [{ id: gameId, name: t(g.nameKey), icon: g.icon, color: g.gradient[0] }] : [];
+      }),
+      applied,
+      save: { label: t('saveProfileBtn'), color: ON_GRAD.color },
+      saved: { label: t('profileSavedBtn'), bg: '#22c55e', color: textOn('#22c55e') },
+      home: t('goHome'),
+      footnote: t('assessRepeatNote'),
+    };
+  }, [result, recommendations, aiText, applied, language, t]);
+  useEffect(() => { postScreenModel('/assessment-result', resultModel); }, [resultModel]);
+  // Свежие обработчики для действий оболочки (пересоздаются рендером; действия регистрируются один раз).
+  const resultActs = useRef({ applyToProfile, goHome });
+  useEffect(() => { resultActs.current = { applyToProfile, goHome }; });
+  useEffect(() => registerScreenActions('/assessment-result', {
+    apply: () => { void resultActs.current.applyToProfile(); },
+    home: () => resultActs.current.goHome(),
+  }), []);
+
   if (!result) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -121,7 +177,7 @@ export default function AssessmentResultScreen() {
           <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('byDomain')}</Text>
           {result.scores.map((s) => {
             const dom = DOMAINS.find(d => d.id === s.domain)!;
-            const color = s.level === 'weak' ? '#f43f5e' : s.level === 'strong' ? '#22c55e' : '#fbbf24';
+            const color = levelColor(s.level);
             return (
               <View key={s.domain} style={[styles.row, { backgroundColor: colors.surface }]}>
                 <View style={[styles.rowDot, { backgroundColor: color }]} />
@@ -206,7 +262,11 @@ export default function AssessmentResultScreen() {
 
 // ─── Radar chart component ────────────────────────────────────────────────
 
-function RadarChart({ scores, language }: { scores: any[]; language: string }) {
+/**
+ * Геометрия радара: кольца, оси, многоугольник, точки и подписи — числами. Одна для SVG ниже и
+ * для нативной оболочки (модель экрана): у Flutter своего расчёта нет. Вынесено 07.10.2026.
+ */
+export function radarGeometry(scores: readonly { domain: string; z_score: number; level: string }[], language: string) {
   const SIZE = 320;
   const cx = SIZE / 2;
   const cy = SIZE / 2;
@@ -221,51 +281,57 @@ function RadarChart({ scores, language }: { scores: any[]; language: string }) {
 
   const angle = (i: number) => -Math.PI / 2 + (i * 2 * Math.PI) / n;
 
-  // Polygon points for actual scores
-  const dataPts = scores.map((s, i) => {
-    const r = zToR(s.z_score);
-    return `${cx + r * Math.cos(angle(i))},${cy + r * Math.sin(angle(i))}`;
-  }).join(' ');
-
   // Reference rings: z=-2, -1, 0, +1, +2
   const ringZs = [-2, -1, 0, 1, 2];
+  const lblR = maxR + 18;
+  return {
+    size: SIZE, cx, cy,
+    rings: ringZs.map((z) => ({
+      r: zToR(z), color: z === 0 ? '#fbbf24' : '#1e1e3a', width: z === 0 ? 1.5 : 0.5, dashed: z !== 0,
+    })),
+    axes: scores.map((_, i) => ({ x: cx + maxR * Math.cos(angle(i)), y: cy + maxR * Math.sin(angle(i)) })),
+    poly: scores.map((s, i) => {
+      const r = zToR(s.z_score);
+      return { x: cx + r * Math.cos(angle(i)), y: cy + r * Math.sin(angle(i)) };
+    }),
+    points: scores.map((s, i) => {
+      const r = zToR(s.z_score);
+      return { x: cx + r * Math.cos(angle(i)), y: cy + r * Math.sin(angle(i)), color: levelColor(s.level) };
+    }),
+    labels: scores.map((s, i) => {
+      const dom = DOMAINS.find(d => d.id === s.domain)!;
+      return {
+        x: cx + lblR * Math.cos(angle(i)), y: cy + lblR * Math.sin(angle(i)),
+        text: (language === 'ru' ? dom.label_ru : dom.label_en).slice(0, 12),
+      };
+    }),
+  };
+}
 
+function RadarChart({ scores, language }: { scores: any[]; language: string }) {
+  const g = radarGeometry(scores, language);
   return (
-    <Svg width={SIZE} height={SIZE}>
+    <Svg width={g.size} height={g.size}>
       <G>
         {/* concentric reference circles */}
-        {ringZs.map((z, i) => (
-          <Circle key={i} cx={cx} cy={cy} r={zToR(z)} fill="none"
-            stroke={z === 0 ? '#fbbf24' : '#1e1e3a'} strokeWidth={z === 0 ? 1.5 : 0.5} strokeDasharray={z === 0 ? '' : '3,3'} />
+        {g.rings.map((ring, i) => (
+          <Circle key={i} cx={g.cx} cy={g.cy} r={ring.r} fill="none"
+            stroke={ring.color} strokeWidth={ring.width} strokeDasharray={ring.dashed ? '3,3' : ''} />
         ))}
         {/* axis lines */}
-        {scores.map((_, i) => (
-          <Line key={'a'+i} x1={cx} y1={cy}
-            x2={cx + maxR * Math.cos(angle(i))} y2={cy + maxR * Math.sin(angle(i))}
-            stroke="#1e1e3a" strokeWidth={0.5} />
+        {g.axes.map((a, i) => (
+          <Line key={'a'+i} x1={g.cx} y1={g.cy} x2={a.x} y2={a.y} stroke="#1e1e3a" strokeWidth={0.5} />
         ))}
         {/* data polygon */}
-        <Polygon points={dataPts} fill="rgba(124,58,237,0.25)" stroke="#7c3aed" strokeWidth={2} />
+        <Polygon points={g.poly.map((p) => `${p.x},${p.y}`).join(' ')} fill="rgba(124,58,237,0.25)" stroke="#7c3aed" strokeWidth={2} />
         {/* data points */}
-        {scores.map((s, i) => {
-          const r = zToR(s.z_score);
-          const x = cx + r * Math.cos(angle(i));
-          const y = cy + r * Math.sin(angle(i));
-          const c = s.level === 'weak' ? '#f43f5e' : s.level === 'strong' ? '#22c55e' : '#fbbf24';
-          return <Circle key={'p'+i} cx={x} cy={y} r={4} fill={c} stroke="#fff" strokeWidth={1} />;
-        })}
+        {g.points.map((p, i) => <Circle key={'p'+i} cx={p.x} cy={p.y} r={4} fill={p.color} stroke="#fff" strokeWidth={1} />)}
         {/* labels */}
-        {scores.map((s, i) => {
-          const dom = DOMAINS.find(d => d.id === s.domain)!;
-          const lblR = maxR + 18;
-          const x = cx + lblR * Math.cos(angle(i));
-          const y = cy + lblR * Math.sin(angle(i));
-          return (
-            <SvgText key={'l'+i} x={x} y={y} fontSize="9" fill="#94a3b8" textAnchor="middle" alignmentBaseline="middle">
-              {(language === 'ru' ? dom.label_ru : dom.label_en).slice(0, 12)}
-            </SvgText>
-          );
-        })}
+        {g.labels.map((l, i) => (
+          <SvgText key={'l'+i} x={l.x} y={l.y} fontSize="9" fill="#94a3b8" textAnchor="middle" alignmentBaseline="middle">
+            {l.text}
+          </SvgText>
+        ))}
       </G>
     </Svg>
   );

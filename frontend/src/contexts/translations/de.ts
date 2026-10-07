@@ -3533,5 +3533,10 @@ const t: Record<string, string> = {
   "lr_kids_sort_switches_title": "Die Regel kommt zurück",
   "lr_kids_sort_switches_rule": "Ab jetzt ändert sich die Regel mehr als einmal: Farbe, dann Form, dann wieder Farbe. Das einzige Zeichen ist jedes Mal ein ✗, wo du eben noch richtig lagst.",
   "lr_kids_sort_switches_example": "Beispiel: Du sortierst nach Form, ✓ ✓ ✓, dann ein ✗: zurück zur Farbe.",
+  "relaxationGroup": "Entspannung",
+  "relaxationGroupDesc": "Atmung, Augen, Pause — eine kurze Erholung für den Kopf",
+  "relaxationGroupFootnote": "Hier wird nichts gemessen oder bewertet: eine Atempause zwischen den Trainings, kein Test.",
+  "relaxationGroupIntroDesc": "Drei kurze Pausen: ein Atemrhythmus, ein Wechsel von Augen und Atmung und Übungen, die den Blick nach dem Bildschirm entlasten.\n\nHier wird nichts gemessen. Aufmerksamkeit und Arbeitsgedächtnis erholen sich in Pausen — danach läuft das nächste Spiel ruhiger.",
+  "allForks": "Alle Abzweigungen",
 };
 export default t;

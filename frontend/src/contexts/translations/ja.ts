@@ -3527,5 +3527,10 @@ const t: Record<string, string> = {
   "lr_kids_sort_switches_title": "ルールがもどってくる",
   "lr_kids_sort_switches_rule": "ここからはルールが何回も変わるよ。色、つぎに形、そしてまた色。しるしは毎回ひとつだけ — さっきまで正しかったところに ✗ が出ること。",
   "lr_kids_sort_switches_example": "たとえば：形で分けていて ✓ ✓ ✓ のあとに ✗ が出たら、色にもどそう。",
+  "relaxationGroup": "リラクゼーション",
+  "relaxationGroupDesc": "呼吸・目・休憩 — 頭を少し休める",
+  "relaxationGroupFootnote": "ここでは何も測定・採点しません。トレーニングの合間の休憩で、テストではありません。",
+  "relaxationGroupIntroDesc": "3つの短い休憩：呼吸のリズム、目と呼吸の交互の練習、画面の後に目を休める体操。\n\nここでは何も測定しません。注意力と作業記憶は休憩中に回復し、次のゲームがスムーズになります。",
+  "allForks": "すべての分岐",
 };
 export default t;

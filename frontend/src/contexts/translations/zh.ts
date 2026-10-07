@@ -3533,5 +3533,10 @@ const t: Record<string, string> = {
   "lr_kids_sort_switches_title": "规则会变回来",
   "lr_kids_sort_switches_rule": "从现在起，规则会变不止一次：先颜色，再形状，再回到颜色。每次唯一的信号都是：刚才还对的地方出现了 ✗。",
   "lr_kids_sort_switches_example": "例如：你按形状分，✓ ✓ ✓，然后出现 ✗：回到颜色。",
+  "relaxationGroup": "放松",
+  "relaxationGroupDesc": "呼吸、眼睛、暂停——让大脑短暂休息",
+  "relaxationGroupFootnote": "这里不做任何测量或评分：这是训练间隙的休息，而不是测试。",
+  "relaxationGroupIntroDesc": "三种短暂休息：呼吸节奏、眼睛与呼吸交替练习，以及看屏幕后放松双眼的体操。\n\n这里不做任何测量。注意力和工作记忆在休息中恢复——之后下一局会更顺畅。",
+  "allForks": "全部分支",
 };
 export default t;

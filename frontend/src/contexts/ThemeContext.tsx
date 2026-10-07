@@ -18,7 +18,7 @@ interface ThemeColors {
   warning: string;
 }
 
-const lightTheme: ThemeColors = {
+export const lightTheme: ThemeColors = {
   background: '#F5F5F7',
   surface: '#FFFFFF',
   card: '#FFFFFF',
@@ -31,7 +31,7 @@ const lightTheme: ThemeColors = {
   warning: '#FF9500',
 };
 
-const darkTheme: ThemeColors = {
+export const darkTheme: ThemeColors = {
   background: '#000000',
   surface: '#1C1C1E',
   card: '#2C2C2E',
@@ -53,7 +53,7 @@ const darkTheme: ThemeColors = {
 /** Общий на всё приложение, НЕ на профиль: выбор темы не должен слетать при смене профиля. */
 const THEME_OVERRIDE_KEY = 'psygames_theme_override';
 
-const PROFILE_THEME: Record<ProfileId, { mood: 'dark' | 'light'; accent: string }> = {
+export const PROFILE_THEME: Record<ProfileId, { mood: 'dark' | 'light'; accent: string }> = {
   nzt48:     { mood: 'light', accent: '#a855f7' }, // фиолетовый (светлая тема — по запросу Дениса)
   execs:     { mood: 'dark',  accent: '#14b8a6' }, // teal (ярче для видимости)
   drivers:   { mood: 'dark',  accent: '#f97316' }, // оранжевый
@@ -68,6 +68,10 @@ const PROFILE_THEME: Record<ProfileId, { mood: 'dark' | 'light'; accent: string 
   free:      { mood: 'light', accent: '#f59e0b' }, // приветливый янтарь
   polyglot:  { mood: 'light', accent: '#6366f1' }, // индиго — изучающие языки
 };
+
+/** Профиль без строки в таблице — тёмная тема с системным синим. Палитру и акценты читает и
+ * нативная оболочка (`flutter/assets/web_theme.json`, сторож `flutter-web-theme-asset-fresh`). */
+export const FALLBACK_PROFILE_THEME = { mood: 'dark' as const, accent: '#0A84FF' };
 
 interface ThemeContextType {
   themeMode: 'profile' | 'system' | 'light' | 'dark';
@@ -119,7 +123,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   // профиля. Акцентный цвет по-прежнему берётся от профиля (см. pt.accent ниже) —
   // меняется только светлота/темнота.
 
-  const pt = PROFILE_THEME[profile.id] ?? { mood: 'dark' as const, accent: '#0A84FF' };
+  const pt = PROFILE_THEME[profile.id] ?? FALLBACK_PROFILE_THEME;
   const mood = override === 'system' ? (systemScheme ?? 'light') : (override ?? pt.mood);
   const isDark = mood === 'dark';
   const base = isDark ? darkTheme : lightTheme;

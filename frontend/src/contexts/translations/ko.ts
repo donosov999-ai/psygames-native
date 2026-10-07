@@ -3528,5 +3528,10 @@ const t: Record<string, string> = {
   "lr_kids_sort_switches_title": "규칙이 돌아와요",
   "lr_kids_sort_switches_rule": "이제부터 규칙은 여러 번 바뀌어요. 색깔, 그다음 모양, 그리고 다시 색깔. 신호는 매번 하나뿐이에요 — 방금까지 맞았던 곳에 나오는 ✗.",
   "lr_kids_sort_switches_example": "예: 모양으로 나누다가 ✓ ✓ ✓ 다음에 ✗ 가 나오면 색깔로 돌아가요.",
+  "relaxationGroup": "휴식",
+  "relaxationGroupDesc": "호흡, 눈, 쉼 — 머리를 위한 짧은 휴식",
+  "relaxationGroupFootnote": "여기서는 아무것도 측정하거나 점수를 매기지 않습니다. 훈련 사이의 휴식이지 테스트가 아닙니다.",
+  "relaxationGroupIntroDesc": "짧은 휴식 세 가지: 호흡 리듬, 눈과 호흡을 번갈아 하는 연습, 화면을 본 뒤 눈을 쉬게 하는 체조.\n\n여기서는 아무것도 측정하지 않습니다. 주의력과 작업 기억은 휴식 중에 회복되고, 다음 게임이 더 부드럽게 진행됩니다.",
+  "allForks": "모든 갈래",
 };
 export default t;

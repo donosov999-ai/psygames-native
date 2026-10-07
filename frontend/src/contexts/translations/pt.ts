@@ -3533,5 +3533,10 @@ const t: Record<string, string> = {
   "lr_kids_sort_switches_title": "A regra volta",
   "lr_kids_sort_switches_rule": "A partir de agora a regra muda mais de uma vez: cor, depois forma, depois cor de novo. A cada vez o único sinal é um ✗ onde você acertava há pouco.",
   "lr_kids_sort_switches_example": "Exemplo: você separa por forma e vem ✓ ✓ ✓, depois um ✗: volte para a cor.",
+  "relaxationGroup": "Relaxamento",
+  "relaxationGroupDesc": "Respiração, olhos, pausa — um breve descanso para a mente",
+  "relaxationGroupFootnote": "Aqui nada é medido nem pontuado: é uma pausa entre treinos, não um teste.",
+  "relaxationGroupIntroDesc": "Três pausas curtas: um ritmo de respiração, uma alternância entre olhos e respiração e exercícios que descansam a vista depois da tela.\n\nAqui nada é medido. A atenção e a memória de trabalho se recuperam nas pausas — depois, o próximo jogo flui melhor.",
+  "allForks": "Todas as bifurcações",
 };
 export default t;

@@ -1,0 +1,158 @@
+{
+ "v": 1,
+ "mode": "picker",
+ "busy": false,
+ "exit": "Пропустить",
+ "heading": {
+  "emoji": "🎮",
+  "title": "Выбери первую игру",
+  "body": "Не будем начинать с лекции. Выбери, что хочется попробовать прямо сейчас."
+ },
+ "quiz": {
+  "title": "🎯 Подобрать под меня",
+  "questions": [
+   {
+    "axis": "mood",
+    "q": "Чего хочется?",
+    "opts": [
+     {
+      "label": "Расслабиться",
+      "on": false
+     },
+     {
+      "label": "Прокачать мозг",
+      "on": true
+     },
+     {
+      "label": "Азарт и скорость",
+      "on": false
+     }
+    ]
+   },
+   {
+    "axis": "time",
+    "q": "Сколько времени есть?",
+    "opts": [
+     {
+      "label": "Минут пять",
+      "on": true
+     },
+     {
+      "label": "Десять–пятнадцать",
+      "on": false
+     },
+     {
+      "label": "Час и больше",
+      "on": false
+     }
+    ]
+   },
+   {
+    "axis": "taste",
+    "q": "Что ближе?",
+    "opts": [
+     {
+      "label": "Слова",
+      "on": false
+     },
+     {
+      "label": "Числа и логика",
+      "on": false
+     },
+     {
+      "label": "Картинки и память",
+      "on": true
+     }
+    ]
+   }
+  ],
+  "yours": {
+   "title": "Твои игры",
+   "cards": [
+    {
+     "id": "memory_matrix",
+     "name": "Матрица памяти",
+     "skill": "Тренируем: зрительную память",
+     "desc": "Запомни и повтори светящиеся клетки",
+     "a11y": "Матрица памяти. Тренируем: зрительную память",
+     "gradient": [
+      "#8e2de2",
+      "#4a00e0"
+     ],
+     "icon": "grid",
+     "thumb": "/assets/assets/images/gamethumbs/memory_matrix.webp"
+    },
+    {
+     "id": "picture_pairs",
+     "name": "Парные картинки",
+     "skill": "Тренируем: зрительную память",
+     "desc": "Открой все одинаковые пары",
+     "a11y": "Парные картинки. Тренируем: зрительную память",
+     "gradient": [
+      "#f857a6",
+      "#ff5858"
+     ],
+     "icon": "heart",
+     "thumb": "/assets/assets/images/gamethumbs/picture_pairs.webp"
+    },
+    {
+     "id": "schulte_table",
+     "name": "Шульте: внимание",
+     "skill": "Тренируем: концентрацию",
+     "desc": "Поиск чисел от 1 до N",
+     "a11y": "Шульте: внимание. Тренируем: концентрацию",
+     "gradient": [
+      "#667eea",
+      "#764ba2"
+     ],
+     "icon": "grid",
+     "thumb": "/assets/assets/images/gamethumbs/schulte_table.webp"
+    }
+   ],
+   "profile": "Похоже, твой профиль — 🎓 Студенты PRO"
+  }
+ },
+ "or": "…или выбери сам",
+ "cards": [
+  {
+   "id": "picture_pairs",
+   "name": "Парные картинки",
+   "skill": "Тренируем: зрительную память",
+   "desc": "Открой все одинаковые пары",
+   "a11y": "Парные картинки. Тренируем: зрительную память",
+   "gradient": [
+    "#f857a6",
+    "#ff5858"
+   ],
+   "icon": "heart",
+   "thumb": "/assets/assets/images/gamethumbs/picture_pairs.webp"
+  },
+  {
+   "id": "schulte_table",
+   "name": "Шульте: внимание",
+   "skill": "Тренируем: концентрацию",
+   "desc": "Поиск чисел от 1 до N",
+   "a11y": "Шульте: внимание. Тренируем: концентрацию",
+   "gradient": [
+    "#667eea",
+    "#764ba2"
+   ],
+   "icon": "grid",
+   "thumb": "/assets/assets/images/gamethumbs/schulte_table.webp"
+  },
+  {
+   "id": "hanoi",
+   "name": "Ханойская башня",
+   "skill": "Тренируем: решение задач",
+   "desc": "Перенеси все диски на правый стержень",
+   "a11y": "Ханойская башня. Тренируем: решение задач",
+   "gradient": [
+    "#a8c0ff",
+    "#3f2b96"
+   ],
+   "icon": "extension-puzzle",
+   "thumb": "/assets/assets/images/gamethumbs/hanoi.webp"
+  }
+ ],
+ "hint": "Память ∨ внимание ∨ логика — остальное всегда доступно на главной."
+}
