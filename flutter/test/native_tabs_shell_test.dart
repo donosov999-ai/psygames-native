@@ -16,6 +16,8 @@ import 'package:psygames_flutter/shell/level_rules.dart';
 import 'package:psygames_flutter/shell/native_tabs.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:psygames_flutter/shell/stats_screen.dart';
+import 'package:psygames_flutter/shell/streak_calendar_screen.dart';
+import 'package:psygames_flutter/shell/assessment_result_screen.dart';
 import 'package:psygames_flutter/shell/walking_pet.dart';
 import 'package:psygames_flutter/shell/web_game_screen.dart';
 import 'package:psygames_flutter/shell/web_theme.dart';
@@ -489,7 +491,7 @@ void main() {
     await settle(t, () => find.byKey(const ValueKey('home-header')).evaluate().isNotEmpty);
     expect(find.byKey(const ValueKey('home-header')), findsOneWidget);
     expect(t.widget<NativeTabBar>(find.byType(NativeTabBar)).active, '/');
-    expect(page().js.any((s) => s.contains('window.__psyHostScreens=["/","#switcher","/statistics"]')), isTrue,
+    expect(page().js.any((s) => s.contains('window.__psyHostScreens=["/","#switcher","/statistics","/streak-calendar","/assessment-result"]')), isTrue,
         reason: 'веб узнаёт, какие экраны рисуем мы');
     // Вкладка «Игры» и назад — Главная та же, модель жива.
     await toGames(t);
@@ -565,6 +567,44 @@ void main() {
     page().emit(SharedState.channel, {'op': 'screenUi', 'route': StatsScreen.route, 'model': statsModel()});
     await settle(t, () => find.byKey(const ValueKey('stats-screen')).evaluate().isNotEmpty);
     expect(find.byKey(const ValueKey('stats-hero')), findsOneWidget);
+  });
+
+  Map<String, Object?> fixture(String f) =>
+      (jsonDecode(File('test/fixtures/$f').readAsStringSync()) as Map).cast<String, Object?>();
+
+  testWidgets('🔴 /streak-calendar от страницы — нативный календарь, полоса на месте, кнопка отзыва есть', (t) async {
+    await mount(t);
+    await route(t, '/streak-calendar');
+    page().emit(SharedState.channel, {'op': 'screenUi', 'route': StreakCalendarScreen.route, 'model': fixture('calendar_model.json')});
+    await settle(t, () => find.byKey(const ValueKey('calendar-screen')).evaluate().isNotEmpty);
+    expect(find.byKey(const ValueKey('calendar-card')), findsOneWidget);
+    expect(find.byType(NativeTabBar), findsOneWidget, reason: 'tabBarVisible веба: на календаре полоса стоит');
+    expect(find.byType(FeedbackFab), findsOneWidget);
+    page().js.clear();
+    await t.tap(find.byKey(const ValueKey('calendar-back')));
+    await t.pump();
+    expect(page().js.any((s) => s.contains('["/streak-calendar"].back()')), isTrue);
+    // Страница вернулась на Главную своим переходом — тело снова Главная.
+    await route(t, '/');
+    expect(find.byKey(const ValueKey('calendar-screen')), findsNothing);
+  });
+
+  testWidgets('🔴 /assessment-result — нативный итог без полосы (noBar веба), кнопка отзыва на месте', (t) async {
+    await mount(t);
+    await route(t, '/assessment-result');
+    page().emit(SharedState.channel, {'op': 'screenUi', 'route': AssessmentResultScreen.route, 'model': fixture('assessment_model.json')});
+    await settle(t, () => find.byKey(const ValueKey('assessment-screen')).evaluate().isNotEmpty);
+    expect(find.byKey(const ValueKey('assessment-hero')), findsOneWidget);
+    expect(find.byType(NativeTabBar), findsNothing);
+    expect(find.byType(FeedbackFab), findsOneWidget);
+  });
+
+  testWidgets('итог оценки без модели 6 с — сама страница', (t) async {
+    await mount(t);
+    await route(t, '/assessment-result');
+    await t.pump(const Duration(seconds: 7));
+    await t.pump();
+    expect(find.byType(WebViewWidget), findsOneWidget, reason: 'страница видна (не за сценой)');
   });
 }
 

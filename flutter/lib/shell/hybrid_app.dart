@@ -93,6 +93,8 @@ import 'profile_switcher.dart';
 import 'screen_ui.dart';
 import 'native_tabs.dart';
 import 'stats_screen.dart';
+import 'streak_calendar_screen.dart';
+import 'assessment_result_screen.dart';
 import 'walking_pet.dart';
 import 'web_theme.dart';
 import '../games/sorting_hub/screen.dart';
@@ -614,7 +616,7 @@ class _HybridAppState extends State<HybridApp> {
     if (path.endsWith('.html')) path = path.substring(0, path.length - 5);
     if (path.endsWith('/index')) path = path.substring(0, path.length - 6);
     if (path.isEmpty) path = '/';
-    final tab = NativeTabs.native.contains(path) ? path : null;
+    final tab = NativeTabs.native.contains(path) || _bodyPages.contains(path) ? path : null;
     final search = tab == null ? null : uri.queryParameters['search'];
     if (!mounted) return tab != null;
     setState(() {
@@ -630,7 +632,12 @@ class _HybridAppState extends State<HybridApp> {
   }
 
   /// Нативные вкладки в порядке детей тела после страницы (индекс 0 — страница).
-  static const _bodyTabs = [HomeScreen.route, '/games', StatsScreen.route];
+  static const _bodyTabs = [HomeScreen.route, '/games', StatsScreen.route, StreakCalendarScreen.route, AssessmentResultScreen.route];
+
+  /// Экраны по модели веба, которые НЕ вкладки полосы: страница уходит на них своим переходом
+  /// (`router.push`/`replace`), а тело показывает нативный рисунок. Полоса — по правилу веба
+  /// (`tabBar.ts`): на календаре стоит, на итоге оценки её нет.
+  static const _bodyPages = {StreakCalendarScreen.route, AssessmentResultScreen.route};
 
   /// Что показывает тело: страницу (0) или нативную вкладку.
   ///
@@ -1248,6 +1255,9 @@ class _HybridAppState extends State<HybridApp> {
               const SizedBox.shrink(),
             // «Прогресс» по модели веба (6ff4a966): считает страница под ним на `/statistics`.
             StatsScreen(onTab: _selectTab),
+            // Календарь серии (cd77367d) и итог оценки (455d71b1) — страницы, не вкладки.
+            const StreakCalendarScreen(),
+            const AssessmentResultScreen(),
           ],
         ),
       ),
@@ -1275,7 +1285,8 @@ class _HybridAppState extends State<HybridApp> {
           onOpenPet: () => _openFromCatalog('/pet'),
           onOpenRoute: _openFromCatalog,
         ),
-      if (_nativeTab != null && bar) FeedbackFab(state: widget.state, onOpen: () => _openFeedback(_nativeTab!)),
+      // Кнопка отзыва веба стоит везде, кроме формы отзыва, — с полосой и без (итог оценки).
+      if (_nativeTab != null) FeedbackFab(state: widget.state, onOpen: () => _openFeedback(_nativeTab!)),
     ]);
   }
 }
