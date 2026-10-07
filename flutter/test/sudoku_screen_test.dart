@@ -149,6 +149,8 @@ void main() {
     expect(find.text('Следующий уровень'), findsOneWidget);
     // Уровень записан в ту же память, что у веб-версии.
     expect(state.get('psygames_sudoku_level_nzt48'), '6');
+    // Звёзды карты уровней — общая запись с вебом: без ошибок — три.
+    expect(state.get('psygames_sudoku_stars_nzt48'), '{"5":3}');
   });
 
   testWidgets('подсказка открывает клетку по решению и тратится', (tester) async {

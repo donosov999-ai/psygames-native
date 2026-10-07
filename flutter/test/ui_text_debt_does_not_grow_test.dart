@@ -67,7 +67,6 @@ void main() {
     'games/schulte/screen.dart': 26,
     'games/pattern/model.dart': 24,
     'games/object_tracker/screen.dart': 24,
-    'games/sort_tubes/screen.dart': 23,
     'games/ospan/screen.dart': 21,
     'games/ospan/model.dart': 20,
     'games/number_bonds/screen.dart': 18,
@@ -76,25 +75,14 @@ void main() {
     'games/quick_count/screen.dart': 18,
     'games/math_sprint/screen.dart': 18,
     'main.dart': 16,
-    'games/goods_sort/screen.dart': 15,
-    'games/tower_london/screen.dart': 14,
     'games/object_tracker/model.dart': 14,
     'games/deep/screen.dart': 1,
-    'games/hanoi/screen.dart': 12,
-    'games/cake_sort/screen.dart': 11,
-    'shell/hybrid_app.dart': 8,
+    'shell/hybrid_app.dart': 3,
     'games/stroop/model.dart': 8,
-    'games/goods_sort/board.dart': 5,
-    'games/sort_tubes/model.dart': 5,
     'shell/game_shell.dart': 2,
     'shell/hub_screen.dart': 3,
     'shell/tap_latency.dart': 4,
     'shell/web_game_screen.dart': 4,
-    'games/goods_sort/model.dart': 4,
-    'games/tower_london/board.dart': 4,
-    'games/sort_tubes/board.dart': 2,
-    'games/hanoi/board.dart': 2,
-    'games/cake_sort/board.dart': 1,
   };
 
   // 284 у соседнего раздела минус 65, погашенных «Конфликтом внимания» в этом же коммите,
@@ -115,7 +103,12 @@ void main() {
   // 02.10 — оба сведены при вливании: 691 − 208 − 12. Затем цепочка «Судоку» (#123: нативные
   // экраны раздела по-английски, 691 → 611 у себя): все три погашения вместе — 390 по счёту пробы.
   // 02.10 — подсказки каркаса «Назад» развилки (#122): hub_screen 4 → 3.
-  const total = 389;
+  // 02.10 — «Сортировки» погасили долг целиком (задача 48ca6466): двенадцать файлов семи
+  // экранов ушли из списка (−98) и заголовки пяти экранов в карте перехвата —
+  // shell/hybrid_app.dart 8 → 3 (−5). Новых ключей 25, у каждого перевод на все двенадцать
+  // языков в том же коммите. Коды отказа пробирок — латиницей: их не видит человек.
+  // Сведено с main 07.10: 389 − 98 − 5 = 286.
+  const total = 286;
 
   final counts = _scan(Directory('lib'));
 

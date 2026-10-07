@@ -105,7 +105,6 @@ const slug = (route) => route.split('/').pop().replace(/-([a-z])/g, (_, c) => c.
 const ЗАИМСТВОВАНО = {
   '/games/ball-sort': 'waterSortIntroDesc',   // та же механика переливания
   '/games/nut-sort': 'waterSortIntroDesc',    // она же
-  '/games/puzzles-hub': 'puzzlesUnrulyIntroDesc', // развилка: общий текст про все сорок две
 };
 
 const missing = [];

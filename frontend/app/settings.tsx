@@ -25,8 +25,8 @@ import {
 } from '@/src/services/feedback';
 import { getDevChatVisible, setDevChatVisible } from '@/src/services/appFeedback';
 import {
-  getPetVisible, setPetVisible, getPetScale, setPetScale,
-  PET_SCALE_MIN, PET_SCALE_MAX, PET_SCALE_EVENT, PET_VISIBLE_EVENT, DEVCHAT_VISIBLE_EVENT,
+  getPetVisible, setPetVisible, getPetScale, setPetScale, getPetWalks, setPetWalks,
+  PET_SCALE_MIN, PET_SCALE_MAX, PET_SCALE_EVENT, PET_VISIBLE_EVENT, PET_WALK_EVENT, DEVCHAT_VISIBLE_EVENT,
 } from '@/src/services/pet';
 import { exportProgress, importProgress } from '@/src/services/dataTransfer';
 import { checkForUpdate, currentVersion, updateUrl } from '@/src/services/appUpdates';
@@ -126,6 +126,7 @@ function SettingsScreenBody() {
   const [devChatOn, setDevChatOn] = React.useState(true);   // v1.125: кнопка «Чат с разработчиками»
   const [petOn, setPetOn] = React.useState(true);           // гуляющий питомец «Синапс» (независим от чата)
   const [petScale, setPetScaleState] = React.useState(1);
+  const [petWalks, setPetWalksState] = React.useState(false); // гуляет ли (по умолчанию сидит, ed85e191)
   React.useEffect(() => {
     (async () => {
       setSoundOn(await getSoundEnabled());
@@ -134,6 +135,7 @@ function SettingsScreenBody() {
       setMusicOnState(await getMusicEnabled());
       setDevChatOn(await getDevChatVisible());
       setPetOn(await getPetVisible());
+      setPetWalksState(await getPetWalks());
       setPetScaleState(await getPetScale());
     })();
   }, []);
@@ -183,6 +185,11 @@ function SettingsScreenBody() {
     const v = !petOn; setPetOn(v);
     DeviceEventEmitter.emit(PET_VISIBLE_EVENT, v);
     await setPetVisible(v);
+  };
+  const togglePetWalks = async () => {
+    const v = !petWalks; setPetWalksState(v);
+    DeviceEventEmitter.emit(PET_WALK_EVENT, v);
+    await setPetWalks(v);
   };
   // v1.127.0: перенос прогресса между установками (веб/старый APK/Play — разные хранилища)
   const [transferMode, setTransferMode] = React.useState<'none' | 'export' | 'import'>('none');
@@ -834,6 +841,17 @@ function SettingsScreenBody() {
           </View>
           <Switch accessibilityLabel={t('petSynapse')} value={petOn} onValueChange={togglePet} trackColor={{ false: colors.border, true: colors.primary }} thumbColor="#FFFFFF" />
         </View>
+        {/* Гуляет ли по экрану (ed85e191, решение Дениса 07.10): по умолчанию нет — сидит у края,
+            здоровается и живёт, но не ходит поверх содержимого. */}
+        {petOn && (
+          <View style={[styles.settingItem, { backgroundColor: colors.surface }]}>
+            <View style={styles.settingInfo}>
+              <Ionicons name="walk-outline" size={24} color={colors.primary} />
+              <Text style={[styles.settingLabel, { color: colors.text }]}>{t('petWalks')}</Text>
+            </View>
+            <Switch accessibilityLabel={t('petWalks')} value={petWalks} onValueChange={togglePetWalks} trackColor={{ false: colors.border, true: colors.primary }} thumbColor="#FFFFFF" />
+          </View>
+        )}
         {/* Ползунок размера гуляющего питомца (0.6×..1.8×). Живое превью:
             питомец гуляет прямо на этом экране и меняется под пальцем;
             в хранилище значение уходит на отпускание. Свой мини-слайдер на

@@ -103,3 +103,12 @@ describe('полоса вкладок на экране', () => {
     for (const к of кнопки) expect(к.props.accessibilityRole).toBe('button');
   });
 });
+
+describe('нативная полоса оболочки (5136754e)', () => {
+  afterEach(() => { delete (globalThis as any).__psyNativeTabs; });
+  it('🔴 при __psyNativeTabs веб свою полосу не рисует — двух полос нет', () => {
+    (globalThis as any).__psyNativeTabs = true;
+    const r = нарисовать('/games');
+    expect(r.root.findAll((n: any) => n.props?.testID === 'bottom-tab-bar')).toHaveLength(0);
+  });
+});

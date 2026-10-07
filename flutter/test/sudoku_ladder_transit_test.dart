@@ -25,9 +25,32 @@ void main() {
   final games = steps.where((r) => r['kind'] == 'game').toList();
   final bosses = steps.where((r) => r['boss'] == true).toList();
 
-  test('объём плана v4: 32 ступени в других играх и 7 боссов', () {
+  test('объём плана v4: 32 ступени в других играх', () {
     expect(games, hasLength(32));
-    expect(bosses.map((r) => r['level']), [96, 112, 128, 144, 160, 176, 192]);
+  });
+
+  /// 🔴 РЕШЕНИЕ ДЕНИСА 07.10.2026: «босса чаще или реже — лучше привязать к смене модели
+  /// генерации, но минимум каждые 10 уровней».
+  test('🔴 босс — на каждой смене модели лестницы и не реже чем через 10 ступеней', () {
+    final ladder = (jsonDecode(File('assets/levels/sudoku-ladder.json').readAsStringSync())
+        as Map<String, Object?>)['ladder'] as List;
+    String model(Map r) => '${r['n']}:${r['variant'] == 'none' && r['n'] == 9 ? 'bank' : r['variant']}';
+    final rows = ladder.cast<Map<String, Object?>>();
+    final bossAt = {for (final r in bosses) r['level']! as int: r};
+    for (var i = 0; i < rows.length; i++) {
+      final lv = rows[i]['level']! as int;
+      final end = i == rows.length - 1 || model(rows[i + 1]) != model(rows[i]);
+      if (end) expect(bossAt.containsKey(lv), isTrue, reason: 'ступень $lv — последняя модели ${model(rows[i])}, босса нет');
+      if (!end && bossAt.containsKey(lv)) {
+        expect(bossAt[lv]!['bossWhy'], 'interim', reason: 'ступень $lv: босс посреди модели без пометки «промежуточный»');
+      }
+    }
+    var prev = 0;
+    for (final lv in bossAt.keys.toList()..sort()) {
+      expect(lv - prev, lessThanOrEqualTo(10), reason: 'от $prev до $lv без босса больше 10 ступеней');
+      prev = lv;
+    }
+    expect(prev, 204, reason: 'последняя ступень плана — переход в генератор, там тоже босс');
   });
 
   test('каждый адрес — нативный экран этой сборки', () {
@@ -55,9 +78,14 @@ void main() {
     }
   });
 
-  test('босс не держит, и его уровень — в пределах той игры', () {
+  test('большие боссы — семь мест плана v4, все на концах моделей; остальные — бой из мешка', () {
+    final big = [for (final r in bosses) if (r['bossGame'] != null) r['level']];
+    expect(big, [96, 112, 128, 144, 160, 176, 192]);
+  });
+
+  test('большой босс не держит, и его уровень — в пределах той игры', () {
     const top = {'/games/sudoku-samurai': samuraiMaxLevel, '/games/sudoku-fractal': fractalMaxLevel};
-    for (final r in bosses) {
+    for (final r in bosses.where((r) => r['bossGame'] != null)) {
       expect(r['bossBlocks'], isFalse, reason: 'босс ${r['level']}: по модели e1cde091 не держит');
       final lv = r['bossLevel'];
       if (lv == null) continue;

@@ -14,7 +14,7 @@
  * написано, что падение лиги — это нормально: иначе человек воспримет его как потерю
  * достижения и обидится на приложение, а не на свой пропуск.
  */
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Redirect, useFocusEffect } from 'expo-router';
@@ -26,6 +26,7 @@ import { isRTLLang } from '@/src/services/rtl';
 import { isWebDemo } from '@/src/services/buildTarget';
 import { goBackOrHome } from '@/src/utils/nav';
 import { getSessions } from '@/src/services/api';
+import { postScreenModel, registerScreenActions } from '@/src/services/hostScreens';
 import {
   LEAGUES, RANKS_PER_LEAGUE, standingFor, isLeagueReached, earnedFrames,
   seasonPointsFrom, SEASON_DAYS,
@@ -36,18 +37,50 @@ export default function LeaguesScreen() {
   const { t, language } = useLanguage();
   const [points, setPoints] = useState<number | null>(null);
 
-  useFocusEffect(useCallback(() => {
+  const reload = useCallback(() => {
     let active = true;
     getSessions()
       .then((s) => { if (active) setPoints(seasonPointsFrom(s)); })
       .catch(() => { if (active) setPoints(0); });
     return () => { active = false; };
-  }, []));
+  }, []);
+  useFocusEffect(reload);
 
   const pts = points ?? 0;
   const standing = standingFor(pts);
   const frames = earnedFrames(pts);
   const back = isRTLLang(language) ? 'chevron-forward' : 'chevron-back';
+
+  /**
+   * 🔴 ПОД ОБОЛОЧКОЙ ЛИГИ РИСУЕТ FLUTTER (задача ac902ebf, `services/hostScreens.ts`).
+   * Расчёт лиги, ранга и рамок — `services/progression`, здесь; модель — готовые строки.
+   */
+  const leaguesModel = {
+    v: 1,
+    title: t('leaguesTitle'), back: t('a11yBack'), backIcon: back,
+    primary: colors.primary || '#7f7fd5',
+    card: {
+      label: t('leaguesSeasonPoints').replace('{d}', String(SEASON_DAYS)), pts: String(pts),
+      rank: t('leaguesRank').replace('{n}', String(standing.rank)).replace('{m}', String(RANKS_PER_LEAGUE)),
+      toNext: standing.toNext === null ? t('leaguesTop') : t('leaguesToNext').replace('{n}', String(standing.toNext)),
+    },
+    hint: t('leaguesSeasonHint'),
+    leagues: LEAGUES.map((l) => {
+      const reached = isLeagueReached(l.id, pts);
+      const here = l.id === standing.league.id;
+      return {
+        id: l.id, name: t(l.nameKey), reached, here,
+        sub: here ? t('leaguesCurrent') : t('leaguesLocked').replace('{n}', String(l.from)),
+        a11y: `${t(l.nameKey)}. ${here ? t('leaguesCurrent') : reached ? '' : t('leaguesLocked').replace('{n}', String(l.from))}`,
+      };
+    }),
+    framesTitle: t('leaguesFrames'),
+    frames: frames.map((f) => ({ id: f.id, name: t(f.nameKey) })),
+    empty: pts === 0 ? t('leaguesEmpty') : null,
+  };
+  const leaguesKey = JSON.stringify(leaguesModel);
+  useEffect(() => { postScreenModel('/leagues', JSON.parse(leaguesKey)); }, [leaguesKey]);
+  useEffect(() => registerScreenActions('/leagues', { back: () => goBackOrHome(), refresh: () => { reload(); } }), [reload]);
 
   // Все хуки вызваны безусловно — выходить можно.
   if (isWebDemo()) return <Redirect href="/" />;

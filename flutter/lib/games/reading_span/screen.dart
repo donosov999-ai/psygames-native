@@ -10,6 +10,7 @@ import '../../shell/game_clock.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
+import '../../shell/lesson.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/level_rules.dart';
 import '../../shell/preset_cap.dart';
@@ -124,6 +125,11 @@ class _ReadingSpanScreenState extends State<ReadingSpanScreen> {
     _input.clear();
     _lastJudge = null;
     _startedAt = null;
+    // Новая раздача — круг снова зачётный (договор lesson.dart, как у «Корси» и ospan). Без
+    // этого разбор, открытый на экране итога или посреди круга перед «Заново», молча делал
+    // незачётным следующий круг — уже с новой раздачей. Разбор на экране старта по-прежнему
+    // снимает зачёт своего круга: это правило каркаса, не экрана (сверка веб → натив 02.10).
+    LessonUsed.reset();
   }
 
   Future<void> _start() async {
@@ -197,7 +203,13 @@ class _ReadingSpanScreenState extends State<ReadingSpanScreen> {
     return GameShell(
       levelRule: LevelRuleSpot(gameId: 'reading_span', level: _ladder.level, state: widget.state, calm: calm),
       title: L.t('readingSpan'),
-      onLesson: () => openDemoLesson(context, title: L.t('readingSpan'), trials: readingSpanLessonTrials(_pool, _lang)),
+      onLesson: () {
+        // Предложения разбора показаны с ответом — в партию они больше не придут как новые
+        // (запас виденного, как у раздачи; иначе разбор портил бы задачу, против чего и запас).
+        final shown = readingSpanLessonSentences(_pool).map((s) => s.en);
+        unawaited(writeSeen(widget.state, _seenPool, {...readSeen(widget.state, _seenPool), ...shown}.toList()));
+        openDemoLesson(context, title: L.t('readingSpan'), trials: readingSpanLessonTrials(_pool, _lang));
+      },
       hud: [
         HudItem(label: L.t('level'), value: '${_ladder.level}', icon: Icons.flag_outlined),
         HudItem(
@@ -211,8 +223,8 @@ class _ReadingSpanScreenState extends State<ReadingSpanScreen> {
         RspanPhase.ready => _Ready(level: _ladder.level, onStart: _start),
         RspanPhase.judge => _Judge(sentence: g!.current, language: _lang),
         RspanPhase.hold => const _Hold(),
-        RspanPhase.recall => _Recall(controller: _input, onSubmit: _check),
-        RspanPhase.done => _Done(game: g!),
+        RspanPhase.recall => const _Recall(),
+        RspanPhase.done => _Done(game: g!, levelNow: _ladder.level),
         RspanPhase.revealed => RspanSolution(seq: g?.seq ?? const [], language: _lang),
       },
       auxRow: AuxBar(children: [
@@ -226,10 +238,7 @@ class _ReadingSpanScreenState extends State<ReadingSpanScreen> {
       ]),
       toolbar: switch (_phase) {
         RspanPhase.judge => _JudgeButtons(last: _lastJudge, onJudge: _judge),
-        RspanPhase.recall => Padding(
-            padding: const EdgeInsets.all(12),
-            child: FilledButton(key: const Key('rspan-check'), onPressed: _check, child: Text(L.t('check'))),
-          ),
+        RspanPhase.recall => _RecallBar(controller: _input, onSubmit: _check),
         RspanPhase.done || RspanPhase.revealed => Padding(
             padding: const EdgeInsets.all(12),
             child: FilledButton.icon(
@@ -347,6 +356,11 @@ class _Judge extends StatelessWidget {
       );
 }
 
+/// Тёмный или белый текст — что читается на этом фоне лучше (порог яркости W3C 0,179, где
+/// контраст с чёрным и с белым равен).
+Color rspanOnColor(Color background) =>
+    background.computeLuminance() > 0.179 ? const Color(0xDD000000) : Colors.white;
+
 /// Кнопки суждения — прибиты к низу, как в вебе (эталон math-sprint).
 class _JudgeButtons extends StatelessWidget {
   const _JudgeButtons({required this.last, required this.onJudge});
@@ -361,13 +375,16 @@ class _JudgeButtons extends StatelessWidget {
             key: key,
             style: FilledButton.styleFrom(
               backgroundColor: color,
-              foregroundColor: Colors.white,
+              // Цвет текста — по яркости фона, как веб `textOn()`: белый на зелёном #22C55E —
+              // контраст ≈2,3 : 1 при норме 4,5 (сверка веб → натив 02.10.2026).
+              foregroundColor: rspanOnColor(color),
               minimumSize: const Size(0, 56),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             ),
             onPressed: () => onJudge(says),
             icon: Icon(icon, size: 26),
-            label: Text(label, maxLines: 2, overflow: TextOverflow.ellipsis),
+            // Подпись переносится, а не обрезается: при крупном шрифте «Имеет смысл» не влезала.
+            label: Text(label, textAlign: TextAlign.center),
           ),
         );
     return Padding(
@@ -400,10 +417,7 @@ class _Hold extends StatelessWidget {
 }
 
 class _Recall extends StatelessWidget {
-  const _Recall({required this.controller, required this.onSubmit});
-
-  final TextEditingController controller;
-  final VoidCallback onSubmit;
+  const _Recall();
 
   @override
   Widget build(BuildContext context) {
@@ -415,36 +429,72 @@ class _Recall extends StatelessWidget {
           Text(L.t('recallNow'), textAlign: TextAlign.center, style: text.titleLarge?.copyWith(fontWeight: FontWeight.w800)),
           const SizedBox(height: 6),
           Text(L.t('recallHint'), textAlign: TextAlign.center, style: text.bodySmall),
-          const SizedBox(height: 16),
-          ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 460),
-            child: TextField(
-              key: const Key('rspan-input'),
-              controller: controller,
-              autofocus: true,
-              autocorrect: false,
-              enableSuggestions: false,
-              textCapitalization: TextCapitalization.none,
-              minLines: 2,
-              maxLines: 4,
-              textInputAction: TextInputAction.done,
-              onSubmitted: (_) => onSubmit(),
-              decoration: InputDecoration(
-                hintText: L.t('recallPlaceholder'),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-              ),
-            ),
-          ),
         ],
       ),
     );
   }
 }
 
+/// Ввод вспомненных слов — В РЯДУ ПОД ПОЛЕМ, вместе с «Проверить» (приёмка §4б, п. 4).
+///
+/// Орган — клавиатура ОС: слова вспоминаются свободно и на 12 письменностях, своя клавиатура
+/// под полем — 33 буквы на алфавит, а китайскому, японскому и хинди нужен системный ввод.
+/// 🔴 Поле стояло в середине экрана, и на 360×640 с открытой клавиатурой его нижние 42 пт уходили
+/// под «Проверить» (замер 02.10.2026). В ряду под полем каркас держит над клавиатурой и поле, и кнопку.
+class _RecallBar extends StatelessWidget {
+  const _RecallBar({required this.controller, required this.onSubmit});
+
+  final TextEditingController controller;
+  final VoidCallback onSubmit;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 460),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                TextField(
+                  key: const Key('rspan-input'),
+                  controller: controller,
+                  autofocus: true,
+                  autocorrect: false,
+                  enableSuggestions: false,
+                  textCapitalization: TextCapitalization.none,
+                  minLines: 2,
+                  maxLines: 3,
+                  textInputAction: TextInputAction.done,
+                  onSubmitted: (_) => onSubmit(),
+                  decoration: InputDecoration(
+                    hintText: L.t('recallPlaceholder'),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                FilledButton(
+                  key: const Key('rspan-check'),
+                  onPressed: onSubmit,
+                  style: FilledButton.styleFrom(minimumSize: const Size(0, 48)),
+                  child: Text(L.t('check')),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+}
+
 class _Done extends StatelessWidget {
-  const _Done({required this.game});
+  const _Done({required this.game, required this.levelNow});
 
   final ReadingSpanGame game;
+
+  /// Уровень лестницы после круга: на третьем провале подряд он опускается, и «тот же
+  /// уровень» тогда было бы неправдой (сверка веб → натив 02.10.2026).
+  final int levelNow;
 
   @override
   Widget build(BuildContext context) {
@@ -467,7 +517,11 @@ class _Done extends StatelessWidget {
           ],
           if (!game.passed) ...[
             const SizedBox(height: 8),
-            Text(L.t('sameLevelRetry'), style: text.bodySmall),
+            Text(
+              levelNow < game.level ? L.t('levelDownRetry').replaceAll('{n}', '$levelNow') : L.t('sameLevelRetry'),
+              key: const Key('rspan-retry-note'),
+              style: text.bodySmall,
+            ),
           ],
         ],
       ),
@@ -493,15 +547,22 @@ class RspanSolution extends StatelessWidget {
         child: Column(children: [
           for (var i = 0; i < seq.length; i++)
             Padding(
+              // Ключ — для проб; скринридеру — подпись словами, а не отладочный id (сверка 02.10).
+              key: Key('rspan-sol-$i-${seq[i].ok ? 'sense' : 'nonsense'}'),
               padding: const EdgeInsets.only(bottom: 10),
               child: Semantics(
-                label: 'rspan-sol-$i-${seq[i].ok ? 'sense' : 'nonsense'}',
+                label: '${i + 1}. ${seq[i].text(language)} — ${seq[i].ok ? L.t('makesSense') : L.t('nonsense')}',
+                excludeSemantics: true,
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     CircleAvatar(radius: 13, backgroundColor: _accent, child: Text('${i + 1}', style: const TextStyle(fontSize: 12))),
                     const SizedBox(width: 10),
                     Expanded(child: RspanSentenceCard(sentence: seq[i], language: language, mark: seq[i].ok)),
+                    const SizedBox(width: 6),
+                    // Смысл — не только цветом рамки: знак виден и тому, кто цвета не различает.
+                    Icon(seq[i].ok ? Icons.check_circle : Icons.cancel,
+                        color: seq[i].ok ? _sense : _nonsense, size: 22),
                   ],
                 ),
               ),
@@ -516,6 +577,13 @@ class RspanSolution extends StatelessWidget {
 /// всё равно запомнить последнее слово — оценка и память идут вместе; 3) после набора —
 /// набрать последние слова в порядке показа. Верный ответ на суждение берётся из флага
 /// предложения (`ok`), то есть ровно так, как партию засчитывает игра.
+/// Предложения, которые разбор показывает с ответом, — их помечает виденными экран.
+List<RspanSentence> readingSpanLessonSentences(List<RspanSentence> pool) => {
+      pool.firstWhere((s) => s.ok, orElse: () => pool.first),
+      pool.firstWhere((s) => !s.ok, orElse: () => pool.last),
+      ...pool.take(3),
+    }.toList();
+
 List<DemoTrial> readingSpanLessonTrials(List<RspanSentence> pool, String language) {
   final sense = pool.firstWhere((s) => s.ok, orElse: () => pool.first);
   final nonsense = pool.firstWhere((s) => !s.ok, orElse: () => pool.last);

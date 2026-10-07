@@ -6,14 +6,13 @@
 import type { УчительРежима } from './types';
 import { УЧИТЕЛЯ_РАЗДЕЛА as ШАХМАТЫ } from '../sections/chess.teach';
 import { УЧИТЕЛЯ_РАЗДЕЛА as СЧЁТ } from '../sections/counting.teach';
-import { УЧИТЕЛЯ_РАЗДЕЛА as ГОЛОВОЛОМКИ } from '../sections/puzzles.teach';
 import { УЧИТЕЛЯ_РАЗДЕЛА as ПОИСК } from '../sections/search.teach';
 import { УЧИТЕЛЯ_РАЗДЕЛА as СОРТИРОВКА } from '../sections/sorting.teach';
 import { УЧИТЕЛЯ_РАЗДЕЛА as ПРОСТРАНСТВО } from '../sections/spatial.teach';
 import { УЧИТЕЛЯ_РАЗДЕЛА as СУДОКУ } from '../sections/sudoku.teach';
 
 export const УЧИТЕЛЯ: Record<string, УчительРежима> = {
-  ...СЧЁТ, ...ГОЛОВОЛОМКИ, ...ПОИСК, ...СОРТИРОВКА, ...ШАХМАТЫ, ...ПРОСТРАНСТВО, ...СУДОКУ,
+  ...СЧЁТ, ...ПОИСК, ...СОРТИРОВКА, ...ШАХМАТЫ, ...ПРОСТРАНСТВО, ...СУДОКУ,
 };
 
 export type { УчительРежима, КарточкаУрока, РамкаУрока, НажатиеУрока, ВходУрока } from './types';

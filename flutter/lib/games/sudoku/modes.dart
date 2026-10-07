@@ -71,6 +71,7 @@ class SideBoard {
     required this.puzzle,
     required this.solution,
     required this.geometry,
+    this.geometryJson = const {},
     this.tier,
   });
 
@@ -88,6 +89,9 @@ class SideBoard {
   /// Подсказки по краям (небоскрёбы), знаки между клетками (неравенства) или клетки-суммы
   /// (киллер).
   final BoardGeometry geometry;
+
+  /// Та же геометрия в форме выгрузки — для снимка незаконченной партии (resume.dart).
+  final Map<String, Object?> geometryJson;
   final int? tier;
 }
 
@@ -124,6 +128,10 @@ class SideModes {
             puzzle: _parse(row['puzzle'] as String),
             solution: _parse(row['solution'] as String),
             tier: (row['tier'] as num?)?.toInt(),
+            geometryJson: {
+              for (final k in const ['towers', 'unequal', 'cages'])
+                if (row[k] != null) k: row[k],
+            },
             geometry: BoardGeometry(
               towers: row['towers'] == null
                   ? null
