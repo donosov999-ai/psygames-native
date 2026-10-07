@@ -77,7 +77,12 @@ const lostWithReason = <String, Map<String, String>>{
   },
   '/games/stroop': {'mode': _t, 'trials': _t},
   '/games/stroop-emotional': {'trials': _t},
-  '/games/sudoku': {'diff': _t},
+  '/games/sudoku': {
+    'diff': 'не дефект (раздел «Судоку», задача 67490534; замер каркаса 08.10 по main 33af6e413): зарядка шлёт diff '
+        '(5 шагов в constants/profiles.ts → stepToParams: p.diff = step.difficulty), но веб в зарядке играет в режиме '
+        'лестницы (modeRef «levels», шаг mode не задаёт) и diff там не читает — blanksFor(size, difficulty) только вне '
+        'levels (sudoku.tsx:952); в нативе трудность ведёт лестница (freePreset) — решение Дениса 09.09 «с личного уровня»',
+  },
   '/games/switching-task': {
     'stimMode': '«Внимание»: вид стимулов из адреса — читается в PR #287',
   },
