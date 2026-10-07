@@ -1648,6 +1648,7 @@ String variantTitle(String variant) => switch (variant) {
       'between' => L.t('sdkRule_between'),
       'lockout' => L.t('sdkRule_lockout'),
       'xv' => L.t('sdkRule_xv'),
+      'argyle' => L.t('sdkRule_argyle'),
       'friends' => L.t('sdkRule_friends'),
       _ => L.t('sdkRule_none'),
     };
@@ -1750,15 +1751,16 @@ class SudokuBoardView extends StatelessWidget {
                   ),
               ],
             ),
-            // Диагонали и доп. зоны «гипера» — цельными линиями поверх доски, как в вебе.
-            if (board.variant == 'diagonal' || board.variant == 'killerdiag' || board.variant == 'hyper')
+            // Диагонали, узор аргайла и доп. зоны «гипера» — цельными линиями поверх доски, как в вебе.
+            if (const ['diagonal', 'killerdiag', 'hyper', 'argyle'].contains(board.variant))
               Positioned.fill(
                 child: IgnorePointer(
                   child: CustomPaint(
-                    key: Key(board.variant == 'hyper' ? 'hyper-layer' : 'diagonal-layer'),
+                    key: Key(switch (board.variant) { 'hyper' => 'hyper-layer', 'argyle' => 'argyle-layer', _ => 'diagonal-layer' }),
                     painter: BoardLinesPainter(
-                      diagonals: board.variant != 'hyper',
+                      diagonals: board.variant == 'diagonal' || board.variant == 'killerdiag',
                       hyper: board.variant == 'hyper',
+                      argyle: board.variant == 'argyle',
                       n: n,
                       ink: scheme.onSurfaceVariant,
                     ),

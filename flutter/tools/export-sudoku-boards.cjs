@@ -495,7 +495,12 @@ if (!args['no-modes']) {
 // соседних (заведомо спорных), в любую клетку: проба сама освобождает клетку перед ходом.
 if (!args['no-rules']) {
   // 'friends' — условие на всё решение, а не запрет хода: эталона ходов у него нет (meow9-ladder.cjs).
-  const variants = [...new Set(ladder.map((l) => l.variant).filter((v) => v !== 'friends')), 'killer', 'unequal', 'towers'];
+  // RULES_AHEAD — правила, собранные раньше своих ступеней (номера ставит раздел уровней, план
+  // LEVELS_PLAN.md): натив сверяется с живым ядром уже сейчас, а не после раскладки лестницы.
+  const RULES_AHEAD = ['argyle'];
+  const onLadder = new Set(ladder.map((l) => l.variant));
+  const variants = [...new Set(ladder.map((l) => l.variant).filter((v) => v !== 'friends')), 'killer', 'unequal', 'towers',
+    ...RULES_AHEAD.filter((v) => !onLadder.has(v))];
   const out = [];
   const perRule = [];
   for (const variant of variants) {

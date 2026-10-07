@@ -1197,6 +1197,12 @@ const VARIANT_TIER_CEILING: Partial<Record<Variant, number>> = {
    *  знаки работают через известных соседей, а это срез «даром», ступень 4 завышена. Решение
    *  лестницы 02.10 (996f56dc): обещание = замер, потолок 3; отрицательное условие остаётся. */
   xv: 3,
+  /** Аргайл (план — 177–180) — ЗАМЕР 07.10.2026 боевым путём (`generateLogical`, полоса 4..6), по 8
+   *  досок на 50/54/58 пустых: ступени 1,4,1,1,4,4,3,4 · 2,1,2,4,4,4,2,5 · 4,3,2,2,3,3,4,5. Четвёрка —
+   *  на 4/3/2 досках из 8, пятёрка — по одной. Без узора не решается 0 из 24; под потолком 3 — 13 из
+   *  24: диагонали узора режут кандидатов как сосед, своего приёма у правила нет (как у XV).
+   *  Потолок 4 — наибольшая ступень, до которой дотянулись хотя бы две доски из восьми. */
+  argyle: 4,
   /**
    * Комбо-пояс 81–92 — ЗАМЕР 29.08.2026 (combo-tiers.measure, по 15 боевых досок):
    * шестёрка у всех трёх пар — 0–1 из 15 (не массово), пятёрка достижима у всех
@@ -1407,7 +1413,7 @@ export type GeneratedPuzzle = ReturnType<typeof generatePuzzle>;
  * refilter; если конкретная попытка не укладывается в бюджет, generateLogical всё
  * равно сохраняет прежний безопасный fallback через проверку единственности.
  */
-const LOGIC_VARIANTS: readonly Variant[] = ['none', 'diagonal', 'antiknight', 'hyper', 'antiking', 'evenodd', 'kropki', 'sandwich', 'jigsaw', 'nonconsec', 'thermo', 'arrow', 'thermocage', 'sandparity', 'thermoknight', 'killerdiag', 'whisper', 'renban', 'regionsum', 'palindrome', 'between', 'lockout', 'xv'];
+const LOGIC_VARIANTS: readonly Variant[] = ['none', 'diagonal', 'antiknight', 'hyper', 'antiking', 'evenodd', 'kropki', 'sandwich', 'jigsaw', 'nonconsec', 'thermo', 'arrow', 'thermocage', 'sandparity', 'thermoknight', 'killerdiag', 'whisper', 'renban', 'regionsum', 'palindrome', 'between', 'lockout', 'xv', 'argyle'];
 
 /**
  * Сколько раз проходим доску, пытаясь убрать ещё клетку. Больше трёх бюджет обычно
