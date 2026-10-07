@@ -33,12 +33,19 @@ void main() {
       final p = levelParams(e['level'] as int);
       final at = 'L${e['level']}';
       expect(p.trials, e['trials'], reason: '$at раскладов');
+      if ((e['level'] as int) > setTimeFloorUntil) {
+        // Веб держит пол в 8 с (эталон снят так). С 02.10.2026 потолка нет — правило Дениса
+        // 06.09: выше 16-го лимит ниже пола, это сверяет проба «ПОТОЛКА НЕТ» ниже.
+        expect(e['timeLimit'], 8, reason: '$at эталон — пол веба');
+        expect(p.timeLimit, lessThan(8), reason: '$at лимит ниже прежнего пола');
+        continue;
+      }
       expect(p.timeLimit, e['timeLimit'], reason: '$at лимит');
     }
     expect(levelParams(10).timeLimit, 0, reason: 'до одиннадцатого давления временем нет');
     expect(levelParams(11).timeLimit, 26, reason: 'на одиннадцатом лимит появляется');
     expect(levelParams(15).timeLimit, 10);
-    expect(levelParams(99).timeLimit, 8, reason: 'лимит не опускается ниже восьми секунд');
+    expect(levelParams(16).timeLimit, 8, reason: 'до 16-го лимит не опускается ниже восьми секунд');
   });
 
   test('🔴 вердикт «сет или нет» совпадает на ВСЕХ 220 тройках одного стола', () {
@@ -121,5 +128,27 @@ void main() {
       }
     }
     expect(nonSets > 200, isTrue, reason: 'проверено $nonSets не-сетов');
+  });
+
+  test('🔴 ПОТОЛКА НЕТ: с 17-го лимит ниже восьми секунд — на 5 % за уровень, без предела', () {
+    // Правило Дениса 06.09.2026. До 02.10.2026 здесь стояло «лимит не опускается ниже восьми
+    // секунд» — и 16-й повторялся без конца. Восемь секунд были пределом оси, а не игры.
+    expect(levelParams(setTimeFloorUntil + 1).timeLimit, closeTo(7.6, 1e-9));
+    expect(levelParams(20).timeLimit, closeTo(6.5, 0.05), reason: 'то же число, что в примере карточки');
+    expect(levelParams(30).timeLimit, closeTo(3.9, 0.05), reason: 'то же число, что в примере карточки');
+    var prev = levelParams(setTimeFloorUntil).timeLimit;
+    for (var l = setTimeFloorUntil + 1; l <= 400; l += 1) {
+      final p = levelParams(l);
+      expect(p.timeLimit, lessThan(prev), reason: 'L$l: времени меньше, чем на L${l - 1}');
+      expect(p.timeLimit, greaterThan(0), reason: 'L$l: лимит ещё есть');
+      expect(p.trials, 15, reason: 'L$l: раскладов — как на верху лестницы');
+      prev = p.timeLimit;
+    }
+  });
+
+  test('🔴 карточка «Время на SET всё короче» встаёт на тот же уровень, что и ось', () {
+    final rules = jsonDecode(File('assets/level_rules.json').readAsStringSync()) as Map<String, dynamic>;
+    final ranges = ((rules['games'] as Map)['set_game'] as List).cast<List>();
+    expect(ranges.last, [setTimeFloorUntil + 1, null, 'faster']);
   });
 }

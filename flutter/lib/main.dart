@@ -5,6 +5,7 @@ import 'games/digit_span/screen.dart';
 import 'games/one_line/screen.dart';
 import 'shell/app_look.dart';
 import 'shell/asset_server.dart';
+import 'shell/feedback_screen.dart';
 import 'shell/app_theme.dart';
 import 'shell/game_clock.dart';
 import 'shell/game_rules.dart';
@@ -80,6 +81,8 @@ class PsyGamesPilotApp extends StatelessWidget {
           brightness: Brightness.dark,
           useMaterial3: true,
         ),
+        // Кадр всего приложения — для снимка в отзыв с нативного экрана (`feedback_screen.dart`).
+        builder: (context, child) => RepaintBoundary(key: FeedbackHost.shotKey, child: child),
         home: HybridApp(state: state, server: server),
       ));
 }
