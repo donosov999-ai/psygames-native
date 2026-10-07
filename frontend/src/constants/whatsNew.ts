@@ -16,6 +16,32 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.56.17',
+    date: '2026-10-07',
+    en: [
+      'Sudoku: a new rule, Cipher — some clues are letters, and you work out the code together with the grid; the ladder grows to 136 steps',
+      'Sudoku: Little Killer and X-sums blocks get harder steps',
+      'Native Shop, What’s New and Pet tab: they open faster and follow your theme; the shop guards against a double charge',
+      'Visual Search: no more level ceilings — Object Tracker, Spot the Difference, visual search and SET keep growing',
+      'Visual Search and Counting are fully in English on English phones — eight screens without leftover Russian',
+      'Guess the Code: the second action is called Keep, and the help follows the real input; Slant, Black Box and Unruly no longer show a raw key on that button',
+      'Anagrams: on an English phone the words are now English (they were Russian for everyone), and the language can be changed in the pause menu',
+      'Anagrams and Proofread: Restart in the pause menu works on all five screens',
+      'First launch: the bottom Skip button is full width; on Home the link now reads All hubs',
+    ],
+    ru: [
+      '«Судоку»: новое правило «шифр» — часть подсказок буквами, код выводится вместе с доской; лестница выросла до 136 ступеней',
+      '«Судоку»: у «малого киллера» и «X-сумм» блоки стали труднее',
+      '«Магазин», «Что нового» и вкладка «Питомец» стали нативными: открываются быстрее и идут за темой; магазин защищён от двойного списания',
+      '«Поиск глазами»: потолков нет — трекер, «Найди отличия», зрительный поиск и SET растут дальше',
+      '«Поиск» и «Счёт» на английском телефоне — полностью по-английски: восемь экранов без русских остатков',
+      '«Угадай код»: второе действие называется «Оставить», справка — по настоящему вводу; у «Косых черт», «Чёрного ящика» и Unruly на этой кнопке больше нет служебного ключа',
+      'Анаграммы: на английском телефоне слова теперь английские (были русские у всех), язык слов можно сменить в паузе',
+      'Анаграммы и «Корректура»: «Заново» в паузе работает на всех пяти экранах',
+      'Первый запуск: нижняя кнопка «Пропустить» — во всю ширину',
+    ],
+  },
+  {
     version: '2.56.16',
     date: '2026-10-07',
     en: [
