@@ -37,7 +37,7 @@ export const GAME_VERSIONS: Record<string, GameVersion> = {
   'find-differences': { ver: 1, date: '19.08.2026' },
   'flanker': { ver: 3, date: '23.09.2026' },
   'go-no-go': { ver: 4, date: '16.09.2026' },
-  'goods-sort': { ver: 4, date: '09.09.2026' },
+  'goods-sort': { ver: 5, date: '07.10.2026' },
   'hanoi': { ver: 4, date: '16.09.2026' },
   'hearing-hub': { ver: 1, date: '04.09.2026' },
   'inhibition': { ver: 4, date: '17.09.2026' },

@@ -34,6 +34,7 @@ export type Technique =
   | 'locked'          // связанные кандидаты: цифра блока заперта в одной строке (и наоборот)
   | 'naked_subset'    // голая пара/тройка
   | 'hidden_subset'   // скрытая пара
+  | 'sum_exact'       // точный коридор суммы: достижима ли сумма кандидатами остальных клеток
   | 'sandwich_sum'    // вывод из суммы между позициями 1 и 9
   | 'cage_sum'        // вывод из суммы клеток-группы (киллер, ThermoCage)
   | 'towers_clue'     // вывод из подсказки «сколько зданий видно с края»
@@ -83,6 +84,13 @@ export const TECHNIQUE_TIER: Record<Technique, number> = {
    */
   cage_sum: 4,
   hidden_subset: 5, x_wing: 6, xy_wing: 7, guess: 9,
+  /**
+   * Точный коридор суммы (07.10.2026, задача раздела уровней c3f9e08b): кандидат живёт, только если
+   * сумму можно ДОБРАТЬ кандидатами остальных клеток. Ступень 5 —
+   * выше класса выводов варианта (4): вывод о сочетании, а не о границах. Без него малый киллер и
+   * X-суммы упирались в 4.
+   */
+  sum_exact: 5,
 };
 
 export interface GradeCtx {
@@ -1135,11 +1143,91 @@ export function gradePuzzle(puzzle: Cell[][], ctx: GradeCtx, tierCap = 9): Grade
     return false;
   };
 
+  /**
+   * 🔴 ТОЧНЫЙ КОРИДОР СУММЫ — ступень 5 (задача раздела уровней c3f9e08b, 07.10.2026).
+   *
+   * Повод — замер: малый киллер и X-суммы упирались в ступень 4 и ~65 пустых при любом лимите
+   * копания. Их выводы (`little_killer_sum`, `xsum_clue`, `cage_sum`) смотрят только на ГРАНИЦЫ:
+   * сумма в промежутке «сумма наименьших … сумма наибольших» кандидатов. Но у кандидатов бывают
+   * дыры — у клеток {1,9} и {1,9} сумма только 2, 10 или 18, а не любое число от 2 до 18. Приём
+   * проверяет точно: кандидат v клетки живёт, только если остальные клетки могут добрать сумму
+   * своими кандидатами (перебор с отсечением по границам; клеток не больше N); где цифры суммы
+   * разные по самому правилу (клетки-суммы, X-сумма в одной строке) — разными. Вывод строгий.
+   * 📍 Замер 07.10 (8 досок на точку, лимит копания 70): ступень 5 у 8/8 малого киллера (128),
+   *    X-сумм (132) и киллер-комбо (92); без приёма такие доски мерой не решаются (0 из 8).
+   *    Две части сверх этого мерили и сняли (YAGNI): «правило 45» (сумма остатка дома) и «разные
+   *    цифры в общем доме» для диагоналей малого киллера — сеяная выборка, 18 досок: пустых
+   *    64,4 против 64,0, ступень та же; первое «+1,8» было шумом несеяных 8 досок.
+   * Суммы — показанные игроку: диагонали малого киллера; X-суммы, когда первая цифра ряда уже
+   * стоит (тогда известны и X, и клетки); клетки-суммы.
+   */
+  // Суммы, которые при тех же кандидатах уже ничего не дали, — не перебирать заново: главный цикл
+  // зовёт приём после каждого шага, а перебор дорогой (замер 07.10: без памяти 2,4–3,6 с на доску).
+  const exactSpent = new Set<string>();
+  const sumExact = (): boolean => {
+    type SumC = { cells: [number, number][]; sum: number; allDistinct: boolean };
+    const sums: SumC[] = [];
+    if (littlekiller) for (const k of littlekiller) sums.push({ cells: littleKillerCells(k, N), sum: k.sum, allDistinct: false });
+    if (xsums) {
+      for (let i = 0; i < N; i++) {
+        for (const [byRow, clue] of [[true, xsums.rows[i]], [false, xsums.cols[i]]] as const) {
+          if (clue < 0) continue;
+          const first = byRow ? grid[i][0] : grid[0][i];
+          if (first === 0) continue;
+          sums.push({ cells: Array.from({ length: first }, (_, k) => (byRow ? [i, k] : [k, i]) as [number, number]), sum: clue, allDistinct: true });
+        }
+      }
+    }
+    if (cages) cages.cells.forEach((cells, id) => { if (cells && cells.length) sums.push({ cells: cells as [number, number][], sum: cages.sum[id], allDistinct: true }); });
+    if (!sums.length) return false;
+    for (const k of sums) {
+      const n = k.cells.length;
+      const masks = k.cells.map(([r, c]) => (grid[r][c] !== 0 ? bit(grid[r][c]) : cand[r][c]));
+      if (masks.some((m) => m === 0)) return false;   // противоречие поймает refilter
+      const sig = `${k.sum}|${k.allDistinct ? 1 : 0}|${k.cells.map(([r, c], i) => `${r * N + c}:${masks[i]}`).join(',')}`;
+      if (exactSpent.has(sig)) continue;
+      const clash = k.cells.map((_a, i) => k.cells.map((_b, j) => k.allDistinct && i !== j));
+      const vals = new Array<number>(n).fill(0);
+      const fits = (ms: number[]): boolean => {
+        const ord = Array.from({ length: n }, (_, i) => i).sort((a, b) => bitsOf(ms[a], N).length - bitsOf(ms[b], N).length);
+        const lo = new Array<number>(n + 1).fill(0), hi = new Array<number>(n + 1).fill(0);
+        for (let t = n - 1; t >= 0; t--) { lo[t] = lo[t + 1] + loVal(ms[ord[t]]); hi[t] = hi[t + 1] + hiVal(ms[ord[t]]); }
+        const dfs = (t: number, acc: number): boolean => {
+          if (t === n) return acc === k.sum;
+          if (acc + lo[t] > k.sum || acc + hi[t] < k.sum) return false;
+          const i = ord[t];
+          for (const v of bitsOf(ms[i], N)) {
+            let ok = true;
+            for (let q = 0; q < t && ok; q++) if (clash[i][ord[q]] && vals[ord[q]] === v) ok = false;
+            if (!ok) continue;
+            vals[i] = v;
+            if (dfs(t + 1, acc + v)) return true;
+          }
+          return false;
+        };
+        return dfs(0, 0);
+      };
+      let hit = false;
+      for (let i = 0; i < n; i++) {
+        const [r, c] = k.cells[i];
+        if (grid[r][c] !== 0) continue;
+        for (const v of bitsOf(cand[r][c], N)) {
+          const ms = [...masks];
+          ms[i] = bit(v);
+          if (!fits(ms)) { cand[r][c] &= ~bit(v); masks[i] = cand[r][c]; hit = true; }
+        }
+      }
+      if (hit) { bump('sum_exact'); return true; }
+      exactSpent.add(sig);
+    }
+    return false;
+  };
+
   // tierCap отсекает техники сверху: так можно спросить «решается ли это БЕЗ техник выше k».
   // На этом стоит ПОЛ сложности: пазл требует технику k, если без неё он не добирается.
   const all: [Technique, () => boolean][] = [
     ['naked_single', nakedSingle], ['hidden_single', hiddenSingle], ['locked', locked],
-    ['naked_subset', nakedSubset], ['hidden_subset', hiddenSubset], ['x_wing', xWing], ['xy_wing', xyWing],
+    ['naked_subset', nakedSubset], ['hidden_subset', hiddenSubset], ['sum_exact', sumExact], ['x_wing', xWing], ['xy_wing', xyWing],
   ];
   const steps = all.filter(([t]) => TECHNIQUE_TIER[t] <= tierCap).map(([, f]) => f);
   for (let guard = 0; guard < N * N * 25; guard++) {
@@ -1303,13 +1391,13 @@ const VARIANT_TIER_CEILING: Partial<Record<Variant, number>> = {
    *  одна на 62). Без сумм не решается 0 из 24, под потолком 3 — 0 из 24: приём `little_killer_sum`
    *  нужен почти каждой доске (самый трудный приём у 21 из 24). Все 24 — логическим путём, 0,3–1,2 с.
    *  Потолок 4: пятёрка ни на одной толщине не набрала двух досок из восьми. */
-  littlekiller: 4,
+  littlekiller: 5,
   /** X-суммы (план — 185–188) — ЗАМЕР 07.10.2026 боевым путём (`generateLogical`, полоса 4..6, 12 сумм
    *  из 18), по 8 досок на 50/56/62 пустых: ступень 4 у 24 из 24, приём `xsum_clue` — самый трудный у
    *  всех 24; без сумм не решается 0 из 24, под потолком 3 — 1 из 24; все копаются до 64 пустых,
    *  0,15 с на доску. Потолок 4. Рычаг трудности внутри блока — лимит копания `digCap` (64 → 70: цена
    *  129 → 151), а НЕ число показанных сумм: 12 → 6 сумм — цена 125 → 115 (замеры 07.10). */
-  xsums: 4,
+  xsums: 5,
   /**
    * Комбо-пояс 81–92 — ЗАМЕР 29.08.2026 (combo-tiers.measure, по 15 боевых досок):
    * шестёрка у всех трёх пар — 0–1 из 15 (не массово), пятёрка достижима у всех

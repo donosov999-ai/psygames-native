@@ -1,6 +1,6 @@
 {
  "generator": "goods-sort dealBoard (живой TS)",
- "exportedAt": "2026-09-25",
+ "exportedAt": "2026-10-07",
  "seed": 20260923,
  "set": "toys",
  "pool": [
@@ -5098,7 +5098,7 @@
    "covered": [],
    "frozen": {
     "row": 4,
-    "type": 18
+    "type": 14
    },
    "goal": {
     "kind": "free",
@@ -6625,7 +6625,7 @@
    ],
    "frozen": {
     "row": 3,
-    "type": 17
+    "type": 20
    },
    "goal": {
     "kind": "all"
@@ -7028,7 +7028,7 @@
    ],
    "frozen": {
     "row": 1,
-    "type": 16
+    "type": 21
    },
    "goal": {
     "kind": "pick",
@@ -8871,7 +8871,7 @@
    ],
    "frozen": {
     "row": 3,
-    "type": 20
+    "type": 15
    },
    "goal": {
     "kind": "all"
@@ -9515,7 +9515,7 @@
    "covered": [],
    "frozen": {
     "row": 7,
-    "type": 17
+    "type": 14
    },
    "goal": {
     "kind": "all"
@@ -16931,7 +16931,7 @@
     "11:0"
    ],
    "frozen": {
-    "row": 3,
+    "row": 1,
     "type": 16
    },
    "goal": {
@@ -17332,7 +17332,7 @@
    ],
    "frozen": {
     "row": 2,
-    "type": 17
+    "type": 19
    },
    "goal": {
     "kind": "pick",
@@ -19834,7 +19834,7 @@
    "covered": [],
    "frozen": {
     "row": 3,
-    "type": 20
+    "type": 17
    },
    "goal": {
     "kind": "all"

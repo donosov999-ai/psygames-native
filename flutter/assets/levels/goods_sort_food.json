@@ -1,6 +1,6 @@
 {
  "generator": "goods-sort dealBoard (живой TS)",
- "exportedAt": "2026-09-25",
+ "exportedAt": "2026-10-07",
  "seed": 20260923,
  "set": "food",
  "pool": [
@@ -6393,7 +6393,7 @@
    ],
    "frozen": {
     "row": 1,
-    "type": 11
+    "type": 8
    },
    "goal": {
     "kind": "all"
@@ -6781,7 +6781,7 @@
    ],
    "frozen": {
     "row": 3,
-    "type": 11
+    "type": 7
    },
    "goal": {
     "kind": "pick",
@@ -9179,7 +9179,7 @@
    "covered": [],
    "frozen": {
     "row": 1,
-    "type": 7
+    "type": 6
    },
    "goal": {
     "kind": "all"
@@ -13273,7 +13273,7 @@
    "covered": [],
    "frozen": {
     "row": 3,
-    "type": 8
+    "type": 9
    },
    "goal": {
     "kind": "free",
@@ -14548,8 +14548,8 @@
     "8:0"
    ],
    "frozen": {
-    "row": 1,
-    "type": 8
+    "row": 3,
+    "type": 7
    },
    "goal": {
     "kind": "pick",
@@ -14876,7 +14876,7 @@
    "covered": [],
    "frozen": {
     "row": 3,
-    "type": 7
+    "type": 9
    },
    "goal": {
     "kind": "free",
@@ -16331,7 +16331,7 @@
    ],
    "frozen": {
     "row": 1,
-    "type": 8
+    "type": 11
    },
    "goal": {
     "kind": "all"
@@ -18505,7 +18505,7 @@
    ],
    "frozen": {
     "row": 3,
-    "type": 8
+    "type": 6
    },
    "goal": {
     "kind": "all"
@@ -19129,8 +19129,8 @@
    ],
    "covered": [],
    "frozen": {
-    "row": 4,
-    "type": 9
+    "row": 5,
+    "type": 11
    },
    "goal": {
     "kind": "all"

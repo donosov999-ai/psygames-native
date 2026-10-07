@@ -78,7 +78,6 @@ void main() {
     'games/object_tracker/model.dart': 14,
     'games/deep/screen.dart': 1,
     'shell/hybrid_app.dart': 3,
-    'games/stroop/model.dart': 8,
     'shell/game_shell.dart': 2,
     'shell/hub_screen.dart': 3,
     'shell/tap_latency.dart': 4,
@@ -108,7 +107,10 @@ void main() {
   // shell/hybrid_app.dart 8 → 3 (−5). Новых ключей 25, у каждого перевод на все двенадцать
   // языков в том же коммите. Коды отказа пробирок — латиницей: их не видит человек.
   // Сведено с main 07.10: 389 − 98 − 5 = 286.
-  const total = 286;
+  // 07.10 — «Конфликт внимания»: слова Струпа ушли из палитры в словарь (задача f79c6be0) —
+  // готовые ключи color_* с переводом на 12 языков, новых нет; stroop/model.dart ушёл из
+  // списка: 286 − 8.
+  const total = 278;
 
   final counts = _scan(Directory('lib'));
 

@@ -43,7 +43,7 @@ void main() {
       final marked = await markedOn(tester, art);
       expect(marked.length, art.game.cfg.groupSize,
           reason: 'L${art.game.level}: выделено столько карт, сколько в группе');
-      final game = PairsGame(level: art.game.level, deck: [for (final c in art.game.cards) c.symbol]);
+      final game = PairsGame(level: art.game.level, cfg: art.game.cfg, deck: [for (final c in art.game.cards) c.symbol]);
       TapResult last = TapResult.ignored;
       for (final i in marked) {
         last = game.tap(i);
@@ -51,7 +51,7 @@ void main() {
       expect(last, TapResult.groupMatched, reason: 'L${art.game.level}: партия снимает показанную группу');
       played++;
     }
-    expect(played, 2, reason: 'сыграны оба примера с группой — пара и тройка');
+    expect(played, 3, reason: 'сыграны все примеры с группой — пара, тройка и жёлтый двойник');
   });
 
   testWidgets('пример про обмен: подсвечены ровно две карты, и обе рубашкой вверх', (tester) async {
@@ -62,6 +62,19 @@ void main() {
     final lit = [for (var i = 0; i < art.game.cards.length; i++) if (find.byKey(Key('lesson-обмен$i')).evaluate().isNotEmpty) i];
     expect(lit.length, 2);
     expect(find.byKey(const Key('lesson-лицо0')), findsNothing, reason: 'в примере обмена карты закрыты');
+  });
+
+  testWidgets('🔴 пример похожих пар: отмечена жёлтая пара, и на поле лежит та же картинка обычной парой', (
+    tester,
+  ) async {
+    final art = pairsLessonTrials(theme, rnd: Random(5)).map((t) => t.art! as PairsLessonArt).last;
+    final symbols = [for (final c in art.game.cards) c.symbol];
+    final marked = await markedOn(tester, art);
+    final twin = symbols[marked.first];
+    expect(
+      '${marked.every((i) => symbols[i] == twin)} ${pairsIsTwin(twin)} ${symbols.contains(pairsSpriteOf(twin))}',
+      'true true true',
+    );
   });
 
   testWidgets('примеры — из генератора игры: пары на L1, тройки на L10', (tester) async {
