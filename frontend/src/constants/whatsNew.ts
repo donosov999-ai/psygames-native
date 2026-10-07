@@ -19,6 +19,7 @@ export const WHATS_NEW: WhatsNewEntry[] = [
     version: '2.56.15',
     date: '2026-10-07',
     ru: [
+      '«Судоку»: два новых правила — «аргайл» и «малый киллер»; лестница выросла до 128 ступеней',
       '«Судоку»: новое правило объясняется при первой встрече — со схемой, и всегда доступно из паузы',
       '«Судоку», «Фрактальная судоку» и «Самурай»: карта уровней — можно вернуться на любой пройденный и добрать звёзды',
       '«Судоку»: незаконченная партия в «Небоскрёбах», «Неравенствах», «Киллере» и «Свободно» продолжается с того же места',
@@ -27,6 +28,7 @@ export const WHATS_NEW: WhatsNewEntry[] = [
       '«Корректура» — в «Поиске глазами», «Быстрый счёт» — в «Счёте», OSpan и «Мнемоника: порядок» — в «Объёме памяти»',
     ],
     en: [
+      'Sudoku: two new rules — Argyle and Little Killer; the ladder grows to 128 steps',
       'Sudoku: a new rule is explained the first time you meet it — with a diagram, and it stays one tap away in the pause menu',
       'Sudoku, Fractal Sudoku and Samurai: a level map — go back to any level you have passed and earn more stars',
       'Sudoku: an unfinished game in Towers, Futoshiki, Killer and Free resumes right where you left it',
