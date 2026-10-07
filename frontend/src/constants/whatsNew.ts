@@ -19,6 +19,9 @@ export const WHATS_NEW: WhatsNewEntry[] = [
     version: '2.56.17',
     date: '2026-10-07',
     en: [
+      'Progress counts only the selected profile’s games, and points and streak no longer show zero right after you switch profile',
+      'Progress no longer records phantom games that ran unseen behind native screens',
+      'Large system font: Home cards no longer cut off their text',
       'Feedback opens right over the current screen, and a screenshot of native games is attached again',
       'Sudoku: a new rule, Cipher — some clues are letters, and you work out the code together with the grid; the ladder grows to 136 steps',
       'Sudoku: Little Killer and X-sums blocks get harder steps',
@@ -31,6 +34,9 @@ export const WHATS_NEW: WhatsNewEntry[] = [
       'First launch: the bottom Skip button is full width; on Home the link now reads All hubs',
     ],
     ru: [
+      '«Прогресс» считает партии только выбранного профиля, а очки и серия больше не показывают ноль сразу после смены профиля',
+      '«Прогресс» больше не записывает «призрачные» партии, которые шли незаметно под нативными экранами',
+      'Крупный системный шрифт: карточки Главной больше не обрезают текст',
       'Отзыв открывается прямо поверх текущего экрана, и к нему снова прикладывается снимок нативной игры',
       '«Судоку»: новое правило «шифр» — часть подсказок буквами, код выводится вместе с доской; лестница выросла до 136 ступеней',
       '«Судоку»: у «малого киллера» и «X-сумм» блоки стали труднее',
