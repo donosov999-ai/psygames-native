@@ -131,7 +131,8 @@ export default function WalkingPet() {
    */
   const busyUntilRef = React.useRef(0);
 
-  const [petOn, setPetOn] = React.useState(true);
+  // По умолчанию не гуляет (ed85e191): до ответа хранилища — тоже нет, без мелькания.
+  const [petOn, setPetOn] = React.useState(false);
   const [skin, setSkin] = React.useState<PetSkin>('cat');
   const [accessory, setAccessory] = React.useState<PetAccessory | null>(null);
   // Масштаб из настроек (ползунок): применяется живо через DeviceEventEmitter.

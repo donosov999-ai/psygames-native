@@ -133,7 +133,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool get _music => _s.get(SettingsScreen.music) == 'true';
   bool get _colorblind => _s.get(SettingsScreen.colorblind) == 'true';
   bool get _devChat => _s.get(SettingsScreen.devChat) != '0';
-  bool get _pet => _s.get(SettingsScreen.pet) != '0';
+  /// Гуляющий питомец — только по явному «да» (`pet.ts` `getPetVisible`: '1'); по умолчанию выкл.
+  /// (решение Дениса 07.10.2026, ed85e191).
+  bool get _pet => _s.get(SettingsScreen.pet) == '1';
   int get _volume => (int.tryParse(_s.get(SettingsScreen.volume) ?? '') ?? 80).clamp(0, 100);
   double get _petScale =>
       (double.tryParse(_s.get(SettingsScreen.petScale) ?? '') ?? 1).clamp(SettingsScreen.petMin, SettingsScreen.petMax);

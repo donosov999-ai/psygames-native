@@ -56,17 +56,18 @@ void main() {
     await t.pumpAndSettle();
   }
 
-  testWidgets('умолчания — как у веба: звук и вибрация вкл, музыка выкл, громкость 80, питомец 100 %', (t) async {
+  testWidgets('умолчания — как у веба: звук и вибрация вкл, музыка выкл, громкость 80, питомец не гуляет', (t) async {
     await open(t);
     Switch sw(String k) => t.widget<Switch>(find.byKey(Key('settings-$k')));
     expect(sw('sound').value, isTrue);
     expect(sw('haptic').value, isTrue);
     expect(sw('music').value, isFalse);
     expect(sw('devchat').value, isTrue);
-    expect(sw('pet').value, isTrue);
+    expect(sw('pet').value, isFalse, reason: 'гуляющий питомец по умолчанию выкл. (решение Дениса 07.10, ed85e191)');
     expect(sw('colorblind').value, isFalse);
     expect(find.text('80%'), findsOneWidget);
-    expect(find.text('100%'), findsOneWidget);
+    // Размер питомца — только у гуляющего (как `{petOn && …}` веба): по умолчанию ползунка нет.
+    expect(find.text('100%'), findsNothing);
   });
 
   testWidgets('тумблеры пишут ровно то, что пишет веб', (t) async {
@@ -81,8 +82,9 @@ void main() {
     expect(state.get(SettingsScreen.colorblind), 'true', reason: 'ThemeContext: String(v)');
     await tap(t, 'settings-devchat');
     expect(state.get(SettingsScreen.devChat), '0', reason: "appFeedback.ts: on ? '1' : '0'");
+    // Питомец по умолчанию не гуляет (ed85e191): первый тап — включить.
     await tap(t, 'settings-pet');
-    expect(state.get(SettingsScreen.pet), '0', reason: "pet.ts: on ? '1' : '0'");
+    expect(state.get(SettingsScreen.pet), '1', reason: "pet.ts: on ? '1' : '0'; по умолчанию выкл.");
     // Тема — четыре варианта, как у веба с 2.56.12: «по профилю» ключ удаляет (ThemeContext.setThemeMode).
     await tap(t, 'settings-theme-dark');
     expect(state.get(AppLook.overrideKey), 'dark');

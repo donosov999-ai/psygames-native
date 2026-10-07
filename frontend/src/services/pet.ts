@@ -15,12 +15,16 @@ import { getSessions } from '@/src/services/api';
 import { petLook, type PetLook } from '@/src/services/petLook';
 import { GAMES, GameCategory } from '@/src/constants/games';
 
-/** Тумблер «Питомец Синапс» в настройках (паттерн = getDevChatVisible в
- *  appFeedback.ts: '0' = скрыт, дефолт ВКЛ). Прячет только ГУЛЯЮЩЕГО питомца —
- *  экран /pet и мини-аватар в шапке остаются: они не «мешаются», это навигация. */
+/** Тумблер «Питомец Синапс» в настройках. Прячет только ГУЛЯЮЩЕГО питомца —
+ *  экран /pet и мини-аватар в шапке остаются: они не «мешаются», это навигация.
+ *
+ *  🔴 ПО УМОЛЧАНИЮ ПИТОМЕЦ НЕ ГУЛЯЕТ (решение Дениса 07.10.2026, задача ed85e191): гуляющий
+ *  питомец ложился поверх текста карточек («Сегодня» на Главной, отчёт тестировщика «Релакс»).
+ *  Включает прогулку только явное «да» в настройках ('1'); нет записи — выключен. Тот же ответ
+ *  уходит нативной оболочке (`petHostAnswer('config').visible`) — правило одно на оба мира. */
 const PET_KEY = 'psygames_pet_on';
 export async function getPetVisible(): Promise<boolean> {
-  try { return (await AsyncStorage.getItem(PET_KEY)) !== '0'; } catch { return true; }
+  try { return (await AsyncStorage.getItem(PET_KEY)) === '1'; } catch { return false; }
 }
 export async function setPetVisible(on: boolean): Promise<void> {
   try { await AsyncStorage.setItem(PET_KEY, on ? '1' : '0'); } catch {}
