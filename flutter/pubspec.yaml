@@ -133,6 +133,8 @@ flutter:
     - assets/look.json
     # Профили для настроек — выгрузка живого TS, сторож frontend/src/__tests__/flutter-profiles-asset-fresh.test.ts
     - assets/profiles.json
+    # «Источники» — данные веба для модели на Dart (tools/embed-sources.mjs, вариант Б).
+    - assets/sources.json
     # Иконки игр «поле в миниатюре» для строк развилок — выгрузка веб-реестра
     # (flutter/tools/embed-game-icons.mjs), не править руками.
     - assets/game_icons/

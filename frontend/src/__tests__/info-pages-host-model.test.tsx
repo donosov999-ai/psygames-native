@@ -140,6 +140,15 @@ describe('Источники под оболочкой', () => {
     expect(mockRouter.back).toHaveBeenCalledTimes(1);
     образец('sources_model.json', m);
   });
+
+  it('🔴 EN: имена и авторство источников — по-английски (было «Записи произношения Викисловаря»); образец для Dart', async () => {
+    await AsyncStorage.setItem('language', 'en');
+    const { last } = await смонтировать('/sources');
+    const m = last();
+    const cyr = /[А-Яа-яЁё]/;
+    expect(m.cards.filter((c: any) => cyr.test(c.name) || cyr.test(c.credit ?? '') || cyr.test(c.what)).map((c: any) => c.name)).toEqual([]);
+    образец('sources_model_en.json', m);
+  });
 });
 
 describe('Коллекция под оболочкой', () => {

@@ -123,6 +123,8 @@ for (const [file, fields] of [
   ['assets/game_help_routes.json', ['introKey']],
   // Имена игр в листе деталей профиля (настройки на Flutter, задача eae0879c).
   ['assets/profiles.json', ['nameKey']],
+  // «Источники» считают модель на Dart (`sources_model.dart`): `L.t(src.key)` и подписи-ключи.
+  ['assets/sources.json', ['key', 'nameKey', 'creditKey']],
 ]) {
   let data;
   // 🔴 НЕТ ФАЙЛА — пропустить можно; ЕСТЬ, НО НЕ ЧИТАЕТСЯ — СТОП. Замер 01.10.2026: после

@@ -3543,5 +3543,8 @@ const t: Record<string, string> = {
   "relaxationGroupFootnote": "ここでは何も測定・採点しません。トレーニングの合間の休憩で、テストではありません。",
   "relaxationGroupIntroDesc": "3つの短い休憩：呼吸のリズム、目と呼吸の交互の練習、画面の後に目を休める体操。\n\nここでは何も測定しません。注意力と作業記憶は休憩中に回復し、次のゲームがスムーズになります。",
   "allForks": "すべての分岐",
+  "sourceWiktionaryVoiceName": "ウィクショナリーの発音録音",
+  "sourceWiktionaryVoiceCredit": "ウィクショナリーと Lingua Libre の投稿者 — 全員の一覧は下に",
+  "sourceCburnettName": "Cburnett のチェスの駒",
 };
 export default t;

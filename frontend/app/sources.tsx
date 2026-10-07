@@ -12,7 +12,7 @@ import { Stack, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
-import { SOURCES } from '@/src/constants/sources';
+import { SOURCES, sourceName, sourceCredit } from '@/src/constants/sources';
 import { VOICE_LIVE_CREDITS } from '@/src/constants/voiceLive.generated';
 import { LETTER_VOICE_CREDITS } from '@/src/constants/letterVoice.generated';
 import { FAB_CLEARANCE } from '@/src/services/fabPosition';
@@ -30,7 +30,7 @@ export default function SourcesScreen() {
   const sourcesModel = {
     v: 1,
     title: t('sourcesTitle'), back: t('back'), intro: t('sourcesIntro'), primary: colors.primary,
-    cards: SOURCES.map((и) => ({ name: и.name, what: t(и.key), license: и.license, credit: и.credit ?? null, url: и.url })),
+    cards: SOURCES.map((и) => ({ name: sourceName(и, t), what: t(и.key), license: и.license, credit: sourceCredit(и, t), url: и.url })),
     voices: {
       title: t('voiceCreditsTitle'),
       rows: [...VOICE_LIVE_CREDITS, ...LETTER_VOICE_CREDITS].map((к) => ({ author: к.author, license: к.license, count: String(к.count) })),
@@ -65,11 +65,11 @@ export default function SourcesScreen() {
         <Text style={[styles.intro, { color: colors.textSecondary }]}>{t('sourcesIntro')}</Text>
         {SOURCES.map((и) => (
           <View key={и.name} style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-            <Text style={[styles.name, { color: colors.text }]}>{и.name}</Text>
+            <Text style={[styles.name, { color: colors.text }]}>{sourceName(и, t)}</Text>
             <Text style={[styles.what, { color: colors.textSecondary }]}>{t(и.key)}</Text>
             <View style={styles.row}>
               <Text style={[styles.license, { color: colors.primary }]}>{и.license}</Text>
-              {и.credit ? <Text style={[styles.credit, { color: colors.textSecondary }]}>· {и.credit}</Text> : null}
+              {и.credit ? <Text style={[styles.credit, { color: colors.textSecondary }]}>· {sourceCredit(и, t)}</Text> : null}
             </View>
             <TouchableOpacity
               accessibilityRole="link"

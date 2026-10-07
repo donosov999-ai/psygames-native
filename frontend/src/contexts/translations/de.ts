@@ -3549,5 +3549,8 @@ const t: Record<string, string> = {
   "relaxationGroupFootnote": "Hier wird nichts gemessen oder bewertet: eine Atempause zwischen den Trainings, kein Test.",
   "relaxationGroupIntroDesc": "Drei kurze Pausen: ein Atemrhythmus, ein Wechsel von Augen und Atmung und Übungen, die den Blick nach dem Bildschirm entlasten.\n\nHier wird nichts gemessen. Aufmerksamkeit und Arbeitsgedächtnis erholen sich in Pausen — danach läuft das nächste Spiel ruhiger.",
   "allForks": "Alle Abzweigungen",
+  "sourceWiktionaryVoiceName": "Ausspracheaufnahmen aus dem Wiktionary",
+  "sourceWiktionaryVoiceCredit": "Autoren von Wiktionary und Lingua Libre – vollständige Liste unten",
+  "sourceCburnettName": "Schachfiguren von Cburnett",
 };
 export default t;

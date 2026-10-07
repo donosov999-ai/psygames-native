@@ -1411,7 +1411,7 @@ class _HybridAppState extends State<HybridApp> {
             // Знакомство (a8aa91e0): подбор и обучение — страница, полосы нет (noBar веба).
             OnboardingScreen(origin: widget.server.origin),
             // Источники, коллекция, достижения, лиги (78165c68, 8111eea4, 56660caa, ac902ebf) — страницы по модели.
-            const SourcesScreen(),
+            SourcesScreen(state: widget.state),
             const CollectionScreen(),
             const AchievementsScreen(),
             const LeaguesScreen(),

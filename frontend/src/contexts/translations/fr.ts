@@ -3544,5 +3544,8 @@ const t: Record<string, string> = {
   "relaxationGroupFootnote": "Rien n'est mesuré ni noté ici : c'est une pause entre les entraînements, pas un test.",
   "relaxationGroupIntroDesc": "Trois courtes pauses : un rythme de respiration, une alternance yeux et respiration, et des exercices qui reposent le regard après l'écran.\n\nRien n'est mesuré ici. L'attention et la mémoire de travail se reconstituent pendant les pauses — la partie suivante se déroule ensuite plus sereinement.",
   "allForks": "Tous les aiguillages",
+  "sourceWiktionaryVoiceName": "Enregistrements de prononciation du Wiktionnaire",
+  "sourceWiktionaryVoiceCredit": "Contributeurs du Wiktionnaire et de Lingua Libre — liste complète ci-dessous",
+  "sourceCburnettName": "Pièces d’échecs de Cburnett",
 };
 export default t;

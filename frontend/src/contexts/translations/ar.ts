@@ -3545,5 +3545,8 @@ const t: Record<string, string> = {
   "relaxationGroupFootnote": "لا يُقاس هنا شيء ولا يُقيَّم: إنها استراحة بين التمارين، وليست اختبارًا.",
   "relaxationGroupIntroDesc": "ثلاث استراحات قصيرة: إيقاع للتنفس، وتناوب بين العينين والتنفس، وتمارين تريح النظر بعد الشاشة.\n\nلا يُقاس هنا شيء. يتعافى الانتباه والذاكرة العاملة في فترات الراحة — وبعدها تسير اللعبة التالية بسلاسة أكبر.",
   "allForks": "كل التفرعات",
+  "sourceWiktionaryVoiceName": "تسجيلات النطق من ويكاموس",
+  "sourceWiktionaryVoiceCredit": "مؤلفو ويكاموس وLingua Libre — القائمة الكاملة أدناه",
+  "sourceCburnettName": "قطع الشطرنج من Cburnett",
 };
 export default t;
