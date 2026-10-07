@@ -785,12 +785,16 @@ const translations: Translations = {
   pairsDuelWin: { ru: 'Победа! {you} : {bot}', en: 'You win! {you} : {bot}' },
   pairsDuelLose: { ru: 'Бот выиграл {you} : {bot}', en: 'The bot wins {you} : {bot}' },
   pairsDuelDraw: { ru: 'Ничья {you} : {bot}', en: 'Draw {you} : {bot}' },
+  pairsDuelPairs: { ru: 'Пары', en: 'Pairs' },
+  pairsTriplesCount: { ru: 'Троек', en: 'Triples' },
+  pairsDuelHintTriples: { ru: 'Ходите по очереди с ботом, по три карты за ход. Нашли тройку — ходите ещё. Карты бота видны и вам.', en: 'Take turns with a bot, three cards a turn. Find a triple — go again. You see the bot\'s cards too.' },
   // «Малыши» — движок MindLab «Пары» режимом (задача cd9685ec).
   pairsModeKids: { ru: 'Малыши', en: 'Kids' },
   pairsKidsHint: { ru: 'Открывай по две карты и ищи пары. Чем меньше ходов — тем больше звёзд. Часов нет.', en: 'Open two cards at a time and find the pairs. Fewer moves — more stars. No clock.' },
   pairsKidsStep: { ru: 'Ступень {n} из {m} · пар: {p}', en: 'Step {n} of {m} · pairs: {p}' },
   pairsKidsStars: { ru: 'Звёзды: {n} из 3', en: 'Stars: {n} of 3' },
   pairsKidsUp: { ru: 'Новая ступень — пар: {p}!', en: 'Next step — pairs: {p}!' },
+  pairsKidsTwins: { ru: 'Похожие пары: та же картинка на жёлтой карточке — это другая пара. Запоминай и картинку, и цвет.', en: 'Look-alike pairs: the same picture on a yellow card is a different pair. Remember the picture and the color.' },
   picturePairsIntroDesc: {
     ru: 'Открывайте по две карточки за раз и ищите пары. Чем меньше ходов — тем выше счёт. Тренирует визуальную память и сопоставление.',
     en: 'Flip two cards at a time and find matching pairs. Fewer moves = higher score. Trains visual memory and matching.',
@@ -1155,6 +1159,7 @@ const translations: Translations = {
   teachPicturePairsPlaces: { ru: 'Пока карты открыты, привязывайте картинки к местам: углы, края, середина. Потом открывайте не наугад, а туда, где видели пару.', en: 'While the cards are face up, tie each picture to a place: corners, edges, middle. Then open where you saw its twin, not at random.' },
   teachPicturePairsGroup: { ru: 'С тройками и четвёрками держите в памяти ВСЕ места одной картинки: группа снимается, только когда открыты все её карты подряд.', en: 'With triples and quads, keep EVERY place of one picture in mind: a group clears only when all its cards are opened in a row.' },
   teachPicturePairsSwap: { ru: 'С 22-го уровня после ошибки закрытые карты меняются местами, и пара подсвечивается. Перенесите картинку в памяти туда, куда уехала её карта.', en: 'From level 22, after a mistake face-down cards swap places and the pair lights up. Move the picture in your memory to where its card went.' },
+  teachPicturePairsTwins: { ru: 'Похожие пары: одна картинка на обычной и на жёлтой карточке — две разные пары. Держи в памяти и картинку, и цвет карточки.', en: 'Look-alike pairs: one picture on a plain card and on a yellow card makes two different pairs. Keep both the picture and the card color in mind.' },
   teachOspanOrder: { ru: 'Пример-помеха нарочно мешает повторять буквы. Досчитайте его ДО КОНЦА и только потом верните буквы: метание между задачами стирает обе.', en: 'The equation is there to block rehearsal. Finish it COMPLETELY, then bring the letters back: darting between the two erases both.' },
   teachSchulteCenter: { ru: 'Держите взгляд в ЦЕНТРЕ таблицы и ищите периферией. Бегая глазами по клеткам, вы читаете таблицу, а тренируется при этом не охват, а скорость чтения.', en: 'Hold your gaze at the CENTRE and search with peripheral vision. Darting from cell to cell is reading the table — that trains reading speed, not span.' },
   teachTrackerGroup: { ru: 'Не перескакивайте с объекта на объект — держите их ГРУППОЙ, как вершины одной фигуры. Четыре траектории не удержать, а один меняющийся четырёхугольник — можно.', en: 'Do not jump from target to target — hold them as ONE SHAPE, the vertices of a single polygon. Four trajectories cannot be held; one changing quadrilateral can.' },
@@ -2373,6 +2378,7 @@ const translations: Translations = {
   puzzleSecondNoTrack: { ru: 'Нет рельсов', en: 'No track' },
   puzzleSecondNoBridge: { ru: 'Нет моста', en: 'No bridge' },
   puzzleSecondToPrev: { ru: 'К предыдущей', en: 'To previous' },
+  puzzleSecondWhite: { ru: 'Белая', en: 'White' },   // Unruly: правая кнопка автора — пустая → белая → чёрная (unruly.c, interpret_move)
   puzzleNextStep: { ru: 'Следующий шаг', en: 'Next step' },
   // Имена приёмов учителя головоломок Тэтхэма (flutter/lib/games/puzzles/techniques.dart): приём по смыслу, общий для всех игр.
   teachLogicClueFull: { ru: 'Число уже набрано — остальным клеткам этой подсказки ничего не достаётся.', en: 'The number is already reached — the clue\'s other cells get nothing.' },
@@ -3751,6 +3757,8 @@ const translations: Translations = {
   choiceRtLvlParams: { ru: '{n} проб · {d} направления · окно ответа {w} с', en: '{n} trials · {d} directions · {w} s response window' },
   simonLvlParams: { ru: '{n} проб · конфликтных ~{p}% · окно ответа {w} с', en: '{n} trials · ~{p}% conflict · {w} s response window' },
   stroopLvlParams: { ru: '{n} проб · окно ответа {w} с · конфликтных {p}%', en: '{n} trials · {w} s response window · {p}% conflict trials' },
+  // С L5 часть проб идёт по ДРУГОМУ правилу (switchRate, до 40 % на L15) — экран настройки обязан это назвать.
+  stroopLvlSwitch: { ru: '{s}% проб — по другому правилу', en: '{s}% of trials use the other rule' },
   stroopPass: { ru: 'Проход уровня: точность ≥85% (не успел ответить = ошибка)', en: 'To pass: ≥85% accuracy (missing the response window counts as an error)' },
   stroopEmoLvlParams: { ru: '{n} слов · окно ответа {w} с · эмоциональных слов {p}%', en: '{n} words · {w} s to answer · {p}% emotional words' },
   stroopEmoPass: { ru: 'Проход уровня: назвать цвет верно в ≥80% слов (не успел — ошибка)', en: 'To pass: name the ink color correctly on ≥80% of words (timeout counts as an error)' },

@@ -160,7 +160,8 @@
     "Unequal": "puzzleSecondPencil",
     "Keen": "puzzleSecondPencil",
     "Singles": "puzzleSecondKeep",
-    "Undead": "puzzleSecondPencil"
+    "Undead": "puzzleSecondPencil",
+    "Unruly": "puzzleSecondWhite"
   },
   "стрелочные": [
     "Bridges",

@@ -24,6 +24,23 @@ import '../../shell/shared_state.dart';
 import '../../shell/tap_latency.dart';
 import 'model.dart';
 
+/// Поля партии для «Оценки» — как веб (`bart.tsx`, saveSession details). Домен
+/// «Риск/решения» читает `adj_avg_pumps` (норма 16±5) — среднее накачек по НЕлопнувшим
+/// шарам, один знак, как `Math.round(adjAvg * 10) / 10`; без ключа домен молча «средний».
+///
+/// 🔴 НЕ ОПРЕДЕЛЕНА — НЕ ПИШЕТСЯ. Веб в таком случае пишет число-мусор: пустое плечо он
+/// считает нулём, и «Оценка» (`extractMetric`) берёт его как измерение. Нет ключа —
+/// домен честно «без данных», а не фантастический z.
+Map<String, Object?> bartSessionDetails(BartGame g) {
+  final m = g.metrics;
+  return {
+    'level': g.level,
+    if (m.balloonsPlayed > m.popped) 'adj_avg_pumps': (m.adjAvgPumps * 10).round() / 10,
+    'balloons': m.balloonsPlayed,
+    'popped': m.popped,
+  };
+}
+
 enum BartPhase { ready, playing, done }
 
 /// Сколько держится отклик, мс. Из веб-версии: взрыв дольше, чем кэш.
@@ -78,10 +95,17 @@ class _BartScreenState extends State<BartScreen> {
 
   void _reset() {
     _timer?.cancel();
+    // Шаг «Оценки» и зарядки — классический BART в условиях шага, как в вебе: предел по
+    // трудности шага (`maxBurstByDiff`: medium → 32), число шаров — из шага (`balloons`).
+    // Норма домена (16±5) снята именно так; лестница уровня её бы сдвинула.
+    final preset = GamePreset.isPreset && widget.classic == null;
     _game = BartGame(
       level: _ladder.level,
-      useLevels: widget.classic == null,
-      classicDifficulty: widget.classic,
+      useLevels: widget.classic == null && !preset,
+      classicDifficulty: preset
+          ? (Difficulty.values.asNameMap()[GamePreset.str('diff', 'medium')] ?? Difficulty.medium)
+          : widget.classic,
+      balloonsOverride: preset ? GamePreset.num('balloons', 15) : null,
       rnd: widget.rnd,
     );
     _phase = BartPhase.ready;
@@ -128,10 +152,11 @@ class _BartScreenState extends State<BartScreen> {
     setState(() => _phase = BartPhase.done);
     // ⚠️ В классике лестница не трогается: там нет и уровня.
     if (widget.classic != null) return;
+    final details = bartSessionDetails(g);
     if (g.passed) {
-      _ladder.win(score: g.bank, errors: g.metrics.popped);
+      _ladder.win(score: g.bank, errors: g.metrics.popped, details: details);
     } else {
-      _ladder.fail(score: g.bank, errors: g.metrics.popped);
+      _ladder.fail(score: g.bank, errors: g.metrics.popped, details: details);
     }
   }
 

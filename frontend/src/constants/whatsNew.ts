@@ -16,6 +16,38 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.56.16',
+    date: '2026-10-07',
+    en: [
+      'Assessment: five Attention Conflict games (Posner, CPT, Flanker, Switching, BART) now count toward your result — before, they were silently treated as average',
+      'Tones: 327 of 422 syllables are now real recordings instead of 99 — on Android without a Chinese voice they no longer stay silent',
+      'Rhythm: taps are judged by the pattern of intervals between beats, not by when each sound ends',
+      'Voice: when words play from recordings one after another, each one now finishes before the next starts',
+      'Memory Span by Ear: the “turn on sound” warning no longer sticks, and game time starts with the first word',
+      'Picture Pairs: look-alike pairs in the Kids profile and a duel on triples',
+      'Goods Sort: ice melts with its own look, and the walkthrough leads to a win from the start on all 720 levels',
+      'Stroop: the stimulus word is in your interface language, and from level 5 a line shows when the rule switches',
+      'Sudoku: Little Killer, X-sums and Killer get harder steps with the exact sum corridor technique',
+      'Unruly: the second action button is now labeled White instead of a raw key',
+      'Spatial: game icons in the hub rows',
+      'Moving between screens no longer flickers: a page appears only once it is drawn',
+    ],
+    ru: [
+      '«Оценка»: пять игр «Конфликта внимания» (Познер, CPT, фланкер, переключение, BART) теперь идут в результат — раньше они молча считались средними',
+      '«Тоны»: записью звучат 327 слогов из 422 вместо 99 — на Android без китайского голоса они больше не молчат',
+      '«Ритм»: нажатия оцениваются по рисунку промежутков между ударами, а не по концу звучания',
+      'Голос: когда слова идут записями подряд, каждое дозвучивает до конца, прежде чем начнётся следующее',
+      '«Объём на слух»: предупреждение «включите звук» больше не залипает, время партии считается с первого слова',
+      '«Парные картинки»: похожие пары в профиле «Малыши» и дуэль на тройках',
+      '«Товары»: лёд тает своим видом, а «Разбор» со старта ведёт к победе на всех 720 уровнях',
+      '«Струп»: слово-стимул — на языке интерфейса, а с 5-го уровня строка показывает смену правила',
+      '«Судоку»: у «малого киллера», «X-сумм» и «киллера» — трудные ступени с приёмом «точный коридор суммы»',
+      'Unruly: кнопка второго действия подписана «Белая», а не служебным ключом',
+      '«Пространство»: иконки игр в строках развилки',
+      'Переход между экранами больше не мигает: страница появляется, только когда уже нарисована',
+    ],
+  },
+  {
     version: '2.56.15',
     date: '2026-10-07',
     ru: [

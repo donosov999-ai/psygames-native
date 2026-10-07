@@ -4,6 +4,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:psygames_flutter/games/picture_pairs/model.dart';
 import 'package:psygames_flutter/games/picture_pairs/screen.dart';
 import 'package:psygames_flutter/shell/game_clock.dart';
 import 'package:psygames_flutter/shell/game_preset.dart';
@@ -59,11 +60,14 @@ void main() {
   int cardCount() => find.byWidgetPredicate((w) => w.key is ValueKey<String> &&
       (w.key! as ValueKey<String>).value.startsWith('карта')).evaluate().length;
 
-  int face(WidgetTester tester, int i) {
-    final f = find.byKey(Key('лицо$i'));
+  /// Что видно на открытой карте: картинка и, у жёлтого двойника, ещё карточка — как номер
+  /// карты в модели ([pairsSpriteOf], [pairsIsTwin]). Закрытая — −1.
+  int face(WidgetTester tester, int i, {String prefix = ''}) {
+    final f = find.byKey(Key('$prefixлицо$i'));
     if (f.evaluate().isEmpty) return -1;
     final img = tester.widget<Image>(find.descendant(of: f, matching: find.byType(Image)));
-    return sprites.indexOf((img.image as AssetImage).assetName);
+    final yellow = (tester.widget<Container>(f).decoration! as BoxDecoration).color == pairsTwinColor;
+    return sprites.indexOf((img.image as AssetImage).assetName) + (yellow ? pairsSpriteCount : 0);
   }
 
   bool hud(String key) => find
@@ -118,7 +122,7 @@ void main() {
     await tester.tap(find.text(L.t('pairsModeKids')));
     await tester.pump();
     expect(tester.widget<Text>(find.byKey(const Key('pp-kids-step'))).data,
-        L.t('pairsKidsStep').replaceAll('{n}', '1').replaceAll('{m}', '3').replaceAll('{p}', '4'));
+        L.t('pairsKidsStep').replaceAll('{n}', '1').replaceAll('{m}', '${pairsKidsSteps.length}').replaceAll('{p}', '4'));
     await tester.tap(find.byKey(const Key('pp-start')));
     await tester.pump();
     expect(cardCount(), 8, reason: 'ступень 1 — четыре пары');
@@ -142,7 +146,7 @@ void main() {
     await tester.tap(find.text(L.t('nextLabel')));
     await tester.pump();
     expect(tester.widget<Text>(find.byKey(const Key('pp-kids-step'))).data,
-        L.t('pairsKidsStep').replaceAll('{n}', '2').replaceAll('{m}', '3').replaceAll('{p}', '8'));
+        L.t('pairsKidsStep').replaceAll('{n}', '2').replaceAll('{m}', '${pairsKidsSteps.length}').replaceAll('{p}', '8'));
     await leave(tester);
   });
 
@@ -153,6 +157,94 @@ void main() {
     await tester.tap(find.byKey(const Key('pp-start')));
     await tester.pump();
     expect(cardCount(), 24);
+    await leave(tester);
+  });
+
+  testWidgets('🔴 ступень 4 — похожие пары: правило и образец ДО партии, идеальная игра различает цвет — три звезды', (
+    tester,
+  ) async {
+    await boot(tester, kidsStep: 3);
+    await tester.tap(find.text(L.t('pairsModeKids')));
+    await tester.pump();
+    expect(
+      tester.widget<Text>(find.byKey(const Key('pp-kids-step'))).data,
+      L.t('pairsKidsStep').replaceAll('{n}', '4').replaceAll('{m}', '${pairsKidsSteps.length}').replaceAll('{p}', '12'),
+    );
+    expect(tester.widget<Text>(find.byKey(const Key('pp-kids-twins'))).data, L.t('pairsKidsTwins'));
+    // Образец — карты самой игры: одна картинка на обычной и на жёлтой карточке.
+    final plain = face(tester, 0, prefix: 'twin-');
+    final twin = face(tester, pairsSpriteCount, prefix: 'twin-');
+    expect(
+      '${pairsIsTwin(plain)} ${pairsIsTwin(twin)} ${pairsSpriteOf(plain) == pairsSpriteOf(twin)}',
+      'false true true',
+    );
+
+    await tester.tap(find.byKey(const Key('pp-start')));
+    await tester.pump();
+    expect(cardCount(), 24, reason: 'двенадцать пар');
+    final moves = await playIdeal(tester);
+    expect(tester.widget<Text>(find.byKey(const Key('pp-kids-stars'))).data, '★★★');
+    final d = sent.single['details'] as Map;
+    expect(
+      'ступень ${d['step']} · пар ${d['pairs']} · жёлтых ${d['twins']} · ходов ${d['moves'] == moves} · '
+          'идеально ${d['ideal_moves'] == moves}',
+      'ступень 4 · пар 12 · жёлтых 2 · ходов true · идеально true',
+    );
+    await leave(tester);
+  });
+
+  testWidgets('🔴 жёлтый двойник — другая пара: обычная и жёлтая карта одной картинки закрываются промахом', (
+    tester,
+  ) async {
+    await boot(tester, kidsStep: 5);
+    await tester.tap(find.text(L.t('pairsModeKids')));
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('pp-start')));
+    await tester.pump();
+    // Разведка парами мест подряд, пока не увидены обычная и жёлтая карта одной картинки.
+    final seen = <int, int>{};
+    (int, int)? couple() {
+      for (final a in seen.entries) {
+        for (final b in seen.entries) {
+          if (!pairsIsTwin(a.value) &&
+              b.value == a.value + pairsSpriteCount &&
+              face(tester, a.key) < 0 &&
+              face(tester, b.key) < 0) {
+            return (a.key, b.key);
+          }
+        }
+      }
+      return null;
+    }
+
+    for (var i = 0; couple() == null; i += 2) {
+      if (i + 1 >= cardCount()) fail('за проход по полю двойник не встретился');
+      for (final j in [i, i + 1]) {
+        if (face(tester, j) < 0) {
+          await open(tester, j);
+          seen[j] = face(tester, j);
+        }
+      }
+      await tester.pump(const Duration(milliseconds: 900));
+    }
+    final (a, b) = couple()!;
+    final matchedBefore = find
+        .byWidgetPredicate((w) => w is Container && (w.decoration as BoxDecoration?)?.color == const Color(0xFF22C55E))
+        .evaluate()
+        .length;
+    await open(tester, a);
+    await open(tester, b);
+    await tester.pump(const Duration(milliseconds: 900));
+    expect(
+      '${face(tester, a)} ${face(tester, b)}',
+      '-1 -1',
+      reason: 'картинка одна, карточки разные — промах, обе закрылись',
+    );
+    final matchedAfter = find
+        .byWidgetPredicate((w) => w is Container && (w.decoration as BoxDecoration?)?.color == const Color(0xFF22C55E))
+        .evaluate()
+        .length;
+    expect(matchedAfter, matchedBefore, reason: 'ничего не собрано');
     await leave(tester);
   });
 
@@ -168,6 +260,23 @@ void main() {
     await tester.tap(find.text(L.t('pairsModeKids')));
     await tester.pump();
     expect(tester.getRect(find.byKey(const Key('pp-start'))).bottom, lessThanOrEqualTo(640.0));
+    await leave(tester);
+  });
+
+  testWidgets('🔴 ступень с похожими парами на 360×640: правило и образец не выталкивают «Начать»', (tester) async {
+    tester.view.physicalSize = const Size(360, 640);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    await boot(tester, kidsStep: pairsKidsSteps.length - 1);
+    await tester.tap(find.text(L.t('pairsModeKids')));
+    await tester.pump();
+    expect(find.byKey(const Key('pp-kids-twins')), findsOneWidget);
+    expect(tester.getRect(find.byKey(const Key('pp-start'))).bottom, lessThanOrEqualTo(640.0));
+    expect(tester.takeException(), isNull, reason: 'без переполнения');
+    await tester.tap(find.byKey(const Key('pp-start')));
+    await tester.pump();
+    expect(cardCount(), 48, reason: 'последняя ступень — 24 пары');
+    expect(tester.takeException(), isNull, reason: 'поле 48 карт без переполнения');
     await leave(tester);
   });
 }

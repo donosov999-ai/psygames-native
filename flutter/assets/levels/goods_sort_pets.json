@@ -1,6 +1,6 @@
 {
  "generator": "goods-sort dealBoard (живой TS)",
- "exportedAt": "2026-09-25",
+ "exportedAt": "2026-10-07",
  "seed": 20260923,
  "set": "pets",
  "pool": [
@@ -6889,7 +6889,7 @@
    ],
    "frozen": {
     "row": 1,
-    "type": 34
+    "type": 33
    },
    "goal": {
     "kind": "all"
@@ -9881,7 +9881,7 @@
    "covered": [],
    "frozen": {
     "row": 5,
-    "type": 43
+    "type": 39
    },
    "goal": {
     "kind": "all"
@@ -14262,7 +14262,7 @@
    "covered": [],
    "frozen": {
     "row": 1,
-    "type": 38
+    "type": 33
    },
    "goal": {
     "kind": "free",
@@ -15661,7 +15661,7 @@
    ],
    "frozen": {
     "row": 2,
-    "type": 37
+    "type": 33
    },
    "goal": {
     "kind": "pick",
@@ -17589,8 +17589,8 @@
     "6:0"
    ],
    "frozen": {
-    "row": 3,
-    "type": 41
+    "row": 1,
+    "type": 43
    },
    "goal": {
     "kind": "all"
@@ -19926,7 +19926,7 @@
    ],
    "frozen": {
     "row": 1,
-    "type": 41
+    "type": 32
    },
    "goal": {
     "kind": "all"

@@ -13,6 +13,7 @@ import '../../shell/shared_state.dart';
 import '../languages/bilingual.dart';
 import '../languages/json_asset.dart';
 import '../languages/lang_names.dart';
+import '../languages/lang_picker.dart';
 import 'model.dart';
 
 /// «Слово или нет?» (лексическое решение) — экран раздела «Языки» на Flutter.
@@ -325,28 +326,24 @@ class _LexicalDecisionScreenState extends State<LexicalDecisionScreen> {
             onChanged: (v) => setState(() => _bilingual = v),
           ),
           if (_bilingual)
-            DropdownButtonFormField<String>(
+            LangDropdown(
               key: const Key('ld-lang2'),
-              initialValue: seconds.contains(_second) ? _second : null,
-              decoration: const InputDecoration(border: OutlineInputBorder(), isDense: true),
-              items: [for (final l in seconds) DropdownMenuItem(value: l, child: Text(_names.name(l)))],
-              onChanged: (v) => v == null ? null : setState(() => _wantedSecond = v),
+              keyPrefix: 'ld-lang2',
+              langs: seconds,
+              value: _second,
+              label: _names.name,
+              onChanged: (v) => setState(() => _wantedSecond = v),
             ),
           const SizedBox(height: 12),
           Text('${_names.name(_baseLang)} →', style: theme.textTheme.titleSmall),
           const SizedBox(height: 6),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              for (final l in langs)
-                ChoiceChip(
-                  key: Key('ld-lang-$l'),
-                  label: Text(_names.name(l)),
-                  selected: _target == l,
-                  onSelected: (_) => setState(() => _targetLang = l),
-                ),
-            ],
+          LangDropdown(
+            key: const Key('ld-lang'),
+            keyPrefix: 'ld-lang',
+            langs: langs,
+            value: _target,
+            label: _names.name,
+            onChanged: (l) => setState(() => _targetLang = l),
           ),
           const SizedBox(height: 16),
           Text('${L.t('level')} ${_ladder.level}', style: theme.textTheme.titleMedium, textAlign: TextAlign.center),
