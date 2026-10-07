@@ -110,7 +110,11 @@ class ShopScreen extends StatelessWidget {
               children: [
                 lead,
                 Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: texts)),
-                if (buttons.isNotEmpty) Column(mainAxisSize: MainAxisSize.min, spacing: 6, children: buttons),
+                // Кнопки столбца — одной ширины, как у веба (столбец RN растягивает детей по ширине).
+                if (buttons.isNotEmpty)
+                  IntrinsicWidth(
+                    child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, spacing: 6, children: buttons),
+                  ),
               ],
             ),
           );

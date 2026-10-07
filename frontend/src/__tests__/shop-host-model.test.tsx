@@ -108,9 +108,10 @@ function образец(name: string, m: object) {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const path = require('path');
   const file = path.resolve(__dirname, `../../../flutter/test/fixtures/${name}`);
-  // Пути картинок в jest — относительные пути файловой системы (`../../…/frontend/assets/…`). В образец
+  // Пути картинок в jest — относительные пути файловой системы (`../../…/frontend/assets/…`, а на CI —
+  // без «frontend/», testUri считается от node_modules/react-native/jest). В образец
   // (публичный репозиторий) они уходят адресом сборки `/assets/…`, без локальной части.
-  const json = JSON.stringify(m, null, 1).replace(/"(?:\.\.\/)+[^"]*?\/frontend\/(assets\/[^"]+)"/g, '"/assets/$1"');
+  const json = JSON.stringify(m, null, 1).replace(/"(?:\.\.\/)+(?:[^"]*?\/frontend\/)?(assets\/[^"]+)"/g, '"/assets/$1"');
   if (process.env.WRITE === '1') fs.writeFileSync(file, `${json}\n`, 'utf8');
   expect(fs.existsSync(file)).toBe(true);
 }
