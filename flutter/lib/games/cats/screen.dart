@@ -8,15 +8,17 @@
 /// отмечает «сюда нельзя» и ничем не рискует. Ошибкой считается только КОШКА не на
 /// своём месте — как в судоку ошибкой считается цифра не по решению.
 ///
-/// ⚠️ ЛЕСТНИЦА ЗДЕСЬ ВРЕМЕННАЯ, И ЭТО НАПИСАНО ЧЕСТНО. Ось одна — размер поля, и она
-/// упирается в 10×10: дальше расти нечем. Настоящая ось (насколько рваные области,
-/// сколько кошек ставится вынужденно) МЕРЯЕТСЯ в звене 3, задача a7987915. До тех пор
-/// уровни выше тринадцатого отличаются только раскладкой, и делать вид, что это
-/// лестница, нельзя.
+/// 🔴 ЛЕСТНИЦА — ПО МЕРЕ ТРУДНОСТИ, А НЕ ПО РАЗМЕРУ ПОЛЯ (звено 3, задача a7987915).
+/// Прежняя заглушка растила сторону 6 → 10; замер 01.10.2026 показал, что размер
+/// трудности не даёт. Теперь уровень — окно меры ([gradeCats]: нужный приём и цена), карта
+/// отбирается под окно ([dealCatsLevel]); таблица и замер — в шапке `ladder.dart`.
 library;
+
+import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../shell/app_haptics.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
@@ -25,7 +27,8 @@ import '../../shell/lesson_player.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
-import 'generator.dart';
+import 'grade.dart';
+import 'ladder.dart';
 import 'lesson.dart';
 import 'rules.dart';
 
@@ -45,8 +48,12 @@ class _CatsScreenState extends State<CatsScreen> {
   late LevelLadder _ladder;
   CatsBoard? _board;
 
+  /// Мера выданной карты — уходит в отчёт партии.
+  CatsGrade? _grade;
+
   /// Что игрок поставил в каждой клетке.
   final Map<CatCell, CatMark> _marks = {};
+  late final AppHaptics _haptics = AppHaptics(widget.state);
 
   /// Лента ходов: отмена возвращает клетку в прежнее состояние.
   final List<({CatCell cell, CatMark was})> _history = [];
@@ -69,10 +76,6 @@ class _CatsScreenState extends State<CatsScreen> {
     _deal();
   }
 
-  /// Сторона поля по номеру уровня. Смотри предупреждение в шапке файла: это
-  /// заглушка до звена 3, а не измеренная лестница.
-  int _sideFor(int level) => 6 + ((level - 1) ~/ 3).clamp(0, 4);
-
   /// Ключ счётчика попыток — тот же приём, что в судоку: номер попытки входит в
   /// зерно, поэтому после проигрыша приходит ДРУГАЯ доска, а не та же самая.
   String get _tryKey => '${SharedState.prefix}cats_try_${widget.state.activeProfile}';
@@ -81,10 +84,10 @@ class _CatsScreenState extends State<CatsScreen> {
 
   void _deal() {
     final level = _ladder.level;
-    final n = _sideFor(level);
-    final puzzle = generateCats(n, 'cats|L$level|A$_attempt');
+    final deal = dealCatsLevel(level, 'cats|L$level|A$_attempt');
     setState(() {
-      _board = puzzle?.board;
+      _board = deal?.puzzle.board;
+      _grade = deal?.grade;
       _marks.clear();
       _history.clear();
       _errors = 0;
@@ -97,46 +100,72 @@ class _CatsScreenState extends State<CatsScreen> {
   Set<CatCell> get _cats =>
       {for (final e in _marks.entries) if (e.value == CatMark.cat) e.key};
 
-  /// Тычок по клетке: пусто → ✕ → кошка → пусто.
+  /// Вскрытая клетка (кошка или промах) — правда о ней уже показана, тычки её не меняют.
+  bool _revealed(CatCell cell) {
+    final m = _marks[cell];
+    return m == CatMark.cat || m == CatMark.miss;
+  }
+
+  /// Короткий тычок — пометка ✕: пусто ↔ ✕. Это заметка игрока, жизни не стоит.
+  ///
+  /// ⚠️ До 02.10.2026 тычок гонял клетку по кругу пусто → ✕ → кошка, и кошка вставала
+  /// в любую клетку — неверная оставалась на доске со снятой жизнью, и так, пока не
+  /// расставишь всех (замечание Дениса). Кошка теперь только вскрывается: [_reveal].
   void _tap(int r, int c) {
     final board = _board;
     if (board == null || _won || _lost) return;
     final cell = r * board.n + c;
+    if (_revealed(cell)) return;
     final was = _marks[cell] ?? CatMark.empty;
-    final next = switch (was) {
-      CatMark.empty => CatMark.cross,
-      CatMark.cross => CatMark.cat,
-      CatMark.cat => CatMark.empty,
-    };
-
     setState(() {
       _history.add((cell: cell, was: was));
-      if (next == CatMark.empty) {
+      if (was == CatMark.cross) {
         _marks.remove(cell);
       } else {
-        _marks[cell] = next;
+        _marks[cell] = CatMark.cross;
       }
+    });
+  }
 
-      // Кошка не на своём месте — ошибка. Доска с единственным решением позволяет
-      // сказать это прямо: «не в разгадке» и значит «неверно».
-      if (next == CatMark.cat && !board.solutionCells.contains(cell)) {
-        _errors += 1;
-        if (_errors >= lives) {
-          _lost = true;
-          _bumpAttempt();
-          _ladder.fail(errors: _errors);
-        }
+  /// Долгое нажатие — вскрыть кошку. В разгадке — кошка встаёт насовсем; нет — промах:
+  /// красный ✕ и минус жизнь. Доска с единственным решением позволяет сказать это
+  /// прямо: «не в разгадке» и значит «неверно». Вибрация — через общий тумблер.
+  void _reveal(int r, int c) {
+    final board = _board;
+    if (board == null || _won || _lost) return;
+    final cell = r * board.n + c;
+    if (_revealed(cell)) return;
+    final hit = board.solutionCells.contains(cell);
+    unawaited(hit ? _haptics.medium() : _haptics.heavy());
+    setState(() {
+      _marks[cell] = hit ? CatMark.cat : CatMark.miss;
+      if (hit) {
+        _checkWin();
         return;
       }
-      _checkWin();
+      _errors += 1;
+      if (_errors >= lives) {
+        _lost = true;
+        _bumpAttempt();
+        _ladder.fail(errors: _errors, details: _report(board));
+      }
     });
   }
 
   /// Следующая партия этого уровня — с другой доской.
   void _bumpAttempt() => widget.state.set(_tryKey, '${_attempt + 1}');
 
+  /// Сколько пометок можно отменить: вскрытые клетки из истории не считаются.
+  int get _undoable => _history.where((h) => !_revealed(h.cell)).length;
+
+  /// Отмена снимает последнюю пометку ✕. Вскрытое не отменяется: пометка на клетке,
+  /// которую потом вскрыли, из истории просто выпадает.
   void _undo() {
-    if (_history.isEmpty || _won || _lost) return;
+    if (_won || _lost) return;
+    while (_history.isNotEmpty && _revealed(_history.last.cell)) {
+      _history.removeLast();
+    }
+    if (_history.isEmpty) return;
     setState(() {
       final last = _history.removeLast();
       if (last.was == CatMark.empty) {
@@ -161,12 +190,23 @@ class _CatsScreenState extends State<CatsScreen> {
     });
   }
 
+  /// Отчёт партии: поле и мера выданной карты — по ним калибруется лестница (сколько
+  /// побед и провалов на каждом окне меры).
+  Map<String, Object?> _report(CatsBoard board) {
+    final g = _grade;
+    return {
+      'n': board.n,
+      if (g != null) ...{'tier': g.tier, 'cost': g.cost, 'steps': g.steps},
+      'hints_used': _hintsUsed,
+    };
+  }
+
   void _checkWin() {
     final board = _board;
     if (board == null) return;
     if (!catsSolved(board, _cats)) return;
     _won = true;
-    _ladder.win(errors: _errors);
+    _ladder.win(errors: _errors, details: _report(board));
   }
 
   @override
@@ -197,14 +237,15 @@ class _CatsScreenState extends State<CatsScreen> {
           marks: _marks,
           height: height,
           onTap: _tap,
+          onLongPress: _reveal,
         );
       },
       auxRow: AuxBar(children: [
         AuxAction(
           icon: Icons.undo,
           label: L.t('btn_undo'),
-          count: _history.isEmpty ? null : _history.length,
-          onPressed: _history.isEmpty || _won || _lost ? null : _undo,
+          count: _undoable == 0 ? null : _undoable,
+          onPressed: _undoable == 0 || _won || _lost ? null : _undo,
         ),
         AuxAction(
           icon: Icons.lightbulb_outline,
@@ -272,6 +313,8 @@ class _CatsScreenState extends State<CatsScreen> {
             Text('• ${L.t('catsRuleLine')}'),
             const SizedBox(height: 8),
             Text('• ${L.t('catsRuleTouch')}'),
+            const SizedBox(height: 12),
+            Text(L.t('catsHowPress'), key: const Key('cats-how-press')),
           ],
         ),
         actions: [
@@ -304,12 +347,18 @@ class CatsBoardView extends StatelessWidget {
     required this.marks,
     required this.height,
     required this.onTap,
+    this.onLongPress,
   });
 
   final CatsBoard board;
   final Map<CatCell, CatMark> marks;
   final double height;
+
+  /// Короткий тычок — пометка ✕.
   final void Function(int r, int c) onTap;
+
+  /// Долгое нажатие — вскрыть кошку; `null` — поле только показывает (разбор).
+  final void Function(int r, int c)? onLongPress;
 
   @override
   Widget build(BuildContext context) {
@@ -339,6 +388,7 @@ class CatsBoardView extends StatelessWidget {
                             mark: marks[r * n + col] ?? CatMark.empty,
                             scheme: scheme,
                             onTap: onTap,
+                            onLongPress: onLongPress,
                           ),
                       ],
                     ),
@@ -361,6 +411,7 @@ class _Cell extends StatelessWidget {
     required this.mark,
     required this.scheme,
     required this.onTap,
+    this.onLongPress,
   });
 
   final double size;
@@ -370,9 +421,11 @@ class _Cell extends StatelessWidget {
   final CatMark mark;
   final ColorScheme scheme;
   final void Function(int r, int c) onTap;
+  final void Function(int r, int c)? onLongPress;
 
   @override
   Widget build(BuildContext context) {
+    final press = onLongPress;
     return SizedBox(
       width: size,
       height: size,
@@ -384,6 +437,7 @@ class _Cell extends StatelessWidget {
           child: InkWell(
             key: Key('cell_${row}_$col'),
             onTap: () => onTap(row, col),
+            onLongPress: press == null ? null : () => press(row, col),
             child: Center(
               child: switch (mark) {
                 CatMark.empty => const SizedBox.shrink(),
@@ -393,6 +447,9 @@ class _Cell extends StatelessWidget {
                     color: scheme.onSurface.withValues(alpha: 0.55)),
                 CatMark.cat => Text('🐱',
                     key: Key('cat_${row}_$col'), style: TextStyle(fontSize: size * 0.55)),
+                // Промах вскрытия: кошки здесь нет — красный ✕, видный издалека.
+                CatMark.miss => Icon(Icons.close,
+                    key: Key('miss_${row}_$col'), size: size * 0.6, color: const Color(0xFFDC2626)),
               },
             ),
           ),

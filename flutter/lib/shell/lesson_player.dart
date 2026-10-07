@@ -28,6 +28,7 @@ class LessonPlayerScreen extends StatefulWidget {
     required this.steps,
     required this.board,
     this.onNewBoard,
+    this.newBoardLabel,
   });
 
   /// Название игры — человек должен видеть, что разбирают.
@@ -39,6 +40,7 @@ class LessonPlayerScreen extends StatefulWidget {
 
   /// «Новая доска» — если игра умеет раздать заново прямо отсюда.
   final VoidCallback? onNewBoard;
+  final String? newBoardLabel;
 
   @override
   State<LessonPlayerScreen> createState() => _LessonPlayerScreenState();
@@ -218,7 +220,7 @@ class _LessonPlayerScreenState extends State<LessonPlayerScreen> {
                         widget.onNewBoard!();
                       },
                       icon: const Icon(Icons.refresh),
-                      label: Text(L.t('teachNewBoard')),
+                      label: Text(widget.newBoardLabel ?? L.t('teachNewBoard')),
                     ),
                   )
                 else

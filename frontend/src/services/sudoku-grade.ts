@@ -25,7 +25,7 @@
  */
 import {
   Cell, Variant, ThermoPN, ArrowMap, CageMap, isValid, generatePuzzle, shuffle, HYPER_BOXES, ORTHO,
-  Overlays, levelConfig, UnequalMap, TowersMap, towersLineOk,
+  Overlays, levelConfig, UnequalMap, TowersMap, towersLineOk, WHISPER_GAP, renbanOk, lineCells, regionSumOk, palindromeOk, betweenOk, lockoutOk, xvOk, XvMap,
 } from './sudoku-core';
 
 export type Technique =
@@ -38,12 +38,32 @@ export type Technique =
   | 'cage_sum'        // вывод из суммы клеток-группы (киллер, ThermoCage)
   | 'towers_clue'     // вывод из подсказки «сколько зданий видно с края»
   | 'unequal_chain'   // цепочка неравенств: границы протянуты через ПУСТЫХ соседей
+  | 'whisper_line'    // немецкий шёпот: кандидат без пары «±5» у ПУСТОГО соседа по линии
+  | 'renban_window'   // ренбан: кандидат вне любого окна «подряд», куда влезает вся линия
+  | 'region_sum'      // линия равных сумм: кандидат не входит ни в одну раскладку общей суммы
   | 'x_wing'          // X-wing
   | 'xy_wing'         // XY-wing: ось {a,b} и два клюва {a,c} и {b,c} — c уходит там, где видно оба
+  | 'palindrome_mirror'  // кандидаты зеркальных клеток линии пересекаются
+  | 'between_window'  // кандидат вне любого окна между концами линии
+  | 'lockout_window'  // кандидат вне годной пары концов lockout-линии
+  | 'xv_pair'  // XV: кандидату нет пары у ПУСТОГО соседа (знак — 5/10, без знака — не 5 и не 10)
   | 'guess';          // логики не хватило — нужен перебор
 
 export const TECHNIQUE_TIER: Record<Technique, number> = {
+  xv_pair: 4,   // XV: класс выводов варианта
+  lockout_window: 4,   // замок: кандидат вне годной пары концов lockout-линии
+  between_window: 4,   // между концами: кандидат вне любого окна между концами линии
+  // Палиндром: кандидаты зеркальных клеток пересекаются. Ступень 4 — как у всего КЛАССА выводов
+  // варианта (`выводВарианта` включается с 4): мутация «приём без потолка» на ступени 3 выжила бы.
+  palindrome_mirror: 4,
   naked_single: 1, hidden_single: 2, locked: 3, naked_subset: 4, sandwich_sum: 4, towers_clue: 4, unequal_chain: 4,
+  // Шёпот — тот же класс вывода, что цепочка неравенств: граница через ПУСТОГО соседа.
+  // Ступень 4, как у трёх других вариантных выводов: шкала обязана быть сравнимой.
+  whisper_line: 4,
+  // Ренбан — тот же класс: вывод через ПУСТЫЕ клетки линии (окно значений), ступень 4.
+  renban_window: 4,
+  // Линия равных сумм — тот же класс: вывод через ПУСТЫЕ клетки линии в нескольких блоках.
+  region_sum: 4,
   /**
    * 🔴 СТУПЕНЬ СУММ НАЗНАЧЕНА ЗАМЕРОМ, А НЕ НА ГЛАЗ (07.09.2026). До этого дня вывод
    * из клеток-сумм не помечался ВООБЩЕ — блок в `refilter` работал, но `bump` не звал,
@@ -75,6 +95,17 @@ export interface GradeCtx {
   unequal?: UnequalMap;
   /** Небоскрёбы: сколько зданий видно с каждого края. 0 = подсказки нет. */
   towers?: TowersMap;
+  /** Немецкий шёпот: линии, соседи на которых отличаются минимум на WHISPER_GAP. */
+  whisper?: ThermoPN;
+  /** Ренбан: на линии цифры разные и подряд (в любом порядке). */
+  renban?: ThermoPN;
+  /** Линии равных сумм: в каждом блоке линии сумма её цифр одна. */
+  regionsum?: ThermoPN;
+  palindrome?: ThermoPN;
+  between?: ThermoPN;
+  lockout?: ThermoPN;
+  /** XV: знаки на гранях, показаны все (отрицательное условие). */
+  xv?: XvMap;
 }
 
 export interface Grade {
@@ -150,7 +181,7 @@ export function unitsFor(N: number, BR: number, BC: number, variant: Variant, re
 
 /** Оценка пазла: самая сложная техника, без которой не обойтись. */
 export function gradePuzzle(puzzle: Cell[][], ctx: GradeCtx, tierCap = 9): Grade {
-  const { N, BR, BC, variant, regions, thermo, arrow, cages, parity, kropki, sandwich, unequal, towers } = ctx;
+  const { N, BR, BC, variant, regions, thermo, arrow, cages, parity, kropki, sandwich, unequal, towers, whisper, renban, regionsum, palindrome, between, lockout, xv } = ctx;
   const grid = puzzle.map((row) => [...row]);
   const FULL = (1 << N) - 1;
   const cand: number[][] = Array.from({ length: N }, () => Array(N).fill(FULL));
@@ -233,6 +264,25 @@ export function gradePuzzle(puzzle: Cell[][], ctx: GradeCtx, tierCap = 9): Grade
         if (ok && parity && parity[r][c] !== 0) ok = (parity[r][c] === 1) === (v % 2 === 0);
         if (ok && unequal) ok = unequalOk(grid, r, c, v, N, unequal);
         if (ok && towers) ok = towersOk(grid, r, c, v, towers);
+        if (ok && whisper) {
+          // Занятый сосед по линии отсекает даром — цифра видна, это не приём.
+          const pn = whisper[r][c];
+          if (pn) {
+            for (const nb of [pn.prev, pn.next]) {
+              if (!nb) continue;
+              const o = grid[nb[0]][nb[1]];
+              if (o !== 0 && Math.abs(v - o) < WHISPER_GAP) ok = false;
+            }
+          }
+        }
+        // Ренбан против ИЗВЕСТНЫХ цифр линии (повтор, разброс шире длины) — дано даром.
+        if (ok && renban && !renbanOk(grid, r, c, v, renban)) ok = false;
+        // Равные суммы против ИЗВЕСТНЫХ цифр: коридоры сумм по блокам — даром.
+        if (ok && regionsum && !regionSumOk(grid, r, c, v, regionsum, N, BR, BC)) ok = false;
+        if (ok && palindrome && !palindromeOk(grid, r, c, v, palindrome)) ok = false;   // против известных цифр — даром
+        if (ok && between && !betweenOk(grid, r, c, v, between)) ok = false;   // против известных цифр — даром
+        if (ok && lockout && !lockoutOk(grid, r, c, v, lockout)) ok = false;   // против известных цифр — даром
+        if (ok && xv && !xvOk(grid, r, c, v, xv, N)) ok = false;   // XV против известных соседей — даром
         if (!ok) m &= ~bit(v);
       }
       cand[r][c] = m;
@@ -310,6 +360,258 @@ export function gradePuzzle(puzzle: Cell[][], ctx: GradeCtx, tierCap = 9): Grade
      * срез по заполненному — тот же старый фильтр, игроку он даётся даром, и
      * bump по нему завысил бы ступень ровно так, как её раньше занижали.
      */
+    /**
+     * ── НЕМЕЦКИЙ ШЁПОТ: кандидат v клетки на линии живёт, только если у КАЖДОГО пустого
+     * соседа по линии есть кандидат e с |v − e| ≥ WHISPER_GAP. Прогон до неподвижной точки
+     * протягивает срез вдоль линии (длина ≤ 6 — сходится за ≤ 6 проходов). Техникой
+     * (`whisper_line`) считается только вывод через ПУСТОГО соседа — как у цепочки неравенств.
+     */
+    if (whisper && выводВарианта) {
+      let usedWhisper = false;
+      for (let pass = 0; pass < N; pass++) {
+        let changed = false;
+        for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+          const pn = whisper[r][c];
+          if (!pn || grid[r][c] !== 0) continue;
+          let m = cand[r][c];
+          for (const nb of [pn.prev, pn.next]) {
+            if (!nb || grid[nb[0]][nb[1]] !== 0) continue;
+            const other = cand[nb[0]][nb[1]];
+            for (const v of bitsOf(m, N)) {
+              let partner = false;
+              for (const e of bitsOf(other, N)) if (Math.abs(v - e) >= WHISPER_GAP) { partner = true; break; }
+              if (!partner) m &= ~bit(v);
+            }
+          }
+          if (m !== cand[r][c]) { cand[r][c] = m; changed = true; usedWhisper = true; }
+          if (m === 0) return true;
+        }
+        if (!changed) break;
+      }
+      if (usedWhisper) bump('whisper_line');
+    }
+
+    /**
+     * ── РЕНБАН: кандидат v пустой клетки линии живёт, только если есть ОКНО значений
+     * [a, a+L−1] (L — длина линии), которое вмещает v и все известные цифры линии, и в котором
+     * каждая другая пустая клетка линии находит себе кандидата (не v и не известную цифру).
+     * Это и есть приём: окно зажимают ПУСТЫЕ клетки, а не только видимые цифры (их срез —
+     * даром, выше). Техникой (`renban_window`) считается только этот вывод.
+     */
+    if (renban && выводВарианта) {
+      let usedRenban = false;
+      for (let r0 = 0; r0 < N; r0++) for (let c0 = 0; c0 < N; c0++) {
+        const head = renban[r0][c0];
+        if (!head || head.prev) continue;                         // по разу на линию — с её начала
+        const cells = lineCells(renban, r0, c0);
+        const L = cells.length;
+        const known = cells.map(([lr, lc]) => grid[lr][lc]).filter((v) => v !== 0);
+        const empty = cells.filter(([lr, lc]) => grid[lr][lc] === 0);
+        for (const [er, ec] of empty) {
+          let m = cand[er][ec];
+          for (const v of bitsOf(m, N)) {
+            let fits = false;
+            for (let a = 1; a + L - 1 <= N && !fits; a++) {
+              const lo = a, hi = a + L - 1;
+              if (v < lo || v > hi || known.some((k) => k < lo || k > hi)) continue;
+              fits = empty.every(([yr, yc]) => (yr === er && yc === ec)
+                || bitsOf(cand[yr][yc], N).some((e) => e >= lo && e <= hi && e !== v && !known.includes(e)));
+            }
+            if (!fits) m &= ~bit(v);
+          }
+          if (m !== cand[er][ec]) { cand[er][ec] = m; usedRenban = true; }
+          if (m === 0) return true;
+        }
+      }
+      if (usedRenban) bump('renban_window');
+    }
+
+    /**
+     * ── ЛИНИЯ РАВНЫХ СУММ: у каждого блока линии перебором кандидатов находятся достижимые
+     * суммы (цифры в блоке разные), общая сумма T обязана лежать в их пересечении. Кандидат
+     * пустой клетки живёт, только если входит хотя бы в одну раскладку своего блока с такой T.
+     * Техникой (`region_sum`) считается этот вывод; срез по известным цифрам — даром, выше.
+     */
+    if (regionsum && выводВарианта) {
+      let usedSum = false;
+      const boxOf = (rr: number, cc: number) => Math.floor(rr / BR) * (N / BC) + Math.floor(cc / BC);
+      for (let r0 = 0; r0 < N; r0++) for (let c0 = 0; c0 < N; c0++) {
+        const head = regionsum[r0][c0];
+        if (!head || head.prev) continue;                          // по разу на линию
+        const cells = lineCells(regionsum, r0, c0);
+        const byBox = new Map<number, [number, number][]>();
+        for (const cell of cells) {
+          const b = boxOf(cell[0], cell[1]);
+          byBox.set(b, [...(byBox.get(b) ?? []), cell]);
+        }
+        // Для каждого блока: сумма → (клетка → цифры, которые встречаются в раскладках этой суммы).
+        const reach: Map<number, Map<string, number>>[] = [];
+        for (const group of byBox.values()) {
+          const fixed = group.filter(([gr, gc]) => grid[gr][gc] !== 0).map(([gr, gc]) => grid[gr][gc]);
+          const base = fixed.reduce((a, b) => a + b, 0);
+          const empty = group.filter(([gr, gc]) => grid[gr][gc] === 0);
+          const out = new Map<number, Map<string, number>>();
+          const pick: number[] = [];
+          const walk = (k: number, sum: number) => {
+            if (k === empty.length) {
+              const m = out.get(sum) ?? new Map<string, number>();
+              empty.forEach(([er, ec], i) => m.set(`${er},${ec}`, (m.get(`${er},${ec}`) ?? 0) | bit(pick[i])));
+              out.set(sum, m);
+              return;
+            }
+            const [er, ec] = empty[k];
+            for (const v of bitsOf(cand[er][ec], N)) {
+              if (fixed.includes(v) || pick.includes(v)) continue;
+              pick.push(v); walk(k + 1, sum + v); pick.pop();
+            }
+          };
+          walk(0, base);
+          reach.push(out);
+        }
+        let common: number[] = [...(reach[0]?.keys() ?? [])];
+        for (const m of reach.slice(1)) common = common.filter((t) => m.has(t));
+        if (!common.length) return true;                           // противоречие: общей суммы нет
+        for (const m of reach) {
+          const allowed = new Map<string, number>();
+          for (const t of common) for (const [key, bits] of m.get(t) ?? []) allowed.set(key, (allowed.get(key) ?? 0) | bits);
+          for (const [key, bits] of allowed) {
+            const [er, ec] = key.split(',').map(Number);
+            const next = cand[er][ec] & bits;
+            if (next !== cand[er][ec]) { cand[er][ec] = next; usedSum = true; }
+            if (next === 0) return true;
+          }
+        }
+      }
+      if (usedSum) bump('region_sum');
+    }
+
+    /**
+     * ── ПАЛИНДРОМ: у пустых зеркальных клеток линии кандидаты пересекаются — цифра одна на двоих.
+     * Через пару проходит то, что известно о каждой из клеток в СВОИХ строке, столбце и блоке.
+     * Техника `palindrome_mirror` (ступень 4, класс выводов варианта); срез по заполненной
+     * зеркальной клетке — даром.
+     */
+    if (palindrome && выводВарианта) {
+      let usedMirror = false;
+      for (let r0 = 0; r0 < N; r0++) for (let c0 = 0; c0 < N; c0++) {
+        const head = palindrome[r0][c0];
+        if (!head || head.prev) continue;
+        const cells = lineCells(palindrome, r0, c0);
+        for (let i = 0; i < Math.floor(cells.length / 2); i++) {
+          const [ar, ac] = cells[i], [br, bc] = cells[cells.length - 1 - i];
+          if (grid[ar][ac] !== 0 || grid[br][bc] !== 0) continue;
+          const both = cand[ar][ac] & cand[br][bc];
+          if (both !== cand[ar][ac] || both !== cand[br][bc]) { cand[ar][ac] = both; cand[br][bc] = both; usedMirror = true; }
+          if (both === 0) return true;
+        }
+      }
+      if (usedMirror) bump('palindrome_mirror');
+    }
+
+    /**
+     * ── «МЕЖДУ КОНЦАМИ»: кандидат конца a живёт, только если у другого конца есть b ≠ a такой,
+     * что у КАЖДОЙ средней клетки найдётся кандидат строго между a и b; кандидат средней — если
+     * есть пара концов, между которыми он лежит. Техника `between_window` (ступень 4); срез по
+     * известным цифрам — даром.
+     */
+    if (between && выводВарианта) {
+      let usedBetween = false;
+      for (let r0 = 0; r0 < N; r0++) for (let c0 = 0; c0 < N; c0++) {
+        const head = between[r0][c0];
+        if (!head || head.prev) continue;
+        const cells = lineCells(between, r0, c0);
+        const opts = (cell: [number, number]) => (grid[cell[0]][cell[1]] ? [grid[cell[0]][cell[1]]] : bitsOf(cand[cell[0]][cell[1]], N));
+        const A = cells[0], B = cells[cells.length - 1], mids = cells.slice(1, -1);
+        const fits = (a: number, b: number) => a !== b && mids.every((m) => opts(m).some((v) => v > Math.min(a, b) && v < Math.max(a, b)));
+        const keepA: number[] = [], keepB: number[] = [];
+        const keepMid = mids.map(() => 0);
+        for (const a of opts(A)) for (const b of opts(B)) {
+          if (!fits(a, b)) continue;
+          if (!keepA.includes(a)) keepA.push(a);
+          if (!keepB.includes(b)) keepB.push(b);
+          mids.forEach((m, i) => { for (const v of opts(m)) if (v > Math.min(a, b) && v < Math.max(a, b)) keepMid[i] |= bit(v); });
+        }
+        const prune = (cell: [number, number], mask: number) => {
+          if (grid[cell[0]][cell[1]]) return false;
+          const next = cand[cell[0]][cell[1]] & mask;
+          if (next !== cand[cell[0]][cell[1]]) { cand[cell[0]][cell[1]] = next; usedBetween = true; }
+          return next === 0;
+        };
+        if (prune(A, keepA.reduce((m, v) => m | bit(v), 0))) return true;
+        if (prune(B, keepB.reduce((m, v) => m | bit(v), 0))) return true;
+        for (let i = 0; i < mids.length; i++) if (prune(mids[i], keepMid[i])) return true;
+      }
+      if (usedBetween) bump('between_window');
+    }
+
+    /**
+     * ── LOCKOUT: пара концов (a, b) годна, если |a − b| ≥ 4 и у КАЖДОЙ средней клетки есть
+     * кандидат вне отрезка [min, max]; кандидат конца живёт, если входит в годную пару, кандидат
+     * средней — если лежит вне отрезка хотя бы одной годной пары. Техника `lockout_window`
+     * (ступень 4); срез по известным цифрам — даром.
+     */
+    if (lockout && выводВарианта) {
+      let usedLock = false;
+      for (let r0 = 0; r0 < N; r0++) for (let c0 = 0; c0 < N; c0++) {
+        const head = lockout[r0][c0];
+        if (!head || head.prev) continue;
+        const cells = lineCells(lockout, r0, c0);
+        const opts = (cell: [number, number]) => (grid[cell[0]][cell[1]] ? [grid[cell[0]][cell[1]]] : bitsOf(cand[cell[0]][cell[1]], N));
+        const A = cells[0], B = cells[cells.length - 1], mids = cells.slice(1, -1);
+        const outside = (v: number, a: number, b: number) => v < Math.min(a, b) || v > Math.max(a, b);
+        const fits = (a: number, b: number) => Math.abs(a - b) >= 4 && mids.every((m) => opts(m).some((v) => outside(v, a, b)));
+        const keepA: number[] = [], keepB: number[] = [];
+        const keepMid = mids.map(() => 0);
+        for (const a of opts(A)) for (const b of opts(B)) {
+          if (!fits(a, b)) continue;
+          if (!keepA.includes(a)) keepA.push(a);
+          if (!keepB.includes(b)) keepB.push(b);
+          mids.forEach((m, i) => { for (const v of opts(m)) if (outside(v, a, b)) keepMid[i] |= bit(v); });
+        }
+        const prune = (cell: [number, number], mask: number) => {
+          if (grid[cell[0]][cell[1]]) return false;
+          const next = cand[cell[0]][cell[1]] & mask;
+          if (next !== cand[cell[0]][cell[1]]) { cand[cell[0]][cell[1]] = next; usedLock = true; }
+          return next === 0;
+        };
+        if (prune(A, keepA.reduce((m, v) => m | bit(v), 0))) return true;
+        if (prune(B, keepB.reduce((m, v) => m | bit(v), 0))) return true;
+        for (let i = 0; i < mids.length; i++) if (prune(mids[i], keepMid[i])) return true;
+      }
+      if (usedLock) bump('lockout_window');
+    }
+
+    /**
+     * ── XV: кандидат v клетки живёт, только если у КАЖДОГО пустого соседа есть кандидат w,
+     * согласный с гранью: X → v + w = 10, V → v + w = 5, без знака → v + w ∉ {5, 10}. Техника
+     * `xv_pair` (ступень 4); срез по известным соседям — даром, выше.
+     */
+    if (xv && выводВарианта) {
+      let usedXv = false;
+      const fits = (d: number, a: number, b: number) => (d === 2 ? a + b === 10 : d === 1 ? a + b === 5 : a + b !== 5 && a + b !== 10);
+      for (let pass = 0; pass < N; pass++) {
+        let changed = false;
+        for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+          if (grid[r][c] !== 0) continue;
+          const edges: [number, number, number][] = [];
+          if (c < N - 1) edges.push([xv.h[r][c], r, c + 1]);
+          if (c > 0) edges.push([xv.h[r][c - 1], r, c - 1]);
+          if (r < N - 1) edges.push([xv.v[r][c], r + 1, c]);
+          if (r > 0) edges.push([xv.v[r - 1][c], r - 1, c]);
+          let m = cand[r][c];
+          for (const [d, nr, nc] of edges) {
+            if (grid[nr][nc] !== 0) continue;
+            const other = bitsOf(cand[nr][nc], N);
+            for (const v of bitsOf(m, N)) if (!other.some((w) => fits(d, v, w))) m &= ~bit(v);
+          }
+          if (m !== cand[r][c]) { cand[r][c] = m; changed = true; usedXv = true; }
+          if (m === 0) return true;
+        }
+        if (!changed) break;
+      }
+      if (usedXv) bump('xv_pair');
+    }
+
     if (unequal && выводВарианта) {
       let usedChain = false;
       for (let pass = 0; pass < N; pass++) {
@@ -871,6 +1173,31 @@ const VARIANT_TIER_CEILING: Partial<Record<Variant, number>> = {
    */
   jigsaw: 6, thermocage: 5,
   /**
+   * Немецкий шёпот (93–96) — ЗАМЕР 01.10.2026 боевым путём, по 10 досок: 50 пустых → 4 ×10,
+   * 54 → 4 ×10, 58 → 4 ×4 и 5 ×6; шестёрки ноль. Потолок 5.
+   */
+  whisper: 5,
+  /** Ренбан (97–100) — ЗАМЕР 01.10.2026, выгрузка 48 досок боевым путём: 4 ×45, 5 ×3; шестёрки
+   *  ноль. Без линий не решается 0 из 48, под потолком 3 — 1 из 48. Потолок 5. */
+  renban: 5,
+  /** Линии равных сумм (101–104) — ЗАМЕР 01.10.2026, выгрузка 48 досок: 4 ×44, 5 ×4; шестёрки
+   *  ноль. Без линий не решается 0 из 48, под потолком 3 — 0 из 48. Потолок 5. */
+  regionsum: 5,
+  /** Палиндром (105–108) — ЗАМЕР 01.10.2026, выгрузка 48 досок: 4 ×46, 5 ×2; шестёрки ноль. Без
+   *  линий не решается 0 из 48, под потолком 3 — 2 из 48. Потолок 5. */
+  palindrome: 5,
+  /** «Между концами» (109–112) — ЗАМЕР 01.10.2026, выгрузка 48 досок: 4 ×45, 5 ×3; шестёрки ноль.
+   *  Без линий не решается 0 из 48, под потолком 3 — 0 из 48. Потолок 5. */
+  between: 5,
+  /** Lockout (113–116) — ЗАМЕР 01.10.2026, выгрузка 48 досок: 4 ×44, 5 ×4; шестёрки ноль. Без
+   *  линий не решается 0 из 48, под потолком 3 — 0 из 48. Потолок 5. */
+  lockout: 5,
+  /** XV (117–120) — ЗАМЕР 01.10.2026, выгрузка 48 досок: полная мера ставит 4 всем 48, но под
+   *  потолком 3 решаются 39 из 48 — с отрицательным условием (нет знака — сумма не 5 и не 10)
+   *  знаки работают через известных соседей, а это срез «даром», ступень 4 завышена. Решение
+   *  лестницы 02.10 (996f56dc): обещание = замер, потолок 3; отрицательное условие остаётся. */
+  xv: 3,
+  /**
    * Комбо-пояс 81–92 — ЗАМЕР 29.08.2026 (combo-tiers.measure, по 15 боевых досок):
    * шестёрка у всех трёх пар — 0–1 из 15 (не массово), пятёрка достижима у всех
    * (sandparity 7/15, killerdiag 8/15 на верхних уровнях). Потолок 5.
@@ -1080,7 +1407,7 @@ export type GeneratedPuzzle = ReturnType<typeof generatePuzzle>;
  * refilter; если конкретная попытка не укладывается в бюджет, generateLogical всё
  * равно сохраняет прежний безопасный fallback через проверку единственности.
  */
-const LOGIC_VARIANTS: readonly Variant[] = ['none', 'diagonal', 'antiknight', 'hyper', 'antiking', 'evenodd', 'kropki', 'sandwich', 'jigsaw', 'nonconsec', 'thermo', 'arrow', 'thermocage', 'sandparity', 'thermoknight', 'killerdiag'];
+const LOGIC_VARIANTS: readonly Variant[] = ['none', 'diagonal', 'antiknight', 'hyper', 'antiking', 'evenodd', 'kropki', 'sandwich', 'jigsaw', 'nonconsec', 'thermo', 'arrow', 'thermocage', 'sandparity', 'thermoknight', 'killerdiag', 'whisper', 'renban', 'regionsum', 'palindrome', 'between', 'lockout', 'xv'];
 
 /**
  * Сколько раз проходим доску, пытаясь убрать ещё клетку. Больше трёх бюджет обычно
@@ -1134,7 +1461,7 @@ export function solvedSameBoard(grade: Grade, solution: Cell[][]): boolean {
 function gradeOf(gen: GeneratedPuzzle, N: number, BR: number, BC: number, variant: Variant): Grade {
   return gradePuzzle(gen.puzzle, {
     N, BR, BC, variant, regions: gen.regions, thermo: gen.thermo, arrow: gen.arrow, cages: gen.cages,
-    parity: gen.parity, kropki: gen.kropki, sandwich: gen.sandwich,
+    parity: gen.parity, kropki: gen.kropki, sandwich: gen.sandwich, whisper: gen.whisper, renban: gen.renban, regionsum: gen.regionsum, palindrome: gen.palindrome, between: gen.between, lockout: gen.lockout, xv: gen.xv,
     // ⚠️ Знаки и краевые подсказки ОБЯЗАНЫ доходить до оценщика. До 27.08.2026 их
     // здесь не было, и запасной путь оценивал unequal/towers вслепую: та же доска
     // давала «ступень 2, hidden_single» без карты и «ступень 4, unequal_chain» с ней.
@@ -1169,7 +1496,7 @@ function digByLogic(
   // увидит человек — та же дисциплина, что у сэндвича и кропки.
   const unequal = (base as { unequal?: UnequalMap }).unequal;
   const towers = (base as { towers?: TowersMap }).towers;
-  const ctx: GradeCtx = { N, BR, BC, variant, regions: base.regions, thermo: base.thermo, arrow: base.arrow, cages: base.cages, parity, kropki, sandwich, unequal, towers };
+  const ctx: GradeCtx = { N, BR, BC, variant, regions: base.regions, thermo: base.thermo, arrow: base.arrow, cages: base.cages, parity, kropki, sandwich, unequal, towers, whisper: base.whisper, renban: base.renban, regionsum: base.regionsum, palindrome: base.palindrome, between: base.between, lockout: base.lockout, xv: base.xv };
 
   // Лимит пустых держим только на новичковых уровнях, чтобы не пугать доской в дырках.
   // Дальше глубину задаёт ЛОГИКА. Старый лимит (58 к 29-му) как раз и упирался в потолок,

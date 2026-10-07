@@ -236,11 +236,13 @@ void main() {
     expect(((sent.single['details'] as Map)['expected'] as String).split(' ').every(english.contains), isTrue);
   });
 
-  // Справка игры — короткая подпись `readingSpanDesc` (каркас берёт её по карточке развилки).
-  // Замер 01.10.2026: подпись теряла оба действия — en «Judge sense, recall last words» без
-  // «каждого предложения», ru «Оцените смысл и запомните слова» без «последнее» (задача cf5ff1ca).
+  // Подпись игры `readingSpanDesc` — карточка развилки и экран старта. Замер 01.10.2026: она теряла
+  // оба действия — en «Judge sense, recall last words» без «каждого предложения», ru «Оцените смысл
+  // и запомните слова» без «последнее» (задача cf5ff1ca). Справка из партии с 2.56.12 — полный текст
+  // правил из общего реестра (`GameRules.fullKeyFor`, у этой игры `readingSpanIntroDesc`).
+  final cyrillic = RegExp('[А-Яа-яЁё]');
   for (final lang in ['ru', 'en']) {
-    testWidgets('🔴 справка из партии ($lang): смысл КАЖДОГО предложения и его ПОСЛЕДНЕЕ слово; закрыл — круг там же',
+    testWidgets('🔴 подпись и справка ($lang): смысл КАЖДОГО предложения и его ПОСЛЕДНЕЕ слово; закрыл — круг там же',
         (tester) async {
       await L.load(lang);
       GameRules.currentRoute = '/games/reading-span';
@@ -249,6 +251,15 @@ void main() {
         await L.load('ru');
       });
       await boot(tester, level: 1);
+      final desc = L.t('readingSpanDesc');
+      expect(find.text(desc), findsOneWidget, reason: 'подпись игры на экране старта');
+      if (lang == 'ru') {
+        expect(desc, allOf(contains('каждого предложения'), contains('последнее слово')));
+      } else {
+        expect(desc, allOf(contains('each sentence'), contains('last word')));
+        expect(cyrillic.hasMatch(desc), isFalse, reason: 'в английской подписи нет кириллицы: «$desc»');
+      }
+
       await tester.tap(find.byKey(const Key('rspan-start')));
       await tester.pump();
       final first = lastWordOnScreen(tester);
@@ -259,12 +270,12 @@ void main() {
       await tester.tap(find.byIcon(Icons.help_outline));
       await tester.pump(const Duration(milliseconds: 400));
       final help = tester.widget<Text>(find.byKey(const Key('game-rules-text'))).data!;
-      expect(help, L.t('readingSpanDesc'));
+      expect(help, L.t(GameRules.fullKeyFor('/games/reading-span')!));
       if (lang == 'ru') {
-        expect(help, allOf(contains('каждого предложения'), contains('последнее слово')));
+        expect(help, allOf(contains('смысл'), contains('последнее слово')));
       } else {
-        expect(help, allOf(contains('each sentence'), contains('last word')));
-        expect(RegExp('[А-Яа-яЁё]').hasMatch(help), isFalse, reason: 'в английской справке нет кириллицы: «$help»');
+        expect(help, allOf(contains('makes sense'), contains('last word')));
+        expect(cyrillic.hasMatch(help), isFalse, reason: 'в английской справке нет кириллицы: «$help»');
       }
       await tester.tap(find.byKey(const Key('game-rules-close')));
       await tester.pump(const Duration(milliseconds: 400));
