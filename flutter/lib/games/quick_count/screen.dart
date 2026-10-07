@@ -158,22 +158,24 @@ class _QuickCountScreenState extends State<QuickCountScreen> {
   String get _line {
     switch (_phase) {
       case _Phase.ready:
-        return 'Точки вспыхнут на мгновение — назови, сколько их';
+        return L.t('qcIntro');
       case _Phase.flash:
-        return 'Смотри';
+        return L.t('quickCountLookHint');
       case _Phase.hold:
-        return _params.holdMs > 0 ? 'Держи число в уме' : '…';
+        return _params.holdMs > 0 ? L.t('qcHold') : '…';
       case _Phase.answer:
-        return 'Сколько было точек?';
+        return L.t('quickCountAnswerHint');
       case _Phase.result:
         final accuracy = (_correct / trialsPerRound * 100).round();
-        return _won ? 'Уровень взят: $accuracy% верных' : 'Верных $accuracy% — нужно 80%';
+        return _won
+            ? L.f('qcResultWin', {'p': '$accuracy'})
+            : L.f('qcResultFail', {'p': '$accuracy', 'need': '${passAccuracyPercent.round()}'});
     }
   }
 
   /// Заголовок один на экран и на разбор: вторая такая строка — второй долг
   /// храповика подписей (`test/ui_text_debt_does_not_grow_test.dart`).
-  String get _title => 'Быстрый счёт';
+  String get _title => L.t('quickCount');
 
   /// Разбор объясняет ПРИЁМ: верный ответ человек и так увидит по итогу раунда,
   /// а вот чем объём берётся — нет.
@@ -188,11 +190,11 @@ class _QuickCountScreenState extends State<QuickCountScreen> {
       title: _title,
       onLesson: () => openDemoLesson(context, title: _title, trials: _demoTrials()),
       hud: [
-        HudItem(label: 'Уровень', value: '${_ladder.level}', icon: Icons.flag_outlined),
-        HudItem(label: 'Достигнуто', value: '${_ladder.best}', icon: Icons.emoji_events_outlined),
-        HudItem(label: 'Проба', value: '${math.min(_trial + 1, trialsPerRound)}/$trialsPerRound', icon: Icons.repeat),
-        HudItem(label: 'Верно', value: '$_correct', icon: Icons.check_circle_outline),
-        HudItem(label: 'Ошибки', value: '$_wrong', icon: Icons.error_outline),
+        HudItem(label: L.t('level'), value: '${_ladder.level}', icon: Icons.flag_outlined),
+        HudItem(label: L.t('personalBest'), value: '${_ladder.best}', icon: Icons.emoji_events_outlined),
+        HudItem(label: L.t('round'), value: '${math.min(_trial + 1, trialsPerRound)}/$trialsPerRound', icon: Icons.repeat),
+        HudItem(label: L.t('hud_correct'), value: '$_correct', icon: Icons.check_circle_outline),
+        HudItem(label: L.t('errors'), value: '$_wrong', icon: Icons.error_outline),
       ],
       field: (context, h) => _Field(
         phase: _phase,
@@ -203,11 +205,11 @@ class _QuickCountScreenState extends State<QuickCountScreen> {
         rnd: widget.rnd,
       ),
       auxRow: AuxBar(children: [
-        AuxAction(icon: Icons.refresh, label: 'Начать заново', onPressed: () => setState(_reset)),
+        AuxAction(icon: Icons.refresh, label: L.t('restart'), onPressed: () => setState(_reset)),
       ]),
       toolbar: _toolbar(context),
       pauseActions: [
-        PauseAction(label: 'Начать заново', icon: Icons.refresh, onPressed: () => setState(_reset)),
+        PauseAction(label: L.t('restart'), icon: Icons.refresh, onPressed: () => setState(_reset)),
       ],
     );
   }
@@ -228,7 +230,7 @@ class _QuickCountScreenState extends State<QuickCountScreen> {
             key: const Key('начать'),
             onPressed: _startTrial,
             icon: const Icon(Icons.play_arrow),
-            label: const Text('Начать'),
+            label: Text(L.t('start')),
           ),
         if (_phase == _Phase.answer)
           SizedBox(
@@ -259,10 +261,10 @@ class _QuickCountScreenState extends State<QuickCountScreen> {
             key: const Key('дальше'),
             onPressed: () => setState(_reset),
             icon: Icon(_won ? Icons.arrow_forward : Icons.refresh),
-            label: Text(_won ? 'Следующий уровень' : 'Ещё раз'),
+            label: Text(_won ? L.t('nextLabel') : L.t('retry')),
           ),
         if (_picked != null && _phase != _Phase.result && _phase != _Phase.answer)
-          Text('было $_n', key: const Key('было'), style: text.bodySmall),
+          Text(L.f('qcWas', {'n': '$_n'}), key: const Key('было'), style: text.bodySmall),
       ]),
     );
   }

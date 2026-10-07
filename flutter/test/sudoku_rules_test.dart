@@ -30,7 +30,7 @@ void main() {
     // Числа не зашиты: новое правило лестницы обязано приехать в эталоны само (выгрузка).
     final ladderVariants = {for (final l in ladder) l['variant'] as String};
     // Правила, собранные раньше своих ступеней (RULES_AHEAD выгрузки): встанут на лестницу — уйдут отсюда.
-    const rulesAhead = {'argyle', 'littlekiller', 'xsums'};
+    const rulesAhead = {'argyle', 'littlekiller', 'xsums', 'cipher'};
     expect(boards.length, ladderVariants.length + 3 + rulesAhead.difference(ladderVariants).length,
         reason: 'варианты лестницы + killer, unequal, towers + правила впереди лестницы');
     expect({for (final b in boards) b['variant'] as String}, containsAll(rulesAhead));
@@ -66,6 +66,10 @@ void main() {
     for (final b in boards) {
       final variant = b['variant'] as String;
       if (variant == 'none' || variant == 'jigsaw') continue;   // своего правила сверх блока нет
+      // Туман (137–140) правило ДОПУСТИМОСТИ цифр не меняет — он закрывает клетки; самосборка
+      // (141–144) блоков не даёт вовсе — области выводит игрок, и её допустимость мягче
+      // классики, а не строже. Их эталоны проверяют перенос («ответ совпадает с живым TS»).
+      if (variant == 'fog' || variant == 'chaos') continue;
       final n = (b['n'] as num).toInt(), br = (b['br'] as num).toInt(), bc = (b['bc'] as num).toInt();
       final grid = (b['grid'] as List).map((row) => (row as List).cast<num>().map((x) => x.toInt()).toList()).toList();
       var byRule = 0;

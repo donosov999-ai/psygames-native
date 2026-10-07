@@ -12,6 +12,7 @@ import '../../shell/lesson.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
+import '../counting_common/generator_shadow.dart';
 import 'model.dart';
 
 /// «Собери сумму» на общем каркасе: сетка чисел, сверху цель.
@@ -65,6 +66,10 @@ class _CounterScreenState extends State<CounterScreen> {
   Timer? _next;
   Timer? _clear;
 
+  /// Тень генератора уровней (звено 4, задача 4e584381): раздача с новой партией, исход до лестницы.
+  late final LadderShadow _shadow =
+      LadderShadow(widget.state, gameId: 'counter', stepKeys: counterStepKeys);
+
   @override
   void initState() {
     super.initState();
@@ -103,6 +108,7 @@ class _CounterScreenState extends State<CounterScreen> {
     _next?.cancel();
     _clear?.cancel();
     _cfg = counterLevelParams(_ladder.level);
+    _shadow.deal(_ladder.level);
     _round = 1;
     _hits = 0;
     _errors = 0;
@@ -183,6 +189,7 @@ class _CounterScreenState extends State<CounterScreen> {
     if (!mounted) return;
     if (_round >= _cfg.rounds) {
       final passed = _hits / _cfg.rounds >= counterPassAccuracy;
+      _shadow.outcome(passed: passed, errors: _errors);
       // Веха как в вебе: каждый третий ЗАСЧИТАННЫЙ уровень — бой «сложи подсвеченные».
       bool? boss;
       if (passed) {

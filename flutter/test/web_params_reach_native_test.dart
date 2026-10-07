@@ -29,17 +29,14 @@ import 'package:flutter_test/flutter_test.dart';
 const _shellParams = {'wu', 'auto', 'ladderGame'};
 
 /// Снятые потери: маршрут → параметр → почему (решение, задача, PR). Первый замер 07.10.2026 на
-/// 7679684ac (14 потерь у 9 экранов); строгий — 07.10 на c614cb2ae (37 у 20, новые — задача 3e685a46).
+/// 7679684ac (14 потерь у 9 экранов); строгий — 07.10 на c614cb2ae (37 у 20, новые — задача 3e685a46);
+/// сведён с main 2.56.17 (сняты починенные anagrams/targetLang #272, find-differences/diffCount #185) — 35 у 19.
 const _t = 'строгий замер 07.10, задача 3e685a46 (координатор раздаёт)';
 const lostWithReason = <String, Map<String, String>>{
   '/games/anagrams': {
     'length': 'не дефект: решение Дениса 09.09 «зарядка с личного уровня» — длину слова ведёт лестница',
-    'targetLang': 'чинится в PR #272 («Слова»)',
   },
   '/games/dots-connect': {'level': _t},
-  '/games/find-differences': {
-    'diffCount': '«Поиск»: число отличий из адреса',
-  },
   '/games/math-slider': {'trials': _t},
   '/games/math-sprint': {
     'diff': _t,

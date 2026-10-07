@@ -16,6 +16,40 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.56.17',
+    date: '2026-10-07',
+    en: [
+      'Progress counts only the selected profile’s games, and points and streak no longer show zero right after you switch profile',
+      'Progress no longer records phantom games that ran unseen behind native screens',
+      'Large system font: Home cards no longer cut off their text',
+      'Feedback opens right over the current screen, and a screenshot of native games is attached again',
+      'Sudoku: three new rules — Cipher (some clues are letters, you work out the code with the grid), Fog of War (the board starts hidden, correct digits clear the fog) and Self-assembly (no boxes — you deduce the regions); the ladder grows to 144 steps',
+      'Sudoku: Little Killer and X-sums blocks get harder steps',
+      'Native Shop, What’s New and Pet tab: they open faster and follow your theme; the shop guards against a double charge',
+      'Visual Search: no more level ceilings — Object Tracker, Spot the Difference, visual search and SET keep growing',
+      'Visual Search and Counting are fully in English on English phones — eight screens without leftover Russian',
+      'Guess the Code: the second action is called Keep, and the help follows the real input; Slant, Black Box and Unruly no longer show a raw key on that button',
+      'Anagrams: on an English phone the words are now English (they were Russian for everyone), and the language can be changed in the pause menu',
+      'Anagrams and Proofread: Restart in the pause menu works on all five screens',
+      'First launch: the bottom Skip button is full width; on Home the link now reads All hubs',
+    ],
+    ru: [
+      '«Прогресс» считает партии только выбранного профиля, а очки и серия больше не показывают ноль сразу после смены профиля',
+      '«Прогресс» больше не записывает «призрачные» партии, которые шли незаметно под нативными экранами',
+      'Крупный системный шрифт: карточки Главной больше не обрезают текст',
+      'Отзыв открывается прямо поверх текущего экрана, и к нему снова прикладывается снимок нативной игры',
+      '«Судоку»: три новых правила — «шифр» (часть подсказок буквами, код выводится вместе с доской), «туман войны» (доска закрыта, верные цифры расчищают туман) и «самосборка» (блоков нет, области выводит игрок); лестница выросла до 144 ступеней',
+      '«Судоку»: у «малого киллера» и «X-сумм» блоки стали труднее',
+      '«Магазин», «Что нового» и вкладка «Питомец» стали нативными: открываются быстрее и идут за темой; магазин защищён от двойного списания',
+      '«Поиск глазами»: потолков нет — трекер, «Найди отличия», зрительный поиск и SET растут дальше',
+      '«Поиск» и «Счёт» на английском телефоне — полностью по-английски: восемь экранов без русских остатков',
+      '«Угадай код»: второе действие называется «Оставить», справка — по настоящему вводу; у «Косых черт», «Чёрного ящика» и Unruly на этой кнопке больше нет служебного ключа',
+      'Анаграммы: на английском телефоне слова теперь английские (были русские у всех), язык слов можно сменить в паузе',
+      'Анаграммы и «Корректура»: «Заново» в паузе работает на всех пяти экранах',
+      'Первый запуск: нижняя кнопка «Пропустить» — во всю ширину',
+    ],
+  },
+  {
     version: '2.56.16',
     date: '2026-10-07',
     en: [
