@@ -9,6 +9,7 @@ import 'package:psygames_flutter/shell/asset_server.dart';
 import 'package:psygames_flutter/shell/catalog_screen.dart';
 import 'package:psygames_flutter/shell/feedback_fab.dart';
 import 'package:psygames_flutter/shell/friends_screen.dart';
+import 'package:psygames_flutter/shell/shop_screen.dart';
 import 'package:psygames_flutter/shell/home_screen.dart';
 import 'package:psygames_flutter/shell/screen_ui.dart';
 import 'package:psygames_flutter/shell/game_rules.dart';
@@ -537,7 +538,7 @@ void main() {
     await settle(t, () => find.byKey(const ValueKey('home-header')).evaluate().isNotEmpty);
     expect(find.byKey(const ValueKey('home-header')), findsOneWidget);
     expect(t.widget<NativeTabBar>(find.byType(NativeTabBar)).active, '/');
-    expect(page().js.any((s) => s.contains('window.__psyHostScreens=["/","#switcher","/statistics","/streak-calendar","/assessment-result","/onboarding","/sources","/collection","/achievements","/leagues","/friends"]')), isTrue,
+    expect(page().js.any((s) => s.contains('window.__psyHostScreens=["/","#switcher","/statistics","/streak-calendar","/assessment-result","/onboarding","/sources","/collection","/achievements","/leagues","/friends","/shop"]')), isTrue,
         reason: 'веб узнаёт, какие экраны рисуем мы');
     // Вкладка «Игры» и назад — Главная та же, модель жива.
     await toGames(t);
@@ -697,7 +698,7 @@ void main() {
     expect(find.byKey(const ValueKey('goal-sheet')), findsOneWidget);
   });
 
-  testWidgets('🔴 источники, коллекция, достижения, лиги, друзья — нативные страницы с полосой; «назад» — по истории', (t) async {
+  testWidgets('🔴 источники, коллекция, достижения, лиги, друзья, магазин — нативные страницы с полосой; «назад» — по истории', (t) async {
     await mount(t);
     for (final (path, file, k) in [
       (SourcesScreen.route, 'sources_model.json', 'sources-screen'),
@@ -705,6 +706,7 @@ void main() {
       (AchievementsScreen.route, 'achievements_model.json', 'achievements-screen'),
       (LeaguesScreen.route, 'leagues_model.json', 'leagues-screen'),
       (FriendsScreen.route, 'friends_model.json', 'friends-screen'),
+      (ShopScreen.route, 'shop_model.json', 'shop-screen'),
     ]) {
       await route(t, path);
       page().emit(SharedState.channel, {'op': 'screenUi', 'route': path, 'model': fixture(file)});
