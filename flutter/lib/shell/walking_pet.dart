@@ -56,10 +56,13 @@ class PetBridge {
       _waiting.remove(id);
       return null;
     }
-    return c.future.timeout(timeout, onTimeout: () {
-      _waiting.remove(id);
-      return null;
-    });
+    return c.future.timeout(
+      timeout,
+      onTimeout: () {
+        _waiting.remove(id);
+        return null;
+      },
+    );
   }
 
   /// Сообщение страницы: ответ на вопрос — забираем и говорим «наше».
@@ -87,7 +90,14 @@ class PetBridge {
 
 /// Описание кадров состояния — `petRenderSpec` веба.
 class PetSpec {
-  const PetSpec({required this.strip, required this.uris, required this.frames, required this.tickMs, this.accessory, this.boxes = const []});
+  const PetSpec({
+    required this.strip,
+    required this.uris,
+    required this.frames,
+    required this.tickMs,
+    this.accessory,
+    this.boxes = const [],
+  });
 
   final bool strip;
   final List<String> uris;
@@ -111,8 +121,12 @@ class PetSpec {
           ? [
               for (final b in (acc['boxes'] as List? ?? const []))
                 b is Map
-                    ? Rect.fromLTWH((b['left'] as num).toDouble(), (b['top'] as num).toDouble(),
-                        (b['size'] as num).toDouble(), (b['size'] as num).toDouble())
+                    ? Rect.fromLTWH(
+                        (b['left'] as num).toDouble(),
+                        (b['top'] as num).toDouble(),
+                        (b['size'] as num).toDouble(),
+                        (b['size'] as num).toDouble(),
+                      )
                     : null,
             ]
           : const [],
@@ -123,18 +137,13 @@ class PetSpec {
 /// Облик и числа гуляки — ответ `config`.
 class PetConfig {
   PetConfig(Map j)
-      : visible = j['visible'] != false,
-        size = (j['size'] as num?)?.toDouble() ?? 56,
-        specs = {
-          for (final e in ((j['specs'] as Map?) ?? const {}).entries)
-            '${e.key}': ?PetSpec.fromJson(e.value),
-        },
-        cycles = {
-          for (final e in ((j['cycles'] as Map?) ?? const {}).entries) '${e.key}': (e.value as num).toInt(),
-        },
-        fidgets = [for (final f in (j['fidgets'] as List? ?? const [])) '$f'],
-        sleepPoses = [for (final f in (j['sleepPoses'] as List? ?? const [])) '$f'],
-        walk = Map<String, num>.from((j['walk'] as Map?) ?? const {});
+    : visible = j['visible'] != false,
+      size = (j['size'] as num?)?.toDouble() ?? 56,
+      specs = {for (final e in ((j['specs'] as Map?) ?? const {}).entries) '${e.key}': ?PetSpec.fromJson(e.value)},
+      cycles = {for (final e in ((j['cycles'] as Map?) ?? const {}).entries) '${e.key}': (e.value as num).toInt()},
+      fidgets = [for (final f in (j['fidgets'] as List? ?? const [])) '$f'],
+      sleepPoses = [for (final f in (j['sleepPoses'] as List? ?? const [])) '$f'],
+      walk = Map<String, num>.from((j['walk'] as Map?) ?? const {});
 
   final bool visible;
   final double size;
@@ -213,9 +222,11 @@ class _WalkingPetState extends State<WalkingPet> with TickerProviderStateMixin {
   bool _scheduled = false;
 
   void _later(int ms, VoidCallback fn) {
-    _timers.add(Timer(Duration(milliseconds: ms), () {
-      if (mounted) fn();
-    }));
+    _timers.add(
+      Timer(Duration(milliseconds: ms), () {
+        if (mounted) fn();
+      }),
+    );
   }
 
   @override
@@ -318,10 +329,13 @@ class _WalkingPetState extends State<WalkingPet> with TickerProviderStateMixin {
       _sprite = '${w['state'] ?? 'wave'}';
       _bubble = (text: '${w['text']}', skill: null);
     });
-    _later(show, () => setState(() {
-          _sprite = 'idle';
-          _bubble = null;
-        }));
+    _later(
+      show,
+      () => setState(() {
+        _sprite = 'idle';
+        _bubble = null;
+      }),
+    );
   }
 
   Future<void> _speak() async {
@@ -366,10 +380,13 @@ class _WalkingPetState extends State<WalkingPet> with TickerProviderStateMixin {
     final line = await PetBridge.ask('petted');
     if (!mounted) return;
     if (line is Map && line['text'] != null) setState(() => _bubble = (text: '${line['text']}', skill: null));
-    _later(3200, () => setState(() {
-          _sprite = 'idle';
-          _bubble = null;
-        }));
+    _later(
+      3200,
+      () => setState(() {
+        _sprite = 'idle';
+        _bubble = null;
+      }),
+    );
   }
 
   Future<void> _coach(String skill) async {
@@ -407,68 +424,73 @@ class _WalkingPetState extends State<WalkingPet> with TickerProviderStateMixin {
       builder: (context, _) => Positioned(
         left: _xAnim.value,
         bottom: bottom,
-        child: Column(
-          key: const ValueKey('walking-pet'),
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (_bubble != null)
-              GestureDetector(
-                key: const ValueKey('walking-pet-bubble'),
-                behavior: HitTestBehavior.opaque,
-                onTap: _bubble!.skill == null ? null : () => _coach(_bubble!.skill!),
-                child: Container(
-                  constraints: const BoxConstraints(maxWidth: 170),
-                  margin: const EdgeInsets.only(bottom: 2),
-                  padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 10),
-                  decoration: BoxDecoration(
-                    color: web.surface,
-                    border: Border.all(
-                      color: _bubble!.skill != null ? widget.accent : web.border,
-                      width: _bubble!.skill != null ? 1.5 : 1,
+        // Питомец стоит в Stack оболочки ПОВЕРХ Scaffold — без своего Material текст пузыря берёт
+        // запасной стиль Flutter: жёлтое двойное подчёркивание (живой замер на эмуляторе 07.10.2026).
+        child: Material(
+          type: MaterialType.transparency,
+          child: Column(
+            key: const ValueKey('walking-pet'),
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (_bubble != null)
+                GestureDetector(
+                  key: const ValueKey('walking-pet-bubble'),
+                  behavior: HitTestBehavior.opaque,
+                  onTap: _bubble!.skill == null ? null : () => _coach(_bubble!.skill!),
+                  child: Container(
+                    constraints: const BoxConstraints(maxWidth: 170),
+                    margin: const EdgeInsets.only(bottom: 2),
+                    padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 10),
+                    decoration: BoxDecoration(
+                      color: web.surface,
+                      border: Border.all(
+                        color: _bubble!.skill != null ? widget.accent : web.border,
+                        width: _bubble!.skill != null ? 1.5 : 1,
+                      ),
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(13),
+                        topRight: Radius.circular(13),
+                        bottomRight: Radius.circular(13),
+                        bottomLeft: Radius.circular(4),
+                      ),
+                      boxShadow: const [BoxShadow(color: Color(0x26000000), blurRadius: 6, offset: Offset(0, 2))],
                     ),
-                    borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(13),
-                      topRight: Radius.circular(13),
-                      bottomRight: Radius.circular(13),
-                      bottomLeft: Radius.circular(4),
+                    child: Text(
+                      _bubble!.text,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: web.text, fontSize: 11.5, height: 15 / 11.5, fontWeight: FontWeight.w700),
                     ),
-                    boxShadow: const [BoxShadow(color: Color(0x26000000), blurRadius: 6, offset: Offset(0, 2))],
                   ),
-                  child: Text(
-                    _bubble!.text,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: web.text, fontSize: 11.5, height: 15 / 11.5, fontWeight: FontWeight.w700),
+                ),
+              Semantics(
+                button: true,
+                label: L.t('a11yPet'),
+                child: GestureDetector(
+                  key: const ValueKey('walking-pet-body'),
+                  // Вся площадь питомца ловит нажатие, как `TouchableOpacity` веба, — и пока кадр
+                  // грузится: иначе тап проваливался в плитку под ним.
+                  behavior: HitTestBehavior.opaque,
+                  onTap: _tap,
+                  onLongPress: _pet,
+                  child: Transform(
+                    alignment: Alignment.center,
+                    transform: Matrix4.diagonal3Values(_flipAnim.value, 1, 1),
+                    child: spec == null
+                        ? SizedBox.square(dimension: c.size)
+                        : PetFrames(
+                            key: ValueKey('pet-frames-$_sprite'),
+                            spec: spec,
+                            size: c.size,
+                            origin: widget.origin,
+                            still: MediaQuery.disableAnimationsOf(context),
+                          ),
                   ),
                 ),
               ),
-            Semantics(
-              button: true,
-              label: L.t('a11yPet'),
-              child: GestureDetector(
-                key: const ValueKey('walking-pet-body'),
-                // Вся площадь питомца ловит нажатие, как `TouchableOpacity` веба, — и пока кадр
-                // грузится: иначе тап проваливался в плитку под ним.
-                behavior: HitTestBehavior.opaque,
-                onTap: _tap,
-                onLongPress: _pet,
-                child: Transform(
-                  alignment: Alignment.center,
-                  transform: Matrix4.diagonal3Values(_flipAnim.value, 1, 1),
-                  child: spec == null
-                      ? SizedBox.square(dimension: c.size)
-                      : PetFrames(
-                          key: ValueKey('pet-frames-$_sprite'),
-                          spec: spec,
-                          size: c.size,
-                          origin: widget.origin,
-                          still: MediaQuery.disableAnimationsOf(context),
-                        ),
-                ),
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -517,24 +539,32 @@ class _PetFramesState extends State<PetFrames> {
     final size = widget.size;
     final shown = s.frames == 0 ? 0 : _frame % s.frames;
     Widget img(String u, {double? width}) => Image.network(
-          _url(u),
-          width: width ?? size,
-          height: size,
-          fit: width == null ? BoxFit.contain : BoxFit.fill,
-          gaplessPlayback: true,
-          excludeFromSemantics: true,
-          errorBuilder: (_, _, _) => SizedBox(width: width ?? size, height: size),
-        );
+      _url(u),
+      width: width ?? size,
+      height: size,
+      fit: width == null ? BoxFit.contain : BoxFit.fill,
+      gaplessPlayback: true,
+      excludeFromSemantics: true,
+      errorBuilder: (_, _, _) => SizedBox(width: width ?? size, height: size),
+    );
     final box = shown < s.boxes.length ? s.boxes[shown] : null;
     final body = Stack(
       clipBehavior: s.strip ? Clip.hardEdge : Clip.none,
       children: [
         if (s.strip && s.uris.isNotEmpty)
-          Positioned(left: -shown * size, top: 0, width: size * s.frames, height: size, child: img(s.uris.first, width: size * s.frames))
+          Positioned(
+            left: -shown * size,
+            top: 0,
+            width: size * s.frames,
+            height: size,
+            child: img(s.uris.first, width: size * s.frames),
+          )
         else
           // Все кадры в дереве, видим один — как на вебе: смена кадра без мигания загрузкой.
           for (var i = 0; i < s.uris.length; i++)
-            Positioned.fill(child: Opacity(opacity: i == shown ? 1 : 0, child: img(s.uris[i]))),
+            Positioned.fill(
+              child: Opacity(opacity: i == shown ? 1 : 0, child: img(s.uris[i])),
+            ),
         if (s.accessory != null && box != null)
           Positioned(
             key: const ValueKey('pet-accessory'),
@@ -543,8 +573,12 @@ class _PetFramesState extends State<PetFrames> {
             width: box.width * size,
             height: box.height * size,
             child: IgnorePointer(
-              child: Image.network(_url(s.accessory!),
-                  fit: BoxFit.contain, excludeFromSemantics: true, errorBuilder: (_, _, _) => const SizedBox()),
+              child: Image.network(
+                _url(s.accessory!),
+                fit: BoxFit.contain,
+                excludeFromSemantics: true,
+                errorBuilder: (_, _, _) => const SizedBox(),
+              ),
             ),
           ),
       ],

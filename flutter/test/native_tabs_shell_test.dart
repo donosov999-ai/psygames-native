@@ -418,6 +418,10 @@ void main() {
     await petMount(t, petPage(first: {'state': 'wave', 'text': 'Серия 4, до цели 26', 'showMs': 6000}));
     await t.pump(const Duration(milliseconds: 1400));
     expect(find.text('Серия 4, до цели 26'), findsOneWidget);
+    // Текст пузыря — со стилем приложения, а не запасным стилем Flutter без Material
+    // (жёлтое двойное подчёркивание; живой замер на эмуляторе 07.10.2026).
+    final bubble = t.widget<RichText>(find.descendant(of: find.byKey(const ValueKey('walking-pet-bubble')), matching: find.byType(RichText)));
+    expect(bubble.text.style?.decoration, isNot(TextDecoration.underline));
     // Болтовня (4–8 с) встречу не затирает: она держится свои 6 с.
     await t.pump(const Duration(seconds: 5));
     expect(find.text('Серия 4, до цели 26'), findsOneWidget);
