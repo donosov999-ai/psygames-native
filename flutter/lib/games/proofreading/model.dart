@@ -23,6 +23,8 @@ import 'dart:math';
 
 import 'package:flutter/services.dart';
 
+import '../../shell/preset_cap.dart';
+
 /// Письменности и цифровой набор — ИЗ АССЕТА, а не константой в коде.
 ///
 /// 🔴 ПОЧЕМУ АССЕТОМ. Это МАТЕРИАЛ пробы: шесть алфавитов, один из них
@@ -77,6 +79,21 @@ class ProofScripts {
 
 const int proofMaxLevel = 15;
 
+/// Цифровое поле на выборе письменности — как у веба (`ScriptId | 'digits'`).
+const String proofDigits = 'digits';
+
+/// Письменность партии — как у веба (`proofreading.tsx`, состояние `mode`).
+///
+/// 🔴 ДО 07.10.2026 НАТИВ ВСЕМ ДАВАЛ КИРИЛЛИЦУ: в конструкторе стояло `'cyrillic'`, и
+/// английский игрок видел «Find: Л  К» (замер на маршруте hybrid_app). Веб берёт письменность
+/// из адреса (`mode`), а без него — по языку: русский — кириллица, остальные — латиница.
+/// ⚠️ Адрес — не проверка: 144 шага зарядки в `defaultPlaylists.json` шлют `mode: "11x8"`
+/// (размер, а не письменность). Неизвестное имя откатывается к языку — как у веба.
+String proofScriptFor({required String param, required String locale, required Iterable<String> known}) {
+  if (param == proofDigits || known.contains(param)) return param;
+  return locale == 'ru' ? 'cyrillic' : 'latin';
+}
+
 /// Уровень: размер поля, время и порог доли найденных.
 class ProofLevel {
   const ProofLevel({
@@ -112,6 +129,20 @@ class ProofLevel {
       cols: cols,
       timeLimitSec: (rows * cols * perCellSec).round(),
       minFoundPct: level <= 5 ? 0.8 : (level <= 10 ? 0.9 : 1.0),
+    );
+  }
+
+  /// Шаг зарядки — как у веба (`startGame`, ветка `isPreset`): размер из шага, но не выше
+  /// освоенного больше чем на ступень (`capPresetByLevel`), и БЕЗ ЛИМИТА ВРЕМЕНИ — сценарий
+  /// зарядки рассчитан по времени всей связки. Поле разбирается целиком: порога нет.
+  /// Без размера в шаге веб берёт 14×12 (`num('rows', 14)`, `num('cols', 12)`).
+  static ProofLevel preset(int level, {required int wantRows, required int wantCols}) {
+    final at = ProofLevel.of(level);
+    return ProofLevel(
+      rows: capPresetByLevel(want: wantRows, atLevel: at.rows, atTop: at.rows >= 16),
+      cols: capPresetByLevel(want: wantCols, atLevel: at.cols, atTop: at.cols >= 12),
+      timeLimitSec: 0,
+      minFoundPct: 1,
     );
   }
 }
@@ -187,9 +218,11 @@ class ProofGame {
     required this.level,
     this.script = 'cyrillic',
     this.digits = false,
+    this.preset = false,
+    ProofLevel? params,
     Random? rnd,
     int Function()? nowMs,
-  })  : params = ProofLevel.of(level),
+  })  : params = params ?? ProofLevel.of(level),
         _rnd = rnd ?? Random(),
         _now = nowMs ?? (() => DateTime.now().millisecondsSinceEpoch);
 
@@ -198,6 +231,9 @@ class ProofGame {
   /// Какая письменность. Игнорируется, если поле цифровое.
   final String script;
   final bool digits;
+
+  /// Шаг зарядки: уровень не засчитывается, поле — [ProofLevel.preset].
+  final bool preset;
   final ProofLevel params;
   final Random _rnd;
   final int Function() _now;
@@ -225,12 +261,36 @@ class ProofGame {
     grid = buildGrid(rows: params.rows, cols: params.cols, alphabet: alphabet, rnd: _next);
     found.clear();
     errors = 0;
+    hints = 0;
+    hintCell = null;
     finished = false;
     _startedAt = _now();
   }
 
   double get elapsedSec => (_now() - _startedAt) / 1000.0;
-  bool get timeUp => elapsedSec >= params.timeLimitSec;
+
+  /// Лимит 0 — без лимита (шаг зарядки): время не кончается.
+  bool get timeUp => params.timeLimitSec > 0 && elapsedSec >= params.timeLimitSec;
+
+  /// Подсказок на партию — как у веба (`ПОДСКАЗОК_В_КОРРЕКТУРЕ`).
+  static const int maxHints = 3;
+
+  /// Взято подсказок. Цена у веба — звезда, как промах; здесь — поле партии `hints`.
+  int hints = 0;
+
+  /// Клетка, которую показала последняя подсказка; гаснет при нажатии на неё.
+  int? hintCell;
+
+  /// Подсказка (`взятьПодсказкуБукв`): ОДНА ненайденная цель — ПЕРВАЯ по порядку поля, а не
+  /// случайная: человек должен понимать, что ему показали. Нечего показать — `null`.
+  int? takeHint() {
+    if (finished || hints >= maxHints) return null;
+    final left = [for (final i in grid.targetIndices.toList()..sort()) if (!found.contains(i)) i];
+    if (left.isEmpty) return null;
+    hints += 1;
+    hintCell = left.first;
+    return hintCell;
+  }
 
   /// Нажатие по клетке.
   ///
@@ -238,6 +298,8 @@ class ProofGame {
   /// ни ошибкой: человек просто попал по тому же знаку дважды.
   ProofTap tap(int index) {
     if (finished || found.contains(index)) return ProofTap.ignored;
+    // Подсказанную клетку гасим при любом нажатии на неё: показ своё дело сделал.
+    if (hintCell == index) hintCell = null;
     if (grid.targetIndices.contains(index)) {
       found.add(index);
       // Все цели найдены — партия кончается досрочно.
@@ -260,10 +322,43 @@ class ProofGame {
   int get accuracyPct =>
       grid.targetIndices.isEmpty ? 100 : (found.length / grid.targetIndices.length * 100).round();
 
-  /// Уровень взят: найдено не меньше доли уровня.
+  /// Уровень взят: найдено не меньше доли уровня. Шаг зарядки уровня не берёт (как веб).
   bool get passed {
     final total = grid.targetIndices.length;
-    if (total == 0) return false;
+    if (preset || total == 0) return false;
     return found.length >= (total * params.minFoundPct).ceil();
   }
+
+  /// Время партии для записи: с лимитом — не больше лимита (как веб `finalTime`).
+  double get finalSec => params.timeLimitSec > 0 ? min(elapsedSec, params.timeLimitSec.toDouble()) : elapsedSec;
+}
+
+/// Поля партии — как веб (`saveSession` в `proofreading.tsx`). До 07.10.2026 натив уходил
+/// без `details`: в статистике не было ни доли пропусков, ни задания, ни размера поля.
+///
+/// ⚠️ Условие уровня (`levelCondition`) — от УРОВНЯ, а `rows`/`cols`/`time_limit_sec` —
+/// фактические: на шаге зарядки поле и лимит свои. Порядок ключей как у веба: фактические
+/// идут позже и перекрывают условие.
+Map<String, Object?> proofSessionDetails(ProofGame g) {
+  final total = g.grid.targetIndices.length;
+  final found = g.found.length;
+  final missed = max(0, total - found);
+  return {
+    'level': g.level,
+    ...ProofLevel.of(g.level).condition,
+    'hits': found,
+    'errors': g.errors,
+    'missed': missed,
+    'n_targets': total,
+    // Мера прохода раздела — доля, а не счёт (см. шапку файла).
+    'proof_omission_pct': total > 0 ? (missed / total * 100).round() : 0,
+    'accuracy': total > 0 ? (found / total * 100).round() : 100,
+    'rows': g.params.rows,
+    'cols': g.params.cols,
+    'time_limit_sec': g.params.timeLimitSec,
+    // Два задания под одним game_type — сравнивать их нельзя.
+    'task_mode': 'letters',
+    'hints': g.hints,
+    'letters_left': 0,
+  };
 }
