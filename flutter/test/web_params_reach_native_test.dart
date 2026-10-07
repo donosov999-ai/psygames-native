@@ -27,7 +27,6 @@ const _shellParams = {'wu', 'auto', 'ladderGame'};
 const lostWithReason = <String, Map<String, String>>{
   '/games/anagrams': {
     'length': 'не дефект: решение Дениса 09.09 «зарядка с личного уровня» — длину слова ведёт лестница',
-    'targetLang': 'чинится в PR #272 («Слова»)',
   },
   '/games/proofreading': {
     'series': 'задача f4bb47dc («Внимание»)',
@@ -47,9 +46,6 @@ const lostWithReason = <String, Map<String, String>>{
     'drill': '«Шахматы»',
     'flow': '«Шахматы»',
     'seed': '«Шахматы»',
-  },
-  '/games/find-differences': {
-    'diffCount': '«Поиск»: число отличий из адреса',
   },
   '/games/switching-task': {
     'stimMode': '«Внимание»: вид стимулов из адреса',
