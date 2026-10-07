@@ -3640,5 +3640,8 @@ const t: Record<string, string> = {
   "relaxationGroupFootnote": "यहाँ कुछ भी मापा या आँका नहीं जाता: यह अभ्यासों के बीच का विराम है, परीक्षण नहीं।",
   "relaxationGroupIntroDesc": "तीन छोटे विराम: साँस की लय, आँखों और साँस का बारी-बारी अभ्यास, और स्क्रीन के बाद नज़र को आराम देने वाले व्यायाम।\n\nयहाँ कुछ नहीं मापा जाता। ध्यान और कार्यशील स्मृति विराम में लौटती हैं — उसके बाद अगला खेल सहज चलता है।",
   "allForks": "सभी शाखाएँ",
+  "sourceWiktionaryVoiceName": "विक्षनरी की उच्चारण रिकॉर्डिंग",
+  "sourceWiktionaryVoiceCredit": "विक्षनरी और Lingua Libre के लेखक — पूरी सूची नीचे",
+  "sourceCburnettName": "Cburnett के शतरंज मोहरे",
 };
 export default t;

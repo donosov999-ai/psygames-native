@@ -3637,5 +3637,8 @@ const t: Record<string, string> = {
   "relaxationGroupFootnote": "这里不做任何测量或评分：这是训练间隙的休息，而不是测试。",
   "relaxationGroupIntroDesc": "三种短暂休息：呼吸节奏、眼睛与呼吸交替练习，以及看屏幕后放松双眼的体操。\n\n这里不做任何测量。注意力和工作记忆在休息中恢复——之后下一局会更顺畅。",
   "allForks": "全部分支",
+  "sourceWiktionaryVoiceName": "维基词典发音录音",
+  "sourceWiktionaryVoiceCredit": "维基词典和 Lingua Libre 的作者——完整名单见下方",
+  "sourceCburnettName": "Cburnett 国际象棋棋子",
 };
 export default t;

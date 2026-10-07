@@ -3637,5 +3637,8 @@ const t: Record<string, string> = {
   "relaxationGroupFootnote": "Aquí no se mide ni se puntúa nada: es un respiro entre entrenamientos, no una prueba.",
   "relaxationGroupIntroDesc": "Tres descansos breves: un ritmo de respiración, una alternancia de ojos y respiración y ejercicios que descansan la vista tras la pantalla.\n\nAquí no se mide nada. La atención y la memoria de trabajo se recuperan en las pausas: después la siguiente partida va más fluida.",
   "allForks": "Todas las bifurcaciones",
+  "sourceWiktionaryVoiceName": "Grabaciones de pronunciación de Wikcionario",
+  "sourceWiktionaryVoiceCredit": "Autores de Wikcionario y Lingua Libre: lista completa abajo",
+  "sourceCburnettName": "Piezas de ajedrez de Cburnett",
 };
 export default t;

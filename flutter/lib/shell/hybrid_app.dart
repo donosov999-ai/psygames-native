@@ -1476,15 +1476,15 @@ class _HybridAppState extends State<HybridApp> {
             // «Прогресс» по модели веба (6ff4a966): считает страница под ним на `/statistics`.
             StatsScreen(onTab: _selectTab),
             // Календарь серии (cd77367d) и итог оценки (455d71b1) — страницы, не вкладки.
-            const StreakCalendarScreen(),
+            StreakCalendarScreen(state: widget.state),
             const AssessmentResultScreen(),
             // Знакомство (a8aa91e0): подбор и обучение — страница, полосы нет (noBar веба).
             OnboardingScreen(origin: widget.server.origin),
             // Источники, коллекция, достижения, лиги (78165c68, 8111eea4, 56660caa, ac902ebf) — страницы по модели.
-            const SourcesScreen(),
+            SourcesScreen(state: widget.state),
             const CollectionScreen(),
             const AchievementsScreen(),
-            const LeaguesScreen(),
+            LeaguesScreen(state: widget.state),
             // «Друзья» (7bb8035b) — страница по модели; сервер круга держит веб.
             const FriendsScreen(),
             // «Магазин» (9424da3a) — страница по модели; покупки и баланс держит веб.

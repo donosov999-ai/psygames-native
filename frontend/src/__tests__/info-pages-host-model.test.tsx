@@ -140,6 +140,15 @@ describe('Источники под оболочкой', () => {
     expect(mockRouter.back).toHaveBeenCalledTimes(1);
     образец('sources_model.json', m);
   });
+
+  it('🔴 EN: имена и авторство источников — по-английски (было «Записи произношения Викисловаря»); образец для Dart', async () => {
+    await AsyncStorage.setItem('language', 'en');
+    const { last } = await смонтировать('/sources');
+    const m = last();
+    const cyr = /[А-Яа-яЁё]/;
+    expect(m.cards.filter((c: any) => cyr.test(c.name) || cyr.test(c.credit ?? '') || cyr.test(c.what)).map((c: any) => c.name)).toEqual([]);
+    образец('sources_model_en.json', m);
+  });
 });
 
 describe('Коллекция под оболочкой', () => {
@@ -202,5 +211,35 @@ describe('Лиги под оболочкой', () => {
     expect(m.leagues.filter((l: any) => l.here).length).toBe(1);
     expect(m.empty).toBe(null);
     образец('leagues_model.json', m);
+    // Входы эталона — для сверки расчёта на Dart (вариант Б): очки сезона считаются от «сейчас».
+    образец('leagues_input.json', { now: Date.now(), sessions: партии });
+  });
+
+  it('формулы лиг — эталон по точкам для Dart: границы каждой лиги ±1, середины рангов, верх', () => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { LEAGUES, standingFor, earnedFrames } = require('@/src/services/progression');
+    const точки = new Set<number>([0, 1, 7, 133, 266, 267, 1e6]);
+    for (const l of LEAGUES) for (const d of [-1, 0, 1, 2, 99, 333, 777]) if (l.from + d >= 0) точки.add(l.from + d);
+    const rows = [...точки].sort((a, b) => a - b).map((pts) => {
+      const st = standingFor(pts);
+      return { pts, league: st.league.id, rank: st.rank, toNext: st.toNext, progress: Number(st.progress.toFixed(12)), frames: earnedFrames(pts).map((f: any) => f.id) };
+    });
+    expect(rows.length).toBeGreaterThan(60);
+    образец('progression_oracle.json', rows);
+  });
+
+  it('EN — тот же расчёт, строки по-английски; образец для Dart', async () => {
+    await AsyncStorage.setItem('language', 'en');
+    const партии = [
+      { profile_id: 'nzt48', game_type: 'sudoku', score: 5200, time_seconds: 60, timestamp: день(2) },
+      { profile_id: 'nzt48', game_type: 'corsi', score: 80, time_seconds: 60, timestamp: день(29) },
+    ];
+    await AsyncStorage.setItem('psygames_sessions', JSON.stringify(партии));
+    const { last } = await смонтировать('/leagues');
+    const m = last();
+    expect(m.card.pts).toBe('5280');
+    expect(/[А-Яа-яЁё]/.test(JSON.stringify(m))).toBe(false);
+    образец('leagues_model_en.json', m);
+    образец('leagues_input_en.json', { now: Date.now(), sessions: партии });
   });
 });

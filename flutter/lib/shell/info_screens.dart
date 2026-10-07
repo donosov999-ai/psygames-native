@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'feedback_fab.dart' show FabRules;
 import 'ion_icon.dart';
+import 'progression.dart';
 import 'screen_ui.dart';
+import 'shared_state.dart';
+import 'sources_model.dart';
 import 'web_theme.dart';
 
 /// ЧЕТЫРЕ СТРАНИЦЫ ПО МОДЕЛИ ВЕБА: «Источники», «Коллекция», «Достижения», «Лиги»
@@ -20,26 +24,52 @@ String _s(Object? v) => v == null ? '' : '$v';
 
 /// Общий каркас страницы по модели: ждём модель, фон веба, умолчания текста веба. Им же пользуются
 /// «Друзья» (`friends_screen.dart`).
-class ModelPage extends StatelessWidget {
-  const ModelPage({super.key, required this.route, required this.screenKey, required this.builder, this.safeTop = true});
+class ModelPage extends StatefulWidget {
+  const ModelPage({
+    super.key,
+    required this.route,
+    required this.screenKey,
+    required this.builder,
+    this.safeTop = true,
+    this.compute,
+  });
   final String route;
   final String screenKey;
   final bool safeTop;
   final Widget Function(BuildContext context, Map<String, Object?> m) builder;
 
+  /// 🔴 МОДЕЛЬ НА DART (задача d6a60b02, вариант Б): экран считает её сам и страницу не ждёт. Нет —
+  /// модель приходит от веб-экрана под оболочкой ([ScreenUi]), как раньше.
+  final Future<Map<String, Object?>> Function()? compute;
+
+  @override
+  State<ModelPage> createState() => _ModelPageState();
+}
+
+class _ModelPageState extends State<ModelPage> {
+  Future<Map<String, Object?>>? _own;
+
+  @override
+  void initState() {
+    super.initState();
+    _own = widget.compute?.call();
+  }
+
+  Widget _page(BuildContext context, _M? m) => Material(
+    key: ValueKey(widget.screenKey),
+    color: WebTheme.of(context).background,
+    child: m == null
+        ? Center(child: CircularProgressIndicator(key: ValueKey('${widget.screenKey}-loading')))
+        : WebTheme.textDefaults(context, SafeArea(top: widget.safeTop, bottom: false, child: widget.builder(context, m))),
+  );
+
   @override
   Widget build(BuildContext context) {
-    final web = WebTheme.of(context);
-    return ValueListenableBuilder<_M?>(
-      valueListenable: ScreenUi.model(route),
-      builder: (context, m, _) => Material(
-        key: ValueKey(screenKey),
-        color: web.background,
-        child: m == null
-            ? Center(child: CircularProgressIndicator(key: ValueKey('$screenKey-loading')))
-            : WebTheme.textDefaults(context, SafeArea(top: safeTop, bottom: false, child: builder(context, m))),
-      ),
-    );
+    final own = _own;
+    if (own != null) {
+      return FutureBuilder<_M>(future: own, builder: (context, snap) => _page(context, snap.data));
+    }
+    return ValueListenableBuilder<_M?>(valueListenable: ScreenUi.model(widget.route), builder: (context, m, _) => _page(context, m));
   }
 }
 
@@ -66,13 +96,24 @@ Widget circleBack(BuildContext context, String key, String label, String ion, Vo
 // ── «Источники» ──────────────────────────────────────────────────────────────────────────────────
 
 class SourcesScreen extends StatelessWidget {
-  const SourcesScreen({super.key});
+  const SourcesScreen({super.key, this.state});
   static const route = '/sources';
+
+  /// Есть — модель считается на Dart ([sourcesModelFor], вариант Б); нет — приходит от веба.
+  final SharedState? state;
+
+  /// Ссылка источника — во внешнем браузере, без веба. Пробы подменяют.
+  static Future<void> Function(String url) openUrl = (url) async {
+    try {
+      await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+    } catch (_) {/* браузера нет — молча, как `Linking.openURL(…).catch` веба */}
+  };
 
   @override
   Widget build(BuildContext context) => ModelPage(
     route: route,
     screenKey: 'sources-screen',
+    compute: state == null ? null : () => sourcesModelFor(state!),
     // У веба корень без SafeAreaView, сверху свой отступ 56.
     safeTop: false,
     builder: (context, m) {
@@ -153,7 +194,7 @@ class SourcesScreen extends StatelessWidget {
                       child: GestureDetector(
                         key: ValueKey('sources-link-${c['name']}'),
                         behavior: HitTestBehavior.opaque,
-                        onTap: () => ScreenUi.act(route, 'open', [c['url']]),
+                        onTap: () => state == null ? ScreenUi.act(route, 'open', [c['url']]) : openUrl(_s(c['url'])),
                         child: ConstrainedBox(
                           constraints: const BoxConstraints(minHeight: 48),
                           child: Align(
@@ -461,13 +502,17 @@ class AchievementsScreen extends StatelessWidget {
 // ── «Лиги» ───────────────────────────────────────────────────────────────────────────────────────
 
 class LeaguesScreen extends StatelessWidget {
-  const LeaguesScreen({super.key});
+  const LeaguesScreen({super.key, this.state});
   static const route = '/leagues';
+
+  /// Есть — модель считается на Dart ([leaguesModelFor], вариант Б); нет — приходит от веба.
+  final SharedState? state;
 
   @override
   Widget build(BuildContext context) => ModelPage(
     route: route,
     screenKey: 'leagues-screen',
+    compute: state == null ? null : () => leaguesModelFor(state!),
     builder: (context, m) {
       final web = WebTheme.of(context);
       final primary = cssColor(m['primary'], Theme.of(context).colorScheme.primary);
