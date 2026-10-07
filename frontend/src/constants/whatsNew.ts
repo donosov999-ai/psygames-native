@@ -21,6 +21,7 @@ export const WHATS_NEW: WhatsNewEntry[] = [
     ru: [
       'Новая главная: вкладки внизу, каталог «Игры» плитками с поиском, «Прогресс», календарь серии и итог оценки — быстрее и без прыжков',
       'Новая развилка «Релаксация»: дыхание, глаза, пауза и ночной набор в одном месте; внизу главной — «Все развилки»',
+      'Питомец по умолчанию сидит у края и не закрывает «Сегодня», но здоровается и живёт; гулять по экрану — переключатель в Настройках',
       '«Источники», «Коллекция», «Достижения» и «Лиги» открываются нативно',
       'iOS: экран питомца больше не пустеет после возврата в приложение',
       '«Судоку»: три новых правила — «аргайл», «малый киллер» и «X-суммы»; лестница выросла до 132 ступеней',
@@ -34,6 +35,7 @@ export const WHATS_NEW: WhatsNewEntry[] = [
     en: [
       'New Home: tabs at the bottom, a tiled Games catalog with search, Progress, streak calendar and assessment results — faster, no jumps',
       'New Relaxation hub: breathing, eyes, pause and the night set in one place; an All hubs link at the bottom of Home',
+      'By default the pet sits at the edge and no longer covers Today, but still greets you and stays lively; walking around is a switch in Settings',
       'Sources, Collection, Achievements and Leagues now open natively',
       'iOS: the pet screen no longer goes blank after you switch back to the app',
       'Sudoku: three new rules — Argyle, Little Killer and X-sums; the ladder grows to 132 steps',

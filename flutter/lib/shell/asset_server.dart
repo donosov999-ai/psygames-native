@@ -141,7 +141,7 @@ class AssetServer {
         _server = await HttpServer.bind(InternetAddress.loopbackIPv4, port);
         _alive = true;
         unawaited(_serve());
-        if (kDebugMode) debugPrint('[раздача] сокет поднят заново на $port');
+        if (kDebugMode) debugPrint('[asset-server] socket re-bound on port $port');
         return true;
       } on SocketException {
         await Future<void>.delayed(const Duration(milliseconds: 200));
