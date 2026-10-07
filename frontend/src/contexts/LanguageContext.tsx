@@ -724,7 +724,7 @@ const translations: Translations = {
    * остаётся. Считать его из самой лестницы — отдельная задача 6d534161
    * («хабы: считать число вложенных игр, а не писать руками»).
    */
-  sudokuTypeClassic: { ru: 'Одна сетка · 128 ступеней',   en: 'One grid · 128 steps' },
+  sudokuTypeClassic: { ru: 'Одна сетка · 132 ступени',   en: 'One grid · 132 steps' },
   sudokuTypeSamurai: { ru: 'Пять сеток, сцепленных углами', en: 'Five grids locked at the corners' },
   sudokuTypeFractal: { ru: 'Сетка внутри каждой клетки',  en: 'A grid inside every cell' },
   sudokuGroupFootnote: {

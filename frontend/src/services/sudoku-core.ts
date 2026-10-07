@@ -534,7 +534,9 @@ export function levelConfig(level: number): LevelCfg {
   else if (lv >= 121 && lv <= 124) variant = 'argyle';
   // 125–128 «малый киллер» (6aecf181 п.8, задача 2dddd227) — тем же порядком: готовое правило
   // сразу за аргайлом, блоки плана сдвинуты ещё на +4.
-  else if (lv >= 125) variant = 'littlekiller';
+  else if (lv >= 125 && lv <= 128) variant = 'littlekiller';
+  // 129–132 «X-суммы» (6aecf181 п.9, задача 5ea317fc) — тем же порядком, сразу за малым киллером.
+  else if (lv >= 129) variant = 'xsums';
   /**
    * 🔴 НЕРАВЕНСТВА (футосики) СОБРАНЫ, НО УРОВНЕЙ НЕ ПОЛУЧИЛИ — ЗАМЕР 26.08.2026.
    *
