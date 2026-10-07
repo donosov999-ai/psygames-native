@@ -389,6 +389,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
       }
     });
     if (_onRoad && await _resumeLadder()) return;
+    if (widget.mode != null && await _resumeMode()) return;
     _deal();
   }
 
@@ -398,32 +399,46 @@ class _SudokuScreenState extends State<SudokuScreen> {
     super.dispose();
   }
 
-  /// 🔴 НЕЗАКОНЧЕННАЯ ПАРТИЯ ЛЕСТНИЦЫ — формат веба (resume.dart; сверка 138f7818, п.3).
-  late final ResumeStore _resume = ResumeStore(widget.state, sudokuGameId, sudokuResumeVersion);
+  /// 🔴 НЕЗАКОНЧЕННАЯ ПАРТИЯ — формат веба (resume.dart; сверка 138f7818, п.3). У лестницы слот
+  /// веба (`sudoku`), у режима — свой (`sudoku_<режим>`): ход в режиме не стирает доску лестницы.
+  late final ResumeStore _resume = ResumeStore(
+    widget.state,
+    widget.mode == null ? sudokuGameId : '${sudokuGameId}_${sideModeName(widget.mode!)}',
+    sudokuResumeVersion,
+  );
 
-  /// Записать (или стереть, если партия кончилась). Только лестница: режимы, пилот и малыши —
-  /// своими путями. Без ожидания — экран не ждёт диска между касаниями.
+  /// Вариант правил доски режима — как его понимает проверка хода.
+  String _modeVariant(SideMode mode) => switch (mode) {
+        SideMode.killer => 'killer',
+        SideMode.free => 'none',
+        _ => sideModeName(mode),
+      };
+
+  /// Записать (или стереть, если партия кончилась). Лестница и режимы; пилот и малыши не
+  /// сохраняются. Без ожидания — экран не ждёт диска между касаниями.
   void _persist() {
-    final board = _board;
-    if (!_onRoad || board == null || _grid.isEmpty) return;
+    final board = _board, side = _sideBoard, mode = widget.mode;
+    final modeGame = mode != null && side != null;
+    if (!(modeGame || (_onRoad && board != null)) || _grid.isEmpty) return;
     if (_won || _lost) {
       unawaited(_resume.clear());
       return;
     }
     unawaited(_resume.save(sudokuSnapshot(
-      level: board.level,
-      road: _road.name,
-      variant: board.variant,
-      n: board.n,
-      br: board.br,
-      bc: board.bc,
-      puzzle: board.puzzle,
-      solution: board.solution,
+      mode: modeGame ? sideModeName(mode) : 'levels',
+      level: modeGame ? side.step : board!.level,
+      road: modeGame ? defaultSudokuRoad.name : _road.name,
+      variant: modeGame ? _modeVariant(mode) : board!.variant,
+      n: _n,
+      br: side?.br ?? board!.br,
+      bc: side?.bc ?? board!.bc,
+      puzzle: side?.puzzle ?? board!.puzzle,
+      solution: _solution!,
       grid: _grid,
       given: _given,
       colors: _colors,
       marks: _marks,
-      geometry: board.geometryJson,
+      geometry: side?.geometryJson ?? board!.geometryJson,
       errors: _errors,
       hintUses: _hintsUsed,
       answersRevealed: _answersRevealed,
@@ -500,6 +515,60 @@ class _SudokuScreenState extends State<SudokuScreen> {
     });
     if (_answersRevealed) await _revealed.mark(_answerId);
     _recordDeal(board);
+    return true;
+  }
+
+  /// Поднять партию режима. Чужая ступень не поднимается (например, в «Свободно» выбран
+  /// другой пресет) — тогда раздаётся своя доска, и снимок она перезапишет.
+  Future<bool> _resumeMode() async {
+    final mode = widget.mode, side = _side;
+    final saved = await _resume.load();
+    if (mode == null || side == null || saved == null || !mounted) return false;
+    final r = sudokuFromSnapshot(saved, mode: sideModeName(mode));
+    if (r == null || r.level != side.step) return false;
+    final board = SideBoard(
+      step: r.level,
+      n: r.n,
+      br: r.br,
+      bc: r.bc,
+      puzzle: r.puzzle,
+      solution: r.solution,
+      geometry: BoardGeometry.fromJson(r.geometry),
+      geometryJson: r.geometry,
+    );
+    setState(() {
+      _sideBoard = board;
+      _failure = null;
+      _grid = r.grid;
+      _given = r.given;
+      _history
+        ..clear()
+        ..addAll([
+          for (final m in r.moves)
+            _Step(
+              switch (m.kind) { 'pencil' => _StepKind.mark, 'color' => _StepKind.color, _ => _StepKind.digit },
+              m.r,
+              m.c,
+              m.from,
+              m.to,
+            ),
+        ]);
+      _marks = r.marks;
+      _colors = r.colors;
+      _pencil = false;
+      _paint = null;
+      _selected = null;
+      _errors = r.errors;
+      _whyKey = null;
+      _hintsUsed = r.hintUses;
+      _answersRevealed = r.answersRevealed || r.hintUses > 0 || _revealed.contains(_answerId);
+      _backtracks = r.backtracks;
+      _startedAt = gameNow() - r.elapsed * 1000;   // время — с накопленного
+      _won = false;
+      _boss = null;
+      _lost = false;
+    });
+    if (_answersRevealed) await _revealed.mark(_answerId);
     return true;
   }
 
@@ -597,10 +666,10 @@ class _SudokuScreenState extends State<SudokuScreen> {
         _hintsUsed = 0;
         _backtracks = 0;
         _won = false;
-      _boss = null;
         _boss = null;
         _lost = false;
       });
+      _persist();   // новая доска режима — сразу своим снимком
       return;   // теневой шаг генератора живёт на лестнице, а не в режимах
     }
     if (_pilot) {
