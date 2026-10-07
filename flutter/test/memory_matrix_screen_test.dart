@@ -310,17 +310,19 @@ void main() {
         reason: 'в шаге играется пресет — номера личного уровня в шапке нет (как у «Корси»)');
   });
 
+  // Замер 02.10: короткое правило по адресу — карточка набора «Позиции» (`suitePositionsDesc`, текст
+  // про три игры сразу). С 2.56.12 справка из партии — полный текст из общего реестра
+  // (`GameRules.fullKeyFor`), у «Матрицы» он свой. Проба держит, чтобы текст набора не вернулся.
   testWidgets('🔴 справка «?» — про ЭТУ игру, а не про весь набор «Позиции» (приёмка §4б, п. 1)', (tester) async {
     await tester.runAsync(GameRules.load);
     GameRules.currentRoute = '/games/memory-matrix';
     addTearDown(() => GameRules.currentRoute = null);
-    expect(GameRules.keyFor('/games/memory-matrix'), 'suitePositionsDesc',
-        reason: 'по адресу каркас находит карточку набора — потому экран и даёт свою справку');
+    expect(GameRules.fullKeyFor('/games/memory-matrix'), 'memoryMatrixIntroDesc');
     await boot(tester, level: 1);
     await tester.tap(find.byIcon(Icons.help_outline));
     await tester.pumpAndSettle();
     final text = tester.widget<Text>(find.byKey(const Key('game-rules-text'))).data;
-    expect(text, L.t('memoryMatrixDesc'));
+    expect(text, L.t('memoryMatrixIntroDesc'));
     expect(text, isNot(L.t('suitePositionsDesc')));
     await tester.tap(find.byKey(const Key('game-rules-close')));
     await tester.pumpAndSettle();

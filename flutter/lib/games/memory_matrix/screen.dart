@@ -7,7 +7,6 @@ import '../../shell/aux_action.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/game_clock.dart';
 import '../../shell/game_preset.dart';
-import '../../shell/game_rules.dart';
 import '../../shell/l10n.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/lesson.dart';
@@ -305,9 +304,6 @@ class _MemoryMatrixScreenState extends State<MemoryMatrixScreen> {
       // Правило уровня объявляет каркас — в спокойный момент, не поверх показа (задача e371fd3a).
       levelRule: LevelRuleSpot(gameId: 'memory_matrix', level: _ladder.level, state: widget.state, calm: calm),
       title: L.t('memoryMatrix'),
-      // Справка — ЭТОЙ игры. По адресу каркас находит карточку набора «Позиции» и показал бы её
-      // текст: узор, цепочка блоков, наоборот — про три игры сразу (приёмка §4б, п. 1; замер 02.10).
-      onRules: () => showGameRules(context, title: L.t('memoryMatrix'), ruleKey: 'memoryMatrixDesc'),
       onLesson: () => openDemoLesson(context, title: L.t('memoryMatrix'), trials: memoryMatrixLessonTrials()),
       hud: [
         // В шаге зарядки играется пресет, а не личный уровень — номер уровня там неправда (как «Корси»).

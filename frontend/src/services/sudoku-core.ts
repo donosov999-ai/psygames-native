@@ -11,7 +11,9 @@
 import { translateFor } from '../contexts/LanguageContext';
 
 export type Cell = number; // 0 = empty
-export type Variant = 'none' | 'diagonal' | 'antiknight' | 'hyper' | 'nonconsec' | 'jigsaw' | 'antiking' | 'evenodd' | 'kropki' | 'sandwich' | 'thermo' | 'arrow' | 'thermocage' | 'unequal' | 'towers' | 'sandparity' | 'thermoknight' | 'killerdiag';
+export type Variant = 'none' | 'diagonal' | 'antiknight' | 'hyper' | 'nonconsec' | 'jigsaw' | 'antiking' | 'evenodd' | 'kropki' | 'sandwich' | 'thermo' | 'arrow' | 'thermocage' | 'unequal' | 'towers' | 'sandparity' | 'thermoknight' | 'killerdiag' | 'whisper' | 'renban' | 'regionsum' | 'palindrome' | 'between' | 'lockout' | 'xv' | 'friends';
+// 'friends' — «Мяу — друзья» 9×9 (у кота мышь рядом): генератора на TS нет, доски ступеней — только
+// выгрузкой MindLab (flutter/tools/meow9-ladder.cjs, export_kids_boards.py --meow9).
 
 export const HYPER_BOXES = [[1, 1], [1, 5], [5, 1], [5, 5]] as const;   // Windoku: 4 доп. зоны 3×3 (левые-верхние углы)
 export const KNIGHT = [[-2, -1], [-2, 1], [-1, -2], [-1, 2], [1, -2], [1, 2], [2, -1], [2, 1]] as const;
@@ -35,20 +37,31 @@ export function inHyper(r: number, c: number): readonly [number, number] | null 
 /** v1.137: подписи/правила вариантов живут в словаре LanguageContext
  *  (sudokuVariant* / sudokuRule*) — берутся через translateFor, чтобы 10
  *  оверлейных языков не падали на английский. lang — код языка ('ru'|'en'|…). */
-const VARIANT_KEY_SUFFIX: Record<Exclude<Variant, 'none'>, string> = {
+const VARIANT_KEY_SUFFIX: Record<Exclude<Variant, 'none' | 'friends'>, string> = {
   diagonal: 'Diagonal', antiknight: 'Antiknight', hyper: 'Hyper', nonconsec: 'Nonconsec',
   jigsaw: 'Jigsaw', antiking: 'Antiking', evenodd: 'Evenodd', kropki: 'Kropki',
   sandwich: 'Sandwich', thermo: 'Thermo', arrow: 'Arrow', thermocage: 'Thermocage',
   unequal: 'Unequal',
   towers: 'Towers',
   sandparity: 'Sandparity', thermoknight: 'Thermoknight', killerdiag: 'Killerdiag',
+  whisper: 'Whisper',
+  renban: 'Renban',
+  regionsum: 'Regionsum',
+  palindrome: 'Palindrome',
+  between: 'Between',
+  lockout: 'Lockout',
+  xv: 'Xv',
 };
+// «Мяу — друзья»: имя и правило — одна короткая строка «🐱 рядом с 🐭», та же, что у натива
+// (sdkRule_friends, 12 языков); отдельных sudokuVariant*/sudokuRule* у варианта нет.
 export function variantLabel(v: Variant, lang: string): string {
   if (v === 'none') return '';
+  if (v === 'friends') return translateFor(lang, 'sdkRule_friends');
   return translateFor(lang, 'sudokuVariant' + VARIANT_KEY_SUFFIX[v]);
 }
 export function variantRule(v: Variant, lang: string): string {
   if (v === 'none') return '';
+  if (v === 'friends') return translateFor(lang, 'sdkRule_friends');
   return translateFor(lang, 'sudokuRule' + VARIANT_KEY_SUFFIX[v]);
 }
 
@@ -265,7 +278,7 @@ export function generateThermoCages(sol: Cell[][], N: number, rnd: () => number 
 }
 
 // SUDOKU-LVL: уровневая прогрессия. 1–4 = 6×6, 5–8 = 9×9, 9–13 = диагональ, далее фазы-варианты.
-export interface LevelCfg { size: 6 | 9; N: number; BR: number; BC: number; blanks: number; variant: Variant; hintMax: number; }
+export interface LevelCfg { size: 6 | 9; N: number; BR: number; BC: number; blanks: number; variant: Variant; hintMax: number; lives: number; }
 export function levelConfig(level: number): LevelCfg {
   const lv = Math.max(1, level);
   const size: 6 | 9 = lv <= 4 ? 6 : 9;
@@ -333,7 +346,32 @@ export function levelConfig(level: number): LevelCfg {
   //   killerdiag верх:   3×2 4×5 5×8 (медиана 5, самая плотная пятёрка) — вершина
   else if (lv >= 81 && lv <= 84) variant = 'thermoknight';
   else if (lv >= 85 && lv <= 88) variant = 'sandparity';
-  else if (lv >= 89) variant = 'killerdiag';
+  else if (lv >= 89 && lv <= 92) variant = 'killerdiag';
+  /**
+   * 🔴 НЕМЕЦКИЙ ШЁПОТ — СТУПЕНИ 93–96 (01.10.2026, задача 5b0b7ca2). В КОНЕЦ лестницы, а не
+   * внутрь: вставка посредине сдвинула бы номера уровней у людей, уже прошедших дальше.
+   * Место по замеру: на 58 пустых доски шёпота встают ступенью 4–5 (как комбо-пояс 81–92),
+   * без линий не решаются логикой ни одна из 30 — правило работает, а не украшает.
+   */
+  else if (lv >= 93 && lv <= 96) variant = 'whisper';
+  /**
+   * 🔴 РЕНБАН — СТУПЕНИ 97–100 (01.10.2026, пункт 4 цепочки «14 усложнений», задача 031a7684).
+   * Тоже в конец лестницы — по той же причине, что шёпот. Место по замеру (см. VARIANT_TIER_CEILING).
+   */
+  else if (lv >= 97 && lv <= 100) variant = 'renban';
+  /**
+   * 🔴 ЛИНИИ РАВНЫХ СУММ — СТУПЕНИ 101–104 (01.10.2026, пункт 5 цепочки, задача b0a1feef).
+   * Тоже в конец лестницы. Место по замеру (см. VARIANT_TIER_CEILING).
+   */
+  else if (lv >= 101 && lv <= 104) variant = 'regionsum';
+  /** ПАЛИНДРОМ — СТУПЕНИ 105–108 (задача 25679487). В конец лестницы, место по замеру. */
+  else if (lv >= 105 && lv <= 108) variant = 'palindrome';
+  /** МЕЖДУ КОНЦАМИ — СТУПЕНИ 109–112 (задача 25679487). В конец лестницы, место по замеру. */
+  else if (lv >= 109 && lv <= 112) variant = 'between';
+  /** ЗАПОР — СТУПЕНИ 113–116 (задача 25679487). В конец лестницы, место по замеру. */
+  else if (lv >= 113 && lv <= 116) variant = 'lockout';
+  /** XV — СТУПЕНИ 117–120 (пункт 7 цепочки, задача 7eacd001). В конец лестницы, место по замеру. */
+  else if (lv >= 117) variant = 'xv';
   /**
    * 🔴 НЕРАВЕНСТВА (футосики) СОБРАНЫ, НО УРОВНЕЙ НЕ ПОЛУЧИЛИ — ЗАМЕР 26.08.2026.
    *
@@ -370,7 +408,27 @@ export function levelConfig(level: number): LevelCfg {
     ? Math.min(24, 8 + lv * 3)                                   // L1..4 → 11,14,17,20
     : Math.min(58, 34 + (lv - 5));                               // L5+ → 34..58, без сбросов на границах правил
   const hintMax = lv <= 4 ? 3 : lv <= 8 ? 2 : 1;
-  return { size, N, BR, BC, blanks, variant, hintMax };
+  return { size, N, BR, BC, blanks, variant, hintMax, lives: livesFor(lv) };
+}
+
+/**
+ * 🔴 ЦЕНА ОШИБКИ — ОСЬ СТУПЕНИ (пункт 14 цепочки усложнений, задача 1fa57de3; решение
+ * Дениса 30.09 «Берём»). До 01.10 лимит был 3 ошибки на всех 92 ступенях (failurePolicy
+ * 'standard'), и ось не стреляла: замер 09.09 по cognitive_sessions — 51 партия за 90 дней,
+ * лимит сработал 1 раз из 46 и только на ступенях 1–10, наверху (31–55) — не больше двух
+ * ошибок за партию. Поэтому лимит убывает к верху: на входе прощает, наверху — нет.
+ *
+ *   1–4 (6×6, знакомство) — 5 · 5–8 (классика 9×9) — 4 · 9–29 — 3 ·
+ *   30–80 (вариантные правила, пояса ALS и цепей) — 2 · 81+ (комбо-пояс) — 1.
+ *
+ * ⚠️ ТАБЛИЦА ПЕРВАЯ, НЕ ОКОНЧАТЕЛЬНАЯ. Выборка 09.09 почти вся от одного человека, а
+ * малость ошибок может быть следствием осторожной игры под лимитом. Калибруется после
+ * включения: отчёт партии несёт лимит (details.lives), и считается, какая доля партий
+ * каждой полосы кончается ошибками. Самурай держит такую ось давно (LEVEL_ERRORS).
+ */
+export function livesFor(level: number): number {
+  const lv = Math.max(1, level);
+  return lv <= 4 ? 5 : lv <= 8 ? 4 : lv <= 29 ? 3 : lv <= 80 ? 2 : 1;
 }
 
 export type SudokuDifficultyTier = 'beginner' | 'easy' | 'medium' | 'hard' | 'expert' | 'extreme';
@@ -501,6 +559,425 @@ export function thermoFromSolution(sol: Cell[][], N: number, rnd: () => number =
     pn[r][c] = { prev: k > 0 ? path[k - 1] : null, next: k < path.length - 1 ? path[k + 1] : null };
   }
   return pn;
+}
+
+/**
+ * 🔴 НЕМЕЦКИЙ ШЁПОТ (пункт 3 цепочки «14 усложнений», задача 5b0b7ca2; решение Дениса 30.09
+ * «Берём»): соседние по зелёной линии цифры отличаются минимум на 5. Отсюда пятёрке на линии
+ * не стоять вовсе (ни 0, ни 10 в судоку нет), а 4 и 6 соседствуют только с 9 и 1 — в этом
+ * и сила правила: оно режет кандидатов ещё до первой цифры.
+ *
+ * Линии строятся ИЗ решения, как термометры (`thermoFromSolution`): шаг — к ортогональному
+ * соседу, чья цифра отличается на ≥ WHISPER_GAP; длина 3…6, до шести линий, без пересечений.
+ * Хранятся тем же видом prev/next — отрисовка линии и её разбор у натива общие с термометром.
+ */
+export const WHISPER_GAP = 5;
+export function whisperFromSolution(sol: Cell[][], N: number, rnd: () => number = Math.random): ThermoPN {
+  const used: boolean[][] = Array.from({ length: N }, () => Array(N).fill(false));
+  const paths: [number, number][][] = [];
+  for (let attempt = 0; attempt < 60 && paths.length < 6; attempt++) {
+    const starts: [number, number][] = [];
+    for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (!used[r][c] && sol[r][c] !== 5) starts.push([r, c]);
+    if (!starts.length) break;
+    const [sr, sc] = starts[Math.floor(rnd() * starts.length)];
+    const len = 3 + Math.floor(rnd() * 4);   // 3..6
+    const path: [number, number][] = [[sr, sc]]; let cr = sr, cc = sc;
+    for (let s = 1; s < len; s++) {
+      const nb = ORTHO.map(([dr, dc]) => [cr + dr, cc + dc] as [number, number])
+        .filter(([nr, nc]) => nr >= 0 && nr < N && nc >= 0 && nc < N && !used[nr][nc]
+          && !path.some(([pr, pc]) => pr === nr && pc === nc)
+          && Math.abs(sol[nr][nc] - sol[cr][cc]) >= WHISPER_GAP);
+      if (!nb.length) break;
+      const [nr, nc] = nb[Math.floor(rnd() * nb.length)];
+      path.push([nr, nc]); cr = nr; cc = nc;
+    }
+    if (path.length >= 3) { paths.push(path); for (const [r, c] of path) used[r][c] = true; }
+  }
+  const pn: ThermoPN = Array.from({ length: N }, () => Array(N).fill(null));
+  for (const path of paths) for (let k = 0; k < path.length; k++) {
+    const [r, c] = path[k];
+    pn[r][c] = { prev: k > 0 ? path[k - 1] : null, next: k < path.length - 1 ? path[k + 1] : null };
+  }
+  return pn;
+}
+
+/**
+ * 🔴 РЕНБАН (пункт 4 цепочки «14 усложнений», задача 031a7684; решение Дениса 30.09 «Берём»):
+ * на фиолетовой линии стоят цифры, идущие подряд (3-4-5-6), в ЛЮБОМ порядке и без повторов.
+ * Правило не про соседей, а про всю линию сразу: длина L задаёт ширину окна значений, и уже
+ * две известные цифры на линии зажимают остальных в окно max−min ≤ L−1.
+ *
+ * Линии строятся ИЗ решения: случайный путь по ортогональным соседям длиной 3…5, у которого
+ * цифры разные и образуют отрезок подряд. До шести линий, без пересечений. Хранятся тем же
+ * видом prev/next, что термометр и шёпот.
+ */
+export function renbanFromSolution(sol: Cell[][], N: number, rnd: () => number = Math.random): ThermoPN {
+  const used: boolean[][] = Array.from({ length: N }, () => Array(N).fill(false));
+  const paths: [number, number][][] = [];
+  for (let attempt = 0; attempt < 120 && paths.length < 6; attempt++) {
+    const starts: [number, number][] = [];
+    for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (!used[r][c]) starts.push([r, c]);
+    if (!starts.length) break;
+    const [sr, sc] = starts[Math.floor(rnd() * starts.length)];
+    const len = 3 + Math.floor(rnd() * 3);   // 3..5
+    const path: [number, number][] = [[sr, sc]];
+    const vals = [sol[sr][sc]];
+    let cr = sr, cc = sc;
+    for (let s = 1; s < len; s++) {
+      // Сосед годен, если с его цифрой набор ещё может стать отрезком длины len.
+      const nb = ORTHO.map(([dr, dc]) => [cr + dr, cc + dc] as [number, number])
+        .filter(([nr, nc]) => nr >= 0 && nr < N && nc >= 0 && nc < N && !used[nr][nc]
+          && !path.some(([pr, pc]) => pr === nr && pc === nc)
+          && !vals.includes(sol[nr][nc])
+          && Math.max(...vals, sol[nr][nc]) - Math.min(...vals, sol[nr][nc]) <= len - 1);
+      if (!nb.length) break;
+      const [nr, nc] = nb[Math.floor(rnd() * nb.length)];
+      path.push([nr, nc]); vals.push(sol[nr][nc]); cr = nr; cc = nc;
+    }
+    if (path.length >= 3 && Math.max(...vals) - Math.min(...vals) === path.length - 1) {
+      paths.push(path); for (const [r, c] of path) used[r][c] = true;
+    }
+  }
+  const pn: ThermoPN = Array.from({ length: N }, () => Array(N).fill(null));
+  for (const path of paths) for (let k = 0; k < path.length; k++) {
+    const [r, c] = path[k];
+    pn[r][c] = { prev: k > 0 ? path[k - 1] : null, next: k < path.length - 1 ? path[k + 1] : null };
+  }
+  return pn;
+}
+
+/** Все клетки линии (prev/next), на которой стоит (r, c); пусто — клетка не на линии. */
+export function lineCells(pn: ThermoPN, r: number, c: number): [number, number][] {
+  if (!pn[r]?.[c]) return [];
+  let cur: [number, number] = [r, c];
+  for (let guard = 0; guard < 81; guard++) {
+    const prev = pn[cur[0]][cur[1]]!.prev;
+    if (!prev) break;
+    cur = prev;
+  }
+  const out: [number, number][] = [];
+  for (let guard = 0; guard < 81; guard++) {
+    out.push(cur);
+    const next = pn[cur[0]][cur[1]]!.next;
+    if (!next) break;
+    cur = next;
+  }
+  return out;
+}
+
+/** Нарушает ли цифра n в (r, c) линию ренбана: повтор на линии или разброс шире длины. */
+export function renbanOk(grid: Cell[][], r: number, c: number, n: number, pn: ThermoPN): boolean {
+  const cells = lineCells(pn, r, c);
+  if (!cells.length) return true;
+  const vals: number[] = [];
+  for (const [lr, lc] of cells) {
+    const v = lr === r && lc === c ? n : grid[lr][lc];
+    if (v === 0) continue;
+    if (vals.includes(v)) return false;
+    vals.push(v);
+  }
+  return Math.max(...vals) - Math.min(...vals) <= cells.length - 1;
+}
+
+/**
+ * 🔴 ЛИНИИ РАВНЫХ СУММ (Region Sum Lines; пункт 5 цепочки «14 усложнений», задача b0a1feef;
+ * решение Дениса 30.09 «Берём»): синяя линия проходит через несколько блоков, и в КАЖДОМ
+ * блоке сумма её цифр одна и та же. Правило связывает блоки: одиночная клетка на линии в
+ * одном блоке равна сумме двух-трёх клеток в соседнем.
+ *
+ * Линии — ИЗ решения: случайный путь 3…7 клеток, который задевает ≥ 2 блока и у которого
+ * суммы по блокам совпали (замер 01.10: ~2 % путей, ≈ 6 линий на доску за 400 попыток).
+ * До пяти линий, без общих клеток. Хранятся тем же видом prev/next.
+ */
+export function regionSumFromSolution(sol: Cell[][], N: number, BR: number, BC: number, rnd: () => number = Math.random): ThermoPN {
+  const used: boolean[][] = Array.from({ length: N }, () => Array(N).fill(false));
+  const boxOf = (r: number, c: number) => Math.floor(r / BR) * (N / BC) + Math.floor(c / BC);
+  const paths: [number, number][][] = [];
+  for (let attempt = 0; attempt < 800 && paths.length < 5; attempt++) {
+    const len = 3 + Math.floor(rnd() * 5);   // 3..7
+    let r = Math.floor(rnd() * N), c = Math.floor(rnd() * N);
+    if (used[r][c]) continue;
+    const path: [number, number][] = [[r, c]];
+    for (let s = 1; s < len; s++) {
+      const nb = ORTHO.map(([dr, dc]) => [r + dr, c + dc] as [number, number])
+        .filter(([nr, nc]) => nr >= 0 && nr < N && nc >= 0 && nc < N && !used[nr][nc]
+          && !path.some(([pr, pc]) => pr === nr && pc === nc));
+      if (!nb.length) break;
+      [r, c] = nb[Math.floor(rnd() * nb.length)];
+      path.push([r, c]);
+    }
+    const sums = new Map<number, number>();
+    for (const [pr, pc] of path) sums.set(boxOf(pr, pc), (sums.get(boxOf(pr, pc)) ?? 0) + sol[pr][pc]);
+    if (path.length < 3 || sums.size < 2) continue;
+    const vals = [...sums.values()];
+    if (!vals.every((v) => v === vals[0])) continue;
+    paths.push(path);
+    for (const [pr, pc] of path) used[pr][pc] = true;
+  }
+  const pn: ThermoPN = Array.from({ length: N }, () => Array(N).fill(null));
+  for (const path of paths) for (let k = 0; k < path.length; k++) {
+    const [r, c] = path[k];
+    pn[r][c] = { prev: k > 0 ? path[k - 1] : null, next: k < path.length - 1 ? path[k + 1] : null };
+  }
+  return pn;
+}
+
+/**
+ * Не нарушает ли цифра n в (r, c) линию равных сумм. Клетки линии делятся на группы по
+ * блокам; у заполненной группы сумма точная, у неполной — коридор [сумма + наименьшее
+ * добивание, сумма + наибольшее] (разные цифры: 1+2+…, N+(N−1)+…). Все группы обязаны
+ * иметь общую сумму: коридоры пересекаются, а точные суммы равны.
+ */
+export function regionSumOk(grid: Cell[][], r: number, c: number, n: number, pn: ThermoPN, N: number, BR: number, BC: number): boolean {
+  const cells = lineCells(pn, r, c);
+  if (!cells.length) return true;
+  const boxOf = (rr: number, cc: number) => Math.floor(rr / BR) * (N / BC) + Math.floor(cc / BC);
+  const groups = new Map<number, { sum: number; empty: number }>();
+  for (const [lr, lc] of cells) {
+    const v = lr === r && lc === c ? n : grid[lr][lc];
+    const g = groups.get(boxOf(lr, lc)) ?? { sum: 0, empty: 0 };
+    if (v === 0) g.empty++; else g.sum += v;
+    groups.set(boxOf(lr, lc), g);
+  }
+  let lo = -Infinity, hi = Infinity;
+  for (const { sum, empty } of groups.values()) {
+    lo = Math.max(lo, sum + (empty * (empty + 1)) / 2);
+    hi = Math.min(hi, sum + empty * N - (empty * (empty - 1)) / 2);
+  }
+  return lo <= hi;
+}
+
+/**
+ * 🔴 ПАЛИНДРОМ (пункт 6 цепочки «14 усложнений», задача 25679487; решение Дениса 30.09
+ * «Берём»): цифры на серой линии читаются одинаково с обоих концов — клетка i равна клетке
+ * L−1−i (формулировка сверена 01.10.2026: «read the same forwards and backwards», logic-masters.de).
+ * Зеркальные клетки обязаны лежать в разных строках, столбцах и блоках, поэтому длина
+ * линии нечётная (у чётной две средние клетки — соседи, равными быть не могут).
+ *
+ * Линии — ИЗ решения: случайные пути 3…7, которые оказались палиндромами (замер 01.10:
+ * ~0,8 % путей, ≈ 6 линий на доску; длины 3 — 87 %, 5 — 12 %, 7 — 2 %). Длинные ценнее —
+ * у них больше зеркальных пар, поэтому сперва берутся линии ≥ 5, потом добираются тройки.
+ * До пяти линий без общих клеток; форма prev/next.
+ */
+export function palindromeFromSolution(sol: Cell[][], N: number, rnd: () => number = Math.random): ThermoPN {
+  const used: boolean[][] = Array.from({ length: N }, () => Array(N).fill(false));
+  const found: [number, number][][] = [];
+  for (let attempt = 0; attempt < 3000 && found.length < 40; attempt++) {
+    const len = 3 + 2 * Math.floor(rnd() * 3);   // 3, 5, 7
+    let r = Math.floor(rnd() * N), c = Math.floor(rnd() * N);
+    const path: [number, number][] = [[r, c]];
+    for (let s = 1; s < len; s++) {
+      const nb = ORTHO.map(([dr, dc]) => [r + dr, c + dc] as [number, number])
+        .filter(([nr, nc]) => nr >= 0 && nr < N && nc >= 0 && nc < N && !path.some(([pr, pc]) => pr === nr && pc === nc));
+      if (!nb.length) break;
+      [r, c] = nb[Math.floor(rnd() * nb.length)];
+      path.push([r, c]);
+    }
+    const L = path.length;
+    if (L < 3 || L % 2 === 0) continue;
+    let mirror = true;
+    for (let i = 0; i < Math.floor(L / 2) && mirror; i++) {
+      const [a1, b1] = path[i], [a2, b2] = path[L - 1 - i];
+      if (sol[a1][b1] !== sol[a2][b2]) mirror = false;
+    }
+    if (mirror) found.push(path);
+  }
+  found.sort((a, b) => b.length - a.length);
+  const paths: [number, number][][] = [];
+  for (const path of found) {
+    if (paths.length >= 5) break;
+    if (path.some(([r, c]) => used[r][c])) continue;
+    paths.push(path);
+    for (const [r, c] of path) used[r][c] = true;
+  }
+  const pn: ThermoPN = Array.from({ length: N }, () => Array(N).fill(null));
+  for (const path of paths) for (let k = 0; k < path.length; k++) {
+    const [r, c] = path[k];
+    pn[r][c] = { prev: k > 0 ? path[k - 1] : null, next: k < path.length - 1 ? path[k + 1] : null };
+  }
+  return pn;
+}
+
+/** Цифра n в (r, c) не спорит с зеркальной клеткой линии-палиндрома (если та заполнена). */
+export function palindromeOk(grid: Cell[][], r: number, c: number, n: number, pn: ThermoPN): boolean {
+  const cells = lineCells(pn, r, c);
+  if (!cells.length) return true;
+  const i = cells.findIndex(([lr, lc]) => lr === r && lc === c);
+  const [mr, mc] = cells[cells.length - 1 - i];
+  if (mr === r && mc === c) return true;                       // середина нечётной линии
+  const o = grid[mr][mc];
+  return o === 0 || o === n;
+}
+
+/**
+ * 🔴 «МЕЖДУ КОНЦАМИ» (Between line; пункт 6 цепочки «14 усложнений», задача 25679487, правило 2
+ * из 3): на линии с кружками на концах каждая цифра лежит СТРОГО между цифрами двух кружков.
+ * Отсюда кружки — самая большая и самая маленькая цифра линии, и средние клетки зажаты окном.
+ * Формулировка сверена 01.10.2026: logic-masters.de, «Intro to Between Lines» (id 0008DQ): «strictly
+ * between the digits on the circled ends of the line».
+ *
+ * Линии — ИЗ решения: пути 3…6, у которых средние строго между концами (замер 01.10: ~14 %
+ * путей; длины 3 — 60 %, 4 — 20 %, 5 — 17 %, 6 — 3 %). Длинные сперва; до пяти без общих клеток.
+ */
+export function betweenFromSolution(sol: Cell[][], N: number, rnd: () => number = Math.random): ThermoPN {
+  const used: boolean[][] = Array.from({ length: N }, () => Array(N).fill(false));
+  const found: [number, number][][] = [];
+  for (let attempt = 0; attempt < 1500 && found.length < 40; attempt++) {
+    const len = 3 + Math.floor(rnd() * 4);   // 3..6
+    let r = Math.floor(rnd() * N), c = Math.floor(rnd() * N);
+    const path: [number, number][] = [[r, c]];
+    for (let s = 1; s < len; s++) {
+      const nb = ORTHO.map(([dr, dc]) => [r + dr, c + dc] as [number, number])
+        .filter(([nr, nc]) => nr >= 0 && nr < N && nc >= 0 && nc < N && !path.some(([pr, pc]) => pr === nr && pc === nc));
+      if (!nb.length) break;
+      [r, c] = nb[Math.floor(rnd() * nb.length)];
+      path.push([r, c]);
+    }
+    const L = path.length;
+    if (L < 3) continue;
+    const a = sol[path[0][0]][path[0][1]], b = sol[path[L - 1][0]][path[L - 1][1]];
+    const lo = Math.min(a, b), hi = Math.max(a, b);
+    if (path.slice(1, -1).every(([pr, pc]) => sol[pr][pc] > lo && sol[pr][pc] < hi)) found.push(path);
+  }
+  found.sort((x, y) => y.length - x.length);
+  const paths: [number, number][][] = [];
+  for (const path of found) {
+    if (paths.length >= 5) break;
+    if (path.some(([r, c]) => used[r][c])) continue;
+    paths.push(path);
+    for (const [r, c] of path) used[r][c] = true;
+  }
+  const pn: ThermoPN = Array.from({ length: N }, () => Array(N).fill(null));
+  for (const path of paths) for (let k = 0; k < path.length; k++) {
+    const [r, c] = path[k];
+    pn[r][c] = { prev: k > 0 ? path[k - 1] : null, next: k < path.length - 1 ? path[k + 1] : null };
+  }
+  return pn;
+}
+
+/**
+ * Цифра n в (r, c) не ломает линию «между концами». Известные цифры: при обоих концах — каждая
+ * средняя строго между ними; при одном конце — все средние по ОДНУ сторону от него и не равны
+ * ему; средняя не может быть крайней из известных, если оба конца ещё пусты, — это не утверждаем.
+ */
+export function betweenOk(grid: Cell[][], r: number, c: number, n: number, pn: ThermoPN): boolean {
+  const cells = lineCells(pn, r, c);
+  if (!cells.length) return true;
+  const at = ([lr, lc]: [number, number]) => (lr === r && lc === c ? n : grid[lr][lc]);
+  const a = at(cells[0]), b = at(cells[cells.length - 1]);
+  const mids = cells.slice(1, -1).map(at).filter((v) => v !== 0);
+  if (a && b) {
+    if (a === b) return false;
+    const lo = Math.min(a, b), hi = Math.max(a, b);
+    return mids.every((v) => v > lo && v < hi);
+  }
+  const end = a || b;
+  if (!end || !mids.length) return true;
+  return mids.every((v) => v > end) || mids.every((v) => v < end);
+}
+
+/**
+ * 🔴 LOCKOUT (пункт 6 цепочки «14 усложнений», задача 25679487, правило 3
+ * из 3): цифры в ромбах на концах линии отличаются минимум на 4, а каждая цифра линии лежит ВНЕ
+ * отрезка между ними и не равна им: ромбы «запирают» середину шкалы.
+ * Формулировка сверена 01.10.2026: wooferzfg.me/puzzles/build_your_own_lockout_lines.html («cannot be
+ * between or equal to the digits on the diamond endpoints… must differ by at least 4»), logic-wiz.com.
+ *
+ * Линии — ИЗ решения: пути 3…6 с концами через ≥ 4 и средними вне их отрезка (замер 01.10: ~5,6 %
+ * путей; длины 3 — 63 %, 4 — 28 %, 5 — 7 %, 6 — 2 %). Длинные сперва; до пяти без общих клеток.
+ */
+export function lockoutFromSolution(sol: Cell[][], N: number, rnd: () => number = Math.random): ThermoPN {
+  const used: boolean[][] = Array.from({ length: N }, () => Array(N).fill(false));
+  const found: [number, number][][] = [];
+  for (let attempt = 0; attempt < 1500 && found.length < 40; attempt++) {
+    const len = 3 + Math.floor(rnd() * 4);   // 3..6
+    let r = Math.floor(rnd() * N), c = Math.floor(rnd() * N);
+    const path: [number, number][] = [[r, c]];
+    for (let s = 1; s < len; s++) {
+      const nb = ORTHO.map(([dr, dc]) => [r + dr, c + dc] as [number, number])
+        .filter(([nr, nc]) => nr >= 0 && nr < N && nc >= 0 && nc < N && !path.some(([pr, pc]) => pr === nr && pc === nc));
+      if (!nb.length) break;
+      [r, c] = nb[Math.floor(rnd() * nb.length)];
+      path.push([r, c]);
+    }
+    const L = path.length;
+    if (L < 3) continue;
+    const a = sol[path[0][0]][path[0][1]], b = sol[path[L - 1][0]][path[L - 1][1]];
+    const lo = Math.min(a, b), hi = Math.max(a, b);
+    if (hi - lo >= 4 && path.slice(1, -1).every(([pr, pc]) => sol[pr][pc] < lo || sol[pr][pc] > hi)) found.push(path);
+  }
+  found.sort((x, y) => y.length - x.length);
+  const paths: [number, number][][] = [];
+  for (const path of found) {
+    if (paths.length >= 5) break;
+    if (path.some(([r, c]) => used[r][c])) continue;
+    paths.push(path);
+    for (const [r, c] of path) used[r][c] = true;
+  }
+  const pn: ThermoPN = Array.from({ length: N }, () => Array(N).fill(null));
+  for (const path of paths) for (let k = 0; k < path.length; k++) {
+    const [r, c] = path[k];
+    pn[r][c] = { prev: k > 0 ? path[k - 1] : null, next: k < path.length - 1 ? path[k + 1] : null };
+  }
+  return pn;
+}
+
+/**
+ * Цифра n в (r, c) не ломает lockout-линию. Известные цифры: при обоих концах — они отличаются
+ * минимум на 4, а каждая средняя вне отрезка [меньший, больший]; при одном конце — средние ему
+ * не равны.
+ */
+export function lockoutOk(grid: Cell[][], r: number, c: number, n: number, pn: ThermoPN): boolean {
+  const cells = lineCells(pn, r, c);
+  if (!cells.length) return true;
+  const at = ([lr, lc]: [number, number]) => (lr === r && lc === c ? n : grid[lr][lc]);
+  const a = at(cells[0]), b = at(cells[cells.length - 1]);
+  const mids = cells.slice(1, -1).map(at).filter((v) => v !== 0);
+  if (a && b) {
+    if (Math.abs(a - b) < 4) return false;
+    const lo = Math.min(a, b), hi = Math.max(a, b);
+    return mids.every((v) => v < lo || v > hi);
+  }
+  const end = a || b;
+  return !end || mids.every((v) => v !== end);
+}
+
+/**
+ * 🔴 XV (пункт 7 цепочки «14 усложнений», задача 7eacd001; решение Дениса 30.09 «Берём»):
+ * X на грани двух клеток — их сумма 10, V — сумма 5. И ОТРИЦАТЕЛЬНОЕ УСЛОВИЕ: показаны ВСЕ X и
+ * V, значит у соседей без знака сумма не 5 и не 10. Формулировка сверена 01.10.2026 с
+ * logic-masters.de («Cells connected by an X must sum to 10. Cells connected by an V must sum to
+ * 5. All X's and V's are given.»).
+ *
+ * Знаки — прямо из решения, все пары с суммой 5 и 10; прореживать их НЕЛЬЗЯ — отрицательное
+ * условие стало бы ложью. Карта как у кропки: h — грань вправо, v — грань вниз; 1 = V, 2 = X.
+ */
+export type XvMap = { h: number[][]; v: number[][] };
+export function xvFromSolution(sol: Cell[][], N: number): XvMap {
+  const mark = (a: number, b: number) => (a + b === 10 ? 2 : a + b === 5 ? 1 : 0);
+  const h = Array.from({ length: N }, () => Array(N).fill(0));
+  const v = Array.from({ length: N }, () => Array(N).fill(0));
+  for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+    if (c < N - 1) h[r][c] = mark(sol[r][c], sol[r][c + 1]);
+    if (r < N - 1) v[r][c] = mark(sol[r][c], sol[r + 1][c]);
+  }
+  return { h, v };
+}
+
+/** Цифра n в (r, c) не спорит ни с одним знаком XV у известных соседей (и с их отсутствием). */
+export function xvOk(grid: Cell[][], r: number, c: number, n: number, xv: XvMap, N: number): boolean {
+  const edges: [number, number, number][] = [];
+  if (c < N - 1) edges.push([xv.h[r][c], r, c + 1]);
+  if (c > 0) edges.push([xv.h[r][c - 1], r, c - 1]);
+  if (r < N - 1) edges.push([xv.v[r][c], r + 1, c]);
+  if (r > 0) edges.push([xv.v[r - 1][c], r - 1, c]);
+  for (const [d, nr, nc] of edges) {
+    const o = grid[nr][nc];
+    if (o === 0) continue;
+    const sum = n + o;
+    if (d === 2 ? sum !== 10 : d === 1 ? sum !== 5 : sum === 5 || sum === 10) return false;
+  }
+  return true;
 }
 
 export function arrowFromSolution(sol: Cell[][], N: number): ArrowMap {
@@ -719,13 +1196,24 @@ export function towersFromSolution(sol: Cell[][], N: number): TowersMap {
  * ⚠️ Оценка сверху намеренно грубая: каждая пустая клетка МОЖЕТ оказаться видимой.
  * Грубая, но ЧЕСТНАЯ: она никогда не отбросит верную доску, а только пропустит
  * часть неверных — их поймает проверка полного ряда.
+ *
+ * 🔴 НИЖНЯЯ ГРАНИЦА — ТОЛЬКО ПО НАЧАЛУ РЯДА ДО ПЕРВОЙ ПУСТОЙ (задача 2ab36958, 01.10.2026).
+ * Прежде снизу стояло «сколько видно среди заполненных», и это было НЕЧЕСТНО: пустая клетка
+ * ВПЕРЕДИ может закрыть уже видимые. Ряд [_,2,4,1,6,3] при подсказке 2 отвергался (среди
+ * заполненных видно три), а [5,2,4,1,6,3] даёт ровно 2. Замер: в эталонах правил ядро
+ * отвергло верную цифру решения в 8 ходах из 20, а оценщик срезал кандидатов неверным
+ * доводом. Честно снизу: видимые в начале до первой пустой — они видны при любом заполнении,
+ * — плюс самое высокое здание, если его в начале нет: оно где-то дальше и видно всегда.
  */
 export function towersLineOk(line: readonly number[], clue: number): boolean {
   if (clue === 0) return true;
   if (line.every((v) => v !== 0)) return visibleCount(line) === clue;
   let seen = 0, tallest = 0, blanks = 0;
   for (const v of line) { if (v === 0) { blanks++; continue; } if (v > tallest) { seen++; tallest = v; } }
-  return clue >= seen && clue <= seen + blanks;
+  let head = 0, headTop = 0;
+  for (const v of line) { if (v === 0) break; if (v > headTop) { head++; headTop = v; } }
+  const low = head + (headTop === line.length ? 0 : 1);
+  return clue >= low && clue <= seen + blanks;
 }
 
 export function isValid(grid: Cell[][], r: number, c: number, val: number, N: number, BR: number, BC: number, variant: Variant = 'none', regions?: number[][], thermo?: ThermoPN, arrow?: ArrowMap, cages?: CageMap, unequal?: UnequalMap, towers?: TowersMap): boolean {
@@ -862,6 +1350,21 @@ export interface Overlays {
   unequal?: UnequalMap;
   /** Небоскрёбы: сколько зданий видно с каждого края. 0 = подсказки нет. */
   towers?: TowersMap;
+  /** Немецкий шёпот: линии (как у термометра — prev/next по клеткам); соседи на линии
+   *  отличаются минимум на WHISPER_GAP. */
+  whisper?: ThermoPN;
+  /** Ренбан: линии prev/next; цифры на линии разные и образуют отрезок подряд. */
+  renban?: ThermoPN;
+  /** Линии равных сумм: в каждом блоке, через который идёт линия, сумма её цифр одна. */
+  regionsum?: ThermoPN;
+  /** Серая линия читается одинаково с обоих концов: цифры на равном расстоянии от концов совпадают. */
+  palindrome?: ThermoPN;
+  /** Цифры на линии лежат строго между цифрами в кружках на её концах. */
+  between?: ThermoPN;
+  /** Цифры в ромбах на концах линии отличаются минимум на 4, а цифры линии лежат вне промежутка между ними. */
+  lockout?: ThermoPN;
+  /** XV: знаки на гранях (1 = V, сумма 5; 2 = X, сумма 10); показаны все. */
+  xv?: XvMap;
 }
 
 /** Полные оверлеи из решения — до прореживания. */
@@ -892,6 +1395,28 @@ export function overlaysFromSolution(sol: Cell[][], N: number, variant: Variant)
   }
   if (variant === 'towers') {
     return { towers: towersFromSolution(sol, N) };
+  }
+  if (variant === 'whisper') {
+    return { whisper: whisperFromSolution(sol, N) };
+  }
+  if (variant === 'renban') {
+    return { renban: renbanFromSolution(sol, N) };
+  }
+  if (variant === 'regionsum') {
+    const { BR, BC } = dimsForSize(N as 6 | 9);
+    return { regionsum: regionSumFromSolution(sol, N, BR, BC) };
+  }
+  if (variant === 'palindrome') {
+    return { palindrome: palindromeFromSolution(sol, N) };
+  }
+  if (variant === 'between') {
+    return { between: betweenFromSolution(sol, N) };
+  }
+  if (variant === 'xv') {
+    return { xv: xvFromSolution(sol, N) };
+  }
+  if (variant === 'lockout') {
+    return { lockout: lockoutFromSolution(sol, N) };
   }
   if (variant === 'unequal') {
     // Знаки СРАЗУ все; сколько показать — решает прореживание уровня, как у кропки.
@@ -956,6 +1481,26 @@ export function overlayOk(grid: Cell[][], r: number, c: number, n: number, N: nu
     if (!towersLineOk(col, ov.towers.top[c])) return false;
     if (!towersLineOk([...col].reverse(), ov.towers.bottom[c])) return false;
   }
+  if (ov.whisper) {
+    // Линия — ПОКАЗАННАЯ подсказка: единственность обязана с ней считаться.
+    const pn = ov.whisper[r][c];
+    if (pn) {
+      for (const nb of [pn.prev, pn.next]) {
+        if (!nb) continue;
+        const o = grid[nb[0]][nb[1]];
+        if (o !== 0 && Math.abs(n - o) < WHISPER_GAP) return false;
+      }
+    }
+  }
+  if (ov.renban && !renbanOk(grid, r, c, n, ov.renban)) return false;   // линия — показанная подсказка
+  if (ov.regionsum) {
+    const { BR, BC } = dimsForSize(N as 6 | 9);
+    if (!regionSumOk(grid, r, c, n, ov.regionsum, N, BR, BC)) return false;
+  }
+  if (ov.palindrome && !palindromeOk(grid, r, c, n, ov.palindrome)) return false;   // линия — показанная подсказка
+  if (ov.between && !betweenOk(grid, r, c, n, ov.between)) return false;   // линия — показанная подсказка
+  if (ov.lockout && !lockoutOk(grid, r, c, n, ov.lockout)) return false;   // линия — показанная подсказка
+  if (ov.xv && !xvOk(grid, r, c, n, ov.xv, N)) return false;   // знаки и их отсутствие — подсказка
   if (ov.sandwich) {
     const check = (line: number[], want: number): boolean => {
       if (want < 0) return true;                                      // сумма СПРЯТАНА (см. thinSandwich) — не подсказка
@@ -1012,7 +1557,7 @@ export function countSolutions(grid: Cell[][], N: number, BR: number, BC: number
 // thermocage здесь ОБЯЗАН быть: единственность решения у него считается по ДВУМ
 // правилам сразу (isValid знает и цепочку, и сумму). Доска, единственная по каждому
 // правилу порознь, вместе может иметь второе решение — и наоборот.
-const UNIQUE_CHECKED: readonly Variant[] = ['none', 'diagonal', 'antiknight', 'hyper', 'nonconsec', 'antiking', 'jigsaw', 'thermo', 'arrow', 'evenodd', 'kropki', 'sandwich', 'thermocage', 'unequal', 'towers', 'sandparity', 'thermoknight', 'killerdiag'];
+const UNIQUE_CHECKED: readonly Variant[] = ['none', 'diagonal', 'antiknight', 'hyper', 'nonconsec', 'antiking', 'jigsaw', 'thermo', 'arrow', 'evenodd', 'kropki', 'sandwich', 'thermocage', 'unequal', 'towers', 'sandparity', 'thermoknight', 'killerdiag', 'whisper', 'renban', 'regionsum', 'palindrome', 'between', 'lockout', 'xv'];
 
 /**
  * Готовая сетка для «несоседних чисел» — БЕЗ перебора.
@@ -1041,7 +1586,7 @@ export function buildNonconsecSolution(): Cell[][] {
   return g;
 }
 
-export function generatePuzzle(blanks: number, N: number, BR: number, BC: number, variant: Variant = 'none', thin?: (ov: Overlays) => Overlays): { puzzle: Cell[][]; solution: Cell[][]; regions?: number[][]; parity?: number[][]; kropki?: { h: number[][]; v: number[][] }; sandwich?: { rows: number[]; cols: number[] }; thermo?: ThermoPN; arrow?: ArrowMap; cages?: CageMap; unequal?: UnequalMap; towers?: TowersMap } {
+export function generatePuzzle(blanks: number, N: number, BR: number, BC: number, variant: Variant = 'none', thin?: (ov: Overlays) => Overlays): { puzzle: Cell[][]; solution: Cell[][]; regions?: number[][]; parity?: number[][]; kropki?: { h: number[][]; v: number[][] }; sandwich?: { rows: number[]; cols: number[] }; thermo?: ThermoPN; arrow?: ArrowMap; cages?: CageMap; unequal?: UnequalMap; towers?: TowersMap; whisper?: ThermoPN; renban?: ThermoPN; regionsum?: ThermoPN; palindrome?: ThermoPN; between?: ThermoPN; lockout?: ThermoPN; xv?: XvMap } {
   const sol: Cell[][] = Array.from({ length: N }, () => Array(N).fill(0));
   let regions: number[][] | undefined;
   let thermo: ThermoPN | undefined;
@@ -1132,7 +1677,14 @@ export function generatePuzzle(blanks: number, N: number, BR: number, BC: number
   const sandwich = ov.sandwich;
   const unequal = ov.unequal;
   const towers = ov.towers;
-  return { puzzle, solution: sol, regions, parity, kropki, sandwich, thermo, arrow, cages, unequal, towers };
+  const whisper = ov.whisper;
+  const renban = ov.renban;
+  const regionsum = ov.regionsum;
+  const palindrome = ov.palindrome;
+  const between = ov.between;
+  const lockout = ov.lockout;
+  const xv = ov.xv;
+  return { puzzle, solution: sol, regions, parity, kropki, sandwich, thermo, arrow, cages, unequal, towers, whisper, renban, regionsum, palindrome, between, lockout, xv };
 }
 
 /**
@@ -1162,6 +1714,13 @@ export interface RejectionContext {
   kropki?: { h: number[][]; v: number[][] };
   unequal?: UnequalMap;
   towers?: TowersMap;
+  whisper?: ThermoPN;
+  renban?: ThermoPN;
+  regionsum?: ThermoPN;
+  palindrome?: ThermoPN;
+  between?: ThermoPN;
+  lockout?: ThermoPN;
+  xv?: XvMap;
 }
 
 export function rejectionReason(
@@ -1184,6 +1743,19 @@ export function rejectionReason(
       const mark = ctx.parity[r]?.[c] ?? 0;                       // 1 = чёт, 2 = нечет, 0 = метки нет
       if ((mark === 1 && n % 2 !== 0) || (mark === 2 && n % 2 === 0)) return variantRule(variant, lang);
     }
+    if (variant === 'whisper' && ctx.whisper) {
+      const pn = ctx.whisper[r]?.[c];
+      for (const nb of pn ? [pn.prev, pn.next] : []) {
+        const other = nb ? test[nb[0]]?.[nb[1]] ?? 0 : 0;
+        if (other && Math.abs(n - other) < WHISPER_GAP) return variantRule(variant, lang);
+      }
+    }
+    if (variant === 'renban' && ctx.renban && !renbanOk(test, r, c, n, ctx.renban)) return variantRule(variant, lang);
+    if (variant === 'regionsum' && ctx.regionsum && !regionSumOk(test, r, c, n, ctx.regionsum, N, BR, BC)) return variantRule(variant, lang);
+    if (variant === 'palindrome' && ctx.palindrome && !palindromeOk(test, r, c, n, ctx.palindrome)) return variantRule(variant, lang);
+    if (variant === 'between' && ctx.between && !betweenOk(test, r, c, n, ctx.between)) return variantRule(variant, lang);
+    if (variant === 'lockout' && ctx.lockout && !lockoutOk(test, r, c, n, ctx.lockout)) return variantRule(variant, lang);
+    if (variant === 'xv' && ctx.xv && !xvOk(test, r, c, n, ctx.xv, N)) return variantRule(variant, lang);
     if (variant === 'kropki' && ctx.kropki) {
       const okDot = (dot: number, a: number, b: number): boolean => {
         if (dot === 1) return Math.abs(a - b) === 1;              // белая: разница в единицу

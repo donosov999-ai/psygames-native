@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/sudoku/marks.dart';
 import 'package:psygames_flutter/games/sudoku/screen.dart';
+import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -16,6 +17,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// ⚠️ ПРОБА ЧИТАЕТ ТО, ЧТО ВИДНО В КЛЕТКЕ, а не поля состояния: пометка, которая
 /// поставлена в память и не нарисована, для человека не существует.
 void main() {
+  // Пробы ищут русские подписи — словарь грузится явно (без него L.t вернёт ключ).
+  setUpAll(() async => L.load('ru'));
   late SharedState state;
 
   setUp(() async {
@@ -103,7 +106,8 @@ void main() {
 
     expect(marksAt(tester, cell.r, cell.c), ['1', '2', '3'],
         reason: 'в клетке видны три карандашные цифры');
-    expect(find.text('0/3'), findsOneWidget,
+    // Ступень 5 — лимит 4 (цена ошибки по ступеням, levelConfig.lives, задача 1fa57de3).
+    expect(find.text('0/4'), findsOneWidget,
         reason: 'пометка — не ход: счётчик ошибок стоит на месте');
   });
 
