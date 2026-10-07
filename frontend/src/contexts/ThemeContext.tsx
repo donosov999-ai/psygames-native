@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import { useProfile } from './ProfileContext';
 import type { ProfileId } from '@/src/constants/profiles';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useColorScheme } from 'react-native';
 import { getEquippedAccent } from '@/src/services/cosmetics';
 
 interface ThemeColors {
@@ -69,6 +70,8 @@ const PROFILE_THEME: Record<ProfileId, { mood: 'dark' | 'light'; accent: string 
 };
 
 interface ThemeContextType {
+  themeMode: 'profile' | 'system' | 'light' | 'dark';
+  setThemeMode: (mode: 'profile' | 'system' | 'light' | 'dark') => void;
   isDark: boolean;
   toggleTheme: () => void;
   colors: ThemeColors;
@@ -91,10 +94,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   // Было: жил только в useState → терялся при перезапуске И сбрасывался при каждой
   // смене профиля. Репорт тестировщика: «выбрал тёмную в НЗТ, переключился во FREE —
   // снова светлая. Надо запоминать app wide».
-  const [override, setOverride] = useState<null | 'dark' | 'light'>(null);
+  const systemScheme = useColorScheme();
+  const [override, setOverride] = useState<null | 'system' | 'dark' | 'light'>(null);
   useEffect(() => {
     AsyncStorage.getItem(THEME_OVERRIDE_KEY)
-      .then((v) => { if (v === 'dark' || v === 'light') setOverride(v); })
+      .then((v) => { if (v === 'system' || v === 'dark' || v === 'light') setOverride(v); })
       .catch(() => {});
   }, []);
   const [colorblind, setColorblindState] = useState(false);
@@ -116,19 +120,20 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   // меняется только светлота/темнота.
 
   const pt = PROFILE_THEME[profile.id] ?? { mood: 'dark' as const, accent: '#0A84FF' };
-  const mood = override ?? pt.mood;
+  const mood = override === 'system' ? (systemScheme ?? 'light') : (override ?? pt.mood);
   const isDark = mood === 'dark';
   const base = isDark ? darkTheme : lightTheme;
   const colors: ThemeColors = { ...base, primary: cosmeticAccent ?? pt.accent };
 
-  const toggleTheme = () => {
-    const next = isDark ? 'light' : 'dark';
-    setOverride(next);
-    AsyncStorage.setItem(THEME_OVERRIDE_KEY, next).catch(() => {});
+  const setThemeMode = (mode: 'profile' | 'system' | 'light' | 'dark') => {
+    setOverride(mode === 'profile' ? null : mode);
+    (mode === 'profile' ? AsyncStorage.removeItem(THEME_OVERRIDE_KEY)
+      : AsyncStorage.setItem(THEME_OVERRIDE_KEY, mode)).catch(() => {});
   };
+  const toggleTheme = () => setThemeMode(isDark ? 'light' : 'dark');
 
   return (
-    <ThemeContext.Provider value={{ isDark, toggleTheme, colors, themeFromProfile: override === null, colorblind, setColorblind, cosmeticAccent, refreshCosmeticAccent }}>
+    <ThemeContext.Provider value={{ themeMode: override ?? 'profile', setThemeMode, isDark, toggleTheme, colors, themeFromProfile: override === null, colorblind, setColorblind, cosmeticAccent, refreshCosmeticAccent }}>
       {children}
     </ThemeContext.Provider>
   );

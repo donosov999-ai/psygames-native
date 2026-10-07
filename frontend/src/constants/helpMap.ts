@@ -462,11 +462,6 @@ export const HELP_MAP: Record<string, HelpEntry> = {
     "skillKey": "skillPlanningWM",
     "introKey": "sortingGroupIntroDesc"
   },
-  "/games/puzzles-hub": {
-    "nameKey": "puzzlesGroup",
-    "skillKey": "skillLogic",
-    "introKey": "puzzlesUnrulyIntroDesc"
-  },
   "/games/puzzles": {
     "nameKey": "puzzlesUnruly",
     "skillKey": "skillLogic",

@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/pause/practice_haptics.dart';
-import 'package:psygames_flutter/games/pause/practices.dart';
+import 'package:practice_kit/practice_kit.dart';
 
 /// 🔴 ВИБРАЦИЯ ДОЛЖНА ОЩУЩАТЬСЯ В РУКЕ, А НЕ ТОЛЬКО «УХОДИТЬ В КАНАЛ».
 ///
@@ -17,7 +17,7 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   final calls = <MethodCall>[];
   final messenger = TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
-  final engine = Practices(jsonDecode(File('assets/pause/practices.json').readAsStringSync()) as Json);
+  final engine = Practices(jsonDecode(File('../packages/practice_kit/assets/practices.json').readAsStringSync()) as Json);
 
   setUp(() {
     calls.clear();
@@ -49,37 +49,17 @@ void main() {
     expect((play.arguments['strength'] as num).toDouble(), greaterThanOrEqualTo(.8));
   });
 
-  test('iOS: нативный код не режет силу до 0,6 и не глушит резкость', () {
+  // Нативная часть вибрации (потолок силы, системный вибромотор, снятие импульсов)
+  // теперь одна на два приложения — в пакете practice_kit, и проверяется его пробами
+  // (packages/practice_kit/test/haptics_felt_strength_test.dart). Здесь — только то,
+  // что своей копии у PsyGames снова не завелось: иначе починка опять пойдёт дважды.
+  test('🔴 своей нативной копии вибрации у приложения нет — только пакет', () {
     final swift = File('ios/Runner/AppDelegate.swift').readAsStringSync();
-    final start = swift.indexOf('final class PracticeHapticsPlugin');
-    expect(start, isNonNegative);
-    final end = swift.indexOf('\nfinal class', start + 1);
-    final plugin = swift.substring(start, end < 0 ? swift.length : end);
-    expect(plugin, contains('min(1.0, max(0.1'));
-    expect(plugin, isNot(contains('min(0.6')));
-    expect(plugin, isNot(contains('value: 0.15')));
-  });
-
-  // Денис, 01.10.2026: «дребезжание при удержании в Кегеле не работает… у
-  // конкурентов всё работает». Основной канал — системный вибромотор, как у них.
-  test('iOS: системный вибромотор — основной канал, импульсы снимаются в stop()', () {
-    final swift = File('ios/Runner/AppDelegate.swift').readAsStringSync();
-    final start = swift.indexOf('final class PracticeHapticsPlugin');
-    final end = swift.indexOf('\nfinal class', start + 1);
-    final plugin = swift.substring(start, end < 0 ? swift.length : end);
-    expect(swift, contains('import AudioToolbox'));
-    expect(plugin, contains('AudioServicesPlaySystemSound(kSystemSoundID_Vibrate)'));
-    final s = plugin.indexOf('private func stop()');
-    expect(plugin.substring(s, plugin.indexOf('}', s)), contains('pulse?.invalidate()'));
-    final play = plugin.substring(plugin.indexOf('guard call.method == "play"'));
-    expect(play.indexOf('buzz('), lessThan(play.indexOf('guard supported')),
-        reason: 'вибромотор не зависит от поддержки Core Haptics');
-  });
-
-  test('Android: нативный код не режет силу до 0,6', () {
-    final kotlin = File('android/app/src/main/kotlin/pro/psygames/psygames_flutter/PracticeHaptics.kt')
-        .readAsStringSync();
-    expect(kotlin, contains('coerceIn(.1, 1.0)'));
-    expect(kotlin, isNot(contains('coerceIn(.1, .6)')));
+    expect(swift, isNot(contains('PracticeHapticsPlugin')));
+    expect(swift, isNot(contains('CHHaptic')));
+    expect(File('android/app/src/main/kotlin/pro/psygames/psygames_flutter/PracticeHaptics.kt').existsSync(), isFalse);
+    expect(File('android/app/src/main/kotlin/pro/psygames/psygames_flutter/MainActivity.kt').readAsStringSync(),
+        isNot(contains('MethodChannel')));
+    expect(File('pubspec.yaml').readAsStringSync(), contains('path: ../packages/practice_kit'));
   });
 }

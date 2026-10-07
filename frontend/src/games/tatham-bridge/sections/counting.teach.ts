@@ -8,5 +8,8 @@
  * Режимы раздела: Mines, Mosaic, Pattern, Range, Magnets, Galaxies, Palisade.
  */
 import type { УчительРежима } from '../teach/types';
+import { учительGuess } from '../teach/guess';
 
-export const УЧИТЕЛЯ_РАЗДЕЛА: Record<string, УчительРежима> = {};
+export const УЧИТЕЛЯ_РАЗДЕЛА: Record<string, УчительРежима> = {
+  Guess: учительGuess,
+};

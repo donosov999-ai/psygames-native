@@ -1,0 +1,11 @@
+{
+"source": "frontend/src/constants/gameSuites.ts",
+"suites": [
+  {"id":"suite_stroop","titleKey":"suiteStroop","descKey":"suiteStroopDesc","modes":[{"route":"/games/stroop","labelKey":"modeClassic"},{"route":"/games/stroop-emotional","labelKey":"suiteModeEmotion"}]},
+  {"id":"suite_arrows","titleKey":"suiteArrows","descKey":"suiteArrowsDesc","modes":[{"route":"/games/flanker","labelKey":"suiteModeFlanker"},{"route":"/games/simon","labelKey":"suiteModeSimon"},{"route":"/games/choice-rt","labelKey":"suiteModeChoice"},{"route":"/games/ant","labelKey":"suiteModeAnt"}]},
+  {"id":"suite_positions","titleKey":"suitePositions","descKey":"suitePositionsDesc","modes":[{"route":"/games/memory-matrix","labelKey":"suiteModeGrid"},{"route":"/games/corsi","labelKey":"suiteModeCorsi"},{"route":"/games/spatial-span","labelKey":"suiteModeBackward"}]},
+  {"id":"suite_stream","titleKey":"suiteStream","descKey":"suiteStreamDesc","modes":[{"route":"/games/cpt","labelKey":"suiteModeVigilance"},{"route":"/games/switching-task","labelKey":"suiteModeSwitch"}]},
+  {"id":"suite_inhibition","titleKey":"suiteInhibition","descKey":"suiteInhibitionDesc","modes":[{"route":"/games/inhibition","labelKey":"suiteModeAllInOne"},{"route":"/games/go-no-go","labelKey":"suiteModeGoNoGo"},{"route":"/games/stop-signal","labelKey":"suiteModeStopSignal"}]},
+  {"id":"suite_decisions","titleKey":"suiteDecisions","descKey":"suiteDecisionsDesc","modes":[{"route":"/games/prl","labelKey":"suiteModeReversal"},{"route":"/games/iowa","labelKey":"suiteModeDecks"},{"route":"/games/bart","labelKey":"suiteModeBalloon"}]}
+]
+}

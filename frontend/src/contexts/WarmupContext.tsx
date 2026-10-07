@@ -14,7 +14,8 @@ import { localSpatialHost, spatialWarmupPlaylist } from '@/src/games/spatial-cor
 import { isGameAllowed } from '@/src/constants/profiles';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { fbCorrect, fbComplete } from '@/src/services/feedback';
-import { hostInfo, hostLeadsBetween, postToHost, stepDoneMessage } from '@/src/services/hostWarmup';
+import { hostInfo, hostLeadsBetween, hostRendersNatively, postToHost, stepDoneMessage } from '@/src/services/hostWarmup';
+import { isHostSession } from '@/src/services/nativeSessionBridge';
 
 export interface StepResult {
   /** Локальный прогон приёмки: без сессий, наград и истории. */
@@ -465,6 +466,8 @@ export function WarmupProvider({ children }: { children: React.ReactNode }) {
    */
   const stateRef = useRef(state);
   useLayoutEffect(() => { stateRef.current = state; }, [state]);
+  /** Шаг, о котором оболочке уже сказали «готов» (`начало зарядки:номер шага`). */
+  const stepDonePostedRef = useRef<string | null>(null);
   // Глобал для saveSession: во время зарядки серия-бонус (cleanRun) не начисляется —
   // у зарядки свой comboBonus ×1.5 в warmup-complete, не задваиваем награду.
   useEffect(() => { (globalThis as any).__psygames_warmup_active = state.active; }, [state.active]);
@@ -476,6 +479,15 @@ export function WarmupProvider({ children }: { children: React.ReactNode }) {
       if (!step) return;
       // Не та игра. Сверка по корзине экрана, а не по имени в каталоге — см. `партияЗаШаг`.
       if (!партияЗаШаг(step.game_id, s)) return;
+      /**
+       * 🔴 ШАГ РИСУЕТ ОБОЛОЧКА — ЗАСЧИТЫВАЕТСЯ ТОЛЬКО ЕЁ ПАРТИЯ.
+       * Под нативным экраном живёт веб-копия той же игры; SDMT при `wu=1` стартует
+       * сам, идёт 60 с и сохраняет партию, которую человек не играл. 06.10.2026,
+       * 2.56.12 (отчёт 02d98918): две партии за шаг → два «шаг готов» → два моста
+       * оболочки → первый снялся пустым и остановил зарядку, человек — на главной.
+       * Партию нативной половины метит приёмник (`nativeSessionBridge`).
+       */
+      if (hostRendersNatively(step.game_route) && !isHostSession(s)) return;
 
       // ENRICH the just-saved session with warmup metadata for Supabase sync.
       // Mutate in place — saveSession returned this object reference, and the
@@ -507,8 +519,11 @@ export function WarmupProvider({ children }: { children: React.ReactNode }) {
        */
       const timeUp = Date.now() - cur.startTime > cur.meta.duration_min * 60_000;
       if (!timeUp && hostLeadsBetween(step, cur.meta.steps[idxAtSave + 1])) {
+        // Второй замок: один шаг — одно «готов». Повтор того же шага — не переход.
+        const key = `${cur.startTime}:${idxAtSave}`;
+        if (stepDonePostedRef.current === key) return;
         const msg = stepDoneMessage(cur.meta, idxAtSave, { score: s.score, time_seconds: s.time_seconds, errors: s.errors });
-        if (msg && postToHost(msg)) return;
+        if (msg && postToHost(msg)) { stepDonePostedRef.current = key; return; }
       }
       advanceTimerRef.current = setTimeout(() => {
         advanceTimerRef.current = null;

@@ -23,7 +23,9 @@ class L {
   static const locales = ['ru', 'en', 'es', 'de', 'zh', 'hi', 'pt', 'fr', 'it', 'ja', 'ko', 'ar'];
 
   static Map<String, String> _dict = const {};
-  static String _locale = 'ru';
+  // До загрузки словаря — английский: основной язык приложения (правило Дениса 01.10.2026).
+  // Было 'ru' — всё, что читало язык до `L.load`, получало русский на любом телефоне.
+  static String _locale = 'en';
 
   static String get locale => _locale;
 

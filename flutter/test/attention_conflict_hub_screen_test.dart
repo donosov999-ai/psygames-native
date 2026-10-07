@@ -39,10 +39,11 @@ void main() {
   /// Состав — ожидание, а не источник: читать ассет в оконной пробе нельзя.
   const routes = [
     '/games/stroop', '/games/flanker', '/games/cpt', '/games/targets', '/games/wcst',
-    '/games/inhibition', '/games/posner', '/games/prl', '/games/proofreading',
+    '/games/inhibition', '/games/posner', '/games/prl',
+    // 07.10.2026: переезды по решению Дениса 18.09 (задача 668bcc73): '/games/proofreading' уехала в «Поиск глазами».
   ];
 
-  testWidgets('🔴 развилка: заголовок, названия вместо ключей, значок «нативно», все девять, возврат маршрута',
+  testWidgets('🔴 развилка: заголовок, названия вместо ключей, значок «нативно», все восемь, возврат маршрута',
       (tester) async {
     Future<void> settle(Finder until) async {
       await tester.runAsync(() async {
