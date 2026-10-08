@@ -445,81 +445,125 @@ class _WalkingPetState extends State<WalkingPet> with TickerProviderStateMixin {
     final bottom = MediaQuery.paddingOf(context).bottom + 6 + widget.lift;
     return AnimatedBuilder(
       animation: Listenable.merge([_x, _flip]),
-      builder: (context, _) => Positioned(
-        // Не гуляет — место у правого края полосы с первого кадра (как `petSeatX` веба), без скачка.
-        left: c.walks ? _xAnim.value : WalkingPet.seatX(MediaQuery.sizeOf(context).width, c.size),
-        bottom: bottom,
+      builder: (context, _) => Positioned.fill(
         // Питомец стоит в Stack оболочки ПОВЕРХ Scaffold — без своего Material текст пузыря берёт
         // запасной стиль Flutter: жёлтое двойное подчёркивание (живой замер на эмуляторе 07.10.2026).
+        // Прозрачный Material касаний мимо питомца и пузыря не ловит.
         child: Material(
           type: MaterialType.transparency,
-          child: Column(
-            key: const ValueKey('walking-pet'),
-            mainAxisSize: MainAxisSize.min,
+          child: CustomMultiChildLayout(
+            delegate: PetPlace(
+              // Не гуляет — место у правого края полосы с первого кадра (как `petSeatX` веба), без скачка.
+              left: c.walks ? _xAnim.value : WalkingPet.seatX(MediaQuery.sizeOf(context).width, c.size),
+              bottom: bottom,
+            ),
             children: [
-              if (_bubble != null)
-                GestureDetector(
-                  key: const ValueKey('walking-pet-bubble'),
-                  behavior: HitTestBehavior.opaque,
-                  onTap: _bubble!.skill == null ? null : () => _coach(_bubble!.skill!),
-                  child: Container(
-                    constraints: const BoxConstraints(maxWidth: 170),
-                    margin: const EdgeInsets.only(bottom: 2),
-                    padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 10),
-                    decoration: BoxDecoration(
-                      color: web.surface,
-                      border: Border.all(
-                        color: _bubble!.skill != null ? widget.accent : web.border,
-                        width: _bubble!.skill != null ? 1.5 : 1,
+              LayoutId(
+                id: PetPlace.pet,
+                child: Column(
+                  key: const ValueKey('walking-pet'),
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Semantics(
+                      button: true,
+                      label: L.t('a11yPet'),
+                      child: GestureDetector(
+                        key: const ValueKey('walking-pet-body'),
+                        // Вся площадь питомца ловит нажатие, как `TouchableOpacity` веба, — и пока кадр
+                        // грузится: иначе тап проваливался в плитку под ним.
+                        behavior: HitTestBehavior.opaque,
+                        onTap: _tap,
+                        onLongPress: _pet,
+                        child: Transform(
+                          alignment: Alignment.center,
+                          transform: Matrix4.diagonal3Values(c.walks ? _flipAnim.value : -1, 1, 1),
+                          child: spec == null
+                              ? SizedBox.square(dimension: c.size)
+                              : PetFrames(
+                                  key: ValueKey('pet-frames-$_sprite'),
+                                  spec: spec,
+                                  size: c.size,
+                                  origin: widget.origin,
+                                  still: MediaQuery.disableAnimationsOf(context),
+                                ),
+                        ),
                       ),
-                      borderRadius: const BorderRadius.only(
-                        topLeft: Radius.circular(13),
-                        topRight: Radius.circular(13),
-                        bottomRight: Radius.circular(13),
-                        bottomLeft: Radius.circular(4),
-                      ),
-                      boxShadow: const [BoxShadow(color: Color(0x26000000), blurRadius: 6, offset: Offset(0, 2))],
                     ),
-                    child: Text(
-                      _bubble!.text,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: web.text, fontSize: 11.5, height: 15 / 11.5, fontWeight: FontWeight.w700),
-                    ),
-                  ),
-                ),
-              Semantics(
-                button: true,
-                label: L.t('a11yPet'),
-                child: GestureDetector(
-                  key: const ValueKey('walking-pet-body'),
-                  // Вся площадь питомца ловит нажатие, как `TouchableOpacity` веба, — и пока кадр
-                  // грузится: иначе тап проваливался в плитку под ним.
-                  behavior: HitTestBehavior.opaque,
-                  onTap: _tap,
-                  onLongPress: _pet,
-                  child: Transform(
-                    alignment: Alignment.center,
-                    transform: Matrix4.diagonal3Values(c.walks ? _flipAnim.value : -1, 1, 1),
-                    child: spec == null
-                        ? SizedBox.square(dimension: c.size)
-                        : PetFrames(
-                            key: ValueKey('pet-frames-$_sprite'),
-                            spec: spec,
-                            size: c.size,
-                            origin: widget.origin,
-                            still: MediaQuery.disableAnimationsOf(context),
-                          ),
-                  ),
+                  ],
                 ),
               ),
+              if (_bubble != null)
+                LayoutId(
+                  id: PetPlace.bubble,
+                  child: GestureDetector(
+                    key: const ValueKey('walking-pet-bubble'),
+                    behavior: HitTestBehavior.opaque,
+                    onTap: _bubble!.skill == null ? null : () => _coach(_bubble!.skill!),
+                    child: Container(
+                      constraints: const BoxConstraints(maxWidth: 170),
+                      margin: const EdgeInsets.only(bottom: 2),
+                      padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 10),
+                      decoration: BoxDecoration(
+                        color: web.surface,
+                        border: Border.all(
+                          color: _bubble!.skill != null ? widget.accent : web.border,
+                          width: _bubble!.skill != null ? 1.5 : 1,
+                        ),
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(13),
+                          topRight: Radius.circular(13),
+                          bottomRight: Radius.circular(13),
+                          bottomLeft: Radius.circular(4),
+                        ),
+                        boxShadow: const [BoxShadow(color: Color(0x26000000), blurRadius: 6, offset: Offset(0, 2))],
+                      ),
+                      child: Text(
+                        _bubble!.text,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: web.text, fontSize: 11.5, height: 15 / 11.5, fontWeight: FontWeight.w700),
+                      ),
+                    ),
+                  ),
+                ),
             ],
           ),
         ),
       ),
     );
   }
+}
+
+/// 🔴 ПУЗЫРЬ — НАД ПИТОМЦЕМ, НО В ПРЕДЕЛАХ ЭКРАНА (живой замер 08.10.2026 на эмуляторе, Главная на EN).
+///
+/// У веба пузырь и питомец стоят одной колонкой от левого края питомца (`alignItems: center`), и
+/// когда питомец сидит у правого края (`petSeatX`: 90 % ширины), пузырь до 170 пт уходит за экран —
+/// «Midday and yo… up. Resp» обрезано справа. Здесь пузырь — отдельный ребёнок: по центру над
+/// питомцем, у краёв прижат на [margin] внутрь. Питомец стоит, где стоял.
+class PetPlace extends MultiChildLayoutDelegate {
+  PetPlace({required this.left, required this.bottom});
+
+  static const pet = 'pet';
+  static const bubble = 'bubble';
+  static const margin = 8.0;
+
+  final double left;
+  final double bottom;
+
+  @override
+  void performLayout(Size size) {
+    final p = layoutChild(pet, BoxConstraints.loose(size));
+    final top = size.height - bottom - p.height;
+    positionChild(pet, Offset(left, top));
+    if (!hasChild(bubble)) return;
+    final b = layoutChild(bubble, BoxConstraints.loose(Size(max(0.0, size.width - margin * 2), size.height)));
+    final x = (left + p.width / 2 - b.width / 2).clamp(margin, max(margin, size.width - b.width - margin)).toDouble();
+    positionChild(bubble, Offset(x, top - b.height));
+  }
+
+  @override
+  bool shouldRelayout(PetPlace old) => old.left != left || old.bottom != bottom;
 }
 
 /// Кадры состояния — `PetSprite` веба по готовому описанию: лента канала или картинка на кадр,
