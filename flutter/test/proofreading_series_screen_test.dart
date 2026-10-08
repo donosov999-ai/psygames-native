@@ -36,9 +36,7 @@ void main() {
   });
 
   Future<void> fresh({String? progress}) async {
-    SharedPreferences.setMockInitialValues({
-      if (progress != null) '${SharedState.prefix}proofreading_series_nzt48': progress,
-    });
+    SharedPreferences.setMockInitialValues({'${SharedState.prefix}proofreading_series_nzt48': ?progress});
     state = await SharedState.open();
   }
 
@@ -70,6 +68,9 @@ void main() {
   }
 
   Future<void> enter(WidgetTester tester) async {
+    // На малом экране дверь ниже края — настройка прокручивается.
+    await tester.ensureVisible(find.byKey(const Key('proof-series-door')));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('proof-series-door')));
     for (var i = 0; i < 20 && find.byKey(const Key('ser-block')).evaluate().isEmpty; i++) {
       await tester.pump(const Duration(milliseconds: 50));
@@ -131,7 +132,23 @@ void main() {
       final t = find.descendant(of: find.byKey(Key('ser-cell-$i')), matching: find.byType(Text));
       expect((t.evaluate().single.widget as Text).data, f.puzzle.letters[i], reason: 'клетка $i не та — поле не того зерна');
     }
-    await playAll(tester, f);
+    // Блок «Знак», затем отметка времени: часы «Слова» обязаны стартовать ПОСЛЕ врезки.
+    await tapCell(tester, f.puzzle.letters.indexWhere((ch) => !f.signs.contains(ch)));
+    for (final c in f.signCells) {
+      await tapCell(tester, c);
+    }
+    final t0 = tester.binding.clock.now().millisecondsSinceEpoch;
+    await passInterlude(tester);
+    for (final w in f.puzzle.words) {
+      await trace(tester, w.path);
+    }
+    final t1 = tester.binding.clock.now().millisecondsSinceEpoch;
+    await passInterlude(tester);
+    final foreign = [for (var i = 0; i < f.puzzle.words.length; i++) if (!f.senseWords.contains(i)) i].first;
+    await trace(tester, f.puzzle.words[foreign].path);
+    for (final i in f.senseWords) {
+      await trace(tester, f.puzzle.words[i].path);
+    }
     expect(find.byKey(const Key('ser-result')), findsOneWidget, reason: 'нет итога серии');
     expect(find.byKey(const Key('ser-segment')), findsOneWidget, reason: 'нет цены сегментации');
     expect(find.byKey(const Key('ser-sense')), findsOneWidget, reason: 'нет цены смысла');
@@ -143,6 +160,12 @@ void main() {
     expect(d['series_complete'], isTrue);
     expect((d['blocks'] as List).map((b) => b['key']), proofSeriesPlan);
     expect((d['diffs'] as Map).keys, containsAll(['word_minus_sign', 'sense_minus_sign']));
+    // Секунды чтения правила в замер не попадают. «Знак» кончился на последнем нажатии — за
+    // 300 мс до t₀; «Слово» — на последнем шаге линии, за ≤ 300 мс до t₁. Часы «Слова» идут с
+    // конца врезки, поэтому T₂ ∈ [(t₁ − t₀) − врезка, (t₁ − t₀) − врезка + 300].
+    final t2 = (d['blocks'] as List)[1]['time_ms'] as int;
+    expect(t2, inInclusiveRange(t1 - t0 - proofInterludeMs, t1 - t0 - proofInterludeMs + 300),
+        reason: 'часы блока «Слово» шли во время врезки');
     final p = parseProofProgress(state.get(proofSeriesKey(state)));
     expect(p.streaks, {'sign': 1, 'word': 1, 'sense': 1}, reason: 'прогресс серии не записан');
     await tester.pumpWidget(const SizedBox());
