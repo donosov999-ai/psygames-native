@@ -231,6 +231,7 @@
 "choiceRtHint":"矢印が出たら、同じ向きのボタンを押す",
 "choiceRtIntroDesc":"←、→、↑、↓ のいずれかが出ます。同じ向きのボタンをできるだけ速く押してください。選択の速さと運動の正確さをきたえます。",
 "choiceRtLvlParams":"{n}試行 · {d}方向 · 回答時間 {w} 秒",
+"classicLabel":"クラシック",
 "clear":"クリア",
 "close":"閉じる",
 "cloze":"穴うめ",

@@ -231,6 +231,7 @@
 "choiceRtHint":"화살표가 나오면 같은 방향 버튼을 누르세요",
 "choiceRtIntroDesc":"화살표 ←, →, ↑, ↓ 중 하나가 나타나요. 같은 방향의 버튼을 최대한 빠르게 누르세요. 선택 반응 속도와 동작 정확도를 훈련해요.",
 "choiceRtLvlParams":"{n}회 시행 · {d}개 방향 · 응답 시간 {w}초",
+"classicLabel":"클래식",
 "clear":"지우기",
 "close":"닫기",
 "cloze":"빈칸 채우기",

@@ -231,6 +231,7 @@
 "choiceRtHint":"Erscheint ein Pfeil, drücke die Taste derselben Seite",
 "choiceRtIntroDesc":"Ein Pfeil ←, →, ↑ oder ↓ erscheint. Tippe so schnell wie möglich auf die passende Richtungsschaltfläche. Trainiert Wahlgeschwindigkeit und motorische Präzision.",
 "choiceRtLvlParams":"{n} Durchgänge · {d} Richtungen · Antwortfenster {w} s",
+"classicLabel":"Klassik",
 "clear":"Löschen",
 "close":"Schließen",
 "cloze":"Cloze: Sätze",

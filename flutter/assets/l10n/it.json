@@ -231,6 +231,7 @@
 "choiceRtHint":"Quando appare una freccia, premi il pulsante dello stesso lato",
 "choiceRtIntroDesc":"Appare una freccia ←, →, ↑ o ↓. Tocca il pulsante della direzione corrispondente il più in fretta possibile. Allena la velocità di scelta e la precisione motoria.",
 "choiceRtLvlParams":"{n} prove · {d} direzioni · finestra di risposta {w} s",
+"classicLabel":"Classica",
 "clear":"Cancella",
 "close":"Chiudi",
 "cloze":"Cloze",

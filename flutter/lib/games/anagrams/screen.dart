@@ -13,6 +13,7 @@ import '../../shell/shared_state.dart';
 import 'board.dart';
 import 'model.dart';
 import 'teach.dart';
+import 'mode_switch.dart';
 import 'word_lang.dart';
 
 /// Экран «Анаграммы», КЛАССИЧЕСКИЙ режим.
@@ -275,6 +276,8 @@ class _AnagramsScreenState extends State<AnagramsScreen> {
           label: L.t('skip'),
           onPressed: _giveUp,
         ),
+        // Выбор режима — иначе остальные три игры анаграмм недостижимы (см. mode_switch.dart).
+        if (anagramModeSwitchShown) anagramModeAction(context, widget.state, AnagramMode.classic),
       ]),
       toolbar: Padding(
         padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),

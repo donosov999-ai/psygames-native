@@ -231,6 +231,7 @@
 "choiceRtHint":"Quando aparecer uma seta, toque no botão do mesmo lado",
 "choiceRtIntroDesc":"Aparece uma seta ←, →, ↑ ou ↓. Toque no botão de direção correspondente o mais rápido que puder. Treina a velocidade de escolha e a precisão motora.",
 "choiceRtLvlParams":"{n} tentativas · {d} direções · janela de resposta {w} s",
+"classicLabel":"Clássico",
 "clear":"Limpar",
 "close":"Fechar",
 "cloze":"Cloze: frases",
