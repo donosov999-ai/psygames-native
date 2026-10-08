@@ -2629,7 +2629,7 @@ const t: Record<string, string> = {
   "shopAbilitySection": "⚡ Capacités — consommables à l’unité. Elles ne résolvent pas la tâche à ta place : elles rendent une partie ou une série.",
   "shopAbilityHint": "Chaque capacité coûte plus que ce qu’une partie peut rapporter : impossible d’en tirer un profit.",
   "a11yCatAbility": "Capacités",
-  "abName_second_life": "Seconde vie",
+  "abName_second_life": "Seconde vie (Cibles)",
   "abDesc_second_life": "Cibles : la partie ne s’arrête pas à la dernière vie. Une par partie, et cette partie ne fait pas monter de niveau.",
   "abName_practice_run": "Essai libre",
   "abDesc_practice_run": "Jeux de mesure : la partie n’est enregistrée nulle part — ni points, ni niveau, ni statistiques. Essaie sans conséquences.",
@@ -3632,5 +3632,8 @@ const t: Record<string, string> = {
   "relaxationGroupFootnote": "Rien n'est mesuré ni noté ici : c'est une pause entre les entraînements, pas un test.",
   "relaxationGroupIntroDesc": "Trois courtes pauses : un rythme de respiration, une alternance yeux et respiration, et des exercices qui reposent le regard après l'écran.\n\nRien n'est mesuré ici. L'attention et la mémoire de travail se reconstituent pendant les pauses — la partie suivante se déroule ensuite plus sereinement.",
   "allForks": "Tous les aiguillages",
+  "sourceWiktionaryVoiceName": "Enregistrements de prononciation du Wiktionnaire",
+  "sourceWiktionaryVoiceCredit": "Contributeurs du Wiktionnaire et de Lingua Libre — liste complète ci-dessous",
+  "sourceCburnettName": "Pièces d’échecs de Cburnett",
 };
 export default t;

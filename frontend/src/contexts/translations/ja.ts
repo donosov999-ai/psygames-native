@@ -2628,7 +2628,7 @@ const t: Record<string, string> = {
   "shopAbilitySection": "⚡ アビリティ — 1個ずつ消費します。課題を代わりに解くことはありません。1局や連続記録を取り戻すためのものです。",
   "shopAbilityHint": "どのアビリティも1局で得られる上限より高い価格です。稼ぐ目的で買うことはできません。",
   "a11yCatAbility": "アビリティ",
-  "abName_second_life": "セカンドライフ",
+  "abName_second_life": "セカンドライフ（ターゲット）",
   "abDesc_second_life": "ターゲット：最後の1機で終了しません。1局に1回まで、その局ではレベルは上がりません。",
   "abName_practice_run": "お試しプレイ",
   "abDesc_practice_run": "測定系の課題：この局はどこにも記録されません。ポイントもレベルも統計も動きません。気兼ねなく試せます。",
@@ -3631,5 +3631,8 @@ const t: Record<string, string> = {
   "relaxationGroupFootnote": "ここでは何も測定・採点しません。トレーニングの合間の休憩で、テストではありません。",
   "relaxationGroupIntroDesc": "3つの短い休憩：呼吸のリズム、目と呼吸の交互の練習、画面の後に目を休める体操。\n\nここでは何も測定しません。注意力と作業記憶は休憩中に回復し、次のゲームがスムーズになります。",
   "allForks": "すべての分岐",
+  "sourceWiktionaryVoiceName": "ウィクショナリーの発音録音",
+  "sourceWiktionaryVoiceCredit": "ウィクショナリーと Lingua Libre の投稿者 — 全員の一覧は下に",
+  "sourceCburnettName": "Cburnett のチェスの駒",
 };
 export default t;

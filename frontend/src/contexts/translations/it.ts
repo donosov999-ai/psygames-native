@@ -2629,7 +2629,7 @@ const t: Record<string, string> = {
   "shopAbilitySection": "⚡ Abilità — si consumano a pezzi. Non risolvono il compito al posto tuo: restituiscono una partita o una serie.",
   "shopAbilityHint": "Ogni abilità costa più di quanto una partita possa fruttare: comprarla per guadagnare è impossibile.",
   "a11yCatAbility": "Abilità",
-  "abName_second_life": "Seconda vita",
+  "abName_second_life": "Seconda vita (Bersagli)",
   "abDesc_second_life": "Bersagli: la partita non finisce all’ultima vita. Una per partita, e quella partita non alza il livello.",
   "abName_practice_run": "Prova libera",
   "abDesc_practice_run": "Giochi di misura: la partita non viene registrata da nessuna parte — né punti, né livello, né statistiche. Prova senza conseguenze.",
@@ -3632,5 +3632,8 @@ const t: Record<string, string> = {
   "relaxationGroupFootnote": "Qui non si misura né si valuta nulla: è una pausa tra gli allenamenti, non un test.",
   "relaxationGroupIntroDesc": "Tre brevi pause: un ritmo di respiro, un'alternanza di occhi e respiro ed esercizi che riposano lo sguardo dopo lo schermo.\n\nQui non si misura nulla. Attenzione e memoria di lavoro si recuperano nelle pause: dopo, la partita successiva va più liscia.",
   "allForks": "Tutte le diramazioni",
+  "sourceWiktionaryVoiceName": "Registrazioni di pronuncia del Wikizionario",
+  "sourceWiktionaryVoiceCredit": "Autori del Wikizionario e di Lingua Libre — elenco completo qui sotto",
+  "sourceCburnettName": "Pezzi degli scacchi di Cburnett",
 };
 export default t;

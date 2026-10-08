@@ -2630,7 +2630,7 @@ const t: Record<string, string> = {
   "shopAbilitySection": "⚡ القدرات — تُستهلك قطعة بقطعة. لا تحل المهمة عنك: تعيد لك جولة أو سلسلة.",
   "shopAbilityHint": "كل قدرة تكلّف أكثر مما يمكن أن تدرّه الجولة — لا يمكن شراؤها للربح.",
   "a11yCatAbility": "القدرات",
-  "abName_second_life": "حياة ثانية",
+  "abName_second_life": "حياة ثانية (الأهداف)",
   "abDesc_second_life": "الأهداف: لا تنتهي الجولة عند آخر حياة. واحدة لكل جولة، وتلك الجولة لا ترفع مستواك.",
   "abName_practice_run": "جولة تجريبية",
   "abDesc_practice_run": "ألعاب القياس: لا تُسجَّل الجولة في أي مكان — لا نقاط ولا مستوى ولا إحصاءات. جرّب بلا عواقب.",
@@ -3633,5 +3633,8 @@ const t: Record<string, string> = {
   "relaxationGroupFootnote": "لا يُقاس هنا شيء ولا يُقيَّم: إنها استراحة بين التمارين، وليست اختبارًا.",
   "relaxationGroupIntroDesc": "ثلاث استراحات قصيرة: إيقاع للتنفس، وتناوب بين العينين والتنفس، وتمارين تريح النظر بعد الشاشة.\n\nلا يُقاس هنا شيء. يتعافى الانتباه والذاكرة العاملة في فترات الراحة — وبعدها تسير اللعبة التالية بسلاسة أكبر.",
   "allForks": "كل التفرعات",
+  "sourceWiktionaryVoiceName": "تسجيلات النطق من ويكاموس",
+  "sourceWiktionaryVoiceCredit": "مؤلفو ويكاموس وLingua Libre — القائمة الكاملة أدناه",
+  "sourceCburnettName": "قطع الشطرنج من Cburnett",
 };
 export default t;

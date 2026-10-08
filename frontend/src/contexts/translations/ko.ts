@@ -2629,7 +2629,7 @@ const t: Record<string, string> = {
   "shopAbilitySection": "⚡ 능력 — 하나씩 소모됩니다. 문제를 대신 풀어 주지 않고, 한 판이나 연속 기록을 되돌려 줍니다.",
   "shopAbilityHint": "모든 능력은 한 판이 줄 수 있는 최대치보다 비쌉니다. 벌기 위해 사는 것은 불가능합니다.",
   "a11yCatAbility": "능력",
-  "abName_second_life": "두 번째 목숨",
+  "abName_second_life": "두 번째 목숨 (표적)",
   "abDesc_second_life": "표적: 마지막 목숨에서 판이 끝나지 않습니다. 한 판에 하나, 그 판은 레벨을 올리지 않습니다.",
   "abName_practice_run": "연습 시도",
   "abDesc_practice_run": "측정형 게임: 이 판은 어디에도 기록되지 않습니다. 점수도 레벨도 통계도 변하지 않습니다. 부담 없이 시도하세요.",
@@ -3632,5 +3632,8 @@ const t: Record<string, string> = {
   "relaxationGroupFootnote": "여기서는 아무것도 측정하거나 점수를 매기지 않습니다. 훈련 사이의 휴식이지 테스트가 아닙니다.",
   "relaxationGroupIntroDesc": "짧은 휴식 세 가지: 호흡 리듬, 눈과 호흡을 번갈아 하는 연습, 화면을 본 뒤 눈을 쉬게 하는 체조.\n\n여기서는 아무것도 측정하지 않습니다. 주의력과 작업 기억은 휴식 중에 회복되고, 다음 게임이 더 부드럽게 진행됩니다.",
   "allForks": "모든 갈래",
+  "sourceWiktionaryVoiceName": "위키낱말사전 발음 녹음",
+  "sourceWiktionaryVoiceCredit": "위키낱말사전과 Lingua Libre 기여자 — 전체 명단은 아래",
+  "sourceCburnettName": "Cburnett 체스 기물",
 };
 export default t;

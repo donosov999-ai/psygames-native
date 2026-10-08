@@ -30,13 +30,14 @@ const _shellParams = {'wu', 'auto', 'ladderGame'};
 
 /// Снятые потери: маршрут → параметр → почему (решение, задача, PR). Первый замер 07.10.2026 на
 /// 7679684ac (14 потерь у 9 экранов); строгий — 07.10 на c614cb2ae (37 у 20, новые — задача 3e685a46);
-/// сведён с main 2.56.17 (сняты починенные anagrams/targetLang #272, find-differences/diffCount #185) — 35 у 19.
+/// сведён с main 2.56.17 (сняты починенные anagrams/targetLang #272, find-differences/diffCount #185) — 35 у 19;
+/// сведён с main 2.56.18 (сняты починенные dots-connect/level и one-line/level #302, proofreading cols/rows/mode #290,
+/// proofreading/taskMode #293) — 29 у 17.
 const _t = 'строгий замер 07.10, задача 3e685a46 (координатор раздаёт)';
 const lostWithReason = <String, Map<String, String>>{
   '/games/anagrams': {
     'length': 'не дефект: решение Дениса 09.09 «зарядка с личного уровня» — длину слова ведёт лестница',
   },
-  '/games/dots-connect': {'level': _t},
   '/games/math-slider': {'trials': _t},
   '/games/math-sprint': {
     'diff': _t,
@@ -44,17 +45,11 @@ const lostWithReason = <String, Map<String, String>>{
   },
   '/games/mental-rotation': {'trials': _t},
   '/games/number-bonds': {'diff': _t, 'trials': _t},
-  '/games/one-line': {'level': _t},
   '/games/prl': {'diff': _t},
   '/games/proofreading': {
-    'cols': '«Внимание»: читается по-настоящему в PR #290 (строка «cols» стояла в карте условия, а не в чтении)',
-    'rows': '«Внимание»: читается по-настоящему в PR #290',
-    'mode': '«Внимание»: читается по-настоящему в PR #290',
     'series': 'задача f4bb47dc («Внимание»)',
-    'taskMode': 'шаг зарядки идёт с wu=1, и веб в зарядке филворды не запускает (fillwordsRound = !isPreset && …, '
-        'proofreading.tsx:524) — играет буквы, как натив; вне зарядки параметр никто не шлёт; выбор «Филворды» '
-        'в личной игре — задача caaa1596; натив читает taskMode в PR #293 («Внимание»)',
   },
+
   '/games/scholars-mate': {
     'drill': '«Шахматы»',
     'flow': '«Шахматы»',
