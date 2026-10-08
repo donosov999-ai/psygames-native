@@ -10,6 +10,8 @@ import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'support/boss_probe.dart';
+
 /// ПАРТИЯ В «КОРРЕКТУРУ» ИГРАЕТСЯ НАЖАТИЯМИ ПО КЛЕТКАМ.
 ///
 /// 🔴 Проба читает поле С ЭКРАНА — знаки клеток и две цели из заголовка — и
@@ -192,5 +194,34 @@ void main() {
     for (final t in targetsOnScreen(tester)) {
       expect(digits.contains(t), isTrue, reason: 'цель «$t» не цифра');
     }
+  });
+
+  testWidgets('🔴 веха: победа на 3-м уровне открывает бой «тапни гласную», на 2-м — нет', (tester) async {
+    // В вебе корректура зовёт BossRound каждые три уровня; при переносе бой пропал молча.
+    // Признак взятого уровня — хвост строки «Уровень {n} пройден!»: номер у двух партий разный.
+    final won = find.textContaining(L.t('levelDone').split('}').last);
+    var opens = 0;
+    await expectBossAfterWin(tester, won: won, hudKey: 'bossHudOddletter', play: (level) async {
+      SharedPreferences.setMockInitialValues({_levelKey: '$level'});
+      state = await SharedState.open();
+      // Свежее приложение на каждую партию: всплывшее после прошлой (карточка правила
+      // нового уровня) иначе осталось бы поверх «Начать» следующей.
+      await tester.pumpWidget(MaterialApp(
+        key: ValueKey('app${opens += 1}'),
+          home: ProofreadingScreen(
+              state: state, rnd: Random(4), clock: fakeClock(tester))));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(L.t('start')));
+      await tester.pump();
+      // Находим все цели нажатиями — партия кончается досрочно.
+      final targets = targetsOnScreen(tester);
+      final letters = lettersOnScreen(tester, ProofLevel.of(level).cells);
+      for (var i = 0; i < letters.length; i++) {
+        if (!targets.contains(letters[i])) continue;
+        await tester.tap(find.byKey(Key('proof-cell-$i')));
+        await tester.pump();
+      }
+      await tester.pump(const Duration(milliseconds: 100));
+    });
   });
 }

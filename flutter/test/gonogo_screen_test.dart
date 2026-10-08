@@ -7,6 +7,8 @@ import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'support/boss_probe.dart';
+
 /// ПАРТИЯ В «ЖМИ И ДЕРЖИСЬ» ИГРАЕТСЯ НАЖАТИЯМИ ПО ПОЛЮ.
 ///
 /// 🔴 Именно по полю, а не по кнопке снизу: так в веб-версии и так требует приёмка
@@ -131,5 +133,37 @@ void main() {
     expect(find.text(L.t('sameLevelRetry')), findsOneWidget);
     expect(find.textContaining('${L.t('hud_correct')}: 0'), findsOneWidget);
     expect(find.textContaining('${L.t('meanReaction')}: —'), findsOneWidget);
+  });
+
+  testWidgets('🔴 веха: победа на 3-м уровне открывает бой «тапни гласную», на 2-м — нет', (tester) async {
+    // В вебе Go/No-Go зовёт BossRound каждые три уровня; при переносе бой пропал молча.
+    // Признак взятого уровня — хвост строки «Уровень {n} пройден!»: номер у двух партий разный.
+    final won = find.textContaining(L.t('levelDone').split('}').last);
+    var opens = 0;
+    var clock = 0;
+    await expectBossAfterWin(tester, won: won, hudKey: 'bossHudOddletter', play: (level) async {
+      SharedPreferences.setMockInitialValues({'${SharedState.prefix}go_no_go_level_nzt48': '$level'});
+      state = await SharedState.open();
+      // Свежее приложение на каждую партию: всплывшее после прошлой (карточка правила
+      // нового уровня) иначе осталось бы поверх «Начать» следующей.
+      await tester.pumpWidget(MaterialApp(
+        key: ValueKey('app${opens += 1}'),
+        home: GoNoGoScreen(state: state, clock: () => clock, rnd: Random(7)),
+      ));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(L.t('start')));
+      await tester.pump();
+      // Круг — жать, квадрат — держаться: проба гаснет сама по окну.
+      for (var i = 0;
+          i < 2000 && won.evaluate().isEmpty && find.byKey(const Key('boss-round')).evaluate().isEmpty;
+          i++) {
+        if (circleShown() && find.byKey(const Key('gonogo-hit')).evaluate().isEmpty) {
+          clock += 350;
+          await tester.tap(find.byKey(const Key('gonogo-field')));
+          await tester.pump();
+        }
+        await tester.pump(const Duration(milliseconds: 50));
+      }
+    });
   });
 }

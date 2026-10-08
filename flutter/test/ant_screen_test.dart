@@ -8,6 +8,9 @@ import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'support/boss_probe.dart';
+import 'support/slow_write_state.dart';
+
 /// ПАРТИЯ В ANT ИГРАЕТСЯ НАЖАТИЯМИ.
 ///
 /// 🔴 Проба читает С ЭКРАНА, куда смотрит ЦЕНТРАЛЬНАЯ стрелка, и жмёт туда же.
@@ -226,5 +229,63 @@ void main() {
     final second = await play(2);
     expect(first.length, 6);
     expect(second, first, reason: 'один сид дал две разные партии — сид до партии не доходит');
+  });
+
+  testWidgets('🔴 сданную партию не сдать второй раз: нажатие, пока пишется победа, уровень не двигает', (tester) async {
+    // Запись лестницы растянута до 300 мс, как канал к платформе на телефоне
+    // (support/slow_write_state.dart): партия сдана, а фаза ещё «игра» и последняя проба на экране.
+    SharedPreferences.setMockInitialValues({});
+    state = await SlowWriteState.open();
+    await tester.pumpWidget(MaterialApp(home: AntScreen(state: state, rnd: Random(3))));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(L.t('start')));
+    await tester.pump();
+    var last = Direction.left;
+    for (var i = 0; i < AntLevel.of(1).trials; i++) {
+      last = (await waitTarget(tester))!;
+      await tester.tap(find.byKey(Key('ant-answer-${last.name}')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: antFeedbackMs + 30));
+    }
+    final done = find.textContaining(L.t('levelDone').split('}').last);
+    // Партия сдана 30 мс назад, победа ещё пишется: щель открыта.
+    expect(centerOnScreen(), isNotNull, reason: 'щель не воспроизведена: последней пробы на экране нет');
+    expect(done, findsNothing, reason: 'итог уже на экране — щели нет, проба ничего не проверяет');
+    await tester.tap(find.byKey(Key('ant-answer-${last.name}')));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 2));
+    expect(done, findsOneWidget);
+    expect(state.get(_levelKey), '2', reason: 'партия сдана дважды — уровень прыгнул через ступень');
+  });
+
+  testWidgets('🔴 веха: победа на 3-м уровне открывает бой «жми / не жми», на 2-м — нет', (tester) async {
+    // В вебе ANT зовёт BossRound каждые три уровня; при переносе бой пропал молча.
+    // Признак взятого уровня — хвост строки «Уровень {n} пройден!»: номер у двух партий разный.
+    final won = find.textContaining(L.t('levelDone').split('}').last);
+    var opens = 0;
+    await expectBossAfterWin(tester, won: won, hudKey: 'bossHudGonogo', play: (level) async {
+      SharedPreferences.setMockInitialValues({_levelKey: '$level'});
+      state = await SharedState.open();
+      // Свежее приложение на каждую партию: всплывшее после прошлой (карточка правила
+      // нового уровня) иначе осталось бы поверх «Начать» следующей.
+      await tester.pumpWidget(MaterialApp(
+        key: ValueKey('app${opens += 1}'),
+          home: AntScreen(state: state, rnd: Random(3))));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(L.t('start')));
+      await tester.pump();
+      for (var i = 0;
+          i < 2000 && won.evaluate().isEmpty && find.byKey(const Key('boss-round')).evaluate().isEmpty;
+          i++) {
+        final d = centerOnScreen();
+        if (d == null) {
+          await tester.pump(const Duration(milliseconds: 50));
+          continue;
+        }
+        await tester.tap(find.byKey(Key('ant-answer-${d.name}')));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: antFeedbackMs + 50));
+      }
+    });
   });
 }

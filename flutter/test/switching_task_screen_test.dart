@@ -9,6 +9,8 @@ import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/session_report.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'support/boss_probe.dart';
+import 'support/slow_write_state.dart';
 
 /// ПАРТИЯ В «ПЕРЕКЛЮЧЕНИЕ ЗАДАЧ» ИГРАЕТСЯ НАЖАТИЯМИ.
 ///
@@ -215,5 +217,65 @@ void main() {
     final d = sent.single['details'] as Map<String, dynamic>;
     expect(d['switch_cost_ms'], 0, reason: 'все ответы за 500 мс: цена переключения — ноль, и она в партии ($d)');
     expect(d['n_trials'], 15);
+  });
+
+  testWidgets('🔴 сданную партию не сдать второй раз: нажатие, пока пишется победа, уровень не двигает', (tester) async {
+    // Запись лестницы растянута до 300 мс, как канал к платформе на телефоне
+    // (support/slow_write_state.dart): партия сдана, а фаза ещё «игра» и последняя проба на экране.
+    SharedPreferences.setMockInitialValues({});
+    state = await SlowWriteState.open();
+    await tester.pumpWidget(MaterialApp(home: SwitchingTaskScreen(state: state)));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(L.t('start')));
+    await tester.pump();
+    late String last;
+    for (var i = 0; i < SwitchLevel.of(1).trials; i++) {
+      final s = (await waitStim(tester, StimMode.mix))!;
+      last = 'switching-answer-${correctLeft(StimMode.mix, s.idx, s.stim) ? 'left' : 'right'}';
+      await tester.tap(find.byKey(Key(last)));
+      await tester.pump();
+      // Отклик — 220 мс (`_after`), дальше следующая проба или сдача партии.
+      await tester.pump(const Duration(milliseconds: 250));
+    }
+    final done = find.textContaining(L.t('levelDone').split('}').last);
+    // Партия сдана 30 мс назад, победа ещё пишется: щель открыта.
+    expect(onScreen(StimMode.mix), isNotNull, reason: 'щель не воспроизведена: последней пробы на экране нет');
+    expect(done, findsNothing, reason: 'итог уже на экране — щели нет, проба ничего не проверяет');
+    await tester.tap(find.byKey(Key(last)));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 2));
+    expect(done, findsOneWidget);
+    expect(state.get(_levelKey), '2', reason: 'партия сдана дважды — уровень прыгнул через ступень');
+  });
+
+  testWidgets('🔴 веха: победа на 3-м уровне открывает бой «впиши пропуск», на 2-м — нет', (tester) async {
+    // В вебе переключение зовёт BossRound каждые три уровня; при переносе бой пропал молча.
+    // Признак взятого уровня — хвост строки «Уровень {n} пройден!»: номер у двух партий разный.
+    final won = find.textContaining(L.t('levelDone').split('}').last);
+    var opens = 0;
+    await expectBossAfterWin(tester, won: won, hudKey: 'bossHudLightning', play: (level) async {
+      SharedPreferences.setMockInitialValues({_levelKey: '$level'});
+      state = await SharedState.open();
+      // Свежее приложение на каждую партию: всплывшее после прошлой (карточка правила
+      // нового уровня) иначе осталось бы поверх «Начать» следующей.
+      await tester.pumpWidget(MaterialApp(
+        key: ValueKey('app${opens += 1}'),home: SwitchingTaskScreen(state: state)));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(L.t('start')));
+      await tester.pump();
+      for (var i = 0;
+          i < 1200 && won.evaluate().isEmpty && find.byKey(const Key('boss-round')).evaluate().isEmpty;
+          i++) {
+        final s = onScreen(StimMode.mix);
+        if (s == null) {
+          await tester.pump(const Duration(milliseconds: 50));
+          continue;
+        }
+        final left = correctLeft(StimMode.mix, s.idx, s.stim);
+        await tester.tap(find.byKey(Key('switching-answer-${left ? 'left' : 'right'}')));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 400));
+      }
+    });
   });
 }

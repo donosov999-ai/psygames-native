@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../shell/boss_round.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/setup_scroll.dart';
 import '../../shell/demo_lesson.dart';
@@ -67,6 +68,7 @@ class _StroopScreenState extends State<StroopScreen> {
   StroopOutcome? _flash;
   Timer? _window;
   bool _passed = false;
+  bool? _boss; // итог боя на вехе; null — боя не было
 
   /// Правило партии: из адреса, затем выбор на настройке, как у веба.
   late String _mode;
@@ -159,7 +161,10 @@ class _StroopScreenState extends State<StroopScreen> {
   }
 
   void _answer(StroopColor c) {
-    if (_phase != StroopPhase.playing) return;
+    // `finished` — партия уже сдана в `_finish`, а фаза ещё «игра»: пока лестница пишет
+    // победу и открывается бой, нажатие прошло бы в пустую пробу, и её «мимо» сдало бы
+    // партию второй раз — второй подъём уровня.
+    if (_phase != StroopPhase.playing || _game!.finished) return;
     _after(_game!.answer(c));
   }
 
@@ -175,19 +180,24 @@ class _StroopScreenState extends State<StroopScreen> {
     });
   }
 
-  void _finish() {
+  Future<void> _finish() async {
     final g = _game!;
     _window?.cancel();
     final passed = g.accuracy >= stroopPassAccuracy;
+    // Веха как в вебе: каждый третий ЗАСЧИТАННЫЙ уровень — бой «жми / не жми», потом итог.
+    bool? boss;
+    if (passed) {
+      boss = await BossRound.winThenBoss(context, _ladder,
+          type: BossType.gonogo, color: const Color(0xFFFC466B));
+    } else {
+      await _ladder.fail();
+    }
+    if (!mounted) return;
     setState(() {
       _phase = StroopPhase.done;
       _passed = passed;
+      _boss = boss;
     });
-    if (passed) {
-      _ladder.win();
-    } else {
-      _ladder.fail();
-    }
   }
 
   @override
@@ -208,7 +218,7 @@ class _StroopScreenState extends State<StroopScreen> {
       onLesson: _game == null
           ? null
           : () => openDemoLesson(context, title: L.t('stroop'), trials: _demoTrials()),
-      field: (context, h) => _Field(game: g, phase: _phase, flash: _flash, passed: _passed, height: h, onStart: _start, onAgain: () => setState(_reset), onMode: _pickMode),
+      field: (context, h) => _Field(game: g, phase: _phase, flash: _flash, passed: _passed, boss: _boss, height: h, onStart: _start, onAgain: () => setState(_reset), onMode: _pickMode),
       toolbar: _phase == StroopPhase.playing ? _Answers(game: g, onPick: _answer) : null,
     );
   }
@@ -241,6 +251,7 @@ class _Field extends StatelessWidget {
     required this.phase,
     required this.flash,
     required this.passed,
+    required this.boss,
     required this.height,
     required this.onStart,
     required this.onAgain,
@@ -251,6 +262,7 @@ class _Field extends StatelessWidget {
   final StroopPhase phase;
   final StroopOutcome? flash;
   final bool passed;
+  final bool? boss;
 
   /// Высота поля приходит числом от каркаса — доска не считается от окна.
   final double height;
@@ -327,6 +339,7 @@ class _Field extends StatelessWidget {
                   ? '${L.t('hud_interference')}: —'
                   : '${L.t('hud_interference')}: $interference ${L.t('msShort')}',
             ),
+            BossOutcomeLine(boss),
             const SizedBox(height: 16),
             FilledButton(onPressed: onAgain, child: Text(L.t('retry'))),
           ],

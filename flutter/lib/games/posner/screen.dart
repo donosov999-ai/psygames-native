@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../../shell/boss_round.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/game_shell.dart';
@@ -69,6 +70,7 @@ class _PosnerScreenState extends State<PosnerScreen> {
   PosnerOutcome? _flash;
   Timer? _timer;
   bool _passed = false;
+  bool? _boss; // итог боя на вехе; null — боя не было
 
   @override
   void initState() {
@@ -158,7 +160,10 @@ class _PosnerScreenState extends State<PosnerScreen> {
 
   void _answer(PosnerSide side) {
     final g = _game;
-    if (g == null || _phase != PosnerPhase.playing || !g.targetShown) return;
+    // `finished` — партия уже сдана в `_finish`, а фаза ещё «игра»: пока лестница пишет
+    // победу и открывается бой, последняя мишень на экране, и нажатие сдало бы партию
+    // второй раз.
+    if (g == null || _phase != PosnerPhase.playing || !g.targetShown || g.finished) return;
     _after(g.answer(side));
   }
 
@@ -172,19 +177,25 @@ class _PosnerScreenState extends State<PosnerScreen> {
     });
   }
 
-  void _finish() {
+  Future<void> _finish() async {
     final g = _game!;
     _timer?.cancel();
     final passed = g.accuracy >= posnerPassAccuracy;
+    // Веха как в вебе: каждый третий ЗАСЧИТАННЫЙ уровень — бой «жми / не жми», потом итог.
+    bool? boss;
+    if (passed) {
+      boss = await BossRound.winThenBoss(context, _ladder,
+          type: BossType.gonogo, color: const Color(0xFF3A6186),
+          win: () => _ladder.win(details: posnerSessionDetails(g)));
+    } else {
+      await _ladder.fail(details: posnerSessionDetails(g));
+    }
+    if (!mounted) return;
     setState(() {
       _phase = PosnerPhase.done;
       _passed = passed;
+      _boss = boss;
     });
-    if (passed) {
-      _ladder.win(details: posnerSessionDetails(g));
-    } else {
-      _ladder.fail(details: posnerSessionDetails(g));
-    }
   }
 
   @override
@@ -208,6 +219,7 @@ class _PosnerScreenState extends State<PosnerScreen> {
         phase: _phase,
         flash: _flash,
         passed: _passed,
+        boss: _boss,
         height: h,
         onStart: _start,
         onAgain: () => setState(_reset),
@@ -291,6 +303,7 @@ class _Field extends StatelessWidget {
     required this.phase,
     required this.flash,
     required this.passed,
+    required this.boss,
     required this.height,
     required this.onStart,
     required this.onAgain,
@@ -300,6 +313,7 @@ class _Field extends StatelessWidget {
   final PosnerPhase phase;
   final PosnerOutcome? flash;
   final bool passed;
+  final bool? boss;
   final double height;
   final VoidCallback onStart;
   final VoidCallback onAgain;
@@ -352,6 +366,7 @@ class _Field extends StatelessWidget {
             Text(effect == null
                 ? '${L.t('hud_cueGain')}: —'
                 : '${L.t('hud_cueGain')}: $effect ${L.t('msShort')}'),
+            BossOutcomeLine(boss),
             const SizedBox(height: 16),
             FilledButton(onPressed: onAgain, child: Text(L.t('retry'))),
           ],

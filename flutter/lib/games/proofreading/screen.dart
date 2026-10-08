@@ -22,6 +22,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../../shell/boss_round.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/demo_lesson.dart';
@@ -113,6 +114,7 @@ class _ProofreadingScreenState extends State<ProofreadingScreen> {
   ProofGame? _game;
   ProofPhase _phase = ProofPhase.ready;
   int? _wrongFlash;
+  bool? _boss; // итог боя на вехе; null — боя не было
   Timer? _tick;
   Timer? _flash;
 
@@ -381,10 +383,14 @@ class _ProofreadingScreenState extends State<ProofreadingScreen> {
     if (taken) setState(() {});
   }
 
-  void _finish() {
+  Future<void> _finish() async {
     _tick?.cancel();
     _flash?.cancel();
     final fw = _fw;
+    // Веха как в вебе: каждый третий ЗАСЧИТАННЫЙ уровень — бой «тапни гласную», потом итог. Веб
+    // зовёт его из общего `finish` — и для букв, и для филвордов. Повторной сдачи партии нет:
+    // сданная партия нажатия не берёт, часы остановлены строками выше.
+    bool? boss;
     if (fw != null) {
       fw.finished = true;
       _doneSec = fw.finalSec;
@@ -396,15 +402,18 @@ class _ProofreadingScreenState extends State<ProofreadingScreen> {
       // Следующее поле — с новым зерном: повтор уровня той же раскладкой проверял бы память.
       _fwSeed = widget.fwSeed != null ? _fwSeed + 1 : Random().nextInt(1000000000) + 1;
       if (fw.cleared) {
-        _ladder.win(
-            score: fw.found,
-            timeSeconds: _doneSec.round(),
-            errors: fw.mistakes,
-            difficulty: difficulty,
-            mode: mode,
-            details: details);
+        boss = await BossRound.winThenBoss(context, _ladder,
+            type: BossType.oddletter,
+            color: const Color(0xFFA8EDEA),
+            win: () => _ladder.win(
+                score: fw.found,
+                timeSeconds: _doneSec.round(),
+                errors: fw.mistakes,
+                difficulty: difficulty,
+                mode: mode,
+                details: details));
       } else {
-        _ladder.fail(
+        await _ladder.fail(
             score: fw.found,
             timeSeconds: _doneSec.round(),
             errors: fw.mistakes,
@@ -412,32 +421,37 @@ class _ProofreadingScreenState extends State<ProofreadingScreen> {
             mode: mode,
             details: details);
       }
-      return;
-    }
-    final g = _game!;
-    _doneSec = g.finalSec;
-    setState(() => _phase = ProofPhase.done);
-    // Метки партии — как у веба: размер поля и уровень (у шага зарядки уровня нет).
-    final difficulty = '${g.params.rows}x${g.params.cols}';
-    final mode = g.preset ? null : 'lvl${g.level}';
-    final details = proofSessionDetails(g);
-    if (g.passed) {
-      _ladder.win(
-          score: g.found.length,
-          timeSeconds: _doneSec.round(),
-          errors: g.errors,
-          difficulty: difficulty,
-          mode: mode,
-          details: details);
     } else {
-      _ladder.fail(
-          score: g.found.length,
-          timeSeconds: _doneSec.round(),
-          errors: g.errors,
-          difficulty: difficulty,
-          mode: mode,
-          details: details);
+      final g = _game!;
+      _doneSec = g.finalSec;
+      setState(() => _phase = ProofPhase.done);
+      // Метки партии — как у веба: размер поля и уровень (у шага зарядки уровня нет).
+      final difficulty = '${g.params.rows}x${g.params.cols}';
+      final mode = g.preset ? null : 'lvl${g.level}';
+      final details = proofSessionDetails(g);
+      if (g.passed) {
+        boss = await BossRound.winThenBoss(context, _ladder,
+            type: BossType.oddletter,
+            color: const Color(0xFFA8EDEA),
+            win: () => _ladder.win(
+                score: g.found.length,
+                timeSeconds: _doneSec.round(),
+                errors: g.errors,
+                difficulty: difficulty,
+                mode: mode,
+                details: details));
+      } else {
+        await _ladder.fail(
+            score: g.found.length,
+            timeSeconds: _doneSec.round(),
+            errors: g.errors,
+            difficulty: difficulty,
+            mode: mode,
+            details: details);
+      }
     }
+    if (!mounted) return;
+    setState(() => _boss = boss);
   }
 
   /// Примеры разбора: клетка С искомой буквой и клетка без неё.
@@ -539,6 +553,7 @@ class _ProofreadingScreenState extends State<ProofreadingScreen> {
               fw: fw,
               phase: _phase,
               wrongFlash: _wrongFlash,
+              boss: _boss,
               height: h,
               script: _script,
               setup: _SetupChoice(
@@ -646,6 +661,7 @@ class _Field extends StatelessWidget {
     required this.fw,
     required this.phase,
     required this.wrongFlash,
+    required this.boss,
     required this.height,
     required this.script,
     required this.setup,
@@ -661,6 +677,7 @@ class _Field extends StatelessWidget {
   final FwRound? fw;
   final ProofPhase phase;
   final int? wrongFlash;
+  final bool? boss;
 
   /// Высота поля приходит числом от каркаса — доска не считается от окна.
   final double height;
@@ -701,6 +718,7 @@ class _Field extends StatelessWidget {
               // Доля пропусков — мера раздела, показывается числом.
               Text('${L.t('hud_missed')}: ${game.omissionPct}%', key: const Key('proof-omission')),
             ],
+            BossOutcomeLine(boss),
             const SizedBox(height: 16),
             FilledButton(onPressed: onAgain, child: Text(L.t('start'))),
           ],

@@ -8,6 +8,9 @@ import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'support/boss_probe.dart';
+import 'support/slow_write_state.dart';
+
 /// ПАРТИЯ В «ЦВЕТ ПРОТИВ ПОЗИЦИИ» ИГРАЕТСЯ НАЖАТИЯМИ.
 ///
 /// Проба читает с экрана ЦВЕТ квадрата и сторону, где он вспыхнул, и жмёт кнопку
@@ -121,5 +124,70 @@ void main() {
     expect(find.text(L.t('sameLevelRetry')), findsOneWidget);
     expect(find.textContaining('${L.t('hud_correct')}: 0/16 · ${L.t('hud_errors')}: 16'), findsOneWidget);
     expect(find.textContaining('${L.t('meanReaction')}: —'), findsOneWidget);
+  });
+
+  testWidgets('🔴 сданную партию не сдать второй раз: нажатие, пока пишется победа, уровень не двигает', (tester) async {
+    // Запись лестницы растянута до 300 мс, как канал к платформе на телефоне
+    // (support/slow_write_state.dart): партия сдана, а фаза ещё «игра» и последняя проба на экране.
+    SharedPreferences.setMockInitialValues({});
+    state = await SlowWriteState.open();
+    var clock = 0;
+    await tester.pumpWidget(MaterialApp(home: SimonScreen(state: state, clock: () => clock, rnd: Random(7))));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(L.t('start')));
+    await tester.pump();
+    var last = SimonSide.left;
+    for (var i = 0; i < SimonLevel.of(1).trials; i++) {
+      for (var k = 0; k < 40 && !stimulusVisible(); k++) {
+        await tester.pump(const Duration(milliseconds: 50));
+      }
+      last = correctSide(stimulus(tester).color);
+      clock += 430;
+      await tester.tap(answerFor(last));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: simonFeedbackMs + 30));
+    }
+    final done = find.textContaining(L.t('levelDone').split('}').last);
+    // Партия сдана 30 мс назад, победа ещё пишется: щель открыта.
+    expect(stimulusVisible(), isTrue, reason: 'щель не воспроизведена: последней пробы на экране нет');
+    expect(done, findsNothing, reason: 'итог уже на экране — щели нет, проба ничего не проверяет');
+    await tester.tap(answerFor(last));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 2));
+    expect(done, findsOneWidget);
+    expect(state.get('${SharedState.prefix}simon_level_nzt48'), '2', reason: 'партия сдана дважды — уровень прыгнул через ступень');
+  });
+
+  testWidgets('🔴 веха: победа на 3-м уровне открывает бой «жми / не жми», на 2-м — нет', (tester) async {
+    // В вебе Саймон зовёт BossRound каждые три уровня; при переносе бой пропал молча.
+    // Признак взятого уровня — хвост строки «Уровень {n} пройден!»: номер у двух партий разный.
+    final won = find.textContaining(L.t('levelDone').split('}').last);
+    var opens = 0;
+    var clock = 0;
+    await expectBossAfterWin(tester, won: won, hudKey: 'bossHudGonogo', play: (level) async {
+      SharedPreferences.setMockInitialValues({'${SharedState.prefix}simon_level_nzt48': '$level'});
+      state = await SharedState.open();
+      // Свежее приложение на каждую партию: всплывшее после прошлой (карточка правила
+      // нового уровня) иначе осталось бы поверх «Начать» следующей.
+      await tester.pumpWidget(MaterialApp(
+        key: ValueKey('app${opens += 1}'),
+        home: SimonScreen(state: state, clock: () => clock, rnd: Random(7)),
+      ));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(L.t('start')));
+      await tester.pump();
+      for (var i = 0;
+          i < 600 && won.evaluate().isEmpty && find.byKey(const Key('boss-round')).evaluate().isEmpty;
+          i++) {
+        if (!stimulusVisible()) {
+          await tester.pump(const Duration(milliseconds: 100));
+          continue;
+        }
+        clock += 430;
+        await tester.tap(answerFor(correctSide(stimulus(tester).color)));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 360));
+      }
+    });
   });
 }
