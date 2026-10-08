@@ -8,11 +8,11 @@
  * (найдено 08.10, когда раздел уровней получил «ось — digCap» для этих правил). Проба: лестница
  * говорит digCap = 20 — каждое правило выкапывает не больше 20 клеток, хотя явного лимита нет.
  */
+import { generateLogical } from '@/src/services/sudoku-grade';
 jest.mock('@/src/services/sudoku-core', () => {
   const actual = jest.requireActual('@/src/services/sudoku-core');
   return { ...actual, levelConfig: (lv: number) => ({ ...actual.levelConfig(lv), digCap: 20 }) };
 });
-import { generateLogical } from '@/src/services/sudoku-grade';
 
 jest.setTimeout(180000);
 
