@@ -2055,6 +2055,7 @@
 "switchingTask":"Task Switching",
 "switchingTaskDesc":"Alternate number/letter rules",
 "switchingTaskIntroDesc":"You see a pair like \"3A\". The cue on top says what to judge: the digit — odd or even, or the letter — vowel or consonant. The task changes without warning, so watch the cue. Right after a change the answer always comes out slower than when the task repeats — and that delay is what is being measured here.",
+"synapseNextLine":"Next line",
 "tabGames":"Games",
 "tabPet":"Pet",
 "tapNodeToReplay":"Tap a completed node to replay it and earn more stars",

@@ -2055,6 +2055,7 @@
 "switchingTask":"Alternance de tâches",
 "switchingTaskDesc":"Alterne les règles chiffre/lettre",
 "switchingTaskIntroDesc":"Tu vois une paire chiffre+lettre, p. ex. « 3A ». Un indice coloré donne la tâche : CHIFFRE — pair ou impair ? LETTRE — voyelle ou consonne ? La tâche change au hasard. Entraîne la flexibilité cognitive et mesure le coût de bascule (switch cost).",
+"synapseNextLine":"Phrase suivante",
 "tabGames":"Jeux",
 "tabPet":"Compagnon",
 "tapNodeToReplay":"Touchez un nœud terminé pour le rejouer et gagner plus d’étoiles",

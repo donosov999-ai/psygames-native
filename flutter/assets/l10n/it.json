@@ -2055,6 +2055,7 @@
 "switchingTask":"Cambio di compito",
 "switchingTaskDesc":"Alterna le regole numero/lettera",
 "switchingTaskIntroDesc":"Vedi una coppia cifra+lettera, ad es. \"3A\". Un segnale colorato indica il compito: CIFRA — la cifra è pari o dispari? LETTERA — la lettera è vocale o consonante? Il compito cambia in modo casuale. Allena la flessibilità cognitiva e misura lo switch cost.",
+"synapseNextLine":"Frase successiva",
 "tabGames":"Giochi",
 "tabPet":"Compagno",
 "tapNodeToReplay":"Tocca un nodo completato per rigiocarlo e guadagnare più stelle",

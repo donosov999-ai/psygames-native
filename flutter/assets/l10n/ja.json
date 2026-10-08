@@ -2055,6 +2055,7 @@
 "switchingTask":"課題の切りかえ",
 "switchingTaskDesc":"数字と文字のルールを交互に",
 "switchingTaskIntroDesc":"「3A」のように数字と文字の組が出ます。色の合図が課題を示します：数字なら奇数か偶数か、文字なら母音か子音か。課題はランダムに切りかわります。認知的な柔軟さをきたえ、切りかえの負担（スイッチコスト）を測ります。",
+"synapseNextLine":"次のひとこと",
 "tabGames":"ゲーム",
 "tabPet":"相棒",
 "tapNodeToReplay":"クリア済みのノードをタップすると再挑戦して星を増やせます",

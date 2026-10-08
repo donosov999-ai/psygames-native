@@ -2055,6 +2055,7 @@
 "switchingTask":"Alternância de Tarefas",
 "switchingTaskDesc":"Alterne regras de número/letra",
 "switchingTaskIntroDesc":"Você vê um par dígito+letra, ex.: \"3A\". Uma pista colorida indica a tarefa: NÚMERO — o dígito é ímpar ou par? LETRA — a letra é vogal ou consoante? A tarefa muda aleatoriamente. Treina a flexibilidade cognitiva e mede o custo de alternância.",
+"synapseNextLine":"Próxima frase",
 "tabGames":"Jogos",
 "tabPet":"Bichinho",
 "tapNodeToReplay":"Toque num nó concluído para o repetir e ganhar mais estrelas",

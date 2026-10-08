@@ -3656,5 +3656,6 @@ const t: Record<string, string> = {
   "sourceWiktionaryVoiceName": "위키낱말사전 발음 녹음",
   "sourceWiktionaryVoiceCredit": "위키낱말사전과 Lingua Libre 기여자 — 전체 명단은 아래",
   "sourceCburnettName": "Cburnett 체스 기물",
+  "synapseNextLine": "다음 말",
 };
 export default t;

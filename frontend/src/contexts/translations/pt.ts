@@ -3661,5 +3661,6 @@ const t: Record<string, string> = {
   "sourceWiktionaryVoiceName": "Gravações de pronúncia do Wikcionário",
   "sourceWiktionaryVoiceCredit": "Autores do Wikcionário e da Lingua Libre — lista completa abaixo",
   "sourceCburnettName": "Peças de xadrez de Cburnett",
+  "synapseNextLine": "Próxima frase",
 };
 export default t;

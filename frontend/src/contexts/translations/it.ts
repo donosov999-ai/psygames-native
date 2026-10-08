@@ -3656,5 +3656,6 @@ const t: Record<string, string> = {
   "sourceWiktionaryVoiceName": "Registrazioni di pronuncia del Wikizionario",
   "sourceWiktionaryVoiceCredit": "Autori del Wikizionario e di Lingua Libre — elenco completo qui sotto",
   "sourceCburnettName": "Pezzi degli scacchi di Cburnett",
+  "synapseNextLine": "Frase successiva",
 };
 export default t;

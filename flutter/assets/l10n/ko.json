@@ -2055,6 +2055,7 @@
 "switchingTask":"과제 전환",
 "switchingTaskDesc":"숫자/글자 규칙을 번갈아요",
 "switchingTaskIntroDesc":"'3A'처럼 숫자+글자 쌍이 보여요. 색깔 신호가 과제를 알려줘요: 숫자 — 홀수인가 짝수인가? 글자 — 모음인가 자음인가? 과제는 무작위로 바뀌어요. 인지 유연성을 훈련하고 전환 비용을 측정해요.",
+"synapseNextLine":"다음 말",
 "tabGames":"게임",
 "tabPet":"친구",
 "tapNodeToReplay":"완료한 노드를 눌러 다시 도전하고 별을 더 얻으세요",

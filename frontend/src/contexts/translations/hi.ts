@@ -3664,5 +3664,6 @@ const t: Record<string, string> = {
   "sourceWiktionaryVoiceName": "विक्षनरी की उच्चारण रिकॉर्डिंग",
   "sourceWiktionaryVoiceCredit": "विक्षनरी और Lingua Libre के लेखक — पूरी सूची नीचे",
   "sourceCburnettName": "Cburnett के शतरंज मोहरे",
+  "synapseNextLine": "अगला वाक्य",
 };
 export default t;
