@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/gestures.dart' show DeviceGestureSettings;
 import 'package:flutter/material.dart';
 
+import '../../shell/app_haptics.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/game_clock.dart';
@@ -46,6 +47,8 @@ class TrailMakingScreen extends StatefulWidget {
 }
 
 class _TrailMakingScreenState extends State<TrailMakingScreen> {
+  /// Отклик хода — через общий выключатель «Вибрация» (образец «Матрицы памяти», задача 792432f8).
+  late final AppHaptics _haptics = AppHaptics(widget.state);
   late final LevelLadder _ladder =
       LevelLadder(gameId: 'trail_making', store: SharedLevelStore(widget.state), maxLevel: trailLevels);
   bool _ready = false;
@@ -124,6 +127,7 @@ class _TrailMakingScreenState extends State<TrailMakingScreen> {
     if (step == TrailStep.done) {
       _finish();
     } else if (step != TrailStep.ignored) {
+      step == TrailStep.miss ? _haptics.miss() : _haptics.hit();
       setState(() {});
     }
   }
@@ -133,6 +137,7 @@ class _TrailMakingScreenState extends State<TrailMakingScreen> {
     final g = _game!;
     final seconds = _now() - _startedAt;
     final passed = !GamePreset.isPreset && trailPassed(seconds: seconds, timeLimitSec: _timeLimit, errors: g.errors);
+    passed ? _haptics.win() : _haptics.miss();
     setState(() {
       _elapsed = seconds;
       _passed = passed;

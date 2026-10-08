@@ -3,6 +3,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../shell/app_haptics.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/l10n.dart';
 import '../../shell/boss_round.dart';
@@ -54,6 +55,8 @@ const Map<String, IconData> _icons = {
 };
 
 class _SdmtScreenState extends State<SdmtScreen> {
+  /// Отклик хода — через общий выключатель «Вибрация» (образец «Матрицы памяти», задача 792432f8).
+  late final AppHaptics _haptics = AppHaptics(widget.state);
   late LevelLadder _ladder;
   late Rng _rng;
   late SdmtParams _params;
@@ -149,6 +152,7 @@ class _SdmtScreenState extends State<SdmtScreen> {
   void _press(int digit) {
     if (_phase != _Phase.playing) return;
     final entry = _keymap.firstWhere((k) => k.sym == _stim);
+    entry.digit == digit ? _haptics.hit() : _haptics.miss();
     setState(() {
       if (entry.digit == digit) {
         _hits += 1;

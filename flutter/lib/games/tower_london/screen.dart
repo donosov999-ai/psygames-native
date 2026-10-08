@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
+import '../../shell/app_haptics.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/game_preset.dart';
@@ -37,6 +38,8 @@ class TowerLondonScreen extends StatefulWidget {
 }
 
 class _TowerLondonScreenState extends State<TowerLondonScreen> {
+  /// Отклик хода — через общий выключатель «Вибрация» (образец «Матрицы памяти», задача 792432f8).
+  late final AppHaptics _haptics = AppHaptics(widget.state);
   /// 🔴 ПАРТИЯ ПРОДОЛЖАЕТСЯ САМА (Денис 24.09.2026: «во всех играх переход в
   /// конце сломан» — то есть его нет ни в одной). Итог видно 1,8 с — тут он
   /// длиннее, чем у уровневых игр: человеку показывают сумму лишних ходов за
@@ -185,9 +188,11 @@ class _TowerLondonScreenState extends State<TowerLondonScreen> {
     final after = st.move(from, to);
     if (after == null) {
       // Ход запрещён вместимостью стержня — это ошибка, и она идёт в счёт.
+      _haptics.miss();
       _errors += 1;
       return;
     }
+    after.key == _puzzle!.goal.key ? _haptics.win() : _haptics.hit();
     _history.add(st.copy());
     _moves += 1;
     _state = after;

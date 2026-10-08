@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../shell/app_haptics.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/game_preset.dart';
@@ -40,6 +41,8 @@ class HanoiScreen extends StatefulWidget {
 }
 
 class _HanoiScreenState extends State<HanoiScreen> {
+  /// Отклик хода — через общий выключатель «Вибрация» (образец «Матрицы памяти», задача 792432f8).
+  late final AppHaptics _haptics = AppHaptics(widget.state);
   /// 🔴 СЛЕДУЮЩИЙ УРОВЕНЬ ЕДЕТ САМ (Денис 24.09.2026: «не переходит на
   /// следующий уровень сам»).
   ///
@@ -156,9 +159,11 @@ class _HanoiScreenState extends State<HanoiScreen> {
     final board = _board!;
     final after = board.move(from, to);
     if (after == null) {
+      _haptics.miss();
       _errors += 1;
       return;
     }
+    after.solved ? _haptics.win() : _haptics.hit();
     _history.add(board.copy());
     _moves += 1;
     _board = after;

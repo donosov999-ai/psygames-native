@@ -3,6 +3,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../shell/app_haptics.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/boss_round.dart';
 import '../../shell/demo_lesson.dart';
@@ -39,6 +40,8 @@ class SetGameScreen extends StatefulWidget {
 enum _Phase { playing, result }
 
 class _SetGameScreenState extends State<SetGameScreen> {
+  /// Отклик хода — через общий выключатель «Вибрация» (образец «Матрицы памяти», задача 792432f8).
+  late final AppHaptics _haptics = AppHaptics(widget.state);
   late LevelLadder _ladder;
   late Rng _rng;
   late SetParams _params;
@@ -136,6 +139,7 @@ class _SetGameScreenState extends State<SetGameScreen> {
   void _judge({bool late = false}) {
     _tick?.cancel();
     final ok = !late && isSet(_board[_picked[0]], _board[_picked[1]], _board[_picked[2]]);
+    ok ? _haptics.hit() : _haptics.miss();
     setState(() {
       _right = ok;
       if (ok) {
