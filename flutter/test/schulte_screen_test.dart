@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/schulte/screen.dart';
 import 'package:psygames_flutter/shell/boss_round.dart';
+import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -10,6 +11,12 @@ import 'support/boss_probe.dart';
 /// ПАРТИЯ ИГРАЕТСЯ ТЫЧКАМИ ПО КЛЕТКАМ, а не вызовом правил: проба читает с
 /// экрана, что искать, и жмёт ровно ту клетку, на которой это написано.
 void main() {
+  setUpAll(() async {
+    // Подписи — из общего словаря, как в приложении (экран переведён на L.t, задача 4b6f863e).
+    TestWidgetsFlutterBinding.ensureInitialized();
+    await L.load('ru');
+  });
+
   late SharedState state;
 
   Future<SharedState> boot({int level = 1}) async {
@@ -48,8 +55,8 @@ void main() {
 
   testWidgets('🔴 уровень проходится тычками: 25 клеток по порядку — победа', (tester) async {
     await open(tester);
-    expect(find.text('Таблица Шульте'), findsOneWidget);
-    await tester.tap(find.text('Начать'));
+    expect(find.text(L.t('schulteTable')), findsOneWidget);
+    await tester.tap(find.text(L.t('start')));
     await tester.pump();
 
     for (var step = 0; step < 25; step += 1) {
@@ -57,13 +64,13 @@ void main() {
       await tester.pump();
     }
 
-    expect(find.text('Следующий уровень'), findsOneWidget,
+    expect(find.text(L.t('nextLabel')), findsOneWidget,
         reason: 'вся таблица собрана по порядку — уровень взят');
   });
 
   testWidgets('🔴 чужая клетка считается ошибкой, а цель не двигается', (tester) async {
     await open(tester);
-    await tester.tap(find.text('Начать'));
+    await tester.tap(find.text(L.t('start')));
     await tester.pump();
 
     final before = target(tester);
@@ -78,7 +85,7 @@ void main() {
 
   testWidgets('🔴 пока правило не объявлено, нажатия не считаются', (tester) async {
     await open(tester, level: 16);   // ось 9: правило объявляется через 1,5 с
-    await tester.tap(find.text('Начать'));
+    await tester.tap(find.text(L.t('start')));
     await tester.pump();
 
     expect(target(tester), '?', reason: 'до объявления цель скрыта');
@@ -92,7 +99,7 @@ void main() {
 
   testWidgets('уход с экрана гасит таймеры', (tester) async {
     await open(tester, level: 16);
-    await tester.tap(find.text('Начать'));
+    await tester.tap(find.text(L.t('start')));
     await tester.pump(const Duration(milliseconds: 200));
     await tester.pumpWidget(const MaterialApp(home: SizedBox()));
     await tester.pump(const Duration(seconds: 5));
@@ -100,11 +107,11 @@ void main() {
 
   testWidgets('🔴 веха: победа на 3-м уровне открывает бой «сложи подсвеченные», на 2-м — нет', (tester) async {
     // В вебе этот экран зовёт BossRound каждые три уровня; при переносе бой пропал молча.
-    await expectBossAfterWin(tester, won: find.text('Следующий уровень'), hudKey: 'bossHudCounting', play: (level) async {
+    await expectBossAfterWin(tester, won: find.text(L.t('nextLabel')), hudKey: 'bossHudCounting', play: (level) async {
       await open(tester, level: level);
-      await tester.tap(find.text('Начать'));
+      await tester.tap(find.text(L.t('start')));
       await tester.pump();
-      for (var i = 0; i < 200 && find.text('Следующий уровень').evaluate().isEmpty; i += 1) {
+      for (var i = 0; i < 200 && find.text(L.t('nextLabel')).evaluate().isEmpty; i += 1) {
         await tester.tap(cellWith(tester, target(tester)));
         await tester.pump();
       }
@@ -116,9 +123,9 @@ void main() {
     // на каждом уровне и этого пути не проходят. Здесь 3-й уровень с боем, «Следующий
     // уровень» той же кнопкой, 4-й без боя — строки «Босс устоял» в его итоге быть не должно.
     Future<void> playToEnd() async {
-      await tester.tap(find.text('Начать'));
+      await tester.tap(find.text(L.t('start')));
       await tester.pump();
-      for (var i = 0; i < 200 && find.text('Следующий уровень').evaluate().isEmpty; i += 1) {
+      for (var i = 0; i < 200 && find.text(L.t('nextLabel')).evaluate().isEmpty; i += 1) {
         await tester.tap(cellWith(tester, target(tester)));
         await tester.pump();
       }
@@ -133,12 +140,12 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('boss-outcome')), findsOneWidget);
 
-    await tester.tap(find.text('Следующий уровень'));
+    await tester.tap(find.text(L.t('nextLabel')));
     await tester.pump();
     await playToEnd();
     await tester.pump(const Duration(seconds: 3));
     expect(find.byKey(const Key('boss-round')), findsNothing, reason: 'бой после 4-го уровня');
-    expect(find.text('Следующий уровень'), findsOneWidget, reason: 'уровень 4 не взят');
+    expect(find.text(L.t('nextLabel')), findsOneWidget, reason: 'уровень 4 не взят');
     expect(find.byKey(const Key('boss-outcome')), findsNothing, reason: 'в итоге 4-го уровня — итог прошлого боя');
   });
 }

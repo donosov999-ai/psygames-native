@@ -129,7 +129,12 @@ void main() {
 
   testWidgets('выбор языка ложится в ключ веба', (tester) async {
     await boot(tester);
-    await tester.tap(find.byKey(const Key('echo-lang-de')));
+    // Язык выбирается выпадающей строкой (общий LangDropdown): открыть, выбрать пункт.
+    await tester.tap(find.byKey(const Key('echo-lang')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.tap(find.byKey(const Key('echo-lang-de')).last);
+    await tester.pump(const Duration(milliseconds: 400));
     await tester.pump();
     expect(state.get('psygames_pseudoword_echo_targetlang'), 'de');
   });

@@ -22,7 +22,14 @@ export '../../shell/js_compat.dart' show Rng, createRng, hashSeed, jsRound, rand
 
 const String trackerGeneratorVersion = 'object-tracker-generator-v1';
 const double trackerObjectRadius = 0.068;
+/// Лестница, на которой растут ВСЕ оси: шарики, цели, длительность, сближения и скорость.
+/// Выше 41-го — правило Дениса 06.09.2026 «потолков нет»: дальше растёт одна скорость, без
+/// конца (до 02.10.2026 здесь был жёсткий предел — номер уровня выше 41-го не рос вовсе).
 const int trackerLevels = 41;
+
+/// Прибавка скорости за каждый уровень выше [trackerLevels] — треть ступени лестницы
+/// (0,012 за три уровня), чтобы каждый уровень был быстрее прежнего, а не его клоном.
+const double trackerSpeedPerLevelAbove = 0.004;
 
 String normalizeSeed(String seed) => jsc.normalizeSeed(seed, 'object-tracker');
 
@@ -122,16 +129,27 @@ List<List<double>> gridPositions(int count) {
       ]);
 }
 
+/// Скорость шарика уровня [level] — доля поля в секунду. Уровни 1…41 — как в вебе: ступень
+/// 0,012 за три уровня до 10-й ступени. Выше — [trackerSpeedPerLevelAbove] за уровень, без потолка.
+double trackerSpeedForLevel(int level) {
+  final above = math.max(0, level - trackerLevels);
+  if (above > 0) return 0.085 + 10 * 0.012 + above * trackerSpeedPerLevelAbove;
+  return 0.085 + math.min(10, ((math.max(1, level) - 1) / 3).floor()) * 0.012;
+}
+
 ObjectTrackerRound generateObjectTrackerRound(String seed, int requestedLevel) {
   final normalizedSeed = normalizeSeed(seed);
-  final level = math.min(trackerLevels, math.max(1, requestedLevel.floor()));
+  // Уровни 1…41 — прежние байт в байт; выше растёт только скорость (шарики, цели,
+  // длительность и сближения к 41-му уже на своём верху).
+  final level = math.max(1, requestedLevel.floor());
   final rng = createRng('$normalizedSeed:$level:$trackerGeneratorVersion');
   final objectCount = objectCountForLevel(level);
   final targetCount = targetCountForLevel(level, objectCount);
-  final speedTier = math.min(10, ((level - 1) / 3).floor());
+  final above = math.max(0, level - trackerLevels);
+  final speedTier = above > 0 ? 10 + (above / 3).floor() : math.min(10, ((level - 1) / 3).floor());
   final durationTier = math.min(10, ((level - 1) / 4).floor());
   final closeApproachTier = math.min(8, ((level - 1) / 5).floor());
-  final speed = 0.085 + speedTier * 0.012;
+  final speed = trackerSpeedForLevel(level);
   final durationMs = 2800 + durationTier * 450;
   final closeApproachStrength = closeApproachTier / 8;
   final positions = shuffle(rng, gridPositions(objectCount));
@@ -418,7 +436,10 @@ List<String> validateObjectTrackerRound(ObjectTrackerRound round) {
   if (round.targetIds.any((id) => !objectIds.contains(id))) issues.add('цели нет среди шариков');
   if (round.initialWorld.timeMs != 0) issues.add('время старта не ноль');
   if (round.durationMs < 2000 || round.durationMs > 10000) issues.add('длительность вне договора');
-  if (round.speed <= 0 || round.speed > 0.3) issues.add('скорость вне договора');
+  // Договор веба — до 0,3; выше 41-го уровня скорость растёт без потолка, и предел — её же формула.
+  if (round.speed <= 0 || round.speed > math.max(0.3, trackerSpeedForLevel(round.level) + 1e-12)) {
+    issues.add('скорость вне договора');
+  }
   if (round.closeApproachStrength < 0 || round.closeApproachStrength > 1) {
     issues.add('стягивание вне 0..1');
   }

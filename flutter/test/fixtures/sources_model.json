@@ -31,6 +31,11 @@
   "title": "Кто читает слова",
   "rows": [
    {
+    "author": "Wei Gao, Vion Nicolas",
+    "license": "CC BY 2.0 fr",
+    "count": "180"
+   },
+   {
     "author": "—",
     "license": "CC BY 2.0 fr",
     "count": "127"
@@ -59,6 +64,11 @@
     "author": "Speaker: AdrianAbdulBaha Recorder: AdrianAbdulBaha",
     "license": "CC BY-SA 4.0",
     "count": "66"
+   },
+   {
+    "author": "Yue Tan",
+    "license": "CC BY-SA 3.0 us",
+    "count": "38"
    },
    {
     "author": "Jeuwre",
@@ -221,6 +231,11 @@
     "count": "2"
    },
    {
+    "author": "Jcwf",
+    "license": "CC BY-SA 3.0",
+    "count": "2"
+   },
+   {
     "author": "Mattadjwic",
     "license": "CC BY 4.0",
     "count": "2"
@@ -237,6 +252,16 @@
    },
    {
     "author": "Speaker: Cinemantique Recorder: Cinemantique",
+    "license": "CC BY-SA 4.0",
+    "count": "2"
+   },
+   {
+    "author": "Speaker: Jouketou Recorder: Jouketou",
+    "license": "CC BY-SA 4.0",
+    "count": "2"
+   },
+   {
+    "author": "Speaker: Shangkuanlc Recorder: Shangkuanlc",
     "license": "CC BY-SA 4.0",
     "count": "2"
    },
@@ -461,6 +486,11 @@
     "count": "1"
    },
    {
+    "author": "Sjors Provoost",
+    "license": "CC BY-SA 3.0",
+    "count": "1"
+   },
+   {
     "author": "Speaker: Aquild Recorder: Aquild",
     "license": "CC BY 4.0",
     "count": "1"
@@ -516,6 +546,11 @@
     "count": "1"
    },
    {
+    "author": "Speaker: 雲角 Recorder: 雲角",
+    "license": "CC BY-SA 4.0",
+    "count": "1"
+   },
+   {
     "author": "StMH",
     "license": "CC BY-SA 3.0",
     "count": "1"
@@ -548,6 +583,16 @@
    {
     "author": "Tsca.bot",
     "license": "CC BY 2.0 fr",
+    "count": "1"
+   },
+   {
+    "author": "Wei Gao, 易， Vion Nicolas",
+    "license": "CC BY 2.0 fr",
+    "count": "1"
+   },
+   {
+    "author": "Xudong Yang",
+    "license": "CC BY 2.0",
     "count": "1"
    },
    {

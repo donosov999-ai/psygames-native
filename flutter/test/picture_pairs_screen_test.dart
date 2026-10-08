@@ -13,6 +13,7 @@ import 'package:psygames_flutter/shell/lesson.dart';
 import 'package:psygames_flutter/shell/session_report.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'support/settings_fit.dart';
 
 /// ПАРТИЯ ИГРАЕТСЯ НАЖАТИЯМИ ПО КАРТАМ, а не вызовом правил.
 ///
@@ -389,5 +390,33 @@ void main() {
     await tester.pump(const Duration(milliseconds: 100));
     await tester.pumpWidget(const MaterialApp(home: SizedBox()));
     await tester.pump(const Duration(seconds: 3));
+  });
+
+  testWidgets('🔴 настройка на 360×640 по-английски и по-русски: «Начать» на первом экране (ae1d918b)', (tester) async {
+    // L13 — правило уровня («четвёрки») стоит на экране настройки: самый длинный вид уровней.
+    await expectSettingsFit(tester, () => boot(tester, level: 13), where: 'picture-pairs, уровни L13');
+    // Свободная партия: число пар, фото-показ и его длительность — больше всего выборов.
+    await expectSettingsFit(tester, () async {
+      await boot(tester, level: 3);
+      await tester.tap(find.text(L.t('sudokuModeFree')));
+      await tester.pump();
+    }, where: 'picture-pairs, свободно');
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump();
+  });
+
+  testWidgets('🔴 партия на 360×640: органы ответа целиком на экране (или в прокрутке поля), не меньше 48×48 (приёмка 6596a00d)',
+      (tester) async {
+    await expectPlayFit(tester, () async {
+      await boot(tester, level: 13);
+      await tester.tap(find.text(L.t('start')));
+      await tester.pump(const Duration(milliseconds: 300));
+      if (find.text(L.t('ctaGotIt')).evaluate().isNotEmpty) {
+        await tester.tap(find.text(L.t('ctaGotIt')));
+        await tester.pump(const Duration(milliseconds: 300));
+      }
+      await tester.pump(Duration(milliseconds: LevelCfg.of(13).previewMs + 50));
+    }, where: 'picture-pairs L13, ход');
+    await tester.pumpWidget(const SizedBox());
   });
 }

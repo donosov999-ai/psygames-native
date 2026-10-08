@@ -14,6 +14,7 @@ import 'package:psygames_flutter/shell/session_report.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:psygames_flutter/shell/voice.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'support/settings_fit.dart';
 
 /// Голос для проб: считает, что сказано, и умеет «не иметь голоса».
 class _FakeVoice implements VoiceBackend {
@@ -403,5 +404,26 @@ void main() {
     }
     await tester.tap(find.byKey(const Key('lesson-close')));
     await tester.pumpAndSettle();
+  });
+
+  testWidgets('🔴 настройка на 360×640 по-английски и по-русски: «Начать» на первом экране (ae1d918b)', (tester) async {
+    await expectSettingsFit(tester, () => boot(tester, level: 9, voice: true), where: 'n-back L9 двойной поток');
+  });
+
+  testWidgets('🔴 партия на 360×640: органы ответа целиком на экране (или в прокрутке поля), не меньше 48×48 (приёмка 6596a00d)',
+      (tester) async {
+    bool answering() => ['nb-match', 'nb-position', 'nb-sound'].any((k) {
+          final f = find.byKey(Key(k));
+          return f.evaluate().isNotEmpty && (tester.widget(f) as ButtonStyleButton).onPressed != null;
+        });
+    await expectPlayFit(tester, () async {
+      await boot(tester, level: 9, voice: true);
+      await tester.tap(find.text(L.t('start')));
+      for (var i = 0; i < 80 && !answering(); i++) {
+        await tester.pump(const Duration(milliseconds: 250));
+      }
+      expect(answering(), isTrue, reason: 'кнопки ответа так и не открылись');
+    }, where: 'n-back L9 двойной поток');
+    await tester.pumpWidget(const SizedBox());
   });
 }

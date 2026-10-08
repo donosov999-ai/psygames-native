@@ -1,0 +1,292 @@
+{
+ "v": 1,
+ "title": "🔥 Календарь серии",
+ "primary": "#a855f7",
+ "labels": {
+  "back": "Назад",
+  "prev": "Предыдущий месяц",
+  "next": "Следующий месяц"
+ },
+ "metrics": [
+  {
+   "emoji": "🔥",
+   "value": "5",
+   "label": "Текущая серия",
+   "border": "#E5E5EA"
+  },
+  {
+   "emoji": "🏆",
+   "value": "5",
+   "label": "Личный рекорд",
+   "border": "#f97316"
+  },
+  {
+   "emoji": "📅",
+   "value": "5",
+   "label": "Дней тренировок",
+   "border": "#E5E5EA"
+  }
+ ],
+ "bestCaption": "Это твоя самая длинная серия за всё время",
+ "month": {
+  "title": "сентябрь 2026 г.",
+  "canNext": true
+ },
+ "weekdays": [
+  "П",
+  "В",
+  "С",
+  "Ч",
+  "П",
+  "С",
+  "В"
+ ],
+ "cells": [
+  null,
+  {
+   "day": 1,
+   "trained": false,
+   "left": false,
+   "right": false,
+   "today": false,
+   "a11y": "1 сентября 2026 г.. Без тренировки"
+  },
+  {
+   "day": 2,
+   "trained": false,
+   "left": false,
+   "right": false,
+   "today": false,
+   "a11y": "2 сентября 2026 г.. Без тренировки"
+  },
+  {
+   "day": 3,
+   "trained": false,
+   "left": false,
+   "right": false,
+   "today": false,
+   "a11y": "3 сентября 2026 г.. Без тренировки"
+  },
+  {
+   "day": 4,
+   "trained": false,
+   "left": false,
+   "right": false,
+   "today": false,
+   "a11y": "4 сентября 2026 г.. Без тренировки"
+  },
+  {
+   "day": 5,
+   "trained": false,
+   "left": false,
+   "right": false,
+   "today": false,
+   "a11y": "5 сентября 2026 г.. Без тренировки"
+  },
+  {
+   "day": 6,
+   "trained": false,
+   "left": false,
+   "right": false,
+   "today": false,
+   "a11y": "6 сентября 2026 г.. Без тренировки"
+  },
+  {
+   "day": 7,
+   "trained": false,
+   "left": false,
+   "right": false,
+   "today": false,
+   "a11y": "7 сентября 2026 г.. Без тренировки"
+  },
+  {
+   "day": 8,
+   "trained": false,
+   "left": false,
+   "right": false,
+   "today": false,
+   "a11y": "8 сентября 2026 г.. Без тренировки"
+  },
+  {
+   "day": 9,
+   "trained": false,
+   "left": false,
+   "right": false,
+   "today": false,
+   "a11y": "9 сентября 2026 г.. Без тренировки"
+  },
+  {
+   "day": 10,
+   "trained": false,
+   "left": false,
+   "right": false,
+   "today": false,
+   "a11y": "10 сентября 2026 г.. Без тренировки"
+  },
+  {
+   "day": 11,
+   "trained": false,
+   "left": false,
+   "right": false,
+   "today": false,
+   "a11y": "11 сентября 2026 г.. Без тренировки"
+  },
+  {
+   "day": 12,
+   "trained": false,
+   "left": false,
+   "right": false,
+   "today": false,
+   "a11y": "12 сентября 2026 г.. Без тренировки"
+  },
+  {
+   "day": 13,
+   "trained": false,
+   "left": false,
+   "right": false,
+   "today": false,
+   "a11y": "13 сентября 2026 г.. Без тренировки"
+  },
+  {
+   "day": 14,
+   "trained": false,
+   "left": false,
+   "right": false,
+   "today": false,
+   "a11y": "14 сентября 2026 г.. Без тренировки"
+  },
+  {
+   "day": 15,
+   "trained": false,
+   "left": false,
+   "right": false,
+   "today": false,
+   "a11y": "15 сентября 2026 г.. Без тренировки"
+  },
+  {
+   "day": 16,
+   "trained": false,
+   "left": false,
+   "right": false,
+   "today": false,
+   "a11y": "16 сентября 2026 г.. Без тренировки"
+  },
+  {
+   "day": 17,
+   "trained": false,
+   "left": false,
+   "right": false,
+   "today": false,
+   "a11y": "17 сентября 2026 г.. Без тренировки"
+  },
+  {
+   "day": 18,
+   "trained": false,
+   "left": false,
+   "right": false,
+   "today": false,
+   "a11y": "18 сентября 2026 г.. Без тренировки"
+  },
+  {
+   "day": 19,
+   "trained": false,
+   "left": false,
+   "right": false,
+   "today": false,
+   "a11y": "19 сентября 2026 г.. Без тренировки"
+  },
+  {
+   "day": 20,
+   "trained": false,
+   "left": false,
+   "right": false,
+   "today": false,
+   "a11y": "20 сентября 2026 г.. Без тренировки"
+  },
+  {
+   "day": 21,
+   "trained": false,
+   "left": false,
+   "right": false,
+   "today": false,
+   "a11y": "21 сентября 2026 г.. Без тренировки"
+  },
+  {
+   "day": 22,
+   "trained": false,
+   "left": false,
+   "right": false,
+   "today": false,
+   "a11y": "22 сентября 2026 г.. Без тренировки"
+  },
+  {
+   "day": 23,
+   "trained": false,
+   "left": false,
+   "right": false,
+   "today": false,
+   "a11y": "23 сентября 2026 г.. Без тренировки"
+  },
+  {
+   "day": 24,
+   "trained": false,
+   "left": false,
+   "right": false,
+   "today": false,
+   "a11y": "24 сентября 2026 г.. Без тренировки"
+  },
+  {
+   "day": 25,
+   "trained": false,
+   "left": false,
+   "right": false,
+   "today": false,
+   "a11y": "25 сентября 2026 г.. Без тренировки"
+  },
+  {
+   "day": 26,
+   "trained": false,
+   "left": false,
+   "right": false,
+   "today": false,
+   "a11y": "26 сентября 2026 г.. Без тренировки"
+  },
+  {
+   "day": 27,
+   "trained": false,
+   "left": false,
+   "right": false,
+   "today": false,
+   "a11y": "27 сентября 2026 г.. Без тренировки"
+  },
+  {
+   "day": 28,
+   "trained": false,
+   "left": false,
+   "right": false,
+   "today": false,
+   "a11y": "28 сентября 2026 г.. Без тренировки"
+  },
+  {
+   "day": 29,
+   "trained": false,
+   "left": false,
+   "right": false,
+   "today": false,
+   "a11y": "29 сентября 2026 г.. Без тренировки"
+  },
+  {
+   "day": 30,
+   "trained": false,
+   "left": false,
+   "right": false,
+   "today": false,
+   "a11y": "30 сентября 2026 г.. Без тренировки"
+  },
+  null,
+  null,
+  null,
+  null
+ ],
+ "empty": null
+}

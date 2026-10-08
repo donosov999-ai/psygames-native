@@ -1,0 +1,81 @@
+{
+ "v": 1,
+ "open": true,
+ "capturing": false,
+ "primary": "#a855f7",
+ "title": "💬 Что не так?",
+ "close": "Закрыть",
+ "tab": "form",
+ "tabs": [
+  {
+   "id": "form",
+   "label": "Написать"
+  },
+  {
+   "id": "dialog",
+   "label": "Диалог"
+  }
+ ],
+ "dialog": null,
+ "thanks": null,
+ "form": {
+  "ctx": "👤 NZT-48 (полный)  ·  🎮 schulte  ·  ур. 7",
+  "hint": "Пиши как есть, даже коротко",
+  "kinds": [
+   {
+    "key": "confusion",
+    "emoji": "🤷",
+    "label": "Непонятно",
+    "on": false
+   },
+   {
+    "key": "bug",
+    "emoji": "🐞",
+    "label": "Не работает",
+    "on": true
+   },
+   {
+    "key": "idea",
+    "emoji": "💡",
+    "label": "Идея",
+    "on": false
+   }
+  ],
+  "kindOn": {
+   "bg": "#ef4444",
+   "fg": "#2b0c0c"
+  },
+  "text": "В таблице Шульте не видно последней цифры на маленьком экране",
+  "textSeq": 3,
+  "placeholder": "Например: открыл игру и не понял, что делать — нужна кнопка со справкой",
+  "voice": {
+   "button": {
+    "label": "🎤 Записать голосом",
+    "a11y": "🎤 Записать голосом",
+    "icon": "mic-outline",
+    "iconColor": null,
+    "border": null,
+    "drop": false
+   },
+   "level": null,
+   "nativeRec": null,
+   "levelText": null,
+   "ceiling": null,
+   "play": null,
+   "denied": null,
+   "silent": null,
+   "check": null
+  },
+  "shot": {
+   "label": "📷 Приложить скриншот этого экрана",
+   "on": true
+  }
+ },
+ "footer": {
+  "mode": "send",
+  "label": "Отправить",
+  "enabled": true,
+  "sending": false
+ },
+ "error": null
+}

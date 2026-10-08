@@ -119,7 +119,12 @@ void main() {
 
   testWidgets('китайский: у кнопок пиньинь из словаря HSK', (tester) async {
     await boot(tester);
-    await tester.tap(find.byKey(const Key('ph-lang-zh')));
+    // Язык выбирается выпадающей строкой (общий LangDropdown): открыть, выбрать пункт.
+    await tester.tap(find.byKey(const Key('ph-lang')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.tap(find.byKey(const Key('ph-lang-zh')).last);
+    await tester.pump(const Duration(milliseconds: 400));
     await tester.pump();
     expect(state.get('psygames_phoneme_pairs_targetlang'), 'zh');
     await tester.tap(find.byKey(const Key('ph-start')));
