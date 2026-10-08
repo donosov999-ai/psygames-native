@@ -16,6 +16,26 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.56.22',
+    date: '2026-10-08',
+    en: [
+      'Stroop, PRL and Targets: choose the mode on the setup screen, as on the web — Stroop by ink or by word, PRL with levels or free play with difficulty, Targets with field or joker',
+      'Sudoku: Wordoku and Animals on steps 153–160 now use rated puzzles from the bank — noticeably harder than before',
+      'Word or Not: your own language is also available as a task language, and a new mode “By the norm?” — spot the non-standard form',
+      'Proofread: task buttons now show pictures, styled for your profile',
+      'Memory Span: the n-back hint and the Nonsense button are no longer cut off',
+      'Feedback from a game now includes the level and counters you were on',
+    ],
+    ru: [
+      'Струп, PRL и «Мишени»: режим выбирается на экране настройки, как в вебе — Струп по цвету или по слову, PRL уровнями или свободно со сложностью, «Мишени» полем или джокером',
+      '«Судоку»: Wordoku и звери на ступенях 153–160 берут доски из банка с рейтингом — заметно труднее прежнего',
+      '«Слово или нет?»: родной язык — тоже язык задания, и новый режим «По норме?» — найти ненормативную форму',
+      '«Корректура»: на кнопках заданий — картинки в стиле профиля',
+      '«Объём памяти»: подсказка n-back и кнопка «Бессмыслица» больше не обрезаются',
+      'Отзыв из игры теперь сообщает уровень и счётчики, на которых его отправили',
+    ],
+  },
+  {
     version: '2.56.21',
     date: '2026-10-08',
     en: [
@@ -46,13 +66,13 @@ export const WHATS_NEW: WhatsNewEntry[] = [
       'Sudoku: the ladder grows to 180 steps — Wordoku, Animals, Killer, our Towers and Inequalities, Doublers and Negators join it',
       'Anagrams: the mode switch is back — All words, Crossword and Square can be played again',
       'Spatial Lab: the Pipe Network card opens Pipe Network, and warm-up steps start right away; the Mental Rotation warm-up plays the intended number of trials',
-      'Home and Progress are calculated natively — they open faster',
+      'Progress is now calculated by the app itself, without the web layer',
     ],
     ru: [
       '«Судоку»: лестница выросла до 180 ступеней — на ней Wordoku, звери, киллер, наши небоскрёбы и неравенства, удвоители и отрицательные',
       'Анаграммы: вернулся выбор режима — снова можно играть «Все слова», кроссворд и квадрат',
       '«Лаборатория пространства»: карточка «Сеть труб» открывает «Сеть труб», а шаг зарядки начинается сразу; в зарядке «Вращение» играет столько проб, сколько задумано',
-      'Главная и «Прогресс» считаются нативно — открываются быстрее',
+      '«Прогресс» теперь считает само приложение, без веб-слоя',
     ],
   },
   {
