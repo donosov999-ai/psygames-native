@@ -453,7 +453,9 @@ class _Playing extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(builder: (context, c) {
       // Поле — от МЕНЬШЕЙ стороны того, что дал каркас; под буквой и подсказкой — запас.
-      final reserve = game.dual ? 120.0 : 64.0;
+      // Подсказка держит три строки (07.10 — раньше две, и она обрывалась): запас +20 в обоих
+      // режимах; у двойного потока сверху ещё буква 56.
+      final reserve = game.dual ? 150.0 : 84.0;
       final side = max(120.0, min(c.maxWidth - 32, min(height, c.maxHeight) - reserve));
       return Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -473,23 +475,33 @@ class _Playing extends StatelessWidget {
           // Смена глубины объявляется на той пробе, где случилась (ось 9): иначе человек
           // сравнивал бы по прежнему N, не зная, что правило поменялось. Объявление встаёт НА
           // МЕСТО подсказки, а не лишней строкой: поле ниже не должно прыгать посреди партии.
+          // Подсказка — до трёх строк. В двух на 360 пт двойная обрывалась на всех языках с латиницей и
+          // кириллицей (кадр 2.56.15 на эмуляторе, 07.10: «…You can tap bo…», «…повторяет 2 на…»), и
+          // терялось главное — «можно жать обе». Высота трёх строк держится и под объявлением смены
+          // глубины: невидимая заготовка в три строки — поле не прыгает, когда текст меняется.
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-            child: game.switchedHere
-                ? Text(
-                    L.t('nBackSwitchNow').replaceAll('{n}', '${game.nHere}'),
-                    key: const Key('nb-switch-note'),
-                    textAlign: TextAlign.center,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontWeight: FontWeight.w800),
-                  )
-                : Text(
-                    game.dual ? L.t('nBackDualHint').replaceAll('{n}', '${game.nHere}') : L.t('nBackHint'),
-                    textAlign: TextAlign.center,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                const ExcludeSemantics(child: Text('\n\n', maxLines: 3)),
+                game.switchedHere
+                    ? Text(
+                        L.t('nBackSwitchNow').replaceAll('{n}', '${game.nHere}'),
+                        key: const Key('nb-switch-note'),
+                        textAlign: TextAlign.center,
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontWeight: FontWeight.w800),
+                      )
+                    : Text(
+                        game.dual ? L.t('nBackDualHint').replaceAll('{n}', '${game.nHere}') : L.t('nBackHint'),
+                        textAlign: TextAlign.center,
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+              ],
+            ),
           ),
         ],
       );
