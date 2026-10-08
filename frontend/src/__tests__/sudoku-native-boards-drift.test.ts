@@ -77,7 +77,8 @@ describe('доски судоку у Flutter = живой TS', () => {
       const c = levelConfig(lv);
       if (!own.length) problems.push(`L${lv} (${c.variant}) без досок`);
       const foreign = own.filter((b) => b.variant !== c.variant || b.n !== c.N || b.br !== c.BR || b.bc !== c.BC
-        || b.puzzle.length !== c.N * c.N);
+        // клетки Шрёдингера — коды 1..10 и 100+, поэтому через запятую (toStr выгрузки)
+        || (b.puzzle.includes(',') ? b.puzzle.split(',').length : b.puzzle.length) !== c.N * c.N);
       if (foreign.length) problems.push(`L${lv}: ${foreign.length} досок правила ${foreign[0].variant} ${foreign[0].n}×${foreign[0].n}, а ступень — ${c.variant} ${c.N}×${c.N}`);
     }
     for (const lv of byLevel.keys()) if (lv > LAST_LEVEL) problems.push(`L${lv} за концом лестницы`);

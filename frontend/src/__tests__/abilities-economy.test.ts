@@ -544,6 +544,10 @@ describe('способности: нативная судоку', () => {
     const src = dart(f);
     expect(src.includes('_wallet.spend(AbilityWallet.secondLife)')).toBe(true);
     expect(src.includes('_wallet.spend(AbilityWallet.sudokuHint)')).toBe(true);
+    // 🔴 Порог провала — только `_errorCap` (ступень + купленная жизнь). Сверка с голым лимитом
+    // ступени — это путь проигрыша мимо предложения: так пришёл ход клетки Шрёдингера при слиянии
+    // с 2.56.19 (`_placeSchro`, `_errors >= errorLimit`) — партия обрывалась, жизнь не предлагалась.
+    expect(`порог мимо _errorCap: ${/_errors\s*>=\s*(errorLimit|_params\.maxErrors)/.test(src)}`).toBe('порог мимо _errorCap: false');
     // Предложение показывается: состояние где-то ВЗВОДИТСЯ, и карточка висит на нём.
     expect(/_deathOffer = true/.test(src)).toBe(true);
     expect(/_deathOffer\s*\?\s*SecondLifeOffer\(/.test(src)).toBe(true);

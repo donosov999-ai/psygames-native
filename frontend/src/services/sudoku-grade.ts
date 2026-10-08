@@ -28,6 +28,8 @@ import {
   Overlays, levelConfig, UnequalMap, TowersMap, towersLineOk, WHISPER_GAP, renbanOk, lineCells, regionSumOk, palindromeOk, betweenOk, lockoutOk, xvOk, XvMap, LittleKillerClue, littleKillerOk, littleKillerCells, XsumsClues, xsumsOk, cipherOk, encodeCipher,
 } from './sudoku-core';
 import { borderCounts, samePartition, solvePartition } from './sudoku-chaos';
+import { decodeGridS, digS, encodeGridS, generateSolutionS, logicS } from './sudoku-schrodinger';
+import { generateBoardM, logicM, type ModKind } from './sudoku-modifiers';
 
 export type Technique =
   | 'naked_single'    // в клетке остался один кандидат
@@ -53,6 +55,8 @@ export type Technique =
   | 'xsum_clue'  // X-суммы: первая цифра X без раскладки суммы первых X клеток; коридор суммы внутри них
   | 'cipher_code'  // шифр: кандидаты одной буквы общие; однозначная буква забирает свою цифру у остальных
   | 'region_border'  // самосборка: границы областей выведены по подсказкам границ и напечатанным цифрам (sudoku-chaos.ts)
+  | 'schrodinger_cell'  // клетки Шрёдингера: вынужден вариант-пара или место пары в ряду (sudoku-schrodinger.ts)
+  | 'modifier_sum'  // удвоители/отрицательные: вариант клетки, с которым взвешенная сумма группы не набирается (sudoku-modifiers.ts)
   | 'guess';          // логики не хватило — нужен перебор
 
 export const TECHNIQUE_TIER: Record<Technique, number> = {
@@ -61,6 +65,8 @@ export const TECHNIQUE_TIER: Record<Technique, number> = {
   xsum_clue: 4,   // X-суммы: класс выводов варианта
   cipher_code: 4,   // шифр: класс выводов варианта
   region_border: 4,   // самосборка: вывод границ — класс выводов варианта
+  schrodinger_cell: 4,   // клетки Шрёдингера: вывод про пару — класс выводов варианта
+  modifier_sum: 4,   // удвоители/отрицательные: вывод на взвешенных суммах — класс выводов варианта
   lockout_window: 4,   // замок: кандидат вне годной пары концов lockout-линии
   between_window: 4,   // между концами: кандидат вне любого окна между концами линии
   // Палиндром: кандидаты зеркальных клеток пересекаются. Ступень 4 — как у всего КЛАССА выводов
@@ -1642,6 +1648,9 @@ export function markerDensity(level: number, variant: Variant): number {
    *     полоса 2..3 при 0.19 дала 0 попаданий из 8 (сплошные единицы) — копатель
    *     откатывал каждое выкалывание, будившее цепочку (tier > max).
    */
+  // Лестница (уровни 9+, блок неравенств 153+ по письму 2d8320ed): доля по месту в четвёрке блока —
+  // от щедрой 0.30 к скупой 0.15, тем же приёмом «техника та же, мест меньше». Ключи 1..8 — режим.
+  if (variant === 'unequal' && level > 8) return [0.30, 0.24, 0.19, 0.15][bandPos(level)] as number;
   if (variant === 'unequal') return [0.15, 0.15, 0.30, 0.30, 0.24, 0.24, 0.19, 0.19][Math.min(7, Math.max(0, level - 1))];
   return 1;
 }
@@ -1734,7 +1743,7 @@ export type GeneratedPuzzle = ReturnType<typeof generatePuzzle>;
  * refilter; если конкретная попытка не укладывается в бюджет, generateLogical всё
  * равно сохраняет прежний безопасный fallback через проверку единственности.
  */
-const LOGIC_VARIANTS: readonly Variant[] = ['none', 'diagonal', 'antiknight', 'hyper', 'antiking', 'evenodd', 'kropki', 'sandwich', 'jigsaw', 'nonconsec', 'thermo', 'arrow', 'thermocage', 'sandparity', 'thermoknight', 'killerdiag', 'whisper', 'renban', 'regionsum', 'palindrome', 'between', 'lockout', 'xv', 'argyle', 'littlekiller', 'xsums', 'cipher'];
+const LOGIC_VARIANTS: readonly Variant[] = ['none', 'diagonal', 'antiknight', 'hyper', 'antiking', 'evenodd', 'kropki', 'sandwich', 'jigsaw', 'nonconsec', 'thermo', 'arrow', 'thermocage', 'sandparity', 'thermoknight', 'killerdiag', 'whisper', 'renban', 'regionsum', 'palindrome', 'between', 'lockout', 'xv', 'argyle', 'littlekiller', 'xsums', 'cipher', 'killer', 'towers', 'unequal', 'wordoku', 'animals'];
 
 /**
  * Сколько раз проходим доску, пытаясь убрать ещё клетку. Больше трёх бюджет обычно
@@ -1803,7 +1812,9 @@ function digByLogic(
   level: number, blanksCap: number, N: number, BR: number, BC: number, variant: Variant, deadline: number,
   tierMax?: number, digCap?: number,
 ): { gen: GeneratedPuzzle; grade: Grade; dug: number } | null {
-  const base = generatePuzzle(0, N, BR, BC, variant);   // blanks=0 → только решение и структура варианта
+  // Неравенства: знаки прорежены ДО копания (overlayThinner) — полный набор из 144 решает доску сам
+  // (замер 26.08: 58 пустых при всех знаках). Копаем тем, что увидит человек.
+  const base = generatePuzzle(0, N, BR, BC, variant, variant === 'unequal' ? overlayThinner(level, variant, N) : undefined);   // blanks=0 → только решение и структура варианта
   const sol = base.solution;
   // Шифр: копаем по цифрам, а мерим задачу игрока — подсказки на клетках-буквах там буквы. Сетка
   // букв — с полной доски (blanks=0: каждая клетка-буква ещё подсказка).
@@ -2583,15 +2594,84 @@ function generateChaos(
   return { ...plain, fellBack: true };
 }
 
+/**
+ * 🔴 КЛЕТКИ ШРЁДИНГЕРА — МЕРА (пункт 13, задача f46c796c). Доска — коды `encodeS` (цифры 0–9, пары).
+ * Решатель — точное покрытие (sudoku-schrodinger.ts): только вынужденные шаги. Простые шаги стоят
+ * как одиночки, шаги про пару — ступень 4; не дошёл — доска не решается логикой.
+ */
+export function gradeSchrodinger(puzzle: number[][], tierCap = 9): Grade {
+  const l = logicS(decodeGridS(puzzle));
+  const pt = TECHNIQUE_TIER.schrodinger_cell;
+  if (!l.solved || (l.pairSteps > 0 && tierCap < pt)) {
+    return { solved: false, tier: TECHNIQUE_TIER.guess, hardest: 'guess', steps: l.steps, cost: l.steps };
+  }
+  const plain = l.steps - l.pairSteps;
+  return {
+    solved: true, tier: l.pairSteps ? pt : 2, hardest: l.pairSteps ? 'schrodinger_cell' : 'hidden_single',
+    steps: l.steps, cost: plain * TECHNIQUE_TIER.hidden_single + l.pairSteps * pt, grid: encodeGridS(l.grid!),
+  };
+}
+
+/**
+ * 🔴 УДВОИТЕЛИ И ОТРИЦАТЕЛЬНЫЕ — МЕРА (пункт 13, типы 2 и 3). Решатель — точное покрытие с суммами
+ * групп сбоку (sudoku-modifiers.ts): вынужденные шаги — как одиночки, вывод на взвешенных суммах —
+ * ступень 4. Не дошёл до конца — доска не решается логикой.
+ */
+export function gradeModifiers(puzzle: Cell[][], cages: CageMap, kind: ModKind, tierCap = 9): Grade {
+  const l = logicM(puzzle, cages, kind);
+  const pt = TECHNIQUE_TIER.modifier_sum;
+  if (!l.solved || (l.cageSteps > 0 && tierCap < pt)) {
+    return { solved: false, tier: TECHNIQUE_TIER.guess, hardest: 'guess', steps: l.steps, cost: l.steps };
+  }
+  const plain = l.steps - l.cageSteps;
+  return {
+    solved: true, tier: l.cageSteps ? pt : 2, hardest: l.cageSteps ? 'modifier_sum' : 'hidden_single',
+    steps: l.steps, cost: plain * TECHNIQUE_TIER.hidden_single + l.cageSteps * pt, grid: l.state!.digits,
+  };
+}
+
+/** Доска удвоителей/отрицательных: заходы, пока группы не выведут нарушителей (обычно с первого). */
+function generateModifiers(
+  kind: ModKind, opts: { digCap?: number },
+): { gen: GeneratedPuzzle; grade: Grade; dug: number; fellBack: boolean; budgetSpent: boolean } {
+  for (let attempt = 0; attempt < 20; attempt++) {
+    const b = generateBoardM(kind, Math.random, opts.digCap ?? 81);
+    if (!b) continue;
+    return {
+      gen: { puzzle: b.puzzle, solution: b.solution.digits, cages: b.cages } as GeneratedPuzzle,
+      grade: gradeModifiers(b.puzzle, b.cages, kind), dug: b.puzzle.flat().filter((v) => v === 0).length, fellBack: false, budgetSpent: false,
+    };
+  }
+  throw Error(`доска «${kind}» не собралась за 20 заходов`);
+}
+
+/** Доска Шрёдингера: полная сетка перебором, задача — снятием клеток, пока мера доходит до той же сетки. */
+function generateSchrodinger(
+  N: number, opts: { digCap?: number },
+): { gen: GeneratedPuzzle; grade: Grade; dug: number; fellBack: boolean; budgetSpent: boolean } {
+  const sol = generateSolutionS(Math.random);
+  const puzzle = digS(sol, Math.random, opts.digCap ?? N * N);
+  const enc = encodeGridS(puzzle);
+  return {
+    gen: { puzzle: enc, solution: encodeGridS(sol) } as GeneratedPuzzle,
+    grade: gradeSchrodinger(enc), dug: enc.flat().filter((v) => v === 0).length, fellBack: false, budgetSpent: false,
+  };
+}
+
 export function generateLogical(
   level: number, blanksCap: number, N: number, BR: number, BC: number, variant: Variant,
-  opts: { budgetMs?: number; tier?: { min: number; max: number }; digCap?: number; fogSeeds?: number } = {},
+  opts: { budgetMs?: number; tier?: { min: number; max: number }; digCap?: number; fogSeeds?: number; logic?: boolean } = {},
 ): { gen: GeneratedPuzzle; grade: Grade; dug: number; fellBack: boolean; budgetSpent: boolean } {
-  if (variant === 'fog') return generateFog(level, blanksCap, N, BR, BC, opts);
-  if (variant === 'chaos') return generateChaos(level, blanksCap, N, BR, BC, opts);
-  const budget = opts.budgetMs ?? 2200;
-  // Лимит копания ступени (`digCap` в levelConfig); явное число — для замеров и гейтов.
+  // Лимит копания ступени (`digCap` в levelConfig); явное число — для замеров и гейтов. Берётся ДО
+  // развилок: свои генераторы тумана, самосборки, Шрёдингера и нарушителей его тоже слушают — до 08.10
+  // им доходил только явный opts.digCap, и поле ступени у этих правил молча не действовало.
   const digCap = opts.digCap ?? levelConfig(level).digCap;
+  const routed = digCap === undefined ? opts : { ...opts, digCap };
+  if (variant === 'fog') return generateFog(level, blanksCap, N, BR, BC, routed);
+  if (variant === 'chaos') return generateChaos(level, blanksCap, N, BR, BC, routed);
+  if (variant === 'schrodinger') return generateSchrodinger(N, routed);
+  if (variant === 'doublers' || variant === 'negators') return generateModifiers(variant, routed);
+  const budget = opts.budgetMs ?? 2200;
   const until = Date.now() + budget;
   /**
    * Полоса техник — целевая сложность партии. Обычно её задаёт уровень; дорога
@@ -2605,7 +2685,9 @@ export function generateLogical(
     : monotonicBandForLevel(level);              // лестница обещает не меньше, чем уровнем раньше
   const dist = (t: number) => (t < min ? min - t : t > max ? t - max : 0);
 
-  if (LOGIC_VARIANTS.includes(variant)) {
+  // logic: false — путь как до логического (режим «Неравенства» держит свою мини-лестницу им: 08.10
+  // небоскрёбы и неравенства ушли в LOGIC_VARIANTS ради лестницы, а режим меняться не должен).
+  if (opts.logic !== false && LOGIC_VARIANTS.includes(variant)) {
     let best: { gen: GeneratedPuzzle; grade: Grade; dug: number } | null = null;
     for (let attempt = 0; attempt < 5; attempt++) {
       const r = digByLogic(level, blanksCap, N, BR, BC, variant, until, max, digCap);
