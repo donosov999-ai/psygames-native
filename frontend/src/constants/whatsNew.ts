@@ -16,6 +16,16 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.56.24',
+    date: '2026-10-08',
+    en: [
+      'Attention Conflict: the boss fight is back — every third level you pass ends with a boss round in all 13 games, as on the web',
+    ],
+    ru: [
+      '«Конфликт внимания»: вернулся бой с боссом — каждый третий пройденный уровень заканчивается боем во всех 13 играх, как в вебе',
+    ],
+  },
+  {
     version: '2.56.23',
     date: '2026-10-08',
     en: [
