@@ -1065,7 +1065,7 @@ const t: Record<string, string> = {
   "slotMorning": "朝",
   "slotMorningDesc": "一日に向けて頭を動かす",
   "slotNight": "夜",
-  "slotNightDesc": "眠れないとき——呼吸だけ、採点なし",
+  "slotNightDesc": "眠れないとき——急がないパズル、そのあと呼吸",
   "slotNightNote": "トレーニングではありません：点数も連続記録もつきません",
   "warmupPickerHint": "時間帯で選ばれています。ほかのものも選べます",
   "warmupPickerTitle": "トレーニング",

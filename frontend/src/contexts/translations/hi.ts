@@ -1866,7 +1866,7 @@ const t: Record<string, string> = {
   "slotMorning": "सुबह",
   "slotMorningDesc": "दिन के लिए दिमाग़ चालू करें",
   "slotNight": "रात",
-  "slotNightDesc": "नींद नहीं आ रही — सिर्फ़ साँस, बिना स्कोर",
+  "slotNightDesc": "नींद नहीं आ रही — बिना जल्दी की पहेलियाँ, फिर साँस",
   "slotNightNote": "यह अभ्यास नहीं है: न अंक, न लगातार दिन",
   "warmupPickerHint": "समय के अनुसार चुना गया — आप कोई भी दूसरा ले सकते हैं",
   "warmupPickerTitle": "अभ्यास",
