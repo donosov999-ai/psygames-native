@@ -619,7 +619,13 @@ export function levelConfig(level: number): LevelCfg {
   // 137–140 «туман войны» (6aecf181 п.11, задача efb63126) — тем же порядком, сразу за шифром.
   else if (lv >= 137 && lv <= 140) variant = 'fog';
   // 141–144 «самосборка» (6aecf181 п.12, задача 6cee3610) — тем же порядком, сразу за туманом.
-  else if (lv >= 141) variant = 'chaos';
+  else if (lv >= 141 && lv <= 144) variant = 'chaos';
+  // 145–148 «клетки Шрёдингера» (6aecf181 п.13, задача f46c796c) — тем же порядком, сразу за самосборкой.
+  else if (lv >= 145 && lv <= 148) variant = 'schrodinger';
+  // 149–152 «Мяу — друзья» 9×9 (план уровней, задача e7260a11): доски — выгрузкой MindLab
+  // (flutter/assets/levels/sudoku-meow9-boards.json, #211), генератора на TS нет; готово раньше
+  // Wordoku и зверей — встаёт первым.
+  else if (lv >= 149) variant = 'friends';
   /**
    * 🔴 НЕРАВЕНСТВА (футосики) СОБРАНЫ, НО УРОВНЕЙ НЕ ПОЛУЧИЛИ — ЗАМЕР 26.08.2026.
    *
@@ -662,7 +668,10 @@ export function levelConfig(level: number): LevelCfg {
   const digCap = variant === 'littlekiller' || variant === 'xsums'
     ? [64, 67, 70, 70][(lv - 1) % 4]
     : undefined;
-  return { size, N, BR, BC, blanks, variant, hintMax, lives: livesFor(lv), ...(digCap ? { digCap } : {}) };
+  // «Мяу»: пустых столько, сколько у выгруженных досок ступени (подсказок 30 → 28 → 26 → 24) —
+  // выгрузчик (meow9-ladder.cjs) сверяет и падает при расхождении.
+  const blanksOut = variant === 'friends' ? 81 - [30, 28, 26, 24][(lv - 1) % 4] : blanks;
+  return { size, N, BR, BC, blanks: blanksOut, variant, hintMax, lives: livesFor(lv), ...(digCap ? { digCap } : {}) };
 }
 
 /**
