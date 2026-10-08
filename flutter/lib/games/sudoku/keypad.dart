@@ -23,7 +23,11 @@ class SudokuKeys extends StatelessWidget {
     required this.onPaint,
     this.label,
     this.icon,
+    this.zero = false,
   });
+
+  /// Клавиша «0» (клетки Шрёдингера, цифры 0–9): шлёт код 10 — 0 занят под «Стереть».
+  final bool zero;
 
   /// Сколько цифр: 9 у классики и фрактала, 6 у малых досок.
   final int n;
@@ -46,7 +50,7 @@ class SudokuKeys extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, c) {
         const keyWidth = 48.0, gap = 6.0;
-        final keys = n + 1;                                   // цифры и «Стереть»
+        final keys = n + 1 + (zero ? 1 : 0);                  // цифры, «0» у Шрёдингера и «Стереть»
         final fit = ((c.maxWidth - 8 + gap) / (keyWidth + gap)).floor().clamp(1, keys);
         final rows = (keys / fit).ceil();
         final perRow = (keys / rows).ceil();
@@ -108,6 +112,17 @@ class SudokuKeys extends StatelessWidget {
                 runSpacing: gap,
                 alignment: WrapAlignment.center,
                 children: [
+                  if (zero)
+                    SizedBox(
+                      width: keyWidth,
+                      height: keyWidth,
+                      child: FilledButton(
+                        key: const Key('digit0'),
+                        onPressed: () => onDigit(10),
+                        style: FilledButton.styleFrom(padding: EdgeInsets.zero),
+                        child: const Text('0', style: TextStyle(fontSize: 20)),
+                      ),
+                    ),
                   for (var v = 1; v <= n; v++)
                     SizedBox(
                       width: keyWidth,
