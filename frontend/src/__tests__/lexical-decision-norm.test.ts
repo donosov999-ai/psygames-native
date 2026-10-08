@@ -88,8 +88,11 @@ describe('сборка партии «По норме?»', () => {
 });
 
 declare const __dirname: string;
+declare function require(m: string): { readFileSync: (p: string, e: string) => string; join: (...a: string[]) => string };
+const fs = require('fs');
+const path = require('path');
 describe('экран веба: режим «По норме?» подключён', () => {
-  const src = (require('fs').readFileSync(require('path').join(__dirname, '../../app/games/lexical-decision.tsx'), 'utf8') as string)
+  const src = fs.readFileSync(path.join(__dirname, '../../app/games/lexical-decision.tsx'), 'utf8')
     .replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/(^|[^:])\/\/[^\n]*/g, '$1');
   it('🔴 партия «По норме?» собирается из данных, своя лестница, разбор на ошибке', () => {
     expect(src).toMatch(/norm\s*\?\s*buildNormTrials\(/);

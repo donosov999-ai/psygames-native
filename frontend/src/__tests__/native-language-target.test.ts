@@ -10,8 +10,10 @@
  * и `pseudoword_echo_screen_test.dart`.
  */
 declare const __dirname: string;
-const читать = (rel: string): string =>
-  require('fs').readFileSync(require('path').join(__dirname, rel), 'utf8') as string;
+declare function require(m: string): { readFileSync: (p: string, e: string) => string; join: (...a: string[]) => string };
+const fs = require('fs');
+const path = require('path');
+const читать = (rel: string): string => fs.readFileSync(path.join(__dirname, rel), 'utf8');
 const код = (s: string): string =>
   s.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/(^|[^:])\/\/[^\n]*/g, '$1');
 
