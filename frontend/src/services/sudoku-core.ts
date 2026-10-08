@@ -709,6 +709,9 @@ export function levelConfig(level: number): LevelCfg {
  */
 export function livesFor(level: number): number {
   const lv = Math.max(1, level);
+  // 76 — решение Дениса 08.10: три ошибки, а не две. Валя застряла на 76-й: 04.10 четыре проигрыша,
+  // три из них за ~70 с — ошибки пальцем на самой трудной доске банка, а не незнание правила.
+  if (lv === 76) return 3;
   return lv <= 4 ? 5 : lv <= 8 ? 4 : lv <= 29 ? 3 : lv <= 80 ? 2 : 1;
 }
 
