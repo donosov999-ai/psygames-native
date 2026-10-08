@@ -132,6 +132,8 @@ for (const [file, fields] of [
   ['assets/progression.json', ['nameKey']],
   // «Коллекция» считает модель на Dart (`collection_model.dart`): `L.t('fig<Key>')`.
   ['assets/collection.json', ['nameKey']],
+  // Главная (вариант Б): ключи, которые сборщик модели собирает на лету — замки, слоты, сложности, причины.
+  ['assets/home.json', ['textKeys']],
 ]) {
   let data;
   // 🔴 НЕТ ФАЙЛА — пропустить можно; ЕСТЬ, НО НЕ ЧИТАЕТСЯ — СТОП. Замер 01.10.2026: после

@@ -16,6 +16,22 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.56.20',
+    date: '2026-10-08',
+    en: [
+      'Sudoku: the ladder grows to 180 steps — Wordoku, Animals, Killer, our Towers and Inequalities, Doublers and Negators join it',
+      'Anagrams: the mode switch is back — All words, Crossword and Square can be played again',
+      'Spatial Lab: the Pipe Network card opens Pipe Network, and warm-up steps start right away; the Mental Rotation warm-up plays the intended number of trials',
+      'Home and Progress are calculated natively — they open faster',
+    ],
+    ru: [
+      '«Судоку»: лестница выросла до 180 ступеней — на ней Wordoku, звери, киллер, наши небоскрёбы и неравенства, удвоители и отрицательные',
+      'Анаграммы: вернулся выбор режима — снова можно играть «Все слова», кроссворд и квадрат',
+      '«Лаборатория пространства»: карточка «Сеть труб» открывает «Сеть труб», а шаг зарядки начинается сразу; в зарядке «Вращение» играет столько проб, сколько задумано',
+      'Главная и «Прогресс» считаются нативно — открываются быстрее',
+    ],
+  },
+  {
     version: '2.56.19',
     date: '2026-10-08',
     en: [

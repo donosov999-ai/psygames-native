@@ -11,6 +11,7 @@ import '../../shell/shared_state.dart';
 import 'all_words_board.dart';
 import 'model.dart';
 import 'teach.dart';
+import 'mode_switch.dart';
 import 'word_lang.dart';
 
 /// Экран «Все слова» — второй режим анаграмм.
@@ -224,6 +225,8 @@ class _AllWordsScreenState extends State<AllWordsScreen> {
           onPressed: _hintsUsed < _hintsPerRound ? _hint : null,
         ),
         AuxAction(icon: Icons.shuffle, label: L.t('shuffleBtn'), onPressed: _shuffle),
+        // Выбор режима — иначе остальные три игры анаграмм недостижимы (см. mode_switch.dart).
+        if (anagramModeSwitchShown) anagramModeAction(context, widget.state, AnagramMode.all),
       ]),
       toolbar: Padding(
         padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),

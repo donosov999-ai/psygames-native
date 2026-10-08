@@ -12,6 +12,7 @@ import 'crossword.dart';
 import 'crossword_board.dart';
 import 'model.dart';
 import 'teach.dart';
+import 'mode_switch.dart';
 import 'word_lang.dart';
 
 /// Экран «Кроссворд» — третий режим анаграмм.
@@ -212,6 +213,8 @@ class _CrosswordScreenState extends State<CrosswordScreen> {
           onPressed: _hintsLeft > 0 ? _hint : null,
         ),
         AuxAction(icon: Icons.shuffle, label: L.t('shuffleBtn'), onPressed: _shuffle),
+        // Выбор режима — иначе остальные три игры анаграмм недостижимы (см. mode_switch.dart).
+        if (anagramModeSwitchShown) anagramModeAction(context, widget.state, AnagramMode.cross),
       ]),
       toolbar: Padding(
         padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
