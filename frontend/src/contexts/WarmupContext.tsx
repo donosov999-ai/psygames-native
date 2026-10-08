@@ -14,7 +14,7 @@ import { localSpatialHost, spatialWarmupPlaylist } from '@/src/games/spatial-cor
 import { isGameAllowed } from '@/src/constants/profiles';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { fbCorrect, fbComplete } from '@/src/services/feedback';
-import { hostInfo, hostLeadsBetween, hostRendersNatively, postToHost, stepDoneMessage } from '@/src/services/hostWarmup';
+import { hostInfo, hostLeadsBetween, hostLeadsFinish, hostRendersNatively, lastStepMessage, postToHost, stepDoneMessage } from '@/src/services/hostWarmup';
 import { isHostSession } from '@/src/services/nativeSessionBridge';
 
 export interface StepResult {
@@ -524,6 +524,16 @@ export function WarmupProvider({ children }: { children: React.ReactNode }) {
         if (stepDonePostedRef.current === key) return;
         const msg = stepDoneMessage(cur.meta, idxAtSave, { score: s.score, time_seconds: s.time_seconds, errors: s.errors });
         if (msg && postToHost(msg)) { stepDonePostedRef.current = key; return; }
+      }
+      /**
+       * 🔴 ПОСЛЕДНИЙ ШАГ НАТИВНЫЙ — КОНЕЦ ВЕДЁТ ОБОЛОЧКА (08.10.2026, iPhone, «окно висит после 6/6»).
+       * Свой таймер здесь не ставим: под нативной игрой невидимый WebView iOS его придерживает.
+       * Оболочка подождёт сама, снимет игру и позовёт `advance` (`services/hostWarmup.ts`).
+       */
+      if (hostLeadsFinish(step, cur.meta.steps[idxAtSave + 1])) {
+        const key = `${cur.startTime}:${idxAtSave}`;
+        if (stepDonePostedRef.current === key) return;
+        if (postToHost(lastStepMessage(cur.meta, idxAtSave))) { stepDonePostedRef.current = key; return; }
       }
       advanceTimerRef.current = setTimeout(() => {
         advanceTimerRef.current = null;

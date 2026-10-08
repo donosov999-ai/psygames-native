@@ -176,7 +176,8 @@ export function sideModeBuilder(mode: SideMode, step: number): {
   return {
     steps: 4,
     step: () => {
-      const r = generateLogical(step, cfg.blanks, N, BR, BC, 'unequal', { budgetMs: 1500, tier: cfg.band });
+      // logic: false — мини-лестница режима собирается прежним путём (не логическим лестницы).
+      const r = generateLogical(step, cfg.blanks, N, BR, BC, 'unequal', { budgetMs: 1500, tier: cfg.band, logic: false });
       const gen = r.gen as GeneratedPuzzle & { unequal?: UnequalMap };
       const tier = r.grade.solved ? r.grade.tier : null;
       // «Знаки нужны» = без знаков классические техники доску НЕ закрывают.

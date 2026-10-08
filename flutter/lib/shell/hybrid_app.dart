@@ -880,6 +880,10 @@ class _HybridAppState extends State<HybridApp> {
         unawaited(_warmupStepDone(Map<String, Object?>.from(m)));
         return;
       }
+      if (m is Map && m['op'] == 'warmupLastStepDone') {
+        unawaited(_warmupLastStepDone(Map<String, Object?>.from(m)));
+        return;
+      }
       if (m is Map && m['op'] == 'route') {
         final url = '${m['url']}';
         if (_onPagePath(url)) {
@@ -1277,6 +1281,32 @@ class _HybridAppState extends State<HybridApp> {
         _closeNativeBecausePageMoved();
         await _c.runJavaScript('window.__psyWarmupHost && window.__psyWarmupHost.stop();');
     }
+  }
+
+  /*
+   * 🔴 ПОСЛЕДНИЙ ШАГ ЗАРЯДКИ НАТИВНЫЙ — КОНЕЦ ВЕДЁТ ОБОЛОЧКА (08.10.2026, Денис, iPhone: «зарядка
+   * закончилась, а окно продолжает висеть, не закрывается автоматом», кадр «6/6», N-back).
+   * Раньше после последней партии веб ставил СВОЙ таймер на 2 с и уходил на итог сменой адреса —
+   * а под нативной игрой невидимому WebView iOS таймеры придерживаются: 2 с не наступали.
+   * Теперь ждём здесь (таймер Dart), снимаем игру — страница становится видна — и только потом
+   * просим её перейти: `advance` уводит на `/warmup-complete`, перехват откроет итог.
+   * Повтор того же шага — тот же замок, что у [_warmupStepDone].
+   */
+  Future<void> _warmupLastStepDone(Map<String, Object?> m) async {
+    final from = m['fromIdx'];
+    if (from is! num) return;
+    final now = DateTime.now();
+    if (from.toInt() == _stepDoneFrom &&
+        _stepDoneAt != null && now.difference(_stepDoneAt!) < const Duration(minutes: 1)) {
+      return;
+    }
+    _stepDoneFrom = from.toInt();
+    _stepDoneAt = now;
+    // Игра успевает показать свой итог — как между шагами (2 с, вечером 3,5).
+    await Future<void>.delayed(Duration(milliseconds: m['evening'] == true ? 3500 : 2000));
+    if (!mounted) return;
+    _closeNativeBecausePageMoved();
+    await _c.runJavaScript('window.__psyWarmupHost && window.__psyWarmupHost.advance(${from.toInt()});');
   }
 
   /// Возвращает, ушёл ли человек с экрана САМ (назад) — а не страница увела его дальше и

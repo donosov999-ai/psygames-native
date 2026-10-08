@@ -221,3 +221,39 @@ it('🔴 отчёт 02d98918: фантом и нативная партия од
   expect(ctx.active).toBe(true);
 });
 
+it('🔴 08.10 Денис: ПОСЛЕДНИЙ шаг нативный — конец ведёт оболочка: «последний готов» ей, свой таймер не ставим', async () => {
+  оболочка(['/games/digit-span', '/games/schulte']);
+  await партия([ЦИФРЫ, ШУЛЬТЕ]);                         // шаг 0 сыгран, «готов» ушёл оболочке
+  await act(async () => { w.__psyWarmupHost.goTo(1); });  // оболочка открыла последний шаг
+  await act(async () => { jest.advanceTimersByTime(10); });
+  mockReplace.mockClear();
+  posted.length = 0;
+  await act(async () => { await mockListener!(нативная('schulte_table')); });
+  await act(async () => { jest.advanceTimersByTime(4000); });
+  expect(ctx.results).toHaveLength(2);
+  expect(posted).toEqual([{ op: 'warmupLastStepDone', fromIdx: 1, total: 2, evening: false }]);
+  // Сам на итог не уходит: под нативной игрой таймер страницы на iPhone не наступает.
+  expect(mockReplace).not.toHaveBeenCalledWith('/warmup-complete');
+  // Оболочка сняла игру и позвала advance — страница уходит на итог.
+  await act(async () => { w.__psyWarmupHost.advance(1); });
+  await act(async () => { jest.advanceTimersByTime(10); });
+  expect(mockReplace).toHaveBeenCalledWith('/warmup-complete');
+});
+
+it('последний шаг, оболочки нет — прежний путь: страница сама уходит на итог', async () => {
+  await партия([ЦИФРЫ]);                                 // один шаг: он же последний
+  expect(posted).toHaveLength(0);
+  expect(mockReplace).toHaveBeenCalledWith('/warmup-complete');
+});
+
+it('последний шаг — веб-игра: оболочке ничего, страница сама уходит на итог', async () => {
+  оболочка(['/games/digit-span']);
+  await партия([ЦИФРЫ, ВЕБ]);                            // шаг 0 нативный, дальше веб — мост веба
+  mockReplace.mockClear();
+  posted.length = 0;
+  await act(async () => { await mockListener!({ id: 'web-last', game_type: 'tetris', score: 3, time_seconds: 30, errors: 0, details: {} }); });
+  await act(async () => { jest.advanceTimersByTime(4000); });
+  await act(async () => { jest.advanceTimersByTime(10); });
+  expect(posted).toHaveLength(0);
+  expect(mockReplace).toHaveBeenCalledWith('/warmup-complete');
+});
