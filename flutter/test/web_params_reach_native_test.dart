@@ -12,9 +12,14 @@ import 'package:flutter_test/flutter_test.dart';
 ///
 /// ⚠️ РАЗБОР — ТОТ ЖЕ, ЧТО У СКРИПТА ЗАМЕРА (`words-chat/measure/2026-10-07_web-params-native.py`):
 /// маршруты — из карты нативных экранов `hybrid_app.dart`; параметры веба — `bool|str|num('x')` в
-/// `frontend/app/games/<имя>.tsx`; «натив читает» — строка `'x'` в `lib/games/<имя_с_подчёркиванием>/`
-/// или `x=` в карте маршрутов. Разбор грубый: натив мог читать параметр под другим именем. Тогда
-/// параметр надо назвать так же, а не держать здесь строку.
+/// `frontend/app/games/<имя>.tsx`; «натив читает» — ЧТЕНИЕ параметра в `lib/games/<имя_с_подчёркиванием>/`
+/// (`GamePreset.str|num|flag('x'` или `GamePreset.params['x']`) или ключ СВОЕГО маршрута в карте
+/// (`'/games/<имя>?…x=…'`). Натив мог читать параметр под другим именем — тогда назвать так же.
+///
+/// 🔴 СТРОЖЕ С 07.10.2026 (замер «Внимания» по «Корректуре»): раньше «читает» засчитывалось по ЛЮБОЙ
+/// строке `'x'` в папке экрана — `'rows'`/`'cols'` стояли в карте условия партии
+/// (`proofreading/model.dart`, `condition`), а натив их не читал: шаг зарядки шёл с полем уровня. И `x=`
+/// искалось по всей карте: `mode=` есть у ключей «Анаграмм» и «Судоку», и `mode` засчитывался ВСЕМ.
 ///
 /// 🔴 ХРАПОВИК, А НЕ СТЕНА. Потери, найденные замером, записаны в [lostWithReason] с причиной или
 /// задачей владельца. Новая потеря — красный. Починенная — тоже красный, пока строку отсюда не
@@ -23,10 +28,31 @@ import 'package:flutter_test/flutter_test.dart';
 /// Параметры каркаса: их читает `GamePreset`, а не экран.
 const _shellParams = {'wu', 'auto', 'ladderGame'};
 
-/// Снятые потери: маршрут → параметр → почему (решение, задача, PR). Замер 07.10.2026 на 7679684ac.
+/// Снятые потери: маршрут → параметр → почему (решение, задача, PR). Первый замер 07.10.2026 на
+/// 7679684ac (14 потерь у 9 экранов); строгий — 07.10 на c614cb2ae (37 у 20, новые — задача 3e685a46);
+/// сведён с main 2.56.17 (сняты починенные anagrams/targetLang #272, find-differences/diffCount #185) — 35 у 19;
+/// сведён с main 2.56.18 (сняты починенные dots-connect/level и one-line/level #302, proofreading cols/rows/mode #290,
+/// proofreading/taskMode #293) — 29 у 17.
+const _t = 'строгий замер 07.10, задача 3e685a46 (координатор раздаёт)';
 const lostWithReason = <String, Map<String, String>>{
   '/games/anagrams': {
     'length': 'не дефект: решение Дениса 09.09 «зарядка с личного уровня» — длину слова ведёт лестница',
+  },
+  '/games/math-slider': {'trials': _t},
+  '/games/math-sprint': {
+    'diff': _t,
+    'duration': '«Поиск»: длительность из адреса',
+  },
+  '/games/number-bonds': {'diff': _t, 'trials': _t},
+  '/games/prl': {'diff': _t},
+
+  '/games/scholars-mate': {
+    'drill': '«Шахматы»',
+    'flow': '«Шахматы»',
+    'seed': '«Шахматы»',
+    'level': _t,
+    'mix': _t,
+    'motif': _t,
   },
   '/games/schulte': {
     'series': 'задача 1b6338c1 («Поиск»)',
@@ -35,20 +61,19 @@ const lostWithReason = <String, Map<String, String>>{
   '/games/sdmt': {
     'duration': '«Поиск»: длительность — настройка, по решению 09.09 остаётся за шагом; потеря похожа на настоящую',
   },
-  '/games/math-sprint': {
-    'duration': '«Поиск»: длительность из адреса',
-  },
-  '/games/scholars-mate': {
-    'drill': '«Шахматы»',
-    'flow': '«Шахматы»',
-    'seed': '«Шахматы»',
+  '/games/stroop': {'mode': _t, 'trials': _t},
+  '/games/stroop-emotional': {'trials': _t},
+  '/games/sudoku': {
+    'diff': 'не дефект (раздел «Судоку», задача 67490534; замер каркаса 08.10 по main 33af6e413): зарядка шлёт diff '
+        '(5 шагов в constants/profiles.ts → stepToParams: p.diff = step.difficulty), но веб в зарядке играет в режиме '
+        'лестницы (modeRef «levels», шаг mode не задаёт) и diff там не читает — blanksFor(size, difficulty) только вне '
+        'levels (sudoku.tsx:952); в нативе трудность ведёт лестница (freePreset) — решение Дениса 09.09 «с личного уровня»',
   },
   '/games/switching-task': {
-    'stimMode': '«Внимание»: вид стимулов из адреса',
+    'stimMode': '«Внимание»: вид стимулов из адреса — читается в PR #287',
   },
-  '/games/spatial-lab': {
-    'seed': '«Пространство»: зерно раскладки из адреса',
-  },
+  '/games/targets': {'level': _t, 'mode': _t},
+  '/games/visual-search': {'trials': _t},
 };
 
 /// Замер: маршрут → параметры, которые веб читает, а натив — нет.
@@ -69,7 +94,16 @@ Map<String, Set<String>> measureLost() {
       native.write(f.readAsStringSync());
     }
     final text = native.toString();
-    final miss = {for (final p in params) if (!text.contains("'$p'") && !hybrid.contains('$p=')) p};
+    // Ключи СВОЕГО маршрута в карте: '/games/<имя>?a=1&b=2' — параметры a, b.
+    final own = {
+      for (final k in RegExp("'${RegExp.escape(route)}\\?([^']*)'").allMatches(hybrid))
+        for (final pair in k.group(1)!.split('&')) pair.split('=').first,
+    };
+    bool reads(String p) =>
+        RegExp("GamePreset\\.(?:str|num|flag)\\(\\s*'${RegExp.escape(p)}'").hasMatch(text) ||
+        text.contains("GamePreset.params['$p']") ||
+        own.contains(p);
+    final miss = {for (final p in params) if (!reads(p)) p};
     if (miss.isNotEmpty) lost[route] = miss;
   }
   return lost;
@@ -82,9 +116,11 @@ void main() {
     final hybrid = File('lib/shell/hybrid_app.dart').readAsStringSync();
     expect(RegExp(r"'(/games/[^'?]+)(?:\?[^']*)?'\s*:").allMatches(hybrid).length, greaterThan(30),
         reason: 'карта нативных экранов прочитана');
-    // Хотя бы один параметр, который натив ЧИТАЕТ, — иначе «не читает ничего» прошло бы вслепую.
-    expect(File('../frontend/app/games/proofreading.tsx').readAsStringSync(), contains("num('cols'"));
-    expect(lost['/games/proofreading'] ?? const {}, isNot(contains('cols')), reason: 'cols натив читает');
+    // Хотя бы один параметр, который натив ЧИТАЕТ НА САМОМ ДЕЛЕ (GamePreset.str), — иначе «не читает
+    // ничего» прошло бы вслепую. Прежний контроль («cols» у «Корректуры») был ложным: строка 'cols'
+    // стояла в карте условия партии, а не в чтении параметра.
+    expect(File('../frontend/app/games/anagrams.tsx').readAsStringSync(), contains("str('targetLang'"));
+    expect(File('lib/games/anagrams/screen.dart').existsSync() ? 'есть' : 'нет', 'есть');
   });
 
   test('🔴 новая потеря параметра — красный: каждая потеря снята с причиной', () {

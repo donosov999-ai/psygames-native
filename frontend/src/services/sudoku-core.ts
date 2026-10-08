@@ -11,7 +11,7 @@
 import { translateFor } from '../contexts/LanguageContext';
 
 export type Cell = number; // 0 = empty
-export type Variant = 'none' | 'diagonal' | 'antiknight' | 'hyper' | 'nonconsec' | 'jigsaw' | 'antiking' | 'evenodd' | 'kropki' | 'sandwich' | 'thermo' | 'arrow' | 'thermocage' | 'unequal' | 'towers' | 'sandparity' | 'thermoknight' | 'killerdiag' | 'whisper' | 'renban' | 'regionsum' | 'palindrome' | 'between' | 'lockout' | 'xv' | 'argyle' | 'littlekiller' | 'xsums' | 'cipher' | 'fog' | 'chaos' | 'friends';
+export type Variant = 'none' | 'diagonal' | 'antiknight' | 'hyper' | 'nonconsec' | 'jigsaw' | 'antiking' | 'evenodd' | 'kropki' | 'sandwich' | 'thermo' | 'arrow' | 'thermocage' | 'unequal' | 'towers' | 'sandparity' | 'thermoknight' | 'killerdiag' | 'whisper' | 'renban' | 'regionsum' | 'palindrome' | 'between' | 'lockout' | 'xv' | 'argyle' | 'littlekiller' | 'xsums' | 'cipher' | 'fog' | 'chaos' | 'schrodinger' | 'doublers' | 'negators' | 'killer' | 'wordoku' | 'animals' | 'friends';
 // 'friends' — «Мяу — друзья» 9×9 (у кота мышь рядом): генератора на TS нет, доски ступеней — только
 // выгрузкой MindLab (flutter/tools/meow9-ladder.cjs, export_kids_boards.py --meow9).
 
@@ -242,7 +242,7 @@ export function inHyper(r: number, c: number): readonly [number, number] | null 
 /** v1.137: подписи/правила вариантов живут в словаре LanguageContext
  *  (sudokuVariant* / sudokuRule*) — берутся через translateFor, чтобы 10
  *  оверлейных языков не падали на английский. lang — код языка ('ru'|'en'|…). */
-const VARIANT_KEY_SUFFIX: Record<Exclude<Variant, 'none' | 'friends'>, string> = {
+const VARIANT_KEY_SUFFIX: Record<Exclude<Variant, 'none' | 'friends' | 'killer' | 'wordoku' | 'animals'>, string> = {
   diagonal: 'Diagonal', antiknight: 'Antiknight', hyper: 'Hyper', nonconsec: 'Nonconsec',
   jigsaw: 'Jigsaw', antiking: 'Antiking', evenodd: 'Evenodd', kropki: 'Kropki',
   sandwich: 'Sandwich', thermo: 'Thermo', arrow: 'Arrow', thermocage: 'Thermocage',
@@ -262,17 +262,29 @@ const VARIANT_KEY_SUFFIX: Record<Exclude<Variant, 'none' | 'friends'>, string> =
   cipher: 'Cipher',
   fog: 'Fog',
   chaos: 'Chaos',
+  schrodinger: 'Schrodinger',
+  doublers: 'Doublers',
+  negators: 'Negators',
 };
 // «Мяу — друзья»: имя и правило — одна короткая строка «🐱 рядом с 🐭», та же, что у натива
 // (sdkRule_friends, 12 языков); отдельных sudokuVariant*/sudokuRule* у варианта нет.
+// Киллер на лестнице (08.10): имя и правило — те же строки, что у режима «Киллер» (sudokuModeKiller,
+// sudokuKillerRule; 12 языков), а не новые sudokuVariant*/sudokuRule*.
 export function variantLabel(v: Variant, lang: string): string {
   if (v === 'none') return '';
   if (v === 'friends') return translateFor(lang, 'sdkRule_friends');
+  if (v === 'killer') return translateFor(lang, 'sudokuModeKiller');
+  // Wordoku и звери на лестнице (08.10) — классика значками: строки скина (12 языков), без новых ключей.
+  if (v === 'wordoku') return translateFor(lang, 'sudokuSkinLetters');
+  if (v === 'animals') return translateFor(lang, 'sudokuSkinAnimals');
   return translateFor(lang, 'sudokuVariant' + VARIANT_KEY_SUFFIX[v]);
 }
 export function variantRule(v: Variant, lang: string): string {
   if (v === 'none') return '';
   if (v === 'friends') return translateFor(lang, 'sdkRule_friends');
+  if (v === 'killer') return translateFor(lang, 'sudokuKillerRule');
+  if (v === 'wordoku') return translateFor(lang, 'sudokuSkinLetters');
+  if (v === 'animals') return translateFor(lang, 'sudokuSkinAnimals');
   return translateFor(lang, 'sudokuRule' + VARIANT_KEY_SUFFIX[v]);
 }
 
@@ -607,7 +619,23 @@ export function levelConfig(level: number): LevelCfg {
   // 137–140 «туман войны» (6aecf181 п.11, задача efb63126) — тем же порядком, сразу за шифром.
   else if (lv >= 137 && lv <= 140) variant = 'fog';
   // 141–144 «самосборка» (6aecf181 п.12, задача 6cee3610) — тем же порядком, сразу за туманом.
-  else if (lv >= 141) variant = 'chaos';
+  else if (lv >= 141 && lv <= 144) variant = 'chaos';
+  // 145–148 «клетки Шрёдингера» (6aecf181 п.13, задача f46c796c) — тем же порядком, сразу за самосборкой.
+  else if (lv >= 145 && lv <= 148) variant = 'schrodinger';
+  // 149–152 «Мяу — друзья» 9×9 (план уровней, задача e7260a11): доски — выгрузкой MindLab
+  // (flutter/assets/levels/sudoku-meow9-boards.json, #211), генератора на TS нет; готово раньше
+  // Wordoku и зверей — встаёт первым.
+  else if (lv >= 149 && lv <= 152) variant = 'friends';
+  // 153–180 — блоки плана, собранные разделом вариантами лестницы 08.10 (#310–#313, задача e7260a11):
+  // Wordoku и звери (#313), киллер (#311), наши небоскрёбы и неравенства (#312), удвоители и
+  // отрицательные (#310, «клетки-нарушители» типы 2–3).
+  else if (lv >= 153 && lv <= 156) variant = 'wordoku';
+  else if (lv >= 157 && lv <= 160) variant = 'animals';
+  else if (lv >= 161 && lv <= 164) variant = 'killer';
+  else if (lv >= 165 && lv <= 168) variant = 'towers';
+  else if (lv >= 169 && lv <= 172) variant = 'unequal';
+  else if (lv >= 173 && lv <= 176) variant = 'doublers';
+  else if (lv >= 177) variant = 'negators';
   /**
    * 🔴 НЕРАВЕНСТВА (футосики) СОБРАНЫ, НО УРОВНЕЙ НЕ ПОЛУЧИЛИ — ЗАМЕР 26.08.2026.
    *
@@ -647,10 +675,17 @@ export function levelConfig(level: number): LevelCfg {
   // Ось трудности ВНУТРИ блока у правил-подсказок — лимит копания (`digCap`, PR #258), а не число
   // подсказок: замер раздела 07.10 — X-суммы 64 → 70 цена 129 → 151, малый киллер 145 → 159;
   // к 76 насыщается (выкапывается не больше ~68). Ступени блока: 64 → 67 → 70 → 70.
-  const digCap = variant === 'littlekiller' || variant === 'xsums'
+  // Киллер лестницы (замер раздела 08.10: 64 — ступень 4 у 18/18, 70 — пятёрка у 8/18) — та же
+  // ось. Наши небоскрёбы и неравенства — 56 → 64 (замер 08.10: цена 67 → 94 и 88 → 140).
+  const digCap = variant === 'littlekiller' || variant === 'xsums' || variant === 'killer'
     ? [64, 67, 70, 70][(lv - 1) % 4]
-    : undefined;
-  return { size, N, BR, BC, blanks, variant, hintMax, lives: livesFor(lv), ...(digCap ? { digCap } : {}) };
+    : variant === 'towers' || variant === 'unequal'
+      ? [56, 60, 64, 64][(lv - 1) % 4]
+      : undefined;
+  // «Мяу»: пустых столько, сколько у выгруженных досок ступени (подсказок 30 → 28 → 26 → 24) —
+  // выгрузчик (meow9-ladder.cjs) сверяет и падает при расхождении.
+  const blanksOut = variant === 'friends' ? 81 - [30, 28, 26, 24][(lv - 1) % 4] : blanks;
+  return { size, N, BR, BC, blanks: blanksOut, variant, hintMax, lives: livesFor(lv), ...(digCap ? { digCap } : {}) };
 }
 
 /**
@@ -1816,7 +1851,7 @@ export function countSolutions(grid: Cell[][], N: number, BR: number, BC: number
 // thermocage здесь ОБЯЗАН быть: единственность решения у него считается по ДВУМ
 // правилам сразу (isValid знает и цепочку, и сумму). Доска, единственная по каждому
 // правилу порознь, вместе может иметь второе решение — и наоборот.
-const UNIQUE_CHECKED: readonly Variant[] = ['none', 'diagonal', 'antiknight', 'hyper', 'nonconsec', 'antiking', 'jigsaw', 'thermo', 'arrow', 'evenodd', 'kropki', 'sandwich', 'thermocage', 'unequal', 'towers', 'sandparity', 'thermoknight', 'killerdiag', 'whisper', 'renban', 'regionsum', 'palindrome', 'between', 'lockout', 'xv', 'argyle', 'littlekiller', 'xsums', 'cipher', 'fog'];
+const UNIQUE_CHECKED: readonly Variant[] = ['none', 'diagonal', 'antiknight', 'hyper', 'nonconsec', 'antiking', 'jigsaw', 'thermo', 'arrow', 'evenodd', 'kropki', 'sandwich', 'thermocage', 'unequal', 'towers', 'sandparity', 'thermoknight', 'killerdiag', 'whisper', 'renban', 'regionsum', 'palindrome', 'between', 'lockout', 'xv', 'argyle', 'littlekiller', 'xsums', 'cipher', 'fog', 'killer', 'wordoku', 'animals'];
 
 /**
  * Готовая сетка для «несоседних чисел» — БЕЗ перебора.
@@ -1878,6 +1913,13 @@ export function generatePuzzle(blanks: number, N: number, BR: number, BC: number
     // нарушен, дал бы доску без решения), термометры — из этого решения.
     solve(sol, N, BR, BC, 'antiknight');
     thermo = thermoFromSolution(sol, N);
+  } else if (variant === 'killer') {
+    // Киллер на лестнице (08.10): вся доска разбита на группы-суммы (generateCages, как у режима), но
+    // копает его логический путь с мерой сумм — доска единственна ТОЛЬКО с суммами. У режима «Киллер»
+    // суммы лежат поверх доски, которая единственна и без них (killerBlanksForStep), — там они
+    // украшение, а не правило.
+    solve(sol, N, BR, BC, 'none');
+    cages = generateCages(sol, N);
   } else if (variant === 'killerdiag') {
     // Комбо: решение уважает диагонали, клетки-суммы островами из него же
     // (generateThermoCages — несмотря на имя, она про острова, а не про термометр).
@@ -1909,7 +1951,7 @@ export function generatePuzzle(blanks: number, N: number, BR: number, BC: number
   // Шифр: единственность считается по задаче игрока — подсказки на клетках-буквах там буквы, не цифры.
   const letters = variant === 'cipher' ? cipherLetters(sol, N) : null;
   const solutions = (p: Cell[][]) => {
-    if (!letters) return countSolutions(p, N, BR, BC, effVariant, regions, 2, { steps: 8000 }, thermo, arrow, (effVariant === 'thermocage' || effVariant === 'killerdiag') ? cages : undefined, ov);
+    if (!letters) return countSolutions(p, N, BR, BC, effVariant, regions, 2, { steps: 8000 }, thermo, arrow, (effVariant === 'thermocage' || effVariant === 'killerdiag' || effVariant === 'killer') ? cages : undefined, ov);
     const enc = encodeCipher(p, letters);
     return countSolutions(enc.puzzle, N, BR, BC, 'none', undefined, 2, { steps: 8000 }, undefined, undefined, undefined, { ...ov, cipher: enc.cipher });
   };

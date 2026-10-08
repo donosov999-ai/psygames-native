@@ -1,8 +1,7 @@
 import 'dart:convert';
 import 'dart:math' as math;
 
-import 'package:flutter/services.dart' show rootBundle;
-
+import 'asset_json.dart';
 import 'l10n.dart';
 import 'shared_state.dart';
 import 'web_theme.dart';
@@ -38,7 +37,7 @@ class Progression {
 
   /// Таблицы из сборки (один раз за запуск).
   static Future<Progression> load() async =>
-      _cache ??= Progression.fromJson((jsonDecode(await rootBundle.loadString('assets/progression.json')) as Map).cast<String, Object?>());
+      _cache ??= Progression.fromJson(await loadJsonAsset('assets/progression.json'));
 
   /// `standingFor` веба: лига, ранг 1..ranksPerLeague, очки до следующего ранга (null — выше некуда).
   ({int league, int rank, int? toNext, double progress}) standingFor(num seasonPoints) {

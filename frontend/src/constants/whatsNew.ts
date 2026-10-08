@@ -16,6 +16,38 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.56.20',
+    date: '2026-10-08',
+    en: [
+      'Sudoku: the ladder grows to 180 steps — Wordoku, Animals, Killer, our Towers and Inequalities, Doublers and Negators join it',
+      'Anagrams: the mode switch is back — All words, Crossword and Square can be played again',
+      'Spatial Lab: the Pipe Network card opens Pipe Network, and warm-up steps start right away; the Mental Rotation warm-up plays the intended number of trials',
+      'Home and Progress are calculated natively — they open faster',
+    ],
+    ru: [
+      '«Судоку»: лестница выросла до 180 ступеней — на ней Wordoku, звери, киллер, наши небоскрёбы и неравенства, удвоители и отрицательные',
+      'Анаграммы: вернулся выбор режима — снова можно играть «Все слова», кроссворд и квадрат',
+      '«Лаборатория пространства»: карточка «Сеть труб» открывает «Сеть труб», а шаг зарядки начинается сразу; в зарядке «Вращение» играет столько проб, сколько задумано',
+      'Главная и «Прогресс» считаются нативно — открываются быстрее',
+    ],
+  },
+  {
+    version: '2.56.19',
+    date: '2026-10-08',
+    en: [
+      'Sudoku: three new rules — Schrödinger cells (digits 0–9, one cell in each row holds two digits), Doublers and Negators (hidden cells change the sums)',
+      'Sudoku: the ladder grows to 152 steps — Schrödinger cells and Meow Friends join it; in Schrödinger cells you can pencil in 0',
+      'Warm-up: the night set card now describes what is really in it',
+      'iPhone: after the last step of a warm-up the game window closes instead of hanging',
+    ],
+    ru: [
+      '«Судоку»: три новых правила — «клетки Шрёдингера» (цифры 0–9, в одной клетке ряда две цифры), «удвоители» и «отрицательные» (скрытые клетки меняют суммы)',
+      '«Судоку»: лестница выросла до 152 ступеней — на ней «клетки Шрёдингера» и «Мяу — друзья»; в клетке Шрёдингера можно пометить карандашом «0»',
+      'Зарядка: подпись ночного набора теперь говорит, что в нём на самом деле',
+      'iPhone: после последнего шага зарядки окно игры закрывается, а не висит',
+    ],
+  },
+  {
     version: '2.56.18',
     date: '2026-10-07',
     en: [

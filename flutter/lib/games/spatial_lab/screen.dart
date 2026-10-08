@@ -6,6 +6,7 @@ import 'package:flutter/services.dart' show rootBundle;
 
 import '../../shell/aux_action.dart';
 import '../../shell/demo_lesson.dart';
+import '../../shell/game_preset.dart';
 import '../../shell/l10n.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/level_ladder.dart';
@@ -47,6 +48,11 @@ String labRules(LabMode mode) => switch (mode) {
 };
 
 enum LabPhase { config, playing }
+
+/// Упражнение по `mode` адреса — правило веба (`spatial-lab.tsx`, `ИЗ_АДРЕСА`): незнакомое или
+/// пустое значение — «Поворот чисел».
+LabMode labModeFromAddress(String mode) =>
+    LabMode.values.firstWhere((m) => m.name == mode, orElse: () => LabMode.twiddle);
 
 class SpatialLabScreen extends StatefulWidget {
   const SpatialLabScreen({super.key, required this.state, this.seed, this.banks, this.now});
@@ -119,16 +125,27 @@ class _SpatialLabScreenState extends State<SpatialLabScreen> {
     if (!mounted) return;
     setState(() {
       _banks = banks;
+      _mode = labModeFromAddress(GamePreset.str('mode'));
       _chosenLevel = _ladder.level;
       _ready = true;
     });
+    // 🔴 ШАГ ЗАРЯДКИ — СРАЗУ В ПАРТИЮ, тем уровнем и тем зерном, что в адресе: веб
+    // (`spatial-lab.tsx`) отдаёт `SpatialLab` готовый `preset={mode, level, seed}` и пропускает
+    // настройку. До 08.10.2026 натив адрес не читал вовсе: карточка «Сеть труб» развилки
+    // (`/games/spatial-lab?mode=net`) открывала «Поворот чисел», а шаг — экран настройки.
+    if (GamePreset.isPreset) {
+      _request(
+        GamePreset.num('level', 1).clamp(1, 50),
+        seed: GamePreset.num('seed', 42).clamp(0, 0xffffffff),
+      );
+    }
   }
 
   LevelLadder get _ladder => _ladders[_mode]!;
 
   /// Новая раздача. `level == 0` — свободная игра: лестницу она не двигает.
-  void _request(int level) {
-    final seed = widget.seed ?? _random.nextInt(0xffffffff);
+  void _request(int level, {int? seed}) {
+    seed ??= widget.seed ?? _random.nextInt(0xffffffff);
     final deal = createDeal(_mode, seed, level: level, banks: _banks);
     setState(() {
       _deal = deal;

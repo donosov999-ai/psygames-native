@@ -751,7 +751,7 @@ class _HybridAppState extends State<HybridApp> {
     if (tab == null) return 0;
     final i = _bodyTabs.indexOf(tab) + 1;
     if (i == 0) return 0;
-    if (!ScreenUi.routes.contains(tab) || ScreenUi.model(tab).value != null) return i;
+    if (!ScreenUi.routes.contains(tab) || _ownModel.contains(tab) || ScreenUi.model(tab).value != null) return i;
     _modelTimers[tab] ??= Timer(_modelWait, () {
       if (mounted) setState(() => _modelGaveUp.add(tab));
     });
@@ -759,6 +759,10 @@ class _HybridAppState extends State<HybridApp> {
   }
 
   static const _modelWait = Duration(seconds: 6);
+
+  /// Вкладки, которые считают модель сами (вариант Б, d6a60b02): модели страницы не ждут, и запасной
+  /// показ страницы им не нужен.
+  static const _ownModel = {StatsScreen.route};
   final _modelTimers = <String, Timer>{};
   final _modelGaveUp = <String>{};
 
@@ -875,6 +879,10 @@ class _HybridAppState extends State<HybridApp> {
       }
       if (m is Map && m['op'] == 'warmupStepDone') {
         unawaited(_warmupStepDone(Map<String, Object?>.from(m)));
+        return;
+      }
+      if (m is Map && m['op'] == 'warmupLastStepDone') {
+        unawaited(_warmupLastStepDone(Map<String, Object?>.from(m)));
         return;
       }
       if (m is Map && m['op'] == 'route') {
@@ -1273,6 +1281,32 @@ class _HybridAppState extends State<HybridApp> {
     }
   }
 
+  /*
+   * 🔴 ПОСЛЕДНИЙ ШАГ ЗАРЯДКИ НАТИВНЫЙ — КОНЕЦ ВЕДЁТ ОБОЛОЧКА (08.10.2026, Денис, iPhone: «зарядка
+   * закончилась, а окно продолжает висеть, не закрывается автоматом», кадр «6/6», N-back).
+   * Раньше после последней партии веб ставил СВОЙ таймер на 2 с и уходил на итог сменой адреса —
+   * а под нативной игрой невидимому WebView iOS таймеры придерживаются: 2 с не наступали.
+   * Теперь ждём здесь (таймер Dart), снимаем игру — страница становится видна — и только потом
+   * просим её перейти: `advance` уводит на `/warmup-complete`, перехват откроет итог.
+   * Повтор того же шага — тот же замок, что у [_warmupStepDone].
+   */
+  Future<void> _warmupLastStepDone(Map<String, Object?> m) async {
+    final from = m['fromIdx'];
+    if (from is! num) return;
+    final now = DateTime.now();
+    if (from.toInt() == _stepDoneFrom &&
+        _stepDoneAt != null && now.difference(_stepDoneAt!) < const Duration(minutes: 1)) {
+      return;
+    }
+    _stepDoneFrom = from.toInt();
+    _stepDoneAt = now;
+    // Игра успевает показать свой итог — как между шагами (2 с, вечером 3,5).
+    await Future<void>.delayed(Duration(milliseconds: m['evening'] == true ? 3500 : 2000));
+    if (!mounted) return;
+    _closeNativeBecausePageMoved();
+    await _c.runJavaScript('window.__psyWarmupHost && window.__psyWarmupHost.advance(${from.toInt()});');
+  }
+
   /// Возвращает, ушёл ли человек с экрана САМ (назад) — а не страница увела его дальше и
   /// не выбор в развилке/каталоге открыл следующий экран. По этому признаку выбор
   /// открывается снова, когда человек вернулся из выбранной в нём игры.
@@ -1476,7 +1510,7 @@ class _HybridAppState extends State<HybridApp> {
             else
               const SizedBox.shrink(),
             // «Прогресс» по модели веба (6ff4a966): считает страница под ним на `/statistics`.
-            StatsScreen(onTab: _selectTab),
+            StatsScreen(onTab: _selectTab, state: widget.state),
             // Календарь серии (cd77367d) и итог оценки (455d71b1) — страницы, не вкладки.
             StreakCalendarScreen(state: widget.state),
             const AssessmentResultScreen(),
