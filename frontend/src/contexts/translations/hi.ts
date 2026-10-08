@@ -2847,6 +2847,7 @@ const t: Record<string, string> = {
   "puzzleHudGems": "रत्न",
   "puzzleHudRegion": "क्षेत्र",
   "puzzleShowSolution": "हल दिखाएँ",
+  "puzzleZoom": "बड़ा करें",
   "puzzleSecondAction": "दूसरी क्रिया",
   "puzzleSecondNoLamp": "लैंप नहीं",
   "puzzleSecondGrass": "घास",

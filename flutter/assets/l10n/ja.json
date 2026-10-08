@@ -1292,6 +1292,7 @@
 "puzzleUndeadVampire":"吸血鬼",
 "puzzleUndeadZombie":"ゾンビ",
 "puzzleWhereError":"どこが間違い？",
+"puzzleZoom":"拡大",
 "puzzlesBlackBox":"ブラックボックス",
 "puzzlesBlackBoxDesc":"光線が箱から出た場所から、隠れた球の位置を突き止める",
 "puzzlesBlackBoxIntroDesc":"閉じた箱の中にボールが隠れていて、中を見ずに見つけます。縁の矢印をタップすると光線が出ます。まっすぐ進み、ボールの脇で曲がり、当たると吸収されます。どこから出たか、戻ったか、出てこなかったかで位置は一意に定まります。箱の中のマスをタップすると「ここにある」という推測を置き、長押しで空と印します。",

@@ -1292,6 +1292,7 @@
 "puzzleUndeadVampire":"吸血鬼",
 "puzzleUndeadZombie":"僵尸",
 "puzzleWhereError":"错在哪里？",
+"puzzleZoom":"放大",
 "puzzlesBlackBox":"黑箱",
 "puzzlesBlackBoxDesc":"根据光束射出箱子的位置，找出藏在里面的球",
 "puzzlesBlackBoxIntroDesc":"封闭的盒子里藏着小球，要在不打开的情况下找出来。点击边缘箭头射出一束光：沿直线前进，经过小球旁会偏折，正面撞上则被吸收。根据光从哪里射出、是否原路返回、还是根本没出来，就能确定位置。点击盒内格子表示“这里有球”，长按标记为空。",

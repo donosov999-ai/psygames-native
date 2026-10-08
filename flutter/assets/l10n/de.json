@@ -1292,6 +1292,7 @@
 "puzzleUndeadVampire":"Vampir",
 "puzzleUndeadZombie":"Zombie",
 "puzzleWhereError":"Wo ist der Fehler?",
+"puzzleZoom":"Vergrößern",
 "puzzlesBlackBox":"Schwarze Kiste",
 "puzzlesBlackBoxDesc":"Die versteckten Kugeln daran erkennen, wo der Strahl die Kiste verlässt",
 "puzzlesBlackBoxIntroDesc":"Im geschlossenen Kasten sind Kugeln versteckt, und du musst sie finden, ohne hineinzusehen. Ein Tippen auf einen Pfeil am Rand schickt einen Strahl: Er läuft gerade, wird abgelenkt, wenn er an einer Kugel vorbeikommt, und verschluckt, wenn er eine trifft. Daraus, wo der Strahl austritt, zurückkehrt oder gar nicht erscheint, ergeben sich die Positionen eindeutig. Tippen auf ein Feld setzt die Vermutung „hier ist eine Kugel“, langes Drücken markiert es als leer.",

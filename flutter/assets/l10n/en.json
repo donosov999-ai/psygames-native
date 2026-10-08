@@ -1292,6 +1292,7 @@
 "puzzleUndeadVampire":"Vampire",
 "puzzleUndeadZombie":"Zombie",
 "puzzleWhereError":"Where's the mistake?",
+"puzzleZoom":"Zoom in",
 "puzzlesBlackBox":"Black Box",
 "puzzlesBlackBoxDesc":"Find the hidden balls from where each beam leaves the box",
 "puzzlesBlackBoxIntroDesc":"Balls are hidden inside a closed box and you must find them without looking in. Tapping an arrow on the edge fires a beam: it travels straight, deflects when it passes beside a ball, and is absorbed when it hits one. From where the beam comes out, returns, or fails to appear at all, the positions follow with certainty. Tapping a cell inside places a guess “a ball is here”, a long press marks the cell as empty so you don’t lose track. Place every ball and the box opens to show where they really were.",

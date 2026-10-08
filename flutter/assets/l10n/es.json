@@ -1292,6 +1292,7 @@
 "puzzleUndeadVampire":"Vampiro",
 "puzzleUndeadZombie":"Zombi",
 "puzzleWhereError":"¿Dónde está el error?",
+"puzzleZoom":"Ampliar",
 "puzzlesBlackBox":"Caja negra",
 "puzzlesBlackBoxDesc":"Halla las bolas ocultas por el punto donde el rayo sale de la caja",
 "puzzlesBlackBoxIntroDesc":"Dentro de una caja cerrada hay bolas escondidas y debes encontrarlas sin mirar. Tocar una flecha del borde dispara un rayo: viaja recto, se desvía al pasar junto a una bola y se absorbe al chocar con una. Por dónde sale, si vuelve o si no aparece, las posiciones se deducen con certeza. Tocar una casilla coloca la suposición “aquí hay una bola”; una pulsación larga la marca vacía.",

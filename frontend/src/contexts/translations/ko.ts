@@ -2839,6 +2839,7 @@ const t: Record<string, string> = {
   "puzzleHudGems": "보석",
   "puzzleHudRegion": "영역",
   "puzzleShowSolution": "정답 보기",
+  "puzzleZoom": "확대",
   "puzzleSecondAction": "두 번째 동작",
   "puzzleSecondNoLamp": "램프 없음",
   "puzzleSecondGrass": "풀",

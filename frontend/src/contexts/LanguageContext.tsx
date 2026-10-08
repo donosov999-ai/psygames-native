@@ -2274,6 +2274,7 @@ const translations: Translations = {
   pauseEasier: { ru: 'Уровень проще', en: 'Easier level' },
   pauseHarder: { ru: 'Уровень сложнее', en: 'Harder level' },
   puzzleShowSolution: { ru: 'Показать решение', en: 'Show solution' },
+  puzzleZoom: { ru: 'Крупнее', en: 'Zoom in' },
   puzzleSecondAction: { ru: 'Второе действие', en: 'Second action' },
   puzzleSecondNoLamp: { ru: 'Не ставить', en: 'No lamp' },
   puzzleSecondGrass: { ru: 'Трава', en: 'Grass' },

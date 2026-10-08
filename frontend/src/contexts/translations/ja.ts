@@ -2838,6 +2838,7 @@ const t: Record<string, string> = {
   "puzzleHudGems": "宝石",
   "puzzleHudRegion": "領域",
   "puzzleShowSolution": "答えを見る",
+  "puzzleZoom": "拡大",
   "puzzleSecondAction": "第2の操作",
   "puzzleSecondNoLamp": "ランプなし",
   "puzzleSecondGrass": "草",

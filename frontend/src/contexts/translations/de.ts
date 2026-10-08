@@ -2844,6 +2844,7 @@ const t: Record<string, string> = {
   "puzzleHudGems": "Edelsteine",
   "puzzleHudRegion": "Region",
   "puzzleShowSolution": "Lösung zeigen",
+  "puzzleZoom": "Vergrößern",
   "puzzleSecondAction": "Zweite Aktion",
   "puzzleSecondNoLamp": "Keine Lampe",
   "puzzleSecondGrass": "Gras",

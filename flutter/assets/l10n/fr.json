@@ -1292,6 +1292,7 @@
 "puzzleUndeadVampire":"Vampire",
 "puzzleUndeadZombie":"Zombie",
 "puzzleWhereError":"Où est l'erreur ?",
+"puzzleZoom":"Agrandir",
 "puzzlesBlackBox":"Boîte noire",
 "puzzlesBlackBoxDesc":"Trouvez les billes cachées d’après l’endroit où le rayon sort de la boîte",
 "puzzlesBlackBoxIntroDesc":"Des billes sont cachées dans une boîte fermée et il faut les trouver sans regarder dedans. Toucher une flèche du bord envoie un rayon : il va tout droit, dévie près d’une bille, et est absorbé s’il en touche une. Selon l’endroit où il ressort, revient ou ne ressort pas, les positions se déduisent avec certitude. Toucher une case pose « une bille ici » ; un appui long la marque vide.",

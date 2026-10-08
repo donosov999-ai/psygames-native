@@ -2840,6 +2840,7 @@ const t: Record<string, string> = {
   "puzzleHudGems": "جواهر",
   "puzzleHudRegion": "منطقة",
   "puzzleShowSolution": "إظهار الحل",
+  "puzzleZoom": "تكبير",
   "puzzleSecondAction": "الإجراء الثاني",
   "puzzleSecondNoLamp": "بلا مصباح",
   "puzzleSecondGrass": "عشب",
