@@ -134,6 +134,8 @@ for (const [file, fields] of [
   ['assets/collection.json', ['nameKey']],
   // Главная (вариант Б): ключи, которые сборщик модели собирает на лету — замки, слоты, сложности, причины.
   ['assets/home.json', ['textKeys']],
+  // Входы Главной на Dart (`home_inputs.dart`, 7б): титул надетой вещи — `L.t(title.nameKey)`.
+  ['assets/home_inputs.json', ['textKeys']],
 ]) {
   let data;
   // 🔴 НЕТ ФАЙЛА — пропустить можно; ЕСТЬ, НО НЕ ЧИТАЕТСЯ — СТОП. Замер 01.10.2026: после

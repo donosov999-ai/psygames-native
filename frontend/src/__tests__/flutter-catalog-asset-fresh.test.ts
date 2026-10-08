@@ -77,7 +77,9 @@ function look(gradient: string[]) {
 /** Поля карточки вкладки «Игры» (`GameCard` в `CategorySections`) и то, по чему ищут и фильтруют. */
 // `sessionType` (07.10, «Прогресс» на Dart, d6a60b02): под каким типом игра пишет партии — у трёх
 // игр он не равен id (`sessionTypeOf`), и раздел партии ищется по нему (`categoryOfSessionType`).
-const FIELDS = ['id', 'route', 'nameKey', 'descKey', 'skillKey', 'category', 'icon', 'gradient', 'hub', 'sandbox', 'hideFromMenu', 'sessionType'] as const;
+// `mergedInto` и `previewIn` (08.10, Главная на Dart, шаг 7б): по ним `visibleInCatalog` прячет игру за
+// живой развилкой и развилку предпросмотра — без них любимые разделы и лестница считали бы не те игры.
+const FIELDS = ['id', 'route', 'nameKey', 'descKey', 'skillKey', 'category', 'icon', 'gradient', 'hub', 'sandbox', 'hideFromMenu', 'sessionType', 'mergedInto', 'previewIn'] as const;
 
 function build(): string {
   const thumbs = thumbFiles();

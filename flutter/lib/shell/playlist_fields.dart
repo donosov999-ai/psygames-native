@@ -16,4 +16,10 @@ abstract final class PlaylistFields {
 
   /// «убрать» — закрытые профилю игры (`closed_games`).
   static const remove = '\u0443\u0431\u0440\u0430\u0442\u044c';
+
+  /// «главная» — какие блоки Главной показывать профилю (`показыватьБлок`).
+  static const home = '\u0433\u043b\u0430\u0432\u043d\u0430\u044f';
+
+  /// «зарядка_включена» — зарядка профиля (`warmup_enabled`).
+  static const warmupEnabled = '\u0437\u0430\u0440\u044f\u0434\u043a\u0430\u005f\u0432\u043a\u043b\u044e\u0447\u0435\u043d\u0430';
 }

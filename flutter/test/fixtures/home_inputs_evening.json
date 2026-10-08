@@ -1,0 +1,233 @@
+{
+ "now": 1791477045000,
+ "tzOffsetMinutes": -300,
+ "winW": 750,
+ "language": "en",
+ "storage": {
+  "psygames_active_profile": "students",
+  "psygames_assessment_history": "[{\"scores\":[{\"domain\":\"wm_spatial\",\"z_score\":-1.2},{\"domain\":\"wm_verbal\",\"z_score\":0.3}]}]",
+  "psygames_cosmetics_equipped_students": "{\"title\":\"title_focused\"}",
+  "psygames_daily_challenge_streak_students": "{\"streak\":1,\"total\":3,\"last\":\"2026-10-7\"}",
+  "psygames_day_goal_students": "{\"text\":\"Read for 20 minutes\",\"date\":\"2026-10-8\",\"createdAt\":\"2026-10-08T06:30:45.000Z\",\"outcome\":null}",
+  "psygames_earn_v1": "{\"students\":{\"entries\":[],\"days\":[\"2026-10-7\",\"2026-10-6\",\"2026-10-5\",\"2026-10-4\",\"2026-10-3\",\"2026-10-2\",\"2026-10-1\"]}}",
+  "psygames_earned_total_v1": "{\"students\":80}",
+  "psygames_onboarding_picked_nzt48": "1",
+  "psygames_onboarding_picked_students": "1",
+  "psygames_pet_skin": "auto",
+  "psygames_playlists_override": "{\"профили\":{\"students\":{\"главная\":[\"сегодня\",\"рекомендации\",\"практики\"]}}}",
+  "psygames_resume_hanoi_students": "{\"v\":1,\"savedAt\":1788798645000,\"state\":{}}",
+  "psygames_sessions": "[{\"profile_id\":\"students\",\"game_type\":\"schulte_table\",\"score\":10,\"time_seconds\":60,\"timestamp\":\"2026-10-05T16:30:45.000Z\"},{\"profile_id\":\"students\",\"game_type\":\"anagrams\",\"score\":10,\"time_seconds\":60,\"timestamp\":\"2026-10-06T16:30:45.000Z\"},{\"profile_id\":\"students\",\"game_type\":\"math_sprint\",\"score\":10,\"time_seconds\":60,\"timestamp\":\"2026-09-12T16:30:45.000Z\"},{\"profile_id\":\"students\",\"game_type\":\"math_sprint\",\"score\":10,\"time_seconds\":60,\"timestamp\":\"2026-09-13T16:30:45.000Z\"}]",
+  "psygames_streak_goal_students": "{\"days\":7,\"startedAt\":\"2026-9-30\",\"askedAt\":\"2026-10-5\",\"reachedAt\":\"2026-10-8\"}",
+  "psygames_streak_v1": "{\"students\":{\"last\":\"2026-10-8\",\"streak\":7}}",
+  "psygames_tokens_v1": "{\"students\":80}",
+  "psygames_weak_skill_v1": "{\"skillKey\":\"skillLogic\",\"delta\":-0.3,\"date\":\"2026-09-28\"}"
+ },
+ "input": {
+  "profile": {
+   "id": "students",
+   "color": "#f97316",
+   "emoji": "🎓",
+   "warmup_enabled": true
+  },
+  "colors": {
+   "background": "#F5F5F7",
+   "surface": "#FFFFFF",
+   "card": "#FFFFFF",
+   "text": "#1C1C1E",
+   "textSecondary": "#6E6E73",
+   "primary": "#a855f7",
+   "border": "#E5E5EA"
+  },
+  "showBlock": {
+   "цель_дня": false,
+   "сегодня": true,
+   "рекомендации": true,
+   "практики": true,
+   "любимые_разделы": false
+  },
+  "images": {
+   "onPhoto": true,
+   "profileBg": "/assets/images/profile-bg/students.webp",
+   "logo": "/assets/images/logos/logo4.webp",
+   "chip": "/assets/images/profiles/students.webp",
+   "warmup": "/assets/images/feature_icons/warmup.webp"
+  },
+  "logoPlate": "#FFFFFFD1",
+  "tokens": 80,
+  "level": {
+   "level": 1,
+   "titleKey": "levelTitle1",
+   "intoLevel": 0,
+   "span": 120,
+   "progress": 0
+  },
+  "streak": 0,
+  "pet": {
+   "kind": "frames",
+   "uris": [
+    "/assets/images/pet/cat/idle0.webp",
+    "/assets/images/pet/cat/idle1.webp",
+    "/assets/images/pet/cat/idle2.webp",
+    "/assets/images/pet/cat/idle3.webp",
+    "/assets/images/pet/cat/idle4.webp",
+    "/assets/images/pet/cat/idle5.webp",
+    "/assets/images/pet/cat/idle6.webp"
+   ],
+   "frames": 7,
+   "tickMs": 240,
+   "accessory": null
+  },
+  "frameColor": null,
+  "titleLabel": "🎯 Focused",
+  "achievementsCount": 0,
+  "update": null,
+  "streakToast": null,
+  "wagerToast": null,
+  "levelUp": null,
+  "ladder": {
+   "n": 2,
+   "titleKey": "ladderHint"
+  },
+  "chest": {
+   "face": "🌰",
+   "left": 70,
+   "have": 0,
+   "all": 12,
+   "ratio": 0.5333333333333333
+  },
+  "resume": null,
+  "goalCard": {
+   "state": "review",
+   "goal": {
+    "text": "Read for 20 minutes",
+    "date": "2026-10-8",
+    "createdAt": "2026-10-08T06:30:45.000Z",
+    "outcome": null
+   }
+  },
+  "goalMaxLen": 90,
+  "goalExampleKeys": [
+   "dayGoalExample1",
+   "dayGoalExample2",
+   "dayGoalExample3"
+  ],
+  "today": {
+   "rows": [],
+   "total": 0,
+   "rounds": 0,
+   "dayStreak": 7
+  },
+  "todayRowsMax": 3,
+  "dayStreakForMult": 3,
+  "reco": [
+   {
+    "pick": {
+     "gameId": "pause",
+     "reason": "branch",
+     "reasonKey": "recoWhyBranch",
+     "daysSince": null,
+     "doneToday": false
+    },
+    "gameId": "pause"
+   },
+   {
+    "pick": {
+     "gameId": "breathing",
+     "reason": "branch",
+     "reasonKey": "recoWhyBranch",
+     "daysSince": null,
+     "doneToday": false
+    },
+    "gameId": "breathing"
+   },
+   {
+    "pick": {
+     "gameId": "scholars_mate",
+     "reason": "branch",
+     "reasonKey": "recoWhyBranch",
+     "daysSince": null,
+     "doneToday": false
+    },
+    "gameId": "scholars_mate"
+   }
+  ],
+  "recoParams": {
+   "calm": "1"
+  },
+  "warmup": {
+   "gradient": [
+    "#7b4397",
+    "#dc2430"
+   ],
+   "slotKey": "slotEvening"
+  },
+  "pause": {
+   "gradient": [
+    "#43cea2",
+    "#185a9d"
+   ]
+  },
+  "challenge": {
+   "gameId": "tower_london",
+   "difficultyKey": "easy",
+   "done": false,
+   "streak": 1
+  },
+  "favourites": [
+   {
+    "category": "action",
+    "total": 1,
+    "routes": [
+     "/games/counting-hub"
+    ],
+    "hidden": 0
+   },
+   {
+    "category": "attention",
+    "total": 1,
+    "routes": [
+     "/games/search-hub"
+    ],
+    "hidden": 0
+   },
+   {
+    "category": "logic",
+    "total": 2,
+    "routes": [
+     "/games/sudoku-hub",
+     "/games/spatial-hub"
+    ],
+    "hidden": 0
+   }
+  ],
+  "goalSheet": {
+   "line": "You made it! Set the next one? 🎉",
+   "petState": {
+    "kind": "frames",
+    "uris": [
+     "/assets/images/pet/cat/cheer0.webp",
+     "/assets/images/pet/cat/cheer1.webp",
+     "/assets/images/pet/cat/cheer2.webp",
+     "/assets/images/pet/cat/cheer3.webp",
+     "/assets/images/pet/cat/cheer4.webp",
+     "/assets/images/pet/cat/cheer5.webp",
+     "/assets/images/pet/cat/cheer6.webp"
+    ],
+    "frames": 7,
+    "tickMs": 74,
+    "accessory": null
+   },
+   "options": [
+    7,
+    14,
+    30
+   ],
+   "chosen": 14,
+   "whyKey": "goalSuggest_best_streak",
+   "basis": 7,
+   "games": 0,
+   "tokens": 0,
+   "streak": 7
+  }
+ }
+}

@@ -43,7 +43,7 @@ void main() {
         home: MediaQuery(
           data: MediaQueryData(size: const Size(390, 3000), textScaler: TextScaler.linear(scale)),
           child: Scaffold(
-            body: HomeScreen(state: state, origin: 'http://127.0.0.1:1', kit: null, onOpen: (_) {}, onTab: (_) {}, onSwitcher: () {}),
+            body: HomeScreen(state: state, origin: 'http://127.0.0.1:1', kit: null, onOpen: (_) {}, onTab: (_) {}, onSwitcher: () {}, ownModel: false),
           ),
         ),
       ),

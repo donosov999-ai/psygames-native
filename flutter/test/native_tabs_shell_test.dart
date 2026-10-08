@@ -562,14 +562,14 @@ void main() {
   Map<String, Object?> homeModel() =>
       (jsonDecode(File('test/fixtures/home_model_ru.json').readAsStringSync()) as Map).cast<String, Object?>()..['goalSheet'] = null;
 
-  testWidgets('🔴 «/» от страницы — нативная Главная; рисуется, как только пришла модель', (t) async {
+  testWidgets('🔴 «/» — нативная Главная сразу: модель своя (вариант Б, 7б), страницу не ждёт', (t) async {
     await mount(t);
     web.delegates.first.finished!('${server.origin}/'); // загрузка документа: скрипт хоста + выбор вкладки
     await t.pump();
-    expect(find.byKey(const ValueKey('home-loading')), findsOneWidget, reason: 'модели ещё нет — ждём, а не пустота');
     expect(find.byType(NativeTabBar), findsOneWidget);
-    page().emit(SharedState.channel, {'op': 'screenUi', 'route': '/', 'model': homeModel()});
+    // Модели страницы нет вовсе — Главная всё равно рисуется: считает сама из общей памяти.
     await settle(t, () => find.byKey(const ValueKey('home-header')).evaluate().isNotEmpty);
+    expect(ScreenUi.model('/').value, isNull);
     expect(find.byKey(const ValueKey('home-header')), findsOneWidget);
     expect(t.widget<NativeTabBar>(find.byType(NativeTabBar)).active, '/');
     expect(page().js.any((s) => s.contains('window.__psyHostScreens=["/","#switcher","/statistics","/streak-calendar","/assessment-result","/onboarding","/sources","/collection","/achievements","/leagues","/friends","/shop","/whats-new","/pet","#feedback"]')), isTrue,
@@ -582,16 +582,25 @@ void main() {
     expect(page().js.any((s) => s.contains('__psyReplace("/")')), isTrue);
   });
 
-  testWidgets('🔴 модель не пришла за 6 с — показываем саму страницу, а не вечную загрузку', (t) async {
+  testWidgets('🔴 экран по модели страницы: модель не пришла за 6 с — показываем саму страницу, а не вечную загрузку', (t) async {
     await mount(t);
-    await route(t, '/');
+    await route(t, AssessmentResultScreen.route);
     await t.pump(const Duration(seconds: 7));
     await t.pump();
     expect(find.byKey(const ValueKey('native-cover')), findsNothing, reason: 'страница видна: нативный слой снят');
-    expect(find.byKey(const ValueKey('home-loading')), findsNothing);
-    page().emit(SharedState.channel, {'op': 'screenUi', 'route': '/', 'model': homeModel()});
+    final assessment = (jsonDecode(File('test/fixtures/assessment_model.json').readAsStringSync()) as Map).cast<String, Object?>();
+    page().emit(SharedState.channel, {'op': 'screenUi', 'route': AssessmentResultScreen.route, 'model': assessment});
+    await settle(t, () => find.byKey(const ValueKey('assessment-screen')).evaluate().isNotEmpty);
+    expect(find.byKey(const ValueKey('native-cover')), findsOneWidget, reason: 'модель пришла — снова нативный');
+  });
+
+  testWidgets('🔴 своя Главная странице место не уступает: модели страницы нет и через 6 с', (t) async {
+    await mount(t);
+    await route(t, '/');
+    await t.pump(const Duration(seconds: 7));
     await settle(t, () => find.byKey(const ValueKey('home-header')).evaluate().isNotEmpty);
-    expect(find.byKey(const ValueKey('home-header')), findsOneWidget, reason: 'модель пришла — снова нативная');
+    expect(find.byKey(const ValueKey('native-cover')), findsOneWidget, reason: 'тело нативное: своя модель, запасной показ не нужен');
+    expect(find.byKey(const ValueKey('home-header')), findsOneWidget);
   });
 
   testWidgets('🔴 после игры поверх Главная просит веб перечитать «Сегодня» и монеты', (t) async {
@@ -714,15 +723,15 @@ void main() {
   testWidgets('🔴 окно цели серии Главной не всплывает поверх другого экрана тела (знакомство)', (t) async {
     // Живой замер 07.10.2026: на свежей установке окно «сколько дней подряд» легло поверх знакомства —
     // Главная стоит в теле всегда, а её последняя модель несла goalSheet.
+    // Своя модель (7б): цели ещё нет — повод «первая цель», окно в модели есть с первого кадра.
     await mount(t);
-    final home = fixture('home_model_ru.json'); // с окном цели (homeModel() его снимает нарочно)
-    expect(home['goalSheet'], isNotNull, reason: 'образец Главной несёт окно цели');
     await route(t, '/onboarding');
-    page().emit(SharedState.channel, {'op': 'screenUi', 'route': '/', 'model': home});
     page().emit(SharedState.channel, {'op': 'screenUi', 'route': OnboardingScreen.route, 'model': fixture('onboarding_model.json')});
     await settle(t, () => find.byKey(const ValueKey('onboarding-quiz')).evaluate().isNotEmpty);
     expect(find.byKey(const ValueKey('goal-sheet')), findsNothing, reason: 'Главная не на экране — окна нет');
-    // Вернулись на Главную — окно открывается, как у веба.
+    // Знакомство пройдено (веб ставит отметку выбора) и вернулись на Главную — окно открывается, как у веба.
+    // Профиль — как у веба на пустой памяти (`ProfileContext`: «free»), его и видит Главная.
+    await t.runAsync(() => state.set('psygames_onboarding_picked_${state.get('psygames_active_profile') ?? 'free'}', '1'));
     await route(t, '/');
     await settle(t, () => find.byKey(const ValueKey('goal-sheet')).evaluate().isNotEmpty);
     expect(find.byKey(const ValueKey('goal-sheet')), findsOneWidget);

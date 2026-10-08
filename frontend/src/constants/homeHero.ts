@@ -16,3 +16,9 @@ export const SLOT_TINT: Record<WarmupSlot, [string, string]> = {
 
 /** Карточка практики дня («Релаксация»). */
 export const HERO_EYE: [string, string] = ['#43cea2', '#185a9d'];
+
+/** Сколько игр показывает блок «Сегодня». Больше — и он выдавливает рекомендации. */
+export const TODAY_ROWS_MAX = 3;
+
+/** Плашка под вордмарком профиля (`logoPlateFor` в `profileLogos.ts`): тёмная или светлая. */
+export const LOGO_PLATE_BG = { dark: '#12151AC7', light: '#FFFFFFD1' } as const;
