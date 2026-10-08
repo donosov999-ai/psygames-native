@@ -16,6 +16,20 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.56.19',
+    date: '2026-10-08',
+    en: [
+      'Sudoku: three new rules — Schrödinger cells (digits 0–9, one cell in each row holds two digits), Doublers and Negators (hidden cells change the sums)',
+      'Sudoku: the ladder grows to 152 steps — Schrödinger cells and Meow Friends join it; in Schrödinger cells you can pencil in 0',
+      'Warm-up: the night set card now describes what is really in it',
+    ],
+    ru: [
+      '«Судоку»: три новых правила — «клетки Шрёдингера» (цифры 0–9, в одной клетке ряда две цифры), «удвоители» и «отрицательные» (скрытые клетки меняют суммы)',
+      '«Судоку»: лестница выросла до 152 ступеней — на ней «клетки Шрёдингера» и «Мяу — друзья»; в клетке Шрёдингера можно пометить карандашом «0»',
+      'Зарядка: подпись ночного набора теперь говорит, что в нём на самом деле',
+    ],
+  },
+  {
     version: '2.56.18',
     date: '2026-10-07',
     en: [
