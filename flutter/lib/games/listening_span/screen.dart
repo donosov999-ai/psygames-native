@@ -227,7 +227,8 @@ class _ListeningSpanScreenState extends State<ListeningSpanScreen> {
     if (_phase != LspanPhase.recall) return;
     final r = g.tap(i);
     if (r == LspanTap.ignored) return;
-    _haptics.selection();
+    // Как в «Матрице»: верное — щелчок, собранный ряд — сильнее, ошибка — тяжело (было: щелчок на всё).
+    r == LspanTap.progress ? _haptics.hit() : (r == LspanTap.roundWon ? _haptics.win() : _haptics.miss());
     setState(() {});
     if (r == LspanTap.progress) return;
     _timer = gameTimeout(Duration(milliseconds: r == LspanTap.roundWon ? lspanAfterWinMs : lspanAfterMissMs), () {

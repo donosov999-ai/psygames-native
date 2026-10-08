@@ -5,9 +5,12 @@ import 'package:flutter/material.dart';
 import 'feedback_fab.dart' show FabRules;
 import 'info_screens.dart' show ModelPage, circleBack;
 import 'ion_icon.dart';
+import 'l10n.dart';
 import 'screen_ui.dart';
+import 'shared_state.dart';
 import 'walking_pet.dart' show PetFrames, PetSpec;
 import 'web_theme.dart';
+import '../synapse/synapse_feed.dart';
 
 /// «ПИТОМЕЦ» ПО МОДЕЛИ ВЕБА (задача d1e147b0; правило 4e679f41).
 ///
@@ -16,12 +19,19 @@ import 'web_theme.dart';
 /// действие (`petRenderSpec`), рисует их тот же [PetFrames], что и гуляку; лакомство — эмодзи облика и
 /// точка рта от веба, полёт — кривой `PetTreat` (0,9 с, к концу тает). Нажатия — действия веба.
 /// Размеры — из `styles` веб-экрана.
+///
+/// 🗨 СИНАПС (задача 852e4b4a, решение Дениса 04.10): после партии в ТОМ ЖЕ пузыре — реплики ядра по
+/// фактам партии (`synapse/synapse_feed.dart`), «Следующая фраза» листает вторую и третью, «Закрыть»
+/// возвращает приветствие веба. Нет реплик, выключен питомец или нет общей памяти — пузырь как был.
 class PetScreen extends StatefulWidget {
-  const PetScreen({super.key, required this.origin});
+  const PetScreen({super.key, required this.origin, this.state});
   static const route = '/pet';
 
   /// Адрес раздачи веб-сборки — кадры приходят путями от неё.
   final String origin;
+
+  /// Общая память: реплики Синапса. Нет — пузырь только с приветствием веба.
+  final SharedState? state;
 
   @override
   State<PetScreen> createState() => _PetScreenState();
@@ -39,6 +49,9 @@ class _PetScreenState extends State<PetScreen> with SingleTickerProviderStateMix
   final _name = TextEditingController();
   late final AnimationController _treat = AnimationController(vsync: this, duration: const Duration(milliseconds: 900));
   bool _treatShown = false;
+
+  /// Какая реплика Синапса в пузыре.
+  int _line = 0;
 
   @override
   void dispose() {
@@ -443,6 +456,23 @@ class _PetScreenState extends State<PetScreen> with SingleTickerProviderStateMix
           ],
         ),
       );
+      // Реплики Синапса после партии — вместо приветствия, пока не закрыты (852e4b4a).
+      final synapse = widget.state == null ? const <String>[] : SynapseFeed.linesFor(widget.state!);
+      if (_line >= synapse.length) _line = 0;
+      Widget synapseLink(String key, String text, VoidCallback onTap) => Semantics(
+        button: true,
+        label: text,
+        excludeSemantics: true,
+        child: GestureDetector(
+          key: ValueKey(key),
+          behavior: HitTestBehavior.opaque,
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.only(top: 6, bottom: 2),
+            child: Text(text, style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: _violet)),
+          ),
+        ),
+      );
       final advice = m['advice'] is Map ? _map(m['advice']) : null;
       final adviceColor = advice == null ? _violet : cssColor(advice['color'], _violet);
 
@@ -462,11 +492,35 @@ class _PetScreenState extends State<PetScreen> with SingleTickerProviderStateMix
               bottomLeft: Radius.circular(4),
             ),
           ),
-          child: Text(
-            _s(m['bubble']),
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, height: 18 / 13, color: web.text),
-          ),
+          child: synapse.isEmpty
+              ? Text(
+                  _s(m['bubble']),
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, height: 18 / 13, color: web.text),
+                )
+              : Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      synapse[_line],
+                      key: const ValueKey('pet-synapse-line'),
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, height: 18 / 13, color: web.text),
+                    ),
+                    Wrap(
+                      alignment: WrapAlignment.center,
+                      spacing: 16,
+                      children: [
+                        if (_line < synapse.length - 1)
+                          synapseLink('pet-synapse-next', '${L.t('synapseNextLine')} ›', () => setState(() => _line += 1)),
+                        synapseLink('pet-synapse-close', L.t('close'), () async {
+                          await SynapseFeed.dismiss(widget.state!);
+                          if (mounted) setState(() => _line = 0);
+                        }),
+                      ],
+                    ),
+                  ],
+                ),
         ),
         portraitBox,
         Padding(
@@ -496,9 +550,12 @@ class _PetScreenState extends State<PetScreen> with SingleTickerProviderStateMix
         Padding(padding: const EdgeInsets.only(top: 6), child: skins),
         Padding(
           padding: const EdgeInsets.only(top: 14, bottom: 6),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
+          // Перенос, а не ряд: на 320×568 с крупным шрифтом две плашки вылезали на 44 px (замер 07.10,
+          // `synapse_test`); помещаются — вид тот же, что у веба.
+          child: Wrap(
+            alignment: WrapAlignment.center,
             spacing: 10,
+            runSpacing: 10,
             children: [statusBox(m['level'], m['levelLabel'], 'pet-level'), statusBox(m['total'], m['totalLabel'], 'pet-total')],
           ),
         ),

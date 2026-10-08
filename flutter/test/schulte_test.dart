@@ -142,4 +142,35 @@ void main() {
       expect(g.items.toSet().length, g.items.length, reason: 'повторов на поле нет');
     });
   });
+
+  test('🔴 ПОТОЛКА НЕТ: с 19-го уровня время на таблицу, с каждым уровнем на 4 % меньше', () {
+    // Правило Дениса 06.09.2026. К 18-му у таблицы заняты все оси сетки и правила
+    // (schulteLevelsTop = 18) — дальше растёт ось 2, скорость.
+    for (var l = 1; l < schulteTimeLimitFrom; l += 1) {
+      expect(schulteTimeLimitSec(l), isNull, reason: 'L$l: лимита нет — уровни до 19-го не тронуты');
+    }
+    expect(schulteTimeLimitSec(19), 150);
+    expect(schulteTimeLimitSec(20), closeTo(144, 1e-9));
+    expect(schulteTimeLimitSec(30), closeTo(95.7, 0.05), reason: 'то же число, что в примере карточки правила');
+    var prev = schulteTimeLimitSec(19)!;
+    for (var l = 20; l <= 400; l += 1) {
+      final t = schulteTimeLimitSec(l)!;
+      expect(t, lessThan(prev), reason: 'L$l времени меньше, чем на L${l - 1}');
+      prev = t;
+    }
+    expect(LevelParams.of(60).signature, LevelParams.of(schulteLevelsTop).signature,
+        reason: 'сетка и правило на верху лестницы — растёт только время');
+    expect(schulteWithinLimit(null, 999999), isTrue, reason: 'без лимита — всегда в срок');
+    expect(schulteWithinLimit(150, 150000), isTrue, reason: 'ровно в лимит — уложился');
+    expect(schulteWithinLimit(150, 150001), isFalse);
+  });
+
+  test('🔴 карточка правила «время на таблицу» встаёт на тот же уровень, что и лимит', () {
+    // Таблица правил собирается из TS (frontend/src/games/schulte/core/levelRules.ts), лимит —
+    // из Dart: два числа обязаны совпасть, иначе карточка объявит время не там, где оно есть.
+    final rules = jsonDecode(File('assets/level_rules.json').readAsStringSync()) as Map<String, dynamic>;
+    final ranges = ((rules['games'] as Map)['schulte_table'] as List).cast<List>();
+    expect(ranges.first, [1, schulteTimeLimitFrom - 1, null]);
+    expect(ranges.last, [schulteTimeLimitFrom, null, 'timelimit']);
+  });
 }

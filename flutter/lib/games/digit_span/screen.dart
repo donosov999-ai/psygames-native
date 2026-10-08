@@ -5,6 +5,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../shell/app_haptics.dart';
 import '../../shell/audio_host.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/demo_lesson.dart';
@@ -84,6 +85,8 @@ class DigitSpanScreen extends StatefulWidget {
 }
 
 class _DigitSpanScreenState extends State<DigitSpanScreen> {
+  /// Отклик хода — через общий выключатель «Вибрация» (образец «Матрицы памяти», задача 792432f8).
+  late final AppHaptics _haptics = AppHaptics(widget.state);
   late double Function() _rng;
   final Map<String, LevelLadder> _ladders = {};
   LevelLadder? _ladder;
@@ -326,6 +329,8 @@ class _DigitSpanScreenState extends State<DigitSpanScreen> {
     final s = _s!;
     final correct = s.rowCorrect;
     final over = s.submit();
+    // Клавиши — не вердикт; отзывается проверка ряда: собран — сильнее, ошибка — тяжело.
+    correct ? _haptics.win() : _haptics.miss();
     setState(() => _feedback = correct);
     if (over) {
       unawaited(_finish());

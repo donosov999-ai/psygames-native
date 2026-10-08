@@ -86,6 +86,7 @@ import '../games/object_tracker/screen.dart';
 import '../games/pattern/screen.dart';
 import '../games/quick_count/screen.dart';
 import '../games/schulte/screen.dart';
+import '../games/schulte/series_screen.dart';
 import '../games/pause/screen.dart';
 import 'asset_server.dart';
 import 'l10n.dart';
@@ -106,6 +107,7 @@ import 'pet_screen.dart';
 import 'info_screens.dart';
 import 'walking_pet.dart';
 import 'web_theme.dart';
+import '../synapse/synapse_feed.dart';
 import '../games/sorting_hub/screen.dart';
 import '../games/faces_names/screen.dart';
 import '../games/memory_palace/screen.dart';
@@ -213,6 +215,8 @@ class HybridApp extends StatefulWidget {
         '/games/picture-pairs': (s) => PicturePairsScreen(state: s),
         '/games/listening-span': (s) => ListeningSpanScreen(state: s),
         '/games/schulte': (s) => SchulteScreen(state: s),
+        // Серия блоков — шаг зарядки `schulte-blocks` шлёт `?series=1` (задача 1b6338c1).
+        '/games/schulte?series=1': (s) => SchulteSeriesScreen(state: s),
         // «Пауза / Зарядка» — хаб практик; `?set=…` доходит до экрана через GamePreset.
         '/games/pause': (s) => PauseScreen(state: s),
         // «Дыхание» слито в «Паузу» (решение Дениса 30.09): тот же экран, режим дыхания,
@@ -538,6 +542,8 @@ class HybridApp extends StatefulWidget {
         if (best != null) return best;
       } on FormatException {
         // Malformed query is not a reason to crash the navigation delegate.
+      } on ArgumentError {
+        // Bad percent-encoding (`%zz`) throws this, not FormatException.
       }
     }
     return native.containsKey(r) ? r : null;
@@ -940,6 +946,8 @@ class _HybridAppState extends State<HybridApp> {
     // 4,2 МБ впустую.
     PetHost.state = widget.state;
     PetHost.origin = widget.server.origin;
+    // Синапс (852e4b4a) пишет реплики по партиям в общую память — ту же, что у веба.
+    SynapseFeed.state = widget.state;
     SessionReport.sink = (json) async {
       await _c.runJavaScript('window.__psySaveSession && window.__psySaveSession($json);');
     };
@@ -1068,6 +1076,7 @@ class _HybridAppState extends State<HybridApp> {
   @override
   void dispose() {
     SessionReport.sink = null;
+    if (SynapseFeed.state == widget.state) SynapseFeed.state = null;
     GameExit.home = null;
     GameExit.feedback = null;
     PetBridge.run = null;
@@ -1527,7 +1536,7 @@ class _HybridAppState extends State<HybridApp> {
             // «Что нового» (84df0687): список версий — модель веба, проверку обновлений делает оболочка.
             const WhatsNewScreen(),
             // «Питомец» (d1e147b0) — вкладка по модели веба; кадры — тем же PetFrames, что у гуляки.
-            PetScreen(origin: widget.server.origin),
+            PetScreen(origin: widget.server.origin, state: widget.state),
           ],
                 ),
               ),

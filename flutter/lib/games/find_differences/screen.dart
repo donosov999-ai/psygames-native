@@ -3,6 +3,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../shell/app_haptics.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/boss_round.dart';
 import '../../shell/demo_lesson.dart';
@@ -46,6 +47,8 @@ const List<IconData> _sprites = [
 ];
 
 class _FindDifferencesScreenState extends State<FindDifferencesScreen> {
+  /// Отклик хода — через общий выключатель «Вибрация» (образец «Матрицы памяти», задача 792432f8).
+  late final AppHaptics _haptics = AppHaptics(widget.state);
   late LevelLadder _ladder;
   late Rng _rng;
   late FdParams _params;
@@ -156,10 +159,12 @@ class _FindDifferencesScreenState extends State<FindDifferencesScreen> {
     final idx = hitTest(_right, x, y);
     if (idx == null || _found.contains(idx) || !_diffIdx.contains(idx)) return;
     setState(() => _found.add(idx));
+    _found.length == _diffIdx.length ? _haptics.win() : _haptics.hit();
     if (_found.length == _diffIdx.length) _endRound(true);
   }
 
   void _endRound(bool cleared) {
+    if (!cleared) _haptics.miss();   // время вышло
     _tick?.cancel();
     if (cleared) _roundsWon += 1;
     _next?.cancel();

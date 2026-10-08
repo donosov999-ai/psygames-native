@@ -169,6 +169,7 @@ class _CorsiScreenState extends State<CorsiScreen> {
     if (_phase != Phase.recall || _feedback != Feedback.none) return;
     final outcome = g.tap(block);
     if (outcome == TapOutcome.progress || outcome == TapOutcome.ignored) {
+      if (outcome == TapOutcome.progress) _haptics.hit();   // верный блок — щелчок, как в «Матрице»
       setState(() {});
       return;
     }

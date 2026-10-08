@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../shell/app_haptics.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
@@ -38,6 +39,8 @@ class AnagramsScreen extends StatefulWidget {
 }
 
 class _AnagramsScreenState extends State<AnagramsScreen> {
+  /// Отклик хода — через общий выключатель «Вибрация» (образец «Матрицы памяти», задача 792432f8).
+  late final AppHaptics _haptics = AppHaptics(widget.state);
   late LevelLadder _ladder;
   late final String _lang = widget.locale ?? anagramWordLang(widget.state, AnagramMode.classic);
   WordBank? _bank;
@@ -121,9 +124,11 @@ class _AnagramsScreenState extends State<AnagramsScreen> {
   void _check() {
     final g = _game!;
     if (g.accepts(_assembled)) {
+      _haptics.hit();
       _solved++;
       _advance();
     } else {
+      _haptics.miss();
       setState(() => _wrong = true);
     }
   }

@@ -13,12 +13,126 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../../shell/tap_latency.dart';
 import '../fillwords/core/fillwords.dart';
 import 'fillwords_round.dart';
 
 /// Цвета веба: линия пальца — цвет игры (`GRADIENT[0]`), подсказка — бирюза.
 const Color fwTraceColor = Color(0xFFA8EDEA);
 const Color fwHintColor = Color(0xFF99F6E4);
+
+/// Вид клетки: заливка, цвет буквы (null — цвет темы), жирность.
+typedef FwCellLook = ({Color? bg, Color? ink, bool bold});
+
+/// Сетка букв ОДНА на филворды и на серию: одно правило клетки под пальцем, один вид плитки.
+/// [onTapCell] — блок «Знак» серии: нажатие по клетке, без линии; иначе — ведение линии.
+class FwGrid extends StatelessWidget {
+  const FwGrid({
+    super.key,
+    required this.rows,
+    required this.cols,
+    required this.cell,
+    required this.letters,
+    required this.look,
+    this.keyPrefix = 'fw',
+    this.onTouch,
+    this.onDrag,
+    this.onRelease,
+    this.onTapCell,
+  });
+
+  final int rows;
+  final int cols;
+  final double cell;
+  final List<String> letters;
+  final FwCellLook Function(int index) look;
+
+  /// Префикс ключей: `fw-cell-3`, `ser-cell-3`.
+  final String keyPrefix;
+  final ValueChanged<int>? onTouch;
+  final ValueChanged<int>? onDrag;
+  final VoidCallback? onRelease;
+  final ValueChanged<int>? onTapCell;
+
+  int _cellAt(Offset o) {
+    final col = (o.dx / cell).floor().clamp(0, cols - 1);
+    final row = (o.dy / cell).floor().clamp(0, rows - 1);
+    return row * cols + col;
+  }
+
+  Widget _tile(BuildContext context, int index) {
+    final theme = Theme.of(context);
+    final l = look(index);
+    final tile = SizedBox(
+      width: cell,
+      height: cell,
+      child: Padding(
+        padding: const EdgeInsets.all(1),
+        child: Container(
+          key: Key('$keyPrefix-cell-$index'),
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: l.bg ?? theme.colorScheme.surface,
+            borderRadius: BorderRadius.circular(6),
+            border: Border.all(width: 0.5, color: theme.dividerColor),
+          ),
+          child: Text(
+            letters[index],
+            style: TextStyle(
+              fontSize: min(cell * 0.5, 24),
+              color: l.ink,
+              fontWeight: l.bold ? FontWeight.w700 : FontWeight.w500,
+            ),
+          ),
+        ),
+      ),
+    );
+    final tap = onTapCell;
+    if (tap == null) return tile;
+    return TapLatency(
+      where: 'Flutter/ProofreadingSeries',
+      child: GestureDetector(onTap: () => tap(index), child: tile),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final grid = SizedBox(
+      width: cell * cols,
+      height: cell * rows,
+      child: Column(children: [
+        for (var r = 0; r < rows; r++) Row(children: [for (var c = 0; c < cols; c++) _tile(context, r * cols + c)]),
+      ]),
+    );
+    if (onTapCell != null) return KeyedSubtree(key: Key('$keyPrefix-grid'), child: grid);
+    return Listener(
+      key: Key('$keyPrefix-grid'),
+      behavior: HitTestBehavior.opaque,
+      onPointerDown: (e) => onTouch?.call(_cellAt(e.localPosition)),
+      onPointerMove: (e) => onDrag?.call(_cellAt(e.localPosition)),
+      onPointerUp: (_) => onRelease?.call(),
+      onPointerCancel: (_) => onRelease?.call(),
+      child: grid,
+    );
+  }
+}
+
+/// Вид клетки филвордов (веб): линия — цвет игры, подсказка — бирюза (только неразобранные),
+/// разобранное слово — своим цветом по порядку нахождения.
+FwCellLook fwLook(FillwordsSession s, List<int> trace, FillwordsHint? hint, int index) {
+  final owner = s.owner[index];
+  final traced = trace.contains(index);
+  final hinted = hint != null && hint.cells.contains(index) && owner < 0;
+  return (
+    bg: traced
+        ? fwTraceColor
+        : hinted
+            ? fwHintColor
+            : (owner >= 0 ? Color(tintForFoundOrder(s.found.indexOf(owner))) : null),
+    ink: traced ? const Color(0xFF333333) : (owner >= 0 ? const Color(fillwordsInk) : null),
+    bold: traced || owner >= 0,
+  );
+}
 
 class FwField extends StatelessWidget {
   const FwField({
@@ -57,31 +171,7 @@ class FwField extends StatelessWidget {
         final byHeight = ((box.maxHeight - taskH - 8) / p.rows).floorToDouble();
         // Пол 22 и потолок 72 — веба (`сеткаКорректуры`).
         final cell = max(22.0, min(min(byWidth, byHeight), 72.0));
-        int cellAt(Offset o) {
-          final col = (o.dx / cell).floor().clamp(0, p.cols - 1);
-          final row = (o.dy / cell).floor().clamp(0, p.rows - 1);
-          return row * p.cols + col;
-        }
-
         final theme = Theme.of(context);
-        final grid = Listener(
-          key: const Key('fw-grid'),
-          behavior: HitTestBehavior.opaque,
-          onPointerDown: (e) => onTouch(cellAt(e.localPosition)),
-          onPointerMove: (e) => onDrag(cellAt(e.localPosition)),
-          onPointerUp: (_) => onRelease(),
-          onPointerCancel: (_) => onRelease(),
-          child: SizedBox(
-            width: cell * p.cols,
-            height: cell * p.rows,
-            child: Column(children: [
-              for (var r = 0; r < p.rows; r++)
-                Row(children: [
-                  for (var c = 0; c < p.cols; c++) _cell(r * p.cols + c, cell, s, theme),
-                ]),
-            ]),
-          ),
-        );
         return Column(children: [
           SizedBox(
             height: taskH,
@@ -118,48 +208,20 @@ class FwField extends StatelessWidget {
                     ],
                   ),
                 ),
-              grid,
+              FwGrid(
+                rows: p.rows,
+                cols: p.cols,
+                cell: cell,
+                letters: p.letters,
+                look: (i) => fwLook(s, round.trace, round.hint, i),
+                onTouch: onTouch,
+                onDrag: onDrag,
+                onRelease: onRelease,
+              ),
             ],
           ),
         ]);
       }),
-    );
-  }
-
-  Widget _cell(int index, double cell, FillwordsSession s, ThemeData theme) {
-    final owner = s.owner[index];
-    final traced = round.trace.contains(index);
-    // Клетку уже разобранного слова подсвечивать нечем — подсказка про неразобранные.
-    final hinted = round.hint != null && round.hint!.cells.contains(index) && owner < 0;
-    final Color bg = traced
-        ? fwTraceColor
-        : hinted
-            ? fwHintColor
-            : (owner >= 0 ? Color(tintForFoundOrder(s.found.indexOf(owner))) : theme.colorScheme.surface);
-    final Color? ink = traced ? const Color(0xFF333333) : (owner >= 0 ? const Color(fillwordsInk) : null);
-    return SizedBox(
-      width: cell,
-      height: cell,
-      child: Padding(
-        padding: const EdgeInsets.all(1),
-        child: Container(
-          key: Key('fw-cell-$index'),
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: bg,
-            borderRadius: BorderRadius.circular(6),
-            border: Border.all(width: 0.5, color: theme.dividerColor),
-          ),
-          child: Text(
-            s.puzzle.letters[index],
-            style: TextStyle(
-              fontSize: min(cell * 0.5, 24),
-              color: ink,
-              fontWeight: traced || owner >= 0 ? FontWeight.w700 : FontWeight.w500,
-            ),
-          ),
-        ),
-      ),
     );
   }
 }
