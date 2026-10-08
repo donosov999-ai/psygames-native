@@ -160,7 +160,7 @@ bool _categoryFits(SensePool pool, String cat, Map<int, List<int>> slots) {
 /// загруженные заранее: у веба их собирает сам вызов, здесь — ассеты.
 ProofField buildProofField(ProofSeriesData data, FillwordsPool words, String locale, num size, int seed) {
   final pool = data.sense(locale);
-  if (pool == null) throw ArgumentError('proofreading: нет категорий для языка $locale');
+  if (pool == null) throw ArgumentError('proofreading: no sense categories for locale $locale');
   final n = clampProofSize(size, minSize: data.minSize, maxSize: data.maxSize);
   final maxWordLen = min(fillwordsMaxWord, n);
   for (var attempt = 0; attempt < _fieldAttempts; attempt++) {
@@ -183,5 +183,5 @@ ProofField buildProofField(ProofSeriesData data, FillwordsPool words, String loc
       senseWords: dressed.senseWords,
     );
   }
-  throw StateError('proofreading: поле серии $n×$n не собралось на языке $locale');
+  throw StateError('proofreading: series field ${n}x$n failed to build for locale $locale');
 }

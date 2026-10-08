@@ -44,7 +44,7 @@ class SeriesRun {
 const int stableRuns = 2;
 
 SeriesRun startSeries(String gameType, int level, List<String> planned, int nowMs) {
-  if (planned.length < 2) throw ArgumentError('Серия — это минимум два блока: из одного разность не считается');
+  if (planned.length < 2) throw ArgumentError('A series needs at least two blocks: one block gives no difference');
   return SeriesRun(gameType: gameType, level: level, planned: planned, blocks: const [], startedAt: nowMs);
 }
 
