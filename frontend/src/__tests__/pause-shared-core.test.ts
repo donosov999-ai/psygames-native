@@ -52,6 +52,28 @@ function coreFiles(): string[] {
 }
 
 describe('ядро «Паузы» пригодно для второго приложения', () => {
+  // 🔴 08.10.2026, отчёт будильника b81fcf7d: с расслаблением на этой задержке сжатие в
+  // «Квадрате» шло 4 с на 12 с — «удержания совсем короткие». Сжатие — на выдохе И на
+  // задержке после него, расслабление — на вдохе и задержке после вдоха: 1:1.
+  it('задержка после выдоха продолжает сокращение Кегеля, сжатие и расслабление поровну', () => {
+    const square = PRACTICE_CATALOG.find(s => s.id === 'breathing')!.programs
+      .find(p => p.steps.some(s => s.id === 'hold-out'))!;
+    const selections = [{ setId: 'breathing', programId: square.id },
+      { setId: 'pelvic-floor', programId: 'balanced' }] as const;
+    const plan = createPracticePlan({mode: 'parallel', selections,
+      durationMs: 60_000, locale: 'ru', guideMode: 'visual', context: 'home',
+      soloCompletions: {'breathing': 99, 'pelvic-floor': 99},
+      acknowledgedWarnings: getRequiredWarnings(selections)});
+    const holds = plan.timeline.filter(s => s.setId === 'breathing' && s.stepId === 'hold-out');
+    expect(holds.length).toBeGreaterThan(0);
+    for (const hold of holds) {
+      expect(plan.timeline.find(s => s.setId === 'pelvic-floor' && s.startMs === hold.startMs)!.stepId)
+        .toBe('long-squeeze');
+    }
+    const pelvic = plan.timeline.filter(s => s.setId === 'pelvic-floor');
+    const ms = (id: string) => pelvic.filter(s => s.stepId === id).reduce((n, s) => n + s.endMs - s.startMs, 0);
+    expect(ms('long-squeeze') / ms('long-release')).toBeGreaterThan(0.8);
+  });
   it('срез комментариев работает — иначе весь гейт ложный', () => {
     const probe = "/* тут написано react-native */\nconst a = 1; // и тут document.body\nconst b = 'живой';";
     const cut = stripComments(probe);

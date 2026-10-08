@@ -11,7 +11,9 @@
 import { translateFor } from '../contexts/LanguageContext';
 
 export type Cell = number; // 0 = empty
-export type Variant = 'none' | 'diagonal' | 'antiknight' | 'hyper' | 'nonconsec' | 'jigsaw' | 'antiking' | 'evenodd' | 'kropki' | 'sandwich' | 'thermo' | 'arrow' | 'thermocage' | 'unequal' | 'towers' | 'sandparity' | 'thermoknight' | 'killerdiag';
+export type Variant = 'none' | 'diagonal' | 'antiknight' | 'hyper' | 'nonconsec' | 'jigsaw' | 'antiking' | 'evenodd' | 'kropki' | 'sandwich' | 'thermo' | 'arrow' | 'thermocage' | 'unequal' | 'towers' | 'sandparity' | 'thermoknight' | 'killerdiag' | 'whisper' | 'renban' | 'regionsum' | 'palindrome' | 'between' | 'lockout' | 'xv' | 'argyle' | 'littlekiller' | 'xsums' | 'cipher' | 'fog' | 'chaos' | 'schrodinger' | 'doublers' | 'negators' | 'killer' | 'wordoku' | 'animals' | 'friends';
+// 'friends' — «Мяу — друзья» 9×9 (у кота мышь рядом): генератора на TS нет, доски ступеней — только
+// выгрузкой MindLab (flutter/tools/meow9-ladder.cjs, export_kids_boards.py --meow9).
 
 export const HYPER_BOXES = [[1, 1], [1, 5], [5, 1], [5, 5]] as const;   // Windoku: 4 доп. зоны 3×3 (левые-верхние углы)
 export const KNIGHT = [[-2, -1], [-2, 1], [-1, -2], [-1, 2], [1, -2], [1, 2], [2, -1], [2, 1]] as const;
@@ -27,6 +29,211 @@ export function blanksFor(size: 6 | 9, diff: 'easy' | 'medium' | 'hard') {
   return diff === 'easy' ? 12 : diff === 'medium' ? 18 : 24;                    // из 36
 }
 
+/**
+ * 🔴 АРГАЙЛ (пункт 10 цепочки «14 усложнений», задача 2345d346; решение Дениса 30.09 «Берём»).
+ * Узор «ромб» поверх 9×9: восемь отмеченных диагоналей, на каждой цифры не повторяются.
+ * Диагонали задаются разностью r−c (±1 — по 8 клеток, ±4 — по 5) и суммой r+c (7 и 9 — по 8
+ * клеток, 4 и 12 — по 5). Это классическая раскладка Argyle (アーガイル): обобщение варианта
+ * «диагонали» с двух главных на восемь коротких. Ни одна диагональ не полная (≤ 8 клеток), поэтому
+ * правило режет кандидатов как сосед, но «единственного места» в диагонали не даёт.
+ */
+export const ARGYLE_DIFFS = [-4, -1, 1, 4] as const;
+export const ARGYLE_SUMS = [4, 7, 9, 12] as const;
+
+/** Клетки отмеченных диагоналей аргайла, на которых лежит (r, c) — без неё самой. */
+export function argylePeers(r: number, c: number, N: number): [number, number][] {
+  const out: [number, number][] = [];
+  if (N !== 9) return out;
+  if ((ARGYLE_DIFFS as readonly number[]).includes(r - c)) {
+    for (let i = 0; i < N; i++) { const j = i - (r - c); if (j >= 0 && j < N && i !== r) out.push([i, j]); }
+  }
+  if ((ARGYLE_SUMS as readonly number[]).includes(r + c)) {
+    for (let i = 0; i < N; i++) { const j = r + c - i; if (j >= 0 && j < N && i !== r) out.push([i, j]); }
+  }
+  return out;
+}
+
+/**
+ * Диагонали узора отрезками в долях клетки ([x1, y1, x2, y2], x — столбец, y — строка): линия идёт
+ * через центры клеток и кончается на краях доски. r−c = k → y = x + k; r+c = m → y = m + 1 − x.
+ */
+export function argyleSegments(N = 9): [number, number, number, number][] {
+  const out: [number, number, number, number][] = [];
+  for (const k of ARGYLE_DIFFS) out.push(k > 0 ? [0, k, N - k, N] : [-k, 0, N, N + k]);
+  for (const m of ARGYLE_SUMS) out.push(m + 1 <= N ? [0, m + 1, m + 1, 0] : [m + 1 - N, N, N, m + 1 - N]);
+  return out;
+}
+
+/**
+ * 🔴 МАЛЫЙ КИЛЛЕР (пункт 8 цепочки «14 усложнений», задача 2dddd227; решение Дениса 30.09 «Берём»).
+ * Число снаружи доски со стрелкой — сумма цифр на диагонали, куда смотрит стрелка. Цифры на такой
+ * диагонали МОГУТ повторяться (если их не запрещают строка, столбец и блок) — сверено 07.10 по трём
+ * языкам: sudokustreak.com/en/types/little-killer, sudoku.by/little-killer, zhuanlan.zhihu.com/p/667286724
+ * («箭头对角线上数字可以重复»).
+ * Подсказки смотрят только ВНИЗ: ↘ с верхнего и левого поля, ↙ с верхнего и правого. Поле под доской
+ * не нужно, и одно гнездо поля держит не больше одной подсказки. Диагонали короче трёх клеток не
+ * берём: одна клетка — это данная цифра, две — почти она.
+ * (r, c) — первая клетка диагонали у края, (dr, dc) — шаг внутрь.
+ */
+export type LittleKillerClue = { r: number; c: number; dr: 1; dc: 1 | -1; sum: number };
+/** Сколько диагоналей показать. На трудность число почти не влияет: 10 → 5 диагоналей — цена вывода
+ *  145 → 127, ступень 4 (замер 07.10, копание добирает своё); ось трудности — `digCap` ступени. */
+export const LITTLE_KILLER_CLUES = 10;
+
+/** Лежит ли клетка на диагонали подсказки. */
+export function onLittleKiller(k: LittleKillerClue, r: number, c: number): boolean {
+  return r >= k.r && (k.dc === 1 ? r - c === k.r - k.c : r + c === k.r + k.c);
+}
+
+/** Клетки диагонали подсказки — от края внутрь. */
+export function littleKillerCells(k: LittleKillerClue, N: number): [number, number][] {
+  const out: [number, number][] = [];
+  for (let r = k.r, c = k.c; r >= 0 && r < N && c >= 0 && c < N; r += k.dr, c += k.dc) out.push([r, c]);
+  return out;
+}
+
+/** Гнездо подсказки в поле: сторона и номер (у верхнего поля −1 и N — углы). */
+export function littleKillerSlot(k: LittleKillerClue): { side: 'top' | 'left' | 'right'; i: number } {
+  if (k.r === 0) return { side: 'top', i: k.c - k.dc };
+  return k.dc === 1 ? { side: 'left', i: k.r - 1 } : { side: 'right', i: k.r - 1 };
+}
+
+/** Подсказки из решения: `count` случайных диагоналей длиной от 3, по одной на гнездо. */
+export function littleKillerFromSolution(sol: Cell[][], N: number, count = LITTLE_KILLER_CLUES): LittleKillerClue[] {
+  const all: LittleKillerClue[] = [];
+  for (let c = 0; c <= N - 3; c++) all.push({ r: 0, c, dr: 1, dc: 1, sum: 0 });        // ↘ с верха
+  for (let r = 1; r <= N - 3; r++) all.push({ r, c: 0, dr: 1, dc: 1, sum: 0 });        // ↘ слева
+  for (let c = 2; c < N; c++) all.push({ r: 0, c, dr: 1, dc: -1, sum: 0 });            // ↙ с верха
+  for (let r = 1; r <= N - 3; r++) all.push({ r, c: N - 1, dr: 1, dc: -1, sum: 0 });   // ↙ справа
+  const taken = new Set<string>();
+  const out: LittleKillerClue[] = [];
+  for (const k of shuffle(all)) {
+    if (out.length >= count) break;
+    const s = littleKillerSlot(k);
+    if (taken.has(s.side + s.i)) continue;
+    taken.add(s.side + s.i);
+    out.push({ ...k, sum: littleKillerCells(k, N).reduce((t, [r, c]) => t + sol[r][c], 0) });
+  }
+  return out;
+}
+
+/**
+ * Не спорит ли цифра `n` в (r, c) с суммами диагоналей — по ИЗВЕСТНЫМ цифрам: известные плюс по
+ * единице на каждую пустую не больше суммы, известные плюс по N на пустую — не меньше. Повтор цифр
+ * на диагонали разрешён, поэтому других ограничений у правила нет.
+ */
+export function littleKillerOk(grid: Cell[][], r: number, c: number, n: number, clues: LittleKillerClue[], N: number): boolean {
+  for (const k of clues) {
+    if (!onLittleKiller(k, r, c)) continue;
+    let s = 0, e = 0;
+    for (const [i, j] of littleKillerCells(k, N)) {
+      const v = i === r && j === c ? n : grid[i][j];
+      if (v === 0) e++; else s += v;
+    }
+    if (s + e > k.sum || s + N * e < k.sum) return false;
+  }
+  return true;
+}
+
+/**
+ * 🔴 X-СУММЫ (пункт 9 цепочки «14 усложнений», задача 5ea317fc; решение Дениса 30.09 «Берём»).
+ * Число у края строки или столбца — сумма первых X цифр с этой стороны, где X — первая из них (она
+ * входит в сумму: подсказка 6 при первой 2 — это 2 + следующая 4). Сверено 07.10 по четырём языкам:
+ * logic-masters.de (000LZO), janko.at (Varianten/053), cn.sudoku.today (前X数和数独), разбор на русском.
+ * Подсказки — слева у строк и сверху у столбцов, как поля сэндвича (вёрстка та же); часть скрыта
+ * (−1). Форма — та же `{ rows, cols }`, что у сэндвича.
+ */
+export type XsumsClues = { rows: number[]; cols: number[] };
+/** Сколько из 18 сумм показать. На трудность число почти не влияет: 12 → 6 сумм — цена вывода
+ *  125 → 115, ступень 4 (замер 07.10, копание добирает своё); ось трудности — `digCap` ступени. */
+export const XSUMS_SHOWN = 12;
+
+/** Сумма первых X цифр ряда, X — первая цифра. */
+export function xsumOf(line: readonly number[]): number {
+  let t = 0;
+  for (let k = 0; k < line[0]; k++) t += line[k];
+  return t;
+}
+
+export function xsumsFromSolution(sol: Cell[][], N: number, shown = XSUMS_SHOWN): XsumsClues {
+  const rows = sol.map((row) => xsumOf(row));
+  const cols = Array.from({ length: N }, (_, c) => xsumOf(sol.map((row) => row[c])));
+  const hide = shuffle(Array.from({ length: 2 * N }, (_, i) => i)).slice(0, Math.max(0, 2 * N - shown));
+  for (const i of hide) { if (i < N) rows[i] = -1; else cols[i - N] = -1; }
+  return { rows, cols };
+}
+
+/**
+ * Не спорит ли ряд с подсказкой по ИЗВЕСТНЫМ цифрам. Пока первая цифра пуста, X неизвестен — молчим;
+ * известна — сумма её первых X клеток держится в коридоре: известные плюс по 1 на пустую не больше
+ * подсказки, известные плюс по N на пустую — не меньше.
+ */
+export function xsumLineOk(line: readonly number[], clue: number, N: number): boolean {
+  if (clue < 0) return true;
+  const x = line[0];
+  if (x === 0) return true;
+  let s = 0, e = 0;
+  for (let k = 0; k < x; k++) { if (line[k] === 0) e++; else s += line[k]; }
+  return s + e <= clue && clue <= s + N * e;
+}
+
+export function xsumsOk(grid: Cell[][], r: number, c: number, n: number, xs: XsumsClues, N: number): boolean {
+  const row = grid[r].slice(); row[c] = n;
+  if (!xsumLineOk(row, xs.rows[r], N)) return false;
+  const col = grid.map((x) => x[c]); col[r] = n;
+  return xsumLineOk(col, xs.cols[c], N);
+}
+
+/**
+ * 🔴 ШИФР (пункт 2 цепочки «14 усложнений», задача 1f8fbd7f; решение Дениса 30.09 «Берём»).
+ * Часть цифр решения зашифрована буквами: у такой цифры часть подсказок показана её буквой,
+ * остальные — открыто. Одинаковые буквы — одинаковые цифры, разные буквы — разные цифры; код
+ * выводится вместе с доской. Образцы правила: gmpuzzles.com/blog/tag/cipher.
+ * 🔴 БУКВЫ ОБЯЗАНЫ БЫТЬ СМЕШАНЫ С ЦИФРАМИ. Первая редакция шифровала КАЖДУЮ подсказку зашифрованной
+ * цифры — замер 07.10: перестановка зашифрованных цифр давала другое верное решение, доска была
+ * единственной лишь с точностью до неё (это и есть «просто замена значка», пункт 1); генератор не
+ * смог выкопать ни одной доски (0–3 пустых при 45 буквах, 8 из 8 — запасным путём). Открытые
+ * подсказки той же цифры ломают симметрию: по ним и выводится, какая буква — какая цифра.
+ * Клетка-буква — НЕ данная цифра: в задании 0, буква лежит в оверлее `cipher` (номер 1..9 = A..I).
+ */
+export const CIPHER_DIGITS = 5;
+/** Доля подсказок зашифрованной цифры, показанных буквой. Точное число — по замеру. */
+export const CIPHER_SHARE = 0.5;
+export const CIPHER_LETTERS = 'ABCDEFGHI';
+
+/**
+ * Буквы на полной доске: `count` цифр шифруются своими буквами, и у каждой из них буквой показана
+ * доля `share` клеток (остальные открыто). Сетка фиксируется до копания — копание лишь убирает
+ * подсказки, а какая из оставшихся буква, а какая цифра, не меняется.
+ */
+export function cipherLetters(sol: Cell[][], N: number, count = CIPHER_DIGITS, share = CIPHER_SHARE): number[][] {
+  const key = new Array<number>(N + 1).fill(0);
+  const digits = shuffle(Array.from({ length: N }, (_, i) => i + 1)).slice(0, Math.min(count, N - 1));
+  const letters = shuffle(Array.from({ length: N }, (_, i) => i + 1));
+  digits.forEach((d, i) => { key[d] = letters[i]; });
+  return sol.map((row) => row.map((v) => (key[v] && Math.random() < share ? key[v] : 0)));
+}
+
+/** Задание с цифрами-подсказками → задание игрока: подсказки на клетках-буквах становятся буквами. */
+export function encodeCipher(puzzle: Cell[][], letters: number[][]): { puzzle: Cell[][]; cipher: number[][] } {
+  const cipher = puzzle.map((row, r) => row.map((v, c) => (v !== 0 ? letters[r][c] : 0)));
+  return { puzzle: puzzle.map((row, r) => row.map((v, c) => (cipher[r][c] ? 0 : v))), cipher };
+}
+
+/** Не спорит ли цифра n в (r, c) с буквами: та же буква — та же цифра, другая буква — другая. */
+export function cipherOk(grid: Cell[][], r: number, c: number, n: number, cipher: number[][], N: number): boolean {
+  const L = cipher[r][c];
+  if (!L) return true;
+  for (let i = 0; i < N; i++) for (let j = 0; j < N; j++) {
+    const M = cipher[i][j];
+    if (!M || (i === r && j === c)) continue;
+    const v = grid[i][j];
+    if (v === 0) continue;
+    if (M === L ? v !== n : v === n) return false;
+  }
+  return true;
+}
+
 export function inHyper(r: number, c: number): readonly [number, number] | null {
   for (const [hr, hc] of HYPER_BOXES) if (r >= hr && r < hr + 3 && c >= hc && c < hc + 3) return [hr, hc];
   return null;
@@ -35,20 +242,49 @@ export function inHyper(r: number, c: number): readonly [number, number] | null 
 /** v1.137: подписи/правила вариантов живут в словаре LanguageContext
  *  (sudokuVariant* / sudokuRule*) — берутся через translateFor, чтобы 10
  *  оверлейных языков не падали на английский. lang — код языка ('ru'|'en'|…). */
-const VARIANT_KEY_SUFFIX: Record<Exclude<Variant, 'none'>, string> = {
+const VARIANT_KEY_SUFFIX: Record<Exclude<Variant, 'none' | 'friends' | 'killer' | 'wordoku' | 'animals'>, string> = {
   diagonal: 'Diagonal', antiknight: 'Antiknight', hyper: 'Hyper', nonconsec: 'Nonconsec',
   jigsaw: 'Jigsaw', antiking: 'Antiking', evenodd: 'Evenodd', kropki: 'Kropki',
   sandwich: 'Sandwich', thermo: 'Thermo', arrow: 'Arrow', thermocage: 'Thermocage',
   unequal: 'Unequal',
   towers: 'Towers',
   sandparity: 'Sandparity', thermoknight: 'Thermoknight', killerdiag: 'Killerdiag',
+  whisper: 'Whisper',
+  renban: 'Renban',
+  regionsum: 'Regionsum',
+  palindrome: 'Palindrome',
+  between: 'Between',
+  lockout: 'Lockout',
+  xv: 'Xv',
+  argyle: 'Argyle',
+  littlekiller: 'Littlekiller',
+  xsums: 'Xsums',
+  cipher: 'Cipher',
+  fog: 'Fog',
+  chaos: 'Chaos',
+  schrodinger: 'Schrodinger',
+  doublers: 'Doublers',
+  negators: 'Negators',
 };
+// «Мяу — друзья»: имя и правило — одна короткая строка «🐱 рядом с 🐭», та же, что у натива
+// (sdkRule_friends, 12 языков); отдельных sudokuVariant*/sudokuRule* у варианта нет.
+// Киллер на лестнице (08.10): имя и правило — те же строки, что у режима «Киллер» (sudokuModeKiller,
+// sudokuKillerRule; 12 языков), а не новые sudokuVariant*/sudokuRule*.
 export function variantLabel(v: Variant, lang: string): string {
   if (v === 'none') return '';
+  if (v === 'friends') return translateFor(lang, 'sdkRule_friends');
+  if (v === 'killer') return translateFor(lang, 'sudokuModeKiller');
+  // Wordoku и звери на лестнице (08.10) — классика значками: строки скина (12 языков), без новых ключей.
+  if (v === 'wordoku') return translateFor(lang, 'sudokuSkinLetters');
+  if (v === 'animals') return translateFor(lang, 'sudokuSkinAnimals');
   return translateFor(lang, 'sudokuVariant' + VARIANT_KEY_SUFFIX[v]);
 }
 export function variantRule(v: Variant, lang: string): string {
   if (v === 'none') return '';
+  if (v === 'friends') return translateFor(lang, 'sdkRule_friends');
+  if (v === 'killer') return translateFor(lang, 'sudokuKillerRule');
+  if (v === 'wordoku') return translateFor(lang, 'sudokuSkinLetters');
+  if (v === 'animals') return translateFor(lang, 'sudokuSkinAnimals');
   return translateFor(lang, 'sudokuRule' + VARIANT_KEY_SUFFIX[v]);
 }
 
@@ -265,7 +501,36 @@ export function generateThermoCages(sol: Cell[][], N: number, rnd: () => number 
 }
 
 // SUDOKU-LVL: уровневая прогрессия. 1–4 = 6×6, 5–8 = 9×9, 9–13 = диагональ, далее фазы-варианты.
-export interface LevelCfg { size: 6 | 9; N: number; BR: number; BC: number; blanks: number; variant: Variant; hintMax: number; }
+export interface LevelCfg {
+  size: 6 | 9; N: number; BR: number; BC: number; blanks: number; variant: Variant; hintMax: number; lives: number;
+  /**
+   * Сколько клеток 9×9 логический путь вправе выкопать на ступени (по умолчанию MAX_BLANKS_9 = 64) —
+   * ось трудности внутри блока у правил-подсказок. ЗАМЕР 07.10.2026 (8 досок): X-суммы 64 → 70 —
+   * цена вывода 129 → 151, малый киллер 145 → 159; к 76 рост насыщается (156 / 163). А «меньше
+   * подсказок правила» трудность НЕ поднимает: X-суммы 12 → 6 сумм — цена 125 → 115, малый киллер
+   * 10 → 5 диагоналей — 145 → 127 (копание добирает своё). Скрипты: ~/dev/psygames/sudoku-chat/measure/.
+   */
+  digCap?: number;
+  /**
+   * Рейтинг полосы банка (Sukaku Explainer), из которой ступень берёт доску. Задан — доска из банка,
+   * как у классики 54–80, а не логическим путём; см. `SKIN_BANK_RATINGS`.
+   */
+  bankRating?: number;
+}
+
+/**
+ * 🔴 WORDOKU И ЗВЕРИ — ДОСКИ ИЗ БАНКА С РЕЙТИНГОМ, ПО ОДНОЙ ПОЛОСЕ НА СТУПЕНЬ БЛОКА.
+ *
+ * Это классика со значками, а копание логикой у классики насыщается: замер 08.10.2026 (зерно
+ * фиксировано, по 8 досок, ~/dev/psygames/sudoku-chat/measure/ladder-axes-20261008.test.ts) —
+ * ни digCap 60/64/70, ни полоса техник 3–4 … 6–6 не двигают ничего: ~56 пустых, ступень 3–4, то
+ * есть уровень классики ~37 на ступени 153. Классика 54–80 играет банк с рейтингом 6,3–7,8, а
+ * банк от 5,4 наша мера не решает вовсе (ступень 9 у 18/18 на каждой полосе, bank-grade-measure).
+ * Ось — данные: полосы банка 8,3 / 8,5 / 8,9 / 9,0 — только ПОЛНЫЕ, по 40 досок (8,6/8,7/8,8/9,1/9,2
+ * набраны неполными: 13/2/17/3/1). Значки экран накладывает на любую доску по её решению.
+ */
+export const SKIN_BANK_RATINGS: readonly number[] = [8.3, 8.5, 8.9, 9.0];
+
 export function levelConfig(level: number): LevelCfg {
   const lv = Math.max(1, level);
   const size: 6 | 9 = lv <= 4 ? 6 : 9;
@@ -333,7 +598,63 @@ export function levelConfig(level: number): LevelCfg {
   //   killerdiag верх:   3×2 4×5 5×8 (медиана 5, самая плотная пятёрка) — вершина
   else if (lv >= 81 && lv <= 84) variant = 'thermoknight';
   else if (lv >= 85 && lv <= 88) variant = 'sandparity';
-  else if (lv >= 89) variant = 'killerdiag';
+  else if (lv >= 89 && lv <= 92) variant = 'killerdiag';
+  /**
+   * 🔴 НЕМЕЦКИЙ ШЁПОТ — СТУПЕНИ 93–96 (01.10.2026, задача 5b0b7ca2). В КОНЕЦ лестницы, а не
+   * внутрь: вставка посредине сдвинула бы номера уровней у людей, уже прошедших дальше.
+   * Место по замеру: на 58 пустых доски шёпота встают ступенью 4–5 (как комбо-пояс 81–92),
+   * без линий не решаются логикой ни одна из 30 — правило работает, а не украшает.
+   */
+  else if (lv >= 93 && lv <= 96) variant = 'whisper';
+  /**
+   * 🔴 РЕНБАН — СТУПЕНИ 97–100 (01.10.2026, пункт 4 цепочки «14 усложнений», задача 031a7684).
+   * Тоже в конец лестницы — по той же причине, что шёпот. Место по замеру (см. VARIANT_TIER_CEILING).
+   */
+  else if (lv >= 97 && lv <= 100) variant = 'renban';
+  /**
+   * 🔴 ЛИНИИ РАВНЫХ СУММ — СТУПЕНИ 101–104 (01.10.2026, пункт 5 цепочки, задача b0a1feef).
+   * Тоже в конец лестницы. Место по замеру (см. VARIANT_TIER_CEILING).
+   */
+  else if (lv >= 101 && lv <= 104) variant = 'regionsum';
+  /** ПАЛИНДРОМ — СТУПЕНИ 105–108 (задача 25679487). В конец лестницы, место по замеру. */
+  else if (lv >= 105 && lv <= 108) variant = 'palindrome';
+  /** МЕЖДУ КОНЦАМИ — СТУПЕНИ 109–112 (задача 25679487). В конец лестницы, место по замеру. */
+  else if (lv >= 109 && lv <= 112) variant = 'between';
+  /** ЗАПОР — СТУПЕНИ 113–116 (задача 25679487). В конец лестницы, место по замеру. */
+  else if (lv >= 113 && lv <= 116) variant = 'lockout';
+  /** XV — СТУПЕНИ 117–120 (пункт 7 цепочки, задача 7eacd001). В конец лестницы, место по замеру. */
+  else if (lv >= 117 && lv <= 120) variant = 'xv';
+  // 121–124 «аргайл» (6aecf181 п.10, задача 2345d346): правило готово раньше блоков плана v4
+  // 121–176 (Wordoku, звери, «Мяу», киллер, наши режимы, Тэтхэм) — встаёт сразу за XV, чтобы
+  // лестница не рвалась (sudoku-levels, 07.10.2026).
+  else if (lv >= 121 && lv <= 124) variant = 'argyle';
+  // 125–128 «малый киллер» (6aecf181 п.8, задача 2dddd227) — тем же порядком: готовое правило
+  // сразу за аргайлом, блоки плана сдвинуты ещё на +4.
+  else if (lv >= 125 && lv <= 128) variant = 'littlekiller';
+  // 129–132 «X-суммы» (6aecf181 п.9, задача 5ea317fc) — тем же порядком, сразу за малым киллером.
+  else if (lv >= 129 && lv <= 132) variant = 'xsums';
+  // 133–136 «шифр» (6aecf181 п.2, задача 1f8fbd7f) — тем же порядком, сразу за X-суммами.
+  else if (lv >= 133 && lv <= 136) variant = 'cipher';
+  // 137–140 «туман войны» (6aecf181 п.11, задача efb63126) — тем же порядком, сразу за шифром.
+  else if (lv >= 137 && lv <= 140) variant = 'fog';
+  // 141–144 «самосборка» (6aecf181 п.12, задача 6cee3610) — тем же порядком, сразу за туманом.
+  else if (lv >= 141 && lv <= 144) variant = 'chaos';
+  // 145–148 «клетки Шрёдингера» (6aecf181 п.13, задача f46c796c) — тем же порядком, сразу за самосборкой.
+  else if (lv >= 145 && lv <= 148) variant = 'schrodinger';
+  // 149–152 «Мяу — друзья» 9×9 (план уровней, задача e7260a11): доски — выгрузкой MindLab
+  // (flutter/assets/levels/sudoku-meow9-boards.json, #211), генератора на TS нет; готово раньше
+  // Wordoku и зверей — встаёт первым.
+  else if (lv >= 149 && lv <= 152) variant = 'friends';
+  // 153–180 — блоки плана, собранные разделом вариантами лестницы 08.10 (#310–#313, задача e7260a11):
+  // Wordoku и звери (#313), киллер (#311), наши небоскрёбы и неравенства (#312), удвоители и
+  // отрицательные (#310, «клетки-нарушители» типы 2–3).
+  else if (lv >= 153 && lv <= 156) variant = 'wordoku';
+  else if (lv >= 157 && lv <= 160) variant = 'animals';
+  else if (lv >= 161 && lv <= 164) variant = 'killer';
+  else if (lv >= 165 && lv <= 168) variant = 'towers';
+  else if (lv >= 169 && lv <= 172) variant = 'unequal';
+  else if (lv >= 173 && lv <= 176) variant = 'doublers';
+  else if (lv >= 177) variant = 'negators';
   /**
    * 🔴 НЕРАВЕНСТВА (футосики) СОБРАНЫ, НО УРОВНЕЙ НЕ ПОЛУЧИЛИ — ЗАМЕР 26.08.2026.
    *
@@ -370,7 +691,51 @@ export function levelConfig(level: number): LevelCfg {
     ? Math.min(24, 8 + lv * 3)                                   // L1..4 → 11,14,17,20
     : Math.min(58, 34 + (lv - 5));                               // L5+ → 34..58, без сбросов на границах правил
   const hintMax = lv <= 4 ? 3 : lv <= 8 ? 2 : 1;
-  return { size, N, BR, BC, blanks, variant, hintMax };
+  // Ось трудности ВНУТРИ блока у правил-подсказок — лимит копания (`digCap`, PR #258), а не число
+  // подсказок: замер раздела 07.10 — X-суммы 64 → 70 цена 129 → 151, малый киллер 145 → 159;
+  // к 76 насыщается (выкапывается не больше ~68). Ступени блока: 64 → 67 → 70 → 70.
+  // Киллер лестницы (замер раздела 08.10: 64 — ступень 4 у 18/18, 70 — пятёрка у 8/18) — та же
+  // ось. Наши небоскрёбы и неравенства — 56 → 64 (замер 08.10: цена 67 → 94 и 88 → 140).
+  // Удвоители и отрицательные — 58 → 70 (замер раздела 08.10, по 18 досок: шагов на суммах
+  // 40 → 51 и 38 → 52; без лимита копание само насыщается у ~68, и блок шёл ровно).
+  const digCap = variant === 'littlekiller' || variant === 'xsums' || variant === 'killer'
+    ? [64, 67, 70, 70][(lv - 1) % 4]
+    : variant === 'towers' || variant === 'unequal'
+      ? [56, 60, 64, 64][(lv - 1) % 4]
+      : variant === 'doublers' || variant === 'negators'
+        ? [58, 62, 66, 70][(lv - 1) % 4]
+        : undefined;
+  // «Мяу»: пустых столько, сколько у выгруженных досок ступени (подсказок 30 → 28 → 26 → 24) —
+  // выгрузчик (meow9-ladder.cjs) сверяет и падает при расхождении.
+  const blanksOut = variant === 'friends' ? 81 - [30, 28, 26, 24][(lv - 1) % 4] : blanks;
+  const bankRating = variant === 'wordoku' || variant === 'animals' ? SKIN_BANK_RATINGS[(lv - 1) % 4] : undefined;
+  return {
+    size, N, BR, BC, blanks: blanksOut, variant, hintMax, lives: livesFor(lv),
+    ...(digCap ? { digCap } : {}), ...(bankRating !== undefined ? { bankRating } : {}),
+  };
+}
+
+/**
+ * 🔴 ЦЕНА ОШИБКИ — ОСЬ СТУПЕНИ (пункт 14 цепочки усложнений, задача 1fa57de3; решение
+ * Дениса 30.09 «Берём»). До 01.10 лимит был 3 ошибки на всех 92 ступенях (failurePolicy
+ * 'standard'), и ось не стреляла: замер 09.09 по cognitive_sessions — 51 партия за 90 дней,
+ * лимит сработал 1 раз из 46 и только на ступенях 1–10, наверху (31–55) — не больше двух
+ * ошибок за партию. Поэтому лимит убывает к верху: на входе прощает, наверху — нет.
+ *
+ *   1–4 (6×6, знакомство) — 5 · 5–8 (классика 9×9) — 4 · 9–29 — 3 ·
+ *   30–80 (вариантные правила, пояса ALS и цепей) — 2 · 81+ (комбо-пояс) — 1.
+ *
+ * ⚠️ ТАБЛИЦА ПЕРВАЯ, НЕ ОКОНЧАТЕЛЬНАЯ. Выборка 09.09 почти вся от одного человека, а
+ * малость ошибок может быть следствием осторожной игры под лимитом. Калибруется после
+ * включения: отчёт партии несёт лимит (details.lives), и считается, какая доля партий
+ * каждой полосы кончается ошибками. Самурай держит такую ось давно (LEVEL_ERRORS).
+ */
+export function livesFor(level: number): number {
+  const lv = Math.max(1, level);
+  // 76 — решение Дениса 08.10: три ошибки, а не две. Валя застряла на 76-й: 04.10 четыре проигрыша,
+  // три из них за ~70 с — ошибки пальцем на самой трудной доске банка, а не незнание правила.
+  if (lv === 76) return 3;
+  return lv <= 4 ? 5 : lv <= 8 ? 4 : lv <= 29 ? 3 : lv <= 80 ? 2 : 1;
 }
 
 export type SudokuDifficultyTier = 'beginner' | 'easy' | 'medium' | 'hard' | 'expert' | 'extreme';
@@ -501,6 +866,425 @@ export function thermoFromSolution(sol: Cell[][], N: number, rnd: () => number =
     pn[r][c] = { prev: k > 0 ? path[k - 1] : null, next: k < path.length - 1 ? path[k + 1] : null };
   }
   return pn;
+}
+
+/**
+ * 🔴 НЕМЕЦКИЙ ШЁПОТ (пункт 3 цепочки «14 усложнений», задача 5b0b7ca2; решение Дениса 30.09
+ * «Берём»): соседние по зелёной линии цифры отличаются минимум на 5. Отсюда пятёрке на линии
+ * не стоять вовсе (ни 0, ни 10 в судоку нет), а 4 и 6 соседствуют только с 9 и 1 — в этом
+ * и сила правила: оно режет кандидатов ещё до первой цифры.
+ *
+ * Линии строятся ИЗ решения, как термометры (`thermoFromSolution`): шаг — к ортогональному
+ * соседу, чья цифра отличается на ≥ WHISPER_GAP; длина 3…6, до шести линий, без пересечений.
+ * Хранятся тем же видом prev/next — отрисовка линии и её разбор у натива общие с термометром.
+ */
+export const WHISPER_GAP = 5;
+export function whisperFromSolution(sol: Cell[][], N: number, rnd: () => number = Math.random): ThermoPN {
+  const used: boolean[][] = Array.from({ length: N }, () => Array(N).fill(false));
+  const paths: [number, number][][] = [];
+  for (let attempt = 0; attempt < 60 && paths.length < 6; attempt++) {
+    const starts: [number, number][] = [];
+    for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (!used[r][c] && sol[r][c] !== 5) starts.push([r, c]);
+    if (!starts.length) break;
+    const [sr, sc] = starts[Math.floor(rnd() * starts.length)];
+    const len = 3 + Math.floor(rnd() * 4);   // 3..6
+    const path: [number, number][] = [[sr, sc]]; let cr = sr, cc = sc;
+    for (let s = 1; s < len; s++) {
+      const nb = ORTHO.map(([dr, dc]) => [cr + dr, cc + dc] as [number, number])
+        .filter(([nr, nc]) => nr >= 0 && nr < N && nc >= 0 && nc < N && !used[nr][nc]
+          && !path.some(([pr, pc]) => pr === nr && pc === nc)
+          && Math.abs(sol[nr][nc] - sol[cr][cc]) >= WHISPER_GAP);
+      if (!nb.length) break;
+      const [nr, nc] = nb[Math.floor(rnd() * nb.length)];
+      path.push([nr, nc]); cr = nr; cc = nc;
+    }
+    if (path.length >= 3) { paths.push(path); for (const [r, c] of path) used[r][c] = true; }
+  }
+  const pn: ThermoPN = Array.from({ length: N }, () => Array(N).fill(null));
+  for (const path of paths) for (let k = 0; k < path.length; k++) {
+    const [r, c] = path[k];
+    pn[r][c] = { prev: k > 0 ? path[k - 1] : null, next: k < path.length - 1 ? path[k + 1] : null };
+  }
+  return pn;
+}
+
+/**
+ * 🔴 РЕНБАН (пункт 4 цепочки «14 усложнений», задача 031a7684; решение Дениса 30.09 «Берём»):
+ * на фиолетовой линии стоят цифры, идущие подряд (3-4-5-6), в ЛЮБОМ порядке и без повторов.
+ * Правило не про соседей, а про всю линию сразу: длина L задаёт ширину окна значений, и уже
+ * две известные цифры на линии зажимают остальных в окно max−min ≤ L−1.
+ *
+ * Линии строятся ИЗ решения: случайный путь по ортогональным соседям длиной 3…5, у которого
+ * цифры разные и образуют отрезок подряд. До шести линий, без пересечений. Хранятся тем же
+ * видом prev/next, что термометр и шёпот.
+ */
+export function renbanFromSolution(sol: Cell[][], N: number, rnd: () => number = Math.random): ThermoPN {
+  const used: boolean[][] = Array.from({ length: N }, () => Array(N).fill(false));
+  const paths: [number, number][][] = [];
+  for (let attempt = 0; attempt < 120 && paths.length < 6; attempt++) {
+    const starts: [number, number][] = [];
+    for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (!used[r][c]) starts.push([r, c]);
+    if (!starts.length) break;
+    const [sr, sc] = starts[Math.floor(rnd() * starts.length)];
+    const len = 3 + Math.floor(rnd() * 3);   // 3..5
+    const path: [number, number][] = [[sr, sc]];
+    const vals = [sol[sr][sc]];
+    let cr = sr, cc = sc;
+    for (let s = 1; s < len; s++) {
+      // Сосед годен, если с его цифрой набор ещё может стать отрезком длины len.
+      const nb = ORTHO.map(([dr, dc]) => [cr + dr, cc + dc] as [number, number])
+        .filter(([nr, nc]) => nr >= 0 && nr < N && nc >= 0 && nc < N && !used[nr][nc]
+          && !path.some(([pr, pc]) => pr === nr && pc === nc)
+          && !vals.includes(sol[nr][nc])
+          && Math.max(...vals, sol[nr][nc]) - Math.min(...vals, sol[nr][nc]) <= len - 1);
+      if (!nb.length) break;
+      const [nr, nc] = nb[Math.floor(rnd() * nb.length)];
+      path.push([nr, nc]); vals.push(sol[nr][nc]); cr = nr; cc = nc;
+    }
+    if (path.length >= 3 && Math.max(...vals) - Math.min(...vals) === path.length - 1) {
+      paths.push(path); for (const [r, c] of path) used[r][c] = true;
+    }
+  }
+  const pn: ThermoPN = Array.from({ length: N }, () => Array(N).fill(null));
+  for (const path of paths) for (let k = 0; k < path.length; k++) {
+    const [r, c] = path[k];
+    pn[r][c] = { prev: k > 0 ? path[k - 1] : null, next: k < path.length - 1 ? path[k + 1] : null };
+  }
+  return pn;
+}
+
+/** Все клетки линии (prev/next), на которой стоит (r, c); пусто — клетка не на линии. */
+export function lineCells(pn: ThermoPN, r: number, c: number): [number, number][] {
+  if (!pn[r]?.[c]) return [];
+  let cur: [number, number] = [r, c];
+  for (let guard = 0; guard < 81; guard++) {
+    const prev = pn[cur[0]][cur[1]]!.prev;
+    if (!prev) break;
+    cur = prev;
+  }
+  const out: [number, number][] = [];
+  for (let guard = 0; guard < 81; guard++) {
+    out.push(cur);
+    const next = pn[cur[0]][cur[1]]!.next;
+    if (!next) break;
+    cur = next;
+  }
+  return out;
+}
+
+/** Нарушает ли цифра n в (r, c) линию ренбана: повтор на линии или разброс шире длины. */
+export function renbanOk(grid: Cell[][], r: number, c: number, n: number, pn: ThermoPN): boolean {
+  const cells = lineCells(pn, r, c);
+  if (!cells.length) return true;
+  const vals: number[] = [];
+  for (const [lr, lc] of cells) {
+    const v = lr === r && lc === c ? n : grid[lr][lc];
+    if (v === 0) continue;
+    if (vals.includes(v)) return false;
+    vals.push(v);
+  }
+  return Math.max(...vals) - Math.min(...vals) <= cells.length - 1;
+}
+
+/**
+ * 🔴 ЛИНИИ РАВНЫХ СУММ (Region Sum Lines; пункт 5 цепочки «14 усложнений», задача b0a1feef;
+ * решение Дениса 30.09 «Берём»): синяя линия проходит через несколько блоков, и в КАЖДОМ
+ * блоке сумма её цифр одна и та же. Правило связывает блоки: одиночная клетка на линии в
+ * одном блоке равна сумме двух-трёх клеток в соседнем.
+ *
+ * Линии — ИЗ решения: случайный путь 3…7 клеток, который задевает ≥ 2 блока и у которого
+ * суммы по блокам совпали (замер 01.10: ~2 % путей, ≈ 6 линий на доску за 400 попыток).
+ * До пяти линий, без общих клеток. Хранятся тем же видом prev/next.
+ */
+export function regionSumFromSolution(sol: Cell[][], N: number, BR: number, BC: number, rnd: () => number = Math.random): ThermoPN {
+  const used: boolean[][] = Array.from({ length: N }, () => Array(N).fill(false));
+  const boxOf = (r: number, c: number) => Math.floor(r / BR) * (N / BC) + Math.floor(c / BC);
+  const paths: [number, number][][] = [];
+  for (let attempt = 0; attempt < 800 && paths.length < 5; attempt++) {
+    const len = 3 + Math.floor(rnd() * 5);   // 3..7
+    let r = Math.floor(rnd() * N), c = Math.floor(rnd() * N);
+    if (used[r][c]) continue;
+    const path: [number, number][] = [[r, c]];
+    for (let s = 1; s < len; s++) {
+      const nb = ORTHO.map(([dr, dc]) => [r + dr, c + dc] as [number, number])
+        .filter(([nr, nc]) => nr >= 0 && nr < N && nc >= 0 && nc < N && !used[nr][nc]
+          && !path.some(([pr, pc]) => pr === nr && pc === nc));
+      if (!nb.length) break;
+      [r, c] = nb[Math.floor(rnd() * nb.length)];
+      path.push([r, c]);
+    }
+    const sums = new Map<number, number>();
+    for (const [pr, pc] of path) sums.set(boxOf(pr, pc), (sums.get(boxOf(pr, pc)) ?? 0) + sol[pr][pc]);
+    if (path.length < 3 || sums.size < 2) continue;
+    const vals = [...sums.values()];
+    if (!vals.every((v) => v === vals[0])) continue;
+    paths.push(path);
+    for (const [pr, pc] of path) used[pr][pc] = true;
+  }
+  const pn: ThermoPN = Array.from({ length: N }, () => Array(N).fill(null));
+  for (const path of paths) for (let k = 0; k < path.length; k++) {
+    const [r, c] = path[k];
+    pn[r][c] = { prev: k > 0 ? path[k - 1] : null, next: k < path.length - 1 ? path[k + 1] : null };
+  }
+  return pn;
+}
+
+/**
+ * Не нарушает ли цифра n в (r, c) линию равных сумм. Клетки линии делятся на группы по
+ * блокам; у заполненной группы сумма точная, у неполной — коридор [сумма + наименьшее
+ * добивание, сумма + наибольшее] (разные цифры: 1+2+…, N+(N−1)+…). Все группы обязаны
+ * иметь общую сумму: коридоры пересекаются, а точные суммы равны.
+ */
+export function regionSumOk(grid: Cell[][], r: number, c: number, n: number, pn: ThermoPN, N: number, BR: number, BC: number): boolean {
+  const cells = lineCells(pn, r, c);
+  if (!cells.length) return true;
+  const boxOf = (rr: number, cc: number) => Math.floor(rr / BR) * (N / BC) + Math.floor(cc / BC);
+  const groups = new Map<number, { sum: number; empty: number }>();
+  for (const [lr, lc] of cells) {
+    const v = lr === r && lc === c ? n : grid[lr][lc];
+    const g = groups.get(boxOf(lr, lc)) ?? { sum: 0, empty: 0 };
+    if (v === 0) g.empty++; else g.sum += v;
+    groups.set(boxOf(lr, lc), g);
+  }
+  let lo = -Infinity, hi = Infinity;
+  for (const { sum, empty } of groups.values()) {
+    lo = Math.max(lo, sum + (empty * (empty + 1)) / 2);
+    hi = Math.min(hi, sum + empty * N - (empty * (empty - 1)) / 2);
+  }
+  return lo <= hi;
+}
+
+/**
+ * 🔴 ПАЛИНДРОМ (пункт 6 цепочки «14 усложнений», задача 25679487; решение Дениса 30.09
+ * «Берём»): цифры на серой линии читаются одинаково с обоих концов — клетка i равна клетке
+ * L−1−i (формулировка сверена 01.10.2026: «read the same forwards and backwards», logic-masters.de).
+ * Зеркальные клетки обязаны лежать в разных строках, столбцах и блоках, поэтому длина
+ * линии нечётная (у чётной две средние клетки — соседи, равными быть не могут).
+ *
+ * Линии — ИЗ решения: случайные пути 3…7, которые оказались палиндромами (замер 01.10:
+ * ~0,8 % путей, ≈ 6 линий на доску; длины 3 — 87 %, 5 — 12 %, 7 — 2 %). Длинные ценнее —
+ * у них больше зеркальных пар, поэтому сперва берутся линии ≥ 5, потом добираются тройки.
+ * До пяти линий без общих клеток; форма prev/next.
+ */
+export function palindromeFromSolution(sol: Cell[][], N: number, rnd: () => number = Math.random): ThermoPN {
+  const used: boolean[][] = Array.from({ length: N }, () => Array(N).fill(false));
+  const found: [number, number][][] = [];
+  for (let attempt = 0; attempt < 3000 && found.length < 40; attempt++) {
+    const len = 3 + 2 * Math.floor(rnd() * 3);   // 3, 5, 7
+    let r = Math.floor(rnd() * N), c = Math.floor(rnd() * N);
+    const path: [number, number][] = [[r, c]];
+    for (let s = 1; s < len; s++) {
+      const nb = ORTHO.map(([dr, dc]) => [r + dr, c + dc] as [number, number])
+        .filter(([nr, nc]) => nr >= 0 && nr < N && nc >= 0 && nc < N && !path.some(([pr, pc]) => pr === nr && pc === nc));
+      if (!nb.length) break;
+      [r, c] = nb[Math.floor(rnd() * nb.length)];
+      path.push([r, c]);
+    }
+    const L = path.length;
+    if (L < 3 || L % 2 === 0) continue;
+    let mirror = true;
+    for (let i = 0; i < Math.floor(L / 2) && mirror; i++) {
+      const [a1, b1] = path[i], [a2, b2] = path[L - 1 - i];
+      if (sol[a1][b1] !== sol[a2][b2]) mirror = false;
+    }
+    if (mirror) found.push(path);
+  }
+  found.sort((a, b) => b.length - a.length);
+  const paths: [number, number][][] = [];
+  for (const path of found) {
+    if (paths.length >= 5) break;
+    if (path.some(([r, c]) => used[r][c])) continue;
+    paths.push(path);
+    for (const [r, c] of path) used[r][c] = true;
+  }
+  const pn: ThermoPN = Array.from({ length: N }, () => Array(N).fill(null));
+  for (const path of paths) for (let k = 0; k < path.length; k++) {
+    const [r, c] = path[k];
+    pn[r][c] = { prev: k > 0 ? path[k - 1] : null, next: k < path.length - 1 ? path[k + 1] : null };
+  }
+  return pn;
+}
+
+/** Цифра n в (r, c) не спорит с зеркальной клеткой линии-палиндрома (если та заполнена). */
+export function palindromeOk(grid: Cell[][], r: number, c: number, n: number, pn: ThermoPN): boolean {
+  const cells = lineCells(pn, r, c);
+  if (!cells.length) return true;
+  const i = cells.findIndex(([lr, lc]) => lr === r && lc === c);
+  const [mr, mc] = cells[cells.length - 1 - i];
+  if (mr === r && mc === c) return true;                       // середина нечётной линии
+  const o = grid[mr][mc];
+  return o === 0 || o === n;
+}
+
+/**
+ * 🔴 «МЕЖДУ КОНЦАМИ» (Between line; пункт 6 цепочки «14 усложнений», задача 25679487, правило 2
+ * из 3): на линии с кружками на концах каждая цифра лежит СТРОГО между цифрами двух кружков.
+ * Отсюда кружки — самая большая и самая маленькая цифра линии, и средние клетки зажаты окном.
+ * Формулировка сверена 01.10.2026: logic-masters.de, «Intro to Between Lines» (id 0008DQ): «strictly
+ * between the digits on the circled ends of the line».
+ *
+ * Линии — ИЗ решения: пути 3…6, у которых средние строго между концами (замер 01.10: ~14 %
+ * путей; длины 3 — 60 %, 4 — 20 %, 5 — 17 %, 6 — 3 %). Длинные сперва; до пяти без общих клеток.
+ */
+export function betweenFromSolution(sol: Cell[][], N: number, rnd: () => number = Math.random): ThermoPN {
+  const used: boolean[][] = Array.from({ length: N }, () => Array(N).fill(false));
+  const found: [number, number][][] = [];
+  for (let attempt = 0; attempt < 1500 && found.length < 40; attempt++) {
+    const len = 3 + Math.floor(rnd() * 4);   // 3..6
+    let r = Math.floor(rnd() * N), c = Math.floor(rnd() * N);
+    const path: [number, number][] = [[r, c]];
+    for (let s = 1; s < len; s++) {
+      const nb = ORTHO.map(([dr, dc]) => [r + dr, c + dc] as [number, number])
+        .filter(([nr, nc]) => nr >= 0 && nr < N && nc >= 0 && nc < N && !path.some(([pr, pc]) => pr === nr && pc === nc));
+      if (!nb.length) break;
+      [r, c] = nb[Math.floor(rnd() * nb.length)];
+      path.push([r, c]);
+    }
+    const L = path.length;
+    if (L < 3) continue;
+    const a = sol[path[0][0]][path[0][1]], b = sol[path[L - 1][0]][path[L - 1][1]];
+    const lo = Math.min(a, b), hi = Math.max(a, b);
+    if (path.slice(1, -1).every(([pr, pc]) => sol[pr][pc] > lo && sol[pr][pc] < hi)) found.push(path);
+  }
+  found.sort((x, y) => y.length - x.length);
+  const paths: [number, number][][] = [];
+  for (const path of found) {
+    if (paths.length >= 5) break;
+    if (path.some(([r, c]) => used[r][c])) continue;
+    paths.push(path);
+    for (const [r, c] of path) used[r][c] = true;
+  }
+  const pn: ThermoPN = Array.from({ length: N }, () => Array(N).fill(null));
+  for (const path of paths) for (let k = 0; k < path.length; k++) {
+    const [r, c] = path[k];
+    pn[r][c] = { prev: k > 0 ? path[k - 1] : null, next: k < path.length - 1 ? path[k + 1] : null };
+  }
+  return pn;
+}
+
+/**
+ * Цифра n в (r, c) не ломает линию «между концами». Известные цифры: при обоих концах — каждая
+ * средняя строго между ними; при одном конце — все средние по ОДНУ сторону от него и не равны
+ * ему; средняя не может быть крайней из известных, если оба конца ещё пусты, — это не утверждаем.
+ */
+export function betweenOk(grid: Cell[][], r: number, c: number, n: number, pn: ThermoPN): boolean {
+  const cells = lineCells(pn, r, c);
+  if (!cells.length) return true;
+  const at = ([lr, lc]: [number, number]) => (lr === r && lc === c ? n : grid[lr][lc]);
+  const a = at(cells[0]), b = at(cells[cells.length - 1]);
+  const mids = cells.slice(1, -1).map(at).filter((v) => v !== 0);
+  if (a && b) {
+    if (a === b) return false;
+    const lo = Math.min(a, b), hi = Math.max(a, b);
+    return mids.every((v) => v > lo && v < hi);
+  }
+  const end = a || b;
+  if (!end || !mids.length) return true;
+  return mids.every((v) => v > end) || mids.every((v) => v < end);
+}
+
+/**
+ * 🔴 LOCKOUT (пункт 6 цепочки «14 усложнений», задача 25679487, правило 3
+ * из 3): цифры в ромбах на концах линии отличаются минимум на 4, а каждая цифра линии лежит ВНЕ
+ * отрезка между ними и не равна им: ромбы «запирают» середину шкалы.
+ * Формулировка сверена 01.10.2026: wooferzfg.me/puzzles/build_your_own_lockout_lines.html («cannot be
+ * between or equal to the digits on the diamond endpoints… must differ by at least 4»), logic-wiz.com.
+ *
+ * Линии — ИЗ решения: пути 3…6 с концами через ≥ 4 и средними вне их отрезка (замер 01.10: ~5,6 %
+ * путей; длины 3 — 63 %, 4 — 28 %, 5 — 7 %, 6 — 2 %). Длинные сперва; до пяти без общих клеток.
+ */
+export function lockoutFromSolution(sol: Cell[][], N: number, rnd: () => number = Math.random): ThermoPN {
+  const used: boolean[][] = Array.from({ length: N }, () => Array(N).fill(false));
+  const found: [number, number][][] = [];
+  for (let attempt = 0; attempt < 1500 && found.length < 40; attempt++) {
+    const len = 3 + Math.floor(rnd() * 4);   // 3..6
+    let r = Math.floor(rnd() * N), c = Math.floor(rnd() * N);
+    const path: [number, number][] = [[r, c]];
+    for (let s = 1; s < len; s++) {
+      const nb = ORTHO.map(([dr, dc]) => [r + dr, c + dc] as [number, number])
+        .filter(([nr, nc]) => nr >= 0 && nr < N && nc >= 0 && nc < N && !path.some(([pr, pc]) => pr === nr && pc === nc));
+      if (!nb.length) break;
+      [r, c] = nb[Math.floor(rnd() * nb.length)];
+      path.push([r, c]);
+    }
+    const L = path.length;
+    if (L < 3) continue;
+    const a = sol[path[0][0]][path[0][1]], b = sol[path[L - 1][0]][path[L - 1][1]];
+    const lo = Math.min(a, b), hi = Math.max(a, b);
+    if (hi - lo >= 4 && path.slice(1, -1).every(([pr, pc]) => sol[pr][pc] < lo || sol[pr][pc] > hi)) found.push(path);
+  }
+  found.sort((x, y) => y.length - x.length);
+  const paths: [number, number][][] = [];
+  for (const path of found) {
+    if (paths.length >= 5) break;
+    if (path.some(([r, c]) => used[r][c])) continue;
+    paths.push(path);
+    for (const [r, c] of path) used[r][c] = true;
+  }
+  const pn: ThermoPN = Array.from({ length: N }, () => Array(N).fill(null));
+  for (const path of paths) for (let k = 0; k < path.length; k++) {
+    const [r, c] = path[k];
+    pn[r][c] = { prev: k > 0 ? path[k - 1] : null, next: k < path.length - 1 ? path[k + 1] : null };
+  }
+  return pn;
+}
+
+/**
+ * Цифра n в (r, c) не ломает lockout-линию. Известные цифры: при обоих концах — они отличаются
+ * минимум на 4, а каждая средняя вне отрезка [меньший, больший]; при одном конце — средние ему
+ * не равны.
+ */
+export function lockoutOk(grid: Cell[][], r: number, c: number, n: number, pn: ThermoPN): boolean {
+  const cells = lineCells(pn, r, c);
+  if (!cells.length) return true;
+  const at = ([lr, lc]: [number, number]) => (lr === r && lc === c ? n : grid[lr][lc]);
+  const a = at(cells[0]), b = at(cells[cells.length - 1]);
+  const mids = cells.slice(1, -1).map(at).filter((v) => v !== 0);
+  if (a && b) {
+    if (Math.abs(a - b) < 4) return false;
+    const lo = Math.min(a, b), hi = Math.max(a, b);
+    return mids.every((v) => v < lo || v > hi);
+  }
+  const end = a || b;
+  return !end || mids.every((v) => v !== end);
+}
+
+/**
+ * 🔴 XV (пункт 7 цепочки «14 усложнений», задача 7eacd001; решение Дениса 30.09 «Берём»):
+ * X на грани двух клеток — их сумма 10, V — сумма 5. И ОТРИЦАТЕЛЬНОЕ УСЛОВИЕ: показаны ВСЕ X и
+ * V, значит у соседей без знака сумма не 5 и не 10. Формулировка сверена 01.10.2026 с
+ * logic-masters.de («Cells connected by an X must sum to 10. Cells connected by an V must sum to
+ * 5. All X's and V's are given.»).
+ *
+ * Знаки — прямо из решения, все пары с суммой 5 и 10; прореживать их НЕЛЬЗЯ — отрицательное
+ * условие стало бы ложью. Карта как у кропки: h — грань вправо, v — грань вниз; 1 = V, 2 = X.
+ */
+export type XvMap = { h: number[][]; v: number[][] };
+export function xvFromSolution(sol: Cell[][], N: number): XvMap {
+  const mark = (a: number, b: number) => (a + b === 10 ? 2 : a + b === 5 ? 1 : 0);
+  const h = Array.from({ length: N }, () => Array(N).fill(0));
+  const v = Array.from({ length: N }, () => Array(N).fill(0));
+  for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+    if (c < N - 1) h[r][c] = mark(sol[r][c], sol[r][c + 1]);
+    if (r < N - 1) v[r][c] = mark(sol[r][c], sol[r + 1][c]);
+  }
+  return { h, v };
+}
+
+/** Цифра n в (r, c) не спорит ни с одним знаком XV у известных соседей (и с их отсутствием). */
+export function xvOk(grid: Cell[][], r: number, c: number, n: number, xv: XvMap, N: number): boolean {
+  const edges: [number, number, number][] = [];
+  if (c < N - 1) edges.push([xv.h[r][c], r, c + 1]);
+  if (c > 0) edges.push([xv.h[r][c - 1], r, c - 1]);
+  if (r < N - 1) edges.push([xv.v[r][c], r + 1, c]);
+  if (r > 0) edges.push([xv.v[r - 1][c], r - 1, c]);
+  for (const [d, nr, nc] of edges) {
+    const o = grid[nr][nc];
+    if (o === 0) continue;
+    const sum = n + o;
+    if (d === 2 ? sum !== 10 : d === 1 ? sum !== 5 : sum === 5 || sum === 10) return false;
+  }
+  return true;
 }
 
 export function arrowFromSolution(sol: Cell[][], N: number): ArrowMap {
@@ -719,27 +1503,40 @@ export function towersFromSolution(sol: Cell[][], N: number): TowersMap {
  * ⚠️ Оценка сверху намеренно грубая: каждая пустая клетка МОЖЕТ оказаться видимой.
  * Грубая, но ЧЕСТНАЯ: она никогда не отбросит верную доску, а только пропустит
  * часть неверных — их поймает проверка полного ряда.
+ *
+ * 🔴 НИЖНЯЯ ГРАНИЦА — ТОЛЬКО ПО НАЧАЛУ РЯДА ДО ПЕРВОЙ ПУСТОЙ (задача 2ab36958, 01.10.2026).
+ * Прежде снизу стояло «сколько видно среди заполненных», и это было НЕЧЕСТНО: пустая клетка
+ * ВПЕРЕДИ может закрыть уже видимые. Ряд [_,2,4,1,6,3] при подсказке 2 отвергался (среди
+ * заполненных видно три), а [5,2,4,1,6,3] даёт ровно 2. Замер: в эталонах правил ядро
+ * отвергло верную цифру решения в 8 ходах из 20, а оценщик срезал кандидатов неверным
+ * доводом. Честно снизу: видимые в начале до первой пустой — они видны при любом заполнении,
+ * — плюс самое высокое здание, если его в начале нет: оно где-то дальше и видно всегда.
  */
 export function towersLineOk(line: readonly number[], clue: number): boolean {
   if (clue === 0) return true;
   if (line.every((v) => v !== 0)) return visibleCount(line) === clue;
   let seen = 0, tallest = 0, blanks = 0;
   for (const v of line) { if (v === 0) { blanks++; continue; } if (v > tallest) { seen++; tallest = v; } }
-  return clue >= seen && clue <= seen + blanks;
+  let head = 0, headTop = 0;
+  for (const v of line) { if (v === 0) break; if (v > headTop) { head++; headTop = v; } }
+  const low = head + (headTop === line.length ? 0 : 1);
+  return clue >= low && clue <= seen + blanks;
 }
 
 export function isValid(grid: Cell[][], r: number, c: number, val: number, N: number, BR: number, BC: number, variant: Variant = 'none', regions?: number[][], thermo?: ThermoPN, arrow?: ArrowMap, cages?: CageMap, unequal?: UnequalMap, towers?: TowersMap): boolean {
   for (let i = 0; i < N; i++) if (grid[r][i] === val || grid[i][c] === val) return false;
-  if (variant === 'jigsaw' && regions) {
+  if ((variant === 'jigsaw' || variant === 'chaos') && regions) {
     const reg = regions[r][c];
     for (let i = 0; i < N; i++) for (let j = 0; j < N; j++) if (regions[i][j] === reg && grid[i][j] === val) return false;   // бокс заменён регионом
-  } else {
+  } else if (variant !== 'chaos') {   // самосборка без разбиения: блоков нет, области игрок выводит сам
     const br = Math.floor(r / BR) * BR, bc = Math.floor(c / BC) * BC;
     for (let i = 0; i < BR; i++) for (let j = 0; j < BC; j++) if (grid[br + i][bc + j] === val) return false;
   }
   if (variant === 'diagonal' || variant === 'killerdiag') {
     if (r === c) { for (let i = 0; i < N; i++) if (grid[i][i] === val) return false; }                 // главная диагональ
     if (r + c === N - 1) { for (let i = 0; i < N; i++) if (grid[i][N - 1 - i] === val) return false; }  // побочная
+  } else if (variant === 'argyle') {
+    for (const [i, j] of argylePeers(r, c, N)) if (grid[i][j] === val) return false;   // восемь диагоналей узора
   } else if (variant === 'antiknight') {
     for (const [dr, dc] of KNIGHT) { const nr = r + dr, nc = c + dc; if (nr >= 0 && nr < N && nc >= 0 && nc < N && grid[nr][nc] === val) return false; }
   } else if (variant === 'thermoknight') {
@@ -862,6 +1659,27 @@ export interface Overlays {
   unequal?: UnequalMap;
   /** Небоскрёбы: сколько зданий видно с каждого края. 0 = подсказки нет. */
   towers?: TowersMap;
+  /** Немецкий шёпот: линии (как у термометра — prev/next по клеткам); соседи на линии
+   *  отличаются минимум на WHISPER_GAP. */
+  whisper?: ThermoPN;
+  /** Ренбан: линии prev/next; цифры на линии разные и образуют отрезок подряд. */
+  renban?: ThermoPN;
+  /** Линии равных сумм: в каждом блоке, через который идёт линия, сумма её цифр одна. */
+  regionsum?: ThermoPN;
+  /** Серая линия читается одинаково с обоих концов: цифры на равном расстоянии от концов совпадают. */
+  palindrome?: ThermoPN;
+  /** Цифры на линии лежат строго между цифрами в кружках на её концах. */
+  between?: ThermoPN;
+  /** Цифры в ромбах на концах линии отличаются минимум на 4, а цифры линии лежат вне промежутка между ними. */
+  lockout?: ThermoPN;
+  /** XV: знаки на гранях (1 = V, сумма 5; 2 = X, сумма 10); показаны все. */
+  xv?: XvMap;
+  /** Малый киллер: суммы диагоналей по стрелкам снаружи доски. */
+  littlekiller?: LittleKillerClue[];
+  /** X-суммы: слева у строк и сверху у столбцов; −1 — подсказка скрыта. */
+  xsums?: XsumsClues;
+  /** Шифр: номер буквы (1..9 = A..I) в клетке-подсказке, 0 — не буква. */
+  cipher?: number[][];
 }
 
 /** Полные оверлеи из решения — до прореживания. */
@@ -892,6 +1710,34 @@ export function overlaysFromSolution(sol: Cell[][], N: number, variant: Variant)
   }
   if (variant === 'towers') {
     return { towers: towersFromSolution(sol, N) };
+  }
+  if (variant === 'whisper') {
+    return { whisper: whisperFromSolution(sol, N) };
+  }
+  if (variant === 'renban') {
+    return { renban: renbanFromSolution(sol, N) };
+  }
+  if (variant === 'regionsum') {
+    const { BR, BC } = dimsForSize(N as 6 | 9);
+    return { regionsum: regionSumFromSolution(sol, N, BR, BC) };
+  }
+  if (variant === 'palindrome') {
+    return { palindrome: palindromeFromSolution(sol, N) };
+  }
+  if (variant === 'between') {
+    return { between: betweenFromSolution(sol, N) };
+  }
+  if (variant === 'xv') {
+    return { xv: xvFromSolution(sol, N) };
+  }
+  if (variant === 'littlekiller') {
+    return { littlekiller: littleKillerFromSolution(sol, N) };
+  }
+  if (variant === 'xsums') {
+    return { xsums: xsumsFromSolution(sol, N) };
+  }
+  if (variant === 'lockout') {
+    return { lockout: lockoutFromSolution(sol, N) };
   }
   if (variant === 'unequal') {
     // Знаки СРАЗУ все; сколько показать — решает прореживание уровня, как у кропки.
@@ -956,6 +1802,29 @@ export function overlayOk(grid: Cell[][], r: number, c: number, n: number, N: nu
     if (!towersLineOk(col, ov.towers.top[c])) return false;
     if (!towersLineOk([...col].reverse(), ov.towers.bottom[c])) return false;
   }
+  if (ov.whisper) {
+    // Линия — ПОКАЗАННАЯ подсказка: единственность обязана с ней считаться.
+    const pn = ov.whisper[r][c];
+    if (pn) {
+      for (const nb of [pn.prev, pn.next]) {
+        if (!nb) continue;
+        const o = grid[nb[0]][nb[1]];
+        if (o !== 0 && Math.abs(n - o) < WHISPER_GAP) return false;
+      }
+    }
+  }
+  if (ov.renban && !renbanOk(grid, r, c, n, ov.renban)) return false;   // линия — показанная подсказка
+  if (ov.regionsum) {
+    const { BR, BC } = dimsForSize(N as 6 | 9);
+    if (!regionSumOk(grid, r, c, n, ov.regionsum, N, BR, BC)) return false;
+  }
+  if (ov.palindrome && !palindromeOk(grid, r, c, n, ov.palindrome)) return false;   // линия — показанная подсказка
+  if (ov.between && !betweenOk(grid, r, c, n, ov.between)) return false;   // линия — показанная подсказка
+  if (ov.lockout && !lockoutOk(grid, r, c, n, ov.lockout)) return false;   // линия — показанная подсказка
+  if (ov.xv && !xvOk(grid, r, c, n, ov.xv, N)) return false;   // знаки и их отсутствие — подсказка
+  if (ov.littlekiller && !littleKillerOk(grid, r, c, n, ov.littlekiller, N)) return false;   // суммы диагоналей — подсказка
+  if (ov.xsums && !xsumsOk(grid, r, c, n, ov.xsums, N)) return false;   // X-суммы — подсказка
+  if (ov.cipher && !cipherOk(grid, r, c, n, ov.cipher, N)) return false;   // буквы шифра — подсказка
   if (ov.sandwich) {
     const check = (line: number[], want: number): boolean => {
       if (want < 0) return true;                                      // сумма СПРЯТАНА (см. thinSandwich) — не подсказка
@@ -1012,7 +1881,7 @@ export function countSolutions(grid: Cell[][], N: number, BR: number, BC: number
 // thermocage здесь ОБЯЗАН быть: единственность решения у него считается по ДВУМ
 // правилам сразу (isValid знает и цепочку, и сумму). Доска, единственная по каждому
 // правилу порознь, вместе может иметь второе решение — и наоборот.
-const UNIQUE_CHECKED: readonly Variant[] = ['none', 'diagonal', 'antiknight', 'hyper', 'nonconsec', 'antiking', 'jigsaw', 'thermo', 'arrow', 'evenodd', 'kropki', 'sandwich', 'thermocage', 'unequal', 'towers', 'sandparity', 'thermoknight', 'killerdiag'];
+const UNIQUE_CHECKED: readonly Variant[] = ['none', 'diagonal', 'antiknight', 'hyper', 'nonconsec', 'antiking', 'jigsaw', 'thermo', 'arrow', 'evenodd', 'kropki', 'sandwich', 'thermocage', 'unequal', 'towers', 'sandparity', 'thermoknight', 'killerdiag', 'whisper', 'renban', 'regionsum', 'palindrome', 'between', 'lockout', 'xv', 'argyle', 'littlekiller', 'xsums', 'cipher', 'fog', 'killer', 'wordoku', 'animals'];
 
 /**
  * Готовая сетка для «несоседних чисел» — БЕЗ перебора.
@@ -1041,7 +1910,7 @@ export function buildNonconsecSolution(): Cell[][] {
   return g;
 }
 
-export function generatePuzzle(blanks: number, N: number, BR: number, BC: number, variant: Variant = 'none', thin?: (ov: Overlays) => Overlays): { puzzle: Cell[][]; solution: Cell[][]; regions?: number[][]; parity?: number[][]; kropki?: { h: number[][]; v: number[][] }; sandwich?: { rows: number[]; cols: number[] }; thermo?: ThermoPN; arrow?: ArrowMap; cages?: CageMap; unequal?: UnequalMap; towers?: TowersMap } {
+export function generatePuzzle(blanks: number, N: number, BR: number, BC: number, variant: Variant = 'none', thin?: (ov: Overlays) => Overlays): { puzzle: Cell[][]; solution: Cell[][]; regions?: number[][]; parity?: number[][]; kropki?: { h: number[][]; v: number[][] }; sandwich?: { rows: number[]; cols: number[] }; thermo?: ThermoPN; arrow?: ArrowMap; cages?: CageMap; unequal?: UnequalMap; towers?: TowersMap; whisper?: ThermoPN; renban?: ThermoPN; regionsum?: ThermoPN; palindrome?: ThermoPN; between?: ThermoPN; lockout?: ThermoPN; xv?: XvMap; littlekiller?: LittleKillerClue[]; xsums?: XsumsClues; cipher?: number[][]; fog?: number[][]; chaos?: number[][] } {
   const sol: Cell[][] = Array.from({ length: N }, () => Array(N).fill(0));
   let regions: number[][] | undefined;
   let thermo: ThermoPN | undefined;
@@ -1074,6 +1943,13 @@ export function generatePuzzle(blanks: number, N: number, BR: number, BC: number
     // нарушен, дал бы доску без решения), термометры — из этого решения.
     solve(sol, N, BR, BC, 'antiknight');
     thermo = thermoFromSolution(sol, N);
+  } else if (variant === 'killer') {
+    // Киллер на лестнице (08.10): вся доска разбита на группы-суммы (generateCages, как у режима), но
+    // копает его логический путь с мерой сумм — доска единственна ТОЛЬКО с суммами. У режима «Киллер»
+    // суммы лежат поверх доски, которая единственна и без них (killerBlanksForStep), — там они
+    // украшение, а не правило.
+    solve(sol, N, BR, BC, 'none');
+    cages = generateCages(sol, N);
   } else if (variant === 'killerdiag') {
     // Комбо: решение уважает диагонали, клетки-суммы островами из него же
     // (generateThermoCages — несмотря на имя, она про острова, а не про термометр).
@@ -1102,6 +1978,13 @@ export function generatePuzzle(blanks: number, N: number, BR: number, BC: number
     : (variant === 'thermoknight' && !thermo) ? 'antiknight'                      // комбо теряет ось → живёт оставшейся
     : (variant === 'killerdiag' && !cages) ? 'diagonal'
     : variant;   // фолбэк генерации → чекаем как классику
+  // Шифр: единственность считается по задаче игрока — подсказки на клетках-буквах там буквы, не цифры.
+  const letters = variant === 'cipher' ? cipherLetters(sol, N) : null;
+  const solutions = (p: Cell[][]) => {
+    if (!letters) return countSolutions(p, N, BR, BC, effVariant, regions, 2, { steps: 8000 }, thermo, arrow, (effVariant === 'thermocage' || effVariant === 'killerdiag' || effVariant === 'killer') ? cages : undefined, ov);
+    const enc = encodeCipher(p, letters);
+    return countSolutions(enc.puzzle, N, BR, BC, 'none', undefined, 2, { steps: 8000 }, undefined, undefined, undefined, { ...ov, cipher: enc.cipher });
+  };
   if (UNIQUE_CHECKED.includes(effVariant)) {
     // v1.111.0 — dig-with-uniqueness: выкалываем клетку только если решение остаётся
     // ЕДИНСТВЕННЫМ (иначе честный игрок мог поставить цифру второго решения и получить
@@ -1116,7 +1999,7 @@ export function generatePuzzle(blanks: number, N: number, BR: number, BC: number
       const r = Math.floor(p / N), c = p % N;
       const keep = puzzle[r][c];
       puzzle[r][c] = 0;
-      if (countSolutions(puzzle, N, BR, BC, effVariant, regions, 2, { steps: 8000 }, thermo, arrow, (effVariant === 'thermocage' || effVariant === 'killerdiag') ? cages : undefined, ov) !== 1) puzzle[r][c] = keep;
+      if (solutions(puzzle) !== 1) puzzle[r][c] = keep;
       else dug++;
     }
   } else {
@@ -1132,7 +2015,20 @@ export function generatePuzzle(blanks: number, N: number, BR: number, BC: number
   const sandwich = ov.sandwich;
   const unequal = ov.unequal;
   const towers = ov.towers;
-  return { puzzle, solution: sol, regions, parity, kropki, sandwich, thermo, arrow, cages, unequal, towers };
+  const whisper = ov.whisper;
+  const renban = ov.renban;
+  const regionsum = ov.regionsum;
+  const palindrome = ov.palindrome;
+  const between = ov.between;
+  const lockout = ov.lockout;
+  const xv = ov.xv;
+  const littlekiller = ov.littlekiller;
+  const xsums = ov.xsums;
+  if (letters) {
+    const enc = encodeCipher(puzzle, letters);
+    return { puzzle: enc.puzzle, solution: sol, cipher: enc.cipher };
+  }
+  return { puzzle, solution: sol, regions, parity, kropki, sandwich, thermo, arrow, cages, unequal, towers, whisper, renban, regionsum, palindrome, between, lockout, xv, littlekiller, xsums };
 }
 
 /**
@@ -1160,8 +2056,20 @@ export interface RejectionContext {
   cages?: CageMap;
   parity?: number[][];
   kropki?: { h: number[][]; v: number[][] };
+  /** Суммы сэндвича (07.10.2026: раньше в причину не передавались вовсе — см. шаг 2). */
+  sandwich?: { rows: number[]; cols: number[] };
   unequal?: UnequalMap;
   towers?: TowersMap;
+  whisper?: ThermoPN;
+  renban?: ThermoPN;
+  regionsum?: ThermoPN;
+  palindrome?: ThermoPN;
+  between?: ThermoPN;
+  lockout?: ThermoPN;
+  xv?: XvMap;
+  littlekiller?: LittleKillerClue[];
+  xsums?: XsumsClues;
+  cipher?: number[][];
 }
 
 export function rejectionReason(
@@ -1171,36 +2079,40 @@ export function rejectionReason(
   const test = grid.map((row) => [...row]);
   test[r][c] = 0;
 
-  // 1. Базовое правило нарушено — конфликт человек видит сам, доска его подсвечивает.
-  if (!isValid(test, r, c, n, N, BR, BC, 'none')) return '';
+  /**
+   * 1. Базовое правило нарушено — конфликт человек видит сам, доска его подсвечивает.
+   *
+   * 🔴 07.10.2026 — У «КРИВЫХ БЛОКОВ» БАЗА — ИХ ОБЛАСТИ, А НЕ КВАДРАТЫ 3×3. Первая редакция
+   * сверяла базу по стандартным квадратам и у jigsaw молчала на ФАНТОМНОМ конфликте —
+   * в квадрате, которого на доске нет (замер эталона правил: 12 из 20 неверных цифр, которые
+   * видимые правила разрешают, остались без слова). Теперь база jigsaw — строка, столбец и
+   * область; конфликт в области виден на доске так же, как в квадрате у классики.
+   */
+  // Самосборка: база — строка и столбец (областей на доске нет, их выводит игрок).
+  if (!isValid(test, r, c, n, N, BR, BC, variant === 'jigsaw' || variant === 'chaos' ? variant : 'none', ctx.regions)) return '';
 
-  // 2. Правило варианта нарушено ДОКАЗУЕМО — вот теперь называем именно его.
-  if (variant !== 'none') {
-    if (!isValid(test, r, c, n, N, BR, BC, variant, ctx.regions, ctx.thermo, ctx.arrow, ctx.cages, ctx.unequal, ctx.towers)) {
-      return variantRule(variant, lang);
-    }
-    // Метки движок не проверяет — проверяем здесь, руками и точно.
-    if (variant === 'evenodd' && ctx.parity) {
-      const mark = ctx.parity[r]?.[c] ?? 0;                       // 1 = чёт, 2 = нечет, 0 = метки нет
-      if ((mark === 1 && n % 2 !== 0) || (mark === 2 && n % 2 === 0)) return variantRule(variant, lang);
-    }
-    if (variant === 'kropki' && ctx.kropki) {
-      const okDot = (dot: number, a: number, b: number): boolean => {
-        if (dot === 1) return Math.abs(a - b) === 1;              // белая: разница в единицу
-        if (dot === 2) return a === b * 2 || b === a * 2;         // чёрная: вдвое
-        return true;                                              // точки нет — ограничения нет
-      };
-      const near: [number, number, number][] = [
-        [r, c - 1, ctx.kropki.h[r]?.[c - 1] ?? 0],
-        [r, c + 1, ctx.kropki.h[r]?.[c] ?? 0],
-        [r - 1, c, ctx.kropki.v[r - 1]?.[c] ?? 0],
-        [r + 1, c, ctx.kropki.v[r]?.[c] ?? 0],
-      ];
-      for (const [nr, nc, dot] of near) {
-        const other = test[nr]?.[nc] ?? 0;
-        if (dot && other && !okDot(dot, n, other)) return variantRule(variant, lang);
-      }
-    }
+  /**
+   * 2. Правило варианта нарушено ДОКАЗУЕМО — вот теперь называем именно его.
+   *
+   * Правило — это движок (`isValid` с геометрией варианта) И показанные подсказки
+   * (`overlayOk`: метки чётности, точки Кропки, суммы сэндвича, линии шёпота, ренбана, равных
+   * сумм, палиндрома, «между концами», замка, знаки XV) — ровно та пара, что решает «можно ли
+   * поставить» в нативе (`isValid` в rules.dart держит обе) и в эталоне правил.
+   * 🔴 07.10.2026: до этого подсказки проверялись по одной, и двух не было вовсе — суммы
+   * сэндвича (ни в sandwich, ни в sandparity) и метки чётности в sandparity: цифра, которую
+   * отвергла сумма, получала «конфликт не местный».
+   * 🔴 07.10.2026: КИЛЛЕР — режим без варианта (variant 'none') с клетками-суммами. Шаг
+   * пропускался целиком, и нарушение суммы группы называлось «не местным». Теперь клетки-суммы
+   * сами включают шаг, а правило называется киллерское (`sudokuKillerRule`).
+   */
+  if (variant !== 'none' || ctx.cages) {
+    const ruleOk = isValid(test, r, c, n, N, BR, BC, variant, ctx.regions, ctx.thermo, ctx.arrow, ctx.cages, ctx.unequal, ctx.towers)
+      && overlayOk(test, r, c, n, N, {
+        parity: ctx.parity, kropki: ctx.kropki, sandwich: ctx.sandwich, unequal: ctx.unequal, towers: ctx.towers,
+        whisper: ctx.whisper, renban: ctx.renban, regionsum: ctx.regionsum, palindrome: ctx.palindrome,
+        between: ctx.between, lockout: ctx.lockout, xv: ctx.xv, littlekiller: ctx.littlekiller, xsums: ctx.xsums, cipher: ctx.cipher,
+      });
+    if (!ruleOk) return variant !== 'none' ? variantRule(variant, lang) : translateFor(lang, 'sudokuKillerRule');
   }
 
   /**

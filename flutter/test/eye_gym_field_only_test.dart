@@ -3,7 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:psygames_flutter/games/pause/practices.dart';
+import 'package:practice_kit/practice_kit.dart';
 import 'package:psygames_flutter/games/pause/screen.dart';
 import 'package:psygames_flutter/shell/game_preset.dart';
 import 'package:psygames_flutter/shell/l10n.dart';
@@ -19,7 +19,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// дальше / готово» — в паузе. Веб-правка Codex (codex/eye-stereograms, c90ea3e4)
 /// до людей не дошла бы: адрес /games/eye-gym перехвачен нативным экраном.
 void main() {
-  final engine = Practices(jsonDecode(File('assets/pause/practices.json').readAsStringSync()) as Json);
+  final engine = Practices(jsonDecode(File('../packages/practice_kit/assets/practices.json').readAsStringSync()) as Json);
   final copy = jsonDecode(File('assets/pause/copy.json').readAsStringSync()) as Json;
   late SharedState state;
   late List<Map<String, dynamic>> reports;

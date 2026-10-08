@@ -129,9 +129,39 @@ void main() {
 
   testWidgets('выбор языка ложится в ключ веба', (tester) async {
     await boot(tester);
-    await tester.tap(find.byKey(const Key('echo-lang-de')));
+    // Язык выбирается выпадающей строкой (общий LangDropdown): открыть, выбрать пункт.
+    await tester.tap(find.byKey(const Key('echo-lang')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.tap(find.byKey(const Key('echo-lang-de')).last);
+    await tester.pump(const Duration(milliseconds: 400));
     await tester.pump();
     expect(state.get('psygames_pseudoword_echo_targetlang'), 'de');
+  });
+
+  testWidgets('🔴 русскоязычный выбирает «Русский» — псевдослова звучат по-русски (d0ad03d9)', (tester) async {
+    final sent = <Map<String, dynamic>>[];
+    SessionReport.sink = (j) async => sent.add(jsonDecode(j) as Map<String, dynamic>);
+    final (voice, _) = await boot(tester);
+    await tester.tap(find.byKey(const Key('echo-lang')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(find.byKey(const Key('echo-lang-ru')), findsWidgets, reason: 'родной язык — тоже язык задания');
+    await tester.tap(find.byKey(const Key('echo-lang-ru')).last);
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('echo-start')));
+    await tester.pump();
+    final p = echoLevelParams(1);
+    for (var i = 0; i < p.trials; i += 1) {
+      await tester.pump();
+      final (word, bcp47, _) = voice.said.last;
+      expect(bcp47, 'ru-RU', reason: 'проба ${i + 1}: выбран русский — без подмены на en/es');
+      await tester.tap(find.byKey(Key('echo-option-$word')));
+      await tester.pump(const Duration(milliseconds: 700));
+    }
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(sent.single['difficulty'], 'ru · L1');
   });
 
   // Демо-карточку сменил разбор по шагам (`lesson.dart`, раздел «Память и слух»); его шаги меряет

@@ -5,6 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/mahjong/model.dart';
 import 'package:psygames_flutter/games/mahjong/screen.dart';
+import 'package:psygames_flutter/shell/game_clock.dart';
+import 'package:psygames_flutter/shell/game_preset.dart';
+import 'package:psygames_flutter/shell/l10n.dart';
+import 'package:psygames_flutter/shell/level_rules.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -13,6 +17,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// Какие плитки свободны и что на них нарисовано, проба узнаёт из ПОДПИСЕЙ на
 /// экране (Semantics), а не из модели: так проверяется ровно то, что видит человек.
 void main() {
+  setUpAll(() async {
+    // Подписи — из общего словаря, как в приложении (экран переведён на L.t, задача 4b6f863e).
+    TestWidgetsFlutterBinding.ensureInitialized();
+    await L.load('ru');
+  });
+
   late SharedState state;
 
   /// Зерно у экрана и у пробы ОДНО: проба знает ту же доску, что видит человек,
@@ -22,6 +32,9 @@ void main() {
   Future<void> open(WidgetTester tester, {int level = 1}) async {
     SharedPreferences.setMockInitialValues({
       if (level != 1) '${SharedState.prefix}mahjong_level_nzt48': '$level',
+      // Со словарём каркас объявляет правило уровня карточкой поверх доски, и она
+      // перехватила бы нажатия. Правила здесь не предмет пробы — помечены как показанные.
+      for (final k in ['layers2', 'layers3', 'layers4', 'layers5', 'hidden', 'timelimit']) LevelRules.seenKey('mahjong', k): '1',
     });
     state = await SharedState.open();
     // Ресурс раскладок читается с диска — ждём по-настоящему, как в пробе «Одной линии».
@@ -55,7 +68,7 @@ void main() {
     final deal = dealSolvable(layouts.forLevel(1)!.places, 36, rnd: Random(seed).nextDouble);
 
     await open(tester);
-    expect(find.text('Маджонг'), findsOneWidget);
+    expect(find.text(L.t('mahjong')), findsOneWidget);
     expect(tilesOnScreen(tester).length, deal.tiles.length,
         reason: 'на экране ровно та доска, что раздал генератор');
 
@@ -70,7 +83,7 @@ void main() {
     }
 
     expect(tilesOnScreen(tester), isEmpty, reason: 'доска разобрана до конца');
-    expect(find.text('Следующий уровень'), findsOneWidget);
+    expect(find.text(L.t('nextLabel')), findsOneWidget);
   });
 
   testWidgets('🔴 занятую плитку снять нельзя — она остаётся на доске', (tester) async {
@@ -105,5 +118,33 @@ void main() {
         reason: 'накрытые лица не показываются');
     expect(shown.values.where((v) => v.contains('свободна') && !v.contains('скрыта')), isNotEmpty,
         reason: 'свободные плитки видно');
+  });
+
+  testWidgets('🔴 ПОТОЛКА НЕТ: на 29-м часы идут с первого нажатия, время вышло — уровень не засчитан', (tester) async {
+    // Правило Дениса 06.09.2026: с 29-го на доску 15:00, с каждым уровнем на 4 % меньше.
+    gameWallMs = () => tester.binding.clock.now().millisecondsSinceEpoch;
+    addTearDown(() => gameWallMs = () => DateTime.now().millisecondsSinceEpoch);
+    final timeUp = L.f('mjTimeUp', {'limit': '15:00'});
+    await open(tester, level: 29);
+    expect(find.textContaining('0:00 / 15:00'), findsOneWidget, reason: 'в полосе показателей — время и лимит');
+    await tester.pump(const Duration(seconds: 1000));
+    expect(find.text(timeUp), findsNothing, reason: 'без первого нажатия часы стоят: взгляд на доску не в счёт');
+
+    final free = tilesOnScreen(tester).entries.firstWhere((e) => e.value.contains('свободна')).key;
+    await tester.tap(find.byKey(Key('плитка$free')));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 898));
+    expect(find.text(timeUp), findsNothing, reason: 'до лимита партия идёт');
+    await tester.pump(const Duration(seconds: 3));
+    expect(find.text(timeUp), findsOneWidget, reason: 'лимит вышел — доска встала');
+    expect(find.text(L.t('retry')), findsOneWidget);
+    expect(state.get('${SharedState.prefix}mahjong_level_nzt48'), '29', reason: 'уровень не засчитан');
+  });
+
+  testWidgets('в тихом шаге лимита нет даже на 29-м', (tester) async {
+    GamePreset.set({'calm': '1'});
+    addTearDown(GamePreset.clear);
+    await open(tester, level: 29);
+    expect(find.textContaining('/ 15:00'), findsNothing, reason: 'вечерний слот времени не считает');
   });
 }

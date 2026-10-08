@@ -63,7 +63,7 @@ class GoodsBoard {
     if (cells.length != caps.length) {
       throw StateError('доска собрана неверно: ниш ${cells.length}, ёмкостей ${caps.length}');
     }
-    for (final e in {'джокеров': jokers, 'столбцов': col, 'номеров': ids, 'задних рядов': back}.entries) {
+    for (final e in {'jokers': jokers, 'col': col, 'ids': ids, 'back': back}.entries) {
       final row = e.value;
       if (row != null && row.length != cells.length) {
         throw StateError('доска собрана неверно: ниш ${cells.length}, ${e.key} ${row.length}');

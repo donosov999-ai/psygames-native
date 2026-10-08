@@ -14,6 +14,7 @@ import '../../shell/level_ladder.dart';
 import '../../shell/level_rules.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
+import '../counting_common/generator_shadow.dart';
 import 'model.dart';
 
 /// «Спринт» на общем каркасе: минута на счёт, ответ набирается цифрами.
@@ -61,6 +62,15 @@ class _MathSprintScreenState extends State<MathSprintScreen> {
   Timer? _tick;
   int _elapsedMs = 0;
 
+  /// Тень генератора уровней (звено 4, задача 4e584381): раздача на старте, исход до лестницы.
+  late final LadderShadow _shadow =
+      LadderShadow(widget.state, gameId: 'math_sprint', stepKeys: sprintStepKeys);
+
+  /// Длительность раунда — из адреса (`?duration=`), иначе постоянная экрана. Веб читает её
+  /// ВСЕГДА, не только в шаге зарядки (`math-sprint.tsx:112`, `:178`): у него это начальное значение
+  /// выбора «Длительность». Без этого натив молча держал 60 с (сторож каркаса 44f7e4e0, задача 50139f1d).
+  int get _seconds => GamePreset.num('duration', widget.seconds);
+
   @override
   void initState() {
     super.initState();
@@ -100,11 +110,12 @@ class _MathSprintScreenState extends State<MathSprintScreen> {
     _streak = 0;
     _bestStreak = 0;
     _won = false;
-    _left = widget.seconds.toDouble();
+    _left = _seconds.toDouble();
     _problem = generateSprintProblem(_ladder.level, _rng);
   }
 
   void _start() {
+    _shadow.deal(_ladder.level);
     setState(() => _phase = _Phase.playing);
     _elapsedMs = 0;
     // ⚠️ Прошедшее копится ЦЕЛЫМИ миллисекундами, а остаток считается вычитанием
@@ -114,7 +125,7 @@ class _MathSprintScreenState extends State<MathSprintScreen> {
     _tick = Timer.periodic(const Duration(milliseconds: 100), (_) {
       if (!mounted) return;
       _elapsedMs += 100;
-      setState(() => _left = math.max(0, widget.seconds - _elapsedMs / 1000));
+      setState(() => _left = math.max(0, _seconds - _elapsedMs / 1000));
       if (_left <= 0) _finish();
     });
   }
@@ -156,6 +167,7 @@ class _MathSprintScreenState extends State<MathSprintScreen> {
   Future<void> _finish() async {
     _tick?.cancel();
     final passed = _correct >= sprintCorrectToPass;
+    _shadow.outcome(passed: passed, errors: _errors, seconds: (_elapsedMs / 1000).round());
     // Веха как в вебе: каждый третий ЗАСЧИТАННЫЙ уровень — бой «дополни ряд до 1–9».
     bool? boss;
     if (passed) {
@@ -174,7 +186,7 @@ class _MathSprintScreenState extends State<MathSprintScreen> {
 
   /// Заголовок один на экран и на разбор: вторая такая строка — второй долг
   /// храповика подписей (`test/ui_text_debt_does_not_grow_test.dart`).
-  String get _title => 'Спринт';
+  String get _title => L.t('mathSprint');
 
   /// Разбор объясняет ПРИЁМ: верный ответ человек и так увидит по итогу раунда,
   /// а вот чем объём берётся — нет.
@@ -191,21 +203,21 @@ class _MathSprintScreenState extends State<MathSprintScreen> {
       title: _title,
       onLesson: () => openDemoLesson(context, title: _title, trials: _demoTrials()),
       hud: [
-        HudItem(label: 'Уровень', value: '${_ladder.level}', icon: Icons.flag_outlined),
-        HudItem(label: 'Достигнуто', value: '${_ladder.best}', icon: Icons.emoji_events_outlined),
-        HudItem(label: 'Время', value: '${_left.ceil()} с', icon: Icons.timer_outlined),
-        HudItem(label: 'Верно', value: '$_correct/$sprintCorrectToPass', icon: Icons.check_circle_outline),
-        HudItem(label: 'Очки', value: '$_score', icon: Icons.star_outline),
-        HudItem(label: 'Ошибки', value: '$_errors', icon: Icons.error_outline),
-        if (_streak >= 3) HudItem(label: 'Серия', value: '$_streak', icon: Icons.local_fire_department_outlined),
+        HudItem(label: L.t('level'), value: '${_ladder.level}', icon: Icons.flag_outlined),
+        HudItem(label: L.t('personalBest'), value: '${_ladder.best}', icon: Icons.emoji_events_outlined),
+        HudItem(label: L.t('timeLeftLabel'), value: '${_left.ceil()} ${L.t('secShort')}', icon: Icons.timer_outlined),
+        HudItem(label: L.t('hud_correct'), value: '$_correct/$sprintCorrectToPass', icon: Icons.check_circle_outline),
+        HudItem(label: L.t('score'), value: '$_score', icon: Icons.star_outline),
+        HudItem(label: L.t('errors'), value: '$_errors', icon: Icons.error_outline),
+        if (_streak >= 3) HudItem(label: L.t('hud_streak'), value: '$_streak', icon: Icons.local_fire_department_outlined),
       ],
       field: (context, h) => _Field(problem: _problem!, typed: _typed, height: h),
       auxRow: AuxBar(children: [
-        AuxAction(icon: Icons.refresh, label: 'Начать заново', onPressed: () => setState(_reset)),
+        AuxAction(icon: Icons.refresh, label: L.t('restart'), onPressed: () => setState(_reset)),
       ]),
       toolbar: _toolbar(context),
       pauseActions: [
-        PauseAction(label: 'Начать заново', icon: Icons.refresh, onPressed: () => setState(_reset)),
+        PauseAction(label: L.t('restart'), icon: Icons.refresh, onPressed: () => setState(_reset)),
       ],
     );
   }
@@ -218,8 +230,8 @@ class _MathSprintScreenState extends State<MathSprintScreen> {
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           Text(
             _won
-                ? 'Уровень взят: верных $_correct, очков $_score, лучшая серия $_bestStreak'
-                : 'Верных $_correct — нужно $sprintCorrectToPass',
+                ? L.f('sprintResultWin', {'correct': '$_correct', 'score': '$_score', 'streak': '$_bestStreak'})
+                : L.f('sprintResultFail', {'correct': '$_correct', 'need': '$sprintCorrectToPass'}),
             key: const Key('итог'),
             textAlign: TextAlign.center,
             style: text.titleMedium,
@@ -230,7 +242,7 @@ class _MathSprintScreenState extends State<MathSprintScreen> {
             key: const Key('дальше'),
             onPressed: () => setState(_reset),
             icon: Icon(_won ? Icons.arrow_forward : Icons.refresh),
-            label: Text(_won ? 'Следующий уровень' : 'Ещё раз'),
+            label: Text(_won ? L.t('nextLabel') : L.t('retry')),
           ),
         ]),
       );
@@ -239,13 +251,13 @@ class _MathSprintScreenState extends State<MathSprintScreen> {
       return Padding(
         padding: const EdgeInsets.all(12),
         child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Text('${widget.seconds} секунд на счёт — считай как можно больше', style: text.bodyMedium),
+          Text(L.f('sprintReadyHint', {'n': '$_seconds'}), style: text.bodyMedium),
           const SizedBox(height: 8),
           FilledButton.icon(
             key: const Key('начать'),
             onPressed: _start,
             icon: const Icon(Icons.play_arrow),
-            label: const Text('Начать'),
+            label: Text(L.t('start')),
           ),
         ]),
       );
@@ -286,7 +298,7 @@ class _MathSprintScreenState extends State<MathSprintScreen> {
             key: const Key('проверить'),
             onPressed: _typed.isEmpty ? null : _submit,
             icon: const Icon(Icons.check),
-            label: const Text('Проверить'),
+            label: Text(L.t('check')),
           ),
         ),
       ]),

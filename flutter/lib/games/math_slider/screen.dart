@@ -12,6 +12,7 @@ import '../../shell/lesson.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
+import '../counting_common/generator_shadow.dart';
 import 'model.dart';
 
 /// «Математическая шкала» на общем каркасе — первая перенесённая игра с
@@ -53,6 +54,10 @@ class _MathSliderScreenState extends State<MathSliderScreen> {
 
   Timer? _auto;
   Timer? _advance;
+
+  /// Тень генератора уровней (звено 4, задача 4e584381): раздача с новой партией, исход до лестницы.
+  late final LadderShadow _shadow =
+      LadderShadow(widget.state, gameId: 'math_slider', stepKeys: sliderStepKeys);
   final Stopwatch _watch = Stopwatch();
   bool _ready = false;
 
@@ -92,6 +97,15 @@ class _MathSliderScreenState extends State<MathSliderScreen> {
 
   String get _seed => 'math-slider-$_playLevel';
 
+  /// Вопросов в партии — из адреса (`?trials=`), как веб: `math-slider.tsx:108` читает его всегда,
+  /// 0 — значит «не задано», 8. В 1…20 зажимает сам генератор (`generateMathSliderQuestions`, как
+  /// `session.ts:32`). Шаги наборов его сейчас не шлют, но веб читает — и молчаливая потеря стоит
+  /// дороже строки (строгий сторож #273, задача 945f9d4d).
+  int get _trialCount {
+    final want = GamePreset.num('trials', 0);
+    return want == 0 ? trialsPerRound : want;
+  }
+
   void _reset() {
     // Новая партия — снова зачётная (договор shell/lesson.dart: отметку «разбор
     // смотрели» снимает новая раздача). Отметка общая на всё приложение, и без
@@ -99,7 +113,8 @@ class _MathSliderScreenState extends State<MathSliderScreen> {
     LessonUsed.reset();
     _auto?.cancel();
     _advance?.cancel();
-    _questions = generateMathSliderQuestions(_seed, _playLevel, trialsPerRound);
+    _questions = generateMathSliderQuestions(_seed, _playLevel, _trialCount);
+    _shadow.deal(_playLevel);
     _training = generateTrainingQuestion(_seed);
     _trials.clear();
     _phase = _Phase.training;
@@ -180,6 +195,7 @@ class _MathSliderScreenState extends State<MathSliderScreen> {
       return;
     }
     final won = _accuracy >= passAccuracy;
+    _shadow.outcome(passed: won, errors: _outside);
     if (won) {
       await _ladder.win();
     } else {
@@ -203,21 +219,22 @@ class _MathSliderScreenState extends State<MathSliderScreen> {
 
   int get _outside => _trials.where((t) => t.outsideTarget).length;
 
-  String _fmt(double v) => formatNumber(v);
+  /// Разделитель дробей — по языку человека, как в вебе: «6,25» по-русски, «6.25» иначе.
+  String _fmt(double v) => formatNumber(v, locale: numberLocale(L.locale));
 
   String get _prompt {
     final e = _question.expression;
     if (e is IntegralArea) {
       return e.heights.any((h) => h < 0)
-          ? 'Верх — плюс, низ — минус. Какова площадь со знаком?'
-          : 'Какова площадь под графиком?';
+          ? L.t('sliderPromptSigned')
+          : L.t('sliderPromptArea');
     }
-    return 'Где примерно находится результат?';
+    return L.t('sliderPromptWhere');
   }
 
   /// Заголовок один на экран и на разбор: вторая такая строка — второй долг
   /// храповика подписей (`test/ui_text_debt_does_not_grow_test.dart`).
-  String get _title => 'Математическая шкала';
+  String get _title => L.t('mathSlider');
 
   /// Разбор объясняет ПРИЁМ: верный ответ человек и так увидит по итогу раунда,
   /// а вот чем объём берётся — нет.
@@ -233,21 +250,21 @@ class _MathSliderScreenState extends State<MathSliderScreen> {
       title: _title,
       onLesson: () => openDemoLesson(context, title: _title, trials: _demoTrials()),
       hud: [
-        HudItem(label: 'Уровень', value: '$_playLevel', icon: Icons.flag_outlined),
-        HudItem(label: 'Достигнуто', value: '${_ladder.best}', icon: Icons.emoji_events_outlined),
+        HudItem(label: L.t('level'), value: '$_playLevel', icon: Icons.flag_outlined),
+        HudItem(label: L.t('personalBest'), value: '${_ladder.best}', icon: Icons.emoji_events_outlined),
         HudItem(
-          label: 'Задание',
+          label: L.t('round'),
           value: _phase == _Phase.training || _phase == _Phase.trainingFeedback
-              ? 'проба'
+              ? L.t('sliderTrialValue')
               : '${math.min(_index + 1, _questions.length)}/${_questions.length}',
           icon: Icons.format_list_numbered,
         ),
         HudItem(
-          label: 'Точность',
+          label: L.t('hudAccuracy'),
           value: _trials.isEmpty ? '—' : '${(_accuracy * 100).round()}%',
           icon: Icons.center_focus_strong_outlined,
         ),
-        HudItem(label: 'За пределами 10%', value: '$_outside', icon: Icons.error_outline),
+        HudItem(label: L.t('sliderOutside'), value: '$_outside', icon: Icons.error_outline),
       ],
       field: (context, h) => _Field(
         question: q,
@@ -263,19 +280,19 @@ class _MathSliderScreenState extends State<MathSliderScreen> {
       auxRow: AuxBar(children: [
         AuxAction(
           icon: Icons.chevron_left,
-          label: 'Точнее влево',
+          label: L.t('sliderNudgeLeft'),
           onPressed: _answering ? () => _nudge(-q.scale.keyboardStep) : null,
         ),
         AuxAction(
           icon: Icons.chevron_right,
-          label: 'Точнее вправо',
+          label: L.t('sliderNudgeRight'),
           onPressed: _answering ? () => _nudge(q.scale.keyboardStep) : null,
         ),
-        AuxAction(icon: Icons.refresh, label: 'Начать заново', onPressed: () => setState(_reset)),
+        AuxAction(icon: Icons.refresh, label: L.t('restart'), onPressed: () => setState(_reset)),
       ]),
       toolbar: _toolbar(context),
       pauseActions: [
-        PauseAction(label: 'Начать заново', icon: Icons.refresh, onPressed: () => setState(_reset)),
+        PauseAction(label: L.t('restart'), icon: Icons.refresh, onPressed: () => setState(_reset)),
       ],
     );
   }
@@ -288,8 +305,8 @@ class _MathSliderScreenState extends State<MathSliderScreen> {
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           Text(
             _won
-                ? 'Уровень взят: точность ${(_accuracy * 100).round()}%'
-                : 'Точность ${(_accuracy * 100).round()}% — нужно 90%',
+                ? L.f('sliderResultWin', {'p': '${(_accuracy * 100).round()}'})
+                : L.f('sliderResultFail', {'p': '${(_accuracy * 100).round()}', 'need': '${(passAccuracy * 100).round()}'}),
             key: const Key('итог'),
             textAlign: TextAlign.center,
             style: text.titleMedium,
@@ -299,7 +316,7 @@ class _MathSliderScreenState extends State<MathSliderScreen> {
             key: const Key('дальше'),
             onPressed: () => setState(_reset),
             icon: Icon(_won ? Icons.arrow_forward : Icons.refresh),
-            label: Text(_won ? 'Следующий уровень' : 'Ещё раз'),
+            label: Text(_won ? L.t('nextLabel') : L.t('retry')),
           ),
         ]),
       );
@@ -311,8 +328,11 @@ class _MathSliderScreenState extends State<MathSliderScreen> {
         padding: const EdgeInsets.all(12),
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           Text(
-            'Точный ответ ${_fmt(score.answer)} · ваша оценка ${_fmt(score.estimate)} · '
-            'ошибка ${(score.normalizedError * 100).round()}% ширины шкалы',
+            L.f('sliderFeedback', {
+              'a': _fmt(score.answer),
+              'e': _fmt(score.estimate),
+              'p': '${(score.normalizedError * 100).round()}',
+            }),
             key: const Key('разбор'),
             textAlign: TextAlign.center,
           ),
@@ -321,7 +341,7 @@ class _MathSliderScreenState extends State<MathSliderScreen> {
             key: const Key('дальше'),
             onPressed: _next,
             icon: const Icon(Icons.arrow_forward),
-            label: Text(_phase == _Phase.trainingFeedback ? 'Начать партию' : 'Следующее задание'),
+            label: Text(_phase == _Phase.trainingFeedback ? L.t('sliderStartGame') : L.t('sliderNextQuestion')),
           ),
         ]),
       );
@@ -331,7 +351,9 @@ class _MathSliderScreenState extends State<MathSliderScreen> {
       padding: const EdgeInsets.all(12),
       child: Column(mainAxisSize: MainAxisSize.min, children: [
         Text(
-          _touched ? 'Отпусти — засчитаю через 3 секунды' : 'Поставь маркер туда, где ответ',
+          _touched
+              ? L.f('sliderReleaseHint', {'n': '${autoConfirmDelay.inSeconds}'})
+              : L.t('sliderPlaceHint'),
           key: const Key('подсказка'),
           style: text.bodySmall,
         ),
@@ -340,7 +362,7 @@ class _MathSliderScreenState extends State<MathSliderScreen> {
           key: const Key('подтвердить'),
           onPressed: _confirm,
           icon: const Icon(Icons.check),
-          label: const Text('Подтвердить'),
+          label: Text(L.t('sliderConfirm')),
         ),
       ]),
     );
@@ -385,12 +407,12 @@ class _Field extends StatelessWidget {
         children: [
           const SizedBox(height: 8),
           if (training)
-            Text('Тренировка — эта попытка не сохраняется',
+            Text(L.t('sliderTrainingNote'),
                 key: const Key('тренировка'), style: text.bodySmall),
           Flexible(
             child: Center(
               child: Text(
-                question.text,
+                formatExpression(question.expression, locale: numberLocale(L.locale)),
                 key: const Key('вопрос'),
                 textAlign: TextAlign.center,
                 style: text.headlineSmall?.copyWith(fontWeight: FontWeight.w700),
@@ -484,7 +506,7 @@ class _NumberLine extends StatelessWidget {
               width: 48,
               child: Column(children: [
                 Container(width: 2, height: 8, color: scheme.outline),
-                Text(formatNumber(scale.ticks[i]),
+                Text(formatNumber(scale.ticks[i], locale: numberLocale(L.locale)),
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.labelSmall),
               ]),
@@ -501,9 +523,9 @@ class _NumberLine extends StatelessWidget {
             child: Semantics(
               key: const Key('маркер'),
               slider: true,
-              label: 'маркер, оценка ${formatNumber(estimate)}',
+              label: L.f('sliderMarkerA11y', {'x': formatNumber(estimate, locale: numberLocale(L.locale))}),
               child: Column(children: [
-                Text(formatNumber(estimate),
+                Text(formatNumber(estimate, locale: numberLocale(L.locale)),
                     style: TextStyle(fontWeight: FontWeight.w700, color: scheme.primary)),
                 Icon(Icons.place, color: scheme.primary, size: 28),
               ]),

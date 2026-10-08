@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../shell/boss_round.dart';
 import '../../shell/game_preset.dart';
+import '../../shell/setup_scroll.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
@@ -37,6 +38,14 @@ const double stroopPassAccuracy = 0.85;
 ///   flutter run --dart-define=AUTOSTART=true
 const bool stroopAutostart = bool.fromEnvironment('AUTOSTART');
 
+/// Базовое правило партии из адреса — как веб (`str('mode', 'ink') === 'word' ? 'word' : 'ink'`):
+/// любое иное имя (шаг зарядки шлёт и `classic`) — цвет чернил. Без параметра — правило экрана.
+String stroopModeFor(String fallback) {
+  final m = GamePreset.str('mode');
+  if (m.isEmpty) return fallback;
+  return m == 'word' ? 'word' : 'ink';
+}
+
 class StroopScreen extends StatefulWidget {
   const StroopScreen({super.key, required this.state, this.mode = 'ink', this.clock});
 
@@ -61,9 +70,13 @@ class _StroopScreenState extends State<StroopScreen> {
   bool _passed = false;
   bool? _boss; // итог боя на вехе; null — боя не было
 
+  /// Правило партии: из адреса, затем выбор на настройке, как у веба.
+  late String _mode;
+
   @override
   void initState() {
     super.initState();
+    _mode = stroopModeFor(widget.mode);
     _ladder = LevelLadder(gameId: 'stroop', store: SharedLevelStore(widget.state));
     _boot();
   }
@@ -84,10 +97,24 @@ class _StroopScreenState extends State<StroopScreen> {
 
   void _reset() {
     _window?.cancel();
-    _game = StroopGame(level: _ladder.level, mode: widget.mode, nowMs: widget.clock);
+    _game = StroopGame(
+      level: _ladder.level,
+      mode: _mode,
+      nowMs: widget.clock,
+      trialsOverride: GamePreset.isPreset ? GamePreset.num('trials', StroopLevel.of(_ladder.level).trials) : null,
+    );
     _phase = StroopPhase.ready;
     _flash = null;
     _passed = false;
+  }
+
+  /// Выбор правила — только до начала партии.
+  void _pickMode(String m) {
+    if (_phase != StroopPhase.ready || m == _mode) return;
+    setState(() {
+      _mode = m;
+      _reset();
+    });
   }
 
   void _start() {
@@ -109,9 +136,9 @@ class _StroopScreenState extends State<StroopScreen> {
     return [
       for (final d in stroopDemoTrials(palette))
         DemoTrial(
-          text: d.trial.word.ru,
+          text: stroopWord(d.trial.word),
           color: _hex(d.trial.ink.hex),
-          answer: byName(stroopCorrect(d.trial, d.rule)).ru,
+          answer: stroopWord(byName(stroopCorrect(d.trial, d.rule))),
           ruleKey: d.rule == 'ink' ? 'stroopByInk' : 'stroopByWord',
         ),
     ];
@@ -184,17 +211,36 @@ class _StroopScreenState extends State<StroopScreen> {
       title: L.t('stroop'),
       hud: [
         HudItem(label: L.t('level'), value: '${_ladder.level}', icon: Icons.flag_outlined),
-        HudItem(label: L.t('round'), value: '${g.round}/${g.params.trials}', icon: Icons.numbers),
+        HudItem(label: L.t('round'), value: '${g.round}/${g.trialsTotal}', icon: Icons.numbers),
         HudItem(label: L.t('hud_correct'), value: '${g.hits}', icon: Icons.check),
         HudItem(label: L.t('hud_errors'), value: '${g.errors}', icon: Icons.close),
       ],
       onLesson: _game == null
           ? null
           : () => openDemoLesson(context, title: L.t('stroop'), trials: _demoTrials()),
-      field: (context, h) => _Field(game: g, phase: _phase, flash: _flash, passed: _passed, boss: _boss, height: h, onStart: _start, onAgain: () => setState(_reset)),
+      field: (context, h) => _Field(game: g, phase: _phase, flash: _flash, passed: _passed, boss: _boss, height: h, onStart: _start, onAgain: () => setState(_reset), onMode: _pickMode),
       toolbar: _phase == StroopPhase.playing ? _Answers(game: g, onPick: _answer) : null,
     );
   }
+}
+
+/// Слово цвета на языке интерфейса — из общего словаря, заглавными, как в вебе.
+///
+/// 🔴 СЛОВО — ПОЛОВИНА ПРОБЫ. Струп мерит, как прочитанное слово мешает назвать цвет
+/// чернил; слово, которого человек не читает бегло, не мешает, и разность времён уже
+/// не интерференция. Веб брал слово по языку (`language === 'ru' ? word.ru : word.en`),
+/// перенос взял `.ru` везде — в английской локали стимул был «КРАСНЫЙ». Ключи
+/// `color_*` переведены на все двенадцать языков: немец читает ROT, японец 赤.
+/// Каждый ключ — своим `L.t('…')`: сборщик словаря видит только литерал.
+String stroopWord(StroopColor c) {
+  final word = switch (c.name) {
+    'red' => L.t('color_red'),
+    'blue' => L.t('color_blue'),
+    'green' => L.t('color_green'),
+    'yellow' => L.t('color_yellow'),
+    _ => throw ArgumentError.value(c.name, 'name', 'no dictionary word for this colour'),
+  };
+  return word.toUpperCase();
 }
 
 Color _hex(String hex) => Color(int.parse(hex.substring(1), radix: 16) | 0xFF000000);
@@ -209,6 +255,7 @@ class _Field extends StatelessWidget {
     required this.height,
     required this.onStart,
     required this.onAgain,
+    required this.onMode,
   });
 
   final StroopGame game;
@@ -221,15 +268,26 @@ class _Field extends StatelessWidget {
   final double height;
   final VoidCallback onStart;
   final VoidCallback onAgain;
+  final ValueChanged<String> onMode;
 
   @override
   Widget build(BuildContext context) {
     switch (phase) {
       case StroopPhase.ready:
-        return _Centered(
+        // Выбор правила — как у веба («По цвету чернил / По смыслу слова»); с ним настройка
+        // выше поля на малых экранах — прокрутка, «Начать» прибита.
+        return SetupScroll(
           height: height,
+          onStart: onStart,
           children: [
             Text('${L.t('level')} ${game.level}', style: Theme.of(context).textTheme.titleLarge),
+            const SizedBox(height: 8),
+            SetupChoice<String>(
+              label: L.t('stroopModeLabel'),
+              options: [('ink', L.t('stroopByInk'), 'stroop-mode-ink'), ('word', L.t('stroopByWord'), 'stroop-mode-word')],
+              value: game.mode,
+              onPick: onMode,
+            ),
             const SizedBox(height: 8),
             Text(
               game.mode == 'ink' ? L.t('stroopHintInk') : L.t('stroopHintWord'),
@@ -238,14 +296,23 @@ class _Field extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               L.t('stroopLvlParams')
-                  .replaceAll('{n}', '${game.params.trials}')
+                  .replaceAll('{n}', '${game.trialsTotal}')
                   .replaceAll('{w}', (game.params.windowMs / 1000).toStringAsFixed(1))
                   .replaceAll('{p}', '${(incongruentRatio * 100).round()}'),
               style: Theme.of(context).textTheme.bodySmall,
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 16),
-            FilledButton(onPressed: onStart, child: Text(L.t('start'))),
+            // С L5 часть проб идёт по ДРУГОМУ правилу (до 40 % на L15): без этой строки человек
+            // узнавал бы о смене только ошибкой посреди партии.
+            if (game.params.switchRate > 0) ...[
+              const SizedBox(height: 4),
+              Text(
+                L.t('stroopLvlSwitch').replaceAll('{s}', '${(game.params.switchRate * 100).round()}'),
+                key: const Key('stroop-switch-line'),
+                style: Theme.of(context).textTheme.bodySmall,
+                textAlign: TextAlign.center,
+              ),
+            ],
           ],
         );
       case StroopPhase.done:
@@ -261,7 +328,7 @@ class _Field extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
-            Text('${L.t('hud_correct')}: ${game.hits}/${game.params.trials} · '
+            Text('${L.t('hud_correct')}: ${game.hits}/${game.trialsTotal} · '
                 '${L.t('hud_errors')}: ${game.errors}'),
             Text(game.meanRtMs == null
                 ? '${L.t('meanReaction')}: —'
@@ -288,7 +355,7 @@ class _Field extends StatelessWidget {
               _DecoyRow(glyphs: decoys.take(2).toList()),
               const SizedBox(height: 12),
               Text(
-                t.word.ru,
+                stroopWord(t.word),
                 key: const Key('stroop-stimulus'),
                 textAlign: TextAlign.center,
                 style: TextStyle(
@@ -398,7 +465,7 @@ class _Answers extends StatelessWidget {
                         foregroundColor: _hex(stroopLabelColor(c.hex)),
                         padding: EdgeInsets.zero,
                       ),
-                      child: FittedBox(child: Text(c.ru, style: const TextStyle(fontWeight: FontWeight.w700))),
+                      child: FittedBox(child: Text(stroopWord(c), style: const TextStyle(fontWeight: FontWeight.w700))),
                     ),
                   ),
                   ),

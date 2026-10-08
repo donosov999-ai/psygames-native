@@ -10,6 +10,7 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { isRTLLang } from '@/src/services/rtl';
 import { ACHIEVEMENTS, getUnlocked, UnlockedRecord } from '@/src/services/achievements';
+import { postScreenModel, registerScreenActions } from '@/src/services/hostScreens';
 
 /**
  * ДАТА ОТКРЫТИЯ — ПО-ЧЕЛОВЕЧЕСКИ, А НЕ КАК В ХРАНИЛИЩЕ.
@@ -25,6 +26,34 @@ import { ACHIEVEMENTS, getUnlocked, UnlockedRecord } from '@/src/services/achiev
  *
  * Непонятную строку возвращаем как есть: показать сырое лучше, чем «Invalid Date».
  */
+
+/**
+ * Подписи разделов и достижений лежат в справочнике с полями `_ru`/`_en` (долг двуязычных строк,
+ * `screen-language-fallback.test.ts`). Одна развилка на разметку экрана и на модель оболочки —
+ * иначе каждая копия считалась бы новым долгом.
+ */
+function catLabel(cat: { label_ru: string; label_en: string }, language: string): string {
+  return language === 'ru' ? cat.label_ru : cat.label_en;
+}
+function achName(a: { name_ru: string; name_en: string }, language: string): string {
+  return language === 'ru' ? a.name_ru : a.name_en;
+}
+function achDesc(a: { desc_ru: string; desc_en: string }, language: string): string {
+  return language === 'ru' ? a.desc_ru : a.desc_en;
+}
+
+/**
+ * Разделы экрана — на уровне модуля: их же выгружает `flutter/tools/embed-achievements.mjs` для
+ * модели на Dart (задача d6a60b02, вариант Б). Правка подписи без пересборки краснеет в CI.
+ */
+const CATEGORIES = [
+  { key: 'milestone', label_ru: '🏁 Вехи', label_en: '🏁 Milestones' },
+  { key: 'volume',    label_ru: '🎮 Объём', label_en: '🎮 Volume' },
+  { key: 'streak',    label_ru: '🔥 Серии', label_en: '🔥 Streaks' },
+  { key: 'breadth',   label_ru: '🌈 Разнообразие', label_en: '🌈 Breadth' },
+  { key: 'quality',   label_ru: '⭐ Качество', label_en: '⭐ Quality' },
+];
+
 export function humanDate(key: string, language: string): string {
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(key || ''));
   if (!m) return String(key || '');
@@ -72,13 +101,32 @@ function AchievementsScreenBody() {
     return acc;
   }, {} as Record<string, typeof ACHIEVEMENTS>);
 
-  const CATEGORIES = [
-    { key: 'milestone', label_ru: '🏁 Вехи', label_en: '🏁 Milestones' },
-    { key: 'volume',    label_ru: '🎮 Объём', label_en: '🎮 Volume' },
-    { key: 'streak',    label_ru: '🔥 Серии', label_en: '🔥 Streaks' },
-    { key: 'breadth',   label_ru: '🌈 Разнообразие', label_en: '🌈 Breadth' },
-    { key: 'quality',   label_ru: '⭐ Качество', label_en: '⭐ Quality' },
-  ];
+  /**
+   * 🔴 ПОД ОБОЛОЧКОЙ ДОСТИЖЕНИЯ РИСУЕТ FLUTTER (задача 56660caa, `services/hostScreens.ts`).
+   * Правила открытия не трогаются: модель — те же группы, названия, даты (`humanDate`).
+   */
+  const achievementsModel = {
+    v: 1,
+    title: `🏆 ${t('achievementsTitle')} ${unlocked.length}/${ACHIEVEMENTS.length}`,
+    back: t('a11yBack'), rtl: isRTLLang(language),
+    sections: CATEGORIES.map((cat) => ({
+      key: cat.key,
+      title: catLabel(cat, language),
+      cards: (grouped[cat.key] || []).map((a) => {
+        const date = unlocked.find((u) => u.id === a.id)?.date;
+        return {
+          id: a.id, emoji: a.emoji, unlocked: unlockedSet.has(a.id),
+          name: achName(a, language),
+          desc: achDesc(a, language),
+          date: date ? humanDate(date, language) : null,
+        };
+      }),
+    })),
+    footer: t('achievementsFooter').replace('{n}', String(ACHIEVEMENTS.length - unlocked.length)),
+  };
+  const achievementsKey = JSON.stringify(achievementsModel);
+  useEffect(() => { postScreenModel('/achievements', JSON.parse(achievementsKey)); }, [achievementsKey]);
+  useEffect(() => registerScreenActions('/achievements', { back: () => goBackOrHome() }), []);
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -98,7 +146,7 @@ function AchievementsScreenBody() {
         {CATEGORIES.map(cat => (
           <View key={cat.key} style={styles.section}>
             <Text style={[styles.sectionTitle, { color: colors.text }]}>
-              {language === 'ru' ? cat.label_ru : cat.label_en}
+              {catLabel(cat, language)}
             </Text>
             <View style={styles.grid}>
               {(grouped[cat.key] || []).map(a => {
@@ -116,10 +164,10 @@ function AchievementsScreenBody() {
                         узкая по построению (две в ряд), и длинные названия в неё
                         в одну строку не влезают ни при каком шрифте. */}
                     <Text style={[styles.cardName, { color: colors.text }]} numberOfLines={2}>
-                      {language === 'ru' ? a.name_ru : a.name_en}
+                      {achName(a, language)}
                     </Text>
                     <Text style={[styles.cardDesc, { color: colors.textSecondary }]} numberOfLines={2}>
-                      {language === 'ru' ? a.desc_ru : a.desc_en}
+                      {achDesc(a, language)}
                     </Text>
                     {date && (
                       <Text style={[styles.cardDate, { color: '#fbbf24' }]}>{humanDate(date, language)}</Text>

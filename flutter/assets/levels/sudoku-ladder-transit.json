@@ -1,0 +1,540 @@
+{
+ "_about": "Ступени лестницы «Судоку», которые играются в ДРУГОЙ игре, и боссы. БОССЫ — решение Дениса 07.10.2026: «босса чаще или реже — лучше привязать к смене модели генерации, но минимум каждые 10 уровней». Одно правило вместо трёх (мегабосс каждый 15-й, мешок каждый 3-й, фиксированные места): строка с boss: true — на последней ступени каждой модели (правило, банк, размер доски, игра-переход; 204 — переход в генератор) и промежуточная (bossWhy: interim), где модель длиннее 10 ступеней; шаг ≤ 10. 48 строк. С bossGame — большой босс в другой игре (LadderTransit.bossOf): 96 «Самурай», 112 «Фрактал», 128 «Бездна», 144 «Самурай» 10/12, 160 «Фрактал» 25/30, 176 «Бездна», 192 «Самурай» 12/12; без bossLevel — уровень человека в той игре. Без bossGame — бой из мешка экрана «Судоку». Схема — с разделом «Судоку» (журнал 92c42801). gameLevel — уровень чужой игры (вход в новое правило с её ступеней 1→4).",
+ "source": "sudoku-chat/ladder-80-204.json (план v13, 08.10.2026: блоки 121–180 правила раздела, переходы в игры 181–212, генератор с 213)",
+ "steps": [
+  {
+   "level": 4,
+   "kind": "board",
+   "variant": "none",
+   "boss": true
+  },
+  {
+   "level": 8,
+   "kind": "board",
+   "variant": "none",
+   "boss": true
+  },
+  {
+   "level": 13,
+   "kind": "board",
+   "variant": "diagonal",
+   "boss": true
+  },
+  {
+   "level": 17,
+   "kind": "board",
+   "variant": "antiknight",
+   "boss": true
+  },
+  {
+   "level": 21,
+   "kind": "board",
+   "variant": "hyper",
+   "boss": true
+  },
+  {
+   "level": 25,
+   "kind": "board",
+   "variant": "nonconsec",
+   "boss": true
+  },
+  {
+   "level": 29,
+   "kind": "board",
+   "variant": "antiking",
+   "boss": true
+  },
+  {
+   "level": 33,
+   "kind": "board",
+   "variant": "evenodd",
+   "boss": true
+  },
+  {
+   "level": 37,
+   "kind": "board",
+   "variant": "kropki",
+   "boss": true
+  },
+  {
+   "level": 41,
+   "kind": "board",
+   "variant": "sandwich",
+   "boss": true
+  },
+  {
+   "level": 45,
+   "kind": "board",
+   "variant": "thermo",
+   "boss": true
+  },
+  {
+   "level": 49,
+   "kind": "board",
+   "variant": "arrow",
+   "boss": true
+  },
+  {
+   "level": 53,
+   "kind": "board",
+   "variant": "thermocage",
+   "boss": true
+  },
+  {
+   "level": 61,
+   "kind": "board",
+   "variant": "none",
+   "boss": true
+  },
+  {
+   "level": 65,
+   "kind": "board",
+   "variant": "jigsaw",
+   "boss": true
+  },
+  {
+   "level": 75,
+   "kind": "board",
+   "variant": "none",
+   "boss": true,
+   "bossWhy": "interim"
+  },
+  {
+   "level": 80,
+   "kind": "board",
+   "variant": "none",
+   "boss": true
+  },
+  {
+   "level": 84,
+   "kind": "board",
+   "variant": "thermoknight",
+   "boss": true
+  },
+  {
+   "level": 88,
+   "kind": "board",
+   "variant": "sandparity",
+   "boss": true
+  },
+  {
+   "level": 92,
+   "kind": "board",
+   "variant": "killerdiag",
+   "boss": true
+  },
+  {
+   "level": 96,
+   "kind": "board",
+   "variant": "whisper",
+   "boss": true,
+   "bossGame": "/games/sudoku-samurai",
+   "bossBlocks": false
+  },
+  {
+   "level": 100,
+   "kind": "board",
+   "variant": "renban",
+   "boss": true
+  },
+  {
+   "level": 104,
+   "kind": "board",
+   "variant": "regionsum",
+   "boss": true
+  },
+  {
+   "level": 108,
+   "kind": "board",
+   "variant": "palindrome",
+   "boss": true
+  },
+  {
+   "level": 112,
+   "kind": "board",
+   "variant": "between",
+   "boss": true,
+   "bossGame": "/games/sudoku-fractal",
+   "bossBlocks": false
+  },
+  {
+   "level": 116,
+   "kind": "board",
+   "variant": "lockout",
+   "boss": true
+  },
+  {
+   "level": 120,
+   "kind": "board",
+   "variant": "xv",
+   "boss": true
+  },
+  {
+   "level": 124,
+   "kind": "board",
+   "variant": "argyle",
+   "boss": true
+  },
+  {
+   "level": 128,
+   "kind": "board",
+   "variant": "littlekiller",
+   "boss": true,
+   "bossGame": "/games/sudoku-fractal-deep",
+   "bossBlocks": false
+  },
+  {
+   "level": 132,
+   "kind": "board",
+   "variant": "xsums",
+   "boss": true
+  },
+  {
+   "level": 136,
+   "kind": "board",
+   "variant": "cipher",
+   "boss": true
+  },
+  {
+   "level": 140,
+   "kind": "board",
+   "variant": "fog",
+   "boss": true
+  },
+  {
+   "level": 144,
+   "kind": "board",
+   "variant": "chaos",
+   "boss": true,
+   "bossGame": "/games/sudoku-samurai",
+   "bossLevel": 10,
+   "bossBlocks": false
+  },
+  {
+   "level": 148,
+   "kind": "board",
+   "variant": "schrodinger",
+   "boss": true
+  },
+  {
+   "level": 152,
+   "kind": "board",
+   "variant": "meowfriends",
+   "boss": true
+  },
+  {
+   "level": 156,
+   "kind": "board",
+   "variant": "wordoku",
+   "boss": true
+  },
+  {
+   "level": 160,
+   "kind": "board",
+   "variant": "animals",
+   "boss": true,
+   "bossGame": "/games/sudoku-fractal",
+   "bossLevel": 25,
+   "bossBlocks": false
+  },
+  {
+   "level": 164,
+   "kind": "board",
+   "variant": "killer",
+   "boss": true
+  },
+  {
+   "level": 168,
+   "kind": "board",
+   "variant": "towers",
+   "boss": true
+  },
+  {
+   "level": 172,
+   "kind": "board",
+   "variant": "unequal",
+   "boss": true
+  },
+  {
+   "level": 176,
+   "kind": "board",
+   "variant": "doublers",
+   "boss": true,
+   "bossGame": "/games/sudoku-fractal-deep",
+   "bossBlocks": false
+  },
+  {
+   "level": 180,
+   "kind": "board",
+   "variant": "negators",
+   "boss": true
+  },
+  {
+   "level": 181,
+   "kind": "game",
+   "game": "/games/cats",
+   "gameLevel": 1,
+   "blockStep": 1,
+   "blockSize": 4
+  },
+  {
+   "level": 182,
+   "kind": "game",
+   "game": "/games/cats",
+   "gameLevel": 2,
+   "blockStep": 2,
+   "blockSize": 4
+  },
+  {
+   "level": 183,
+   "kind": "game",
+   "game": "/games/cats",
+   "gameLevel": 3,
+   "blockStep": 3,
+   "blockSize": 4
+  },
+  {
+   "level": 184,
+   "kind": "game",
+   "game": "/games/cats",
+   "gameLevel": 4,
+   "blockStep": 4,
+   "blockSize": 4,
+   "boss": true
+  },
+  {
+   "level": 185,
+   "kind": "game",
+   "game": "/games/puzzles?mode=Towers",
+   "gameLevel": 1,
+   "blockStep": 1,
+   "blockSize": 4
+  },
+  {
+   "level": 186,
+   "kind": "game",
+   "game": "/games/puzzles?mode=Towers",
+   "gameLevel": 2,
+   "blockStep": 2,
+   "blockSize": 4
+  },
+  {
+   "level": 187,
+   "kind": "game",
+   "game": "/games/puzzles?mode=Towers",
+   "gameLevel": 3,
+   "blockStep": 3,
+   "blockSize": 4
+  },
+  {
+   "level": 188,
+   "kind": "game",
+   "game": "/games/puzzles?mode=Towers",
+   "gameLevel": 4,
+   "blockStep": 4,
+   "blockSize": 4,
+   "boss": true
+  },
+  {
+   "level": 189,
+   "kind": "game",
+   "game": "/games/puzzles?mode=Unequal",
+   "gameLevel": 1,
+   "blockStep": 1,
+   "blockSize": 4
+  },
+  {
+   "level": 190,
+   "kind": "game",
+   "game": "/games/puzzles?mode=Unequal",
+   "gameLevel": 2,
+   "blockStep": 2,
+   "blockSize": 4
+  },
+  {
+   "level": 191,
+   "kind": "game",
+   "game": "/games/puzzles?mode=Unequal",
+   "gameLevel": 3,
+   "blockStep": 3,
+   "blockSize": 4
+  },
+  {
+   "level": 192,
+   "kind": "game",
+   "game": "/games/puzzles?mode=Unequal",
+   "gameLevel": 4,
+   "blockStep": 4,
+   "blockSize": 4,
+   "boss": true,
+   "bossGame": "/games/sudoku-samurai",
+   "bossLevel": 12,
+   "bossBlocks": false
+  },
+  {
+   "level": 193,
+   "kind": "game",
+   "game": "/games/puzzles?mode=Keen",
+   "gameLevel": 1,
+   "blockStep": 1,
+   "blockSize": 4
+  },
+  {
+   "level": 194,
+   "kind": "game",
+   "game": "/games/puzzles?mode=Keen",
+   "gameLevel": 2,
+   "blockStep": 2,
+   "blockSize": 4
+  },
+  {
+   "level": 195,
+   "kind": "game",
+   "game": "/games/puzzles?mode=Keen",
+   "gameLevel": 3,
+   "blockStep": 3,
+   "blockSize": 4
+  },
+  {
+   "level": 196,
+   "kind": "game",
+   "game": "/games/puzzles?mode=Keen",
+   "gameLevel": 4,
+   "blockStep": 4,
+   "blockSize": 4,
+   "boss": true
+  },
+  {
+   "level": 197,
+   "kind": "game",
+   "game": "/games/puzzles?mode=Solo",
+   "gameLevel": 1,
+   "blockStep": 1,
+   "blockSize": 4
+  },
+  {
+   "level": 198,
+   "kind": "game",
+   "game": "/games/puzzles?mode=Solo",
+   "gameLevel": 2,
+   "blockStep": 2,
+   "blockSize": 4
+  },
+  {
+   "level": 199,
+   "kind": "game",
+   "game": "/games/puzzles?mode=Solo",
+   "gameLevel": 3,
+   "blockStep": 3,
+   "blockSize": 4
+  },
+  {
+   "level": 200,
+   "kind": "game",
+   "game": "/games/puzzles?mode=Solo",
+   "gameLevel": 4,
+   "blockStep": 4,
+   "blockSize": 4,
+   "boss": true
+  },
+  {
+   "level": 201,
+   "kind": "game",
+   "game": "/games/puzzles?mode=Undead",
+   "gameLevel": 1,
+   "blockStep": 1,
+   "blockSize": 4
+  },
+  {
+   "level": 202,
+   "kind": "game",
+   "game": "/games/puzzles?mode=Undead",
+   "gameLevel": 2,
+   "blockStep": 2,
+   "blockSize": 4
+  },
+  {
+   "level": 203,
+   "kind": "game",
+   "game": "/games/puzzles?mode=Undead",
+   "gameLevel": 3,
+   "blockStep": 3,
+   "blockSize": 4
+  },
+  {
+   "level": 204,
+   "kind": "game",
+   "game": "/games/puzzles?mode=Undead",
+   "gameLevel": 4,
+   "blockStep": 4,
+   "blockSize": 4,
+   "boss": true
+  },
+  {
+   "level": 205,
+   "kind": "game",
+   "game": "/games/puzzles?mode=Singles",
+   "gameLevel": 1,
+   "blockStep": 1,
+   "blockSize": 4
+  },
+  {
+   "level": 206,
+   "kind": "game",
+   "game": "/games/puzzles?mode=Singles",
+   "gameLevel": 2,
+   "blockStep": 2,
+   "blockSize": 4
+  },
+  {
+   "level": 207,
+   "kind": "game",
+   "game": "/games/puzzles?mode=Singles",
+   "gameLevel": 3,
+   "blockStep": 3,
+   "blockSize": 4
+  },
+  {
+   "level": 208,
+   "kind": "game",
+   "game": "/games/puzzles?mode=Singles",
+   "gameLevel": 4,
+   "blockStep": 4,
+   "blockSize": 4,
+   "boss": true
+  },
+  {
+   "level": 209,
+   "kind": "game",
+   "game": "/games/puzzles?mode=Filling",
+   "gameLevel": 1,
+   "blockStep": 1,
+   "blockSize": 4
+  },
+  {
+   "level": 210,
+   "kind": "game",
+   "game": "/games/puzzles?mode=Filling",
+   "gameLevel": 2,
+   "blockStep": 2,
+   "blockSize": 4
+  },
+  {
+   "level": 211,
+   "kind": "game",
+   "game": "/games/puzzles?mode=Filling",
+   "gameLevel": 3,
+   "blockStep": 3,
+   "blockSize": 4
+  },
+  {
+   "level": 212,
+   "kind": "game",
+   "game": "/games/puzzles?mode=Filling",
+   "gameLevel": 4,
+   "blockStep": 4,
+   "blockSize": 4,
+   "boss": true
+  }
+ ]
+}

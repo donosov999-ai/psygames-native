@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'package:flutter/services.dart';
 
 import '../../shell/l10n.dart';
+import '../../shell/level_ladder.dart' show LevelStore;
 import 'engine.dart';
 
 /// ЛЕСТНИЦЫ СЕМИ СЕТОК ТЭТХЭМА — те же пять ступеней, что у веб-версии.
@@ -19,9 +20,23 @@ import 'engine.dart';
 /// классов нет вовсе — его лестница растёт только размером поля.
 
 class PuzzleStep {
-  const PuzzleStep(this.title, this.params);
+  const PuzzleStep(this.title, this.params, [this.parts = const []]);
   final String title;
   final String params;
+
+  /// Имя по частям для языков кроме русского (`games/puzzles/step_title.dart`).
+  final List<StepPart> parts;
+}
+
+/// Часть имени ступени: ключ словаря с числом/размером `{n}` либо готовый текст.
+class StepPart {
+  const StepPart({this.key, this.n = '', this.text = ''});
+  final String? key;
+  final String n;
+  final String text;
+
+  static StepPart fromJson(Map<String, dynamic> j) =>
+      StepPart(key: j['key'] as String?, n: (j['n'] ?? '') as String, text: (j['text'] ?? '') as String);
 }
 
 class PuzzleMode {
@@ -116,8 +131,29 @@ class PuzzleMode {
   /// как «эмодзи», и без имени незрячий человек не узнает, что ставит.
   final List<String> digitNames;
 
-  /// Ключ прогресса: тот же, что пишет веб-версия.
-  String get levelKey => 'puzzles_${engineName.toLowerCase()}';
+  /// Ключ прогресса: тот же, что пишет веб-версия (`puzzles.tsx`: нижний регистр, пробелы → `_`).
+  ///
+  /// 🔴 02.10.2026 (сверка 138f7818): здесь был только нижний регистр, и у четырёх режимов с
+  /// пробелом в имени — Light Up, Train Tracks, Black Box, Same Game — натив писал
+  /// `puzzles_light up`, а веб `puzzles_light_up`: прогресс из веба не читался. Проба сравнивала
+  /// ключ натива с правилом самого натива и потому молчала.
+  String get levelKey => 'puzzles_${engineName.toLowerCase().replaceAll(RegExp(r'\s+'), '_')}';
+
+  /// Прежний нативный ключ (с пробелом) — только чтобы перенести уже набранный на нём прогресс.
+  String? get legacyLevelKey => engineName.contains(' ') ? 'puzzles_${engineName.toLowerCase()}' : null;
+}
+
+/// Перенести уровень со старого нативного ключа ([PuzzleMode.legacyLevelKey]) на общий с вебом:
+/// берётся БОЛЬШЕЕ из двух — ни прогресс из веба, ни набранный нативно с 30.09 не теряются.
+Future<void> migrateLegacyLevel(PuzzleMode mode, LevelStore store) async {
+  final old = mode.legacyLevelKey;
+  if (old == null) return;
+  for (final what in const ['level', 'best']) {
+    final was = await store.readInt('$old.$what');
+    if (was == null) continue;
+    final now = await store.readInt('${mode.levelKey}.$what');
+    if (now == null || now < was) await store.writeInt('${mode.levelKey}.$what', was);
+  }
 }
 
 /// ВСЕ 42 РЕЖИМА — ИЗ АССЕТА, СОБРАННОГО ИЗ ВЕБ-МОСТА.
@@ -138,6 +174,15 @@ class PuzzleMode {
 /// ⚠️ У 28 режимов из 42 своей лестницы нет, и выдумывать её нельзя — трудность
 /// меряют исполнением. Такие берут СОБСТВЕННЫЕ пресеты движка (`psy_presets`),
 /// подобранные автором; раздел заменит их своей, когда померит.
+/// Общая подпись второго действия — у режимов, где автор имени не дал (`второе: true`).
+///
+/// 🔴 ОБЪЯВЛЕНА СПИСКОМ, ИНАЧЕ ЕЁ НЕТ В СЛОВАРЕ. Ключ приходит не литералом в `L.t(…)`, а
+/// из разбора `modes.json` ниже и из `??` в экране — сборщик `tools/embed-l10n.mjs` такие не
+/// видит. 📍 Замер 07.10.2026: в `assets/l10n/*.json` ключа не было, и у четырёх режимов (Guess,
+/// Slant, Black Box, Unruly) на кнопке стояло само имя «puzzleSecondAction». Список `…Keys`
+/// сборщик читает (дверь 1в).
+const puzzleFallbackKeys = <String>['puzzleSecondAction'];
+
 class PuzzleModes {
   PuzzleModes._();
 
@@ -165,6 +210,7 @@ class PuzzleModes {
               .map((s) => PuzzleStep(
                     (s as Map<String, dynamic>)['title'] as String,
                     s['params'] as String,
+                    [for (final p in (s['parts'] as List?) ?? const []) StepPart.fromJson(p as Map<String, dynamic>)],
                   ))
               .toList(),
           owner: m['owner'] as String?,
@@ -178,7 +224,7 @@ class PuzzleModes {
           secondPickKey: m['secondPickKey'] as String?,
           secondKey: switch (m['secondKey']) {
             final String k when k.isNotEmpty => k,
-            true => 'puzzleSecondAction',
+            true => puzzleFallbackKeys.first,
             _ => null,
           },
         ),

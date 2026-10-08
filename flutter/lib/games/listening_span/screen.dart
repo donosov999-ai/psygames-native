@@ -164,11 +164,10 @@ class _ListeningSpanScreenState extends State<ListeningSpanScreen> {
     // Нечем говорить — партии нет: упражнение, которое молчит, мерило бы не память.
     final block = await _voice!.blockedReason(_target);
     if (!mounted) return;
-    if (block != null) {
-      setState(() => _block = block);
-      return;
-    }
-    _startedAt = gameNow();
+    // И «можно» тоже записывается: иначе предупреждение прошлой попытки («включите звук»)
+    // висело на экране старта и после того, как звук включили (сверка веб → натив 02.10.2026).
+    setState(() => _block = block);
+    if (block != null) return;
     _beginRound();
   }
 
@@ -198,6 +197,9 @@ class _ListeningSpanScreenState extends State<ListeningSpanScreen> {
     if (g.round == 1) {
       await _wait(lspanLeadInMs);
       if (!_alive(run)) return;
+      // Часы партии — с первого слова: у веба вступления нет вовсе, его время партии
+      // идёт от начала озвучки (listening-span.tsx, startTime).
+      _startedAt = gameNow();
     }
     for (var i = 0; i < g.spoken.length; i++) {
       if (!_alive(run)) return;
@@ -225,7 +227,8 @@ class _ListeningSpanScreenState extends State<ListeningSpanScreen> {
     if (_phase != LspanPhase.recall) return;
     final r = g.tap(i);
     if (r == LspanTap.ignored) return;
-    _haptics.selection();
+    // Как в «Матрице»: верное — щелчок, собранный ряд — сильнее, ошибка — тяжело (было: щелчок на всё).
+    r == LspanTap.progress ? _haptics.hit() : (r == LspanTap.roundWon ? _haptics.win() : _haptics.miss());
     setState(() {});
     if (r == LspanTap.progress) return;
     _timer = gameTimeout(Duration(milliseconds: r == LspanTap.roundWon ? lspanAfterWinMs : lspanAfterMissMs), () {

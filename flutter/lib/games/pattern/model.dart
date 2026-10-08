@@ -483,6 +483,25 @@ final List<Sequence Function(Rng, int)> _mix = [
 /// Масштаб чисел смеси: растёт на единицу каждые два уровня и не упирается ни во что.
 int mixScale(int level) => level < mixFrom ? 1 : 1 + ((level - mixFrom) / 2).floor();
 
+/// Имя ступени для пула генератора уровней (звено 4, задача 4e584381) — из КЛАССА ряда, а не из
+/// номера уровня (договор `ladderPool`): `arithmetic-1`, `arithmetic-2`, `geometric-1`, …
+/// Выше [mixFrom] — смесь трудных классов, у неё растут только числа (`mixScale`): `mix-<масштаб>`.
+String patternStepKey(int level) {
+  var from = 1;
+  for (final b in _bands) {
+    if (level <= b.upTo) {
+      final name = b.label.replaceFirst('patternClass', '');
+      return '${name[0].toLowerCase()}${name.substring(1)}-${level - from + 1}';
+    }
+    from = b.upTo + 1;
+  }
+  return 'mix-${mixScale(level)}';
+}
+
+/// Ступени, у которых лестница НАЗЫВАЕТ класс ряда: 1…[mixFrom] − 1. Смесь дальше — открытый хвост:
+/// её ось — масштаб чисел без потолка, конечным списком ступеней её не выразить.
+final List<String> patternStepKeys = [for (var l = 1; l < mixFrom; l++) patternStepKey(l)];
+
 Sequence pickSequence(int level, Rng rng) {
   for (final b in _bands) {
     if (level <= b.upTo) return b.gen(rng);
@@ -524,8 +543,23 @@ Sequence makeSequence(int level, Rng rng) {
 /// ответа, и приём «бери ближайший к среднему» угадывал 73–85 % при случайных 25 %.
 /// Промежутки между соседями берутся независимо и одинаково, место ответа
 /// случайно, а лесенка сдвигается к нему.
-List<int> makeOptions(int answer, Rng rng, {int count = 4}) {
+///
+/// 🔴 ПРИМАНКА У ХВОСТА (задача 94f9c7c1, 01.10.2026; перенос patternSequences.ts
+/// VER 4). [tail] — «последний + последний шаг» ([tailLure]): число, которое
+/// получает игрок, прочитавший ряд, но не понявший правило. Замер по 3000 рядов
+/// на уровень: у квадратов и растущих разностей ответ лежит в 1–2 от хвоста, а шаг
+/// лесенки 2…16 — ближайшим к хвосту вариантом оказывался сам ответ: 57 % на L5,
+/// 74 % на L10, 36–41 % на смеси при случайных 25. Хвост ближе шага лесенки —
+/// лесенка РАВНОМЕРНАЯ с шагом |хвост − ответ|: хвост стоит среди вариантов соседом
+/// ответа (кроме случая, когда ответ крайний с его стороны), тесной пары нет.
+/// Хвост далеко или совпал с ответом (линейное правило) — путь прежний до броска.
+List<int> makeOptions(int answer, Rng rng, {int count = 4, int? tail}) {
   final unit = 2 * math.max(1, jsRound(answer.abs() * 0.075).toInt()).toInt();
+  final gap = tail == null ? 0 : (tail - answer).abs();
+  if (gap > 0 && gap <= unit) {
+    final at = _rnd(rng, count);
+    return _shuffle([for (var i = 0; i < count; i += 1) answer + (i - at) * gap], rng);
+  }
   final place = _rnd(rng, count);
   final at = <int>[0];
   for (var i = 1; i < count; i += 1) {
@@ -533,6 +567,10 @@ List<int> makeOptions(int answer, Rng rng, {int count = 4}) {
   }
   return _shuffle([for (final x in at) answer + x - at[place]], rng);
 }
+
+/// Хвост ряда — «последний + последний шаг»: так продолжает ряд тот, кто видит
+/// шаг, но не видит правила.
+int tailLure(List<int> items) => items.last + (items.last - items[items.length - 2]);
 
 /// Порог прохождения партии — семь попаданий из десяти.
 const double passHitRate = 0.7;
@@ -586,44 +624,41 @@ double cellHeight(double font) => font >= 24 ? 64 : (font >= 20 ? 56 : 48);
 
 // ────────────────────────── Подписи классов и правил ─────────────────────────
 //
-// Перенос русских строк из словаря веб-версии (LanguageContext, patternClass*/
-// patternRule*) — не сочинение заново: подсказка обязана звучать теми же словами,
-// что в нынешнем приложении, иначе игрок увидит два разных объяснения одного ряда.
+// Подписи — КЛЮЧИ общего словаря (LanguageContext, patternClass*/patternRule*): экран зовёт
+// `L.t(seq.classKey)` и `fillParams(L.t(seq.ruleKey), seq.ruleParams)`, и подсказка звучит
+// теми же словами, что в вебе, — на языке игрока (задача 4b6f863e; раньше здесь лежали
+// русские копии, и англичанин видел правило по-русски). Ключ берётся ИЗ ДАННЫХ ряда,
+// поэтому все ключи перечислены списком: его читает сборщик словаря
+// (`flutter/tools/embed-l10n.mjs`), иначе ключ не попал бы в assets/l10n.
 // Плейсхолдеры {a}/{b}/{c}/{n} заполняются числами правила (`ruleParams`).
-
-const Map<String, String> patternClassRu = {
-  'patternClassArithmetic': 'Арифметическая прогрессия',
-  'patternClassGeometric': 'Геометрическая прогрессия',
-  'patternClassSquares': 'Квадраты чисел',
-  'patternClassCubes': 'Кубы чисел',
-  'patternClassSquaresCubes': 'Квадраты и кубы',
-  'patternClassFibonacci': 'Похоже на Фибоначчи',
-  'patternClassGrowingDiff': 'Растущая разность',
-  'patternClassLookSay': '«Посмотри и скажи»',
-  'patternClassLookSayHint': '«Посмотри и скажи» (нужна подсказка)',
-  'patternClassInterleaved': 'Два переплетённых ряда',
-  'patternClassLinear': 'Умножь и прибавь',
-  'patternClassTwoOps': 'Два действия по очереди',
-  'patternClassInterMixed': 'Два разных ряда через один',
-  'patternClassSignFlip': 'Знак меняется каждый шаг',
-  'patternClassMixed': 'Любой из трудных рядов — числа растут с уровнем',
-};
-
-const Map<String, String> patternRuleRu = {
-  'patternRuleArithmetic': 'Каждый член больше на {n}',
-  'patternRuleGeometric': 'Каждый член умножается на {n}',
-  'patternRuleSquares': 'n²: {a}², {b}², {c}², …',
-  'patternRuleCubes': 'n³: {a}³, {b}³, …',
-  'patternRuleFibonacci': 'Сумма двух предыдущих',
-  'patternRuleGrowingDiff': 'Разность растёт на 1 каждый шаг ({a}, {b}, …)',
-  'patternRuleLookSay': 'Читай предыдущий вслух: «один 1» → 11, «два 1 один 2» …',
-  'patternRuleInterleaved':
-      'Позиции 1,3,5… растут на {a}; позиции 2,4… на {b}. Нужна следующая нечётная',
-  'patternRuleLinear': 'Каждое число — предыдущее × {a}, потом {b}',
-  'patternRuleTwoOps': 'Действия чередуются: {a}, потом {b}, снова {a}…',
-  'patternRuleInterMixed':
-      'Позиции 1,3,5…: каждый раз {a}; позиции 2,4…: {b}. Нужна следующая нечётная',
-};
+const patternLabelKeys = <String>[
+  'patternClassArithmetic',
+  'patternClassGeometric',
+  'patternClassSquares',
+  'patternClassCubes',
+  'patternClassSquaresCubes',
+  'patternClassFibonacci',
+  'patternClassGrowingDiff',
+  'patternClassLookSay',
+  'patternClassLookSayHint',
+  'patternClassInterleaved',
+  'patternClassLinear',
+  'patternClassTwoOps',
+  'patternClassInterMixed',
+  'patternClassSignFlip',
+  'patternClassMixed',
+  'patternRuleArithmetic',
+  'patternRuleGeometric',
+  'patternRuleSquares',
+  'patternRuleCubes',
+  'patternRuleFibonacci',
+  'patternRuleGrowingDiff',
+  'patternRuleLookSay',
+  'patternRuleInterleaved',
+  'patternRuleLinear',
+  'patternRuleTwoOps',
+  'patternRuleInterMixed',
+];
 
 String fillParams(String template, Map<String, Object>? params) {
   if (params == null) return template;

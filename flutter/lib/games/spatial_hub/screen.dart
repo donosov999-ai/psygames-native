@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show rootBundle;
 
 import '../../shell/hybrid_app.dart';
 import '../../shell/l10n.dart';
@@ -102,6 +105,7 @@ List<HubCard> get spatialHubCards => [
     L.t('trailMaking'),
     L.t('trailMakingDesc'),
     Icons.route_outlined,
+    levelKey: 'trail_making',
   ),
   HubCard(
     '/games/navigator',
@@ -115,6 +119,12 @@ List<HubCard> get spatialHubCards => [
 class _SpatialHubScreenState extends State<SpatialHubScreen> {
   final Map<String, int> _levels = {};
   bool _ready = false;
+
+  /// Карта иконок игр (`assets/game_icons/index.json`) — та же, что у общего экрана развилок
+  /// (`shell/hub_screen.dart`). Решение Дениса 01.10.2026 (задача 4c3ba7c9): в строке развилки —
+  /// поле игры в миниатюре, а не значок. «Пространство» рисует строки само и карту не читало —
+  /// единственная нативная развилка со значками Material (задача 450170e7).
+  Map<String, dynamic> _icons = const {};
 
   @override
   void initState() {
@@ -130,6 +140,13 @@ class _SpatialHubScreenState extends State<SpatialHubScreen> {
       final ladder = LevelLadder(gameId: key, store: SharedLevelStore(widget.state));
       await ladder.load();
       _levels[key] = ladder.level;
+    }
+    try {
+      // Байтами, а не loadString: с 50 КБ он уходит в compute(), и testWidgets висит 10 минут.
+      final b = await rootBundle.load('assets/game_icons/index.json');
+      _icons = jsonDecode(utf8.decode(b.buffer.asUint8List(b.offsetInBytes, b.lengthInBytes))) as Map<String, dynamic>;
+    } catch (_) {
+      // Нет карты — строки остаются со значками, развилка работает как прежде.
     }
     if (mounted) setState(() => _ready = true);
   }
@@ -184,7 +201,23 @@ class _SpatialHubScreenState extends State<SpatialHubScreen> {
                     padding: const EdgeInsets.all(12),
                     child: Row(
                       children: [
-                        Icon(card.icon, size: 28, color: scheme.primary),
+                        // Иконка — по адресу ЦЕЛИКОМ, с ?mode= (правило hubIconFile общего экрана:
+                        // у карточек «Пространства» нет nameKey, адреса хватает — все девять в карте).
+                        switch ((_icons['byRoute'] as Map?)?[card.route] as String?) {
+                          final file? => ClipRRect(
+                              // Скруглённый квадрат, как в каталоге: круг срезал бы углы поля игры.
+                              borderRadius: BorderRadius.circular(10),
+                              child: Image.asset(
+                                'assets/game_icons/$file',
+                                key: ValueKey('hub-icon-${card.route}'),
+                                width: 40,
+                                height: 40,
+                                fit: BoxFit.cover,
+                                excludeFromSemantics: true,
+                              ),
+                            ),
+                          _ => Icon(card.icon, size: 28, color: scheme.primary),
+                        },
                         const SizedBox(width: 12),
                         Expanded(
                           child: Column(

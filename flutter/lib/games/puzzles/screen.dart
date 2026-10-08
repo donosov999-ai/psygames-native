@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import '../../shell/aux_action.dart';
 import '../../shell/game_preset.dart';
+import '../../shell/game_clock.dart';
 import '../../shell/game_rules.dart';
 import '../../shell/generator/contract.dart';
 import '../../shell/generator/engine.dart';
@@ -22,6 +23,8 @@ import 'engine.dart';
 import 'frame.dart';
 import 'lesson.dart';
 import 'ladder.dart';
+import 'step_title.dart';
+import 'zoom.dart';
 
 /// ГОЛОВОЛОМКИ ТЭТХЭМА на общем каркасе: один экран на все режимы.
 ///
@@ -123,7 +126,7 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
     await PuzzleModes.load();
     final mode = PuzzleModes.all[widget.mode];
     if (mode == null) {
-      if (mounted) setState(() => _failure = 'режим ${widget.mode} движку неизвестен');
+      if (mounted) setState(() => _failure = L.f('puzzleErrUnknownMode', {'mode': widget.mode}));
       return;
     }
     _modeOrNull = mode;
@@ -136,7 +139,7 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
       final engine = TathamEngine.openPlatform(path: widget.libraryPath);
       final index = engine.indexOf(_mode.engineName);
       if (index < 0) {
-        setState(() => _failure = 'движок не знает игру ${_mode.engineName}');
+        setState(() => _failure = L.f('puzzleErrNoGame', {'game': _mode.engineName}));
         return;
       }
       // ⚠️ ПОРЯДОК ВАЖЕН: ступени известны только после открытия игры, а потолок
@@ -145,9 +148,11 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
       _steps = resolveSteps(_mode, engine, index);
       _genPool = ladderPool(gameId: _mode.levelKey, stepKeys: [for (final s in _steps) s.params]);
       _shadow = GeneratorShadow(GeneratorStore(widget.state, gameId: _mode.levelKey));
+      final levelStore = SharedLevelStore(widget.state);
+      await migrateLegacyLevel(_mode, levelStore);
       _ladder = LevelLadder(
         gameId: _mode.levelKey,
-        store: SharedLevelStore(widget.state),
+        store: levelStore,
         maxLevel: _steps.length,
         // Партию веб пишет типом `puzzles` с режимом рядом (puzzles.tsx) — так же и здесь,
         // иначе в статистике её нет нигде. Уровень — по-прежнему у каждого режима свой.
@@ -166,7 +171,7 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
     } catch (e) {
       // ⚠️ Библиотеки может не быть (сборка под платформу — отдельная задача).
       // Тогда экран честно говорит об этом, а не показывает вечную загрузку.
-      if (mounted) setState(() => _failure = 'движок не загрузился: $e');
+      if (mounted) setState(() => _failure = L.f('puzzleErrEngineLoad', {'error': '$e'}));
     }
   }
 
@@ -238,11 +243,12 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
     }
     final ok = engine.start(_gameIndex, step.params, DateTime.now().millisecondsSinceEpoch % 100000);
     setState(() {
-      _failure = ok ? null : 'партия не собралась: ${step.params}';
+      _failure = ok ? null : L.f('puzzleErrBuild', {'params': step.params});
       _won = false;
       if (ok) {
         _palette = engine.colours;
         _size = engine.size;
+        _zoom.reset();   // новая доска — другого размера: вид с начала
       }
     });
     _refresh();
@@ -335,22 +341,122 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
   /// Включено второе действие — жест уходит правой кнопкой.
   bool _second = false;
 
-  void _press(PointerDownEvent e, Size widgetSize) {
+  /*
+   * 🔴 ДВА ПАЛЬЦА — МАСШТАБ, ОДИН — ХОД (задача a504c68b, решение Дениса 08.10.2026).
+   *
+   * Касание пальцем уходит движку не сразу: нажатие придержано до первого сдвига дальше
+   * [_holdSlop], до отпускания или до [_holdTime]. Если за это время лёг второй палец —
+   * нажатие выбрасывается, и жест целиком становится щипком: движок не видит ничего, и
+   * случайного хода под первым пальцем нет. Ход, который уже начался, второй палец не
+   * прерывает — щипок посреди протяжки отменил бы её на полпути.
+   * Мышь (настольная сборка) идёт как раньше, сразу: щипка у неё нет.
+   */
+  static const _holdTime = Duration(milliseconds: 120);
+  static const _holdSlop = 3.0;
+  final BoardZoom _zoom = BoardZoom();
+  final Map<int, Offset> _touches = {};
+  bool _pinching = false;
+  ({int pointer, Offset at, Size box})? _held;
+  GameTimer? _holdTimer;
+  Size _boardBox = Size.zero;
+
+  @override
+  void dispose() {
+    _holdTimer?.cancel();
+    super.dispose();
+  }
+
+  void _down(PointerDownEvent e, Size box) {
+    if (e.kind == PointerDeviceKind.mouse) return _press(e.pointer, e.localPosition, box, mouseButtons: e.buttons);
+    _touches[e.pointer] = e.localPosition;
+    if (_touches.length == 2 && _pointer == null) {
+      _holdTimer?.cancel();
+      _held = null;
+      _pinching = true;
+      final ps = _touches.values.toList();
+      _zoom.pinchStart(ps[0], ps[1]);
+      return;
+    }
+    if (_touches.length != 1 || _pinching) return;
+    _held = (pointer: e.pointer, at: e.localPosition, box: box);
+    _holdTimer?.cancel();
+    _holdTimer = gameTimeout(_holdTime, _flushHeld);
+  }
+
+  /// Придержанное нажатие уходит движку — палец остался один.
+  void _flushHeld() {
+    final h = _held;
+    if (h == null) return;
+    _held = null;
+    _holdTimer?.cancel();
+    _press(h.pointer, h.at, h.box);
+  }
+
+  void _moved(PointerMoveEvent e, Size box) {
+    if (_touches.containsKey(e.pointer)) _touches[e.pointer] = e.localPosition;
+    if (_pinching) {
+      if (_touches.length == 2) {
+        final ps = _touches.values.toList();
+        setState(() => _zoom.pinchUpdate(ps[0], ps[1], box));
+      }
+      return;
+    }
+    final h = _held;
+    if (h != null && h.pointer == e.pointer) {
+      if ((e.localPosition - h.at).distance < _holdSlop) return;
+      _flushHeld();
+    }
+    _move(e.pointer, e.localPosition, box);
+  }
+
+  void _up(int pointer, Offset? at, Size box) {
+    final wasTouch = _touches.remove(pointer) != null;
+    if (_pinching) {
+      if (_touches.isEmpty) _pinching = false;
+      return;
+    }
+    if (wasTouch && _held?.pointer == pointer) {
+      if (at == null) {
+        // Жест отобран до того, как стал ходом: движку нечего отпускать.
+        _held = null;
+        _holdTimer?.cancel();
+        return;
+      }
+      _flushHeld();
+    }
+    _release(at, pointer, box);
+  }
+
+  /// «Крупнее»: вдвое вокруг середины доски; увеличенная — обратно к целой доске.
+  void _toggleZoom() {
+    setState(() {
+      if (_zoom.zoomed) {
+        _zoom.reset();
+      } else {
+        _zoom.zoomAt(_boardBox.center(Offset.zero), 2, _boardBox);
+      }
+    });
+  }
+
+  /// Точка касания в коробке → точка холста движка, через масштаб вида.
+  ({int x, int y}) _at(Offset local, Size box) => toEngine(_zoom.toBoard(local), box, _size);
+
+  void _press(int pointer, Offset at, Size widgetSize, {int mouseButtons = 0}) {
     final engine = _engine;
     if (engine == null || _won || _pointer != null) return;
-    _pointer = e.pointer;
-    final right = _second || (e.kind == PointerDeviceKind.mouse && (e.buttons & kSecondaryMouseButton) != 0);
+    _pointer = pointer;
+    final right = _second || (mouseButtons & kSecondaryMouseButton) != 0;
     _button = right ? 3 : 0;
-    final p = toEngine(e.localPosition, widgetSize, _size);
+    final p = _at(at, widgetSize);
     _last = p;
     engine.pointer(p.x, p.y, _button);
     _refresh();
   }
 
-  void _move(PointerMoveEvent e, Size widgetSize) {
+  void _move(int pointer, Offset at, Size widgetSize) {
     final engine = _engine;
-    if (engine == null || e.pointer != _pointer) return;
-    final p = toEngine(e.localPosition, widgetSize, _size);
+    if (engine == null || pointer != _pointer) return;
+    final p = _at(at, widgetSize);
     // Кадр снимаем, только когда точка ДВИЖКА сменилась: событий касания десятки в
     // секунду, а движку нужен лишь новый пиксель его холста.
     if (p == _last) return;
@@ -363,7 +469,7 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
     final engine = _engine;
     if (engine == null || pointer != _pointer) return;
     _pointer = null;
-    final p = at == null ? _last : toEngine(at, widgetSize, _size);
+    final p = at == null ? _last : _at(at, widgetSize);
     if (p == null) return;
     engine.pointer(p.x, p.y, _button + 2);
     _refresh();
@@ -415,6 +521,13 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
     _refresh();
   }
 
+  /// Клетка ступени на экране мельче [smallCellPt]: ширина доски на число столбцов.
+  bool _smallCells(PuzzleStep step) {
+    final cols = puzzleColumns(_mode.engineName, step.params);
+    if (cols == null || cols <= 0) return true;
+    return _boardBox.width > 0 && _boardBox.width / cols < smallCellPt;
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_failure != null) {
@@ -443,8 +556,8 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
           ? null
           : () => showGameRules(context, title: _mode.title, ruleKey: _mode.descKey!),
       hud: [
-        HudItem(label: 'Ступень', value: '${_ladder.level}/${_steps.length}', icon: Icons.trending_up),
-        HudItem(label: 'Доска', value: step.title, icon: Icons.grid_on),
+        HudItem(label: L.t('puzzleHudLevel'), value: '${_ladder.level}/${_steps.length}', icon: Icons.trending_up),
+        HudItem(label: L.t('puzzleHudBoard'), value: stepTitle(step), icon: Icons.grid_on),
       ],
       field: (context, height) {
         if (_failure != null) return Center(child: Text(_failure!));
@@ -488,23 +601,41 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
               final k = (boxW / ew) < (boxH / eh) ? boxW / ew : boxH / eh;
               size = Size(ew * k, eh * k);
             }
+            if (size != _boardBox) {
+              _boardBox = size;
+              // Кнопка «Крупнее» под полем строится раньше коробки — перестроить с размером.
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (mounted) setState(() {});
+              });
+            }
             return Center(
               child: Listener(
                 key: const Key('board'),
                 behavior: HitTestBehavior.opaque,
-                onPointerDown: (e) => _press(e, size),
-                onPointerMove: (e) => _move(e, size),
-                onPointerUp: (e) => _release(e.localPosition, e.pointer, size),
-                // Жест отобрали (системный жест, второй палец) — отпускаем там, где был
-                // последний кадр, чтобы движок не остался с «нажатой» кнопкой.
-                onPointerCancel: (e) => _release(null, e.pointer, size),
-                child: CustomPaint(
-                  size: size,
-                  painter: PuzzlePainter(
-                    frame: _frame,
-                    palette: _palette,
-                    engineSize: _size,
-                    background: Theme.of(context).colorScheme.surface,
+                onPointerDown: (e) => _down(e, size),
+                onPointerMove: (e) => _moved(e, size),
+                onPointerUp: (e) => _up(e.pointer, e.localPosition, size),
+                // Жест отобрали (системный жест) — отпускаем там, где был последний кадр,
+                // чтобы движок не остался с «нажатой» кнопкой.
+                onPointerCancel: (e) => _up(e.pointer, null, size),
+                // Увеличенная доска режется по коробке: соседние кнопки она не накрывает.
+                child: ClipRect(
+                  child: SizedBox.fromSize(
+                    size: size,
+                    child: Transform(
+                      key: const Key('board-zoom'),
+                      transform: Matrix4.translationValues(_zoom.offset.dx, _zoom.offset.dy, 0)
+                        ..scaleByDouble(_zoom.scale, _zoom.scale, 1.0, 1.0),
+                      child: CustomPaint(
+                        size: size,
+                        painter: PuzzlePainter(
+                          frame: _frame,
+                          palette: _palette,
+                          engineSize: _size,
+                          background: Theme.of(context).colorScheme.surface,
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -515,6 +646,15 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
       auxRow: AuxBar(children: [
         AuxAction(icon: Icons.undo, label: L.t('btn_undo'), onPressed: _won ? null : _undo),
         AuxAction(icon: Icons.refresh, label: L.t('restart'), onPressed: _deal),
+        // «Крупнее» — где клетка мельче пальца (или доска уже увеличена). Щипок работает везде.
+        if (_zoom.zoomed || _smallCells(step))
+          AuxAction(
+            key: const Key('puzzle-zoom'),
+            icon: _zoom.zoomed ? Icons.zoom_out_map : Icons.zoom_in,
+            label: L.t('sdkZoomCloser'),
+            active: _zoom.zoomed,
+            onPressed: _toggleZoom,
+          ),
         // Второе действие — у 30 режимов из 42 (флажок, крестик, карандаш…). Подпись —
         // что кнопка делает В ЭТОЙ игре, ключ из карточки режима (как в вебе).
         if (_mode.secondKey != null)
@@ -636,7 +776,7 @@ class _Toolbar extends StatelessWidget {
           key: const Key('next'),
           onPressed: onNext,
           icon: const Icon(Icons.arrow_forward),
-          label: const Text('Следующая ступень'),
+          label: Text(L.t('puzzleNextLevel')),
         ),
       );
     }
@@ -644,7 +784,7 @@ class _Toolbar extends StatelessWidget {
       // Singles: ввод только тычками, ряд клавиш был бы обманом.
       // Там, где касание не делает ничего, — подсказка «тяни» (веб, `ТОЛЬКО_ПРОТЯЖКА`):
       // без неё доска выглядит сломанной — жмёшь, и ничего.
-      final idle = mode.dragOnly ? L.t('puzzleDragHint') : 'Тычок отмечает клетку';
+      final idle = mode.dragOnly ? L.t('puzzleDragHint') : L.t('puzzleTapHint');
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
         child: Text(status.isEmpty ? idle : status,

@@ -17,14 +17,16 @@
 import { текстОтправки } from '@/src/services/liveFieldText';
 import { textOn } from '@/src/services/onGradientText';
 import { pushCrumb } from '@/src/services/crumbs';
-import { параметрыЭкранаДляОтзыва } from '@/src/services/feedbackGameState';
+import { параметрыЭкранаДляОтзыва, publishFeedbackGameState } from '@/src/services/feedbackGameState';
+import { feedbackSource, sourceOfRoute } from '@/src/services/feedbackSource';
+import { hostDrawsScreen, postScreenModel, registerScreenActions } from '@/src/services/hostScreens';
 import React from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, Modal, TextInput,
   ActivityIndicator, ScrollView, DeviceEventEmitter, PanResponder,
 } from 'react-native';
 import {
-  FAB_SIZE, FAB_BOTTOM, readSpot, toSpot, spotToPixels, isDrag, type FabSpot,
+  FAB_SIZE, FAB_BOTTOM, FAB_SPOT_KEY, FAB_COLOR, readSpot, toSpot, spotToPixels, isDrag, type FabSpot,
 } from '@/src/services/fabPosition';
 import { useScreenSize } from '@/src/hooks/useScreenWidth';
 
@@ -38,7 +40,7 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import {
-  FEEDBACK_ENABLED, getDevChatVisible, captureScreenshot, sendFeedback,
+  FEEDBACK_ENABLED, getDevChatVisible, captureScreenshot, shotFromHost, sendFeedback,
   type FeedbackKind, type SendResult,
 } from '@/src/services/appFeedback';
 import { isRTLLang } from '@/src/services/rtl';
@@ -56,13 +58,32 @@ import { нужноПереспросить } from '@/src/services/feedbackTooSh
  * Правило `import/first` право: импорт после кода читается как условный, хотя
  * он таким не бывает.
  */
-const FAB_SPOT_KEY = 'psygames_feedback_fab_spot';
 
 const KINDS: { key: FeedbackKind; emoji: string; labelKey: string }[] = [
   { key: 'confusion', emoji: '🤷', labelKey: 'fbKindConfusion' },
   { key: 'bug',       emoji: '🐞', labelKey: 'fbKindBug' },
   { key: 'idea',      emoji: '💡', labelKey: 'fbKindIdea' },
 ];
+
+/**
+ * 🔴 ФОРМУ ОТЗЫВА РИСУЕТ ОБОЛОЧКА, А ДУМАЕТ ПО-ПРЕЖНЕМУ ЭТОТ ВИДЖЕТ (задача c092cd47, 07.10.2026).
+ *
+ * Окно `#feedback` (не адрес — как `#switcher`): форма живёт в ОСНОВНОЙ странице, той, что всегда
+ * смонтирована под оболочкой, а не во втором экземпляре на `/feedback`. Второй экземпляр приносил
+ * свои беды (замер на эмуляторе, e780e5b0): «Что нового» всплывало поверх формы, сообщение Главной
+ * закрывало игру вместе с формой, клавиатура считалась дважды. Здесь остаются отправка, очередь,
+ * запись голоса, развилки «немая запись» и «обрывок», правила приватности; оболочка рисует модель
+ * (`flutter/lib/shell/feedback_screen.dart`) и возвращает нажатия действиями.
+ * Снимок нативного экрана снимает оболочка (страница под ним устарела) и отдаёт адресом — `open`.
+ */
+const HOST_FEEDBACK = '#feedback';
+const HOST_ACTIONS = ['open', 'close', 'tab', 'kind', 'text', 'record', 'drop', 'play', 'attach', 'send', 'sendSilent', 'sendShort', 'clearError'] as const;
+type FeedbackSrc = { screen: string; params: Record<string, string> };
+
+/** Игра отзыва по экрану: `/games/<id>` → id; не игра — undefined. */
+function feedbackGameId(screen: string): string | undefined {
+  return screen.startsWith('/games/') ? screen.replace('/games/', '').replace(/\/+$/, '') || undefined : undefined;
+}
 
 export default function FeedbackWidget() {
   const insets = useSafeAreaInsets();
@@ -76,6 +97,12 @@ export default function FeedbackWidget() {
    * `useLocalSearchParams` отдал бы параметры корня, где их нет никогда.
    */
   const параметрыЭкрана = useGlobalSearchParams();
+  const source = feedbackSource(pathname, параметрыЭкрана.sourceRoute);
+  /** Оболочка рисует форму сама (см. `HOST_FEEDBACK`). */
+  const hosted = hostDrawsScreen(HOST_FEEDBACK);
+  /** Экран, с которого оболочка открыла форму (нативная вкладка или игра); null — открыта здесь. */
+  const [hostSource, setHostSource] = React.useState<FeedbackSrc | null>(null);
+  const src = hostSource ?? source;
   // Крошка навигации: каждый экран — шаг траектории репорта (steps, §3.1).
   React.useEffect(() => { if (pathname) pushCrumb(`screen ${pathname}`); }, [pathname]);
   // RTL: кнопка зеркалится к правому краю (а «?»-справка уходит влево) — не конфликтуем
@@ -342,6 +369,25 @@ export default function FeedbackWidget() {
   // в игре»). Перечитываем при навигации; v1.148 — плюс живое событие из настроек
   // (репорт Rulon: тумблер «не работал», пока не уйдёшь с экрана).
   const [hidden, setHidden] = React.useState(false);
+  /** Номер последней правки поля оболочки — эхом в модели, как у «Друзей»: старая модель не затрёт набранное. */
+  const [textSeq, setTextSeq] = React.useState(0);
+  /** Отказ отправки под оболочкой: `alert` в её WebView не показывается — говорим моделью. */
+  const [sendError, setSendError] = React.useState<string | null>(null);
+  /** Действия и модель окна — свежие на каждую отрисовку; заводятся ниже раннего возврата. */
+  const hostActsRef = React.useRef<Partial<Record<(typeof HOST_ACTIONS)[number], (...a: unknown[]) => void>>>({});
+  const hostModelRef = React.useRef<object | null>(null);
+  const hostPostedRef = React.useRef('');
+  React.useEffect(() => registerScreenActions(HOST_FEEDBACK, Object.fromEntries(HOST_ACTIONS.map((name) => [
+    name, (...a: unknown[]) => { hostActsRef.current[name]?.(...a); },
+  ]))), []);
+  React.useEffect(() => {
+    const m = hostModelRef.current;
+    if (!m) return;
+    const key = JSON.stringify(m);
+    if (key === hostPostedRef.current) return;
+    hostPostedRef.current = key;
+    postScreenModel(HOST_FEEDBACK, m);
+  });
   React.useEffect(() => {
     getDevChatVisible().then((on) => setHidden(!on)).catch(() => {});
   }, [pathname]);
@@ -373,24 +419,36 @@ export default function FeedbackWidget() {
     return () => sub.remove();
   }, []);
 
-  if (!FEEDBACK_ENABLED || hidden) return null;
+  React.useEffect(() => {
+    if (pathname === '/feedback') openSheetRef.current();
+  }, [pathname]);
 
-  const gameId = pathname.startsWith('/games/')
-    ? pathname.replace('/games/', '').replace(/\/+$/, '') || undefined
-    : undefined;
+  if (!FEEDBACK_ENABLED) return null;
 
-  const openSheet = async () => {
+  const gameId = feedbackGameId(src.screen);
+
+  /**
+   * @param from экран, с которого открыла оболочка; null — открыта здесь (кнопка, окно правил).
+   * @param shotUrl снимок нативного экрана от оболочки — страница под ним устарела.
+   */
+  const openSheet = async (from: FeedbackSrc | null = null, shotUrl: string | null = null) => {
     if (capturing) return;                 // защита от дабл-тапа во время съёмки
     setCapturing(true);
-    const s = await captureScreenshot();   // снимаем ДО показа шторки
+    // This WebView cannot capture the native board behind it. Do not attach a
+    // blank form screenshot as evidence of the game.
+    const s = from ? (shotUrl ? await shotFromHost(shotUrl) : null)
+      : pathname === '/feedback' ? null : await captureScreenshot();
     setCapturing(false);
     setShot(s);
+    setHostSource(from);
+    setSendError(null);
+    const gid = feedbackGameId((from ?? source).screen);
     // Читаем сохранённый уровень запущенной игры по тому же ключу, что и
     // usePersistentLevel — чтобы в репорт попало «на каком уровне застряли».
     let lvl: number | null = null;
-    if (gameId) {
+    if (gid) {
       try {
-        const raw = await AsyncStorage.getItem(`psygames_${gameId}_level_${profile.id}`);
+        const raw = await AsyncStorage.getItem(`psygames_${gid}_level_${profile.id}`);
         const n = parseInt(raw ?? '', 10);
         if (Number.isFinite(n)) lvl = n;
       } catch {}
@@ -430,6 +488,38 @@ export default function FeedbackWidget() {
    * строку — вопрос возвращается, потому что это уже другое сообщение.
    */
   const askShort = !askSilent && нужноПереспросить(text, !!note, shortAckFor);
+
+  // Окно под оболочкой: нажатия её формы — сюда, всё решает та же логика, что у разметки ниже.
+  hostActsRef.current = {
+    open: (route, shotUrl, gameState) => {
+      // Живое состояние партии из шапки нативной игры (уровень, счётчики) — в `game_state` отчёта
+      // (задача 75348e44). Без игры приходит null: прежний снимок не должен уехать в чужой отзыв.
+      publishFeedbackGameState(gameState && typeof gameState === 'object' && !Array.isArray(gameState) ? { ...(gameState as Record<string, unknown>), source: 'native-shell' } : null);
+      void openSheet(typeof route === 'string' && route ? sourceOfRoute(route) : null, typeof shotUrl === 'string' && shotUrl ? shotUrl : null);
+    },
+    close: () => setOpen(false),
+    tab: (id) => { if (id === 'form' || id === 'dialog') setTab(id); },
+    kind: (k) => { const f = KINDS.find((x) => x.key === k); if (f) setKind(f.key); },
+    text: (v, seq) => {
+      if (typeof v !== 'string') return;
+      setText(v);
+      if (typeof seq === 'number') setTextSeq(seq);
+    },
+    record: () => { void toggleRecord(); },
+    drop: () => dropNote(),
+    play: () => playNote(),
+    attach: () => setAttachShot((v) => !v),
+    send: () => { void submit(); },
+    sendSilent: () => { setSilentAck(true); void submit(true); },
+    sendShort: () => { setShortAckFor(text.trim()); void submit(false, true); },
+    clearError: () => setSendError(null),
+  };
+  hostModelRef.current = hosted ? feedbackModel({
+    open, capturing, tab, dialog, sent, outcome,
+    who: t('profileName_' + profile.id), gameId, level, kind, text, textSeq,
+    canRec: canRecord(), rec, lvl, note, micDenied, micSilent, askSilent, askShort, ceilingHit, playing,
+    shot: !!shot, attachShot, sending, sendError, t, colors,
+  }) : null;
 
 
   /**
@@ -471,12 +561,13 @@ export default function FeedbackWidget() {
     if (нужноПереспросить(текст, !!note, shortAckFor) && !ackShort) return;
     sendingRef.current = true;
     setSending(true);
+    setSendError(null);
     const res = await sendFeedback({
       kind,
       // Пустое сообщение читается в выгрузке как «потерялось»; ставим явную
       // пометку, чтобы было видно: смысл в записи, расшифровать её.
       message: текст.trim() || '[голосом, без текста]',
-      screen: pathname,
+      screen: src.screen,
       gameId,
       shot: attachShot ? shot : null,
       // ⚠️ peak ОБЯЗАТЕЛЕН. Здесь собирали объект из трёх полей и роняли четвёртое,
@@ -495,7 +586,7 @@ export default function FeedbackWidget() {
         language, theme: colors.background,
         profile: profile.id, profileName: profile.display_name,
         level,
-        route_params: параметрыЭкранаДляОтзыва(параметрыЭкрана),
+        route_params: параметрыЭкранаДляОтзыва(hostSource ? hostSource.params : pathname === '/feedback' ? source.params : параметрыЭкрана),
       },
     });
     sendingRef.current = false;
@@ -525,13 +616,14 @@ export default function FeedbackWidget() {
       setTimeout(() => { setOpen(false); setShot(null); }, res.audioLost ? 9000 : 3200);
     } else {
       setText((t) => t);   // оставляем текст, чтобы не потерять написанное
-      alert(t('feedbackSendFailed'));
+      if (hosted) setSendError(t('feedbackSendFailed'));
+      else alert(t('feedbackSendFailed'));
     }
   };
 
   return (
     <>
-      <View
+      {!hidden && pathname !== '/feedback' && <View
         {...pan.panHandlers}
         style={[
           styles.fab,
@@ -542,21 +634,21 @@ export default function FeedbackWidget() {
       >
       <TouchableOpacity
         accessibilityRole="button"
-        onPress={openSheet}
+        onPress={() => { void openSheet(); }}
         activeOpacity={0.85}
         accessibilityLabel={t('feedbackFabLabel')}
-        style={[styles.fabInner, { backgroundColor: '#ef4444' }, drag ? { opacity: 1 } : null]}
+        style={[styles.fabInner, { backgroundColor: FAB_COLOR }, drag ? { opacity: 1 } : null]}
       >
         {capturing
-          ? <ActivityIndicator size="small" color={textOn('#ef4444')} />
-          : <Ionicons name="chatbubble-ellipses" size={19} color={textOn('#ef4444')} />}
+          ? <ActivityIndicator size="small" color={textOn(FAB_COLOR)} />
+          : <Ionicons name="chatbubble-ellipses" size={19} color={textOn(FAB_COLOR)} />}
       </TouchableOpacity>
-      </View>
+      </View>}
 
-      <Modal visible={open} animationType="slide" transparent onRequestClose={() => setOpen(false)}>
+      {!hosted && <Modal visible={open} animationType="slide" transparent onRequestClose={() => setOpen(false)}>
         <View {...a11yModal} style={styles.backdrop}>
           <View style={[styles.sheet, { backgroundColor: colors.surface }]}>
-            <ScrollView contentContainerStyle={{ padding: 20 }} keyboardShouldPersistTaps="handled">
+            <ScrollView style={styles.sheetScroll} contentContainerStyle={{ padding: 20 }} keyboardShouldPersistTaps="handled">
               <View style={styles.header}>
                 <Text style={[styles.title, { color: colors.text }]}>
                   {t('feedbackTitle')}
@@ -644,8 +736,10 @@ export default function FeedbackWidget() {
                   {/* Контекст репорта: профиль · игра · уровень — тестировщику
                       видно, что уедет вместе с текстом (и это же летит в context). */}
                   <Text numberOfLines={1} style={[styles.ctx, { color: colors.textSecondary }]}>
+                    {/* Имя профиля — подписью на языке человека (на EN было «NZT-48 (полный)»);
+                        в отчёт по-прежнему уходит исходное `display_name` (`profileName`). */}
                     {[
-                      `👤 ${profile.display_name}`,
+                      `👤 ${t('profileName_' + profile.id)}`,
                       gameId ? `🎮 ${gameId}` : null,
                       gameId && level != null ? `${t('unitLevelShort')} ${level}` : null,
                     ].filter(Boolean).join('  ·  ')}
@@ -820,6 +914,17 @@ export default function FeedbackWidget() {
                     </TouchableOpacity>
                   )}
 
+                </>
+              )}
+              </>)}
+            </ScrollView>
+            {/* 🔴 ОТПРАВКА — ПОД ПРОКРУТКОЙ, А НЕ ВНУТРИ НЕЁ (задача e780e5b0, 07.10.2026).
+               Замер на emulator-5570, 2.56.12: форма в игре открывается вторым WebView, при
+               открытой клавиатуре «Отправить» уходила под неё — виден был край кнопки, и
+               тестировщик писал «окно падает вниз, нажать нельзя». Закреплённый низ листа
+               всегда над клавиатурой: прокручивается только содержимое над ним. */}
+            {tab === 'form' && !sent && (
+              <View testID="feedback-send-area" style={[styles.footer, { borderTopColor: colors.border }]}>
                   {askSilent ? (
                     /* 🔴 РАЗВИЛКА ВМЕСТО «ОТПРАВИТЬ». Кнопка отправки здесь не просто
                        отключена — её нет: отключённая кнопка при живом намерении врёт
@@ -903,13 +1008,11 @@ export default function FeedbackWidget() {
                         : <Text style={styles.sendText}>{t('send')}</Text>}
                     </TouchableOpacity>
                   )}
-                </>
-              )}
-              </>)}
-            </ScrollView>
+              </View>
+            )}
           </View>
         </View>
-      </Modal>
+      </Modal>}
     </>
   );
 }
@@ -957,6 +1060,8 @@ const styles = StyleSheet.create({
   },
   backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'flex-end' },
   sheet: { borderTopLeftRadius: 22, borderTopRightRadius: 22, maxHeight: '88%' },
+  sheetScroll: { flexGrow: 0, flexShrink: 1 },
+  footer: { paddingHorizontal: 20, paddingTop: 10, paddingBottom: 16, borderTopWidth: StyleSheet.hairlineWidth },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
   title: { fontSize: 19, fontWeight: '800' },
   ctx: { fontSize: 12, fontWeight: '700', marginBottom: 4 },   // строка контекста: профиль · игра · уровень
@@ -995,3 +1100,114 @@ const styles = StyleSheet.create({
   thanks: { alignItems: 'center', gap: 10, paddingVertical: 30 },
   outcomeLine: { fontSize: 13.5, fontWeight: '700', textAlign: 'center', paddingHorizontal: 16 },
 });
+
+/**
+ * Модель окна отзыва для оболочки — ровно то, что рисует разметка `FeedbackWidget`: вкладки, лента
+ * диалога, «спасибо» с судьбой записи, строка контекста, виды, поле, блок голоса (кнопка, полоска
+ * уровня, подписи), снимок, низ листа (отправка или развилка). Строки — на языке человека; цвета —
+ * свои (красный вида, жёлтый предупреждения) и `primary` темы; остальные цвета темы оболочка берёт у себя.
+ */
+function feedbackModel(a: {
+  open: boolean; capturing: boolean; tab: 'form' | 'dialog'; dialog: DialogBubble[] | null; sent: boolean;
+  outcome: SendResult | null; who: string; gameId?: string; level: number | null; kind: FeedbackKind; text: string;
+  textSeq: number; canRec: boolean; rec: Recorder | null; lvl: { sec: number; level: number; peak: number };
+  note: VoiceNote | null; micDenied: boolean; micSilent: boolean; askSilent: boolean; askShort: boolean;
+  ceilingHit: boolean; playing: boolean; shot: boolean; attachShot: boolean; sending: boolean;
+  sendError: string | null; t: (k: string) => string; colors: { primary: string };
+}) {
+  const { t, rec, note, lvl } = a;
+  const form = a.tab === 'form' && !a.sent;
+  const stale = staleWebViewMajor();
+  const silentText = stale !== null ? t('voiceStaleWebView').replace('{v}', String(stale)) : t('voiceSilent');
+  const metered = !!rec && (!rec.native || !!rec.metered);
+  const hearing = lvl.peak >= SILENCE_PEAK;
+  return {
+    v: 1,
+    open: a.open,
+    capturing: a.capturing,
+    primary: a.colors.primary,
+    title: t('feedbackTitle'),
+    close: t('close'),
+    tab: a.tab,
+    tabs: [{ id: 'form', label: t('feedbackTabWrite') }, { id: 'dialog', label: t('feedbackTabDialog') }],
+    dialog: a.tab !== 'dialog' ? null : {
+      loading: a.dialog === null,
+      empty: a.dialog !== null && a.dialog.length === 0 ? t('dialogEmpty') : null,
+      bubbles: (a.dialog ?? []).map((b) => ({
+        key: b.key,
+        me: b.who === 'me',
+        fixed: b.fixedIn ? `✅ ${t('dialogFixedIn').replace('{v}', b.fixedIn)}` : null,
+        text: b.text || `🎤 ${t('dialogVoiceNote')}`,
+        at: (b.at || '').slice(0, 16).replace('T', ' '),
+      })),
+      write: t('feedbackTabWrite'),
+    },
+    thanks: a.tab === 'form' && a.sent ? {
+      icon: a.outcome?.audioLost ? '⚠️' : '🙏',
+      title: a.outcome?.queued ? t('feedbackQueued') : t('feedbackThanks'),
+      audioSent: a.outcome?.audioSent ? `🎤 ${t('feedbackAudioSent')}` : null,
+      audioLost: a.outcome?.audioLost ? t('feedbackAudioLost') : null,
+    } : null,
+    form: !form ? null : {
+      ctx: [
+        `👤 ${a.who}`,
+        a.gameId ? `🎮 ${a.gameId}` : null,
+        a.gameId && a.level != null ? `${t('unitLevelShort')} ${a.level}` : null,
+      ].filter(Boolean).join('  ·  '),
+      hint: t('feedbackHint'),
+      kinds: KINDS.map((k) => ({ key: k.key, emoji: k.emoji, label: t(k.labelKey), on: a.kind === k.key })),
+      kindOn: { bg: '#ef4444', fg: textOn('#ef4444') },
+      text: a.text,
+      textSeq: a.textSeq,
+      placeholder: t('feedbackPlaceholder'),
+      voice: !a.canRec ? null : {
+        button: {
+          label: rec
+            ? `${t('voiceStop')} · ${Math.floor(lvl.sec / 60)}:${String(lvl.sec % 60).padStart(2, '0')}`
+            : note ? `${t('voiceAttached')} · ${note.seconds} ${t('secShort')}` : t('voiceRecord'),
+          a11y: rec ? t('voiceStop') : t('voiceRecord'),
+          icon: rec ? 'stop-circle' : note ? (a.micSilent ? 'alert-circle' : 'checkmark-circle') : 'mic-outline',
+          iconColor: rec ? '#ef4444' : note ? (a.micSilent ? '#b45309' : '#22c55e') : null,
+          border: rec ? '#ef4444' : null,
+          drop: !!note && !rec,
+        },
+        level: metered ? {
+          frac: Math.max(2, Math.min(100, Math.round(lvl.level * 140))) / 100,
+          color: hearing ? '#22c55e' : '#b45309',
+          a11y: t('voiceLevelLabel'),
+        } : null,
+        nativeRec: rec?.native && !rec.metered ? t('voiceRecordingNative') : null,
+        levelText: metered && (hearing || lvl.sec >= 3)
+          ? { text: hearing ? t('voiceLevelHearing') : t('voiceLevelSilence'), color: hearing ? '#22c55e' : '#b45309' }
+          : null,
+        ceiling: a.ceilingHit && !rec ? t('voiceCeilingReached') : null,
+        play: note && !rec ? { label: t('voicePlay'), playing: a.playing } : null,
+        denied: a.micDenied ? t('voiceDenied') : null,
+        silent: a.micSilent && !a.micDenied && !a.askSilent ? silentText : null,
+        check: note && !rec && !a.micSilent ? t('voiceCheckHint') : null,
+      },
+      shot: a.shot ? { label: t('feedbackAttachShot'), on: a.attachShot } : null,
+    },
+    footer: !form ? null : a.askSilent ? {
+      mode: 'choice',
+      title: `⚠️ ${t('voiceSilentTitle')}`,
+      body: silentText,
+      keep: { label: t('voiceWriteInstead'), action: 'drop' },
+      go: { label: t('voiceSendAnyway'), action: 'sendSilent' },
+      sending: a.sending,
+    } : a.askShort ? {
+      mode: 'choice',
+      title: `⚠️ ${t('feedbackShortTitle')}`,
+      body: t('feedbackShortBody'),
+      keep: { label: t('feedbackShortEdit'), action: 'focus' },
+      go: { label: t('voiceSendAnyway'), action: 'sendShort' },
+      sending: a.sending,
+    } : {
+      mode: 'send',
+      label: t('send'),
+      enabled: !!a.text.trim() || !!note,
+      sending: a.sending,
+    },
+    error: a.sendError,
+  };
+}

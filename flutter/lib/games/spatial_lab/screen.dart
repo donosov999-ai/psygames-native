@@ -6,6 +6,7 @@ import 'package:flutter/services.dart' show rootBundle;
 
 import '../../shell/aux_action.dart';
 import '../../shell/demo_lesson.dart';
+import '../../shell/game_preset.dart';
 import '../../shell/l10n.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/level_ladder.dart';
@@ -47,6 +48,11 @@ String labRules(LabMode mode) => switch (mode) {
 };
 
 enum LabPhase { config, playing }
+
+/// Упражнение по `mode` адреса — правило веба (`spatial-lab.tsx`, `ИЗ_АДРЕСА`): незнакомое или
+/// пустое значение — «Поворот чисел».
+LabMode labModeFromAddress(String mode) =>
+    LabMode.values.firstWhere((m) => m.name == mode, orElse: () => LabMode.twiddle);
 
 class SpatialLabScreen extends StatefulWidget {
   const SpatialLabScreen({super.key, required this.state, this.seed, this.banks, this.now});
@@ -119,16 +125,27 @@ class _SpatialLabScreenState extends State<SpatialLabScreen> {
     if (!mounted) return;
     setState(() {
       _banks = banks;
+      _mode = labModeFromAddress(GamePreset.str('mode'));
       _chosenLevel = _ladder.level;
       _ready = true;
     });
+    // 🔴 ШАГ ЗАРЯДКИ — СРАЗУ В ПАРТИЮ, тем уровнем и тем зерном, что в адресе: веб
+    // (`spatial-lab.tsx`) отдаёт `SpatialLab` готовый `preset={mode, level, seed}` и пропускает
+    // настройку. До 08.10.2026 натив адрес не читал вовсе: карточка «Сеть труб» развилки
+    // (`/games/spatial-lab?mode=net`) открывала «Поворот чисел», а шаг — экран настройки.
+    if (GamePreset.isPreset) {
+      _request(
+        GamePreset.num('level', 1).clamp(1, 50),
+        seed: GamePreset.num('seed', 42).clamp(0, 0xffffffff),
+      );
+    }
   }
 
   LevelLadder get _ladder => _ladders[_mode]!;
 
   /// Новая раздача. `level == 0` — свободная игра: лестницу она не двигает.
-  void _request(int level) {
-    final seed = widget.seed ?? _random.nextInt(0xffffffff);
+  void _request(int level, {int? seed}) {
+    seed ??= widget.seed ?? _random.nextInt(0xffffffff);
     final deal = createDeal(_mode, seed, level: level, banks: _banks);
     setState(() {
       _deal = deal;
@@ -220,9 +237,11 @@ class _SpatialLabScreenState extends State<SpatialLabScreen> {
     return false;
   }
 
-  /// Заголовок один на экран и на разбор: вторая такая строка — второй долг
-  /// храповика подписей (`test/ui_text_debt_does_not_grow_test.dart`).
-  String get _title => 'Лаборатория: ${labModeWord(_mode)}';
+  /// Заголовок один на экран и на разбор — имя упражнения, как на вкладке веб-версии.
+  /// Все подписи экрана — из общего с вебом словаря (`L.t`), теми же ключами, что зовёт
+  /// `frontend/src/components/SpatialLab.tsx`: зашитый текст знал бы один язык из двенадцати
+  /// (храповик `test/ui_text_debt_does_not_grow_test.dart`).
+  String get _title => labModeWord(_mode);
 
   /// Разбор объясняет ПРИЁМ: верный ответ человек и так увидит по итогу раунда,
   /// а вот чем объём берётся — нет.
@@ -242,16 +261,16 @@ class _SpatialLabScreenState extends State<SpatialLabScreen> {
       onLesson: () => openDemoLesson(context, title: _title, trials: _demoTrials()),
       onRules: () => _showRules(context),
       hud: [
-        HudItem(label: 'Уровень', value: '${_ladder.level}', icon: Icons.flag_outlined),
-        HudItem(label: 'Достигнуто', value: '${_ladder.best}', icon: Icons.emoji_events_outlined),
+        HudItem(label: L.t('level'), value: '${_ladder.level}', icon: Icons.flag_outlined),
+        HudItem(label: L.t('personalBest'), value: '${_ladder.best}', icon: Icons.emoji_events_outlined),
         if (playing)
           HudItem(
-            label: 'Ходов',
+            label: L.t('hud_moves'),
             value: '${deal.state.past.length}',
             icon: Icons.swap_horiz,
           ),
         if (playing && level == 0)
-          const HudItem(label: 'Режим', value: 'свободно', icon: Icons.all_inclusive),
+          HudItem(label: L.t('mode'), value: L.t('spatialFreePlay'), icon: Icons.all_inclusive),
       ],
       field: (context, h) => playing
           ? _PlayField(
@@ -268,7 +287,7 @@ class _SpatialLabScreenState extends State<SpatialLabScreen> {
               children: [
                 AuxAction(
                   icon: Icons.undo,
-                  label: 'Отменить',
+                  label: L.t('btn_undo'),
                   onPressed: deal.state.past.isEmpty
                       ? null
                       : () => setState(() {
@@ -278,7 +297,7 @@ class _SpatialLabScreenState extends State<SpatialLabScreen> {
                 ),
                 AuxAction(
                   icon: Icons.redo,
-                  label: 'Повторить',
+                  label: L.t('spatialLabRedo'),
                   onPressed: deal.state.future.isEmpty
                       ? null
                       : () => setState(() {
@@ -288,12 +307,12 @@ class _SpatialLabScreenState extends State<SpatialLabScreen> {
                 ),
                 AuxAction(
                   icon: Icons.shuffle,
-                  label: 'Новая раздача',
+                  label: L.t('spatialLabNew'),
                   onPressed: () => _request(level),
                 ),
                 AuxAction(
                   icon: Icons.tune,
-                  label: 'Настройка',
+                  label: L.t('settings'),
                   onPressed: () => setState(() => _phase = LabPhase.config),
                 ),
               ],
@@ -302,7 +321,7 @@ class _SpatialLabScreenState extends State<SpatialLabScreen> {
       toolbar: playing ? _controls(context, deal) : _configToolbar(context),
       pauseActions: [
         PauseAction(
-          label: 'Настройка',
+          label: L.t('settings'),
           icon: Icons.tune,
           onPressed: () => setState(() => _phase = LabPhase.config),
         ),
@@ -333,7 +352,7 @@ class _SpatialLabScreenState extends State<SpatialLabScreen> {
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
       children: [
-        Text('Упражнение', style: Theme.of(context).textTheme.titleMedium),
+        Text(L.t('mode'), style: Theme.of(context).textTheme.titleMedium),
         const SizedBox(height: 6),
         Wrap(
           spacing: 8,
@@ -353,7 +372,7 @@ class _SpatialLabScreenState extends State<SpatialLabScreen> {
           ],
         ),
         const SizedBox(height: 16),
-        Text('Ступень', style: Theme.of(context).textTheme.titleMedium),
+        Text(L.t('level'), style: Theme.of(context).textTheme.titleMedium),
         const SizedBox(height: 6),
         Row(
           children: [
@@ -361,7 +380,7 @@ class _SpatialLabScreenState extends State<SpatialLabScreen> {
               key: const Key('проще'),
               onPressed: _chosenLevel > 1 ? () => setState(() => _chosenLevel -= 1) : null,
               icon: const Icon(Icons.remove),
-              tooltip: 'Проще',
+              tooltip: L.t('spatialLabEasier'),
             ),
             const SizedBox(width: 12),
             Text('$_chosenLevel', style: Theme.of(context).textTheme.headlineSmall),
@@ -373,7 +392,7 @@ class _SpatialLabScreenState extends State<SpatialLabScreen> {
                   ? () => setState(() => _chosenLevel += 1)
                   : null,
               icon: const Icon(Icons.add),
-              tooltip: 'Сложнее',
+              tooltip: L.t('spatialLabHarder'),
             ),
           ],
         ),
@@ -387,32 +406,76 @@ class _SpatialLabScreenState extends State<SpatialLabScreen> {
     );
   }
 
-  String _levelNote() => switch (_mode) {
-    LabMode.twiddle => () {
-      final s = twiddleLevels[_chosenLevel - 1];
-      return s.distance != null
-          ? 'Поле ${s.width}×${s.width}, точный минимум — ${s.distance} поворотов'
-          : 'Поле ${s.width}×${s.width}, смещение ${s.displacement}, оценка снизу '
-                '${(s.displacement! / 4).ceil()} поворотов';
-    }(),
-    LabMode.net => () {
-      final s = netLevels[_chosenLevel - 1];
-      return 'Поле ${s.width}×${s.width}'
-          '${s.affected > 0 ? ', участок из ${s.affected} труб' : ''}'
-          '${s.cycles > 0 ? ', циклов ${s.cycles}' : ''}'
-          '${s.liveColour ? ', с подсветкой связности' : ', без подсветки связности'}';
-    }(),
-    LabMode.sixteen => () {
-      final s = sixteenLevels[_chosenLevel - 1];
-      return s.distance != null
-          ? 'Поле ${s.width}×${s.width}, точный минимум — ${s.distance} сдвигов'
-          : 'Поле ${s.width}×${s.width}, суммарный сдвиг ${s.displacement}';
-    }(),
-    LabMode.netslide => () {
-      final s = netslideLevels[_chosenLevel - 1];
-      return 'Поле ${s.width}×${s.width}, перемешано ${s.shifts} сдвигами';
-    }(),
-  };
+  /*
+   * 🔴 ОПИСАНИЕ СТУПЕНИ — ПЕРЕНОС `levelNote` ИЗ `frontend/src/components/spatialLabLevelNote.ts`.
+   *
+   * Те же ключи и те же числа, что у веб-версии, на языке игрока: первые ступени называют приём
+   * словами, дальше — числа ступени после двоеточия (склонять число в двенадцати языках нечем).
+   * Раньше здесь стояла своя русская фраза на каждое упражнение — на любом другом из двенадцати
+   * языков описание ступени оставалось русским.
+   *
+   * ⚠️ ОДНО РАСХОЖДЕНИЕ С ВЕБОМ, И ОНО ОТ МЕСТА, А НЕ ОТ НЕБРЕЖНОСТИ. Веб пишет описание в
+   * партии, по розданной доске; здесь — на экране настройки, по спецификации ступени, ДО раздачи.
+   * У «Сдвига чисел» на полях 4×4 и 5×5 нижняя оценка ходов считается по самой доске
+   * (`sixteenDisplacement`: по строкам и столбцам порознь), и до раздачи её нет. Поэтому там
+   * описание без последней фразы — ключ `spatialLabShiftDisplacement`, та же строка без «ходов —
+   * не меньше». Выдумывать число, которого доска ещё не показала, хуже, чем промолчать.
+   */
+  static const _twiddleOpeningKeys = <String>[
+    'spatialLabTwiddleL1',
+    'spatialLabTwiddleL2',
+    'spatialLabTwiddleL3',
+    'spatialLabTwiddleL4',
+    'spatialLabTwiddleL5',
+  ];
+  static const _netOpeningKeys = <String>[
+    'spatialLabNetL1',
+    'spatialLabNetL2',
+    'spatialLabNetL3',
+    'spatialLabNetL4',
+    'spatialLabNetL5',
+  ];
+
+  /// Предложения склеиваются пробелом — но не после «。»: в китайском и японском его там не ставят.
+  static String _joinSentences(List<String> parts) => parts.where((p) => p.isNotEmpty).fold(
+    '',
+    (all, part) => all.isEmpty ? part : (RegExp(r'[。！？]$').hasMatch(all) ? '$all$part' : '$all $part'),
+  );
+
+  // ⚠️ Ключи — литералами в `L.t`/`L.f` или списком `const …Keys`: сборщик словаря
+  // (`flutter/tools/embed-l10n.mjs`) видит только их. Ключ в переменной не доедет в сборку.
+  String _levelNote() {
+    final level = _chosenLevel;
+    switch (_mode) {
+      case LabMode.twiddle:
+        if (level <= _twiddleOpeningKeys.length) return L.t(_twiddleOpeningKeys[level - 1]);
+        final s = twiddleLevels[level - 1];
+        final w = '${s.width}';
+        final main = s.distance != null
+            ? L.f('spatialLabTwiddleExact', {'w': w, 'n': '${s.distance}'})
+            // Та же оценка, что у раздачи (`twiddle.dart`): поворот блока 2×2 сдвигает 4 числа.
+            : L.f('spatialLabTwiddleBound', {'w': w, 'd': '${s.displacement}', 'm': '${(s.displacement! / 4).ceil()}'});
+        return _joinSentences([main, s.liveColour ? '' : L.t('spatialLabTwiddleNoColour')]);
+      case LabMode.net:
+        if (level <= _netOpeningKeys.length) return L.t(_netOpeningKeys[level - 1]);
+        final s = netLevels[level - 1];
+        return _joinSentences([
+          L.f('spatialLabNetPatch', {'w': '${s.width}', 'a': '${s.affected}', 'j': '${s.junctions}'}),
+          s.cycles > 0 ? L.f('spatialLabNetLoops', {'c': '${s.cycles}'}) : '',
+          s.liveColour ? '' : L.t('spatialLabNetNoColour'),
+        ]);
+      case LabMode.sixteen:
+        if (level == 1) return L.t('spatialLabShiftL1');
+        final s = sixteenLevels[level - 1];
+        return s.distance != null
+            ? L.f('spatialLabTwiddleExact', {'w': '${s.width}', 'n': '${s.distance}'})
+            : L.f('spatialLabShiftDisplacement', {'w': '${s.width}', 'd': '${s.displacement}'});
+      case LabMode.netslide:
+        if (level == 1) return L.t('spatialLabShiftL1');
+        final s = netslideLevels[level - 1];
+        return L.f('spatialLabNetslideShifts', {'w': '${s.width}', 's': '${s.shifts}'});
+    }
+  }
 
   Widget _configToolbar(BuildContext context) => Padding(
     padding: const EdgeInsets.all(12),
@@ -423,7 +486,7 @@ class _SpatialLabScreenState extends State<SpatialLabScreen> {
             key: const Key('начать-ступень'),
             onPressed: () => _request(_chosenLevel),
             icon: const Icon(Icons.play_arrow),
-            label: Text('Ступень $_chosenLevel'),
+            label: Text('${L.t('level')} $_chosenLevel'),
           ),
         ),
         const SizedBox(width: 8),
@@ -432,7 +495,7 @@ class _SpatialLabScreenState extends State<SpatialLabScreen> {
             key: const Key('свободная-игра'),
             onPressed: () => _request(0),
             icon: const Icon(Icons.all_inclusive),
-            label: const Text('Свободная игра'),
+            label: Text(L.t('spatialFreePlay')),
           ),
         ),
       ],
@@ -450,7 +513,7 @@ class _SpatialLabScreenState extends State<SpatialLabScreen> {
           key: const Key('дальше'),
           onPressed: () => _request(level == 0 ? 0 : math.min(50, level + 1)),
           icon: const Icon(Icons.arrow_forward),
-          label: Text(level == 0 ? 'Ещё раздачу' : 'Следующая ступень'),
+          label: Text(level == 0 ? L.t('spatialLabNew') : L.t('nextLabel')),
         ),
       );
     }
@@ -461,11 +524,11 @@ class _SpatialLabScreenState extends State<SpatialLabScreen> {
           ? Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                for (final a in const [
-                  (CommandKind.row, -1, '←', 'Строку влево', 'строка-влево'),
-                  (CommandKind.row, 1, '→', 'Строку вправо', 'строка-вправо'),
-                  (CommandKind.column, -1, '↑', 'Столбец вверх', 'столбец-вверх'),
-                  (CommandKind.column, 1, '↓', 'Столбец вниз', 'столбец-вниз'),
+                for (final a in [
+                  (CommandKind.row, -1, '←', L.t('spatialLabShiftRowLeft'), 'shift-row-left'),
+                  (CommandKind.row, 1, '→', L.t('spatialLabShiftRowRight'), 'shift-row-right'),
+                  (CommandKind.column, -1, '↑', L.t('spatialLabShiftColUp'), 'shift-col-up'),
+                  (CommandKind.column, 1, '↓', L.t('spatialLabShiftColDown'), 'shift-col-down'),
                 ]) ...[
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -484,13 +547,13 @@ class _SpatialLabScreenState extends State<SpatialLabScreen> {
                 FilledButton(
                   key: const Key('влево'),
                   onPressed: locked ? null : () => _turn(-1),
-                  child: const Text('↶ влево'),
+                  child: Text('↶ ${L.t('a11yLeft')}'),
                 ),
                 const SizedBox(width: 12),
                 FilledButton(
                   key: const Key('вправо'),
                   onPressed: locked ? null : () => _turn(1),
-                  child: const Text('вправо ↷'),
+                  child: Text('${L.t('a11yRight')} ↷'),
                 ),
               ],
             ),
@@ -534,10 +597,13 @@ class _PlayField extends StatelessWidget {
           children: [
             Text(
               won
-                  ? 'Собрано!'
+                  ? L.t('spatialLabSolved')
                   : info != null
-                  ? 'Открытых концов: ${info.leaks}'
-                  : 'Блок: строка ${selection ~/ n + 1}, столбец ${selection % n + 1}',
+                  ? L.f('spatialLabOpenEnds', {'n': '${info.leaks}'})
+                  // «Поворот чисел» выбирает блок, «Сдвиг чисел» — строку и столбец клетки.
+                  : mode == LabMode.twiddle
+                  ? L.f('spatialLabBlockPos', {'r': '${selection ~/ n + 1}', 'c': '${selection % n + 1}'})
+                  : L.f('spatialLabLinePos', {'r': '${selection ~/ n + 1}', 'c': '${selection % n + 1}'}),
               key: const Key('состояние'),
               style: TextStyle(
                 color: won ? scheme.primary : scheme.onSurfaceVariant,

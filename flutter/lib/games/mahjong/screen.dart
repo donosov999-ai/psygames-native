@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
 import '../../shell/aux_action.dart';
+import '../../shell/game_clock.dart';
+import '../../shell/game_preset.dart';
 import '../../shell/l10n.dart';
 import '../../shell/lesson.dart';
 import '../../shell/lesson_player.dart';
@@ -61,6 +63,18 @@ class _MahjongScreenState extends State<MahjongScreen> {
   bool _won = false;
   Timer? _blockersTimer;
 
+  /// Время на доску этого уровня, секунд; `null` — лимита нет (до 29-го или тихий шаг).
+  double? _limitSec;
+
+  /// Часы партии — на игровом времени каркаса: пауза и разбор поверх игры их не съедают.
+  /// Идут с первого нажатия, а не с показа доски.
+  int? _startedAt;
+  GameTimer? _clock;
+  bool _timedOut = false;
+
+  int get _elapsedMs => _startedAt == null ? 0 : gameNow() - _startedAt!;
+  bool get _inTime => mahjongWithinLimit(_limitSec, _elapsedMs);
+
   @override
   void initState() {
     super.initState();
@@ -71,6 +85,7 @@ class _MahjongScreenState extends State<MahjongScreen> {
   @override
   void dispose() {
     _blockersTimer?.cancel();
+    _clock?.cancel();
     super.dispose();
   }
 
@@ -105,7 +120,39 @@ class _MahjongScreenState extends State<MahjongScreen> {
     _shufflesUsed = 0;
     _undosUsed = 0;
     _won = false;
+    _clock?.cancel();
+    _clock = null;
+    _startedAt = null;
+    _timedOut = false;
+    _limitSec = GamePreset.isCalm ? null : mahjongTimeLimitSec(_ladder.level);
   }
+
+  /// Первое нажатие по доске запускает часы — если у уровня есть лимит.
+  void _startClock() {
+    if (_limitSec == null || _startedAt != null) return;
+    _startedAt = gameNow();
+    _clock = gameInterval(const Duration(milliseconds: 250), () {
+      if (!mounted || _won || _timedOut) return;
+      if (!_inTime) {
+        _timeUp();
+        return;
+      }
+      setState(() {});
+    });
+  }
+
+  /// Время вышло: доска встаёт, уровень не засчитан.
+  void _timeUp() {
+    _clock?.cancel();
+    setState(() {
+      _timedOut = true;
+      _selected = null;
+    });
+    _ladder.fail();
+  }
+
+  /// Минуты и секунды для подписи лимита.
+  String _mmss(int seconds) => '${seconds ~/ 60}:${(seconds % 60).toString().padLeft(2, '0')}';
 
   int get _openPairs => availablePairs(_tiles, _alive);
 
@@ -128,7 +175,13 @@ class _MahjongScreenState extends State<MahjongScreen> {
       );
 
   void _tap(int i) {
-    if (_won || !_alive[i]) return;
+    if (_won || _timedOut || !_alive[i]) return;
+    // Нажатие после лимита, пришедшее раньше тика часов, — уже не ход.
+    if (!_inTime) {
+      _timeUp();
+      return;
+    }
+    _startClock();
     if (!isFree(_tiles, _alive, i)) {
       // Отказ без объяснения читается как «не нажалось», а не как «правило не пускает»:
       // показываем тех, кто держит.
@@ -157,6 +210,7 @@ class _MahjongScreenState extends State<MahjongScreen> {
         _matched += 1;
       });
       if (_matched >= _pairsTotal) {
+        _clock?.cancel();
         setState(() {
           _won = true;
           _history = [];   // уровень собран — отменять уже нечего
@@ -201,13 +255,13 @@ class _MahjongScreenState extends State<MahjongScreen> {
   String get _stuckLine {
     switch (mahjongStuckKey(_stuck)) {
       case 'mahjongNoPairs':
-        return 'Ходов нет. Перетасуй доску или отмени ход';
+        return L.t('mahjongNoPairs');
       case 'mahjongStuckShuffle':
-        return 'Ходов нет. Осталась перетасовка';
+        return L.t('mahjongStuckShuffle');
       case 'mahjongStuckUndo':
-        return 'Ходов нет. Отмени последний ход';
+        return L.t('mahjongStuckUndo');
       case 'mahjongStuckRestart':
-        return 'Ходов нет и выходов не осталось — уровень придётся начать заново';
+        return L.t('mahjongStuckRestart');
       default:
         return '';
     }
@@ -219,7 +273,7 @@ class _MahjongScreenState extends State<MahjongScreen> {
   /// на завале — нет. Поэтому второй шаг подсвечивает конкретную пару, которую
   /// можно снять прямо сейчас: её ищет тот же `isFree`, которым ходит игра.
   /// Заголовок один на экран и на разбор: вторая строка — второй долг подписей.
-  String get _title => 'Маджонг';
+  String get _title => L.t('mahjong');
 
   List<int>? _freePair() {
     final free = freeFlags(_tiles, _alive);
@@ -279,15 +333,21 @@ class _MahjongScreenState extends State<MahjongScreen> {
       title: _title,
       onLesson: _tiles.isEmpty ? null : _openLesson,
       hud: [
-        HudItem(label: 'Уровень', value: '${_ladder.level}', icon: Icons.flag_outlined),
-        HudItem(label: 'Достигнуто', value: '${_ladder.best}', icon: Icons.emoji_events_outlined),
-        HudItem(label: 'Пары', value: '$_matched/$_pairsTotal', icon: Icons.layers_outlined),
-        HudItem(label: 'Ходов', value: '$_openPairs', icon: Icons.touch_app_outlined),
+        HudItem(label: L.t('level'), value: '${_ladder.level}', icon: Icons.flag_outlined),
+        HudItem(label: L.t('personalBest'), value: '${_ladder.best}', icon: Icons.emoji_events_outlined),
+        HudItem(label: L.t('label_found'), value: '$_matched/$_pairsTotal', icon: Icons.layers_outlined),
+        HudItem(label: L.t('mahjongPairsOpen'), value: '$_openPairs', icon: Icons.touch_app_outlined),
         HudItem(
-          label: 'Перетасовки',
+          label: L.t('mjShufflesLeft'),
           value: left < 0 ? '∞' : '$left',
           icon: Icons.shuffle,
         ),
+        if (_limitSec != null)
+          HudItem(
+            label: L.t('time'),
+            value: '${_mmss(_elapsedMs ~/ 1000)} / ${_mmss(_limitSec!.round())}',
+            icon: Icons.timer_outlined,
+          ),
       ],
       field: (context, h) => MahjongBoard(
         tiles: _tiles,
@@ -302,38 +362,50 @@ class _MahjongScreenState extends State<MahjongScreen> {
       auxRow: AuxBar(children: [
         AuxAction(
           icon: Icons.shuffle,
-          label: 'Перетасовать',
-          onPressed: !_won && _shuffleDeals ? _shuffle : null,
+          label: L.t('shuffleBtn'),
+          onPressed: !_won && !_timedOut && _shuffleDeals ? _shuffle : null,
         ),
         AuxAction(
           icon: Icons.undo,
-          label: 'Отменить (${undosPerLevel - _undosUsed})',
-          onPressed: !_won && _history.isNotEmpty && _undosUsed < undosPerLevel ? _undo : null,
+          label: '${L.t('btn_undo')} (${undosPerLevel - _undosUsed})',
+          onPressed: !_won && !_timedOut && _history.isNotEmpty && _undosUsed < undosPerLevel ? _undo : null,
         ),
-        AuxAction(icon: Icons.refresh, label: 'Начать заново', onPressed: () => setState(_deal)),
+        AuxAction(icon: Icons.refresh, label: L.t('restart'), onPressed: () => setState(_deal)),
       ]),
-      toolbar: _won || _openPairs == 0
+      toolbar: _won || _timedOut || _openPairs == 0
           ? Padding(
               padding: const EdgeInsets.all(12),
               child: Column(mainAxisSize: MainAxisSize.min, children: [
                 Text(
-                  _won ? 'Доска разобрана, ошибок $_errors' : _stuckLine,
+                  _won
+                      ? L.f('mjCleared', {'errors': '$_errors'})
+                      : _timedOut
+                          ? L.f('mjTimeUp', {'limit': _mmss(_limitSec!.round())})
+                          : _stuckLine,
                   key: const Key('итог'),
                   textAlign: TextAlign.center,
                 ),
+                if (_timedOut) ...[
+                  const SizedBox(height: 8),
+                  FilledButton.icon(
+                    onPressed: () => setState(_deal),
+                    icon: const Icon(Icons.refresh),
+                    label: Text(L.t('retry')),
+                  ),
+                ],
                 if (_won) ...[
                   const SizedBox(height: 8),
                   FilledButton.icon(
                     onPressed: () => setState(_deal),
                     icon: const Icon(Icons.arrow_forward),
-                    label: const Text('Следующий уровень'),
+                    label: Text(L.t('nextLabel')),
                   ),
                 ],
               ]),
             )
           : null,
       pauseActions: [
-        PauseAction(label: 'Начать заново', icon: Icons.refresh, onPressed: () => setState(_deal)),
+        PauseAction(label: L.t('restart'), icon: Icons.refresh, onPressed: () => setState(_deal)),
       ],
     );
   }
@@ -483,7 +555,9 @@ class _TileView extends StatelessWidget {
       width: width,
       height: height,
       child: Semantics(
-        label: 'плитка ${faceUp ? face : 'скрыта'}${free ? ', свободна' : ''}',
+        label: free
+            ? L.f('mjTileFreeA11y', {'face': faceUp ? face : L.t('mjTileHidden')})
+            : L.f('mjTileA11y', {'face': faceUp ? face : L.t('mjTileHidden')}),
         value: '${pos.left},${pos.top}',
         child: Material(
           color: Color.lerp(const Color(0xFFFFFDF7), const Color(0xFF262A34), shade),

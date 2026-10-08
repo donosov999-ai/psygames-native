@@ -1,4 +1,8 @@
+import 'dart:async';
 import 'dart:convert';
+
+import 'game_preset.dart';
+import '../synapse/synapse_feed.dart';
 
 /// ПАРТИЯ, СЫГРАННАЯ НАТИВНО, ОБЯЗАНА ДОЕХАТЬ ДО ВЕБ-ПОЛОВИНЫ.
 ///
@@ -45,7 +49,20 @@ class SessionReport {
     Map<String, Object?>? details,
   }) async {
     final f = sink;
-    if (f == null) return;
+    if (f == null) {
+      SynapseFeed.expect(outcome: SynapseFeed.silent);   // партии не было — исход не переносится на следующую
+      return;
+    }
+    // 🔴 Партия ступени чужой лестницы несёт метку ступени (`LevelTransition`): по ней
+    // статистика отличит «Кошек» на 145-й ступени «Судоку» от обычной партии «Кошек».
+    // Стоит здесь, а не в лестнице: «Бездна» шлёт партию мимо [LevelLadder].
+    final marked = GamePreset.isTransit
+        ? {
+            ...?details,
+            'ladderGame': GamePreset.params['ladderGame'],
+            'ladderLevel': int.tryParse(GamePreset.params['ladderLevel'] ?? '') ?? 0,
+          }
+        : details;
     final body = <String, Object?>{
       'game_type': gameType,
       'score': score,
@@ -53,8 +70,10 @@ class SessionReport {
       'difficulty': ?difficulty,
       'mode': ?mode,
       'errors': ?errors,
-      if (details != null && details.isNotEmpty) 'details': details,
+      if (marked != null && marked.isNotEmpty) 'details': marked,
     };
     await f(jsonEncode(body));
+    // 🗨 Синапс (852e4b4a): реплика по фактам этой партии — не задерживая игру и не роняя её.
+    unawaited(SynapseFeed.onSession(body).catchError((Object _) {}));
   }
 }

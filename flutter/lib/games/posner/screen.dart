@@ -14,6 +14,26 @@ import '../../shell/shared_state.dart';
 import '../../shell/tap_latency.dart';
 import 'model.dart';
 
+/// Поля партии для «Оценки» — как веб (`posner.tsx`, saveSession details). Домен
+/// «Внимание-orienting» читает `validity_effect_ms` (норма 50±30); без ключа домен
+/// молча «средний». Формула — та же, что показывает итог партии.
+///
+/// 🔴 НЕ ОПРЕДЕЛЕНА — НЕ ПИШЕТСЯ. Веб в таком случае пишет число-мусор: пустое плечо (нет верных на обманных или на верных подсказках) он
+/// считает нулём, и «Оценка» (`extractMetric`) берёт его как измерение. Нет ключа —
+/// домен честно «без данных», а не фантастический z.
+/// ⚠️ Для Позиции это не редкость: в шаге 15 проб, обманных подсказок ~20 %, и плечо пусто
+/// в 0,8¹⁵ ≈ 3,5 % партий — веб записал бы тогда эффект ≈ −среднее, z ≈ −15.
+Map<String, Object?> posnerSessionDetails(PosnerGame g) {
+  final effect = g.validityEffectMs;
+  final rt = g.meanRtMs;
+  return {
+    'level': g.level,
+    'mean_rt': ?rt,
+    'validity_effect_ms': ?effect,
+    'n_trials': g.trialsTotal,
+  };
+}
+
 /// «Позиция» (проба Познера) на Flutter.
 ///
 /// Три срока подряд: пауза до подсказки → подсказка 100 мс → пауза SOA → мишень
@@ -75,7 +95,12 @@ class _PosnerScreenState extends State<PosnerScreen> {
 
   void _reset() {
     _timer?.cancel();
-    _game = PosnerGame(level: _ladder.level, nowMs: widget.clock, rnd: widget.rnd);
+    // Шаг «Оценки» и зарядки задаёт длину партии, как в вебе (`num('trials', p.trials)`).
+    _game = PosnerGame(
+        level: _ladder.level,
+        nowMs: widget.clock,
+        rnd: widget.rnd,
+        trialsOverride: GamePreset.isPreset ? GamePreset.num('trials', PosnerLevel.of(_ladder.level).trials) : null);
     _phase = PosnerPhase.ready;
     _flash = null;
     _passed = false;
@@ -160,9 +185,10 @@ class _PosnerScreenState extends State<PosnerScreen> {
     bool? boss;
     if (passed) {
       boss = await BossRound.winThenBoss(context, _ladder,
-          type: BossType.gonogo, color: const Color(0xFF3A6186));
+          type: BossType.gonogo, color: const Color(0xFF3A6186),
+          win: () => _ladder.win(details: posnerSessionDetails(g)));
     } else {
-      await _ladder.fail();
+      await _ladder.fail(details: posnerSessionDetails(g));
     }
     if (!mounted) return;
     setState(() {

@@ -6,12 +6,14 @@ import 'package:flutter/material.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/boss_round.dart';
 import '../../shell/demo_lesson.dart';
+import '../../shell/game_preset.dart';
 import '../../shell/l10n.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/lesson.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
+import '../counting_common/generator_shadow.dart';
 import 'model.dart';
 
 /// «Состав числа» на общем каркасе: собрать цель из нескольких фишек.
@@ -59,6 +61,10 @@ class _NumberBondsScreenState extends State<NumberBondsScreen> {
   Timer? _tick;
   Timer? _next;
 
+  /// Тень генератора уровней (звено 4, задача 4e584381): раздача с новой партией, исход до лестницы.
+  late final LadderShadow _shadow =
+      LadderShadow(widget.state, gameId: 'number_bonds', stepKeys: bondsStepKeys);
+
   @override
   void initState() {
     super.initState();
@@ -91,6 +97,11 @@ class _NumberBondsScreenState extends State<NumberBondsScreen> {
     _tick?.cancel();
     _next?.cancel();
     _cfg = levelParams(_ladder.level);
+    // ШАГ ЗАРЯДКИ — СВОЁ ЧИСЛО ЗАДАЧ (`?trials=`, по умолчанию 8), как веб (`number-bonds.tsx:115`,
+    // `:187–189`). Трудность — личного уровня: тир `?diff=` веб-пресета снят решением 09.09
+    // «зарядка с личного уровня» (строгий сторож #273, задача 945f9d4d).
+    if (GamePreset.isPreset) _cfg = _cfg.withTrials(math.max(1, GamePreset.num('trials', 8)));
+    _shadow.deal(_ladder.level);
     _round = 1;
     _hits = 0;
     _errors = 0;
@@ -155,6 +166,7 @@ class _NumberBondsScreenState extends State<NumberBondsScreen> {
       if (!mounted) return;
       if (_round >= _cfg.trials) {
         final passed = _errors <= bondsErrorsAllowed;
+        _shadow.outcome(passed: passed, errors: _errors);
         // Веха как в вебе: каждый третий ЗАСЧИТАННЫЙ уровень — бой «сложи подсвеченные».
         bool? boss;
         if (passed) {
@@ -191,7 +203,7 @@ class _NumberBondsScreenState extends State<NumberBondsScreen> {
 
   /// Заголовок один на экран и на разбор: вторая такая строка — второй долг
   /// храповика подписей (`test/ui_text_debt_does_not_grow_test.dart`).
-  String get _title => 'Состав числа';
+  String get _title => L.t('numberBonds');
 
   /// Разбор объясняет ПРИЁМ: верный ответ человек и так увидит по итогу раунда,
   /// а вот чем объём берётся — нет.
@@ -207,13 +219,13 @@ class _NumberBondsScreenState extends State<NumberBondsScreen> {
       title: _title,
       onLesson: () => openDemoLesson(context, title: _title, trials: _demoTrials()),
       hud: [
-        HudItem(label: 'Уровень', value: '${_ladder.level}', icon: Icons.flag_outlined),
-        HudItem(label: 'Достигнуто', value: '${_ladder.best}', icon: Icons.emoji_events_outlined),
-        HudItem(label: 'Задача', value: '$_round/${_cfg.trials}', icon: Icons.repeat),
-        HudItem(label: 'Верно', value: '$_hits', icon: Icons.check_circle_outline),
-        HudItem(label: 'Ошибки', value: '$_errors/$bondsErrorsAllowed', icon: Icons.error_outline),
+        HudItem(label: L.t('level'), value: '${_ladder.level}', icon: Icons.flag_outlined),
+        HudItem(label: L.t('personalBest'), value: '${_ladder.best}', icon: Icons.emoji_events_outlined),
+        HudItem(label: L.t('round'), value: '$_round/${_cfg.trials}', icon: Icons.repeat),
+        HudItem(label: L.t('hud_correct'), value: '$_hits', icon: Icons.check_circle_outline),
+        HudItem(label: L.t('errors'), value: '$_errors/$bondsErrorsAllowed', icon: Icons.error_outline),
         if (_cfg.windowMs > 0)
-          HudItem(label: 'Окно', value: '${(_leftMs / 1000).ceil()} с', icon: Icons.timer_outlined),
+          HudItem(label: L.t('timeLeftLabel'), value: '${(_leftMs / 1000).ceil()} ${L.t('secShort')}', icon: Icons.timer_outlined),
       ],
       field: (context, h) => _Field(
         puzzle: p,
@@ -226,16 +238,16 @@ class _NumberBondsScreenState extends State<NumberBondsScreen> {
       auxRow: AuxBar(children: [
         AuxAction(
           icon: Icons.backspace_outlined,
-          label: 'Сбросить выбор',
+          label: L.t('clear'),
           onPressed: _phase == _Phase.playing && _picked.isNotEmpty
               ? () => setState(_picked.clear)
               : null,
         ),
-        AuxAction(icon: Icons.refresh, label: 'Начать заново', onPressed: () => setState(_reset)),
+        AuxAction(icon: Icons.refresh, label: L.t('restart'), onPressed: () => setState(_reset)),
       ]),
       toolbar: _toolbar(context),
       pauseActions: [
-        PauseAction(label: 'Начать заново', icon: Icons.refresh, onPressed: () => setState(_reset)),
+        PauseAction(label: L.t('restart'), icon: Icons.refresh, onPressed: () => setState(_reset)),
       ],
     );
   }
@@ -248,8 +260,8 @@ class _NumberBondsScreenState extends State<NumberBondsScreen> {
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           Text(
             _won
-                ? 'Уровень взят: верно $_hits, ошибок $_errors'
-                : 'Ошибок $_errors — можно не больше $bondsErrorsAllowed',
+                ? L.f('nbResultWin', {'hits': '$_hits', 'errors': '$_errors'})
+                : L.f('nbResultFail', {'errors': '$_errors', 'max': '$bondsErrorsAllowed'}),
             key: const Key('итог'),
             textAlign: TextAlign.center,
             style: text.titleMedium,
@@ -260,7 +272,7 @@ class _NumberBondsScreenState extends State<NumberBondsScreen> {
             key: const Key('дальше'),
             onPressed: () => setState(_reset),
             icon: Icon(_won ? Icons.arrow_forward : Icons.refresh),
-            label: Text(_won ? 'Следующий уровень' : 'Ещё раз'),
+            label: Text(_won ? L.t('nextLabel') : L.t('retry')),
           ),
         ]),
       );
@@ -271,7 +283,7 @@ class _NumberBondsScreenState extends State<NumberBondsScreen> {
         key: const Key('проверить'),
         onPressed: _phase == _Phase.playing ? _validate : null,
         icon: const Icon(Icons.check),
-        label: const Text('Проверить'),
+        label: Text(L.t('check')),
       ),
     );
   }
@@ -319,7 +331,7 @@ class _Field extends StatelessWidget {
               ),
             ),
             Text(
-              picked.isEmpty ? 'выбери фишки' : 'собрано: $sum',
+              picked.isEmpty ? L.t('nbPickChips') : L.f('nbCollected', {'sum': '$sum'}),
               key: const Key('сумма'),
               style: Theme.of(context).textTheme.bodyMedium,
             ),

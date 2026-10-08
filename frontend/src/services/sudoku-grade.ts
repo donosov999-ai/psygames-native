@@ -25,8 +25,11 @@
  */
 import {
   Cell, Variant, ThermoPN, ArrowMap, CageMap, isValid, generatePuzzle, shuffle, HYPER_BOXES, ORTHO,
-  Overlays, levelConfig, UnequalMap, TowersMap, towersLineOk,
+  Overlays, levelConfig, UnequalMap, TowersMap, towersLineOk, WHISPER_GAP, renbanOk, lineCells, regionSumOk, palindromeOk, betweenOk, lockoutOk, xvOk, XvMap, LittleKillerClue, littleKillerOk, littleKillerCells, XsumsClues, xsumsOk, cipherOk, encodeCipher,
 } from './sudoku-core';
+import { borderCounts, samePartition, solvePartition } from './sudoku-chaos';
+import { decodeGridS, digS, encodeGridS, generateSolutionS, logicS } from './sudoku-schrodinger';
+import { generateBoardM, logicM, type ModKind } from './sudoku-modifiers';
 
 export type Technique =
   | 'naked_single'    // в клетке остался один кандидат
@@ -34,16 +37,49 @@ export type Technique =
   | 'locked'          // связанные кандидаты: цифра блока заперта в одной строке (и наоборот)
   | 'naked_subset'    // голая пара/тройка
   | 'hidden_subset'   // скрытая пара
+  | 'sum_exact'       // точный коридор суммы: достижима ли сумма кандидатами остальных клеток
   | 'sandwich_sum'    // вывод из суммы между позициями 1 и 9
   | 'cage_sum'        // вывод из суммы клеток-группы (киллер, ThermoCage)
   | 'towers_clue'     // вывод из подсказки «сколько зданий видно с края»
   | 'unequal_chain'   // цепочка неравенств: границы протянуты через ПУСТЫХ соседей
+  | 'whisper_line'    // немецкий шёпот: кандидат без пары «±5» у ПУСТОГО соседа по линии
+  | 'renban_window'   // ренбан: кандидат вне любого окна «подряд», куда влезает вся линия
+  | 'region_sum'      // линия равных сумм: кандидат не входит ни в одну раскладку общей суммы
   | 'x_wing'          // X-wing
   | 'xy_wing'         // XY-wing: ось {a,b} и два клюва {a,c} и {b,c} — c уходит там, где видно оба
+  | 'palindrome_mirror'  // кандидаты зеркальных клеток линии пересекаются
+  | 'between_window'  // кандидат вне любого окна между концами линии
+  | 'lockout_window'  // кандидат вне годной пары концов lockout-линии
+  | 'xv_pair'  // XV: кандидату нет пары у ПУСТОГО соседа (знак — 5/10, без знака — не 5 и не 10)
+  | 'little_killer_sum'  // малый киллер: кандидат вне коридора суммы диагонали по кандидатам соседей
+  | 'xsum_clue'  // X-суммы: первая цифра X без раскладки суммы первых X клеток; коридор суммы внутри них
+  | 'cipher_code'  // шифр: кандидаты одной буквы общие; однозначная буква забирает свою цифру у остальных
+  | 'region_border'  // самосборка: границы областей выведены по подсказкам границ и напечатанным цифрам (sudoku-chaos.ts)
+  | 'schrodinger_cell'  // клетки Шрёдингера: вынужден вариант-пара или место пары в ряду (sudoku-schrodinger.ts)
+  | 'modifier_sum'  // удвоители/отрицательные: вариант клетки, с которым взвешенная сумма группы не набирается (sudoku-modifiers.ts)
   | 'guess';          // логики не хватило — нужен перебор
 
 export const TECHNIQUE_TIER: Record<Technique, number> = {
+  xv_pair: 4,   // XV: класс выводов варианта
+  little_killer_sum: 4,   // малый киллер: класс выводов варианта
+  xsum_clue: 4,   // X-суммы: класс выводов варианта
+  cipher_code: 4,   // шифр: класс выводов варианта
+  region_border: 4,   // самосборка: вывод границ — класс выводов варианта
+  schrodinger_cell: 4,   // клетки Шрёдингера: вывод про пару — класс выводов варианта
+  modifier_sum: 4,   // удвоители/отрицательные: вывод на взвешенных суммах — класс выводов варианта
+  lockout_window: 4,   // замок: кандидат вне годной пары концов lockout-линии
+  between_window: 4,   // между концами: кандидат вне любого окна между концами линии
+  // Палиндром: кандидаты зеркальных клеток пересекаются. Ступень 4 — как у всего КЛАССА выводов
+  // варианта (`выводВарианта` включается с 4): мутация «приём без потолка» на ступени 3 выжила бы.
+  palindrome_mirror: 4,
   naked_single: 1, hidden_single: 2, locked: 3, naked_subset: 4, sandwich_sum: 4, towers_clue: 4, unequal_chain: 4,
+  // Шёпот — тот же класс вывода, что цепочка неравенств: граница через ПУСТОГО соседа.
+  // Ступень 4, как у трёх других вариантных выводов: шкала обязана быть сравнимой.
+  whisper_line: 4,
+  // Ренбан — тот же класс: вывод через ПУСТЫЕ клетки линии (окно значений), ступень 4.
+  renban_window: 4,
+  // Линия равных сумм — тот же класс: вывод через ПУСТЫЕ клетки линии в нескольких блоках.
+  region_sum: 4,
   /**
    * 🔴 СТУПЕНЬ СУММ НАЗНАЧЕНА ЗАМЕРОМ, А НЕ НА ГЛАЗ (07.09.2026). До этого дня вывод
    * из клеток-сумм не помечался ВООБЩЕ — блок в `refilter` работал, но `bump` не звал,
@@ -59,6 +95,13 @@ export const TECHNIQUE_TIER: Record<Technique, number> = {
    */
   cage_sum: 4,
   hidden_subset: 5, x_wing: 6, xy_wing: 7, guess: 9,
+  /**
+   * Точный коридор суммы (07.10.2026, задача раздела уровней c3f9e08b): кандидат живёт, только если
+   * сумму можно ДОБРАТЬ кандидатами остальных клеток. Ступень 5 —
+   * выше класса выводов варианта (4): вывод о сочетании, а не о границах. Без него малый киллер и
+   * X-суммы упирались в 4.
+   */
+  sum_exact: 5,
 };
 
 export interface GradeCtx {
@@ -75,6 +118,23 @@ export interface GradeCtx {
   unequal?: UnequalMap;
   /** Небоскрёбы: сколько зданий видно с каждого края. 0 = подсказки нет. */
   towers?: TowersMap;
+  /** Немецкий шёпот: линии, соседи на которых отличаются минимум на WHISPER_GAP. */
+  whisper?: ThermoPN;
+  /** Ренбан: на линии цифры разные и подряд (в любом порядке). */
+  renban?: ThermoPN;
+  /** Линии равных сумм: в каждом блоке линии сумма её цифр одна. */
+  regionsum?: ThermoPN;
+  palindrome?: ThermoPN;
+  between?: ThermoPN;
+  lockout?: ThermoPN;
+  /** XV: знаки на гранях, показаны все (отрицательное условие). */
+  xv?: XvMap;
+  /** Малый киллер: суммы диагоналей по стрелкам снаружи доски (цифры на диагонали могут повторяться). */
+  littlekiller?: LittleKillerClue[];
+  /** X-суммы: слева у строк и сверху у столбцов, −1 — подсказка скрыта. */
+  xsums?: XsumsClues;
+  /** Шифр: номер буквы в клетке-подсказке (1..9 = A..I), 0 — не буква; клетка-буква в задании пустая. */
+  cipher?: number[][];
 }
 
 export interface Grade {
@@ -101,6 +161,9 @@ export interface Grade {
   /** Доска, к которой решатель пришёл. Гейт сверяет её с эталоном: если пруннинг где-то
    *  неверен, решатель «решит» ЧУЖУЮ сетку и объявит единственность там, где её нет. */
   grid?: Cell[][];
+  /** Решатель встал (не противоречие, а нехватка приёмов): докуда дошёл и какой ступенью. Нужно
+   *  туману — там решают кусками, открывая доску по ходу (`gradeFog`). */
+  partial?: { grid: Cell[][]; tier: number; hardest: Technique };
 }
 
 const bit = (v: number) => 1 << (v - 1);
@@ -150,7 +213,7 @@ export function unitsFor(N: number, BR: number, BC: number, variant: Variant, re
 
 /** Оценка пазла: самая сложная техника, без которой не обойтись. */
 export function gradePuzzle(puzzle: Cell[][], ctx: GradeCtx, tierCap = 9): Grade {
-  const { N, BR, BC, variant, regions, thermo, arrow, cages, parity, kropki, sandwich, unequal, towers } = ctx;
+  const { N, BR, BC, variant, regions, thermo, arrow, cages, parity, kropki, sandwich, unequal, towers, whisper, renban, regionsum, palindrome, between, lockout, xv, littlekiller, xsums, cipher } = ctx;
   const grid = puzzle.map((row) => [...row]);
   const FULL = (1 << N) - 1;
   const cand: number[][] = Array.from({ length: N }, () => Array(N).fill(FULL));
@@ -233,6 +296,28 @@ export function gradePuzzle(puzzle: Cell[][], ctx: GradeCtx, tierCap = 9): Grade
         if (ok && parity && parity[r][c] !== 0) ok = (parity[r][c] === 1) === (v % 2 === 0);
         if (ok && unequal) ok = unequalOk(grid, r, c, v, N, unequal);
         if (ok && towers) ok = towersOk(grid, r, c, v, towers);
+        if (ok && whisper) {
+          // Занятый сосед по линии отсекает даром — цифра видна, это не приём.
+          const pn = whisper[r][c];
+          if (pn) {
+            for (const nb of [pn.prev, pn.next]) {
+              if (!nb) continue;
+              const o = grid[nb[0]][nb[1]];
+              if (o !== 0 && Math.abs(v - o) < WHISPER_GAP) ok = false;
+            }
+          }
+        }
+        // Ренбан против ИЗВЕСТНЫХ цифр линии (повтор, разброс шире длины) — дано даром.
+        if (ok && renban && !renbanOk(grid, r, c, v, renban)) ok = false;
+        // Равные суммы против ИЗВЕСТНЫХ цифр: коридоры сумм по блокам — даром.
+        if (ok && regionsum && !regionSumOk(grid, r, c, v, regionsum, N, BR, BC)) ok = false;
+        if (ok && palindrome && !palindromeOk(grid, r, c, v, palindrome)) ok = false;   // против известных цифр — даром
+        if (ok && between && !betweenOk(grid, r, c, v, between)) ok = false;   // против известных цифр — даром
+        if (ok && lockout && !lockoutOk(grid, r, c, v, lockout)) ok = false;   // против известных цифр — даром
+        if (ok && xv && !xvOk(grid, r, c, v, xv, N)) ok = false;   // XV против известных соседей — даром
+        if (ok && littlekiller && !littleKillerOk(grid, r, c, v, littlekiller, N)) ok = false;   // сумма против известных цифр — даром
+        if (ok && xsums && !xsumsOk(grid, r, c, v, xsums, N)) ok = false;   // X-сумма против известных цифр — даром
+        if (ok && cipher && !cipherOk(grid, r, c, v, cipher, N)) ok = false;   // буквы против известных цифр — даром
         if (!ok) m &= ~bit(v);
       }
       cand[r][c] = m;
@@ -310,6 +395,373 @@ export function gradePuzzle(puzzle: Cell[][], ctx: GradeCtx, tierCap = 9): Grade
      * срез по заполненному — тот же старый фильтр, игроку он даётся даром, и
      * bump по нему завысил бы ступень ровно так, как её раньше занижали.
      */
+    /**
+     * ── НЕМЕЦКИЙ ШЁПОТ: кандидат v клетки на линии живёт, только если у КАЖДОГО пустого
+     * соседа по линии есть кандидат e с |v − e| ≥ WHISPER_GAP. Прогон до неподвижной точки
+     * протягивает срез вдоль линии (длина ≤ 6 — сходится за ≤ 6 проходов). Техникой
+     * (`whisper_line`) считается только вывод через ПУСТОГО соседа — как у цепочки неравенств.
+     */
+    if (whisper && выводВарианта) {
+      let usedWhisper = false;
+      for (let pass = 0; pass < N; pass++) {
+        let changed = false;
+        for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+          const pn = whisper[r][c];
+          if (!pn || grid[r][c] !== 0) continue;
+          let m = cand[r][c];
+          for (const nb of [pn.prev, pn.next]) {
+            if (!nb || grid[nb[0]][nb[1]] !== 0) continue;
+            const other = cand[nb[0]][nb[1]];
+            for (const v of bitsOf(m, N)) {
+              let partner = false;
+              for (const e of bitsOf(other, N)) if (Math.abs(v - e) >= WHISPER_GAP) { partner = true; break; }
+              if (!partner) m &= ~bit(v);
+            }
+          }
+          if (m !== cand[r][c]) { cand[r][c] = m; changed = true; usedWhisper = true; }
+          if (m === 0) return true;
+        }
+        if (!changed) break;
+      }
+      if (usedWhisper) bump('whisper_line');
+    }
+
+    /**
+     * ── РЕНБАН: кандидат v пустой клетки линии живёт, только если есть ОКНО значений
+     * [a, a+L−1] (L — длина линии), которое вмещает v и все известные цифры линии, и в котором
+     * каждая другая пустая клетка линии находит себе кандидата (не v и не известную цифру).
+     * Это и есть приём: окно зажимают ПУСТЫЕ клетки, а не только видимые цифры (их срез —
+     * даром, выше). Техникой (`renban_window`) считается только этот вывод.
+     */
+    if (renban && выводВарианта) {
+      let usedRenban = false;
+      for (let r0 = 0; r0 < N; r0++) for (let c0 = 0; c0 < N; c0++) {
+        const head = renban[r0][c0];
+        if (!head || head.prev) continue;                         // по разу на линию — с её начала
+        const cells = lineCells(renban, r0, c0);
+        const L = cells.length;
+        const known = cells.map(([lr, lc]) => grid[lr][lc]).filter((v) => v !== 0);
+        const empty = cells.filter(([lr, lc]) => grid[lr][lc] === 0);
+        for (const [er, ec] of empty) {
+          let m = cand[er][ec];
+          for (const v of bitsOf(m, N)) {
+            let fits = false;
+            for (let a = 1; a + L - 1 <= N && !fits; a++) {
+              const lo = a, hi = a + L - 1;
+              if (v < lo || v > hi || known.some((k) => k < lo || k > hi)) continue;
+              fits = empty.every(([yr, yc]) => (yr === er && yc === ec)
+                || bitsOf(cand[yr][yc], N).some((e) => e >= lo && e <= hi && e !== v && !known.includes(e)));
+            }
+            if (!fits) m &= ~bit(v);
+          }
+          if (m !== cand[er][ec]) { cand[er][ec] = m; usedRenban = true; }
+          if (m === 0) return true;
+        }
+      }
+      if (usedRenban) bump('renban_window');
+    }
+
+    /**
+     * ── ЛИНИЯ РАВНЫХ СУММ: у каждого блока линии перебором кандидатов находятся достижимые
+     * суммы (цифры в блоке разные), общая сумма T обязана лежать в их пересечении. Кандидат
+     * пустой клетки живёт, только если входит хотя бы в одну раскладку своего блока с такой T.
+     * Техникой (`region_sum`) считается этот вывод; срез по известным цифрам — даром, выше.
+     */
+    if (regionsum && выводВарианта) {
+      let usedSum = false;
+      const boxOf = (rr: number, cc: number) => Math.floor(rr / BR) * (N / BC) + Math.floor(cc / BC);
+      for (let r0 = 0; r0 < N; r0++) for (let c0 = 0; c0 < N; c0++) {
+        const head = regionsum[r0][c0];
+        if (!head || head.prev) continue;                          // по разу на линию
+        const cells = lineCells(regionsum, r0, c0);
+        const byBox = new Map<number, [number, number][]>();
+        for (const cell of cells) {
+          const b = boxOf(cell[0], cell[1]);
+          byBox.set(b, [...(byBox.get(b) ?? []), cell]);
+        }
+        // Для каждого блока: сумма → (клетка → цифры, которые встречаются в раскладках этой суммы).
+        const reach: Map<number, Map<string, number>>[] = [];
+        for (const group of byBox.values()) {
+          const fixed = group.filter(([gr, gc]) => grid[gr][gc] !== 0).map(([gr, gc]) => grid[gr][gc]);
+          const base = fixed.reduce((a, b) => a + b, 0);
+          const empty = group.filter(([gr, gc]) => grid[gr][gc] === 0);
+          const out = new Map<number, Map<string, number>>();
+          const pick: number[] = [];
+          const walk = (k: number, sum: number) => {
+            if (k === empty.length) {
+              const m = out.get(sum) ?? new Map<string, number>();
+              empty.forEach(([er, ec], i) => m.set(`${er},${ec}`, (m.get(`${er},${ec}`) ?? 0) | bit(pick[i])));
+              out.set(sum, m);
+              return;
+            }
+            const [er, ec] = empty[k];
+            for (const v of bitsOf(cand[er][ec], N)) {
+              if (fixed.includes(v) || pick.includes(v)) continue;
+              pick.push(v); walk(k + 1, sum + v); pick.pop();
+            }
+          };
+          walk(0, base);
+          reach.push(out);
+        }
+        let common: number[] = [...(reach[0]?.keys() ?? [])];
+        for (const m of reach.slice(1)) common = common.filter((t) => m.has(t));
+        if (!common.length) return true;                           // противоречие: общей суммы нет
+        for (const m of reach) {
+          const allowed = new Map<string, number>();
+          for (const t of common) for (const [key, bits] of m.get(t) ?? []) allowed.set(key, (allowed.get(key) ?? 0) | bits);
+          for (const [key, bits] of allowed) {
+            const [er, ec] = key.split(',').map(Number);
+            const next = cand[er][ec] & bits;
+            if (next !== cand[er][ec]) { cand[er][ec] = next; usedSum = true; }
+            if (next === 0) return true;
+          }
+        }
+      }
+      if (usedSum) bump('region_sum');
+    }
+
+    /**
+     * ── ПАЛИНДРОМ: у пустых зеркальных клеток линии кандидаты пересекаются — цифра одна на двоих.
+     * Через пару проходит то, что известно о каждой из клеток в СВОИХ строке, столбце и блоке.
+     * Техника `palindrome_mirror` (ступень 4, класс выводов варианта); срез по заполненной
+     * зеркальной клетке — даром.
+     */
+    if (palindrome && выводВарианта) {
+      let usedMirror = false;
+      for (let r0 = 0; r0 < N; r0++) for (let c0 = 0; c0 < N; c0++) {
+        const head = palindrome[r0][c0];
+        if (!head || head.prev) continue;
+        const cells = lineCells(palindrome, r0, c0);
+        for (let i = 0; i < Math.floor(cells.length / 2); i++) {
+          const [ar, ac] = cells[i], [br, bc] = cells[cells.length - 1 - i];
+          if (grid[ar][ac] !== 0 || grid[br][bc] !== 0) continue;
+          const both = cand[ar][ac] & cand[br][bc];
+          if (both !== cand[ar][ac] || both !== cand[br][bc]) { cand[ar][ac] = both; cand[br][bc] = both; usedMirror = true; }
+          if (both === 0) return true;
+        }
+      }
+      if (usedMirror) bump('palindrome_mirror');
+    }
+
+    /**
+     * ── «МЕЖДУ КОНЦАМИ»: кандидат конца a живёт, только если у другого конца есть b ≠ a такой,
+     * что у КАЖДОЙ средней клетки найдётся кандидат строго между a и b; кандидат средней — если
+     * есть пара концов, между которыми он лежит. Техника `between_window` (ступень 4); срез по
+     * известным цифрам — даром.
+     */
+    if (between && выводВарианта) {
+      let usedBetween = false;
+      for (let r0 = 0; r0 < N; r0++) for (let c0 = 0; c0 < N; c0++) {
+        const head = between[r0][c0];
+        if (!head || head.prev) continue;
+        const cells = lineCells(between, r0, c0);
+        const opts = (cell: [number, number]) => (grid[cell[0]][cell[1]] ? [grid[cell[0]][cell[1]]] : bitsOf(cand[cell[0]][cell[1]], N));
+        const A = cells[0], B = cells[cells.length - 1], mids = cells.slice(1, -1);
+        const fits = (a: number, b: number) => a !== b && mids.every((m) => opts(m).some((v) => v > Math.min(a, b) && v < Math.max(a, b)));
+        const keepA: number[] = [], keepB: number[] = [];
+        const keepMid = mids.map(() => 0);
+        for (const a of opts(A)) for (const b of opts(B)) {
+          if (!fits(a, b)) continue;
+          if (!keepA.includes(a)) keepA.push(a);
+          if (!keepB.includes(b)) keepB.push(b);
+          mids.forEach((m, i) => { for (const v of opts(m)) if (v > Math.min(a, b) && v < Math.max(a, b)) keepMid[i] |= bit(v); });
+        }
+        const prune = (cell: [number, number], mask: number) => {
+          if (grid[cell[0]][cell[1]]) return false;
+          const next = cand[cell[0]][cell[1]] & mask;
+          if (next !== cand[cell[0]][cell[1]]) { cand[cell[0]][cell[1]] = next; usedBetween = true; }
+          return next === 0;
+        };
+        if (prune(A, keepA.reduce((m, v) => m | bit(v), 0))) return true;
+        if (prune(B, keepB.reduce((m, v) => m | bit(v), 0))) return true;
+        for (let i = 0; i < mids.length; i++) if (prune(mids[i], keepMid[i])) return true;
+      }
+      if (usedBetween) bump('between_window');
+    }
+
+    /**
+     * ── LOCKOUT: пара концов (a, b) годна, если |a − b| ≥ 4 и у КАЖДОЙ средней клетки есть
+     * кандидат вне отрезка [min, max]; кандидат конца живёт, если входит в годную пару, кандидат
+     * средней — если лежит вне отрезка хотя бы одной годной пары. Техника `lockout_window`
+     * (ступень 4); срез по известным цифрам — даром.
+     */
+    if (lockout && выводВарианта) {
+      let usedLock = false;
+      for (let r0 = 0; r0 < N; r0++) for (let c0 = 0; c0 < N; c0++) {
+        const head = lockout[r0][c0];
+        if (!head || head.prev) continue;
+        const cells = lineCells(lockout, r0, c0);
+        const opts = (cell: [number, number]) => (grid[cell[0]][cell[1]] ? [grid[cell[0]][cell[1]]] : bitsOf(cand[cell[0]][cell[1]], N));
+        const A = cells[0], B = cells[cells.length - 1], mids = cells.slice(1, -1);
+        const outside = (v: number, a: number, b: number) => v < Math.min(a, b) || v > Math.max(a, b);
+        const fits = (a: number, b: number) => Math.abs(a - b) >= 4 && mids.every((m) => opts(m).some((v) => outside(v, a, b)));
+        const keepA: number[] = [], keepB: number[] = [];
+        const keepMid = mids.map(() => 0);
+        for (const a of opts(A)) for (const b of opts(B)) {
+          if (!fits(a, b)) continue;
+          if (!keepA.includes(a)) keepA.push(a);
+          if (!keepB.includes(b)) keepB.push(b);
+          mids.forEach((m, i) => { for (const v of opts(m)) if (outside(v, a, b)) keepMid[i] |= bit(v); });
+        }
+        const prune = (cell: [number, number], mask: number) => {
+          if (grid[cell[0]][cell[1]]) return false;
+          const next = cand[cell[0]][cell[1]] & mask;
+          if (next !== cand[cell[0]][cell[1]]) { cand[cell[0]][cell[1]] = next; usedLock = true; }
+          return next === 0;
+        };
+        if (prune(A, keepA.reduce((m, v) => m | bit(v), 0))) return true;
+        if (prune(B, keepB.reduce((m, v) => m | bit(v), 0))) return true;
+        for (let i = 0; i < mids.length; i++) if (prune(mids[i], keepMid[i])) return true;
+      }
+      if (usedLock) bump('lockout_window');
+    }
+
+    /**
+     * ── XV: кандидат v клетки живёт, только если у КАЖДОГО пустого соседа есть кандидат w,
+     * согласный с гранью: X → v + w = 10, V → v + w = 5, без знака → v + w ∉ {5, 10}. Техника
+     * `xv_pair` (ступень 4); срез по известным соседям — даром, выше.
+     */
+    if (xv && выводВарианта) {
+      let usedXv = false;
+      const fits = (d: number, a: number, b: number) => (d === 2 ? a + b === 10 : d === 1 ? a + b === 5 : a + b !== 5 && a + b !== 10);
+      for (let pass = 0; pass < N; pass++) {
+        let changed = false;
+        for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+          if (grid[r][c] !== 0) continue;
+          const edges: [number, number, number][] = [];
+          if (c < N - 1) edges.push([xv.h[r][c], r, c + 1]);
+          if (c > 0) edges.push([xv.h[r][c - 1], r, c - 1]);
+          if (r < N - 1) edges.push([xv.v[r][c], r + 1, c]);
+          if (r > 0) edges.push([xv.v[r - 1][c], r - 1, c]);
+          let m = cand[r][c];
+          for (const [d, nr, nc] of edges) {
+            if (grid[nr][nc] !== 0) continue;
+            const other = bitsOf(cand[nr][nc], N);
+            for (const v of bitsOf(m, N)) if (!other.some((w) => fits(d, v, w))) m &= ~bit(v);
+          }
+          if (m !== cand[r][c]) { cand[r][c] = m; changed = true; usedXv = true; }
+          if (m === 0) return true;
+        }
+        if (!changed) break;
+      }
+      if (usedXv) bump('xv_pair');
+    }
+
+    /**
+     * ── МАЛЫЙ КИЛЛЕР: коридор суммы по КАНДИДАТАМ. Кандидат v пустой клетки диагонали живёт, только
+     * если сумма − v укладывается между наименьшим и наибольшим, что могут дать остальные клетки
+     * (известная цифра или крайний кандидат пустой). Срез по одним известным цифрам — даром, выше;
+     * протянуть границы через ПУСТЫХ соседей — приём игрока (`little_killer_sum`, ступень 4).
+     */
+    if (littlekiller && выводВарианта) {
+      let usedLk = false;
+      for (let pass = 0; pass < N; pass++) {
+        let changed = false;
+        for (const k of littlekiller) {
+          const cells = littleKillerCells(k, N);
+          let lo = 0, hi = 0;
+          for (const [i, j] of cells) {
+            if (grid[i][j] !== 0) { lo += grid[i][j]; hi += grid[i][j]; continue; }
+            if (!cand[i][j]) return true;
+            lo += loVal(cand[i][j]); hi += hiVal(cand[i][j]);
+          }
+          if (lo > k.sum || hi < k.sum) return true;
+          for (const [i, j] of cells) {
+            if (grid[i][j] !== 0) continue;
+            const m = cand[i][j];
+            const restLo = lo - loVal(m), restHi = hi - hiVal(m);
+            let keep = m;
+            for (const v of bitsOf(m, N)) if (k.sum - v < restLo || k.sum - v > restHi) keep &= ~bit(v);
+            if (keep !== m) {
+              cand[i][j] = keep; changed = true; usedLk = true;
+              if (keep === 0) return true;
+              lo += loVal(keep) - loVal(m); hi += hiVal(keep) - hiVal(m);
+            }
+          }
+        }
+        if (!changed) break;
+      }
+      if (usedLk) bump('little_killer_sum');
+    }
+
+    /**
+     * ── X-СУММЫ: у первой клетки ряда остаются только те X, при которых первые X клеток могут дать
+     * подсказку (X сам плюс коридор остальных по кандидатам); при известном X — коридор суммы внутри
+     * первых X клеток, как у малого киллера. Приём `xsum_clue`, ступень 4; срез по известным — даром.
+     */
+    if (xsums && выводВарианта) {
+      let usedXs = false;
+      const lines: { cells: [number, number][]; clue: number }[] = [];
+      for (let i = 0; i < N; i++) {
+        if (xsums.rows[i] >= 0) lines.push({ cells: Array.from({ length: N }, (_, k) => [i, k] as [number, number]), clue: xsums.rows[i] });
+        if (xsums.cols[i] >= 0) lines.push({ cells: Array.from({ length: N }, (_, k) => [k, i] as [number, number]), clue: xsums.cols[i] });
+      }
+      const maskAt = (r: number, c: number) => (grid[r][c] !== 0 ? bit(grid[r][c]) : cand[r][c]);
+      for (let pass = 0; pass < N; pass++) {
+        let changed = false;
+        for (const { cells, clue } of lines) {
+          const [r0, c0] = cells[0];
+          let keepX = 0;
+          for (const x of bitsOf(maskAt(r0, c0), N)) {
+            let lo = x, hi = x;
+            for (let k = 1; k < x; k++) { const m = maskAt(cells[k][0], cells[k][1]); if (!m) { lo = 1e9; break; } lo += loVal(m); hi += hiVal(m); }
+            if (lo <= clue && clue <= hi) keepX |= bit(x);
+          }
+          if (!keepX) return true;
+          if (grid[r0][c0] === 0 && keepX !== cand[r0][c0]) { cand[r0][c0] = keepX; changed = true; usedXs = true; }
+          if (grid[r0][c0] === 0) continue;
+          const x = grid[r0][c0];
+          let lo = 0, hi = 0;
+          for (let k = 0; k < x; k++) { const m = maskAt(cells[k][0], cells[k][1]); lo += loVal(m); hi += hiVal(m); }
+          for (let k = 1; k < x; k++) {
+            const [r, c] = cells[k];
+            if (grid[r][c] !== 0) continue;
+            const m = cand[r][c];
+            const restLo = lo - loVal(m), restHi = hi - hiVal(m);
+            let keep = m;
+            for (const v of bitsOf(m, N)) if (clue - v < restLo || clue - v > restHi) keep &= ~bit(v);
+            if (keep !== m) {
+              cand[r][c] = keep; changed = true; usedXs = true;
+              if (keep === 0) return true;
+              lo += loVal(keep) - loVal(m); hi += hiVal(keep) - hiVal(m);
+            }
+          }
+        }
+        if (!changed) break;
+      }
+      if (usedXs) bump('xsum_clue');
+    }
+
+    /**
+     * ── ШИФР: у всех клеток одной буквы кандидаты общие (пересечение; поставленная цифра — её бит),
+     * а однозначная буква забирает свою цифру у остальных букв. Срез по известным цифрам — даром,
+     * выше; свести кандидатов по всей доске и вывести код — приём игрока (`cipher_code`, ступень 4).
+     */
+    if (cipher && выводВарианта) {
+      let usedCipher = false;
+      for (let pass = 0; pass < N; pass++) {
+        let changed = false;
+        const common = new Array<number>(N + 1).fill(FULL);
+        for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+          const L = cipher[r][c];
+          if (L) common[L] &= grid[r][c] !== 0 ? bit(grid[r][c]) : cand[r][c];
+        }
+        for (let L = 1; L <= N; L++) {
+          const m = common[L];
+          if (m && (m & (m - 1)) === 0) for (let M = 1; M <= N; M++) if (M !== L) common[M] &= ~m;
+        }
+        for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+          const L = cipher[r][c];
+          if (!L || grid[r][c] !== 0) continue;
+          const next = cand[r][c] & common[L];
+          if (next !== cand[r][c]) { cand[r][c] = next; changed = true; usedCipher = true; }
+          if (next === 0) return true;
+        }
+        if (!changed) break;
+      }
+      if (usedCipher) bump('cipher_code');
+    }
+
     if (unequal && выводВарианта) {
       let usedChain = false;
       for (let pass = 0; pass < N; pass++) {
@@ -738,11 +1190,91 @@ export function gradePuzzle(puzzle: Cell[][], ctx: GradeCtx, tierCap = 9): Grade
     return false;
   };
 
+  /**
+   * 🔴 ТОЧНЫЙ КОРИДОР СУММЫ — ступень 5 (задача раздела уровней c3f9e08b, 07.10.2026).
+   *
+   * Повод — замер: малый киллер и X-суммы упирались в ступень 4 и ~65 пустых при любом лимите
+   * копания. Их выводы (`little_killer_sum`, `xsum_clue`, `cage_sum`) смотрят только на ГРАНИЦЫ:
+   * сумма в промежутке «сумма наименьших … сумма наибольших» кандидатов. Но у кандидатов бывают
+   * дыры — у клеток {1,9} и {1,9} сумма только 2, 10 или 18, а не любое число от 2 до 18. Приём
+   * проверяет точно: кандидат v клетки живёт, только если остальные клетки могут добрать сумму
+   * своими кандидатами (перебор с отсечением по границам; клеток не больше N); где цифры суммы
+   * разные по самому правилу (клетки-суммы, X-сумма в одной строке) — разными. Вывод строгий.
+   * 📍 Замер 07.10 (8 досок на точку, лимит копания 70): ступень 5 у 8/8 малого киллера (128),
+   *    X-сумм (132) и киллер-комбо (92); без приёма такие доски мерой не решаются (0 из 8).
+   *    Две части сверх этого мерили и сняли (YAGNI): «правило 45» (сумма остатка дома) и «разные
+   *    цифры в общем доме» для диагоналей малого киллера — сеяная выборка, 18 досок: пустых
+   *    64,4 против 64,0, ступень та же; первое «+1,8» было шумом несеяных 8 досок.
+   * Суммы — показанные игроку: диагонали малого киллера; X-суммы, когда первая цифра ряда уже
+   * стоит (тогда известны и X, и клетки); клетки-суммы.
+   */
+  // Суммы, которые при тех же кандидатах уже ничего не дали, — не перебирать заново: главный цикл
+  // зовёт приём после каждого шага, а перебор дорогой (замер 07.10: без памяти 2,4–3,6 с на доску).
+  const exactSpent = new Set<string>();
+  const sumExact = (): boolean => {
+    type SumC = { cells: [number, number][]; sum: number; allDistinct: boolean };
+    const sums: SumC[] = [];
+    if (littlekiller) for (const k of littlekiller) sums.push({ cells: littleKillerCells(k, N), sum: k.sum, allDistinct: false });
+    if (xsums) {
+      for (let i = 0; i < N; i++) {
+        for (const [byRow, clue] of [[true, xsums.rows[i]], [false, xsums.cols[i]]] as const) {
+          if (clue < 0) continue;
+          const first = byRow ? grid[i][0] : grid[0][i];
+          if (first === 0) continue;
+          sums.push({ cells: Array.from({ length: first }, (_, k) => (byRow ? [i, k] : [k, i]) as [number, number]), sum: clue, allDistinct: true });
+        }
+      }
+    }
+    if (cages) cages.cells.forEach((cells, id) => { if (cells && cells.length) sums.push({ cells: cells as [number, number][], sum: cages.sum[id], allDistinct: true }); });
+    if (!sums.length) return false;
+    for (const k of sums) {
+      const n = k.cells.length;
+      const masks = k.cells.map(([r, c]) => (grid[r][c] !== 0 ? bit(grid[r][c]) : cand[r][c]));
+      if (masks.some((m) => m === 0)) return false;   // противоречие поймает refilter
+      const sig = `${k.sum}|${k.allDistinct ? 1 : 0}|${k.cells.map(([r, c], i) => `${r * N + c}:${masks[i]}`).join(',')}`;
+      if (exactSpent.has(sig)) continue;
+      const clash = k.cells.map((_a, i) => k.cells.map((_b, j) => k.allDistinct && i !== j));
+      const vals = new Array<number>(n).fill(0);
+      const fits = (ms: number[]): boolean => {
+        const ord = Array.from({ length: n }, (_, i) => i).sort((a, b) => bitsOf(ms[a], N).length - bitsOf(ms[b], N).length);
+        const lo = new Array<number>(n + 1).fill(0), hi = new Array<number>(n + 1).fill(0);
+        for (let t = n - 1; t >= 0; t--) { lo[t] = lo[t + 1] + loVal(ms[ord[t]]); hi[t] = hi[t + 1] + hiVal(ms[ord[t]]); }
+        const dfs = (t: number, acc: number): boolean => {
+          if (t === n) return acc === k.sum;
+          if (acc + lo[t] > k.sum || acc + hi[t] < k.sum) return false;
+          const i = ord[t];
+          for (const v of bitsOf(ms[i], N)) {
+            let ok = true;
+            for (let q = 0; q < t && ok; q++) if (clash[i][ord[q]] && vals[ord[q]] === v) ok = false;
+            if (!ok) continue;
+            vals[i] = v;
+            if (dfs(t + 1, acc + v)) return true;
+          }
+          return false;
+        };
+        return dfs(0, 0);
+      };
+      let hit = false;
+      for (let i = 0; i < n; i++) {
+        const [r, c] = k.cells[i];
+        if (grid[r][c] !== 0) continue;
+        for (const v of bitsOf(cand[r][c], N)) {
+          const ms = [...masks];
+          ms[i] = bit(v);
+          if (!fits(ms)) { cand[r][c] &= ~bit(v); masks[i] = cand[r][c]; hit = true; }
+        }
+      }
+      if (hit) { bump('sum_exact'); return true; }
+      exactSpent.add(sig);
+    }
+    return false;
+  };
+
   // tierCap отсекает техники сверху: так можно спросить «решается ли это БЕЗ техник выше k».
   // На этом стоит ПОЛ сложности: пазл требует технику k, если без неё он не добирается.
   const all: [Technique, () => boolean][] = [
     ['naked_single', nakedSingle], ['hidden_single', hiddenSingle], ['locked', locked],
-    ['naked_subset', nakedSubset], ['hidden_subset', hiddenSubset], ['x_wing', xWing], ['xy_wing', xyWing],
+    ['naked_subset', nakedSubset], ['hidden_subset', hiddenSubset], ['sum_exact', sumExact], ['x_wing', xWing], ['xy_wing', xyWing],
   ];
   const steps = all.filter(([t]) => TECHNIQUE_TIER[t] <= tierCap).map(([, f]) => f);
   for (let guard = 0; guard < N * N * 25; guard++) {
@@ -752,7 +1284,79 @@ export function gradePuzzle(puzzle: Cell[][], ctx: GradeCtx, tierCap = 9): Grade
     if (empty === 0) return { solved: true, tier: Math.max(1, maxTier), hardest, steps: stepsUsed, cost: costUsed, grid: grid.map((row) => [...row]) };
     if (!steps.some((f) => f())) break;
   }
-  return { solved: false, tier: TECHNIQUE_TIER.guess, hardest: 'guess', steps: stepsUsed, cost: costUsed };
+  return {
+    solved: false, tier: TECHNIQUE_TIER.guess, hardest: 'guess', steps: stepsUsed, cost: costUsed,
+    partial: { grid: grid.map((row) => [...row]), tier: Math.max(1, maxTier), hardest },
+  };
+}
+
+/**
+ * 🔴 ТУМАН ВОЙНЫ — МЕРА ПОД ТУМАНОМ (пункт 11 цепочки «14 усложнений», задача efb63126).
+ *
+ * Приёмка карточки: «оценщик видит только открытое — иначе туман превращает логику в угадайку».
+ * Поэтому решатель идёт кусками: видит подсказки только в открытых клетках (и свои выводы); ставит
+ * всё, что может вывести (`gradePuzzle`); каждая цифра в ОТКРЫТОЙ клетке — напечатанная или
+ * поставленная — открывает соседей крестом (`fogRevealed`), там появляются новые подсказки, и круг
+ * повторяется. Вывод
+ * в клетке под туманом засчитывается как знание (игрок держит его в голове), но тумана не
+ * расчищает: поставить туда цифру нельзя. Доска решена, когда известна вся и открыта вся. Ступень —
+ * наибольшая по кругам, длина и цена — сумма по кругам.
+ *
+ * Почему открывают и подсказки, а не только ходы игрока: иначе лишняя подсказка МЕШАЕТ — в клетке,
+ * где игрок поставил бы цифру и расчистил туман, стоит напечатанная и ничего не расчищает. Мера
+ * тогда не монотонна, и копание с полной доски не стартует вовсе: замер 07.10, 72 доски из 72
+ * ушли запасным. С правилом «любая видимая цифра» лишняя подсказка только помогает.
+ */
+export function gradeFog(puzzle: Cell[][], open0: number[][], ctx: GradeCtx, tierCap = 9): Grade & { rounds: number } {
+  const N = ctx.N;
+  const open = open0.map((row) => row.map((v) => v !== 0));
+  const known = puzzle.map((row, r) => row.map((v, c) => (open[r][c] ? v : 0)));
+  let tier = 0, steps = 0, cost = 0, rounds = 0;
+  let hardest: Technique = 'naked_single';
+  // Каскад — той же `fogRevealed`, что и у экранов: выводы решателя верны по построению, поэтому
+  // сетка знаний сама себе решение. Открывшиеся подсказки ложатся в знание, и круг повторяется.
+  const spread = () => {
+    let any = false;
+    for (;;) {
+      const o = fogRevealed(open0, known, known);
+      let more = false;
+      for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+        if (!o[r][c] || open[r][c]) continue;
+        open[r][c] = true;
+        more = any = true;
+        if (puzzle[r][c] !== 0 && known[r][c] === 0) known[r][c] = puzzle[r][c];
+      }
+      if (!more) return any;
+    }
+  };
+  spread();
+  // Круг — самой простой ступенью, что даёт хоть одну цифру; после неё сразу каскад. Игрок не
+  // лезет в тяжёлый приём, пока поставленная цифра может открыть новые подсказки, — иначе мера
+  // завышает ступень (замер 07.10: до этого правила «под туманом строже» 70 из 72 при ступени 7
+  // там, где хватало расчистки).
+  for (; rounds < N * N; rounds++) {
+    let moved = false;
+    for (let t = 1; t <= tierCap && !moved; t++) {
+      const g = gradePuzzle(known, ctx, t);
+      const after = g.solved ? g.grid : g.partial?.grid;
+      if (!after) return { solved: false, tier: TECHNIQUE_TIER.guess, hardest: 'guess', steps, cost, rounds };   // противоречие
+      for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+        if (known[r][c] !== 0 || after[r][c] === 0) continue;
+        known[r][c] = after[r][c];
+        moved = true;
+      }
+      if (!moved) continue;
+      steps += g.steps; cost += g.cost;
+      const gt = g.solved ? g.tier : g.partial!.tier;
+      if (gt > tier) { tier = gt; hardest = g.solved ? g.hardest : g.partial!.hardest; }
+    }
+    if (!moved) break;
+    spread();
+  }
+  const solved = known.every((row) => row.every((v) => v !== 0)) && open.every((row) => row.every(Boolean));
+  return solved
+    ? { solved: true, tier: Math.max(1, tier), hardest, steps, cost, rounds, grid: known.map((row) => [...row]) }
+    : { solved: false, tier: TECHNIQUE_TIER.guess, hardest: 'guess', steps, cost, rounds };
 }
 
 function combos(arr: number[], k: number): number[][] {
@@ -871,6 +1475,54 @@ const VARIANT_TIER_CEILING: Partial<Record<Variant, number>> = {
    */
   jigsaw: 6, thermocage: 5,
   /**
+   * Немецкий шёпот (93–96) — ЗАМЕР 01.10.2026 боевым путём, по 10 досок: 50 пустых → 4 ×10,
+   * 54 → 4 ×10, 58 → 4 ×4 и 5 ×6; шестёрки ноль. Потолок 5.
+   */
+  whisper: 5,
+  /** Ренбан (97–100) — ЗАМЕР 01.10.2026, выгрузка 48 досок боевым путём: 4 ×45, 5 ×3; шестёрки
+   *  ноль. Без линий не решается 0 из 48, под потолком 3 — 1 из 48. Потолок 5. */
+  renban: 5,
+  /** Линии равных сумм (101–104) — ЗАМЕР 01.10.2026, выгрузка 48 досок: 4 ×44, 5 ×4; шестёрки
+   *  ноль. Без линий не решается 0 из 48, под потолком 3 — 0 из 48. Потолок 5. */
+  regionsum: 5,
+  /** Палиндром (105–108) — ЗАМЕР 01.10.2026, выгрузка 48 досок: 4 ×46, 5 ×2; шестёрки ноль. Без
+   *  линий не решается 0 из 48, под потолком 3 — 2 из 48. Потолок 5. */
+  palindrome: 5,
+  /** «Между концами» (109–112) — ЗАМЕР 01.10.2026, выгрузка 48 досок: 4 ×45, 5 ×3; шестёрки ноль.
+   *  Без линий не решается 0 из 48, под потолком 3 — 0 из 48. Потолок 5. */
+  between: 5,
+  /** Lockout (113–116) — ЗАМЕР 01.10.2026, выгрузка 48 досок: 4 ×44, 5 ×4; шестёрки ноль. Без
+   *  линий не решается 0 из 48, под потолком 3 — 0 из 48. Потолок 5. */
+  lockout: 5,
+  /** XV (117–120) — ЗАМЕР 01.10.2026, выгрузка 48 досок: полная мера ставит 4 всем 48, но под
+   *  потолком 3 решаются 39 из 48 — с отрицательным условием (нет знака — сумма не 5 и не 10)
+   *  знаки работают через известных соседей, а это срез «даром», ступень 4 завышена. Решение
+   *  лестницы 02.10 (996f56dc): обещание = замер, потолок 3; отрицательное условие остаётся. */
+  xv: 3,
+  /** Аргайл (план — 177–180) — ЗАМЕР 07.10.2026 боевым путём (`generateLogical`, полоса 4..6), по 8
+   *  досок на 50/54/58 пустых: ступени 1,4,1,1,4,4,3,4 · 2,1,2,4,4,4,2,5 · 4,3,2,2,3,3,4,5. Четвёрка —
+   *  на 4/3/2 досках из 8, пятёрка — по одной. Без узора не решается 0 из 24; под потолком 3 — 13 из
+   *  24: диагонали узора режут кандидатов как сосед, своего приёма у правила нет (как у XV).
+   *  Потолок 4 — наибольшая ступень, до которой дотянулись хотя бы две доски из восьми. */
+  argyle: 4,
+  /** Малый киллер (план — 181–184) — ЗАМЕР 07.10.2026 боевым путём (`generateLogical`, полоса 4..6,
+   *  10 диагоналей), по 8 досок на 50/56/62 пустых: ступень 4 — 22 из 24, пятёрка — 2 (одна на 56,
+   *  одна на 62). Без сумм не решается 0 из 24, под потолком 3 — 0 из 24: приём `little_killer_sum`
+   *  нужен почти каждой доске (самый трудный приём у 21 из 24). Все 24 — логическим путём, 0,3–1,2 с.
+   *  Потолок 4: пятёрка ни на одной толщине не набрала двух досок из восьми. */
+  littlekiller: 5,
+  /** X-суммы (план — 185–188) — ЗАМЕР 07.10.2026 боевым путём (`generateLogical`, полоса 4..6, 12 сумм
+   *  из 18), по 8 досок на 50/56/62 пустых: ступень 4 у 24 из 24, приём `xsum_clue` — самый трудный у
+   *  всех 24; без сумм не решается 0 из 24, под потолком 3 — 1 из 24; все копаются до 64 пустых,
+   *  0,15 с на доску. Потолок 4. Рычаг трудности внутри блока — лимит копания `digCap` (64 → 70: цена
+   *  129 → 151), а НЕ число показанных сумм: 12 → 6 сумм — цена 125 → 115 (замеры 07.10). */
+  xsums: 5,
+  /** Шифр (план — 133+) — ЗАМЕР 07.10.2026 боевым путём (`generateLogical`, полоса 4..6, 5 цифр шифруются,
+   *  половина их подсказок — буквами), по 8 досок при лимите 64 и 70: ступень 4 у 16 из 16, приём
+   *  `cipher_code` — самый трудный у всех; без букв не решается 0 из 16, под потолком 3 — 0 из 16;
+   *  единственны 16 из 16; пустых ~54, букв ~7 (3–4 вида). Потолок 4. */
+  cipher: 4,
+  /**
    * Комбо-пояс 81–92 — ЗАМЕР 29.08.2026 (combo-tiers.measure, по 15 боевых досок):
    * шестёрка у всех трёх пар — 0–1 из 15 (не массово), пятёрка достижима у всех
    * (sandparity 7/15, killerdiag 8/15 на верхних уровнях). Потолок 5.
@@ -907,6 +1559,14 @@ export function targetTier(level: number): { min: number; max: number } {
    * лестницы банка, а не полоса техник; рамка держится плоской вершиной, чтобы
    * пила четвёрок не рисовала ложное «сложность упала» между уровнями поясов.
    */
+  /**
+   * 🔴 121+ — ПЕРВАЯ СТУПЕНЬ БЛОКА НОВОГО ПРАВИЛА — ВХОД, ПОЛОСА 3..4 (sudoku-levels, 07.10.2026).
+   * План уровней: «первая ступень блока — лёгкая, адаптация к правилу». После приёма ступени 5
+   * (sum_exact, #269) малый киллер и X-суммы на общей полосе комбо-пояса брали пятёрку уже на
+   * первой ступени — входа в правило не было. Аргайлу (потолок 4) это та же полоса, что и была.
+   * 81–120 не трогаем: они опубликованы, их доски выгружены по старой полосе.
+   */
+  if (lv >= 121 && bandPos(lv) === 0) return { min: 3, max: 4 };
   if (lv >= 81) {
     // Комбо-пояс (X4): полоса растёт внутри четвёрки, потолок — по замеру пары
     // (VARIANT_TIER_CEILING ниже; scripts/measure/combo-tiers.measure.ts (лаборатория, 6000 мс) и combo-tiers-combat.measure.ts (боевой путь экрана)).
@@ -988,6 +1648,9 @@ export function markerDensity(level: number, variant: Variant): number {
    *     полоса 2..3 при 0.19 дала 0 попаданий из 8 (сплошные единицы) — копатель
    *     откатывал каждое выкалывание, будившее цепочку (tier > max).
    */
+  // Лестница (уровни 9+, блок неравенств 153+ по письму 2d8320ed): доля по месту в четвёрке блока —
+  // от щедрой 0.30 к скупой 0.15, тем же приёмом «техника та же, мест меньше». Ключи 1..8 — режим.
+  if (variant === 'unequal' && level > 8) return [0.30, 0.24, 0.19, 0.15][bandPos(level)] as number;
   if (variant === 'unequal') return [0.15, 0.15, 0.30, 0.30, 0.24, 0.24, 0.19, 0.19][Math.min(7, Math.max(0, level - 1))];
   return 1;
 }
@@ -1080,7 +1743,7 @@ export type GeneratedPuzzle = ReturnType<typeof generatePuzzle>;
  * refilter; если конкретная попытка не укладывается в бюджет, generateLogical всё
  * равно сохраняет прежний безопасный fallback через проверку единственности.
  */
-const LOGIC_VARIANTS: readonly Variant[] = ['none', 'diagonal', 'antiknight', 'hyper', 'antiking', 'evenodd', 'kropki', 'sandwich', 'jigsaw', 'nonconsec', 'thermo', 'arrow', 'thermocage', 'sandparity', 'thermoknight', 'killerdiag'];
+const LOGIC_VARIANTS: readonly Variant[] = ['none', 'diagonal', 'antiknight', 'hyper', 'antiking', 'evenodd', 'kropki', 'sandwich', 'jigsaw', 'nonconsec', 'thermo', 'arrow', 'thermocage', 'sandparity', 'thermoknight', 'killerdiag', 'whisper', 'renban', 'regionsum', 'palindrome', 'between', 'lockout', 'xv', 'argyle', 'littlekiller', 'xsums', 'cipher', 'killer', 'towers', 'unequal', 'wordoku', 'animals'];
 
 /**
  * Сколько раз проходим доску, пытаясь убрать ещё клетку. Больше трёх бюджет обычно
@@ -1102,6 +1765,17 @@ const BUILD_WAIT_MS = 6000;
 
 /** Потолок пустых клеток на 9×9: доска в 74 дырки решается, но заполнять её долго. */
 const MAX_BLANKS_9 = 64;
+
+/**
+ * Сколько клеток ступени МОЖНО выкопать: на новичковых — `blanksCap`, у 9×9 дальше — лимит
+ * ступени `digCap` (levelConfig) или общий, у других сеток — вся доска. Одна формула на всех,
+ * кто копает: копание логикой, туман и подъём к полу (`digToFloor`). Пока формула жила в двух
+ * местах, третий копатель — подъём к полу — о ней не знал и пробивал лимит (раздел уровней
+ * 08.10: киллер 163/164 при digCap 70 — 71, 73 и 78 пустых).
+ */
+export function digLimit(level: number, blanksCap: number, N: number, digCap?: number): number {
+  return level <= 8 ? blanksCap : (N === 9 ? (digCap ?? MAX_BLANKS_9) : N * N);
+}
 
 /**
  * РЕШАТЕЛЬ ПРИШЁЛ К ТОЙ ЖЕ ДОСКЕ, ЧТО И ГЕНЕРАТОР?
@@ -1134,7 +1808,7 @@ export function solvedSameBoard(grade: Grade, solution: Cell[][]): boolean {
 function gradeOf(gen: GeneratedPuzzle, N: number, BR: number, BC: number, variant: Variant): Grade {
   return gradePuzzle(gen.puzzle, {
     N, BR, BC, variant, regions: gen.regions, thermo: gen.thermo, arrow: gen.arrow, cages: gen.cages,
-    parity: gen.parity, kropki: gen.kropki, sandwich: gen.sandwich,
+    parity: gen.parity, kropki: gen.kropki, sandwich: gen.sandwich, whisper: gen.whisper, renban: gen.renban, regionsum: gen.regionsum, palindrome: gen.palindrome, between: gen.between, lockout: gen.lockout, xv: gen.xv, littlekiller: gen.littlekiller, xsums: gen.xsums, cipher: gen.cipher,
     // ⚠️ Знаки и краевые подсказки ОБЯЗАНЫ доходить до оценщика. До 27.08.2026 их
     // здесь не было, и запасной путь оценивал unequal/towers вслепую: та же доска
     // давала «ступень 2, hidden_single» без карты и «ступень 4, unequal_chain» с ней.
@@ -1147,10 +1821,16 @@ function gradeOf(gen: GeneratedPuzzle, N: number, BR: number, BC: number, varian
 /** Одна попытка копания от логики. Возвращает null, если вариант не по этому пути. */
 function digByLogic(
   level: number, blanksCap: number, N: number, BR: number, BC: number, variant: Variant, deadline: number,
-  tierMax?: number,
+  tierMax?: number, digCap?: number,
 ): { gen: GeneratedPuzzle; grade: Grade; dug: number } | null {
-  const base = generatePuzzle(0, N, BR, BC, variant);   // blanks=0 → только решение и структура варианта
+  // Неравенства: знаки прорежены ДО копания (overlayThinner) — полный набор из 144 решает доску сам
+  // (замер 26.08: 58 пустых при всех знаках). Копаем тем, что увидит человек.
+  const base = generatePuzzle(0, N, BR, BC, variant, variant === 'unequal' ? overlayThinner(level, variant, N) : undefined);   // blanks=0 → только решение и структура варианта
   const sol = base.solution;
+  // Шифр: копаем по цифрам, а мерим задачу игрока — подсказки на клетках-буквах там буквы. Сетка
+  // букв — с полной доски (blanks=0: каждая клетка-буква ещё подсказка).
+  const letters = base.cipher ?? null;
+  const view = (p: Cell[][]) => (letters ? encodeCipher(p, letters) : null);
   const puzzle = sol.map((row) => [...row]);
   // Потолок техники приходит СНАРУЖИ, когда партия идёт по дороге сложности
   // (services/sudoku-roads): у «полегче» он на ступень ниже, у «пожёстче» — выше.
@@ -1169,7 +1849,7 @@ function digByLogic(
   // увидит человек — та же дисциплина, что у сэндвича и кропки.
   const unequal = (base as { unequal?: UnequalMap }).unequal;
   const towers = (base as { towers?: TowersMap }).towers;
-  const ctx: GradeCtx = { N, BR, BC, variant, regions: base.regions, thermo: base.thermo, arrow: base.arrow, cages: base.cages, parity, kropki, sandwich, unequal, towers };
+  const ctx: GradeCtx = { N, BR, BC, variant, regions: base.regions, thermo: base.thermo, arrow: base.arrow, cages: base.cages, parity, kropki, sandwich, unequal, towers, whisper: base.whisper, renban: base.renban, regionsum: base.regionsum, palindrome: base.palindrome, between: base.between, lockout: base.lockout, xv: base.xv, littlekiller: base.littlekiller, xsums: base.xsums };
 
   // Лимит пустых держим только на новичковых уровнях, чтобы не пугать доской в дырках.
   // Дальше глубину задаёт ЛОГИКА. Старый лимит (58 к 29-му) как раз и упирался в потолок,
@@ -1183,7 +1863,8 @@ function digByLogic(
   // показала обратное. Сэндвич — вариант-ОВЕРЛЕЙ: его подсказки ДОБАВЛЯЮТ игроку сведения,
   // значит доске нужно МЕНЬШЕ подсказок при равной трудности, а лимит был скопирован с
   // классики, где такой прибавки нет.
-  const cap = level <= 8 ? blanksCap : (N === 9 ? MAX_BLANKS_9 : N * N);
+  // Лимит 9×9 — поле ступени `digCap` (levelConfig), иначе общий: ось трудности внутри блока.
+  const cap = digLimit(level, blanksCap, N, digCap);
   let dug = 0;
   /**
    * 🔴 ПРОХОДОВ НЕСКОЛЬКО, А НЕ ОДИН. Клетка, которую нельзя было убрать в начале
@@ -1202,7 +1883,8 @@ function digByLogic(
       const keep = puzzle[r][c];
       puzzle[r][c] = 0;
       if (parity) parity[r][c] = Math.random() < dens ? (sol[r][c] % 2 === 0 ? 1 : 2) : 0;
-      const g = gradePuzzle(puzzle, ctx);
+      const enc = view(puzzle);
+      const g = enc ? gradePuzzle(enc.puzzle, { ...ctx, cipher: enc.cipher }) : gradePuzzle(puzzle, ctx);
       // Сеть безопасности: решатель обязан прийти К ТОЙ ЖЕ доске (см. solvedSameBoard).
       if (!g.solved || g.tier > max || !solvedSameBoard(g, sol)) { puzzle[r][c] = keep; if (parity) parity[r][c] = 0; }
       else { dug++; removed++; }
@@ -1213,6 +1895,8 @@ function digByLogic(
   // это нормальное судоку; гнать её на дорогой путь ради лишних клеток не стоит: замер
   // показал 4–20 с на пазл для nonconsec именно там.
   if (dug < Math.min(cap, blanksCap, 30)) return null;
+  const enc = view(puzzle);
+  if (enc) return { gen: { ...base, puzzle: enc.puzzle, cipher: enc.cipher }, grade: gradePuzzle(enc.puzzle, { ...ctx, cipher: enc.cipher }), dug };
   const gen: GeneratedPuzzle = { ...base, puzzle, parity, kropki, sandwich };
   return { gen, grade: gradePuzzle(puzzle, ctx), dug };
 }
@@ -1335,12 +2019,15 @@ export function easeToCeiling(
  */
 export function digToFloor(
   gen: GeneratedPuzzle, N: number, BR: number, BC: number, variant: Variant,
-  min: number, max: number, deadline?: number,
+  min: number, max: number, deadline?: number, cap = N * N,
 ): { gen: GeneratedPuzzle; grade: Grade; dug: number } {
   let grade = gradeOf(gen, N, BR, BC, variant);
   if (!grade.solved || grade.tier >= min) return { gen, grade, dug: 0 };
 
   const puzzle = gen.puzzle.map((row) => [...row]);
+  // 🔴 ЛИМИТ КОПАНИЯ СТУПЕНИ (`cap`, см. `digLimit`) держит и подъём к полу: без него доска
+  // ступени уходила глубже своего digCap (киллер 163/164, замер раздела уровней 08.10).
+  let blanks = puzzle.flat().filter((v) => v === 0).length;
   /**
    * Порядок обхода перемешан: идти по клеткам подряд значит выедать доску сверху
    * вниз и получать однобокие расстановки. Тот же довод, что и в `easeToCeiling`.
@@ -1351,6 +2038,7 @@ export function digToFloor(
   let dug = 0;
   for (const idx of filled) {
     if (deadline !== undefined && Date.now() > deadline) break;
+    if (blanks >= cap) break;
     const r = Math.floor(idx / N), c = idx % N;
     const было = puzzle[r][c];
     puzzle[r][c] = 0;
@@ -1368,6 +2056,7 @@ export function digToFloor(
      */
     if (!пробная.solved || пробная.tier > max || пробная.tier < grade.tier) { puzzle[r][c] = было; continue; }
     dug += 1;
+    blanks += 1;
     grade = пробная;
     if (grade.tier >= min) return { gen: next, grade, dug };
   }
@@ -1764,10 +2453,240 @@ export function лучшеПодПолосу(
   return кандидат.grade.cost > текущий.grade.cost;
 }
 
+/**
+ * Что открыто при данной сетке: окна старта плюс каскад — каждая ВЕРНАЯ цифра в открытой клетке
+ * (подсказка или ход игрока) расчищает соседей КРЕСТОМ: сверху, снизу, слева, справа. Неверная
+ * цифра не расчищает ничего. Состояние тумана выводится из сетки целиком — хранить его в снимке
+ * партии не нужно.
+ *
+ * 🔴 Почему крест, а не 3×3, как в жанре. Там туман прячет условия (клетки киллера, термометры), а
+ * подсказок почти нет; у нас под туманом классика с ~29 подсказками, и расчистка 3×3 по цепочке
+ * подсказок открывает почти всё сразу. Замер 07.10 парой (та же доска без тумана и под ним): 3×3 —
+ * на старте открыто 63–69 клеток из 81, туман строже ступенью на 6–10 досках из 12; крест — открыто
+ * ≈ 50, строже на 28 из 36 (ступени 1–3 → 2–5), цена +26–40 %, сборка ≈ 2 с. Окна старта — 3×3.
+ */
+export function fogRevealed(fog0: number[][], grid: Cell[][], solution: Cell[][]): boolean[][] {
+  const N = fog0.length;
+  const open = fog0.map((row) => row.map((v) => v !== 0));
+  let more = true;
+  while (more) {
+    more = false;
+    for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+      if (!open[r][c] || grid[r][c] === 0 || grid[r][c] !== solution[r][c]) continue;
+      for (let dr = -1; dr <= 1; dr++) for (let dc = -1; dc <= 1; dc++) {
+        if (dr !== 0 && dc !== 0) continue;
+        const rr = r + dr, cc = c + dc;
+        if (rr >= 0 && rr < N && cc >= 0 && cc < N && !open[rr][cc]) { open[rr][cc] = true; more = true; }
+      }
+    }
+  }
+  return open;
+}
+
+/** Окон 3×3, открытых на старте тумана (ступень может передать своё — `fogSeeds`). */
+export const FOG_SEEDS = 2;
+
+/** Открытый старт тумана: окна 3×3 вокруг клеток-семян. */
+export function fogOpen(seeds: [number, number][], N: number): number[][] {
+  const open = Array.from({ length: N }, () => Array(N).fill(0));
+  for (const [r, c] of seeds) for (let dr = -1; dr <= 1; dr++) for (let dc = -1; dc <= 1; dc++) {
+    const rr = r + dr, cc = c + dc;
+    if (rr >= 0 && rr < N && cc >= 0 && cc < N) open[rr][cc] = 1;
+  }
+  return open;
+}
+
+/**
+ * Доска тумана — КОПАЕТСЯ ПОД ТУМАНОМ. Первый вариант брал готовую логическую доску и открывал
+ * окна, пока мера под туманом не дойдёт до конца; замер 07.10 (18+18 досок): 34 ушли запасным, у
+ * двух дошедших на старте открыто 65 клеток из 81 — тумана нет. Причина устройства: доска,
+ * выкопанная до предела для полного обзора, держится на подсказках по всей сетке, и из окна их не
+ * видно. Поэтому порядок обратный: сперва окна (FOG_SEEDS штук 3×3 со случайным центром не у
+ * края), потом копание с мерой `gradeFog` — клетка уходит, только если доска по-прежнему решается
+ * логикой, ВИДЯ ЛИШЬ ОТКРЫТОЕ (приёмка карточки efb63126). Решилась логикой — значит и решение
+ * одно: каждый шаг вынужден, как у `digByLogic`.
+ */
+function digFog(
+  level: number, blanksCap: number, N: number, BR: number, BC: number, deadline: number,
+  tierMax: number, digCap: number | undefined, seedsN: number,
+): { gen: GeneratedPuzzle; grade: Grade; dug: number } | null {
+  const base = generatePuzzle(0, N, BR, BC, 'none');
+  const sol = base.solution;
+  const puzzle = sol.map((row) => [...row]);
+  const ctx: GradeCtx = { N, BR, BC, variant: 'none' };
+  const seeds: [number, number][] = Array.from({ length: seedsN }, () => [1 + Math.floor(Math.random() * (N - 2)), 1 + Math.floor(Math.random() * (N - 2))]);
+  const open = fogOpen(seeds, N);
+  const cap = digLimit(level, blanksCap, N, digCap);
+  let dug = 0;
+  for (let pass = 0; pass < DIG_PASSES; pass++) {
+    let removed = 0;
+    for (const p of shuffle(Array.from({ length: N * N }, (_, i) => i))) {
+      if (dug >= cap || Date.now() > deadline) break;
+      const r = Math.floor(p / N), c = p % N;
+      if (puzzle[r][c] === 0) continue;
+      const keep = puzzle[r][c];
+      puzzle[r][c] = 0;
+      const g = gradeFog(puzzle, open, ctx, tierMax);
+      if (!g.solved || g.tier > tierMax || !solvedSameBoard(g, sol)) puzzle[r][c] = keep;
+      else { dug++; removed++; }
+    }
+    if (removed === 0 || dug >= cap || Date.now() > deadline) break;
+  }
+  if (dug < Math.min(cap, blanksCap, 30)) return null;
+  return { gen: { ...base, puzzle, fog: open }, grade: gradeFog(puzzle, open, ctx, tierMax), dug };
+}
+
+/**
+ * Заходы `digFog` до конца бюджета; берётся доска в полосе ступени с самым глубоким копанием.
+ * Ни одной — обычная логическая доска без тумана, `fellBack` (туман открыт целиком).
+ */
+function generateFog(
+  level: number, blanksCap: number, N: number, BR: number, BC: number,
+  opts: { budgetMs?: number; tier?: { min: number; max: number }; digCap?: number; fogSeeds?: number },
+): { gen: GeneratedPuzzle; grade: Grade; dug: number; fellBack: boolean; budgetSpent: boolean } {
+  const band = opts.tier ?? targetTier(level);
+  const deadline = Date.now() + (opts.budgetMs ?? 2200);
+  let best: { gen: GeneratedPuzzle; grade: Grade; dug: number } | null = null;
+  const score = (x: { grade: Grade; dug: number }) => (x.grade.tier >= band.min ? 1000 : x.grade.tier * 100) + x.dug;
+  do {
+    const r = digFog(level, blanksCap, N, BR, BC, deadline, band.max, opts.digCap, opts.fogSeeds ?? FOG_SEEDS);
+    if (r && (!best || score(r) > score(best))) best = r;
+  } while (Date.now() < deadline && !(best && best.grade.tier >= band.min));
+  if (best) return { ...best, fellBack: false, budgetSpent: Date.now() >= deadline };
+  const base = generateLogical(level, blanksCap, N, BR, BC, 'none', opts);
+  return { ...base, gen: { ...base.gen, fog: Array.from({ length: N }, () => Array(N).fill(1)) }, fellBack: true };
+}
+
+/**
+ * 🔴 САМОСБОРКА — МЕРА (пункт 12, задача 6cee3610). Сначала разбиение: подсказки границ и
+ * напечатанные цифры (`solvePartition`, перенос решателя «Палисада» + свой вывод на цифрах); не
+ * выведено целиком — доска не решается. Потом цифры — мерой кривых блоков по выведенным областям.
+ * Ступень — не ниже 4 (`region_border`), длина и цена — сумма двух слоёв.
+ */
+export function gradeChaos(puzzle: Cell[][], clues: number[][], N: number, BR: number, BC: number, tierCap = 9): Grade & { regions: number[][] | null } {
+  const pt = TECHNIQUE_TIER.region_border;
+  const part = tierCap >= pt ? solvePartition(clues, puzzle, N) : { regions: null, passes: 0, byDigits: 0 };
+  if (!part.regions) return { solved: false, tier: TECHNIQUE_TIER.guess, hardest: 'guess', steps: part.passes, cost: part.passes * pt, regions: null };
+  const g = gradePuzzle(puzzle, { N, BR, BC, variant: 'jigsaw', regions: part.regions }, tierCap);
+  const steps = g.steps + part.passes, cost = g.cost + part.passes * pt;
+  if (!g.solved) return { ...g, steps, cost, regions: part.regions };
+  return { ...g, tier: Math.max(g.tier, pt), hardest: g.tier > pt ? g.hardest : 'region_border', steps, cost, regions: part.regions };
+}
+
+/**
+ * Доска самосборки: логическая доска кривых блоков (`generateLogical` 'jigsaw'), её разбиение
+ * прячется, взамен — подсказки границ. Снимаются все, без которых разбиение по-прежнему выводится
+ * (как у `palisade.c`: «strip away unnecessary clues»). Решатель «Палисада» не всесилен — при
+ * всех подсказках он выводит разбиение у 13 досок из 18 (замер 07.10), поэтому заходы повторяются,
+ * как и у Тэтхэма. Не вышло в бюджет — обычная доска, `fellBack`.
+ */
+function generateChaos(
+  level: number, blanksCap: number, N: number, BR: number, BC: number,
+  opts: { budgetMs?: number; tier?: { min: number; max: number }; digCap?: number },
+): { gen: GeneratedPuzzle; grade: Grade; dug: number; fellBack: boolean; budgetSpent: boolean } {
+  const deadline = Date.now() + (opts.budgetMs ?? 2200);
+  for (let attempt = 0; attempt < 24; attempt++) {
+    const left = deadline - Date.now();
+    if (attempt > 0 && left <= 0) break;
+    const base = generateLogical(level, blanksCap, N, BR, BC, 'jigsaw', { ...opts, budgetMs: Math.max(400, left) });
+    const regions = base.gen.regions;
+    if (!regions || base.fellBack) continue;
+    const puzzle = base.gen.puzzle;
+    const all = borderCounts(regions, N);
+    const first = solvePartition(all, puzzle, N);
+    if (!first.regions || !samePartition(first.regions, regions)) continue;
+    const clues = all.map((row) => [...row]);
+    for (const p of shuffle(Array.from({ length: N * N }, (_, i) => i))) {
+      const r = Math.floor(p / N), c = p % N, keep = clues[r][c];
+      clues[r][c] = -1;
+      const s = solvePartition(clues, puzzle, N);
+      if (!s.regions || !samePartition(s.regions, regions)) clues[r][c] = keep;
+    }
+    const { regions: _hidden, ...rest } = base.gen;
+    void _hidden;   // разбиение игроку не показывается — его выводят
+    return { gen: { ...rest, chaos: clues }, grade: gradeChaos(puzzle, clues, N, BR, BC), dug: base.dug, fellBack: false, budgetSpent: Date.now() >= deadline };
+  }
+  const plain = generateLogical(level, blanksCap, N, BR, BC, 'none', opts);
+  return { ...plain, fellBack: true };
+}
+
+/**
+ * 🔴 КЛЕТКИ ШРЁДИНГЕРА — МЕРА (пункт 13, задача f46c796c). Доска — коды `encodeS` (цифры 0–9, пары).
+ * Решатель — точное покрытие (sudoku-schrodinger.ts): только вынужденные шаги. Простые шаги стоят
+ * как одиночки, шаги про пару — ступень 4; не дошёл — доска не решается логикой.
+ */
+export function gradeSchrodinger(puzzle: number[][], tierCap = 9): Grade {
+  const l = logicS(decodeGridS(puzzle));
+  const pt = TECHNIQUE_TIER.schrodinger_cell;
+  if (!l.solved || (l.pairSteps > 0 && tierCap < pt)) {
+    return { solved: false, tier: TECHNIQUE_TIER.guess, hardest: 'guess', steps: l.steps, cost: l.steps };
+  }
+  const plain = l.steps - l.pairSteps;
+  return {
+    solved: true, tier: l.pairSteps ? pt : 2, hardest: l.pairSteps ? 'schrodinger_cell' : 'hidden_single',
+    steps: l.steps, cost: plain * TECHNIQUE_TIER.hidden_single + l.pairSteps * pt, grid: encodeGridS(l.grid!),
+  };
+}
+
+/**
+ * 🔴 УДВОИТЕЛИ И ОТРИЦАТЕЛЬНЫЕ — МЕРА (пункт 13, типы 2 и 3). Решатель — точное покрытие с суммами
+ * групп сбоку (sudoku-modifiers.ts): вынужденные шаги — как одиночки, вывод на взвешенных суммах —
+ * ступень 4. Не дошёл до конца — доска не решается логикой.
+ */
+export function gradeModifiers(puzzle: Cell[][], cages: CageMap, kind: ModKind, tierCap = 9): Grade {
+  const l = logicM(puzzle, cages, kind);
+  const pt = TECHNIQUE_TIER.modifier_sum;
+  if (!l.solved || (l.cageSteps > 0 && tierCap < pt)) {
+    return { solved: false, tier: TECHNIQUE_TIER.guess, hardest: 'guess', steps: l.steps, cost: l.steps };
+  }
+  const plain = l.steps - l.cageSteps;
+  return {
+    solved: true, tier: l.cageSteps ? pt : 2, hardest: l.cageSteps ? 'modifier_sum' : 'hidden_single',
+    steps: l.steps, cost: plain * TECHNIQUE_TIER.hidden_single + l.cageSteps * pt, grid: l.state!.digits,
+  };
+}
+
+/** Доска удвоителей/отрицательных: заходы, пока группы не выведут нарушителей (обычно с первого). */
+function generateModifiers(
+  kind: ModKind, opts: { digCap?: number },
+): { gen: GeneratedPuzzle; grade: Grade; dug: number; fellBack: boolean; budgetSpent: boolean } {
+  for (let attempt = 0; attempt < 20; attempt++) {
+    const b = generateBoardM(kind, Math.random, opts.digCap ?? 81);
+    if (!b) continue;
+    return {
+      gen: { puzzle: b.puzzle, solution: b.solution.digits, cages: b.cages } as GeneratedPuzzle,
+      grade: gradeModifiers(b.puzzle, b.cages, kind), dug: b.puzzle.flat().filter((v) => v === 0).length, fellBack: false, budgetSpent: false,
+    };
+  }
+  throw Error(`доска «${kind}» не собралась за 20 заходов`);
+}
+
+/** Доска Шрёдингера: полная сетка перебором, задача — снятием клеток, пока мера доходит до той же сетки. */
+function generateSchrodinger(
+  N: number, opts: { digCap?: number },
+): { gen: GeneratedPuzzle; grade: Grade; dug: number; fellBack: boolean; budgetSpent: boolean } {
+  const sol = generateSolutionS(Math.random);
+  const puzzle = digS(sol, Math.random, opts.digCap ?? N * N);
+  const enc = encodeGridS(puzzle);
+  return {
+    gen: { puzzle: enc, solution: encodeGridS(sol) } as GeneratedPuzzle,
+    grade: gradeSchrodinger(enc), dug: enc.flat().filter((v) => v === 0).length, fellBack: false, budgetSpent: false,
+  };
+}
+
 export function generateLogical(
   level: number, blanksCap: number, N: number, BR: number, BC: number, variant: Variant,
-  opts: { budgetMs?: number; tier?: { min: number; max: number } } = {},
+  opts: { budgetMs?: number; tier?: { min: number; max: number }; digCap?: number; fogSeeds?: number; logic?: boolean } = {},
 ): { gen: GeneratedPuzzle; grade: Grade; dug: number; fellBack: boolean; budgetSpent: boolean } {
+  // Лимит копания ступени (`digCap` в levelConfig); явное число — для замеров и гейтов. Берётся ДО
+  // развилок: свои генераторы тумана, самосборки, Шрёдингера и нарушителей его тоже слушают — до 08.10
+  // им доходил только явный opts.digCap, и поле ступени у этих правил молча не действовало.
+  const digCap = opts.digCap ?? levelConfig(level).digCap;
+  const routed = digCap === undefined ? opts : { ...opts, digCap };
+  if (variant === 'fog') return generateFog(level, blanksCap, N, BR, BC, routed);
+  if (variant === 'chaos') return generateChaos(level, blanksCap, N, BR, BC, routed);
+  if (variant === 'schrodinger') return generateSchrodinger(N, routed);
+  if (variant === 'doublers' || variant === 'negators') return generateModifiers(variant, routed);
   const budget = opts.budgetMs ?? 2200;
   const until = Date.now() + budget;
   /**
@@ -1782,10 +2701,12 @@ export function generateLogical(
     : monotonicBandForLevel(level);              // лестница обещает не меньше, чем уровнем раньше
   const dist = (t: number) => (t < min ? min - t : t > max ? t - max : 0);
 
-  if (LOGIC_VARIANTS.includes(variant)) {
+  // logic: false — путь как до логического (режим «Неравенства» держит свою мини-лестницу им: 08.10
+  // небоскрёбы и неравенства ушли в LOGIC_VARIANTS ради лестницы, а режим меняться не должен).
+  if (opts.logic !== false && LOGIC_VARIANTS.includes(variant)) {
     let best: { gen: GeneratedPuzzle; grade: Grade; dug: number } | null = null;
     for (let attempt = 0; attempt < 5; attempt++) {
-      const r = digByLogic(level, blanksCap, N, BR, BC, variant, until, max);
+      const r = digByLogic(level, blanksCap, N, BR, BC, variant, until, max, digCap);
       // Второй ключ — цена вывода, как и в сборщике выше: при равной ступени доска дороже.
       if (r && (!best || dist(r.grade.tier) < dist(best.grade.tier)
         || (dist(r.grade.tier) === dist(best.grade.tier) && r.grade.cost > best.grade.cost))) best = r;
@@ -1799,7 +2720,7 @@ export function generateLogical(
        * ступени 1 на двадцатом уровне (замер 27.08). Возмущаем, а не бросаем кости
        * заново — шестая попытка стоила бы дороже и вышла бы такой же случайной.
        */
-      const поднято = digToFloor(best.gen, N, BR, BC, variant, min, max, until);
+      const поднято = digToFloor(best.gen, N, BR, BC, variant, min, max, until, digLimit(level, blanksCap, N, digCap));
       let итог = поднято.grade.tier > best.grade.tier
         ? { gen: поднято.gen, grade: поднято.grade, dug: best.dug + поднято.dug }
         : { gen: best.gen, grade: best.grade, dug: best.dug };
@@ -1843,7 +2764,8 @@ export function generateLogical(
     // что увидит человек. Прежде тут стояли `thinMarkers` и `thinSandwich` ПОСЛЕ
     // генерации — и доска, единственная для движка, оказывалась неоднозначной для
     // игрока («L30 evenodd → решений 2»). Разбор в шапке `overlayThinner`.
-    const g = generatePuzzle(blanksCap, N, BR, BC, variant, overlayThinner(level, variant, N));
+    // Лимит ступени — и здесь: запасной путь копал до blanksCap, мимо digCap (замер 08.10).
+    const g = generatePuzzle(Math.min(blanksCap, digLimit(level, blanksCap, N, digCap)), N, BR, BC, variant, overlayThinner(level, variant, N));
     const grade = gradeOf(g, N, BR, BC, variant);
     if (!fb || dist(grade.tier) < dist(fb.grade.tier)) fb = { gen: g, grade };
     /**
@@ -1867,7 +2789,7 @@ export function generateLogical(
    * Обратный порядок сломал бы: доведи мы сперва до пола, `easeToCeiling` мог бы
    * тут же вернуть подсказки и опустить ступень обратно.
    */
-  const поднято = digToFloor(eased.gen, N, BR, BC, variant, min, max, fbUntil);
+  const поднято = digToFloor(eased.gen, N, BR, BC, variant, min, max, fbUntil, digLimit(level, blanksCap, N, digCap));
   let gen = поднято.grade.tier > eased.grade.tier ? поднято.gen : eased.gen;
   let итогГрейд = поднято.grade.tier > eased.grade.tier ? поднято.grade : eased.grade;
   // Запасной путь добирает пол тем же снятием подсказок варианта (см. шапку lift).

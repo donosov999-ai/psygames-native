@@ -6,21 +6,44 @@
  * закрыл давнюю дыру — уведомление BSD-3 о шахматных фигурах существовало
  * константой и нигде не показывалось.
  */
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Linking } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
-import { SOURCES } from '@/src/constants/sources';
+import { SOURCES, sourceName, sourceCredit } from '@/src/constants/sources';
 import { VOICE_LIVE_CREDITS } from '@/src/constants/voiceLive.generated';
 import { LETTER_VOICE_CREDITS } from '@/src/constants/letterVoice.generated';
 import { FAB_CLEARANCE } from '@/src/services/fabPosition';
+import { postScreenModel, registerScreenActions } from '@/src/services/hostScreens';
 
 export default function SourcesScreen() {
   const { colors } = useTheme();
   const { t } = useLanguage();
   const router = useRouter();
+
+  /**
+   * 🔴 ПОД ОБОЛОЧКОЙ «ИСТОЧНИКИ» РИСУЕТ FLUTTER (задача 78165c68, `services/hostScreens.ts`).
+   * Модель — те же строки, что ниже; ссылку открывает веб тем же `Linking.openURL`.
+   */
+  const sourcesModel = {
+    v: 1,
+    title: t('sourcesTitle'), back: t('back'), intro: t('sourcesIntro'), primary: colors.primary,
+    cards: SOURCES.map((и) => ({ name: sourceName(и, t), what: t(и.key), license: и.license, credit: sourceCredit(и, t), url: и.url })),
+    voices: {
+      title: t('voiceCreditsTitle'),
+      rows: [...VOICE_LIVE_CREDITS, ...LETTER_VOICE_CREDITS].map((к) => ({ author: к.author, license: к.license, count: String(к.count) })),
+    },
+  };
+  const sourcesKey = JSON.stringify(sourcesModel);
+  useEffect(() => { postScreenModel('/sources', JSON.parse(sourcesKey)); }, [sourcesKey]);
+  const sourcesActs = useRef({ router });
+  useEffect(() => { sourcesActs.current = { router }; });
+  useEffect(() => registerScreenActions('/sources', {
+    back: () => sourcesActs.current.router.back(),
+    open: (url: string) => { Linking.openURL(String(url)).catch(() => {}); },
+  }), []);
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
@@ -42,11 +65,11 @@ export default function SourcesScreen() {
         <Text style={[styles.intro, { color: colors.textSecondary }]}>{t('sourcesIntro')}</Text>
         {SOURCES.map((и) => (
           <View key={и.name} style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-            <Text style={[styles.name, { color: colors.text }]}>{и.name}</Text>
+            <Text style={[styles.name, { color: colors.text }]}>{sourceName(и, t)}</Text>
             <Text style={[styles.what, { color: colors.textSecondary }]}>{t(и.key)}</Text>
             <View style={styles.row}>
               <Text style={[styles.license, { color: colors.primary }]}>{и.license}</Text>
-              {и.credit ? <Text style={[styles.credit, { color: colors.textSecondary }]}>· {и.credit}</Text> : null}
+              {и.credit ? <Text style={[styles.credit, { color: colors.textSecondary }]}>· {sourceCredit(и, t)}</Text> : null}
             </View>
             <TouchableOpacity
               accessibilityRole="link"

@@ -43,15 +43,7 @@ Map<String, String> _metrics(String src) => {
 /// строка — владелец экрана и задача. Проба ниже краснеет в ОБЕ стороны: экран без
 /// метрики вне списка — и строка списка, чей экран метрику уже пишет (снять строку).
 const _metricDebt = {
-  'digit_span': 'psygames-claude-mac — maxSpan: на шаге нужна серия рядов до двух ошибок, как у веба (digit-span.tsx:625)',
-  'posner': 'psygames-attention-claude-mac — validity_effect_ms',
-  'cpt': 'psygames-attention-claude-mac — rt_variability',
-  'sdmt': 'psygames-search-claude-mac — rate_per_min',
-  'flanker': 'psygames-attention-claude-mac — flanker_effect_ms',
-  'switching_task': 'psygames-attention-claude-mac — switch_cost_ms',
-  'pattern': 'psygames-search-claude-mac — hit_rate',
   'mental_rotation': 'psygames-spatial-claude-mac — angle_response_slope',
-  'bart': 'psygames-attention-claude-mac — adj_avg_pumps',
 };
 
 void main() {

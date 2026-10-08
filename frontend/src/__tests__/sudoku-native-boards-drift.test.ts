@@ -12,7 +12,7 @@
  * выгруженной доски и ступени режимов. Сами доски случайны — их целость, единственность и
  * меру проверяет выгрузка до записи, а Dart-сторона — `flutter/test/sudoku_levels_test.dart`.
  */
-import { levelConfig, dimsForSize } from '@/src/services/sudoku-core';
+import { levelConfig, dimsForSize, killerStepCount, killerBlanksForStep, blanksFor } from '@/src/services/sudoku-core';
 import { BANK_N, RATING_LADDER } from '@/src/services/sudoku-bank';
 import { sideStepCfg, sideStepCount } from '@/src/services/sudoku-modes';
 
@@ -27,9 +27,10 @@ const EXPORT_CMD = 'из корня репозитория: node flutter/tools/e
 
 const screenSrc: string = readFileSync(join(__dirname, '..', '..', 'app', 'games', 'sudoku.tsx'), 'utf8');
 const LAST_LEVEL = Number(/const SUDOKU_LAST_LEVEL = (\d+);/.exec(screenSrc)?.[1]);
+// Банк — классика 9×9 и ступени со своей полосой банка (`bankRating`: Wordoku, звери, 08.10).
 const isBankLevel = (lv: number) => {
   const c = levelConfig(lv);
-  return c.variant === 'none' && c.N === BANK_N;
+  return (c.variant === 'none' || c.bankRating !== undefined) && c.N === BANK_N;
 };
 
 describe('доски судоку у Flutter = живой TS', () => {
@@ -43,7 +44,10 @@ describe('доски судоку у Flutter = живой TS', () => {
     for (let lv = 1; lv <= Math.max(LAST_LEVEL, inFile.length); lv++) {
       const c = levelConfig(lv);
       const live = lv <= LAST_LEVEL
-        ? { level: lv, n: c.N, br: c.BR, bc: c.BC, blanks: c.blanks, variant: c.variant, hintMax: c.hintMax }
+        ? {
+          level: lv, n: c.N, br: c.BR, bc: c.BC, blanks: c.blanks, variant: c.variant, hintMax: c.hintMax, lives: c.lives,
+          ...(c.bankRating !== undefined ? { rating: c.bankRating } : {}),
+        }
         : undefined;
       if (JSON.stringify(live) !== JSON.stringify(inFile[lv - 1])) diverged.push(`L${lv}`);
     }
@@ -77,8 +81,13 @@ describe('доски судоку у Flutter = живой TS', () => {
       const c = levelConfig(lv);
       if (!own.length) problems.push(`L${lv} (${c.variant}) без досок`);
       const foreign = own.filter((b) => b.variant !== c.variant || b.n !== c.N || b.br !== c.BR || b.bc !== c.BC
-        || b.puzzle.length !== c.N * c.N);
+        // клетки Шрёдингера — коды 1..10 и 100+, поэтому через запятую (toStr выгрузки)
+        || (b.puzzle.includes(',') ? b.puzzle.split(',').length : b.puzzle.length) !== c.N * c.N);
       if (foreign.length) problems.push(`L${lv}: ${foreign.length} досок правила ${foreign[0].variant} ${foreign[0].n}×${foreign[0].n}, а ступень — ${c.variant} ${c.N}×${c.N}`);
+      // Лимит копания — ось трудности блока: доски, выкопанные глубже поля ступени, — от старого levelConfig.
+      const cells = (b: { puzzle: string }) => (b.puzzle.includes(',') ? b.puzzle.split(',') : [...b.puzzle]);
+      const deep = c.digCap ? own.filter((b) => cells(b).filter((v) => v === '0').length > c.digCap!) : [];
+      if (deep.length) problems.push(`L${lv}: ${deep.length} досок копают глубже digCap ${c.digCap}`);
     }
     for (const lv of byLevel.keys()) if (lv > LAST_LEVEL) problems.push(`L${lv} за концом лестницы`);
     const rebuild = problems.map((p) => Number(/^L(\d+)/.exec(p)?.[1]))
@@ -110,5 +119,34 @@ describe('доски судоку у Flutter = живой TS', () => {
       expect(problems.length ? `${mode}: ${problems.join(' · ')} — перевыгрузи: ${EXPORT_CMD} --no-boards --modes=${mode}`
         : 'совпадает').toBe('совпадает');
     }
+  });
+
+  /**
+   * «Киллер» и «Свободно» (задача 55b97845): глубина досок натива = ядру веба. Киллер — ступени
+   * KILLER_LADDER (killerBlanksForStep), свободно — 6 пресетов blanksFor(6|9, easy|medium|hard).
+   */
+  it('«Киллер» и «Свободно»: ступени и глубина = sudoku-core', () => {
+    const modes = readLevels('sudoku-modes.json').modes as Record<string,
+      { step: number; blanks: number; puzzle: string; size?: number; difficulty?: string; cages?: unknown }[]>;
+    const problems: string[] = [];
+    const killer = modes.killer ?? [];
+    for (let step = 1; step <= killerStepCount(); step++) {
+      const own = killer.filter((s) => s.step === step);
+      if (!own.length) problems.push(`киллер ${step}: досок нет`);
+      if (own.some((s) => s.blanks !== killerBlanksForStep(step) || s.puzzle.length !== 81 || !s.cages)) {
+        problems.push(`киллер ${step}: глубина/размер/суммы разошлись`);
+      }
+    }
+    const presets = [[6, 'easy'], [6, 'medium'], [6, 'hard'], [9, 'easy'], [9, 'medium'], [9, 'hard']] as const;
+    const free = modes.free ?? [];
+    presets.forEach(([size, diff], i) => {
+      const own = free.filter((s) => s.step === i + 1);
+      if (!own.length) problems.push(`свободно ${i + 1}: досок нет`);
+      if (own.some((s) => s.size !== size || s.difficulty !== diff || s.blanks !== blanksFor(size, diff) || s.puzzle.length !== size * size)) {
+        problems.push(`свободно ${i + 1}: пресет разошёлся с blanksFor`);
+      }
+    });
+    expect(problems.length ? `${problems.join(' · ')} — перевыгрузи: ${EXPORT_CMD} --no-boards --modes=killer,free`
+      : 'совпадает').toBe('совпадает');
   });
 });

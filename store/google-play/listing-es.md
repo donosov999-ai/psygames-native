@@ -18,7 +18,7 @@ PsyGames: Entrena tu mente
 ## 2. КРАТКОЕ ОПИСАНИЕ — 80 символов
 
 ```
-Memoria, concentración y rapidez mental. 75 ejercicios offline, sin anuncios
+Memoria, concentración y rapidez mental. 131 ejercicios offline, sin anuncios
 ```
 
 ---
@@ -33,7 +33,7 @@ Escuchas otro idioma y separas sonidos que antes parecían iguales.
 
 No es un don reservado a unos pocos. Se entrena, y aquí puedes medir cuánto avanzas.
 
-PsyGames es entrenamiento cerebral: juegos mentales, rompecabezas y 75 ejercicios de memoria, atención y lógica. No es otro test para adivinar tu IQ: es práctica con resultados visibles.
+PsyGames es entrenamiento cerebral: juegos mentales, rompecabezas y 131 ejercicios de memoria, atención y lógica. No es otro test para adivinar tu IQ: es práctica con resultados visibles.
 
 JUEGOS DE MEMORIA
 Entrena la memoria visual con bloques de Corsi, matrices, parejas e historias. Refuerza la memoria de trabajo con N-back, Operation Span y Reading Span.
@@ -42,7 +42,7 @@ ATENCIÓN Y CONCENTRACIÓN
 Practica el enfoque con tablas de Schulte, encuentra las diferencias, la tarea de Posner y Flanker. Mantén la concentración entre mensajes, ruido e interrupciones.
 
 LÓGICA Y ROMPECABEZAS
-Resuelve juegos de lógica: Sudoku con 15 variantes de reglas, Torres de Hanói, Torre de Londres, SET y anagramas. Piensa varios movimientos antes de la respuesta más evidente.
+Resuelve juegos de lógica: Sudoku con 37 variantes de reglas, Torres de Hanói, Torre de Londres, SET y anagramas. Piensa varios movimientos antes de la respuesta más evidente.
 
 RAPIDEZ MENTAL Y REACCIÓN
 Entrena reflejos, cálculo mental y control cognitivo con Stroop, Go/No-Go, operaciones contrarreloj y Trail Making. Decide más rápido sin sacrificar precisión.
@@ -58,7 +58,7 @@ Muchas apps repiten la misma prueba hasta aburrir. PsyGames ajusta el reto a tu 
 • Hay un reto diario, logros y objetivos claros
 
 QUÉ INCLUYE
-• 75 ejercicios de memoria, atención, lógica, velocidad y control
+• 131 ejercicios de memoria, atención, lógica, velocidad y control
 • Calentamientos de mañana, tarde y noche listos para empezar con un toque
 • Tema oscuro y un set nocturno para cuando no puedes dormir: respiración 4-7-8, pantalla atenuada, sin puntos ni racha
 • 12 perfiles: idiomas, niños, 50+, enfoque, reacción, estudiantes y más

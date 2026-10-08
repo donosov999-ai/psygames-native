@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math' as math;
 
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/quick_count/model.dart';
 
@@ -147,5 +148,71 @@ void main() {
         expect(tooClose > 0, isTrue, reason: 'тесное поле слипается и здесь, как в вебе');
       }
     }
+  });
+
+  test('🔴 ПОТОЛКА НЕТ: с 42-го серия с приманками — их больше на КАЖДОМ уровне, цвет ближе до пола', () {
+    // Правило Дениса 06.09.2026. К 41-му на верху все три оси (quickCountLevels = 41), и номер
+    // уровня выше не рос вовсе. Дальше — вспышки-приманки: оси 5 (отвлечение), 7 (сходство), 9 (место).
+    for (var l = 1; l < qcDecoysFrom; l += 1) {
+      expect(qcDecoys(l), isFalse, reason: 'L$l: одна вспышка, как было');
+      expect(qcDecoyMean(l), 0);
+    }
+    expect(qcDecoys(qcDecoysFrom), isTrue);
+    expect(qcDecoySpread(qcDecoysFrom), 1, reason: 'на 42-м приманки оранжевые');
+    expect(qcDecoyMean(qcDecoysFrom), 1, reason: 'на 42-м приманка ровно одна — две вспышки');
+    var spread = qcDecoySpread(qcDecoysFrom);
+    var mean = qcDecoyMean(qcDecoysFrom);
+    for (var l = qcDecoysFrom + 1; l <= 400; l += 1) {
+      final k = qcDecoySpread(l);
+      expect(k, lessThan(spread), reason: 'L$l: цвет приманок ближе, чем на L${l - 1}');
+      expect(k, greaterThan(qcDecoyColorFloor), reason: 'L$l: цвет не ниже пола различимости');
+      spread = k;
+    }
+    for (var l = qcDecoysFrom + 1; l <= 10000; l += 1) {
+      final m = qcDecoyMean(l);
+      expect(m, greaterThan(mean), reason: 'L$l: приманок в среднем больше, чем на L${l - 1} — соседи не совпадают');
+      mean = m;
+    }
+    expect(qcDecoyMean(qcDecoysFrom + 8), 2, reason: 'одна приманка в среднем каждые 8 уровней');
+    expect(levelParams(60), levelParams(quickCountLevels),
+        reason: 'точки, показ и задержка на верху лестницы — растёт серия');
+  });
+
+  test('🔴 число приманок в пробе честное: целая часть всегда, дробная — долей проб', () {
+    final rnd = math.Random(11);
+    for (final level in [42, 45, 50, 77, 200]) {
+      final mean = qcDecoyMean(level);
+      var sum = 0;
+      const draws = 4000;
+      for (var i = 0; i < draws; i += 1) {
+        final d = qcDrawDecoys(level, rnd);
+        expect(d == mean.floor() || d == mean.floor() + 1, isTrue, reason: 'L$level: $d при среднем $mean');
+        sum += d;
+      }
+      expect(sum / draws, closeTo(mean, 0.03), reason: 'L$level: среднее по $draws пробам');
+    }
+  });
+
+  test('🔴 пол цвета различим: приманка и своя расходятся хотя бы на 20 единиц канала', () {
+    // Свой цвет — основной цвет темы, приманка на 42-м — оранжевый. На полу — четверть пути.
+    // Темы — те, что у приложения (lib/main.dart, зерно 0xFF7F7FD5, светлая и тёмная), и тема проб.
+    const far = Color(0xFFF97316);
+    final owns = {
+      'светлая': ColorScheme.fromSeed(seedColor: const Color(0xFF7F7FD5)).primary,
+      'тёмная': ColorScheme.fromSeed(seedColor: const Color(0xFF7F7FD5), brightness: Brightness.dark).primary,
+      'проб': ColorScheme.fromSeed(seedColor: const Color(0xFF6750A4)).primary,
+    };
+    int ch(Color c, int shift) => (c.toARGB32() >> shift) & 0xFF;
+    for (final e in owns.entries) {
+      final lure = Color.lerp(e.value, far, qcDecoySpread(100000))!;
+      final gap = [16, 8, 0].map((s) => (ch(lure, s) - ch(e.value, s)).abs()).reduce(math.max);
+      expect(gap, greaterThanOrEqualTo(20), reason: 'тема ${e.key}: на далёком уровне цвета не слились, разница $gap');
+    }
+  });
+
+  test('🔴 карточка «Вспышки-приманки» встаёт на тот же уровень, что и ось', () {
+    final rules = jsonDecode(File('assets/level_rules.json').readAsStringSync()) as Map<String, dynamic>;
+    final ranges = ((rules['games'] as Map)['quick_count'] as List).cast<List>();
+    expect(ranges.last, [qcDecoysFrom, null, 'decoys']);
   });
 }

@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../../shell/app_haptics.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/board_solver.dart';
 import '../../shell/game_shell.dart';
@@ -10,18 +11,22 @@ import '../../shell/l10n.dart';
 import '../../shell/lesson.dart';
 import '../../shell/lesson_player.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/level_rules.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import 'model.dart';
 import 'puzzle.dart';
 
 /// ЭКРАН «ОЧЕРЕДИ ЗВЕРЕЙ» — раздел «Сортировки», движок MindLab (решение Дениса
-/// 30.09.2026: «добавляем, потом доработаем»).
+/// 30.09.2026: «добавляем, потом доработаем»; доработка 02.10.2026, задача e95b7e2f).
 ///
-/// Вверху — подсказки «🦁 ➜ 🦊» (стрелка значит «раньше»), в середине — очередь,
-/// внизу — звери, которых ещё не поставили. Нажатие ставит зверя следующим; если
-/// по подсказкам перед ним кто-то ещё не стоит, ход не проходит и считается
-/// ошибкой — зверь коротко краснеет, чтобы отказ был виден, а не молча.
+/// Вверху — подсказки пяти видов, в середине — очередь от двери 🚪, внизу — звери, которых
+/// ещё не поставили. Нажатие ставит зверя следующим; если с ним очередь уже не достроить,
+/// ход не проходит и считается ошибкой — зверь коротко краснеет, чтобы отказ был виден.
+///
+/// 🔴 ДВЕРЬ НАРИСОВАНА. Денис, глядя на первую редакцию в симуляторе: «это типа очередь,
+/// кто за кем идёт». Направление угадывалось по номерам клеток; теперь голова очереди —
+/// у двери, и подсказка «🚪 🦁» читается без слов.
 class AnimalQueueScreen extends StatefulWidget {
   const AnimalQueueScreen({super.key, required this.state, this.seed});
 
@@ -35,6 +40,8 @@ class AnimalQueueScreen extends StatefulWidget {
 }
 
 class _AnimalQueueScreenState extends State<AnimalQueueScreen> {
+  /// Отклик хода — через общий выключатель «Вибрация» (образец «Матрицы памяти», задача 792432f8).
+  late final AppHaptics _haptics = AppHaptics(widget.state);
   late LevelLadder _ladder;
   late Random _rnd;
   AnimalQueue? _game;
@@ -66,16 +73,10 @@ class _AnimalQueueScreenState extends State<AnimalQueueScreen> {
     setState(_deal);
   }
 
-  /// Раздать партию текущей ступени. Движок иногда не добивается единственного
-  /// порядка — тогда раздаём заново (на 1800 пробных задачах такого не было ни разу).
+  /// Раздать партию текущей ступени. Единственность ответа генератор держит сам.
   void _deal() {
     _autoNext?.cancel();
-    final n = queueSizeFor(_ladder.level);
-    ({AnimalQueue game, List<int> order})? g;
-    for (var i = 0; i < 20 && g == null; i += 1) {
-      g = generateQueue(n, _rnd);
-    }
-    _game = g!.game;
+    _game = generateQueue(_ladder.level, _rnd).game;
     _errors = 0;
     _wrong = null;
   }
@@ -85,6 +86,7 @@ class _AnimalQueueScreenState extends State<AnimalQueueScreen> {
     if (game == null || _won || game.queue.contains(animal)) return;
     final next = game.play(animal);
     if (next == null) {
+      _haptics.miss();
       _wrongTimer?.cancel();
       setState(() {
         _errors += 1;
@@ -96,6 +98,7 @@ class _AnimalQueueScreenState extends State<AnimalQueueScreen> {
       return;
     }
     setState(() => _game = next);
+    next.done ? _haptics.win() : _haptics.hit();
     if (next.done) {
       _autoNext = Timer(const Duration(milliseconds: 1400), () {
         if (mounted && _won) _next();
@@ -122,10 +125,8 @@ class _AnimalQueueScreenState extends State<AnimalQueueScreen> {
   int get _stars => _errors == 0 ? 3 : (_errors == 1 ? 2 : 1);
 
   /*
-   * РАЗБОР — общим решателем каркаса, как у ханоя (`AnimalQueuePuzzle`), и у
-   * каждого шага названный приём: первым встаёт тот, на кого не указывает ни
-   * одна стрелка «раньше»; дальше — тот, чьи «раньше» уже стоят. Без имени
-   * приёма разбор был бы показом ответа.
+   * РАЗБОР — общим решателем каркаса, как у ханоя (`AnimalQueuePuzzle`), и у каждого шага
+   * названная причина (`queueLessonKey`).
    */
   Future<void> _openLesson() async {
     final g = _game;
@@ -133,13 +134,14 @@ class _AnimalQueueScreenState extends State<AnimalQueueScreen> {
     final from = AnimalQueue(g.animals, g.clues);
     final raw = await BoardLesson(const AnimalQueuePuzzle(), from).steps();
     if (!mounted || raw.isEmpty) return;
+    AnimalQueue before(int i) =>
+        i == 0 ? from : (raw[i - 1].payload as ({int move, AnimalQueue after})).after;
     final steps = [
       for (var i = 0; i < raw.length; i += 1)
-        LessonStep(
-          payload: raw[i].payload,
-          techniqueKey: i == 0 ? 'teachQueueFirst' : 'teachQueueNext',
-          text: i == 0 ? L.t('teachQueueFirst') : L.t('teachQueueNext'),
-        ),
+        () {
+          final key = queueLessonKey(before(i), (raw[i].payload as ({int move, AnimalQueue after})).move);
+          return LessonStep(payload: raw[i].payload, techniqueKey: key, text: L.t(key));
+        }(),
     ];
     LessonUsed.mark();
     await Navigator.of(context).push(MaterialPageRoute<void>(
@@ -167,6 +169,12 @@ class _AnimalQueueScreenState extends State<AnimalQueueScreen> {
     return GameShell(
       title: L.t('animalQueue'),
       onLesson: _openLesson,
+      levelRule: LevelRuleSpot(
+        gameId: 'animal_queue',
+        level: _ladder.level,
+        state: widget.state,
+        calm: game.queue.isEmpty || _won,
+      ),
       hud: [
         HudItem(label: L.t('level'), value: '${_ladder.level}', icon: Icons.flag_outlined),
         HudItem(label: L.t('errors'), value: '$_errors', icon: Icons.error_outline),
@@ -193,13 +201,31 @@ class _AnimalQueueScreenState extends State<AnimalQueueScreen> {
   }
 }
 
-/// Поле: подсказки, очередь, оставшиеся звери. Рисует и игру, и разбор.
+/// Поле: подсказки, очередь от двери, оставшиеся звери. Рисует и игру, и разбор.
 class _QueueBoard extends StatelessWidget {
   const _QueueBoard({required this.game, required this.wrong, required this.onTap});
 
   final AnimalQueue game;
   final int? wrong;
   final void Function(int animal) onTap;
+
+  /// Подпись подсказки для чтеца экрана — словами, а не значками.
+  static String clueLabel(QueueClue c, List<String> animals) {
+    final a = animals[c.a];
+    final b = c.b >= 0 ? animals[c.b] : '';
+    switch (c.kind) {
+      case ClueKind.first:
+        return L.f('aqClueFirst', {'a': a});
+      case ClueKind.last:
+        return L.f('aqClueLast', {'a': a});
+      case ClueKind.next:
+        return L.f('aqClueNext', {'a': a, 'b': b});
+      case ClueKind.before:
+        return L.f('aqClueBefore', {'a': a, 'b': b});
+      case ClueKind.apart:
+        return L.f('aqClueApart', {'a': a, 'b': b});
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -209,11 +235,30 @@ class _QueueBoard extends StatelessWidget {
         if (!game.queue.contains(i)) i,
     ];
     Widget face(String f, double size) => Text(f, style: TextStyle(fontSize: size));
+    Widget sign(IconData icon, Color color) => Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 6),
+          child: Icon(icon, size: 18, color: color),
+        );
+    List<Widget> clueBody(QueueClue c) {
+      final a = face(game.animals[c.a], 22);
+      switch (c.kind) {
+        case ClueKind.first:
+          return [face('🚪', 20), const SizedBox(width: 4), a];
+        case ClueKind.last:
+          return [a, const SizedBox(width: 4), face('🏁', 20)];
+        case ClueKind.next:
+          return [a, sign(Icons.link, scheme.primary), face(game.animals[c.b], 22)];
+        case ClueKind.before:
+          return [a, sign(Icons.arrow_forward, scheme.primary), face(game.animals[c.b], 22)];
+        case ClueKind.apart:
+          return [a, sign(Icons.block, const Color(0xFFDC2626)), face(game.animals[c.b], 22)];
+      }
+    }
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(12),
       child: Column(
         children: [
-          // Подсказки: «A ➜ B» — A стоит раньше B.
           Wrap(
             key: const ValueKey('aq-clues'),
             alignment: WrapAlignment.center,
@@ -221,46 +266,60 @@ class _QueueBoard extends StatelessWidget {
             runSpacing: 8,
             children: [
               for (final c in game.clues)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: scheme.surfaceContainerHighest,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(mainAxisSize: MainAxisSize.min, children: [
-                    face(game.animals[c.before], 22),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 6),
-                      child: Icon(Icons.arrow_forward, size: 18, color: scheme.primary),
+                Semantics(
+                  label: clueLabel(c, game.animals),
+                  excludeSemantics: true,
+                  child: Container(
+                    key: ValueKey('aq-clue-${c.kind.name}-${c.a}-${c.b}'),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: scheme.surfaceContainerHighest,
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    face(game.animals[c.after], 22),
-                  ]),
+                    child: Row(mainAxisSize: MainAxisSize.min, children: clueBody(c)),
+                  ),
                 ),
             ],
           ),
           const SizedBox(height: 20),
-          // Очередь: места по числу зверей, первое — слева.
-          Wrap(
-            key: const ValueKey('aq-queue'),
-            alignment: WrapAlignment.center,
-            spacing: 6,
-            runSpacing: 6,
-            children: [
-              for (var slot = 0; slot < game.animals.length; slot += 1)
-                Container(
-                  width: 52,
-                  height: 52,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: scheme.outline, width: slot < game.queue.length ? 2 : 1),
+          // Очередь от двери: клетка сжимается по ширине поля, чтобы десять зверей встали в
+          // один ряд и на узком телефоне — нажимают не по ней, а по зверям ниже.
+          LayoutBuilder(builder: (context, box) {
+            final n = game.animals.length;
+            const gap = 4.0;
+            const doorW = 30.0;
+            final slot = min(52.0, ((box.maxWidth - doorW - gap * n) / n).floorToDouble());
+            return Row(
+              key: const ValueKey('aq-queue'),
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Semantics(
+                  label: L.t('aqDoor'),
+                  child: SizedBox(
+                    key: const ValueKey('aq-door'),
+                    width: doorW,
+                    child: Center(child: face('🚪', min(26, slot * 0.7))),
                   ),
-                  child: slot < game.queue.length
-                      ? face(game.animals[game.queue[slot]], 30)
-                      : Text('${slot + 1}', style: TextStyle(color: scheme.outline)),
                 ),
-            ],
-          ),
+                for (var place = 0; place < n; place += 1)
+                  Padding(
+                    padding: const EdgeInsets.only(left: gap),
+                    child: Container(
+                      width: slot,
+                      height: slot,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(slot / 4),
+                        border: Border.all(color: scheme.outline, width: place < game.queue.length ? 2 : 1),
+                      ),
+                      child: place < game.queue.length
+                          ? face(game.animals[game.queue[place]], slot * 0.58)
+                          : Text('${place + 1}', style: TextStyle(color: scheme.outline, fontSize: min(14, slot * 0.4))),
+                    ),
+                  ),
+              ],
+            );
+          }),
           const SizedBox(height: 24),
           // Кого ещё не поставили.
           Wrap(

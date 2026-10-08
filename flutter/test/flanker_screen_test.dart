@@ -1,13 +1,15 @@
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/flanker/model.dart';
 import 'package:psygames_flutter/games/flanker/screen.dart';
+import 'package:psygames_flutter/shell/game_preset.dart';
 import 'package:psygames_flutter/shell/l10n.dart';
+import 'package:psygames_flutter/shell/session_report.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 import 'support/boss_probe.dart';
 import 'support/slow_write_state.dart';
 
@@ -134,6 +136,38 @@ void main() {
     await tester.pump(const Duration(milliseconds: 360));
     // Счётчик «Верно» каркаса остался нулём.
     expect(find.text('0'), findsWidgets);
+  });
+
+  testWidgets('🔴 шаг «Оценки»: партия в условиях шага и с метрикой домена в details', (tester) async {
+    // «Оценка» читает метрику домена из details партии (assessment.ts, extractMetric): без неё
+    // домен молча «средний». Условие — шага, как его собирает stepToParams (warmup.ts), а не
+    // уровня: норма домена снята в нём.
+    final sent = <Map<String, dynamic>>[];
+    SessionReport.sink = (j) async => sent.add(jsonDecode(j) as Map<String, dynamic>);
+    GamePreset.set({'wu': '1', 'trials': '15'});
+    addTearDown(() {
+      SessionReport.sink = null;
+      GamePreset.clear();
+    });
+    var clock = 0;
+    await tester.pumpWidget(MaterialApp(home: FlankerScreen(state: state, clock: () => clock, rnd: Random(7))));
+    final stim = find.byKey(const Key('flanker-stimulus'));
+    var answered = 0;
+    for (var i = 0; i < 800 && sent.isEmpty; i++) {
+      if (stim.evaluate().isEmpty) {
+        await tester.pump(const Duration(milliseconds: 50));
+        continue;
+      }
+      clock += 450;
+      await tester.tap(answerFor(centerOnScreen(tester)));
+      answered++;
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: flankerFeedbackMs + 30));
+    }
+    expect(answered, 15, reason: 'длина партии — шага (15), а не уровня (20)');
+    final d = sent.single['details'] as Map<String, dynamic>;
+    expect(d['flanker_effect_ms'], 0, reason: 'все ответы за 450 мс: помеха — ноль, и она в партии ($d)');
+    expect(d['n_trials'], 15);
   });
 
   testWidgets('🔴 сданную партию не сдать второй раз: нажатие, пока пишется победа, уровень не двигает', (tester) async {

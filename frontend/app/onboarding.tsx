@@ -5,7 +5,7 @@
  * уведомлений (натив), финал ведёт к действию — первая зарядка или вызов дня.
  */
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Image, ScrollView, View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter, Redirect } from 'expo-router';
@@ -25,6 +25,7 @@ import { gameThumb } from '@/src/constants/gameThumbs';
 import { a11yDecor } from '@/src/services/a11y';
 import { getOnboardingGames, hasPickedOnboarding, markOnboardingPicked } from '@/src/services/onboarding';
 import { pickGames, type PickerAnswers } from '@/src/services/gamePicker';
+import { assetUri, postScreenModel, registerScreenActions } from '@/src/services/hostScreens';
 
 // Играбельные игры = всё, кроме карточек-хабов (внутри них скрытые подигры).
 // Список хабов выводится из каталога: раньше он был выписан здесь поимённо и при
@@ -227,6 +228,70 @@ function OnboardingInner() {
       ? (canWarmup ? t('onbStartFirstWarmup') : t('onbPlayDailyChallenge'))
       : t('onbNext');
   const onMainPress = isNotif ? enableReminders : isFinal ? startAction : next;
+  const onSecondary = isNotif ? next : finish;
+
+  /**
+   * 🔴 ПОД ОБОЛОЧКОЙ ЗНАКОМСТВО РИСУЕТ FLUTTER (задача a8aa91e0, `services/hostScreens.ts`).
+   * Подбор (три вопроса → три игры, `pickGames`), список игр знакомства, слайды обучения, отметки
+   * «знакомство пройдено» и переходы остаются здесь; модель — готовые тексты, цвета и картинки.
+   */
+  const card = (game: (typeof pickerGames)[number]) => ({
+    id: game.id, name: t(game.nameKey), skill: t(game.skillKey), desc: t(game.descKey),
+    a11y: `${t(game.nameKey)}. ${t(game.skillKey)}`, gradient: game.gradient, icon: game.icon,
+    thumb: assetUri(gameThumb(game.id)),
+  });
+  const onboardingModel = !tutorialMode
+    ? (!pickerReady ? { v: 1, mode: 'loading', primary: colors.primary } : {
+      v: 1, mode: 'picker', busy,
+      exit: t('skip'),
+      heading: { emoji: '🎮', title: t('onbPickGameTitle'), body: t('onbPickGameBody') },
+      quiz: {
+        title: `🎯 ${t('onbQuizTitle')}`,
+        questions: QUIZ.map(({ axis, qKey, opts }) => ({
+          axis, q: t(qKey), opts: opts.map((optKey, i) => ({ label: t(optKey), on: quiz[axis] === i })),
+        })),
+        yours: recommended ? {
+          title: t('onbQuizYours'),
+          cards: recommended.games.map(card),
+          profile: recProfile ? t('onbQuizProfile').replace('{p}', `${recProfile.emoji} ${recProfile.display_name}`) : null,
+        } : null,
+      },
+      or: t('onbQuizOr'),
+      cards: pickerGames.map(card),
+      hint: t('onbPickGameHint'),
+    })
+    : {
+      v: 1, mode: 'tutorial', busy, rtl: isRTLLang(language),
+      counter: `${step + 1} / ${SLIDES.length}`,
+      skip: !isLast ? t('skip') : null,
+      slide: {
+        emoji: slide.emoji, gradient: slide.gradient, title: t(slide.titleKey),
+        body: t(slide.bodyKey).replace('{n}', String(GAME_COUNT)),
+        finalHint: isFinal ? (canWarmup ? t('onbWarmupReady') : `🎲 ${t('today')}: ${t(todayChallenge.game.nameKey)}`) : null,
+      },
+      dots: { count: SLIDES.length, active: step },
+      main: { label: mainLabel, icon: isFinal ? 'play' : (isRTLLang(language) ? 'arrow-back' : 'arrow-forward') },
+      secondary: (isNotif || isFinal) ? (isNotif ? t('notNow') : t('justLookAround')) : null,
+    };
+  // Шлём, только когда модель изменилась (строка — простой и честный ключ).
+  const onboardingKey = JSON.stringify(onboardingModel);
+  useEffect(() => { postScreenModel('/onboarding', JSON.parse(onboardingKey)); }, [onboardingKey]);
+  // Свежие обработчики для действий оболочки (пересоздаются рендером; действия регистрируются один раз).
+  const onbActs = useRef({ chooseGame, skipPicker, onMainPress, onSecondary, skip, pickerGames, recommended });
+  useEffect(() => { onbActs.current = { chooseGame, skipPicker, onMainPress, onSecondary, skip, pickerGames, recommended }; });
+  useEffect(() => registerScreenActions('/onboarding', {
+    quiz: (axis: string, i: number) => setQuiz((q) => ({ ...q, [axis]: i as 0 | 1 | 2 })),
+    choose: (id: string) => {
+      const a = onbActs.current;
+      const all = [...a.pickerGames, ...(a.recommended?.games ?? [])];
+      const g = all.find((x) => x.id === id);
+      if (g) void a.chooseGame(g);
+    },
+    skipPicker: () => { void onbActs.current.skipPicker(); },
+    main: () => { void onbActs.current.onMainPress(); },
+    secondary: () => { void onbActs.current.onSecondary(); },
+    skip: () => { void onbActs.current.skip(); },
+  }), []);
 
   if (!tutorialMode) {
     if (!pickerReady) {
@@ -325,6 +390,9 @@ function OnboardingInner() {
           последней внутри прокрутки — её видел только тот, кто долистал двадцать карточек.
           Верхний выход (стрелка) остаётся: он же — норма для всех экранов; нижняя кнопка —
           второй, крупный выход у большого пальца. Вне ScrollView, поэтому виден всегда.
+          🔴 ШИРИНА — КОЛОНКИ КАРТОЧЕК, А НЕ СЛОВА (07.10.2026, эмулятор, 2.56.15 EN). Экран выравнивает
+          детей по центру, и полоса со своей кнопкой сжималась до подписи: «Skip» уже 48 по высоте —
+          вертикальная капсула вместо крупной кнопки. Полоса — во всю ширину, кнопка — как карточки.
         */}
         <View style={[styles.pickerFooter, { borderTopColor: colors.border, backgroundColor: colors.background }]}>
           <TouchableOpacity
@@ -333,7 +401,7 @@ function OnboardingInner() {
             testID="onb-skip-footer"
             disabled={busy}
             onPress={skipPicker}
-            style={[styles.pickerSkip, { borderColor: colors.border, backgroundColor: colors.surface }]}
+            style={[styles.pickerSkip, { width: containerW, borderColor: colors.border, backgroundColor: colors.surface }]}
           >
             <Text style={[styles.pickerSkipText, { color: colors.text }]}>{t('skip')}</Text>
           </TouchableOpacity>
@@ -432,7 +500,7 @@ const styles = StyleSheet.create({
   quizProfile: { fontSize: 12.5, textAlign: 'center' },
   quizOr: { fontSize: 12.5, fontWeight: '700', textAlign: 'center', textTransform: 'uppercase', letterSpacing: 0.5 },
   pickerSkip: { minHeight: 48, borderRadius: 14, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
-  pickerFooter: { paddingHorizontal: 16, paddingTop: 8, paddingBottom: 12, borderTopWidth: StyleSheet.hairlineWidth },
+  pickerFooter: { alignSelf: 'stretch', alignItems: 'center', paddingHorizontal: 16, paddingTop: 8, paddingBottom: 12, borderTopWidth: StyleSheet.hairlineWidth },
   pickerSkipText: { fontSize: 15, fontWeight: '800' },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: 12 },
   stepCounter: { fontSize: 13, fontWeight: '700' },

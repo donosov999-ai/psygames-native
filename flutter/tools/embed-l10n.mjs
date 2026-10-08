@@ -78,7 +78,10 @@ function dartFiles(dir) {
 // тот же ключ зовётся у них ещё и через `L.t`. Ни одна проба этого не видит —
 // подстановка молча возвращает ключ, а не падает.
 const used = new Set();
-const call = /\bL\.[tf]\(\s*'([a-zA-Z_][a-zA-Z0-9_]*)'/g;
+// ⚠️ Пробелы и перенос строки вокруг точки — тоже вызов: `dart format` разбивает длинную цепочку на
+// `L` и `.t('ключ')` следующей строкой, и слитный шаблон ключ терял (07.10.2026, «Коллекция»: экран
+// показал бы «collectionSub»).
+const call = /\bL\s*\.\s*[tf]\(\s*'([a-zA-Z_][a-zA-Z0-9_]*)'/g;
 // ⚠️ КОММЕНТАРИИ ОТСЕКАЕМ. В `l10n.dart` пример вызова стоит прямо в описании
 // (`L.f('levelOf', …)`), и без этого шага инструмент честно требовал завести в
 // веб-словаре ключ, которого не зовёт ни один экран.
@@ -114,6 +117,25 @@ for (const f of dartFiles(join(FLUTTER, 'lib'))) {
 for (const [file, fields] of [
   ['assets/hubs.json', ['nameKey', 'descKey', 'titleKey', 'pickKey', 'footnoteKey']],
   ['assets/puzzles/modes.json', ['titleKey', 'digitNames', 'secondKey', 'secondPickKey']],
+  // Подписи режимов наборов (`lib/shell/suite_switch.dart` зовёт `L.t(mode.labelKey)`).
+  ['assets/game_suites.json', ['titleKey', 'descKey', 'labelKey']],
+  // Каталог «Игры» (задача f5025027): названия, описания, навыки и разделы — из выгрузки games.ts.
+  ['assets/catalog.json', ['nameKey', 'descKey', 'skillKey', 'titleKey']],
+  // Подписи нижней полосы оболочки (задача 5136754e) — из выгрузки tabBar.ts.
+  ['assets/tabs.json', ['labelKey']],
+  ['assets/game_help_routes.json', ['introKey']],
+  // Имена игр в листе деталей профиля (настройки на Flutter, задача eae0879c).
+  ['assets/profiles.json', ['nameKey']],
+  // «Источники» считают модель на Dart (`sources_model.dart`): `L.t(src.key)` и подписи-ключи.
+  ['assets/sources.json', ['key', 'nameKey', 'creditKey']],
+  // «Лиги» считают модель на Dart (`progression.dart`): `L.t(league.nameKey)`, `L.t(frame.nameKey)`.
+  ['assets/progression.json', ['nameKey']],
+  // «Коллекция» считает модель на Dart (`collection_model.dart`): `L.t('fig<Key>')`.
+  ['assets/collection.json', ['nameKey']],
+  // Главная (вариант Б): ключи, которые сборщик модели собирает на лету — замки, слоты, сложности, причины.
+  ['assets/home.json', ['textKeys']],
+  // Входы Главной на Dart (`home_inputs.dart`, 7б): титул надетой вещи — `L.t(title.nameKey)`.
+  ['assets/home_inputs.json', ['textKeys']],
 ]) {
   let data;
   // 🔴 НЕТ ФАЙЛА — пропустить можно; ЕСТЬ, НО НЕ ЧИТАЕТСЯ — СТОП. Замер 01.10.2026: после

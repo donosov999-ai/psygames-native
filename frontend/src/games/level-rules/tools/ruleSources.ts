@@ -1,4 +1,4 @@
-/* psygames-level-rules-native-sources · VER 1 · 30.09.2026 */
+/* psygames-level-rules-native-sources · VER 4 · 08.10.2026 */
 /**
  * ПРАВИЛА УРОВНЕЙ ДЛЯ НАТИВНОЙ ПОЛОВИНЫ — ТАБЛИЦА «УРОВЕНЬ → ДЕЙСТВУЮЩЕЕ ПРАВИЛО».
  *
@@ -52,18 +52,30 @@ export function ruleSources(): RuleSource[] {
   };
   const игра = (имя: string) => require(`@/app/games/${имя}`);
   const товары = require('@/src/games/goods-sort/core/level');
+  const отличия = require('@/src/games/find-differences/core/levelRules');
+  const зрительный = require('@/src/games/visual-search/core/nativeRules');
+  const сет = require('@/src/games/set-game/core/nativeRules');
+  const шульте = require('@/src/games/schulte/core/levelRules');
+  const маджонг = require('@/src/games/mahjong/nativeRules');
+  const счёт = require('@/src/games/quick-count/core/levelRules');
+  // Игры без веб-экрана: механика в Dart, таблица уровней — в списке нативных игр.
+  const nativeOnly = require('@/src/constants/nativeOnlyGames');
   /* eslint-enable @typescript-eslint/no-require-imports */
   return [
+    s(['animal_queue'], nativeOnly.ANIMAL_QUEUE_RULES),
     s(['cake_sort', 'pizza_sort'], игра('cake-sort').CS_RULES),
     s(['chess_blind'], игра('chess-blind').CHESSBLIND_RULES),
     s(['corsi'], игра('corsi').CORSI_RULES),
     s(['counter'], игра('counter').COUNTER_RULES),
     s(['cpt'], игра('cpt').CPT_RULES),
     s(['digit_span'], игра('digit-span').DS_RULES),
+    s(['find_differences'], отличия.FD_RULES),
     { ids: ['goods_sort'], rulesAt: товары.gsRulesForLevel },
     s(['hanoi'], игра('hanoi').HN_RULES),
+    s(['kids_sort'], nativeOnly.KIDS_SORT_RULES),
     s(['listening_span'], игра('listening-span').LISTENINGSPAN_RULES),
-    s(['mahjong'], игра('mahjong').MAHJONG_RULES),
+    // Веб-правила первыми, нативные следом: на 29-м и выше действует последнее подошедшее.
+    s(['mahjong'], [...игра('mahjong').MAHJONG_RULES, ...маджонг.MJ_NATIVE_RULES]),
     s(['math_sprint'], игра('math-sprint').MS_RULES),
     s(['memory_matrix'], игра('memory-matrix').MEMORYMATRIX_RULES),
     s(['mental_rotation'], игра('mental-rotation').MR_RULES),
@@ -73,13 +85,16 @@ export function ruleSources(): RuleSource[] {
     s(['picture_pairs'], игра('picture-pairs').PAIRS_RULES),
     s(['prl'], игра('prl').PRL_RULES),
     s(['pseudoword_echo'], игра('pseudoword-echo').PSEUDOWORDECHO_RULES),
+    s(['quick_count'], счёт.QC_RULES),
     s(['reading_span'], игра('reading-span').READINGSPAN_RULES),
+    s(['schulte_table'], шульте.SCHULTE_RULES),
     s(['semantic_sort'], игра('semantic-sort').SEMANTICSORT_RULES),
-    s(['set_game'], игра('set-game').SG_RULES),
+    s(['set_game'], [...игра('set-game').SG_RULES, ...сет.SG_NATIVE_RULES]),
     s(['spatial_span'], игра('spatial-span').SS_RULES),
     s(['stroop'], игра('stroop').STROOP_RULES),
     s(['switching_task'], игра('switching-task').SWITCH_RULES),
-    s(['visual_search'], игра('visual-search').VS_RULES),
+    // Веб-правила первыми, нативные следом: на 32-м и выше действует последнее подошедшее.
+    s(['visual_search'], [...игра('visual-search').VS_RULES, ...зрительный.VS_NATIVE_RULES]),
     s(['water_sort', 'ball_sort', 'nut_sort'], игра('water-sort').WATER_SORT_RULES),
     s(['word_pairs'], игра('word-pairs').WORDPAIRS_RULES),
   ];

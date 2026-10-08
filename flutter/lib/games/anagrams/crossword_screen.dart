@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../shell/app_haptics.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
@@ -12,26 +13,30 @@ import 'crossword.dart';
 import 'crossword_board.dart';
 import 'model.dart';
 import 'teach.dart';
+import 'mode_switch.dart';
+import 'word_lang.dart';
 
 /// Экран «Кроссворд» — третий режим анаграмм.
 ///
 /// Слова из одного набора букв вписаны в сетку и пересекаются: открытая буква —
 /// половина соседнего слова. Порядок свободный, лимита времени нет.
-///
-/// ⚠️ Перехват в гибриде не включается, пока не готов четвёртый режим:
-/// `HybridApp.routeOf` срезает `?query`, и одна строка карты накрыла бы их разом.
 class CrosswordScreen extends StatefulWidget {
-  const CrosswordScreen({super.key, required this.state, this.locale = 'ru'});
+  const CrosswordScreen({super.key, required this.state, this.locale});
 
   final SharedState state;
-  final String locale;
+
+  /// Язык слов. Не задан — [anagramWordLang]; пробы задают его явно.
+  final String? locale;
 
   @override
   State<CrosswordScreen> createState() => _CrosswordScreenState();
 }
 
 class _CrosswordScreenState extends State<CrosswordScreen> {
+  /// Отклик хода — через общий выключатель «Вибрация» (образец «Матрицы памяти», задача 792432f8).
+  late final AppHaptics _haptics = AppHaptics(widget.state);
   late LevelLadder _ladder;
+  late final String _lang = widget.locale ?? anagramWordLang(widget.state, AnagramMode.cross);
   WordBank? _bank;
   Crossword? _cw;
   List<String> _letters = const [];
@@ -51,7 +56,7 @@ class _CrosswordScreenState extends State<CrosswordScreen> {
 
   Future<void> _boot() async {
     await _ladder.load();
-    final bank = await WordBank.load(widget.locale);
+    final bank = await WordBank.load(_lang);
     if (!mounted) return;
     setState(() {
       _bank = bank;
@@ -100,12 +105,14 @@ class _CrosswordScreenState extends State<CrosswordScreen> {
         _found.add(word);
         _picked.clear();
       });
+      crosswordSolved(cw, _found) ? _haptics.win() : _haptics.hit();
       if (crosswordSolved(cw, _found)) {
         await _ladder.win();
         if (!mounted) return;
         setState(() => _deal(_bank!));
       }
     } else {
+      _haptics.miss();
       setState(() => _wrong = true);
     }
   }
@@ -211,6 +218,8 @@ class _CrosswordScreenState extends State<CrosswordScreen> {
           onPressed: _hintsLeft > 0 ? _hint : null,
         ),
         AuxAction(icon: Icons.shuffle, label: L.t('shuffleBtn'), onPressed: _shuffle),
+        // Выбор режима — иначе остальные три игры анаграмм недостижимы (см. mode_switch.dart).
+        if (anagramModeSwitchShown) anagramModeAction(context, widget.state, AnagramMode.cross),
       ]),
       toolbar: Padding(
         padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
@@ -238,6 +247,7 @@ class _CrosswordScreenState extends State<CrosswordScreen> {
       ),
       pauseActions: [
         PauseAction(label: L.t('shuffleBtn'), icon: Icons.shuffle, onPressed: _shuffle),
+        if (!anagramWordLangFromStep()) anagramWordLangAction(context, widget.state, AnagramMode.cross, _lang),
       ],
     );
   }

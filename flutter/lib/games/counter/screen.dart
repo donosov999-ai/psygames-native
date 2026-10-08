@@ -3,6 +3,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../shell/app_haptics.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/boss_round.dart';
 import '../../shell/demo_lesson.dart';
@@ -12,6 +13,7 @@ import '../../shell/lesson.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
+import '../counting_common/generator_shadow.dart';
 import 'model.dart';
 
 /// «Собери сумму» на общем каркасе: сетка чисел, сверху цель.
@@ -37,6 +39,8 @@ class CounterScreen extends StatefulWidget {
 enum _Phase { playing, success, timeout, result }
 
 class _CounterScreenState extends State<CounterScreen> {
+  /// Отклик хода — через общий выключатель «Вибрация» (образец «Матрицы памяти», задача 792432f8).
+  late final AppHaptics _haptics = AppHaptics(widget.state);
   /// Задержки веб-версии: успех показывается дольше промаха.
   static const _successDelay = Duration(milliseconds: 800);
   static const _timeoutDelay = Duration(milliseconds: 700);
@@ -64,6 +68,10 @@ class _CounterScreenState extends State<CounterScreen> {
   Timer? _tick;
   Timer? _next;
   Timer? _clear;
+
+  /// Тень генератора уровней (звено 4, задача 4e584381): раздача с новой партией, исход до лестницы.
+  late final LadderShadow _shadow =
+      LadderShadow(widget.state, gameId: 'counter', stepKeys: counterStepKeys);
 
   @override
   void initState() {
@@ -103,6 +111,7 @@ class _CounterScreenState extends State<CounterScreen> {
     _next?.cancel();
     _clear?.cancel();
     _cfg = counterLevelParams(_ladder.level);
+    _shadow.deal(_ladder.level);
     _round = 1;
     _hits = 0;
     _errors = 0;
@@ -148,6 +157,7 @@ class _CounterScreenState extends State<CounterScreen> {
   }
 
   void _hit() {
+    _haptics.win();
     _tick?.cancel();
     setState(() {
       _hits += 1;
@@ -160,6 +170,7 @@ class _CounterScreenState extends State<CounterScreen> {
   /// Перебор: ошибка сразу, а выбор гаснет через 300 мс — нажатие, попавшее в
   /// это окно, обязано сработать (правило веб-версии).
   void _overshoot() {
+    _haptics.miss();
     setState(() => _errors += 1);
     _clear?.cancel();
     _clear = Timer(_resetDelay, () {
@@ -169,6 +180,7 @@ class _CounterScreenState extends State<CounterScreen> {
   }
 
   void _onTimeout() {
+    _haptics.miss();
     _tick?.cancel();
     setState(() {
       _timeouts += 1;
@@ -183,6 +195,7 @@ class _CounterScreenState extends State<CounterScreen> {
     if (!mounted) return;
     if (_round >= _cfg.rounds) {
       final passed = _hits / _cfg.rounds >= counterPassAccuracy;
+      _shadow.outcome(passed: passed, errors: _errors);
       // Веха как в вебе: каждый третий ЗАСЧИТАННЫЙ уровень — бой «сложи подсвеченные».
       bool? boss;
       if (passed) {

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../shell/app_haptics.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/game_preset.dart';
@@ -16,6 +17,7 @@ import '../../shell/shared_state.dart';
 import 'board.dart';
 import 'puzzle.dart';
 import 'model.dart';
+import '../../shell/l10n.dart';
 
 /// ЭКРАН «ХАНОЙСКОЙ БАШНИ».
 ///
@@ -39,6 +41,8 @@ class HanoiScreen extends StatefulWidget {
 }
 
 class _HanoiScreenState extends State<HanoiScreen> {
+  /// Отклик хода — через общий выключатель «Вибрация» (образец «Матрицы памяти», задача 792432f8).
+  late final AppHaptics _haptics = AppHaptics(widget.state);
   /// 🔴 СЛЕДУЮЩИЙ УРОВЕНЬ ЕДЕТ САМ (Денис 24.09.2026: «не переходит на
   /// следующий уровень сам»).
   ///
@@ -155,9 +159,11 @@ class _HanoiScreenState extends State<HanoiScreen> {
     final board = _board!;
     final after = board.move(from, to);
     if (after == null) {
+      _haptics.miss();
       _errors += 1;
       return;
     }
+    after.solved ? _haptics.win() : _haptics.hit();
     _history.add(board.copy());
     _moves += 1;
     _board = after;
@@ -190,7 +196,7 @@ class _HanoiScreenState extends State<HanoiScreen> {
    */
   /// ⚠️ Название одной строкой на весь экран: второй литерал был бы вторым местом,
   /// где его надо переводить, и первым, где забудут.
-  static const _title = 'Ханойская башня';
+  static String get _title => L.t('hanoi');
 
   Future<void> _openLesson() async {
     final from = _board;
@@ -246,12 +252,12 @@ class _HanoiScreenState extends State<HanoiScreen> {
         // Счётчик уровня при шаге зарядки не показывается: шаг лестницу не
         // двигает, и число рядом с партией читалось бы как обещание засчитать.
         if (!GamePreset.isPreset)
-          HudItem(label: 'Уровень', value: '${_ladder.level}', icon: Icons.flag_outlined),
+          HudItem(label: L.t('level'), value: '${_ladder.level}', icon: Icons.flag_outlined),
         // Ходы ПРОТИВ МИНИМУМА: без этого числа человек не знает, хорошо ли
         // играет, и «молодец» в конце берётся ниоткуда.
-        HudItem(label: 'Ходы', value: '$_moves/$min', icon: Icons.swap_horiz),
-        HudItem(label: 'Дисков', value: '${board.discs}', icon: Icons.layers_outlined),
-        HudItem(label: 'Ошибки', value: '$_errors', icon: Icons.error_outline),
+        HudItem(label: L.t('hud_moves'), value: '$_moves/$min', icon: Icons.swap_horiz),
+        HudItem(label: L.t('discsCount'), value: '${board.discs}', icon: Icons.layers_outlined),
+        HudItem(label: L.t('errors'), value: '$_errors', icon: Icons.error_outline),
       ],
       field: (context, h) => HanoiBoard(
         state: board,
@@ -264,8 +270,8 @@ class _HanoiScreenState extends State<HanoiScreen> {
         }),
       ),
       auxRow: AuxBar(children: [
-        AuxAction(icon: Icons.undo, label: 'Отменить', onPressed: _history.isEmpty ? null : _undo),
-        AuxAction(icon: Icons.refresh, label: 'Начать заново', onPressed: _restart),
+        AuxAction(icon: Icons.undo, label: L.t('btn_undo'), onPressed: _history.isEmpty ? null : _undo),
+        AuxAction(icon: Icons.refresh, label: L.t('restart'), onPressed: _restart),
       ]),
       toolbar: _won
           ? Padding(
@@ -277,8 +283,8 @@ class _HanoiScreenState extends State<HanoiScreen> {
                   // ходов против минимума, сколько звёзд и какой уровень дальше.
                   Text(
                     _moves == min
-                        ? 'Собрано за минимум: $_moves ходов · $stars★'
-                        : 'Собрано за $_moves ходов (минимум $min) · $stars★',
+                        ? L.f('hanoiWonMin', {'m': '$_moves', 's': '$stars'})
+                        : L.f('hanoiWon', {'m': '$_moves', 'min': '$min', 's': '$stars'}),
                     key: const ValueKey('hanoi-result'),
                     textAlign: TextAlign.center,
                     style: const TextStyle(fontWeight: FontWeight.w700),
@@ -287,15 +293,15 @@ class _HanoiScreenState extends State<HanoiScreen> {
                   FilledButton.icon(
                     onPressed: _next,
                     icon: const Icon(Icons.arrow_forward),
-                    label: Text('Дальше — уровень ${_ladder.level + 1}'),
+                    label: Text(L.f('nextLevelBtn', {'n': '${_ladder.level + 1}'})),
                   ),
                 ],
               ),
             )
           : null,
       pauseActions: [
-        PauseAction(label: 'Начать заново', icon: Icons.refresh, onPressed: _restart),
-        if (_history.isNotEmpty) PauseAction(label: 'Отменить ход', icon: Icons.undo, onPressed: _undo),
+        PauseAction(label: L.t('restart'), icon: Icons.refresh, onPressed: _restart),
+        if (_history.isNotEmpty) PauseAction(label: L.t('btn_undo'), icon: Icons.undo, onPressed: _undo),
       ],
     );
   }

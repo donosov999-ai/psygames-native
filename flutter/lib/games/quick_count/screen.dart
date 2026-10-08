@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -7,10 +6,12 @@ import '../../shell/game_preset.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/boss_round.dart';
 import '../../shell/demo_lesson.dart';
+import '../../shell/game_clock.dart';
 import '../../shell/l10n.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/lesson.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/level_rules.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import 'model.dart';
@@ -37,7 +38,7 @@ class QuickCountScreen extends StatefulWidget {
   State<QuickCountScreen> createState() => _QuickCountScreenState();
 }
 
-enum _Phase { ready, flash, hold, answer, result }
+enum _Phase { ready, flash, gap, hold, answer, result }
 
 class _QuickCountScreenState extends State<QuickCountScreen> {
   static const double dotR = 16;
@@ -52,19 +53,32 @@ class _QuickCountScreenState extends State<QuickCountScreen> {
   int _wrong = 0;
   int _n = 0;
   int _shift = 0;
+
+  /// С 42-го проба — серия вспышек: сколько точек в каждой, где в серии своя и какая идёт сейчас.
+  List<int> _flashCounts = const [];
+  int _ownAt = 0;
+  int _flashNo = 0;
+  bool get _decoys => qcDecoys(_ladder.level);
+
+  /// Сейчас на поле приманка?
+  bool get _lureShown => _decoys && _flashNo != _ownAt;
   int? _picked;
   bool _won = false;
 
   /// Итог боя с боссом после этой партии; `null` — боя не было (веб: `bossWon`).
   bool? _boss;
   bool _ready = false;
-  Timer? _timer;
+
+  /// Таймеры пробы — на часах партии: пауза каркаса и разбор их останавливают, вспышка
+  /// не тает под меню (shell/game_clock.dart).
+  GameTimer? _timer;
 
   @override
   void initState() {
     super.initState();
     _rnd = widget.rnd ?? math.Random();
-    _ladder = LevelLadder(gameId: 'quick_count', store: SharedLevelStore(widget.state), maxLevel: quickCountLevels);
+    // Потолка нет (правило Дениса 06.09): выше 41-го — две вспышки, см. model.dart.
+    _ladder = LevelLadder(gameId: 'quick_count', store: SharedLevelStore(widget.state), maxLevel: 999);
     _boot();
   }
 
@@ -107,17 +121,51 @@ class _QuickCountScreenState extends State<QuickCountScreen> {
       // Сдвиг окна тянется ОДИН раз на пробу: иначе кнопки перескакивали бы
       // при каждой перерисовке, пока человек целится.
       _shift = rollWindowShift(_rnd);
+      // Приманки тянутся ПОСЛЕ числа и сдвига: на уровнях 1…41 раздача прежняя, байт в байт.
+      if (_decoys) {
+        final decoys = qcDrawDecoys(_ladder.level, _rnd);
+        _ownAt = _rnd.nextInt(decoys + 1);
+        _flashCounts = [
+          for (var i = 0; i <= decoys; i += 1)
+            i == _ownAt ? _n : _params.minN + _rnd.nextInt(_params.maxN - _params.minN + 1),
+        ];
+      } else {
+        _ownAt = 0;
+        _flashCounts = [_n];
+      }
+      _flashNo = 0;
       _picked = null;
       _phase = _Phase.flash;
     });
-    _timer = Timer(Duration(milliseconds: _params.exposureMs), () {
+    _afterFlash();
+  }
+
+  /// Вспышка гаснет: дальше либо пауза и следующая вспышка серии, либо задержка до ответа.
+  void _afterFlash() {
+    _timer = gameTimeout(Duration(milliseconds: _params.exposureMs), () {
       if (!mounted) return;
-      setState(() => _phase = _Phase.hold);
-      // Задержка — третья ось лестницы: с 32-го уровня число надо продержать в уме.
-      _timer = Timer(Duration(milliseconds: _params.holdMs), () {
+      if (_flashNo + 1 >= _flashCounts.length) {
+        _toHold();
+        return;
+      }
+      setState(() => _phase = _Phase.gap);
+      _timer = gameTimeout(const Duration(milliseconds: qcFlashGapMs), () {
         if (!mounted) return;
-        setState(() => _phase = _Phase.answer);
+        setState(() {
+          _flashNo += 1;
+          _phase = _Phase.flash;
+        });
+        _afterFlash();
       });
+    });
+  }
+
+  void _toHold() {
+    setState(() => _phase = _Phase.hold);
+    // Задержка — третья ось лестницы: с 32-го уровня число надо продержать в уме.
+    _timer = gameTimeout(Duration(milliseconds: _params.holdMs), () {
+      if (!mounted) return;
+      setState(() => _phase = _Phase.answer);
     });
   }
 
@@ -158,22 +206,26 @@ class _QuickCountScreenState extends State<QuickCountScreen> {
   String get _line {
     switch (_phase) {
       case _Phase.ready:
-        return 'Точки вспыхнут на мгновение — назови, сколько их';
+        return _decoys ? L.t('qcOwnColorHint') : L.t('qcIntro');
       case _Phase.flash:
-        return 'Смотри';
+        return _decoys ? L.t('qcOwnColorHint') : L.t('quickCountLookHint');
+      case _Phase.gap:
+        return L.t('qcOwnColorHint');
       case _Phase.hold:
-        return _params.holdMs > 0 ? 'Держи число в уме' : '…';
+        return _params.holdMs > 0 ? L.t('qcHold') : '…';
       case _Phase.answer:
-        return 'Сколько было точек?';
+        return L.t('quickCountAnswerHint');
       case _Phase.result:
         final accuracy = (_correct / trialsPerRound * 100).round();
-        return _won ? 'Уровень взят: $accuracy% верных' : 'Верных $accuracy% — нужно 80%';
+        return _won
+            ? L.f('qcResultWin', {'p': '$accuracy'})
+            : L.f('qcResultFail', {'p': '$accuracy', 'need': '${passAccuracyPercent.round()}'});
     }
   }
 
   /// Заголовок один на экран и на разбор: вторая такая строка — второй долг
   /// храповика подписей (`test/ui_text_debt_does_not_grow_test.dart`).
-  String get _title => 'Быстрый счёт';
+  String get _title => L.t('quickCount');
 
   /// Разбор объясняет ПРИЁМ: верный ответ человек и так увидит по итогу раунда,
   /// а вот чем объём берётся — нет.
@@ -186,28 +238,37 @@ class _QuickCountScreenState extends State<QuickCountScreen> {
     if (!_ready) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     return GameShell(
       title: _title,
+      // Карточка правила — до первой пробы и на итоге: вспышки под ней не идут.
+      levelRule: LevelRuleSpot(
+          gameId: 'quick_count',
+          level: _ladder.level,
+          state: widget.state,
+          calm: _phase == _Phase.ready || _phase == _Phase.result),
       onLesson: () => openDemoLesson(context, title: _title, trials: _demoTrials()),
       hud: [
-        HudItem(label: 'Уровень', value: '${_ladder.level}', icon: Icons.flag_outlined),
-        HudItem(label: 'Достигнуто', value: '${_ladder.best}', icon: Icons.emoji_events_outlined),
-        HudItem(label: 'Проба', value: '${math.min(_trial + 1, trialsPerRound)}/$trialsPerRound', icon: Icons.repeat),
-        HudItem(label: 'Верно', value: '$_correct', icon: Icons.check_circle_outline),
-        HudItem(label: 'Ошибки', value: '$_wrong', icon: Icons.error_outline),
+        HudItem(label: L.t('level'), value: '${_ladder.level}', icon: Icons.flag_outlined),
+        HudItem(label: L.t('personalBest'), value: '${_ladder.best}', icon: Icons.emoji_events_outlined),
+        HudItem(label: L.t('round'), value: '${math.min(_trial + 1, trialsPerRound)}/$trialsPerRound', icon: Icons.repeat),
+        HudItem(label: L.t('hud_correct'), value: '$_correct', icon: Icons.check_circle_outline),
+        HudItem(label: L.t('errors'), value: '$_wrong', icon: Icons.error_outline),
       ],
       field: (context, h) => _Field(
         phase: _phase,
-        n: _n,
+        n: _flashCounts.isEmpty ? _n : _flashCounts[_flashNo],
+        lure: _lureShown,
+        lureSpread: qcDecoySpread(_ladder.level),
         trial: _trial,
+        flashNo: _flashNo,
         height: h,
         dotR: dotR,
         rnd: widget.rnd,
       ),
       auxRow: AuxBar(children: [
-        AuxAction(icon: Icons.refresh, label: 'Начать заново', onPressed: () => setState(_reset)),
+        AuxAction(icon: Icons.refresh, label: L.t('restart'), onPressed: () => setState(_reset)),
       ]),
       toolbar: _toolbar(context),
       pauseActions: [
-        PauseAction(label: 'Начать заново', icon: Icons.refresh, onPressed: () => setState(_reset)),
+        PauseAction(label: L.t('restart'), icon: Icons.refresh, onPressed: () => setState(_reset)),
       ],
     );
   }
@@ -221,14 +282,29 @@ class _QuickCountScreenState extends State<QuickCountScreen> {
     return Padding(
       padding: const EdgeInsets.all(12),
       child: Column(mainAxisSize: MainAxisSize.min, children: [
-        Text(_line, key: const Key('строка'), textAlign: TextAlign.center, style: text.bodyMedium),
+        if (_decoys && (_phase == _Phase.ready || _phase == _Phase.flash || _phase == _Phase.gap))
+          // С 42-го: образец СВОЕГО цвета рядом со строкой — цвет не называем словом: тема меняет его.
+          Row(mainAxisSize: MainAxisSize.min, children: [
+            Flexible(
+              child: Text(_line, key: const Key('строка'), textAlign: TextAlign.center, style: text.bodyMedium),
+            ),
+            const SizedBox(width: 8),
+            Container(
+              key: const Key('образец'),
+              width: 18,
+              height: 18,
+              decoration: BoxDecoration(color: Theme.of(context).colorScheme.primary, shape: BoxShape.circle),
+            ),
+          ])
+        else
+          Text(_line, key: const Key('строка'), textAlign: TextAlign.center, style: text.bodyMedium),
         const SizedBox(height: 8),
         if (_phase == _Phase.ready)
           FilledButton.icon(
             key: const Key('начать'),
             onPressed: _startTrial,
             icon: const Icon(Icons.play_arrow),
-            label: const Text('Начать'),
+            label: Text(L.t('start')),
           ),
         if (_phase == _Phase.answer)
           SizedBox(
@@ -259,10 +335,10 @@ class _QuickCountScreenState extends State<QuickCountScreen> {
             key: const Key('дальше'),
             onPressed: () => setState(_reset),
             icon: Icon(_won ? Icons.arrow_forward : Icons.refresh),
-            label: Text(_won ? 'Следующий уровень' : 'Ещё раз'),
+            label: Text(_won ? L.t('nextLabel') : L.t('retry')),
           ),
         if (_picked != null && _phase != _Phase.result && _phase != _Phase.answer)
-          Text('было $_n', key: const Key('было'), style: text.bodySmall),
+          Text(L.f('qcWas', {'n': '$_n'}), key: const Key('было'), style: text.bodySmall),
       ]),
     );
   }
@@ -274,14 +350,26 @@ class _Field extends StatelessWidget {
   const _Field({
     required this.phase,
     required this.n,
+    required this.lure,
+    required this.lureSpread,
     required this.trial,
+    required this.flashNo,
     required this.height,
     required this.dotR,
     this.rnd,
   });
 
   final _Phase phase;
-  final int n, trial;
+
+  /// Сколько точек в ТЕКУЩЕЙ вспышке; номер пробы и вспышки в серии.
+  final int n, trial, flashNo;
+
+  /// С 42-го: сейчас на поле приманка и насколько её цвет далёк от своего.
+  final bool lure;
+  final double lureSpread;
+
+  /// Цвет приманок на 42-м — оранжевый, дальше он сходится к своему (до пола различимости).
+  static const Color lureFar = Color(0xFFF97316);
   final double height, dotR;
   final math.Random? rnd;
 
@@ -291,6 +379,7 @@ class _Field extends StatelessWidget {
     return LayoutBuilder(builder: (context, c) {
       final w = c.maxWidth - 16;
       final fieldH = math.max(0.0, height - 16);
+      if (phase == _Phase.gap) return const SizedBox.expand();
       if (phase != _Phase.flash) {
         return Center(
           child: Icon(
@@ -302,7 +391,8 @@ class _Field extends StatelessWidget {
       }
       // Раздача точек повторяема внутри пробы: зерно — номер пробы, поэтому
       // перерисовка не перекладывает точки под пальцем.
-      final dots = scatterDots(n, w, fieldH, dotR, rnd ?? math.Random(trial * 7919 + n));
+      final dots = scatterDots(n, w, fieldH, dotR, rnd ?? math.Random(trial * 7919 + flashNo * 613 + n + (lure ? 104729 : 0)));
+      final color = lure ? Color.lerp(scheme.primary, lureFar, lureSpread)! : scheme.primary;
       return Center(
         child: SizedBox(
           key: const Key('поле'),
@@ -311,13 +401,13 @@ class _Field extends StatelessWidget {
           child: Stack(children: [
             for (var i = 0; i < dots.length; i += 1)
               Positioned(
-                key: Key('точка$i'),
+                key: lure ? Key('чужая$i') : Key('точка$i'),
                 left: dots[i].x - dotR,
                 top: dots[i].y - dotR,
                 child: Container(
                   width: dotR * 2,
                   height: dotR * 2,
-                  decoration: BoxDecoration(color: scheme.primary, shape: BoxShape.circle),
+                  decoration: BoxDecoration(color: color, shape: BoxShape.circle),
                 ),
               ),
           ]),

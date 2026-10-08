@@ -1,0 +1,274 @@
+{
+ "v": 1,
+ "title": "Статистика",
+ "primary": "#ec4899",
+ "labels": {
+  "back": "Назад",
+  "refresh": "Обновить",
+  "summary": "Сводка",
+  "history": "История"
+ },
+ "loading": false,
+ "scope": {
+  "profile": "🌸 Микро-релакс",
+  "all": "Все игры",
+  "isAll": false
+ },
+ "totalPlayed": "Всего сыграно: 8 игр (завершённых)",
+ "hero": {
+  "tokens": 1240,
+  "tokensLabel": "Очки",
+  "level": "Lv 5",
+  "levelTitle": "Мастер",
+  "streak": 0,
+  "streakLabel": "Стрик",
+  "progress": 0.23333333333333334,
+  "games": "8 завершённых партий",
+  "time": "8м в игре"
+ },
+ "areas": {
+  "title": "Баланс тренировок",
+  "hint": "Доля ваших тренировок по областям. Это не оценка способностей — мы не меряем их и не обещаем: это то, что вы на самом деле качаете, а что обходите стороной.",
+  "rows": [
+   {
+    "area": "recovery",
+    "label": "Восстановление",
+    "pct": 50,
+    "text": "50% · 4",
+    "a11y": "Восстановление: 50%, 4",
+    "trend": null
+   },
+   {
+    "area": "logic",
+    "label": "Логика и принятие решений",
+    "pct": 50,
+    "text": "50% · 4",
+    "a11y": "Логика и принятие решений: 50%, 4",
+    "trend": null
+   }
+  ],
+  "weak": null
+ },
+ "ai": null,
+ "games": [
+  {
+   "id": "sudoku",
+   "name": "Судоку",
+   "icon": "apps",
+   "gradient": [
+    "#7f7fd5",
+    "#86a8e7"
+   ],
+   "stats": [
+    {
+     "label": "Всего игр",
+     "value": "4"
+    },
+    {
+     "label": "Самая быстрая",
+     "value": "1:00"
+    },
+    {
+     "label": "Самая долгая",
+     "value": "1:03"
+    },
+    {
+     "label": "Среднее время",
+     "value": "1:01"
+    }
+   ],
+   "spark": {
+    "caption": "Столбик = очки за попытку, последние 4",
+    "bars": [
+     {
+      "h": 5,
+      "op": 0.35
+     },
+     {
+      "h": 11,
+      "op": 0.5666666666666667
+     },
+     {
+      "h": 18,
+      "op": 0.7833333333333333
+     },
+     {
+      "h": 24,
+      "op": 1
+     }
+    ],
+    "color": "#86a8e7",
+    "older": "раньше",
+    "newer": "свежее",
+    "numbers": "Очки — рекорд 13 · ⌀ 12"
+   }
+  },
+  {
+   "id": "breathing",
+   "name": "Дыхание",
+   "icon": "flower-outline",
+   "gradient": [
+    "#5b86e5",
+    "#36d1dc"
+   ],
+   "stats": [
+    {
+     "label": "Всего игр",
+     "value": "4"
+    },
+    {
+     "label": "Самая быстрая",
+     "value": "1:00"
+    },
+    {
+     "label": "Самая долгая",
+     "value": "1:03"
+    },
+    {
+     "label": "Среднее время",
+     "value": "1:01"
+    }
+   ],
+   "spark": {
+    "caption": "Столбик = очки за попытку, последние 4",
+    "bars": [
+     {
+      "h": 5,
+      "op": 0.35
+     },
+     {
+      "h": 11,
+      "op": 0.5666666666666667
+     },
+     {
+      "h": 18,
+      "op": 0.7833333333333333
+     },
+     {
+      "h": 24,
+      "op": 1
+     }
+    ],
+    "color": "#36d1dc",
+    "older": "раньше",
+    "newer": "свежее",
+    "numbers": "Очки — рекорд 13 · ⌀ 12"
+   }
+  }
+ ],
+ "empty": null,
+ "history": {
+  "kind": "days",
+  "days": [
+   {
+    "label": "Вчера",
+    "entries": [
+     {
+      "name": "Судоку",
+      "icon": "apps",
+      "color": "#7f7fd5",
+      "verdict": "хуже на 1",
+      "verdictColor": "#9e2b2b",
+      "level": null,
+      "value": "10",
+      "time": "19:58",
+      "label": "Судоку, 19:58, 10, хуже на 1"
+     },
+     {
+      "name": "Дыхание",
+      "icon": "flower-outline",
+      "color": "#5b86e5",
+      "verdict": "хуже на 1",
+      "verdictColor": "#9e2b2b",
+      "level": null,
+      "value": "10",
+      "time": "19:58",
+      "label": "Дыхание, 19:58, 10, хуже на 1"
+     }
+    ]
+   },
+   {
+    "label": "5 октября",
+    "entries": [
+     {
+      "name": "Судоку",
+      "icon": "apps",
+      "color": "#7f7fd5",
+      "verdict": "хуже на 1",
+      "verdictColor": "#9e2b2b",
+      "level": null,
+      "value": "11",
+      "time": "19:58",
+      "label": "Судоку, 19:58, 11, хуже на 1"
+     },
+     {
+      "name": "Дыхание",
+      "icon": "flower-outline",
+      "color": "#5b86e5",
+      "verdict": "хуже на 1",
+      "verdictColor": "#9e2b2b",
+      "level": null,
+      "value": "11",
+      "time": "19:58",
+      "label": "Дыхание, 19:58, 11, хуже на 1"
+     }
+    ]
+   },
+   {
+    "label": "4 октября",
+    "entries": [
+     {
+      "name": "Судоку",
+      "icon": "apps",
+      "color": "#7f7fd5",
+      "verdict": "хуже на 1",
+      "verdictColor": "#9e2b2b",
+      "level": null,
+      "value": "12",
+      "time": "19:58",
+      "label": "Судоку, 19:58, 12, хуже на 1"
+     },
+     {
+      "name": "Дыхание",
+      "icon": "flower-outline",
+      "color": "#5b86e5",
+      "verdict": "хуже на 1",
+      "verdictColor": "#9e2b2b",
+      "level": null,
+      "value": "12",
+      "time": "19:58",
+      "label": "Дыхание, 19:58, 12, хуже на 1"
+     }
+    ]
+   },
+   {
+    "label": "3 октября",
+    "entries": [
+     {
+      "name": "Судоку",
+      "icon": "apps",
+      "color": "#7f7fd5",
+      "verdict": "первый раз",
+      "verdictColor": "#6E6E73",
+      "level": null,
+      "value": "13",
+      "time": "19:58",
+      "label": "Судоку, 19:58, 13, первый раз"
+     },
+     {
+      "name": "Дыхание",
+      "icon": "flower-outline",
+      "color": "#5b86e5",
+      "verdict": "первый раз",
+      "verdictColor": "#6E6E73",
+      "level": null,
+      "value": "13",
+      "time": "19:58",
+      "label": "Дыхание, 19:58, 13, первый раз"
+     }
+    ]
+   }
+  ],
+  "tail": null
+ }
+}

@@ -18,7 +18,7 @@ PsyGames : Jeux de mémoire
 ## 2. КРАТКОЕ ОПИСАНИЕ — 80 символов
 
 ```
-Mémoire, concentration et logique : 75 exercices hors ligne, sans publicité
+Mémoire, concentration et logique : 131 exercices hors ligne, sans publicité
 ```
 
 ---
@@ -33,7 +33,7 @@ Dans une langue étrangère, vous distinguez des sons qui se confondaient aupara
 
 Ce n'est pas un talent réservé à quelques-uns. Cela s'entraîne — et ici, les progrès se mesurent.
 
-PsyGames, c'est de l'entraînement cérébral : jeux de réflexion, casse-tête et 75 exercices pour la mémoire, l'attention et la logique. Pas un test de QI, mais une pratique aux résultats mesurables.
+PsyGames, c'est de l'entraînement cérébral : jeux de réflexion, casse-tête et 131 exercices pour la mémoire, l'attention et la logique. Pas un test de QI, mais une pratique aux résultats mesurables.
 
 JEUX DE MÉMOIRE
 Entraînez la mémoire visuelle avec Corsi, les matrices et les paires. Renforcez la mémoire de travail avec N-back, Operation Span et Reading Span.
@@ -42,7 +42,7 @@ ATTENTION ET CONCENTRATION
 Travaillez la concentration avec les tables de Schulte, le jeu des différences, Posner et Flanker, malgré les interruptions.
 
 LOGIQUE ET CASSE-TÊTES
-Résolvez Sudoku avec 15 variantes, tours de Hanoï, tour de Londres, SET et anagrammes. Apprenez à prévoir plusieurs coups.
+Résolvez Sudoku avec 37 variantes, tours de Hanoï, tour de Londres, SET et anagrammes. Apprenez à prévoir plusieurs coups.
 
 VITESSE DE RÉFLEXION ET RÉACTION
 Entraînez réflexes, calcul mental et contrôle avec Stroop, Go/No-Go, calcul chronométré et Trail Making.
@@ -58,7 +58,7 @@ PsyGames adapte la difficulté et rend l'évolution visible.
 • Défi quotidien et succès donnent le prochain objectif
 
 CE QUE CONTIENT L'APPLICATION
-• 75 exercices de mémoire, d'attention, de logique, de vitesse et de contrôle
+• 131 exercices de mémoire, d'attention, de logique, de vitesse et de contrôle
 • Des échauffements matin, journée, soir et nuit, prêts en un geste
 • Thème sombre et un set de nuit quand le sommeil ne vient pas : respiration 4-7-8, écran atténué, sans points ni série
 • 12 profils : langues, enfants, 50+, concentration, réaction, étudiants et plus

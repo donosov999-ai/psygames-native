@@ -1,8 +1,13 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../../shell/ability_wallet.dart';
+import '../../shell/game_clock.dart';
+
 import '../../shell/aux_action.dart';
+import '../../shell/resume_store.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
@@ -13,6 +18,8 @@ import '../../shell/l10n.dart';
 import '../../shell/lesson.dart';
 import '../../shell/lesson_player.dart';
 import '../sudoku/lesson.dart';
+import '../sudoku/leave_guard.dart';
+import '../sudoku/level_map.dart';
 import 'rules.dart';
 
 /// САМУРАЙ на общем каркасе — вторая игра раздела в переезде на Flutter.
@@ -26,10 +33,22 @@ import 'rules.dart';
 /// играбельно: клетка выходит 16 точек. Карта показывает всю фигуру, рабочий масштаб
 /// даёт клетку ≥48 точек и листается. Арифметика вынесена в `layout.dart`, чтобы проба
 /// мерила её вызовом.
+/// Счёт победы — константы веба (`SAMURAI_TIME_CAP`, `SAMURAI_WIN_FLOOR` в sudoku-samurai.tsx).
+const samuraiTimeCap = 1500;
+
+/// Версия снимка незаконченной партии — та же, что у веба (`SAMURAI_RESUME_V`).
+const samuraiResumeVersion = 2;
+const samuraiWinFloor = 300;
+
 class SamuraiScreen extends StatefulWidget {
-  const SamuraiScreen({super.key, required this.state});
+  const SamuraiScreen({super.key, required this.state, this.megabossFrom});
 
   final SharedState state;
+
+  /// Вход мегабоссом с вехи классической лестницы (каждый 15-й уровень судоку): номер того
+  /// уровня. Доска и правила не меняются — меняется только отчёт (`details.megaboss_from`),
+  /// как в вебе (`sudoku-samurai.tsx`, megabossFrom).
+  final int? megabossFrom;
 
   @override
   State<SamuraiScreen> createState() => _SamuraiScreenState();
@@ -42,20 +61,42 @@ class _SamuraiScreenState extends State<SamuraiScreen> {
 
   List<List<int>> _grid = const [];
   List<List<bool>> _given = const [];
-  final List<({int r, int c, int was})> _history = [];
+  final List<({int r, int c, int was, int to})> _history = [];
 
   ({int r, int c})? _selected;
   int _errors = 0;
   int _hintsUsed = 0;
   bool _won = false;
+
+  /// Начало партии по часам игры (пауза их держит) — время в отчёте, как у веба.
+  int _startedAt = gameNow();
+  int get _elapsed => (gameNow() - _startedAt) ~/ 1000;
   bool _lost = false;
   String? _failure;
   SamuraiZoom _zoom = SamuraiZoom.map;
+
+  /// 🔴 ВТОРАЯ ЖИЗНЬ И КУПЛЕННАЯ ПОДСКАЗКА — как у классики (задача 576405e7, `sudoku/screen.dart`).
+  /// Подсказка самурая партию тренировкой НЕ делает (она режет счёт), поэтому здесь и купленная
+  /// подсказка, и жизнь замораживают лестницу: `advance: false` у [LevelLadder.win]/[LevelLadder.fail].
+  late final _wallet = AbilityWallet(widget.state);
+  bool _deathOffer = false;
+  bool _lifeSpent = false;
+  bool _spending = false;
+  int _boughtHints = 0;
+
+  bool get _halted => _won || _lost || _deathOffer;
+  int get _errorCap => _params.maxErrors + (_lifeSpent ? 1 : 0);
+
+  /// Партия с купленной помощью ступень не берёт.
+  bool get _bought => _lifeSpent || _boughtHints > 0;
 
   final _hCtrl = ScrollController();
   final _vCtrl = ScrollController();
 
   SamuraiLevelParams get _params => samuraiLevelParams(_ladder.level);
+
+  int get _freeHintsLeft => max(0, _params.hintMax - _hintsUsed);
+  int get _boughtLeft => _wallet.count(AbilityWallet.sudokuHint);
 
   @override
   void initState() {
@@ -71,6 +112,7 @@ class _SamuraiScreenState extends State<SamuraiScreen> {
 
   @override
   void dispose() {
+    _persist();   // уход с экрана — с живым временем, а не с тем, что было на прошлом ходу
     _hCtrl.dispose();
     _vCtrl.dispose();
     super.dispose();
@@ -79,9 +121,142 @@ class _SamuraiScreenState extends State<SamuraiScreen> {
   Future<void> _boot() async {
     await _ladder.load();
     final levels = await SamuraiLevels.load();
+    final saved = await _resume.load();
     if (!mounted) return;
     setState(() => _levels = levels);
+    if (saved != null && _restore(saved)) return;
     _deal();
+  }
+
+  /// 🔴 НЕЗАКОНЧЕННАЯ ПАРТИЯ — ФОРМАТ ВЕБА (sudoku-samurai.tsx, SamuraiResume, RESUME_V 2; сверка
+  /// 138f7818, задача b5df5096 п.3). Партия идёт под час на 369 клетках, а свёрнутое приложение
+  /// натив раздавал заново. Ключ и конверт — каркаса (`ResumeStore`, как `services/resume` веба),
+  /// поля — веба: level, megaboss, solution, grid, given, marks (21×21; пометок у натива нет —
+  /// нули), errors, hintUses, elapsed, history {past: [{r, c, from, to}], future: []}.
+  /// Пишется после каждого хода, подсказки, отмены и при уходе; стирается победой, проигрышем
+  /// и новой раздачей (новая доска сразу ложится своим снимком, как в вебе).
+  late final ResumeStore _resume = ResumeStore(widget.state, 'sudoku_samurai', samuraiResumeVersion);
+
+  /// Веха мегабосса ПАРТИИ (null — обычная): ездит в снимке — поднятая обычным входом
+  /// мега-партия сохраняет свою метку, как в вебе.
+  late int? _megaboss = widget.megabossFrom;
+
+  Map<String, Object?> _snapshot() {
+    final board = _board!;
+    return {
+      'level': board.level,
+      'megaboss': _megaboss,
+      'solution': board.solution,
+      'grid': _grid,
+      'given': _given,
+      'marks': [for (var r = 0; r < samuraiSize; r++) List<int>.filled(samuraiSize, 0)],
+      'errors': _errors,
+      'hintUses': _hintsUsed,
+      // Натив-только: веб этих полей не читает; без них поднятая партия забыла бы покупку.
+      if (_lifeSpent) 'secondLife': true,
+      if (_boughtHints > 0) 'boughtHints': _boughtHints,
+      'elapsed': _elapsed,
+      'history': {
+        'past': [for (final h in _history) {'r': h.r, 'c': h.c, 'from': h.was, 'to': h.to}],
+        'future': const <Object>[],
+      },
+    };
+  }
+
+  /// Записать (или стереть, если партия кончилась). Без ожидания: хранилище общее, а экран
+  /// не должен ждать диска между касаниями.
+  void _persist() {
+    if (_board == null || _grid.isEmpty) return;
+    if (_won || _lost) {
+      unawaited(_resume.clear());
+      return;
+    }
+    unawaited(_resume.save(_snapshot()));
+  }
+
+  /// Поднять партию из снимка. Чужая ступень (лестница ушла вперёд в другой сессии) и чужая веха
+  /// мегабосса не поднимаются — тогда раздаётся своя доска, и снимок она перезапишет.
+  bool _restore(Map<String, Object?> s) {
+    List<List<int>>? ints(Object? v) {
+      if (v is! List || v.length != samuraiSize) return null;
+      final out = <List<int>>[];
+      for (final row in v) {
+        if (row is! List || row.length != samuraiSize) return null;
+        out.add([for (final x in row) x is num ? x.toInt() : 0]);
+      }
+      return out;
+    }
+
+    final solution = ints(s['solution']), grid = ints(s['grid']);
+    final givenRaw = s['given'];
+    final level = (s['level'] as num?)?.toInt();
+    if (solution == null || grid == null || level == null || givenRaw is! List || givenRaw.length != samuraiSize) {
+      return false;
+    }
+    final given = [for (final row in givenRaw) [for (final x in (row as List)) x == true]];
+    if (given.any((row) => row.length != samuraiSize)) return false;
+    if (level != _ladder.level) return false;
+    final mega = (s['megaboss'] as num?)?.toInt();
+    if (widget.megabossFrom != null && mega != widget.megabossFrom) return false;
+    final past = ((s['history'] as Map?)?['past'] as List?) ?? const [];
+    final elapsed = (s['elapsed'] as num?)?.toInt() ?? 0;
+    final puzzle = [
+      for (var r = 0; r < samuraiSize; r++) [for (var c = 0; c < samuraiSize; c++) given[r][c] ? solution[r][c] : 0],
+    ];
+    var blanks = 0;
+    for (var r = 0; r < samuraiSize; r++) {
+      for (var c = 0; c < samuraiSize; c++) {
+        if (isSamuraiCell(r, c) && !given[r][c]) blanks++;
+      }
+    }
+    setState(() {
+      _board = SamuraiBoard(level: level, puzzle: puzzle, solution: solution, tier: null, blanks: blanks);
+      _failure = null;
+      _grid = grid;
+      _given = given;
+      _history
+        ..clear()
+        ..addAll([
+          for (final m in past.whereType<Map>())
+            if (m['kind'] == null || m['kind'] == 'digit')
+              (
+                r: (m['r'] as num).toInt(),
+                c: (m['c'] as num).toInt(),
+                was: (m['from'] as num?)?.toInt() ?? 0,
+                to: (m['to'] as num?)?.toInt() ?? 0,
+              ),
+        ]);
+      _selected = null;
+      _errors = (s['errors'] as num?)?.toInt() ?? 0;
+      _hintsUsed = (s['hintUses'] as num?)?.toInt() ?? 0;
+      _won = false;
+      _lost = false;
+      _deathOffer = false;
+      _lifeSpent = s['secondLife'] == true;
+      _boughtHints = (s['boughtHints'] as num?)?.toInt() ?? 0;
+      // Время — с НАКОПЛЕННОГО: часы между сессиями ушли вперёд, а партия всё это время стояла.
+      _startedAt = gameNow() - elapsed * 1000;
+      _megaboss = mega;
+    });
+    // Снимок лёг в момент предложения второй жизни — поднятая партия снова спрашивает.
+    if (_errors >= _errorCap) setState(_outOfLives);
+    return true;
+  }
+
+  /// Карта уровней: пройденный — переиграть (`LevelLadder.pick`), потолок не трогается.
+  Future<void> _openLevelMap() async {
+    final picked = await showLevelMap(
+      context,
+      current: _ladder.level,
+      best: _ladder.best,
+      last: samuraiMaxLevel,
+      stars: levelStarsOf(widget.state, 'sudoku_samurai'),
+    );
+    if (picked == null || !mounted) return;
+    await restartGuarded(context, live: _live, deal: () async {
+      await _ladder.pick(picked);
+      if (mounted) _deal();
+    });
   }
 
   void _deal() {
@@ -90,7 +265,7 @@ class _SamuraiScreenState extends State<SamuraiScreen> {
     final board = levels.boardFor(_ladder.level, seed: DateTime.now().millisecondsSinceEpoch);
     setState(() {
       _board = board;
-      _failure = board == null ? 'Досок этой ступени нет в данных' : null;
+      _failure = board == null ? L.t('sdkNoBoards') : null;
       _grid = board == null ? const [] : [for (final row in board.puzzle) [...row]];
       _given = board == null ? const [] : [for (final row in board.puzzle) [for (final v in row) v != 0]];
       _history.clear();
@@ -99,13 +274,35 @@ class _SamuraiScreenState extends State<SamuraiScreen> {
       _hintsUsed = 0;
       _won = false;
       _lost = false;
+      _deathOffer = false;
+      _lifeSpent = false;
+      _boughtHints = 0;
+      _startedAt = gameNow();
+      _megaboss = widget.megabossFrom;
     });
+    _persist();
   }
+
+  /// 🔴 ОТЧЁТ ПАРТИИ — КАК У ВЕБА (sudoku-samurai.tsx, saveSession; сверка 138f7818). До 02.10
+  /// натив звал `win()` без аргументов: нативные победы не попадали ни в «лучшее время
+  /// ступени», ни в счёт, а проигрыш не писался вовсе. Счёт — формула веба: штраф за время
+  /// насыщается (партия идёт час), у победы есть пол.
+  int _score(int level) => max(samuraiWinFloor,
+      (4000 + level * 150 - _errors * 50 - min(_elapsed, samuraiTimeCap) * 2 - _hintsUsed * 60).round());
+
+  Map<String, Object?> _details(int level, {required bool completed}) => {
+        'errors': _errors,
+        'completed': completed,
+        'samurai': true,
+        'level': level,
+        'hint_uses': _hintsUsed,
+        if (!completed) 'failed_out': true,
+      };
 
   /// Тычок в клетку. На карте он ещё и ПЕРЕВОДИТ в рабочий масштаб: карта нужна, чтобы
   /// выбрать место, а ходить с клетки в 16 точек нельзя.
   void _select(int r, int c) {
-    if (_won || _lost || !isSamuraiCell(r, c)) return;
+    if (_halted || !isSamuraiCell(r, c)) return;
     setState(() {
       _selected = (r: r, c: c);
       if (_zoom == SamuraiZoom.map) {
@@ -133,42 +330,112 @@ class _SamuraiScreenState extends State<SamuraiScreen> {
   void _place(int value) {
     final board = _board;
     final sel = _selected;
-    if (board == null || sel == null || _won || _lost) return;
+    if (board == null || sel == null || _halted) return;
     if (_given[sel.r][sel.c]) return;
 
     setState(() {
-      _history.add((r: sel.r, c: sel.c, was: _grid[sel.r][sel.c]));
+      _history.add((r: sel.r, c: sel.c, was: _grid[sel.r][sel.c], to: value));
       _grid[sel.r][sel.c] = value;
       if (value != 0 && board.solution[sel.r][sel.c] != value) {
         _errors += 1;
-        if (_errors >= _params.maxErrors) _lost = true;
+        if (_errors >= _errorCap) _outOfLives();
         return;
       }
       _checkWin();
     });
+    _persist();
   }
 
   void _erase() => _place(0);
 
+  /// Ошибки кончились: штука в кошельке есть и жизнь ещё не тратили — партия замирает и
+  /// спрашивает; иначе — проигрыш. Зовётся внутри `setState`. Автосписания нет, как у «Мишеней».
+  void _outOfLives() {
+    if (!_lifeSpent && _wallet.count(AbilityWallet.secondLife) > 0) {
+      _deathOffer = true;
+      return;
+    }
+    _lose();
+  }
+
+  void _lose() {
+    _deathOffer = false;
+    _lost = true;
+    final level = _ladder.level;
+    unawaited(_ladder.fail(
+      timeSeconds: _elapsed,
+      errors: _errors,
+      mode: 'samurai-level-$level',
+      difficulty: 'Level $level',
+      details: _details(level, completed: false),
+      advance: !_bought,
+    ));
+  }
+
+  Future<void> _takeLife() async {
+    if (_spending || _lifeSpent || !_deathOffer) return;
+    setState(() => _spending = true);
+    final ok = await _wallet.spend(AbilityWallet.secondLife);
+    if (!mounted) return;
+    setState(() {
+      _spending = false;
+      if (!ok) return;
+      _lifeSpent = true;
+      _deathOffer = false;
+    });
+    _persist();
+  }
+
+  void _declineLife() {
+    if (!_deathOffer) return;
+    setState(_lose);
+    _persist();
+  }
+
   void _undo() {
-    if (_history.isEmpty || _won || _lost) return;
+    if (_history.isEmpty || _halted) return;
     setState(() {
       final last = _history.removeLast();
       _grid[last.r][last.c] = last.was;
     });
+    _persist();
   }
 
   void _hint() {
     final board = _board;
     final sel = _selected;
-    if (board == null || sel == null || _won || _lost) return;
-    if (_hintsUsed >= _params.hintMax) return;
+    if (board == null || sel == null || _halted) return;
+    if (_hintsUsed >= _params.hintMax) {
+      // Бесплатные кончились — купленная. Клетку задания и уже верную не открываем: штука ушла бы впустую.
+      if (_given[sel.r][sel.c] || _grid[sel.r][sel.c] == board.solution[sel.r][sel.c]) return;
+      unawaited(_buyHint());
+      return;
+    }
+    _openCell();
+  }
+
+  Future<void> _buyHint() async {
+    if (_spending) return;
+    setState(() => _spending = true);
+    final ok = await _wallet.spend(AbilityWallet.sudokuHint);
+    if (!mounted) return;
+    setState(() => _spending = false);
+    if (!ok) return;
+    _boughtHints += 1;
+    _openCell();
+  }
+
+  void _openCell() {
+    final board = _board;
+    final sel = _selected;
+    if (board == null || sel == null || _halted) return;
     setState(() {
-      _history.add((r: sel.r, c: sel.c, was: _grid[sel.r][sel.c]));
+      _history.add((r: sel.r, c: sel.c, was: _grid[sel.r][sel.c], to: board.solution[sel.r][sel.c]));
       _grid[sel.r][sel.c] = board.solution[sel.r][sel.c];
       _hintsUsed += 1;
       _checkWin();
     });
+    _persist();
   }
 
   void _checkWin() {
@@ -176,7 +443,20 @@ class _SamuraiScreenState extends State<SamuraiScreen> {
     if (board == null) return;
     if (!isSolved(_grid, board.solution)) return;
     _won = true;
-    unawaited(_ladder.win());
+    final level = _ladder.level;
+    // Звёзды — за пройденную ступень; ступень с купленной помощью не пройдена.
+    if (!_bought) unawaited(saveLevelStars(widget.state, 'sudoku_samurai', level, samuraiStars(_errors, _hintsUsed)));
+    unawaited(_ladder.win(
+      score: _score(level),
+      timeSeconds: _elapsed,
+      errors: _errors,
+      mode: 'samurai-level-$level',
+      difficulty: 'Level $level',
+      // Веха классической лестницы: «пришёл мегабоссом с уровня N», а не сам — как в вебе,
+      // только у победы (sudoku-samurai.tsx, details.megaboss_from).
+      details: {..._details(level, completed: true), 'megaboss_from': ?_megaboss},
+      advance: !_bought,
+    ));
   }
 
   int get _left {
@@ -194,7 +474,7 @@ class _SamuraiScreenState extends State<SamuraiScreen> {
   /// партии. Приём «в строке осталось одно место» здесь ВЫКЛЮЧЕН: строка поля
   /// 21×21 пересекает две сетки, и подпись «в строке 4» назвала бы не ту линию.
   /// Заголовок один на экран и на разбор: вторая строка — второй долг подписей.
-  String get _title => 'Самурай';
+  String get _title => L.t('samuraiTitle');
 
   List<LessonStep> _lessonSteps() {
     final board = _board;
@@ -254,22 +534,26 @@ class _SamuraiScreenState extends State<SamuraiScreen> {
     v.dispose();
   }
 
+  /// В партии есть что терять: ход, ошибка или подсказка — и она не кончилась. Тогда выход и «Заново»
+  /// спрашивают (leave_guard.dart; сверка 138f7818 п.2).
+  bool get _live => (_history.isNotEmpty || _errors > 0 || _hintsUsed > 0) && !_won && !_lost;
+
   @override
   Widget build(BuildContext context) {
     final levels = _levels;
     final board = _board;
 
-    return GameShell(
+    return LeaveGuard(live: _live, saved: true, child: GameShell(
       title: _title,
       onLesson: _lessonSteps().isEmpty ? null : _openLesson,
       hud: [
-        HudItem(label: 'Ступень', value: '${_ladder.level}', icon: Icons.trending_up),
-        HudItem(label: 'Ошибки', value: '$_errors/${_params.maxErrors}', icon: Icons.close),
-        if (board != null) HudItem(label: 'Осталось', value: '$_left', icon: Icons.grid_on),
+        HudItem(label: L.t('sdkHudStage'), value: '${_ladder.level}', icon: Icons.trending_up),
+        HudItem(label: L.t('errors'), value: '$_errors/$_errorCap', icon: Icons.close),
+        if (board != null) HudItem(label: L.t('hcLeft'), value: '$_left', icon: Icons.grid_on),
       ],
       field: (context, height) {
         if (levels == null) return const Center(child: CircularProgressIndicator());
-        if (board == null) return Center(child: Text(_failure ?? 'Доска не собралась'));
+        if (board == null) return Center(child: Text(_failure ?? L.t('sdkBoardFailed')));
         return SamuraiField(
           board: board,
           grid: _grid,
@@ -285,7 +569,7 @@ class _SamuraiScreenState extends State<SamuraiScreen> {
       auxRow: AuxBar(children: [
         AuxAction(
           icon: _zoom == SamuraiZoom.map ? Icons.zoom_in : Icons.map_outlined,
-          label: _zoom == SamuraiZoom.map ? 'Крупнее' : 'Вся фигура',
+          label: _zoom == SamuraiZoom.map ? L.t('sdkZoomCloser') : L.t('sdkWholeShape'),
           onPressed: () => setState(() {
             _zoom = _zoom == SamuraiZoom.map ? SamuraiZoom.work : SamuraiZoom.map;
             if (_zoom == SamuraiZoom.work) {
@@ -295,26 +579,42 @@ class _SamuraiScreenState extends State<SamuraiScreen> {
         ),
         AuxAction(
           icon: Icons.undo,
-          label: 'Отменить',
-          onPressed: _history.isEmpty || _won || _lost ? null : _undo,
+          label: L.t('btn_undo'),
+          onPressed: _history.isEmpty || _halted ? null : _undo,
         ),
-        AuxAction(icon: Icons.refresh, label: 'Заново', onPressed: _deal),
+        AuxAction(icon: Icons.refresh, label: L.t('restart'), onPressed: () => restartGuarded(context, live: _live, deal: _deal)),
         AuxAction(
           icon: Icons.lightbulb_outline,
-          label: 'Подсказка',
+          label: L.t('btn_hint'),
           tint: const Color(0xFFB45309),
-          onPressed: (_hintsUsed < _params.hintMax && _selected != null && !_won && !_lost)
+          count: _params.hintMax > 0 || _boughtLeft > 0 ? _freeHintsLeft + _boughtLeft : null,
+          onPressed: (_freeHintsLeft + _boughtLeft > 0 && _selected != null && !_halted && !_spending)
               ? _hint
               : null,
         ),
       ]),
       toolbar: board == null
           ? null
-          : _Toolbar(won: _won, lost: _lost, onDigit: _place, onErase: _erase, onNext: _deal),
+          : _deathOffer
+              ? SecondLifeOffer(
+                  left: _wallet.count(AbilityWallet.secondLife),
+                  onTake: _spending ? null : _takeLife,
+                  onDecline: _declineLife,
+                )
+              : _Toolbar(
+                  won: _won,
+                  lost: _lost,
+                  onDigit: _place,
+                  onErase: _erase,
+                  onNext: _deal,
+                  note: _lifeSpent ? L.t('abilityLifeSpentNote') : null,
+                ),
       pauseActions: [
-        PauseAction(label: 'Начать заново', icon: Icons.refresh, onPressed: _deal),
+        PauseAction(label: L.t('sdkStartOver'), icon: Icons.refresh, onPressed: () => restartGuarded(context, live: _live, deal: _deal)),
+        // Карта уровней — вернуться на пройденный (сверка «Самурай» строка 4, b5df5096 п.4).
+        PauseAction(label: L.t('sudokuModeLevels'), icon: Icons.map_outlined, onPressed: _openLevelMap),
       ],
-    );
+    ));
   }
 }
 
@@ -503,6 +803,7 @@ class _Toolbar extends StatelessWidget {
     required this.onDigit,
     required this.onErase,
     required this.onNext,
+    this.note,
   });
 
   final bool won;
@@ -511,20 +812,27 @@ class _Toolbar extends StatelessWidget {
   final VoidCallback onErase;
   final VoidCallback onNext;
 
+  /// «Вторая жизнь потрачена — уровень за эту партию не растёт»; `null` — строки нет.
+  final String? note;
+
   @override
   Widget build(BuildContext context) {
+    final line = note == null
+        ? null
+        : Text(note!, key: const Key('life-spent-note'), textAlign: TextAlign.center, style: const TextStyle(fontSize: 12));
     if (won || lost) {
+      final next = FilledButton.icon(
+        key: const Key('next'),
+        onPressed: onNext,
+        icon: Icon(won ? Icons.arrow_forward : Icons.refresh),
+        label: Text(won ? L.t('sdkNextStage') : L.t('retry')),
+      );
       return Padding(
         padding: const EdgeInsets.all(12),
-        child: FilledButton.icon(
-          key: const Key('next'),
-          onPressed: onNext,
-          icon: Icon(won ? Icons.arrow_forward : Icons.refresh),
-          label: Text(won ? 'Следующая ступень' : 'Ещё раз'),
-        ),
+        child: line == null ? next : Column(mainAxisSize: MainAxisSize.min, children: [line, const SizedBox(height: 8), next]),
       );
     }
-    return LayoutBuilder(
+    final keys = LayoutBuilder(
       builder: (context, c) {
         const keyWidth = 48.0, gap = 6.0;
         const keys = 10;                                      // девять цифр и «Стереть»
@@ -570,5 +878,6 @@ class _Toolbar extends StatelessWidget {
         );
       },
     );
+    return line == null ? keys : Column(mainAxisSize: MainAxisSize.min, children: [line, keys]);
   }
 }

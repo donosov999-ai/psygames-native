@@ -187,6 +187,34 @@ MahjongLevelCfg mahjongLevel(int level) {
   );
 }
 
+// ─────────── Ось «скорость»: время на доску с 29-го уровня (задача 7f81fbc6) ───────────
+//
+// 🔴 ПОТОЛКА НЕТ (правило Дениса 06.09.2026). К 28-му у доски на верху всё, что растёт
+// раскладкой: пять слоёв, полный набор 72 пары, 12 колонок, одна перетасовка (`mahjongLevels`
+// = 28). Свободна ось 2 — скорость (реф раздела, §R). С 29-го на доску даётся время, с каждым
+// уровнем на 4 % меньше, без нижнего предела. Часы идут с ПЕРВОГО нажатия: карточка правила и
+// взгляд на доску в счёт не идут. В тихом шаге (вечер) лимита нет — как у «Найди отличия».
+//
+// 900 с у 29-го — по живым партиям (cognitive_sessions, 02.10.2026): игрок на 15–19-м уровнях
+// (45–57 пар) собирает доску за 300–650 с; у полного набора пар больше на треть.
+
+/// Первый уровень со временем на доску.
+const int mahjongTimeLimitFrom = 29;
+
+/// Время на доску у [mahjongTimeLimitFrom], секунд.
+const double mahjongTimeLimitStart = 900;
+
+/// Во сколько раз меньше времени с каждым следующим уровнем.
+const double mahjongTimeLimitRatio = 0.96;
+
+/// Время на доску уровня [level] в секундах; `null` — лимита нет (уровни до 29-го).
+double? mahjongTimeLimitSec(int level) => level < mahjongTimeLimitFrom
+    ? null
+    : mahjongTimeLimitStart * pow(mahjongTimeLimitRatio, level - mahjongTimeLimitFrom).toDouble();
+
+/// Уложился ли человек в лимит: часы партии в миллисекундах; без лимита — всегда да.
+bool mahjongWithinLimit(double? limitSec, int elapsedMs) => limitSec == null || elapsedMs <= limitSec * 1000;
+
 /// Докуда лестница РЕАЛЬНО растёт — перебором, а не вписанным числом.
 final int mahjongLevels = () {
   var last = 1;

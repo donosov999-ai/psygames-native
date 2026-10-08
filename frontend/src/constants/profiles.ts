@@ -15,6 +15,8 @@
 
 import { Platform } from 'react-native';
 import { GAMES, isHubGame } from '@/src/constants/games';
+import { NATIVE_ONLY_GAMES } from '@/src/constants/nativeOnlyGames';
+import { ВСЕ_РЕЖИМЫ } from '@/src/games/tatham-bridge/names';
 import type { PlaylistStep, Weekday } from '@/src/services/warmup';
 import { freshGameIds, freshEntries } from '@/src/constants/freshGames';
 
@@ -126,6 +128,11 @@ export interface ProfileDef {
 // Правило то же, что на первом экране приложения (`app/onboarding.tsx`), и
 // теперь оно ОДНО: два разных числа в одном приложении — это не округление,
 // а разные обещания в разных местах.
+/** Запись каталога, за которой стоят все головоломки Тэтхэма (`/games/puzzles?mode=…`). */
+export const PUZZLES_GAME_ID = 'puzzles';
+/** Сколько головоломок Тэтхэма — по реестру режимов, а не по записи каталога. */
+export const PUZZLE_MODE_COUNT = Object.keys(ВСЕ_РЕЖИМЫ).length;
+
 /**
  * СКОЛЬКО У НАС УПРАЖНЕНИЙ — СЧИТАЕМ ТОЛЬКО ОТРАБОТАННЫЕ.
  *
@@ -133,7 +140,18 @@ export interface ProfileDef {
  * не считаем и песочницу: игру, которую сами держим сырой, нельзя обещать в
  * магазине и в описании профиля. Число падает честно, а не остаётся красивым.
  */
-export const PUBLIC_GAME_COUNT = GAMES.filter((g) => !isHubGame(g.id) && !g.sandbox).length;
+/**
+ * 🔴 С 07.10.2026 СЧИТАЕМ И ТО, ЧЕГО НЕТ В `GAMES` (решение Дениса: «правь везде на 129 или
+ * сколько их там уже»). Каталог веба перестал быть полным списком игр:
+ *  · 42 головоломки Тэтхэма живут ОДНОЙ записью `puzzles` (`/games/puzzles?mode=…`), а человек
+ *    видит в развилках 42 отдельные карточки — запись заменяем числом режимов;
+ *  · игры, написанные сразу на Flutter (`NATIVE_ONLY_GAMES`), в `GAMES` не попадают вовсе.
+ * Было 75 при 131 карточке: витрина и первый экран занижали каталог почти вдвое.
+ */
+export const PUBLIC_GAME_COUNT =
+  GAMES.filter((g) => !isHubGame(g.id) && !g.sandbox && g.id !== PUZZLES_GAME_ID).length +
+  PUZZLE_MODE_COUNT +
+  NATIVE_ONLY_GAMES.length;
 
 /** Сколько лежит в песочнице — чтобы это было видно числом, а не на глаз. */
 export const SANDBOX_GAME_COUNT = GAMES.filter((g) => g.sandbox).length;
@@ -150,13 +168,13 @@ const ODV999: ProfileDef = {
   display_name: 'ODV999',
   emoji: '🛠',
   color: '#fbbf24',
-  description: `Все ${PUBLIC_GAME_COUNT} игр · Зарядка · Financial · Assessment`,
-  long_description: `Полный доступ ко всему приложению — все ${PUBLIC_GAME_COUNT} игр, Утренняя Зарядка, Financial Brain Day, G1 Assessment. Для владельца программы (Денис, ODV999) и его доверенных лиц. Разблокируется одним мастер-кодом.`,
+  description: `Все игры (${PUBLIC_GAME_COUNT}) · Зарядка · Financial · Assessment`,
+  long_description: `Полный доступ ко всему приложению — все игры (${PUBLIC_GAME_COUNT}), Утренняя Зарядка, Financial Brain Day, G1 Assessment. Для владельца программы (Денис, ODV999) и его доверенных лиц. Разблокируется одним мастер-кодом.`,
   long_description_en: `Full access to the entire app — all ${PUBLIC_GAME_COUNT} games, Morning Warm-up, Financial Brain Day, G1 Assessment. For the program owner (Denis, ODV999) and his trusted circle. Unlocked with a single master code.`,
   audience: 'Владелец · полный доступ',
   audience_en: 'Owner · full access',
   session_minutes: '5-40 мин',
-  sales_hook: `🛠 Полный набор владельца — все ${PUBLIC_GAME_COUNT} тренажёров, без ограничений. Выдаётся только лично.`,
+  sales_hook: `🛠 Полный набор владельца — все тренажёры (${PUBLIC_GAME_COUNT}), без ограничений. Выдаётся только лично.`,
   sales_hook_en: `🛠 The full owner kit — all ${PUBLIC_GAME_COUNT} trainers, no limits. Granted in person only.`,
   // price_year не задан → "не продаётся" (см. helper isForSale)
   tier: 'owner',
@@ -385,9 +403,8 @@ const KIDS: ProfileDef = {
 
 // ─── 📖 SPEEDREADING PRO — Поле зрения, scan, удержание (v1.13.0) ──────
 // Расширение поля зрения, скорость глаз, удержание прочитанного.
-// v1.13.0: убрана привязка к одной школе (Васильева, Екб) — теперь
-// универсальный профиль под любые курсы скорочтения. Школа Васильевой
-// остаётся в списке клиентов в long_description (один из примеров).
+// v1.13.0: профиль не привязан ни к одной школе — универсальный, под любые
+// курсы скорочтения. Названий школ в текстах приложения нет и не будет.
 // ID 'vasilyeva' сохранён для backward-compat master-кода READING-NZT-2026.
 const VASILYEVA: ProfileDef = {
   id: 'vasilyeva',
@@ -431,7 +448,7 @@ const VASILYEVA: ProfileDef = {
      * 🔴 ЭТО НЕ «ПОПРОСИЛИ — ДОБАВИЛИ». Профиль описан четырьмя подсистемами, и
      * мнемоника попадает в третью — УДЕРЖАНИЕ прочитанного, туда же, где уже стоят
      * reading_span и story_recall. В курсах скорочтения (описание профиля прямо
-     * ссылается на школу Васильевой) техники запоминания слов и чисел — штатная
+     * ссылается на школы скорочтения) техники запоминания слов и чисел — штатная
      * часть программы, а не смежная тема: быстро прочитать и ничего не удержать
      * — не результат.
      */
@@ -1177,7 +1194,7 @@ export function formatPrice(rub: number): string {
  * Развилка `spatial_group` в список НЕ добавляется: она открывается сама по
  * правилу «развилка открыта, если открыта хоть одна игра за ней» (см. ниже).
  */
-const ALWAYS_ALLOWED = new Set<string>([
+export const ALWAYS_ALLOWED: ReadonlySet<string> = new Set<string>([
   /**
    * 🔴 ЧИСЛОВОЙ ЗАБЕГ — ВО ВСЕХ ПРОФИЛЯХ. Решение Дениса 12.09.2026: «раннер
    * открывай всем», после того как он сыграл сам.
@@ -1226,6 +1243,13 @@ const ALWAYS_ALLOWED = new Set<string>([
    * причине открыто всем с v1.124.0.
    */
   'pause',
+  /**
+   * 🔴 ГИМНАСТИКА ДЛЯ ГЛАЗ — ВО ВСЕХ ПРОФИЛЯХ. Решение Дениса 07.10.2026 (b271f702): развилка
+   * «Релаксация» (дыхание, глаза, пауза, ночной набор) — во все 13 профилей, а `eye_gym` была
+   * открыта только профилям «всё» и «Серебряному». Дыхание и пауза здесь уже стояли.
+   * ⚠️ Следствие: дневной перерыв (слот `day`, фильтр профиля) теперь может дать её любому профилю.
+   */
+  'eye_gym',
 ]);
 
 export function isGameAllowed(profile: ProfileDef, gameId: string): boolean {

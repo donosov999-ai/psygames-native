@@ -52,55 +52,24 @@ void main() {
   /// владелец — раздел «Слова», и гасить их ему. Ключи в общем словаре под это
   /// есть не все, часть требует перевода на 12 языков — это отдельная работа.
   ///
+  /// 01.10 — раздел «Судоку» перевёл свои экраны (EN основной, решение Дениса 01.10):
+  /// «Судоку» 31→0, «Самурай» 14→0, «Фрактал» 13→0, «Головоломки» 12→0, оболочка 4→2
+  /// (подсказки «Пауза»/«Правила»; две оставшиеся — распознавание чужих подписей «Заново»), «Бездна» 13→1 (осталось зерно раздачи — данные, общие с вебом); сумма 691→611.
+  /// 01.10 — оболочка: подсказки «Пауза»/«Правила» и «Назад» развилки — из словаря
+  /// (EN основной): game_shell 4→2, hub_screen 4→3.
+  ///
   /// Долг на 23.09.2026, пофайлово. МЕНЯТЬ ТОЛЬКО В МЕНЬШУЮ СТОРОНУ.
   ///
   /// Перевёл экран — опусти его число. Файла нет в списке — значит он обязан
   /// быть чистым: так новый перенос не добавляет долга молча.
   const debt = <String, int>{
-    'games/mental_rotation/words.dart': 62,
-    'games/mental_rotation/screen.dart': 58,
-    'games/spatial_lab/screen.dart': 43,
-    'games/sudoku/screen.dart': 31,
-    'games/math_slider/screen.dart': 27,
-    'games/schulte/screen.dart': 26,
-    'games/pattern/model.dart': 24,
-    'games/object_tracker/screen.dart': 24,
-    'games/sort_tubes/screen.dart': 23,
-    'games/spatial_span/screen.dart': 21,
-    'games/ospan/screen.dart': 21,
-    'games/ospan/model.dart': 20,
-    'games/number_bonds/screen.dart': 18,
-    'games/mahjong/screen.dart': 18,
-    'games/pattern/screen.dart': 18,
-    'games/quick_count/screen.dart': 18,
-    'games/math_sprint/screen.dart': 18,
     'main.dart': 16,
-    'games/goods_sort/screen.dart': 15,
-    'games/samurai/screen.dart': 14,
-    'games/tower_london/screen.dart': 14,
-    'games/object_tracker/model.dart': 14,
-    'games/fractal/screen.dart': 13,
-    'games/deep/screen.dart': 13,
-    'games/hanoi/screen.dart': 12,
-    'games/puzzles/screen.dart': 12,
-    'games/memory_matrix/screen.dart': 12,
-    'games/cake_sort/screen.dart': 11,
-    'games/one_line/screen.dart': 10,
-    'games/dots_connect/screen.dart': 10,
-    'shell/hybrid_app.dart': 8,
-    'games/stroop/model.dart': 8,
-    'games/goods_sort/board.dart': 5,
-    'games/sort_tubes/model.dart': 5,
-    'shell/game_shell.dart': 4,
-    'shell/hub_screen.dart': 4,
+    'games/deep/screen.dart': 1,
+    'shell/hybrid_app.dart': 3,
+    'shell/game_shell.dart': 2,
+    'shell/hub_screen.dart': 3,
     'shell/tap_latency.dart': 4,
     'shell/web_game_screen.dart': 4,
-    'games/goods_sort/model.dart': 4,
-    'games/spatial_lab/board.dart': 4,
-    'games/tower_london/board.dart': 4,
-    'games/sort_tubes/board.dart': 2,
-    'games/hanoi/board.dart': 2,
-    'games/cake_sort/board.dart': 1,
   };
 
   // 284 у соседнего раздела минус 65, погашенных «Конфликтом внимания» в этом же коммите,
@@ -112,7 +81,37 @@ void main() {
   // на 12 языков у них уже был — `node flutter/tools/embed-l10n.mjs` привёз их сам.
   // 30.09 — «Пространство»: правила четырёх упражнений «Лаборатории» и «Понятно» ушли в
   // словарь (задача 848da95d), spatial_lab 51 → 43: 699 − 8.
-  const total = 691;
+  // 30.09 — «Пространство» погасило долг целиком (задача bda168f4): семь файлов ушли из списка,
+  // 691 − 208. Подписи каркаса — общим словарём теми же ключами, что зовут веб-экраны игр;
+  // текст партии «Вращения» и «Точек» — словарями их модулей (`lib/shell/module_strings.dart`).
+  // Новых ключей семь: у каждого перевод на все двенадцать языков в том же коммите.
+  // 01.10 — «Объём памяти»: «Матрица памяти» перенесена заново целиком, все подписи — ключи
+  // веб-словаря (задачи c1c20b36, 9d7032ab); файл ушёл из списка: −12.
+  // 02.10 — оба сведены при вливании: 691 − 208 − 12. Затем цепочка «Судоку» (#123: нативные
+  // экраны раздела по-английски, 691 → 611 у себя): все три погашения вместе — 390 по счёту пробы.
+  // 02.10 — подсказки каркаса «Назад» развилки (#122): hub_screen 4 → 3.
+  // 02.10 — «Сортировки» погасили долг целиком (задача 48ca6466): двенадцать файлов семи
+  // экранов ушли из списка (−98) и заголовки пяти экранов в карте перехвата —
+  // shell/hybrid_app.dart 8 → 3 (−5). Новых ключей 25, у каждого перевод на все двенадцать
+  // языков в том же коммите. Коды отказа пробирок — латиницей: их не видит человек.
+  // Сведено с main 07.10: 389 − 98 − 5 = 286.
+  // 07.10 — «Конфликт внимания»: слова Струпа ушли из палитры в словарь (задача f79c6be0) —
+  // готовые ключи color_* с переводом на 12 языков, новых нет; stroop/model.dart ушёл из
+  // списка: 286 − 8.
+  // 07.10 — «Поиск» и «Счёт» (задача 4b6f863e, #169): спринт, быстрый счёт и состав числа переведены
+  // целиком, −54 (три файла ушли из списка). Готовые ключи веба взяты где были, 12 новых — сразу
+  // на 12 языках: 286 − 54.
+  // Там же: маджонг, OSpan и трекер объектов (−97, пять файлов ушли из списка). Подписи —
+  // в словарь (21 новый ключ на 12 языках); алфавит OSpan, регулярка ввода и замечания проверки
+  // договора трекера вынуты из счёта как данные (см. `alphabetList` ниже): 232 − 97.
+  // Там же: «Математическая шкала» и «Таблица Шульте» (−53, оба файла ушли из списка),
+  // 33 новых ключа на 12 языках; подсказка Шульте — целой фразой на каждое из девяти сочетаний
+  // «что × порядок», а не склейкой; алфавит письменности — данные: 135 − 53.
+  // 07.10 — там же: «Паттерны» (−42, оба файла ушли из списка). Русские копии подписей классов
+  // и правил в модели заменены ключами общего словаря (список patternLabelKeys для сборщика);
+  // два ключа виджета прятались в тернарнике внутри Key(…) — разнесены: 82 − 42.
+  // Сведено в 2.56.17: оба снятия вместе — 286 − 8 (Струп) − 246 («Поиск» и «Счёт») = 32.
+  const total = 32;
 
   final counts = _scan(Directory('lib'));
 
@@ -186,13 +185,39 @@ Map<String, int> _scan(Directory root) {
    */
   final mapKey = RegExp(r"\[\s*'[^'\n]*[А-Яа-яЁё][^'\n]*'\s*\]");
   final anyLiteral = RegExp(r"'[^'\n]*[А-Яа-яЁё][^'\n]*'");
+  /*
+   * 🟢 ДАННЫЕ, А НЕ ПОДПИСИ — ещё три вида. Уточнение 02.10.2026 (задача 4b6f863e, «Поиск»).
+   *
+   * Задача перевода говорит прямо: законные данные не переводить, а объяснить в пробе.
+   * Счёт до уточнения записывал их в долг, и погасить такой долг можно было только
+   * обходом — спрятать букву в код символа. Поэтому они вынуты из счёта ЯВНО:
+   *   · список ЦЕЛИКОМ из одиночных букв — алфавит упражнения. У «OSpan» это русский
+   *     набор букв на запоминание (`lettersRu`); английский — `lettersEn`, выбор по языку
+   *     (`ospan/screen.dart`, `_pool`). Одиночная буква вне такого списка — например
+   *     единица «с» — по-прежнему считается: она подпись. Сюда же строка-алфавит письменности
+   *     — не короче 10 заглавных букв подряд без пробелов (`schulte/screen.dart`: кириллица у
+   *     русского языка, латиница у остальных);
+   *   · литерал регулярного выражения `RegExp(r'[^А-ЯЁA-Z]')` — класс символов, не текст;
+   *   · замечание проверки договора `issues.add('…')` — копится списком и уходит только в
+   *     `StateError` (`object_tracker/model.dart`): то же сообщение разработчику, что
+   *     `throw` и `assert` выше, только собранное по частям.
+   * Замер перед уточнением: все виды встречались ТОЛЬКО в этих четырёх файлах раздела.
+   */
+  final alphabetList = RegExp(r"\[(\s*'[А-Яа-яЁё]'\s*,)+\s*('[А-Яа-яЁё]'\s*,?\s*)?\]");
+  final alphabetString = RegExp(r"'[А-ЯЁ]{10,}'");
+  final regexLiteral = RegExp(r"RegExp\(\s*r?'[^'\n]*[А-Яа-яЁё][^'\n]*'");
+  final issueNote = RegExp(r"issues\.add\(\s*'[^'\n]*[А-Яа-яЁё][^'\n]*'");
   for (final f in root.listSync(recursive: true).whereType<File>()) {
     if (!f.path.endsWith('.dart')) continue;
     var src = f.readAsStringSync().replaceAll(blockComment, '').replaceAll(lineComment, '');
     var n = anyLiteral.allMatches(src).length -
         keyLiteral.allMatches(src).length -
         mapKey.allMatches(src).length -
-        devMessage.allMatches(src).fold<int>(0, (a, m) => a + anyLiteral.allMatches(m[0]!).length);
+        devMessage.allMatches(src).fold<int>(0, (a, m) => a + anyLiteral.allMatches(m[0]!).length) -
+        alphabetList.allMatches(src).fold<int>(0, (a, m) => a + anyLiteral.allMatches(m[0]!).length) -
+        alphabetString.allMatches(src).length -
+        regexLiteral.allMatches(src).length -
+        issueNote.allMatches(src).length;
     if (n > 0) out[f.path.replaceFirst('lib/', '')] = n;
   }
   return out;

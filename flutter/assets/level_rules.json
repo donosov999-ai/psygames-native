@@ -2,6 +2,23 @@
  "_": "СГЕНЕРИРОВАНО, руками не править: npx jest --testMatch '**/level-rules/tools/*.gen.ts' (из frontend). Отрезок: [с уровня, по уровень или null — до конца, ключ правила или null — правила нет]. Тексты — ключи словаря lr_<игра>_<ключ>_title|rule|example.",
  "maxLevel": 400,
  "games": {
+  "animal_queue": [
+   [
+    1,
+    2,
+    "glued"
+   ],
+   [
+    3,
+    4,
+    "last"
+   ],
+   [
+    5,
+    null,
+    "apart"
+   ]
+  ],
   "ball_sort": [
    [
     1,
@@ -126,6 +143,18 @@
     "surprise_dir"
    ]
   ],
+  "find_differences": [
+   [
+    1,
+    33,
+    null
+   ],
+   [
+    34,
+    null,
+    "subtle"
+   ]
+  ],
   "goods_sort": [
    [
     1,
@@ -240,6 +269,18 @@
     "pegs5"
    ]
   ],
+  "kids_sort": [
+   [
+    1,
+    4,
+    null
+   ],
+   [
+    5,
+    null,
+    "switches"
+   ]
+  ],
   "listening_span": [
    [
     1,
@@ -285,8 +326,13 @@
    ],
    [
     15,
-    null,
+    28,
     "layers5"
+   ],
+   [
+    29,
+    null,
+    "timelimit"
    ]
   ],
   "math_sprint": [
@@ -385,8 +431,13 @@
    ],
    [
     9,
-    null,
+    26,
     "dual"
+   ],
+   [
+    27,
+    null,
+    "switch"
    ]
   ],
   "nut_sort": [
@@ -496,6 +547,18 @@
     "longer8"
    ]
   ],
+  "quick_count": [
+   [
+    1,
+    41,
+    null
+   ],
+   [
+    42,
+    null,
+    "decoys"
+   ]
+  ],
   "reading_span": [
    [
     1,
@@ -506,6 +569,18 @@
     5,
     null,
     "load"
+   ]
+  ],
+  "schulte_table": [
+   [
+    1,
+    18,
+    null
+   ],
+   [
+    19,
+    null,
+    "timelimit"
    ]
   ],
   "semantic_sort": [
@@ -533,8 +608,13 @@
    ],
    [
     11,
-    null,
+    16,
     "timelimit"
+   ],
+   [
+    17,
+    null,
+    "faster"
    ]
   ],
   "spatial_span": [
@@ -596,8 +676,13 @@
    ],
    [
     8,
-    null,
+    31,
     "conj"
+   ],
+   [
+    32,
+    null,
+    "closer"
    ]
   ],
   "water_sort": [

@@ -125,7 +125,7 @@ export const FEEDBACK_OPEN_EVENT = 'psygames-feedback-open';
 /** v1.125.0: пользовательская галочка «Чат с разработчиками» в настройках.
  *  Тестировщик может СКРЫТЬ плавающую кнопку, если она мешает (репорт
  *  «кнопка мешается в игре»). По умолчанию видна. Ключ '0' = скрыта. */
-const DEVCHAT_KEY = 'psygames_devchat_on';
+export const DEVCHAT_KEY = 'psygames_devchat_on';
 export async function getDevChatVisible(): Promise<boolean> {
   try { return (await AsyncStorage.getItem(DEVCHAT_KEY)) !== '0'; } catch { return true; }
 }
@@ -229,6 +229,36 @@ export async function captureScreenshot(): Promise<Blob | null> {
     );
   } catch {
     return null;   // скрин — бонус, не блокер отправки
+  }
+}
+
+/**
+ * 🔴 СНИМОК НАТИВНОГО ЭКРАНА — ОТ ОБОЛОЧКИ, А НЕ ОТ СТРАНИЦЫ (задача c092cd47, 07.10.2026).
+ *
+ * Нативный экран (вкладка, игра на Flutter) лежит ПОВЕРХ страницы, и `captureScreenshot` снял бы то,
+ * что под ним, — устаревшую страницу, а не экран, на который жалуются. Поэтому кадр снимает оболочка
+ * (`RepaintBoundary` у корня приложения) и отдаёт его своим же раздающим сервером по адресу; здесь
+ * он перекодируется в тот же JPEG 0,75, что и снимок страницы: бакет и выгрузка ждут `image/jpeg`.
+ * Не вышло — отзыв уходит без снимка: снимок бонус, не блокер отправки.
+ */
+export async function shotFromHost(url: string): Promise<Blob | null> {
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const png = await res.blob();
+    if (!png.size) return null;
+    if (typeof createImageBitmap !== 'function' || typeof document === 'undefined') return png;
+    const bmp = await createImageBitmap(png);
+    const canvas = document.createElement('canvas');
+    canvas.width = bmp.width;
+    canvas.height = bmp.height;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return png;
+    ctx.drawImage(bmp, 0, 0);
+    const jpg = await new Promise<Blob | null>((resolve) => canvas.toBlob((b) => resolve(b), 'image/jpeg', 0.75));
+    return jpg ?? png;
+  } catch {
+    return null;
   }
 }
 

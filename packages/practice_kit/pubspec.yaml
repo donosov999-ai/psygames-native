@@ -1,0 +1,33 @@
+name: practice_kit
+description: "Practice engine, catalog, haptics and step guidance shared by PsyGames and Smart Alarm."
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: ^3.9.0
+  flutter: ">=3.35.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  # Схемы шагов (SVG) — тот же пакет, что у обоих приложений.
+  flutter_svg: ^2.2.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  assets:
+    - assets/practices.json
+    # Схемы шагов и фигуры тела сцены — выгрузка flutter/tools/export-pause.cjs.
+    - assets/guides/
+    - assets/cosmic-body/
+  plugin:
+    platforms:
+      android:
+        package: pro.psygames.practice_kit
+        pluginClass: PracticeKitPlugin
+      ios:
+        pluginClass: PracticeKitPlugin

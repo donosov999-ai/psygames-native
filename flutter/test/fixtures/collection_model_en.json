@@ -1,0 +1,106 @@
+{
+ "v": 1,
+ "title": "Collection",
+ "back": "Back",
+ "primary": "#a855f7",
+ "sub": "3 of 12 collected · ⭐778 all time",
+ "hint": null,
+ "figures": [
+  {
+   "key": "Acorn",
+   "face": "🌰",
+   "name": "Acorn",
+   "owned": true,
+   "price": "⭐100",
+   "a11y": "Acorn"
+  },
+  {
+   "key": "Pebble",
+   "face": "🪨",
+   "name": "Pebble",
+   "owned": true,
+   "price": "⭐300",
+   "a11y": "Pebble"
+  },
+  {
+   "key": "Shell",
+   "face": "🐚",
+   "name": "Shell",
+   "owned": true,
+   "price": "⭐700",
+   "a11y": "Shell"
+  },
+  {
+   "key": "Feather",
+   "face": "🪶",
+   "name": "Feather",
+   "owned": false,
+   "price": "Opens at ⭐1020",
+   "a11y": "Feather — Opens at ⭐1020"
+  },
+  {
+   "key": "Lantern",
+   "face": "🏮",
+   "name": "Lantern",
+   "owned": false,
+   "price": "Opens at ⭐1550",
+   "a11y": "Lantern — Opens at ⭐1550"
+  },
+  {
+   "key": "Key",
+   "face": "🗝️",
+   "name": "Key",
+   "owned": false,
+   "price": "Opens at ⭐2270",
+   "a11y": "Key — Opens at ⭐2270"
+  },
+  {
+   "key": "Anchor",
+   "face": "⚓",
+   "name": "Anchor",
+   "owned": false,
+   "price": "Opens at ⭐3260",
+   "a11y": "Anchor — Opens at ⭐3260"
+  },
+  {
+   "key": "Hourglass",
+   "face": "⏳",
+   "name": "Hourglass",
+   "owned": false,
+   "price": "Opens at ⭐4620",
+   "a11y": "Hourglass — Opens at ⭐4620"
+  },
+  {
+   "key": "Crystal",
+   "face": "💎",
+   "name": "Crystal",
+   "owned": false,
+   "price": "Opens at ⭐6480",
+   "a11y": "Crystal — Opens at ⭐6480"
+  },
+  {
+   "key": "Hedgehog",
+   "face": "🦔",
+   "name": "Hedgehog",
+   "owned": false,
+   "price": "Opens at ⭐9030",
+   "a11y": "Hedgehog — Opens at ⭐9030"
+  },
+  {
+   "key": "Moon",
+   "face": "🌙",
+   "name": "Moon",
+   "owned": false,
+   "price": "Opens at ⭐12500",
+   "a11y": "Moon — Opens at ⭐12500"
+  },
+  {
+   "key": "Lighthouse",
+   "face": "🗼",
+   "name": "Lighthouse",
+   "owned": false,
+   "price": "Opens at ⭐17300",
+   "a11y": "Lighthouse — Opens at ⭐17300"
+  }
+ ]
+}

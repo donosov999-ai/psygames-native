@@ -130,7 +130,7 @@ const MARKERS = [
  */
 const EXPLAINED: Record<number, string> = {
   12: 'языки приложения / профили в выборе — по коду оба равны 12',
-  15: 'варианты правил судоку: 12 одиночных + 3 комбо-пары пояса 81–92 (29.08.2026)',
+  37: 'варианты правил судоку: 12 одиночных + 3 комбо-пары пояса 81–92 (29.08.2026) + шёпот, ренбан, равные суммы, палиндром, «между концами», замок, XV 93–120 (01.10.2026) + аргайл 121–124, малый киллер 125–128, X-суммы 129–132, шифр 133–136, туман 137–140, самосборка 141–144, клетки Шрёдингера 145–148, «Мяу — друзья» 149–152 (07.10.2026) + Wordoku, звери, киллер, наши небоскрёбы и неравенства, удвоители, отрицательные 153–180 (08.10.2026)',
   50: '«50+» — возрастной сегмент в блоке «для кого», а не счёт упражнений',
 };
 
@@ -232,7 +232,9 @@ describe('карточки магазинов: есть что проверят�
     // ⚠️ И песочница: игру, которую сами держим сырой, витрина обещать не должна.
     const sandbox = GAMES.filter((g) => (g as any).sandbox).length;
     expect(`в песочнице: ${sandbox > 0}`).toBe('в песочнице: true');
-    expect(EXERCISES).toBe(GAMES.length - hubs - sandbox);
+    // С 07.10.2026 публичное число шире каталога: + режимы Тэтхэма вместо записи `puzzles`,
+    // + нативные игры. Точная формула сверяется в блоке «число упражнений одно на всё приложение».
+    expect(EXERCISES).toBeGreaterThan(GAMES.length - hubs - sandbox);
     expect(EXERCISES).toBeGreaterThanOrEqual(10);   // диапазон, в котором ищутся числа
     expect(EXERCISES).toBeLessThanOrEqual(999);
   });
@@ -425,7 +427,7 @@ describe('карточки магазинов: числа не про упраж
     }
     // 29.08.2026: комбо-пояс 81–92 добавил три играбельных пары (thermoknight/
     // sandparity/killerdiag) — карточки магазинов подняты с 12 до 15 тем же коммитом.
-    expect(`вариантов правил судоку: ${playable.size}`).toBe('вариантов правил судоку: 15');
+    expect(`вариантов правил судоку: ${playable.size}`).toBe('вариантов правил судоку: 37');
   });
 
   it('каждое объяснённое число объяснено словами, а не молча', () => {
@@ -461,7 +463,29 @@ describe('число упражнений одно на всё приложен�
     expect(`развилок: ${hubs > 0}`).toBe('развилок: true');       // иначе проверка слепа
     expect(`в песочнице: ${sandbox > 0}`).toBe('в песочнице: true');
     expect(SANDBOX_GAME_COUNT).toBe(sandbox);
-    expect(PUBLIC_GAME_COUNT).toBe(GAMES.length - hubs - sandbox);
+    // С 07.10.2026: запись `puzzles` заменяется числом режимов Тэтхэма, нативные игры добавляются.
+    const { ВСЕ_РЕЖИМЫ } = require('@/src/games/tatham-bridge/names');
+    const { NATIVE_ONLY_GAMES } = require('@/src/constants/nativeOnlyGames');
+    expect(GAMES.filter((g: any) => g.id === 'puzzles' && !g.sandbox && !isHubGame(g.id)).length).toBe(1);
+    expect(PUBLIC_GAME_COUNT).toBe(
+      GAMES.length - hubs - sandbox - 1 + Object.keys(ВСЕ_РЕЖИМЫ).length + NATIVE_ONLY_GAMES.length,
+    );
+  });
+
+  /**
+   * 🔴 07.10.2026: ЧИСЛО ДОЛЖНО ВИДЕТЬ ИГРЫ ВНЕ `GAMES`. 75 держалось месяц, пока в развилках
+   * уже стояло 131: головоломки Тэтхэма шли одной записью, а нативные игры не считались вовсе.
+   * Если реестр режимов или нативных игр вырастет — число обязано вырасти с ним.
+   */
+  it('🔴 головоломки Тэтхэма и нативные игры входят в публичное число', () => {
+    const { PUBLIC_GAME_COUNT } = require('@/src/constants/profiles');
+    const { GAMES, isHubGame } = require('@/src/constants/games');
+    const { ВСЕ_РЕЖИМЫ } = require('@/src/games/tatham-bridge/names');
+    const { NATIVE_ONLY_GAMES } = require('@/src/constants/nativeOnlyGames');
+    const web = GAMES.filter((g: any) => !isHubGame(g.id) && !g.sandbox).length;
+    expect(Object.keys(ВСЕ_РЕЖИМЫ).length).toBeGreaterThan(1);
+    expect(NATIVE_ONLY_GAMES.length).toBeGreaterThan(0);
+    expect(PUBLIC_GAME_COUNT).toBeGreaterThan(web + NATIVE_ONLY_GAMES.length);
   });
 
   /** Развилка и песочница — разные вещи: развилку не считаем как меню, песочницу как сырое. */

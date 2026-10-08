@@ -3,8 +3,10 @@
 /// Замер 30.09.2026 по 1983 шагам плейлистов с играми раздела: из параметров шага
 /// реально приходят `trials` (SET — 153 шага, «Паттерны» — 146), `level` по правилу
 /// «освоенный минус 20 %» (веб применяет его у «Шкалы» и «Трекера»), `calm` вечером
-/// и ночью и автостарт. `size`, `duration`, `diffCount` не передаёт ни один шаг — их
-/// проба не трогает. `mode` (подписи старых тиров «5x5», «60s») веб не читает вовсе.
+/// и ночью и автостарт. `size`, `duration`, `diffCount` не передаёт ни один шаг — но веб их
+/// читает, и с 07.10 натив тоже (задача 50139f1d): их пробы — `search_address_params_test.dart`
+/// и `find_differences_screen_test.dart`. `mode` (подписи старых тиров «5x5», «60s») веб не
+/// читает вовсе.
 ///
 /// Каждая проба стоит там, где правило работает: у SET лимит времени включается
 /// только с 11-го уровня — на первом снятие лимита не видно, поэтому меряется там.
@@ -77,9 +79,13 @@ void main() {
   });
 
   testWidgets('🔴 «Трекер»: уровень шага, но не выше потолка лестницы', (tester) async {
+    // С 02.10.2026 потолка 41 нет (правило «потолков нет», #185): предел лестницы — 999.
     GamePreset.set({'wu': '1', 'level': '99'});
-    await open(tester, (s) => ObjectTrackerScreen(state: s), levels: {'object_tracker': '5'});
-    expect(hud(tester, Icons.flag_outlined), '41', reason: 'уровень шага не обрезан потолком 41');
+    await open(tester, (s) => ObjectTrackerScreen(key: UniqueKey(), state: s), levels: {'object_tracker': '5'});
+    expect(hud(tester, Icons.flag_outlined), '99', reason: 'уровень шага выше прежнего потолка 41 не обрезается');
+    GamePreset.set({'wu': '1', 'level': '5000'});
+    await open(tester, (s) => ObjectTrackerScreen(key: UniqueKey(), state: s), levels: {'object_tracker': '5'});
+    expect(hud(tester, Icons.flag_outlined), '999', reason: 'но не выше предела лестницы 999');
   });
 
   testWidgets('🔴 SDMT в шаге зарядки стартует сам, без кнопки «Начать»', (tester) async {

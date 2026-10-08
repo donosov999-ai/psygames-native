@@ -1,6 +1,9 @@
+import 'package:synapse_advisor/synapse_advisor.dart' show Outcome;
+
 import 'game_preset.dart';
 import 'lesson.dart';
 import 'session_report.dart';
+import '../synapse/synapse_feed.dart';
 
 /// Лестница уровней игры — перенос хука usePersistentLevel из React-версии.
 ///
@@ -50,6 +53,25 @@ class LevelLadder {
   int get best => _best;
   int get failStreak => _failStreak;
 
+  /// 🔴 ИСХОД ПАРТИИ — НАРУЖУ, ДЛЯ СТУПЕНИ-ПЕРЕХОДА (задача 4e3d3443).
+  ///
+  /// Ступень одной лестницы может играться в ДРУГОЙ игре («Кошки», сетки Тэтхэма, боссы
+  /// в лестнице «Судоку»). Узнать, прошёл ли человек, можно только здесь: [win]/[fail] зовут
+  /// все нативные игры, а `SessionReport` исхода не несёт. Слушателя ставит
+  /// `LevelTransition` на время перехода и снимает после; обычной партии он не мешает.
+  ///
+  /// `lesson` — партия шла с подсмотренным разбором: такую не засчитывает ни своя
+  /// лестница, ни чужая, ни победой, ни провалом.
+  static void Function(bool passed, bool lesson)? onOutcome;
+
+  /// Итог для экрана БЕЗ своей лестницы («Бездна»): иначе ступень-переход на нём не
+  /// узнает, чем кончилась партия. Экраны с лестницей сюда не зовут — это делают [win]/[fail].
+  static void reportOutcome(bool passed, {bool lesson = false}) => onOutcome?.call(passed, lesson);
+
+  /// Лестница этой игры стоит: шаг зарядки ([GamePreset.isPreset]) или ступень чужой
+  /// лестницы ([GamePreset.isTransit]). Партия при этом уходит в статистику как была.
+  static bool get _frozen => GamePreset.isPreset || GamePreset.isTransit;
+
   Future<void> load() async {
     // Лестницу грузит экран на входе — началась новая партия, и отметка разбора,
     // оставшаяся от ДРУГОЙ игры, её не касается. Подробно — у [win].
@@ -57,6 +79,10 @@ class LevelLadder {
     _level = await _store.readInt('$gameId.level') ?? 1;
     _best = await _store.readInt('$gameId.best') ?? _level;
     if (_best < _level) _best = _level;
+    // Ступень-переход открывает игру на ЗАДАННОМ уровне (`lvl`), не трогая сохранённый:
+    // при переходе лестница не пишет ([win]/[fail]), поэтому уровень меняется только в памяти.
+    final lvl = GamePreset.isTransit ? int.tryParse(GamePreset.params['lvl'] ?? '') : null;
+    if (lvl != null && lvl >= 1) _level = lvl.clamp(1, maxLevel);
   }
 
   /// Победа: следующий уровень, достигнутое подтягивается.
@@ -114,6 +140,12 @@ class LevelLadder {
     return v == null || v.isEmpty ? null : v;
   }
 
+  /// `report: false` — лестница-хозяин ступени-перехода: партию уже записала чужая игра
+  /// под своим типом, вторая (нулевая) партия «Судоку» исказила бы статистику.
+  ///
+  /// `advance: false` — партию доиграли купленной второй жизнью (задача 576405e7): она уходит
+  /// в статистику как была, а лестница стоит, как в «Мишенях» (`ladderFrozenRef`). Иначе за
+  /// штуку из магазина покупалась бы ступень, которую человек не взял.
   Future<bool> win({
     int score = 0,
     int timeSeconds = 0,
@@ -121,27 +153,37 @@ class LevelLadder {
     String? mode,
     String? difficulty,
     Map<String, Object?>? details,
+    bool report = true,
+    bool advance = true,
   }) async {
     _failStreak = 0;
+    final before = _level;
     // Пресет — шаг зарядки, разбор — партия с показанным решением. В обоих
     // случаях лестница меряла бы не человека, поэтому не двигается.
     final lesson = LessonUsed.inRound;
-    final counted = !GamePreset.isPreset && !lesson;
+    // Переход тоже не засчитывает: уровень чужой ступени — не уровень этой игры, и босса
+    // на «вехе» внутри чужой партии быть не должно ([BossRound.due] смотрит сюда).
+    final counted = advance && !_frozen && !lesson;
     LessonUsed.reset();
     if (counted) {
       if (_level < maxLevel) _level += 1;
       if (_level > _best) _best = _level;
       await _save();
     }
-    await SessionReport.send(
-      gameType: sessionType ?? gameId,
-      score: score,
-      timeSeconds: timeSeconds,
-      errors: errors,
-      mode: mode ?? _stepLabel('mode') ?? sessionMode,
-      difficulty: difficulty ?? _stepLabel('diff') ?? '$_level',
-      details: _withLesson(details, lesson),
-    );
+    if (report) {
+      // Синапсу (852e4b4a): исход и уровень до/после — их знает только лестница.
+      SynapseFeed.expect(outcome: lesson ? Outcome.lesson : Outcome.won, level: _level, levelBefore: before);
+      await SessionReport.send(
+        gameType: sessionType ?? gameId,
+        score: score,
+        timeSeconds: timeSeconds,
+        errors: errors,
+        mode: mode ?? _stepLabel('mode') ?? sessionMode,
+        difficulty: difficulty ?? _stepLabel('diff') ?? '$_level',
+        details: _withLesson(details, lesson),
+      );
+    }
+    reportOutcome(true, lesson: lesson);
     return counted;
   }
 
@@ -161,7 +203,7 @@ class LevelLadder {
   /// зарядки так же, как выигранная. Иначе человек, проваливший шаг серии,
   /// застрял бы на нём навсегда.
   ///
-  /// `difficulty` и `details` — как у [win]: не переданы — уходит прежнее.
+  /// `difficulty`, `details` и `advance` — как у [win]: не переданы — уходит прежнее.
   Future<void> fail({
     int score = 0,
     int timeSeconds = 0,
@@ -169,22 +211,30 @@ class LevelLadder {
     String? mode,
     String? difficulty,
     Map<String, Object?>? details,
+    bool report = true,
+    bool advance = true,
   }) async {
     final lesson = LessonUsed.inRound;
+    final before = _level;
     LessonUsed.reset();   // см. [win]: отметку съедает партия, которую она не засчитала
-    if (GamePreset.isPreset || lesson) {
-      // Ни пресет, ни партия с разбором не копят провалов: иначе три шага зарядки
+    // `advance: false` — как у [win]: партия с купленной жизнью провалов тоже не копит.
+    if (!advance || _frozen || lesson) {
+      // Ни пресет, ни переход, ни партия с разбором не копят провалов: иначе три шага зарядки
       // подряд (или три подсмотренных решения) опустили бы личный уровень, который
       // человек в этих партиях и не защищал.
-      await SessionReport.send(
-        gameType: sessionType ?? gameId,
-        score: score,
-        timeSeconds: timeSeconds,
-        errors: errors,
-        mode: mode ?? _stepLabel('mode') ?? sessionMode,
-        difficulty: difficulty ?? _stepLabel('diff') ?? '$_level',
-        details: _withLesson(details, lesson),
-      );
+      if (report) {
+        SynapseFeed.expect(outcome: lesson ? Outcome.lesson : Outcome.finished, level: _level, levelBefore: before);
+        await SessionReport.send(
+          gameType: sessionType ?? gameId,
+          score: score,
+          timeSeconds: timeSeconds,
+          errors: errors,
+          mode: mode ?? _stepLabel('mode') ?? sessionMode,
+          difficulty: difficulty ?? _stepLabel('diff') ?? '$_level',
+          details: _withLesson(details, lesson),
+        );
+      }
+      reportOutcome(false, lesson: lesson);
       return;
     }
     _failStreak += 1;
@@ -193,15 +243,19 @@ class LevelLadder {
       if (_level > 1) _level -= 1;
     }
     await _save();
-    await SessionReport.send(
-      gameType: sessionType ?? gameId,
-      score: score,
-      timeSeconds: timeSeconds,
-      errors: errors,
-      mode: mode ?? _stepLabel('mode') ?? sessionMode,
-      difficulty: difficulty ?? _stepLabel('diff') ?? '$_level',
-      details: details,
-    );
+    if (report) {
+      SynapseFeed.expect(outcome: Outcome.finished, level: _level, levelBefore: before);
+      await SessionReport.send(
+        gameType: sessionType ?? gameId,
+        score: score,
+        timeSeconds: timeSeconds,
+        errors: errors,
+        mode: mode ?? _stepLabel('mode') ?? sessionMode,
+        difficulty: difficulty ?? _stepLabel('diff') ?? '$_level',
+        details: details,
+      );
+    }
+    reportOutcome(false);
   }
 
   /// Человек сам выбрал уровень на карте: достигнутое при этом не срезается.

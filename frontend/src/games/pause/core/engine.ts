@@ -987,6 +987,8 @@ function buildPelvicLaneOnBreath(
   const squeeze = item.program.steps.find((step) => step.id === 'long-squeeze') ?? item.program.steps[0]!;
   const release = item.program.steps.find((step) => step.id === 'long-release') ?? item.program.steps[1] ?? item.program.steps[0]!;
   return breathingLane.map((breathStep) => {
+    // Сжатие на выдохе и на задержке после него; 03.10 задержку отдали расслаблению —
+    // удержание стало 1:3 (отчёт будильника b81fcf7d, 08.10.2026). То же в practice_kit.
     const exhale = breathStep.stepId.includes('exhale') || breathStep.stepId.endsWith('-out');
     return localizeStep(item, exhale ? squeeze : release, locale, lane, breathStep.startMs, breathStep.endMs);
   });

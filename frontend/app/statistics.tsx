@@ -16,7 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { isRTLLang } from '@/src/services/rtl';
-import { getAllStats, GameStats, GameSession, getSessions } from '@/src/services/api';
+import { GameSession, getSessions, statsOfSessions } from '@/src/services/api';
 import { getTokens, levelInfo, getStreak } from '@/src/services/tokens';
 import { GAMES, categoryOfSessionType } from '@/src/constants/games';
 import { areaBreakdown, weakestArea, type AreaStat } from '@/src/services/analytics';
@@ -33,6 +33,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { isGameAllowed } from '@/src/constants/profiles';
 import { getAiInsight, toneForProfile, isoWeekKey } from '@/src/services/aiInsight';
+import { postScreenModel, registerScreenActions } from '@/src/services/hostScreens';
 
 /**
  * 🔴 ВЫХОД В WEB-DEMO — В ОБЁРТКЕ БЕЗ ХУКОВ, А НЕ ПЕРВОЙ СТРОКОЙ ЭКРАНА.
@@ -56,17 +57,15 @@ function StatisticsScreenBody() {
   const { colors } = useTheme();
   const { t, language } = useLanguage();
   const router = useRouter();
-  const [stats, setStats] = useState<GameStats[]>([]);
   const [loading, setLoading] = useState(true);
   // Вкладки: сводка (итоги) и история (движение). Обе живут на ОДНОЙ загрузке —
   // переключение не ходит в хранилище, иначе клик по вкладке давал бы спиннер.
   const [tab, setTab] = useState<'summary' | 'history'>('summary');
   const [sessions, setSessions] = useState<GameSession[]>([]);
-  const { profile } = useProfile();
+  const { profile, ready: profileReady } = useProfile();
   const [scopeAll, setScopeAll] = useState(false);  // false = текущий профиль, true = все игры
   const [tokens, setTokens] = useState(0);          // D1: токены/уровень/стрик в герое
   const [streakDays, setStreakDays] = useState(0);
-  const [sessionsByGame, setSessionsByGame] = useState<Record<string, number[]>>({});
   /*
    * Баланс тренировок по областям: чего человек качает, а что обходит стороной.
    *
@@ -83,12 +82,76 @@ function StatisticsScreenBody() {
    * (id через дефис, партия через подчёркивание), и эти партии выпадали из баланса молча.
    */
   const profileId = profile?.id;
-  const areas = useMemo<AreaStat[]>(() => {
-    const scoped = scopeAll || !profileId ? sessions : sessions.filter((s) => belongsToProfile(s, profileId));
-    return areaBreakdown(scoped as any, categoryOfSessionType);
-  }, [sessions, scopeAll, profileId]);
+  /**
+   * 🔴 КАРТОЧКИ ИГР — ПО ТЕМ ЖЕ ПАРТИЯМ, ЧТО И БАЛАНС (задача a6b99ecc, 07.10.2026). Карточки
+   * строились из `getAllStats()` — по ВСЕМ партиям устройства, — и фильтровались только по составу
+   * профиля: у «Микро-релакс» в «Судоку» стояло «Всего игр 16» при своих 4, у nzt48 — «Дыхание»
+   * другого профиля. Теперь охват один на весь экран: итоги, карточки, столбики, баланс.
+   */
+  const scopedSessions = useMemo(
+    () => (scopeAll || !profileId ? sessions : sessions.filter((s) => belongsToProfile(s, profileId))),
+    [sessions, scopeAll, profileId],
+  );
+  const stats = useMemo(() => {
+    const catalog = GAMES.map((g) => g.id);
+    const extras = [...new Set(scopedSessions.map((s) => s.game_type))].filter((id) => !!id && !catalog.includes(id));
+    return [...catalog, ...extras].map((id) => statsOfSessions(id, scopedSessions));
+  }, [scopedSessions]);
+  // Очки по играм в хронологии — для столбиков; те же партии охвата.
+  const sessionsByGame = useMemo(() => {
+    const byGame: Record<string, number[]> = {};
+    for (const s of scopedSessions) {
+      if (!s.game_type) continue;
+      (byGame[s.game_type] ||= []).push(typeof s.score === 'number' && isFinite(s.score) ? s.score : 0);
+    }
+    return byGame;
+  }, [scopedSessions]);
+  const areas = useMemo<AreaStat[]>(
+    () => areaBreakdown(scopedSessions as any, categoryOfSessionType),
+    [scopedSessions],
+  );
+  /**
+   * 🔴 ОЧКИ И СЕРИЯ — ПРОФИЛЯ, КОТОРЫЙ ВЫБРАН СЕЙЧАС (a6b99ecc). `loadStats` звался один раз при
+   * монтировании и читал их для `profile?.id` в тот момент: холодный заход на /statistics (ссылка,
+   * перезагрузка) брал профиль по умолчанию — на кадре «0 очков» при 1240.
+   */
+  useEffect(() => {
+    if (!profileId) return;
+    let alive = true;
+    Promise.all([getTokens(profileId), getStreak(profileId)])
+      .then(([tk, st]) => { if (alive) { setTokens(tk); setStreakDays(st); } })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, [profileId]);
   // v1.115.0: недельный ИИ-дайджест — кэш на ISO-неделю (isoWeekKey), молчаливый null = карточка просто не рисуется
-  const [aiDigest, setAiDigest] = useState<string | null>(null);
+  const [digest, setDigest] = useState<{ pid: string; text: string } | null>(null);
+  const aiDigest = digest && digest.pid === profileId ? digest.text : null;   // чужой профиль — не наш дайджест
+  /**
+   * 🔴 ДАЙДЖЕСТ — ВЫБРАННОГО ПРОФИЛЯ, И ПРИ ХОЛОДНОМ ЗАХОДЕ (как очки и серия выше, a6b99ecc; d6a60b02).
+   * Запрос стоял в `loadStats` и уходил с профилем момента монтирования: на холодном заходе это профиль
+   * по умолчанию, и карточка читала чужой кэш недели — а Dart-модель «Прогресса» читает кэш выбранного.
+   * Теперь — когда профиль готов и партии прочитаны; смена профиля — свой дайджест. Компактный
+   * агрегат за последние 7 дней, не сырой дамп партий.
+   */
+  useEffect(() => {
+    if (!profileReady || !profileId || loading) return;
+    let alive = true;
+    const weekAgo = Date.now() - 7 * 86400_000;
+    const thisWeek = sessions.filter((s) => s.timestamp && new Date(s.timestamp).getTime() >= weekAgo);
+    const byWeekday: Record<number, number> = {};
+    for (const s of thisWeek) { if (s.timestamp) { const wd = new Date(s.timestamp).getDay(); byWeekday[wd] = (byWeekday[wd] || 0) + 1; } }
+    const totalGamesLocal = sessions.filter((s) => !!s.game_type).length;
+    getStreak(profileId)
+      .then((streak) => getAiInsight(
+        'weekly_digest', profileId, isoWeekKey(), language, toneForProfile(profileId),
+        { sessionsThisWeek: thisWeek.length, uniqueGamesThisWeek: new Set(thisWeek.map((s) => s.game_type)).size,
+          currentStreakDays: streak, sessionsByWeekday: byWeekday, totalGamesEver: totalGamesLocal },
+      ))
+      .then((text) => { if (alive && text) setDigest({ pid: profileId, text }); })
+      .catch(() => {});
+    return () => { alive = false; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- партии читаются на момент готовности; новый запрос — на смену профиля, кэш недельный
+  }, [profileReady, profileId, loading]);
 
   useEffect(() => {
     loadStats();
@@ -96,32 +159,10 @@ function StatisticsScreenBody() {
 
   const loadStats = async () => {
     try {
-      const allStats = await getAllStats();
-      setStats(allStats);
-      let freshStreak = 0;
-      if (profile?.id) { setTokens(await getTokens(profile.id)); freshStreak = await getStreak(profile.id); setStreakDays(freshStreak); }
+      if (profile?.id) { setTokens(await getTokens(profile.id)); setStreakDays(await getStreak(profile.id)); }
       // D1.2: сгруппировать очки по играм в хронологии для спарклайнов
       const allSessions = await getSessions();
-      setSessions(allSessions);   // сырые сессии нужны вкладке «История» — второй раз их не читаем
-      const byGame: Record<string, number[]> = {};
-      for (const s of allSessions) {
-        if (!s.game_type) continue;
-        (byGame[s.game_type] ||= []).push(typeof s.score === 'number' && isFinite(s.score) ? s.score : 0);
-      }
-      setSessionsByGame(byGame);
-      // Недельный дайджест — компактный агрегат за последние 7 дней (не сырой дамп сессий)
-      if (profile?.id) {
-        const weekAgo = Date.now() - 7 * 86400_000;
-        const thisWeek = allSessions.filter((s) => s.timestamp && new Date(s.timestamp).getTime() >= weekAgo);
-        const byWeekday: Record<number, number> = {};
-        for (const s of thisWeek) { if (s.timestamp) { const wd = new Date(s.timestamp).getDay(); byWeekday[wd] = (byWeekday[wd] || 0) + 1; } }
-        const totalGamesLocal = allStats.reduce((s, x) => s + x.total_sessions, 0);
-        getAiInsight(
-          'weekly_digest', profile.id, isoWeekKey(), language, toneForProfile(profile.id),
-          { sessionsThisWeek: thisWeek.length, uniqueGamesThisWeek: new Set(thisWeek.map((s) => s.game_type)).size,
-            currentStreakDays: freshStreak, sessionsByWeekday: byWeekday, totalGamesEver: totalGamesLocal },
-        ).then((text) => { if (text) setAiDigest(text); }).catch(() => {});
-      }
+      setSessions(allSessions);   // сырые сессии — вкладкам «Сводка» и «История»; карточки считаются из них по охвату
     } catch (error) {
       console.error('Error loading stats:', error);
     } finally {
@@ -204,6 +245,106 @@ function StatisticsScreenBody() {
   const totalGames = stats.reduce((s, x) => s + x.total_sessions, 0);
   const totalTime = stats.reduce((s, x) => s + (isFinite(x.total_time) && x.total_time > 0 && x.total_time <= 86400 * 365 ? x.total_time : 0), 0);
   const formatTotal = (s: number) => s >= 3600 ? `${(s / 3600).toFixed(1)}${t('unitHourShort')}` : `${Math.round(s / 60)}${t('unitMinShort')}`;
+
+  /**
+   * 🔴 ПОД ОБОЛОЧКОЙ ЭТОТ ЭКРАН РИСУЕТ FLUTTER (задача 6ff4a966, `services/hostScreens.ts`).
+   * Модель — перекладка того, что рисует разметка ниже, ТЕМИ ЖЕ функциями (formatTime, вердикты,
+   * подписи дней, sparkBars). Вне оболочки `postScreenModel` молчит.
+   */
+  const statsModel = useMemo(() => {
+    const shownStats = stats.filter((st) => st.total_sessions > 0 && (scopeAll || isGameAllowed(profile, st.game_type)));
+    const areaLabel = (a: string) => t(`cat${a.charAt(0).toUpperCase()}${a.slice(1)}`);
+    const weak = weakestArea(areas);
+    return {
+      v: 1,
+      title: t('statistics'),
+      primary: colors.primary,
+      labels: { back: t('a11yBack'), refresh: t('a11yRefresh'), summary: t('statsTabSummary'), history: t('statsTabHistory') },
+      loading,
+      scope: { profile: `${profile.emoji} ${t('profileName_' + profile.id)}`, all: t('allGames'), isAll: scopeAll },
+      totalPlayed: loading ? null : t('totalPlayedCompleted').replace('{n}', String(stats.reduce((sum, st) => sum + st.total_sessions, 0))),
+      hero: {
+        tokens, tokensLabel: t('tokensLabel'), level: `Lv ${lvl.level}`, levelTitle: t(lvl.titleKey),
+        streak: streakDays, streakLabel: t('streakLabel'), progress: lvl.span !== null ? lvl.progress : null,
+        games: `${totalGames} ${t('gamesPlayed')}`, time: `${formatTotal(totalTime)} ${t('inGameTime')}`,
+      },
+      areas: areas.length > 0 ? {
+        title: t('areaBalanceTitle'), hint: t('areaBalanceHint'),
+        rows: areas.map((a) => {
+          const pct = Math.round(a.share * 100);
+          const trendPct = a.trend === null ? null : Math.round(a.trend * 100);
+          return {
+            area: a.area, label: areaLabel(a.area), pct, text: `${pct}% · ${a.sessions}`,
+            a11y: `${areaLabel(a.area)}: ${pct}%, ${a.sessions}`,
+            trend: trendPct !== null && trendPct !== 0
+              ? { up: trendPct > 0, text: (trendPct > 0 ? t('areaTrendUp') : t('areaTrendDown')).replace('{n}', String(Math.abs(trendPct))) }
+              : null,
+          };
+        }),
+        weak: weak ? t('areaBalanceWeak').replace('{area}', areaLabel(weak)) : null,
+      } : null,
+      ai: aiDigest ? { title: `📅 ${t('weekInReview')}`, text: aiDigest } : null,
+      games: shownStats.flatMap((stat) => {
+        const cfg = getGameConfig(stat.game_type);
+        if (!cfg) return [];
+        const arr = sessionsByGame[stat.game_type] ?? [];
+        const shown = arr.slice(-12);
+        const best = arr.length ? Math.max(...arr) : 0;
+        const avg = arr.length ? Math.round(arr.reduce((a, b) => a + b, 0) / arr.length) : 0;
+        return [{
+          id: stat.game_type, name: t(cfg.nameKey), icon: cfg.icon,
+          gradient: [...(cfg.gradient as string[])],
+          stats: [
+            { label: stat.outcome_known > 0 ? t('statPassedOfPlayed') : t('totalGames'),
+              value: stat.outcome_known > 0 ? `${stat.passed_sessions}/${stat.total_sessions}` : String(stat.total_sessions) },
+            { label: t('statFastest'), value: stat.best_results.length > 0 ? formatTime(stat.best_results[0].time_seconds) : '-' },
+            { label: t('statSlowest'), value: stat.worst_time > 0 ? formatTime(stat.worst_time) : '-' },
+            { label: t('averageTime'), value: formatTime(stat.average_time) },
+          ],
+          spark: arr.length >= 2 ? {
+            caption: t('statScoreBars').replace('{n}', String(shown.length)), bars: sparkBars(shown),
+            color: (cfg.gradient as string[])[1], older: t('statOlder'), newer: t('statNewer'),
+            numbers: best > 0 ? t('scoreBestAvg').replace('{best}', String(best)).replace('{avg}', String(avg)) : t('trendRecentGames'),
+          } : null,
+        }];
+      }),
+      empty: stats.every((st) => st.total_sessions === 0) ? t('statsEmptyHint') : null,
+      history: view.kind === 'days'
+        ? {
+            kind: 'days',
+            days: view.days.map((day) => ({
+              label: dayLabel(day.dateKey),
+              entries: day.entries.map((e) => {
+                const cfg = getGameConfig(e.gameType)!;
+                const value = formatResult(e.value, e.unit);
+                const verdict = verdictText(e);
+                const level = e.level === null ? '' : t('historyLevelShort').replace('{n}', String(e.level));
+                return {
+                  name: t(cfg.nameKey), icon: cfg.icon, color: (cfg.gradient as string[])[0], verdict, verdictColor: verdictColor(e),
+                  level: level || null, value, time: timeLabel(e.timestamp),
+                  label: `${t(cfg.nameKey)}${level ? ', ' + level : ''}, ${timeLabel(e.timestamp)}, ${value}, ${verdict}`,
+                };
+              }),
+            })),
+            tail: view.days.length >= MAX_HISTORY_DAYS ? t('historyTailHint').replace('{n}', String(MAX_HISTORY_DAYS)) : null,
+          }
+        : {
+            kind: view.kind, icon: view.kind === 'empty' ? 'time-outline' : 'funnel-outline',
+            title: t(view.titleKey), hint: t(view.hintKey), cta: t(view.ctaKey), action: view.kind === 'empty' ? 'home' : 'scopeAll',
+          },
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- форматтеры экрана пересоздаются каждым рендером; модель зависит от данных
+  }, [stats, scopeAll, profile, areas, aiDigest, sessionsByGame, tokens, streakDays, loading, historyDays, sessions.length, language, colors.primary, t]);
+  useEffect(() => { postScreenModel('/statistics', statsModel); }, [statsModel]);
+  // Свежая `loadStats` для действия оболочки: функция пересоздаётся каждым рендером, а действия
+  // регистрируются один раз.
+  const statsActs = React.useRef({ loadStats });
+  useEffect(() => { statsActs.current = { loadStats }; });
+  useEffect(() => registerScreenActions('/statistics', {
+    scope: (all: boolean) => setScopeAll(!!all),
+    refresh: () => { void statsActs.current.loadStats(); },
+    back: () => goBackOrHome(),
+  }), []);
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -595,19 +736,25 @@ function StatisticsScreenBody() {
   );
 }
 
-// D1.2: мини-спарклайн тренда очков (бары; нормализация min..max; ramp прозрачности старое→свежее)
-function Sparkline({ data, color }: { data: number[]; color: string }) {
-  if (data.length < 2) return null;
+/**
+ * Столбики спарклайна: высота 5..24 по размаху min..max, прозрачность от старых к свежим.
+ * Одна формула для веба и нативной оболочки (модель экрана) — вынесено 07.10.2026.
+ */
+export function sparkBars(data: readonly number[]): { h: number; op: number }[] {
+  if (data.length < 2) return [];
   const max = Math.max(...data);
   const min = Math.min(...data);
   const span = max - min || 1;
+  return data.map((v, i) => ({ h: 5 + Math.round(((v - min) / span) * 19), op: 0.35 + 0.65 * (i / (data.length - 1)) }));
+}
+
+// D1.2: мини-спарклайн тренда очков (бары; нормализация min..max; ramp прозрачности старое→свежее)
+function Sparkline({ data, color }: { data: number[]; color: string }) {
+  const bars = sparkBars(data);
+  if (!bars.length) return null;
   return (
     <View style={{ flexDirection: 'row', alignItems: 'flex-end', height: 26, gap: 2, marginTop: 6 }}>
-      {data.map((v, i) => {
-        const h = 5 + Math.round(((v - min) / span) * 19);
-        const op = 0.35 + 0.65 * (i / (data.length - 1));
-        return <View key={i} style={{ flex: 1, height: h, backgroundColor: color, borderRadius: 2, opacity: op }} />;
-      })}
+      {bars.map((b, i) => <View key={i} style={{ flex: 1, height: b.h, backgroundColor: color, borderRadius: 2, opacity: b.op }} />)}
     </View>
   );
 }

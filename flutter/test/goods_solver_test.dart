@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -150,6 +151,116 @@ void main() {
     }
   });
 
+  /// Все лестницы приложения: шесть наборов × две ширины.
+  List<(String, double)> allLadders() {
+    final files = [
+      for (final set in (jsonDecode(File('assets/levels/goods_sets.json').readAsStringSync())
+          as Map<String, dynamic>)['sets'] as List)
+        (set as Map<String, dynamic>)['file'] as String,
+    ];
+    expect(files, hasLength(greaterThanOrEqualTo(6)), reason: 'наборы не прочитались — проба не о том');
+    return [
+      for (final f in files)
+        for (final w in [390.0, 1200.0]) (f, w),
+    ];
+  }
+
+  /// 🔴 «РАЗБОР» СО СТАРТА ВЕДЁТ К ПОБЕДЕ НА КАЖДОМ УРОВНЕ (задача 747a6ece).
+  ///
+  /// 📍 БЫЛО 02.10.2026: на 16 стартах из 720 разбор не находил пути и показывал
+  /// одно правило. Замер 07.10.2026 разложил их так:
+  ///   · 10 не проходились ВОВСЕ — дефект генератора: вид льда лежал во льду
+  ///     (`pickFrozen` в `frontend/src/games/goods-sort/core/level.ts`, лестницы
+  ///     пересняты);
+  ///   · 3 — решатель: цель «освободить» запрещал увозить однородную кучку,
+  ///     джокер не принимал чужой вид, полка из очереди приходит только за
+  ///     ЦЕЛУЮ тройку, а перебор их не различал;
+  ///   · 3 решались при большем бюджете — после правки льда стали лёгкими.
+  /// Проба смотрит не «решатель ответил да», а ПУТЬ: он проигрывается ходом за
+  /// ходом через ту же дверь, что у экрана, и обязан кончиться победой.
+  test('🔴 «Разбор» со старта ведёт к победе на КАЖДОМ уровне всех наборов', () {
+    final bad = <String>[];
+    var levels = 0, moves = 0, maxNodes = 0;
+    for (final (file, width) in allLadders()) {
+      final ladder = GoodsLevelSet.fromJsonString(File('assets/levels/$file').readAsStringSync(), width: width);
+      for (var lv = 1; lv <= ladder.levels.length; lv++) {
+        levels++;
+        var play = GoodsPlay.start(ladder.byLevel(lv));
+        final solve = solveStrict(play);
+        if (solve.nodes > maxNodes) maxNodes = solve.nodes;
+        if (!solve.solvable) {
+          bad.add('$file ${width.toInt()} L$lv: пути нет${solve.exhausted ? ' (упёрся)' : ''}');
+          continue;
+        }
+        for (final m in solve.path) {
+          final next = play.moveTopOf(m.from, m.to);
+          if (next == null) {
+            bad.add('$file ${width.toInt()} L$lv: игра не пустит ход ${m.from}→${m.to}');
+            break;
+          }
+          play = next;
+          moves++;
+        }
+        if (!play.won) bad.add('$file ${width.toInt()} L$lv: путь кончился, а уровень не взят');
+      }
+    }
+    // ignore: avoid_print
+    print('РАЗБОР СО СТАРТА: $levels уровней, путь на ${levels - bad.length}, ходов в путях $moves, '
+        'узлов в худшем $maxNodes');
+    expect(levels, greaterThanOrEqualTo(720), reason: 'лестниц меньше, чем выгружено, — проба не о том');
+    expect(bad, isEmpty);
+  });
+
+  /// 🔴 ЛЁД РАСТАПЛИВАЕТСЯ: тройка его вида лежит ВНЕ ряда на открытых нишах.
+  ///
+  /// Лёд снимается тройкой своего вида, а в примёрзший ряд нельзя ни положить, ни
+  /// взять. Выгрузка 25.09.2026 ставила вид, не глядя, где его товары: у 44 уровней
+  /// из 720 часть тройки сидела во льду, десять не проходились вовсе. Правило
+  /// стоит в генераторе (`pickFrozen`), а здесь сторожится ФАЙЛ, который уехал в
+  /// приложение, — как и арифметика троек выше.
+  test('🔴 лёд растапливается: тройка его вида вне ряда, на всех лестницах', () {
+    final bad = <String>[];
+    var frozen = 0;
+    for (final (file, width) in allLadders()) {
+      final ladder = GoodsLevelSet.fromJsonString(File('assets/levels/$file').readAsStringSync(), width: width);
+      for (var lv = 1; lv <= ladder.levels.length; lv++) {
+        final play = GoodsPlay.start(ladder.byLevel(lv));
+        final type = play.frozenType;
+        if (play.frozenRow == null || type == null) continue;
+        frozen++;
+        var open = 0;
+        for (var i = 0; i < play.board.cells.length; i++) {
+          if (play.usable(i)) open += play.board.cells[i].where((t) => t == type).length;
+        }
+        if (open < kTriple) bad.add('$file ${width.toInt()} L$lv: вида $type на открытых нишах $open');
+      }
+    }
+    expect(frozen, greaterThan(40), reason: 'уровней со льдом почти нет — проба не о том');
+    expect(bad, isEmpty);
+  });
+
+  /// 🔴 ПОТОЛОК ПО ЧАСАМ ОСТАНАВЛИВАЕТ РАЗБОР. Экран ставит его, чтобы человек не
+  /// ждал на нажатии (`_lessonDeadline`); без проверки потолок мог молча не
+  /// работать, и редкое тяжёлое положение подвешивало бы экран на секунды.
+  test('🔴 потолок по часам: разбор не думает дольше отпущенного', () {
+    // Берём старт, которому нужно заметно больше узлов, чем проверка часов
+    // пропускает между взглядами (раз в 16 узлов).
+    GoodsPlay? heavy;
+    for (final (file, width) in allLadders()) {
+      final ladder = GoodsLevelSet.fromJsonString(File('assets/levels/$file').readAsStringSync(), width: width);
+      for (var lv = 1; lv <= ladder.levels.length && heavy == null; lv++) {
+        final play = GoodsPlay.start(ladder.byLevel(lv));
+        if (solveStrict(play).nodes > 300) heavy = play;
+      }
+      if (heavy != null) break;
+    }
+    expect(heavy, isNotNull, reason: 'нет старта тяжелее 300 узлов — проба не о том');
+    final cut = solveStrict(heavy!, deadline: Duration.zero);
+    expect(cut.solvable, isFalse, reason: 'часы не остановили перебор');
+    expect(cut.exhausted, isTrue, reason: 'остановленный перебор обязан сказать «не знаю», а не «нет»');
+    expect(solveStrict(heavy).solvable, isTrue, reason: 'без часов тот же старт решается');
+  });
+
   test('🔴 препятствия ЖИВУТ: замок тикает по ходам, заслон снимается тройкой', () {
     final level = set.byLevel(1);
 
@@ -207,6 +318,91 @@ void main() {
     expect(hint, solveStrict(start).path.first);
     expect(start.moveTopOf(hint!.from, hint.to), isNotNull,
         reason: 'подсказку обязана принять сама игра');
+  });
+
+  /// 🔴 ПОДСКАЗКА ЗА ПОДСКАЗКОЙ: НЕ ТУДА-ОБРАТНО, А ДО ПОБЕДЫ.
+  ///
+  /// 02.10.2026, задача 978b07b4. Решатель каждый раз начинал с чистого листа, а
+  /// ход «вернуть товар, откуда взяли» у него в почёте — это укладка на свой вид.
+  /// Замер: партия, где каждый ход — голова свежего решения, на 720 уровнях
+  /// (шесть наборов × две лестницы × 60) дошла до победы на 155 и на 549
+  /// закончилась циклом туда-обратно. Разбор на экране решает так же, с текущего
+  /// положения, и второй разбор подряд открывался откатом первого.
+  ///
+  /// ⚠️ «ТОТ ЖЕ ТОВАР НАЗАД» МЕРИТСЯ ОТДЕЛЬНО ОТ ВОЗВРАТА В ПОЛОЖЕНИЕ. Замок тикает
+  /// с каждым ходом, и товар, вернувшийся на место, даёт уже другое положение:
+  /// один запрет на пройденное оставил девять таких переносов, и ни один не был
+  /// нужен — путь без него находился всегда.
+  test('🔴 подсказка за подсказкой не ходит туда-обратно и доводит до победы', () {
+    String position(GoodsPlay p) => [
+          p.board.cells.map((c) => c.join(',')).join('|'),
+          p.board.queue.length,
+          (p.board.back ?? const <List<int>>[]).fold<int>(0, (n, b) => n + b.length),
+          p.obstacles.map((o) => o == null ? '-' : '${o.kind}${o.movesLeft}').join(),
+          p.frozenRow,
+        ].join('#');
+
+    // Наборов шесть, и у каждого своя выгрузка уровней: профиль играет своим
+    // набором (nzt48 — «Напитки», дети — «Игрушки»), и один «Микс» живого не покрывает.
+    final files = [
+      for (final set in (jsonDecode(File('assets/levels/goods_sets.json').readAsStringSync())
+          as Map<String, dynamic>)['sets'] as List)
+        (set as Map<String, dynamic>)['file'] as String,
+    ];
+    expect(files, hasLength(greaterThanOrEqualTo(6)), reason: 'наборы не прочитались — проба не о том');
+    for (final (file, width) in [
+      for (final f in files)
+        for (final w in [390.0, 1200.0]) (f, w),
+    ]) {
+      final ladder = GoodsLevelSet.fromJsonString(
+        File('assets/levels/$file').readAsStringSync(),
+        width: width,
+      );
+      final bad = <String>[];
+      var won = 0;
+      for (var lv = 1; lv <= ladder.levels.length; lv++) {
+        var play = GoodsPlay.start(ladder.byLevel(lv));
+        // Без пути с самого начала цепочке не с чего начаться — это другая проба.
+        if (!solveStrict(play).solvable) continue;
+        final behind = <GoodsPlay>[];
+        final visited = {position(play)};
+        GoodsMove? last;
+        int? lastType;
+        var steps = 0;
+        while (!play.won && steps < 200) {
+          final m = hintMove(play, behind: behind, lastMove: last);
+          if (m == null) {
+            bad.add('L$lv, шаг $steps: подсказки нет');
+            break;
+          }
+          final type = play.board.cells[m.from].last;
+          if (last != null && m.from == last.to && m.to == last.from && type == lastType) {
+            bad.add('L$lv, шаг $steps: тот же товар назад, ${m.from}→${m.to}');
+          }
+          final next = play.moveTopOf(m.from, m.to);
+          if (next == null) {
+            bad.add('L$lv, шаг $steps: игра не приняла подсказку ${m.from}→${m.to}');
+            break;
+          }
+          behind.add(play);
+          play = next;
+          last = m;
+          lastType = type;
+          steps++;
+          if (!visited.add(position(play))) {
+            bad.add('L$lv, шаг $steps: вернулись в пройденное положение');
+            break;
+          }
+        }
+        if (play.won) {
+          won++;
+        } else if (steps >= 200) {
+          bad.add('L$lv: за 200 подсказок победы нет');
+        }
+      }
+      expect(bad, isEmpty, reason: '$file, ширина $width');
+      expect(won, greaterThan(50), reason: '$file, ширина $width: цепочка почти не доходит до победы — проба не о том');
+    }
   });
 
   test('🔴 тупик: разобранная доска тупиком НЕ считается', () {

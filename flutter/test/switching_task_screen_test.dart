@@ -1,11 +1,14 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/switching_task/model.dart';
 import 'package:psygames_flutter/games/switching_task/screen.dart';
+import 'package:psygames_flutter/shell/game_preset.dart';
 import 'package:psygames_flutter/shell/l10n.dart';
+import 'package:psygames_flutter/shell/session_report.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 import 'support/boss_probe.dart';
 import 'support/slow_write_state.dart';
 
@@ -182,6 +185,38 @@ void main() {
       await tester.pump(const Duration(milliseconds: 400));
     }
     expect(find.text('5/12'), findsOneWidget, reason: 'четыре верные пробы прошли');
+  });
+
+  testWidgets('🔴 шаг «Оценки»: партия в условиях шага и с метрикой домена в details', (tester) async {
+    // «Оценка» читает метрику домена из details партии (assessment.ts, extractMetric): без неё
+    // домен молча «средний». Условие — шага, как его собирает stepToParams (warmup.ts), а не
+    // уровня: норма домена снята в нём.
+    final sent = <Map<String, dynamic>>[];
+    SessionReport.sink = (j) async => sent.add(jsonDecode(j) as Map<String, dynamic>);
+    GamePreset.set({'wu': '1', 'trials': '15'});
+    addTearDown(() {
+      SessionReport.sink = null;
+      GamePreset.clear();
+    });
+    var clock = 0;
+    await tester.pumpWidget(MaterialApp(home: SwitchingTaskScreen(state: state, clock: () => clock)));
+    var answered = 0;
+    for (var i = 0; i < 1600 && sent.isEmpty; i++) {
+      final s = onScreen(StimMode.mix);
+      if (s == null) {
+        await tester.pump(const Duration(milliseconds: 50));
+        continue;
+      }
+      clock += 500;
+      await tester.tap(find.byKey(Key('switching-answer-${correctLeft(StimMode.mix, s.idx, s.stim) ? 'left' : 'right'}')));
+      answered++;
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 250));
+    }
+    expect(answered, 15, reason: 'длина партии — шага (15), а не уровня (12)');
+    final d = sent.single['details'] as Map<String, dynamic>;
+    expect(d['switch_cost_ms'], 0, reason: 'все ответы за 500 мс: цена переключения — ноль, и она в партии ($d)');
+    expect(d['n_trials'], 15);
   });
 
   testWidgets('🔴 сданную партию не сдать второй раз: нажатие, пока пишется победа, уровень не двигает', (tester) async {

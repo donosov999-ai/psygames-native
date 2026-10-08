@@ -26,6 +26,30 @@ import '../../shell/shared_state.dart';
 import '../../shell/tap_latency.dart';
 import 'model.dart';
 
+/// Поля партии для «Оценки» — как веб (`cpt.tsx`, saveSession details). Домен
+/// «Устойчивое внимание» читает `rt_variability` — CV-RT (норма 0,20±0,08), три знака,
+/// как `Number(cvRt.toFixed(3))` в вебе; без ключа домен молча «средний».
+///
+/// 🔴 НЕ ОПРЕДЕЛЕНА — НЕ ПИШЕТСЯ. Веб в таком случае пишет число-мусор: пустое плечо он
+/// считает нулём, и «Оценка» (`extractMetric`) берёт его как измерение. Нет ключа —
+/// домен честно «без данных», а не фантастический z.
+Map<String, Object?> cptSessionDetails(CptGame g) {
+  final m = g.metrics;
+  return {
+    'level': g.level,
+    if (m.hits > 0) 'mean_rt': m.meanRtMs.round(),
+    if (m.hits >= 2) 'rt_variability': double.parse(m.cvRt.toStringAsFixed(3)),
+    'n_trials': m.played,
+  };
+}
+
+/// Длительность шага из его режима: `'<N>min'` → N минут, иначе — уровня. Перенос
+/// `presetDurationSec` из `cpt.tsx`: шаг «Оценки» — '2min', зарядки — '4min'.
+int cptPresetDurationSec(String mode, int fallbackSec) {
+  final m = RegExp(r'^(\d+)min$').firstMatch(mode);
+  return m == null ? fallbackSec : int.parse(m.group(1)!) * 60;
+}
+
 enum CptPhase { ready, playing, done }
 
 /// Партия начинается сама: касания в нативный слой панель симулятора не доставляет.
@@ -103,7 +127,11 @@ class _CptScreenState extends State<CptScreen> {
       level: _ladder.level,
       rnd: widget.rnd,
       nowMs: widget.clock,
-      durationOverrideSec: widget.durationSec,
+      // Шаг «Оценки» и зарядки задаёт длительность режимом ('2min'), как в вебе.
+      durationOverrideSec: widget.durationSec ??
+          (GamePreset.isPreset
+              ? cptPresetDurationSec(GamePreset.str('mode'), CptLevel.of(_ladder.level).durationSec)
+              : null),
     );
     _phase = CptPhase.ready;
     _letterVisible = false;
@@ -192,9 +220,9 @@ class _CptScreenState extends State<CptScreen> {
       boss = await BossRound.winThenBoss(context, _ladder,
           type: BossType.oddletter,
           color: const Color(0xFF0F4C75),
-          win: () => _ladder.win(score: g.score, timeSeconds: g.elapsedSec.round(), errors: errors));
+          win: () => _ladder.win(score: g.score, timeSeconds: g.elapsedSec.round(), errors: errors, details: cptSessionDetails(g)));
     } else if (verdict == false) {
-      await _ladder.fail(score: g.score, timeSeconds: g.elapsedSec.round(), errors: errors);
+      await _ladder.fail(score: g.score, timeSeconds: g.elapsedSec.round(), errors: errors, details: cptSessionDetails(g));
     }
     if (!mounted) return;
     setState(() {

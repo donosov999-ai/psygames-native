@@ -33,9 +33,37 @@ import {
  * заводить два ответа на один вопрос.
  */
 
-const MAX_CONTAINER_WIDTH = 1100;
-const CONTAINER_PADDING = 16;
+export const MAX_CONTAINER_WIDTH = 1100;
+export const CONTAINER_PADDING = 16;
 const CARD_MARGIN = 10;
+
+/**
+ * Колонок в ряду при этой ширине окна — то же правило, что у сетки ниже. Вынесено 07.10.2026:
+ * «Любимые разделы» нативной Главной режутся тем же числом (`services/homeModel.ts`).
+ */
+export function sectionCols(winWidth: number): number {
+  const containerWidth = Math.min(winWidth, MAX_CONTAINER_WIDTH) - CONTAINER_PADDING * 2;
+  return containerWidth >= 880 ? 5 : containerWidth >= 700 ? 4 : containerWidth >= 520 ? 3 : 2;
+}
+
+/**
+ * Игры по разделам в порядке показа: развилки первыми, внутри — по числу партий, если оно дано.
+ * Одно правило для веба и нативной Главной (`services/homeModel.ts`).
+ */
+export function groupBySection(
+  visibleGames: readonly GameConfig[], playsByGame?: Readonly<Record<string, number>>,
+): Partial<Record<GameCategory, GameConfig[]>> {
+  const партий = (g: GameConfig) => playsByGame?.[sessionTypeOf(g)] ?? 0;
+  const по = (список: GameConfig[]) => (playsByGame
+    ? [...список].sort((a, b) => партий(b) - партий(a))
+    : список);
+  const map = {} as Partial<Record<GameCategory, GameConfig[]>>;
+  for (const g of visibleGames) (map[g.category] ??= []).push(g);
+  for (const к of Object.keys(map) as GameCategory[]) {
+    map[к] = [...по(map[к]!.filter((g) => g.hub)), ...по(map[к]!.filter((g) => !g.hub))];
+  }
+  return map;
+}
 
 export interface Props {
   /** Какие разделы показать и в каком порядке. */
@@ -56,9 +84,11 @@ export interface Props {
    * порядок каталога.
    */
   playsByGame?: Readonly<Record<string, number>>;
+  /** Только развилки — вход «Все развилки» с Главной (`/games?filter=hubs`, 07.10.2026). */
+  onlyHubs?: boolean;
 }
 
-export default function CategorySections({ categories, rows, playsByGame }: Props) {
+export default function CategorySections({ categories, rows, playsByGame, onlyHubs }: Props) {
   const { colors } = useTheme();
   const { t } = useLanguage();
   /*
@@ -78,14 +108,14 @@ export default function CategorySections({ categories, rows, playsByGame }: Prop
    */
   const MIN_CARD_WIDTH = winWidth < 480 ? 150 : 170;
   const containerWidth = Math.min(winWidth, MAX_CONTAINER_WIDTH) - CONTAINER_PADDING * 2;
-  const cols = containerWidth >= 880 ? 5 : containerWidth >= 700 ? 4 : containerWidth >= 520 ? 3 : 2;
+  const cols = sectionCols(winWidth);
   const cardWidth = Math.floor((containerWidth - CARD_MARGIN * cols) / cols);
   const cardHeight = Math.round(cardWidth * 1.2);
   const isWeb = Platform.OS === 'web';
 
   const visibleGames = useMemo(
-    () => visibleInCatalog(filterAllowedGames(profile), profile?.id),
-    [profile],
+    () => visibleInCatalog(filterAllowedGames(profile), profile?.id).filter((g) => !onlyHubs || g.hub),
+    [profile, onlyHubs],
   );
 
   /**
@@ -97,18 +127,7 @@ export default function CategorySections({ categories, rows, playsByGame }: Prop
    * вниз, человек открывает три карточки подряд, а потом узнаёт, что четвёртая
    * содержала ещё шесть. Порядок групп прежний, меняется только порядок внутри.
    */
-  const grouped = useMemo(() => {
-    const партий = (g: GameConfig) => playsByGame?.[sessionTypeOf(g)] ?? 0;
-    const по = (список: GameConfig[]) => (playsByGame
-      ? [...список].sort((a, b) => партий(b) - партий(a))
-      : список);
-    const map = {} as Record<GameCategory, GameConfig[]>;
-    for (const g of visibleGames) (map[g.category] ??= []).push(g);
-    for (const к of Object.keys(map) as GameCategory[]) {
-      map[к] = [...по(map[к]!.filter((g) => g.hub)), ...по(map[к]!.filter((g) => !g.hub))];
-    }
-    return map;
-  }, [visibleGames, playsByGame]);
+  const grouped = useMemo(() => groupBySection(visibleGames, playsByGame), [visibleGames, playsByGame]);
 
   /** Число на значке развилки = длина того самого списка, что человек увидит. */
   const составРазвилки = useMemo(() => {
