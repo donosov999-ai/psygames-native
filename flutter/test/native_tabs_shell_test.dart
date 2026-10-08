@@ -340,8 +340,10 @@ void main() {
     // Форма — окно `#feedback` ОСНОВНОЙ страницы (c092cd47), а не второй экземпляр на `/feedback`.
     await t.tap(fab);
     await settle(t, () => page().js.any((s) => s.contains('["#feedback"].open(')));
-    expect(page().js.any((s) => s.contains('["#feedback"].open("/games",null)')), isTrue,
-        reason: 'источник — вкладка; кадра-корня в пробе нет — снимка нет');
+    // Третий аргумент — состояние партии из шапки игры (задача 75348e44): на вкладке игры нет — null,
+    // и страница сбрасывает прежний снимок, чтобы он не уехал в чужой отзыв.
+    expect(page().js.any((s) => s.contains('["#feedback"].open("/games",null,null)')), isTrue,
+        reason: 'источник — вкладка; кадра-корня в пробе нет — снимка нет; игры нет — состояния нет');
     expect(find.byType(WebGameScreen), findsNothing);
     await t.pump(const Duration(milliseconds: 300)); // первый кадр перехода маршрут «за сценой» (HeroController)
     expect(find.byType(FeedbackScreen), findsOneWidget);
