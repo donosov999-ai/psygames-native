@@ -19,6 +19,7 @@ import 'package:flutter/material.dart';
 
 import '../../shell/game_preset.dart';
 import '../../shell/preset_cap.dart';
+import '../../shell/setup_scroll.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
@@ -92,8 +93,18 @@ class _TargetsScreenState extends State<TargetsScreen> {
 
   int _now() => widget.clock?.call() ?? DateTime.now().millisecondsSinceEpoch;
 
-  /// Режим из адреса — как веб (`str('mode', 'field')`); неизвестное имя — режим экрана.
-  TargetsMode get _mode => TargetsMode.values.asNameMap()[GamePreset.str('mode')] ?? widget.mode;
+  /// Режим из адреса — как веб (`str('mode', 'field')`); неизвестное имя — режим экрана; потом —
+  /// выбор на настройке.
+  late TargetsMode _mode = TargetsMode.values.asNameMap()[GamePreset.str('mode')] ?? widget.mode;
+
+  /// Выбор режима — только до начала партии.
+  void _pickMode(TargetsMode m) {
+    if (_phase != TargetsPhase.ready || m == _mode) return;
+    setState(() {
+      _mode = m;
+      _reset();
+    });
+  }
 
   /// Стартовый уровень. Шаг зарядки — уровень из шага, но не выше освоенного больше чем на
   /// ступень (веб `capPresetByLevel({ want: num('level', 1), atLevel: lvl.level })`); до
@@ -240,6 +251,7 @@ class _TargetsScreenState extends State<TargetsScreen> {
         height: h,
         onStart: _start,
         onAgain: () => setState(_reset),
+        onMode: _pickMode,
       ),
       toolbar: _phase == TargetsPhase.playing ? _TargetButton(onTap: _tap) : null,
     );
@@ -279,6 +291,7 @@ class _Field extends StatelessWidget {
     required this.height,
     required this.onStart,
     required this.onAgain,
+    required this.onMode,
   });
 
   final TargetsGame game;
@@ -291,25 +304,30 @@ class _Field extends StatelessWidget {
   final double height;
   final VoidCallback onStart;
   final VoidCallback onAgain;
+  final ValueChanged<TargetsMode> onMode;
 
   @override
   Widget build(BuildContext context) {
     switch (phase) {
       case TargetsPhase.ready:
-        return _Centered(
+        return SetupScroll(
           height: height,
+          onStart: onStart,
           children: [
             Text('${L.t('level')} ${game.level}', style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 8),
             Text(L.t('targetsDesc'), textAlign: TextAlign.center),
             const SizedBox(height: 8),
-            Text(
-              mode == TargetsMode.field ? L.t('field') : L.t('joker'),
-              key: const Key('targets-mode'),
-              style: Theme.of(context).textTheme.labelLarge,
+            // Режим — выбором, как у веба («Поле / Джокер»).
+            SetupChoice<TargetsMode>(
+              label: L.t('mode'),
+              options: [
+                (TargetsMode.field, L.t('field'), 'targets-mode-field'),
+                (TargetsMode.joker, L.t('joker'), 'targets-mode-joker'),
+              ],
+              value: mode,
+              onPick: onMode,
             ),
-            const SizedBox(height: 16),
-            FilledButton(onPressed: onStart, child: Text(L.t('start'))),
           ],
         );
       case TargetsPhase.done:

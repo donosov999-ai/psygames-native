@@ -21,6 +21,8 @@ import '../../shell/demo_lesson.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/session_report.dart';
+import '../../shell/setup_scroll.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import '../../shell/tap_latency.dart';
@@ -114,10 +116,33 @@ class _PrlScreenState extends State<PrlScreen> {
   /// чистая метрика на стандартных параметрах `DIFF_CFG`, без задержки обратной связи. До
   /// 08.10.2026 натив брал классику только из конструктора, и шаг с адреса — в том числе
   /// замерный «ядро-снимок» `60t-80%` — играл уровневый режим (сторож параметров, 9137fda8).
-  bool get _classic => widget.classic || GamePreset.isPreset;
+  bool get _classic => _free || GamePreset.isPreset;
+
+  /// «Свободно» (классика) — выбор на настройке, как у веба (`GameModeSwitch`); иначе уровни.
+  late bool _free = widget.classic;
+
+  /// Сложность свободной классики — выбор на настройке.
+  late String _diffChoice = widget.preset ?? 'medium';
+
+  /// Выбор режима и сложности — только до начала партии.
+  void _pickFree(bool v) {
+    if (_phase != PrlPhase.ready || v == _free) return;
+    setState(() {
+      _free = v;
+      _reset();
+    });
+  }
+
+  void _pickDiff(String d) {
+    if (_phase != PrlPhase.ready || d == _diffChoice) return;
+    setState(() {
+      _diffChoice = d;
+      _reset();
+    });
+  }
 
   /// Сложность классики — из адреса (`str('diff', 'medium')`), иначе — из конструктора.
-  String get _diff => GamePreset.isPreset ? GamePreset.str('diff', widget.preset ?? 'medium') : (widget.preset ?? 'medium');
+  String get _diff => GamePreset.isPreset ? GamePreset.str('diff', _diffChoice) : _diffChoice;
 
   void _finish() {
     final g = _game!;
@@ -126,7 +151,19 @@ class _PrlScreenState extends State<PrlScreen> {
     // ⚠️ В классике лестницы нет вовсе: партия не двигает уровень ни в какую
     // сторону, потому что там нет и уровня. Шаг зарядки — тоже классика, но его партия
     // ПИШЕТСЯ (как у веба): лестница на шаге заморожена и только отдаёт запись и исход.
-    if (_classic && !GamePreset.isPreset) return;
+    if (_classic && !GamePreset.isPreset) {
+      // Свободная классика уровня не двигает, но партия — партия (веб `saveSession`): метки —
+      // сложность и «Nt-P%», по ним «Оценка» узнаёт классику на стандартных параметрах.
+      SessionReport.send(
+        gameType: 'prl',
+        score: g.bank < 0 ? 0 : g.bank,
+        timeSeconds: 0,
+        errors: g.metrics.totalErrors,
+        difficulty: _diff,
+        mode: '${g.params.trialsTotal}t-${(g.params.rewardProb * 100).round()}%',
+      );
+      return;
+    }
     final errors = g.metrics.totalErrors;
     if (g.passed) {
       _ladder.win(score: g.bank < 0 ? 0 : g.bank, errors: errors);
@@ -163,6 +200,10 @@ class _PrlScreenState extends State<PrlScreen> {
         height: h,
         onStart: _start,
         onAgain: () => setState(_reset),
+        free: _free,
+        diff: _diff,
+        onFree: _pickFree,
+        onDiff: _pickDiff,
       ),
       toolbar: _phase == PrlPhase.playing ? _Choices(onPick: _choose) : null,
     );
@@ -177,6 +218,10 @@ class _Field extends StatelessWidget {
     required this.height,
     required this.onStart,
     required this.onAgain,
+    required this.free,
+    required this.diff,
+    required this.onFree,
+    required this.onDiff,
   });
 
   final PrlGame game;
@@ -187,14 +232,19 @@ class _Field extends StatelessWidget {
   final double height;
   final VoidCallback onStart;
   final VoidCallback onAgain;
+  final bool free;
+  final String diff;
+  final ValueChanged<bool> onFree;
+  final ValueChanged<String> onDiff;
 
   @override
   Widget build(BuildContext context) {
     switch (phase) {
       case PrlPhase.ready:
         final p = game.params;
-        return _Centered(
+        return SetupScroll(
           height: height,
+          onStart: onStart,
           children: [
             Text(L.t('prl'), style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 8),
@@ -216,8 +266,33 @@ class _Field extends StatelessWidget {
               style: Theme.of(context).textTheme.bodySmall,
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 16),
-            FilledButton(onPressed: onStart, child: Text(L.t('start'))),
+            // «Уровни / Свободно» и сложность классики — как у веба. Шаг зарядки всегда
+            // классика по адресу — выбора там нет.
+            if (!GamePreset.isPreset) ...[
+              const SizedBox(height: 12),
+              SetupChoice<bool>(
+                label: L.t('mode'),
+                options: [(false, L.t('sudokuModeLevels'), 'prl-mode-levels'), (true, L.t('sudokuModeFree'), 'prl-mode-free')],
+                value: free,
+                onPick: onFree,
+              ),
+              const SizedBox(height: 4),
+              Text(free ? L.t('prlModeClassic') : L.t('prlModeLevels'),
+                  style: Theme.of(context).textTheme.bodySmall, textAlign: TextAlign.center),
+              if (free) ...[
+                const SizedBox(height: 8),
+                SetupChoice<String>(
+                  label: L.t('difficultyLabel'),
+                  options: [
+                    ('easy', L.t('easy'), 'prl-diff-easy'),
+                    ('medium', L.t('medium'), 'prl-diff-medium'),
+                    ('hard', L.t('hard'), 'prl-diff-hard'),
+                  ],
+                  value: diff,
+                  onPick: onDiff,
+                ),
+              ],
+            ],
           ],
         );
       case PrlPhase.done:
