@@ -3,6 +3,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../shell/app_haptics.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/boss_round.dart';
 import '../../shell/demo_lesson.dart';
@@ -38,6 +39,8 @@ class CounterScreen extends StatefulWidget {
 enum _Phase { playing, success, timeout, result }
 
 class _CounterScreenState extends State<CounterScreen> {
+  /// Отклик хода — через общий выключатель «Вибрация» (образец «Матрицы памяти», задача 792432f8).
+  late final AppHaptics _haptics = AppHaptics(widget.state);
   /// Задержки веб-версии: успех показывается дольше промаха.
   static const _successDelay = Duration(milliseconds: 800);
   static const _timeoutDelay = Duration(milliseconds: 700);
@@ -154,6 +157,7 @@ class _CounterScreenState extends State<CounterScreen> {
   }
 
   void _hit() {
+    _haptics.win();
     _tick?.cancel();
     setState(() {
       _hits += 1;
@@ -166,6 +170,7 @@ class _CounterScreenState extends State<CounterScreen> {
   /// Перебор: ошибка сразу, а выбор гаснет через 300 мс — нажатие, попавшее в
   /// это окно, обязано сработать (правило веб-версии).
   void _overshoot() {
+    _haptics.miss();
     setState(() => _errors += 1);
     _clear?.cancel();
     _clear = Timer(_resetDelay, () {
@@ -175,6 +180,7 @@ class _CounterScreenState extends State<CounterScreen> {
   }
 
   void _onTimeout() {
+    _haptics.miss();
     _tick?.cancel();
     setState(() {
       _timeouts += 1;

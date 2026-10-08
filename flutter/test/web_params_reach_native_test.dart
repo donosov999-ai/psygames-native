@@ -32,23 +32,25 @@ const _shellParams = {'wu', 'auto', 'ladderGame'};
 /// 7679684ac (14 потерь у 9 экранов); строгий — 07.10 на c614cb2ae (37 у 20, новые — задача 3e685a46);
 /// сведён с main 2.56.17 (сняты починенные anagrams/targetLang #272, find-differences/diffCount #185) — 35 у 19;
 /// сведён с main 2.56.18 (сняты починенные dots-connect/level и one-line/level #302, proofreading cols/rows/mode #290,
-/// proofreading/taskMode #293) — 29 у 17.
+/// proofreading/taskMode #293) — 29 у 17; сведён в 2.56.21 (сняты «Поиск» #319 — schulte series/size, sdmt duration,
+/// math-sprint duration, math-slider/visual-search/number-bonds trials, diff двух экранов — с причиной; «Пространство» #318;
+/// proofreading/series #323; switching-task/stimMode #287; stroop, stroop-emotional, prl, targets #325) — 10 у 5.
 const _t = 'строгий замер 07.10, задача 3e685a46 (координатор раздаёт)';
 const lostWithReason = <String, Map<String, String>>{
   '/games/anagrams': {
     'length': 'не дефект: решение Дениса 09.09 «зарядка с личного уровня» — длину слова ведёт лестница',
   },
-  '/games/math-slider': {'trials': _t},
   '/games/math-sprint': {
-    'diff': _t,
-    'duration': '«Поиск»: длительность из адреса',
+    'diff': 'не дефект (замер «Поиска» 08.10 по main c50a0f15d): веб кладёт diff только в подсветку кнопки '
+        'сложности на экране настройки (math-sprint.tsx:111, :282–293), а задачи строит '
+        'generateSprintProblem(lvl.level) — тир снят решением Дениса 09.09 «зарядка с личного уровня» (:173–179). '
+        'Шлют 3 шага profiles.ts/warmup.ts и 107 в defaultPlaylists.json',
   },
-  '/games/number-bonds': {'diff': _t, 'trials': _t},
-  '/games/prl': {'diff': _t},
-  '/games/proofreading': {
-    'series': 'задача f4bb47dc («Внимание»)',
+  '/games/number-bonds': {
+    'diff': 'по решению Дениса 09.09 «зарядка с личного уровня» (замер «Поиска» 08.10): веб-пресет ещё берёт '
+        'тир DIFF_CFG[diff] без окна времени («прежнее поведение», number-bonds.tsx:187), натив играет личный '
+        'уровень (levelParams). Шлют 3 шага profiles.ts/warmup.ts и 44 в defaultPlaylists.json',
   },
-
   '/games/scholars-mate': {
     'drill': '«Шахматы»',
     'flow': '«Шахматы»',
@@ -57,26 +59,12 @@ const lostWithReason = <String, Map<String, String>>{
     'mix': _t,
     'motif': _t,
   },
-  '/games/schulte': {
-    'series': 'задача 1b6338c1 («Поиск»)',
-    'size': '«Поиск»: размер поля из адреса',
-  },
-  '/games/sdmt': {
-    'duration': '«Поиск»: длительность — настройка, по решению 09.09 остаётся за шагом; потеря похожа на настоящую',
-  },
-  '/games/stroop': {'mode': _t, 'trials': _t},
-  '/games/stroop-emotional': {'trials': _t},
   '/games/sudoku': {
     'diff': 'не дефект (раздел «Судоку», задача 67490534; замер каркаса 08.10 по main 33af6e413): зарядка шлёт diff '
         '(5 шагов в constants/profiles.ts → stepToParams: p.diff = step.difficulty), но веб в зарядке играет в режиме '
         'лестницы (modeRef «levels», шаг mode не задаёт) и diff там не читает — blanksFor(size, difficulty) только вне '
         'levels (sudoku.tsx:952); в нативе трудность ведёт лестница (freePreset) — решение Дениса 09.09 «с личного уровня»',
   },
-  '/games/switching-task': {
-    'stimMode': '«Внимание»: вид стимулов из адреса — читается в PR #287',
-  },
-  '/games/targets': {'level': _t, 'mode': _t},
-  '/games/visual-search': {'trials': _t},
 };
 
 /// Замер: маршрут → параметры, которые веб читает, а натив — нет.

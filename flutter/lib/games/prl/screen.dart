@@ -82,8 +82,8 @@ class _PrlScreenState extends State<PrlScreen> {
     _timer?.cancel();
     _game = PrlGame(
       level: _ladder.level,
-      classic: widget.classic,
-      preset: widget.classic ? (prlClassicPresets[widget.preset ?? 'medium'] ?? prlClassicPresets['medium']) : null,
+      classic: _classic,
+      preset: _classic ? (prlClassicPresets[_diff] ?? prlClassicPresets['medium']) : null,
       rnd: widget.rnd,
     );
     _phase = PrlPhase.ready;
@@ -110,13 +110,23 @@ class _PrlScreenState extends State<PrlScreen> {
     });
   }
 
+  /// Шаг зарядки — классика (веб: `const classic = isPreset || runMode === 'classic'`):
+  /// чистая метрика на стандартных параметрах `DIFF_CFG`, без задержки обратной связи. До
+  /// 08.10.2026 натив брал классику только из конструктора, и шаг с адреса — в том числе
+  /// замерный «ядро-снимок» `60t-80%` — играл уровневый режим (сторож параметров, 9137fda8).
+  bool get _classic => widget.classic || GamePreset.isPreset;
+
+  /// Сложность классики — из адреса (`str('diff', 'medium')`), иначе — из конструктора.
+  String get _diff => GamePreset.isPreset ? GamePreset.str('diff', widget.preset ?? 'medium') : (widget.preset ?? 'medium');
+
   void _finish() {
     final g = _game!;
     _timer?.cancel();
     setState(() => _phase = PrlPhase.done);
     // ⚠️ В классике лестницы нет вовсе: партия не двигает уровень ни в какую
-    // сторону, потому что там нет и уровня.
-    if (widget.classic) return;
+    // сторону, потому что там нет и уровня. Шаг зарядки — тоже классика, но его партия
+    // ПИШЕТСЯ (как у веба): лестница на шаге заморожена и только отдаёт запись и исход.
+    if (_classic && !GamePreset.isPreset) return;
     final errors = g.metrics.totalErrors;
     if (g.passed) {
       _ladder.win(score: g.bank < 0 ? 0 : g.bank, errors: errors);
@@ -140,7 +150,7 @@ class _PrlScreenState extends State<PrlScreen> {
       title: L.t('prl'),
       onLesson: () => openDemoLesson(context, title: L.t('prl'), trials: _demoTrials()),
       hud: [
-        if (!widget.classic) HudItem(label: L.t('level'), value: '${_ladder.level}', icon: Icons.flag_outlined),
+        if (!_classic) HudItem(label: L.t('level'), value: '${_ladder.level}', icon: Icons.flag_outlined),
         HudItem(label: L.t('round'), value: '${g.trials.length}/${g.params.trialsTotal}', icon: Icons.repeat),
         HudItem(label: L.t('hud_bank'), value: '${g.bank}', icon: Icons.account_balance_wallet_outlined),
         // Число разворотов показывается ПОСТФАКТУМ: сам момент смены — нет.
@@ -148,7 +158,7 @@ class _PrlScreenState extends State<PrlScreen> {
       ],
       field: (context, h) => _Field(
         game: g,
-        classic: widget.classic,
+        classic: _classic,
         phase: _phase,
         height: h,
         onStart: _start,

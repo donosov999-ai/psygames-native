@@ -3,6 +3,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../shell/app_haptics.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/game_clock.dart';
 import '../../shell/game_shell.dart';
@@ -49,6 +50,8 @@ String traitLabel(Trait t, int v) => switch ((t, v)) {
     };
 
 class _MonsterTraitsScreenState extends State<MonsterTraitsScreen> {
+  /// Отклик хода — через общий выключатель «Вибрация» (образец «Матрицы памяти», задача 792432f8).
+  late final AppHaptics _haptics = AppHaptics(widget.state);
   late final LevelLadder _ladder;
   late final math.Random _rnd;
   TraitRound? _round;
@@ -125,6 +128,7 @@ class _MonsterTraitsScreenState extends State<MonsterTraitsScreen> {
     final g = round.grade(_selected);
     setState(() => _graded = g);
     final errors = g.missed.length + g.extras.length;
+    errors == 0 ? _haptics.win() : _haptics.miss();
     final seconds = (gameNow() - _startedMs) ~/ 1000;
     final details = <String, Object?>{
       'trait': round.trait.name,

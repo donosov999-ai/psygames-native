@@ -16,6 +16,30 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.56.21',
+    date: '2026-10-08',
+    en: [
+      'Sudoku: Second life and extra hints can now be bought in the Shop — when your mistakes run out, spend one and finish the puzzle (classic Sudoku and Samurai)',
+      'Sudoku: step 76 now allows three mistakes instead of two; steps 173–180 hide more digits',
+      'Puzzles: pinch the board to zoom in up to ×4 and drag it around; one finger still makes a move',
+      'Pet: Synapse comments after each game — praise for a record, the next step or a useful tip',
+      'Vibration on moves in two dozen more games, as in Memory Matrix: a click for a right move, a bump for a win, a heavy buzz for a mistake',
+      'Schulte Table, Mahjong and Quick Count have no top level any more: time limits from Schulte level 19 and Mahjong level 29, decoy flashes from Quick Count level 42',
+      'Kegel with breathing: squeeze on the exhale and the hold after it, relax on the inhale and its hold — 8 s each',
+      'Warm-up: Proofread blocks and Schulte blocks play a real three-block series; Task Switching, Stroop, Targets and other steps keep the settings the step asks for; Task Switching lets you choose what to show',
+    ],
+    ru: [
+      '«Судоку»: «Вторую жизнь» и лишние подсказки теперь можно купить в магазине — ошибки кончились, тратишь одну и доигрываешь (классика и «Самурай»)',
+      '«Судоку»: на 76-й ступени теперь три ошибки вместо двух; на ступенях 173–180 открытых цифр меньше',
+      '«Головоломки»: доску можно увеличить двумя пальцами до ×4 и двигать; одним пальцем — ход, как раньше',
+      '«Питомец»: Синапс говорит после партии — похвала за рекорд, следующий шаг или полезный приём',
+      'Виброотклик хода ещё в двух десятках игр, как в «Матрице памяти»: щелчок — верный ход, толчок — победа, сильный толчок — ошибка',
+      'У таблицы Шульте, маджонга и быстрого счёта больше нет верхнего уровня: время на таблицу с 19-го уровня Шульте и на доску с 29-го маджонга, вспышки-приманки с 42-го уровня быстрого счёта',
+      'Кегель в паре с дыханием: сжатие на выдохе и задержке после него, расслабление на вдохе и задержке после вдоха — по 8 с',
+      'Зарядка: «Блоки корректуры» и блоки Шульте идут настоящей серией из трёх блоков; «Переключение задач», Струп, «Мишени» и другие шаги играют с настройками шага; в «Переключении» можно выбрать, что показывать',
+    ],
+  },
+  {
     version: '2.56.20',
     date: '2026-10-08',
     en: [

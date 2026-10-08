@@ -82,6 +82,8 @@ class _EmoStroopScreenState extends State<EmoStroopScreen> {
       words: _words!.byValence,
       nowMs: widget.clock,
       rnd: widget.rnd,
+      // Шаг зарядки задаёт длину партии, как веб (`isPreset ? num('trials', p.trials)`).
+      trialsOverride: GamePreset.isPreset ? GamePreset.num('trials', EmoLevel.of(_ladder.level).trials) : null,
     );
     _phase = EmoPhase.ready;
     _flash = null;
