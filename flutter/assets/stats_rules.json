@@ -1,0 +1,26 @@
+{
+ "levelThresholds": [
+  0,
+  80,
+  200,
+  400,
+  700,
+  1100,
+  1700,
+  2500,
+  3600,
+  5000,
+  7000
+ ],
+ "lowerIsBetter": [
+  "schulte_table"
+ ],
+ "maxHistoryDays": 30,
+ "defaultRoad": "normal",
+ "minForTrend": 3,
+ "halfWindowMs": 1209600000,
+ "legacyGameTypes": {
+  "word_mnemonics": "mnemonics",
+  "number_mnemonics": "mnemonics"
+ }
+}

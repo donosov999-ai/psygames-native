@@ -1,8 +1,6 @@
-import 'dart:convert';
 import 'dart:math' as math;
 
-import 'package:flutter/services.dart' show rootBundle;
-
+import 'asset_json.dart';
 import 'l10n.dart';
 
 /// КАЛЕНДАРЬ СЕРИИ — РАСЧЁТ НА DART (задача d6a60b02, вариант Б, третий экран).
@@ -23,7 +21,7 @@ class CalendarLocales {
   static CalendarLocales? _cache;
 
   static Future<CalendarLocales> load() async => _cache ??= CalendarLocales.fromJson(
-    (jsonDecode(await rootBundle.loadString('assets/calendar_locales.json')) as Map).cast<String, Object?>(),
+    await loadJsonAsset('assets/calendar_locales.json'),
   );
 
   /// Язык человека; незнакомый — `en` (как `LOCALES[language] || 'en-US'` веба).
@@ -44,6 +42,11 @@ class CalendarLocales {
 
   /// Короткая дата (`toLocaleDateString(язык, {day, month: 'short', year})` веба) — дата открытия
   /// достижения (`achievements_model.dart`).
+  /// День и месяц словом (`Intl.DateTimeFormat(язык, {day, month: 'long'})` веба) — подпись дня в
+  /// истории «Прогресса» (`stats_model.dart`).
+  String dayMonth(String lang, int month, int day) =>
+      ((_of(lang)['dayMonth']! as List)[month - 1] as String).replaceFirst('{d}', _num(lang, day));
+
   String shortDate(String lang, int year, int month, int day) =>
       ((_of(lang)['short']! as List)[month - 1] as String).replaceFirst('{d}', _num(lang, day)).replaceFirst('{y}', _num(lang, year));
 }

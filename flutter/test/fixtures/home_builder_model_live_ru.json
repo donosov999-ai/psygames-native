@@ -1,0 +1,366 @@
+{
+ "v": 1,
+ "profileId": "nzt48",
+ "background": {
+  "image": "/assets/images/profile-bg/nzt48.webp",
+  "tint": "#a855f72E",
+  "veil": "#F5F5F7"
+ },
+ "toasts": {
+  "streak": {
+   "text": "+15 ⭐",
+   "bg": "#ef4444",
+   "fg": "#2b0c0c"
+  },
+  "wager": null,
+  "levelUp": null
+ },
+ "header": {
+  "logo": "/assets/images/logos/logo1.webp",
+  "logoPlate": "#12151AC7",
+  "tokens": 15,
+  "level": "Lv 0",
+  "streak": 0,
+  "streakLabel": "Стрик: 0",
+  "friendsLabel": "Друзья",
+  "league": 0.1875,
+  "leaguesLabel": "Лиги",
+  "pet": {
+   "kind": "frames",
+   "uris": [
+    "/assets/images/pet/cat/idle0.webp",
+    "/assets/images/pet/cat/idle1.webp",
+    "/assets/images/pet/cat/idle2.webp",
+    "/assets/images/pet/cat/idle3.webp",
+    "/assets/images/pet/cat/idle4.webp",
+    "/assets/images/pet/cat/idle5.webp",
+    "/assets/images/pet/cat/idle6.webp"
+   ],
+   "frames": 7,
+   "tickMs": 240,
+   "accessory": null
+  },
+  "petLabel": "Питомец Синапс",
+  "chip": {
+   "name": "NZT-48 (полный)",
+   "image": "/assets/images/profiles/nzt48.webp",
+   "emoji": "💊",
+   "bg": "#FFFFFFF2",
+   "border": "#a855f788",
+   "borderWidth": 1.5
+  },
+  "title": null,
+  "onPhoto": true,
+  "achievements": 0,
+  "labels": {
+   "achievements": "Достижения",
+   "shop": "Магазин",
+   "statistics": "Статистика",
+   "settings": "Настройки"
+  },
+  "subtitle": "Тренируйте мозг · нажми на чип чтобы сменить профиль",
+  "update": null
+ },
+ "blocks": [
+  {
+   "kind": "search",
+   "placeholder": "Найти игру",
+   "button": "Игры · Фильтр"
+  },
+  {
+   "kind": "ladder",
+   "text": "Ещё 2 — и откроется: Подсказка в играх"
+  },
+  {
+   "kind": "chest",
+   "face": "🌰",
+   "text": "Ещё ⭐135 — и новая фигурка · собрано 0/12",
+   "ratio": 0.1,
+   "label": "Ещё ⭐135 — и новая фигурка · собрано 0/12 — Открыть коллекцию"
+  },
+  {
+   "kind": "goal",
+   "state": "ask",
+   "goalText": null,
+   "outcome": null,
+   "reward": null,
+   "roundsToday": 0,
+   "maxLen": 90,
+   "texts": {
+    "dayGoalTitle": "Зачем сегодня",
+    "dayGoalCloseA11y": "Убрать карточку цели на сегодня",
+    "dayGoalAsk": "Ради чего сегодня?",
+    "dayGoalSave": "Запомнить",
+    "dayGoalAskHint": "Одна строка своими словами — зачем тебе сегодняшняя тренировка. Её видишь только ты.",
+    "dayGoalPlaceholder": "Своими словами",
+    "notNow": "Не сейчас",
+    "dayGoalExamplesTitle": "Так это может звучать:",
+    "dayGoalTodayLine": "Твоя цель на сегодня:",
+    "dayGoalRoundsNone": "Партий сегодня пока нет",
+    "dayGoalReview": "Как вышло?",
+    "dayGoalYes": "Получилось",
+    "dayGoalNo": "Не сегодня",
+    "dayGoalDoneNote": "Отмечено. Завтра спросим снова.",
+    "dayGoalMissedNote": "Бывает. Цель никуда не делась — завтра тоже день.",
+    "dayGoalRewardNeedsRound": "Очки за цель начисляют в день, когда были партии.",
+    "rounds": "Партий к ней сегодня: 0",
+    "rewardNote": "+0 ⭐ за достигнутую цель",
+    "yesFg": "#062311"
+   },
+   "examples": [
+    "— не путать имена на встрече",
+    "— держать счёт в уме на кассе",
+    "— не терять мысль на середине фразы"
+   ]
+  },
+  {
+   "kind": "today",
+   "title": "Сегодня",
+   "total": 0,
+   "totalLabel": "Заработано за сегодня: 0",
+   "rows": [],
+   "empty": "Партий сегодня ещё не было. Сыграй — здесь появится, что и сколько принесло.",
+   "more": null,
+   "streakNote": null
+  },
+  {
+   "kind": "reco",
+   "title": "Рекомендуем сегодня",
+   "hint": "Три упражнения на сегодня — набор не меняется до завтра",
+   "cards": [
+    {
+     "id": "picture_pairs",
+     "href": "/games/picture-pairs",
+     "gradient": [
+      "#f857a6",
+      "#ff5858"
+     ],
+     "look": {
+      "fg": "#2d1017",
+      "soft": "#421721",
+      "scrim20": "rgba(255, 255, 255, 0.2)",
+      "scrim35": "rgba(255, 255, 255, 0.35)",
+      "veil": null
+     },
+     "icon": {
+      "ion": "heart",
+      "size": 26
+     },
+     "chip": null,
+     "chipBg": "rgba(255, 255, 255, 0.35)",
+     "title": "Парные картинки",
+     "sub": "С чего начать",
+     "cta": {
+      "ion": "play",
+      "text": "СТАРТ",
+      "bg": "rgba(255, 255, 255, 0.35)",
+      "fg": "#2d1017"
+     },
+     "label": "Парные картинки — С чего начать"
+    },
+    {
+     "id": "schulte_table",
+     "href": "/games/schulte",
+     "gradient": [
+      "#667eea",
+      "#764ba2"
+     ],
+     "look": {
+      "fg": "#ffffff",
+      "soft": "#ffffff",
+      "scrim20": "transparent",
+      "scrim35": "transparent",
+      "veil": "rgba(118, 75, 162, 0.39)"
+     },
+     "icon": {
+      "ion": "grid",
+      "size": 26
+     },
+     "chip": null,
+     "chipBg": "transparent",
+     "title": "Шульте: внимание",
+     "sub": "С чего начать",
+     "cta": {
+      "ion": "play",
+      "text": "СТАРТ",
+      "bg": "transparent",
+      "fg": "#ffffff"
+     },
+     "label": "Шульте: внимание — С чего начать"
+    },
+    {
+     "id": "hanoi",
+     "href": "/games/hanoi",
+     "gradient": [
+      "#a8c0ff",
+      "#3f2b96"
+     ],
+     "look": {
+      "fg": "#020204",
+      "soft": "#020204",
+      "scrim20": "transparent",
+      "scrim35": "transparent",
+      "veil": "rgba(168, 192, 255, 0.44)"
+     },
+     "icon": {
+      "ion": "extension-puzzle",
+      "size": 26
+     },
+     "chip": null,
+     "chipBg": "transparent",
+     "title": "Ханойская башня",
+     "sub": "С чего начать",
+     "cta": {
+      "ion": "play",
+      "text": "СТАРТ",
+      "bg": "transparent",
+      "fg": "#020204"
+     },
+     "label": "Ханойская башня — С чего начать"
+    }
+   ]
+  },
+  {
+   "kind": "practices",
+   "title": "Практики дня",
+   "cards": [
+    {
+     "id": "warmup",
+     "href": "/warmup-picker",
+     "gradient": [
+      "#f7b733",
+      "#fc4a1a"
+     ],
+     "look": {
+      "fg": "#2d1707",
+      "soft": "#371c09",
+      "scrim20": "rgba(255, 255, 255, 0.2)",
+      "scrim35": "rgba(255, 255, 255, 0.35)",
+      "veil": null
+     },
+     "icon": {
+      "image": "/assets/images/feature_icons/warmup.webp",
+      "size": 30
+     },
+     "chip": null,
+     "chipBg": "rgba(255, 255, 255, 0.2)",
+     "title": "Зарядка",
+     "sub": "Утренняя · Разогнать голову на день",
+     "cta": {
+      "ion": "chevron-forward",
+      "text": "ВЫБРАТЬ",
+      "bg": "rgba(255, 255, 255, 0.35)",
+      "fg": "#2d1707"
+     },
+     "label": "Зарядка"
+    },
+    {
+     "id": "relaxation",
+     "href": "/games/relaxation-hub",
+     "gradient": [
+      "#43cea2",
+      "#185a9d"
+     ],
+     "look": {
+      "fg": "#000000",
+      "soft": "#000000",
+      "scrim20": "transparent",
+      "scrim35": "transparent",
+      "veil": "rgba(67, 206, 162, 0.31)"
+     },
+     "icon": {
+      "ion": "leaf-outline",
+      "size": 26
+     },
+     "chip": null,
+     "chipBg": "transparent",
+     "title": "Релаксация",
+     "sub": "Дыхание, глаза, пауза — короткий отдых для головы",
+     "cta": {
+      "ion": "chevron-forward",
+      "text": "ВЫБРАТЬ",
+      "bg": "#FFF",
+      "fg": "#185a9d"
+     },
+     "label": "Релаксация"
+    },
+    {
+     "id": "challenge",
+     "href": null,
+     "action": "challenge",
+     "gradient": [
+      "#3a1c71",
+      "#d76d77"
+     ],
+     "look": {
+      "fg": "#ffffff",
+      "soft": "#ffffff",
+      "scrim20": "transparent",
+      "scrim35": "transparent",
+      "veil": "rgba(58, 28, 113, 0.24)"
+     },
+     "icon": {
+      "ion": "flash",
+      "size": 26
+     },
+     "chip": "🔥0",
+     "chipBg": "transparent",
+     "title": "Вызов дня",
+     "sub": "Башня Лондона · Легко",
+     "cta": {
+      "ion": "play",
+      "text": "СТАРТ",
+      "bg": "transparent",
+      "fg": "#ffffff"
+     },
+     "label": "Вызов дня"
+    }
+   ]
+  },
+  {
+   "kind": "allForks",
+   "label": "Все развилки ›",
+   "href": "/games?filter=hubs"
+  }
+ ],
+ "goalSheet": {
+  "pet": {
+   "kind": "frames",
+   "uris": [
+    "/assets/images/pet/cat/wave0.webp",
+    "/assets/images/pet/cat/wave1.webp",
+    "/assets/images/pet/cat/wave2.webp",
+    "/assets/images/pet/cat/wave3.webp",
+    "/assets/images/pet/cat/wave4.webp",
+    "/assets/images/pet/cat/wave5.webp",
+    "/assets/images/pet/cat/wave6.webp"
+   ],
+   "frames": 7,
+   "tickMs": 103,
+   "accessory": null
+  },
+  "line": "Давай договоримся, сколько дней подряд?",
+  "options": [
+   {
+    "days": 7,
+    "text": "7 дней",
+    "why": null,
+    "chosen": true
+   },
+   {
+    "days": 14,
+    "text": "14 дней",
+    "why": null,
+    "chosen": false
+   },
+   {
+    "days": 30,
+    "text": "30 дней",
+    "why": null,
+    "chosen": false
+   }
+  ],
+  "today": "Сегодня: 0 партий · 0 ⭐ · серия 0",
+  "skip": "Не сейчас"
+ }
+}

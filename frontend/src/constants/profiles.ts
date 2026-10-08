@@ -1194,7 +1194,7 @@ export function formatPrice(rub: number): string {
  * Развилка `spatial_group` в список НЕ добавляется: она открывается сама по
  * правилу «развилка открыта, если открыта хоть одна игра за ней» (см. ниже).
  */
-const ALWAYS_ALLOWED = new Set<string>([
+export const ALWAYS_ALLOWED: ReadonlySet<string> = new Set<string>([
   /**
    * 🔴 ЧИСЛОВОЙ ЗАБЕГ — ВО ВСЕХ ПРОФИЛЯХ. Решение Дениса 12.09.2026: «раннер
    * открывай всем», после того как он сыграл сам.

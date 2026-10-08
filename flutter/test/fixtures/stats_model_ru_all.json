@@ -1,0 +1,748 @@
+{
+ "v": 1,
+ "title": "Статистика",
+ "primary": "#ec4899",
+ "labels": {
+  "back": "Назад",
+  "refresh": "Обновить",
+  "summary": "Сводка",
+  "history": "История"
+ },
+ "loading": false,
+ "scope": {
+  "profile": "🌸 Микро-релакс",
+  "all": "Все игры",
+  "isAll": true
+ },
+ "totalPlayed": "Всего сыграно: 29 игр (завершённых)",
+ "hero": {
+  "tokens": 777,
+  "tokensLabel": "Очки",
+  "level": "Lv 4",
+  "levelTitle": "Эксперт",
+  "streak": 0,
+  "streakLabel": "Стрик",
+  "progress": 0.1925,
+  "games": "29 завершённых партий",
+  "time": "58м в игре"
+ },
+ "areas": {
+  "title": "Баланс тренировок",
+  "hint": "Доля ваших тренировок по областям. Это не оценка способностей — мы не меряем их и не обещаем: это то, что вы на самом деле качаете, а что обходите стороной.",
+  "rows": [
+   {
+    "area": "logic",
+    "label": "Логика и принятие решений",
+    "pct": 36,
+    "text": "36% · 10",
+    "a11y": "Логика и принятие решений: 36%, 10",
+    "trend": null
+   },
+   {
+    "area": "memory",
+    "label": "Память",
+    "pct": 25,
+    "text": "25% · 7",
+    "a11y": "Память: 25%, 7",
+    "trend": null
+   },
+   {
+    "area": "recovery",
+    "label": "Восстановление",
+    "pct": 21,
+    "text": "21% · 6",
+    "a11y": "Восстановление: 21%, 6",
+    "trend": {
+     "up": true,
+     "text": "результат вырос на 18% — 2 недели к двум предыдущим"
+    }
+   },
+   {
+    "area": "attention",
+    "label": "Внимание",
+    "pct": 18,
+    "text": "18% · 5",
+    "a11y": "Внимание: 18%, 5",
+    "trend": null
+   }
+  ],
+  "weak": "Реже всего вы тренируете: Внимание"
+ },
+ "ai": null,
+ "games": [
+  {
+   "id": "schulte_table",
+   "name": "Шульте: внимание",
+   "icon": "grid",
+   "gradient": [
+    "#667eea",
+    "#764ba2"
+   ],
+   "stats": [
+    {
+     "label": "Всего игр",
+     "value": "5"
+    },
+    {
+     "label": "Самая быстрая",
+     "value": "30s"
+    },
+    {
+     "label": "Самая долгая",
+     "value": "1:01"
+    },
+    {
+     "label": "Среднее время",
+     "value": "41s"
+    }
+   ],
+   "spark": {
+    "caption": "Столбик = очки за попытку, последние 5",
+    "bars": [
+     {
+      "h": 5,
+      "op": 0.35
+     },
+     {
+      "h": 5,
+      "op": 0.5125
+     },
+     {
+      "h": 24,
+      "op": 0.675
+     },
+     {
+      "h": 24,
+      "op": 0.8375
+     },
+     {
+      "h": 5,
+      "op": 1
+     }
+    ],
+    "color": "#764ba2",
+    "older": "раньше",
+    "newer": "свежее",
+    "numbers": "Очки — рекорд 36 · ⌀ 29"
+   }
+  },
+  {
+   "id": "mnemonics",
+   "name": "Мнемоника: порядок",
+   "icon": "bulb",
+   "gradient": [
+    "#4facfe",
+    "#00f2fe"
+   ],
+   "stats": [
+    {
+     "label": "Всего игр",
+     "value": "1"
+    },
+    {
+     "label": "Самая быстрая",
+     "value": "50s"
+    },
+    {
+     "label": "Самая долгая",
+     "value": "50s"
+    },
+    {
+     "label": "Среднее время",
+     "value": "50s"
+    }
+   ],
+   "spark": null
+  },
+  {
+   "id": "n_back",
+   "name": "N-back: оперативная память",
+   "icon": "analytics",
+   "gradient": [
+    "#5b86e5",
+    "#36d1dc"
+   ],
+   "stats": [
+    {
+     "label": "Всего игр",
+     "value": "1"
+    },
+    {
+     "label": "Самая быстрая",
+     "value": "-"
+    },
+    {
+     "label": "Самая долгая",
+     "value": "-"
+    },
+    {
+     "label": "Среднее время",
+     "value": "—"
+    }
+   ],
+   "spark": null
+  },
+  {
+   "id": "corsi",
+   "name": "Кубики Корси",
+   "icon": "grid",
+   "gradient": [
+    "#0083B0",
+    "#00B4DB"
+   ],
+   "stats": [
+    {
+     "label": "Пройдено / сыграно",
+     "value": "4/5"
+    },
+    {
+     "label": "Самая быстрая",
+     "value": "1:00"
+    },
+    {
+     "label": "Самая долгая",
+     "value": "1:10"
+    },
+    {
+     "label": "Среднее время",
+     "value": "1:03"
+    }
+   ],
+   "spark": {
+    "caption": "Столбик = очки за попытку, последние 5",
+    "bars": [
+     {
+      "h": 5,
+      "op": 0.35
+     },
+     {
+      "h": 8,
+      "op": 0.5125
+     },
+     {
+      "h": 19,
+      "op": 0.675
+     },
+     {
+      "h": 21,
+      "op": 0.8375
+     },
+     {
+      "h": 24,
+      "op": 1
+     }
+    ],
+    "color": "#00B4DB",
+    "older": "раньше",
+    "newer": "свежее",
+    "numbers": "Очки — рекорд 12 · ⌀ 9"
+   }
+  },
+  {
+   "id": "sudoku",
+   "name": "Судоку",
+   "icon": "apps",
+   "gradient": [
+    "#7f7fd5",
+    "#86a8e7"
+   ],
+   "stats": [
+    {
+     "label": "Пройдено / сыграно",
+     "value": "2/9"
+    },
+    {
+     "label": "Самая быстрая",
+     "value": "0.4s"
+    },
+    {
+     "label": "Самая долгая",
+     "value": "7:00"
+    },
+    {
+     "label": "Среднее время",
+     "value": "2:26"
+    }
+   ],
+   "spark": {
+    "caption": "Столбик = очки за попытку, последние 9",
+    "bars": [
+     {
+      "h": 24,
+      "op": 0.35
+     },
+     {
+      "h": 24,
+      "op": 0.43124999999999997
+     },
+     {
+      "h": 20,
+      "op": 0.5125
+     },
+     {
+      "h": 16,
+      "op": 0.59375
+     },
+     {
+      "h": 5,
+      "op": 0.675
+     },
+     {
+      "h": 5,
+      "op": 0.75625
+     },
+     {
+      "h": 5,
+      "op": 0.8375
+     },
+     {
+      "h": 5,
+      "op": 0.91875
+     },
+     {
+      "h": 5,
+      "op": 1
+     }
+    ],
+    "color": "#86a8e7",
+    "older": "раньше",
+    "newer": "свежее",
+    "numbers": "Очки — рекорд 1500 · ⌀ 573"
+   }
+  },
+  {
+   "id": "breathing",
+   "name": "Дыхание",
+   "icon": "flower-outline",
+   "gradient": [
+    "#5b86e5",
+    "#36d1dc"
+   ],
+   "stats": [
+    {
+     "label": "Всего игр",
+     "value": "6"
+    },
+    {
+     "label": "Самая быстрая",
+     "value": "2:00"
+    },
+    {
+     "label": "Самая долгая",
+     "value": "2:00"
+    },
+    {
+     "label": "Среднее время",
+     "value": "2:00"
+    }
+   ],
+   "spark": {
+    "caption": "Столбик = очки за попытку, последние 6",
+    "bars": [
+     {
+      "h": 5,
+      "op": 0.35
+     },
+     {
+      "h": 10,
+      "op": 0.48
+     },
+     {
+      "h": 15,
+      "op": 0.61
+     },
+     {
+      "h": 15,
+      "op": 0.74
+     },
+     {
+      "h": 19,
+      "op": 0.87
+     },
+     {
+      "h": 24,
+      "op": 1
+     }
+    ],
+    "color": "#36d1dc",
+    "older": "раньше",
+    "newer": "свежее",
+    "numbers": "Очки — рекорд 14 · ⌀ 12"
+   }
+  }
+ ],
+ "empty": null,
+ "history": {
+  "kind": "days",
+  "days": [
+   {
+    "label": "Сегодня",
+    "entries": [
+     {
+      "name": "Шульте: внимание",
+      "icon": "grid",
+      "color": "#667eea",
+      "verdict": "первый раз",
+      "verdictColor": "#6E6E73",
+      "level": "ур. 2",
+      "value": "—",
+      "time": "15:34",
+      "label": "Шульте: внимание, ур. 2, 15:34, —, первый раз"
+     },
+     {
+      "name": "Судоку",
+      "icon": "apps",
+      "color": "#7f7fd5",
+      "verdict": "новая сложность",
+      "verdictColor": "#6E6E73",
+      "level": "ур. 3",
+      "value": "900",
+      "time": "14:35",
+      "label": "Судоку, ур. 3, 14:35, 900, новая сложность"
+     },
+     {
+      "name": "Судоку",
+      "icon": "apps",
+      "color": "#7f7fd5",
+      "verdict": "хуже на 300",
+      "verdictColor": "#9e2b2b",
+      "level": "ур. 12",
+      "value": "1200",
+      "time": "14:34",
+      "label": "Судоку, ур. 12, 14:34, 1200, хуже на 300"
+     },
+     {
+      "name": "Судоку",
+      "icon": "apps",
+      "color": "#7f7fd5",
+      "verdict": "как в прошлый раз",
+      "verdictColor": "#6E6E73",
+      "level": "ур. 12",
+      "value": "1500",
+      "time": "13:34",
+      "label": "Судоку, ур. 12, 13:34, 1500, как в прошлый раз"
+     },
+     {
+      "name": "Судоку",
+      "icon": "apps",
+      "color": "#7f7fd5",
+      "verdict": "новая сложность",
+      "verdictColor": "#6E6E73",
+      "level": "ур. 12",
+      "value": "1500",
+      "time": "12:34",
+      "label": "Судоку, ур. 12, 12:34, 1500, новая сложность"
+     }
+    ]
+   },
+   {
+    "label": "Вчера",
+    "entries": [
+     {
+      "name": "Шульте: внимание",
+      "icon": "grid",
+      "color": "#667eea",
+      "verdict": "новая сложность",
+      "verdictColor": "#6E6E73",
+      "level": null,
+      "value": "30s",
+      "time": "17:34",
+      "label": "Шульте: внимание, 17:34, 30s, новая сложность"
+     },
+     {
+      "name": "Шульте: внимание",
+      "icon": "grid",
+      "color": "#667eea",
+      "verdict": "новая сложность",
+      "verdictColor": "#6E6E73",
+      "level": "ур. 2",
+      "value": "1:01",
+      "time": "16:34",
+      "label": "Шульте: внимание, ур. 2, 16:34, 1:01, новая сложность"
+     },
+     {
+      "name": "Дыхание",
+      "icon": "flower-outline",
+      "color": "#5b86e5",
+      "verdict": "лучше на 1",
+      "verdictColor": "#1f6b4a",
+      "level": null,
+      "value": "14",
+      "time": "15:34",
+      "label": "Дыхание, 15:34, 14, лучше на 1"
+     },
+     {
+      "name": "Судоку",
+      "icon": "apps",
+      "color": "#7f7fd5",
+      "verdict": "хуже на 1",
+      "verdictColor": "#9e2b2b",
+      "level": null,
+      "value": "10",
+      "time": "14:34",
+      "label": "Судоку, 14:34, 10, хуже на 1"
+     },
+     {
+      "name": "Кубики Корси",
+      "icon": "grid",
+      "color": "#0083B0",
+      "verdict": "хуже на 1",
+      "verdictColor": "#9e2b2b",
+      "level": null,
+      "value": "10",
+      "time": "12:34",
+      "label": "Кубики Корси, 12:34, 10, хуже на 1"
+     }
+    ]
+   },
+   {
+    "label": "5 октября",
+    "entries": [
+     {
+      "name": "Шульте: внимание",
+      "icon": "grid",
+      "color": "#667eea",
+      "verdict": "лучше на 5s",
+      "verdictColor": "#1f6b4a",
+      "level": "ур. 1",
+      "value": "35s",
+      "time": "17:34",
+      "label": "Шульте: внимание, ур. 1, 17:34, 35s, лучше на 5s"
+     },
+     {
+      "name": "Судоку",
+      "icon": "apps",
+      "color": "#7f7fd5",
+      "verdict": "хуже на 1",
+      "verdictColor": "#9e2b2b",
+      "level": null,
+      "value": "11",
+      "time": "14:34",
+      "label": "Судоку, 14:34, 11, хуже на 1"
+     },
+     {
+      "name": "Кубики Корси",
+      "icon": "grid",
+      "color": "#0083B0",
+      "verdict": "хуже на 1",
+      "verdictColor": "#9e2b2b",
+      "level": null,
+      "value": "11",
+      "time": "12:34",
+      "label": "Кубики Корси, 12:34, 11, хуже на 1"
+     }
+    ]
+   },
+   {
+    "label": "4 октября",
+    "entries": [
+     {
+      "name": "Шульте: внимание",
+      "icon": "grid",
+      "color": "#667eea",
+      "verdict": "первый раз",
+      "verdictColor": "#6E6E73",
+      "level": "ур. 1",
+      "value": "40s",
+      "time": "17:34",
+      "label": "Шульте: внимание, ур. 1, 17:34, 40s, первый раз"
+     },
+     {
+      "name": "Судоку",
+      "icon": "apps",
+      "color": "#7f7fd5",
+      "verdict": "хуже на 1",
+      "verdictColor": "#9e2b2b",
+      "level": null,
+      "value": "12",
+      "time": "14:34",
+      "label": "Судоку, 14:34, 12, хуже на 1"
+     },
+     {
+      "name": "Кубики Корси",
+      "icon": "grid",
+      "color": "#0083B0",
+      "verdict": "лучше на 6",
+      "verdictColor": "#1f6b4a",
+      "level": null,
+      "value": "12",
+      "time": "12:34",
+      "label": "Кубики Корси, 12:34, 12, лучше на 6"
+     }
+    ]
+   },
+   {
+    "label": "3 октября",
+    "entries": [
+     {
+      "name": "Дыхание",
+      "icon": "flower-outline",
+      "color": "#5b86e5",
+      "verdict": "лучше на 1",
+      "verdictColor": "#1f6b4a",
+      "level": null,
+      "value": "13",
+      "time": "15:34",
+      "label": "Дыхание, 15:34, 13, лучше на 1"
+     },
+     {
+      "name": "Судоку",
+      "icon": "apps",
+      "color": "#7f7fd5",
+      "verdict": "хуже на 1",
+      "verdictColor": "#9e2b2b",
+      "level": null,
+      "value": "13",
+      "time": "14:34",
+      "label": "Судоку, 14:34, 13, хуже на 1"
+     }
+    ]
+   },
+   {
+    "label": "2 октября",
+    "entries": [
+     {
+      "name": "Судоку",
+      "icon": "apps",
+      "color": "#7f7fd5",
+      "verdict": "первый раз",
+      "verdictColor": "#6E6E73",
+      "level": null,
+      "value": "14",
+      "time": "14:34",
+      "label": "Судоку, 14:34, 14, первый раз"
+     }
+    ]
+   },
+   {
+    "label": "1 октября",
+    "entries": [
+     {
+      "name": "Дыхание",
+      "icon": "flower-outline",
+      "color": "#5b86e5",
+      "verdict": "как в прошлый раз",
+      "verdictColor": "#6E6E73",
+      "level": null,
+      "value": "12",
+      "time": "15:34",
+      "label": "Дыхание, 15:34, 12, как в прошлый раз"
+     }
+    ]
+   },
+   {
+    "label": "30 сентября",
+    "entries": [
+     {
+      "name": "Кубики Корси",
+      "icon": "grid",
+      "color": "#0083B0",
+      "verdict": "лучше на 1",
+      "verdictColor": "#1f6b4a",
+      "level": null,
+      "value": "6",
+      "time": "17:34",
+      "label": "Кубики Корси, 17:34, 6, лучше на 1"
+     }
+    ]
+   },
+   {
+    "label": "29 сентября",
+    "entries": [
+     {
+      "name": "Кубики Корси",
+      "icon": "grid",
+      "color": "#0083B0",
+      "verdict": "первый раз",
+      "verdictColor": "#6E6E73",
+      "level": null,
+      "value": "5",
+      "time": "17:34",
+      "label": "Кубики Корси, 17:34, 5, первый раз"
+     }
+    ]
+   },
+   {
+    "label": "27 сентября",
+    "entries": [
+     {
+      "name": "Мнемоника: порядок",
+      "icon": "bulb",
+      "color": "#4facfe",
+      "verdict": "первый раз",
+      "verdictColor": "#6E6E73",
+      "level": null,
+      "value": "7",
+      "time": "17:34",
+      "label": "Мнемоника: порядок, 17:34, 7, первый раз"
+     }
+    ]
+   },
+   {
+    "label": "21 сентября",
+    "entries": [
+     {
+      "name": "Дыхание",
+      "icon": "flower-outline",
+      "color": "#5b86e5",
+      "verdict": "лучше на 1",
+      "verdictColor": "#1f6b4a",
+      "level": null,
+      "value": "12",
+      "time": "17:34",
+      "label": "Дыхание, 17:34, 12, лучше на 1"
+     }
+    ]
+   },
+   {
+    "label": "19 сентября",
+    "entries": [
+     {
+      "name": "Дыхание",
+      "icon": "flower-outline",
+      "color": "#5b86e5",
+      "verdict": "лучше на 1",
+      "verdictColor": "#1f6b4a",
+      "level": null,
+      "value": "11",
+      "time": "17:34",
+      "label": "Дыхание, 17:34, 11, лучше на 1"
+     }
+    ]
+   },
+   {
+    "label": "17 сентября",
+    "entries": [
+     {
+      "name": "Дыхание",
+      "icon": "flower-outline",
+      "color": "#5b86e5",
+      "verdict": "первый раз",
+      "verdictColor": "#6E6E73",
+      "level": null,
+      "value": "10",
+      "time": "17:34",
+      "label": "Дыхание, 17:34, 10, первый раз"
+     }
+    ]
+   },
+   {
+    "label": "28 августа",
+    "entries": [
+     {
+      "name": "N-back: оперативная память",
+      "icon": "analytics",
+      "color": "#5b86e5",
+      "verdict": "первый раз",
+      "verdictColor": "#6E6E73",
+      "level": null,
+      "value": "—",
+      "time": "17:34",
+      "label": "N-back: оперативная память, 17:34, —, первый раз"
+     }
+    ]
+   }
+  ],
+  "tail": null
+ }
+}
