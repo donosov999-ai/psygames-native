@@ -75,9 +75,8 @@
      `BossRound.winThenBoss(context, _ladder, type:, color:)` вместо `_ladder.win()`,
      `BossOutcomeLine(_boss)` в итоге партии; тип — `config.type` веб-экрана, цвет —
      `GRADIENT[0]`. Проба — `flutter/test/support/boss_probe.dart`. Подключены 9 экранов
-     «Поиска и счёта», `corsi` (раздел «Объём памяти», 01.10) и `sudoku` (01.10, мешок заданий +
-     мегабосс — ниже); ещё без боя: ant, choice-rt, cpt, flanker, go-no-go, inhibition, posner,
-     proofreading, simon, stop-signal, stroop, stroop-emotional, switching-task.
+     «Поиска и счёта», все 13 «Конфликта внимания» (01.10, задача 67c77247), `corsi` (раздел
+     «Объём памяти», 01.10) и `sudoku` (01.10, мешок заданий + мегабосс — ниже); ещё без боя: —.
      Мегабосс (`MEGA_BOSS_EVERY = 15`, ТОЛЬКО `sudoku` → `sudoku-samurai`): каждый 15-й
      уровень вместо боя — приглашение в «Самурая» с меткой вехи (`details.megaboss_from`);
      во Flutter — `sudoku/screen.dart` `_offerMegaBoss`, проба `test/sudoku_boss_test.dart`.

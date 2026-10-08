@@ -17,6 +17,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../../shell/boss_round.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/game_shell.dart';
@@ -57,6 +58,7 @@ class _AntScreenState extends State<AntScreen> {
   bool _cueVisible = false;
   Timer? _timer;
   bool _passed = false;
+  bool? _boss; // итог боя на вехе; null — боя не было
 
   @override
   void initState() {
@@ -149,7 +151,10 @@ class _AntScreenState extends State<AntScreen> {
   void _answer(Direction d) {
     if (_phase != AntPhase.playing) return;
     final g = _game!;
-    if (!g.targetShown) return;
+    // `finished` — партия уже сдана в `_finish`, а фаза ещё «игра»: пока лестница пишет
+    // победу и открывается бой, последняя мишень на экране, и нажатие сдало бы партию
+    // второй раз.
+    if (!g.targetShown || g.finished) return;
     _after(g.answer(d));
   }
 
@@ -163,20 +168,27 @@ class _AntScreenState extends State<AntScreen> {
     });
   }
 
-  void _finish() {
+  Future<void> _finish() async {
     final g = _game!;
     _timer?.cancel();
     final passed = g.accuracy >= antPassAccuracy;
+    final seconds = g.elapsedSeconds.round();
+    // Веха как в вебе: каждый третий ЗАСЧИТАННЫЙ уровень — бой «жми / не жми», потом итог.
+    bool? boss;
+    if (passed) {
+      boss = await BossRound.winThenBoss(context, _ladder,
+          type: BossType.gonogo,
+          color: const Color(0xFF005C97),
+          win: () => _ladder.win(score: g.hits * 10, timeSeconds: seconds, errors: g.errors));
+    } else {
+      await _ladder.fail(score: g.hits * 10, timeSeconds: seconds, errors: g.errors);
+    }
+    if (!mounted) return;
     setState(() {
       _phase = AntPhase.done;
       _passed = passed;
+      _boss = boss;
     });
-    final seconds = g.elapsedSeconds.round();
-    if (passed) {
-      _ladder.win(score: g.hits * 10, timeSeconds: seconds, errors: g.errors);
-    } else {
-      _ladder.fail(score: g.hits * 10, timeSeconds: seconds, errors: g.errors);
-    }
   }
 
   @override
@@ -200,6 +212,7 @@ class _AntScreenState extends State<AntScreen> {
         flash: _flash,
         cueVisible: _cueVisible,
         passed: _passed,
+        boss: _boss,
         height: h,
         onStart: _start,
         onAgain: () => setState(_reset),
@@ -259,6 +272,7 @@ class _Field extends StatelessWidget {
     required this.flash,
     required this.cueVisible,
     required this.passed,
+    required this.boss,
     required this.height,
     required this.onStart,
     required this.onAgain,
@@ -269,6 +283,7 @@ class _Field extends StatelessWidget {
   final AntOutcome? flash;
   final bool cueVisible;
   final bool passed;
+  final bool? boss;
 
   /// Высота поля приходит числом от каркаса — доска не считается от окна.
   final double height;
@@ -317,6 +332,7 @@ class _Field extends StatelessWidget {
             Text('${L.t('hud_netAlerting')}: ${n.alertingMs} ${L.t('msShort')}', key: const Key('ant-alerting')),
             Text('${L.t('hud_netOrienting')}: ${n.orientingMs} ${L.t('msShort')}', key: const Key('ant-orienting')),
             Text('${L.t('hud_netExecutive')}: ${n.executiveMs} ${L.t('msShort')}', key: const Key('ant-executive')),
+            BossOutcomeLine(boss),
             const SizedBox(height: 16),
             FilledButton(onPressed: onAgain, child: Text(L.t('retry'))),
           ],

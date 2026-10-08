@@ -10,6 +10,8 @@ import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/session_report.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'support/boss_probe.dart';
+import 'support/slow_write_state.dart';
 
 /// ПАРТИЯ В «СТРЕЛКИ» ИГРАЕТСЯ НАЖАТИЯМИ, а не вызовом правил.
 ///
@@ -166,5 +168,69 @@ void main() {
     final d = sent.single['details'] as Map<String, dynamic>;
     expect(d['flanker_effect_ms'], 0, reason: 'все ответы за 450 мс: помеха — ноль, и она в партии ($d)');
     expect(d['n_trials'], 15);
+  });
+
+  testWidgets('🔴 сданную партию не сдать второй раз: нажатие, пока пишется победа, уровень не двигает', (tester) async {
+    // Запись лестницы растянута до 300 мс, как канал к платформе на телефоне
+    // (support/slow_write_state.dart): партия сдана, а фаза ещё «игра» и последняя проба на экране.
+    SharedPreferences.setMockInitialValues({});
+    state = await SlowWriteState.open();
+    var clock = 0;
+    await tester.pumpWidget(MaterialApp(home: FlankerScreen(state: state, clock: () => clock, rnd: Random(7))));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(L.t('start')));
+    await tester.pump();
+    final stim = find.byKey(const Key('flanker-stimulus'));
+    var last = FlankerDirection.left;
+    for (var i = 0; i < FlankerLevel.of(1).trials; i++) {
+      for (var k = 0; k < 40 && stim.evaluate().isEmpty; k++) {
+        await tester.pump(const Duration(milliseconds: 50));
+      }
+      last = centerOnScreen(tester);
+      clock += 450;
+      await tester.tap(answerFor(last));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: flankerFeedbackMs + 30));
+    }
+    final done = find.textContaining(L.t('levelDone').split('}').last);
+    // Партия сдана 30 мс назад, победа ещё пишется: щель открыта.
+    expect(stim, findsOneWidget, reason: 'щель не воспроизведена: последней пробы на экране нет');
+    expect(done, findsNothing, reason: 'итог уже на экране — щели нет, проба ничего не проверяет');
+    await tester.tap(answerFor(last));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 2));
+    expect(done, findsOneWidget);
+    expect(state.get('${SharedState.prefix}flanker_level_nzt48'), '2', reason: 'партия сдана дважды — уровень прыгнул через ступень');
+  });
+
+  testWidgets('🔴 веха: победа на 3-м уровне открывает бой «жми / не жми», на 2-м — нет', (tester) async {
+    // В вебе фланкер зовёт BossRound каждые три уровня; при переносе бой пропал молча.
+    // Признак взятого уровня — хвост строки «Уровень {n} пройден!»: номер у двух партий разный.
+    final won = find.textContaining(L.t('levelDone').split('}').last);
+    var opens = 0;
+    var clock = 0;
+    await expectBossAfterWin(tester, won: won, hudKey: 'bossHudGonogo', play: (level) async {
+      SharedPreferences.setMockInitialValues({'${SharedState.prefix}flanker_level_nzt48': '$level'});
+      state = await SharedState.open();
+      // Свежее приложение на каждую партию: всплывшее после прошлой (карточка правила
+      // нового уровня) иначе осталось бы поверх «Начать» следующей.
+      await tester.pumpWidget(MaterialApp(
+        key: ValueKey('app${opens += 1}'),
+        home: FlankerScreen(state: state, clock: () => clock, rnd: Random(7)),
+      ));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(L.t('start')));
+      await tester.pump();
+      for (var i = 0;
+          i < 60 && won.evaluate().isEmpty && find.byKey(const Key('boss-round')).evaluate().isEmpty;
+          i++) {
+        await tester.pump(preWait);
+        if (find.byKey(const Key('flanker-stimulus')).evaluate().isEmpty) continue;
+        clock += 450;
+        await tester.tap(answerFor(centerOnScreen(tester)));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 360));
+      }
+    });
   });
 }

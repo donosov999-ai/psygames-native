@@ -11,6 +11,7 @@ import 'package:psygames_flutter/shell/level_rules.dart';
 import 'package:psygames_flutter/shell/session_report.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'support/boss_probe.dart';
 
 /// ПАРТИЯ В CPT ИГРАЕТСЯ НАЖАТИЯМИ.
 ///
@@ -267,5 +268,32 @@ void main() {
     final d = r['details'] as Map<String, dynamic>;
     expect(d['rt_variability'], isA<double>(), reason: 'CV-RT не дошёл до партии ($d)');
     expect(d['rt_variability'] as double, inInclusiveRange(0.0, 1.0));
+  });
+
+  testWidgets('🔴 веха: победа на 3-м уровне открывает бой «тапни гласную», на 2-м — нет', (tester) async {
+    // В вебе CPT зовёт BossRound каждые три уровня; при переносе бой пропал молча.
+    // Признак взятого уровня — хвост строки «Уровень {n} пройден!»: номер у двух партий разный.
+    final won = find.textContaining(L.t('levelDone').split('}').last);
+    var opens = 0;
+    await expectBossAfterWin(tester, won: won, hudKey: 'bossHudOddletter', play: (level) async {
+      SharedPreferences.setMockInitialValues({_levelKey: '$level'});
+      state = await SharedState.open();
+      // Свежее приложение на каждую партию: всплывшее после прошлой (карточка правила
+      // нового уровня) иначе осталось бы поверх «Начать» следующей.
+      await tester.pumpWidget(MaterialApp(
+        key: ValueKey('app${opens += 1}'),
+          home: CptScreen(
+              state: state, rnd: Random(11), durationSec: 90, clock: fakeClock(tester))));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(L.t('start')));
+      await tester.pump();
+      // Уровни 2 и 3 — X-режим: жмём на каждую X и только на неё.
+      String? prev;
+      for (var i = 0; i < 80 && won.evaluate().isEmpty && find.byKey(const Key('boss-round')).evaluate().isEmpty; i++) {
+        final seen = await playTrial(tester, level, prev: prev, decide: (l, c, p) => l == 'X');
+        if (seen == null) break;
+        prev = seen.letter;
+      }
+    });
   });
 }

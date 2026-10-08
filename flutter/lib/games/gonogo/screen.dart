@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../../shell/boss_round.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/game_shell.dart';
@@ -51,6 +52,7 @@ class _GoNoGoScreenState extends State<GoNoGoScreen> {
   GoNoGoOutcome? _flash;
   Timer? _timer;
   bool _passed = false;
+  bool? _boss; // итог боя на вехе; null — боя не было
 
   @override
   void initState() {
@@ -131,19 +133,25 @@ class _GoNoGoScreenState extends State<GoNoGoScreen> {
     setState(() => _flash = outcome);
   }
 
-  void _finish() {
+  Future<void> _finish() async {
     final g = _game!;
     _timer?.cancel();
     final passed = g.accuracy >= gonogoPassAccuracy;
+    // Веха как в вебе: каждый третий ЗАСЧИТАННЫЙ уровень — бой «тапни гласную», потом итог.
+    // Повторной сдачи партии нажатием нет: последняя проба закрыта, `respond()` даёт null.
+    bool? boss;
+    if (passed) {
+      boss = await BossRound.winThenBoss(context, _ladder,
+          type: BossType.oddletter, color: const Color(0xFF11998E));
+    } else {
+      await _ladder.fail();
+    }
+    if (!mounted) return;
     setState(() {
       _phase = GoNoGoPhase.done;
       _passed = passed;
+      _boss = boss;
     });
-    if (passed) {
-      _ladder.win();
-    } else {
-      _ladder.fail();
-    }
   }
 
   @override
@@ -168,6 +176,7 @@ class _GoNoGoScreenState extends State<GoNoGoScreen> {
         phase: _phase,
         flash: _flash,
         passed: _passed,
+        boss: _boss,
         height: h,
         onStart: _start,
         onAgain: () => setState(_reset),
@@ -222,6 +231,7 @@ class _Field extends StatelessWidget {
     required this.phase,
     required this.flash,
     required this.passed,
+    required this.boss,
     required this.height,
     required this.onStart,
     required this.onAgain,
@@ -232,6 +242,7 @@ class _Field extends StatelessWidget {
   final GoNoGoPhase phase;
   final GoNoGoOutcome? flash;
   final bool passed;
+  final bool? boss;
 
   /// Высота поля приходит числом от каркаса.
   final double height;
@@ -281,6 +292,7 @@ class _Field extends StatelessWidget {
             Text(game.meanRtMs == null
                 ? '${L.t('meanReaction')}: —'
                 : '${L.t('meanReaction')}: ${game.meanRtMs} ${L.t('msShort')}'),
+            BossOutcomeLine(boss),
             const SizedBox(height: 16),
             FilledButton(onPressed: onAgain, child: Text(L.t('retry'))),
           ],

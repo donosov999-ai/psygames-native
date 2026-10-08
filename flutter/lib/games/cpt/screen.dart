@@ -14,6 +14,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../../shell/boss_round.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/game_shell.dart';
@@ -86,6 +87,7 @@ class _CptScreenState extends State<CptScreen> {
   bool _letterVisible = false;
   bool _flashWrong = false;
   bool _flashRight = false;
+  bool? _boss; // итог боя на вехе; null — боя не было
   Timer? _isiTimer;
   Timer? _offTimer;
   Timer? _windowTimer;
@@ -203,18 +205,30 @@ class _CptScreenState extends State<CptScreen> {
     });
   }
 
-  void _finish() {
+  Future<void> _finish() async {
     final g = _game!;
     _cancelAll();
-    setState(() => _phase = CptPhase.done);
+    // Охраны от нажатия, пока пишется победа, здесь НЕ нужно, в отличие от соседей: `_finish`
+    // зовётся только из `_schedule` после `closeTrial`, проба уже закрыта (`current == null`),
+    // и `_tap` такое нажатие не берёт.
     // 🔴 Оборванная партия уровень НЕ ДВИГАЕТ — ни вверх, ни вниз.
     final verdict = g.passed;
-    if (verdict == null) return;
-    if (verdict) {
-      _ladder.win(score: g.score, timeSeconds: g.elapsedSec.round(), errors: g.metrics.omissions + g.metrics.commissions, details: cptSessionDetails(g));
-    } else {
-      _ladder.fail(score: g.score, timeSeconds: g.elapsedSec.round(), errors: g.metrics.omissions + g.metrics.commissions, details: cptSessionDetails(g));
+    final errors = g.metrics.omissions + g.metrics.commissions;
+    // Веха как в вебе: каждый третий ЗАСЧИТАННЫЙ уровень — бой «тапни гласную», потом итог.
+    bool? boss;
+    if (verdict == true) {
+      boss = await BossRound.winThenBoss(context, _ladder,
+          type: BossType.oddletter,
+          color: const Color(0xFF0F4C75),
+          win: () => _ladder.win(score: g.score, timeSeconds: g.elapsedSec.round(), errors: errors, details: cptSessionDetails(g)));
+    } else if (verdict == false) {
+      await _ladder.fail(score: g.score, timeSeconds: g.elapsedSec.round(), errors: errors, details: cptSessionDetails(g));
     }
+    if (!mounted) return;
+    setState(() {
+      _phase = CptPhase.done;
+      _boss = boss;
+    });
   }
 
   /// Примеры разбора: мишень, обманка и (на уровнях с цветом) мишенная буква
@@ -263,6 +277,7 @@ class _CptScreenState extends State<CptScreen> {
         letterVisible: _letterVisible,
         flashRight: _flashRight,
         flashWrong: _flashWrong,
+        boss: _boss,
         height: h,
         onStart: _start,
         onAgain: () => setState(_reset),
@@ -293,6 +308,7 @@ class _Field extends StatelessWidget {
     required this.letterVisible,
     required this.flashRight,
     required this.flashWrong,
+    required this.boss,
     required this.height,
     required this.onStart,
     required this.onAgain,
@@ -303,6 +319,7 @@ class _Field extends StatelessWidget {
   final bool letterVisible;
   final bool flashRight;
   final bool flashWrong;
+  final bool? boss;
 
   /// Высота поля приходит числом от каркаса — доска не считается от окна.
   final double height;
@@ -351,6 +368,7 @@ class _Field extends StatelessWidget {
             Text('${L.t('hud_correct')}: ${m.hits} · ${L.t('hud_missed')}: ${m.omissions} · '
                 '${L.t('hud_false')}: ${m.commissions}'),
             Text('${L.t('hud_trials')}: ${m.played}', key: const Key('cpt-played')),
+            BossOutcomeLine(boss),
             const SizedBox(height: 8),
             Text(L.t('cptPass'), style: Theme.of(context).textTheme.bodySmall, textAlign: TextAlign.center),
             const SizedBox(height: 16),

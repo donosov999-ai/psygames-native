@@ -8,6 +8,8 @@ import 'package:psygames_flutter/games/stroop/screen.dart';
 import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'support/boss_probe.dart';
+import 'support/slow_write_state.dart';
 
 /// ПАРТИЯ В СТРУПА ИГРАЕТСЯ НАЖАТИЯМИ, а не вызовом правил.
 ///
@@ -160,6 +162,73 @@ void main() {
       expect(words, contains(word), reason: '$lang: стимул «$word» не из слов языка');
       if (lang != 'ru') expect(cyrillic.hasMatch(word), isFalse, reason: '$lang: в стимуле кириллица');
     }
+  });
+
+  testWidgets('🔴 сданную партию не сдать второй раз: нажатие, пока пишется победа, уровень не двигает', (tester) async {
+    // Запись лестницы растянута до 300 мс, как канал к платформе на телефоне
+    // (support/slow_write_state.dart): партия сдана, а фаза ещё «игра» и последняя проба на экране.
+    SharedPreferences.setMockInitialValues({});
+    state = await SlowWriteState.open();
+    var clock = 0;
+    await tester.pumpWidget(MaterialApp(home: StroopScreen(state: state, clock: () => clock)));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(L.t('start')));
+    await tester.pump();
+    final stim = find.byKey(const Key('stroop-stimulus'));
+    late Finder last;
+    for (var i = 0; i < StroopLevel.of(1).trials; i++) {
+      for (var k = 0; k < 40 && stim.evaluate().isEmpty; k++) {
+        await tester.pump(const Duration(milliseconds: 50));
+      }
+      last = rightAnswer(tester);
+      clock += 500;
+      await tester.tap(last);
+      await tester.pump();
+      // Отклик — 220 мс (`_after`), дальше следующая проба или сдача партии.
+      await tester.pump(const Duration(milliseconds: 250));
+    }
+    final done = find.textContaining(L.t('levelDone').split('}').last);
+    // Партия сдана 30 мс назад, победа ещё пишется: щель открыта.
+    expect(stim, findsOneWidget, reason: 'щель не воспроизведена: последней пробы на экране нет');
+    expect(done, findsNothing, reason: 'итог уже на экране — щели нет, проба ничего не проверяет');
+    await tester.tap(last);
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 2));
+    expect(done, findsOneWidget);
+    expect(state.get('${SharedState.prefix}stroop_level_nzt48'), '2', reason: 'партия сдана дважды — уровень прыгнул через ступень');
+  });
+
+  testWidgets('🔴 веха: победа на 3-м уровне открывает бой «жми / не жми», на 2-м — нет', (tester) async {
+    // В вебе Струп зовёт BossRound каждые три уровня; при переносе бой пропал молча.
+    // Признак взятого уровня — хвост строки «Уровень {n} пройден!»: номер у двух партий разный.
+    final won = find.textContaining(L.t('levelDone').split('}').last);
+    var opens = 0;
+    var clock = 0;
+    await expectBossAfterWin(tester, won: won, hudKey: 'bossHudGonogo', play: (level) async {
+      SharedPreferences.setMockInitialValues({'${SharedState.prefix}stroop_level_nzt48': '$level'});
+      state = await SharedState.open();
+      // Свежее приложение на каждую партию: всплывшее после прошлой (карточка правила
+      // нового уровня) иначе осталось бы поверх «Начать» следующей.
+      await tester.pumpWidget(MaterialApp(
+        key: ValueKey('app${opens += 1}'),
+        home: StroopScreen(state: state, clock: () => clock),
+      ));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(L.t('start')));
+      await tester.pump();
+      for (var i = 0;
+          i < 60 && won.evaluate().isEmpty && find.byKey(const Key('boss-round')).evaluate().isEmpty;
+          i++) {
+        if (find.byKey(const Key('stroop-stimulus')).evaluate().isEmpty) {
+          await tester.pump(const Duration(milliseconds: 100));
+          continue;
+        }
+        clock += 500;
+        await tester.tap(rightAnswer(tester));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 260));
+      }
+    });
   });
 }
 

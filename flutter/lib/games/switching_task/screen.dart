@@ -14,6 +14,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../shell/boss_round.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/game_shell.dart';
@@ -121,6 +122,7 @@ class _SwitchingTaskScreenState extends State<SwitchingTaskScreen> {
   SwitchOutcome? _flash;
   Timer? _timer;
   bool _passed = false;
+  bool? _boss; // итог боя на вехе; null — боя не было
 
   /// Материал партии: адрес, затем выбор на экране настройки, как у веба.
   late StimMode _mode;
@@ -220,7 +222,9 @@ class _SwitchingTaskScreenState extends State<SwitchingTaskScreen> {
   void _answer(bool left) {
     if (_phase != SwitchPhase.playing) return;
     final g = _game!;
-    if (!g.stimulusShown) return;
+    // `finished` — партия уже сдана в `_finish`, а фаза ещё «игра»: пока лестница пишет
+    // победу и открывается бой, нажатие сдало бы партию второй раз.
+    if (!g.stimulusShown || g.finished) return;
     _after(g.answer(left));
   }
 
@@ -234,19 +238,25 @@ class _SwitchingTaskScreenState extends State<SwitchingTaskScreen> {
     });
   }
 
-  void _finish() {
+  Future<void> _finish() async {
     final g = _game!;
     _timer?.cancel();
     final passed = g.accuracy >= switchingPassAccuracy;
+    // Веха как в вебе: каждый третий ЗАСЧИТАННЫЙ уровень — бой «впиши пропуск», потом итог.
+    bool? boss;
+    if (passed) {
+      boss = await BossRound.winThenBoss(context, _ladder,
+          type: BossType.lightning, color: const Color(0xFF7873F5),
+          win: () => _ladder.win(details: switchingSessionDetails(g)));
+    } else {
+      await _ladder.fail(details: switchingSessionDetails(g));
+    }
+    if (!mounted) return;
     setState(() {
       _phase = SwitchPhase.done;
       _passed = passed;
+      _boss = boss;
     });
-    if (passed) {
-      _ladder.win(details: switchingSessionDetails(g));
-    } else {
-      _ladder.fail(details: switchingSessionDetails(g));
-    }
   }
 
   @override
@@ -276,6 +286,7 @@ class _SwitchingTaskScreenState extends State<SwitchingTaskScreen> {
         phase: _phase,
         flash: _flash,
         passed: _passed,
+        boss: _boss,
         height: h,
         onStart: _start,
         onAgain: () => setState(_reset),
@@ -293,6 +304,7 @@ class _Field extends StatelessWidget {
     required this.phase,
     required this.flash,
     required this.passed,
+    required this.boss,
     required this.height,
     required this.onStart,
     required this.onAgain,
@@ -304,6 +316,7 @@ class _Field extends StatelessWidget {
   final SwitchPhase phase;
   final SwitchOutcome? flash;
   final bool passed;
+  final bool? boss;
 
   /// Высота поля приходит числом от каркаса — доска не считается от окна.
   final double height;
@@ -406,6 +419,7 @@ class _Field extends StatelessWidget {
               both ? '↻ $cost ${L.t('msShort')}' : '↻ —',
               key: const Key('switching-cost'),
             ),
+            BossOutcomeLine(boss),
             const SizedBox(height: 16),
             FilledButton(onPressed: onAgain, child: Text(L.t('retry'))),
           ],
