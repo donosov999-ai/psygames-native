@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../../shell/game_preset.dart';
+import '../../shell/setup_scroll.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
@@ -67,9 +68,13 @@ class _StroopScreenState extends State<StroopScreen> {
   Timer? _window;
   bool _passed = false;
 
+  /// Правило партии: из адреса, затем выбор на настройке, как у веба.
+  late String _mode;
+
   @override
   void initState() {
     super.initState();
+    _mode = stroopModeFor(widget.mode);
     _ladder = LevelLadder(gameId: 'stroop', store: SharedLevelStore(widget.state));
     _boot();
   }
@@ -92,13 +97,22 @@ class _StroopScreenState extends State<StroopScreen> {
     _window?.cancel();
     _game = StroopGame(
       level: _ladder.level,
-      mode: stroopModeFor(widget.mode),
+      mode: _mode,
       nowMs: widget.clock,
       trialsOverride: GamePreset.isPreset ? GamePreset.num('trials', StroopLevel.of(_ladder.level).trials) : null,
     );
     _phase = StroopPhase.ready;
     _flash = null;
     _passed = false;
+  }
+
+  /// Выбор правила — только до начала партии.
+  void _pickMode(String m) {
+    if (_phase != StroopPhase.ready || m == _mode) return;
+    setState(() {
+      _mode = m;
+      _reset();
+    });
   }
 
   void _start() {
@@ -194,7 +208,7 @@ class _StroopScreenState extends State<StroopScreen> {
       onLesson: _game == null
           ? null
           : () => openDemoLesson(context, title: L.t('stroop'), trials: _demoTrials()),
-      field: (context, h) => _Field(game: g, phase: _phase, flash: _flash, passed: _passed, height: h, onStart: _start, onAgain: () => setState(_reset)),
+      field: (context, h) => _Field(game: g, phase: _phase, flash: _flash, passed: _passed, height: h, onStart: _start, onAgain: () => setState(_reset), onMode: _pickMode),
       toolbar: _phase == StroopPhase.playing ? _Answers(game: g, onPick: _answer) : null,
     );
   }
@@ -230,6 +244,7 @@ class _Field extends StatelessWidget {
     required this.height,
     required this.onStart,
     required this.onAgain,
+    required this.onMode,
   });
 
   final StroopGame game;
@@ -241,15 +256,26 @@ class _Field extends StatelessWidget {
   final double height;
   final VoidCallback onStart;
   final VoidCallback onAgain;
+  final ValueChanged<String> onMode;
 
   @override
   Widget build(BuildContext context) {
     switch (phase) {
       case StroopPhase.ready:
-        return _Centered(
+        // Выбор правила — как у веба («По цвету чернил / По смыслу слова»); с ним настройка
+        // выше поля на малых экранах — прокрутка, «Начать» прибита.
+        return SetupScroll(
           height: height,
+          onStart: onStart,
           children: [
             Text('${L.t('level')} ${game.level}', style: Theme.of(context).textTheme.titleLarge),
+            const SizedBox(height: 8),
+            SetupChoice<String>(
+              label: L.t('stroopModeLabel'),
+              options: [('ink', L.t('stroopByInk'), 'stroop-mode-ink'), ('word', L.t('stroopByWord'), 'stroop-mode-word')],
+              value: game.mode,
+              onPick: onMode,
+            ),
             const SizedBox(height: 8),
             Text(
               game.mode == 'ink' ? L.t('stroopHintInk') : L.t('stroopHintWord'),
@@ -275,8 +301,6 @@ class _Field extends StatelessWidget {
                 textAlign: TextAlign.center,
               ),
             ],
-            const SizedBox(height: 16),
-            FilledButton(onPressed: onStart, child: Text(L.t('start'))),
           ],
         );
       case StroopPhase.done:

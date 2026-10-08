@@ -16,6 +16,8 @@
  */
 import React, { useState, useEffect, useRef } from 'react';
 import { hasPseudowords } from '@/src/services/pseudowords';
+import { hasNonstandardForms, type NonstandardForm } from '@/src/constants/nonstandardForms';
+import { buildNormTrials, normTiers } from '@/src/games/lexical-decision/norm';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -56,7 +58,11 @@ const LD_BENEFITS = [
 ];
 
 type GamePhase = 'intro' | 'config' | 'playing' | 'cleared' | 'result';
-export interface Trial { text: string; isWord: boolean; язык: string }
+/**
+ * Проба. В режиме «По норме?» `isWord` значит «показана норма», а `ns` — пара
+ * «форма → норма», из которой она взята (для разбора на ошибке).
+ */
+export interface Trial { text: string; isWord: boolean; язык: string; ns?: NonstandardForm }
 
 // Уровень 1..15: окно ответа сокращается 3.0с → 1.1с, число проб растёт ступенями.
 // Языковые параметры уровень НЕ трогает — словники всех языков работают как раньше.
@@ -112,11 +118,9 @@ export default function LexicalDecisionGame() {
 
   const { isPreset, autostart, str, num, isCalm } = useGamePreset();
   useCalmHush(isCalm);   // вечерний и ночной шаг зарядки — без писка
-  const lvl = usePersistentLevel('lexical_decision');
-    // ⚠️ Ждём загрузки уровня. Без этого автостарт («Вызов дня», онбординг) играл
-  // ПЕРВЫЙ уровень человеку с двенадцатым: уровень приезжает асинхронно, а
-  // эффект монтирования всегда раньше промиса. См. useAutostartWhenReady.
-  useAutostartWhenReady(() => autostart && lvl.loaded, () => startGame()); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
+  const lvlWord = usePersistentLevel('lexical_decision');
+  /** «По норме?» — своя лестница: темп общий, но ось трудности другая (ступени данных). */
+  const lvlNorm = usePersistentLevel('lexical_decision_norm');
   const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в блок «Об игре» (GameAbout);
   const [targetLang, setTargetLang] = useState<string>(() => str('targetLang', language === 'en' ? 'es' : 'en'));
   const presetTrials = num('trials', 30);   // только для пресетов (зарядка передаёт trials)
@@ -158,7 +162,10 @@ export default function LexicalDecisionGame() {
 
   useEffect(() => () => clearAllTimers(), []);
 
-  const tgt = targetLang === language ? (language === 'en' ? 'es' : 'en') : targetLang;
+  // 🔴 РОДНОЙ ЯЗЫК — ТОЖЕ ЯЗЫК ЗАДАНИЯ (решение Дениса 01.10.2026, задача d0ad03d9).
+  // Раньше язык интерфейса отсекался и подменялся на en/es — англоязычный игрок
+  // никогда не получал английский. Откат — только для языка без словаря.
+  const tgt = hasPseudowords(targetLang) ? targetLang : (language === 'en' ? 'es' : 'en');
   /** Режим билингво: два иностранных вперемешку в одной партии (см. bilingualMode). */
   const [билингво, setБилингво] = useState<boolean>(() => str(БИЛИНГВО, '') === '1');
   /**
@@ -169,6 +176,23 @@ export default function LexicalDecisionGame() {
   const [желаемыйВторой, setВторойЯзык] = useState<string>(() => str('lang2', '') || параЯзыков(language)[1]);
   /** Пара не бывает из одного языка — разбор у `вторымНеПервый`. */
   const второйЯзык = вторымНеПервый(language, tgt, желаемыйВторой);
+  /**
+   * 🔴 РЕЖИМ «ПО НОРМЕ?» (задача d0ad03d9): вместо «слово или нет» — «так по
+   * литературной норме или нет». Есть только у языков с данными ненормативных
+   * форм (`src/constants/nonstandardForms.ts`) и только одноязычный: норма у
+   * каждого языка своя.
+   */
+  const [режимНормы, setРежимНормы] = useState<boolean>(() => str('ldMode', '') === 'norm');
+  const нормаЕсть = hasNonstandardForms(tgt);
+  const norm = режимНормы && нормаЕсть;
+  const lvl = norm ? lvlNorm : lvlWord;
+  const normRef = useRef(false);
+  /** Режим идущей партии — для отрисовки (реф в отрисовке читать нельзя). */
+  const [normPlay, setNormPlay] = useState(false);
+    // ⚠️ Ждём загрузки уровня. Без этого автостарт («Вызов дня», онбординг) играл
+  // ПЕРВЫЙ уровень человеку с двенадцатым: уровень приезжает асинхронно, а
+  // эффект монтирования всегда раньше промиса. См. useAutostartWhenReady.
+  useAutostartWhenReady(() => autostart && lvl.loaded, () => startGame()); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
 
   // Показ текущей пробы: фиксируем момент показа + взводим дедлайн уровня.
   const presentTrial = () => {
@@ -185,7 +209,8 @@ export default function LexicalDecisionGame() {
         if (trial?.isWord) missRef.current += 1;   // не успел на слове = пропуск (miss)
         // фидбек «не успел»: подсвечиваем как неверный ответ (picked ≠ isWord → красная карточка)
         setPicked(trial ? !trial.isWord : false);
-        advanceTimerRef.current = setTimeout(advance, 800);
+        // «По норме?»: на ошибке видна норма и правило — время прочитать.
+        advanceTimerRef.current = setTimeout(advance, normRef.current ? 2400 : 800);
       }, windowMsRef.current);
     }
   };
@@ -206,8 +231,13 @@ export default function LexicalDecisionGame() {
     windowMsRef.current = isPreset ? 0 : p.windowMs;   // пресет = прежний self-paced режим
     const count = isPreset ? presetTrials : p.trials;
     tgtRef.current = tgt;
+    normRef.current = norm;
+    setNormPlay(norm);
     // Сборка проб — в `buildLexicalTrials` (выше): там же и пояснение про ряд.
-    const all = buildLexicalTrials({ target: tgt, second: второйЯзык, bilingual: билингво, count, language });
+    const all: Trial[] = norm
+      ? buildNormTrials({ target: tgt, level: lvl.level, count })
+        .map((x) => ({ text: x.text, isWord: x.isNorm, язык: tgt, ns: x.item }))
+      : buildLexicalTrials({ target: tgt, second: второйЯзык, bilingual: билингво, count, language });
     trialsRef.current = all;
     setTrials(all);
     idxRef.current = 0;
@@ -247,10 +277,11 @@ export default function LexicalDecisionGame() {
         score: correctRef.current,
         time_seconds: finalTime,
         difficulty: `${tgtRef.current} · ${total}`,
-        mode: `lvl${levelRef.current}`,
+        mode: `${normRef.current ? 'norm' : 'lvl'}${levelRef.current}`,
         errors: errorsRef.current,
         details: {
           level: levelRef.current,
+          kind: normRef.current ? 'norm' : 'word',
           target_lang: tgtRef.current,
           trials: total,
           window_ms: windowMsRef.current,
@@ -290,7 +321,8 @@ export default function LexicalDecisionGame() {
       setErrorsCount(errorsRef.current);
       if (trial.isWord) missRef.current += 1; else faRef.current += 1;
     }
-    advanceTimerRef.current = setTimeout(advance, isCorrect ? 300 : 800);
+    const [okMs, badMs] = normRef.current ? [900, 2400] : [300, 800];
+    advanceTimerRef.current = setTimeout(advance, isCorrect ? okMs : badMs);
   };
 
   const renderConfig = () => {
@@ -318,8 +350,34 @@ export default function LexicalDecisionGame() {
             выбор первого. Раньше человек доходил до конца списка и только там
             узнавал, что выбор можно отменить режимом.
           */}
-          <BilingualToggle включён={билингво} переключить={() => setБилингво((v) => !v)} accent={GRADIENT[0]}
-            первый={tgt} второй={второйЯзык} выбратьВторой={setВторойЯзык} />
+          {нормаЕсть && (
+            <View style={[styles.optionCard, { backgroundColor: colors.surface, marginBottom: 12 }]}>
+              <View style={styles.optionButtons}>
+                {([false, true] as const).map((n) => (
+                  <TouchableOpacity
+                    accessibilityRole="button"
+                    key={n ? 'norm' : 'word'}
+                    testID={n ? 'ld-mode-norm' : 'ld-mode-word'}
+                    style={[
+                      styles.sizeButton,
+                      norm === n && { backgroundColor: GRADIENT[0] },
+                      norm !== n && { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
+                    ]}
+                    onPress={() => setРежимНормы(n)}
+                  >
+                    <Text style={[styles.sizeButtonText, { color: norm === n ? textOn(GRADIENT[0]) : colors.text }]}>
+                      {t(n ? 'ldModeNorm' : 'lexicalDecision')}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+              {norm && <Text style={{ color: colors.textSecondary, fontSize: 13, marginTop: 8 }}>{t('ldModeNormDesc')}</Text>}
+            </View>
+          )}
+          {!norm && (
+            <BilingualToggle включён={билингво} переключить={() => setБилингво((v) => !v)} accent={GRADIENT[0]}
+              первый={tgt} второй={второйЯзык} выбратьВторой={setВторойЯзык} />
+          )}
           <View style={[styles.optionCard, { backgroundColor: colors.surface, marginBottom: 12 }]}>
             <Text style={[styles.optionLabel, { color: colors.text }]}>
               {LANGUAGES.find((l) => l.code === language)?.name} →
@@ -333,7 +391,7 @@ export default function LexicalDecisionGame() {
                 оставался мёртвым навсегда, без шапки и без «назад».
                 Список выводится ИЗ САМОГО словаря, вписать его руками нельзя.
               */}
-              {LANGUAGES.filter((l) => l.code !== language && hasPseudowords(l.code)).map((l) => (
+              {LANGUAGES.filter((l) => hasPseudowords(l.code)).map((l) => (
                 <TouchableOpacity
                   accessibilityRole="button"
                   key={l.code}
@@ -360,6 +418,11 @@ export default function LexicalDecisionGame() {
             <Text style={{ color: colors.textSecondary, fontSize: 13, textAlign: 'center' }}>
               {t('trialsWindowParams').replace('{n}', String(p.trials)).replace('{w}', (p.windowMs / 1000).toFixed(1))}
             </Text>
+            {norm && (
+              <Text style={{ color: colors.textSecondary, fontSize: 13, textAlign: 'center' }}>
+                {t('ldNormTiers').replace('{t}', normTiers(lvl.level).map((n) => t(`ldNormTier${n}`)).join(' · '))}
+              </Text>
+            )}
             <Text style={{ color: colors.textSecondary, fontSize: 12, textAlign: 'center' }}>
               {t('passCorrect80Window')}
             </Text>
@@ -380,6 +443,8 @@ export default function LexicalDecisionGame() {
   };
 
   // playing-фаза — на едином каркасе GameShell (слово в скролл-поле, две кнопки ответа прибиты к низу)
+  // Метка языка — в билингво и в зарядке; партия «По норме?» одноязычная, ей метка не нужна.
+  const меткаЯзыка = (билингво || isPreset) && !(normPlay && !isPreset);
   const renderPlaying = () => {
     const trial = trials[idx];
     if (!trial) return null;
@@ -410,7 +475,7 @@ export default function LexicalDecisionGame() {
            *
            * ⚠️ Код языка, а не название: «Английский» распирает пилюлю шапки.
            */
-          ...((билингво || isPreset) && trials[idx]?.язык
+          ...(меткаЯзыка && trials[idx]?.язык
             ? [{ key: 'bilang', icon: 'language' as const, label: t('bilingualMode'),
                 value: паройЯзыков(String(trials[idx]?.язык), билингво ? [tgt, второйЯзык] : []),
                 tone: 'accent' as const }]
@@ -436,7 +501,7 @@ export default function LexicalDecisionGame() {
               activeOpacity={0.8}
             >
               <Ionicons name="checkmark" size={28} color="#fff" />
-              <Text style={styles.bigButtonText}>{t('ldWordBtn')}</Text>
+              <Text style={styles.bigButtonText}>{normPlay ? t('ldNormBtn') : t('ldWordBtn')}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               accessibilityRole="button"
@@ -445,7 +510,7 @@ export default function LexicalDecisionGame() {
               activeOpacity={0.8}
             >
               <Ionicons name="close" size={28} color="#fff" />
-              <Text style={styles.bigButtonText}>{t('ldNonwordBtn')}</Text>
+              <Text style={styles.bigButtonText}>{normPlay ? t('ldNotNormBtn') : t('ldNonwordBtn')}</Text>
             </TouchableOpacity>
           </View>
         }
@@ -465,7 +530,7 @@ export default function LexicalDecisionGame() {
           мультиязычности, какой язык пишется; обозначение мелкое». Переход
           отмечается стрелкой и заливкой, повтор языка — спокойным серым.
         */}
-        {(билингво || isPreset) && (
+        {меткаЯзыка && (
           <LanguageBadge
             язык={trial.язык}
             сменился={idx > 0 && trials[idx - 1]?.язык !== undefined && trials[idx - 1]?.язык !== trial.язык}
@@ -473,7 +538,18 @@ export default function LexicalDecisionGame() {
           />
         )}
 
-        <Text style={[styles.hint, { color: colors.textSecondary }]}>{t('ldHint')}</Text>
+        {/* «По норме?»: после ответа — как по норме и почему (правило пары). */}
+        {showFeedback && trial.ns && (
+          <View testID="ld-norm-why" style={{ marginTop: 12, alignItems: 'center', gap: 4 }}>
+            <Text style={{ color: colors.text, fontSize: 18, fontWeight: '700', textAlign: 'center' }}>
+              {trial.isWord
+                ? t('ldNormIsStandard').replace('{form}', trial.ns.form)
+                : t('ldNormShouldBe').replace('{norm}', trial.ns.norm)}
+            </Text>
+            <Text style={{ color: colors.textSecondary, fontSize: 14, textAlign: 'center' }}>{t(`nsRule_${trial.ns.rule}`)}</Text>
+          </View>
+        )}
+        <Text style={[styles.hint, { color: colors.textSecondary }]}>{normPlay ? t('ldNormHint') : t('ldHint')}</Text>
       </GameShell>
     );
   };

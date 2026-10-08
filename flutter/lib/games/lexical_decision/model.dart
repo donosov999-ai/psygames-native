@@ -31,10 +31,15 @@ LdLevelParams ldLevelParams(int level) => LdLevelParams(
 const double ldPassAccuracy = 0.8;
 
 class LdTrial {
-  const LdTrial(this.text, this.isWord, this.lang);
+  const LdTrial(this.text, this.isWord, this.lang, {this.ns});
   final String text;
+
+  /// В режиме «По норме?» — «показана норма».
   final bool isWord;
   final String lang;
+
+  /// «По норме?»: пара «форма → норма», из которой взята проба (для разбора на ошибке).
+  final NsForm? ns;
 }
 
 /// ТАБЛИЦЫ БУКВ ГЕНЕРАТОРА — ДАННЫМИ, А НЕ КОПИЕЙ В КОДЕ.
@@ -214,4 +219,108 @@ List<LdTrial> buildLexicalTrials({
     return [for (final e in spreadByRow(byLang, count, [target, second]).items) e.item];
   }
   return byLang[target] ?? const [];
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// РЕЖИМ «ПО НОРМЕ?» (задача d0ad03d9) — перенос `frontend/src/games/lexical-decision/norm.ts`.
+// Данные — `assets/vocab/nonstandard-forms.json`, выгрузка `NONSTANDARD_FORMS` веба
+// прибором эталона (второй копии в коде нет).
+
+/// Пара «как говорят вне нормы → как по норме». [rule] — ключ объяснения `nsRule_<rule>`.
+class NsForm {
+  const NsForm({required this.form, required this.norm, required this.rule, required this.tier});
+
+  factory NsForm.fromJson(Map<dynamic, dynamic> j) => NsForm(
+        form: '${j['form']}',
+        norm: '${j['norm']}',
+        rule: '${j['rule']}',
+        tier: (j['tier'] as num).toInt(),
+      );
+
+  final String form;
+  final String norm;
+  final String rule;
+  final int tier;
+}
+
+/// `{"forms": {"en": [...], "ru": [...]}}` → пары по языкам, порядок данных сохранён.
+Map<String, List<NsForm>> nsFormsFromJson(Map<dynamic, dynamic> j) => {
+      for (final e in ((j['forms'] as Map?) ?? const {}).entries)
+        '${e.key}': [for (final x in (e.value as List)) NsForm.fromJson(x as Map)],
+    };
+
+class LdNormTrial {
+  const LdNormTrial(this.text, this.isNorm, this.item);
+  final String text;
+
+  /// Показана норма (а не ненормативная форма).
+  final bool isNorm;
+  final NsForm item;
+}
+
+/// 🔴 КЛЮЧИ СЛОВАРЯ, КОТОРЫЕ ЗОВУТСЯ ИМЕНЕМ ИЗ ДАННЫХ (`nsRule_<rule>`, `ldNormTier<n>`), —
+/// СПИСКОМ. `tools/embed-l10n.mjs` видит только `L.t('буквальный ключ')` и списки `…Keys`:
+/// собранный из частей ключ в словарь приложения не попадёт, и на экране будет сам ключ.
+const ldNsRuleKeys = <String>[
+  'nsRule_possessive',
+  'nsRule_verbForm',
+  'nsRule_wordForm',
+  'nsRule_sound',
+  'nsRule_wordChoice',
+  'nsRule_spelling',
+  'nsRule_separate',
+  'nsRule_eggcorn',
+  'nsRule_misheard',
+  'nsRule_doubleNegative',
+  'nsRule_stress',
+  'nsRule_confused',
+];
+const ldNormTierKeys = <String>['ldNormTier1', 'ldNormTier2', 'ldNormTier3'];
+
+/// Ключ объяснения правила пары; правила нет в списке — пустая строка, а не сырой ключ.
+String? ldNsRuleKey(String rule) {
+  final k = 'nsRule_$rule';
+  return ldNsRuleKeys.contains(k) ? k : null;
+}
+
+/// Ступени данных на уровне: 1–5 — грубые формы, 6–10 — грубые и близкие к норме, дальше —
+/// близкие и ударение. Потолка нет: темп растёт по [ldLevelParams].
+List<int> ldNormTiers(int level) => level <= 5 ? const [1] : level <= 10 ? const [1, 2] : const [2, 3];
+
+List<T> _jsShuffle<T>(List<T> arr, double Function() rng) {
+  final a = [...arr];
+  for (var i = a.length - 1; i > 0; i--) {
+    final j = (rng() * (i + 1)).floor();
+    final t = a[i];
+    a[i] = a[j];
+    a[j] = t;
+  }
+  return a;
+}
+
+/// Партия «По норме?» — `buildNormTrials` веба шаг в шаг: ⌊count/2⌋ ненормативных форм,
+/// остальное — нормы ДРУГИХ пар; один текст дважды не показывается; пар мало — круг заново.
+List<LdNormTrial> ldBuildNormTrials(
+  Map<String, List<NsForm>> data, {
+  required String target,
+  required int level,
+  required int count,
+  required double Function() rng,
+}) {
+  final tiers = ldNormTiers(level);
+  final pool = [for (final x in data[target] ?? const <NsForm>[]) if (tiers.contains(x.tier)) x];
+  if (pool.isEmpty || count <= 0) return const [];
+  final order = _jsShuffle(pool, rng);
+  final fakes = count ~/ 2;
+  final out = <LdNormTrial>[];
+  final seen = <String>{};
+  for (var k = 0; out.length < count && k < order.length * 3; k++) {
+    final item = order[k % order.length];
+    final isNorm = out.length >= fakes;
+    final text = isNorm ? item.norm : item.form;
+    if (seen.contains(text) && k < order.length * 2) continue;
+    seen.add(text);
+    out.add(LdNormTrial(text, isNorm, item));
+  }
+  return _jsShuffle(out, rng);
 }

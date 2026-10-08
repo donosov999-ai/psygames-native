@@ -1,0 +1,1179 @@
+{
+ "source": "frontend/src/constants/nonstandardForms.ts",
+ "forms": {
+  "en": [
+   {
+    "form": "irregardless",
+    "norm": "regardless",
+    "rule": "doubleNegative",
+    "tier": 1,
+    "src": "wikt",
+    "label": "nonstandard, proscribed"
+   },
+   {
+    "form": "could of",
+    "norm": "could have",
+    "rule": "misheard",
+    "tier": 1,
+    "src": "wikt",
+    "label": "eye dialect of could have"
+   },
+   {
+    "form": "should of",
+    "norm": "should have",
+    "rule": "misheard",
+    "tier": 1,
+    "src": "wikt",
+    "label": "eye dialect of should have"
+   },
+   {
+    "form": "would of",
+    "norm": "would have",
+    "rule": "misheard",
+    "tier": 1,
+    "src": "wikt",
+    "label": "eye dialect of would have"
+   },
+   {
+    "form": "ain't",
+    "norm": "isn't",
+    "rule": "wordForm",
+    "tier": 1,
+    "src": "wikt",
+    "label": "dialectal, informal, nonstandard"
+   },
+   {
+    "form": "supposably",
+    "norm": "supposedly",
+    "rule": "sound",
+    "tier": 1,
+    "src": "wikt",
+    "label": "nonstandard"
+   },
+   {
+    "form": "expresso",
+    "norm": "espresso",
+    "rule": "sound",
+    "tier": 1,
+    "src": "wikt",
+    "label": "proscribed"
+   },
+   {
+    "form": "nucular",
+    "norm": "nuclear",
+    "rule": "sound",
+    "tier": 1,
+    "src": "wikt",
+    "label": "pronunciation spelling of nuclear"
+   },
+   {
+    "form": "heighth",
+    "norm": "height",
+    "rule": "sound",
+    "tier": 1,
+    "src": "wikt",
+    "label": "proscribed"
+   },
+   {
+    "form": "acrost",
+    "norm": "across",
+    "rule": "sound",
+    "tier": 1,
+    "src": "wikt",
+    "label": "dialectal, nonstandard"
+   },
+   {
+    "form": "mischievious",
+    "norm": "mischievous",
+    "rule": "sound",
+    "tier": 1,
+    "src": "wikt",
+    "label": "nonstandard"
+   },
+   {
+    "form": "Febuary",
+    "norm": "February",
+    "rule": "sound",
+    "tier": 1,
+    "src": "wikt",
+    "label": "nonstandard spelling"
+   },
+   {
+    "form": "brung",
+    "norm": "brought",
+    "rule": "verbForm",
+    "tier": 1,
+    "src": "wikt",
+    "label": "colloquial, dialectal, nonstandard"
+   },
+   {
+    "form": "brang",
+    "norm": "brought",
+    "rule": "verbForm",
+    "tier": 1,
+    "src": "wikt",
+    "label": "colloquial, dialectal, nonstandard"
+   },
+   {
+    "form": "growed",
+    "norm": "grew",
+    "rule": "verbForm",
+    "tier": 1,
+    "src": "wikt",
+    "label": "nonstandard"
+   },
+   {
+    "form": "knowed",
+    "norm": "knew",
+    "rule": "verbForm",
+    "tier": 1,
+    "src": "wikt",
+    "label": "nonstandard"
+   },
+   {
+    "form": "drownded",
+    "norm": "drowned",
+    "rule": "verbForm",
+    "tier": 1,
+    "src": "wikt",
+    "label": "nonstandard"
+   },
+   {
+    "form": "tooken",
+    "norm": "taken",
+    "rule": "verbForm",
+    "tier": 1,
+    "src": "wikt",
+    "label": "dialectal, nonstandard"
+   },
+   {
+    "form": "attackted",
+    "norm": "attacked",
+    "rule": "verbForm",
+    "tier": 1,
+    "src": "wikt",
+    "label": "dialectal"
+   },
+   {
+    "form": "hisself",
+    "norm": "himself",
+    "rule": "wordForm",
+    "tier": 1,
+    "src": "wikt",
+    "label": "dialectal, informal"
+   },
+   {
+    "form": "theirselves",
+    "norm": "themselves",
+    "rule": "wordForm",
+    "tier": 1,
+    "src": "wikt",
+    "label": "dialectal"
+   },
+   {
+    "form": "conversate",
+    "norm": "converse",
+    "rule": "wordForm",
+    "tier": 1,
+    "src": "wikt",
+    "label": "nonstandard"
+   },
+   {
+    "form": "alot",
+    "norm": "a lot",
+    "rule": "separate",
+    "tier": 2,
+    "src": "wikt",
+    "label": "nonstandard, proscribed"
+   },
+   {
+    "form": "definately",
+    "norm": "definitely",
+    "rule": "spelling",
+    "tier": 2,
+    "src": "wikt",
+    "label": "misspelling"
+   },
+   {
+    "form": "seperate",
+    "norm": "separate",
+    "rule": "spelling",
+    "tier": 2,
+    "src": "wikt",
+    "label": "misspelling"
+   },
+   {
+    "form": "recieve",
+    "norm": "receive",
+    "rule": "spelling",
+    "tier": 2,
+    "src": "wikt",
+    "label": "misspelling"
+   },
+   {
+    "form": "occured",
+    "norm": "occurred",
+    "rule": "spelling",
+    "tier": 2,
+    "src": "wikt",
+    "label": "misspelling"
+   },
+   {
+    "form": "wich",
+    "norm": "which",
+    "rule": "spelling",
+    "tier": 2,
+    "src": "wikt",
+    "label": "misspelling"
+   },
+   {
+    "form": "tommorow",
+    "norm": "tomorrow",
+    "rule": "spelling",
+    "tier": 2,
+    "src": "wikt",
+    "label": "misspelling"
+   },
+   {
+    "form": "goverment",
+    "norm": "government",
+    "rule": "spelling",
+    "tier": 2,
+    "src": "wikt",
+    "label": "misspelling"
+   },
+   {
+    "form": "begining",
+    "norm": "beginning",
+    "rule": "spelling",
+    "tier": 2,
+    "src": "wikt",
+    "label": "misspelling"
+   },
+   {
+    "form": "beleive",
+    "norm": "believe",
+    "rule": "spelling",
+    "tier": 2,
+    "src": "wikt",
+    "label": "misspelling"
+   },
+   {
+    "form": "acheive",
+    "norm": "achieve",
+    "rule": "spelling",
+    "tier": 2,
+    "src": "wikt",
+    "label": "misspelling"
+   },
+   {
+    "form": "neccessary",
+    "norm": "necessary",
+    "rule": "spelling",
+    "tier": 2,
+    "src": "wikt",
+    "label": "misspelling"
+   },
+   {
+    "form": "wierd",
+    "norm": "weird",
+    "rule": "spelling",
+    "tier": 2,
+    "src": "wikt",
+    "label": "misspelling"
+   },
+   {
+    "form": "libary",
+    "norm": "library",
+    "rule": "spelling",
+    "tier": 2,
+    "src": "wikt",
+    "label": "misspelling"
+   },
+   {
+    "form": "pronounciation",
+    "norm": "pronunciation",
+    "rule": "spelling",
+    "tier": 2,
+    "src": "wikt",
+    "label": "misspelling"
+   },
+   {
+    "form": "for all intensive purposes",
+    "norm": "for all intents and purposes",
+    "rule": "eggcorn",
+    "tier": 2,
+    "src": "wikt",
+    "label": "nonstandard; eggcorn"
+   },
+   {
+    "form": "mute point",
+    "norm": "moot point",
+    "rule": "eggcorn",
+    "tier": 2,
+    "src": "wikt",
+    "label": "eggcorn"
+   },
+   {
+    "form": "deep-seeded",
+    "norm": "deep-seated",
+    "rule": "eggcorn",
+    "tier": 2,
+    "src": "wikt",
+    "label": "eggcorn"
+   },
+   {
+    "form": "tow the line",
+    "norm": "toe the line",
+    "rule": "eggcorn",
+    "tier": 2,
+    "src": "wikt",
+    "label": "nonstandard; eggcorn"
+   },
+   {
+    "form": "free reign",
+    "norm": "free rein",
+    "rule": "eggcorn",
+    "tier": 2,
+    "src": "wikt",
+    "label": "proscribed; eggcorn"
+   },
+   {
+    "form": "escape goat",
+    "norm": "scapegoat",
+    "rule": "eggcorn",
+    "tier": 2,
+    "src": "wikt",
+    "label": "eggcorn"
+   },
+   {
+    "form": "sneak peak",
+    "norm": "sneak peek",
+    "rule": "eggcorn",
+    "tier": 2,
+    "src": "wikt",
+    "label": "misspelling"
+   },
+   {
+    "form": "taller then me",
+    "norm": "taller than me",
+    "rule": "confused",
+    "tier": 3,
+    "src": "wikt",
+    "label": "then: misspelling of than"
+   },
+   {
+    "form": "your welcome",
+    "norm": "you're welcome",
+    "rule": "confused",
+    "tier": 3,
+    "src": "wikt",
+    "label": "your: misspelling of you're"
+   },
+   {
+    "form": "their here",
+    "norm": "they're here",
+    "rule": "confused",
+    "tier": 3,
+    "src": "wikt",
+    "label": "their: misspelling of they're"
+   },
+   {
+    "form": "over their",
+    "norm": "over there",
+    "rule": "confused",
+    "tier": 3,
+    "src": "wikt",
+    "label": "their: misspelling of there"
+   },
+   {
+    "form": "don't loose it",
+    "norm": "don't lose it",
+    "rule": "confused",
+    "tier": 3,
+    "src": "wikt",
+    "label": "loose: misspelling of lose"
+   }
+  ],
+  "ru": [
+   {
+    "form": "ихний",
+    "norm": "их",
+    "rule": "possessive",
+    "tier": 1,
+    "src": "wikt",
+    "label": "colloquial, nonstandard, proscribed"
+   },
+   {
+    "form": "егошний",
+    "norm": "его",
+    "rule": "possessive",
+    "tier": 1,
+    "src": "wikt",
+    "label": "nonstandard"
+   },
+   {
+    "form": "еёшний",
+    "norm": "её",
+    "rule": "possessive",
+    "tier": 1,
+    "src": "wikt",
+    "label": "nonstandard"
+   },
+   {
+    "form": "ейный",
+    "norm": "её",
+    "rule": "possessive",
+    "tier": 1,
+    "src": "wikt",
+    "label": "colloquial, dialectal"
+   },
+   {
+    "form": "евоный",
+    "norm": "его",
+    "rule": "possessive",
+    "tier": 1,
+    "src": "wikt",
+    "label": "dialectal"
+   },
+   {
+    "form": "ложить",
+    "norm": "класть",
+    "rule": "verbForm",
+    "tier": 1,
+    "src": "wikt",
+    "label": "nonstandard, proscribed"
+   },
+   {
+    "form": "покласть",
+    "norm": "положить",
+    "rule": "verbForm",
+    "tier": 1,
+    "src": "wikt",
+    "label": "nonstandard, proscribed"
+   },
+   {
+    "form": "ехай",
+    "norm": "поезжай",
+    "rule": "verbForm",
+    "tier": 1,
+    "src": "wikt",
+    "label": "nonstandard, proscribed"
+   },
+   {
+    "form": "едь",
+    "norm": "поезжай",
+    "rule": "verbForm",
+    "tier": 1,
+    "src": "wikt",
+    "label": "nonstandard, proscribed"
+   },
+   {
+    "form": "ехайте",
+    "norm": "поезжайте",
+    "rule": "verbForm",
+    "tier": 1,
+    "src": "wikt",
+    "label": "nonstandard, proscribed"
+   },
+   {
+    "form": "ездиют",
+    "norm": "ездят",
+    "rule": "verbForm",
+    "tier": 1,
+    "src": "wikt",
+    "label": "nonstandard, proscribed"
+   },
+   {
+    "form": "хочут",
+    "norm": "хотят",
+    "rule": "verbForm",
+    "tier": 1,
+    "src": "wikt",
+    "label": "nonstandard, proscribed"
+   },
+   {
+    "form": "хочем",
+    "norm": "хотим",
+    "rule": "verbForm",
+    "tier": 1,
+    "src": "wikt",
+    "label": "nonstandard, proscribed"
+   },
+   {
+    "form": "хочете",
+    "norm": "хотите",
+    "rule": "verbForm",
+    "tier": 1,
+    "src": "wikt",
+    "label": "nonstandard, proscribed"
+   },
+   {
+    "form": "ляжь",
+    "norm": "ляг",
+    "rule": "verbForm",
+    "tier": 1,
+    "src": "wikt",
+    "label": "nonstandard"
+   },
+   {
+    "form": "ляжьте",
+    "norm": "лягте",
+    "rule": "verbForm",
+    "tier": 1,
+    "src": "wikt",
+    "label": "nonstandard"
+   },
+   {
+    "form": "трёс",
+    "norm": "тряс",
+    "rule": "verbForm",
+    "tier": 1,
+    "src": "wikt",
+    "label": "nonstandard"
+   },
+   {
+    "form": "использовывать",
+    "norm": "использовать",
+    "rule": "verbForm",
+    "tier": 1,
+    "src": "wikt",
+    "label": "colloquial, nonstandard, proscribed"
+   },
+   {
+    "form": "купивши",
+    "norm": "купив",
+    "rule": "verbForm",
+    "tier": 1,
+    "src": "wikt",
+    "label": "proscribed"
+   },
+   {
+    "form": "съевши",
+    "norm": "съев",
+    "rule": "verbForm",
+    "tier": 1,
+    "src": "wikt",
+    "label": "proscribed"
+   },
+   {
+    "form": "наихороший",
+    "norm": "наилучший",
+    "rule": "wordForm",
+    "tier": 1,
+    "src": "wikt",
+    "label": "colloquial, nonstandard"
+   },
+   {
+    "form": "тута",
+    "norm": "тут",
+    "rule": "sound",
+    "tier": 1,
+    "src": "wikt",
+    "label": "colloquial, nonstandard"
+   },
+   {
+    "form": "тама",
+    "norm": "там",
+    "rule": "sound",
+    "tier": 1,
+    "src": "wikt",
+    "label": "colloquial, nonstandard"
+   },
+   {
+    "form": "хто",
+    "norm": "кто",
+    "rule": "sound",
+    "tier": 1,
+    "src": "wikt",
+    "label": "colloquial, nonstandard, proscribed"
+   },
+   {
+    "form": "шо",
+    "norm": "что",
+    "rule": "sound",
+    "tier": 1,
+    "src": "wikt",
+    "label": "colloquial, nonstandard, proscribed"
+   },
+   {
+    "form": "ничё",
+    "norm": "ничего",
+    "rule": "sound",
+    "tier": 1,
+    "src": "wikt",
+    "label": "nonstandard, proscribed"
+   },
+   {
+    "form": "пинжак",
+    "norm": "пиджак",
+    "rule": "sound",
+    "tier": 1,
+    "src": "wikt",
+    "label": "colloquial, dialectal, proscribed"
+   },
+   {
+    "form": "капишон",
+    "norm": "капюшон",
+    "rule": "sound",
+    "tier": 1,
+    "src": "wikt",
+    "label": "nonstandard"
+   },
+   {
+    "form": "двоюрный",
+    "norm": "двоюродный",
+    "rule": "sound",
+    "tier": 1,
+    "src": "wikt",
+    "label": "nonstandard, proscribed"
+   },
+   {
+    "form": "некторый",
+    "norm": "некоторый",
+    "rule": "sound",
+    "tier": 1,
+    "src": "wikt",
+    "label": "nonstandard, proscribed"
+   },
+   {
+    "form": "проволка",
+    "norm": "проволока",
+    "rule": "sound",
+    "tier": 1,
+    "src": "wikt",
+    "label": "nonstandard"
+   },
+   {
+    "form": "куфня",
+    "norm": "кухня",
+    "rule": "sound",
+    "tier": 1,
+    "src": "wikt",
+    "label": "dialectal, nonstandard"
+   },
+   {
+    "form": "обымать",
+    "norm": "обнимать",
+    "rule": "sound",
+    "tier": 1,
+    "src": "wikt",
+    "label": "nonstandard"
+   },
+   {
+    "form": "заместо",
+    "norm": "вместо",
+    "rule": "wordChoice",
+    "tier": 1,
+    "src": "wikt",
+    "label": "nonstandard, proscribed"
+   },
+   {
+    "form": "касаемо",
+    "norm": "касательно",
+    "rule": "wordChoice",
+    "tier": 1,
+    "src": "wikt",
+    "label": "nonstandard"
+   },
+   {
+    "form": "выйграть",
+    "norm": "выиграть",
+    "rule": "spelling",
+    "tier": 2,
+    "src": "wikt",
+    "label": "misspelling"
+   },
+   {
+    "form": "мороженное",
+    "norm": "мороженое",
+    "rule": "spelling",
+    "tier": 2,
+    "src": "wikt",
+    "label": "misspelling"
+   },
+   {
+    "form": "серебрянный",
+    "norm": "серебряный",
+    "rule": "spelling",
+    "tier": 2,
+    "src": "wikt",
+    "label": "misspelling"
+   },
+   {
+    "form": "симпотичный",
+    "norm": "симпатичный",
+    "rule": "spelling",
+    "tier": 2,
+    "src": "wikt",
+    "label": "misspelling"
+   },
+   {
+    "form": "облоко",
+    "norm": "облако",
+    "rule": "spelling",
+    "tier": 2,
+    "src": "wikt",
+    "label": "misspelling"
+   },
+   {
+    "form": "мущина",
+    "norm": "мужчина",
+    "rule": "spelling",
+    "tier": 2,
+    "src": "wikt",
+    "label": "misspelling"
+   },
+   {
+    "form": "водалей",
+    "norm": "водолей",
+    "rule": "spelling",
+    "tier": 2,
+    "src": "wikt",
+    "label": "misspelling"
+   },
+   {
+    "form": "экспрессо",
+    "norm": "эспрессо",
+    "rule": "spelling",
+    "tier": 2,
+    "src": "wikt",
+    "label": "misspelling"
+   },
+   {
+    "form": "деревяный",
+    "norm": "деревянный",
+    "rule": "spelling",
+    "tier": 2,
+    "src": "wikt",
+    "label": "nonstandard"
+   },
+   {
+    "form": "жевачка",
+    "norm": "жвачка",
+    "rule": "spelling",
+    "tier": 2,
+    "src": "wikt",
+    "label": "colloquial, proscribed"
+   },
+   {
+    "form": "комфорка",
+    "norm": "конфорка",
+    "rule": "spelling",
+    "tier": 2,
+    "src": "wikt",
+    "label": "nonstandard"
+   },
+   {
+    "form": "продливать",
+    "norm": "продлевать",
+    "rule": "spelling",
+    "tier": 2,
+    "src": "wikt",
+    "label": "nonstandard"
+   },
+   {
+    "form": "подскользнуться",
+    "norm": "поскользнуться",
+    "rule": "spelling",
+    "tier": 2,
+    "src": "wikt",
+    "label": "colloquial"
+   },
+   {
+    "form": "будующий",
+    "norm": "будущий",
+    "rule": "spelling",
+    "tier": 2,
+    "src": "gramota",
+    "ref": 212395,
+    "label": "Грамота.ру, вопрос №212395: «Правильно: будущий»"
+   },
+   {
+    "form": "координально",
+    "norm": "кардинально",
+    "rule": "spelling",
+    "tier": 2,
+    "src": "gramota",
+    "ref": 204713,
+    "label": "Грамота.ру, вопрос №204713: «Правильно: кардинально»"
+   },
+   {
+    "form": "вообщем",
+    "norm": "в общем",
+    "rule": "separate",
+    "tier": 2,
+    "src": "wikt",
+    "label": "misspelling"
+   },
+   {
+    "form": "врятли",
+    "norm": "вряд ли",
+    "rule": "separate",
+    "tier": 2,
+    "src": "wikt",
+    "label": "misspelling"
+   },
+   {
+    "form": "всмысле",
+    "norm": "в смысле",
+    "rule": "separate",
+    "tier": 2,
+    "src": "wikt",
+    "label": "colloquial, proscribed"
+   },
+   {
+    "form": "еслибы",
+    "norm": "если бы",
+    "rule": "separate",
+    "tier": 2,
+    "src": "wikt",
+    "label": "nonstandard"
+   },
+   {
+    "form": "сходу",
+    "norm": "с ходу",
+    "rule": "separate",
+    "tier": 2,
+    "src": "wikt",
+    "label": "misspelling"
+   },
+   {
+    "form": "тортЫ",
+    "norm": "тОрты",
+    "rule": "stress",
+    "tier": 3,
+    "src": "fipi2026",
+    "label": "орфоэпический список"
+   },
+   {
+    "form": "бантЫ",
+    "norm": "бАнты",
+    "rule": "stress",
+    "tier": 3,
+    "src": "fipi2026",
+    "label": "орфоэпический список"
+   },
+   {
+    "form": "аэропортЫ",
+    "norm": "аэропОрты",
+    "rule": "stress",
+    "tier": 3,
+    "src": "fipi2026",
+    "label": "орфоэпический список"
+   },
+   {
+    "form": "шарфЫ",
+    "norm": "шАрфы",
+    "rule": "stress",
+    "tier": 3,
+    "src": "fipi2026",
+    "label": "орфоэпический список"
+   },
+   {
+    "form": "кранЫ",
+    "norm": "крАны",
+    "rule": "stress",
+    "tier": 3,
+    "src": "fipi2026",
+    "label": "орфоэпический список"
+   },
+   {
+    "form": "дОсуг",
+    "norm": "досУг",
+    "rule": "stress",
+    "tier": 3,
+    "src": "fipi2026",
+    "label": "орфоэпический список"
+   },
+   {
+    "form": "жАлюзи",
+    "norm": "жалюзИ",
+    "rule": "stress",
+    "tier": 3,
+    "src": "fipi2026",
+    "label": "орфоэпический список"
+   },
+   {
+    "form": "катАлог",
+    "norm": "каталОг",
+    "rule": "stress",
+    "tier": 3,
+    "src": "fipi2026",
+    "label": "орфоэпический список"
+   },
+   {
+    "form": "квАртал",
+    "norm": "квартАл",
+    "rule": "stress",
+    "tier": 3,
+    "src": "fipi2026",
+    "label": "орфоэпический список"
+   },
+   {
+    "form": "килОметр",
+    "norm": "киломЕтр",
+    "rule": "stress",
+    "tier": 3,
+    "src": "fipi2026",
+    "label": "орфоэпический список"
+   },
+   {
+    "form": "дОкумент",
+    "norm": "докумЕнт",
+    "rule": "stress",
+    "tier": 3,
+    "src": "fipi2026",
+    "label": "орфоэпический список"
+   },
+   {
+    "form": "кОрысть",
+    "norm": "корЫсть",
+    "rule": "stress",
+    "tier": 3,
+    "src": "fipi2026",
+    "label": "орфоэпический список"
+   },
+   {
+    "form": "крЕмень",
+    "norm": "кремЕнь",
+    "rule": "stress",
+    "tier": 3,
+    "src": "fipi2026",
+    "label": "орфоэпический список"
+   },
+   {
+    "form": "некрОлог",
+    "norm": "некролОг",
+    "rule": "stress",
+    "tier": 3,
+    "src": "fipi2026",
+    "label": "орфоэпический список"
+   },
+   {
+    "form": "пАртер",
+    "norm": "партЕр",
+    "rule": "stress",
+    "tier": 3,
+    "src": "fipi2026",
+    "label": "орфоэпический список"
+   },
+   {
+    "form": "пОртфель",
+    "norm": "портфЕль",
+    "rule": "stress",
+    "tier": 3,
+    "src": "fipi2026",
+    "label": "орфоэпический список"
+   },
+   {
+    "form": "свеклА",
+    "norm": "свЁкла",
+    "rule": "stress",
+    "tier": 3,
+    "src": "fipi2026",
+    "label": "орфоэпический список"
+   },
+   {
+    "form": "статУя",
+    "norm": "стАтуя",
+    "rule": "stress",
+    "tier": 3,
+    "src": "fipi2026",
+    "label": "орфоэпический список"
+   },
+   {
+    "form": "стОляр",
+    "norm": "столЯр",
+    "rule": "stress",
+    "tier": 3,
+    "src": "fipi2026",
+    "label": "орфоэпический список"
+   },
+   {
+    "form": "тАможня",
+    "norm": "тамОжня",
+    "rule": "stress",
+    "tier": 3,
+    "src": "fipi2026",
+    "label": "орфоэпический список"
+   },
+   {
+    "form": "туфлЯ",
+    "norm": "тУфля",
+    "rule": "stress",
+    "tier": 3,
+    "src": "fipi2026",
+    "label": "орфоэпический список"
+   },
+   {
+    "form": "цЕмент",
+    "norm": "цемЕнт",
+    "rule": "stress",
+    "tier": 3,
+    "src": "fipi2026",
+    "label": "орфоэпический список"
+   },
+   {
+    "form": "шОфер",
+    "norm": "шофЁр",
+    "rule": "stress",
+    "tier": 3,
+    "src": "fipi2026",
+    "label": "орфоэпический список"
+   },
+   {
+    "form": "Эксперт",
+    "norm": "экспЕрт",
+    "rule": "stress",
+    "tier": 3,
+    "src": "fipi2026",
+    "label": "орфоэпический список"
+   },
+   {
+    "form": "дЕфис",
+    "norm": "дефИс",
+    "rule": "stress",
+    "tier": 3,
+    "src": "fipi2026",
+    "label": "орфоэпический список"
+   },
+   {
+    "form": "красивЕе",
+    "norm": "красИвее",
+    "rule": "stress",
+    "tier": 3,
+    "src": "fipi2026",
+    "label": "орфоэпический список"
+   },
+   {
+    "form": "кухОнный",
+    "norm": "кУхонный",
+    "rule": "stress",
+    "tier": 3,
+    "src": "fipi2026",
+    "label": "орфоэпический список"
+   },
+   {
+    "form": "Оптовый",
+    "norm": "оптОвый",
+    "rule": "stress",
+    "tier": 3,
+    "src": "fipi2026",
+    "label": "орфоэпический список"
+   },
+   {
+    "form": "сливОвый",
+    "norm": "слИвовый",
+    "rule": "stress",
+    "tier": 3,
+    "src": "fipi2026",
+    "label": "орфоэпический список"
+   },
+   {
+    "form": "звОнит",
+    "norm": "звонИт",
+    "rule": "stress",
+    "tier": 3,
+    "src": "fipi2026",
+    "label": "орфоэпический список"
+   },
+   {
+    "form": "позвОнит",
+    "norm": "позвонИт",
+    "rule": "stress",
+    "tier": 3,
+    "src": "fipi2026",
+    "label": "орфоэпический список"
+   },
+   {
+    "form": "врУчит",
+    "norm": "вручИт",
+    "rule": "stress",
+    "tier": 3,
+    "src": "fipi2026",
+    "label": "орфоэпический список"
+   },
+   {
+    "form": "облЕгчить",
+    "norm": "облегчИть",
+    "rule": "stress",
+    "tier": 3,
+    "src": "fipi2026",
+    "label": "орфоэпический список"
+   },
+   {
+    "form": "откупОрить",
+    "norm": "откУпорить",
+    "rule": "stress",
+    "tier": 3,
+    "src": "fipi2026",
+    "label": "орфоэпический список"
+   },
+   {
+    "form": "углУбить",
+    "norm": "углубИть",
+    "rule": "stress",
+    "tier": 3,
+    "src": "fipi2026",
+    "label": "орфоэпический список"
+   },
+   {
+    "form": "щелкАть",
+    "norm": "щЁлкать",
+    "rule": "stress",
+    "tier": 3,
+    "src": "fipi2026",
+    "label": "орфоэпический список"
+   },
+   {
+    "form": "клеИть",
+    "norm": "клЕить",
+    "rule": "stress",
+    "tier": 3,
+    "src": "fipi2026",
+    "label": "орфоэпический список"
+   },
+   {
+    "form": "начАл",
+    "norm": "нАчал",
+    "rule": "stress",
+    "tier": 3,
+    "src": "fipi2026",
+    "label": "орфоэпический список"
+   },
+   {
+    "form": "принЯл",
+    "norm": "прИнял",
+    "rule": "stress",
+    "tier": 3,
+    "src": "fipi2026",
+    "label": "орфоэпический список"
+   },
+   {
+    "form": "ждАла",
+    "norm": "ждалА",
+    "rule": "stress",
+    "tier": 3,
+    "src": "fipi2026",
+    "label": "орфоэпический список"
+   },
+   {
+    "form": "воврЕмя",
+    "norm": "вОвремя",
+    "rule": "stress",
+    "tier": 3,
+    "src": "fipi2026",
+    "label": "орфоэпический список"
+   },
+   {
+    "form": "нАдолго",
+    "norm": "надОлго",
+    "rule": "stress",
+    "tier": 3,
+    "src": "fipi2026",
+    "label": "орфоэпический список"
+   }
+  ]
+ }
+}

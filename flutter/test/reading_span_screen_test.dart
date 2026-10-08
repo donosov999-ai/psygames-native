@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/languages/fresh_pool.dart';
 import 'package:psygames_flutter/games/reading_span/model.dart';
@@ -18,6 +19,8 @@ import 'package:psygames_flutter/shell/session_report.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'support/settings_fit.dart';
+
+import 'support/real_fonts.dart';
 
 /// 🔴 «ОБЪЁМ ПРИ ЧТЕНИИ» ИГРАЕТСЯ ЧТЕНИЕМ, НАЖАТИЯМИ И НАБОРОМ.
 ///
@@ -368,6 +371,37 @@ void main() {
     await tester.tap(find.text(L.t('ctaGotIt')));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('rspan-start')), findsOneWidget, reason: 'после «Понятно» — экран старта');
+  });
+
+  // Кадр 07.10.2026, 2.56.15 на 360 пт: «Бессмыслица» рвалась посреди слова — «Бессмыслиц|а».
+  // Шрифт проб (знак = кегль) такого не показывает, поэтому мера — живым Roboto ([loadRoboto]).
+  testWidgets('🔴 кнопки суждения на 360×640 живым шрифтом: подпись не рвётся посреди слова (en ru de es fr it pt)',
+      (tester) async {
+    await loadRoboto();
+    tester.view.physicalSize = const Size(360, 640);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    addTearDown(() => L.load('ru'));
+    final broken = <String>[];
+    for (final lang in robotoLanguages) {
+      L.useForTest(lang, (jsonDecode(File('assets/l10n/$lang.json').readAsStringSync()) as Map).cast<String, String>());
+      await tester.pumpWidget(const SizedBox());
+      await boot(tester, level: 1);
+      await tester.tap(find.byKey(const Key('rspan-start')));
+      await tester.pump();
+      for (final (key, button) in [('makesSense', 'rspan-sense'), ('nonsense', 'rspan-nonsense')]) {
+        final label = L.t(key);
+        final text = find.descendant(
+          of: find.byKey(Key(button)),
+          matching: find.byWidgetPredicate((w) => w is RichText && w.text.toPlainText() == label),
+        );
+        expect(text, findsOneWidget, reason: '$lang: подпись «$label» на кнопке');
+        for (final w in wordsSplitAcrossLines(tester.renderObject<RenderParagraph>(text), label)) {
+          broken.add('$lang «$w»');
+        }
+      }
+    }
+    expect(broken, isEmpty, reason: 'слово подписи разорвано переносом');
   });
 
   testWidgets('🔴 настройка влезает в 360×640 по-английски и по-русски: «Начать» видна, ничего за краем (ae1d918b)',

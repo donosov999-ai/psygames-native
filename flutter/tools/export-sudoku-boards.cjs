@@ -160,11 +160,20 @@ const readOld = (name) => {
 };
 
 // ── 1. Лестница и банк — быстро и без случайности ─────────────────────────────────────
-const isBankLevel = (cfg) => cfg.variant === 'none' && cfg.N === bank.BANK_N;
+// Банк — классика 9×9 и ступени со своей полосой банка (`bankRating`: Wordoku, звери).
+const isBankLevel = (cfg) => (cfg.variant === 'none' || cfg.bankRating !== undefined) && cfg.N === bank.BANK_N;
+const bankBands = new Map();
+for (const r of JSON.parse(fs.readFileSync(path.join(src, 'services/sudoku-bank/boards.json'), 'utf8')).rows) bankBands.set(Math.round(r.r * 10), (bankBands.get(Math.round(r.r * 10)) ?? 0) + 1);
 const ladder = [];
 for (let lv = 1; lv <= LAST; lv++) {
   const c = core.levelConfig(lv);
-  ladder.push({ level: lv, n: c.N, br: c.BR, bc: c.BC, blanks: c.blanks, variant: c.variant, hintMax: c.hintMax, lives: c.lives });
+  if (c.bankRating !== undefined && (bankBands.get(Math.round(c.bankRating * 10)) ?? 0) < 20) {
+    throw Error(`ступень ${lv}: полоса банка ${c.bankRating} — ${bankBands.get(Math.round(c.bankRating * 10)) ?? 0} досок, нужно ≥ 20`);
+  }
+  ladder.push({
+    level: lv, n: c.N, br: c.BR, bc: c.BC, blanks: c.blanks, variant: c.variant, hintMax: c.hintMax, lives: c.lives,
+    ...(c.bankRating !== undefined ? { rating: c.bankRating } : {}),
+  });
 }
 write('sudoku-ladder.json', {
   выгружено: STAMP,

@@ -292,8 +292,11 @@ export default function PseudowordEchoGame() {
   const startTimeRef = useRef(0);
   const advTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // валидный целевой язык: не совпадает с языком интерфейса
-  const tgt = targetLang === language ? (language === 'en' ? 'es' : 'en') : targetLang;
+  // 🔴 РОДНОЙ ЯЗЫК — ТОЖЕ ЯЗЫК ЗАДАНИЯ (решение Дениса 01.10.2026, задача d0ad03d9).
+  // Раньше язык интерфейса отсекался из выбора и подменялся на en/es: англоязычный
+  // игрок никогда не получал английский, русскоязычный — русский. Откат остаётся
+  // только для языка, которого нет в списке.
+  const tgt = TARGET_LANGS.some((l) => l.code === targetLang) ? targetLang : (language === 'en' ? 'es' : 'en');
   const ttsBlock = useTtsBlock(tgt);
   /** Играть можно, только если молчать не по чему: и голос есть, и звук включён. */
   const voiceOk = ttsBlock === null;
@@ -497,7 +500,7 @@ export default function PseudowordEchoGame() {
           {t('langToTrain')}
         </Text>
         <View style={styles.optionButtons}>
-          {TARGET_LANGS.filter((l) => l.code !== language).map((l) => (
+          {TARGET_LANGS.map((l) => (
             <TouchableOpacity
               accessibilityRole="button"
               key={l.code}

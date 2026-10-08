@@ -361,6 +361,33 @@ class _Judge extends StatelessWidget {
 Color rspanOnColor(Color background) =>
     background.computeLuminance() > 0.179 ? const Color(0xDD000000) : Colors.white;
 
+/// Подпись кнопки, которая переносится только по пробелам. Слово, не влезающее в строку целиком,
+/// ужимается, а не рвётся по буквам: кадр 2.56.15 на 360 пт (07.10.2026) — «Бессмыслиц|а» на
+/// кнопке суждения. Многословная подпись по-прежнему переносится по словам — и при крупном
+/// системном шрифте тоже.
+class _WholeWordsLabel extends StatelessWidget {
+  const _WholeWordsLabel(this.text);
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) => LayoutBuilder(builder: (context, c) {
+        final style = DefaultTextStyle.of(context).style;
+        var longest = 0.0;
+        for (final word in text.split(RegExp(r'\s+'))) {
+          final p = TextPainter(
+            text: TextSpan(text: word, style: style),
+            textDirection: Directionality.of(context),
+            textScaler: MediaQuery.textScalerOf(context),
+            maxLines: 1,
+          )..layout();
+          longest = max(longest, p.width);
+        }
+        if (longest <= c.maxWidth) return Text(text, textAlign: TextAlign.center);
+        return FittedBox(fit: BoxFit.scaleDown, child: Text(text, maxLines: 1, softWrap: false));
+      });
+}
+
 /// Кнопки суждения — прибиты к низу, как в вебе (эталон math-sprint).
 class _JudgeButtons extends StatelessWidget {
   const _JudgeButtons({required this.last, required this.onJudge});
@@ -384,7 +411,8 @@ class _JudgeButtons extends StatelessWidget {
             onPressed: () => onJudge(says),
             icon: Icon(icon, size: 26),
             // Подпись переносится, а не обрезается: при крупном шрифте «Имеет смысл» не влезала.
-            label: Text(label, textAlign: TextAlign.center),
+            // Но переносится только по пробелам — слово целиком ([_WholeWordsLabel]).
+            label: _WholeWordsLabel(label),
           ),
         );
     return Padding(

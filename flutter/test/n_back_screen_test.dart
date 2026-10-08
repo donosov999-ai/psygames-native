@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/n_back/model.dart';
 import 'package:psygames_flutter/games/n_back/screen.dart';
@@ -15,6 +16,8 @@ import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:psygames_flutter/shell/voice.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'support/settings_fit.dart';
+
+import 'support/real_fonts.dart';
 
 /// Голос для проб: считает, что сказано, и умеет «не иметь голоса».
 class _FakeVoice implements VoiceBackend {
@@ -404,6 +407,33 @@ void main() {
     }
     await tester.tap(find.byKey(const Key('lesson-close')));
     await tester.pumpAndSettle();
+  });
+
+  // Кадр 07.10.2026, 2.56.15 на 360 пт: подсказка двойного потока обрезана на en / ru / es —
+  // «…You can tap bo…», «…повторяет 2 на…». Мера — живым Roboto ([loadRoboto]).
+  testWidgets('🔴 подсказка двойного потока на 360×640 живым шрифтом — целиком (en ru de es fr it pt)',
+      (tester) async {
+    await loadRoboto();
+    tester.view.physicalSize = const Size(360, 640);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    addTearDown(() => L.load('ru'));
+    final cut = <String>[];
+    for (final lang in robotoLanguages) {
+      L.useForTest(lang, (jsonDecode(File('assets/l10n/$lang.json').readAsStringSync()) as Map).cast<String, String>());
+      await tester.pumpWidget(const SizedBox());
+      // Двойной поток — с голосом, как у соседней пробы кнопок «Позиция» и «Звук».
+      await boot(tester, level: 9, voice: true);
+      await tester.tap(find.text(L.t('start')));
+      await tester.pump();
+      final hint = find.byWidgetPredicate(
+          (w) => w is RichText && w.text.toPlainText().startsWith(L.t('nBackDualHint').split('{n}').first));
+      expect(hint, findsOneWidget, reason: '$lang: подсказка двойного потока на экране партии');
+      final p = tester.renderObject<RenderParagraph>(hint);
+      if (p.didExceedMaxLines) cut.add('$lang: «${p.text.toPlainText()}»');
+      await tester.pumpWidget(const SizedBox());
+    }
+    expect(cut, isEmpty, reason: 'подсказка обрезана');
   });
 
   testWidgets('🔴 настройка на 360×640 по-английски и по-русски: «Начать» на первом экране (ae1d918b)', (tester) async {
