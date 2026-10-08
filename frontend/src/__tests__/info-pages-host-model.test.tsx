@@ -140,6 +140,15 @@ describe('Источники под оболочкой', () => {
     expect(mockRouter.back).toHaveBeenCalledTimes(1);
     образец('sources_model.json', m);
   });
+
+  it('🔴 EN: имена и авторство источников — по-английски (было «Записи произношения Викисловаря»); образец для Dart', async () => {
+    await AsyncStorage.setItem('language', 'en');
+    const { last } = await смонтировать('/sources');
+    const m = last();
+    const cyr = /[А-Яа-яЁё]/;
+    expect(m.cards.filter((c: any) => cyr.test(c.name) || cyr.test(c.credit ?? '') || cyr.test(c.what)).map((c: any) => c.name)).toEqual([]);
+    образец('sources_model_en.json', m);
+  });
 });
 
 describe('Коллекция под оболочкой', () => {
@@ -161,6 +170,39 @@ describe('Коллекция под оболочкой', () => {
       expect(last().hint).toBe(null);
     }
     образец('collection_model.json', m);
+    // Входы эталона для Dart (вариант Б) — ключи хранилища, на которых построена модель, и тап.
+    образец('collection_input.json', { storage: { psygames_earned_total_v1: JSON.stringify({ nzt48: 500 }) }, tap: собрано });
+    await TestRenderer.act(async () => { ui().tap(собрано); });
+    образец('collection_model_hint.json', last());
+  });
+
+  it('EN: пороги из файла настроек, заработанного нет — баланс токенов; образец для Dart', async () => {
+    await AsyncStorage.setItem('language', 'en');
+    // Токены и пороги — тем же путём, что в приложении: у обоих кэш в памяти модуля, и запись в
+    // хранилище мимо них в общем прогоне не видна (замер: «0 of 12 · ⭐0» при 778 в хранилище).
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { addTokens } = require('@/src/services/tokens');
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { установитьПорогиФигурок } = require('@/src/services/collection');
+    await addTokens('nzt48', 778);
+    const коллекция = { Acorn: 100, Pebble: 300, Shell: 700 };
+    await AsyncStorage.setItem('psygames_playlists_override', JSON.stringify({ профили: {}, коллекция }));
+    установитьПорогиФигурок(коллекция);
+    try {
+      const { last } = await смонтировать('/collection');
+      const m = last();
+      expect(m.figures.slice(0, 3).map((f: any) => f.owned)).toEqual([true, true, true]);
+      expect(/[А-Яа-яЁё]/.test(JSON.stringify(m))).toBe(false);
+      образец('collection_model_en.json', m);
+      const storage: Record<string, string> = {};
+      for (const k of ['psygames_tokens_v1', 'psygames_playlists_override', 'psygames_earned_total_v1']) {
+        const v = await AsyncStorage.getItem(k);
+        if (v != null) storage[k] = v;
+      }
+      образец('collection_input_en.json', { storage, tap: null });
+    } finally {
+      установитьПорогиФигурок(null);
+    }
   });
 });
 
@@ -183,6 +225,40 @@ describe('Достижения под оболочкой', () => {
     await TestRenderer.act(async () => { ui().back(); });
     expect(mockBack).toHaveBeenCalledTimes(1);
     образец('achievements_model.json', m);
+    // Входы эталона для Dart (вариант Б) — ключ хранилища, на котором построена модель.
+    образец('achievements_input.json', { storage: { psygames_achievements_unlocked: await AsyncStorage.getItem('psygames_achievements_unlocked') } });
+  });
+
+  it('EN: неисправные записи — без даты, сырая строка, переполнение даты, повтор и чужой id; образец для Dart', async () => {
+    await AsyncStorage.setItem('language', 'en');
+    const записи = [
+      { id: 'streak_3', date: '2026-02-30' }, // переполнение — 2 марта, как new Date(г, м, д)
+      { id: 'first_warmup', date: 'вчера' }, // непонятное — как есть
+      { id: 'corsi_7', date: '' }, // пустая дата — открыто без даты
+      { id: 'polyglot_100', date: '2026-00-10' }, // месяц 00 — декабрь прошлого года
+      { id: 'streak_3', date: '2026-05-17' }, // повтор: дата — первой записи, в счёте — обе
+      { id: 'retired_badge', date: '2026-01-01' }, // id, которого в таблице нет: в счёте есть, карточки нет
+      { id: 'fast_schulte', date: '0026-01-05' }, // год 0–99 — 1900-е, как у new Date
+    ];
+    await AsyncStorage.setItem('psygames_achievements_unlocked', JSON.stringify(записи));
+    const { last } = await смонтировать('/achievements');
+    const m = last();
+    expect(m.title).toContain(`${записи.length}/`);
+    const карточки = m.sections.flatMap((s: any) => s.cards);
+    expect(карточки.find((c: any) => c.id === 'first_warmup').date).toBe('вчера');
+    expect(карточки.find((c: any) => c.id === 'corsi_7')).toMatchObject({ unlocked: true, date: null });
+    образец('achievements_model_en.json', m);
+    образец('achievements_input_en.json', { storage: { psygames_achievements_unlocked: JSON.stringify(записи) } });
+  });
+
+  it('дата открытия на 12 языках — оракул шаблонов ICU для Dart', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { humanDate } = require('../../app/achievements');
+    const языки = ['ru', 'en', 'es', 'pt', 'hi', 'zh', 'de', 'fr', 'it', 'ja', 'ko', 'ar'];
+    const даты = ['2026-01-05', '2026-05-17', '2026-10-07', '2027-12-31', '2028-02-29', '2026-02-30', '2026-13-01', '1999-07-09', 'bad', ''];
+    const rows = языки.flatMap((lang) => даты.map((date) => ({ lang, date, out: humanDate(date, lang) })));
+    expect(rows.find((r) => r.lang === 'ru' && r.date === 'bad')!.out).toBe('bad');
+    образец('achievements_dates_oracle.json', rows);
   });
 });
 
@@ -202,5 +278,35 @@ describe('Лиги под оболочкой', () => {
     expect(m.leagues.filter((l: any) => l.here).length).toBe(1);
     expect(m.empty).toBe(null);
     образец('leagues_model.json', m);
+    // Входы эталона — для сверки расчёта на Dart (вариант Б): очки сезона считаются от «сейчас».
+    образец('leagues_input.json', { now: Date.now(), sessions: партии });
+  });
+
+  it('формулы лиг — эталон по точкам для Dart: границы каждой лиги ±1, середины рангов, верх', () => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { LEAGUES, standingFor, earnedFrames } = require('@/src/services/progression');
+    const точки = new Set<number>([0, 1, 7, 133, 266, 267, 1e6]);
+    for (const l of LEAGUES) for (const d of [-1, 0, 1, 2, 99, 333, 777]) if (l.from + d >= 0) точки.add(l.from + d);
+    const rows = [...точки].sort((a, b) => a - b).map((pts) => {
+      const st = standingFor(pts);
+      return { pts, league: st.league.id, rank: st.rank, toNext: st.toNext, progress: Number(st.progress.toFixed(12)), frames: earnedFrames(pts).map((f: any) => f.id) };
+    });
+    expect(rows.length).toBeGreaterThan(60);
+    образец('progression_oracle.json', rows);
+  });
+
+  it('EN — тот же расчёт, строки по-английски; образец для Dart', async () => {
+    await AsyncStorage.setItem('language', 'en');
+    const партии = [
+      { profile_id: 'nzt48', game_type: 'sudoku', score: 5200, time_seconds: 60, timestamp: день(2) },
+      { profile_id: 'nzt48', game_type: 'corsi', score: 80, time_seconds: 60, timestamp: день(29) },
+    ];
+    await AsyncStorage.setItem('psygames_sessions', JSON.stringify(партии));
+    const { last } = await смонтировать('/leagues');
+    const m = last();
+    expect(m.card.pts).toBe('5280');
+    expect(/[А-Яа-яЁё]/.test(JSON.stringify(m))).toBe(false);
+    образец('leagues_model_en.json', m);
+    образец('leagues_input_en.json', { now: Date.now(), sessions: партии });
   });
 });

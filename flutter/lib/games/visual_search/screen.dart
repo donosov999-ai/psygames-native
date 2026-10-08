@@ -7,9 +7,11 @@ import '../../shell/aux_action.dart';
 import '../../shell/boss_round.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/game_shell.dart';
+import '../../shell/game_preset.dart';
 import '../../shell/l10n.dart';
 import '../../shell/lesson.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/level_rules.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import 'model.dart';
@@ -58,6 +60,9 @@ class _VisualSearchScreenState extends State<VisualSearchScreen> {
 
   List<VsItem> _items = const [];
   int _round = 1;
+
+  /// Раундов в этой партии: [VisualSearchScreen.trials] и, с 32-го, лишние (`vsDrawExtraTrials`).
+  int _trials = 8;
   int _found = 0;
   int _hits = 0;
   int _errors = 0;
@@ -108,6 +113,9 @@ class _VisualSearchScreenState extends State<VisualSearchScreen> {
     _errors = 0;
     _won = false;
     _phase = _Phase.playing;
+    // С 32-го раундов в среднем больше (ось без предела, model.dart). Шаг зарядки — прежняя
+    // длина: пресет лестницу не двигает, а бюджет шага рассчитан на неё.
+    _trials = widget.trials + (GamePreset.isPreset ? 0 : vsDrawExtraTrials(_ladder.level, _rng));
     _newRound(1);
   }
 
@@ -116,7 +124,7 @@ class _VisualSearchScreenState extends State<VisualSearchScreen> {
     _cfg = vsLevelParams(_ladder.level, r);
     _found = 0;
     _phase = _Phase.playing;
-    _target = vsPickTarget(_cfg.conjunction, vsColors, _rng);
+    _target = vsPickTarget(_cfg.conjunction, vsPaletteFor(_ladder.level), _rng);
     _items = const []; // доска раздаётся, когда известна сторона поля
   }
 
@@ -139,6 +147,7 @@ class _VisualSearchScreenState extends State<VisualSearchScreen> {
       w: inner,
       h: inner,
       rnd: _rng,
+      palette: vsPaletteFor(_ladder.level),
       decoyCount: _cfg.decoys,
     );
   }
@@ -177,7 +186,7 @@ class _VisualSearchScreenState extends State<VisualSearchScreen> {
 
   Future<void> _advance() async {
     if (!mounted) return;
-    if (_round >= widget.trials) {
+    if (_round >= _trials) {
       final passed = _errors <= vsErrorsAllowed;
       // Веха как в вебе: каждый третий ЗАСЧИТАННЫЙ уровень — бой «сложи подсвеченные».
       bool? boss;
@@ -229,6 +238,15 @@ class _VisualSearchScreenState extends State<VisualSearchScreen> {
     }
     return GameShell(
       title: L.t('visualSearch'),
+      // Правила уровня объявляются до первого нажатия уровня и на итоге. До 02.10.2026 экран
+      // их не объявлял вовсе: «несколько целей» (L4) и «цвет + форма» (L8) включались молча,
+      // хотя в таблице правил стояли (задача 7f81fbc6, вместе с «цвета ближе» с L32).
+      levelRule: LevelRuleSpot(
+        gameId: 'visual_search',
+        level: _ladder.level,
+        state: widget.state,
+        calm: (_round == 1 && _hits == 0 && _errors == 0 && _found == 0) || _phase == _Phase.result,
+      ),
       onLesson: () => openDemoLesson(context, title: L.t('visualSearch'), trials: _demoTrials()),
       hud: [
         HudItem(
@@ -243,7 +261,7 @@ class _VisualSearchScreenState extends State<VisualSearchScreen> {
         ),
         HudItem(
           label: L.t('round'),
-          value: '$_round/${widget.trials}',
+          value: '$_round/$_trials',
           icon: Icons.repeat,
         ),
         HudItem(
@@ -365,7 +383,7 @@ class _VisualSearchScreenState extends State<VisualSearchScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              '$_hits/${widget.trials} · ${L.t('errors')} $_errors',
+              '$_hits/$_trials · ${L.t('errors')} $_errors',
               key: const Key('result'),
               textAlign: TextAlign.center,
               style: text.titleMedium,

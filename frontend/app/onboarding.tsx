@@ -390,6 +390,9 @@ function OnboardingInner() {
           последней внутри прокрутки — её видел только тот, кто долистал двадцать карточек.
           Верхний выход (стрелка) остаётся: он же — норма для всех экранов; нижняя кнопка —
           второй, крупный выход у большого пальца. Вне ScrollView, поэтому виден всегда.
+          🔴 ШИРИНА — КОЛОНКИ КАРТОЧЕК, А НЕ СЛОВА (07.10.2026, эмулятор, 2.56.15 EN). Экран выравнивает
+          детей по центру, и полоса со своей кнопкой сжималась до подписи: «Skip» уже 48 по высоте —
+          вертикальная капсула вместо крупной кнопки. Полоса — во всю ширину, кнопка — как карточки.
         */}
         <View style={[styles.pickerFooter, { borderTopColor: colors.border, backgroundColor: colors.background }]}>
           <TouchableOpacity
@@ -398,7 +401,7 @@ function OnboardingInner() {
             testID="onb-skip-footer"
             disabled={busy}
             onPress={skipPicker}
-            style={[styles.pickerSkip, { borderColor: colors.border, backgroundColor: colors.surface }]}
+            style={[styles.pickerSkip, { width: containerW, borderColor: colors.border, backgroundColor: colors.surface }]}
           >
             <Text style={[styles.pickerSkipText, { color: colors.text }]}>{t('skip')}</Text>
           </TouchableOpacity>
@@ -497,7 +500,7 @@ const styles = StyleSheet.create({
   quizProfile: { fontSize: 12.5, textAlign: 'center' },
   quizOr: { fontSize: 12.5, fontWeight: '700', textAlign: 'center', textTransform: 'uppercase', letterSpacing: 0.5 },
   pickerSkip: { minHeight: 48, borderRadius: 14, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
-  pickerFooter: { paddingHorizontal: 16, paddingTop: 8, paddingBottom: 12, borderTopWidth: StyleSheet.hairlineWidth },
+  pickerFooter: { alignSelf: 'stretch', alignItems: 'center', paddingHorizontal: 16, paddingTop: 8, paddingBottom: 12, borderTopWidth: StyleSheet.hairlineWidth },
   pickerSkipText: { fontSize: 15, fontWeight: '800' },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: 12 },
   stepCounter: { fontSize: 13, fontWeight: '700' },

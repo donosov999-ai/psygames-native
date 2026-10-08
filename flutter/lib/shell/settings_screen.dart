@@ -10,16 +10,15 @@ import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../games/languages/lang_names.dart';
 import 'app_look.dart';
-import 'app_update.dart';
 import 'hub_screen.dart' show HubCardTap;
 import 'l10n.dart';
 import 'profiles.dart';
 import 'progress_transfer.dart';
 import 'shared_state.dart';
+import 'update_check.dart';
 
 /// 🔴 НАСТРОЙКИ НА FLUTTER — ПЕРЕНОС ПО ФУНКЦИЯМ ВЕБ-ЭКРАНА (задача eae0879c).
 ///
@@ -314,34 +313,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   /// «Проверить обновления» (запрос Дениса, v1.151 веба): свежая версия → в магазин платформы.
   Future<void> _checkUpdates() async {
+    // Один путь с «Что нового» (`update_check.dart`): значок «…» гаснет, как только пришёл ответ.
     setState(() => _updChecking = true);
-    final latest = await AppUpdate.fetchLatest();
-    if (!mounted) return;
-    setState(() => _updChecking = false);
-    if (latest == null) {
-      await _alert(L.t('updCheckFailed'));
-      return;
-    }
-    if (!AppUpdate.isNewer(latest, _version)) {
-      await _alert('✓ ${L.t('updLatest')}', 'v$_version');
-      return;
-    }
-    final go = await showDialog<bool>(
-      context: context,
-      builder: (c) => AlertDialog(
-        title: Text('${L.t('updAvailable')} v$latest'),
-        content: Text(L.t('updAvailableBody')),
-        actions: [
-          TextButton(onPressed: () => Navigator.of(c).pop(false), child: Text(L.t('updLater'))),
-          FilledButton(key: const Key('settings-update-download'), onPressed: () => Navigator.of(c).pop(true), child: Text(L.t('updDownload'))),
-        ],
-      ),
+    await checkForUpdatesDialog(
+      context,
+      version: _version,
+      downloadKey: 'settings-update-download',
+      onFetched: () => mounted ? setState(() => _updChecking = false) : null,
     );
-    if (go == true) {
-      try {
-        await launchUrl(Uri.parse(AppUpdate.storeUrl()), mode: LaunchMode.externalApplication);
-      } catch (_) {}
-    }
+    if (mounted && _updChecking) setState(() => _updChecking = false);
   }
 
   /// Сколько профилей в загруженном составе; null — заводской из сборки.

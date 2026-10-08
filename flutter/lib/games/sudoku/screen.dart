@@ -897,6 +897,15 @@ class _SudokuScreenState extends State<SudokuScreen> {
     _deal();
   }
 
+  /// Клетка под туманом (туман войны, efb63126). Выбрать её нельзя и так — касание закрытой клетки
+  /// выключено на доске; а вот ВЫБРАННАЯ клетка уходит под туман, когда отмена снимает цифру, что
+  /// её расчистила, — ставить в неё тогда нельзя (`_place`).
+  bool _fogged(int r, int c) {
+    final board = _board, fog = board?.geometry.fog;
+    if (_sideBoard != null || board == null || fog == null || r >= _grid.length) return false;
+    return !fogRevealed(fog, _grid, board.solution)[r][c];
+  }
+
   void _select(int r, int c) {
     if (_won || _lost) return;
     final paint = _paint;
@@ -967,6 +976,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
     final sel = _selected;
     if (solution == null || sel == null || _won || _lost) return;
     if (_given[sel.r][sel.c]) return;   // подсказку задания не трогаем
+    if (_fogged(sel.r, sel.c)) return;   // отмена вернула туман над выбранной клеткой
 
     setState(() {
       final was = _grid[sel.r][sel.c];
@@ -1766,6 +1776,9 @@ String variantTitle(String variant) => switch (variant) {
       'argyle' => L.t('sdkRule_argyle'),
       'littlekiller' => L.t('sdkRule_littlekiller'),
       'xsums' => L.t('sdkRule_xsums'),
+      'cipher' => L.t('sdkRule_cipher'),
+      'fog' => L.t('sdkRule_fog'),
+      'chaos' => L.t('sdkRule_chaos'),
       'friends' => L.t('sdkRule_friends'),
       _ => L.t('sdkRule_none'),
     };
@@ -1837,6 +1850,8 @@ class SudokuBoardView extends StatelessWidget {
               ),
             );
 
+        // Туман: что открыто — выводится из сетки (верные цифры расчищают крест), см. fogRevealed.
+        final fogOpen = g.fog == null ? null : fogRevealed(g.fog!, grid, board.solution);
         Widget boardGrid = SizedBox(
           width: side,
           height: side,
@@ -1868,6 +1883,9 @@ class SudokuBoardView extends StatelessWidget {
                             image: symbols?.image,
                             decor: cellDecorFor(g, r, col),
                             cageSum: cageSumAt(r, col),
+                            letter: cipherLetterAt(g, r, col),
+                            fogged: fogOpen != null && !fogOpen[r][col],
+                            borderClue: g.chaos == null || g.chaos![r][col] < 0 ? null : g.chaos![r][col],
                           ),
                       ],
                     ),
@@ -2004,6 +2022,9 @@ class _Cell extends StatelessWidget {
     this.image,
     this.decor,
     this.cageSum,
+    this.letter,
+    this.fogged = false,
+    this.borderClue,
   });
 
   final double size;
@@ -2016,6 +2037,15 @@ class _Cell extends StatelessWidget {
 
   /// Сумма группы — у её угловой клетки; `null` — не угол.
   final int? cageSum;
+
+  /// Буква шифра (A..I) клетки-подсказки: в пустой — крупно вместо цифры, после хода — в углу.
+  final String? letter;
+
+  /// Клетка под туманом: ни цифры, ни пометок, касание не выбирает её (туман войны, efb63126).
+  final bool fogged;
+
+  /// Самосборка: сколько сторон клетки — граница области; `null` — подсказки нет (задача 6cee3610).
+  final int? borderClue;
 
   /// Значок цифры; `null` — сама цифра.
   final String Function(int)? glyph;
@@ -2060,18 +2090,49 @@ class _Cell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final regions = board.geometry.regions;
+    // Самосборка: областей на доске нет — толстая черта только по краю, внутри её выводит игрок.
+    final chaos = regions == null && board.variant == 'chaos';
     final bool thickTop = regions != null
         ? _regionEdge(row, col, row - 1, col)
-        : row % board.br == 0;
+        : chaos ? row == 0 : row % board.br == 0;
     final bool thickLeft = regions != null
         ? _regionEdge(row, col, row, col - 1)
-        : col % board.bc == 0;
+        : chaos ? col == 0 : col % board.bc == 0;
     final bool thickBottom = regions != null
         ? _regionEdge(row, col, row + 1, col)
-        : row == board.n - 1 || (row + 1) % board.br == 0;
+        : row == board.n - 1 || (!chaos && (row + 1) % board.br == 0);
     final bool thickRight = regions != null
         ? _regionEdge(row, col, row, col + 1)
-        : col == board.n - 1 || (col + 1) % board.bc == 0;
+        : col == board.n - 1 || (!chaos && (col + 1) % board.bc == 0);
+    final border = Border(
+      top: _side(thickTop),
+      left: _side(thickLeft),
+      bottom: _side(thickBottom),
+      right: _side(thickRight),
+    );
+
+    if (fogged) {
+      // Туман: черта блоков остаётся — по ней видно, где расчищать, — а содержимого нет. Касание
+      // выключено (onTap: null), поэтому ни выбрать клетку, ни поставить в неё цифру нельзя.
+      return SizedBox(
+        width: size,
+        height: size,
+        child: Material(
+          color: Color.alphaBlend(scheme.outline.withValues(alpha: 0.38), scheme.surface),
+          child: InkWell(
+            key: Key('cell_${row}_$col'),
+            onTap: null,
+            child: DecoratedBox(
+              decoration: BoxDecoration(border: border),
+              child: Center(
+                child: Icon(Icons.cloud, key: Key('fog_${row}_$col'), size: size * 0.42,
+                    color: scheme.onSurface.withValues(alpha: 0.28)),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
 
     return SizedBox(
       width: size,
@@ -2090,14 +2151,7 @@ class _Cell extends StatelessWidget {
           key: Key('cell_${row}_$col'),
           onTap: () => onTap(row, col),
           child: DecoratedBox(
-            decoration: BoxDecoration(
-              border: Border(
-                top: _side(thickTop),
-                left: _side(thickLeft),
-                bottom: _side(thickBottom),
-                right: _side(thickRight),
-              ),
-            ),
+            decoration: BoxDecoration(border: border),
             // Цифра ГАСИТ пометки, но не стирает их: убрал цифру — кандидаты
             // снова на месте (visiblePencilDigits, разбор в marks.dart).
             child: Stack(fit: StackFit.expand, children: [
@@ -2125,6 +2179,46 @@ class _Cell extends StatelessWidget {
                       ),
                     ),
               ),
+              if (letter != null)
+                value == 0 && mask == 0
+                    ? Center(
+                        child: Text(
+                          letter!,
+                          key: Key('letter_${row}_$col'),
+                          style: TextStyle(fontSize: size * 0.5, fontWeight: FontWeight.w800, color: scheme.tertiary),
+                        ),
+                      )
+                    : Positioned(
+                        right: 3,
+                        top: 1,
+                        child: Text(
+                          letter!,
+                          key: Key('letter_${row}_$col'),
+                          style: TextStyle(fontSize: size * 0.24 < 8 ? 8 : size * 0.24, fontWeight: FontWeight.w800, color: scheme.tertiary),
+                        ),
+                      ),
+              if (borderClue != null)
+                Positioned(
+                  left: 2,
+                  top: 2,
+                  child: Container(
+                    key: Key('border-clue-${row}_$col'),
+                    padding: const EdgeInsets.symmetric(horizontal: 2),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: scheme.tertiary, width: 1),
+                      borderRadius: BorderRadius.circular(3),
+                    ),
+                    child: Text(
+                      '$borderClue',
+                      style: TextStyle(
+                        fontSize: size * 0.24 < 8 ? 8 : size * 0.24,
+                        height: 1.1,
+                        fontWeight: FontWeight.w800,
+                        color: scheme.tertiary,
+                      ),
+                    ),
+                  ),
+                ),
               if (cageSum != null)
                 Positioned(
                   left: 3,

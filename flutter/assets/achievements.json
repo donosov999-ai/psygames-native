@@ -1,0 +1,319 @@
+{
+ "categories": [
+  {
+   "key": "milestone",
+   "label_ru": "🏁 Вехи",
+   "label_en": "🏁 Milestones"
+  },
+  {
+   "key": "volume",
+   "label_ru": "🎮 Объём",
+   "label_en": "🎮 Volume"
+  },
+  {
+   "key": "streak",
+   "label_ru": "🔥 Серии",
+   "label_en": "🔥 Streaks"
+  },
+  {
+   "key": "breadth",
+   "label_ru": "🌈 Разнообразие",
+   "label_en": "🌈 Breadth"
+  },
+  {
+   "key": "quality",
+   "label_ru": "⭐ Качество",
+   "label_en": "⭐ Quality"
+  }
+ ],
+ "achievements": [
+  {
+   "id": "first_session",
+   "emoji": "🎯",
+   "category": "volume",
+   "name_ru": "Первая игра",
+   "name_en": "First Game",
+   "desc_ru": "Сыграй любую игру",
+   "desc_en": "Play any game"
+  },
+  {
+   "id": "sessions_10",
+   "emoji": "🎮",
+   "category": "volume",
+   "name_ru": "10 сессий",
+   "name_en": "10 sessions",
+   "desc_ru": "Сыграй 10 игр",
+   "desc_en": "Play 10 games"
+  },
+  {
+   "id": "sessions_50",
+   "emoji": "💪",
+   "category": "volume",
+   "name_ru": "50 сессий",
+   "name_en": "50 sessions",
+   "desc_ru": "Сыграй 50 игр",
+   "desc_en": "Play 50 games"
+  },
+  {
+   "id": "sessions_100",
+   "emoji": "💯",
+   "category": "volume",
+   "name_ru": "Сотня",
+   "name_en": "Century",
+   "desc_ru": "Сыграй 100 игр",
+   "desc_en": "Play 100 games"
+  },
+  {
+   "id": "sessions_500",
+   "emoji": "🏆",
+   "category": "volume",
+   "name_ru": "Полтысячи",
+   "name_en": "500",
+   "desc_ru": "Сыграй 500 игр",
+   "desc_en": "Play 500 games"
+  },
+  {
+   "id": "streak_3",
+   "emoji": "🔥",
+   "category": "streak",
+   "name_ru": "3 дня подряд",
+   "name_en": "3-day streak",
+   "desc_ru": "3 дня Зарядки подряд",
+   "desc_en": "3 days warmup in a row"
+  },
+  {
+   "id": "streak_7",
+   "emoji": "🔥🔥",
+   "category": "streak",
+   "name_ru": "Неделя",
+   "name_en": "7-day streak",
+   "desc_ru": "Неделя без пропуска",
+   "desc_en": "7 days no skip"
+  },
+  {
+   "id": "streak_30",
+   "emoji": "🔥🔥🔥",
+   "category": "streak",
+   "name_ru": "Месяц",
+   "name_en": "30-day streak",
+   "desc_ru": "Месяц подряд",
+   "desc_en": "30 days in a row"
+  },
+  {
+   "id": "streak_100",
+   "emoji": "🌟",
+   "category": "streak",
+   "name_ru": "Сто дней",
+   "name_en": "100-day streak",
+   "desc_ru": "100 дней без пропуска",
+   "desc_en": "100 days no skip"
+  },
+  {
+   "id": "all_categories",
+   "emoji": "🌈",
+   "category": "breadth",
+   "name_ru": "Все категории",
+   "name_en": "All categories",
+   "desc_ru": "Сыграй из всех 6 категорий",
+   "desc_en": "Play from all 6 categories"
+  },
+  {
+   "id": "twenty_unique",
+   "emoji": "🎲",
+   "category": "breadth",
+   "name_ru": "20 разных игр",
+   "name_en": "20 unique games",
+   "desc_ru": "Попробуй 20 разных игр",
+   "desc_en": "Try 20 different games"
+  },
+  {
+   "id": "all_44_games",
+   "emoji": "🎖️",
+   "category": "breadth",
+   "name_ru": "Все игры",
+   "name_en": "All games",
+   "desc_ru": "Хотя бы по разу — весь каталог",
+   "desc_en": "At least once — the whole catalog"
+  },
+  {
+   "id": "first_warmup",
+   "emoji": "⚡",
+   "category": "milestone",
+   "name_ru": "Первая Зарядка",
+   "name_en": "First Warmup",
+   "desc_ru": "Заверши Утреннюю Зарядку",
+   "desc_en": "Complete Morning Warmup"
+  },
+  {
+   "id": "first_assessment",
+   "emoji": "📊",
+   "category": "milestone",
+   "name_ru": "Первый профиль",
+   "name_en": "First Profile",
+   "desc_ru": "Пройди оценку профиля",
+   "desc_en": "Complete Skill Assessment"
+  },
+  {
+   "id": "first_financial",
+   "emoji": "💰",
+   "category": "milestone",
+   "name_ru": "vmPFC чекап",
+   "name_en": "Financial Day",
+   "desc_ru": "Заверши Financial Brain Day",
+   "desc_en": "Complete Financial Brain Day"
+  },
+  {
+   "id": "perfect_warmup",
+   "emoji": "⭐",
+   "category": "quality",
+   "name_ru": "Идеальная Зарядка",
+   "name_en": "Perfect Warmup",
+   "desc_ru": "Завершить серию без ошибок",
+   "desc_en": "Complete a warmup with 0 errors"
+  },
+  {
+   "id": "fast_schulte",
+   "emoji": "🚀",
+   "category": "quality",
+   "name_ru": "Скорость Шульте",
+   "name_en": "Schulte Speed",
+   "desc_ru": "Schulte 5×5 < 30 сек",
+   "desc_en": "Schulte 5×5 under 30s"
+  },
+  {
+   "id": "flanker_low",
+   "emoji": "🛡️",
+   "category": "quality",
+   "name_ru": "Тормоз стальной",
+   "name_en": "Iron inhibition",
+   "desc_ru": "Фланкер: помехи тормозят меньше чем на 30 мс",
+   "desc_en": "Flanker: distractors cost you under 30 ms"
+  },
+  {
+   "id": "corsi_7",
+   "emoji": "🧠",
+   "category": "quality",
+   "name_ru": "Span 7 Corsi",
+   "name_en": "Span 7 Corsi",
+   "desc_ru": "Достигни Corsi span = 7",
+   "desc_en": "Reach Corsi span 7"
+  },
+  {
+   "id": "cpt_no_omission",
+   "emoji": "👁️",
+   "category": "quality",
+   "name_ru": "CPT 0 пропусков",
+   "name_en": "CPT no misses",
+   "desc_ru": "Заверши CPT без omission errors",
+   "desc_en": "Complete CPT with 0 omissions"
+  },
+  {
+   "id": "challenge_7",
+   "emoji": "🎲",
+   "category": "streak",
+   "name_ru": "Неделя вызовов",
+   "name_en": "Challenge week",
+   "desc_ru": "7 вызовов дня подряд",
+   "desc_en": "7 daily challenges in a row"
+  },
+  {
+   "id": "challenge_30",
+   "emoji": "🗓️",
+   "category": "streak",
+   "name_ru": "Месяц вызовов",
+   "name_en": "Challenge month",
+   "desc_ru": "30 вызовов дня подряд",
+   "desc_en": "30 daily challenges in a row"
+  },
+  {
+   "id": "challenge_20_total",
+   "emoji": "🎯",
+   "category": "volume",
+   "name_ru": "Двадцатка",
+   "name_en": "Twenty",
+   "desc_ru": "20 вызовов дня всего",
+   "desc_en": "20 daily challenges total"
+  },
+  {
+   "id": "breathing_10",
+   "emoji": "🌬️",
+   "category": "volume",
+   "name_ru": "Дыхание ×10",
+   "name_en": "Breathing ×10",
+   "desc_ru": "10 дыхательных сессий",
+   "desc_en": "10 breathing sessions"
+  },
+  {
+   "id": "breathing_30",
+   "emoji": "🧘",
+   "category": "volume",
+   "name_ru": "Дыхание ×30",
+   "name_en": "Breathing ×30",
+   "desc_ru": "30 дыхательных сессий",
+   "desc_en": "30 breathing sessions"
+  },
+  {
+   "id": "breathing_streak_7",
+   "emoji": "🌊",
+   "category": "streak",
+   "name_ru": "Неделя дыхания",
+   "name_en": "Breath week",
+   "desc_ru": "7 дней дыхания подряд",
+   "desc_en": "7 days of breathing in a row"
+  },
+  {
+   "id": "chess_blind_5",
+   "emoji": "♟️",
+   "category": "quality",
+   "name_ru": "Слепой взгляд",
+   "name_en": "Blind eye",
+   "desc_ru": "Слепые шахматы: пройди уровень 5",
+   "desc_en": "Blind chess: clear level 5"
+  },
+  {
+   "id": "chess_blind_10",
+   "emoji": "👑",
+   "category": "quality",
+   "name_ru": "Гроссмейстер памяти",
+   "name_en": "Memory grandmaster",
+   "desc_ru": "Слепые шахматы: пройди уровень 10",
+   "desc_en": "Blind chess: clear level 10"
+  },
+  {
+   "id": "scholars_mate_5",
+   "emoji": "♞",
+   "category": "quality",
+   "name_ru": "Видит мат",
+   "name_en": "Sees the mate",
+   "desc_ru": "Детский мат: пройди уровень 5",
+   "desc_en": "Scholar’s mate: clear level 5"
+  },
+  {
+   "id": "scholars_mate_10",
+   "emoji": "⚔️",
+   "category": "quality",
+   "name_ru": "Матовая сеть",
+   "name_en": "Mating net",
+   "desc_ru": "Детский мат: пройди уровень 10",
+   "desc_en": "Scholar’s mate: clear level 10"
+  },
+  {
+   "id": "polyglot_100",
+   "emoji": "🌍",
+   "category": "volume",
+   "name_ru": "Полиглот-сотня",
+   "name_en": "Polyglot century",
+   "desc_ru": "100 языковых сессий",
+   "desc_en": "100 language sessions"
+  },
+  {
+   "id": "clean_run_5",
+   "emoji": "🔥",
+   "category": "quality",
+   "name_ru": "Чистая пятёрка",
+   "name_en": "Clean five",
+   "desc_ru": "5 чистых раундов подряд (0 ошибок)",
+   "desc_en": "5 clean rounds in a row (0 errors)"
+  }
+ ]
+}

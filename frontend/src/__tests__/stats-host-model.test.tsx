@@ -1,4 +1,4 @@
-/* psygames-stats-host-model · VER 1 · 07.10.2026 */
+/* psygames-stats-host-model · VER 2 · 07.10.2026 */
 /**
  * 🔴 «ПРОГРЕСС» ПОД ОБОЛОЧКОЙ ОТДАЁТ МОДЕЛЬ — ТО ЖЕ, ЧТО РИСУЕТ САМ (задача 6ff4a966).
  *
@@ -7,7 +7,9 @@
  *   · без оболочки модели нет;
  *   · баланс в модели — те же числа, что в строках веба (своё: 4 и 4);
  *   · действие `scope(true)` переключает охват — баланс модели становится «все игры» (16, 12, 4);
- *   · история и карточки игр приходят готовыми строками; образец модели — для пробы Flutter.
+ *   · история и карточки игр приходят готовыми строками; образец модели — для пробы Flutter;
+ *   · 🔴 карточки и итоги — по партиям охвата, как баланс (a6b99ecc): у «Микро-релакс» в «Судоку»
+ *     4 своих, а не 16 устройства; очки и серия — выбранного профиля и при холодном заходе.
  */
 import React from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -55,7 +57,7 @@ const партии = (profile_id: string, game_type: string, n: number) =>
     id: `${profile_id}-${game_type}-${i}`, profile_id, game_type, score: 10 + i, time_seconds: 60 + i, timestamp: день(1 + i),
   }));
 
-async function смонтировать(host: boolean) {
+async function смонтировать(host: boolean, prep?: () => Promise<void>) {
   const sent: any[] = [];
   if (host) {
     (globalThis as any).PsyBridge = { postMessage(s: string) { sent.push(JSON.parse(s)); } };
@@ -70,6 +72,7 @@ async function смонтировать(host: boolean) {
     ...партии('nzt48', 'sudoku', 12),
     ...партии('nzt48', 'corsi', 12),
   ]));
+  if (prep) await prep();
   /* eslint-disable @typescript-eslint/no-require-imports -- провайдеры после моков */
   const { ThemeProvider } = require('@/src/contexts/ThemeContext');
   const { LanguageProvider } = require('@/src/contexts/LanguageContext');
@@ -118,10 +121,31 @@ describe('«Прогресс» под оболочкой', () => {
     await AsyncStorage.setItem('psygames_sessions', JSON.stringify([...raw, ...партии('women', 'sudoku', 3).map((x) => ({ ...x, id: `new-${x.id}` }))]));
     await TestRenderer.act(async () => { (globalThis as any).__psyScreenUi['/statistics'].refresh(); });
     await осесть();
-    expect([было, last().totalPlayed]).toEqual([было, было.replace('32', '35')]);
+    // Итог — по партиям профиля (8 своих у «women»), а не устройства (32).
+    expect([было, last().totalPlayed]).toEqual([было.replace(/\d+/, '8'), было.replace(/\d+/, '11')]);
     mockBack.mockClear();
     await TestRenderer.act(async () => { (globalThis as any).__psyScreenUi['/statistics'].back(); });
     expect(mockBack).toHaveBeenCalledTimes(1);
+  });
+
+  it('🔴 карточки игр — по партиям охвата: профиль — свои, «все игры» — устройства (a6b99ecc)', async () => {
+    const { last } = await смонтировать(true);
+    const всего = (m: any, id: string) => m.games.find((g: any) => g.id === id)?.stats[0].value ?? null;
+    expect([всего(last(), 'sudoku'), всего(last(), 'breathing'), всего(last(), 'corsi')]).toEqual(['4', '4', null]);
+    expect(last().hero.games).toMatch(/^8 /);
+    await TestRenderer.act(async () => { (globalThis as any).__psyScreenUi['/statistics'].scope(true); });
+    await осесть();
+    expect([всего(last(), 'sudoku'), всего(last(), 'corsi')]).toEqual(['16', '12']);
+    expect(last().hero.games).toMatch(/^32 /);
+  });
+
+  it('🔴 холодный заход: очки и серия — выбранного профиля, а не профиля по умолчанию (a6b99ecc)', async () => {
+    const { last } = await смонтировать(true, async () => {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const { addTokens } = require('@/src/services/tokens');
+      await addTokens('women', 1240);
+    });
+    expect(last().hero.tokens).toBe(1240);
   });
 
   it('карточки игр и история — готовыми строками; образец для Flutter', async () => {
