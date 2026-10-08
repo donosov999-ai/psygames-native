@@ -54,6 +54,21 @@ const int switchingPreDelayMs = 500;
 ///   flutter run --dart-define=AUTOSTART=true
 const bool switchingAutostart = bool.fromEnvironment('AUTOSTART');
 
+/// Режим стимула из адреса — как веб (`str('stimMode', 'mix')`): ссылка или шаг зарядки
+/// задают материал партии. До 07.10.2026 натив параметр не читал, и адрес с `num3` молча
+/// открывал «цифру+букву» (сторож параметров, задача b02a91c2). Неизвестное имя — режим
+/// экрана, а не падение.
+StimMode switchingStimMode(StimMode fallback) => StimMode.values.asNameMap()[GamePreset.str('stimMode')] ?? fallback;
+
+/// Подпись режима на выборе — тем же словом, что у веба (`switchMode_<режим>`). Ключи
+/// написаны целиком: составленный из кусков ключ сборщик словаря не находит.
+String switchModeLabel(StimMode m) => switch (m) {
+      StimMode.mix => L.t('switchMode_mix'),
+      StimMode.num2 => L.t('switchMode_num2'),
+      StimMode.num3 => L.t('switchMode_num3'),
+      StimMode.letters => L.t('switchMode_letters'),
+    };
+
 /// Что показывает плашка «ОЦЕНИ» и что написано на кнопках.
 class TaskMeta {
   const TaskMeta({required this.cue, required this.left, required this.right, required this.icon, required this.color});
@@ -90,7 +105,8 @@ class SwitchingTaskScreen extends StatefulWidget {
 
   final SharedState state;
 
-  /// Чем показывать стимул. Режим — не ось сложности, а другой материал.
+  /// Чем показывать стимул, пока его не задал адрес (`stimMode`) или выбор на экране.
+  /// Режим — не ось сложности, а другой материал.
   final StimMode mode;
   final int Function()? clock;
 
@@ -106,11 +122,25 @@ class _SwitchingTaskScreenState extends State<SwitchingTaskScreen> {
   Timer? _timer;
   bool _passed = false;
 
+  /// Материал партии: адрес, затем выбор на экране настройки, как у веба.
+  late StimMode _mode;
+
   @override
   void initState() {
     super.initState();
+    _mode = switchingStimMode(widget.mode);
     _ladder = LevelLadder(gameId: 'switching_task', store: SharedLevelStore(widget.state));
     _boot();
+  }
+
+  /// Выбор материала — только до начала партии: смена посреди неё смешала бы пробы
+  /// двух режимов в одну цену переключения.
+  void _pickMode(StimMode m) {
+    if (_phase != SwitchPhase.ready || m == _mode) return;
+    setState(() {
+      _mode = m;
+      _reset();
+    });
   }
 
   @override
@@ -132,7 +162,7 @@ class _SwitchingTaskScreenState extends State<SwitchingTaskScreen> {
     // Шаг «Оценки» и зарядки задаёт длину партии, как в вебе (`num('trials', p.trials)`).
     _game = SwitchingGame(
         level: _ladder.level,
-        mode: widget.mode,
+        mode: _mode,
         nowMs: widget.clock,
         trialsOverride: GamePreset.isPreset ? GamePreset.num('trials', SwitchLevel.of(_ladder.level).trials) : null);
     _phase = SwitchPhase.ready;
@@ -152,13 +182,13 @@ class _SwitchingTaskScreenState extends State<SwitchingTaskScreen> {
   /// Примеры разбора: один стимул под обеими задачами режима — видно, что
   /// верная кнопка меняется от ЗАДАЧИ, а не от стимула.
   List<DemoTrial> _demoTrials() => [
-        for (final t in switchDemoTrials(widget.mode))
+        for (final t in switchDemoTrials(_mode))
           DemoTrial(
             text: t.full,
-            sub: taskMeta(widget.mode, t.taskIdx).cue,
+            sub: taskMeta(_mode, t.taskIdx).cue,
             answer: t.correctLeft
-                ? taskMeta(widget.mode, t.taskIdx).left
-                : taskMeta(widget.mode, t.taskIdx).right,
+                ? taskMeta(_mode, t.taskIdx).left
+                : taskMeta(_mode, t.taskIdx).right,
             // Правило одно на оба примера: смотри на ПОДСКАЗКУ задачи (ЧИСЛО /
             // БУКВА) и отвечай по ней, а не по прошлой пробе.
             ruleKey: 'switchingTaskDesc',
@@ -223,7 +253,7 @@ class _SwitchingTaskScreenState extends State<SwitchingTaskScreen> {
   Widget build(BuildContext context) {
     final g = _game;
     if (g == null) return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    final meta = g.trial == null ? null : taskMeta(widget.mode, g.trial!.taskIdx);
+    final meta = g.trial == null ? null : taskMeta(_mode, g.trial!.taskIdx);
     return GameShell(
       // Правило уровня объявляет каркас — в спокойный момент, не поверх партии (задача e371fd3a).
       levelRule: LevelRuleSpot(gameId: 'switching_task', level: _ladder.level, state: widget.state, calm: _phase != SwitchPhase.playing),
@@ -242,13 +272,14 @@ class _SwitchingTaskScreenState extends State<SwitchingTaskScreen> {
           : () => openDemoLesson(context, title: L.t('switchingTask'), trials: _demoTrials()),
       field: (context, h) => _Field(
         game: g,
-        mode: widget.mode,
+        mode: _mode,
         phase: _phase,
         flash: _flash,
         passed: _passed,
         height: h,
         onStart: _start,
         onAgain: () => setState(_reset),
+        onMode: _pickMode,
       ),
       toolbar: _phase == SwitchPhase.playing && meta != null ? _Answers(meta: meta, onPick: _answer) : null,
     );
@@ -265,6 +296,7 @@ class _Field extends StatelessWidget {
     required this.height,
     required this.onStart,
     required this.onAgain,
+    required this.onMode,
   });
 
   final SwitchingGame game;
@@ -277,6 +309,7 @@ class _Field extends StatelessWidget {
   final double height;
   final VoidCallback onStart;
   final VoidCallback onAgain;
+  final ValueChanged<StimMode> onMode;
 
   @override
   Widget build(BuildContext context) {
@@ -284,33 +317,71 @@ class _Field extends StatelessWidget {
       case SwitchPhase.ready:
         final a = taskMeta(mode, 0);
         final b = taskMeta(mode, 1);
-        return _Centered(
+        // ⚠️ С выбором материала настройка на 320×568 выше поля на 36–88 px (замер
+        // 07.10.2026: ru, de, hi, ar). Поэтому как у «Объёма цифр»: настройки
+        // прокручиваются, «Начать» прибита снизу и видна без прокрутки.
+        return SizedBox(
           height: height,
-          children: [
-            Text('${L.t('level')} ${game.level}', style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: 8),
-            Text(L.t('switchTopBadgeHint'), textAlign: TextAlign.center),
-            const SizedBox(height: 8),
-            // Оба правила режима — до начала: человек не должен узнавать второе
-            // правило в первой же пробе, где оно стоит денег.
-            Text(
-              '${a.cue} → ${a.left}/${a.right}\n${b.cue} → ${b.left}/${b.right}',
-              key: const Key('switching-rules'),
-              style: Theme.of(context).textTheme.bodySmall,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              L.t('switchLvlParams')
-                  .replaceAll('{n}', '${game.trialsTotal}')
-                  .replaceAll('{p}', '${(switchProb * 100).round()}')
-                  .replaceAll('{w}', (game.params.windowMs / 1000).toStringAsFixed(1)),
-              style: Theme.of(context).textTheme.bodySmall,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 16),
-            FilledButton(onPressed: onStart, child: Text(L.t('start'))),
-          ],
+          child: Column(
+            children: [
+              Expanded(
+                child: Center(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text('${L.t('level')} ${game.level}', style: Theme.of(context).textTheme.titleLarge),
+                        const SizedBox(height: 8),
+                        // Что показывать — выбор материала, как у веба («Стимул»). Правила
+                        // сразу под ним и меняются вместе с ним: у режима своя пара задач.
+                        Text(L.t('stimulusLabel'), style: Theme.of(context).textTheme.labelLarge),
+                        const SizedBox(height: 6),
+                        Wrap(
+                          alignment: WrapAlignment.center,
+                          spacing: 6,
+                          runSpacing: 6,
+                          children: [
+                            for (final m in StimMode.values)
+                              ChoiceChip(
+                                key: Key('switching-mode-${m.name}'),
+                                label: Text(switchModeLabel(m)),
+                                selected: m == mode,
+                                onSelected: (_) => onMode(m),
+                              ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        // Оба правила режима — до начала: человек не должен узнавать второе
+                        // правило в первой же пробе, где оно стоит денег.
+                        Text(
+                          '${a.cue} → ${a.left}/${a.right}\n${b.cue} → ${b.left}/${b.right}',
+                          key: const Key('switching-rules'),
+                          style: Theme.of(context).textTheme.bodySmall,
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(L.t('switchTopBadgeHint'), textAlign: TextAlign.center),
+                        const SizedBox(height: 8),
+                        Text(
+                          L.t('switchLvlParams')
+                              .replaceAll('{n}', '${game.trialsTotal}')
+                              .replaceAll('{p}', '${(switchProb * 100).round()}')
+                              .replaceAll('{w}', (game.params.windowMs / 1000).toStringAsFixed(1)),
+                          style: Theme.of(context).textTheme.bodySmall,
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(24, 8, 24, 12),
+                child: FilledButton(onPressed: onStart, child: Text(L.t('start'))),
+              ),
+            ],
+          ),
         );
       case SwitchPhase.done:
         final cost = game.switchCost;

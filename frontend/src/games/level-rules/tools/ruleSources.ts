@@ -1,4 +1,4 @@
-/* psygames-level-rules-native-sources · VER 3 · 07.10.2026 */
+/* psygames-level-rules-native-sources · VER 4 · 08.10.2026 */
 /**
  * ПРАВИЛА УРОВНЕЙ ДЛЯ НАТИВНОЙ ПОЛОВИНЫ — ТАБЛИЦА «УРОВЕНЬ → ДЕЙСТВУЮЩЕЕ ПРАВИЛО».
  *
@@ -55,6 +55,9 @@ export function ruleSources(): RuleSource[] {
   const отличия = require('@/src/games/find-differences/core/levelRules');
   const зрительный = require('@/src/games/visual-search/core/nativeRules');
   const сет = require('@/src/games/set-game/core/nativeRules');
+  const шульте = require('@/src/games/schulte/core/levelRules');
+  const маджонг = require('@/src/games/mahjong/nativeRules');
+  const счёт = require('@/src/games/quick-count/core/levelRules');
   // Игры без веб-экрана: механика в Dart, таблица уровней — в списке нативных игр.
   const nativeOnly = require('@/src/constants/nativeOnlyGames');
   /* eslint-enable @typescript-eslint/no-require-imports */
@@ -71,7 +74,8 @@ export function ruleSources(): RuleSource[] {
     s(['hanoi'], игра('hanoi').HN_RULES),
     s(['kids_sort'], nativeOnly.KIDS_SORT_RULES),
     s(['listening_span'], игра('listening-span').LISTENINGSPAN_RULES),
-    s(['mahjong'], игра('mahjong').MAHJONG_RULES),
+    // Веб-правила первыми, нативные следом: на 29-м и выше действует последнее подошедшее.
+    s(['mahjong'], [...игра('mahjong').MAHJONG_RULES, ...маджонг.MJ_NATIVE_RULES]),
     s(['math_sprint'], игра('math-sprint').MS_RULES),
     s(['memory_matrix'], игра('memory-matrix').MEMORYMATRIX_RULES),
     s(['mental_rotation'], игра('mental-rotation').MR_RULES),
@@ -81,7 +85,9 @@ export function ruleSources(): RuleSource[] {
     s(['picture_pairs'], игра('picture-pairs').PAIRS_RULES),
     s(['prl'], игра('prl').PRL_RULES),
     s(['pseudoword_echo'], игра('pseudoword-echo').PSEUDOWORDECHO_RULES),
+    s(['quick_count'], счёт.QC_RULES),
     s(['reading_span'], игра('reading-span').READINGSPAN_RULES),
+    s(['schulte_table'], шульте.SCHULTE_RULES),
     s(['semantic_sort'], игра('semantic-sort').SEMANTICSORT_RULES),
     s(['set_game'], [...игра('set-game').SG_RULES, ...сет.SG_NATIVE_RULES]),
     s(['spatial_span'], игра('spatial-span').SS_RULES),

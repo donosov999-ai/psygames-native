@@ -154,11 +154,24 @@ void main() {
       for (final f in ['assets/hubs.json', 'assets/game_suites.json', 'assets/catalog.json']) File(f).readAsStringSync(),
     ].join('\n');
     final switches = {for (final m in AnagramMode.values) anagramModeRoute(m)};
+    // Входы зарядки (`warmupEntries.ts`): серия блоков шлёт `/games/schulte?auto=1&series=1`, и разбор
+    // адреса (`HybridApp.routeOf`) ведёт её на ключ `?series=1` — по подмножеству хвоста, так и сверяем.
+    final warmup = File('../frontend/src/services/warmupEntries.ts').readAsStringSync();
+    final warmupRoutes = [
+      for (final m in RegExp(r"pathname: '(/games/[^']+)', params: \{([^}]*)\}").allMatches(warmup))
+        MapEntry(m[1]!, {for (final p in RegExp(r"(\w+): '([^']*)'").allMatches(m[2]!)) p[1]!: p[2]!}),
+    ];
+    expect(warmupRoutes, isNotEmpty, reason: 'входы зарядки не прочитаны — разбор warmupEntries.ts устарел');
+    bool fromWarmup(String key) {
+      final u = Uri.parse(key);
+      return warmupRoutes.any((r) => r.key == u.path && u.queryParameters.entries.every((e) => r.value[e.key] == e.value));
+    }
+
     final unreachable = <String>[];
     for (final key in HybridApp.native.keys.where((k) => k.contains('?'))) {
       final variants = {key, key.replaceAll(' ', '%20'), key.replaceAll('%20', ' ')};
       final listed = variants.any((v) => assets.contains(jsonEncode(v)) || assets.contains(v));
-      if (!listed && !switches.contains(key)) unreachable.add(key);
+      if (!listed && !switches.contains(key) && !fromWarmup(key)) unreachable.add(key);
     }
     expect(unreachable, isEmpty, reason: 'нативный экран есть, а дойти до него неоткуда');
   });

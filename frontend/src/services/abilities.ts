@@ -1,4 +1,4 @@
-/* psygames-abilities · VER 1 · 20.08.2026 */
+/* psygames-abilities · VER 2 · 08.10.2026 */
 /**
  * РАСХОДУЕМЫЕ СПОСОБНОСТИ — второй, штучный товар за те же очки.
  *
@@ -18,7 +18,18 @@
  *                   в записи, а лестница уровней замирает до конца партии;
  *   пробный заход — партия не записывается ВООБЩЕ: ни очков, ни уровня, ни
  *                   статистики. Это не поблажка, это отказ от награды;
- *   щит серии     — возвращает оборванную серию захода. Партий не касается вовсе.
+ *   щит серии     — возвращает оборванную серию захода. Партий не касается вовсе;
+ *   подсказка     — открывает клетку «Судоку», когда бесплатные кончились (VER 2,
+ *                   решение Дениса 08.10.2026, задача 576405e7). Это ЕДИНСТВЕННАЯ
+ *                   способность, которая касается самой задачи, и поэтому партия с ней
+ *                   не в зачёт: у классики подсказка и так делает партию тренировкой
+ *                   (ни уровня, ни очков), у «Самурая» лестница замирает. Продаётся
+ *                   помощь, а не ступень.
+ *
+ * ⚠️ ТРАТЯТ «СУДОКУ» НАТИВНЫЕ ЭКРАНЫ, НЕ ВЕБ. Все входы в судоку приложения ведут на
+ * Flutter (`flutter/lib/shell/hybrid_app.dart`), кошелёк там — тот же ключ
+ * (`flutter/lib/shell/ability_wallet.dart`). Вторая жизнь там же: последняя ошибка
+ * останавливает партию и спрашивает, как в «Мишенях».
  *
  * ── ЭКОНОМИЧЕСКИЙ ИНВАРИАНТ: СПОСОБНОСТЬ НЕ ОКУПАЕТСЯ ───────────────────────
  *
@@ -51,7 +62,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { MULTIPLIER } from '@/src/services/earn';
 import { TOKEN_DELTA_CAP, addTokens, checkInStreakMaxLoss, getTokens, spendTokens } from '@/src/services/tokens';
 
-export type AbilityId = 'second_life' | 'practice_run' | 'streak_shield';
+export type AbilityId = 'second_life' | 'practice_run' | 'streak_shield' | 'sudoku_hint';
 
 /** Потолок того, что партия вообще способна принести: начисление × множитель. */
 export const MAX_ROUND_EARNING = TOKEN_DELTA_CAP * MULTIPLIER;
@@ -97,6 +108,17 @@ export const ABILITIES: Ability[] = [
     max: 2,
     maxReturn: checkInStreakMaxLoss(),
     icon: 'shield-checkmark',
+  },
+  {
+    id: 'sudoku_hint',
+    nameKey: 'abName_sudoku_hint',
+    descKey: 'abDesc_sudoku_hint',
+    cost: 150,
+    max: 10,
+    // Классика с подсказкой не приносит ничего (счёт 0), а «Самурай» счёт сохраняет — только
+    // лестница стоит. Потолок — по худшему из двух: целая партия.
+    maxReturn: MAX_ROUND_EARNING,
+    icon: 'bulb',
   },
 ];
 

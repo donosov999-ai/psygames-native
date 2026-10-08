@@ -60,7 +60,9 @@ void main() {
   );
 
   testWidgets(
-    'square hold-out relaxes, haptics never play competing breath cue',
+    // 08.10.2026 (отчёт будильника b81fcf7d): задержка после выдоха — снова сжатие,
+    // иначе в «Квадрате» удержание шло 4 с на 12 с. Вибрация гудит всё сжатие.
+    'square hold-out keeps the squeeze, haptics never play competing breath cue',
     (tester) async {
       final engine = Practices(
         jsonDecode(File('assets/practices.json').readAsStringSync()),
@@ -97,7 +99,8 @@ void main() {
         final t = breath['startMs'] as int;
         final cues = objects(engine.frame(plan, t)['cues']);
         final muscle = cues.firstWhere((c) => c['setId'] == 'pelvic-floor');
-        final squeeze = '${breath['stepId']}'.contains('exhale');
+        final id = '${breath['stepId']}';
+        final squeeze = id.contains('exhale') || id.endsWith('-out');
         expect(
           '${muscle['stepId']}'.endsWith('squeeze'),
           squeeze,

@@ -36,6 +36,14 @@ const double stroopPassAccuracy = 0.85;
 ///   flutter run --dart-define=AUTOSTART=true
 const bool stroopAutostart = bool.fromEnvironment('AUTOSTART');
 
+/// Базовое правило партии из адреса — как веб (`str('mode', 'ink') === 'word' ? 'word' : 'ink'`):
+/// любое иное имя (шаг зарядки шлёт и `classic`) — цвет чернил. Без параметра — правило экрана.
+String stroopModeFor(String fallback) {
+  final m = GamePreset.str('mode');
+  if (m.isEmpty) return fallback;
+  return m == 'word' ? 'word' : 'ink';
+}
+
 class StroopScreen extends StatefulWidget {
   const StroopScreen({super.key, required this.state, this.mode = 'ink', this.clock});
 
@@ -82,7 +90,12 @@ class _StroopScreenState extends State<StroopScreen> {
 
   void _reset() {
     _window?.cancel();
-    _game = StroopGame(level: _ladder.level, mode: widget.mode, nowMs: widget.clock);
+    _game = StroopGame(
+      level: _ladder.level,
+      mode: stroopModeFor(widget.mode),
+      nowMs: widget.clock,
+      trialsOverride: GamePreset.isPreset ? GamePreset.num('trials', StroopLevel.of(_ladder.level).trials) : null,
+    );
     _phase = StroopPhase.ready;
     _flash = null;
     _passed = false;
@@ -174,7 +187,7 @@ class _StroopScreenState extends State<StroopScreen> {
       title: L.t('stroop'),
       hud: [
         HudItem(label: L.t('level'), value: '${_ladder.level}', icon: Icons.flag_outlined),
-        HudItem(label: L.t('round'), value: '${g.round}/${g.params.trials}', icon: Icons.numbers),
+        HudItem(label: L.t('round'), value: '${g.round}/${g.trialsTotal}', icon: Icons.numbers),
         HudItem(label: L.t('hud_correct'), value: '${g.hits}', icon: Icons.check),
         HudItem(label: L.t('hud_errors'), value: '${g.errors}', icon: Icons.close),
       ],
@@ -245,7 +258,7 @@ class _Field extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               L.t('stroopLvlParams')
-                  .replaceAll('{n}', '${game.params.trials}')
+                  .replaceAll('{n}', '${game.trialsTotal}')
                   .replaceAll('{w}', (game.params.windowMs / 1000).toStringAsFixed(1))
                   .replaceAll('{p}', '${(incongruentRatio * 100).round()}'),
               style: Theme.of(context).textTheme.bodySmall,
@@ -279,7 +292,7 @@ class _Field extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
-            Text('${L.t('hud_correct')}: ${game.hits}/${game.params.trials} · '
+            Text('${L.t('hud_correct')}: ${game.hits}/${game.trialsTotal} · '
                 '${L.t('hud_errors')}: ${game.errors}'),
             Text(game.meanRtMs == null
                 ? '${L.t('meanReaction')}: —'

@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../../shell/app_haptics.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
@@ -40,6 +41,8 @@ class KidsSortScreen extends StatefulWidget {
 }
 
 class _KidsSortScreenState extends State<KidsSortScreen> {
+  /// Отклик хода — через общий выключатель «Вибрация» (образец «Матрицы памяти», задача 792432f8).
+  late final AppHaptics _haptics = AppHaptics(widget.state);
   late LevelLadder _ladder;
   late Random _rnd;
   KidsSortSession? _session;
@@ -93,6 +96,7 @@ class _KidsSortScreenState extends State<KidsSortScreen> {
     final card = _card;
     if (s == null || card == null) return;
     final ok = s.answer(_phase, card, box);
+    ok ? _haptics.hit() : _haptics.miss();
     _flash?.cancel();
     setState(() {
       _lastOk = ok;
