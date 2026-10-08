@@ -326,10 +326,15 @@ class Practices {
             final b = breath[j];
             Json step;
             if (item['set']['id'] == 'pelvic-floor') {
+              // Сжатие — на выдохе и на задержке после него (классика: мышцы тазового
+              // дна держат на пустых лёгких), расслабление — на вдохе и задержке после
+              // вдоха. В «Квадрате» это 8 с на 8 с. 03.10.2026 задержку после выдоха
+              // отдали расслаблению — стало 4 с сжатия на 12 с, и Денис 08.10 (отчёт
+              // будильника b81fcf7d): «удержания совсем короткие, три цикла расслабления
+              // и одно удержание». Тот же выбор в вебе: engine.ts, buildPelvicLaneOnBreath.
               final exhale =
                   (b['stepId'] as String).contains('exhale') ||
-                  ((b['stepId'] as String).endsWith('-out') &&
-                      b['stepId'] != 'hold-out');
+                  (b['stepId'] as String).endsWith('-out');
               step = steps.firstWhere(
                 (s) => s['id'] == (exhale ? 'long-squeeze' : 'long-release'),
                 orElse: () => steps[exhale ? 0 : math.min(1, steps.length - 1)],
