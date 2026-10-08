@@ -50,9 +50,6 @@ const lostWithReason = <String, Map<String, String>>{
         'уровень (levelParams). Шлют 3 шага profiles.ts/warmup.ts и 44 в defaultPlaylists.json',
   },
   '/games/prl': {'diff': _t},
-  '/games/proofreading': {
-    'series': 'задача f4bb47dc («Внимание»)',
-  },
 
   '/games/scholars-mate': {
     'drill': '«Шахматы»',

@@ -541,6 +541,8 @@ class HybridApp extends StatefulWidget {
         if (best != null) return best;
       } on FormatException {
         // Malformed query is not a reason to crash the navigation delegate.
+      } on ArgumentError {
+        // Bad percent-encoding (`%zz`) throws this, not FormatException.
       }
     }
     return native.containsKey(r) ? r : null;

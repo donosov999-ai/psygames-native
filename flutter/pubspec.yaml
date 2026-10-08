@@ -180,6 +180,9 @@ flutter:
     - assets/anagram_modes/
     # Филворды: пулы слов из живого TS (экспортёр src/games/fillwords/tools/record-flutter-reference.gen.ts).
     - assets/fillwords/
+    # Серия «Корректуры»: языки, категории «Смысла», подписи — из живого TS
+    # (выгрузчик src/games/proofreading/tools/record-flutter-series.gen.ts).
+    - assets/proofreading/
     - assets/l10n/
     - assets/puzzles/
     - assets/voice/
