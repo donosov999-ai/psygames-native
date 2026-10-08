@@ -1,0 +1,212 @@
+{
+ "profile": {
+  "id": "nzt48",
+  "color": "#a855f7",
+  "emoji": "💊",
+  "warmup_enabled": true
+ },
+ "colors": {
+  "background": "#F5F5F7",
+  "surface": "#FFFFFF",
+  "card": "#FFFFFF",
+  "text": "#1C1C1E",
+  "textSecondary": "#6E6E73",
+  "primary": "#a855f7",
+  "border": "#E5E5EA"
+ },
+ "showBlock": {
+  "цель_дня": true,
+  "сегодня": true,
+  "рекомендации": true,
+  "практики": true,
+  "любимые_разделы": true
+ },
+ "images": {
+  "onPhoto": true,
+  "profileBg": "/assets/backgrounds/nzt48.webp",
+  "logo": "/assets/logos/nzt48.png",
+  "chip": "/assets/avatars/fox.png",
+  "warmup": "/assets/icons/warmup.png"
+ },
+ "logoPlate": "#12151AC7",
+ "tokens": 800,
+ "level": {
+  "level": 4,
+  "span": 400,
+  "progress": 0.25,
+  "titleKey": "levelTitle4"
+ },
+ "streak": 6,
+ "pet": {
+  "kind": "frames",
+  "uris": [
+   "/assets/images/pet/cat/idle0.webp",
+   "/assets/images/pet/cat/idle1.webp",
+   "/assets/images/pet/cat/idle2.webp",
+   "/assets/images/pet/cat/idle3.webp",
+   "/assets/images/pet/cat/idle4.webp",
+   "/assets/images/pet/cat/idle5.webp",
+   "/assets/images/pet/cat/idle6.webp"
+  ],
+  "frames": 7,
+  "tickMs": 240,
+  "accessory": null
+ },
+ "frameColor": "#fbbf24",
+ "titleLabel": "Мастер",
+ "achievementsCount": 7,
+ "update": "2.57.0",
+ "streakToast": 15,
+ "wagerToast": {
+  "kind": "won",
+  "amount": 120
+ },
+ "levelUp": 4,
+ "ladder": {
+  "n": 120,
+  "titleKey": "ladderUndo"
+ },
+ "chest": {
+  "face": "🦊",
+  "left": 35,
+  "have": 3,
+  "all": 12,
+  "ratio": 0.6
+ },
+ "resume": "schulte_table",
+ "goalCard": {
+  "state": "review",
+  "goal": {
+   "text": "Пройти три судоку",
+   "outcome": null,
+   "reward": 30
+  }
+ },
+ "goalMaxLen": 90,
+ "goalExampleKeys": [
+  "dayGoalExample1",
+  "dayGoalExample2",
+  "dayGoalExample3"
+ ],
+ "today": {
+  "rows": [
+   {
+    "game": "schulte_table",
+    "rounds": 3,
+    "doubled": true,
+    "total": 40
+   },
+   {
+    "game": "sudoku",
+    "rounds": 1,
+    "doubled": false,
+    "total": 15
+   },
+   {
+    "game": "corsi",
+    "rounds": 2,
+    "doubled": false,
+    "total": 10
+   },
+   {
+    "game": "retired_game",
+    "rounds": 1,
+    "doubled": false,
+    "total": 5
+   }
+  ],
+  "total": 70,
+  "rounds": 7,
+  "dayStreak": 5
+ },
+ "todayRowsMax": 3,
+ "dayStreakForMult": 3,
+ "reco": [
+  {
+   "pick": {
+    "gameId": "sudoku",
+    "reasonKey": "recoWhyGrowth"
+   },
+   "gameId": "sudoku"
+  },
+  {
+   "pick": {
+    "gameId": "corsi",
+    "reasonKey": "recoWhyComeback",
+    "doneToday": true
+   },
+   "gameId": "corsi"
+  }
+ ],
+ "recoParams": {
+  "calm": "1"
+ },
+ "warmup": {
+  "gradient": [
+   "#7b4397",
+   "#dc2430"
+  ],
+  "slotKey": "slotEvening"
+ },
+ "pause": {
+  "gradient": [
+   "#43cea2",
+   "#185a9d"
+  ]
+ },
+ "challenge": {
+  "gameId": "n_back",
+  "difficultyKey": "hard",
+  "done": true,
+  "streak": 9
+ },
+ "favourites": [
+  {
+   "category": "memory",
+   "total": 9,
+   "routes": [
+    "/games/corsi",
+    "/games/n-back"
+   ],
+   "hidden": 7
+  },
+  {
+   "category": "logic",
+   "total": 2,
+   "routes": [
+    "/games/sudoku",
+    "/games/hanoi"
+   ],
+   "hidden": 0
+  }
+ ],
+ "goalSheet": {
+  "line": "Возьмём серию?",
+  "petState": {
+   "kind": "frames",
+   "uris": [
+    "/assets/images/pet/cat/idle0.webp",
+    "/assets/images/pet/cat/idle1.webp",
+    "/assets/images/pet/cat/idle2.webp",
+    "/assets/images/pet/cat/idle3.webp",
+    "/assets/images/pet/cat/idle4.webp",
+    "/assets/images/pet/cat/idle5.webp",
+    "/assets/images/pet/cat/idle6.webp"
+   ],
+   "frames": 7,
+   "tickMs": 240,
+   "accessory": null
+  },
+  "options": [
+   7,
+   14,
+   30
+  ],
+  "chosen": 14,
+  "whyKey": "goalSuggest_best_streak",
+  "basis": 9,
+  "games": 7,
+  "tokens": 70,
+  "streak": 5
+ }
+}

@@ -143,6 +143,10 @@ flutter:
     - assets/collection.json
     # Достижения и разделы экрана — таблица веба для модели на Dart (tools/embed-achievements.mjs, вариант Б).
     - assets/achievements.json
+    # Числа правил «Прогресса» — константы веба для модели на Dart (tools/embed-stats.mjs, вариант Б).
+    - assets/stats_rules.json
+    # Главная: готовые цвета карточек и ключи на лету (проба flutter-home-asset-fresh, вариант Б).
+    - assets/home.json
     # Иконки игр «поле в миниатюре» для строк развилок — выгрузка веб-реестра
     # (flutter/tools/embed-game-icons.mjs), не править руками.
     - assets/game_icons/
@@ -172,6 +176,8 @@ flutter:
     - assets/rmet/
     - assets/words/
     - assets/rings/
+    # Картинки режимов анаграмм под профиль (экспортёр tools/embed-anagram-modes.mjs).
+    - assets/anagram_modes/
     # Филворды: пулы слов из живого TS (экспортёр src/games/fillwords/tools/record-flutter-reference.gen.ts).
     - assets/fillwords/
     - assets/l10n/

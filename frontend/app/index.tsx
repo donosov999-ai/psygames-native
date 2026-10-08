@@ -53,6 +53,7 @@ import ProfileSwitcherModal from '@/src/components/ProfileSwitcherModal';
 import { PetStill, PetSkin, petRenderSpec } from '@/src/components/pet/PetSprite';
 import { buildHomeModel } from '@/src/services/homeModel';
 import { postScreenModel, registerScreenActions } from '@/src/services/hostScreens';
+import { SLOT_TINT, HERO_EYE } from '@/src/constants/homeHero';
 import { catalogSearchRoute } from '@/src/services/catalogSearchRoute';
 import { pickGoalLine } from '@/src/services/goalPetLines';
 import { getPetStats, PetStage, getPetSkin } from '@/src/services/pet';
@@ -91,14 +92,6 @@ const GRID_GAP = 12;
 /** Сколько игр показывает блок «Сегодня». Больше — и он выдавливает рекомендации. */
 const TODAY_ROWS_MAX = 3;
 
-/** Палитра кнопки «Зарядка» по времени суток — совпадает с экраном выбора. */
-const SLOT_TINT: Record<WarmupSlot, [string, string]> = {
-  morning: ['#f7b733', '#fc4a1a'],
-  day:     ['#43cea2', '#185a9d'],
-  evening: ['#7b4397', '#dc2430'],
-  night:   ['#2c3e50', '#4ca1af'],
-};
-
 /**
  * ЦВЕТ ТЕКСТА НА БОЛЬШИХ ПЛАШКАХ ГЛАВНОЙ — СЧИТАЕТСЯ.
  * Здесь стоял зашитый `#FFF`: на `#43cea2→#185a9d` он даёт 1.98, на
@@ -106,7 +99,6 @@ const SLOT_TINT: Record<WarmupSlot, [string, string]> = {
  * и «Оценка» на первом экране. Где сплошным цветом AA не берётся, вуаль кладёт
  * `GradientSurface` — градиент остаётся собой, меняется только глубина.
  */
-const HERO_EYE = ['#43cea2', '#185a9d'];
 const ON_EYE = onGradientText(HERO_EYE[0], HERO_EYE[1]);
 const ON_EYE_SOFT = onGradientTextMuted(ON_EYE);
 
