@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/boss_round.dart';
 import '../../shell/demo_lesson.dart';
+import '../../shell/game_preset.dart';
 import '../../shell/l10n.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/lesson.dart';
@@ -96,6 +97,10 @@ class _NumberBondsScreenState extends State<NumberBondsScreen> {
     _tick?.cancel();
     _next?.cancel();
     _cfg = levelParams(_ladder.level);
+    // ШАГ ЗАРЯДКИ — СВОЁ ЧИСЛО ЗАДАЧ (`?trials=`, по умолчанию 8), как веб (`number-bonds.tsx:115`,
+    // `:187–189`). Трудность — личного уровня: тир `?diff=` веб-пресета снят решением 09.09
+    // «зарядка с личного уровня» (строгий сторож #273, задача 945f9d4d).
+    if (GamePreset.isPreset) _cfg = _cfg.withTrials(math.max(1, GamePreset.num('trials', 8)));
     _shadow.deal(_ladder.level);
     _round = 1;
     _hits = 0;

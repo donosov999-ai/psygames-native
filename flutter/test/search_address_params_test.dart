@@ -10,15 +10,24 @@
 ///   9 символов и нет цели по попаданиям;
 /// · `math-sprint?duration` — веб `math-sprint.tsx:112`, `:178`: длительность раунда из адреса.
 ///
+/// Строгий сторож #273 (задача 945f9d4d, 08.10) добавил ещё три:
+/// · `math-slider?trials` — веб `math-slider.tsx:108`, `session.ts:32`: число вопросов, 1…20, по умолчанию 8;
+/// · `visual-search?trials` — веб `visual-search.tsx:242`: число раундов;
+/// · `number-bonds?trials` — веб `number-bonds.tsx:115`, `:187–189`: число задач шага зарядки, по умолчанию 8.
+/// `diff` спринта и «Состава числа» сняты в храповике с причиной (решение 09.09 «с личного уровня»).
+///
 /// Каждая проба сперва показывает экран БЕЗ параметра на том же уровне: иначе совпадение
 /// значений «по уровню» и «из шага» прошло бы за чтение параметра.
 library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:psygames_flutter/games/math_slider/screen.dart';
 import 'package:psygames_flutter/games/math_sprint/screen.dart';
+import 'package:psygames_flutter/games/number_bonds/screen.dart';
 import 'package:psygames_flutter/games/schulte/screen.dart';
 import 'package:psygames_flutter/games/sdmt/screen.dart';
+import 'package:psygames_flutter/games/visual_search/screen.dart';
 import 'package:psygames_flutter/shell/game_clock.dart';
 import 'package:psygames_flutter/shell/game_preset.dart';
 import 'package:psygames_flutter/shell/js_compat.dart';
@@ -145,6 +154,57 @@ void main() {
       await tester.tap(find.byKey(const Key('начать')));
       await tester.pump(const Duration(milliseconds: 50));
       expect(hud(tester, Icons.timer_outlined), '90 ${L.t('secShort')}', reason: 'адрес без шага потерял длительность');
+    });
+  });
+
+  group('«Шкала» ?trials', () {
+    /// Тренировочный вопрос в счёт не идёт: подтвердить, «дальше» — и счётчик заданий виден.
+    Future<String> afterTraining(WidgetTester tester) async {
+      await tester.tap(find.byKey(const Key('подтвердить')));
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('дальше')));
+      await tester.pump();
+      return hud(tester, Icons.format_list_numbered);
+    }
+
+    testWidgets('🔴 число вопросов из адреса, 1…20 — как веб', (tester) async {
+      await open(tester, (s) => MathSliderScreen(state: s));
+      expect(await afterTraining(tester), '1/8', reason: 'без адреса — восемь');
+
+      GamePreset.set({'trials': '5'});
+      await open(tester, (s) => MathSliderScreen(state: s));
+      expect(await afterTraining(tester), '1/5', reason: 'число вопросов из адреса не доехало');
+
+      GamePreset.set({'trials': '50'});
+      await open(tester, (s) => MathSliderScreen(state: s));
+      expect(await afterTraining(tester), '1/20', reason: 'веб зажимает в 1…20');
+    });
+  });
+
+  group('Зрительный поиск ?trials', () {
+    testWidgets('🔴 число раундов из адреса; в шаге зарядки — без лишних раундов оси роста', (tester) async {
+      await open(tester, (s) => VisualSearchScreen(state: s, rnd: createRng('probe')));
+      expect(hud(tester, Icons.repeat), '1/8', reason: 'без адреса — восемь');
+
+      GamePreset.set({'wu': '1', 'trials': '3'});
+      // L40 — у партии по уровню там лишние раунды; у шага зарядки их быть не должно.
+      await open(tester, (s) => VisualSearchScreen(state: s, rnd: createRng('probe')), levels: {'visual_search': '40'});
+      expect(hud(tester, Icons.repeat), '1/3', reason: 'число раундов шага не доехало');
+    });
+  });
+
+  group('«Состав числа» ?trials', () {
+    testWidgets('🔴 шаг зарядки — своё число задач (по умолчанию 8), вне шага — по уровню', (tester) async {
+      await open(tester, (s) => NumberBondsScreen(state: s, rnd: createRng('probe')));
+      expect(hud(tester, Icons.repeat), '1/6', reason: 'L1 без шага — шесть задач уровня');
+
+      GamePreset.set({'wu': '1', 'trials': '3'});
+      await open(tester, (s) => NumberBondsScreen(state: s, rnd: createRng('probe')));
+      expect(hud(tester, Icons.repeat), '1/3', reason: 'число задач шага не доехало');
+
+      GamePreset.set({'wu': '1'});
+      await open(tester, (s) => NumberBondsScreen(state: s, rnd: createRng('probe')));
+      expect(hud(tester, Icons.repeat), '1/8', reason: 'шаг без числа задач — восемь, как веб');
     });
   });
 }
