@@ -187,7 +187,9 @@ describe('сборщик модели Главной — эталон для Dar
    * глубоко, вместе с кадрами питомца; функции и прочее — как есть.
    */
   const чистый = (v: any): any => {
-    if (typeof v === 'string') return v.replace(/^(?:\.\.\/)+.*?frontend\//, '/');
+    // На CI `node_modules` лежит в самом frontend/, и путь — `../../../assets/…` без `frontend/`
+    // (в рабочей копии со ссылкой на общий node_modules — `../…/<папка>/frontend/assets/…`).
+    if (typeof v === 'string') return v.replace(/^(?:\.\.\/)+(?:.*?frontend\/)?/, '/');
     if (Array.isArray(v)) return v.map(чистый);
     if (v && typeof v === 'object' && Object.getPrototypeOf(v) === Object.prototype) {
       return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, чистый(x)]));
