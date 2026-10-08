@@ -119,6 +119,11 @@ void main() {
     // «Сапёр»: имена ступеней в данных — «9×9, 10 мин» и т. п.
     // Движок Тэтхэма в пробах — собранная локально библиотека (как в puzzle_rules_reach_the_screen_test).
     final lib = '${Directory.current.path}/build/tatham/${TathamEngine.libraryName}';
+    // 🔴 08.10.2026 два раздела сочли пробу «красной на main»: в их деревьях не было собранного
+    // движка, и падение звучало как «нет текста "9×9, 10 mines"». На main с движком 6/6, CI его
+    // собирает (flutter-pilot.yml, «Канон Тэтхэма»). Причина — словами, до монтирования экрана.
+    expect(File(lib).existsSync(), isTrue,
+        reason: 'нет движка Тэтхэма $lib — из flutter/: tool/build_tatham.sh (канон ~/dev/puzzles по метке TATHAM_SHA)');
     void boardBuilt() => expect(find.textContaining(L.t('sdkGameFailed')), findsNothing, reason: 'доска не собралась');
     await expectEnglish(tester, 'Головоломки · Mines', PuzzlesScreen(state: state, mode: 'Mines', libraryPath: lib),
         ready: () => find.text('9×9, 10 mines').evaluate().isNotEmpty,
