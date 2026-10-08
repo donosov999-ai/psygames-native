@@ -651,7 +651,7 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
           AuxAction(
             key: const Key('puzzle-zoom'),
             icon: _zoom.zoomed ? Icons.zoom_out_map : Icons.zoom_in,
-            label: L.t('puzzleZoom'),
+            label: L.t('sdkZoomCloser'),
             active: _zoom.zoomed,
             onPressed: _toggleZoom,
           ),

@@ -1292,7 +1292,6 @@
 "puzzleUndeadVampire":"Vampiro",
 "puzzleUndeadZombie":"Zombie",
 "puzzleWhereError":"Dov'è l'errore?",
-"puzzleZoom":"Ingrandisci",
 "puzzlesBlackBox":"Scatola nera",
 "puzzlesBlackBoxDesc":"Trova le sfere nascoste da dove il raggio esce dalla scatola",
 "puzzlesBlackBoxIntroDesc":"In una scatola chiusa sono nascoste delle biglie e devi trovarle senza guardarci dentro. Toccando una freccia sul bordo parte un raggio: va dritto, devia accanto a una biglia, viene assorbito se ne colpisce una. Da dove esce, torna o non compare, le posizioni si deducono con certezza. Toccare una cella pone “qui c’è una biglia”; una pressione lunga la segna vuota.",

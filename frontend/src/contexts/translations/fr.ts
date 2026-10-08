@@ -2839,7 +2839,6 @@ const t: Record<string, string> = {
   "puzzleHudGems": "Gemmes",
   "puzzleHudRegion": "Région",
   "puzzleShowSolution": "Voir la solution",
-  "puzzleZoom": "Agrandir",
   "puzzleSecondAction": "Seconde action",
   "puzzleSecondNoLamp": "Pas de lampe",
   "puzzleSecondGrass": "Herbe",
