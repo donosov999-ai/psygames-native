@@ -38,12 +38,17 @@ const lostWithReason = <String, Map<String, String>>{
   '/games/anagrams': {
     'length': 'не дефект: решение Дениса 09.09 «зарядка с личного уровня» — длину слова ведёт лестница',
   },
-  '/games/math-slider': {'trials': _t},
   '/games/math-sprint': {
-    'diff': _t,
-    'duration': '«Поиск»: длительность из адреса',
+    'diff': 'не дефект (замер «Поиска» 08.10 по main c50a0f15d): веб кладёт diff только в подсветку кнопки '
+        'сложности на экране настройки (math-sprint.tsx:111, :282–293), а задачи строит '
+        'generateSprintProblem(lvl.level) — тир снят решением Дениса 09.09 «зарядка с личного уровня» (:173–179). '
+        'Шлют 3 шага profiles.ts/warmup.ts и 107 в defaultPlaylists.json',
   },
-  '/games/number-bonds': {'diff': _t, 'trials': _t},
+  '/games/number-bonds': {
+    'diff': 'по решению Дениса 09.09 «зарядка с личного уровня» (замер «Поиска» 08.10): веб-пресет ещё берёт '
+        'тир DIFF_CFG[diff] без окна времени («прежнее поведение», number-bonds.tsx:187), натив играет личный '
+        'уровень (levelParams). Шлют 3 шага profiles.ts/warmup.ts и 44 в defaultPlaylists.json',
+  },
   '/games/prl': {'diff': _t},
   '/games/proofreading': {
     'series': 'задача f4bb47dc («Внимание»)',
@@ -57,13 +62,6 @@ const lostWithReason = <String, Map<String, String>>{
     'mix': _t,
     'motif': _t,
   },
-  '/games/schulte': {
-    'series': 'задача 1b6338c1 («Поиск»)',
-    'size': '«Поиск»: размер поля из адреса',
-  },
-  '/games/sdmt': {
-    'duration': '«Поиск»: длительность — настройка, по решению 09.09 остаётся за шагом; потеря похожа на настоящую',
-  },
   '/games/stroop': {'mode': _t, 'trials': _t},
   '/games/stroop-emotional': {'trials': _t},
   '/games/sudoku': {
@@ -76,7 +74,6 @@ const lostWithReason = <String, Map<String, String>>{
     'stimMode': '«Внимание»: вид стимулов из адреса — читается в PR #287',
   },
   '/games/targets': {'level': _t, 'mode': _t},
-  '/games/visual-search': {'trials': _t},
 };
 
 /// Замер: маршрут → параметры, которые веб читает, а натив — нет.

@@ -383,6 +383,8 @@ void main() {
       '/games/proofreading',
       '/games/quick-count',
       '/games/schulte',
+      // Серия блоков Шульте — шаг зарядки `schulte-blocks` (задача 1b6338c1, 07.10.2026).
+      '/games/schulte?series=1',
       '/games/reading-span',
       '/games/sdmt',
       '/games/set-game',

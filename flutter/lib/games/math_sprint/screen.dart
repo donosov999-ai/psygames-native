@@ -66,6 +66,11 @@ class _MathSprintScreenState extends State<MathSprintScreen> {
   late final LadderShadow _shadow =
       LadderShadow(widget.state, gameId: 'math_sprint', stepKeys: sprintStepKeys);
 
+  /// Длительность раунда — из адреса (`?duration=`), иначе постоянная экрана. Веб читает её
+  /// ВСЕГДА, не только в шаге зарядки (`math-sprint.tsx:112`, `:178`): у него это начальное значение
+  /// выбора «Длительность». Без этого натив молча держал 60 с (сторож каркаса 44f7e4e0, задача 50139f1d).
+  int get _seconds => GamePreset.num('duration', widget.seconds);
+
   @override
   void initState() {
     super.initState();
@@ -105,7 +110,7 @@ class _MathSprintScreenState extends State<MathSprintScreen> {
     _streak = 0;
     _bestStreak = 0;
     _won = false;
-    _left = widget.seconds.toDouble();
+    _left = _seconds.toDouble();
     _problem = generateSprintProblem(_ladder.level, _rng);
   }
 
@@ -120,7 +125,7 @@ class _MathSprintScreenState extends State<MathSprintScreen> {
     _tick = Timer.periodic(const Duration(milliseconds: 100), (_) {
       if (!mounted) return;
       _elapsedMs += 100;
-      setState(() => _left = math.max(0, widget.seconds - _elapsedMs / 1000));
+      setState(() => _left = math.max(0, _seconds - _elapsedMs / 1000));
       if (_left <= 0) _finish();
     });
   }
@@ -246,7 +251,7 @@ class _MathSprintScreenState extends State<MathSprintScreen> {
       return Padding(
         padding: const EdgeInsets.all(12),
         child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Text(L.f('sprintReadyHint', {'n': '${widget.seconds}'}), style: text.bodyMedium),
+          Text(L.f('sprintReadyHint', {'n': '$_seconds'}), style: text.bodyMedium),
           const SizedBox(height: 8),
           FilledButton.icon(
             key: const Key('начать'),

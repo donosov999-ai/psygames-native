@@ -115,7 +115,10 @@ class _VisualSearchScreenState extends State<VisualSearchScreen> {
     _phase = _Phase.playing;
     // С 32-го раундов в среднем больше (ось без предела, model.dart). Шаг зарядки — прежняя
     // длина: пресет лестницу не двигает, а бюджет шага рассчитан на неё.
-    _trials = widget.trials + (GamePreset.isPreset ? 0 : vsDrawExtraTrials(_ladder.level, _rng));
+    // Раундов — из адреса (`?trials=`), как веб (`visual-search.tsx:242`, читает всегда); иначе — свои.
+    // Лишние раунды оси роста (с 32-го) — только в партии по уровню, не в шаге зарядки (задача 945f9d4d).
+    _trials = math.max(1, GamePreset.num('trials', widget.trials)) +
+        (GamePreset.isPreset ? 0 : vsDrawExtraTrials(_ladder.level, _rng));
     _newRound(1);
   }
 
