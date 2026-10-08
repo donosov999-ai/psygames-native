@@ -497,6 +497,21 @@ void main() {
     expect(page().petAsked.where((o) => o == 'first').length, 1, reason: 'встреча — раз за запуск');
   });
 
+  testWidgets('🔴 пузырь у правого края — целиком в экране, над питомцем (живой замер 08.10: обрезан справа)', (t) async {
+    WalkingPet.randomForTest = _Zero();
+    const line = 'Midday and you showed up. Respect!';
+    await petMount(t, petPage(walks: false, first: {'state': 'wave', 'text': line, 'showMs': 6000}));
+    await t.pump(const Duration(milliseconds: 1400));
+    expect(find.text(line), findsOneWidget);
+    final screen = t.getRect(find.byType(HybridApp));
+    final bubble = t.getRect(find.byKey(const ValueKey('walking-pet-bubble')));
+    final pet = t.getRect(find.byKey(const ValueKey('walking-pet')));
+    expect(bubble.left >= screen.left + PetPlace.margin - 0.5 && bubble.right <= screen.right - PetPlace.margin + 0.5, isTrue,
+        reason: 'пузырь $bubble в экране $screen');
+    expect((bubble.bottom - pet.top).abs() < 0.5, isTrue, reason: 'пузырь стоит на питомце: $bubble над $pet');
+    expect(bubble.right >= pet.left, isTrue, reason: 'пузырь над питомцем, а не отъехал от него');
+  });
+
   testWidgets('тап — экран питомца тем же router.push; тренерский пузырь — игра слабой шкалы', (t) async {
     await petMount(t, petPage(line: {'text': 'Память отстаёт — сыграем?', 'skill': 'memory'}));
     await t.tap(find.byKey(const ValueKey('walking-pet-body')));
