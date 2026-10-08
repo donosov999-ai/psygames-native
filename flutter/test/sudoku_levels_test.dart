@@ -21,8 +21,8 @@ void main() {
     levels = await SudokuLevels.load();
   });
 
-  test('лестница на месте: 148 ступеней', () {
-    expect(levels.lastLevel, 148);
+  test('лестница на месте: 152 ступени', () {
+    expect(levels.lastLevel, 152);
     expect(levels.config(1).n, 6, reason: 'первые ступени — 6×6');
     expect(levels.config(9).variant, 'diagonal');
     expect(levels.config(62).variant, 'jigsaw', reason: 'кривые блоки переехали на 62–65 (23.09)');
@@ -42,6 +42,7 @@ void main() {
     expect(levels.config(137).variant, 'fog', reason: 'туман войны — 137–140 (задача efb63126)');
     expect(levels.config(141).variant, 'chaos', reason: 'самосборка — 141–144 (задача 6cee3610)');
     expect(levels.config(145).variant, 'schrodinger', reason: 'клетки Шрёдингера — 145–148 (задача f46c796c)');
+    expect(levels.config(149).variant, 'friends', reason: '«Мяу — друзья» — 149–152 (задача e7260a11)');
   });
 
   test('🔴 у каждой ступени лестницы есть хотя бы одна доска', () {
@@ -141,6 +142,13 @@ void main() {
       final board = levels.boardFor(lv, seed: 7)!;
       expect(board.rating, isNull, reason: 'L$lv — вариантная доска, не банк');
       expect(board.tier, isNotNull, reason: 'у вариантной доски мера посчитана при выгрузке');
+    }
+    // «Мяу — друзья» (149–152): доски MindLab, меры на TS у правила нет — ступень не пишется
+    // сознательно (meow9-ladder.cjs); проверяем, что доска есть и правило её.
+    for (final lv in [149, 152]) {
+      final board = levels.boardFor(lv, seed: 7)!;
+      expect(board.variant, 'friends', reason: 'L$lv');
+      expect(board.rating, isNull, reason: 'L$lv — не банк');
     }
   });
 

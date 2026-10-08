@@ -25,10 +25,14 @@ void main() {
   final data = jsonDecode(file.readAsStringSync()) as Map<String, Object?>;
   final boards = (data['boards'] as List).cast<Map<String, Object?>>();
   final ladder = (data['ladder'] as List).cast<Map<String, Object?>>();
+  // Правила без эталона ходов: «Мяу — друзья» (149–152) — условие на всё решение (у кота мышь
+  // рядом), а не запрет хода; натив сверяет ход с решением, единственность доски с правилом
+  // держит sudoku_meow9_boards_test (см. flutter/tools/meow9-ladder.cjs).
+  const noMoveReference = {'friends'};
 
   test('есть что сверять: вариант на каждое правило лестницы и режимов, по 40 ходов, лестница целиком', () {
     // Числа не зашиты: новое правило лестницы обязано приехать в эталоны само (выгрузка).
-    final ladderVariants = {for (final l in ladder) l['variant'] as String};
+    final ladderVariants = {for (final l in ladder) l['variant'] as String}.difference(noMoveReference);
     // Правила, собранные раньше своих ступеней (RULES_AHEAD выгрузки): встанут на лестницу — уйдут отсюда.
     const rulesAhead = {'argyle', 'littlekiller', 'xsums', 'cipher'};
     expect(boards.length, ladderVariants.length + 3 + rulesAhead.difference(ladderVariants).length,
@@ -41,7 +45,7 @@ void main() {
 
   test('🔴 каждый вариант лестницы есть в эталонах — новое правило не проходит мимо пробы', () {
     final have = {for (final b in boards) b['variant'] as String};
-    final missing = {for (final l in ladder) l['variant'] as String}.difference(have);
+    final missing = {for (final l in ladder) l['variant'] as String}.difference(have).difference(noMoveReference);
     expect(missing, isEmpty, reason: 'вариантов лестницы нет в эталонах: $missing — перевыгрузи эталоны');
   });
 
