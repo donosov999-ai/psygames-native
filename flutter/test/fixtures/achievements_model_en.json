@@ -1,0 +1,295 @@
+{
+ "v": 1,
+ "title": "🏆 Achievements 7/32",
+ "back": "Back",
+ "rtl": false,
+ "sections": [
+  {
+   "key": "milestone",
+   "title": "🏁 Milestones",
+   "cards": [
+    {
+     "id": "first_warmup",
+     "emoji": "⚡",
+     "unlocked": true,
+     "name": "First Warmup",
+     "desc": "Complete Morning Warmup",
+     "date": "вчера"
+    },
+    {
+     "id": "first_assessment",
+     "emoji": "📊",
+     "unlocked": false,
+     "name": "First Profile",
+     "desc": "Complete Skill Assessment",
+     "date": null
+    },
+    {
+     "id": "first_financial",
+     "emoji": "💰",
+     "unlocked": false,
+     "name": "Financial Day",
+     "desc": "Complete Financial Brain Day",
+     "date": null
+    }
+   ]
+  },
+  {
+   "key": "volume",
+   "title": "🎮 Volume",
+   "cards": [
+    {
+     "id": "first_session",
+     "emoji": "🎯",
+     "unlocked": false,
+     "name": "First Game",
+     "desc": "Play any game",
+     "date": null
+    },
+    {
+     "id": "sessions_10",
+     "emoji": "🎮",
+     "unlocked": false,
+     "name": "10 sessions",
+     "desc": "Play 10 games",
+     "date": null
+    },
+    {
+     "id": "sessions_50",
+     "emoji": "💪",
+     "unlocked": false,
+     "name": "50 sessions",
+     "desc": "Play 50 games",
+     "date": null
+    },
+    {
+     "id": "sessions_100",
+     "emoji": "💯",
+     "unlocked": false,
+     "name": "Century",
+     "desc": "Play 100 games",
+     "date": null
+    },
+    {
+     "id": "sessions_500",
+     "emoji": "🏆",
+     "unlocked": false,
+     "name": "500",
+     "desc": "Play 500 games",
+     "date": null
+    },
+    {
+     "id": "challenge_20_total",
+     "emoji": "🎯",
+     "unlocked": false,
+     "name": "Twenty",
+     "desc": "20 daily challenges total",
+     "date": null
+    },
+    {
+     "id": "breathing_10",
+     "emoji": "🌬️",
+     "unlocked": false,
+     "name": "Breathing ×10",
+     "desc": "10 breathing sessions",
+     "date": null
+    },
+    {
+     "id": "breathing_30",
+     "emoji": "🧘",
+     "unlocked": false,
+     "name": "Breathing ×30",
+     "desc": "30 breathing sessions",
+     "date": null
+    },
+    {
+     "id": "polyglot_100",
+     "emoji": "🌍",
+     "unlocked": true,
+     "name": "Polyglot century",
+     "desc": "100 language sessions",
+     "date": "Dec 10, 2025"
+    }
+   ]
+  },
+  {
+   "key": "streak",
+   "title": "🔥 Streaks",
+   "cards": [
+    {
+     "id": "streak_3",
+     "emoji": "🔥",
+     "unlocked": true,
+     "name": "3-day streak",
+     "desc": "3 days warmup in a row",
+     "date": "Mar 2, 2026"
+    },
+    {
+     "id": "streak_7",
+     "emoji": "🔥🔥",
+     "unlocked": false,
+     "name": "7-day streak",
+     "desc": "7 days no skip",
+     "date": null
+    },
+    {
+     "id": "streak_30",
+     "emoji": "🔥🔥🔥",
+     "unlocked": false,
+     "name": "30-day streak",
+     "desc": "30 days in a row",
+     "date": null
+    },
+    {
+     "id": "streak_100",
+     "emoji": "🌟",
+     "unlocked": false,
+     "name": "100-day streak",
+     "desc": "100 days no skip",
+     "date": null
+    },
+    {
+     "id": "challenge_7",
+     "emoji": "🎲",
+     "unlocked": false,
+     "name": "Challenge week",
+     "desc": "7 daily challenges in a row",
+     "date": null
+    },
+    {
+     "id": "challenge_30",
+     "emoji": "🗓️",
+     "unlocked": false,
+     "name": "Challenge month",
+     "desc": "30 daily challenges in a row",
+     "date": null
+    },
+    {
+     "id": "breathing_streak_7",
+     "emoji": "🌊",
+     "unlocked": false,
+     "name": "Breath week",
+     "desc": "7 days of breathing in a row",
+     "date": null
+    }
+   ]
+  },
+  {
+   "key": "breadth",
+   "title": "🌈 Breadth",
+   "cards": [
+    {
+     "id": "all_categories",
+     "emoji": "🌈",
+     "unlocked": false,
+     "name": "All categories",
+     "desc": "Play from all 6 categories",
+     "date": null
+    },
+    {
+     "id": "twenty_unique",
+     "emoji": "🎲",
+     "unlocked": false,
+     "name": "20 unique games",
+     "desc": "Try 20 different games",
+     "date": null
+    },
+    {
+     "id": "all_44_games",
+     "emoji": "🎖️",
+     "unlocked": false,
+     "name": "All games",
+     "desc": "At least once — the whole catalog",
+     "date": null
+    }
+   ]
+  },
+  {
+   "key": "quality",
+   "title": "⭐ Quality",
+   "cards": [
+    {
+     "id": "perfect_warmup",
+     "emoji": "⭐",
+     "unlocked": false,
+     "name": "Perfect Warmup",
+     "desc": "Complete a warmup with 0 errors",
+     "date": null
+    },
+    {
+     "id": "fast_schulte",
+     "emoji": "🚀",
+     "unlocked": true,
+     "name": "Schulte Speed",
+     "desc": "Schulte 5×5 under 30s",
+     "date": "Jan 5, 1926"
+    },
+    {
+     "id": "flanker_low",
+     "emoji": "🛡️",
+     "unlocked": false,
+     "name": "Iron inhibition",
+     "desc": "Flanker: distractors cost you under 30 ms",
+     "date": null
+    },
+    {
+     "id": "corsi_7",
+     "emoji": "🧠",
+     "unlocked": true,
+     "name": "Span 7 Corsi",
+     "desc": "Reach Corsi span 7",
+     "date": null
+    },
+    {
+     "id": "cpt_no_omission",
+     "emoji": "👁️",
+     "unlocked": false,
+     "name": "CPT no misses",
+     "desc": "Complete CPT with 0 omissions",
+     "date": null
+    },
+    {
+     "id": "chess_blind_5",
+     "emoji": "♟️",
+     "unlocked": false,
+     "name": "Blind eye",
+     "desc": "Blind chess: clear level 5",
+     "date": null
+    },
+    {
+     "id": "chess_blind_10",
+     "emoji": "👑",
+     "unlocked": false,
+     "name": "Memory grandmaster",
+     "desc": "Blind chess: clear level 10",
+     "date": null
+    },
+    {
+     "id": "scholars_mate_5",
+     "emoji": "♞",
+     "unlocked": false,
+     "name": "Sees the mate",
+     "desc": "Scholar’s mate: clear level 5",
+     "date": null
+    },
+    {
+     "id": "scholars_mate_10",
+     "emoji": "⚔️",
+     "unlocked": false,
+     "name": "Mating net",
+     "desc": "Scholar’s mate: clear level 10",
+     "date": null
+    },
+    {
+     "id": "clean_run_5",
+     "emoji": "🔥",
+     "unlocked": false,
+     "name": "Clean five",
+     "desc": "5 clean rounds in a row (0 errors)",
+     "date": null
+    }
+   ]
+  }
+ ],
+ "footer": "Achievements are checked after each game. 25 left."
+}

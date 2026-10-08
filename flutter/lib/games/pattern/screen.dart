@@ -12,6 +12,7 @@ import '../../shell/lesson.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
+import '../counting_common/generator_shadow.dart';
 import 'model.dart';
 
 /// «Паттерны» на общем каркасе: игрок видит ряд и называет следующее число.
@@ -60,6 +61,10 @@ class _PatternScreenState extends State<PatternScreen> {
   bool _ready = false;
   Timer? _timer;
 
+  /// Тень генератора уровней (звено 4, задача 4e584381): раздача с новой партией, исход до лестницы.
+  late final LadderShadow _shadow =
+      LadderShadow(widget.state, gameId: 'pattern', stepKeys: patternStepKeys);
+
   @override
   void initState() {
     super.initState();
@@ -97,6 +102,7 @@ class _PatternScreenState extends State<PatternScreen> {
     _hintUsed = false;
     _won = false;
     _phase = _Phase.playing;
+    _shadow.deal(_ladder.level);
     _newRound();
   }
 
@@ -137,6 +143,7 @@ class _PatternScreenState extends State<PatternScreen> {
       if (!mounted) return;
       if (_round >= _trials) {
         final passed = _hits / _trials >= passHitRate;
+        _shadow.outcome(passed: passed, assisted: _hintUsed, errors: _errors, hints: _hintUsed ? 1 : 0);
         final details = _details();
         if (passed) {
           await _ladder.win(details: details);

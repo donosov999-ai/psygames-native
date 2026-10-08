@@ -1,8 +1,12 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 
 import 'feedback_fab.dart' show FabRules;
 import 'ion_icon.dart';
 import 'screen_ui.dart';
+import 'shared_state.dart';
+import 'streak_calendar_model.dart';
 import 'web_theme.dart';
 
 /// КАЛЕНДАРЬ СЕРИИ `/streak-calendar` НА FLUTTER — ПЕРЕНОС `frontend/app/streak-calendar.tsx`
@@ -11,22 +15,100 @@ import 'web_theme.dart';
 /// Рисунок — веба (числа из его `styles`), данные — модель веба ([ScreenUi]): дни зарядки, полоски
 /// серии, «сегодня», подписи для чтения вслух и названия месяца/дней недели на языке человека
 /// считает экран, стоящий под оболочкой. Месяц листает действие веба `month`, «Назад» — `back`.
-class StreakCalendarScreen extends StatelessWidget {
-  const StreakCalendarScreen({super.key});
+class StreakCalendarScreen extends StatefulWidget {
+  const StreakCalendarScreen({super.key, this.state});
 
   static const route = '/streak-calendar';
 
+  /// Есть — модель считается на Dart и месяц листается здесь же (вариант Б, d6a60b02,
+  /// `streak_calendar_model.dart`); нет — модель и листание у веба, как раньше.
+  final SharedState? state;
+
+  /// Часы «сегодня» — пробы подменяют.
+  @visibleForTesting
+  static DateTime Function() clock = DateTime.now;
+
+  @override
+  State<StreakCalendarScreen> createState() => _StreakCalendarScreenState();
+}
+
+class _StreakCalendarScreenState extends State<StreakCalendarScreen> {
+  static const route = StreakCalendarScreen.route;
   static const _orange = Color(0xFFF97316);
   static const _strip = Color(0x66FB923C);
 
-  void _act(String a, [List<Object?> args = const []]) => ScreenUi.act(route, a, args);
+  /// Данные своей модели (вариант Б); модель считается в [build] — от темы и месяца.
+  CalendarLocales? _locales;
+  List<Object?> _history = const [];
+  late Day _today;
+  late ({int y, int m}) _shown;
 
   @override
-  Widget build(BuildContext context) {
+  void initState() {
+    super.initState();
+    _today = dayOf(StreakCalendarScreen.clock());
+    _shown = (y: _today.y, m: _today.m);
+    if (widget.state != null) _load();
+  }
+
+  Future<void> _load() async {
+    final loc = await CalendarLocales.load();
+    List<Object?> history;
+    try {
+      final raw = widget.state!.get('psygames_warmup_history');
+      final parsed = raw == null ? const [] : jsonDecode(raw);
+      // Не массив — сбой чтения, как у `readHistoryRaw` веба: показываем пусто, ничего не пишем.
+      history = parsed is List ? parsed.cast<Object?>() : const [];
+    } catch (_) {
+      history = const [];
+    }
+    if (!mounted) return;
+    setState(() {
+      _locales = loc;
+      _history = history;
+    });
+  }
+
+  /// Своя модель — те же входы, что у веба: история, показанный месяц, «сегодня», цвета темы.
+  Map<String, Object?>? _ownModel(BuildContext context) {
+    final loc = _locales;
+    if (loc == null) return null;
     final web = WebTheme.of(context);
-    return ValueListenableBuilder<Map<String, Object?>?>(
-      valueListenable: ScreenUi.model(route),
-      builder: (context, m, _) {
+    String hex(Color c) => '#${(c.toARGB32() & 0xFFFFFF).toRadixString(16).padLeft(6, '0')}';
+    return calendarModel(
+      loc,
+      _history,
+      year: _shown.y,
+      month: _shown.m,
+      today: _today,
+      primary: hex(WebTheme.accent(widget.state!)),
+      // Рамка — строкой веба (`colors.border`, «#E5E5EA»): верхний регистр, как в web_theme.json.
+      border: hex(web.border).toUpperCase(),
+    );
+  }
+
+  void _act(String a, [List<Object?> args = const []]) {
+    if (widget.state == null || a == 'back') {
+      ScreenUi.act(route, a, args);
+      return;
+    }
+    if (a == 'month') {
+      // Как `month` веба: вперёд дальше текущего месяца — нельзя.
+      final delta = (args.isNotEmpty && args.first is num && (args.first! as num) > 0) ? 1 : -1;
+      final first = shiftDay((y: _shown.y, m: _shown.m, d: 1), delta > 0 ? 31 : -1);
+      final next = (y: first.y, m: first.m);
+      if (next.y * 12 + next.m > _today.y * 12 + _today.m) return;
+      setState(() => _shown = next);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.state != null
+      ? _view(context, _ownModel(context))
+      : ValueListenableBuilder<Map<String, Object?>?>(valueListenable: ScreenUi.model(route), builder: (context, m, _) => _view(context, m));
+
+  Widget _view(BuildContext context, Map<String, Object?>? m) {
+    final web = WebTheme.of(context);
         if (m == null) {
           return ColoredBox(
             color: web.background,
@@ -188,8 +270,6 @@ class StreakCalendarScreen extends StatelessWidget {
             ),
           ),
         );
-      },
-    );
   }
 
   Widget _metric(BuildContext context, Map<String, Object?> x) {

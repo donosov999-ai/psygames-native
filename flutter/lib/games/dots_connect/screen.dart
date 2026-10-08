@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
 import '../../shell/aux_action.dart';
+import '../../shell/game_preset.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/level_ladder.dart';
@@ -26,6 +27,10 @@ class DotsConnectScreen extends StatefulWidget {
 class _DotsConnectScreenState extends State<DotsConnectScreen> {
   DotsLevelSet? _set;
   late LevelLadder _ladder;
+
+  /// Уровень партии: из адреса (шаг зарядки по правилу «освоенный −20 %», вызов дня) важнее
+  /// сохранённого — как в вебе (`num('level', lvl.level)`). Сторож параметров #273, задача 3e685a46.
+  int get _playLevel => GamePreset.num('level', _ladder.level);
   DotsGame? _game;
   bool _won = false;
 
@@ -49,12 +54,12 @@ class _DotsConnectScreenState extends State<DotsConnectScreen> {
     setState(() {
       _strings = strings;
       _set = set;
-      _game = DotsGame(set.byLevel(_ladder.level));
+      _game = DotsGame(set.byLevel(_playLevel));
     });
   }
 
   void _restart() => setState(() {
-        _game = DotsGame(_set!.byLevel(_ladder.level));
+        _game = DotsGame(_set!.byLevel(_playLevel));
         _won = false;
       });
 
@@ -126,7 +131,7 @@ class _DotsConnectScreenState extends State<DotsConnectScreen> {
       // собирал уровень, и искать заново нечего.
       onLesson: level.solution.isEmpty ? null : _openLesson,
       hud: [
-        HudItem(label: L.t('level'), value: '${_ladder.level}', icon: Icons.flag_outlined),
+        HudItem(label: L.t('level'), value: '$_playLevel', icon: Icons.flag_outlined),
         HudItem(label: L.t('personalBest'), value: '${_ladder.best}', icon: Icons.emoji_events_outlined),
         HudItem(
             label: strings.t('hudCoverage'),

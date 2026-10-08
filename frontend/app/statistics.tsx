@@ -16,7 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { isRTLLang } from '@/src/services/rtl';
-import { getAllStats, GameStats, GameSession, getSessions } from '@/src/services/api';
+import { GameSession, getSessions, statsOfSessions } from '@/src/services/api';
 import { getTokens, levelInfo, getStreak } from '@/src/services/tokens';
 import { GAMES, categoryOfSessionType } from '@/src/constants/games';
 import { areaBreakdown, weakestArea, type AreaStat } from '@/src/services/analytics';
@@ -57,7 +57,6 @@ function StatisticsScreenBody() {
   const { colors } = useTheme();
   const { t, language } = useLanguage();
   const router = useRouter();
-  const [stats, setStats] = useState<GameStats[]>([]);
   const [loading, setLoading] = useState(true);
   // Вкладки: сводка (итоги) и история (движение). Обе живут на ОДНОЙ загрузке —
   // переключение не ходит в хранилище, иначе клик по вкладке давал бы спиннер.
@@ -67,7 +66,6 @@ function StatisticsScreenBody() {
   const [scopeAll, setScopeAll] = useState(false);  // false = текущий профиль, true = все игры
   const [tokens, setTokens] = useState(0);          // D1: токены/уровень/стрик в герое
   const [streakDays, setStreakDays] = useState(0);
-  const [sessionsByGame, setSessionsByGame] = useState<Record<string, number[]>>({});
   /*
    * Баланс тренировок по областям: чего человек качает, а что обходит стороной.
    *
@@ -84,10 +82,47 @@ function StatisticsScreenBody() {
    * (id через дефис, партия через подчёркивание), и эти партии выпадали из баланса молча.
    */
   const profileId = profile?.id;
-  const areas = useMemo<AreaStat[]>(() => {
-    const scoped = scopeAll || !profileId ? sessions : sessions.filter((s) => belongsToProfile(s, profileId));
-    return areaBreakdown(scoped as any, categoryOfSessionType);
-  }, [sessions, scopeAll, profileId]);
+  /**
+   * 🔴 КАРТОЧКИ ИГР — ПО ТЕМ ЖЕ ПАРТИЯМ, ЧТО И БАЛАНС (задача a6b99ecc, 07.10.2026). Карточки
+   * строились из `getAllStats()` — по ВСЕМ партиям устройства, — и фильтровались только по составу
+   * профиля: у «Микро-релакс» в «Судоку» стояло «Всего игр 16» при своих 4, у nzt48 — «Дыхание»
+   * другого профиля. Теперь охват один на весь экран: итоги, карточки, столбики, баланс.
+   */
+  const scopedSessions = useMemo(
+    () => (scopeAll || !profileId ? sessions : sessions.filter((s) => belongsToProfile(s, profileId))),
+    [sessions, scopeAll, profileId],
+  );
+  const stats = useMemo(() => {
+    const catalog = GAMES.map((g) => g.id);
+    const extras = [...new Set(scopedSessions.map((s) => s.game_type))].filter((id) => !!id && !catalog.includes(id));
+    return [...catalog, ...extras].map((id) => statsOfSessions(id, scopedSessions));
+  }, [scopedSessions]);
+  // Очки по играм в хронологии — для столбиков; те же партии охвата.
+  const sessionsByGame = useMemo(() => {
+    const byGame: Record<string, number[]> = {};
+    for (const s of scopedSessions) {
+      if (!s.game_type) continue;
+      (byGame[s.game_type] ||= []).push(typeof s.score === 'number' && isFinite(s.score) ? s.score : 0);
+    }
+    return byGame;
+  }, [scopedSessions]);
+  const areas = useMemo<AreaStat[]>(
+    () => areaBreakdown(scopedSessions as any, categoryOfSessionType),
+    [scopedSessions],
+  );
+  /**
+   * 🔴 ОЧКИ И СЕРИЯ — ПРОФИЛЯ, КОТОРЫЙ ВЫБРАН СЕЙЧАС (a6b99ecc). `loadStats` звался один раз при
+   * монтировании и читал их для `profile?.id` в тот момент: холодный заход на /statistics (ссылка,
+   * перезагрузка) брал профиль по умолчанию — на кадре «0 очков» при 1240.
+   */
+  useEffect(() => {
+    if (!profileId) return;
+    let alive = true;
+    Promise.all([getTokens(profileId), getStreak(profileId)])
+      .then(([tk, st]) => { if (alive) { setTokens(tk); setStreakDays(st); } })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, [profileId]);
   // v1.115.0: недельный ИИ-дайджест — кэш на ISO-неделю (isoWeekKey), молчаливый null = карточка просто не рисуется
   const [aiDigest, setAiDigest] = useState<string | null>(null);
 
@@ -97,26 +132,18 @@ function StatisticsScreenBody() {
 
   const loadStats = async () => {
     try {
-      const allStats = await getAllStats();
-      setStats(allStats);
       let freshStreak = 0;
       if (profile?.id) { setTokens(await getTokens(profile.id)); freshStreak = await getStreak(profile.id); setStreakDays(freshStreak); }
       // D1.2: сгруппировать очки по играм в хронологии для спарклайнов
       const allSessions = await getSessions();
-      setSessions(allSessions);   // сырые сессии нужны вкладке «История» — второй раз их не читаем
-      const byGame: Record<string, number[]> = {};
-      for (const s of allSessions) {
-        if (!s.game_type) continue;
-        (byGame[s.game_type] ||= []).push(typeof s.score === 'number' && isFinite(s.score) ? s.score : 0);
-      }
-      setSessionsByGame(byGame);
+      setSessions(allSessions);   // сырые сессии — вкладкам «Сводка» и «История»; карточки считаются из них по охвату
       // Недельный дайджест — компактный агрегат за последние 7 дней (не сырой дамп сессий)
       if (profile?.id) {
         const weekAgo = Date.now() - 7 * 86400_000;
         const thisWeek = allSessions.filter((s) => s.timestamp && new Date(s.timestamp).getTime() >= weekAgo);
         const byWeekday: Record<number, number> = {};
         for (const s of thisWeek) { if (s.timestamp) { const wd = new Date(s.timestamp).getDay(); byWeekday[wd] = (byWeekday[wd] || 0) + 1; } }
-        const totalGamesLocal = allStats.reduce((s, x) => s + x.total_sessions, 0);
+        const totalGamesLocal = allSessions.filter((s) => !!s.game_type).length;
         getAiInsight(
           'weekly_digest', profile.id, isoWeekKey(), language, toneForProfile(profile.id),
           { sessionsThisWeek: thisWeek.length, uniqueGamesThisWeek: new Set(thisWeek.map((s) => s.game_type)).size,

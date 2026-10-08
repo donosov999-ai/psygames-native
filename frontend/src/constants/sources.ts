@@ -21,6 +21,12 @@ export interface SourceEntry {
   /** Авторство, если лицензия требует его сохранять (BSD-3, MIT). */
   credit?: string;
   /**
+   * Имя и авторство НА ЯЗЫКЕ ЧЕЛОВЕКА — ключом словаря, когда это не собственное имя (07.10.2026:
+   * на EN экран показывал «Записи произношения Викисловаря»). Нет ключа — `name`/`credit` как есть.
+   */
+  nameKey?: string;
+  creditKey?: string;
+  /**
    * Ключ словаря с описанием «что именно взято». Не пара ru/en прямо здесь:
    * зашитые двуязычные строки на экранах верхнего уровня запрещены гейтом
    * `screen-language-fallback` — иначе текст не доедет до остальных десяти языков.
@@ -47,13 +53,16 @@ export const SOURCES: SourceEntry[] = [
      * поэтому разъехаться с ним не может.
      */
     name: 'Записи произношения Викисловаря',
+    nameKey: 'sourceWiktionaryVoiceName',
     url: 'https://commons.wikimedia.org/wiki/Category:Pronunciation',
     license: 'CC BY-SA',
     credit: 'Авторы Викисловаря и Lingua Libre — полный список ниже',
+    creditKey: 'sourceWiktionaryVoiceCredit',
     key: 'sourceWiktionaryVoice',
   },
   {
     name: 'Шахматные фигуры Cburnett',
+    nameKey: 'sourceCburnettName',
     url: 'https://en.wikipedia.org/wiki/User:Cburnett/GFDL_images/Chess',
     license: 'BSD-3-Clause',
     credit: 'Colin M.L. Burnett',
@@ -66,3 +75,14 @@ export const SOURCES: SourceEntry[] = [
  * используется гейтом: у такой записи `credit` не может быть пустым.
  */
 export const CREDIT_REQUIRED = ['BSD-3-Clause', 'MIT', 'Apache-2.0', 'CC BY', 'CC BY-SA'];
+
+/** Имя источника на языке человека: ключ словаря, если он есть, иначе собственное имя как есть. */
+export function sourceName(s: SourceEntry, t: (k: string) => string): string {
+  return s.nameKey ? t(s.nameKey) : s.name;
+}
+
+/** Авторство на языке человека; нет авторства — null. */
+export function sourceCredit(s: SourceEntry, t: (k: string) => string): string | null {
+  if (!s.credit) return null;
+  return s.creditKey ? t(s.creditKey) : s.credit;
+}

@@ -81,6 +81,16 @@ void main() {
     expect(js, isEmpty);
   });
 
+  testWidgets('🔴 нижнее «Пропустить» — шириной колонки карточек, а не слова: «Skip» — не вертикальная капсула', (t) async {
+    // Эмулятор, 2.56.15 EN (07.10): кнопка по ширине «Skip» была уже своей высоты 48.
+    final m = load('onboarding_model.json');
+    await mount(t, {...m, 'exit': 'Skip'});
+    final button = t.getSize(find.descendant(of: key('onboarding-skip-footer'), matching: find.byType(Container)).first);
+    final card = t.getSize(key('onboarding-card-all-${((m['cards'] as List).first as Map)['id']}'));
+    expect(button.width, card.width);
+    expect(button.width, greaterThan(button.height * 4));
+  });
+
   testWidgets('🔴 обучение: счётчик, слайд, точки; «Дальше» и «Пропустить» — действия веба', (t) async {
     final m = load('onboarding_tutorial_model.json');
     await mount(t, m);

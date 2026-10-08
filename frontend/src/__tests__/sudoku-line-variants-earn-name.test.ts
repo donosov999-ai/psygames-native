@@ -58,6 +58,8 @@ const LINE_VARIANTS: { variant: Variant; levels: number[]; cap?: number; promise
   { variant: 'littlekiller', levels: [125, 126, 127, 128] },
   // X-суммы 129–132: свой приём xsum_clue (ступень 4) — под потолком 3 замер раздела 1/24.
   { variant: 'xsums', levels: [129, 130, 131, 132] },
+  // Шифр 133–136: свой приём cipher_code (ступень 4) — под потолком 3 замер раздела 0/16.
+  { variant: 'cipher', levels: [133, 134, 135, 136] },
 ];
 
 describe.each(LINE_VARIANTS)('«$variant» заслуживает своё имя на досках, которые получает человек', ({ variant, levels, cap = 3, promise }) => {

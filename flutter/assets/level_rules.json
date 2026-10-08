@@ -143,6 +143,18 @@
     "surprise_dir"
    ]
   ],
+  "find_differences": [
+   [
+    1,
+    33,
+    null
+   ],
+   [
+    34,
+    null,
+    "subtle"
+   ]
+  ],
   "goods_sort": [
    [
     1,
@@ -596,8 +608,13 @@
    ],
    [
     11,
-    null,
+    16,
     "timelimit"
+   ],
+   [
+    17,
+    null,
+    "faster"
    ]
   ],
   "spatial_span": [
@@ -659,8 +676,13 @@
    ],
    [
     8,
-    null,
+    31,
     "conj"
+   ],
+   [
+    32,
+    null,
+    "closer"
    ]
   ],
   "water_sort": [

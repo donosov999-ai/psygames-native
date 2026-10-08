@@ -14,6 +14,7 @@ import '../../shell/level_ladder.dart';
 import '../../shell/level_rules.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
+import '../counting_common/generator_shadow.dart';
 import 'model.dart';
 
 /// «Спринт» на общем каркасе: минута на счёт, ответ набирается цифрами.
@@ -60,6 +61,10 @@ class _MathSprintScreenState extends State<MathSprintScreen> {
   _Phase _phase = _Phase.ready;
   Timer? _tick;
   int _elapsedMs = 0;
+
+  /// Тень генератора уровней (звено 4, задача 4e584381): раздача на старте, исход до лестницы.
+  late final LadderShadow _shadow =
+      LadderShadow(widget.state, gameId: 'math_sprint', stepKeys: sprintStepKeys);
 
   /// Длительность раунда — из адреса (`?duration=`), иначе постоянная экрана. Веб читает её
   /// ВСЕГДА, не только в шаге зарядки (`math-sprint.tsx:112`, `:178`): у него это начальное значение
@@ -110,6 +115,7 @@ class _MathSprintScreenState extends State<MathSprintScreen> {
   }
 
   void _start() {
+    _shadow.deal(_ladder.level);
     setState(() => _phase = _Phase.playing);
     _elapsedMs = 0;
     // ⚠️ Прошедшее копится ЦЕЛЫМИ миллисекундами, а остаток считается вычитанием
@@ -161,6 +167,7 @@ class _MathSprintScreenState extends State<MathSprintScreen> {
   Future<void> _finish() async {
     _tick?.cancel();
     final passed = _correct >= sprintCorrectToPass;
+    _shadow.outcome(passed: passed, errors: _errors, seconds: (_elapsedMs / 1000).round());
     // Веха как в вебе: каждый третий ЗАСЧИТАННЫЙ уровень — бой «дополни ряд до 1–9».
     bool? boss;
     if (passed) {
