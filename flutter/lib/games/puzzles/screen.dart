@@ -41,6 +41,7 @@ class PuzzlesScreen extends StatefulWidget {
     required this.state,
     required this.mode,
     this.libraryPath,
+    this.seed,
   });
 
   final SharedState state;
@@ -54,6 +55,11 @@ class PuzzlesScreen extends StatefulWidget {
   /// приложение, на Android лежит в APK и открывается по имени. Поэтому здесь
   /// `null`, а выбор делает [TathamEngine.openPlatform].
   final String? libraryPath;
+
+  /// Зерно раздачи — ТОЛЬКО для проб. Без него код «Угадай кода» случаен, и проба хода
+  /// 1-2-3 на ступени 4 цвета × 3 места выигрывала партию в одном прогоне из 64 (плавающая
+  /// guess_input_test, 08.10.2026). В игре — `null`, зерно от часов.
+  final int? seed;
 
   @override
   State<PuzzlesScreen> createState() => _PuzzlesScreenState();
@@ -241,7 +247,7 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
     if (_given != null && !GamePreset.isPreset) {
       _shadow?.recordDeal(level: _dealLevel, given: _given!, pool: _genPool, mode: Leniency.normal);
     }
-    final ok = engine.start(_gameIndex, step.params, DateTime.now().millisecondsSinceEpoch % 100000);
+    final ok = engine.start(_gameIndex, step.params, widget.seed ?? DateTime.now().millisecondsSinceEpoch % 100000);
     setState(() {
       _failure = ok ? null : L.f('puzzleErrBuild', {'params': step.params});
       _won = false;
