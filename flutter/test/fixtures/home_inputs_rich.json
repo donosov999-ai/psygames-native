@@ -1,0 +1,265 @@
+{
+ "now": 1791448812000,
+ "tzOffsetMinutes": -300,
+ "winW": 750,
+ "language": "ru",
+ "storage": {
+  "psygames_achievements_unlocked": "[{\"id\":\"first_game\",\"date\":\"2026-10-01\"},{\"id\":\"streak_3\",\"date\":\"2026-10-04\"},{\"id\":\"level_5\",\"date\":\"2026-10-07\"}]",
+  "psygames_active_profile": "nzt48",
+  "psygames_assessment_history": "[{\"scores\":[{\"domain\":\"wm_verbal\",\"z_score\":-0.2}]}]",
+  "psygames_corsi_stars_nzt48": "{\"1\":1}",
+  "psygames_cosmetics_equipped_nzt48": "{\"frame\":\"frame_gold\",\"title\":\"title_owl\",\"avatar\":\"avatar_fox\",\"background\":\"bg_kids\",\"badge\":\"badge_kids\"}",
+  "psygames_daily_challenge_streak_nzt48": "{\"streak\":4,\"total\":10,\"last\":\"2026-10-8\"}",
+  "psygames_day_goal_nzt48": "{\"text\":\"Пройти три судоку\",\"date\":\"2026-10-8\",\"createdAt\":\"2026-10-08T03:40:12.000Z\",\"outcome\":null}",
+  "psygames_earn_v1": "{\"nzt48\":{\"entries\":[{\"ts\":1791441612000,\"day\":\"2026-10-8\",\"game\":\"sudoku\",\"base\":15,\"multiplier\":2,\"total\":30,\"reason\":\"round\"},{\"ts\":1791445212000,\"day\":\"2026-10-8\",\"game\":\"sudoku\",\"base\":15,\"multiplier\":2,\"total\":30,\"reason\":\"round\"},{\"ts\":1791438012000,\"day\":\"2026-10-8\",\"game\":\"schulte_table\",\"base\":10,\"multiplier\":1,\"total\":10,\"reason\":\"round\"},{\"ts\":1791434412000,\"day\":\"2026-10-8\",\"game\":\"corsi\",\"base\":12,\"multiplier\":1,\"total\":12,\"reason\":\"round\"},{\"ts\":1791430812000,\"day\":\"2026-10-8\",\"game\":\"hanoi\",\"base\":8,\"multiplier\":1,\"total\":8,\"reason\":\"round\"},{\"ts\":1791358812000,\"day\":\"2026-10-7\",\"game\":\"corsi\",\"base\":9,\"multiplier\":1,\"total\":9,\"reason\":\"round\"}],\"days\":[\"2026-10-8\",\"2026-10-7\",\"2026-10-6\",\"2026-10-5\",\"2026-10-4\",\"2026-9-18\",\"2026-9-17\",\"2026-9-16\",\"2026-9-15\",\"2026-9-14\",\"2026-9-13\",\"2026-9-12\",\"2026-9-11\",\"2026-9-10\"]}}",
+  "psygames_earned_total_v1": "{\"nzt48\":950}",
+  "psygames_hanoi_stars_nzt48": "{\"1\":2}",
+  "psygames_onboarding_picked_nzt48": "1",
+  "psygames_pet_skin": "robot",
+  "psygames_resume_corsi_women": "{\"v\":1,\"savedAt\":1791445212000,\"state\":{}}",
+  "psygames_resume_hanoi_nzt48": "{\"v\":1,\"savedAt\":1787992812000,\"state\":{}}",
+  "psygames_resume_retired_game_nzt48": "{\"v\":1,\"savedAt\":1791445212000,\"state\":{}}",
+  "psygames_resume_sudoku_nzt48": "{\"v\":1,\"savedAt\":1791438012000,\"state\":{}}",
+  "psygames_schulte_table_stars_nzt48": "{\"1\":3,\"2\":2,\"3\":0}",
+  "psygames_sessions": "[{\"profile_id\":\"nzt48\",\"game_type\":\"schulte_table\",\"score\":10,\"time_seconds\":40,\"timestamp\":\"2026-10-03T08:40:12.000Z\"},{\"profile_id\":\"nzt48\",\"game_type\":\"schulte_table\",\"score\":10,\"time_seconds\":35,\"timestamp\":\"2026-10-05T08:40:12.000Z\"},{\"profile_id\":\"nzt48\",\"game_type\":\"schulte_table\",\"score\":10,\"time_seconds\":30,\"timestamp\":\"2026-10-07T08:40:12.000Z\"},{\"profile_id\":\"nzt48\",\"game_type\":\"corsi\",\"score\":10,\"time_seconds\":60,\"timestamp\":\"2026-09-18T08:40:12.000Z\"},{\"profile_id\":\"nzt48\",\"game_type\":\"corsi\",\"score\":10,\"time_seconds\":60,\"timestamp\":\"2026-09-20T08:40:12.000Z\"},{\"profile_id\":\"nzt48\",\"game_type\":\"n_back\",\"score\":10,\"time_seconds\":60,\"timestamp\":\"2026-08-29T08:40:12.000Z\"},{\"profile_id\":\"nzt48\",\"game_type\":\"sudoku\",\"score\":10,\"time_seconds\":60,\"timestamp\":\"2026-10-08T06:40:12.000Z\"},{\"profile_id\":\"nzt48\",\"game_type\":\"memory_matrix\",\"score\":10,\"time_seconds\":60,\"timestamp\":\"2026-10-04T08:40:12.000Z\"},{\"profile_id\":\"women\",\"game_type\":\"memory_matrix\",\"score\":10,\"time_seconds\":60,\"timestamp\":\"2026-10-06T08:40:12.000Z\"}]",
+  "psygames_streak_goal_asked_nzt48": "2026-10-1",
+  "psygames_streak_goal_nzt48": "{\"days\":7,\"startedAt\":\"2026-10-1\",\"askedAt\":\"2026-10-1\",\"reachedAt\":null}",
+  "psygames_streak_v1": "{\"nzt48\":{\"last\":\"2026-10-8\",\"streak\":3}}",
+  "psygames_tokens_v1": "{\"nzt48\":1259,\"women\":50}",
+  "psygames_warmup_history": "[{\"date\":\"2026-10-07\",\"weekday\":\"mon\",\"duration_min\":5,\"track\":\"core\",\"total_score\":10,\"completed\":true,\"steps_done\":3,\"steps_total\":3},{\"date\":\"2026-10-06\",\"weekday\":\"mon\",\"duration_min\":5,\"track\":\"core\",\"total_score\":10,\"completed\":true,\"steps_done\":3,\"steps_total\":3},{\"date\":\"2026-10-05\",\"weekday\":\"mon\",\"duration_min\":5,\"track\":\"core\",\"total_score\":10,\"completed\":true,\"steps_done\":3,\"steps_total\":3},{\"date\":\"2026-10-03\",\"weekday\":\"mon\",\"duration_min\":5,\"track\":\"core\",\"total_score\":10,\"completed\":true,\"steps_done\":3,\"steps_total\":3}]",
+  "psygames_weak_skill_v1": "{\"skillKey\":\"skillLogic\",\"delta\":-0.3,\"date\":\"2026-10-06\"}"
+ },
+ "input": {
+  "profile": {
+   "id": "nzt48",
+   "color": "#a855f7",
+   "emoji": "💊",
+   "warmup_enabled": true
+  },
+  "colors": {
+   "background": "#F5F5F7",
+   "surface": "#FFFFFF",
+   "card": "#FFFFFF",
+   "text": "#1C1C1E",
+   "textSecondary": "#6E6E73",
+   "primary": "#a855f7",
+   "border": "#E5E5EA"
+  },
+  "showBlock": {
+   "цель_дня": true,
+   "сегодня": true,
+   "рекомендации": true,
+   "практики": true,
+   "любимые_разделы": true
+  },
+  "images": {
+   "onPhoto": true,
+   "profileBg": "/assets/images/profile-bg/kids.webp",
+   "logo": "/assets/images/logos/logo1.webp",
+   "chip": "/assets/images/avatars/avatar_fox.webp",
+   "warmup": "/assets/images/feature_icons/warmup.webp"
+  },
+  "logoPlate": "#12151AC7",
+  "tokens": 1259,
+  "level": {
+   "level": 5,
+   "titleKey": "levelTitle5",
+   "intoLevel": 159,
+   "span": 600,
+   "progress": 0.265
+  },
+  "streak": 4,
+  "pet": {
+   "kind": "frames",
+   "uris": [
+    "/assets/images/pet/robot/idle0.webp",
+    "/assets/images/pet/robot/idle1.webp",
+    "/assets/images/pet/robot/idle2.webp",
+    "/assets/images/pet/robot/idle3.webp"
+   ],
+   "frames": 4,
+   "tickMs": 420,
+   "accessory": null
+  },
+  "frameColor": "#f5b50a",
+  "titleLabel": "🦉 Сова разума",
+  "achievementsCount": 3,
+  "update": null,
+  "streakToast": 25,
+  "wagerToast": null,
+  "levelUp": null,
+  "ladder": {
+   "n": 2,
+   "titleKey": "ladderHint"
+  },
+  "chest": {
+   "face": "🪶",
+   "left": 70,
+   "have": 3,
+   "all": 12,
+   "ratio": 0.8157894736842105
+  },
+  "resume": "sudoku",
+  "goalCard": {
+   "state": "active",
+   "goal": {
+    "text": "Пройти три судоку",
+    "date": "2026-10-8",
+    "createdAt": "2026-10-08T03:40:12.000Z",
+    "outcome": null
+   }
+  },
+  "goalMaxLen": 90,
+  "goalExampleKeys": [
+   "dayGoalExample1",
+   "dayGoalExample2",
+   "dayGoalExample3"
+  ],
+  "today": {
+   "rows": [
+    {
+     "game": "sudoku",
+     "rounds": 2,
+     "total": 60,
+     "doubled": true,
+     "lastTs": 1791445212000
+    },
+    {
+     "game": "schulte_table",
+     "rounds": 1,
+     "total": 10,
+     "doubled": false,
+     "lastTs": 1791438012000
+    },
+    {
+     "game": "corsi",
+     "rounds": 1,
+     "total": 12,
+     "doubled": false,
+     "lastTs": 1791434412000
+    },
+    {
+     "game": "hanoi",
+     "rounds": 1,
+     "total": 8,
+     "doubled": false,
+     "lastTs": 1791430812000
+    }
+   ],
+   "total": 90,
+   "rounds": 5,
+   "dayStreak": 5
+  },
+  "todayRowsMax": 3,
+  "dayStreakForMult": 3,
+  "reco": [
+   {
+    "pick": {
+     "gameId": "sudoku",
+     "reason": "weakspot",
+     "reasonKey": "recoWhyWeakspot",
+     "daysSince": null,
+     "doneToday": true
+    },
+    "gameId": "sudoku"
+   },
+   {
+    "pick": {
+     "gameId": "schulte_table",
+     "reason": "growth",
+     "reasonKey": "recoWhyGrowth",
+     "daysSince": 0,
+     "doneToday": false
+    },
+    "gameId": "schulte_table"
+   },
+   {
+    "pick": {
+     "gameId": "memory_palace",
+     "reason": "fresh",
+     "reasonKey": "recoWhyFresh",
+     "daysSince": null,
+     "doneToday": false
+    },
+    "gameId": "memory_palace"
+   }
+  ],
+  "recoParams": {},
+  "warmup": {
+   "gradient": [
+    "#43cea2",
+    "#185a9d"
+   ],
+   "slotKey": "slotDay"
+  },
+  "pause": {
+   "gradient": [
+    "#43cea2",
+    "#185a9d"
+   ]
+  },
+  "challenge": {
+   "gameId": "tower_london",
+   "difficultyKey": "easy",
+   "done": true,
+   "streak": 4
+  },
+  "favourites": [
+   {
+    "category": "memory",
+    "total": 4,
+    "routes": [
+     "/games/span",
+     "/games/mnemonics-hub",
+     "/games/languages-hub",
+     "/games/chess-hub"
+    ],
+    "hidden": 0
+   },
+   {
+    "category": "attention",
+    "total": 1,
+    "routes": [
+     "/games/search-hub"
+    ],
+    "hidden": 0
+   },
+   {
+    "category": "logic",
+    "total": 3,
+    "routes": [
+     "/games/sudoku-hub",
+     "/games/sorting-hub",
+     "/games/spatial-hub"
+    ],
+    "hidden": 0
+   }
+  ],
+  "goalSheet": {
+   "line": "Неделя прошла. Подтвердим цель?",
+   "petState": {
+    "kind": "frames",
+    "uris": [
+     "/assets/images/pet/robot/wave0.webp",
+     "/assets/images/pet/robot/wave1.webp",
+     "/assets/images/pet/robot/wave2.webp",
+     "/assets/images/pet/robot/wave3.webp"
+    ],
+    "frames": 4,
+    "tickMs": 180,
+    "accessory": null
+   },
+   "options": [
+    7,
+    14,
+    30
+   ],
+   "chosen": 14,
+   "whyKey": "goalSuggest_best_streak",
+   "basis": 9,
+   "games": 5,
+   "tokens": 90,
+   "streak": 5
+  }
+ }
+}

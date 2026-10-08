@@ -33,8 +33,8 @@ import {
  * заводить два ответа на один вопрос.
  */
 
-const MAX_CONTAINER_WIDTH = 1100;
-const CONTAINER_PADDING = 16;
+export const MAX_CONTAINER_WIDTH = 1100;
+export const CONTAINER_PADDING = 16;
 const CARD_MARGIN = 10;
 
 /**

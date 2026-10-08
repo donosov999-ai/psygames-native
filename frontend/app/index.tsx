@@ -53,7 +53,7 @@ import ProfileSwitcherModal from '@/src/components/ProfileSwitcherModal';
 import { PetStill, PetSkin, petRenderSpec } from '@/src/components/pet/PetSprite';
 import { buildHomeModel } from '@/src/services/homeModel';
 import { postScreenModel, registerScreenActions } from '@/src/services/hostScreens';
-import { SLOT_TINT, HERO_EYE } from '@/src/constants/homeHero';
+import { SLOT_TINT, HERO_EYE, TODAY_ROWS_MAX, LOGO_PLATE_BG } from '@/src/constants/homeHero';
 import { catalogSearchRoute } from '@/src/services/catalogSearchRoute';
 import { pickGoalLine } from '@/src/services/goalPetLines';
 import { getPetStats, PetStage, getPetSkin } from '@/src/services/pet';
@@ -89,8 +89,6 @@ const GRID_GAP = 12;
 // Вместо полного каталога — компактный лендинг (игра дня + CTA «Скачать приложение»).
 // IS_WEB_DEMO — build-time константа (инлайнится при экспорте), ветка статична:
 // FullHome в демо не монтируется вовсе (включая онбординг-гейт psygames_onboarded).
-/** Сколько игр показывает блок «Сегодня». Больше — и он выдавливает рекомендации. */
-const TODAY_ROWS_MAX = 3;
 
 /**
  * ЦВЕТ ТЕКСТА НА БОЛЬШИХ ПЛАШКАХ ГЛАВНОЙ — СЧИТАЕТСЯ.
@@ -142,7 +140,7 @@ function FullHome() {
    * «предприниматели — лого херово видно» (замер: logo7 яркостью 71 из 255).
    * Таблица и разбор — в `profileLogos.ts`.
    */
-  const logoPlateBg = logoPlateFor(profile?.id) === 'dark' ? '#12151AC7' : '#FFFFFFD1';
+  const logoPlateBg = LOGO_PLATE_BG[logoPlateFor(profile?.id)];
   const eveningMeta = buildEveningWarmupPlaylist({ weekday: getCurrentWeekday(), profileEvening: profile.evening_playlist });   // вечер: ротация по дню (или профильный фикс)
   const [duration, setDuration] = useState<5 | 10 | 15>(5);
   // З1: длительность выбирается в пикере и запоминается — превью на главной
