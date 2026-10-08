@@ -463,7 +463,11 @@ describe('способности видно: показ не выключен', 
   it('покупка в магазине доходит до кошелька, а не только до звука', () => {
     const shop = code('app/shop.tsx');
     expect(/buyAbility\(/.test(shop)).toBe(true);
-    expect(/useAbility\(/.test(shop)).toBe(true);
+    // Списание зовётся либо прямо, либо под псевдонимом импорта (`useAbility as spendAbility` —
+    // чтобы правило хуков не принимало вызов в обработчике за хук, #276): ищем вызов того имени,
+    // под которым функция импортирована.
+    const spend = /useAbility\s+as\s+(\w+)/.exec(shop)?.[1] ?? 'useAbility';
+    expect(new RegExp(`\\b${spend}\\(`).test(shop)).toBe(true);
     expect(/repairCheckInStreak\(/.test(shop)).toBe(true);
     // Списание проговаривается словами — молча очки уходить не должны.
     expect(/setNote\(/.test(shop)).toBe(true);

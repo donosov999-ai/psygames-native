@@ -3,7 +3,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/visual_search/model.dart';
 import 'package:psygames_flutter/games/visual_search/screen.dart';
 import 'package:psygames_flutter/shell/aux_action.dart';
+import 'package:psygames_flutter/shell/game_preset.dart';
 import 'package:psygames_flutter/shell/l10n.dart';
+import 'package:psygames_flutter/shell/level_rules.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -30,6 +32,9 @@ void main() {
     }
     SharedPreferences.setMockInitialValues({
       if (level != 1) '${SharedState.prefix}visual_search_level_nzt48': '$level',
+      // Карточки правил уровня (с 02.10.2026 экран их объявляет) — уже прочитаны: иначе окно
+      // ляжет поверх доски и заберёт нажатия пробы. Сами карточки сторожит перепись правил.
+      for (final k in ['multi', 'conj', 'closer']) LevelRules.seenKey('visual_search', k): '1',
     });
     state = await SharedState.open();
     await tester.pumpWidget(MaterialApp(
@@ -288,5 +293,60 @@ void main() {
         await tester.pump();
       }
     });
+  });
+
+  testWidgets('🔴 ПОТОЛКА НЕТ: доска 40-го раскрашена сошедшейся палитрой 40-го уровня', (tester) async {
+    // Правило Дениса 06.09.2026: с 32-го цвета палитры сходятся. Экран обязан раздавать доску
+    // палитрой своего уровня — и цель, и отвлекающих. Читаем цвета с нарисованных фигур.
+    await open(tester, level: 40, seed: 'палитра');
+    await tester.pump();
+    final shown = tester.widgetList<VsGlyph>(find.byType(VsGlyph)).map((g) => g.color).toSet();
+    expect(shown, isNotEmpty, reason: 'доска нарисована');
+    expect(shown.difference(vsPaletteFor(40).toSet()), isEmpty,
+        reason: 'на доске только цвета палитры 40-го, а не прежние: $shown');
+  });
+
+  testWidgets('🔴 ПОТОЛКА НЕТ: с 32-го в партии лишние раунды — ошибок можно столько же', (tester) async {
+    // На 47-м среднее лишних раундов ровно 2 (по одному каждые 8 уровней) — партия из 10, а не 8.
+    await open(tester, level: 31, seed: 'раунды');
+    expect(find.text('1/8'), findsOneWidget, reason: 'до 32-го партия прежняя — 8 раундов');
+    await open(tester, level: 47, seed: 'раунды');
+    expect(find.text('1/10'), findsOneWidget, reason: 'на 47-м — 10 раундов');
+    expect(find.text('0/$vsErrorsAllowed'), findsWidgets, reason: 'допуск ошибок прежний — в полосе «ошибки 0/1»');
+    // Шаг зарядки — прежняя длина: пресет лестницу не двигает, а бюджет шага рассчитан на 8.
+    GamePreset.set({'wu': '1'});
+    addTearDown(GamePreset.clear);
+    await open(tester, level: 47, seed: 'раунды');
+    expect(find.text('1/8'), findsOneWidget, reason: 'в шаге зарядки лишних раундов нет');
+  });
+
+  testWidgets('🔴 лишние раунды ИГРАЮТСЯ: на 47-м партия кончается после 10-го раунда, а не 8-го', (tester) async {
+    // Цель читается с образца, как её видит игрок: та же форма и тот же цвет, без точки приманки.
+    List<String> sampleMarks() {
+      final g = tester.widget<VsGlyph>(find.byKey(const Key('sample')));
+      final shape = switch (g.shape) { VsShape.t => 'T', VsShape.l => 'L', VsShape.i => 'I', VsShape.plus => 'plus' };
+      return [shape, g.color];
+    }
+
+    Future<void> clearRound() async {
+      for (final t in looksLikeTarget(tester, sampleMarks())) {
+        await tester.tap(find.byKey(Key('item$t')));
+        await tester.pump();
+      }
+      await tester.pump(const Duration(milliseconds: 500));
+      await tester.pump();
+    }
+
+    await open(tester, level: 47, seed: 'раунды-игра');
+    for (var r = 1; r <= 9; r += 1) {
+      expect(find.text('$r/10'), findsOneWidget, reason: 'идёт раунд $r из 10');
+      await clearRound();
+    }
+    expect(find.byKey(const Key('result')), findsNothing, reason: 'после 9-го партия не кончилась — раундов 10');
+    expect(find.text('10/10'), findsOneWidget);
+    await clearRound();
+    await tester.pump();
+    expect(find.byKey(const Key('result')), findsOneWidget, reason: 'после 10-го — итог');
+    expect(state.get('${SharedState.prefix}visual_search_level_nzt48'), '48', reason: 'все 10 без ошибок — уровень взят');
   });
 }

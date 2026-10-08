@@ -201,13 +201,13 @@ class _MahjongScreenState extends State<MahjongScreen> {
   String get _stuckLine {
     switch (mahjongStuckKey(_stuck)) {
       case 'mahjongNoPairs':
-        return 'Ходов нет. Перетасуй доску или отмени ход';
+        return L.t('mahjongNoPairs');
       case 'mahjongStuckShuffle':
-        return 'Ходов нет. Осталась перетасовка';
+        return L.t('mahjongStuckShuffle');
       case 'mahjongStuckUndo':
-        return 'Ходов нет. Отмени последний ход';
+        return L.t('mahjongStuckUndo');
       case 'mahjongStuckRestart':
-        return 'Ходов нет и выходов не осталось — уровень придётся начать заново';
+        return L.t('mahjongStuckRestart');
       default:
         return '';
     }
@@ -219,7 +219,7 @@ class _MahjongScreenState extends State<MahjongScreen> {
   /// на завале — нет. Поэтому второй шаг подсвечивает конкретную пару, которую
   /// можно снять прямо сейчас: её ищет тот же `isFree`, которым ходит игра.
   /// Заголовок один на экран и на разбор: вторая строка — второй долг подписей.
-  String get _title => 'Маджонг';
+  String get _title => L.t('mahjong');
 
   List<int>? _freePair() {
     final free = freeFlags(_tiles, _alive);
@@ -279,12 +279,12 @@ class _MahjongScreenState extends State<MahjongScreen> {
       title: _title,
       onLesson: _tiles.isEmpty ? null : _openLesson,
       hud: [
-        HudItem(label: 'Уровень', value: '${_ladder.level}', icon: Icons.flag_outlined),
-        HudItem(label: 'Достигнуто', value: '${_ladder.best}', icon: Icons.emoji_events_outlined),
-        HudItem(label: 'Пары', value: '$_matched/$_pairsTotal', icon: Icons.layers_outlined),
-        HudItem(label: 'Ходов', value: '$_openPairs', icon: Icons.touch_app_outlined),
+        HudItem(label: L.t('level'), value: '${_ladder.level}', icon: Icons.flag_outlined),
+        HudItem(label: L.t('personalBest'), value: '${_ladder.best}', icon: Icons.emoji_events_outlined),
+        HudItem(label: L.t('label_found'), value: '$_matched/$_pairsTotal', icon: Icons.layers_outlined),
+        HudItem(label: L.t('mahjongPairsOpen'), value: '$_openPairs', icon: Icons.touch_app_outlined),
         HudItem(
-          label: 'Перетасовки',
+          label: L.t('mjShufflesLeft'),
           value: left < 0 ? '∞' : '$left',
           icon: Icons.shuffle,
         ),
@@ -302,22 +302,22 @@ class _MahjongScreenState extends State<MahjongScreen> {
       auxRow: AuxBar(children: [
         AuxAction(
           icon: Icons.shuffle,
-          label: 'Перетасовать',
+          label: L.t('shuffleBtn'),
           onPressed: !_won && _shuffleDeals ? _shuffle : null,
         ),
         AuxAction(
           icon: Icons.undo,
-          label: 'Отменить (${undosPerLevel - _undosUsed})',
+          label: '${L.t('btn_undo')} (${undosPerLevel - _undosUsed})',
           onPressed: !_won && _history.isNotEmpty && _undosUsed < undosPerLevel ? _undo : null,
         ),
-        AuxAction(icon: Icons.refresh, label: 'Начать заново', onPressed: () => setState(_deal)),
+        AuxAction(icon: Icons.refresh, label: L.t('restart'), onPressed: () => setState(_deal)),
       ]),
       toolbar: _won || _openPairs == 0
           ? Padding(
               padding: const EdgeInsets.all(12),
               child: Column(mainAxisSize: MainAxisSize.min, children: [
                 Text(
-                  _won ? 'Доска разобрана, ошибок $_errors' : _stuckLine,
+                  _won ? L.f('mjCleared', {'errors': '$_errors'}) : _stuckLine,
                   key: const Key('итог'),
                   textAlign: TextAlign.center,
                 ),
@@ -326,14 +326,14 @@ class _MahjongScreenState extends State<MahjongScreen> {
                   FilledButton.icon(
                     onPressed: () => setState(_deal),
                     icon: const Icon(Icons.arrow_forward),
-                    label: const Text('Следующий уровень'),
+                    label: Text(L.t('nextLabel')),
                   ),
                 ],
               ]),
             )
           : null,
       pauseActions: [
-        PauseAction(label: 'Начать заново', icon: Icons.refresh, onPressed: () => setState(_deal)),
+        PauseAction(label: L.t('restart'), icon: Icons.refresh, onPressed: () => setState(_deal)),
       ],
     );
   }
@@ -483,7 +483,9 @@ class _TileView extends StatelessWidget {
       width: width,
       height: height,
       child: Semantics(
-        label: 'плитка ${faceUp ? face : 'скрыта'}${free ? ', свободна' : ''}',
+        label: free
+            ? L.f('mjTileFreeA11y', {'face': faceUp ? face : L.t('mjTileHidden')})
+            : L.f('mjTileA11y', {'face': faceUp ? face : L.t('mjTileHidden')}),
         value: '${pos.left},${pos.top}',
         child: Material(
           color: Color.lerp(const Color(0xFFFFFDF7), const Color(0xFF262A34), shade),
