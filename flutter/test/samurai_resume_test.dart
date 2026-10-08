@@ -45,6 +45,12 @@ void main() {
     return s.isEmpty ? 0 : int.parse(s);
   }
 
+  /// Напечатанная цифра задания — жирная (у хода игрока — обычная).
+  bool givenAt(WidgetTester tester, int r, int c) {
+    final text = find.descendant(of: find.byKey(Key('cell_${r}_$c')), matching: find.byType(Text));
+    return text.evaluate().isNotEmpty && tester.widget<Text>(text.first).style?.fontWeight == FontWeight.w800;
+  }
+
   Future<void> tapCell(WidgetTester tester, int r, int c) async {
     final f = find.byKey(Key('cell_${r}_$c'));
     await tester.ensureVisible(f);
@@ -161,10 +167,18 @@ void main() {
 
     testWidgets('🔴 вход мегабоссом не поднимает обычную партию', (tester) async {
       await boot(tester);
-      final cell = await put(tester, 7);
+      await put(tester, 7);
       await leave(tester);
       await boot(tester, megaboss: 15);
-      expect(digitAt(tester, cell.r, cell.c), isNot(7), reason: 'мега-вход ждёт свою битву');
+      // ⚠️ Мерим ХОДЫ игрока, а не цифру в той же клетке: доска мегабосса — новая раздача, и в этой
+      // клетке часто стоит НАПЕЧАТАННАЯ цифра (замер 07.10: 27 входов из 40), иногда та же 7 — так
+      // проба плавала «Expected: not <7>» в чужих PR (#187, #302). Ход игрока — нежирная цифра.
+      final moves = [
+        for (var r = 0; r < samuraiSize; r++)
+          for (var c = 0; c < samuraiSize; c++)
+            if (isSamuraiCell(r, c) && digitAt(tester, r, c) != 0 && !givenAt(tester, r, c)) (r, c)
+      ];
+      expect(moves, isEmpty, reason: 'мега-вход ждёт свою битву: ходов обычной партии на доске нет');
     });
   });
 
