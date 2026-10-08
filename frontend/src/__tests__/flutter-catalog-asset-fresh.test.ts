@@ -1,4 +1,4 @@
-/* psygames-flutter-catalog-asset-fresh · VER 2 · 07.10.2026 */
+/* psygames-flutter-catalog-asset-fresh · VER 3 · 07.10.2026 */
 /**
  * КАТАЛОГ ИГР ДЛЯ НАТИВНОГО ЭКРАНА «ИГРЫ» — ВЫГРУЗКОЙ ИЗ ЖИВОГО TS, И СВЕЖЕСТЬ ПОД СТОРОЖЕМ
  * (задачи f5025027 поиск и фильтр, 9bd1b15d перенос каталога).
@@ -75,7 +75,9 @@ function look(gradient: string[]) {
 }
 
 /** Поля карточки вкладки «Игры» (`GameCard` в `CategorySections`) и то, по чему ищут и фильтруют. */
-const FIELDS = ['id', 'route', 'nameKey', 'descKey', 'skillKey', 'category', 'icon', 'gradient', 'hub', 'sandbox', 'hideFromMenu'] as const;
+// `sessionType` (07.10, «Прогресс» на Dart, d6a60b02): под каким типом игра пишет партии — у трёх
+// игр он не равен id (`sessionTypeOf`), и раздел партии ищется по нему (`categoryOfSessionType`).
+const FIELDS = ['id', 'route', 'nameKey', 'descKey', 'skillKey', 'category', 'icon', 'gradient', 'hub', 'sandbox', 'hideFromMenu', 'sessionType'] as const;
 
 function build(): string {
   const thumbs = thumbFiles();

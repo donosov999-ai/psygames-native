@@ -1,7 +1,4 @@
-import 'dart:convert';
-
-import 'package:flutter/services.dart' show rootBundle;
-
+import 'asset_json.dart';
 import 'l10n.dart';
 import 'shared_state.dart';
 import 'web_theme.dart';
@@ -20,7 +17,7 @@ class SourcesData {
 
   /// Список источников и авторов записей из сборки (один раз за запуск).
   static Future<Map<String, Object?>> load() async =>
-      _cache ??= (jsonDecode(await rootBundle.loadString('assets/sources.json')) as Map).cast<String, Object?>();
+      _cache ??= await loadJsonAsset('assets/sources.json');
 }
 
 String _hex(int argb) => '#${(argb & 0xFFFFFF).toRadixString(16).padLeft(6, '0')}';

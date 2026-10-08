@@ -90,8 +90,10 @@ class WebTheme {
   static WebColors of(BuildContext context) => Theme.of(context).brightness == Brightness.dark ? dark : light;
 
   /// `colors.primary` веба: надетый акцент (`getEquippedAccent`) → акцент профиля → запасной.
-  static Color accent(SharedState state) {
-    final profile = state.activeProfile;
+  /// [profile] — профиль экрана после откатов `ProfileContext` (запертый без разблокировки → `free`);
+  /// нет — сохранённый.
+  static Color accent(SharedState state, {String? profile}) {
+    profile ??= state.activeProfile;
     final raw = state.get(equippedKey.replaceAll('{profile}', profile));
     if (raw != null && raw.isNotEmpty) {
       try {

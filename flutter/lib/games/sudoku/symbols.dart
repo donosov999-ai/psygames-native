@@ -87,7 +87,7 @@ String animalImage(int i) => 'assets/pairs/animals/$i.webp';
 /// единообразия начертания — читаемость цифры и есть игра» (app/games/sudoku.tsx).
 /// У этих правил под клетками ничего нет: знаки Кропки стоят между клетками, подсказки
 /// сэндвича — снаружи.
-const decorFreeVariants = {'none', 'diagonal', 'antiknight', 'hyper', 'antiking', 'jigsaw', 'kropki', 'sandwich', 'nonconsec', 'friends'};
+const decorFreeVariants = {'none', 'diagonal', 'antiknight', 'hyper', 'antiking', 'jigsaw', 'kropki', 'sandwich', 'nonconsec', 'friends', 'wordoku', 'animals'};
 
 /// 🔴 ПРАВИЛА, ГДЕ У ЦИФРЫ НЕТ ЧИСЛОВОГО СМЫСЛА — только «девять разных значков».
 ///
@@ -97,6 +97,12 @@ const decorFreeVariants = {'none', 'diagonal', 'antiknight', 'hyper', 'antiking'
 /// Это уже шифр, а не оформление. Поэтому буквы — только на этих правилах, а на
 /// остальных доска остаётся цифрами, и пункт паузы не показывается вовсе.
 const symbolicVariants = {'none', 'diagonal', 'antiknight', 'hyper', 'antiking', 'jigsaw'};
+
+/// Ступени лестницы, где значки — само правило (блоки 153+, письмо раздела уровней 2d8320ed):
+/// классика, но буквами (Wordoku, в строке спрятано слово) или зверями. Выбор игрока тут не
+/// спрашивается — поэтому их нет в [symbolicVariants] (там выбор игрока действует), и пункта
+/// «значки» в паузе у них нет.
+const forcedSkinVariants = {'wordoku', 'animals'};
 
 bool skinApplies(String variant) => symbolicVariants.contains(variant);
 
@@ -223,6 +229,14 @@ SudokuSymbols symbolsFor({
   final n = solution.length;
   // Правило друзей — о коте и мыши: значки не выбираются, иначе пропадает само правило.
   if (variant == 'friends' && n > 0) return SudokuSymbols.meow(n);
+  // Wordoku и звери на лестнице: значки — правило ступени, выбор игрока не спрашивается.
+  if (variant == 'animals' && n > 0) return SudokuSymbols.animals(n);
+  if (variant == 'wordoku' && n > 0) {
+    final words = WordokuWords.of(language, n);
+    if (words == null || words.isEmpty) return SudokuSymbols.alphabet(n);
+    final rnd = Random(seed);
+    return SudokuSymbols.wordoku(solution, rnd.nextInt(n), words[rnd.nextInt(words.length)]);
+  }
   // Рисованные — это всё ещё цифры: числовой смысл не теряется ни на одном правиле.
   // Где под клеткой рисунок, клетка сама возьмёт текст (decorFreeVariants).
   if (skin == SudokuSkin.drawn && n > 0) return SudokuSymbols.drawn(n, style);

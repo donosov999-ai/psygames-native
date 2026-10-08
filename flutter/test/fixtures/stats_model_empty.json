@@ -1,0 +1,41 @@
+{
+ "v": 1,
+ "title": "Статистика",
+ "primary": "#ec4899",
+ "labels": {
+  "back": "Назад",
+  "refresh": "Обновить",
+  "summary": "Сводка",
+  "history": "История"
+ },
+ "loading": false,
+ "scope": {
+  "profile": "🌸 Микро-релакс",
+  "all": "Все игры",
+  "isAll": false
+ },
+ "totalPlayed": "Всего сыграно: 0 игр (завершённых)",
+ "hero": {
+  "tokens": 0,
+  "tokensLabel": "Очки",
+  "level": "Lv 0",
+  "levelTitle": "Новичок",
+  "streak": 0,
+  "streakLabel": "Стрик",
+  "progress": 0,
+  "games": "0 завершённых партий",
+  "time": "0м в игре"
+ },
+ "areas": null,
+ "ai": null,
+ "games": [],
+ "empty": "Сыграйте несколько игр, чтобы увидеть статистику",
+ "history": {
+  "kind": "empty",
+  "icon": "time-outline",
+  "title": "История начнётся с первой партии",
+  "hint": "Здесь будет видно, что вы играли по дням и как менялся результат — лучше или хуже прошлого раза.",
+  "cta": "Выбрать упражнение",
+  "action": "home"
+ }
+}

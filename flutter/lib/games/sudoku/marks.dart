@@ -39,15 +39,19 @@ bool hasPencilMark(List<List<int>> marks, int r, int c, int digit) {
   return (marks[r][c] & (1 << (digit - 1))) != 0;
 }
 
+/// Клетки Шрёдингера (цифры 0–9): клавиша «0» шлёт 10 — десятая пометка (бит 9). У остальных
+/// вариантов 10 не приходит никогда, и потолок по умолчанию прежний — [pencilMaxDigit].
+const pencilMaxDigitWithZero = 10;
+
 /// Цифры клетки по возрастанию — для отрисовки.
-List<int> pencilDigits(int mask) => [
-      for (var d = 1; d <= pencilMaxDigit; d++)
+List<int> pencilDigits(int mask, {int max = pencilMaxDigit}) => [
+      for (var d = 1; d <= max; d++)
         if (mask & (1 << (d - 1)) != 0) d,
     ];
 
 /// Переключить одну пометку. Повторное нажатие той же цифры снимает её.
-int togglePencilMark(int mask, int digit) {
-  if (digit < 1 || digit > pencilMaxDigit) return mask;
+int togglePencilMark(int mask, int digit, {int max = pencilMaxDigit}) {
+  if (digit < 1 || digit > max) return mask;
   return mask ^ (1 << (digit - 1));
 }
 
@@ -56,14 +60,16 @@ int togglePencilMark(int mask, int digit) {
 ///
 /// Ластик именно на всю клетку: снимать девять пометок по одной — девять нажатий
 /// там, где на бумаге одно движение. Снять одну — повторный тап по той же цифре.
-int pencilInput(int mask, int digit) => digit == 0 ? 0 : togglePencilMark(mask, digit);
+int pencilInput(int mask, int digit, {int max = pencilMaxDigit}) =>
+    digit == 0 ? 0 : togglePencilMark(mask, digit, max: max);
 
 /// Что реально ВИДНО в клетке: поставленная цифра ГАСИТ пометки, но НЕ СТИРАЕТ их.
 ///
 /// ⚠️ Разница не косметическая, она про отмену. Стирай цифра пометки — откат хода
 /// вернул бы клетку, но не вернул бы стёртое, и отмена оказалась бы половинчатой.
 /// Здесь же цифру убрали (сами или отменой) — кандидаты снова на месте, ровно те.
-List<int> visiblePencilDigits(int mask, int value) => value != 0 ? const [] : pencilDigits(mask);
+List<int> visiblePencilDigits(int mask, int value, {int max = pencilMaxDigit}) =>
+    value != 0 ? const [] : pencilDigits(mask, max: max);
 
 /// Куда уходит нажатие цифры.
 enum PencilRoute { ignore, pencil, digit }
@@ -145,6 +151,7 @@ class PencilMarksLayer extends StatelessWidget {
     required this.cell,
     required this.color,
     this.glyph,
+    this.withZero = false,
   });
 
   final int mask;
@@ -152,13 +159,18 @@ class PencilMarksLayer extends StatelessWidget {
   final double cell;
   final Color color;
 
+  /// Клетка Шрёдингера: десять пометок (1–9 и «0» — код 10) сеткой 4×3: «1 2 3 4 / 5 6 7 8 / 9 0».
+  /// Сетка 3×3 остальных вариантов десятой пометке места не даёт.
+  final bool withZero;
+
   /// Значок цифры (буквы Wordoku и т. п.); `null` — сама цифра.
   final String Function(int)? glyph;
 
   @override
   Widget build(BuildContext context) {
-    final digits = visiblePencilDigits(mask, value);
+    final digits = visiblePencilDigits(mask, value, max: withZero ? pencilMaxDigitWithZero : pencilMaxDigit);
     if (digits.isEmpty) return const SizedBox.shrink();
+    if (withZero) return _withZero(digits);
     final slot = pencilSlotSize(cell);
     final font = pencilFontSize(slot);
     return SizedBox(
@@ -181,6 +193,44 @@ class PencilMarksLayer extends StatelessWidget {
                         child: Text(
                           digits.contains(row * 3 + col + 1)
                               ? (glyph?.call(row * 3 + col + 1) ?? '${row * 3 + col + 1}')
+                              : '',
+                          style: TextStyle(fontSize: font, height: 1, color: color),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  /// Сетка 4×3 клетки Шрёдингера: места 1..9, десятое — «0» (код 10).
+  Widget _withZero(List<int> digits) {
+    final slot = math.max(1.0, ((cell - pencilCellBorder) / 4).floorToDouble());
+    final font = pencilFontSize(slot);
+    const order = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+    return SizedBox(
+      width: slot * 4,
+      height: slot * 3,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          for (var row = 0; row < 3; row++)
+            SizedBox(
+              height: slot,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  for (var col = 0; col < 4; col++)
+                    SizedBox(
+                      width: slot,
+                      height: slot,
+                      child: Center(
+                        child: Text(
+                          row * 4 + col < order.length && digits.contains(order[row * 4 + col])
+                              ? (order[row * 4 + col] == 10 ? '0' : '${order[row * 4 + col]}')
                               : '',
                           style: TextStyle(fontSize: font, height: 1, color: color),
                         ),
