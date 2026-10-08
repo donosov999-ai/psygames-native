@@ -1,0 +1,120 @@
+{
+ "v": 1,
+ "title": "Leagues",
+ "back": "Back",
+ "backIcon": "chevron-back",
+ "primary": "#a855f7",
+ "card": {
+  "label": "Points in 30 days",
+  "pts": "5280",
+  "rank": "Rank 1 of 3",
+  "toNext": "To the next rank: 1054"
+ },
+ "hint": "Your league comes from points earned over the last 30 days — your current pace, not your whole journey. Skip a week and it drops, and that is fine.",
+ "leagues": [
+  {
+   "id": "seed",
+   "name": "Seed",
+   "reached": true,
+   "here": false,
+   "sub": "Opens at 0 points this season",
+   "a11y": "Seed. "
+  },
+  {
+   "id": "spark",
+   "name": "Spark",
+   "reached": true,
+   "here": false,
+   "sub": "Opens at 400 points this season",
+   "a11y": "Spark. "
+  },
+  {
+   "id": "focus",
+   "name": "Focus",
+   "reached": true,
+   "here": false,
+   "sub": "Opens at 1200 points this season",
+   "a11y": "Focus. "
+  },
+  {
+   "id": "flow",
+   "name": "Flow",
+   "reached": true,
+   "here": false,
+   "sub": "Opens at 2600 points this season",
+   "a11y": "Flow. "
+  },
+  {
+   "id": "edge",
+   "name": "Edge",
+   "reached": true,
+   "here": true,
+   "sub": "You are here",
+   "a11y": "Edge. You are here"
+  },
+  {
+   "id": "peak",
+   "name": "Peak",
+   "reached": false,
+   "here": false,
+   "sub": "Opens at 9000 points this season",
+   "a11y": "Peak. Opens at 9000 points this season"
+  },
+  {
+   "id": "super",
+   "name": "Super",
+   "reached": false,
+   "here": false,
+   "sub": "Opens at 15000 points this season",
+   "a11y": "Super. Opens at 15000 points this season"
+  },
+  {
+   "id": "ultra",
+   "name": "Ultra",
+   "reached": false,
+   "here": false,
+   "sub": "Opens at 40000 points this season",
+   "a11y": "Ultra. Opens at 40000 points this season"
+  },
+  {
+   "id": "legend",
+   "name": "Legend",
+   "reached": false,
+   "here": false,
+   "sub": "Opens at 100000 points this season",
+   "a11y": "Legend. Opens at 100000 points this season"
+  },
+  {
+   "id": "limit",
+   "name": "Limit",
+   "reached": false,
+   "here": false,
+   "sub": "Opens at 250000 points this season",
+   "a11y": "Limit. Opens at 250000 points this season"
+  }
+ ],
+ "framesTitle": "Frames earned",
+ "frames": [
+  {
+   "id": "sprout",
+   "name": "Sprout"
+  },
+  {
+   "id": "spark",
+   "name": "Spark"
+  },
+  {
+   "id": "compass",
+   "name": "Compass"
+  },
+  {
+   "id": "current",
+   "name": "Current"
+  },
+  {
+   "id": "blade",
+   "name": "Blade"
+  }
+ ],
+ "empty": null
+}

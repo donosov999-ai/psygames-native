@@ -153,6 +153,22 @@ SprintProblem generateSprintProblem(int level, Rng rnd) {
   }
 }
 
+// ─────────── Ступени для генератора уровней (звено 4 цепочки, задача 4e584381) ───────────
+
+/// Имя ступени для пула генератора — из ТЕМЫ и места в полосе, а не из номера уровня:
+/// `plus-minus-1` … `equation-4`, дальше `mix-1`, `mix-2`, … Вставят тему в середину —
+/// имена остальных не поедут (договор `ladderPool`, shell/generator/ladder_pool.dart).
+String sprintStepKey(int level) {
+  final l = math.max(1, level.floor());
+  final band = sprintBandFor(l);
+  final pos = band == 'mix' ? l - _bandOrder.length * _bandSize : (l - 1) % _bandSize + 1;
+  return '$band-$pos';
+}
+
+/// Ступени, которые лестница ОБЕЩАЕТ: 1…[sprintMaxLevel]. Выше — открытый хвост «смеси»
+/// (t растёт без зажима), и конечным списком его не выразить: там ступени у генератора нет.
+final List<String> sprintStepKeys = [for (var l = 1; l <= sprintMaxLevel; l++) sprintStepKey(l)];
+
 /// Перенос прогресса лестницы v1 в v2 — по семейству, на котором стоял игрок.
 int migrateSprintLevelV1toV2(int oldLevel) {
   final l = math.max(1, oldLevel.floor());

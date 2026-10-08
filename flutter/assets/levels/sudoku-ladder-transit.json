@@ -1,6 +1,6 @@
 {
  "_about": "Ступени лестницы «Судоку», которые играются в ДРУГОЙ игре, и боссы. БОССЫ — решение Дениса 07.10.2026: «босса чаще или реже — лучше привязать к смене модели генерации, но минимум каждые 10 уровней». Одно правило вместо трёх (мегабосс каждый 15-й, мешок каждый 3-й, фиксированные места): строка с boss: true — на последней ступени каждой модели (правило, банк, размер доски, игра-переход; 204 — переход в генератор) и промежуточная (bossWhy: interim), где модель длиннее 10 ступеней; шаг ≤ 10. 48 строк. С bossGame — большой босс в другой игре (LadderTransit.bossOf): 96 «Самурай», 112 «Фрактал», 128 «Бездна», 144 «Самурай» 10/12, 160 «Фрактал» 25/30, 176 «Бездна», 192 «Самурай» 12/12; без bossLevel — уровень человека в той игре. Без bossGame — бой из мешка экрана «Судоку». Схема — с разделом «Судоку» (журнал 92c42801). gameLevel — уровень чужой игры (вход в новое правило с её ступеней 1→4).",
- "source": "sudoku-chat/ladder-80-204.json (план v7, 07.10.2026: аргайл 121–124, малый киллер 125–128, X-суммы 129–132, блоки v4 121–176 сдвинуты на +12)",
+ "source": "sudoku-chat/ladder-80-204.json (план v10, 07.10.2026: аргайл 121, малый киллер 125, X-суммы 129, шифр 133, туман 137, самосборка 141; блоки v4 121–176 сдвинуты на +24)",
  "steps": [
   {
    "level": 4,
@@ -192,19 +192,19 @@
   {
    "level": 136,
    "kind": "board",
-   "variant": "none+wordoku",
+   "variant": "cipher",
    "boss": true
   },
   {
    "level": 140,
    "kind": "board",
-   "variant": "none+animals",
+   "variant": "fog",
    "boss": true
   },
   {
    "level": 144,
    "kind": "board",
-   "variant": "meowfriends",
+   "variant": "chaos",
    "boss": true,
    "bossGame": "/games/sudoku-samurai",
    "bossLevel": 10,
@@ -213,127 +213,46 @@
   {
    "level": 148,
    "kind": "board",
-   "variant": "killer",
+   "variant": "none+wordoku",
    "boss": true
   },
   {
    "level": 152,
    "kind": "board",
-   "variant": "towers",
+   "variant": "none+animals",
    "boss": true
   },
   {
    "level": 156,
    "kind": "board",
-   "variant": "unequal",
+   "variant": "meowfriends",
    "boss": true
   },
   {
-   "level": 157,
-   "kind": "game",
-   "game": "/games/cats",
-   "gameLevel": 1,
-   "blockStep": 1,
-   "blockSize": 4
-  },
-  {
-   "level": 158,
-   "kind": "game",
-   "game": "/games/cats",
-   "gameLevel": 2,
-   "blockStep": 2,
-   "blockSize": 4
-  },
-  {
-   "level": 159,
-   "kind": "game",
-   "game": "/games/cats",
-   "gameLevel": 3,
-   "blockStep": 3,
-   "blockSize": 4
-  },
-  {
    "level": 160,
-   "kind": "game",
-   "game": "/games/cats",
-   "gameLevel": 4,
-   "blockStep": 4,
-   "blockSize": 4,
+   "kind": "board",
+   "variant": "killer",
    "boss": true,
    "bossGame": "/games/sudoku-fractal",
    "bossLevel": 25,
    "bossBlocks": false
   },
   {
-   "level": 161,
-   "kind": "game",
-   "game": "/games/puzzles?mode=Towers",
-   "gameLevel": 1,
-   "blockStep": 1,
-   "blockSize": 4
-  },
-  {
-   "level": 162,
-   "kind": "game",
-   "game": "/games/puzzles?mode=Towers",
-   "gameLevel": 2,
-   "blockStep": 2,
-   "blockSize": 4
-  },
-  {
-   "level": 163,
-   "kind": "game",
-   "game": "/games/puzzles?mode=Towers",
-   "gameLevel": 3,
-   "blockStep": 3,
-   "blockSize": 4
-  },
-  {
    "level": 164,
-   "kind": "game",
-   "game": "/games/puzzles?mode=Towers",
-   "gameLevel": 4,
-   "blockStep": 4,
-   "blockSize": 4,
+   "kind": "board",
+   "variant": "towers",
    "boss": true
   },
   {
-   "level": 165,
-   "kind": "game",
-   "game": "/games/puzzles?mode=Unequal",
-   "gameLevel": 1,
-   "blockStep": 1,
-   "blockSize": 4
-  },
-  {
-   "level": 166,
-   "kind": "game",
-   "game": "/games/puzzles?mode=Unequal",
-   "gameLevel": 2,
-   "blockStep": 2,
-   "blockSize": 4
-  },
-  {
-   "level": 167,
-   "kind": "game",
-   "game": "/games/puzzles?mode=Unequal",
-   "gameLevel": 3,
-   "blockStep": 3,
-   "blockSize": 4
-  },
-  {
    "level": 168,
-   "kind": "game",
-   "game": "/games/puzzles?mode=Unequal",
-   "gameLevel": 4,
-   "blockStep": 4,
-   "blockSize": 4,
+   "kind": "board",
+   "variant": "unequal",
    "boss": true
   },
   {
    "level": 169,
    "kind": "game",
-   "game": "/games/puzzles?mode=Keen",
+   "game": "/games/cats",
    "gameLevel": 1,
    "blockStep": 1,
    "blockSize": 4
@@ -341,7 +260,7 @@
   {
    "level": 170,
    "kind": "game",
-   "game": "/games/puzzles?mode=Keen",
+   "game": "/games/cats",
    "gameLevel": 2,
    "blockStep": 2,
    "blockSize": 4
@@ -349,7 +268,7 @@
   {
    "level": 171,
    "kind": "game",
-   "game": "/games/puzzles?mode=Keen",
+   "game": "/games/cats",
    "gameLevel": 3,
    "blockStep": 3,
    "blockSize": 4
@@ -357,7 +276,7 @@
   {
    "level": 172,
    "kind": "game",
-   "game": "/games/puzzles?mode=Keen",
+   "game": "/games/cats",
    "gameLevel": 4,
    "blockStep": 4,
    "blockSize": 4,
@@ -366,7 +285,7 @@
   {
    "level": 173,
    "kind": "game",
-   "game": "/games/puzzles?mode=Solo",
+   "game": "/games/puzzles?mode=Towers",
    "gameLevel": 1,
    "blockStep": 1,
    "blockSize": 4
@@ -374,7 +293,7 @@
   {
    "level": 174,
    "kind": "game",
-   "game": "/games/puzzles?mode=Solo",
+   "game": "/games/puzzles?mode=Towers",
    "gameLevel": 2,
    "blockStep": 2,
    "blockSize": 4
@@ -382,7 +301,7 @@
   {
    "level": 175,
    "kind": "game",
-   "game": "/games/puzzles?mode=Solo",
+   "game": "/games/puzzles?mode=Towers",
    "gameLevel": 3,
    "blockStep": 3,
    "blockSize": 4
@@ -390,7 +309,7 @@
   {
    "level": 176,
    "kind": "game",
-   "game": "/games/puzzles?mode=Solo",
+   "game": "/games/puzzles?mode=Towers",
    "gameLevel": 4,
    "blockStep": 4,
    "blockSize": 4,
@@ -401,7 +320,7 @@
   {
    "level": 177,
    "kind": "game",
-   "game": "/games/puzzles?mode=Undead",
+   "game": "/games/puzzles?mode=Unequal",
    "gameLevel": 1,
    "blockStep": 1,
    "blockSize": 4
@@ -409,7 +328,7 @@
   {
    "level": 178,
    "kind": "game",
-   "game": "/games/puzzles?mode=Undead",
+   "game": "/games/puzzles?mode=Unequal",
    "gameLevel": 2,
    "blockStep": 2,
    "blockSize": 4
@@ -417,7 +336,7 @@
   {
    "level": 179,
    "kind": "game",
-   "game": "/games/puzzles?mode=Undead",
+   "game": "/games/puzzles?mode=Unequal",
    "gameLevel": 3,
    "blockStep": 3,
    "blockSize": 4
@@ -425,7 +344,7 @@
   {
    "level": 180,
    "kind": "game",
-   "game": "/games/puzzles?mode=Undead",
+   "game": "/games/puzzles?mode=Unequal",
    "gameLevel": 4,
    "blockStep": 4,
    "blockSize": 4,
@@ -434,7 +353,7 @@
   {
    "level": 181,
    "kind": "game",
-   "game": "/games/puzzles?mode=Singles",
+   "game": "/games/puzzles?mode=Keen",
    "gameLevel": 1,
    "blockStep": 1,
    "blockSize": 4
@@ -442,7 +361,7 @@
   {
    "level": 182,
    "kind": "game",
-   "game": "/games/puzzles?mode=Singles",
+   "game": "/games/puzzles?mode=Keen",
    "gameLevel": 2,
    "blockStep": 2,
    "blockSize": 4
@@ -450,7 +369,7 @@
   {
    "level": 183,
    "kind": "game",
-   "game": "/games/puzzles?mode=Singles",
+   "game": "/games/puzzles?mode=Keen",
    "gameLevel": 3,
    "blockStep": 3,
    "blockSize": 4
@@ -458,7 +377,7 @@
   {
    "level": 184,
    "kind": "game",
-   "game": "/games/puzzles?mode=Singles",
+   "game": "/games/puzzles?mode=Keen",
    "gameLevel": 4,
    "blockStep": 4,
    "blockSize": 4,
@@ -467,7 +386,7 @@
   {
    "level": 185,
    "kind": "game",
-   "game": "/games/puzzles?mode=Filling",
+   "game": "/games/puzzles?mode=Solo",
    "gameLevel": 1,
    "blockStep": 1,
    "blockSize": 4
@@ -475,7 +394,7 @@
   {
    "level": 186,
    "kind": "game",
-   "game": "/games/puzzles?mode=Filling",
+   "game": "/games/puzzles?mode=Solo",
    "gameLevel": 2,
    "blockStep": 2,
    "blockSize": 4
@@ -483,7 +402,7 @@
   {
    "level": 187,
    "kind": "game",
-   "game": "/games/puzzles?mode=Filling",
+   "game": "/games/puzzles?mode=Solo",
    "gameLevel": 3,
    "blockStep": 3,
    "blockSize": 4
@@ -491,31 +410,112 @@
   {
    "level": 188,
    "kind": "game",
-   "game": "/games/puzzles?mode=Filling",
+   "game": "/games/puzzles?mode=Solo",
    "gameLevel": 4,
    "blockStep": 4,
    "blockSize": 4,
    "boss": true
   },
   {
+   "level": 189,
+   "kind": "game",
+   "game": "/games/puzzles?mode=Undead",
+   "gameLevel": 1,
+   "blockStep": 1,
+   "blockSize": 4
+  },
+  {
+   "level": 190,
+   "kind": "game",
+   "game": "/games/puzzles?mode=Undead",
+   "gameLevel": 2,
+   "blockStep": 2,
+   "blockSize": 4
+  },
+  {
+   "level": 191,
+   "kind": "game",
+   "game": "/games/puzzles?mode=Undead",
+   "gameLevel": 3,
+   "blockStep": 3,
+   "blockSize": 4
+  },
+  {
    "level": 192,
-   "kind": "board",
-   "variant": "cipher",
+   "kind": "game",
+   "game": "/games/puzzles?mode=Undead",
+   "gameLevel": 4,
+   "blockStep": 4,
+   "blockSize": 4,
    "boss": true,
    "bossGame": "/games/sudoku-samurai",
    "bossLevel": 12,
    "bossBlocks": false
   },
   {
+   "level": 193,
+   "kind": "game",
+   "game": "/games/puzzles?mode=Singles",
+   "gameLevel": 1,
+   "blockStep": 1,
+   "blockSize": 4
+  },
+  {
+   "level": 194,
+   "kind": "game",
+   "game": "/games/puzzles?mode=Singles",
+   "gameLevel": 2,
+   "blockStep": 2,
+   "blockSize": 4
+  },
+  {
+   "level": 195,
+   "kind": "game",
+   "game": "/games/puzzles?mode=Singles",
+   "gameLevel": 3,
+   "blockStep": 3,
+   "blockSize": 4
+  },
+  {
    "level": 196,
-   "kind": "board",
-   "variant": "fog",
+   "kind": "game",
+   "game": "/games/puzzles?mode=Singles",
+   "gameLevel": 4,
+   "blockStep": 4,
+   "blockSize": 4,
    "boss": true
   },
   {
+   "level": 197,
+   "kind": "game",
+   "game": "/games/puzzles?mode=Filling",
+   "gameLevel": 1,
+   "blockStep": 1,
+   "blockSize": 4
+  },
+  {
+   "level": 198,
+   "kind": "game",
+   "game": "/games/puzzles?mode=Filling",
+   "gameLevel": 2,
+   "blockStep": 2,
+   "blockSize": 4
+  },
+  {
+   "level": 199,
+   "kind": "game",
+   "game": "/games/puzzles?mode=Filling",
+   "gameLevel": 3,
+   "blockStep": 3,
+   "blockSize": 4
+  },
+  {
    "level": 200,
-   "kind": "board",
-   "variant": "chaos",
+   "kind": "game",
+   "game": "/games/puzzles?mode=Filling",
+   "gameLevel": 4,
+   "blockStep": 4,
+   "blockSize": 4,
    "boss": true
   },
   {

@@ -1102,8 +1102,32 @@ class _Today extends StatelessWidget {
   }
 }
 
+/// Карточки рядами по [columns], каждая строка — одной высоты (`alignItems: stretch` веба).
+/// Неполная последняя строка — той же ширины колонок, а не растянутая. Колонок не больше, чем
+/// карточек: две карточки «Рекомендуем» — по половине ряда, как `flex: 1` веба, а не по трети.
+Widget _heroGrid(List<Widget> cards, {required int columns}) => _heroRows(cards, columns.clamp(1, cards.isEmpty ? 1 : cards.length));
+
+Widget _heroRows(List<Widget> cards, int columns) => Column(
+  children: [
+    for (var r = 0; r < cards.length; r += columns) ...[
+      if (r > 0) const SizedBox(height: 10),
+      IntrinsicHeight(
+        child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          for (var i = r; i < r + columns; i++) ...[
+            if (i > r) const SizedBox(width: 10),
+            Expanded(child: i < cards.length ? cards[i] : const SizedBox.shrink()),
+          ],
+        ]),
+      ),
+    ],
+  ],
+);
+
 /// «Рекомендуем сегодня» и «Практики дня» — ряд из трёх карточек на градиенте (`styles.hero*`).
 class _HeroBlock extends StatelessWidget {
+  /// Масштаб системного шрифта, с которого карточки идут в две колонки.
+  static const largeText = 1.1;
+
   const _HeroBlock({
     required this.b, required this.origin, required this.onOpen, required this.act,
     required this.ion, required this.iconSize, required this.accent,
@@ -1134,15 +1158,15 @@ class _HeroBlock extends StatelessWidget {
               style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: web.textSecondary)),
           const SizedBox(height: 6),
         ],
+        // 🔴 КРУПНЫЙ СИСТЕМНЫЙ ШРИФТ — ДВЕ КОЛОНКИ, А НЕ ТРИ (отчёты 316f0438, a7318e1e; задача a0d262ce).
+        // Кадр 07.10 нативной Главной, EN, 390 pt: при ×1,3 «Daily challen…», «CHOO…»; при ×1,5 —
+        // «Schulte: Attenti…», «STA…», «Daily ch allenge». Колонка в треть экрана не вмещает слово.
+        // Порог 1,1: уже при шаге Android «Large» (×1,15) кнопка рвётся посреди слова («CHOOS|E»).
         Padding(
           padding: const EdgeInsets.only(bottom: 22),
-          child: IntrinsicHeight(
-            child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-              for (var i = 0; i < cards.length; i++) ...[
-                if (i > 0) const SizedBox(width: 10),
-                Expanded(child: _HeroCard(c: cards[i], origin: origin, onOpen: onOpen, act: act)),
-              ],
-            ]),
+          child: _heroGrid(
+            [for (final c in cards) _HeroCard(c: c, origin: origin, onOpen: onOpen, act: act)],
+            columns: MediaQuery.textScalerOf(context).scale(14) / 14 > _HeroBlock.largeText ? 2 : 3,
           ),
         ),
       ]),
@@ -1222,8 +1246,9 @@ class _HeroCard extends StatelessWidget {
                   child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                     IonIcon(_s(cta['ion']), size: 14, color: cssColor(cta['fg'], fg)),
                     const SizedBox(width: 4),
+                    // Без предела строк — как `heroCtaText` веба: подпись переносится, а не режется («CHOO…»).
                     Flexible(
-                      child: Text(_s(cta['text']), maxLines: 1, overflow: TextOverflow.ellipsis,
+                      child: Text(_s(cta['text']), textAlign: TextAlign.center,
                           style: TextStyle(color: cssColor(cta['fg'], fg), fontWeight: FontWeight.w900, fontSize: 11, letterSpacing: 1)),
                     ),
                   ]),

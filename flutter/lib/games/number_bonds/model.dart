@@ -83,6 +83,18 @@ const List<_Row> _levels = [
 
 int _jsRoundInt(double v) => (v + 0.5).floor();
 
+/// Имя ступени для пула генератора уровней (звено 4, задача 4e584381) — из ПАРАМЕТРОВ строки
+/// таблицы, а не из номера: вставят строку в середину — имена остальных не поедут (договор
+/// `ladderPool`). Фишки, наибольшее значение, размеры решений, задач в раунде, окно, потолок цели.
+String bondsStepKey(int level) {
+  final c = levelParams(level);
+  final sizes = (c.sizeWeights.keys.toList()..sort()).join('');
+  return 'p${c.pool}-v${c.maxV}-k$sizes-n${c.trials}-w${c.windowMs ~/ 1000}${c.targetMax != null ? '-t${c.targetMax}' : ''}';
+}
+
+/// Ступени, которые таблица ОБЕЩАЕТ: 1…[nbMaxLevel]. Выше — открытый хвост (maxV растёт без конца).
+final List<String> bondsStepKeys = [for (var l = 1; l <= nbMaxLevel; l++) bondsStepKey(l)];
+
 BondsCfg levelParams(int level) {
   final l = math.max(1, _jsRoundInt(level.toDouble()));
   if (l > nbMaxLevel) {
