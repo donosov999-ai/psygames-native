@@ -625,7 +625,17 @@ export function levelConfig(level: number): LevelCfg {
   // 149–152 «Мяу — друзья» 9×9 (план уровней, задача e7260a11): доски — выгрузкой MindLab
   // (flutter/assets/levels/sudoku-meow9-boards.json, #211), генератора на TS нет; готово раньше
   // Wordoku и зверей — встаёт первым.
-  else if (lv >= 149) variant = 'friends';
+  else if (lv >= 149 && lv <= 152) variant = 'friends';
+  // 153–180 — блоки плана, собранные разделом вариантами лестницы 08.10 (#310–#313, задача e7260a11):
+  // Wordoku и звери (#313), киллер (#311), наши небоскрёбы и неравенства (#312), удвоители и
+  // отрицательные (#310, «клетки-нарушители» типы 2–3).
+  else if (lv >= 153 && lv <= 156) variant = 'wordoku';
+  else if (lv >= 157 && lv <= 160) variant = 'animals';
+  else if (lv >= 161 && lv <= 164) variant = 'killer';
+  else if (lv >= 165 && lv <= 168) variant = 'towers';
+  else if (lv >= 169 && lv <= 172) variant = 'unequal';
+  else if (lv >= 173 && lv <= 176) variant = 'doublers';
+  else if (lv >= 177) variant = 'negators';
   /**
    * 🔴 НЕРАВЕНСТВА (футосики) СОБРАНЫ, НО УРОВНЕЙ НЕ ПОЛУЧИЛИ — ЗАМЕР 26.08.2026.
    *
@@ -665,9 +675,13 @@ export function levelConfig(level: number): LevelCfg {
   // Ось трудности ВНУТРИ блока у правил-подсказок — лимит копания (`digCap`, PR #258), а не число
   // подсказок: замер раздела 07.10 — X-суммы 64 → 70 цена 129 → 151, малый киллер 145 → 159;
   // к 76 насыщается (выкапывается не больше ~68). Ступени блока: 64 → 67 → 70 → 70.
-  const digCap = variant === 'littlekiller' || variant === 'xsums'
+  // Киллер лестницы (замер раздела 08.10: 64 — ступень 4 у 18/18, 70 — пятёрка у 8/18) — та же
+  // ось. Наши небоскрёбы и неравенства — 56 → 64 (замер 08.10: цена 67 → 94 и 88 → 140).
+  const digCap = variant === 'littlekiller' || variant === 'xsums' || variant === 'killer'
     ? [64, 67, 70, 70][(lv - 1) % 4]
-    : undefined;
+    : variant === 'towers' || variant === 'unequal'
+      ? [56, 60, 64, 64][(lv - 1) % 4]
+      : undefined;
   // «Мяу»: пустых столько, сколько у выгруженных досок ступени (подсказок 30 → 28 → 26 → 24) —
   // выгрузчик (meow9-ladder.cjs) сверяет и падает при расхождении.
   const blanksOut = variant === 'friends' ? 81 - [30, 28, 26, 24][(lv - 1) % 4] : blanks;

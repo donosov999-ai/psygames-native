@@ -75,7 +75,11 @@ void main() {
       // классики, а не строже. Их эталоны проверяют перенос («ответ совпадает с живым TS»).
       // Клетки Шрёдингера (145–148): цифры 0–9 и клетка-пара — классическая проверка «можно»
       // к ним не применима вовсе; их эталон сверяется своей пробой (sudoku_schrodinger_test).
-      if (variant == 'fog' || variant == 'chaos' || variant == 'schrodinger') continue;
+      // Wordoku и звери (153–160) — классика со сменой значков: своего правила сверх блока нет.
+      // Удвоители и отрицательные (173–180): нарушители скрыты — их выводит игрок, поэтому
+      // отдельный ход по сумме не отсечь, допустимость хода — классика. Их брак ловит выгрузка
+      // (единственность цифр И нарушителей перебором) и sudoku_modifiers_test.
+      if (const {'fog', 'chaos', 'schrodinger', 'wordoku', 'animals', 'doublers', 'negators'}.contains(variant)) continue;
       final n = (b['n'] as num).toInt(), br = (b['br'] as num).toInt(), bc = (b['bc'] as num).toInt();
       final grid = (b['grid'] as List).map((row) => (row as List).cast<num>().map((x) => x.toInt()).toList()).toList();
       var byRule = 0;

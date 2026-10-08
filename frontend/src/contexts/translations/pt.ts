@@ -174,7 +174,7 @@ const t: Record<string, string> = {
   "sudokuGroup": "Sudoku: três tabuleiros",
   "sudokuGroupDesc": "Clássico, samurai e fractal",
   "sudokuPickBoard": "Escolhe um tabuleiro",
-  "sudokuTypeClassic": "Uma grelha · 152 degraus",
+  "sudokuTypeClassic": "Uma grelha · 180 degraus",
   "sudokuTypeSamurai": "Cinco grelhas presas pelos cantos",
   "sudokuTypeFractal": "Uma grelha dentro de cada célula",
   "sudokuGroupFootnote": "Os três seguem uma só regra: um algarismo nunca se repete na linha, na coluna nem no bloco. O que muda é o tabuleiro. Cada um tem a sua própria contagem de níveis e o seu próprio histórico — as partidas nunca se misturam.",
