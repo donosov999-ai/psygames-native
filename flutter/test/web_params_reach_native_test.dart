@@ -67,9 +67,6 @@ const lostWithReason = <String, Map<String, String>>{
         'лестницы (modeRef «levels», шаг mode не задаёт) и diff там не читает — blanksFor(size, difficulty) только вне '
         'levels (sudoku.tsx:952); в нативе трудность ведёт лестница (freePreset) — решение Дениса 09.09 «с личного уровня»',
   },
-  '/games/switching-task': {
-    'stimMode': '«Внимание»: вид стимулов из адреса — читается в PR #287',
-  },
   '/games/targets': {'level': _t, 'mode': _t},
 };
 
