@@ -966,7 +966,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
     if (r >= _marks.length || c >= _marks[r].length) return;
     setState(() {
       final was = _marks[r][c];
-      _marks[r][c] = pencilInput(was, digit);
+      _marks[r][c] = pencilInput(was, digit, max: _isSchro ? pencilMaxDigitWithZero : pencilMaxDigit);
       _history.add(_Step(_StepKind.mark, r, c, was, _marks[r][c]));
     });
     _persist();
@@ -2267,6 +2267,7 @@ class _Cell extends StatelessWidget {
                       cell: size,
                       color: scheme.onSurfaceVariant,
                       glyph: glyph,
+                      withZero: board.variant == 'schrodinger',
                     )
                   : _picture() ?? Text(
                       value == 0

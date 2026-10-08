@@ -187,6 +187,27 @@ void main() {
       expect(st['errors'], 1, reason: 'цифра не из ответа — ошибка');
     });
 
+    testWidgets('🔴 карандаш: «0» ставит десятую пометку, повтор снимает; пометки в клетке (задача 156d5abe)', (tester) async {
+      await boot(tester, puzzle);
+      final (r, c) = hiddenPair();
+      await tap(tester, find.byKey(Key('cell_${r}_$c')));
+      await tap(tester, find.byKey(const Key('pencil')));
+      await tap(tester, find.byKey(const Key('digit0')));
+      await tap(tester, find.byKey(const Key('digit3')));
+      final marks = find.byKey(Key('marks_${r}_$c'));
+      expect(marks, findsOneWidget, reason: 'пометки видны');
+      expect(find.descendant(of: marks, matching: find.text('0')), findsOneWidget, reason: 'пометка «0»');
+      expect(find.descendant(of: marks, matching: find.text('3')), findsOneWidget);
+      final cell = tester.getRect(find.byKey(Key('cell_${r}_$c')));
+      final box = tester.getRect(marks);
+      expect(box.left >= cell.left - 0.5 && box.right <= cell.right + 0.5 && box.top >= cell.top - 0.5 && box.bottom <= cell.bottom + 0.5, isTrue,
+          reason: 'сетка 4×3 в клетке: $box в $cell');
+      await tap(tester, find.byKey(const Key('digit0')));
+      expect(find.descendant(of: marks, matching: find.text('0')), findsNothing, reason: 'повтор снимает');
+      await tester.pumpWidget(const SizedBox());
+      await tester.pump();
+    });
+
     testWidgets('🔴 последняя клетка — пара по двум нажатиям — и доска решена', (tester) async {
       final (r, c) = hiddenPair();
       final grid = [for (final row in solution) [...row]]..[r][c] = 0;
