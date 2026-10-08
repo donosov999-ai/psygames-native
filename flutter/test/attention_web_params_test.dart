@@ -120,7 +120,8 @@ void main() {
     testWidgets('режим из адреса: joker; без шага — личный уровень', (tester) async {
       GamePreset.set({'mode': 'joker'});
       await openAtLevel(tester, 4);
-      expect(tester.widget<Text>(find.byKey(const Key('targets-mode'))).data, L.t('joker'));
+      expect(tester.widget<ChoiceChip>(find.byKey(const Key('targets-mode-joker'))).selected, isTrue,
+          reason: 'адрес не выбрал джокер');
       expect(hud(L.t('level'), '4'), findsOneWidget, reason: 'вне зарядки уровень — личный');
       await tester.pumpWidget(const SizedBox());
     });
