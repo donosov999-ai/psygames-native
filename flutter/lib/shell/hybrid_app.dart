@@ -808,13 +808,15 @@ class _HybridAppState extends State<HybridApp> {
   /// Второго экземпляра страницы (`/feedback`) больше нет — с ним приходили «Что нового» поверх формы
   /// и закрытие игры сообщением Главной. Снимок — кадр нативного экрана ДО листа: страница под ним
   /// устарела; забирает его страница с нашего же сервера ([AssetServer.putShot]).
-  Future<void> _openFeedback(String source) async {
+  Future<void> _openFeedback(String source, [Map<String, Object?>? gameState]) async {
     if (_feedbackRoute != null) return;
     final png = await FeedbackHost.snap();
     if (!mounted || _feedbackRoute != null) return;
     final shot = png == null ? null : widget.server.putShot(png);
     _showFeedback();
-    await ScreenUi.act(FeedbackHost.route, 'open', [source, shot]);
+    // Третий аргумент — живое состояние партии из шапки ([GameShell.feedbackState], задача 75348e44);
+    // без игры (кнопка на вкладке) — null, и страница сбрасывает прежний снимок.
+    await ScreenUi.act(FeedbackHost.route, 'open', [source, shot, gameState]);
   }
 
   void _showFeedback() {
@@ -972,7 +974,7 @@ class _HybridAppState extends State<HybridApp> {
       if (!mounted) return;
       final route = Uri.parse(GameRules.currentRoute ?? '/games');
       final params = {...route.queryParameters, ...GamePreset.params};
-      _openFeedback(route.replace(queryParameters: params.isEmpty ? null : params).toString());
+      _openFeedback(route.replace(queryParameters: params.isEmpty ? null : params).toString(), GameShell.feedbackState);
     };
     _c = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
@@ -1331,6 +1333,8 @@ class _HybridAppState extends State<HybridApp> {
     GamePreset.set(query);
     // Адрес нужен каркасу, чтобы показать правило ИМЕННО этой игры.
     GameRules.currentRoute = route;
+    // Снимок шапки прошлой игры не должен уехать в отзыв этой: экран без каркаса его не перепишет.
+    GameShell.feedbackState = null;
     // 🔴 ШАГ ЗАРЯДКИ — В РАМКЕ С ПОЛОСКОЙ «N/M · ⏭» (задача 63bccf96): веб рисует её в
     // своём каркасе, а нативный экран лежит поверх страницы. Номер шага знает веб —
     // спрашиваем; когда переход ведёт сама оболочка, он известен заранее.
@@ -1367,7 +1371,10 @@ class _HybridAppState extends State<HybridApp> {
       GamePreset.clear();
     }
     _unmarkNativeOver(over);
-    if (_openedPage == null && GameRules.currentRoute == route) GameRules.currentRoute = null;
+    if (_openedPage == null && GameRules.currentRoute == route) {
+      GameRules.currentRoute = null;
+      GameShell.feedbackState = null;
+    }
     final closedByPage = _pagesClosedByWeb.remove(page);
     // 🔴 СТРАНИЦА ПОД НАМИ ОСТАЛАСЬ НА АДРЕСЕ ИГРЫ. Перехват срабатывает ПОСЛЕ
     // того, как роутер уже сменил адрес, — значит под нативным экраном веб-половина

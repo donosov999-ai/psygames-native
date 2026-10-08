@@ -1,4 +1,4 @@
-/* psygames-feedback-host-model · VER 1 · 07.10.2026 */
+/* psygames-feedback-host-model · VER 2 · 08.10.2026 */
 /**
  * 🔴 ФОРМА ОТЗЫВА ПОД ОБОЛОЧКОЙ: ДУМАЕТ ВИДЖЕТ, РИСУЕТ ОБОЛОЧКА (задача c092cd47; приём —
  * `services/hostScreens.ts`, окно `#feedback`).
@@ -178,6 +178,18 @@ describe('Форма отзыва под оболочкой', () => {
     await TestRenderer.act(async () => { jest.advanceTimersByTime(3300); });
     await осесть();
     expect(last().open).toBe(false);
+  });
+
+  it('🔴 живое состояние партии из шапки нативной игры — в game_state отчёта; без игры — сброс (задача 75348e44)', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports -- тот же экземпляр, что у виджета
+    const { readFeedbackGameState, publishFeedbackGameState } = require('@/src/services/feedbackGameState');
+    publishFeedbackGameState(null);
+    const { act } = await смонтировать();
+    await act('open', '/games/anagrams?mode=cross', '/__psy_shot/2.png', { title: 'Anagrams', hud: { Level: '12' } });
+    expect(readFeedbackGameState()).toEqual({ title: 'Anagrams', hud: { Level: '12' }, source: 'native-shell' });
+    await act('close');
+    await act('open', '/', null, null);
+    expect(readFeedbackGameState()).toBeNull();
   });
 
   it('открыла страница (кнопка, окно правил): снимок — страницы, источник — её адрес', async () => {

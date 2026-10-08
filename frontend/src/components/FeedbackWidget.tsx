@@ -17,7 +17,7 @@
 import { текстОтправки } from '@/src/services/liveFieldText';
 import { textOn } from '@/src/services/onGradientText';
 import { pushCrumb } from '@/src/services/crumbs';
-import { параметрыЭкранаДляОтзыва } from '@/src/services/feedbackGameState';
+import { параметрыЭкранаДляОтзыва, publishFeedbackGameState } from '@/src/services/feedbackGameState';
 import { feedbackSource, sourceOfRoute } from '@/src/services/feedbackSource';
 import { hostDrawsScreen, postScreenModel, registerScreenActions } from '@/src/services/hostScreens';
 import React from 'react';
@@ -491,7 +491,10 @@ export default function FeedbackWidget() {
 
   // Окно под оболочкой: нажатия её формы — сюда, всё решает та же логика, что у разметки ниже.
   hostActsRef.current = {
-    open: (route, shotUrl) => {
+    open: (route, shotUrl, gameState) => {
+      // Живое состояние партии из шапки нативной игры (уровень, счётчики) — в `game_state` отчёта
+      // (задача 75348e44). Без игры приходит null: прежний снимок не должен уехать в чужой отзыв.
+      publishFeedbackGameState(gameState && typeof gameState === 'object' && !Array.isArray(gameState) ? { ...(gameState as Record<string, unknown>), source: 'native-shell' } : null);
       void openSheet(typeof route === 'string' && route ? sourceOfRoute(route) : null, typeof shotUrl === 'string' && shotUrl ? shotUrl : null);
     },
     close: () => setOpen(false),
