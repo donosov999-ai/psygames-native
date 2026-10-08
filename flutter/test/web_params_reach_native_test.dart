@@ -28,9 +28,6 @@ const lostWithReason = <String, Map<String, String>>{
   '/games/anagrams': {
     'length': 'не дефект: решение Дениса 09.09 «зарядка с личного уровня» — длину слова ведёт лестница',
   },
-  '/games/proofreading': {
-    'series': 'задача f4bb47dc («Внимание»)',
-  },
   '/games/schulte': {
     'series': 'задача 1b6338c1 («Поиск»)',
     'size': '«Поиск»: размер поля из адреса',
