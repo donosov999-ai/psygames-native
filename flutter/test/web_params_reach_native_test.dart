@@ -43,7 +43,6 @@ const lostWithReason = <String, Map<String, String>>{
     'diff': _t,
     'duration': '«Поиск»: длительность из адреса',
   },
-  '/games/mental-rotation': {'trials': _t},
   '/games/number-bonds': {'diff': _t, 'trials': _t},
   '/games/prl': {'diff': _t},
   '/games/proofreading': {
@@ -64,11 +63,6 @@ const lostWithReason = <String, Map<String, String>>{
   },
   '/games/sdmt': {
     'duration': '«Поиск»: длительность — настройка, по решению 09.09 остаётся за шагом; потеря похожа на настоящую',
-  },
-  '/games/spatial-lab': {
-    'seed': '«Пространство»: зерно раскладки из адреса',
-    'level': _t,
-    'mode': _t,
   },
   '/games/stroop': {'mode': _t, 'trials': _t},
   '/games/stroop-emotional': {'trials': _t},
