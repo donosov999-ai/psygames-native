@@ -568,10 +568,14 @@ bool isValid(
         if (v == val) return false;   // цифры внутри группы не повторяются
         filled += v;
       }
-      final rest = cages.sum[id] - filled - val;
-      // Остаток обязан набираться РАЗНЫМИ цифрами: минимум 1+2+…, максимум N+(N−1)+…
-      if (rest < (empty * (empty + 1)) ~/ 2) return false;
-      if (rest > empty * n - (empty * (empty - 1)) ~/ 2) return false;
+      // Удвоители и отрицательные (п.13, f46c796c): сумма группы ВЗВЕШЕНА скрытыми клетками, которых
+      // игрок не видит, — по сумме ход не судим (выдали бы место нарушителя); повтор цифры — судим.
+      if (variant != 'doublers' && variant != 'negators') {
+        final rest = cages.sum[id] - filled - val;
+        // Остаток обязан набираться РАЗНЫМИ цифрами: минимум 1+2+…, максимум N+(N−1)+…
+        if (rest < (empty * (empty + 1)) ~/ 2) return false;
+        if (rest > empty * n - (empty * (empty - 1)) ~/ 2) return false;
+      }
     }
   }
 
@@ -790,6 +794,50 @@ bool overlayOk(List<List<int>> grid, int r, int c, int val, int n, BoardGeometry
     if (!xsumLineOk(col, xs.cols[c], n)) return false;
   }
   return true;
+}
+
+/// 🔴 КЛЕТКИ ШРЁДИНГЕРА (пункт 13 цепочки «14 усложнений», задача f46c796c) — код клетки, как у ядра
+/// (`encodeS` в sudoku-schrodinger.ts): 0 — пусто; цифра d (0..9) — d + 1; пара a < b — 100 + 10·a + b.
+/// Цифра 0 — настоящая цифра правила, поэтому «пусто» и «ноль» различаются.
+List<int> schroDigits(int v) => v == 0 ? const [] : v < 100 ? [v - 1] : [(v - 100) ~/ 10, (v - 100) % 10];
+
+int schroCode(List<int> ds) {
+  if (ds.isEmpty) return 0;
+  if (ds.length > 2) throw ArgumentError('a Schrodinger cell holds at most two digits: $ds');   // текст исключения — не экран: латиница (гейт no_new_hardcoded_cyrillic)
+  if (ds.length == 1) return ds[0] + 1;
+  final a = ds[0] < ds[1] ? ds[0] : ds[1], b = ds[0] < ds[1] ? ds[1] : ds[0];
+  return 100 + 10 * a + b;
+}
+
+/// Клавиша клетки Шрёдингера: 1..9 — цифра, 10 — ноль. Цифра уже в клетке — убирается; нет — встаёт
+/// второй (третьей не бывает: клетка держит не больше двух, лишнее нажатие ничего не меняет).
+int schroToggle(int v, int key) {
+  final d = key % 10;
+  final ds = [...schroDigits(v)];
+  if (ds.contains(d)) {
+    ds.remove(d);
+  } else if (ds.length < 2) {
+    ds.add(d);
+  }
+  return schroCode(ds);
+}
+
+/// Есть ли в клетке цифра, которой нет в ответе. Одна верная цифра из пары — не ошибка: клетка не дописана.
+bool schroWrong(int v, int solution) {
+  final want = schroDigits(solution);
+  return schroDigits(v).any((d) => !want.contains(d));
+}
+
+/// Видно ли цифре `d` клетки (r, c) ту же цифру в строке, столбце или блоке (база причины отказа).
+bool schroConflict(List<List<int>> grid, int r, int c, int d) {
+  for (var i = 0; i < 9; i++) {
+    for (var j = 0; j < 9; j++) {
+      if (i == r && j == c) continue;
+      final same = i == r || j == c || (i ~/ 3 == r ~/ 3 && j ~/ 3 == c ~/ 3);
+      if (same && schroDigits(grid[i][j]).contains(d)) return true;
+    }
+  }
+  return false;
 }
 
 /// 🔴 ТУМАН ВОЙНЫ (пункт 11 цепочки «14 усложнений», задача efb63126) — перенос `fogRevealed` ядра.
