@@ -37,6 +37,15 @@ class LexicalDecisionScreen extends StatefulWidget {
 
 class _LexicalDecisionScreenState extends State<LexicalDecisionScreen> {
   late LevelLadder _ladder;
+
+  /// «По норме?» — своя лестница (ключ `lexical_decision_norm`, как у веба), партия — тем же
+  /// типом `lexical_decision` с режимом `norm<N>`.
+  late LevelLadder _normLadder;
+  Map<String, List<NsForm>> _ns = const {};
+  bool _normWanted = false;
+
+  /// Режим идущей партии: выбор на экране настройки во время партии не меняется.
+  bool _normPlay = false;
   List<Map<String, String>>? _vocab;
   LangNames _names = LangNames.empty;
   LdLetters _letters = LdLetters.empty;
@@ -69,14 +78,25 @@ class _LexicalDecisionScreenState extends State<LexicalDecisionScreen> {
   int get _now => (widget.clock ?? () => DateTime.now().millisecondsSinceEpoch)();
   String get _baseLang => widget.state.language;
 
-  /// Свой язык целью не бывает: выбран он — берётся запасной, как `tgt` веба.
-  String get _target => _targetLang == _baseLang ? (_baseLang == 'en' ? 'es' : 'en') : _targetLang;
+  /// 🔴 Родной язык — тоже язык задания (решение Дениса 01.10.2026, d0ad03d9): раньше он
+  /// отсекался, и англоязычный игрок никогда не получал английский. Откат — только для языка
+  /// без словаря, как `tgt` веба.
+  String get _target =>
+      _ldLangs.isEmpty || _ldLangs.contains(_targetLang) ? _targetLang : (_baseLang == 'en' ? 'es' : 'en');
   String get _second => secondNotFirst(_baseLang, _target, _wantedSecond);
+
+  /// 🔴 «По норме?» (d0ad03d9) — только у языков с данными ненормативных форм и только
+  /// одноязычный: норма у каждого языка своя.
+  bool get _normAvailable => _ns[_target]?.isNotEmpty ?? false;
+  bool get _norm => _normWanted && _normAvailable;
+  LevelLadder get _lad => _norm ? _normLadder : _ladder;
 
   @override
   void initState() {
     super.initState();
     _ladder = LevelLadder(gameId: 'lexical_decision', store: SharedLevelStore(widget.state));
+    _normLadder = LevelLadder(
+        gameId: 'lexical_decision_norm', store: SharedLevelStore(widget.state), sessionType: 'lexical_decision');
     _boot();
   }
 
@@ -93,6 +113,7 @@ class _LexicalDecisionScreenState extends State<LexicalDecisionScreen> {
 
   Future<void> _boot() async {
     await _ladder.load();
+    await _normLadder.load();
     final vocab = widget.vocabOverride ??
         [
           for (final e in await loadJsonAsset('assets/vocab/translation-vocab.json') as List<dynamic>)
@@ -100,12 +121,15 @@ class _LexicalDecisionScreenState extends State<LexicalDecisionScreen> {
         ];
     final names = await LangNames.load();
     final letters = LdLetters.fromJson(await loadJsonAsset('assets/vocab/pseudoword-letters.json') as Map);
+    final ns = nsFormsFromJson(await loadJsonAsset('assets/vocab/nonstandard-forms.json') as Map);
     final langs = <String>{for (final w in vocab) ...w.keys};
     if (!mounted) return;
     setState(() {
       _vocab = vocab;
       _names = names;
       _letters = letters;
+      _ns = ns;
+      _normWanted = GamePreset.str('ldMode') == 'norm';
       _ldLangs = {for (final l in langs) if (ldProducesPseudowords(vocab, letters, l)) l};
       _targetLang = GamePreset.str('targetLang', _baseLang == 'en' ? 'es' : 'en');
       _bilingual = GamePreset.str(bilingualKey) == '1';
@@ -118,23 +142,30 @@ class _LexicalDecisionScreenState extends State<LexicalDecisionScreen> {
   /// Раньше в вебе выбор шёл из всех двенадцати, и на французском игра была пустой.
   List<String> get _langs => [
         for (final l in (_names.languages.isEmpty ? _ldLangs : _names.languages.keys))
-          if (l != _baseLang && _ldLangs.contains(l)) l,
+          if (_ldLangs.contains(l)) l,
       ];
 
   void _start() {
     _clearTimers();
-    final p = ldLevelParams(_ladder.level);
+    final norm = _norm;
+    final ladder = _lad;
+    final p = ldLevelParams(ladder.level);
     // Шаг зарядки — прежний темп без дедлайна и своё число проб, как в вебе.
     final count = GamePreset.isPreset ? GamePreset.num('trials', 30) : p.trials;
-    final trials = buildLexicalTrials(
-      vocab: _vocab ?? const [],
-      letters: _letters,
-      target: _target,
-      second: _second,
-      bilingual: _bilingual,
-      count: count,
-      rng: _rng,
-    );
+    final trials = norm
+        ? [
+            for (final x in ldBuildNormTrials(_ns, target: _target, level: ladder.level, count: count, rng: _rng))
+              LdTrial(x.text, x.isNorm, _target, ns: x.item),
+          ]
+        : buildLexicalTrials(
+            vocab: _vocab ?? const [],
+            letters: _letters,
+            target: _target,
+            second: _second,
+            bilingual: _bilingual,
+            count: count,
+            rng: _rng,
+          );
     if (trials.isEmpty) return;
     setState(() {
       _trials = trials;
@@ -144,7 +175,8 @@ class _LexicalDecisionScreenState extends State<LexicalDecisionScreen> {
       _errors = 0;
       _hits = _falseAlarms = _misses = _rejections = _timeouts = 0;
       _rtSum = _rtCount = 0;
-      _levelPlayed = _ladder.level;
+      _levelPlayed = ladder.level;
+      _normPlay = norm;
       _windowMs = GamePreset.isPreset ? 0 : p.windowMs;
       _startMs = _now;
       _phase = LdPhase.playing;
@@ -168,7 +200,8 @@ class _LexicalDecisionScreenState extends State<LexicalDecisionScreen> {
       if (t.isWord) _misses += 1;
       _picked = !t.isWord;
     });
-    _advance = Timer(const Duration(milliseconds: 800), _next);
+    // «По норме?»: на ошибке видна норма и правило — время прочитать.
+    _advance = Timer(Duration(milliseconds: _normPlay ? 2400 : 800), _next);
   }
 
   void _answer(bool saysWord) {
@@ -196,7 +229,7 @@ class _LexicalDecisionScreenState extends State<LexicalDecisionScreen> {
         }
       }
     });
-    _advance = Timer(Duration(milliseconds: ok ? 300 : 800), _next);
+    _advance = Timer(Duration(milliseconds: ok ? (_normPlay ? 900 : 300) : (_normPlay ? 2400 : 800)), _next);
   }
 
   void _next() {
@@ -221,6 +254,7 @@ class _LexicalDecisionScreenState extends State<LexicalDecisionScreen> {
     final passed = !GamePreset.isPreset && accuracy >= ldPassAccuracy;
     final details = <String, Object?>{
       'level': _levelPlayed,
+      'kind': _normPlay ? 'norm' : 'word',
       'target_lang': _target,
       'trials': total,
       'window_ms': _windowMs,
@@ -233,12 +267,13 @@ class _LexicalDecisionScreenState extends State<LexicalDecisionScreen> {
       'mean_rt_ms': _rtCount > 0 ? (_rtSum / _rtCount).round() : 0,
     };
     final secs = ((_now - _startMs) / 1000).round();
-    final mode = 'lvl$_levelPlayed';
+    final mode = '${_normPlay ? 'norm' : 'lvl'}$_levelPlayed';
     final diff = '$_target · $total';
+    final ladder = _normPlay ? _normLadder : _ladder;
     if (passed) {
-      await _ladder.win(score: _correct, timeSeconds: secs, errors: _errors, mode: mode, difficulty: diff, details: details);
+      await ladder.win(score: _correct, timeSeconds: secs, errors: _errors, mode: mode, difficulty: diff, details: details);
     } else {
-      await _ladder.fail(score: _correct, timeSeconds: secs, errors: _errors, mode: mode, difficulty: diff, details: details);
+      await ladder.fail(score: _correct, timeSeconds: secs, errors: _errors, mode: mode, difficulty: diff, details: details);
     }
     if (mounted) {
       setState(() {
@@ -248,8 +283,23 @@ class _LexicalDecisionScreenState extends State<LexicalDecisionScreen> {
     }
   }
 
-  /// Разбор до партии: настоящее слово языка и псевдослово из него же.
+  /// Разбор до партии: настоящее слово языка и псевдослово из него же. В режиме «По норме?» —
+  /// пара текущей ступени: ненормативная форма с правилом, потом её норма.
   List<DemoTrial> _demoTrials() {
+    if (_norm) {
+      final tiers = ldNormTiers(_normLadder.level);
+      final pair = _ns[_target]!.firstWhere((x) => tiers.contains(x.tier), orElse: () => _ns[_target]!.first);
+      final ruleKey = ldNsRuleKey(pair.rule);
+      return [
+        DemoTrial(
+          text: pair.form,
+          sub: L.t('ldNormHint'),
+          answer: L.t('ldNotNormBtn'),
+          rule: '${L.t('ldNormShouldBe').replaceAll('{norm}', pair.norm)}. ${ruleKey == null ? '' : L.t(ruleKey)}',
+        ),
+        DemoTrial(text: pair.norm, sub: L.t('ldNormHint'), answer: L.t('ldNormBtn'), rule: L.t('ldModeNormDesc')),
+      ];
+    }
     final vocab = _vocab ?? const <Map<String, String>>[];
     final words = ldRealWords(vocab, _target);
     if (words.isEmpty) return [DemoTrial(text: '', rule: L.t('lexicalDecisionIntroDesc'))];
@@ -274,7 +324,7 @@ class _LexicalDecisionScreenState extends State<LexicalDecisionScreen> {
     final t = _phase == LdPhase.playing ? _trials[_idx] : null;
     // Метка языка нужна везде, где язык выбран НЕ человеком на этом экране:
     // в билингво и в шаге зарядки (замечание Дениса 10.09.2026).
-    final showLang = _bilingual || GamePreset.isPreset;
+    final showLang = (_bilingual && !_normPlay) || GamePreset.isPreset;
     return GameShell(
       title: L.t('lexicalDecision'),
       onBack: () => Navigator.of(context).maybePop(),
@@ -302,7 +352,7 @@ class _LexicalDecisionScreenState extends State<LexicalDecisionScreen> {
   }
 
   Widget _config(BuildContext context, double h) {
-    final p = ldLevelParams(_ladder.level);
+    final p = ldLevelParams(_lad.level);
     final langs = _langs;
     final seconds = [for (final l in langs) if (l != _target) l];
     final theme = Theme.of(context);
@@ -317,6 +367,23 @@ class _LexicalDecisionScreenState extends State<LexicalDecisionScreen> {
           const SizedBox(height: 12),
           // 🔴 Переключатель ВЫШЕ выбора языка: список языков длинный, и под ним
           // переключатель уходил ниже сгиба (замер кадром 10.09.2026).
+          if (_normAvailable) ...[
+            Wrap(spacing: 8, runSpacing: 8, children: [
+              for (final n in const [false, true])
+                ChoiceChip(
+                  key: Key(n ? 'ld-mode-norm' : 'ld-mode-word'),
+                  label: Text(n ? L.t('ldModeNorm') : L.t('lexicalDecision')),
+                  selected: _norm == n,
+                  onSelected: (_) => setState(() => _normWanted = n),
+                ),
+            ]),
+            if (_norm) ...[
+              const SizedBox(height: 6),
+              Text(L.t('ldModeNormDesc'), key: const Key('ld-mode-norm-desc'), style: theme.textTheme.bodySmall),
+            ],
+            const SizedBox(height: 8),
+          ],
+          if (!_norm)
           SwitchListTile(
             key: const Key('ld-bilingual'),
             contentPadding: EdgeInsets.zero,
@@ -325,7 +392,7 @@ class _LexicalDecisionScreenState extends State<LexicalDecisionScreen> {
             value: _bilingual,
             onChanged: (v) => setState(() => _bilingual = v),
           ),
-          if (_bilingual)
+          if (_bilingual && !_norm)
             LangDropdown(
               key: const Key('ld-lang2'),
               keyPrefix: 'ld-lang2',
@@ -346,20 +413,27 @@ class _LexicalDecisionScreenState extends State<LexicalDecisionScreen> {
             onChanged: (l) => setState(() => _targetLang = l),
           ),
           const SizedBox(height: 16),
-          Text('${L.t('level')} ${_ladder.level}', style: theme.textTheme.titleMedium, textAlign: TextAlign.center),
+          Text('${L.t('level')} ${_lad.level}', style: theme.textTheme.titleMedium, textAlign: TextAlign.center),
           Text(
             L.t('trialsWindowParams').replaceAll('{n}', '${p.trials}').replaceAll('{w}', (p.windowMs / 1000).toStringAsFixed(1)),
             key: const Key('ld-level-params'),
             style: theme.textTheme.bodySmall,
             textAlign: TextAlign.center,
           ),
+          if (_norm)
+            Text(
+              L.t('ldNormTiers').replaceAll('{t}', [for (final n in ldNormTiers(_lad.level)) L.t(ldNormTierKeys[n - 1])].join(' · ')),
+              key: const Key('ld-norm-tiers'),
+              style: theme.textTheme.bodySmall,
+              textAlign: TextAlign.center,
+            ),
           Text(L.t('passCorrect80Window'), style: theme.textTheme.bodySmall, textAlign: TextAlign.center),
-          if (_ladder.level > 1)
+          if (_lad.level > 1)
             Center(
               child: TextButton(
                 key: const Key('ld-reset-level'),
                 onPressed: () async {
-                  await _ladder.pick(1);
+                  await _lad.pick(1);
                   if (mounted) setState(() {});
                 },
                 child: Semantics(label: L.t('a11yResetLevel'), child: const Text('↺ 1')),
@@ -402,8 +476,22 @@ class _LexicalDecisionScreenState extends State<LexicalDecisionScreen> {
               ),
             ),
             if (showLang) LanguageBadge(label: _names.label(t.lang), switched: switched, accent: _accent),
+            // «По норме?»: после ответа — как по норме и почему (правило пары).
+            if (shown && t.ns != null) ...[
+              const SizedBox(height: 12),
+              Text(
+                t.isWord
+                    ? L.t('ldNormIsStandard').replaceAll('{form}', t.ns!.form)
+                    : L.t('ldNormShouldBe').replaceAll('{norm}', t.ns!.norm),
+                key: const Key('ld-norm-why'),
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+              ),
+              Text(ldNsRuleKey(t.ns!.rule) == null ? '' : L.t(ldNsRuleKey(t.ns!.rule)!),
+                  key: const Key('ld-norm-rule'), textAlign: TextAlign.center, style: Theme.of(context).textTheme.bodyMedium),
+            ],
             const SizedBox(height: 16),
-            Text(L.t('ldHint'), textAlign: TextAlign.center, style: Theme.of(context).textTheme.bodySmall),
+            Text(_normPlay ? L.t('ldNormHint') : L.t('ldHint'), textAlign: TextAlign.center, style: Theme.of(context).textTheme.bodySmall),
           ]),
         ),
       ),
@@ -444,9 +532,12 @@ class _LexicalDecisionScreenState extends State<LexicalDecisionScreen> {
   Widget _buttons() => Padding(
         padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
         child: Row(children: [
-          Expanded(child: _big(const Key('ld-yes'), Icons.check, L.t('ldWordBtn'), _good, () => _answer(true))),
+          Expanded(
+              child: _big(const Key('ld-yes'), Icons.check, _normPlay ? L.t('ldNormBtn') : L.t('ldWordBtn'), _good, () => _answer(true))),
           const SizedBox(width: 10),
-          Expanded(child: _big(const Key('ld-no'), Icons.close, L.t('ldNonwordBtn'), _bad, () => _answer(false))),
+          Expanded(
+              child: _big(
+                  const Key('ld-no'), Icons.close, _normPlay ? L.t('ldNotNormBtn') : L.t('ldNonwordBtn'), _bad, () => _answer(false))),
         ]),
       );
 

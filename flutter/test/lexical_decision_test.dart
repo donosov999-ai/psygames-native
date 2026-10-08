@@ -81,4 +81,34 @@ void main() {
       }
     });
   }
+
+  // ── «По норме?» (d0ad03d9): данные — выгрузка веба, партия — исполнение `buildNormTrials`.
+  final ns = nsFormsFromJson(jsonDecode(File('assets/vocab/nonstandard-forms.json').readAsStringSync()) as Map);
+
+  test('«По норме?»: ступени по уровню — как в вебе', () {
+    for (final raw in (ref['normLevels'] as List)) {
+      final l = raw as Map<String, dynamic>;
+      expect(ldNormTiers((l['level'] as num).toInt()), [for (final t in (l['tiers'] as List)) (t as num).toInt()],
+          reason: 'ступени уровня ${l['level']}');
+    }
+  });
+
+  for (final raw in (ref['normGames'] as List)) {
+    final g = raw as Map<String, dynamic>;
+    test('«По норме?»: ${g['name']}', () {
+      final got = ldBuildNormTrials(ns,
+          target: '${g['target']}',
+          level: (g['level'] as num).toInt(),
+          count: (g['count'] as num).toInt(),
+          rng: rng((g['shift'] as num).toInt()));
+      final want = g['trials'] as List;
+      expect(got.length, want.length, reason: 'число проб');
+      for (var i = 0; i < want.length; i += 1) {
+        final w = want[i] as Map<String, dynamic>;
+        expect(got[i].text, w['text'], reason: 'проба $i');
+        expect(got[i].isNorm, w['isNorm'], reason: 'норма ли $i');
+        expect(got[i].item.form, w['form'], reason: 'пара $i');
+      }
+    });
+  }
 }
