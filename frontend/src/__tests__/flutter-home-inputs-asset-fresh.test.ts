@@ -38,6 +38,7 @@ import { DAY_STREAK_FOR_MULT } from '@/src/services/earn';
 import { FAVOURITE_SECTIONS } from '@/src/services/favouriteCategories';
 import { MAX_CONTAINER_WIDTH, CONTAINER_PADDING } from '@/src/components/CategorySections';
 import { assetUri } from '@/src/services/hostScreens';
+import { DIFFS } from '@/src/services/daily-challenge';
 
 declare function require(id: string): any;
 declare const __dirname: string;
@@ -96,6 +97,7 @@ function build(): string {
       eveningBanned: RECO_EVENING_BANNED, starters: RECO_STARTERS, reasonKey: RECO_REASON_KEY,
     },
     domainGames: Object.fromEntries(DOMAINS.map((d) => [d.id, d.game_id])),
+    challengeDiffs: DIFFS,
     goal: { days: GOAL_DAYS, askEveryDays: ASK_EVERY_DAYS, streakCountsFrom: STREAK_COUNTS_FROM, maxLen: DAY_GOAL_MAX_LEN, exampleKeys: DAY_GOAL_EXAMPLE_KEYS },
     weakSkillFreshDays: СВЕЖЕСТЬ_ДНЕЙ,
     resumeMaxAgeMs: RESUME_MAX_AGE_MS,
@@ -103,6 +105,9 @@ function build(): string {
     dayStreakForMult: DAY_STREAK_FOR_MULT,
     favouriteSections: FAVOURITE_SECTIONS,
     layout: { maxContainerWidth: MAX_CONTAINER_WIDTH, containerPadding: CONTAINER_PADDING },
+    // Ключи, которые Dart зовёт переменной (`L.t(title.nameKey)` — титул надетой вещи): сборщик словаря
+    // натива (`embed-l10n.mjs`) берёт их отсюда.
+    textKeys: [...new Set(COSMETICS.filter((c) => c.type === 'title').map((c) => c.nameKey))].sort(),
   };
   return `${JSON.stringify(data, null, 1)}\n`;
 }

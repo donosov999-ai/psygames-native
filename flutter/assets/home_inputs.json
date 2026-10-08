@@ -756,6 +756,11 @@
   "verbal_fluency": "phonemic_fluency",
   "risk": "bart"
  },
+ "challengeDiffs": [
+  "easy",
+  "medium",
+  "hard"
+ ],
  "goal": {
   "days": [
    7,
@@ -779,5 +784,18 @@
  "layout": {
   "maxContainerWidth": 1100,
   "containerPadding": 16
- }
+ },
+ "textKeys": [
+  "cosName_title_comet",
+  "cosName_title_cyberbrain",
+  "cosName_title_diamond",
+  "cosName_title_focused",
+  "cosName_title_grandmaster",
+  "cosName_title_infinity",
+  "cosName_title_legend",
+  "cosName_title_owl",
+  "cosName_title_sharp",
+  "cosName_title_strategist",
+  "cosName_title_unstoppable"
+ ]
 }
