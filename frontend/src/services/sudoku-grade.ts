@@ -1767,6 +1767,17 @@ const BUILD_WAIT_MS = 6000;
 const MAX_BLANKS_9 = 64;
 
 /**
+ * Сколько клеток ступени МОЖНО выкопать: на новичковых — `blanksCap`, у 9×9 дальше — лимит
+ * ступени `digCap` (levelConfig) или общий, у других сеток — вся доска. Одна формула на всех,
+ * кто копает: копание логикой, туман и подъём к полу (`digToFloor`). Пока формула жила в двух
+ * местах, третий копатель — подъём к полу — о ней не знал и пробивал лимит (раздел уровней
+ * 08.10: киллер 163/164 при digCap 70 — 71, 73 и 78 пустых).
+ */
+export function digLimit(level: number, blanksCap: number, N: number, digCap?: number): number {
+  return level <= 8 ? blanksCap : (N === 9 ? (digCap ?? MAX_BLANKS_9) : N * N);
+}
+
+/**
  * РЕШАТЕЛЬ ПРИШЁЛ К ТОЙ ЖЕ ДОСКЕ, ЧТО И ГЕНЕРАТОР?
  *
  * 🔴 СЕТЬ БЫЛА НАТЯНУТА ТОЛЬКО НА БУМАГЕ. У поля `Grade.grid` написано прямо:
@@ -1853,7 +1864,7 @@ function digByLogic(
   // значит доске нужно МЕНЬШЕ подсказок при равной трудности, а лимит был скопирован с
   // классики, где такой прибавки нет.
   // Лимит 9×9 — поле ступени `digCap` (levelConfig), иначе общий: ось трудности внутри блока.
-  const cap = level <= 8 ? blanksCap : (N === 9 ? (digCap ?? MAX_BLANKS_9) : N * N);
+  const cap = digLimit(level, blanksCap, N, digCap);
   let dug = 0;
   /**
    * 🔴 ПРОХОДОВ НЕСКОЛЬКО, А НЕ ОДИН. Клетка, которую нельзя было убрать в начале
@@ -2008,12 +2019,15 @@ export function easeToCeiling(
  */
 export function digToFloor(
   gen: GeneratedPuzzle, N: number, BR: number, BC: number, variant: Variant,
-  min: number, max: number, deadline?: number,
+  min: number, max: number, deadline?: number, cap = N * N,
 ): { gen: GeneratedPuzzle; grade: Grade; dug: number } {
   let grade = gradeOf(gen, N, BR, BC, variant);
   if (!grade.solved || grade.tier >= min) return { gen, grade, dug: 0 };
 
   const puzzle = gen.puzzle.map((row) => [...row]);
+  // 🔴 ЛИМИТ КОПАНИЯ СТУПЕНИ (`cap`, см. `digLimit`) держит и подъём к полу: без него доска
+  // ступени уходила глубже своего digCap (киллер 163/164, замер раздела уровней 08.10).
+  let blanks = puzzle.flat().filter((v) => v === 0).length;
   /**
    * Порядок обхода перемешан: идти по клеткам подряд значит выедать доску сверху
    * вниз и получать однобокие расстановки. Тот же довод, что и в `easeToCeiling`.
@@ -2024,6 +2038,7 @@ export function digToFloor(
   let dug = 0;
   for (const idx of filled) {
     if (deadline !== undefined && Date.now() > deadline) break;
+    if (blanks >= cap) break;
     const r = Math.floor(idx / N), c = idx % N;
     const было = puzzle[r][c];
     puzzle[r][c] = 0;
@@ -2041,6 +2056,7 @@ export function digToFloor(
      */
     if (!пробная.solved || пробная.tier > max || пробная.tier < grade.tier) { puzzle[r][c] = было; continue; }
     dug += 1;
+    blanks += 1;
     grade = пробная;
     if (grade.tier >= min) return { gen: next, grade, dug };
   }
@@ -2500,7 +2516,7 @@ function digFog(
   const ctx: GradeCtx = { N, BR, BC, variant: 'none' };
   const seeds: [number, number][] = Array.from({ length: seedsN }, () => [1 + Math.floor(Math.random() * (N - 2)), 1 + Math.floor(Math.random() * (N - 2))]);
   const open = fogOpen(seeds, N);
-  const cap = level <= 8 ? blanksCap : (N === 9 ? (digCap ?? MAX_BLANKS_9) : N * N);
+  const cap = digLimit(level, blanksCap, N, digCap);
   let dug = 0;
   for (let pass = 0; pass < DIG_PASSES; pass++) {
     let removed = 0;
@@ -2704,7 +2720,7 @@ export function generateLogical(
        * ступени 1 на двадцатом уровне (замер 27.08). Возмущаем, а не бросаем кости
        * заново — шестая попытка стоила бы дороже и вышла бы такой же случайной.
        */
-      const поднято = digToFloor(best.gen, N, BR, BC, variant, min, max, until);
+      const поднято = digToFloor(best.gen, N, BR, BC, variant, min, max, until, digLimit(level, blanksCap, N, digCap));
       let итог = поднято.grade.tier > best.grade.tier
         ? { gen: поднято.gen, grade: поднято.grade, dug: best.dug + поднято.dug }
         : { gen: best.gen, grade: best.grade, dug: best.dug };
@@ -2748,7 +2764,8 @@ export function generateLogical(
     // что увидит человек. Прежде тут стояли `thinMarkers` и `thinSandwich` ПОСЛЕ
     // генерации — и доска, единственная для движка, оказывалась неоднозначной для
     // игрока («L30 evenodd → решений 2»). Разбор в шапке `overlayThinner`.
-    const g = generatePuzzle(blanksCap, N, BR, BC, variant, overlayThinner(level, variant, N));
+    // Лимит ступени — и здесь: запасной путь копал до blanksCap, мимо digCap (замер 08.10).
+    const g = generatePuzzle(Math.min(blanksCap, digLimit(level, blanksCap, N, digCap)), N, BR, BC, variant, overlayThinner(level, variant, N));
     const grade = gradeOf(g, N, BR, BC, variant);
     if (!fb || dist(grade.tier) < dist(fb.grade.tier)) fb = { gen: g, grade };
     /**
@@ -2772,7 +2789,7 @@ export function generateLogical(
    * Обратный порядок сломал бы: доведи мы сперва до пола, `easeToCeiling` мог бы
    * тут же вернуть подсказки и опустить ступень обратно.
    */
-  const поднято = digToFloor(eased.gen, N, BR, BC, variant, min, max, fbUntil);
+  const поднято = digToFloor(eased.gen, N, BR, BC, variant, min, max, fbUntil, digLimit(level, blanksCap, N, digCap));
   let gen = поднято.grade.tier > eased.grade.tier ? поднято.gen : eased.gen;
   let итогГрейд = поднято.grade.tier > eased.grade.tier ? поднято.grade : eased.grade;
   // Запасной путь добирает пол тем же снятием подсказок варианта (см. шапку lift).
