@@ -167,6 +167,33 @@ describe('Календарь серии под оболочкой', () => {
     expect(m.month.canNext).toBe(false);
     expect(клетки.find((c) => c?.day === 1).a11y.length).toBeGreaterThan(5);
     образец('calendar_model.json', m);
+    // Входы эталона — для сверки расчёта на Dart (вариант Б): «сегодня» календарной датой, без пояса.
+    образец('calendar_input.json', { today: { y: now.getFullYear(), m: now.getMonth() + 1, d: now.getDate() }, history: mockHistory });
+  });
+
+  it('эталон правила серии для Dart: пропуски, «не спится», незавершённые, повторы', () => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { computeStreak, computeLongestStreak } = jest.requireActual('@/src/services/warmup');
+    const назад = (n: number, extra: object = {}) => ({ ...зарядка(ключ(new Date(now.getFullYear(), now.getMonth(), now.getDate() - n))), ...extra });
+    const случаи = [
+      [назад(0), назад(1), назад(2)],
+      [назад(1), назад(2), назад(4), назад(5)],
+      [назад(1), назад(4), назад(5), назад(6)],
+      [назад(0), назад(1, { track: 'rest' }), назад(2), назад(3, { completed: false }), назад(5)],
+      [назад(9), назад(7), назад(6), назад(3), назад(3), назад(1)],
+    ].map((history) => ({ history, streak: computeStreak(history), longest: computeLongestStreak(history) }));
+    expect(случаи.some((c) => c.streak !== c.longest)).toBe(true);
+    образец('streak_oracle.json', { today: { y: now.getFullYear(), m: now.getMonth() + 1, d: now.getDate() }, cases: случаи });
+  });
+
+  it('эталоны для Dart: прошлый месяц (RU) и этот месяц на EN', async () => {
+    const { last } = await смонтировать('/streak-calendar', true);
+    await TestRenderer.act(async () => { (globalThis as any).__psyScreenUi['/streak-calendar'].month(-1); });
+    образец('calendar_model_prev.json', last());
+    await AsyncStorage.setItem('language', 'en');
+    const en = await смонтировать('/streak-calendar', true);
+    expect(/[А-Яа-яЁё]/.test(JSON.stringify(en.last()))).toBe(false);
+    образец('calendar_model_en.json', en.last());
   });
 
   it('🔴 month листает назад и обратно, вперёд текущего — нельзя; back — goBackOrHome', async () => {

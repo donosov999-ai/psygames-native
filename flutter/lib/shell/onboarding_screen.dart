@@ -240,9 +240,12 @@ class OnboardingScreen extends StatelessWidget {
           ),
         ),
         // «Пропустить» прибито к низу экрана (отчёт 8f6557d8): второй, крупный выход у большого пальца.
-        // По ширине содержимого и по центру — как у веба (`alignItems: center` экрана).
-        Center(
-          child: Container(
+        // Полоса — во всю ширину, кнопка — шириной колонки карточек, как у веба после 07.10: по ширине
+        // слова «Skip» была уже своей высоты 48 — вертикальная капсула (эмулятор, 2.56.15 EN).
+        LayoutBuilder(
+          builder: (context, box) => Container(
+            width: box.maxWidth,
+            alignment: Alignment.center,
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
             decoration: BoxDecoration(
               color: web.background,
@@ -252,18 +255,17 @@ class OnboardingScreen extends StatelessWidget {
               key: const ValueKey('onboarding-skip-footer'),
               onTap: busy ? null : () => _act('skipPicker'),
               child: Container(
+                width: math.min(box.maxWidth - 32, 480.0),
                 height: 48,
+                alignment: Alignment.center,
                 decoration: BoxDecoration(
                   color: web.surface,
                   border: Border.all(color: web.border),
                   borderRadius: BorderRadius.circular(14),
                 ),
-                child: Center(
-                  widthFactor: 1,
-                  child: Text(
-                    _s(m['exit']),
-                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: web.text),
-                  ),
+                child: Text(
+                  _s(m['exit']),
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: web.text),
                 ),
               ),
             ),

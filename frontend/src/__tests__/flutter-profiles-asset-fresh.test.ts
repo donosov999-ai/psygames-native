@@ -1,4 +1,4 @@
-/* psygames-flutter-profiles-asset-fresh · VER 1 · 02.10.2026 */
+/* psygames-flutter-profiles-asset-fresh · VER 2 · 07.10.2026 */
 /**
  * ПРОФИЛИ ДЛЯ НАТИВНЫХ НАСТРОЕК — ВЫГРУЗКОЙ ИЗ ЖИВОГО TS, И СВЕЖЕСТЬ ПОД СТОРОЖЕМ (задача eae0879c).
  *
@@ -12,7 +12,8 @@
  * профили в вебе поменяли, а ассет нет. Перевыпуск — из `frontend/`:
  *   WRITE=1 npx jest -i --runTestsByPath src/__tests__/flutter-profiles-asset-fresh.test.ts
  */
-import { PROFILES, MONETIZATION_ENABLED, PUBLIC_GAME_COUNT } from '@/src/constants/profiles';
+import { PROFILES, MONETIZATION_ENABLED, PUBLIC_GAME_COUNT, ALWAYS_ALLOWED } from '@/src/constants/profiles';
+import { заводскойСостав } from '@/src/services/playlistOverride';
 import { UNLOCK_CODES_ENABLED, requiresUnlock, isComingSoon } from '@/src/services/unlock';
 import { GAMES } from '@/src/constants/games';
 
@@ -45,10 +46,27 @@ function build(): string {
   for (const p of PROFILES) if (Array.isArray(p.allowed_games)) p.allowed_games.forEach((g) => ids.add(g));
   const games: Record<string, { nameKey: string; category: string }> = {};
   for (const g of GAMES) if (ids.has(g.id)) games[g.id] = { nameKey: g.nameKey, category: g.category };
+  /*
+   * 🔴 VER 2 (07.10, вариант Б d6a60b02, «Прогресс» на Dart): доступ игры профилю — `isGameAllowed`.
+   * Правило короткое (закрыто файлом → нет; `all` → да; открыто всем → да; иначе список), но его
+   * данные живут в TS: список «открыто всем» и заводской слой файла состава (`заводскойСостав`,
+   * разобранный своим разборщиком ~280 строк). Выгружаем оба: Dart накладывает слой как `наложить`
+   * и не заводит второго разборщика.
+   */
+  const заводской = заводскойСостав()?.профили ?? {};
+  const factoryOverlay: Record<string, { игры?: unknown; убрать?: unknown }> = {};
+  for (const [id, мой] of Object.entries(заводской)) {
+    const o: { игры?: unknown; убрать?: unknown } = {};
+    if ((мой as any).игры !== undefined) o.игры = (мой as any).игры;
+    if ((мой as any).убрать !== undefined) o.убрать = (мой as any).убрать;
+    if (Object.keys(o).length) factoryOverlay[id] = o;
+  }
   const data = {
     flags: { MONETIZATION_ENABLED, UNLOCK_CODES_ENABLED, PUBLIC_GAME_COUNT },
     profiles,
     games,
+    alwaysAllowed: [...ALWAYS_ALLOWED].sort(),
+    factoryOverlay,
   };
   // По записи на строку верхнего уровня: два PR, тронувшие разные профили, сводятся сами.
   const top = (k: string, v: unknown) =>

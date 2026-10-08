@@ -26,7 +26,7 @@ const sudokuRuleKeys = <String>[
   'sudokuRuleSandwich', 'sudokuRuleThermo', 'sudokuRuleArrow', 'sudokuRuleThermocage',
   'sudokuRuleUnequal', 'sudokuRuleTowers', 'sudokuRuleSandparity', 'sudokuRuleThermoknight',
   'sudokuRuleKillerdiag', 'sudokuRuleWhisper', 'sudokuRuleRenban', 'sudokuRuleRegionsum',
-  'sudokuRulePalindrome', 'sudokuRuleBetween', 'sudokuRuleLockout', 'sudokuRuleXv', 'sudokuRuleArgyle', 'sudokuRuleLittlekiller', 'sudokuRuleXsums',
+  'sudokuRulePalindrome', 'sudokuRuleBetween', 'sudokuRuleLockout', 'sudokuRuleXv', 'sudokuRuleArgyle', 'sudokuRuleLittlekiller', 'sudokuRuleXsums', 'sudokuRuleCipher', 'sudokuRuleFog', 'sudokuRuleChaos', 'sudokuRuleSchrodinger', 'sudokuRuleDoublers', 'sudokuRuleNegators',
   'sdkRule_friends', 'sudokuKillerRule', 'sudokuWhyNotLocal',
 ];
 
@@ -35,6 +35,9 @@ String? variantRuleKey(String variant) {
   if (variant == 'none') return null;
   if (variant == 'friends') return 'sdkRule_friends';   // как у веба: одна строка «🐱 рядом с 🐭»
   if (variant == 'killer') return 'sudokuKillerRule';   // режим «Киллер»: у веба вариант 'none' + группы
+  // Wordoku и звери на лестнице — классика значками: правило — строка значков (12 языков).
+  if (variant == 'wordoku') return 'sudokuSkinLetters';
+  if (variant == 'animals') return 'sudokuSkinAnimals';
   final key = 'sudokuRule${variant[0].toUpperCase()}${variant.substring(1)}';
   return sudokuRuleKeys.contains(key) ? key : null;
 }
@@ -56,9 +59,12 @@ String? rejectionKey(
   test[r][c] = 0;
   // 1. Базовое правило. У «кривых блоков» база — строка, столбец и ОБЛАСТЬ (07.10: веб сверял
   //    стандартный квадрат 3×3 и молчал на конфликте в квадрате, которого на доске нет).
+  //    У самосборки база — строка и столбец: областей на доске нет, их выводит игрок.
   final base = variant == 'jigsaw'
       ? isValid(test, r, c, v, n, br, bc, variant: 'jigsaw', geometry: BoardGeometry(regions: geometry?.regions))
-      : isValid(test, r, c, v, n, br, bc);
+      : variant == 'chaos'
+          ? isValid(test, r, c, v, n, br, bc, variant: 'chaos')
+          : isValid(test, r, c, v, n, br, bc);
   if (!base) return null;
   // 2. Правило варианта нарушено доказуемо — называем его; `isValid` с геометрией держит и
   //    показанные подсказки (`overlayOk`). Киллер у натива — вариант 'killer' (у веба — 'none' с

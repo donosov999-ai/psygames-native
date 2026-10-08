@@ -13,24 +13,25 @@ import '../../shell/shared_state.dart';
 import 'board.dart';
 import 'model.dart';
 import 'teach.dart';
+import 'mode_switch.dart';
+import 'word_lang.dart';
 
 /// Экран «Анаграммы», КЛАССИЧЕСКИЙ режим.
 ///
 /// ⚠️ ЗА АДРЕСОМ `/games/anagrams` СТОЯТ ЧЕТЫРЕ ИГРЫ: классика, «Все слова»,
-/// кроссворд, слово-квадрат. Здесь перенесена первая. Перехват в гибриде идёт ПО
-/// МАРШРУТУ (`HybridApp.routeOf` срезает query), поэтому в карту `native` эту
-/// игру включают только когда готовы все четыре — иначе человек, выбравший другой
-/// режим, потеряет его.
+/// кроссворд, слово-квадрат. У каждой свой ключ перехвата с хвостом `?mode=…`
+/// (`HybridApp.routeOf` ищет адрес сначала вместе с хвостом); голый адрес — классика.
 ///
 /// Каркас взят готовым: шапка, счётчики, ряд значков под полем, липкий низ,
 /// пауза и лестница уровней. Своего здесь — доска и четыре действия.
 class AnagramsScreen extends StatefulWidget {
-  const AnagramsScreen({super.key, required this.state, this.locale = 'ru'});
+  const AnagramsScreen({super.key, required this.state, this.locale});
 
   final SharedState state;
 
-  /// Язык слов. Язык без своего набора получает английский (`WordBank.resolve`).
-  final String locale;
+  /// Язык слов. Не задан — по правилу веба ([anagramWordLang]): шаг зарядки, выбор
+  /// человека, язык интерфейса. Пробы задают его явно.
+  final String? locale;
 
   @override
   State<AnagramsScreen> createState() => _AnagramsScreenState();
@@ -38,6 +39,7 @@ class AnagramsScreen extends StatefulWidget {
 
 class _AnagramsScreenState extends State<AnagramsScreen> {
   late LevelLadder _ladder;
+  late final String _lang = widget.locale ?? anagramWordLang(widget.state, AnagramMode.classic);
   WordBank? _bank;
   ClassicGame? _game;
   AnagramRound? _round;
@@ -68,7 +70,7 @@ class _AnagramsScreenState extends State<AnagramsScreen> {
 
   Future<void> _boot() async {
     await _ladder.load();
-    final bank = await WordBank.load(widget.locale);
+    final bank = await WordBank.load(_lang);
     if (!mounted) return;
     setState(() {
       _bank = bank;
@@ -274,6 +276,8 @@ class _AnagramsScreenState extends State<AnagramsScreen> {
           label: L.t('skip'),
           onPressed: _giveUp,
         ),
+        // Выбор режима — иначе остальные три игры анаграмм недостижимы (см. mode_switch.dart).
+        if (anagramModeSwitchShown) anagramModeAction(context, widget.state, AnagramMode.classic),
       ]),
       toolbar: Padding(
         padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
@@ -302,6 +306,7 @@ class _AnagramsScreenState extends State<AnagramsScreen> {
       pauseActions: [
         PauseAction(label: L.t('shuffleBtn'), icon: Icons.shuffle, onPressed: _shuffle),
         PauseAction(label: L.t('skip'), icon: Icons.skip_next_outlined, onPressed: _giveUp),
+        if (!anagramWordLangFromStep()) anagramWordLangAction(context, widget.state, AnagramMode.classic, _lang),
       ],
     );
   }

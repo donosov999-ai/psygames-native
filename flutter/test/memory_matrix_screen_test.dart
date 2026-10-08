@@ -17,6 +17,7 @@ import 'package:psygames_flutter/shell/preset_cap.dart';
 import 'package:psygames_flutter/shell/session_report.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'support/settings_fit.dart';
 
 /// 🔴 «МАТРИЦА ПАМЯТИ» ИГРАЕТСЯ НАЖАТИЯМИ, РАСКЛАД ЧИТАЕТСЯ С ПОЛЯ.
 ///
@@ -455,6 +456,22 @@ void main() {
     await tester.tap(find.byKey(const Key('mm-start')));
     await tester.pump(const Duration(milliseconds: 100));
     // Без прокрутки времени: таймер, переживший экран, проба поймает сама — «Timer is still pending».
+    await tester.pumpWidget(const SizedBox());
+  });
+
+  testWidgets('🔴 настройка влезает в 360×640 по-английски и по-русски: «Начать» видна, ничего за краем (ae1d918b)',
+      (tester) async {
+    await expectSettingsFit(tester, () => boot(tester, level: 16), where: 'memory-matrix L16 (ложные вспышки)');
+  });
+
+  testWidgets('🔴 партия на 360×640: органы ответа целиком на экране (или в прокрутке поля), не меньше 48×48 (приёмка 6596a00d)',
+      (tester) async {
+    await expectPlayFit(tester, () async {
+      await boot(tester, level: 16);
+      await tester.tap(find.byKey(const Key('mm-start')));
+      await tester.pump();
+      await pumpUntil(tester, () => caption(tester) == L.t('mmPurpleFirst'));
+    }, where: 'memory-matrix L16, ввод');
     await tester.pumpWidget(const SizedBox());
   });
 }

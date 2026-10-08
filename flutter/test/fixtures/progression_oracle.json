@@ -1,0 +1,1058 @@
+[
+ {
+  "pts": 0,
+  "league": "seed",
+  "rank": 1,
+  "toNext": 134,
+  "progress": 0,
+  "frames": [
+   "sprout"
+  ]
+ },
+ {
+  "pts": 1,
+  "league": "seed",
+  "rank": 1,
+  "toNext": 133,
+  "progress": 0.0075,
+  "frames": [
+   "sprout"
+  ]
+ },
+ {
+  "pts": 2,
+  "league": "seed",
+  "rank": 1,
+  "toNext": 132,
+  "progress": 0.015,
+  "frames": [
+   "sprout"
+  ]
+ },
+ {
+  "pts": 7,
+  "league": "seed",
+  "rank": 1,
+  "toNext": 127,
+  "progress": 0.0525,
+  "frames": [
+   "sprout"
+  ]
+ },
+ {
+  "pts": 99,
+  "league": "seed",
+  "rank": 1,
+  "toNext": 35,
+  "progress": 0.7425,
+  "frames": [
+   "sprout"
+  ]
+ },
+ {
+  "pts": 133,
+  "league": "seed",
+  "rank": 1,
+  "toNext": 1,
+  "progress": 0.9975,
+  "frames": [
+   "sprout"
+  ]
+ },
+ {
+  "pts": 266,
+  "league": "seed",
+  "rank": 2,
+  "toNext": 1,
+  "progress": 0.995,
+  "frames": [
+   "sprout"
+  ]
+ },
+ {
+  "pts": 267,
+  "league": "seed",
+  "rank": 3,
+  "toNext": 133,
+  "progress": 0.0025,
+  "frames": [
+   "sprout"
+  ]
+ },
+ {
+  "pts": 333,
+  "league": "seed",
+  "rank": 3,
+  "toNext": 67,
+  "progress": 0.4975,
+  "frames": [
+   "sprout"
+  ]
+ },
+ {
+  "pts": 399,
+  "league": "seed",
+  "rank": 3,
+  "toNext": 1,
+  "progress": 0.9925,
+  "frames": [
+   "sprout"
+  ]
+ },
+ {
+  "pts": 400,
+  "league": "spark",
+  "rank": 1,
+  "toNext": 267,
+  "progress": 0,
+  "frames": [
+   "sprout",
+   "spark"
+  ]
+ },
+ {
+  "pts": 401,
+  "league": "spark",
+  "rank": 1,
+  "toNext": 266,
+  "progress": 0.00375,
+  "frames": [
+   "sprout",
+   "spark"
+  ]
+ },
+ {
+  "pts": 402,
+  "league": "spark",
+  "rank": 1,
+  "toNext": 265,
+  "progress": 0.0075,
+  "frames": [
+   "sprout",
+   "spark"
+  ]
+ },
+ {
+  "pts": 499,
+  "league": "spark",
+  "rank": 1,
+  "toNext": 168,
+  "progress": 0.37125,
+  "frames": [
+   "sprout",
+   "spark"
+  ]
+ },
+ {
+  "pts": 733,
+  "league": "spark",
+  "rank": 2,
+  "toNext": 201,
+  "progress": 0.24875,
+  "frames": [
+   "sprout",
+   "spark"
+  ]
+ },
+ {
+  "pts": 777,
+  "league": "spark",
+  "rank": 2,
+  "toNext": 157,
+  "progress": 0.41375,
+  "frames": [
+   "sprout",
+   "spark"
+  ]
+ },
+ {
+  "pts": 1177,
+  "league": "spark",
+  "rank": 3,
+  "toNext": 23,
+  "progress": 0.91375,
+  "frames": [
+   "sprout",
+   "spark"
+  ]
+ },
+ {
+  "pts": 1199,
+  "league": "spark",
+  "rank": 3,
+  "toNext": 1,
+  "progress": 0.99625,
+  "frames": [
+   "sprout",
+   "spark"
+  ]
+ },
+ {
+  "pts": 1200,
+  "league": "focus",
+  "rank": 1,
+  "toNext": 467,
+  "progress": 0,
+  "frames": [
+   "sprout",
+   "spark",
+   "compass"
+  ]
+ },
+ {
+  "pts": 1201,
+  "league": "focus",
+  "rank": 1,
+  "toNext": 466,
+  "progress": 0.002142857143,
+  "frames": [
+   "sprout",
+   "spark",
+   "compass"
+  ]
+ },
+ {
+  "pts": 1202,
+  "league": "focus",
+  "rank": 1,
+  "toNext": 465,
+  "progress": 0.004285714286,
+  "frames": [
+   "sprout",
+   "spark",
+   "compass"
+  ]
+ },
+ {
+  "pts": 1299,
+  "league": "focus",
+  "rank": 1,
+  "toNext": 368,
+  "progress": 0.212142857143,
+  "frames": [
+   "sprout",
+   "spark",
+   "compass"
+  ]
+ },
+ {
+  "pts": 1533,
+  "league": "focus",
+  "rank": 1,
+  "toNext": 134,
+  "progress": 0.713571428571,
+  "frames": [
+   "sprout",
+   "spark",
+   "compass"
+  ]
+ },
+ {
+  "pts": 1977,
+  "league": "focus",
+  "rank": 2,
+  "toNext": 157,
+  "progress": 0.665,
+  "frames": [
+   "sprout",
+   "spark",
+   "compass"
+  ]
+ },
+ {
+  "pts": 2599,
+  "league": "focus",
+  "rank": 3,
+  "toNext": 1,
+  "progress": 0.997857142857,
+  "frames": [
+   "sprout",
+   "spark",
+   "compass"
+  ]
+ },
+ {
+  "pts": 2600,
+  "league": "flow",
+  "rank": 1,
+  "toNext": 800,
+  "progress": 0,
+  "frames": [
+   "sprout",
+   "spark",
+   "compass",
+   "current"
+  ]
+ },
+ {
+  "pts": 2601,
+  "league": "flow",
+  "rank": 1,
+  "toNext": 799,
+  "progress": 0.00125,
+  "frames": [
+   "sprout",
+   "spark",
+   "compass",
+   "current"
+  ]
+ },
+ {
+  "pts": 2602,
+  "league": "flow",
+  "rank": 1,
+  "toNext": 798,
+  "progress": 0.0025,
+  "frames": [
+   "sprout",
+   "spark",
+   "compass",
+   "current"
+  ]
+ },
+ {
+  "pts": 2699,
+  "league": "flow",
+  "rank": 1,
+  "toNext": 701,
+  "progress": 0.12375,
+  "frames": [
+   "sprout",
+   "spark",
+   "compass",
+   "current"
+  ]
+ },
+ {
+  "pts": 2933,
+  "league": "flow",
+  "rank": 1,
+  "toNext": 467,
+  "progress": 0.41625,
+  "frames": [
+   "sprout",
+   "spark",
+   "compass",
+   "current"
+  ]
+ },
+ {
+  "pts": 3377,
+  "league": "flow",
+  "rank": 1,
+  "toNext": 23,
+  "progress": 0.97125,
+  "frames": [
+   "sprout",
+   "spark",
+   "compass",
+   "current"
+  ]
+ },
+ {
+  "pts": 4999,
+  "league": "flow",
+  "rank": 3,
+  "toNext": 1,
+  "progress": 0.99875,
+  "frames": [
+   "sprout",
+   "spark",
+   "compass",
+   "current"
+  ]
+ },
+ {
+  "pts": 5000,
+  "league": "edge",
+  "rank": 1,
+  "toNext": 1334,
+  "progress": 0,
+  "frames": [
+   "sprout",
+   "spark",
+   "compass",
+   "current",
+   "blade"
+  ]
+ },
+ {
+  "pts": 5001,
+  "league": "edge",
+  "rank": 1,
+  "toNext": 1333,
+  "progress": 0.00075,
+  "frames": [
+   "sprout",
+   "spark",
+   "compass",
+   "current",
+   "blade"
+  ]
+ },
+ {
+  "pts": 5002,
+  "league": "edge",
+  "rank": 1,
+  "toNext": 1332,
+  "progress": 0.0015,
+  "frames": [
+   "sprout",
+   "spark",
+   "compass",
+   "current",
+   "blade"
+  ]
+ },
+ {
+  "pts": 5099,
+  "league": "edge",
+  "rank": 1,
+  "toNext": 1235,
+  "progress": 0.07425,
+  "frames": [
+   "sprout",
+   "spark",
+   "compass",
+   "current",
+   "blade"
+  ]
+ },
+ {
+  "pts": 5333,
+  "league": "edge",
+  "rank": 1,
+  "toNext": 1001,
+  "progress": 0.24975,
+  "frames": [
+   "sprout",
+   "spark",
+   "compass",
+   "current",
+   "blade"
+  ]
+ },
+ {
+  "pts": 5777,
+  "league": "edge",
+  "rank": 1,
+  "toNext": 557,
+  "progress": 0.58275,
+  "frames": [
+   "sprout",
+   "spark",
+   "compass",
+   "current",
+   "blade"
+  ]
+ },
+ {
+  "pts": 8999,
+  "league": "edge",
+  "rank": 3,
+  "toNext": 1,
+  "progress": 0.99925,
+  "frames": [
+   "sprout",
+   "spark",
+   "compass",
+   "current",
+   "blade"
+  ]
+ },
+ {
+  "pts": 9000,
+  "league": "peak",
+  "rank": 1,
+  "toNext": 2000,
+  "progress": 0,
+  "frames": [
+   "sprout",
+   "spark",
+   "compass",
+   "current",
+   "blade",
+   "summit"
+  ]
+ },
+ {
+  "pts": 9001,
+  "league": "peak",
+  "rank": 1,
+  "toNext": 1999,
+  "progress": 0.0005,
+  "frames": [
+   "sprout",
+   "spark",
+   "compass",
+   "current",
+   "blade",
+   "summit"
+  ]
+ },
+ {
+  "pts": 9002,
+  "league": "peak",
+  "rank": 1,
+  "toNext": 1998,
+  "progress": 0.001,
+  "frames": [
+   "sprout",
+   "spark",
+   "compass",
+   "current",
+   "blade",
+   "summit"
+  ]
+ },
+ {
+  "pts": 9099,
+  "league": "peak",
+  "rank": 1,
+  "toNext": 1901,
+  "progress": 0.0495,
+  "frames": [
+   "sprout",
+   "spark",
+   "compass",
+   "current",
+   "blade",
+   "summit"
+  ]
+ },
+ {
+  "pts": 9333,
+  "league": "peak",
+  "rank": 1,
+  "toNext": 1667,
+  "progress": 0.1665,
+  "frames": [
+   "sprout",
+   "spark",
+   "compass",
+   "current",
+   "blade",
+   "summit"
+  ]
+ },
+ {
+  "pts": 9777,
+  "league": "peak",
+  "rank": 1,
+  "toNext": 1223,
+  "progress": 0.3885,
+  "frames": [
+   "sprout",
+   "spark",
+   "compass",
+   "current",
+   "blade",
+   "summit"
+  ]
+ },
+ {
+  "pts": 14999,
+  "league": "peak",
+  "rank": 3,
+  "toNext": 1,
+  "progress": 0.9995,
+  "frames": [
+   "sprout",
+   "spark",
+   "compass",
+   "current",
+   "blade",
+   "summit"
+  ]
+ },
+ {
+  "pts": 15000,
+  "league": "super",
+  "rank": 1,
+  "toNext": 8334,
+  "progress": 0,
+  "frames": [
+   "sprout",
+   "spark",
+   "compass",
+   "current",
+   "blade",
+   "summit",
+   "surge"
+  ]
+ },
+ {
+  "pts": 15001,
+  "league": "super",
+  "rank": 1,
+  "toNext": 8333,
+  "progress": 0.00012,
+  "frames": [
+   "sprout",
+   "spark",
+   "compass",
+   "current",
+   "blade",
+   "summit",
+   "surge"
+  ]
+ },
+ {
+  "pts": 15002,
+  "league": "super",
+  "rank": 1,
+  "toNext": 8332,
+  "progress": 0.00024,
+  "frames": [
+   "sprout",
+   "spark",
+   "compass",
+   "current",
+   "blade",
+   "summit",
+   "surge"
+  ]
+ },
+ {
+  "pts": 15099,
+  "league": "super",
+  "rank": 1,
+  "toNext": 8235,
+  "progress": 0.01188,
+  "frames": [
+   "sprout",
+   "spark",
+   "compass",
+   "current",
+   "blade",
+   "summit",
+   "surge"
+  ]
+ },
+ {
+  "pts": 15333,
+  "league": "super",
+  "rank": 1,
+  "toNext": 8001,
+  "progress": 0.03996,
+  "frames": [
+   "sprout",
+   "spark",
+   "compass",
+   "current",
+   "blade",
+   "summit",
+   "surge"
+  ]
+ },
+ {
+  "pts": 15777,
+  "league": "super",
+  "rank": 1,
+  "toNext": 7557,
+  "progress": 0.09324,
+  "frames": [
+   "sprout",
+   "spark",
+   "compass",
+   "current",
+   "blade",
+   "summit",
+   "surge"
+  ]
+ },
+ {
+  "pts": 39999,
+  "league": "super",
+  "rank": 3,
+  "toNext": 1,
+  "progress": 0.99988,
+  "frames": [
+   "sprout",
+   "spark",
+   "compass",
+   "current",
+   "blade",
+   "summit",
+   "surge"
+  ]
+ },
+ {
+  "pts": 40000,
+  "league": "ultra",
+  "rank": 1,
+  "toNext": 20000,
+  "progress": 0,
+  "frames": [
+   "sprout",
+   "spark",
+   "compass",
+   "current",
+   "blade",
+   "summit",
+   "surge",
+   "aurora"
+  ]
+ },
+ {
+  "pts": 40001,
+  "league": "ultra",
+  "rank": 1,
+  "toNext": 19999,
+  "progress": 0.00005,
+  "frames": [
+   "sprout",
+   "spark",
+   "compass",
+   "current",
+   "blade",
+   "summit",
+   "surge",
+   "aurora"
+  ]
+ },
+ {
+  "pts": 40002,
+  "league": "ultra",
+  "rank": 1,
+  "toNext": 19998,
+  "progress": 0.0001,
+  "frames": [
+   "sprout",
+   "spark",
+   "compass",
+   "current",
+   "blade",
+   "summit",
+   "surge",
+   "aurora"
+  ]
+ },
+ {
+  "pts": 40099,
+  "league": "ultra",
+  "rank": 1,
+  "toNext": 19901,
+  "progress": 0.00495,
+  "frames": [
+   "sprout",
+   "spark",
+   "compass",
+   "current",
+   "blade",
+   "summit",
+   "surge",
+   "aurora"
+  ]
+ },
+ {
+  "pts": 40333,
+  "league": "ultra",
+  "rank": 1,
+  "toNext": 19667,
+  "progress": 0.01665,
+  "frames": [
+   "sprout",
+   "spark",
+   "compass",
+   "current",
+   "blade",
+   "summit",
+   "surge",
+   "aurora"
+  ]
+ },
+ {
+  "pts": 40777,
+  "league": "ultra",
+  "rank": 1,
+  "toNext": 19223,
+  "progress": 0.03885,
+  "frames": [
+   "sprout",
+   "spark",
+   "compass",
+   "current",
+   "blade",
+   "summit",
+   "surge",
+   "aurora"
+  ]
+ },
+ {
+  "pts": 99999,
+  "league": "ultra",
+  "rank": 3,
+  "toNext": 1,
+  "progress": 0.99995,
+  "frames": [
+   "sprout",
+   "spark",
+   "compass",
+   "current",
+   "blade",
+   "summit",
+   "surge",
+   "aurora"
+  ]
+ },
+ {
+  "pts": 100000,
+  "league": "legend",
+  "rank": 1,
+  "toNext": 50000,
+  "progress": 0,
+  "frames": [
+   "sprout",
+   "spark",
+   "compass",
+   "current",
+   "blade",
+   "summit",
+   "surge",
+   "aurora",
+   "crown"
+  ]
+ },
+ {
+  "pts": 100001,
+  "league": "legend",
+  "rank": 1,
+  "toNext": 49999,
+  "progress": 0.00002,
+  "frames": [
+   "sprout",
+   "spark",
+   "compass",
+   "current",
+   "blade",
+   "summit",
+   "surge",
+   "aurora",
+   "crown"
+  ]
+ },
+ {
+  "pts": 100002,
+  "league": "legend",
+  "rank": 1,
+  "toNext": 49998,
+  "progress": 0.00004,
+  "frames": [
+   "sprout",
+   "spark",
+   "compass",
+   "current",
+   "blade",
+   "summit",
+   "surge",
+   "aurora",
+   "crown"
+  ]
+ },
+ {
+  "pts": 100099,
+  "league": "legend",
+  "rank": 1,
+  "toNext": 49901,
+  "progress": 0.00198,
+  "frames": [
+   "sprout",
+   "spark",
+   "compass",
+   "current",
+   "blade",
+   "summit",
+   "surge",
+   "aurora",
+   "crown"
+  ]
+ },
+ {
+  "pts": 100333,
+  "league": "legend",
+  "rank": 1,
+  "toNext": 49667,
+  "progress": 0.00666,
+  "frames": [
+   "sprout",
+   "spark",
+   "compass",
+   "current",
+   "blade",
+   "summit",
+   "surge",
+   "aurora",
+   "crown"
+  ]
+ },
+ {
+  "pts": 100777,
+  "league": "legend",
+  "rank": 1,
+  "toNext": 49223,
+  "progress": 0.01554,
+  "frames": [
+   "sprout",
+   "spark",
+   "compass",
+   "current",
+   "blade",
+   "summit",
+   "surge",
+   "aurora",
+   "crown"
+  ]
+ },
+ {
+  "pts": 249999,
+  "league": "legend",
+  "rank": 3,
+  "toNext": 1,
+  "progress": 0.99998,
+  "frames": [
+   "sprout",
+   "spark",
+   "compass",
+   "current",
+   "blade",
+   "summit",
+   "surge",
+   "aurora",
+   "crown"
+  ]
+ },
+ {
+  "pts": 250000,
+  "league": "limit",
+  "rank": 3,
+  "toNext": null,
+  "progress": 1,
+  "frames": [
+   "sprout",
+   "spark",
+   "compass",
+   "current",
+   "blade",
+   "summit",
+   "surge",
+   "aurora",
+   "crown",
+   "infinity"
+  ]
+ },
+ {
+  "pts": 250001,
+  "league": "limit",
+  "rank": 3,
+  "toNext": null,
+  "progress": 1,
+  "frames": [
+   "sprout",
+   "spark",
+   "compass",
+   "current",
+   "blade",
+   "summit",
+   "surge",
+   "aurora",
+   "crown",
+   "infinity"
+  ]
+ },
+ {
+  "pts": 250002,
+  "league": "limit",
+  "rank": 3,
+  "toNext": null,
+  "progress": 1,
+  "frames": [
+   "sprout",
+   "spark",
+   "compass",
+   "current",
+   "blade",
+   "summit",
+   "surge",
+   "aurora",
+   "crown",
+   "infinity"
+  ]
+ },
+ {
+  "pts": 250099,
+  "league": "limit",
+  "rank": 3,
+  "toNext": null,
+  "progress": 1,
+  "frames": [
+   "sprout",
+   "spark",
+   "compass",
+   "current",
+   "blade",
+   "summit",
+   "surge",
+   "aurora",
+   "crown",
+   "infinity"
+  ]
+ },
+ {
+  "pts": 250333,
+  "league": "limit",
+  "rank": 3,
+  "toNext": null,
+  "progress": 1,
+  "frames": [
+   "sprout",
+   "spark",
+   "compass",
+   "current",
+   "blade",
+   "summit",
+   "surge",
+   "aurora",
+   "crown",
+   "infinity"
+  ]
+ },
+ {
+  "pts": 250777,
+  "league": "limit",
+  "rank": 3,
+  "toNext": null,
+  "progress": 1,
+  "frames": [
+   "sprout",
+   "spark",
+   "compass",
+   "current",
+   "blade",
+   "summit",
+   "surge",
+   "aurora",
+   "crown",
+   "infinity"
+  ]
+ },
+ {
+  "pts": 1000000,
+  "league": "limit",
+  "rank": 3,
+  "toNext": null,
+  "progress": 1,
+  "frames": [
+   "sprout",
+   "spark",
+   "compass",
+   "current",
+   "blade",
+   "summit",
+   "surge",
+   "aurora",
+   "crown",
+   "infinity"
+  ]
+ }
+]

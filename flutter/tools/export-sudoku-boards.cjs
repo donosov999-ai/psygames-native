@@ -138,6 +138,8 @@ function load(file) {
 const core = load(path.join(src, 'services/sudoku-core.ts'));
 const grade = load(path.join(src, 'services/sudoku-grade.ts'));
 const roads = load(path.join(src, 'services/sudoku-roads.ts'));
+const schro = load(path.join(src, 'services/sudoku-schrodinger.ts'));
+const mods = load(path.join(src, 'services/sudoku-modifiers.ts'));
 const sideModes = load(path.join(src, 'services/sudoku-modes.ts'));
 const bank = load(path.join(src, 'services/sudoku-bank/index.ts'));
 
@@ -176,13 +178,18 @@ if (!DRY) fs.copyFileSync(path.join(src, 'services/sudoku-bank/boards.json'), pa
 console.error(`лестница: ${LAST} ступеней, полос банка ${bank.RATING_LADDER.length}; банк скопирован${DRY ? ' (--dry: не записано)' : ''}`);
 
 // ── 2. Проверка доски тем же ядром ────────────────────────────────────────────────────
-const GEOMETRY_FIELDS = ['regions', 'parity', 'kropki', 'sandwich', 'thermo', 'arrow', 'cages', 'whisper', 'renban', 'regionsum', 'palindrome', 'between', 'lockout', 'xv', 'littlekiller', 'xsums'];
+const GEOMETRY_FIELDS = ['regions', 'parity', 'kropki', 'sandwich', 'thermo', 'arrow', 'cages', 'whisper', 'renban', 'regionsum', 'palindrome', 'between', 'lockout', 'xv', 'littlekiller', 'xsums', 'cipher', 'fog', 'chaos'];
 const MODE_FIELDS = ['towers', 'unequal'];
 /** Поля, которые ядро проверяет как ПОКАЗАННЫЕ подсказки (`overlayOk`): единственность и мера
  *  обязаны их видеть. Пропустить поле — доска «не единственна» (01.10: так выгрузка сама
  *  поймала линии шёпота, не попавшие в прежний явный список). */
-const OVERLAY_FIELDS = ['parity', 'kropki', 'sandwich', 'unequal', 'towers', 'whisper', 'renban', 'regionsum', 'palindrome', 'between', 'lockout', 'xv', 'littlekiller', 'xsums'];
-const toStr = (g) => g.map((row) => row.join('')).join('');
+const OVERLAY_FIELDS = ['parity', 'kropki', 'sandwich', 'unequal', 'towers', 'whisper', 'renban', 'regionsum', 'palindrome', 'between', 'lockout', 'xv', 'littlekiller', 'xsums', 'cipher'];
+// Клетка — одна цифра, поэтому строка без разделителя. 🔴 НО у клеток Шрёдингера коды 1..10 и
+// 100+ (encodeS): склеенные, они неоднозначны («10» — код 10 или код 1 и пустая клетка), и натив
+// читал бы мусор. Доска, где есть код больше 9, пишется через запятую; обычные — как прежде.
+const toStr = (g) => (g.some((row) => row.some((v) => v > 9))
+  ? g.map((row) => row.join(',')).join(',')
+  : g.map((row) => row.join('')).join(''));
 
 /** Причина брака или null. `gen` — результат генератора, `tier` — что пойдёт в файл. */
 function defect(gen, N, BR, BC, variant, tier) {
@@ -192,7 +199,19 @@ function defect(gen, N, BR, BC, variant, tier) {
       + 'добавь в GEOMETRY_FIELDS и в BoardGeometry.fromJson, иначе доска уедет без правила');
   }
   const P = gen.puzzle, S = gen.solution;
+  // Клетки Шрёдингера: в доске коды encodeS (цифры 0–9 и пары) — своя проверка тем же ядром.
+  if (variant === 'schrodinger') return defectSchrodinger(P, S, tier);
+  if (variant === 'doublers' || variant === 'negators') return defectModifiers(P, S, gen.cages, variant, tier);
   const ov = Object.fromEntries(OVERLAY_FIELDS.map((f) => [f, gen[f]]));
+  // Самосборка: областей в доске нет — их обязаны вывести подсказки границ; дальше доска проверяется
+  // как кривые блоки по выведенным областям (единственность цифр — перебором).
+  let regions = gen.regions, countAs = variant;
+  if (gen.chaos) {
+    if (gen.regions) return 'разбиение самосборки уехало в доску — игрок увидел бы ответ';
+    const cg = grade.gradeChaos(P, gen.chaos, N, BR, BC);
+    if (!cg.regions) return 'подсказки границ не выводят разбиение';
+    regions = cg.regions; countAs = 'jigsaw';
+  }
   for (let r = 0; r < N; r++) {
     for (let c = 0; c < N; c++) {
       const v = S[r][c];
@@ -200,7 +219,7 @@ function defect(gen, N, BR, BC, variant, tier) {
       if (P[r][c] !== 0 && P[r][c] !== v) return `подсказка ${r},${c} не совпадает с решением`;
       const g = S.map((row) => row.slice());
       g[r][c] = 0;
-      if (!core.isValid(g, r, c, v, N, BR, BC, variant, gen.regions, gen.thermo, gen.arrow, gen.cages, gen.unequal, gen.towers)
+      if (!core.isValid(g, r, c, v, N, BR, BC, variant, regions, gen.thermo, gen.arrow, gen.cages, gen.unequal, gen.towers)
         || !core.overlayOk(g, r, c, v, N, ov)) return `решение нарушает правило «${variant}» в ${r},${c}`;
     }
   }
@@ -208,12 +227,70 @@ function defect(gen, N, BR, BC, variant, tier) {
   // Замер 01.10.2026: из 876 досок бюджет кончился у двух (L36 kropki, L44 thermo), обе на
   // деле единственны (582 747 и 445 371 шаг); пересборка такой доски дешевле лишних 30 с.
   const budget = { steps: 400000 };
-  const solutions = core.countSolutions(P.map((row) => row.slice()), N, BR, BC, variant, gen.regions, 2,
+  const solutions = core.countSolutions(P.map((row) => row.slice()), N, BR, BC, countAs, regions, 2,
     budget, gen.thermo, gen.arrow, gen.cages, ov);
   if (budget.steps < 0) return 'перебор не уложился в 400 000 шагов — единственность не доказана';
   if (solutions !== 1) return solutions === 0 ? 'решений нет' : 'решение НЕ единственно';
-  const again = grade.gradePuzzle(P, { N, BR, BC, variant, regions: gen.regions, thermo: gen.thermo, arrow: gen.arrow,
-    cages: gen.cages, ...ov });
+  // Туман — не подсказка, а закрытый обзор: мера та, что копала доску, — под туманом (gradeFog).
+  const again = gen.chaos ? grade.gradeChaos(P, gen.chaos, N, BR, BC)
+    : gen.fog ? grade.gradeFog(P, gen.fog, { N, BR, BC, variant: 'none' })
+    : grade.gradePuzzle(P, { N, BR, BC, variant, regions: gen.regions, thermo: gen.thermo, arrow: gen.arrow,
+      cages: gen.cages, ...ov });
+  if (!again.solved) return 'мера не закрывает доску';
+  if (again.tier !== tier) return `мера не сходится: записано ${tier}, повторный замер ${again.tier}`;
+  return null;
+}
+
+/** Брак доски Шрёдингера: ряды честные, подсказки совпадают с решением, решение одно, мера сходится. */
+function defectSchrodinger(P, S, tier) {
+  const sol = schro.decodeGridS(S), puz = schro.decodeGridS(P);
+  for (let i = 0; i < 9; i++) {
+    for (const cells of [
+      Array.from({ length: 9 }, (_, j) => [i, j]),
+      Array.from({ length: 9 }, (_, j) => [j, i]),
+      Array.from({ length: 9 }, (_, j) => [Math.floor(i / 3) * 3 + Math.floor(j / 3), (i % 3) * 3 + (j % 3)]),
+    ]) {
+      const ds = cells.flatMap(([r, c]) => sol[r][c]).sort((a, b) => a - b).join('');
+      if (ds !== '0123456789') return `ряд ${i}: цифры 0–9 не по разу`;
+      if (cells.filter(([r, c]) => sol[r][c].length === 2).length !== 1) return `ряд ${i}: клеток Шрёдингера не одна`;
+    }
+  }
+  for (let r = 0; r < 9; r++) for (let c = 0; c < 9; c++) {
+    if (P[r][c] !== 0 && P[r][c] !== S[r][c]) return `подсказка ${r},${c} не совпадает с решением`;
+  }
+  const budget = { steps: 400000 };
+  const n = schro.countS(puz, 2, budget);
+  if (budget.steps < 0) return 'перебор не уложился в 400 000 шагов — единственность не доказана';
+  if (n !== 1) return n === 0 ? 'решений нет' : 'решение НЕ единственно';
+  const again = grade.gradeSchrodinger(P);
+  if (!again.solved) return 'мера не закрывает доску';
+  if (again.tier !== tier) return `мера не сходится: записано ${tier}, повторный замер ${again.tier}`;
+  return null;
+}
+
+/**
+ * Брак доски удвоителей/отрицательных: решение — честное судоку, подсказки совпадают, группы есть и
+ * без повторов, цифры И нарушители единственны перебором, мера сходится. Нарушителей в доске нет —
+ * их выводит игрок; перебор находит их сам.
+ */
+function defectModifiers(P, S, cages, kind, tier) {
+  if (!cages) return 'у доски нет групп — суммам не на чем стоять';
+  for (let i = 0; i < 9; i++) {
+    for (const cells of [
+      Array.from({ length: 9 }, (_, j) => [i, j]),
+      Array.from({ length: 9 }, (_, j) => [j, i]),
+      Array.from({ length: 9 }, (_, j) => [Math.floor(i / 3) * 3 + Math.floor(j / 3), (i % 3) * 3 + (j % 3)]),
+    ]) if (cells.map(([r, c]) => S[r][c]).sort().join('') !== '123456789') return `ряд ${i}: не судоку`;
+  }
+  for (let r = 0; r < 9; r++) for (let c = 0; c < 9; c++) {
+    if (P[r][c] !== 0 && P[r][c] !== S[r][c]) return `подсказка ${r},${c} не совпадает с решением`;
+  }
+  for (const cs of cages.cells.filter(Boolean)) if (new Set(cs.map(([r, c]) => S[r][c])).size !== cs.length) return 'цифры в группе повторяются';
+  const budget = { steps: 400000 };
+  const n = mods.countM(P, cages, kind, 2, budget);
+  if (budget.steps < 0) return 'перебор не уложился в 400 000 шагов — единственность не доказана';
+  if (n !== 1) return n === 0 ? 'решений нет' : 'решение НЕ единственно';
+  const again = grade.gradeModifiers(P, cages, kind);
   if (!again.solved) return 'мера не закрывает доску';
   if (again.tier !== tier) return `мера не сходится: записано ${tier}, повторный замер ${again.tier}`;
   return null;
@@ -497,7 +574,7 @@ if (!args['no-rules']) {
   // 'friends' — условие на всё решение, а не запрет хода: эталона ходов у него нет (meow9-ladder.cjs).
   // RULES_AHEAD — правила, собранные раньше своих ступеней (номера ставит раздел уровней, план
   // LEVELS_PLAN.md): натив сверяется с живым ядром уже сейчас, а не после раскладки лестницы.
-  const RULES_AHEAD = ['argyle', 'littlekiller', 'xsums'];
+  const RULES_AHEAD = ['argyle', 'littlekiller', 'xsums', 'cipher'];
   const onLadder = new Set(ladder.map((l) => l.variant));
   const variants = [...new Set(ladder.map((l) => l.variant).filter((v) => v !== 'friends')), 'killer', 'unequal', 'towers',
     ...RULES_AHEAD.filter((v) => !onLadder.has(v))];
@@ -517,7 +594,8 @@ if (!args['no-rules']) {
       const sol = gen.solution;
       // Подсказки — ВСЕ, без прореживания и без снятия меток с заполненных клеток: ход ставится
       // в освобождённую клетку, и метка на ней обязана работать.
-      const ov = killer ? {} : core.overlaysFromSolution(sol, N, variant);
+      // Шифр: буквы лежат не в оверлеях решения, а в сетке генератора (какие клетки показаны буквой).
+      const ov = killer ? {} : variant === 'cipher' ? { cipher: gen.cipher } : core.overlaysFromSolution(sol, N, variant);
       const extras = {};
       if (gen.regions) extras.regions = gen.regions;
       if (gen.thermo) extras.thermo = gen.thermo;
@@ -575,7 +653,7 @@ if (!args['no-rules']) {
             unequal: extras.unequal, towers: extras.towers, parity: extras.parity, kropki: extras.kropki,
             whisper: extras.whisper, renban: extras.renban, regionsum: extras.regionsum,
             palindrome: extras.palindrome, between: extras.between, lockout: extras.lockout, xv: extras.xv,
-            littlekiller: extras.littlekiller, xsums: extras.xsums,
+            littlekiller: extras.littlekiller, xsums: extras.xsums, cipher: extras.cipher,
           });
           cases.push({ r, c, val, ok, why });
         } else {
@@ -596,6 +674,79 @@ if (!args['no-rules']) {
       `${JSON.stringify({ выгружено: STAMP, источник: 'flutter/tools/export-sudoku-boards.cjs', ladder, boards: out })}\n`);
   }
   console.error(`эталоны правил: ${out.length} вариантов (${variants.join(', ')}), ходов ${out.length * 40}, законных ${okCount}`);
+
+  // ── 5б. Эталон тумана: ходы не запрещает, а расчищает ─────────────────────────────────
+  // Эталон ходов выше туману не годится: правило не говорит «нельзя» ни одной цифре (сторож
+  // разборчивости покраснел бы). Здесь партия: верные и неверные цифры в открытые клетки и пара
+  // ходов под туман; после каждого — что открыто по живому `fogRevealed`. Натив повторяет партию
+  // своей расчисткой. Доска — боевым путём (`generateLogical`, вариант 'fog'), бюджет с запасом:
+  // срок не срабатывает, значит доска зависит только от зерна.
+  rngState = seedFor(BASE_SEED, 'rules', 'fog');
+  const fogGen = grade.generateLogical(137, 81, 9, 3, 3, 'fog', { budgetMs: 600000, tier: { min: 1, max: 6 } });
+  if (fogGen.fellBack) throw Error('эталон тумана: генератор ушёл запасным путём');
+  const fb = fogGen.gen;
+  const grid = fb.puzzle.map((row) => row.slice());
+  const mask = () => grade.fogRevealed(fb.fog, grid, fb.solution).map((row) => row.map((v) => (v ? 1 : 0)).join(''));
+  const steps = [];
+  for (let k = 0; k < 48; k++) {
+    const open = grade.fogRevealed(fb.fog, grid, fb.solution);
+    const cells = [];
+    for (let r = 0; r < 9; r++) for (let c = 0; c < 9; c++) if (grid[r][c] === 0 && (k % 12 === 11 ? !open[r][c] : open[r][c])) cells.push([r, c]);
+    if (!cells.length) break;
+    const [r, c] = cells[Math.floor(rng() * cells.length)];
+    const right = fb.solution[r][c];
+    const val = k % 3 === 1 ? (right % 9) + 1 : right;   // каждая третья — неверная
+    grid[r][c] = val;
+    const kept = val === right && k % 12 !== 11;   // неверную и ход под туман игрок стирает
+    steps.push({ r, c, val, open: mask(), kept });
+    if (!kept) grid[r][c] = 0;
+  }
+  if (!DRY) {
+    fs.writeFileSync(path.join(root, 'flutter/test/fixtures/sudoku-fog-reference.json'),
+      `${JSON.stringify({ выгружено: STAMP, источник: 'flutter/tools/export-sudoku-boards.cjs', puzzle: fb.puzzle, solution: fb.solution, fog: fb.fog, tier: fogGen.grade.tier, steps })}\n`);
+  }
+  console.error(`эталон тумана: ходов ${steps.length}, на старте открыто ${grade.fogRevealed(fb.fog, fb.puzzle, fb.solution).flat().filter(Boolean).length} из 81, ступень ${fogGen.grade.tier}`);
+
+  // ── 5в. Эталон самосборки: доска боевым путём и её области (ответ — только для пробы натива) ──
+  // Натив разбиение не решает — игрок выводит его сам; проба сверяет подсказки границ с ответом
+  // своим счётом, рисунок доски без блоков и проверку хода без блоков.
+  rngState = seedFor(BASE_SEED, 'rules', 'chaos');
+  const chaosGen = grade.generateLogical(141, 81, 9, 3, 3, 'chaos', { budgetMs: 600000, tier: { min: 1, max: 6 } });
+  if (chaosGen.fellBack) throw Error('эталон самосборки: генератор ушёл запасным путём');
+  const cgb = chaosGen.gen;
+  const chaosGrade = grade.gradeChaos(cgb.puzzle, cgb.chaos, 9, 3, 3);
+  if (!DRY) {
+    fs.writeFileSync(path.join(root, 'flutter/test/fixtures/sudoku-chaos-reference.json'),
+      `${JSON.stringify({ выгружено: STAMP, источник: 'flutter/tools/export-sudoku-boards.cjs', puzzle: cgb.puzzle, solution: cgb.solution, chaos: cgb.chaos, regions: chaosGrade.regions, tier: chaosGrade.tier })}\n`);
+  }
+  // ── 5г. Эталон Шрёдингера: доска боевым путём (коды encodeS) — натив сверяет разбор кода ──
+  rngState = seedFor(BASE_SEED, 'rules', 'schrodinger');
+  const sg = grade.generateLogical(145, 81, 9, 3, 3, 'schrodinger', {});
+  const sdef = defectSchrodinger(sg.gen.puzzle, sg.gen.solution, sg.grade.tier);
+  if (sdef) throw Error(`эталон Шрёдингера: ${sdef}`);
+  if (!DRY) {
+    fs.writeFileSync(path.join(root, 'flutter/test/fixtures/sudoku-schrodinger-reference.json'),
+      `${JSON.stringify({ выгружено: STAMP, источник: 'flutter/tools/export-sudoku-boards.cjs', puzzle: sg.gen.puzzle, solution: sg.gen.solution, tier: sg.grade.tier })}\n`);
+  }
+  console.error(`эталон Шрёдингера: клеток-подсказок ${sg.gen.puzzle.flat().filter((v) => v).length}, пар показано ${sg.gen.puzzle.flat().filter((v) => v >= 100).length}, ступень ${sg.grade.tier}`);
+  // ── 5д. Эталоны удвоителей и отрицательных: доска боевым путём + ответ-нарушители (только для пробы) ──
+  const modRef = {};
+  for (const kind of ['doublers', 'negators']) {
+    rngState = seedFor(BASE_SEED, 'rules', kind);
+    const mb = mods.generateBoardM(kind, rng);
+    if (!mb) throw Error(`эталон «${kind}»: группы не вывели нарушителей`);
+    const mg = grade.gradeModifiers(mb.puzzle, mb.cages, kind);
+    const mdef = defectModifiers(mb.puzzle, mb.solution.digits, mb.cages, kind, mg.tier);
+    if (mdef) throw Error(`эталон «${kind}»: ${mdef}`);
+    modRef[kind] = { puzzle: mb.puzzle, solution: mb.solution.digits, mods: mb.solution.mods,
+      cages: { cageOf: mb.cages.cageOf, sum: mb.cages.sum, anchor: mb.cages.anchor, cells: mb.cages.cells }, tier: mg.tier };
+    console.error(`эталон «${kind}»: цифр ${mb.puzzle.flat().filter((v) => v).length}, групп ${mb.cages.cells.length}, ступень ${mg.tier}`);
+  }
+  if (!DRY) {
+    fs.writeFileSync(path.join(root, 'flutter/test/fixtures/sudoku-modifiers-reference.json'),
+      `${JSON.stringify({ выгружено: STAMP, источник: 'flutter/tools/export-sudoku-boards.cjs', ...modRef })}\n`);
+  }
+  console.error(`эталон самосборки: подсказок границ ${cgb.chaos.flat().filter((v) => v >= 0).length}, цифр ${cgb.puzzle.flat().filter((v) => v).length}, ступень ${chaosGrade.tier}`);
 }
 
 console.error(DRY ? '--dry: собрано и проверено, файлы не тронуты' : `записано в ${path.relative(root, outDir)}/`);

@@ -25,12 +25,16 @@ void main() {
   final data = jsonDecode(file.readAsStringSync()) as Map<String, Object?>;
   final boards = (data['boards'] as List).cast<Map<String, Object?>>();
   final ladder = (data['ladder'] as List).cast<Map<String, Object?>>();
+  // Правила без эталона ходов: «Мяу — друзья» (149–152) — условие на всё решение (у кота мышь
+  // рядом), а не запрет хода; натив сверяет ход с решением, единственность доски с правилом
+  // держит sudoku_meow9_boards_test (см. flutter/tools/meow9-ladder.cjs).
+  const noMoveReference = {'friends'};
 
   test('есть что сверять: вариант на каждое правило лестницы и режимов, по 40 ходов, лестница целиком', () {
     // Числа не зашиты: новое правило лестницы обязано приехать в эталоны само (выгрузка).
-    final ladderVariants = {for (final l in ladder) l['variant'] as String};
+    final ladderVariants = {for (final l in ladder) l['variant'] as String}.difference(noMoveReference);
     // Правила, собранные раньше своих ступеней (RULES_AHEAD выгрузки): встанут на лестницу — уйдут отсюда.
-    const rulesAhead = {'argyle', 'littlekiller', 'xsums'};
+    const rulesAhead = {'argyle', 'littlekiller', 'xsums', 'cipher'};
     expect(boards.length, ladderVariants.length + 3 + rulesAhead.difference(ladderVariants).length,
         reason: 'варианты лестницы + killer, unequal, towers + правила впереди лестницы');
     expect({for (final b in boards) b['variant'] as String}, containsAll(rulesAhead));
@@ -41,7 +45,7 @@ void main() {
 
   test('🔴 каждый вариант лестницы есть в эталонах — новое правило не проходит мимо пробы', () {
     final have = {for (final b in boards) b['variant'] as String};
-    final missing = {for (final l in ladder) l['variant'] as String}.difference(have);
+    final missing = {for (final l in ladder) l['variant'] as String}.difference(have).difference(noMoveReference);
     expect(missing, isEmpty, reason: 'вариантов лестницы нет в эталонах: $missing — перевыгрузи эталоны');
   });
 
@@ -66,6 +70,16 @@ void main() {
     for (final b in boards) {
       final variant = b['variant'] as String;
       if (variant == 'none' || variant == 'jigsaw') continue;   // своего правила сверх блока нет
+      // Туман (137–140) правило ДОПУСТИМОСТИ цифр не меняет — он закрывает клетки; самосборка
+      // (141–144) блоков не даёт вовсе — области выводит игрок, и её допустимость мягче
+      // классики, а не строже. Их эталоны проверяют перенос («ответ совпадает с живым TS»).
+      // Клетки Шрёдингера (145–148): цифры 0–9 и клетка-пара — классическая проверка «можно»
+      // к ним не применима вовсе; их эталон сверяется своей пробой (sudoku_schrodinger_test).
+      // Wordoku и звери (153–160) — классика со сменой значков: своего правила сверх блока нет.
+      // Удвоители и отрицательные (173–180): нарушители скрыты — их выводит игрок, поэтому
+      // отдельный ход по сумме не отсечь, допустимость хода — классика. Их брак ловит выгрузка
+      // (единственность цифр И нарушителей перебором) и sudoku_modifiers_test.
+      if (const {'fog', 'chaos', 'schrodinger', 'wordoku', 'animals', 'doublers', 'negators'}.contains(variant)) continue;
       final n = (b['n'] as num).toInt(), br = (b['br'] as num).toInt(), bc = (b['bc'] as num).toInt();
       final grid = (b['grid'] as List).map((row) => (row as List).cast<num>().map((x) => x.toInt()).toList()).toList();
       var byRule = 0;

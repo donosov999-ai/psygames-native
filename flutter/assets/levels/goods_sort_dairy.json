@@ -1,6 +1,6 @@
 {
  "generator": "goods-sort dealBoard (живой TS)",
- "exportedAt": "2026-09-25",
+ "exportedAt": "2026-10-07",
  "seed": 20260923,
  "set": "dairy",
  "pool": [
@@ -4828,7 +4828,7 @@
    ],
    "frozen": {
     "row": 2,
-    "type": 26
+    "type": 23
    },
    "goal": {
     "kind": "pick",
@@ -6735,7 +6735,7 @@
    ],
    "frozen": {
     "row": 1,
-    "type": 26
+    "type": 23
    },
    "goal": {
     "kind": "all"
@@ -7142,7 +7142,7 @@
    ],
    "frozen": {
     "row": 7,
-    "type": 28
+    "type": 25
    },
    "goal": {
     "kind": "pick",
@@ -15310,7 +15310,7 @@
    ],
    "frozen": {
     "row": 2,
-    "type": 30
+    "type": 31
    },
    "goal": {
     "kind": "pick",
@@ -17195,8 +17195,8 @@
     "3:0"
    ],
    "frozen": {
-    "row": 1,
-    "type": 24
+    "row": 2,
+    "type": 28
    },
    "goal": {
     "kind": "all"
@@ -19482,7 +19482,7 @@
    ],
    "frozen": {
     "row": 1,
-    "type": 31
+    "type": 30
    },
    "goal": {
     "kind": "all"

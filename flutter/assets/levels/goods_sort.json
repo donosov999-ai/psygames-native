@@ -1,6 +1,6 @@
 {
  "generator": "goods-sort dealBoard (живой TS)",
- "exportedAt": "2026-09-25",
+ "exportedAt": "2026-10-07",
  "seed": 20260923,
  "set": "mix",
  "pool": [
@@ -3547,7 +3547,7 @@
    "covered": [],
    "frozen": {
     "row": 2,
-    "type": 43
+    "type": 13
    },
    "goal": {
     "kind": "free",
@@ -4961,7 +4961,7 @@
    ],
    "frozen": {
     "row": 2,
-    "type": 43
+    "type": 7
    },
    "goal": {
     "kind": "pick",
@@ -9902,7 +9902,7 @@
    "covered": [],
    "frozen": {
     "row": 3,
-    "type": 3
+    "type": 35
    },
    "goal": {
     "kind": "all"
@@ -14284,7 +14284,7 @@
    "covered": [],
    "frozen": {
     "row": 2,
-    "type": 40
+    "type": 13
    },
    "goal": {
     "kind": "free",
@@ -16033,7 +16033,7 @@
    "covered": [],
    "frozen": {
     "row": 1,
-    "type": 39
+    "type": 12
    },
    "goal": {
     "kind": "free",
@@ -17612,7 +17612,7 @@
    ],
    "frozen": {
     "row": 1,
-    "type": 41
+    "type": 2
    },
    "goal": {
     "kind": "all"
@@ -18029,7 +18029,7 @@
    ],
    "frozen": {
     "row": 4,
-    "type": 15
+    "type": 7
    },
    "goal": {
     "kind": "pick",

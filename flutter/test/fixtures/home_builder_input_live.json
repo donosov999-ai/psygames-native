@@ -1,0 +1,175 @@
+{
+ "profile": {
+  "id": "nzt48",
+  "color": "#a855f7",
+  "emoji": "💊",
+  "warmup_enabled": true
+ },
+ "colors": {
+  "background": "#F5F5F7",
+  "surface": "#FFFFFF",
+  "card": "#FFFFFF",
+  "text": "#1C1C1E",
+  "textSecondary": "#6E6E73",
+  "primary": "#a855f7",
+  "border": "#E5E5EA"
+ },
+ "showBlock": {
+  "цель_дня": true,
+  "сегодня": true,
+  "рекомендации": true,
+  "практики": true,
+  "любимые_разделы": true
+ },
+ "images": {
+  "onPhoto": true,
+  "profileBg": "/assets/images/profile-bg/nzt48.webp",
+  "logo": "/assets/images/logos/logo1.webp",
+  "chip": "/assets/images/profiles/nzt48.webp",
+  "warmup": "/assets/images/feature_icons/warmup.webp"
+ },
+ "logoPlate": "#12151AC7",
+ "tokens": 15,
+ "level": {
+  "level": 0,
+  "titleKey": "levelTitle0",
+  "intoLevel": 15,
+  "span": 80,
+  "progress": 0.1875
+ },
+ "streak": 0,
+ "pet": {
+  "kind": "frames",
+  "uris": [
+   "/assets/images/pet/cat/idle0.webp",
+   "/assets/images/pet/cat/idle1.webp",
+   "/assets/images/pet/cat/idle2.webp",
+   "/assets/images/pet/cat/idle3.webp",
+   "/assets/images/pet/cat/idle4.webp",
+   "/assets/images/pet/cat/idle5.webp",
+   "/assets/images/pet/cat/idle6.webp"
+  ],
+  "frames": 7,
+  "tickMs": 240,
+  "accessory": null
+ },
+ "frameColor": null,
+ "titleLabel": null,
+ "achievementsCount": 0,
+ "update": null,
+ "streakToast": 15,
+ "wagerToast": null,
+ "levelUp": null,
+ "ladder": {
+  "n": 2,
+  "titleKey": "ladderHint"
+ },
+ "chest": {
+  "face": "🌰",
+  "left": 135,
+  "have": 0,
+  "all": 12,
+  "ratio": 0.1
+ },
+ "resume": null,
+ "goalCard": {
+  "state": "ask",
+  "goal": null
+ },
+ "goalMaxLen": 90,
+ "goalExampleKeys": [
+  "dayGoalExample1",
+  "dayGoalExample2",
+  "dayGoalExample3"
+ ],
+ "today": {
+  "rows": [],
+  "total": 0,
+  "rounds": 0,
+  "dayStreak": 0
+ },
+ "todayRowsMax": 3,
+ "dayStreakForMult": 3,
+ "reco": [
+  {
+   "pick": {
+    "gameId": "picture_pairs",
+    "reason": "start",
+    "reasonKey": "recoWhyStart",
+    "daysSince": null,
+    "doneToday": false
+   },
+   "gameId": "picture_pairs"
+  },
+  {
+   "pick": {
+    "gameId": "schulte_table",
+    "reason": "start",
+    "reasonKey": "recoWhyStart",
+    "daysSince": null,
+    "doneToday": false
+   },
+   "gameId": "schulte_table"
+  },
+  {
+   "pick": {
+    "gameId": "hanoi",
+    "reason": "start",
+    "reasonKey": "recoWhyStart",
+    "daysSince": null,
+    "doneToday": false
+   },
+   "gameId": "hanoi"
+  }
+ ],
+ "recoParams": {},
+ "warmup": {
+  "gradient": [
+   "#f7b733",
+   "#fc4a1a"
+  ],
+  "slotKey": "slotMorning"
+ },
+ "pause": {
+  "gradient": [
+   "#43cea2",
+   "#185a9d"
+  ]
+ },
+ "challenge": {
+  "gameId": "tower_london",
+  "difficultyKey": "easy",
+  "done": false,
+  "streak": 0
+ },
+ "favourites": [],
+ "goalSheet": {
+  "line": "Давай договоримся, сколько дней подряд?",
+  "petState": {
+   "kind": "frames",
+   "uris": [
+    "/assets/images/pet/cat/wave0.webp",
+    "/assets/images/pet/cat/wave1.webp",
+    "/assets/images/pet/cat/wave2.webp",
+    "/assets/images/pet/cat/wave3.webp",
+    "/assets/images/pet/cat/wave4.webp",
+    "/assets/images/pet/cat/wave5.webp",
+    "/assets/images/pet/cat/wave6.webp"
+   ],
+   "frames": 7,
+   "tickMs": 103,
+   "accessory": null
+  },
+  "options": [
+   7,
+   14,
+   30
+  ],
+  "chosen": 7,
+  "whyKey": null,
+  "basis": null,
+  "games": 0,
+  "tokens": 0,
+  "streak": 0
+ }
+}

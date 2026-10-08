@@ -1,4 +1,4 @@
-/* psygames-level-rules-native-sources · VER 2 · 02.10.2026 */
+/* psygames-level-rules-native-sources · VER 3 · 07.10.2026 */
 /**
  * ПРАВИЛА УРОВНЕЙ ДЛЯ НАТИВНОЙ ПОЛОВИНЫ — ТАБЛИЦА «УРОВЕНЬ → ДЕЙСТВУЮЩЕЕ ПРАВИЛО».
  *
@@ -52,6 +52,9 @@ export function ruleSources(): RuleSource[] {
   };
   const игра = (имя: string) => require(`@/app/games/${имя}`);
   const товары = require('@/src/games/goods-sort/core/level');
+  const отличия = require('@/src/games/find-differences/core/levelRules');
+  const зрительный = require('@/src/games/visual-search/core/nativeRules');
+  const сет = require('@/src/games/set-game/core/nativeRules');
   // Игры без веб-экрана: механика в Dart, таблица уровней — в списке нативных игр.
   const nativeOnly = require('@/src/constants/nativeOnlyGames');
   /* eslint-enable @typescript-eslint/no-require-imports */
@@ -63,6 +66,7 @@ export function ruleSources(): RuleSource[] {
     s(['counter'], игра('counter').COUNTER_RULES),
     s(['cpt'], игра('cpt').CPT_RULES),
     s(['digit_span'], игра('digit-span').DS_RULES),
+    s(['find_differences'], отличия.FD_RULES),
     { ids: ['goods_sort'], rulesAt: товары.gsRulesForLevel },
     s(['hanoi'], игра('hanoi').HN_RULES),
     s(['kids_sort'], nativeOnly.KIDS_SORT_RULES),
@@ -79,11 +83,12 @@ export function ruleSources(): RuleSource[] {
     s(['pseudoword_echo'], игра('pseudoword-echo').PSEUDOWORDECHO_RULES),
     s(['reading_span'], игра('reading-span').READINGSPAN_RULES),
     s(['semantic_sort'], игра('semantic-sort').SEMANTICSORT_RULES),
-    s(['set_game'], игра('set-game').SG_RULES),
+    s(['set_game'], [...игра('set-game').SG_RULES, ...сет.SG_NATIVE_RULES]),
     s(['spatial_span'], игра('spatial-span').SS_RULES),
     s(['stroop'], игра('stroop').STROOP_RULES),
     s(['switching_task'], игра('switching-task').SWITCH_RULES),
-    s(['visual_search'], игра('visual-search').VS_RULES),
+    // Веб-правила первыми, нативные следом: на 32-м и выше действует последнее подошедшее.
+    s(['visual_search'], [...игра('visual-search').VS_RULES, ...зрительный.VS_NATIVE_RULES]),
     s(['water_sort', 'ball_sort', 'nut_sort'], игра('water-sort').WATER_SORT_RULES),
     s(['word_pairs'], игра('word-pairs').WORDPAIRS_RULES),
   ];
