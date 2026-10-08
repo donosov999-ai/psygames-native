@@ -46,9 +46,6 @@ const lostWithReason = <String, Map<String, String>>{
     'flow': '«Шахматы»',
     'seed': '«Шахматы»',
   },
-  '/games/switching-task': {
-    'stimMode': '«Внимание»: вид стимулов из адреса',
-  },
   '/games/spatial-lab': {
     'seed': '«Пространство»: зерно раскладки из адреса',
   },
