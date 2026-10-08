@@ -31,6 +31,12 @@ void main() {
   final libPath = '$flutterDir/build/tatham/${TathamEngine.libraryName}';
   late SharedState state;
 
+  /// Зерно раздачи. Без него код случаен, а на первой ступени (4 цвета × 3 места) ход 1-2-3
+  /// угадывает код в одном прогоне из 64 — партия выиграна, второго ряда нет, и проба «цифры под
+  /// полем» плавала (прогон 37762242118, 08.10.2026). Перебор зёрен 1…46: 1-2-3 выигрывает на 45 и 46,
+  /// на 1 — нет.
+  const probeSeed = 1;
+
   setUpAll(() async {
     await L.load('ru');
     if (File(libPath).existsSync()) return;
@@ -45,9 +51,10 @@ void main() {
     state = await SharedState.open();
   });
 
-  Future<void> boot(WidgetTester tester) async {
+  Future<void> boot(WidgetTester tester, {int seed = probeSeed}) async {
     await tester.runAsync(() async {
-      await tester.pumpWidget(MaterialApp(home: PuzzlesScreen(state: state, mode: 'Guess', libraryPath: libPath)));
+      await tester.pumpWidget(MaterialApp(
+          home: PuzzlesScreen(state: state, mode: 'Guess', libraryPath: libPath, seed: seed)));
       for (var i = 0; i < 40; i++) {
         await tester.pump(const Duration(milliseconds: 50));
         await Future<void>.delayed(const Duration(milliseconds: 20));
