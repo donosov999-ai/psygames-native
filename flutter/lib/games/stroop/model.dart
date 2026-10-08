@@ -183,7 +183,9 @@ class StroopGame {
     List<StroopColor>? palette,
     Random? rnd,
     int Function()? nowMs,
+    int? trialsOverride,
   })  : params = StroopLevel.of(level),
+        trialsTotal = trialsOverride ?? StroopLevel.of(level).trials,
         palette = palette ?? stroopColorsDefault,
         _rnd = rnd ?? Random(),
         _now = nowMs ?? (() => DateTime.now().millisecondsSinceEpoch);
@@ -193,6 +195,9 @@ class StroopGame {
   /// Базовое правило партии: 'ink' — называть цвет чернил, 'word' — слово.
   final String mode;
   final StroopLevel params;
+
+  /// Проб в партии: у шага зарядки — из шага (`num('trials', p.trials)` веба), иначе — уровня.
+  final int trialsTotal;
   final List<StroopColor> palette;
   final Random _rnd;
   final int Function() _now;
@@ -213,11 +218,11 @@ class StroopGame {
 
   double _next() => _rnd.nextDouble();
 
-  bool get finished => round >= params.trials && _answered;
+  bool get finished => round >= trialsTotal && _answered;
 
   /// Следующая проба. Возвращает false, когда партия кончилась.
   bool nextTrial() {
-    if (round >= params.trials) return false;
+    if (round >= trialsTotal) return false;
     round += 1;
     trial = makeTrial(level, palette, _next);
     trialRule = ruleForTrial(mode, params.switchRate, _next);
@@ -283,5 +288,5 @@ class StroopGame {
     return (_mean(rtsIncongruent) - _mean(rtsCongruent)).round();
   }
 
-  double get accuracy => params.trials == 0 ? 0 : hits / params.trials;
+  double get accuracy => trialsTotal == 0 ? 0 : hits / trialsTotal;
 }
