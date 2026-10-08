@@ -49,9 +49,6 @@ const lostWithReason = <String, Map<String, String>>{
   '/games/switching-task': {
     'stimMode': '«Внимание»: вид стимулов из адреса',
   },
-  '/games/spatial-lab': {
-    'seed': '«Пространство»: зерно раскладки из адреса',
-  },
 };
 
 /// Замер: маршрут → параметры, которые веб читает, а натив — нет.
