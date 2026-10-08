@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../shell/app_haptics.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
@@ -31,6 +32,8 @@ class RingScreen extends StatefulWidget {
 }
 
 class _RingScreenState extends State<RingScreen> {
+  /// Отклик хода — через общий выключатель «Вибрация» (образец «Матрицы памяти», задача 792432f8).
+  late final AppHaptics _haptics = AppHaptics(widget.state);
   late LevelLadder _ladder;
   late final String _lang = widget.locale ?? anagramWordLang(widget.state, AnagramMode.square);
   RingPacks? _packs;
@@ -103,6 +106,7 @@ class _RingScreenState extends State<RingScreen> {
     if (ring == null || _draft.isEmpty) return;
     final side = _sideOf(_draft.toUpperCase());
     if (side == null) {
+      _haptics.miss();
       setState(() => _wrong = true);
       return;
     }
@@ -110,6 +114,7 @@ class _RingScreenState extends State<RingScreen> {
       _solved.add(side);
       _picked.clear();
     });
+    _solved.length == 4 ? _haptics.win() : _haptics.hit();
     if (_solved.length == 4) {
       await _ladder.win();
       if (!mounted) return;

@@ -3,6 +3,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../shell/app_haptics.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/boss_round.dart';
 import '../../shell/demo_lesson.dart';
@@ -50,6 +51,8 @@ class VisualSearchScreen extends StatefulWidget {
 enum _Phase { playing, wrong, right, result }
 
 class _VisualSearchScreenState extends State<VisualSearchScreen> {
+  /// Отклик хода — через общий выключатель «Вибрация» (образец «Матрицы памяти», задача 792432f8).
+  late final AppHaptics _haptics = AppHaptics(widget.state);
   static const _rightDelay = Duration(milliseconds: 500);
   static const _wrongDelay = Duration(milliseconds: 450);
 
@@ -161,6 +164,7 @@ class _VisualSearchScreenState extends State<VisualSearchScreen> {
         it.found = true;
         _found += 1;
       });
+      _found >= _cfg.targetCount ? _haptics.win() : _haptics.hit();
       if (_found >= _cfg.targetCount) {
         setState(() {
           _hits += 1;
@@ -173,6 +177,7 @@ class _VisualSearchScreenState extends State<VisualSearchScreen> {
     }
     // Промах — в том числе по ПРИМАНКЕ: она выглядит как цель, и отличить её
     // можно только точкой. Это и есть ось подавления.
+    _haptics.miss();
     setState(() {
       _errors += 1;
       _phase = _Phase.wrong;

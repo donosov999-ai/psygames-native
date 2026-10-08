@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../shell/app_haptics.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
@@ -31,6 +32,8 @@ class AllWordsScreen extends StatefulWidget {
 }
 
 class _AllWordsScreenState extends State<AllWordsScreen> {
+  /// Отклик хода — через общий выключатель «Вибрация» (образец «Матрицы памяти», задача 792432f8).
+  late final AppHaptics _haptics = AppHaptics(widget.state);
   late LevelLadder _ladder;
   late final String _lang = widget.locale ?? anagramWordLang(widget.state, AnagramMode.all);
   WordBank? _bank;
@@ -94,6 +97,7 @@ class _AllWordsScreenState extends State<AllWordsScreen> {
     if (pack == null || _draft.isEmpty) return;
     final word = _draft.toLowerCase();
     final outcome = submitWord(pack, word, _found, vocabulary: _bank?.vocabulary());
+    outcome == WordOutcome.target || outcome == WordOutcome.bonus ? _haptics.hit() : _haptics.miss();
     setState(() {
       switch (outcome) {
         case WordOutcome.target:
@@ -108,6 +112,7 @@ class _AllWordsScreenState extends State<AllWordsScreen> {
       }
     });
     if (allFound(pack, _found)) {
+      _haptics.win();
       await _ladder.win();
       if (!mounted) return;
       setState(() => _deal(_bank!));

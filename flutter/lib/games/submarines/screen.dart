@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../shell/app_haptics.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/game_clock.dart';
 import '../../shell/game_shell.dart';
@@ -30,6 +31,8 @@ class SubmarinesScreen extends StatefulWidget {
 }
 
 class _SubmarinesScreenState extends State<SubmarinesScreen> {
+  /// Отклик хода — через общий выключатель «Вибрация» (образец «Матрицы памяти», задача 792432f8).
+  late final AppHaptics _haptics = AppHaptics(widget.state);
   late final LevelLadder _ladder;
   late final math.Random _rnd;
   SubBoard? _board;
@@ -67,6 +70,8 @@ class _SubmarinesScreenState extends State<SubmarinesScreen> {
     final b = _board;
     if (b == null || _over || b.sea.shots.containsKey((r, c))) return;
     setState(() => b.sea.fire(r, c));
+    // Попадание — щелчок; промах выстрелом не ошибка, а разведка: без толчка.
+    if (b.sea.shots[(r, c)] == true) _haptics.hit();
     final used = b.sea.shots.length;
     if (b.sea.done || used >= b.budget) await _finish();
   }
@@ -87,6 +92,7 @@ class _SubmarinesScreenState extends State<SubmarinesScreen> {
     };
     final score = passed ? math.max(0, (b.budget - b.sea.shots.length) * 10 + 100) : b.sea.sunk.length * 20;
     setState(() => _over = true);
+    passed ? _haptics.win() : _haptics.miss();
     if (passed) {
       await _ladder.win(score: score, timeSeconds: seconds, errors: misses, details: details);
     } else {
