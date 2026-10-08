@@ -6,6 +6,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart' hide Axis;
 import 'package:flutter/material.dart' as ui show Axis;
 
+import '../../shell/app_haptics.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/demo_lesson.dart';
@@ -66,6 +67,8 @@ class MentalRotationScreen extends StatefulWidget {
 }
 
 class _MentalRotationScreenState extends State<MentalRotationScreen> {
+  /// Отклик хода — через общий выключатель «Вибрация» (образец «Матрицы памяти», задача 792432f8).
+  late final AppHaptics _haptics = AppHaptics(widget.state);
   late LevelLadder _ladder;
   bool _ready = false;
 
@@ -223,6 +226,7 @@ class _MentalRotationScreenState extends State<MentalRotationScreen> {
       ),
     );
     setState(() => _feedback = (idx: idx, ok: ok));
+    ok ? _haptics.hit() : _haptics.miss();
     if (ok) {
       _advance = Timer(const Duration(milliseconds: 650), () {
         if (mounted) _nextTrial();

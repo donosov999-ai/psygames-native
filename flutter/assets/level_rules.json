@@ -326,8 +326,13 @@
    ],
    [
     15,
-    null,
+    28,
     "layers5"
+   ],
+   [
+    29,
+    null,
+    "timelimit"
    ]
   ],
   "math_sprint": [
@@ -542,6 +547,18 @@
     "longer8"
    ]
   ],
+  "quick_count": [
+   [
+    1,
+    41,
+    null
+   ],
+   [
+    42,
+    null,
+    "decoys"
+   ]
+  ],
   "reading_span": [
    [
     1,
@@ -552,6 +569,18 @@
     5,
     null,
     "load"
+   ]
+  ],
+  "schulte_table": [
+   [
+    1,
+    18,
+    null
+   ],
+   [
+    19,
+    null,
+    "timelimit"
    ]
   ],
   "semantic_sort": [

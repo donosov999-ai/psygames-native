@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../shell/app_haptics.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
@@ -32,6 +33,8 @@ class CrosswordScreen extends StatefulWidget {
 }
 
 class _CrosswordScreenState extends State<CrosswordScreen> {
+  /// Отклик хода — через общий выключатель «Вибрация» (образец «Матрицы памяти», задача 792432f8).
+  late final AppHaptics _haptics = AppHaptics(widget.state);
   late LevelLadder _ladder;
   late final String _lang = widget.locale ?? anagramWordLang(widget.state, AnagramMode.cross);
   WordBank? _bank;
@@ -102,12 +105,14 @@ class _CrosswordScreenState extends State<CrosswordScreen> {
         _found.add(word);
         _picked.clear();
       });
+      crosswordSolved(cw, _found) ? _haptics.win() : _haptics.hit();
       if (crosswordSolved(cw, _found)) {
         await _ladder.win();
         if (!mounted) return;
         setState(() => _deal(_bank!));
       }
     } else {
+      _haptics.miss();
       setState(() => _wrong = true);
     }
   }

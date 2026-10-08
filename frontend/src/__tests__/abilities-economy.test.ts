@@ -135,6 +135,8 @@ describe('способности: экономика', () => {
     expect(abilityById('practice_run')!.maxReturn).toBe(0);
     // Щит возвращает не деньги, а серию: его потолок — разница бонусов за 7 дней отрастания.
     expect(abilityById('streak_shield')!.maxReturn).toBe(checkInStreakMaxLoss());
+    // Подсказка «Судоку»: «Самурай» с ней счёт сохраняет (стоит только лестница) — потолок целая партия.
+    expect(abilityById('sudoku_hint')!.maxReturn).toBe(MAX_ROUND_EARNING);
     expect(checkInStreakMaxLoss()).toBe(
       [1, 2, 3, 4, 5, 6, 7].reduce((s, d) => s + (checkInAward(7) - checkInAward(d)), 0),
     );
@@ -391,8 +393,12 @@ describe('способности не решают задачу: реестр э
     }
   });
 
-  /** Судоку — чужой заход и отдельный разговор: способности туда не заходят вовсе. */
-  it('судоку способностей не касается', () => {
+  /**
+   * Веб-экраны «Судоку» способностей не тратят: все входы приложения в судоку ведут на Flutter,
+   * и тратят там (блок «нативная судоку» ниже). Списание в веб-экране было бы вторым местом,
+   * которое никто не открывает, — его и ловит эта строка.
+   */
+  it('веб-судоку способностей не касается — тратит натив', () => {
     const sudoku = GAME_FILES.filter((f) => f.startsWith('sudoku'));
     expect(sudoku.length).toBeGreaterThan(0);
     for (const f of sudoku) expect(`${f}:${/abilities/.test(code(`app/games/${f}`))}`).toBe(`${f}:false`);
@@ -498,5 +504,68 @@ describe('способности видно: показ не выключен', 
     expect(/\{\s*false\s*&&/.test(src)).toBe(false);
     const wallet = src.split('\n').find((l: string) => l.includes("t('abilityInWallet')")) || '';
     expect(`${f}: остаток показан`).toBe(wallet.length > 0 ? `${f}: остаток показан` : `${f}: остатка нет`);
+  });
+});
+
+/**
+ * 🔴 НАТИВНАЯ «СУДОКУ» ТРАТИТ ИЗ ТОГО ЖЕ КОШЕЛЬКА (задача 576405e7, решение Дениса 08.10.2026).
+ *
+ * Покупка — в магазине веба, трата — в Flutter-экранах классики и «Самурая». Ключ, имена
+ * способностей и заморозка лестницы — три места, где две половины расходятся молча: купил, а
+ * экран читает другой ключ; потратил «second_life», а веб продаёт «secondLife»; доиграл
+ * купленной жизнью — и ступень выросла. Поведение нажатиями проверяют пробы Flutter
+ * (`flutter/test/sudoku_shop_abilities_test.dart`); здесь — что обе половины говорят об одном.
+ */
+describe('способности: нативная судоку', () => {
+  const dart = (rel: string) => read(`../flutter/lib/${rel}`)
+    .replace(/\/\*[\s\S]*?\*\//g, ' ')
+    .split('\n')
+    .map((l: string) => l.replace(/\/\/.*$/, ''))
+    .join('\n');
+
+  it('все входы приложения в судоку и «Самурай» — нативные', () => {
+    const hybrid = dart('shell/hybrid_app.dart');
+    expect(/'\/games\/sudoku': \(s\) => SudokuScreen\(/.test(hybrid)).toBe(true);
+    expect(/'\/games\/sudoku-samurai': \(s\) => SamuraiScreen\(/.test(hybrid)).toBe(true);
+  });
+
+  it('кошелёк натива — тот же ключ и те же имена способностей', () => {
+    const wallet = dart('shell/ability_wallet.dart');
+    const webKey = /const KEY = '([^']+)'/.exec(read('src/services/abilities.ts'))![1];
+    expect(wallet.includes(`static const key = '${webKey}'`)).toBe(true);
+    const ids = ABILITIES.map((a) => a.id) as string[];
+    for (const m of wallet.matchAll(/static const \w+ = '([a-z_]+)';/g)) {
+      if (m[1] === webKey) continue;
+      expect(`${m[1]} продаётся: ${ids.includes(m[1])}`).toBe(`${m[1]} продаётся: true`);
+    }
+  });
+
+  it.each(['games/sudoku/screen.dart', 'games/samurai/screen.dart'])('%s: тратит жизнь и подсказку, лестница замирает', (f) => {
+    const src = dart(f);
+    expect(src.includes('_wallet.spend(AbilityWallet.secondLife)')).toBe(true);
+    expect(src.includes('_wallet.spend(AbilityWallet.sudokuHint)')).toBe(true);
+    // 🔴 Порог провала — только `_errorCap` (ступень + купленная жизнь). Сверка с голым лимитом
+    // ступени — это путь проигрыша мимо предложения: так пришёл ход клетки Шрёдингера при слиянии
+    // с 2.56.19 (`_placeSchro`, `_errors >= errorLimit`) — партия обрывалась, жизнь не предлагалась.
+    expect(`порог мимо _errorCap: ${/_errors\s*>=\s*(errorLimit|_params\.maxErrors)/.test(src)}`).toBe('порог мимо _errorCap: false');
+    // Предложение показывается: состояние где-то ВЗВОДИТСЯ, и карточка висит на нём.
+    expect(/_deathOffer = true/.test(src)).toBe(true);
+    expect(/_deathOffer\s*\?\s*SecondLifeOffer\(/.test(src)).toBe(true);
+    // Партия с покупкой лестницу не двигает: признак стоит в КАЖДОМ вызове лестницы, а не в
+    // одном из них (у «Самурая» их два — победа и провал; первая редакция гейта видела любой).
+    const calls: string[] = [];
+    for (const m of src.matchAll(/_ladder\.(win|fail)\(/g)) {
+      let depth = 1, j = m.index! + m[0].length;
+      while (j < src.length && depth > 0) {
+        if (src[j] === '(') depth++;
+        if (src[j] === ')') depth--;
+        j++;
+      }
+      calls.push(src.slice(m.index!, j));
+    }
+    expect(calls.length).toBeGreaterThan(0);
+    for (const c of calls) {
+      expect(`${c.slice(0, 16)}… advance: ${/advance: !_(lifeSpent|bought)/.test(c)}`).toBe(`${c.slice(0, 16)}… advance: true`);
+    }
   });
 });

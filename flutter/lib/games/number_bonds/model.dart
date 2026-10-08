@@ -47,6 +47,10 @@ class BondsCfg {
 
   /// Окно на задачу; 0 — таймера нет.
   final int windowMs;
+
+  /// Та же раздача, другое число задач — шаг зарядки задаёт его сам (`?trials=`).
+  BondsCfg withTrials(int n) => BondsCfg(
+      pool: pool, maxV: maxV, sizeWeights: sizeWeights, trials: n, windowMs: windowMs, targetMax: targetMax);
 }
 
 class _Row {

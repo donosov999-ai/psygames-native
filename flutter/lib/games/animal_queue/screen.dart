@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../../shell/app_haptics.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/board_solver.dart';
 import '../../shell/game_shell.dart';
@@ -39,6 +40,8 @@ class AnimalQueueScreen extends StatefulWidget {
 }
 
 class _AnimalQueueScreenState extends State<AnimalQueueScreen> {
+  /// Отклик хода — через общий выключатель «Вибрация» (образец «Матрицы памяти», задача 792432f8).
+  late final AppHaptics _haptics = AppHaptics(widget.state);
   late LevelLadder _ladder;
   late Random _rnd;
   AnimalQueue? _game;
@@ -83,6 +86,7 @@ class _AnimalQueueScreenState extends State<AnimalQueueScreen> {
     if (game == null || _won || game.queue.contains(animal)) return;
     final next = game.play(animal);
     if (next == null) {
+      _haptics.miss();
       _wrongTimer?.cancel();
       setState(() {
         _errors += 1;
@@ -94,6 +98,7 @@ class _AnimalQueueScreenState extends State<AnimalQueueScreen> {
       return;
     }
     setState(() => _game = next);
+    next.done ? _haptics.win() : _haptics.hit();
     if (next.done) {
       _autoNext = Timer(const Duration(milliseconds: 1400), () {
         if (mounted && _won) _next();

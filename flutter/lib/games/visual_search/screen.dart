@@ -3,6 +3,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../shell/app_haptics.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/boss_round.dart';
 import '../../shell/demo_lesson.dart';
@@ -50,6 +51,8 @@ class VisualSearchScreen extends StatefulWidget {
 enum _Phase { playing, wrong, right, result }
 
 class _VisualSearchScreenState extends State<VisualSearchScreen> {
+  /// Отклик хода — через общий выключатель «Вибрация» (образец «Матрицы памяти», задача 792432f8).
+  late final AppHaptics _haptics = AppHaptics(widget.state);
   static const _rightDelay = Duration(milliseconds: 500);
   static const _wrongDelay = Duration(milliseconds: 450);
 
@@ -115,7 +118,10 @@ class _VisualSearchScreenState extends State<VisualSearchScreen> {
     _phase = _Phase.playing;
     // С 32-го раундов в среднем больше (ось без предела, model.dart). Шаг зарядки — прежняя
     // длина: пресет лестницу не двигает, а бюджет шага рассчитан на неё.
-    _trials = widget.trials + (GamePreset.isPreset ? 0 : vsDrawExtraTrials(_ladder.level, _rng));
+    // Раундов — из адреса (`?trials=`), как веб (`visual-search.tsx:242`, читает всегда); иначе — свои.
+    // Лишние раунды оси роста (с 32-го) — только в партии по уровню, не в шаге зарядки (задача 945f9d4d).
+    _trials = math.max(1, GamePreset.num('trials', widget.trials)) +
+        (GamePreset.isPreset ? 0 : vsDrawExtraTrials(_ladder.level, _rng));
     _newRound(1);
   }
 
@@ -161,6 +167,7 @@ class _VisualSearchScreenState extends State<VisualSearchScreen> {
         it.found = true;
         _found += 1;
       });
+      _found >= _cfg.targetCount ? _haptics.win() : _haptics.hit();
       if (_found >= _cfg.targetCount) {
         setState(() {
           _hits += 1;
@@ -173,6 +180,7 @@ class _VisualSearchScreenState extends State<VisualSearchScreen> {
     }
     // Промах — в том числе по ПРИМАНКЕ: она выглядит как цель, и отличить её
     // можно только точкой. Это и есть ось подавления.
+    _haptics.miss();
     setState(() {
       _errors += 1;
       _phase = _Phase.wrong;

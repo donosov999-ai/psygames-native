@@ -96,6 +96,8 @@ Map<String, Object?> sudokuSnapshot({
   required int elapsed,
   required List<SudokuResumeMove> moves,
   bool answersRevealed = false,
+  bool secondLife = false,
+  int boughtHints = 0,
 }) =>
     {
       'mode': mode,
@@ -115,6 +117,10 @@ Map<String, Object?> sudokuSnapshot({
       'errors': errors,
       'hintUses': hintUses,
       'answersRevealed': answersRevealed,
+      // Натив-только (задача 576405e7): веб этих полей не знает и не читает. Без них поднятая
+      // партия забыла бы потраченную жизнь — и лестница выросла бы за купленную ступень.
+      if (secondLife) 'secondLife': true,
+      if (boughtHints > 0) 'boughtHints': boughtHints,
       'hintMax': hintMax,
       'backtrackCount': backtracks,
       'elapsed': elapsed,
@@ -148,6 +154,8 @@ class SudokuResumed {
     required this.elapsed,
     required this.moves,
     this.answersRevealed = false,
+    this.secondLife = false,
+    this.boughtHints = 0,
   });
 
   final int level;
@@ -160,6 +168,10 @@ class SudokuResumed {
   final int errors, hintUses, backtracks, elapsed;
   final List<SudokuResumeMove> moves;
   final bool answersRevealed;
+
+  /// Вторая жизнь в этой партии уже потрачена; купленных подсказок открыто.
+  final bool secondLife;
+  final int boughtHints;
 }
 
 List<List<int>>? _ints(Object? v, int n) {
@@ -224,5 +236,7 @@ SudokuResumed? sudokuFromSnapshot(Map<String, Object?> s, {String mode = 'levels
     backtracks: _int(s['backtrackCount']) ?? 0,
     elapsed: _int(s['elapsed']) ?? 0,
     moves: moves,
+    secondLife: s['secondLife'] == true,
+    boughtHints: _int(s['boughtHints']) ?? 0,
   );
 }

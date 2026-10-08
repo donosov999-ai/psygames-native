@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
+import '../../shell/app_haptics.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/game_shell.dart';
@@ -61,6 +62,8 @@ class _Snapshot {
 }
 
 class _SortTubesScreenState extends State<SortTubesScreen> {
+  /// Отклик хода — через общий выключатель «Вибрация» (образец «Матрицы памяти», задача 792432f8).
+  late final AppHaptics _haptics = AppHaptics(widget.state);
   /// 🔴 СЛЕДУЮЩИЙ УРОВЕНЬ ЕДЕТ САМ (Денис 24.09.2026: «не переходит на
   /// следующий уровень сам»).
   ///
@@ -196,6 +199,7 @@ class _SortTubesScreenState extends State<SortTubesScreen> {
     final field = _field!;
     final after = pour(field, from, to);
     if (after == null) {
+      _haptics.miss();
       _errors += 1;
       _showRefusal(refusalReason(field, from, to));
       return;
@@ -208,6 +212,7 @@ class _SortTubesScreenState extends State<SortTubesScreen> {
     _field = sealed.field;
     if (sealed.sealed > 0) _hidden = _shiftHidden(_hidden, after, sealed.field);
     _refusal = null;
+    _field!.isSolved ? _haptics.win() : _haptics.hit();
     if (_field!.isSolved) {
       _won = true;
       _scheduleNext();

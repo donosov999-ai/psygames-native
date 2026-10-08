@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../shell/game_clock.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/boss_round.dart';
@@ -10,9 +11,12 @@ import '../../shell/l10n.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/lesson.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/level_rules.dart';
+import '../../shell/preset_cap.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import 'model.dart';
+import 'series_screen.dart';
 
 /// «Таблица Шульте» на общем каркасе — первая перенесённая тап-игра раздела.
 ///
@@ -51,9 +55,25 @@ class _SchulteScreenState extends State<SchulteScreen> {
   bool? _boss;
   Duration _elapsed = Duration.zero;
 
-  Timer? _reveal;
-  Timer? _ticker;
-  final Stopwatch _watch = Stopwatch();
+  /// Время на таблицу этого уровня, секунд; `null` — лимита нет (уровни до 19-го).
+  double? _limitSec;
+
+  /// Партия кончилась тем, что время вышло, — а не ошибками.
+  bool _timedOut = false;
+
+  GameTimer? _reveal;
+  GameTimer? _ticker;
+
+  /// Часы партии — на игровом времени каркаса (shell/game_clock.dart): пауза и разбор поверх
+  /// игры время не съедают. До 02.10.2026 здесь стоял Stopwatch — настенные часы, и лимит
+  /// времени засчитал бы чтение паузы как медленную игру.
+  int? _startedAt;
+  int _frozenMs = 0;
+  int get _elapsedMs => _startedAt == null ? _frozenMs : gameNow() - _startedAt!;
+  void _clockStop() {
+    _frozenMs = _elapsedMs;
+    _startedAt = null;
+  }
 
   @override
   void initState() {
@@ -96,14 +116,35 @@ class _SchulteScreenState extends State<SchulteScreen> {
     LessonUsed.reset();
     _reveal?.cancel();
     _ticker?.cancel();
-    _watch
-      ..reset()
-      ..stop();
+    _startedAt = null;
+    _frozenMs = 0;
     _elapsed = Duration.zero;
-    _game = SchulteGame(level: _ladder.level, alphabet: _alphabet);
+    final preset = _presetParams();
+    _game = SchulteGame(level: _ladder.level, alphabet: _alphabet, override: preset);
+    // Таблица шага — не таблица уровня: лимит времени уровня к ней не относится (у веба его нет).
+    _limitSec = preset != null ? null : schulteTimeLimitSec(_ladder.level);
+    _timedOut = false;
     _phase = _Phase.ready;
     _ruleRevealed = !_game!.params.surpriseStart;
     _won = false;
+  }
+
+  /// ШАГ ЗАРЯДКИ — СВОЯ ТАБЛИЦА: числа по порядку, сторона `?size=` шага (по умолчанию 5), но не
+  /// больше освоенной больше чем на одну; с 7×7 по уровню — как просит шаг. Перенос веб-пресета
+  /// (`schulte.tsx:470–479`, `capPresetByLevel`). Без этого натив молча играл таблицу уровня —
+  /// с буквами, обратным порядком и цветом (сторож каркаса 44f7e4e0, задача 50139f1d).
+  LevelParams? _presetParams() {
+    if (!GamePreset.isPreset) return null;
+    final atLevel = LevelParams.of(_ladder.level).gridSize;
+    final size = capPresetByLevel(want: GamePreset.num('size', 5), atLevel: atLevel, atTop: atLevel >= 7);
+    return LevelParams(
+      gridSize: size,
+      contentMode: ContentMode.numbers,
+      direction: Direction.forward,
+      colorMode: false,
+      surpriseStart: false,
+      moving: false,
+    );
   }
 
   void _start() {
@@ -112,17 +153,17 @@ class _SchulteScreenState extends State<SchulteScreen> {
       _phase = _Phase.playing;
       _ruleRevealed = !g.params.surpriseStart;
     });
-    _watch
-      ..reset()
-      ..start();
-    _ticker = Timer.periodic(const Duration(milliseconds: 100), (_) {
+    _startedAt = gameNow();
+    _frozenMs = 0;
+    _ticker = gameInterval(const Duration(milliseconds: 100), () {
       if (!mounted) return;
-      setState(() => _elapsed = _watch.elapsed);
+      setState(() => _elapsed = Duration(milliseconds: _elapsedMs));
+      if (!_inTime) _timeUp();
     });
     if (!g.params.surpriseStart) return;
     // Правило объявляется ПОСЛЕ показа поля: полторы секунды — столько, чтобы
     // взгляд успел пробежать таблицу и не успел построить план.
-    _reveal = Timer(_ruleRevealDelay, () {
+    _reveal = gameTimeout(_ruleRevealDelay, () {
       if (!mounted) return;
       setState(() => _ruleRevealed = true);
     });
@@ -135,20 +176,48 @@ class _SchulteScreenState extends State<SchulteScreen> {
     if (res == PressResult.ignored) return;
     setState(() {});
     if (res != PressResult.finished) return;
-    _watch.stop();
+    _clockStop();
     _ticker?.cancel();
-    final ok = g.errors <= _levelErrorsAllowed;
+    // Последнее нажатие могло прийти после лимита, но до тика часов: решают часы, а не тик.
+    final inTime = _inTime;
+    final ok = g.errors <= _levelErrorsAllowed && inTime;
     setState(() {
       _phase = _Phase.done;
       _won = ok;
+      _timedOut = !inTime;
       _boss = null; // итог боя — только этой партии; бой, если будет, допишет его ниже
-      _elapsed = _watch.elapsed;
+      _elapsed = Duration(milliseconds: _elapsedMs);
     });
     if (!ok) {
       _ladder.fail();
       return;
     }
     _winThenBoss();
+  }
+
+  /// Уложился ли человек в лимит уровня. Мерят часы партии, а не последний тик.
+  bool get _inTime => schulteWithinLimit(_limitSec, _elapsedMs);
+
+  /// Время вышло: таблица останавливается сразу, уровень не засчитан.
+  void _timeUp() {
+    if (_phase != _Phase.playing) return;
+    _clockStop();
+    _ticker?.cancel();
+    _reveal?.cancel();
+    setState(() {
+      _phase = _Phase.done;
+      _won = false;
+      _timedOut = true;
+      _boss = null;
+      _elapsed = Duration(milliseconds: _elapsedMs);
+    });
+    _ladder.fail();
+  }
+
+  /// Лимит подписью: до десятых, а целые — без «,0».
+  String _secText(double s) {
+    final t = (s * 10).round() / 10;
+    return '${t == t.roundToDouble() ? t.toStringAsFixed(0) : t.toStringAsFixed(1)} ${L.t('secShort')}';
   }
 
   /// Веха как в вебе: каждый третий ЗАСЧИТАННЫЙ уровень — бой «сложи подсвеченные».
@@ -180,12 +249,18 @@ class _SchulteScreenState extends State<SchulteScreen> {
     if (g == null) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     return GameShell(
       title: _title,
+      levelRule: LevelRuleSpot(
+          gameId: 'schulte_table', level: _ladder.level, state: widget.state, calm: _phase != _Phase.playing),
       onLesson: () => openDemoLesson(context, title: _title, trials: _demoTrials()),
       hud: [
         HudItem(label: L.t('level'), value: '${_ladder.level}', icon: Icons.flag_outlined),
         HudItem(label: L.t('personalBest'), value: '${_ladder.best}', icon: Icons.emoji_events_outlined),
         HudItem(label: L.t('errors'), value: '${g.errors}', icon: Icons.close),
-        HudItem(label: L.t('time'), value: _time, icon: Icons.timer_outlined),
+        HudItem(
+          label: L.t('time'),
+          value: _limitSec == null ? _time : '$_time / ${_secText(_limitSec!)}',
+          icon: Icons.timer_outlined,
+        ),
       ],
       field: (context, h) => _Field(
         game: g,
@@ -195,6 +270,7 @@ class _SchulteScreenState extends State<SchulteScreen> {
         height: h,
         onStart: _start,
         onTap: _tap,
+        door: GamePreset.isPreset ? null : SchulteSeriesDoor(state: widget.state, ladderSize: g.params.gridSize),
       ),
       auxRow: AuxBar(children: [
         AuxAction(
@@ -215,7 +291,9 @@ class _SchulteScreenState extends State<SchulteScreen> {
                 Text(
                   _won
                       ? L.f('schulteResultWin', {'t': _time, 'errors': '${g.errors}'})
-                      : L.f('schulteResultFail', {'errors': '${g.errors}', 'max': '$_levelErrorsAllowed'}),
+                      : _timedOut
+                          ? L.f('schulteResultTimeUp', {'limit': _secText(_limitSec!)})
+                          : L.f('schulteResultFail', {'errors': '${g.errors}', 'max': '$_levelErrorsAllowed'}),
                   textAlign: TextAlign.center,
                 ),
                 BossOutcomeLine(_boss),
@@ -245,6 +323,7 @@ class _Field extends StatelessWidget {
     required this.height,
     required this.onStart,
     required this.onTap,
+    this.door,
   });
 
   final SchulteGame game;
@@ -254,6 +333,9 @@ class _Field extends StatelessWidget {
   final double height;
   final VoidCallback onStart;
   final void Function(int) onTap;
+
+  /// Дверь серии блоков под «Начать» (веб `schulte.tsx:888`); в шаге зарядки её нет.
+  final Widget? door;
 
   /// Фраза целиком на каждое сочетание «что ищем × в каком порядке»: склейка
   /// «Ищи $что $куда» не переводится — в других языках другой порядок слов.
@@ -289,6 +371,7 @@ class _Field extends StatelessWidget {
               ),
             const SizedBox(height: 12),
             FilledButton(onPressed: onStart, child: Text(L.t('start'))),
+            if (door != null) ...[const SizedBox(height: 16), door!],
           ],
         ),
       );

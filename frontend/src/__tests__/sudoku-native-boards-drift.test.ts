@@ -80,6 +80,10 @@ describe('доски судоку у Flutter = живой TS', () => {
         // клетки Шрёдингера — коды 1..10 и 100+, поэтому через запятую (toStr выгрузки)
         || (b.puzzle.includes(',') ? b.puzzle.split(',').length : b.puzzle.length) !== c.N * c.N);
       if (foreign.length) problems.push(`L${lv}: ${foreign.length} досок правила ${foreign[0].variant} ${foreign[0].n}×${foreign[0].n}, а ступень — ${c.variant} ${c.N}×${c.N}`);
+      // Лимит копания — ось трудности блока: доски, выкопанные глубже поля ступени, — от старого levelConfig.
+      const cells = (b: { puzzle: string }) => (b.puzzle.includes(',') ? b.puzzle.split(',') : [...b.puzzle]);
+      const deep = c.digCap ? own.filter((b) => cells(b).filter((v) => v === '0').length > c.digCap!) : [];
+      if (deep.length) problems.push(`L${lv}: ${deep.length} досок копают глубже digCap ${c.digCap}`);
     }
     for (const lv of byLevel.keys()) if (lv > LAST_LEVEL) problems.push(`L${lv} за концом лестницы`);
     const rebuild = problems.map((p) => Number(/^L(\d+)/.exec(p)?.[1]))

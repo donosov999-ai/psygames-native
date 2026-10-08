@@ -37,6 +37,9 @@ import '../languages/lang_names.dart';
 import 'fillwords_field.dart';
 import 'fillwords_round.dart';
 import 'model.dart';
+import 'series/series_blocks.dart';
+import 'series/series_data.dart';
+import 'series/series_play.dart';
 
 enum ProofPhase { ready, playing, done }
 
@@ -130,6 +133,12 @@ class _ProofreadingScreenState extends State<ProofreadingScreen> {
   FillwordsPuzzle? _puzzle;
   String _puzzleKey = '';
 
+  /// Серия из трёх блоков (задача f4bb47dc): данные, прогресс для двери, идёт ли серия.
+  ProofSeriesData? _serData;
+  ProofSeriesProgress _serProgress = emptyProofProgress;
+  bool _seriesOn = false;
+  int _serSeed = 1;
+
   bool get _fwAvailable => isFillwordsLocale(L.locale);
 
   @override
@@ -152,8 +161,12 @@ class _ProofreadingScreenState extends State<ProofreadingScreen> {
     await _ladder.load();
     // Подписи модуля филвордов — малый ассет; нужны уже настройке (имя задания, отказ).
     final strings = await loadFillwordsStrings(L.locale);
+    final series = await ProofSeriesData.load();
     if (!mounted) return;
     _fwStrings = strings;
+    _serData = series;
+    _serProgress = parseProofProgress(widget.state.get(proofSeriesKey(widget.state)));
+    _serSeed = (widget.fwSeed ?? Random().nextInt(1000000000)) + 1;
     _showWords = widget.state.get(proofWordListKey) == '1';
     _fwSeed = widget.fwSeed ?? Random().nextInt(1000000000) + 1;
     _script = widget.digits
@@ -174,7 +187,33 @@ class _ProofreadingScreenState extends State<ProofreadingScreen> {
     }
     setState(_reset);
     // Шаг зарядки начинается сам — перенос веб-`useAutostartWhenReady` (отчёт Дениса 01.10.2026).
-    if (proofAutostart || GamePreset.autostart) _start();
+    // Вход «Блоки корректуры» (`auto=1&series=1`) начинает СЕРИЮ, а не партию — как веб
+    // (`seriesPreset ? beginSeries() : startGame()`).
+    if (proofAutostart || GamePreset.autostart) {
+      if (GamePreset.flag('series') && _senseAvailable) {
+        await _openSeries();
+      } else {
+        _start();
+      }
+    }
+  }
+
+  bool get _senseAvailable => _serData?.isSenseLocale(L.locale) ?? false;
+
+  /// Серия из трёх блоков — отдельная партия по одному полю (`ProofSeriesPlay`).
+  Future<void> _openSeries() async {
+    if (!_senseAvailable || _phase != ProofPhase.ready) return;
+    await _ensurePool();
+    if (!mounted || _pool == null) return;
+    setState(() => _seriesOn = true);
+  }
+
+  void _closeSeries() {
+    setState(() {
+      _seriesOn = false;
+      _serSeed += 1000;
+      _serProgress = parseProofProgress(widget.state.get(proofSeriesKey(widget.state)));
+    });
   }
 
   /// Словарь языка — только когда нужны филворды: ~400 КБ разбора не на каждый вход.
@@ -432,6 +471,18 @@ class _ProofreadingScreenState extends State<ProofreadingScreen> {
   Widget build(BuildContext context) {
     final g = _game;
     if (g == null) return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    if (_seriesOn && _serData != null && _pool != null) {
+      return ProofSeriesPlay(
+        key: ValueKey('series-$_serSeed'),
+        state: widget.state,
+        data: _serData!,
+        words: _pool!,
+        ladderLevel: _ladder.level,
+        seed: _serSeed,
+        clock: widget.clock,
+        onExit: _closeSeries,
+      );
+    }
     final fw = _fw;
     // До начала часы не идут, на итоге — замирают: `elapsedSec` до `begin()` и после конца
     // считал бы от нуля эпохи или дальше.
@@ -495,6 +546,11 @@ class _ProofreadingScreenState extends State<ProofreadingScreen> {
                 onTask: _pickTask,
                 onDiagonals: _pickDiagonals,
                 onShowWords: _pickShowWords,
+                seriesStrings: _serData?.strings(L.locale),
+                senseAvailable: _senseAvailable,
+                senseLocales: _serData?.locales ?? const [],
+                seriesEntry: proofSeriesEntry(_serProgress, fillwordsLevel(_ladder.level).rows),
+                onSeries: () => unawaited(_openSeries()),
               ),
               onScript: _pickScript,
               onStart: _start,
@@ -542,6 +598,11 @@ class _SetupChoice {
     required this.onTask,
     required this.onDiagonals,
     required this.onShowWords,
+    required this.seriesStrings,
+    required this.senseAvailable,
+    required this.senseLocales,
+    required this.seriesEntry,
+    required this.onSeries,
   });
 
   final String task;
@@ -557,6 +618,13 @@ class _SetupChoice {
   final ValueChanged<String> onTask;
   final ValueChanged<bool> onDiagonals;
   final ValueChanged<bool> onShowWords;
+
+  /// Дверь серии: подписи, есть ли категории на языке, где они есть, вход и поля блоков.
+  final ProofSeriesStrings? seriesStrings;
+  final bool senseAvailable;
+  final List<String> senseLocales;
+  final ({int level, Map<String, int> perBlock}) seriesEntry;
+  final VoidCallback onSeries;
 
   bool get fillwords => task == proofTaskFillwords;
 }
@@ -801,6 +869,37 @@ class _Field extends StatelessWidget {
                               : L.t('proofPass').replaceAll('{p}', '${(p.minFoundPct * 100).round()}'),
                           style: text.bodySmall,
                           textAlign: TextAlign.center),
+                    ],
+                    // СЕРИЯ ИЗ ТРЁХ БЛОКОВ — отдельная дверь, а не третья кнопка задания: она меняет
+                    // саму партию — три задания подряд по одному полю и один общий разбор.
+                    if (!game.preset && s.seriesStrings != null) ...[
+                      const SizedBox(height: 16),
+                      if (s.senseAvailable) ...[
+                        FilledButton.tonalIcon(
+                          key: const Key('proof-series-door'),
+                          onPressed: s.onSeries,
+                          icon: const Icon(Icons.layers_outlined),
+                          label: Text(s.seriesStrings!.entry),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(interpolate(s.seriesStrings!.startsAt, {'size': s.seriesEntry.level}),
+                            key: const Key('proof-series-starts'), style: text.bodySmall, textAlign: TextAlign.center),
+                        // Прежние поля блоков названы ЯВНО: старт с минимума иначе читается как откат.
+                        Text(
+                            interpolate(s.seriesStrings!.yourLevels, {
+                              for (final k in proofSeriesPlan) k: '${s.seriesEntry.perBlock[k]}×${s.seriesEntry.perBlock[k]}',
+                            }),
+                            style: text.bodySmall,
+                            textAlign: TextAlign.center),
+                      ] else
+                        // 🔴 Честный отказ вместо спрятанной кнопки: «Смысл» живёт на словаре с
+                        // категориями, а он есть не на всех языках.
+                        Text(
+                          interpolate(s.seriesStrings!.noSense, {'langs': s.senseLocales.map(s.langNames.name).join(', ')}),
+                          key: const Key('proof-series-nosense'),
+                          style: text.bodySmall,
+                          textAlign: TextAlign.center,
+                        ),
                     ],
                   ],
                 ),
