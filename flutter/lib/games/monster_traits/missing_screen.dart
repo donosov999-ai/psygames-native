@@ -3,6 +3,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../shell/app_haptics.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/game_clock.dart';
 import '../../shell/game_shell.dart';
@@ -36,6 +37,8 @@ class MonsterMissingScreen extends StatefulWidget {
 enum _Phase { study, recall, feedback, result }
 
 class _MonsterMissingScreenState extends State<MonsterMissingScreen> {
+  /// Отклик хода — через общий выключатель «Вибрация» (образец «Матрицы памяти», задача 792432f8).
+  late final AppHaptics _haptics = AppHaptics(widget.state);
   late final LevelLadder _ladder;
   late final math.Random _rnd;
   MissingRound? _round;
@@ -108,6 +111,7 @@ class _MonsterMissingScreenState extends State<MonsterMissingScreen> {
     final round = _round!;
     if (_phase != _Phase.recall || _picked.length != round.gone.length) return;
     final ok = round.check(_picked);
+    ok ? _haptics.win() : _haptics.miss();
     setState(() {
       _lastOk = ok;
       if (ok) _correct += 1;

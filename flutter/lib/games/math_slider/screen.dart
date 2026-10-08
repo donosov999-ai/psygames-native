@@ -97,6 +97,15 @@ class _MathSliderScreenState extends State<MathSliderScreen> {
 
   String get _seed => 'math-slider-$_playLevel';
 
+  /// Вопросов в партии — из адреса (`?trials=`), как веб: `math-slider.tsx:108` читает его всегда,
+  /// 0 — значит «не задано», 8. В 1…20 зажимает сам генератор (`generateMathSliderQuestions`, как
+  /// `session.ts:32`). Шаги наборов его сейчас не шлют, но веб читает — и молчаливая потеря стоит
+  /// дороже строки (строгий сторож #273, задача 945f9d4d).
+  int get _trialCount {
+    final want = GamePreset.num('trials', 0);
+    return want == 0 ? trialsPerRound : want;
+  }
+
   void _reset() {
     // Новая партия — снова зачётная (договор shell/lesson.dart: отметку «разбор
     // смотрели» снимает новая раздача). Отметка общая на всё приложение, и без
@@ -104,7 +113,7 @@ class _MathSliderScreenState extends State<MathSliderScreen> {
     LessonUsed.reset();
     _auto?.cancel();
     _advance?.cancel();
-    _questions = generateMathSliderQuestions(_seed, _playLevel, trialsPerRound);
+    _questions = generateMathSliderQuestions(_seed, _playLevel, _trialCount);
     _shadow.deal(_playLevel);
     _training = generateTrainingQuestion(_seed);
     _trials.clear();

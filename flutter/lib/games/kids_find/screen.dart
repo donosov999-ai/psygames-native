@@ -3,6 +3,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../shell/app_haptics.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/game_clock.dart';
 import '../../shell/game_shell.dart';
@@ -34,6 +35,8 @@ class KidsFindScreen extends StatefulWidget {
 enum _Phase { playing, right, result }
 
 class _KidsFindScreenState extends State<KidsFindScreen> {
+  /// Отклик хода — через общий выключатель «Вибрация» (образец «Матрицы памяти», задача 792432f8).
+  late final AppHaptics _haptics = AppHaptics(widget.state);
   late final LevelLadder _ladder;
   late final math.Random _rnd;
   FindBoard? _board;
@@ -95,6 +98,7 @@ class _KidsFindScreenState extends State<KidsFindScreen> {
         setState(() => _left = left);
         if (left <= 1e-9) {
           // Не успел — доска засчитана ошибкой.
+          _haptics.miss();
           _errors += 1;
           _advance();
         }
@@ -106,10 +110,12 @@ class _KidsFindScreenState extends State<KidsFindScreen> {
     final b = _board;
     if (b == null || _phase != _Phase.playing) return;
     if (i == b.target) {
+      _haptics.hit();
       setState(() => _phase = _Phase.right);
       _tick?.cancel();
       _next = gameTimeout(const Duration(milliseconds: 450), _advance);
     } else {
+      _haptics.miss();
       setState(() {
         _errors += 1;
         _wrongAt = i;

@@ -23,6 +23,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
+import '../../shell/app_haptics.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/game_clock.dart';
 import '../../shell/game_preset.dart';
@@ -62,6 +63,8 @@ class MnemonicsScreen extends StatefulWidget {
 }
 
 class MnemonicsScreenState extends State<MnemonicsScreen> {
+  /// Отклик хода — через общий выключатель «Вибрация» (образец «Матрицы памяти», задача 792432f8).
+  late final AppHaptics _haptics = AppHaptics(widget.state);
   late LevelLadder _ladder;
   late Random _random;
   MnemonicsContent? _content;
@@ -237,6 +240,7 @@ class MnemonicsScreenState extends State<MnemonicsScreen> {
   void _answerExample(int v) {
     final e = _example;
     if (e == null) return;
+    v == e.answer ? _haptics.hit() : _haptics.miss();
     setState(() {
       if (v != e.answer) {
         _example = newExample(_rnd);
@@ -259,9 +263,11 @@ class MnemonicsScreenState extends State<MnemonicsScreen> {
     if (_phase != MnemoPhase.check || _picked.contains(item)) return;
     final expected = _items[_picked.length];
     if (item != expected) {
+      _haptics.miss();
       setState(() => _errors += 1);
       return;
     }
+    _haptics.hit();
     setState(() => _picked.add(item));
     if (_picked.length < _items.length) return;
     final passed = _errors == 0;
@@ -275,6 +281,7 @@ class MnemonicsScreenState extends State<MnemonicsScreen> {
     final pegs = _pegs;
     if (q == null || pegs == null || _feedback != null) return;
     final right = option == q.answer;
+    right ? _haptics.hit() : _haptics.miss();
     setState(() {
       if (!right) _errors += 1;
       _feedback = (right: right, answer: q.answer);

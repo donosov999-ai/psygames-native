@@ -11,13 +11,19 @@ import { levelConfig, livesFor } from '@/src/services/sudoku-core';
 import { roadLevelConfig } from '@/src/services/sudoku-roads';
 
 const LAST = 92;
+// Ступени, где лимит поднят решением Дениса поверх оси, — каждая с причиной. 76: 08.10, Валя застряла
+// (04.10 четыре проигрыша, три из них за ~70 с — ошибки пальцем на самой трудной доске банка).
+const RAISED: Record<number, number> = { 76: 3 };
 
 describe('цена ошибки по ступеням', () => {
   it('не растёт к верху лестницы и не бывает меньше одной', () => {
+    // Ось без поднятых ступеней: поднятая читается как соседняя снизу.
+    const axis = (lv: number): number => (lv in RAISED ? axis(lv - 1) : livesFor(lv));
     for (let lv = 2; lv <= LAST; lv++) {
-      expect(livesFor(lv)).toBeLessThanOrEqual(livesFor(lv - 1));
+      expect(axis(lv)).toBeLessThanOrEqual(axis(lv - 1));
       expect(livesFor(lv)).toBeGreaterThanOrEqual(1);
     }
+    for (const [lv, n] of Object.entries(RAISED)) expect(livesFor(Number(lv))).toBe(n);
   });
 
   it('ось действительно есть: на входе прощает больше, чем наверху', () => {

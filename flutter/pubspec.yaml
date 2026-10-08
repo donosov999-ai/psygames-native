@@ -60,6 +60,11 @@ dependencies:
   # глаз и массаж лица. Решение Дениса 02.10.2026: «чиню один раз — и там, и там».
   practice_kit:
     path: ../packages/practice_kit
+  # 🗨 Синапс — ядро реплик питомца по фактам партии, ОБЩЕЕ для четырёх приложений (решение Дениса
+  # 07.10, задача 852e4b4a). Копия КАК ЕСТЬ из donosov999-ai/mascot-engine (packages/synapse_advisor,
+  # коммит 7ff9130): правки — владельцу слоя питомцев mascot-claude-mac, не сюда. Банк фраз — 12 языков.
+  synapse_advisor:
+    path: ../packages/synapse_advisor
   package_info_plus: ^10.2.1
   share_plus: ^13.3.0
   file_picker: ^13.1.0
@@ -180,6 +185,9 @@ flutter:
     - assets/anagram_modes/
     # Филворды: пулы слов из живого TS (экспортёр src/games/fillwords/tools/record-flutter-reference.gen.ts).
     - assets/fillwords/
+    # Серия «Корректуры»: языки, категории «Смысла», подписи — из живого TS
+    # (выгрузчик src/games/proofreading/tools/record-flutter-series.gen.ts).
+    - assets/proofreading/
     - assets/l10n/
     - assets/puzzles/
     - assets/voice/

@@ -3,6 +3,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../shell/app_haptics.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/l10n.dart';
@@ -34,6 +35,8 @@ class SpatialSpanScreen extends StatefulWidget {
 }
 
 class _SpatialSpanScreenState extends State<SpatialSpanScreen> {
+  /// Отклик хода — через общий выключатель «Вибрация» (образец «Матрицы памяти», задача 792432f8).
+  late final AppHaptics _haptics = AppHaptics(widget.state);
   late LevelLadder _ladder;
   bool _ready = false;
 
@@ -142,6 +145,7 @@ class _SpatialSpanScreenState extends State<SpatialSpanScreen> {
     final result = g.tap(cell);
     if (result == Tap.ignored) return;
     setState(() {});
+    result == Tap.ok ? _haptics.hit() : (result == Tap.done ? _haptics.win() : _haptics.miss());
     if (result == Tap.ok) return;
 
     setState(() => _lastAnswer = result == Tap.done);

@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../../shell/app_haptics.dart';
 import '../../shell/audio_host.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/game_shell.dart';
@@ -43,6 +44,8 @@ class ChineseTonesScreen extends StatefulWidget {
 }
 
 class _ChineseTonesScreenState extends State<ChineseTonesScreen> {
+  /// Отклик хода — через общий выключатель «Вибрация» (образец «Матрицы памяти», задача 792432f8).
+  late final AppHaptics _haptics = AppHaptics(widget.state);
   late LevelLadder _ladder;
   Map<int, List<ZhSyllable>>? _bank;
 
@@ -143,6 +146,7 @@ class _ChineseTonesScreenState extends State<ChineseTonesScreen> {
   void _answer(int choice) {
     if (_phase != CtPhase.playing || _answered != null) return;
     final ok = choice == _trials[_idx].correctIdx;
+    ok ? _haptics.hit() : _haptics.miss();
     setState(() {
       _answered = choice;
       if (ok) {

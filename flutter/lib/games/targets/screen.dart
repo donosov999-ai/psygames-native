@@ -17,7 +17,9 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../../shell/app_haptics.dart';
 import '../../shell/game_preset.dart';
+import '../../shell/preset_cap.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
@@ -60,6 +62,8 @@ class TargetsScreen extends StatefulWidget {
 }
 
 class _TargetsScreenState extends State<TargetsScreen> {
+  /// Отклик хода — через общий выключатель «Вибрация» (образец «Матрицы памяти», задача 792432f8).
+  late final AppHaptics _haptics = AppHaptics(widget.state);
   late LevelLadder _ladder;
   TargetsGame? _game;
   TargetsPhase _phase = TargetsPhase.ready;
@@ -91,9 +95,19 @@ class _TargetsScreenState extends State<TargetsScreen> {
 
   int _now() => widget.clock?.call() ?? DateTime.now().millisecondsSinceEpoch;
 
+  /// Режим из адреса — как веб (`str('mode', 'field')`); неизвестное имя — режим экрана.
+  TargetsMode get _mode => TargetsMode.values.asNameMap()[GamePreset.str('mode')] ?? widget.mode;
+
+  /// Стартовый уровень. Шаг зарядки — уровень из шага, но не выше освоенного больше чем на
+  /// ступень (веб `capPresetByLevel({ want: num('level', 1), atLevel: lvl.level })`); до
+  /// 08.10.2026 натив брал личный уровень и тут (сторож параметров, 9137fda8).
+  int _startLevel() => GamePreset.isPreset
+      ? capPresetByLevel(want: GamePreset.num('level', 1), atLevel: _ladder.level)
+      : _ladder.level;
+
   void _reset() {
     _timer?.cancel();
-    _game = TargetsGame(startLevel: _ladder.level, mode: widget.mode, rnd: widget.rnd, nowMs: widget.clock);
+    _game = TargetsGame(startLevel: _startLevel(), mode: _mode, rnd: widget.rnd, nowMs: widget.clock);
     _phase = TargetsPhase.ready;
     _flash = null;
     _prevCircle = null;
@@ -155,6 +169,8 @@ class _TargetsScreenState extends State<TargetsScreen> {
       _timer = Timer(const Duration(milliseconds: targetsGapMs), _round);
       return;
     }
+    // Верное торможение (выше) отклика не получает — за бездействие ни галочки, ни толчка.
+    outcome == TargetsOutcome.hit ? _haptics.hit() : _haptics.miss();
     setState(() => _flash = outcome);
     _timer = Timer(const Duration(milliseconds: targetsFeedbackMs), () {
       if (!mounted) return;
@@ -177,9 +193,9 @@ class _TargetsScreenState extends State<TargetsScreen> {
     final seconds = ((_now() - _startedAt) / 1000).round();
     // Прошёл — значит дошёл до верха лестницы, а не «кончились жизни».
     if (g.lives > 0) {
-      _ladder.win(score: g.score, timeSeconds: seconds, errors: g.errors, mode: widget.mode.name);
+      _ladder.win(score: g.score, timeSeconds: seconds, errors: g.errors, mode: _mode.name);
     } else {
-      _ladder.fail(score: g.score, timeSeconds: seconds, errors: g.errors, mode: widget.mode.name);
+      _ladder.fail(score: g.score, timeSeconds: seconds, errors: g.errors, mode: _mode.name);
     }
   }
 
@@ -222,7 +238,7 @@ class _TargetsScreenState extends State<TargetsScreen> {
       onLesson: () => openDemoLesson(context, title: L.t('targets'), trials: _demoTrials()),
       field: (context, h) => _Field(
         game: g,
-        mode: widget.mode,
+        mode: _mode,
         phase: _phase,
         flash: _flash,
         prevCircle: _prevCircle,

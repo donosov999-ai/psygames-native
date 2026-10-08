@@ -44,6 +44,11 @@ void main() {
   group('sdmt — rate_per_min', () {
     const seconds = 10;
 
+    /// Шаг зарядки у SDMT — классический тест, как в вебе (`sdmt.tsx:203–207`): 9 символов и
+    /// без цели по попаданиям. Решение 09.09: у SDMT трудность — настройка шага, а не уровень
+    /// (задача 50139f1d). Нормы домена «Оценки» посчитаны как раз под классический тест.
+    const presetSymbols = 9;
+
     Future<void> open(WidgetTester tester, String seed) async {
       GamePreset.set({'wu': '1'});
       final state = await SharedState.open();
@@ -75,13 +80,12 @@ void main() {
     }
 
     Future<Map<String, dynamic>> play(WidgetTester tester, {required int right, required int wrong}) async {
-      final p = sdmt.levelParams(1);
       for (var i = 0; i < right; i += 1) {
-        await tester.tap(find.byKey(Key('цифра${rightDigit(tester, p.symbolCount)}')));
+        await tester.tap(find.byKey(Key('цифра${rightDigit(tester, presetSymbols)}')));
         await tester.pump();
       }
       for (var i = 0; i < wrong; i += 1) {
-        final r = rightDigit(tester, p.symbolCount);
+        final r = rightDigit(tester, presetSymbols);
         await tester.tap(find.byKey(Key('цифра${r == 1 ? 2 : 1}')));
         await tester.pump();
       }
@@ -95,14 +99,16 @@ void main() {
 
     testWidgets('🔴 взял шаг — в details rate_per_min по формуле веба', (tester) async {
       await open(tester, 'метрика-взял');
-      final target = sdmt.levelParams(1).targetHits;
-      final d = await play(tester, right: target, wrong: 0);
-      expect(d['rate_per_min'], (target / seconds * 60).round(),
+      const right = 6;
+      final d = await play(tester, right: right, wrong: 0);
+      expect(d['rate_per_min'], (right / seconds * 60).round(),
           reason: 'верных в минуту = верные / секунды шага × 60');
-      expect(d['hits'], target);
+      expect(d['hits'], right);
       expect(d['accuracy'], 100);
-      expect(d['target_hits'], target);
-      expect(d['n_symbols'], sdmt.levelParams(1).symbolCount);
+      expect(d['target_hits'], 0, reason: 'у шага зарядки цели нет — как веб');
+      expect(d['n_symbols'], presetSymbols, reason: 'шаг — классический тест на 9 символов');
+      expect(presetSymbols, isNot(sdmt.levelParams(1).symbolCount),
+          reason: 'иначе проба не отличила бы шаг от первого уровня');
     });
 
     testWidgets('🔴 не взял шаг — метрика уходит и с провалом', (tester) async {

@@ -29,7 +29,7 @@ void main() {
       expect(LevelRules.activeKey('corsi', 399), 'hold', reason: 'последний отрезок открыт');
     });
 
-    test('у всех 16 перенесённых игр с правилами таблица есть, всего 56 правил', () {
+    test('у всех 16 перенесённых игр с правилами таблица есть, всего 57 правил', () {
       const ported = [
         'goods_sort', 'math_sprint', 'mahjong', 'water_sort', 'memory_matrix', 'cpt',
         'digit_span', 'spatial_span', 'corsi', 'hanoi', 'stroop', 'word_pairs',
@@ -42,7 +42,8 @@ void main() {
           if (k != null) keys.add('$id/$k');
         }
       }
-      expect(keys.length, 56);
+      // 57 = 56 + «время на доску» маджонга с 29-го (02.10.2026, задача 7f81fbc6).
+      expect(keys.length, 57);
     });
   });
 
