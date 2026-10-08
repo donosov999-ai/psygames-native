@@ -184,7 +184,12 @@ const MODE_FIELDS = ['towers', 'unequal'];
  *  обязаны их видеть. Пропустить поле — доска «не единственна» (01.10: так выгрузка сама
  *  поймала линии шёпота, не попавшие в прежний явный список). */
 const OVERLAY_FIELDS = ['parity', 'kropki', 'sandwich', 'unequal', 'towers', 'whisper', 'renban', 'regionsum', 'palindrome', 'between', 'lockout', 'xv', 'littlekiller', 'xsums', 'cipher'];
-const toStr = (g) => g.map((row) => row.join('')).join('');
+// Клетка — одна цифра, поэтому строка без разделителя. 🔴 НО у клеток Шрёдингера коды 1..10 и
+// 100+ (encodeS): склеенные, они неоднозначны («10» — код 10 или код 1 и пустая клетка), и натив
+// читал бы мусор. Доска, где есть код больше 9, пишется через запятую; обычные — как прежде.
+const toStr = (g) => (g.some((row) => row.some((v) => v > 9))
+  ? g.map((row) => row.join(',')).join(',')
+  : g.map((row) => row.join('')).join(''));
 
 /** Причина брака или null. `gen` — результат генератора, `tier` — что пойдёт в файл. */
 function defect(gen, N, BR, BC, variant, tier) {

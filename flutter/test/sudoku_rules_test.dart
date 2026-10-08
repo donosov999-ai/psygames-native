@@ -69,7 +69,9 @@ void main() {
       // Туман (137–140) правило ДОПУСТИМОСТИ цифр не меняет — он закрывает клетки; самосборка
       // (141–144) блоков не даёт вовсе — области выводит игрок, и её допустимость мягче
       // классики, а не строже. Их эталоны проверяют перенос («ответ совпадает с живым TS»).
-      if (variant == 'fog' || variant == 'chaos') continue;
+      // Клетки Шрёдингера (145–148): цифры 0–9 и клетка-пара — классическая проверка «можно»
+      // к ним не применима вовсе; их эталон сверяется своей пробой (sudoku_schrodinger_test).
+      if (variant == 'fog' || variant == 'chaos' || variant == 'schrodinger') continue;
       final n = (b['n'] as num).toInt(), br = (b['br'] as num).toInt(), bc = (b['bc'] as num).toInt();
       final grid = (b['grid'] as List).map((row) => (row as List).cast<num>().map((x) => x.toInt()).toList()).toList();
       var byRule = 0;
