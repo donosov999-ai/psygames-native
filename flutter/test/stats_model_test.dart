@@ -90,8 +90,9 @@ void main() {
     expect([closed.allows('corsi'), closed.allows('sudoku')], [false, true]);
   });
 
-  testWidgets('🔴 экран считает модель сам: охват «все игры» — свой, страница не нужна', (t) async {
-    final (state, inp) = await stateOf('ru');
+  /// Экран «Прогресса» на хранилище эталона [name], часы — его же; ждёт, пока своя модель посчитается.
+  Future<(SharedState, Map<String, Object?>)> mountStats(WidgetTester t, String name) async {
+    final (state, inp) = await stateOf(name);
     lang('ru');
     Profiles.useForTest(profiles);
     await t.runAsync(WebTheme.load);
@@ -114,6 +115,11 @@ void main() {
       await t.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 20)));
       await t.pump();
     }
+    return (state, inp);
+  }
+
+  testWidgets('🔴 экран считает модель сам: охват «все игры» — свой, страница не нужна', (t) async {
+    await mountStats(t, 'ru');
     final ru = obj('test/fixtures/stats_model_ru.json');
     expect(find.text(ru['totalPlayed']! as String), findsOneWidget);
     expect(ScreenUi.model(StatsScreen.route).value, isNull, reason: 'модель не от страницы');
@@ -121,5 +127,43 @@ void main() {
     await t.pump();
     final all = obj('test/fixtures/stats_model_ru_all.json');
     expect(find.text(all['totalPlayed']! as String), findsOneWidget, reason: 'охват переключён здесь, без веба');
+  });
+
+  testWidgets('🔴 новая партия в памяти — «Прогресс» пересчитан сам, без перезахода (слушает запись, не только профиль)', (t) async {
+    final (state, inp) = await mountStats(t, 'ru');
+    final ru = obj('test/fixtures/stats_model_ru.json');
+    expect(find.text(ru['totalPlayed']! as String), findsOneWidget);
+    final now = (inp['now']! as num).toInt();
+    final list = jsonDecode(state.get('psygames_sessions')!) as List;
+    list.add({
+      'profile_id': state.activeProfile,
+      'game_type': 'corsi',
+      'score': 5,
+      'time_seconds': 50,
+      'timestamp': DateTime.fromMillisecondsSinceEpoch(now - 60000, isUtc: true).toIso8601String(),
+      'passed': true,
+    });
+    await t.runAsync(() => state.set('psygames_sessions', jsonEncode(list)));
+    await t.pump(const Duration(milliseconds: 250));
+    for (var i = 0; i < 10; i++) {
+      await t.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 20)));
+      await t.pump();
+    }
+    final want = statsModel(
+      statsInputsFrom(
+        state,
+        rules: rules,
+        catalog: catalog,
+        profilesJson: profilesJson,
+        profiles: profiles,
+        loc: loc,
+        now: now,
+        wall: wallOf((inp['tzOffsetMinutes']! as num).toInt()),
+      ),
+      scopeAll: false,
+      textSecondary: inp['textSecondary']! as String,
+    );
+    expect(want['totalPlayed'], isNot(ru['totalPlayed']));
+    expect(find.text(want['totalPlayed']! as String), findsOneWidget);
   });
 }

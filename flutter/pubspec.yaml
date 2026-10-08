@@ -152,6 +152,8 @@ flutter:
     - assets/stats_rules.json
     # Главная: готовые цвета карточек и ключи на лету (проба flutter-home-asset-fresh, вариант Б).
     - assets/home.json
+    # Входы Главной на Dart (вариант Б, 7б): картинки профилей, вещи, кадры питомца, правила — `home_inputs.dart`.
+    - assets/home_inputs.json
     # Иконки игр «поле в миниатюре» для строк развилок — выгрузка веб-реестра
     # (flutter/tools/embed-game-icons.mjs), не править руками.
     - assets/game_icons/

@@ -1,0 +1,801 @@
+{
+ "profileImages": {
+  "odv999": {
+   "bg": null,
+   "logo": "/assets/images/logos/logo6.webp",
+   "plate": "#FFFFFFD1",
+   "badge": "/assets/images/profiles/odv999.webp"
+  },
+  "whatsnew": {
+   "bg": null,
+   "logo": "/assets/images/logos/logo6.webp",
+   "plate": "#FFFFFFD1",
+   "badge": null
+  },
+  "women": {
+   "bg": "/assets/images/profile-bg/women.webp",
+   "logo": "/assets/images/logos/logo0.webp",
+   "plate": "#FFFFFFD1",
+   "badge": "/assets/images/profiles/women.webp"
+  },
+  "free": {
+   "bg": null,
+   "logo": "/assets/images/logos/logo11.webp",
+   "plate": "#FFFFFFD1",
+   "badge": "/assets/images/profiles/free.webp"
+  },
+  "kids": {
+   "bg": "/assets/images/profile-bg/kids.webp",
+   "logo": "/assets/images/logos/logo3.webp",
+   "plate": "#12151AC7",
+   "badge": "/assets/images/profiles/kids.webp"
+  },
+  "seniors": {
+   "bg": "/assets/images/profile-bg/seniors.webp",
+   "logo": "/assets/images/logos/logo9.webp",
+   "plate": "#FFFFFFD1",
+   "badge": "/assets/images/profiles/seniors.webp"
+  },
+  "chess": {
+   "bg": "/assets/images/profile-bg/chess.webp",
+   "logo": "/assets/images/logos/logo2.webp",
+   "plate": "#12151AC7",
+   "badge": "/assets/images/profiles/chess.webp"
+  },
+  "drivers": {
+   "bg": "/assets/images/profile-bg/drivers.webp",
+   "logo": "/assets/images/logos/logo5.webp",
+   "plate": "#FFFFFFD1",
+   "badge": "/assets/images/profiles/drivers.webp"
+  },
+  "execs": {
+   "bg": "/assets/images/profile-bg/execs.webp",
+   "logo": "/assets/images/logos/logo7.webp",
+   "plate": "#FFFFFFD1",
+   "badge": "/assets/images/profiles/execs.webp"
+  },
+  "students": {
+   "bg": "/assets/images/profile-bg/students.webp",
+   "logo": "/assets/images/logos/logo4.webp",
+   "plate": "#FFFFFFD1",
+   "badge": "/assets/images/profiles/students.webp"
+  },
+  "nzt48": {
+   "bg": "/assets/images/profile-bg/nzt48.webp",
+   "logo": "/assets/images/logos/logo1.webp",
+   "plate": "#12151AC7",
+   "badge": "/assets/images/profiles/nzt48.webp"
+  },
+  "vasilyeva": {
+   "bg": "/assets/images/profile-bg/vasilyeva.webp",
+   "logo": "/assets/images/logos/logo8.webp",
+   "plate": "#12151AC7",
+   "badge": "/assets/images/profiles/vasilyeva.webp"
+  },
+  "polyglot": {
+   "bg": "/assets/images/profile-bg/polyglot.webp",
+   "logo": "/assets/images/logos/logo10.webp",
+   "plate": "#FFFFFFD1",
+   "badge": "/assets/images/profiles/polyglot.webp"
+  }
+ },
+ "avatars": {
+  "avatar_brain": "/assets/images/avatars/avatar_brain.webp",
+  "avatar_fox": "/assets/images/avatars/avatar_fox.webp",
+  "avatar_gem": "/assets/images/avatars/avatar_gem.webp",
+  "avatar_knight": "/assets/images/avatars/avatar_knight.webp",
+  "avatar_lightning": "/assets/images/avatars/avatar_lightning.webp",
+  "avatar_owl": "/assets/images/avatars/avatar_owl.webp",
+  "avatar_phoenix": "/assets/images/avatars/avatar_phoenix.webp",
+  "avatar_robot": "/assets/images/avatars/avatar_robot.webp",
+  "avatar_star": "/assets/images/avatars/avatar_star.webp"
+ },
+ "warmupIcon": "/assets/images/feature_icons/warmup.webp",
+ "cosmetics": [
+  {
+   "id": "frame_gold",
+   "type": "frame",
+   "value": "#f5b50a",
+   "nameKey": "cosName_frame_gold"
+  },
+  {
+   "id": "frame_crimson",
+   "type": "frame",
+   "value": "#ef4444",
+   "nameKey": "cosName_frame_crimson"
+  },
+  {
+   "id": "frame_azure",
+   "type": "frame",
+   "value": "#38bdf8",
+   "nameKey": "cosName_frame_azure"
+  },
+  {
+   "id": "frame_emerald",
+   "type": "frame",
+   "value": "#22c55e",
+   "nameKey": "cosName_frame_emerald"
+  },
+  {
+   "id": "frame_violet",
+   "type": "frame",
+   "value": "#a78bfa",
+   "nameKey": "cosName_frame_violet"
+  },
+  {
+   "id": "frame_silver",
+   "type": "frame",
+   "value": "#cbd5e1",
+   "nameKey": "cosName_frame_silver"
+  },
+  {
+   "id": "title_focused",
+   "type": "title",
+   "value": "🎯",
+   "nameKey": "cosName_title_focused"
+  },
+  {
+   "id": "title_sharp",
+   "type": "title",
+   "value": "⚡",
+   "nameKey": "cosName_title_sharp"
+  },
+  {
+   "id": "title_strategist",
+   "type": "title",
+   "value": "♟️",
+   "nameKey": "cosName_title_strategist"
+  },
+  {
+   "id": "title_owl",
+   "type": "title",
+   "value": "🦉",
+   "nameKey": "cosName_title_owl"
+  },
+  {
+   "id": "title_unstoppable",
+   "type": "title",
+   "value": "🔥",
+   "nameKey": "cosName_title_unstoppable"
+  },
+  {
+   "id": "title_grandmaster",
+   "type": "title",
+   "value": "👑",
+   "nameKey": "cosName_title_grandmaster"
+  },
+  {
+   "id": "title_legend",
+   "type": "title",
+   "value": "🌟",
+   "nameKey": "cosName_title_legend"
+  },
+  {
+   "id": "title_cyberbrain",
+   "type": "title",
+   "value": "🧠",
+   "nameKey": "cosName_title_cyberbrain"
+  },
+  {
+   "id": "frame_onyx",
+   "type": "frame",
+   "value": "#0f172a",
+   "nameKey": "cosName_frame_onyx"
+  },
+  {
+   "id": "title_comet",
+   "type": "title",
+   "value": "☄️",
+   "nameKey": "cosName_title_comet"
+  },
+  {
+   "id": "title_diamond",
+   "type": "title",
+   "value": "💎",
+   "nameKey": "cosName_title_diamond"
+  },
+  {
+   "id": "title_infinity",
+   "type": "title",
+   "value": "♾️",
+   "nameKey": "cosName_title_infinity"
+  },
+  {
+   "id": "avatar_owl",
+   "type": "avatar",
+   "value": "avatar_owl",
+   "nameKey": "cosName_avatar_owl"
+  },
+  {
+   "id": "avatar_fox",
+   "type": "avatar",
+   "value": "avatar_fox",
+   "nameKey": "cosName_avatar_fox"
+  },
+  {
+   "id": "avatar_gem",
+   "type": "avatar",
+   "value": "avatar_gem",
+   "nameKey": "cosName_avatar_gem"
+  },
+  {
+   "id": "avatar_lightning",
+   "type": "avatar",
+   "value": "avatar_lightning",
+   "nameKey": "cosName_avatar_lightning"
+  },
+  {
+   "id": "avatar_star",
+   "type": "avatar",
+   "value": "avatar_star",
+   "nameKey": "cosName_avatar_star"
+  },
+  {
+   "id": "avatar_knight",
+   "type": "avatar",
+   "value": "avatar_knight",
+   "nameKey": "cosName_avatar_knight"
+  },
+  {
+   "id": "avatar_phoenix",
+   "type": "avatar",
+   "value": "avatar_phoenix",
+   "nameKey": "cosName_avatar_phoenix"
+  },
+  {
+   "id": "avatar_robot",
+   "type": "avatar",
+   "value": "avatar_robot",
+   "nameKey": "cosName_avatar_robot"
+  },
+  {
+   "id": "avatar_brain",
+   "type": "avatar",
+   "value": "avatar_brain",
+   "nameKey": "cosName_avatar_brain"
+  },
+  {
+   "id": "bg_kids",
+   "type": "background",
+   "value": "kids",
+   "nameKey": "cosName_profile_item"
+  },
+  {
+   "id": "bg_students",
+   "type": "background",
+   "value": "students",
+   "nameKey": "cosName_profile_item"
+  },
+  {
+   "id": "bg_seniors",
+   "type": "background",
+   "value": "seniors",
+   "nameKey": "cosName_profile_item"
+  },
+  {
+   "id": "bg_women",
+   "type": "background",
+   "value": "women",
+   "nameKey": "cosName_profile_item"
+  },
+  {
+   "id": "bg_drivers",
+   "type": "background",
+   "value": "drivers",
+   "nameKey": "cosName_profile_item"
+  },
+  {
+   "id": "bg_vasilyeva",
+   "type": "background",
+   "value": "vasilyeva",
+   "nameKey": "cosName_profile_item"
+  },
+  {
+   "id": "bg_chess",
+   "type": "background",
+   "value": "chess",
+   "nameKey": "cosName_profile_item"
+  },
+  {
+   "id": "bg_nzt48",
+   "type": "background",
+   "value": "nzt48",
+   "nameKey": "cosName_profile_item"
+  },
+  {
+   "id": "bg_execs",
+   "type": "background",
+   "value": "execs",
+   "nameKey": "cosName_profile_item"
+  },
+  {
+   "id": "bg_polyglot",
+   "type": "background",
+   "value": "polyglot",
+   "nameKey": "cosName_profile_item"
+  },
+  {
+   "id": "badge_free",
+   "type": "badge",
+   "value": "free",
+   "nameKey": "cosName_profile_item"
+  },
+  {
+   "id": "badge_kids",
+   "type": "badge",
+   "value": "kids",
+   "nameKey": "cosName_profile_item"
+  },
+  {
+   "id": "badge_students",
+   "type": "badge",
+   "value": "students",
+   "nameKey": "cosName_profile_item"
+  },
+  {
+   "id": "badge_seniors",
+   "type": "badge",
+   "value": "seniors",
+   "nameKey": "cosName_profile_item"
+  },
+  {
+   "id": "badge_women",
+   "type": "badge",
+   "value": "women",
+   "nameKey": "cosName_profile_item"
+  },
+  {
+   "id": "badge_drivers",
+   "type": "badge",
+   "value": "drivers",
+   "nameKey": "cosName_profile_item"
+  },
+  {
+   "id": "badge_vasilyeva",
+   "type": "badge",
+   "value": "vasilyeva",
+   "nameKey": "cosName_profile_item"
+  },
+  {
+   "id": "badge_polyglot",
+   "type": "badge",
+   "value": "polyglot",
+   "nameKey": "cosName_profile_item"
+  },
+  {
+   "id": "badge_chess",
+   "type": "badge",
+   "value": "chess",
+   "nameKey": "cosName_profile_item"
+  },
+  {
+   "id": "badge_nzt48",
+   "type": "badge",
+   "value": "nzt48",
+   "nameKey": "cosName_profile_item"
+  },
+  {
+   "id": "badge_execs",
+   "type": "badge",
+   "value": "execs",
+   "nameKey": "cosName_profile_item"
+  },
+  {
+   "id": "badge_odv999",
+   "type": "badge",
+   "value": "odv999",
+   "nameKey": "cosName_profile_item"
+  }
+ ],
+ "pet": {
+  "cat": {
+   "cheer": {
+    "kind": "frames",
+    "uris": [
+     "/assets/images/pet/cat/cheer0.webp",
+     "/assets/images/pet/cat/cheer1.webp",
+     "/assets/images/pet/cat/cheer2.webp",
+     "/assets/images/pet/cat/cheer3.webp",
+     "/assets/images/pet/cat/cheer4.webp",
+     "/assets/images/pet/cat/cheer5.webp",
+     "/assets/images/pet/cat/cheer6.webp"
+    ],
+    "frames": 7,
+    "tickMs": 74,
+    "accessory": null
+   },
+   "idle": {
+    "kind": "frames",
+    "uris": [
+     "/assets/images/pet/cat/idle0.webp",
+     "/assets/images/pet/cat/idle1.webp",
+     "/assets/images/pet/cat/idle2.webp",
+     "/assets/images/pet/cat/idle3.webp",
+     "/assets/images/pet/cat/idle4.webp",
+     "/assets/images/pet/cat/idle5.webp",
+     "/assets/images/pet/cat/idle6.webp"
+    ],
+    "frames": 7,
+    "tickMs": 240,
+    "accessory": null
+   },
+   "point": {
+    "kind": "frames",
+    "uris": [
+     "/assets/images/pet/cat/point0.webp",
+     "/assets/images/pet/cat/point1.webp",
+     "/assets/images/pet/cat/point2.webp",
+     "/assets/images/pet/cat/point3.webp",
+     "/assets/images/pet/cat/point4.webp",
+     "/assets/images/pet/cat/point5.webp",
+     "/assets/images/pet/cat/point6.webp"
+    ],
+    "frames": 7,
+    "tickMs": 109,
+    "accessory": null
+   },
+   "sad": {
+    "kind": "frames",
+    "uris": [
+     "/assets/images/pet/cat/sad0.webp",
+     "/assets/images/pet/cat/sad1.webp",
+     "/assets/images/pet/cat/sad2.webp",
+     "/assets/images/pet/cat/sad3.webp",
+     "/assets/images/pet/cat/sad4.webp",
+     "/assets/images/pet/cat/sad5.webp",
+     "/assets/images/pet/cat/sad6.webp"
+    ],
+    "frames": 7,
+    "tickMs": 263,
+    "accessory": null
+   },
+   "wave": {
+    "kind": "frames",
+    "uris": [
+     "/assets/images/pet/cat/wave0.webp",
+     "/assets/images/pet/cat/wave1.webp",
+     "/assets/images/pet/cat/wave2.webp",
+     "/assets/images/pet/cat/wave3.webp",
+     "/assets/images/pet/cat/wave4.webp",
+     "/assets/images/pet/cat/wave5.webp",
+     "/assets/images/pet/cat/wave6.webp"
+    ],
+    "frames": 7,
+    "tickMs": 103,
+    "accessory": null
+   }
+  },
+  "robot": {
+   "cheer": {
+    "kind": "frames",
+    "uris": [
+     "/assets/images/pet/robot/jump0.webp",
+     "/assets/images/pet/robot/jump1.webp",
+     "/assets/images/pet/robot/jump2.webp",
+     "/assets/images/pet/robot/jump3.webp"
+    ],
+    "frames": 4,
+    "tickMs": 150,
+    "accessory": null
+   },
+   "idle": {
+    "kind": "frames",
+    "uris": [
+     "/assets/images/pet/robot/idle0.webp",
+     "/assets/images/pet/robot/idle1.webp",
+     "/assets/images/pet/robot/idle2.webp",
+     "/assets/images/pet/robot/idle3.webp"
+    ],
+    "frames": 4,
+    "tickMs": 420,
+    "accessory": null
+   },
+   "point": {
+    "kind": "frames",
+    "uris": [
+     "/assets/images/pet/robot/wave0.webp",
+     "/assets/images/pet/robot/wave1.webp",
+     "/assets/images/pet/robot/wave2.webp",
+     "/assets/images/pet/robot/wave3.webp"
+    ],
+    "frames": 4,
+    "tickMs": 180,
+    "accessory": null
+   },
+   "sad": {
+    "kind": "frames",
+    "uris": [
+     "/assets/images/pet/robot/idle0.webp",
+     "/assets/images/pet/robot/idle1.webp",
+     "/assets/images/pet/robot/idle2.webp",
+     "/assets/images/pet/robot/idle3.webp"
+    ],
+    "frames": 4,
+    "tickMs": 420,
+    "accessory": null
+   },
+   "wave": {
+    "kind": "frames",
+    "uris": [
+     "/assets/images/pet/robot/wave0.webp",
+     "/assets/images/pet/robot/wave1.webp",
+     "/assets/images/pet/robot/wave2.webp",
+     "/assets/images/pet/robot/wave3.webp"
+    ],
+    "frames": 4,
+    "tickMs": 180,
+    "accessory": null
+   }
+  },
+  "constellation": {
+   "cheer": {
+    "kind": "frames",
+    "uris": [
+     "/assets/images/pet/constellation/jump0.webp",
+     "/assets/images/pet/constellation/jump1.webp",
+     "/assets/images/pet/constellation/jump2.webp",
+     "/assets/images/pet/constellation/jump3.webp"
+    ],
+    "frames": 4,
+    "tickMs": 150,
+    "accessory": null
+   },
+   "idle": {
+    "kind": "frames",
+    "uris": [
+     "/assets/images/pet/constellation/idle0.webp",
+     "/assets/images/pet/constellation/idle1.webp",
+     "/assets/images/pet/constellation/idle2.webp",
+     "/assets/images/pet/constellation/idle3.webp"
+    ],
+    "frames": 4,
+    "tickMs": 420,
+    "accessory": null
+   },
+   "point": {
+    "kind": "frames",
+    "uris": [
+     "/assets/images/pet/constellation/wave0.webp",
+     "/assets/images/pet/constellation/wave1.webp",
+     "/assets/images/pet/constellation/wave2.webp",
+     "/assets/images/pet/constellation/wave3.webp"
+    ],
+    "frames": 4,
+    "tickMs": 180,
+    "accessory": null
+   },
+   "sad": {
+    "kind": "frames",
+    "uris": [
+     "/assets/images/pet/constellation/idle0.webp",
+     "/assets/images/pet/constellation/idle1.webp",
+     "/assets/images/pet/constellation/idle2.webp",
+     "/assets/images/pet/constellation/idle3.webp"
+    ],
+    "frames": 4,
+    "tickMs": 420,
+    "accessory": null
+   },
+   "wave": {
+    "kind": "frames",
+    "uris": [
+     "/assets/images/pet/constellation/wave0.webp",
+     "/assets/images/pet/constellation/wave1.webp",
+     "/assets/images/pet/constellation/wave2.webp",
+     "/assets/images/pet/constellation/wave3.webp"
+    ],
+    "frames": 4,
+    "tickMs": 180,
+    "accessory": null
+   }
+  }
+ },
+ "goalLines": {
+  "en": {
+   "first": {
+    "text": "Let us agree — how many days in a row?",
+    "state": "wave"
+   },
+   "broken": {
+    "text": "The streak broke. Start over — how many days?",
+    "state": "sad"
+   },
+   "reached": {
+    "text": "You made it! Set the next one? 🎉",
+    "state": "cheer"
+   },
+   "weekly": {
+    "text": "A week has passed. Confirm the goal?",
+    "state": "point"
+   }
+  },
+  "ru": {
+   "first": {
+    "text": "Давай договоримся, сколько дней подряд?",
+    "state": "wave"
+   },
+   "broken": {
+    "text": "Серия оборвалась. Начнём заново — с какого числа?",
+    "state": "sad"
+   },
+   "reached": {
+    "text": "Дошёл! Ставим следующую? 🎉",
+    "state": "cheer"
+   },
+   "weekly": {
+    "text": "Неделя прошла. Подтвердим цель?",
+    "state": "point"
+   }
+  }
+ },
+ "ladder": [
+  {
+   "key": "hint",
+   "level": 2,
+   "titleKey": "ladderHint"
+  },
+  {
+   "key": "undo",
+   "level": 3,
+   "titleKey": "ladderUndo"
+  },
+  {
+   "key": "roundStats",
+   "level": 5,
+   "titleKey": "ladderRoundStats"
+  },
+  {
+   "key": "petSkins",
+   "level": 8,
+   "titleKey": "ladderPetSkins"
+  }
+ ],
+ "fresh": {
+  "entries": [
+   {
+    "id": "memory_palace",
+    "since": "2026-08-19"
+   },
+   {
+    "id": "rhythm_pitch",
+    "since": "2026-08-19"
+   },
+   {
+    "id": "navigator",
+    "since": "2026-08-19"
+   },
+   {
+    "id": "object_tracker",
+    "since": "2026-08-19"
+   },
+   {
+    "id": "faces_names",
+    "since": "2026-08-19"
+   },
+   {
+    "id": "one_line",
+    "since": "2026-08-19"
+   },
+   {
+    "id": "dots_connect",
+    "since": "2026-08-19"
+   },
+   {
+    "id": "goods_sort",
+    "since": "2026-08-19"
+   },
+   {
+    "id": "sudoku-samurai",
+    "since": "2026-08-19"
+   },
+   {
+    "id": "set_game",
+    "since": "2026-08-19"
+   },
+   {
+    "id": "sudoku-fractal",
+    "since": "2026-08-19"
+   },
+   {
+    "id": "find_differences",
+    "since": "2026-08-19"
+   },
+   {
+    "id": "prl",
+    "since": "2026-08-19"
+   },
+   {
+    "id": "math_slider",
+    "since": "2026-08-17"
+   },
+   {
+    "id": "mahjong",
+    "since": "2026-08-19"
+   }
+  ],
+  "days": 90,
+  "min": 4
+ },
+ "reco": {
+  "count": 3,
+  "staleDays": 14,
+  "branchWindowDays": 30,
+  "freshEvery": 3,
+  "eveningBanned": [
+   "action",
+   "intuition"
+  ],
+  "starters": [
+   "picture_pairs",
+   "schulte_table",
+   "hanoi",
+   "memory_matrix",
+   "breathing"
+  ],
+  "reasonKey": {
+   "comeback": "recoWhyComeback",
+   "weakspot": "recoWhyWeakspot",
+   "growth": "recoWhyGrowth",
+   "branch": "recoWhyBranch",
+   "fresh": "recoWhyFresh",
+   "calm": "recoWhyCalm",
+   "start": "recoWhyStart"
+  }
+ },
+ "domainGames": {
+  "wm_verbal": "digit_span",
+  "wm_spatial": "corsi",
+  "wm_load": "n_back",
+  "attention_orient": "posner",
+  "attention_sustained": "cpt",
+  "processing_speed": "sdmt",
+  "inhibition": "flanker",
+  "flexibility": "switching_task",
+  "reasoning": "pattern",
+  "spatial": "mental_rotation",
+  "verbal_fluency": "phonemic_fluency",
+  "risk": "bart"
+ },
+ "challengeDiffs": [
+  "easy",
+  "medium",
+  "hard"
+ ],
+ "goal": {
+  "days": [
+   7,
+   14,
+   30
+  ],
+  "askEveryDays": 7,
+  "streakCountsFrom": 2,
+  "maxLen": 90,
+  "exampleKeys": [
+   "dayGoalExample1",
+   "dayGoalExample2",
+   "dayGoalExample3"
+  ]
+ },
+ "weakSkillFreshDays": 7,
+ "resumeMaxAgeMs": 2592000000,
+ "todayRowsMax": 3,
+ "dayStreakForMult": 3,
+ "favouriteSections": 3,
+ "layout": {
+  "maxContainerWidth": 1100,
+  "containerPadding": 16
+ },
+ "textKeys": [
+  "cosName_title_comet",
+  "cosName_title_cyberbrain",
+  "cosName_title_diamond",
+  "cosName_title_focused",
+  "cosName_title_grandmaster",
+  "cosName_title_infinity",
+  "cosName_title_legend",
+  "cosName_title_owl",
+  "cosName_title_sharp",
+  "cosName_title_strategist",
+  "cosName_title_unstoppable"
+ ]
+}
