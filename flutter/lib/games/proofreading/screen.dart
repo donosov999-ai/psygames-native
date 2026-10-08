@@ -32,6 +32,7 @@ import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import '../../shell/tap_latency.dart';
+import '../anagrams/mode_thumbs.dart' show profileThumbStyle;
 import '../fillwords/core/fillwords.dart';
 import '../languages/lang_names.dart';
 import 'fillwords_field.dart';
@@ -54,6 +55,12 @@ const String proofTaskFillwords = 'fillwords';
 /// «Показывать слова рядом с полем» — ключ веба (`СПИСОК_КЛЮЧ`). Это выбор ВИДА упражнения
 /// (порождение против узнавания), а не тумблер удобства, поэтому он переживает выход.
 const String proofWordListKey = 'psygames_fillwords_wordlist';
+
+/// Картинка задания на выборе (`превьюРежимаКорректуры` веба): карта стиля профиля — общая
+/// с анаграммами ([profileThumbStyle], «Слова»), картинки — копией из веба,
+/// `assets/proofreading_modes/<задание>__<стиль>.webp`.
+String proofModeThumb(String task, String? profileId) =>
+    'assets/proofreading_modes/${task}__${profileThumbStyle(profileId)}.webp';
 
 /// Подпись письменности на выборе — словом веба (`SCRIPTS[id].labelKey`, `scriptDigits`).
 /// Ключи написаны целиком: составленный из кусков ключ сборщик словаря не находит.
@@ -495,6 +502,7 @@ class _ProofreadingScreenState extends State<ProofreadingScreen> {
                 onTask: _pickTask,
                 onDiagonals: _pickDiagonals,
                 onShowWords: _pickShowWords,
+                profileId: widget.state.activeProfile,
               ),
               onScript: _pickScript,
               onStart: _start,
@@ -542,6 +550,7 @@ class _SetupChoice {
     required this.onTask,
     required this.onDiagonals,
     required this.onShowWords,
+    required this.profileId,
   });
 
   final String task;
@@ -557,6 +566,9 @@ class _SetupChoice {
   final ValueChanged<String> onTask;
   final ValueChanged<bool> onDiagonals;
   final ValueChanged<bool> onShowWords;
+
+  /// Профиль — для стиля картинок режима.
+  final String profileId;
 
   bool get fillwords => task == proofTaskFillwords;
 }
@@ -718,10 +730,31 @@ class _Field extends StatelessWidget {
                       if (s.fwAvailable) ...[
                         Text(L.t('mode'), style: text.labelLarge),
                         const SizedBox(height: 6),
-                        chips<String>([
-                          (proofTaskLetters, L.t('proofreading'), 'proof-task-letters'),
-                          (proofTaskFillwords, fws.modeName, 'proof-task-fillwords'),
-                        ], s.task, s.onTask),
+                        // Картинка режима — чтобы выбор читался глазом (веб `превьюРежимаКорректуры`):
+                        // филворды — змейка по полю букв, корректура — поиск знака; стиль — по профилю.
+                        Wrap(alignment: WrapAlignment.center, spacing: 6, runSpacing: 6, children: [
+                          for (final (v, label, key) in [
+                            (proofTaskLetters, L.t('proofreading'), 'proof-task-letters'),
+                            (proofTaskFillwords, fws.modeName, 'proof-task-fillwords'),
+                          ])
+                            ChoiceChip(
+                              key: Key(key),
+                              avatar: ClipRRect(
+                                borderRadius: BorderRadius.circular(4),
+                                child: Image.asset(
+                                  proofModeThumb(v, s.profileId),
+                                  key: Key('$key-thumb'),
+                                  width: 28,
+                                  height: 28,
+                                  fit: BoxFit.cover,
+                                  excludeFromSemantics: true,
+                                ),
+                              ),
+                              label: Text(label),
+                              selected: v == s.task,
+                              onSelected: (_) => s.onTask(v),
+                            ),
+                        ]),
                       ] else
                         // 🔴 Честный отказ вместо пустого экрана: словаря на этом языке нет —
                         // пишем прямо, где режим уже работает.
