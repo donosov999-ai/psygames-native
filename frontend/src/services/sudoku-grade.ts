@@ -2654,13 +2654,16 @@ export function generateLogical(
   level: number, blanksCap: number, N: number, BR: number, BC: number, variant: Variant,
   opts: { budgetMs?: number; tier?: { min: number; max: number }; digCap?: number; fogSeeds?: number; logic?: boolean } = {},
 ): { gen: GeneratedPuzzle; grade: Grade; dug: number; fellBack: boolean; budgetSpent: boolean } {
-  if (variant === 'fog') return generateFog(level, blanksCap, N, BR, BC, opts);
-  if (variant === 'chaos') return generateChaos(level, blanksCap, N, BR, BC, opts);
-  if (variant === 'schrodinger') return generateSchrodinger(N, opts);
-  if (variant === 'doublers' || variant === 'negators') return generateModifiers(variant, opts);
-  const budget = opts.budgetMs ?? 2200;
-  // Лимит копания ступени (`digCap` в levelConfig); явное число — для замеров и гейтов.
+  // Лимит копания ступени (`digCap` в levelConfig); явное число — для замеров и гейтов. Берётся ДО
+  // развилок: свои генераторы тумана, самосборки, Шрёдингера и нарушителей его тоже слушают — до 08.10
+  // им доходил только явный opts.digCap, и поле ступени у этих правил молча не действовало.
   const digCap = opts.digCap ?? levelConfig(level).digCap;
+  const routed = digCap === undefined ? opts : { ...opts, digCap };
+  if (variant === 'fog') return generateFog(level, blanksCap, N, BR, BC, routed);
+  if (variant === 'chaos') return generateChaos(level, blanksCap, N, BR, BC, routed);
+  if (variant === 'schrodinger') return generateSchrodinger(N, routed);
+  if (variant === 'doublers' || variant === 'negators') return generateModifiers(variant, routed);
+  const budget = opts.budgetMs ?? 2200;
   const until = Date.now() + budget;
   /**
    * Полоса техник — целевая сложность партии. Обычно её задаёт уровень; дорога
