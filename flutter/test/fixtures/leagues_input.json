@@ -1,0 +1,26 @@
+{
+ "now": 1791386703131,
+ "sessions": [
+  {
+   "profile_id": "nzt48",
+   "game_type": "sudoku",
+   "score": 400,
+   "time_seconds": 60,
+   "timestamp": "2026-10-06T15:25:01.960Z"
+  },
+  {
+   "profile_id": "nzt48",
+   "game_type": "corsi",
+   "score": 350,
+   "time_seconds": 60,
+   "timestamp": "2026-10-04T15:25:01.960Z"
+  },
+  {
+   "profile_id": "nzt48",
+   "game_type": "corsi",
+   "score": 900,
+   "time_seconds": 60,
+   "timestamp": "2026-08-08T15:25:01.960Z"
+  }
+ ]
+}

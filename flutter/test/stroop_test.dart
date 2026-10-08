@@ -54,7 +54,13 @@ void main() {
       for (var i = 0; i < ours.length; i++) {
         final e = want[i] as Map<String, dynamic>;
         expect(ours[i].name, e['name'], reason: 'палитра $name, цвет $i: имя');
-        expect(ours[i].ru, e['ru'], reason: 'палитра $name, цвет $i: подпись');
+        // Слово цвета живёт не в палитре, а в словаре на языке интерфейса (`stroopWord`).
+        // Здесь держим, что на двух языках веба оно то же, что у веб-палитры.
+        for (final lang in ['ru', 'en']) {
+          final dict = jsonDecode(File('assets/l10n/$lang.json').readAsStringSync()) as Map<String, dynamic>;
+          expect((dict['color_${e['name']}'] as String).toUpperCase(), e[lang],
+              reason: 'палитра $name, цвет $i: слово на $lang');
+        }
         expect(ours[i].hex, e['hex'], reason: 'палитра $name, цвет $i: чернила');
       }
     }

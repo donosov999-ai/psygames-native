@@ -139,6 +139,7 @@
     "Range": "puzzleSecondDot",
     "Magnets": "puzzleSecondEmpty",
     "Galaxies": "puzzleSecondMark",
+    "Guess": "puzzleSecondKeep",
     "Palisade": "puzzleSecondMark",
     "Light Up": "puzzleSecondNoLamp",
     "Tents": "puzzleSecondGrass",
@@ -159,7 +160,8 @@
     "Unequal": "puzzleSecondPencil",
     "Keen": "puzzleSecondPencil",
     "Singles": "puzzleSecondKeep",
-    "Undead": "puzzleSecondPencil"
+    "Undead": "puzzleSecondPencil",
+    "Unruly": "puzzleSecondWhite"
   },
   "стрелочные": [
     "Bridges",

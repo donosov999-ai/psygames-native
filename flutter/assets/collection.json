@@ -1,0 +1,76 @@
+{
+ "figures": [
+  {
+   "key": "Acorn",
+   "at": 150,
+   "face": "🌰",
+   "nameKey": "figAcorn"
+  },
+  {
+   "key": "Pebble",
+   "at": 350,
+   "face": "🪨",
+   "nameKey": "figPebble"
+  },
+  {
+   "key": "Shell",
+   "at": 640,
+   "face": "🐚",
+   "nameKey": "figShell"
+  },
+  {
+   "key": "Feather",
+   "at": 1020,
+   "face": "🪶",
+   "nameKey": "figFeather"
+  },
+  {
+   "key": "Lantern",
+   "at": 1550,
+   "face": "🏮",
+   "nameKey": "figLantern"
+  },
+  {
+   "key": "Key",
+   "at": 2270,
+   "face": "🗝️",
+   "nameKey": "figKey"
+  },
+  {
+   "key": "Anchor",
+   "at": 3260,
+   "face": "⚓",
+   "nameKey": "figAnchor"
+  },
+  {
+   "key": "Hourglass",
+   "at": 4620,
+   "face": "⏳",
+   "nameKey": "figHourglass"
+  },
+  {
+   "key": "Crystal",
+   "at": 6480,
+   "face": "💎",
+   "nameKey": "figCrystal"
+  },
+  {
+   "key": "Hedgehog",
+   "at": 9030,
+   "face": "🦔",
+   "nameKey": "figHedgehog"
+  },
+  {
+   "key": "Moon",
+   "at": 12500,
+   "face": "🌙",
+   "nameKey": "figMoon"
+  },
+  {
+   "key": "Lighthouse",
+   "at": 17300,
+   "face": "🗼",
+   "nameKey": "figLighthouse"
+  }
+ ]
+}

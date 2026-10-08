@@ -36,7 +36,7 @@ class NativeTabs {
   static double height = 58;
 
   /// Вкладки, которые рисует оболочка сама; остальные — страница в WebView.
-  static const native = {'/', '/games', '/statistics'};
+  static const native = {'/', '/games', '/statistics', '/pet'};
 
   static Future<void> load() async {
     final b = await rootBundle.load('assets/tabs.json');

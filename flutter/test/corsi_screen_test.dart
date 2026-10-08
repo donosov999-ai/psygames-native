@@ -14,6 +14,7 @@ import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'support/boss_probe.dart';
+import 'support/settings_fit.dart';
 
 /// ПАРТИЯ ИГРАЕТСЯ ТЫЧКАМИ ПО БЛОКАМ, а не вызовом правил.
 ///
@@ -310,5 +311,19 @@ void main() {
       await open(tester, level);
       await winByTaps(tester);
     });
+  });
+
+  testWidgets('🔴 настройка на 360×640 по-английски и по-русски: «Начать» на первом экране (ae1d918b)', (tester) async {
+    await expectSettingsFit(tester, () => boot(tester), where: 'corsi');
+  });
+
+  testWidgets('🔴 партия на 360×640: органы ответа целиком на экране (или в прокрутке поля), не меньше 48×48 (приёмка 6596a00d)',
+      (tester) async {
+    await expectPlayFit(tester, () async {
+      await boot(tester);
+      await tester.tap(find.text(L.t('start')));
+      await watch(tester);
+    }, where: 'corsi, ввод');
+    await tester.pumpWidget(const SizedBox());
   });
 }

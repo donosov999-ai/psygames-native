@@ -1,0 +1,1696 @@
+{
+ "v": 1,
+ "title": "Магазин",
+ "back": "Назад",
+ "backIcon": "arrow-back",
+ "primary": "#f5b50a",
+ "balance": "1400",
+ "cats": [
+  {
+   "id": null,
+   "icon": "apps",
+   "label": "Все разделы",
+   "on": true
+  },
+  {
+   "id": "ability",
+   "icon": "flash",
+   "label": "Способности",
+   "on": false
+  },
+  {
+   "id": "accent",
+   "icon": "color-palette",
+   "label": "Акцентные темы",
+   "on": false
+  },
+  {
+   "id": "sound",
+   "icon": "musical-notes",
+   "label": "Звуковые паки",
+   "on": false
+  },
+  {
+   "id": "frame",
+   "icon": "scan",
+   "label": "Рамки",
+   "on": false
+  },
+  {
+   "id": "title",
+   "icon": "pricetag",
+   "label": "Титулы",
+   "on": false
+  },
+  {
+   "id": "avatar",
+   "icon": "person",
+   "label": "Аватары",
+   "on": false
+  },
+  {
+   "id": "pet",
+   "icon": "paw",
+   "label": "Для питомца",
+   "on": false
+  },
+  {
+   "id": "digits",
+   "icon": "calculator",
+   "label": "Категория: наборы цифр",
+   "on": false
+  },
+  {
+   "id": "theme",
+   "icon": "map",
+   "label": "Категория: темы карты",
+   "on": false
+  },
+  {
+   "id": "background",
+   "icon": "image",
+   "label": "Категория: фоны",
+   "on": false
+  },
+  {
+   "id": "badge",
+   "icon": "ribbon",
+   "label": "Категория: значки",
+   "on": false
+  }
+ ],
+ "note": null,
+ "abilities": {
+  "title": "⚡ Способности — расходуются штуками. Они не решают задачу за тебя: возвращают партию и серию.",
+  "rows": [
+   {
+    "id": "second_life",
+    "icon": "heart",
+    "name": "Вторая жизнь («Мишени»)",
+    "desc": "«Мишени»: партия не обрывается на последней жизни. Одна на партию, и уровень за такую партию не растёт.",
+    "price": "500 ⭐ · в кошельке: 0",
+    "buy": {
+     "label": "Купить",
+     "enabled": true
+    },
+    "use": null
+   },
+   {
+    "id": "practice_run",
+    "icon": "flask",
+    "name": "Пробный заход",
+    "desc": "Замерные игры: партия не записывается никуда — ни очков, ни уровня, ни статистики. Пробуй без последствий.",
+    "price": "250 ⭐ · в кошельке: 0",
+    "buy": {
+     "label": "Купить",
+     "enabled": true
+    },
+    "use": null
+   },
+   {
+    "id": "streak_shield",
+    "icon": "shield-checkmark",
+    "name": "Щит серии",
+    "desc": "Вернуть серию дней, оборванную пропуском. Работает только в тот день, когда серия оборвалась.",
+    "price": "1500 ⭐ · в кошельке: 0",
+    "buy": {
+     "label": "Мало очков",
+     "enabled": false
+    },
+    "use": {
+     "label": "Применить",
+     "ready": false
+    }
+   }
+  ],
+  "hint": "Способность стоит дороже, чем может принести партия, — купить её ради заработка нельзя.",
+  "wager": {
+   "active": false,
+   "title": "Всё или ничего",
+   "desc": "Поставь 300 ⭐ и заходи 7 дней подряд — заберёшь 600 ⭐. Пропустишь день — ставка сгорит, и Щит серии её не спасёт.",
+   "btn": {
+    "label": "Поставить 300 ⭐",
+    "enabled": true
+   }
+  }
+ },
+ "sections": [
+  {
+   "type": "accent",
+   "title": "Акцентные темы — меняют цвет интерфейса. Купи за очки, надень бесплатно.",
+   "first": false,
+   "items": [
+    {
+     "id": "accent_gold",
+     "name": "Золото",
+     "desc": "Тёплый янтарный акцент — солидно, премиально",
+     "price": "✓ Куплено",
+     "owned": true,
+     "on": true,
+     "accent": "#f5b50a",
+     "swatch": {
+      "kind": "color",
+      "color": "#f5b50a"
+     },
+     "btn": {
+      "label": "Надето",
+      "enabled": true
+     }
+    },
+    {
+     "id": "accent_neon",
+     "name": "Неон",
+     "desc": "Кислотно-зелёный — энергично, киберпанк",
+     "price": "900 ⭐",
+     "owned": false,
+     "on": false,
+     "accent": "#00e5a0",
+     "swatch": {
+      "kind": "color",
+      "color": "#00e5a0"
+     },
+     "btn": {
+      "label": "Купить",
+      "enabled": true
+     }
+    },
+    {
+     "id": "accent_ocean",
+     "name": "Океан",
+     "desc": "Глубокий синий — спокойно и ясно",
+     "price": "900 ⭐",
+     "owned": false,
+     "on": false,
+     "accent": "#0aa6ff",
+     "swatch": {
+      "kind": "color",
+      "color": "#0aa6ff"
+     },
+     "btn": {
+      "label": "Купить",
+      "enabled": true
+     }
+    },
+    {
+     "id": "accent_rose",
+     "name": "Роза",
+     "desc": "Яркая фуксия — живо и тепло",
+     "price": "1200 ⭐",
+     "owned": false,
+     "on": false,
+     "accent": "#ff4d8d",
+     "swatch": {
+      "kind": "color",
+      "color": "#ff4d8d"
+     },
+     "btn": {
+      "label": "Купить",
+      "enabled": true
+     }
+    },
+    {
+     "id": "accent_emerald",
+     "name": "Изумруд",
+     "desc": "Сочный зелёный — свежо и природно",
+     "price": "1500 ⭐",
+     "owned": false,
+     "on": false,
+     "accent": "#10b981",
+     "swatch": {
+      "kind": "color",
+      "color": "#10b981"
+     },
+     "btn": {
+      "label": "Мало очков",
+      "enabled": false
+     }
+    },
+    {
+     "id": "accent_lavender",
+     "name": "Лаванда",
+     "desc": "Мягкий фиолет — спокойная роскошь",
+     "price": "1050 ⭐",
+     "owned": false,
+     "on": false,
+     "accent": "#8b5cf6",
+     "swatch": {
+      "kind": "color",
+      "color": "#8b5cf6"
+     },
+     "btn": {
+      "label": "Купить",
+      "enabled": true
+     }
+    },
+    {
+     "id": "accent_crimson",
+     "name": "Багрянец",
+     "desc": "Насыщенный красный — уверенно и дерзко",
+     "price": "1200 ⭐",
+     "owned": false,
+     "on": false,
+     "accent": "#dc2626",
+     "swatch": {
+      "kind": "color",
+      "color": "#dc2626"
+     },
+     "btn": {
+      "label": "Купить",
+      "enabled": true
+     }
+    },
+    {
+     "id": "accent_cyan",
+     "name": "Бирюза",
+     "desc": "Прохладный бирюзовый — свежо и технично",
+     "price": "1350 ⭐",
+     "owned": false,
+     "on": false,
+     "accent": "#06b6d4",
+     "swatch": {
+      "kind": "color",
+      "color": "#06b6d4"
+     },
+     "btn": {
+      "label": "Купить",
+      "enabled": true
+     }
+    },
+    {
+     "id": "accent_tangerine",
+     "name": "Мандарин",
+     "desc": "Сочный оранжевый — бодро и заметно",
+     "price": "1500 ⭐",
+     "owned": false,
+     "on": false,
+     "accent": "#f97316",
+     "swatch": {
+      "kind": "color",
+      "color": "#f97316"
+     },
+     "btn": {
+      "label": "Мало очков",
+      "enabled": false
+     }
+    },
+    {
+     "id": "accent_indigo",
+     "name": "Индиго",
+     "desc": "Глубокий сине-фиолетовый — ночное небо",
+     "price": "1650 ⭐",
+     "owned": false,
+     "on": false,
+     "accent": "#4f46e5",
+     "swatch": {
+      "kind": "color",
+      "color": "#4f46e5"
+     },
+     "btn": {
+      "label": "Мало очков",
+      "enabled": false
+     }
+    },
+    {
+     "id": "accent_coral",
+     "name": "Коралл",
+     "desc": "Тёплый розово-красный — живо и уютно",
+     "price": "1800 ⭐",
+     "owned": false,
+     "on": false,
+     "accent": "#fb7185",
+     "swatch": {
+      "kind": "color",
+      "color": "#fb7185"
+     },
+     "btn": {
+      "label": "Мало очков",
+      "enabled": false
+     }
+    },
+    {
+     "id": "accent_slate",
+     "name": "Графит",
+     "desc": "Строгий серо-синий — минимализм",
+     "price": "1950 ⭐",
+     "owned": false,
+     "on": false,
+     "accent": "#64748b",
+     "swatch": {
+      "kind": "color",
+      "color": "#64748b"
+     },
+     "btn": {
+      "label": "Мало очков",
+      "enabled": false
+     }
+    },
+    {
+     "id": "accent_copper",
+     "name": "Медь",
+     "desc": "Тёплый медный — винтажно и благородно",
+     "price": "2100 ⭐",
+     "owned": false,
+     "on": false,
+     "accent": "#b45309",
+     "swatch": {
+      "kind": "color",
+      "color": "#b45309"
+     },
+     "btn": {
+      "label": "Мало очков",
+      "enabled": false
+     }
+    },
+    {
+     "id": "accent_mint",
+     "name": "Мята",
+     "desc": "Мятно-бирюзовый — лёгкость и чистота",
+     "price": "2250 ⭐",
+     "owned": false,
+     "on": false,
+     "accent": "#2dd4bf",
+     "swatch": {
+      "kind": "color",
+      "color": "#2dd4bf"
+     },
+     "btn": {
+      "label": "Мало очков",
+      "enabled": false
+     }
+    },
+    {
+     "id": "accent_magenta",
+     "name": "Маджента",
+     "desc": "Яркая фуксия-2 — смело и заметно",
+     "price": "2400 ⭐",
+     "owned": false,
+     "on": false,
+     "accent": "#d946ef",
+     "swatch": {
+      "kind": "color",
+      "color": "#d946ef"
+     },
+     "btn": {
+      "label": "Мало очков",
+      "enabled": false
+     }
+    }
+   ]
+  },
+  {
+   "type": "sound",
+   "title": "🎵 Звуковые паки — меняют характер игровых звуков. Тапни «Надеть» — сразу слышно.",
+   "first": false,
+   "items": [
+    {
+     "id": "sound_retro",
+     "name": "Ретро",
+     "desc": "8-битный квадратный синтез — как старая консоль",
+     "price": "1050 ⭐",
+     "owned": false,
+     "on": false,
+     "accent": "#f5b50a",
+     "swatch": {
+      "kind": "icon",
+      "icon": "musical-notes",
+      "color": "#f5b50a"
+     },
+     "btn": {
+      "label": "Купить",
+      "enabled": true
+     }
+    },
+    {
+     "id": "sound_soft",
+     "name": "Мягкий",
+     "desc": "Тёплый треугольный тон — мягче дефолта",
+     "price": "1050 ⭐",
+     "owned": false,
+     "on": false,
+     "accent": "#f5b50a",
+     "swatch": {
+      "kind": "icon",
+      "icon": "musical-notes",
+      "color": "#f5b50a"
+     },
+     "btn": {
+      "label": "Купить",
+      "enabled": true
+     }
+    },
+    {
+     "id": "sound_arcade",
+     "name": "Аркада",
+     "desc": "Звонкий пилообразный — ярко, по-аркадному",
+     "price": "1350 ⭐",
+     "owned": false,
+     "on": false,
+     "accent": "#f5b50a",
+     "swatch": {
+      "kind": "icon",
+      "icon": "musical-notes",
+      "color": "#f5b50a"
+     },
+     "btn": {
+      "label": "Купить",
+      "enabled": true
+     }
+    },
+    {
+     "id": "sound_crystal",
+     "name": "Хрусталь",
+     "desc": "Высокий чистый тон — звонко и лёгко",
+     "price": "1200 ⭐",
+     "owned": false,
+     "on": false,
+     "accent": "#f5b50a",
+     "swatch": {
+      "kind": "icon",
+      "icon": "musical-notes",
+      "color": "#f5b50a"
+     },
+     "btn": {
+      "label": "Купить",
+      "enabled": true
+     }
+    },
+    {
+     "id": "sound_deep",
+     "name": "Глубина",
+     "desc": "Низкий бархатный тон — солидно и спокойно",
+     "price": "1200 ⭐",
+     "owned": false,
+     "on": false,
+     "accent": "#f5b50a",
+     "swatch": {
+      "kind": "icon",
+      "icon": "musical-notes",
+      "color": "#f5b50a"
+     },
+     "btn": {
+      "label": "Купить",
+      "enabled": true
+     }
+    },
+    {
+     "id": "sound_chipbass",
+     "name": "Чип-бас",
+     "desc": "Низкий квадратный — басовитый 8-бит",
+     "price": "1500 ⭐",
+     "owned": false,
+     "on": false,
+     "accent": "#f5b50a",
+     "swatch": {
+      "kind": "icon",
+      "icon": "musical-notes",
+      "color": "#f5b50a"
+     },
+     "btn": {
+      "label": "Мало очков",
+      "enabled": false
+     }
+    },
+    {
+     "id": "sound_buzz",
+     "name": "Дрель",
+     "desc": "Высокий пилообразный — резко и дерзко",
+     "price": "1500 ⭐",
+     "owned": false,
+     "on": false,
+     "accent": "#f5b50a",
+     "swatch": {
+      "kind": "icon",
+      "icon": "musical-notes",
+      "color": "#f5b50a"
+     },
+     "btn": {
+      "label": "Мало очков",
+      "enabled": false
+     }
+    }
+   ]
+  },
+  {
+   "type": "frame",
+   "title": "🖼️ Рамки — цветной контур вокруг чипа профиля на главном экране.",
+   "first": false,
+   "items": [
+    {
+     "id": "frame_gold",
+     "name": "Золотая рамка",
+     "desc": "Тёплая янтарная обводка чипа профиля",
+     "price": "1200 ⭐",
+     "owned": false,
+     "on": false,
+     "accent": "#f5b50a",
+     "swatch": {
+      "kind": "frame",
+      "color": "#f5b50a"
+     },
+     "btn": {
+      "label": "Купить",
+      "enabled": true
+     }
+    },
+    {
+     "id": "frame_crimson",
+     "name": "Багровая рамка",
+     "desc": "Насыщенно-красная обводка — дерзко",
+     "price": "1350 ⭐",
+     "owned": false,
+     "on": false,
+     "accent": "#ef4444",
+     "swatch": {
+      "kind": "frame",
+      "color": "#ef4444"
+     },
+     "btn": {
+      "label": "Купить",
+      "enabled": true
+     }
+    },
+    {
+     "id": "frame_azure",
+     "name": "Лазурная рамка",
+     "desc": "Ясный голубой контур",
+     "price": "1350 ⭐",
+     "owned": false,
+     "on": false,
+     "accent": "#38bdf8",
+     "swatch": {
+      "kind": "frame",
+      "color": "#38bdf8"
+     },
+     "btn": {
+      "label": "Купить",
+      "enabled": true
+     }
+    },
+    {
+     "id": "frame_emerald",
+     "name": "Изумрудная рамка",
+     "desc": "Сочный зелёный контур",
+     "price": "1500 ⭐",
+     "owned": false,
+     "on": false,
+     "accent": "#22c55e",
+     "swatch": {
+      "kind": "frame",
+      "color": "#22c55e"
+     },
+     "btn": {
+      "label": "Мало очков",
+      "enabled": false
+     }
+    },
+    {
+     "id": "frame_violet",
+     "name": "Фиолетовая рамка",
+     "desc": "Мягкий фиолетовый контур",
+     "price": "1500 ⭐",
+     "owned": false,
+     "on": false,
+     "accent": "#a78bfa",
+     "swatch": {
+      "kind": "frame",
+      "color": "#a78bfa"
+     },
+     "btn": {
+      "label": "Мало очков",
+      "enabled": false
+     }
+    },
+    {
+     "id": "frame_silver",
+     "name": "Серебряная рамка",
+     "desc": "Строгий серебристый контур",
+     "price": "1650 ⭐",
+     "owned": false,
+     "on": false,
+     "accent": "#cbd5e1",
+     "swatch": {
+      "kind": "frame",
+      "color": "#cbd5e1"
+     },
+     "btn": {
+      "label": "Мало очков",
+      "enabled": false
+     }
+    },
+    {
+     "id": "frame_onyx",
+     "name": "Оникс",
+     "desc": "Глубокая чёрная рамка — статус без крика",
+     "price": "6000 ⭐",
+     "owned": false,
+     "on": false,
+     "accent": "#0f172a",
+     "swatch": {
+      "kind": "frame",
+      "color": "#0f172a"
+     },
+     "btn": {
+      "label": "Мало очков",
+      "enabled": false
+     }
+    }
+   ]
+  },
+  {
+   "type": "title",
+   "title": "🏷️ Титулы — подпись под именем профиля.",
+   "first": false,
+   "items": [
+    {
+     "id": "title_focused",
+     "name": "Сфокусированный",
+     "desc": "Титул под именем профиля",
+     "price": "750 ⭐",
+     "owned": false,
+     "on": false,
+     "accent": "#f5b50a",
+     "swatch": {
+      "kind": "text",
+      "text": "🎯"
+     },
+     "btn": {
+      "label": "Купить",
+      "enabled": true
+     }
+    },
+    {
+     "id": "title_sharp",
+     "name": "Острый ум",
+     "desc": "Титул под именем профиля",
+     "price": "900 ⭐",
+     "owned": false,
+     "on": false,
+     "accent": "#f5b50a",
+     "swatch": {
+      "kind": "text",
+      "text": "⚡"
+     },
+     "btn": {
+      "label": "Купить",
+      "enabled": true
+     }
+    },
+    {
+     "id": "title_strategist",
+     "name": "Стратег",
+     "desc": "Титул под именем профиля",
+     "price": "1050 ⭐",
+     "owned": false,
+     "on": false,
+     "accent": "#f5b50a",
+     "swatch": {
+      "kind": "text",
+      "text": "♟️"
+     },
+     "btn": {
+      "label": "Купить",
+      "enabled": true
+     }
+    },
+    {
+     "id": "title_owl",
+     "name": "Сова разума",
+     "desc": "Титул под именем профиля",
+     "price": "1050 ⭐",
+     "owned": false,
+     "on": false,
+     "accent": "#f5b50a",
+     "swatch": {
+      "kind": "text",
+      "text": "🦉"
+     },
+     "btn": {
+      "label": "Купить",
+      "enabled": true
+     }
+    },
+    {
+     "id": "title_unstoppable",
+     "name": "Неудержимый",
+     "desc": "Титул под именем профиля",
+     "price": "1350 ⭐",
+     "owned": false,
+     "on": false,
+     "accent": "#f5b50a",
+     "swatch": {
+      "kind": "text",
+      "text": "🔥"
+     },
+     "btn": {
+      "label": "Купить",
+      "enabled": true
+     }
+    },
+    {
+     "id": "title_grandmaster",
+     "name": "Гроссмейстер",
+     "desc": "Титул под именем профиля",
+     "price": "1500 ⭐",
+     "owned": false,
+     "on": false,
+     "accent": "#f5b50a",
+     "swatch": {
+      "kind": "text",
+      "text": "👑"
+     },
+     "btn": {
+      "label": "Мало очков",
+      "enabled": false
+     }
+    },
+    {
+     "id": "title_legend",
+     "name": "Легенда",
+     "desc": "Титул под именем профиля",
+     "price": "1800 ⭐",
+     "owned": false,
+     "on": false,
+     "accent": "#f5b50a",
+     "swatch": {
+      "kind": "text",
+      "text": "🌟"
+     },
+     "btn": {
+      "label": "Мало очков",
+      "enabled": false
+     }
+    },
+    {
+     "id": "title_cyberbrain",
+     "name": "Кибермозг",
+     "desc": "Тот же титул, что и макс. уровень профиля",
+     "price": "1950 ⭐",
+     "owned": false,
+     "on": false,
+     "accent": "#f5b50a",
+     "swatch": {
+      "kind": "text",
+      "text": "🧠"
+     },
+     "btn": {
+      "label": "Мало очков",
+      "enabled": false
+     }
+    },
+    {
+     "id": "title_comet",
+     "name": "Комета",
+     "desc": "Титул под именем профиля",
+     "price": "7500 ⭐",
+     "owned": false,
+     "on": false,
+     "accent": "#f5b50a",
+     "swatch": {
+      "kind": "text",
+      "text": "☄️"
+     },
+     "btn": {
+      "label": "Мало очков",
+      "enabled": false
+     }
+    },
+    {
+     "id": "title_diamond",
+     "name": "Бриллиант",
+     "desc": "Титул под именем профиля",
+     "price": "10000 ⭐",
+     "owned": false,
+     "on": false,
+     "accent": "#f5b50a",
+     "swatch": {
+      "kind": "text",
+      "text": "💎"
+     },
+     "btn": {
+      "label": "Мало очков",
+      "enabled": false
+     }
+    },
+    {
+     "id": "title_infinity",
+     "name": "Бесконечный",
+     "desc": "Титул под именем профиля",
+     "price": "15000 ⭐",
+     "owned": false,
+     "on": false,
+     "accent": "#f5b50a",
+     "swatch": {
+      "kind": "text",
+      "text": "♾️"
+     },
+     "btn": {
+      "label": "Мало очков",
+      "enabled": false
+     }
+    }
+   ]
+  },
+  {
+   "type": "avatar",
+   "title": "👤 Аватары — своя иконка профиля вместо стандартного бейджа.",
+   "first": false,
+   "items": [
+    {
+     "id": "avatar_owl",
+     "name": "Сова",
+     "desc": "Иконка профиля вместо стандартного бейджа",
+     "price": "900 ⭐",
+     "owned": false,
+     "on": false,
+     "accent": "#f5b50a",
+     "swatch": {
+      "kind": "image",
+      "uri": "/assets/assets/images/avatars/avatar_owl.webp"
+     },
+     "btn": {
+      "label": "Купить",
+      "enabled": true
+     }
+    },
+    {
+     "id": "avatar_fox",
+     "name": "Лис",
+     "desc": "Иконка профиля вместо стандартного бейджа",
+     "price": "900 ⭐",
+     "owned": false,
+     "on": false,
+     "accent": "#f5b50a",
+     "swatch": {
+      "kind": "image",
+      "uri": "/assets/assets/images/avatars/avatar_fox.webp"
+     },
+     "btn": {
+      "label": "Купить",
+      "enabled": true
+     }
+    },
+    {
+     "id": "avatar_gem",
+     "name": "Кристалл",
+     "desc": "Иконка профиля вместо стандартного бейджа",
+     "price": "1050 ⭐",
+     "owned": false,
+     "on": false,
+     "accent": "#f5b50a",
+     "swatch": {
+      "kind": "image",
+      "uri": "/assets/assets/images/avatars/avatar_gem.webp"
+     },
+     "btn": {
+      "label": "Купить",
+      "enabled": true
+     }
+    },
+    {
+     "id": "avatar_lightning",
+     "name": "Молния",
+     "desc": "Иконка профиля вместо стандартного бейджа",
+     "price": "1050 ⭐",
+     "owned": false,
+     "on": false,
+     "accent": "#f5b50a",
+     "swatch": {
+      "kind": "image",
+      "uri": "/assets/assets/images/avatars/avatar_lightning.webp"
+     },
+     "btn": {
+      "label": "Купить",
+      "enabled": true
+     }
+    },
+    {
+     "id": "avatar_star",
+     "name": "Звезда",
+     "desc": "Иконка профиля вместо стандартного бейджа",
+     "price": "1200 ⭐",
+     "owned": false,
+     "on": false,
+     "accent": "#f5b50a",
+     "swatch": {
+      "kind": "image",
+      "uri": "/assets/assets/images/avatars/avatar_star.webp"
+     },
+     "btn": {
+      "label": "Купить",
+      "enabled": true
+     }
+    },
+    {
+     "id": "avatar_knight",
+     "name": "Конь",
+     "desc": "Иконка профиля вместо стандартного бейджа",
+     "price": "1350 ⭐",
+     "owned": false,
+     "on": false,
+     "accent": "#f5b50a",
+     "swatch": {
+      "kind": "image",
+      "uri": "/assets/assets/images/avatars/avatar_knight.webp"
+     },
+     "btn": {
+      "label": "Купить",
+      "enabled": true
+     }
+    },
+    {
+     "id": "avatar_phoenix",
+     "name": "Феникс",
+     "desc": "Иконка профиля вместо стандартного бейджа",
+     "price": "1500 ⭐",
+     "owned": false,
+     "on": false,
+     "accent": "#f5b50a",
+     "swatch": {
+      "kind": "image",
+      "uri": "/assets/assets/images/avatars/avatar_phoenix.webp"
+     },
+     "btn": {
+      "label": "Мало очков",
+      "enabled": false
+     }
+    },
+    {
+     "id": "avatar_robot",
+     "name": "Робот",
+     "desc": "Иконка профиля вместо стандартного бейджа",
+     "price": "1500 ⭐",
+     "owned": false,
+     "on": false,
+     "accent": "#f5b50a",
+     "swatch": {
+      "kind": "image",
+      "uri": "/assets/assets/images/avatars/avatar_robot.webp"
+     },
+     "btn": {
+      "label": "Мало очков",
+      "enabled": false
+     }
+    },
+    {
+     "id": "avatar_brain",
+     "name": "Мозг",
+     "desc": "Флагманский аватар — иконка профиля",
+     "price": "1800 ⭐",
+     "owned": false,
+     "on": false,
+     "accent": "#f5b50a",
+     "swatch": {
+      "kind": "image",
+      "uri": "/assets/assets/images/avatars/avatar_brain.webp"
+     },
+     "btn": {
+      "label": "Мало очков",
+      "enabled": false
+     }
+    }
+   ]
+  },
+  {
+   "type": "pet",
+   "title": "🐾 Для питомца — аксессуары Синапса (надеваются глобально)",
+   "first": false,
+   "items": [
+    {
+     "id": "pet_bow",
+     "name": "Бантик",
+     "desc": "Аксессуар гуляющего питомца — виден на всех экранах",
+     "price": "900 ⭐",
+     "owned": false,
+     "on": false,
+     "accent": "#f5b50a",
+     "swatch": {
+      "kind": "text",
+      "text": "🎀"
+     },
+     "btn": {
+      "label": "Купить",
+      "enabled": true
+     }
+    },
+    {
+     "id": "pet_party_hat",
+     "name": "Праздничный колпак",
+     "desc": "Аксессуар гуляющего питомца — виден на всех экранах",
+     "price": "1200 ⭐",
+     "owned": false,
+     "on": false,
+     "accent": "#f5b50a",
+     "swatch": {
+      "kind": "text",
+      "text": "🥳"
+     },
+     "btn": {
+      "label": "Купить",
+      "enabled": true
+     }
+    },
+    {
+     "id": "pet_glasses",
+     "name": "Умные очки",
+     "desc": "Аксессуар гуляющего питомца — виден на всех экранах",
+     "price": "1500 ⭐",
+     "owned": false,
+     "on": false,
+     "accent": "#f5b50a",
+     "swatch": {
+      "kind": "text",
+      "text": "👓"
+     },
+     "btn": {
+      "label": "Мало очков",
+      "enabled": false
+     }
+    },
+    {
+     "id": "pet_bow_tie",
+     "name": "Бабочка",
+     "desc": "Аксессуар гуляющего питомца — виден на всех экранах",
+     "price": "900 ⭐",
+     "owned": false,
+     "on": false,
+     "accent": "#f5b50a",
+     "swatch": {
+      "kind": "text",
+      "text": "🎩"
+     },
+     "btn": {
+      "label": "Купить",
+      "enabled": true
+     }
+    }
+   ]
+  },
+  {
+   "type": "digits",
+   "title": "Наборы цифр судоку",
+   "first": false,
+   "items": [
+    {
+     "id": "digits_rainbow",
+     "name": "Радуга",
+     "desc": "Рисованные цифры для судоку — выбор в настройках партии",
+     "price": "1500 ⭐",
+     "owned": false,
+     "on": false,
+     "accent": "#f5b50a",
+     "swatch": {
+      "kind": "digits",
+      "uri": "/assets/assets/images/digits_rainbow/d5.webp"
+     },
+     "btn": {
+      "label": "Мало очков",
+      "enabled": false
+     }
+    },
+    {
+     "id": "digits_pastel",
+     "name": "Пастель",
+     "desc": "Рисованные цифры для судоку — выбор в настройках партии",
+     "price": "1500 ⭐",
+     "owned": false,
+     "on": false,
+     "accent": "#f5b50a",
+     "swatch": {
+      "kind": "digits",
+      "uri": "/assets/assets/images/digits_pastel/d5.webp"
+     },
+     "btn": {
+      "label": "Мало очков",
+      "enabled": false
+     }
+    },
+    {
+     "id": "digits_elegant",
+     "name": "Элегант",
+     "desc": "Рисованные цифры для судоку — выбор в настройках партии",
+     "price": "1500 ⭐",
+     "owned": false,
+     "on": false,
+     "accent": "#f5b50a",
+     "swatch": {
+      "kind": "digits",
+      "uri": "/assets/assets/images/digits_elegant/d5.webp"
+     },
+     "btn": {
+      "label": "Мало очков",
+      "enabled": false
+     }
+    }
+   ]
+  },
+  {
+   "type": "theme",
+   "title": "Темы карты уровней",
+   "first": false,
+   "items": [
+    {
+     "id": "theme_odv999",
+     "name": "ODV999",
+     "desc": "Подложка карты уровней в стиле другого профиля",
+     "price": "2400 ⭐",
+     "owned": false,
+     "on": false,
+     "accent": "#f5b50a",
+     "swatch": {
+      "kind": "image",
+      "uri": "/assets/assets/images/level-map-themes/odv999.webp"
+     },
+     "btn": {
+      "label": "Мало очков",
+      "enabled": false
+     }
+    },
+    {
+     "id": "theme_chess",
+     "name": "Шахматист",
+     "desc": "Подложка карты уровней в стиле другого профиля",
+     "price": "2400 ⭐",
+     "owned": false,
+     "on": false,
+     "accent": "#f5b50a",
+     "swatch": {
+      "kind": "image",
+      "uri": "/assets/assets/images/level-map-themes/chess.webp"
+     },
+     "btn": {
+      "label": "Мало очков",
+      "enabled": false
+     }
+    },
+    {
+     "id": "theme_kids",
+     "name": "Дети 7-12",
+     "desc": "Подложка карты уровней в стиле другого профиля",
+     "price": "2400 ⭐",
+     "owned": false,
+     "on": false,
+     "accent": "#f5b50a",
+     "swatch": {
+      "kind": "image",
+      "uri": "/assets/assets/images/level-map-themes/kids.webp"
+     },
+     "btn": {
+      "label": "Мало очков",
+      "enabled": false
+     }
+    },
+    {
+     "id": "theme_vasilyeva",
+     "name": "Скорочтение PRO",
+     "desc": "Подложка карты уровней в стиле другого профиля",
+     "price": "2400 ⭐",
+     "owned": false,
+     "on": false,
+     "accent": "#f5b50a",
+     "swatch": {
+      "kind": "image",
+      "uri": "/assets/assets/images/level-map-themes/vasilyeva.webp"
+     },
+     "btn": {
+      "label": "Мало очков",
+      "enabled": false
+     }
+    },
+    {
+     "id": "theme_free",
+     "name": "Стандарт",
+     "desc": "Подложка карты уровней в стиле другого профиля",
+     "price": "2400 ⭐",
+     "owned": false,
+     "on": false,
+     "accent": "#f5b50a",
+     "swatch": {
+      "kind": "image",
+      "uri": "/assets/assets/images/level-map-themes/free.webp"
+     },
+     "btn": {
+      "label": "Мало очков",
+      "enabled": false
+     }
+    },
+    {
+     "id": "theme_drivers",
+     "name": "Реакция ПРО",
+     "desc": "Подложка карты уровней в стиле другого профиля",
+     "price": "2400 ⭐",
+     "owned": false,
+     "on": false,
+     "accent": "#f5b50a",
+     "swatch": {
+      "kind": "image",
+      "uri": "/assets/assets/images/level-map-themes/drivers.webp"
+     },
+     "btn": {
+      "label": "Мало очков",
+      "enabled": false
+     }
+    },
+    {
+     "id": "theme_seniors",
+     "name": "50+ профилактика",
+     "desc": "Подложка карты уровней в стиле другого профиля",
+     "price": "2400 ⭐",
+     "owned": false,
+     "on": false,
+     "accent": "#f5b50a",
+     "swatch": {
+      "kind": "image",
+      "uri": "/assets/assets/images/level-map-themes/seniors.webp"
+     },
+     "btn": {
+      "label": "Мало очков",
+      "enabled": false
+     }
+    },
+    {
+     "id": "theme_execs",
+     "name": "Предприниматели",
+     "desc": "Подложка карты уровней в стиле другого профиля",
+     "price": "2400 ⭐",
+     "owned": false,
+     "on": false,
+     "accent": "#f5b50a",
+     "swatch": {
+      "kind": "image",
+      "uri": "/assets/assets/images/level-map-themes/execs.webp"
+     },
+     "btn": {
+      "label": "Мало очков",
+      "enabled": false
+     }
+    },
+    {
+     "id": "theme_students",
+     "name": "Студенты PRO",
+     "desc": "Подложка карты уровней в стиле другого профиля",
+     "price": "2400 ⭐",
+     "owned": false,
+     "on": false,
+     "accent": "#f5b50a",
+     "swatch": {
+      "kind": "image",
+      "uri": "/assets/assets/images/level-map-themes/students.webp"
+     },
+     "btn": {
+      "label": "Мало очков",
+      "enabled": false
+     }
+    },
+    {
+     "id": "theme_women",
+     "name": "Микро-релакс",
+     "desc": "Подложка карты уровней в стиле другого профиля",
+     "price": "2400 ⭐",
+     "owned": false,
+     "on": false,
+     "accent": "#f5b50a",
+     "swatch": {
+      "kind": "image",
+      "uri": "/assets/assets/images/level-map-themes/women.webp"
+     },
+     "btn": {
+      "label": "Мало очков",
+      "enabled": false
+     }
+    },
+    {
+     "id": "theme_polyglot",
+     "name": "Языки / Полиглот",
+     "desc": "Подложка карты уровней в стиле другого профиля",
+     "price": "2400 ⭐",
+     "owned": false,
+     "on": false,
+     "accent": "#f5b50a",
+     "swatch": {
+      "kind": "image",
+      "uri": "/assets/assets/images/level-map-themes/polyglot.webp"
+     },
+     "btn": {
+      "label": "Мало очков",
+      "enabled": false
+     }
+    }
+   ]
+  },
+  {
+   "type": "background",
+   "title": "Фоны главной",
+   "first": false,
+   "items": [
+    {
+     "id": "bg_kids",
+     "name": "Дети 7-12",
+     "desc": "Фон главного экрана в стиле другого профиля",
+     "price": "900 ⭐",
+     "owned": false,
+     "on": false,
+     "accent": "#f5b50a",
+     "swatch": {
+      "kind": "image",
+      "uri": "/assets/assets/images/profile-bg/kids.webp"
+     },
+     "btn": {
+      "label": "Купить",
+      "enabled": true
+     }
+    },
+    {
+     "id": "bg_students",
+     "name": "Студенты PRO",
+     "desc": "Фон главного экрана в стиле другого профиля",
+     "price": "1050 ⭐",
+     "owned": false,
+     "on": false,
+     "accent": "#f5b50a",
+     "swatch": {
+      "kind": "image",
+      "uri": "/assets/assets/images/profile-bg/students.webp"
+     },
+     "btn": {
+      "label": "Купить",
+      "enabled": true
+     }
+    },
+    {
+     "id": "bg_seniors",
+     "name": "50+ профилактика",
+     "desc": "Фон главного экрана в стиле другого профиля",
+     "price": "1050 ⭐",
+     "owned": false,
+     "on": false,
+     "accent": "#f5b50a",
+     "swatch": {
+      "kind": "image",
+      "uri": "/assets/assets/images/profile-bg/seniors.webp"
+     },
+     "btn": {
+      "label": "Купить",
+      "enabled": true
+     }
+    },
+    {
+     "id": "bg_women",
+     "name": "Микро-релакс",
+     "desc": "Фон главного экрана в стиле другого профиля",
+     "price": "1200 ⭐",
+     "owned": false,
+     "on": false,
+     "accent": "#f5b50a",
+     "swatch": {
+      "kind": "image",
+      "uri": "/assets/assets/images/profile-bg/women.webp"
+     },
+     "btn": {
+      "label": "Купить",
+      "enabled": true
+     }
+    },
+    {
+     "id": "bg_drivers",
+     "name": "Реакция ПРО",
+     "desc": "Фон главного экрана в стиле другого профиля",
+     "price": "1350 ⭐",
+     "owned": false,
+     "on": false,
+     "accent": "#f5b50a",
+     "swatch": {
+      "kind": "image",
+      "uri": "/assets/assets/images/profile-bg/drivers.webp"
+     },
+     "btn": {
+      "label": "Купить",
+      "enabled": true
+     }
+    },
+    {
+     "id": "bg_vasilyeva",
+     "name": "Скорочтение PRO",
+     "desc": "Фон главного экрана в стиле другого профиля",
+     "price": "1350 ⭐",
+     "owned": false,
+     "on": false,
+     "accent": "#f5b50a",
+     "swatch": {
+      "kind": "image",
+      "uri": "/assets/assets/images/profile-bg/vasilyeva.webp"
+     },
+     "btn": {
+      "label": "Купить",
+      "enabled": true
+     }
+    },
+    {
+     "id": "bg_chess",
+     "name": "Шахматист",
+     "desc": "Фон главного экрана в стиле другого профиля",
+     "price": "1500 ⭐",
+     "owned": false,
+     "on": false,
+     "accent": "#f5b50a",
+     "swatch": {
+      "kind": "image",
+      "uri": "/assets/assets/images/profile-bg/chess.webp"
+     },
+     "btn": {
+      "label": "Мало очков",
+      "enabled": false
+     }
+    },
+    {
+     "id": "bg_execs",
+     "name": "Предприниматели",
+     "desc": "Фон главного экрана в стиле другого профиля",
+     "price": "1800 ⭐",
+     "owned": false,
+     "on": false,
+     "accent": "#f5b50a",
+     "swatch": {
+      "kind": "image",
+      "uri": "/assets/assets/images/profile-bg/execs.webp"
+     },
+     "btn": {
+      "label": "Мало очков",
+      "enabled": false
+     }
+    },
+    {
+     "id": "bg_polyglot",
+     "name": "Языки / Полиглот",
+     "desc": "Фон главного экрана в стиле другого профиля",
+     "price": "1200 ⭐",
+     "owned": false,
+     "on": false,
+     "accent": "#f5b50a",
+     "swatch": {
+      "kind": "image",
+      "uri": "/assets/assets/images/profile-bg/polyglot.webp"
+     },
+     "btn": {
+      "label": "Купить",
+      "enabled": true
+     }
+    }
+   ]
+  },
+  {
+   "type": "badge",
+   "title": "Значки профиля",
+   "first": false,
+   "items": [
+    {
+     "id": "badge_free",
+     "name": "Стандарт",
+     "desc": "Значок другого профиля в твоём чипе на главной",
+     "price": "900 ⭐",
+     "owned": false,
+     "on": false,
+     "accent": "#f5b50a",
+     "swatch": {
+      "kind": "image",
+      "uri": "/assets/assets/images/profiles/free.webp"
+     },
+     "btn": {
+      "label": "Купить",
+      "enabled": true
+     }
+    },
+    {
+     "id": "badge_kids",
+     "name": "Дети 7-12",
+     "desc": "Значок другого профиля в твоём чипе на главной",
+     "price": "900 ⭐",
+     "owned": false,
+     "on": false,
+     "accent": "#f5b50a",
+     "swatch": {
+      "kind": "image",
+      "uri": "/assets/assets/images/profiles/kids.webp"
+     },
+     "btn": {
+      "label": "Купить",
+      "enabled": true
+     }
+    },
+    {
+     "id": "badge_students",
+     "name": "Студенты PRO",
+     "desc": "Значок другого профиля в твоём чипе на главной",
+     "price": "1050 ⭐",
+     "owned": false,
+     "on": false,
+     "accent": "#f5b50a",
+     "swatch": {
+      "kind": "image",
+      "uri": "/assets/assets/images/profiles/students.webp"
+     },
+     "btn": {
+      "label": "Купить",
+      "enabled": true
+     }
+    },
+    {
+     "id": "badge_seniors",
+     "name": "50+ профилактика",
+     "desc": "Значок другого профиля в твоём чипе на главной",
+     "price": "1050 ⭐",
+     "owned": false,
+     "on": false,
+     "accent": "#f5b50a",
+     "swatch": {
+      "kind": "image",
+      "uri": "/assets/assets/images/profiles/seniors.webp"
+     },
+     "btn": {
+      "label": "Купить",
+      "enabled": true
+     }
+    },
+    {
+     "id": "badge_women",
+     "name": "Микро-релакс",
+     "desc": "Значок другого профиля в твоём чипе на главной",
+     "price": "1200 ⭐",
+     "owned": false,
+     "on": false,
+     "accent": "#f5b50a",
+     "swatch": {
+      "kind": "image",
+      "uri": "/assets/assets/images/profiles/women.webp"
+     },
+     "btn": {
+      "label": "Купить",
+      "enabled": true
+     }
+    },
+    {
+     "id": "badge_drivers",
+     "name": "Реакция ПРО",
+     "desc": "Значок другого профиля в твоём чипе на главной",
+     "price": "1200 ⭐",
+     "owned": false,
+     "on": false,
+     "accent": "#f5b50a",
+     "swatch": {
+      "kind": "image",
+      "uri": "/assets/assets/images/profiles/drivers.webp"
+     },
+     "btn": {
+      "label": "Купить",
+      "enabled": true
+     }
+    },
+    {
+     "id": "badge_vasilyeva",
+     "name": "Скорочтение PRO",
+     "desc": "Значок другого профиля в твоём чипе на главной",
+     "price": "1350 ⭐",
+     "owned": false,
+     "on": false,
+     "accent": "#f5b50a",
+     "swatch": {
+      "kind": "image",
+      "uri": "/assets/assets/images/profiles/vasilyeva.webp"
+     },
+     "btn": {
+      "label": "Купить",
+      "enabled": true
+     }
+    },
+    {
+     "id": "badge_polyglot",
+     "name": "Языки / Полиглот",
+     "desc": "Значок другого профиля в твоём чипе на главной",
+     "price": "1350 ⭐",
+     "owned": false,
+     "on": false,
+     "accent": "#f5b50a",
+     "swatch": {
+      "kind": "image",
+      "uri": "/assets/assets/images/profiles/polyglot.webp"
+     },
+     "btn": {
+      "label": "Купить",
+      "enabled": true
+     }
+    },
+    {
+     "id": "badge_chess",
+     "name": "Шахматист",
+     "desc": "Значок другого профиля в твоём чипе на главной",
+     "price": "1500 ⭐",
+     "owned": false,
+     "on": false,
+     "accent": "#f5b50a",
+     "swatch": {
+      "kind": "image",
+      "uri": "/assets/assets/images/profiles/chess.webp"
+     },
+     "btn": {
+      "label": "Мало очков",
+      "enabled": false
+     }
+    },
+    {
+     "id": "badge_execs",
+     "name": "Предприниматели",
+     "desc": "Значок другого профиля в твоём чипе на главной",
+     "price": "1650 ⭐",
+     "owned": false,
+     "on": false,
+     "accent": "#f5b50a",
+     "swatch": {
+      "kind": "image",
+      "uri": "/assets/assets/images/profiles/execs.webp"
+     },
+     "btn": {
+      "label": "Мало очков",
+      "enabled": false
+     }
+    },
+    {
+     "id": "badge_odv999",
+     "name": "ODV999",
+     "desc": "Значок другого профиля в твоём чипе на главной",
+     "price": "1800 ⭐",
+     "owned": false,
+     "on": false,
+     "accent": "#f5b50a",
+     "swatch": {
+      "kind": "image",
+      "uri": "/assets/assets/images/profiles/odv999.webp"
+     },
+     "btn": {
+      "label": "Мало очков",
+      "enabled": false
+     }
+    }
+   ]
+  }
+ ],
+ "earnHint": "Очки копятся за игры, стрики и ачивки."
+}

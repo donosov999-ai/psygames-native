@@ -12,29 +12,31 @@ import 'dart:math';
 /// (неконгруэнтные − конгруэнтные), и сдвиг доли уменьшает ровно ту величину, ради
 /// которой проба существует (Rothermund 2022, doi:10.5334/joc.232; обзор
 /// Bugg & Crump 2012, doi:10.3389/fpsyg.2012.00367). Поэтому 50/50 заморожено.
+///
+/// ⚠️ СЛОВА ЦВЕТА ЗДЕСЬ НЕТ — только имя и оттенок. Слово берётся из общего словаря на
+/// языке интерфейса (`stroopWord` в screen.dart): при переносе палитра принесла поля
+/// `ru`/`en`, экран всегда брал `ru`, и в английской локали стимул был «КРАСНЫЙ».
 class StroopColor {
-  const StroopColor({required this.name, required this.ru, required this.en, required this.hex});
+  const StroopColor({required this.name, required this.hex});
   final String name;
-  final String ru;
-  final String en;
   final String hex;
 }
 
 /// Обычная палитра.
 const List<StroopColor> stroopColorsDefault = [
-  StroopColor(name: 'red', ru: 'КРАСНЫЙ', en: 'RED', hex: '#ef4444'),
-  StroopColor(name: 'blue', ru: 'СИНИЙ', en: 'BLUE', hex: '#3b82f6'),
-  StroopColor(name: 'green', ru: 'ЗЕЛЁНЫЙ', en: 'GREEN', hex: '#22c55e'),
-  StroopColor(name: 'yellow', ru: 'ЖЁЛТЫЙ', en: 'YELLOW', hex: '#eab308'),
+  StroopColor(name: 'red', hex: '#ef4444'),
+  StroopColor(name: 'blue', hex: '#3b82f6'),
+  StroopColor(name: 'green', hex: '#22c55e'),
+  StroopColor(name: 'yellow', hex: '#eab308'),
 ];
 
 /// Палитра для дальтонизма: без неё задача нерешаема в принципе — при протанопии
 /// минимальная разница обычной палитры ΔE 8,4, здесь 30,7 (замер раздела 22.08.2026).
 const List<StroopColor> stroopColorsColorblind = [
-  StroopColor(name: 'red', ru: 'КРАСНЫЙ', en: 'RED', hex: '#c1272d'),
-  StroopColor(name: 'blue', ru: 'СИНИЙ', en: 'BLUE', hex: '#0072b2'),
-  StroopColor(name: 'green', ru: 'ЗЕЛЁНЫЙ', en: 'GREEN', hex: '#006644'),
-  StroopColor(name: 'yellow', ru: 'ЖЁЛТЫЙ', en: 'YELLOW', hex: '#f0e442'),
+  StroopColor(name: 'red', hex: '#c1272d'),
+  StroopColor(name: 'blue', hex: '#0072b2'),
+  StroopColor(name: 'green', hex: '#006644'),
+  StroopColor(name: 'yellow', hex: '#f0e442'),
 ];
 
 /// Доля конфликтных проб. Канон, не ручка уровня.
