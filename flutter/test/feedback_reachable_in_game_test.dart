@@ -18,6 +18,7 @@ void main() {
   tearDown(() {
     GameExit.feedback = null;
     GameRules.currentRoute = null;
+    GameShell.feedbackState = null;
   });
 
   void size(WidgetTester tester, Size s) {
@@ -76,5 +77,22 @@ void main() {
       final r = tester.getRect(find.byKey(Key(k)));
       expect(r.bottom <= 640, isTrue, reason: '$k на экране без прокрутки: низ ${r.bottom}');
     }
+  });
+
+  // Задача 75348e44: отзыв из нативной игры не говорил, на каком уровне и с какими счётчиками
+  // это словили, — ни один экран не публиковал состояние. Снимок делает шапка.
+  testWidgets('🔴 в момент отзыва каркас знает заголовок и счётчики шапки — они уходят в game_state', (tester) async {
+    Map<String, Object?>? seen;
+    GameExit.feedback = () => seen = GameShell.feedbackState;
+    await tester.pumpWidget(MaterialApp(home: GameShell(
+      title: 'Anagrams',
+      hud: const [HudItem(label: 'Level', value: '12'), HudItem(label: 'Errors', value: '1/3')],
+      field: (_, _) => const SizedBox.shrink(),
+    )));
+    await tester.tap(find.byKey(const Key('game-feedback')));
+    expect(seen, {
+      'title': 'Anagrams',
+      'hud': {'Level': '12', 'Errors': '1/3'},
+    });
   });
 }

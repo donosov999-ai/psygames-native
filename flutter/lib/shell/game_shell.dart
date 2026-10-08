@@ -88,8 +88,26 @@ class GameShell extends StatelessWidget {
   /// Отступ справа сверху, который в режиме [fieldOnly] занимает кнопка паузы.
   static const fieldOnlyPauseClear = 72.0;
 
+  /*
+   * 🔴 ЧТО НА ЭКРАНЕ — В ОТЧЁТ (задача 75348e44, 08.10.2026).
+   *
+   * Отзыв из нативной игры нёс маршрут и параметры адреса, но не живое состояние партии:
+   * уровень, ошибки, время. Ни один из 116 экранов его не публиковал. Каркас знает всё это сам —
+   * заголовок и счётчики шапки, — поэтому снимок делает он, одной правкой на все экраны.
+   * Режим с развилки приходит хвостом маршрута (`?mode=…`), его здесь не дублируем.
+   * Читает [GameExit.feedback] в `hybrid_app.dart` → поле `game_state` отчёта.
+   */
+  static Map<String, Object?>? feedbackState;
+
+  Map<String, Object?> _feedbackState() => {
+        'title': title,
+        if (levelRule != null) 'level': levelRule!.level,
+        if (hud.isNotEmpty) 'hud': {for (final h in hud) h.label: h.value},
+      };
+
   @override
   Widget build(BuildContext context) {
+    feedbackState = _feedbackState();
     if (fieldOnly) {
       return Scaffold(
         body: SafeArea(
