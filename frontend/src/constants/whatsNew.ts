@@ -16,6 +16,18 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.56.23',
+    date: '2026-10-08',
+    en: [
+      'Home is now calculated by the app itself and no longer waits for the web layer',
+      'Pet: Synapse’s speech bubble stays fully on screen, above the pet',
+    ],
+    ru: [
+      'Главную теперь считает само приложение — она больше не ждёт веб-слой',
+      '«Питомец»: пузырь Синапса целиком в экране, над питомцем',
+    ],
+  },
+  {
     version: '2.56.22',
     date: '2026-10-08',
     en: [
