@@ -19,24 +19,19 @@
  * разошлась бы с первой в ту же неделю и молча.
  */
 import { makeId, saveSession, type GameSession } from '@/src/services/api';
+import { markHostSession, __hostSessionsTest } from '@/src/services/hostSessions';
 
 /**
- * 🔴 КАКИЕ ПАРТИИ ПРИШЛИ ОТ НАТИВНОЙ ПОЛОВИНЫ — по `id`.
+ * 🔴 КАКИЕ ПАРТИИ ПРИШЛИ ОТ НАТИВНОЙ ПОЛОВИНЫ — по `id` (`hostSessions.ts`).
  *
  * Под нативным экраном в WebView живёт веб-копия той же игры, и часть игр
  * (SDMT при `wu=1`) стартует сама, идёт по своим часам и сохраняет партию,
  * которую человек не играл. 06.10.2026, 2.56.12 (отчёт 02d98918): после SDMT в
- * зарядке ушли ДВА «шаг готов» — оболочка поставила два моста, первый снялся
- * пустым и остановил зарядку, человек оказался на главной. Зарядке нужно отличать
- * сыгранную нативно партию от фантома веб-копии: `saveSession` копирует объект,
- * но `id` переносит — по нему и узнаём.
+ * зарядке ушли ДВА «шаг готов». Отличать партию оболочки от фантома веб-копии
+ * нужно и зарядке, и самой `saveSession` (5f9d4ea0) — поэтому учёт вынесен в
+ * модуль без зависимостей, а здесь — тот же `isHostSession`, что и раньше.
  */
-const fromHost = new Set<string>();
-
-/** Партия сохранена нативной половиной гибрида (не веб-копией игры под ней). */
-export function isHostSession(s: { id?: string } | null | undefined): boolean {
-  return !!s?.id && fromHost.has(s.id);
-}
+export { isHostSession } from '@/src/services/hostSessions';
 
 /** Отчёты, пришедшие ДО регистрации приёмника, не выбрасываются. */
 const queue: GameSession[] = [];
@@ -56,7 +51,7 @@ async function accept(raw: unknown): Promise<void> {
     return;
   }
   if (!raw.id) raw.id = makeId();
-  fromHost.add(raw.id);
+  markHostSession(raw.id);
   if (!ready) { queue.push(raw); return; }
   await saveSession(raw);
 }
@@ -74,5 +69,5 @@ export function installNativeSessionBridge(): void {
 }
 
 /** Только для проб. */
-export const __test = { queue, accept, reset: () => { queue.length = 0; ready = false; fromHost.clear();
+export const __test = { queue, accept, reset: () => { queue.length = 0; ready = false; __hostSessionsTest.reset();
   if (typeof window !== 'undefined') delete (window as unknown as Record<string, unknown>).__psySaveSession; } };

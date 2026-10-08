@@ -676,7 +676,7 @@ class _Showing extends StatelessWidget {
         // Весь ряд разом — до двенадцати цифр: ужимается в ширину, а не уезжает за край.
         child: FittedBox(
           fit: BoxFit.scaleDown,
-          child: Text(text, key: const Key('ds-digit'), style: TextStyle(fontSize: height * 0.32, fontWeight: FontWeight.w800)),
+          child: DsRowView(text, textKey: const Key('ds-digit'), fontSize: height * 0.32),
         ),
       ),
     );
@@ -815,8 +815,63 @@ class _Keypad extends StatelessWidget {
   }
 }
 
-/// Разбор объясняет ПРИЁМ: верный ответ человек и так увидит по итогу ряда, а чем объём берётся — нет.
-List<DemoTrial> digitSpanLessonTrials() => [
-      DemoTrial(text: '', rule: L.t('teachSpanChunks')),
-      DemoTrial(text: '', rule: L.t('teachSpanBackward')),
-    ];
+/// Поле показа ряда — ОДНО для партии и разбора: цифра или весь ряд крупно. Разбор рисует ряд тем же
+/// виджетом, а не «похоже» (общая карточка ужимает его по месту, текстовый стимул переносился и вылезал).
+class DsRowView extends StatelessWidget {
+  const DsRowView(this.text, {super.key, this.textKey, this.fontSize = 56});
+
+  final String text;
+  final Key? textKey;
+  final double fontSize;
+
+  @override
+  Widget build(BuildContext context) =>
+      Text(text, key: textKey, style: TextStyle(fontSize: fontSize, fontWeight: FontWeight.w800));
+}
+
+/// Ряд, разбитый на куски по три: «729 · 418 · 3» — одинокая цифра в хвосте прилипает к последнему
+/// куску («729 · 4183»): кусок из одной цифры приём не держит.
+String dsChunked(List<int> seq) {
+  final groups = <String>[];
+  for (var i = 0; i < seq.length; i += 3) {
+    groups.add(seq.sublist(i, min(i + 3, seq.length)).join());
+  }
+  if (groups.length > 1 && groups.last.length == 1) {
+    final tail = groups.removeLast();
+    groups[groups.length - 1] += tail;
+  }
+  return groups.join(' · ');
+}
+
+/// РАЗБОР ДО ПАРТИИ — приём на рядах из ГЕНЕРАТОРА самой игры (`generateSeq`), а не на придуманных:
+/// что показано (ряд, как его рисует «весь ряд разом»), как его держать (куски), что набрать
+/// (`expectedDigits` — тем же правилом, которым игра засчитывает ответ). Без ряда разбор был
+/// только словами: имя приёма есть, а увидеть его не на чем.
+List<DemoTrial> digitSpanLessonTrials({double Function()? rng}) {
+  // Поток на ЦЕЛОМ состоянии: на дроби он сходится к ≈0,22, и ряд разбора был бы «2 2 2 2 …» —
+  // «прямо» и «наоборот» на нём одинаковы, и пример обратного ввода ничего бы не показал.
+  var st = 4242;
+  final r = rng ??
+      () {
+        st = (st * 9301 + 49297) % 233280;
+        return st / 233280;
+      };
+  final forward = generateSeq(7, r);
+  final backward = generateSeq(6, r);
+  return [
+    DemoTrial(
+      text: '',
+      art: DsRowView(forward.join(' ')),
+      sub: dsChunked(forward),
+      answer: expectedDigits(forward, Direction.forward).join(),
+      rule: L.t('teachSpanChunks'),
+    ),
+    DemoTrial(
+      text: '',
+      art: DsRowView(backward.join(' ')),
+      sub: dsChunked(backward),
+      answer: expectedDigits(backward, Direction.backward).join(),
+      rule: L.t('teachSpanBackward'),
+    ),
+  ];
+}

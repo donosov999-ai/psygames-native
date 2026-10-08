@@ -7,6 +7,7 @@ library;
 
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/visual_search/model.dart';
@@ -179,5 +180,107 @@ void main() {
     expect(items.every((i) => i.color == vsNeutral), isTrue);
     expect(items.where((i) => i.shape == target.shape).length, p.targetCount,
         reason: 'фигура цели встречается только у самих целей');
+  });
+
+  test('🔴 ПОТОЛКА НЕТ: с 32-го цвета сходятся к полу, а раундов больше на КАЖДОМ уровне', () {
+    // Правило Дениса 06.09.2026. К 31-му на верху все оси первого раунда (vsMaxLevel = 31).
+    for (var l = 1; l <= vsPaletteFrom; l += 1) {
+      expect(identical(vsPaletteFor(l), vsColors), isTrue, reason: 'L$l: прежняя палитра');
+      expect(vsExtraTrialsMean(l), 0, reason: 'L$l: прежнее число раундов');
+    }
+    List<int> rgb(String c) => [for (var i = 0; i < 3; i += 1) int.parse(c.substring(1 + i * 2, 3 + i * 2), radix: 16)];
+    double dist(String a, String b) {
+      final x = rgb(a), y = rgb(b);
+      return math.sqrt([0, 1, 2].map((i) => math.pow(x[i] - y[i], 2)).reduce((u, v) => u + v));
+    }
+    double spread(List<String> p) {
+      var worst = 0.0;
+      for (var a = 0; a < p.length; a += 1) {
+        for (var b = a + 1; b < p.length; b += 1) {
+          worst = math.max(worst, dist(p[a], p[b]));
+        }
+      }
+      return worst;
+    }
+    double nearest(List<String> p) {
+      var best = double.infinity;
+      for (var a = 0; a < p.length; a += 1) {
+        for (var b = a + 1; b < p.length; b += 1) {
+          best = math.min(best, dist(p[a], p[b]));
+        }
+      }
+      return best;
+    }
+    // Цвет на экране — 8 бит на канал: к полу палитра подходит ступенями и в какой-то момент
+    // перестаёт меняться. Поэтому цвет проверяется так: не дальше, чем на прошлом уровне, и
+    // строго ближе, пока не встал; не ниже пола никогда. Строгий рост на каждом уровне — у раундов.
+    var prev = spread(vsColors);
+    var lastChange = vsPaletteFrom;
+    for (var l = vsPaletteFrom + 1; l <= 1000; l += 1) {
+      final p = vsPaletteFor(l);
+      expect(p.toSet().length, p.length, reason: 'L$l: цвета не слились');
+      final d = spread(p);
+      expect(d, lessThanOrEqualTo(prev), reason: 'L$l: цвета не дальше, чем на L${l - 1}');
+      if (d < prev) lastChange = l;
+      prev = d;
+    }
+    expect(lastChange, greaterThan(80), reason: 'цвет сходится ступенями долго — последний сдвиг на L$lastChange');
+    expect(nearest(vsPaletteFor(1000)), greaterThan(nearest(vsColors) * vsColorFloor - 2),
+        reason: 'на далёком уровне цвета разведены не меньше пола: ${vsPaletteFor(1000)}');
+    var spreadK = vsColorSpread(vsPaletteFrom);
+    var mean = vsExtraTrialsMean(vsPaletteFrom);
+    for (var l = vsPaletteFrom + 1; l <= 400; l += 1) {
+      expect(vsColorSpread(l), lessThan(spreadK), reason: 'L$l: разведение строго меньше');
+      expect(vsColorSpread(l), greaterThan(vsColorFloor), reason: 'L$l: не ниже пола');
+      spreadK = vsColorSpread(l);
+    }
+    for (var l = vsPaletteFrom + 1; l <= 10000; l += 1) {
+      expect(vsExtraTrialsMean(l), greaterThan(mean), reason: 'L$l: раундов в среднем больше — соседи не совпадают');
+      mean = vsExtraTrialsMean(l);
+    }
+    expect(vsExtraTrialsMean(39), 1, reason: 'на раунд больше каждые 8 уровней');
+    expect(vsExtraTrialsMean(47), 2);
+  });
+
+  test('🔴 лишние раунды честные: целая часть всегда, дробная — долей партий; до 32-го бросков нет', () {
+    var calls = 0;
+    final base = createRng('раунды');
+    double counted() {
+      calls += 1;
+      return base();
+    }
+    for (var l = 1; l <= vsPaletteFrom; l += 1) {
+      expect(vsDrawExtraTrials(l, counted), 0);
+    }
+    expect(calls, 0, reason: 'до 32-го генератор не тронут — раздача прежняя байт в байт');
+    for (final level in [32, 35, 40, 77, 200]) {
+      final mean = vsExtraTrialsMean(level);
+      var sum = 0;
+      const draws = 4000;
+      for (var i = 0; i < draws; i += 1) {
+        final d = vsDrawExtraTrials(level, counted);
+        expect(d == mean.floor() || d == mean.floor() + 1, isTrue, reason: 'L$level: $d при среднем $mean');
+        sum += d;
+      }
+      expect(sum / draws, closeTo(mean, 0.03), reason: 'L$level: среднее по $draws партиям');
+    }
+  });
+
+  test('🔴 доска 40-го раскрашена палитрой 40-го', () {
+    // Доска 40-го раскрашена палитрой 40-го: и цель, и отвлекающие — из неё.
+    final rnd = createRng('палитра-40');
+    final palette = vsPaletteFor(40);
+    final target = vsPickTarget(true, palette, rnd);
+    final board = vsMakeBoard(
+        count: 40, targetShape: target.shape, targetColor: target.color, targetCount: 2,
+        conjunction: true, w: 300, h: 300, rnd: rnd, palette: palette);
+    expect(board.map((i) => i.color).toSet().difference(palette.toSet()), isEmpty,
+        reason: 'на доске нет цветов вне палитры уровня');
+  });
+
+  test('🔴 карточка «Цвета ближе» встаёт на тот же уровень, что и ось', () {
+    final rules = jsonDecode(File('assets/level_rules.json').readAsStringSync()) as Map<String, dynamic>;
+    final ranges = ((rules['games'] as Map)['visual_search'] as List).cast<List>();
+    expect(ranges.last, [vsPaletteFrom + 1, null, 'closer']);
   });
 }

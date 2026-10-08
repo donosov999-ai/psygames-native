@@ -11,6 +11,7 @@ import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/lesson.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/level_rules.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import 'model.dart';
@@ -110,7 +111,7 @@ class _SetGameScreenState extends State<SetGameScreen> {
     _picked.clear();
     _right = null;
     _board = buildBoard(_rng);
-    _leftMs = _params.timeLimit * 1000;
+    _leftMs = (_params.timeLimit * 1000).round();
     if (_params.timeLimit <= 0) return;
     // Давление временем с одиннадцатого уровня: просрочка засчитывается ошибкой.
     _tick = Timer.periodic(const Duration(milliseconds: 100), (_) {
@@ -219,6 +220,10 @@ class _SetGameScreenState extends State<SetGameScreen> {
   Widget build(BuildContext context) {
     if (!_ready) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     return GameShell(
+      // Карточки правил уровня — на экране итога: таймер расклада под ними не идёт. До 02.10.2026
+      // экран их не объявлял вовсе — «лимит времени» с L11 включался молча (задача 7f81fbc6).
+      levelRule: LevelRuleSpot(
+          gameId: 'set_game', level: _ladder.level, state: widget.state, calm: _phase == _Phase.result),
       title: L.t('setGame'),
       onLesson: () => openDemoLesson(context, title: L.t('setGame'), trials: _demoTrials()),
       hud: [

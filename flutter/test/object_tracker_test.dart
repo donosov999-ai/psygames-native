@@ -56,10 +56,20 @@ void main() {
 
   test('🔴 раздача круга та же: места, скорости и цели до последнего знака', () {
     var checked = 0;
+    var aboveLadder = 0;
     for (final raw in ref['rounds'] as List) {
       final e = raw as Map<String, dynamic>;
       final r = generateObjectTrackerRound('object-tracker-nzt', e['level'] as int);
       final at = 'L${e['level']}';
+      if ((e['level'] as int) > trackerLevels) {
+        // Веб зажимал запрос выше 41-го до 41-го (эталон снят так). С 02.10.2026 потолка нет:
+        // правило Дениса 06.09. Здесь проверяется уже новое правило, а не зажим.
+        expect(e['id'], 'object-tracker:object-tracker-nzt:$trackerLevels', reason: '$at эталон — зажим веба');
+        expect(r.level, e['level'], reason: '$at уровень больше не зажимается');
+        expect(r.speed, greaterThan(trackerSpeedForLevel(trackerLevels)), reason: '$at быстрее верха лестницы');
+        aboveLadder += 1;
+        continue;
+      }
       expect(r.id, e['id'], reason: '$at номер');
       expect(r.seed, e['seed'], reason: '$at зерно');
       expect(r.targetIds, e['targetIds'], reason: '$at цели');
@@ -77,7 +87,8 @@ void main() {
       expect(validateObjectTrackerRound(r), isEmpty, reason: '$at и здесь круг исправен');
       checked += 1;
     }
-    expect(checked, 24);
+    expect(checked, 23);
+    expect(aboveLadder, 1, reason: 'в эталоне один запрос выше лестницы — L50');
   });
 
   test('🔴 второе зерно, с пробелами и подчёркиванием, даёт тот же круг', () {
@@ -166,6 +177,28 @@ void main() {
       expect(m.selectedCount, want['selectedCount'], reason: '$at отмечено (дубли не в счёт)');
       expect(isPassed(m), e['passed'], reason: '$at уровень взят?');
     }
+  });
+
+  test('🔴 ПОТОЛКА НЕТ: выше 41-го каждый уровень быстрее прежнего, остальное — на верху лестницы', () {
+    // Правило Дениса 06.09.2026 «потолков нет». До 02.10.2026 уровень зажимался до 41-го, и
+    // номер выше не рос вовсе. Уровни 1…41 сверены с вебом выше и не тронуты.
+    final top = generateObjectTrackerRound('object-tracker-nzt', trackerLevels);
+    var prev = top.speed;
+    for (final level in [42, 43, 44, 60, 100, 250]) {
+      final r = generateObjectTrackerRound('object-tracker-nzt', level);
+      expect(r.level, level, reason: 'L$level не зажат до $trackerLevels');
+      expect(r.speed, greaterThan(prev), reason: 'L$level быстрее предыдущего замера');
+      expect([r.objectCount, r.targetCount, r.durationMs], [top.objectCount, top.targetCount, top.durationMs],
+          reason: 'L$level: шарики, цели и длительность уже на верху лестницы — растёт одна скорость');
+      prev = r.speed;
+      final frames = simulateTrackerRound(r, 50);
+      for (var i = 1; i < frames.length; i += 1) {
+        final v = validateTrackerWorld(r, frames[i], previous: frames[i - 1], deltaMs: 50);
+        expect(v.valid, isTrue, reason: 'L$level кадр $i: ${v.issues}');
+      }
+    }
+    expect(generateObjectTrackerRound('object-tracker-nzt', trackerLevels + 1).speed - top.speed,
+        closeTo(trackerSpeedPerLevelAbove, 1e-12), reason: 'первый уровень над лестницей — шаг, а не скачок');
   });
 
   test('🔴 шарики не налезают друг на друга и не уходят за поле ВЕСЬ круг', () {

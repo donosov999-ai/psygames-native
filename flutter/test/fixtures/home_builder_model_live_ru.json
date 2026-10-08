@@ -130,7 +130,7 @@
    "cards": [
     {
      "id": "picture_pairs",
-     "href": "/games/picture-pairs?calm=1",
+     "href": "/games/picture-pairs",
      "gradient": [
       "#f857a6",
       "#ff5858"
@@ -160,7 +160,7 @@
     },
     {
      "id": "schulte_table",
-     "href": "/games/schulte?calm=1",
+     "href": "/games/schulte",
      "gradient": [
       "#667eea",
       "#764ba2"
@@ -189,34 +189,34 @@
      "label": "Шульте: внимание — С чего начать"
     },
     {
-     "id": "breathing",
-     "href": "/games/breathing?calm=1",
+     "id": "hanoi",
+     "href": "/games/hanoi",
      "gradient": [
-      "#5b86e5",
-      "#36d1dc"
+      "#a8c0ff",
+      "#3f2b96"
      ],
      "look": {
-      "fg": "#0d1f29",
-      "soft": "#0d1f29",
-      "scrim20": "rgba(255, 255, 255, 0.2)",
-      "scrim35": "rgba(255, 255, 255, 0.35)",
-      "veil": null
+      "fg": "#020204",
+      "soft": "#020204",
+      "scrim20": "transparent",
+      "scrim35": "transparent",
+      "veil": "rgba(168, 192, 255, 0.44)"
      },
      "icon": {
-      "ion": "flower-outline",
+      "ion": "extension-puzzle",
       "size": 26
      },
      "chip": null,
-     "chipBg": "rgba(255, 255, 255, 0.35)",
-     "title": "Дыхание",
-     "sub": "Под вечер — без гонки",
+     "chipBg": "transparent",
+     "title": "Ханойская башня",
+     "sub": "С чего начать",
      "cta": {
       "ion": "play",
       "text": "СТАРТ",
-      "bg": "rgba(255, 255, 255, 0.35)",
-      "fg": "#0d1f29"
+      "bg": "transparent",
+      "fg": "#020204"
      },
-     "label": "Дыхание — Под вечер — без гонки"
+     "label": "Ханойская башня — С чего начать"
     }
    ]
   },
@@ -228,14 +228,14 @@
      "id": "warmup",
      "href": "/warmup-picker",
      "gradient": [
-      "#7b4397",
-      "#dc2430"
+      "#f7b733",
+      "#fc4a1a"
      ],
      "look": {
-      "fg": "#fcf7f9",
-      "soft": "#fcf7f9",
-      "scrim20": "rgba(0, 0, 0, 0.2)",
-      "scrim35": "rgba(0, 0, 0, 0.35)",
+      "fg": "#2d1707",
+      "soft": "#371c09",
+      "scrim20": "rgba(255, 255, 255, 0.2)",
+      "scrim35": "rgba(255, 255, 255, 0.35)",
       "veil": null
      },
      "icon": {
@@ -243,14 +243,14 @@
       "size": 30
      },
      "chip": null,
-     "chipBg": "rgba(0, 0, 0, 0.2)",
+     "chipBg": "rgba(255, 255, 255, 0.2)",
      "title": "Зарядка",
-     "sub": "Вечерняя · Спокойные игры и дыхание",
+     "sub": "Утренняя · Разогнать голову на день",
      "cta": {
       "ion": "chevron-forward",
       "text": "ВЫБРАТЬ",
-      "bg": "rgba(0, 0, 0, 0.35)",
-      "fg": "#fcf7f9"
+      "bg": "rgba(255, 255, 255, 0.35)",
+      "fg": "#2d1707"
      },
      "label": "Зарядка"
     },
@@ -289,15 +289,15 @@
      "href": null,
      "action": "challenge",
      "gradient": [
-      "#43cea2",
-      "#185a9d"
+      "#3a1c71",
+      "#d76d77"
      ],
      "look": {
-      "fg": "#000000",
-      "soft": "#000000",
+      "fg": "#ffffff",
+      "soft": "#ffffff",
       "scrim20": "transparent",
       "scrim35": "transparent",
-      "veil": "rgba(67, 206, 162, 0.31)"
+      "veil": "rgba(58, 28, 113, 0.24)"
      },
      "icon": {
       "ion": "flash",
@@ -306,12 +306,12 @@
      "chip": "🔥0",
      "chipBg": "transparent",
      "title": "Вызов дня",
-     "sub": "SET: тройки признаков · Легко",
+     "sub": "Башня Лондона · Легко",
      "cta": {
       "ion": "play",
       "text": "СТАРТ",
       "bg": "transparent",
-      "fg": "#000000"
+      "fg": "#ffffff"
      },
      "label": "Вызов дня"
     }

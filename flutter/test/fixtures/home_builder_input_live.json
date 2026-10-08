@@ -113,24 +113,22 @@
   },
   {
    "pick": {
-    "gameId": "breathing",
-    "reason": "calm",
-    "reasonKey": "recoWhyCalm",
+    "gameId": "hanoi",
+    "reason": "start",
+    "reasonKey": "recoWhyStart",
     "daysSince": null,
     "doneToday": false
    },
-   "gameId": "breathing"
+   "gameId": "hanoi"
   }
  ],
- "recoParams": {
-  "calm": "1"
- },
+ "recoParams": {},
  "warmup": {
   "gradient": [
-   "#7b4397",
-   "#dc2430"
+   "#f7b733",
+   "#fc4a1a"
   ],
-  "slotKey": "slotEvening"
+  "slotKey": "slotMorning"
  },
  "pause": {
   "gradient": [
@@ -139,7 +137,7 @@
   ]
  },
  "challenge": {
-  "gameId": "set_game",
+  "gameId": "tower_london",
   "difficultyKey": "easy",
   "done": false,
   "streak": 0

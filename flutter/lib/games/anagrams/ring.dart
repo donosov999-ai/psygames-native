@@ -166,7 +166,9 @@ class RingPacks {
     final code = resolve(locale);
     final have = _cache[code];
     if (have != null) return have;
-    final raw = await (bundle ?? rootBundle).loadString('assets/rings/$code.json');
+    // Байты, а не loadString — причина та же, что у `WordBank.load`.
+    final data = await (bundle ?? rootBundle).load('assets/rings/$code.json');
+    final raw = utf8.decode(data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes));
     final rings = [
       for (final e in jsonDecode(raw) as List)
         Ring(

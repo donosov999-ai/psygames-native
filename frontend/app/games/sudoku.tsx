@@ -382,7 +382,7 @@ export const SUDOKU_GAME_ID = GAME_ID;
  * Число берётся из гейта, а не пишется рядом: расхождение этих двух чисел и было
  * дефектом, и повториться оно не должно (см. `sudoku-ladder-matches-gate`).
  */
-const SUDOKU_LAST_LEVEL = 132;   // 54–57 ThermoCage; 58–65 ALS; 66–79 цепи; 80 легенда; 81–92 комбо; 93–96 немецкий шёпот; 97–100 ренбан; 101–104 равные суммы; 105–108 палиндром; 109–112 между концами; 113–116 замок; 117–120 XV; 121–124 аргайл; 125–128 малый киллер; 129–132 X-суммы
+const SUDOKU_LAST_LEVEL = 144;   // 54–57 ThermoCage; 58–65 ALS; 66–79 цепи; 80 легенда; 81–92 комбо; 93–96 немецкий шёпот; 97–100 ренбан; 101–104 равные суммы; 105–108 палиндром; 109–112 между концами; 113–116 замок; 117–120 XV; 121–124 аргайл; 125–128 малый киллер; 129–132 X-суммы; 133–136 шифр; 137–140 туман войны; 141–144 самосборка
 const SUDOKU_TIER_KEYS: Record<SudokuDifficultyTier, string> = {
   beginner: 'sudokuTierBeginner',
   easy: 'sudokuTierEasy',
@@ -481,6 +481,12 @@ interface SudokuResume {
   littlekiller?: LittleKillerClue[] | null;
   /** X-суммы (план — 185–188); в старых снимках поля нет — читать с ?? null. */
   xsums?: XsumsClues | null;
+  /** Шифр: номер буквы в клетке-подсказке (1..9 = A..I); в старых снимках поля нет — читать с ?? null. */
+  cipher?: number[][] | null;
+  /** Туман: окна старта (1 — открыто); расчистку натив выводит из сетки. В старых снимках поля нет — ?? null. */
+  fog?: number[][] | null;
+  /** Самосборка: подсказки границ (−1 — нет); областей в снимке нет — их выводит игрок. ?? null. */
+  chaos?: number[][] | null;
   /** Поля режимов towers/unequal; в старых снимках отсутствуют — читать с ?? null. */
   unequal?: UnequalMap | null;
   towers?: TowersMap | null;
@@ -713,7 +719,10 @@ export default function SudokuGame() {
    * открывается. Здесь поле держится ради общего снимка партии и причины отказа цифры.
    */
   const [littlekiller, setLittlekiller] = useState<LittleKillerClue[] | null>(null);
-  const [xsums, setXsums] = useState<XsumsClues | null>(null);   // X-суммы: то же, что малый киллер, — поля рисует натив
+  const [xsums, setXsums] = useState<XsumsClues | null>(null);
+  const [cipher, setCipher] = useState<number[][] | null>(null);
+  const [fog, setFog] = useState<number[][] | null>(null);
+  const [chaos, setChaos] = useState<number[][] | null>(null);   // самосборка: подсказки границ рисует натив   // туман: рисует и расчищает натив, веб хранит окна для снимка   // шифр: буквы рисует натив, как поля малого киллера   // X-суммы: то же, что малый киллер, — поля рисует натив
   const [xv, setXv] = useState<{ h: number[][]; v: number[][] } | null>(null);   // XV: знаки на гранях, показаны все   // замок
   const [arrow, setArrow] = useState<ArrowMap | null>(null);   // arrow: кружок (сумма) + стрелка
   const [unequalMap, setUnequalMap] = useState<UnequalMap | null>(null);   // unequal: знаки </> на гранях
@@ -1064,6 +1073,9 @@ export default function SudokuGame() {
     setXv((built as { xv?: { h: number[][]; v: number[][] } }).xv ?? null);
     setLittlekiller((built as { littlekiller?: LittleKillerClue[] }).littlekiller ?? null);
     setXsums((built as { xsums?: XsumsClues }).xsums ?? null);
+    setCipher((built as { cipher?: number[][] }).cipher ?? null);
+    setFog((built as { fog?: number[][] }).fog ?? null);
+    setChaos((built as { chaos?: number[][] }).chaos ?? null);
     setArrow(ar ?? null);
     // Карты режимов towers/unequal: на прочих досках их нет — чистим до null.
     const sideMaps = built as { unequal?: UnequalMap; towers?: TowersMap };
@@ -1106,7 +1118,7 @@ export default function SudokuGame() {
   const snapshot = (): SudokuResume => ({
     mode, level, road, difficulty, size, variant, dims,
     puzzle, solution, grid, given, cellColors, marks,
-    regions, cages, cageSums, cageAnchors, parityMarks, kropki, sandwich, thermo, arrow, whisper, renban, regionsum, palindrome, between, lockout, xv, littlekiller, xsums,
+    regions, cages, cageSums, cageAnchors, parityMarks, kropki, sandwich, thermo, arrow, whisper, renban, regionsum, palindrome, between, lockout, xv, littlekiller, xsums, cipher, fog, chaos,
     unequal: unequalMap, towers: towersMap,
     errors, hintUses, hintMax, backtrackCount, answersRevealed,
     elapsed: elapsedTime,
@@ -1135,7 +1147,7 @@ export default function SudokuGame() {
     setPencil(false);
     setRegions(s.regions); setCages(s.cages); setCageSums(s.cageSums); setCageAnchors(s.cageAnchors);
     setParityMarks(s.parityMarks); setKropki(s.kropki); setSandwich(s.sandwich);
-    setThermo(s.thermo); setArrow(s.arrow); setWhisper(s.whisper ?? null); setRenban(s.renban ?? null); setRegionsum(s.regionsum ?? null); setPalindrome(s.palindrome ?? null); setBetween(s.between ?? null); setLockout(s.lockout ?? null); setXv(s.xv ?? null); setLittlekiller(s.littlekiller ?? null); setXsums(s.xsums ?? null);
+    setThermo(s.thermo); setArrow(s.arrow); setWhisper(s.whisper ?? null); setRenban(s.renban ?? null); setRegionsum(s.regionsum ?? null); setPalindrome(s.palindrome ?? null); setBetween(s.between ?? null); setLockout(s.lockout ?? null); setXv(s.xv ?? null); setLittlekiller(s.littlekiller ?? null); setXsums(s.xsums ?? null); setCipher(s.cipher ?? null); setFog(s.fog ?? null); setChaos(s.chaos ?? null);
     setUnequalMap(s.unequal ?? null); setTowersMap(s.towers ?? null);   // старые снимки полей не имеют
     setErrors(s.errors); setHintUses(s.hintUses); setHintMax(s.hintMax); setBacktrackCount(s.backtrackCount);
     setAnswersRevealed(s.answersRevealed !== false);
@@ -1324,6 +1336,7 @@ export default function SudokuGame() {
         xv: xv ?? undefined,
         littlekiller: littlekiller ?? undefined,
         xsums: xsums ?? undefined,
+        cipher: cipher ?? undefined,
         arrow: arrow ?? undefined,
         parity: parityMarks ?? undefined,
         kropki: kropki ?? undefined,

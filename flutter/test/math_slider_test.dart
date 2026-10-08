@@ -161,6 +161,43 @@ void main() {
     expect(snapValue(-7.5, scale), -5.0);
   });
 
+  test('🔴 запись дробей — по языку, как в вебе: запятая у русского, точка у остальных', () {
+    // Веб: Intl.NumberFormat(locale === 'ru' ? 'ru-RU' : 'en-US', до 2 знаков, без групп)
+    // (frontend/src/games/math-slider/core/expression.ts:56), язык — `language === 'ru' ? 'ru' :
+    // 'en'` (app/games/math-slider.tsx:205). До 02.10.2026 перенос писал запятую всегда, и на
+    // английском телефоне шкала шла «6,25 · 12,5 · 18,75» — снимок эмулятора psy_search.
+    expect(formatNumber(6.25), '6,25');
+    expect(formatNumber(6.25, locale: 'en'), '6.25');
+    expect(formatNumber(12.5, locale: 'en'), '12.5');
+    expect(formatNumber(-0.75, locale: 'en'), '-0.75');
+    expect(formatNumber(1234.5, locale: 'en'), '1234.5', reason: 'без разделителя тысяч (useGrouping: false)');
+    expect(formatNumber(40, locale: 'en'), '40');
+    expect(numberLocale('ru'), 'ru');
+    for (final lang in ['en', 'de', 'fr', 'zh', 'ar']) {
+      expect(numberLocale(lang), 'en', reason: '$lang: веб берёт en-US для всех, кроме русского');
+    }
+    const eq = LinearEquation(2.5, -3, 10.5);
+    expect(formatExpression(eq), '2,5x − 3 = 10,5,  x = ?');
+    expect(formatExpression(eq, locale: 'en'), '2.5x − 3 = 10.5,  x = ?',
+        reason: 'запятая перед «x = ?» — разделитель, а не дробь: она остаётся');
+
+    // Все 96 вопросов эталона: английская запись отличается от русской ТОЛЬКО разделителем дробей.
+    final decimalComma = RegExp(r'(?<=\d),(?=\d)');
+    var withFractions = 0;
+    for (final raw in ref['packs'] as List) {
+      final pack = raw as Map<String, dynamic>;
+      final got = generateMathSliderQuestions(pack['seed'] as String, pack['level'] as int, 3);
+      for (final q in got) {
+        final ru = formatExpression(q.expression);
+        final en = formatExpression(q.expression, locale: 'en');
+        expect(en.contains(decimalComma), isFalse, reason: 'L${pack['level']}: «$en»');
+        expect(en, ru.replaceAll(decimalComma, '.'), reason: 'L${pack['level']}: «$ru» → «$en»');
+        if (ru.contains(decimalComma)) withFractions += 1;
+      }
+    }
+    expect(withFractions, greaterThan(0), reason: 'в эталоне нет ни одной дроби — сверка ничего не проверила');
+  });
+
   test('перенос прогресса v1→v2 не сжигает семейство, на котором стоял игрок', () {
     for (final raw in ref['migrate'] as List) {
       final e = raw as Map<String, dynamic>;
