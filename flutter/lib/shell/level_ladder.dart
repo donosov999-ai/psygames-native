@@ -139,6 +139,10 @@ class LevelLadder {
 
   /// `report: false` — лестница-хозяин ступени-перехода: партию уже записала чужая игра
   /// под своим типом, вторая (нулевая) партия «Судоку» исказила бы статистику.
+  ///
+  /// `advance: false` — партию доиграли купленной второй жизнью (задача 576405e7): она уходит
+  /// в статистику как была, а лестница стоит, как в «Мишенях» (`ladderFrozenRef`). Иначе за
+  /// штуку из магазина покупалась бы ступень, которую человек не взял.
   Future<bool> win({
     int score = 0,
     int timeSeconds = 0,
@@ -147,6 +151,7 @@ class LevelLadder {
     String? difficulty,
     Map<String, Object?>? details,
     bool report = true,
+    bool advance = true,
   }) async {
     _failStreak = 0;
     // Пресет — шаг зарядки, разбор — партия с показанным решением. В обоих
@@ -154,7 +159,7 @@ class LevelLadder {
     final lesson = LessonUsed.inRound;
     // Переход тоже не засчитывает: уровень чужой ступени — не уровень этой игры, и босса
     // на «вехе» внутри чужой партии быть не должно ([BossRound.due] смотрит сюда).
-    final counted = !_frozen && !lesson;
+    final counted = advance && !_frozen && !lesson;
     LessonUsed.reset();
     if (counted) {
       if (_level < maxLevel) _level += 1;
@@ -192,7 +197,7 @@ class LevelLadder {
   /// зарядки так же, как выигранная. Иначе человек, проваливший шаг серии,
   /// застрял бы на нём навсегда.
   ///
-  /// `difficulty` и `details` — как у [win]: не переданы — уходит прежнее.
+  /// `difficulty`, `details` и `advance` — как у [win]: не переданы — уходит прежнее.
   Future<void> fail({
     int score = 0,
     int timeSeconds = 0,
@@ -201,10 +206,12 @@ class LevelLadder {
     String? difficulty,
     Map<String, Object?>? details,
     bool report = true,
+    bool advance = true,
   }) async {
     final lesson = LessonUsed.inRound;
     LessonUsed.reset();   // см. [win]: отметку съедает партия, которую она не засчитала
-    if (_frozen || lesson) {
+    // `advance: false` — как у [win]: партия с купленной жизнью провалов тоже не копит.
+    if (!advance || _frozen || lesson) {
       // Ни пресет, ни переход, ни партия с разбором не копят провалов: иначе три шага зарядки
       // подряд (или три подсмотренных решения) опустили бы личный уровень, который
       // человек в этих партиях и не защищал.

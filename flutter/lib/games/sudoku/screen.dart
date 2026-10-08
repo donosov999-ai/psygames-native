@@ -4,6 +4,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../shell/ability_wallet.dart';
 import '../../shell/game_clock.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/boss_round.dart';
@@ -339,6 +340,28 @@ class _SudokuScreenState extends State<SudokuScreen> {
   bool _lost = false;
   String? _failure;
 
+  /// 🔴 ВТОРАЯ ЖИЗНЬ И КУПЛЕННАЯ ПОДСКАЗКА (задача 576405e7, решение Дениса 08.10).
+  ///
+  /// Ошибки кончились, а в кошельке есть штука — партия не обрывается, а ЗАМИРАЕТ и
+  /// спрашивает ([_deathOffer]), как в «Мишенях». Потраченная жизнь даёт ровно одну ошибку
+  /// сверх ступени ([_errorCap]); сами ошибки остаются в записи. Одна на партию, и такая
+  /// партия лестницу не двигает (`advance: false`): иначе за штуку покупалась бы ступень.
+  late final _wallet = AbilityWallet(widget.state);
+  bool _deathOffer = false;
+  bool _lifeSpent = false;
+
+  /// Списание в полёте — второе нажатие не проходит (у веба — `spendingRef`).
+  bool _spending = false;
+
+  /// Сколько подсказок в этой партии куплено сверх бесплатных — в отчёт и в снимок.
+  int _boughtHints = 0;
+
+  /// Ввод закрыт: партия кончилась или ждёт решения о второй жизни.
+  bool get _halted => _won || _lost || _deathOffer;
+
+  /// Порог провала: ступень плюс одна, если вторая жизнь потрачена.
+  int get _errorCap => errorLimit + (_lifeSpent ? 1 : 0);
+
   @override
   void initState() {
     super.initState();
@@ -442,6 +465,8 @@ class _SudokuScreenState extends State<SudokuScreen> {
       errors: _errors,
       hintUses: _hintsUsed,
       answersRevealed: _answersRevealed,
+      secondLife: _lifeSpent,
+      boughtHints: _boughtHints,
       hintMax: _hintMax,
       backtracks: _backtracks,
       elapsed: _elapsed,
@@ -512,8 +537,12 @@ class _SudokuScreenState extends State<SudokuScreen> {
       _won = false;
       _boss = null;
       _lost = false;
+      _deathOffer = false;
+      _lifeSpent = r.secondLife;
+      _boughtHints = r.boughtHints;
     });
     if (_answersRevealed) await _revealed.mark(_answerId);
+    _reofferIfOut();
     _recordDeal(board);
     return true;
   }
@@ -567,9 +596,19 @@ class _SudokuScreenState extends State<SudokuScreen> {
       _won = false;
       _boss = null;
       _lost = false;
+      _deathOffer = false;
+      _lifeSpent = r.secondLife;
+      _boughtHints = r.boughtHints;
     });
     if (_answersRevealed) await _revealed.mark(_answerId);
+    _reofferIfOut();
     return true;
+  }
+
+  /// Снимок лёг в момент предложения второй жизни (ошибки на пороге, партия не проиграна):
+  /// поднятая партия снова спрашивает — или проигрывает, если штуки уже нет.
+  void _reofferIfOut() {
+    if (mounted && _errors >= _errorCap) setState(_outOfLives);
   }
 
   /// Ступень малышей; `null` — обычная игра.
@@ -609,6 +648,9 @@ class _SudokuScreenState extends State<SudokuScreen> {
       _backtracks = 0;
       _won = false;
       _lost = false;
+      _deathOffer = false;
+      _lifeSpent = false;
+      _boughtHints = 0;
     });
   }
 
@@ -631,9 +673,10 @@ class _SudokuScreenState extends State<SudokuScreen> {
         'level': step,
         'variant': 'junior',
         if (_skinShown != null) 'skin': _skinShown,
+        if (_lifeSpent) 'second_life': true,
       },
     ));
-    junior.win();
+    if (!_lifeSpent) junior.win();   // купленная жизнь ступень малышей тоже не двигает
   }
 
   void _deal() {
@@ -668,6 +711,9 @@ class _SudokuScreenState extends State<SudokuScreen> {
         _won = false;
         _boss = null;
         _lost = false;
+        _deathOffer = false;
+        _lifeSpent = false;
+        _boughtHints = 0;
       });
       _persist();   // новая доска режима — сразу своим снимком
       return;   // теневой шаг генератора живёт на лестнице, а не в режимах
@@ -702,6 +748,9 @@ class _SudokuScreenState extends State<SudokuScreen> {
       _won = false;
       _boss = null;
       _lost = false;
+      _deathOffer = false;
+      _lifeSpent = false;
+      _boughtHints = 0;
     });
     _recordDeal(board);
     _persist();   // новая доска сразу ложится своим снимком, как в вебе
@@ -802,6 +851,9 @@ class _SudokuScreenState extends State<SudokuScreen> {
       _won = false;
       _boss = null;
       _lost = false;
+      _deathOffer = false;
+      _lifeSpent = false;
+      _boughtHints = 0;
     });
   }
 
@@ -907,7 +959,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
   }
 
   void _select(int r, int c) {
-    if (_won || _lost) return;
+    if (_halted) return;
     final paint = _paint;
     if (paint != null) {
       _paintCell(r, c, paint);
@@ -946,7 +998,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
       pencil: _pencil,
       hasSelection: sel != null,
       given: sel != null && _given[sel.r][sel.c],
-      blocked: _won || _lost,
+      blocked: _halted,
     );
     switch (route) {
       case PencilRoute.ignore:
@@ -974,7 +1026,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
   void _place(int value) {
     final solution = _solution;
     final sel = _selected;
-    if (solution == null || sel == null || _won || _lost) return;
+    if (solution == null || sel == null || _halted) return;
     if (_given[sel.r][sel.c]) return;   // подсказку задания не трогаем
     if (_fogged(sel.r, sel.c)) return;   // отмена вернула туман над выбранной клеткой
 
@@ -987,17 +1039,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
       if (value != 0 && solution[sel.r][sel.c] != value) {
         _whyKey = _rejectWhy(sel.r, sel.c, value);
         _errors += 1;
-        if (_errors >= errorLimit) {
-          _lost = true;
-          if (_assisted) {
-            _reportEducational(completed: false);
-          } else if (_pilot) {
-            _pilotFinish(Outcome.failed);
-          } else {
-            _recordOutcome(Outcome.failed);
-            _reportLoss();
-          }
-        }
+        if (_errors >= _errorCap) _outOfLives();
         return;
       }
       _checkWin();
@@ -1006,6 +1048,54 @@ class _SudokuScreenState extends State<SudokuScreen> {
   }
 
   void _erase() => _onKey(0);
+
+  /// Ошибки кончились. Штука в кошельке есть, а жизнь в этой партии ещё не тратили — партия
+  /// замирает и спрашивает; иначе — проигрыш. Зовётся внутри `setState`.
+  ///
+  /// ⚠️ Автосписания нет нарочно, как у «Мишеней»: молча списать штуку значит забрать её у
+  /// того, кто, может, и хотел закончить. Остаток виден на карточке до нажатия.
+  void _outOfLives() {
+    if (!_lifeSpent && _wallet.count(AbilityWallet.secondLife) > 0) {
+      _deathOffer = true;
+      return;
+    }
+    _lose();
+  }
+
+  void _lose() {
+    _deathOffer = false;
+    _lost = true;
+    if (_assisted) {
+      _reportEducational(completed: false);
+    } else if (_pilot) {
+      _pilotFinish(Outcome.failed);
+    } else {
+      _recordOutcome(Outcome.failed);
+      _reportLoss();
+    }
+  }
+
+  /// Потратить жизнь и продолжить. Разрешение даёт СПИСАНИЕ, а не остаток до него: штуки не
+  /// оказалось — карточка остаётся, кнопка гаснет по нулю.
+  Future<void> _takeLife() async {
+    if (_spending || _lifeSpent || !_deathOffer) return;
+    setState(() => _spending = true);
+    final ok = await _wallet.spend(AbilityWallet.secondLife);
+    if (!mounted) return;
+    setState(() {
+      _spending = false;
+      if (!ok) return;
+      _lifeSpent = true;
+      _deathOffer = false;
+    });
+    _persist();
+  }
+
+  void _declineLife() {
+    if (!_deathOffer) return;
+    setState(_lose);
+    _persist();
+  }
 
   /// Карта уровней: пройденный уровень — переиграть; потолок (`best`) выбор не трогает. На дороге
   /// счётчик хранит только максимум (`SudokuRoadStore`), поэтому выбранный уровень играется до
@@ -1079,7 +1169,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
   }
 
   void _undo() {
-    if (_history.isEmpty || _won || _lost) return;
+    if (_history.isEmpty || _halted) return;
     setState(() {
       final last = _history.removeLast();
       switch (last.kind) {
@@ -1096,11 +1186,38 @@ class _SudokuScreenState extends State<SudokuScreen> {
 
   /// Подсказка: открывает выбранную клетку по решению. Число подсказок на уровень
   /// задаёт лестница (`hintMax`), как в вебе.
+  ///
+  /// Бесплатные кончились — тратится купленная («Подсказка («Судоку»)», задача 576405e7). Партия
+  /// с подсказкой и так идёт тренировкой ([_assisted]): ни уровня, ни очков, — поэтому купленная
+  /// подсказка продаёт помощь, а не ступень. Клетку задания и уже верную купленной не открываем —
+  /// штука ушла бы впустую.
   void _hint() {
     final solution = _solution;
     final sel = _selected;
-    if (solution == null || sel == null || _won || _lost) return;
-    if (_hintsUsed >= _hintMax) return;
+    if (solution == null || sel == null || _halted) return;
+    if (_hintsUsed >= _hintMax) {
+      if (_given[sel.r][sel.c] || _grid[sel.r][sel.c] == solution[sel.r][sel.c]) return;
+      unawaited(_buyHint());
+      return;
+    }
+    _openCell();
+  }
+
+  Future<void> _buyHint() async {
+    if (_spending) return;
+    setState(() => _spending = true);
+    final ok = await _wallet.spend(AbilityWallet.sudokuHint);
+    if (!mounted) return;
+    setState(() => _spending = false);
+    if (!ok) return;
+    _boughtHints += 1;
+    _openCell();
+  }
+
+  void _openCell() {
+    final solution = _solution;
+    final sel = _selected;
+    if (solution == null || sel == null || _halted) return;
     setState(() {
       // ⚠️ ПОДСКАЗКА В ИСТОРИЮ НЕ ПИШЕТСЯ — так в веб-половине (handleHint,
       // app/games/sudoku.tsx:1433: истории не касается вовсе), и это осмысленно:
@@ -1129,6 +1246,9 @@ class _SudokuScreenState extends State<SudokuScreen> {
         _paint = _paint == null ? 0 : null;
         if (_paint != null) _pencil = false;
       });
+
+  int get _freeHintsLeft => (_hintMax - _hintsUsed).clamp(0, math.max(0, _hintMax));
+  int get _boughtLeft => _wallet.count(AbilityWallet.sudokuHint);
 
   /// Потолок подсказок берётся по номеру ступени — как в веб-половине.
   int get _hintMax {
@@ -1188,6 +1308,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
           'level': junior.step,
           'variant': 'junior',
           if (_skinShown != null) 'skin': _skinShown,
+          if (_lifeSpent) 'second_life': true,
         },
       ));
       return;
@@ -1210,6 +1331,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
         if (mode == null) 'road': _onRoad ? _road.name : defaultSudokuRoad.name,
         if (mode == null) 'lives': errorLimit,
         if (_skinShown != null) 'skin': _skinShown,
+        if (_lifeSpent) 'second_life': true,
       },
     ));
   }
@@ -1245,6 +1367,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
         'backtrack_count': _backtracks,
         'level': step,
         'variant': sideModeName(mode),
+        if (_lifeSpent) 'second_life': true,
       },
     ));
   }
@@ -1265,7 +1388,9 @@ class _SudokuScreenState extends State<SudokuScreen> {
     }
     if (widget.mode != null) {
       _reportModeWin(_side?.step ?? 1);   // шаг — ДО прибавки, как в вебе
-      _side?.win();   // ступень режима — свой счётчик, основная лестница не трогается
+      // Ступень режима — свой счётчик, основная лестница не трогается. Купленная жизнь
+      // замораживает и его.
+      if (!_lifeSpent) _side?.win();
       return;
     }
     if (widget.junior) {
@@ -1273,13 +1398,16 @@ class _SudokuScreenState extends State<SudokuScreen> {
       return;
     }
     // Подсказками доигранная партия рейтинг не повышает — это правило движка, не экрана.
+    // Купленная жизнь — тоже помощь: рейтинг пилота и тени такую победу не засчитывают.
+    final helped = _hintsUsed > 0 || _lifeSpent;
     if (_pilot) {
-      _pilotFinish(_hintsUsed > 0 ? Outcome.assisted : Outcome.passed);
+      _pilotFinish(helped ? Outcome.assisted : Outcome.passed);
       return;
     }
-    _recordOutcome(_hintsUsed > 0 ? Outcome.assisted : Outcome.passed);
+    _recordOutcome(helped ? Outcome.assisted : Outcome.passed);
     final level = _ladder.level;
-    unawaited(saveLevelStars(widget.state, 'sudoku', level, sudokuStars(_errors)));   // звёзды карты уровней
+    // Звёзды карты уровней — за пройденную ступень; ступень с купленной жизнью не пройдена.
+    if (!_lifeSpent) unawaited(saveLevelStars(widget.state, 'sudoku', level, sudokuStars(_errors)));
     // Трудность и подробности — как у веба (app/games/sudoku.tsx, saveSession победы).
     // До 30.09 лестница умела слать только номер: трудностью уходило «54», а не «hard»,
     // и без дороги — история сравнила бы уровень 12 лёгкой и тяжёлой дорог между собой.
@@ -1299,7 +1427,9 @@ class _SudokuScreenState extends State<SudokuScreen> {
         'road': _onRoad ? _road.name : defaultSudokuRoad.name,
         'lives': errorLimit,
         if (_skinShown != null) 'skin': _skinShown,
+        if (_lifeSpent) 'second_life': true,
       },
+      advance: !_lifeSpent,
     )));
   }
 
@@ -1318,6 +1448,8 @@ class _SudokuScreenState extends State<SudokuScreen> {
         'lesson': true, 'answers_revealed': true, 'independent': false,
         'completed': false, 'practice_completed': completed,
         'hint_uses': _hintsUsed, 'errors': _errors,
+        if (_boughtHints > 0) 'bought_hints': _boughtHints,
+        if (_lifeSpent) 'second_life': true,
         'variant': widget.mode != null ? sideModeName(widget.mode!) : _board?.variant,
       },
     ));
@@ -1564,7 +1696,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
                       : _pilot ? '${_pilotWins + 1}' : '${_ladder.level}',
           icon: _pilot ? Icons.auto_awesome : Icons.trending_up,
         ),
-        HudItem(label: L.t('errors'), value: '$_errors/$errorLimit', icon: Icons.close),
+        HudItem(label: L.t('errors'), value: '$_errors/$_errorCap', icon: Icons.close),
         if (ruleLabel != null) HudItem(label: L.t('simonRule'), value: ruleLabel, icon: Icons.rule),
       ],
       field: (context, fieldHeight) {
@@ -1631,14 +1763,15 @@ class _SudokuScreenState extends State<SudokuScreen> {
           icon: Icons.undo,
           label: L.t('btn_undo'),
           count: _history.isEmpty ? null : _history.length,
-          onPressed: _history.isEmpty || _won || _lost ? null : _undo,
+          onPressed: _history.isEmpty || _halted ? null : _undo,
         ),
         AuxAction(
           icon: Icons.lightbulb_outline,
           label: L.t('btn_hint'),
           tint: const Color(0xFFB45309),
-          count: _hintMax > 0 ? (_hintMax - _hintsUsed).clamp(0, _hintMax) : null,
-          onPressed: (_hintsUsed < _hintMax && _selected != null && !_won && !_lost)
+          // Остаток — бесплатные плюс купленные: купленная подсказка — та же кнопка.
+          count: _hintMax > 0 || _boughtLeft > 0 ? _freeHintsLeft + _boughtLeft : null,
+          onPressed: (_freeHintsLeft + _boughtLeft > 0 && _selected != null && !_halted && !_spending)
               ? _hint
               : null,
         ),
@@ -1647,14 +1780,14 @@ class _SudokuScreenState extends State<SudokuScreen> {
           icon: _pencil ? Icons.edit : Icons.edit_outlined,
           label: L.t('sudokuPencilMode'),
           active: _pencil,
-          onPressed: (_won || _lost) ? null : _togglePencil,
+          onPressed: _halted ? null : _togglePencil,
         ),
         AuxAction(
           key: const Key('paint'),
           icon: _paint != null ? Icons.palette : Icons.palette_outlined,
           label: L.t('sudokuColorMode'),
           active: _paint != null,
-          onPressed: (_won || _lost) ? null : _togglePaint,
+          onPressed: _halted ? null : _togglePaint,
         ),
         AuxAction(icon: Icons.refresh, label: L.t('restart'), onPressed: () => restartGuarded(context, live: _live, deal: _deal)),
       ]),
@@ -1665,6 +1798,14 @@ class _SudokuScreenState extends State<SudokuScreen> {
               n: _n,
               won: _won,
               lost: _lost,
+              offer: _deathOffer
+                  ? SecondLifeOffer(
+                      left: _wallet.count(AbilityWallet.secondLife),
+                      onTake: _spending ? null : _takeLife,
+                      onDecline: _declineLife,
+                    )
+                  : null,
+              lifeNote: _lifeSpent ? L.t('abilityLifeSpentNote') : null,
               onDigit: _onKey,
               onErase: _erase,
               onNext: _newIndependentBoard,
@@ -1687,7 +1828,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
                   : null,
               boss: _won ? _boss : null,
               // Провал — словами и с числом ступени, как в вебе: «Ошибок: 2 из 2…».
-              lostNote: _lost ? L.t('outOfLivesHint').replaceAll('{n}', '$errorLimit') : null,
+              lostNote: _lost ? L.t('outOfLivesHint').replaceAll('{n}', '$_errorCap') : null,
             ),
       pauseActions: [
         PauseAction(label: L.t('sdkStartOver'), icon: Icons.refresh, onPressed: () => restartGuarded(context, live: _live, deal: _deal)),
@@ -2249,6 +2390,8 @@ class _Toolbar extends StatelessWidget {
     required this.n,
     required this.won,
     required this.lost,
+    this.offer,
+    this.lifeNote,
     required this.onDigit,
     required this.onErase,
     required this.onNext,
@@ -2266,6 +2409,12 @@ class _Toolbar extends StatelessWidget {
   final int n;
   final bool won;
   final bool lost;
+
+  /// Карточка второй жизни ([SecondLifeOffer]) — стоит вместо клавиш, пока человек решает.
+  final Widget? offer;
+
+  /// «Вторая жизнь потрачена — уровень за эту партию не растёт» — над клавишами и в итоге.
+  final String? lifeNote;
   final void Function(int) onDigit;
   final VoidCallback onErase;
   final VoidCallback onNext;
@@ -2299,6 +2448,8 @@ class _Toolbar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final o = offer;
+    if (o != null) return o;
     if (won || lost) {
       final next = FilledButton.icon(
         key: const Key('next'),
@@ -2307,7 +2458,7 @@ class _Toolbar extends StatelessWidget {
         label: Text(nextLabel ?? (won ? L.t('sdkNextLevel') : L.t('retry'))),
       );
       final repeat = onRepeat;
-      final note = won ? wonNote : lostNote;
+      final note = won ? (wonNote ?? lifeNote) : lostNote;
       final Widget body = (lost && repeat != null)
             ? Wrap(
                 alignment: WrapAlignment.center,
@@ -2348,10 +2499,15 @@ class _Toolbar extends StatelessWidget {
     }
     final keys = SudokuKeys(
         n: n, onDigit: onDigit, onErase: onErase, paint: paint, onPaint: onPaint, label: label, icon: icon);
-    final w = why;
-    if (w == null) return keys;
+    final w = why, life = lifeNote;
+    if (w == null && life == null) return keys;
     return Column(mainAxisSize: MainAxisSize.min, children: [
-      Padding(
+      if (life != null)
+        Padding(
+          padding: const EdgeInsets.fromLTRB(12, 4, 12, 0),
+          child: Text(life, key: const Key('life-spent-note'), textAlign: TextAlign.center, style: const TextStyle(fontSize: 12)),
+        ),
+      if (w != null) Padding(
         padding: const EdgeInsets.fromLTRB(12, 4, 12, 2),
         child: Text(
           w,
