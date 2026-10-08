@@ -15,6 +15,7 @@
   "psygames_onboarding_picked_students": "1",
   "psygames_pet_skin": "auto",
   "psygames_playlists_override": "{\"профили\":{\"students\":{\"главная\":[\"сегодня\",\"рекомендации\",\"практики\"]}}}",
+  "psygames_resume_hanoi_students": "{\"v\":1,\"savedAt\":1788798645000,\"state\":{}}",
   "psygames_sessions": "[{\"profile_id\":\"students\",\"game_type\":\"schulte_table\",\"score\":10,\"time_seconds\":60,\"timestamp\":\"2026-10-05T16:30:45.000Z\"},{\"profile_id\":\"students\",\"game_type\":\"anagrams\",\"score\":10,\"time_seconds\":60,\"timestamp\":\"2026-10-06T16:30:45.000Z\"},{\"profile_id\":\"students\",\"game_type\":\"math_sprint\",\"score\":10,\"time_seconds\":60,\"timestamp\":\"2026-09-12T16:30:45.000Z\"},{\"profile_id\":\"students\",\"game_type\":\"math_sprint\",\"score\":10,\"time_seconds\":60,\"timestamp\":\"2026-09-13T16:30:45.000Z\"}]",
   "psygames_streak_goal_students": "{\"days\":7,\"startedAt\":\"2026-9-30\",\"askedAt\":\"2026-10-5\",\"reachedAt\":\"2026-10-8\"}",
   "psygames_streak_v1": "{\"students\":{\"last\":\"2026-10-8\",\"streak\":7}}",

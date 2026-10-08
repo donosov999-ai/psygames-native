@@ -27,7 +27,7 @@
   "psygames_streak_v1": "{\"nzt48\":{\"last\":\"2026-10-8\",\"streak\":3}}",
   "psygames_tokens_v1": "{\"nzt48\":1259,\"women\":50}",
   "psygames_warmup_history": "[{\"date\":\"2026-10-07\",\"weekday\":\"mon\",\"duration_min\":5,\"track\":\"core\",\"total_score\":10,\"completed\":true,\"steps_done\":3,\"steps_total\":3},{\"date\":\"2026-10-06\",\"weekday\":\"mon\",\"duration_min\":5,\"track\":\"core\",\"total_score\":10,\"completed\":true,\"steps_done\":3,\"steps_total\":3},{\"date\":\"2026-10-05\",\"weekday\":\"mon\",\"duration_min\":5,\"track\":\"core\",\"total_score\":10,\"completed\":true,\"steps_done\":3,\"steps_total\":3},{\"date\":\"2026-10-03\",\"weekday\":\"mon\",\"duration_min\":5,\"track\":\"core\",\"total_score\":10,\"completed\":true,\"steps_done\":3,\"steps_total\":3}]",
-  "psygames_weak_skill_v1": "{\"skillKey\":\"skillLogic\",\"delta\":-0.3,\"date\":\"2026-10-06\"}"
+  "psygames_weak_skill_v1": "{\"skillKey\":\"skillLogic\",\"delta\":-0.3,\"date\":\"2026-10-01\"}"
  },
  "input": {
   "profile": {

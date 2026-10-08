@@ -417,7 +417,8 @@ describe('входы Главной из хранилища — эталон д�
         psygames_streak_goal_nzt48: { days: 7, startedAt: '2026-10-1', askedAt: '2026-10-1', reachedAt: null },
         psygames_streak_goal_asked_nzt48: '2026-10-1',
         psygames_daily_challenge_streak_nzt48: { streak: 4, total: 10, last: сутки(N) },
-        psygames_weak_skill_v1: { skillKey: 'skillLogic', delta: -0.3, date: дата(N - 2 * д) },
+        // Ровно неделя — край свежести (`СВЕЖЕСТЬ_ДНЕЙ`): ещё в силе.
+        psygames_weak_skill_v1: { skillKey: 'skillLogic', delta: -0.3, date: дата(N - 7 * д) },
         psygames_assessment_history: [{ scores: [{ domain: 'wm_verbal', z_score: -0.2 }] }],
       }).then(() => undefined),
     });
@@ -440,6 +441,8 @@ describe('входы Главной из хранилища — эталон д�
         psygames_streak_v1: { students: { last: сутки(N), streak: 7 } },
         psygames_earn_v1: { students: { entries: [], days: [0, 1, 2, 3, 4, 5, 6].map((k) => сутки(N - k * д)) } },
         psygames_cosmetics_equipped_students: { title: 'title_focused' },
+        // Единственная партия «продолжить» старше месяца — карточки нет.
+        psygames_resume_hanoi_students: { v: 1, savedAt: N - 31 * д, state: {} },
         psygames_pet_skin: 'auto',
         psygames_day_goal_students: { text: 'Read for 20 minutes', date: сутки(N), createdAt: iso(N - 10 * ч), outcome: null },
         psygames_streak_goal_students: { days: 7, startedAt: '2026-9-30', askedAt: '2026-10-5', reachedAt: null },
@@ -451,5 +454,6 @@ describe('входы Главной из хранилища — эталон д�
     expect(input.showBlock['цель_дня']).toBe(false);
     expect(input.goalCard.state).toBe('review');
     expect(input.recoParams).toEqual({ calm: '1' });
+    expect(input.resume).toBeNull();
   });
 });
