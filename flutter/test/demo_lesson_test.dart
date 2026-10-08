@@ -81,6 +81,9 @@ void main() {
     await tester.tap(find.byKey(const Key('game-lesson')));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
+    // Переход маршрута дошёл до конца: экран настройки под карточкой — за кадром. На нём с
+    // 08.10.2026 есть выбор правила «По цвету чернил», и до конца перехода текст виден дважды.
+    await tester.pump(const Duration(milliseconds: 400));
 
     expect(find.byKey(const Key('demo-stimulus')), findsOneWidget, reason: 'стимула на карточке нет');
     expect(find.byKey(const Key('demo-answer')), findsOneWidget, reason: 'ответа на карточке нет');
