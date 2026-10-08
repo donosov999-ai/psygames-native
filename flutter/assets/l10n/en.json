@@ -231,6 +231,7 @@
 "choiceRtHint":"When an arrow appears, press the button on the same side",
 "choiceRtIntroDesc":"An arrow ←, →, ↑ or ↓ appears. Tap the matching direction button as fast as you can. Trains choice speed and motor accuracy.",
 "choiceRtLvlParams":"{n} trials · {d} directions · {w} s response window",
+"classicLabel":"Classic",
 "clear":"Clear",
 "close":"Close",
 "cloze":"Cloze",

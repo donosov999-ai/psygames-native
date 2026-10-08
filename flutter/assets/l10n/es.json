@@ -231,6 +231,7 @@
 "choiceRtHint":"Cuando aparezca una flecha, pulsa el botón del mismo lado",
 "choiceRtIntroDesc":"Aparece una flecha ←, →, ↑ o ↓. Toca el botón de dirección correspondiente lo más rápido posible. Entrena la velocidad de elección y la precisión motora.",
 "choiceRtLvlParams":"{n} ensayos · {d} direcciones · ventana de respuesta {w} s",
+"classicLabel":"Clásica",
 "clear":"Borrar",
 "close":"Cerrar",
 "cloze":"Cloze: frases",

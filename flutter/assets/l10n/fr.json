@@ -231,6 +231,7 @@
 "choiceRtHint":"Quand une flèche apparaît, appuie sur le bouton du même côté",
 "choiceRtIntroDesc":"Une flèche ←, →, ↑ ou ↓ apparaît. Touche le bouton de la direction correspondante le plus vite possible. Entraîne la vitesse de choix et la précision motrice.",
 "choiceRtLvlParams":"{n} essais · {d} directions · fenêtre de réponse {w} s",
+"classicLabel":"Classique",
 "clear":"Effacer",
 "close":"Fermer",
 "cloze":"Cloze",

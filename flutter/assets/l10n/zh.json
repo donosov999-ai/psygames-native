@@ -231,6 +231,7 @@
 "choiceRtHint":"箭头出现时，按同一方向的按钮",
 "choiceRtIntroDesc":"出现箭头 ←、→、↑ 或 ↓。尽可能快地点击对应方向的按钮。训练选择速度和动作准确性。",
 "choiceRtLvlParams":"{n} 次 · {d} 个方向 · 作答窗口 {w} 秒",
+"classicLabel":"经典",
 "clear":"清空",
 "close":"关闭",
 "cloze":"Cloze：完形填空",
