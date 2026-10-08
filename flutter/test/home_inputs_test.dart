@@ -64,6 +64,34 @@ void main() {
     });
   }
 
+  test('🔴 знакомство не пройдено — окна цели нет (веб в этом случае уводит на /onboarding); старая отметка — пройдено', () async {
+    final f = obj('test/fixtures/home_inputs_rich.json');
+    Future<Object?> sheetWith(Map<String, Object> storage) async {
+      SharedPreferences.setMockInitialValues(storage);
+      final state = await SharedState.open();
+      lang('ru');
+      final inp = homeInputsFrom(
+        state,
+        data,
+        profiles: profiles,
+        now: (f['now']! as num).toInt(),
+        wall: wallOf((f['tzOffsetMinutes']! as num).toInt()),
+        language: 'ru',
+        colors: const {},
+        winW: 750,
+      );
+      return inp['goalSheet'];
+    }
+
+    final storage = (f['storage']! as Map).cast<String, Object>();
+    expect(await sheetWith(storage), isNotNull, reason: 'отметка выбора есть — окно по поводу «неделя прошла»');
+    final notPicked = {...storage}..remove('psygames_onboarding_picked_nzt48');
+    expect(await sheetWith(notPicked), isNull);
+    expect(await sheetWith({...notPicked, 'psygames_onboarded': 'true'}), isNotNull, reason: 'старая отметка без новых — знакомство пройдено');
+    expect(await sheetWith({...notPicked, 'psygames_onboarded': 'true', 'psygames_onboarding_picked_women': '1'}), isNull,
+        reason: 'есть новые отметки — старая не в счёт');
+  });
+
   test('зерно рекомендаций — FNV-1a веба с Math.imul (без знака)', () {
     expect(recoSeed('', ''), recoSeed('', ''));
     // `recoSeed('a', 'b')` живого TS (node, 08.10.2026) — 692878806.

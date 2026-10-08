@@ -61,6 +61,8 @@ void main() {
             onOpen: opened.add,
             onTab: tabs.add,
             onSwitcher: () => switcher++,
+            // Рисунок проверяется на модели веба (`home_model_ru.json`); свою модель — `home_own_model_test.dart`.
+            ownModel: false,
           ),
         ),
       ),
@@ -195,7 +197,7 @@ void main() {
 
   testWidgets('модели ещё нет — значок загрузки, а не пустой экран', (t) async {
     await t.pumpWidget(MaterialApp(
-      home: HomeScreen(state: state, origin: '', onOpen: opened.add, onTab: tabs.add, onSwitcher: () {}, kit: null),
+      home: HomeScreen(state: state, origin: '', onOpen: opened.add, onTab: tabs.add, onSwitcher: () {}, kit: null, ownModel: false),
     ));
     expect(key('home-loading'), findsOneWidget);
   });

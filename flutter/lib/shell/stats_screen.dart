@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import 'feedback_fab.dart' show FabRules;
@@ -60,17 +62,30 @@ class _StatsScreenState extends State<StatsScreen> {
   ({StatsInputs inp, bool all, String grey})? _memoKey;
   _M? _memo;
 
+  /// Партия пишет десятки ключей подряд — перечитываем пачкой, раз в 200 мс.
+  Timer? _debounce;
+
   @override
   void initState() {
     super.initState();
     widget.state?.addListener(_reload);
+    // 🔴 Каждая запись в память, а не только смена профиля: после партии «Прогресс» обязан показать
+    // её (замер 08.10: слушатель стоял только на профиль и тему — вкладка показывала старое).
+    widget.state?.writes.addListener(_onWrite);
     _reload();
   }
 
   @override
   void dispose() {
     widget.state?.removeListener(_reload);
+    widget.state?.writes.removeListener(_onWrite);
+    _debounce?.cancel();
     super.dispose();
+  }
+
+  void _onWrite() {
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 200), _reload);
   }
 
   /// Перечитать общую память: последнее чтение побеждает, устаревшее отбрасывается.

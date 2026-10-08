@@ -1,11 +1,20 @@
+import 'dart:async';
+
+import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
 import 'catalog_kit.dart';
+import 'collection_model.dart' show hexOf;
 import 'feedback_fab.dart' show FabRules;
+import 'home_inputs.dart';
+import 'home_model.dart';
 import 'ion_icon.dart';
+import 'profiles.dart';
 import 'screen_ui.dart';
 import 'shared_state.dart';
+import 'stats_model.dart' show cssUpper;
+import 'training_history.dart' show Wall, deviceWall;
 import 'walking_pet.dart' show PetFrames, PetSpec;
 import 'web_theme.dart';
 
@@ -13,11 +22,15 @@ import 'web_theme.dart';
 ///
 /// 📍 Правило Дениса 4e679f41: перенос — технология, не дизайн; никакого «минималистичного списка»
 /// вместо карточек. Рисунок, числа отступов и порядок блоков — веба (номера стилей — `index.tsx`,
-/// `DailyGoalCard.tsx`, `StreakGoalSheet.tsx`, `CategorySections.tsx`). Данные — МОДЕЛЬ веба
-/// (`services/homeModel.ts` → [ScreenUi]): веб-Главная стоит под оболочкой и считает всё сама;
-/// здесь нет ни одного расчёта рекомендаций, заработка, серии или цели. Нажатия, меняющие данные
+/// `DailyGoalCard.tsx`, `StreakGoalSheet.tsx`, `CategorySections.tsx`). Нажатия, меняющие данные
 /// (цели, вызов дня, поиск, обновление), уходят обратно в веб ([ScreenUi.act]); переходы по адресам
 /// делает оболочка ([onOpen], [onTab]).
+///
+/// 🔴 ВАРИАНТ Б (задача d6a60b02, шаг 7б): модель Главная считает САМА — входы из общей памяти
+/// (`home_inputs.dart`), сборка — `home_model.dart`, пересчёт по каждой записи в память. Страницу
+/// не ждёт. От модели веба (`services/homeModel.ts` → [ScreenUi]) берутся только события, хозяин
+/// которых пока веб: тосты бонуса входа, ставки и «Уровень N!», «есть обновление», облик питомца из
+/// канала. Свой расчёт не удался — показывается модель веба, как раньше.
 class HomeScreen extends StatefulWidget {
   const HomeScreen({
     super.key,
@@ -28,9 +41,19 @@ class HomeScreen extends StatefulWidget {
     required this.onSwitcher,
     this.kit,
     this.active = true,
+    this.ownModel = true,
   });
 
   final SharedState state;
+
+  /// Считать модель на Dart (вариант Б). Пробы рисунка по модели веба выключают.
+  final bool ownModel;
+
+  /// Часы экрана (миг «сейчас» и местное время). Пробы подменяют.
+  @visibleForTesting
+  static int Function() now = () => DateTime.now().millisecondsSinceEpoch;
+  @visibleForTesting
+  static Wall wall = deviceWall;
 
   /// Главная на экране, а не спрятана в теле оболочки рядом с другими экранами. Окно цели серии
   /// открывается только у видимой Главной (живой замер 07.10.2026: на свежей установке оно легло
@@ -69,6 +92,21 @@ class _HomeScreenState extends State<HomeScreen> {
   CatalogKit? _kit;
   bool _sheetOpen = false;
 
+  // ── Своя модель (вариант Б) ──
+  ({HomeInputsData inputs, HomeData home, Profiles profiles})? _data;
+  bool _failed = false;
+
+  /// Номер записи в общую память: модель пересчитывается по каждой — пачкой, раз в [_settle]
+  /// (партия пишет десятки ключей подряд, пересчёт на каждый был бы впустую).
+  int _rev = 0;
+  Timer? _debounce;
+  static const _settle = Duration(milliseconds: 200);
+  ({int rev, double w, String c, Object? page})? _memoKey;
+  _M? _memo;
+
+  /// Модель, которую экран показал последней, — ей открывается и закрывается окно цели.
+  final _shown = ValueNotifier<_M?>(null);
+
   @override
   void initState() {
     super.initState();
@@ -78,14 +116,80 @@ class _HomeScreenState extends State<HomeScreen> {
         if (mounted) setState(() => _kit = k);
       }).catchError((Object _) {});
     }
-    ScreenUi.model(HomeScreen.route).addListener(_onModel);
-    WidgetsBinding.instance.addPostFrameCallback((_) => _onModel());
+    if (widget.ownModel) {
+      widget.state.writes.addListener(_onWrite);
+      // Смена профиля и темы — сразу (на них перестраивается всё приложение).
+      widget.state.addListener(_onProfile);
+      Future.wait([
+        HomeInputsData.load(),
+        HomeData.load(),
+        Profiles.current.list.isEmpty ? Profiles.load() : Future.value(Profiles.current),
+      ]).then(
+        (v) {
+          if (mounted) setState(() => _data = (inputs: v[0] as HomeInputsData, home: v[1] as HomeData, profiles: v[2] as Profiles));
+        },
+        onError: (Object e) {
+          debugPrint('HomeScreen: own model data failed, using the page model ($e)');
+          if (mounted) setState(() => _failed = true);
+        },
+      );
+    }
   }
 
   @override
   void dispose() {
-    ScreenUi.model(HomeScreen.route).removeListener(_onModel);
+    widget.state.writes.removeListener(_onWrite);
+    widget.state.removeListener(_onProfile);
+    _debounce?.cancel();
+    _shown.dispose();
     super.dispose();
+  }
+
+  void _onWrite() {
+    _debounce?.cancel();
+    _debounce = Timer(_settle, _onProfile);
+  }
+
+  void _onProfile() {
+    if (mounted) setState(() => _rev++);
+  }
+
+  /// Что показать: своя модель с событиями веба; нет своей (выключена, не загрузилась, не посчиталась) —
+  /// модель страницы.
+  _M? _model(BuildContext context, _M? page) {
+    final data = _data;
+    if (!widget.ownModel || _failed || data == null) return page;
+    final web = WebTheme.of(context);
+    final colors = <String, Object?>{
+      'background': cssUpper(web.background),
+      'surface': cssUpper(web.surface),
+      'card': cssUpper(web.card),
+      'text': cssUpper(web.text),
+      'textSecondary': cssUpper(web.textSecondary),
+      'primary': hexOf(WebTheme.accent(widget.state).toARGB32()),
+      'border': cssUpper(web.border),
+    };
+    final w = MediaQuery.sizeOf(context).width;
+    final key = (rev: _rev, w: w, c: colors.values.join(), page: page);
+    if (_memoKey case final k? when k.rev == key.rev && k.w == key.w && k.c == key.c && identical(k.page, key.page)) return _memo;
+    try {
+      final inputs = homeInputsFrom(
+        widget.state,
+        data.inputs,
+        profiles: data.profiles,
+        now: HomeScreen.now(),
+        wall: HomeScreen.wall,
+        language: widget.state.language,
+        colors: colors,
+        winW: w,
+      );
+      _memoKey = key;
+      return _memo = withPageEvents(buildHomeModel(inputs, data.home), page);
+    } catch (e) {
+      debugPrint('HomeScreen: own model failed, using the page model ($e)');
+      _failed = true;
+      return page;
+    }
   }
 
   bool get _onScreen => widget.active;
@@ -103,14 +207,14 @@ class _HomeScreenState extends State<HomeScreen> {
   /// Окно цели серии — поверх всего экрана с полосой, как `Modal` веба; открывается и закрывается моделью.
   void _onModel() {
     if (!mounted) return;
-    final sheet = _map(ScreenUi.model(HomeScreen.route).value?['goalSheet']);
+    final sheet = _map(_shown.value?['goalSheet']);
     if (sheet.isNotEmpty && !_sheetOpen && _onScreen) {
       _sheetOpen = true;
       showGeneralDialog<void>(
         context: context,
         barrierDismissible: false,
         barrierColor: const Color(0x8C000000),
-        pageBuilder: (ctx, _, _) => _GoalSheet(origin: widget.origin, close: () => Navigator.of(ctx).pop(), act: _act),
+        pageBuilder: (ctx, _, _) => _GoalSheet(model: _shown, origin: widget.origin, close: () => Navigator.of(ctx).pop(), act: _act),
       ).whenComplete(() => _sheetOpen = false);
     } else if ((sheet.isEmpty || !_onScreen) && _sheetOpen) {
       Navigator.of(context).maybePop();
@@ -122,7 +226,15 @@ class _HomeScreenState extends State<HomeScreen> {
     final web = WebTheme.of(context);
     return ValueListenableBuilder<_M?>(
       valueListenable: ScreenUi.model(HomeScreen.route),
-      builder: (context, m, _) {
+      builder: (context, page, _) {
+        final m = _model(context, page);
+        if (!identical(m, _shown.value)) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (!mounted) return;
+            _shown.value = m;
+            _onModel();
+          });
+        }
         if (m == null) {
           return ColoredBox(
             color: web.background,
@@ -1317,7 +1429,8 @@ class _Favourites extends StatelessWidget {
 
 /// Окно цели серии — `StreakGoalSheet.tsx`: питомец с репликой, три срока, факт о сегодняшнем дне, «Не сейчас».
 class _GoalSheet extends StatelessWidget {
-  const _GoalSheet({required this.origin, required this.close, required this.act});
+  const _GoalSheet({required this.model, required this.origin, required this.close, required this.act});
+  final ValueListenable<_M?> model;
   final String origin;
   final VoidCallback close;
   final void Function(String, [List<Object?>]) act;
@@ -1326,7 +1439,7 @@ class _GoalSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final web = WebTheme.of(context);
     return ValueListenableBuilder<_M?>(
-      valueListenable: ScreenUi.model(HomeScreen.route),
+      valueListenable: model,
       builder: (context, m, _) {
         final s = _map(m?['goalSheet']);
         if (s.isEmpty) return const SizedBox.shrink();

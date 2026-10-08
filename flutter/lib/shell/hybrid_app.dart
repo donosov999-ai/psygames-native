@@ -759,8 +759,8 @@ class _HybridAppState extends State<HybridApp> {
   static const _modelWait = Duration(seconds: 6);
 
   /// Вкладки, которые считают модель сами (вариант Б, d6a60b02): модели страницы не ждут, и запасной
-  /// показ страницы им не нужен.
-  static const _ownModel = {StatsScreen.route};
+  /// показ страницы им не нужен. Главная — с 7б (`home_inputs.dart`).
+  static const _ownModel = {StatsScreen.route, HomeScreen.route};
   final _modelTimers = <String, Timer>{};
   final _modelGaveUp = <String>{};
 
@@ -1482,7 +1482,8 @@ class _HybridAppState extends State<HybridApp> {
                 child: IndexedStack(
           index: shown == 0 ? 0 : shown - 1,
           children: [
-            // Главная по модели веба (7c88c0b8): страница под ней на «/» считает, мы рисуем.
+            // Главная (7c88c0b8) считает модель сама (вариант Б, 7б); от страницы под ней на «/» — только
+            // события и действия.
             HomeAccent(
               color: WebTheme.accent(widget.state),
               child: HomeScreen(

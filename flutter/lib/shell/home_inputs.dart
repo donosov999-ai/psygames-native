@@ -491,6 +491,13 @@ HomeJson homeInputsFrom(
     };
   }
 
+  // 🔴 Знакомство не пройдено — окна цели нет. Веб в этом случае уводит Главную на `/onboarding`
+  // (`shouldOpenOnboardingPicker`) и окна не показывает вовсе; своя Главная остаётся под экраном
+  // знакомства — и без этой проверки легла бы окном поверх него (тот же дефект, что замер 07.10).
+  final picked = state.get('psygames_onboarding_picked_$pid') == '1';
+  final legacy = state.get('psygames_onboarded') == 'true' && !state.snapshot().keys.any((k) => k.startsWith('psygames_onboarding_picked_'));
+  if (!picked && !legacy) goalSheet = null;
+
   final warmupOn = jsTruthy(hp.warmupEnabled);
   final slotTint = _map(d.home['slotTint']);
   return {
@@ -835,4 +842,20 @@ List<Object?> _freshIds(HomeJson fresh, String today) {
   final min = (fresh['min']! as num).toInt();
   final picked = young.length >= min ? young : sorted.take(math.min(min, sorted.length));
   return [for (final e in picked) e['id']];
+}
+
+/// События веба поверх своей модели Главной: тосты (бонус входа, ставка, «Уровень N!») и «есть
+/// обновление» — их хозяин пока веб; облик питомца — из канала (лента кадров `strip`), если он
+/// приехал на страницу. Всё остальное — своё. Страницы нет — своя модель как есть.
+HomeJson withPageEvents(HomeJson own, HomeJson? page) {
+  if (page == null) return own;
+  final header = {..._map(own['header'])};
+  final pageHeader = _map(page['header']);
+  header['update'] = pageHeader['update'];
+  final pagePet = _map(pageHeader['pet']);
+  if (pagePet['kind'] == 'strip') header['pet'] = pagePet;
+  final sheet = own['goalSheet'] is Map ? {..._map(own['goalSheet'])} : null;
+  final pageSheetPet = _map(_map(page['goalSheet'])['pet']);
+  if (sheet != null && pageSheetPet['kind'] == 'strip') sheet['pet'] = pageSheetPet;
+  return {...own, 'toasts': page['toasts'], 'header': header, 'goalSheet': sheet};
 }
