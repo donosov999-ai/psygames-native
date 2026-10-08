@@ -44,7 +44,6 @@ const lostWithReason = <String, Map<String, String>>{
     'duration': '«Поиск»: длительность из адреса',
   },
   '/games/number-bonds': {'diff': _t, 'trials': _t},
-  '/games/prl': {'diff': _t},
   '/games/proofreading': {
     'series': 'задача f4bb47dc («Внимание»)',
   },
@@ -64,8 +63,6 @@ const lostWithReason = <String, Map<String, String>>{
   '/games/sdmt': {
     'duration': '«Поиск»: длительность — настройка, по решению 09.09 остаётся за шагом; потеря похожа на настоящую',
   },
-  '/games/stroop': {'mode': _t, 'trials': _t},
-  '/games/stroop-emotional': {'trials': _t},
   '/games/sudoku': {
     'diff': 'не дефект (раздел «Судоку», задача 67490534; замер каркаса 08.10 по main 33af6e413): зарядка шлёт diff '
         '(5 шагов в constants/profiles.ts → stepToParams: p.diff = step.difficulty), но веб в зарядке играет в режиме '
@@ -75,7 +72,6 @@ const lostWithReason = <String, Map<String, String>>{
   '/games/switching-task': {
     'stimMode': '«Внимание»: вид стимулов из адреса — читается в PR #287',
   },
-  '/games/targets': {'level': _t, 'mode': _t},
   '/games/visual-search': {'trials': _t},
 };
 
