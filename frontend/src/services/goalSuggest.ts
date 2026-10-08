@@ -44,6 +44,15 @@ export type SuggestReason =
   /** Первый заход: цифр о нём ещё нет, и придумывать их нельзя. */
   | 'no_data';
 
+/**
+ * Все причины — списком: из него проба натива выгружает ключи подписи `goalSuggest_<причина>`
+ * (`flutter-home-asset-fresh.test.ts`, задача d6a60b02). Полноту держит тип ниже: новая причина
+ * без строки здесь — ошибка компиляции.
+ */
+export const SUGGEST_REASONS = ['smaller', 'best_streak', 'start_week', 'at_top', 'no_data'] as const satisfies readonly SuggestReason[];
+type _AllReasonsListed = Exclude<SuggestReason, (typeof SUGGEST_REASONS)[number]> extends never ? true : never;
+export const _suggestReasonsComplete: _AllReasonsListed = true;
+
 export interface Suggestion {
   days: GoalDays;
   reason: SuggestReason;

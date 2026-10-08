@@ -11,6 +11,7 @@ import '../../shell/shared_state.dart';
 import 'ring.dart';
 import 'ring_board.dart';
 import 'teach.dart';
+import 'mode_switch.dart';
 import 'word_lang.dart';
 
 /// Экран «Слово-квадрат» — четвёртый и последний режим анаграмм.
@@ -213,6 +214,8 @@ class _RingScreenState extends State<RingScreen> {
           onPressed: _hintsUsed < _hintsPerRound ? _hint : null,
         ),
         AuxAction(icon: Icons.shuffle, label: L.t('shuffleBtn'), onPressed: _shuffle),
+        // Выбор режима — иначе остальные три игры анаграмм недостижимы (см. mode_switch.dart).
+        if (anagramModeSwitchShown) anagramModeAction(context, widget.state, AnagramMode.square),
       ]),
       toolbar: Padding(
         padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),

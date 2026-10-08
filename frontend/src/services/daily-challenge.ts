@@ -35,7 +35,7 @@ export interface DailyChallenge {
   dateStr: string;
 }
 
-const DIFFS: Difficulty[] = ['easy', 'medium', 'hard'];
+export const DIFFS: readonly Difficulty[] = ['easy', 'medium', 'hard'];
 
 export function getTodayChallenge(date: Date = new Date()): DailyChallenge {
   const games = eligibleGames();

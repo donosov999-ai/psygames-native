@@ -749,7 +749,7 @@ class _HybridAppState extends State<HybridApp> {
     if (tab == null) return 0;
     final i = _bodyTabs.indexOf(tab) + 1;
     if (i == 0) return 0;
-    if (!ScreenUi.routes.contains(tab) || ScreenUi.model(tab).value != null) return i;
+    if (!ScreenUi.routes.contains(tab) || _ownModel.contains(tab) || ScreenUi.model(tab).value != null) return i;
     _modelTimers[tab] ??= Timer(_modelWait, () {
       if (mounted) setState(() => _modelGaveUp.add(tab));
     });
@@ -757,6 +757,10 @@ class _HybridAppState extends State<HybridApp> {
   }
 
   static const _modelWait = Duration(seconds: 6);
+
+  /// Вкладки, которые считают модель сами (вариант Б, d6a60b02): модели страницы не ждут, и запасной
+  /// показ страницы им не нужен.
+  static const _ownModel = {StatsScreen.route};
   final _modelTimers = <String, Timer>{};
   final _modelGaveUp = <String>{};
 
@@ -1504,7 +1508,7 @@ class _HybridAppState extends State<HybridApp> {
             else
               const SizedBox.shrink(),
             // «Прогресс» по модели веба (6ff4a966): считает страница под ним на `/statistics`.
-            StatsScreen(onTab: _selectTab),
+            StatsScreen(onTab: _selectTab, state: widget.state),
             // Календарь серии (cd77367d) и итог оценки (455d71b1) — страницы, не вкладки.
             StreakCalendarScreen(state: widget.state),
             const AssessmentResultScreen(),

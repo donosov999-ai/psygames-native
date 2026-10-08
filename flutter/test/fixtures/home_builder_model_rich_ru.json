@@ -1,0 +1,400 @@
+{
+ "v": 1,
+ "profileId": "nzt48",
+ "background": {
+  "image": "/assets/backgrounds/nzt48.webp",
+  "tint": "#a855f72E",
+  "veil": "#F5F5F7"
+ },
+ "toasts": {
+  "streak": {
+   "text": "+15 ⭐",
+   "bg": "#ef4444",
+   "fg": "#2b0c0c"
+  },
+  "wager": {
+   "text": "Ставка сыграла! +120 ⭐",
+   "emoji": "🏆",
+   "bg": "#22c55e"
+  },
+  "levelUp": {
+   "title": "Уровень 4!",
+   "sub": "Эксперт"
+  }
+ },
+ "header": {
+  "logo": "/assets/logos/nzt48.png",
+  "logoPlate": "#12151AC7",
+  "tokens": 800,
+  "level": "Lv 4",
+  "streak": 6,
+  "streakLabel": "Стрик: 6",
+  "friendsLabel": "Друзья",
+  "league": 0.25,
+  "leaguesLabel": "Лиги",
+  "pet": {
+   "kind": "frames",
+   "uris": [
+    "/assets/images/pet/cat/idle0.webp",
+    "/assets/images/pet/cat/idle1.webp",
+    "/assets/images/pet/cat/idle2.webp",
+    "/assets/images/pet/cat/idle3.webp",
+    "/assets/images/pet/cat/idle4.webp",
+    "/assets/images/pet/cat/idle5.webp",
+    "/assets/images/pet/cat/idle6.webp"
+   ],
+   "frames": 7,
+   "tickMs": 240,
+   "accessory": null
+  },
+  "petLabel": "Питомец Синапс",
+  "chip": {
+   "name": "NZT-48 (полный)",
+   "image": "/assets/avatars/fox.png",
+   "emoji": "💊",
+   "bg": "#FFFFFFF2",
+   "border": "#fbbf24",
+   "borderWidth": 2.5
+  },
+  "title": "Мастер",
+  "onPhoto": true,
+  "achievements": 7,
+  "labels": {
+   "achievements": "Достижения",
+   "shop": "Магазин",
+   "statistics": "Статистика",
+   "settings": "Настройки"
+  },
+  "subtitle": "Тренируйте мозг · нажми на чип чтобы сменить профиль",
+  "update": {
+   "text": "Доступно обновление v2.57.0 · Скачать"
+  }
+ },
+ "blocks": [
+  {
+   "kind": "search",
+   "placeholder": "Найти игру",
+   "button": "Игры · Фильтр"
+  },
+  {
+   "kind": "ladder",
+   "text": "Ещё 120 — и откроется: Отмена хода"
+  },
+  {
+   "kind": "chest",
+   "face": "🦊",
+   "text": "Ещё ⭐35 — и новая фигурка · собрано 3/12",
+   "ratio": 0.6,
+   "label": "Ещё ⭐35 — и новая фигурка · собрано 3/12 — Открыть коллекцию"
+  },
+  {
+   "kind": "resume",
+   "title": "Продолжить: Шульте: внимание",
+   "sub": "Тренируем: концентрацию",
+   "gradient": [
+    "#667eea",
+    "#764ba2"
+   ],
+   "href": "/games/schulte",
+   "label": "Продолжить: Шульте: внимание"
+  },
+  {
+   "kind": "goal",
+   "state": "review",
+   "goalText": "Пройти три судоку",
+   "outcome": null,
+   "reward": 30,
+   "roundsToday": 7,
+   "maxLen": 90,
+   "texts": {
+    "dayGoalTitle": "Зачем сегодня",
+    "dayGoalCloseA11y": "Убрать карточку цели на сегодня",
+    "dayGoalAsk": "Ради чего сегодня?",
+    "dayGoalSave": "Запомнить",
+    "dayGoalAskHint": "Одна строка своими словами — зачем тебе сегодняшняя тренировка. Её видишь только ты.",
+    "dayGoalPlaceholder": "Своими словами",
+    "notNow": "Не сейчас",
+    "dayGoalExamplesTitle": "Так это может звучать:",
+    "dayGoalTodayLine": "Твоя цель на сегодня:",
+    "dayGoalRoundsNone": "Партий сегодня пока нет",
+    "dayGoalReview": "Как вышло?",
+    "dayGoalYes": "Получилось",
+    "dayGoalNo": "Не сегодня",
+    "dayGoalDoneNote": "Отмечено. Завтра спросим снова.",
+    "dayGoalMissedNote": "Бывает. Цель никуда не делась — завтра тоже день.",
+    "dayGoalRewardNeedsRound": "Очки за цель начисляют в день, когда были партии.",
+    "rounds": "Партий к ней сегодня: 7",
+    "rewardNote": "+30 ⭐ за достигнутую цель",
+    "yesFg": "#062311"
+   },
+   "examples": [
+    "— не путать имена на встрече",
+    "— держать счёт в уме на кассе",
+    "— не терять мысль на середине фразы"
+   ]
+  },
+  {
+   "kind": "today",
+   "title": "Сегодня",
+   "total": 70,
+   "totalLabel": "Заработано за сегодня: 70",
+   "rows": [
+    {
+     "name": "Шульте: внимание",
+     "rounds": "партий: 3",
+     "doubled": true,
+     "gain": 40
+    },
+    {
+     "name": "Судоку",
+     "rounds": "партий: 1",
+     "doubled": false,
+     "gain": 15
+    },
+    {
+     "name": "Кубики Корси",
+     "rounds": "партий: 2",
+     "doubled": false,
+     "gain": 10
+    }
+   ],
+   "empty": null,
+   "more": "и ещё 1 — весь список в статистике",
+   "streakNote": "Серия 5 дней подряд — за партию вдвое"
+  },
+  {
+   "kind": "reco",
+   "title": "Рекомендуем сегодня",
+   "hint": "Три упражнения на сегодня — набор не меняется до завтра",
+   "cards": [
+    {
+     "id": "sudoku",
+     "href": "/games/sudoku?calm=1",
+     "gradient": [
+      "#7f7fd5",
+      "#86a8e7"
+     ],
+     "look": {
+      "fg": "#181b28",
+      "soft": "#181b28",
+      "scrim20": "rgba(255, 255, 255, 0.2)",
+      "scrim35": "rgba(255, 255, 255, 0.35)",
+      "veil": null
+     },
+     "icon": {
+      "ion": "apps",
+      "size": 26
+     },
+     "chip": null,
+     "chipBg": "rgba(255, 255, 255, 0.35)",
+     "title": "Судоку",
+     "sub": "Здесь вы растёте",
+     "cta": {
+      "ion": "play",
+      "text": "СТАРТ",
+      "bg": "rgba(255, 255, 255, 0.35)",
+      "fg": "#181b28"
+     },
+     "label": "Судоку — Здесь вы растёте"
+    },
+    {
+     "id": "corsi",
+     "href": "/games/corsi?calm=1",
+     "gradient": [
+      "#0083B0",
+      "#00B4DB"
+     ],
+     "look": {
+      "fg": "#000c10",
+      "soft": "#000c10",
+      "scrim20": "rgba(255, 255, 255, 0.2)",
+      "scrim35": "rgba(255, 255, 255, 0.35)",
+      "veil": null
+     },
+     "icon": {
+      "ion": "grid",
+      "size": 26
+     },
+     "chip": "✓",
+     "chipBg": "rgba(255, 255, 255, 0.35)",
+     "title": "Кубики Корси",
+     "sub": "Сегодня сыграно",
+     "cta": {
+      "ion": "play",
+      "text": "ПОВТОР",
+      "bg": "rgba(255, 255, 255, 0.35)",
+      "fg": "#000c10"
+     },
+     "label": "Кубики Корси — Сегодня сыграно"
+    }
+   ]
+  },
+  {
+   "kind": "practices",
+   "title": "Практики дня",
+   "cards": [
+    {
+     "id": "warmup",
+     "href": "/warmup-picker",
+     "gradient": [
+      "#7b4397",
+      "#dc2430"
+     ],
+     "look": {
+      "fg": "#fcf7f9",
+      "soft": "#fcf7f9",
+      "scrim20": "rgba(0, 0, 0, 0.2)",
+      "scrim35": "rgba(0, 0, 0, 0.35)",
+      "veil": null
+     },
+     "icon": {
+      "image": "/assets/icons/warmup.png",
+      "size": 30
+     },
+     "chip": "🔥6",
+     "chipBg": "rgba(0, 0, 0, 0.2)",
+     "title": "Зарядка",
+     "sub": "Вечерняя · Спокойные игры и дыхание",
+     "cta": {
+      "ion": "chevron-forward",
+      "text": "ВЫБРАТЬ",
+      "bg": "rgba(0, 0, 0, 0.35)",
+      "fg": "#fcf7f9"
+     },
+     "label": "Зарядка"
+    },
+    {
+     "id": "relaxation",
+     "href": "/games/relaxation-hub",
+     "gradient": [
+      "#43cea2",
+      "#185a9d"
+     ],
+     "look": {
+      "fg": "#000000",
+      "soft": "#000000",
+      "scrim20": "transparent",
+      "scrim35": "transparent",
+      "veil": "rgba(67, 206, 162, 0.31)"
+     },
+     "icon": {
+      "ion": "leaf-outline",
+      "size": 26
+     },
+     "chip": null,
+     "chipBg": "transparent",
+     "title": "Релаксация",
+     "sub": "Дыхание, глаза, пауза — короткий отдых для головы",
+     "cta": {
+      "ion": "chevron-forward",
+      "text": "ВЫБРАТЬ",
+      "bg": "#FFF",
+      "fg": "#185a9d"
+     },
+     "label": "Релаксация"
+    },
+    {
+     "id": "challenge",
+     "href": null,
+     "action": "challenge",
+     "gradient": [
+      "#5b86e5",
+      "#36d1dc"
+     ],
+     "look": {
+      "fg": "#0d1f29",
+      "soft": "#0d1f29",
+      "scrim20": "rgba(255, 255, 255, 0.2)",
+      "scrim35": "rgba(255, 255, 255, 0.35)",
+      "veil": null
+     },
+     "icon": {
+      "ion": "flash",
+      "size": 26
+     },
+     "chip": "✓",
+     "chipBg": "rgba(255, 255, 255, 0.35)",
+     "title": "Вызов дня",
+     "sub": "N-back: оперативная память · Сложно",
+     "cta": {
+      "ion": "play",
+      "text": "ПОВТОР",
+      "bg": "rgba(255, 255, 255, 0.35)",
+      "fg": "#0d1f29"
+     },
+     "label": "Вызов дня"
+    }
+   ]
+  },
+  {
+   "kind": "favourites",
+   "title": "Чаще всего играешь",
+   "allLabel": "Все игры ›",
+   "sections": [
+    {
+     "category": "memory",
+     "total": 9,
+     "routes": [
+      "/games/corsi",
+      "/games/n-back"
+     ],
+     "more": "ещё 7 ›"
+    },
+    {
+     "category": "logic",
+     "total": 2,
+     "routes": [
+      "/games/sudoku",
+      "/games/hanoi"
+     ],
+     "more": null
+    }
+   ]
+  },
+  {
+   "kind": "allForks",
+   "label": "Все развилки ›",
+   "href": "/games?filter=hubs"
+  }
+ ],
+ "goalSheet": {
+  "pet": {
+   "kind": "frames",
+   "uris": [
+    "/assets/images/pet/cat/idle0.webp",
+    "/assets/images/pet/cat/idle1.webp",
+    "/assets/images/pet/cat/idle2.webp",
+    "/assets/images/pet/cat/idle3.webp",
+    "/assets/images/pet/cat/idle4.webp",
+    "/assets/images/pet/cat/idle5.webp",
+    "/assets/images/pet/cat/idle6.webp"
+   ],
+   "frames": 7,
+   "tickMs": 240,
+   "accessory": null
+  },
+  "line": "Возьмём серию?",
+  "options": [
+   {
+    "days": 7,
+    "text": "7 дней",
+    "why": null,
+    "chosen": false
+   },
+   {
+    "days": 14,
+    "text": "14 дней",
+    "why": "Твоя лучшая серия — 9 дн. подряд",
+    "chosen": true
+   },
+   {
+    "days": 30,
+    "text": "30 дней",
+    "why": null,
+    "chosen": false
+   }
+  ],
+  "today": "Сегодня: 7 партий · 70 ⭐ · серия 5",
+  "skip": "Не сейчас"
+ }
+}
