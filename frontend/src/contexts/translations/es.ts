@@ -174,7 +174,7 @@ const t: Record<string, string> = {
   "sudokuGroup": "Sudoku: tres tableros",
   "sudokuGroupDesc": "Clásico, samurái y fractal",
   "sudokuPickBoard": "Elige un tablero",
-  "sudokuTypeClassic": "Una cuadrícula · 152 escalones",
+  "sudokuTypeClassic": "Una cuadrícula · 180 escalones",
   "sudokuTypeSamurai": "Cinco cuadrículas unidas por las esquinas",
   "sudokuTypeFractal": "Una cuadrícula dentro de cada celda",
   "sudokuGroupFootnote": "Los tres siguen una sola regla: una cifra nunca se repite en la fila, la columna ni el bloque. Lo que cambia es el tablero. Cada uno lleva su propia cuenta de niveles y su propio historial: las partidas nunca se mezclan.",
