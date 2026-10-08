@@ -439,7 +439,8 @@ describe('входы Главной из хранилища — эталон д�
         psygames_sessions: [партия('schulte_table', 3 * д), партия('anagrams', 2 * д), партия('math_sprint', 26 * д), партия('math_sprint', 25 * д)],
         psygames_tokens_v1: { students: 80 },
         psygames_streak_v1: { students: { last: сутки(N), streak: 7 } },
-        psygames_earn_v1: { students: { entries: [], days: [0, 1, 2, 3, 4, 5, 6].map((k) => сутки(N - k * д)) } },
+        // Сегодня ещё не отмечено — серия считается со вчера (семь дней).
+        psygames_earn_v1: { students: { entries: [], days: [1, 2, 3, 4, 5, 6, 7].map((k) => сутки(N - k * д)) } },
         psygames_cosmetics_equipped_students: { title: 'title_focused' },
         // Единственная партия «продолжить» старше месяца — карточки нет.
         psygames_resume_hanoi_students: { v: 1, savedAt: N - 31 * д, state: {} },
