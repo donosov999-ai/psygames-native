@@ -27,9 +27,10 @@ const EXPORT_CMD = 'из корня репозитория: node flutter/tools/e
 
 const screenSrc: string = readFileSync(join(__dirname, '..', '..', 'app', 'games', 'sudoku.tsx'), 'utf8');
 const LAST_LEVEL = Number(/const SUDOKU_LAST_LEVEL = (\d+);/.exec(screenSrc)?.[1]);
+// Банк — классика 9×9 и ступени со своей полосой банка (`bankRating`: Wordoku, звери, 08.10).
 const isBankLevel = (lv: number) => {
   const c = levelConfig(lv);
-  return c.variant === 'none' && c.N === BANK_N;
+  return (c.variant === 'none' || c.bankRating !== undefined) && c.N === BANK_N;
 };
 
 describe('доски судоку у Flutter = живой TS', () => {
@@ -43,7 +44,10 @@ describe('доски судоку у Flutter = живой TS', () => {
     for (let lv = 1; lv <= Math.max(LAST_LEVEL, inFile.length); lv++) {
       const c = levelConfig(lv);
       const live = lv <= LAST_LEVEL
-        ? { level: lv, n: c.N, br: c.BR, bc: c.BC, blanks: c.blanks, variant: c.variant, hintMax: c.hintMax, lives: c.lives }
+        ? {
+          level: lv, n: c.N, br: c.BR, bc: c.BC, blanks: c.blanks, variant: c.variant, hintMax: c.hintMax, lives: c.lives,
+          ...(c.bankRating !== undefined ? { rating: c.bankRating } : {}),
+        }
         : undefined;
       if (JSON.stringify(live) !== JSON.stringify(inFile[lv - 1])) diverged.push(`L${lv}`);
     }

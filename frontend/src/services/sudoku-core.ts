@@ -511,7 +511,26 @@ export interface LevelCfg {
    * 10 → 5 диагоналей — 145 → 127 (копание добирает своё). Скрипты: ~/dev/psygames/sudoku-chat/measure/.
    */
   digCap?: number;
+  /**
+   * Рейтинг полосы банка (Sukaku Explainer), из которой ступень берёт доску. Задан — доска из банка,
+   * как у классики 54–80, а не логическим путём; см. `SKIN_BANK_RATINGS`.
+   */
+  bankRating?: number;
 }
+
+/**
+ * 🔴 WORDOKU И ЗВЕРИ — ДОСКИ ИЗ БАНКА С РЕЙТИНГОМ, ПО ОДНОЙ ПОЛОСЕ НА СТУПЕНЬ БЛОКА.
+ *
+ * Это классика со значками, а копание логикой у классики насыщается: замер 08.10.2026 (зерно
+ * фиксировано, по 8 досок, ~/dev/psygames/sudoku-chat/measure/ladder-axes-20261008.test.ts) —
+ * ни digCap 60/64/70, ни полоса техник 3–4 … 6–6 не двигают ничего: ~56 пустых, ступень 3–4, то
+ * есть уровень классики ~37 на ступени 153. Классика 54–80 играет банк с рейтингом 6,3–7,8, а
+ * банк от 5,4 наша мера не решает вовсе (ступень 9 у 18/18 на каждой полосе, bank-grade-measure).
+ * Ось — данные: полосы банка 8,3 / 8,5 / 8,9 / 9,0 — только ПОЛНЫЕ, по 40 досок (8,6/8,7/8,8/9,1/9,2
+ * набраны неполными: 13/2/17/3/1). Значки экран накладывает на любую доску по её решению.
+ */
+export const SKIN_BANK_RATINGS: readonly number[] = [8.3, 8.5, 8.9, 9.0];
+
 export function levelConfig(level: number): LevelCfg {
   const lv = Math.max(1, level);
   const size: 6 | 9 = lv <= 4 ? 6 : 9;
@@ -689,7 +708,11 @@ export function levelConfig(level: number): LevelCfg {
   // «Мяу»: пустых столько, сколько у выгруженных досок ступени (подсказок 30 → 28 → 26 → 24) —
   // выгрузчик (meow9-ladder.cjs) сверяет и падает при расхождении.
   const blanksOut = variant === 'friends' ? 81 - [30, 28, 26, 24][(lv - 1) % 4] : blanks;
-  return { size, N, BR, BC, blanks: blanksOut, variant, hintMax, lives: livesFor(lv), ...(digCap ? { digCap } : {}) };
+  const bankRating = variant === 'wordoku' || variant === 'animals' ? SKIN_BANK_RATINGS[(lv - 1) % 4] : undefined;
+  return {
+    size, N, BR, BC, blanks: blanksOut, variant, hintMax, lives: livesFor(lv),
+    ...(digCap ? { digCap } : {}), ...(bankRating !== undefined ? { bankRating } : {}),
+  };
 }
 
 /**

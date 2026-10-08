@@ -34,6 +34,7 @@ class SudokuLevel {
     required this.variant,
     required this.hintMax,
     this.lives = 3,
+    this.rating,
   });
 
   final int level;
@@ -48,8 +49,13 @@ class SudokuLevel {
   /// убывает к верху лестницы, задача 1fa57de3). Выгрузка без поля — прежние три.
   final int lives;
 
-  /// Доска берётся из банка, когда это классика 9×9: банк только такой.
-  bool get fromBank => variant == 'none' && n == 9;
+  /// Своя полоса банка ступени (`levelConfig.bankRating` веба): Wordoku и звери — классика со
+  /// значками, доски которой берутся из банка с рейтингом, а не логическим путём (замер
+  /// 08.10: логический путь у них насыщается на уровне классики ~37). `null` — полосу ведёт `ratingRows`.
+  final double? rating;
+
+  /// Доска берётся из банка: классика 9×9 или ступень со своей полосой банка. Банк только 9×9.
+  bool get fromBank => (variant == 'none' || rating != null) && n == 9;
 }
 
 /// Готовая доска: задача, решение, геометрия варианта и измеренная ступень техник.
@@ -134,6 +140,7 @@ class SudokuLevels {
         variant: row['variant'] as String,
         hintMax: (row['hintMax'] as num).toInt(),
         lives: (row['lives'] as num?)?.toInt() ?? 3,
+        rating: (row['rating'] as num?)?.toDouble(),
       );
     }
     final rows = [
@@ -198,6 +205,14 @@ class SudokuLevels {
   /// Ширина полосы банка — 0,1; ключом берём целое, чтобы не сравнивать дробные.
   static int _bandKey(double rating) => (rating * 10).round();
 
+  /// Полоса банка на `shift` полных полос от `rating` (полная — ≥ 20 досок); край — край.
+  double _neighbourBand(double rating, int shift) {
+    final full = [for (final e in _bank.entries) if (e.value.length >= 20) e.key]..sort();
+    final at = full.indexOf(_bandKey(rating));
+    if (at < 0 || shift == 0) return rating;
+    return full[(at + shift).clamp(0, full.length - 1)] / 10;
+  }
+
   int get lastLevel => _ladder.keys.reduce(max);
 
   /// 🔴 СТУПЕНИ В ДРУГОЙ ИГРЕ И БОССЫ ПОСЛЕ СТУПЕНИ — СТРОКОЙ ДАННЫХ, КАК ОНА ЛЕЖИТ В ФАЙЛЕ
@@ -220,7 +235,13 @@ class SudokuLevels {
       _ladder[level.clamp(1, lastLevel)] ?? _ladder[1]!;
 
   /// Полоса банка для уровня. `shift` — дорога: −1 «полегче», +1 «пожёстче».
+  ///
+  /// Ступень со своей полосой (`rating`) сдвигается на соседнюю ПОЛНУЮ полосу банка (≥ 20 досок):
+  /// строки `ratingRows` — это лестница классики по уровням, и шаг по ним увёл бы Wordoku на полосу
+  /// классики 80-го, а не на соседнюю по трудности.
   double bankRating(int level, {int shift = 0}) {
+    final own = config(level).rating;
+    if (own != null) return _neighbourBand(own, shift);
     var i = 0;
     while (i < _ratingRows.length - 1 && level > _ratingRows[i].upTo) {
       i++;

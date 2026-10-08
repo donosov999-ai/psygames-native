@@ -140,8 +140,16 @@ void main() {
       expect(board.variant, 'none');
       expect(board.geometry.regions, isNull);
     }
-    // 9–53, 62–65, 81–148, 153–180 — вариантные: рейтинга нет, зато есть измеренная ступень.
-    for (final lv in [9, 42, 62, 81, 92, 96, 100, 104, 108, 112, 116, 120, 124, 128, 132, 136, 140, 144, 148, 156, 160, 164, 168, 172, 176, 180]) {
+    // Wordoku и звери (153–160) — классика со значками: доска из банка своей полосы (08.10, логический
+    // путь давал им уровень классики ~37), вариант — ступени: значки задаёт он.
+    for (final lv in [153, 156, 157, 160]) {
+      final board = levels.boardFor(lv, seed: 7)!;
+      expect(board.rating, levels.config(lv).rating, reason: 'L$lv обязан прийти из банка своей полосы');
+      expect(board.rating, isNotNull);
+      expect(board.variant, levels.config(lv).variant);
+    }
+    // 9–53, 62–65, 81–148, 161–180 — вариантные: рейтинга нет, зато есть измеренная ступень.
+    for (final lv in [9, 42, 62, 81, 92, 96, 100, 104, 108, 112, 116, 120, 124, 128, 132, 136, 140, 144, 148, 164, 168, 172, 176, 180]) {
       final board = levels.boardFor(lv, seed: 7)!;
       expect(board.rating, isNull, reason: 'L$lv — вариантная доска, не банк');
       expect(board.tier, isNotNull, reason: 'у вариантной доски мера посчитана при выгрузке');
