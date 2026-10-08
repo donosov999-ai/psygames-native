@@ -1,4 +1,4 @@
-/* psygames-goods-sort-level · VER 4 · 25.09.2026 */
+/* psygames-goods-sort-level · VER 5 · 07.10.2026 */
 /**
  * СОРТИРОВКА ТОВАРОВ — правила уровня, раздача, цели, раскладка. Лист без React.
  *
@@ -2369,19 +2369,79 @@ export function findHint(
   return pairMove ?? anyMove;
 }
 
+/**
+ * ⚠️ ПРЕПЯТСТВИЯ ИДУТ ПО НИШАМ, МАСКА — ПО МЕСТАМ (07.10.2026). Раздача отдаёт
+ * `obs` плотным списком, как и ниши, а здесь его читали номером МЕСТА: на доске с
+ * дырами это препятствие соседней ниши. В выгрузке 25.09 таких уровней ноль
+ * (лёд, дыры и препятствия вместе не встречаются), но правка таблицы планов
+ * это переживёт, а неверное чтение — нет.
+ */
 export function liveRowsForFreeze(
   mask: boolean[], obs: (Obstacle | null)[], cols: number, rows: number,
 ): number[] {
+  const nicheAt: number[] = [];
+  let seen = 0;
+  for (let pos = 0; pos < mask.length; pos++) nicheAt.push(mask[pos] ? seen++ : -1);
   const out: number[] = [];
   for (let r = 1; r < rows; r++) {
     let free = 0;
     for (let c = 0; c < cols; c++) {
       const i = r * cols + c;
-      if (mask[i] && !obs[i]) free++;
+      if (mask[i] && !obs[nicheAt[i] as number]) free++;
     }
     if (free >= 2) out.push(r);
   }
   return out;
+}
+
+/**
+ * ПРИМЁРЗШИЙ РЯД: ряд и вид, тройка которого его растопит.
+ *
+ * 🔴 ВИД ОБЯЗАН СОБИРАТЬСЯ СНАРУЖИ РЯДА (задача 747a6ece, 07.10.2026). Раньше вид
+ * брался любой с доски, и никто не смотрел, ГДЕ лежат его товары. Замер выгрузки
+ * 25.09: у 44 уровней из 720 трёх товаров этого вида вне ряда не было. Лёд
+ * снимается только тройкой этого вида, а в примёрзший ряд нельзя ни положить, ни
+ * взять — то есть часть тройки сидела во льду, который она же и должна растопить.
+ * Десять уровней от этого НЕ ПРОХОДЯТСЯ ВОВСЕ:
+ *   · пять L54 без оседания — вида во льду так много, что тройки снаружи нет
+ *     никогда, а в ряду лежат товары, которые надо убрать;
+ *   · пять L34/L44 с оседанием — ни один вид не собирается тройкой без льда и
+ *     очереди, а очередь приходит только за тройку: ни хода вперёд с первого хода.
+ * У остальных выход был, но через редкий приём (осадить столбец под ледяной
+ * нишей), и «Разбор» его не находил. Проверка разбором — `goods_lesson_path_test`
+ * в flutter/test: со старта путь есть на всех уровнях всех наборов.
+ *
+ * Теперь вид берётся только такой, у которого три товара лежат на открытых нишах
+ * вне ряда: тройку можно собрать сразу, лёд сходит честно.
+ *
+ * ⚠️ СЛУЧАЙНОСТЬ ТРАТИТСЯ РОВНО КАК РАНЬШЕ: те же два вызова в том же порядке.
+ * Выгрузка уровней идёт одним потоком зерна на всю лестницу, и лишний вызов
+ * сдвинул бы все следующие уровни. Поэтому негодная пара заменяется БЕЗ новых
+ * вызовов: следующий вид по кругу от выпавшего, а если в этом ряду не годится ни
+ * один — следующий ряд. Годная пара остаётся той же, что выпала.
+ */
+export function pickFrozen(
+  cells: number[][], mask: boolean[], obs: (Obstacle | null)[], cols: number, rows: number,
+  random: () => number = Math.random,
+): { row: number; type: number } | null {
+  const present = Array.from(new Set(cells.flat()));
+  const typeAt = Math.floor(random() * present.length);
+  const live = liveRowsForFreeze(mask, obs, cols, rows);
+  const rowAt = live.length ? Math.floor(random() * live.length) : -1;
+  if (!present.length || rowAt < 0) return null;
+  for (let dr = 0; dr < live.length; dr++) {
+    const row = live[(rowAt + dr) % live.length] as number;
+    for (let dt = 0; dt < present.length; dt++) {
+      const type = present[(typeAt + dt) % present.length] as number;
+      let outside = 0;
+      for (let i = 0; i < cells.length; i++) {
+        if (obs[i] || rowOfNiche(i, mask, cols) === row) continue;
+        for (const t of cells[i] ?? []) if (t === type) outside++;
+      }
+      if (outside >= CORE_TRIPLE) return { row, type };
+    }
+  }
+  return null;
 }
 
 /**

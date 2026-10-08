@@ -51,6 +51,38 @@ export function hostLeadsBetween(cur: PlaylistStep, next: PlaylistStep | undefin
   return !!next && hostRendersNatively(cur.game_route) && hostRendersNatively(next.game_route);
 }
 
+/**
+ * 🔴 ПОСЛЕДНИЙ ШАГ НАТИВНЫЙ — КОНЕЦ ЗАРЯДКИ ТОЖЕ ВЕДЁТ ОБОЛОЧКА (08.10.2026, Денис, iPhone:
+ * «зарядка закончилась, а окно продолжает висеть, не закрывается автоматом», кадр «6/6», N-back).
+ *
+ * Между шагами веб отдаёт «готов» оболочке СРАЗУ, в момент сохранения партии, — и шаги 1–5
+ * проходят. А после последнего он ставил СВОЙ таймер на 2 с и только потом уходил на итог.
+ * Под нативной игрой WebView не виден, и невидимому WebView iOS придерживает таймеры страницы:
+ * 2 с не наступали, игра висела. Пробы этого не ловят — в них таймеры честные.
+ * Теперь веб шлёт `warmupLastStepDone`, оболочка ждёт своим таймером, сама снимает игру
+ * (страница становится видна) и только потом зовёт `advance` — переход на итог.
+ */
+export function hostLeadsFinish(cur: PlaylistStep, next: PlaylistStep | undefined): boolean {
+  return !next && hostRendersNatively(cur.game_route);
+}
+
+export interface WarmupLastStepDone {
+  op: 'warmupLastStepDone';
+  /** Номер сыгранного шага (с нуля) — последнего. */
+  fromIdx: number;
+  total: number;
+  evening: boolean;
+}
+
+export function lastStepMessage(meta: PlaylistMeta, fromIdx: number): WarmupLastStepDone {
+  return {
+    op: 'warmupLastStepDone',
+    fromIdx,
+    total: meta.steps.length,
+    evening: meta.slot === 'evening' || meta.slot === 'night',
+  };
+}
+
 /** Тот же адрес шага, что строит веб-мост (`router.replace({ pathname, params })`). */
 export function stepUrl(step: PlaylistStep, slot?: WarmupSlot, track?: PlaylistMeta['track']): string {
   const q = new URLSearchParams(stepToParams(step, slot, track)).toString();

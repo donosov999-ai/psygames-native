@@ -15,6 +15,7 @@ import 'package:psygames_flutter/shell/session_report.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:psygames_flutter/shell/voice.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'support/settings_fit.dart';
 
 /// Голос без сети и без системы: записывает сказанное, «есть ли голос» — по флагу.
 class _FakeVoice implements VoiceBackend {
@@ -413,11 +414,56 @@ void main() {
     expect(digitSpanLessonTrials().map((t) => t.rule).toList(), [L.t('teachSpanChunks'), L.t('teachSpanBackward')]);
   });
 
+  test('🔴 разбор: ряды из генератора игры, показанный ответ засчитывает сама игра, куски — те же цифры', () {
+    final trials = digitSpanLessonTrials();
+    final dirs = [Direction.forward, Direction.backward];
+    expect(trials.length, dirs.length);
+    for (var i = 0; i < trials.length; i++) {
+      final t = trials[i];
+      final row = (t.art! as DsRowView).text;
+      final seq = row.split(' ').map(int.parse).toList();
+      expect(seq.length, greaterThanOrEqualTo(6), reason: 'ряд разбора — длины, на которой приём нужен');
+      expect(t.sub!.replaceAll(' · ', ''), seq.join(), reason: 'куски — те же цифры в том же порядке');
+      expect(t.sub!.split(' · ').every((g) => g.length >= 2 && g.length <= 4), isTrue, reason: 'куски по 2–4: «${t.sub}»');
+      final s = DigitSpanSession(level: 1, isPreset: false, direction: dirs[i], startLen: seq.length)..sequence = seq;
+      for (final ch in t.answer!.split('')) {
+        s.enter(int.parse(ch));
+      }
+      expect(s.rowCorrect, isTrue, reason: 'пример ${i + 1}: «${t.answer}» игра засчитывает как верный ответ');
+    }
+    expect(dsChunked([7, 2, 9, 4, 1, 8, 3]), '729 · 4183', reason: 'одинокая цифра хвоста прилипает к последнему куску');
+    expect(dsChunked([7, 2, 9, 4, 1, 8]), '729 · 418');
+  });
+
+  testWidgets('разбор показывает ряд и что набрать', (tester) async {
+    await boot(tester, level: 1);
+    await tester.tap(find.byKey(const Key('game-lesson')));
+    await tester.pumpAndSettle();
+    final first = digitSpanLessonTrials().first;
+    expect(find.text((first.art! as DsRowView).text), findsWidgets, reason: 'ряд виден в карточке разбора — полем самой игры');
+    expect(find.text(first.sub!), findsWidgets, reason: 'и его куски');
+  });
+
   testWidgets('уход с экрана посреди показа гасит таймеры', (tester) async {
     await boot(tester, level: 5);
     await tester.tap(find.byKey(const Key('ds-start')));
     await tester.pump(const Duration(milliseconds: 100));
     // Без прокрутки времени: таймер, переживший экран, проба поймает сама — «Timer is still pending».
+    await tester.pumpWidget(const SizedBox());
+  });
+
+  testWidgets('🔴 настройка влезает в 360×640 по-английски и по-русски: «Начать» видна, ничего за краем (ae1d918b)',
+      (tester) async {
+    await expectSettingsFit(tester, () => boot(tester, level: 15), where: 'digit-span L15 (направление после показа)');
+  });
+
+  testWidgets('🔴 партия на 360×640: органы ответа целиком на экране (или в прокрутке поля), не меньше 48×48 (приёмка 6596a00d)',
+      (tester) async {
+    await expectPlayFit(tester, () async {
+      await boot(tester, level: 15);
+      await tester.tap(find.byKey(const Key('ds-start')));
+      await pumpUntil(tester, () => inputOpen(tester));
+    }, where: 'digit-span L15, ввод');
     await tester.pumpWidget(const SizedBox());
   });
 }

@@ -129,4 +129,91 @@ void main() {
       }
     }
   });
+
+  test('🔴 ПОТОЛКА НЕТ: с 34-го отличие тоньше до пола, а раундов больше на КАЖДОМ уровне', () {
+    // Правило Дениса 06.09.2026. К 33-му на верху все четыре оси; время дальше не трогаем —
+    // вечерний слот запрещает наказание временем. Растёт величина отличия.
+    for (var l = 1; l <= fdSubtleFrom; l += 1) {
+      expect(fdSubtlety(l), 1, reason: 'L$l: отличия прежней величины');
+      expect(levelParams(l).subtlety, 1);
+      expect(fdExtraRoundsMean(l), 0, reason: 'L$l: прежние три раунда');
+    }
+    var prev = 1.0;
+    for (var l = fdSubtleFrom + 1; l <= 400; l += 1) {
+      final k = fdSubtlety(l);
+      expect(k, lessThan(prev), reason: 'L$l тоньше, чем L${l - 1}');
+      expect(k, greaterThan(fdSubtleFloor), reason: 'L$l: отличие не меньше пола');
+      prev = k;
+    }
+    expect(levelParams(fdSubtleFrom + 1).subtlety, closeTo(0.25 + 0.75 * 0.92, 1e-12));
+    // Без пола отличие размера стало бы меньше полуточки к 75-му, а поворот — к 86–95-му:
+    // картинки совпали бы до пикселя. С полом на любом уровне отличие видно глазом.
+    final far = fdSubtlety(100000);
+    expect(16 * far, greaterThanOrEqualTo(4), reason: 'размер меняется хотя бы на 4 точки');
+    expect(90 * far, greaterThanOrEqualTo(22.5), reason: 'поворот хотя бы на 22,5°');
+    var mean = fdExtraRoundsMean(fdSubtleFrom);
+    for (var l = fdSubtleFrom + 1; l <= 10000; l += 1) {
+      expect(fdExtraRoundsMean(l), greaterThan(mean), reason: 'L$l: раундов в среднем больше — соседи не совпадают');
+      mean = fdExtraRoundsMean(l);
+    }
+    expect(fdExtraRoundsMean(57), 3, reason: 'на раунд больше каждые 8 уровней: к 57-му их 6 вместо 3');
+
+    // Тонкие отличия: подмена зверя — только запасная, размер и поворот — на долю прежнего.
+    var sprites = 0, sizes = 0, rots = 0;
+    for (var seed = 0; seed < 60; seed += 1) {
+      for (final level in [34, 50, 80]) {
+        final p = levelParams(level);
+        final rnd = createRng('тонко-$seed-$level');
+        final scene = generateScene(340, 300, p.objectCount, p.spriteAlphabet, rnd);
+        final alt = withDifference(scene, p.diffCount, p.spriteAlphabet, rnd, subtlety: p.subtlety);
+        for (final i in alt.diffIdx) {
+          final a = scene[i], b = alt.shapes[i];
+          if (a.sprite != b.sprite) sprites += 1;
+          if (a.size != b.size) {
+            sizes += 1;
+            expect((a.size - b.size).abs(), closeTo(16 * p.subtlety, 1e-9), reason: 'L$level размер на 16·k');
+          }
+          if (a.rot != b.rot) {
+            rots += 1;
+            final d = (b.rot - a.rot) % 360;
+            expect(d == 90 * p.subtlety || (d - 180 * p.subtlety).abs() < 1e-9 || (d - 90 * p.subtlety).abs() < 1e-9,
+                isTrue, reason: 'L$level поворот на 90·k или 180·k, а не $d');
+          }
+        }
+      }
+    }
+    expect(sizes + rots, greaterThan(0));
+    expect(sprites, lessThan((sizes + rots) ~/ 10), reason: 'подмена зверя — редкая запасная, а не треть отличий');
+  });
+
+  test('🔴 лишние раунды честные: целая часть всегда, дробная — долей партий; до 34-го бросков нет', () {
+    var calls = 0;
+    final base = createRng('раунды');
+    double counted() {
+      calls += 1;
+      return base();
+    }
+    for (var l = 1; l <= fdSubtleFrom; l += 1) {
+      expect(fdDrawExtraRounds(l, counted), 0);
+    }
+    expect(calls, 0, reason: 'до 34-го генератор не тронут — раздача прежняя байт в байт');
+    for (final level in [34, 37, 45, 77, 200]) {
+      final mean = fdExtraRoundsMean(level);
+      var sum = 0;
+      const draws = 4000;
+      for (var i = 0; i < draws; i += 1) {
+        final d = fdDrawExtraRounds(level, counted);
+        expect(d == mean.floor() || d == mean.floor() + 1, isTrue, reason: 'L$level: $d при среднем $mean');
+        sum += d;
+      }
+      expect(sum / draws, closeTo(mean, 0.03), reason: 'L$level: среднее по $draws партиям');
+    }
+  });
+
+  test('🔴 карточка «Отличия тоньше» встаёт на тот же уровень, что и пятая ось', () {
+    final rules = jsonDecode(File('assets/level_rules.json').readAsStringSync()) as Map<String, dynamic>;
+    final ranges = ((rules['games'] as Map)['find_differences'] as List).cast<List>();
+    expect(ranges.first, [1, fdSubtleFrom, null]);
+    expect(ranges.last, [fdSubtleFrom + 1, null, 'subtle']);
+  });
 }

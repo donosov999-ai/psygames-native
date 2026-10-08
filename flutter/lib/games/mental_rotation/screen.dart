@@ -70,7 +70,11 @@ class _MentalRotationScreenState extends State<MentalRotationScreen> {
   bool _ready = false;
 
   Phase _phase = Phase.config;
-  int _trials = 10;
+
+  /// Длина партии. Шаг зарядки и «Оценка» шлют её адресом (`trials=5`, `stepToParams` в
+  /// `warmup.ts`), веб читает `num('trials', 10)`. Натив до 08.10.2026 его не читал и в шаге на
+  /// полторы минуты играл десять проб вместо пяти (сторож `web_params_reach_native_test.dart`).
+  int _trials = math.max(1, GamePreset.num('trials', 10));
 
   /// Отработка одного вида; `null` — вперемешку, как в обычной партии.
   TaskKind? _chosenKind;

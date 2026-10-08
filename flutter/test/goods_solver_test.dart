@@ -151,6 +151,116 @@ void main() {
     }
   });
 
+  /// Все лестницы приложения: шесть наборов × две ширины.
+  List<(String, double)> allLadders() {
+    final files = [
+      for (final set in (jsonDecode(File('assets/levels/goods_sets.json').readAsStringSync())
+          as Map<String, dynamic>)['sets'] as List)
+        (set as Map<String, dynamic>)['file'] as String,
+    ];
+    expect(files, hasLength(greaterThanOrEqualTo(6)), reason: 'наборы не прочитались — проба не о том');
+    return [
+      for (final f in files)
+        for (final w in [390.0, 1200.0]) (f, w),
+    ];
+  }
+
+  /// 🔴 «РАЗБОР» СО СТАРТА ВЕДЁТ К ПОБЕДЕ НА КАЖДОМ УРОВНЕ (задача 747a6ece).
+  ///
+  /// 📍 БЫЛО 02.10.2026: на 16 стартах из 720 разбор не находил пути и показывал
+  /// одно правило. Замер 07.10.2026 разложил их так:
+  ///   · 10 не проходились ВОВСЕ — дефект генератора: вид льда лежал во льду
+  ///     (`pickFrozen` в `frontend/src/games/goods-sort/core/level.ts`, лестницы
+  ///     пересняты);
+  ///   · 3 — решатель: цель «освободить» запрещал увозить однородную кучку,
+  ///     джокер не принимал чужой вид, полка из очереди приходит только за
+  ///     ЦЕЛУЮ тройку, а перебор их не различал;
+  ///   · 3 решались при большем бюджете — после правки льда стали лёгкими.
+  /// Проба смотрит не «решатель ответил да», а ПУТЬ: он проигрывается ходом за
+  /// ходом через ту же дверь, что у экрана, и обязан кончиться победой.
+  test('🔴 «Разбор» со старта ведёт к победе на КАЖДОМ уровне всех наборов', () {
+    final bad = <String>[];
+    var levels = 0, moves = 0, maxNodes = 0;
+    for (final (file, width) in allLadders()) {
+      final ladder = GoodsLevelSet.fromJsonString(File('assets/levels/$file').readAsStringSync(), width: width);
+      for (var lv = 1; lv <= ladder.levels.length; lv++) {
+        levels++;
+        var play = GoodsPlay.start(ladder.byLevel(lv));
+        final solve = solveStrict(play);
+        if (solve.nodes > maxNodes) maxNodes = solve.nodes;
+        if (!solve.solvable) {
+          bad.add('$file ${width.toInt()} L$lv: пути нет${solve.exhausted ? ' (упёрся)' : ''}');
+          continue;
+        }
+        for (final m in solve.path) {
+          final next = play.moveTopOf(m.from, m.to);
+          if (next == null) {
+            bad.add('$file ${width.toInt()} L$lv: игра не пустит ход ${m.from}→${m.to}');
+            break;
+          }
+          play = next;
+          moves++;
+        }
+        if (!play.won) bad.add('$file ${width.toInt()} L$lv: путь кончился, а уровень не взят');
+      }
+    }
+    // ignore: avoid_print
+    print('РАЗБОР СО СТАРТА: $levels уровней, путь на ${levels - bad.length}, ходов в путях $moves, '
+        'узлов в худшем $maxNodes');
+    expect(levels, greaterThanOrEqualTo(720), reason: 'лестниц меньше, чем выгружено, — проба не о том');
+    expect(bad, isEmpty);
+  });
+
+  /// 🔴 ЛЁД РАСТАПЛИВАЕТСЯ: тройка его вида лежит ВНЕ ряда на открытых нишах.
+  ///
+  /// Лёд снимается тройкой своего вида, а в примёрзший ряд нельзя ни положить, ни
+  /// взять. Выгрузка 25.09.2026 ставила вид, не глядя, где его товары: у 44 уровней
+  /// из 720 часть тройки сидела во льду, десять не проходились вовсе. Правило
+  /// стоит в генераторе (`pickFrozen`), а здесь сторожится ФАЙЛ, который уехал в
+  /// приложение, — как и арифметика троек выше.
+  test('🔴 лёд растапливается: тройка его вида вне ряда, на всех лестницах', () {
+    final bad = <String>[];
+    var frozen = 0;
+    for (final (file, width) in allLadders()) {
+      final ladder = GoodsLevelSet.fromJsonString(File('assets/levels/$file').readAsStringSync(), width: width);
+      for (var lv = 1; lv <= ladder.levels.length; lv++) {
+        final play = GoodsPlay.start(ladder.byLevel(lv));
+        final type = play.frozenType;
+        if (play.frozenRow == null || type == null) continue;
+        frozen++;
+        var open = 0;
+        for (var i = 0; i < play.board.cells.length; i++) {
+          if (play.usable(i)) open += play.board.cells[i].where((t) => t == type).length;
+        }
+        if (open < kTriple) bad.add('$file ${width.toInt()} L$lv: вида $type на открытых нишах $open');
+      }
+    }
+    expect(frozen, greaterThan(40), reason: 'уровней со льдом почти нет — проба не о том');
+    expect(bad, isEmpty);
+  });
+
+  /// 🔴 ПОТОЛОК ПО ЧАСАМ ОСТАНАВЛИВАЕТ РАЗБОР. Экран ставит его, чтобы человек не
+  /// ждал на нажатии (`_lessonDeadline`); без проверки потолок мог молча не
+  /// работать, и редкое тяжёлое положение подвешивало бы экран на секунды.
+  test('🔴 потолок по часам: разбор не думает дольше отпущенного', () {
+    // Берём старт, которому нужно заметно больше узлов, чем проверка часов
+    // пропускает между взглядами (раз в 16 узлов).
+    GoodsPlay? heavy;
+    for (final (file, width) in allLadders()) {
+      final ladder = GoodsLevelSet.fromJsonString(File('assets/levels/$file').readAsStringSync(), width: width);
+      for (var lv = 1; lv <= ladder.levels.length && heavy == null; lv++) {
+        final play = GoodsPlay.start(ladder.byLevel(lv));
+        if (solveStrict(play).nodes > 300) heavy = play;
+      }
+      if (heavy != null) break;
+    }
+    expect(heavy, isNotNull, reason: 'нет старта тяжелее 300 узлов — проба не о том');
+    final cut = solveStrict(heavy!, deadline: Duration.zero);
+    expect(cut.solvable, isFalse, reason: 'часы не остановили перебор');
+    expect(cut.exhausted, isTrue, reason: 'остановленный перебор обязан сказать «не знаю», а не «нет»');
+    expect(solveStrict(heavy).solvable, isTrue, reason: 'без часов тот же старт решается');
+  });
+
   test('🔴 препятствия ЖИВУТ: замок тикает по ходам, заслон снимается тройкой', () {
     final level = set.byLevel(1);
 

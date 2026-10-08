@@ -1,4 +1,4 @@
-/* psygames-goods-sort-export-levels · VER 2 · 25.09.2026 */
+/* psygames-goods-sort-export-levels · VER 3 · 07.10.2026 */
 /**
  * 🔴 ВЫГРУЗКА ЛЕСТНИЦЫ ТОВАРОВ ДЛЯ ПРИЛОЖЕНИЯ — ТЕПЕРЬ ПОВТОРЯЕМАЯ.
  *
@@ -11,8 +11,8 @@
  * пересобираются».
  *
  * 🔴 ЗОВЁТ ТО ЖЕ ЯДРО, ЧТО И ЭКРАН, И НИ ОДНОЙ СВОЕЙ КОПИИ ПРАВИЛ. Раздача —
- * `dealBoard`, сетка и план — `levelCfg`, накрытия — `hideDeepSpots`, живые ряды
- * для заморозки — `liveRowsForFreeze`, цель собирается тем же кодом, что в
+ * `dealBoard`, сетка и план — `levelCfg`, накрытия — `hideDeepSpots`, ряд и вид
+ * заморозки — `pickFrozen`, цель собирается тем же кодом, что в
  * `loadLevel`. Своя копия здесь означала бы, что приложение играет по одним
  * правилам, а выгрузка сделана по другим, и разойтись они могут молча.
  *
@@ -37,8 +37,8 @@
 import type { Shelf } from '../core/board';
 import {
   capsForBoard, collapseLevel, dealBoard, GOOD_SETS, hiddenInfo, hideDeepSpots,
-  ITEM_FLOOR, jokersForBoard, levelCfg, liveRowsForFreeze, monochromeLevel, moveReference,
-  movingNiches, PROFILE_GOOD_SET, rowOfNiche, SCROLL_FROM, setUnlockLevel, shuffle,
+  ITEM_FLOOR, jokersForBoard, levelCfg, monochromeLevel, moveReference,
+  movingNiches, pickFrozen, PROFILE_GOOD_SET, rowOfNiche, SCROLL_FROM, setUnlockLevel, shuffle,
   strictPlacement, WIDEST_POOL, целымиТройками,
   type Goal,
 } from '../core/level';
@@ -115,15 +115,9 @@ function собратьУровень(L: number, пул: number[], narrow: boole
   const spots = hideDeepSpots(cells);
   const covered = hiddenInfo(L) ? spots : shuffle(spots).slice(0, cfg.obst.covered);
 
-  let frozen: { row: number; type: number } | null = null;
-  let frozenRow = -1;
-  if (cfg.obst.frozenRow) {
-    const present = Array.from(new Set(cells.flat()));
-    const type = present[Math.floor(Math.random() * present.length)] ?? -1;
-    const live = liveRowsForFreeze(cfg.mask, obs, cfg.cols, cfg.rows);
-    const row = live.length ? live[Math.floor(Math.random() * live.length)] : -1;
-    if (type >= 0 && row >= 0) { frozen = { row, type }; frozenRow = row; }
-  }
+  // Вид льда обязан собираться вне ряда — почему, в шапке `pickFrozen` (07.10.2026).
+  const frozen = cfg.obst.frozenRow ? pickFrozen(cells, cfg.mask, obs, cfg.cols, cfg.rows) : null;
+  const frozenRow = frozen ? frozen.row : -1;
 
   const plan = cfg.goal;
   let goal: Goal = { kind: 'all' };
@@ -201,10 +195,13 @@ function выгрузитьНабор(ключ: string, выход: string): voi
    * который уедет в приложение, обязан быть проверен ещё раз ЗДЕСЬ: между
    * раздачей и записью лежит сборка уровня, и однажды она уже теряла товар молча.
    *
-   * ⚠️ ПРОВЕРОК ТРИ, И ТРЕТЬЯ ПОЯВИЛАСЬ 25.09.2026 ПО НАСТОЯЩЕМУ ДЕФЕКТУ: доска
+   * ⚠️ ПРОВЕРОК ЧЕТЫРЕ. Третья появилась 25.09.2026 по настоящему дефекту: доска
    * не имеет права приехать с ГОТОВОЙ тройкой — она схлопнется первым касанием, и
    * очко с местом достанутся ни за что. Считаем весь расклад: и доску, и очередь,
-   * и задние ряды.
+   * и задние ряды. Четвёртая — 07.10.2026, тоже по дефекту: лёд снимается тройкой
+   * своего вида, и эта тройка обязана лежать ВНЕ ряда на открытых нишах. Иначе
+   * лёд не сходит, и десять уровней выгрузки 25.09 не проходились вовсе
+   * (`pickFrozen`).
    */
   const битые: string[] = [];
   for (const [имя, список] of [['узкая', levels], ['широкая', wide]] as const) {
@@ -216,6 +213,12 @@ function выгрузитьНабор(ключ: string, выход: string): voi
       if (готовая) битые.push(`${ключ}/${имя} L${lv.level}: приехала с готовой тройкой`);
       const вне = lv.cells.flat().filter((t) => !пул.includes(t));
       if (вне.length > 0) битые.push(`${ключ}/${имя} L${lv.level}: товар вне пула ${вне[0]}`);
+      if (lv.frozen) {
+        const лёд = lv.frozen;
+        const снаружи = lv.cells.reduce((n, c, i) => (lv.obstacles[i] || rowOfNiche(i, lv.mask, lv.cols) === лёд.row
+          ? n : n + c.filter((t) => t === лёд.type).length), 0);
+        if (снаружи < 3) битые.push(`${ключ}/${имя} L${lv.level}: лёд не растопить — вида ${лёд.type} вне ряда ${снаружи}`);
+      }
     }
   }
   expect(битые).toEqual([]);

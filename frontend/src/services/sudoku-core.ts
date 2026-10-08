@@ -11,7 +11,7 @@
 import { translateFor } from '../contexts/LanguageContext';
 
 export type Cell = number; // 0 = empty
-export type Variant = 'none' | 'diagonal' | 'antiknight' | 'hyper' | 'nonconsec' | 'jigsaw' | 'antiking' | 'evenodd' | 'kropki' | 'sandwich' | 'thermo' | 'arrow' | 'thermocage' | 'unequal' | 'towers' | 'sandparity' | 'thermoknight' | 'killerdiag' | 'whisper' | 'renban' | 'regionsum' | 'palindrome' | 'between' | 'lockout' | 'xv' | 'argyle' | 'littlekiller' | 'xsums' | 'friends';
+export type Variant = 'none' | 'diagonal' | 'antiknight' | 'hyper' | 'nonconsec' | 'jigsaw' | 'antiking' | 'evenodd' | 'kropki' | 'sandwich' | 'thermo' | 'arrow' | 'thermocage' | 'unequal' | 'towers' | 'sandparity' | 'thermoknight' | 'killerdiag' | 'whisper' | 'renban' | 'regionsum' | 'palindrome' | 'between' | 'lockout' | 'xv' | 'argyle' | 'littlekiller' | 'xsums' | 'cipher' | 'fog' | 'chaos' | 'schrodinger' | 'doublers' | 'negators' | 'killer' | 'wordoku' | 'animals' | 'friends';
 // 'friends' — «Мяу — друзья» 9×9 (у кота мышь рядом): генератора на TS нет, доски ступеней — только
 // выгрузкой MindLab (flutter/tools/meow9-ladder.cjs, export_kids_boards.py --meow9).
 
@@ -184,6 +184,56 @@ export function xsumsOk(grid: Cell[][], r: number, c: number, n: number, xs: Xsu
   return xsumLineOk(col, xs.cols[c], N);
 }
 
+/**
+ * 🔴 ШИФР (пункт 2 цепочки «14 усложнений», задача 1f8fbd7f; решение Дениса 30.09 «Берём»).
+ * Часть цифр решения зашифрована буквами: у такой цифры часть подсказок показана её буквой,
+ * остальные — открыто. Одинаковые буквы — одинаковые цифры, разные буквы — разные цифры; код
+ * выводится вместе с доской. Образцы правила: gmpuzzles.com/blog/tag/cipher.
+ * 🔴 БУКВЫ ОБЯЗАНЫ БЫТЬ СМЕШАНЫ С ЦИФРАМИ. Первая редакция шифровала КАЖДУЮ подсказку зашифрованной
+ * цифры — замер 07.10: перестановка зашифрованных цифр давала другое верное решение, доска была
+ * единственной лишь с точностью до неё (это и есть «просто замена значка», пункт 1); генератор не
+ * смог выкопать ни одной доски (0–3 пустых при 45 буквах, 8 из 8 — запасным путём). Открытые
+ * подсказки той же цифры ломают симметрию: по ним и выводится, какая буква — какая цифра.
+ * Клетка-буква — НЕ данная цифра: в задании 0, буква лежит в оверлее `cipher` (номер 1..9 = A..I).
+ */
+export const CIPHER_DIGITS = 5;
+/** Доля подсказок зашифрованной цифры, показанных буквой. Точное число — по замеру. */
+export const CIPHER_SHARE = 0.5;
+export const CIPHER_LETTERS = 'ABCDEFGHI';
+
+/**
+ * Буквы на полной доске: `count` цифр шифруются своими буквами, и у каждой из них буквой показана
+ * доля `share` клеток (остальные открыто). Сетка фиксируется до копания — копание лишь убирает
+ * подсказки, а какая из оставшихся буква, а какая цифра, не меняется.
+ */
+export function cipherLetters(sol: Cell[][], N: number, count = CIPHER_DIGITS, share = CIPHER_SHARE): number[][] {
+  const key = new Array<number>(N + 1).fill(0);
+  const digits = shuffle(Array.from({ length: N }, (_, i) => i + 1)).slice(0, Math.min(count, N - 1));
+  const letters = shuffle(Array.from({ length: N }, (_, i) => i + 1));
+  digits.forEach((d, i) => { key[d] = letters[i]; });
+  return sol.map((row) => row.map((v) => (key[v] && Math.random() < share ? key[v] : 0)));
+}
+
+/** Задание с цифрами-подсказками → задание игрока: подсказки на клетках-буквах становятся буквами. */
+export function encodeCipher(puzzle: Cell[][], letters: number[][]): { puzzle: Cell[][]; cipher: number[][] } {
+  const cipher = puzzle.map((row, r) => row.map((v, c) => (v !== 0 ? letters[r][c] : 0)));
+  return { puzzle: puzzle.map((row, r) => row.map((v, c) => (cipher[r][c] ? 0 : v))), cipher };
+}
+
+/** Не спорит ли цифра n в (r, c) с буквами: та же буква — та же цифра, другая буква — другая. */
+export function cipherOk(grid: Cell[][], r: number, c: number, n: number, cipher: number[][], N: number): boolean {
+  const L = cipher[r][c];
+  if (!L) return true;
+  for (let i = 0; i < N; i++) for (let j = 0; j < N; j++) {
+    const M = cipher[i][j];
+    if (!M || (i === r && j === c)) continue;
+    const v = grid[i][j];
+    if (v === 0) continue;
+    if (M === L ? v !== n : v === n) return false;
+  }
+  return true;
+}
+
 export function inHyper(r: number, c: number): readonly [number, number] | null {
   for (const [hr, hc] of HYPER_BOXES) if (r >= hr && r < hr + 3 && c >= hc && c < hc + 3) return [hr, hc];
   return null;
@@ -192,7 +242,7 @@ export function inHyper(r: number, c: number): readonly [number, number] | null 
 /** v1.137: подписи/правила вариантов живут в словаре LanguageContext
  *  (sudokuVariant* / sudokuRule*) — берутся через translateFor, чтобы 10
  *  оверлейных языков не падали на английский. lang — код языка ('ru'|'en'|…). */
-const VARIANT_KEY_SUFFIX: Record<Exclude<Variant, 'none' | 'friends'>, string> = {
+const VARIANT_KEY_SUFFIX: Record<Exclude<Variant, 'none' | 'friends' | 'killer' | 'wordoku' | 'animals'>, string> = {
   diagonal: 'Diagonal', antiknight: 'Antiknight', hyper: 'Hyper', nonconsec: 'Nonconsec',
   jigsaw: 'Jigsaw', antiking: 'Antiking', evenodd: 'Evenodd', kropki: 'Kropki',
   sandwich: 'Sandwich', thermo: 'Thermo', arrow: 'Arrow', thermocage: 'Thermocage',
@@ -209,17 +259,32 @@ const VARIANT_KEY_SUFFIX: Record<Exclude<Variant, 'none' | 'friends'>, string> =
   argyle: 'Argyle',
   littlekiller: 'Littlekiller',
   xsums: 'Xsums',
+  cipher: 'Cipher',
+  fog: 'Fog',
+  chaos: 'Chaos',
+  schrodinger: 'Schrodinger',
+  doublers: 'Doublers',
+  negators: 'Negators',
 };
 // «Мяу — друзья»: имя и правило — одна короткая строка «🐱 рядом с 🐭», та же, что у натива
 // (sdkRule_friends, 12 языков); отдельных sudokuVariant*/sudokuRule* у варианта нет.
+// Киллер на лестнице (08.10): имя и правило — те же строки, что у режима «Киллер» (sudokuModeKiller,
+// sudokuKillerRule; 12 языков), а не новые sudokuVariant*/sudokuRule*.
 export function variantLabel(v: Variant, lang: string): string {
   if (v === 'none') return '';
   if (v === 'friends') return translateFor(lang, 'sdkRule_friends');
+  if (v === 'killer') return translateFor(lang, 'sudokuModeKiller');
+  // Wordoku и звери на лестнице (08.10) — классика значками: строки скина (12 языков), без новых ключей.
+  if (v === 'wordoku') return translateFor(lang, 'sudokuSkinLetters');
+  if (v === 'animals') return translateFor(lang, 'sudokuSkinAnimals');
   return translateFor(lang, 'sudokuVariant' + VARIANT_KEY_SUFFIX[v]);
 }
 export function variantRule(v: Variant, lang: string): string {
   if (v === 'none') return '';
   if (v === 'friends') return translateFor(lang, 'sdkRule_friends');
+  if (v === 'killer') return translateFor(lang, 'sudokuKillerRule');
+  if (v === 'wordoku') return translateFor(lang, 'sudokuSkinLetters');
+  if (v === 'animals') return translateFor(lang, 'sudokuSkinAnimals');
   return translateFor(lang, 'sudokuRule' + VARIANT_KEY_SUFFIX[v]);
 }
 
@@ -548,7 +613,29 @@ export function levelConfig(level: number): LevelCfg {
   // сразу за аргайлом, блоки плана сдвинуты ещё на +4.
   else if (lv >= 125 && lv <= 128) variant = 'littlekiller';
   // 129–132 «X-суммы» (6aecf181 п.9, задача 5ea317fc) — тем же порядком, сразу за малым киллером.
-  else if (lv >= 129) variant = 'xsums';
+  else if (lv >= 129 && lv <= 132) variant = 'xsums';
+  // 133–136 «шифр» (6aecf181 п.2, задача 1f8fbd7f) — тем же порядком, сразу за X-суммами.
+  else if (lv >= 133 && lv <= 136) variant = 'cipher';
+  // 137–140 «туман войны» (6aecf181 п.11, задача efb63126) — тем же порядком, сразу за шифром.
+  else if (lv >= 137 && lv <= 140) variant = 'fog';
+  // 141–144 «самосборка» (6aecf181 п.12, задача 6cee3610) — тем же порядком, сразу за туманом.
+  else if (lv >= 141 && lv <= 144) variant = 'chaos';
+  // 145–148 «клетки Шрёдингера» (6aecf181 п.13, задача f46c796c) — тем же порядком, сразу за самосборкой.
+  else if (lv >= 145 && lv <= 148) variant = 'schrodinger';
+  // 149–152 «Мяу — друзья» 9×9 (план уровней, задача e7260a11): доски — выгрузкой MindLab
+  // (flutter/assets/levels/sudoku-meow9-boards.json, #211), генератора на TS нет; готово раньше
+  // Wordoku и зверей — встаёт первым.
+  else if (lv >= 149 && lv <= 152) variant = 'friends';
+  // 153–180 — блоки плана, собранные разделом вариантами лестницы 08.10 (#310–#313, задача e7260a11):
+  // Wordoku и звери (#313), киллер (#311), наши небоскрёбы и неравенства (#312), удвоители и
+  // отрицательные (#310, «клетки-нарушители» типы 2–3).
+  else if (lv >= 153 && lv <= 156) variant = 'wordoku';
+  else if (lv >= 157 && lv <= 160) variant = 'animals';
+  else if (lv >= 161 && lv <= 164) variant = 'killer';
+  else if (lv >= 165 && lv <= 168) variant = 'towers';
+  else if (lv >= 169 && lv <= 172) variant = 'unequal';
+  else if (lv >= 173 && lv <= 176) variant = 'doublers';
+  else if (lv >= 177) variant = 'negators';
   /**
    * 🔴 НЕРАВЕНСТВА (футосики) СОБРАНЫ, НО УРОВНЕЙ НЕ ПОЛУЧИЛИ — ЗАМЕР 26.08.2026.
    *
@@ -588,10 +675,17 @@ export function levelConfig(level: number): LevelCfg {
   // Ось трудности ВНУТРИ блока у правил-подсказок — лимит копания (`digCap`, PR #258), а не число
   // подсказок: замер раздела 07.10 — X-суммы 64 → 70 цена 129 → 151, малый киллер 145 → 159;
   // к 76 насыщается (выкапывается не больше ~68). Ступени блока: 64 → 67 → 70 → 70.
-  const digCap = variant === 'littlekiller' || variant === 'xsums'
+  // Киллер лестницы (замер раздела 08.10: 64 — ступень 4 у 18/18, 70 — пятёрка у 8/18) — та же
+  // ось. Наши небоскрёбы и неравенства — 56 → 64 (замер 08.10: цена 67 → 94 и 88 → 140).
+  const digCap = variant === 'littlekiller' || variant === 'xsums' || variant === 'killer'
     ? [64, 67, 70, 70][(lv - 1) % 4]
-    : undefined;
-  return { size, N, BR, BC, blanks, variant, hintMax, lives: livesFor(lv), ...(digCap ? { digCap } : {}) };
+    : variant === 'towers' || variant === 'unequal'
+      ? [56, 60, 64, 64][(lv - 1) % 4]
+      : undefined;
+  // «Мяу»: пустых столько, сколько у выгруженных досок ступени (подсказок 30 → 28 → 26 → 24) —
+  // выгрузчик (meow9-ladder.cjs) сверяет и падает при расхождении.
+  const blanksOut = variant === 'friends' ? 81 - [30, 28, 26, 24][(lv - 1) % 4] : blanks;
+  return { size, N, BR, BC, blanks: blanksOut, variant, hintMax, lives: livesFor(lv), ...(digCap ? { digCap } : {}) };
 }
 
 /**
@@ -1401,10 +1495,10 @@ export function towersLineOk(line: readonly number[], clue: number): boolean {
 
 export function isValid(grid: Cell[][], r: number, c: number, val: number, N: number, BR: number, BC: number, variant: Variant = 'none', regions?: number[][], thermo?: ThermoPN, arrow?: ArrowMap, cages?: CageMap, unequal?: UnequalMap, towers?: TowersMap): boolean {
   for (let i = 0; i < N; i++) if (grid[r][i] === val || grid[i][c] === val) return false;
-  if (variant === 'jigsaw' && regions) {
+  if ((variant === 'jigsaw' || variant === 'chaos') && regions) {
     const reg = regions[r][c];
     for (let i = 0; i < N; i++) for (let j = 0; j < N; j++) if (regions[i][j] === reg && grid[i][j] === val) return false;   // бокс заменён регионом
-  } else {
+  } else if (variant !== 'chaos') {   // самосборка без разбиения: блоков нет, области игрок выводит сам
     const br = Math.floor(r / BR) * BR, bc = Math.floor(c / BC) * BC;
     for (let i = 0; i < BR; i++) for (let j = 0; j < BC; j++) if (grid[br + i][bc + j] === val) return false;
   }
@@ -1554,6 +1648,8 @@ export interface Overlays {
   littlekiller?: LittleKillerClue[];
   /** X-суммы: слева у строк и сверху у столбцов; −1 — подсказка скрыта. */
   xsums?: XsumsClues;
+  /** Шифр: номер буквы (1..9 = A..I) в клетке-подсказке, 0 — не буква. */
+  cipher?: number[][];
 }
 
 /** Полные оверлеи из решения — до прореживания. */
@@ -1698,6 +1794,7 @@ export function overlayOk(grid: Cell[][], r: number, c: number, n: number, N: nu
   if (ov.xv && !xvOk(grid, r, c, n, ov.xv, N)) return false;   // знаки и их отсутствие — подсказка
   if (ov.littlekiller && !littleKillerOk(grid, r, c, n, ov.littlekiller, N)) return false;   // суммы диагоналей — подсказка
   if (ov.xsums && !xsumsOk(grid, r, c, n, ov.xsums, N)) return false;   // X-суммы — подсказка
+  if (ov.cipher && !cipherOk(grid, r, c, n, ov.cipher, N)) return false;   // буквы шифра — подсказка
   if (ov.sandwich) {
     const check = (line: number[], want: number): boolean => {
       if (want < 0) return true;                                      // сумма СПРЯТАНА (см. thinSandwich) — не подсказка
@@ -1754,7 +1851,7 @@ export function countSolutions(grid: Cell[][], N: number, BR: number, BC: number
 // thermocage здесь ОБЯЗАН быть: единственность решения у него считается по ДВУМ
 // правилам сразу (isValid знает и цепочку, и сумму). Доска, единственная по каждому
 // правилу порознь, вместе может иметь второе решение — и наоборот.
-const UNIQUE_CHECKED: readonly Variant[] = ['none', 'diagonal', 'antiknight', 'hyper', 'nonconsec', 'antiking', 'jigsaw', 'thermo', 'arrow', 'evenodd', 'kropki', 'sandwich', 'thermocage', 'unequal', 'towers', 'sandparity', 'thermoknight', 'killerdiag', 'whisper', 'renban', 'regionsum', 'palindrome', 'between', 'lockout', 'xv', 'argyle', 'littlekiller', 'xsums'];
+const UNIQUE_CHECKED: readonly Variant[] = ['none', 'diagonal', 'antiknight', 'hyper', 'nonconsec', 'antiking', 'jigsaw', 'thermo', 'arrow', 'evenodd', 'kropki', 'sandwich', 'thermocage', 'unequal', 'towers', 'sandparity', 'thermoknight', 'killerdiag', 'whisper', 'renban', 'regionsum', 'palindrome', 'between', 'lockout', 'xv', 'argyle', 'littlekiller', 'xsums', 'cipher', 'fog', 'killer', 'wordoku', 'animals'];
 
 /**
  * Готовая сетка для «несоседних чисел» — БЕЗ перебора.
@@ -1783,7 +1880,7 @@ export function buildNonconsecSolution(): Cell[][] {
   return g;
 }
 
-export function generatePuzzle(blanks: number, N: number, BR: number, BC: number, variant: Variant = 'none', thin?: (ov: Overlays) => Overlays): { puzzle: Cell[][]; solution: Cell[][]; regions?: number[][]; parity?: number[][]; kropki?: { h: number[][]; v: number[][] }; sandwich?: { rows: number[]; cols: number[] }; thermo?: ThermoPN; arrow?: ArrowMap; cages?: CageMap; unequal?: UnequalMap; towers?: TowersMap; whisper?: ThermoPN; renban?: ThermoPN; regionsum?: ThermoPN; palindrome?: ThermoPN; between?: ThermoPN; lockout?: ThermoPN; xv?: XvMap; littlekiller?: LittleKillerClue[]; xsums?: XsumsClues } {
+export function generatePuzzle(blanks: number, N: number, BR: number, BC: number, variant: Variant = 'none', thin?: (ov: Overlays) => Overlays): { puzzle: Cell[][]; solution: Cell[][]; regions?: number[][]; parity?: number[][]; kropki?: { h: number[][]; v: number[][] }; sandwich?: { rows: number[]; cols: number[] }; thermo?: ThermoPN; arrow?: ArrowMap; cages?: CageMap; unequal?: UnequalMap; towers?: TowersMap; whisper?: ThermoPN; renban?: ThermoPN; regionsum?: ThermoPN; palindrome?: ThermoPN; between?: ThermoPN; lockout?: ThermoPN; xv?: XvMap; littlekiller?: LittleKillerClue[]; xsums?: XsumsClues; cipher?: number[][]; fog?: number[][]; chaos?: number[][] } {
   const sol: Cell[][] = Array.from({ length: N }, () => Array(N).fill(0));
   let regions: number[][] | undefined;
   let thermo: ThermoPN | undefined;
@@ -1816,6 +1913,13 @@ export function generatePuzzle(blanks: number, N: number, BR: number, BC: number
     // нарушен, дал бы доску без решения), термометры — из этого решения.
     solve(sol, N, BR, BC, 'antiknight');
     thermo = thermoFromSolution(sol, N);
+  } else if (variant === 'killer') {
+    // Киллер на лестнице (08.10): вся доска разбита на группы-суммы (generateCages, как у режима), но
+    // копает его логический путь с мерой сумм — доска единственна ТОЛЬКО с суммами. У режима «Киллер»
+    // суммы лежат поверх доски, которая единственна и без них (killerBlanksForStep), — там они
+    // украшение, а не правило.
+    solve(sol, N, BR, BC, 'none');
+    cages = generateCages(sol, N);
   } else if (variant === 'killerdiag') {
     // Комбо: решение уважает диагонали, клетки-суммы островами из него же
     // (generateThermoCages — несмотря на имя, она про острова, а не про термометр).
@@ -1844,6 +1948,13 @@ export function generatePuzzle(blanks: number, N: number, BR: number, BC: number
     : (variant === 'thermoknight' && !thermo) ? 'antiknight'                      // комбо теряет ось → живёт оставшейся
     : (variant === 'killerdiag' && !cages) ? 'diagonal'
     : variant;   // фолбэк генерации → чекаем как классику
+  // Шифр: единственность считается по задаче игрока — подсказки на клетках-буквах там буквы, не цифры.
+  const letters = variant === 'cipher' ? cipherLetters(sol, N) : null;
+  const solutions = (p: Cell[][]) => {
+    if (!letters) return countSolutions(p, N, BR, BC, effVariant, regions, 2, { steps: 8000 }, thermo, arrow, (effVariant === 'thermocage' || effVariant === 'killerdiag' || effVariant === 'killer') ? cages : undefined, ov);
+    const enc = encodeCipher(p, letters);
+    return countSolutions(enc.puzzle, N, BR, BC, 'none', undefined, 2, { steps: 8000 }, undefined, undefined, undefined, { ...ov, cipher: enc.cipher });
+  };
   if (UNIQUE_CHECKED.includes(effVariant)) {
     // v1.111.0 — dig-with-uniqueness: выкалываем клетку только если решение остаётся
     // ЕДИНСТВЕННЫМ (иначе честный игрок мог поставить цифру второго решения и получить
@@ -1858,7 +1969,7 @@ export function generatePuzzle(blanks: number, N: number, BR: number, BC: number
       const r = Math.floor(p / N), c = p % N;
       const keep = puzzle[r][c];
       puzzle[r][c] = 0;
-      if (countSolutions(puzzle, N, BR, BC, effVariant, regions, 2, { steps: 8000 }, thermo, arrow, (effVariant === 'thermocage' || effVariant === 'killerdiag') ? cages : undefined, ov) !== 1) puzzle[r][c] = keep;
+      if (solutions(puzzle) !== 1) puzzle[r][c] = keep;
       else dug++;
     }
   } else {
@@ -1883,6 +1994,10 @@ export function generatePuzzle(blanks: number, N: number, BR: number, BC: number
   const xv = ov.xv;
   const littlekiller = ov.littlekiller;
   const xsums = ov.xsums;
+  if (letters) {
+    const enc = encodeCipher(puzzle, letters);
+    return { puzzle: enc.puzzle, solution: sol, cipher: enc.cipher };
+  }
   return { puzzle, solution: sol, regions, parity, kropki, sandwich, thermo, arrow, cages, unequal, towers, whisper, renban, regionsum, palindrome, between, lockout, xv, littlekiller, xsums };
 }
 
@@ -1924,6 +2039,7 @@ export interface RejectionContext {
   xv?: XvMap;
   littlekiller?: LittleKillerClue[];
   xsums?: XsumsClues;
+  cipher?: number[][];
 }
 
 export function rejectionReason(
@@ -1942,7 +2058,8 @@ export function rejectionReason(
    * видимые правила разрешают, остались без слова). Теперь база jigsaw — строка, столбец и
    * область; конфликт в области виден на доске так же, как в квадрате у классики.
    */
-  if (!isValid(test, r, c, n, N, BR, BC, variant === 'jigsaw' ? 'jigsaw' : 'none', ctx.regions)) return '';
+  // Самосборка: база — строка и столбец (областей на доске нет, их выводит игрок).
+  if (!isValid(test, r, c, n, N, BR, BC, variant === 'jigsaw' || variant === 'chaos' ? variant : 'none', ctx.regions)) return '';
 
   /**
    * 2. Правило варианта нарушено ДОКАЗУЕМО — вот теперь называем именно его.
@@ -1963,7 +2080,7 @@ export function rejectionReason(
       && overlayOk(test, r, c, n, N, {
         parity: ctx.parity, kropki: ctx.kropki, sandwich: ctx.sandwich, unequal: ctx.unequal, towers: ctx.towers,
         whisper: ctx.whisper, renban: ctx.renban, regionsum: ctx.regionsum, palindrome: ctx.palindrome,
-        between: ctx.between, lockout: ctx.lockout, xv: ctx.xv, littlekiller: ctx.littlekiller, xsums: ctx.xsums,
+        between: ctx.between, lockout: ctx.lockout, xv: ctx.xv, littlekiller: ctx.littlekiller, xsums: ctx.xsums, cipher: ctx.cipher,
       });
     if (!ruleOk) return variant !== 'none' ? variantRule(variant, lang) : translateFor(lang, 'sudokuKillerRule');
   }

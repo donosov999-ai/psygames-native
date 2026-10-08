@@ -52,7 +52,7 @@ ATTENTION AND FOCUS
 Improve concentration with Schulte tables, Spot the Difference, Posner and Flanker tasks. Practise staying on task despite interruptions.
 
 LOGIC AND PUZZLES
-Solve brain puzzles: Sudoku with 25 rule variants, Tower of Hanoi, Tower of London, SET, anagrams, water sort, goods sort, mahjong and chess puzzles. Plan several moves ahead.
+Solve brain puzzles: Sudoku with 37 rule variants, Tower of Hanoi, Tower of London, SET, anagrams, water sort, goods sort, mahjong and chess puzzles. Plan several moves ahead.
 
 SPATIAL THINKING
 Mental rotation: turn a shape in your mind and find its match. A meta-analysis of 206 studies (Uttal et al., 2013) found spatial skills are trainable in children and adults, and they are linked to success in science and engineering.

@@ -11,20 +11,21 @@ import '../../shell/shared_state.dart';
 import 'all_words_board.dart';
 import 'model.dart';
 import 'teach.dart';
+import 'mode_switch.dart';
+import 'word_lang.dart';
 
 /// Экран «Все слова» — второй режим анаграмм.
 ///
 /// Из одного набора букв человек ищет ВСЕ слова, которые из него складываются.
 /// Число целей и есть трудность: раскладка на шесть закрывается за минуту, на
 /// восемнадцать — уже сеанс. Лимита времени здесь нет.
-///
-/// ⚠️ Перехват в гибриде не включается, пока не готовы все четыре режима:
-/// `HybridApp.routeOf` срезает `?query`, и одна строка карты накрыла бы их разом.
 class AllWordsScreen extends StatefulWidget {
-  const AllWordsScreen({super.key, required this.state, this.locale = 'ru'});
+  const AllWordsScreen({super.key, required this.state, this.locale});
 
   final SharedState state;
-  final String locale;
+
+  /// Язык слов. Не задан — [anagramWordLang]; пробы задают его явно.
+  final String? locale;
 
   @override
   State<AllWordsScreen> createState() => _AllWordsScreenState();
@@ -32,6 +33,7 @@ class AllWordsScreen extends StatefulWidget {
 
 class _AllWordsScreenState extends State<AllWordsScreen> {
   late LevelLadder _ladder;
+  late final String _lang = widget.locale ?? anagramWordLang(widget.state, AnagramMode.all);
   WordBank? _bank;
   WordPack? _pack;
   List<String> _letters = const [];
@@ -54,7 +56,7 @@ class _AllWordsScreenState extends State<AllWordsScreen> {
 
   Future<void> _boot() async {
     await _ladder.load();
-    final bank = await WordBank.load(widget.locale);
+    final bank = await WordBank.load(_lang);
     if (!mounted) return;
     setState(() {
       _bank = bank;
@@ -223,6 +225,8 @@ class _AllWordsScreenState extends State<AllWordsScreen> {
           onPressed: _hintsUsed < _hintsPerRound ? _hint : null,
         ),
         AuxAction(icon: Icons.shuffle, label: L.t('shuffleBtn'), onPressed: _shuffle),
+        // Выбор режима — иначе остальные три игры анаграмм недостижимы (см. mode_switch.dart).
+        if (anagramModeSwitchShown) anagramModeAction(context, widget.state, AnagramMode.all),
       ]),
       toolbar: Padding(
         padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
@@ -250,6 +254,7 @@ class _AllWordsScreenState extends State<AllWordsScreen> {
       ),
       pauseActions: [
         PauseAction(label: L.t('shuffleBtn'), icon: Icons.shuffle, onPressed: _shuffle),
+        if (!anagramWordLangFromStep()) anagramWordLangAction(context, widget.state, AnagramMode.all, _lang),
       ],
     );
   }

@@ -174,6 +174,15 @@ Future<void> migrateLegacyLevel(PuzzleMode mode, LevelStore store) async {
 /// ⚠️ У 28 режимов из 42 своей лестницы нет, и выдумывать её нельзя — трудность
 /// меряют исполнением. Такие берут СОБСТВЕННЫЕ пресеты движка (`psy_presets`),
 /// подобранные автором; раздел заменит их своей, когда померит.
+/// Общая подпись второго действия — у режимов, где автор имени не дал (`второе: true`).
+///
+/// 🔴 ОБЪЯВЛЕНА СПИСКОМ, ИНАЧЕ ЕЁ НЕТ В СЛОВАРЕ. Ключ приходит не литералом в `L.t(…)`, а
+/// из разбора `modes.json` ниже и из `??` в экране — сборщик `tools/embed-l10n.mjs` такие не
+/// видит. 📍 Замер 07.10.2026: в `assets/l10n/*.json` ключа не было, и у четырёх режимов (Guess,
+/// Slant, Black Box, Unruly) на кнопке стояло само имя «puzzleSecondAction». Список `…Keys`
+/// сборщик читает (дверь 1в).
+const puzzleFallbackKeys = <String>['puzzleSecondAction'];
+
 class PuzzleModes {
   PuzzleModes._();
 
@@ -215,7 +224,7 @@ class PuzzleModes {
           secondPickKey: m['secondPickKey'] as String?,
           secondKey: switch (m['secondKey']) {
             final String k when k.isNotEmpty => k,
-            true => 'puzzleSecondAction',
+            true => puzzleFallbackKeys.first,
             _ => null,
           },
         ),

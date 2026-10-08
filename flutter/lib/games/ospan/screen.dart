@@ -12,6 +12,7 @@ import '../../shell/level_ladder.dart';
 import '../../shell/level_rules.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
+import '../counting_common/generator_shadow.dart';
 import 'model.dart';
 
 /// OSpan на общем каркасе: равенство → буква → равенство → буква, потом назвать
@@ -51,6 +52,10 @@ class _OspanScreenState extends State<OspanScreen> {
   final TextEditingController _input = TextEditingController();
   Timer? _letterTimer;
 
+  /// Тень генератора уровней (звено 4, задача 4e584381): раздача с новой партией, исход до лестницы.
+  late final LadderShadow _shadow =
+      LadderShadow(widget.state, gameId: 'ospan', stepKeys: ospanStepKeys);
+
   @override
   void initState() {
     super.initState();
@@ -88,6 +93,7 @@ class _OspanScreenState extends State<OspanScreen> {
     LessonUsed.reset();
     _letterTimer?.cancel();
     _params = levelParams(_ladder.level);
+    _shadow.deal(_ladder.level);
     _letters.clear();
     _input.clear();
     _step = 0;
@@ -136,6 +142,7 @@ class _OspanScreenState extends State<OspanScreen> {
     }
     errors += math.max(0, typed.length - _letters.length);   // лишние буквы — тоже промах
     final passed = ospanPassed(errors);
+    _shadow.outcome(passed: passed, errors: errors + _mathErrors);
     if (passed) {
       await _ladder.win();
     } else {
@@ -151,7 +158,7 @@ class _OspanScreenState extends State<OspanScreen> {
 
   /// Заголовок один на экран и на разбор: вторая такая строка — второй долг
   /// храповика подписей (`test/ui_text_debt_does_not_grow_test.dart`).
-  String get _title => 'Счёт и память';
+  String get _title => L.t('ospan');
 
   /// Разбор объясняет ПРИЁМ: верный ответ человек и так увидит по итогу раунда,
   /// а вот чем объём берётся — нет.
@@ -169,11 +176,11 @@ class _OspanScreenState extends State<OspanScreen> {
       title: _title,
       onLesson: () => openDemoLesson(context, title: _title, trials: _demoTrials()),
       hud: [
-        HudItem(label: 'Уровень', value: '${_ladder.level}', icon: Icons.flag_outlined),
-        HudItem(label: 'Достигнуто', value: '${_ladder.best}', icon: Icons.emoji_events_outlined),
-        HudItem(label: 'Шаг', value: '${math.min(_step + 1, _params.setSize)}/${_params.setSize}', icon: Icons.directions_walk),
-        HudItem(label: 'Счёт верно', value: '$_mathHits', icon: Icons.check_circle_outline),
-        HudItem(label: 'Счёт мимо', value: '$_mathErrors', icon: Icons.error_outline),
+        HudItem(label: L.t('level'), value: '${_ladder.level}', icon: Icons.flag_outlined),
+        HudItem(label: L.t('personalBest'), value: '${_ladder.best}', icon: Icons.emoji_events_outlined),
+        HudItem(label: L.t('hud_step'), value: '${math.min(_step + 1, _params.setSize)}/${_params.setSize}', icon: Icons.directions_walk),
+        HudItem(label: L.t('hud_correct'), value: '$_mathHits', icon: Icons.check_circle_outline),
+        HudItem(label: L.t('hud_errors'), value: '$_mathErrors', icon: Icons.error_outline),
       ],
       field: (context, h) => _Field(
         phase: _phase,
@@ -186,11 +193,11 @@ class _OspanScreenState extends State<OspanScreen> {
         height: h,
       ),
       auxRow: AuxBar(children: [
-        AuxAction(icon: Icons.refresh, label: 'Начать заново', onPressed: () => setState(_reset)),
+        AuxAction(icon: Icons.refresh, label: L.t('restart'), onPressed: () => setState(_reset)),
       ]),
       toolbar: _toolbar(context),
       pauseActions: [
-        PauseAction(label: 'Начать заново', icon: Icons.refresh, onPressed: () => setState(_reset)),
+        PauseAction(label: L.t('restart'), icon: Icons.refresh, onPressed: () => setState(_reset)),
       ],
     );
   }
@@ -207,7 +214,8 @@ class _OspanScreenState extends State<OspanScreen> {
                 key: const Key('верно'),
                 onPressed: () => _answerEquation(true),
                 icon: const Icon(Icons.check),
-                label: const Text('Верно'),
+                // Короткие подписи, как были: «Правильно / Неправильно» не влезают в ряд на 360 px.
+                label: Text(L.t('hud_correct')),
               ),
             ),
             const SizedBox(width: 12),
@@ -217,15 +225,15 @@ class _OspanScreenState extends State<OspanScreen> {
                 key: const Key('неверно'),
                 onPressed: () => _answerEquation(false),
                 icon: const Icon(Icons.close),
-                label: const Text('Неверно'),
+                label: Text(L.t('a11yWrong')),
               ),
             ),
           ]),
         );
       case _Phase.letter:
-        return const Padding(
-          padding: EdgeInsets.all(12),
-          child: Text('Запоминай букву', key: Key('подсказка'), textAlign: TextAlign.center),
+        return Padding(
+          padding: const EdgeInsets.all(12),
+          child: Text(L.t('ospanRememberLetter'), key: const Key('подсказка'), textAlign: TextAlign.center),
         );
       case _Phase.recall:
         return Padding(
@@ -236,9 +244,10 @@ class _OspanScreenState extends State<OspanScreen> {
               controller: _input,
               autofocus: true,
               textCapitalization: TextCapitalization.characters,
-              decoration: const InputDecoration(
-                labelText: 'Буквы по порядку',
-                hintText: 'например АБВ',
+              decoration: InputDecoration(
+                labelText: L.t('ospanRecallTitle'),
+                // Пример — из букв ТОГО набора, которым идёт игра: «АБВ» по-русски, «ABC» иначе.
+                hintText: L.f('ospanExample', {'x': _pool.take(3).join()}),
               ),
             ),
             const SizedBox(height: 8),
@@ -246,7 +255,7 @@ class _OspanScreenState extends State<OspanScreen> {
               key: const Key('проверить'),
               onPressed: _checkRecall,
               icon: const Icon(Icons.check),
-              label: const Text('Проверить'),
+              label: Text(L.t('check')),
             ),
           ]),
         );
@@ -256,8 +265,8 @@ class _OspanScreenState extends State<OspanScreen> {
           child: Column(mainAxisSize: MainAxisSize.min, children: [
             Text(
               _won
-                  ? 'Уровень взят: все ${_letters.length} буквы по порядку'
-                  : 'Промахов $_recallErrors — уровень берётся только за чистое вспоминание',
+                  ? L.f('ospanResultWin', {'n': '${_letters.length}'})
+                  : L.f('ospanResultFail', {'n': '$_recallErrors'}),
               key: const Key('итог'),
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.titleMedium,
@@ -267,7 +276,7 @@ class _OspanScreenState extends State<OspanScreen> {
               key: const Key('дальше'),
               onPressed: () => setState(_reset),
               icon: Icon(_won ? Icons.arrow_forward : Icons.refresh),
-              label: Text(_won ? 'Следующий уровень' : 'Ещё раз'),
+              label: Text(_won ? L.t('nextLabel') : L.t('retry')),
             ),
           ]),
         );
@@ -316,7 +325,7 @@ class _Field extends StatelessWidget {
               style: TextStyle(fontSize: 72, fontWeight: FontWeight.w800, color: scheme.primary),
             ),
           _Phase.recall => Text(
-              'Назови ${letters.length} буквы по порядку',
+              L.f('ospanRecallPrompt', {'n': '${letters.length}'}),
               key: const Key('спросили'),
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.titleMedium,
@@ -334,7 +343,7 @@ class _Field extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 8),
-                Text('ты назвал: ${input.text.toUpperCase()}',
+                Text(L.f('ospanYouSaid', {'x': input.text.toUpperCase()}),
                     style: Theme.of(context).textTheme.bodyMedium),
               ],
             ),

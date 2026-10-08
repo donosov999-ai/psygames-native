@@ -11,6 +11,8 @@ import '../../shell/shared_state.dart';
 import 'ring.dart';
 import 'ring_board.dart';
 import 'teach.dart';
+import 'mode_switch.dart';
+import 'word_lang.dart';
 
 /// Экран «Слово-квадрат» — четвёртый и последний режим анаграмм.
 ///
@@ -18,10 +20,12 @@ import 'teach.dart';
 /// растёт не длиной — сторона всегда пять, — а числом ЛОЖНЫХ КАНДИДАТОВ: слов,
 /// которые из того же банка почти складываются.
 class RingScreen extends StatefulWidget {
-  const RingScreen({super.key, required this.state, this.locale = 'ru'});
+  const RingScreen({super.key, required this.state, this.locale});
 
   final SharedState state;
-  final String locale;
+
+  /// Язык слов. Не задан — [anagramWordLang]; пробы задают его явно.
+  final String? locale;
 
   @override
   State<RingScreen> createState() => _RingScreenState();
@@ -29,6 +33,7 @@ class RingScreen extends StatefulWidget {
 
 class _RingScreenState extends State<RingScreen> {
   late LevelLadder _ladder;
+  late final String _lang = widget.locale ?? anagramWordLang(widget.state, AnagramMode.square);
   RingPacks? _packs;
   Ring? _ring;
   List<String> _letters = const [];
@@ -49,7 +54,7 @@ class _RingScreenState extends State<RingScreen> {
 
   Future<void> _boot() async {
     await _ladder.load();
-    final packs = await RingPacks.load(widget.locale);
+    final packs = await RingPacks.load(_lang);
     if (!mounted) return;
     setState(() {
       _packs = packs;
@@ -209,6 +214,8 @@ class _RingScreenState extends State<RingScreen> {
           onPressed: _hintsUsed < _hintsPerRound ? _hint : null,
         ),
         AuxAction(icon: Icons.shuffle, label: L.t('shuffleBtn'), onPressed: _shuffle),
+        // Выбор режима — иначе остальные три игры анаграмм недостижимы (см. mode_switch.dart).
+        if (anagramModeSwitchShown) anagramModeAction(context, widget.state, AnagramMode.square),
       ]),
       toolbar: Padding(
         padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
@@ -236,6 +243,7 @@ class _RingScreenState extends State<RingScreen> {
       ),
       pauseActions: [
         PauseAction(label: L.t('shuffleBtn'), icon: Icons.shuffle, onPressed: _shuffle),
+        if (!anagramWordLangFromStep()) anagramWordLangAction(context, widget.state, AnagramMode.square, _lang),
       ],
     );
   }

@@ -300,10 +300,18 @@ class SudokuLevels {
     );
   }
 
-  static List<List<int>> _parse(String s, int n) => [
-        for (var r = 0; r < n; r++)
-          [for (var c = 0; c < n; c++) int.parse(s[r * n + c])],
-      ];
+  /// Строка доски: по цифре на клетку, а если клетки бывают многозначными (коды клеток
+  /// Шрёдингера: 1..10 и 100+) — через запятую (`export-sudoku-boards.cjs`, `toStr`).
+  static List<List<int>> _parse(String s, int n) {
+    if (s.contains(',')) {
+      final cells = s.split(',').map(int.parse).toList();
+      return [for (var r = 0; r < n; r++) cells.sublist(r * n, r * n + n)];
+    }
+    return [
+      for (var r = 0; r < n; r++)
+        [for (var c = 0; c < n; c++) int.parse(s[r * n + c])],
+    ];
+  }
 }
 
 /// Решатель для банковских досок: у банка лежит только задача, решение добирается.

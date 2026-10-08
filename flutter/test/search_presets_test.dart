@@ -77,9 +77,13 @@ void main() {
   });
 
   testWidgets('🔴 «Трекер»: уровень шага, но не выше потолка лестницы', (tester) async {
+    // С 02.10.2026 потолка 41 нет (правило «потолков нет», #185): предел лестницы — 999.
     GamePreset.set({'wu': '1', 'level': '99'});
-    await open(tester, (s) => ObjectTrackerScreen(state: s), levels: {'object_tracker': '5'});
-    expect(hud(tester, Icons.flag_outlined), '41', reason: 'уровень шага не обрезан потолком 41');
+    await open(tester, (s) => ObjectTrackerScreen(key: UniqueKey(), state: s), levels: {'object_tracker': '5'});
+    expect(hud(tester, Icons.flag_outlined), '99', reason: 'уровень шага выше прежнего потолка 41 не обрезается');
+    GamePreset.set({'wu': '1', 'level': '5000'});
+    await open(tester, (s) => ObjectTrackerScreen(key: UniqueKey(), state: s), levels: {'object_tracker': '5'});
+    expect(hud(tester, Icons.flag_outlined), '999', reason: 'но не выше предела лестницы 999');
   });
 
   testWidgets('🔴 SDMT в шаге зарядки стартует сам, без кнопки «Начать»', (tester) async {
