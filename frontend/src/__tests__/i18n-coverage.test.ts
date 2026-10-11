@@ -43,14 +43,23 @@ function baseKeys(): Set<string> {
 
 function missingIn(loc: string, keys: Set<string>): string[] {
   const src = read(`src/contexts/translations/${loc}.ts`);
-  const have = new Set(src.match(/"([a-zA-Z_][a-zA-Z0-9_]*)":/g)?.map(
-    (m) => m.slice(1, -2),
-  ) ?? []);
+  const have = overlayKeys(src);
   return [...keys].filter((k) => !have.has(k));
+}
+
+/** TS allows quoted and bare property names; both are real translations. */
+function overlayKeys(src: string): Set<string> {
+  return new Set([...src.matchAll(/^\s*(?:"([a-zA-Z_][a-zA-Z0-9_]*)"|'([a-zA-Z_][a-zA-Z0-9_]*)'|([a-zA-Z_][a-zA-Z0-9_]*))\s*:/gm)]
+    .map((m) => m[1] ?? m[2] ?? m[3]));
 }
 
 describe('полнота словарей', () => {
   const keys = baseKeys();
+
+  it('читает ключи без кавычек и в обоих видах кавычек, но не комментарии', () => {
+    expect([...overlayKeys(`const t = {\n  bare: "value",\n  "double": "value",\n  'single': "value",\n  // missing: "comment",\n};`)])
+      .toEqual(['bare', 'double', 'single']);
+  });
 
   it('базовый словарь прочитан целиком', () => {
     expect(keys.size).toBeGreaterThan(1000);
