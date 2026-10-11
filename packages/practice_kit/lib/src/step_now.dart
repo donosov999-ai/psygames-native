@@ -107,8 +107,7 @@ class StepNow extends StatelessWidget {
                 // на эмуляторе 320 pt: «Уровень 2 · удержан…» — действие обрезано;
                 // самый длинный шаг каталога — 30 знаков («Линия челюсти · правая
                 // сторона»). Панель постоянной высоты прокручивается внутри.
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
+                maxLines: null,
               ),
             ],
           ),
@@ -154,28 +153,62 @@ class StepNowPanel extends StatelessWidget {
   final EdgeInsetsGeometry padding;
 
   @override
-  Widget build(BuildContext context) => SizedBox(
-    key: const Key('step-now-panel'),
-    height: height,
-    child: SingleChildScrollView(
-      padding: padding,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          for (final c in cues)
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 4),
-                child: StepNow(
-                  cue: stepWithBounds(c, plan, elapsedMs),
-                  elapsedMs: elapsedMs,
-                  compact: cues.length > 1,
-                  unit: unit,
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, box) {
+      final insets = padding.resolve(Directionality.of(context));
+      final compact = cues.length > 1;
+      final style =
+          (compact
+                  ? Theme.of(context).textTheme.titleMedium
+                  : Theme.of(context).textTheme.headlineSmall)
+              ?.copyWith(fontWeight: FontWeight.w600);
+      final cellWidth = math.max(
+        1.0,
+        (box.maxWidth - insets.horizontal) / math.max(1, cues.length) - 8,
+      );
+      final sets = cues.map((c) => c['setId']).toSet();
+      final titles = [
+        ...cues,
+        ...objects(plan['timeline']).where((c) => sets.contains(c['setId'])),
+      ];
+      var titleHeight = 0.0;
+      for (final c in titles) {
+        final painter = TextPainter(
+          text: TextSpan(text: '${c['title']}', style: style),
+          textDirection: Directionality.of(context),
+          textScaler: MediaQuery.textScalerOf(context),
+        )..layout(maxWidth: cellWidth);
+        titleHeight = math.max(titleHeight, painter.height);
+        painter.dispose();
+      }
+      // Reserve all titles of the selected programs, not just the current phase:
+      // long labels stay readable and phase transitions do not move the scene.
+      final minimum =
+          insets.vertical + (compact ? 44 : 52) + 6 + titleHeight + 10;
+      return SizedBox(
+        key: const Key('step-now-panel'),
+        height: math.max(height, minimum),
+        child: SingleChildScrollView(
+          padding: padding,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              for (final c in cues)
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    child: StepNow(
+                      cue: stepWithBounds(c, plan, elapsedMs),
+                      elapsedMs: elapsedMs,
+                      compact: cues.length > 1,
+                      unit: unit,
+                    ),
+                  ),
                 ),
-              ),
-            ),
-        ],
-      ),
-    ),
+            ],
+          ),
+        ),
+      );
+    },
   );
 }
