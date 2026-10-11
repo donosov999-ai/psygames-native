@@ -446,12 +446,13 @@ class PhaseClock extends CustomPainter {
   /// Сколько углов у рамки: 4 — квадрат, 3 и 5–8 — многоугольник, меньше 3 — круг.
   static int sidesOf(Json cue, Json program, bool breathing) {
     final shape = program['leaderShape'];
-    if (breathing)
+    if (breathing) {
       return shape == 'square'
           ? 4
           : shape == 'triangle'
           ? 3
           : 0;
+    }
     return isPhased(cue, program, breathing)
         ? objects(program['steps']).length
         : 0;
