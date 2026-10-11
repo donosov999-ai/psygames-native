@@ -114,6 +114,7 @@ class CakeTable extends StatelessWidget {
                               size: fit.plate,
                               skin: skin,
                               selected: selected == r * fit.cols + k,
+                              pickedType: selected == r * fit.cols + k ? selectedType : null,
                               highlighted: selectedType != null &&
                                   selected != r * fit.cols + k &&
                                   canDrop(selectedType!, r * fit.cols + k),
@@ -141,6 +142,7 @@ class _Plate extends StatelessWidget {
     required this.size,
     required this.skin,
     required this.selected,
+    required this.pickedType,
     required this.highlighted,
     required this.canDrop,
     required this.onTapPlate,
@@ -152,6 +154,7 @@ class _Plate extends StatelessWidget {
   final double size;
   final CakeSkin skin;
   final bool selected;
+  final int? pickedType;
   final bool highlighted;
   final bool Function(int type, int toPlate) canDrop;
   final void Function(int plate) onTapPlate;
@@ -226,7 +229,8 @@ class _Plate extends StatelessWidget {
            * центр принадлежит всем шести сразу.
            *
            * Кусок выбирается в РАСКРЫТОЙ тарелке, где у каждого своя цель
-           * нажатия. А перетаскивание берёт верхний — там выбора и не нужно.
+           * нажатия. Перетаскивание сохраняет уже выбранный вид; без выбора
+           * берёт последний кусок, как раньше.
            */
           onTap: () => onTapPlate(index),
           child: Container(
@@ -242,7 +246,7 @@ class _Plate extends StatelessWidget {
             child: plate.isEmpty
                 ? body
                 : Draggable<({int from, int type})>(
-                    data: (from: index, type: plate.last),
+                    data: (from: index, type: pickedType ?? plate.last),
                     dragAnchorStrategy: pointerDragAnchorStrategy,
                     feedback: Transform.translate(
                       offset: Offset(-size / 2, -size / 2),
@@ -363,19 +367,25 @@ class CakeZoom extends StatelessWidget {
                     height: size,
                     child: ClipPath(
                       clipper: _WedgeClipper(k, cake),
-                      child: Stack(
-                        fit: StackFit.expand,
-                        children: [
-                          ColoredBox(color: cakeColors[plate[k] % cakeColors.length]),
-                          Center(
-                            child: Image.asset(
-                              topAsset(skin, plate[k]),
-                              width: cake * 2,
-                              height: cake * 2,
-                              fit: BoxFit.cover,
+                      // Вся видимая площадь куска — цель, не только 56×56
+                      // в его середине. ClipPath ограничивает hit-test сектором.
+                      child: GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: () => onPick(plate[k]),
+                        child: Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            ColoredBox(color: cakeColors[plate[k] % cakeColors.length]),
+                            Center(
+                              child: Image.asset(
+                                topAsset(skin, plate[k]),
+                                width: cake * 2,
+                                height: cake * 2,
+                                fit: BoxFit.cover,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ),

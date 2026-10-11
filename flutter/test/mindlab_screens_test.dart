@@ -1,4 +1,6 @@
 import 'dart:math';
+import 'dart:convert';
+import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -9,6 +11,9 @@ import 'package:psygames_flutter/games/kids_sort/screen.dart';
 import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/lesson.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
+import 'package:psygames_flutter/shell/game_preset.dart';
+import 'package:psygames_flutter/shell/session_report.dart';
+import 'package:psygames_flutter/shell/level_ladder.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// ЭКРАНЫ MINDLAB ИГРАЮТСЯ ПАЛЬЦЕМ ДО КОНЦА ПАРТИИ, А НЕ ТОЛЬКО РИСУЮТСЯ.
@@ -96,6 +101,75 @@ void main() {
 
   int byColor(KidsCard c) => kidsTargets.indexWhere((t) => t.color == c.color);
   int byShape(KidsCard c) => kidsTargets.indexWhere((t) => t.shape == c.shape);
+
+  for (final level in [5, 8]) {
+    for (final lose in [false, true]) {
+      testWidgets('Цвета и формы: вся серия L$level ${lose ? 'поражение' : 'победа'} завершается и повторяется',
+          (tester) async {
+        final reports = <Map<String, dynamic>>[];
+        SessionReport.sink = (body) async => reports.add(jsonDecode(body) as Map<String, dynamic>);
+        addTearDown(() => SessionReport.sink = null);
+        final state = await freshState(extra: {'psygames_kids_sort_level_kids': '$level'});
+        await tester.pumpWidget(MaterialApp(home: KidsSortScreen(state: state, seed: 11)));
+        await settle(tester);
+        final session = KidsSortSession(Random(11), nCards: kidsCardsFor(level), phases: kidsPhasesFor(level));
+        for (final phase in session.phases) {
+          for (final card in phase.cards) {
+            final answer = phase.rule == KidsRule.color ? byColor(card) : byShape(card);
+            await tester.tap(find.byKey(ValueKey('ks-box-${lose ? 1 - answer : answer}')));
+            await tester.pump();
+          }
+        }
+        expect(find.byKey(const ValueKey('ks-next')), findsOneWidget,
+            reason: 'последняя фаза должна закончиться, а не снова стать второй');
+        await tester.tap(find.byKey(const ValueKey('ks-next')));
+        await settle(tester);
+        expect(reports.length, 1);
+        expect(state.get('psygames_kids_sort_level_kids'), '${lose ? level : level + 1}');
+        expect(find.byKey(const ValueKey('ks-next')), findsNothing);
+        expect(find.byKey(const ValueKey('ks-box-0')), findsOneWidget);
+        await tester.pumpWidget(const SizedBox.shrink());
+      });
+    }
+  }
+
+  for (final transit in [false, true]) {
+    testWidgets('Цвета и формы: L5 завершает ${transit ? 'transit' : 'warmup'}, не двигая личную лестницу',
+        (tester) async {
+      GamePreset.set(transit ? {'ladderGame': 'sudoku', 'lvl': '5'} : {'wu': '1'});
+      addTearDown(GamePreset.clear);
+      final outcomes = <bool>[];
+      final reports = <String>[];
+      final saved = Completer<void>();
+      LevelLadder.onOutcome = (passed, lesson) => outcomes.add(passed);
+      SessionReport.sink = (body) async { reports.add(body); await saved.future; };
+      addTearDown(() { LevelLadder.onOutcome = null; SessionReport.sink = null; });
+      final savedLevel = transit ? 1 : 5;
+      final state = await freshState(extra: {'psygames_kids_sort_level_kids': '$savedLevel'});
+      await tester.pumpWidget(MaterialApp(home: KidsSortScreen(state: state, seed: 11)));
+      await settle(tester);
+      final session = KidsSortSession(Random(11), nCards: kidsCardsFor(5), phases: kidsPhasesFor(5));
+      for (final phase in session.phases) {
+        for (final card in phase.cards) {
+          final answer = phase.rule == KidsRule.color ? byColor(card) : byShape(card);
+          await tester.tap(find.byKey(ValueKey('ks-box-$answer')));
+          await tester.pump();
+        }
+      }
+      expect(find.byKey(const ValueKey('ks-next')), findsOneWidget);
+      await tester.tap(find.byKey(const ValueKey('ks-next')));
+      await tester.pump();
+      await tester.tap(find.byKey(const ValueKey('ks-next')));
+      await tester.pump();
+      expect(reports.length, 1, reason: 'двойной тап во время сохранения не завершает попытку дважды');
+      saved.complete();
+      await settle(tester);
+      expect(reports.length, 1);
+      expect(outcomes, [true]);
+      expect(state.get('psygames_kids_sort_level_kids'), '$savedLevel');
+      await tester.pumpWidget(const SizedBox.shrink());
+    });
+  }
 
   testWidgets('«Цвета и формы»: верная серия по обоим правилам — без ошибок и с кнопкой дальше',
       (tester) async {

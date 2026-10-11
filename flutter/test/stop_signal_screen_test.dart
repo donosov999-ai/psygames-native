@@ -6,6 +6,7 @@ import 'package:psygames_flutter/games/stop_signal/model.dart';
 import 'package:psygames_flutter/games/stop_signal/screen.dart';
 import 'package:psygames_flutter/games/stop_signal/strings.dart';
 import 'package:psygames_flutter/shell/l10n.dart';
+import 'package:psygames_flutter/shell/game_preset.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -20,11 +21,13 @@ void main() {
   late StopSignalStrings text;
 
   setUp(() async {
+    GamePreset.clear();
     SharedPreferences.setMockInitialValues({});
     state = await SharedState.open();
     await L.load('ru');
     text = await StopSignalStrings.load();
   });
+  tearDown(GamePreset.clear);
 
   bool goShown() => find.byKey(const Key('stopsignal-go')).evaluate().isNotEmpty;
   bool stopShown() => find.byKey(const Key('stopsignal-stop')).evaluate().isNotEmpty;
@@ -105,7 +108,7 @@ void main() {
         await tester.pump(const Duration(milliseconds: 50));
       }
       if (isStop) {
-        await tester.tap(find.byKey(const Key('stopsignal-field')));
+        await tester.tap(find.byKey(const Key('stopsignal-response')));
         await tester.pump();
         expect(await waitFlash(tester, 'stopsignal-failed'), isTrue,
             reason: 'нажал при знаке «стоп» — это срыв');
@@ -115,6 +118,46 @@ void main() {
     }
     fail('за 12 проб стоп-проба не выпала — проверять было нечего');
   });
+
+  for (final warmup in [false, true]) {
+    testWidgets('visible answer button, fixation guard and no double response (warmup=$warmup)', (tester) async {
+      tester.view.physicalSize = const Size(360, 760);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      if (warmup) GamePreset.set({'wu': '1'});
+      await tester.pumpWidget(MaterialApp(home: StopSignalScreen(state: state, rnd: Random(4))));
+      await tester.pump();
+      await tester.pump();
+      if (!warmup) {
+        await tester.pumpAndSettle();
+        expect(find.byKey(const Key('stopsignal-response')), findsNothing);
+        await tester.tap(find.text(L.t('start')));
+        await tester.pump();
+      }
+      final button = find.byKey(const Key('stopsignal-response'));
+      expect(button, findsOneWidget);
+      final rect = tester.getRect(button);
+      expect(rect.height, greaterThanOrEqualTo(48));
+      expect(rect.bottom, lessThanOrEqualTo(760));
+      await tester.tap(button);
+      await tester.pump();
+      expect(find.byKey(const Key('stopsignal-hit')), findsNothing,
+          reason: 'fixation is not a GO stimulus');
+      await waitGo(tester);
+      await tester.tap(button);
+      await tester.pump();
+      final flashKeys = ['stopsignal-hit', 'stopsignal-failed'];
+      expect(flashKeys.where((k) => find.byKey(Key(k)).evaluate().isNotEmpty).length, 1);
+      final before = find.byKey(const Key('stopsignal-hit')).evaluate().length;
+      await tester.tap(find.byKey(const Key('stopsignal-field')));
+      await tester.pump();
+      expect(find.byKey(const Key('stopsignal-hit')).evaluate().length, before,
+          reason: 'second input must not start another trial or replace the outcome');
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox.shrink());
+    });
+  }
 
   testWidgets('🔴 веха: победа на 3-м уровне открывает бой «жми / не жми», на 2-м — нет', (tester) async {
     // В вебе стоп-сигнал зовёт BossRound каждые три уровня; при переносе бой пропал молча.

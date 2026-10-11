@@ -38,13 +38,13 @@ void main() {
     expect(find.byKey(const Key('cell_0_0')), findsOneWidget);
   }
 
-  Future<void> boot(WidgetTester t, String branch) async {
+  Future<void> boot(WidgetTester t, String branch, {int level = 5}) async {
     t.view.physicalSize = const Size(800, 1200);
     t.view.devicePixelRatio = 1;
     addTearDown(t.view.resetPhysicalSize);
     addTearDown(t.view.resetDevicePixelRatio);
     SharedPreferences.setMockInitialValues({
-      'language': 'ru', 'psygames_sudoku_level_nzt48': '5',
+      'language': 'ru', 'psygames_sudoku_level_nzt48': '$level',
       'psygames_sudoku_skin_nzt48': 'digits',
       if (branch == 'adaptive') 'psygames_sudoku_adaptive_on_nzt48': '1',
     });
@@ -210,19 +210,47 @@ void main() {
     expect(SudokuRevealedBoards(await SharedState.open()).contains('any'), true);
   });
 
-  testWidgets('legacy resume without disclosure flag is practice, not an invented clean attempt', (t) async {
-    await boot(t, 'ladder');
+  testWidgets('legacy level 77 without disclosure evidence advances to 78', (t) async {
+    await boot(t, 'ladder', level: 77);
     await t.pumpWidget(const SizedBox());
     await t.pumpAndSettle();
     final envelope = jsonDecode(state.get('psygames_resume_sudoku_nzt48')!) as Map;
     final snapshot = envelope['state'] as Map;
     snapshot.remove('answersRevealed');
-    expect(sudokuFromSnapshot(snapshot.cast<String, Object?>())!.answersRevealed, true);
+    expect(sudokuFromSnapshot(snapshot.cast<String, Object?>())!.answersRevealed, false);
+    for (final evidence in [{'hintUses': 1}, {'lesson': true}, {'answersRevealed': true}]) {
+      final revealed = <String, Object?>{...snapshot.cast<String, Object?>(), ...evidence};
+      expect(sudokuFromSnapshot(revealed)!.answersRevealed, true,
+          reason: 'legacy metadata must preserve real disclosure: $evidence');
+    }
     await state.set('psygames_resume_sudoku_nzt48', jsonEncode(envelope));
     await mount(t, 'ladder');
     await finish(t);
-    expect((reports.single['details'] as Map)['lesson'], true);
-    expect(state.get('psygames_sudoku_level_nzt48'), '5');
+    expect((reports.single['details'] as Map)['lesson'], isNot(true));
+    expect(state.get('psygames_sudoku_level_nzt48'), '78');
+    await t.pumpWidget(const SizedBox());
+  });
+
+  testWidgets('hint on a given or already-correct cell does not disclose answers', (t) async {
+    await boot(t, 'ladder');
+    final b = board(t);
+    final given = [for (var r = 0; r < b.puzzle.length; r++)
+      for (var c = 0; c < b.puzzle.length; c++)
+        if (b.puzzle[r][c] != 0) (r: r, c: c)].first;
+    await click(t, find.byKey(Key('cell_${given.r}_${given.c}')));
+    await click(t, find.byTooltip(L.t('btn_hint')));
+    expect(SudokuRevealedBoards(state).contains(id(t)), false);
+    final blank = [for (var r = 0; r < b.puzzle.length; r++)
+      for (var c = 0; c < b.puzzle.length; c++)
+        if (b.puzzle[r][c] == 0) (r: r, c: c)].first;
+    await click(t, find.byKey(Key('cell_${blank.r}_${blank.c}')));
+    await click(t, find.byKey(Key('digit${b.solution[blank.r][blank.c]}')));
+    await click(t, find.byTooltip(L.t('btn_hint')));
+    expect(SudokuRevealedBoards(state).contains(id(t)), false);
+    await finish(t);
+    expect((reports.single['details'] as Map)['hint_uses'], 0);
+    expect((reports.single['details'] as Map)['lesson'], isNot(true));
+    expect(state.get('psygames_sudoku_level_nzt48'), '6');
     await t.pumpWidget(const SizedBox());
   });
 }

@@ -36,6 +36,9 @@ class _OneLineScreenState extends State<OneLineScreen> {
   int get _playLevel => GamePreset.num('level', _ladder.level);
   OneLineGame? _game;
   bool _won = false;
+  int _deal = 0;
+  bool _nextPending = false;
+  Future<bool>? _resultFuture;
 
   @override
   void initState() {
@@ -47,6 +50,7 @@ class _OneLineScreenState extends State<OneLineScreen> {
   Future<void> _boot() async {
     final raw = await rootBundle.loadString('assets/levels/one_line.json');
     await _ladder.load();
+    if (!mounted) return;
     final set = OneLineLevelSet.fromJsonString(raw);
     setState(() {
       _set = set;
@@ -55,13 +59,25 @@ class _OneLineScreenState extends State<OneLineScreen> {
   }
 
   void _restart() => setState(() {
+        _deal += 1;
+        _nextPending = false;
+        _resultFuture = null;
         _game = OneLineGame(_set!.byLevel(_playLevel));
         _won = false;
       });
 
   Future<void> _next() async {
-    await _ladder.win();
-    _restart();
+    if (!_won || _nextPending) return;
+    final deal = _deal;
+    setState(() => _nextPending = true);
+    try {
+      // Claim before await: double Next must not credit the same board twice.
+      await (_resultFuture ??= _ladder.win());
+      if (!mounted || deal != _deal || !_won) return;
+      _restart();
+    } finally {
+      if (mounted && deal == _deal) setState(() => _nextPending = false);
+    }
   }
 
   void _showSolution() {
@@ -145,7 +161,10 @@ class _OneLineScreenState extends State<OneLineScreen> {
         AuxAction(
           icon: Icons.undo,
           label: L.t('btn_undo'),
-          onPressed: game.trail.isEmpty ? null : () => setState(game.undo),
+          onPressed: game.trail.isEmpty ? null : () => setState(() {
+            game.undo();
+            _won = game.isWon;
+          }),
         ),
         AuxAction(icon: Icons.refresh, label: L.t('restart'), onPressed: _restart),
         AuxAction(
@@ -159,7 +178,7 @@ class _OneLineScreenState extends State<OneLineScreen> {
           ? Padding(
               padding: const EdgeInsets.all(12),
               child: FilledButton.icon(
-                onPressed: _next,
+                onPressed: _nextPending ? null : _next,
                 icon: const Icon(Icons.arrow_forward),
                 label: Text(L.t('nextLabel')),
               ),

@@ -1,8 +1,16 @@
 /* psygames-sudoku-attempt · VER 1 · 04.10.2026 */
 export const SUDOKU_REVEALED_KEY = 'psygames_sudoku_revealed_boards';
 
-/** Same answer identity as Flutter; never trust a restored board as independent
- * solely because the old web snapshot did not contain the new optional flag. */
+/** Match Flutter resume compatibility: missing legacy metadata is not a reveal.
+ * The independent-completion guard still checks hints and the durable ledger. */
+export function sudokuResumeRevealed(snapshot: {
+  answersRevealed?: unknown; lesson?: unknown; hintUses?: unknown;
+}): boolean {
+  return snapshot.answersRevealed === true || snapshot.lesson === true
+    || (typeof snapshot.hintUses === 'number' && snapshot.hintUses > 0);
+}
+
+/** Same answer identity and actual-disclosure guard as Flutter. */
 export function sudokuEducational(
   solution: number[][], answersRevealed: boolean, hintUses: number, ledger: string | null,
 ): boolean {

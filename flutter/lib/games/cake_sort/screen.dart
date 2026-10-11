@@ -91,6 +91,10 @@ class _CakeSortScreenState extends State<CakeSortScreen> {
   int? _selType;
   int _moves = 0;
   bool _won = false;
+  // Undo keeps this attempt's claimed result; only a new deal resets it.
+  Future<bool>? _resultFuture;
+  bool _nextPending = false;
+  int _generation = 0;
   final List<_Snapshot> _history = [];
 
   @override
@@ -135,6 +139,9 @@ class _CakeSortScreenState extends State<CakeSortScreen> {
   }
 
   void _start(CakeLevel level) {
+    _generation += 1;
+    _resultFuture = null;
+    _nextPending = false;
     _level = level;
     _board = level.freshBoard();
     _zoom = null;
@@ -151,9 +158,19 @@ class _CakeSortScreenState extends State<CakeSortScreen> {
   }
 
   Future<void> _next() async {
-    await _ladder.win();
-    if (!mounted) return;
-    setState(() => _start(_set!.byLevel(_ladder.level)));
+    if (!_won || _nextPending) return;
+    setState(() => _nextPending = true);
+    _cancelNext();
+    final generation = _generation;
+    try {
+      await (_resultFuture ??= _ladder.win());
+      if (!mounted || generation != _generation || !_won) return;
+      setState(() => _start(_set!.byLevel(_ladder.level)));
+    } finally {
+      if (mounted && generation == _generation) {
+        setState(() => _nextPending = false);
+      }
+    }
   }
 
   /// Ляжет ли кусок этого вида на тарелку. ОДИН предикат на тап, на
@@ -196,11 +213,13 @@ class _CakeSortScreenState extends State<CakeSortScreen> {
 
   /// Ход ВЫБРАННЫМ куском, а не обязательно верхним: игрок ткнул в конкретный.
   void _move(int from, int type, int to) {
+    if (_won) return;
     final board = _board!;
     final after = moveType(board, from, type, to);
+    // Ошибка выбора цели не должна молча ронять выбранный кусок.
+    if (after == null) return;
     _sel = null;
     _selType = null;
-    if (after == null) return;
     _history.add(_Snapshot(board.copy(), _moves));
     _moves += 1;
     _board = after;
@@ -215,6 +234,8 @@ class _CakeSortScreenState extends State<CakeSortScreen> {
     if (_history.isEmpty) return;
     final s = _history.removeLast();
     setState(() {
+      _generation += 1;
+      _nextPending = false;
       _board = s.board;
       _moves = s.moves;
       _sel = null;
@@ -328,7 +349,7 @@ class _CakeSortScreenState extends State<CakeSortScreen> {
           ? Padding(
               padding: const EdgeInsets.all(12),
               child: FilledButton.icon(
-                onPressed: _next,
+                onPressed: _nextPending ? null : _next,
                 icon: const Icon(Icons.arrow_forward),
                 label: Text(L.f('levelWonNext', {'s': '$stars'})),
               ),

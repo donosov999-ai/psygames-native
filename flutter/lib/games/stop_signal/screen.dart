@@ -22,7 +22,7 @@ import 'strings.dart';
 /// две лестницы с разными точками схождения, и SSRT в истории будет считаться то
 /// по одной, то по другой.
 ///
-/// ⚠️ Ответ — нажатие ПО ПОЛЮ: у пробы на торможение рука должна лететь к стимулу.
+/// Ответ — нажатие по полю или постоянной кнопке, как в веб-версии.
 enum StopSignalPhase { ready, playing, done }
 
 /// Порог прохода уровня — 80 % верных проб, как в веб-версии.
@@ -235,6 +235,23 @@ class _StopSignalScreenState extends State<StopSignalScreen> {
         onAgain: () => setState(_reset),
         onPress: _press,
       ),
+      toolbar: _phase == StopSignalPhase.playing
+          ? TapLatency(
+              where: 'Flutter/StopSignal',
+              child: SizedBox(
+                width: double.infinity,
+                height: 56,
+                child: FilledButton.icon(
+                  key: const Key('stopsignal-response'),
+                  // Не отключать при STOP: нажатие должно считаться срывом,
+                  // а не превращать задание на торможение в подсказку ответа.
+                  onPressed: _press,
+                  icon: const Icon(Icons.arrow_forward),
+                  label: Text(L.t('goBtn')),
+                ),
+              ),
+            )
+          : null,
     );
   }
 }

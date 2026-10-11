@@ -113,6 +113,9 @@ class _FractalScreenState extends State<FractalScreen> {
   /// ответ остаётся на доске (урок головоломок 12.09: «показал — выкинуло в итог»).
   bool _reviewOver = false;
 
+  /// Отложенный отчёт разбора принадлежит только той раздаче, где он начался.
+  int _attempt = 0;
+
   /// `null` — карта, иначе номер открытой дочерней.
   int? _openChild;
   ({int? child, int r, int c})? _selected;
@@ -181,6 +184,7 @@ class _FractalScreenState extends State<FractalScreen> {
 
   /// Поднять партию: доска, пометки, цвет и лента цифр — те же; время — с накопленного.
   void _apply(FractalResumed r) => setState(() {
+        _attempt++;
         _puzzle = r.puzzle;
         _failure = null;
         _play = r.play;
@@ -207,6 +211,7 @@ class _FractalScreenState extends State<FractalScreen> {
     if (levels == null) return;
     final puzzle = levels.gameFor(_ladder.level, seed: DateTime.now().millisecondsSinceEpoch);
     setState(() {
+      _attempt++;
       _puzzle = puzzle;
       _failure = puzzle == null ? L.t('sdkNoBoards') : null;
       _play = puzzle == null ? null : startPlayState(puzzle);
@@ -360,9 +365,12 @@ class _FractalScreenState extends State<FractalScreen> {
   /// Корень сошёлся в сданной партии: ступень не засчитана и не опущена, отчёт с `solver_used`
   /// и нулевым счётом (как `закончитьРазбором` веба). Вызывается внутри setState.
   void _finishReview() {
+    if (_reviewOver) return;
     _reviewOver = true;
     _selected = null;
     final level = _ladder.level;
+    final attempt = _attempt;
+    final outcome = LevelLadder.onOutcome;
     unawaited(SessionReport.send(
       gameType: 'sudoku_fractal',
       score: 0,
@@ -370,8 +378,16 @@ class _FractalScreenState extends State<FractalScreen> {
       difficulty: 'lvl$level',
       mode: 'fractal',
       errors: _errors,
-      details: {'level': level, 'opened': 9, 'of': 9, 'solver_used': true, 'passed': false},
-    ));
+      details: {'level': level, 'opened': 9, 'of': 9, 'solver_used': true, 'passed': false, 'lesson': true},
+    ).then((_) {
+      // Не win/fail: разбор не двигает личную лестницу. Переходу нужен именно
+      // lesson-исход, но поздний ответ после retry/ухода не завершает новую попытку.
+      if (!mounted || attempt != _attempt || !_reviewOver ||
+          !identical(outcome, LevelLadder.onOutcome)) {
+        return;
+      }
+      LevelLadder.reportOutcome(false, lesson: true);
+    }));
   }
 
   /// Дочерняя сошлась целиком — её ответ показывать незачем.

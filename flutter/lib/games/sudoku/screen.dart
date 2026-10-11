@@ -1225,8 +1225,10 @@ class _SudokuScreenState extends State<SudokuScreen> {
     final solution = _solution;
     final sel = _selected;
     if (solution == null || sel == null || _halted) return;
+    // A no-op reveals nothing: don't consume a hint, buy one, or turn a clean
+    // attempt into practice when the selected cell is given/already correct.
+    if (_given[sel.r][sel.c] || _grid[sel.r][sel.c] == solution[sel.r][sel.c]) return;
     if (_hintsUsed >= _hintMax) {
-      if (_given[sel.r][sel.c] || _grid[sel.r][sel.c] == solution[sel.r][sel.c]) return;
       unawaited(_buyHint());
       return;
     }
@@ -1248,6 +1250,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
     final solution = _solution;
     final sel = _selected;
     if (solution == null || sel == null || _halted) return;
+    if (_given[sel.r][sel.c] || _grid[sel.r][sel.c] == solution[sel.r][sel.c]) return;
     setState(() {
       // ⚠️ ПОДСКАЗКА В ИСТОРИЮ НЕ ПИШЕТСЯ — так в веб-половине (handleHint,
       // app/games/sudoku.tsx:1433: истории не касается вовсе), и это осмысленно:
@@ -2396,7 +2399,7 @@ class _Cell extends StatelessWidget {
                       mask: mask,
                       value: value,
                       cell: size,
-                      color: scheme.onSurfaceVariant,
+                      color: look.selected ? Colors.white : scheme.onSurfaceVariant,
                       glyph: glyph,
                       withZero: board.variant == 'schrodinger',
                     )

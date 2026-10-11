@@ -22,7 +22,7 @@ jest.mock('expo-router', () => ({
 
 const МЕТРИК = { frame: { x: 0, y: 0, width: 390, height: 844 }, insets: { top: 0, left: 0, right: 0, bottom: 0 } };
 
-async function смонтировать(host: boolean) {
+async function смонтировать(host: boolean, language = 'en') {
   jest.resetModules();
   const sent: any[] = [];
   const g = globalThis as any;
@@ -32,22 +32,25 @@ async function смонтировать(host: boolean) {
   }
   const хранилище = require('@react-native-async-storage/async-storage');
   await (хранилище.default ?? хранилище).clear();
+  await (хранилище.default ?? хранилище).setItem('language', language);
   const React = require('react');
   const TestRenderer = require('react-test-renderer');
   const { SafeAreaProvider } = require('react-native-safe-area-context');
   const { ThemeProvider } = require('@/src/contexts/ThemeContext');
-  const { LanguageProvider } = require('@/src/contexts/LanguageContext');
+  const { LanguageProvider, useLanguage } = require('@/src/contexts/LanguageContext');
+  let languageContext: any;
+  function LanguageProbe() { languageContext = useLanguage(); return null; }
   const { ProfileProvider } = require('@/src/contexts/ProfileContext');
   const Modal = require('@/src/components/ProfileSwitcherModal').default;
   let r: any;
   await TestRenderer.act(async () => {
     r = TestRenderer.create(React.createElement(SafeAreaProvider, { initialMetrics: МЕТРИК },
       React.createElement(ProfileProvider, null, React.createElement(ThemeProvider, null,
-        React.createElement(LanguageProvider, null, React.createElement(Modal, { visible: false, onClose: () => {} }))))));
+        React.createElement(LanguageProvider, null, React.createElement(LanguageProbe), React.createElement(Modal, { visible: false, onClose: () => {} }))))));
   });
   await TestRenderer.act(async () => { await new Promise((ok) => setTimeout(ok, 0)); });
   const last = () => [...sent].reverse().find((m) => m.op === 'screenUi' && m.route === '#switcher')?.model;
-  return { r, sent, last, TestRenderer };
+  return { r, sent, last, TestRenderer, setLanguage: (value: string) => languageContext.setLanguage(value) };
 }
 
 afterEach(() => {
@@ -58,6 +61,53 @@ afterEach(() => {
 });
 
 describe('переключатель профилей под оболочкой', () => {
+  it('ошибка кода переводится при смене языка, а не застывает на русском', async () => {
+    const { last, r, TestRenderer, setLanguage } = await смонтировать(true, 'ru');
+    await TestRenderer.act(async () => { (globalThis as any).__psyScreenUi['#switcher'].redeem('NOT-A-CODE'); });
+    await TestRenderer.act(async () => { await new Promise((ok) => setTimeout(ok, 10)); });
+    expect(last().code.error).toMatch(/[А-Яа-яЁё]/);
+    await TestRenderer.act(async () => { await setLanguage('en'); });
+    expect(last().code.error).toBe('Invalid code. Check it and try again.');
+    expect(last().code.redeemed).toBe(0);
+    await TestRenderer.act(async () => r.unmount());
+  });
+
+  it('новые подписи переведены во всех накладках, а не скрыты английским fallback', () => {
+    const keys = ['switcherCodeHint', 'switcherOwnerBadge', 'switcherProfileGames', 'switcherPerYear', 'switcherAnnual', 'switcherBundleTitle', 'switcherBundleOrder', 'switcherCorporateTitle', 'switcherCorporateDesc', 'switcherEmployeeCost', 'switcherQuoteRequest', 'switcherConsult', 'switcherPaymentInfo', 'switcherMonthlyCost', 'switcherOrderPrice'];
+    const { LANGUAGES, translateFor } = require('@/src/contexts/LanguageContext');
+    for (const { code } of LANGUAGES) {
+      const overlay = ['ru', 'en'].includes(code) ? null : require(`@/src/contexts/translations/${code}`).default;
+      for (const key of keys) {
+        const value = translateFor(code, key);
+        expect(value).not.toBe(key);
+        expect(value.length).toBeGreaterThan(0);
+        if (overlay) expect(overlay[key]).toBe(value);
+        const slots = (value.match(/\{\w+\}/g) ?? []).sort();
+        expect(slots).toEqual((translateFor('en', key).match(/\{\w+\}/g) ?? []).sort());
+      }
+    }
+  });
+
+  it.each(['en', 'es', 'pt', 'hi', 'zh', 'de', 'fr', 'it', 'ja', 'ko', 'ar'])
+   ('%s: весь лист, все детали и ошибка кода — без русского текста', async (language) => {
+      const { last, r, TestRenderer } = await смонтировать(true, language);
+      const checkStrings = (value: any, path = 'switcher') => {
+        if (typeof value === 'string') {
+          expect({ path, russian: /[А-Яа-яЁё]/.test(value), value }).toEqual({ path, russian: false, value });
+        } else if (Array.isArray(value)) {
+          value.forEach((v, i) => checkStrings(v, `${path}[${i}]`));
+        } else if (value && typeof value === 'object') {
+          Object.entries(value).forEach(([key, v]) => checkStrings(v, `${path}.${key}`));
+        }
+      };
+      checkStrings(last());
+      await TestRenderer.act(async () => { (globalThis as any).__psyScreenUi['#switcher'].redeem('NOT-A-CODE'); });
+      await TestRenderer.act(async () => { await new Promise((ok) => setTimeout(ok, 10)); });
+      expect(last().code.error).toBeTruthy();
+      checkStrings(last());
+      await TestRenderer.act(async () => r.unmount());
+    });
+
   it('без оболочки — ни модели, ни действий', async () => {
     const { sent, r, TestRenderer } = await смонтировать(false);
     expect(sent).toEqual([]);

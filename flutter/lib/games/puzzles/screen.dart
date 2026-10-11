@@ -21,6 +21,7 @@ import '../../shell/lesson.dart';
 import '../../shell/lesson_player.dart';
 import 'engine.dart';
 import 'frame.dart';
+import 'recovery.dart';
 import 'lesson.dart';
 import 'ladder.dart';
 import 'step_title.dart';
@@ -93,10 +94,14 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
   bool _won = false;
   String? _failure;
 
-  /// Партия проиграна движком (статус −1: «Сапёр» взорвался, у «Угадай код» кончились
-  /// попытки). До 30.09.2026 нативный экран этот исход не видел вовсе: партии не было
-  /// ни в статистике, ни в лестнице, хотя веб зовёт `lvl.fail()` (puzzles.tsx).
+  /// Нужна панель восстановления: явный статус −1 («Заливка», «Угадай код»)
+  /// либо обратимый тупик с нулевым статусом («Сапёр», «Инерция», «Снос групп»).
+  /// В статистику идут только исходы движка; тупик сам по себе не выдуманный fail.
   bool _lost = false;
+  // Undo remains useful after a defeat, but it must not award a second result for
+  // the same attempt. Only a fresh deal starts a competitive attempt again.
+  bool _resultRecorded = false;
+  bool _reviewAfterLoss = false;
 
   /// Нажато «Показать решение». Решённая решателем доска — не победа, а РАЗБОР (веб,
   /// puzzles.tsx: ступень не растёт и не падает). До 30.09.2026 нативный экран считал её
@@ -240,6 +245,8 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
     final step = _steps[at];
     _solverUsed = false;
     _lost = false;
+    _resultRecorded = false;
+    _reviewAfterLoss = false;
     _dealLevel = _ladder.level;
     _given = at < _genPool.length ? _genPool[at] : null;
     _eventId = '${_mode.levelKey}-${DateTime.now().microsecondsSinceEpoch}';
@@ -282,16 +289,17 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
     if (engine == null) return;
     final frame = PuzzleFrame.parse(engine.draw());
     final status = engine.status;
-    final justWon = status == 1 && !_won;
-    final justLost = status == -1 && !_won && !_lost;
+    final finished = status != 0 && !_resultRecorded;
     setState(() {
       _frame = frame;
       _status = engine.statusText;
-      if (justWon) _won = true;
-      if (justLost) _lost = true;
+      _won = status == 1;
+      // Some Tatham games intentionally keep status 0 after a dead end, to
+      // allow undo. Show recovery without fabricating a failed SessionReport.
+      _lost = status == -1 || puzzleNeedsRecovery(_mode.engineName, status, engine.statusText);
+      if (finished) _resultRecorded = true;
     });
-    if (justWon) _finish(won: true);
-    if (justLost) _finish(won: false);
+    if (finished) _finish(won: status == 1);
   }
 
   /// Конец партии: одна запись на исход — с тем, что в вебе (`puzzles.tsx`): тип
@@ -449,7 +457,7 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
 
   void _press(int pointer, Offset at, Size widgetSize, {int mouseButtons = 0}) {
     final engine = _engine;
-    if (engine == null || _won || _pointer != null) return;
+    if (engine == null || _won || _lost || _pointer != null) return;
     _pointer = pointer;
     final right = _second || (mouseButtons & kSecondaryMouseButton) != 0;
     _button = right ? 3 : 0;
@@ -483,7 +491,7 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
 
   void _digit(int v) {
     final engine = _engine;
-    if (engine == null || _won) return;
+    if (engine == null || _won || _lost) return;
     engine.key('0'.codeUnitAt(0) + v);
     _refresh();
   }
@@ -491,7 +499,7 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
   /// Стрелка курсора: 0 вверх · 1 вниз · 2 влево · 3 вправо.
   void _arrow(int side) {
     final engine = _engine;
-    if (engine == null || _won) return;
+    if (engine == null || _won || _lost) return;
     engine.cursor(side);
     _refresh();
   }
@@ -499,7 +507,7 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
   /// Диагональ «Инерции»: '7' ↖ · '9' ↗ · '1' ↙ · '3' ↘ (цифровой блок, как у автора).
   void _diagonal(String digit) {
     final engine = _engine;
-    if (engine == null || _won) return;
+    if (engine == null || _won || _lost) return;
     engine.diagonal(digit);
     _refresh();
   }
@@ -507,7 +515,7 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
   /// «Взять» под курсором — CURSOR_SELECT, второй выбор — CURSOR_SELECT2.
   void _pick({bool second = false}) {
     final engine = _engine;
-    if (engine == null || _won) return;
+    if (engine == null || _won || _lost) return;
     engine.select(second: second);
     _refresh();
   }
@@ -515,13 +523,14 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
   void _undo() {
     final engine = _engine;
     if (engine == null) return;
+    if (_lost && _resultRecorded) _reviewAfterLoss = true;
     engine.undo();
     _refresh();
   }
 
   void _solve() {
     final engine = _engine;
-    if (engine == null || _won) return;
+    if (engine == null || _won || _lost) return;
     _solverUsed = true;
     engine.solve();
     _refresh();
@@ -675,13 +684,15 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
           icon: Icons.lightbulb_outline,
           label: L.t('puzzleShowSolution'),
           tint: const Color(0xFFB45309),
-          onPressed: _won ? null : _solve,
+          onPressed: _won || _lost ? null : _solve,
         ),
       ]),
       toolbar: _Toolbar(
         mode: _mode,
         params: step.params,
         won: _won,
+        lost: _lost,
+        reviewAfterLoss: _reviewAfterLoss,
         status: _status,
         onDigit: _digit,
         onArrow: _arrow,
@@ -733,6 +744,8 @@ class _Toolbar extends StatelessWidget {
     required this.mode,
     required this.params,
     required this.won,
+    required this.lost,
+    required this.reviewAfterLoss,
     required this.status,
     required this.onDigit,
     required this.onArrow,
@@ -746,6 +759,8 @@ class _Toolbar extends StatelessWidget {
   /// Параметры ТЕКУЩЕЙ ступени — по ним считается ряд клавиш.
   final String params;
   final bool won;
+  final bool lost;
+  final bool reviewAfterLoss;
   final String status;
   final void Function(int) onDigit;
   final void Function(int side) onArrow;
@@ -763,8 +778,15 @@ class _Toolbar extends StatelessWidget {
    */
   @override
   Widget build(BuildContext context) {
-    final main = _main(context);
-    if (won || (!mode.arrows && !mode.pick)) return main;
+    final panel = _main(context);
+    final main = reviewAfterLoss && !won && !lost
+        ? Column(mainAxisSize: MainAxisSize.min, children: [
+            Padding(padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: Text(L.t('puzzleLossReview'), textAlign: TextAlign.center)),
+            panel,
+          ])
+        : panel;
+    if (won || lost || (!mode.arrows && !mode.pick)) return main;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -775,15 +797,34 @@ class _Toolbar extends StatelessWidget {
   }
 
   Widget _main(BuildContext context) {
+    if (lost) {
+      final moves = RegExp(r'(\d+)\s*/\s*(\d+)').firstMatch(status);
+      final summary = mode.engineName == 'Flood' && moves != null
+          ? L.f('puzzleFloodLimit', {'moves': moves.group(1)!, 'limit': moves.group(2)!})
+          : L.t('puzzleRoundLost');
+      return Padding(
+        key: const Key('puzzle-loss'),
+        padding: const EdgeInsets.all(12),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          Text(summary, textAlign: TextAlign.center, style: Theme.of(context).textTheme.titleSmall),
+          const SizedBox(height: 8),
+          FilledButton.icon(key: const Key('puzzle-retry'), onPressed: onNext,
+              icon: const Icon(Icons.refresh), label: Text(L.t('retry'))),
+        ]),
+      );
+    }
     if (won) {
       return Padding(
         padding: const EdgeInsets.all(12),
-        child: FilledButton.icon(
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          if (reviewAfterLoss) Text(L.t('puzzleLossReview'), textAlign: TextAlign.center),
+          FilledButton.icon(
           key: const Key('next'),
           onPressed: onNext,
           icon: const Icon(Icons.arrow_forward),
-          label: Text(L.t('puzzleNextLevel')),
+          label: Text(reviewAfterLoss ? L.t('retry') : L.t('puzzleNextLevel')),
         ),
+        ]),
       );
     }
     if (!mode.digits) {
