@@ -174,10 +174,19 @@ class PracticeStage extends StatelessWidget {
                         color: Theme.of(context).scaffoldBackgroundColor,
                         borderRadius: BorderRadius.circular(20),
                       ),
-                      child: Text(
-                        '${breath['title']} · ${_seconds(breath)}',
-                        key: const Key('pause-breath-phase'),
-                        style: Theme.of(context).textTheme.titleLarge,
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          maxWidth: math.max(0, w - 64),
+                        ),
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            '${breath['title']} · ${_seconds(breath)}',
+                            key: const Key('pause-breath-phase'),
+                            style: Theme.of(context).textTheme.titleLarge,
+                            maxLines: 1,
+                          ),
+                        ),
                       ),
                     ),
                   ),
