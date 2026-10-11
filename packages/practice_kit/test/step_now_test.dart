@@ -71,7 +71,7 @@ void main() {
         contains('напрягите живот'),
       );
       // Действие не режется в одну строку: «Уровень 2 · удержан…» на 320 pt (замер 02.10).
-      expect(title.maxLines, greaterThanOrEqualTo(2));
+    expect(title.maxLines, isNull, reason: 'full action name must not be truncated');
     },
   );
 
