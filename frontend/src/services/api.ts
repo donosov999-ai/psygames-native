@@ -9,7 +9,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { GAMES, sessionGameType } from '@/src/constants/games';
 import { getSupabase, SUPABASE_TABLE } from '@/src/services/supabase';
 import { IS_WEB_DEMO } from '@/src/services/buildTarget';
-import { phantomSession } from '@/src/services/hostSessions';
+import { isHostSession, phantomSession } from '@/src/services/hostSessions';
+import { progressiveWarmupLocation, webOwnsLevelProgress } from '@/src/services/warmupProgression';
 /**
  * ⚠️ НАЧИСЛЕНИЕ ИМПОРТИРУЕТСЯ ОБЫЧНО, А НЕ `await import(...)`, как соседи ниже.
  * Ленивый импорт здесь брали от круговой зависимости, но её у этой пары нет: earn
@@ -560,6 +561,10 @@ export const saveSession = async (session: GameSession): Promise<GameSession> =>
     // Глобаль ставит ProfileContext при каждой смене профиля.
     profile_id: session.profile_id
       || ((globalThis as any).__psygames_active_profile_id as string | undefined),
+    // Tag at invocation, before awaits/navigation. Do not infer a win from this
+    // marker: fail/lesson/skip reports belong to training history too.
+    ...(!isHostSession(session) && progressiveWarmupLocation()
+      ? { details: { ...session.details, warmup_progress: true } } : {}),
   };
   // Web-demo: НЕ пишем в storage/облако (ни сессий, ни токенов, ни ачивок) —
   // только уведомляем сайт-хост о завершённом демо-раунде (событие-канон
@@ -574,7 +579,8 @@ export const saveSession = async (session: GameSession): Promise<GameSession> =>
    * оттуда приносит оболочка (`__psySaveSession`). Всё прочее, что страница сохранит в это время, —
    * веб-копия игры, стартовавшая сама: без этой строки — вторая запись, токены и серия за неигранное.
    */
-  if (phantomSession(stored)) {
+  if (phantomSession(stored)
+    || (!isHostSession(stored) && progressiveWarmupLocation() && !webOwnsLevelProgress(true))) {
     console.warn(`[мост] партия веб-копии ${stored.game_type} под нативным экраном не засчитана`);
     return stored;
   }
@@ -713,6 +719,8 @@ export const getMaxLevelFromSessions = async (gameType: string): Promise<number>
   for (const s of all) {
     if (s.game_type !== gameType) continue;
     if (s.profile_id !== pid) continue;
+    // Separate training ladder must never restore/promote the personal ladder.
+    if (s.details?.warmup_progress === true) continue;
     const lv = Number((s.details as any)?.level);
     if (Number.isFinite(lv) && lv > max) max = lv;
   }

@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useLocalSearchParams } from 'expo-router';
+import { isProgressiveWarmup } from '@/src/services/warmupProgression';
 
 /**
  * Хук для игр, запускаемых из зарядки/комплекса с пресетом.
@@ -21,8 +22,9 @@ import { useLocalSearchParams } from 'expo-router';
 export function useGamePreset() {
   const params = useLocalSearchParams<Record<string, string>>();
   /**
-   * wu=1 — шаг ПЛЕЙЛИСТА зарядки. В этом режиме игры намеренно не двигают уровень:
-   * `passed = !isPreset && …` стоит в 36 экранах.
+   * wu=1 — шаг плейлиста. Обычный фиксированный шаг/замер не двигает уровень.
+   * progress=1 — полный тренировочный раунд: критерии прохождения обычные,
+   * usePersistentLevel хранит его уровень отдельно от личного и замерного.
    *
    * ⚠️ Ежедневный вызов раньше тоже слался с wu=1 (challengeToParams звал stepToParams,
    * а тот всегда ставит wu). Из-за этого он молча не засчитывал уровни: «я не сделала ни
@@ -30,9 +32,11 @@ export function useGamePreset() {
    * первого я не ухожу» — два репорта Вали на v1.185.0, вызов дня как раз был Choice RT.
    * Теперь вызов шлёт auto=1: игра стартует сама, но считается обычным раундом.
    */
-  const isPreset = params?.wu === '1';
+  const isWarmup = params?.wu === '1';
+  const progressive = isProgressiveWarmup(params);
+  const isPreset = isWarmup && !progressive;
   /** Стартовать сразу, минуя intro/config: и шаг зарядки, и вызов дня. */
-  const autostart = isPreset || params?.auto === '1';
+  const autostart = isWarmup || params?.auto === '1';
 
   const str = (key: string, def = ''): string => {
     const v = (params as Record<string, unknown>)?.[key];
@@ -56,7 +60,7 @@ export function useGamePreset() {
    * убрать их при isCalm — см. репорт «нельзя таймер» от 18.08.2026.
    */
   const isCalm = params?.calm === '1';
-  return { isPreset, isCalm, autostart, params, str, num, bool };
+  return { isPreset, isWarmup, progressive, isCalm, autostart, params, str, num, bool };
 }
 
 /**

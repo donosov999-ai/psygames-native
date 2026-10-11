@@ -16,6 +16,20 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.56.26',
+    date: '2026-10-11',
+    ru: [
+      'Кнопка отзыва: жук и подпись bugFX; плавающая кнопка доступна и на игровых экранах, её можно перетаскивать или скрыть в настройках',
+      'Зарядка: полноценные тренировки продолжаются со следующего уровня после успешного прохождения; замеры и фиксированные задания остаются без изменений',
+      'Тренировочный прогресс сохраняется отдельно от личной лестницы; пропуски, поражения и разбор с раскрытыми ответами не повышают уровень',
+    ],
+    en: [
+      'Feedback: a bug icon and bugFX label; the floating button is also available in games, can be dragged and hidden in settings',
+      'Warmup: full training rounds continue at the next level after success; measurements and fixed tasks remain unchanged',
+      'Training progress is saved separately from the personal ladder; skips, losses and lessons with revealed answers do not raise the level',
+    ],
+  },
+  {
     version: '2.56.25',
     date: '2026-10-11',
     ru: [

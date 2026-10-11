@@ -42,6 +42,7 @@ import 'package:flutter/material.dart';
 import 'js_compat.dart';
 import 'l10n.dart';
 import 'level_ladder.dart';
+import 'game_preset.dart';
 
 /// Шесть заданий босса — ровно те, что знает веб (`BossType` в `bossTask.ts`).
 enum BossType { counting, lightning, completeline, finderror, oddletter, gonogo }
@@ -307,7 +308,7 @@ class BossRound extends StatefulWidget {
     required BossType type,
     required Color color,
   }) async {
-    if (!counted || !due(playedLevel) || !context.mounted) return null;
+    if (!counted || GamePreset.isWarmup || !due(playedLevel) || !context.mounted) return null;
     return openBossRound(context, type: type, color: color);
   }
 

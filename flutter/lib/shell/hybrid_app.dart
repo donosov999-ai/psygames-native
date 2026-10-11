@@ -1338,7 +1338,7 @@ class _HybridAppState extends State<HybridApp> {
     // 🔴 ШАГ ЗАРЯДКИ — В РАМКЕ С ПОЛОСКОЙ «N/M · ⏭» (задача 63bccf96): веб рисует её в
     // своём каркасе, а нативный экран лежит поверх страницы. Номер шага знает веб —
     // спрашиваем; когда переход ведёт сама оболочка, он известен заранее.
-    final step = GamePreset.isPreset ? ValueNotifier<WarmupStepInfo?>(stepInfo) : null;
+    final step = GamePreset.isWarmup ? ValueNotifier<WarmupStepInfo?>(stepInfo) : null;
     // Снимок ключей, которые веб читает при запуске: после нативных настроек сравним.
     final watchedBefore = _watchedSnapshot();
     if (step != null && stepInfo == null) unawaited(_loadStepInfo(step));

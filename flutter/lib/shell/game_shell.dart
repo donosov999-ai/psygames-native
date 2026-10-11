@@ -1,4 +1,5 @@
 import 'game_clock.dart';
+import 'feedback_fab.dart';
 import 'game_pet.dart';
 import 'game_rules.dart';
 import 'l10n.dart';
@@ -110,7 +111,7 @@ class GameShell extends StatelessWidget {
     feedbackState = _feedbackState();
     if (fieldOnly) {
       return Scaffold(
-        body: SafeArea(
+        body: _withFeedback(SafeArea(
           child: Stack(children: [
             Positioned.fill(
               child: LayoutBuilder(
@@ -142,7 +143,7 @@ class GameShell extends StatelessWidget {
               ),
             ),
           ]),
-        ),
+        )),
       );
     }
     final scheme = Theme.of(context).colorScheme;
@@ -196,10 +197,21 @@ class GameShell extends StatelessWidget {
           ],
         );
     return Scaffold(
-      body: SafeArea(
+      body: _withFeedback(SafeArea(
         child: spot == null ? body : LevelRuleWatcher(spot: spot, child: body),
-      ),
+      )),
     );
+  }
+
+  Widget _withFeedback(Widget body) {
+    // HybridApp уже публикует общую память здесь; отдельного хранилища нет.
+    final state = PetHost.state;
+    final open = GameExit.feedback;
+    if (state == null || open == null) return body;
+    return Stack(fit: StackFit.expand, children: [
+      body,
+      FeedbackFab(state: state, onOpen: open),
+    ]);
   }
 
   /*
@@ -496,17 +508,44 @@ class _Header extends StatelessWidget {
             if (onRules != null)
               IconButton(onPressed: onRules, icon: const Icon(Icons.help_outline), tooltip: L.t('btn_rules')),
             if (onFeedback != null)
-              IconButton(
-                key: const Key('game-feedback'),
-                onPressed: onFeedback,
-                icon: const Icon(Icons.chat_bubble_outline),
-                tooltip: L.t('feedbackFabLabel'),
-              ),
+              _feedbackButton(context),
             if (onBack != null)
               IconButton(onPressed: onBack, icon: const Icon(Icons.arrow_back), tooltip: L.t('back')),
           ],
         ),
       ));
+
+  Widget _feedbackButton(BuildContext context) {
+    Widget button() {
+      final size = FeedbackBugMark.sizeOf(context);
+      return Semantics(
+        button: true,
+        label: L.t('feedbackFabLabel'),
+        onTap: onFeedback,
+        excludeSemantics: true,
+        child: IconButton(
+        key: const Key('game-feedback'),
+        onPressed: onFeedback,
+        icon: const ExcludeSemantics(child: FeedbackBugMark()),
+        padding: EdgeInsets.zero,
+        constraints: BoxConstraints.tight(size),
+        style: IconButton.styleFrom(
+          fixedSize: size,
+          minimumSize: size,
+          visualDensity: VisualDensity.standard,
+        ),
+        tooltip: L.t('feedbackFabLabel'),
+        ),
+      );
+    }
+
+    final state = PetHost.state;
+    if (state == null) return button();
+    return ValueListenableBuilder<int>(
+      valueListenable: state.writes,
+      builder: (context, _, _) => state.get(FabRules.visibleKey) == '0' ? const SizedBox.shrink() : button(),
+    );
+  }
 }
 
 class _HudRow extends StatelessWidget {

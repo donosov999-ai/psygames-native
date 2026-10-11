@@ -633,6 +633,7 @@ export default function FeedbackWidget() {
         ]}
       >
       <TouchableOpacity
+        testID="feedback-fab"
         accessibilityRole="button"
         onPress={() => { void openSheet(); }}
         activeOpacity={0.85}
@@ -641,7 +642,11 @@ export default function FeedbackWidget() {
       >
         {capturing
           ? <ActivityIndicator size="small" color={textOn(FAB_COLOR)} />
-          : <Ionicons name="chatbubble-ellipses" size={19} color={textOn(FAB_COLOR)} />}
+          : <Ionicons name="bug-outline" size={19} color={textOn(FAB_COLOR)} />}
+        <Text testID="feedback-fab-label" numberOfLines={1} adjustsFontSizeToFit
+          maxFontSizeMultiplier={2} style={[styles.fabLabel, { color: textOn(FAB_COLOR) }]}>
+          bugFX
+        </Text>
       </TouchableOpacity>
       </View>}
 
@@ -1058,6 +1063,9 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 3 },
     elevation: 6,
   },
+  // Подпись есть на каждом web-экране и не исчезает во время снимка.
+  // 19 px жука + до 26 px текста помещаются в прежние 48 px, место/drag не меняются.
+  fabLabel: { fontSize: 11, lineHeight: 13, fontWeight: '700', textAlign: 'center', maxWidth: 44 },
   backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'flex-end' },
   sheet: { borderTopLeftRadius: 22, borderTopRightRadius: 22, maxHeight: '88%' },
   sheetScroll: { flexGrow: 0, flexShrink: 1 },

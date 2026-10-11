@@ -38,7 +38,7 @@
  * Смысл переигровки — добрать звёзды: saveLevelStars хранит ЛУЧШИЙ результат,
  * так что второй заход может улучшить оценку, но не испортить её.
  */
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { завестиЛестницу } from '@/src/services/levelRegistry';
 import { useProfile } from '@/src/contexts/ProfileContext';
@@ -46,6 +46,8 @@ import { getMaxLevelFromSessions } from '@/src/services/api';
 import { pickTarget } from '@/src/services/levelPick';
 import { IS_WEB_DEMO } from '@/src/services/buildTarget';
 import { cachedLevelValue, rememberLevelValue, warmLevelCache } from '@/src/services/levelCache';
+import { useLocalSearchParams } from 'expo-router';
+import { isProgressiveWarmup, trainingLevelId, webOwnsLevelProgress } from '@/src/services/warmupProgression';
 
 /**
  * Сколько провалов ПОДРЯД опускают уровень. Три — общее правило приложения.
@@ -73,8 +75,11 @@ export interface PersistentLevel {
 export function usePersistentLevel(gameId: string, initial = 1, порогПровалов = FAIL_STREAK_THRESHOLD): PersistentLevel {
   const { profile } = useProfile();
   const pid = (profile as any)?.id ?? 'default';
-  const key = `psygames_${gameId}_level_${pid}`;
-  const failKey = `psygames_${gameId}_failstreak_${pid}`;
+  const progressive = isProgressiveWarmup(useLocalSearchParams<Record<string, string>>());
+  const levelId = trainingLevelId(gameId, progressive);
+  const key = `psygames_${levelId}_level_${pid}`;
+  const personalKey = `psygames_${gameId}_level_${pid}`;
+  const failKey = `psygames_${levelId}_failstreak_${pid}`;
   /**
    * ⚠️ ЕСЛИ УРОВЕНЬ УЖЕ ЗНАЕМ — ОТВЕЧАЕМ ПЕРВЫМ ЖЕ КАДРОМ. Асинхронное чтение не
    * может успеть до эффектов монтирования, поэтому автостарт видел `initial`
@@ -82,15 +87,22 @@ export function usePersistentLevel(gameId: string, initial = 1, порогПро
    * (`levelCache`) читает все уровни одним заходом на старте приложения, и здесь
    * остаётся только взять готовое. Холодный кэш ведёт себя как раньше.
    */
-  const cachedRaw = IS_WEB_DEMO ? undefined : cachedLevelValue(key);
+  const ownCached = cachedLevelValue(key);
+  const cachedRaw = IS_WEB_DEMO ? undefined : progressive ? ownCached ?? cachedLevelValue(personalKey) : ownCached;
   const cachedLevel = cachedRaw === undefined ? null : (() => {
     const n = parseInt(cachedRaw || '', 10);
     return n >= 1 ? n : null;
   })();
   const [level, setLevelState] = useState(cachedLevel ?? initial);
   const [loaded, setLoaded] = useState(cachedLevel !== null);
+  const [stateKey, setStateKey] = useState(key);
   const levelRef = useRef(cachedLevel ?? initial);
+  const loadedRef = useRef(cachedLevel !== null);
+  const scope = useMemo(() => ({ key, initial, gameId, progressive }), [key, initial, gameId, progressive]);
+  const activeScopeRef = useRef<typeof scope | null>(null);
+  const mutationRef = useRef(0);
   const failStreakRef = useRef(0);
+  const trainingAdvancedRef = useRef(false);
   // Выбор на тропинке. ⚠️ Только в памяти: перезапуск приложения обязан вернуть
   // человека на достигнутое, иначе забытая переигровка тихо занижает сложность.
   const [picked, setPicked] = useState<number | null>(null);
@@ -98,23 +110,47 @@ export function usePersistentLevel(gameId: string, initial = 1, порогПро
   const clearPick = () => { pickedRef.current = null; setPicked(null); };
 
   useEffect(() => {
+    activeScopeRef.current = scope;
+    let cancelled = false;
+    const publish = () => {
+      if (cancelled) return;
+      setStateKey(key);
+      setPicked(null);
+      setLevelState(levelRef.current);
+      setLoaded(loadedRef.current);
+    };
     // Смена профиля или игры — переигровка чужая, снимаем.
     pickedRef.current = null;
-    setPicked(null);
+    trainingAdvancedRef.current = false;
     // Web-demo: прогресс не читаем и не пишем — всегда стартовый уровень (демо-раунд).
     if (IS_WEB_DEMO) {
       levelRef.current = initial;
-      setLevelState(initial);
       failStreakRef.current = 0;
-      setLoaded(true);
-      return;
+      loadedRef.current = true;
+      void Promise.resolve().then(publish);
+      return () => { cancelled = true; activeScopeRef.current = null; loadedRef.current = false; };
     }
-    let cancelled = false;
     // Прогрев мог не успеть стартовать (глубокая ссылка прямо в игру) — толкаем его.
     void warmLevelCache();
-    if (cachedLevelValue(key) === undefined) setLoaded(false);
-    Promise.all([AsyncStorage.getItem(key), AsyncStorage.getItem(failKey)]).then(async ([v, f]) => {
+    // Never expose the previous profile/mode's level while the new key loads.
+    // Read this snapshot inside the effect rather than depending on a render's
+    // changing cache value: success writes must not restart this loading effect.
+    const own = cachedLevelValue(key);
+    const raw = progressive ? own ?? cachedLevelValue(personalKey) : own;
+    const snapshot = parseInt(raw ?? '', 10);
+    const ready = snapshot >= 1;
+    levelRef.current = ready ? snapshot : initial;
+    failStreakRef.current = 0;
+    loadedRef.current = ready;
+    void Promise.resolve().then(publish);
+    const revision = mutationRef.current;
+    Promise.all([AsyncStorage.getItem(key), AsyncStorage.getItem(failKey),
+      progressive ? AsyncStorage.getItem(personalKey) : Promise.resolve(null),
+    ]).then(async ([v, f, personal]) => {
       if (cancelled) return;
+      // A warm-cache autostart may finish before this read resolves. Never undo
+      // a success with the snapshot that was taken before that success.
+      if (mutationRef.current !== revision) return;
       const n = parseInt(v || '', 10);
       if (n >= 1) {
         // Локальный ключ есть — он источник истины.
@@ -126,21 +162,38 @@ export function usePersistentLevel(gameId: string, initial = 1, порогПро
         // чтобы дальше он был локальным. Очки так не терялись, а уровень — терялся (баг Вали).
         let restored = initial;
         try {
-          const fromSessions = await getMaxLevelFromSessions(gameId);
+          // A training ladder must not promote personal history (or inherit a
+          // fabricated maximum from unrelated modes). Bootstrap from the real key.
+          const personalLevel = Number(personal);
+          const fromSessions = progressive
+            ? Number.isFinite(personalLevel) && personalLevel >= 1 ? Math.floor(personalLevel) : initial
+            : await getMaxLevelFromSessions(gameId);
           if (cancelled) return;
+          if (mutationRef.current !== revision) return;
           restored = Math.max(initial, fromSessions);
         } catch { /* нет истории → initial */ }
         levelRef.current = restored;
         setLevelState(restored);
-        if (restored > 1) { rememberLevelValue(key, String(restored)); AsyncStorage.setItem(key, String(restored)).catch(() => {}); }
+        // Persist even L1: bootstrap is once, not a fresh inheritance from personal
+        // every time training is reopened. Hidden native underlays must not write it.
+        if ((progressive || restored > 1) && webOwnsLevelProgress(progressive)) {
+          rememberLevelValue(key, String(restored));
+          AsyncStorage.setItem(key, String(restored)).catch(() => {});
+        }
       }
       failStreakRef.current = parseInt(f || '', 10) || 0;
       setLoaded(true);
-    }).catch(() => { if (!cancelled) setLoaded(true); });
-    return () => { cancelled = true; };
-  }, [key, failKey, initial, gameId]);
+      loadedRef.current = true;
+    }).catch(() => { if (!cancelled) { setLoaded(true); loadedRef.current = true; } });
+    return () => { cancelled = true; activeScopeRef.current = null; loadedRef.current = false; };
+  }, [key, failKey, initial, gameId, progressive, personalKey, scope]);
+
+  // Delayed callbacks from a previous profile/mode or an unmounted route do not
+  // own this ladder. Check the host live, since overlay signals need no rerender.
+  const canWrite = () => activeScopeRef.current === scope && loadedRef.current && webOwnsLevelProgress(progressive);
 
   const setFailStreak = (n: number) => {
+    mutationRef.current += 1;
     failStreakRef.current = n;
     if (IS_WEB_DEMO) return;   // демо: запись прогресса выключена
     rememberLevelValue(failKey, String(n));
@@ -148,6 +201,8 @@ export function usePersistentLevel(gameId: string, initial = 1, порогПро
   };
 
   const setLevel = (n: number) => {
+    if (!canWrite() || !Number.isFinite(n)) return;
+    mutationRef.current += 1;
     const lv = Math.max(1, Math.round(n));
     levelRef.current = lv;
     setLevelState(lv);
@@ -161,6 +216,7 @@ export function usePersistentLevel(gameId: string, initial = 1, порогПро
    * иначе тапом по дальнему узлу можно было бы перескочить всю сложность.
    */
   const pick = (n: number) => {
+    if (!canWrite()) return;
     const next = pickTarget(n, levelRef.current);
     pickedRef.current = next;
     setPicked(next);
@@ -168,9 +224,17 @@ export function usePersistentLevel(gameId: string, initial = 1, порогПро
 
   const reach = (target: number): boolean => {
     if (IS_WEB_DEMO) return false;   // демо: уровень не растёт (всегда демо-раунд уровня 1), записи нет
+    if (!canWrite() || !Number.isFinite(target)) return false;
+    if (progressive && trainingAdvancedRef.current) return false;
     // ⚠️ Сравниваем с ДОСТИГНУТЫМ, а не с тем, на чём играли. Переигровка лёгкого
     // уровня иначе выглядела бы как «дорос до 3» и обнуляла бы честную десятку.
-    if (target > levelRef.current) { setLevel(target); return true; }   // setLevel снимает выбор
+    if (target > levelRef.current) {
+      // One counted full round unlocks exactly the next training step. The game
+      // still owns its success criterion and must call reach only on that success.
+      setLevel(progressive ? levelRef.current + 1 : target);
+      if (progressive) trainingAdvancedRef.current = true;
+      return true;
+    }   // setLevel снимает выбор
     setFailStreak(0);   // уровень пройден (пусть и не выше текущего потолка) — сбрасываем счётчик провалов
     clearPick();
     return false;
@@ -178,6 +242,8 @@ export function usePersistentLevel(gameId: string, initial = 1, порогПро
 
   const fail = (): boolean => {
     if (IS_WEB_DEMO) return false;   // демо: без понижений и записи
+    if (!canWrite()) return false;
+    if (progressive) return false;  // a failed warmup stays for another attempt
     // Провалил уровень, на который сам вернулся, — это не «стало трудно», а выбор
     // человека. Понижать за это значит наказывать за интерес к своей же истории.
     if (pickedRef.current !== null) { clearPick(); return false; }
@@ -190,7 +256,12 @@ export function usePersistentLevel(gameId: string, initial = 1, порогПро
     return false;
   };
 
-  const снаружи: PersistentLevel = { level: picked ?? level, best: level, picked, loaded, setLevel, reach, fail, pick };
+  const currentLevel = stateKey === key ? level : cachedLevel ?? initial;
+  const currentPick = stateKey === key ? picked : null;
+  const снаружи: PersistentLevel = {
+    level: currentPick ?? currentLevel, best: currentLevel, picked: currentPick,
+    loaded: stateKey === key ? loaded : cachedLevel !== null, setLevel, reach, fail, pick,
+  };
 
   /**
    * Запись в общий реестр живых лестниц (`services/levelRegistry`), откуда каркас
