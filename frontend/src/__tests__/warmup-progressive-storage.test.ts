@@ -102,6 +102,37 @@ test('first counted success L1 -> reopen L2; duplicate callbacks advance only on
   expect(await AsyncStorage.getItem(levelKey())).toBe('3');
 });
 
+test.each([
+  [{ wu: '1' }, true, true, false],
+  [{ wu: '1', progress: '1' }, true, false, true],
+  [{ auto: '1' }, true, false, false],
+  [{ progress: '1' }, false, false, false],
+  [{}, false, false, false],
+] as const)('real entry flags %j preserve autostart and fixed/training separation', async (params, autostart, isPreset, isProgressive) => {
+  const entry = await mount('digit_span', params as Record<string, string>);
+  expect(entry.preset).toMatchObject({ autostart, isPreset, progressive: isProgressive });
+});
+
+test('normal replay neither reduces the ceiling nor storage; actual new success advances it', async () => {
+  location('');
+  const key = levelKey('digit_span', 'alice', false);
+  await AsyncStorage.setItem(key, '10');
+  const normal = await mount('digit_span', {});
+  await act(async () => { normal.current.pick(3); });
+  expect(normal.current.level).toBe(3);
+  expect(normal.current.best).toBe(10);
+  await act(async () => { expect(normal.current.reach(4)).toBe(false); });
+  expect(normal.current.level).toBe(10);
+  expect(await AsyncStorage.getItem(key)).toBe('10');
+  await act(async () => { normal.current.pick(3); expect(normal.current.fail()).toBe(false); });
+  expect(normal.current.level).toBe(10);
+  expect(await AsyncStorage.getItem(key)).toBe('10');
+  await act(async () => { expect(normal.current.reach(11)).toBe(true); });
+  expect(normal.current.level).toBe(11);
+  expect(await AsyncStorage.getItem(key)).toBe('11');
+  expect(await AsyncStorage.getItem(levelKey())).toBeNull();
+});
+
 test('failed attempts never demote training; skip/unmount does not advance', async () => {
   await AsyncStorage.setItem(levelKey(), '5');
   const attempt = await mount();
