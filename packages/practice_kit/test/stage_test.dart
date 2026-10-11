@@ -27,20 +27,30 @@ void main() {
     // Исходник читается по пикселям: руки на нём — отдельные непрозрачные
     // отрезки строки, центр которых далеко от оси тела. Туловище, голова и ноги
     // держатся у оси (центр отрезка в 0,33–0,67 ширины).
-    final bytes = File('assets/cosmic-body/body-master-v1.webp').readAsBytesSync();
+    final bytes = File(
+      'assets/cosmic-body/body-master-v1.webp',
+    ).readAsBytesSync();
     final codec = await ui.instantiateImageCodec(bytes);
     final image = (await codec.getNextFrame()).image;
     final rgba = (await image.toByteData(format: ui.ImageByteFormat.rawRgba))!;
     final w = image.width, h = image.height;
     bool opaque(int x, int y) => rgba.getUint8((y * w + x) * 4 + 3) > 40;
 
-    expect(cosmicFocus.keys, containsAll(['pelvic-floor', 'abdomen', 'face-speech']));
+    expect(
+      cosmicFocus.keys,
+      containsAll(['pelvic-floor', 'abdomen', 'face-speech']),
+    );
     for (final e in cosmicFocus.entries) {
       final (cx, cy, part) = e.value;
-      final x0 = ((cx - part / 2) * w).round(), x1 = ((cx + part / 2) * w).round();
+      final x0 = ((cx - part / 2) * w).round(),
+          x1 = ((cx + part / 2) * w).round();
       final half = part * w / h / 2;
       final y0 = ((cy - half) * h).round(), y1 = ((cy + half) * h).round();
-      expect(y0 >= 0 && y1 <= h && x0 >= 0 && x1 <= w, isTrue, reason: '${e.key}: вырезка за краем исходника');
+      expect(
+        y0 >= 0 && y1 <= h && x0 >= 0 && x1 <= w,
+        isTrue,
+        reason: '${e.key}: вырезка за краем исходника',
+      );
       final arms = <String>[];
       for (var y = y0; y < y1; y++) {
         var x = 0;
@@ -56,68 +66,128 @@ void main() {
           final end = x - 1, centre = (start + end) / 2 / w;
           final inCrop = end >= x0 && start < x1;
           if (inCrop && end - start > 6 && (centre < .33 || centre > .67)) {
-            arms.add('y=${(y / h).toStringAsFixed(3)} x=${(start / w).toStringAsFixed(3)}…${(end / w).toStringAsFixed(3)}');
+            arms.add(
+              'y=${(y / h).toStringAsFixed(3)} x=${(start / w).toStringAsFixed(3)}…${(end / w).toStringAsFixed(3)}',
+            );
           }
         }
       }
-      expect(arms, isEmpty, reason: '${e.key}: в вырезку попала рука — ${arms.take(3).join('; ')}');
+      expect(
+        arms,
+        isEmpty,
+        reason: '${e.key}: в вырезку попала рука — ${arms.take(3).join('; ')}',
+      );
     }
   });
 
   test('все схемы шагов собираются во Flutter (600×390)', () async {
-    final files = Directory('assets/guides').listSync().whereType<File>().toList();
+    final files = Directory(
+      'assets/guides',
+    ).listSync().whereType<File>().toList();
     expect(files.length, greaterThanOrEqualTo(98));
     for (final file in files) {
-      final picture = await vg.loadPicture(SvgStringLoader(file.readAsStringSync()), null);
+      final picture = await vg.loadPicture(
+        SvgStringLoader(file.readAsStringSync()),
+        null,
+      );
       expect(picture.size, const Size(600, 390), reason: file.path);
       picture.picture.dispose();
     }
   });
 
-  final engine = Practices(jsonDecode(File('assets/practices.json').readAsStringSync()));
+  final engine = Practices(
+    jsonDecode(File('assets/practices.json').readAsStringSync()),
+  );
   for (final size in [const Size(320, 300), const Size(390, 400)]) {
     testWidgets('real stage holds orb and artwork at $size', (tester) async {
       final font = Platform.environment['PRACTICE_FONT'];
       if (font != null) {
-        final loader = FontLoader('PracticeEvidence')..addFont(
-          Future.value(ByteData.sublistView(File(font).readAsBytesSync())));
+        final loader = FontLoader('PracticeEvidence')
+          ..addFont(
+            Future.value(ByteData.sublistView(File(font).readAsBytesSync())),
+          );
         await loader.load();
       }
       tester.view.physicalSize = size;
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.reset);
       final program = objects(engine.set('breathing')['programs']).firstWhere(
-        (p) => objects(p['steps']).any((s) => s['id'] == 'hold-out'));
-      final plan = engine.plan({'mode': 'parallel', 'durationMs': 60000,
-        'locale': 'ru', 'guideMode': 'visual', 'context': 'home', 'advisory': true,
-        'selections': [{'setId': 'breathing', 'programId': program['id']},
-          {'setId': 'pelvic-floor', 'programId': 'balanced'}]});
-      Rect? artRect, orbRect;
-      for (final step in objects(plan['timeline']).where((s) => s['setId'] == 'breathing').take(4)) {
+        (p) => objects(p['steps']).any((s) => s['id'] == 'hold-out'),
+      );
+      final plan = engine.plan({
+        'mode': 'parallel',
+        'durationMs': 60000,
+        'locale': 'ru',
+        'guideMode': 'visual',
+        'context': 'home',
+        'advisory': true,
+        'selections': [
+          {'setId': 'breathing', 'programId': program['id']},
+          {'setId': 'pelvic-floor', 'programId': 'balanced'},
+        ],
+      });
+      Rect? artRect;
+      for (final step in objects(
+        plan['timeline'],
+      ).where((s) => s['setId'] == 'breathing').take(4)) {
         final elapsed = (step['startMs'] as int) + 1000;
-        await tester.pumpWidget(MaterialApp(theme: ThemeData(fontFamily: font == null ? null : 'PracticeEvidence'),
-          home: Scaffold(body: RepaintBoundary(
-          key: const Key('capture-stage'), child: ColoredBox(color: const Color(0xfffaf8ff),
-            child: PracticeStage(engine: engine,
-            cues: objects(engine.frame(plan, elapsed)['cues']), elapsed: elapsed))))));
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: ThemeData(
+              fontFamily: font == null ? null : 'PracticeEvidence',
+            ),
+            home: Scaffold(
+              body: RepaintBoundary(
+                key: const Key('capture-stage'),
+                child: ColoredBox(
+                  color: const Color(0xfffaf8ff),
+                  child: PracticeStage(
+                    engine: engine,
+                    cues: objects(engine.frame(plan, elapsed)['cues']),
+                    elapsed: elapsed,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
         await tester.pump(const Duration(milliseconds: 50));
         final artwork = tester.getRect(find.byType(PracticeArtwork));
-        final orb = tester.getRect(find.byType(BreathVisual));
         artRect ??= artwork;
-        orbRect ??= orb;
         expect(artwork, artRect);
-        expect(orb, orbRect);
-        expect((Offset.zero & size).contains(orb.bottomRight - const Offset(.1, .1)), isTrue);
-        expect(artwork.overlaps(orb), isFalse, reason: 'orb must not obscure anatomy');
+        expect(
+          find.byType(BreathVisual),
+          findsNothing,
+          reason:
+              'combined practices use the perimeter, not an orb over anatomy',
+        );
+        expect(
+          (Offset.zero & size).contains(
+            artwork.bottomRight - const Offset(.1, .1),
+          ),
+          isTrue,
+        );
+        expect(
+          find.byWidgetPredicate(
+            (w) => w is CustomPaint && w.painter is PhaseClock,
+          ),
+          findsOneWidget,
+        );
         expect(tester.takeException(), isNull);
         final output = Platform.environment['PRACTICE_SHOTS'];
         if (output != null) {
-          final boundary = tester.renderObject<RenderRepaintBoundary>(find.byKey(const Key('capture-stage')));
+          final boundary = tester.renderObject<RenderRepaintBoundary>(
+            find.byKey(const Key('capture-stage')),
+          );
           await tester.runAsync(() async {
             final image = await boundary.toImage();
-            final bytes = (await image.toByteData(format: ui.ImageByteFormat.png))!;
+            final bytes = (await image.toByteData(
+              format: ui.ImageByteFormat.png,
+            ))!;
             await Directory(output).create(recursive: true);
-            await File('$output/combo-${size.width.toInt()}-${step['stepId']}.png').writeAsBytes(bytes.buffer.asUint8List());
+            await File(
+              '$output/combo-${size.width.toInt()}-${step['stepId']}.png',
+            ).writeAsBytes(bytes.buffer.asUint8List());
             image.dispose();
           });
         }
@@ -165,16 +235,28 @@ Future<List<int>> _frame(String step, double progress) async {
   int top = -1, bottom = -1, left = -1, right = -1;
   final col = (_size.width * .50).round(), row = (_size.height * .40).round();
   for (int y = 0; y < _size.height; y++) {
-    if (alpha(col, y) > 40) { top = y; break; }
+    if (alpha(col, y) > 40) {
+      top = y;
+      break;
+    }
   }
   for (int y = _size.height.toInt() - 1; y >= 0; y--) {
-    if (alpha(col, y) > 40) { bottom = y; break; }
+    if (alpha(col, y) > 40) {
+      bottom = y;
+      break;
+    }
   }
   for (int x = 0; x < w; x++) {
-    if (alpha(x, row) > 40) { left = x; break; }
+    if (alpha(x, row) > 40) {
+      left = x;
+      break;
+    }
   }
   for (int x = w - 1; x >= 0; x--) {
-    if (alpha(x, row) > 40) { right = x; break; }
+    if (alpha(x, row) > 40) {
+      right = x;
+      break;
+    }
   }
   return [top, bottom, left, right];
 }

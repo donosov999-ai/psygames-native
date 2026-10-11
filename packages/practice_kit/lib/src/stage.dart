@@ -19,7 +19,6 @@ import 'eye_modes.dart';
 import 'face_massage_guide.dart';
 import 'practices.dart';
 
-
 class PracticeStage extends StatelessWidget {
   final VoidCallback? onEyeHit;
   final Practices engine;
@@ -40,32 +39,30 @@ class PracticeStage extends StatelessWidget {
   Widget build(BuildContext context) {
     final breath = cues.where((c) => c['setId'] == 'breathing').firstOrNull;
     final eye = cues.where((c) => c['setId'] == 'eye-gym').firstOrNull;
-    final specialEye = eye != null &&
-        ['catch-overlap', 'two-dots'].contains(eye['programId']);
+    final specialEye =
+        eye != null && ['catch-overlap', 'two-dots'].contains(eye['programId']);
     final aux = cues
         .where((c) => c['setId'] != 'breathing' && c['setId'] != 'eye-gym')
         .toList();
-    final tension = aux
-        .where(
-          (c) =>
-              c['channel'] == 'tension' &&
-              (c['progress'] < .14 || c['progress'] > .88),
-        )
-        .firstOrNull;
-    final picture =
-        tension ?? (aux.isEmpty ? null : aux[(elapsed ~/ 4000) % aux.length]);
+    // Stable visual leader: rotating artwork every four seconds caused flashing.
+    final picture = aux.firstOrNull;
     final phase = breath ?? picture;
     return LayoutBuilder(
       builder: (context, box) {
         final w = box.maxWidth, h = box.maxHeight;
-        final split = breath != null && picture != null && eye == null;
-        final sceneWidth = split ? w * .7 : w;
+        final sceneWidth = w;
         final massage = picture?['setId'] == 'face-massage';
         // Картинка — ВНУТРИ рамки фаз и по её центру: геометрия у них одна
         // (`phaseFrame`). Массаж лица рамки не имеет и остаётся своим полем.
         final frame = phaseFrame(Size(sceneWidth, h)).deflate(10);
-        final round = phase != null &&
-            PhaseClock.sidesOf(phase, engine.program(phase['setId'], phase['programId']), breath != null) != 4;
+        final round =
+            phase != null &&
+            PhaseClock.sidesOf(
+                  phase,
+                  engine.program(phase['setId'], phase['programId']),
+                  breath != null,
+                ) !=
+                4;
         return Semantics(
           label: cues.map((c) => c['title']).join(', '),
           child: Stack(
@@ -88,7 +85,6 @@ class PracticeStage extends StatelessWidget {
                 ),
               if (phase != null && !(massage && breath == null))
                 Positioned.fill(
-                  right: split ? w * .3 : 0,
                   child: CustomPaint(
                     painter: PhaseClock(
                       cue: phase,
@@ -99,36 +95,54 @@ class PracticeStage extends StatelessWidget {
                       breathing: breath != null,
                       track: Theme.of(
                         context,
-                      ).colorScheme.onSurface.withValues(alpha: .22),
+                      ).colorScheme.onSurface.withValues(alpha: .8),
                       run: Theme.of(context).colorScheme.primary,
                       dotColor: const Color(0xff5bd8d0),
                       crowded: eye == null ? true : picture != null,
                     ),
                   ),
                 ),
-              if (breath != null && eye == null)
+              // A separate orb would cover the anatomical illustration.
+              // In combinations, the perimeter remains the breathing guide.
+              if (breath != null && eye == null && picture == null)
                 Align(
-                  alignment: picture == null ? const Alignment(0, -.2) : const Alignment(1, -.2),
+                  alignment: const Alignment(0, -.1),
                   child: SizedBox.square(
-                    dimension: picture == null ? math.min(w * .6, h * .5) : math.min(w * .3, h * .28),
-                    child: BreathVisual(breath: breath,
-                      muscle: cues.where((c) => c['setId'] == 'pelvic-floor').firstOrNull),
+                    dimension: math.min(w * .7, h * .5),
+                    child: BreathVisual(
+                      breath: breath,
+                      muscle: cues
+                          .where((c) => c['setId'] == 'pelvic-floor')
+                          .firstOrNull,
+                    ),
                   ),
                 ),
               if (specialEye)
                 Positioned.fill(
                   bottom: breath != null ? 64 : 0,
-                  child: EyeModes(key: ValueKey(eye['programId']),
-                    mode: eye['programId'], elapsed: elapsed,
-                    running: running, locale: locale, onHit: onEyeHit),
+                  child: EyeModes(
+                    key: ValueKey(eye['programId']),
+                    mode: eye['programId'],
+                    elapsed: elapsed,
+                    running: running,
+                    locale: locale,
+                    onHit: onEyeHit,
+                  ),
                 ),
               if (eye != null && eye['programId'] == 'geometry-paths')
-                Positioned.fill(child: CustomPaint(painter: EyeGeometryGuide(
-                  eye['stepId'], Theme.of(context).colorScheme.onSurface))),
+                Positioned.fill(
+                  child: CustomPaint(
+                    painter: EyeGeometryGuide(
+                      eye['stepId'],
+                      Theme.of(context).colorScheme.onSurface,
+                      targetRadius: 22,
+                    ),
+                  ),
+                ),
               if (eye != null && !specialEye && eyePosition(eye) != null)
                 Builder(
                   builder: (_) {
-                    final p = eyePosition(eye)!;
+                    final p = eyePosition(eye, size: Size(w, h))!;
                     // 🔴 ЗА ЧЕМ СЛЕДИТЬ ГЛАЗАМИ — САМ ГЛАЗ (ТЗ Дениса 23.09.2026:
                     // «для зарядки глаз цвет тоже надо поменять или вообще
                     // отрисовать глазик летающий, круглый»). Бирюзовый кружок
@@ -146,21 +160,25 @@ class PracticeStage extends StatelessWidget {
                   },
                 ),
               if (breath != null)
-                Align(
-                  alignment: const Alignment(0, .85),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).scaffoldBackgroundColor,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      '${breath['title']} · ${_seconds(breath)}',
-                      key: const Key('pause-breath-phase'),
-                      style: Theme.of(context).textTheme.titleLarge,
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  child: Center(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).scaffoldBackgroundColor,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        '${breath['title']} · ${_seconds(breath)}',
+                        key: const Key('pause-breath-phase'),
+                        style: Theme.of(context).textTheme.titleLarge,
+                      ),
                     ),
                   ),
                 ),
@@ -181,11 +199,21 @@ class PracticeStage extends StatelessWidget {
   }
 }
 
-Offset? eyePosition(Json c) {
+Offset? eyePosition(Json c, {Size? size}) {
   final p = (c['progress'] as num).toDouble().clamp(0, 1), tau = 2 * math.pi;
   if (c['programId'] == 'geometry-paths') {
-    return eyeGeometryPosition(c['stepId'], p * 2);
+    return eyeGeometryPosition(
+      c['stepId'],
+      p * 2,
+      size: size,
+      targetRadius: 22,
+    );
   }
+  // Safe pixel bounds for the 44px target, rather than a square inset on a
+  // tall phone. Semantic rest/far-focus steps intentionally have no target.
+  final insetX = size == null ? .05 : (23 / size.width).clamp(0.0, .5);
+  final insetY = size == null ? .08 : (23 / size.height).clamp(0.0, .5);
+  final radiusX = .5 - insetX, radiusY = .5 - insetY;
   switch (c['stepId']) {
     case 'directions':
       const dirs = [
@@ -206,31 +234,28 @@ Offset? eyePosition(Json c) {
         dirs[(index + 1) % 8],
         ease.toDouble(),
       )!;
-      return Offset(.5 + .45 * point.dx, .46 + .38 * point.dy);
+      return Offset(.5 + radiusX * point.dx, .5 + radiusY * point.dy);
     case 'horizontal':
-      return Offset(.5 + .45 * math.sin(tau * 3 * p), .46);
+      return Offset(.5 + radiusX * math.sin(tau * 3 * p), .5);
     case 'vertical':
-      return Offset(.5, .46 + .38 * math.sin(tau * 3 * p));
+      return Offset(.5, .5 + radiusY * math.sin(tau * 3 * p));
     case 'circle':
       return Offset(
-        .5 + .45 * math.cos(tau * 3 * p),
-        .46 + .38 * math.sin(tau * 3 * p),
+        .5 + radiusX * math.cos(tau * 3 * p),
+        .5 + radiusY * math.sin(tau * 3 * p),
       );
     case 'figure-eight':
       final a = tau * 2 * p;
-      return Offset(
-        .5 + .45 * math.sin(a),
-        .46 + .38 * math.sin(a) * math.cos(a),
-      );
+      return Offset(.5 + radiusX * math.sin(a), .5 + radiusY * math.sin(2 * a));
     case 'converge':
-      return Offset(.5, .08 + .38 * p);
+      return Offset(.5, insetY + radiusY * p);
     case 'far-focus':
     case 'palming':
       return null;
     case 'focus':
-      return const Offset(.5, .42);
+      return const Offset(.5, .5);
     default:
-      return const Offset(.5, .46);
+      return const Offset(.5, .5);
   }
 }
 
@@ -260,8 +285,36 @@ class PracticeArtwork extends StatelessWidget {
   Widget build(BuildContext context) {
     final String set = cue['setId'], program = cue['programId'];
     if (set == 'face-massage') {
-      return FaceMassageGuide(step: cue['stepId'], program: program,
-          progress: (cue['progress'] as num).toDouble());
+      return ClipRect(
+        child: LayoutBuilder(
+          builder: (context, b) {
+            final side = math.min(b.maxWidth, b.maxHeight);
+            final width = side / .2;
+            return Stack(
+              children: [
+                Positioned(
+                  left: b.maxWidth / 2 - width / 2,
+                  top: b.maxHeight / 2 - .075 * width * 1.5,
+                  width: width,
+                  height: width * 1.5,
+                  child: Image.asset(
+                    'packages/practice_kit/assets/cosmic-body/body-master-v1.webp',
+                    fit: BoxFit.fill,
+                  ),
+                ),
+                Positioned.fill(
+                  child: FaceMassageGuide(
+                    step: cue['stepId'],
+                    program: program,
+                    illustrated: true,
+                    progress: (cue['progress'] as num).toDouble(),
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
+      );
     }
     if (set == 'postures') {
       final pose = [
@@ -275,7 +328,8 @@ class PracticeArtwork extends StatelessWidget {
       );
     }
     final focus = cosmicFocus[set];
-    final guide = 'packages/practice_kit/assets/guides/${set}__${program}__${cue['stepId']}.svg';
+    final guide =
+        'packages/practice_kit/assets/guides/${set}__${program}__${cue['stepId']}.svg';
     return ClipRect(
       child: LayoutBuilder(
         builder: (context, b) => Stack(
@@ -311,7 +365,10 @@ class PracticeArtwork extends StatelessWidget {
                   child: SvgPicture.asset(
                     guide,
                     fit: BoxFit.contain,
-                    colorFilter: const ColorFilter.mode(Color(0xe6120a2e), BlendMode.srcIn),
+                    colorFilter: const ColorFilter.mode(
+                      Color(0xe6120a2e),
+                      BlendMode.srcIn,
+                    ),
                   ),
                 ),
               ),
@@ -321,7 +378,10 @@ class PracticeArtwork extends StatelessWidget {
                 fit: BoxFit.contain,
                 colorFilter: focus == null
                     ? null
-                    : const ColorFilter.mode(Color(0xffffffff), BlendMode.srcIn),
+                    : const ColorFilter.mode(
+                        Color(0xffffffff),
+                        BlendMode.srcIn,
+                      ),
               ),
             ),
           ],
@@ -338,12 +398,11 @@ class PracticeArtwork extends StatelessWidget {
 /// iPhone 430×932 картинка выходила на 23 pt ниже центра рамки и на 12 pt
 /// шире её с каждой стороны (отчёты Дениса 01fbe4b2 и fc840740: «не по центру»).
 ///
-/// ⚠️ .66 и центр на .40, а не .76/.46: под фигурой живёт счётчик фазы
-/// («Вдох · 4»), и на кадре 23.09.2026 он лёг прямо на нижнюю грань квадрата.
+/// Fit the available width, reserving a stable caption area below the shape.
 Rect phaseFrame(Size stage) {
-  final side = math.min(stage.width * .78, stage.height * .66);
+  final side = math.max(0.0, math.min(stage.width - 28, stage.height - 64));
   return Rect.fromCenter(
-    center: Offset(stage.width / 2, stage.height * .40),
+    center: Offset(stage.width / 2, (stage.height - 56) / 2),
     width: side,
     height: side,
   );
@@ -378,8 +437,15 @@ class PhaseClock extends CustomPainter {
   /// Сколько углов у рамки: 4 — квадрат, 3 и 5–8 — многоугольник, меньше 3 — круг.
   static int sidesOf(Json cue, Json program, bool breathing) {
     final shape = program['leaderShape'];
-    if (breathing) return shape == 'square' ? 4 : shape == 'triangle' ? 3 : 0;
-    return isPhased(cue, program, breathing) ? objects(program['steps']).length : 0;
+    if (breathing)
+      return shape == 'square'
+          ? 4
+          : shape == 'triangle'
+          ? 3
+          : 0;
+    return isPhased(cue, program, breathing)
+        ? objects(program['steps']).length
+        : 0;
   }
 
   PhaseClock({
@@ -410,6 +476,7 @@ class PhaseClock extends CustomPainter {
         return low;
     }
   }
+
   @override
   void paint(Canvas canvas, Size size) {
     final steps = objects(program['steps']),
@@ -429,6 +496,13 @@ class PhaseClock extends CustomPainter {
     // Различать пройденное надо цветом, а не толщиной: толщина — это габарит.
     const stroke = 6.0;
     // Непройденная часть — заметная, но спокойная: это дорожка, а не главное.
+    final halo = Paint()
+      ..color = track.computeLuminance() > .5
+          ? const Color(0xff111111)
+          : const Color(0xffffffff)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = stroke + 4
+      ..strokeJoin = StrokeJoin.round;
     final outline = Paint()
       ..color = track
       ..style = PaintingStyle.stroke
@@ -456,6 +530,7 @@ class PhaseClock extends CustomPainter {
                   );
             });
       final path = Path()..addPolygon(points, true);
+      canvas.drawPath(path, halo);
       canvas.drawPath(path, outline);
       // 🔴 ШАРИК ВНУТРИ КВАДРАТА (ТЗ Дениса 23.09.2026): «когда вдох идёт, надо
       // чтобы внутри квадрата надувался шарик, и соответственно при выдохе
@@ -508,6 +583,7 @@ class PhaseClock extends CustomPainter {
       } else {
         fraction = phased ? (index + progress) / steps.length : progress;
       }
+      canvas.drawOval(oval, halo);
       canvas.drawOval(oval, outline);
       canvas.drawArc(oval, -math.pi / 2, 2 * math.pi * fraction, false, fill);
       final angle = -math.pi / 2 + 2 * math.pi * fraction;
@@ -551,7 +627,11 @@ class FlyingEye extends CustomPainter {
       Paint()..color = const Color(0xff1f8f86).withValues(alpha: .18),
     );
     // Белок с тонкой обводкой: без неё белое на белом исчезает.
-    canvas.drawCircle(center, r * .82, Paint()..color = const Color(0xffffffff));
+    canvas.drawCircle(
+      center,
+      r * .82,
+      Paint()..color = const Color(0xffffffff),
+    );
     canvas.drawCircle(
       center,
       r * .82,
@@ -560,8 +640,16 @@ class FlyingEye extends CustomPainter {
         ..style = PaintingStyle.stroke
         ..strokeWidth = 2,
     );
-    canvas.drawCircle(center, r * .46, Paint()..color = const Color(0xff2aa79b));
-    canvas.drawCircle(center, r * .24, Paint()..color = const Color(0xff10312f));
+    canvas.drawCircle(
+      center,
+      r * .46,
+      Paint()..color = const Color(0xff2aa79b),
+    );
+    canvas.drawCircle(
+      center,
+      r * .24,
+      Paint()..color = const Color(0xff10312f),
+    );
     // Блик — единственная деталь, которая делает круг живым глазом.
     canvas.drawCircle(
       center + Offset(-r * .18, -r * .2),

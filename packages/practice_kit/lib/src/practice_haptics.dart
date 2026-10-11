@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/services.dart';
 
@@ -122,7 +123,8 @@ class PracticeHaptics {
     final chosen = (config['practiceHaptics'] as Map?)?['leader'] as String?;
     // Явный выбор человека держится: выбранная, но неактивная — молчание.
     if (chosen != null && chosen.isNotEmpty) return chosen == candidate;
-    return leaderOrder.firstWhere(categories.contains, orElse: () => '') == candidate;
+    return leaderOrder.firstWhere(categories.contains, orElse: () => '') ==
+        candidate;
   }
 
   /// Последние вызовы вибрации — едут в отчёт об ошибке (`diagnostics`): жалоба
@@ -214,8 +216,9 @@ class PracticeHaptics {
   void update(Json plan, int elapsedMs, Json config) {
     if (_disposed) return;
     final settings = config['practiceHaptics'] as Map? ?? const {};
-    final active = objects(plan['timeline'])
-        .where((s) => elapsedMs >= s['startMs'] && elapsedMs < s['endMs']);
+    final active = objects(
+      plan['timeline'],
+    ).where((s) => elapsedMs >= s['startMs'] && elapsedMs < s['endMs']);
     final step = active
         .where((s) => owns(plan, elapsedMs, config, category(s)))
         .firstOrNull;
@@ -245,8 +248,9 @@ class PracticeHaptics {
     if (kind == 'eyeHit') return; // Only a validated hit may trigger feedback.
     final id = '${step['stepId']}';
     if (kind == 'breathing' && id.startsWith('hold')) return;
-    final beginning = !objects(plan['timeline'])
-        .any((s) => category(s) == kind && s['startMs'] < step['startMs']);
+    final beginning = !objects(
+      plan['timeline'],
+    ).any((s) => category(s) == kind && s['startMs'] < step['startMs']);
     if ((kind == 'meditation' && settings['meditationSteps'] != true ||
             kind == 'voice') &&
         !beginning) {
@@ -260,12 +264,23 @@ class PracticeHaptics {
     final release = id.contains('release') || id == 'rest' || id == 'neutral';
     final continuous = pelvic && mode == 'hold' && squeeze;
     final remaining = (step['endMs'] as int) - elapsedMs;
+    final fast =
+        !continuous &&
+        (step['endMs'] as int) - (step['startMs'] as int) <= 2000;
     unawaited(
       _send('play', {
-        'durationMs': continuous ? remaining.clamp(1, 30000) : 60,
-        'strength': strength,
+        'durationMs': continuous
+            ? remaining.clamp(1, 30000)
+            : fast
+            ? 20
+            : 60,
+        'strength': fast ? math.min(strength, .25) : strength,
         'continuous': continuous,
-        'count': out || release ? 2 : 1,
+        'count': fast
+            ? 1
+            : out || release
+            ? 2
+            : 1,
       }),
     );
   }
