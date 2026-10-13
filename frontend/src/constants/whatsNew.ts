@@ -16,6 +16,20 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.56.27',
+    date: '2026-10-13',
+    ru: [
+      'Питомец: повторная загрузка изображений после восстановления локального сервера, без перезапуска игры',
+      'Зарядка: завершение и повтор привязаны к своей попытке; запоздавший ответ не переключает новую тренировку',
+      'Нативные экраны больше не подменяются старой веб-страницей при задержке данных: доступны повтор загрузки и выход на главную',
+    ],
+    en: [
+      'Pet images retry after local server recovery without restarting the game',
+      'Warmup results and retries belong to their own attempt; late replies cannot switch a new workout',
+      'Native screens no longer fall back to old web pages when data is delayed: retry loading or return home',
+    ],
+  },
+  {
     version: '2.56.26',
     date: '2026-10-11',
     ru: [
