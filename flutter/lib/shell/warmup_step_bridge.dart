@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'l10n.dart';
+import 'warmup_owner.dart';
 
 /// 🔴 МОСТ МЕЖДУ ДВУМЯ НАТИВНЫМИ ШАГАМИ ЗАРЯДКИ — НАТИВНЫЙ.
 ///
@@ -30,6 +31,7 @@ class WarmupStepDone {
     this.afterNextTitle,
     this.score = 0,
     this.seconds = 0,
+    this.owner,
   });
 
   /// Номер сыгранного шага, с нуля.
@@ -45,6 +47,7 @@ class WarmupStepDone {
   /// Что сыграно — как на карточке веб-моста.
   final num score;
   final num seconds;
+  final WarmupOwner? owner;
 
   static WarmupStepDone? fromJson(Map<String, Object?> m) {
     final next = m['next'];
@@ -57,6 +60,7 @@ class WarmupStepDone {
     final played = m['played'];
     return WarmupStepDone(
       fromIdx: from.toInt(),
+      owner: WarmupOwner.fromJson(m['owner']),
       total: total.toInt(),
       evening: m['evening'] == true,
       nextUrl: url,
@@ -258,20 +262,23 @@ class _WarmupStepBridgeState extends State<WarmupStepBridge> {
 
 /// Где человек в серии — ответ веба `__psyWarmupHost.info()`.
 class WarmupStepInfo {
-  const WarmupStepInfo({required this.idx, required this.total, required this.title, this.evening = false});
+  const WarmupStepInfo({required this.idx, required this.total, required this.title, this.evening = false, this.owner, this.url});
 
   /// Номер ТЕКУЩЕГО шага, с нуля.
   final int idx;
   final int total;
   final String title;
   final bool evening;
+  final WarmupOwner? owner;
+  final String? url;
 
   static WarmupStepInfo? fromJson(Object? m) {
     if (m is! Map || m['active'] != true) return null;
     final idx = m['idx'];
     final total = m['total'];
     if (idx is! num || total is! num) return null;
-    return WarmupStepInfo(idx: idx.toInt(), total: total.toInt(), title: '${m['title'] ?? ''}', evening: m['evening'] == true);
+    return WarmupStepInfo(idx: idx.toInt(), total: total.toInt(), title: '${m['title'] ?? ''}', evening: m['evening'] == true,
+        owner: WarmupOwner.fromJson(m['owner']), url: m['url'] is String ? m['url'] as String : null);
   }
 }
 
@@ -284,12 +291,13 @@ class WarmupStepInfo {
 /// этой рамкой сама: каркас игры (`GameShell`) не трогается, и рамка одна на все
 /// нативные игры. Пропуск ведёт туда же, куда веб-⏭ (`skipCurrent`).
 class WarmupStepFrame extends StatelessWidget {
-  const WarmupStepFrame({super.key, required this.info, required this.onSkip, required this.child});
+  const WarmupStepFrame({super.key, required this.info, required this.onSkip, required this.child, this.validateSkip});
 
   /// Пусто, пока веб не ответил: полоска уже стоит, номер приходит следом —
   /// чтобы экран игры не прыгал вниз через мгновение после открытия.
   final ValueListenable<WarmupStepInfo?> info;
   final VoidCallback onSkip;
+  final bool Function(WarmupStepInfo?)? validateSkip;
   final Widget child;
 
   Future<void> _askSkip(BuildContext context, WarmupStepInfo? i) async {
@@ -313,7 +321,7 @@ class WarmupStepFrame extends StatelessWidget {
         ],
       ),
     );
-    if (yes == true) onSkip();
+    if (yes == true && (validateSkip?.call(i) ?? true)) onSkip();
   }
 
   @override

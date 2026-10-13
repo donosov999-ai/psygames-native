@@ -182,9 +182,12 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
   String get _locale => L.locales.contains(L.locale) ? L.locale : 'en';
   String get _masteryKey => '${SharedState.prefix}pause_solo_${widget.state.activeProfile}';
 
+  late final SessionLaunch _sessionLaunch;
+
   @override
   void initState() {
     super.initState();
+    _sessionLaunch = SessionLaunch.capture();
     WidgetsBinding.instance.addObserver(this);
     final given = widget.engine;
     if (given != null) {
@@ -639,6 +642,7 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
     unawaited(widget.state.set(_masteryKey, jsonEncode(mastery)));
     final int duration = result['durationMs'];
     unawaited(SessionReport.send(
+      launch: _sessionLaunch,
       gameType: 'pause',
       score: (duration / 60000).round(),
       timeSeconds: (duration / 1000).round(),
@@ -656,6 +660,7 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
     unawaited(_ledger.complete(widget.today?.call() ?? DateTime.now())); // wall-clock: день серии
     final wim = technique == 'wimhof';
     unawaited(SessionReport.send(
+      launch: _sessionLaunch,
       gameType: 'breathing',
       score: seconds.round(),
       timeSeconds: seconds.round(),
@@ -688,6 +693,7 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
     }
     final scale = e.byLevel ? eyeGymLevel(done).scale : _eyeScale;
     unawaited(SessionReport.send(
+      launch: _sessionLaunch,
       gameType: 'eye_gym',
       score: e.totalSec,
       timeSeconds: e.totalSec,

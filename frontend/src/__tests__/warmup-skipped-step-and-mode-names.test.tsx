@@ -28,6 +28,7 @@ declare function require(id: string): any;
 let mockWarmup: any = null;
 const mockReplace = jest.fn();
 let mockListener: ((s: any) => Promise<void> | void) | null = null;
+let mockGate: ((s: any) => boolean) | null = null;
 
 /* Мост и итог получают подменённую зарядку; провайдер в третьем блоке — настоящий
    (`jest.requireActual`), подмена отдаёт его, пока `mockWarmup` не задан. */
@@ -60,7 +61,11 @@ jest.mock('@/src/components/GradientSurface', () => {
   const { View } = require('react-native');
   return { __esModule: true, default: ({ children, ...p }: any) => R.createElement(View, p, children) };
 });
-jest.mock('@/src/services/api', () => ({ getSessions: async () => [], setSessionListener: (fn: any) => { mockListener = fn; } }));
+jest.mock('@/src/services/api', () => ({
+  getSessions: async () => [],
+  setSessionAcceptance: (fn: any) => { mockGate = fn; },
+  setSessionListener: (fn: any) => { mockListener = fn ? async (s: any) => { if (mockGate?.(s) !== false) await fn(s); } : null; },
+}));
 jest.mock('@/src/services/feedback', () => ({ fbCorrect: () => {}, fbComplete: () => {} }));
 jest.mock('@/src/services/weakSkill', () => ({ saveWeakSkill: async () => {} }));
 jest.mock('@/src/services/tokens', () => ({ addTokens: async () => {}, comboBonus: () => ({ bonus: 0, streakLen: 0 }) }));
@@ -160,10 +165,34 @@ describe('провайдер: результат знает номер свое�
     await act(async () => { jest.advanceTimersByTime(900); });
     await act(async () => { ctx.skipCurrent(); });
     await act(async () => { jest.advanceTimersByTime(10); });
-    await act(async () => { await mockListener!({ game_type: 'corsi', score: 7, time_seconds: 30, errors: 0, details: {} }); });
+    await act(async () => { await mockListener!({ id: 'corsi-round', game_type: 'corsi', score: 7, time_seconds: 30, errors: 0,
+      details: { warmup_owner: ctx.owner() },
+    }); });
     expect(`шаг ${ctx.currentIdx} · результатов ${ctx.results.length} · номер ${ctx.results[0]?.шаг}`).toBe('шаг 2 · результатов 1 · номер 2');
     await act(async () => { tr.unmount(); });
     jest.clearAllTimers();
     jest.useRealTimers();
   });
+});
+
+it('same mounted WEB bridge cannot use its old countdown to navigate a new run', async () => {
+  jest.useFakeTimers(); mockReplace.mockClear();
+  const old = { run_id: 'old', step_idx: 1, attempt_id: 'old-attempt' };
+  mockWarmup = {
+    meta: набор([ПАРЫ, СЕТЬ, КОРСИ]), results: [], currentIdx: 1, currentStep: СЕТЬ,
+    active: true, overtime: false, attemptOwner: old, owner: () => mockWarmup.attemptOwner,
+  };
+  let tr!: TestRenderer.ReactTestRenderer;
+  try {
+    await act(async () => { tr = TestRenderer.create(<WarmupBridge />); });
+    await act(async () => { jest.advanceTimersByTime(3000); });
+    mockWarmup = { ...mockWarmup, attemptOwner: { ...old, run_id: 'new', attempt_id: 'new-attempt' } };
+    await act(async () => { tr.update(<WarmupBridge />); });
+    mockReplace.mockClear();
+    await act(async () => { jest.advanceTimersByTime(3000); });
+    expect(mockReplace).not.toHaveBeenCalled();
+  } finally {
+    await act(async () => { tr?.unmount(); });
+    jest.clearAllTimers(); jest.useRealTimers();
+  }
 });

@@ -362,9 +362,12 @@ class _SudokuScreenState extends State<SudokuScreen> {
   /// Порог провала: ступень плюс одна, если вторая жизнь потрачена.
   int get _errorCap => errorLimit + (_lifeSpent ? 1 : 0);
 
+  late final SessionLaunch _sessionLaunch;
+
   @override
   void initState() {
     super.initState();
+    _sessionLaunch = SessionLaunch.capture();
     _road = sudokuRoadOf(widget.state.get(sudokuRoadKey(widget.state.activeProfile))) ?? defaultSudokuRoad;
     _ladder = _ladderUpTo(SudokuLevels.fallbackLast);
     _boot();
@@ -660,6 +663,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
     if (junior == null) return;
     final step = junior.step;
     unawaited(SessionReport.send(
+      launch: _sessionLaunch,
       gameType: 'sudoku',
       score: _score(step),
       timeSeconds: _elapsed,
@@ -888,6 +892,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
     _repeatable = outcome == Outcome.failed ? lastTemplate(next, _pool) : null;
     final won = outcome != Outcome.failed;
     unawaited(SessionReport.send(
+      launch: _sessionLaunch,
       gameType: 'sudoku',
       score: won ? _score(_pilotLevel) : 0,
       timeSeconds: _elapsed,
@@ -1329,6 +1334,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
     final junior = _junior;
     if (widget.junior && junior != null) {
       unawaited(SessionReport.send(
+        launch: _sessionLaunch,
         gameType: 'sudoku',
         score: 0,
         timeSeconds: _elapsed,
@@ -1349,6 +1355,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
     final mode = widget.mode;
     final level = mode == null ? _ladder.level : (_side?.step ?? 1);
     unawaited(SessionReport.send(
+      launch: _sessionLaunch,
       gameType: 'sudoku',
       score: 0,
       timeSeconds: _elapsed,
@@ -1387,6 +1394,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
   void _reportModeWin(int step) {
     final mode = widget.mode!;
     unawaited(SessionReport.send(
+      launch: _sessionLaunch,
       gameType: 'sudoku',
       score: _score(step),
       timeSeconds: _elapsed,
@@ -1473,6 +1481,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
         : widget.mode != null ? (_side?.step ?? 1)
         : _pilot ? _pilotLevel : _ladder.level;
     unawaited(SessionReport.send(
+      launch: _sessionLaunch,
       gameType: 'sudoku', score: 0, timeSeconds: _elapsed, errors: _errors,
       mode: widget.junior ? 'junior-$level'
           : widget.mode != null ? _modeKey(widget.mode!, level)

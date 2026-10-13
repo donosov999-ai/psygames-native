@@ -22,6 +22,8 @@ import { translateFor } from '@/src/contexts/LanguageContext';
 import type { PlaylistMeta, PlaylistStep, WarmupSlot } from '@/src/services/warmup';
 import { stepToParams } from '@/src/services/warmup';
 import { ключИмениШага } from '@/src/services/stepName';
+import { ownerParams, type WarmupOwner } from '@/src/services/warmupOwner';
+export type { WarmupOwner } from '@/src/services/warmupOwner';
 
 type HostWindow = {
   __psyHostNativeRoutes?: unknown;
@@ -72,20 +74,22 @@ export interface WarmupLastStepDone {
   fromIdx: number;
   total: number;
   evening: boolean;
+  owner?: WarmupOwner;
 }
 
-export function lastStepMessage(meta: PlaylistMeta, fromIdx: number): WarmupLastStepDone {
+export function lastStepMessage(meta: PlaylistMeta, fromIdx: number, owner?: WarmupOwner): WarmupLastStepDone {
   return {
     op: 'warmupLastStepDone',
     fromIdx,
     total: meta.steps.length,
     evening: meta.slot === 'evening' || meta.slot === 'night',
+    ...(owner ? { owner } : {}),
   };
 }
 
 /** Тот же адрес шага, что строит веб-мост (`router.replace({ pathname, params })`). */
-export function stepUrl(step: PlaylistStep, slot?: WarmupSlot, track?: PlaylistMeta['track']): string {
-  const q = new URLSearchParams(stepToParams(step, slot, track)).toString();
+export function stepUrl(step: PlaylistStep, slot?: WarmupSlot, track?: PlaylistMeta['track'], owner?: WarmupOwner): string {
+  const q = new URLSearchParams({ ...stepToParams(step, slot, track), ...ownerParams(owner) }).toString();
   return q ? `${pathOf(step.game_route)}?${q}` : pathOf(step.game_route);
 }
 
@@ -111,9 +115,11 @@ export interface WarmupHostInfo {
   total: number;
   title: string;
   evening: boolean;
+  owner: WarmupOwner | null;
+  url: string | null;
 }
 
-export function hostInfo(active: boolean, meta: PlaylistMeta | null, idx: number): WarmupHostInfo {
+export function hostInfo(active: boolean, meta: PlaylistMeta | null, idx: number, owner?: WarmupOwner | null): WarmupHostInfo {
   const step = meta?.steps[idx];
   return {
     active: active && !!meta && !!step,
@@ -121,6 +127,8 @@ export function hostInfo(active: boolean, meta: PlaylistMeta | null, idx: number
     total: meta?.steps.length ?? 0,
     title: step ? stepTitle(step, hostLang()) : '',
     evening: meta?.slot === 'evening' || meta?.slot === 'night',
+    owner: active && step ? owner ?? null : null,
+    url: active && step ? stepUrl(step, meta?.slot, meta?.track, owner ?? undefined) : null,
   };
 }
 
@@ -135,12 +143,14 @@ export interface WarmupStepDone {
   afterNext: { url: string; title: string } | null;
   /** Что сыграно — как на карточке веб-моста: очки и время. */
   played: { score: number; time_seconds: number; errors: number };
+  owner?: WarmupOwner;
 }
 
 export function stepDoneMessage(
   meta: PlaylistMeta,
   fromIdx: number,
   played: { score?: number; time_seconds?: number; errors?: number } = {},
+  owner?: WarmupOwner,
 ): WarmupStepDone | null {
   const next = meta.steps[fromIdx + 1];
   if (!next) return null;
@@ -154,6 +164,7 @@ export function stepDoneMessage(
     next: { url: stepUrl(next, meta.slot, meta.track), title: stepTitle(next, lang) },
     afterNext: after ? { url: stepUrl(after, meta.slot, meta.track), title: stepTitle(after, lang) } : null,
     played: { score: played.score ?? 0, time_seconds: played.time_seconds ?? 0, errors: played.errors ?? 0 },
+    ...(owner ? { owner } : {}),
   };
 }
 

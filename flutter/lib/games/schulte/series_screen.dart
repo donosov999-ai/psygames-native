@@ -71,9 +71,12 @@ class _SchulteSeriesScreenState extends State<SchulteSeriesScreen> {
 
   String get _key => SchulteSeriesProgress.keyFor(widget.state.activeProfile);
 
+  late final SessionLaunch _sessionLaunch;
+
   @override
   void initState() {
     super.initState();
+    _sessionLaunch = SessionLaunch.capture();
     _boot();
   }
 
@@ -188,6 +191,7 @@ class _SchulteSeriesScreenState extends State<SchulteSeriesScreen> {
   void _report(SeriesRun run) {
     final s = seriesSession(run);
     SessionReport.send(
+      launch: _sessionLaunch,
       gameType: s.gameType,
       score: s.score,
       timeSeconds: s.timeSeconds.round(),

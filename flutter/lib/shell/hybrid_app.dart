@@ -130,6 +130,7 @@ import 'catalog_screen.dart';
 import 'hub_screen.dart';
 import 'warmup_bridge.dart';
 import 'warmup_step_bridge.dart';
+import 'warmup_owner.dart';
 import 'game_pet.dart';
 import 'session_report.dart';
 import 'game_preset.dart';
@@ -609,6 +610,7 @@ class _HybridAppState extends State<HybridApp> {
   /// Экран сняли МЫ, потому что страница ушла вперёд, — а не человек кнопкой.
   final Set<Route<dynamic>> _pagesClosedByWeb = {};
   Route<dynamic>? _openedPage;
+  WarmupOwner? _openedWarmupOwner;
 
   /// Какой нативный экран сейчас открыт поверх страницы.
   ///
@@ -899,7 +901,12 @@ class _HybridAppState extends State<HybridApp> {
           return;
         }
         final route = HybridApp.routeOf(url);
-        switch (routeAction(_openedRoute, route)) {
+        final incomingOwner = WarmupOwner.fromQuery(HybridApp.queryOf(url));
+        final action = _openedRoute == route && _openedRoute != null &&
+                incomingOwner != _openedWarmupOwner
+            ? RouteAction.closeThenOpen
+            : routeAction(_openedRoute, route);
+        switch (action) {
           case RouteAction.keep:
             break;
           case RouteAction.close:
@@ -1200,7 +1207,7 @@ class _HybridAppState extends State<HybridApp> {
         'window.__psyHostScreens=${jsonEncode(ScreenUi.routes.toList())};';
   }
 
-  Future<void> _loadStepInfo(ValueNotifier<WarmupStepInfo?> into) async {
+  Future<void> _loadStepInfo(ValueNotifier<WarmupStepInfo?> into, WarmupOwner? owner) async {
     try {
       final raw = await _c.runJavaScriptReturningResult(
         'JSON.stringify(window.__psyWarmupHost && window.__psyWarmupHost.info ? window.__psyWarmupHost.info() : null)',
@@ -1210,83 +1217,102 @@ class _HybridAppState extends State<HybridApp> {
       for (var i = 0; i < 2 && v is String; i += 1) {
         v = jsonDecode(v);
       }
-      into.value = WarmupStepInfo.fromJson(v);
+      final info = WarmupStepInfo.fromJson(v);
+      if (mounted && _openedWarmupOwner == owner && info?.owner == owner) into.value = info;
     } catch (_) {
       // Нет ответа — полоска остаётся без номера, ⏭ работает.
     }
   }
 
   /// ⏭ нативного шага — туда же, куда веб-⏭: `skipCurrent` веба.
-  Future<void> _skipNativeStep() async {
+  Future<void> _skipNativeStep(Route<dynamic> page, WarmupOwner? owner) async {
+    if (!_ownsWarmupPage(page, owner)) return;
     _closeNativeBecausePageMoved();
-    await _c.runJavaScript('window.__psyWarmupHost && window.__psyWarmupHost.skip && window.__psyWarmupHost.skip();');
+    await _c.runJavaScript('window.__psyWarmupHost && window.__psyWarmupHost.skip && window.__psyWarmupHost.skip(${jsonEncode(owner!.toJson())});');
   }
 
-  /// Шаг зарядки, переход с которого оболочка уже ведёт или только что провела.
-  int? _stepDoneFrom;
-  DateTime? _stepDoneAt;
+  /// One issued attempt, not an index/time debounce shared between different runs.
+  WarmupOwner? _stepDoneOwner;
+
+  bool _ownsWarmupPage(Route<dynamic>? page, WarmupOwner? owner) =>
+      mounted && page != null && page.isActive && identical(_openedPage, page) &&
+      owner != null && _openedWarmupOwner == owner;
+
+  Object? _decodeHostResult(Object? raw) {
+    for (var i = 0; i < 2 && raw is String; i++) { raw = jsonDecode(raw); }
+    return raw;
+  }
+
+  Future<WarmupStepInfo?> _hostStep(String method, WarmupOwner owner, [int? index]) async {
+    final args = '${index == null ? '' : '$index,'}${jsonEncode(owner.toJson())}';
+    final raw = await _c.runJavaScriptReturningResult(
+      'JSON.stringify(window.__psyWarmupHost && window.__psyWarmupHost.$method($args))',
+    );
+    return WarmupStepInfo.fromJson(_decodeHostResult(raw));
+  }
+
+  Future<bool> _retryNativeStep(Route<dynamic> page, ValueNotifier<WarmupStepInfo?> step) async {
+    final owner = _openedWarmupOwner;
+    if (!_ownsWarmupPage(page, owner)) return false;
+    try {
+      final info = await _hostStep('retry', owner!);
+      if (!_ownsWarmupPage(page, owner) || info?.owner == null || info?.url == null ||
+          info!.owner!.runId != owner.runId || info.idx != owner.stepIdx || info.owner == owner ||
+          WarmupOwner.fromQuery(HybridApp.queryOf(info.url!)) != info.owner) { return false; }
+      _openedWarmupOwner = info.owner;
+      GamePreset.set(HybridApp.queryOf(info.url!));
+      step.value = info;
+      return true;
+    } catch (_) { return false; }
+  }
 
   Future<void> _warmupStepDone(Map<String, Object?> m) async {
-    /*
-     * 🔴 ОДИН ШАГ — ОДИН ПЕРЕХОД. 06.10.2026, 2.56.12 (отчёт 02d98918): после SDMT
-     * пришли ДВА `warmupStepDone{fromIdx:2}` — партию сохранили и нативный экран, и
-     * веб-копия игры под ним. Встали два моста; первый снялся пустым (`case null`),
-     * закрыл уже открытый следующий шаг и остановил зарядку — человек на главной.
-     * Веб теперь шлёт «готов» один раз (`WarmupContext`), а здесь — второй замок:
-     * повтор того же шага в пределах минуты не новый переход. Минута — меньше
-     * любого шага зарядки, поэтому новый заход того же номера она не съест.
-     */
-    final from = m['fromIdx'];
-    final now = DateTime.now();
-    if (from is num && from.toInt() == _stepDoneFrom &&
-        _stepDoneAt != null && now.difference(_stepDoneAt!) < const Duration(minutes: 1)) {
-      return;
-    }
-    if (from is num) {
-      _stepDoneFrom = from.toInt();
-      _stepDoneAt = now;
-    }
     final done = WarmupStepDone.fromJson(m);
+    final owner = done?.owner;
+    final page = _openedPage;
     final next = done == null ? null : HybridApp.routeOf('${widget.server.origin}${done.nextUrl}');
     // 🔴 ВЕБ ЖДЁТ ОТВЕТА: свой переход он в этом случае не планирует. Вести не можем
     // (экран уже закрыт, следующий шаг не наш) — возвращаем переход вебу.
-    if (done == null || next == null || _openedRoute == null || !mounted) {
-      if (from is num) {
-        await _c.runJavaScript('window.__psyWarmupHost && window.__psyWarmupHost.advance(${from.toInt()});');
-      }
+    if (done == null || owner?.stepIdx != done.fromIdx || !_ownsWarmupPage(page, owner) ||
+        owner == _stepDoneOwner) { return; }
+    _stepDoneOwner = owner;
+    if (next == null) {
+      await _c.runJavaScript('window.__psyWarmupHost && window.__psyWarmupHost.advance(${done.fromIdx},${jsonEncode(owner!.toJson())});');
       return;
     }
     // Игра успевает показать свой итог — как у веб-зарядки (2 с, вечером 3,5).
-    final shown = _openedRoute;
     await Future<void>.delayed(Duration(milliseconds: done.evening ? 3500 : 2000));
-    if (!mounted || _openedRoute != shown) {
-      // Человек ушёл из игры сам, пока она показывала итог: переход — вебу.
-      await _c.runJavaScript('window.__psyWarmupHost && window.__psyWarmupHost.advance(${done.fromIdx});');
-      return;
-    }
+    if (!mounted || !_ownsWarmupPage(page, owner)) return;
     final choice = await Navigator.of(context).push<WarmupBridgeChoice>(
       MaterialPageRoute(builder: (_) => WarmupStepBridge(done: done)),
     );
-    if (!mounted) return;
+    if (!_ownsWarmupPage(page, owner)) return;
     switch (choice) {
       case WarmupBridgeChoice.go:
-        // Снять сыгранную игру и сразу открыть следующую — без страницы посередине.
+        // Accept in the provider BEFORE opening the next native game.
+        WarmupStepInfo? info;
+        try { info = await _hostStep('goTo', owner!, done.fromIdx + 1); }
+        catch (_) { return; }
+        if (!_ownsWarmupPage(page, owner) || info?.owner == null || info?.url == null ||
+            info!.owner!.runId != owner.runId || info.idx != done.fromIdx + 1 ||
+            WarmupOwner.fromQuery(HybridApp.queryOf(info.url!)) != info.owner) { return; }
+        final target = HybridApp.routeOf(info.url!);
+        if (target == null) return;
         _closeNativeBecausePageMoved();
         unawaited(_openNative(
-          next,
-          query: HybridApp.queryOf(done.nextUrl),
-          stepInfo: WarmupStepInfo(idx: done.fromIdx + 1, total: done.total, title: done.nextTitle, evening: done.evening),
+          target,
+          query: HybridApp.queryOf(info.url!),
+          stepInfo: info,
         ));
-        await _c.runJavaScript('window.__psyWarmupHost && window.__psyWarmupHost.goTo(${done.fromIdx + 1});');
       case WarmupBridgeChoice.skip:
         // Следующий шаг пропущен: страница сама уйдёт на шаг через один (или на итог),
         // а перехват откроет его, если он наш.
         _closeNativeBecausePageMoved();
-        await _c.runJavaScript('window.__psyWarmupHost && window.__psyWarmupHost.goTo(${done.fromIdx + 2});');
+        await _c.runJavaScript('window.__psyWarmupHost && window.__psyWarmupHost.goTo(${done.fromIdx + 2},${jsonEncode(owner!.toJson())});');
       case WarmupBridgeChoice.stop:
       case null:
         _closeNativeBecausePageMoved();
-        await _c.runJavaScript('window.__psyWarmupHost && window.__psyWarmupHost.stop();');
+        await _c.runJavaScript('window.__psyWarmupHost && window.__psyWarmupHost.stop(${jsonEncode(owner!.toJson())});');
     }
   }
 
@@ -1301,19 +1327,15 @@ class _HybridAppState extends State<HybridApp> {
    */
   Future<void> _warmupLastStepDone(Map<String, Object?> m) async {
     final from = m['fromIdx'];
-    if (from is! num) return;
-    final now = DateTime.now();
-    if (from.toInt() == _stepDoneFrom &&
-        _stepDoneAt != null && now.difference(_stepDoneAt!) < const Duration(minutes: 1)) {
-      return;
-    }
-    _stepDoneFrom = from.toInt();
-    _stepDoneAt = now;
+    final owner = WarmupOwner.fromJson(m['owner']);
+    final page = _openedPage;
+    if (from is! int || from != owner?.stepIdx || !_ownsWarmupPage(page, owner) || owner == _stepDoneOwner) return;
+    _stepDoneOwner = owner;
     // Игра успевает показать свой итог — как между шагами (2 с, вечером 3,5).
     await Future<void>.delayed(Duration(milliseconds: m['evening'] == true ? 3500 : 2000));
-    if (!mounted) return;
+    if (!_ownsWarmupPage(page, owner)) return;
     _closeNativeBecausePageMoved();
-    await _c.runJavaScript('window.__psyWarmupHost && window.__psyWarmupHost.advance(${from.toInt()});');
+    await _c.runJavaScript('window.__psyWarmupHost && window.__psyWarmupHost.advance($from,${jsonEncode(owner!.toJson())});');
   }
 
   /// Возвращает, ушёл ли человек с экрана САМ (назад) — а не страница увела его дальше и
@@ -1327,6 +1349,7 @@ class _HybridAppState extends State<HybridApp> {
     final build = HybridApp.native[route] ?? HybridApp.shell[route];
     if (build == null) return false;
     _openedRoute = route;
+    _openedWarmupOwner = WarmupOwner.fromQuery(query);
     final over = _markNativeOver(route);
     // Настройки шага живут ровно столько, сколько открыт экран, — как
     // `useLocalSearchParams` в вебе. См. [GamePreset].
@@ -1338,18 +1361,22 @@ class _HybridAppState extends State<HybridApp> {
     // 🔴 ШАГ ЗАРЯДКИ — В РАМКЕ С ПОЛОСКОЙ «N/M · ⏭» (задача 63bccf96): веб рисует её в
     // своём каркасе, а нативный экран лежит поверх страницы. Номер шага знает веб —
     // спрашиваем; когда переход ведёт сама оболочка, он известен заранее.
-    final step = GamePreset.isWarmup ? ValueNotifier<WarmupStepInfo?>(stepInfo) : null;
+    final launchOwner = _openedWarmupOwner;
+    final step = GamePreset.isWarmup ? ValueNotifier<WarmupStepInfo?>(stepInfo ??
+        (launchOwner == null ? null : WarmupStepInfo(idx: launchOwner.stepIdx, total: 0, title: '', owner: launchOwner))) : null;
     // Снимок ключей, которые веб читает при запуске: после нативных настроек сравним.
     final watchedBefore = _watchedSnapshot();
-    if (step != null && stepInfo == null) unawaited(_loadStepInfo(step));
-    final page = MaterialPageRoute<dynamic>(
+    if (step != null && stepInfo == null) unawaited(_loadStepInfo(step, _openedWarmupOwner));
+    late final MaterialPageRoute<dynamic> page;
+    page = MaterialPageRoute<dynamic>(
         // «Заново» в паузе любой игры — пересоздание экрана в RestartScope (restart_scope.dart).
         builder: (_) => step == null
             ? RestartScope(builder: (_) => build(widget.state))
             : WarmupStepFrame(
                 info: step,
-                onSkip: _skipNativeStep,
-                child: RestartScope(builder: (_) => build(widget.state)),
+                onSkip: () => _skipNativeStep(page, _openedWarmupOwner),
+                validateSkip: (info) => _ownsWarmupPage(page, info?.owner),
+                child: RestartScope(beforeRestart: () => _retryNativeStep(page, step), builder: (_) => build(widget.state)),
               ),
       );
     _openedPage = page;
@@ -1368,6 +1395,7 @@ class _HybridAppState extends State<HybridApp> {
     if (identical(_openedPage, page)) {
       _openedPage = null;
       _openedRoute = null;
+      _openedWarmupOwner = null;
       GamePreset.clear();
     }
     _unmarkNativeOver(over);

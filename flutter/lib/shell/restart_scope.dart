@@ -13,9 +13,11 @@ import 'package:flutter/widgets.dart';
 /// `LevelLadder.fail` при этом не зовётся — «Заново» не проигрыш. Настройки шага зарядки
 /// (`GamePreset`) живут, пока открыт маршрут, поэтому шаг перезапускается шагом.
 class RestartScope extends StatefulWidget {
-  const RestartScope({super.key, required this.builder});
+  const RestartScope({super.key, required this.builder, this.beforeRestart});
 
   final WidgetBuilder builder;
+  /// Playlist attempts must be revoked and reissued before rebuilding the game.
+  final Future<bool> Function()? beforeRestart;
 
   /// Перезапуск ближайшего экрана; `null` — экран открыт не оболочкой (настольная проба).
   static VoidCallback? of(BuildContext context) =>
@@ -27,9 +29,17 @@ class RestartScope extends StatefulWidget {
 
 class _RestartScopeState extends State<RestartScope> {
   int _generation = 0;
+  bool _restarting = false;
 
-  void _restart() {
-    if (mounted) setState(() => _generation++);
+  void _restart() async {
+    if (_restarting || !mounted) return;
+    _restarting = true;
+    try {
+      final accepted = await widget.beforeRestart?.call() ?? true;
+      if (mounted && accepted) setState(() => _generation++);
+    } finally {
+      _restarting = false;
+    }
   }
 
   @override

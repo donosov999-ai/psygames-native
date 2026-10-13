@@ -11,7 +11,8 @@ import 'package:psygames_flutter/shell/level_rules.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:psygames_flutter/shell/warmup_step_bridge.dart';
 
-import 'hybrid_overlay_route_repro_test.dart' show FakeWebViewPlatform, Trace, resetHarnessSingletons;
+import 'hybrid_overlay_route_repro_test.dart' show Trace, resetHarnessSingletons;
+import 'fixtures/warmup_host.dart';
 
 /// 🔴 ПОСЛЕДНИЙ ШАГ ЗАРЯДКИ — НАТИВНЫЙ: ПОСЛЕ ПАРТИИ ИГРА ЗАКРЫВАЕТСЯ, ОТКРЫВАЕТСЯ ИТОГ.
 ///
@@ -24,7 +25,7 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   late AssetServer server;
   late SharedState state;
-  late FakeWebViewPlatform web;
+  late WarmupWebViewPlatform web;
   late Trace trace;
   setUp(() async {
     resetHarnessSingletons();
@@ -33,7 +34,8 @@ void main() {
     await GameRules.load();
     await LevelRules.load();
     server = await AssetServer.start();
-    web = FakeWebViewPlatform();
+    web = WarmupWebViewPlatform();
+    web.nextUrls[5] = '/games/n-back?wu=1&diff=easy&mode=1-back';
     wv.WebViewPlatform.instance = web;
     trace = Trace();
   });
@@ -46,13 +48,14 @@ void main() {
     await tester.pumpWidget(MaterialApp(navigatorObservers: [trace], home: HybridApp(state: state, server: server)));
     await tester.pump(const Duration(milliseconds: 400));
     final page = web.controllers.first;
-    page.emit(SharedState.channel, {'op': 'route', 'url': '${server.origin}/games/sdmt?wu=1'});
+    page.emit(SharedState.channel, {'op': 'route', 'url': '${server.origin}/games/sdmt?wu=1&wuRun=run&wuStep=4&wuAttempt=step-4'});
     for (var i = 0; i < 40 && find.byType(SdmtScreen).evaluate().isEmpty; i++) {
       await tester.pump(const Duration(milliseconds: 100));
     }
     expect(find.byType(SdmtScreen), findsOneWidget);
     page.emit(SharedState.channel, {
       'op': 'warmupStepDone', 'fromIdx': 4, 'total': 6, 'evening': false,
+      'owner': {'run_id': 'run', 'step_idx': 4, 'attempt_id': 'step-4'},
       'next': {'url': '/games/n-back?wu=1&diff=easy&mode=1-back', 'title': 'N-back'},
       'afterNext': null,
       'played': {'score': 12, 'time_seconds': 60},
@@ -61,9 +64,9 @@ void main() {
       await tester.pump(const Duration(milliseconds: 100));
     }
     expect(find.byType(NBackScreen), findsOneWidget, reason: 'мост оболочки открыл последний шаг');
-    expect(page.js.where((j) => j.contains('goTo(5)')), hasLength(1));
+    expect(page.js.where((j) => j.contains('goTo(5,')), hasLength(1));
     // Веб догоняет оболочку: адрес страницы встаёт на тот же шаг (для перехвата — «тот же экран»).
-    page.emit(SharedState.channel, {'op': 'route', 'url': '${server.origin}/games/n-back?wu=1&diff=easy&mode=1-back'});
+    page.emit(SharedState.channel, {'op': 'route', 'url': '${server.origin}/games/n-back?wu=1&diff=easy&mode=1-back&wuRun=run&wuStep=5&wuAttempt=step-5'});
     await tester.pump(const Duration(milliseconds: 300));
     expect(find.byType(NBackScreen), findsOneWidget);
 
@@ -83,12 +86,13 @@ void main() {
     await tester.pumpWidget(MaterialApp(navigatorObservers: [trace], home: HybridApp(state: state, server: server)));
     await tester.pump(const Duration(milliseconds: 400));
     final page = web.controllers.first;
-    page.emit(SharedState.channel, {'op': 'route', 'url': '${server.origin}/games/n-back?wu=1&diff=easy&mode=1-back'});
+    page.emit(SharedState.channel, {'op': 'route', 'url': '${server.origin}/games/n-back?wu=1&diff=easy&mode=1-back&wuRun=run&wuStep=5&wuAttempt=step-5'});
     for (var i = 0; i < 40 && find.byType(NBackScreen).evaluate().isEmpty; i++) {
       await tester.pump(const Duration(milliseconds: 100));
     }
     expect(find.byType(NBackScreen), findsOneWidget);
-    final last = {'op': 'warmupLastStepDone', 'fromIdx': 5, 'total': 6, 'evening': false};
+    final last = {'op': 'warmupLastStepDone', 'fromIdx': 5, 'total': 6, 'evening': false,
+      'owner': {'run_id': 'run', 'step_idx': 5, 'attempt_id': 'step-5'}};
     page.emit(SharedState.channel, last);
     page.emit(SharedState.channel, last);   // повтор — не второй переход
     await tester.pump(const Duration(milliseconds: 1500));
@@ -97,7 +101,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 100));
     }
     expect(find.byType(NBackScreen, skipOffstage: false), findsNothing, reason: 'игра последнего шага снята оболочкой');
-    expect(page.js.where((j) => j.contains('advance(5)')), hasLength(1));
+    expect(page.js.where((j) => j.contains('advance(5,')), hasLength(1));
     expect(page.js.where((j) => j.contains('.stop()')), isEmpty);
   });
 }

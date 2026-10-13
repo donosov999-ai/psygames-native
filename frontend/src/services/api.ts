@@ -11,6 +11,7 @@ import { getSupabase, SUPABASE_TABLE } from '@/src/services/supabase';
 import { IS_WEB_DEMO } from '@/src/services/buildTarget';
 import { isHostSession, phantomSession } from '@/src/services/hostSessions';
 import { progressiveWarmupLocation, webOwnsLevelProgress } from '@/src/services/warmupProgression';
+import { parseWarmupOwner, sameWarmupOwner, webLaunchOwner } from '@/src/services/warmupOwner';
 /**
  * ⚠️ НАЧИСЛЕНИЕ ИМПОРТИРУЕТСЯ ОБЫЧНО, А НЕ `await import(...)`, как соседи ниже.
  * Ленивый импорт здесь брали от круговой зависимости, но её у этой пары нет: earn
@@ -139,14 +140,18 @@ function migrateSession(s: GameSession): GameSession {
   return s;
 }
 
-async function readAll(): Promise<GameSession[]> {
+async function readAll(strict = false): Promise<GameSession[]> {
   try {
     const raw = await AsyncStorage.getItem(STORAGE_KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return [];
+    if (!Array.isArray(parsed)) {
+      if (strict) throw new Error('Owned session journal is not an array');
+      return [];
+    }
     return (parsed as GameSession[]).map(migrateSession);
   } catch (err) {
+    if (strict) throw err;
     console.warn('Failed to read sessions from storage:', err);
     return [];
   }
@@ -180,10 +185,11 @@ function inWriteQueue<T>(job: () => Promise<T>): Promise<T> {
   return run;
 }
 
-async function writeAll(sessions: GameSession[]): Promise<void> {
+async function writeAll(sessions: GameSession[], strict = false): Promise<void> {
   try {
     await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(sessions));
   } catch (err) {
+    if (strict) throw err;
     console.warn('Failed to persist sessions to storage:', err);
   }
 }
@@ -197,6 +203,12 @@ let _sessionListener: SessionListener | null = null;
 export function setSessionListener(fn: SessionListener | null) {
   _sessionListener = fn;
 }
+type SessionAcceptance = (s: GameSession) => boolean;
+let _sessionAcceptance: SessionAcceptance | null = null;
+/** Synchronous preflight: reject/reserve owned outcomes before storage/rewards. */
+export function setSessionAcceptance(gate: SessionAcceptance | null): void { _sessionAcceptance = gate; }
+let _sessionSaveFailed: ((s: GameSession) => void) | null = null;
+export function setSessionSaveFailed(fn: ((s: GameSession) => void) | null): void { _sessionSaveFailed = fn; }
 
 // Web bridge for the marketing site. Every trainer already saves its real
 // completed round through saveSession(), so this is the single trustworthy
@@ -553,6 +565,10 @@ export function startSessionCloudSync(): void {
 }
 
 export const saveSession = async (session: GameSession): Promise<GameSession> => {
+  // Immutable origin captured before storage/rewards/listener awaits. Explicit
+  // malformed owners do not fall back to a new launch; host reports never bind here.
+  const origin = session.details?.warmup_owner;
+  const owner = origin === undefined && !isHostSession(session) ? webLaunchOwner() : parseWarmupOwner(origin);
   const stored: GameSession = {
     ...session,
     id: session.id || makeId(),
@@ -565,6 +581,13 @@ export const saveSession = async (session: GameSession): Promise<GameSession> =>
     // marker: fail/lesson/skip reports belong to training history too.
     ...(!isHostSession(session) && progressiveWarmupLocation()
       ? { details: { ...session.details, warmup_progress: true } } : {}),
+    ...(owner ? {
+      warmup_id: owner.run_id,
+      details: { ...session.details,
+        ...(!isHostSession(session) && progressiveWarmupLocation() ? { warmup_progress: true } : {}),
+        warmup_owner: owner,
+      },
+    } : {}),
   };
   // Web-demo: НЕ пишем в storage/облако (ни сессий, ни токенов, ни ачивок) —
   // только уведомляем сайт-хост о завершённом демо-раунде (событие-канон
@@ -584,6 +607,9 @@ export const saveSession = async (session: GameSession): Promise<GameSession> =>
     console.warn(`[мост] партия веб-копии ${stored.game_type} под нативным экраном не засчитана`);
     return stored;
   }
+  // Owned attempts require a live Provider gate, including during teardown/bootstrap gaps.
+  if (owner && !_sessionAcceptance) return stored;
+  if (_sessionAcceptance && !_sessionAcceptance(stored)) return stored;
   validateSession(stored);   // non-blocking schema check (warnings only)
   /**
    * ⚠️ ЧТЕНИЕ И ЗАПИСЬ — ОДНОЙ ОЧЕРЕДЬЮ, И ПОВТОР НЕ НАЧИСЛЯЕТСЯ ДВАЖДЫ.
@@ -591,14 +617,29 @@ export const saveSession = async (session: GameSession): Promise<GameSession> =>
    * одну и ту же партию дважды (на завершении и при уходе), иначе получал две
    * записи и ДВА начисления очков за один раунд.
    */
-  const all = await inWriteQueue(async () => {
-    const log = await readAll();
-    if (log.some((s) => s.id && s.id === stored.id)) return null;
-    log.push(stored);
-    await writeAll(log);
-    return log;
-  });
-  if (all === null) return stored;   // уже записана — второй раз ничего не начисляем
+  let all: GameSession[] | null;
+  let duplicate: GameSession | undefined;
+  try {
+    all = await inWriteQueue(async () => {
+      const log = await readAll(owner !== null);
+      duplicate = log.find(s => s.id && s.id === stored.id);
+      if (duplicate) return null;
+      log.push(stored);
+      await writeAll(log, owner !== null);
+      return log;
+    });
+  } catch (err) {
+    _sessionSaveFailed?.(stored);
+    throw err;
+  }
+  if (all === null) {
+    // Owned replay can finish a reserved step from its durable record without
+    // awarding twice. A conflicting old id must release only this reservation.
+    if (owner && duplicate && sameWarmupOwner(parseWarmupOwner(duplicate.details?.warmup_owner), owner) && _sessionListener) {
+      try { await _sessionListener(duplicate); } catch (err) { _sessionSaveFailed?.(stored); console.warn('Session listener failed:', err); }
+    } else if (owner) _sessionSaveFailed?.(stored);
+    return stored;
+  }
   // Рекорд игры (до записи новой сессии): питомец празднует немедленно.
   // Минимум 3 прошлые сессии этой игры — иначе «рекорд» на первой же партии.
   try {
@@ -624,7 +665,7 @@ export const saveSession = async (session: GameSession): Promise<GameSession> =>
   // из журнала; пока запись висела в воздухе, ему нечего было бы показать, кроме
   // собственной копии формулы — то есть второго источника правды.
   try {
-    const pid = (globalThis as any).__psygames_active_profile_id as string | undefined;
+    const pid = stored.profile_id;
     if (pid) {
       const clean = (stored.errors ?? 0) === 0 && (stored.score ?? 0) > 0;
       /*
@@ -650,7 +691,7 @@ export const saveSession = async (session: GameSession): Promise<GameSession> =>
   // Вызов дня: стрик коммитится за завершённый раунд игры вызова (pending пишет
   // startDailyChallenge). Await — чтобы чек ачивок ниже видел свежий стрик.
   try {
-    const pid = (globalThis as any).__psygames_active_profile_id as string | undefined;
+    const pid = stored.profile_id;
     if (pid) {
       const { commitChallengeIfPending } = await import('@/src/services/daily-challenge');
       await commitChallengeIfPending(pid, stored.game_type);
@@ -665,7 +706,7 @@ export const saveSession = async (session: GameSession): Promise<GameSession> =>
   // then push to cloud with the enriched version.
   if (_sessionListener) {
     try { await _sessionListener(stored); }
-    catch (e) { console.warn('Session listener failed:', e); }
+    catch (e) { _sessionSaveFailed?.(stored); console.warn('Session listener failed:', e); }
   }
   // Fire-and-forget cloud sync (intentionally not awaited)
   pushToCloud(stored);

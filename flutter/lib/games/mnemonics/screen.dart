@@ -113,9 +113,12 @@ class MnemonicsScreenState extends State<MnemonicsScreen> {
   double _rnd() => _random.nextDouble();
   int get _pegLevel => _levelRun ? _runLevel : 1;
 
+  late final SessionLaunch _sessionLaunch;
+
   @override
   void initState() {
     super.initState();
+    _sessionLaunch = SessionLaunch.capture();
     _random = widget.random ?? Random();
     _ladder = LevelLadder(gameId: 'mnemonics', store: SharedLevelStore(widget.state));
     _boot();
@@ -340,6 +343,7 @@ class MnemonicsScreenState extends State<MnemonicsScreen> {
       // Свободная тренировка: в статистику — да, в лестницу — нет.
       LessonUsed.reset();
       await SessionReport.send(
+        launch: _sessionLaunch,
         gameType: 'mnemonics',
         score: score,
         timeSeconds: seconds,

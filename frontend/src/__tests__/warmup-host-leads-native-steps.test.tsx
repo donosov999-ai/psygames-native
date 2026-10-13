@@ -28,11 +28,15 @@ import { WarmupProvider, useWarmup } from '@/src/contexts/WarmupContext';
 
 const mockReplace = jest.fn();
 let mockListener: ((s: any) => Promise<void> | void) | null = null;
+let mockGate: ((s: any) => boolean) | null = null;
 
 jest.mock('expo-router', () => ({ useRouter: () => ({ replace: mockReplace, push: jest.fn(), back: jest.fn() }) }));
 jest.mock('@/src/contexts/ProfileContext', () => ({ useProfile: () => ({ profile: { id: 'free' } }) }));
 jest.mock('@/src/services/feedback', () => ({ fbCorrect: () => {}, fbComplete: () => {} }));
-jest.mock('@/src/services/api', () => ({ setSessionListener: (fn: any) => { mockListener = fn; } }));
+jest.mock('@/src/services/api', () => ({
+  setSessionAcceptance: (fn: any) => { mockGate = fn; },
+  setSessionListener: (fn: any) => { mockListener = fn ? async (s: any) => { if (mockGate?.(s) !== false) await fn(s); } : null; },
+}));
 const mockHostIds = new Set<string>();
 jest.mock('@/src/services/nativeSessionBridge', () => ({
   isHostSession: (s: any) => !!s?.id && mockHostIds.has(s.id),
@@ -54,7 +58,7 @@ let нативных = 0;
 function нативная(game_type = 'digit_span') {
   const id = `host-${++нативных}`;
   mockHostIds.add(id);
-  return { id, game_type, score: 5, time_seconds: 20, errors: 0, details: {} };
+  return { id, game_type, score: 5, time_seconds: 20, errors: 0, details: { warmup_owner: ctx.owner() } };
 }
 /** Фантом веб-копии игры под нативным экраном: та же игра, но не от оболочки. */
 const фантом = (game_type = 'digit_span') => ({ id: `web-${++нативных}`, game_type, score: 0, time_seconds: 60, errors: 0, details: {} });
@@ -114,7 +118,7 @@ it('🔴 оба шага нативные — веб шлёт оболочке w
 it('оболочка ответила goTo(1) — учёт на шаге 1, страница на том же шаге', async () => {
   оболочка(['/games/digit-span', '/games/schulte']);
   await партия([ЦИФРЫ, ШУЛЬТЕ]);
-  await act(async () => { w.__psyWarmupHost.goTo(1); });
+  await act(async () => { w.__psyWarmupHost.goTo(1, ctx.owner()); });
   await act(async () => { jest.advanceTimersByTime(10); });
 
   expect(ctx.currentIdx).toBe(1);
@@ -125,7 +129,7 @@ it('оболочка ответила goTo(1) — учёт на шаге 1, ст
 it('оболочка не взялась — advance ведёт прежним веб-путём', async () => {
   оболочка(['/games/digit-span', '/games/schulte']);
   await партия([ЦИФРЫ, ШУЛЬТЕ]);
-  await act(async () => { w.__psyWarmupHost.advance(0); });
+  await act(async () => { w.__psyWarmupHost.advance(0, ctx.owner()); });
   await act(async () => { jest.advanceTimersByTime(10); });
   expect(наМост()).toBe(true);
 });
@@ -173,7 +177,7 @@ it('🔴 полоска нативного шага: info() — номер, вс
   expect(i.title).toBeTruthy();
   expect(i.title).not.toBe('digit_span');
   mockReplace.mockClear();
-  await act(async () => { w.__psyWarmupHost.skip(); });
+  await act(async () => { w.__psyWarmupHost.skip(ctx.owner()); });
   await act(async () => { jest.advanceTimersByTime(10); });
   expect(ctx.currentIdx).toBe(1);
   expect(наМост()).toBe(true);   // веб-⏭ ведёт на мост с «Пропущено» — нативный ⏭ туда же
@@ -215,7 +219,7 @@ it('🔴 отчёт 02d98918: фантом и нативная партия од
   expect(mockReplace).not.toHaveBeenCalledWith('/');
   expect(наМост()).toBe(false);
   // Оболочка ответила goTo(1) — зарядка идёт дальше, а не стоит.
-  await act(async () => { w.__psyWarmupHost.goTo(1); });
+  await act(async () => { w.__psyWarmupHost.goTo(1, ctx.owner()); });
   await act(async () => { jest.advanceTimersByTime(10); });
   expect(ctx.currentIdx).toBe(1);
   expect(ctx.active).toBe(true);
@@ -224,18 +228,18 @@ it('🔴 отчёт 02d98918: фантом и нативная партия од
 it('🔴 08.10 Денис: ПОСЛЕДНИЙ шаг нативный — конец ведёт оболочка: «последний готов» ей, свой таймер не ставим', async () => {
   оболочка(['/games/digit-span', '/games/schulte']);
   await партия([ЦИФРЫ, ШУЛЬТЕ]);                         // шаг 0 сыгран, «готов» ушёл оболочке
-  await act(async () => { w.__psyWarmupHost.goTo(1); });  // оболочка открыла последний шаг
+  await act(async () => { w.__psyWarmupHost.goTo(1, ctx.owner()); });  // оболочка открыла последний шаг
   await act(async () => { jest.advanceTimersByTime(10); });
   mockReplace.mockClear();
   posted.length = 0;
   await act(async () => { await mockListener!(нативная('schulte_table')); });
   await act(async () => { jest.advanceTimersByTime(4000); });
   expect(ctx.results).toHaveLength(2);
-  expect(posted).toEqual([{ op: 'warmupLastStepDone', fromIdx: 1, total: 2, evening: false }]);
+  expect(posted).toEqual([{ op: 'warmupLastStepDone', fromIdx: 1, total: 2, evening: false, owner: ctx.owner() }]);
   // Сам на итог не уходит: под нативной игрой таймер страницы на iPhone не наступает.
   expect(mockReplace).not.toHaveBeenCalledWith('/warmup-complete');
   // Оболочка сняла игру и позвала advance — страница уходит на итог.
-  await act(async () => { w.__psyWarmupHost.advance(1); });
+  await act(async () => { w.__psyWarmupHost.advance(1, ctx.owner()); });
   await act(async () => { jest.advanceTimersByTime(10); });
   expect(mockReplace).toHaveBeenCalledWith('/warmup-complete');
 });
@@ -251,7 +255,7 @@ it('последний шаг — веб-игра: оболочке ничего
   await партия([ЦИФРЫ, ВЕБ]);                            // шаг 0 нативный, дальше веб — мост веба
   mockReplace.mockClear();
   posted.length = 0;
-  await act(async () => { await mockListener!({ id: 'web-last', game_type: 'tetris', score: 3, time_seconds: 30, errors: 0, details: {} }); });
+  await act(async () => { await mockListener!({ id: 'web-last', game_type: 'tetris', score: 3, time_seconds: 30, errors: 0, details: { warmup_owner: ctx.owner() } }); });
   await act(async () => { jest.advanceTimersByTime(4000); });
   await act(async () => { jest.advanceTimersByTime(10); });
   expect(posted).toHaveLength(0);

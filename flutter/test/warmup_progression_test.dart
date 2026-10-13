@@ -4,6 +4,7 @@ import 'package:psygames_flutter/shell/lesson.dart';
 import 'package:psygames_flutter/shell/level_ladder.dart';
 import 'package:psygames_flutter/shell/shared_level_store.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
+import 'package:psygames_flutter/shell/session_report.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
@@ -11,6 +12,7 @@ void main() {
   tearDown(() {
     GamePreset.clear();
     LessonUsed.reset();
+    SessionReport.sink = null;
   });
 
   Future<LevelLadder> open(LevelStore store, {String game = 'probe'}) async {
@@ -106,6 +108,17 @@ void main() {
     final l = await open(MemoryLevelStore());
     expect(await l.win(), isFalse);
     expect(l.level, 1);
+  });
+
+  test('late fixed-preset completion cannot become a personal win', () async {
+    GamePreset.set({'wu': '1', 'wuRun': 'old', 'wuStep': '0', 'wuAttempt': 'a'});
+    final store = MemoryLevelStore();
+    final old = await open(store);
+    GamePreset.clear();
+    expect(await old.win(), isFalse);
+    await old.fail();
+    expect(await store.readInt('probe.level'), isNull);
+    expect((await open(store)).level, 1);
   });
 
   test(

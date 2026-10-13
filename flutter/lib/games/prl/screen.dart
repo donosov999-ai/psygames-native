@@ -59,9 +59,12 @@ class _PrlScreenState extends State<PrlScreen> {
   PrlPhase _phase = PrlPhase.ready;
   Timer? _timer;
 
+  late final SessionLaunch _sessionLaunch;
+
   @override
   void initState() {
     super.initState();
+    _sessionLaunch = SessionLaunch.capture();
     _ladder = LevelLadder(gameId: 'prl', store: SharedLevelStore(widget.state), maxLevel: prlMaxLevel);
     _boot();
   }
@@ -155,6 +158,7 @@ class _PrlScreenState extends State<PrlScreen> {
       // Свободная классика уровня не двигает, но партия — партия (веб `saveSession`): метки —
       // сложность и «Nt-P%», по ним «Оценка» узнаёт классику на стандартных параметрах.
       SessionReport.send(
+        launch: _sessionLaunch,
         gameType: 'prl',
         score: g.bank < 0 ? 0 : g.bank,
         timeSeconds: 0,

@@ -160,9 +160,12 @@ class _PicturePairsScreenState extends State<PicturePairsScreen> with WidgetsBin
   /// открыл карту — лёгкая, собрал группу — средняя, промах — сильная.
   late final AppHaptics _haptics = AppHaptics(widget.state);
 
+  late final SessionLaunch _sessionLaunch;
+
   @override
   void initState() {
     super.initState();
+    _sessionLaunch = SessionLaunch.capture();
     _rnd = widget.rnd ?? Random();
     _ladder = LevelLadder(gameId: 'picture_pairs', store: SharedLevelStore(widget.state));
     WidgetsBinding.instance.addObserver(this);
@@ -497,6 +500,7 @@ class _PicturePairsScreenState extends State<PicturePairsScreen> with WidgetsBin
     });
     unawaited(
       SessionReport.send(
+        launch: _sessionLaunch,
         gameType: 'picture_pairs',
         score: duel.playerGroups,
         timeSeconds: _elapsed.round(),
@@ -534,6 +538,7 @@ class _PicturePairsScreenState extends State<PicturePairsScreen> with WidgetsBin
       // Свободная партия лестницу не двигает — отчёт идёт сам, метками веба (`saveSession`, single).
       unawaited(
         SessionReport.send(
+          launch: _sessionLaunch,
           gameType: 'picture_pairs',
           score: g.freeScore(elapsed),
           timeSeconds: seconds,
@@ -578,6 +583,7 @@ class _PicturePairsScreenState extends State<PicturePairsScreen> with WidgetsBin
     unawaited(widget.state.set(_kidsKey, '$next'));
     unawaited(
       SessionReport.send(
+        launch: _sessionLaunch,
         gameType: 'picture_pairs',
         score: stars,
         timeSeconds: seconds,

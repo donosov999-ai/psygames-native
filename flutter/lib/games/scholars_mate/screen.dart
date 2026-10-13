@@ -151,9 +151,12 @@ class _ScholarsMateScreenState extends State<ScholarsMateScreen> {
     return _raw() - _pausedTotal - (since == null ? 0 : _raw() - since);
   }
 
+  late final SessionLaunch _sessionLaunch;
+
   @override
   void initState() {
     super.initState();
+    _sessionLaunch = SessionLaunch.capture();
     _boot();
   }
 
@@ -322,6 +325,7 @@ class _ScholarsMateScreenState extends State<ScholarsMateScreen> {
         );
       } else {
         await SessionReport.send(
+          launch: _sessionLaunch,
           gameType: 'scholars_mate',
           score: r.solved,
           timeSeconds: seconds,
