@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show ValueListenable;
 
 import 'shared_state.dart';
 
@@ -49,7 +50,35 @@ class PetHost {
   PetHost._();
   static SharedState? state;
   static String? origin;
+  static ValueListenable<int>? assetRevision;
   static bool get ready => state != null && origin != null;
+  static Object? _owner;
+
+  /// Корневой хост может смениться, сохранив те же state/server. Старый
+  /// dispose не должен стереть привязку нового хоста по совпадению полей.
+  static void bind(Object owner, SharedState memory, String assetOrigin, ValueListenable<int> revision) {
+    _owner = owner;
+    state = memory;
+    origin = assetOrigin;
+    assetRevision = revision;
+  }
+
+  static void unbind(Object owner) {
+    if (!identical(_owner, owner)) return;
+    _owner = null;
+    assetRevision = null;
+    state = null;
+    origin = null;
+  }
+
+  static const _unchanged = AlwaysStoppedAnimation<int>(0);
+
+  /// Retry только внутреннего Image: настроение, кадр, таймеры и prefs остаются.
+  static Widget retryingImage(String imageOrigin, String url, Widget Function(Key key) image) =>
+      ValueListenableBuilder<int>(
+        valueListenable: origin == imageOrigin ? assetRevision ?? _unchanged : _unchanged,
+        builder: (_, revision, _) => image(ValueKey((url, revision))),
+      );
 }
 
 class GamePet extends StatefulWidget {
@@ -121,14 +150,14 @@ class _GamePetState extends State<GamePet> {
         border: Border.all(color: _ring[_shown]!, width: 2),
       ),
       clipBehavior: Clip.antiAlias,
-      child: Image.network(
+      child: PetHost.retryingImage(widget.origin, url, (key) => Image.network(
         url,
-        key: ValueKey(url),
+        key: key,
         fit: BoxFit.cover,
         // Кадра нет или сервер не отдал — показываем ПУСТОЙ кружок, а не значок
         // ошибки: питомец не должен кричать о себе посреди партии.
         errorBuilder: (_, _, _) => const SizedBox.shrink(),
-      ),
+      )),
     );
   }
 }

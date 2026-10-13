@@ -946,8 +946,7 @@ class _HybridAppState extends State<HybridApp> {
     // Питомец в шапке нативных игр берёт кадры из вложенной веб-сборки —
     // они там уже лежат, класть их второй раз в ассеты Flutter значило бы
     // 4,2 МБ впустую.
-    PetHost.state = widget.state;
-    PetHost.origin = widget.server.origin;
+    PetHost.bind(this, widget.state, widget.server.origin, widget.server.assetRevision);
     // Синапс (852e4b4a) пишет реплики по партиям в общую память — ту же, что у веба.
     SynapseFeed.state = widget.state;
     SessionReport.sink = (json) async {
@@ -1078,6 +1077,7 @@ class _HybridAppState extends State<HybridApp> {
   @override
   void dispose() {
     SessionReport.sink = null;
+    PetHost.unbind(this);
     if (SynapseFeed.state == widget.state) SynapseFeed.state = null;
     GameExit.home = null;
     GameExit.feedback = null;
