@@ -3040,6 +3040,14 @@ const translations: Translations = {
   levelsInOrderHint: { ru: 'Дальше — уровни по порядку, сложность растёт', en: 'Next up — levels in order, difficulty grows' },
   nextNow: { ru: 'Дальше сразу', en: 'Next now' },
   retry: { ru: 'Ещё раз', en: 'Retry' },
+  nativeScreenModelFailed: {
+    ru: 'Не удалось загрузить данные экрана',
+    en: 'Could not load screen data',
+  },
+  nativeScreenModelRetryHint: {
+    ru: 'Повторите загрузку или вернитесь на главную.',
+    en: 'Retry loading or return home.',
+  },
   stop: { ru: 'Остановиться', en: 'Stop' },
 
   // Заработок за партию: множитель ×2 и блок «Сегодня» на главной (src/services/earn.ts)

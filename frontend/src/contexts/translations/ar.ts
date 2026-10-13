@@ -1,6 +1,9 @@
 // AUTO-GENERATED translation overlay (ar). Источник: транскреация с EN-базы (856 ключей).
 // ⚠️ НЕ ПОДКЛЮЧЁН в LANGUAGES — ждёт RTL-захода (I18nManager). Не править руками.
 const t: Record<string, string> = {
+  // Scoped manually authored translations; not workflow-generated output.
+  nativeScreenModelFailed: "تعذّر تحميل بيانات الشاشة",
+  nativeScreenModelRetryHint: "أعد محاولة التحميل أو عُد إلى الصفحة الرئيسية.",
   puzzleRoundLost: "لم تنجح هذه المحاولة. ابدأ من جديد أو تراجع خطوة للمراجعة.",
   puzzleFloodLimit: "بلغت حد الحركات: {moves} / {limit}. حاول مرة أخرى.",
   puzzleLossReview: "المراجعة بعد الخسارة لا تُحتسب كنتيجة جديدة. ابدأ محاولة جديدة للتقدم.",

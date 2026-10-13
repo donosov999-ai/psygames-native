@@ -1170,6 +1170,8 @@
 "nBackHint":"Compare current flash with one N steps ago — if same position → MATCH",
 "nBackIntroDesc":"🧠 Most effective working memory trainer (Jaeggi et al., 2008 — the only paradigm with proven IQ transfer effect).\n\n📋 HOW TO PLAY:\n• Cells flash on the grid one at a time\n• Remember the position N steps ago\n• When current flash MATCHES the position from N steps back → press MATCH\n• If it doesn't match — don't press, wait for next\n\n🎯 EXAMPLE for N=2 (track positions 2 steps back):\nStep 1: flash top-left   → wait\nStep 2: flash right      → wait\nStep 3: flash bottom-left → COMPARE with step 1 (top-left). Doesn't match → don't press\nStep 4: flash right      → COMPARE with step 2 (right). MATCH! → press ✓\n\n💡 STRATEGY for beginners:\n• Start with N=1 (track just the previous flash) until rhythm clicks\n• Then N=2, then N=3. Above N=4 is elite-level\n• Don't try to \"remember all steps\" — your brain runs a sliding window automatically\n• 15-20 min/day for 3-4 weeks → noticeable WM gains",
 "nBackSwitchNow":"Now {n}-back",
+"nativeScreenModelFailed":"Could not load screen data",
+"nativeScreenModelRetryHint":"Retry loading or return home.",
 "navigator":"Navigator",
 "navigatorDesc":"Remember routes, turn sequences, and the direction back to the start",
 "navigatorIntroDesc":"First study the route on the map, then repeat it with the direction buttons below the board — keys or a swipe across the board work too. In other modes, recall the turns in order or point to where the start is. Trains spatial memory.",

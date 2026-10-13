@@ -95,6 +95,7 @@ import 'feedback_screen.dart';
 import 'home_screen.dart';
 import 'profile_switcher.dart';
 import 'screen_ui.dart';
+import 'screen_model_recovery.dart';
 import 'native_tabs.dart';
 import 'stats_screen.dart';
 import 'streak_calendar_screen.dart';
@@ -650,6 +651,7 @@ class _HybridAppState extends State<HybridApp> {
     final hubsOnly = tab == '/games' && uri.queryParameters['filter'] == 'hubs';
     if (!mounted) return tab != null;
     final before = _shownIndex();
+    if (_nativeTab != tab) _leaveModelWait(_nativeTab);
     setState(() {
       _pagePath = path;
       _nativeTab = tab;
@@ -749,33 +751,62 @@ class _HybridAppState extends State<HybridApp> {
 
   /// Что показывает тело: страницу (0) или нативную вкладку.
   ///
-  /// ⚠️ Главная рисуется по модели страницы. Пока модели нет — экран ждёт со значком
-  /// загрузки; не пришла за [_modelWait] (старая вложенная сборка, сбой страницы) — показываем саму
-  /// страницу: веб-экран лучше пустого.
+  /// Missing data never changes a native route into its old WEB interface.
+  /// The live web runtime stays underneath for remaining services only.
   int _bodyIndex() {
     final tab = _nativeTab;
     if (tab == null) return 0;
     final i = _bodyTabs.indexOf(tab) + 1;
     if (i == 0) return 0;
-    if (!ScreenUi.routes.contains(tab) || _ownModel.contains(tab) || ScreenUi.model(tab).value != null) return i;
-    _modelTimers[tab] ??= Timer(_modelWait, () {
-      if (mounted) setState(() => _modelGaveUp.add(tab));
-    });
-    return _modelGaveUp.contains(tab) ? 0 : i;
+    if (!_needsModel(tab)) return i;
+    _watchModel(tab);
+    return i;
   }
 
   static const _modelWait = Duration(seconds: 6);
 
   /// Вкладки, которые считают модель сами (вариант Б, d6a60b02): модели страницы не ждут, и запасной
   /// показ страницы им не нужен. Главная — с 7б (`home_inputs.dart`).
-  static const _ownModel = {StatsScreen.route, HomeScreen.route};
+  static const _ownModel = {
+    StatsScreen.route, HomeScreen.route, StreakCalendarScreen.route,
+    SourcesScreen.route, CollectionScreen.route, AchievementsScreen.route, LeaguesScreen.route,
+  };
   final _modelTimers = <String, Timer>{};
   final _modelGaveUp = <String>{};
 
+  bool _needsModel(String? route) => route != null && _bodyTabs.contains(route) &&
+      ScreenUi.routes.contains(route) && !_ownModel.contains(route) &&
+      (ScreenUi.model(route).value == null || ScreenUi.model(route).value?['loading'] != null);
+
+  void _leaveModelWait(String? route) {
+    _modelTimers.remove(route)?.cancel();
+    _modelGaveUp.remove(route);
+  }
+
+  Timer _watchModel(String route) => _modelTimers.putIfAbsent(route, () => Timer(_modelWait, () {
+    if (mounted && _needsModel(route)) setState(() => _modelGaveUp.add(route));
+  }));
+
+  void _retryModel(String route) {
+    if (!mounted || _nativeTab != route || !_needsModel(route)) return;
+    _modelTimers.remove(route)?.cancel();
+    setState(() => _modelGaveUp.remove(route));
+    final attempt = _watchModel(route);
+    // Read-only replay: no reload, navigation, session write or reward action.
+    unawaited(ScreenUi.requestModel(route).catchError((Object _) {
+      if (mounted && _nativeTab == route && _needsModel(route) && _modelTimers[route] == attempt) {
+        attempt.cancel();
+        setState(() => _modelGaveUp.add(route));
+      }
+    }));
+  }
+
   void _onScreenModel() {
     if (!mounted) return;
-    final came = {for (final r in _modelGaveUp) if (ScreenUi.model(r).value != null) r};
-    if (came.isEmpty) return;
+    final came = {for (final r in _modelTimers.keys) if (!_needsModel(r)) r};
+    for (final r in came) {
+      _modelTimers.remove(r)?.cancel();
+    }
     setState(() => _modelGaveUp.removeAll(came));
   }
 
@@ -790,6 +821,7 @@ class _HybridAppState extends State<HybridApp> {
       _onPagePath('${widget.server.origin}$route');
     } else {
       final before = _shownIndex();
+      if (_nativeTab != route) _leaveModelWait(_nativeTab);
       setState(() => _nativeTab = NativeTabs.native.contains(route) ? route : null);
       _holdUntilPainted(before, route);
     }
@@ -1495,6 +1527,7 @@ class _HybridAppState extends State<HybridApp> {
     final path = _nativeTab ?? _pagePath;
     final bar = _tabsReady && NativeTabs.barVisible(path);
     final shown = _shownIndex();
+    final waiting = shown != 0 && _needsModel(_nativeTab);
     final scaffold = Scaffold(
       // Полоса под часами и фон вкладки — `colors.background` веба, а не цвет семени Material.
       backgroundColor: WebTheme.of(context).background,
@@ -1523,7 +1556,11 @@ class _HybridAppState extends State<HybridApp> {
               behavior: HitTestBehavior.opaque,
               child: ColoredBox(
                 color: WebTheme.of(context).background,
-                child: IndexedStack(
+                child: ExcludeSemantics(
+                  excluding: waiting,
+                  child: IgnorePointer(
+                    ignoring: waiting,
+                    child: IndexedStack(
           index: shown == 0 ? 0 : shown - 1,
           children: [
             // Главная (7c88c0b8) считает модель сама (вариант Б, 7б); от страницы под ней на «/» — только
@@ -1574,9 +1611,17 @@ class _HybridAppState extends State<HybridApp> {
             PetScreen(origin: widget.server.origin, state: widget.state),
           ],
                 ),
+                  ),
+                ),
               ),
             ),
           ),
+          if (waiting)
+            ScreenModelRecovery(
+              failed: _modelGaveUp.contains(_nativeTab),
+              onRetry: () => _retryModel(_nativeTab!),
+              onHome: () => unawaited(_selectTab(HomeScreen.route)),
+            ),
           ],
         ),
       ),
