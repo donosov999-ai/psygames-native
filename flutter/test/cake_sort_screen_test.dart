@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/cake_sort/board.dart';
@@ -133,6 +135,56 @@ void main() {
     expect(moved, 6, reason: 'все шесть кусков одного вида обязаны были собраться');
     expect(after, 18 - 6, reason: 'собранный круг уехал: было 18 кусков, осталось 12');
   });
+
+  for (final (skin, gameId) in [(CakeSkin.cake, 'cake_sort'), (CakeSkin.pizza, 'pizza_sort')]) {
+    testWidgets('$gameId: visible slice edge can be selected, not only its small central target', (tester) async {
+      await _boot(tester, state, skin, gameId);
+      await tester.tap(find.byKey(const ValueKey('plate-0')));
+      await tester.pump();
+      final zoom = tester.widget<CakeZoom>(find.byType(CakeZoom));
+      final target = tester.getCenter(find.byKey(const ValueKey('slice-0')));
+      const angle = math.pi / 6 - math.pi / 2;
+      final offset = Offset(math.cos(angle), math.sin(angle)) * (cakeRadius(zoom.size) * 0.28);
+      await tester.tapAt(target + offset);
+      await tester.pump();
+      final table = tester.widget<CakeTable>(find.byType(CakeTable));
+      expect(table.selected, 0);
+      expect(table.selectedType, table.board.plates[0].first);
+      await tester.tap(find.byKey(const ValueKey('plate-3')));
+      await tester.pump();
+      expect(_plates(tester)[3], [zoom.plate.first]);
+    });
+    testWidgets('$gameId: drag honours chosen middle slice, invalid target keeps selection', (tester) async {
+      await _boot(tester, state, skin, gameId);
+      final before = _plates(tester)[0].toList();
+      expect(before.first, isNot(before.last));
+      await tester.tap(find.byKey(const ValueKey('plate-0')));
+      await tester.pump();
+      await tester.tap(find.byKey(const ValueKey('slice-0')));
+      await tester.pump();
+      await tester.tap(find.byKey(const ValueKey('plate-1')));
+      await tester.pump();
+      final table = tester.widget<CakeTable>(find.byType(CakeTable));
+      expect(table.selected, 0, reason: 'full destination must not clear selection');
+      expect(table.selectedType, before.first);
+      expect(_plates(tester)[0], before);
+      final from = tester.getCenter(find.byKey(const ValueKey('plate-0')));
+      final to = tester.getCenter(find.byKey(const ValueKey('plate-3')));
+      final gesture = await tester.startGesture(from);
+      await tester.pump(const Duration(milliseconds: 60));
+      await gesture.moveTo(Offset((from.dx + to.dx) / 2, (from.dy + to.dy) / 2));
+      await tester.pump(const Duration(milliseconds: 60));
+      await gesture.moveTo(to);
+      await tester.pump(const Duration(milliseconds: 60));
+      await gesture.up();
+      await tester.pumpAndSettle();
+      expect(_plates(tester)[3], [before.first], reason: 'chosen slice, NOT plate.last, must move');
+      expect(_plates(tester)[0].where((x) => x == before.first).length,
+          before.where((x) => x == before.first).length - 1);
+      expect(_plates(tester)[0].where((x) => x == before.last).length,
+          before.where((x) => x == before.last).length);
+    });
+  }
 
   testWidgets('🔴 НАРИСОВАНО ТО ЖЕ, ЧТО ПОСЧИТАНО: тарелка совпадает с раскладкой', (tester) async {
     /*

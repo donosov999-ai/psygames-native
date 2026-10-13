@@ -53,6 +53,8 @@ class _ObjectTrackerScreenState extends State<ObjectTrackerScreen> with SingleTi
   ObjectTrackerMetrics? _result;
   bool _reduced = false;
   bool _ready = false;
+  bool _submitted = false;
+  int _attempt = 0;
 
   @override
   void initState() {
@@ -91,6 +93,8 @@ class _ObjectTrackerScreenState extends State<ObjectTrackerScreen> with SingleTi
   String get _seed => 'object-tracker-$_playLevel';
 
   void _reset() {
+    _attempt += 1;
+    _submitted = false;
     // Новая партия — снова зачётная (договор shell/lesson.dart: отметку «разбор
     // смотрели» снимает новая раздача). Отметка общая на всё приложение, и без
     // сброса один открытый разбор выключал бы рост уровня во всех играх.
@@ -134,7 +138,7 @@ class _ObjectTrackerScreenState extends State<ObjectTrackerScreen> with SingleTi
   }
 
   void _toggle(String id) {
-    if (_phase != _Phase.selection) return;
+    if (_phase != _Phase.selection || _submitted) return;
     setState(() {
       if (_selected.contains(id)) {
         _selected.remove(id);
@@ -145,6 +149,10 @@ class _ObjectTrackerScreenState extends State<ObjectTrackerScreen> with SingleTi
   }
 
   Future<void> _submit() async {
+    if (_phase != _Phase.selection || _submitted || _selected.isEmpty) return;
+    // Claim before awaiting storage: even a second tap before rebuild is inert.
+    setState(() => _submitted = true);
+    final attempt = _attempt;
     final round = _round!;
     final metrics = scoreObjectTrackerCompletion(
       round,
@@ -157,7 +165,7 @@ class _ObjectTrackerScreenState extends State<ObjectTrackerScreen> with SingleTi
     } else {
       await _ladder.fail();
     }
-    if (!mounted) return;
+    if (!mounted || attempt != _attempt) return;
     setState(() {
       _result = metrics;
       _phase = _Phase.result;
@@ -220,7 +228,7 @@ class _ObjectTrackerScreenState extends State<ObjectTrackerScreen> with SingleTi
         minBall: _minBall,
         fieldMax: _fieldMax,
         pad: _fieldPad,
-        onTap: _toggle,
+        onTap: _submitted ? null : _toggle,
       ),
       auxRow: AuxBar(children: [
         AuxAction(
@@ -253,7 +261,7 @@ class _ObjectTrackerScreenState extends State<ObjectTrackerScreen> with SingleTi
           if (_phase == _Phase.selection)
             FilledButton.icon(
               key: const Key('готово'),
-              onPressed: _selected.isEmpty ? null : _submit,
+              onPressed: _submitted || _selected.isEmpty ? null : _submit,
               icon: const Icon(Icons.check),
               label: Text(L.t('storyDone')),
             ),
@@ -293,7 +301,7 @@ class _Field extends StatelessWidget {
   final _Phase phase;
   final List<String> selected;
   final double height, minBall, fieldMax, pad;
-  final void Function(String) onTap;
+  final void Function(String)? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -327,8 +335,8 @@ class _Field extends StatelessWidget {
                 marked: phase == _Phase.preview && targets.contains(world.objects[i].id),
                 chosen: selected.contains(world.objects[i].id),
                 revealed: phase == _Phase.result && targets.contains(world.objects[i].id),
-                enabled: phase == _Phase.selection,
-                onTap: () => onTap(world.objects[i].id),
+                enabled: phase == _Phase.selection && onTap != null,
+                onTap: () => onTap?.call(world.objects[i].id),
               ),
           ]),
         ),

@@ -45,6 +45,8 @@ interface Props {
 export default function ProfileSwitcherModal({ visible, onClose }: Props) {
   const { colors } = useTheme();
   const { t, language } = useLanguage();
+  const fmt = React.useCallback((key: string, values: Record<string, string | number>) =>
+    Object.entries(values).reduce((s, [k, v]) => s.replaceAll(`{${k}}`, String(v)), t(key)), [t]);
   const {
     profile, allProfiles, switchProfile, redeemCode, isAccessible, unlockedThemed,
   } = useProfile();
@@ -66,6 +68,7 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
   const [detailProfile, setDetailProfile] = React.useState<ProfileDef | null>(null);
   const [codeModalOpen, setCodeModalOpen] = React.useState(false);
   const [codeInput, setCodeInput] = React.useState('');
+  // Store the key, not a translated sentence: changing language must also translate a pending error.
   const [codeError, setCodeError] = React.useState<string | null>(null);
 
   const tryRedeem = async () => {
@@ -77,7 +80,7 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
       setDetailProfile(null);
       onClose();
     } else {
-      setCodeError('Неверный код. Проверь и попробуй ещё раз.');
+      setCodeError('msg_invalid_code');
     }
   };
 
@@ -87,7 +90,7 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
     );
     const url = `https://t.me/${OWNER_TG}?text=${msg}`;
     Linking.openURL(url).catch(() => {
-      Alert.alert('Не удалось открыть Telegram', `Напиши вручную: @${OWNER_TG}`);
+      Alert.alert(t('alert_telegram_open_failed'), fmt('messageManually', { tg: OWNER_TG }));
     });
   };
 
@@ -99,7 +102,7 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
     );
     const url = `https://t.me/${OWNER_TG}?text=${msg}`;
     Linking.openURL(url).catch(() => {
-      Alert.alert('Не удалось открыть Telegram', `Напиши вручную: @${OWNER_TG}`);
+      Alert.alert(t('alert_telegram_open_failed'), fmt('messageManually', { tg: OWNER_TG }));
     });
   };
 
@@ -110,7 +113,7 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
     );
     const url = `https://t.me/${OWNER_TG}?text=${msg}`;
     Linking.openURL(url).catch(() => {
-      Alert.alert('Не удалось открыть Telegram', `Напиши вручную: @${OWNER_TG}`);
+      Alert.alert(t('alert_telegram_open_failed'), fmt('messageManually', { tg: OWNER_TG }));
     });
   };
 
@@ -121,7 +124,7 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
     );
     const url = `https://t.me/${OWNER_TG}?text=${msg}`;
     Linking.openURL(url).catch(() => {
-      Alert.alert('Не удалось открыть Telegram', `Напиши вручную: @${OWNER_TG}`);
+      Alert.alert(t('alert_telegram_open_failed'), fmt('messageManually', { tg: OWNER_TG }));
     });
   };
 
@@ -145,7 +148,7 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
     const switchable = allProfiles.filter(isSwitchable);
     const tierBadge = (p: ProfileDef) =>
       p.tier === 'trial' ? { kind: 'trial', text: t('badgeNoCode'), bg: '#22c55e', fg: textOn('#22c55e') }
-        : p.tier === 'owner' ? { kind: 'owner', text: 'OWNER · ЛИЧНО', bg: '#6b7280', fg: '#fff' } : null;
+        : p.tier === 'owner' ? { kind: 'owner', text: t('switcherOwnerBadge'), bg: '#6b7280', fg: '#fff' } : null;
     const ru = language === 'ru';
     postScreenModel('#switcher', {
       v: 1,
@@ -170,51 +173,51 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
         };
       }),
       codeEntry: CODE_ENTRY_ENABLED,
-      codeButton: '🔑 У меня уже есть код — ввести',
+      codeButton: `🔑 ${t('btn_already_have_code')}`,
       code: {
-        title: '🔑 Код доступа',
-        hint: 'Введи код, чтобы разблокировать тематический профиль.',
-        placeholder: 'например, CHESS-NZT-2026 или EXC-260822-A4F2-1B8C3D',
-        cancel: 'Отмена',
-        unlock: 'Разблокировать',
+        title: `🔑 ${t('title_access_code')}`,
+        hint: t('switcherCodeHint'),
+        placeholder: `${t('ph_code_example')} / EXC-260822-A4F2-1B8C3D`,
+        cancel: t('btn_cancel'),
+        unlock: t('welcomeUnlock'),
         unlockFg: textOn('#10b981'),
-        error: codeError,
+        error: codeError ? t(codeError) : null,
         redeemed: redeemSeq,
       },
       details: Object.fromEntries(switchable.map((p) => [p.id, {
         emoji: p.emoji,
-        name: p.display_name,
+        name: t('profileName_' + p.id),
         audience: p.audience ? `👥 ${ru ? p.audience : (p.audience_en ?? p.audience)}` : null,
         hook: p.sales_hook ? (ru ? p.sales_hook : (p.sales_hook_en ?? p.sales_hook)) : null,
         hookSource: p.sales_hook_source ? `📚 ${ru ? p.sales_hook_source : (p.sales_hook_source_en ?? p.sales_hook_source)}` : null,
         color: p.color,
         long: p.long_description ? (ru ? p.long_description : (p.long_description_en ?? p.long_description)) : null,
         chips: [
-          p.session_minutes ? `⏱ ${ru ? p.session_minutes : p.session_minutes.replace('мин', 'min')}` : null,
-          p.warmup_enabled ? '☀️ Утренняя Зарядка' : null,
+          p.session_minutes ? `⏱ ${p.session_minutes.replace('мин', t('unitMin'))}` : null,
+          p.warmup_enabled ? `☀️ ${t('badge_morning_warmup')}` : null,
           p.financial_brain_day_enabled ? '💰 Financial Brain Day' : null,
           p.assessment_enabled ? '📊 G1 Assessment' : null,
         ].filter(Boolean),
-        gamesTitle: `🎮 ${p.allowed_games === 'all' ? `Все тренажёры: ${GAMES.length}` : `Тренажёров в профиле: ${(p.allowed_games as string[]).length}`}`,
+        gamesTitle: `🎮 ${fmt(p.allowed_games === 'all' ? 'label_all_48_games' : 'switcherProfileGames', { n: p.allowed_games === 'all' ? GAMES.length : p.allowed_games.length })}`,
         games: p.allowed_games === 'all' ? [] : (p.allowed_games as string[]).flatMap((id) => {
           const game = GAMES.find((g) => g.id === id);
           return game ? [{ emoji: CATEGORY_EMOJI[game.category] || '•', name: t(game.nameKey) }] : [];
         }),
         locked: !isAccessible(p.id),
-        soon: '🔒 Скоро',
-        switchText: '✓ Переключиться на этот профиль',
-        currentText: '✓ Это твой текущий профиль',
+        soon: `🔒 ${t('label_coming_soon')}`,
+        switchText: `✓ ${t('btn_switch_to_profile')}`,
+        currentText: `✓ ${t('label_current_profile')}`,
       }])),
     });
-  }, [allProfiles, profile.id, isAccessible, wallets, allWallets, language, t, codeError, redeemSeq]);
+  }, [allProfiles, profile.id, isAccessible, wallets, allWallets, language, t, fmt, codeError, redeemSeq]);
   React.useEffect(() => registerScreenActions('#switcher', {
     switch: (id: string) => { if (isAccessible(id as any) && id !== profile.id) switchProfile(id as any); },
     redeem: (code: string) => {
       setCodeError(null);
       redeemCode(code).then((id) => {
         if (id) { setCodeError(null); setRedeemSeq((n) => n + 1); }
-        else setCodeError('Неверный код. Проверь и попробуй ещё раз.');
-      }).catch(() => setCodeError('Неверный код. Проверь и попробуй ещё раз.'));
+        else setCodeError('msg_invalid_code');
+      }).catch(() => setCodeError('msg_invalid_code'));
     },
     clearError: () => setCodeError(null),
   }), [isAccessible, profile.id, switchProfile, redeemCode]);
@@ -311,7 +314,7 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
                           borderRadius: 100,
                         }}>
                           <Text style={{ fontSize: 11, color: textOn('#10b981'), fontWeight: '800' }}>
-                            {formatPrice(p.price_year)}/год
+                            {formatPrice(p.price_year)}{t('switcherPerYear')}
                           </Text>
                         </View>
                       )}
@@ -345,7 +348,7 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
                         }}>
                           <Ionicons name="lock-closed" size={10} color="#fff" />
                           <Text style={{ fontSize: 10, color: '#fff', fontWeight: '900', letterSpacing: 1 }}>
-                            OWNER · ЛИЧНО
+                            {t('switcherOwnerBadge')}
                           </Text>
                         </View>
                       )}
@@ -364,10 +367,10 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
                 alignItems: 'center',
               }}>
                 <Text style={{ fontSize: 18, fontWeight: '800', color: '#1a1a1a', marginBottom: 4 }}>
-                  📦 Все 9 тематических
+                  📦 {t('switcherBundleTitle')}
                 </Text>
                 <Text style={{ fontSize: 12, color: 'rgba(0,0,0,0.7)', textAlign: 'center', marginBottom: 4 }}>
-                  Шахматист · Дети · Скорочтение · NZT-48 · Реакция ПРО · 50+ · Execs · Студенты · Женщины
+                  {['chess', 'kids', 'vasilyeva', 'nzt48', 'drivers', 'seniors', 'execs', 'students', 'women'].map((id) => t('profileName_' + id)).join(' · ')}
                 </Text>
                 <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 6, marginBottom: 12 }}>
                   <Text style={{ fontSize: 13, color: 'rgba(0,0,0,0.5)', textDecorationLine: 'line-through' }}>
@@ -376,7 +379,7 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
                   <Text style={{ fontSize: 24, fontWeight: '900', color: '#1a1a1a' }}>
                     {formatPrice(BUNDLE_ALL_THEMED_PRICE)}
                   </Text>
-                  <Text style={{ fontSize: 12, color: 'rgba(0,0,0,0.7)' }}>/год</Text>
+                  <Text style={{ fontSize: 12, color: 'rgba(0,0,0,0.7)' }}>{t('switcherPerYear')}</Text>
                 </View>
                 <TouchableOpacity
                   accessibilityRole="button"
@@ -384,7 +387,7 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
                   style={{ backgroundColor: '#1a1a1a', paddingVertical: 12, paddingHorizontal: 24, borderRadius: 10, flexDirection: 'row', alignItems: 'center', gap: 8 }}
                 >
                   <Ionicons name="cart" size={16} color="#fff" />
-                  <Text style={{ color: '#fff', fontWeight: '800', fontSize: 14 }}>Оформить пакет в Telegram</Text>
+                  <Text style={{ color: '#fff', fontWeight: '800', fontSize: 14 }}>{t('switcherBundleOrder')}</Text>
                 </TouchableOpacity>
               </View>
               )}
@@ -405,14 +408,14 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
                   Corporate / B2B
                 </Text>
                 <Text style={{ fontSize: 16, fontWeight: '800', color: '#fff', marginBottom: 4, textAlign: 'center' }}>
-                  Корпоративная подписка
+                  {t('switcherCorporateTitle')}
                 </Text>
                 <Text style={{ fontSize: 11, color: '#94a3b8', textAlign: 'center', marginBottom: 10, lineHeight: 15 }}>
-                  До {CORPORATE_PACK_MAX_CODES} кодов · 47 валидированных парадигм · безналичная оплата · договор · закрывающие документы
+                  {fmt('switcherCorporateDesc', { n: CORPORATE_PACK_MAX_CODES, paradigms: t('label_validated_paradigms') })}
                 </Text>
                 <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 4, marginBottom: 10 }}>
                   <Text style={{ fontSize: 22, fontWeight: '900', color: '#fbbf24' }}>{formatPrice(CORPORATE_PACK_PRICE)}</Text>
-                  <Text style={{ fontSize: 12, color: '#94a3b8' }}>/год · ≈ {Math.round(CORPORATE_PACK_PRICE / CORPORATE_PACK_MAX_CODES)} ₽/сотрудник</Text>
+                  <Text style={{ fontSize: 12, color: '#94a3b8' }}>{t('switcherPerYear')} · {fmt('switcherEmployeeCost', { price: Math.round(CORPORATE_PACK_PRICE / CORPORATE_PACK_MAX_CODES) })}</Text>
                 </View>
                 <TouchableOpacity
                   accessibilityRole="button"
@@ -420,7 +423,7 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
                   style={{ backgroundColor: '#fbbf24', paddingVertical: 10, paddingHorizontal: 20, borderRadius: 8, flexDirection: 'row', alignItems: 'center', gap: 6 }}
                 >
                   <Ionicons name="business" size={14} color="#1a1a1a" />
-                  <Text style={{ color: '#1a1a1a', fontWeight: '800', fontSize: 13 }}>Запросить коммерческое предложение</Text>
+                  <Text style={{ color: '#1a1a1a', fontWeight: '800', fontSize: 13 }}>{t('switcherQuoteRequest')}</Text>
                 </TouchableOpacity>
               </View>
               )}
@@ -432,7 +435,7 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
                 onPress={() => setCodeModalOpen(true)}
                 style={{ marginTop: 14, paddingVertical: 12, borderRadius: 10, borderWidth: 1, borderColor: colors.border, alignItems: 'center' }}
               >
-                <Text style={{ color: colors.text, fontWeight: '700', fontSize: 13 }}>🔑 У меня уже есть код — ввести</Text>
+                <Text style={{ color: colors.text, fontWeight: '700', fontSize: 13 }}>🔑 {t('btn_already_have_code')}</Text>
               </TouchableOpacity>
               )}
             </ScrollView>
@@ -450,7 +453,7 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 }}>
                     <Text style={{ fontSize: 38 }}>{detailProfile.emoji}</Text>
                     <View style={{ flex: 1 }}>
-                      <Text style={{ fontSize: 22, fontWeight: '800', color: colors.text }}>{detailProfile.display_name}</Text>
+                      <Text style={{ fontSize: 22, fontWeight: '800', color: colors.text }}>{t('profileName_' + detailProfile.id)}</Text>
                       {detailProfile.audience && (
                         <Text style={{ fontSize: 12, color: colors.textSecondary, marginTop: 2 }}>👥 {language === 'ru' ? detailProfile.audience : (detailProfile.audience_en ?? detailProfile.audience)}</Text>
                       )}
@@ -490,12 +493,12 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
                 <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16, maxWidth: '100%' }}>
                   {detailProfile.session_minutes && (
                     <View style={{ backgroundColor: colors.card, paddingVertical: 6, paddingHorizontal: 10, borderRadius: 14 }}>
-                      <Text style={{ fontSize: 11, color: colors.text }}>⏱ {language === 'ru' ? detailProfile.session_minutes : detailProfile.session_minutes.replace('мин', 'min')}</Text>
+                      <Text style={{ fontSize: 11, color: colors.text }}>⏱ {detailProfile.session_minutes.replace('мин', t('unitMin'))}</Text>
                     </View>
                   )}
                   {detailProfile.warmup_enabled && (
                     <View style={{ backgroundColor: colors.card, paddingVertical: 6, paddingHorizontal: 10, borderRadius: 14 }}>
-                      <Text style={{ fontSize: 11, color: colors.text }}>☀️ Утренняя Зарядка</Text>
+                      <Text style={{ fontSize: 11, color: colors.text }}>☀️ {t('badge_morning_warmup')}</Text>
                     </View>
                   )}
                   {detailProfile.financial_brain_day_enabled && (
@@ -521,7 +524,7 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
                       по-русски (нужно «23 тренажёра»), а окончание зависит от
                       последней цифры — при вычисляемом числе пришлось бы заводить
                       склонятор. Двоеточие снимает вопрос для любого числа. */}
-                  🎮 {detailProfile.allowed_games === 'all' ? `Все тренажёры: ${GAMES.length}` : `Тренажёров в профиле: ${(detailProfile.allowed_games as string[]).length}`}
+                  🎮 {fmt(detailProfile.allowed_games === 'all' ? 'label_all_48_games' : 'switcherProfileGames', { n: detailProfile.allowed_games === 'all' ? GAMES.length : detailProfile.allowed_games.length })}
                 </Text>
                 {detailProfile.allowed_games !== 'all' && (
                   <View style={{ gap: 6, marginBottom: 18 }}>
@@ -551,15 +554,15 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
                         alignItems: 'center',
                         marginBottom: 4,
                       }}>
-                        <Text style={{ fontSize: 11, color: colors.textSecondary, textTransform: 'uppercase', letterSpacing: 1, fontWeight: '700' }}>Годовая подписка</Text>
+                        <Text style={{ fontSize: 11, color: colors.textSecondary, textTransform: 'uppercase', letterSpacing: 1, fontWeight: '700' }}>{t('switcherAnnual')}</Text>
                         <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 6, marginTop: 4, marginBottom: 12 }}>
                           <Text style={{ fontSize: 32, fontWeight: '900', color: colors.text }}>
                             {formatPrice(detailProfile.price_year)}
                           </Text>
-                          <Text style={{ fontSize: 14, color: colors.textSecondary }}>/год</Text>
+                          <Text style={{ fontSize: 14, color: colors.textSecondary }}>{t('switcherPerYear')}</Text>
                         </View>
                         <Text style={{ fontSize: 11, color: colors.textSecondary, textAlign: 'center', marginBottom: 12 }}>
-                          ≈ {Math.round(detailProfile.price_year / 12)}₽/мес · код на 365 дней
+                          {fmt('switcherMonthlyCost', { price: Math.round(detailProfile.price_year / 12) })}
                         </Text>
                         <TouchableOpacity
                           accessibilityRole="button"
@@ -567,7 +570,7 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
                           style={{ backgroundColor: '#10b981', paddingVertical: 13, paddingHorizontal: 24, borderRadius: 10, flexDirection: 'row', alignItems: 'center', gap: 8 }}
                         >
                           <Ionicons name="cart" size={18} color={textOn('#10b981')} />
-                          <Text style={{ color: textOn('#10b981'), fontWeight: '800', fontSize: 15 }}>Оформить за {formatPrice(detailProfile.price_year)}</Text>
+                          <Text style={{ color: textOn('#10b981'), fontWeight: '800', fontSize: 15 }}>{fmt('switcherOrderPrice', { price: formatPrice(detailProfile.price_year) })}</Text>
                         </TouchableOpacity>
                       </View>
                     )}
@@ -578,11 +581,11 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
                       onPress={() => { setDetailProfile(null); setCodeModalOpen(true); }}
                       style={{ borderWidth: 1.5, borderColor: colors.border, paddingVertical: 12, borderRadius: 10, alignItems: 'center' }}
                     >
-                      <Text style={{ color: colors.text, fontWeight: '700', fontSize: 13 }}>🔑 У меня уже есть код — ввести</Text>
+                      <Text style={{ color: colors.text, fontWeight: '700', fontSize: 13 }}>🔑 {t('btn_already_have_code')}</Text>
                     </TouchableOpacity>
                     ) : (
                     <View style={{ backgroundColor: colors.card, paddingVertical: 12, borderRadius: 10, alignItems: 'center' }}>
-                      <Text style={{ color: colors.textSecondary, fontWeight: '700', fontSize: 13 }}>🔒 Скоро</Text>
+                      <Text style={{ color: colors.textSecondary, fontWeight: '700', fontSize: 13 }}>🔒 {t('label_coming_soon')}</Text>
                     </View>
                     )}
                     {/* v1.30.2: консультация/оплата в Telegram скрыты в App-Store-режиме (anti-steering). */}
@@ -594,10 +597,10 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
                           style={{ backgroundColor: '#0088cc', paddingVertical: 12, borderRadius: 10, alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 8 }}
                         >
                           <Ionicons name="chatbubble-ellipses" size={16} color="#fff" />
-                          <Text style={{ color: '#fff', fontWeight: '700', fontSize: 13 }}>Получить консультацию в Telegram</Text>
+                          <Text style={{ color: '#fff', fontWeight: '700', fontSize: 13 }}>{t('switcherConsult')}</Text>
                         </TouchableOpacity>
                         <Text style={{ fontSize: 11, color: colors.textSecondary, textAlign: 'center', marginTop: 4, lineHeight: 16 }}>
-                          Оплата картой / СБП / крипто · код выдаётся за 5-30 мин (рабочие часы Мск)
+                          {t('switcherPaymentInfo')}
                         </Text>
                       </>
                     )}
@@ -609,12 +612,12 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
                     onPress={() => { switchProfile(detailProfile.id); setDetailProfile(null); onClose(); }}
                     style={{ backgroundColor: detailProfile.color, paddingVertical: 14, borderRadius: 12, alignItems: 'center' }}
                   >
-                    <Text style={{ color: '#000', fontWeight: '800', fontSize: 15 }}>✓ Переключиться на этот профиль</Text>
+                    <Text style={{ color: '#000', fontWeight: '800', fontSize: 15 }}>✓ {t('btn_switch_to_profile')}</Text>
                   </TouchableOpacity>
                 )}
                 {detailProfile.id === profile.id && (
                   <View style={{ backgroundColor: detailProfile.color + '33', paddingVertical: 14, borderRadius: 12, alignItems: 'center' }}>
-                    <Text style={{ color: colors.text, fontWeight: '700', fontSize: 14 }}>✓ Это твой текущий профиль</Text>
+                    <Text style={{ color: colors.text, fontWeight: '700', fontSize: 14 }}>✓ {t('label_current_profile')}</Text>
                   </View>
                 )}
               </ScrollView>
@@ -627,16 +630,16 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
       <Modal visible={codeModalOpen} animationType="fade" transparent onRequestClose={() => setCodeModalOpen(false)}>
         <View {...a11yModal} style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.55)', justifyContent: 'center', padding: 20 }}>
           <View style={{ backgroundColor: colors.surface, borderRadius: 16, padding: 22, gap: 14 }}>
-            <Text style={{ fontSize: 18, fontWeight: '700', color: colors.text }}>🔑 Код доступа</Text>
+            <Text style={{ fontSize: 18, fontWeight: '700', color: colors.text }}>🔑 {t('title_access_code')}</Text>
             <Text style={{ fontSize: 13, color: colors.textSecondary, lineHeight: 18 }}>
-              Введи код, чтобы разблокировать тематический профиль.
+              {t('switcherCodeHint')}
             </Text>
             <TextInput
               value={codeInput}
               onChangeText={(t) => { setCodeInput(t); setCodeError(null); }}
               autoCapitalize="characters"
               autoCorrect={false}
-              placeholder="например, CHESS-NZT-2026 или EXC-260822-A4F2-1B8C3D"
+              placeholder={`${t('ph_code_example')} / EXC-260822-A4F2-1B8C3D`}
               placeholderTextColor={colors.textSecondary}
               style={{
                 borderWidth: 1,
@@ -646,17 +649,17 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
               }}
               onSubmitEditing={tryRedeem}
             />
-            {codeError && <Text style={{ fontSize: 12, color: '#ef4444' }}>{codeError}</Text>}
+            {codeError && <Text style={{ fontSize: 12, color: '#ef4444' }}>{t(codeError)}</Text>}
             <View style={{ flexDirection: 'row', gap: 10, justifyContent: 'flex-end' }}>
               <TouchableOpacity
                 accessibilityRole="button" onPress={() => { setCodeModalOpen(false); setCodeInput(''); setCodeError(null); }}
                 style={{ paddingVertical: 10, paddingHorizontal: 16 }}>
-                <Text style={{ color: colors.textSecondary, fontWeight: '600' }}>Отмена</Text>
+                <Text style={{ color: colors.textSecondary, fontWeight: '600' }}>{t('btn_cancel')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 accessibilityRole="button" onPress={tryRedeem}
                 style={{ paddingVertical: 10, paddingHorizontal: 18, backgroundColor: '#10b981', borderRadius: 8 }}>
-                <Text style={{ color: textOn('#10b981'), fontWeight: '700' }}>Разблокировать</Text>
+                <Text style={{ color: textOn('#10b981'), fontWeight: '700' }}>{t('welcomeUnlock')}</Text>
               </TouchableOpacity>
             </View>
           </View>

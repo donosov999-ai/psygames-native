@@ -3,6 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/schulte/screen.dart';
 import 'package:psygames_flutter/shell/boss_round.dart';
 import 'package:psygames_flutter/shell/game_clock.dart';
+import 'package:psygames_flutter/shell/game_preset.dart';
+import 'package:psygames_flutter/shell/game_shell.dart';
 import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/level_rules.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
@@ -23,7 +25,8 @@ void main() {
 
   Future<SharedState> boot({int level = 1}) async {
     SharedPreferences.setMockInitialValues({
-      if (level != 1) '${SharedState.prefix}schulte_table_level_nzt48': '$level',
+      if (level != 1)
+        '${SharedState.prefix}schulte_table_level_nzt48': '$level',
       '${SharedState.prefix}language': 'ru',
     });
     return SharedState.open();
@@ -34,7 +37,11 @@ void main() {
     gameWallMs = () => tester.binding.clock.now().millisecondsSinceEpoch;
     addTearDown(() => gameWallMs = () => DateTime.now().millisecondsSinceEpoch);
     state = await boot(level: level);
-    await tester.pumpWidget(MaterialApp(home: SchulteScreen(key: UniqueKey(), state: state)));
+    await tester.pumpWidget(
+      MaterialApp(
+        home: SchulteScreen(key: UniqueKey(), state: state),
+      ),
+    );
     await tester.pump();
     await tester.pump();
   }
@@ -58,7 +65,9 @@ void main() {
     throw StateError('на поле нет клетки «$value»');
   }
 
-  testWidgets('🔴 уровень проходится тычками: 25 клеток по порядку — победа', (tester) async {
+  testWidgets('🔴 уровень проходится тычками: 25 клеток по порядку — победа', (
+    tester,
+  ) async {
     await open(tester);
     expect(find.text(L.t('schulteTable')), findsOneWidget);
     await tester.tap(find.text(L.t('start')));
@@ -69,11 +78,72 @@ void main() {
       await tester.pump();
     }
 
-    expect(find.text(L.t('nextLabel')), findsOneWidget,
-        reason: 'вся таблица собрана по порядку — уровень взят');
+    expect(
+      find.text(L.t('nextLabel')),
+      findsOneWidget,
+      reason: 'вся таблица собрана по порядку — уровень взят',
+    );
   });
 
-  testWidgets('🔴 чужая клетка считается ошибкой, а цель не двигается', (tester) async {
+  testWidgets(
+    'зарядка: настоящий проход таблицы сохраняет L2 после закрытия экрана',
+    (tester) async {
+      state = await boot();
+      GamePreset.set({'wu': '1', 'progress': '1', 'auto': '1'});
+      addTearDown(GamePreset.clear);
+      gameWallMs = () => tester.binding.clock.now().millisecondsSinceEpoch;
+      addTearDown(
+        () => gameWallMs = () => DateTime.now().millisecondsSinceEpoch,
+      );
+      await tester.pumpWidget(
+        MaterialApp(
+          home: SchulteScreen(key: UniqueKey(), state: state),
+        ),
+      );
+      await tester.pump();
+      await tester.pump();
+      for (var i = 0; i < 25; i++) {
+        await tester.tap(cellWith(tester, target(tester)));
+        await tester.pump();
+      }
+      expect(find.text(L.t('nextLabel')), findsOneWidget);
+      expect(state.get('psygames_schulte_table_warmup_level_nzt48'), '2');
+      expect(
+        state.get('psygames_schulte_table_level_nzt48'),
+        isNull,
+        reason: 'тренировка не перезаписывает личную лестницу',
+      );
+      await tester.pumpWidget(const MaterialApp(home: SizedBox()));
+      state = await SharedState.open();
+      await tester.pumpWidget(
+        MaterialApp(
+          home: SchulteScreen(key: UniqueKey(), state: state),
+        ),
+      );
+      await tester.pump();
+      await tester.pump();
+      expect(
+        find.byKey(const Key('цель')),
+        findsOneWidget,
+        reason: 'повторный запуск сам начинает новую таблицу',
+      );
+      expect(
+        tester
+            .widget<GameShell>(find.byType(GameShell))
+            .hud
+            .singleWhere((item) => item.label == L.t('level'))
+            .value,
+        '2',
+        reason: 'не только ключ сохранён: экран действительно играет следующий уровень',
+      );
+      expect(state.get('psygames_schulte_table_warmup_level_nzt48'), '2');
+      await tester.pumpWidget(const MaterialApp(home: SizedBox()));
+    },
+  );
+
+  testWidgets('🔴 чужая клетка считается ошибкой, а цель не двигается', (
+    tester,
+  ) async {
     await open(tester);
     await tester.tap(find.text(L.t('start')));
     await tester.pump();
@@ -88,8 +158,10 @@ void main() {
     expect(find.text('1'), findsWidgets, reason: 'счётчик ошибок вырос до 1');
   });
 
-  testWidgets('🔴 пока правило не объявлено, нажатия не считаются', (tester) async {
-    await open(tester, level: 16);   // ось 9: правило объявляется через 1,5 с
+  testWidgets('🔴 пока правило не объявлено, нажатия не считаются', (
+    tester,
+  ) async {
+    await open(tester, level: 16); // ось 9: правило объявляется через 1,5 с
     await tester.tap(find.text(L.t('start')));
     await tester.pump();
 
@@ -99,7 +171,11 @@ void main() {
     expect(target(tester), '?', reason: 'нажатие до объявления не считается');
 
     await tester.pump(const Duration(milliseconds: 1600));
-    expect(target(tester), isNot('?'), reason: 'через полторы секунды правило объявлено');
+    expect(
+      target(tester),
+      isNot('?'),
+      reason: 'через полторы секунды правило объявлено',
+    );
   });
 
   testWidgets('уход с экрана гасит таймеры', (tester) async {
@@ -110,27 +186,45 @@ void main() {
     await tester.pump(const Duration(seconds: 5));
   });
 
-  testWidgets('🔴 веха: победа на 3-м уровне открывает бой «сложи подсвеченные», на 2-м — нет', (tester) async {
-    // В вебе этот экран зовёт BossRound каждые три уровня; при переносе бой пропал молча.
-    await expectBossAfterWin(tester, won: find.text(L.t('nextLabel')), hudKey: 'bossHudCounting', play: (level) async {
-      await open(tester, level: level);
-      await tester.tap(find.text(L.t('start')));
-      await tester.pump();
-      for (var i = 0; i < 200 && find.text(L.t('nextLabel')).evaluate().isEmpty; i += 1) {
-        await tester.tap(cellWith(tester, target(tester)));
-        await tester.pump();
-      }
-    });
-  });
+  testWidgets(
+    '🔴 веха: победа на 3-м уровне открывает бой «сложи подсвеченные», на 2-м — нет',
+    (tester) async {
+      // В вебе этот экран зовёт BossRound каждые три уровня; при переносе бой пропал молча.
+      await expectBossAfterWin(
+        tester,
+        won: find.text(L.t('nextLabel')),
+        hudKey: 'bossHudCounting',
+        play: (level) async {
+          await open(tester, level: level);
+          await tester.tap(find.text(L.t('start')));
+          await tester.pump();
+          for (
+            var i = 0;
+            i < 200 && find.text(L.t('nextLabel')).evaluate().isEmpty;
+            i += 1
+          ) {
+            await tester.tap(cellWith(tester, target(tester)));
+            await tester.pump();
+          }
+        },
+      );
+    },
+  );
 
-  testWidgets('🔴 итог боя не переезжает в следующий уровень того же экрана', (tester) async {
+  testWidgets('🔴 итог боя не переезжает в следующий уровень того же экрана', (
+    tester,
+  ) async {
     // Правило действует только ВНУТРИ одного экрана: пробы вехи открывают экран заново
     // на каждом уровне и этого пути не проходят. Здесь 3-й уровень с боем, «Следующий
     // уровень» той же кнопкой, 4-й без боя — строки «Босс устоял» в его итоге быть не должно.
     Future<void> playToEnd() async {
       await tester.tap(find.text(L.t('start')));
       await tester.pump();
-      for (var i = 0; i < 200 && find.text(L.t('nextLabel')).evaluate().isEmpty; i += 1) {
+      for (
+        var i = 0;
+        i < 200 && find.text(L.t('nextLabel')).evaluate().isEmpty;
+        i += 1
+      ) {
         await tester.tap(cellWith(tester, target(tester)));
         await tester.pump();
       }
@@ -140,7 +234,9 @@ void main() {
     await playToEnd();
     await tester.pump(const Duration(milliseconds: 500));
     expect(find.byKey(const Key('boss-round')), findsOneWidget);
-    await tester.pump(BossRound.introTime + const Duration(seconds: BossRound.roundSeconds + 1));
+    await tester.pump(
+      BossRound.introTime + const Duration(seconds: BossRound.roundSeconds + 1),
+    );
     await tester.pump(BossRound.doneTime);
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('boss-outcome')), findsOneWidget);
@@ -149,12 +245,28 @@ void main() {
     await tester.pump();
     await playToEnd();
     await tester.pump(const Duration(seconds: 3));
-    expect(find.byKey(const Key('boss-round')), findsNothing, reason: 'бой после 4-го уровня');
-    expect(find.text(L.t('nextLabel')), findsOneWidget, reason: 'уровень 4 не взят');
-    expect(find.byKey(const Key('boss-outcome')), findsNothing, reason: 'в итоге 4-го уровня — итог прошлого боя');
+    expect(
+      find.byKey(const Key('boss-round')),
+      findsNothing,
+      reason: 'бой после 4-го уровня',
+    );
+    expect(
+      find.text(L.t('nextLabel')),
+      findsOneWidget,
+      reason: 'уровень 4 не взят',
+    );
+    expect(
+      find.byKey(const Key('boss-outcome')),
+      findsNothing,
+      reason: 'в итоге 4-го уровня — итог прошлого боя',
+    );
   });
 
-  Future<void> openAt(WidgetTester tester, int level, {bool ruleSeen = true}) async {
+  Future<void> openAt(
+    WidgetTester tester,
+    int level, {
+    bool ruleSeen = true,
+  }) async {
     // Часы партии — игровые (shell/game_clock.dart): в пробе они идут вместе с поддельным временем.
     gameWallMs = () => tester.binding.clock.now().millisecondsSinceEpoch;
     addTearDown(() => gameWallMs = () => DateTime.now().millisecondsSinceEpoch);
@@ -164,46 +276,91 @@ void main() {
       if (ruleSeen) LevelRules.seenKey('schulte_table', 'timelimit'): '1',
     });
     state = await SharedState.open();
-    await tester.pumpWidget(MaterialApp(home: SchulteScreen(key: UniqueKey(), state: state)));
+    await tester.pumpWidget(
+      MaterialApp(
+        home: SchulteScreen(key: UniqueKey(), state: state),
+      ),
+    );
     await tester.pump();
     await tester.pump();
   }
 
-  testWidgets('🔴 ПОТОЛКА НЕТ: на 19-м время вышло — таблица встала, уровень не засчитан', (tester) async {
-    // Правило Дениса 06.09.2026: с 19-го на таблицу 150 с, с каждым уровнем на 4 % меньше.
-    final limit = '150 ${L.t('secShort')}';
-    final timeUp = L.f('schulteResultTimeUp', {'limit': limit});
-    await openAt(tester, 19);
-    expect(find.textContaining('/ $limit'), findsOneWidget, reason: 'в полосе показателей — время и лимит');
-    await tester.tap(find.text(L.t('start')));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 1600));   // ось 9: правило объявлено
-    await tester.pump(const Duration(seconds: 148));
-    expect(find.text(timeUp), findsNothing, reason: 'до лимита партия идёт');
-    await tester.pump(const Duration(seconds: 2));
-    expect(find.text(timeUp), findsOneWidget, reason: 'лимит вышел — партия кончилась сама');
-    expect(find.text(L.t('retry')), findsOneWidget, reason: 'уровень не засчитан');
-    expect(state.get('${SharedState.prefix}schulte_table_level_nzt48'), '19', reason: 'лестница не шагнула');
-    await tester.tap(find.byKey(const Key('клетка0')));
-    await tester.pump();
-    expect(find.text(timeUp), findsOneWidget, reason: 'после лимита нажатия не считаются');
-  });
+  testWidgets(
+    '🔴 ПОТОЛКА НЕТ: на 19-м время вышло — таблица встала, уровень не засчитан',
+    (tester) async {
+      // Правило Дениса 06.09.2026: с 19-го на таблицу 150 с, с каждым уровнем на 4 % меньше.
+      final limit = '150 ${L.t('secShort')}';
+      final timeUp = L.f('schulteResultTimeUp', {'limit': limit});
+      await openAt(tester, 19);
+      expect(
+        find.textContaining('/ $limit'),
+        findsOneWidget,
+        reason: 'в полосе показателей — время и лимит',
+      );
+      await tester.tap(find.text(L.t('start')));
+      await tester.pump();
+      await tester.pump(
+        const Duration(milliseconds: 1600),
+      ); // ось 9: правило объявлено
+      await tester.pump(const Duration(seconds: 148));
+      expect(find.text(timeUp), findsNothing, reason: 'до лимита партия идёт');
+      await tester.pump(const Duration(seconds: 2));
+      expect(
+        find.text(timeUp),
+        findsOneWidget,
+        reason: 'лимит вышел — партия кончилась сама',
+      );
+      expect(
+        find.text(L.t('retry')),
+        findsOneWidget,
+        reason: 'уровень не засчитан',
+      );
+      expect(
+        state.get('${SharedState.prefix}schulte_table_level_nzt48'),
+        '19',
+        reason: 'лестница не шагнула',
+      );
+      await tester.tap(find.byKey(const Key('клетка0')));
+      await tester.pump();
+      expect(
+        find.text(timeUp),
+        findsOneWidget,
+        reason: 'после лимита нажатия не считаются',
+      );
+    },
+  );
 
-  testWidgets('🔴 на 18-м лимита нет: в полосе одно время, партия идёт сколько угодно', (tester) async {
-    await openAt(tester, 18);
-    expect(find.textContaining(' / '), findsNothing, reason: 'без лимита в полосе одно время');
-    await tester.tap(find.text(L.t('start')));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 1600));
-    await tester.pump(const Duration(seconds: 200));
-    expect(find.text(L.t('retry')), findsNothing, reason: 'уровень до 19-го не обрывается по времени');
-  });
+  testWidgets(
+    '🔴 на 18-м лимита нет: в полосе одно время, партия идёт сколько угодно',
+    (tester) async {
+      await openAt(tester, 18);
+      expect(
+        find.textContaining(' / '),
+        findsNothing,
+        reason: 'без лимита в полосе одно время',
+      );
+      await tester.tap(find.text(L.t('start')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 1600));
+      await tester.pump(const Duration(seconds: 200));
+      expect(
+        find.text(L.t('retry')),
+        findsNothing,
+        reason: 'уровень до 19-го не обрывается по времени',
+      );
+    },
+  );
 
-  testWidgets('🔴 на 19-м до партии — карточка правила «время на таблицу»', (tester) async {
+  testWidgets('🔴 на 19-м до партии — карточка правила «время на таблицу»', (
+    tester,
+  ) async {
     await tester.runAsync(LevelRules.load);
     await openAt(tester, 19, ruleSeen: false);
     await tester.pump();
-    expect(find.text(L.t('lr_schulte_table_timelimit_title')), findsOneWidget,
-        reason: 'новая механика объявлена до партии, как у остальных игр с правилами уровня');
+    expect(
+      find.text(L.t('lr_schulte_table_timelimit_title')),
+      findsOneWidget,
+      reason: 'новая механика объявлена до партии, как у остальных игр с правилами уровня',
+    );
   });
 }

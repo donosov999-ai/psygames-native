@@ -113,6 +113,13 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> {
   int _score = 0;
   bool _won = false;
   bool _lost = false;
+  // Undo reviews a completed attempt; only an explicit new deal resets its
+  // result. The shared future also serializes timer/manual Next.
+  Future<void>? _resultFuture;
+  bool _recordedLoss = false;
+  bool _reviewAfterLoss = false;
+  bool _nextPending = false;
+  int _deal = 0;
   final List<_Snapshot> _history = [];
 
   @override
@@ -231,6 +238,11 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> {
   }
 
   void _start(GoodsLevel level) {
+    _deal += 1;
+    _resultFuture = null;
+    _recordedLoss = false;
+    _reviewAfterLoss = false;
+    _nextPending = false;
     _level = level;
     _board = level.freshBoard();
     _obstacles = [...level.obstacles];
@@ -251,8 +263,32 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> {
   }
 
   Future<void> _next() async {
-    await _ladder.win();
-    setState(() => _start(_set!.byLevel(_ladder.level)));
+    if (!_won || _nextPending) return;
+    setState(() => _nextPending = true);
+    _cancelNext();
+    final deal = _deal;
+    try {
+      await _recordResult(true);
+      if (!mounted || deal != _deal || !_won) return;
+      setState(() => _start(_set!.byLevel(_ladder.level)));
+    } finally {
+      if (mounted && deal == _deal) setState(() => _nextPending = false);
+    }
+  }
+
+  Future<void> _recordResult(bool passed) {
+    final recorded = _resultFuture;
+    if (recorded != null) return recorded;
+    _recordedLoss = !passed;
+    final level = _level!;
+    final details = <String, Object?>{'moves': _moves, 'moveLimit': level.moveLimit};
+    // The warm-up's mode/difficulty labels remain owned by LevelLadder;
+    // ordinary history identifies the actual set and played level.
+    final mode = GamePreset.isPreset ? null : _setKey;
+    final difficulty = GamePreset.isPreset ? null : '${level.level}';
+    return _resultFuture = passed
+        ? _ladder.win(score: _score, mode: mode, difficulty: difficulty, details: details).then((_) {})
+        : _ladder.fail(score: _score, mode: mode, difficulty: difficulty, details: details);
   }
 
   /// Можно ли трогать нишу. ОДНА проверка и на «взять отсюда», и на «положить сюда»:
@@ -307,6 +343,7 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> {
 
   /// Ход: взятый товар уезжает в нишу, ядро разбирает тройки, препятствия стареют.
   void _move(GoodsPick pick, int to) {
+    if (_won || _lost || _nextPending) return;
     if (!_canDrop(pick, to)) return;
     final board = _board!;
     final level = _level!;
@@ -357,6 +394,9 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> {
       _scheduleNext();
     } else if (movesExhausted(_moves, level.moveLimit, after.cells, level.goal)) {
       _lost = true;
+      // A failed warm-up/transit step is still completed. Keeping it only in
+      // the toolbar left the host waiting forever and retry erased history.
+      unawaited(_recordResult(false));
     }
   }
 
@@ -378,6 +418,7 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> {
       _sel = null;
       _won = false;
       _lost = false;
+      _reviewAfterLoss = _recordedLoss;
     });
   }
 
@@ -575,25 +616,33 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> {
         ),
         AuxAction(icon: Icons.task_alt, label: _goalText(level), onPressed: null),
       ]),
-      toolbar: _won
-          ? Padding(
+      toolbar: (_won || _lost || _reviewAfterLoss)
+          ? Column(mainAxisSize: MainAxisSize.min, children: [
+              if (_reviewAfterLoss)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  child: Text(L.t('puzzleLossReview'), textAlign: TextAlign.center),
+                ),
+              if (_won) Padding(
               padding: const EdgeInsets.all(12),
               child: FilledButton.icon(
-                onPressed: _next,
+                onPressed: _nextPending ? null : _next,
                 icon: const Icon(Icons.arrow_forward),
-                label: Text(L.f('levelWonNext', {'s': '${starsForMoves(_moves, level.reference)}'})),
+                label: Text(_reviewAfterLoss
+                    ? L.t('restart')
+                    : L.f('levelWonNext', {'s': '${starsForMoves(_moves, level.reference)}'})),
               ),
             )
-          : _lost
-              ? Padding(
+              else if (_lost) Padding(
                   padding: const EdgeInsets.all(12),
                   child: FilledButton.icon(
                     onPressed: _restart,
                     icon: const Icon(Icons.refresh),
                     label: Text(L.t('outOfMovesRetry')),
                   ),
-                )
-              : null,
+                ),
+            ])
+          : null,
       pauseActions: [
         PauseAction(label: L.t('restart'), icon: Icons.refresh, onPressed: _restart),
         if (_history.isNotEmpty) PauseAction(label: L.t('btn_undo'), icon: Icons.undo, onPressed: _undo),

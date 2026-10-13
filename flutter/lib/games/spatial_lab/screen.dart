@@ -84,6 +84,7 @@ class _SpatialLabScreenState extends State<SpatialLabScreen> {
   Deal? _deal;
   int _selection = 0;
   bool _won = false;
+  bool _outcomeRecorded = false;
 
   /// Последнее нажатие по клетке: что выбрано и когда. Нужно только двойному нажатию.
   int? _lastTapTarget;
@@ -152,6 +153,7 @@ class _SpatialLabScreenState extends State<SpatialLabScreen> {
       _selection = deal.selection;
       _phase = LabPhase.playing;
       _won = false;
+      _outcomeRecorded = false;
       // Память о первом касании не переживает новую раздачу. Иначе: нажал клетку, нажал
       // «Новая раздача», снова быстро нажал ту же клетку — и свежее поле поворачивается от
       // ПЕРВОГО касания по нему, если выбор новой раздачи совпал с нажатой клеткой.
@@ -168,9 +170,18 @@ class _SpatialLabScreenState extends State<SpatialLabScreen> {
       deal.state.commit(command);
       _won = labWon(_mode, deal.state.present);
     });
-    // Победа поднимает ступень — но только в партии по уровню, не в свободной игре.
-    if (_won && (deal.task?.level ?? 0) > 0) {
-      _ladder.win().then((_) {
+    // Один исход на раздачу: Undo/Redo — просмотр, а не новая попытка. Закрываем
+    // зачёт ДО асинхронной отправки, чтобы повторная сборка не послала дубль.
+    // Свободная победа тоже отправляет партию и исход, но не двигает лестницу.
+    if (_won && !_outcomeRecorded) {
+      _outcomeRecorded = true;
+      final playedLevel = deal.task?.level ?? 0;
+      final freePlay = playedLevel == 0;
+      _ladder.win(
+        advance: playedLevel > 0,
+        difficulty: freePlay ? 'free' : null,
+        details: freePlay ? {'freePlay': true} : {'level': playedLevel},
+      ).then((_) {
         if (mounted) setState(() {});
       });
     }

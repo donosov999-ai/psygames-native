@@ -1,10 +1,13 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/shell/profile_switcher.dart';
 import 'package:psygames_flutter/shell/screen_ui.dart';
+import 'support/real_fonts.dart';
 
 /// 🔴 ПЕРЕКЛЮЧАТЕЛЬ ПРОФИЛЕЙ НА FLUTTER РИСУЕТ МОДЕЛЬ ВЕБА (задача 5b3513bd).
 ///
@@ -19,6 +22,8 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   final js = <String>[];
   late Map<String, Object?> model;
+  final capture = GlobalKey();
+  setUpAll(loadRoboto);
 
   setUp(() {
     ScreenUi.reset();
@@ -27,8 +32,8 @@ void main() {
     model = (jsonDecode(File('test/fixtures/switcher_model.json').readAsStringSync()) as Map).cast<String, Object?>();
   });
 
-  Future<void> open(WidgetTester t, {String? lockId, bool code = false}) async {
-    t.view.physicalSize = const Size(780, 1688);
+  Future<void> open(WidgetTester t, {String? lockId, bool code = false, Size size = const Size(390, 844), double scale = 1}) async {
+    t.view.physicalSize = size * 2;
     t.view.devicePixelRatio = 2;
     addTearDown(t.view.reset);
     final m = jsonDecode(jsonEncode(model)) as Map<String, Object?>;
@@ -40,15 +45,57 @@ void main() {
     }
     m['codeEntry'] = code;
     ScreenUi.model('#switcher').value = m.cast<String, Object?>();
-    await t.pumpWidget(MaterialApp(
+    await t.pumpWidget(RepaintBoundary(key: capture, child: MaterialApp(
+      theme: ThemeData(fontFamily: 'Roboto'),
+      builder: (context, child) => MediaQuery(data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(scale)), child: child!),
       home: Scaffold(body: Builder(builder: (c) => TextButton(onPressed: () => openProfileSwitcher(c, 'http://x'), child: const Text('open')))),
-    ));
+    )));
     await t.tap(find.text('open'));
     await t.pump();
     await t.pump(const Duration(milliseconds: 500));
   }
 
   Finder key(String k) => find.byKey(ValueKey(k));
+
+  Future<void> screenshot(WidgetTester t, String name) async {
+    const folder = String.fromEnvironment('PROFILE_EVIDENCE_DIR');
+    if (folder.isEmpty) return;
+    await t.runAsync(() async {
+      final boundary = capture.currentContext!.findRenderObject() as RenderRepaintBoundary;
+      final image = await boundary.toImage(pixelRatio: 2);
+      final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
+      await Directory(folder).create(recursive: true);
+      await File('$folder/$name.png').writeAsBytes(bytes!.buffer.asUint8List());
+      image.dispose();
+    });
+  }
+
+  for (final size in const [Size(320, 568), Size(360, 760), Size(390, 844)]) {
+    testWidgets('en ${size.width.toInt()}×${size.height.toInt()}: лист, детали, код без русских строк, Roboto ×1.3', (t) async {
+      await open(t, lockId: 'nzt48', code: true, size: size, scale: 1.3);
+      void english() {
+        for (final text in t.widgetList<Text>(find.byType(Text))) {
+          expect(text.data ?? text.textSpan?.toPlainText() ?? '', isNot(matches(RegExp('[А-Яа-яЁё]'))));
+        }
+        expect(t.takeException(), isNull);
+      }
+      english();
+      await screenshot(t, 'en-${size.width.toInt()}-list');
+      await t.ensureVisible(key('switcher-profile-nzt48'));
+      await t.tap(key('switcher-profile-nzt48'));
+      await t.pumpAndSettle();
+      expect(key('switcher-detail-nzt48'), findsOneWidget);
+      english();
+      await screenshot(t, 'en-${size.width.toInt()}-detail');
+      await t.ensureVisible(key('switcher-detail-code'));
+      await t.tap(key('switcher-detail-code'));
+      await t.pumpAndSettle();
+      expect(key('switcher-code-dialog'), findsOneWidget);
+      english();
+      await screenshot(t, 'en-${size.width.toInt()}-code');
+      await t.pumpWidget(const SizedBox());
+    });
+  }
 
   testWidgets('🔴 лист — все профили модели; открытый переключает и закрывается', (t) async {
     await open(t);

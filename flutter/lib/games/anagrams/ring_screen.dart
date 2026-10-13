@@ -45,6 +45,7 @@ class _RingScreenState extends State<RingScreen> {
   final Set<String> _solved = {};
   bool _wrong = false;
   int _hintsUsed = 0;
+  bool _finishing = false;
 
   static const _hintsPerRound = 2;
 
@@ -73,6 +74,7 @@ class _RingScreenState extends State<RingScreen> {
     _solved.clear();
     _hintsUsed = 0;
     _wrong = false;
+    _finishing = false;
     // Новое кольцо — отметка разбора снимается: следующая партия зачётная.
     LessonUsed.reset();
   }
@@ -80,7 +82,7 @@ class _RingScreenState extends State<RingScreen> {
   String get _draft => [for (final i in _picked) _letters[i]].join();
 
   void _pick(int i) {
-    if (_picked.contains(i)) return;
+    if (_finishing || _picked.contains(i)) return;
     setState(() {
       _picked.add(i);
       _wrong = false;
@@ -104,7 +106,7 @@ class _RingScreenState extends State<RingScreen> {
 
   Future<void> _submit() async {
     final ring = _ring;
-    if (ring == null || _draft.isEmpty) return;
+    if (ring == null || _finishing || _draft.isEmpty) return;
     final side = _sideOf(_draft.toUpperCase());
     if (side == null) {
       _haptics.miss();
@@ -116,18 +118,22 @@ class _RingScreenState extends State<RingScreen> {
       _picked.clear();
     });
     _solved.length == 4 ? _haptics.win() : _haptics.hit();
-    if (_solved.length == 4) {
-      await _ladder.win();
-      if (!mounted) return;
-      setState(() => _deal(_packs!));
-    }
+    await _finishIfComplete();
+  }
+
+  Future<void> _finishIfComplete() async {
+    if (_solved.length != 4 || _finishing) return;
+    _finishing = true; // claim the attempt before awaiting storage/report
+    await _ladder.win();
+    if (!mounted) return;
+    setState(() => _deal(_packs!));
   }
 
   /// Подсказка открывает СТОРОНУ целиком: открывать по букве в квадрате, где
   /// углы общие, значило бы выдавать и соседнее слово наполовину.
-  void _hint() {
+  Future<void> _hint() async {
     final ring = _ring;
-    if (ring == null || _hintsUsed >= _hintsPerRound) return;
+    if (ring == null || _finishing || _hintsUsed >= _hintsPerRound) return;
     const order = ['top', 'right', 'bottom', 'left'];
     final next = order.firstWhere((s) => !_solved.contains(s), orElse: () => '');
     if (next.isEmpty) return;
@@ -135,6 +141,7 @@ class _RingScreenState extends State<RingScreen> {
       _hintsUsed++;
       _solved.add(next);
     });
+    await _finishIfComplete();
   }
 
   void _shuffle() => setState(() {
@@ -216,7 +223,7 @@ class _RingScreenState extends State<RingScreen> {
           label: L.t('btn_hint'),
           tint: const Color(0xFFB45309),
           count: _hintsPerRound - _hintsUsed,
-          onPressed: _hintsUsed < _hintsPerRound ? _hint : null,
+          onPressed: !_finishing && _hintsUsed < _hintsPerRound ? _hint : null,
         ),
         AuxAction(icon: Icons.shuffle, label: L.t('shuffleBtn'), onPressed: _shuffle),
         // Выбор режима — иначе остальные три игры анаграмм недостижимы (см. mode_switch.dart).
@@ -238,7 +245,7 @@ class _RingScreenState extends State<RingScreen> {
             Expanded(
               child: FilledButton.icon(
                 key: const ValueKey('ring-check'),
-                onPressed: _picked.isEmpty ? null : () { _submit(); },
+                onPressed: _finishing || _picked.isEmpty ? null : () { _submit(); },
                 icon: const Icon(Icons.done),
                 label: Text(L.t('check')),
               ),

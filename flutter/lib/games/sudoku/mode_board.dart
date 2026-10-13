@@ -162,7 +162,7 @@ class ModeBoard extends StatelessWidget {
                       mask: mask,
                       value: v,
                       cell: cell,
-                      color: scheme.onSurfaceVariant,
+                      color: look.selected ? Colors.white : scheme.onSurfaceVariant,
                     )
                   : Text(
                       v == 0 ? '' : '$v',

@@ -48,6 +48,8 @@ class _OspanScreenState extends State<OspanScreen> {
   int _recallErrors = 0;
   bool _won = false;
   bool _ready = false;
+  bool _submitted = false;
+  int _attempt = 0;
   _Phase _phase = _Phase.equation;
   final TextEditingController _input = TextEditingController();
   Timer? _letterTimer;
@@ -87,6 +89,8 @@ class _OspanScreenState extends State<OspanScreen> {
   }
 
   void _reset() {
+    _attempt += 1;
+    _submitted = false;
     // Новая партия — снова зачётная (договор shell/lesson.dart: отметку «разбор
     // смотрели» снимает новая раздача). Отметка общая на всё приложение, и без
     // сброса один открытый разбор выключал бы рост уровня во всех играх.
@@ -134,7 +138,10 @@ class _OspanScreenState extends State<OspanScreen> {
   }
 
   Future<void> _checkRecall() async {
-    if (_phase != _Phase.recall) return;
+    if (_phase != _Phase.recall || _submitted) return;
+    // Claim before awaiting storage; restart alone opens another attempt.
+    setState(() => _submitted = true);
+    final attempt = _attempt;
     final typed = _input.text.toUpperCase().replaceAll(RegExp(r'[^А-ЯЁA-Z]'), '').split('');
     var errors = 0;
     for (var i = 0; i < _letters.length; i += 1) {
@@ -148,7 +155,7 @@ class _OspanScreenState extends State<OspanScreen> {
     } else {
       await _ladder.fail();
     }
-    if (!mounted) return;
+    if (!mounted || attempt != _attempt) return;
     setState(() {
       _recallErrors = errors;
       _won = passed;
@@ -242,6 +249,7 @@ class _OspanScreenState extends State<OspanScreen> {
             TextField(
               key: const Key('ввод'),
               controller: _input,
+              readOnly: _submitted,
               autofocus: true,
               textCapitalization: TextCapitalization.characters,
               decoration: InputDecoration(
@@ -253,7 +261,7 @@ class _OspanScreenState extends State<OspanScreen> {
             const SizedBox(height: 8),
             FilledButton.icon(
               key: const Key('проверить'),
-              onPressed: _checkRecall,
+              onPressed: _submitted ? null : _checkRecall,
               icon: const Icon(Icons.check),
               label: Text(L.t('check')),
             ),

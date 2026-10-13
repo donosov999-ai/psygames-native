@@ -176,6 +176,20 @@ const МЕРНЫЕ: ReadonlySet<string> = new Set(['assessment', 'financial-batt
 
 export function stepToParams(step: PlaylistStep, slot?: WarmupSlot, track?: PlaylistMeta['track']): Record<string, string> {
   const p: Record<string, string> = { wu: '1' };
+  // Training progresses through FULL rounds on its own persistent ladder. A fixed
+  // baseline, assessment, night/rest session or deliberately fixed level stays a preset.
+  // Do not carry abbreviated trials/size/startLen into a round that earns a level.
+  if (track === 'training' && slot !== 'night' && !step.is_fixed_baseline && step.settings?.level === undefined) {
+    p.progress = '1';
+    p.auto = '1';
+    if (step.mode) p.mode = step.mode;
+    if (slot === 'evening') p.calm = '1';
+    // Presentation options are not shortcuts to completion.
+    for (const key of ['delivery', 'language', 'from', 'to']) {
+      if (step.settings?.[key] !== undefined) p[key] = String(step.settings[key]);
+    }
+    return p;
+  }
   if (step.difficulty) p.diff = step.difficulty;   // у уровневых игр шаг трудность не задаёт — уровень личный
   // Вечер И НОЧЬ: в полночь торопить человека тем более незачем.
   if (slot === 'evening' || slot === 'night') p.calm = '1';

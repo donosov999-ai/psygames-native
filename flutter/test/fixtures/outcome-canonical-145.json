@@ -1,0 +1,727 @@
+[
+  {
+    "number": 1,
+    "name_ru": "Запомни цифры",
+    "route": "/games/digit-span"
+  },
+  {
+    "number": 2,
+    "name_ru": "Матрица памяти (набор «Позиции»)",
+    "route": "/games/memory-matrix"
+  },
+  {
+    "number": 3,
+    "name_ru": "Кубики Корси (Позиции: Блоки Корси)",
+    "route": "/games/corsi"
+  },
+  {
+    "number": 4,
+    "name_ru": "Пространственный ряд (обратный) (Позиции: Наоборот)",
+    "route": "/games/spatial-span"
+  },
+  {
+    "number": 5,
+    "name_ru": "Слуховой охват",
+    "route": "/games/listening-span"
+  },
+  {
+    "number": 6,
+    "name_ru": "Reading Span: память",
+    "route": "/games/reading-span"
+  },
+  {
+    "number": 7,
+    "name_ru": "N-back: оперативная память",
+    "route": "/games/n-back"
+  },
+  {
+    "number": 8,
+    "name_ru": "Парные картинки",
+    "route": "/games/picture-pairs"
+  },
+  {
+    "number": 9,
+    "name_ru": "OSpan: счёт+память",
+    "route": "/games/ospan"
+  },
+  {
+    "number": 10,
+    "name_ru": "Мнемоника: порядок",
+    "route": "/games/mnemonics"
+  },
+  {
+    "number": 11,
+    "name_ru": "Дворец памяти",
+    "route": "/games/memory-palace"
+  },
+  {
+    "number": 12,
+    "name_ru": "Лица и имена",
+    "route": "/games/faces-names"
+  },
+  {
+    "number": 13,
+    "name_ru": "Пары слов: память",
+    "route": "/games/word-pairs"
+  },
+  {
+    "number": 14,
+    "name_ru": "Прочти эмоцию",
+    "route": "/games/rmet"
+  },
+  {
+    "number": 15,
+    "name_ru": "Словарь SRS",
+    "route": "/games/vocab-srs"
+  },
+  {
+    "number": 16,
+    "name_ru": "Сортировка слов",
+    "route": "/games/semantic-sort"
+  },
+  {
+    "number": 17,
+    "name_ru": "Cloze: фразы",
+    "route": "/games/cloze"
+  },
+  {
+    "number": 18,
+    "name_ru": "Слово или нет?",
+    "route": "/games/lexical-decision"
+  },
+  {
+    "number": 19,
+    "name_ru": "Анаграммы",
+    "route": "/games/anagrams"
+  },
+  {
+    "number": 20,
+    "name_ru": "Беглость речи (COWAT)",
+    "route": "/games/phonemic-fluency"
+  },
+  {
+    "number": 21,
+    "name_ru": "Story Recall: память на детали",
+    "route": "/games/story-recall"
+  },
+  {
+    "number": 22,
+    "name_ru": "Фонемы: минимальные пары",
+    "route": "/games/phoneme-pairs"
+  },
+  {
+    "number": 23,
+    "name_ru": "Тоны китайского",
+    "route": "/games/chinese-tones"
+  },
+  {
+    "number": 24,
+    "name_ru": "Эхо: псевдослова",
+    "route": "/games/pseudoword-echo"
+  },
+  {
+    "number": 25,
+    "name_ru": "Диктант",
+    "route": "/games/dictation"
+  },
+  {
+    "number": 26,
+    "name_ru": "Ритм и высота",
+    "route": "/games/rhythm-pitch"
+  },
+  {
+    "number": 27,
+    "name_ru": "Детский мат",
+    "route": "/games/scholars-mate"
+  },
+  {
+    "number": 28,
+    "name_ru": "Доска в уме",
+    "route": "/games/chess-blind"
+  },
+  {
+    "number": 29,
+    "name_ru": "Найди ход",
+    "route": "/games/find-move"
+  },
+  {
+    "number": 30,
+    "name_ru": "Шахматный пасьянс",
+    "route": "/games/solitaire-chess"
+  },
+  {
+    "number": 31,
+    "name_ru": "Конь и ферзи",
+    "route": "/games/knights-queens"
+  },
+  {
+    "number": 32,
+    "name_ru": "Указатели",
+    "route": "/games/puzzles?mode=Signpost"
+  },
+  {
+    "number": 33,
+    "name_ru": "Колышки",
+    "route": "/games/puzzles?mode=Pegs"
+  },
+  {
+    "number": 34,
+    "name_ru": "Инерция",
+    "route": "/games/puzzles?mode=Inertia"
+  },
+  {
+    "number": 35,
+    "name_ru": "Визуальный поиск",
+    "route": "/games/visual-search"
+  },
+  {
+    "number": 36,
+    "name_ru": "Найди отличия",
+    "route": "/games/find-differences"
+  },
+  {
+    "number": 37,
+    "name_ru": "Маджонг",
+    "route": "/games/mahjong"
+  },
+  {
+    "number": 38,
+    "name_ru": "Шульте: внимание",
+    "route": "/games/schulte"
+  },
+  {
+    "number": 39,
+    "name_ru": "Трекер объектов",
+    "route": "/games/object-tracker"
+  },
+  {
+    "number": 40,
+    "name_ru": "SDMT: символ→цифра",
+    "route": "/games/sdmt"
+  },
+  {
+    "number": 41,
+    "name_ru": "SET: тройки признаков",
+    "route": "/games/set-game"
+  },
+  {
+    "number": 42,
+    "name_ru": "Корректура: фокус",
+    "route": "/games/proofreading"
+  },
+  {
+    "number": 43,
+    "name_ru": "Кто спрятался?",
+    "route": "/games/hidden-character"
+  },
+  {
+    "number": 44,
+    "name_ru": "Раскраска карты",
+    "route": "/games/puzzles?mode=Map"
+  },
+  {
+    "number": 45,
+    "name_ru": "Домино",
+    "route": "/games/puzzles?mode=Dominosa"
+  },
+  {
+    "number": 46,
+    "name_ru": "Найди признак",
+    "route": "/games/monster-traits"
+  },
+  {
+    "number": 47,
+    "name_ru": "Кого не хватает",
+    "route": "/games/monster-traits?mode=missing"
+  },
+  {
+    "number": 48,
+    "name_ru": "Поиск на ходу",
+    "route": "/games/search-runner"
+  },
+  {
+    "number": 49,
+    "name_ru": "Найди другую",
+    "route": "/games/kids-find"
+  },
+  {
+    "number": 50,
+    "name_ru": "Подлодки",
+    "route": "/games/submarines"
+  },
+  {
+    "number": 51,
+    "name_ru": "Струп — классический",
+    "route": "/games/stroop"
+  },
+  {
+    "number": 52,
+    "name_ru": "Эмоциональный Stroop (Струп: Эмоциональный)",
+    "route": "/games/stroop-emotional"
+  },
+  {
+    "number": 53,
+    "name_ru": "Flanker — «Бока» (набор «Стрелки»)",
+    "route": "/games/flanker"
+  },
+  {
+    "number": 54,
+    "name_ru": "Simon: цвет vs позиция (Стрелки: Позиция)",
+    "route": "/games/simon"
+  },
+  {
+    "number": 55,
+    "name_ru": "Выбор-реакция: скорость (Стрелки: Выбор)",
+    "route": "/games/choice-rt"
+  },
+  {
+    "number": 56,
+    "name_ru": "ANT: 3 сети внимания (Стрелки: Подсказка)",
+    "route": "/games/ant"
+  },
+  {
+    "number": 57,
+    "name_ru": "CPT — редкая цель (набор «Долгий поток»)",
+    "route": "/games/cpt"
+  },
+  {
+    "number": 58,
+    "name_ru": "Переключение задач (Долгий поток: Смена правил)",
+    "route": "/games/switching-task"
+  },
+  {
+    "number": 59,
+    "name_ru": "Мишени: реакция",
+    "route": "/games/targets"
+  },
+  {
+    "number": 60,
+    "name_ru": "WCST: правила",
+    "route": "/games/wcst"
+  },
+  {
+    "number": 61,
+    "name_ru": "Торможение — смешанный режим (набор «Стоп и запрет»)",
+    "route": "/games/inhibition"
+  },
+  {
+    "number": 62,
+    "name_ru": "Go / No-Go: торможение (Стоп и запрет: Запрет)",
+    "route": "/games/go-no-go"
+  },
+  {
+    "number": 63,
+    "name_ru": "Стоп-сигнал: торможение (Стоп и запрет: Отмена начатого)",
+    "route": "/games/stop-signal"
+  },
+  {
+    "number": 64,
+    "name_ru": "Posner Cuing: внимание",
+    "route": "/games/posner"
+  },
+  {
+    "number": 65,
+    "name_ru": "PRL — меняющееся правило (набор «Решения»)",
+    "route": "/games/prl"
+  },
+  {
+    "number": 66,
+    "name_ru": "Iowa: 4 колоды (Решения: Четыре колоды)",
+    "route": "/games/iowa"
+  },
+  {
+    "number": 67,
+    "name_ru": "BART: риск-баллон (Решения: Надувай шар)",
+    "route": "/games/bart"
+  },
+  {
+    "number": 68,
+    "name_ru": "Рискни и сохрани",
+    "route": "/games/roll-and-bank"
+  },
+  {
+    "number": 69,
+    "name_ru": "Судоку — основной вход",
+    "route": "/games/sudoku"
+  },
+  {
+    "number": 70,
+    "name_ru": "Самурай",
+    "route": "/games/sudoku-samurai"
+  },
+  {
+    "number": 71,
+    "name_ru": "Фрактальная судоку",
+    "route": "/games/sudoku-fractal"
+  },
+  {
+    "number": 72,
+    "name_ru": "Небоскрёбы",
+    "route": "/games/sudoku?mode=towers"
+  },
+  {
+    "number": 73,
+    "name_ru": "Неравенства",
+    "route": "/games/sudoku?mode=unequal"
+  },
+  {
+    "number": 74,
+    "name_ru": "Киллер",
+    "route": "/games/sudoku?mode=killer"
+  },
+  {
+    "number": 75,
+    "name_ru": "Свободно",
+    "route": "/games/sudoku?mode=free"
+  },
+  {
+    "number": 76,
+    "name_ru": "Судоку для малышей",
+    "route": "/games/sudoku?mode=junior"
+  },
+  {
+    "number": 77,
+    "name_ru": "Кошки",
+    "route": "/games/cats"
+  },
+  {
+    "number": 78,
+    "name_ru": "Чёт-нечет",
+    "route": "/games/puzzles?mode=Unruly"
+  },
+  {
+    "number": 79,
+    "name_ru": "Лишние числа",
+    "route": "/games/puzzles?mode=Singles"
+  },
+  {
+    "number": 80,
+    "name_ru": "Нежить",
+    "route": "/games/puzzles?mode=Undead"
+  },
+  {
+    "number": 81,
+    "name_ru": "Клетки с арифметикой",
+    "route": "/games/puzzles?mode=Keen"
+  },
+  {
+    "number": 82,
+    "name_ru": "Судоку Тэтхэма",
+    "route": "/games/puzzles?mode=Solo"
+  },
+  {
+    "number": 83,
+    "name_ru": "Небоскрёбы Тэтхэма",
+    "route": "/games/puzzles?mode=Towers"
+  },
+  {
+    "number": 84,
+    "name_ru": "Неравенства Тэтхэма",
+    "route": "/games/puzzles?mode=Unequal"
+  },
+  {
+    "number": 85,
+    "name_ru": "Заполнение областей",
+    "route": "/games/puzzles?mode=Filling"
+  },
+  {
+    "number": 86,
+    "name_ru": "Фрактал: Бездна",
+    "route": "/games/sudoku-fractal-deep"
+  },
+  {
+    "number": 87,
+    "name_ru": "Ментальная ротация",
+    "route": "/games/mental-rotation"
+  },
+  {
+    "number": 88,
+    "name_ru": "Поворот чисел",
+    "route": "/games/spatial-lab?mode=twiddle"
+  },
+  {
+    "number": 89,
+    "name_ru": "Сеть труб",
+    "route": "/games/spatial-lab?mode=net"
+  },
+  {
+    "number": 90,
+    "name_ru": "Клоцки",
+    "route": "/games/puzzles?mode=Slide"
+  },
+  {
+    "number": 91,
+    "name_ru": "Сокобан",
+    "route": "/games/puzzles?mode=Sokoban"
+  },
+  {
+    "number": 92,
+    "name_ru": "Соедини точки",
+    "route": "/games/dots-connect"
+  },
+  {
+    "number": 93,
+    "name_ru": "Одна линия",
+    "route": "/games/one-line"
+  },
+  {
+    "number": 94,
+    "name_ru": "Соедини цепочку",
+    "route": "/games/trail-making"
+  },
+  {
+    "number": 95,
+    "name_ru": "Навигатор",
+    "route": "/games/navigator"
+  },
+  {
+    "number": 96,
+    "name_ru": "Галактики",
+    "route": "/games/puzzles?mode=Galaxies"
+  },
+  {
+    "number": 97,
+    "name_ru": "Замкнутая петля",
+    "route": "/games/puzzles?mode=Loopy"
+  },
+  {
+    "number": 98,
+    "name_ru": "Жемчужная петля",
+    "route": "/games/puzzles?mode=Pearl"
+  },
+  {
+    "number": 99,
+    "name_ru": "Косые черты",
+    "route": "/games/puzzles?mode=Slant"
+  },
+  {
+    "number": 100,
+    "name_ru": "Мосты",
+    "route": "/games/puzzles?mode=Bridges"
+  },
+  {
+    "number": 101,
+    "name_ru": "Рельсы",
+    "route": "/games/puzzles?mode=Train%20Tracks"
+  },
+  {
+    "number": 102,
+    "name_ru": "Распутать",
+    "route": "/games/puzzles?mode=Untangle"
+  },
+  {
+    "number": 103,
+    "name_ru": "Трубы",
+    "route": "/games/puzzles?mode=Net"
+  },
+  {
+    "number": 104,
+    "name_ru": "Трубы со сдвигом",
+    "route": "/games/puzzles?mode=Netslide"
+  },
+  {
+    "number": 105,
+    "name_ru": "Поворот квадрата",
+    "route": "/games/puzzles?mode=Twiddle"
+  },
+  {
+    "number": 106,
+    "name_ru": "Шестнадцать",
+    "route": "/games/puzzles?mode=Sixteen"
+  },
+  {
+    "number": 107,
+    "name_ru": "Пятнашки",
+    "route": "/games/puzzles?mode=Fifteen"
+  },
+  {
+    "number": 108,
+    "name_ru": "Переворот",
+    "route": "/games/puzzles?mode=Flip"
+  },
+  {
+    "number": 109,
+    "name_ru": "Куб по полю",
+    "route": "/games/puzzles?mode=Cube"
+  },
+  {
+    "number": 110,
+    "name_ru": "Чёрный ящик",
+    "route": "/games/puzzles?mode=Black%20Box"
+  },
+  {
+    "number": 111,
+    "name_ru": "Освободи путь",
+    "route": "/games/traffic-jam"
+  },
+  {
+    "number": 112,
+    "name_ru": "Пространственная лаборатория — общий вход",
+    "route": "/games/spatial-lab"
+  },
+  {
+    "number": 113,
+    "name_ru": "Сортировка товаров",
+    "route": "/games/goods-sort"
+  },
+  {
+    "number": 114,
+    "name_ru": "Пробирки",
+    "route": "/games/water-sort"
+  },
+  {
+    "number": 115,
+    "name_ru": "Сортировка шариков",
+    "route": "/games/ball-sort"
+  },
+  {
+    "number": 116,
+    "name_ru": "Сортировка гаек",
+    "route": "/games/nut-sort"
+  },
+  {
+    "number": 117,
+    "name_ru": "Торты",
+    "route": "/games/cake-sort"
+  },
+  {
+    "number": 118,
+    "name_ru": "Пицца",
+    "route": "/games/pizza-sort"
+  },
+  {
+    "number": 119,
+    "name_ru": "Ханойская башня",
+    "route": "/games/hanoi"
+  },
+  {
+    "number": 120,
+    "name_ru": "Башня Лондона",
+    "route": "/games/tower-london"
+  },
+  {
+    "number": 121,
+    "name_ru": "Заливка",
+    "route": "/games/puzzles?mode=Flood"
+  },
+  {
+    "number": 122,
+    "name_ru": "Снос групп",
+    "route": "/games/puzzles?mode=Same%20Game"
+  },
+  {
+    "number": 123,
+    "name_ru": "Очередь зверей",
+    "route": "/games/animal-queue"
+  },
+  {
+    "number": 124,
+    "name_ru": "Цвета и формы",
+    "route": "/games/kids-sort"
+  },
+  {
+    "number": 125,
+    "name_ru": "Считалка: счёт",
+    "route": "/games/counter"
+  },
+  {
+    "number": 126,
+    "name_ru": "Математическая шкала",
+    "route": "/games/math-slider"
+  },
+  {
+    "number": 127,
+    "name_ru": "Числовой забег",
+    "route": "/games/number-run"
+  },
+  {
+    "number": 128,
+    "name_ru": "Математический спринт",
+    "route": "/games/math-sprint"
+  },
+  {
+    "number": 129,
+    "name_ru": "Числовые пары: счёт",
+    "route": "/games/number-bonds"
+  },
+  {
+    "number": 130,
+    "name_ru": "Паттерны: мышление",
+    "route": "/games/pattern"
+  },
+  {
+    "number": 131,
+    "name_ru": "Быстрый счёт",
+    "route": "/games/quick-count"
+  },
+  {
+    "number": 132,
+    "name_ru": "Сапёр",
+    "route": "/games/puzzles?mode=Mines"
+  },
+  {
+    "number": 133,
+    "name_ru": "Мозаика",
+    "route": "/games/puzzles?mode=Mosaic"
+  },
+  {
+    "number": 134,
+    "name_ru": "Японский кроссворд",
+    "route": "/games/puzzles?mode=Pattern"
+  },
+  {
+    "number": 135,
+    "name_ru": "Обзор",
+    "route": "/games/puzzles?mode=Range"
+  },
+  {
+    "number": 136,
+    "name_ru": "Фонари",
+    "route": "/games/puzzles?mode=Light%20Up"
+  },
+  {
+    "number": 137,
+    "name_ru": "Палатки у деревьев",
+    "route": "/games/puzzles?mode=Tents"
+  },
+  {
+    "number": 138,
+    "name_ru": "Магниты",
+    "route": "/games/puzzles?mode=Magnets"
+  },
+  {
+    "number": 139,
+    "name_ru": "Прямоугольники",
+    "route": "/games/puzzles?mode=Rectangles"
+  },
+  {
+    "number": 140,
+    "name_ru": "Частокол",
+    "route": "/games/puzzles?mode=Palisade"
+  },
+  {
+    "number": 141,
+    "name_ru": "Угадай код",
+    "route": "/games/puzzles?mode=Guess"
+  },
+  {
+    "number": 142,
+    "name_ru": "Дыхание",
+    "route": "/games/breathing"
+  },
+  {
+    "number": 143,
+    "name_ru": "Глаза и дыхание",
+    "route": "/games/pause"
+  },
+  {
+    "number": 144,
+    "name_ru": "Гимнастика для глаз",
+    "route": "/games/eye-gym"
+  },
+  {
+    "number": 145,
+    "name_ru": "Ночная",
+    "route": "/warmup-night"
+  }
+]

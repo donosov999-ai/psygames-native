@@ -12,7 +12,8 @@
  *   ┌──────────────────┬──────────┬────────────┬─────────┬──────────────────────────┐
  *   │ точка входа      │ метка    │ автостарт  │ уровни  │ настройки раунда         │
  *   ├──────────────────┼──────────┼────────────┼─────────┼──────────────────────────┤
- *   │ шаг зарядки      │ wu=1     │ да         │ НЕТ     │ из шага плейлиста        │
+ *   │ фиксированный шаг│ wu=1     │ да         │ НЕТ     │ из шага плейлиста        │
+ *   │ полная тренировка│ wu+progress│ да       │ отдельно│ полный раунд            │
  *   │ вызов дня        │ auto=1   │ да         │ да      │ diff из вызова           │
  *   │ первый выбор     │ auto=1   │ да         │ да      │ easy из онбординга       │
  *   │ свободный запуск │ —        │ нет        │ да      │ свои, с экрана настроек  │
@@ -20,7 +21,8 @@
  *   └──────────────────┴──────────┴────────────┴─────────┴──────────────────────────┘
  *
  * Отсюда два разных флага, и путать их нельзя:
- *   isPreset  = wu           → «это шаг плейлиста»: уровни и настройки НЕ трогаем
+ *   isPreset  = wu && !progressive → фиксированный замер, личную лестницу не трогаем
+ *   progressive = wu && progress  → отдельная тренировочная лестница
  *   autostart = wu || auto   → «стартуй сразу, минуя intro»
  *
  * Проверки ниже статические — по исходникам. Так они видят ВСЕ 60 экранов сразу,
@@ -77,7 +79,10 @@ describe('точки входа: метки не путаются', () => {
 describe('точки входа: экраны игр соблюдают разделение', () => {
   it('autostart считается как wu ИЛИ auto — иначе вызов дня снова упрётся в intro', () => {
     const hook = read(path.resolve(SRC, 'hooks/useGamePreset.ts'));
-    expect(hook).toMatch(/autostart\s*=\s*isPreset\s*\|\|\s*params\?\.auto === '1'/);
+    // Both fixed and progressive wu rounds must start. Actual hook results for
+    // wu, auto, wu+progress and ordinary entry are exercised in the behavioral
+    // warmup-progressive-storage suite, not inferred only from this source guard.
+    expect(hook).toMatch(/autostart\s*=\s*isWarmup\s*\|\|\s*params\?\.auto === '1'/);
   });
 
   it('ни один экран не решает про УРОВЕНЬ по autostart — это дело isPreset', () => {

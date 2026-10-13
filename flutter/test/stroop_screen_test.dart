@@ -6,6 +6,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/stroop/model.dart';
 import 'package:psygames_flutter/games/stroop/screen.dart';
 import 'package:psygames_flutter/shell/l10n.dart';
+import 'package:psygames_flutter/shell/game_preset.dart';
+import 'package:psygames_flutter/shell/game_shell.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'support/boss_probe.dart';
@@ -26,12 +28,14 @@ void main() {
   late SharedState state;
 
   setUp(() async {
+    GamePreset.clear();
     SharedPreferences.setMockInitialValues({});
     state = await SharedState.open();
     // Тексты экрана — из общего словаря, поэтому проба сверяет их через L.t():
     // так она заодно требует, чтобы assets/l10n/ru.json собрался и читался.
     await L.load('ru');
   });
+  tearDown(GamePreset.clear);
 
   /// Кнопка ответа того цвета, который сейчас верен по правилу ПРОБЫ.
   Finder rightAnswer(WidgetTester tester) {
@@ -79,7 +83,42 @@ void main() {
         reason: 'отсчёт обязан идти от показа стимула: между показом и нажатием прошло ровно 500 мс');
     expect(find.textContaining('${L.t('hud_interference')}: 0 ${L.t('msShort')}'), findsOneWidget,
         reason: 'все пробы шли поровну, значит разность половин — ноль');
+    final shell = tester.widget<GameShell>(find.byType(GameShell));
+    expect(shell.hud.first.value, '1', reason: 'HUD must show the completed level, not the newly unlocked one');
+    expect(state.get('${SharedState.prefix}stroop_level_nzt48'), '2');
+    expect(find.byKey(const Key('stroop-stimulus')), findsNothing, reason: 'no automatic next round');
+    expect(find.text(L.t('nextLevelBtn').replaceAll('{n}', '2')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('stroop-next-level')));
+    await tester.pump();
+    expect(find.byKey(const Key('stroop-stimulus')), findsOneWidget);
+    expect(tester.widget<GameShell>(find.byType(GameShell)).hud.first.value, '2');
+    expect(state.get('${SharedState.prefix}stroop_level_nzt48'), '2', reason: 'starting a level is not another win');
+    await tester.pumpWidget(const SizedBox.shrink());
   });
+
+  for (final params in [{'wu': '1'}, {'ladderGame': 'sudoku', 'ladderLevel': '77'}]) {
+    testWidgets('preset/transit does not offer personal next level: $params', (tester) async {
+      GamePreset.set(params);
+      await tester.pumpWidget(MaterialApp(home: StroopScreen(state: state)));
+      await tester.pump();
+      await tester.pump();
+      if (!GamePreset.autostart) {
+        await tester.pumpAndSettle();
+        await tester.tap(find.text(L.t('start')));
+        await tester.pump();
+      }
+      for (var i = 0; i < 20; i++) {
+        await tester.tap(rightAnswer(tester));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 260));
+      }
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('stroop-next-level')), findsNothing);
+      expect(state.get('${SharedState.prefix}stroop_level_nzt48'), isNot('2'));
+      expect(tester.widget<GameShell>(find.byType(GameShell)).hud.first.value, '1');
+      await tester.pumpWidget(const SizedBox.shrink());
+    });
+  }
 
   testWidgets('🔴 просрочка окна — ошибка, и уровень не засчитан', (tester) async {
     await tester.pumpWidget(MaterialApp(home: StroopScreen(state: state)));

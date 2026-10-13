@@ -71,6 +71,11 @@ class _HanoiScreenState extends State<HanoiScreen> {
   int _moves = 0;
   int _errors = 0;
   bool _won = false;
+  // Undo keeps this attempt's claimed result; only a new deal resets it.
+  Future<bool>? _resultFuture;
+  bool _nextPending = false;
+  int _generation = 0;
+  int _playedLevel = 1;
   final List<HanoiState> _history = [];
 
   @override
@@ -108,14 +113,18 @@ class _HanoiScreenState extends State<HanoiScreen> {
     if (want <= 0) return null;
     return capPresetByLevel(
       want: want,
-      atLevel: levelParams(_ladder.level).discs,
-      atTop: _ladder.level >= 15,
+      atLevel: levelParams(_playedLevel).discs,
+      atTop: _playedLevel >= 15,
     );
   }
 
-  void _start() {
+  void _start({int? level}) {
+    _generation += 1;
+    _resultFuture = null;
+    _nextPending = false;
+    _playedLevel = level ?? _ladder.level;
     final preset = _presetDiscs();
-    _board = preset != null ? HanoiState.ofDiscs(preset, 3) : HanoiState.start(_ladder.level);
+    _board = preset != null ? HanoiState.ofDiscs(preset, 3) : HanoiState.start(_playedLevel);
     _sel = null;
     _moves = 0;
     _errors = 0;
@@ -125,13 +134,23 @@ class _HanoiScreenState extends State<HanoiScreen> {
 
   void _restart() {
     _cancelNext();
-    setState(_start);
+    setState(() => _start(level: _playedLevel));
   }
 
   Future<void> _next() async {
-    await _ladder.win();
-    if (!mounted) return;
-    setState(_start);
+    if (!_won || _nextPending) return;
+    setState(() => _nextPending = true);
+    _cancelNext();
+    final generation = _generation;
+    try {
+      await (_resultFuture ??= _ladder.win());
+      if (!mounted || generation != _generation || !_won) return;
+      setState(_start);
+    } finally {
+      if (mounted && generation == _generation) {
+        setState(() => _nextPending = false);
+      }
+    }
   }
 
   void _tapPeg(int i) {
@@ -156,6 +175,7 @@ class _HanoiScreenState extends State<HanoiScreen> {
   /// Ход. Незаконный ход — ОШИБКА, и она считается отдельно от ходов: это и есть
   /// та величина, по которой Денис решил считать провал (задача f911ecd2).
   void _move(int from, int to) {
+    if (_won) return;
     final board = _board!;
     final after = board.move(from, to);
     if (after == null) {
@@ -177,6 +197,8 @@ class _HanoiScreenState extends State<HanoiScreen> {
     _cancelNext();
     if (_history.isEmpty) return;
     setState(() {
+      _generation += 1;
+      _nextPending = false;
       _board = _history.removeLast();
       _moves = _moves > 0 ? _moves - 1 : 0;
       _sel = null;
@@ -243,7 +265,7 @@ class _HanoiScreenState extends State<HanoiScreen> {
 
     return GameShell(
       // Правило уровня объявляет каркас — в спокойный момент, не поверх партии (задача e371fd3a).
-      levelRule: LevelRuleSpot(gameId: 'hanoi', level: _ladder.level, state: widget.state, calm: _moves == 0 || _won),
+      levelRule: LevelRuleSpot(gameId: 'hanoi', level: _playedLevel, state: widget.state, calm: _moves == 0 || _won),
       title: _title,
       // Разбор по шагам — общим решателем каркаса. Своего учителя игра не пишет:
       // договор `HanoiPuzzle` отдаёт снимок, ходы и «решено», остальное общее.
@@ -252,7 +274,7 @@ class _HanoiScreenState extends State<HanoiScreen> {
         // Счётчик уровня при шаге зарядки не показывается: шаг лестницу не
         // двигает, и число рядом с партией читалось бы как обещание засчитать.
         if (!GamePreset.isPreset)
-          HudItem(label: L.t('level'), value: '${_ladder.level}', icon: Icons.flag_outlined),
+          HudItem(label: L.t('level'), value: '$_playedLevel', icon: Icons.flag_outlined),
         // Ходы ПРОТИВ МИНИМУМА: без этого числа человек не знает, хорошо ли
         // играет, и «молодец» в конце берётся ниоткуда.
         HudItem(label: L.t('hud_moves'), value: '$_moves/$min', icon: Icons.swap_horiz),
@@ -291,9 +313,9 @@ class _HanoiScreenState extends State<HanoiScreen> {
                   ),
                   const SizedBox(height: 8),
                   FilledButton.icon(
-                    onPressed: _next,
+                    onPressed: _nextPending ? null : _next,
                     icon: const Icon(Icons.arrow_forward),
-                    label: Text(L.f('nextLevelBtn', {'n': '${_ladder.level + 1}'})),
+                    label: Text(L.f('nextLevelBtn', {'n': '${_ladder.level + (_resultFuture == null ? 1 : 0)}'})),
                   ),
                 ],
               ),

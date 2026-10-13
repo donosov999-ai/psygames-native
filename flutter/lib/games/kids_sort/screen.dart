@@ -50,6 +50,7 @@ class _KidsSortScreenState extends State<KidsSortScreen> {
   int _index = 0;
   bool? _lastOk;
   Timer? _flash;
+  bool _finishing = false;
 
   bool get _done => _session != null && _phase == _session!.phases.length && _index >= _session!.nCards;
 
@@ -89,6 +90,7 @@ class _KidsSortScreenState extends State<KidsSortScreen> {
     _phase = 1;
     _index = 0;
     _lastOk = null;
+    _finishing = false;
   }
 
   void _answer(int box) {
@@ -103,7 +105,7 @@ class _KidsSortScreenState extends State<KidsSortScreen> {
       _index += 1;
       // Смена правила молчит: следующая фаза начинается сразу за прошлой.
       if (_phase < s.phases.length && _index >= s.nCards) {
-        _phase = 2;
+        _phase += 1;
         _index = 0;
       }
     });
@@ -114,13 +116,15 @@ class _KidsSortScreenState extends State<KidsSortScreen> {
 
   Future<void> _next() async {
     final s = _session;
-    if (s == null) return;
+    if (s == null || !_done || _finishing) return;
+    _finishing = true;
+    _flash?.cancel();
     if (s.passed) {
       await _ladder.win(errors: s.errors);
     } else {
       await _ladder.fail(errors: s.errors);
     }
-    if (!mounted) return;
+    if (!mounted || !identical(_session, s)) return;
     setState(_deal);
   }
 

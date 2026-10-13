@@ -230,9 +230,10 @@ SudokuResumed? sudokuFromSnapshot(Map<String, Object?> s, {String mode = 'levels
     geometry: exportGeometry(s),
     errors: _int(s['errors']) ?? 0,
     hintUses: _int(s['hintUses']) ?? 0,
-    // Old v4 attempts never persisted lesson usage. Their independence cannot
-    // be proved: keep the board playable, but classify completion as practice.
-    answersRevealed: !s.containsKey('answersRevealed') || s['answersRevealed'] == true || s['lesson'] == true,
+    // An absent optional field in a legacy snapshot is not evidence that an
+    // answer was shown. Preserve actual disclosure/hints; the screen separately
+    // checks the durable revealed-board ledger before awarding progression.
+    answersRevealed: s['answersRevealed'] == true || s['lesson'] == true || (_int(s['hintUses']) ?? 0) > 0,
     backtracks: _int(s['backtrackCount']) ?? 0,
     elapsed: _int(s['elapsed']) ?? 0,
     moves: moves,

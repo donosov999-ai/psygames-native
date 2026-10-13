@@ -57,7 +57,9 @@ describe('переигровка не портит прогресс', () => {
    * успешная переигровка уровня 3 выглядит как «дорос до 3» и обнуляет десятку.
    */
   it('потолок растёт только вверх', () => {
-    expect(HOOK).toMatch(/if \(target > levelRef\.current\) \{ setLevel\(target\); return true; \}/);
+    // The training branch advances exactly once; normal play still uses target.
+    // Actual normal replay + storage is tested in warmup-progressive-storage.
+    expect(HOOK).toMatch(/if \(target > levelRef\.current\) \{[\s\S]*?setLevel\(progressive \? levelRef\.current \+ 1 : target\)/);
   });
 
   /**

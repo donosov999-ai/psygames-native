@@ -11,7 +11,7 @@ import { onGradientText, onGradientTextMuted, textOn } from '@/src/services/onGr
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage, translateFor } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
-import { SUDOKU_REVEALED_KEY, sudokuEducational } from '@/src/services/sudoku-attempt';
+import { SUDOKU_REVEALED_KEY, sudokuEducational, sudokuResumeRevealed } from '@/src/services/sudoku-attempt';
 import GameResult from '@/src/components/GameResult';
 import GameShell from '@/src/components/GameShell';
 import { FieldHeightUp } from '@/src/components/GameFieldHeight';
@@ -1150,7 +1150,7 @@ export default function SudokuGame() {
     setThermo(s.thermo); setArrow(s.arrow); setWhisper(s.whisper ?? null); setRenban(s.renban ?? null); setRegionsum(s.regionsum ?? null); setPalindrome(s.palindrome ?? null); setBetween(s.between ?? null); setLockout(s.lockout ?? null); setXv(s.xv ?? null); setLittlekiller(s.littlekiller ?? null); setXsums(s.xsums ?? null); setCipher(s.cipher ?? null); setFog(s.fog ?? null); setChaos(s.chaos ?? null);
     setUnequalMap(s.unequal ?? null); setTowersMap(s.towers ?? null);   // старые снимки полей не имеют
     setErrors(s.errors); setHintUses(s.hintUses); setHintMax(s.hintMax); setBacktrackCount(s.backtrackCount);
-    setAnswersRevealed(s.answersRevealed !== false);
+    setAnswersRevealed(sudokuResumeRevealed(s));
     setSelected(null); setOver(false); setBossWon(null);
     hist.restore(s.history);
     // Таймер продолжаем с накопленного: настенные часы между сессиями ушли вперёд,

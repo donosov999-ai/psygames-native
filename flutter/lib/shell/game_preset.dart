@@ -26,21 +26,28 @@ class GamePreset {
   static Map<String, String> _params = const {};
 
   /// Поставить параметры текущего экрана; пусто — обычный заход из каталога.
-  static void set(Map<String, String> params) => _params = Map.unmodifiable(params);
+  static void set(Map<String, String> params) =>
+      _params = Map.unmodifiable(params);
   static void clear() => _params = const {};
 
   static Map<String, String> get params => _params;
 
-  /// `wu=1` — шаг ПЛЕЙЛИСТА зарядки: лестницу не двигаем.
+  /// `wu=1` — шаг плейлиста. Фиксированный замер остаётся пресетом;
+  /// `progress=1` — полноценная тренировка со своей сохраняемой лестницей.
   ///
   /// ⚠️ Ежедневный вызов шлёт `auto=1`, а НЕ `wu=1`, и это не мелочь: когда он ходил
   /// с `wu=1`, уровни молча не засчитывались — два отчёта Вали на v1.185.0
   /// («уровней 15, но дальше первого я не ухожу»). Поэтому автостарт и пресет — два
   /// разных признака, а не один.
-  static bool get isPreset => _params['wu'] == '1';
+  static bool get isWarmup => _params['wu'] == '1';
+
+  /// Full training round: progression is separate from the personal/assessment ladder.
+  static bool get progressive => isWarmup && _params['progress'] == '1';
+
+  static bool get isPreset => isWarmup && !progressive;
 
   /// Стартовать сразу, минуя настройку: и шаг зарядки, и вызов дня.
-  static bool get autostart => isPreset || _params['auto'] == '1';
+  static bool get autostart => isWarmup || _params['auto'] == '1';
 
   /// 🔴 СТУПЕНЬ ЧУЖОЙ ЛЕСТНИЦЫ (`ladderGame` — чья, задача 4e3d3443): игру открыл
   /// `LevelTransition`, и её партия решает ступень ДРУГОЙ игры.
@@ -61,7 +68,8 @@ class GamePreset {
     return (v != null && v.isNotEmpty) ? v : def;
   }
 
-  static int num(String key, int def) => int.tryParse(_params[key] ?? '') ?? def;
+  static int num(String key, int def) =>
+      int.tryParse(_params[key] ?? '') ?? def;
 
   static bool flag(String key, [bool def = false]) {
     final v = _params[key];

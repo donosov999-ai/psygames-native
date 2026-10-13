@@ -330,6 +330,10 @@ class _Tube extends StatelessWidget {
             onTap: () => onTap(index),
             child: Container(
               key: ValueKey('tube-$index'),
+              // Selection/drag borders belong inside the allocated slot.
+              // Adding their width to the slot overflows full later rows.
+              width: width,
+              height: height,
               // Выбранный сосуд приподнят — как в вебе: видно, чем ходишь.
               transform: Matrix4.translationValues(0, selected ? -14 : 0, 0),
               decoration: BoxDecoration(

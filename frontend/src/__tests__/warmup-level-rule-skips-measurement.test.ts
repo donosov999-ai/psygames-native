@@ -34,8 +34,10 @@ describe('правило уровня: тренировка да, замер н�
     expect(уровеньПоПравилу({ как: 'процент', сколько: 20 }, ОСВОЕНО)).toBe(16);
   });
 
-  it('🔴 обычный шаг зарядки получает уровень по правилу', () => {
-    expect(stepToParams(шаг(), 'morning', 'training').level).toBe('16');
+  it('полная тренировка продолжает сохраняемую лестницу, а не повторяет процент от личного уровня', () => {
+    const params = stepToParams(шаг(), 'morning', 'training');
+    expect(params.progress).toBe('1');
+    expect(params.level).toBeUndefined();
   });
 
   it('🔴 шаг ядра-снимка (is_fixed_baseline) уровень по правилу НЕ получает', () => {

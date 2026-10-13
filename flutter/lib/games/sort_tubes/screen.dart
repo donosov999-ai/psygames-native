@@ -97,6 +97,9 @@ class _SortTubesScreenState extends State<SortTubesScreen> {
   int _moves = 0;
   int _errors = 0;
   bool _won = false;
+  int _deal = 0;
+  bool _nextPending = false;
+  Future<bool>? _resultFuture;
   String? _refusal;
   Timer? _refusalTimer;
   final List<_Snapshot> _history = [];
@@ -132,6 +135,10 @@ class _SortTubesScreenState extends State<SortTubesScreen> {
   }
 
   void _start(TubeLevel level) {
+    _cancelNext();
+    _deal += 1;
+    _nextPending = false;
+    _resultFuture = null;
     _level = level;
     _field = level.freshField();
     _hidden = {...level.hidden};
@@ -154,9 +161,18 @@ class _SortTubesScreenState extends State<SortTubesScreen> {
   }
 
   Future<void> _next() async {
-    await _ladder.win();
-    if (!mounted) return;
-    setState(() => _start(_set!.byLevel(_ladder.level)));
+    if (!_won || _nextPending) return;
+    final deal = _deal;
+    _cancelNext();
+    setState(() => _nextPending = true);
+    try {
+      // Undo may review the same board; only _start creates a fresh claim.
+      await (_resultFuture ??= _ladder.win());
+      if (!mounted || deal != _deal || !_won) return;
+      setState(() => _start(_set!.byLevel(_ladder.level)));
+    } finally {
+      if (mounted && deal == _deal) setState(() => _nextPending = false);
+    }
   }
 
   void _showRefusal(String? reason) {
@@ -402,7 +418,7 @@ class _SortTubesScreenState extends State<SortTubesScreen> {
           ? Padding(
               padding: const EdgeInsets.all(12),
               child: FilledButton.icon(
-                onPressed: _next,
+                onPressed: _nextPending ? null : _next,
                 icon: const Icon(Icons.arrow_forward),
                 label: Text(L.f('levelWonNext', {'s': '$stars'})),
               ),

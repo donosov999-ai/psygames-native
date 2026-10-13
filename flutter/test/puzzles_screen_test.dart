@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -9,6 +10,7 @@ import 'package:psygames_flutter/games/puzzles/ladder.dart';
 import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/games/puzzles/screen.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
+import 'package:psygames_flutter/shell/session_report.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// ЭКРАН ГОЛОВОЛОМОК ИГРАЕТСЯ НАЖАТИЯМИ, И ДВИЖОК ПОД НИМ — НАСТОЯЩИЙ.
@@ -44,7 +46,7 @@ void main() {
   Future<void> boot(WidgetTester tester, String mode) async {
     await tester.runAsync(() async {
       await tester.pumpWidget(MaterialApp(
-        home: PuzzlesScreen(state: state, mode: mode, libraryPath: libPath),
+        home: PuzzlesScreen(state: state, mode: mode, libraryPath: libPath, seed: 20261011),
       ));
       for (var i = 0; i < 40; i++) {
         await tester.pump(const Duration(milliseconds: 50));
@@ -70,6 +72,142 @@ void main() {
     expect(find.text('🧛'), findsOneWidget);
     expect(find.text('🧟'), findsOneWidget);
     expect(find.byKey(const Key('digit4')), findsNothing, reason: 'чудовищ трое');
+  });
+
+  Future<void> loseFlood(WidgetTester tester) async {
+    final engine = PuzzlesScreen.debugEngine!;
+    for (var move = 0; move < 80 && engine.status == 0; move++) {
+      final before = engine.statePos;
+      final cells = PuzzleFrame.parse(engine.draw()).ops.whereType<OpRect>()
+          .where((r) => r.w == r.h && r.w > 5 && r.w < engine.size.w / 3).toList();
+      expect(cells, isNotEmpty);
+      final box = tester.getRect(find.byKey(const Key('board')));
+      for (final cell in cells) {
+        await tester.tapAt(Offset(box.left + (cell.x + cell.w / 2) * box.width / engine.size.w,
+            box.top + (cell.y + cell.h / 2) * box.height / engine.size.h));
+        await tester.pump();
+        if (engine.statePos > before) break;
+      }
+      expect(engine.statePos, greaterThan(before));
+    }
+    expect(engine.status, -1, reason: 'настоящий C-движок должен проиграть от лимита, не заглушка');
+  }
+
+  testWidgets('Заливка: поражение даёт понятный итог и рабочий повтор, не тупик FAILED', (tester) async {
+    final reports = <Map<String, dynamic>>[];
+    SessionReport.sink = (body) async => reports.add(jsonDecode(body) as Map<String, dynamic>);
+    addTearDown(() => SessionReport.sink = null);
+    await state.set('psygames_puzzles_flood_level_nzt48', '2');
+    await boot(tester, 'Flood');
+    await loseFlood(tester);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('puzzle-loss')), findsOneWidget);
+    expect(find.textContaining('FAILED'), findsNothing);
+    expect(find.byKey(const Key('puzzle-retry')), findsOneWidget);
+    expect(reports.length, 1);
+    expect(state.get('psygames_puzzles_flood_level_nzt48'), '2');
+    final terminalPosition = PuzzlesScreen.debugEngine!.statePos;
+    await tester.tap(find.byKey(const Key('board')));
+    await tester.pump();
+    expect(PuzzlesScreen.debugEngine!.statePos, terminalPosition,
+        reason: 'после поражения поле не продолжает скрыто принимать ходы');
+    expect(reports.length, 1);
+    await tester.tap(find.byKey(const Key('puzzle-retry')));
+    await tester.pumpAndSettle();
+    expect(PuzzlesScreen.debugEngine!.status, 0);
+    expect(find.byKey(const Key('puzzle-loss')), findsNothing);
+    expect(find.text('2/7'), findsOneWidget);
+    expect(reports.length, 1, reason: 'повтор не создаёт вторую партию сам по себе');
+    await tester.pumpWidget(const SizedBox());
+  });
+
+  testWidgets('Сапёр: та же общая ветка поражения позволяет начать новую попытку', (tester) async {
+    final reports = <Map<String, dynamic>>[];
+    SessionReport.sink = (body) async => reports.add(jsonDecode(body) as Map<String, dynamic>);
+    addTearDown(() => SessionReport.sink = null);
+    await boot(tester, 'Mines');
+    final engine = PuzzlesScreen.debugEngine!;
+    final box = tester.getRect(find.byKey(const Key('board')));
+    // Mines draws tile faces as polygons (including its non-square grids), not
+    // Flood's rectangles. Use visible tile coordinates, not an assumed grid.
+    final cells = PuzzleFrame.parse(engine.draw()).ops.whereType<OpPoly>()
+        .where((p) => p.points.length >= 6).toList();
+    expect(cells, isNotEmpty);
+    for (final cell in cells) {
+      if (engine.status != 0 || engine.statusText.contains('DEAD!')) break;
+      var x = 0.0, y = 0.0;
+      for (var i = 0; i < cell.points.length; i += 2) {
+        x += cell.points[i];
+        y += cell.points[i + 1];
+      }
+      final vertices = cell.points.length / 2;
+      await tester.tapAt(Offset(box.left + x / vertices * box.width / engine.size.w,
+          box.top + y / vertices * box.height / engine.size.h));
+      await tester.pump();
+    }
+    expect(engine.statusText, contains('DEAD!'), reason: 'настоящее попадание на мину');
+    expect(engine.status, 0, reason: 'C-движок намеренно оставляет возможность отмены');
+    expect(reports, isEmpty, reason: 'не превращать обратимый тупик в выдуманный проигрыш');
+    expect(find.text(L.t('puzzleRoundLost')), findsOneWidget);
+    expect(find.byKey(const Key('puzzle-retry')), findsOneWidget);
+    await tester.tap(find.byTooltip(L.t('btn_undo')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('puzzle-loss')), findsNothing);
+    expect(find.text(L.t('puzzleLossReview')), findsNothing,
+        reason: 'отмена обратимого тупика сохраняет исходную самостоятельную попытку');
+    expect(reports, isEmpty);
+    // Repeat through the persistent shell action after undo.
+    await tester.tap(find.byTooltip(L.t('restart')));
+    await tester.pumpAndSettle();
+    expect(engine.status, 0);
+    expect(find.byKey(const Key('puzzle-loss')), findsNothing);
+    await tester.pumpWidget(const SizedBox());
+  });
+
+  for (final locale in ['ru', 'en']) {
+    testWidgets('Заливка: итог и повтор доступны на маленьком экране $locale', (tester) async {
+      tester.view.physicalSize = const Size(320, 568);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      await L.load(locale);
+      addTearDown(() => L.load('ru'));
+      await boot(tester, 'Flood');
+      await loseFlood(tester);
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull, reason: 'итог не должен переполнять экран');
+      expect(find.byKey(const Key('puzzle-retry')).hitTestable(), findsOneWidget);
+      final summary = tester.widget<Text>(find.descendant(
+          of: find.byKey(const Key('puzzle-loss')), matching: find.byType(Text)).first).data!;
+      expect(summary, isNot(contains('FAILED')));
+      if (locale == 'en') expect(RegExp(r'[А-Яа-яЁё]').hasMatch(summary), isFalse);
+      await tester.tap(find.byKey(const Key('puzzle-retry')));
+      await tester.pumpAndSettle();
+      expect(PuzzlesScreen.debugEngine!.status, 0);
+      await tester.pumpWidget(const SizedBox());
+    });
+  }
+
+  testWidgets('Заливка: отмена после поражения — разбор, второй исход не записывается', (tester) async {
+    final reports = <Map<String, dynamic>>[];
+    SessionReport.sink = (body) async => reports.add(jsonDecode(body) as Map<String, dynamic>);
+    addTearDown(() => SessionReport.sink = null);
+    await boot(tester, 'Flood');
+    await loseFlood(tester);
+    await tester.pumpAndSettle();
+    expect(reports.length, 1);
+    final failed = PuzzlesScreen.debugEngine!.statePos;
+    await tester.tap(find.byTooltip(L.t('btn_undo')));
+    await tester.pumpAndSettle();
+    expect(PuzzlesScreen.debugEngine!.statePos, lessThan(failed));
+    expect(PuzzlesScreen.debugEngine!.status, 0);
+    expect(find.byKey(const Key('puzzle-loss')), findsNothing);
+    expect(find.text(L.t('puzzleLossReview')), findsOneWidget);
+    await loseFlood(tester);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('puzzle-loss')), findsOneWidget);
+    expect(reports.length, 1, reason: 'одна попытка — один исход, даже после отмены');
+    await tester.pumpWidget(const SizedBox());
   });
 
   /*

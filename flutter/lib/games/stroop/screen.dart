@@ -206,11 +206,11 @@ class _StroopScreenState extends State<StroopScreen> {
     if (g == null) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     return GameShell(
       // Правило уровня объявляет каркас — в спокойный момент, не поверх партии (задача e371fd3a).
-      levelRule: LevelRuleSpot(gameId: 'stroop', level: _ladder.level, state: widget.state, calm: _phase != StroopPhase.playing),
+      levelRule: LevelRuleSpot(gameId: 'stroop', level: g.level, state: widget.state, calm: _phase != StroopPhase.playing),
       // Тексты — из общего словаря теми же ключами, что зовёт веб-версия игры.
       title: L.t('stroop'),
       hud: [
-        HudItem(label: L.t('level'), value: '${_ladder.level}', icon: Icons.flag_outlined),
+        HudItem(label: L.t('level'), value: '${g.level}', icon: Icons.flag_outlined),
         HudItem(label: L.t('round'), value: '${g.round}/${g.trialsTotal}', icon: Icons.numbers),
         HudItem(label: L.t('hud_correct'), value: '${g.hits}', icon: Icons.check),
         HudItem(label: L.t('hud_errors'), value: '${g.errors}', icon: Icons.close),
@@ -218,7 +218,16 @@ class _StroopScreenState extends State<StroopScreen> {
       onLesson: _game == null
           ? null
           : () => openDemoLesson(context, title: L.t('stroop'), trials: _demoTrials()),
-      field: (context, h) => _Field(game: g, phase: _phase, flash: _flash, passed: _passed, boss: _boss, height: h, onStart: _start, onAgain: () => setState(_reset), onMode: _pickMode),
+      field: (context, h) => _Field(
+        game: g, phase: _phase, flash: _flash, passed: _passed, boss: _boss,
+        height: h, onStart: _start, onAgain: () => setState(_reset), onMode: _pickMode,
+        nextLevel: _passed && !GamePreset.isPreset && !GamePreset.isTransit && _ladder.level > g.level
+            ? _ladder.level : null,
+        onContinue: () {
+          setState(_reset);
+          _start();
+        },
+      ),
       toolbar: _phase == StroopPhase.playing ? _Answers(game: g, onPick: _answer) : null,
     );
   }
@@ -256,6 +265,8 @@ class _Field extends StatelessWidget {
     required this.onStart,
     required this.onAgain,
     required this.onMode,
+    required this.nextLevel,
+    required this.onContinue,
   });
 
   final StroopGame game;
@@ -268,6 +279,8 @@ class _Field extends StatelessWidget {
   final double height;
   final VoidCallback onStart;
   final VoidCallback onAgain;
+  final int? nextLevel;
+  final VoidCallback onContinue;
   final ValueChanged<String> onMode;
 
   @override
@@ -341,7 +354,14 @@ class _Field extends StatelessWidget {
             ),
             BossOutcomeLine(boss),
             const SizedBox(height: 16),
-            FilledButton(onPressed: onAgain, child: Text(L.t('retry'))),
+            if (nextLevel != null)
+              FilledButton(
+                key: const Key('stroop-next-level'),
+                onPressed: onContinue,
+                child: Text(L.t('nextLevelBtn').replaceAll('{n}', '$nextLevel')),
+              )
+            else
+              FilledButton(onPressed: onAgain, child: Text(L.t('retry'))),
           ],
         );
       case StroopPhase.playing:

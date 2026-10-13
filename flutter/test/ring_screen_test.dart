@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/anagrams/ring.dart';
 import 'package:psygames_flutter/games/anagrams/ring_board.dart';
@@ -7,6 +8,8 @@ import 'package:psygames_flutter/shell/game_shell.dart';
 import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/lesson.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
+import 'package:psygames_flutter/shell/session_report.dart';
+import 'package:psygames_flutter/shell/game_preset.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Пробы экрана «Слово-квадрат» — партия играется НАЖАТИЯМИ по банку букв.
@@ -46,12 +49,52 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   late SharedState state;
   setUp(() async {
+    GamePreset.clear();
     SharedPreferences.setMockInitialValues({});
     state = await SharedState.open();
     // Подписи — из ТОГО ЖЕ словаря, что и в сборке: проба заодно проверяет, что
     // `assets/l10n/ru.json` собран и читается, а не сверяется с переписанной строкой.
     await L.load('ru');
   });
+  tearDown(GamePreset.clear);
+
+  for (final hintsLast in [true, false]) {
+    for (final preset in [false, true]) {
+      testWidgets('Квадрат: ${hintsLast ? 'последняя подсказка' : 'последний ответ'} завершает ${preset ? 'preset' : 'обычную'} партию',
+          (tester) async {
+        if (preset) GamePreset.set({'wu': '1'});
+        final reports = <Map<String, dynamic>>[];
+        SessionReport.sink = (body) async => reports.add(jsonDecode(body) as Map<String, dynamic>);
+        addTearDown(() => SessionReport.sink = null);
+        await _boot(tester, state);
+        final ring = _board(tester).ring;
+        Future<void> hints() async {
+          for (var i = 0; i < 2; i++) {
+            await tester.tap(find.byTooltip(L.t('btn_hint')));
+            await tester.pumpAndSettle();
+          }
+        }
+        Future<void> answers(List<String> words) async {
+          for (final word in words) {
+            await _spell(tester, word);
+            await tester.tap(find.byKey(const ValueKey('ring-check')));
+            await tester.pumpAndSettle();
+          }
+        }
+        if (hintsLast) {
+          await answers([ring.top, ring.right]);
+          await hints();
+        } else {
+          await hints();
+          await answers([ring.bottom, ring.left]);
+        }
+        expect(reports.length, 1, reason: 'закрытая доска не должна оставаться тупиком на 4/4');
+        expect(_board(tester).solved, isEmpty, reason: 'настоящая новая партия, не только новое название кнопки');
+        expect(state.get('psygames_anagrams_square_level_nzt48'), preset ? isNull : '2');
+        await tester.pumpWidget(const SizedBox.shrink());
+      });
+    }
+  }
 
   testWidgets('🔴 рамка 5×5 нарисована, внутренность в игре не участвует', (tester) async {
     await _boot(tester, state);
