@@ -545,6 +545,13 @@ void main() {
     (t) async {
       await state.set('psygames_pet_on', 'false');
       await state.set('psygames_pet_skin', 'robot');
+      // On a packaged build HybridApp records its embedded build fingerprint
+      // during startup. Seed that real fingerprint before the unchanged-prefs
+      // snapshot so startup metadata cannot race this recovery assertion.
+      final fingerprint = await real(t, server.fingerprint);
+      if (fingerprint != null && fingerprint.isNotEmpty) {
+        await state.set('psygames_embedded_build', fingerprint);
+      }
       await mount(
         t,
         Center(
