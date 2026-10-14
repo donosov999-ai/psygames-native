@@ -49,6 +49,40 @@ void main() {
   });
 
   test(
+    'old before-after consent does not authorize a third bright-screen shot',
+    () async {
+      final old = DiaryPreferences.fromJson({
+        'cameraConsent': true,
+        'storageConsent': true,
+        'wakeTasks': true,
+      });
+      expect(old.rainbowCapture, false);
+      final camera = TestCamera();
+      final diary = PhotoDiary(MemoryDiary(), camera);
+      final controller = DiaryController(
+        old,
+        loadDiary: () async => diary,
+        persistPreferences: (_) async {},
+        readPhoto: (_) async => null,
+      );
+      await controller.begin(
+        id: 'session',
+        kind: 'wake',
+        title: 'Rainbow',
+        sessionOptIn: true,
+      );
+      await controller.captureDuring('session');
+      expect(camera.calls, 1);
+      await controller.changePreferences(old.change(rainbowCapture: true));
+      await controller.captureDuring('session');
+      expect(camera.calls, 2);
+      expect(controller.entries.single.outcome, 'running');
+      expect(old.change(cameraConsent: false).rainbowCapture, false);
+      controller.dispose();
+    },
+  );
+
+  test(
     'late during frame cannot become an after shot or credit success',
     () async {
       final camera = TestCamera()..pending = Completer<DiaryFrame>();

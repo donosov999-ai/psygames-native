@@ -172,6 +172,7 @@ class DiaryController extends ChangeNotifier {
         !_foreground ||
         !preferences.savePhotos ||
         !preferences.wakeCapture ||
+        !preferences.rainbowCapture ||
         _terminal.containsKey(id)) {
       return;
     }

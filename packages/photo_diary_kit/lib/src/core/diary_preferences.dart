@@ -5,8 +5,13 @@ class DiaryPreferences {
     this.storageConsent = false,
     this.practices = false,
     this.wakeTasks = false,
+    this.rainbowCapture = false,
   });
-  final bool cameraConsent, storageConsent, practices, wakeTasks;
+  final bool cameraConsent,
+      storageConsent,
+      practices,
+      wakeTasks,
+      rainbowCapture;
   bool get practiceCapture => cameraConsent && practices;
   bool get wakeCapture => cameraConsent && wakeTasks;
   bool get savePhotos => cameraConsent && storageConsent;
@@ -16,6 +21,7 @@ class DiaryPreferences {
     bool? storageConsent,
     bool? practices,
     bool? wakeTasks,
+    bool? rainbowCapture,
   }) {
     final consent = cameraConsent ?? this.cameraConsent;
     return DiaryPreferences(
@@ -23,6 +29,7 @@ class DiaryPreferences {
       storageConsent: consent && (storageConsent ?? this.storageConsent),
       practices: consent && (practices ?? this.practices),
       wakeTasks: consent && (wakeTasks ?? this.wakeTasks),
+      rainbowCapture: consent && (rainbowCapture ?? this.rainbowCapture),
     );
   }
 
@@ -31,6 +38,7 @@ class DiaryPreferences {
     'storageConsent': storageConsent,
     'practices': practices,
     'wakeTasks': wakeTasks,
+    'rainbowCapture': rainbowCapture,
   };
   static DiaryPreferences fromJson(Map<String, dynamic> json) =>
       const DiaryPreferences().change(
@@ -38,5 +46,6 @@ class DiaryPreferences {
         storageConsent: json['storageConsent'] == true,
         practices: json['practices'] == true,
         wakeTasks: json['wakeTasks'] == true,
+        rainbowCapture: json['rainbowCapture'] == true,
       );
 }

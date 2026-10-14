@@ -57,6 +57,22 @@ class DiarySettings extends StatelessWidget {
             : null,
       ),
       SwitchListTile(
+        key: const Key('diary-rainbow-capture'),
+        title: Text(
+          tr('Радуга: снимок на цифре 9', 'Rainbow: photo on number 9'),
+        ),
+        subtitle: Text(
+          tr(
+            'Дополнительный кадр во время удержания 9. Экран временно станет ярким белым. Не означает завершение задания.',
+            'An extra photo while holding 9. The screen temporarily becomes bright white. This does not mark the task completed.',
+          ),
+        ),
+        value: value.rainbowCapture,
+        onChanged: value.wakeCapture && value.savePhotos
+            ? (v) => onChanged(value.change(rainbowCapture: v))
+            : null,
+      ),
+      SwitchListTile(
         key: const Key('diary-practices'),
         title: Text(
           tr('В добровольных практиках', 'During voluntary practices'),

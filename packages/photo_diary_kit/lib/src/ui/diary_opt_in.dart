@@ -30,7 +30,12 @@ class DiaryOptIn extends StatelessWidget {
           contentPadding: EdgeInsets.zero,
           title: Text(
             p.savePhotos
-                ? tr('Фото до и после', 'Before/after photos')
+                ? wake && p.rainbowCapture
+                      ? tr(
+                          'Фото до/после и на цифре 9',
+                          'Before/after photos and on number 9',
+                        )
+                      : tr('Фото до и после', 'Before/after photos')
                 : tr(
                     'Дневник занятия без фото',
                     'Session diary without photos',
