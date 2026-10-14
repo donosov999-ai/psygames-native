@@ -67,6 +67,13 @@ Package extraction is not evidence of PsyGames integration or device QA.
 
 ## Checks
 
+Version0.1.2 adds a fullscreen photo viewer: tap a loaded photo, pinch/pan up to
+6x, reset zoom and close. It reuses the existing MemoryImage (no extra file read).
+The host MUST pass `DiaryEntryCard(privacyWrapper: ...)`; without it the viewer
+is disabled. Wrap the new route as well as the parent diary screen, so feedback
+capture stays blocked through navigation. Viewer hides its image in background.
+No camera capture, export, cloud upload or new diary result occurs on opening.
+
 Run `flutter pub get`, `flutter analyze`, `flutter test` from this package.
 Tests cover consent, cancellation, storage recovery, per-session state,
 front-camera capture, no microphone/flash, photo layout and settings.

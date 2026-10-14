@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name = 'photo_diary_kit'
-  s.version = '0.1.1'
+  s.version = '0.1.2'
   s.summary = 'Private local photo diary.'
   s.description = 'Opt-in no-backup photo diary storage shared across apps.'
   s.homepage = 'https://psy-games.pro'

@@ -13,12 +13,16 @@ class DiaryEntryCard extends StatelessWidget {
     required this.onRate,
     required this.onDelete,
     this.english = false,
+    this.privacyWrapper,
   });
   final DiaryEntry entry;
   final Future<Uint8List?> Function(String basename) readPhoto;
   final ValueChanged<int?> onRate;
   final VoidCallback onDelete;
   final bool english;
+
+  /// Viewer is disabled without a host guard against feedback screenshots.
+  final Widget Function(Widget)? privacyWrapper;
   String tr(String ru, String en) => english ? en : ru;
 
   String get outcome => switch (entry.outcome) {
@@ -70,6 +74,9 @@ class DiaryEntryCard extends StatelessWidget {
                   // entry/shot must not inherit bytes or a pending old read.
                   key: ValueKey((entry.id, slot, file, state, time)),
                   file: file,
+                  privacyWrapper: privacyWrapper,
+                  closeLabel: tr('Закрыть фото', 'Close photo'),
+                  resetLabel: tr('Сбросить увеличение', 'Reset zoom'),
                   readPhoto: readPhoto,
                   absentLabel: tr('Нет снимка', 'No photo'),
                   semanticLabel: during
@@ -221,8 +228,13 @@ class _DiaryPhoto extends StatefulWidget {
     required this.readPhoto,
     required this.absentLabel,
     required this.semanticLabel,
+    required this.closeLabel,
+    required this.resetLabel,
+    required this.privacyWrapper,
   });
   final String file, absentLabel, semanticLabel;
+  final String closeLabel, resetLabel;
+  final Widget Function(Widget)? privacyWrapper;
   final Future<Uint8List?> Function(String) readPhoto;
 
   @override
@@ -251,19 +263,128 @@ class _DiaryPhotoState extends State<_DiaryPhoto> {
         return const Center(child: CircularProgressIndicator());
       }
       if (snapshot.hasError || snapshot.data == null) return _absent();
-      return RepaintBoundary(
-        child: Image(
-          image: snapshot.data!,
-          // Show the whole face in portrait and landscape; no forced rotation
-          // or mirroring. The image codec applies the saved JPEG orientation.
-          fit: BoxFit.contain,
-          alignment: Alignment.center,
-          // Never keep pixels from a previous entry while a new shot loads.
-          gaplessPlayback: false,
-          semanticLabel: widget.semanticLabel,
-          errorBuilder: (context, error, stack) => _absent(),
+      return GestureDetector(
+        onTap: widget.privacyWrapper == null
+            ? null
+            : () => showDialog<void>(
+                context: context,
+                useRootNavigator: false,
+                barrierDismissible: false,
+                builder: (_) => widget.privacyWrapper!(
+                  _DiaryPhotoViewer(
+                    image: snapshot.data!,
+                    label: widget.semanticLabel,
+                    absentLabel: widget.absentLabel,
+                    closeLabel: widget.closeLabel,
+                    resetLabel: widget.resetLabel,
+                  ),
+                ),
+              ),
+        child: RepaintBoundary(
+          child: Image(
+            image: snapshot.data!,
+            // Show the whole face in portrait and landscape; no forced rotation
+            // or mirroring. The image codec applies the saved JPEG orientation.
+            fit: BoxFit.contain,
+            alignment: Alignment.center,
+            // Never keep pixels from a previous entry while a new shot loads.
+            gaplessPlayback: false,
+            semanticLabel: widget.semanticLabel,
+            errorBuilder: (context, error, stack) => _absent(),
+          ),
         ),
       );
     },
+  );
+}
+
+class _DiaryPhotoViewer extends StatefulWidget {
+  const _DiaryPhotoViewer({
+    required this.image,
+    required this.label,
+    required this.absentLabel,
+    required this.closeLabel,
+    required this.resetLabel,
+  });
+  final MemoryImage image;
+  final String label, absentLabel, closeLabel, resetLabel;
+  @override
+  State<_DiaryPhotoViewer> createState() => _DiaryPhotoViewerState();
+}
+
+class _DiaryPhotoViewerState extends State<_DiaryPhotoViewer>
+    with WidgetsBindingObserver {
+  final transform = TransformationController();
+  bool foreground = true;
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    final lifecycle = WidgetsBinding.instance.lifecycleState;
+    foreground = lifecycle == null || lifecycle == AppLifecycleState.resumed;
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    setState(() => foreground = state == AppLifecycleState.resumed);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    transform.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => Dialog.fullscreen(
+    key: const Key('diary-photo-viewer'),
+    child: Scaffold(
+      backgroundColor: Colors.black,
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        foregroundColor: Colors.white,
+        leading: IconButton(
+          key: const Key('diary-photo-close'),
+          tooltip: widget.closeLabel,
+          icon: const Icon(Icons.close),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: Text(widget.label, maxLines: 1, overflow: TextOverflow.ellipsis),
+        actions: [
+          IconButton(
+            key: const Key('diary-photo-reset'),
+            tooltip: widget.resetLabel,
+            icon: const Icon(Icons.zoom_out_map),
+            onPressed: () => transform.value = Matrix4.identity(),
+          ),
+        ],
+      ),
+      body: foreground
+          ? LayoutBuilder(
+              builder: (context, constraints) => InteractiveViewer(
+                key: const Key('diary-photo-zoom'),
+                transformationController: transform,
+                minScale: 1,
+                maxScale: 6,
+                child: SizedBox(
+                  width: constraints.maxWidth,
+                  height: constraints.maxHeight,
+                  child: Image(
+                    image: widget.image,
+                    fit: BoxFit.contain,
+                    semanticLabel: widget.label,
+                    errorBuilder: (_, _, _) => Center(
+                      child: Text(
+                        widget.absentLabel,
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            )
+          : const SizedBox.expand(key: Key('diary-photo-hidden')),
+    ),
   );
 }
