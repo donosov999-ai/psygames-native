@@ -29,7 +29,7 @@ class FileDiaryRepository extends DiaryRepository {
     final entries = await read();
     final referenced = <String>{
       for (final e in entries)
-        ...[e.beforeFile, e.afterFile].whereType<String>(),
+        ...[e.beforeFile, e.duringFile, e.afterFile].whereType<String>(),
     };
     await for (final item in root.list(followLinks: false)) {
       final name = item.path.split(Platform.pathSeparator).last;
@@ -51,6 +51,7 @@ class FileDiaryRepository extends DiaryRepository {
         .toList();
     for (final e in entries) {
       if (e.beforeFile != null) _frame(e.beforeFile!);
+      if (e.duringFile != null) _frame(e.duringFile!);
       if (e.afterFile != null) _frame(e.afterFile!);
     }
     return entries;

@@ -1,6 +1,6 @@
 name: photo_diary_kit
 description: Local opt-in photo diary shared by Smart Alarm and PsyGames.
-version: 0.1.0
+version: 0.1.1
 publish_to: none
 environment:
   sdk: ^3.9.0

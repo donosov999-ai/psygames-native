@@ -32,14 +32,35 @@ class DiaryEntryCard extends StatelessWidget {
     _ => tr('Занятие прервано', 'Session interrupted'),
   };
 
-  Widget _shot(bool before) {
-    final file = before ? entry.beforeFile : entry.afterFile;
-    final state = before ? entry.before : entry.after;
-    final time = before ? entry.beforeAtMs : entry.afterAtMs;
+  Widget _shot(DiaryShotSlot slot) {
+    final before = slot == DiaryShotSlot.before;
+    final during = slot == DiaryShotSlot.during;
+    final file = during
+        ? entry.duringFile
+        : before
+        ? entry.beforeFile
+        : entry.afterFile;
+    final state = entry.shotState(slot);
+    final time = during
+        ? entry.duringAtMs
+        : before
+        ? entry.beforeAtMs
+        : entry.afterAtMs;
+    final error = during
+        ? entry.duringError
+        : before
+        ? entry.beforeError
+        : entry.afterError;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(before ? tr('До', 'Before') : tr('После', 'After')),
+        Text(
+          during
+              ? tr('Во время задания', 'During the task')
+              : before
+              ? tr('До', 'Before')
+              : tr('После', 'After'),
+        ),
         const SizedBox(height: 4),
         AspectRatio(
           aspectRatio: 1,
@@ -47,11 +68,16 @@ class DiaryEntryCard extends StatelessWidget {
               ? _DiaryPhoto(
                   // Snapshot mutable entry fields into the key. A different
                   // entry/shot must not inherit bytes or a pending old read.
-                  key: ValueKey((entry.id, before, file, state, time)),
+                  key: ValueKey((entry.id, slot, file, state, time)),
                   file: file,
                   readPhoto: readPhoto,
                   absentLabel: tr('Нет снимка', 'No photo'),
-                  semanticLabel: before
+                  semanticLabel: during
+                      ? tr(
+                          'Ваш снимок во время задания',
+                          'Your photo during the task',
+                        )
+                      : before
                       ? tr(
                           'Ваш снимок до занятия',
                           'Your photo before the session',
@@ -61,15 +87,36 @@ class DiaryEntryCard extends StatelessWidget {
                           'Your photo after the session',
                         ),
                 )
-              : _absent(),
+              : _absent(error),
         ),
         if (time != null) Text(_date(time)),
       ],
     );
   }
 
-  Widget _absent() => Center(
-    child: Text(tr('Нет снимка', 'No photo'), textAlign: TextAlign.center),
+  Widget _absent(String? error) => Center(
+    child: Text(switch (error) {
+      'timeout' => tr('Камера не успела сделать снимок', 'Camera timed out'),
+      'permission_denied' => tr(
+        'Нет разрешения камеры',
+        'Camera permission denied',
+      ),
+      'camera_unavailable' => tr(
+        'Фронтальная камера недоступна',
+        'Front camera unavailable',
+      ),
+      'camera_busy' => tr('Камера занята', 'Camera busy'),
+      'storage_error' => tr(
+        'Не удалось сохранить снимок',
+        'Could not save the photo',
+      ),
+      'interrupted' => tr('Съёмка прервана', 'Capture interrupted'),
+      'capture_error' => tr(
+        'Не удалось сделать снимок',
+        'Could not take the photo',
+      ),
+      _ => tr('Нет снимка', 'No photo'),
+    }, textAlign: TextAlign.center),
   );
   String _date(int ms) {
     final d = DateTime.fromMillisecondsSinceEpoch(ms);
@@ -93,11 +140,15 @@ class DiaryEntryCard extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(child: _shot(true)),
+              Expanded(child: _shot(DiaryShotSlot.before)),
               const SizedBox(width: 12),
-              Expanded(child: _shot(false)),
+              Expanded(child: _shot(DiaryShotSlot.after)),
             ],
           ),
+          if (entry.during != DiaryShotState.absent) ...[
+            const SizedBox(height: 12),
+            _shot(DiaryShotSlot.during),
+          ],
           const SizedBox(height: 12),
           Text(
             tr(

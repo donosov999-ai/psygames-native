@@ -44,6 +44,16 @@ Existing Smart Alarm data stays in its original sandbox:
 - Atomic index, generation-based cancellation and strict own-file deletion stay
   in the extracted implementation. An invalid index must not trigger cleanup.
 
+Version 0.1.1 adds an optional `during` shot (state/file/time/error fields);
+old entries decode with no during shot. Recovery/deletion includes its file.
+`controller.captureDuring(id)` is opt-in and does not mark the task completed.
+Display it as “During the task”, never as “Before” or “After”.
+Capture is bounded to 6 seconds (controller operations 8s); failed loader
+initialization can retry on the next explicit session. Safe error codes explain
+missing frames without storing platform exception text or camera data in logs.
+Camera waits 450ms after initialization for auto-exposure; this is a tunable
+initial value, not device-verified exposure readiness or a guarantee in darkness.
+
 Sharing code does **not** share photos between app sandboxes. No App Group,
 export, cloud sync or cross-app history transfer is implemented.
 

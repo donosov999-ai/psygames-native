@@ -15,7 +15,7 @@ class DiaryController extends ChangeNotifier {
     required this.loadDiary,
     required this.persistPreferences,
     required this.readPhoto,
-    this.deadline = const Duration(seconds: 4),
+    this.deadline = const Duration(seconds: 8),
   });
   DiaryPreferences _preferences;
   DiaryPreferences get preferences => _preferences;
@@ -37,7 +37,14 @@ class DiaryController extends ChangeNotifier {
     if (!_disposed) notifyListeners();
   }
 
-  Future<void> initialize() => _initializing ??= _initialize();
+  Future<void> initialize() async {
+    if (_diary != null) return;
+    final pending = _initializing ??= _initialize();
+    await pending;
+    // A failed storage initialization must not disable all later sessions.
+    if (identical(_initializing, pending)) _initializing = null;
+  }
+
   Future<void> _initialize() async {
     try {
       final diary = await loadDiary().timeout(deadline);
@@ -156,6 +163,19 @@ class DiaryController extends ChangeNotifier {
   Future<void> rate(String id, int? rating) async {
     final diary = _diary;
     if (diary != null) await _optional(() => diary.rate(id, rating));
+  }
+
+  Future<void> captureDuring(String id) async {
+    final diary = _diary;
+    if (diary == null ||
+        _disposed ||
+        !_foreground ||
+        !preferences.savePhotos ||
+        !preferences.wakeCapture ||
+        _terminal.containsKey(id)) {
+      return;
+    }
+    await _optional(() => diary.captureDuring(id, savePhotos: true));
   }
 
   Future<void> delete(String id) async {

@@ -7,6 +7,8 @@ import '../core/photo_diary.dart';
 
 /// Permission requests and consent belong to setup UI, not the ringing alarm.
 class FrontDiaryCamera extends DiaryCamera {
+  FrontDiaryCamera({this.exposureSettle = const Duration(milliseconds: 450)});
+  final Duration exposureSettle;
   CameraController? _controller;
   int _generation = 0;
 
@@ -14,14 +16,16 @@ class FrontDiaryCamera extends DiaryCamera {
   Future<DiaryFrame> capture() async {
     final generation = _generation;
     if (!await Permission.camera.isGranted) {
-      throw StateError('Camera not authorized');
+      throw const DiaryCaptureException('permission_denied');
     }
     final cameras = await availableCameras();
-    if (generation != _generation) throw StateError('Capture cancelled');
+    if (generation != _generation) {
+      throw const DiaryCaptureException('interrupted');
+    }
     final front = cameras.where(
       (c) => c.lensDirection == CameraLensDirection.front,
     );
-    if (front.isEmpty) throw StateError('Front camera unavailable');
+    if (front.isEmpty) throw const DiaryCaptureException('camera_unavailable');
     final controller = CameraController(
       front.first,
       ResolutionPreset.medium,
@@ -33,6 +37,11 @@ class FrontDiaryCamera extends DiaryCamera {
       await controller.initialize();
       if (generation != _generation) throw StateError('Capture cancelled');
       await controller.setFlashMode(FlashMode.off);
+      // Let automatic exposure adapt to the currently displayed light.
+      await Future<void>.delayed(exposureSettle);
+      if (generation != _generation) {
+        throw const DiaryCaptureException('interrupted');
+      }
       temporary = await controller.takePicture();
       final taken = DateTime.now().millisecondsSinceEpoch;
       final bytes = await temporary.readAsBytes();

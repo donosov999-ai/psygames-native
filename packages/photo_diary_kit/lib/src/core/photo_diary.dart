@@ -4,6 +4,13 @@ import 'dart:typed_data';
 /// No camera, network or alarm scheduling in this layer.
 enum DiaryShotState { absent, pending, saved, unavailable }
 
+enum DiaryShotSlot { before, during, after }
+
+class DiaryCaptureException implements Exception {
+  const DiaryCaptureException(this.code);
+  final String code;
+}
+
 class DiaryFrame {
   const DiaryFrame(this.bytes, this.takenAtMs);
   final Uint8List bytes;
@@ -37,6 +44,12 @@ class DiaryEntry {
     this.brightness,
     this.before = DiaryShotState.absent,
     this.after = DiaryShotState.absent,
+    this.during = DiaryShotState.absent,
+    this.duringFile,
+    this.duringAtMs,
+    this.beforeError,
+    this.duringError,
+    this.afterError,
     this.beforeFile,
     this.afterFile,
     this.beforeAtMs,
@@ -48,9 +61,41 @@ class DiaryEntry {
 
   /// Self-reported alertness, not a camera-derived score.
   int? brightness;
-  DiaryShotState before, after;
-  String? beforeFile, afterFile;
-  int? beforeAtMs, afterAtMs;
+  DiaryShotState before, during, after;
+  String? beforeFile, duringFile, afterFile;
+  String? beforeError, duringError, afterError;
+  int? beforeAtMs, duringAtMs, afterAtMs;
+
+  DiaryShotState shotState(DiaryShotSlot slot) => switch (slot) {
+    DiaryShotSlot.before => before,
+    DiaryShotSlot.during => during,
+    DiaryShotSlot.after => after,
+  };
+  void setShot(
+    DiaryShotSlot slot,
+    DiaryShotState state, {
+    String? file,
+    int? time,
+    String? error,
+  }) {
+    switch (slot) {
+      case DiaryShotSlot.before:
+        before = state;
+        beforeFile = file;
+        beforeAtMs = time;
+        beforeError = error;
+      case DiaryShotSlot.during:
+        during = state;
+        duringFile = file;
+        duringAtMs = time;
+        duringError = error;
+      case DiaryShotSlot.after:
+        after = state;
+        afterFile = file;
+        afterAtMs = time;
+        afterError = error;
+    }
+  }
 
   Map<String, dynamic> toJson() => {
     'id': id,
@@ -65,6 +110,12 @@ class DiaryEntry {
     'afterFile': afterFile,
     'beforeAtMs': beforeAtMs,
     'afterAtMs': afterAtMs,
+    'during': during.name,
+    'duringFile': duringFile,
+    'duringAtMs': duringAtMs,
+    'beforeError': beforeError,
+    'duringError': duringError,
+    'afterError': afterError,
   };
 
   static DiaryEntry fromJson(Map<String, dynamic> json) {
@@ -85,6 +136,14 @@ class DiaryEntry {
       afterFile: json['afterFile'] as String?,
       beforeAtMs: json['beforeAtMs'] as int?,
       afterAtMs: json['afterAtMs'] as int?,
+      during: json.containsKey('during')
+          ? state(json['during'])
+          : DiaryShotState.absent,
+      duringFile: json['duringFile'] as String?,
+      duringAtMs: json['duringAtMs'] as int?,
+      beforeError: json['beforeError'] as String?,
+      duringError: json['duringError'] as String?,
+      afterError: json['afterError'] as String?,
     );
   }
 }
@@ -95,7 +154,7 @@ class PhotoDiary {
   PhotoDiary(
     this.repository,
     this.camera, {
-    this.timeout = const Duration(seconds: 2),
+    this.timeout = const Duration(seconds: 6),
     int Function()? now,
   }) : now = now ?? (() => DateTime.now().millisecondsSinceEpoch);
   final DiaryRepository repository;
@@ -119,6 +178,13 @@ class PhotoDiary {
     entries.clear();
     entries.addAll(await repository.read());
     for (final entry in entries) {
+      if (entry.during == DiaryShotState.pending) {
+        entry.setShot(
+          DiaryShotSlot.during,
+          DiaryShotState.unavailable,
+          error: 'interrupted',
+        );
+      }
       if (entry.before == DiaryShotState.pending) {
         entry.before = DiaryShotState.unavailable;
       }
@@ -151,7 +217,9 @@ class PhotoDiary {
       await repository.write(entries);
       return e;
     });
-    if (entry != null && savePhotos) await _capture(entry, before: true);
+    if (entry != null && savePhotos) {
+      await _capture(entry, slot: DiaryShotSlot.before);
+    }
   }
 
   Future<void> finish(
@@ -171,79 +239,81 @@ class PhotoDiary {
       return e;
     });
     if (entry != null && outcome == 'completed' && savePhotos) {
-      await _capture(entry, before: false);
+      await _capture(entry, slot: DiaryShotSlot.after);
     }
   }
 
-  Future<void> _capture(DiaryEntry e, {required bool before}) async {
+  /// An in-session shot is not evidence of successful completion.
+  Future<void> captureDuring(String id, {required bool savePhotos}) async {
+    if (!savePhotos) return;
+    final found = entries.where((e) => e.id == id && e.outcome == 'running');
+    if (found.isNotEmpty) {
+      await _capture(found.first, slot: DiaryShotSlot.during);
+    }
+  }
+
+  Future<void> _capture(DiaryEntry e, {required DiaryShotSlot slot}) async {
     final generation = _generation;
     bool valid() =>
         foreground &&
         generation == _generation &&
         entries.contains(e) &&
-        (!before || e.outcome == 'running');
+        (slot == DiaryShotSlot.after
+            ? e.outcome == 'completed'
+            : e.outcome == 'running');
     var claimed = false;
+    var saving = false;
     String? file;
     try {
       await _serial(() async {
-        final state = before ? e.before : e.after;
-        if (!entries.contains(e) || state != DiaryShotState.absent) return;
+        if (!entries.contains(e) ||
+            e.shotState(slot) != DiaryShotState.absent) {
+          return;
+        }
         if (!valid() || _busy) {
-          if (before) {
-            e.before = DiaryShotState.unavailable;
-          } else {
-            e.after = DiaryShotState.unavailable;
-          }
+          e.setShot(
+            slot,
+            DiaryShotState.unavailable,
+            error: !valid() ? 'interrupted' : 'camera_busy',
+          );
         } else {
           _busy = true;
           claimed = true;
-          if (before) {
-            e.before = DiaryShotState.pending;
-          } else {
-            e.after = DiaryShotState.pending;
-          }
+          e.setShot(slot, DiaryShotState.pending);
         }
         await repository.write(entries);
       });
       if (!claimed) return;
       final frame = await camera.capture().timeout(timeout);
-      if (!valid()) throw StateError('Capture interrupted');
+      if (!valid()) throw const DiaryCaptureException('interrupted');
+      saving = true;
       await _serial(() async {
-        if (!valid()) return;
+        if (!valid()) throw const DiaryCaptureException('interrupted');
         file = await repository.saveFrame(frame);
-        if (!valid()) {
-          await repository.deleteFrame(file!);
-          file = null;
-          return;
-        }
-        if (before) {
-          e.beforeFile = file;
-          e.beforeAtMs = frame.takenAtMs;
-          e.before = DiaryShotState.saved;
-        } else {
-          e.afterFile = file;
-          e.afterAtMs = frame.takenAtMs;
-          e.after = DiaryShotState.saved;
-        }
+        if (!valid()) throw const DiaryCaptureException('interrupted');
+        e.setShot(
+          slot,
+          DiaryShotState.saved,
+          file: file,
+          time: frame.takenAtMs,
+        );
         await repository.write(entries);
       });
-    } catch (_) {
+    } catch (error) {
+      final code = error is TimeoutException
+          ? 'timeout'
+          : error is DiaryCaptureException
+          ? error.code
+          : saving
+          ? 'storage_error'
+          : 'capture_error';
       await _serial(() async {
         if (file != null) await repository.deleteFrame(file!);
         if (!entries.contains(e)) return;
-        if (before) {
-          e.beforeFile = null;
-          e.beforeAtMs = null;
-          e.before = DiaryShotState.unavailable;
-        } else {
-          e.afterFile = null;
-          e.afterAtMs = null;
-          e.after = DiaryShotState.unavailable;
-        }
+        e.setShot(slot, DiaryShotState.unavailable, error: code);
         await repository.write(entries);
       });
     } finally {
-      // Cancellation itself is bounded; a hung camera never owns the alarm.
       if (claimed) {
         try {
           await camera.cancel().timeout(timeout);
@@ -280,7 +350,11 @@ class PhotoDiary {
       entries.removeWhere((e) => e.id == id);
       await repository.write(entries);
       for (final e in removed) {
-        for (final file in [e.beforeFile, e.afterFile].whereType<String>()) {
+        for (final file in [
+          e.beforeFile,
+          e.duringFile,
+          e.afterFile,
+        ].whereType<String>()) {
           await repository.deleteFrame(file);
         }
       }

@@ -123,13 +123,19 @@ void main() {
   );
   test('denied permission never prompts or opens any camera', () async {
     authorized = false;
-    await expectLater(FrontDiaryCamera().capture(), throwsStateError);
+    await expectLater(
+      FrontDiaryCamera().capture(),
+      throwsA(isA<DiaryCaptureException>()),
+    );
     expect(fake.chosen, isNull);
     expect(permissionMethods, ['checkPermissionStatus']);
   });
   test('no front camera never substitutes rear camera', () async {
     fake.frontAvailable = false;
-    await expectLater(FrontDiaryCamera().capture(), throwsStateError);
+    await expectLater(
+      FrontDiaryCamera().capture(),
+      throwsA(isA<DiaryCaptureException>()),
+    );
     expect(fake.chosen, isNull);
   });
 }
