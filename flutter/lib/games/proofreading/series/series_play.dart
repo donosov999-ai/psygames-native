@@ -93,9 +93,12 @@ class ProofSeriesPlayState extends State<ProofSeriesPlay> {
   /// Сыгранные блоки — для проб и для итога.
   SeriesRun? get finishedRun => _finished;
 
+  late final SessionLaunch _sessionLaunch;
+
   @override
   void initState() {
     super.initState();
+    _sessionLaunch = SessionLaunch.capture();
     _seed = widget.seed;
     _progress = parseProofProgress(widget.state.get(proofSeriesKey(widget.state)));
     _begin();
@@ -123,6 +126,7 @@ class ProofSeriesPlayState extends State<ProofSeriesPlay> {
   void _report(SeriesRun run) {
     final s = seriesSession(run);
     SessionReport.send(
+      launch: _sessionLaunch,
       gameType: proofSeriesGameType,
       score: s.score,
       timeSeconds: s.timeSeconds.round(),

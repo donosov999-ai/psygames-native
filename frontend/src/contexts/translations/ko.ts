@@ -1,6 +1,9 @@
 // AUTO-GENERATED translation overlay (ko). Источник: транскреация с EN-базы (856 ключей).
 // Не править руками — регенерировать. Нужна вычитка нативом до сторов.
 const t: Record<string, string> = {
+  // Scoped manually authored translations; not workflow-generated output.
+  nativeScreenModelFailed: "화면 데이터를 불러오지 못했습니다",
+  nativeScreenModelRetryHint: "다시 불러오거나 홈으로 돌아가세요.",
   puzzleRoundLost: "이번 시도는 통과하지 못했습니다. 다시 시작하거나 한 수를 되돌려 복습하세요.",
   puzzleFloodLimit: "이동 횟수 한도에 도달했습니다: {moves} / {limit}. 다시 시도하세요.",
   puzzleLossReview: "실패 후 복습은 새 성적으로 기록되지 않습니다. 다음 단계로 가려면 새로 시작하세요.",

@@ -80,9 +80,12 @@ class _KnightsQueensScreenState extends State<KnightsQueensScreen> {
   // Игровые часы: стоят под паузой, разбором и в фоне.
   int _now() => widget.clock?.call() ?? gameNow();
 
+  late final SessionLaunch _sessionLaunch;
+
   @override
   void initState() {
     super.initState();
+    _sessionLaunch = SessionLaunch.capture();
     _boot();
   }
 
@@ -193,6 +196,7 @@ class _KnightsQueensScreenState extends State<KnightsQueensScreen> {
       );
     } else {
       await SessionReport.send(
+        launch: _sessionLaunch,
         gameType: 'knights_queens',
         score: r.solved,
         timeSeconds: seconds,

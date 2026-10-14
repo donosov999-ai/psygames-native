@@ -5,6 +5,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 
 import 'l10n.dart';
+import 'game_pet.dart' show PetHost;
 import 'web_theme.dart';
 
 /// МОСТ К ВЕБ-ПИТОМЦУ: облик, реплики, встреча — у страницы (`WalkingPet.tsx`, `__psyPet`).
@@ -607,15 +608,16 @@ class _PetFramesState extends State<PetFrames> {
     final s = widget.spec;
     final size = widget.size;
     final shown = s.frames == 0 ? 0 : _frame % s.frames;
-    Widget img(String u, {double? width}) => Image.network(
+    Widget img(String u, {double? width}) => PetHost.retryingImage(widget.origin, _url(u), (key) => Image.network(
       _url(u),
+      key: key,
       width: width ?? size,
       height: size,
       fit: width == null ? BoxFit.contain : BoxFit.fill,
       gaplessPlayback: true,
       excludeFromSemantics: true,
       errorBuilder: (_, _, _) => SizedBox(width: width ?? size, height: size),
-    );
+    ));
     final box = shown < s.boxes.length ? s.boxes[shown] : null;
     final body = Stack(
       clipBehavior: s.strip ? Clip.hardEdge : Clip.none,
@@ -642,12 +644,13 @@ class _PetFramesState extends State<PetFrames> {
             width: box.width * size,
             height: box.height * size,
             child: IgnorePointer(
-              child: Image.network(
+              child: PetHost.retryingImage(widget.origin, _url(s.accessory!), (key) => Image.network(
                 _url(s.accessory!),
+                key: key,
                 fit: BoxFit.contain,
                 excludeFromSemantics: true,
                 errorBuilder: (_, _, _) => const SizedBox(),
-              ),
+              )),
             ),
           ),
       ],

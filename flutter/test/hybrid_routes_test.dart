@@ -15,6 +15,33 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// Ссылки приходят в разном виде: с расширением и без, с запросом и якорем.
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+  test('issued owners preserve native routing for every default playlist entry', () {
+    final data = jsonDecode(File('../frontend/src/constants/defaultPlaylists.json').readAsStringSync());
+    var checked = 0;
+    final missing = <String>{};
+    void walk(Object? value) {
+      if (value is Map) {
+        final path = value['game_route'];
+        if (path is String) {
+          final original = Uri.parse(path);
+          final query = <String, String>{
+            ...original.queryParameters,
+            if (value['settings'] is Map)
+              for (final entry in (value['settings'] as Map).entries) '${entry.key}': '${entry.value}',
+            if (value['mode'] != null) 'mode': '${value['mode']}',
+            'wu': '1', 'wuRun': 'run', 'wuStep': '0', 'wuAttempt': 'attempt',
+          };
+          final route = HybridApp.routeOf(original.replace(queryParameters: query).toString());
+          checked++;
+          if (route == null || !HybridApp.native.containsKey(route)) missing.add('$path $query');
+        }
+        value.values.forEach(walk);
+      } else if (value is List) { value.forEach(walk); }
+    }
+    walk(data);
+    expect(checked, greaterThan(80));
+    expect(missing, isEmpty, reason: 'these default steps still need a pure-WEB attempt-start binding');
+  });
   test('🔴 перенесённые игры узнаются во всех видах ссылок', () {
     const origin = 'http://127.0.0.1:54321';
     for (final url in [

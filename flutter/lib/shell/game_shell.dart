@@ -6,6 +6,8 @@ import 'l10n.dart';
 import 'level_rules.dart';
 import 'package:flutter/material.dart';
 import 'restart_scope.dart';
+import 'game_preset.dart';
+import 'warmup_owner.dart';
 
 /// Каркас игрового экрана — перенос GameShell из React-версии PsyGames.
 ///
@@ -248,6 +250,7 @@ class GameShell extends StatelessWidget {
   /// Свой «Заново» у игры уже есть: значок обновления или подпись перезапуска.
   static bool _isRestart(PauseAction a) =>
       a.icon == Icons.refresh ||
+      a.icon == Icons.replay ||
       a.label == L.t('restart') ||
       a.label == 'Начать заново' ||
       a.label == 'Новая партия';
@@ -257,10 +260,11 @@ class GameShell extends StatelessWidget {
     // который пересоздаёт экран через RestartScope (проигрыш не пишется). Замер 01.10:
     // своего «Заново» не было у 43 экранов из 86.
     final restart = RestartScope.of(context);
+    final ownedWarmup = GamePreset.isWarmup && WarmupOwner.fromQuery(GamePreset.params) != null;
     final actions = [
-      if (restart != null && !pauseActions.any(_isRestart))
+      if (restart != null && (ownedWarmup || !pauseActions.any(_isRestart)))
         PauseAction(label: L.t('restart'), icon: Icons.refresh, onPressed: restart),
-      ...pauseActions,
+      ...pauseActions.where((a) => !(restart != null && ownedWarmup && _isRestart(a))),
     ];
     Navigator.of(context).push(MaterialPageRoute<void>(
       // Пауза — страница ПОВЕРХ игры: пока она видна, часы и таймеры партии стоят

@@ -102,9 +102,12 @@ class _ChessBlindSeriesScreenState extends State<ChessBlindSeriesScreen> {
     return _raw() - _pausedTotal - (since == null ? 0 : _raw() - since);
   }
 
+  late final SessionLaunch _sessionLaunch;
+
   @override
   void initState() {
     super.initState();
+    _sessionLaunch = SessionLaunch.capture();
     _boot();
   }
 
@@ -291,6 +294,7 @@ class _ChessBlindSeriesScreenState extends State<ChessBlindSeriesScreen> {
   void _report(SeriesRun run) {
     final s = seriesSession(run);
     SessionReport.send(
+      launch: _sessionLaunch,
       gameType: seriesGameType,
       score: s.score,
       timeSeconds: s.timeSeconds,

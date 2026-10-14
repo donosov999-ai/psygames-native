@@ -46,6 +46,11 @@ class ScreenUi {
     );
   }
 
+  /// Retry only delivery of the current model; never invoke a mutating screen action.
+  static Future<void> requestModel(String route) async {
+    await run?.call('window.__psyRequestScreenModel && window.__psyRequestScreenModel(${jsonEncode(route)});');
+  }
+
   @visibleForTesting
   static void reset() {
     for (final n in _models.values) {

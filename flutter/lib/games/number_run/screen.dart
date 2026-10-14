@@ -208,9 +208,12 @@ class _NumberRunScreenState extends State<NumberRunScreen> with SingleTickerProv
   double _dragTarget = 0;
   bool _loaded = false;
 
+  late final SessionLaunch _sessionLaunch;
+
   @override
   void initState() {
     super.initState();
+    _sessionLaunch = SessionLaunch.capture();
     _ladder = LevelLadder(gameId: 'number_run', store: SharedLevelStore(widget.state), sessionMode: 'levels');
     _ticker = createTicker(_tick);
     _boot();
@@ -336,6 +339,7 @@ class _NumberRunScreenState extends State<NumberRunScreen> with SingleTickerProv
       LessonUsed.reset();
       if (lesson) details['lesson'] = true;
       await SessionReport.send(
+        launch: _sessionLaunch,
         gameType: 'number_run',
         score: o.number,
         timeSeconds: o.seconds,

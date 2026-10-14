@@ -21,9 +21,24 @@ type HostWindow = {
   PsyBridge?: { postMessage?: (s: string) => void };
   __psyHostScreens?: string[];
   __psyScreenUi?: Record<string, Actions>;
+  __psyRequestScreenModel?: (route: string) => boolean;
+  location?: { pathname?: string };
 };
 
 type Actions = Record<string, (...args: never[]) => unknown>;
+// Snapshot exactly what was posted: later mutation of a caller's model is not a new delivery.
+const latestModels = new Map<string, string>();
+
+/** Retry is read-only delivery, never a screen action such as buying, feeding or saving. */
+function requestScreenModel(route: string): boolean {
+  const w = hostWindow();
+  let path = w?.location?.pathname ?? '';
+  if (path.endsWith('.html')) path = path.slice(0, -5);
+  if (path.endsWith('/index')) path = path.slice(0, -6);
+  if (!hostDrawsScreen(route) || (path || '/') !== route || !w?.__psyScreenUi?.[route]) return false;
+  const model = latestModels.get(route);
+  return model !== undefined && postToHost({ op: 'screenUi', route, model: JSON.parse(model) });
+}
 
 function hostWindow(): HostWindow | null {
   return typeof window === 'undefined' ? null : (window as unknown as HostWindow);
@@ -38,6 +53,16 @@ export function hostDrawsScreen(route: string): boolean {
 
 /** Отдать оболочке модель экрана. false — оболочки нет или экран не её. */
 export function postScreenModel(route: string, model: object): boolean {
+  const w = hostWindow();
+  if (w) {
+    // Retain even a failed delivery, so a native retry can recover without remounting the page.
+    try {
+      latestModels.set(route, JSON.stringify(model));
+    } catch {
+      return false;
+    }
+    w.__psyRequestScreenModel = requestScreenModel;
+  }
   if (!hostDrawsScreen(route)) return false;
   return postToHost({ op: 'screenUi', route, model });
 }
@@ -50,9 +75,15 @@ export function registerScreenActions(route: string, actions: Actions): () => vo
   const w = hostWindow();
   if (!w || !hostDrawsScreen(route)) return () => {};
   const all = (w.__psyScreenUi ??= {});
+  // Replacing a mounted owner cannot inherit its old snapshot. A first post before
+  // the first registration is allowed (React effects in the existing pages use that order).
+  if (all[route] && all[route] !== actions) latestModels.delete(route);
   all[route] = actions;
   return () => {
-    if (w.__psyScreenUi?.[route] === actions) delete w.__psyScreenUi[route];
+    if (w.__psyScreenUi?.[route] === actions) {
+      delete w.__psyScreenUi[route];
+      latestModels.delete(route);
+    }
   };
 }
 

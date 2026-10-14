@@ -19,11 +19,15 @@ import { WarmupProvider, useWarmup } from '@/src/contexts/WarmupContext';
 
 const mockReplace = jest.fn();
 let mockListener: ((s: any) => Promise<void> | void) | null = null;
+let mockGate: ((s: any) => boolean) | null = null;
 
 jest.mock('expo-router', () => ({ useRouter: () => ({ replace: mockReplace, push: jest.fn(), back: jest.fn() }) }));
 jest.mock('@/src/contexts/ProfileContext', () => ({ useProfile: () => ({ profile: { id: 'free' } }) }));
 jest.mock('@/src/services/feedback', () => ({ fbCorrect: () => {}, fbComplete: () => {} }));
-jest.mock('@/src/services/api', () => ({ setSessionListener: (fn: any) => { mockListener = fn; } }));
+jest.mock('@/src/services/api', () => ({
+  setSessionAcceptance: (fn: any) => { mockGate = fn; },
+  setSessionListener: (fn: any) => { mockListener = fn ? async (s: any) => { if (mockGate?.(s) !== false) await fn(s); } : null; },
+}));
 jest.mock('@react-native-async-storage/async-storage', () => ({
   getItem: jest.fn(async () => null), setItem: jest.fn(async () => {}), removeItem: jest.fn(async () => {}),
 }));
@@ -57,7 +61,7 @@ async function зарядка(): Promise<TestRenderer.ReactTestRenderer> {
   return tr;
 }
 async function партияСохранена(): Promise<void> {
-  await act(async () => { await mockListener!({ game_type: 'find_differences', score: 10, time_seconds: 30, errors: 0, details: {} }); });
+  await act(async () => { await mockListener!({ id: 'round', game_type: 'find_differences', score: 10, time_seconds: 30, errors: 0, details: { warmup_owner: ctx.owner() } }); });
 }
 async function прошло(мс: number): Promise<void> {
   await act(async () => { jest.advanceTimersByTime(мс); });

@@ -101,8 +101,13 @@ void main() {
     await ladder.win(mode: 'backward', difficulty: 'hard');
     expect([sent.last['mode'], sent.last['difficulty']], ['backward', 'hard']);
     GamePreset.clear();
-    await ladder.win();
-    expect(sent.last['difficulty'], '${ladder.level}', reason: 'вне шага difficulty — уровень, как раньше');
+    final before = sent.length;
+    expect(await ladder.win(), isFalse, reason: 'старый шаг не становится новой личной попыткой');
+    expect(sent.length, before, reason: 'запоздавший результат ушедшего шага не пишет чужую партию');
+    final ordinary = LevelLadder(gameId: 'digit_span', store: MemoryLevelStore());
+    await ordinary.load();
+    expect(await ordinary.win(), isTrue);
+    expect(sent.last['difficulty'], '${ordinary.level}', reason: 'вне шага difficulty — уровень, как раньше');
     expect(sent.last['mode'], isNull, reason: 'вне шага метку шага не выдумываем');
   });
 

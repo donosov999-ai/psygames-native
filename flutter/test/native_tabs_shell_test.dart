@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
@@ -76,6 +77,7 @@ class RecController extends wv.PlatformWebViewController {
   RecController(super.params) : super.implementation();
   final channels = <String, void Function(wv.JavaScriptMessage)>{};
   final js = <String>[];
+  Future<void> Function(String)? delayedJs;
 
   /// Ответы веб-питомца на вопросы моста (`__psyPet.ask`); `null` — моста на странице нет.
   Map<String, Object? Function(Object? arg)>? pet;
@@ -101,6 +103,7 @@ class RecController extends wv.PlatformWebViewController {
   @override
   Future<void> runJavaScript(String javaScript) async {
     js.add(javaScript);
+    if (delayedJs != null) await delayedJs!(javaScript);
     final m = RegExp(r'__psyPet\.ask\(("[^"]*"), ("[^"]*"), (.*)\);$').firstMatch(javaScript);
     if (m != null && pet != null) {
       final id = jsonDecode(m.group(1)!) as String;
@@ -597,16 +600,18 @@ void main() {
     expect(page().js.any((s) => s.contains('__psyReplace("/")')), isTrue);
   });
 
-  testWidgets('🔴 экран по модели страницы: модель не пришла за 6 с — показываем саму страницу, а не вечную загрузку', (t) async {
+  testWidgets('модель не пришла за 6 с: ошибка нативная; поздняя модель убирает её без WEB', (t) async {
     await mount(t);
     await route(t, AssessmentResultScreen.route);
     await t.pump(const Duration(seconds: 7));
     await t.pump();
-    expect(find.byKey(const ValueKey('native-cover')), findsNothing, reason: 'страница видна: нативный слой снят');
+    expect(find.byKey(const ValueKey('native-cover')), findsOneWidget);
+    expect(find.byKey(const ValueKey('screen-model-error')), findsOneWidget);
     final assessment = (jsonDecode(File('test/fixtures/assessment_model.json').readAsStringSync()) as Map).cast<String, Object?>();
     page().emit(SharedState.channel, {'op': 'screenUi', 'route': AssessmentResultScreen.route, 'model': assessment});
     await settle(t, () => find.byKey(const ValueKey('assessment-screen')).evaluate().isNotEmpty);
     expect(find.byKey(const ValueKey('native-cover')), findsOneWidget, reason: 'модель пришла — снова нативный');
+    expect(find.byKey(const ValueKey('screen-model-error')), findsNothing);
   });
 
   testWidgets('🔴 своя Главная странице место не уступает: модели страницы нет и через 6 с', (t) async {
@@ -846,12 +851,122 @@ void main() {
     expect(find.byKey(const ValueKey('native-cover')), findsNothing, reason: 'страница молчит — прежний экран не держим вечно');
   });
 
-  testWidgets('итог оценки без модели 6 с — сама страница', (t) async {
+  testWidgets('повтор просит только модель: не перезагружает WEB и не меняет адрес', (t) async {
     await mount(t);
     await route(t, '/assessment-result');
     await t.pump(const Duration(seconds: 7));
     await t.pump();
-    expect(find.byKey(const ValueKey('native-cover')), findsNothing, reason: 'страница видна: нативный слой снят');
+    page().js.clear();
+    await t.tap(find.byKey(const ValueKey('screen-model-retry')));
+    await t.pump();
+    expect(find.byKey(const ValueKey('native-cover')), findsOneWidget);
+    expect(find.byKey(const ValueKey('screen-model-error')), findsNothing);
+    expect(find.byKey(const ValueKey('screen-model-wait')), findsOneWidget);
+    expect(page().js.single, contains('__psyRequestScreenModel("/assessment-result")'));
+    expect(page().js.single, isNot(contains('reload')));
+    expect(page().js.single, isNot(contains('replace')));
+    await t.pump(const Duration(seconds: 7));
+    await t.pump();
+    expect(find.byKey(const ValueKey('screen-model-error')), findsOneWidget);
+    expect(web.controllers.length, 1);
+  });
+
+  testWidgets('старый таймер и чужая модель не заменяют текущую вкладку', (t) async {
+    await mount(t);
+    await route(t, '/assessment-result');
+    await t.pump(const Duration(seconds: 7));
+    await t.pump();
+    await t.tap(find.byKey(const ValueKey('screen-model-retry')));
+    await t.pump();
+    await route(t, '/games');
+    page().emit(SharedState.channel, {'op': 'screenUi', 'route': AssessmentResultScreen.route, 'model': fixture('assessment_model.json')});
+    await t.pump(const Duration(seconds: 7));
+    await t.pump();
+    expect(active(t), '/games');
+    expect(catalogShown(), isTrue);
+    expect(find.byKey(const ValueKey('screen-model-error')), findsNothing);
+    expect(find.byKey(const ValueKey('native-cover')), findsOneWidget);
+  });
+
+  testWidgets('своя Dart-модель служебных экранов не ждёт веб через 7 с', (t) async {
+    await mount(t);
+    for (final path in ['/sources', '/collection', '/achievements', '/leagues', '/streak-calendar']) {
+      await route(t, path);
+      await t.pump(const Duration(seconds: 7));
+      await t.pump();
+      expect(ScreenUi.model(path).value, isNull);
+      expect(find.byKey(const ValueKey('native-cover')), findsOneWidget, reason: path);
+      expect(find.byKey(const ValueKey('screen-model-error')), findsNothing, reason: path);
+      expect(find.byKey(const ValueKey('screen-model-wait')), findsNothing, reason: path);
+    }
+  });
+
+  testWidgets('модель loading не считается готовой и не прячет ошибку', (t) async {
+    await mount(t);
+    await route(t, '/assessment-result');
+    page().emit(SharedState.channel, {'op': 'screenUi', 'route': AssessmentResultScreen.route, 'model': {'v': 1, 'loading': 'Calculating'}});
+    await t.pump(const Duration(seconds: 7));
+    await t.pump();
+    expect(find.byKey(const ValueKey('screen-model-error')), findsOneWidget);
+    page().emit(SharedState.channel, {'op': 'screenUi', 'route': AssessmentResultScreen.route, 'model': {'v': 1, 'loading': 'Calculating'}});
+    await t.pump();
+    expect(find.byKey(const ValueKey('screen-model-error')), findsOneWidget);
+  });
+
+  testWidgets('возврат A → B → A получает новый срок ожидания', (t) async {
+    await mount(t);
+    await route(t, '/assessment-result');
+    await t.pump(const Duration(seconds: 7));
+    await t.pump();
+    expect(find.byKey(const ValueKey('screen-model-error')), findsOneWidget);
+    await route(t, '/games');
+    await route(t, '/assessment-result');
+    expect(find.byKey(const ValueKey('screen-model-error')), findsNothing);
+    expect(find.byKey(const ValueKey('screen-model-wait')), findsOneWidget);
+    await t.pump(const Duration(seconds: 7));
+    await t.pump();
+    expect(find.byKey(const ValueKey('screen-model-error')), findsOneWidget);
+    await t.tap(find.byKey(const ValueKey('screen-model-home')));
+    await t.pump();
+    expect(active(t), '/');
+    expect(find.byKey(const ValueKey('screen-model-error')), findsNothing);
+  });
+
+  testWidgets('готовая модель → loading: новый timeout, ready снимает ошибку', (t) async {
+    await mount(t);
+    await route(t, '/assessment-result');
+    page().emit(SharedState.channel, {'op': 'screenUi', 'route': AssessmentResultScreen.route, 'model': fixture('assessment_model.json')});
+    await t.pump();
+    expect(find.byKey(const ValueKey('screen-model-wait')), findsNothing);
+    page().emit(SharedState.channel, {'op': 'screenUi', 'route': AssessmentResultScreen.route, 'model': {'loading': 'Calculating'}});
+    await t.pump();
+    expect(find.byKey(const ValueKey('screen-model-wait')), findsOneWidget);
+    await t.pump(const Duration(seconds: 7));
+    await t.pump();
+    expect(find.byKey(const ValueKey('screen-model-error')), findsOneWidget);
+    page().emit(SharedState.channel, {'op': 'screenUi', 'route': AssessmentResultScreen.route, 'model': fixture('assessment_model.json')});
+    await t.pump();
+    expect(find.byKey(const ValueKey('screen-model-error')), findsNothing);
+  });
+
+  testWidgets('поздняя ошибка старого retry не портит новый визит A → B → A', (t) async {
+    await mount(t);
+    await route(t, '/assessment-result');
+    await t.pump(const Duration(seconds: 7));
+    await t.pump();
+    final oldRequest = Completer<void>();
+    page().delayedJs = (js) => js.contains('__psyRequestScreenModel') ? oldRequest.future : Future.value();
+    await t.tap(find.byKey(const ValueKey('screen-model-retry')));
+    await t.pump();
+    await route(t, '/games');
+    await route(t, '/assessment-result');
+    oldRequest.completeError(StateError('old transport failure'));
+    await t.pump();
+    expect(find.byKey(const ValueKey('screen-model-wait')), findsOneWidget);
+    expect(find.byKey(const ValueKey('screen-model-error')), findsNothing);
+    await t.pump(const Duration(seconds: 7));
+    await t.pump();
+    expect(find.byKey(const ValueKey('screen-model-error')), findsOneWidget);
   });
 }
 

@@ -85,9 +85,12 @@ class _SolitaireChessScreenState extends State<SolitaireChessScreen> {
   // Игровые часы: стоят под паузой, разбором и в фоне.
   int _now() => widget.clock?.call() ?? gameNow();
 
+  late final SessionLaunch _sessionLaunch;
+
   @override
   void initState() {
     super.initState();
+    _sessionLaunch = SessionLaunch.capture();
     _boot();
   }
 
@@ -190,6 +193,7 @@ class _SolitaireChessScreenState extends State<SolitaireChessScreen> {
       );
     } else {
       await SessionReport.send(
+        launch: _sessionLaunch,
         gameType: 'solitaire_chess',
         score: args.score,
         timeSeconds: args.timeSeconds,

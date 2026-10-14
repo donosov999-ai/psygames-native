@@ -1,6 +1,9 @@
 // AUTO-GENERATED translation overlay (ja). Источник: транскреация с EN-базы (856 ключей).
 // Не править руками — регенерировать. Нужна вычитка нативом до сторов.
 const t: Record<string, string> = {
+  // Scoped manually authored translations; not workflow-generated output.
+  nativeScreenModelFailed: "画面のデータを読み込めませんでした",
+  nativeScreenModelRetryHint: "もう一度読み込むか、ホームに戻ってください。",
   puzzleRoundLost: "今回の挑戦は未達成です。やり直すか、一手戻して振り返りましょう。",
   puzzleFloodLimit: "手数の上限に達しました：{moves} / {limit} 手。もう一度挑戦してください。",
   puzzleLossReview: "敗北後の振り返りは新たな成績に含まれません。先に進むには新しく挑戦してください。",

@@ -51,6 +51,8 @@ class LevelLadder {
   bool _training = false;
   bool _trainingWinRecorded = false;
   Map<String, String>? _trainingLaunch;
+  Map<String, String> _launchParams = const {};
+  SessionLaunch? _sessionLaunch;
   String get _levelId => _training ? '${gameId}_warmup' : gameId;
 
   int get level => _level;
@@ -75,9 +77,12 @@ class LevelLadder {
 
   /// Фиксированный замер/пресет и чужая ступень не двигают лестницу.
   /// Полная тренировка `wu=1&progress=1` двигает отдельный ключ `_warmup`.
-  static bool get _frozen => GamePreset.isPreset || GamePreset.isTransit;
+  bool get _frozen => (_launchParams['wu'] == '1' && _launchParams['progress'] != '1') ||
+      (_launchParams['ladderGame'] ?? '').isNotEmpty;
 
   Future<void> load() async {
+    _launchParams = GamePreset.params;
+    _sessionLaunch = SessionLaunch.capture();
     // Лестницу грузит экран на входе — началась новая партия, и отметка разбора,
     // оставшаяся от ДРУГОЙ игры, её не касается. Подробно — у [win].
     LessonUsed.reset();
@@ -94,8 +99,8 @@ class LevelLadder {
     if (_best < _level) _best = _level;
     // Ступень-переход открывает игру на ЗАДАННОМ уровне (`lvl`), не трогая сохранённый:
     // при переходе лестница не пишет ([win]/[fail]), поэтому уровень меняется только в памяти.
-    final lvl = GamePreset.isTransit
-        ? int.tryParse(GamePreset.params['lvl'] ?? '')
+    final lvl = (_launchParams['ladderGame'] ?? '').isNotEmpty
+        ? int.tryParse(_launchParams['lvl'] ?? '')
         : null;
     if (lvl != null && lvl >= 1) _level = lvl.clamp(1, maxLevel);
   }
@@ -149,9 +154,9 @@ class LevelLadder {
   /// `mode` (`stepToParams`, `warmup.ts`), а нативная партия уходила с `difficulty` =
   /// уровень и без `mode` — замер 30.09.2026: digit_span и sdmt шаг не опознавал, домен
   /// молча становился «средним, z = 0». Экран, передавший метку сам, — главнее.
-  static String? _stepLabel(String key) {
-    if (!GamePreset.isPreset) return null;
-    final v = GamePreset.params[key];
+  String? _stepLabel(String key) {
+    if (_launchParams['wu'] != '1' || _launchParams['progress'] == '1') return null;
+    final v = _launchParams[key];
     return v == null || v.isEmpty ? null : v;
   }
 
@@ -171,6 +176,7 @@ class LevelLadder {
     bool report = true,
     bool advance = true,
   }) async {
+    if (_launchParams['wu'] == '1' && !identical(_launchParams, GamePreset.params)) return false;
     // A playlist step may report completion twice while the host changes routes.
     if (_training &&
         (_trainingWinRecorded ||
@@ -202,6 +208,7 @@ class LevelLadder {
         levelBefore: before,
       );
       await SessionReport.send(
+        launch: _sessionLaunch,
         gameType: sessionType ?? gameId,
         score: score,
         timeSeconds: timeSeconds,
@@ -249,6 +256,7 @@ class LevelLadder {
     bool report = true,
     bool advance = true,
   }) async {
+    if (_launchParams['wu'] == '1' && !identical(_launchParams, GamePreset.params)) return;
     if (_training && !identical(_trainingLaunch, GamePreset.params)) return;
     final lesson = LessonUsed.inRound;
     final before = _level;
@@ -265,6 +273,7 @@ class LevelLadder {
           levelBefore: before,
         );
         await SessionReport.send(
+          launch: _sessionLaunch,
           gameType: sessionType ?? gameId,
           score: score,
           timeSeconds: timeSeconds,
@@ -295,6 +304,7 @@ class LevelLadder {
         levelBefore: before,
       );
       await SessionReport.send(
+        launch: _sessionLaunch,
         gameType: sessionType ?? gameId,
         score: score,
         timeSeconds: timeSeconds,

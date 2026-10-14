@@ -11,6 +11,7 @@ import { stepToParams, очкиСоЗнаком, серияБезСчёта, р�
 import { имяШага } from '@/src/services/stepName';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { postUiModel, registerUiActions } from '@/src/services/warmupUi';
+import { ownerParams, sameWarmupOwner } from '@/src/services/warmupOwner';
 
 const GRADIENT = ['#fbbf24', '#f59e0b'];
 const AUTOSTART_SEC = 3;
@@ -20,6 +21,9 @@ export default function WarmupBridge() {
   const { colors } = useTheme();
   const { t } = useLanguage();
   const warmup = useWarmup();
+  const launchOwnerRef = useRef(warmup.attemptOwner);
+  const ownsLaunch = () => !warmup.owner || sameWarmupOwner(warmup.owner(), launchOwnerRef.current);
+  const launchedParams = () => ({ ...stepToParams(next!, meta?.slot, meta?.track), ...ownerParams(launchOwnerRef.current) });
   const [countdown, setCountdown] = useState(() => (warmup.meta?.slot === 'evening' ? 8 : 5));
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -91,15 +95,15 @@ export default function WarmupBridge() {
   }, [warmup.overtime, спрашиваемСтоп]);
 
   useEffect(() => {
-    if (warmup.overtime || спрашиваемСтоп || countdown !== 0 || navFiredRef.current || !next) return;
+    if (warmup.overtime || спрашиваемСтоп || countdown !== 0 || navFiredRef.current || !next || !ownsLaunch()) return;
     navFiredRef.current = true;
     if (intervalRef.current) clearInterval(intervalRef.current);
-    router.replace({ pathname: next.game_route, params: stepToParams(next, meta?.slot, meta?.track) } as any);
+    router.replace({ pathname: next.game_route, params: launchedParams() } as any);
   }, [countdown]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const startNow = () => {
     if (intervalRef.current) clearInterval(intervalRef.current);
-    if (next) router.replace({ pathname: next.game_route, params: stepToParams(next, meta?.slot, meta?.track) } as any);
+    if (next && ownsLaunch()) router.replace({ pathname: next.game_route, params: launchedParams() } as any);
   };
 
   /**
@@ -111,7 +115,7 @@ export default function WarmupBridge() {
    */
   const skipWaitRef = useRef(false);
   const skip = () => {
-    if (!взведено) return;
+    if (!взведено || !ownsLaunch()) return;
     if (intervalRef.current) clearInterval(intervalRef.current);
     skipWaitRef.current = true;
     warmup.skipCurrent();
@@ -119,17 +123,24 @@ export default function WarmupBridge() {
   useEffect(() => {
     if (!skipWaitRef.current) return;
     skipWaitRef.current = false;
+    if (warmup.attemptOwner && (warmup.attemptOwner.run_id !== launchOwnerRef.current?.run_id
+      || warmup.attemptOwner.step_idx !== (launchOwnerRef.current?.step_idx ?? -1) + 1)) return;
+    launchOwnerRef.current = warmup.attemptOwner;
     navFiredRef.current = true;   // отсчёт больше не должен стрелять своей навигацией
     if (warmup.currentStep) {
-      router.replace({ pathname: warmup.currentStep.game_route, params: stepToParams(warmup.currentStep, meta?.slot, meta?.track) } as any);
+      router.replace({ pathname: warmup.currentStep.game_route,
+        params: { ...stepToParams(warmup.currentStep, meta?.slot, meta?.track), ...ownerParams(warmup.attemptOwner) },
+      } as any);
     }
     // Шагов не осталось — advanceToNext уже увёл на /warmup-complete сам.
   }, [warmup.currentIdx]);   // eslint-disable-line react-hooks/exhaustive-deps
 
   const stop = async () => {
     if (intervalRef.current) clearInterval(intervalRef.current);
-    await warmup.stopWarmup(false);
-    router.replace('/' as any);
+    if (!ownsLaunch()) return;
+    const stoppedRun = launchOwnerRef.current?.run_id ?? warmup.warmupId;
+    const allowed = await warmup.stopWarmup(false);
+    if (allowed !== false && (!warmup.canNavigateAfterStop || warmup.canNavigateAfterStop(stoppedRun))) router.replace('/' as any);
   };
   const спроситьСтоп = () => { if (взведено) setСпрашиваемСтоп(true); };
 

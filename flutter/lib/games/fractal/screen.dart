@@ -126,9 +126,12 @@ class _FractalScreenState extends State<FractalScreen> {
   int get _elapsed => (gameNow() - _startedAt) ~/ 1000;
   String? _failure;
 
+  late final SessionLaunch _sessionLaunch;
+
   @override
   void initState() {
     super.initState();
+    _sessionLaunch = SessionLaunch.capture();
     _ladder = LevelLadder(
       gameId: 'sudoku_fractal',
       store: SharedLevelStore(widget.state),
@@ -372,6 +375,7 @@ class _FractalScreenState extends State<FractalScreen> {
     final attempt = _attempt;
     final outcome = LevelLadder.onOutcome;
     unawaited(SessionReport.send(
+      launch: _sessionLaunch,
       gameType: 'sudoku_fractal',
       score: 0,
       timeSeconds: _elapsed,

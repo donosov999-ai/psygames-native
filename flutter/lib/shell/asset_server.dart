@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:flutter/foundation.dart' show debugPrint, kDebugMode, visibleForTesting;
+import 'package:flutter/foundation.dart' show ValueListenable, ValueNotifier, debugPrint, kDebugMode, visibleForTesting;
 import 'package:flutter/services.dart' show AssetManifest, rootBundle;
 import 'package:flutter/widgets.dart' show AppLifecycleListener;
 
@@ -41,6 +41,13 @@ class AssetServer {
   HttpServer _server;
   final int port;
   bool _alive = true;
+  bool _stopped = false;
+  Future<bool>? _recovery;
+
+  /// Меняется только после actual recovery: тот же origin снова отвечает.
+  /// Уже упавшие Image должны повторить resolve, не перезапуская игру/анимацию.
+  final _assetRevision = ValueNotifier<int>(0);
+  ValueListenable<int> get assetRevision => _assetRevision;
 
   String get origin => 'http://127.0.0.1:$port';
 
@@ -119,7 +126,7 @@ class AssetServer {
     try {
       final req = await client.getUrl(Uri.parse('$origin$_probe')).timeout(const Duration(seconds: 2));
       final res = await req.close().timeout(const Duration(seconds: 2));
-      await res.drain<void>();
+      await res.drain<void>().timeout(const Duration(seconds: 2));
       return true;
     } catch (_) {
       return false;
@@ -148,18 +155,36 @@ class AssetServer {
 
   /// Сервер жив — `true` сразу. Мёртв — встать заново на том же порту (до 5 попыток).
   /// Возвращает, отвечает ли сервер после проверки.
-  Future<bool> ensureAlive() async {
-    if (_alive && await _answers()) return true;
+  Future<bool> ensureAlive() {
+    if (_stopped) return Future<bool>.value(false);
+    // Несколько resume/ensureAlive делят одну проверку/rebind и один сигнал.
+    return _recovery ??= _ensureAlive().whenComplete(() => _recovery = null);
+  }
+
+  Future<bool> _ensureAlive() async {
+    if (_alive && await _answers()) return !_stopped;
+    if (_stopped) return false;
     try {
       await _server.close(force: true);
     } catch (_) {}
     for (var i = 0; i < 5; i++) {
+      if (_stopped) return false;
       try {
-        _server = await HttpServer.bind(InternetAddress.loopbackIPv4, port);
+        final rebound = await HttpServer.bind(InternetAddress.loopbackIPv4, port);
+        if (_stopped) {
+          await rebound.close(force: true);
+          return false;
+        }
+        _server = rebound;
         _alive = true;
         unawaited(_serve());
-        if (kDebugMode) debugPrint('[asset-server] socket re-bound on port $port');
-        return true;
+        if (await _answers() && !_stopped) {
+          _assetRevision.value++;
+          if (kDebugMode) debugPrint('[asset-server] socket re-bound on port $port; assets revision ${_assetRevision.value}');
+          return true;
+        }
+        await rebound.close(force: true);
+        _alive = false;
       } on SocketException {
         await Future<void>.delayed(const Duration(milliseconds: 200));
       }
@@ -171,6 +196,7 @@ class AssetServer {
 
   /// Проверять себя при каждом возврате приложения из фона (см. шапку класса).
   void reviveOnResume() {
+    if (_stopped) return;
     _lifecycle ??= AppLifecycleListener(onResume: () => unawaited(ensureAlive()));
   }
 
@@ -316,9 +342,13 @@ class AssetServer {
     }
   }
 
-  Future<void> stop() {
+  Future<void> stop() async {
+    if (_stopped) return;
+    _stopped = true;
     _lifecycle?.dispose();
     _lifecycle = null;
-    return _server.close(force: true);
+    await _server.close(force: true);
+    await _recovery;
+    _assetRevision.dispose();
   }
 }

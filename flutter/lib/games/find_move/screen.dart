@@ -96,9 +96,12 @@ class _FindMoveScreenState extends State<FindMoveScreen> {
     return _raw() - _pausedTotal - (since == null ? 0 : _raw() - since);
   }
 
+  late final SessionLaunch _sessionLaunch;
+
   @override
   void initState() {
     super.initState();
+    _sessionLaunch = SessionLaunch.capture();
     _boot();
   }
 
@@ -217,6 +220,7 @@ class _FindMoveScreenState extends State<FindMoveScreen> {
       );
     } else {
       await SessionReport.send(
+        launch: _sessionLaunch,
         gameType: 'find_move',
         score: args.score,
         timeSeconds: args.timeSeconds,

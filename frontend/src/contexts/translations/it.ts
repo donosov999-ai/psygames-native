@@ -1,6 +1,9 @@
 // AUTO-GENERATED translation overlay (it). Источник: транскреация с EN-базы (856 ключей).
 // Не править руками — регенерировать.
 const t: Record<string, string> = {
+  // Scoped manually authored translations; not workflow-generated output.
+  nativeScreenModelFailed: "Impossibile caricare i dati della schermata",
+  nativeScreenModelRetryHint: "Riprova a caricare i dati oppure torna alla schermata iniziale.",
   puzzleRoundLost: "Tentativo non superato. Ricomincia o annulla una mossa per rivederla.",
   puzzleFloodLimit: "Limite di mosse raggiunto: {moves} / {limit}. Riprova.",
   puzzleLossReview: "Revisione dopo una sconfitta — nessun nuovo punteggio. Ricomincia per progredire.",

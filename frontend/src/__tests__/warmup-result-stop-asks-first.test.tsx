@@ -84,11 +84,11 @@ describe('карточка итога в зарядке: «Стоп» перес
     act(() => { tr.unmount(); });
   });
 
-  it('🔴 «Остановить» в вопросе — стоп и домой, держание отпущено', () => {
+  it('🔴 «Остановить» в вопросе — стоп и домой, держание отпущено', async () => {
     onGoHome.mockClear();
     const tr = карточка();
     нажать(tr, 'result-warmup-stop');
-    нажать(tr, 'result-warmup-stop-confirm');
+    await act(async () => { нажать(tr, 'result-warmup-stop-confirm'); });
     expect(`стоп: ${JSON.stringify(mockStop.mock.calls)}, домой: ${onGoHome.mock.calls.length}, держим: ${mockHolds.взято - mockHolds.отпущено}`)
       .toBe('стоп: [[false]], домой: 1, держим: 0');
     act(() => { tr.unmount(); });

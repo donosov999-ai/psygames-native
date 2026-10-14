@@ -2,6 +2,9 @@
 // 493 ключей, переведены с английской базы. Не править руками — регенерировать воркфлоу.
 // Вычитка: Claude 12.06.2026 (skillAttention/skillFocus swap, 序列记忆, 主访问码). При регенерации воркфлоу — НЕ затирать, мерджить через git diff.
 const t: Record<string, string> = {
+  // Scoped manually authored translations; not workflow-generated output.
+  nativeScreenModelFailed: "无法加载界面数据",
+  nativeScreenModelRetryHint: "请重试加载，或返回首页。",
   puzzleRoundLost: "本次尝试未通过。请重新开始，或撤销一步进行复盘。",
   puzzleFloodLimit: "已达到步数限制：{moves} / {limit} 步。请重试。",
   puzzleLossReview: "失败后的复盘不再计入成绩。请开始新的尝试以继续进阶。",

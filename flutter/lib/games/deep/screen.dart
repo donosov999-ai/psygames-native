@@ -120,9 +120,12 @@ class _DeepScreenState extends State<DeepScreen> {
   String get _resumeKey =>
       '${SharedState.prefix}resume_${gameId}_${widget.state.activeProfile}';
 
+  late final SessionLaunch _sessionLaunch;
+
   @override
   void initState() {
     super.initState();
+    _sessionLaunch = SessionLaunch.capture();
     _boot();
   }
 
@@ -451,6 +454,7 @@ class _DeepScreenState extends State<DeepScreen> {
     _reported = true;
     final solved = _grids.keys.where((p) => p != '' && deepNodeDone(_nodeAt, _grids, p)).length;
     unawaited(SessionReport.send(
+      launch: _sessionLaunch,
       gameType: gameId,
       score: max(0, solved * 120 - _errors * 20) + 2000,   // формула веба
       timeSeconds: (gameNow() - _startedAt) ~/ 1000,

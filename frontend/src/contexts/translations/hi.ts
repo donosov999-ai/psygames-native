@@ -5,6 +5,9 @@
 //   Аббревиатуры тестов (Stroop/SDMT/WCST/N-back/BART/SET/Cloze...) оставлены латиницей — международные термины.
 //   ⚠️ Стилистику деванагари подтвердить носителем. При регенерации воркфлоу — НЕ затирать, мерджить через git diff.
 const t: Record<string, string> = {
+  // Scoped manually authored translations; not workflow-generated output.
+  nativeScreenModelFailed: "स्क्रीन का डेटा लोड नहीं हो सका",
+  nativeScreenModelRetryHint: "फिर से लोड करने की कोशिश करें या होम स्क्रीन पर लौटें।",
   puzzleRoundLost: "यह प्रयास सफल नहीं हुआ। फिर शुरू करें या समीक्षा के लिए एक चाल वापस लें।",
   puzzleFloodLimit: "चालों की सीमा पूरी हुई: {moves} / {limit}। फिर प्रयास करें।",
   puzzleLossReview: "हार के बाद समीक्षा में नया परिणाम नहीं जुड़ता। आगे बढ़ने के लिए नया प्रयास शुरू करें।",

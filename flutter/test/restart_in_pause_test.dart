@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/shell/game_shell.dart';
+import 'package:psygames_flutter/shell/game_preset.dart';
 import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/restart_scope.dart';
 
@@ -13,8 +14,9 @@ int _starts = 0;
 int _fails = 0;
 
 class _Game extends StatefulWidget {
-  const _Game({this.ownRestart = false});
+  const _Game({this.ownRestart = false, this.replay = false});
   final bool ownRestart;
+  final bool replay;
   @override
   State<_Game> createState() => _GameState();
 }
@@ -40,7 +42,8 @@ class _GameState extends State<_Game> {
         ),
         pauseActions: [
           if (widget.ownRestart)
-            PauseAction(label: L.t('restart'), icon: Icons.refresh, onPressed: () => _fails++),
+            PauseAction(label: widget.replay ? 'Restart' : L.t('restart'),
+                icon: widget.replay ? Icons.replay : Icons.refresh, onPressed: () => _fails++),
         ],
       );
 }
@@ -50,7 +53,9 @@ void main() {
   setUp(() {
     _starts = 0;
     _fails = 0;
+    GamePreset.clear();
   });
+  tearDown(GamePreset.clear);
 
   Future<void> openPause(WidgetTester tester) async {
     await tester.tap(find.byTooltip(L.t('teachPause')));
@@ -80,6 +85,42 @@ void main() {
     await tester.pumpWidget(MaterialApp(home: RestartScope(builder: (_) => const _Game(ownRestart: true))));
     await openPause(tester);
     expect(find.text(L.t('restart')), findsOneWidget, reason: 'два пункта «Заново» в одном меню');
+    await tester.tap(find.text(L.t('restart')));
+    await tester.pumpAndSettle();
+    expect(_fails, 1, reason: 'ordinary custom restart remains unchanged');
+  });
+
+  testWidgets('owned warmup replaces custom restart with provider-scoped remount', (tester) async {
+    GamePreset.set({'wu': '1', 'wuRun': 'run', 'wuStep': '0', 'wuAttempt': 'attempt'});
+    var retries = 0;
+    await tester.pumpWidget(MaterialApp(home: RestartScope(
+      beforeRestart: () async { retries++; return true; },
+      builder: (_) => const _Game(ownRestart: true),
+    )));
+    await openPause(tester);
+    expect(find.text(L.t('restart')), findsOneWidget);
+    await tester.tap(find.text(L.t('restart')));
+    await tester.pumpAndSettle();
+    expect(retries, 1);
+    expect(_starts, 2);
+    expect(_fails, 0, reason: 'old local restart must not bypass attempt revocation');
+  });
+
+  testWidgets('localized warmup also intercepts the eye-gym replay icon', (tester) async {
+    await L.load('de');
+    addTearDown(() => L.load('ru'));
+    GamePreset.set({'wu': '1', 'wuRun': 'run', 'wuStep': '0', 'wuAttempt': 'attempt'});
+    var retries = 0;
+    await tester.pumpWidget(MaterialApp(home: RestartScope(
+      beforeRestart: () async { retries++; return true; },
+      builder: (_) => const _Game(ownRestart: true, replay: true),
+    )));
+    await openPause(tester);
+    expect(find.text('Restart'), findsNothing, reason: 'custom replay must not bypass provider in another locale');
+    await tester.tap(find.text(L.t('restart')));
+    await tester.pumpAndSettle();
+    expect(retries, 1);
+    expect(_fails, 0);
   });
 
   testWidgets('экран не из оболочки (настольная проба) — каркас пункт не выдумывает', (tester) async {

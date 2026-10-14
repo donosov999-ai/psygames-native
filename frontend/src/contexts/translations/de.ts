@@ -2,6 +2,9 @@
 // 493 ключей, переведены с английской базы. Не править руками — регенерировать воркфлоу.
 // zh/hi — машинное качество, нужна вычитка нативом до сторов.
 const t: Record<string, string> = {
+  // Scoped manually authored translations; not workflow-generated output.
+  nativeScreenModelFailed: "Bildschirmdaten konnten nicht geladen werden",
+  nativeScreenModelRetryHint: "Versuche erneut, die Daten zu laden, oder kehre zur Startseite zurück.",
   puzzleRoundLost: "Versuch nicht bestanden. Neu starten oder einen Zug zur Analyse zurücknehmen.",
   puzzleFloodLimit: "Zuglimit erreicht: {moves} / {limit} Züge. Noch einmal versuchen.",
   puzzleLossReview: "Analyse nach einer Niederlage — keine neue Wertung. Für Fortschritt neu starten.",

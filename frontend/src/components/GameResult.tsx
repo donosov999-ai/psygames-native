@@ -301,7 +301,13 @@ export default function GameResult({
             accessibilityRole="button"
             testID="result-warmup-stop-confirm"
             style={[styles.button, { backgroundColor: colors.surface, borderWidth: 1, borderColor: '#f43f5e' }]}
-            onPress={() => { отпуститьПереход(); warmup.stopWarmup(false); onGoHome(); }}
+            onPress={() => {
+              отпуститьПереход();
+              const runId = warmup.warmupId;
+              void Promise.resolve(warmup.stopWarmup(false)).then(allowed => {
+                if (allowed !== false && (!warmup.canNavigateAfterStop || warmup.canNavigateAfterStop(runId))) onGoHome();
+              });
+            }}
           >
             <Ionicons name="stop" size={20} color="#f43f5e" />
             <Text style={[styles.buttonText, { color: '#f43f5e' }]} numberOfLines={1}>{t('stopComplex')}</Text>

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback, useEffect, useLayoutEffect, useRef } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
 import { BackHandler, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import {
@@ -6,16 +6,17 @@ import {
   buildMorningWarmupPlaylist, buildFinancialBatteryPlaylist, buildAssessmentPlaylist,
   buildFixedPlaylist, buildEveningWarmupPlaylist, buildDayPlaylist, buildNightPlaylist, stepToParams,
   getCurrentWeekday, todayDateKey,
-  saveWarmupHistory, WarmupHistoryEntry, Weekday, Длительность,
-  shouldAdvance, партияЗаШаг,
+  saveWarmupHistory, WarmupHistoryEntry, Длительность,
+  партияЗаШаг,
 } from '@/src/services/warmup';
-import { setSessionListener, GameSession } from '@/src/services/api';
+import { setSessionListener, setSessionAcceptance, setSessionSaveFailed, GameSession } from '@/src/services/api';
 import { localSpatialHost, spatialWarmupPlaylist } from '@/src/games/spatial-core/warmup';
 import { isGameAllowed } from '@/src/constants/profiles';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { fbCorrect, fbComplete } from '@/src/services/feedback';
-import { hostInfo, hostLeadsBetween, hostLeadsFinish, hostRendersNatively, lastStepMessage, postToHost, stepDoneMessage } from '@/src/services/hostWarmup';
+import { hostInfo, hostLeadsBetween, hostLeadsFinish, hostRendersNatively, lastStepMessage, postToHost, stepDoneMessage, type WarmupHostInfo } from '@/src/services/hostWarmup';
 import { isHostSession } from '@/src/services/nativeSessionBridge';
+import { ownerParams, parseWarmupOwner, sameWarmupOwner, type WarmupOwner } from '@/src/services/warmupOwner';
 
 export interface StepResult {
   /** Локальный прогон приёмки: без сессий, наград и истории. */
@@ -69,6 +70,8 @@ interface WarmupState {
   results: StepResult[];
   warmupId: string | null;       // UUID for the entire series — shared across all games for analytics grouping
   sessionTag: string | null;     // 'warmup' | 'peak' | 'baseline' | etc. — derived from track
+  attemptOwner: WarmupOwner | null;
+  profileId?: string;
 }
 
 interface WarmupCtx extends WarmupState {
@@ -86,10 +89,12 @@ interface WarmupCtx extends WarmupState {
    * своих же упражнений — например шахматной (отчёт Дениса 05.09.2026).
    */
   startPlaylist: (meta: PlaylistMeta) => void;
-  recordResult: (r: StepResult) => Promise<void>;
+  recordResult: (r: StepResult, owner?: WarmupOwner | null) => Promise<boolean>;
   advanceToNext: (fromIdx?: number) => void;   // переход к следующей игре или на /warmup-complete
   skipCurrent: () => void;
-  stopWarmup: (completed?: boolean) => Promise<void>;
+  stopWarmup: (completed?: boolean) => Promise<boolean>;
+  owner: () => WarmupOwner | null;
+  canNavigateAfterStop: (runId: string | null) => boolean;
   /**
    * 🔴 ПРИДЕРЖАТЬ АВТОПЕРЕХОД, ПОКА ЧЕЛОВЕК ОТВЕЧАЕТ НА ВОПРОС. Возвращает «отпустить».
    *
@@ -124,13 +129,60 @@ interface WarmupCtx extends WarmupState {
 
 const Ctx = createContext<WarmupCtx | null>(null);
 
+const emptyState: WarmupState = {
+  active: false, meta: null, currentIdx: 0, startTime: 0, results: [],
+  warmupId: null, sessionTag: null, attemptOwner: null,
+};
+const genUUID = (): string => {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') return crypto.randomUUID();
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+    const r = (Math.random() * 16) | 0;
+    return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16);
+  });
+};
+const freshOwner = (run_id: string, step_idx: number): WarmupOwner =>
+  Object.freeze({ run_id, step_idx, attempt_id: genUUID() });
+
 export function WarmupProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const { profile } = useProfile();
-  const [state, setState] = useState<WarmupState>({
-    active: false, meta: null, currentIdx: 0, startTime: 0, results: [],
-    warmupId: null, sessionTag: null,
-  });
+  const [state, setState] = useState<WarmupState>(emptyState);
+  // Authoritative synchronous controller; React state is its rendered mirror.
+  // Do not overwrite this ref from a delayed render/layout effect.
+  const stateRef = useRef(state);
+  const lifecycleRef = useRef(0);
+  const stoppedRunRef = useRef<{ runId: string; generation: number } | null>(null);
+  const terminalClaimsRef = useRef(new Set<string>());
+  const acceptedSessionsRef = useRef(new Map<string, WarmupOwner>());
+  const recordedSessionsRef = useRef(new Set<string>());
+  const advanceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const navigationTimersRef = useRef(new Set<ReturnType<typeof setTimeout>>());
+  const autoAdvanceHoldsRef = useRef(0);
+  const install = useCallback((next: WarmupState) => { stateRef.current = next; setState(next); }, []);
+  const cancelPending = useCallback(() => {
+    if (advanceTimerRef.current !== null) clearTimeout(advanceTimerRef.current);
+    advanceTimerRef.current = null;
+    for (const timer of navigationTimersRef.current) clearTimeout(timer);
+    navigationTimersRef.current.clear();
+    autoAdvanceHoldsRef.current = 0;
+  }, []);
+  const deferNavigation = useCallback((target: Parameters<typeof router.replace>[0]) => {
+    const generation = lifecycleRef.current;
+    const timer = setTimeout(() => {
+      navigationTimersRef.current.delete(timer);
+      if (lifecycleRef.current === generation) router.replace(target);
+    }, 0);
+    navigationTimersRef.current.add(timer);
+  }, [router]);
+  const owner = useCallback(() => stateRef.current.attemptOwner, []);
+  const canNavigateAfterStop = useCallback((runId: string | null) => {
+    const stopped = stoppedRunRef.current;
+    return !!stopped && stopped.runId === runId && stopped.generation === lifecycleRef.current;
+  }, []);
+  const currentInfo = useCallback(() => {
+    const s = stateRef.current;
+    return hostInfo(s.active, s.meta, s.currentIdx, s.attemptOwner);
+  }, []);
 
   /**
    * У КАКОГО комплекса уже спросили — идентификатор, а не «да/нет».
@@ -165,20 +217,6 @@ export function WarmupProvider({ children }: { children: React.ReactNode }) {
     return () => clearInterval(id);
   }, [state.active]);
 
-  // Generate a UUID for the warmup series — shared across all games in this run.
-  // Cross-platform: crypto.randomUUID() works in modern web; falls back to manual generator.
-  const genUUID = (): string => {
-    try {
-      // @ts-ignore — crypto may be available
-      if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') return crypto.randomUUID();
-    } catch {}
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
-      const r = (Math.random() * 16) | 0;
-      const v = c === 'x' ? r : (r & 0x3) | 0x8;
-      return v.toString(16);
-    });
-  };
-
   const trackToTag = (track: PlaylistMeta['track']): string => {
     if (track === 'measure-peak') return 'peak';
     if (track === 'measure-baseline') return 'baseline';
@@ -187,6 +225,21 @@ export function WarmupProvider({ children }: { children: React.ReactNode }) {
     if (track === 'assessment') return 'assessment';
     return 'warmup';
   };
+
+  const beginPlaylist = useCallback((meta: PlaylistMeta, localSpatial = false) => {
+    cancelPending(); lifecycleRef.current += 1; terminalClaimsRef.current.clear();
+    acceptedSessionsRef.current.clear(); recordedSessionsRef.current.clear();
+    const warmupId = genUUID();
+    const attemptOwner = meta.steps.length ? freshOwner(warmupId, 0) : null;
+    install({ active: true, localSpatial, meta, currentIdx: 0, startTime: Date.now(), results: [],
+      warmupId, attemptOwner, profileId: profile.id,
+      sessionTag: localSpatial ? null : meta.slot === 'night' ? 'manual' : trackToTag(meta.track),
+    });
+    if (!meta.steps.length) router.replace('/warmup-complete' as any);
+    else router.replace({ pathname: meta.steps[0].game_route,
+      params: { ...stepToParams(meta.steps[0], meta.slot, meta.track), ...ownerParams(attemptOwner) },
+    } as any);
+  }, [cancelPending, install, router, profile.id]);
 
   /**
    * Игры текущего профиля. Зарядка обязана собираться ИЗ НИХ: главная экрана
@@ -207,19 +260,8 @@ export function WarmupProvider({ children }: { children: React.ReactNode }) {
           allow,
         });
     const meta: PlaylistMeta = { ...собран, вид: 'слот' };
-    const warmupId = genUUID();
-    const sessionTag = trackToTag(meta.track);
-    setState({
-      active: true, meta, currentIdx: 0, startTime: Date.now(), results: [],
-      warmupId, sessionTag,
-    });
-    if (meta.steps.length === 0) {
-      // rest day — open completion immediately
-      router.replace('/warmup-complete' as any);
-    } else {
-      router.replace({ pathname: meta.steps[0].game_route, params: stepToParams(meta.steps[0], meta.slot, meta.track) } as any);
-    }
-  }, [router, profile, allow]);
+    beginPlaylist(meta);
+  }, [beginPlaylist, profile, allow]);
 
   // v1.23 «Комплексы» — вечерний комплекс (перед сном): спокойные игры из profile.evening_playlist.
   const startEvening = useCallback((duration: Длительность = 5) => {
@@ -232,17 +274,8 @@ export function WarmupProvider({ children }: { children: React.ReactNode }) {
       ...buildEveningWarmupPlaylist({ weekday: wd, excludeGameIds: morning.steps.map((s) => s.game_id), profileEvening: profile.evening_playlist, allow, duration }),
       вид: 'слот',
     };
-    const warmupId = genUUID();
-    setState({
-      active: true, meta, currentIdx: 0, startTime: Date.now(), results: [],
-      warmupId, sessionTag: 'warmup',
-    });
-    if (meta.steps.length === 0) {
-      router.replace('/warmup-complete' as any);
-    } else {
-      router.replace({ pathname: meta.steps[0].game_route, params: stepToParams(meta.steps[0], meta.slot, meta.track) } as any);
-    }
-  }, [router, profile, allow]);
+    beginPlaylist(meta);
+  }, [beginPlaylist, profile, allow]);
 
   /**
    * Дневной перерыв и «Не спится». Оба набора фиксированные, от профиля и дня
@@ -256,14 +289,8 @@ export function WarmupProvider({ children }: { children: React.ReactNode }) {
    * стать 'warmup' оттого, что пришёл другой дверью.
    */
   const startSlotPlaylist = useCallback((meta: PlaylistMeta) => {
-    const warmupId = genUUID();
-    setState({
-      active: true, meta, currentIdx: 0, startTime: Date.now(), results: [],
-      warmupId, sessionTag: meta.slot === 'night' ? 'manual' : trackToTag(meta.track),
-    });
-    if (meta.steps.length === 0) router.replace('/warmup-complete' as any);
-    else router.replace({ pathname: meta.steps[0].game_route, params: stepToParams(meta.steps[0], meta.slot, meta.track) } as any);
-  }, [router]);
+    beginPlaylist(meta);
+  }, [beginPlaylist]);
 
   /**
    * 🔴 ДЛИНА ЕСТЬ У ВСЕХ ЧЕТЫРЁХ СЛОТОВ, А НЕ ТОЛЬКО У УТРА.
@@ -298,46 +325,38 @@ export function WarmupProvider({ children }: { children: React.ReactNode }) {
   const startSpatialLab = useCallback(() => {
     if (!localSpatialHost() || stateRef.current.active) return;
     const meta = spatialWarmupPlaylist(getCurrentWeekday());
-    if (advanceTimerRef.current) { clearTimeout(advanceTimerRef.current); advanceTimerRef.current = null; }
-    lastAdvanceRef.current = 0;
-    setState({
-      active: true, localSpatial: true, meta, currentIdx: 0,
-      startTime: Date.now(), results: [], warmupId: null, sessionTag: null,
-    });
-    router.replace({ pathname: meta.steps[0].game_route, params: stepToParams(meta.steps[0], undefined, meta.track) } as any);
-  }, [router]);
+    beginPlaylist(meta, true);
+  }, [beginPlaylist]);
 
   const startFinancialBattery = useCallback(() => {
     const meta = buildFinancialBatteryPlaylist();
-    const warmupId = genUUID();
-    const sessionTag = trackToTag(meta.track);
-    setState({
-      active: true, meta, currentIdx: 0, startTime: Date.now(), results: [],
-      warmupId, sessionTag,
-    });
-    router.replace(meta.steps[0].game_route as any);
-  }, [router]);
+    beginPlaylist(meta);
+  }, [beginPlaylist]);
 
   const startAssessment = useCallback(() => {
     const meta = buildAssessmentPlaylist();
-    const warmupId = genUUID();
-    const sessionTag = trackToTag(meta.track);
-    setState({
-      active: true, meta, currentIdx: 0, startTime: Date.now(), results: [],
-      warmupId, sessionTag,
-    });
-    router.replace(meta.steps[0].game_route as any);
-  }, [router]);
+    beginPlaylist(meta);
+  }, [beginPlaylist]);
 
-  const recordResult = useCallback(async (r: StepResult) => {
-    setState((s) => ({ ...s, results: [...s.results, { ...r, шаг: r.шаг ?? s.currentIdx }] }));
-  }, []);
+  const claimResult = useCallback((r: StepResult, expected: WarmupOwner | null): boolean => {
+    const s = stateRef.current;
+    if (!s.active || !s.meta || !sameWarmupOwner(s.attemptOwner, expected)) return false;
+    const step = s.meta.steps[s.currentIdx];
+    if (!step || r.game_type !== step.game_id || (r.шаг !== undefined && r.шаг !== expected!.step_idx)) return false;
+    const key = `${expected!.run_id}:${expected!.step_idx}`;
+    if (terminalClaimsRef.current.has(key)) return false;
+    // Claim BEFORE any await/append: concurrent saves cannot both acquire this step.
+    terminalClaimsRef.current.add(key);
+    install({ ...s, results: [...s.results, { ...r, шаг: expected!.step_idx }] });
+    return true;
+  }, [install]);
+  const recordResult = useCallback(async (r: StepResult, expected = state.attemptOwner) =>
+    claimResult(r, expected), [claimResult, state.attemptOwner]);
 
   // ⚠️ Побочные эффекты (звук, router.replace) НЕ внутри setState-updater — React вправе
   // исполнять updater повторно/в фазе рендера → двойной инкремент шага и двойная навигация
   // (симптом: зарядка «проскакивает» игры и обрывается раньше времени). Плюс debounce-гард:
   // два advanceToNext ближе 800мс (напр. дубль-сейв сессии) не продвигают шаг дважды.
-  const lastAdvanceRef = useRef(0);
   // Отложенный авто-переход (см. слушатель сессий ниже) планируется на 2000–3500 мс.
   // Если человек за это время сам жмёт «Далее» в результате игры — переход происходит
   // дважды: руками и по таймеру, — и шаг между ними ПРОГЛАТЫВАЕТСЯ. Дебаунс в 800 мс
@@ -345,44 +364,53 @@ export function WarmupProvider({ children }: { children: React.ReactNode }) {
   // из трёх игр схлопывалась в «одна игра и сразу дыхание» (репорты 03.08 и 05.08 —
   // «где другие игры?????»). У вечера задержка самая длинная → рвалось чаще всего.
   // Лечим двумя замками: гасим запланированный таймер и сверяем номер шага.
-  const advanceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   /** Сколько вопросов сейчас держат автопереход (см. `holdAutoAdvance` в интерфейсе). */
-  const autoAdvanceHoldsRef = useRef(0);
   const holdAutoAdvance = useCallback(() => {
     // Уже запланированный переход не снимаем здесь: сработав, он сам увидит держание
     // и ничего не сделает (проверка в таймере слушателя сессий).
     autoAdvanceHoldsRef.current += 1;
+    const generation = lifecycleRef.current;
     let отпущено = false;
     return () => {
       if (отпущено) return;
       отпущено = true;
-      autoAdvanceHoldsRef.current = Math.max(0, autoAdvanceHoldsRef.current - 1);
+      if (generation === lifecycleRef.current) autoAdvanceHoldsRef.current = Math.max(0, autoAdvanceHoldsRef.current - 1);
     };
   }, []);
-  const advanceToNext = useCallback((fromIdx?: number) => {
+  const moveTo = useCallback((idx: number, expected: WarmupOwner | null, direct: boolean): WarmupHostInfo | null => {
     const s = stateRef.current;
-    if (!s.meta) return;
-    const now = Date.now();
-    if (!shouldAdvance({ fromIdx, currentIdx: s.currentIdx, now, lastAdvanceAt: lastAdvanceRef.current })) return;
-    // Гасим только когда переход реально состоялся: отменить таймер и при этом
-    // никуда не уйти — значит подвесить зарядку на текущем шаге навсегда.
-    if (advanceTimerRef.current) { clearTimeout(advanceTimerRef.current); advanceTimerRef.current = null; }
-    lastAdvanceRef.current = now;
-    const next = s.currentIdx + 1;
-    setState((st) => ({ ...st, currentIdx: st.currentIdx + 1 }));
-    if (next >= s.meta.steps.length) {
+    if (!s.active || !s.meta || !sameWarmupOwner(s.attemptOwner, expected)
+      || !Number.isSafeInteger(idx) || idx <= s.currentIdx || idx > s.meta.steps.length
+      || idx > s.currentIdx + 2) return null;
+    cancelPending(); lifecycleRef.current += 1;
+    const attemptOwner = idx < s.meta.steps.length ? freshOwner(s.warmupId!, idx) : null;
+    install({ ...s, currentIdx: idx, attemptOwner });
+    if (idx >= s.meta.steps.length) {
       // all done — chime + go to appropriate complete screen based on track
       fbComplete();
       const completePath = s.localSpatial ? '/spatial-warmup' : s.meta.track === 'assessment'
         ? '/assessment-result'
         : '/warmup-complete';
-      setTimeout(() => router.replace(completePath as any), 0);
+      deferNavigation(completePath as any);
+    } else if (direct) {
+      const step = s.meta.steps[idx];
+      deferNavigation({ pathname: step.game_route,
+        params: { ...stepToParams(step, s.meta.slot, s.meta.track), ...ownerParams(attemptOwner) },
+      } as any);
     } else {
       // bridge first → next game (subtle tick)
       fbCorrect();
-      setTimeout(() => router.replace('/warmup-bridge' as any), 0);
+      deferNavigation('/warmup-bridge' as any);
     }
-  }, [router]);
+    return currentInfo();
+  }, [cancelPending, install, deferNavigation, currentInfo]);
+  const advanceOwned = useCallback((fromIdx: number | undefined, expected: WarmupOwner | null) => {
+    if (!expected || (fromIdx !== undefined && fromIdx !== expected.step_idx)) return false;
+    return moveTo(expected.step_idx + 1, expected, false) !== null;
+  }, [moveTo]);
+  const advanceToNext = useCallback((fromIdx?: number) => {
+    advanceOwned(fromIdx, state.attemptOwner);
+  }, [advanceOwned, state.attemptOwner]);
 
   const skipCurrent = useCallback(() => {
     advanceToNext();
@@ -394,27 +422,28 @@ export function WarmupProvider({ children }: { children: React.ReactNode }) {
    * переход «на тот же экран», и она его пропускает (`routeAction` → keep).
    * См. `services/hostWarmup.ts`.
    */
-  const goToStep = useCallback((idx: number) => {
+  const goToStep = useCallback((idx: number, expected: WarmupOwner | null) => moveTo(idx, expected, true), [moveTo]);
+  const retryStep = useCallback((expected: WarmupOwner | null): WarmupHostInfo | null => {
     const s = stateRef.current;
-    if (!s.meta || !s.active) return;
-    if (advanceTimerRef.current) { clearTimeout(advanceTimerRef.current); advanceTimerRef.current = null; }
-    lastAdvanceRef.current = Date.now();
-    setState((st) => ({ ...st, currentIdx: idx }));
-    if (idx >= s.meta.steps.length) {
-      fbComplete();
-      const completePath = s.meta.track === 'assessment' ? '/assessment-result' : '/warmup-complete';
-      setTimeout(() => router.replace(completePath as any), 0);
-      return;
-    }
-    const step = s.meta.steps[idx];
-    const params = stepToParams(step, s.meta.slot, s.meta.track);
-    setTimeout(() => router.replace({ pathname: step.game_route, params } as any), 0);
-  }, [router]);
+    if (!s.active || !s.meta || !sameWarmupOwner(s.attemptOwner, expected)
+      || terminalClaimsRef.current.has(`${expected!.run_id}:${expected!.step_idx}`)) return null;
+    cancelPending(); lifecycleRef.current += 1;
+    install({ ...s, attemptOwner: freshOwner(expected!.run_id, expected!.step_idx) });
+    // Native remounts the SAME page using info.url. No router/route event here.
+    return currentInfo();
+  }, [cancelPending, install, currentInfo]);
 
-  const stopWarmup = useCallback(async (completed = false) => {
-    if (advanceTimerRef.current) { clearTimeout(advanceTimerRef.current); advanceTimerRef.current = null; }
-    if (state.meta && !state.localSpatial) {
-      const totalScore = state.results.reduce((a, b) => a + (b.score || 0), 0);
+  const stopOwned = useCallback(async (completed: boolean, expectedRun: string | null, expected?: WarmupOwner | null): Promise<boolean> => {
+    const s = stateRef.current;
+    if (!expectedRun || s.warmupId !== expectedRun || (expected && !sameWarmupOwner(s.attemptOwner, expected))) return false;
+    cancelPending(); lifecycleRef.current += 1;
+    const generation = lifecycleRef.current;
+    stoppedRunRef.current = { runId: expectedRun, generation };
+    // Revoke synchronously, before history IO. Late results cannot join another run.
+    install(emptyState);
+    acceptedSessionsRef.current.clear(); recordedSessionsRef.current.clear();
+    if (s.meta && !s.localSpatial) {
+      const totalScore = s.results.reduce((a, b) => a + (b.score || 0), 0);
       /**
        * З3: очки ядра — только когда ядро сыграно ЦЕЛИКОМ и по порядку.
        * Ядро всегда впереди набора; сверяем первые k результатов с первыми k
@@ -423,32 +452,32 @@ export function WarmupProvider({ children }: { children: React.ReactNode }) {
        * ⚠️ По одним именам без is_fixed_baseline нельзя: flanker живёт и в ядре,
        * и в ПТ-тренировке — тренировочный счёт попал бы в ряд замера.
        */
-      const coreSteps = state.meta.steps.filter((st) => st.is_fixed_baseline);
+      const coreSteps = s.meta.steps.filter((st) => st.is_fixed_baseline);
       const k = coreSteps.length;
-      const coreOrdered = k > 0 && state.meta.steps.slice(0, k).every((st) => st.is_fixed_baseline);
-      const corePlayed = coreOrdered && state.results.length >= k
-        && state.results.slice(0, k).every((r, i) => r.game_type === state.meta!.steps[i].game_id);
+      const coreOrdered = k > 0 && s.meta.steps.slice(0, k).every((st) => st.is_fixed_baseline);
+      const coreResults = s.meta.steps.slice(0, k).map((step, i) => s.results.find(r => r.шаг === i && r.game_type === step.game_id));
+      const corePlayed = coreOrdered && coreResults.every(r => r !== undefined);
       const coreScore = corePlayed
-        ? state.results.slice(0, k).reduce((a, b) => a + (b.score || 0), 0)
+        ? coreResults.reduce((a, b) => a + (b?.score || 0), 0)
         : undefined;
       const entry: WarmupHistoryEntry = {
         date: todayDateKey(),
-        weekday: state.meta.weekday,
-        duration_min: state.meta.duration_min,
-        track: state.meta.track,
+        weekday: s.meta.weekday,
+        duration_min: s.meta.duration_min,
+        track: s.meta.track,
         total_score: totalScore,
         completed,
-        steps_done: state.results.length,
-        steps_total: state.meta.steps.length,
+        steps_done: s.results.length,
+        steps_total: s.meta.steps.length,
         ...(coreScore !== undefined ? { core_score: coreScore } : {}),
       };
-      await saveWarmupHistory(entry);
+      try { await saveWarmupHistory(entry); }
+      catch (err) { console.warn('Warmup history save failed:', err); }
     }
-    setState({
-      active: false, meta: null, currentIdx: 0, startTime: 0, results: [],
-      warmupId: null, sessionTag: null,
-    });
-  }, [state]);
+    return lifecycleRef.current === generation;
+  }, [cancelPending, install]);
+  const stopWarmup = useCallback((completed = false) =>
+    stopOwned(completed, state.warmupId), [stopOwned, state.warmupId]);
 
   const currentStep = state.meta && state.currentIdx < state.meta.steps.length
     ? state.meta.steps[state.currentIdx]
@@ -457,26 +486,49 @@ export function WarmupProvider({ children }: { children: React.ReactNode }) {
   // Subscribe to ALL session saves — when warmup is active and the saved
   // session matches the current expected game, record + advance automatically.
   // This avoids per-game patching across 39 game files.
-  /**
-   * ⚠️ ОБНОВЛЯЕМ ПОСЛЕ КОММИТА, А НЕ В РЕНДЕРЕ (правка из пространственного пакета).
-   * Присваивание `stateRef.current = state` прямо в теле компонента — запись во
-   * время рендера: линтер `react-hooks/refs` ловит это как ошибку, а при
-   * конкурентном рендере значение уезжает раньше, чем React решит, каким кадром
-   * всё закончится.
-   */
-  const stateRef = useRef(state);
-  useLayoutEffect(() => { stateRef.current = state; }, [state]);
-  /** Шаг, о котором оболочке уже сказали «готов» (`начало зарядки:номер шага`). */
-  const stepDonePostedRef = useRef<string | null>(null);
   // Глобал для saveSession: во время зарядки серия-бонус (cleanRun) не начисляется —
   // у зарядки свой comboBonus ×1.5 в warmup-complete, не задваиваем награду.
   useEffect(() => { (globalThis as any).__psygames_warmup_active = state.active; }, [state.active]);
   useEffect(() => {
+    const rollback = (s: GameSession) => {
+      if (!s.id || recordedSessionsRef.current.has(s.id)) return;
+      const expected = acceptedSessionsRef.current.get(s.id);
+      if (!expected || !sameWarmupOwner(expected, parseWarmupOwner(s.details?.warmup_owner))) return;
+      acceptedSessionsRef.current.delete(s.id);
+      if (sameWarmupOwner(expected, stateRef.current.attemptOwner)) terminalClaimsRef.current.delete(`${expected.run_id}:${expected.step_idx}`);
+    };
+    const accept = (s: GameSession): boolean => {
+      const cur = stateRef.current;
+      const step = cur.meta?.steps[cur.currentIdx];
+      const expected = parseWarmupOwner(s.details?.warmup_owner);
+      if (s.details?.warmup_owner === undefined) {
+        // Ordinary ownerless WEB saves remain ordinary. Missing native launch
+        // owner on the active native warmup step must not receive credit.
+        return !(cur.active && step && партияЗаШаг(step.game_id, s) && isHostSession(s) && hostRendersNatively(step.game_route));
+      }
+      if (!expected || !s.id || !cur.active || !step || cur.localSpatial
+        || !sameWarmupOwner(cur.attemptOwner, expected) || !партияЗаШаг(step.game_id, s)
+        || (hostRendersNatively(step.game_route) && !isHostSession(s))) return false;
+      const key = `${expected.run_id}:${expected.step_idx}`;
+      if (terminalClaimsRef.current.has(key)) return false;
+      terminalClaimsRef.current.add(key);
+      acceptedSessionsRef.current.set(s.id, expected);
+      // Capture all run/profile metadata before storage/rewards can yield.
+      s.session_tag = cur.sessionTag || 'warmup';
+      s.warmup_id = expected.run_id;
+      s.weekday = cur.meta!.weekday;
+      s.duration_preset = cur.meta!.duration_min;
+      s.profile_id = cur.profileId ?? s.profile_id;
+      return true;
+    };
     const listener = async (s: GameSession) => {
       const cur = stateRef.current;
       if (!cur.active || !cur.meta || cur.localSpatial) return;
       const step = cur.meta.steps[cur.currentIdx];
       if (!step) return;
+      const expected = parseWarmupOwner(s.details?.warmup_owner);
+      if (!expected || !sameWarmupOwner(cur.attemptOwner, expected) || !s.id
+        || !sameWarmupOwner(acceptedSessionsRef.current.get(s.id), expected) || recordedSessionsRef.current.has(s.id)) return;
       // Не та игра. Сверка по корзине экрана, а не по имени в каталоге — см. `партияЗаШаг`.
       if (!партияЗаШаг(step.game_id, s)) return;
       /**
@@ -489,17 +541,8 @@ export function WarmupProvider({ children }: { children: React.ReactNode }) {
        */
       if (hostRendersNatively(step.game_route) && !isHostSession(s)) return;
 
-      // ENRICH the just-saved session with warmup metadata for Supabase sync.
-      // Mutate in place — saveSession returned this object reference, and the
-      // listener fires AFTER writeAll(), so storage already has the bare version.
-      // We re-tag and rewrite for cloud sync compatibility.
-      s.session_tag = cur.sessionTag || 'warmup';
-      s.warmup_id = cur.warmupId || undefined;
-      s.weekday = cur.meta.weekday;
-      s.duration_preset = cur.meta.duration_min;
-
-      // record into warmup result list
-      await recordResult(stepResultOf(step.game_id, s));
+      recordedSessionsRef.current.add(s.id);
+      install({ ...cur, results: [...cur.results, { ...stepResultOf(step.game_id, s), шаг: expected.step_idx }] });
 
       // Ачивки чекаются в saveSession (runAchievementsCheck) — единая точка для
       // ЛЮБОГО завершённого раунда, с настоящим warmup-стриком (раньше тут был 0).
@@ -520,10 +563,8 @@ export function WarmupProvider({ children }: { children: React.ReactNode }) {
       const timeUp = Date.now() - cur.startTime > cur.meta.duration_min * 60_000;
       if (!timeUp && hostLeadsBetween(step, cur.meta.steps[idxAtSave + 1])) {
         // Второй замок: один шаг — одно «готов». Повтор того же шага — не переход.
-        const key = `${cur.startTime}:${idxAtSave}`;
-        if (stepDonePostedRef.current === key) return;
-        const msg = stepDoneMessage(cur.meta, idxAtSave, { score: s.score, time_seconds: s.time_seconds, errors: s.errors });
-        if (msg && postToHost(msg)) { stepDonePostedRef.current = key; return; }
+        const msg = stepDoneMessage(cur.meta, idxAtSave, { score: s.score, time_seconds: s.time_seconds, errors: s.errors }, expected);
+        if (msg && postToHost(msg)) return;
       }
       /**
        * 🔴 ПОСЛЕДНИЙ ШАГ НАТИВНЫЙ — КОНЕЦ ВЕДЁТ ОБОЛОЧКА (08.10.2026, iPhone, «окно висит после 6/6»).
@@ -531,19 +572,19 @@ export function WarmupProvider({ children }: { children: React.ReactNode }) {
        * Оболочка подождёт сама, снимет игру и позовёт `advance` (`services/hostWarmup.ts`).
        */
       if (hostLeadsFinish(step, cur.meta.steps[idxAtSave + 1])) {
-        const key = `${cur.startTime}:${idxAtSave}`;
-        if (stepDonePostedRef.current === key) return;
-        if (postToHost(lastStepMessage(cur.meta, idxAtSave))) { stepDonePostedRef.current = key; return; }
+        if (postToHost(lastStepMessage(cur.meta, idxAtSave, expected))) return;
       }
       advanceTimerRef.current = setTimeout(() => {
         advanceTimerRef.current = null;
         if (autoAdvanceHoldsRef.current > 0) return;
-        advanceToNext(idxAtSave);
+        advanceOwned(idxAtSave, expected);
       }, cur.meta.slot === 'evening' ? 3500 : 2000);
     };
+    setSessionAcceptance?.(accept);
+    setSessionSaveFailed?.(rollback);
     setSessionListener(listener);
-    return () => setSessionListener(null);
-  }, [recordResult, advanceToNext]);
+    return () => { setSessionAcceptance?.(null); setSessionSaveFailed?.(null); setSessionListener(null); };
+  }, [install, advanceOwned]);
 
   /**
    * Входы для оболочки гибрида (`flutter/lib/shell/warmup_step_bridge.dart`).
@@ -555,17 +596,27 @@ export function WarmupProvider({ children }: { children: React.ReactNode }) {
     const w = window as unknown as Record<string, unknown>;
     const api = {
       /** Оболочка вести не взялась (экрана уже нет и т. п.) — обычный веб-переход. */
-      advance: (fromIdx: number) => advanceToNext(fromIdx),
-      goTo: (idx: number) => goToStep(idx),
-      stop: () => { void stopWarmup(false).then(() => router.replace('/' as any)); },
+      advance: (fromIdx: number, expected: unknown) => advanceOwned(fromIdx, parseWarmupOwner(expected)),
+      goTo: (idx: number, expected: unknown) => goToStep(idx, parseWarmupOwner(expected)),
+      retry: (expected: unknown) => retryStep(parseWarmupOwner(expected)),
+      stop: (value: unknown) => {
+        const expected = parseWarmupOwner(value);
+        if (!sameWarmupOwner(expected, stateRef.current.attemptOwner)) return false;
+        void stopOwned(false, expected!.run_id, expected).then(allowed => { if (allowed && canNavigateAfterStop(expected!.run_id)) router.replace('/' as any); });
+        return true;
+      },
+      owner,
       /** Полоска «N/M» нативного шага (63bccf96). */
-      info: () => { const s = stateRef.current; return hostInfo(s.active, s.meta, s.currentIdx); },
+      info: (expected?: unknown) => expected === undefined || sameWarmupOwner(parseWarmupOwner(expected), owner()) ? currentInfo() : null,
       /** ⏭ нативного шага — ровно то же, что веб-⏭ в каркасе (`GameShell.wuSkipConfirm`). */
-      skip: () => skipCurrent(),
+      skip: (expected: unknown) => advanceOwned(undefined, parseWarmupOwner(expected)),
     };
     w.__psyWarmupHost = api;
     return () => { if (w.__psyWarmupHost === api) delete w.__psyWarmupHost; };
-  }, [advanceToNext, goToStep, stopWarmup, skipCurrent, router]);
+  }, [advanceOwned, goToStep, retryStep, stopOwned, owner, currentInfo, canNavigateAfterStop, router]);
+  useEffect(() => () => {
+    cancelPending(); lifecycleRef.current += 1; stateRef.current = emptyState;
+  }, [cancelPending]);
 
   // Android: системная кнопка «Назад» (◁) во время зарядки/комплекса. Навигация warmup идёт
   // через router.replace (без бэк-стека) → ◁ ничего не делал. Перехватываем: выходим из зарядки домой.
@@ -574,15 +625,14 @@ export function WarmupProvider({ children }: { children: React.ReactNode }) {
     const onBack = () => {
       const cur = stateRef.current;
       if (cur.active && cur.meta) {
-        stopWarmup(false);
-        router.replace('/' as any);
+        void stopOwned(false, cur.warmupId).then(allowed => { if (allowed && canNavigateAfterStop(cur.warmupId)) router.replace('/' as any); });
         return true;   // обработали — приложение не закрывается
       }
       return false;    // не в зарядке → дефолтное поведение
     };
     const sub = BackHandler.addEventListener('hardwareBackPress', onBack);
     return () => sub.remove();
-  }, [stopWarmup, router]);
+  }, [stopOwned, canNavigateAfterStop, router]);
 
   const stepsLeft = state.meta ? Math.max(0, state.meta.steps.length - state.currentIdx) : 0;
   /**
@@ -596,7 +646,7 @@ export function WarmupProvider({ children }: { children: React.ReactNode }) {
   const dismissOvertime = useCallback(() => setСпрошеноУ(state.warmupId), [state.warmupId]);
 
   return (
-    <Ctx.Provider value={{ ...state, currentStep, overtime, stepsLeft, dismissOvertime, startWarmup, startEvening, startDay, startNight, startFinancialBattery, startSpatialLab, startAssessment, startPlaylist, recordResult, advanceToNext, skipCurrent, stopWarmup, holdAutoAdvance }}>
+    <Ctx.Provider value={{ ...state, owner, canNavigateAfterStop, currentStep, overtime, stepsLeft, dismissOvertime, startWarmup, startEvening, startDay, startNight, startFinancialBattery, startSpatialLab, startAssessment, startPlaylist, recordResult, advanceToNext, skipCurrent, stopWarmup, holdAutoAdvance }}>
       {children}
     </Ctx.Provider>
   );

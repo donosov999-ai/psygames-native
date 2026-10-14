@@ -87,7 +87,11 @@ void main() {
       await l.load();
       expect(await l.win(), isTrue);
       GamePreset.set({'wu': '1'});
-      expect(await l.win(), isFalse, reason: 'шаг зарядки открыл бы бой');
+      // A new launch owns a new ladder; changing globals cannot turn the old
+      // ordinary game's ladder into a warmup step.
+      final step = LevelLadder(gameId: 'boss_probe', store: MemoryLevelStore());
+      await step.load();
+      expect(await step.win(), isFalse, reason: 'шаг зарядки открыл бы бой');
       GamePreset.clear();
       LessonUsed.mark();
       expect(await l.win(), isFalse, reason: 'партия с показанным решением открыла бы бой');

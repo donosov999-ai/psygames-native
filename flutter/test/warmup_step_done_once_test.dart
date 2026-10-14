@@ -11,7 +11,8 @@ import 'package:psygames_flutter/shell/level_rules.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:psygames_flutter/shell/warmup_step_bridge.dart';
 
-import 'hybrid_overlay_route_repro_test.dart' show FakeWebViewPlatform, Trace, resetHarnessSingletons;
+import 'hybrid_overlay_route_repro_test.dart' show Trace, resetHarnessSingletons;
+import 'fixtures/warmup_host.dart';
 
 /// 🔴 ОДИН ШАГ ЗАРЯДКИ — ОДИН ПЕРЕХОД.
 ///
@@ -25,7 +26,7 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   late AssetServer server;
   late SharedState state;
-  late FakeWebViewPlatform web;
+  late WarmupWebViewPlatform web;
   late Trace trace;
   setUp(() async {
     resetHarnessSingletons();
@@ -34,7 +35,8 @@ void main() {
     await GameRules.load();
     await LevelRules.load();
     server = await AssetServer.start();
-    web = FakeWebViewPlatform();
+    web = WarmupWebViewPlatform();
+    web.nextUrls[3] = '/games/switching-task?wu=1';
     wv.WebViewPlatform.instance = web;
     trace = Trace();
   });
@@ -47,7 +49,7 @@ void main() {
     await tester.pumpWidget(MaterialApp(navigatorObservers: [trace], home: HybridApp(state: state, server: server)));
     await tester.pump(const Duration(milliseconds: 400));
     final page = web.controllers.first;
-    page.emit(SharedState.channel, {'op': 'route', 'url': '${server.origin}/games/sdmt?wu=1'});
+    page.emit(SharedState.channel, {'op': 'route', 'url': '${server.origin}/games/sdmt?wu=1&wuRun=run&wuStep=2&wuAttempt=step-2'});
     for (var i = 0; i < 40 && find.byType(SdmtScreen).evaluate().isEmpty; i++) {
       await tester.pump(const Duration(milliseconds: 100));
     }
@@ -56,6 +58,7 @@ void main() {
     final stepDone = {
       'op': 'warmupStepDone',
       'fromIdx': 2,
+      'owner': {'run_id': 'run', 'step_idx': 2, 'attempt_id': 'step-2'},
       'total': 4,
       'evening': false,
       'next': {'url': '/games/switching-task?wu=1', 'title': 'Переключение задач'},
@@ -77,7 +80,7 @@ void main() {
     expect(find.byType(SwitchingTaskScreen), findsOneWidget);
     expect(find.byType(SdmtScreen), findsNothing);
     expect(find.byType(WarmupStepBridge), findsNothing);
-    expect(page.js.where((j) => j.contains('goTo(3)')), hasLength(1));
+    expect(page.js.where((j) => j.contains('goTo(3,')), hasLength(1));
     expect(page.js.where((j) => j.contains('.stop()')), isEmpty, reason: 'зарядка не останавливается');
     expect(GameRules.currentRoute, '/games/switching-task');
   });
