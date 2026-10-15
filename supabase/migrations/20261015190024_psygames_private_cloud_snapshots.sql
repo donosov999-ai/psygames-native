@@ -8,7 +8,7 @@ create table public.psygames_cloud_snapshots (
   constraint psygames_snapshot_payload check (
     jsonb_typeof(payload) = 'object'
     and payload ? 'schema' and payload ? 'data'
-    and payload->>'schema' = '1'
+    and payload->'schema' = '1'::jsonb
     and jsonb_typeof(payload->'data') = 'object'
     and octet_length(payload::text) <= 5242880
   )
@@ -16,8 +16,11 @@ create table public.psygames_cloud_snapshots (
 create index psygames_cloud_snapshots_owner_revision
   on public.psygames_cloud_snapshots(owner_id, revision desc);
 alter table public.psygames_cloud_snapshots enable row level security;
-revoke all on public.psygames_cloud_snapshots from anon, public;
-grant select, insert, delete on public.psygames_cloud_snapshots to authenticated;
+-- Supabase default privileges may already grant ALL to authenticated. Revoke
+-- first; a narrower GRANT alone would not remove an inherited UPDATE grant.
+revoke all on public.psygames_cloud_snapshots from anon, public, authenticated;
+grant select, delete on public.psygames_cloud_snapshots to authenticated;
+grant insert (owner_id, payload) on public.psygames_cloud_snapshots to authenticated;
 grant usage, select on sequence public.psygames_cloud_snapshots_revision_seq to authenticated;
 create policy psygames_snapshot_read on public.psygames_cloud_snapshots
   for select to authenticated using ((select auth.uid()) = owner_id);

@@ -153,6 +153,13 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.8.0"
+  ecosystem_account:
+    dependency: "direct main"
+    description:
+      path: "../packages/ecosystem_account"
+      relative: true
+    source: path
+    version: "0.1.0"
   fake_async:
     dependency: transitive
     description:
@@ -260,7 +267,7 @@ packages:
     source: hosted
     version: "6.0.0"
   flutter_secure_storage:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: flutter_secure_storage
       sha256: d4e1fb6b2cb524868929e78dc0282fa000554b22060fb53789dc481c9fc95bb8
@@ -363,7 +370,7 @@ packages:
     source: hosted
     version: "2.0.2"
   http:
-    dependency: transitive
+    dependency: "direct dev"
     description:
       name: http
       sha256: "87721a4a50b19c7f1d49001e51409bddc46303966ce89a65af4f4e6004896412"
@@ -844,7 +851,7 @@ packages:
     source: hosted
     version: "1.4.1"
   supabase:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: supabase
       sha256: "123fe08792b24e5e7c4b9a01145de8e95ebaa9183cd5f3c9d48dd2ff890f28a6"

@@ -69,10 +69,11 @@ dependencies:
   share_plus: ^13.3.0
   file_picker: ^13.1.0
   url_launcher: ^6.3.2
-  supabase: 2.16.5
-  flutter_secure_storage: 11.2.0
+  ecosystem_account:
+    path: ../packages/ecosystem_account
 
 dev_dependencies:
+  http: 1.6.0
   webview_flutter_platform_interface: ^2.15.1
   integration_test:
     sdk: flutter

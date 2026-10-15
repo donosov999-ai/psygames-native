@@ -1,0 +1,15 @@
+name: ecosystem_account
+description: Shared optional account/session client for the four independent apps.
+version: 0.1.0
+publish_to: none
+environment:
+  sdk: ^3.13.4
+dependencies:
+  flutter:
+    sdk: flutter
+  supabase: 2.16.5
+  flutter_secure_storage: 11.2.0
+  http: 1.6.0
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
