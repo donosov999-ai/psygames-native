@@ -101,6 +101,13 @@ psygames-claude-mac; four approvals on one immutable revision remain outstanding
 
 ## Urgent independent release
 
+LATEST16.10:PR348 head4d0916f81c8c83e6cbe9880fe5e9cbdf99168b13.
+Old Flutter38791114939 failed two outdated test expectations; exact tests updated
+for hint confirmation/practice feedback,9PASS and analyzer clean on release branch.
+New Flutter38795853188/WEB38795853184 pending. Signed build_only38795880797,
+NOT store upload. Old38793174360 cancellation requested; do not use old artifact.
+Full details:SUDOKU_PRACTICE_20261015_REF.md. Below is earlier historical checkpoint.
+
 2.56.28 practice warning/status is isolated in PR348:
 https://github.com/donosov999-ai/psygames-native/pull/348.
 It excludes this incomplete cloud branch and excludes local migration candidatef5.
@@ -110,8 +117,8 @@ No claim of store upload yet. Release task9e865178-e150-436e-a96d-775160840081.
 Signed Play build_only requested on exact release head
 f9812dbbdb56134e2079266e5ad45e7e3d414aa5:
 https://github.com/donosov999-ai/psygames-native/actions/runs/38793174360.
-This run does NOT upload/publish to Play; later upload must use its exact artifact
-after CI/merge checks. Cloud changes are excluded from this release.
+That old run did NOT upload/publish to Play and is now superseded; use the latest
+run above only after CI/merge checks. Cloud changes are excluded from this release.
 Full WEB workflow38791114992 completed SUCCESS on exact headf9812dbbd.
 Flutter workflow38791114939 is still running; PR348 remains unmerged.
 

@@ -68,6 +68,24 @@ Flutter analyze: No issues found. Добавлены проверки мален
 
 ## Release checkpoint — 16.10.2026
 
+LATEST:PR348 now head4d0916f81c8c83e6cbe9880fe5e9cbdf99168b13.
+Previous full Flutter38791114939 FAILED: old sudoku_screen test did not confirm
+the new disclosure warning; feedback test expected no practice metadata field.
+Updated both exact expectations without weakening assertions; added explicit
+check that the digit remains blank before confirmation. Both suites9PASS and
+release-branch analyzer clean. Runtime code unchanged by this follow-up.
+New full Flutter38795853188 and WEB38795853184 are running on new head.
+New signed Play build_only38795880797:
+https://github.com/donosov999-ai/psygames-native/actions/runs/38795880797.
+Old build_only38793174360 cancellation requested; DO NOT upload its artifact.
+No merge, Google upload/publication or TestFlight2.56.28 yet. Cloud remains separate.
+GitHub push also reported62 default-branch dependency alerts (1critical/43high/
+18moderate); this is an upstream warning, not an independent exploit audit or
+proof of runtime impact. No unrelated dependency upgrades made here.
+Details:https://github.com/donosov999-ai/psygames-native/security/dependabot.
+
+Earlier checkpoint (superseded run/head states retained as history):
+
 Для независимого срочного выпуска fix cherry-picked на main5481326a в ветку
 codex/practice-release-2-56-28. PR348:
 https://github.com/donosov999-ai/psygames-native/pull/348.
