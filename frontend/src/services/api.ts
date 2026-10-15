@@ -6,6 +6,7 @@
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { cloudConsentGranted } from './cloudConsent';
 import { GAMES, sessionGameType } from '@/src/constants/games';
 import { getSupabase, SUPABASE_TABLE } from '@/src/services/supabase';
 import { IS_WEB_DEMO } from '@/src/services/buildTarget';
@@ -461,7 +462,7 @@ async function enqueueOutbox(row: Record<string, any>): Promise<void> {
 
 /** Дослать накопившееся. Настоящая ошибка (не дубликат) → стоп, остаток ждёт следующего раза. */
 export async function flushOutbox(): Promise<void> {
-  if (outboxFlushing) return;
+  if (outboxFlushing || !(await cloudConsentGranted())) return;
   outboxFlushing = true;
   try {
     const list = await readOutbox();
@@ -470,6 +471,7 @@ export async function flushOutbox(): Promise<void> {
     const remaining = [...list];
     let dropped = 0;
     for (const row of list) {
+      if (!(await cloudConsentGranted())) break;
       const { error } = await supabase.from(SUPABASE_TABLE).insert(row);
       if (error && !isDuplicate(error)) {
         // v1.167: раньше тут был безусловный break — ЛЮБАЯ ошибка вешала очередь,
@@ -497,6 +499,7 @@ export async function flushOutbox(): Promise<void> {
 }
 
 async function pushToCloud(s: GameSession): Promise<void> {
+  if (!(await cloudConsentGranted())) return;
   const row = buildCloudRow(s);
   try {
     const supabase = getSupabase();
@@ -516,6 +519,7 @@ async function pushToCloud(s: GameSession): Promise<void> {
 // One-shot migration: on first load after F2 deploy, backfill existing
 // localStorage sessions to cloud. Sets a flag so it only runs once.
 async function maybeMigrateLegacy(): Promise<void> {
+  if (!(await cloudConsentGranted())) return;
   try {
     const flag = await AsyncStorage.getItem(MIGRATION_FLAG_KEY);
     if (flag === 'done') return;
@@ -529,10 +533,12 @@ async function maybeMigrateLegacy(): Promise<void> {
     // Insert in batches of 100 (не upsert — см. isDuplicate). Батч с дубликатом
     // падает целиком (23505) → доотправляем его по одной строке, глотая дубли.
     for (let i = 0; i < rows.length; i += 100) {
+      if (!(await cloudConsentGranted())) return;
       const batch = rows.slice(i, i + 100);
       const { error } = await supabase.from(SUPABASE_TABLE).insert(batch);
       if (error && isDuplicate(error)) {
         for (const row of batch) {
+          if (!(await cloudConsentGranted())) return;
           const { error: rowErr } = await supabase.from(SUPABASE_TABLE).insert(row);
           if (rowErr && !isDuplicate(rowErr)) {
             console.warn('[F2] Migration row failed:', rowErr.message);
