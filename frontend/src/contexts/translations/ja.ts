@@ -1,6 +1,7 @@
 // AUTO-GENERATED translation overlay (ja). Источник: транскреация с EN-базы (856 ключей).
 // Не править руками — регенерировать. Нужна вычитка нативом до сторов.
 const t: Record<string, string> = {
+  sudokuPracticeBadge: "練習",
   // Scoped manually authored translations; not workflow-generated output.
   nativeScreenModelFailed: "画面のデータを読み込めませんでした",
   nativeScreenModelRetryHint: "もう一度読み込むか、ホームに戻ってください。",

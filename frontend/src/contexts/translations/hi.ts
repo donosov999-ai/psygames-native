@@ -5,6 +5,7 @@
 //   Аббревиатуры тестов (Stroop/SDMT/WCST/N-back/BART/SET/Cloze...) оставлены латиницей — международные термины.
 //   ⚠️ Стилистику деванагари подтвердить носителем. При регенерации воркфлоу — НЕ затирать, мерджить через git diff.
 const t: Record<string, string> = {
+  sudokuPracticeBadge: "अभ्यास",
   // Scoped manually authored translations; not workflow-generated output.
   nativeScreenModelFailed: "स्क्रीन का डेटा लोड नहीं हो सका",
   nativeScreenModelRetryHint: "फिर से लोड करने की कोशिश करें या होम स्क्रीन पर लौटें।",

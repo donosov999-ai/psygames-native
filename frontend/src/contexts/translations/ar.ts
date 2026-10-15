@@ -1,6 +1,7 @@
 // AUTO-GENERATED translation overlay (ar). Источник: транскреация с EN-базы (856 ключей).
 // ⚠️ НЕ ПОДКЛЮЧЁН в LANGUAGES — ждёт RTL-захода (I18nManager). Не править руками.
 const t: Record<string, string> = {
+  sudokuPracticeBadge: "تدريب",
   // Scoped manually authored translations; not workflow-generated output.
   nativeScreenModelFailed: "تعذّر تحميل بيانات الشاشة",
   nativeScreenModelRetryHint: "أعد محاولة التحميل أو عُد إلى الصفحة الرئيسية.",
