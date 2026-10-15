@@ -197,6 +197,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
   String? _whyKey;
   int _hintsUsed = 0;
   bool _answersRevealed = false;
+  bool _confirmingHint = false;
   late final _revealed = SudokuRevealedBoards(widget.state);
   String get _answerId => sudokuAnswerId(
       _sideBoard?.puzzle ?? _board!.puzzle, _solution!);
@@ -1226,13 +1227,50 @@ class _SudokuScreenState extends State<SudokuScreen> {
   /// с подсказкой и так идёт тренировкой ([_assisted]): ни уровня, ни очков, — поэтому купленная
   /// подсказка продаёт помощь, а не ступень. Клетку задания и уже верную купленной не открываем —
   /// штука ушла бы впустую.
-  void _hint() {
+  Future<void> _hint() async {
     final solution = _solution;
     final sel = _selected;
-    if (solution == null || sel == null || _halted) return;
+    if (solution == null || sel == null || _halted || _confirmingHint) return;
     // A no-op reveals nothing: don't consume a hint, buy one, or turn a clean
     // attempt into practice when the selected cell is given/already correct.
     if (_given[sel.r][sel.c] || _grid[sel.r][sel.c] == solution[sel.r][sel.c]) return;
+    if (!_assisted) {
+      final board = _board;
+      final side = _sideBoard;
+      _confirmingHint = true;
+      bool? accepted;
+      try {
+        accepted = await showDialog<bool>(
+          context: context,
+          builder: (c) => AlertDialog(
+            key: const Key('sudoku-hint-practice-warning'),
+            title: Text(L.t('btn_hint')),
+            content: Text(L.t('sudokuPracticeOnly')),
+            actions: [
+              TextButton(
+                key: const Key('sudoku-hint-cancel'),
+                onPressed: () => Navigator.of(c).pop(false),
+                child: Text(L.t('btn_cancel')),
+              ),
+              FilledButton(
+                key: const Key('sudoku-hint-confirm'),
+                onPressed: () => Navigator.of(c).pop(true),
+                child: Text(L.t('btn_hint')),
+              ),
+            ],
+          ),
+        );
+      } finally {
+        _confirmingHint = false;
+      }
+      // A decision belongs to this board and selection only. Never spend a
+      // hint or reveal a digit on another attempt after an async return.
+      if (!mounted || accepted != true || _halted ||
+          !identical(board, _board) || !identical(side, _sideBoard) ||
+          sel != _selected || !identical(solution, _solution)) {
+        return;
+      }
+    }
     if (_hintsUsed >= _hintMax) {
       unawaited(_buyHint());
       return;
@@ -1735,6 +1773,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
         : (variant != null && variant != 'none' ? variantTitle(variant) : null);
 
     return LeaveGuard(live: _live, saved: _onRoad, child: GameShell(
+      practice: _assisted,
       title: _title,
       onLesson: _solution == null || _grid.isEmpty ? null : _openLesson,
       hud: [

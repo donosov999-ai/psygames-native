@@ -1,5 +1,7 @@
 library;
 
+import 'package:flutter/foundation.dart';
+
 /// 🔴 РАЗБОР ПО ШАГАМ — ОБЩИЙ ДОГОВОР, ОДИН НА ВСЕ ИГРЫ.
 ///
 /// Решение Дениса 24.09.2026: «решатель и учитель вообще должны быть в каждом
@@ -107,14 +109,18 @@ abstract class LessonSource {
 class LessonUsed {
   LessonUsed._();
 
-  static bool _inRound = false;
+  static final _inRound = ValueNotifier<bool>(false);
+
+  /// The shared shell observes the same flag used by scoring, not a second
+  /// independently inferred training status.
+  static ValueListenable<bool> get changes => _inRound;
 
   /// Смотрел ли человек разбор в ТЕКУЩЕЙ партии.
-  static bool get inRound => _inRound;
+  static bool get inRound => _inRound.value;
 
   /// Открыли разбор — партия перестала быть зачётной.
-  static void mark() => _inRound = true;
+  static void mark() => _inRound.value = true;
 
   /// Новая раздача — отметка снимается.
-  static void reset() => _inRound = false;
+  static void reset() => _inRound.value = false;
 }

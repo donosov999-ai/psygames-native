@@ -104,6 +104,9 @@ void main() {
         if (b.puzzle[r][c] != 0) continue;
         await click(t, find.byKey(Key('cell_${r}_$c')));
         await click(t, find.byTooltip(L.t('btn_hint')));
+        if (find.byKey(const Key('sudoku-hint-confirm')).evaluate().isNotEmpty) {
+          await click(t, find.byKey(const Key('sudoku-hint-confirm')));
+        }
         return;
       }
     }
@@ -186,6 +189,44 @@ void main() {
     await finish(t);
     expect((reports.single['details'] as Map)['lesson'], true);
     expect(state.get('psygames_sudoku_level_nzt48'), '5');
+    await t.pumpWidget(const SizedBox());
+  });
+
+  testWidgets('L78: cancel hint warning, restore and finish independently → L79', (t) async {
+    await boot(t, 'ladder', level: 78);
+    final b = board(t);
+    final blank = [for (var r = 0; r < b.puzzle.length; r++)
+      for (var c = 0; c < b.puzzle.length; c++)
+        if (b.puzzle[r][c] == 0) (r: r, c: c)].first;
+    await click(t, find.byKey(Key('cell_${blank.r}_${blank.c}')));
+    await click(t, find.byKey(const Key('pencil')));
+    await click(t, find.byKey(Key('digit${b.solution[blank.r][blank.c]}')));
+    await click(t, find.byKey(const Key('pencil')));
+    expect(find.text(L.t('sudokuPracticeBadge')), findsNothing,
+        reason: 'Player-authored pencil notes are not revealed answers');
+    await click(t, find.byTooltip(L.t('btn_hint')));
+    expect(find.byKey(const Key('sudoku-hint-practice-warning')), findsOneWidget);
+    expect(SudokuRevealedBoards(state).contains(id(t)), false);
+    await click(t, find.byKey(const Key('sudoku-hint-cancel')));
+    expect(find.text(L.t('sudokuPracticeBadge')), findsNothing);
+    await t.pumpWidget(const SizedBox());
+    await t.pumpAndSettle();
+    await mount(t, 'ladder');
+    await finish(t);
+    expect((reports.single['details'] as Map)['lesson'], isNot(true));
+    expect(state.get('psygames_sudoku_level_nzt48'), '79');
+    await t.pumpWidget(const SizedBox());
+  });
+
+  testWidgets('practice badge is visible after disclosure and after restore', (t) async {
+    await boot(t, 'ladder');
+    expect(find.text(L.t('sudokuPracticeBadge')), findsNothing);
+    await revealCurrent(t);
+    expect(find.text(L.t('sudokuPracticeBadge')), findsOneWidget);
+    await t.pumpWidget(const SizedBox());
+    await t.pumpAndSettle();
+    await mount(t, 'ladder');
+    expect(find.text(L.t('sudokuPracticeBadge')), findsOneWidget);
     await t.pumpWidget(const SizedBox());
   });
 
