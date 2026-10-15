@@ -1,0 +1,22 @@
+00:00 +0: loading /Users/denisonosov/dev/psygames-game-lab/testflight-fixes-20261011/flutter/test/chessgo_slow_vault_test.dart
+00:00 +0: R3 late final credential write A must not overwrite acknowledged B
+R3 active=B persisted=A requests=0
+00:00 +0 -1: R3 late final credential write A must not overwrite acknowledged B [E]
+  Expected: 'B'
+    Actual: 'A'
+     Which: is different.
+            Expected: B
+              Actual: A
+                      ^
+             Differ at offset 0
+  Stale A completion must not replace already acknowledged B credentials
+  
+  package:matcher                                     expect
+  package:flutter_test/src/widget_tester.dart 473:18  expect
+  test/chessgo_slow_vault_test.dart 70:5              main.<fn>
+  
+00:00 +0 -1: Some tests failed.
+
+Failing tests:
+  /Users/denisonosov/dev/psygames-game-lab/testflight-fixes-20261011/flutter/test/chessgo_slow_vault_test.dart: R3 late final credential write A must not overwrite acknowledged B
+

@@ -31,15 +31,20 @@ class SecureAccountVault implements AccountVault {
 }
 
 class _PkceVault extends GotrueAsyncStorage {
-  const _PkceVault(this.vault, this.prefix);
-  final AccountVault vault;
-  final String prefix;
+  const _PkceVault(this.read, this.write, this.remove);
+  final Future<String?> Function(String) read;
+  final Future<void> Function(String, String) write;
+  final Future<void> Function(String) remove;
   @override
-  Future<String?> getItem({required String key}) => vault.read('$prefix.pkce.$key');
+  Future<String?> getItem({required String key}) => read(key);
   @override
-  Future<void> setItem({required String key, required String value}) => vault.write('$prefix.pkce.$key', value);
+  Future<void> setItem({required String key, required String value}) => write(key, value);
   @override
-  Future<void> removeItem({required String key}) => vault.remove('$prefix.pkce.$key');
+  Future<void> removeItem({required String key}) => remove(key);
+}
+
+class _CredentialLane {
+  Future<void> tail = Future.value();
 }
 
 /// Fence at the transport boundary, not just at the client getter. A query
@@ -85,7 +90,11 @@ class EcosystemAccount {
     }
   }
 
-  static const contract = 'ecosystem.account/1-draft.2';
+  static const contract = 'ecosystem.account/1-draft.3';
+  // One lane/active owner per namespace within the host isolate. A replacement
+  // instance cannot ACK new credentials ahead of the old instance's slow write.
+  static final _lanes = <String, _CredentialLane>{};
+  static final _owners = <String, EcosystemAccount>{};
   final String appId, url, publishableKey;
   final Uri callback;
   final AccountVault vault;
@@ -99,12 +108,43 @@ class EcosystemAccount {
   StreamSubscription<AuthState>? _subscription;
   _ConsentTransport? _transport;
   Future<void> _retireQueue = Future.value();
-  Future<void> _persistQueue = Future.value();
+  _CredentialLane get _lane => _lanes.putIfAbsent(storageNamespace, _CredentialLane.new);
+  Future<void> get _persistQueue => _lane.tail;
   bool _allowed = false;
   bool _loggingOut = false;
   bool _credentialsReady = false;
   String? _boundSubject;
   int _generation = 0;
+
+  bool _currentAttempt(int generation) =>
+    _allowed && !_loggingOut && generation == _generation;
+
+  void _activate() {
+    final previous = _owners[storageNamespace];
+    if (previous != null && !identical(previous, this)) previous.suspend();
+    _owners[storageNamespace] = this;
+    _allowed = true;
+  }
+
+  /// All credential writes/removals, including the final flush and PKCE,
+  /// participate in this SAME lane. Pre-check alone cannot cancel an OS write
+  /// already underway; the newer ACK waits until it settles and newer data wins.
+  Future<void> _mutateCredentials(int generation, Future<void> Function() mutation,
+      {bool allowInactive = false, bool allowLoggingOut = false}) {
+    bool current() => generation == _generation && (allowInactive || _allowed) &&
+      (allowLoggingOut || !_loggingOut);
+    final lane = _lane;
+    final operation = lane.tail.catchError((Object _) {}).then((_) async {
+      if (!current()) throw StateError('Credential operation cancelled');
+      await mutation();
+      if (!current()) throw StateError('Credential operation cancelled');
+    });
+    lane.tail = operation;
+    // Background auth events may not have a caller; retain errors for callers
+    // of their operation, without creating unhandled asynchronous exceptions.
+    unawaited(operation.catchError((Object _) {}));
+    return operation;
+  }
 
   bool get active => _allowed;
   String? get accountId => _allowed && !_loggingOut && _credentialsReady ? _boundSubject : null;
@@ -169,6 +209,7 @@ class EcosystemAccount {
   }
 
   SupabaseClient _makeClient() {
+    final generation = _generation;
     final gate = _ConsentTransport(transport ?? http.Client(), _networkAllowed,
       ownsInner: transport == null);
     _transport = gate;
@@ -177,7 +218,20 @@ class EcosystemAccount {
       // Keep refresh enabled so an expired encrypted session can be recovered.
       autoRefreshToken: true,
       authFlowType: AuthFlowType.pkce,
-      pkceAsyncStorage: _PkceVault(vault, storageNamespace),
+      pkceAsyncStorage: _PkceVault(
+        (key) async {
+          if (!_currentAttempt(generation)) throw StateError('PKCE operation cancelled');
+          await _persistQueue.catchError((Object _) {});
+          if (!_currentAttempt(generation)) throw StateError('PKCE operation cancelled');
+          final value = await vault.read('$storageNamespace.pkce.$key');
+          if (!_currentAttempt(generation)) throw StateError('PKCE operation cancelled');
+          return value;
+        },
+        (key, value) => _mutateCredentials(generation,
+          () => vault.write('$storageNamespace.pkce.$key', value)),
+        (key) => _mutateCredentials(generation,
+          () => vault.remove('$storageNamespace.pkce.$key'), allowLoggingOut: true),
+      ),
     ));
     _subscription = c.auth.onAuthStateChange.listen((event) {
       if (!_allowed || !identical(_client, c)) return;
@@ -191,17 +245,17 @@ class EcosystemAccount {
         }
         _boundSubject ??= subject;
       }
-      _persistQueue = _persistQueue.catchError((Object _) {}).then((_) async {
-        if (!_allowed || generation != _generation || !identical(_client, c)) return;
+      final mutation = _mutateCredentials(generation, () async {
+        if (!identical(_client, c)) throw StateError('Credential client retired');
         if (session == null) {
           await vault.remove(_sessionKey);
         } else {
           await vault.write(_sessionKey, _encodeSession(session));
         }
-      });
+      }, allowLoggingOut: session == null);
       // Consumers await flushCredentials before reporting login success. Do not
       // leak session values through an unhandled async error or an SDK log.
-      unawaited(_persistQueue.catchError((Object _) {}));
+      unawaited(mutation.catchError((Object _) {}));
     });
     return c;
   }
@@ -213,10 +267,10 @@ class EcosystemAccount {
     // borrow B's credentials. Hosts pass their consent receipt's expected ID.
     suspend();
     if (!consent) return false;
-    _allowed = true;
+    _activate();
     final generation = _generation;
     final saved = await vault.read(_sessionKey);
-    if (!_allowed || generation != _generation) return false;
+    if (!_currentAttempt(generation)) return false;
     if (saved == null) return false;
     final session = _readEnvelope(saved);
     if (session == null || (expectedAccountId != null &&
@@ -227,13 +281,13 @@ class EcosystemAccount {
     _boundSubject = _sessionSubject(session);
     try {
       await _sdk.auth.recoverSession(jsonEncode(session));
-      if (!_allowed || generation != _generation) return false;
+      if (!_currentAttempt(generation)) return false;
       await flushCredentials();
       _credentialsReady = true;
       _sdk.auth.startAutoRefresh();
       return accountId != null;
     } catch (_) {
-      if (generation == _generation) suspend();
+      if (_currentAttempt(generation)) suspend();
       rethrow;
     }
   }
@@ -241,8 +295,10 @@ class EcosystemAccount {
   Future<void> requestLink(String email, {required bool consent}) async {
     if (!consent) throw StateError('Account network consent is OFF');
     suspend();
-    _allowed = true;
+    _activate();
+    final generation = _generation;
     await _sdk.auth.signInWithOtp(email: email.trim(), emailRedirectTo: callback.toString());
+    if (!_currentAttempt(generation)) throw StateError('Login request superseded');
   }
 
   bool acceptsCallback(Uri uri) => uri.scheme == callback.scheme && uri.host == callback.host &&
@@ -254,12 +310,12 @@ class EcosystemAccount {
     final generation = _generation;
     try {
       await _sdk.auth.exchangeCodeForSession(uri.queryParameters['code']!);
-      if (!_allowed || generation != _generation) throw StateError('Account operation cancelled');
+      if (!_currentAttempt(generation)) throw StateError('Account operation cancelled');
       await flushCredentials();
       _credentialsReady = true;
       _sdk.auth.startAutoRefresh();
     } catch (_) {
-      if (generation == _generation) suspend();
+      if (_currentAttempt(generation)) suspend();
       rethrow;
     }
   }
@@ -268,16 +324,20 @@ class EcosystemAccount {
     // A past write failure must not poison every later retry. The current
     // session still has to be durably written before login can report success.
     final generation = _generation;
-    await _persistQueue.catchError((Object _) {});
-    if (!_allowed || generation != _generation) throw StateError('Account operation cancelled');
-    final session = _client?.auth.currentSession;
-    if (_allowed && session != null) await vault.write(_sessionKey, _encodeSession(session));
-    if (!_allowed || generation != _generation) throw StateError('Account operation cancelled');
+    final c = _client;
+    await _mutateCredentials(generation, () async {
+      if (!identical(_client, c)) throw StateError('Credential client retired');
+      final session = c?.auth.currentSession;
+      if (session == null) throw StateError('No session to persist');
+      await vault.write(_sessionKey, _encodeSession(session));
+    });
   }
 
   /// Keep the encrypted session for a later explicit opt-in, but stop refresh.
   void suspend() {
+    if (identical(_owners[storageNamespace], this)) _owners.remove(storageNamespace);
     _allowed = false;
+    _loggingOut = false;
     _credentialsReady = false;
     _boundSubject = null;
     _generation++;
@@ -299,17 +359,24 @@ class EcosystemAccount {
   /// Exit THIS app/session; do not sign the user out of all four products.
   Future<void> signOut() async {
     final c = _client;
+    final generation = _generation;
+    var completed = false;
     _loggingOut = true;
-    _generation++;
+    _credentialsReady = false;
     c?.auth.stopAutoRefresh();
     try { await c?.auth.signOut(scope: SignOutScope.local); }
     finally {
-      suspend();
-      await _persistQueue.catchError((Object _) {});
-      await vault.remove(_sessionKey);
-      await _retireQueue;
-      _loggingOut = false;
+      // A late logout must not suspend B or remove B's acknowledged credentials.
+      if (generation == _generation) {
+        suspend();
+        final removalGeneration = _generation;
+        await _mutateCredentials(removalGeneration,
+          () => vault.remove(_sessionKey), allowInactive: true);
+        await _retireQueue;
+        completed = removalGeneration == _generation;
+      }
     }
+    if (!completed) throw StateError('Sign-out superseded by another account operation');
   }
 
   Future<void> dispose() async {

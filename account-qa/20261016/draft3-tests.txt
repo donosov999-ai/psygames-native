@@ -1,0 +1,64 @@
+00:00 +0: /Users/denisonosov/dev/psygames-game-lab/testflight-fixes-20261011/flutter/test/account_credential_serialization_test.dart: A -> B -> C: no stale compensation can overwrite acknowledged C
+00:00 +0: /Users/denisonosov/dev/psygames-game-lab/testflight-fixes-20261011/flutter/test/chessgo_slow_vault_test.dart: R3 late final credential write A must not overwrite acknowledged B
+R3 active=B persisted=B requests=0
+00:00 +1: /Users/denisonosov/dev/psygames-game-lab/testflight-fixes-20261011/flutter/test/chessgo_slow_vault_test.dart: R3 late final credential write A must not overwrite acknowledged B
+00:00 +2: /Users/denisonosov/dev/psygames-game-lab/testflight-fixes-20261011/flutter/test/account_credential_serialization_test.dart: replacement instance shares the lane and retires previous owner
+00:00 +3: /Users/denisonosov/dev/psygames-game-lab/testflight-fixes-20261011/flutter/test/account_credential_serialization_test.dart: failed delayed A write cannot poison B commit or leave false ACK
+00:00 +4: /Users/denisonosov/dev/psygames-game-lab/testflight-fixes-20261011/flutter/test/account_credential_serialization_test.dart: slow old session removal drains before B ACK; cannot delete B later
+00:00 +5: /Users/denisonosov/dev/psygames-game-lab/testflight-fixes-20261011/flutter/test/account_credential_serialization_test.dart: signout waits for slow final write and cannot resurrect it on restart
+00:00 +6: /Users/denisonosov/dev/psygames-game-lab/testflight-fixes-20261011/flutter/test/account_credential_serialization_test.dart: late logout HTTP response cannot clear newer acknowledged B
+00:00 +7: /Users/denisonosov/dev/psygames-game-lab/testflight-fixes-20261011/flutter/test/account_credential_serialization_test.dart: failed credential removal never ACKs success; offline retry clears it
+00:00 +8: /Users/denisonosov/dev/psygames-game-lab/testflight-fixes-20261011/flutter/test/account_credential_serialization_test.dart: PKCE writes share lifecycle lane; retired login cannot overwrite newer verifier
+00:00 +9: /Users/denisonosov/dev/psygames-game-lab/testflight-fixes-20261011/flutter/test/account_identity_boundaries_test.dart: R1 retained/prepared A query cannot dispatch after resume changes to B
+00:00 +10: /Users/denisonosov/dev/psygames-game-lab/testflight-fixes-20261011/flutter/test/account_identity_boundaries_test.dart: R1 retained/prepared A query cannot dispatch after resume changes to B
+00:00 +11: /Users/denisonosov/dev/psygames-game-lab/testflight-fixes-20261011/flutter/test/account_identity_boundaries_test.dart: host receipt for A cannot silently authorize restored account B
+00:00 +12: /Users/denisonosov/dev/psygames-game-lab/testflight-fixes-20261011/flutter/test/ecosystem_account_test.dart: OFF neither reads credentials nor initializes an account/network client
+00:00 +13: /Users/denisonosov/dev/psygames-game-lab/testflight-fixes-20261011/flutter/test/ecosystem_account_test.dart: OFF neither reads credentials nor initializes an account/network client
+00:00 +14: /Users/denisonosov/dev/psygames-game-lab/testflight-fixes-20261011/flutter/test/ecosystem_account_test.dart: OFF neither reads credentials nor initializes an account/network client
+00:00 +15: /Users/denisonosov/dev/psygames-game-lab/testflight-fixes-20261011/flutter/test/ecosystem_account_test.dart: OFF neither reads credentials nor initializes an account/network client
+00:00 +16: /Users/denisonosov/dev/psygames-game-lab/testflight-fixes-20261011/flutter/test/ecosystem_account_test.dart: OFF neither reads credentials nor initializes an account/network client
+00:00 +17: /Users/denisonosov/dev/psygames-game-lab/testflight-fixes-20261011/flutter/test/account_identity_boundaries_test.dart: PKCE verifiers are separated by authority for the same app
+00:00 +18: /Users/denisonosov/dev/psygames-game-lab/testflight-fixes-20261011/flutter/test/account_identity_boundaries_test.dart: PKCE verifiers are separated by authority for the same app
+00:00 +19: /Users/denisonosov/dev/psygames-game-lab/testflight-fixes-20261011/flutter/test/ecosystem_account_test.dart: retained builder and prepared query cannot send after OFF or later opt-in
+00:00 +20: /Users/denisonosov/dev/psygames-game-lab/testflight-fixes-20261011/flutter/test/ecosystem_account_test.dart: retained builder and prepared query cannot send after OFF or later opt-in
+00:00 +21: /Users/denisonosov/dev/psygames-game-lab/testflight-fixes-20261011/flutter/test/ecosystem_account_test.dart: retained builder and prepared query cannot send after OFF or later opt-in
+00:00 +22: /Users/denisonosov/dev/psygames-game-lab/testflight-fixes-20261011/flutter/test/ecosystem_account_test.dart: retained builder and prepared query cannot send after OFF or later opt-in
+00:00 +23: /Users/denisonosov/dev/psygames-game-lab/testflight-fixes-20261011/flutter/test/ecosystem_account_test.dart: retained builder and prepared query cannot send after OFF or later opt-in
+00:00 +24: /Users/denisonosov/dev/psygames-game-lab/testflight-fixes-20261011/flutter/test/ecosystem_account_test.dart: vault error has no success ACK and next resume recovers, not poisoned queue
+00:00 +25: /Users/denisonosov/dev/psygames-game-lab/testflight-fixes-20261011/flutter/test/ecosystem_account_test.dart: expired encrypted session refreshes only with consent
+00:00 +26: /Users/denisonosov/dev/psygames-game-lab/testflight-fixes-20261011/flutter/test/ecosystem_account_test.dart: late callback after OFF cannot persist a session or acknowledge login
+00:00 +27: /Users/denisonosov/dev/psygames-game-lab/testflight-fixes-20261011/flutter/test/cloud_backup_test.dart: append preserves wallet/name/level verbatim; identical data is not reuploaded
+00:00 +28: /Users/denisonosov/dev/psygames-game-lab/testflight-fixes-20261011/flutter/test/cloud_backup_test.dart: append preserves wallet/name/level verbatim; identical data is not reuploaded
+00:00 +29: /Users/denisonosov/dev/psygames-game-lab/testflight-fixes-20261011/flutter/test/cloud_backup_test.dart: append preserves wallet/name/level verbatim; identical data is not reuploaded
+00:00 +30: /Users/denisonosov/dev/psygames-game-lab/testflight-fixes-20261011/flutter/test/cloud_backup_test.dart: append preserves wallet/name/level verbatim; identical data is not reuploaded
+00:00 +31: /Users/denisonosov/dev/psygames-game-lab/testflight-fixes-20261011/flutter/test/cloud_backup_test.dart: append preserves wallet/name/level verbatim; identical data is not reuploaded
+00:00 +32: /Users/denisonosov/dev/psygames-game-lab/testflight-fixes-20261011/flutter/test/cloud_backup_test.dart: append preserves wallet/name/level verbatim; identical data is not reuploaded
+00:00 +33: /Users/denisonosov/dev/psygames-game-lab/testflight-fixes-20261011/flutter/test/cloud_snapshot_test.dart: downloaded excluded or foreign key rejects entire import
+00:00 +34: /Users/denisonosov/dev/psygames-game-lab/testflight-fixes-20261011/flutter/test/cloud_backup_test.dart: unknown cloud revision requires explicit conflict decision
+00:00 +35: /Users/denisonosov/dev/psygames-game-lab/testflight-fixes-20261011/flutter/test/cloud_backup_test.dart: unknown cloud revision requires explicit conflict decision
+00:00 +36: /Users/denisonosov/dev/psygames-game-lab/testflight-fixes-20261011/flutter/test/cloud_backup_test.dart: unknown cloud revision requires explicit conflict decision
+00:00 +37: /Users/denisonosov/dev/psygames-game-lab/testflight-fixes-20261011/flutter/test/cloud_backup_test.dart: unknown cloud revision requires explicit conflict decision
+00:00 +38: /Users/denisonosov/dev/psygames-game-lab/testflight-fixes-20261011/flutter/test/cloud_backup_test.dart: unknown cloud revision requires explicit conflict decision
+00:00 +39: /Users/denisonosov/dev/psygames-game-lab/testflight-fixes-20261011/flutter/test/cloud_snapshot_test.dart: allows exactly 10000 entries; rejects 10001 on capture and decode
+00:00 +40: /Users/denisonosov/dev/psygames-game-lab/testflight-fixes-20261011/flutter/test/cloud_snapshot_test.dart: allows exactly 10000 entries; rejects 10001 on capture and decode
+00:00 +41: /Users/denisonosov/dev/psygames-game-lab/testflight-fixes-20261011/flutter/test/cloud_snapshot_test.dart: allows exactly 10000 entries; rejects 10001 on capture and decode
+00:00 +42: /Users/denisonosov/dev/psygames-game-lab/testflight-fixes-20261011/flutter/test/cloud_snapshot_test.dart: allows exactly 10000 entries; rejects 10001 on capture and decode
+00:00 +43: /Users/denisonosov/dev/psygames-game-lab/testflight-fixes-20261011/flutter/test/cloud_snapshot_test.dart: allows exactly 10000 entries; rejects 10001 on capture and decode
+00:00 +44: /Users/denisonosov/dev/psygames-game-lab/testflight-fixes-20261011/flutter/test/cloud_restore_test.dart: prepare atomically saves both images and does not apply live
+00:00 +45: /Users/denisonosov/dev/psygames-game-lab/testflight-fixes-20261011/flutter/test/cloud_snapshot_test.dart: 5 MiB bound counts UTF-8 bytes including JSON envelope
+00:00 +46: /Users/denisonosov/dev/psygames-game-lab/testflight-fixes-20261011/flutter/test/cloud_snapshot_test.dart: 5 MiB bound counts UTF-8 bytes including JSON envelope
+00:00 +47: /Users/denisonosov/dev/psygames-game-lab/testflight-fixes-20261011/flutter/test/cloud_snapshot_test.dart: 5 MiB bound counts UTF-8 bytes including JSON envelope
+00:00 +48: /Users/denisonosov/dev/psygames-game-lab/testflight-fixes-20261011/flutter/test/cloud_snapshot_test.dart: 5 MiB bound counts UTF-8 bytes including JSON envelope
+00:00 +49: /Users/denisonosov/dev/psygames-game-lab/testflight-fixes-20261011/flutter/test/cloud_restore_test.dart: repeated apply does not duplicate sessions or credit earned points
+00:00 +50: /Users/denisonosov/dev/psygames-game-lab/testflight-fixes-20261011/flutter/test/cloud_restore_test.dart: missing directory or journal is a no-op
+00:00 +51: /Users/denisonosov/dev/psygames-game-lab/testflight-fixes-20261011/flutter/test/cloud_restore_test.dart: empty target is refused both at prepare and startup
+00:00 +52: /Users/denisonosov/dev/psygames-game-lab/testflight-fixes-20261011/flutter/test/cloud_restore_test.dart: invalid envelope or either snapshot causes no preference/backup writes
+00:00 +53: /Users/denisonosov/dev/psygames-game-lab/testflight-fixes-20261011/flutter/test/cloud_restore_test.dart: oversized snapshot inside journal is rejected before any writes
+00:00 +54: /Users/denisonosov/dev/psygames-game-lab/testflight-fixes-20261011/flutter/test/cloud_restore_test.dart: exception retains pending and original safety; retry completes
+00:00 +55: /Users/denisonosov/dev/psygames-game-lab/testflight-fixes-20261011/flutter/test/cloud_restore_test.dart: restart from simulated partial and fully applied states is idempotent
+00:00 +56: /Users/denisonosov/dev/psygames-game-lab/testflight-fixes-20261011/flutter/test/cloud_restore_test.dart: backup I/O failure leaves pending and makes no state writes
+00:00 +57: /Users/denisonosov/dev/psygames-game-lab/testflight-fixes-20261011/flutter/test/cloud_restore_test.dart: ignored storage writes do not silently retire the journal
+00:00 +58: All tests passed!
+Analyzing flutter...                                            
+No issues found! (ran in 3.7s)
+

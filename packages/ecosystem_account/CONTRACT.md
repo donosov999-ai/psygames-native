@@ -1,7 +1,7 @@
-# Unified account — ecosystem.account/1-draft.2
+# Unified account — ecosystem.account/1-draft.3
 
 Status: candidate for owner review, NOT four-app acceptance or a public release.
-Package: ecosystem_account 0.1.1. Supersedes draft.1/a294 only as a NEW review
+Package: ecosystem_account 0.1.2. Supersedes draft.2/b6de only as a NEW review
 candidate, not automatic acceptance. Current implementation is not runtime-connected.
 Owner of shared coordination: psygames-claude-mac, task
 f27599dc-31c9-4638-946d-ccb3270079bb. PsyGames implementation:
@@ -79,6 +79,30 @@ one vault failure must not poison later retries. signOut is local-session scope,
 not a global sign-out of all products. Failure to reach the server is not proof
 that remote credentials have been revoked.
 
+### Credential storage serialization (R3)
+
+ALL session writes/removals, explicit final flush and PKCE writes/removals use
+one lifecycle-aware FIFO lane per app+issuer namespace in the host isolate.
+Before AND after each OS mutation the attempt generation is checked. A newer B
+can start, but MUST NOT acknowledge durable credentials while an older A write
+is still in flight. The old write may physically complete; B is committed after
+it, then acknowledged. No blind compensating write or cross-account balance work.
+The same rule covers removal: late logout cannot clear an acknowledged successor.
+
+Only one active in-isolate owner per namespace: activating a replacement instance
+retires the previous transport/generation and shares its credential lane. Disposing
+the old instance does not suspend the replacement. Hosts must not share this vault
+namespace across uncontrolled Dart isolates/processes/extensions; the lane is NOT
+a cross-process CAS or transaction. Secure storage atomicity/durability beyond its
+API and real OS-crash behaviour remain separate device/platform gates. Never put
+account/storage waits on Smart Alarm's safety-critical stop/snooze path.
+
+OFF stops future network work immediately but cannot undo an OS write or request
+already started. The next successful credential ACK waits for stale mutations to
+settle. Cancelled attempts do not get a success ACK; errors do not poison later
+mutations. Logout removal is serialized and generation-scoped, not a global purge.
+Already-sent logout/OTP responses cannot finalize a newer lifecycle.
+
 Snapshot/session export is NOT event upload. Existing local history without stable
 event IDs must not be expanded into fictional sessions or added to restored totals.
 An app-specific future event adapter requires stable event_id, server receipt,
@@ -123,7 +147,13 @@ Original Smart Alarm reproducer on a294-equivalent source was independently run:
 authority-bound envelope (a documented fixture-format change), plus foreign-token,
 PKCE, bound-consent and concurrent recovery tests. The original app-only fixture
 is preserved as baseline evidence, not misreported as a valid v2 login fixture.
-Currently focused local mocks/model/restore tests pass; prior SQL isolation passes.
+Draft.3 independently confirms Chess R3 on unchanged b6 source before the fix.
+After choosing the serialization alternative, its retest explicitly asserts that
+B has NOT ACKed before releasing A (the original test awaited early ACK B, which
+is intentionally forbidden by this contract). Persisted-B, zero-request and
+restart assertions remain; delayed-write/removal/logout/PKCE/A-B-C cases added.
+Focused local mocks/model/restore tests pass; prior SQL isolation is historical,
+not re-executed as a claim of live network/device testing for this revision.
 No four-app sign-offs, physical-device account PASS or cloud store release yet.
 
 Readiness sources (read-only; do not edit their project files here):
