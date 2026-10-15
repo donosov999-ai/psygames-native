@@ -16,6 +16,20 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.56.28',
+    date: '2026-10-15',
+    ru: [
+      'Учебная попытка теперь отмечается во время игры, а не только после завершения',
+      'Судоку предупреждает перед подсказкой, раскрывающей ответ: такая попытка не повышает уровень и рейтинг',
+      'Отмена подсказки и карандашные пометки сохраняют самостоятельный зачёт; учебная отметка видна и после восстановления партии',
+    ],
+    en: [
+      'Practice attempts are now marked during play, not only on the result screen',
+      'Sudoku warns before an answer-revealing hint: practice attempts do not raise your level or rating',
+      'Cancelling a hint and using pencil notes preserve independent progress; practice status remains visible after restoring a round',
+    ],
+  },
+  {
     version: '2.56.27',
     date: '2026-10-13',
     ru: [
