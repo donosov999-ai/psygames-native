@@ -1,4 +1,5 @@
 -- PsyGames only. Immutable, owner-private snapshots; never a shared wallet writer.
+-- Version aligned with Supabase apply_migration ledger (20261015191442).
 create table public.psygames_cloud_snapshots (
   id uuid primary key default gen_random_uuid(),
   owner_id uuid not null references auth.users(id) on delete cascade,

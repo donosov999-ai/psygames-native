@@ -67,6 +67,10 @@ backup service remain unconnected drafts; no end-to-end cloud claim.
 ### Server migration and package review checkpoint
 
 Applied psygames_private_cloud_snapshots to project iuvvheeocobhiothfgei via MCP.
+Live migration ledger version:20261015191442. CLI-created draft filename was
+aligned to supabase/migrations/20261015191442_psygames_private_cloud_snapshots.sql
+after application, so a future CLI push does not try to create the same table
+again under the earlier draft timestamp20261015190024. SQL semantics unchanged.
 Owner RLS enabled, three policies, authenticated UPDATE and anon SELECT forbidden.
 Column INSERT grants allow owner_id/payload only; timestamps/revisions are server
 assigned. Null schema is rejected. SQL test in
@@ -102,3 +106,10 @@ f9812dbbdb56134e2079266e5ad45e7e3d414aa5:
 https://github.com/donosov999-ai/psygames-native/actions/runs/38793174360.
 This run does NOT upload/publish to Play; later upload must use its exact artifact
 after CI/merge checks. Cloud changes are excluded from this release.
+Full WEB workflow38791114992 completed SUCCESS on exact headf9812dbbd.
+Flutter workflow38791114939 is still running; PR348 remains unmerged.
+
+Frozen common candidate source commit:a294c575e1791cb925bd98f897804eb74538a5e7.
+Contract SHA256:bf1f323718fb922d5086adcb917fa60a6108bee7a394e076cb33bdd91afab18c.
+Source SHA256:6489950ff92a7406f17fd2a3bf9d9b67fe1edb09da487614b87148b2b5dc82dc.
+The dated server filename/evidence maintenance does not change that package.

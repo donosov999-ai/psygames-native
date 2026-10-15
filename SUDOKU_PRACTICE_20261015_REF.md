@@ -63,7 +63,23 @@ Flutter analyze: No issues found. Добавлены проверки мален
 проверены на наличие подписи. git diff --check чист.
 
 Дальше: интеграция в main/обычный выпуск, проверка на устройстве, аудит собственных
-флагов решателей и WEB. Не выполнены push/PR/релиз; не подтверждён импорт бэкапа.
+флагов решателей и WEB. На первом checkpoint push/PR/релиз ещё не были выполнены;
+актуальный release checkpoint ниже. Импорт бэкапа на телефоне не подтверждён.
+
+## Release checkpoint — 16.10.2026
+
+Для независимого срочного выпуска fix cherry-picked на main5481326a в ветку
+codex/practice-release-2-56-28. PR348:
+https://github.com/donosov999-ai/psygames-native/pull/348.
+Версия2.56.28, headf9812dbbdb56134e2079266e5ad45e7e3d414aa5.
+В неё НЕ входят ни незавершённое облако, ни прежний local WEB candidatef5.
+Первый CI нашёл пропуск badge в10 канонических overlay словарях; исправлен без
+ослабления coverage. WEB run38791114992 SUCCESS. Полный Flutter run38791114939
+ещё идёт. Подписанная Android build_only38793174360 начата на том же head:
+https://github.com/donosov999-ai/psygames-native/actions/runs/38793174360.
+build_only НЕ заливает в Play. Merge/main checks, upload точного AAB в production,
+TestFlight и подтверждение доступности существующей группе «Свои» ещё впереди.
+Release task:9e865178-e150-436e-a96d-775160840081, in_progress, НЕ закрывать.
 Точная причина фактического срабатывания подсказки у игрока остаётся предметом
 проверки: не приписывать человеку использование подсказки только по hint_uses.
 
