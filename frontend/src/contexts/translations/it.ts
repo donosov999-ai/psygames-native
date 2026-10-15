@@ -1,6 +1,7 @@
 // AUTO-GENERATED translation overlay (it). Источник: транскреация с EN-базы (856 ключей).
 // Не править руками — регенерировать.
 const t: Record<string, string> = {
+  sudokuPracticeBadge: "Pratica",
   // Scoped manually authored translations; not workflow-generated output.
   nativeScreenModelFailed: "Impossibile caricare i dati della schermata",
   nativeScreenModelRetryHint: "Riprova a caricare i dati oppure torna alla schermata iniziale.",

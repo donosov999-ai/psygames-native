@@ -2,6 +2,7 @@
 // 493 ключей, переведены с английской базы. Не править руками — регенерировать воркфлоу.
 // Вычитка: Claude 12.06.2026 (skillAttention/skillFocus swap, 序列记忆, 主访问码). При регенерации воркфлоу — НЕ затирать, мерджить через git diff.
 const t: Record<string, string> = {
+  sudokuPracticeBadge: "练习",
   // Scoped manually authored translations; not workflow-generated output.
   nativeScreenModelFailed: "无法加载界面数据",
   nativeScreenModelRetryHint: "请重试加载，或返回首页。",

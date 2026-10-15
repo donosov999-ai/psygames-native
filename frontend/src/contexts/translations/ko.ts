@@ -1,6 +1,7 @@
 // AUTO-GENERATED translation overlay (ko). Источник: транскреация с EN-базы (856 ключей).
 // Не править руками — регенерировать. Нужна вычитка нативом до сторов.
 const t: Record<string, string> = {
+  sudokuPracticeBadge: "연습",
   // Scoped manually authored translations; not workflow-generated output.
   nativeScreenModelFailed: "화면 데이터를 불러오지 못했습니다",
   nativeScreenModelRetryHint: "다시 불러오거나 홈으로 돌아가세요.",
