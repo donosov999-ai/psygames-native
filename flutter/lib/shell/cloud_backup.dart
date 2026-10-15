@@ -43,8 +43,11 @@ class CloudBackup extends ChangeNotifier {
   Future<void> start() async {
     state.writes.addListener(_changed);
     if (!enabled) return;
+    final expected = state.get(accountKey);
+    if (expected == null || expected.isEmpty) { error = 'account'; _notify(); return; }
     try {
-      if (await account.resume(consent: true)) _changed();
+      if (await account.resume(consent: true, expectedAccountId: expected)) { _changed(); }
+      else { error = 'account'; _notify(); }
     } catch (_) { error = 'account'; _notify(); }
   }
 

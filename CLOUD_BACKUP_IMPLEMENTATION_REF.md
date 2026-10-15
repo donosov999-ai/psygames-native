@@ -1,5 +1,11 @@
 # PsyGames cloud backup — implementation checkpoint
 
+CURRENT shared candidate:ecosystem.account/1-draft.2 / ecosystem_account0.1.1.
+Supersedes draft.1 locally after independently reproduced Smart Alarm R1/R2.
+Full review/evidence:ACCOUNT_REVIEW_R1_R2_20261016_REF.md. 48 focused tests pass,
+host/package analyzers clean. Not four-app accepted, not runtime-connected or released.
+Historical draft.1/hash checkpoints below are retained as history, not current approval.
+
 Owner: psygames-codex-mac. Task bb2c9f30-d786-4fe6-b25c-4b2ace267d4b.
 Checkout: /Users/denisonosov/dev/psygames-game-lab/testflight-fixes-20261011.
 Branch codex/cloud-backup-20261015. NOT released or runtime-connected yet.

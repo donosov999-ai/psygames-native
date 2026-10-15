@@ -9,6 +9,8 @@ import 'package:psygames_flutter/shell/cloud_backup.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'support/account_fixtures.dart';
+
 class _Vault implements AccountVault {
   final data = <String, String>{};
   @override Future<String?> read(String key) async => data[key];
@@ -31,13 +33,10 @@ void main() {
     state = await SharedState.open();
     final vault = _Vault();
     // Synthetic, unexpired fixture. No actual account, token, email or network.
-    vault.data['ecosystem.account.v1.psygames.session'] = jsonEncode({
-      'access_token': 'test-only-not-a-jwt', 'refresh_token': 'fixture-only',
-      'token_type': 'bearer', 'user': {'id': 'owner-1'},
-    });
     account = EcosystemAccount(appId: 'psygames', url: 'https://example.supabase.co',
       publishableKey: 'fixture-public', callback: Uri.parse('com.psygames.app://auth/callback'),
       vault: vault, transport: MockClient(respond));
+    vault.data['${account.storageNamespace}.session'] = fixtureEnvelope(account, fixtureSession(id: 'owner-1'));
     backup = CloudBackup(state, account);
     await backup.start();
     expect(await account.resume(consent: true), true);
@@ -119,5 +118,36 @@ void main() {
     reply.complete(response(request, {'payload': {'schema': 1, 'createdAt': '2026-10-16T00:00:00Z', 'data': {}}}));
     await cancelled;
     expect(state.get('psygames_tokens_v1'), '{"nzt48":75}');
+  });
+
+  test('PsyGames automatic startup cannot reuse A consent for cached B', () async {
+    var requests = 0;
+    await setup((r) async { requests++; return response(r, []); });
+    backup.dispose();
+    account.suspend();
+    await state.set(CloudBackup.accountKey, 'different-owner-A');
+    // Setup's encrypted session belongs to owner-1 (B), not the consent owner.
+    backup = CloudBackup(state, account);
+    await backup.start();
+    expect(account.accountId, isNull);
+    expect(account.active, false);
+    expect(backup.error, 'account');
+    expect(requests, 0);
+    expect(state.get('psygames_tokens_v1'), '{"nzt48":75}');
+  });
+
+  test('PsyGames missing consent owner cannot start account recovery/upload', () async {
+    var requests = 0;
+    await setup((r) async { requests++; return response(r, []); });
+    backup.dispose();
+    account.suspend();
+    await state.remove(CloudBackup.accountKey);
+    backup = CloudBackup(state, account);
+    await backup.start();
+    expect(account.accountId, isNull);
+    expect(account.active, false);
+    expect(backup.error, 'account');
+    expect(requests, 0);
+    expect(state.get('psygames_sudoku_level_women'), '79');
   });
 }
