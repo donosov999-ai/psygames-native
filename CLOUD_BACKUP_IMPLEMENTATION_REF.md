@@ -1,6 +1,11 @@
 # PsyGames cloud backup — implementation checkpoint
 
 CURRENT shared candidate:ecosystem.account/1-draft.3 / ecosystem_account0.1.2.
+16.10 owner review update:Smart Alarm and Chess & Go explicitly agree on exact
+0040152/640febbb (independent30 and27 tests, not summed); formal PsyGames/TypeFree
+answers and environment ownership remain outstanding. Actionable proposed owner,
+Free-only testauthority and testbuild route:ACCOUNT_PILOT_DECISION_20261016.md.
+No proposed environment/account feature enabled by this documentation update.
 Supersedes draft.2 locally after independently reproduced Chess R3. R1/R2 remain
 fixed in the tested cases. Full evidence:ACCOUNT_REVIEW_R3_20261016_REF.md.
 58 focused tests pass, host/package analyzers clean. Not four-app accepted,
