@@ -36,6 +36,12 @@ class _ColdFake extends PilotFake implements CloudColdCallbackGateway {
   }
 }
 
+class _ResumeColdFake extends _ColdFake implements CloudResumeGateway {
+  final recovery = Completer<bool>();
+  @override
+  Future<bool> resumeBackup() => recovery.future;
+}
+
 void main() {
   late SharedState state;
   late Directory dir;
@@ -124,6 +130,38 @@ void main() {
     },
   );
   testWidgets(
+    'two startup URIs retain the second when the first has no pending intent',
+    (tester) async {
+      await state.set(CloudPilot.consentKey, '1');
+      final fake = _ResumeColdFake()
+        ..checks = [Future.value(false), Future.value(true)];
+      final pilot = CloudPilot(state, fake);
+      final stream = StreamController<Uri>.broadcast();
+      final navigator = GlobalKey<NavigatorState>();
+      await tester.pumpWidget(
+        CloudLinkHost(
+          runtime: PsyGamesCloudRuntime(pilot, stream.stream),
+          navigatorKey: navigator,
+          child: MaterialApp(
+            navigatorKey: navigator,
+            home: const Scaffold(body: Text('home')),
+          ),
+        ),
+      );
+      stream.add(Uri.parse('com.psygames.app://auth/callback?code=old'));
+      await tester.pump();
+      stream.add(Uri.parse('com.psygames.app://auth/callback?code=current'));
+      await tester.pump();
+      fake.recovery.complete(false);
+      await tester.pumpAndSettle();
+      expect(pilot.stage, CloudPilotStage.history);
+      expect(fake.calls, ['callback', 'versions']);
+      expect(fake.checks, isEmpty);
+      await tester.pumpWidget(const SizedBox());
+      await stream.close();
+    },
+  );
+  testWidgets(
     'cold link opens native preview in the same app, without upload',
     (tester) async {
       final fake = _ColdFake();
@@ -144,6 +182,37 @@ void main() {
       await tester.pumpAndSettle();
       expect(pilot.stage, CloudPilotStage.history);
       expect(find.text(L.t('cloudPilotHistory')), findsOneWidget);
+      expect(fake.calls, ['callback', 'versions']);
+      await tester.pumpWidget(const SizedBox());
+      await stream.close();
+    },
+  );
+
+  testWidgets(
+    'initial URI waits for saved-consent recovery instead of being discarded as busy',
+    (tester) async {
+      await state.set(CloudPilot.consentKey, '1');
+      final fake = _ResumeColdFake();
+      final pilot = CloudPilot(state, fake);
+      final stream = StreamController<Uri>.broadcast();
+      final navigator = GlobalKey<NavigatorState>();
+      await tester.pumpWidget(
+        CloudLinkHost(
+          runtime: PsyGamesCloudRuntime(pilot, stream.stream),
+          navigatorKey: navigator,
+          child: MaterialApp(
+            navigatorKey: navigator,
+            home: const Scaffold(body: Text('home')),
+          ),
+        ),
+      );
+      expect(pilot.busy, true);
+      stream.add(Uri.parse('com.psygames.app://auth/callback?code=x'));
+      await tester.pump();
+      expect(fake.calls, isEmpty);
+      fake.recovery.complete(false);
+      await tester.pumpAndSettle();
+      expect(pilot.stage, CloudPilotStage.history);
       expect(fake.calls, ['callback', 'versions']);
       await tester.pumpWidget(const SizedBox());
       await stream.close();
@@ -177,8 +246,10 @@ void main() {
     'native callback registration and startup order match exact SDK scope',
     () {
       final main = File('lib/main.dart').readAsStringSync();
-    expect(main.indexOf('await PsyGamesCloudRuntime.applyPending(state)'),
-      lessThan(main.indexOf('await LegacyImport.seedIfEmpty(state)')));
+      expect(
+        main.indexOf('await PsyGamesCloudRuntime.applyPending(state)'),
+        lessThan(main.indexOf('await LegacyImport.seedIfEmpty(state)')),
+      );
       expect(
         main.indexOf('await PsyGamesCloudRuntime.applyPending(state)'),
         lessThan(

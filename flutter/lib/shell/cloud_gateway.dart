@@ -47,6 +47,8 @@ class PsyGamesCloudGateway
   String? _ownedIntent;
   @override
   String? acknowledgedContent;
+  @override
+  bool get hasPendingSave => _pending != null;
   ({Map<String, dynamic> payload, int base, String id})? _pending;
 
   String get _writeKey =>

@@ -94,6 +94,32 @@ class PilotFake implements CloudPilotGateway {
   }
 }
 
+class DurablePilotFake extends PilotFake
+    implements CloudResumeGateway, CloudAcknowledgedGateway {
+  DurablePilotFake(this.state);
+  final SharedState state;
+  @override
+  String? acknowledgedContent;
+  @override
+  bool hasPendingSave = false;
+  String? pendingContent;
+  @override
+  Future<bool> resumeBackup() async {
+    accountId = 'test-owner';
+    return true;
+  }
+
+  @override
+  Future<void> save({required bool keepLocalAfterConflict}) async {
+    await super.save(keepLocalAfterConflict: keepLocalAfterConflict);
+    acknowledgedContent =
+        pendingContent ??
+        jsonEncode(CloudSnapshot.capture(state.snapshot()).data);
+    hasPendingSave = false;
+    pendingContent = null;
+  }
+}
+
 void main() {
   late SharedState state;
   late CloudPilot pilot;
@@ -357,6 +383,58 @@ void main() {
       expect(state.get('psygames_sudoku_level_women'), '78');
     },
   );
+
+  test(
+    're-enable backs up progress made while OFF without another gameplay write',
+    () async {
+      pilot.dispose();
+      final durable = DurablePilotFake(state)
+        ..acknowledgedContent = jsonEncode(
+          CloudSnapshot.capture(state.snapshot()).data,
+        );
+      gateway = durable;
+      pilot = CloudPilot(state, gateway);
+      await signedIn();
+      await pilot.confirmHistory();
+      await pilot.disable();
+      await state.set('psygames_tokens_v1', '200');
+      await signedIn();
+      await pilot.confirmHistory();
+      gateway.calls.clear();
+      await pilot.flushChanges();
+      expect(gateway.calls, ['save', 'versions']);
+      expect(
+        jsonDecode(durable.acknowledgedContent!)['psygames_tokens_v1'],
+        '200',
+      );
+    },
+  );
+
+  test('resume reconciles pending B even when current A equals last acknowledged A', () async {
+    pilot.dispose();
+    final current = CloudSnapshot.capture(state.snapshot());
+    final durable = DurablePilotFake(state)
+      ..acknowledgedContent = jsonEncode(current.data)
+      ..hasPendingSave = true
+      ..pendingContent = jsonEncode({
+        ...current.data,
+        'psygames_tokens_v1': '200',
+      });
+    gateway = durable;
+    pilot = CloudPilot(state, gateway);
+    await state.set(CloudPilot.consentKey, '1');
+    await pilot.resumeExisting();
+    gateway.calls.clear();
+    await pilot.flushChanges();
+    expect(
+      jsonDecode(durable.acknowledgedContent!)['psygames_tokens_v1'],
+      '200',
+    );
+    expect(state.get('psygames_tokens_v1'), '{"women":100}');
+    await pilot.flushChanges();
+    expect(gateway.calls, ['save', 'versions', 'save', 'versions']);
+    expect(durable.acknowledgedContent, jsonEncode(current.data));
+  });
 
   test('changed progress flushes once after consent; OFF and metadata do not upload', () async {
     await state.set('psygames_tokens_v1', '120');

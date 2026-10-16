@@ -105,15 +105,16 @@ class _CloudLinkHostState extends State<CloudLinkHost>
   StreamSubscription<Uri>? _subscription;
   bool _handling = false;
   Uri? _queued;
+  Future<void> _startup = Future.value();
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _startup = widget.runtime?.pilot.resumeExisting() ?? Future.value();
     _subscription = widget.runtime?.links.listen(
       (uri) => unawaited(_link(uri)),
       onError: (Object _) {},
     );
-    unawaited(widget.runtime?.pilot.resumeExisting());
   }
 
   @override
@@ -146,6 +147,9 @@ class _CloudLinkHostState extends State<CloudLinkHost>
       while (next != null && mounted) {
         final current = next;
         _queued = null;
+        // Clear BEFORE waiting so a newer URI arriving during recovery survives.
+        await _startup;
+        if (!mounted) return;
         await _process(runtime, current);
         next = _queued;
       }

@@ -37,6 +37,7 @@ abstract interface class CloudResumeGateway {
 
 abstract interface class CloudAcknowledgedGateway {
   String? get acknowledgedContent;
+  bool get hasPendingSave;
 }
 
 enum CloudPilotStage {
@@ -81,11 +82,14 @@ class CloudPilot extends ChangeNotifier {
   bool _dirty = false;
 
   String _content() => jsonEncode(CloudSnapshot.capture(state.snapshot()).data);
+  bool get _hasPendingSave =>
+      gateway is CloudAcknowledgedGateway &&
+      (gateway as CloudAcknowledgedGateway).hasPendingSave;
 
   void _changed() {
     if (_disposed || !enabled || !_bound || conflict) return;
     try {
-      if (_content() == _savedContent) return;
+      if (!_hasPendingSave && _content() == _savedContent) return;
     } catch (_) {
       // A backup limit or serialization error must not break a gameplay write.
       errorKey = 'cloudPilotError';
@@ -127,7 +131,7 @@ class CloudPilot extends ChangeNotifier {
       _savedContent = gateway is CloudAcknowledgedGateway
           ? (gateway as CloudAcknowledgedGateway).acknowledgedContent
           : _content();
-      _dirty = _content() != _savedContent;
+      _dirty = _hasPendingSave || _content() != _savedContent;
     });
     if (enabled && _dirty) _changed();
   }
@@ -270,14 +274,17 @@ class CloudPilot extends ChangeNotifier {
       if (!_current(generation)) return;
       if (!_bound) throw StateError('Account changed');
       stage = CloudPilotStage.ready;
-      _savedContent = _content();
-      _dirty = false;
+      _savedContent = gateway is CloudAcknowledgedGateway
+          ? (gateway as CloudAcknowledgedGateway).acknowledgedContent
+          : _content();
+      _dirty = _hasPendingSave || _content() != _savedContent;
     });
     if (!accepted && _current(generationBefore)) {
       await disable();
       errorKey = 'cloudPilotError';
       _notify();
     }
+    if (accepted && enabled && _dirty) _changed();
   }
 
   Future<void> save({bool keepLocalAfterConflict = false}) async {
