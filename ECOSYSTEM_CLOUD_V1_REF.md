@@ -47,6 +47,23 @@ Own TypeFree worker-card pending, formal Claude parent не закрыт. G1/G3 
 
 ### Последующий checkpoint Smart Alarm — 16.10
 
+Новее среза0e61 ниже: code0470eddf9f0a52bbf84f9ec25087f998e22570f3,
+docsHEADf0b094d8af6df74aed8e0a4e2e84fc5fa6f82d15/clean. Лично сверены HEAD,
+host diff и новый SHA256 того же report:
+e20b55289516dd89fb1fa26f9e095ae4a3d70b212c6a505a5aeccf0be7458003.
+Исправлен host CAS: durable scoped own ACK7 не заменяется listlatest23,
+следующий save идёт base7/conflict; отдельный RU/EN выбор основы требует confirm,
+не делает upload/restore, pending блокирует выбор. SharedSOURCE не менялся.
+Лично сверены hashes логов account-transfer-20261016:
+cas-frozen-full.log c9302111131a9fc4f5d9e5a4fbe0231ceae4595e5a24d24fce53a1bd27236f89,
+cas-red-asserted.log b07c93370badb35e530913b958887488ec030cf31d70318670794148b06eb9dd,
+cas-focused-final.log 07d1c8573c66678dfa60d8f48f018c9df6b209565edf38765635aa252df82446,
+cas-analyze.log 9308d02b3b371a0f6512cd460b4351963197a36679ac0e641d5a6ced0e3efbde.
+Tail нового full log1062PASS/12SKIPPED прочитан, это авторский прогон, не rerun
+этим чатом. Предыдущий1061 относится только к0e61. Изначальный red PASS был
+ложным из-за assertion внутри mock HTTP; исправленный red проверяет отправленную
+base снаружи SDK handler. Device/backend/store acceptance всё ещё не заявлены.
+
 Владелец smart-alarm-codex-mac сообщил code0e61b252d8d0705223fbcaa4eb8b67fc381a0388,
 docsHEAD45b979b72d4ae91fd7e49bfe157f3677f4693e7e. Здесь независимо read-only сверены
 HEAD/clean Git, diff трёх файлов и SHA256 его ACCOUNT_CLOUD_V1_REVIEW_057C.md:
