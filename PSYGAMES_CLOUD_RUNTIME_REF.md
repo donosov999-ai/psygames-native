@@ -3,6 +3,10 @@
 16.10.2026 · psygames-codex-mac · bb2c9f30-d786-4fe6-b25c-4b2ace267d4b остаётся OPEN.
 Checkout /Users/denisonosov/dev/psygames-game-lab/testflight-fixes-20261011,
 branch codex/cloud-release-2-56-29 (прежняя cloud-backup-20261015 — история).
+Новый кандидат2.56.30: branchcodex/cloud-support-20261016,
+ECOSYSTEM_ACCOUNT_DRAFT5_PIN.md / SOURCE6ef80e0565a91b160fbd180f07b5920d9cb1b789.
+Он меняет SDKpin наdraft.5 только для собственной PsyGames-кандидатной интеграции;
+следующее описание неизменногоSOURCE057c относится к уже выпущенной2.56.29.
 Это НЕ public/released облако; выпуск кода с флагом OFF отслеживается отдельно
 в CLOUD_RELEASE_2_56_29_REF.md / TeamOps a44a3d53-3676-4ca2-8e4e-9a7e3c4b518b.
 Общий пакет по-прежнему SOURCE057c03d7ba770fbee934918eddb87a88c28d0082,

@@ -21,6 +21,7 @@ Auth0.1.4/cloud0.1.1 + account deletion UI; это НЕ прежний frozen SO
 чужие ACK на draft.4 не переносятся. G2_RECEIPT_20261016.json: backend deployed,
 HTTP10checks и realFlutterVM backend roundtrip PASS, всё synthetic очищено.
 Hostcandidate ещё не main/store, physical PKCE/device acceptance отсутствует.
+Новый source/pin: ECOSYSTEM_ACCOUNT_DRAFT5_PIN.md (6ef80e0565a91b160fbd180f07b5920d9cb1b789).
 
 G1service prerequisite584a68fd ВЫПОЛНЕН16.10: service write PASS, старый anon RPC
 отклонён, target ACL закрыты; G1_RECEIPT_20261016.json. G2backend выполнен,
