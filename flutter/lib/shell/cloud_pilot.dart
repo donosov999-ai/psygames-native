@@ -40,6 +40,10 @@ abstract interface class CloudAcknowledgedGateway {
   bool get hasPendingSave;
 }
 
+abstract interface class CloudAccountDeletionGateway {
+  Future<void> deleteAccount();
+}
+
 enum CloudPilotStage {
   local,
   explanation,
@@ -395,6 +399,27 @@ class CloudPilot extends ChangeNotifier {
       removed = _current(generation);
     });
     if (removed) await disable();
+  }
+
+  bool get canDeleteAccount =>
+      enabled && _bound && gateway is CloudAccountDeletionGateway;
+
+  /// Explicit UI confirmation covers the shared account, not just this app.
+  /// Failure can follow successful session revocation, so reconnect explicitly.
+  Future<void> deleteAccount() async {
+    if (!canDeleteAccount || busy) return;
+    final generation = _generation;
+    var confirmed = false;
+    await _run((_) async {
+      await (gateway as CloudAccountDeletionGateway).deleteAccount();
+      confirmed = _current(generation);
+    });
+    if (!_current(generation)) return;
+    await disable();
+    if (!confirmed) {
+      errorKey = 'cloudPilotAccountDeleteError';
+      _notify();
+    }
   }
 
   @override

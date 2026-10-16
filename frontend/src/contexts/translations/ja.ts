@@ -1,6 +1,9 @@
 // AUTO-GENERATED translation overlay (ja). Источник: транскреация с EN-базы (856 ключей).
 // Не править руками — регенерировать. Нужна вычитка нативом до сторов.
 const t: Record<string, string> = {
+  cloudPilotDeleteAccount: "共通アカウントを削除",
+  cloudPilotDeleteAccountWarning: "共通アカウントと、PsyGames、Smart Alarm、Chess & Go、TypeFreeのクラウド上のコピーが完全に削除されます。各端末に保存された進捗はそのまま残ります。他のアプリでは再度ログインが必要になります。この操作は取り消せません。",
+  cloudPilotAccountDeleteError: "アカウントの削除を確認できませんでした。端末内の進捗は安全に保たれています。再試行する前に、もう一度ログインしてください。",
   cloudPilotTitle: "クラウドバックアップ",
   cloudPilotTest: "試験運用 · PsyGames",
   cloudPilotOn: "クラウドバックアップはオンです",

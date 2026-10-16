@@ -12,9 +12,11 @@ working REF hash отличается от frozen SOURCE REF ожидаемо, S
 
 ## Актуальный host checkpoint: release candidate 2.56.29 — 16.10
 
-Backend checkpoint11:53UTC: G1 выполнен и проверен (G1_RECEIPT_20261016.json),
-G3 callbacks зарегистрированы. G2 deletion и пользовательская end-to-end приёмка
-ещё не завершены. Cloud2.56.29 остаётся OFF; offline Sudoku correction primitive
+Backend checkpoint12:04UTC: G1 выполнен и проверен (G1_RECEIPT_20261016.json),
+G3 callbacks зарегистрированы. G2 backend deletion deployed и synthetic HTTP+
+realFlutterVM host roundtrip PASS (G2_RECEIPT_20261016.json); новый draft.5 host
+ещё не merge/store и physicalPKCE/device приёмки нет. Cloud2.56.29 остаётся OFF;
+offline Sudoku correction primitive
 не является готовой удалённой поддержкой и не менял данные Вали.
 
 Product source3c4658752ad4f4f11f4abe8229637114c4ee3dc5; PR349 head

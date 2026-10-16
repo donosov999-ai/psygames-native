@@ -11,7 +11,7 @@ import 'package:psygames_flutter/shell/settings_screen.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'cloud_pilot_test.dart' show PilotFake;
+import 'cloud_pilot_test.dart' show PilotFake, DeletingPilotFake;
 
 void main() {
   late SharedState state;
@@ -23,12 +23,13 @@ void main() {
     bool largeText = false,
     bool settings = false,
     bool configured = true,
+    bool deletion = false,
   }) async {
     SharedPreferences.setMockInitialValues({
       'psygames_sudoku_level_women': '78',
     });
     state = await SharedState.open();
-    gateway = PilotFake();
+    gateway = deletion ? DeletingPilotFake() : PilotFake();
     pilot = CloudPilot(state, gateway);
     PackageInfo.setMockInitialValues(
       appName: 'PsyGames',
@@ -196,6 +197,36 @@ void main() {
       expect(gateway.calls.contains('delete'), true);
       expect(pilot.stage, CloudPilotStage.local);
       expect(state.get('psygames_sudoku_level_women'), '78');
+    },
+  );
+
+  testWidgets(
+    'shared account deletion names all apps and requires confirmation',
+    (t) async {
+      await open(t, deletion: true);
+      await signedIn(t);
+      await tap(t, 'cloud-confirm-history');
+      await tap(t, 'cloud-delete-account');
+      expect(find.text(L.t('cloudPilotDeleteAccountWarning')), findsOneWidget);
+      for (final name in [
+        'PsyGames',
+        'Smart Alarm',
+        'Chess & Go',
+        'TypeFree',
+      ]) {
+        expect(L.t('cloudPilotDeleteAccountWarning'), contains(name));
+      }
+      expect(gateway.calls.contains('delete-account'), false);
+      await t.tap(find.text(L.t('btn_cancel')));
+      await t.pumpAndSettle();
+      expect(gateway.calls.contains('delete-account'), false);
+      await tap(t, 'cloud-delete-account');
+      await tap(t, 'cloud-delete-account-confirm');
+      expect(gateway.calls.contains('delete-account'), true);
+      expect(gateway.calls.contains('delete'), false);
+      expect(pilot.stage, CloudPilotStage.local);
+      expect(state.get('psygames_sudoku_level_women'), '78');
+      expect(t.takeException(), isNull);
     },
   );
 

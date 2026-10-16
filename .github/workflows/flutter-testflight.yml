@@ -14,6 +14,10 @@ name: Flutter → TestFlight (гибрид, вручную)
 on:
   workflow_dispatch:
     inputs:
+      cloud:
+        description: 'Включить добровольное облако (требуется настроенный public client key)'
+        type: boolean
+        default: false
       version:
         description: 'Версия — ПУСТО значит из frontend/app.json (одна линия на все сборки)'
         required: false
@@ -36,6 +40,13 @@ jobs:
     timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
+
+      - name: Явная конфигурация облака без серверных ключей
+        env:
+          CLOUD_ENABLED: ${{ inputs.cloud }}
+          PSY_SUPABASE_URL: https://iuvvheeocobhiothfgei.supabase.co
+          PSY_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.PSY_SUPABASE_PUBLISHABLE_KEY }}
+        run: node scripts/cloud-support/build-defines.mjs "$RUNNER_TEMP/psygames-cloud.json"
 
       - uses: actions/setup-node@v4
         with:
@@ -208,7 +219,8 @@ jobs:
             <key>uploadSymbols</key><true/>
           </dict></plist>
           PLIST
-          flutter build ipa --release --export-options-plist="$RUNNER_TEMP/ExportOptions.plist"
+          flutter test --no-pub test/cloud_build_config_test.dart --dart-define-from-file="$RUNNER_TEMP/psygames-cloud.json"
+          flutter build ipa --release --dart-define-from-file="$RUNNER_TEMP/psygames-cloud.json" --export-options-plist="$RUNNER_TEMP/ExportOptions.plist"
 
       # 🔴 ДВИЖОК ДОЕХАЛ ДО БИНАРНИКА? Проверяем ДО заливки, а не после.
       # Линковка молчит, когда движок выпадает: сборка зелёная, размер

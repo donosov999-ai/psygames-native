@@ -19,7 +19,8 @@ class PsyGamesCloudGateway
         CloudPilotGateway,
         CloudColdCallbackGateway,
         CloudResumeGateway,
-        CloudAcknowledgedGateway {
+        CloudAcknowledgedGateway,
+        CloudAccountDeletionGateway {
   PsyGamesCloudGateway({
     required this.state,
     required this.account,
@@ -136,6 +137,18 @@ class PsyGamesCloudGateway
     validatePayload: (envelope) =>
         CloudSnapshot.decode(jsonEncode(envelope['data'])),
   )..allowHistoryRead();
+
+  @override
+  Future<void> deleteAccount() async {
+    final generation = _generation;
+    _guard(generation);
+    try {
+      await account.deleteAccount(confirmAllApps: true);
+      _guard(generation);
+    } finally {
+      if (generation == _generation) suspend();
+    }
+  }
 
   @override
   Future<bool> resumeBackup() async {

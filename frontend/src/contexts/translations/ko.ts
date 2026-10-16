@@ -1,6 +1,9 @@
 // AUTO-GENERATED translation overlay (ko). Источник: транскреация с EN-базы (856 ключей).
 // Не править руками — регенерировать. Нужна вычитка нативом до сторов.
 const t: Record<string, string> = {
+  cloudPilotDeleteAccount: "공통 계정 삭제",
+  cloudPilotDeleteAccountWarning: "공통 계정과 PsyGames, Smart Alarm, Chess & Go, TypeFree의 클라우드 사본이 영구적으로 삭제됩니다. 각 기기에 저장된 로컬 진행 상황은 그대로 유지됩니다. 다른 앱에서는 다시 로그인해야 합니다. 이 작업은 취소할 수 없습니다.",
+  cloudPilotAccountDeleteError: "계정 삭제가 확인되지 않았습니다. 로컬 진행 상황은 안전합니다. 다시 시도하기 전에 다시 로그인하세요.",
   cloudPilotTitle: "클라우드 백업",
   cloudPilotTest: "시범 운영 · PsyGames",
   cloudPilotOn: "클라우드 백업이 켜져 있습니다",

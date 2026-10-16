@@ -90,7 +90,7 @@ class EcosystemAccount {
     }
   }
 
-  static const contract = 'ecosystem.account/1-draft.4';
+  static const contract = 'ecosystem.account/1-draft.5';
   // One lane/active owner per namespace within the host isolate. A replacement
   // instance cannot ACK new credentials ahead of the old instance's slow write.
   static final _lanes = <String, _CredentialLane>{};
@@ -112,12 +112,13 @@ class EcosystemAccount {
   Future<void> get _persistQueue => _lane.tail;
   bool _allowed = false;
   bool _loggingOut = false;
+  bool _deletingAccount = false;
   bool _credentialsReady = false;
   String? _boundSubject;
   int _generation = 0;
 
   bool _currentAttempt(int generation) =>
-    _allowed && !_loggingOut && generation == _generation;
+    _allowed && !_loggingOut && !_deletingAccount && generation == _generation;
 
   void _activate() {
     final previous = _owners[storageNamespace];
@@ -196,6 +197,11 @@ class EcosystemAccount {
 
   bool _networkAllowed(http.BaseRequest request) {
     if (!_allowed || request.url.origin != Uri.parse(url).origin) return false;
+    if (_deletingAccount) {
+      return request.method == 'POST' &&
+        request.url.path == '/functions/v1/ecosystem-account-delete' &&
+        request.url.query.isEmpty;
+    }
     if (_loggingOut) return request.url.path == '/auth/v1/logout';
     final session = _client?.auth.currentSession;
     if (session != null && _sessionSubject(session.toJson()) != _boundSubject) return false;
@@ -348,6 +354,7 @@ class EcosystemAccount {
     if (identical(_owners[storageNamespace], this)) _owners.remove(storageNamespace);
     _allowed = false;
     _loggingOut = false;
+    _deletingAccount = false;
     _credentialsReady = false;
     _boundSubject = null;
     _generation++;
@@ -393,5 +400,42 @@ class EcosystemAccount {
     suspend();
     await _persistQueue.catchError((Object _) {});
     await _retireQueue;
+  }
+
+  /// Destructive, shared across all four apps. The host MUST separately explain
+  /// and confirm the scope. This never erases local app data or exposes a JWT.
+  /// After dispatch, even an ambiguous failure requires a fresh sign-in: the
+  /// server may already have revoked sessions. A later account B is untouched.
+  Future<void> deleteAccount({required bool confirmAllApps}) async {
+    if (!confirmAllApps || accountId == null || _deletingAccount) {
+      throw StateError('Explicit shared-account confirmation required');
+    }
+    final c = _sdk;
+    final generation = _generation;
+    _deletingAccount = true;
+    c.auth.stopAutoRefresh();
+    var acknowledged = false;
+    var retired = false;
+    try {
+      final result = await c.functions.invoke('ecosystem-account-delete', body: {
+        'confirm': 'DELETE_ACCOUNT', 'scope': 'all_ecosystem_apps',
+      }).timeout(const Duration(seconds: 70));
+      acknowledged = generation == _generation && result.status == 200 &&
+        result.data is Map && result.data['code'] == 'ACCOUNT_DELETED';
+    } catch (_) {
+      // Do not relay provider bodies, credentials or target IDs to host/logs.
+    } finally {
+      if (generation == _generation) {
+        suspend();
+        final removalGeneration = _generation;
+        await _mutateCredentials(removalGeneration,
+          () => vault.remove(_sessionKey), allowInactive: true);
+        await _retireQueue;
+        retired = removalGeneration == _generation;
+      }
+    }
+    if (!acknowledged || !retired) {
+      throw StateError('Account deletion not confirmed; sign in to retry');
+    }
   }
 }

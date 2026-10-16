@@ -1,9 +1,10 @@
 # Public cloud rollout — отдельные разрешения Дениса
 
 16.10.2026 · G1 APPLIED / SERVICE WRITE AND DENIAL CHECKS VERIFIED.
-G2 proposed; G3 AUTHORIZED / APPLIED / UI READBACK VERIFIED 16.10.2026.
+G2 BACKEND APPLIED / SYNTHETIC HTTP AND REAL FLUTTER VM VERIFIED;
+G3 AUTHORIZED / APPLIED / UI READBACK VERIFIED 16.10.2026.
 Основной исполнитель создал needs-decision 75d600c9-65d6-4c82-9f49-2476438d30be.
-G1 переключён и target ACL закрыты; G2 не развёрнут; G3 добавил ровно три redirect URL.
+G1 переключён и target ACL закрыты; G2 backend развёрнут; G3 добавил ровно три redirect URL.
 Существующее local implementation ТЗ действует, public cloud OFF.
 Среда: существующий personal-nzt (`iuvvheeocobhiothfgei`),
 https://iuvvheeocobhiothfgei.supabase.co; это общая база, не staging.
@@ -162,6 +163,18 @@ grants/grant options/grantors. Это снова открывает прежни
 
 ## G2. Общий account deletion — отдельный backend/UX proposal
 
+Актуально12:04UTC: отдельное «Да, разверни и проверь на тестовом аккаунте»
+получено (TeamOps5f16d468). Edgeecosystem-account-delete v1 ACTIVE, live-session
+guard deployed ledger20261016120124. Реальные HTTP10checksPASS: all-four cascade,
+no-token/arbitrary-owner denial, oldsession replay denial, other synthetic owner
+untouched. Отдельный настоящий Flutter VM host+SDK выполнил resume/save2copies/
+preview/restart-restore/safety-copy/account-delete; balance заменён, не сложен,
+pet/inventory сохранены. Все собственные testusers/copies удалены, SQL0remaining.
+G2_RECEIPT_20261016.json содержит доказательства и границы. Локальный host/SDK/UI
+candidate draft.5 ещё не merge/released. Ни физический телефон, ни PKCE этим
+не проверены. Следующий текст — исходный контракт; UNAVAILABLE относится к
+прежнему SOURCE057c/draft.4 и релизу2.56.29, не к новому локальному кандидату.
+
 Сейчас `deleteAccount` остаётся UNAVAILABLE. Не подменять удалением копий одного app.
 Предлагается server-only операция по явному повторному подтверждению: «Удалить
 общий аккаунт и облачные копии всех четырёх приложений; локальные данные останутся».
@@ -269,10 +282,10 @@ device PKCE/чужой callback/OFF проверки каждого host. Нов
 
 [G1] ВЫПОЛНЕНО16.10: защищённый writer, переключение и target-only ACL проверены. Не повторять cutover/REVOKE. Receipt: G1_RECEIPT_20261016.json; задача584a68fd. Public cloud всё ещё OFF.
 
-[G2] Одобрить отдельный план server-only deployment общего account deletion по G2 после legacy-cascade/UX review и синтетической приёмки; локальная разработка уже разрешена, реальные аккаунты не удалять по этому пункту (ref: этот файл, G2) · подготовить проверяемый endpoint/hosts contract, пока кнопки UNAVAILABLE · откат: выключить endpoint/UI, удалённые данные автоматически не восстановить → рекомендую: Делать.
+[G2] РАЗРЕШЕНО И BACKEND ВЫПОЛНЕН16.10 (5f16d468): synthetic HTTP+FlutterVM PASS, cleanup0. Host/SDK/UI candidate ещё не выпущен. Откат — отключить endpoint/UI; удалённые аккаунты автоматически не восстановить. Живых пользователей ради теста не удаляли.
 
 [G3] РАЗРЕШЕНО И ВЫПОЛНЕНО16.10: три exact URI добавлены, before1→after4/UI success; Site URL и PsyGames URI сохранены. Отдельного разрешения на письма/login/uploads/public enable нет. Откат при отдельном решении — удалить только эти три реально новые URI, не исходный PsyGames/чужие последующие изменения (ref: 75d600c9, G3_RECEIPT_20261016.json).
 
 «Делать» означает согласование указанного плана; документ сам не является
-server-change authorization. Прямой ответ Дениса получен для G1 и G3, не для G2;
+server-change authorization. Прямой ответ Дениса теперь получен для G1, G2 и G3;
 никаких задач/сообщений для его получения sidecar не создавал.

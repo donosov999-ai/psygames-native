@@ -2,6 +2,9 @@
 // 493 ключей, переведены с английской базы. Не править руками — регенерировать воркфлоу.
 // Вычитка: Claude 12.06.2026 (skillAttention/skillFocus swap, 序列记忆, 主访问码). При регенерации воркфлоу — НЕ затирать, мерджить через git diff.
 const t: Record<string, string> = {
+  cloudPilotDeleteAccount: "删除通用账号",
+  cloudPilotDeleteAccountWarning: "这将永久删除你的通用账号，以及 PsyGames、Smart Alarm、Chess & Go 和 TypeFree 中的云端副本。各设备上的本地进度将保留。你需要在其他应用中重新登录。此操作无法撤销。",
+  cloudPilotAccountDeleteError: "未能确认账号删除。你的本地进度是安全的。请重新登录后再试。",
   cloudPilotTitle: "云端备份",
   cloudPilotTest: "试点测试 · PsyGames",
   cloudPilotOn: "云端备份已开启",
