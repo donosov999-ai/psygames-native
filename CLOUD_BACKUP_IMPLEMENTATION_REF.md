@@ -1,5 +1,13 @@
 # PsyGames cloud backup — implementation checkpoint
 
+LATEST owner decision16.10:Denis approved Free-only isolated test environment
+and psygames-codex-mac as technical pilot backend owner; app owners and formal
+parent executor unchanged. This is no longer a pending user choice.
+Separate current scheme:ECOSYSTEM_ACCOUNT_BACKEND_REF.md.
+No environment created or runtime cloud enabled by this documentation change.
+Local PsyGames UI/fake work can proceed without other-owner/provisioning gates.
+The owner/environment-pending wording in earlier checkpoints below is history.
+
 CURRENT shared candidate:ecosystem.account/1-draft.3 / ecosystem_account0.1.2.
 16.10 owner review update:Smart Alarm and Chess & Go explicitly agree on exact
 0040152/640febbb (independent30 and27 tests, not summed); formal PsyGames/TypeFree
