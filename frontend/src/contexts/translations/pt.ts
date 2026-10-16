@@ -2,6 +2,7 @@
 // 493 ключей, переведены с английской базы. Не править руками — регенерировать воркфлоу.
 // zh/hi — машинное качество, нужна вычитка нативом до сторов.
 const t: Record<string, string> = {
+  sudokuPracticeBadge: "Prática",
   // Scoped manually authored translations; not workflow-generated output.
   nativeScreenModelFailed: "Não foi possível carregar os dados da tela",
   nativeScreenModelRetryHint: "Tente carregar novamente ou volte à tela inicial.",

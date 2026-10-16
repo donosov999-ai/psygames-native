@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'restart_scope.dart';
 import 'game_preset.dart';
 import 'warmup_owner.dart';
+import 'lesson.dart';
 
 /// Каркас игрового экрана — перенос GameShell из React-версии PsyGames.
 ///
@@ -32,9 +33,14 @@ class GameShell extends StatelessWidget {
     this.pauseActions = const [],
     this.levelRule,
     this.fieldOnly = false,
+    this.practice,
   });
 
   final String title;
+
+  /// Null uses the shared scoring flag. Games with their own durable attempt
+  /// state (Sudoku) supply it explicitly, including after restoration.
+  final bool? practice;
 
   /// Игра получает высоту поля и рисует доску под неё.
   final Widget Function(BuildContext context, double fieldHeight) field;
@@ -104,6 +110,7 @@ class GameShell extends StatelessWidget {
 
   Map<String, Object?> _feedbackState() => {
         'title': title,
+        'practice': practice ?? LessonUsed.inRound,
         if (levelRule != null) 'level': levelRule!.level,
         if (hud.isNotEmpty) 'hud': {for (final h in hud) h.label: h.value},
       };
@@ -121,6 +128,7 @@ class GameShell extends StatelessWidget {
                 builder: (context, c) => field(context, c.maxHeight),
               ),
             ),
+            Positioned(top: 8, left: 12, child: _practiceHud(fieldOnly: true)),
             Positioned(
               top: 8,
               right: 12,
@@ -177,7 +185,7 @@ class GameShell extends StatelessWidget {
               levelRuleTitle: hasRule ? L.t(LevelRules.textKey(spot.gameId, ruleKey, 'title')) : null,
               onLevelRule: hasRule ? () => showLevelRule(context, spot.gameId, ruleKey) : null,
             ),
-            if (hud.isNotEmpty) _HudRow(items: hud),
+            _practiceHud(),
             Expanded(
               // Ключ нужен пробам: по нему меряется, вписалась ли доска в поле.
               // Без него проверить это снаружи нечем — `Wrap` и `Stack` о
@@ -204,6 +212,22 @@ class GameShell extends StatelessWidget {
       )),
     );
   }
+
+  Widget _practiceHud({bool fieldOnly = false}) => ValueListenableBuilder<bool>(
+    valueListenable: LessonUsed.changes,
+    builder: (context, sharedPractice, _) {
+      final isPractice = practice ?? sharedPractice;
+      final items = <HudItem>[
+        if (!fieldOnly) ...hud,
+        if (isPractice) HudItem(
+          label: L.t('sudokuPracticeOnly'),
+          value: L.t('sudokuPracticeBadge'),
+          icon: Icons.school_outlined,
+        ),
+      ];
+      return items.isEmpty ? const SizedBox.shrink() : _HudRow(items: items);
+    },
+  );
 
   Widget _withFeedback(Widget body) {
     // HybridApp уже публикует общую память здесь; отдельного хранилища нет.

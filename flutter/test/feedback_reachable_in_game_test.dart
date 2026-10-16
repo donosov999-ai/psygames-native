@@ -92,6 +92,7 @@ void main() {
     await tester.tap(find.byKey(const Key('game-feedback')));
     expect(seen, {
       'title': 'Anagrams',
+      'practice': false,
       'hud': {'Level': '12', 'Errors': '1/3'},
     });
   });
