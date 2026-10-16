@@ -52,6 +52,18 @@ G1 записано в TeamOps: 02892b01-09aa-4067-bab8-d30ac64e37db. Новог
 срок 16.10.2026, parent bb2c9f30-d786-4fe6-b25c-4b2ace267d4b.
 Создание задачи не означает принятия/выполнения адресатом.
 
+Последующая сверка этой существующей задачи и журнала: status=planned,
+notes=null, личного ответа/ACK по584a68fd и подтверждённого нового writer contract
+не найдено. Карточка teamops-claude-mac active с адресом
+local_8ddc92b5-8281-4d8f-aafa-a4ce25d443c5, но last_seen=09.10.2026;
+это проверяемый адрес в реестре, НЕ доказательство доступности/получения.
+Не создавать повторную задачу и не считать planned/accepted service ACK.
+Конкретный prerequisite: текущий уполномоченный владелец37.60/i18n-api должен
+подтвердить server-only identity с минимальным EXECUTE, cutover и rollback.
+До такого подтверждения менять foreign production/env/роли или повторно
+запрашивать уже одобренный target-only G1 нельзя. Заявления других app owners
+не заменяют этот service contract. Дубликаты и новый ping не отправлены.
+
 Повторные metadata-only SQL подтвердили исходные ACL ниже, отсутствие явных
 column ACL, memberships anon/authenticated/service_role и dependent views.
 `translation_status_set` source MD5=f1dea3e75c9d045b8697a527b7790c60;
@@ -168,6 +180,41 @@ expired/revoked token отклоняются; all-four cascade, отсутств
 | Chess & Go | `com.abstracthub.app://auth/callback` | Proposed, не зарегистрирован |
 | TypeFree | `pro.typefree.app://auth/callback` | Local host/native config и compile evidence сверены по ACCOUNT_NATIVE_HOST_20261016.md (SHA256 f891ee43c5137e0e3b340fc0534d77906b3d2dfe044c443146e495c68373096f); реального device/Auth proof нет, server НЕ зарегистрирован |
 
+### Готовое предложение G3 в существующую задачу75d600c9
+
+Финальный TypeFree178-test candidate/report/patch/APK уже получен и сверён:
+ACCOUNT_NATIVE_INTEGRATION_CONTINUED_20261016.md, SHA256
+8b8c11c6c912ca8b688c3a3fe2e54da5f1f32feb015c34de7c03bcfa46db27b1.
+Ожидание его финального локального отчёта больше не является gate.
+Это не подтверждение реального входа и не разрешение G3.
+
+Лично read-only сверены native scheme и runtime host/path:
+
+| App | scheme | host | path | Проверенные локальные источники |
+|---|---|---|---|---|
+| Smart Alarm | com.odv999.smartalarm | auth | /callback | /Users/denisonosov/dev/smart-alarm-photo-diary/smart-alarm-flutter/{ios/Runner/Info.plist,android/app/src/main/AndroidManifest.xml,lib/core/account_callback.dart} |
+| Chess & Go | com.abstracthub.app | auth | /callback | /Users/denisonosov/dev/chessgo-wt-synapse/{ios/Runner/Info.plist,android/app/src/main/AndroidManifest.xml,lib/account/account_connection.dart,lib/account/shared_account_gateway.dart} |
+| TypeFree | pro.typefree.app | auth | /callback | /Users/denisonosov/dev/typerighting-wt-account-20261016/{src-tauri/tauri.conf.json,src/account-host.ts} + native compile receipt |
+
+iOS/Tauri scheme registration сама по себе не ограничивает host/path: эту
+проверку делают указанные runtime guards. Синтаксис URI/compile не равен
+подтверждению доставки deep link на физическом устройстве.
+
+При разрешении только G3: прочитать актуальный allowlist, вычислить set-diff
+ровно этих трёх URL; сохранить все существующие URL (включая PsyGames), Site URL,
+providers/прочие Auth settings. Не применять старый полный список поверх новых
+параллельных изменений. При обнаружении concurrent drift — перечитать и
+пересогласовать diff, не перетирать. Повторное применение должно быть no-op.
+Readback: добавлены только отсутствовавшие согласованные exact URL, старые
+на месте. Rollback удаляет только URL, реально добавленные этой операцией,
+не исходные совпадения и не чужие последующие добавления. Без wildcard.
+
+Единственный следующий запрос Денису по G3: «Разрешаешь добавить эти три точных
+адреса возврата в Supabase, сохранив остальные настройки, без писем, реального
+входа, загрузки прогресса и включения облака пользователям?»
+G1 security / G2 deletion / G3 callbacks / public rollout / store release —
+разные gates. Разрешение G3 не закрывает service prerequisite584a68fd.
+
 Без wildcard, смены Site URL, новых providers или перезаписи всего redirect list.
 Перед apply сверить exact native scheme/host/path с владельцами и текущий список
 метаданными; записать before/after. Код exchange query `?code=...` не часть
@@ -184,7 +231,7 @@ device PKCE/чужой callback/OFF проверки каждого host. Нов
 
 [G2] Одобрить отдельный план server-only deployment общего account deletion по G2 после legacy-cascade/UX review и синтетической приёмки; локальная разработка уже разрешена, реальные аккаунты не удалять по этому пункту (ref: этот файл, G2) · подготовить проверяемый endpoint/hosts contract, пока кнопки UNAVAILABLE · откат: выключить endpoint/UI, удалённые данные автоматически не восстановить → рекомендую: Делать.
 
-[G3] Разрешить psygames-codex-mac после exact native подтверждений добавить в Auth redirect allowlist personal-nzt только согласованные URL из G3; TypeFree добавлять лишь после его финального native proof/подтверждения, без писем и регистраций (ref: этот файл, G3) · сохранить existing redirects, проверить metadata diff · откат: удалить только новые согласованные добавления → рекомендую: Делать.
+[G3] Разрешить psygames-codex-mac добавить ровно три exact URL из G3 (локальные native/runtime подтверждения и финальный TypeFree candidate уже сверены), без писем/регистраций/реального входа/uploads/public enable (ref: 75d600c9, этот файл G3) · сохранить existing redirects/Site URL/прочие Auth settings, проверить metadata diff · откат: удалить только реально новые согласованные добавления → рекомендую: Делать.
 
 «Делать» означает согласование указанного плана; документ сам не является
 server-change authorization. Прямой ответ Дениса получен для G1, не для G2/G3;
