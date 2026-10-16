@@ -39,12 +39,18 @@ cold URI arriving while startup recovery is busy. Exact regression tests added.
 
 ## Verification
 
-- Initial scoped 176 Flutter tests PASS/analyzer clean; final rerun after three
-  review fixes is recorded in _local/ecosystem-cloud/release-2.56.29-tests.txt.
-- Current targeted gateway/pilot/runtime:50 PASS. Real SDK + synthetic HTTP/vault,
+- Initial scoped 176 Flutter tests PASS/analyzer clean; final frozen-source rerun:
+  180 PASS, zero failures/skips; analyzer clean. Log:
+  _local/ecosystem-cloud/release-2.56.29-final-tests.txt,
+  SHA256 9e47776c6f890d5c7e1893986fbcf4dbb82549b94bc1c1c4d6ef574d7b4d57ae.
+- Real SDK + synthetic HTTP/vault,
   NOT physical devices or live backend.
 - Frontend tsc and RU/EN release-notes gate PASS before final source update.
 - Full PR and merged-main CI must pass before dispatch; old-head runs are not final evidence.
+- CI38879608176 caught an internal host address in CLOUD_PUBLIC_ROLLOUT_GATES.md.
+  Removed both full address and prefix from the public document; the no-infra
+  guard remains unchanged. Earlier public commits are not scrubbed by this edit;
+  no credentials were involved. Final-head full CI must rerun after the correction.
 - No local native heavy build: disk headroom is small and shared. Signed artifacts
   use existing GitHub Actions runners/workflows.
 

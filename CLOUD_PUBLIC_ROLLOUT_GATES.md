@@ -30,7 +30,8 @@ G1 записано в TeamOps: 02892b01-09aa-4067-bab8-d30ac64e37db. Новог
 
 До изменения прав найден НЕ гипотетический, а работающий клиент с ролью anon:
 
-- Read-only SSH на 37.60.245.18: `systemctl is-active i18n-api.service` → active.
+- Read-only SSH на служебном узле (адрес только в закрытой TeamOps-задаче):
+  `systemctl is-active i18n-api.service` → active.
 - Прочитан `/root/i18n/i18n_api.py`: `SB_KEY` берётся из `SUPABASE_ANON`;
   `write_status` передаёт этот ключ как apikey/Bearer в
   `/rest/v1/rpc/translation_status_set`.
@@ -58,7 +59,7 @@ notes=null, личного ответа/ACK по584a68fd и подтверждё
 local_8ddc92b5-8281-4d8f-aafa-a4ce25d443c5, но last_seen=09.10.2026;
 это проверяемый адрес в реестре, НЕ доказательство доступности/получения.
 Не создавать повторную задачу и не считать planned/accepted service ACK.
-Конкретный prerequisite: текущий уполномоченный владелец37.60/i18n-api должен
+Конкретный prerequisite: текущий уполномоченный владелец i18n-api должен
 подтвердить server-only identity с минимальным EXECUTE, cutover и rollback.
 До такого подтверждения менять foreign production/env/роли или повторно
 запрашивать уже одобренный target-only G1 нельзя. Заявления других app owners
