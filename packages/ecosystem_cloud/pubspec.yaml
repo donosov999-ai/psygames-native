@@ -1,0 +1,11 @@
+name: ecosystem_cloud
+description: Owner-scoped app backup connector; no authentication or gameplay writer.
+version: 0.1.0
+publish_to: none
+environment:
+  sdk: ^3.13.4
+dependencies:
+  ecosystem_account:
+    path: ../ecosystem_account
+    version: 0.1.3
+  supabase: 2.16.5

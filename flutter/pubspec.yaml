@@ -71,6 +71,8 @@ dependencies:
   url_launcher: ^6.3.2
   ecosystem_account:
     path: ../packages/ecosystem_account
+  ecosystem_cloud:
+    path: ../packages/ecosystem_cloud
 
 dev_dependencies:
   http: 1.6.0

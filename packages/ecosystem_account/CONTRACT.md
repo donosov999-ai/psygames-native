@@ -1,8 +1,9 @@
-# Unified account — ecosystem.account/1-draft.3
+# Unified account — ecosystem.account/1-draft.4
 
 Status: candidate for owner review, NOT four-app acceptance or a public release.
-Package: ecosystem_account 0.1.2. Supersedes draft.2/b6de only as a NEW review
-candidate, not automatic acceptance. Current implementation is not runtime-connected.
+Package: ecosystem_account 0.1.3. Adds an explicit cold PKCE callback lifecycle
+to draft.3/0040152 as a NEW review candidate, not automatic acceptance.
+Current implementation is not runtime-connected in the published four apps.
 Owner of shared coordination: psygames-claude-mac, task
 f27599dc-31c9-4638-946d-ccb3270079bb. PsyGames implementation:
 psygames-codex-mac, bb2c9f30-d786-4fe6-b25c-4b2ace267d4b.
@@ -16,10 +17,10 @@ No identity merging by mascot name, nickname, PIN or device name.
 
 | Product | app_id | Integration status |
 |---|---|---|
-| PsyGames | psygames | Local candidate; no account UI/deep-link wiring yet |
-| Smart Alarm | smart-alarm | Readiness only; owner sign-off pending |
-| Chess & Go | abstract-hub | Readiness only; owner sign-off pending |
-| TypeFree / TypeRIGHTing | typerighting | Owner sign-off pending |
+| PsyGames | psygames | Local UI/controller and common Dart connector; runtime wiring pending |
+| Smart Alarm | smart-alarm | Owner host candidate; new exact-pin integration/review pending |
+| Chess & Go | abstract-hub | Owner host candidate; new exact-pin integration/review pending |
+| TypeFree / TypeRIGHTing | typerighting | Owner host candidate and common TS connector; protected AuthHost pending |
 
 Default LOCAL. Each app must obtain its OWN explicit, versioned, account-bound
 storage consent and history-link preview. Login alone is not progress consent.
@@ -35,6 +36,19 @@ separate explained actions. Shared-account deletion still needs a coordinated
 backend implementation before account creation is exposed publicly.
 
 ## Session API and security
+
+### Cold callback (new in draft.4)
+
+After process restart, validate the exact callback and recover the host's explicit
+login intent/consent first. Then call `prepareCallback(consent:true)` followed by
+`completeLink(uri)`. The preparation retires older SDK/generation capabilities,
+does not read the vault, recover a cached account, refresh a token or send HTTP.
+Only completion uses this app/issuer's protected PKCE verifier; success requires
+durable credential writes. Consent false, missing verifier, wrong callback and
+late OFF fail closed. Never use `resume()` to activate a cold callback: that may
+recover or refresh the unrelated cached account A before exchanging account B.
+Host consent/history upload decisions are still separate from login intent.
+This API addition does not retroactively change accepted draft.3 hashes.
 
 PKCE email-link login. Each app must register its own exact callback, without
 wildcards; neither access nor refresh tokens go in URLs, logs or exports.
@@ -52,7 +66,7 @@ No automatic cross-app credential sharing or
 silent single sign-on promised. The same verified login maps to the same account;
 each product may initially ask for sign-in confirmation.
 
-Public methods: resume(consent, expectedAccountId), requestLink(email, consent), acceptsCallback,
+Public methods: resume(consent, expectedAccountId), requestLink(email, consent), prepareCallback(consent), acceptsCallback,
 completeLink, flushCredentials, from(table), suspend, signOut, dispose.
 No raw Supabase SDK/auth/realtime client is exported. Returned REST builders use
 a consent-aware transport. suspend permanently revokes the old transport and

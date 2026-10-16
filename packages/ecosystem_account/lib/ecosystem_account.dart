@@ -90,7 +90,7 @@ class EcosystemAccount {
     }
   }
 
-  static const contract = 'ecosystem.account/1-draft.3';
+  static const contract = 'ecosystem.account/1-draft.4';
   // One lane/active owner per namespace within the host isolate. A replacement
   // instance cannot ACK new credentials ahead of the old instance's slow write.
   static final _lanes = <String, _CredentialLane>{};
@@ -299,6 +299,16 @@ class EcosystemAccount {
     final generation = _generation;
     await _sdk.auth.signInWithOtp(email: email.trim(), emailRedirectTo: callback.toString());
     if (!_currentAttempt(generation)) throw StateError('Login request superseded');
+  }
+
+  /// Explicit opt-in for a cold PKCE callback, never cached-session recovery.
+  /// Retire any older SDK/generation without reading the vault or creating an SDK.
+  /// completeLink will read only this app/issuer's verifier and durably commit
+  /// the exchanged identity through the normal credential lane.
+  void prepareCallback({required bool consent}) {
+    suspend();
+    if (!consent) throw StateError('Account network consent is OFF');
+    _activate();
   }
 
   bool acceptsCallback(Uri uri) => uri.scheme == callback.scheme && uri.host == callback.host &&

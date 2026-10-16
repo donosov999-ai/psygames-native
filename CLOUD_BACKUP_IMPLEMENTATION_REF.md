@@ -1,5 +1,14 @@
 # PsyGames cloud backup — implementation checkpoint
 
+АКТУАЛЬНО16.10: Денис выбрал существующий personal-nzt, не создание Free-среды.
+Новая shared миграция20261016022904 применена, новые consent/snapshots с RLS;
+SQL rollback и anon REST deny пройдены. Общие Dart/TS connectors реализованы,
+Auth0.1.3/draft.4 закрывает cold PKCE без cached-session resume.
+Текущий backend/host handoff: ECOSYSTEM_CLOUD_V1_REF.md.
+Прежние Free/environment/SDK unchanged checkpoints ниже — история.
+Публичное облако в четырёх приложениях ещё не включено; runtime adapter,
+device roundtrip, account deletion и exact-pin owner acceptance остаются.
+
 LATEST local UI16.10:CloudSettingsScreen + CloudPilot lifecycle/receipt + optional
 SettingsScreen injection implemented; 112 combined Flutter tests PASS, analyze clean,
 13 localization tests PASS, TypeScript clean, 12 languages generated.
