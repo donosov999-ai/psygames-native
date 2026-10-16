@@ -18,6 +18,33 @@ SOURCE057c03d7ba770fbee934918eddb87a88c28d0082. Это не formal closure чу�
 Claude-задач, не backend/device/public/store acceptance и не запуск синхронизации.
 Запись приёмки отчётов в TeamOps: 6416ba67-b27c-4c1e-b643-0aead96d1bbc.
 
+### Финальный continued checkpoint TypeFree — 16.10
+
+Промежуточное сообщение заменено полученным отчётом
+/Users/denisonosov/Documents/TeamOps/typerighting-onboarding/ACCOUNT_NATIVE_INTEGRATION_CONTINUED_20261016.md,
+SHA2568b8c11c6c912ca8b688c3a3fe2e54da5f1f32feb015c34de7c03bcfa46db27b1.
+Хеш отчёта лично сверён. В account-ui-evidence-20261016 рядом сверены:
+native-host-continued-receipt.json 522951f9b84820502eee9d2869a65dff835569393354773b93a89dbaa64d312c;
+typefree-account-continued.patch 56bb3d1d64f6ca9af95edf9da844f1653212982d9439b80789c38df5ab956c32.
+Read-only `git apply --reverse --check` полного patch PASS в TypeFree worktree
+на неизменном base754e5715143de25bc7722e70f3e757eee1ebd69d. Source uncommitted;
+ни чужой commit, ни merge/main/public acceptance этим не подтверждаются.
+
+Новый APK по прежнему пути app-universal-debug.apk имеет проверенный
+SHA2560f9595d935b28fcdde0f3894c46fa1d8b5d4a4db6f16aae26867afe722b6faf7;
+прежний APK9966b2c… — исторический, не этот кандидат. CloudOFF/configNull.
+Получены исправления host: bound default browser fetch; завершённая login operation
+больше не снимает подтверждённую сессию; поздняя A callback не отменяет новую B.
+Общий SOURCE057c не менялся. Это чужой host, в PsyGames правки не копировались.
+
+Лично прочитаны report/receipt и production mock-native-result.json: заявлены
+178unit/16files,24host и16 browser checks dev/compiled bundle, including ownACK21
+→ server28 → nextPOSTbase21/409 без потери local result. Здесь тесты/сборки не
+перезапускались. MOCK nativeIPC/HTTP + настоящий main/SDK/commonclient —
+не реальный backend/Auth, secure storage или физический телефон. Предыдущие
+iOS/vault compile checks автор переиспользует явно, не выдаёт за новый прогон.
+Own TypeFree worker-card pending, formal Claude parent не закрыт. G1/G3 остаются.
+
 ### Последующий checkpoint Smart Alarm — 16.10
 
 Владелец smart-alarm-codex-mac сообщил code0e61b252d8d0705223fbcaa4eb8b67fc381a0388,
