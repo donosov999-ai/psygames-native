@@ -11,6 +11,15 @@ PSYGAMES_CLOUD_RUNTIME_REF.md; shared package pin неизменен, public run
 Уточнённый legacy ACL/RPC gate: CLOUD_PUBLIC_ROLLOUT_GATES.md (не SELECT-only).
 Не путать готовый backend/библиотеки с работающим облаком в четырёх релизах.
 
+АКТУАЛЬНО после отдельного «да» Дениса16.10: G3 выполнен — три exact callback
+Smart Alarm/Chess & Go/TypeFree добавлены к прежнему PsyGames URI в Supabase;
+UI success/readback1→4, Site URL прежний. G3_RECEIPT_20261016.json и
+CLOUD_PUBLIC_ROLLOUT_GATES.md содержат before/after/rollback. Ниже checkpoints
+с фразами «G1/G3 остаются» относятся к состоянию ДО этого изменения.
+G1service prerequisite584a68fd и G2deletion остаются; public runtime OFF,
+реальных login/писем/uploads/device приёмки не было. Общий локальный public-client
+config в этом шаге не менялся: это не обещание connected pilot у четырёх приложений.
+
 ## Личные технические согласования 16.10 — только local integration
 
 Все четыре Codex-владельца дали личное техническое СОГЛАСЕН на exact общий
@@ -92,8 +101,8 @@ G1/G3 blockers остаются, defaultOFF и чужой ownership сохран
 | Smart Alarm | /Users/denisonosov/dev/smart-alarm-photo-diary/smart-alarm-flutter/ACCOUNT_CLOUD_V1_REVIEW_057C.md; report SHA2560d17a03aceb9916507cf6555a84aff4baebdf7eb7cc3d0fba12c2ccfbef3038d, docs f04cf02125f340648033065f77154b893284a8bb; frozen log hash/tail1058PASS/12SKIPPED сверены, не повторный прогон здесь. Restore только neutral cache256, не полный app backup/autosync. |
 | TypeFree | /Users/denisonosov/Documents/TeamOps/typerighting-onboarding/ACCOUNT_NATIVE_HOST_20261016.md; report SHA256f891ee43c5137e0e3b340fc0534d77906b3d2dfe044c443146e495c68373096f; receipt/patch hashes сверены, reverseapplycheckPASS на754e5715143de25bc7722e70f3e757eee1ebd69d. Source пока uncommitted, immutable patch7a629f390bbcd0f39b2c6f13ad3e774c5b706e312a8ad889f150ad48e98ea94f сохранён. Авторские175unit/141shared/2vault/AndroidAPK/iOScargocheck не присваивать этому чату как собственные/device tests. |
 
-TypeFree exact proposed callback теперь pro.typefree.app://auth/callback, локально
-проводка подтверждена его отчётом, server/config registration НЕ выполнялась.
+TypeFree exact callback pro.typefree.app://auth/callback подтверждён локально;
+server allowlist registration выполнена G3 (receipt выше), local config не менялся.
 Часть adaptive/settings данных TypeFree ещё не переносится; это не полный backup.
 Его pending TeamOps worker-card не активировалась нами, чужие задачи не закрывались.
 G1 Денис прямо разрешил 16.10.2026. Его live dependency preflight нашёл работающий
@@ -101,7 +110,8 @@ i18n-api.service с JWT role=anon и вызовом translation_status_set; REVO
 безопасного переключения сломает реестр переводов (ошибка там скрывается).
 Prerequisite координатору: 584a68fd-0b29-4db9-a0d5-7fad7700534e;
 подробности и metadata evidence в CLOUD_PUBLIC_ROLLOUT_GATES.md.
-G1 SQL ещё НЕ применён; G2/G3 (75d600c9) ждут прямого ответа Дениса.
+G1 SQL ещё НЕ применён; G2 (75d600c9) ждёт прямого ответа Дениса.
+G3 отдельно разрешён и выполнен, не требует повторного согласования URI.
 Личные ACK app owners не разрешают callbacks/users/письма/uploads/релизы.
 
 ## Решение и реально выполненное
@@ -211,11 +221,9 @@ settlement реального transport promise; busy = UNAVAILABLE, не server
    и проверены локально (PSYGAMES_CLOUD_RUNTIME_REF.md); заново их не собирать.
    Остаются выпуск/реальный Auth и устройство, согласованное автоматическое
    восстановление/резервирование вместо только ручного пилота, без второго wallet.
-2. Сейчас в Supabase разрешён только com.psygames.app://auth/callback.
-   Smart предложил com.odv999.smartalarm://auth/callback, Chess —
-   com.abstracthub.app://auth/callback: НЕ зарегистрированы. TypeFree подтвердил
-   pro.typefree.app://auth/callback в local native config/compile evidence;
-   G3 не одобрен, серверная регистрация НЕ выполнена.
+2. G3 server allowlist выполнен: PsyGames + Smart Alarm + Chess & Go + TypeFree,
+   четыре exact URL (G3_RECEIPT_20261016.json). Остались согласованные client config
+   и настоящие runtime/device проверки, не повторная регистрация тех же URI.
 3. Реальные warm/cold login → version/save → restart/restore и OFF/конфликт на
    устройствах, не mock. Новые письма/пользовательские uploads здесь не выполнялись.
 4. Общий account deletion и согласованный UX удаления четырёх наборов данных.

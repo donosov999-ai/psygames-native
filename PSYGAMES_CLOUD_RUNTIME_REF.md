@@ -87,7 +87,10 @@ flutter/build/test_cache ~69MiB (только compiler dill), flutter/build/unit
 ## Остаток — проект не закрыт
 
 До public activation: G1 legacy permissions/RPC review+защита, G2 account-deletion,
-G3 exact callback allowlists остальных app и разрешённый real login/device test.
+разрешённый real login/device test и согласованный client config.
+G3 exact callback allowlist выполнен16.10 по отдельному «да» Дениса:
+три URI добавлены к PsyGames, UI verified1→4; G3_RECEIPT_20261016.json.
+Это не real login/device test и не public enable.
 Needs-decision 75d600c9-65d6-4c82-9f49-2476438d30be,
 детали/impact/rollback: CLOUD_PUBLIC_ROLLOUT_GATES.md.
 G1 metadata выявила не только SELECT: anon/authenticated имеют DML/TRUNCATE на

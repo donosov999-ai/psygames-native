@@ -1,10 +1,10 @@
 # Public cloud rollout — отдельные разрешения Дениса
 
 16.10.2026 · G1 AUTHORIZED / BLOCKED BY CONFIRMED SERVICE DEPENDENCY / NOT EXECUTED.
-G2/G3 остаются proposed. Последняя фактическая проверка — ниже.
+G2 proposed; G3 AUTHORIZED / APPLIED / UI READBACK VERIFIED 16.10.2026.
 Основной исполнитель создал needs-decision 75d600c9-65d6-4c82-9f49-2476438d30be.
-Изменяющие серверные операции G1–G3 всё ещё НЕ выполнены;
-существующее local implementation ТЗ действует.
+G1 SQL не выполнен, G2 не развёрнут; G3 добавил ровно три redirect URL.
+Существующее local implementation ТЗ действует, public cloud OFF.
 Среда: существующий personal-nzt (`iuvvheeocobhiothfgei`),
 https://iuvvheeocobhiothfgei.supabase.co; это общая база, не staging.
 Канон: [REF](/Users/denisonosov/dev/psygames-game-lab/testflight-fixes-20261011/ECOSYSTEM_CLOUD_V1_REF.md:111),
@@ -169,24 +169,40 @@ expired/revoked token отклоняются; all-four cascade, отсутств
 простого rollback; отключение endpoint/кнопки предотвращает новые удаления, но не
 возвращает уже удалённые аккаунты/копии. Live users не удалять ради теста.
 
-## G3. Exact Auth redirect additions — пока НЕ зарегистрированы
+## G3. Exact Auth redirect additions — зарегистрированы 16.10.2026
+
+Прямое «да» Дениса на вопрос с тремя exact URI записано в TeamOps
+d59961aa-41c5-4826-ba5c-61eb6b87ff50. Выполнено через авторизованную Dashboard
+UI personal-nzt, поскольку доступный MCP не предоставляет Auth config update.
+URL: https://supabase.com/dashboard/project/iuvvheeocobhiothfgei/auth/url-configuration.
+
+Before: Site URL=http://localhost:3000, Redirect URLs содержит ТОЛЬКО
+com.psygames.app://auth/callback (Total URLs1).
+Через Add URL → три раздельных поля → Save URLs добавлены только URI из таблицы.
+After: UI toast «Successfully added 3 URLs», Total URLs4, все4 exact URI видимы;
+PsyGames URI и Site URL прежние. Другие Auth настройки не редактировались.
+Изменяющий SQL, письма/login/users/uploads и включение public cloud не выполнялись.
+Снимок: _local/ecosystem-cloud/g3-callbacks-20261016.jpg, SHA256
+63f24525ce6250deecdf6aabb9eab274f9244864875899ca17d35a4a8fe4a4a4;
+маленький viewport обрезает часть текста — exact readback также в G3_RECEIPT_20261016.json.
+Это acceptance конфигурации allowlist, НЕ PKCE/device/четыре-app runtime acceptance.
 
 По [канону:117–119](/Users/denisonosov/dev/psygames-game-lab/testflight-fixes-20261011/ECOSYSTEM_CLOUD_V1_REF.md:117)
 сохранить существующий `com.psygames.app://auth/callback`; добавить только:
 
 | Host | Exact redirect URL proposal | Состояние |
 |---|---|---|
-| Smart Alarm | `com.odv999.smartalarm://auth/callback` | Proposed, не зарегистрирован |
-| Chess & Go | `com.abstracthub.app://auth/callback` | Proposed, не зарегистрирован |
-| TypeFree | `pro.typefree.app://auth/callback` | Local host/native config и compile evidence сверены по ACCOUNT_NATIVE_HOST_20261016.md (SHA256 f891ee43c5137e0e3b340fc0534d77906b3d2dfe044c443146e495c68373096f); реального device/Auth proof нет, server НЕ зарегистрирован |
+| Smart Alarm | `com.odv999.smartalarm://auth/callback` | Добавлен; UI readback verified |
+| Chess & Go | `com.abstracthub.app://auth/callback` | Добавлен; UI readback verified |
+| TypeFree | `pro.typefree.app://auth/callback` | Добавлен; UI readback verified; реального device/Auth proof нет |
 
-### Готовое предложение G3 в существующую задачу75d600c9
+### Обоснование и принятый план G3 (история предложения)
 
 Финальный TypeFree178-test candidate/report/patch/APK уже получен и сверён:
 ACCOUNT_NATIVE_INTEGRATION_CONTINUED_20261016.md, SHA256
 8b8c11c6c912ca8b688c3a3fe2e54da5f1f32feb015c34de7c03bcfa46db27b1.
 Ожидание его финального локального отчёта больше не является gate.
-Это не подтверждение реального входа и не разрешение G3.
+Сам отчёт не разрешал G3; отдельное разрешение Дениса и результат теперь выше.
 
 Лично read-only сверены native scheme и runtime host/path:
 
@@ -209,7 +225,7 @@ Readback: добавлены только отсутствовавшие сог�
 на месте. Rollback удаляет только URL, реально добавленные этой операцией,
 не исходные совпадения и не чужие последующие добавления. Без wildcard.
 
-Единственный следующий запрос Денису по G3: «Разрешаешь добавить эти три точных
+Исторический запрос Денису по G3 (ответ «да» уже получен): «Разрешаешь добавить эти три точных
 адреса возврата в Supabase, сохранив остальные настройки, без писем, реального
 входа, загрузки прогресса и включения облака пользователям?»
 G1 security / G2 deletion / G3 callbacks / public rollout / store release —
@@ -231,8 +247,8 @@ device PKCE/чужой callback/OFF проверки каждого host. Нов
 
 [G2] Одобрить отдельный план server-only deployment общего account deletion по G2 после legacy-cascade/UX review и синтетической приёмки; локальная разработка уже разрешена, реальные аккаунты не удалять по этому пункту (ref: этот файл, G2) · подготовить проверяемый endpoint/hosts contract, пока кнопки UNAVAILABLE · откат: выключить endpoint/UI, удалённые данные автоматически не восстановить → рекомендую: Делать.
 
-[G3] Разрешить psygames-codex-mac добавить ровно три exact URL из G3 (локальные native/runtime подтверждения и финальный TypeFree candidate уже сверены), без писем/регистраций/реального входа/uploads/public enable (ref: 75d600c9, этот файл G3) · сохранить existing redirects/Site URL/прочие Auth settings, проверить metadata diff · откат: удалить только реально новые согласованные добавления → рекомендую: Делать.
+[G3] РАЗРЕШЕНО И ВЫПОЛНЕНО16.10: три exact URI добавлены, before1→after4/UI success; Site URL и PsyGames URI сохранены. Отдельного разрешения на письма/login/uploads/public enable нет. Откат при отдельном решении — удалить только эти три реально новые URI, не исходный PsyGames/чужие последующие изменения (ref: 75d600c9, G3_RECEIPT_20261016.json).
 
 «Делать» означает согласование указанного плана; документ сам не является
-server-change authorization. Прямой ответ Дениса получен для G1, не для G2/G3;
+server-change authorization. Прямой ответ Дениса получен для G1 и G3, не для G2;
 никаких задач/сообщений для его получения sidecar не создавал.
