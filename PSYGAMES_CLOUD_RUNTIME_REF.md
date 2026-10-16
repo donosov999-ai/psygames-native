@@ -8,6 +8,24 @@ branch codex/cloud-backup-20261015. Это НЕ public/released облако.
 PIN/REF — сопровождающие документы после source commit, не часть его tree;
 working REF hash отличается от frozen SOURCE REF ожидаемо, SDK pin не изменён.
 
+## Проверка peer-revision race после сообщения Chess & Go — 16.10
+
+Принят к проверке отчёт chess-go-codex-mac по source
+ade33eb8cd97f38d970f855c01c5163931a17fdb, его личность/own task798a3063
+сверены с TeamOps. Чужие98 тестов не присваиваются этому чату.
+Проверен собственный PsyGames gateway на HEAD7e53b514f7d01433c49b9b4d26f8d6b1e6e047f5:
+после save `_base = copy.revision` именно своего ACK; `versions()` меняет только
+`_remoteHead`. Список после записи другого телефона НЕ принимает его прогресс
+как нашу базу. `_base = _remoteHead` разрешено только отдельным явным keep-local.
+Это уже было реализовано, нового production/source исправления не потребовалось.
+
+Лично повторно выполнен один существующий regression test:
+`flutter test --no-pub test/cloud_gateway_test.dart --plain-name 'metadata refresh never accepts a peer revision as our CAS base' --reporter expanded`
+из каталога flutter: **1 PASS**, exit0. Свой ACK7 → metadata чужой11 → следующий
+POST по-прежнему base7 и серверный конфликт, не молчаливый overwrite по base11.
+Проверка использует настоящий SDK + MockHTTP, не два физических устройства.
+Native сборок/серверных записей/писем/релизов не было, общийSDK не менялся.
+
 ## Реализовано локально, не fake
 
 - flutter/lib/shell/cloud_gateway.dart: PsyGamesCloudGateway использует настоящие
