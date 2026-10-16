@@ -131,7 +131,7 @@ void main() {
       expect(gateway.calls, isEmpty);
       await pilot.disable();
       expect(gateway.calls, ['suspend']);
-      expect(state.get(CloudBackup.consentKey), '0');
+      expect(state.get(CloudPilot.consentKey), '0');
       expect(state.get('psygames_sudoku_level_women'), '78');
     },
   );
@@ -150,7 +150,7 @@ void main() {
     await signedIn();
     expect(pilot.stage, CloudPilotStage.history);
     expect(gateway.calls, ['link', 'callback', 'versions']);
-    expect(state.get(CloudBackup.consentKey), isNull);
+    expect(state.get(CloudPilot.consentKey), isNull);
     expect(state.get(CloudPilot.receiptKey), isNull);
     await pilot.save();
     expect(gateway.calls.contains('save'), false);
@@ -162,7 +162,7 @@ void main() {
       await signedIn();
       await pilot.confirmHistory();
       expect(pilot.enabled, true);
-      expect(state.get(CloudBackup.consentKey), '1');
+      expect(state.get(CloudPilot.consentKey), '1');
       final receipt = jsonDecode(state.get(CloudPilot.receiptKey)!) as Map;
       expect(receipt['app_id'], 'psygames');
       expect(receipt['account_id'], 'test-owner');
@@ -181,7 +181,7 @@ void main() {
     gateway.failEnable = true;
     await pilot.confirmHistory();
     expect(pilot.stage, CloudPilotStage.local);
-    expect(state.get(CloudBackup.consentKey), '0');
+    expect(state.get(CloudPilot.consentKey), '0');
     expect(state.get(CloudPilot.receiptKey), isNull);
     expect(state.get('psygames_tokens_v1'), '{"women":100}');
     expect(pilot.errorKey, 'cloudPilotError');
@@ -219,7 +219,7 @@ void main() {
     gateway.issuer = 'https://other.example/auth/v1';
     await pilot.confirmHistory();
     expect(gateway.calls.contains('enable'), false);
-    expect(state.get(CloudBackup.consentKey), isNull);
+    expect(state.get(CloudPilot.consentKey), isNull);
   });
 
   test(
@@ -269,7 +269,7 @@ void main() {
     await pilot.previewVersion(pilot.versions.first);
     await pilot.confirmRestore();
     expect(pilot.stage, CloudPilotStage.restorePrepared);
-    expect(state.get(CloudBackup.consentKey), '0');
+    expect(state.get(CloudPilot.consentKey), '0');
     expect(
       gateway.calls.indexOf('suspend'),
       lessThan(gateway.calls.indexOf('prepare')),
@@ -315,7 +315,7 @@ void main() {
     gateway.pendingEnable!.complete();
     await enable;
     expect(pilot.stage, CloudPilotStage.local);
-    expect(state.get(CloudBackup.consentKey), '0');
+    expect(state.get(CloudPilot.consentKey), '0');
     expect(state.get(CloudPilot.receiptKey), isNull);
     expect(state.get('psygames_tokens_v1'), '{"women":100}');
   });
@@ -329,7 +329,7 @@ void main() {
     gateway.pendingEnable!.complete();
     await enable;
     expect(pilot.stage, CloudPilotStage.local);
-    expect(state.get(CloudBackup.consentKey), '0');
+    expect(state.get(CloudPilot.consentKey), '0');
     expect(state.get(CloudPilot.receiptKey), isNull);
   });
 

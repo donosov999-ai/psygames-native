@@ -189,13 +189,21 @@ class _CloudSettingsScreenState extends State<CloudSettingsScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(L.t('cloudPilotHistoryHint')),
-                  if (_p.versions.isEmpty) Text(L.t('cloudPilotNoCopies')),
+                  if (_p.historyLoaded && _p.versions.isEmpty)
+                    Text(L.t('cloudPilotNoCopies')),
+                  if (!_p.historyLoaded || _p.errorKey != null)
+                    _button(
+                      'cloud-refresh-history',
+                      L.t('retry'),
+                      () => unawaited(_p.refreshHistory()),
+                    ),
                   for (final version in _p.versions) _copy(version),
                   if (_p.stage == CloudPilotStage.history && _p.preview == null)
                     _button(
                       'cloud-confirm-history',
                       L.t('cloudPilotEnable'),
                       () => unawaited(_p.confirmHistory()),
+                      active: _p.historyLoaded,
                     ),
                   if (_p.enabled) ...[
                     _button(

@@ -73,6 +73,8 @@ dependencies:
     path: ../packages/ecosystem_account
   ecosystem_cloud:
     path: ../packages/ecosystem_cloud
+  app_links: 7.2.2
+  flutter_secure_storage: 11.2.0
 
 dev_dependencies:
   http: 1.6.0

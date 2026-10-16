@@ -6,6 +6,9 @@ f27599dc-31c9-4638-946d-ccb3270079bb остаётся у psygames-claude-mac.
 Checkout: /Users/denisonosov/dev/psygames-game-lab/testflight-fixes-20261011.
 Это текущий источник handoff; прежние Free/readiness checkpoints исторические.
 Точный source commit/hashes: ECOSYSTEM_CLOUD_V1_PIN.md.
+PsyGames host теперь имеет local real adapter/native callback/startup restore:
+PSYGAMES_CLOUD_RUNTIME_REF.md; shared package pin неизменен, public runtime OFF.
+Уточнённый legacy ACL/RPC gate: CLOUD_PUBLIC_ROLLOUT_GATES.md (не SELECT-only).
 Не путать готовый backend/библиотеки с работающим облаком в четырёх релизах.
 
 ## Решение и реально выполненное

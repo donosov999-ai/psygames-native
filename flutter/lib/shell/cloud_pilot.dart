@@ -26,6 +26,11 @@ abstract interface class CloudPilotGateway {
   void suspend();
 }
 
+/// Optional persisted login-intent capability. Opening settings never calls it.
+abstract interface class CloudColdCallbackGateway {
+  Future<bool> hasPendingLogin(Uri uri);
+}
+
 enum CloudPilotStage {
   local,
   explanation,
@@ -43,6 +48,9 @@ class CloudPilot extends ChangeNotifier {
   CloudPilot(this.state, this.gateway);
 
   static const receiptKey = '${SharedState.prefix}cloud_consent_receipt_v1';
+  // Separate from legacy CloudBackup/frontend cloudConsent: enabling this
+  // shared backup must NOT start the old Web outbox/API as a second sender.
+  static const consentKey = '${SharedState.prefix}ecosystem_cloud_consent_v1';
   static const policyVersion = 1;
   final SharedState state;
   final CloudPilotGateway gateway;
@@ -52,6 +60,7 @@ class CloudPilot extends ChangeNotifier {
   String? errorKey;
   bool busy = false;
   bool conflict = false;
+  bool historyLoaded = false;
   int _generation = 0;
   bool _disposed = false;
   String? _owner;
@@ -122,19 +131,40 @@ class CloudPilot extends ChangeNotifier {
 
   /// Called by the future native deep-link host, not a paste-token UI.
   Future<void> completeLink(Uri uri) async {
-    if (stage != CloudPilotStage.linkSent) return;
+    final cold =
+        stage == CloudPilotStage.local && gateway is CloudColdCallbackGateway;
+    if (stage != CloudPilotStage.linkSent && !cold) return;
     await _run((generation) async {
+      if (cold &&
+          !await (gateway as CloudColdCallbackGateway).hasPendingLogin(uri)) {
+        return;
+      }
+      if (!_current(generation)) return;
       await gateway.completeLink(uri);
       if (!_current(generation)) return;
       final owner = gateway.accountId;
       if (owner == null) throw StateError('Missing account');
       _owner = owner;
       _issuer = gateway.issuer;
+      // The code is consumed and the account is bound already. A failed GET
+      // must offer metadata-only retry, never exchange this code a second time.
+      stage = CloudPilotStage.history;
+      historyLoaded = false;
       final rows = await gateway.versions();
       if (!_current(generation)) return;
       if (!_bound) throw StateError('Account changed');
       versions = List.unmodifiable(rows);
-      stage = CloudPilotStage.history;
+      historyLoaded = true;
+    });
+  }
+
+  Future<void> refreshHistory() async {
+    if ((stage != CloudPilotStage.history && !enabled) || !_bound) return;
+    await _run((generation) async {
+      final rows = await gateway.versions();
+      if (!_current(generation) || !_bound) return;
+      versions = List.unmodifiable(rows);
+      historyLoaded = true;
     });
   }
 
@@ -148,7 +178,9 @@ class CloudPilot extends ChangeNotifier {
   /// Explicit history-link choice. Existing remote data is never overwritten
   /// here; first save must still apply the existing CloudBackup conflict gate.
   Future<void> confirmHistory() async {
-    if (stage != CloudPilotStage.history || !_bound || busy) return;
+    if (stage != CloudPilotStage.history || !historyLoaded || !_bound || busy) {
+      return;
+    }
     final generationBefore = _generation;
     final accepted = await _run((generation) async {
       final receipt = jsonEncode({
@@ -165,7 +197,7 @@ class CloudPilot extends ChangeNotifier {
         if (!_current(generation) || !_bound) return;
         await state.set(CloudBackup.accountKey, _owner!);
         if (!_current(generation) || !_bound) return;
-        await state.set(CloudBackup.consentKey, '1');
+        await state.set(CloudPilot.consentKey, '1');
       });
       if (!_current(generation)) return;
       if (!_bound) throw StateError('Account changed');
@@ -223,7 +255,7 @@ class CloudPilot extends ChangeNotifier {
     final prepared = await _run((generation) async {
       // Pause outgoing saves BEFORE preparing the before/after journal.
       gateway.suspend();
-      await _write(() => state.set(CloudBackup.consentKey, '0'));
+      await _write(() => state.set(CloudPilot.consentKey, '0'));
       if (!_current(generation)) return;
       await gateway.prepareRestore(copy);
       if (_current(generation)) {
@@ -253,10 +285,11 @@ class CloudPilot extends ChangeNotifier {
     _issuer = null;
     preview = null;
     versions = const [];
+    historyLoaded = false;
     _notify();
     try {
       await _write(() async {
-        await state.set(CloudBackup.consentKey, '0');
+        await state.set(CloudPilot.consentKey, '0');
         await state.remove(receiptKey);
       });
     } catch (_) {

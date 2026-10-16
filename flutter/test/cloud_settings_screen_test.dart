@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:psygames_flutter/shell/app_look.dart';
-import 'package:psygames_flutter/shell/cloud_backup.dart';
 import 'package:psygames_flutter/shell/cloud_pilot.dart';
 import 'package:psygames_flutter/shell/cloud_settings_screen.dart';
 import 'package:psygames_flutter/shell/l10n.dart';
@@ -107,7 +106,7 @@ void main() {
       await tap(t, 'settings-cloud');
       expect(find.byType(CloudSettingsScreen), findsOneWidget);
       expect(gateway.calls, isEmpty);
-      expect(state.get(CloudBackup.consentKey), isNull);
+      expect(state.get(CloudPilot.consentKey), isNull);
     },
   );
 
@@ -116,7 +115,7 @@ void main() {
     (t) async {
       await open(t);
       expect(gateway.calls, isEmpty);
-      expect(state.get(CloudBackup.consentKey), isNull);
+      expect(state.get(CloudPilot.consentKey), isNull);
       expect(find.text('Data stays on this device'), findsOneWidget);
       await tap(t, 'cloud-begin');
       expect(find.byKey(const Key('cloud-data-explanation')), findsOneWidget);
@@ -133,11 +132,11 @@ void main() {
     await open(t);
     await signedIn(t);
     expect(pilot.stage, CloudPilotStage.history);
-    expect(state.get(CloudBackup.consentKey), isNull);
+    expect(state.get(CloudPilot.consentKey), isNull);
     expect(gateway.calls.contains('enable'), false);
     await tap(t, 'cloud-confirm-history');
     expect(pilot.enabled, true);
-    expect(state.get(CloudBackup.consentKey), '1');
+    expect(state.get(CloudPilot.consentKey), '1');
   });
 
   testWidgets('pending link leaves OFF tappable and ignores late success', (
