@@ -162,22 +162,25 @@ settlement реального transport promise; busy = UNAVAILABLE, не server
 
 ## Остаток до пользовательского включения
 
-1. Каждый владелец подключает точный новый pin к своему host и проверяет интерфейс;
-   чужие ответы/согласие не предполагаются. PsyGames UI пока опциональный gateway,
-   а не запущенная production-синхронизация. Нужны реальный host adapter, startup
-   restore до WebView/gameplay и native callback, без второго учёта наград/кошелька.
+1. Четыре local host checkpoint существуют, это не четыре production-подключения.
+   Собственные PsyGames real gateway/startup restore/native callback уже реализованы
+   и проверены локально (PSYGAMES_CLOUD_RUNTIME_REF.md); заново их не собирать.
+   Остаются выпуск/реальный Auth и устройство, согласованное автоматическое
+   восстановление/резервирование вместо только ручного пилота, без второго wallet.
 2. Сейчас в Supabase разрешён только com.psygames.app://auth/callback.
    Smart предложил com.odv999.smartalarm://auth/callback, Chess —
-   com.abstracthub.app://auth/callback: НЕ зарегистрированы; TypeFree уточняет свой.
+   com.abstracthub.app://auth/callback: НЕ зарегистрированы. TypeFree подтвердил
+   pro.typefree.app://auth/callback в local native config/compile evidence;
+   G3 не одобрен, серверная регистрация НЕ выполнена.
 3. Реальные warm/cold login → version/save → restart/restore и OFF/конфликт на
    устройствах, не mock. Новые письма/пользовательские uploads здесь не выполнялись.
 4. Общий account deletion и согласованный UX удаления четырёх наборов данных.
    До этого не открывать публичную регистрацию/релиз аккаунта.
-5. Перед публичным Auth проверить старые authenticated SELECT без RLS:
-   translation_status и bugfix_project_owner не открыты anon, но доступны роли
-   authenticated. Это метаданные разрешений, не чтение их содержимого и не
-   доказанный инцидент. Чужие ACL без владельца не менять. Старое billing warning
-   также не считать автоматически устранённым успешной миграцией.
+5. G1 разрешён; live-проверка двух legacy таблиц подтвердила не только auth SELECT,
+   но anon/auth DML/TRUNCATE/REFERENCES/TRIGGER/MAINTAIN и публичный writer RPC.
+   Найден работающий anon-consumer i18n; до безопасного переключения по задаче
+   584a68fd REVOKE не применять (CLOUD_PUBLIC_ROLLOUT_GATES.md).
+   Это не доказанный инцидент. Billing warning не считать устранённым миграцией.
 
 ## Проверки текущего кандидата
 

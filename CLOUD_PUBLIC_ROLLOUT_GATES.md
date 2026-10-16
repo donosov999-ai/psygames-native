@@ -166,7 +166,7 @@ expired/revoked token отклоняются; all-four cascade, отсутств
 |---|---|---|
 | Smart Alarm | `com.odv999.smartalarm://auth/callback` | Proposed, не зарегистрирован |
 | Chess & Go | `com.abstracthub.app://auth/callback` | Proposed, не зарегистрирован |
-| TypeFree | `pro.typefree.app://auth/callback` | Новый proposed URI от владельца TypeFree; итоговый host report/native proof ещё ожидается, НЕ зарегистрирован |
+| TypeFree | `pro.typefree.app://auth/callback` | Local host/native config и compile evidence сверены по ACCOUNT_NATIVE_HOST_20261016.md (SHA256 f891ee43c5137e0e3b340fc0534d77906b3d2dfe044c443146e495c68373096f); реального device/Auth proof нет, server НЕ зарегистрирован |
 
 Без wildcard, смены Site URL, новых providers или перезаписи всего redirect list.
 Перед apply сверить exact native scheme/host/path с владельцами и текущий список
