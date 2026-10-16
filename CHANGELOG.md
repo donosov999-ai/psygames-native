@@ -15,6 +15,14 @@ to a GitHub Release automatically.
 ---
 
 
+## [2.56.29] — 2026-10-16
+
+- Shared Auth/cloud libraries and app-owned gateway, protected callback and startup restore are integrated; cloud stays OFF in normal builds. This is not a public cloud launch.
+- A previously consented pilot can recover the exact account and server consent; changed portable state is debounced and may flush on backgrounding. Pending PKCE takes precedence over cached-session recovery.
+- Durable owner/issuer-scoped writes retain the exact request ID, payload and base through restart; peer metadata never becomes our acknowledged base. Local balances and inventories are replaced on confirmed restore, never added.
+- Server callback registrations for four apps are verified separately. G1 service migration, G2 account deletion and real Auth/device acceptance remain open; no new public access or user uploads are enabled by this build.
+- Released 2.56.28 practice/hint safeguards are preserved. Local cloud suite: 176 PASS, analyzer clean; release CI/store acceptance tracked separately.
+
 ## [2.56.28] — 2026-10-15
 
 - Общий Flutter-каркас показывает учебную отметку по реальному флагу зачёта; Sudoku передаёт собственное сохранённое состояние попытки.
