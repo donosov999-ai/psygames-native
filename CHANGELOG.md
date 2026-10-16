@@ -15,6 +15,14 @@ to a GitHub Release automatically.
 ---
 
 
+## [2.56.30] — 2026-10-16
+
+- Optional email sign-in and explicitly consented PsyGames cloud backups are enabled in the signed cloud=true builds. Local use remains available without an account; sign-in alone never enables backups.
+- Cloud copies include portable progress, settings, mascot name, earned points, point-funded inventory and bonuses. Confirmed restore replaces balances rather than adding them; recent snapshot versions and a local pre-restore safety copy are retained.
+- Shared-account deletion requires a separate all-four-app confirmation, removes the account and its cloud copies, and preserves local device progress. Its fixed native endpoint and revoked-session guard passed synthetic HTTP and real Flutter VM/backend checks; this is not a physical-device acceptance claim.
+- The narrowly approved i18n writer cutover and closure of its former public database privileges are complete. No unrelated service or real user data was changed.
+- Remote Sudoku support/unlock is a separate unfinished candidate and is not advertised as available in this release. The existing practice/hint safeguards are preserved.
+
 ## [2.56.29] — 2026-10-16
 
 - Shared Auth/cloud libraries and app-owned gateway, protected callback and startup restore are integrated; cloud stays OFF in normal builds. This is not a public cloud launch.
