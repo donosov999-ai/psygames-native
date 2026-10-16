@@ -12,6 +12,11 @@ working REF hash отличается от frozen SOURCE REF ожидаемо, S
 
 ## Актуальный host checkpoint: release candidate 2.56.29 — 16.10
 
+Backend checkpoint11:53UTC: G1 выполнен и проверен (G1_RECEIPT_20261016.json),
+G3 callbacks зарегистрированы. G2 deletion и пользовательская end-to-end приёмка
+ещё не завершены. Cloud2.56.29 остаётся OFF; offline Sudoku correction primitive
+не является готовой удалённой поддержкой и не менял данные Вали.
+
 Product source3c4658752ad4f4f11f4abe8229637114c4ee3dc5; PR349 head
 a31905702061299a7f06d3992041f530d2855863 содержит только последующую правку
 документов. Shared SDK неизменен. 180 scoped Flutter PASS/0failed/0skipped,

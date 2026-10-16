@@ -16,7 +16,9 @@ Smart Alarm/Chess & Go/TypeFree добавлены к прежнему PsyGames 
 UI success/readback1→4, Site URL прежний. G3_RECEIPT_20261016.json и
 CLOUD_PUBLIC_ROLLOUT_GATES.md содержат before/after/rollback. Ниже checkpoints
 с фразами «G1/G3 остаются» относятся к состоянию ДО этого изменения.
-G1service prerequisite584a68fd и G2deletion остаются; public runtime OFF,
+G1service prerequisite584a68fd ВЫПОЛНЕН16.10: service write PASS, старый anon RPC
+отклонён, target ACL закрыты; G1_RECEIPT_20261016.json. G2deletion остаётся;
+public runtime OFF,
 реальных login/писем/uploads/device приёмки не было. Общий локальный public-client
 config в этом шаге не менялся: это не обещание connected pilot у четырёх приложений.
 

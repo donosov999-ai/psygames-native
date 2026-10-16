@@ -1,9 +1,9 @@
 # Public cloud rollout — отдельные разрешения Дениса
 
-16.10.2026 · G1 AUTHORIZED / BLOCKED BY CONFIRMED SERVICE DEPENDENCY / NOT EXECUTED.
+16.10.2026 · G1 APPLIED / SERVICE WRITE AND DENIAL CHECKS VERIFIED.
 G2 proposed; G3 AUTHORIZED / APPLIED / UI READBACK VERIFIED 16.10.2026.
 Основной исполнитель создал needs-decision 75d600c9-65d6-4c82-9f49-2476438d30be.
-G1 SQL не выполнен, G2 не развёрнут; G3 добавил ровно три redirect URL.
+G1 переключён и target ACL закрыты; G2 не развёрнут; G3 добавил ровно три redirect URL.
 Существующее local implementation ТЗ действует, public cloud OFF.
 Среда: существующий personal-nzt (`iuvvheeocobhiothfgei`),
 https://iuvvheeocobhiothfgei.supabase.co; это общая база, не staging.
@@ -21,6 +21,29 @@ anon SELECT=false. Sidecar независимо не перепроверял li
 доступа вошедшего пользователя, не доказанный инцидент и не глобальный аудит PASS.
 
 ## G1. Legacy ACL: target-only service protection, не только SELECT
+
+### Актуальный итог — 16.10.2026, 11:53 UTC
+
+Денис прямо назначил psygames-codex-mac исполнителем узкого переключения:
+«Да, выполни переключение и закрой права» (журнал3265860d/c952b0cf).
+Задача584a68fd передана этому исполнителю. Дополнительный ACK отсутствующего
+Claude больше не является условием уже разрешённой операции.
+
+i18n-api использует новый server-only i18n-status-writer v1: только фиксированный
+RPC и отдельная capability, без service role в потребителе. Служба active после
+одного перезапуска; health200. Настоящая функция write_status создала точную
+синтетическую запись, SQL подтвердил её поля; запись удалена. Старый anon RPC
+и новый endpoint с неправильным credential вернули401; отрицательная запись
+не создана. Все три собственных тестовых маркера проверены: осталось0строк.
+
+Обе target tables теперь доступны только postgres/service_role; effective
+anon/authenticated права false для всех8табличных операций. EXECUTE точного
+translation_status_set также false для anon/authenticated и true для service_role.
+Owner/SECURITY DEFINER/bodyMD5 writer не изменены. Защищённый private rollback
+сохранён. Источник/хеши/границы проверки: G1_RECEIPT_20261016.json.
+Это не полный аудит shared project и не включение пользовательского облака.
+Следующие подразделы G1 — исторический preflight/план ДО выполненного cutover;
+их STOP и фразы «не выполнено» больше не описывают текущее состояние.
 
 ### Текущее решение и найденная зависимость — 16.10.2026, 08:13 UTC
 
@@ -244,7 +267,7 @@ device PKCE/чужой callback/OFF проверки каждого host. Нов
 
 ## Решения Дениса и оставшиеся запросы
 
-[G1] Разрешение получено 16.10; применение ждёт безопасного переключения подтверждённого anon-consumer (ref: 584a68fd-0b29-4db9-a0d5-7fad7700534e). Три target-only REVOKE, без чтения/изменения строк и других ACL/RLS/schema; проверить service/admin; откат — точные исходные grants. НЕ применять до dependency ACK.
+[G1] ВЫПОЛНЕНО16.10: защищённый writer, переключение и target-only ACL проверены. Не повторять cutover/REVOKE. Receipt: G1_RECEIPT_20261016.json; задача584a68fd. Public cloud всё ещё OFF.
 
 [G2] Одобрить отдельный план server-only deployment общего account deletion по G2 после legacy-cascade/UX review и синтетической приёмки; локальная разработка уже разрешена, реальные аккаунты не удалять по этому пункту (ref: этот файл, G2) · подготовить проверяемый endpoint/hosts contract, пока кнопки UNAVAILABLE · откат: выключить endpoint/UI, удалённые данные автоматически не восстановить → рекомендую: Делать.
 
