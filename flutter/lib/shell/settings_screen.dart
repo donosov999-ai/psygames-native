@@ -13,6 +13,8 @@ import 'package:share_plus/share_plus.dart';
 
 import '../games/languages/lang_names.dart';
 import 'app_look.dart';
+import 'cloud_pilot.dart';
+import 'cloud_settings_screen.dart';
 import 'hub_screen.dart' show HubCardTap;
 import 'l10n.dart';
 import 'profiles.dart';
@@ -33,9 +35,12 @@ import 'update_check.dart';
 /// здесь `'1'` вместо `'true'` — веб прочтёт «выключено», и человек увидит, что тумблер
 /// не держится. Сторож — `test/settings_screen_test.dart`.
 class SettingsScreen extends StatefulWidget {
-  const SettingsScreen({super.key, required this.state});
+  const SettingsScreen({super.key, required this.state, this.cloudPilot});
 
   final SharedState state;
+  /// No default backend or fake user data in released settings. Test host injects
+  /// the isolated pilot; omission keeps the current product purely local.
+  final CloudPilot? cloudPilot;
 
   static const sound = '${SharedState.prefix}sound_enabled';
   static const volume = '${SharedState.prefix}volume';
@@ -746,6 +751,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
               child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
               if (_profiles.list.isNotEmpty) _profileSection(dark: dark),
               _themeChoice(dark: dark),
+              if (widget.cloudPilot != null)
+                action('cloud', Icons.cloud_outlined, accent, L.t('cloudPilotTitle'), () async {
+                  await Navigator.of(context).push<void>(MaterialPageRoute(builder: (_) =>
+                    CloudSettingsScreen(pilot: widget.cloudPilot!)));
+                }, hint: L.t('cloudPilotTest')),
               toggle('sound', _sound ? Icons.volume_up : Icons.volume_off, L.t('label_sound'), _sound,
                   (v) => _put(SettingsScreen.sound, '$v')),
               // Громкость — только при включённом звуке (задача fe7f2020): ползунок под

@@ -1,5 +1,12 @@
 # PsyGames cloud backup — implementation checkpoint
 
+LATEST local UI16.10:CloudSettingsScreen + CloudPilot lifecycle/receipt + optional
+SettingsScreen injection implemented; 112 combined Flutter tests PASS, analyze clean,
+13 localization tests PASS, TypeScript clean, 12 languages generated.
+Details/boundary:CLOUD_PILOT_UI_REF.md. Gateway remains an interface with test fake;
+no Supabase host adapter/startup/callback or live cloud claims. Default runtime
+does not expose an unconfigured/fake cloud service. Common SDK revision unchanged.
+
 LATEST owner decision16.10:Denis approved Free-only isolated test environment
 and psygames-codex-mac as technical pilot backend owner; app owners and formal
 parent executor unchanged. This is no longer a pending user choice.
@@ -113,6 +120,14 @@ taskf3dffc9c. Their apps are NOT changed. Shared parentf27599dc still belongs to
 psygames-claude-mac; four approvals on one immutable revision remain outstanding.
 
 ## Urgent independent release
+
+LATEST16.10 release:PR348 MERGED at2026-10-16T02:17:38Z (07:17Asia/Almaty),
+merge commitd960f40204eeb9ad88c6904344684b5b5270da57. Exact release source4d0916f
+full Flutter38795853188 and WEB38795853184 SUCCESS; signed build_only38795880797
+SUCCESS. Dispatched TestFlight38839731408 and Playproduction from_run38839734416
+using exact signed artifact38795880797. At dispatch/check they are IN_PROGRESS,
+NOT confirmed uploaded/available yet. Unfinished cloud is excluded.
+Older pending/unmerged wording below is historical.
 
 LATEST16.10:PR348 head4d0916f81c8c83e6cbe9880fe5e9cbdf99168b13.
 Old Flutter38791114939 failed two outdated test expectations; exact tests updated

@@ -1,5 +1,17 @@
 # PsyGames: учебный статус и восстановление доступа к L79
 
+## Обновление выпуска 16.10.2026
+
+PR348 слит в main: d960f40204eeb9ad88c6904344684b5b5270da57,
+merged_at2026-10-16T02:17:38Z (07:17Asia/Almaty). На точном release source
+4d0916f81c8c83e6cbe9880fe5e9cbdf99168b13 полный Flutter38795853188,
+WEB38795853184 и signed build_only38795880797 завершились SUCCESS.
+Запущены реальные workflow заливки: TestFlight38839731408 и Google Play
+production38839734416 (from_run38795880797, без пересборки AAB).
+Это запуск, не подтверждённая доступность в магазинах; на последней проверке
+оба IN_PROGRESS. Облачная ветка в опубликованный исходник не входит.
+Ниже — предыдущие checkpoints, формулировки pending/unmerged исторические.
+
 Дата: 15.10.2026. Автор: psygames-codex-mac.
 Задача TeamOps: a9147430-dc91-4285-b41c-76c1586ac812 (не закрыта).
 Checkout: /Users/denisonosov/dev/psygames-game-lab/testflight-fixes-20261011.

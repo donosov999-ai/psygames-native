@@ -116,6 +116,12 @@ transport metadata. Фото, камера, дневник и набранный
 
 ## Подготовлено и что ещё не готово
 
+Обновление 16.10 после утверждения: локальный экран облака/consent/history/restore
+и опциональный вход из настроек реализованы; 112 объединённых Flutter tests PASS.
+[Точный UI-срез и остаток подключения](CLOUD_PILOT_UI_REF.md).
+Реальный gateway/backend, callback/startup и device roundtrip ещё не подключены.
+Указание ниже о незаконченных настройках относится к прежнему checkpoint.
+
 Общий локальный пакет: `ecosystem.account/1-draft.3`, package `0.1.2`.
 Неизменяемый исходный commit: `0040152c40a2eb26b1d75890884837804074d1a9`.
 CONTRACT SHA256: `640febbb6347a356d78644e009c45124fde5e268945c49ca5300ed2a790a39d0`.
