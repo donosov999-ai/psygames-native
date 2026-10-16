@@ -58,6 +58,28 @@ class _CloudSettingsScreenState extends State<CloudSettingsScreen> {
     if (accepted == true && mounted) await _p.deleteCopies();
   }
 
+  Future<void> _deleteAccount() async {
+    final accepted = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(L.t('cloudPilotDeleteAccount')),
+        content: Text(L.t('cloudPilotDeleteAccountWarning')),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(L.t('btn_cancel')),
+          ),
+          FilledButton(
+            key: const Key('cloud-delete-account-confirm'),
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(L.t('cloudPilotDeleteAccount')),
+          ),
+        ],
+      ),
+    );
+    if (accepted == true && mounted) await _p.deleteAccount();
+  }
+
   Widget _button(
     String key,
     String label,
@@ -266,6 +288,12 @@ class _CloudSettingsScreenState extends State<CloudSettingsScreen> {
                     onPressed: _p.busy ? null : _delete,
                     child: Text(L.t('cloudPilotDelete')),
                   ),
+                  if (_p.canDeleteAccount)
+                    TextButton(
+                      key: const Key('cloud-delete-account'),
+                      onPressed: _p.busy ? null : _deleteAccount,
+                      child: Text(L.t('cloudPilotDeleteAccount')),
+                    ),
                 ],
               ],
             ),
@@ -281,4 +309,5 @@ const cloudPilotErrorKeys = <String>[
   'cloudPilotConflict',
   'cloudPilotError',
   'cloudPilotEmailInvalid',
+  'cloudPilotAccountDeleteError',
 ];

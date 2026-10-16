@@ -16,6 +16,20 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.56.30',
+    date: '2026-10-16',
+    ru: [
+      'Добровольное облачное сохранение в настройках: прогресс, питомец, баллы и покупки за игровые баллы',
+      'Просмотр нескольких копий и восстановление с сохранением местной страховочной копии; баллы не складываются повторно',
+      'Отдельные действия для отключения облака, удаления копий PsyGames и удаления общего аккаунта; без облака приложение работает как прежде',
+    ],
+    en: [
+      'Optional cloud backup in Settings for progress, pet details, earned points and purchases made with points',
+      'Preview multiple backups and restore with a local safety copy; balances are replaced, never added together',
+      'Separate controls for turning cloud off, deleting PsyGames copies and deleting the shared account; offline use stays available',
+    ],
+  },
+  {
     version: '2.56.29',
     date: '2026-10-16',
     ru: [

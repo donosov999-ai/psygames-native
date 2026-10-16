@@ -79,7 +79,7 @@ packages:
       path: "../ecosystem_account"
       relative: true
     source: path
-    version: "0.1.3"
+    version: "0.1.4"
   ffi:
     dependency: transitive
     description:

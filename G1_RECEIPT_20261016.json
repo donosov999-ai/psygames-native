@@ -1,0 +1,49 @@
+{
+  "verified_utc": "2026-10-16T11:53:43Z",
+  "executor": "psygames-codex-mac",
+  "task_id": "584a68fd-0b29-4db9-a0d5-7fad7700534e",
+  "authorization_journal_ids": ["3265860d-84e3-43c1-89a0-81639793d26c", "c952b0cf-efe3-438d-b235-693dba1b5210"],
+  "project_ref": "iuvvheeocobhiothfgei",
+  "source_commit": "2a9178723642895d8d03efbf4f377be8d5dc1743",
+  "edge": {
+    "name": "i18n-status-writer",
+    "id": "00f56f9e-0a2c-4ad4-8a8f-b03c961f9542",
+    "version": 1,
+    "status": "ACTIVE",
+    "bundle_sha256": "3dd1ffd5a4878b0453397548cc93d46dd9a0396fa7db2bebbc5a1cde07277364",
+    "authentication": "server-only capability; constant-time digest check; fixed RPC only"
+  },
+  "consumer": {
+    "service": "i18n-api.service",
+    "active": true,
+    "restart_utc": "2026-10-16T11:38:03Z",
+    "health_http_status": 200,
+    "source_before_sha256": "c7a28c4a86ea1a070ec5ad4ee62778489d4a8393c45c575c4624f37eaef15b49",
+    "source_after_sha256": "d1eb6b943fb1cdd1612872ddc3993367ce9afe0058884459e545389e139fd59b",
+    "runtime_writer_digest_matches": true,
+    "protected_rollback_preserved": true
+  },
+  "acl": {
+    "tables": ["public.translation_status", "public.bugfix_project_owner"],
+    "table_acl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+    "operations_per_table": ["SELECT", "INSERT", "UPDATE", "DELETE", "TRUNCATE", "REFERENCES", "TRIGGER", "MAINTAIN"],
+    "anon_all_false": true,
+    "authenticated_all_false": true,
+    "service_role_all_true": true,
+    "function": "public.translation_status_set(text,text,text,text,text,integer,integer,text)",
+    "function_acl": "{postgres=X/postgres,service_role=X/postgres}",
+    "function_body_md5_unchanged": "f1dea3e75c9d045b8697a527b7790c60",
+    "rls_changed": false
+  },
+  "verification": {
+    "actual_consumer_synthetic_write": true,
+    "sql_exact_row_assertion": true,
+    "old_anon_rpc_http_status": 401,
+    "wrong_capability_http_status": 401,
+    "denied_row_count": 0,
+    "own_synthetic_rows_remaining": 0,
+    "real_user_rows_modified": false,
+    "llm_translation_run": false
+  },
+  "limits": ["Target-only evidence, not a full project security audit", "No independent non-target ACL hash comparison claimed", "Cloud runtime remains OFF", "Private backup locations and credentials omitted"]
+}

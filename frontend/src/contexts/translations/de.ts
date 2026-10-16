@@ -2,6 +2,9 @@
 // 493 ключей, переведены с английской базы. Не править руками — регенерировать воркфлоу.
 // zh/hi — машинное качество, нужна вычитка нативом до сторов.
 const t: Record<string, string> = {
+  cloudPilotDeleteAccount: "Gemeinsames Konto löschen",
+  cloudPilotDeleteAccountWarning: "Dadurch werden dein gemeinsames Konto und die Cloud-Kopien in PsyGames, Smart Alarm, Chess & Go und TypeFree dauerhaft gelöscht. Dein lokaler Fortschritt bleibt auf deinen Geräten erhalten. In den anderen Apps musst du dich erneut anmelden. Diese Aktion kann nicht rückgängig gemacht werden.",
+  cloudPilotAccountDeleteError: "Die Kontolöschung wurde nicht bestätigt. Dein lokaler Fortschritt ist sicher. Melde dich erneut an, bevor du es noch einmal versuchst.",
   cloudPilotTitle: "Cloud-Sicherung",
   cloudPilotTest: "Pilotversuch · PsyGames",
   cloudPilotOn: "Cloud-Sicherung ist aktiviert",

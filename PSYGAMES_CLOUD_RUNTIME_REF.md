@@ -3,6 +3,10 @@
 16.10.2026 · psygames-codex-mac · bb2c9f30-d786-4fe6-b25c-4b2ace267d4b остаётся OPEN.
 Checkout /Users/denisonosov/dev/psygames-game-lab/testflight-fixes-20261011,
 branch codex/cloud-release-2-56-29 (прежняя cloud-backup-20261015 — история).
+Новый кандидат2.56.30: branchcodex/cloud-support-20261016,
+ECOSYSTEM_ACCOUNT_DRAFT5_PIN.md / SOURCE6ef80e0565a91b160fbd180f07b5920d9cb1b789.
+Он меняет SDKpin наdraft.5 только для собственной PsyGames-кандидатной интеграции;
+следующее описание неизменногоSOURCE057c относится к уже выпущенной2.56.29.
 Это НЕ public/released облако; выпуск кода с флагом OFF отслеживается отдельно
 в CLOUD_RELEASE_2_56_29_REF.md / TeamOps a44a3d53-3676-4ca2-8e4e-9a7e3c4b518b.
 Общий пакет по-прежнему SOURCE057c03d7ba770fbee934918eddb87a88c28d0082,
@@ -11,6 +15,13 @@ PIN/REF — сопровождающие документы после source co
 working REF hash отличается от frozen SOURCE REF ожидаемо, SDK pin не изменён.
 
 ## Актуальный host checkpoint: release candidate 2.56.29 — 16.10
+
+Backend checkpoint12:04UTC: G1 выполнен и проверен (G1_RECEIPT_20261016.json),
+G3 callbacks зарегистрированы. G2 backend deletion deployed и synthetic HTTP+
+realFlutterVM host roundtrip PASS (G2_RECEIPT_20261016.json); новый draft.5 host
+ещё не merge/store и physicalPKCE/device приёмки нет. Cloud2.56.29 остаётся OFF;
+offline Sudoku correction primitive
+не является готовой удалённой поддержкой и не менял данные Вали.
 
 Product source3c4658752ad4f4f11f4abe8229637114c4ee3dc5; PR349 head
 a31905702061299a7f06d3992041f530d2855863 содержит только последующую правку

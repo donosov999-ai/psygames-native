@@ -61,6 +61,9 @@ interface Translations {
 }
 
 const translations: Translations = {
+  cloudPilotDeleteAccount: { ru: "Удалить общий аккаунт", en: "Delete shared account" },
+  cloudPilotDeleteAccountWarning: { ru: "Это навсегда удалит ваш общий аккаунт и облачные копии в PsyGames, Smart Alarm, Chess & Go и TypeFree. Локальный прогресс на ваших устройствах сохранится. В других приложениях потребуется войти снова. Это действие нельзя отменить.", en: "This permanently deletes your shared account and cloud copies across PsyGames, Smart Alarm, Chess & Go and TypeFree. Local progress on your devices stays. You will need to sign in again in the other apps. This cannot be undone." },
+  cloudPilotAccountDeleteError: { ru: "Удаление аккаунта не подтверждено. Локальный прогресс в безопасности. Войдите снова, прежде чем повторить попытку.", en: "Account deletion was not confirmed. Local progress is safe. Sign in again before retrying." },
   cloudPilotTitle: { ru: "Облачное сохранение", en: "Cloud backup" },
   cloudPilotTest: { ru: "Тестовый пилот · PsyGames", en: "Test pilot · PsyGames" },
   cloudPilotOn: { ru: "Облачное сохранение включено", en: "Cloud backup is on" },

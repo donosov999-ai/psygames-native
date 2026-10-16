@@ -1,6 +1,9 @@
 // AUTO-GENERATED translation overlay (fr). Источник: транскреация с EN-базы (856 ключей).
 // Не править руками — регенерировать.
 const t: Record<string, string> = {
+  cloudPilotDeleteAccount: "Supprimer le compte commun",
+  cloudPilotDeleteAccountWarning: "Cette action supprime définitivement votre compte commun et les copies dans le cloud de PsyGames, Smart Alarm, Chess & Go et TypeFree. Votre progression locale reste sur vos appareils. Vous devrez vous reconnecter dans les autres applications. Cette action est irréversible.",
+  cloudPilotAccountDeleteError: "La suppression du compte n’a pas été confirmée. Votre progression locale est en sécurité. Reconnectez-vous avant de réessayer.",
   cloudPilotTitle: "Sauvegarde dans le cloud",
   cloudPilotTest: "Test pilote · PsyGames",
   cloudPilotOn: "La sauvegarde dans le cloud est activée",
