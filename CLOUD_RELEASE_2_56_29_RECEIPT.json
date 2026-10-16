@@ -1,0 +1,51 @@
+{
+  "schema": 1,
+  "version": "2.56.29",
+  "source": "bb97a35834c434990237598840e6f434d52b2ad6",
+  "cloudEnabled": false,
+  "releaseTask": "a44a3d53-3676-4ca2-8e4e-9a7e3c4b518b",
+  "pr": 349,
+  "prCI": [
+    38880729618,
+    38880729830
+  ],
+  "mainCI": [
+    38884522088,
+    38884522054
+  ],
+  "google": {
+    "package": "com.psygames.app",
+    "versionCode": 2056029,
+    "track": "production",
+    "status": "completed",
+    "uploadRun": 38884905270,
+    "readbackRun": 38888991964,
+    "checkedAt": "2026-10-16T10:42:50.113Z",
+    "artifactZipSha256": "c7a311c8aa9c108105260795828c44120a63acb52a96eb7a494f168b2ff0c22f"
+  },
+  "apple": {
+    "checkedAt": "2026-10-16T11:07:34.196Z",
+    "bundleId": "com.psygames.app",
+    "version": "2.56.29",
+    "number": "69",
+    "buildId": "6811db76-4708-4168-9212-9fa15e3d031d",
+    "processingState": "VALID",
+    "uploadedDate": "2026-10-16T04:03:56-07:00",
+    "group": "Свои",
+    "internalGroup": true,
+    "assigned": true,
+    "notes": [
+      {
+        "locale": "ru",
+        "whatsNew": "RU: Подготовлен общий модуль резервных копий и защита от повторных записей. Облако пока выключено; локальные игры и прогресс работают как прежде. EN: Shared backup foundation and duplicate-write protection prepared. Cloud sync remains OFF; local games and progress are unchanged."
+      },
+      {
+        "locale": "en-US",
+        "whatsNew": "RU: Подготовлен общий модуль резервных копий и защита от повторных записей. Облако пока выключено; локальные игры и прогресс работают как прежде. EN: Shared backup foundation and duplicate-write protection prepared. Cloud sync remains OFF; local games and progress are unchanged."
+      }
+    ],
+    "uploadRun": 38884901390
+  },
+  "deviceVerified": false,
+  "publicCloudReady": false
+}

@@ -20,6 +20,16 @@ G1service prerequisite584a68fd и G2deletion остаются; public runtime OF
 реальных login/писем/uploads/device приёмки не было. Общий локальный public-client
 config в этом шаге не менялся: это не обещание connected pilot у четырёх приложений.
 
+Последующий PsyGames checkpoint: собственные gateway/pilot/runtime дополнены
+защищённым consent recovery, durable exact pending retry, own ACK tracking и
+debounced/background backup. Product source3c4658752, PR349 head a3190570206;
+180 scoped Flutter PASS/analyzer clean. SharedSDK SOURCE057c неизменен.
+Выпуск2.56.29 доставлен строго с PSY_CLOUD_PILOT=false: Play production2056029
+completed и TestFlight69 VALID/«Свои» независимо подтверждены, не public sync.
+Точный release/CI/store статус: CLOUD_RELEASE_2_56_29_REF.md; runtime нюансы:
+PSYGAMES_CLOUD_RUNTIME_REF.md. Таблица с171 и ed35 ниже — прежний checkpoint,
+не текущая граница собственной PsyGames host реализации. Другие apps не менялись.
+
 ## Личные технические согласования 16.10 — только local integration
 
 Все четыре Codex-владельца дали личное техническое СОГЛАСЕН на exact общий

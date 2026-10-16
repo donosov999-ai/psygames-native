@@ -2,11 +2,41 @@
 
 16.10.2026 · psygames-codex-mac · bb2c9f30-d786-4fe6-b25c-4b2ace267d4b остаётся OPEN.
 Checkout /Users/denisonosov/dev/psygames-game-lab/testflight-fixes-20261011,
-branch codex/cloud-backup-20261015. Это НЕ public/released облако.
+branch codex/cloud-release-2-56-29 (прежняя cloud-backup-20261015 — история).
+Это НЕ public/released облако; выпуск кода с флагом OFF отслеживается отдельно
+в CLOUD_RELEASE_2_56_29_REF.md / TeamOps a44a3d53-3676-4ca2-8e4e-9a7e3c4b518b.
 Общий пакет по-прежнему SOURCE057c03d7ba770fbee934918eddb87a88c28d0082,
 см. ECOSYSTEM_CLOUD_V1_PIN.md; все package sources/hashes неизменны.
 PIN/REF — сопровождающие документы после source commit, не часть его tree;
 working REF hash отличается от frozen SOURCE REF ожидаемо, SDK pin не изменён.
+
+## Актуальный host checkpoint: release candidate 2.56.29 — 16.10
+
+Product source3c4658752ad4f4f11f4abe8229637114c4ee3dc5; PR349 head
+a31905702061299a7f06d3992041f530d2855863 содержит только последующую правку
+документов. Shared SDK неизменен. 180 scoped Flutter PASS/0failed/0skipped,
+analyzer clean; final log/hash в CLOUD_RELEASE_2_56_29_REF.md.
+Оба PR CI38880729618/38880729830 и main CI38884522088/38884522054 SUCCESS.
+Выпуск2.56.29: Play production2056029 completed и TestFlight69 VALID/«Свои»
+независимо подтверждены; CLOUD_RELEASE_2_56_29_REF.md и JSON receipt.
+Это доставка кода с cloud OFF, не real Auth/device acceptance.
+
+- Resume только по точному прежнему локальному app/issuer/owner consent и
+  совпавшему серверному consent. Pending PKCE имеет приоритет над cached session.
+- Перед POST durable owner/issuer write journal сохраняет payload/base/requestId;
+  после потери ответа или перезапуска повторяет именно ту же запись.
+- Последний ACK content относится к фактически отправленной копии, а не к новым
+  локальным изменениям; metadata чужого устройства не заменяет свою CAS base.
+- Изменения portable state при явном consent объединяются с задержкой2min;
+  inactive/paused запускает best-effort flush без блокировки локальной игры.
+  OFF/dispose снимает таймеры/подписки. Ошибки/конфликт не запускают вечный retry.
+- Re-enable не выдаёт изменённое офлайн-состояние за уже сохранённое; pending B
+  повторяется и при текущем A==lastACK A. Ошибка сериализации не падает в gameplay.
+- URI, пришедший во время startup recovery, сохраняется и после invalid первого
+  URI: очередь очищается до await startup, а не после него. Точный regression есть.
+
+Нормальные store builds: PSY_CLOUD_PILOT=false, adapter/recovery/uploads отсутствуют.
+Это не «autosync всех4apps» и не включённое пользовательское облако.
 
 ## Проверка peer-revision race после сообщения Chess & Go — 16.10
 
@@ -64,7 +94,8 @@ Native сборок/серверных записей/писем/релизов 
 
 ## Проверки и границы доказательств
 
-171 Flutter tests PASS, 0 failed/0 skipped: прежние146 + gateway14 + runtime11.
+Исторический checkpoint до автоматизации выше:171 Flutter tests PASS,
+0 failed/0 skipped: прежние146 + gateway14 + runtime11.
 Команда из flutter — прежняя15-file suite с test/cloud_gateway_test.dart и
 test/cloud_runtime_test.dart, --no-pub --concurrency=1 --reporter expanded.
 flutter analyze --no-pub clean. XML Info.plist iOS/macOS plutil PASS.
@@ -98,7 +129,9 @@ G1 metadata выявила не только SELECT: anon/authenticated имею
 и с anon/authenticated EXECUTE. SELECT-only revoke недостаточен. Данных не читали,
 ничего не меняли/не атаковали. Нужен target-only service-preserving план, не слепой RLS.
 
-После этого остаются автоматический app-scoped recovery/фоновое резервирование,
-проверки смены устройства/обновления/сети и реальная signed native/device приёмка.
-Сейчас это manual-copy local pilot; не называть его готовой autosync всех4apps.
+Автоматический app-scoped recovery и фоновое резервирование теперь реализованы
+в собственном host за OFF-флагом (checkpoint выше), не являются ещё невыполненным
+кодовым пунктом. Остаются real Auth/сеть/смена устройства/обновление и signed
+device приёмка; G1/G2 и согласованный client config по-прежнему gates включения.
+Не называть host-only/mock проверки готовой autosync всех4apps.
 PsyGamescloud задача OPEN. Отдельный2.56.28 Play/TF68 уже выпущен БЕЗ этого облака.
