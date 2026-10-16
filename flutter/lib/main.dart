@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:app_links/app_links.dart';
 import 'package:flutter/material.dart';
 
 import 'games/dots_connect/screen.dart';
@@ -15,6 +18,7 @@ import 'shell/level_rules.dart';
 import 'shell/hybrid_app.dart';
 import 'shell/shared_state.dart';
 import 'shell/web_game_screen.dart';
+import 'shell/cloud_runtime.dart';
 
 /// Пилот переезда PsyGames на Flutter (задачи 6ec9bd56 и 4a24281a).
 ///
@@ -26,11 +30,42 @@ import 'shell/web_game_screen.dart';
 ///   flutter run -d macos --dart-define=PSY_WEB=http://localhost:8471
 /// Раздача берётся из нынешнего проекта:
 ///   cd ~/dev/psygames/frontend && node scripts/serve-dist.mjs dist 8471
-const webBase = String.fromEnvironment('PSY_WEB', defaultValue: 'http://localhost:8471');
+const webBase = String.fromEnvironment(
+  'PSY_WEB',
+  defaultValue: 'http://localhost:8471',
+);
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  final links = PsyGamesCloudRuntime.enabled ? AppLinks() : null;
   final state = await SharedState.open();
+  try {
+    await PsyGamesCloudRuntime.applyPending(state);
+  } catch (_) {
+    // Do not construct gameplay/WebView after failed/partial restore.
+    await L.load(state.language);
+    runApp(
+      MaterialApp(
+        home: Scaffold(
+          body: SafeArea(
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(L.t('cloudPilotError')),
+                  FilledButton(
+                    onPressed: () => unawaited(main()),
+                    child: Text(L.t('retry')),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    return;
+  }
   /*
    * 🔴 ПЕРВЫМ ДЕЛОМ — ЗАБРАТЬ ПРОГРЕСС ПРЕЖНЕЙ ВЕРСИИ, И ИМЕННО ЗДЕСЬ.
    *
@@ -49,42 +84,63 @@ Future<void> main() async {
   await L.load(state.language);
   // Вид — тем же правилом, что у веба: профиль, ручной выбор, надетый акцент (app_look.dart).
   await AppLook.load(state);
-  await GameRules.load();   // правила игр — из того же реестра, что карточки развилок
-  await LevelRules.load();  // правила УРОВНЕЙ — до первого экрана, иначе шапка не узнает о правиле
+  await GameRules.load(); // правила игр — из того же реестра, что карточки развилок
+  await LevelRules.load(); // правила УРОВНЕЙ — до первого экрана, иначе шапка не узнает о правиле
   final server = await AssetServer.start();
   // iOS отбирает слушающий сокет у приложения в фоне — при возврате сервер встаёт заново (TN2277).
   server.reviveOnResume();
   // Приложение ушло в фон — часы партии стоят (как скрытая вкладка в вебе), задача 430d1299.
   installGameClockLifecycle();
-  runApp(PsyGamesPilotApp(state: state, server: server));
+  final cloud = PsyGamesCloudRuntime.fromEnvironment(
+    state,
+    links?.uriLinkStream,
+  );
+  runApp(PsyGamesPilotApp(state: state, server: server, cloud: cloud));
 }
 
 class PsyGamesPilotApp extends StatelessWidget {
-  const PsyGamesPilotApp({super.key, required this.state, required this.server});
+  const PsyGamesPilotApp({
+    super.key,
+    required this.state,
+    required this.server,
+    this.cloud,
+  });
 
   final SharedState state;
   final AssetServer server;
+  final PsyGamesCloudRuntime? cloud;
+  static final _navigatorKey = GlobalKey<NavigatorState>();
 
   @override
   // 🔴 `title` видно на Android в списке недавних приложений — имя продукта, а не рабочая
   // пометка: было «PsyGames — пилот Flutter». Тема — выбор человека из общей памяти
   // (`app_theme.dart`, ключ psygames_theme_override, как у веба).
-  Widget build(BuildContext context) => ListenableBuilder(
+  Widget build(BuildContext context) => CloudLinkHost(
+    runtime: cloud,
+    navigatorKey: _navigatorKey,
+    child: ListenableBuilder(
       listenable: state,
       builder: (context, _) => MaterialApp(
         title: 'PsyGames',
+        navigatorKey: _navigatorKey,
         debugShowCheckedModeBanner: false,
         themeMode: appThemeMode(state),
-        theme: ThemeData(colorSchemeSeed: const Color(0xFF7F7FD5), useMaterial3: true),
+        theme: ThemeData(
+          colorSchemeSeed: const Color(0xFF7F7FD5),
+          useMaterial3: true,
+        ),
         darkTheme: ThemeData(
           colorSchemeSeed: const Color(0xFF7F7FD5),
           brightness: Brightness.dark,
           useMaterial3: true,
         ),
         // Кадр всего приложения — для снимка в отзыв с нативного экрана (`feedback_screen.dart`).
-        builder: (context, child) => RepaintBoundary(key: FeedbackHost.shotKey, child: child),
-        home: HybridApp(state: state, server: server),
-      ));
+        builder: (context, child) =>
+            RepaintBoundary(key: FeedbackHost.shotKey, child: child),
+        home: HybridApp(state: state, server: server, cloudPilot: cloud?.pilot),
+      ),
+    ),
+  );
 }
 
 /// Список того, что есть. Настоящей главной у пилота нет.
@@ -94,62 +150,68 @@ class PilotHome extends StatelessWidget {
   final SharedState state;
 
   void _openWeb(BuildContext context, String title, String path) {
-    Navigator.of(context).push(MaterialPageRoute(
-      builder: (_) => WebGameScreen(title: title, url: '$webBase/$path', state: state),
-    ));
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) =>
+            WebGameScreen(title: title, url: '$webBase/$path', state: state),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(title: const Text('PsyGames — пилот Flutter')),
-        body: ListView(
-          children: [
-            const _Divider('Перенесено на Flutter'),
-            ListTile(
-              leading: const Icon(Icons.grid_4x4),
-              title: const Text('Соедини точки'),
-              subtitle: const Text('40 уровней и тренировка'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => DotsConnectScreen(state: state)),
-              ),
-            ),
-            ListTile(
-              leading: const Icon(Icons.timeline),
-              title: const Text('Одна линия'),
-              subtitle: const Text('30 уровней'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => OneLineScreen(state: state)),
-              ),
-            ),
-            ListTile(
-              leading: const Icon(Icons.pin_outlined),
-              title: const Text('Цифровой ряд'),
-              subtitle: const Text('показ по таймеру, ввод цифрами'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => DigitSpanScreen(state: state)),
-              ),
-            ),
-            const _Divider('Ещё не перенесено — открывается нынешней сборкой'),
-            ListTile(
-              leading: const Icon(Icons.public),
-              title: const Text('Таблицы Шульте'),
-              subtitle: const Text('WebView · прогресс общий с Flutter-частью'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => _openWeb(context, 'Таблицы Шульте', 'games/schulte'),
-            ),
-            ListTile(
-              leading: const Icon(Icons.public),
-              title: const Text('Соедини точки (веб-версия)'),
-              subtitle: const Text('та же игра старой сборкой — для сверки прогресса'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => _openWeb(context, 'Соедини точки — веб', 'games/dots-connect'),
-            ),
-          ],
+    appBar: AppBar(title: const Text('PsyGames — пилот Flutter')),
+    body: ListView(
+      children: [
+        const _Divider('Перенесено на Flutter'),
+        ListTile(
+          leading: const Icon(Icons.grid_4x4),
+          title: const Text('Соедини точки'),
+          subtitle: const Text('40 уровней и тренировка'),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => DotsConnectScreen(state: state)),
+          ),
         ),
-      );
+        ListTile(
+          leading: const Icon(Icons.timeline),
+          title: const Text('Одна линия'),
+          subtitle: const Text('30 уровней'),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => OneLineScreen(state: state)),
+          ),
+        ),
+        ListTile(
+          leading: const Icon(Icons.pin_outlined),
+          title: const Text('Цифровой ряд'),
+          subtitle: const Text('показ по таймеру, ввод цифрами'),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => DigitSpanScreen(state: state)),
+          ),
+        ),
+        const _Divider('Ещё не перенесено — открывается нынешней сборкой'),
+        ListTile(
+          leading: const Icon(Icons.public),
+          title: const Text('Таблицы Шульте'),
+          subtitle: const Text('WebView · прогресс общий с Flutter-частью'),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () => _openWeb(context, 'Таблицы Шульте', 'games/schulte'),
+        ),
+        ListTile(
+          leading: const Icon(Icons.public),
+          title: const Text('Соедини точки (веб-версия)'),
+          subtitle: const Text(
+            'та же игра старой сборкой — для сверки прогресса',
+          ),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () =>
+              _openWeb(context, 'Соедини точки — веб', 'games/dots-connect'),
+        ),
+      ],
+    ),
+  );
 }
 
 class _Divider extends StatelessWidget {
@@ -158,11 +220,11 @@ class _Divider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.fromLTRB(16, 20, 16, 6),
-        child: Text(text,
-            style: Theme.of(context)
-                .textTheme
-                .labelMedium
-                ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant)),
-      );
+    padding: const EdgeInsets.fromLTRB(16, 20, 16, 6),
+    child: Text(
+      text,
+      style: Theme.of(context).textTheme.labelMedium
+          ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+    ),
+  );
 }

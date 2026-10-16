@@ -98,6 +98,7 @@ import 'screen_ui.dart';
 import 'screen_model_recovery.dart';
 import 'native_tabs.dart';
 import 'stats_screen.dart';
+import 'cloud_pilot.dart';
 import 'streak_calendar_screen.dart';
 import 'assessment_result_screen.dart';
 import 'onboarding_screen.dart';
@@ -169,9 +170,10 @@ class HybridApp extends StatefulWidget {
       'var wait=function(){if(here()!==p&&n++<60){requestAnimationFrame(wait);return;}'
       'requestAnimationFrame(function(){requestAnimationFrame(post);});};wait();})();';
 
-  const HybridApp({super.key, required this.state, required this.server});
+  const HybridApp({super.key, required this.state, required this.server, this.cloudPilot});
 
   final SharedState state;
+  final CloudPilot? cloudPilot;
 
   /// Раздача вложенной веб-сборки — внутри приложения, см. [AssetServer].
   final AssetServer server;
@@ -1378,7 +1380,9 @@ class _HybridAppState extends State<HybridApp> {
     Map<String, String> query = const {},
     WarmupStepInfo? stepInfo,
   }) async {
-    final build = HybridApp.native[route] ?? HybridApp.shell[route];
+    final build = route == '/settings'
+        ? (SharedState s) => SettingsScreen(state: s, cloudPilot: widget.cloudPilot)
+        : HybridApp.native[route] ?? HybridApp.shell[route];
     if (build == null) return false;
     _openedRoute = route;
     _openedWarmupOwner = WarmupOwner.fromQuery(query);

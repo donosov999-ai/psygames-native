@@ -16,6 +16,20 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.56.29',
+    date: '2026-10-16',
+    ru: [
+      'Подготовлен общий модуль резервных копий: настройки, прогресс, питомец и покупки за игровые баллы',
+      'Добавлена защита от повторной отправки и перезаписи прогресса при конфликте копий',
+      'Облачное подключение в этой сборке ещё выключено; игры и локальные резервные копии работают как прежде',
+    ],
+    en: [
+      'Prepared the shared backup module for settings, progress, pet details and purchases made with earned points',
+      'Added safeguards against duplicate uploads and conflicting progress copies',
+      'Cloud connection remains disabled in this build; games and local backups continue to work as before',
+    ],
+  },
+  {
     version: '2.56.28',
     date: '2026-10-15',
     ru: [

@@ -1,5 +1,21 @@
 # PsyGames: учебный статус и восстановление доступа к L79
 
+## Обновление выпуска 16.10.2026
+
+PR348 слит в main: d960f40204eeb9ad88c6904344684b5b5270da57,
+merged_at2026-10-16T02:17:38Z (07:17Asia/Almaty). На точном release source
+4d0916f81c8c83e6cbe9880fe5e9cbdf99168b13 полный Flutter38795853188,
+WEB38795853184 и signed build_only38795880797 завершились SUCCESS.
+Выпуск завершён: Google Play production38839734416 SUCCESS, независимый
+readback38839975908 подтвердил release2.56.28 status=completed,
+versionCode2056028 (2026-10-16T02:21:36Z).
+TestFlight38839731408 SUCCESS; лог внутренней раздачи в03:13:36Z подтвердил
+2.56.28+68 для существующей группы «Свои». Повторно тестировщиков не добавлял.
+Это подтверждение workflow/серверного трека, НЕ проверка установки/прохождения
+на телефоне. Задача выпуска9e865178 может закрыться по upload boundary;
+родитель a9147430 остаётся открыт для device acceptance. Облака в этом выпуске нет.
+Ниже — предыдущие checkpoints, формулировки pending/unmerged исторические.
+
 Дата: 15.10.2026. Автор: psygames-codex-mac.
 Задача TeamOps: a9147430-dc91-4285-b41c-76c1586ac812 (не закрыта).
 Checkout: /Users/denisonosov/dev/psygames-game-lab/testflight-fixes-20261011.
@@ -63,7 +79,41 @@ Flutter analyze: No issues found. Добавлены проверки мален
 проверены на наличие подписи. git diff --check чист.
 
 Дальше: интеграция в main/обычный выпуск, проверка на устройстве, аудит собственных
-флагов решателей и WEB. Не выполнены push/PR/релиз; не подтверждён импорт бэкапа.
+флагов решателей и WEB. На первом checkpoint push/PR/релиз ещё не были выполнены;
+актуальный release checkpoint ниже. Импорт бэкапа на телефоне не подтверждён.
+
+## Release checkpoint — 16.10.2026
+
+LATEST:PR348 now head4d0916f81c8c83e6cbe9880fe5e9cbdf99168b13.
+Previous full Flutter38791114939 FAILED: old sudoku_screen test did not confirm
+the new disclosure warning; feedback test expected no practice metadata field.
+Updated both exact expectations without weakening assertions; added explicit
+check that the digit remains blank before confirmation. Both suites9PASS and
+release-branch analyzer clean. Runtime code unchanged by this follow-up.
+New full Flutter38795853188 and WEB38795853184 are running on new head.
+New signed Play build_only38795880797:
+https://github.com/donosov999-ai/psygames-native/actions/runs/38795880797.
+Old build_only38793174360 cancellation requested; DO NOT upload its artifact.
+No merge, Google upload/publication or TestFlight2.56.28 yet. Cloud remains separate.
+GitHub push also reported62 default-branch dependency alerts (1critical/43high/
+18moderate); this is an upstream warning, not an independent exploit audit or
+proof of runtime impact. No unrelated dependency upgrades made here.
+Details:https://github.com/donosov999-ai/psygames-native/security/dependabot.
+
+Earlier checkpoint (superseded run/head states retained as history):
+
+Для независимого срочного выпуска fix cherry-picked на main5481326a в ветку
+codex/practice-release-2-56-28. PR348:
+https://github.com/donosov999-ai/psygames-native/pull/348.
+Версия2.56.28, headf9812dbbdb56134e2079266e5ad45e7e3d414aa5.
+В неё НЕ входят ни незавершённое облако, ни прежний local WEB candidatef5.
+Первый CI нашёл пропуск badge в10 канонических overlay словарях; исправлен без
+ослабления coverage. WEB run38791114992 SUCCESS. Полный Flutter run38791114939
+ещё идёт. Подписанная Android build_only38793174360 начата на том же head:
+https://github.com/donosov999-ai/psygames-native/actions/runs/38793174360.
+build_only НЕ заливает в Play. Merge/main checks, upload точного AAB в production,
+TestFlight и подтверждение доступности существующей группе «Свои» ещё впереди.
+Release task:9e865178-e150-436e-a96d-775160840081, in_progress, НЕ закрывать.
 Точная причина фактического срабатывания подсказки у игрока остаётся предметом
 проверки: не приписывать человеку использование подсказки только по hint_uses.
 

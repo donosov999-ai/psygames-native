@@ -1,0 +1,45 @@
+{
+  "recorded_utc": "2026-10-16T09:00:04Z",
+  "executor": "psygames-codex-mac",
+  "project_ref": "iuvvheeocobhiothfgei",
+  "project_name": "personal-nzt",
+  "task_id": "75d600c9-65d6-4c82-9f49-2476438d30be",
+  "authorization_journal_id": "d59961aa-41c5-4826-ba5c-61eb6b87ff50",
+  "method": "authenticated Dashboard UI Add URL / Save URLs",
+  "page": "https://supabase.com/dashboard/project/iuvvheeocobhiothfgei/auth/url-configuration",
+  "before": {
+    "site_url": "http://localhost:3000",
+    "redirect_urls": ["com.psygames.app://auth/callback"]
+  },
+  "added": [
+    "com.odv999.smartalarm://auth/callback",
+    "com.abstracthub.app://auth/callback",
+    "pro.typefree.app://auth/callback"
+  ],
+  "after": {
+    "site_url": "http://localhost:3000",
+    "redirect_urls": [
+      "com.psygames.app://auth/callback",
+      "com.odv999.smartalarm://auth/callback",
+      "com.abstracthub.app://auth/callback",
+      "pro.typefree.app://auth/callback"
+    ],
+    "total_urls": 4,
+    "ui_confirmation": "Successfully added 3 URLs"
+  },
+  "verification": "visible UI readback after successful Save URLs; no real Auth/device tests",
+  "other_auth_settings_edited": false,
+  "sql_executed": false,
+  "emails_sent": false,
+  "users_created": false,
+  "progress_uploaded": false,
+  "local_client_config_changed": false,
+  "public_cloud_enabled": false,
+  "screenshot": {
+    "path": "/Users/denisonosov/dev/psygames-game-lab/testflight-fixes-20261011/_local/ecosystem-cloud/g3-callbacks-20261016.jpg",
+    "sha256": "63f24525ce6250deecdf6aabb9eab274f9244864875899ca17d35a4a8fe4a4a4",
+    "limitation": "narrow viewport clips portions of visible text; exact URLs also captured in AX readback"
+  },
+  "rollback": "On separate authorization remove only the three added exact URLs, preserving original PsyGames URI and subsequent unrelated changes.",
+  "remaining": ["G1 service dependency 584a68fd", "G2 account deletion", "client config and authorized runtime/device acceptance"]
+}
