@@ -29,8 +29,13 @@ TypeFree exact proposed callback теперь pro.typefree.app://auth/callback, 
 проводка подтверждена его отчётом, server/config registration НЕ выполнялась.
 Часть adaptive/settings данных TypeFree ещё не переносится; это не полный backup.
 Его pending TeamOps worker-card не активировалась нами, чужие задачи не закрывались.
-По G1–G3 (75d600c9) ещё требуется прямой ответ Дениса; личные ACK app owners не
-разрешают менять серверные ACL, callbacks, создавать users/письма/uploads/релизы.
+G1 Денис прямо разрешил 16.10.2026. Его live dependency preflight нашёл работающий
+i18n-api.service с JWT role=anon и вызовом translation_status_set; REVOKE до
+безопасного переключения сломает реестр переводов (ошибка там скрывается).
+Prerequisite координатору: 584a68fd-0b29-4db9-a0d5-7fad7700534e;
+подробности и metadata evidence в CLOUD_PUBLIC_ROLLOUT_GATES.md.
+G1 SQL ещё НЕ применён; G2/G3 (75d600c9) ждут прямого ответа Дениса.
+Личные ACK app owners не разрешают callbacks/users/письма/uploads/релизы.
 
 ## Решение и реально выполненное
 

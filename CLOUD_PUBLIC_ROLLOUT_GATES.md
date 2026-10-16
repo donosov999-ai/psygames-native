@@ -1,8 +1,10 @@
 # Public cloud rollout — отдельные разрешения Дениса
 
-16.10.2026 · PROPOSED / NOT EXECUTED. Единственное изменение этого sidecar — этот файл.
+16.10.2026 · G1 AUTHORIZED / BLOCKED BY CONFIRMED SERVICE DEPENDENCY / NOT EXECUTED.
+G2/G3 остаются proposed. Последняя фактическая проверка — ниже.
 Основной исполнитель создал needs-decision 75d600c9-65d6-4c82-9f49-2476438d30be.
-Серверные операции всё ещё НЕ выполнены; существующее local implementation ТЗ действует.
+Изменяющие серверные операции G1–G3 всё ещё НЕ выполнены;
+существующее local implementation ТЗ действует.
 Среда: существующий personal-nzt (`iuvvheeocobhiothfgei`),
 https://iuvvheeocobhiothfgei.supabase.co; это общая база, не staging.
 Канон: [REF](/Users/denisonosov/dev/psygames-game-lab/testflight-fixes-20261011/ECOSYSTEM_CLOUD_V1_REF.md:111),
@@ -19,6 +21,50 @@ anon SELECT=false. Sidecar независимо не перепроверял li
 доступа вошедшего пользователя, не доказанный инцидент и не глобальный аудит PASS.
 
 ## G1. Legacy ACL: target-only service protection, не только SELECT
+
+### Текущее решение и найденная зависимость — 16.10.2026, 08:13 UTC
+
+Денис прямо ответил «делай» после предложения точечного security fix; разрешение
+G1 записано в TeamOps: 02892b01-09aa-4067-bab8-d30ac64e37db. Нового разрешения
+на тот же G1 не требуется. G2/G3 этим ответом не считаются согласованными.
+
+До изменения прав найден НЕ гипотетический, а работающий клиент с ролью anon:
+
+- Read-only SSH на 37.60.245.18: `systemctl is-active i18n-api.service` → active.
+- Прочитан `/root/i18n/i18n_api.py`: `SB_KEY` берётся из `SUPABASE_ANON`;
+  `write_status` передаёт этот ключ как apikey/Bearer в
+  `/rest/v1/rpc/translation_status_set`.
+- Только локально в процессе сервера разобран JWT из environment живого MainPID;
+  наружу выведены лишь `runtime_key_present=true`, `runtime_database_role=anon`.
+  Значения credentials не печатались, не сохранялись и не передавались.
+- `write_status` перехватывает исключение и делает `pass`: после отзыва EXECUTE
+  сам перевод может выглядеть успешным, но реестр перестанет обновляться.
+- Код, environment, unit, данные и конфигурация этого сервиса НЕ изменялись;
+  настоящая транскреация/LLM/запись статуса для проверки НЕ запускалась.
+
+Поэтому согласованный service-dependency STOP сработал ДО SQL mutation.
+Не подменять безопасное переключение выдачей полного service_role публичному
+клиенту или неограниченному HTTP endpoint. Нужен server-only least-privilege
+маршрут с подтверждением текущего production-владельца и планом отката.
+
+Создана и перечитывается отдельная prerequisite-задача координатору
+`teamops-claude-mac`: **584a68fd-0b29-4db9-a0d5-7fad7700534e**, Срочно,
+срок 16.10.2026, parent bb2c9f30-d786-4fe6-b25c-4b2ace267d4b.
+Создание задачи не означает принятия/выполнения адресатом.
+
+Повторные metadata-only SQL подтвердили исходные ACL ниже, отсутствие явных
+column ACL, memberships anon/authenticated/service_role и dependent views.
+`translation_status_set` source MD5=f1dea3e75c9d045b8697a527b7790c60;
+`bug_report_to_task` source MD5=54a81342160575fbb0a574e6343ac5ff.
+Хеш non-target public relation/function/column/default ACL для контрольной сверки:
+136465f04cc8f6c3065ea09de463aca7. Это только снимок, при чужих параллельных
+изменениях требуется новый preflight, а не откат чужих ACL.
+У targets anon/auth имеют также REFERENCES/TRIGGER/MAINTAIN: ALL PRIVILEGES
+в предложении намеренно шире DML. Ни одна целевая операция пока не выполнена.
+
+Mac: первая попытка CLI завершилась ENOSPC (df~102MiB). Без удаления файлов этим
+чатом место позднее стало ~4.6GiB; повторный CLI `--version` работает (2.116.0).
+Это не устранение системной причины заполнения диска и не разрешение на очистку.
 
 ### Live read-only preflight основного исполнителя 16.10
 
@@ -132,14 +178,14 @@ device PKCE/чужой callback/OFF проверки каждого host. Нов
 регистрация пользователей не разрешены этим документом. Rollback: удалить только
 эти добавления, сохранить исходные и параллельные чужие изменения; не трогать данные.
 
-## Точные решения, запрашиваемые у Дениса (ещё не получены)
+## Решения Дениса и оставшиеся запросы
 
-[G1] Разрешить после service-owner/dependency проверки три target-only REVOKE из G1 (две служебные таблицы + точный writer RPC) в personal-nzt; без чтения/изменения строк и других ACL/RLS/schema (ref: 75d600c9, G1) · закрыть ненужные anon/authenticated права, проверить service/admin · откат: точные исходные grants → рекомендую: Делать.
+[G1] Разрешение получено 16.10; применение ждёт безопасного переключения подтверждённого anon-consumer (ref: 584a68fd-0b29-4db9-a0d5-7fad7700534e). Три target-only REVOKE, без чтения/изменения строк и других ACL/RLS/schema; проверить service/admin; откат — точные исходные grants. НЕ применять до dependency ACK.
 
 [G2] Одобрить отдельный план server-only deployment общего account deletion по G2 после legacy-cascade/UX review и синтетической приёмки; локальная разработка уже разрешена, реальные аккаунты не удалять по этому пункту (ref: этот файл, G2) · подготовить проверяемый endpoint/hosts contract, пока кнопки UNAVAILABLE · откат: выключить endpoint/UI, удалённые данные автоматически не восстановить → рекомендую: Делать.
 
 [G3] Разрешить psygames-codex-mac после exact native подтверждений добавить в Auth redirect allowlist personal-nzt только согласованные URL из G3; TypeFree добавлять лишь после его финального native proof/подтверждения, без писем и регистраций (ref: этот файл, G3) · сохранить existing redirects, проверить metadata diff · откат: удалить только новые согласованные добавления → рекомендую: Делать.
 
 «Делать» означает согласование указанного плана; документ сам не является
-server-change authorization. Нужен прямой ответ Дениса по каждому gate;
+server-change authorization. Прямой ответ Дениса получен для G1, не для G2/G3;
 никаких задач/сообщений для его получения sidecar не создавал.
