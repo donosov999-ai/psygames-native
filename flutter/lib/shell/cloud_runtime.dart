@@ -100,17 +100,28 @@ class CloudLinkHost extends StatefulWidget {
   State<CloudLinkHost> createState() => _CloudLinkHostState();
 }
 
-class _CloudLinkHostState extends State<CloudLinkHost> {
+class _CloudLinkHostState extends State<CloudLinkHost>
+    with WidgetsBindingObserver {
   StreamSubscription<Uri>? _subscription;
   bool _handling = false;
   Uri? _queued;
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _subscription = widget.runtime?.links.listen(
       (uri) => unawaited(_link(uri)),
       onError: (Object _) {},
     );
+    unawaited(widget.runtime?.pilot.resumeExisting());
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.paused) {
+      unawaited(widget.runtime?.pilot.flushChanges());
+    }
   }
 
   Future<void> _link(Uri uri) async {
@@ -164,6 +175,7 @@ class _CloudLinkHostState extends State<CloudLinkHost> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     unawaited(_subscription?.cancel());
     widget.runtime?.pilot.dispose();
     super.dispose();

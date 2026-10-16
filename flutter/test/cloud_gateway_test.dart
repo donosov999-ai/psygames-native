@@ -57,6 +57,9 @@ void main() {
       if (r.url.path == '/auth/v1/token') {
         return pendingToken ?? reply(r, fixtureSession(id: owner));
       }
+      if (r.url.path == '/auth/v1/user') {
+        return reply(r, fixtureSession(id: owner)['user']!);
+      }
       if (r.url.path.endsWith('ecosystem_app_consents')) {
         final receipt = {
           'owner_id': owner,
@@ -414,4 +417,72 @@ void main() {
       expect(await gateway.hasPendingLogin(callback), false);
     },
   );
+
+  test('saved consent OFF never recovers credentials or sends HTTP', () async {
+    expect(await gateway.resumeBackup(), false);
+    expect(requests, isEmpty);
+    await gateway.requestLink('synthetic@example.invalid');
+    requests.clear();
+    await state.set(CloudPilot.consentKey, '1');
+    expect(await gateway.resumeBackup(), false);
+    expect(requests, isEmpty, reason: 'Pending PKCE wins over cached recovery');
+  });
+
+  test(
+    'durable lost ACK retries old snapshot after restart, not new local data',
+    () async {
+      await login();
+      await enable();
+      failSave = true;
+      await expectLater(
+        gateway.save(keepLocalAfterConflict: false),
+        throwsA(isA<Exception>()),
+      );
+      final original = requests.last.body;
+      await state.set('psygames_tokens_v1', '80');
+      gateway.suspend();
+      await account.dispose();
+      account = makeAccount();
+      gateway = makeGateway();
+      requests.clear();
+      expect(await gateway.resumeBackup(), true);
+      await gateway.versions();
+      expect(requests.where((r) => r.method == 'POST'), isEmpty);
+      failSave = false;
+      await gateway.save(keepLocalAfterConflict: false);
+      expect(requests.where((r) => r.method == 'POST').single.body, original);
+      expect(
+        jsonDecode(gateway.acknowledgedContent!)['psygames_tokens_v1'],
+        '75',
+      );
+      expect(state.get('psygames_tokens_v1'), '80');
+    },
+  );
+
+  test('restart preserves own ACK7 despite peer listed11', () async {
+    await login();
+    await enable();
+    await gateway.save(keepLocalAfterConflict: false);
+    gateway.suspend();
+    await account.dispose();
+    account = makeAccount();
+    gateway = makeGateway();
+    expect(await gateway.resumeBackup(), true);
+    copies = [
+      {
+        'id': id,
+        'request_id': id,
+        'revision': 11,
+        'created_at': '2026-10-16T00:00:00Z',
+      },
+    ];
+    await gateway.versions();
+    requests.clear();
+    conflictSave = true;
+    await expectLater(
+      gateway.save(keepLocalAfterConflict: false),
+      throwsA(isA<CloudConflict>()),
+    );
+    expect(jsonDecode(requests.single.body)['base_revision'], 7);
+  });
 }

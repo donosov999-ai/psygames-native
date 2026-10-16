@@ -357,4 +357,42 @@ void main() {
       expect(state.get('psygames_sudoku_level_women'), '78');
     },
   );
+
+  test('changed progress flushes once after consent; OFF and metadata do not upload', () async {
+    await state.set('psygames_tokens_v1', '120');
+    await pilot.flushChanges();
+    expect(gateway.calls, isEmpty);
+    await signedIn();
+    await pilot.confirmHistory();
+    gateway.calls.clear();
+    await state.set('psygames_tokens_v1', '130');
+    await pilot.flushChanges();
+    expect(gateway.calls, ['save', 'versions']);
+    await pilot.flushChanges();
+    expect(gateway.calls, ['save', 'versions']);
+    await state.set(CloudPilot.receiptKey, 'metadata-only-change');
+    await pilot.flushChanges();
+    expect(gateway.calls, ['save', 'versions']);
+    await pilot.disable();
+    gateway.calls.clear();
+    await state.set('psygames_tokens_v1', '140');
+    await pilot.flushChanges();
+    expect(gateway.calls, isEmpty);
+  });
+
+  test(
+    'automatic conflict does not force overwrite or repeat on every flush',
+    () async {
+      await signedIn();
+      await pilot.confirmHistory();
+      gateway.calls.clear();
+      gateway.saveConflict = true;
+      await state.set('psygames_tokens_v1', '150');
+      await pilot.flushChanges();
+      expect(pilot.conflict, true);
+      await pilot.flushChanges();
+      expect(gateway.calls, ['save']);
+      expect(state.get('psygames_tokens_v1'), '150');
+    },
+  );
 }

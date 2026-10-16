@@ -15,7 +15,11 @@ import 'shared_state.dart';
 /// Real shared-library adapter. Inert until an explicitly requested login.
 /// Not constructed by the released host; no second wallet/gameplay writer.
 class PsyGamesCloudGateway
-    implements CloudPilotGateway, CloudColdCallbackGateway {
+    implements
+        CloudPilotGateway,
+        CloudColdCallbackGateway,
+        CloudResumeGateway,
+        CloudAcknowledgedGateway {
   PsyGamesCloudGateway({
     required this.state,
     required this.account,
@@ -41,7 +45,136 @@ class PsyGamesCloudGateway
   static final _intentLanes = <String, Future<void>>{};
   static final _accountOwners = Expando<PsyGamesCloudGateway>();
   String? _ownedIntent;
+  @override
+  String? acknowledgedContent;
   ({Map<String, dynamic> payload, int base, String id})? _pending;
+
+  String get _writeKey =>
+      '${SharedState.prefix}ecosystem_cloud_write_${accountId!}';
+  String get _writeLane => 'write:$issuer|${accountId!}';
+
+  Future<void> _loadWrites() async {
+    await (_intentLanes[_writeLane] ?? Future.value());
+    _base = 0;
+    _saved = false;
+    _pending = null;
+    acknowledgedContent = null;
+    final raw = state.get(_writeKey);
+    if (raw == null) return;
+    final value = jsonDecode(raw);
+    if (value is! Map ||
+        value['schema'] != 1 ||
+        value['issuer'] != issuer ||
+        value['owner'] != accountId ||
+        value['base'] is! int ||
+        value['base'] < 0) {
+      throw const FormatException('Invalid cloud write journal');
+    }
+    _base = value['base'] as int;
+    _saved = _base > 0;
+    final acknowledged = value['acknowledged_content'];
+    if (acknowledged != null && acknowledged is! String) {
+      throw const FormatException('Invalid cloud acknowledgement');
+    }
+    acknowledgedContent = acknowledged as String?;
+    final pending = value['pending'];
+    if (pending != null) {
+      if (pending is! Map ||
+          pending['base'] is! int ||
+          pending['base'] < 0 ||
+          pending['id'] is! String ||
+          !RegExp(r'^[a-f0-9-]{36}$').hasMatch(pending['id'] as String) ||
+          pending['payload'] is! Map) {
+        throw const FormatException('Invalid pending cloud write');
+      }
+      final payload = Map<String, dynamic>.from(pending['payload'] as Map);
+      if (payload['schema'] != 1 || payload.length != 2) {
+        throw const FormatException('Invalid pending cloud envelope');
+      }
+      CloudSnapshot.decode(jsonEncode(payload['data']));
+      _pending = (
+        payload: payload,
+        base: pending['base'] as int,
+        id: pending['id'] as String,
+      );
+    }
+  }
+
+  Future<void> _persistWrites(int generation) {
+    _guard(generation);
+    final lane = _writeLane, key = _writeKey;
+    final pending = _pending;
+    final encoded = jsonEncode({
+      'schema': 1,
+      'issuer': issuer,
+      'owner': accountId,
+      'base': _base,
+      'acknowledged_content': acknowledgedContent,
+      'pending': pending == null
+          ? null
+          : {
+              'payload': pending.payload,
+              'base': pending.base,
+              'id': pending.id,
+            },
+    });
+    final next = (_intentLanes[lane] ?? Future.value()).then((_) async {
+      _guard(generation);
+      await state.set(key, encoded);
+      _guard(generation);
+      if (state.get(key) != encoded) throw StateError('Cloud journal failed');
+    });
+    _intentLanes[lane] = next.catchError((Object _) {});
+    return next;
+  }
+
+  AppCloudClient _connector(String owner) => AppCloudClient(
+    account: account,
+    expectedAccountId: owner,
+    validatePayload: (envelope) =>
+        CloudSnapshot.decode(jsonEncode(envelope['data'])),
+  )..allowHistoryRead();
+
+  @override
+  Future<bool> resumeBackup() async {
+    if (state.get(CloudPilot.consentKey) != '1' || _currentIntentId() != null) {
+      return false;
+    }
+    final receipt = jsonDecode(state.get(CloudPilot.receiptKey) ?? 'null');
+    if (receipt is! Map ||
+        receipt['version'] != 1 ||
+        receipt['app_id'] != 'psygames' ||
+        receipt['issuer'] != issuer ||
+        receipt['account_id'] is! String) {
+      return false;
+    }
+    suspend();
+    _claimAccount();
+    _off = false;
+    final generation = _generation, owner = receipt['account_id'] as String;
+    try {
+      if (!await account.resume(consent: true, expectedAccountId: owner)) {
+        if (generation == _generation) suspend();
+        return false;
+      }
+      _guard(generation);
+      _cloud = _connector(owner);
+      await _loadWrites();
+      _guard(generation);
+      await _client.recoverConsent({
+        'owner_id': owner,
+        'app_id': 'psygames',
+        'issuer': issuer,
+        'policy_version': 1,
+        'enabled': true,
+      });
+      _guard(generation);
+      return true;
+    } catch (_) {
+      if (generation == _generation) suspend();
+      rethrow;
+    }
+  }
 
   @override
   String get issuer => account.issuer;
@@ -169,20 +302,14 @@ class PsyGamesCloudGateway
       if (owner == null) {
         throw const CloudPortError(CloudPortCode.accountChanged);
       }
-      _cloud = AppCloudClient(
-        account: account,
-        expectedAccountId: owner,
-        validatePayload: (envelope) =>
-            CloudSnapshot.decode(jsonEncode(envelope['data'])),
-      )..allowHistoryRead();
+      _cloud = _connector(owner);
       await _clearIntent(_ownedIntent);
       _guard(generation);
       _ownedIntent = null;
-      _base = 0;
       _remoteHead = 0;
       _listed = false;
-      _saved = false;
-      _pending = null;
+      await _loadWrites();
+      _guard(generation);
     } catch (_) {
       if (generation != _generation || _off) {
         throw const CloudPortError(CloudPortCode.off);
@@ -257,6 +384,8 @@ class PsyGamesCloudGateway
       id: _requestId(),
     );
     try {
+      // Durable BEFORE the POST: a lost response/restart retries the same copy.
+      await _persistWrites(generation);
       final copy = await client.save(
         write.payload,
         baseRevision: write.base,
@@ -266,9 +395,17 @@ class PsyGamesCloudGateway
       _base = copy.revision;
       _saved = true;
       _pending = null;
+      acknowledgedContent = jsonEncode((write.payload['data'] as Map)['data']);
+      try {
+        await _persistWrites(generation);
+      } catch (_) {
+        _pending = write;
+        rethrow;
+      }
     } on CloudPortError catch (e) {
       if (e.code == CloudPortCode.conflict) {
         _pending = null;
+        await _persistWrites(generation);
         throw CloudConflict();
       }
       rethrow; // Retain exact payload/base/requestId for an explicit retry.
@@ -297,6 +434,9 @@ class PsyGamesCloudGateway
     _base = 0;
     _remoteHead = 0;
     _pending = null;
+    _saved = false;
+    acknowledgedContent = null;
+    await _persistWrites(generation);
   }
 
   @override

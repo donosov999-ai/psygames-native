@@ -31,6 +31,14 @@ abstract interface class CloudColdCallbackGateway {
   Future<bool> hasPendingLogin(Uri uri);
 }
 
+abstract interface class CloudResumeGateway {
+  Future<bool> resumeBackup();
+}
+
+abstract interface class CloudAcknowledgedGateway {
+  String? get acknowledgedContent;
+}
+
 enum CloudPilotStage {
   local,
   explanation,
@@ -45,7 +53,9 @@ enum CloudPilotStage {
 /// UI lifecycle only, never a second wallet/session writer. Merely opening this
 /// controller/screen performs no auth recovery, cloud reads or consent writes.
 class CloudPilot extends ChangeNotifier {
-  CloudPilot(this.state, this.gateway);
+  CloudPilot(this.state, this.gateway) {
+    state.writes.addListener(_changed);
+  }
 
   static const receiptKey = '${SharedState.prefix}cloud_consent_receipt_v1';
   // Separate from legacy CloudBackup/frontend cloudConsent: enabling this
@@ -66,6 +76,61 @@ class CloudPilot extends ChangeNotifier {
   String? _owner;
   String? _issuer;
   Future<void> _storage = Future.value();
+  Timer? _backupTimer;
+  String? _savedContent;
+  bool _dirty = false;
+
+  String _content() => jsonEncode(CloudSnapshot.capture(state.snapshot()).data);
+
+  void _changed() {
+    if (_disposed || !enabled || !_bound || conflict) return;
+    try {
+      if (_content() == _savedContent) return;
+    } catch (_) {
+      // A backup limit or serialization error must not break a gameplay write.
+      errorKey = 'cloudPilotError';
+      return;
+    }
+    _dirty = true;
+    _backupTimer?.cancel();
+    _backupTimer = Timer(const Duration(minutes: 2), () {
+      unawaited(flushChanges());
+    });
+  }
+
+  /// Best-effort dispatch of changed portable data; never blocks local gameplay.
+  Future<void> flushChanges() async {
+    _backupTimer?.cancel();
+    if (_disposed || !enabled || !_bound || conflict || busy || !_dirty) return;
+    await save();
+  }
+
+  /// Only a prior exact app/account consent may recover protected credentials.
+  /// A pending cold login has precedence in the real gateway.
+  Future<void> resumeExisting() async {
+    if (stage != CloudPilotStage.local ||
+        busy ||
+        state.get(consentKey) != '1' ||
+        gateway is! CloudResumeGateway) {
+      return;
+    }
+    await _run((generation) async {
+      if (!await (gateway as CloudResumeGateway).resumeBackup()) return;
+      if (!_current(generation)) return;
+      _owner = gateway.accountId;
+      _issuer = gateway.issuer;
+      if (_owner == null || !_bound) throw StateError('Account changed');
+      versions = List.unmodifiable(await gateway.versions());
+      if (!_current(generation) || !_bound) return;
+      historyLoaded = true;
+      stage = CloudPilotStage.ready;
+      _savedContent = gateway is CloudAcknowledgedGateway
+          ? (gateway as CloudAcknowledgedGateway).acknowledgedContent
+          : _content();
+      _dirty = _content() != _savedContent;
+    });
+    if (enabled && _dirty) _changed();
+  }
 
   bool get enabled => stage == CloudPilotStage.ready;
   String? get email => gateway.email;
@@ -205,6 +270,8 @@ class CloudPilot extends ChangeNotifier {
       if (!_current(generation)) return;
       if (!_bound) throw StateError('Account changed');
       stage = CloudPilotStage.ready;
+      _savedContent = _content();
+      _dirty = false;
     });
     if (!accepted && _current(generationBefore)) {
       await disable();
@@ -216,13 +283,19 @@ class CloudPilot extends ChangeNotifier {
   Future<void> save({bool keepLocalAfterConflict = false}) async {
     if (!enabled || !_bound) return;
     await _run((generation) async {
+      final content = _content();
       await gateway.save(keepLocalAfterConflict: keepLocalAfterConflict);
       if (!_current(generation) || !_bound) return;
+      _savedContent = gateway is CloudAcknowledgedGateway
+          ? (gateway as CloudAcknowledgedGateway).acknowledgedContent
+          : content;
+      _dirty = _content() != _savedContent;
       final rows = await gateway.versions();
       if (!_current(generation) || !_bound) return;
       versions = List.unmodifiable(rows);
       conflict = false;
     });
+    if (_dirty && errorKey == null) _changed();
   }
 
   Future<void> previewVersion(CloudVersion version) async {
@@ -276,6 +349,9 @@ class CloudPilot extends ChangeNotifier {
   Future<void> disable() async {
     if (_disposed || stage == CloudPilotStage.restoring) return;
     _generation++;
+    _backupTimer?.cancel();
+    _dirty = false;
+    _savedContent = null;
     gateway.suspend();
     stage = CloudPilotStage.local;
     busy = false;
@@ -316,6 +392,8 @@ class CloudPilot extends ChangeNotifier {
 
   @override
   void dispose() {
+    state.writes.removeListener(_changed);
+    _backupTimer?.cancel();
     _disposed = true;
     _generation++;
     gateway.suspend();
