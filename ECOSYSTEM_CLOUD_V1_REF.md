@@ -11,6 +11,27 @@ PSYGAMES_CLOUD_RUNTIME_REF.md; shared package pin неизменен, public run
 Уточнённый legacy ACL/RPC gate: CLOUD_PUBLIC_ROLLOUT_GATES.md (не SELECT-only).
 Не путать готовый backend/библиотеки с работающим облаком в четырёх релизах.
 
+## Личные технические согласования 16.10 — только local integration
+
+Все четыре Codex-владельца дали личное техническое СОГЛАСЕН на exact общий
+SOURCE057c03d7ba770fbee934918eddb87a88c28d0082. Это не formal closure чужих
+Claude-задач, не backend/device/public/store acceptance и не запуск синхронизации.
+Запись приёмки отчётов в TeamOps: 6416ba67-b27c-4c1e-b643-0aead96d1bbc.
+
+| Host | Проверяемый артефакт / граница |
+|---|---|
+| PsyGames | PSYGAMES_CLOUD_RUNTIME_REF.md; own host ed35db65cd7ba12927850fced047a95818ed5243, 171 local tests PASS, defaultOFF. |
+| Chess & Go | /Users/denisonosov/dev/chessgo-wt-synapse/ACCOUNT_SHARED_V1_REVIEW_20261016.md; личное exact ACK и local SDK/adapter review, не native/device E2E. |
+| Smart Alarm | /Users/denisonosov/dev/smart-alarm-photo-diary/smart-alarm-flutter/ACCOUNT_CLOUD_V1_REVIEW_057C.md; report SHA2560d17a03aceb9916507cf6555a84aff4baebdf7eb7cc3d0fba12c2ccfbef3038d, docs f04cf02125f340648033065f77154b893284a8bb; frozen log hash/tail1058PASS/12SKIPPED сверены, не повторный прогон здесь. Restore только neutral cache256, не полный app backup/autosync. |
+| TypeFree | /Users/denisonosov/Documents/TeamOps/typerighting-onboarding/ACCOUNT_NATIVE_HOST_20261016.md; report SHA256f891ee43c5137e0e3b340fc0534d77906b3d2dfe044c443146e495c68373096f; receipt/patch hashes сверены, reverseapplycheckPASS на754e5715143de25bc7722e70f3e757eee1ebd69d. Source пока uncommitted, immutable patch7a629f390bbcd0f39b2c6f13ad3e774c5b706e312a8ad889f150ad48e98ea94f сохранён. Авторские175unit/141shared/2vault/AndroidAPK/iOScargocheck не присваивать этому чату как собственные/device tests. |
+
+TypeFree exact proposed callback теперь pro.typefree.app://auth/callback, локально
+проводка подтверждена его отчётом, server/config registration НЕ выполнялась.
+Часть adaptive/settings данных TypeFree ещё не переносится; это не полный backup.
+Его pending TeamOps worker-card не активировалась нами, чужие задачи не закрывались.
+По G1–G3 (75d600c9) ещё требуется прямой ответ Дениса; личные ACK app owners не
+разрешают менять серверные ACL, callbacks, создавать users/письма/uploads/релизы.
+
 ## Решение и реально выполненное
 
 Прямое «делай» Дениса после выбора существующей базы отменяет только прежний
