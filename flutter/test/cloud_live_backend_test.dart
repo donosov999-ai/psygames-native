@@ -1,5 +1,5 @@
 // Explicit synthetic-only backend acceptance, not a device/PKCE test.
-// Kept outside integration_test: this uses the VM test runner, not Xcode builds.
+// Under test/: VM runner + test-only APIs, never an automatic Xcode build.
 // Run only with a private PSY_SYNTHETIC_ACCOUNT_FILE created for this test.
 import 'dart:convert';
 import 'dart:io';
