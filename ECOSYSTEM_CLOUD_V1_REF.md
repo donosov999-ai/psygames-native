@@ -5,6 +5,7 @@
 f27599dc-31c9-4638-946d-ccb3270079bb остаётся у psygames-claude-mac.
 Checkout: /Users/denisonosov/dev/psygames-game-lab/testflight-fixes-20261011.
 Это текущий источник handoff; прежние Free/readiness checkpoints исторические.
+Точный source commit/hashes: ECOSYSTEM_CLOUD_V1_PIN.md.
 Не путать готовый backend/библиотеки с работающим облаком в четырёх релизах.
 
 ## Решение и реально выполненное
@@ -84,7 +85,7 @@ BrainKit/AI. PsyGames сохраняет имя/вид питомца, балл�
 
 ## Wire, конфликты и удаление
 
-PostgREST base = API + /rest/v1; таблицы ecosystem_app_consents/snapshots.
+PostgREST base = API + /rest/v1; таблицы ecosystem_app_consents и ecosystem_app_snapshots.
 Все чтения/изменения ограничены owner_id+app_id (INSERT передаёт scope в body).
 Consent upsert body: owner_id,app_id,issuer,policy_version:1,enabled;
 on_conflict=owner_id,app_id, Prefer merge-duplicates/representation.
@@ -144,6 +145,6 @@ strict tsc --noEmit PASS. flutter analyze и dart analyze в обоих Dart pac
 затем основной исполнитель заново прогнал все146. Независимое принятие нового
 pin владельцами четырёх приложений этим не подменяется.
 
-Immutable source pin, hashes и итоговые прогоны фиксируются отдельной записью
-после commit. Плавающий checkout не объявлять immutable. Миграция, runtime,
+Immutable source pin/hashes сохранены после commit в ECOSYSTEM_CLOUD_V1_PIN.md.
+Плавающий checkout не объявлять immutable. Миграция, runtime,
 store/device acceptance и ответы четырёх владельцев — разные границы готовности.

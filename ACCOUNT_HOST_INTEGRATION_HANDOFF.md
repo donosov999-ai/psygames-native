@@ -1,5 +1,12 @@
 # Backend → владельцам четырёх host-приложений
 
+FINAL SOURCE: 057c03d7ba770fbee934918eddb87a88c28d0082.
+Exact hashes/подключение: ECOSYSTEM_CLOUD_V1_PIN.md. Основной API/план:
+ECOSYSTEM_CLOUD_V1_REF.md. Auth0.1.3/draft.4 и общие Dart/TS cloud clients
+проверены146Flutter/141TS и analyzers. Ниже старый0040152/readiness checkpoint
+сохранён как история; утверждение о совпадении старого hash с текущей папкой
+к новому SOURCE НЕ относится. Новый pin требует нового host review.
+
 ТЕКУЩИЙ handoff/API: ECOSYSTEM_CLOUD_V1_REF.md. Новый Auth0.1.3/draft.4
 включает prepareCallback; прежний0040152/draft.3 ниже — исторический pin,
 не хэш текущей папки и не принятие нового кандидата. Cloud connectors уже
