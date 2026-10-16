@@ -11,6 +11,12 @@ Auth0.1.4 / ecosystem.account/1-draft.5, cloud0.1.1 (только dependency man
 удаление общего аккаунта, lifecycle fence и host confirmation на12языках.
 Ни generic RPC API, ни сырой JWT не экспортируются.
 
+CI follow-up: live backend test перенесён из tool/ в
+flutter/test/cloud_live_backend_test.dart (VM, не integration_test/device).
+Так анализатор законно разрешает test-only SharedPreferences API. Без явной
+syntheticfixture он SKIP и сеть не создаёт. SDK/package hashes выше не изменены;
+это исправление расположения harness, не новая версия общего SDK.
+
 | Файл в SOURCE | SHA256 |
 |---|---|
 | packages/ecosystem_account/CONTRACT.md | 5ed4596fa3de13e4806d2d303518d5fe9e5aa78d936fbfad96e2f8300bd06ad5 |
