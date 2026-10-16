@@ -18,6 +18,29 @@ SOURCE057c03d7ba770fbee934918eddb87a88c28d0082. Это не formal closure чу�
 Claude-задач, не backend/device/public/store acceptance и не запуск синхронизации.
 Запись приёмки отчётов в TeamOps: 6416ba67-b27c-4c1e-b643-0aead96d1bbc.
 
+### Последующий checkpoint Smart Alarm — 16.10
+
+Владелец smart-alarm-codex-mac сообщил code0e61b252d8d0705223fbcaa4eb8b67fc381a0388,
+docsHEAD45b979b72d4ae91fd7e49bfe157f3677f4693e7e. Здесь независимо read-only сверены
+HEAD/clean Git, diff трёх файлов и SHA256 его ACCOUNT_CLOUD_V1_REVIEW_057C.md:
+983ee5e5362d0fdfb614269304cbeefb765cfa5459c7f27b216b7260e7ff61e8.
+Это обновляет checkpoint ниже, не меняя frozen общий SOURCE057c.
+
+Host fix: new-only exclusion anchor хранит ID старых валидных событий без лимита
+облачной копии; 257 старых + 1 новое → в копию попадает только 1 новое.
+Режим all-history >256 по-прежнему явно отклоняется, chunking не реализован.
+Ограничение256 относится к данным будильника, не является лимитом PsyGames.
+Не переносить эту реализацию в наш full-state snapshot без отдельной задачи.
+
+Сверены hashes файлов в /Users/denisonosov/Documents/TeamOps/smart-alarm-ux/account-transfer-20261016/:
+frozen-full.log b3faa9a63973cc685383bfabdbd45f0cf91de70d561edd0222a8dd18b0b7d7c1,
+large-new-only-red.log b2f0db8597882f539877e3f4f01c643cdc47c81ff7176288d480704d124a2cd4,
+focused-fixed.log dd249d8bd9eb2da28919de899d449f3d7aec5526af7b372da83fa9fd362f12a4,
+analyze.log bb22ef248e1bedf5c23385019369b6cff74bdb6256746fb853c4be51501854f2.
+Прочитан tail full log:1061PASS/12SKIPPED; focused40/analyze0 — отчёт владельца,
+не новый прогон этим чатом. Mock clean-install transfer не доказывает hardware/RLS.
+G1/G3 blockers остаются, defaultOFF и чужой ownership сохранены, релиза нет.
+
 | Host | Проверяемый артефакт / граница |
 |---|---|
 | PsyGames | PSYGAMES_CLOUD_RUNTIME_REF.md; own host ed35db65cd7ba12927850fced047a95818ed5243, 171 local tests PASS, defaultOFF. |
