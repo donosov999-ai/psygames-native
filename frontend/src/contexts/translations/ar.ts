@@ -1,6 +1,9 @@
 // AUTO-GENERATED translation overlay (ar). Источник: транскреация с EN-базы (856 ключей).
 // ⚠️ НЕ ПОДКЛЮЧЁН в LANGUAGES — ждёт RTL-захода (I18nManager). Не править руками.
 const t: Record<string, string> = {
+  cloudPilotDeleteAccount: "حذف الحساب المشترك",
+  cloudPilotDeleteAccountWarning: "سيؤدي هذا إلى حذف حسابك المشترك والنسخ السحابية في PsyGames وSmart Alarm وChess & Go وTypeFree نهائيًا. سيبقى تقدمك المحلي على أجهزتك محفوظًا. ستحتاج إلى تسجيل الدخول مجددًا في التطبيقات الأخرى. لا يمكن التراجع عن هذا الإجراء.",
+  cloudPilotAccountDeleteError: "لم يتم تأكيد حذف الحساب. تقدمك المحلي بأمان. سجّل الدخول مجددًا قبل إعادة المحاولة.",
   cloudPilotTitle: "النسخ الاحتياطي السحابي",
   cloudPilotTest: "تشغيل تجريبي · PsyGames",
   cloudPilotOn: "النسخ الاحتياطي السحابي مفعّل",

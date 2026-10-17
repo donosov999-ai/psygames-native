@@ -1,0 +1,66 @@
+{
+  "executor": "psygames-codex-mac",
+  "project_ref": "iuvvheeocobhiothfgei",
+  "authorization_journal_id": "5f16d468-1ce9-4665-94db-17660fb0d4b2",
+  "edge": {
+    "name": "ecosystem-account-delete",
+    "id": "db08c6f7-6b6e-4bab-9263-59c8efc85a8d",
+    "version": 1,
+    "status": "ACTIVE",
+    "bundle_sha256": "70578dd360dd9e797723f1d9ad4de229c02191bf12ea74ecfc57e76324f28447",
+    "verify_jwt": false,
+    "own_authentication": "Provider getUser + strict claims + live own session guard; not anonymous deletion"
+  },
+  "migration": {
+    "version": "20261016120124",
+    "name": "ecosystem_account_session_guard",
+    "function": "public.ecosystem_account_session_active()",
+    "execute_roles": ["postgres", "authenticated"],
+    "anon_execute": false,
+    "service_role_execute": false,
+    "search_path_empty": true
+  },
+  "http_acceptance": {
+    "run": "1597c0df-01bc-44d2-9c17-358683173420",
+    "finished_utc": "2026-10-16T12:02:05.571Z",
+    "checks_passed": 10,
+    "four_app_seed": true,
+    "live_session_guard": true,
+    "arbitrary_owner_rejected": true,
+    "no_token_rejected": true,
+    "delete_exact_ack": true,
+    "four_app_cascade_empty": true,
+    "auth_user_deleted": true,
+    "deleted_session_cannot_repeat": true,
+    "deleted_session_guard_denies": true,
+    "other_synthetic_owner_preserved": true,
+    "independent_sql_users_consents_snapshots_remaining": [0, 0, 0]
+  },
+  "flutter_live_backend": {
+    "run": "31ee181b-44de-4434-9188-0263719c112b",
+    "finished_utc": "2026-10-16T12:04:18.246Z",
+    "vm_test_pass": true,
+    "real_http_backend": true,
+    "real_gateway_pilot_and_sdk": true,
+    "resume_backup_preview_restart_restore_safety_copy": true,
+    "restored_balance_replaces_not_adds": true,
+    "mascot_and_point_purchase_preserved": true,
+    "account_deleted_through_real_sdk": true,
+    "independent_sql_users_and_snapshots_remaining": [0, 0],
+    "private_fixture_removed": true,
+    "physical_device_or_pkce_acceptance": false,
+    "prior_attempt": "Integration-test directory selected a macOS build unintentionally; interrupted, synthetic account cleaned. Retested through VM tool/ path, not counted as device success."
+  },
+  "security_advisor": {
+    "run_utc": "2026-10-16T12:02:20Z",
+    "own_notice": "authenticated_security_definer_function_executable: intentional narrow live-session boolean; no arbitrary owner arguments or auth table privileges",
+    "remediation_reference": "https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable",
+    "shared_project_has_other_findings": true,
+    "full_security_pass_claimed": false
+  },
+  "real_accounts_deleted": false,
+  "emails_sent": false,
+  "storage_objects_deleted": false,
+  "public_cloud_enabled": false,
+  "remaining": ["Commit and merge candidate host/SDK/UI changes", "Configure enabled release builds", "App/device PKCE acceptance", "Separate support grant/level-correction application"]
+}

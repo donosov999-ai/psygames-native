@@ -5,6 +5,9 @@
 //   Аббревиатуры тестов (Stroop/SDMT/WCST/N-back/BART/SET/Cloze...) оставлены латиницей — международные термины.
 //   ⚠️ Стилистику деванагари подтвердить носителем. При регенерации воркфлоу — НЕ затирать, мерджить через git diff.
 const t: Record<string, string> = {
+  cloudPilotDeleteAccount: "साझा खाता मिटाएँ",
+  cloudPilotDeleteAccountWarning: "इससे आपका साझा खाता और PsyGames, Smart Alarm, Chess & Go और TypeFree की क्लाउड कॉपियाँ हमेशा के लिए मिट जाएँगी। आपके डिवाइसों पर स्थानीय प्रगति बनी रहेगी। दूसरे ऐप्स में आपको फिर से साइन इन करना होगा। इस कार्रवाई को वापस नहीं लिया जा सकता।",
+  cloudPilotAccountDeleteError: "खाता मिटाए जाने की पुष्टि नहीं हुई। आपकी स्थानीय प्रगति सुरक्षित है। दोबारा कोशिश करने से पहले फिर से साइन इन करें।",
   cloudPilotTitle: "क्लाउड बैकअप",
   cloudPilotTest: "परीक्षण पायलट · PsyGames",
   cloudPilotOn: "क्लाउड बैकअप चालू है",

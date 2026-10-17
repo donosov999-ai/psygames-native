@@ -1,14 +1,29 @@
-# Unified account — ecosystem.account/1-draft.4
+# Unified account — ecosystem.account/1-draft.5
 
 Status: candidate for owner review, NOT four-app acceptance or a public release.
-Package: ecosystem_account 0.1.3. Adds an explicit cold PKCE callback lifecycle
-to draft.3/0040152 as a NEW review candidate, not automatic acceptance.
+Package: ecosystem_account 0.1.4. Adds a bounded shared-account deletion method
+to draft.4/SOURCE057c as a NEW review candidate, not automatic acceptance.
 Current implementation is not runtime-connected in the published four apps.
 Owner of shared coordination: psygames-claude-mac, task
 f27599dc-31c9-4638-946d-ccb3270079bb. PsyGames implementation:
 psygames-codex-mac, bb2c9f30-d786-4fe6-b25c-4b2ace267d4b.
 
 ## Identity, consent and scope
+
+### Draft.5 deletion extension (local candidate, not deployed)
+
+`deleteAccount(confirmAllApps: true)` requires a bound opted-in account and a
+separate host confirmation explaining irreversible deletion of the shared account
+and all four apps' cloud copies. It calls only ecosystem-account-delete with fixed
+confirmation/scope, not a caller-selected owner. No raw SDK/JWT is exposed.
+While in flight, retained REST requests are fenced and refresh is stopped. Only
+HTTP200 plus exact ACCOUNT_DELETED is success. Ambiguous failure requires new
+sign-in because the server may already have revoked sessions. Own encrypted
+credentials are retired through the existing lane; a later account generation
+cannot be cleared or receive the old operation's success. Local app data are never
+erased. Opt-out, local-session sign-out, deletion of app copies and shared-account
+deletion remain four distinct actions. Other apps keep their previously accepted
+draft.4 pin until separately reviewing this candidate.
 
 Denis chose Supabase Auth for all four products. Users sign in inside the apps,
 not in the developer dashboard. Stable identity is the pair issuer + subject

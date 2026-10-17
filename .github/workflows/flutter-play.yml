@@ -13,6 +13,10 @@ name: Flutter → Google Play (гибрид, вручную)
 on:
   workflow_dispatch:
     inputs:
+      cloud:
+        description: 'Включить добровольное облако в новой сборке (не меняет promoted AAB)'
+        type: boolean
+        default: false
       track:
         description: 'Дорожка Play: internal — внутренний трек; production — продакшн 100 %'
         type: choice
@@ -97,6 +101,13 @@ jobs:
           fi
 
       - uses: actions/checkout@v4
+
+      - name: Явная конфигурация облака без серверных ключей
+        env:
+          CLOUD_ENABLED: ${{ inputs.cloud }}
+          PSY_SUPABASE_URL: https://iuvvheeocobhiothfgei.supabase.co
+          PSY_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.PSY_SUPABASE_PUBLISHABLE_KEY }}
+        run: node scripts/cloud-support/build-defines.mjs "$RUNNER_TEMP/psygames-cloud.json"
 
       - uses: actions/setup-node@v4
         with:
@@ -188,7 +199,9 @@ jobs:
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-        run: flutter build appbundle --release
+        run: |
+          flutter test --no-pub test/cloud_build_config_test.dart --dart-define-from-file="$RUNNER_TEMP/psygames-cloud.json"
+          flutter build appbundle --release --dart-define-from-file="$RUNNER_TEMP/psygames-cloud.json"
 
       - name: Гейты пакета — подпись, движок, веб-часть
         working-directory: flutter
@@ -230,7 +243,7 @@ jobs:
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
-          flutter build apk --release
+          flutter build apk --release --dart-define-from-file="$RUNNER_TEMP/psygames-cloud.json"
           APK=build/app/outputs/flutter-apk/app-release.apk
           # Разрешения — из ИТОГОВОГО манифеста релиза, а не из исходника: debug/profile
           # подмешивают свои, и flutter run их прятал (INTERNET, 01.10.2026).

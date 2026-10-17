@@ -120,6 +120,18 @@ class DurablePilotFake extends PilotFake
   }
 }
 
+class DeletingPilotFake extends PilotFake
+    implements CloudAccountDeletionGateway {
+  bool failDeletion = false;
+  Completer<void>? pendingDeletion;
+  @override
+  Future<void> deleteAccount() async {
+    calls.add('delete-account');
+    await pendingDeletion?.future;
+    if (failDeletion) throw StateError('ambiguous remote deletion');
+  }
+}
+
 void main() {
   late SharedState state;
   late CloudPilot pilot;
@@ -383,6 +395,62 @@ void main() {
       expect(state.get('psygames_sudoku_level_women'), '78');
     },
   );
+
+  test(
+    'shared deletion is a distinct capability and preserves all local gameplay',
+    () async {
+      pilot.dispose();
+      final deleting = DeletingPilotFake();
+      gateway = deleting;
+      pilot = CloudPilot(state, deleting);
+      expect(pilot.canDeleteAccount, false);
+      await signedIn();
+      await pilot.confirmHistory();
+      final progress = state.get('psygames_sudoku_level_women');
+      final wallet = state.get('psygames_tokens_v1');
+      expect(pilot.canDeleteAccount, true);
+      await pilot.deleteAccount();
+      expect(deleting.calls.where((c) => c == 'delete-account').length, 1);
+      expect(deleting.calls.contains('delete'), false);
+      expect(pilot.stage, CloudPilotStage.local);
+      expect(state.get(CloudPilot.consentKey), '0');
+      expect(state.get('psygames_sudoku_level_women'), progress);
+      expect(state.get('psygames_tokens_v1'), wallet);
+      expect(state.get('psygames_pet_name'), 'Synapse');
+    },
+  );
+
+  test('ambiguous account deletion disables sync and requests sign-in, not false success', () async {
+    pilot.dispose();
+    final deleting = DeletingPilotFake()..failDeletion = true;
+    gateway = deleting;
+    pilot = CloudPilot(state, deleting);
+    await signedIn();
+    await pilot.confirmHistory();
+    await pilot.deleteAccount();
+    expect(pilot.stage, CloudPilotStage.local);
+    expect(pilot.errorKey, 'cloudPilotAccountDeleteError');
+    expect(state.get('psygames_sudoku_level_women'), '78');
+    expect(state.get(CloudPilot.consentKey), '0');
+  });
+
+  test('late shared deletion cannot disable a new pilot generation', () async {
+    pilot.dispose();
+    final deleting = DeletingPilotFake()..pendingDeletion = Completer<void>();
+    gateway = deleting;
+    pilot = CloudPilot(state, deleting);
+    await signedIn();
+    await pilot.confirmHistory();
+    final pending = pilot.deleteAccount();
+    await Future<void>.delayed(Duration.zero);
+    await pilot.disable();
+    await signedIn();
+    await pilot.confirmHistory();
+    deleting.pendingDeletion!.complete();
+    await pending;
+    expect(pilot.enabled, true);
+    expect(state.get(CloudPilot.consentKey), '1');
+  });
 
   test(
     're-enable backs up progress made while OFF without another gameplay write',

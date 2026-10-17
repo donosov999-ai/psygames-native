@@ -16,7 +16,17 @@ Smart Alarm/Chess & Go/TypeFree добавлены к прежнему PsyGames 
 UI success/readback1→4, Site URL прежний. G3_RECEIPT_20261016.json и
 CLOUD_PUBLIC_ROLLOUT_GATES.md содержат before/after/rollback. Ниже checkpoints
 с фразами «G1/G3 остаются» относятся к состоянию ДО этого изменения.
-G1service prerequisite584a68fd и G2deletion остаются; public runtime OFF,
+Новый draft.5 кандидат разрабатывается отдельно на codex/cloud-support-20261016:
+Auth0.1.4/cloud0.1.1 + account deletion UI; это НЕ прежний frozen SOURCE057c,
+чужие ACK на draft.4 не переносятся. G2_RECEIPT_20261016.json: backend deployed,
+HTTP10checks и realFlutterVM backend roundtrip PASS, всё synthetic очищено.
+Hostcandidate ещё не main/store, physical PKCE/device acceptance отсутствует.
+Новый source/pin: ECOSYSTEM_ACCOUNT_DRAFT5_PIN.md (6ef80e0565a91b160fbd180f07b5920d9cb1b789).
+
+G1service prerequisite584a68fd ВЫПОЛНЕН16.10: service write PASS, старый anon RPC
+отклонён, target ACL закрыты; G1_RECEIPT_20261016.json. G2backend выполнен,
+осталась интеграция/выпуск host-кандидата;
+public runtime OFF,
 реальных login/писем/uploads/device приёмки не было. Общий локальный public-client
 config в этом шаге не менялся: это не обещание connected pilot у четырёх приложений.
 

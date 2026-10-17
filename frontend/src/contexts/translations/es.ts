@@ -2,6 +2,9 @@
 // 493 ключей, переведены с английской базы. Не править руками — регенерировать воркфлоу.
 // zh/hi — машинное качество, нужна вычитка нативом до сторов.
 const t: Record<string, string> = {
+  cloudPilotDeleteAccount: "Eliminar la cuenta compartida",
+  cloudPilotDeleteAccountWarning: "Esto eliminará permanentemente tu cuenta compartida y las copias en la nube de PsyGames, Smart Alarm, Chess & Go y TypeFree. El progreso local se conservará en tus dispositivos. Tendrás que volver a iniciar sesión en las otras aplicaciones. Esta acción no se puede deshacer.",
+  cloudPilotAccountDeleteError: "No se ha confirmado la eliminación de la cuenta. Tu progreso local está a salvo. Vuelve a iniciar sesión antes de intentarlo de nuevo.",
   cloudPilotTitle: "Copia de seguridad en la nube",
   cloudPilotTest: "Prueba piloto · PsyGames",
   cloudPilotOn: "La copia de seguridad en la nube está activada",
