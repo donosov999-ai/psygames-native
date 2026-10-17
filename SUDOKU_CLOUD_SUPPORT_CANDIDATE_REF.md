@@ -33,6 +33,17 @@ SQL queue/apply используют consent-row FOR SHARE→owner advisory lane
 
 ## Что ещё требуется
 
+Checkpoint 18.10.2026: сохранён отдельный pure-Dart кандидат
+`flutter/lib/shell/sudoku_support_correction.dart` и 48 проверок в
+`flutter/test/sudoku_support_correction_test.dart`. Основной исполнитель
+независимо повторил все 48 тестов: PASS, журнал
+`_local/ecosystem-cloud/sudoku-support-candidate-main-review-20261018.txt`.
+После исправления двух style-info в тестах повторный прогон: 48 PASS;
+`flutter analyze --no-pub` для этих двух файлов — No issues found.
+Это только расчёт монотонной поправки и безопасного выбора старой сохранённой
+доски, без сети, локального durable apply, UI, server ACK и настоящего телефона.
+В релиз 2.56.30 кандидат НЕ включён; перечисленные ниже пункты остаются открыты.
+
 1. Отдельные live two-connection tests queue/apply vs support revoke и cloud
    consent update/delete; затем scoped deployment с rollback для новых объектов.
 2. Native opt-in/support code для точного player/profile/road, срок и отзыв;
