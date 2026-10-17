@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "date_local": "2026-10-18",
+  "timezone": "Asia/Almaty",
+  "recorded_by": "psygames-codex-mac",
+  "parent_task": "bb2c9f30-d786-4fe6-b25c-4b2ace267d4b",
+  "review_task": "77ca8ea0-181c-4b8c-bd55-ba85f07a382e",
+  "package_source": "ea404f50b70d7c7cc8dc7296402bf39a4aecadc4",
+  "package_version": "0.1.0",
+  "contracts": ["ecosystem.account-delete.ts/1", "ecosystem.account-delete.native/1"],
+  "addendum_source": "e1be4ce4b80f2c7481a119be34783574d7c220a0",
+  "addendum_sha256": "a90eb93be8ef6a2852173d23092b089d1c6472d25bbd4987fa190944009c195c",
+  "typefree": {
+    "author": "typerighting-codex-mac",
+    "source_thread": "01a11767-7f76-7d41-8a18-70701a9821d6",
+    "source_task_header": "7bba5d2a-cf16-4543-8273-97f4fecf556d",
+    "received": "Explicit personal agreement to the exact addendum and unchanged package, received through the existing native chat",
+    "agreed_app_owned_scope": "Native registry, generation/vault/app+issuer FIFO, fixed HTTP, actual cancellation and AuthHost integration",
+    "author_reported_checks": "Full addendum read, four unchanged package files checked; earlier independent 52 Node tests and strict TypeScript PASS",
+    "proof_boundary": "Contract ACK, not independently repeated native implementation/device acceptance",
+    "final_delete_available": false,
+    "native_implementation_accepted": false
+  },
+  "unchanged_scope": "No server, Auth configuration, Origin/CORS, real-user data, release or paid service changes authorised by this ACK"
+}
