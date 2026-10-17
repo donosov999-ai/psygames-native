@@ -10,6 +10,7 @@
   merged без обхода проверок. Полные PR CI38900182984 и38900183133 SUCCESS.
   Source PR `b9b97e2ff5a4b3c406d373b5440411fe4ebee598`, merge/main
   `ed594a3f7b54d3d06baa2fca7863e401cb2655df`.
+  Main CI39069952596 и39069952691 теперь оба SUCCESS.
 - Frozen SDK source `6ef80e0565a91b160fbd180f07b5920d9cb1b789`:
   Auth0.1.4 / account draft.5, cloud0.1.1. Точные package hashes —
   `ECOSYSTEM_ACCOUNT_DRAFT5_PIN.md`; исходный pin остальных приложений не заменён.
@@ -32,7 +33,18 @@
   ещё in_progress; номер build, VALID и существующая группа «Свои» требуют
   отдельного readback после окончания. Повторно добавлять Дениса в тестеры нельзя.
 - [Android39069990585](https://github.com/donosov999-ai/psygames-native/actions/runs/39069990585):
-  cloud=true, **build_only=true**. Это только подписанный пакет, не Google upload.
+  **SUCCESS**, cloud=true, **build_only=true**. Это только подписанный пакет,
+  не Google upload: Google upload/продвижение/загрузка проверенного файла SKIPPED.
+  Основной исполнитель скачал artifact12115558110, сверил SHA256 всего архива,
+  отдельно AAB/APK и version2.56.30/code2056030 в обоих настоящих манифестах.
+  APK v2signature и AAB jarsigner verification exit0, сертификаты совпадают;
+  официальный Google bundletool1.18.3 validate exit0. Предупреждения jarsigner
+  (self-signed/timestamp/JarInputStream manifest order) сохранены, не замолчаны.
+  Полный фактологический receipt: `ANDROID_2_56_30_PACKAGE_RECEIPT.json`.
+  APK для собственной проверки Дениса:
+  `/Users/denisonosov/dev/psygames-game-lab/testflight-fixes-20261011/_local/ecosystem-cloud/android-2.56.30-mrWL7M/app-release.apk`.
+  Установки/эмулятора/проверки телефона не было. Не удалять установленное
+  приложение ради обхода несовпадения подписи APK без сохранения прогресса.
   После закрытия почтового gate загружать тот же артефакт через from_run,
   не пересобирать и не менять versionCode вручную.
 - Apple App Privacy пока не обновлена в консоли: служебный UI просит вход.

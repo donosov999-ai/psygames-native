@@ -1,0 +1,48 @@
+{
+  "schema": 1,
+  "checked_at": "2026-10-17T21:55:22.989Z",
+  "date_local": "2026-10-18",
+  "timezone": "Asia/Almaty",
+  "source": "ed594a3f7b54d3d06baa2fca7863e401cb2655df",
+  "main_ci_success": [39069952596, 39069952691],
+  "workflow_run": 39069990585,
+  "workflow_url": "https://github.com/donosov999-ai/psygames-native/actions/runs/39069990585",
+  "workflow_conclusion": "SUCCESS",
+  "artifact_id": 12115558110,
+  "artifact_name": "flutter-hybrid-aab",
+  "archive_bytes": 262445558,
+  "archive_sha256": "79a53960c1421d3cf0bf6da453fe020ceaa868974c08e203939e98f3eff57f4d",
+  "archive_digest_independently_matched": true,
+  "package": "com.psygames.app",
+  "version": "2.56.30",
+  "version_code": 2056030,
+  "version_verified_in": ["APK manifest via aapt", "AAB base manifest via Google bundletool", "artifact version.txt"],
+  "files": [
+    {"name": "app-release.aab", "bytes": 153838116, "sha256": "e1368093f7264305d6d036f030bf5ee7553556cbaac22acf1b6ed6e75b8c0a43"},
+    {"name": "app-release.apk", "bytes": 160261247, "sha256": "3110a730985ddd004550674494d238cd708a72cc4f8ebcd75d46e869f60b0a20"}
+  ],
+  "apk_v2_signature_verified": true,
+  "aab_jar_signature_verified": true,
+  "aab_bundletool_validate": true,
+  "matching_certificate_sha256": "6d8025f2e51a9c70606220d44b1d2a64a76b587f4982cd9ca093d584b98f9280",
+  "signature_warnings": {
+    "self_signed": true,
+    "no_timestamp": true,
+    "jarinputstream_manifest_order": true,
+    "note": "jarsigner exit0 and jar verified. Certificate/timestamp/stream-order warnings preserved, not labelled warning-free; Google bundletool validate exit0. No archive repacking or signature changes."
+  },
+  "tools": {
+    "bundletool": "1.18.3",
+    "bundletool_source": "https://github.com/google/bundletool/releases/tag/1.18.3",
+    "bundletool_sha256": "a099cfa1543f55593bc2ed16a70a7c67fe54b1747bb7301f37fdfd6d91028e29",
+    "android_build_tools": "36.0.0",
+    "java": "existing Homebrew openjdk@17"
+  },
+  "cloud_build_input": true,
+  "build_only": true,
+  "google_upload_performed": false,
+  "device_installed_or_tested": false,
+  "local_directory": "/Users/denisonosov/dev/psygames-game-lab/testflight-fixes-20261011/_local/ecosystem-cloud/android-2.56.30-mrWL7M",
+  "local_evidence": "artifact-proof.json, aab-manifest.log, apk-badging.log, bundletool-validate.log, apk-signature.log, aab-signature.log, aab-cert.log",
+  "handoff": "The APK is available locally and in the original GitHub artifact for the user's own test. This is not a Play upload, device acceptance or public-cloud readiness. Do not uninstall an existing app merely to bypass an APK signature mismatch; preserve/export progress first."
+}
