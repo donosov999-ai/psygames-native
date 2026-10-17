@@ -85,5 +85,5 @@ PARA QUIÉN
 HONESTOS CON LA CIENCIA
 El entrenamiento mejora de forma fiable las tareas practicadas y habilidades cercanas (transferencia próxima). NO prometemos aumentar el IQ: la transferencia a la “inteligencia general” sigue siendo discutida. Ofrecemos instrumentos validados y una imagen medible de tu progreso.
 
-Abre y juega. El progreso se guarda en tu dispositivo. La sincronización anónima en la nube es opcional: sin nombre y sin correo electrónico.
+Juega en tu dispositivo sin cuenta. Copias en la nube opcionales con acceso por correo y consentimiento explícito.
 ```

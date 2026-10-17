@@ -1,5 +1,18 @@
 # PsyGames: реальный local gateway, native callback и startup restore
 
+## Текущий checkpoint — 18.10.2026
+
+PR351 MERGED, merge source `ed594a3f7b54d3d06baa2fca7863e401cb2655df`.
+Подробный актуальный выпуск: `CLOUD_RELEASE_2_56_30_REF.md`;
+website/магазинные сведения: `CLOUD_DISCLOSURES_20261018_RECEIPT.json`.
+G1/G2/G3 выполнены; исторические незакрытые формулировки ниже относятся
+к прежним checkpoint и больше не требуют повторного разрешения/операции.
+Запущены2.56.30 cloud=true TestFlight39069987949 и Android39069990585
+(только build_only). Согласие пользователя по умолчанию OFF независимо от build.
+Public email delivery ещё не готова: live custom SMTP OFF, Auth Hooks пуст;
+decision76a5eb7d. Google production нового пакета пока не загружен.
+Общий четырёхприложенный backend и remote Sudoku support НЕ закрыты.
+
 16.10.2026 · psygames-codex-mac · bb2c9f30-d786-4fe6-b25c-4b2ace267d4b остаётся OPEN.
 Checkout /Users/denisonosov/dev/psygames-game-lab/testflight-fixes-20261011,
 branch codex/cloud-release-2-56-29 (прежняя cloud-backup-20261015 — история).

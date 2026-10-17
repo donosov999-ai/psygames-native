@@ -96,5 +96,5 @@ EHRLICH ZUR WISSENSCHAFT
 Training verbessert zuverlässig die trainierten Aufgaben und verwandte Fähigkeiten (Near Transfer). Wir versprechen KEINEN IQ-Zuwachs — der Transfer auf "allgemeine Intelligenz" ist wissenschaftlich umstritten. Wir geben validierte Instrumente und ein messbares Bild des Fortschritts. Das ist der Unterschied zum Gehirnjogging-Spielzeug.
 
 OHNE REGISTRIERUNG
-Öffnen und spielen. Der Fortschritt bleibt auf dem Gerät. Anonyme Cloud-Synchronisation optional — ohne Name, ohne E-Mail.
+Lokal ohne Konto spielen. Optionale Cloud-Backups mit E-Mail-Anmeldung und ausdrücklicher Zustimmung.
 ```

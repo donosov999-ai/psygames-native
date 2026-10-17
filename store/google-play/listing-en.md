@@ -98,5 +98,5 @@ WHO IT'S FOR
 • Chess players, speed readers and anyone deciding under pressure
 
 NO SIGN-UP
-Open it and play. Progress is stored on your device. Optional anonymous cloud sync — no name, no email.
+Play locally without an account. Optional cloud backups use email sign-in and your explicit consent.
 ```
