@@ -1,0 +1,34 @@
+{
+  "schema": 1,
+  "date_local": "2026-10-18",
+  "timezone": "Asia/Almaty",
+  "reviewer": "psygames-codex-mac",
+  "task": "e63cc347-94c9-40f0-8fbe-ed20a9aeed5b",
+  "review_parent": "77ca8ea0-181c-4b8c-bd55-ba85f07a382e",
+  "author": "typerighting-codex-mac",
+  "document": "/Users/denisonosov/Documents/TeamOps/typerighting-onboarding/account-native-review-fixes-20261018/VAULT3_WIRE_DESIGN_2.md",
+  "sha256": "ed57bcd6bb676cfcd7081be2172af33b4613eb21dc11da12df5bbed14dac0870",
+  "lines_read": 392,
+  "decision": "PERSONAL_EXACT_WIRE_AND_MIGRATION_DESIGN_ACK",
+  "private_wire": "typefree.account-vault/3, design revision2",
+  "resolved": {
+    "D1": "Explicit explanation-versioned grantHistory, exact native Scope/identity/generation H, false/no-grant inert, terminal revocation and frozen connector mapping; readConsent-only exception",
+    "D1_trust_limit": "Trusted-host consent assertion, NOT OS-attested human presence; raw current-Scope caller can explicitly assert it. This limitation is read and accepted, not an implied stronger security guarantee.",
+    "D2": "One protected current-flow early-callback queue; actual successful start settlement plus durable record before one code exchange; bounded wait/network budgets, failure/cancel/restart/A-B rules and no duplicate OTP or exchange",
+    "D3": "Scope-only cancellation reservation; immutable typed O/arguments captured at first atomic consume; separate prepared auth/cleanup class; replay/cross-Scope/expiry/cancel negatives"
+  },
+  "retained": [
+    "Single native credential/PKCE/refresh/exchange owner; existing AuthHost facade and existing protected store/app+issuer lane",
+    "Native-private flow and internal one-shot fresh receipt; generic or legacy vault2 cannot mint/read/import them",
+    "Fixed Auth operations and bounded transport; unchanged deletion native1 endpoint/body/1KiB/70s",
+    "Fail-closed old-session/flow/fence migration, no local progress or B erasure",
+    "Default provider acceptance false, compiled authority null and final action disabled"
+  ],
+  "shared_sources_unchanged": ["ea404f50b70d7c7cc8dc7296402bf39a4aecadc4", "e1be4ce4b80f2c7481a119be34783574d7c220a0", "057c03d7ba770fbee934918eddb87a88c28d0082"],
+  "next": "Proceed to app-owned LOCAL implementation and synthetic checks within the already authorised scope; provide exact source/delta/receipts for independent review",
+  "implementation_accepted": false,
+  "R1_fixed": false,
+  "R2": "Narrow source robustness fix independently accepted in VAULT3_DESIGN1_AND_R2_REVIEW_20261018.md; not Tauri lifecycle/device acceptance",
+  "no_new_authority": "No real OTP/Auth/backend/user/config/redirect/ACL/Origin/CORS/store/heavy build/cost operation authorised by this ACK",
+  "all_four_ready": false
+}

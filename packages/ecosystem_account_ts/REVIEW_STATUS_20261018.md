@@ -1,0 +1,21 @@
+# TypeFree shared-account review — current pointers, 18 October 2026
+
+- Original native candidate: `TYPEFREE_NATIVE_REVIEW_20261018.md`.
+  R1 recovery-fence bypass is independently reproduced and **OPEN**.
+  Real TeamOps correction task `e63cc347-94c9-40f0-8fbe-ed20a9aeed5b`.
+- R2 owned-future lifetime delta is **accepted only as a local source correction**:
+  `VAULT3_DESIGN1_AND_R2_REVIEW_20261018.md`, exact two-file delta66c26bc2…,
+  reviewer21 native tests +6 actual native subprocess checks PASS. No demonstrated
+  Tauri window-close trigger, device or protected-store acceptance.
+- Architecture proposal1 accepted in `FRESH_AUTH_PROPOSAL1_REVIEW_20261018.md`.
+- Wire design1 had D1–D3 gaps; its review remains historical, not the latest veto.
+- **Exact private wire/migration design2 now accepted for local implementation**:
+  `VAULT3_DESIGN2_ACK_20261018.json`, source document SHA256
+  `ed57bcd6bb676cfcd7081be2172af33b4613eb21dc11da12df5bbed14dac0870`.
+  All392 lines read. This is NOT implementation or availability acceptance.
+
+App owner proceeds with bounded local implementation/synthetic checks, not a new
+architecture discussion or a new human decision. Shared runtime package pins do
+not change; availability stays OFF. No live Auth, provider/config/server/ACL/
+real-user, release, heavy build or cost authority follows from design ACK.
+Keep R1, app/device gates and the common all4 task open until actual evidence.
