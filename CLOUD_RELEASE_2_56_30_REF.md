@@ -29,9 +29,17 @@
 ## Запущено, но ещё не выдано за доставку
 
 - [TestFlight39069987949](https://github.com/donosov999-ai/psygames-native/actions/runs/39069987949):
-  cloud=true, signed build+upload workflow. При подготовке этого checkpoint
-  ещё in_progress; номер build, VALID и существующая группа «Свои» требуют
-  отдельного readback после окончания. Повторно добавлять Дениса в тестеры нельзя.
+  cloud=true, build70. **Attempt1 FAILED** после успешных полных Flutter tests,
+  подписи, IPA build, binaryenginegate и Apple archivevalidation. Upload оборвался
+  с NSURLErrorDomain-1004, сохранение IPA artifact — с ENOTFOUND. По независимому
+  Apple API сборка70 ещё не найдена; её buildUpload16c6fdcf-2d8d-4820-bf27-332d8d7d4f3d
+  AWAITING_UPLOAD/uploadedDate=null, доставлены только analyzerZIP и descriptionXML,
+  не IPA. GitHub artifacts0; runnerIPA недоступен, его SHA не выдумывается.
+  **Один bounded rerun attempt2** уже запущен: тот же source/run/build70/cloudinput,
+  без обхода тестов/смены workflow, номера, пользователей или настроек сервиса.
+  Receipt `TESTFLIGHT_2_56_30_ATTEMPT1_RECEIPT.json`. Это не прежняя проблема
+  Transporter/Defaults и не SMTP/AppPrivacy login. После попытки2 нужны отдельные
+  VALID и существующая группа «Свои»; повторных testerinvites быть не должно.
 - [Android39069990585](https://github.com/donosov999-ai/psygames-native/actions/runs/39069990585):
   **SUCCESS**, cloud=true, **build_only=true**. Это только подписанный пакет,
   не Google upload: Google upload/продвижение/загрузка проверенного файла SKIPPED.
