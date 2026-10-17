@@ -6,6 +6,14 @@
 
 ## Подтверждено
 
+- **TestFlight2.56.30/build70 доставлен:** attempt2 SUCCESS. Независимый Apple
+  readback18.10: build16c6fdcf-2d8d-4820-bf27-332d8d7d4f3d,
+  processingVALID/internalIN_BETA_TESTING, assigned existing internal «Свои».
+  Новых testerinvites не было. RU/EN notes перечитаны после исправления языка
+  и явной пометки, что доставка облачных писем пока ограниченный пилот.
+  `TESTFLIGHT_2_56_30_RECEIPT.json` содержит точные provider/artifact receipts.
+  Физический телефон/вход пользователя этим не проверены.
+
 - [PR351](https://github.com/donosov999-ai/psygames-native/pull/351)
   merged без обхода проверок. Полные PR CI38900182984 и38900183133 SUCCESS.
   Source PR `b9b97e2ff5a4b3c406d373b5440411fe4ebee598`, merge/main
@@ -29,17 +37,22 @@
 ## Запущено, но ещё не выдано за доставку
 
 - [TestFlight39069987949](https://github.com/donosov999-ai/psygames-native/actions/runs/39069987949):
-  cloud=true, build70. **Attempt1 FAILED** после успешных полных Flutter tests,
+  cloud=true, build70. **Attempt2 SUCCESS, Apple VALID/IN_BETA_TESTING/«Свои»**;
+  этот этап выполнен, не запускать повторную отправку/новый номер.
+  IPA сохранён локально, реальный bundleplist2.56.30/70/com.psygames.app и hashes
+  проверены, archive4cdc8e5a…/IPA d9a180ba…; точные значения в receipt выше.
+  История: **Attempt1 FAILED** после успешных полных Flutter tests,
   подписи, IPA build, binaryenginegate и Apple archivevalidation. Upload оборвался
   с NSURLErrorDomain-1004, сохранение IPA artifact — с ENOTFOUND. По независимому
   Apple API сборка70 ещё не найдена; её buildUpload16c6fdcf-2d8d-4820-bf27-332d8d7d4f3d
   AWAITING_UPLOAD/uploadedDate=null, доставлены только analyzerZIP и descriptionXML,
   не IPA. GitHub artifacts0; runnerIPA недоступен, его SHA не выдумывается.
-  **Один bounded rerun attempt2** уже запущен: тот же source/run/build70/cloudinput,
+  **Один bounded rerun attempt2** затем завершился успешно: тот же source/run/build70/cloudinput,
   без обхода тестов/смены workflow, номера, пользователей или настроек сервиса.
   Receipt `TESTFLIGHT_2_56_30_ATTEMPT1_RECEIPT.json`. Это не прежняя проблема
   Transporter/Defaults и не SMTP/AppPrivacy login. После попытки2 нужны отдельные
-  VALID и существующая группа «Свои»; повторных testerinvites быть не должно.
+  VALID и существующая группа «Свои» теперь независимо подтверждены; приглашения
+  не пересоздавались. Это не проверка пользователя на телефоне.
 - [Android39069990585](https://github.com/donosov999-ai/psygames-native/actions/runs/39069990585):
   **SUCCESS**, cloud=true, **build_only=true**. Это только подписанный пакет,
   не Google upload: Google upload/продвижение/загрузка проверенного файла SKIPPED.

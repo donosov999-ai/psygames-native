@@ -1,0 +1,52 @@
+{
+  "schema": 1,
+  "date_local": "2026-10-18",
+  "timezone": "Asia/Almaty",
+  "checked_at": "2026-10-17T23:02:52.717Z",
+  "owner": "psygames-codex-mac",
+  "release_task": "a87bbe94-fb12-46a1-a287-71b9bd896963",
+  "source": "ed594a3f7b54d3d06baa2fca7863e401cb2655df",
+  "workflow_run": 39069987949,
+  "workflow_attempt": 2,
+  "workflow_conclusion": "SUCCESS",
+  "workflow_url": "https://github.com/donosov999-ai/psygames-native/actions/runs/39069987949/attempts/2",
+  "bundle_id": "com.psygames.app",
+  "version": "2.56.30",
+  "number": "70",
+  "cloud_build_input": true,
+  "apple": {
+    "build_id": "16c6fdcf-2d8d-4820-bf27-332d8d7d4f3d",
+    "processing_state": "VALID",
+    "internal_build_state": "IN_BETA_TESTING",
+    "uploaded_date": "2026-10-17T15:52:59-07:00",
+    "group": "Свои",
+    "internal_group": true,
+    "assigned": true,
+    "new_tester_invitations": false,
+    "notes_ru_en": "Both existing locales read back after scoped update: correct-language notes explicitly describe limited cloud-email pilot; offline play remains available",
+    "public_app_store_release": false
+  },
+  "artifact": {
+    "id": 12117545845,
+    "name": "flutter-hybrid-ipa",
+    "archive_bytes": 99450066,
+    "archive_sha256": "4cdc8e5a79c1ea5f75d9dd5f18e61545a07d77157b853089c74fb79d8015a0ee",
+    "archive_independently_matched": true,
+    "ipa_file": "psygames_flutter.ipa",
+    "ipa_bytes": 100348160,
+    "ipa_sha256": "d9a180baae51b61b6697f899eb2e5bebbbe068524e16f82e5f4d4c3cfd86610a",
+    "actual_bundle_plist_matches": true,
+    "local_directory": "/Users/denisonosov/dev/psygames-game-lab/testflight-fixes-20261011/_local/ecosystem-cloud/ios-2.56.30-DIuHTO",
+    "local_codesign_check_claimed": false
+  },
+  "user_access_boundary": "Build70 is assigned to the existing internal group. No tester membership changes/invites were made. Physical-device installation, launch, account sign-in and user confirmation were not performed.",
+  "remaining": {
+    "physical_device_acceptance": false,
+    "non_team_email_delivery_ready": false,
+    "apple_privacy_ui_updated": false,
+    "google_2_56_30_production_uploaded": false,
+    "google_gate": "Existing SMTP delivery decision76a5eb7d; no upload without closing that gate",
+    "all_four_app_ready": false
+  },
+  "history": "Attempt1 network/artifact failure and pre-retry Apple AWAITING_UPLOAD readback preserved separately in TESTFLIGHT_2_56_30_ATTEMPT1_RECEIPT.json. Attempt2 reused the original run/source/build70; no gate bypass or version bump."
+}

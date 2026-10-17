@@ -7,8 +7,12 @@ PR351 MERGED, merge source `ed594a3f7b54d3d06baa2fca7863e401cb2655df`.
 website/магазинные сведения: `CLOUD_DISCLOSURES_20261018_RECEIPT.json`.
 G1/G2/G3 выполнены; исторические незакрытые формулировки ниже относятся
 к прежним checkpoint и больше не требуют повторного разрешения/операции.
-Запущены2.56.30 cloud=true TestFlight39069987949 и Android39069990585
-(только build_only). Согласие пользователя по умолчанию OFF независимо от build.
+TestFlight2.56.30/70 cloud=true39069987949 attempt2 завершился SUCCESS;
+независимо AppleVALID/IN_BETA_TESTING/assignedexisting«Свои» подтверждены.
+ReceiptTESTFLIGHT_2_56_30_RECEIPT.json; телефон не проверялся.
+Android39069990585 SUCCESS (только build_only), реальный пакет2056030/подписи/hashes
+проверены: ANDROID_2_56_30_PACKAGE_RECEIPT.json. Согласие пользователя по умолчанию
+OFF независимо от build. Нового Googleproductionupload нет.
 Public email delivery ещё не готова: live custom SMTP OFF, Auth Hooks пуст;
 decision76a5eb7d. Google production нового пакета пока не загружен.
 Общий четырёхприложенный backend и remote Sudoku support НЕ закрыты.
