@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'cloud_backup.dart';
 import 'cloud_snapshot.dart';
 import 'shared_state.dart';
+import 'sudoku_support_service.dart';
 
 /// Host boundary for the isolated pilot. No production/default implementation:
 /// settings may receive a configured adapter only after the live environment gate.
@@ -69,6 +70,9 @@ class CloudPilot extends ChangeNotifier {
   static const policyVersion = 1;
   final SharedState state;
   final CloudPilotGateway gateway;
+
+  /// Uses the same account/transport as backup; never logs in independently.
+  SudokuSupportService? support;
   CloudPilotStage stage = CloudPilotStage.local;
   List<CloudVersion> versions = const [];
   CloudSnapshot? preview;
@@ -338,6 +342,8 @@ class CloudPilot extends ChangeNotifier {
     stage = CloudPilotStage.restoring;
     final prepared = await _run((generation) async {
       // Pause outgoing saves BEFORE preparing the before/after journal.
+      support?.suspend();
+      await support?.drain();
       gateway.suspend();
       await _write(() => state.set(CloudPilot.consentKey, '0'));
       if (!_current(generation)) return;
@@ -360,6 +366,7 @@ class CloudPilot extends ChangeNotifier {
   Future<void> disable() async {
     if (_disposed || stage == CloudPilotStage.restoring) return;
     _generation++;
+    support?.suspend();
     _backupTimer?.cancel();
     _dirty = false;
     _savedContent = null;
@@ -375,6 +382,7 @@ class CloudPilot extends ChangeNotifier {
     historyLoaded = false;
     _notify();
     try {
+      await support?.drain();
       await _write(() async {
         await state.set(CloudPilot.consentKey, '0');
         await state.remove(receiptKey);
@@ -424,6 +432,7 @@ class CloudPilot extends ChangeNotifier {
 
   @override
   void dispose() {
+    support?.dispose();
     state.writes.removeListener(_changed);
     _backupTimer?.cancel();
     _disposed = true;

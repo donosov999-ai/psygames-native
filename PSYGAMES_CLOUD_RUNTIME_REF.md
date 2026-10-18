@@ -1,5 +1,16 @@
 # PsyGames: реальный local gateway, native callback и startup restore
 
+## Дополнение18.10: удалённая поддержка Судоку
+
+Новый незарелизенный клиент `codex/remote-level-support-20261018` использует
+тот же неизменённый общий SDK, отдельный opt-in на24ч и узкую серверную очередь.
+Сервер уже развёрнут; synthetic REST→Flutter→80→ACK пройден. Предстоит доставка
+клиента и проверка SMTP/обычного аккаунта/Samsung. Это не функция сборки70.
+Полный актуальный реф: [SUDOKU_REMOTE_SUPPORT_REF.md](SUDOKU_REMOTE_SUPPORT_REF.md).
+`recoverSudokuSupportWrites` закрывает подтверждённый незаконченный local apply
+до игровых экранов; журнал/доска остаются приватно на устройстве.
+Остальные разделы ниже сохраняют даты своих исторических checkpoint.
+
 16.10.2026 · psygames-codex-mac · bb2c9f30-d786-4fe6-b25c-4b2ace267d4b остаётся OPEN.
 Checkout /Users/denisonosov/dev/psygames-game-lab/testflight-fixes-20261011,
 branch codex/cloud-release-2-56-29 (прежняя cloud-backup-20261015 — история).

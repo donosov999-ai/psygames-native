@@ -1,6 +1,23 @@
 // AUTO-GENERATED translation overlay (fr). Источник: транскреация с EN-базы (856 ключей).
 // Не править руками — регенерировать.
 const t: Record<string, string> = {
+  sudokuSupportTitle: "Assistance pour la progression au Sudoku",
+  sudokuSupportExplanation: "Autorisation distincte et facultative de 24 heures, uniquement pour le mode Sudoku sélectionné. L’assistance pourra voir l’adresse e-mail de votre compte, le mode et le niveau actuel, mais ni la grille, ni les points, ni les achats, ni l’animal de compagnie. Recevez les corrections ici, sans fichiers ni codes ; une correction débloque seulement un niveau et n’enregistre pas de victoire.",
+  sudokuSupportProfile: "Profil de jeu : {profile}",
+  sudokuSupportRoad: "Mode Sudoku",
+  sudokuSupportSignIn: "Connectez-vous et activez d’abord la sauvegarde dans le cloud.",
+  sudokuSupportEnable: "Autoriser l’assistance pour ce mode pendant 24 heures",
+  sudokuSupportUntil: "L’autorisation expire à {time}",
+  sudokuSupportRevoke: "Révoquer l’autorisation",
+  sudokuSupportRefresh: "Rechercher des corrections",
+  sudokuSupportNoChanges: "Aucune correction pour ce mode pour le moment.",
+  sudokuSupportTarget: "Débloquer au moins le niveau {level}",
+  sudokuSupportApply: "Appliquer la correction",
+  sudokuSupportApplied: "Correction appliquée",
+  sudokuSupportError: "L’action n’a pas été confirmée. Vérifiez votre connexion et l’autorisation, puis réessayez. Ne commencez pas d’autre partie tant que toute correction interrompue n’a pas été récupérée.",
+  sudokuSupportSavedTitle: "Une partie sauvegardée existe",
+  sudokuSupportSavedHint: "Pour ouvrir le niveau corrigé, il faut commencer une nouvelle grille. La partie actuelle sera conservée dans une copie de sécurité locale ; son retrait de « Continuer » nécessite votre accord. Aucune victoire ni récompense n’est ajoutée.",
+  sudokuSupportRestart: "Conserver une copie de sécurité et ouvrir une nouvelle grille",
   cloudPilotDeleteAccount: "Supprimer le compte commun",
   cloudPilotDeleteAccountWarning: "Cette action supprime définitivement votre compte commun et les copies dans le cloud de PsyGames, Smart Alarm, Chess & Go et TypeFree. Votre progression locale reste sur vos appareils. Vous devrez vous reconnecter dans les autres applications. Cette action est irréversible.",
   cloudPilotAccountDeleteError: "La suppression du compte n’a pas été confirmée. Votre progression locale est en sécurité. Reconnectez-vous avant de réessayer.",

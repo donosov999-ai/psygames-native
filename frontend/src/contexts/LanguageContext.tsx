@@ -61,6 +61,23 @@ interface Translations {
 }
 
 const translations: Translations = {
+  sudokuSupportTitle: { ru: 'Поддержка прогресса Судоку', en: 'Sudoku progress support' },
+  sudokuSupportExplanation: { ru: 'Отдельное добровольное разрешение на 24 часа для выбранного режима Судоку. Поддержка увидит почту аккаунта, режим и текущий уровень, но не доску, баллы, покупки или питомца. Исправление можно получить здесь без файлов и кодов; оно только открывает уровень, не засчитывая победу.', en: 'Separate, optional 24-hour permission for the selected Sudoku mode. Support can see your account email, mode and current level, but not your board, points, purchases or pet. Receive fixes here without files or codes; a fix only unlocks a level and does not record a win.' },
+  sudokuSupportProfile: { ru: 'Профиль-режим: {profile}', en: 'Play profile: {profile}' },
+  sudokuSupportRoad: { ru: 'Режим Судоку', en: 'Sudoku mode' },
+  sudokuSupportSignIn: { ru: 'Сначала войдите в аккаунт и включите облачное сохранение.', en: 'Sign in and enable cloud backup first.' },
+  sudokuSupportEnable: { ru: 'Разрешить поддержку этого режима на 24 часа', en: 'Allow support for this mode for 24 hours' },
+  sudokuSupportUntil: { ru: 'Разрешение действует до {time}', en: 'Permission expires at {time}' },
+  sudokuSupportRevoke: { ru: 'Отозвать разрешение', en: 'Revoke permission' },
+  sudokuSupportRefresh: { ru: 'Проверить исправления', en: 'Check for fixes' },
+  sudokuSupportNoChanges: { ru: 'Исправлений для этого режима пока нет.', en: 'No fixes for this mode yet.' },
+  sudokuSupportTarget: { ru: 'Открыть уровень не ниже {level}', en: 'Unlock at least level {level}' },
+  sudokuSupportApply: { ru: 'Применить исправление', en: 'Apply fix' },
+  sudokuSupportApplied: { ru: 'Исправление применено', en: 'Fix applied' },
+  sudokuSupportError: { ru: 'Действие не подтверждено. Проверьте соединение и разрешение, затем повторите. Не начинайте новую партию, пока незавершённое исправление не будет восстановлено.', en: 'Action not confirmed. Check your connection and permission, then retry. Do not start another game until any interrupted fix has recovered.' },
+  sudokuSupportSavedTitle: { ru: 'Есть сохранённая партия', en: 'A saved game exists' },
+  sudokuSupportSavedHint: { ru: 'Чтобы открыть исправленный уровень, нужно начать новую доску. Текущая партия будет сохранена в локальной резервной записи; её удаление из продолжения требует вашего согласия. Победы и награды не добавляются.', en: 'Opening the corrected level requires a new board. The current game will be preserved in a local safety record; removing it from Continue requires your approval. No wins or rewards are added.' },
+  sudokuSupportRestart: { ru: 'Сохранить копию и открыть новую доску', en: 'Keep a safety copy and open a new board' },
   cloudPilotDeleteAccount: { ru: "Удалить общий аккаунт", en: "Delete shared account" },
   cloudPilotDeleteAccountWarning: { ru: "Это навсегда удалит ваш общий аккаунт и облачные копии в PsyGames, Smart Alarm, Chess & Go и TypeFree. Локальный прогресс на ваших устройствах сохранится. В других приложениях потребуется войти снова. Это действие нельзя отменить.", en: "This permanently deletes your shared account and cloud copies across PsyGames, Smart Alarm, Chess & Go and TypeFree. Local progress on your devices stays. You will need to sign in again in the other apps. This cannot be undone." },
   cloudPilotAccountDeleteError: { ru: "Удаление аккаунта не подтверждено. Локальный прогресс в безопасности. Войдите снова, прежде чем повторить попытку.", en: "Account deletion was not confirmed. Local progress is safe. Sign in again before retrying." },

@@ -1,6 +1,23 @@
 // AUTO-GENERATED translation overlay (ja). Источник: транскреация с EN-базы (856 ключей).
 // Не править руками — регенерировать. Нужна вычитка нативом до сторов.
 const t: Record<string, string> = {
+  sudokuSupportTitle: "数独の進捗サポート",
+  sudokuSupportExplanation: "選択した数独モードだけを対象とする、24時間有効の個別の任意許可です。サポート担当者はアカウントのメールアドレス、モード、現在のレベルを確認できますが、盤面、ポイント、購入履歴、ペットは確認できません。ファイルやコードを使わずに、ここで修正を受け取れます。修正はレベルを解放するだけで、勝利としては記録されません。",
+  sudokuSupportProfile: "プレイプロフィール：{profile}",
+  sudokuSupportRoad: "数独モード",
+  sudokuSupportSignIn: "先にアカウントにログインし、クラウドバックアップを有効にしてください。",
+  sudokuSupportEnable: "このモードへのサポートを24時間許可",
+  sudokuSupportUntil: "許可の有効期限：{time}",
+  sudokuSupportRevoke: "許可を取り消す",
+  sudokuSupportRefresh: "修正を確認",
+  sudokuSupportNoChanges: "このモードの修正はまだありません。",
+  sudokuSupportTarget: "レベル {level} 以上まで解放",
+  sudokuSupportApply: "修正を適用",
+  sudokuSupportApplied: "修正を適用しました",
+  sudokuSupportError: "操作を確認できませんでした。接続と許可を確認して、もう一度お試しください。中断された修正の復旧が完了するまで、別のゲームを始めないでください。",
+  sudokuSupportSavedTitle: "保存済みのゲームがあります",
+  sudokuSupportSavedHint: "修正後のレベルを開くには、新しい盤面を始める必要があります。現在のゲームは端末内の安全用バックアップとして保存されます。「続ける」から削除するには、あなたの同意が必要です。勝利や報酬は追加されません。",
+  sudokuSupportRestart: "安全用コピーを残して新しい盤面を開く",
   cloudPilotDeleteAccount: "共通アカウントを削除",
   cloudPilotDeleteAccountWarning: "共通アカウントと、PsyGames、Smart Alarm、Chess & Go、TypeFreeのクラウド上のコピーが完全に削除されます。各端末に保存された進捗はそのまま残ります。他のアプリでは再度ログインが必要になります。この操作は取り消せません。",
   cloudPilotAccountDeleteError: "アカウントの削除を確認できませんでした。端末内の進捗は安全に保たれています。再試行する前に、もう一度ログインしてください。",

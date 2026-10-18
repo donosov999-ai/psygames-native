@@ -19,6 +19,7 @@ import 'shell/hybrid_app.dart';
 import 'shell/shared_state.dart';
 import 'shell/web_game_screen.dart';
 import 'shell/cloud_runtime.dart';
+import 'shell/sudoku_support_recovery.dart';
 
 /// Пилот переезда PsyGames на Flutter (задачи 6ec9bd56 и 4a24281a).
 ///
@@ -41,6 +42,7 @@ Future<void> main() async {
   final state = await SharedState.open();
   try {
     await PsyGamesCloudRuntime.applyPending(state);
+    await recoverSudokuSupportWrites(state);
   } catch (_) {
     // Do not construct gameplay/WebView after failed/partial restore.
     await L.load(state.language);

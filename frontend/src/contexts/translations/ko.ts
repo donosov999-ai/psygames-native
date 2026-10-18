@@ -1,6 +1,23 @@
 // AUTO-GENERATED translation overlay (ko). Источник: транскреация с EN-базы (856 ключей).
 // Не править руками — регенерировать. Нужна вычитка нативом до сторов.
 const t: Record<string, string> = {
+  sudokuSupportTitle: "스도쿠 진행 상황 지원",
+  sudokuSupportExplanation: "선택한 스도쿠 모드에만 적용되는 별도의 선택적 허용이며, 24시간 동안 유효합니다. 지원팀은 계정 이메일, 모드와 현재 레벨을 볼 수 있지만 게임판, 포인트, 구매 내역이나 반려동물은 볼 수 없습니다. 파일이나 코드 없이 여기서 수정 사항을 받을 수 있습니다. 수정은 레벨 잠금만 해제하며 승리로 기록되지 않습니다.",
+  sudokuSupportProfile: "플레이 프로필: {profile}",
+  sudokuSupportRoad: "스도쿠 모드",
+  sudokuSupportSignIn: "먼저 계정에 로그인하고 클라우드 백업을 켜세요.",
+  sudokuSupportEnable: "이 모드에 대한 지원을 24시간 동안 허용",
+  sudokuSupportUntil: "허용 만료 시간: {time}",
+  sudokuSupportRevoke: "허용 철회",
+  sudokuSupportRefresh: "수정 사항 확인",
+  sudokuSupportNoChanges: "이 모드에는 아직 수정 사항이 없습니다.",
+  sudokuSupportTarget: "최소 레벨 {level}까지 잠금 해제",
+  sudokuSupportApply: "수정 적용",
+  sudokuSupportApplied: "수정이 적용되었습니다",
+  sudokuSupportError: "작업이 확인되지 않았습니다. 연결 상태와 허용 여부를 확인한 후 다시 시도하세요. 중단된 수정 작업의 복구가 완료될 때까지 다른 게임을 시작하지 마세요.",
+  sudokuSupportSavedTitle: "저장된 게임이 있습니다",
+  sudokuSupportSavedHint: "수정된 레벨을 열려면 새 게임판을 시작해야 합니다. 현재 게임은 기기에 안전용 백업으로 보관됩니다. «계속하기»에서 제거하려면 사용자의 동의가 필요합니다. 승리나 보상은 추가되지 않습니다.",
+  sudokuSupportRestart: "안전용 사본을 보관하고 새 게임판 열기",
   cloudPilotDeleteAccount: "공통 계정 삭제",
   cloudPilotDeleteAccountWarning: "공통 계정과 PsyGames, Smart Alarm, Chess & Go, TypeFree의 클라우드 사본이 영구적으로 삭제됩니다. 각 기기에 저장된 로컬 진행 상황은 그대로 유지됩니다. 다른 앱에서는 다시 로그인해야 합니다. 이 작업은 취소할 수 없습니다.",
   cloudPilotAccountDeleteError: "계정 삭제가 확인되지 않았습니다. 로컬 진행 상황은 안전합니다. 다시 시도하기 전에 다시 로그인하세요.",

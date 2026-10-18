@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'cloud_backup.dart';
 import 'cloud_pilot.dart';
 import 'l10n.dart';
+import 'sudoku_support_screen.dart';
+import 'sudoku_support_recovery.dart';
 
 /// Injected pilot only. This screen does not create a backend, recover a session
 /// or issue requests on open. The host owns and disposes [pilot].
@@ -228,6 +230,19 @@ class _CloudSettingsScreenState extends State<CloudSettingsScreen> {
                       active: _p.historyLoaded,
                     ),
                   if (_p.enabled) ...[
+                    if (_p.support != null)
+                      _button('cloud-support', L.t('sudokuSupportTitle'), () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) => SudokuSupportScreen(
+                              service: _p.support!,
+                              profile: _p.state.activeProfile,
+                              recoverLocal: () =>
+                                  recoverSudokuSupportWrites(_p.state),
+                            ),
+                          ),
+                        );
+                      }),
                     _button(
                       'cloud-save',
                       L.t('cloudPilotSave'),

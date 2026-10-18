@@ -16,6 +16,20 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.56.31',
+    date: '2026-10-18',
+    ru: [
+      'Поддержка прогресса Судоку в настройках облака: отдельное разрешение на 24 часа для выбранного режима',
+      'Получение исправления уровня через приложение без переноса файлов; старую партию заменяем только с вашего согласия, сохраняя местную копию',
+      'Защита от повторного применения и восстановления после обрыва записи; открытие уровня не начисляет победу, баллы или покупки',
+    ],
+    en: [
+      'Sudoku progress support in cloud settings: separate 24-hour permission for the selected mode',
+      'Receive a level fix in the app without transferring files; replacing a saved game requires your approval and keeps a local safety copy',
+      'Protection against duplicate fixes and interrupted writes; unlocking a level never adds wins, points or purchases',
+    ],
+  },
+  {
     version: '2.56.30',
     date: '2026-10-16',
     ru: [
