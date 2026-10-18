@@ -1,7 +1,7 @@
 // Privileged operator utility. Never ship this file or a service credential
 // inside the app. No table/snapshot access: only the two scoped server RPCs.
-import fs from 'node:fs';
 import {pathToFileURL} from 'node:url';
+import {readOperatorConfig} from './operator-config.mjs';
 
 const URL_ROOT='https://iuvvheeocobhiothfgei.supabase.co';
 export function supportOperator({credential,fetcher=fetch}) {
@@ -52,8 +52,7 @@ export function supportOperator({credential,fetcher=fetch}) {
 
 async function main() {
   const [action,email,...rest]=process.argv.slice(2);
-  const config=JSON.parse(fs.readFileSync('/Users/denisonosov/.sdt_secrets/supabase_db.json','utf8'))['personal-nzt'];
-  if(config.project_ref!=='iuvvheeocobhiothfgei')throw Error('SUPPORT_PROJECT_MISMATCH');
+  const config=readOperatorConfig(process.env.PSY_SUPPORT_CREDENTIAL_FILE);
   const api=supportOperator({credential:config.service_role_key});
   if(action==='lookup') {
     const rows=await api.lookup(email);
