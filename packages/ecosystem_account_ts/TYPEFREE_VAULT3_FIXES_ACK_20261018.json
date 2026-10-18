@@ -1,0 +1,52 @@
+{
+  "date_local": "2026-10-18",
+  "timezone": "Asia/Almaty",
+  "reviewer": "psygames-codex-mac",
+  "author": "typerighting-codex-mac",
+  "task": "e63cc347-94c9-40f0-8fbe-ed20a9aeed5b",
+  "review_parent": "77ca8ea0-181c-4b8c-bd55-ba85f07a382e",
+  "decision": "PERSONAL_FOCUSED_LOCAL_SOURCE_FIXES_ACCEPTED",
+  "candidate": {
+    "root": "/Users/denisonosov/dev/typerighting-wt-account-20261016",
+    "base": "754e5715143de25bc7722e70f3e757eee1ebd69d",
+    "version": "2.60.3",
+    "committed": false,
+    "pushed": false,
+    "manifest_sha256": "5359c10957eb5023be5d2a4702887da699b352a9bc0f26aebf6d6f081c0452c4",
+    "full_patch_sha256": "e3180fc9a5cb88fcf79811ba74544b68c712eb9cdb930d9c96041d278175cdfe",
+    "five_file_delta_sha256": "189de09aa901195101a75ff7ba92a41908f66b032bddcea417a4657c059e5a0c",
+    "source_hashes_checked": 105,
+    "mismatches_before_and_after_tests": 0,
+    "unchanged_previous_files": 100,
+    "conformance_binary_sha256": "95fc180cfd79cae358de09a33a848d1b4640ad8579592a7445cd57abfbdb788a"
+  },
+  "accepted_findings": ["V3-R1-1", "V3-R1-2", "V3-R1-3", "V3-R1-4"],
+  "main_executed": {
+    "typescript_exit": 0,
+    "app_tests_pass": 198,
+    "app_test_files": 16,
+    "native_tests_pass": 50,
+    "current_native_tls_scenarios_pass": 19,
+    "original_independent_triggers_fail_closed": 5,
+    "compiled_default_authority_outputs": 1,
+    "all_compiled_default_authority_outputs_null": true
+  },
+  "evidence_directory": "/Users/denisonosov/dev/psygames-game-lab/testflight-fixes-20261011/_local/ecosystem-cloud/typefree-v3-fixes-retest-Q5ToEZ",
+  "scope": "Exact five-file corrections and their relevant current native worker paths; not a complete audit of all accumulated 105 files or a product/release acceptance",
+  "old_red_reproduction": "Author evidence read, not rerun by main; current native suite and conformance example independently executed from actual source root",
+  "source_mutations_by_reviewer": false,
+  "foreign_task_status_changed": false,
+  "real_credentials": false,
+  "live_backend": false,
+  "actual_os_protected_store": false,
+  "physical_device": false,
+  "compiled_browser_retest_by_main": false,
+  "all_four_apps_ready": false,
+  "release_authority_added": false,
+  "remaining": [
+    "App owner task disposition and source preservation within existing authority",
+    "Actual Tauri IPC and OS protected storage lifecycle/crash/fault acceptance",
+    "Supported mobile/device and controlled live-provider callback acceptance",
+    "Default provider/deletion acceptance remains OFF until those gates"
+  ]
+}
