@@ -6,10 +6,14 @@
 тот же неизменённый общий SDK, отдельный opt-in на24ч и узкую серверную очередь.
 Сервер уже развёрнут; synthetic REST→Flutter→80→ACK пройден. PR353 влит в
 main9a9b1deda после двух зелёных CI; финальное дерево432bd6188 идентично merge.
-TestFlight2.56.31+71 и Android2056031 собираются с `cloud=true`; upload и
-доставка ещё не подтверждены. В Timeweb создан разрешённый login@asibots.pro,
-его TLS/SMTP AUTH проверены; сохранение SMTP в Supabase и обычное письмо ещё
-предстоят, как и Samsung-приёмка. Это не функция сборки70.
+TestFlight2.56.31+71 собирается с `cloud=true`; Android2056031 уже собран и
+проверен с тем же флагом. Его Play production-заливка39148328875 запущена
+из готового AAB; Store acceptance/доставка ещё не подтверждены.
+В Timeweb создан разрешённый login@asibots.pro,
+его TLS/SMTP AUTH проверены; SMTP в Supabase сохранён17:06UTC по прямому ответу
+Дениса «делай сам», повторная загрузка подтверждает включение.17:10UTC подтверждено
+фактическое письмо через новый SMTP на собственный non-team ящик; SMTP-задача
+fd253372 закрыта. Gmail/Samsung/PKCE-приёмка ещё впереди. Это не функция сборки70.
 Полный актуальный реф: [SUDOKU_REMOTE_SUPPORT_REF.md](SUDOKU_REMOTE_SUPPORT_REF.md).
 Доставка: [CLOUD_RELEASE_2_56_31_REF.md](CLOUD_RELEASE_2_56_31_REF.md).
 `recoverSudokuSupportWrites` закрывает подтверждённый незаконченный local apply
