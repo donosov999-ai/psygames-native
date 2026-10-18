@@ -29,3 +29,8 @@ native fencing/revocation. P2 `V3-R1-1`, facade line44/48: stale prepare reply d
 the only returned scope; cached resume and a cancelled cold callback can recover.
 Exact design ACK remains valid; fix the implementation and retest in existing
 R1 task, no new architecture loop or feature activation.
+Follow-up native audit: `V3-R1-2` non-2xx cleanup false-success (two actual
+loopback503 cases); `V3-R1-3` unconsumed callback cancel survives claim (actual
+native reproduction); `V3-R1-4` superseded flow retained on new-flow write failure
+(source-confirmed risk, no independent fault-injection run). All remain in the
+same R1 correction/review task. Shared-account deletion protocol is unchanged.

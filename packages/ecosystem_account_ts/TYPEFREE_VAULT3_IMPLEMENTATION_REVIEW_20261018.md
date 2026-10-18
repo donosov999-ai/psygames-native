@@ -85,6 +85,71 @@ The diagnostic currently asserts the demonstrated vulnerable result; turn it int
 a fail-closed regression for the corrected candidate rather than treating its
 exit0 as a security PASS.
 
+## Additional native findings
+
+The Rust read-only audit helper identified the following paths. Main independently
+read the cited source; findings2–3 below were also reproduced using the unchanged
+native conformance binary SHA256
+`43cab06590b876cc97dd2e3d286449fdd68bb7f271b8aeeca47fb7cab4a346af`.
+During these follow-up tests the author had begun correcting the facade (current
+host SHA256 `bb8881f20d8c2af5692924d7f0aa0d907c88b3a1b46fc8fc9f80f74545cbdb54`);
+the native source/binary for these failures remained the original candidate.
+These runs must NOT be described as a full second105-file frozen-candidate retest.
+
+### P1 / V3-R1-2: cleanup treats non-2xx responses as successful removal
+
+`native-delete/src/registry/v3.rs:1463` and1472 await `v3_data_network` but do not
+validate the returned HTTP status. That function at1773 returns `Ok({status,body})`
+even for non-2xx, for ordinary shared-client error handling. The dedicated cleanup
+caller incorrectly interprets that transport result as a confirmed server action.
+
+Independent synthetic failures:
+
+- Revoke POST returns503 without changing consent: UI reports `cloud.removed`,
+  goes LOCAL; fixture still has enabled consent and one copy.
+- Revoke succeeds, snapshot DELETE returns503 without deleting the copy: again
+  UI reports `cloud.removed`; one copy remains.
+
+This is ordinary per-app consent/copy cleanup, **not** the frozen shared-account
+delete endpoint/ACK protocol. Failed cleanup must stay fenced/uncertain and not
+claim removal. Explicitly check each HTTP result and exact expected consent
+representation before proceeding/success; never perform DELETE after an unconfirmed
+revoke. Note: when current native `upload=true`, existing authorization may stop
+the subsequent DELETE after a failed revoke, so unconditional DELETE in every
+state is NOT claimed. The reproduced false-success cases alone warrant correction.
+
+### P2 / V3-R1-3: cancelling unconsumed callback is not durable
+
+`registry/v3.rs:522` cancels in-memory tokens but does not persist flow revocation.
+If a prepared callback is cancelled **without ever dispatching its original
+consume**, no `OwnedOperation` failure finalizer runs. Native claim/restart then
+accepts the still-durable `queued/start_success=true` flow via cold adoption728.
+
+Main reproduced raw native start → successful OTP → prepare callback → cancel
+known handle → NO original consume → claim → same callback prepare+consume:
+identity recovered, one token exchange. No JS SDK or generic vault2 was used.
+Make cancellation's durable retirement independent of eventual original consume;
+preserve HTTP settlement and successor B ownership. Test cancellation followed by
+no consume, claim/restart, same URI and A→B; not only cancel-then-dispatch failures.
+
+Independent follow-up script/result beside the first proof:
+`reproduce-native-review.mjs` / `native-review-result.json`. The script injects
+HTTP503/no-server-mutation into a copy of the synthetic loopback fixture in memory;
+it does not edit the product, deployed service or original fixture file.
+
+### P2 / V3-R1-4: failed new-flow persistence can resurrect superseded A
+
+**Source-confirmed risk, NOT independently executed fault injection.**
+`prepare(Start B)` at671 changes generation and revokes A in memory, then writes
+activation.pending/new flow at708. If new-flow persistence fails while leaving
+old durable A `waiting/start_success=true`, no prepare-level finalizer durably
+revokes A. A new runtime's cold adoption checks that old record and can accept it;
+activation.pending alone does not distinguish superseded flows, and callback
+adoption intentionally uses explicit begin. Persist supersession/revocation before
+allowing this failure path to retain reusable A; fail closed if required storage
+operations fail. Test targeted failure of B flow write followed by claim/restart
+and old A callback, while preserving unrelated local data and newer B safety.
+
 ## Main-reviewer checks actually executed
 
 - `npx --no-install tsc --noEmit`: exit0.
