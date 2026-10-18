@@ -10,8 +10,13 @@ G1/G2/G3 выполнены; исторические незакрытые фо�
 TestFlight2.56.30/70 cloud=true39069987949 attempt2 завершился SUCCESS;
 независимо AppleVALID/IN_BETA_TESTING/assignedexisting«Свои» подтверждены.
 ReceiptTESTFLIGHT_2_56_30_RECEIPT.json; телефон не проверялся.
-Android39069990585 SUCCESS (только build_only), реальный пакет2056030/подписи/hashes
-проверены: ANDROID_2_56_30_PACKAGE_RECEIPT.json. Согласие пользователя по умолчанию
+Android39069990585 SUCCESS (исторический build_only), пакет2056030/подписи/hashes
+проверены: ANDROID_2_56_30_PACKAGE_RECEIPT.json. По новому прямому «заливай» Дениса
+тот же AAB затем отправлен в Google production run39140950390 SUCCESS18.10;
+независимый Publisher API readback15:34:30UTC: 2.56.30/2056030 completed,
+bundleSHAe1368093… совпадает. ReceiptGOOGLE_PLAY_2_56_30_RECEIPT.json.
+Это не готовность публичной почты/физического телефона; SMTP иApplePrivacyUI
+остаются отдельно OPEN. Согласие пользователя по умолчанию
 OFF независимо от build. Нового Googleproductionupload нет.
 Public email delivery ещё не готова: live custom SMTP OFF, Auth Hooks пуст;
 decision76a5eb7d. Google production нового пакета пока не загружен.
