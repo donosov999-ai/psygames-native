@@ -85,5 +85,5 @@ PARA QUEM
 HONESTIDADE SOBRE A CIÊNCIA
 O treino melhora de forma confiável as tarefas praticadas e habilidades próximas. NÃO prometemos aumentar o QI: a transferência para a “inteligência geral” ainda é discutida. Oferecemos instrumentos validados e uma visão mensurável do seu progresso.
 
-Abra e jogue. O progresso fica salvo no aparelho. A sincronização anônima na nuvem é opcional: sem nome e sem e-mail.
+Jogue no aparelho sem conta. Backups na nuvem opcionais, com acesso por e-mail e consentimento explícito.
 ```

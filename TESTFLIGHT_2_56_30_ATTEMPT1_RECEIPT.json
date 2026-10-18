@@ -1,0 +1,57 @@
+{
+  "schema": 1,
+  "date_local": "2026-10-18",
+  "timezone": "Asia/Almaty",
+  "owner": "psygames-codex-mac",
+  "release_task": "a87bbe94-fb12-46a1-a287-71b9bd896963",
+  "source": "ed594a3f7b54d3d06baa2fca7863e401cb2655df",
+  "version": "2.56.30",
+  "build_number": "70",
+  "workflow_run": 39069987949,
+  "failed_attempt": 1,
+  "attempt_url": "https://github.com/donosov999-ai/psygames-native/actions/runs/39069987949/attempts/1",
+  "pipeline": {
+    "full_flutter_tests": "SUCCESS",
+    "signing_setup": "SUCCESS",
+    "ipa_build": "SUCCESS",
+    "binary_engine_gate": "SUCCESS",
+    "apple_archive_validation": "VERIFY SUCCEEDED with no errors, 2026-10-17T22:04:03.996Z",
+    "apple_upload": "FAILED: NSURLErrorDomain -1004, Could not connect to the server; buildUploads API did not return a response",
+    "existing_internal_group_assignment": "SKIPPED",
+    "github_ipa_artifact_upload": "FAILED: CreateArtifact request ENOTFOUND"
+  },
+  "apple_readback": {
+    "checked_at": "2026-10-17T22:09:03.097Z",
+    "builds_api_exact_version_build": "NOT_FOUND before retry",
+    "build_upload_id": "16c6fdcf-2d8d-4820-bf27-332d8d7d4f3d",
+    "build_upload_http_status": 200,
+    "build_upload_version": "2.56.30",
+    "build_upload_number": "70",
+    "build_upload_state": "AWAITING_UPLOAD",
+    "uploaded_date": null,
+    "file_list_http_status": 200,
+    "uploaded_file_types": ["DTAppAnalyzerExtractorOutput ZIP", "asset-description XML"],
+    "ipa_file_present_in_upload_file_list": false,
+    "valid_or_group_available": false
+  },
+  "ipa_recovery": {
+    "github_artifact_count": 0,
+    "runner_ipa_was_built": true,
+    "downloadable_signed_ipa_available": false,
+    "ipa_sha256": null,
+    "constraint": "Ephemeral runner file was not preserved by the failed artifact upload. Do not call an analyzer ZIP or Android binary the missing IPA; no signed IPA hash or user access claimed."
+  },
+  "bounded_recovery": {
+    "action": "One rerun of the existing failed job, without source/workflow/input/build-number changes",
+    "run_attempt": 2,
+    "run_number": 70,
+    "source": "ed594a3f7b54d3d06baa2fca7863e401cb2655df",
+    "readback_status": "IN_PROGRESS",
+    "tests_bypassed": false,
+    "new_tester_invitations": false,
+    "store_delivery_confirmed": false,
+    "required_next_evidence": "After completion: exact Apple build70 processingState VALID plus existing internal group Свои assignment; if failure, diagnose before further retries."
+  },
+  "local_redacted_evidence": "_local/ecosystem-cloud/testflight70-failure-redacted.json and testflight70-upload-readback.json",
+  "scope": "Existing human-authorized PsyGames release recovery only. No SMTP, Apple Privacy questionnaire, Auth, Origin/CORS, production service, real-user data or paid quota changes. Google upload remains held by the existing SMTP delivery gate."
+}

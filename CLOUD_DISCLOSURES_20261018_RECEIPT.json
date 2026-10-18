@@ -1,0 +1,57 @@
+{
+  "schema": 1,
+  "as_of_local_date": "2026-10-18",
+  "timezone": "Asia/Almaty",
+  "owner": "psygames-codex-mac",
+  "task_id": "a87bbe94-fb12-46a1-a287-71b9bd896963",
+  "authorization": "Denis: Да, обнови и выпускай. Cloud policy, account deletion page and store disclosures only.",
+  "website": {
+    "repository": "https://github.com/donosov999-ai/psygames-astro",
+    "pull_request": "https://github.com/donosov999-ai/psygames-astro/pull/2",
+    "pull_request_state": "MERGED",
+    "source": "4fd9c8c639daa79ba29dd0db6f017d7bc89fc40a",
+    "merge_commit": "d0ca4f3fb5ac26b669aaf6be9a66740514877b0e",
+    "published_scope": "25 policy/deletion HTML pages and one referenced CSS asset; no whole-site deploy",
+    "urls": ["https://psy-games.pro/privacy/", "https://psy-games.pro/privacy.html", "https://psy-games.pro/account-deletion/"],
+    "live_verification": "2026-10-16: 26 of 26 HTTPS responses 200 and exact deployed SHA256; unrelated home/version unchanged",
+    "unrelated_dirty_source": "Preserved and excluded from clean-build deploy",
+    "rollback_path": "/home/psygames/cloud-policy-backup-20261016-1230"
+  },
+  "google_play": {
+    "package": "com.psygames.app",
+    "listing_languages": ["en-US", "ru-RU", "de-DE", "ar", "es-419", "fr-FR", "hi-IN", "it-IT", "ja-JP", "ko-KR", "pt-BR", "zh-CN"],
+    "listing_api_edits_committed": ["07113545886237730475", "07309986685605498338"],
+    "listing_readback": "Fresh independent read: all 12 full descriptions exactly match approved narrow patch; old anonymous-only claims removed, including embedded ja/ko/zh paragraphs",
+    "listing_public_propagation": "NOT independently confirmed",
+    "data_safety": "SUBMITTED, IN_REVIEW; UI independently confirmed 2026-10-18",
+    "data_safety_scope": "Preserved existing diagnostics/analytics categories; added optional email/user IDs/user content, app interactions, email account creation and account/data deletion URLs",
+    "data_safety_approved": false,
+    "proof_local": "_local/ecosystem-cloud/play-data-safety-in-review-20261018.png",
+    "production_binary": "2.56.30/2056030 uploaded and committed by run39140950390 after direct renewed release instruction; fresh Publisher API18.10T15:34:30Z production completed and bundle SHA256 exact matched",
+    "production_receipt": "GOOGLE_PLAY_2_56_30_RECEIPT.json",
+    "public_storefront_propagation_verified": false
+  },
+  "apple": {
+    "app_privacy_ui": "OPEN: App Store Connect currently requires developer sign-in; no privacy questionnaire changes claimed",
+    "local_review_notes": "store/appstore/listing.md updated; local preparation is not console submission",
+    "testflight": "Current update18.10: workflow39069987949 attempt2 SUCCESS; Apple2.56.30/build70 VALID/IN_BETA_TESTING and assigned existing internal Свои independently verified",
+    "testflight_receipt": "TESTFLIGHT_2_56_30_RECEIPT.json"
+  },
+  "public_email_delivery": {
+    "project_ref": "iuvvheeocobhiothfgei",
+    "custom_smtp_enabled": false,
+    "send_email_auth_hook_configured": false,
+    "verified_via": "Live dashboard SMTP toggle and empty Auth Hooks list, 2026-10-18",
+    "impact": "Built-in Supabase sender only supports project-team addresses; prior owner's email receipt is not proof of public-user delivery",
+    "official_reference": "https://supabase.com/docs/guides/auth/auth-smtp",
+    "decision_task": "76a5eb7d-8dbc-405a-a1f1-96fbb8eead41",
+    "next_action": "Choose authorized SMTP provider and configure its credential securely, then verify delivery to a consenting non-team user. Google release separately proceeded after Denis explicitly repeated заливай following disclosure of this limitation; public email readiness is NOT accepted.",
+    "security_note": "No email-confirmation/MFA weakening or developer-team invitations used as workaround"
+  },
+  "boundaries": [
+    "No real Valya account or progress changed",
+    "No new tester invitation or paid provider subscription",
+    "No all-four-app/device acceptance claim",
+    "Supabase dashboard current session signed out after transient OAuth callback credentials appeared in tool output; credentials not copied, persisted or used"
+  ]
+}

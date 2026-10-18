@@ -85,5 +85,5 @@ POUR QUI
 HONNÊTES SUR LA SCIENCE
 L'entraînement améliore de manière fiable les tâches pratiquées et les compétences proches (transfert proche). Nous ne promettons PAS une hausse du QI : le transfert vers « l'intelligence générale » reste discuté. Nous proposons des outils validés et une vision mesurable de vos progrès.
 
-Ouvrez et jouez. La progression reste sur votre appareil. La synchronisation anonyme dans le cloud est facultative, sans nom ni e-mail.
+Jouez localement sans compte. Sauvegardes cloud facultatives avec connexion par e-mail et consentement explicite.
 ```

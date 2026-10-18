@@ -1,5 +1,27 @@
 # PsyGames: реальный local gateway, native callback и startup restore
 
+## Текущий checkpoint — 18.10.2026
+
+PR351 MERGED, merge source `ed594a3f7b54d3d06baa2fca7863e401cb2655df`.
+Подробный актуальный выпуск: `CLOUD_RELEASE_2_56_30_REF.md`;
+website/магазинные сведения: `CLOUD_DISCLOSURES_20261018_RECEIPT.json`.
+G1/G2/G3 выполнены; исторические незакрытые формулировки ниже относятся
+к прежним checkpoint и больше не требуют повторного разрешения/операции.
+TestFlight2.56.30/70 cloud=true39069987949 attempt2 завершился SUCCESS;
+независимо AppleVALID/IN_BETA_TESTING/assignedexisting«Свои» подтверждены.
+ReceiptTESTFLIGHT_2_56_30_RECEIPT.json; телефон не проверялся.
+Android39069990585 SUCCESS (исторический build_only), пакет2056030/подписи/hashes
+проверены: ANDROID_2_56_30_PACKAGE_RECEIPT.json. По новому прямому «заливай» Дениса
+тот же AAB затем отправлен в Google production run39140950390 SUCCESS18.10;
+независимый Publisher API readback15:34:30UTC: 2.56.30/2056030 completed,
+bundleSHAe1368093… совпадает. ReceiptGOOGLE_PLAY_2_56_30_RECEIPT.json.
+Это не готовность публичной почты/физического телефона; SMTP иApplePrivacyUI
+остаются отдельно OPEN. Согласие пользователя по умолчанию
+OFF независимо от build. Нового Googleproductionupload нет.
+Public email delivery ещё не готова: live custom SMTP OFF, Auth Hooks пуст;
+decision76a5eb7d. Google production нового пакета пока не загружен.
+Общий четырёхприложенный backend и remote Sudoku support НЕ закрыты.
+
 16.10.2026 · psygames-codex-mac · bb2c9f30-d786-4fe6-b25c-4b2ace267d4b остаётся OPEN.
 Checkout /Users/denisonosov/dev/psygames-game-lab/testflight-fixes-20261011,
 branch codex/cloud-release-2-56-29 (прежняя cloud-backup-20261015 — история).

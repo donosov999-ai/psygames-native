@@ -85,5 +85,5 @@ PER CHI
 ONESTI SULLA SCIENZA
 L'allenamento migliora in modo affidabile i compiti praticati e le abilità vicine (near transfer). NON promettiamo un aumento del QI: il trasferimento all'“intelligenza generale” è ancora discusso. Offriamo strumenti validati e un quadro misurabile dei tuoi progressi.
 
-Apri e gioca. I progressi restano sul dispositivo. La sincronizzazione anonima nel cloud è facoltativa, senza nome né e-mail.
+Gioca sul dispositivo senza account. Backup cloud facoltativi con accesso via e-mail e consenso esplicito.
 ```

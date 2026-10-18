@@ -58,21 +58,31 @@ PsyGames — это 131 когнитивный тренажёр на основ�
 ## 6. URLs
 - **Support URL:** `https://psy-games.pro/`
 - **Marketing URL:** `https://psy-games.pro/`
-- **Privacy Policy URL:** `https://psy-games.pro/privacy.html`  ← создаётся (см. ниже), ОБЯЗАТЕЛЬНО
+- **Privacy Policy URL:** `https://psy-games.pro/privacy/` (legacy `/privacy.html` также опубликован).
+- **Privacy choices / deletion request:** `https://psy-games.pro/account-deletion/`.
 
 ## 7. App Privacy (nutrition label — ответы для ASC)
-Апп: без логина, без рекламы, без сторонних трекеров. Данные сессий — локально (AsyncStorage), опц. синк в Supabase **анонимно** (без имени/почты).
+Актуализация 18.10.2026 для cloud-enabled 2.56.30: локальная игра без аккаунта;
+необязательный вход по почте через Supabase Auth, облачные копии только после
+отдельного согласия. Заявления «синк анонимно / без почты» устарели.
 - Data used to track you: **НЕТ**
-- Data linked to you: **НЕТ**
-- Data NOT linked to you: **Usage Data → Product Interaction** (результаты игр/сессии — обезличенно, для функции прогресса, НЕ для рекламы/трекинга)
-- Никаких: контактов, локации, идентификаторов, здоровья (формально — не медицинское приложение), фото.
+- Data linked to you: **Contact Info → Email Address**, **Identifiers → User ID**,
+  **Usage Data → Product Interaction**, **User Content → Other User Content**:
+  аккаунт и согласованные резервные копии прогресса, настроек, имени питомца,
+  заработанных очков/инвентаря. Назначение — **App Functionality**, не tracking.
+- Прежние ответы для анонимных сессий/диагностики/отзывов сохранять по факту,
+  не превращать их молча в «всё удаляется с аккаунтом» и не затирать анкету целиком.
+- Контакты, геолокация, реклама и платёжные реквизиты для облака не нужны.
+- **Статус:** это инструкция для анкеты; публикация App Privacy требует входа
+  в App Store Connect и отдельного подтверждённого readback. Наличие этого файла
+  или опубликованной политики не означает, что Apple label уже обновлён.
 
 ## 8. Age Rating анкета (ответы)
 Все категории нежелательного контента — **None / Нет** (насилие, азартные игры (BART/Iowa — это когнитивные тесты решений, не настоящие ставки/деньги → None), контент 17+ — нет). Итог: **4+**.
 
 ## 9. Review Notes (для проверяющего Apple — впиши в App Review Information)
 ```
-PsyGames is a cognitive-training app with 131 standalone games. No login required — open and play. No in-app purchases in this build. Games are based on classic neuropsychology paradigms (N-back, Stroop, etc.). "BART" and "Iowa Gambling Task" are cognitive decision-making tests with virtual points only — no real money, no gambling. The app works fully offline; optional anonymous cloud sync (no personal data). No account/demo credentials needed.
+PsyGames is a cognitive-training app with 145 games and modes. Local play does not require an account. No paid in-app purchases in this build; shop items use earned game points. Games are based on classic neuropsychology paradigms (N-back, Stroop, etc.). BART and Iowa Gambling Task use virtual points only, with no real-money gambling. Optional cloud backups require email-link sign-in through Supabase Auth and separate explicit consent; sign-in alone does not enable uploads. Settings provides selected-copy restore, cloud-copy deletion, and separately confirmed shared-account deletion for all four apps while preserving local device progress. Reviewers can test local play without credentials; testing cloud requires a mailbox they control. Public privacy and deletion instructions: https://psy-games.pro/privacy/ and https://psy-games.pro/account-deletion/ .
 ```
 
 ## 10. Screenshots (спека — снимать ПОСЛЕ нативной сборки, с iOS-симулятора/устройства)

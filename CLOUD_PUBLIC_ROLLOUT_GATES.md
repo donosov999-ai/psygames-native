@@ -1,5 +1,13 @@
 # Public cloud rollout — отдельные разрешения Дениса
 
+Актуализация18.10: G1/G2/G3 ниже уже выполнены; повторных разрешений не нужно.
+PR351 merged, cloud=true signed builds запущены. Новое фактическое препятствие
+не относится к этим security gates: custom SMTP OFF и Send Email Auth Hooks
+не настроены, встроенная почта не предназначена для обычных пользователей.
+Решение о почтовом канале:76a5eb7d-8dbc-405a-a1f1-96fbb8eead41.
+Текущая доставка/ограничения: `CLOUD_RELEASE_2_56_30_REF.md` и
+`CLOUD_DISCLOSURES_20261018_RECEIPT.json`; прежние разделы — история решений.
+
 16.10.2026 · G1 APPLIED / SERVICE WRITE AND DENIAL CHECKS VERIFIED.
 G2 BACKEND APPLIED / SYNTHETIC HTTP AND REAL FLUTTER VM VERIFIED;
 G3 AUTHORIZED / APPLIED / UI READBACK VERIFIED 16.10.2026.
