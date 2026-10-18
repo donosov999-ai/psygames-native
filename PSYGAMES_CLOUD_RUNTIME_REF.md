@@ -2,11 +2,23 @@
 
 ## Дополнение18.10: удалённая поддержка Судоку
 
-Новый незарелизенный клиент `codex/remote-level-support-20261018` использует
+Новый клиент `codex/remote-level-support-20261018` использует
 тот же неизменённый общий SDK, отдельный opt-in на24ч и узкую серверную очередь.
-Сервер уже развёрнут; synthetic REST→Flutter→80→ACK пройден. Предстоит доставка
-клиента и проверка SMTP/обычного аккаунта/Samsung. Это не функция сборки70.
+Сервер уже развёрнут; synthetic REST→Flutter→80→ACK пройден. PR353 влит в
+main9a9b1deda после двух зелёных CI; финальное дерево432bd6188 идентично merge.
+TestFlight2.56.31+71 принят с `cloud=true` (VALID/IN_BETA_TESTING/Свои);
+Android2056031 собран и
+проверен с тем же флагом. Его Play production-заливка39148328875 SUCCESS;
+независимый readback17:12UTC подтвердил completed2056031 и SHA256того же AAB.
+TestFlight acceptance подтверждён отдельным readback17:55UTC.
+Доставка и работа на физических телефонах ещё не проверены.
+В Timeweb создан разрешённый login@asibots.pro,
+его TLS/SMTP AUTH проверены; SMTP в Supabase сохранён17:06UTC по прямому ответу
+Дениса «делай сам», повторная загрузка подтверждает включение.17:10UTC подтверждено
+фактическое письмо через новый SMTP на собственный non-team ящик; SMTP-задача
+fd253372 закрыта. Gmail/Samsung/PKCE-приёмка ещё впереди. Это не функция сборки70.
 Полный актуальный реф: [SUDOKU_REMOTE_SUPPORT_REF.md](SUDOKU_REMOTE_SUPPORT_REF.md).
+Доставка: [CLOUD_RELEASE_2_56_31_REF.md](CLOUD_RELEASE_2_56_31_REF.md).
 `recoverSudokuSupportWrites` закрывает подтверждённый незаконченный local apply
 до игровых экранов; журнал/доска остаются приватно на устройстве.
 Остальные разделы ниже сохраняют даты своих исторических checkpoint.
@@ -137,7 +149,11 @@ flutter/build/test_cache ~69MiB (только compiler dill), flutter/build/unit
 ~35MiB (копии assets). Не unique source/release/evidence; пересоздаются тестами.
 Они здесь НЕ удалены; во время текущих тестов удалять нельзя.
 
-## Остаток — проект не закрыт
+## Архив16.10: остаток на момент этого checkpoint
+
+Это историческая запись, не текущий список невыполненных работ.
+Текущие состояния выпуска/SMTP — в дополнении18.10 в начале этого файла,
+`CLOUD_RELEASE_2_56_31_REF.md` и `CLOUD_PUBLIC_ROLLOUT_GATES.md`.
 
 До public activation: G1 legacy permissions/RPC review+защита, G2 account-deletion,
 разрешённый real login/device test и согласованный client config.
