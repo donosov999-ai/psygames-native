@@ -15,6 +15,13 @@ to a GitHub Release automatically.
 ---
 
 
+## [2.56.31] — 2026-10-18
+
+- Native Sudoku support screen uses the existing shared account with an additional 24-hour, profile/road-scoped permission. Privileged operators can read minimal reported levels and queue idempotent unlock-at-least requests; no arbitrary snapshots or reward writes.
+- Client previews pending corrections, preserves the old saved board in an owner-scoped local journal, asks before restarting it, applies monotone level keys and acknowledges only after local completion. Startup and exit reconcile interrupted local intents before gameplay.
+- Shared preferences now reject false platform write/removal acknowledgements. Cached terminal receipts must be re-confirmed before allowing gameplay, avoiding an old prepared journal trapping a later new board after restart.
+- Shared Auth SDK pins remain unchanged. Server migration 20261018155159 and synthetic HTTPS to actual Flutter SDK/service to local level80 to ACK/revoke are verified; this is not a phone, public sign-in or store-delivery claim. SMTP, physical-device acceptance and publication are tracked separately in SUDOKU_REMOTE_SUPPORT_REF.md.
+
 ## [2.56.30] — 2026-10-16
 
 - Optional email sign-in and explicitly consented PsyGames cloud backups are enabled in the signed cloud=true builds. Local use remains available without an account; sign-in alone never enables backups.
