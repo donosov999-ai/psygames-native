@@ -2,11 +2,16 @@
 
 ## Дополнение18.10: удалённая поддержка Судоку
 
-Новый незарелизенный клиент `codex/remote-level-support-20261018` использует
+Новый клиент `codex/remote-level-support-20261018` использует
 тот же неизменённый общий SDK, отдельный opt-in на24ч и узкую серверную очередь.
-Сервер уже развёрнут; synthetic REST→Flutter→80→ACK пройден. Предстоит доставка
-клиента и проверка SMTP/обычного аккаунта/Samsung. Это не функция сборки70.
+Сервер уже развёрнут; synthetic REST→Flutter→80→ACK пройден. PR353 влит в
+main9a9b1deda после двух зелёных CI; финальное дерево432bd6188 идентично merge.
+TestFlight2.56.31+71 и Android2056031 собираются с `cloud=true`; upload и
+доставка ещё не подтверждены. В Timeweb создан разрешённый login@asibots.pro,
+его TLS/SMTP AUTH проверены; сохранение SMTP в Supabase и обычное письмо ещё
+предстоят, как и Samsung-приёмка. Это не функция сборки70.
 Полный актуальный реф: [SUDOKU_REMOTE_SUPPORT_REF.md](SUDOKU_REMOTE_SUPPORT_REF.md).
+Доставка: [CLOUD_RELEASE_2_56_31_REF.md](CLOUD_RELEASE_2_56_31_REF.md).
 `recoverSudokuSupportWrites` закрывает подтверждённый незаконченный local apply
 до игровых экранов; журнал/доска остаются приватно на устройстве.
 Остальные разделы ниже сохраняют даты своих исторических checkpoint.
