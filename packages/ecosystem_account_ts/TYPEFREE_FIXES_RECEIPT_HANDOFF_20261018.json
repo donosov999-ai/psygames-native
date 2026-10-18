@@ -1,0 +1,22 @@
+{
+  "date_local": "2026-10-18",
+  "recorder": "psygames-codex-mac",
+  "author": "typerighting-codex-mac",
+  "task": "e63cc347-94c9-40f0-8fbe-ed20a9aeed5b",
+  "state": "AUTHOR_PERSONALLY_ACKNOWLEDGED_EXACT_FOCUSED_ACCEPTANCE",
+  "author_receipt": "/Users/denisonosov/Documents/TeamOps/typerighting-onboarding/account-native-v3-prepare-off-20261018/independent-acceptance-received.json",
+  "reviewer_ack_sha256_checked": "9ba250d4e4a2a795ad42f03920aedb3581fef53a9c41ec694062301b4eb94a1c",
+  "reviewer_report_sha256_checked": "5b35848fd4343c9775e508af9ed1c0ca08b7e33afda86c9556c98abd843f2149",
+  "next_gate_document": "/Users/denisonosov/Documents/TeamOps/typerighting-onboarding/ACCOUNT_VAULT3_ACCEPTED_NEXT_GATE_20261018.md",
+  "next_gate_sha256_checked": "0e36043f028fdfbd92ba44a8a2bfc9427073ad3b59d2f06cf3c7612854e691f0",
+  "next_gate": "Actual Tauri IPC and macOS protected-store diagnostic, not another architecture loop",
+  "resource_facts": "Author reports no current runnable debug app and about 3.35GiB free; no build or cleanup performed by this receipt",
+  "needed_before_execution": "Existing coordinator/build owner to arrange a bounded build slot and explicit isolated diagnostic profile/Keychain service authority; no ordinary production namespace access",
+  "new_execution_authorised_by_receipt": false,
+  "source_or_config_changed": false,
+  "foreign_task_status_changed": false,
+  "whole_r1_closed": false,
+  "runtime_or_device_accepted": false,
+  "all_four_apps_ready": false,
+  "default_gates": "OFF"
+}
