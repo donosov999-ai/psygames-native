@@ -19,3 +19,13 @@ architecture discussion or a new human decision. Shared runtime package pins do
 not change; availability stays OFF. No live Auth, provider/config/server/ACL/
 real-user, release, heavy build or cost authority follows from design ACK.
 Keep R1, app/device gates and the common all4 task open until actual evidence.
+
+## Current implementation review (after design2 ACK)
+
+`TYPEFREE_VAULT3_IMPLEMENTATION_REVIEW_20261018.md`: **CHANGES REQUESTED**.
+Frozen105-file source matched; main47 native/198 app/8 actual native TLS checks
+PASS, but two extra independent delayed-prepare/OFF scenarios reproduce missing
+native fencing/revocation. P2 `V3-R1-1`, facade line44/48: stale prepare reply drops
+the only returned scope; cached resume and a cancelled cold callback can recover.
+Exact design ACK remains valid; fix the implementation and retest in existing
+R1 task, no new architecture loop or feature activation.
