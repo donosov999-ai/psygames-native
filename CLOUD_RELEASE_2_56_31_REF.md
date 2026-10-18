@@ -1,4 +1,4 @@
-# PsyGames 2.56.31 — доставка удалённой поддержки Судоку (в процессе)
+# PsyGames 2.56.31 — доставка удалённой поддержки Судоку
 
 18.10.2026 · psygames-codex-mac.
 Поддержка: `3d5255bc-2168-41f2-91f7-973520bac00c`;
@@ -25,10 +25,20 @@ Flutter workflows берут её из app.json. Play versionCode2056031.
   analyze clean, **4376 PASS / 7 SKIP**; practice_kit analyze clean + **24 PASS**;
   контрольные APK/AAB собраны. Это полный набор, не ограниченные 241 проверки.
 
-Android принят Play; iOS ещё не подтверждён как залитый:
+Оба магазина подтвердили приёмку; проверка физических телефонов отдельно:
 
 - [TestFlight 39146663499](https://github.com/donosov999-ai/psygames-native/actions/runs/39146663499):
-  запущен 16:48:10 UTC, фактический номер **71**, 2.56.31, `cloud=true`.
+  **SUCCESS**, фактический номер **71**, 2.56.31, `cloud=true`.
+  Пробы16:53:02–17:31:33UTC, IPA17:31:41–17:35:41UTC;
+  VERIFY SUCCEEDED17:37:10UTC, UPLOAD SUCCEEDED17:38:34UTC.
+  100405516байт; Delivery UUID `58d44ac2-56c2-421d-b621-47ada115b1ca`.
+  Независимый App Store Connect readback17:55UTC:
+  **VALID / IN_BETA_TESTING / Свои / assigned=true**.
+  Receipt: `_local/ecosystem-cloud/testflight-2.56.31-71-readback.json`.
+  Новых приглашений тестерам не отправляли. Это не проверка приложения на телефоне.
+  17:56UTC исправлено только английское What to Test (en-US); ru не менялся,
+  повторный readback подтвердил английский текст и неизменность других локалей.
+  Receipt: `_local/ecosystem-cloud/testflight71-en-notes-receipt.json`.
 - [Android BUILD_ONLY 39144265625](https://github.com/donosov999-ai/psygames-native/actions/runs/39144265625):
   **SUCCESS**, run number72, 2.56.31 / 2056031, `cloud=true`; публикация выключена.
   Этот номер прогона не является Android versionCode или номером TestFlight.
@@ -43,7 +53,7 @@ Android принят Play; iOS ещё не подтверждён как зал�
   Это принятие store API, не факт появления обновления на конкретном телефоне.
 
 Оба процесса закреплены за432bd6188. Приглашения тестерам повторно не отправляли.
-Состояния upload, Apple VALID/группа, Play track и телефон проверяются отдельно.
+Upload, Apple VALID/группа и Play track проверены отдельно; телефон не проверен.
 
 ### Android: проверка готового носителя
 
@@ -71,6 +81,23 @@ UTF8/UTF16LE/UTF16BE) во всех распакованных entries ниче�
 Локальный receipt: `_local/ecosystem-cloud/android-2.56.31.PZO210/artifact-audit.json`;
 рядом bundletool/jarsigner-логи. На телефоне/APK-эмуляторе этот выпуск не запускали.
 
+### iOS: проверка готового носителя
+
+Артефакт `12144782533`/`flutter-hybrid-ipa` получен из того же run39146663499.
+SHA256 ZIP совпал с GitHub digest:
+`7ebbe987856adafc5a293e9e855de4b26e2c043afe9a23a9ce93a5cf6b48c5fd`.
+IPA100405516байт, SHA256:
+`197ccc0a0e1bcbdf7cd25cac3f6c3ac4375b8915e974c9bbb49a1e5ecce12fb8`.
+В настоящем Info.plist: com.psygames.app/2.56.31/71 и точная callback scheme.
+В App.framework/App найдены support grants/corrections, утверждённый проект
+и publishable client. Поиск тех же трёх фактических секретных значений
+во всех распакованных entries (UTF8/UTF16LE/UTF16BE) — ничего не найдено.
+Это ограниченный known-value поиск, не полный security-аудит.
+Receipt: `_local/ecosystem-cloud/ios-2.56.31.kqISka/artifact-audit.json`.
+`codesign --verify --deep --strict --verbose=2` распакованного Runner.app —
+exit0, valid on disk / satisfies its Designated Requirement.
+Ни IPA, ни Android-пакеты на устройства не устанавливались этим чатом.
+
 Проверки/приёмка и операторские команды —
 [SUDOKU_REMOTE_SUPPORT_REF.md](SUDOKU_REMOTE_SUPPORT_REF.md).
 Сборка70/2.56.30 этой функции НЕ содержит. Ни её повторной заливки, ни
@@ -78,7 +105,7 @@ UTF8/UTF16LE/UTF16BE) во всех распакованных entries ниче�
 
 Android build-only запущен параллельно финальному CI, без публикации. Полные CI
 затем завершились и PR был влит; TestFlight запущен после этого. Публичная
-облачная доставка и SMTP остаются отдельной явной границей.
+облачная доставка и SMTP затем проверены отдельными квитанциями выше/ниже.
 
 ## Почта
 
@@ -136,9 +163,9 @@ PR352 со старыми сведениями о2.56.30 пока OPEN и име
 
 ## Остаток
 
-- Android-носитель проверен, Play production acceptance подтверждён независимым
-  readback. TestFlight IPA/upload/раздача и видимость обновления на телефоне ещё
-  не подтверждены.
+- Android-носитель проверен, Play production acceptance и TestFlight71
+  VALID/IN_BETA_TESTING/группа подтверждены независимыми readback.
+  Видимость обновлений и поведение приложения на физических телефонах не проверены.
 - SMTP сохранён; доставка через него собственному non-team адресу подтверждена.
   Samsung/PKCE и внешняя Gmail-доставка остаются отдельной проверкой.
 - Валины реальные данные и разрешения не читали/не меняли. Её80 ещё не выдан.
