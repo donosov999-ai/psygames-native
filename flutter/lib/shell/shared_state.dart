@@ -121,7 +121,9 @@ class SharedState extends ChangeNotifier {
   Future<void> set(String key, String value) async {
     if (!owns(key)) return;
     final changed = get(key) != value;
-    await _prefs.setString(key, value);
+    if (!await _prefs.setString(key, value)) {
+      throw StateError('local_storage_write_not_confirmed');
+    }
     if (changed) writes.value++;
     if (changed && (key == 'psygames_theme_override' || key == 'psygames_active_profile')) {
       notifyListeners();
@@ -131,7 +133,9 @@ class SharedState extends ChangeNotifier {
   Future<void> remove(String key) async {
     if (!owns(key)) return;
     final changed = get(key) != null;
-    await _prefs.remove(key);
+    if (!await _prefs.remove(key)) {
+      throw StateError('local_storage_remove_not_confirmed');
+    }
     if (changed) writes.value++;
     if (changed && (key == 'psygames_theme_override' || key == 'psygames_active_profile')) {
       notifyListeners();

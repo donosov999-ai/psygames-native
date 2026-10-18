@@ -2,6 +2,23 @@
 // 493 ключей, переведены с английской базы. Не править руками — регенерировать воркфлоу.
 // zh/hi — машинное качество, нужна вычитка нативом до сторов.
 const t: Record<string, string> = {
+  sudokuSupportTitle: "Hilfe zum Sudoku-Fortschritt",
+  sudokuSupportExplanation: "Separate, freiwillige Berechtigung für 24 Stunden, nur für den ausgewählten Sudoku-Modus. Der Support kann deine Konto-E-Mail-Adresse, den Modus und das aktuelle Level sehen, aber nicht dein Spielfeld, deine Punkte, Käufe oder dein Haustier. Du erhältst Korrekturen hier ohne Dateien oder Codes; eine Korrektur schaltet nur ein Level frei und zählt nicht als Sieg.",
+  sudokuSupportProfile: "Spielprofil: {profile}",
+  sudokuSupportRoad: "Sudoku-Modus",
+  sudokuSupportSignIn: "Melde dich zuerst an und aktiviere die Cloud-Sicherung.",
+  sudokuSupportEnable: "Support für diesen Modus für 24 Stunden erlauben",
+  sudokuSupportUntil: "Berechtigung gültig bis {time}",
+  sudokuSupportRevoke: "Berechtigung widerrufen",
+  sudokuSupportRefresh: "Nach Korrekturen suchen",
+  sudokuSupportNoChanges: "Noch keine Korrekturen für diesen Modus.",
+  sudokuSupportTarget: "Mindestens Level {level} freischalten",
+  sudokuSupportApply: "Korrektur anwenden",
+  sudokuSupportApplied: "Korrektur angewendet",
+  sudokuSupportError: "Aktion nicht bestätigt. Prüfe deine Verbindung und die Berechtigung und versuche es erneut. Starte kein weiteres Spiel, bis eine eventuell unterbrochene Korrektur wiederhergestellt wurde.",
+  sudokuSupportSavedTitle: "Ein gespeichertes Spiel ist vorhanden",
+  sudokuSupportSavedHint: "Um das korrigierte Level zu öffnen, muss ein neues Spielfeld gestartet werden. Das aktuelle Spiel bleibt als lokale Sicherheitskopie erhalten; um es aus „Fortsetzen“ zu entfernen, ist deine Zustimmung erforderlich. Es werden keine Siege oder Belohnungen hinzugefügt.",
+  sudokuSupportRestart: "Sicherheitskopie behalten und neues Spielfeld öffnen",
   cloudPilotDeleteAccount: "Gemeinsames Konto löschen",
   cloudPilotDeleteAccountWarning: "Dadurch werden dein gemeinsames Konto und die Cloud-Kopien in PsyGames, Smart Alarm, Chess & Go und TypeFree dauerhaft gelöscht. Dein lokaler Fortschritt bleibt auf deinen Geräten erhalten. In den anderen Apps musst du dich erneut anmelden. Diese Aktion kann nicht rückgängig gemacht werden.",
   cloudPilotAccountDeleteError: "Die Kontolöschung wurde nicht bestätigt. Dein lokaler Fortschritt ist sicher. Melde dich erneut an, bevor du es noch einmal versuchst.",

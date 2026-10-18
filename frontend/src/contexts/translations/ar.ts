@@ -1,6 +1,23 @@
 // AUTO-GENERATED translation overlay (ar). Источник: транскреация с EN-базы (856 ключей).
 // ⚠️ НЕ ПОДКЛЮЧЁН в LANGUAGES — ждёт RTL-захода (I18nManager). Не править руками.
 const t: Record<string, string> = {
+  sudokuSupportTitle: "دعم تقدّم سودوكو",
+  sudokuSupportExplanation: "إذن منفصل واختياري لمدة 24 ساعة، يقتصر على نمط سودوكو المحدّد. يمكن لفريق الدعم الاطّلاع على بريد حسابك الإلكتروني والنمط والمستوى الحالي، ولكن ليس على اللوحة أو النقاط أو المشتريات أو الحيوان الأليف. يمكنك تلقّي التصحيحات هنا دون ملفات أو رموز؛ يفتح التصحيح مستوى فقط ولا يُسجّل فوزًا.",
+  sudokuSupportProfile: "ملف اللعب: {profile}",
+  sudokuSupportRoad: "نمط سودوكو",
+  sudokuSupportSignIn: "سجّل الدخول إلى حسابك وفعّل النسخ الاحتياطي السحابي أولًا.",
+  sudokuSupportEnable: "السماح بالدعم لهذا النمط لمدة 24 ساعة",
+  sudokuSupportUntil: "ينتهي الإذن في {time}",
+  sudokuSupportRevoke: "سحب الإذن",
+  sudokuSupportRefresh: "البحث عن تصحيحات",
+  sudokuSupportNoChanges: "لا توجد تصحيحات لهذا النمط بعد.",
+  sudokuSupportTarget: "فتح المستوى {level} على الأقل",
+  sudokuSupportApply: "تطبيق التصحيح",
+  sudokuSupportApplied: "تم تطبيق التصحيح",
+  sudokuSupportError: "لم يتم تأكيد الإجراء. تحقّق من الاتصال والإذن، ثم حاول مجددًا. لا تبدأ لعبة أخرى حتى تكتمل استعادة أي تصحيح انقطع تنفيذه.",
+  sudokuSupportSavedTitle: "توجد لعبة محفوظة",
+  sudokuSupportSavedHint: "يتطلّب فتح المستوى المصحّح بدء لوحة جديدة. ستُحفظ اللعبة الحالية في نسخة احتياطية محلية للأمان؛ وتتطلّب إزالتها من «متابعة» موافقتك. لا تُضاف أي انتصارات أو مكافآت.",
+  sudokuSupportRestart: "الاحتفاظ بنسخة للأمان وفتح لوحة جديدة",
   cloudPilotDeleteAccount: "حذف الحساب المشترك",
   cloudPilotDeleteAccountWarning: "سيؤدي هذا إلى حذف حسابك المشترك والنسخ السحابية في PsyGames وSmart Alarm وChess & Go وTypeFree نهائيًا. سيبقى تقدمك المحلي على أجهزتك محفوظًا. ستحتاج إلى تسجيل الدخول مجددًا في التطبيقات الأخرى. لا يمكن التراجع عن هذا الإجراء.",
   cloudPilotAccountDeleteError: "لم يتم تأكيد حذف الحساب. تقدمك المحلي بأمان. سجّل الدخول مجددًا قبل إعادة المحاولة.",

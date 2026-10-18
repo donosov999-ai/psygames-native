@@ -1,6 +1,23 @@
 // AUTO-GENERATED translation overlay (it). Источник: транскреация с EN-базы (856 ключей).
 // Не править руками — регенерировать.
 const t: Record<string, string> = {
+  sudokuSupportTitle: "Assistenza per i progressi nel Sudoku",
+  sudokuSupportExplanation: "Autorizzazione separata e facoltativa di 24 ore, solo per la modalità Sudoku selezionata. L’assistenza potrà vedere l’e-mail del tuo account, la modalità e il livello attuale, ma non la griglia, i punti, gli acquisti o l’animale domestico. Ricevi le correzioni qui senza file né codici; una correzione sblocca solo un livello e non registra una vittoria.",
+  sudokuSupportProfile: "Profilo di gioco: {profile}",
+  sudokuSupportRoad: "Modalità Sudoku",
+  sudokuSupportSignIn: "Prima accedi all’account e attiva il backup nel cloud.",
+  sudokuSupportEnable: "Consenti l’assistenza per questa modalità per 24 ore",
+  sudokuSupportUntil: "L’autorizzazione scade alle {time}",
+  sudokuSupportRevoke: "Revoca l’autorizzazione",
+  sudokuSupportRefresh: "Verifica la disponibilità di correzioni",
+  sudokuSupportNoChanges: "Non ci sono ancora correzioni per questa modalità.",
+  sudokuSupportTarget: "Sblocca almeno il livello {level}",
+  sudokuSupportApply: "Applica la correzione",
+  sudokuSupportApplied: "Correzione applicata",
+  sudokuSupportError: "L’azione non è stata confermata. Controlla la connessione e l’autorizzazione, poi riprova. Non iniziare un’altra partita finché non sarà stata recuperata qualsiasi correzione interrotta.",
+  sudokuSupportSavedTitle: "È presente una partita salvata",
+  sudokuSupportSavedHint: "Per aprire il livello corretto è necessario iniziare una nuova griglia. La partita attuale verrà conservata in una copia di sicurezza locale; per rimuoverla da «Continua» serve il tuo consenso. Non vengono aggiunte vittorie né ricompense.",
+  sudokuSupportRestart: "Conserva una copia di sicurezza e apri una nuova griglia",
   cloudPilotDeleteAccount: "Elimina l’account condiviso",
   cloudPilotDeleteAccountWarning: "Questa azione elimina definitivamente il tuo account condiviso e le copie nel cloud di PsyGames, Smart Alarm, Chess & Go e TypeFree. I progressi locali sui tuoi dispositivi restano intatti. Dovrai accedere di nuovo nelle altre app. Questa azione non può essere annullata.",
   cloudPilotAccountDeleteError: "L’eliminazione dell’account non è stata confermata. I tuoi progressi locali sono al sicuro. Accedi di nuovo prima di riprovare.",

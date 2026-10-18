@@ -11,6 +11,7 @@ import 'cloud_pilot.dart';
 import 'cloud_restore.dart';
 import 'cloud_settings_screen.dart';
 import 'shared_state.dart';
+import 'sudoku_support_service.dart';
 
 /// App-owned OS vault. macOS uses non-sharing Keychain without requiring a
 /// provisioned Data Protection sharing group; iOS retains device-only policy.
@@ -64,17 +65,20 @@ class PsyGamesCloudRuntime {
       callback: Uri.parse(callback),
       vault: PsyGamesAccountVault(),
     );
-    return PsyGamesCloudRuntime(
-      CloudPilot(
-        state,
-        PsyGamesCloudGateway(
-          state: state,
-          account: account,
-          restoreDirectory: restoreDirectory,
-        ),
+    final pilot = CloudPilot(
+      state,
+      PsyGamesCloudGateway(
+        state: state,
+        account: account,
+        restoreDirectory: restoreDirectory,
       ),
-      links,
     );
+    pilot.support = SudokuSupportService(
+      state: state,
+      account: account,
+      backupEnabled: () => pilot.enabled,
+    );
+    return PsyGamesCloudRuntime(pilot, links);
   }
 
   /// Invoked before language/theme/gameplay/WebView consumers. Failure propagates

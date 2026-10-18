@@ -2,6 +2,23 @@
 // 493 ключей, переведены с английской базы. Не править руками — регенерировать воркфлоу.
 // zh/hi — машинное качество, нужна вычитка нативом до сторов.
 const t: Record<string, string> = {
+  sudokuSupportTitle: "Suporte ao progresso no Sudoku",
+  sudokuSupportExplanation: "Permissão separada e opcional de 24 horas, apenas para o modo de Sudoku selecionado. O suporte poderá ver o e-mail da sua conta, o modo e o nível atual, mas não o tabuleiro, os pontos, as compras ou o mascote. Receba correções aqui, sem arquivos nem códigos; uma correção apenas desbloqueia um nível e não registra uma vitória.",
+  sudokuSupportProfile: "Perfil de jogo: {profile}",
+  sudokuSupportRoad: "Modo de Sudoku",
+  sudokuSupportSignIn: "Primeiro entre na conta e ative o backup na nuvem.",
+  sudokuSupportEnable: "Permitir suporte para este modo por 24 horas",
+  sudokuSupportUntil: "A permissão expira em {time}",
+  sudokuSupportRevoke: "Revogar permissão",
+  sudokuSupportRefresh: "Verificar correções",
+  sudokuSupportNoChanges: "Ainda não há correções para este modo.",
+  sudokuSupportTarget: "Desbloquear pelo menos o nível {level}",
+  sudokuSupportApply: "Aplicar correção",
+  sudokuSupportApplied: "Correção aplicada",
+  sudokuSupportError: "A ação não foi confirmada. Verifique a conexão e a permissão e tente novamente. Não inicie outra partida até que qualquer correção interrompida tenha sido recuperada.",
+  sudokuSupportSavedTitle: "Há uma partida salva",
+  sudokuSupportSavedHint: "Para abrir o nível corrigido, é preciso iniciar um novo tabuleiro. A partida atual será preservada em uma cópia de segurança local; removê-la de «Continuar» exige seu consentimento. Nenhuma vitória ou recompensa é adicionada.",
+  sudokuSupportRestart: "Manter uma cópia de segurança e abrir um novo tabuleiro",
   cloudPilotDeleteAccount: "Excluir a conta compartilhada",
   cloudPilotDeleteAccountWarning: "Isso exclui permanentemente sua conta compartilhada e as cópias na nuvem do PsyGames, Smart Alarm, Chess & Go e TypeFree. O progresso local nos seus dispositivos será mantido. Você precisará entrar novamente nos outros aplicativos. Esta ação não pode ser desfeita.",
   cloudPilotAccountDeleteError: "A exclusão da conta não foi confirmada. Seu progresso local está seguro. Entre novamente antes de tentar de novo.",

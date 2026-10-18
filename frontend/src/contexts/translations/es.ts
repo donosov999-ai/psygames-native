@@ -2,6 +2,23 @@
 // 493 ключей, переведены с английской базы. Не править руками — регенерировать воркфлоу.
 // zh/hi — машинное качество, нужна вычитка нативом до сторов.
 const t: Record<string, string> = {
+  sudokuSupportTitle: "Asistencia con el progreso de Sudoku",
+  sudokuSupportExplanation: "Permiso independiente y opcional de 24 horas solo para el modo de Sudoku seleccionado. El equipo de asistencia podrá ver el correo de tu cuenta, el modo y el nivel actual, pero no el tablero, los puntos, las compras ni la mascota. Recibe correcciones aquí sin archivos ni códigos; una corrección solo desbloquea un nivel y no registra una victoria.",
+  sudokuSupportProfile: "Perfil de juego: {profile}",
+  sudokuSupportRoad: "Modo de Sudoku",
+  sudokuSupportSignIn: "Primero inicia sesión y activa la copia de seguridad en la nube.",
+  sudokuSupportEnable: "Permitir la asistencia para este modo durante 24 horas",
+  sudokuSupportUntil: "El permiso vence a las {time}",
+  sudokuSupportRevoke: "Revocar el permiso",
+  sudokuSupportRefresh: "Buscar correcciones",
+  sudokuSupportNoChanges: "Aún no hay correcciones para este modo.",
+  sudokuSupportTarget: "Desbloquear al menos el nivel {level}",
+  sudokuSupportApply: "Aplicar corrección",
+  sudokuSupportApplied: "Corrección aplicada",
+  sudokuSupportError: "La acción no se ha confirmado. Comprueba la conexión y el permiso y vuelve a intentarlo. No inicies otra partida hasta que se haya recuperado cualquier corrección interrumpida.",
+  sudokuSupportSavedTitle: "Hay una partida guardada",
+  sudokuSupportSavedHint: "Para abrir el nivel corregido hay que iniciar un tablero nuevo. La partida actual se conservará en una copia de seguridad local; quitarla de «Continuar» requiere tu consentimiento. No se añaden victorias ni recompensas.",
+  sudokuSupportRestart: "Guardar una copia de seguridad y abrir un tablero nuevo",
   cloudPilotDeleteAccount: "Eliminar la cuenta compartida",
   cloudPilotDeleteAccountWarning: "Esto eliminará permanentemente tu cuenta compartida y las copias en la nube de PsyGames, Smart Alarm, Chess & Go y TypeFree. El progreso local se conservará en tus dispositivos. Tendrás que volver a iniciar sesión en las otras aplicaciones. Esta acción no se puede deshacer.",
   cloudPilotAccountDeleteError: "No se ha confirmado la eliminación de la cuenta. Tu progreso local está a salvo. Vuelve a iniciar sesión antes de intentarlo de nuevo.",

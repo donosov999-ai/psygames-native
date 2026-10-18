@@ -2,6 +2,23 @@
 // 493 ключей, переведены с английской базы. Не править руками — регенерировать воркфлоу.
 // Вычитка: Claude 12.06.2026 (skillAttention/skillFocus swap, 序列记忆, 主访问码). При регенерации воркфлоу — НЕ затирать, мерджить через git diff.
 const t: Record<string, string> = {
+  sudokuSupportTitle: "数独进度支持",
+  sudokuSupportExplanation: "这是一项独立、自愿的授权，有效期为 24 小时，仅适用于所选数独模式。支持人员可查看你的账号邮箱、模式和当前关卡，但无法查看棋盘、积分、购买记录或宠物。你可在此直接接收修复，无需文件或代码；修复只会解锁关卡，不会计为获胜。",
+  sudokuSupportProfile: "游戏档案：{profile}",
+  sudokuSupportRoad: "数独模式",
+  sudokuSupportSignIn: "请先登录账号并启用云端备份。",
+  sudokuSupportEnable: "允许支持人员在 24 小时内处理此模式",
+  sudokuSupportUntil: "授权到期时间：{time}",
+  sudokuSupportRevoke: "撤销授权",
+  sudokuSupportRefresh: "检查修复",
+  sudokuSupportNoChanges: "此模式暂时没有修复。",
+  sudokuSupportTarget: "解锁至至少第 {level} 关",
+  sudokuSupportApply: "应用修复",
+  sudokuSupportApplied: "修复已应用",
+  sudokuSupportError: "操作尚未确认。请检查网络连接和授权后重试。在任何中断的修复恢复完成之前，请勿开始另一局游戏。",
+  sudokuSupportSavedTitle: "已有保存的游戏",
+  sudokuSupportSavedHint: "要打开修复后的关卡，需要开始新的棋盘。当前游戏将保留为本地安全备份；将其从“继续游戏”中移除需要你的同意。不会增加获胜次数或奖励。",
+  sudokuSupportRestart: "保留安全备份并打开新棋盘",
   cloudPilotDeleteAccount: "删除通用账号",
   cloudPilotDeleteAccountWarning: "这将永久删除你的通用账号，以及 PsyGames、Smart Alarm、Chess & Go 和 TypeFree 中的云端副本。各设备上的本地进度将保留。你需要在其他应用中重新登录。此操作无法撤销。",
   cloudPilotAccountDeleteError: "未能确认账号删除。你的本地进度是安全的。请重新登录后再试。",
