@@ -30,7 +30,8 @@ Receipt `_local/ecosystem-cloud/support-live-receipt-42e9781f-35fd-4de6-a816-65a
 
 PR353 влит в main9a9b1deda, оба полных CI зелёные; TestFlight2.56.31+71 ещё
 собирается, Android2056031 собран и проверен; Play production-заливка39148328875
-запущена из того же AAB17:10UTC. Точные состояния носителей и SMTP —
+успешна; независимый readback17:12UTC подтвердил completed2056031 и хэш
+того же AAB. Точные состояния носителей и SMTP —
 [CLOUD_RELEASE_2_56_31_REF.md](CLOUD_RELEASE_2_56_31_REF.md).
 
 **Это ещё не исправление на телефоне Вали.** Доставка нового Flutter-кода ей

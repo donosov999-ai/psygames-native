@@ -25,7 +25,7 @@ Flutter workflows берут её из app.json. Play versionCode2056031.
   analyze clean, **4376 PASS / 7 SKIP**; practice_kit analyze clean + **24 PASS**;
   контрольные APK/AAB собраны. Это полный набор, не ограниченные 241 проверки.
 
-Новые носители пока **не подтверждены как залитые**:
+Android принят Play; iOS ещё не подтверждён как залитый:
 
 - [TestFlight 39146663499](https://github.com/donosov999-ai/psygames-native/actions/runs/39146663499):
   запущен 16:48:10 UTC, фактический номер **71**, 2.56.31, `cloud=true`.
@@ -35,7 +35,12 @@ Flutter workflows берут её из app.json. Play versionCode2056031.
 - После SMTP PASS17:10UTC запущен [Play39148328875](https://github.com/donosov999-ai/psygames-native/actions/runs/39148328875):
   `from_run=39144265625`, production100%, `confirm_production=yes-100`,
   frozen432bd6188. Это заливка того же проверенного AAB, без пересборки.
-  Результат принятия Play ещё ожидается.
+  **SUCCESS**: commit17:11:32UTC. Независимый Android Publisher readback
+  17:12:48UTC: production release2.56.31/status=completed/[2056031],
+  RU/EN notes соответствуют новой поддержке; bundle SHA256 точно совпал
+  с аудированным AAB `5ca41c952ebf1d2c9472a30538e3c8d59a78334dad1fbba9589560ad058bfbfe`.
+  Receipt: `_local/ecosystem-cloud/play-2.56.31-2056031-readback.json`.
+  Это принятие store API, не факт появления обновления на конкретном телефоне.
 
 Оба процесса закреплены за432bd6188. Приглашения тестерам повторно не отправляли.
 Состояния upload, Apple VALID/группа, Play track и телефон проверяются отдельно.
@@ -131,8 +136,9 @@ PR352 со старыми сведениями о2.56.30 пока OPEN и име
 
 ## Остаток
 
-- Android-носитель проверен; TestFlight IPA, upload/раздача и Play-публикация
-  ещё не подтверждены.
+- Android-носитель проверен, Play production acceptance подтверждён независимым
+  readback. TestFlight IPA/upload/раздача и видимость обновления на телефоне ещё
+  не подтверждены.
 - SMTP сохранён; доставка через него собственному non-team адресу подтверждена.
   Samsung/PKCE и внешняя Gmail-доставка остаются отдельной проверкой.
 - Валины реальные данные и разрешения не читали/не меняли. Её80 ещё не выдан.

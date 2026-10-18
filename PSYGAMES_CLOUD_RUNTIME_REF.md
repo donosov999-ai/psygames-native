@@ -7,8 +7,9 @@
 Сервер уже развёрнут; synthetic REST→Flutter→80→ACK пройден. PR353 влит в
 main9a9b1deda после двух зелёных CI; финальное дерево432bd6188 идентично merge.
 TestFlight2.56.31+71 собирается с `cloud=true`; Android2056031 уже собран и
-проверен с тем же флагом. Его Play production-заливка39148328875 запущена
-из готового AAB; Store acceptance/доставка ещё не подтверждены.
+проверен с тем же флагом. Его Play production-заливка39148328875 SUCCESS;
+независимый readback17:12UTC подтвердил completed2056031 и SHA256того же AAB.
+TestFlight acceptance и доставка на телефоны ещё не подтверждены.
 В Timeweb создан разрешённый login@asibots.pro,
 его TLS/SMTP AUTH проверены; SMTP в Supabase сохранён17:06UTC по прямому ответу
 Дениса «делай сам», повторная загрузка подтверждает включение.17:10UTC подтверждено
