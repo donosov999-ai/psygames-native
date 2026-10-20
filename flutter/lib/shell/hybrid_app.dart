@@ -776,7 +776,7 @@ class _HybridAppState extends State<HybridApp> {
   static const _ownModel = {
     ShopScreen.route,
     StatsScreen.route, HomeScreen.route, StreakCalendarScreen.route,
-    SourcesScreen.route, CollectionScreen.route, AchievementsScreen.route, LeaguesScreen.route,
+    SourcesScreen.route, CollectionScreen.route, AchievementsScreen.route, LeaguesScreen.route, WhatsNewScreen.route,
     PetScreen.route,
     OnboardingScreen.route,
   };
@@ -1616,8 +1616,8 @@ class _HybridAppState extends State<HybridApp> {
             const FriendsScreen(),
             // «Магазин» (9424da3a) — модель на Dart (вариант Б); покупки — действия веба.
             ShopScreen(origin: widget.server.origin, state: widget.state),
-            // «Что нового» (84df0687): список версий — модель веба, проверку обновлений делает оболочка.
-            const WhatsNewScreen(),
+            // «Что нового»: полный архив и модель на Dart; legacy WEB fixtures — только без state.
+            WhatsNewScreen(state: widget.state),
             // «Питомец» (d1e147b0) — вкладка по модели веба; кадры — тем же PetFrames, что у гуляки.
             PetScreen(origin: widget.server.origin, state: widget.state),
           ],
