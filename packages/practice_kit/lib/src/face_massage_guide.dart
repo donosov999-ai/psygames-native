@@ -12,7 +12,9 @@ class FaceMassageGuide extends StatelessWidget {
     required this.step,
     required this.program,
     required this.progress,
+    this.illustrated = false,
   });
+  final bool illustrated;
 
   @override
   Widget build(BuildContext context) => Semantics(
@@ -25,6 +27,7 @@ class FaceMassageGuide extends StatelessWidget {
         progress,
         Theme.of(context).colorScheme.onSurface,
         Theme.of(context).colorScheme.primary,
+        drawFace: !illustrated,
       ),
       size: Size.infinite,
     ),
@@ -36,13 +39,15 @@ class FaceMassagePainter extends CustomPainter {
   final bool tool;
   final double progress;
   final Color ink, accent;
+  final bool drawFace;
   const FaceMassagePainter(
     this.step,
     this.tool,
     this.progress,
     this.ink,
-    this.accent,
-  );
+    this.accent, {
+    this.drawFace = true,
+  });
 
   /// User's left is screen left (mirror), not the model's anatomical left.
   static (Offset, Offset)? stroke(String step) {
@@ -76,30 +81,32 @@ class FaceMassagePainter extends CustomPainter {
       ..cubicTo(.13, .10, .14, .64, .36, .78)
       ..quadraticBezierTo(.5, .91, .64, .78)
       ..cubicTo(.86, .64, .87, .10, .5, .12);
-    canvas.drawPath(face, outline);
-    for (final x in [.37, .63]) {
+    if (drawFace) {
+      canvas.drawPath(face, outline);
+      for (final x in [.37, .63]) {
+        canvas.drawArc(
+          Rect.fromCenter(center: Offset(x, .43), width: .12, height: .05),
+          0,
+          math.pi,
+          false,
+          outline,
+        );
+      }
+      canvas.drawPath(
+        Path()
+          ..moveTo(.5, .46)
+          ..lineTo(.47, .58)
+          ..lineTo(.53, .58),
+        outline,
+      );
       canvas.drawArc(
-        Rect.fromCenter(center: Offset(x, .43), width: .12, height: .05),
+        const Rect.fromLTWH(.42, .65, .16, .055),
         0,
         math.pi,
         false,
         outline,
       );
     }
-    canvas.drawPath(
-      Path()
-        ..moveTo(.5, .46)
-        ..lineTo(.47, .58)
-        ..lineTo(.53, .58),
-      outline,
-    );
-    canvas.drawArc(
-      const Rect.fromLTWH(.42, .65, .16, .055),
-      0,
-      math.pi,
-      false,
-      outline,
-    );
     final segment = stroke(step);
     if (segment != null) {
       final (start, end) = segment;
@@ -155,5 +162,6 @@ class FaceMassagePainter extends CustomPainter {
       oldDelegate.tool != tool ||
       oldDelegate.progress != progress ||
       oldDelegate.ink != ink ||
-      oldDelegate.accent != accent;
+      oldDelegate.accent != accent ||
+      oldDelegate.drawFace != drawFace;
 }

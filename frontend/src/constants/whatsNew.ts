@@ -16,6 +16,20 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.56.32',
+    date: '2026-10-20',
+    en: [
+      'Sudoku: a hint is help, not a practice attempt — a board solved with a hint now counts for your level step; the adaptive rating does not change. A practice attempt is only when the board’s answers were shown',
+      'Sudoku: no more “practice attempt” warning before a hint',
+      'Practices (breathing, eyes, pause): phase names are shown in full, the panel keeps its height on narrow screens with large text, the eye exercise field is larger',
+    ],
+    ru: [
+      '«Судоку»: подсказка — это помощь, а не учебная попытка. Доска, решённая с подсказкой, засчитывается в ступень лестницы; рейтинг адаптивного режима не меняется. Учебная — только когда показаны ответы самой доски',
+      '«Судоку»: перед подсказкой больше нет окна «Учебная попытка»',
+      'Практики (дыхание, глаза, пауза): названия фаз видны полностью, панель держит высоту на узком экране с крупным шрифтом, поле упражнений для глаз стало больше',
+    ],
+  },
+  {
     version: '2.56.31',
     date: '2026-10-18',
     ru: [

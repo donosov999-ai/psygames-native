@@ -169,11 +169,9 @@ void main() {
     await tester.tap(find.byKey(Key('cell_${hr}_$hc')));
     await tester.pump();
     await tester.tap(find.byTooltip('Подсказка'));
-    await tester.pump();
-    expect(find.byKey(const Key('sudoku-hint-practice-warning')), findsOneWidget);
-    expect(digitAt(tester, hr, hc), 0, reason: 'до осознанного подтверждения ответ не раскрывается');
-    await tester.tap(find.byKey(const Key('sudoku-hint-confirm')));
     await tester.pumpAndSettle();
+    // Подсказка — помощь, а не учебная попытка: окна «учебная» нет, цифра открыта сразу.
+    expect(find.byKey(const Key('sudoku-hint-practice-warning')), findsNothing);
     expect(digitAt(tester, hr, hc), solution[hr][hc]);
   });
 }

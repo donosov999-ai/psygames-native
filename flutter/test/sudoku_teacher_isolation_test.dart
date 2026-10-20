@@ -104,13 +104,19 @@ void main() {
         if (b.puzzle[r][c] != 0) continue;
         await click(t, find.byKey(Key('cell_${r}_$c')));
         await click(t, find.byTooltip(L.t('btn_hint')));
-        if (find.byKey(const Key('sudoku-hint-confirm')).evaluate().isNotEmpty) {
-          await click(t, find.byKey(const Key('sudoku-hint-confirm')));
-        }
         return;
       }
     }
     fail('No blank cell');
+  }
+
+  /// Ответы ЭТОЙ доски уже показаны (её решение в реестре — так помечает разбор учителя) — и
+  /// приложение открыто заново: партия поднимается из снимка.
+  Future<void> knownAnswersReopen(WidgetTester t, String branch) async {
+    await SudokuRevealedBoards(state).mark(id(t));
+    await t.pumpWidget(const SizedBox());
+    await t.pumpAndSettle();
+    await mount(t, branch);
   }
 
   for (final branch in branches) {
@@ -142,22 +148,24 @@ void main() {
       await t.pumpWidget(const SizedBox());
     });
 
-    testWidgets('$branch: revealed current attempt → no progression or rating', (t) async {
+    testWidgets('$branch: one hint is help → counts, rating not raised, not practice', (t) async {
       await boot(t, branch);
       final store = GeneratorStore(state);
-      final before = store.load().encode();
-      final levelsBefore = Map.of(state.snapshot())..removeWhere((k, v) => !k.contains('_level_') && !k.contains('_step_'));
+      final ratingBefore = (store.load().skillRating, store.load().adaptiveWins);
       await revealCurrent(t);
+      expect(find.text(L.t('sudokuPracticeBadge')), findsNothing, reason: 'one digit is not a shown solution');
       await finish(t);
       final details = reports.single['details'] as Map;
-      expect(details['lesson'], true);
-      expect(details['completed'], false);
-      expect(details['practice_completed'], true);
-      expect(reports.single['score'], 0);
-      expect(store.load().encode(), before, reason: 'No adaptive or shadow rating change');
-      final levelsAfter = Map.of(state.snapshot())..removeWhere((k, v) => !k.contains('_level_') && !k.contains('_step_'));
-      expect(levelsAfter, levelsBefore);
-      expect(find.text(L.t('sudokuPracticeOnly')), findsOneWidget);
+      expect(details['lesson'], isNot(true));
+      expect(details['hint_uses'], 1);
+      expect((store.load().skillRating, store.load().adaptiveWins), ratingBefore,
+          reason: 'Outcome.assisted: hints neither raise nor lower the adaptive rating');
+      if (branch == 'ladder') expect(state.get('psygames_sudoku_level_nzt48'), '6');
+      if (branch == 'junior') expect(state.get('psygames_sudoku_junior_level_nzt48'), '2');
+      if (['towers', 'unequal', 'killer'].contains(branch)) {
+        expect(state.get('psygames_sudoku_${branch}_step_nzt48'), '2');
+      }
+      expect(find.text(L.t('sudokuPracticeOnly')), findsNothing);
       await t.pumpWidget(const SizedBox());
     });
 
@@ -176,23 +184,35 @@ void main() {
     });
   }
 
-  testWidgets('ladder: revealed → exit → restore → completion remains practice', (t) async {
+  testWidgets('ladder: answers of this board shown → exit → restore → completion remains practice', (t) async {
     await boot(t, 'ladder');
     final active = id(t);
-    await revealCurrent(t);
-    await t.pumpWidget(const SizedBox());
-    await t.pumpAndSettle();
-    final raw = jsonDecode(state.get('psygames_resume_sudoku_nzt48')!) as Map;
-    expect((raw['state'] as Map)['answersRevealed'], true);
-    await mount(t, 'ladder');
+    final store = GeneratorStore(state);
+    final before = store.load().encode();
+    await knownAnswersReopen(t, 'ladder');
     expect(id(t), active);
     await finish(t);
-    expect((reports.single['details'] as Map)['lesson'], true);
+    final details = reports.single['details'] as Map;
+    expect(details['lesson'], true);
+    expect(details['completed'], false);
+    expect(details['practice_completed'], true);
+    expect(reports.single['score'], 0);
+    expect(store.load().encode(), before, reason: 'No adaptive or shadow rating change');
     expect(state.get('psygames_sudoku_level_nzt48'), '5');
+    expect(find.text(L.t('sudokuPracticeOnly')), findsOneWidget);
     await t.pumpWidget(const SizedBox());
   });
 
-  testWidgets('L78: cancel hint warning, restore and finish independently → L79', (t) async {
+  testWidgets('towers: answers of this board shown → restore → practice, step stays', (t) async {
+    await boot(t, 'towers');
+    await knownAnswersReopen(t, 'towers');
+    await finish(t);
+    expect((reports.single['details'] as Map)['lesson'], true);
+    expect(state.get('psygames_sudoku_towers_step_nzt48'), anyOf(isNull, '1'));
+    await t.pumpWidget(const SizedBox());
+  });
+
+  testWidgets('L78: pencil note and a hint, exit, restore, finish → L79', (t) async {
     await boot(t, 'ladder', level: 78);
     final b = board(t);
     final blank = [for (var r = 0; r < b.puzzle.length; r++)
@@ -204,10 +224,7 @@ void main() {
     await click(t, find.byKey(const Key('pencil')));
     expect(find.text(L.t('sudokuPracticeBadge')), findsNothing,
         reason: 'Player-authored pencil notes are not revealed answers');
-    await click(t, find.byTooltip(L.t('btn_hint')));
-    expect(find.byKey(const Key('sudoku-hint-practice-warning')), findsOneWidget);
-    expect(SudokuRevealedBoards(state).contains(id(t)), false);
-    await click(t, find.byKey(const Key('sudoku-hint-cancel')));
+    await revealCurrent(t);
     expect(find.text(L.t('sudokuPracticeBadge')), findsNothing);
     await t.pumpWidget(const SizedBox());
     await t.pumpAndSettle();
@@ -218,14 +235,56 @@ void main() {
     await t.pumpWidget(const SizedBox());
   });
 
-  testWidgets('practice badge is visible after disclosure and after restore', (t) async {
-    await boot(t, 'ladder');
-    expect(find.text(L.t('sudokuPracticeBadge')), findsNothing);
-    await revealCurrent(t);
-    expect(find.text(L.t('sudokuPracticeBadge')), findsOneWidget);
+  // Партия, начатая на 2.56.24–2.56.31: подсказка записала в снимок `answersRevealed: true` и решение
+  // доски — в реестр. После обновления она доигрывается и засчитывается, а не остаётся учебной.
+  testWidgets('L78 hinted under the 04.10 rule (flag + ledger from the hint) → restore → L79', (t) async {
+    await boot(t, 'ladder', level: 78);
+    await t.pumpWidget(const SizedBox());
+    await t.pumpAndSettle();
+    final envelope = jsonDecode(state.get('psygames_resume_sudoku_nzt48')!) as Map;
+    final snap = envelope['state'] as Map;
+    snap['answersRevealed'] = true;
+    snap['hintUses'] = 1;
+    await state.set('psygames_resume_sudoku_nzt48', jsonEncode(envelope));
+    await mount(t, 'ladder');
+    await SudokuRevealedBoards(state).mark(id(t));
     await t.pumpWidget(const SizedBox());
     await t.pumpAndSettle();
     await mount(t, 'ladder');
+    expect(find.text(L.t('sudokuPracticeBadge')), findsNothing);
+    await finish(t);
+    expect((reports.single['details'] as Map)['lesson'], isNot(true));
+    expect(state.get('psygames_sudoku_level_nzt48'), '79');
+    await t.pumpWidget(const SizedBox());
+  });
+
+  // 🔴 Отзывы «Релакс» 16.10 (2.56.29, L79: «ВСЁ ЕЩЁ УЧЕБНЫЙ УРОВЕНЬ», «как это может быть учебная
+  // попытка, если это обычный судоку») и бэкап 15.10: каждая партия с L74 — ровно одна подсказка
+  // (`hint_uses=1`); L74–75 засчитаны, с L76 (правило 04.10) — учебные. Подсказка открывает ОДНУ
+  // цифру — это помощь, а не показанное решение: ступень засчитывается, рейтинг — нет.
+  testWidgets('L78: one hint is help, not a revealed solution → L79, not practice', (t) async {
+    await boot(t, 'ladder', level: 78);
+    await revealCurrent(t);
+    expect(SudokuRevealedBoards(state).contains(id(t)), false, reason: 'one digit does not reveal the board');
+    await finish(t);
+    final details = reports.single['details'] as Map;
+    expect(details['lesson'], isNot(true));
+    expect(details['hint_uses'], 1);
+    expect(state.get('psygames_sudoku_level_nzt48'), '79');
+    expect(find.text(L.t('sudokuPracticeOnly')), findsNothing);
+    await t.pumpWidget(const SizedBox());
+  });
+
+  testWidgets('practice badge: none after a hint, visible when this board\'s answers were shown', (t) async {
+    await boot(t, 'ladder');
+    expect(find.text(L.t('sudokuPracticeBadge')), findsNothing);
+    await revealCurrent(t);
+    expect(find.text(L.t('sudokuPracticeBadge')), findsNothing);
+    await t.pumpWidget(const SizedBox());
+    // Отдельная чистая партия, чьи ответы показаны (учитель помечает ТОЛЬКО свою доску; на доске с
+    // подсказками запись в реестре — от правила 04.10, см. пробу выше).
+    await boot(t, 'ladder');
+    await knownAnswersReopen(t, 'ladder');
     expect(find.text(L.t('sudokuPracticeBadge')), findsOneWidget);
     await t.pumpWidget(const SizedBox());
   });
@@ -259,10 +318,16 @@ void main() {
     final snapshot = envelope['state'] as Map;
     snapshot.remove('answersRevealed');
     expect(sudokuFromSnapshot(snapshot.cast<String, Object?>())!.answersRevealed, false);
-    for (final evidence in [{'hintUses': 1}, {'lesson': true}, {'answersRevealed': true}]) {
+    for (final (evidence, shown) in [
+      ({'lesson': true}, true),
+      ({'answersRevealed': true, 'hintUses': 0}, true),
+      // Подсказка — не показанное решение; флаг рядом с подсказками поставила она (правило 04.10).
+      ({'hintUses': 1}, false),
+      ({'answersRevealed': true, 'hintUses': 1}, false),
+    ]) {
       final revealed = <String, Object?>{...snapshot.cast<String, Object?>(), ...evidence};
-      expect(sudokuFromSnapshot(revealed)!.answersRevealed, true,
-          reason: 'legacy metadata must preserve real disclosure: $evidence');
+      expect(sudokuFromSnapshot(revealed)!.answersRevealed, shown,
+          reason: 'legacy metadata: $evidence');
     }
     await state.set('psygames_resume_sudoku_nzt48', jsonEncode(envelope));
     await mount(t, 'ladder');

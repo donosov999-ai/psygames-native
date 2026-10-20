@@ -2,34 +2,90 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+double _ease(double p) => p * p * (3 - 2 * p);
+
+/// Five smoothly joined motions, each starting/ending at rest in the centre.
+/// Coordinates span -1..1; mapping to pixels reserves the painted dot radius.
+Offset _twoDotMotion(int elapsedMs) {
+  final seconds = math.max(0, elapsedMs) / 1000;
+  final segment = (seconds / 8).floor();
+  final p = (seconds % 8) / 8;
+  final phase = _ease(p) * 2 * math.pi;
+  final sweep = math.sin(phase);
+  return switch (segment % 5) {
+    0 => Offset(sweep, 0),
+    1 => Offset(0, sweep),
+    2 => Offset(sweep, sweep),
+    3 => Offset(sweep, -sweep),
+    // Ease into/out of a full orbit; the middle traverses > one revolution
+    // at full extent. No jump or velocity discontinuity between directions.
+    _ =>
+      Offset(math.cos(phase * 2), math.sin(phase * 2)) *
+          (p < .2
+              ? _ease(p / .2)
+              : p > .8
+              ? _ease((1 - p) / .2)
+              : 1),
+  };
+}
+
+/// The exact positions used by the painter, also usable for bounds QA.
+class EyeDots {
+  final Offset first, second;
+  final double radius;
+  const EyeDots(this.first, this.second, this.radius);
+
+  static EyeDots at(int elapsedMs, Size size) {
+    final radius = math.min(size.width, size.height) * .065;
+    final margin = radius + math.min(1.0, radius);
+    final extent = Offset(
+      math.max(0, size.width / 2 - margin),
+      math.max(0, size.height / 2 - margin),
+    );
+    final motion = _twoDotMotion(elapsedMs);
+    final delta = Offset(motion.dx * extent.dx, motion.dy * extent.dy);
+    final centre = Offset(size.width / 2, size.height / 2);
+    return EyeDots(centre + delta, centre - delta, radius);
+  }
+}
+
 /// Geometry and scoring share the same logical clock and coordinate space.
 /// No independent timer: the practice clock freezes on pause/background.
 class EyeTargets {
   final Offset disc, ring;
   final double discRadius, ringRadius;
   final int window;
+  final double ringStrokeWidth;
   const EyeTargets(
     this.disc,
     this.ring,
     this.discRadius,
     this.ringRadius,
-    this.window,
-  );
+    this.window, {
+    this.ringStrokeWidth = 6,
+  });
 
   bool get matches => (disc - ring).distance + discRadius <= ringRadius;
 
   static EyeTargets at(int elapsedMs, Size size) {
     final seconds = elapsedMs / 1000;
     final radius = math.min(size.width, size.height) * .105;
+    final stroke = math.min(6.0, math.min(size.width, size.height) * .1);
+    // The drawn ring extends strokeWidth beyond its scoring radius.
+    final margin = radius + stroke + math.min(1.0, radius);
+    final extent = Offset(
+      math.max(0, size.width / 2 - margin),
+      math.max(0, size.height / 2 - margin),
+    );
     final centre = Offset(
-      size.width * (.5 + .17 * math.sin(seconds * .73)),
-      size.height * (.5 + .18 * math.cos(seconds * .61)),
+      size.width / 2 + extent.dx * .55 * math.sin(seconds * .73),
+      size.height / 2 + extent.dy * .55 * math.cos(seconds * .61),
     );
     // A crossing every four seconds; both objects move in two dimensions.
     final separation = math.cos(seconds * math.pi / 4);
     final delta = Offset(
-      size.width * .19 * separation,
-      size.height * .13 * separation,
+      extent.dx * .45 * separation,
+      extent.dy * .45 * separation,
     );
     return EyeTargets(
       centre + delta,
@@ -37,6 +93,7 @@ class EyeTargets {
       radius * .48,
       radius,
       (seconds / 4).floor(),
+      ringStrokeWidth: stroke,
     );
   }
 }
@@ -165,11 +222,11 @@ class _EyePainter extends CustomPainter {
     if (catchMode) {
       canvas.drawCircle(
         targets.ring,
-        targets.ringRadius + 3,
+        targets.ringRadius + targets.ringStrokeWidth / 2,
         Paint()
           ..color = const Color(0xffff726b)
           ..style = PaintingStyle.stroke
-          ..strokeWidth = 6,
+          ..strokeWidth = targets.ringStrokeWidth,
       );
       canvas.drawCircle(
         targets.disc,
@@ -177,18 +234,9 @@ class _EyePainter extends CustomPainter {
         Paint()..color = const Color(0xff70baff),
       );
     } else {
-      final radius = math.min(size.width, size.height) * .065;
-      final spread =
-          radius +
-          (size.width * .27 - radius) *
-              (1 + math.cos(elapsed / 1000 * math.pi / 5)) /
-              2;
-      for (final sign in [-1, 1]) {
-        canvas.drawCircle(
-          Offset(size.width / 2 + sign * spread, size.height / 2),
-          radius,
-          Paint()..color = dotColor,
-        );
+      final dots = EyeDots.at(elapsed, size);
+      for (final position in [dots.first, dots.second]) {
+        canvas.drawCircle(position, dots.radius, Paint()..color = dotColor);
       }
     }
   }

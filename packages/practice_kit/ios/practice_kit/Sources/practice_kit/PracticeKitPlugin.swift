@@ -80,11 +80,18 @@ public final class PracticeKitPlugin: NSObject, FlutterPlugin {
     let args = call.arguments as? [String: Any] ?? [:]
     let continuous = args["continuous"] as? Bool ?? false
     let duration = min(30, max(0.001, ((args["durationMs"] as? NSNumber)?.doubleValue ?? 60) / 1000))
-    buzz(continuous: continuous, duration: duration,
-         count: min(2, max(1, (args["count"] as? NSNumber)?.intValue ?? 1)))
+    let strength = min(1.0, max(0.1, (args["strength"] as? NSNumber)?.doubleValue ?? 0.8))
+    let micro = !continuous && duration <= 0.020 && strength <= 0.25
+    // Fast transitions must not trigger the long system-vibration fallback.
+    if !micro {
+      buzz(continuous: continuous, duration: duration,
+           count: min(2, max(1, (args["count"] as? NSNumber)?.intValue ?? 1)))
+    } else if !supported {
+      UIImpactFeedbackGenerator(style: .light).impactOccurred(intensity: CGFloat(strength))
+    }
     guard supported else { result(nil); return }
     // Ощутимо в руке: шкала до 1,0, по умолчанию 0,8 (Денис 01.10: при 0,25 «вибрации нет»).
-    let intensity = Float(min(1.0, max(0.1, (args["strength"] as? NSNumber)?.doubleValue ?? 0.8)))
+    let intensity = Float(strength)
     // Резкость 0,15 давала мягкий гул, которого не слышно; удержание — плотный гул, сигнал — чёткий щелчок.
     let sharpness: Float = continuous ? 0.4 : 0.6
     do {
@@ -119,6 +126,9 @@ public final class PracticeKitPlugin: NSObject, FlutterPlugin {
       // идёт и обязан доиграть, иначе на таком телефоне вибрации не было бы вовсе.
       try? player?.stop(atTime: CHHapticTimeImmediate)
       player = nil
+      if micro {
+        UIImpactFeedbackGenerator(style: .light).impactOccurred(intensity: CGFloat(strength))
+      }
       result(nil)
     }
   }

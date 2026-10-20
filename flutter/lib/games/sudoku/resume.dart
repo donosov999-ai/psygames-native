@@ -231,9 +231,10 @@ SudokuResumed? sudokuFromSnapshot(Map<String, Object?> s, {String mode = 'levels
     errors: _int(s['errors']) ?? 0,
     hintUses: _int(s['hintUses']) ?? 0,
     // An absent optional field in a legacy snapshot is not evidence that an
-    // answer was shown. Preserve actual disclosure/hints; the screen separately
-    // checks the durable revealed-board ledger before awarding progression.
-    answersRevealed: s['answersRevealed'] == true || s['lesson'] == true || (_int(s['hintUses']) ?? 0) > 0,
+    // answer was shown. A hint opens one digit — help, not a shown solution —
+    // and from 04.10 to 20.10 it also set this flag; with hints recorded the flag
+    // is the hint's. The screen separately checks the durable revealed-board ledger.
+    answersRevealed: s['lesson'] == true || (s['answersRevealed'] == true && (_int(s['hintUses']) ?? 0) == 0),
     backtracks: _int(s['backtrackCount']) ?? 0,
     elapsed: _int(s['elapsed']) ?? 0,
     moves: moves,
