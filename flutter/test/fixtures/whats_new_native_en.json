@@ -7,6 +7,51 @@
  "check": "Check for updates · v0.0.0",
  "entries": [
   {
+   "version": "v2.56.32",
+   "date": "2026-10-20",
+   "items": [
+    "Sudoku: a hint is help, not a practice attempt — a board solved with a hint now counts for your level step; the adaptive rating does not change. A practice attempt is only when the board’s answers were shown",
+    "Sudoku: no more “practice attempt” warning before a hint",
+    "Practices (breathing, eyes, pause): phase names are shown in full, the panel keeps its height on narrow screens with large text, the eye exercise field is larger"
+   ]
+  },
+  {
+   "version": "v2.56.31",
+   "date": "2026-10-18",
+   "items": [
+    "Sudoku progress support in cloud settings: separate 24-hour permission for the selected mode",
+    "Receive a level fix in the app without transferring files; replacing a saved game requires your approval and keeps a local safety copy",
+    "Protection against duplicate fixes and interrupted writes; unlocking a level never adds wins, points or purchases"
+   ]
+  },
+  {
+   "version": "v2.56.30",
+   "date": "2026-10-16",
+   "items": [
+    "Optional cloud backup in Settings for progress, pet details, earned points and purchases made with points",
+    "Preview multiple backups and restore with a local safety copy; balances are replaced, never added together",
+    "Separate controls for turning cloud off, deleting PsyGames copies and deleting the shared account; offline use stays available"
+   ]
+  },
+  {
+   "version": "v2.56.29",
+   "date": "2026-10-16",
+   "items": [
+    "Prepared the shared backup module for settings, progress, pet details and purchases made with earned points",
+    "Added safeguards against duplicate uploads and conflicting progress copies",
+    "Cloud connection remains disabled in this build; games and local backups continue to work as before"
+   ]
+  },
+  {
+   "version": "v2.56.28",
+   "date": "2026-10-15",
+   "items": [
+    "Practice attempts are now marked during play, not only on the result screen",
+    "Sudoku warns before an answer-revealing hint: practice attempts do not raise your level or rating",
+    "Cancelling a hint and using pencil notes preserve independent progress; practice status remains visible after restoring a round"
+   ]
+  },
+  {
    "version": "v2.56.27",
    "date": "2026-10-13",
    "items": [
