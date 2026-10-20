@@ -49,6 +49,22 @@ void main() {
     expect(d!.grade.tier, inInclusiveRange(1, 5));
   });
 
+  test('🔴 подсказок с ростом ступени не больше, ноль — никогда: 3 → 2 → 1, как у «Судоку»', () {
+    // Отзыв ceaadcc0 (19.10): «3 подсказки сделали её лёгкой». Подсказка ставит кошку — делает
+    // тот ход, ради которого ступень существует; три на перебор, нужный 1–2 раза, снимали его.
+    expect(catsHintMax(catsLevel(1)), 3);
+    expect(catsHintMax(catsLevel(catsLevelCount)), 1);
+    for (var k = 2; k <= catsLevelCount; k++) {
+      final a = catsHintMax(catsLevel(k - 1)), b = catsHintMax(catsLevel(k));
+      expect(b, lessThanOrEqualTo(a), reason: 'ступень $k даёт подсказок больше, чем ${k - 1}');
+      expect(b, greaterThanOrEqualTo(1), reason: 'ступень $k без подсказки вовсе');
+    }
+    // Перебор (приём 5) — верх лестницы: одна подсказка, а не три.
+    for (var k = 1; k <= catsLevelCount; k++) {
+      if (catsLevel(k).tier == 5) expect(catsHintMax(catsLevel(k)), 1, reason: 'ступень $k');
+    }
+  });
+
   test('уровень выше измеренного — последняя ступень, а не падение', () {
     expect(catsLevel(500), catsLevel(catsLevelCount));
     expect(catsLevel(0), catsLevel(1));
