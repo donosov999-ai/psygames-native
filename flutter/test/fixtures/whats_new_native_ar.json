@@ -1,0 +1,2905 @@
+{
+ "v": 1,
+ "title": "ما الجديد · سجل الإصدارات",
+ "back": "رجوع",
+ "backIcon": "arrow-forward",
+ "primary": "#a855f7",
+ "check": "التحقق من التحديثات · v0.0.0",
+ "entries": [
+  {
+   "version": "v2.56.27",
+   "date": "2026-10-13",
+   "items": [
+    "Pet images retry after local server recovery without restarting the game",
+    "Warmup results and retries belong to their own attempt; late replies cannot switch a new workout",
+    "Native screens no longer fall back to old web pages when data is delayed: retry loading or return home"
+   ]
+  },
+  {
+   "version": "v2.56.26",
+   "date": "2026-10-11",
+   "items": [
+    "Feedback: a bug icon and bugFX label; the floating button is also available in games, can be dragged and hidden in settings",
+    "Warmup: full training rounds continue at the next level after success; measurements and fixed tasks remain unchanged",
+    "Training progress is saved separately from the personal ladder; skips, losses and lessons with revealed answers do not raise the level"
+   ]
+  },
+  {
+   "version": "v2.56.25",
+   "date": "2026-10-11",
+   "items": [
+    "Sudoku: restoring an independent attempt no longer marks it as practice without revealed answers; actual hints and lessons retain their status",
+    "Stroop: continue after results; Flood Fill and puzzles: clearer loss summary and retry",
+    "Cake and pizza: select a slice across its whole area; Stop Signal: accessible response button",
+    "Fixed stuck completion and duplicate results in several games; profile labels are translated"
+   ]
+  },
+  {
+   "version": "v2.56.24",
+   "date": "2026-10-08",
+   "items": [
+    "Attention Conflict: the boss fight is back — every third level you pass ends with a boss round in all 13 games, as on the web"
+   ]
+  },
+  {
+   "version": "v2.56.23",
+   "date": "2026-10-08",
+   "items": [
+    "Home is now calculated by the app itself and no longer waits for the web layer",
+    "Pet: Synapse’s speech bubble stays fully on screen, above the pet"
+   ]
+  },
+  {
+   "version": "v2.56.22",
+   "date": "2026-10-08",
+   "items": [
+    "Stroop, PRL and Targets: choose the mode on the setup screen, as on the web — Stroop by ink or by word, PRL with levels or free play with difficulty, Targets with field or joker",
+    "Sudoku: Wordoku and Animals on steps 153–160 now use rated puzzles from the bank — noticeably harder than before",
+    "Word or Not: your own language is also available as a task language, and a new mode “By the norm?” — spot the non-standard form",
+    "Proofread: task buttons now show pictures, styled for your profile",
+    "Memory Span: the n-back hint and the Nonsense button are no longer cut off",
+    "Feedback from a game now includes the level and counters you were on"
+   ]
+  },
+  {
+   "version": "v2.56.21",
+   "date": "2026-10-08",
+   "items": [
+    "Sudoku: Second life and extra hints can now be bought in the Shop — when your mistakes run out, spend one and finish the puzzle (classic Sudoku and Samurai)",
+    "Sudoku: step 76 now allows three mistakes instead of two; steps 173–180 hide more digits",
+    "Puzzles: pinch the board to zoom in up to ×4 and drag it around; one finger still makes a move",
+    "Pet: Synapse comments after each game — praise for a record, the next step or a useful tip",
+    "Vibration on moves in two dozen more games, as in Memory Matrix: a click for a right move, a bump for a win, a heavy buzz for a mistake",
+    "Schulte Table, Mahjong and Quick Count have no top level any more: time limits from Schulte level 19 and Mahjong level 29, decoy flashes from Quick Count level 42",
+    "Kegel with breathing: squeeze on the exhale and the hold after it, relax on the inhale and its hold — 8 s each",
+    "Warm-up: Proofread blocks and Schulte blocks play a real three-block series; Task Switching, Stroop, Targets and other steps keep the settings the step asks for; Task Switching lets you choose what to show"
+   ]
+  },
+  {
+   "version": "v2.56.20",
+   "date": "2026-10-08",
+   "items": [
+    "Sudoku: the ladder grows to 180 steps — Wordoku, Animals, Killer, our Towers and Inequalities, Doublers and Negators join it",
+    "Anagrams: the mode switch is back — All words, Crossword and Square can be played again",
+    "Spatial Lab: the Pipe Network card opens Pipe Network, and warm-up steps start right away; the Mental Rotation warm-up plays the intended number of trials",
+    "Progress is now calculated by the app itself, without the web layer"
+   ]
+  },
+  {
+   "version": "v2.56.19",
+   "date": "2026-10-08",
+   "items": [
+    "Sudoku: three new rules — Schrödinger cells (digits 0–9, one cell in each row holds two digits), Doublers and Negators (hidden cells change the sums)",
+    "Sudoku: the ladder grows to 152 steps — Schrödinger cells and Meow Friends join it; in Schrödinger cells you can pencil in 0",
+    "Warm-up: the night set card now describes what is really in it",
+    "iPhone: after the last step of a warm-up the game window closes instead of hanging"
+   ]
+  },
+  {
+   "version": "v2.56.18",
+   "date": "2026-10-07",
+   "items": [
+    "Proofread: a new task, Word search — find words by dragging across the letters or tapping them, with a hint and a word list",
+    "Proofread on an English phone shows Latin letters (it used to show Cyrillic), and a warm-up step keeps its own grid size",
+    "Number Span: the walkthrough now plays on the game’s own rows and counts answers by the game’s rule",
+    "Connect the Dots and One Line: a warm-up step and the daily challenge start at the level they set, not at your saved level",
+    "Shop: Second life now says right in its name that it works in Targets",
+    "Sources, Leagues, Streak calendar, Collection and Achievements are calculated natively — they open faster"
+   ]
+  },
+  {
+   "version": "v2.56.17",
+   "date": "2026-10-07",
+   "items": [
+    "Progress counts only the selected profile’s games, and points and streak no longer show zero right after you switch profile",
+    "Progress no longer records phantom games that ran unseen behind native screens",
+    "Large system font: Home cards no longer cut off their text",
+    "Feedback opens right over the current screen, and a screenshot of native games is attached again",
+    "Sudoku: three new rules — Cipher (some clues are letters, you work out the code with the grid), Fog of War (the board starts hidden, correct digits clear the fog) and Self-assembly (no boxes — you deduce the regions); the ladder grows to 144 steps",
+    "Sudoku: Little Killer and X-sums blocks get harder steps",
+    "Native Shop, What’s New and Pet tab: they open faster and follow your theme; the shop guards against a double charge",
+    "Visual Search: no more level ceilings — Object Tracker, Spot the Difference, visual search and SET keep growing",
+    "Visual Search and Counting are fully in English on English phones — eight screens without leftover Russian",
+    "Guess the Code: the second action is called Keep, and the help follows the real input; Slant, Black Box and Unruly no longer show a raw key on that button",
+    "Anagrams: on an English phone the words are now English (they were Russian for everyone), and the language can be changed in the pause menu",
+    "Anagrams and Proofread: Restart in the pause menu works on all five screens",
+    "First launch: the bottom Skip button is full width; on Home the link now reads All hubs"
+   ]
+  },
+  {
+   "version": "v2.56.16",
+   "date": "2026-10-07",
+   "items": [
+    "Assessment: five Attention Conflict games (Posner, CPT, Flanker, Switching, BART) now count toward your result — before, they were silently treated as average",
+    "Tones: 327 of 422 syllables are now real recordings instead of 99 — on Android without a Chinese voice they no longer stay silent",
+    "Rhythm: taps are judged by the pattern of intervals between beats, not by when each sound ends",
+    "Voice: when words play from recordings one after another, each one now finishes before the next starts",
+    "Memory Span by Ear: the “turn on sound” warning no longer sticks, and game time starts with the first word",
+    "Picture Pairs: look-alike pairs in the Kids profile and a duel on triples",
+    "Goods Sort: ice melts with its own look, and the walkthrough leads to a win from the start on all 720 levels",
+    "Stroop: the stimulus word is in your interface language, and from level 5 a line shows when the rule switches",
+    "Sudoku: Little Killer, X-sums and Killer get harder steps with the exact sum corridor technique",
+    "Unruly: the second action button is now labeled White instead of a raw key",
+    "Spatial: game icons in the hub rows",
+    "Moving between screens no longer flickers: a page appears only once it is drawn"
+   ]
+  },
+  {
+   "version": "v2.56.15",
+   "date": "2026-10-07",
+   "items": [
+    "New Home: tabs at the bottom, a tiled Games catalog with search, Progress, streak calendar and assessment results — faster, no jumps",
+    "New Relaxation hub: breathing, eyes, pause and the night set in one place; an All hubs link at the bottom of Home",
+    "By default the pet sits at the edge and no longer covers Today, but still greets you and stays lively; walking around is a switch in Settings",
+    "Sources, Collection, Achievements and Leagues now open natively",
+    "iOS: the pet screen no longer goes blank after you switch back to the app",
+    "Sudoku: three new rules — Argyle, Little Killer and X-sums; the ladder grows to 132 steps",
+    "Sudoku: a new rule is explained the first time you meet it — with a diagram, and it stays one tap away in the pause menu",
+    "Sudoku, Fractal Sudoku and Samurai: a level map — go back to any level you have passed and earn more stars",
+    "Sudoku: an unfinished game in Towers, Futoshiki, Killer and Free resumes right where you left it",
+    "Settings are native now: theme, sound, vibration, pet, language — and native games follow your chosen theme",
+    "Puzzles are sorted by theme: the separate Puzzles hub is gone, every puzzle now sits in its own section",
+    "Proofread moved to Visual Search, Quick Count to Counting, OSpan and Mnemonics: Sequence to Memory Span"
+   ]
+  },
+  {
+   "version": "v2.56.14",
+   "date": "2026-10-07",
+   "items": [
+    "Sudoku: digit highlighting is back — matching digits, row and column; a wrong digit is red again",
+    "Sudoku: a wrong digit now says which rule it breaks — including sum variants, jigsaw blocks and killer",
+    "Sudoku: a boss at every rule change and at least every 10 steps; Samurai and Fractal are big bosses — fight now or later",
+    "N-back: at high levels the depth now changes within a single game",
+    "Picture Pairs, Memory Matrix and Reading Span now match the web version: a fair round result, word entry above the keyboard, screen reader support",
+    "Positions set: Corsi Blocks and Backward open straight from the hub",
+    "Sorting games speak your language; Animal Queue and Colours and Shapes now make you think",
+    "Onboarding and Settings show the real number of games — 131",
+    "Warm-up no longer drops to the home screen between exercises",
+    "Practices: a big “what to do now” with a countdown and the full instruction; the abdomen exercise vibrates while you hold; new face massage and eye modes; a breathing ball next to the body exercise; pictures sit centred in the phase frame"
+   ]
+  },
+  {
+   "version": "v2.56.13",
+   "date": "2026-10-07",
+   "items": [
+    "Feedback from a game is back at hand: an icon in every game header and right below Resume in the pause menu; Send no longer hides under the keyboard",
+    "Fractal: portals are playable — jump to the twin, shared pencil marks and the twin number",
+    "Tatham puzzles: the walkthrough names the technique at every step"
+   ]
+  },
+  {
+   "version": "v2.56.12",
+   "date": "2026-10-04",
+   "items": [
+    "After an update, see every change since your last viewed version, including skipped releases",
+    "Choose light, dark or system appearance in Settings — your choice persists and applies to games",
+    "The Sudoku teacher uses a separate board; revealed answers and hints mark an attempt as practice, without level advancement",
+    "Find games from Home and the catalog; full help and feedback are available in Pause",
+    "Updated Abyss portals and notes, Fractal review and the Goods solver"
+   ]
+  },
+  {
+   "version": "v2.56.11",
+   "date": "2026-10-02",
+   "items": [
+    "Sudoku, Samurai and Fractal remember an unfinished game — leave and come back",
+    "Sudoku no longer loses a game to a stray Back, Restart or road change — it asks first",
+    "Samurai and Fractal: the Back and Restart dialogs show a proper title again"
+   ]
+  },
+  {
+   "version": "v2.56.10",
+   "date": "2026-10-02",
+   "items": [
+    "Sudoku now has three roads — easier, normal or harder — each with its own level",
+    "Samurai and Fractal no longer lose a game to a stray Back or Restart — they ask first"
+   ]
+  },
+  {
+   "version": "v2.56.9",
+   "date": "2026-10-02",
+   "items": [
+    "New: Sudoku for Little Ones — 4×4 and 6×6 boards, animals instead of digits, 9 steps",
+    "Sudoku: a boss fight every three levels and a Samurai mega-boss every 15th",
+    "Sudoku: animals instead of digits on the regular board — pick the style in the pause menu",
+    "Abyss: entry from the fractal, choice of length and stage; a new game no longer wipes the one in progress",
+    "Wordoku: hidden words in Spanish, German, French, Italian and Portuguese",
+    "Cats: a short tap marks ✕, a long press reveals the cell; a wrong reveal costs a life instead of leaving a cat on the board",
+    "Samurai and fractal games are recorded with score, time and mistakes; Light Up, Train Tracks, Black Box and Same Game keep their progress"
+   ]
+  },
+  {
+   "version": "v2.56.8",
+   "date": "2026-10-02",
+   "items": [
+    "Sudoku: 28 new stages (93–120) — German whispers, renban, equal sums, palindrome, between lines, lockout and XV",
+    "Sudoku: Killer and Free modes are back in the app",
+    "Sudoku: mistakes cost more toward the top of the ladder — 5 at the bottom, 1 at the top",
+    "Sudoku screens and puzzle stage names are in 12 languages",
+    "Skyscrapers: the check of an incomplete row is fixed"
+   ]
+  },
+  {
+   "version": "v2.56.7",
+   "date": "2026-10-02",
+   "items": [
+    "All games and puzzle modes are back in the hubs — 40 cards had gone missing from the lists",
+    "New: Knights & Queens (eight queens and the knight's tour), Who Is Hiding? with \"or\" questions, Cats with levels by real difficulty",
+    "Tones on Android: syllables play as real recordings, with tone lines instead of symbols",
+    "Patterns no longer give the answer away on the last step",
+    "Puzzles and new games are in 12 languages"
+   ]
+  },
+  {
+   "version": "v2.56.6",
+   "date": "2026-10-02",
+   "items": [
+    "Digit Span, Reading Span and Trail Making are now native screens",
+    "Memory Matrix rebuilt: 10 rounds, two series, in-order check",
+    "Picture Pairs: preview time grows with the number of cards — enough time to memorize",
+    "Corsi: game clock, first flash after a beat, record as on the web",
+    "The Spatial section is fully in 12 languages"
+   ]
+  },
+  {
+   "version": "v2.56.5",
+   "date": "2026-10-02",
+   "items": [
+    "Memory Span hub, n-back and Listening Span are now native screens: faster, no stalls",
+    "Picture Pairs: Free mode — choose the number of pairs and the preview time, and resume an interrupted game",
+    "Number Run moved to the new engine",
+    "Modes in the hubs now have their own icons",
+    "Kegel on iPhone: vibration through the system motor — easier to feel"
+   ]
+  },
+  {
+   "version": "v2.56.4",
+   "date": "2026-10-01",
+   "items": [
+    "The Workout tab opens again: the picker no longer hangs on loading",
+    "Breathing: vibration for inhale, hold and exhale is now clearly felt"
+   ]
+  },
+  {
+   "version": "v2.56.3",
+   "date": "2026-10-01",
+   "items": [
+    "The app icon is ours again — the brain on a dark background",
+    "New game Cats in the Sudoku section: one cat per row, column and colour",
+    "Sudoku: diagonals, regions and variant hints are back on the board",
+    "Warm-up runs fully in the app: picking, back-to-back exercises and the summary, no detours through the site",
+    "Eye gym goes full screen; stereograms in portrait",
+    "Breathing now sounds: its own tone and vibration for inhale, hold and exhale, plus countdown clicks",
+    "Restart in the pause menu of every game — and it does not count as a loss",
+    "Vibration is now clearly felt and follows the Settings switch in every game",
+    "Goods Sorting: boxes collapse from level 31 (was 56); from level 52 the back rows always come together"
+   ]
+  },
+  {
+   "version": "v2.56.2",
+   "date": "2026-10-01",
+   "items": [
+    "Games speak your phone language if you have not picked one",
+    "Pause and warm-up run natively; overlapping exercises are not paired",
+    "Board in Mind and the Chess section run natively, with a chess warm-up"
+   ]
+  },
+  {
+   "version": "v2.56.1",
+   "date": "2026-10-01",
+   "items": [
+    "Android: the app starts again — the blank screen on launch is fixed",
+    "Level rules are visible again in 16 games",
+    "Pegs, Signpost and Inertia moved to the Chess section",
+    "Pause and walkthroughs now stop the game clock"
+   ]
+  },
+  {
+   "version": "v2.56.0",
+   "date": "2026-09-24",
+   "items": [
+    "The app moved to a new engine: games open noticeably faster",
+    "Step-by-step walkthroughs in EVERY game — the solution or the rule explained",
+    "Sudoku, Space, sorting and reaction games now run natively, without lag",
+    "Progress from the previous version carries over: history, points and levels",
+    "A Rules button in every game, with exit and pause where you expect them"
+   ]
+  },
+  {
+   "version": "v2.54.24",
+   "date": "2026-09-24",
+   "items": [
+    "Walkthroughs: Memory Palace, Word Pairs and Faces & Names teach the technique itself",
+    "Mnemonics: a new Pegs mode — the table itself, with a 00–99 peg list",
+    "Mental Rotation: the figure shows all of its cubes, fewer stay hidden",
+    "Untangle: a node smaller than a fingertip pulls your touch towards it",
+    "Flood: losing on the move budget names the numbers, not “almost”",
+    "Narrow phones: Faces & Names and Rhythm no longer overflow the screen"
+   ]
+  },
+  {
+   "version": "v2.54.23",
+   "date": "2026-09-23",
+   "items": [
+    "Games open full screen: the phone bars no longer eat space around the board",
+    "Fractal sudoku: a Show solution button — the answer for one lower grid or the whole puzzle",
+    "Samurai, fractal and abyss: service buttons in one row of icons, and a bigger board",
+    "A new app icon"
+   ]
+  },
+  {
+   "version": "v2.54.22",
+   "date": "2026-09-17",
+   "items": [
+    "Sudoku: the digits under the board are fully visible again on any screen",
+    "Sudoku: buttons now sit in one row of icons under the board, and the board is bigger on small screens",
+    "Notes and color turn on with icons, and the color palette takes the place of the digits"
+   ]
+  },
+  {
+   "version": "v2.54.21",
+   "date": "2026-09-17",
+   "items": [
+    "Where's the mistake? in Galaxies and Bridges: extra lines and bridges are circled in red, and the level is not given up",
+    "Bridges: the check finds a bridge in the wrong place even when every island number adds up",
+    "Level map: the first step no longer hides under the Send feedback button"
+   ]
+  },
+  {
+   "version": "v2.54.20",
+   "date": "2026-09-17",
+   "items": [
+    "Service buttons in every game now sit in one row of icons under the field: hints, undo, Show solution, Start over",
+    "Puzzles: step-by-step walkthroughs in Slashes, Crack the Code and Black Box; a broken rule is marked in red",
+    "Klotski counts a level only when it is solved, and puzzle moves are counted fairly",
+    "Drop-down lists instead of button rows: languages in Word Pairs, alphabet in Proofread, task type in Mental Rotation"
+   ]
+  },
+  {
+   "version": "v2.54.19",
+   "date": "2026-09-17",
+   "items": [
+    "The game field no longer slides under your finger: when everything fits, it stays put",
+    "Puzzles: the board fits the screen height — on a typical phone the board and its buttons show without scrolling",
+    "A workout counts once you play 80% of its games; the night workout has no score and no streak",
+    "Your series: one card with a 5, 10 or 15-minute choice; Again repeats the series you played"
+   ]
+  },
+  {
+   "version": "v2.54.18",
+   "date": "2026-09-17",
+   "items": [
+    "Odd or Even: a Walkthrough button — the game shows the solution step by step and explains every move",
+    "The walkthrough plays full screen like a video: pause, step back and forward, then a new board",
+    "It starts from your own position and first points out any cells placed wrong",
+    "Inhibition saves rounds under its own name: stats no longer mix, and warm-ups count the step"
+   ]
+  },
+  {
+   "version": "v2.54.17",
+   "date": "2026-09-17",
+   "items": [
+    "Warm-up now offers “All games” series for hubs: every game of one hub in a row with one tap",
+    "Stop on the result card in a warm-up now asks before ending the series",
+    "Mental Rotation adds a Memory task: the shape is shown, hidden, and you find it rotated",
+    "Quick Count and Number Run answer options no longer give the answer away, and One Line no longer shows the rules before every level"
+   ]
+  },
+  {
+   "version": "v2.54.16",
+   "date": "2026-09-17",
+   "items": [
+    "Patterns: the answer options no longer give the answer away by their numbers — the right one sits in a random place",
+    "Number Run: the rules now explain how to collect several numbers from a row — sweep your number sideways right through them",
+    "PRL: the STOP button moved to the header and the board got taller; in Inhibition the Go/No-Go mode keeps the same 25% of no-go signals as the standalone game",
+    "On small phones, puzzle boards can now be scrolled so the bottom row sits above the Send feedback button"
+   ]
+  },
+  {
+   "version": "v2.54.15",
+   "date": "2026-09-17",
+   "items": [
+    "Number Run now gathers the whole Counting hub: levels have stations with sums, gates, sequences and memory on the road, and every third level has a guardian",
+    "Pause now truly holds attention games, and the streak badge moved onto the pet, so the board no longer jumps mid-game",
+    "Mental Rotation adds Assembly, Missing piece, Three views and Slice tasks; the Spatial Lab adds Number Slide and Sliding Network",
+    "Puzzle help explains what the numbers mean and why a solution was not accepted; Undead keys show the monsters instead of digits"
+   ]
+  },
+  {
+   "version": "v2.54.14",
+   "date": "2026-09-16",
+   "items": [
+    "Number Run got harder: snakes and grids of numbers, stacks behind a pole, walls with a choice, a ramp over a big red number and a final ladder of ten walls",
+    "Puzzles show the Show solution button right under the board, and the button row now fits even narrow phones",
+    "In sorting games nuts, balls and cakes speak their own words, a refused move explains why, and Pegs and Flood get a new level ladder",
+    "In Picture Pairs cards swap places after a mistake from level 22, and attention games show the new-rule card before the start instead of mid-game"
+   ]
+  },
+  {
+   "version": "v2.54.13",
+   "date": "2026-09-16",
+   "items": [
+    "Number Run is now full screen: the road fills almost the whole phone, with the score, pause and steering right on top of it",
+    "Digit Span and Mental Math Sprint have their own keypad under the board, so the system keyboard no longer covers half the screen and the Check button",
+    "Attention games gain new difficulty steps instead of repeated levels, PRL shows the score in the centre as it grows, and the section help is rewritten in plain words",
+    "OSpan accepts letters typed without spaces. Counter, SDMT, Find Differences and Math Slider now fit small phones"
+   ]
+  },
+  {
+   "version": "v2.54.12",
+   "date": "2026-09-16",
+   "items": [
+    "Each of the 42 puzzles now has its own help: it explains that game and where to tap. Before, every puzzle showed the help of a single game",
+    "Undo and Restart sit right under the board instead of the pause menu. The arrows form a cross — up above a row of left, down, right, like on a keyboard",
+    "Puzzle boards no longer blend into the dark theme: Bridges and twenty other games are fully visible again. A slow tap no longer triggers the second action",
+    "Tatham’s Sudoku has all nine digits on the 9×9 board and its own difficulty ladder; mental rotation gains two new modes — Point of View and Same Shape"
+   ]
+  },
+  {
+   "version": "v2.54.11",
+   "date": "2026-09-13",
+   "items": [
+    "Each section’s flow now uses only that section’s games: the chess flow holds no sudoku and no memory matrix — just the blindfold board and mates, and the mates come mixed: recognise the pattern among nineteen, a fresh deal every time"
+   ]
+  },
+  {
+   "version": "v2.54.10",
+   "date": "2026-09-13",
+   "items": [
+    "Puzzles are fully sorted now: four stay in the general section, the other thirty-eight sit where you would look for them — loops and tracks with order, galaxies and palisade with counting, rectangles and map with search"
+   ]
+  },
+  {
+   "version": "v2.54.9",
+   "date": "2026-09-13",
+   "items": [
+    "Sections arrive sorted: forty-two puzzles are no longer one pile — number grids moved next to sudoku, spatial ones next to rotation, search next to search",
+    "Every profile now has its own session for all four times of day and all seven days: no longer one shared set for everyone",
+    "Every profile got its own flow series of 5, 10 and 15 minutes — one skill in a row, with a new exercise about every minute"
+   ]
+  },
+  {
+   "version": "v2.54.8",
+   "date": "2026-09-13",
+   "items": [
+    "What each section and profile contains can now change without an app update: new sets of exercises arrive right away instead of waiting for the next version",
+    "Tatham puzzles can be spread across the themed sections — number grids next to sudoku, spatial ones next to rotation, search next to search: forty-two of them stop being one pile"
+   ]
+  },
+  {
+   "version": "v2.54.7",
+   "date": "2026-09-13",
+   "items": [
+    "You now choose the length of every session — morning, midday break, evening and “can’t sleep”. The 5 / 10 / 15 minute buttons used to exist only for the morning one",
+    "Five, ten and fifteen minutes are three DIFFERENT sets, not a trimmed long one: the short session may well start with another exercise",
+    "“Can’t sleep” is no longer a single breathing drill: calm puzzles with no stopwatch — pipes, sudoku, tower of Hanoi — and breathing at the end. Nothing that hurries you at night",
+    "The “Pause” body practices are open in every profile. Rest should not be paid for — breathing has been open to everyone since last year, and now Pause is too",
+    "Your own series: you can assemble a run of exercises with a single result and assign it to a profile — it shows up next to Assessment and FIN BRAIN",
+    "Tatham puzzles inside a set no longer start at level one before your own level is read: the board used to be dealt before the stored level arrived"
+   ]
+  },
+  {
+   "version": "v2.54.6",
+   "date": "2026-09-13",
+   "items": [
+    "A hint button that is not unlocked yet now says so where you can see it: the answer used to appear behind the game field, so hints looked simply broken",
+    "A locked collection figure showed two star numbers at once — the total and what is left. Only one stays now: what is left"
+   ]
+  },
+  {
+   "version": "v2.54.5",
+   "date": "2026-09-12",
+   "items": [
+    "New game «Number Run» in the Counting section: steer a number down the road and decide on the move what to pick up — blue adds, red subtracts what is written",
+    "A row lets you collect all five numbers instead of picking one; a green ramp throws you across the gap",
+    "The run goes through twelve stages back to back, with no stops and no reset of your number — about eight and a half minutes"
+   ]
+  },
+  {
+   "version": "v2.54.4",
+   "date": "2026-09-12",
+   "items": [
+    "One Line: the screen no longer slides under your finger while you draw a path",
+    "One Line: Undo, Hint and Restart are always visible — no more scrolling to reach them",
+    "One Line: the board now fits the screen height as well as its width, and a duplicate pause button is gone",
+    "Sudoku: the menu tile promised 57 steps instead of the real 92 — the number is now correct"
+   ]
+  },
+  {
+   "version": "v2.54.3",
+   "date": "2026-09-12",
+   "items": [
+    "Puzzles: Show solution now shows the solution instead of covering it with the result card — and looking at the answer no longer costs you a level",
+    "Restart replays the same puzzle instead of dealing a new one, so you can retry the board you got stuck on",
+    "The move counter no longer grows on taps that hit nothing or on cursor movement — and it feeds your score",
+    "Guess: the Erase button finally erases the row you typed",
+    "Flood and Inertia: the solver now has a Next step button, so its plan can be played out and seen",
+    "Four puzzles gained a Select button and Inertia gained diagonal moves — half of its moves were unreachable before",
+    "The board no longer jumps vertically when you switch between puzzles"
+   ]
+  },
+  {
+   "version": "v2.54.2",
+   "date": "2026-09-12",
+   "items": [
+    "Sudoku: the digit keys no longer run off the bottom on shorter screens — both rows are fully visible without scrolling",
+    "Sudoku: digits now sit in two even rows of five instead of an uneven wrap — the key you want is always in the same place",
+    "Puzzles: an interrupted touch no longer counts as a move — if scrolling steals the gesture, no move is made"
+   ]
+  },
+  {
+   "version": "v2.54.1",
+   "date": "2026-09-12",
+   "items": [
+    "Connect the Dots: the board no longer slides down while you drag a line — the touch stays in the game instead of scrolling the page",
+    "Connect the Dots: the whole board now fits the screen on larger sizes — the bottom row used to run off the edge, out of reach"
+   ]
+  },
+  {
+   "version": "v2.54.0",
+   "date": "2026-09-12",
+   "items": [
+    "The menu is shorter: 13 sections instead of 18. Exercises from small hubs moved next to their relatives, so they are quicker to find",
+    "Two sections got clearer names: Memory Span and Space",
+    "Two inhibition tasks are finally reachable — Forbidden one and Cancel a started move. Until now the menu had no way in",
+    "Four cards showed an internal word instead of a name — fixed"
+   ]
+  },
+  {
+   "version": "v2.53.9",
+   "date": "2026-09-11",
+   "items": [
+    "Two new puzzles: Klotski — shuffle the blocks aside so the main one can slide out, and Sokoban — push the barrels onto the targets without wedging them into a corner",
+    "The playing field no longer drifts up and down: on most screens it now starts at exactly the same place",
+    "Memory Matrix gives you time to read the task before the first flash — now in both modes, not just one",
+    "Anagrams shows the settings you picked right away, with no scrolling down to the cards"
+   ]
+  },
+  {
+   "version": "v2.53.8",
+   "date": "2026-09-11",
+   "items": [
+    "The puzzle board no longer jumps around: all forty now sit in the same square and at the same size",
+    "Guess is playable at last: six colour keys, a Done button and a working erase — the screen had no controls at all before",
+    "Map Colouring gained its second action — the pencil marks that half its technique depends on",
+    "Four games now say right under the board that you drag there instead of tapping — a tap simply did nothing"
+   ]
+  },
+  {
+   "version": "v2.53.7",
+   "date": "2026-09-11",
+   "items": [
+    "The puzzle board no longer jumps around: all forty now sit in the same square and at the same size",
+    "Guess is playable at last: six colour keys and a Done button — the screen had no controls at all before",
+    "Four games now say right under the board that you drag there instead of tapping — a tap simply did nothing"
+   ]
+  },
+  {
+   "version": "v2.53.6",
+   "date": "2026-09-11",
+   "items": [
+    "Bridges got its island numbers back — the game was unplayable without them: our drawing painted over them on redraw",
+    "Thirteen more puzzles gained a second action. In Minesweeper it flags a mine, in the nonogram it marks an empty cell — without it they simply cannot be solved",
+    "The digit row now has an erase key — a wrong digit used to be removable only from the pause menu",
+    "The cat no longer chews when you stroke it: washing, stroking and feeding now have their own frames",
+    "Blow up in Minesweeper and Undo and Restart appear right above the board. Before that the only way out was the pause menu"
+   ]
+  },
+  {
+   "version": "v2.53.5",
+   "date": "2026-09-11",
+   "items": [
+    "Puzzles now show how the round is going: “marked 3 of 10”, “connected 6 of 25”, “44 clues left”. The engine counted all this before — it just was not shown",
+    "The puzzle help text is now correct in every language: in ten of twelve it still pointed at a back arrow that no longer exists and said nothing about the long press"
+   ]
+  },
+  {
+   "version": "v2.53.4",
+   "date": "2026-09-10",
+   "items": [
+    "Every game’s pause menu now has two exits: “Exit game” steps back to the exercise list, and “Go Home” goes straight to the main screen",
+    "In eighteen games there was a single exit labelled “Go Home” that actually stepped back — the label now matches what the button does"
+   ]
+  },
+  {
+   "version": "v2.53.3",
+   "date": "2026-09-10",
+   "items": [
+    "The puzzles are now playable: digits, a second action and an arrow pad under the board. Six of the forty had no way to make a move; Magnets could not be solved at all",
+    "“Show solution” really shows the solution — in two games it used to do nothing",
+    "The pet is up to date for everyone — some players still saw the old cat. Four care actions: wash, stroke, feed, play",
+    "The language workout no longer crashes on the second exercise",
+    "Pause now has two separate exits: leave the exercise, or go straight to the main menu",
+    "The header medallion shows the whole head for the robot and the constellation, not just the cat"
+   ]
+  },
+  {
+   "version": "v2.53.2",
+   "date": "2026-09-10",
+   "items": [
+    "The pet no longer jerks: the sleeping cat used to jump upright every four seconds, and motion is now twice as smooth",
+    "The strolling pet no longer teleports when you move between screens",
+    "The robot pet’s cheeks are no longer see-through — on the dark theme they were holes",
+    "Anagrams finally enter bilingual mode: with an English interface the mode silently failed and the counter showed 1/0"
+   ]
+  },
+  {
+   "version": "v2.53.1",
+   "date": "2026-09-10",
+   "items": [
+    "Every game now has a pause menu. In sixty-three exercises out of eighty-one, pressing “back” used to show a picture with no buttons at all — no resume, no exit",
+    "The pause button is now visible: a clear ⏸ button instead of a grey arrow in the corner",
+    "The pause screen shows how the round is going: level, moves, correct answers, mistakes, time",
+    "From the same place: quiet mode in one tap, Undo and Hint, an easier or harder level, skipping a workout step, and “Report a problem”",
+    "“Scholar’s Mate” had two exit buttons with different labels and the same effect — now there is one"
+   ]
+  },
+  {
+   "version": "v2.53.0",
+   "date": "2026-09-10",
+   "items": [
+    "New “Puzzles” section: forty logic puzzles by Simon Tatham — sudoku and its relatives, shading by clues, loops and bridges, region cutting, arcade boards",
+    "Workout: the “Not sure how to play?” hint no longer covers the board in the first exercise — it used to hide the Corsi flashes and the SDMT symbol key",
+    "SDMT: two of the nine symbols looked identical (“flame” and “water”), so answering them was guesswork — replaced with a distinct one",
+    "The row of tool buttons in the header no longer overlaps the game field — this affected twenty screens",
+    "Cakes and pizza: tapping is now the main way to move, dragging finally works, plate rows are aligned",
+    "“Search” section: six games share one geometry, and every one of them now has a pause menu"
+   ]
+  },
+  {
+   "version": "v2.52.12",
+   "date": "2026-09-09",
+   "items": [
+    "Fixed the “Something went wrong” crash when moving between screens — it broke entering any game or section",
+    "Sudoku is now open in every profile: the classic board, “Skyscrapers” and “Inequalities” — seven profiles out of thirteen used to open the section empty",
+    "A section with nothing open for your profile no longer greets you with a blank screen: it explains why it is empty and takes you to all games"
+   ]
+  },
+  {
+   "version": "v2.52.11",
+   "date": "2026-09-09",
+   "items": [
+    "The “Mental Rotation” section is now open in every profile in full: shape rotation, “Number Twist” and “Pipe Network” — most profiles used to open it empty"
+   ]
+  },
+  {
+   "version": "v2.52.10",
+   "date": "2026-09-09",
+   "items": [
+    "Technical release: delivers the Mental Rotation fixes — full-size board, rotation and the pause menu"
+   ]
+  },
+  {
+   "version": "v2.52.9",
+   "date": "2026-09-09",
+   "items": [
+    "“Number Twist” and “Pipe Network” are back to their own screen: full-size board, levels via their own buttons"
+   ]
+  },
+  {
+   "version": "v2.52.8",
+   "date": "2026-09-09",
+   "items": [
+    "Rotation is back in all three “Mental Rotation” exercises: the shape turns, the mistake review shows the turn, the block and the pipe rotate with animation",
+    "“Number Twist” and “Pipe Network”: the back arrow opens a pause menu — resume, restart, undo, rules, home"
+   ]
+  },
+  {
+   "version": "v2.52.7",
+   "date": "2026-09-09",
+   "items": [
+    "“Number Twist” and “Pipe Network”: the extra level strip above the board is gone — the board is full-screen again",
+    "Mental Rotation: the mistake review shows how the shape turned again"
+   ]
+  },
+  {
+   "version": "v2.52.6",
+   "date": "2026-09-09",
+   "items": [
+    "Pet: new walk cycle, the party hat stays on the head, daily feeding is the norm, the cat explains its look in words under the feed button",
+    "Home and collection: cards no longer clip text at large font sizes, the profile chip lost its loud fill, a locked figure answers a tap — at how many ⭐ it opens",
+    "“Eyes & breathing” opens on older Android (WebView Chrome 90); warm-up cards estimate time from real rounds"
+   ]
+  },
+  {
+   "version": "v2.52.5",
+   "date": "2026-09-09",
+   "items": [
+    "“Mental Rotation” section: three exercises in turning things in your mind — cube-shape rotation, “Number Twist” (rotate a 2×2 block, order the numbers) and “Pipe Network” (turn the pipes so water reaches every end). Each has its own level ladder and path",
+    "Kids profile: “Memory Palace” added — the method of loci, rules explained with a picture"
+   ]
+  },
+  {
+   "version": "v2.52.4",
+   "date": "2026-09-09",
+   "items": [
+    "Warm-up and assessment now run at your own level in every game — no more fixed “medium” tiers: we measure your progress, not warm-ups against each other",
+    "Mental Rotation rebuilt: 50 levels, shapes of 4 to 13 cubes, three task kinds — rotation, projection, cube net. After a miss — a review with a smooth 3D turn of the shape and manual rotation around X, Y and Z",
+    "Pause menu: the back arrow during a game opens a menu — Resume, Restart, Rules, Home. The board is hidden and the clock stops. Sudoku is wired first: a new board no longer costs three lives",
+    "Cakes: the slice grew (0.90 of the plate radius instead of 0.72) and dragging between plates works",
+    "Nuts: the hex fills the whole column and the hole goes through — the bolt is visible inside the nut; Goods Sort: a single-item shelf is now narrow",
+    "Sorting: tubes, marbles, nuts, cakes and pizza are open in the “Micro-relax” set — only full profiles saw them before",
+    "Sudoku with a saved game: “Restart” no longer throws you to the setup screen"
+   ]
+  },
+  {
+   "version": "v2.52.1",
+   "date": "2026-09-09",
+   "items": [
+    "Marbles: the flasks are redrawn. The old glass had its cavity veiled in a whitish film, so the vessel read as a single rim; the glass is truly empty now, the marbles inside are fully visible and got larger",
+    "Nuts: instead of a strip over the nuts — a bolt threaded along its whole length with a hex head. The nuts sit tight and screw on with a turn as they go on",
+    "Everything from 2.52.0 — sudoku pencil marks, the five-minute warm-up, “Board in Mind”, proofreading, goods sort, cakes — arrives with this update: that build never reached the stores"
+   ]
+  },
+  {
+   "version": "v2.52.0",
+   "date": "2026-09-09",
+   "items": [
+    "Sudoku pencil marks: the digits did not fit the cell — two per row instead of three, so 7, 8 and 9 ended up outside it. Hence both “you can only place one” and the digits dancing past the squares. All nine fit now, and they are visible on the selected cell",
+    "Sudoku: the “Rules” button now explains the CURRENT level — which technique cracks this very board, not the game in general. The header no longer repeats the level number",
+    "A five-minute warm-up lasted two and a half. The plan measured itself with numbers set by eye when each game was added, and those were twice too large. It now measures by real play — five minutes are five minutes",
+    "“Board in Mind”: the piece in the question and in the error review is visible now — drawn with the same image as on the board, not a pale glyph",
+    "Proofreading: the letters to look for moved next to the grid. They used to sit in the header, and the eye travelled across the whole screen on every cell",
+    "Post-game buttons are the same shape in every game. “Deep Fractal” gained an exit it never had",
+    "Goods Sort no longer credits a level early: from level 56 shelves leave into a queue and come back, so an empty board is not the end there",
+    "Cakes and Pizza: a slice is picked from the whole plate. Only the middle counted before, and over a third of taps went nowhere",
+    "The language warm-up mixes English and Spanish, with Russian as the anchor",
+    "The bottom tabs went glass — the field shows through"
+   ]
+  },
+  {
+   "version": "v2.51.0",
+   "date": "2026-09-07",
+   "items": [
+    "Tabs arrived at the bottom: Home · Games · Warm-up · Progress · Pet. The home screen is nearly half as long — it keeps today plus the three sections you play most",
+    "New game “Pizza”: the same circle of six slices as in “Cakes”, but matched by topping — from pepperoni to squid-ink black",
+    "The warm-up served English words to people using the app in another language. Fixed",
+    "Water Sort could lock a level by itself: a tube filled to its own height counted as done and left the board, while the last portion of that colour was left homeless. The player did nothing wrong — the level simply became unsolvable",
+    "Cakes: the queue of incoming plates was empty on every level. It works now, and the ladder goes further",
+    "Counting: the Integral got a sign — plus on top, minus below. Counter adds three-term sums from level 26, and Operation Span adds x-equations and powers of two",
+    "Mahjong, Schulte and Visual Search no longer draw their own counter bar over the shared one — counters sit in one place across all games",
+    "Goods Sort: the “niches of different capacity” threshold is now explained in words in every language, and dragging stopped stuttering",
+    "Water Sort grows further: from level 34 you may pour only one portion at a time",
+    "Listening Span: the extra words in the grid now sound like the ones you heard — guessing by sound no longer works"
+   ]
+  },
+  {
+   "version": "v2.50.0",
+   "date": "2026-09-07",
+   "items": [
+    "Your pet greets you when you open the app and says how things stand: “Streak 4, 26 to go”. Once a day, not every half minute",
+    "A goal arrived — how many days in a row to show up. One tap: 7, 14 or 30. Nothing to type",
+    "The goal is suggested from your own numbers: held four days — we propose a week. No numbers yet — we invent none",
+    "Streak broke — we propose a smaller goal and say nothing reproachful",
+    "The pet praises you between levels, but only for something real: a personal best, a comeback after a break, a step towards the goal. For an ordinary level it stays quiet",
+    "Memory Palace crashed on the very first step between phases — fixed",
+    "Blindfold Board: the ladder grew from 15 levels to 25",
+    "Water Sort measured difficulty against the wrong solution — levels were easier than the number promised",
+    "Answer buttons now sit in one place in Faces and Names, Pseudoword Echo and the Anagrams — no more jumping around the screen",
+    "Killer Sudoku: three difficulty buttons replaced by a ladder of levels",
+    "The “Goal for today” card is now “Why today” — so it does not clash with the day-streak goal"
+   ]
+  },
+  {
+   "version": "v2.49.0",
+   "date": "2026-09-07",
+   "items": [
+    "Levels stopped repeating: Digit Span had 47 identical levels, Listening Span had 51, and Dictation only grew to level seven of fifteen. Now a pause follows the display — you hold it in mind longer",
+    "Mahjong and Quick Count showed 15 levels when they actually have 28 and 31 — the screen was capping the ladder",
+    "Water Sort gave three stars for a game twice as long as needed. And a move limit arrives at level fourteen",
+    "Rules no longer pop up over the grid you are memorising — this affected 25 games",
+    "Memory Palace now makes sense: items got their names back, so you link a lamp to a place, not “an orange diamond”",
+    "Chess: the board faced the wrong way when you played Black — in half the positions",
+    "Sudoku: Undo now clears pencil marks and cell colour too",
+    "Fillwords grow to level two hundred, and the Anagram ladders are twice as long",
+    "Memory Palace: items are real objects now — 56 pictures instead of coloured shapes. A lamp looks like a lamp",
+    "Sudoku: colouring with nine colours, one per digit",
+    "Hearing games only grew to level nine or eleven out of fifteen — Pseudoword Echo, Mnemonics, Similar Sounds. Now they run to fifteen",
+    "Digit Span: the “whole row at once” mode never came up at all — it exists now, and the recall direction is announced only after the display",
+    "Attention and Counting keep growing: distractors in visual search, unpredictability in Schulte tables, rule switching in Stroop, quadratic equations in the slider"
+   ]
+  },
+  {
+   "version": "v2.48.0",
+   "date": "2026-09-06",
+   "items": [
+    "Cake Sort is fixed: not a single slice was visible on the plates, so there was nothing to play. Thanks to whoever wrote “where are the cakes?”",
+    "Chess flow mode: the board faced the wrong way when you played Black — in half the positions",
+    "Towers moved into Sorting: Hanoi and Tower of London now sit next to Water Sort and Goods Sorting, one hub fewer",
+    "The Words, Hearing, Routes and Chess sections now open in full instead of with a single exercise: before, you entered a section and found one game out of seven",
+    "Goods Sorting: a two-to-three screen shelf — the cabinet scrolls and the goods stay large"
+   ]
+  },
+  {
+   "version": "v2.47.1",
+   "date": "2026-09-06",
+   "items": [
+    "Feedback from iPhone no longer loses your text: for some people only the first word was sent and the rest vanished — you saw your full text in the field and believed it had gone through",
+    "Dots Connect: gates — a cell only its own pair may enter. They appear from level fourteen and hint at the route rather than block it",
+    "Cake Sort: the Undo and Hint buttons were too short, so fingers kept missing them"
+   ]
+  },
+  {
+   "version": "v2.47.0",
+   "date": "2026-09-06",
+   "items": [
+    "Three new games in the Sorting hub: Ball Sort, Nut Sort and Cake Sort — cakes with their own six-slice wheel and a queue of arrivals",
+    "Water Sort now grows past its old ceiling: a short vessel, stones at the bottom and a sealed vessel that unlocks once you finish enough colours. Before, levels fourteen through forty dealt the very same board",
+    "Dots Connect: walls and cut-out boards, and the top levels stopped being guesswork — they can be reasoned out to the end, only the chain of deductions is longer",
+    "Dots Connect: a new hint, Reveal one pair — it shows the path where you are stuck and leaves the rest of the board as a puzzle",
+    "Goods Sorting: moving slots, single-colour levels and a joker slot",
+    "Find All Words: a bonus-word jar, a shuffle for the letter wheel, and Korean — jamo on the tiles, syllable blocks in the readout",
+    "Word Square had no difficulty ladder at all; difficulty now grows with the number of spare letters in the bank",
+    "Anagrams: every mode has its own picture, and it differs by profile",
+    "Korean profanity was not filtered in children profiles — fixed"
+   ]
+  },
+  {
+   "version": "v2.46.0",
+   "date": "2026-09-06",
+   "items": [
+    "Anagrams: a fourth mode — Crossword. Words from the same letter set go into a grid and cross, so a found letter opens the word beside it",
+    "New Sorting hub: Goods Sorting and Water Sort now live in one place",
+    "Fillwords are no longer square: the field grows to 12×9 and tall grids continue past level eight — before, level thirteen onward served the very same board",
+    "Goods Sorting: shelves for one and for four items — previously seven of nine niches on a phone held three",
+    "Water Sort: level eleven used to be easier than level ten — fixed",
+    "Find All Words now speaks seven languages: German, Spanish, French, Italian and Portuguese added",
+    "The Languages, Routes and Chess hubs are open in every profile",
+    "Voice notes in feedback: on some phones the recording arrived empty — the microphone returned silence. Those devices now record through a native path and the sound gets through"
+   ]
+  },
+  {
+   "version": "v2.45.0",
+   "date": "2026-09-06",
+   "items": [
+    "Anagrams: a third mode — All Words. Find every word hidden in one set of letters; the empty cells show how long each one is",
+    "739 Russian puzzles and 2000 English ones, 6–14 words each"
+   ]
+  },
+  {
+   "version": "v2.44.0",
+   "date": "2026-09-06",
+   "items": [
+    "Anagrams: the letters now sit in a circle and the word is drawn with one swipe. Tapping them one by one still works",
+    "Anagrams: a new Word Square mode — four words around the board from a single letter bank, neighbours share their corners. Over 470 puzzles",
+    "Chess: a warm-up running both exercises in turn, each from its own level, for 5, 10 or 15 minutes",
+    "Mental Rotation: the options no longer differ in cube count — the task used to be solvable by counting instead of rotating",
+    "Mental Rotation: the reference and the options share one colour — the same figure used to be painted in two",
+    "Memory games: the level-rule card no longer pops up while you are holding a sequence in mind. It now appears before the round — fixed across nine games at once"
+   ]
+  },
+  {
+   "version": "v2.43.0",
+   "date": "2026-09-06",
+   "items": [
+    "Scholar's Mate: one list instead of three entry points. Sacrifice mate is now a motif like any other, and “Flow · 10 min” applies to anything — the ladder, the sacrifice, any motif",
+    "Scholar's Mate: every mode now leads to a next level. It used to stop at a results card with nowhere to go",
+    "Scholar's Mate: the board flips in motif drills too, not only in the ladder",
+    "One Line: the balls are a sane size again — they used to cover the graph edges",
+    "Word Search: a hint now reveals the whole word. Two cells left seven possible paths, so the hint was spent for nothing",
+    "Anagrams and Verbal Fluency: pick the language of the words separately from the app language",
+    "Goods Sort: the bottom shelf row is no longer cut off"
+   ]
+  },
+  {
+   "version": "v2.42.0",
+   "date": "2026-09-05",
+   "items": [
+    "Scholar's Mate: the stars mean something again. Three stars used to come with almost any run — the threshold is now recognition time and it grows with the level",
+    "A screen left open no longer counts as a played run and no longer lowers your level",
+    "After a mistake you see not only the right move but what punished yours: “Qe7 was right · Qxf7#”",
+    "The defence hint no longer suggests a move that simply drops a piece",
+    "The results screen shows your usual speed over recent runs instead of a personal best: a best from a single run is luck more often than progress"
+   ]
+  },
+  {
+   "version": "v2.41.0",
+   "date": "2026-09-05",
+   "items": [
+    "Scholar's Mate: a dropdown of 19 mates — Arabian, smothered, epaulette, Boden's, opera and more. Pick one and drill only that, 1200 positions each",
+    "Digit Span: a new way to present the row — all digits at once instead of one by one. It is a different memory: a sequence gets rehearsed silently, a whole row is read by eye",
+    "Flow mode now shows the time left rather than the position number"
+   ]
+  },
+  {
+   "version": "v2.40.0",
+   "date": "2026-09-05",
+   "items": [
+    "Scholar's Mate: seven patterns instead of one. As you climb, queen-with-knight, bishop mate, smothered mate and fool's mate join in — and each is named on screen",
+    "A whole run is played from one side: the board no longer shows a black position from White's point of view",
+    "Two new modes: Flow — 10 minutes of positions with no breaks, and Mate with a Sacrifice — available from the start instead of level 29. And the sacrifice is now played out to mate rather than counted on the first move",
+    "The results screen shows your median time and your personal best for the level",
+    "Eye gym: a spiral, a wave and a pulsing dot for refocusing, plus haptics at the start, at each change of exercise and at the end",
+    "Board in Mind: black pieces no longer blend into the dark selection plaque"
+   ]
+  },
+  {
+   "version": "v2.39.0",
+   "date": "2026-09-05",
+   "items": [
+    "New exercise, Scholar's Mate: a memorised pattern against the clock. Mate in one, defend, spot the threat — and on the top rungs, mate with a SACRIFICE in two or three moves. Time per position drops from 20 seconds to 4",
+    "Chess hub: Board in Mind and Scholar's Mate now share one entrance",
+    "Mahjong: a dead end with no way out hit one game in four on level 40. There is now an honest exit and a level redeal, and layer depth is visible on every tile, not just the free ones",
+    "Memory Palace fits the screen: the item and the place you need to pair are visible at the same time",
+    "Voice feedback: if the microphone recorded silence, the app no longer says thank you — it warns you and offers to type instead"
+   ]
+  },
+  {
+   "version": "v2.38.3",
+   "date": "2026-09-05",
+   "items": [
+    "Test Tubes: Restart brings back the same board instead of dealing a new one — you can finally retry the level you got stuck on"
+   ]
+  },
+  {
+   "version": "v2.38.2",
+   "date": "2026-09-05",
+   "items": [
+    "Blocks in the memory games are redrawn with the same nine textures as the balls: glass, fur, chrome, jelly, neon, stone, ice. The choice is shared — pick the material once, the game picks the shape"
+   ]
+  },
+  {
+   "version": "v2.38.1",
+   "date": "2026-09-05",
+   "items": [
+    "The rules screen no longer pops up between levels — the level-cleared card now covers it fully",
+    "Dots Connect: solve the board and the level is cleared, however many tries it took. Neatness counts as stars",
+    "The game title no longer hides under the pet avatar and the Rules button — fixed on 45 screens",
+    "Rhythm & Pitch: sound finally plays on the phone — it is woken inside the Start tap itself"
+   ]
+  },
+  {
+   "version": "v2.38.0",
+   "date": "2026-09-05",
+   "items": [
+    "Synapse 2: the cat now has 32 states instead of seven — yawns, scratches, chases its tail, sneezes, stretches, looks around; sleeps in seven different poses, not just curled up",
+    "Care changes how it looks: skip meals and it gets thin, feed it daily and it gets round, never wash it and it gets dirty, neglect it and it turns sad and pale. When all is well it shows how much it has grown",
+    "Growth no longer swaps the cat for a robot: it grows up on its own, from kitten to adult cat. Robot and Constellation remain as manual choices",
+    "Game balls redrawn: nine textures — glossy, glass, fluffy, matte, chrome, jelly, neon, stone, soap bubble. Choose in One Line and Object Tracker",
+    "Mahjong: an ivory tile under the symbol instead of a flat rectangle"
+   ]
+  },
+  {
+   "version": "v2.37.54",
+   "date": "2026-09-05",
+   "items": [
+    "Mahjong: the layers read again — upper tiles are lighter and smaller, lower ones darker, the stack is visible"
+   ]
+  },
+  {
+   "version": "v2.37.53",
+   "date": "2026-09-05",
+   "items": [
+    "Test Tubes redrawn: real glass, highlights over the liquid, larger on roomy screens"
+   ]
+  },
+  {
+   "version": "v2.37.52",
+   "date": "2026-09-05",
+   "items": [
+    "New game “Test Tubes” in the Towers hub: pour the colours until each tube holds just one"
+   ]
+  },
+  {
+   "version": "v2.37.51",
+   "date": "2026-09-05",
+   "items": [
+    "Memory Span: matrix, Corsi blocks and reverse order are now one card, “Positions”, with a mode picker"
+   ]
+  },
+  {
+   "version": "v2.37.50",
+   "date": "2026-09-05",
+   "items": [
+    "Attention Conflict: ten cards folded into five — related paradigms are now modes inside one game"
+   ]
+  },
+  {
+   "version": "v2.37.49",
+   "date": "2026-09-05",
+   "items": [
+    "The pet no longer vanishes from bug-report screenshots — skin frames are now pulled into our own origin"
+   ]
+  },
+  {
+   "version": "v2.37.48",
+   "date": "2026-09-04",
+   "items": [
+    "Build fixed: the new Response-inhibition hub was missing from the audit, so the release would not publish"
+   ]
+  },
+  {
+   "version": "v2.37.47",
+   "date": "2026-09-04",
+   "items": [
+    "The pet really chews its treat and really celebrates a record — both states now have their own frames"
+   ]
+  },
+  {
+   "version": "v2.37.46",
+   "date": "2026-09-04",
+   "items": [
+    "Feeding the pet is now visible: a treat flies to its mouth and disappears",
+    "Real human recordings added for Spanish and Portuguese — 988 samples across five languages"
+   ]
+  },
+  {
+   "version": "v2.37.45",
+   "date": "2026-09-04",
+   "items": [
+    "Today’s picks now use your last warm-up breakdown: if a skill dipped, tomorrow you get an exercise from exactly that skill"
+   ]
+  },
+  {
+   "version": "v2.37.44",
+   "date": "2026-09-04",
+   "items": [
+    "N-back: the letters in the audio stream are now read by a real person, not the system voice"
+   ]
+  },
+  {
+   "version": "v2.37.43",
+   "date": "2026-09-04",
+   "items": [
+    "New hub «Response inhibition»: hold your hand back once it has started. Attention Conflict is down from twelve paradigms to ten",
+    "The feedback widget now asks again when a message looks like a cut-off dictation — half the queue was «I» and «The»"
+   ]
+  },
+  {
+   "version": "v2.37.42",
+   "date": "2026-09-04",
+   "items": [
+    "Game screens no longer behave like a web page: fast taps in reaction games can no longer zoom or shift them"
+   ]
+  },
+  {
+   "version": "v2.37.41",
+   "date": "2026-09-04",
+   "items": [
+    "Sudoku: the hint no longer appears twice — the counter moved onto the button itself, freeing up the header"
+   ]
+  },
+  {
+   "version": "v2.37.40",
+   "date": "2026-09-04",
+   "items": [
+    "The warm-up summary now says where you beat your usual and where you dipped — by skill, not raw points. Collapsed by default, one tap to open"
+   ]
+  },
+  {
+   "version": "v2.37.39",
+   "date": "2026-09-04",
+   "items": [
+    "Pause is fully translated: the body cues now speak your language in all twelve, not just the programme titles"
+   ]
+  },
+  {
+   "version": "v2.37.38",
+   "date": "2026-09-04",
+   "items": [
+    "Sudoku: the ladder now runs to 92 levels instead of 80 — twelve finished combo-belt steps were unreachable"
+   ]
+  },
+  {
+   "version": "v2.37.37",
+   "date": "2026-09-04",
+   "items": [
+    "iPhone builds reach TestFlight again: parallel releases were revoking each other’s signing certificate"
+   ]
+  },
+  {
+   "version": "v2.37.36",
+   "date": "2026-09-04",
+   "items": [
+    "Board in Mind: the asked square is filled with colour and its name is printed large — no more hunting for a thin outline",
+    "Sudoku: the row and column highlight can now be switched off in settings"
+   ]
+  },
+  {
+   "version": "v2.37.35",
+   "date": "2026-09-04",
+   "items": [
+    "Stragglers moved into hubs: N-back into Memory Span, Navigator into Visual Memory, Story Recall into Words",
+    "Eye Gym is back as its own card — before, the only way in was through Pause"
+   ]
+  },
+  {
+   "version": "v2.37.34",
+   "date": "2026-09-04",
+   "items": [
+    "Hubs are now open to every profile: a shorter catalogue with the same exercises, grouped inside",
+    "A hub shows only the exercises your profile has access to",
+    "The pet in the header is noticeably bigger"
+   ]
+  },
+  {
+   "version": "v2.37.33",
+   "date": "2026-09-04",
+   "items": [
+    "Words in audio exercises are now read by real people, not a machine: 632 native-speaker recordings in Russian, German and English",
+    "Who reads them is listed on the Sources screen, with names and licences"
+   ]
+  },
+  {
+   "version": "v2.37.32",
+   "date": "2026-09-04",
+   "items": [
+    "Edge-swipe exit and the confirm-free Math Slider have finally shipped"
+   ]
+  },
+  {
+   "version": "v2.37.31",
+   "date": "2026-09-04",
+   "items": [
+    "Edge-swipe exit and the confirm-free Math Slider now actually ship — two new gates were breaking the typecheck"
+   ]
+  },
+  {
+   "version": "v2.37.30",
+   "date": "2026-09-04",
+   "items": [
+    "Swipe in from the left edge to leave any exercise — no more reaching for the far corner button"
+   ]
+  },
+  {
+   "version": "v2.37.29",
+   "date": "2026-09-04",
+   "items": [
+    "Math Slider: your estimate now sits above the scale next to the expression — your finger no longer covers it",
+    "No confirm tap: let go of the marker and after three seconds of stillness the answer is recorded"
+   ]
+  },
+  {
+   "version": "v2.37.28",
+   "date": "2026-09-04",
+   "items": [
+    "Operation Span moved from Memory Span to Counting — where the arithmetic lives"
+   ]
+  },
+  {
+   "version": "v2.37.27",
+   "date": "2026-09-04",
+   "items": [
+    "Object Tracker: the last ball you pick ends the round by itself — no separate confirm button"
+   ]
+  },
+  {
+   "version": "v2.37.26",
+   "date": "2026-09-04",
+   "items": [
+    "Words in Listening Span, Minimal Pairs and Dictation now play as real recordings instead of the machine voice — 1438 samples across seven languages"
+   ]
+  },
+  {
+   "version": "v2.37.25",
+   "date": "2026-09-04",
+   "items": [
+    "Flexibility is now about not getting stuck on a feature: patterns, set, symbol-digit",
+    "The Switching Task and the Wisconsin test moved to Attention Conflict, Trail Making to Routes"
+   ]
+  },
+  {
+   "version": "v2.37.24",
+   "date": "2026-09-04",
+   "items": [
+    "New “Routes” hub: Dots and One Line — both about a path that must cover everything"
+   ]
+  },
+  {
+   "version": "v2.37.23",
+   "date": "2026-09-04",
+   "items": [
+    "Attention Network Test and Continuous Performance Test moved into the “Attention Conflict” hub"
+   ]
+  },
+  {
+   "version": "v2.37.22",
+   "date": "2026-09-04",
+   "items": [
+    "Mahjong no longer seems to skip a level: while the result card is up, the header shows the level you cleared"
+   ]
+  },
+  {
+   "version": "v2.37.21",
+   "date": "2026-09-04",
+   "items": [
+    "Rhythm & Pitch plays sound on the phone again",
+    "In the Tower of Hanoi the disc no longer vanishes while dragging",
+    "Goods Sort now says why a level counted when the goal was not “clear everything”"
+   ]
+  },
+  {
+   "version": "v2.37.20",
+   "date": "2026-09-04",
+   "items": [
+    "Listening, reading and operation span moved into the “Memory Span” hub",
+    "Words in audio exercises will play as real recordings instead of the machine voice, as the corpus fills in"
+   ]
+  },
+  {
+   "version": "v2.37.19",
+   "date": "2026-09-04",
+   "items": [
+    "New “Towers” hub: the Tower of Hanoi and the Tower of London side by side — both about planning moves ahead"
+   ]
+  },
+  {
+   "version": "v2.37.18",
+   "date": "2026-09-04",
+   "items": [
+    "Hub cards now carry a badge with the number of exercises inside — you see at once it is a menu, not a game",
+    "In every category hubs come first, then the standalone exercises"
+   ]
+  },
+  {
+   "version": "v2.37.17",
+   "date": "2026-09-04",
+   "items": [
+    "New exercise “Dictation”: the phrase is read out and you type it in full — a typo blocks the way",
+    "The result shows characters per minute, accuracy and your weak keys"
+   ]
+  },
+  {
+   "version": "v2.37.16",
+   "date": "2026-09-04",
+   "items": [
+    "The catalogue folded into hubs: Counting, Words, Hearing, Visual Search, Flexibility, Decisions Under Risk, Visual Memory, Mnemonics and Languages",
+    "For now it is a preview in the NZT-48 profile — other profiles keep the catalogue as it was"
+   ]
+  },
+  {
+   "version": "v2.37.15",
+   "date": "2026-09-04",
+   "items": [
+    "Inhibition and Targets moved inside Attention Conflict — a shorter catalogue, same exercises",
+    "Object tracker: motion runs on its own again; the step-by-step mode is now a checkbox"
+   ]
+  },
+  {
+   "version": "v2.37.14",
+   "date": "2026-09-04",
+   "items": [
+    "Blind board: after your answer the token flips into the real piece — you see at once whether you were right",
+    "Vocabulary: new “Type it” mode — type the translation in full, a typo blocks the way (needs a real keyboard)"
+   ]
+  },
+  {
+   "version": "v2.37.13",
+   "date": "2026-09-04",
+   "items": [
+    "New exercise “Chinese Tones”: hear a syllable, name its tone, then pick the whole syllable"
+   ]
+  },
+  {
+   "version": "v2.37.12",
+   "date": "2026-09-04",
+   "items": [
+    "Chinese words now have pinyin and tones — 189 words in the dictionary",
+    "Minimal Pairs now speaks Chinese: 13 pairs for zh/z, ch/c, sh/s and -n/-ng, with pinyin on the button",
+    "New “Sources” screen in settings: where the data and artwork come from and under what terms"
+   ]
+  },
+  {
+   "version": "v2.37.10",
+   "date": "2026-09-04",
+   "items": [
+    "Game header: the empty white boxes under the counters are gone — one row of pills instead of two"
+   ]
+  },
+  {
+   "version": "v2.37.9",
+   "date": "2026-09-04",
+   "items": [
+    "Voice notes now show the level on phones with an old browser: you can see at once whether you are heard",
+    "If the microphone returns silence, the app says so while recording instead of staying quiet until you send"
+   ]
+  },
+  {
+   "version": "v2.37.7",
+   "date": "2026-09-04",
+   "items": [
+    "Sudoku: coloured groups no longer jump around — row highlighting used to erase their colour on every tap",
+    "Row and column highlighting in sudoku is now visible in the light theme — before it drew nothing",
+    "The daily hint now points to your weakest area"
+   ]
+  },
+  {
+   "version": "v2.37.6",
+   "date": "2026-09-03",
+   "items": [
+    "Every exercise now has a record: the result screen shows your best level and the best among players",
+    "The pet is no longer see-through, and its face is not cropped off-centre",
+    "Tapping the pet in the corner opens its screen from any game screen",
+    "Day goal asks in one line: the form expands when you open it"
+   ]
+  },
+  {
+   "version": "v2.37.5",
+   "date": "2026-09-03",
+   "items": [
+    "Blind Board: real chess pieces instead of font symbols, and a light classic board",
+    "a–h and 1–8 labels now run along the edges of the board instead of tiny corner marks",
+    "Header counters share one colour scheme across all exercises: errors red, correct green, points and streak warm"
+   ]
+  },
+  {
+   "version": "v2.37.4",
+   "date": "2026-09-03",
+   "items": [
+    "The pet is now on every game screen — setup and play alike, next to the rules button",
+    "Blind Board: you can turn on an empty board and a–h, 1–8 labels while you learn the coordinates",
+    "The Today block no longer grows without limit: three games and a tap to open statistics",
+    "The warm-up and practices row got a heading"
+   ]
+  },
+  {
+   "version": "v2.37.3",
+   "date": "2026-09-03",
+   "items": [
+    "The pet is visible on its own screen again: the portrait collapsed to zero and simply was not there",
+    "Pet looks now update on their own — no waiting for a new app version",
+    "Missing Word: 40 phrases per language instead of 16, and no more repeats in a row"
+   ]
+  },
+  {
+   "version": "v2.37.2",
+   "date": "2026-09-03",
+   "items": [
+    "The pet now sits right next to the rules button — a game button used to wedge between them"
+   ]
+  },
+  {
+   "version": "v2.37.1",
+   "date": "2026-09-03",
+   "items": [
+    "The pet is back on screen: in 2.37.0 it ended up under the rules button and was invisible",
+    "Memory Palace: items and places now fit together — no more scrolling up and down to match them",
+    "And a line about WHY the game exists: before, only the mechanics were explained"
+   ]
+  },
+  {
+   "version": "v2.37.0",
+   "date": "2026-09-03",
+   "items": [
+    "The pet moved next to the rules button and stopped wandering — same spot in game setup and in the game itself",
+    "Its badge now shows a close-up of the face: the full figure made the head a tiny dot",
+    "The counter row stopped jumping — digits no longer change the pill width",
+    "Sound volume is a slider now, not just on/off"
+   ]
+  },
+  {
+   "version": "v2.36.0",
+   "date": "2026-09-03",
+   "items": [
+    "Collection: the chest opens now — twelve shelves, each with a name and a price. You see what you have and what is ahead",
+    "After a cleared level you can spin the wheel: ×1.5, ×2 or ×3 on the stars you earned. No ads in it",
+    "Goods Sort joined the starter set, and the goods got bigger: one four-slot niche no longer shrinks the whole shelf",
+    "Board in Mind: the question names the square — “what is on g8?” instead of “on the highlighted square”",
+    "The first-game picker now has a way out, and in-game buttons stopped running off the edge"
+   ]
+  },
+  {
+   "version": "v2.35.0",
+   "date": "2026-09-03",
+   "items": [
+    "Mental rotation: the game no longer stalls after a mistake — the “next” button moved to the bottom row, where it cannot slide off screen",
+    "Mahjong: layers stopped lying. A tile now looks available exactly when it actually is",
+    "Unlocks by level: hints from level 2, undo from 3, pet outfits from 8. A locked button is not hidden — it shows when it opens",
+    "Collection chest: a long-term goal that is visible from the home screen"
+   ]
+  },
+  {
+   "version": "v2.34.5",
+   "date": "2026-09-03",
+   "items": [
+    "Header counters are announced correctly by screen readers now",
+    "After a cleared level you see the new star balance, not just what was earned"
+   ]
+  },
+  {
+   "version": "v2.34.4",
+   "date": "2026-09-03",
+   "items": [
+    "Sudoku: cell borders stopped vanishing and wandering — the line is exactly one pixel now, and block borders differ in colour too",
+    "Mental rotation: the answer options are centred, and the “next” button is reachable after a mistake",
+    "Object tracking: in reduced-motion mode each step now leaves a trail showing where the object came from",
+    "Blindfold board: bigger pieces",
+    "Trail making: the field now says lines may cross",
+    "Fractal sudoku: the red-digit explanation shows every time, not once per game"
+   ]
+  },
+  {
+   "version": "v2.34.3",
+   "date": "2026-09-03",
+   "items": [
+    "Header counters no longer hide or jump: icons instead of words, short time (4:55 instead of 295.3s)",
+    "Tap any counter to see what the number means"
+   ]
+  },
+  {
+   "version": "v2.34.2",
+   "date": "2026-09-02",
+   "items": [
+    "Technical release: the iPhone build now ships — nothing changes for you"
+   ]
+  },
+  {
+   "version": "v2.34.1",
+   "date": "2026-09-02",
+   "items": [
+    "Technical release: fixed the iPhone build upload — nothing changes for you"
+   ]
+  },
+  {
+   "version": "v2.34.0",
+   "date": "2026-09-02",
+   "items": [
+    "The screen no longer scrolls under your finger while you drag or draw a line",
+    "Top and bottom bars stopped running off the edge on narrow phones",
+    "Mahjong: rows no longer jump when you clear a pair at the edge of the board",
+    "Goods sort: dragging now completes the move, and a matched shelf glows gold instead of flashing white",
+    "The cabinet looks solid: filled sections are wood now, not blank tiles",
+    "Number-line estimation: the chosen value moved above the slider, out from under your finger",
+    "Rhythm and pitch: the Tap button is visible up front, and you can start without the latency check",
+    "One line: figures are no longer variations of a single quadrilateral",
+    "The Start button now sits at the bottom of the screen — no more scrolling to the end every time",
+    "New app icon on all five platforms"
+   ]
+  },
+  {
+   "version": "v2.33.0",
+   "date": "2026-09-02",
+   "items": [
+    "The app is on iPhone now: from this version every release builds for five platforms at once — Android, iPhone, Mac, Windows and Linux",
+    "In Goods Sort the timed lock cracks as it counts down — you can see it is about to open",
+    "A hint now glows instead of just being outlined — visible from the corner of your eye",
+    "A cleared level takes the scene apart: the shelves slide away, and only then the summary arrives"
+   ]
+  },
+  {
+   "version": "v2.32.0",
+   "date": "2026-09-02",
+   "items": [
+    "In Goods Sort three stars are finally reachable: the top grade used to be impossible on almost every level — the threshold sat below what the board can be solved in",
+    "The grade is honest now: the number of moves a board really needs is computed by search rather than guessed"
+   ]
+  },
+  {
+   "version": "v2.31.0",
+   "date": "2026-09-02",
+   "items": [
+    "Sudoku: the level number and the board no longer disagree — level 46 really starts the arrows instead of keeping thermometers",
+    "Thermometers and arrows no longer erase cell borders — the grid stays visible everywhere",
+    "In fractal sudoku the mistake counter now has a word, and the first mistake explains what a red digit means",
+    "The arrow rule now says it plainly: digits along an arrow may repeat"
+   ]
+  },
+  {
+   "version": "v2.30.1",
+   "date": "2026-09-02",
+   "items": [
+    "Maintenance release: the same changes as 2.30.0 — the previous tag did not finish building"
+   ]
+  },
+  {
+   "version": "v2.30.0",
+   "date": "2026-09-02",
+   "items": [
+    "Sudoku and Samurai now share the same header as every other game: level, mistakes, time and hints as badges rather than a text line"
+   ]
+  },
+  {
+   "version": "v2.29.0",
+   "date": "2026-09-02",
+   "items": [
+    "Header counters now look the same in every game — each game used to draw them its own way",
+    "The error counter is gone from the header: in an adaptive trainer mistakes are part of the work, not a failing",
+    "Where there was something to show, streaks, personal bests and time left were added"
+   ]
+  },
+  {
+   "version": "v2.28.0",
+   "date": "2026-09-02",
+   "items": [
+    "In Goods Sort difficulty finally grows with the level: level sixteen could previously be easier than level one",
+    "New rules now arrive one at a time every few levels — the first twenty play calmly",
+    "More boards: the same shape no longer repeats for several levels in a row",
+    "Plus everything from 2.27.0: streak-based score, staged level summary, difficulty cap in programmes, overlapping goods"
+   ]
+  },
+  {
+   "version": "v2.27.0",
+   "date": "2026-09-02",
+   "items": [
+    "Score now accelerates with your streak: the longer the chain of correct moves, the more each next one is worth — the multiplier shows next to the gain",
+    "The level summary arrives in parts — stars, streak, reward, record — instead of one flat frame",
+    "Training programmes no longer hand out tasks above your level: 14 games used to drop beginners straight into hard settings",
+    "In Goods Sort the items now overlap like on a real shelf, and became noticeably larger",
+    "N-back, Corsi Blocks and Spatial Span now track your personal best"
+   ]
+  },
+  {
+   "version": "v2.26.1",
+   "date": "2026-09-02",
+   "items": [
+    "Maintenance release: the same changes as 2.26.0 — the previous tag did not finish building"
+   ]
+  },
+  {
+   "version": "v2.26.0",
+   "date": "2026-09-02",
+   "items": [
+    "In Goods Sort the cabinet now fills the field — a third of the screen used to go to empty space",
+    "Level quirks (frozen row, strict placement, hidden goods) became header icons instead of a line of text",
+    "New rule “Hidden information”: from level sixteen some goods hide behind a “?”, and the game now says so",
+    "The “Critters” set was showing an internal code as its name — fixed in all twelve languages"
+   ]
+  },
+  {
+   "version": "v2.25.1",
+   "date": "2026-09-02",
+   "items": [
+    "Maintenance release: the same changes as 2.25.0 — the previous tag did not finish building"
+   ]
+  },
+  {
+   "version": "v2.25.0",
+   "date": "2026-09-02",
+   "items": [
+    "In Goods Sort the cabinet got wider and the goods bigger — most noticeable on a large screen",
+    "The app now builds for Linux too, and an iPhone simulator build joined the pipeline"
+   ]
+  },
+  {
+   "version": "v2.24.0",
+   "date": "2026-09-02",
+   "items": [
+    "The header got shorter and narrower across every exercise: spacing is now shared by all games, and the board got its room back",
+    "Goods Sort shows four counters instead of six, and undo, hint and shuffle moved to the bottom — within thumb reach"
+   ]
+  },
+  {
+   "version": "v2.23.0",
+   "date": "2026-08-31",
+   "items": [
+    "Goods Sort: the Mix set is no longer crowded with near-identical milk bottles — nine of them moved to Dairy, where telling shades apart is the point",
+    "Screen reader: a shelf now announces its state — “locked”, “opens in 3 moves”, “frozen” — instead of only the goods on it"
+   ]
+  },
+  {
+   "version": "v2.22.1",
+   "date": "2026-08-30",
+   "items": [
+    "Maintenance release: the same warm-up fixes as 2.22.0 — the previous tag did not finish building"
+   ]
+  },
+  {
+   "version": "v2.22.0",
+   "date": "2026-08-30",
+   "items": [
+    "Warm-up: the “skip exercise” button finally works — it used to press and do nothing",
+    "The warm-up no longer hands you a task above your level: the programme pulls you one step ahead instead of dropping twenty words at once",
+    "The eye practice now fills the screen — the dot travels wide instead of along a narrow strip"
+   ]
+  },
+  {
+   "version": "v2.21.0",
+   "date": "2026-08-30",
+   "items": [
+    "Games now praise a streak: from the third correct move in a row a word pops up where you acted, growing with the streak — “Nice!”, “Great!”, “Superb!”"
+   ]
+  },
+  {
+   "version": "v2.20.0",
+   "date": "2026-08-30",
+   "items": [
+    "Games now answer your move: sound, a running streak in the header and the pet reacting arrived in dozens of exercises where a correct action used to pass in silence",
+    "The result screen arrives in parts — stars, then numbers, then buttons — instead of landing all at once",
+    "Warm-up: the buttons under the practice are gathered in a centred row, and the picture no longer collapses into a strip"
+   ]
+  },
+  {
+   "version": "v2.19.0",
+   "date": "2026-08-30",
+   "items": [
+    "The pet now sits in the header of EVERY exercise, and the top bar looks the same everywhere — it used to differ in almost every game"
+   ]
+  },
+  {
+   "version": "v2.18.0",
+   "date": "2026-08-30",
+   "items": [
+    "The Memory Matrix board no longer huddles in a corner: cells roughly doubled and now fill the screen",
+    "The header pet moved into a medallion frame whose colour follows its mood — visible from the corner of your eye"
+   ]
+  },
+  {
+   "version": "v2.17.1",
+   "date": "2026-08-30",
+   "items": [
+    "Maintenance release: same changes as 2.17.0 — the previous tag did not finish building"
+   ]
+  },
+  {
+   "version": "v2.17.0",
+   "date": "2026-08-30",
+   "items": [
+    "Four grid games — Memory Matrix, N-back, Corsi Blocks and Spatial Span — came alive: cells have depth and light up, answers carry a shape and not just a colour, and the board finally fills the screen",
+    "A pet joined the header: it cheers a correct move and sulks on a miss. Points and the error counter gave way to your current streak and personal best"
+   ]
+  },
+  {
+   "version": "v2.16.0",
+   "date": "2026-08-30",
+   "items": [
+    "The move limit in Goods Sort now actually ends the level — before, you could keep playing forever — and the counter warns you by colour when moves are running out"
+   ]
+  },
+  {
+   "version": "v2.15.0",
+   "date": "2026-08-30",
+   "items": [
+    "The Goods Sort solver got twice as cheap on deep search: hints and the “this board is still solvable” check now answer where they used to give up"
+   ]
+  },
+  {
+   "version": "v2.14.0",
+   "date": "2026-08-30",
+   "items": [
+    "Goods Sort no longer crashes when a new level starts. The “board assembled wrong” error appeared where the shelf shape changed the number of slots while the grid size stayed the same",
+    "Twelve new plush critters in their own “Critters” set: baby elephant, kitten, corgi puppy, panda, owlet, tiger cub, octopus, sloth, hedgehog, baby whale, frog and baby dinosaur",
+    "The fox is out of the sets — as asked in a report"
+   ]
+  },
+  {
+   "version": "v2.13.1",
+   "date": "2026-08-30",
+   "items": [
+    "Spice of the Abyss: a node now floats its digit up at exactly the share it promises. The threshold used to be computed before the spice dug out extra givens, so nodes opened a little early"
+   ]
+  },
+  {
+   "version": "v2.13.0",
+   "date": "2026-08-30",
+   "items": [
+    "Ten more trainers got a two-way ladder: they used to only go up, so after a losing streak you were stuck on a level that was too hard. Now a third loss in a row gently steps you down — replaying a cleared level is never punished",
+    "“Fractal: The Abyss” gained the spice of the deep: the bottom layer switches on thermometers and sum cages while giving fewer digits — the solution stays unique, and that is verified on every board",
+    "The “Languages / Polyglot” profile finally has its own home background and level-map style — it was the only one without them. Four map themes that looked nearly identical are now actually different"
+   ]
+  },
+  {
+   "version": "v2.12.0",
+   "date": "2026-08-29",
+   "items": [
+    "“Eyes & breathing” now speaks 12 languages: the planner, catalog and practice screen follow the app language, all set names are translated. Step cues stay in English where translation is still on its way"
+   ]
+  },
+  {
+   "version": "v2.11.0",
+   "date": "2026-08-29",
+   "items": [
+    "The “Eyes & breathing” practice is now steerable: “Skip” and “+30 sec” next to pause, the timer shows step position “2/36 · 1:36”, the start button dives away while you read the catalog, and the result lists which practices you completed"
+   ]
+  },
+  {
+   "version": "v2.10.0",
+   "date": "2026-08-29",
+   "items": [
+    "The practice screen of “Eyes & breathing” got a large end-of-lesson timer right by the title; in immersive mode it dims instead of vanishing. Planner blocks are top-aligned"
+   ]
+  },
+  {
+   "version": "v2.9.0",
+   "date": "2026-08-29",
+   "items": [
+    "“Eyes & breathing” polished: duration/context/guidance are large localized chips, the start button is a compact capsule with a summary and no longer covers the cards, the “Route” mode got an explanation, service labels removed"
+   ]
+  },
+  {
+   "version": "v2.8.0",
+   "date": "2026-08-29",
+   "items": [
+    "“Eyes & breathing” remembers your format: mode, duration, context, guidance and chosen practices — set it once and the page opens with your configuration"
+   ]
+  },
+  {
+   "version": "v2.7.1",
+   "date": "2026-08-29",
+   "items": [
+    "Warm-up powered up: the 5/10/15-minute choice is back (and remembered), the weekly training grid works again — the snapshot core now runs Mon/Thu/Sun, other mornings are the day’s training",
+    "The set card shows the full game list before you start, “Brain today” honestly compares snapshot to snapshot, and a stuck game can be skipped from the header",
+    "The AI “Brain today” write-up is live — after a warm-up the text is now written by AI from your numbers"
+   ]
+  },
+  {
+   "version": "v2.6.0",
+   "date": "2026-08-29",
+   "items": [
+    "Targets: after three defeats in a row the level honestly steps down — like other ladder games. Climbing back is faster than being stuck above your head"
+   ]
+  },
+  {
+   "version": "v2.5.0",
+   "date": "2026-08-29",
+   "items": [
+    "Problem reports got sharper: each now carries your last 20 in-app steps and 10 console errors — fixes will find the cause faster"
+   ]
+  },
+  {
+   "version": "v2.4.0",
+   "date": "2026-08-29",
+   "items": [
+    "The Abyss powered up: a pencil for candidate marks, a layer map on trek selection (see how many puzzles hide at each depth) and portals — sibling boards linked by a shared digit: the deduction exists only between them"
+   ]
+  },
+  {
+   "version": "v2.3.0",
+   "date": "2026-08-29",
+   "items": [
+    "Sudoku grows to level 92: the combo belt! Two rules on one board at once — thermometers + knight’s move (81–84), sandwich + parity (85–88), cages + diagonals (89–92). Each pair is familiar from single levels — now they stack"
+   ]
+  },
+  {
+   "version": "v2.2.0",
+   "date": "2026-08-29",
+   "items": [
+    "Theme showcase in the shop: hand-drawn sudoku digit sets, 11 level-map themes, home backgrounds and profile badges — you can now buy any profile’s look for ⭐ and wear it in yours. Your own style stays free",
+    "Voice notes on older devices: if the system WebView is outdated and used to record silence, recording now goes straight through the device microphone — your voice gets through"
+   ]
+  },
+  {
+   "version": "v2.1.0",
+   "date": "2026-08-29",
+   "items": [
+    "“All or Nothing” wager in the shop: stake 300 ⭐ and check in 7 days in a row to take 600. Miss a day and the stake burns — the Streak Shield won't save it. For those with nowhere left to spend rewards"
+   ]
+  },
+  {
+   "version": "v2.0.0",
+   "date": "2026-08-28",
+   "items": [
+    "PsyGames 2.0! Dialog window: the feedback sheet gained a “Dialog” tab — your whole conversation with the developer like a messenger: your messages, our replies and fixes with versions. Thanks to NZT-48 — he asked “where is the dialog window?” before we built it"
+   ]
+  },
+  {
+   "version": "v1.255.2",
+   "date": "2026-08-28",
+   "items": [
+    "Closed the whole “game opened as something else” class: unfinished games now always match the entry — the samurai mega-boss badge belongs to the match, not the door"
+   ]
+  },
+  {
+   "version": "v1.255.1",
+   "date": "2026-08-28",
+   "items": [
+    "Fixed: regular sudoku no longer drags you into unfinished Towers/Futoshiki — their games wait behind their own cards. Thanks to Valentina for persisting!"
+   ]
+  },
+  {
+   "version": "v1.255.0",
+   "date": "2026-08-28",
+   "items": [
+    "The sudoku ladder grew from 57 to 80 levels: the ALS belt (58–65), the chains belt (66–79) and the “legend board” at the top — genuinely extreme boards with honest belt labels"
+   ]
+  },
+  {
+   "version": "v1.254.1",
+   "date": "2026-08-28",
+   "items": [
+    "Fixed: sudoku could open as “skyscrapers Lv.45/8” — the main ladder level leaked into the mini-ladder. Thanks to Valentina for the instant report!"
+   ]
+  },
+  {
+   "version": "v1.254.0",
+   "date": "2026-08-28",
+   "items": [
+    "Leagues doubled in height: above Peak there are four new phases (Super, Ultra, Legend, Limit) with ranks inside and their own trophies. A special bow to Valentina — her pace broke the old ladder",
+    "Tokens matter again: abilities and cosmetics cost more, and the shop gained a prestige shelf for the most devoted (Onyx, Comet, Diamond, Infinite)"
+   ]
+  },
+  {
+   "version": "v1.253.1",
+   "date": "2026-08-28",
+   "items": [
+    "Game picker for newcomers — Valentina’s idea: three questions (mood, time, taste) and the app shows three games picked for you plus your profile. Thank you, Valentina!"
+   ]
+  },
+  {
+   "version": "v1.252.1",
+   "date": "2026-08-28",
+   "items": [
+    "New game “Fractal: The Abyss” — a sudoku nested in a sudoku up to three layers deep. Dive through the dashed cells to the bottom, solve — digits float up. Three game sizes: from Scouting (a dozen grids) to The Abyss (~2900 nested puzzles, a weeks-long marathon)",
+    "Enter from the Fractal Sudoku screen or the sudoku section. The game saves itself: come back anytime"
+   ]
+  },
+  {
+   "version": "v1.251.2",
+   "date": "2026-08-28",
+   "items": [
+    "Fractal sudoku: the tools (digits/notes/color) moved up next to Undo — the bottom panel is half as tall, the board is noticeably bigger",
+    "Digit keys are more compact and extra gaps are gone — the board no longer fights the keypad for space"
+   ]
+  },
+  {
+   "version": "v1.251.0",
+   "date": "2026-08-28",
+   "items": [
+    "Fixed: skyscrapers, inequalities and killer showed a blank screen after winning — every mode now has a result screen",
+    "Fixed: in fractal sudoku the back button stopped working after visiting a lower grid — you could not leave the game",
+    "Fractal sudoku: the map is now interactive — tap a numbered cell and its lower grid lights up (and vice versa), a second tap opens the grid",
+    "Root cells now hold “ghosts” — live miniatures of the nested grids: you can see a sudoku going on beneath the cell and how far it got"
+   ]
+  },
+  {
+   "version": "v1.250.0",
+   "date": "2026-08-28",
+   "items": [
+    "Fractal sudoku: the digit pad is always at hand (no more scrolling down), a solved lower grid shows its digit on the map, rules rewritten step by step. Thanks to Valentina for the feedback!",
+    "Sandwich rules — rewritten simpler, plus a hint “tap an edge number”; the help example is centered",
+    "The catalog remembers where you were: returning from a game no longer throws you to the top"
+   ]
+  },
+  {
+   "version": "v1.249.0",
+   "date": "2026-08-28",
+   "items": [
+    "Sudoku: every 15th level is a MEGA-BOSS — an invitation to Samurai (five interlocked grids, an hour-long run with save & resume). Declining costs nothing — your level is already counted"
+   ]
+  },
+  {
+   "version": "v1.248.1",
+   "date": "2026-08-28",
+   "items": [
+    "Voice feedback: when a recording comes out silent because of an outdated system WebView, the app now names the real cause and the fix — update “Android System WebView” in Play (it used to suggest checking a permission that was already granted)"
+   ]
+  },
+  {
+   "version": "v1.248.0",
+   "date": "2026-08-28",
+   "items": [
+    "Profile themes: every game’s level map got an underlay in your profile’s mood — the same meadow path is graphite for chess, stained-glass for kids, X-ray for NZT-48 (11 themes)"
+   ]
+  },
+  {
+   "version": "v1.247.0",
+   "date": "2026-08-28",
+   "items": [
+    "Leaderboard grew to nine games: Go/No-Go (clean-run reaction), Hanoi (time at minimum moves) and Counter (ten flawless rounds) — each with its own top list and a record line on the result screen"
+   ]
+  },
+  {
+   "version": "v1.246.0",
+   "date": "2026-08-28",
+   "items": [
+    "Records now show where they are collected: all six leaderboard games display “yours · best among players” on the result screen (reaction, trails, spans, corsi used to submit silently)",
+    "Offline the line honestly falls back to your personal best"
+   ]
+  },
+  {
+   "version": "v1.245.0",
+   "date": "2026-08-27",
+   "items": [
+    "Mahjong: from level 10 every third level has hidden faces — “?” under covered tiles, so you plan under uncertainty",
+    "Warm-up: a 5-game snapshot core now leads every day in a fixed setup — your morning warm-up doubles as a quick measurement",
+    "Full assessment trimmed from 19 to 16 minutes: the attention test is half as long (the decline shows by minute two), the balloon task loses its idle minutes"
+   ]
+  },
+  {
+   "version": "v1.244.0",
+   "date": "2026-08-27",
+   "items": [
+    "Sudoku: two new modes in the hub — Towers (6×6, edge clues: how many buildings you can see) and Futoshiki (signs between cells, chains of comparisons). Each has its own 8-step ladder",
+    "Sudoku: the solver learned inequality chains and the towers lower bound — both modes are graded honestly, by measurement"
+   ]
+  },
+  {
+   "version": "v1.243.1",
+   "date": "2026-08-27",
+   "items": [
+    "Sudoku: difficulty no longer dips at variant seams — a level never promises less than the one before",
+    "Sudoku: jigsaw is now the summit (54–57) with thermo-cages before it; rule descriptions updated in every language"
+   ]
+  },
+  {
+   "version": "v1.243.0",
+   "date": "2026-08-27",
+   "items": [
+    "Goods sorting: from level 16 hidden information arrives — “?” under top items, so you plan blind and revise as you reveal",
+    "Sudoku: thermo variants got honest difficulty bands (unreachable tiers removed by measurement), jigsaw and thermo-cages hit their band more often",
+    "Assessment: five metrics fixed (switching, balloon, pattern, digit span, symbols) and every battery game starts in a fixed configuration — norm comparison is meaningful again"
+   ]
+  },
+  {
+   "version": "v1.242.5",
+   "date": "2026-08-27",
+   "items": [
+    "Warm-up: the timing frame and squeeze arrows are now green — purple blended into the body artwork",
+    "Warm-up: the session ending is the standard result screen like every other game (time, minutes, sets, Retry and Home)"
+   ]
+  },
+  {
+   "version": "v1.242.4",
+   "date": "2026-08-27",
+   "items": [
+    "Service release: delivery of the previous two versions was cut by a quality check on our side; nothing changed in the app itself"
+   ]
+  },
+  {
+   "version": "v1.242.3",
+   "date": "2026-08-27",
+   "items": [
+    "The warm-up now follows the app-wide design: same colors, cards and font in light and dark themes",
+    "The app light theme previously never reached the warm-up — the screen stayed dark; fixed"
+   ]
+  },
+  {
+   "version": "v1.242.2",
+   "date": "2026-08-27",
+   "items": [
+    "The warm-up screen opens without a load-time error (hydration)",
+    "The Pause, Exit and Close buttons during practice are larger now — 48 px, the tap-target threshold"
+   ]
+  },
+  {
+   "version": "v1.242.1",
+   "date": "2026-08-27",
+   "items": [
+    "A finished warm-up is now recorded: until now a fully completed session went into history as an exit without recording",
+    "Returning from the background resumes the practice again — it used to stay paused forever",
+    "After finishing you get the result and “Again”, not the old picker screen"
+   ]
+  },
+  {
+   "version": "v1.242.0",
+   "date": "2026-08-27",
+   "items": [
+    "The warm-up now comes whole from the Smart Alarm: its planner, its artwork, its gaze path, its parallel mode — not a rebuilt copy",
+    "Eye gym leads the gaze along a moving dot again; the rebuilt version had a breathing figure in its place",
+    "Pausing the app pauses the practice: minimise or step away and the clock stops"
+   ]
+  },
+  {
+   "version": "v1.241.0",
+   "date": "2026-08-27",
+   "items": [
+    "The warm-up got its artwork: a body with the working zone lit, posture photos, a breathing figure — there used to be a single glyph instead",
+    "Step time now runs as a frame around the artwork; for squeeze-and-release practices the frame is a polygon: one side per phase",
+    "Seconds left in the current step are shown right next to its name"
+   ]
+  },
+  {
+   "version": "v1.240.3",
+   "date": "2026-08-27",
+   "items": [
+    "Blindfold Chess is now Board in Mind: positions come from real games instead of a random scatter of pieces — a random placement had nothing to train",
+    "The search mode no longer produces games with fewer than three questions"
+   ]
+  },
+  {
+   "version": "v1.240.2",
+   "date": "2026-08-27",
+   "items": [
+    "Tower of Hanoi: the move target was inflated — later levels showed 4095 instead of 47, and three stars were given for any solution. The minimum is now computed honestly",
+    "Tower of Hanoi is finally visible: full-height board, discs coloured by size and larger, pegs read as objects"
+   ]
+  },
+  {
+   "version": "v1.240.1",
+   "date": "2026-08-27",
+   "items": [
+    "The between-levels screen could crash the game on some screens — the reward for finishing a level no longer disappears"
+   ]
+  },
+  {
+   "version": "v1.240.0",
+   "date": "2026-08-26",
+   "items": [
+    "The between-levels screen is now a reward: nine new cities — chess, candy, book, rose and more; your profile city returns as a milestone",
+    "The transition lasts longer — enough time to actually look at the artwork"
+   ]
+  },
+  {
+   "version": "v1.239.3",
+   "date": "2026-08-26",
+   "items": [
+    "Level transition screen: the artwork covered only half the screen and cut off — now it fills it completely"
+   ]
+  },
+  {
+   "version": "v1.239.2",
+   "date": "2026-08-26",
+   "items": [
+    "The profile background finally covers the whole screen — it used to render at its natural size and cut off as a strip"
+   ]
+  },
+  {
+   "version": "v1.239.1",
+   "date": "2026-08-26",
+   "items": [
+    "The profile background fills the whole screen instead of a strip at the top — on phones too",
+    "Pause is now called Eyes & breathing: what matters moved into the title"
+   ]
+  },
+  {
+   "version": "v1.239.0",
+   "date": "2026-08-26",
+   "items": [
+    "The profile background now fills the whole screen instead of a strip at the top — on phones too",
+    "Pause is now called Eyes & breathing: what matters moved into the title instead of hiding in small print"
+   ]
+  },
+  {
+   "version": "v1.238.0",
+   "date": "2026-08-26",
+   "items": [
+    "Every profile now has its own home background: a morning city for Entrepreneurs, a sunlit board for the Chess Player, silk for Micro-relax",
+    "Profile badges redrawn to stay readable at small sizes, and the PsyGames wordmark no longer sinks into a dark plate",
+    "Eye gym and Breathing merged into a single Pause button — both remain practices inside it, and Daily challenge took the third slot",
+    "Sudoku: a new Towers variant — a digit is a building height, and the edge clue says how many buildings are visible"
+   ]
+  },
+  {
+   "version": "v1.237.0",
+   "date": "2026-08-26",
+   "items": [
+    "New exercise «Pause»: breathing, eyes, face, relaxation and mobility — a short body rest with no scoring",
+    "Sudoku: a level no longer promises a difficulty it cannot deliver — boards match their rung far more often",
+    "Sudoku: a board with two solutions can no longer slip through — you won't lose a life for a correct move",
+    "Word Sort stopped repeating words: one could previously appear twice in a single round"
+   ]
+  },
+  {
+   "version": "v1.236.0",
+   "date": "2026-08-23",
+   "items": [
+    "Sudoku: classic boards appear instantly — it used to take up to three seconds",
+    "Sudoku with thermometers and jigsaw: half the wait, and top levels are genuinely hard now",
+    "Dot Connect: the first six levels are solved by reasoning, not by trying options",
+    "Reading Span: sentences no longer repeat until the pool runs out"
+   ]
+  },
+  {
+   "version": "v1.235.0",
+   "date": "2026-08-23",
+   "items": [
+    "Blindfold Chess is no longer memory for random pieces. It is now three tasks in a row on ONE position from a real game: compare two squares by colour, tell whether a knight gets there in so many moves, recall what stood on a square. The time difference between tasks is what shows the cost of the move rule and the cost of holding the position in your head",
+    "The positions come from a database of real games: on a random placement memory has nothing to grip, and such a test measures only raw capacity",
+    "There is no board on screen during the questions — it lives in your head, otherwise it is not a visualization test",
+    "Mahjong: 34 different layouts instead of seven drawn by formula. And more importantly, deals are now built so the board is guaranteed to clear: dead boards are gone by construction, not by a check"
+   ]
+  },
+  {
+   "version": "v1.234.0",
+   "date": "2026-08-23",
+   "items": [
+    "Six exercises were not measuring what they promised. The higher the level, the smaller the very quantity the exercise exists for: in Stroop the upper levels left almost no ordinary trials, and without them interference has nothing to compare against. Difficulty now grows through pace and volume, not by swapping the mix of trials",
+    "Stop-signal was called inhibition and did not measure inhibition: a fast person was stopped in 14% of trials, a slow one in 99% — the game measured hand speed. The delay now adapts to you and converges to half successful stops for anyone",
+    "Attention (CPT): the first three levels could not be passed at all — the allotted time physically did not fit the required number of trials. Fixed",
+    "Attention (CPT): there were three times fewer targets than stated, and the game description described the opposite task — «tap everything except X», which the game never did",
+    "The Schulte and proofreading series now sit in Warm-up next to Assessment and FIN BRAIN. The proofreading series previously could not be started from anywhere but a button inside the game itself"
+   ]
+  },
+  {
+   "version": "v1.233.0",
+   "date": "2026-08-23",
+   "items": [
+    "Proofreading now runs as a series of three modes on ONE field: first find a letter, then find words in the same grid, then only words of a given category. The time difference between modes shows what it costs you to split a string into words, and what it costs to grasp their meaning",
+    "In the «meaning» mode the grid holds both the wanted words and foreign ones — of the same length. Otherwise finding any word would be enough, with no thinking about meaning"
+   ]
+  },
+  {
+   "version": "v1.232.0",
+   "date": "2026-08-23",
+   "items": [
+    "Assessment and FIN BRAIN moved into Warm-up: neither is a game, both are a run of games with a single result — exactly what the warm-up is. They used to be two doors into the same machine",
+    "Schulte can now run as a series: three blocks on ONE field — in order, then alternating two rows, then finding a pair with a given sum. The time difference between blocks is what shows the cost of switching and of holding a number in mind",
+    "Digit span: a third mode — enter the digits in ascending order; spoken digits instead of the screen; your span and record are visible during the round, not only at the end; in free play you can change the pace",
+    "Mental rotation: two new tasks — pick the top view of a shape, and tell which cube a flat net folds into. After a miss the reference shape rotates itself to the right answer, step by step, so you see why it is right",
+    "Mental rotation: two shapes in the set turned out to be rotations of each other — meaning a «wrong» option was sometimes a second right one. The shape was replaced",
+    "Dots connect: you can reveal the solution. The round then does not count — looking is allowed, buying progress is not",
+    "n-back now shows d′, the number that separates real discrimination from luck. Percent accuracy mixes hits with guessing: 90% fits both a great round and a cautious player who rarely answers",
+    "Stroop: the answer buttons are plain colour patches now. The labels put word-reading back into the answer — the very thing this test is meant to suppress"
+   ]
+  },
+  {
+   "version": "v1.231.0",
+   "date": "2026-08-22",
+   "items": [
+    "One Line stopped being a tangle: the game used to deliberately pick the most crossed layout — 196 line crossings per board against one in the hand-drawn figures. The drawing is readable now, there are forty figures instead of twelve and eighty levels instead of forty-eight",
+    "One Line: the line follows your finger, and every segment you take answers with a click",
+    "Mahjong: four copies of each design, as in a real set — the upper levels used to have twelve, and a pair was spotted instantly",
+    "Sudoku shows the technique THIS board actually needs instead of a label derived from the level number: the word «extreme» covered twenty-four levels in a row and six different rules",
+    "Targets: a purchased second life no longer unlocks levels — it helps you finish the round, it does not buy progress",
+    "Digit span used to stop after two errors in the whole game instead of two at the same length, which measured the span shorter than it is",
+    "The assessment battery now takes a round played in the prescribed setup: digit span backward on hard used to enter the report as forward on medium and be compared against the wrong norm"
+   ]
+  },
+  {
+   "version": "v1.230.0",
+   "date": "2026-08-22",
+   "items": [
+    "Mahjong stopped being flat: level two used to lay out ten tiles in a single layer — that is not mahjong, there is nothing to dismantle. Now it is a proper pile from level one, with seven silhouettes (turtle, pyramid, fortress, bridge, spider, butterfly, diamond) and the full 144-tile set by level forty",
+    "Mahjong shows how many pairs are still available: every third game used to reach a dead board with no word from the game",
+    "Dots Connect became a real game: the grid grows from 5×5 to 10×10, fourteen colours instead of eight, and a level counts only when the lines cover the whole board",
+    "One Line: twenty-four hand-drawn figures instead of twelve, and the first is a real pattern rather than a three-dot triangle",
+    "A new Fillwords mode inside Proofreading: a grid of letters, words traced with a finger, the level cleared when every letter is used",
+    "Sudoku above level forty-one: a board is now guaranteed to be solvable by logic without guessing, and twenty levels in a row stopped being indistinguishable",
+    "Sudoku no longer freezes silently on hard levels — while the board is being built the screen says so and keeps the back button alive",
+    "Samurai stopped punishing blind: nearly half of all wrong digits took a life without leaving a single mark on the board",
+    "The Daily Challenge no longer plays level one for everyone — the level now loads before the game starts",
+    "The level path reaches what you have achieved: anything cleared above fifteen can be replayed, it simply was not on the map before",
+    "Games stopped getting lost: of twelve simultaneous saves only one survived",
+    "Goods sort: the hint no longer points at a move the game itself refuses, and the board no longer arrives with a triple already made"
+   ]
+  },
+  {
+   "version": "v1.229.0",
+   "date": "2026-08-22",
+   "items": [
+    "Verbal fluency did not work at all: the score always came out zero, and in ten languages the game asked for words in a script it refused to accept",
+    "The spaced-repetition vocabulary froze the app outright when two words shared a translation",
+    "The language picker offered eleven languages while only seven had dictionaries: four games stalled, and in a warm-up step that screen had no way out",
+    "Targets: from level 21 a target appeared in every round, making «always press» a flawless strategy; and the screen congratulated you after a complete loss",
+    "The Stop button no longer decides a level's fate differently in every game: an interrupted round moves the level neither up nor down",
+    "Rhythm and pitch: one missed beat in the middle zeroed the round while the same miss at the end cost a sixth — a mistake now costs the same wherever it happens",
+    "Audio latency calibration no longer guesses from an incomplete set of clicks: missing the first click used to silently cost two thirds of every later round",
+    "Samurai sudoku stopped punishing blind: nearly half of all wrong digits took a life without leaving a single mark on the board",
+    "Story recall: one keyword was spelled with a Latin letter inside and could not be typed on any keyboard; and a flawless retelling could still register an «error» because of duplicates in the key list",
+    "Trails: on smaller screens nodes overlapped in nine layouts out of ten — a node hid under its neighbour and could not be tapped"
+   ]
+  },
+  {
+   "version": "v1.228.0",
+   "date": "2026-08-22",
+   "items": [
+    "Sudoku no longer takes a life in silence: when a digit is refused, the game names the rule that blocks it — and when it cannot prove one, it honestly says the conflict is not local",
+    "The sandwich rule was rewritten: «sum of digits between 1 and 9» read as «digits 1 through 9» (which always add to 45), making the clue look meaningless",
+    "Mahjong: 4–11% of deals were unsolvable and shuffling did not help — deals are now rebuilt, and a failed shuffle is not spent",
+    "Goods sort: 57 levels out of 200 shipped without a single free niche, shuffling lost goods, and the board could silently lock — all fixed, and dead ends are now announced",
+    "Memory Palace responds to tapping a spot, not only an item — either order works now",
+    "One Line: the line follows your finger along the edge, double and one-way edges appeared, twelve hand-drawn shapes, and a score that drains to zero"
+   ]
+  },
+  {
+   "version": "v1.227.0",
+   "date": "2026-08-22",
+   "items": [
+    "Raw games no longer show up in warm-ups or the daily challenge — they left the shelf yesterday, but three paths to them stayed open"
+   ]
+  },
+  {
+   "version": "v1.226.0",
+   "date": "2026-08-22",
+   "items": [
+    "Sound off is no longer ignored by speech: the exercise says it needs sound instead of going quiet",
+    "Dual n-back no longer starts without speech — a mute stream used to zero your result for nothing",
+    "Visual Search respects colour blindness: the conjunction colours now separate under all three types"
+   ]
+  },
+  {
+   "version": "v1.225.0",
+   "date": "2026-08-22",
+   "items": [
+    "Connect the Dots is finally about dots: endpoints are circles and the path is a line, not filled squares",
+    "Stroop is now playable with colour blindness: two of the four inks used to merge, making a correct answer impossible",
+    "Seven raw games moved into a sandbox — the sets now hold only finished exercises"
+   ]
+  },
+  {
+   "version": "v1.224.0",
+   "date": "2026-08-21",
+   "items": [
+    "Sudoku is back in Micro-relax, Kids and Chess Player, and Corsi is back in Chess Player: our own hub entry had hidden them from the menu"
+   ]
+  },
+  {
+   "version": "v1.223.0",
+   "date": "2026-08-21",
+   "items": [
+    "The achievements screen header and footer are translated into all twelve languages — ten of them used to get English"
+   ]
+  },
+  {
+   "version": "v1.222.0",
+   "date": "2026-08-21",
+   "items": [
+    "The achievements screen spoke Russian to everyone but English speakers — now it uses your language, and the unlock date reads like a date",
+    "In the shop, the Use button looked ready when there was nothing to use"
+   ]
+  },
+  {
+   "version": "v1.221.0",
+   "date": "2026-08-21",
+   "items": [
+    "Seventeen cards showed a screenshot of a menu instead of the game — the cover now shows what you actually play"
+   ]
+  },
+  {
+   "version": "v1.220.0",
+   "date": "2026-08-21",
+   "items": [
+    "Achievements: Iron inhibition now reads like a sentence instead of an internal field name, and long titles no longer get clipped"
+   ]
+  },
+  {
+   "version": "v1.219.0",
+   "date": "2026-08-21",
+   "items": [
+    "The feedback button and the pet no longer cover text at the bottom: the shop hid its tokens line, the leagues screen hid a heading and a league name"
+   ]
+  },
+  {
+   "version": "v1.218.0",
+   "date": "2026-08-21",
+   "items": [
+    "The between-levels ladder is centred now, and the “starting next level” line no longer crowds the bottom step"
+   ]
+  },
+  {
+   "version": "v1.217.0",
+   "date": "2026-08-21",
+   "items": [
+    "The speed-reading profile now includes mnemonics for words and numbers — from your feedback: reading fast and retaining nothing is not a result"
+   ]
+  },
+  {
+   "version": "v1.216.0",
+   "date": "2026-08-21",
+   "items": [
+    "Voice feedback: second attempt at the microphone — the permission bridge is now attached before the page loads"
+   ]
+  },
+  {
+   "version": "v1.215.0",
+   "date": "2026-08-21",
+   "items": [
+    "Between-levels screen: the pet now climbs the ladder upward, and the steps you already passed stay in view — not just the last hop"
+   ]
+  },
+  {
+   "version": "v1.214.0",
+   "date": "2026-08-21",
+   "items": [
+    "Voice feedback: the app finally asks the system for microphone permission — without it Android silently returned silence instead of a recording for three weeks"
+   ]
+  },
+  {
+   "version": "v1.213.0",
+   "date": "2026-08-21",
+   "items": [
+    "Math Slider no longer loses your game silently: back asks first, and while you write feedback the game and its clock are paused"
+   ]
+  },
+  {
+   "version": "v1.212.0",
+   "date": "2026-08-21",
+   "items": [
+    "The app's messages are visible again: copy confirmation, the result of a progress transfer and the whole update conversation were silent on every device",
+    "The friends circle explains a refusal honestly: your own code and a full circle are no longer reported as “no such code”"
+   ]
+  },
+  {
+   "version": "v1.211.0",
+   "date": "2026-08-21",
+   "items": [
+    "Friends by invite code: share your code or enter theirs, and compare records with your own circle instead of strangers",
+    "The feedback button can be moved now: press and drag it, and it stays where you put it",
+    "A voice note is no longer lost when the network blinks while sending — the upload retries by a second route",
+    "Your unfinished game now comes back in fractal and samurai sudoku too — the last two of nine"
+   ]
+  },
+  {
+   "version": "v1.210.0",
+   "date": "2026-08-21",
+   "items": [
+    "Your unfinished game comes back again: in nine games it was restored only for the default profile and lost for everyone else",
+    "Voice feedback now records straight from the microphone — audio processing returned an empty track on some phones",
+    "Fractal sudoku gained portals: one cell lives in two grids at once, and the deduction exists only between them",
+    "Reaching your daily goal now earns points — provided you actually played that day",
+    "The hardest samurai is genuinely hard now: the top band requires naked pairs instead of whatever turned up",
+    "Goods sets unlock by level: below level six they are all identical, so there is nothing to unlock earlier"
+   ]
+  },
+  {
+   "version": "v1.209.0",
+   "date": "2026-08-20",
+   "items": [
+    "Sudoku explains its own rules on the board: what the edge sums mean, why undo exists, what cell colouring does",
+    "A voice note no longer vanishes silently: you can see whether the app hears you, and a silent recording will not be sent",
+    "Evenings are quiet in every game of the set, not only the ones that were complained about: Sudoku drops its stopwatch, the win sound stays off",
+    "The goods set picker is legible: thumbnails grew threefold and stopped overlapping",
+    "Samurai no longer mixes its rounds with plain Sudoku — times and levels of the two games are separate",
+    "A warm-up step can no longer drop your level: two exercises were doing it silently"
+   ]
+  },
+  {
+   "version": "v1.208.0",
+   "date": "2026-08-20",
+   "items": [
+    "Sudoku: three difficulty roads. You pick before the game, each keeps its own progress; what you cleared on hard counts on easy, never the other way",
+    "The three Sudokus now sit behind one entry instead of three cards among seventy",
+    "Points are finally worth spending inside a round: second life, practice run and streak shield",
+    "White text on coloured panels is readable — in 68 places it was nearly white on white",
+    "Six new games now pause while you write feedback, and ask before you leave",
+    "In Object Tracker the balls no longer fly on while the feedback window is open",
+    "Fractal Sudoku finally counts toward the logic branch — one character in its name kept its rounds out of everything"
+   ]
+  },
+  {
+   "version": "v1.207.0",
+   "date": "2026-08-20",
+   "items": [
+    "Goal of the day: the app asks what you came for today and counts rounds toward it",
+    "Recommended today — three exercises, each with a reason, instead of picking from 71",
+    "A clean round pays double, and you can see what earned what today",
+    "History tab: what changed from time to time, not how much you played in total",
+    "Pencil marks now in classic Sudoku and Samurai too",
+    "A new Sudoku variant: thermometers and sum cages on one board",
+    "Your best time now sits under each cleared node on the level path",
+    "The pet wears its bow tie on the neck, not on the belly or the tail",
+    "Samurai no longer goes silent while it builds a board",
+    "In Fractal Sudoku a third of “level 20” boards were level 16 with a different label — the tiers are real now",
+    "On fractal levels 26-30 a third of the grids were ones you had already seen, just rotated"
+   ]
+  },
+  {
+   "version": "v1.206.3",
+   "date": "2026-08-19",
+   "items": [
+    "Seven new exercises — the catalogue now holds 71",
+    "Memory Palace — the method of loci: a route, items, recall both ways",
+    "Rhythm and Pitch — the first exercise for the ear, no words, no microphone",
+    "The level path names the difficulty tier in words, not a bare number",
+    "Undo, hint and shuffle sit in their own row; the bottom is for answering",
+    "Samurai, SET and Sort the Goods ask before you leave — a long game is not lost",
+    "Leaderboards cover six games now, not two — offline you see your best",
+    "Sort the Goods no longer looks broken: from level 3 the shape cuts out niches, and those spots are solid wood now, not a hole",
+    "Five new games now speak your language: inside a round they only knew Russian and English",
+    "Number Line takes one confirmation instead of two",
+    "The midday break respects your own set of exercises",
+    "The level path is visible again. It was showing almost nowhere: the card collapsed to a sliver, the “Level 1 / 52” caption stacked one letter per line, and the pet and stars vanished. It lasted until you rotated the screen — for most people, forever",
+    "Sort the Goods is rebuilt: every level states its own goal, obstacles appeared, goods can be dragged, and there is undo and a hint. Distinct levels went from 13 to 59",
+    "Levels are now separated by a short breather with a picture, and the pet visibly walks on to the next one",
+    "Leaving a game no longer wipes your board. Twenty minutes of Mahjong used to disappear from one stray tap on “back”, and none of the 64 games asked first",
+    "Undo — in Mahjong, Anagrams, Samurai Sudoku and Fractal Sudoku",
+    "Game titles and the Start button are readable on 59 screens: they were white on light, and on some screens the text was physically unreadable",
+    "Fractal Sudoku was unwinnable outright — the root grid took no input at all. It is now fully playable, with 30 levels instead of 15",
+    "Samurai Sudoku: the difficulty ladder became real (every level used to fall to a single technique), the game saves when you leave, and cells can be hit with a finger",
+    "SET now shows how long is left on the current deal. From level 11 the time is cut from 26 seconds to 10, and levels were lost to a clock nobody displayed",
+    "Numbers in headers are labelled with words on 51 screens — instead of “A 12”, “μ8”, “Span 5”",
+    "Level rules are translated into all 12 languages. Ten languages used to read the explanation of a new mechanic in English",
+    "Sound is muted on 57 screens during the evening and night warm-up: that set exists to wind down, and a beep on every action did the opposite",
+    "A reduced-motion mode arrived for people who get dizzy from animation",
+    "A new “What’s new” profile — a shelf for fresh and substantially reworked exercises"
+   ]
+  },
+  {
+   "version": "v1.204.0",
+   "date": "2026-08-19",
+   "items": [
+    "The evening warm-up no longer rushes you: Spot the Difference lost its countdown and Mahjong its stopwatch. The evening set exists to wind down, and a timer did the opposite",
+    "Running out of time now costs you that round only. Before, one late round ended the whole level and ate the remaining tries",
+    "The game pauses while you write feedback. Time used to keep running, so a round could end while you were describing it",
+    "PRL finally says what is going on: there is nothing to guess. The sides swap silently, and two errors in a row after a good streak mean the rule has changed",
+    "Shelves in Sort the Goods are no longer cut off at the bottom",
+    "⚠️ The app still needs a VPN in some networks and that is not solved yet. Reports now tell us which route they took — without that we could not investigate"
+   ]
+  },
+  {
+   "version": "v1.203.0",
+   "date": "2026-08-14",
+   "items": [
+    "A voice note can no longer run past its limit: one arrived at 5.5 minutes against a 3-minute cap because the counter stalled when the screen went dark. The cap now holds regardless",
+    "⚠️ If your voice note arrives silent, that is a known problem we are still chasing. When a recording captures no sound the app now says so immediately — please retype it, otherwise nothing reaches us"
+   ]
+  },
+  {
+   "version": "v1.202.0",
+   "date": "2026-08-14",
+   "items": [
+    "The profile card said “All 48 trainers” — that was the count long ago. There are 63 now, and the number is counted automatically instead of being typed in"
+   ]
+  },
+  {
+   "version": "v1.201.0",
+   "date": "2026-08-14",
+   "items": [
+    "A bow tie has appeared in the shop for 300 points — for your pet’s neck. The bow stays a hair clip on the head: they are two different items now"
+   ]
+  },
+  {
+   "version": "v1.200.0",
+   "date": "2026-08-14",
+   "items": [
+    "Any completed level can be replayed straight from the path: tap a completed node and Start will launch that one. Stars keep your best result, so a second run can only improve the rating",
+    "Failing a replay does not lower your level — you chose to go back to an easier one, which is no reason to treat it as difficulty. The path will not let you jump above your record",
+    "A child profile no longer inherits an adult level. Progress was per profile but round history was shared, so a fresh profile started at someone else’s step"
+   ]
+  },
+  {
+   "version": "v1.199.0",
+   "date": "2026-08-14",
+   "items": [
+    "The bow is back on the head as a hair clip and no longer covers the pet’s face. It used to hang off a point called “neck” that actually sat above the skull — once the points were measured honestly, the bow slid down onto the face"
+   ]
+  },
+  {
+   "version": "v1.198.0",
+   "date": "2026-08-13",
+   "items": [
+    "Real background music at last — six calm instrumental tracks of about two minutes each: for breathing, for mornings, for evenings, for counting. What used to be called music was four chords synthesised on the fly, and a tester fairly called it “3 notes”",
+    "Music is still off by default and turns on in settings. Tracks play shuffled and quiet — under the exercise, not instead of it"
+   ]
+  },
+  {
+   "version": "v1.197.0",
+   "date": "2026-08-13",
+   "items": [
+    "Every exercise now works the same way: a level or a run counter, a path with your pet on it, and one shared result screen with stars. Nine games used to bypass all of that — no stars collected, no clean-run streak",
+    "Progress no longer disappears when a profile is reset or switched. Levels lived behind a single key; they are now rebuilt from your own training history on this device",
+    "Breathing counts completed sessions too and shows them on the path"
+   ]
+  },
+  {
+   "version": "v1.196.0",
+   "date": "2026-08-13",
+   "items": [
+    "The party hat finally sits ON the head instead of floating above it. Glasses moved onto the eyes and the bow under the chin too: mount points were skewed toward the top of the frame on all three skins",
+    "Mahjong is harder where it counts: the shuffle is a resource now (unlimited for the first five levels, then 3 → 2 → 1 per level), and past level 15 the pyramid grows to four and five layers",
+    "The level result now appears OVER the board in Mahjong, Goods Sort, Picture Pairs, Sudoku, Tower of Hanoi and others — the board you just cleared stays on screen",
+    "Levels arrived where there were none: Eye Gymnastics, Story Recall, Fractal Sudoku. Iowa, RMET, Vocabulary and Verbal Fluency count completed runs instead — those are validated tests and their difficulty must not be tampered with",
+    "A “Levels / Free” switch on the settings screen: free play used to hide behind a button below every setting",
+    "Points returned for warm-ups broken by an earlier bug"
+   ]
+  },
+  {
+   "version": "v1.195.0",
+   "date": "2026-08-13",
+   "items": [
+    "A level path instead of a row of numbers: a chain of neurons, the road behind lit up, dashes ahead, boss milestones larger. Your pet sits on the current node so you can see where you are",
+    "Warm-up no longer drops out: the game started the next level while the warm-up moved on to the next exercise. Two timers fought over one screen",
+    "Streak flames restored: a failed read wiped the day history. Past days were rebuilt from your own sessions",
+    "Sudoku in warm-up: losing no longer traps you on one step — the warm-up moves on",
+    "Eye Gymnastics now has 15 levels: each one runs longer and moves the dot faster. Manual settings stay — that is free mode"
+   ]
+  },
+  {
+   "version": "v1.194.0",
+   "date": "2026-08-13",
+   "items": [
+    "Fractal Sudoku: behind every cell of the top grid hides a whole sudoku. Solve a lower grid and its digit moves up into the root",
+    "Goods Sort is a real puzzle now: level one left two thirds of the board empty; it is over half full and has more types",
+    "The pet hat finally sits ON the head instead of floating above it — the cat’s mount point was on the antenna tips",
+    "Game cards: two columns again on phones. One stretched column left 218 points of emptiness between the text and the badge",
+    "The game description folded into an “About game” row across all 56 games — screens open straight into settings",
+    "The Start button is pinned to the bottom in 23 games; you used to have to scroll down to it",
+    "Buttons across the app now meet a reliable finger-tap size: 123 of 618 were below it, now none",
+    "Japanese is fully translated — it was half done. All 12 languages are complete",
+    "The app icon on Windows and macOS is updated: desktop builds were made from an old file and shipped the old logo"
+   ]
+  },
+  {
+   "version": "v1.193.0",
+   "date": "2026-08-12",
+   "items": [
+    "Sudoku: bigger, colour-coded number keys, moved right under the board — there used to be half a screen of emptiness between them",
+    "Sudoku: hint, undo and colour moved to the top bar; mode and rules moved down next to Play. The game now opens straight into settings, with the description folded into an “About game” row",
+    "Sudoku: a digit sitting on a circle or a tint no longer looks washed out — it is drawn in solid black over any backdrop",
+    "Tower of Hanoi: drag discs with your finger. Tapping the pegs still works",
+    "On desktop you can play with the keyboard: digits enter, Backspace clears, arrows move around the board",
+    "Samurai Sudoku is now in the game catalogue — previously reachable only from inside regular Sudoku",
+    "Buttons across the app got bigger: 123 of 440 were below a reliable finger-tap size",
+    "The interface colour you buy is now visible on the home screen, not just in settings",
+    "The workout card now says “Choose” — it opens the set picker rather than starting a set"
+   ]
+  },
+  {
+   "version": "v1.192.0",
+   "date": "2026-08-12",
+   "items": [
+    "The app no longer crashes if you switch the feedback button off in settings — after that no screen would open at all",
+    "Vibration finally works on Android: the app was missing a system permission, so the setting turned on but nothing happened",
+    "Sudoku: the rules described the wrong levels — kropki dots start at 34, irregular blocks only at 50. Sandwich, thermometers and arrows were missing from the list entirely",
+    "Colorblind mode now says honestly where it applies",
+    "You can send feedback from the Sudoku rules window again",
+    "Eye Gymnastics and Breathing cards on the home screen line up — they used to sit at different heights",
+    "Warm-up names and feedback labels are translated into all 12 languages — nine languages used to see them in English"
+   ]
+  },
+  {
+   "version": "v1.191.0",
+   "date": "2026-08-12",
+   "items": [
+    "The evening warm-up no longer crashes: in Goods Sort the buttons were nested inside each other, which broke taps",
+    "The app starts without internet: it used to wait for an unreachable address — now it takes the working one at once and rechecks the direct one in the background",
+    "Mahjong and Goods Sort stopped resetting your level in the warm-up: the round started before progress had loaded",
+    "Sudoku: an unfinished game is saved — leave and come back, the board is still there. Undo and cell colouring added",
+    "Sudoku: the help shows the current variant’s rule again, and the level map shows each level’s difficulty",
+    "Eye gym: the dot at the bottom no longer slips off the screen",
+    "Phonemic fluency: the round starts again — the letter set did not match the profile language",
+    "Story recall: the number field no longer hides behind the keyboard",
+    "New: a training streak calendar, a “Continue game” card on the home screen, and a first-game picker at launch",
+    "Schulte and N-back result screens now show the best score among players",
+    "Undo arrived in the Tower of Hanoi and the Tower of London",
+    "Voice note: you can now play it back before sending — the microphone sometimes records noise instead of your voice",
+    "Settings: the switches now have labels for screen readers"
+   ]
+  },
+  {
+   "version": "v1.190.2",
+   "date": "2026-08-07",
+   "items": [
+    "Voice note: if the microphone gave no sound, the app now says so right away — recordings used to go out silent while the screen looked fine",
+    "The app got lighter: unused resources are stripped from the build"
+   ]
+  },
+  {
+   "version": "v1.189.0",
+   "date": "2026-08-07",
+   "items": [
+    "The pet no longer sits on the Start button — on screens with a bottom bar it walks above it",
+    "Visual Search: the target shape sample was invisible — it was drawn white on white"
+   ]
+  },
+  {
+   "version": "v1.188.0",
+   "date": "2026-08-07",
+   "items": [
+    "Sudoku with the “neighbours differ by more than one” rule (levels 22–25) no longer keeps you waiting: the board took a minute and a half to build, now about a second",
+    "Technique-based difficulty now also covers three more rules — non-consecutive, arrows and thermometers"
+   ]
+  },
+  {
+   "version": "v1.187.0",
+   "date": "2026-08-07",
+   "items": [
+    "Sudoku: difficulty finally grows with the level. It used to be set by the number of empty cells, which can be filled purely mechanically — that is why level 34 felt easier than 12. Now the level sets which solving technique you will need",
+    "Sudoku: every level is guaranteed to have exactly one solution — checked on every build across all 52 levels, not by eye"
+   ]
+  },
+  {
+   "version": "v1.186.0",
+   "date": "2026-08-06",
+   "items": [
+    "The daily challenge counts levels again: it used to launch as a workout step, where levels intentionally do not grow — you could play perfectly and stay on level one",
+    "The evening workout no longer repeats a morning game: picture pairs replaced with mahjong"
+   ]
+  },
+  {
+   "version": "v1.185.0",
+   "date": "2026-08-06",
+   "items": [
+    "Sudoku: on levels with circles and squares the digit you place no longer looks washed out — it reads right away, without deselecting the cell",
+    "The home screen is tighter: the header takes half the space, games start higher",
+    "Trophy, shop, stats and settings no longer wrap onto their own row"
+   ]
+  },
+  {
+   "version": "v1.184.0",
+   "date": "2026-08-06",
+   "items": [
+    "A workout no longer swallows games: tapping Next yourself no longer skips the following game. That is what turned the evening set into one game and breathing",
+    "Evening workout now has four exercises",
+    "Workout is one button now: morning, daytime, evening and night are picked on a single screen",
+    "The label on the home screen no longer gets stuck — in the morning it shows the morning workout",
+    "Games inside a workout start on their own — no more tapping Start at every step"
+   ]
+  },
+  {
+   "version": "v1.183.0",
+   "date": "2026-08-03",
+   "items": [
+    "Pet accessories now sit correctly on all three looks — hat on the head, bow on the neck, glasses on the eyes"
+   ]
+  },
+  {
+   "version": "v1.182.0",
+   "date": "2026-08-03",
+   "items": [
+    "A workout every day — Wednesday is no longer empty",
+    "Wednesday covers working memory: n-back, Corsi, digit span and anagrams"
+   ]
+  },
+  {
+   "version": "v1.181.0",
+   "date": "2026-08-03",
+   "items": [
+    "The screen no longer sleeps in the middle of a breathing session",
+    "Inhale, hold and exhale sound different — you can do the exercise with your eyes closed",
+    "Three seconds to get comfortable before the first inhale",
+    "At night the breathing screen is dimmed — bright light at 3am does not help you sleep"
+   ]
+  },
+  {
+   "version": "v1.180.0",
+   "date": "2026-08-03",
+   "items": [
+    "Each breathing technique has its own shape — square, triangle or circle — and the dot travels along it",
+    "The inhale now goes upward, the hold reads as movement along a side, the exhale goes down",
+    "The technique list shows the shape, the real name and the rhythm on its own line"
+   ]
+  },
+  {
+   "version": "v1.179.0",
+   "date": "2026-08-03",
+   "items": [
+    "One workout button instead of two: the label follows the time of day, the set is chosen on its own screen",
+    "Added a daytime break and a night “Can’t sleep” — breathing only, no points, no streak",
+    "Breathing is now its own button on the home screen and still a step of the evening set",
+    "Number Bonds help explains how to play, not just why",
+    "The pet screen now says the row of pictures is how he looks, not other characters"
+   ]
+  },
+  {
+   "version": "v1.178.0",
+   "date": "2026-08-02",
+   "items": [
+    "The before-sleep set can be completed: the middle step used to get stuck",
+    "Breathing shows which step of the set it is — it used to look like a standalone game",
+    "Visual Search now says the shape can appear in any rotation"
+   ]
+  },
+  {
+   "version": "v1.177.0",
+   "date": "2026-08-02",
+   "items": [
+    "A feedback draft is no longer lost if you close the window and come back"
+   ]
+  },
+  {
+   "version": "v1.175.0",
+   "date": "2026-08-02",
+   "items": [
+    "Vibration works on the phone — the toggle used to save but switch nothing on",
+    "Buttons answer a press with a short vibration",
+    "The pet no longer blinks or vanishes for a moment",
+    "Sending feedback no longer hangs forever: on a weak connection it goes without the attachment",
+    "You can report a problem straight from the rules window",
+    "Colorblind mode now works in Stroop and SET too",
+    "Sudoku: a digit inside a circle or square is properly visible, not half-transparent",
+    "The “Daily challenge” and “Eye gym” cards are the same height",
+    "Evening set: the middle step is 10 rounds instead of 20 — steps are comparable",
+    "A very large system font no longer breaks button labels"
+   ]
+  },
+  {
+   "version": "v1.174.0",
+   "date": "2026-08-02",
+   "items": [
+    "Synapse’s “what to play” tip now opens the game instead of an error page",
+    "The walking pet’s tip was broken the same way — fixed too"
+   ]
+  },
+  {
+   "version": "v1.173.0",
+   "date": "2026-08-02",
+   "items": [
+    "The “Fixed from your reports” block now opens with a thank-you instead of ending with one — it used to be off-screen",
+    "The FREE profile is now “Standard”: nine trainers are a curated starting set, not a cut-down trial"
+   ]
+  },
+  {
+   "version": "v1.172.0",
+   "date": "2026-08-02",
+   "items": [
+    "After sending a report you can see whether the voice recording arrived — “thanks” used to look the same either way",
+    "With no connection the report is saved and sends itself later — with the recording, not without it"
+   ]
+  },
+  {
+   "version": "v1.171.0",
+   "date": "2026-08-02",
+   "items": [
+    "A voice-only report now sends — the button used to press with nothing happening",
+    "The character picker scrolls sideways — the fourth card did not fit narrow screens"
+   ]
+  },
+  {
+   "version": "v1.170.0",
+   "date": "2026-08-02",
+   "items": [
+    "The microphone in feedback works — the recording permission was missing",
+    "Feedback now sends without a VPN, and is queued instead of lost when offline",
+    "The between-games screen now shows which game is already played",
+    "Synapse suggests what to play to pull up your weakest skill"
+   ]
+  },
+  {
+   "version": "v1.169.0",
+   "date": "2026-08-01",
+   "items": [
+    "SET: when time runs out the game shows the SET that was on the table instead of silently redealing",
+    "WCST: you can see how many correct answers are left before the rule changes"
+   ]
+  },
+  {
+   "version": "v1.168.0",
+   "date": "2026-08-01",
+   "items": [
+    "App engine updated — under the hood, games are unaffected"
+   ]
+  },
+  {
+   "version": "v1.167.0",
+   "date": "2026-08-01",
+   "items": [
+    "Warm-up results sync again — they used to fail silently and stall everything else"
+   ]
+  },
+  {
+   "version": "v1.166.0",
+   "date": "2026-08-01",
+   "items": [
+    "You can attach a voice note to feedback — no more fighting with speech-to-text",
+    "The skip button now names the game it will skip",
+    "The Home button no longer hides under Play again"
+   ]
+  },
+  {
+   "version": "v1.165.0",
+   "date": "2026-08-01",
+   "items": [
+    "You can now see what was fixed from your own reports — right in this window",
+    "Sudoku: the bottom row is no longer cut off on short screens"
+   ]
+  },
+  {
+   "version": "v1.164.0",
+   "date": "2026-07-31",
+   "items": [
+    "You can see how many trainings are left until your pet grows",
+    "4-7-8 breathing now explains why the exhale is longer — and you can switch to an even box pattern",
+    "WCST makes clear that an error right after a rule change is unavoidable",
+    "SET shows the “what is a SET” example right away"
+   ]
+  },
+  {
+   "version": "v1.163.0",
+   "date": "2026-07-31",
+   "items": [
+    "Statistics now show how many attempts you passed, not just how many you started",
+    "Fastest and slowest game added",
+    "The chart is labelled: each bar = score for one attempt",
+    "Each program card shows its own score — switching does not lose your points"
+   ]
+  },
+  {
+   "version": "v1.162.0",
+   "date": "2026-07-31",
+   "items": [
+    "On phones without a notch the header no longer slides under the system icons",
+    "In landscape the content no longer falls under the display cutout"
+   ]
+  },
+  {
+   "version": "v1.161.0",
+   "date": "2026-07-31",
+   "items": [
+    "The app now works with VoiceOver and TalkBack — blind users can hear what is on screen",
+    "The board is described in words: \"Peg 1: red, green\", \"2 green circles\"",
+    "Results, new levels and unlocks are spoken out loud"
+   ]
+  },
+  {
+   "version": "v1.160.0",
+   "date": "2026-07-30",
+   "items": [
+    "The evening set is calm now: spot-the-difference, visual search and 4-7-8 breathing built in",
+    "Morning and evening games no longer repeat each other",
+    "The game pauses while you write feedback",
+    "Smaller app — images recompressed with no visible quality loss"
+   ]
+  },
+  {
+   "version": "v1.159.0",
+   "date": "2026-07-30",
+   "items": [
+    "Warm-up and evening sets no longer get stuck: you see \"Game N of M\" and a \"Next game\" button instead of \"Play again\""
+   ]
+  },
+  {
+   "version": "v1.158.0",
+   "date": "2026-07-30",
+   "items": [
+    "The pet talks again — including on list screens, without covering anything"
+   ]
+  },
+  {
+   "version": "v1.157.0",
+   "date": "2026-07-30",
+   "items": [
+    "The evening \"before sleep\" set is 3 games again — only one used to launch",
+    "Breathing: the chosen technique and its rhythm are now shown on screen"
+   ]
+  },
+  {
+   "version": "v1.156.0",
+   "date": "2026-07-29",
+   "items": [
+    "Sudoku: on levels 30+ a puzzle could have two solutions — a correct move could count as an error. Now the solution is always unique",
+    "Pet: renaming now has a save button"
+   ]
+  },
+  {
+   "version": "v1.155.0",
+   "date": "2026-07-29",
+   "items": [
+    "Shop: category filter — accents, sounds, frames, titles, avatars, pet",
+    "The pet no longer overlaps bottom cards on list screens"
+   ]
+  },
+  {
+   "version": "v1.154.0",
+   "date": "2026-07-29",
+   "items": [
+    "A failed level no longer auto-restarts — review your result first, then tap Retry",
+    "Game tokens never go negative anymore"
+   ]
+  },
+  {
+   "version": "v1.153.0",
+   "date": "2026-07-29",
+   "items": [
+    "Full localization: Spanish, Portuguese, German, Chinese and Hindi no longer drop to English mid-game"
+   ]
+  },
+  {
+   "version": "v1.152.0",
+   "date": "2026-07-29",
+   "items": [
+    "Sudoku: the digit you enter in the selected cell is now clearly visible",
+    "WCST: help fixed — the rule changes after a run of correct answers, and the first error after a change is normal"
+   ]
+  },
+  {
+   "version": "v1.148.0",
+   "date": "2026-07-24",
+   "items": [
+    "SET: hint button 💡, mistake breakdown stays until you close it, striped fill is readable now, logic tips in help",
+    "Bottom buttons no longer hide behind system navigation (Samsung etc.)",
+    "Pet and chat toggles apply instantly",
+    "Pet: feeding, custom name, petting, record celebrations, training suggestions, shop accessories",
+    "Pet size slider in settings",
+    "Update check and this \"What’s new\" list",
+    "Progress import now survives codes mangled by messengers"
+   ]
+  },
+  {
+   "version": "v1.145.0",
+   "date": "2026-07-23",
+   "items": [
+    "Pet: three looks to choose from — Neuro Cat, Robot and Neuron",
+    "All 60 games moved to a unified layout: field centered, actions at the bottom",
+    "12 languages including Arabic with RTL interface"
+   ]
+  },
+  {
+   "version": "v1.131.0",
+   "date": "2026-07-22",
+   "items": [
+    "Meet Synapse the pet — walks the screen and grows with your training",
+    "Web demo on psy-games.pro"
+   ]
+  }
+ ]
+}

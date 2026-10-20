@@ -147,6 +147,8 @@ flutter:
     - assets/profiles.json
     # «Источники» — данные веба для модели на Dart (tools/embed-sources.mjs, вариант Б).
     - assets/sources.json
+    # Full release archive, generated from the sole WHATS_NEW TS source.
+    - assets/whats_new.json
     # Лиги и рамки — таблицы веба для модели «Лиг» на Dart (tools/embed-progression.mjs, вариант Б).
     - assets/progression.json
     # Даты календаря серии на 12 языках — шаблоны ICU (tools/embed-calendar.mjs, вариант Б).
