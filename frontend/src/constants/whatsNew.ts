@@ -16,6 +16,20 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.56.34',
+    date: '2026-10-21',
+    en: [
+      'Feedback: voice messages work again — the app asks for the microphone when you record',
+      'Cats: fewer hints on harder levels — 3, then 2, then 1',
+      'Fractal Sudoku: the centre cells show the grid beneath again — tap one to dive in',
+    ],
+    ru: [
+      'Отзыв: голосовое сообщение снова записывается — приложение спрашивает доступ к микрофону при записи',
+      '«Кошки»: на трудных ступенях подсказок меньше — 3, потом 2, потом 1',
+      '«Фрактальная судоку»: центральные клетки снова показывают сетку под ними — касание ведёт внутрь',
+    ],
+  },
+  {
     version: '2.56.33',
     date: '2026-10-21',
     en: [
