@@ -260,6 +260,21 @@ void main() {
       expect(find.descendant(of: find.byKey(const Key('cell_0_3')), matching: find.text('6')), findsNothing);
       await leave(tester);
     });
+
+    testWidgets('🔴 купленная подсказка — помощь: доска дорешена подсказками, ступень растёт (правило #355)', (tester) async {
+      // Бесплатные кончились, ответы доски НЕ показаны: партия зачётная, и купленная подсказка этого
+      // не меняет — как бесплатная (решение Дениса 20.10). До #355 такая партия была учебной.
+      await openSudoku(tester, wallet: {'sudoku_hint': 2}, patch: {'hintUses': 99, 'answersRevealed': false});
+      for (final cell in ['cell_0_0', 'cell_0_3']) {
+        await tapKey(tester, cell);
+        await tester.tap(find.byTooltip(L.t('btn_hint')), warnIfMissed: false);
+        await settle(tester);
+      }
+      expect(have('sudoku_hint'), 0, reason: 'обе штуки потрачены');
+      expect(find.byKey(const Key('next')), findsOneWidget, reason: 'доска дорешена подсказками');
+      expect(state.get(levelKey), '6', reason: 'купленная подсказка ступень не морозит');
+      await leave(tester);
+    });
   });
 
   group('«Самурай»', () {
@@ -336,6 +351,32 @@ void main() {
       await settle(tester);
       expect(have('sudoku_hint'), 0);
       expect(find.descendant(of: find.byKey(Key('cell_${b.r}_${b.c}')), matching: find.text('${b.v}')), findsOneWidget);
+      await leave(tester);
+    });
+
+    testWidgets('🔴 купленная подсказка — помощь: последняя клетка открыта ею, ступень растёт (правило #355)', (tester) async {
+      // До #355 «Самурай» морозил лестницу и за купленную подсказку (`_bought`), классика — нет:
+      // одна и та же штука в двух играх значила разное.
+      const samuraiLevelKey = 'psygames_sudoku_samurai_level_nzt48';
+      await open(tester, {'sudoku_hint': 1});
+      final b = firstBlank();
+      final env = (jsonDecode(state.get(samuraiKey)!) as Map).cast<String, Object?>();
+      final s = env['state'] as Map;
+      final solution = [for (final row in s['solution'] as List) [for (final v in row as List) v as int]];
+      s['grid'] = [
+        for (var r = 0; r < samuraiSize; r++) [for (var c = 0; c < samuraiSize; c++) r == b.r && c == b.c ? 0 : solution[r][c]],
+      ];
+      s['hintUses'] = 99;
+      await leave(tester);
+      await tester.runAsync(() => state.set(samuraiKey, jsonEncode(env)));
+      await boot(tester);
+      expect(state.get(samuraiLevelKey) ?? '1', '1');
+      await tapCell(tester, b.r, b.c);
+      await tapCell(tester, b.r, b.c);
+      await tester.tap(find.byTooltip(L.t('btn_hint')), warnIfMissed: false);
+      await settle(tester);
+      expect(have('sudoku_hint'), 0, reason: 'последнюю клетку открыла купленная штука');
+      expect(state.get(samuraiLevelKey), '2', reason: 'купленная подсказка ступень не морозит');
       await leave(tester);
     });
   });

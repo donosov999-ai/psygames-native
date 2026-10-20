@@ -30,7 +30,8 @@ import { assetUri, postScreenModel, registerScreenActions } from '@/src/services
 
 const OWNER_TG = 'Denis_On999';
 
-const CATEGORY_EMOJI: Record<string, string> = {
+/** Значок раздела игры в списке карточки профиля. Выгружается и в модель Dart (`flutter-switcher-asset-fresh`). */
+export const CATEGORY_EMOJI: Record<string, string> = {
   memory: '🧠',
   attention: '🎯',
   logic: '🧩',

@@ -45,7 +45,9 @@ void main() {
     await tester.pump();
     await tester.tap(find.byTooltip(L.t('btn_rules')));
     await tester.pumpAndSettle();
-    final dialog = find.byKey(const Key('game-rules'));
+    // С 20.10 «?» режима — справка правила доски (отзыв 0c682daf: описание карточки каталога
+    // правила не объясняло), а не общее окно каркаса.
+    final dialog = find.byKey(const Key('sudoku-rule-help'));
     expect(dialog, findsOneWidget, reason: '$route: справка не открылась');
     final texts = find.descendant(of: dialog, matching: find.byType(Text)).evaluate()
         .map((e) => (e.widget as Text).data ?? '').join(' ');
@@ -56,15 +58,16 @@ void main() {
     testWidgets('🔴 [$locale] «Небоскрёбы» и «Неравенства» показывают СВОЮ справку', (tester) async {
       await tester.runAsync(() => L.load(locale));
       final towers = await rulesShownFor(tester, '/games/sudoku?mode=towers', SideMode.towers);
-      expect(towers, contains(L.t('sudokuTowersHubDesc')),
+      expect(towers, contains(L.t('sudokuRuleTowers')),
           reason: 'в режиме «Небоскрёбы» — правило небоскрёбов');
+      expect(towers, contains(L.t('sudokuEx_towers')), reason: 'и пример: что значат числа у края');
       // Окно справки закрывается сменой экрана: у диалога каркаса своя кнопка, и
       // пробе незачем знать её вид — проверяется текст, а не оформление.
       await tester.pumpWidget(const SizedBox());
       await tester.pump();
 
       final unequal = await rulesShownFor(tester, '/games/sudoku?mode=unequal', SideMode.unequal);
-      expect(unequal, contains(L.t('sudokuUnequalHubDesc')),
+      expect(unequal, contains(L.t('sudokuRuleUnequal')),
           reason: 'в режиме «Неравенства» — правило неравенств');
 
       // ⚠️ И ни одна из двух — не общая «судоку»: откат к базовому тексту и был

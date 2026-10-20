@@ -276,9 +276,16 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
   Future<void> _prepareLesson() async {
     final engine = _engine;
     if (engine == null || _gameIndex < 0) return;
-    final steps = _canSolve
+    final moves = _canSolve
         ? await TathamLesson(engine, canSolve: true, gameName: _mode.engineName).steps()
         : const <LessonStep>[];
+    // 🔴 РАЗБОР НАЧИНАЕТСЯ С ПРАВИЛА, ЕСЛИ У РЕЖИМА ЕСТЬ ПОЛНАЯ СПРАВКА (отзыв ab1e8434, 10.10:
+    // «в учителе непонятно ничего, что за игра»). Решатель движка про игру не знает ничего и
+    // показывал ходы без единого слова о правилах. Первый шаг — сама справка, доска ещё пустая.
+    final help = _mode.helpKey;
+    final steps = moves.isEmpty || help == null
+        ? moves
+        : [LessonStep(text: L.t(help), payload: const <String>[]), ...moves];
     if (mounted) setState(() => _lessonSteps = steps);
   }
 
@@ -565,11 +572,11 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
        * Поэтому спрашиваем не флаг, а результат: шаги считаются один раз на раздачу.
        */
       onLesson: _lessonSteps.isEmpty ? null : _openLesson,
-      // Правило игры — из словаря по ключу карточки режима. Нет ключа — нет и
-      // кнопки: пустое окно справки хуже её отсутствия.
-      onRules: _modeOrNull?.descKey == null
+      // Правило игры — из словаря: полная справка, если владелец режима её завёл (`справка`),
+      // иначе описание карточки. Нет ключа — нет и кнопки: пустое окно справки хуже её отсутствия.
+      onRules: _modeOrNull?.rulesKey == null
           ? null
-          : () => showGameRules(context, title: _mode.title, ruleKey: _mode.descKey!),
+          : () => showGameRules(context, title: _mode.title, ruleKey: _mode.rulesKey!),
       hud: [
         HudItem(label: L.t('puzzleHudLevel'), value: '${_ladder.level}/${_steps.length}', icon: Icons.trending_up),
         HudItem(label: L.t('puzzleHudBoard'), value: stepTitle(step), icon: Icons.grid_on),
@@ -831,7 +838,9 @@ class _Toolbar extends StatelessWidget {
       // Singles: ввод только тычками, ряд клавиш был бы обманом.
       // Там, где касание не делает ничего, — подсказка «тяни» (веб, `ТОЛЬКО_ПРОТЯЖКА`):
       // без неё доска выглядит сломанной — жмёшь, и ничего.
-      final idle = mode.dragOnly ? L.t('puzzleDragHint') : L.t('puzzleTapHint');
+      // Своя подпись тычка у режима, где общая «отмечает клетку» ничего не объясняет (`тычок`).
+      final tap = mode.tapKey;
+      final idle = mode.dragOnly ? L.t('puzzleDragHint') : tap != null ? L.t(tap) : L.t('puzzleTapHint');
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
         child: Text(status.isEmpty ? idle : status,

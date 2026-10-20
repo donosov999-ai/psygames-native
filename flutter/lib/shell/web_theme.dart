@@ -92,17 +92,21 @@ class WebTheme {
   /// `colors.primary` веба: надетый акцент (`getEquippedAccent`) → акцент профиля → запасной.
   /// [profile] — профиль экрана после откатов `ProfileContext` (запертый без разблокировки → `free`);
   /// нет — сохранённый.
-  static Color accent(SharedState state, {String? profile}) {
+  static Color accent(SharedState state, {String? profile}) => WebColors.hex(accentCss(state, profile: profile));
+
+  /// То же строкой CSS — ровно как `colors.primary` веба в моделях экранов (запасной `#0A84FF` —
+  /// заглавными, перевод в цвет и обратно его бы опустил).
+  static String accentCss(SharedState state, {String? profile}) {
     profile ??= state.activeProfile;
     final raw = state.get(equippedKey.replaceAll('{profile}', profile));
     if (raw != null && raw.isNotEmpty) {
       try {
         final id = (jsonDecode(raw) as Map<String, dynamic>)['accent'];
         final c = id is String ? cosmeticAccents[id] : null;
-        if (c != null) return WebColors.hex(c);
+        if (c != null) return c;
       } catch (_) {/* битая запись — как у веба: профильный */}
     }
-    return WebColors.hex(profileAccents[profile] ?? fallbackAccent);
+    return profileAccents[profile] ?? fallbackAccent;
   }
 
   /// УМОЛЧАНИЯ ТЕКСТА ВЕБА для экранов, которые рисует оболочка.

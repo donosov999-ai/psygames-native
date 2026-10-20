@@ -8,6 +8,9 @@ abstract final class PlaylistFields {
   /// «профили» — раздел по профилям.
   static const profiles = '\u043f\u0440\u043e\u0444\u0438\u043b\u0438';
 
+  /// «порядок» — порядок профилей в выборе (`поПорядку`).
+  static const order = '\u043f\u043e\u0440\u044f\u0434\u043e\u043a';
+
   /// «коллекция» — пороги фигурок.
   static const collection = '\u043a\u043e\u043b\u043b\u0435\u043a\u0446\u0438\u044f';
 
@@ -22,4 +25,7 @@ abstract final class PlaylistFields {
 
   /// «зарядка_включена» — зарядка профиля (`warmup_enabled`).
   static const warmupEnabled = '\u0437\u0430\u0440\u044f\u0434\u043a\u0430\u005f\u0432\u043a\u043b\u044e\u0447\u0435\u043d\u0430';
+
+  /// «замки» — пороги замков лестницы по уровню игрока (`установитьЗамкиИзФайла`).
+  static const locks = '\u0437\u0430\u043c\u043a\u0438';
 }

@@ -270,7 +270,18 @@ class _CatsScreenState extends State<CatsScreen> {
                 label: Text(_won ? L.t('nextLabel') : L.t('retry')),
               ),
             )
-          : null,
+          // 🔴 КАК СТАВИТЬ КОШКУ — НА ЭКРАНЕ, А НЕ ТОЛЬКО ЗА «?» (отзыв 9449db7a, 19.10: «как ставить
+          // котов?», на кадре — одни ✕). Кошка ставится долгим нажатием, а короткое — пометка; без
+          // строки под полем это угадывается только из окна правил, которое само не открывается.
+          : Padding(
+              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+              child: Text(
+                L.t('catsHowPress'),
+                key: const Key('cats-how-press-line'),
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ),
       pauseActions: [
         PauseAction(label: L.t('restart'), icon: Icons.refresh, onPressed: _deal),
       ],

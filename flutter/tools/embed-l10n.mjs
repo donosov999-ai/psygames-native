@@ -116,7 +116,7 @@ for (const f of dartFiles(join(FLUTTER, 'lib'))) {
 // ассетов: там они лежат явно.
 for (const [file, fields] of [
   ['assets/hubs.json', ['nameKey', 'descKey', 'titleKey', 'pickKey', 'footnoteKey']],
-  ['assets/puzzles/modes.json', ['titleKey', 'digitNames', 'secondKey', 'secondPickKey']],
+  ['assets/puzzles/modes.json', ['titleKey', 'digitNames', 'secondKey', 'secondPickKey', 'helpKey', 'tapKey']],
   // Подписи режимов наборов (`lib/shell/suite_switch.dart` зовёт `L.t(mode.labelKey)`).
   ['assets/game_suites.json', ['titleKey', 'descKey', 'labelKey']],
   // Каталог «Игры» (задача f5025027): названия, описания, навыки и разделы — из выгрузки games.ts.
@@ -132,10 +132,20 @@ for (const [file, fields] of [
   ['assets/progression.json', ['nameKey']],
   // «Коллекция» считает модель на Dart (`collection_model.dart`): `L.t('fig<Key>')`.
   ['assets/collection.json', ['nameKey']],
+  // «Магазин» на Dart (`shop_model.dart`): вкладки, разделы, способности и товары — `L.t(c.nameKey)` и др.
+  ['assets/shop.json', ['nameKey', 'descKey', 'labelKey', 'titleKey']],
+  // Переключатель профилей на Dart (`switcher_model.dart`): `L.t('profileName_${id}')`, `L.t('profileDesc_${id}')`.
+  ['assets/switcher.json', ['textKeys']],
+  // «Знакомство» на Dart (`onboarding_model.dart`): карточки игр, вопросы подбора, слайды — `L.t(g.nameKey)` и др.
+  ['assets/onboarding.json', ['nameKey', 'skillKey', 'descKey', 'qKey', 'opts', 'titleKey', 'bodyKey']],
+  // «Друзья» на Dart (`friends_model.dart`): имена игр таблицы — `L.t(g.nameKey)`.
+  ['assets/friends.json', ['nameKey']],
   // Главная (вариант Б): ключи, которые сборщик модели собирает на лету — замки, слоты, сложности, причины.
   ['assets/home.json', ['textKeys']],
   // Входы Главной на Dart (`home_inputs.dart`, 7б): титул надетой вещи — `L.t(title.nameKey)`.
   ['assets/home_inputs.json', ['textKeys']],
+  // «Питомец» на Dart (`pet_model.dart`): стадии и вид заботы — `L.t('petStage$n')`, `L.t('petLook_$r')`.
+  ['assets/pet.json', ['textKeys']],
 ]) {
   let data;
   // 🔴 НЕТ ФАЙЛА — пропустить можно; ЕСТЬ, НО НЕ ЧИТАЕТСЯ — СТОП. Замер 01.10.2026: после

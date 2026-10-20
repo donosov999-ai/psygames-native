@@ -1,0 +1,19 @@
+{
+ "now": 1792469100000,
+ "tzOffsetMinutes": -300,
+ "language": "ru",
+ "tutorial": false,
+ "notifications": true,
+ "step": 0,
+ "quiz": {},
+ "storage": {
+  "language": "ru",
+  "psygames_active_profile": "free",
+  "psygames_onboarding_picked_free": "1"
+ },
+ "model": {
+  "v": 1,
+  "mode": "loading",
+  "primary": "#f59e0b"
+ }
+}

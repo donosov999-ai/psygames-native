@@ -1,0 +1,175 @@
+{
+ "language": "ru",
+ "server": {
+  "myCode": "K7Q2ZP",
+  "friends": [
+   {
+    "id": "f1",
+    "name": "Валя",
+    "since": "2026-10-01"
+   },
+   {
+    "id": "f2",
+    "name": "Петя",
+    "since": "2026-10-02"
+   }
+  ],
+  "top": {
+   "*": [],
+   "choice_rt": [
+    {
+     "id": "me",
+     "name": "Денис",
+     "score": 412.5,
+     "updatedAt": "2026-10-19",
+     "isMe": true
+    },
+    {
+     "id": "f1",
+     "name": "Валя",
+     "score": 388,
+     "updatedAt": "2026-10-18",
+     "isMe": false
+    }
+   ]
+  }
+ },
+ "acts": [
+  [
+   "game",
+   "choice_rt"
+  ],
+  [
+   "ask",
+   "f2"
+  ],
+  [
+   "copied",
+   false
+  ]
+ ],
+ "model": {
+  "v": 1,
+  "title": "Друзья",
+  "back": "Назад",
+  "backIcon": "chevron-back",
+  "primary": "#a855f7",
+  "error": "#FF3B30",
+  "success": "#34C759",
+  "meBg": "#a855f718",
+  "my": {
+   "label": "ВАШ КОД ПРИГЛАШЕНИЯ",
+   "state": "code",
+   "offline": "Код не пришёл — сервер не ответил. Он никуда не делся: загляните сюда, когда будет связь.",
+   "code": "K7Q2ZP",
+   "shown": "K7Q 2ZP",
+   "copy": "Копировать",
+   "copied": {
+    "ok": false,
+    "text": "Выдели код и скопируй вручную"
+   },
+   "hint": "Продиктуйте или покажите этот код. Кто введёт его у себя — окажется в вашем круге, а вы в его: связь всегда взаимна."
+  },
+  "add": {
+   "label": "КОД ДРУГА",
+   "a11y": "Код друга",
+   "draft": "",
+   "seq": 0,
+   "placeholder": "Шесть знаков",
+   "btn": "Добавить в круг",
+   "ready": false,
+   "sending": false,
+   "note": null
+  },
+  "table": {
+   "title": "Круг в одной игре",
+   "chips": [
+    {
+     "id": "schulte_table_5x5",
+     "label": "Шульте: внимание",
+     "on": false
+    },
+    {
+     "id": "n_back",
+     "label": "N-back: оперативная память",
+     "on": false
+    },
+    {
+     "id": "digit_span",
+     "label": "Запомни цифры",
+     "on": false
+    },
+    {
+     "id": "corsi",
+     "label": "Кубики Корси",
+     "on": false
+    },
+    {
+     "id": "trail_making",
+     "label": "Соедини цепочку",
+     "on": false
+    },
+    {
+     "id": "choice_rt",
+     "label": "Выбор-реакция: скорость",
+     "on": true
+    },
+    {
+     "id": "go_no_go",
+     "label": "Go / No-Go: торможение",
+     "on": false
+    },
+    {
+     "id": "hanoi",
+     "label": "Ханойская башня",
+     "on": false
+    },
+    {
+     "id": "counter",
+     "label": "Считалка: счёт",
+     "on": false
+    }
+   ],
+   "kind": "rows",
+   "empty": null,
+   "rows": [
+    {
+     "id": "me",
+     "rank": "1",
+     "me": true,
+     "name": "Денис · вы",
+     "score": "413 ms"
+    },
+    {
+     "id": "f1",
+     "rank": "2",
+     "me": false,
+     "name": "Валя",
+     "score": "388 ms"
+    }
+   ]
+  },
+  "scoresOnly": "Здесь только очки зачётных партий — те, что вы сами отправили в таблицу рекордов. Дни тренировок и их история остаются на устройстве и на сервер не уходят.",
+  "circle": {
+   "title": "Ваш круг · 2",
+   "remove": "Убрать из круга",
+   "rows": [
+    {
+     "id": "f1",
+     "name": "Валя",
+     "pending": false,
+     "warn": "Разорвать связь с Валя? Связь взаимна: вы исчезнете и из его круга тоже."
+    },
+    {
+     "id": "f2",
+     "name": "Петя",
+     "pending": true,
+     "warn": "Разорвать связь с Петя? Связь взаимна: вы исчезнете и из его круга тоже."
+    }
+   ],
+   "confirm": "Разорвать",
+   "cancel": "Отмена",
+   "failed": null
+  }
+ }
+}

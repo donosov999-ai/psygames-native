@@ -330,7 +330,7 @@ void main() {
         }
         await server.debugDropSocket(silent: true);
       });
-      await mount(t, PetScreen(origin: server.origin, state: state));
+      await mount(t, PetScreen(origin: server.origin, state: state, ownModel: false));
       await failed(t);
       final before = urls(t);
       await real(t, () async {

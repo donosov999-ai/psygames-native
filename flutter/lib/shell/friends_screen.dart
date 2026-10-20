@@ -1,10 +1,21 @@
+import 'dart:async';
+
+import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'app_look.dart';
+import 'collection_model.dart' show hexOf;
 import 'feedback_fab.dart' show FabRules;
+import 'friends_model.dart';
+import 'friends_service.dart';
 import 'info_screens.dart' show ModelPage, circleBack;
 import 'ion_icon.dart';
+import 'profiles.dart';
 import 'screen_ui.dart';
+import 'shared_state.dart';
+import 'stats_model.dart' show activeProfileOf;
+import 'supabase_rpc.dart';
 import 'web_theme.dart';
 
 /// «ДРУЗЬЯ» ПО МОДЕЛИ ВЕБА (задача 7bb8035b; правило 4e679f41).
@@ -15,9 +26,24 @@ import 'web_theme.dart';
 /// подтверждение), «Разорвать», «Отмена», «назад». Своё у оболочки одно — буфер обмена: у скрытой
 /// страницы нет фокуса, и `navigator.clipboard` ей откажет; итог уходит вебу действием `copied`.
 /// Размеры — из `styles` веб-экрана.
+///
+/// 🔴 ЭКРАН ЖИВЁТ НА DART (задача d6a60b02, вариант Б): сервер — `FriendsService` (свой вызов Supabase тем же
+/// путём, что выбрал веб, `supabase_rpc.dart`), логика — `FriendsController`, модель — `friendsModelFrom`.
+/// Страница не нужна: свой код и круг спрашиваются на каждом входе (`enterFriends` по адресу страницы).
+/// Буфер — сам. Вебу уходит только «назад». Без общей памяти или если данные не загрузились — как раньше,
+/// по модели страницы.
 class FriendsScreen extends StatefulWidget {
-  const FriendsScreen({super.key});
+  const FriendsScreen({super.key, this.state, this.ownModel = true, this.server});
   static const route = '/friends';
+
+  /// Общая память. Нет — экран рисует модель страницы.
+  final SharedState? state;
+
+  /// Жить на Dart (вариант Б). Пробы рисунка по модели веба выключают.
+  final bool ownModel;
+
+  /// Сервер — пробы подставляют свой; нет — `FriendsService` через Supabase.
+  final FriendsServer? server;
 
   @override
   State<FriendsScreen> createState() => _FriendsScreenState();
@@ -30,7 +56,14 @@ String _s(Object? v) => v == null ? '' : '$v';
 
 class _FriendsScreenState extends State<FriendsScreen> {
   final _field = TextEditingController();
-  final _model = ScreenUi.model(FriendsScreen.route);
+  final _page = ScreenUi.model(FriendsScreen.route);
+  final _own = ValueNotifier<Map<String, Object?>?>(null);
+  FriendsController? _c;
+  bool _failed = false;
+  Timer? _debounce;
+
+  bool get _ownOn => widget.ownModel && widget.state != null && !_failed;
+  ValueListenable<Map<String, Object?>?> get _model => _ownOn ? _own : _page;
 
   /// Номер последнего набора. Нормализованный код веба встаёт в поле, только когда модель ответила
   /// именно на него: иначе ответ на «a» затёр бы уже набранное «ab».
@@ -39,13 +72,63 @@ class _FriendsScreenState extends State<FriendsScreen> {
   @override
   void initState() {
     super.initState();
-    _model.addListener(_sync);
+    _page.addListener(_sync);
+    _own.addListener(_sync);
     _sync();
+    final s = widget.state;
+    if (!widget.ownModel || s == null) return;
+    s.writes.addListener(_onWrite);
+    friendsEntry.addListener(_onEnter);
+    FriendsData.load().then(
+      (d) {
+        if (!mounted) return;
+        _c = FriendsController(widget.server ?? FriendsService(s, SupabaseRpc(s)), d)..addListener(_refresh);
+        // Вход случился раньше, чем данные загрузились, — спрашиваем сразу.
+        if (friendsEntry.value > 0) unawaited(_c!.load());
+        _refresh();
+      },
+      onError: (Object e) {
+        debugPrint('FriendsScreen: own data failed, using the page model ($e)');
+        if (mounted) setState(() => _failed = true);
+      },
+    );
+  }
+
+  void _onEnter() => unawaited(_c?.load());
+
+  void _onWrite() {
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 200), _refresh);
+  }
+
+  /// Модель из состояния контроллера; акцент и тема — профиля экрана, как `colors` веба.
+  void _refresh() {
+    final s = widget.state, c = _c;
+    if (!mounted || s == null || c == null) return;
+    try {
+      final pid = activeProfileOf(Profiles.current, s).id;
+      _own.value = friendsModelFrom(
+        c.data,
+        c.ui,
+        language: s.language,
+        primary: hexOf(WebTheme.accent(s, profile: pid).toARGB32()),
+        dark: AppLook.isDark(s),
+      );
+    } catch (e) {
+      debugPrint('FriendsScreen: own model failed, using the page model ($e)');
+      setState(() => _failed = true);
+    }
   }
 
   @override
   void dispose() {
-    _model.removeListener(_sync);
+    _page.removeListener(_sync);
+    _own.removeListener(_sync);
+    widget.state?.writes.removeListener(_onWrite);
+    friendsEntry.removeListener(_onEnter);
+    _debounce?.cancel();
+    _c?.dispose();
+    _own.dispose();
     _field.dispose();
     super.dispose();
   }
@@ -58,7 +141,14 @@ class _FriendsScreenState extends State<FriendsScreen> {
     _field.value = TextEditingValue(text: draft, selection: TextSelection.collapsed(offset: draft.length));
   }
 
-  void _act(String action, [List<Object?> args = const []]) => ScreenUi.act(FriendsScreen.route, action, args);
+  void _act(String action, [List<Object?> args = const []]) {
+    final c = _c;
+    if (_ownOn && c != null && action != 'back') {
+      unawaited(c.act(action, args));
+      return;
+    }
+    ScreenUi.act(FriendsScreen.route, action, args);
+  }
 
   Future<void> _copy(String code) async {
     var ok = true;
@@ -74,6 +164,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
   Widget build(BuildContext context) => ModelPage(
     route: FriendsScreen.route,
     screenKey: 'friends-screen',
+    own: _ownOn ? _own : null,
     builder: (context, m) {
       final web = WebTheme.of(context);
       final primary = cssColor(m['primary'], Theme.of(context).colorScheme.primary);
