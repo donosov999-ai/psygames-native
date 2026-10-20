@@ -1,0 +1,225 @@
+{
+ "now": 1792488309000,
+ "tzOffsetMinutes": -300,
+ "language": "en",
+ "storage": {
+  "language": "en",
+  "psygames_active_profile": "nzt48",
+  "psygames_hub_visible": "{\"profile\":\"nzt48\",\"hubs\":{\"/games/span\":[\"/games/digit-span\",\"/games/memory-matrix\",\"/games/listening-span\",\"/games/reading-span\",\"/games/n-back\",\"/games/picture-pairs\",\"/games/ospan\",\"/games/mnemonics\"],\"/games/sudoku-hub\":[\"/games/sudoku\",\"/games/sudoku-samurai\",\"/games/sudoku-fractal\",\"/games/sudoku?mode=towers\",\"/games/sudoku?mode=unequal\",\"/games/puzzles?mode=Solo\",\"/games/puzzles?mode=Towers\",\"/games/puzzles?mode=Unequal\",\"/games/puzzles?mode=Keen\",\"/games/puzzles?mode=Singles\",\"/games/puzzles?mode=Filling\",\"/games/puzzles?mode=Undead\",\"/games/cats\",\"/games/sudoku?mode=junior\",\"/games/puzzles?mode=Unruly\",\"/games/sudoku?mode=killer\",\"/games/sudoku?mode=free\"],\"/games/attention-conflict\":[\"/games/stroop\",\"/games/flanker\",\"/games/cpt\",\"/games/targets\",\"/games/wcst\",\"/games/inhibition\",\"/games/posner\",\"/games/prl\"],\"/games/relaxation-hub\":[\"/games/breathing\",\"/games/pause\",\"/games/eye-gym\",\"/warmup-night\"],\"/games/counting-hub\":[\"/games/counter\",\"/games/math-slider\",\"/games/number-run\",\"/games/math-sprint\",\"/games/number-bonds\",\"/games/pattern\",\"/games/puzzles?mode=Mines\",\"/games/puzzles?mode=Mosaic\",\"/games/puzzles?mode=Pattern\",\"/games/puzzles?mode=Range\",\"/games/puzzles?mode=Magnets\",\"/games/puzzles?mode=Palisade\",\"/games/puzzles?mode=Light%20Up\",\"/games/puzzles?mode=Tents\",\"/games/puzzles?mode=Rectangles\",\"/games/quick-count\",\"/games/puzzles?mode=Guess\"],\"/games/words-hub\":[\"/games/vocab-srs\",\"/games/semantic-sort\",\"/games/cloze\",\"/games/lexical-decision\",\"/games/anagrams\",\"/games/phonemic-fluency\",\"/games/story-recall\"],\"/games/hearing-hub\":[\"/games/phoneme-pairs\",\"/games/chinese-tones\",\"/games/pseudoword-echo\",\"/games/dictation\",\"/games/rhythm-pitch\"],\"/games/search-hub\":[\"/games/visual-search\",\"/games/find-differences\",\"/games/mahjong\",\"/games/schulte\",\"/games/object-tracker\",\"/games/sdmt\",\"/games/set-game\",\"/games/puzzles?mode=Dominosa\",\"/games/puzzles?mode=Map\",\"/games/proofreading\",\"/games/hidden-character\"],\"/games/mnemonics-hub\":[\"/games/memory-palace\",\"/games/faces-names\",\"/games/word-pairs\",\"/games/rmet\"],\"/games/languages-hub\":[\"/games/words-hub\",\"/games/hearing-hub\"],\"/games/chess-hub\":[\"/games/scholars-mate\",\"/games/chess-blind\",\"/games/find-move\",\"/games/solitaire-chess\",\"/games/knights-queens\",\"/games/puzzles?mode=Pegs\",\"/games/puzzles?mode=Signpost\",\"/games/puzzles?mode=Inertia\"],\"/games/sorting-hub\":[\"/games/goods-sort\",\"/games/water-sort\",\"/games/ball-sort\",\"/games/nut-sort\",\"/games/cake-sort\",\"/games/pizza-sort\",\"/games/hanoi\",\"/games/tower-london\",\"/games/puzzles?mode=Flood\",\"/games/puzzles?mode=Same%20Game\"],\"/games/spatial-hub\":[\"/games/mental-rotation\",\"/games/spatial-lab?mode=twiddle\",\"/games/spatial-lab?mode=net\",\"/games/puzzles?mode=Slide\",\"/games/puzzles?mode=Sokoban\",\"/games/dots-connect\",\"/games/one-line\",\"/games/trail-making\",\"/games/navigator\",\"/games/puzzles?mode=Net\",\"/games/puzzles?mode=Netslide\",\"/games/puzzles?mode=Twiddle\",\"/games/puzzles?mode=Cube\",\"/games/puzzles?mode=Flip\",\"/games/puzzles?mode=Sixteen\",\"/games/puzzles?mode=Fifteen\",\"/games/puzzles?mode=Untangle\",\"/games/puzzles?mode=Loopy\",\"/games/puzzles?mode=Pearl\",\"/games/puzzles?mode=Bridges\",\"/games/puzzles?mode=Train%20Tracks\",\"/games/puzzles?mode=Galaxies\",\"/games/puzzles?mode=Slant\",\"/games/puzzles?mode=Black%20Box\"]},\"suites\":{\"suite_stroop\":[\"/games/stroop\",\"/games/stroop-emotional\"],\"suite_arrows\":[\"/games/flanker\",\"/games/simon\",\"/games/choice-rt\",\"/games/ant\"],\"suite_positions\":[\"/games/memory-matrix\",\"/games/corsi\",\"/games/spatial-span\"],\"suite_stream\":[\"/games/cpt\",\"/games/switching-task\"],\"suite_inhibition\":[\"/games/inhibition\",\"/games/go-no-go\",\"/games/stop-signal\"],\"suite_decisions\":[\"/games/prl\",\"/games/iowa\",\"/games/bart\"]},\"catalog\":[\"span_group\",\"sudoku_group\",\"attention_conflict\",\"relaxation_group\",\"counting_group\",\"search_group\",\"mnemonics_group\",\"languages_group\",\"chess_group\",\"sorting_group\",\"spatial_group\"]}"
+ },
+ "model": {
+  "v": 1,
+  "care": [
+   {
+    "id": "wash",
+    "emoji": "🫧",
+    "label": "Wash",
+    "a11y": "Wash",
+    "enabled": true,
+    "accent": true
+   },
+   {
+    "id": "stroke",
+    "emoji": "🤚",
+    "label": "Pet",
+    "a11y": "Pet",
+    "enabled": true,
+    "accent": false
+   },
+   {
+    "id": "play",
+    "emoji": "🎮",
+    "label": "Play",
+    "a11y": "Play",
+    "enabled": true,
+    "accent": false
+   }
+  ],
+  "back": "Back",
+  "backIcon": "arrow-back",
+  "name": "Synapse",
+  "nameRaw": "",
+  "nameMax": 20,
+  "namePlaceholder": "Synapse",
+  "rename": "Rename pet",
+  "apply": "Apply",
+  "bubble": "That gesture tickles ✨",
+  "portrait": {
+   "state": "idle",
+   "specs": {
+    "idle": {
+     "kind": "frames",
+     "uris": [
+      "/assets/images/pet/cat/idle0.webp",
+      "/assets/images/pet/cat/idle1.webp",
+      "/assets/images/pet/cat/idle2.webp",
+      "/assets/images/pet/cat/idle3.webp",
+      "/assets/images/pet/cat/idle4.webp",
+      "/assets/images/pet/cat/idle5.webp",
+      "/assets/images/pet/cat/idle6.webp"
+     ],
+     "frames": 7,
+     "tickMs": 240,
+     "accessory": null
+    },
+    "groom": {
+     "kind": "frames",
+     "uris": [
+      "/assets/images/pet/cat/groom0.webp",
+      "/assets/images/pet/cat/groom1.webp",
+      "/assets/images/pet/cat/groom2.webp",
+      "/assets/images/pet/cat/groom3.webp",
+      "/assets/images/pet/cat/groom4.webp",
+      "/assets/images/pet/cat/groom5.webp",
+      "/assets/images/pet/cat/groom6.webp"
+     ],
+     "frames": 7,
+     "tickMs": 149,
+     "accessory": null
+    },
+    "wiggle": {
+     "kind": "frames",
+     "uris": [
+      "/assets/images/pet/cat/wiggle0.webp",
+      "/assets/images/pet/cat/wiggle1.webp",
+      "/assets/images/pet/cat/wiggle2.webp",
+      "/assets/images/pet/cat/wiggle3.webp",
+      "/assets/images/pet/cat/wiggle4.webp",
+      "/assets/images/pet/cat/wiggle5.webp",
+      "/assets/images/pet/cat/wiggle6.webp"
+     ],
+     "frames": 7,
+     "tickMs": 86,
+     "accessory": null
+    },
+    "eat": {
+     "kind": "frames",
+     "uris": [
+      "/assets/images/pet/cat/eat0.webp",
+      "/assets/images/pet/cat/eat1.webp",
+      "/assets/images/pet/cat/eat2.webp",
+      "/assets/images/pet/cat/eat3.webp",
+      "/assets/images/pet/cat/eat4.webp",
+      "/assets/images/pet/cat/eat5.webp",
+      "/assets/images/pet/cat/eat6.webp"
+     ],
+     "frames": 7,
+     "tickMs": 114,
+     "accessory": null
+    }
+   },
+   "treat": null
+  },
+  "stageName": "Spark",
+  "stageHint": "Grows with every completed training",
+  "growth": {
+   "frac": 0,
+   "text": "Trainings: 0 · 10 more to reach “Impulse”"
+  },
+  "feed": {
+   "fed": false,
+   "label": "🍪 Feed · 40 ⭐",
+   "needMore": "Need more"
+  },
+  "lookReason": "Neglected — two weeks without training",
+  "skinTitle": "How Synapse looks",
+  "skins": [
+   {
+    "id": "cat",
+    "on": true,
+    "locked": false,
+    "label": "Neuro Cat",
+    "a11y": "Neuro Cat",
+    "still": {
+     "kind": "frames",
+     "uris": [
+      "/assets/images/pet/cat/idle0.webp",
+      "/assets/images/pet/cat/idle1.webp",
+      "/assets/images/pet/cat/idle2.webp",
+      "/assets/images/pet/cat/idle3.webp",
+      "/assets/images/pet/cat/idle4.webp",
+      "/assets/images/pet/cat/idle5.webp",
+      "/assets/images/pet/cat/idle6.webp"
+     ],
+     "frames": 7,
+     "tickMs": 240,
+     "accessory": null
+    }
+   },
+   {
+    "id": "robot",
+    "on": false,
+    "locked": true,
+    "label": "Robot",
+    "a11y": "Robot — Unlocks at level 8",
+    "still": {
+     "kind": "frames",
+     "uris": [
+      "/assets/images/pet/robot/idle0.webp",
+      "/assets/images/pet/robot/idle1.webp",
+      "/assets/images/pet/robot/idle2.webp",
+      "/assets/images/pet/robot/idle3.webp"
+     ],
+     "frames": 4,
+     "tickMs": 420,
+     "accessory": null
+    }
+   },
+   {
+    "id": "constellation",
+    "on": false,
+    "locked": true,
+    "label": "Neuron",
+    "a11y": "Neuron — Unlocks at level 8",
+    "still": {
+     "kind": "frames",
+     "uris": [
+      "/assets/images/pet/constellation/idle0.webp",
+      "/assets/images/pet/constellation/idle1.webp",
+      "/assets/images/pet/constellation/idle2.webp",
+      "/assets/images/pet/constellation/idle3.webp"
+     ],
+     "frames": 4,
+     "tickMs": 420,
+     "accessory": null
+    }
+   }
+  ],
+  "level": "1",
+  "levelLabel": "Level",
+  "total": "0",
+  "totalLabel": "trainings",
+  "advice": {
+   "title": "💡 Synapse suggests",
+   "color": "#8a68f5",
+   "body": "Your weakest is Memory. Play “Word Pairs: Memory” to pull that bar up",
+   "a11y": "Synapse suggests: Word Pairs: Memory"
+  },
+  "skills": [
+   {
+    "key": "memory",
+    "label": "Memory",
+    "value": 0,
+    "color": "#8a68f5"
+   },
+   {
+    "key": "attention",
+    "label": "Attention",
+    "value": 0,
+    "color": "#25b989"
+   },
+   {
+    "key": "logic",
+    "label": "Logic",
+    "value": 0,
+    "color": "#e55fa2"
+   },
+   {
+    "key": "speed",
+    "label": "Speed",
+    "value": 0,
+    "color": "#4a91ed"
+   }
+  ]
+ }
+}

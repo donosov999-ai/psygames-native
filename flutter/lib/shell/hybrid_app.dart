@@ -772,6 +772,7 @@ class _HybridAppState extends State<HybridApp> {
   static const _ownModel = {
     StatsScreen.route, HomeScreen.route, StreakCalendarScreen.route,
     SourcesScreen.route, CollectionScreen.route, AchievementsScreen.route, LeaguesScreen.route,
+    PetScreen.route,
   };
   final _modelTimers = <String, Timer>{};
   final _modelGaveUp = <String>{};

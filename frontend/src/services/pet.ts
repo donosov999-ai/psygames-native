@@ -171,7 +171,9 @@ export async function markFedToday(): Promise<void> {
  * приложении нет — оно живёт короткими заходами. Список сам стареет при чтении.
  */
 const FED_LOG_KEY = 'psygames_pet_fed_log';
-const ОКНО_ДНЕЙ = 14;
+/** Сколько дней кормлений помнит облик (`getFedDays`); его же выгружает проба натива. */
+export const PET_FED_WINDOW_DAYS = 14;
+const ОКНО_ДНЕЙ = PET_FED_WINDOW_DAYS;
 
 /** Метка дня → номер дня (целые сутки), чтобы считать разницу. */
 function деньЧислом(stamp: string): number {
