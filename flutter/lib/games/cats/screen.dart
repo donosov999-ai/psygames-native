@@ -43,7 +43,9 @@ class CatsScreen extends StatefulWidget {
 
 class _CatsScreenState extends State<CatsScreen> {
   static const lives = 3;
-  static const hintsPerLevel = 3;
+  /// Подсказок на партию — от ступени ([catsHintMax]); берётся при раздаче, чтобы победа,
+  /// поднявшая ступень, не перерисовала счётчик под уже сыгранной доской.
+  int _hintMax = 3;
 
   late LevelLadder _ladder;
   CatsBoard? _board;
@@ -92,6 +94,7 @@ class _CatsScreenState extends State<CatsScreen> {
       _history.clear();
       _errors = 0;
       _hintsUsed = 0;
+      _hintMax = catsHintMax(catsLevel(level));
       _won = false;
       _lost = false;
     });
@@ -180,7 +183,7 @@ class _CatsScreenState extends State<CatsScreen> {
   /// отменить подсказку значит вернуть клетку, не вернув потраченную подсказку.
   void _hint() {
     final board = _board;
-    if (board == null || _won || _lost || _hintsUsed >= hintsPerLevel) return;
+    if (board == null || _won || _lost || _hintsUsed >= _hintMax) return;
     final left = board.solutionCells.difference(_cats);
     if (left.isEmpty) return;
     setState(() {
@@ -198,6 +201,7 @@ class _CatsScreenState extends State<CatsScreen> {
       'n': board.n,
       if (g != null) ...{'tier': g.tier, 'cost': g.cost, 'steps': g.steps},
       'hints_used': _hintsUsed,
+      'hints_max': _hintMax,
     };
   }
 
@@ -251,8 +255,8 @@ class _CatsScreenState extends State<CatsScreen> {
           icon: Icons.lightbulb_outline,
           label: L.t('btn_hint'),
           tint: const Color(0xFFB45309),
-          count: (hintsPerLevel - _hintsUsed).clamp(0, hintsPerLevel),
-          onPressed: (_hintsUsed < hintsPerLevel && !_won && !_lost) ? _hint : null,
+          count: (_hintMax - _hintsUsed).clamp(0, _hintMax),
+          onPressed: (_hintsUsed < _hintMax && !_won && !_lost) ? _hint : null,
         ),
         AuxAction(icon: Icons.refresh, label: L.t('restart'), onPressed: _deal),
       ]),
