@@ -1,0 +1,233 @@
+{
+ "now": 1792488309000,
+ "tzOffsetMinutes": -300,
+ "language": "ru",
+ "storage": {
+  "language": "ru",
+  "psygames_active_profile": "nzt48",
+  "psygames_corsi_stars_nzt48": "{\"1\":2,\"2\":2,\"3\":1}",
+  "psygames_hub_visible": "{\"profile\":\"nzt48\",\"hubs\":{\"/games/span\":[\"/games/digit-span\",\"/games/memory-matrix\",\"/games/listening-span\",\"/games/reading-span\",\"/games/n-back\",\"/games/picture-pairs\",\"/games/ospan\",\"/games/mnemonics\"],\"/games/sudoku-hub\":[\"/games/sudoku\",\"/games/sudoku-samurai\",\"/games/sudoku-fractal\",\"/games/sudoku?mode=towers\",\"/games/sudoku?mode=unequal\",\"/games/puzzles?mode=Solo\",\"/games/puzzles?mode=Towers\",\"/games/puzzles?mode=Unequal\",\"/games/puzzles?mode=Keen\",\"/games/puzzles?mode=Singles\",\"/games/puzzles?mode=Filling\",\"/games/puzzles?mode=Undead\",\"/games/cats\",\"/games/sudoku?mode=junior\",\"/games/puzzles?mode=Unruly\",\"/games/sudoku?mode=killer\",\"/games/sudoku?mode=free\"],\"/games/attention-conflict\":[\"/games/stroop\",\"/games/flanker\",\"/games/cpt\",\"/games/targets\",\"/games/wcst\",\"/games/inhibition\",\"/games/posner\",\"/games/prl\"],\"/games/relaxation-hub\":[\"/games/breathing\",\"/games/pause\",\"/games/eye-gym\",\"/warmup-night\"],\"/games/counting-hub\":[\"/games/counter\",\"/games/math-slider\",\"/games/number-run\",\"/games/math-sprint\",\"/games/number-bonds\",\"/games/pattern\",\"/games/puzzles?mode=Mines\",\"/games/puzzles?mode=Mosaic\",\"/games/puzzles?mode=Pattern\",\"/games/puzzles?mode=Range\",\"/games/puzzles?mode=Magnets\",\"/games/puzzles?mode=Palisade\",\"/games/puzzles?mode=Light%20Up\",\"/games/puzzles?mode=Tents\",\"/games/puzzles?mode=Rectangles\",\"/games/quick-count\",\"/games/puzzles?mode=Guess\"],\"/games/words-hub\":[\"/games/vocab-srs\",\"/games/semantic-sort\",\"/games/cloze\",\"/games/lexical-decision\",\"/games/anagrams\",\"/games/phonemic-fluency\",\"/games/story-recall\"],\"/games/hearing-hub\":[\"/games/phoneme-pairs\",\"/games/chinese-tones\",\"/games/pseudoword-echo\",\"/games/dictation\",\"/games/rhythm-pitch\"],\"/games/search-hub\":[\"/games/visual-search\",\"/games/find-differences\",\"/games/mahjong\",\"/games/schulte\",\"/games/object-tracker\",\"/games/sdmt\",\"/games/set-game\",\"/games/puzzles?mode=Dominosa\",\"/games/puzzles?mode=Map\",\"/games/proofreading\",\"/games/hidden-character\"],\"/games/mnemonics-hub\":[\"/games/memory-palace\",\"/games/faces-names\",\"/games/word-pairs\",\"/games/rmet\"],\"/games/languages-hub\":[\"/games/words-hub\",\"/games/hearing-hub\"],\"/games/chess-hub\":[\"/games/scholars-mate\",\"/games/chess-blind\",\"/games/find-move\",\"/games/solitaire-chess\",\"/games/knights-queens\",\"/games/puzzles?mode=Pegs\",\"/games/puzzles?mode=Signpost\",\"/games/puzzles?mode=Inertia\"],\"/games/sorting-hub\":[\"/games/goods-sort\",\"/games/water-sort\",\"/games/ball-sort\",\"/games/nut-sort\",\"/games/cake-sort\",\"/games/pizza-sort\",\"/games/hanoi\",\"/games/tower-london\",\"/games/puzzles?mode=Flood\",\"/games/puzzles?mode=Same%20Game\"],\"/games/spatial-hub\":[\"/games/mental-rotation\",\"/games/spatial-lab?mode=twiddle\",\"/games/spatial-lab?mode=net\",\"/games/puzzles?mode=Slide\",\"/games/puzzles?mode=Sokoban\",\"/games/dots-connect\",\"/games/one-line\",\"/games/trail-making\",\"/games/navigator\",\"/games/puzzles?mode=Net\",\"/games/puzzles?mode=Netslide\",\"/games/puzzles?mode=Twiddle\",\"/games/puzzles?mode=Cube\",\"/games/puzzles?mode=Flip\",\"/games/puzzles?mode=Sixteen\",\"/games/puzzles?mode=Fifteen\",\"/games/puzzles?mode=Untangle\",\"/games/puzzles?mode=Loopy\",\"/games/puzzles?mode=Pearl\",\"/games/puzzles?mode=Bridges\",\"/games/puzzles?mode=Train%20Tracks\",\"/games/puzzles?mode=Galaxies\",\"/games/puzzles?mode=Slant\",\"/games/puzzles?mode=Black%20Box\"]},\"suites\":{\"suite_stroop\":[\"/games/stroop\",\"/games/stroop-emotional\"],\"suite_arrows\":[\"/games/flanker\",\"/games/simon\",\"/games/choice-rt\",\"/games/ant\"],\"suite_positions\":[\"/games/memory-matrix\",\"/games/corsi\",\"/games/spatial-span\"],\"suite_stream\":[\"/games/cpt\",\"/games/switching-task\"],\"suite_inhibition\":[\"/games/inhibition\",\"/games/go-no-go\",\"/games/stop-signal\"],\"suite_decisions\":[\"/games/prl\",\"/games/iowa\",\"/games/bart\"]},\"catalog\":[\"span_group\",\"sudoku_group\",\"attention_conflict\",\"relaxation_group\",\"counting_group\",\"search_group\",\"mnemonics_group\",\"languages_group\",\"chess_group\",\"sorting_group\",\"spatial_group\"]}",
+  "psygames_pet_fed": "2026-10-20",
+  "psygames_pet_fed_log": "[\"2026-10-20\",\"2026-10-19\",\"2026-10-18\",\"2026-10-17\",\"2026-10-16\",\"2026-10-15\",\"2026-10-14\",\"2026-10-13\",\"2026-10-12\",\"2026-10-11\",\"2026-10-10\"]",
+  "psygames_pet_skin": "auto",
+  "psygames_pet_washed_at": "1792481109000",
+  "psygames_schulte_table_stars_nzt48": "{\"1\":3,\"2\":3,\"3\":3,\"4\":3,\"5\":3,\"6\":3}",
+  "psygames_sessions": "[{\"profile_id\":\"nzt48\",\"game_type\":\"schulte_table\",\"score\":10,\"time_seconds\":60,\"timestamp\":\"2026-10-18T15:25:09.000Z\"},{\"profile_id\":\"nzt48\",\"game_type\":\"schulte_table\",\"score\":10,\"time_seconds\":60,\"timestamp\":\"2026-10-18T16:25:09.000Z\"},{\"profile_id\":\"nzt48\",\"game_type\":\"schulte_table\",\"score\":10,\"time_seconds\":60,\"timestamp\":\"2026-10-18T17:25:09.000Z\"},{\"profile_id\":\"nzt48\",\"game_type\":\"schulte_table\",\"score\":10,\"time_seconds\":60,\"timestamp\":\"2026-10-18T18:25:09.000Z\"},{\"profile_id\":\"nzt48\",\"game_type\":\"schulte_table\",\"score\":10,\"time_seconds\":60,\"timestamp\":\"2026-10-18T19:25:09.000Z\"},{\"profile_id\":\"nzt48\",\"game_type\":\"schulte_table\",\"score\":10,\"time_seconds\":60,\"timestamp\":\"2026-10-18T20:25:09.000Z\"},{\"profile_id\":\"nzt48\",\"game_type\":\"schulte_table\",\"score\":10,\"time_seconds\":60,\"timestamp\":\"2026-10-18T21:25:09.000Z\"},{\"profile_id\":\"nzt48\",\"game_type\":\"schulte_table\",\"score\":10,\"time_seconds\":60,\"timestamp\":\"2026-10-18T22:25:09.000Z\"},{\"profile_id\":\"nzt48\",\"game_type\":\"schulte_table\",\"score\":10,\"time_seconds\":60,\"timestamp\":\"2026-10-18T23:25:09.000Z\"},{\"profile_id\":\"nzt48\",\"game_type\":\"schulte_table\",\"score\":10,\"time_seconds\":60,\"timestamp\":\"2026-10-19T00:25:09.000Z\"},{\"profile_id\":\"nzt48\",\"game_type\":\"schulte_table\",\"score\":10,\"time_seconds\":60,\"timestamp\":\"2026-10-19T01:25:09.000Z\"},{\"profile_id\":\"nzt48\",\"game_type\":\"schulte_table\",\"score\":10,\"time_seconds\":60,\"timestamp\":\"2026-10-19T02:25:09.000Z\"},{\"profile_id\":\"nzt48\",\"game_type\":\"digit_span\",\"score\":10,\"time_seconds\":60,\"timestamp\":\"2026-10-19T03:25:09.000Z\"},{\"profile_id\":\"nzt48\",\"game_type\":\"digit_span\",\"score\":10,\"time_seconds\":60,\"timestamp\":\"2026-10-19T04:25:09.000Z\"},{\"profile_id\":\"nzt48\",\"game_type\":\"digit_span\",\"score\":10,\"time_seconds\":60,\"timestamp\":\"2026-10-19T05:25:09.000Z\"},{\"profile_id\":\"nzt48\",\"game_type\":\"digit_span\",\"score\":10,\"time_seconds\":60,\"timestamp\":\"2026-10-19T06:25:09.000Z\"},{\"profile_id\":\"nzt48\",\"game_type\":\"digit_span\",\"score\":10,\"time_seconds\":60,\"timestamp\":\"2026-10-19T07:25:09.000Z\"},{\"profile_id\":\"nzt48\",\"game_type\":\"digit_span\",\"score\":10,\"time_seconds\":60,\"timestamp\":\"2026-10-19T08:25:09.000Z\"},{\"profile_id\":\"nzt48\",\"game_type\":\"digit_span\",\"score\":10,\"time_seconds\":60,\"timestamp\":\"2026-10-19T09:25:09.000Z\"},{\"profile_id\":\"nzt48\",\"game_type\":\"digit_span\",\"score\":10,\"time_seconds\":60,\"timestamp\":\"2026-10-19T10:25:09.000Z\"},{\"profile_id\":\"nzt48\",\"game_type\":\"digit_span\",\"score\":10,\"time_seconds\":60,\"timestamp\":\"2026-10-19T11:25:09.000Z\"},{\"profile_id\":\"nzt48\",\"game_type\":\"digit_span\",\"score\":10,\"time_seconds\":60,\"timestamp\":\"2026-10-19T12:25:09.000Z\"},{\"profile_id\":\"nzt48\",\"game_type\":\"digit_span\",\"score\":10,\"time_seconds\":60,\"timestamp\":\"2026-10-19T13:25:09.000Z\"},{\"profile_id\":\"nzt48\",\"game_type\":\"digit_span\",\"score\":10,\"time_seconds\":60,\"timestamp\":\"2026-10-19T14:25:09.000Z\"},{\"profile_id\":\"nzt48\",\"game_type\":\"sudoku\",\"score\":10,\"time_seconds\":60,\"timestamp\":\"2026-10-19T15:25:09.000Z\"},{\"profile_id\":\"nzt48\",\"game_type\":\"sudoku\",\"score\":10,\"time_seconds\":60,\"timestamp\":\"2026-10-19T16:25:09.000Z\"},{\"profile_id\":\"nzt48\",\"game_type\":\"sudoku\",\"score\":10,\"time_seconds\":60,\"timestamp\":\"2026-10-19T17:25:09.000Z\"},{\"profile_id\":\"nzt48\",\"game_type\":\"sudoku\",\"score\":10,\"time_seconds\":60,\"timestamp\":\"2026-10-19T18:25:09.000Z\"},{\"profile_id\":\"nzt48\",\"game_type\":\"sudoku\",\"score\":10,\"time_seconds\":60,\"timestamp\":\"2026-10-19T19:25:09.000Z\"},{\"profile_id\":\"nzt48\",\"game_type\":\"sudoku\",\"score\":10,\"time_seconds\":60,\"timestamp\":\"2026-10-19T20:25:09.000Z\"},{\"profile_id\":\"nzt48\",\"game_type\":\"sudoku\",\"score\":10,\"time_seconds\":60,\"timestamp\":\"2026-10-19T21:25:09.000Z\"},{\"profile_id\":\"nzt48\",\"game_type\":\"sudoku\",\"score\":10,\"time_seconds\":60,\"timestamp\":\"2026-10-19T22:25:09.000Z\"},{\"profile_id\":\"nzt48\",\"game_type\":\"sudoku\",\"score\":10,\"time_seconds\":60,\"timestamp\":\"2026-10-19T23:25:09.000Z\"},{\"profile_id\":\"nzt48\",\"game_type\":\"sudoku\",\"score\":10,\"time_seconds\":60,\"timestamp\":\"2026-10-20T00:25:09.000Z\"},{\"profile_id\":\"nzt48\",\"game_type\":\"go_no_go\",\"score\":10,\"time_seconds\":60,\"timestamp\":\"2026-10-20T01:25:09.000Z\"},{\"profile_id\":\"nzt48\",\"game_type\":\"go_no_go\",\"score\":10,\"time_seconds\":60,\"timestamp\":\"2026-10-20T02:25:09.000Z\"},{\"profile_id\":\"nzt48\",\"game_type\":\"go_no_go\",\"score\":10,\"time_seconds\":60,\"timestamp\":\"2026-10-20T03:25:09.000Z\"},{\"profile_id\":\"nzt48\",\"game_type\":\"go_no_go\",\"score\":10,\"time_seconds\":60,\"timestamp\":\"2026-10-20T04:25:09.000Z\"},{\"profile_id\":\"nzt48\",\"game_type\":\"go_no_go\",\"score\":10,\"time_seconds\":60,\"timestamp\":\"2026-10-20T05:25:09.000Z\"},{\"profile_id\":\"nzt48\",\"game_type\":\"go_no_go\",\"score\":10,\"time_seconds\":60,\"timestamp\":\"2026-10-20T06:25:09.000Z\"},{\"profile_id\":\"nzt48\",\"game_type\":\"go_no_go\",\"score\":10,\"time_seconds\":60,\"timestamp\":\"2026-10-20T07:25:09.000Z\"},{\"profile_id\":\"nzt48\",\"game_type\":\"go_no_go\",\"score\":10,\"time_seconds\":60,\"timestamp\":\"2026-10-20T08:25:09.000Z\"}]",
+  "psygames_tokens_v1": "{\"nzt48\":15}"
+ },
+ "model": {
+  "v": 1,
+  "care": [
+   {
+    "id": "wash",
+    "emoji": "🫧",
+    "label": "Чистый",
+    "a11y": "Помыть",
+    "enabled": false,
+    "accent": false
+   },
+   {
+    "id": "stroke",
+    "emoji": "🤚",
+    "label": "Погладить",
+    "a11y": "Погладить",
+    "enabled": true,
+    "accent": false
+   },
+   {
+    "id": "play",
+    "emoji": "🎮",
+    "label": "Поиграть",
+    "a11y": "Поиграть",
+    "enabled": true,
+    "accent": false
+   }
+  ],
+  "back": "Назад",
+  "backIcon": "arrow-back",
+  "name": "Синапс",
+  "nameRaw": "",
+  "nameMax": 20,
+  "namePlaceholder": "Синапс",
+  "rename": "Переименовать питомца",
+  "apply": "Применить",
+  "bubble": "Нейроны любят повторение 🔁",
+  "portrait": {
+   "state": "idle",
+   "specs": {
+    "idle": {
+     "kind": "frames",
+     "uris": [
+      "/assets/images/pet/cat/idle0.webp",
+      "/assets/images/pet/cat/idle1.webp",
+      "/assets/images/pet/cat/idle2.webp",
+      "/assets/images/pet/cat/idle3.webp",
+      "/assets/images/pet/cat/idle4.webp",
+      "/assets/images/pet/cat/idle5.webp",
+      "/assets/images/pet/cat/idle6.webp"
+     ],
+     "frames": 7,
+     "tickMs": 240,
+     "accessory": null
+    },
+    "groom": {
+     "kind": "frames",
+     "uris": [
+      "/assets/images/pet/cat/groom0.webp",
+      "/assets/images/pet/cat/groom1.webp",
+      "/assets/images/pet/cat/groom2.webp",
+      "/assets/images/pet/cat/groom3.webp",
+      "/assets/images/pet/cat/groom4.webp",
+      "/assets/images/pet/cat/groom5.webp",
+      "/assets/images/pet/cat/groom6.webp"
+     ],
+     "frames": 7,
+     "tickMs": 149,
+     "accessory": null
+    },
+    "wiggle": {
+     "kind": "frames",
+     "uris": [
+      "/assets/images/pet/cat/wiggle0.webp",
+      "/assets/images/pet/cat/wiggle1.webp",
+      "/assets/images/pet/cat/wiggle2.webp",
+      "/assets/images/pet/cat/wiggle3.webp",
+      "/assets/images/pet/cat/wiggle4.webp",
+      "/assets/images/pet/cat/wiggle5.webp",
+      "/assets/images/pet/cat/wiggle6.webp"
+     ],
+     "frames": 7,
+     "tickMs": 86,
+     "accessory": null
+    },
+    "eat": {
+     "kind": "frames",
+     "uris": [
+      "/assets/images/pet/cat/eat0.webp",
+      "/assets/images/pet/cat/eat1.webp",
+      "/assets/images/pet/cat/eat2.webp",
+      "/assets/images/pet/cat/eat3.webp",
+      "/assets/images/pet/cat/eat4.webp",
+      "/assets/images/pet/cat/eat5.webp",
+      "/assets/images/pet/cat/eat6.webp"
+     ],
+     "frames": 7,
+     "tickMs": 114,
+     "accessory": null
+    }
+   },
+   "treat": null
+  },
+  "stageName": "Созвездие",
+  "stageHint": "Растёт после каждой завершённой тренировки",
+  "growth": {
+   "frac": 0.4,
+   "text": "Тренировок: 42 · до нового уровня ещё 3"
+  },
+  "feed": {
+   "fed": true,
+   "label": "❤️ Сыт и доволен",
+   "needMore": null
+  },
+  "lookReason": null,
+  "skinTitle": "Как выглядит Синапс",
+  "skins": [
+   {
+    "id": "cat",
+    "on": true,
+    "locked": false,
+    "label": "Нейро-кот",
+    "a11y": "Нейро-кот",
+    "still": {
+     "kind": "frames",
+     "uris": [
+      "/assets/images/pet/cat/idle0.webp",
+      "/assets/images/pet/cat/idle1.webp",
+      "/assets/images/pet/cat/idle2.webp",
+      "/assets/images/pet/cat/idle3.webp",
+      "/assets/images/pet/cat/idle4.webp",
+      "/assets/images/pet/cat/idle5.webp",
+      "/assets/images/pet/cat/idle6.webp"
+     ],
+     "frames": 7,
+     "tickMs": 240,
+     "accessory": null
+    }
+   },
+   {
+    "id": "robot",
+    "on": false,
+    "locked": false,
+    "label": "Робот",
+    "a11y": "Робот",
+    "still": {
+     "kind": "frames",
+     "uris": [
+      "/assets/images/pet/robot/idle0.webp",
+      "/assets/images/pet/robot/idle1.webp",
+      "/assets/images/pet/robot/idle2.webp",
+      "/assets/images/pet/robot/idle3.webp"
+     ],
+     "frames": 4,
+     "tickMs": 420,
+     "accessory": null
+    }
+   },
+   {
+    "id": "constellation",
+    "on": false,
+    "locked": false,
+    "label": "Нейрон",
+    "a11y": "Нейрон",
+    "still": {
+     "kind": "frames",
+     "uris": [
+      "/assets/images/pet/constellation/idle0.webp",
+      "/assets/images/pet/constellation/idle1.webp",
+      "/assets/images/pet/constellation/idle2.webp",
+      "/assets/images/pet/constellation/idle3.webp"
+     ],
+     "frames": 4,
+     "tickMs": 420,
+     "accessory": null
+    }
+   }
+  ],
+  "level": "9",
+  "levelLabel": "Уровень",
+  "total": "42",
+  "totalLabel": "тренировки",
+  "advice": {
+   "title": "💡 Совет Синапса",
+   "color": "#4a91ed",
+   "body": "Слабее всего — Скорость. Поиграй в «Go / No-Go: торможение», чтобы подтянуть эту шкалу",
+   "a11y": "Совет Синапса: Go / No-Go: торможение"
+  },
+  "skills": [
+   {
+    "key": "memory",
+    "label": "Память",
+    "value": 48,
+    "color": "#8a68f5"
+   },
+   {
+    "key": "attention",
+    "label": "Внимание",
+    "value": 48,
+    "color": "#25b989"
+   },
+   {
+    "key": "logic",
+    "label": "Логика",
+    "value": 40,
+    "color": "#e55fa2"
+   },
+   {
+    "key": "speed",
+    "label": "Скорость",
+    "value": 32,
+    "color": "#4a91ed"
+   }
+  ]
+ }
+}

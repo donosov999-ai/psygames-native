@@ -161,6 +161,8 @@ flutter:
     - assets/home.json
     # Входы Главной на Dart (вариант Б, 7б): картинки профилей, вещи, кадры питомца, правила — `home_inputs.dart`.
     - assets/home_inputs.json
+    # «Питомец» на Dart (вариант Б): кадры, лакомство, шкалы, пул реплик — проба flutter-pet-asset-fresh.
+    - assets/pet.json
     # Иконки игр «поле в миниатюре» для строк развилок — выгрузка веб-реестра
     # (flutter/tools/embed-game-icons.mjs), не править руками.
     - assets/game_icons/

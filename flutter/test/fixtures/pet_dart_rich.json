@@ -1,0 +1,318 @@
+{
+ "now": 1792488309000,
+ "tzOffsetMinutes": -300,
+ "language": "ru",
+ "storage": {
+  "language": "ru",
+  "psygames_active_profile": "women",
+  "psygames_hub_visible": "{\"profile\":\"women\",\"hubs\":{\"/games/span\":[\"/games/memory-matrix\",\"/games/picture-pairs\"],\"/games/sudoku-hub\":[\"/games/sudoku\",\"/games/sudoku?mode=towers\",\"/games/sudoku?mode=unequal\",\"/games/puzzles?mode=Solo\",\"/games/puzzles?mode=Towers\",\"/games/puzzles?mode=Unequal\",\"/games/puzzles?mode=Keen\",\"/games/puzzles?mode=Singles\",\"/games/puzzles?mode=Filling\",\"/games/puzzles?mode=Undead\",\"/games/cats\",\"/games/sudoku?mode=junior\",\"/games/puzzles?mode=Unruly\",\"/games/sudoku?mode=killer\",\"/games/sudoku?mode=free\"],\"/games/attention-conflict\":[\"/games/targets\"],\"/games/relaxation-hub\":[\"/games/breathing\",\"/games/pause\",\"/games/eye-gym\",\"/warmup-night\"],\"/games/counting-hub\":[\"/games/number-run\",\"/games/puzzles?mode=Mines\",\"/games/puzzles?mode=Mosaic\",\"/games/puzzles?mode=Pattern\",\"/games/puzzles?mode=Range\",\"/games/puzzles?mode=Magnets\",\"/games/puzzles?mode=Palisade\",\"/games/puzzles?mode=Light%20Up\",\"/games/puzzles?mode=Tents\",\"/games/puzzles?mode=Rectangles\",\"/games/puzzles?mode=Guess\"],\"/games/words-hub\":[\"/games/vocab-srs\",\"/games/semantic-sort\",\"/games/cloze\",\"/games/lexical-decision\",\"/games/anagrams\",\"/games/phonemic-fluency\",\"/games/story-recall\"],\"/games/hearing-hub\":[\"/games/phoneme-pairs\",\"/games/chinese-tones\",\"/games/pseudoword-echo\",\"/games/dictation\"],\"/games/search-hub\":[\"/games/visual-search\",\"/games/find-differences\",\"/games/schulte\",\"/games/set-game\",\"/games/puzzles?mode=Dominosa\",\"/games/puzzles?mode=Map\",\"/games/proofreading\",\"/games/hidden-character\"],\"/games/mnemonics-hub\":[],\"/games/languages-hub\":[\"/games/words-hub\",\"/games/hearing-hub\"],\"/games/chess-hub\":[\"/games/scholars-mate\",\"/games/chess-blind\",\"/games/find-move\",\"/games/solitaire-chess\",\"/games/knights-queens\",\"/games/puzzles?mode=Pegs\",\"/games/puzzles?mode=Signpost\",\"/games/puzzles?mode=Inertia\"],\"/games/sorting-hub\":[\"/games/goods-sort\",\"/games/water-sort\",\"/games/ball-sort\",\"/games/nut-sort\",\"/games/cake-sort\",\"/games/pizza-sort\",\"/games/puzzles?mode=Flood\",\"/games/puzzles?mode=Same%20Game\"],\"/games/spatial-hub\":[\"/games/mental-rotation\",\"/games/spatial-lab?mode=twiddle\",\"/games/spatial-lab?mode=net\",\"/games/puzzles?mode=Slide\",\"/games/puzzles?mode=Sokoban\",\"/games/trail-making\",\"/games/puzzles?mode=Net\",\"/games/puzzles?mode=Netslide\",\"/games/puzzles?mode=Twiddle\",\"/games/puzzles?mode=Cube\",\"/games/puzzles?mode=Flip\",\"/games/puzzles?mode=Sixteen\",\"/games/puzzles?mode=Fifteen\",\"/games/puzzles?mode=Untangle\",\"/games/puzzles?mode=Loopy\",\"/games/puzzles?mode=Pearl\",\"/games/puzzles?mode=Bridges\",\"/games/puzzles?mode=Train%20Tracks\",\"/games/puzzles?mode=Galaxies\",\"/games/puzzles?mode=Slant\",\"/games/puzzles?mode=Black%20Box\"]},\"suites\":{\"suite_stroop\":[],\"suite_arrows\":[],\"suite_positions\":[\"/games/memory-matrix\"],\"suite_stream\":[],\"suite_inhibition\":[],\"suite_decisions\":[]},\"catalog\":[\"span_group\",\"sudoku_group\",\"attention_conflict\",\"relaxation_group\",\"counting_group\",\"search_group\",\"languages_group\",\"chess_group\",\"sorting_group\",\"spatial_group\"]}",
+  "psygames_pet_acc": "bow",
+  "psygames_pet_fed_log": "[\"2026-10-18\",\"2026-10-15\",\"2026-9-30\"]",
+  "psygames_pet_name": "  Мурзик  ",
+  "psygames_pet_skin": "robot",
+  "psygames_pet_washed_at": "1792229109000",
+  "psygames_schulte_table_stars_women": "{\"1\":3,\"2\":3,\"3\":2,\"4\":1,\"5\":2}",
+  "psygames_sessions": "[{\"profile_id\":\"women\",\"game_type\":\"schulte_table\",\"score\":10,\"time_seconds\":60,\"timestamp\":\"2026-10-19T14:25:09.000Z\"},{\"profile_id\":\"women\",\"game_type\":\"schulte_table\",\"score\":10,\"time_seconds\":60,\"timestamp\":\"2026-10-19T15:25:09.000Z\"},{\"profile_id\":\"women\",\"game_type\":\"schulte_table\",\"score\":10,\"time_seconds\":60,\"timestamp\":\"2026-10-19T16:25:09.000Z\"},{\"profile_id\":\"women\",\"game_type\":\"schulte_table\",\"score\":10,\"time_seconds\":60,\"timestamp\":\"2026-10-19T17:25:09.000Z\"},{\"profile_id\":\"women\",\"game_type\":\"schulte_table\",\"score\":10,\"time_seconds\":60,\"timestamp\":\"2026-10-19T18:25:09.000Z\"},{\"profile_id\":\"women\",\"game_type\":\"schulte_table\",\"score\":10,\"time_seconds\":60,\"timestamp\":\"2026-10-19T19:25:09.000Z\"},{\"profile_id\":\"women\",\"game_type\":\"schulte_table\",\"score\":10,\"time_seconds\":60,\"timestamp\":\"2026-10-19T20:25:09.000Z\"},{\"profile_id\":\"women\",\"game_type\":\"memory_matrix\",\"score\":10,\"time_seconds\":60,\"timestamp\":\"2026-10-19T21:25:09.000Z\"},{\"profile_id\":\"women\",\"game_type\":\"memory_matrix\",\"score\":10,\"time_seconds\":60,\"timestamp\":\"2026-10-19T22:25:09.000Z\"},{\"profile_id\":\"women\",\"game_type\":\"memory_matrix\",\"score\":10,\"time_seconds\":60,\"timestamp\":\"2026-10-19T23:25:09.000Z\"},{\"profile_id\":\"women\",\"game_type\":\"memory_matrix\",\"score\":10,\"time_seconds\":60,\"timestamp\":\"2026-10-20T00:25:09.000Z\"},{\"profile_id\":\"women\",\"game_type\":\"memory_matrix\",\"score\":10,\"time_seconds\":60,\"timestamp\":\"2026-10-20T01:25:09.000Z\"},{\"profile_id\":\"women\",\"game_type\":\"sudoku\",\"score\":10,\"time_seconds\":60,\"timestamp\":\"2026-10-20T02:25:09.000Z\"},{\"profile_id\":\"women\",\"game_type\":\"sudoku\",\"score\":10,\"time_seconds\":60,\"timestamp\":\"2026-10-20T03:25:09.000Z\"},{\"profile_id\":\"women\",\"game_type\":\"sudoku\",\"score\":10,\"time_seconds\":60,\"timestamp\":\"2026-10-20T04:25:09.000Z\"},{\"profile_id\":\"women\",\"game_type\":\"flanker\",\"score\":10,\"time_seconds\":60,\"timestamp\":\"2026-10-20T05:25:09.000Z\"},{\"profile_id\":\"women\",\"game_type\":\"flanker\",\"score\":10,\"time_seconds\":60,\"timestamp\":\"2026-10-20T06:25:09.000Z\"},{\"profile_id\":\"women\",\"game_type\":\"flanker\",\"score\":10,\"time_seconds\":60,\"timestamp\":\"2026-10-20T07:25:09.000Z\"},{\"profile_id\":\"women\",\"game_type\":\"flanker\",\"score\":10,\"time_seconds\":60,\"timestamp\":\"2026-10-20T08:25:09.000Z\"},{\"profile_id\":\"nzt48\",\"game_type\":\"corsi\",\"score\":10,\"time_seconds\":60,\"timestamp\":\"2026-10-20T07:25:09.000Z\"},{\"profile_id\":\"nzt48\",\"game_type\":\"corsi\",\"score\":10,\"time_seconds\":60,\"timestamp\":\"2026-10-20T08:25:09.000Z\"}]",
+  "psygames_sudoku_stars_women": "{\"1\":1,\"2\":1,\"3\":1,\"4\":0}",
+  "psygames_tokens_v1": "{\"women\":120,\"nzt48\":999}"
+ },
+ "model": {
+  "v": 1,
+  "care": [
+   {
+    "id": "wash",
+    "emoji": "🫧",
+    "label": "Помыть",
+    "a11y": "Помыть",
+    "enabled": true,
+    "accent": true
+   },
+   {
+    "id": "stroke",
+    "emoji": "🤚",
+    "label": "Погладить",
+    "a11y": "Погладить",
+    "enabled": true,
+    "accent": false
+   },
+   {
+    "id": "play",
+    "emoji": "🎮",
+    "label": "Поиграть",
+    "a11y": "Поиграть",
+    "enabled": true,
+    "accent": false
+   }
+  ],
+  "back": "Назад",
+  "backIcon": "arrow-back",
+  "name": "Мурзик",
+  "nameRaw": "Мурзик",
+  "nameMax": 20,
+  "namePlaceholder": "Синапс",
+  "rename": "Переименовать питомца",
+  "apply": "Применить",
+  "bubble": "Этот жест щекочет ✨",
+  "portrait": {
+   "state": "idle",
+   "specs": {
+    "idle": {
+     "kind": "frames",
+     "uris": [
+      "/assets/images/pet/robot/idle0.webp",
+      "/assets/images/pet/robot/idle1.webp",
+      "/assets/images/pet/robot/idle2.webp",
+      "/assets/images/pet/robot/idle3.webp"
+     ],
+     "frames": 4,
+     "tickMs": 420,
+     "accessory": {
+      "uri": "/assets/images/pet/accessories/bow.png",
+      "boxes": [
+       {
+        "left": 0.274,
+        "top": 0.236096,
+        "size": 0.448
+       },
+       {
+        "left": 0.275,
+        "top": 0.20879599999999995,
+        "size": 0.448
+       },
+       {
+        "left": 0.274,
+        "top": 0.26349599999999995,
+        "size": 0.448
+       },
+       {
+        "left": 0.275,
+        "top": 0.21069600000000002,
+        "size": 0.448
+       }
+      ]
+     }
+    },
+    "groom": {
+     "kind": "frames",
+     "uris": [
+      "/assets/images/pet/robot/idle0.webp",
+      "/assets/images/pet/robot/idle1.webp",
+      "/assets/images/pet/robot/idle2.webp",
+      "/assets/images/pet/robot/idle3.webp"
+     ],
+     "frames": 4,
+     "tickMs": 420,
+     "accessory": {
+      "uri": "/assets/images/pet/accessories/bow.png",
+      "boxes": [
+       {
+        "left": 0.274,
+        "top": 0.236096,
+        "size": 0.448
+       },
+       {
+        "left": 0.275,
+        "top": 0.20879599999999995,
+        "size": 0.448
+       },
+       {
+        "left": 0.274,
+        "top": 0.26349599999999995,
+        "size": 0.448
+       },
+       {
+        "left": 0.275,
+        "top": 0.21069600000000002,
+        "size": 0.448
+       }
+      ]
+     }
+    },
+    "wiggle": {
+     "kind": "frames",
+     "uris": [
+      "/assets/images/pet/robot/jump0.webp",
+      "/assets/images/pet/robot/jump1.webp",
+      "/assets/images/pet/robot/jump2.webp",
+      "/assets/images/pet/robot/jump3.webp"
+     ],
+     "frames": 4,
+     "tickMs": 150,
+     "accessory": {
+      "uri": "/assets/images/pet/accessories/bow.png",
+      "boxes": [
+       {
+        "left": 0.274,
+        "top": 0.12479599999999999,
+        "size": 0.448
+       },
+       {
+        "left": 0.275,
+        "top": 0.038896000000000014,
+        "size": 0.448
+       },
+       {
+        "left": 0.275,
+        "top": -0.004104000000000024,
+        "size": 0.448
+       },
+       {
+        "left": 0.274,
+        "top": 0.12479599999999999,
+        "size": 0.448
+       }
+      ]
+     }
+    },
+    "eat": {
+     "kind": "frames",
+     "uris": [
+      "/assets/images/pet/robot/wave0.webp",
+      "/assets/images/pet/robot/wave1.webp",
+      "/assets/images/pet/robot/wave2.webp",
+      "/assets/images/pet/robot/wave3.webp"
+     ],
+     "frames": 4,
+     "tickMs": 180,
+     "accessory": {
+      "uri": "/assets/images/pet/accessories/bow.png",
+      "boxes": [
+       {
+        "left": 0.2672,
+        "top": 0.202896,
+        "size": 0.448
+       },
+       {
+        "left": 0.2711,
+        "top": 0.19509600000000002,
+        "size": 0.448
+       },
+       {
+        "left": 0.2692,
+        "top": 0.193196,
+        "size": 0.448
+       },
+       {
+        "left": 0.2985,
+        "top": 0.173596,
+        "size": 0.448
+       }
+      ]
+     }
+    }
+   },
+   "treat": null
+  },
+  "stageName": "Импульс",
+  "stageHint": "Растёт после каждой завершённой тренировки",
+  "growth": {
+   "frac": 0.55,
+   "text": "Тренировок: 21 · до стадии «Созвездие» ещё 9"
+  },
+  "feed": {
+   "fed": false,
+   "label": "🍪 Угостить · 40 ⭐",
+   "needMore": null
+  },
+  "lookReason": "Отощал — давно не кормили",
+  "skinTitle": "Как выглядит Мурзик",
+  "skins": [
+   {
+    "id": "cat",
+    "on": false,
+    "locked": false,
+    "label": "Нейро-кот",
+    "a11y": "Нейро-кот",
+    "still": {
+     "kind": "frames",
+     "uris": [
+      "/assets/images/pet/cat/idle0.webp",
+      "/assets/images/pet/cat/idle1.webp",
+      "/assets/images/pet/cat/idle2.webp",
+      "/assets/images/pet/cat/idle3.webp",
+      "/assets/images/pet/cat/idle4.webp",
+      "/assets/images/pet/cat/idle5.webp",
+      "/assets/images/pet/cat/idle6.webp"
+     ],
+     "frames": 7,
+     "tickMs": 240,
+     "accessory": null
+    }
+   },
+   {
+    "id": "robot",
+    "on": true,
+    "locked": false,
+    "label": "Робот",
+    "a11y": "Робот",
+    "still": {
+     "kind": "frames",
+     "uris": [
+      "/assets/images/pet/robot/idle0.webp",
+      "/assets/images/pet/robot/idle1.webp",
+      "/assets/images/pet/robot/idle2.webp",
+      "/assets/images/pet/robot/idle3.webp"
+     ],
+     "frames": 4,
+     "tickMs": 420,
+     "accessory": null
+    }
+   },
+   {
+    "id": "constellation",
+    "on": false,
+    "locked": false,
+    "label": "Нейрон",
+    "a11y": "Нейрон",
+    "still": {
+     "kind": "frames",
+     "uris": [
+      "/assets/images/pet/constellation/idle0.webp",
+      "/assets/images/pet/constellation/idle1.webp",
+      "/assets/images/pet/constellation/idle2.webp",
+      "/assets/images/pet/constellation/idle3.webp"
+     ],
+     "frames": 4,
+     "tickMs": 420,
+     "accessory": null
+    }
+   }
+  ],
+  "level": "5",
+  "levelLabel": "Уровень",
+  "total": "21",
+  "totalLabel": "тренировка",
+  "advice": {
+   "title": "💡 Совет Синапса",
+   "color": "#e55fa2",
+   "body": "Слабее всего — Логика. Поиграй в «SET: тройки признаков», чтобы подтянуть эту шкалу",
+   "a11y": "Совет Синапса: SET: тройки признаков"
+  },
+  "skills": [
+   {
+    "key": "memory",
+    "label": "Память",
+    "value": 28,
+    "color": "#8a68f5"
+   },
+   {
+    "key": "attention",
+    "label": "Внимание",
+    "value": 28,
+    "color": "#25b989"
+   },
+   {
+    "key": "logic",
+    "label": "Логика",
+    "value": 12,
+    "color": "#e55fa2"
+   },
+   {
+    "key": "speed",
+    "label": "Скорость",
+    "value": 16,
+    "color": "#4a91ed"
+   }
+  ]
+ }
+}
