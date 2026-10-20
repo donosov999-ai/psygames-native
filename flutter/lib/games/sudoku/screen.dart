@@ -338,6 +338,10 @@ class _SudokuScreenState extends State<SudokuScreen> {
 
   /// Итог боя с боссом этой партии: `null` — боя не было.
   bool? _boss;
+
+  /// Ступень лестницы в ДРУГОЙ игре (181–212: «Кошки», сетки Тэтхэма) — вместо доски карточка
+  /// «Начать». `null` — ступень своя, с доской.
+  LadderTransit? _gameStep;
   bool _lost = false;
   String? _failure;
 
@@ -386,7 +390,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
 
   Future<void> _boot() async {
     final levels = await SudokuLevels.load();
-    _ladder = _ladderUpTo(levels.lastLevel);
+    _ladder = _ladderUpTo(levels.lastStep);
     await _ladder.load();
     await WordokuWords.load();
     // Лестница нужна и в режиме: потолок подсказок берётся по номеру ступени — ровно
@@ -729,6 +733,19 @@ class _SudokuScreenState extends State<SudokuScreen> {
     }
     final levels = _levels;
     if (levels == null) return;
+    final step = _gameStepAt(levels, _ladder.level);
+    if (step != null) {
+      setState(() {
+        _gameStep = step;
+        _board = null;
+        _failure = null;
+        _grid = const [];
+        _won = false;
+        _boss = null;
+      });
+      return;
+    }
+    _gameStep = null;
     final seed = DateTime.now().millisecondsSinceEpoch; // wall-clock: зерно раздачи
     final board = sudokuDistinctBoard<SudokuBoard>(
       draw: (i) => levels.boardFor(_ladder.level, seed: seed + i, road: _road),
@@ -936,7 +953,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
     if (next == _road || levels == null) return;
     widget.state.set(sudokuRoadKey(widget.state.activeProfile), next.name);
     _road = next;
-    _ladder = _ladderUpTo(levels.lastLevel);
+    _ladder = _ladderUpTo(levels.lastStep);
     await _ladder.load();
     if (!mounted) return;
     _deal();
@@ -1143,7 +1160,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
       context,
       current: _ladder.level,
       best: _ladder.best,
-      last: levels.lastLevel,
+      last: levels.lastStep,
       stars: levelStarsOf(widget.state, 'sudoku'),
     );
     if (picked == null || !mounted) return;
@@ -1543,6 +1560,62 @@ class _SudokuScreenState extends State<SudokuScreen> {
     final played = _ladder.level;
     final counted = await win();
     if (!counted || !mounted) return;
+    await _bossAfter(played);
+  }
+
+  /// Ступень выше досок, у которой в файле переходов строка-игра. Ниже досок строка-игра
+  /// не действует: доска своей ступени главнее (план сдвигается, когда правила приходят раньше).
+  static LadderTransit? _gameStepAt(SudokuLevels levels, int level) =>
+      level > levels.lastLevel ? LadderTransit.levelOf(levels.transitRow(level)) : null;
+
+  /// 🔴 СТУПЕНЬ В ДРУГОЙ ИГРЕ (задача a72d652a). Хозяин — сама лестница «Судоку»: победа там
+  /// даёт ей +1 (`LevelTransition.play`), провал оставляет на ступени. Босс после ступени — тот
+  /// же, что после доски: строка `boss` файла лестницы.
+  Future<void> _playGameStep() async {
+    final step = _gameStep;
+    if (step == null) return;
+    final played = _ladder.level;
+    final outcome = await LevelTransition.play(context, state: widget.state, host: _ladder, step: step);
+    if (!mounted) return;
+    if (outcome == TransitOutcome.passed) await _bossAfter(played);
+    if (mounted) _deal();
+  }
+
+  /// Название игры ступени — ключ словаря по адресу: «Кошки» и режимы головоломок Тэтхэма.
+  static String _gameTitleKey(String game) {
+    if (game.startsWith('/games/cats')) return 'catsTitle';
+    final mode = Uri.tryParse(game)?.queryParameters['mode'];
+    return mode == null ? 'sdkNextStage' : 'puzzles$mode';
+  }
+
+  Widget _gameStepCard(LadderTransit step) => Center(
+        key: const Key('ladderstep-card'),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('${L.t('sdkHudStage')} ${_ladder.level}', style: Theme.of(context).textTheme.titleMedium),
+              const SizedBox(height: 8),
+              Text(L.t(_gameTitleKey(step.game)),
+                  key: const Key('ladderstep-game'),
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.headlineSmall),
+              const SizedBox(height: 4),
+              Text('${L.t('level')} ${step.gameLevel ?? 1}', key: const Key('ladderstep-level')),
+              const SizedBox(height: 20),
+              FilledButton(
+                key: const Key('ladderstep-go'),
+                onPressed: _playGameStep,
+                child: Text(L.t('start')),
+              ),
+            ],
+          ),
+        ),
+      );
+
+  /// Босс после пройденной ступени [played] — по строке `boss` файла лестницы.
+  Future<void> _bossAfter(int played) async {
     final row = _levels?.transitRow(played);
     if (row?['boss'] != true) return;
     final big = LadderTransit.bossOf(row);
@@ -1798,6 +1871,8 @@ class _SudokuScreenState extends State<SudokuScreen> {
         final ready = widget.mode == null ? levels != null : _sideModes != null;
         if (!ready) return const Center(child: CircularProgressIndicator());
         final side = _sideBoard;
+        final gameStep = _gameStep;
+        if (widget.mode == null && gameStep != null && !_pilot && !widget.junior) return _gameStepCard(gameStep);
         if (widget.mode == null ? board == null : side == null) {
           return Center(child: Text(_failure ?? L.t('sdkBoardFailed')));
         }
