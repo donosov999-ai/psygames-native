@@ -81,8 +81,8 @@ export function petAccEmoji(v: string): string {
   return v === 'bow' ? '🎀' : v === 'party_hat' ? '🥳' : v === 'bow_tie' ? '🎩' : '👓';
 }
 
-/** Вкладки разделов: тип (null — все), значок, подпись для чтеца. */
-const SHOP_CATS = [
+/** Вкладки разделов: тип (null — все), значок, подпись для чтеца. Выгружается и в модель Dart (`flutter-shop-asset-fresh`). */
+export const SHOP_CATS = [
   [null, 'apps', 'a11yCatAll'], ['ability', 'flash', 'a11yCatAbility'],
   ['accent', 'color-palette', 'a11yCatAccent'], ['sound', 'musical-notes', 'a11yCatSound'],
   ['frame', 'scan', 'a11yCatFrame'], ['title', 'pricetag', 'a11yCatTitle'], ['avatar', 'person', 'a11yCatAvatar'], ['pet', 'paw', 'a11yCatPet'],
@@ -90,7 +90,7 @@ const SHOP_CATS = [
 ] as const;
 
 /** Косметические разделы по порядку: тип и ключ заголовка. */
-const SHOP_SECTIONS = [
+export const SHOP_SECTIONS = [
   ['accent', 'shopAccentSection'], ['sound', 'shopSoundSection'], ['frame', 'shopFrameSection'],
   ['title', 'shopTitleSection'], ['avatar', 'shopAvatarSection'], ['pet', 'shopPetSection'],
   ['digits', 'shopDigitsSection'], ['theme', 'shopThemeSection'],
@@ -537,7 +537,7 @@ type ShopState = {
 };
 
 /** Квадрат-образец товара — то же ветвление по типу, что у разметки строки. */
-function swatchOf(c: Cosmetic, accent: string): object {
+export function swatchOf(c: Cosmetic, accent: string): object {
   switch (c.type) {
     case 'sound': return { kind: 'icon', icon: 'musical-notes', color: accent };
     case 'frame': return { kind: 'frame', color: c.value };
@@ -586,7 +586,9 @@ function shopModel(s: ShopState, t: (key: string) => string, colors: { primary: 
           btn: null,
         }
         : {
-          active: false, title: t('wagerTitle'),
+          // Сгорела ли ставка (`peekWager` при этом стирает запись): оболочка, считающая модель сама,
+          // узнаёт отсюда, что запись стёрла страница, а не она.
+          active: false, lost: w.kind === 'lost', title: t('wagerTitle'),
           desc: (w.kind === 'lost' ? t('wagerLostMsg') + ' ' : '')
             + t('wagerDesc').replace('{stake}', String(WAGER_STAKE)).replace('{prize}', String(WAGER_PRIZE)),
           btn: {
