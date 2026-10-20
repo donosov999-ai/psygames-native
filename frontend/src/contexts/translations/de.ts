@@ -3044,6 +3044,7 @@ const t: Record<string, string> = {
   "puzzleSecondNoBridge": "Keine Brücke",
   "puzzleSecondToPrev": "Zum Vorgänger",
   "puzzleSecondWhite": "Weiß",
+  "puzzleTapUnruly": "Feld antippen: leer → schwarz → weiß",
   "puzzleNextStep": "Nächster Schritt",
   "teachLogicClueFull": "Die Zahl ist schon erreicht – die übrigen Felder dieses Hinweises bekommen nichts.",
   "teachLogicClueNeedsAll": "Der Hinweis braucht genau so viele, wie freie Felder übrig sind – also sind alle belegt.",
@@ -3108,7 +3109,7 @@ const t: Record<string, string> = {
   "puzzlesLightUpIntroDesc": "Beleuchte alle weißen Zellen. Eine Lampe beleuchtet ihre eigene Zelle und scheint in gerader Linie in alle vier Richtungen bis zu einer schwarzen Zelle. Zwei Lampen dürfen sich nicht gegenseitig anleuchten. Eine Zahl auf einer schwarzen Zelle sagt, wie viele Lampen direkt an ihr stehen – oben, unten, links und rechts; neben einer schwarzen Zelle ohne Zahl dürfen beliebig viele stehen. Beispiel: 0 heißt keine Lampe daneben, 4 heißt Lampen auf allen vier Seiten. Tippe, um eine Lampe zu setzen oder zu entfernen; die Schaltfläche „Keine Lampe“ oder langes Drücken markiert „hier keine Lampe“. Beleuchtetes wird gelb, Fehler werden rot: gelöst, wenn alles gelb ist und nichts rot.",
   "puzzlesLoopyDesc": "Eine geschlossene Schleife nach den Zahlen",
   "puzzlesUnrulyDesc": "Gleich viele schwarze und weiße Felder, nie drei gleiche in Folge",
-  "puzzlesUnrulyIntroDesc": "Hier warten vierzig Logikrätsel. Jedes hat seine eigene Regel, gemeinsam ist eins: Jedes Brett hat genau eine Lösung, und Nachdenken führt immer hin — Raten ist nie nötig. Den Modus wählst du auf der Karte; die Schwierigkeit wächst bei jedem Rätsel auf eigener Leiter. Kurzes Tippen setzt einen Zug, LANGES Drücken ist die zweite Aktion: bei Magnete lässt sie eine Dominohälfte leer, bei Minen markiert sie eine Mine, bei Gerade-ungerade blättert sie rückwärts. Rückgängig, Tipp und Neustart liegen im Pausenmenü — die Taste ⏸ links oben.",
+  "puzzlesUnrulyIntroDesc": "Das Brett wird nach drei Regeln mit schwarzen und weißen Feldern gefüllt: In jeder Zeile und jeder Spalte gibt es genauso viele schwarze wie weiße Felder; drei gleiche hintereinander gibt es weder waagerecht noch senkrecht; und keine zwei Zeilen oder Spalten sind gleich. Die vorgegebenen Felder ändern sich nicht. Ein Tippen schaltet leer → schwarz → weiß; schalte ⇄ unter dem Brett ein, dann schalten die Tipps in die andere Richtung.",
   // Наборы «Стоп и запрет» и «Решения» — 12.09.2026, расформирование развилок inhibition-hub и risk-hub.
   "suiteInhibition": "Stopp und Verbot",
   "suiteInhibitionDesc": "Das Verbotene nicht antippen und eine begonnene Bewegung noch abbrechen",
