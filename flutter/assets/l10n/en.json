@@ -41,7 +41,7 @@
 "abDesc_practice_run":"Measured games: the round is recorded nowhere — no tokens, no level, no stats. Experiment without consequences.",
 "abDesc_second_life":"Targets and Sudoku: the round does not end when you run out of lives or mistakes. One per round, and that round will not raise your level.",
 "abDesc_streak_shield":"Bring back a day streak broken by one missed day. Works only on the day the streak broke.",
-"abDesc_sudoku_hint":"Sudoku: open a cell after the free hints run out. A round with a bought hint will not raise your level.",
+"abDesc_sudoku_hint":"Sudoku: open a cell after the free hints run out. The level still counts, just like with a free hint.",
 "abName_practice_run":"Practice run",
 "abName_second_life":"Second life (Targets, Sudoku)",
 "abName_streak_shield":"Streak shield",

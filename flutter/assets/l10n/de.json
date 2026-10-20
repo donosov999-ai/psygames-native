@@ -41,7 +41,7 @@
 "abDesc_practice_run":"Messspiele: Die Runde wird nirgends gespeichert — keine Punkte, kein Level, keine Statistik. Ausprobieren ohne Folgen.",
 "abDesc_second_life":"Zielscheiben und Sudoku: Die Runde endet nicht, wenn Leben oder Fehler aufgebraucht sind. Eines pro Runde, und diese Runde hebt kein Level.",
 "abDesc_streak_shield":"Holt eine durch einen Fehltag gerissene Tagesserie zurück. Nur am Tag des Abbruchs möglich.",
-"abDesc_sudoku_hint":"Sudoku: eine Zelle aufdecken, wenn die kostenlosen Hinweise aufgebraucht sind. Eine Runde mit gekauftem Hinweis hebt kein Level.",
+"abDesc_sudoku_hint":"Sudoku: eine Zelle aufdecken, wenn die kostenlosen Hinweise aufgebraucht sind. Das Level zählt trotzdem – wie mit einem kostenlosen Hinweis.",
 "abName_practice_run":"Probelauf",
 "abName_second_life":"Zweites Leben (Zielscheiben, Sudoku)",
 "abName_streak_shield":"Serien-Schild",

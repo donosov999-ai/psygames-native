@@ -41,7 +41,7 @@
 "abDesc_practice_run":"Giochi di misura: la partita non viene registrata da nessuna parte — né punti, né livello, né statistiche. Prova senza conseguenze.",
 "abDesc_second_life":"Bersagli e Sudoku: la partita non finisce quando finiscono le vite o gli errori. Una per partita, e quella partita non alza il livello.",
 "abDesc_streak_shield":"Recupera una serie di giorni interrotta da un giorno saltato. Funziona solo nel giorno in cui si è interrotta.",
-"abDesc_sudoku_hint":"Sudoku: scopre una casella quando i suggerimenti gratuiti sono finiti. Una partita con un suggerimento acquistato non alza il livello.",
+"abDesc_sudoku_hint":"Sudoku: scopre una casella quando i suggerimenti gratuiti sono finiti. Il livello conta come con un suggerimento gratuito.",
 "abName_practice_run":"Prova libera",
 "abName_second_life":"Seconda vita (Bersagli, Sudoku)",
 "abName_streak_shield":"Scudo della serie",
