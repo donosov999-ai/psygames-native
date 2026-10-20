@@ -16,6 +16,18 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.56.32',
+    date: '2026-10-20',
+    en: [
+      'Sudoku: a hint is help, not a practice attempt — a board solved with a hint now counts for your level step; the adaptive rating does not change. A practice attempt is only when the board’s answers were shown',
+      'Sudoku: no more “practice attempt” warning before a hint',
+    ],
+    ru: [
+      '«Судоку»: подсказка — это помощь, а не учебная попытка. Доска, решённая с подсказкой, засчитывается в ступень лестницы; рейтинг адаптивного режима не меняется. Учебная — только когда показаны ответы самой доски',
+      '«Судоку»: перед подсказкой больше нет окна «Учебная попытка»',
+    ],
+  },
+  {
     version: '2.56.31',
     date: '2026-10-18',
     ru: [

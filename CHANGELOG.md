@@ -15,6 +15,11 @@ to a GitHub Release automatically.
 ---
 
 
+## [2.56.32] — 2026-10-20
+
+- «Судоку», P0 a9147430: подсказка (бесплатная и купленная) — помощь, а не учебная попытка. Ступень лестницы, шаг режима и малышей засчитываются, рейтинг адаптивного режима не меняется (`Outcome.assisted`). Учебная — только при показанных ответах этой доски (реестр раскрытых, урок). Окна «Учебная попытка» перед подсказкой больше нет. Партии 2.56.24–2.56.31 с подсказкой доигрываются и засчитываются. Веб — `sudoku-attempt.ts` VER 2 (#355)
+- Репортов этот релиз не закрывает до проверки на опубликованной сборке: отзывы «Релакс» про «учебный уровень» на L77–L79 отмечу после неё
+
 ## [2.56.31] — 2026-10-18
 
 - Native Sudoku support screen uses the existing shared account with an additional 24-hour, profile/road-scoped permission. Privileged operators can read minimal reported levels and queue idempotent unlock-at-least requests; no arbitrary snapshots or reward writes.
