@@ -102,6 +102,7 @@ import 'cloud_pilot.dart';
 import 'streak_calendar_screen.dart';
 import 'assessment_result_screen.dart';
 import 'onboarding_screen.dart';
+import 'friends_model.dart' show enterFriends;
 import 'friends_screen.dart';
 import 'shop_screen.dart';
 import 'whats_new_screen.dart';
@@ -649,6 +650,8 @@ class _HybridAppState extends State<HybridApp> {
     if (path.endsWith('/index')) path = path.substring(0, path.length - 6);
     if (path.isEmpty) path = '/';
     final tab = NativeTabs.native.contains(path) || _bodyPages.contains(path) ? path : null;
+    // «Друзья» живут на Dart: на каждом входе свой код и круг спрашиваются заново (`useFocusEffect` веба).
+    if (tab == FriendsScreen.route && _nativeTab != tab) enterFriends();
     final search = tab == null ? null : uri.queryParameters['search'];
     final hubsOnly = tab == '/games' && uri.queryParameters['filter'] == 'hubs';
     if (!mounted) return tab != null;
@@ -772,6 +775,7 @@ class _HybridAppState extends State<HybridApp> {
   static const _ownModel = {
     StatsScreen.route, HomeScreen.route, StreakCalendarScreen.route,
     SourcesScreen.route, CollectionScreen.route, AchievementsScreen.route, LeaguesScreen.route,
+    FriendsScreen.route,
   };
   final _modelTimers = <String, Timer>{};
   final _modelGaveUp = <String>{};
@@ -1605,8 +1609,8 @@ class _HybridAppState extends State<HybridApp> {
             CollectionScreen(state: widget.state),
             AchievementsScreen(state: widget.state),
             LeaguesScreen(state: widget.state),
-            // «Друзья» (7bb8035b) — страница по модели; сервер круга держит веб.
-            const FriendsScreen(),
+            // «Друзья» (7bb8035b) — живут на Dart (вариант Б): свой вызов Supabase, логика и модель.
+            FriendsScreen(state: widget.state),
             // «Магазин» (9424da3a) — страница по модели; покупки и баланс держит веб.
             ShopScreen(origin: widget.server.origin),
             // «Что нового» (84df0687): список версий — модель веба, проверку обновлений делает оболочка.

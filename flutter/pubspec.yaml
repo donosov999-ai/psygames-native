@@ -157,6 +157,8 @@ flutter:
     - assets/achievements.json
     # Числа правил «Прогресса» — константы веба для модели на Dart (tools/embed-stats.mjs, вариант Б).
     - assets/stats_rules.json
+    # «Друзья» на Dart (вариант Б): игры таблицы и вид очка с образцами печати — проба flutter-friends-asset-fresh.
+    - assets/friends.json
     # Главная: готовые цвета карточек и ключи на лету (проба flutter-home-asset-fresh, вариант Б).
     - assets/home.json
     # Входы Главной на Dart (вариант Б, 7б): картинки профилей, вещи, кадры питомца, правила — `home_inputs.dart`.
