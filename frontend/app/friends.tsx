@@ -63,7 +63,7 @@ import {
   type AddResult, type Friend, type FriendScore,
 } from '@/src/services/friends';
 
-const GAME_IDS = Object.keys(LEADERBOARD_GAMES) as LeaderboardGameId[];
+export const GAME_IDS = Object.keys(LEADERBOARD_GAMES) as LeaderboardGameId[];
 
 /**
  * Подпись чипа — ключ словаря из каталога игр. Тип `Record<LeaderboardGameId, …>`
@@ -72,7 +72,7 @@ const GAME_IDS = Object.keys(LEADERBOARD_GAMES) as LeaderboardGameId[];
  * `schulte_table_5x5` в каталоге зовётся `schulte_table` — размер вшит в имя
  * только у рекорда, чтобы 4×4 не попадало в одну таблицу с 5×5.
  */
-const NAME_KEY: Record<LeaderboardGameId, string> = {
+export const NAME_KEY: Record<LeaderboardGameId, string> = {
   schulte_table_5x5: 'schulteTable',
   n_back: 'nBack',
   digit_span: 'digitSpan',
@@ -92,7 +92,7 @@ const NAME_KEY: Record<LeaderboardGameId, string> = {
  * как чужой мир, а не как ошибку. Гейт `friends-screen.test.ts` сверяет обе
  * стороны выражение в выражение.
  */
-const FORMAT: Record<LeaderboardGameId, (s: number) => string> = {
+export const FORMAT: Record<LeaderboardGameId, (s: number) => string> = {
   schulte_table_5x5: (s) => `${s.toFixed(1)}s`,
   n_back: (s) => `${s}-back`,
   digit_span: (s) => String(Math.round(s)),

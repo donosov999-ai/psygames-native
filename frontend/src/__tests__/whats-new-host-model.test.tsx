@@ -84,6 +84,23 @@ async function смонтировать(language: string, host = true) {
 }
 
 describe('«Что нового» под оболочкой', () => {
+  it.each(['ru', 'en', 'ar'])('native archive parity fixture %s: entire real WEB model, not first five', async language => {
+    const { last } = await смонтировать(language);
+    const model = last();
+    expect(model.entries).toEqual(WHATS_NEW.map((e: any) => ({
+      version: `v${e.version}`, date: e.date, items: language === 'ru' ? e.ru : e.en,
+    })));
+    expect(model.backIcon).toBe(language === 'ar' ? 'arrow-forward' : 'arrow-back');
+    expect(model.check).toContain(`v${currentVersion()}`);
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const fs = require('fs');
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const path = require('path');
+    const file = path.resolve(__dirname, `../../../flutter/test/fixtures/whats_new_native_${language}.json`);
+    if (process.env.WRITE_WHATS_NEW === '1') fs.writeFileSync(file, `${JSON.stringify(model, null, 1)}\n`, 'utf8');
+    expect(JSON.parse(fs.readFileSync(file, 'utf8'))).toEqual(model);
+  });
+
   it('без оболочки модели нет', async () => {
     const { sent } = await смонтировать('ru', false);
     expect(sent).toEqual([]);

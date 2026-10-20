@@ -56,6 +56,8 @@ class PuzzleMode {
     this.pick = false,
     this.pickSecond = false,
     this.secondPickKey,
+    this.helpKey,
+    this.tapKey,
   });
 
   /// Стрелки курсора под полем (16 режимов веба, `СТРЕЛОЧНЫЕ`): у «Куба» и «Инерции» ход
@@ -117,6 +119,17 @@ class PuzzleMode {
   /// доски — «Рельсы» человек полтора часа пытался поворачивать, хотя поворота в
   /// игре нет. Ключ ведётся правилом именования `<ключ названия>Desc`.
   final String? descKey;
+
+  /// Ключ ПОЛНОЙ справки для «?» и начала разбора (`справка` веб-карточки). `null` — справкой
+  /// служит [descKey]. Включает владелец режима, проверив текст на нативный ввод: у части полных
+  /// справок есть долгое нажатие и правая кнопка, которых у нативного экрана нет.
+  final String? helpKey;
+
+  /// Ключ подписи под полем вместо общей «Тычок отмечает клетку» (`тычок` веб-карточки).
+  final String? tapKey;
+
+  /// Ключ справки, которую открывает «?»: полная, если владелец её завёл, иначе описание карточки.
+  String? get rulesKey => helpKey ?? descKey;
   final List<PuzzleStep> steps;
 
   /// Нужен ли ряд цифр: у Singles ввод только тычками.
@@ -203,6 +216,8 @@ class PuzzleModes {
           engineName: m['engineName'] as String,
           titleKey: m['titleKey'] as String,
           descKey: m['descKey'] as String?,
+          helpKey: m['helpKey'] as String?,
+          tapKey: m['tapKey'] as String?,
           digits: m['digits'] == true,
           digitLabels: ((m['digitLabels'] as List?) ?? const []).cast<String>(),
           digitNames: ((m['digitNames'] as List?) ?? const []).cast<String>(),

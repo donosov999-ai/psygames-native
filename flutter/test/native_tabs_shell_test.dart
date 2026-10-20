@@ -5,6 +5,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:psygames_flutter/games/one_line/screen.dart';
 import 'package:psygames_flutter/shell/asset_server.dart';
 import 'package:psygames_flutter/shell/catalog_screen.dart';
@@ -19,6 +20,7 @@ import 'package:psygames_flutter/shell/screen_ui.dart';
 import 'package:psygames_flutter/shell/game_rules.dart';
 import 'package:psygames_flutter/shell/hybrid_app.dart';
 import 'package:psygames_flutter/shell/level_rules.dart';
+import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/native_tabs.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:psygames_flutter/shell/streak_calendar_screen.dart';
@@ -137,6 +139,8 @@ void main() {
   late RecWebViewPlatform web;
 
   setUp(() async {
+    PackageInfo.setMockInitialValues(appName: 'PsyGames', packageName: 'test.psygames',
+      version: '9.8.7', buildNumber: '123', buildSignature: 'test');
     resetHarnessSingletons();
     PetBridge.reset();
     ScreenUi.reset();
@@ -755,6 +759,29 @@ void main() {
     await route(t, '/');
     await settle(t, () => find.byKey(const ValueKey('goal-sheet')).evaluate().isNotEmpty);
     expect(find.byKey(const ValueKey('goal-sheet')), findsOneWidget);
+  });
+
+  testWidgets('native Whats New opens full archive without WEB model or model-recovery wait', (t) async {
+    await mount(t);
+    await route(t, WhatsNewScreen.route);
+    await settle(t, () => find.byKey(const ValueKey('whats-new-list')).evaluate().isNotEmpty);
+    expect(ScreenUi.model(WhatsNewScreen.route).value, isNull);
+    expect(find.byKey(const ValueKey('whats-new-list')), findsOneWidget);
+    expect(find.text('${L.t('updCheckBtn')} · v9.8.7'), findsOneWidget);
+    await t.pump(const Duration(seconds: 9)); await t.pump();
+    expect(find.byKey(const ValueKey('native-cover')), findsOneWidget);
+    expect(find.byKey(const ValueKey('screen-model-error')), findsNothing);
+    expect(find.byKey(const ValueKey('screen-model-wait')), findsNothing);
+    final samePage = t.state(find.byType(WhatsNewScreen));
+    page().emit(SharedState.channel, {'op': 'set', 'key': 'language', 'value': 'ar'});
+    final arabicTitle = fixture('whats_new_native_ar.json')['title'] as String;
+    await settle(t, () => find.text(arabicTitle).evaluate().isNotEmpty);
+    expect(find.text(arabicTitle), findsOneWidget);
+    expect(t.state(find.byType(WhatsNewScreen)), same(samePage));
+    expect(Directionality.of(t.element(find.byKey(const ValueKey('whats-new-list')))), TextDirection.rtl);
+    page().js.clear();
+    await t.tap(find.byKey(const ValueKey('whats-new-back'))); await t.pump();
+    expect(page().js.single, contains('["/whats-new"].back()'));
   });
 
   testWidgets('🔴 источники, коллекция, достижения, лиги, друзья, магазин, «что нового» — нативные страницы с полосой; «назад» — по истории', (t) async {

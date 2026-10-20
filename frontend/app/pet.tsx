@@ -31,51 +31,12 @@ import { pickPettedLine } from '@/src/services/petLines';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { getTokens, spendTokens } from '@/src/services/tokens';
 import { sndToken, sndWrong } from '@/src/services/feedback';
-import { CATEGORY_TO_SKILL, currentPetLook } from '@/src/services/pet';
+import { currentPetLook } from '@/src/services/pet';
 import type { PetLook } from '@/src/services/petLook';
-import { GAMES } from '@/src/constants/games';
-import { isGameAllowed } from '@/src/constants/profiles';
+import { SKILL_COLORS, SKILL_ORDER, petAdvice, petGrowth, ruTrainings } from '@/src/services/petScreen';
 
-/** Цвета шкал — 1:1 с сайта (.pet-skill-memory и т.д.) */
 /** Сторона превьюшки облика в выборе — числом, а не дважды в стиле и в компоненте. */
 const SKIN_THUMB = 52;
-
-const SKILL_COLORS: Record<keyof PetStats['skills'], string> = {
-  memory: '#8a68f5',
-  attention: '#25b989',
-  logic: '#e55fa2',
-  speed: '#4a91ed',
-};
-const SKILL_ORDER: (keyof PetStats['skills'])[] = ['memory', 'attention', 'logic', 'speed'];
-
-/** Русские формы «N тренировок» (1 тренировка / 2 тренировки / 5 тренировок). */
-function ruTrainings(n: number): string {
-  const m10 = n % 10, m100 = n % 100;
-  if (m10 === 1 && m100 !== 11) return 'тренировка';
-  if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return 'тренировки';
-  return 'тренировок';
-}
-
-/** Совет по самой отстающей шкале: игра из её категории, доступная профилю (см. разметку). */
-function petAdvice(stats: PetStats | null, profile: Parameters<typeof isGameAllowed>[0]) {
-  if (!stats) return null;
-  const weakest = SKILL_ORDER.reduce((a, b) => (stats.skills[a] <= stats.skills[b] ? a : b));
-  if (stats.skills[weakest] >= 100) return null;   // всё на максимуме — советовать нечего
-  const pool = GAMES.filter((g) => CATEGORY_TO_SKILL[g.category] === weakest && isGameAllowed(profile, g.id));
-  if (!pool.length) return null;
-  return { weakest, pick: pool[stats.total % pool.length] };   // без случайности: совет стабилен в пределах сессии
-}
-
-/** Полоса роста: доля и остаток до следующей стадии, на последней — до следующего уровня. */
-function petGrowth(total: number) {
-  const nextStageAt = total < 10 ? 10 : total < 30 ? 30 : null;
-  const prevStageAt = total < 10 ? 0 : total < 30 ? 10 : 30;
-  const target = nextStageAt ?? (Math.floor(total / 5) + 1) * 5;
-  const base = nextStageAt ? prevStageAt : Math.floor(total / 5) * 5;
-  const left = Math.max(0, target - total);
-  const frac = Math.max(0, Math.min(1, (total - base) / Math.max(1, target - base)));
-  return { nextStageAt, left, frac };
-}
 
 export default function PetScreen() {
   // Web-demo: экран недоступен — только демо-лендинг и игры. Гейт статичен (build-time флаг).

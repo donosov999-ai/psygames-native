@@ -1,0 +1,513 @@
+{
+ "pickerGames": [
+  "picture_pairs",
+  "schulte_table",
+  "hanoi"
+ ],
+ "cards": {
+  "picture_pairs": {
+   "id": "picture_pairs",
+   "nameKey": "picturePairs",
+   "skillKey": "skillVisualMemory",
+   "descKey": "picturePairsDesc",
+   "gradient": [
+    "#f857a6",
+    "#ff5858"
+   ],
+   "icon": "heart",
+   "thumb": "/assets/images/gamethumbs/picture_pairs.webp"
+  },
+  "schulte_table": {
+   "id": "schulte_table",
+   "nameKey": "schulteTable",
+   "skillKey": "skillAttention",
+   "descKey": "schulteTableDesc",
+   "gradient": [
+    "#667eea",
+    "#764ba2"
+   ],
+   "icon": "grid",
+   "thumb": "/assets/images/gamethumbs/schulte_table.webp"
+  },
+  "hanoi": {
+   "id": "hanoi",
+   "nameKey": "hanoi",
+   "skillKey": "skillProblemSolving",
+   "descKey": "hanoiDesc",
+   "gradient": [
+    "#a8c0ff",
+    "#3f2b96"
+   ],
+   "icon": "extension-puzzle",
+   "thumb": "/assets/images/gamethumbs/hanoi.webp"
+  },
+  "proofreading": {
+   "id": "proofreading",
+   "nameKey": "proofreading",
+   "skillKey": "skillFocus",
+   "descKey": "proofreadingDesc",
+   "gradient": [
+    "#a8edea",
+    "#fed6e3"
+   ],
+   "icon": "search",
+   "thumb": "/assets/images/gamethumbs/proofreading.webp"
+  },
+  "find_differences": {
+   "id": "find_differences",
+   "nameKey": "findDiff",
+   "skillKey": "skillDetailAttention",
+   "descKey": "findDiffDesc",
+   "gradient": [
+    "#34e89e",
+    "#0f3443"
+   ],
+   "icon": "search",
+   "thumb": "/assets/images/gamethumbs/find_differences.webp"
+  },
+  "word_pairs": {
+   "id": "word_pairs",
+   "nameKey": "wordPairs",
+   "skillKey": "skillMemory",
+   "descKey": "wordPairsDesc",
+   "gradient": [
+    "#f093fb",
+    "#f5576c"
+   ],
+   "icon": "link",
+   "thumb": "/assets/images/gamethumbs/word_pairs.webp"
+  },
+  "sudoku_group": {
+   "id": "sudoku_group",
+   "nameKey": "sudokuGroup",
+   "skillKey": "skillLogic",
+   "descKey": "sudokuGroupDesc",
+   "gradient": [
+    "#3b2f7a",
+    "#5b4d9e"
+   ],
+   "icon": "apps",
+   "thumb": "/assets/images/gamethumbs/sudoku.webp"
+  },
+  "memory_matrix": {
+   "id": "memory_matrix",
+   "nameKey": "memoryMatrix",
+   "skillKey": "skillVisualMemory",
+   "descKey": "memoryMatrixDesc",
+   "gradient": [
+    "#8e2de2",
+    "#4a00e0"
+   ],
+   "icon": "grid",
+   "thumb": "/assets/images/gamethumbs/memory_matrix.webp"
+  },
+  "anagrams": {
+   "id": "anagrams",
+   "nameKey": "anagrams",
+   "skillKey": "skillVerbal",
+   "descKey": "anagramsDesc",
+   "gradient": [
+    "#ee9ca7",
+    "#ffdde1"
+   ],
+   "icon": "language",
+   "thumb": "/assets/images/gamethumbs/anagrams.webp"
+  },
+  "set_game": {
+   "id": "set_game",
+   "nameKey": "setGame",
+   "skillKey": "skillReasoning",
+   "descKey": "setGameDesc",
+   "gradient": [
+    "#43cea2",
+    "#185a9d"
+   ],
+   "icon": "shapes",
+   "thumb": "/assets/images/gamethumbs/set_game.webp"
+  },
+  "scholars_mate": {
+   "id": "scholars_mate",
+   "nameKey": "scholarsMate",
+   "skillKey": "skillChessCalc",
+   "descKey": "scholarsMateDesc",
+   "gradient": [
+    "#8e5b2f",
+    "#2f2a24"
+   ],
+   "icon": "flash",
+   "thumb": "/assets/images/gamethumbs/scholars_mate.webp"
+  },
+  "n_back": {
+   "id": "n_back",
+   "nameKey": "nBack",
+   "skillKey": "skillWorkingMemory",
+   "descKey": "nBackDesc",
+   "gradient": [
+    "#5b86e5",
+    "#36d1dc"
+   ],
+   "icon": "analytics",
+   "thumb": "/assets/images/gamethumbs/n_back.webp"
+  },
+  "math_sprint": {
+   "id": "math_sprint",
+   "nameKey": "mathSprint",
+   "skillKey": "skillMath",
+   "descKey": "mathSprintDesc",
+   "gradient": [
+    "#fc4a1a",
+    "#f7b733"
+   ],
+   "icon": "calculator",
+   "thumb": "/assets/images/gamethumbs/math_sprint.webp"
+  },
+  "lexical_decision": {
+   "id": "lexical_decision",
+   "nameKey": "lexicalDecision",
+   "skillKey": "skillVocabulary",
+   "descKey": "lexicalDecisionDesc",
+   "gradient": [
+    "#0ea5e9",
+    "#6366f1"
+   ],
+   "icon": "flash",
+   "thumb": "/assets/images/gamethumbs/lexical_decision.webp"
+  }
+ },
+ "picks": {
+  "100": {
+   "games": [
+    "anagrams",
+    "schulte_table",
+    "proofreading"
+   ],
+   "profileId": "polyglot"
+  },
+  "101": {
+   "games": [
+    "sudoku_group",
+    "schulte_table",
+    "hanoi"
+   ],
+   "profileId": "chess"
+  },
+  "102": {
+   "games": [
+    "memory_matrix",
+    "picture_pairs",
+    "schulte_table"
+   ],
+   "profileId": "students"
+  },
+  "110": {
+   "games": [
+    "anagrams",
+    "word_pairs",
+    "proofreading"
+   ],
+   "profileId": "polyglot"
+  },
+  "111": {
+   "games": [
+    "sudoku_group",
+    "hanoi",
+    "set_game"
+   ],
+   "profileId": "chess"
+  },
+  "112": {
+   "games": [
+    "memory_matrix",
+    "n_back",
+    "picture_pairs"
+   ],
+   "profileId": "students"
+  },
+  "120": {
+   "games": [
+    "anagrams",
+    "sudoku_group",
+    "hanoi"
+   ],
+   "profileId": "polyglot"
+  },
+  "121": {
+   "games": [
+    "sudoku_group",
+    "hanoi",
+    "set_game"
+   ],
+   "profileId": "chess"
+  },
+  "122": {
+   "games": [
+    "memory_matrix",
+    "sudoku_group",
+    "scholars_mate"
+   ],
+   "profileId": "students"
+  },
+  "200": {
+   "games": [
+    "math_sprint",
+    "proofreading",
+    "lexical_decision"
+   ],
+   "profileId": "drivers"
+  },
+  "201": {
+   "games": [
+    "math_sprint",
+    "sudoku_group",
+    "lexical_decision"
+   ],
+   "profileId": "drivers"
+  },
+  "202": {
+   "games": [
+    "math_sprint",
+    "find_differences",
+    "picture_pairs"
+   ],
+   "profileId": "drivers"
+  },
+  "210": {
+   "games": [
+    "math_sprint",
+    "proofreading",
+    "anagrams"
+   ],
+   "profileId": "drivers"
+  },
+  "211": {
+   "games": [
+    "math_sprint",
+    "sudoku_group",
+    "lexical_decision"
+   ],
+   "profileId": "drivers"
+  },
+  "212": {
+   "games": [
+    "math_sprint",
+    "find_differences",
+    "memory_matrix"
+   ],
+   "profileId": "drivers"
+  },
+  "220": {
+   "games": [
+    "anagrams",
+    "sudoku_group",
+    "math_sprint"
+   ],
+   "profileId": "drivers"
+  },
+  "221": {
+   "games": [
+    "sudoku_group",
+    "hanoi",
+    "math_sprint"
+   ],
+   "profileId": "drivers"
+  },
+  "222": {
+   "games": [
+    "sudoku_group",
+    "math_sprint",
+    "find_differences"
+   ],
+   "profileId": "drivers"
+  },
+  "000": {
+   "games": [
+    "proofreading",
+    "find_differences",
+    "word_pairs"
+   ],
+   "profileId": "women"
+  },
+  "001": {
+   "games": [
+    "sudoku_group",
+    "find_differences",
+    "picture_pairs"
+   ],
+   "profileId": "women"
+  },
+  "002": {
+   "games": [
+    "picture_pairs",
+    "find_differences",
+    "memory_matrix"
+   ],
+   "profileId": "women"
+  },
+  "010": {
+   "games": [
+    "proofreading",
+    "word_pairs",
+    "find_differences"
+   ],
+   "profileId": "women"
+  },
+  "011": {
+   "games": [
+    "sudoku_group",
+    "find_differences",
+    "picture_pairs"
+   ],
+   "profileId": "women"
+  },
+  "012": {
+   "games": [
+    "picture_pairs",
+    "find_differences",
+    "memory_matrix"
+   ],
+   "profileId": "women"
+  },
+  "020": {
+   "games": [
+    "sudoku_group",
+    "anagrams",
+    "proofreading"
+   ],
+   "profileId": "women"
+  },
+  "021": {
+   "games": [
+    "sudoku_group",
+    "hanoi",
+    "set_game"
+   ],
+   "profileId": "women"
+  },
+  "022": {
+   "games": [
+    "picture_pairs",
+    "find_differences",
+    "scholars_mate"
+   ],
+   "profileId": "women"
+  }
+ },
+ "profileLabels": {
+  "women": "🌸 Микро-релакс",
+  "chess": "♟ Шахматист",
+  "drivers": "⚡ Реакция ПРО",
+  "students": "🎓 Студенты PRO",
+  "polyglot": "🗣 Языки / Полиглот"
+ },
+ "quiz": [
+  {
+   "axis": "mood",
+   "qKey": "onbQuizMood",
+   "opts": [
+    "onbQuizMood0",
+    "onbQuizMood1",
+    "onbQuizMood2"
+   ]
+  },
+  {
+   "axis": "time",
+   "qKey": "onbQuizTime",
+   "opts": [
+    "onbQuizTime0",
+    "onbQuizTime1",
+    "onbQuizTime2"
+   ]
+  },
+  {
+   "axis": "taste",
+   "qKey": "onbQuizTaste",
+   "opts": [
+    "label_words",
+    "onbQuizTaste1",
+    "onbQuizTaste2"
+   ]
+  }
+ ],
+ "slides": [
+  {
+   "emoji": "🧠",
+   "gradient": [
+    "#7c3aed",
+    "#ec4899"
+   ],
+   "titleKey": "onbSlideWelcomeTitle",
+   "bodyKey": "onbSlideWelcomeBody"
+  },
+  {
+   "emoji": "⚡",
+   "gradient": [
+    "#fbbf24",
+    "#f59e0b"
+   ],
+   "titleKey": "onbSlideWarmupTitle",
+   "bodyKey": "onbSlideWarmupBody"
+  },
+  {
+   "emoji": "🎲",
+   "gradient": [
+    "#ef4444",
+    "#f97316"
+   ],
+   "titleKey": "onbSlideChallengeTitle",
+   "bodyKey": "onbSlideChallengeBody"
+  },
+  {
+   "emoji": "🎯",
+   "gradient": [
+    "#7c3aed",
+    "#ec4899"
+   ],
+   "titleKey": "onbSlideAssessTitle",
+   "bodyKey": "onbSlideAssessBody"
+  },
+  {
+   "emoji": "👤",
+   "gradient": [
+    "#22c55e",
+    "#0d9488"
+   ],
+   "titleKey": "onbSlideProfilesTitle",
+   "bodyKey": "onbSlideProfilesBody"
+  },
+  {
+   "emoji": "☁️",
+   "gradient": [
+    "#3b82f6",
+    "#1e40af"
+   ],
+   "titleKey": "onbSlideDataTitle",
+   "bodyKey": "onbSlideDataBody"
+  },
+  {
+   "emoji": "🔔",
+   "gradient": [
+    "#8b5cf6",
+    "#6366f1"
+   ],
+   "titleKey": "onbSlideRemindTitle",
+   "bodyKey": "onbSlideRemindBody",
+   "kind": "notifications"
+  },
+  {
+   "emoji": "🚀",
+   "gradient": [
+    "#ef4444",
+    "#f97316"
+   ],
+   "titleKey": "onbSlideGoTitle",
+   "bodyKey": "onbSlideGoBody",
+   "kind": "final"
+  }
+ ],
+ "rtl": [
+  "ar",
+  "he",
+  "fa",
+  "ur"
+ ]
+}

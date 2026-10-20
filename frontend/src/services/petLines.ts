@@ -889,6 +889,18 @@ export function pickPettedLine(language: string): PetLine {
 
 /** Простая случайная реплика без контекста (экран /pet, обратная
  *  совместимость со старым pickReaction). */
+/** Пул простой реплики (`pickSimpleLine`): покой и первая стадия на языке, нет языка — английский.
+ * Его выгружает проба натива (`flutter-pet-asset-fresh.test.ts`) — выбор на Dart по тому же пулу. */
+export function simpleLinePool(language: string): string[] {
+  const pack = L[language] || L.en;
+  return [...pack.idle, ...pack[`stage1` as Ctx]].map((l) => l.text);
+}
+
+/** Языки, для которых реплики питомца написаны своими словами (остальные видят английский). */
+export function petLineLanguages(): string[] {
+  return Object.keys(L).sort();
+}
+
 export function pickSimpleLine(language: string): string {
   const pack = L[language] || L.en;
   return pickFrom([...pack.idle, ...pack[`stage1` as Ctx]]).text;

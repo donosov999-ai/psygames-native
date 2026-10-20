@@ -1,35 +1,156 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import 'feedback_fab.dart' show FabRules;
 import 'info_screens.dart' show ModelPage, circleBack;
 import 'ion_icon.dart';
+import 'profiles.dart';
 import 'screen_ui.dart';
+import 'shared_state.dart';
+import 'shop_model.dart';
+import 'stats_model.dart' show activeProfileOf;
+import 'training_history.dart' show Wall, deviceWall;
 import 'web_theme.dart';
 
-/// «МАГАЗИН» ПО МОДЕЛИ ВЕБА (задача 9424da3a; правило 4e679f41).
+/// «МАГАЗИН» (задача 9424da3a; правило 4e679f41).
 ///
-/// Баланс, цены, что куплено и надето, доступность кнопок (`abilityButtons`, `cosmeticRow`), ставку и
-/// отчёт о последней трате считает веб под оболочкой (`app/shop.tsx`, `shopModel`), сюда приходят
-/// готовые строки, цвета строками CSS и адреса картинок сборки. Нажатия — действия веба: вкладка
-/// раздела, купить/применить способность, ставка, купить/надеть товар, «назад». Размеры — из `styles`
-/// веб-экрана.
-class ShopScreen extends StatelessWidget {
-  const ShopScreen({super.key, required this.origin});
+/// 🔴 МОДЕЛЬ СЧИТАЕТ DART (задача d6a60b02, вариант Б, `shop_model.dart`): баланс, цены, что куплено и
+/// надето, доступность кнопок, ставку — из общей памяти, на каждую запись в неё (покупку страницы, смену
+/// профиля) — заново. Вкладку раздела держит экран сам. Отчёт о последней трате (`note`) рождает действие
+/// страницы — он приходит из её модели поверх своей. Нажатия покупок — по-прежнему действия веба
+/// (`app/shop.tsx`): купить/применить способность, ставка, купить/надеть товар, «назад». Своя модель не
+/// собралась — экран рисует модель страницы, как раньше. Размеры — из `styles` веб-экрана.
+class ShopScreen extends StatefulWidget {
+  const ShopScreen({super.key, required this.origin, this.state, this.ownModel = true});
   static const route = '/shop';
 
   /// Адрес раздачи веб-сборки — картинки товаров приходят путями от неё.
   final String origin;
 
-  void _act(String action, [List<Object?> args = const []]) => ScreenUi.act(route, action, args);
+  /// Общая память. Нет — экран рисует модель страницы.
+  final SharedState? state;
+
+  /// Считать модель на Dart (вариант Б). Пробы рисунка по модели веба выключают.
+  final bool ownModel;
+
+  /// Часы экрана (миг «сейчас» и местное время — сутки ставки). Пробы подменяют.
+  @visibleForTesting
+  static int Function() now = () => DateTime.now().millisecondsSinceEpoch;
+  @visibleForTesting
+  static Wall wall = deviceWall;
+
+  @override
+  State<ShopScreen> createState() => _ShopScreenState();
+}
+
+class _ShopScreenState extends State<ShopScreen> {
+  final _own = ValueNotifier<Map<String, Object?>?>(null);
+  ShopData? _data;
+  bool _failed = false;
+  Timer? _debounce;
+
+  /// Открытая вкладка раздела (`null` — все) — `cat` веба.
+  String? _cat;
+
+  /// Ставка сгорела на этом показе. Запись `peekWager` стирает сразу (свой или страницы), а объяснение
+  /// веб держит до следующей перезагрузки состояния — то есть до первого действия на экране.
+  bool _lost = false;
+
+  /// Модель страницы, чьё «сгорела» уже взято: после действия старая модель не должна вернуть объяснение.
+  Map<String, Object?>? _lostFrom;
+
+  bool get _ownOn => widget.ownModel && widget.state != null;
+
+  @override
+  void initState() {
+    super.initState();
+    if (!_ownOn) return;
+    ScreenUi.model(ShopScreen.route).addListener(_refresh);
+    widget.state!.writes.addListener(_onWrite);
+    ShopData.load().then(
+      (d) {
+        _data = d;
+        _refresh();
+      },
+      onError: (Object e) {
+        debugPrint('ShopScreen: own model data failed, using the page model ($e)');
+        _failed = true;
+        _refresh();
+      },
+    );
+  }
+
+  void _onWrite() {
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 200), _refresh);
+  }
+
+  Future<void> _refresh() async {
+    final s = widget.state, d = _data;
+    if (!mounted || s == null) return;
+    final page = ScreenUi.model(ShopScreen.route).value;
+    if (_failed) {
+      _own.value = page;
+      return;
+    }
+    if (d == null) return;
+    try {
+      final ps = Profiles.current.list.isEmpty ? await Profiles.load() : Profiles.current;
+      final pid = activeProfileOf(ps, s).id;
+      var wager = await peekShopWager(s, pid, now: ShopScreen.now(), wall: ShopScreen.wall);
+      if (wager.kind == 'lost') _lost = true;
+      if (pageSawLostWager(page) && !identical(page, _lostFrom)) {
+        _lost = true;
+        _lostFrom = page;
+      }
+      if (wager.kind == 'none' && _lost) wager = (kind: 'lost', daysDone: 0);
+      final own = shopModelFrom(s, d, profiles: ps, language: s.language, wager: wager, cat: _cat);
+      if (mounted) _own.value = withShopPageEvents(own, page);
+    } catch (e) {
+      debugPrint('ShopScreen: own model failed, using the page model ($e)');
+      _failed = true;
+      if (mounted) _own.value = page;
+    }
+  }
+
+  @override
+  void dispose() {
+    if (_ownOn) {
+      ScreenUi.model(ShopScreen.route).removeListener(_refresh);
+      widget.state!.writes.removeListener(_onWrite);
+    }
+    _debounce?.cancel();
+    _own.dispose();
+    super.dispose();
+  }
+
+  void _act(String action, [List<Object?> args = const []]) {
+    // Любое действие, кроме вкладки, у веба перезагружает состояние — объяснение сгоревшей ставки уходит.
+    if (action != 'cat') {
+      _lost = false;
+      _lostFrom = ScreenUi.model(ShopScreen.route).value;
+    }
+    ScreenUi.act(ShopScreen.route, action, args);
+  }
+
+  /// Вкладка — своя: модель пересчитывается сразу; странице — то же действие, чтобы её модель не расходилась.
+  void _pickCat(Object? id) {
+    _act('cat', [id]);
+    if (!_ownOn) return;
+    _cat = id is String ? id : null;
+    _refresh();
+  }
 
   @override
   Widget build(BuildContext context) => ModelPage(
-    route: route,
+    route: ShopScreen.route,
     screenKey: 'shop-screen',
+    own: _ownOn ? _own : null,
     builder: (context, m) {
       final web = WebTheme.of(context);
       final primary = cssColor(m['primary'], Theme.of(context).colorScheme.primary);
-      String url(String u) => u.startsWith('http') ? u : '$origin$u';
+      String url(String u) => u.startsWith('http') ? u : '${widget.origin}$u';
 
       Widget btn(String key, {required String label, required bool enabled, required Color fill, Color? border, Color text = Colors.white, VoidCallback? onTap}) =>
           Semantics(
@@ -294,7 +415,7 @@ class ShopScreen extends StatelessWidget {
                     excludeSemantics: true,
                     child: GestureDetector(
                       key: ValueKey('shop-cat-${c['id'] ?? 'all'}'),
-                      onTap: () => _act('cat', [c['id']]),
+                      onTap: () => _pickCat(c['id']),
                       child: Container(
                         width: 48,
                         height: 48,
