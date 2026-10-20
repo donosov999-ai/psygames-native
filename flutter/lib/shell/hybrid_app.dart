@@ -102,6 +102,7 @@ import 'cloud_pilot.dart';
 import 'streak_calendar_screen.dart';
 import 'assessment_result_screen.dart';
 import 'onboarding_screen.dart';
+import 'friends_model.dart' show enterFriends;
 import 'friends_screen.dart';
 import 'shop_screen.dart';
 import 'whats_new_screen.dart';
@@ -653,6 +654,8 @@ class _HybridAppState extends State<HybridApp> {
     if (tab == OnboardingScreen.route && _nativeTab != tab) {
       OnboardingScreen.enter(tutorial: uri.queryParametersAll['tutorial']?.contains('1') ?? false);
     }
+    // «Друзья» живут на Dart: на каждом входе свой код и круг спрашиваются заново (`useFocusEffect` веба).
+    if (tab == FriendsScreen.route && _nativeTab != tab) enterFriends();
     final search = tab == null ? null : uri.queryParameters['search'];
     final hubsOnly = tab == '/games' && uri.queryParameters['filter'] == 'hubs';
     if (!mounted) return tab != null;
@@ -779,6 +782,7 @@ class _HybridAppState extends State<HybridApp> {
     SourcesScreen.route, CollectionScreen.route, AchievementsScreen.route, LeaguesScreen.route, WhatsNewScreen.route,
     PetScreen.route,
     OnboardingScreen.route,
+    FriendsScreen.route,
   };
   final _modelTimers = <String, Timer>{};
   final _modelGaveUp = <String>{};
@@ -1612,8 +1616,8 @@ class _HybridAppState extends State<HybridApp> {
             CollectionScreen(state: widget.state),
             AchievementsScreen(state: widget.state),
             LeaguesScreen(state: widget.state),
-            // «Друзья» (7bb8035b) — страница по модели; сервер круга держит веб.
-            const FriendsScreen(),
+            // «Друзья» (7bb8035b) — живут на Dart (вариант Б): свой вызов Supabase, логика и модель.
+            FriendsScreen(state: widget.state),
             // «Магазин» (9424da3a) — модель на Dart (вариант Б); покупки — действия веба.
             ShopScreen(origin: widget.server.origin, state: widget.state),
             // «Что нового»: полный архив и модель на Dart; legacy WEB fixtures — только без state.

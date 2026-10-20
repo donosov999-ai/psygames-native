@@ -1,0 +1,141 @@
+{
+ "language": "en",
+ "server": {
+  "myCode": "K7Q2ZP",
+  "friends": [
+   {
+    "id": "f1",
+    "name": "Валя",
+    "since": "2026-10-01"
+   }
+  ],
+  "top": {
+   "*": [
+    {
+     "id": "me",
+     "name": "Me",
+     "score": 3.25,
+     "updatedAt": "2026-10-19",
+     "isMe": true
+    }
+   ]
+  },
+  "add": {
+   "kind": "full",
+   "max": 12
+  }
+ },
+ "acts": [
+  [
+   "draft",
+   "abc123",
+   1
+  ],
+  [
+   "add"
+  ]
+ ],
+ "model": {
+  "v": 1,
+  "title": "Friends",
+  "back": "Back",
+  "backIcon": "chevron-back",
+  "primary": "#a855f7",
+  "error": "#FF3B30",
+  "success": "#34C759",
+  "meBg": "#a855f718",
+  "my": {
+   "label": "YOUR INVITE CODE",
+   "state": "code",
+   "offline": "The code did not arrive — the server did not answer. It is not lost: look again when you have a connection.",
+   "code": "K7Q2ZP",
+   "shown": "K7Q 2ZP",
+   "copy": "Copy",
+   "copied": null,
+   "hint": "Read this code out or show it. Whoever enters it lands in your circle, and you land in theirs: the link always goes both ways."
+  },
+  "add": {
+   "label": "A FRIEND'S CODE",
+   "a11y": "A friend's code",
+   "draft": "ABC123",
+   "seq": 1,
+   "placeholder": "Six characters",
+   "btn": "Add to circle",
+   "ready": true,
+   "sending": false,
+   "note": {
+    "ok": false,
+    "text": "Your circle already holds 12 — that is the limit. Remove someone to make room."
+   }
+  },
+  "table": {
+   "title": "Your circle in one game",
+   "chips": [
+    {
+     "id": "schulte_table_5x5",
+     "label": "Schulte: Attention",
+     "on": true
+    },
+    {
+     "id": "n_back",
+     "label": "N-back: Working memory",
+     "on": false
+    },
+    {
+     "id": "digit_span",
+     "label": "Digit Span",
+     "on": false
+    },
+    {
+     "id": "corsi",
+     "label": "Corsi Blocks",
+     "on": false
+    },
+    {
+     "id": "trail_making",
+     "label": "Trail Making",
+     "on": false
+    },
+    {
+     "id": "choice_rt",
+     "label": "Choice RT: Speed",
+     "on": false
+    },
+    {
+     "id": "go_no_go",
+     "label": "Go / No-Go: Inhibition",
+     "on": false
+    },
+    {
+     "id": "hanoi",
+     "label": "Tower of Hanoi",
+     "on": false
+    },
+    {
+     "id": "counter",
+     "label": "Counter: Math",
+     "on": false
+    }
+   ],
+   "kind": "nobody-played",
+   "empty": "Nobody in your circle has played “Schulte: Attention” yet. Pick another game, or invite them to play it.",
+   "rows": []
+  },
+  "scoresOnly": "Only scores from qualifying runs are shown here — the ones you sent to the record table yourself. Training days and their history stay on your device and never leave it.",
+  "circle": {
+   "title": "Your circle · 1",
+   "remove": "Remove from circle",
+   "rows": [
+    {
+     "id": "f1",
+     "name": "Валя",
+     "pending": false,
+     "warn": "Break the link with Валя? The link is mutual: you will disappear from their circle as well."
+    }
+   ],
+   "confirm": "Break the link",
+   "cancel": "Cancel",
+   "failed": null
+  }
+ }
+}

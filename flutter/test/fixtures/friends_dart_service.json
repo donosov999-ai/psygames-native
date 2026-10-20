@@ -1,0 +1,649 @@
+{
+ "player": "0b9d5a3e-6c1f-4f7a-9e2b-1d2c3b4a5f60",
+ "cases": [
+  {
+   "name": "myCode",
+   "call": "getMyInviteCode",
+   "args": [],
+   "replies": [
+    {
+     "status": 200,
+     "body": "K7Q2ZP"
+    }
+   ],
+   "requests": [
+    {
+     "url": "https://iuvvheeocobhiothfgei.supabase.co/rest/v1/rpc/psygames_my_invite_code",
+     "method": "POST",
+     "headers": {
+      "apikey": "sb_publishable_A2vJ5DjemTZIKrKX6XGqvQ_WaiuAkk1",
+      "authorization": "Bearer sb_publishable_A2vJ5DjemTZIKrKX6XGqvQ_WaiuAkk1",
+      "content-type": "application/json"
+     },
+     "body": {
+      "p_player_id": "0b9d5a3e-6c1f-4f7a-9e2b-1d2c3b4a5f60"
+     }
+    }
+   ],
+   "result": "K7Q2ZP",
+   "after": {
+    "psygames_friends_my_code": "K7Q2ZP",
+    "psygames_leaderboard_player_id": "0b9d5a3e-6c1f-4f7a-9e2b-1d2c3b4a5f60"
+   }
+  },
+  {
+   "name": "myCodeCached",
+   "call": "getMyInviteCode",
+   "args": [],
+   "storage": {
+    "psygames_friends_my_code": "AAA111"
+   },
+   "replies": [],
+   "requests": [],
+   "result": "AAA111",
+   "after": {
+    "psygames_friends_my_code": "AAA111",
+    "psygames_leaderboard_player_id": "0b9d5a3e-6c1f-4f7a-9e2b-1d2c3b4a5f60"
+   }
+  },
+  {
+   "name": "myCodeServerError",
+   "call": "getMyInviteCode",
+   "args": [],
+   "replies": [
+    {
+     "status": 500,
+     "body": {
+      "message": "boom"
+     }
+    }
+   ],
+   "requests": [
+    {
+     "url": "https://iuvvheeocobhiothfgei.supabase.co/rest/v1/rpc/psygames_my_invite_code",
+     "method": "POST",
+     "headers": {
+      "apikey": "sb_publishable_A2vJ5DjemTZIKrKX6XGqvQ_WaiuAkk1",
+      "authorization": "Bearer sb_publishable_A2vJ5DjemTZIKrKX6XGqvQ_WaiuAkk1",
+      "content-type": "application/json"
+     },
+     "body": {
+      "p_player_id": "0b9d5a3e-6c1f-4f7a-9e2b-1d2c3b4a5f60"
+     }
+    }
+   ],
+   "result": null,
+   "after": {
+    "psygames_leaderboard_player_id": "0b9d5a3e-6c1f-4f7a-9e2b-1d2c3b4a5f60"
+   }
+  },
+  {
+   "name": "myCodeNetwork",
+   "call": "getMyInviteCode",
+   "args": [],
+   "replies": [
+    "network"
+   ],
+   "requests": [
+    {
+     "url": "https://iuvvheeocobhiothfgei.supabase.co/rest/v1/rpc/psygames_my_invite_code",
+     "method": "POST",
+     "headers": {
+      "apikey": "sb_publishable_A2vJ5DjemTZIKrKX6XGqvQ_WaiuAkk1",
+      "authorization": "Bearer sb_publishable_A2vJ5DjemTZIKrKX6XGqvQ_WaiuAkk1",
+      "content-type": "application/json"
+     },
+     "body": {
+      "p_player_id": "0b9d5a3e-6c1f-4f7a-9e2b-1d2c3b4a5f60"
+     }
+    }
+   ],
+   "result": null,
+   "after": {
+    "psygames_leaderboard_player_id": "0b9d5a3e-6c1f-4f7a-9e2b-1d2c3b4a5f60"
+   }
+  },
+  {
+   "name": "addAdded",
+   "call": "addFriendByCode",
+   "args": [
+    " k7q-2 zp "
+   ],
+   "replies": [
+    {
+     "status": 200,
+     "body": [
+      {
+       "reason": "added",
+       "f_id": "f1",
+       "f_name": "Валя"
+      }
+     ]
+    }
+   ],
+   "requests": [
+    {
+     "url": "https://iuvvheeocobhiothfgei.supabase.co/rest/v1/rpc/psygames_add_friend",
+     "method": "POST",
+     "headers": {
+      "apikey": "sb_publishable_A2vJ5DjemTZIKrKX6XGqvQ_WaiuAkk1",
+      "authorization": "Bearer sb_publishable_A2vJ5DjemTZIKrKX6XGqvQ_WaiuAkk1",
+      "content-type": "application/json"
+     },
+     "body": {
+      "p_player_id": "0b9d5a3e-6c1f-4f7a-9e2b-1d2c3b4a5f60",
+      "p_code": "K7Q2ZP"
+     }
+    }
+   ],
+   "result": {
+    "kind": "added",
+    "friend": {
+     "id": "f1",
+     "name": "Валя"
+    }
+   },
+   "after": {
+    "psygames_leaderboard_player_id": "0b9d5a3e-6c1f-4f7a-9e2b-1d2c3b4a5f60"
+   }
+  },
+  {
+   "name": "addSelf",
+   "call": "addFriendByCode",
+   "args": [
+    "K7Q2ZP"
+   ],
+   "replies": [
+    {
+     "status": 200,
+     "body": [
+      {
+       "reason": "self"
+      }
+     ]
+    }
+   ],
+   "requests": [
+    {
+     "url": "https://iuvvheeocobhiothfgei.supabase.co/rest/v1/rpc/psygames_add_friend",
+     "method": "POST",
+     "headers": {
+      "apikey": "sb_publishable_A2vJ5DjemTZIKrKX6XGqvQ_WaiuAkk1",
+      "authorization": "Bearer sb_publishable_A2vJ5DjemTZIKrKX6XGqvQ_WaiuAkk1",
+      "content-type": "application/json"
+     },
+     "body": {
+      "p_player_id": "0b9d5a3e-6c1f-4f7a-9e2b-1d2c3b4a5f60",
+      "p_code": "K7Q2ZP"
+     }
+    }
+   ],
+   "result": {
+    "kind": "self"
+   },
+   "after": {
+    "psygames_leaderboard_player_id": "0b9d5a3e-6c1f-4f7a-9e2b-1d2c3b4a5f60"
+   }
+  },
+  {
+   "name": "addFull",
+   "call": "addFriendByCode",
+   "args": [
+    "K7Q2ZP"
+   ],
+   "replies": [
+    {
+     "status": 200,
+     "body": {
+      "reason": "full",
+      "circle_max": 12
+     }
+    }
+   ],
+   "requests": [
+    {
+     "url": "https://iuvvheeocobhiothfgei.supabase.co/rest/v1/rpc/psygames_add_friend",
+     "method": "POST",
+     "headers": {
+      "apikey": "sb_publishable_A2vJ5DjemTZIKrKX6XGqvQ_WaiuAkk1",
+      "authorization": "Bearer sb_publishable_A2vJ5DjemTZIKrKX6XGqvQ_WaiuAkk1",
+      "content-type": "application/json"
+     },
+     "body": {
+      "p_player_id": "0b9d5a3e-6c1f-4f7a-9e2b-1d2c3b4a5f60",
+      "p_code": "K7Q2ZP"
+     }
+    }
+   ],
+   "result": {
+    "kind": "full",
+    "max": 12
+   },
+   "after": {
+    "psygames_leaderboard_player_id": "0b9d5a3e-6c1f-4f7a-9e2b-1d2c3b4a5f60"
+   }
+  },
+  {
+   "name": "addBadCode",
+   "call": "addFriendByCode",
+   "args": [
+    "K7Q2ZP"
+   ],
+   "replies": [
+    {
+     "status": 200,
+     "body": [
+      {
+       "reason": "bad-code"
+      }
+     ]
+    }
+   ],
+   "requests": [
+    {
+     "url": "https://iuvvheeocobhiothfgei.supabase.co/rest/v1/rpc/psygames_add_friend",
+     "method": "POST",
+     "headers": {
+      "apikey": "sb_publishable_A2vJ5DjemTZIKrKX6XGqvQ_WaiuAkk1",
+      "authorization": "Bearer sb_publishable_A2vJ5DjemTZIKrKX6XGqvQ_WaiuAkk1",
+      "content-type": "application/json"
+     },
+     "body": {
+      "p_player_id": "0b9d5a3e-6c1f-4f7a-9e2b-1d2c3b4a5f60",
+      "p_code": "K7Q2ZP"
+     }
+    }
+   ],
+   "result": {
+    "kind": "not-found"
+   },
+   "after": {
+    "psygames_leaderboard_player_id": "0b9d5a3e-6c1f-4f7a-9e2b-1d2c3b4a5f60"
+   }
+  },
+  {
+   "name": "addOldServer",
+   "call": "addFriendByCode",
+   "args": [
+    "K7Q2ZP"
+   ],
+   "replies": [
+    {
+     "status": 200,
+     "body": []
+    }
+   ],
+   "requests": [
+    {
+     "url": "https://iuvvheeocobhiothfgei.supabase.co/rest/v1/rpc/psygames_add_friend",
+     "method": "POST",
+     "headers": {
+      "apikey": "sb_publishable_A2vJ5DjemTZIKrKX6XGqvQ_WaiuAkk1",
+      "authorization": "Bearer sb_publishable_A2vJ5DjemTZIKrKX6XGqvQ_WaiuAkk1",
+      "content-type": "application/json"
+     },
+     "body": {
+      "p_player_id": "0b9d5a3e-6c1f-4f7a-9e2b-1d2c3b4a5f60",
+      "p_code": "K7Q2ZP"
+     }
+    }
+   ],
+   "result": {
+    "kind": "not-found"
+   },
+   "after": {
+    "psygames_leaderboard_player_id": "0b9d5a3e-6c1f-4f7a-9e2b-1d2c3b4a5f60"
+   }
+  },
+  {
+   "name": "addOffline",
+   "call": "addFriendByCode",
+   "args": [
+    "K7Q2ZP"
+   ],
+   "replies": [
+    {
+     "status": 500,
+     "body": {
+      "message": "boom"
+     }
+    }
+   ],
+   "requests": [
+    {
+     "url": "https://iuvvheeocobhiothfgei.supabase.co/rest/v1/rpc/psygames_add_friend",
+     "method": "POST",
+     "headers": {
+      "apikey": "sb_publishable_A2vJ5DjemTZIKrKX6XGqvQ_WaiuAkk1",
+      "authorization": "Bearer sb_publishable_A2vJ5DjemTZIKrKX6XGqvQ_WaiuAkk1",
+      "content-type": "application/json"
+     },
+     "body": {
+      "p_player_id": "0b9d5a3e-6c1f-4f7a-9e2b-1d2c3b4a5f60",
+      "p_code": "K7Q2ZP"
+     }
+    }
+   ],
+   "result": {
+    "kind": "offline"
+   },
+   "after": {
+    "psygames_leaderboard_player_id": "0b9d5a3e-6c1f-4f7a-9e2b-1d2c3b4a5f60"
+   }
+  },
+  {
+   "name": "addNetwork",
+   "call": "addFriendByCode",
+   "args": [
+    "K7Q2ZP"
+   ],
+   "replies": [
+    "network"
+   ],
+   "requests": [
+    {
+     "url": "https://iuvvheeocobhiothfgei.supabase.co/rest/v1/rpc/psygames_add_friend",
+     "method": "POST",
+     "headers": {
+      "apikey": "sb_publishable_A2vJ5DjemTZIKrKX6XGqvQ_WaiuAkk1",
+      "authorization": "Bearer sb_publishable_A2vJ5DjemTZIKrKX6XGqvQ_WaiuAkk1",
+      "content-type": "application/json"
+     },
+     "body": {
+      "p_player_id": "0b9d5a3e-6c1f-4f7a-9e2b-1d2c3b4a5f60",
+      "p_code": "K7Q2ZP"
+     }
+    }
+   ],
+   "result": {
+    "kind": "offline"
+   },
+   "after": {
+    "psygames_leaderboard_player_id": "0b9d5a3e-6c1f-4f7a-9e2b-1d2c3b4a5f60"
+   }
+  },
+  {
+   "name": "addShort",
+   "call": "addFriendByCode",
+   "args": [
+    "K7Q"
+   ],
+   "replies": [],
+   "requests": [],
+   "result": {
+    "kind": "not-found"
+   },
+   "after": {
+    "psygames_leaderboard_player_id": "0b9d5a3e-6c1f-4f7a-9e2b-1d2c3b4a5f60"
+   }
+  },
+  {
+   "name": "list",
+   "call": "listFriends",
+   "args": [],
+   "replies": [
+    {
+     "status": 200,
+     "body": [
+      {
+       "f_id": "f1",
+       "f_name": "Валя",
+       "since": "2026-10-01T10:00:00+00:00"
+      },
+      {
+       "f_id": "f2",
+       "f_name": null,
+       "since": "2026-10-02"
+      }
+     ]
+    }
+   ],
+   "requests": [
+    {
+     "url": "https://iuvvheeocobhiothfgei.supabase.co/rest/v1/rpc/psygames_friends_list",
+     "method": "POST",
+     "headers": {
+      "apikey": "sb_publishable_A2vJ5DjemTZIKrKX6XGqvQ_WaiuAkk1",
+      "authorization": "Bearer sb_publishable_A2vJ5DjemTZIKrKX6XGqvQ_WaiuAkk1",
+      "content-type": "application/json"
+     },
+     "body": {
+      "p_player_id": "0b9d5a3e-6c1f-4f7a-9e2b-1d2c3b4a5f60"
+     }
+    }
+   ],
+   "result": [
+    {
+     "id": "f1",
+     "name": "Валя",
+     "since": "2026-10-01T10:00:00+00:00"
+    },
+    {
+     "id": "f2",
+     "name": "",
+     "since": "2026-10-02"
+    }
+   ],
+   "after": {
+    "psygames_leaderboard_player_id": "0b9d5a3e-6c1f-4f7a-9e2b-1d2c3b4a5f60"
+   }
+  },
+  {
+   "name": "listEmpty",
+   "call": "listFriends",
+   "args": [],
+   "replies": [
+    {
+     "status": 200,
+     "body": []
+    }
+   ],
+   "requests": [
+    {
+     "url": "https://iuvvheeocobhiothfgei.supabase.co/rest/v1/rpc/psygames_friends_list",
+     "method": "POST",
+     "headers": {
+      "apikey": "sb_publishable_A2vJ5DjemTZIKrKX6XGqvQ_WaiuAkk1",
+      "authorization": "Bearer sb_publishable_A2vJ5DjemTZIKrKX6XGqvQ_WaiuAkk1",
+      "content-type": "application/json"
+     },
+     "body": {
+      "p_player_id": "0b9d5a3e-6c1f-4f7a-9e2b-1d2c3b4a5f60"
+     }
+    }
+   ],
+   "result": [],
+   "after": {
+    "psygames_leaderboard_player_id": "0b9d5a3e-6c1f-4f7a-9e2b-1d2c3b4a5f60"
+   }
+  },
+  {
+   "name": "listError",
+   "call": "listFriends",
+   "args": [],
+   "replies": [
+    {
+     "status": 401,
+     "body": {
+      "message": "no"
+     }
+    }
+   ],
+   "requests": [
+    {
+     "url": "https://iuvvheeocobhiothfgei.supabase.co/rest/v1/rpc/psygames_friends_list",
+     "method": "POST",
+     "headers": {
+      "apikey": "sb_publishable_A2vJ5DjemTZIKrKX6XGqvQ_WaiuAkk1",
+      "authorization": "Bearer sb_publishable_A2vJ5DjemTZIKrKX6XGqvQ_WaiuAkk1",
+      "content-type": "application/json"
+     },
+     "body": {
+      "p_player_id": "0b9d5a3e-6c1f-4f7a-9e2b-1d2c3b4a5f60"
+     }
+    }
+   ],
+   "result": null,
+   "after": {
+    "psygames_leaderboard_player_id": "0b9d5a3e-6c1f-4f7a-9e2b-1d2c3b4a5f60"
+   }
+  },
+  {
+   "name": "top",
+   "call": "friendsTop",
+   "args": [
+    "n_back"
+   ],
+   "replies": [
+    {
+     "status": 200,
+     "body": [
+      {
+       "f_id": "me",
+       "f_name": "Я",
+       "score": 4,
+       "updated_at": "2026-10-19",
+       "is_me": true
+      },
+      {
+       "f_id": "f1",
+       "f_name": "Валя",
+       "score": "3",
+       "updated_at": "2026-10-18",
+       "is_me": false
+      }
+     ]
+    }
+   ],
+   "requests": [
+    {
+     "url": "https://iuvvheeocobhiothfgei.supabase.co/rest/v1/rpc/psygames_friends_top",
+     "method": "POST",
+     "headers": {
+      "apikey": "sb_publishable_A2vJ5DjemTZIKrKX6XGqvQ_WaiuAkk1",
+      "authorization": "Bearer sb_publishable_A2vJ5DjemTZIKrKX6XGqvQ_WaiuAkk1",
+      "content-type": "application/json"
+     },
+     "body": {
+      "p_player_id": "0b9d5a3e-6c1f-4f7a-9e2b-1d2c3b4a5f60",
+      "p_game_id": "n_back"
+     }
+    }
+   ],
+   "result": [
+    {
+     "id": "me",
+     "name": "Я",
+     "score": 4,
+     "updatedAt": "2026-10-19",
+     "isMe": true
+    },
+    {
+     "id": "f1",
+     "name": "Валя",
+     "score": 3,
+     "updatedAt": "2026-10-18",
+     "isMe": false
+    }
+   ],
+   "after": {
+    "psygames_leaderboard_player_id": "0b9d5a3e-6c1f-4f7a-9e2b-1d2c3b4a5f60"
+   }
+  },
+  {
+   "name": "topNetwork",
+   "call": "friendsTop",
+   "args": [
+    "corsi"
+   ],
+   "replies": [
+    "network"
+   ],
+   "requests": [
+    {
+     "url": "https://iuvvheeocobhiothfgei.supabase.co/rest/v1/rpc/psygames_friends_top",
+     "method": "POST",
+     "headers": {
+      "apikey": "sb_publishable_A2vJ5DjemTZIKrKX6XGqvQ_WaiuAkk1",
+      "authorization": "Bearer sb_publishable_A2vJ5DjemTZIKrKX6XGqvQ_WaiuAkk1",
+      "content-type": "application/json"
+     },
+     "body": {
+      "p_player_id": "0b9d5a3e-6c1f-4f7a-9e2b-1d2c3b4a5f60",
+      "p_game_id": "corsi"
+     }
+    }
+   ],
+   "result": null,
+   "after": {
+    "psygames_leaderboard_player_id": "0b9d5a3e-6c1f-4f7a-9e2b-1d2c3b4a5f60"
+   }
+  },
+  {
+   "name": "remove",
+   "call": "removeFriend",
+   "args": [
+    "f1"
+   ],
+   "replies": [
+    {
+     "status": 204,
+     "body": null
+    }
+   ],
+   "requests": [
+    {
+     "url": "https://iuvvheeocobhiothfgei.supabase.co/rest/v1/rpc/psygames_remove_friend",
+     "method": "POST",
+     "headers": {
+      "apikey": "sb_publishable_A2vJ5DjemTZIKrKX6XGqvQ_WaiuAkk1",
+      "authorization": "Bearer sb_publishable_A2vJ5DjemTZIKrKX6XGqvQ_WaiuAkk1",
+      "content-type": "application/json"
+     },
+     "body": {
+      "p_player_id": "0b9d5a3e-6c1f-4f7a-9e2b-1d2c3b4a5f60",
+      "p_friend_id": "f1"
+     }
+    }
+   ],
+   "result": true,
+   "after": {
+    "psygames_leaderboard_player_id": "0b9d5a3e-6c1f-4f7a-9e2b-1d2c3b4a5f60"
+   }
+  },
+  {
+   "name": "removeError",
+   "call": "removeFriend",
+   "args": [
+    "f1"
+   ],
+   "replies": [
+    {
+     "status": 500,
+     "body": {
+      "message": "boom"
+     }
+    }
+   ],
+   "requests": [
+    {
+     "url": "https://iuvvheeocobhiothfgei.supabase.co/rest/v1/rpc/psygames_remove_friend",
+     "method": "POST",
+     "headers": {
+      "apikey": "sb_publishable_A2vJ5DjemTZIKrKX6XGqvQ_WaiuAkk1",
+      "authorization": "Bearer sb_publishable_A2vJ5DjemTZIKrKX6XGqvQ_WaiuAkk1",
+      "content-type": "application/json"
+     },
+     "body": {
+      "p_player_id": "0b9d5a3e-6c1f-4f7a-9e2b-1d2c3b4a5f60",
+      "p_friend_id": "f1"
+     }
+    }
+   ],
+   "result": false,
+   "after": {
+    "psygames_leaderboard_player_id": "0b9d5a3e-6c1f-4f7a-9e2b-1d2c3b4a5f60"
+   }
+  }
+ ]
+}
