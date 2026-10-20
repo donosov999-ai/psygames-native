@@ -54,7 +54,9 @@ object PracticeKitHaptics {
         stop()
         if (!supported || alarm || !foreground) { result.success(null); return }
         val continuous = call.argument<Boolean>("continuous") == true && amplitude
-        val duration = if (continuous) (call.argument<Number>("durationMs")?.toLong() ?: 60L).coerceIn(1, 30000) else 35L
+        val requestedDuration = call.argument<Number>("durationMs")?.toLong() ?: 60L
+        val duration = if (continuous) requestedDuration.coerceIn(1, 30000)
+            else if (requestedDuration <= 20L) requestedDuration.coerceIn(1, 20) else 35L
         val strength = (call.argument<Number>("strength")?.toDouble() ?: .8).coerceIn(.1, 1.0)
         val doubleCue = !continuous && call.argument<Number>("count")?.toInt() == 2
         try {

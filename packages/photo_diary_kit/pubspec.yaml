@@ -1,0 +1,26 @@
+name: photo_diary_kit
+description: Local opt-in photo diary shared by Smart Alarm and PsyGames.
+version: 0.1.2
+publish_to: none
+environment:
+  sdk: ^3.9.0
+  flutter: '>=3.35.0'
+dependencies:
+  flutter:
+    sdk: flutter
+  camera: ^0.12.1
+  permission_handler: ^13.0.2
+  shared_preferences: ^2.5.5
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  camera_platform_interface: ^2.14.0
+flutter:
+  plugin:
+    platforms:
+      android:
+        package: com.odv999.photo_diary_kit
+        pluginClass: PhotoDiaryKitPlugin
+      ios:
+        pluginClass: PhotoDiaryKitPlugin
