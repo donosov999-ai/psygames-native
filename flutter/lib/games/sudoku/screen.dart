@@ -197,11 +197,15 @@ class _SudokuScreenState extends State<SudokuScreen> {
   String? _whyKey;
   int _hintsUsed = 0;
   bool _answersRevealed = false;
-  bool _confirmingHint = false;
   late final _revealed = SudokuRevealedBoards(widget.state);
   String get _answerId => sudokuAnswerId(
       _sideBoard?.puzzle ?? _board!.puzzle, _solution!);
-  bool get _assisted => _answersRevealed || _hintsUsed > 0;
+  /// Учебная попытка — только когда ответы этой доски ПОКАЗАНЫ (разбор учителя на ней, урок):
+  /// уровня и рейтинга она не даёт. Подсказка открывает одну цифру — это помощь, а не показанное
+  /// решение: ступень засчитывается, рейтинг — нет ([_checkWin], `Outcome.assisted`).
+  /// 🔴 С 04.10 по 20.10 здесь стояло `|| _hintsUsed > 0`, и любая подсказка делала партию учебной —
+  /// так у «Релакс» (L76–L79) каждая решённая доска с одной подсказкой не засчитывалась.
+  bool get _assisted => _answersRevealed;
   String? _avoidAnswerId;
   bool _rejectIndependent(String id) => id == _avoidAnswerId || _revealed.contains(id);
   void _newIndependentBoard() {
@@ -534,7 +538,10 @@ class _SudokuScreenState extends State<SudokuScreen> {
       _errors = r.errors;
       _whyKey = null;
       _hintsUsed = r.hintUses;
-      _answersRevealed = r.answersRevealed || r.hintUses > 0 || _revealed.contains(_answerId);
+      // Подсказка ответов не показывает. Снимок с подсказками несёт флаг и запись в реестре от
+      // правила 04.10–20.10 («подсказка = раскрытие»): учитель работает на ОТДЕЛЬНОЙ доске, так
+      // что на этой доске их могла поставить только подсказка — по ним партию не судим.
+      _answersRevealed = r.answersRevealed || (r.hintUses == 0 && _revealed.contains(_answerId));
       _backtracks = r.backtracks;
       // Время — с НАКОПЛЕННОГО: часы между сессиями ушли вперёд, а партия всё это время стояла.
       _startedAt = gameNow() - r.elapsed * 1000;
@@ -594,7 +601,10 @@ class _SudokuScreenState extends State<SudokuScreen> {
       _errors = r.errors;
       _whyKey = null;
       _hintsUsed = r.hintUses;
-      _answersRevealed = r.answersRevealed || r.hintUses > 0 || _revealed.contains(_answerId);
+      // Подсказка ответов не показывает. Снимок с подсказками несёт флаг и запись в реестре от
+      // правила 04.10–20.10 («подсказка = раскрытие»): учитель работает на ОТДЕЛЬНОЙ доске, так
+      // что на этой доске их могла поставить только подсказка — по ним партию не судим.
+      _answersRevealed = r.answersRevealed || (r.hintUses == 0 && _revealed.contains(_answerId));
       _backtracks = r.backtracks;
       _startedAt = gameNow() - r.elapsed * 1000;   // время — с накопленного
       _won = false;
@@ -1223,54 +1233,16 @@ class _SudokuScreenState extends State<SudokuScreen> {
   /// Подсказка: открывает выбранную клетку по решению. Число подсказок на уровень
   /// задаёт лестница (`hintMax`), как в вебе.
   ///
-  /// Бесплатные кончились — тратится купленная («Подсказка («Судоку»)», задача 576405e7). Партия
-  /// с подсказкой и так идёт тренировкой ([_assisted]): ни уровня, ни очков, — поэтому купленная
-  /// подсказка продаёт помощь, а не ступень. Клетку задания и уже верную купленной не открываем —
-  /// штука ушла бы впустую.
+  /// Бесплатные кончились — тратится купленная («Подсказка («Судоку»)», задача 576405e7): она
+  /// продаёт помощь, а не ступень — уровень с подсказкой засчитывается, рейтинг не растёт. Клетку
+  /// задания и уже верную не открываем — подсказка ушла бы впустую.
   Future<void> _hint() async {
     final solution = _solution;
     final sel = _selected;
-    if (solution == null || sel == null || _halted || _confirmingHint) return;
+    if (solution == null || sel == null || _halted) return;
     // A no-op reveals nothing: don't consume a hint, buy one, or turn a clean
     // attempt into practice when the selected cell is given/already correct.
     if (_given[sel.r][sel.c] || _grid[sel.r][sel.c] == solution[sel.r][sel.c]) return;
-    if (!_assisted) {
-      final board = _board;
-      final side = _sideBoard;
-      _confirmingHint = true;
-      bool? accepted;
-      try {
-        accepted = await showDialog<bool>(
-          context: context,
-          builder: (c) => AlertDialog(
-            key: const Key('sudoku-hint-practice-warning'),
-            title: Text(L.t('btn_hint')),
-            content: Text(L.t('sudokuPracticeOnly')),
-            actions: [
-              TextButton(
-                key: const Key('sudoku-hint-cancel'),
-                onPressed: () => Navigator.of(c).pop(false),
-                child: Text(L.t('btn_cancel')),
-              ),
-              FilledButton(
-                key: const Key('sudoku-hint-confirm'),
-                onPressed: () => Navigator.of(c).pop(true),
-                child: Text(L.t('btn_hint')),
-              ),
-            ],
-          ),
-        );
-      } finally {
-        _confirmingHint = false;
-      }
-      // A decision belongs to this board and selection only. Never spend a
-      // hint or reveal a digit on another attempt after an async return.
-      if (!mounted || accepted != true || _halted ||
-          !identical(board, _board) || !identical(side, _sideBoard) ||
-          sel != _selected || !identical(solution, _solution)) {
-        return;
-      }
-    }
     if (_hintsUsed >= _hintMax) {
       unawaited(_buyHint());
       return;
@@ -1302,8 +1274,6 @@ class _SudokuScreenState extends State<SudokuScreen> {
       // разгадку, поэтому отмена ставила ту же цифру заново и выглядела сломанной.
       _grid[sel.r][sel.c] = solution[sel.r][sel.c];
       _hintsUsed += 1;
-      _answersRevealed = true;
-      unawaited(_revealed.mark(_answerId));
       _checkWin();
     });
     _persist();
