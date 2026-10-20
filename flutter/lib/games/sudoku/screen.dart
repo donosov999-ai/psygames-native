@@ -355,6 +355,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
   /// спрашивает ([_deathOffer]), как в «Мишенях». Потраченная жизнь даёт ровно одну ошибку
   /// сверх ступени ([_errorCap]); сами ошибки остаются в записи. Одна на партию, и такая
   /// партия лестницу не двигает (`advance: false`): иначе за штуку покупалась бы ступень.
+  /// Купленная подсказка — помощь, как бесплатная: ступень засчитывается (правило #355, 20.10).
   late final _wallet = AbilityWallet(widget.state);
   bool _deathOffer = false;
   bool _lifeSpent = false;

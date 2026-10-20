@@ -2962,7 +2962,7 @@ const translations: Translations = {
   abName_second_life: { ru: 'Вторая жизнь («Мишени», «Судоку»)', en: 'Second life (Targets, Sudoku)' },
   abDesc_second_life: { ru: '«Мишени» и «Судоку»: партия не обрывается, когда кончились жизни или ошибки. Одна на партию, и уровень за такую партию не растёт.', en: 'Targets and Sudoku: the round does not end when you run out of lives or mistakes. One per round, and that round will not raise your level.' },
   abName_sudoku_hint: { ru: 'Подсказка («Судоку»)', en: 'Hint (Sudoku)' },
-  abDesc_sudoku_hint: { ru: '«Судоку»: открыть клетку, когда бесплатные подсказки кончились. Уровень за партию с купленной подсказкой не растёт.', en: 'Sudoku: open a cell after the free hints run out. A round with a bought hint will not raise your level.' },
+  abDesc_sudoku_hint: { ru: '«Судоку»: открыть клетку, когда бесплатные подсказки кончились. Уровень засчитывается, как с бесплатной подсказкой.', en: 'Sudoku: open a cell after the free hints run out. The level still counts, just like with a free hint.' },
   abName_practice_run: { ru: 'Пробный заход', en: 'Practice run' },
   abDesc_practice_run: { ru: 'Замерные игры: партия не записывается никуда — ни очков, ни уровня, ни статистики. Пробуй без последствий.', en: 'Measured games: the round is recorded nowhere — no tokens, no level, no stats. Experiment without consequences.' },
   abName_streak_shield: { ru: 'Щит серии', en: 'Streak shield' },

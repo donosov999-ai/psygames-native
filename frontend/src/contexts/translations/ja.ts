@@ -2734,7 +2734,7 @@ const t: Record<string, string> = {
   "abName_second_life": "セカンドライフ（ターゲット・数独）",
   "abDesc_second_life": "ターゲットと数独：ライフやミスの上限に達しても終了しません。1局に1回まで、その局ではレベルは上がりません。",
   "abName_sudoku_hint": "ヒント（数独）",
-  "abDesc_sudoku_hint": "数独：無料ヒントを使い切った後にマスを1つ開けます。購入したヒントを使った局ではレベルは上がりません。",
+  "abDesc_sudoku_hint": "数独：無料ヒントを使い切った後にマスを1つ開けます。無料ヒントと同じく、レベルは認められます。",
   "abName_practice_run": "お試しプレイ",
   "abDesc_practice_run": "測定系の課題：この局はどこにも記録されません。ポイントもレベルも統計も動きません。気兼ねなく試せます。",
   "abName_streak_shield": "連続記録の盾",

@@ -2740,7 +2740,7 @@ const t: Record<string, string> = {
   "abName_second_life": "Zweites Leben (Zielscheiben, Sudoku)",
   "abDesc_second_life": "Zielscheiben und Sudoku: Die Runde endet nicht, wenn Leben oder Fehler aufgebraucht sind. Eines pro Runde, und diese Runde hebt kein Level.",
   "abName_sudoku_hint": "Hinweis (Sudoku)",
-  "abDesc_sudoku_hint": "Sudoku: eine Zelle aufdecken, wenn die kostenlosen Hinweise aufgebraucht sind. Eine Runde mit gekauftem Hinweis hebt kein Level.",
+  "abDesc_sudoku_hint": "Sudoku: eine Zelle aufdecken, wenn die kostenlosen Hinweise aufgebraucht sind. Das Level zählt trotzdem – wie mit einem kostenlosen Hinweis.",
   "abName_practice_run": "Probelauf",
   "abDesc_practice_run": "Messspiele: Die Runde wird nirgends gespeichert — keine Punkte, kein Level, keine Statistik. Ausprobieren ohne Folgen.",
   "abName_streak_shield": "Serien-Schild",

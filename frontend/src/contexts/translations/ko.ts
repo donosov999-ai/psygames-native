@@ -2735,7 +2735,7 @@ const t: Record<string, string> = {
   "abName_second_life": "두 번째 목숨 (표적, 스도쿠)",
   "abDesc_second_life": "표적과 스도쿠: 목숨이나 실수 한도가 다 떨어져도 판이 끝나지 않습니다. 한 판에 하나, 그 판은 레벨을 올리지 않습니다.",
   "abName_sudoku_hint": "힌트 (스도쿠)",
-  "abDesc_sudoku_hint": "스도쿠: 무료 힌트를 다 쓴 뒤 칸 하나를 엽니다. 구매한 힌트를 쓴 판은 레벨을 올리지 않습니다.",
+  "abDesc_sudoku_hint": "스도쿠: 무료 힌트를 다 쓴 뒤 칸 하나를 엽니다. 무료 힌트처럼 레벨은 인정됩니다.",
   "abName_practice_run": "연습 시도",
   "abDesc_practice_run": "측정형 게임: 이 판은 어디에도 기록되지 않습니다. 점수도 레벨도 통계도 변하지 않습니다. 부담 없이 시도하세요.",
   "abName_streak_shield": "연속 기록 보호막",

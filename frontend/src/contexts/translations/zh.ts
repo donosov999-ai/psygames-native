@@ -2740,7 +2740,7 @@ const t: Record<string, string> = {
   "abName_second_life": "第二条命（靶子、数独）",
   "abDesc_second_life": "靶子和数独：生命或错误次数用完时不结束本局。每局限一次，且该局不会提升等级。",
   "abName_sudoku_hint": "提示（数独）",
-  "abDesc_sudoku_hint": "数独：免费提示用完后揭开一格。使用了购买提示的一局不会提升等级。",
+  "abDesc_sudoku_hint": "数独：免费提示用完后揭开一格。与免费提示一样，本关照常计入等级。",
   "abName_practice_run": "试练局",
   "abDesc_practice_run": "测量类练习：本局不会被记录——没有积分、不影响等级、不进统计。放心尝试。",
   "abName_streak_shield": "连续护盾",

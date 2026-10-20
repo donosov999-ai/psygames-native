@@ -135,7 +135,7 @@ describe('способности: экономика', () => {
     expect(abilityById('practice_run')!.maxReturn).toBe(0);
     // Щит возвращает не деньги, а серию: его потолок — разница бонусов за 7 дней отрастания.
     expect(abilityById('streak_shield')!.maxReturn).toBe(checkInStreakMaxLoss());
-    // Подсказка «Судоку»: «Самурай» с ней счёт сохраняет (стоит только лестница) — потолок целая партия.
+    // Подсказка «Судоку»: партия с ней засчитывается и приносит очки (#355) — потолок целая партия.
     expect(abilityById('sudoku_hint')!.maxReturn).toBe(MAX_ROUND_EARNING);
     expect(checkInStreakMaxLoss()).toBe(
       [1, 2, 3, 4, 5, 6, 7].reduce((s, d) => s + (checkInAward(7) - checkInAward(d)), 0),
@@ -540,7 +540,7 @@ describe('способности: нативная судоку', () => {
     }
   });
 
-  it.each(['games/sudoku/screen.dart', 'games/samurai/screen.dart'])('%s: тратит жизнь и подсказку, лестница замирает', (f) => {
+  it.each(['games/sudoku/screen.dart', 'games/samurai/screen.dart'])('%s: тратит жизнь и подсказку, лестницу морозит только жизнь', (f) => {
     const src = dart(f);
     expect(src.includes('_wallet.spend(AbilityWallet.secondLife)')).toBe(true);
     expect(src.includes('_wallet.spend(AbilityWallet.sudokuHint)')).toBe(true);
@@ -551,7 +551,7 @@ describe('способности: нативная судоку', () => {
     // Предложение показывается: состояние где-то ВЗВОДИТСЯ, и карточка висит на нём.
     expect(/_deathOffer = true/.test(src)).toBe(true);
     expect(/_deathOffer\s*\?\s*SecondLifeOffer\(/.test(src)).toBe(true);
-    // Партия с покупкой лестницу не двигает: признак стоит в КАЖДОМ вызове лестницы, а не в
+    // Партия с купленной жизнью лестницу не двигает: признак стоит в КАЖДОМ вызове лестницы, а не в
     // одном из них (у «Самурая» их два — победа и провал; первая редакция гейта видела любой).
     const calls: string[] = [];
     for (const m of src.matchAll(/_ladder\.(win|fail)\(/g)) {
@@ -565,7 +565,10 @@ describe('способности: нативная судоку', () => {
     }
     expect(calls.length).toBeGreaterThan(0);
     for (const c of calls) {
-      expect(`${c.slice(0, 16)}… advance: ${/advance: !_(lifeSpent|bought)/.test(c)}`).toBe(`${c.slice(0, 16)}… advance: true`);
+      // Морозит ступень ТОЛЬКО потраченная жизнь: купленная подсказка — помощь, как бесплатная
+      // (правило #355, решение Дениса 20.10). До него «Самурай» морозил и за подсказку (`_bought`).
+      expect(`${c.slice(0, 16)}… advance: ${/advance: !_lifeSpent\b/.test(c)}`).toBe(`${c.slice(0, 16)}… advance: true`);
+      expect(`${c.slice(0, 16)}… подсказка в заморозке: ${/_boughtHints|_bought\b/.test(c)}`).toBe(`${c.slice(0, 16)}… подсказка в заморозке: false`);
     }
   });
 });

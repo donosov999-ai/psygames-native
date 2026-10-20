@@ -76,8 +76,9 @@ class _SamuraiScreenState extends State<SamuraiScreen> {
   SamuraiZoom _zoom = SamuraiZoom.map;
 
   /// 🔴 ВТОРАЯ ЖИЗНЬ И КУПЛЕННАЯ ПОДСКАЗКА — как у классики (задача 576405e7, `sudoku/screen.dart`).
-  /// Подсказка самурая партию тренировкой НЕ делает (она режет счёт), поэтому здесь и купленная
-  /// подсказка, и жизнь замораживают лестницу: `advance: false` у [LevelLadder.win]/[LevelLadder.fail].
+  /// Потраченная жизнь замораживает лестницу (`advance: false` у [LevelLadder.win]/[LevelLadder.fail]).
+  /// Купленная подсказка — помощь, как бесплатная: ступень засчитывается (правило #355, решение Дениса
+  /// 20.10; до него купленная подсказка здесь тоже морозила ступень, а в классике делала партию учебной).
   late final _wallet = AbilityWallet(widget.state);
   bool _deathOffer = false;
   bool _lifeSpent = false;
@@ -86,9 +87,6 @@ class _SamuraiScreenState extends State<SamuraiScreen> {
 
   bool get _halted => _won || _lost || _deathOffer;
   int get _errorCap => _params.maxErrors + (_lifeSpent ? 1 : 0);
-
-  /// Партия с купленной помощью ступень не берёт.
-  bool get _bought => _lifeSpent || _boughtHints > 0;
 
   final _hCtrl = ScrollController();
   final _vCtrl = ScrollController();
@@ -368,7 +366,7 @@ class _SamuraiScreenState extends State<SamuraiScreen> {
       mode: 'samurai-level-$level',
       difficulty: 'Level $level',
       details: _details(level, completed: false),
-      advance: !_bought,
+      advance: !_lifeSpent,
     ));
   }
 
@@ -444,8 +442,8 @@ class _SamuraiScreenState extends State<SamuraiScreen> {
     if (!isSolved(_grid, board.solution)) return;
     _won = true;
     final level = _ladder.level;
-    // Звёзды — за пройденную ступень; ступень с купленной помощью не пройдена.
-    if (!_bought) unawaited(saveLevelStars(widget.state, 'sudoku_samurai', level, samuraiStars(_errors, _hintsUsed)));
+    // Звёзды — за пройденную ступень; ступень с потраченной жизнью не пройдена.
+    if (!_lifeSpent) unawaited(saveLevelStars(widget.state, 'sudoku_samurai', level, samuraiStars(_errors, _hintsUsed)));
     unawaited(_ladder.win(
       score: _score(level),
       timeSeconds: _elapsed,
@@ -455,7 +453,7 @@ class _SamuraiScreenState extends State<SamuraiScreen> {
       // Веха классической лестницы: «пришёл мегабоссом с уровня N», а не сам — как в вебе,
       // только у победы (sudoku-samurai.tsx, details.megaboss_from).
       details: {..._details(level, completed: true), 'megaboss_from': ?_megaboss},
-      advance: !_bought,
+      advance: !_lifeSpent,
     ));
   }
 
