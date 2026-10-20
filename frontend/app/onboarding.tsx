@@ -47,13 +47,15 @@ interface Slide {
 }
 
 /** Три вопроса подбора: ось ответа + ключи текста вопроса и трёх вариантов. */
-const QUIZ: { axis: keyof PickerAnswers; qKey: string; opts: [string, string, string] }[] = [
+/** Три вопроса подбора. Выгружается и в модель Dart (`flutter-onboarding-asset-fresh`). */
+export const QUIZ: { axis: keyof PickerAnswers; qKey: string; opts: [string, string, string] }[] = [
   { axis: 'mood', qKey: 'onbQuizMood', opts: ['onbQuizMood0', 'onbQuizMood1', 'onbQuizMood2'] },
   { axis: 'time', qKey: 'onbQuizTime', opts: ['onbQuizTime0', 'onbQuizTime1', 'onbQuizTime2'] },
   { axis: 'taste', qKey: 'onbQuizTaste', opts: ['label_words', 'onbQuizTaste1', 'onbQuizTaste2'] },
 ];
 
-const SLIDES: Slide[] = [
+/** Слайды обучения. Слайд уведомлений — только вне веба (`Platform.OS`). */
+export const SLIDES: Slide[] = [
   { emoji: '🧠', gradient: ['#7c3aed', '#ec4899'], titleKey: 'onbSlideWelcomeTitle', bodyKey: 'onbSlideWelcomeBody' },
   { emoji: '⚡', gradient: ['#fbbf24', '#f59e0b'], titleKey: 'onbSlideWarmupTitle', bodyKey: 'onbSlideWarmupBody' },
   { emoji: '🎲', gradient: ['#ef4444', '#f97316'], titleKey: 'onbSlideChallengeTitle', bodyKey: 'onbSlideChallengeBody' },

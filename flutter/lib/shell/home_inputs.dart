@@ -133,6 +133,20 @@ String slotForHour(int hour) => hour >= 5 && hour < 12
     ? 'evening'
     : 'night';
 
+/// Вызов дня — `getTodayChallenge` веба: сид по местной дате [w]; в ротации — игры каталога без скрытых,
+/// песочниц, восстановления и хабов. Сложность — следующий разряд сида по [diffs] (`DIFFS`); пусто — нет.
+({Map<String, Object?> game, Object? difficulty}) dailyChallenge(List<Map<String, Object?>> games, DateTime w, [List<Object?> diffs = const []]) {
+  final eligible = [
+    for (final g in games)
+      if (!jsTruthy(g['hideFromMenu']) && !jsTruthy(g['sandbox']) && g['category'] != 'recovery' && !jsTruthy(g['hub'])) g,
+  ];
+  final seed = w.year * 372 + w.month * 31 + w.day;
+  return (
+    game: eligible[seed % eligible.length],
+    difficulty: diffs.isEmpty ? null : diffs[(seed ~/ eligible.length) % diffs.length],
+  );
+}
+
 /// Профиль Главной: запись сборки с наложенным файлом состава (`наложить`) и список блоков Главной.
 typedef HomeProfile = ({HomeJson raw, Object? allowed, Object? warmupEnabled, Object? homeBlocks});
 
@@ -396,12 +410,7 @@ HomeJson homeInputsFrom(
   );
 
   // ── вызов дня ─────────────────────────────────────────────────────────────
-  final eligible = [
-    for (final g in d.games)
-      if (!jsTruthy(g['hideFromMenu']) && !jsTruthy(g['sandbox']) && g['category'] != 'recovery' && !isHub(g)) g,
-  ];
-  final seed = w.year * 372 + w.month * 31 + w.day;
-  final diffs = inp['challengeDiffs']! as List;
+  final challenge = dailyChallenge(d.games, w, inp['challengeDiffs']! as List);
   // `loadChallengeStreak`: нет записи, битая или `null` — с нуля; не объект — без полей.
   final challengeParsed = _parse(state.get('psygames_daily_challenge_streak_$pid'));
   final challengeRec = challengeParsed == null ? const {'streak': 0, 'total': 0, 'last': ''} : _map(challengeParsed);
@@ -546,8 +555,8 @@ HomeJson homeInputsFrom(
     'warmup': warmupOn ? {'gradient': slotTint[slot], 'slotKey': 'slot${slot[0].toUpperCase()}${slot.substring(1)}'} : null,
     'pause': {'gradient': d.home['heroEye']},
     'challenge': {
-      'gameId': eligible[seed % eligible.length]['id'],
-      'difficultyKey': diffs[(seed ~/ eligible.length) % diffs.length],
+      'gameId': challenge.game['id'],
+      'difficultyKey': challenge.difficulty,
       'done': challengeRec['last'] == today,
       'streak': ?challengeRec['streak'],
     },

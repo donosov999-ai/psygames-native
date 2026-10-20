@@ -649,6 +649,10 @@ class _HybridAppState extends State<HybridApp> {
     if (path.endsWith('/index')) path = path.substring(0, path.length - 6);
     if (path.isEmpty) path = '/';
     final tab = NativeTabs.native.contains(path) || _bodyPages.contains(path) ? path : null;
+    // Знакомство считает модель само: вход на него — с первого слайда, обучение ли — по адресу (`tutorial`).
+    if (tab == OnboardingScreen.route && _nativeTab != tab) {
+      OnboardingScreen.enter(tutorial: uri.queryParametersAll['tutorial']?.contains('1') ?? false);
+    }
     final search = tab == null ? null : uri.queryParameters['search'];
     final hubsOnly = tab == '/games' && uri.queryParameters['filter'] == 'hubs';
     if (!mounted) return tab != null;
@@ -772,6 +776,7 @@ class _HybridAppState extends State<HybridApp> {
   static const _ownModel = {
     StatsScreen.route, HomeScreen.route, StreakCalendarScreen.route,
     SourcesScreen.route, CollectionScreen.route, AchievementsScreen.route, LeaguesScreen.route,
+    OnboardingScreen.route,
   };
   final _modelTimers = <String, Timer>{};
   final _modelGaveUp = <String>{};
@@ -1599,7 +1604,7 @@ class _HybridAppState extends State<HybridApp> {
             StreakCalendarScreen(state: widget.state),
             const AssessmentResultScreen(),
             // Знакомство (a8aa91e0): подбор и обучение — страница, полосы нет (noBar веба).
-            OnboardingScreen(origin: widget.server.origin),
+            OnboardingScreen(origin: widget.server.origin, state: widget.state),
             // Источники, коллекция, достижения, лиги (78165c68, 8111eea4, 56660caa, ac902ebf) — страницы по модели.
             SourcesScreen(state: widget.state),
             CollectionScreen(state: widget.state),

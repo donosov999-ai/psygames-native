@@ -132,6 +132,8 @@ for (const [file, fields] of [
   ['assets/progression.json', ['nameKey']],
   // «Коллекция» считает модель на Dart (`collection_model.dart`): `L.t('fig<Key>')`.
   ['assets/collection.json', ['nameKey']],
+  // «Знакомство» на Dart (`onboarding_model.dart`): карточки игр, вопросы подбора, слайды — `L.t(g.nameKey)` и др.
+  ['assets/onboarding.json', ['nameKey', 'skillKey', 'descKey', 'qKey', 'opts', 'titleKey', 'bodyKey']],
   // Главная (вариант Б): ключи, которые сборщик модели собирает на лету — замки, слоты, сложности, причины.
   ['assets/home.json', ['textKeys']],
   // Входы Главной на Dart (`home_inputs.dart`, 7б): титул надетой вещи — `L.t(title.nameKey)`.
