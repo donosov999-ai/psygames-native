@@ -1,0 +1,1730 @@
+{
+ "now": 1792488309000,
+ "tzOffsetMinutes": -300,
+ "language": "ar",
+ "cat": null,
+ "storage": {
+  "language": "ar",
+  "psygames_abilities_v1": "{\"kids\":{\"streak_shield\":2}}",
+  "psygames_active_profile": "kids",
+  "psygames_tokens_v1": "{\"kids\":350}",
+  "psygames_wager_v1": "{\"kids\":{\"stake\":300,\"start\":\"2026-10-15\",\"lastSeen\":\"2026-10-17\",\"daysDone\":2},\"women\":{\"stake\":300,\"start\":\"2026-10-20\",\"lastSeen\":\"2026-10-20\",\"daysDone\":1}}"
+ },
+ "after": {
+  "language": "ar",
+  "psygames_abilities_v1": "{\"kids\":{\"streak_shield\":2}}",
+  "psygames_active_profile": "kids",
+  "psygames_hub_visible": "{\"profile\":\"kids\",\"hubs\":{\"/games/span\":[\"/games/memory-matrix\",\"/games/picture-pairs\"],\"/games/sudoku-hub\":[\"/games/sudoku\",\"/games/sudoku?mode=towers\",\"/games/sudoku?mode=unequal\",\"/games/puzzles?mode=Solo\",\"/games/puzzles?mode=Towers\",\"/games/puzzles?mode=Unequal\",\"/games/puzzles?mode=Keen\",\"/games/puzzles?mode=Singles\",\"/games/puzzles?mode=Filling\",\"/games/puzzles?mode=Undead\",\"/games/cats\",\"/games/sudoku?mode=junior\",\"/games/puzzles?mode=Unruly\",\"/games/sudoku?mode=killer\",\"/games/sudoku?mode=free\"],\"/games/attention-conflict\":[\"/games/targets\",\"/games/roll-and-bank\"],\"/games/relaxation-hub\":[\"/games/breathing\",\"/games/pause\",\"/games/eye-gym\",\"/warmup-night\"],\"/games/counting-hub\":[\"/games/counter\",\"/games/number-run\",\"/games/math-sprint\",\"/games/puzzles?mode=Mines\",\"/games/puzzles?mode=Mosaic\",\"/games/puzzles?mode=Pattern\",\"/games/puzzles?mode=Range\",\"/games/puzzles?mode=Magnets\",\"/games/puzzles?mode=Palisade\",\"/games/puzzles?mode=Light%20Up\",\"/games/puzzles?mode=Tents\",\"/games/puzzles?mode=Rectangles\",\"/games/puzzles?mode=Guess\"],\"/games/words-hub\":[\"/games/vocab-srs\",\"/games/semantic-sort\",\"/games/cloze\",\"/games/lexical-decision\",\"/games/anagrams\",\"/games/phonemic-fluency\",\"/games/story-recall\"],\"/games/hearing-hub\":[\"/games/phoneme-pairs\",\"/games/chinese-tones\",\"/games/pseudoword-echo\",\"/games/dictation\"],\"/games/search-hub\":[\"/games/find-differences\",\"/games/schulte\",\"/games/monster-traits\",\"/games/monster-traits?mode=missing\",\"/games/kids-find\",\"/games/submarines\",\"/games/puzzles?mode=Dominosa\",\"/games/puzzles?mode=Map\",\"/games/hidden-character\"],\"/games/mnemonics-hub\":[],\"/games/languages-hub\":[\"/games/words-hub\",\"/games/hearing-hub\"],\"/games/chess-hub\":[\"/games/scholars-mate\",\"/games/chess-blind\",\"/games/find-move\",\"/games/solitaire-chess\",\"/games/knights-queens\",\"/games/puzzles?mode=Pegs\",\"/games/puzzles?mode=Signpost\",\"/games/puzzles?mode=Inertia\"],\"/games/sorting-hub\":[\"/games/hanoi\",\"/games/animal-queue\",\"/games/kids-sort\",\"/games/puzzles?mode=Flood\",\"/games/puzzles?mode=Same%20Game\"],\"/games/spatial-hub\":[\"/games/mental-rotation\",\"/games/spatial-lab?mode=twiddle\",\"/games/spatial-lab?mode=net\",\"/games/puzzles?mode=Slide\",\"/games/puzzles?mode=Sokoban\",\"/games/traffic-jam\",\"/games/trail-making\",\"/games/puzzles?mode=Net\",\"/games/puzzles?mode=Netslide\",\"/games/puzzles?mode=Twiddle\",\"/games/puzzles?mode=Cube\",\"/games/puzzles?mode=Flip\",\"/games/puzzles?mode=Sixteen\",\"/games/puzzles?mode=Fifteen\",\"/games/puzzles?mode=Untangle\",\"/games/puzzles?mode=Loopy\",\"/games/puzzles?mode=Pearl\",\"/games/puzzles?mode=Bridges\",\"/games/puzzles?mode=Train%20Tracks\",\"/games/puzzles?mode=Galaxies\",\"/games/puzzles?mode=Slant\",\"/games/puzzles?mode=Black%20Box\"]},\"suites\":{\"suite_stroop\":[],\"suite_arrows\":[],\"suite_positions\":[\"/games/memory-matrix\"],\"suite_stream\":[],\"suite_inhibition\":[],\"suite_decisions\":[]},\"catalog\":[\"span_group\",\"sudoku_group\",\"attention_conflict\",\"relaxation_group\",\"counting_group\",\"search_group\",\"languages_group\",\"chess_group\",\"sorting_group\",\"spatial_group\"]}",
+  "psygames_tokens_v1": "{\"kids\":350}",
+  "psygames_wager_v1": "{\"women\":{\"stake\":300,\"start\":\"2026-10-20\",\"lastSeen\":\"2026-10-20\",\"daysDone\":1}}"
+ },
+ "model": {
+  "v": 1,
+  "title": "المتجر",
+  "back": "رجوع",
+  "backIcon": "arrow-forward",
+  "primary": "#10b981",
+  "balance": "350",
+  "cats": [
+   {
+    "id": null,
+    "icon": "apps",
+    "label": "كل الأقسام",
+    "on": true
+   },
+   {
+    "id": "ability",
+    "icon": "flash",
+    "label": "القدرات",
+    "on": false
+   },
+   {
+    "id": "accent",
+    "icon": "color-palette",
+    "label": "ألوان مميزة",
+    "on": false
+   },
+   {
+    "id": "sound",
+    "icon": "musical-notes",
+    "label": "حزم صوتية",
+    "on": false
+   },
+   {
+    "id": "frame",
+    "icon": "scan",
+    "label": "إطارات",
+    "on": false
+   },
+   {
+    "id": "title",
+    "icon": "pricetag",
+    "label": "ألقاب",
+    "on": false
+   },
+   {
+    "id": "avatar",
+    "icon": "person",
+    "label": "صور رمزية",
+    "on": false
+   },
+   {
+    "id": "pet",
+    "icon": "paw",
+    "label": "للرفيق",
+    "on": false
+   },
+   {
+    "id": "digits",
+    "icon": "calculator",
+    "label": "الفئة: أطقم أرقام",
+    "on": false
+   },
+   {
+    "id": "theme",
+    "icon": "map",
+    "label": "الفئة: سمات الخريطة",
+    "on": false
+   },
+   {
+    "id": "background",
+    "icon": "image",
+    "label": "الفئة: خلفيات",
+    "on": false
+   },
+   {
+    "id": "badge",
+    "icon": "ribbon",
+    "label": "الفئة: شارات",
+    "on": false
+   }
+  ],
+  "note": null,
+  "abilities": {
+   "title": "⚡ القدرات — تُستهلك قطعة بقطعة. لا تحل المهمة عنك: تعيد لك جولة أو سلسلة.",
+   "rows": [
+    {
+     "id": "second_life",
+     "icon": "heart",
+     "name": "حياة ثانية (الأهداف، سودوكو)",
+     "desc": "الأهداف وسودوكو: لا تنتهي الجولة عند نفاد الأرواح أو الأخطاء. واحدة لكل جولة، وتلك الجولة لا ترفع مستواك.",
+     "price": "500 ⭐ · في محفظتك: 0",
+     "buy": {
+      "label": "نقاط غير كافية",
+      "enabled": false
+     },
+     "use": null
+    },
+    {
+     "id": "practice_run",
+     "icon": "flask",
+     "name": "جولة تجريبية",
+     "desc": "ألعاب القياس: لا تُسجَّل الجولة في أي مكان — لا نقاط ولا مستوى ولا إحصاءات. جرّب بلا عواقب.",
+     "price": "250 ⭐ · في محفظتك: 0",
+     "buy": {
+      "label": "شراء",
+      "enabled": true
+     },
+     "use": null
+    },
+    {
+     "id": "streak_shield",
+     "icon": "shield-checkmark",
+     "name": "درع السلسلة",
+     "desc": "يعيد سلسلة الأيام التي انقطعت بسبب يوم فائت. يعمل فقط في يوم الانقطاع.",
+     "price": "1500 ⭐ · في محفظتك: 2",
+     "buy": {
+      "label": "المخزون ممتلئ",
+      "enabled": false
+     },
+     "use": {
+      "label": "استخدام",
+      "ready": true
+     }
+    },
+    {
+     "id": "sudoku_hint",
+     "icon": "bulb",
+     "name": "تلميح (سودوكو)",
+     "desc": "سودوكو: اكشف خانة بعد نفاد التلميحات المجانية. الجولة التي استُخدم فيها تلميح مشترى لا ترفع مستواك.",
+     "price": "150 ⭐ · في محفظتك: 0",
+     "buy": {
+      "label": "شراء",
+      "enabled": true
+     },
+     "use": null
+    }
+   ],
+   "hint": "كل قدرة تكلّف أكثر مما يمكن أن تدرّه الجولة — لا يمكن شراؤها للربح.",
+   "wager": {
+    "active": false,
+    "lost": true,
+    "title": "كل شيء أو لا شيء",
+    "desc": "احترق الرهان — فاتك يوم. يمكنك المراهنة من جديد. راهن بـ 300 ⭐ وادخل 7 أيام متتالية لتأخذ 600 ⭐. إن فاتك يوم يحترق الرهان — ودرع السلسلة لا ينقذه.",
+    "btn": {
+     "label": "راهن بـ 300 ⭐",
+     "enabled": true
+    }
+   }
+  },
+  "sections": [
+   {
+    "type": "accent",
+    "title": "سمات اللون — تغيّر لون الواجهة. اشترِ بالنقاط وفعّل مجانًا.",
+    "first": false,
+    "items": [
+     {
+      "id": "accent_gold",
+      "name": "ذهب",
+      "desc": "لمسة كهرمانية دافئة — أناقة وفخامة",
+      "price": "900 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#f5b50a",
+      "swatch": {
+       "kind": "color",
+       "color": "#f5b50a"
+      },
+      "btn": {
+       "label": "نقاط غير كافية",
+       "enabled": false
+      }
+     },
+     {
+      "id": "accent_neon",
+      "name": "نيون",
+      "desc": "أخضر حمضي — طاقة وروح سايبربانك",
+      "price": "900 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#00e5a0",
+      "swatch": {
+       "kind": "color",
+       "color": "#00e5a0"
+      },
+      "btn": {
+       "label": "نقاط غير كافية",
+       "enabled": false
+      }
+     },
+     {
+      "id": "accent_ocean",
+      "name": "محيط",
+      "desc": "أزرق عميق — هدوء وصفاء",
+      "price": "900 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#0aa6ff",
+      "swatch": {
+       "kind": "color",
+       "color": "#0aa6ff"
+      },
+      "btn": {
+       "label": "نقاط غير كافية",
+       "enabled": false
+      }
+     },
+     {
+      "id": "accent_rose",
+      "name": "وردة",
+      "desc": "فوشيا مشرق — حيوية ودفء",
+      "price": "1200 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#ff4d8d",
+      "swatch": {
+       "kind": "color",
+       "color": "#ff4d8d"
+      },
+      "btn": {
+       "label": "نقاط غير كافية",
+       "enabled": false
+      }
+     },
+     {
+      "id": "accent_emerald",
+      "name": "زمرّد",
+      "desc": "أخضر غنيّ — انتعاش وطبيعية",
+      "price": "1500 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#10b981",
+      "swatch": {
+       "kind": "color",
+       "color": "#10b981"
+      },
+      "btn": {
+       "label": "نقاط غير كافية",
+       "enabled": false
+      }
+     },
+     {
+      "id": "accent_lavender",
+      "name": "خزامى",
+      "desc": "بنفسجي ناعم — ترف هادئ",
+      "price": "1050 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#8b5cf6",
+      "swatch": {
+       "kind": "color",
+       "color": "#8b5cf6"
+      },
+      "btn": {
+       "label": "نقاط غير كافية",
+       "enabled": false
+      }
+     },
+     {
+      "id": "accent_crimson",
+      "name": "قرمزي",
+      "desc": "أحمر مشبع — جرأة وثقة",
+      "price": "1200 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#dc2626",
+      "swatch": {
+       "kind": "color",
+       "color": "#dc2626"
+      },
+      "btn": {
+       "label": "نقاط غير كافية",
+       "enabled": false
+      }
+     },
+     {
+      "id": "accent_cyan",
+      "name": "سيان",
+      "desc": "سيان منعش — نقاء وطابع تقني",
+      "price": "1350 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#06b6d4",
+      "swatch": {
+       "kind": "color",
+       "color": "#06b6d4"
+      },
+      "btn": {
+       "label": "نقاط غير كافية",
+       "enabled": false
+      }
+     },
+     {
+      "id": "accent_tangerine",
+      "name": "يوسفي",
+      "desc": "برتقالي نابض — نشاط وحضور",
+      "price": "1500 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#f97316",
+      "swatch": {
+       "kind": "color",
+       "color": "#f97316"
+      },
+      "btn": {
+       "label": "نقاط غير كافية",
+       "enabled": false
+      }
+     },
+     {
+      "id": "accent_indigo",
+      "name": "نيلي",
+      "desc": "أزرق بنفسجي عميق — سماء الليل",
+      "price": "1650 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#4f46e5",
+      "swatch": {
+       "kind": "color",
+       "color": "#4f46e5"
+      },
+      "btn": {
+       "label": "نقاط غير كافية",
+       "enabled": false
+      }
+     },
+     {
+      "id": "accent_coral",
+      "name": "مرجان",
+      "desc": "أحمر وردي دافئ — حيوية وألفة",
+      "price": "1800 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#fb7185",
+      "swatch": {
+       "kind": "color",
+       "color": "#fb7185"
+      },
+      "btn": {
+       "label": "نقاط غير كافية",
+       "enabled": false
+      }
+     },
+     {
+      "id": "accent_slate",
+      "name": "غرافيت",
+      "desc": "رمادي مزرق رصين — بساطة",
+      "price": "1950 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#64748b",
+      "swatch": {
+       "kind": "color",
+       "color": "#64748b"
+      },
+      "btn": {
+       "label": "نقاط غير كافية",
+       "enabled": false
+      }
+     },
+     {
+      "id": "accent_copper",
+      "name": "نحاس",
+      "desc": "نحاسي دافئ — عراقة ونُبل",
+      "price": "2100 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#b45309",
+      "swatch": {
+       "kind": "color",
+       "color": "#b45309"
+      },
+      "btn": {
+       "label": "نقاط غير كافية",
+       "enabled": false
+      }
+     },
+     {
+      "id": "accent_mint",
+      "name": "نعناع",
+      "desc": "فيروزي بالنعناع — خفة ونقاء",
+      "price": "2250 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#2dd4bf",
+      "swatch": {
+       "kind": "color",
+       "color": "#2dd4bf"
+      },
+      "btn": {
+       "label": "نقاط غير كافية",
+       "enabled": false
+      }
+     },
+     {
+      "id": "accent_magenta",
+      "name": "ماجنتا",
+      "desc": "ماجنتا جريء — حضور لافت",
+      "price": "2400 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#d946ef",
+      "swatch": {
+       "kind": "color",
+       "color": "#d946ef"
+      },
+      "btn": {
+       "label": "نقاط غير كافية",
+       "enabled": false
+      }
+     }
+    ]
+   },
+   {
+    "type": "sound",
+    "title": "🎵 حزم الصوت — تغيّر طابع أصوات اللعب. اضغط «تفعيل» وستسمعها فورًا.",
+    "first": false,
+    "items": [
+     {
+      "id": "sound_retro",
+      "name": "ريترو",
+      "desc": "موجة مربعة 8 بت — كأجهزة الألعاب القديمة",
+      "price": "1050 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#10b981",
+      "swatch": {
+       "kind": "icon",
+       "icon": "musical-notes",
+       "color": "#10b981"
+      },
+      "btn": {
+       "label": "نقاط غير كافية",
+       "enabled": false
+      }
+     },
+     {
+      "id": "sound_soft",
+      "name": "ناعم",
+      "desc": "نغمة مثلثية دافئة — أنعم من الافتراضي",
+      "price": "1050 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#10b981",
+      "swatch": {
+       "kind": "icon",
+       "icon": "musical-notes",
+       "color": "#10b981"
+      },
+      "btn": {
+       "label": "نقاط غير كافية",
+       "enabled": false
+      }
+     },
+     {
+      "id": "sound_arcade",
+      "name": "أركيد",
+      "desc": "موجة منشارية رنّانة — روح الأركيد",
+      "price": "1350 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#10b981",
+      "swatch": {
+       "kind": "icon",
+       "icon": "musical-notes",
+       "color": "#10b981"
+      },
+      "btn": {
+       "label": "نقاط غير كافية",
+       "enabled": false
+      }
+     },
+     {
+      "id": "sound_crystal",
+      "name": "بلّور",
+      "desc": "نغمة عالية نقية — رنين وخفة",
+      "price": "1200 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#10b981",
+      "swatch": {
+       "kind": "icon",
+       "icon": "musical-notes",
+       "color": "#10b981"
+      },
+      "btn": {
+       "label": "نقاط غير كافية",
+       "enabled": false
+      }
+     },
+     {
+      "id": "sound_deep",
+      "name": "عمق",
+      "desc": "نغمة منخفضة مخملية — رزانة وهدوء",
+      "price": "1200 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#10b981",
+      "swatch": {
+       "kind": "icon",
+       "icon": "musical-notes",
+       "color": "#10b981"
+      },
+      "btn": {
+       "label": "نقاط غير كافية",
+       "enabled": false
+      }
+     },
+     {
+      "id": "sound_chipbass",
+      "name": "تشيب باس",
+      "desc": "موجة مربعة منخفضة — 8 بت بجرس عميق",
+      "price": "1500 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#10b981",
+      "swatch": {
+       "kind": "icon",
+       "icon": "musical-notes",
+       "color": "#10b981"
+      },
+      "btn": {
+       "label": "نقاط غير كافية",
+       "enabled": false
+      }
+     },
+     {
+      "id": "sound_buzz",
+      "name": "مثقاب",
+      "desc": "موجة منشارية حادة — قوة وجرأة",
+      "price": "1500 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#10b981",
+      "swatch": {
+       "kind": "icon",
+       "icon": "musical-notes",
+       "color": "#10b981"
+      },
+      "btn": {
+       "label": "نقاط غير كافية",
+       "enabled": false
+      }
+     }
+    ]
+   },
+   {
+    "type": "frame",
+    "title": "🖼️ الإطارات — حد ملوّن حول شريحة ملفك في الشاشة الرئيسية.",
+    "first": false,
+    "items": [
+     {
+      "id": "frame_gold",
+      "name": "إطار ذهبي",
+      "desc": "حدّ كهرماني دافئ حول شريحة ملفك",
+      "price": "1200 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#f5b50a",
+      "swatch": {
+       "kind": "frame",
+       "color": "#f5b50a"
+      },
+      "btn": {
+       "label": "نقاط غير كافية",
+       "enabled": false
+      }
+     },
+     {
+      "id": "frame_crimson",
+      "name": "إطار قرمزي",
+      "desc": "حدّ أحمر مشبع — جريء",
+      "price": "1350 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#ef4444",
+      "swatch": {
+       "kind": "frame",
+       "color": "#ef4444"
+      },
+      "btn": {
+       "label": "نقاط غير كافية",
+       "enabled": false
+      }
+     },
+     {
+      "id": "frame_azure",
+      "name": "إطار لازوردي",
+      "desc": "حدّ أزرق سماوي صافٍ",
+      "price": "1350 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#38bdf8",
+      "swatch": {
+       "kind": "frame",
+       "color": "#38bdf8"
+      },
+      "btn": {
+       "label": "نقاط غير كافية",
+       "enabled": false
+      }
+     },
+     {
+      "id": "frame_emerald",
+      "name": "إطار زمرّدي",
+      "desc": "حدّ أخضر غنيّ",
+      "price": "1500 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#22c55e",
+      "swatch": {
+       "kind": "frame",
+       "color": "#22c55e"
+      },
+      "btn": {
+       "label": "نقاط غير كافية",
+       "enabled": false
+      }
+     },
+     {
+      "id": "frame_violet",
+      "name": "إطار بنفسجي",
+      "desc": "حدّ بنفسجي ناعم",
+      "price": "1500 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#a78bfa",
+      "swatch": {
+       "kind": "frame",
+       "color": "#a78bfa"
+      },
+      "btn": {
+       "label": "نقاط غير كافية",
+       "enabled": false
+      }
+     },
+     {
+      "id": "frame_silver",
+      "name": "إطار فضي",
+      "desc": "حدّ فضي رصين",
+      "price": "1650 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#cbd5e1",
+      "swatch": {
+       "kind": "frame",
+       "color": "#cbd5e1"
+      },
+      "btn": {
+       "label": "نقاط غير كافية",
+       "enabled": false
+      }
+     },
+     {
+      "id": "frame_onyx",
+      "name": "أونيكس",
+      "desc": "إطار أسود عميق — مكانة بلا صخب",
+      "price": "6000 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#0f172a",
+      "swatch": {
+       "kind": "frame",
+       "color": "#0f172a"
+      },
+      "btn": {
+       "label": "نقاط غير كافية",
+       "enabled": false
+      }
+     }
+    ]
+   },
+   {
+    "type": "title",
+    "title": "🏷️ الألقاب — سطر تحت اسم الملف.",
+    "first": false,
+    "items": [
+     {
+      "id": "title_focused",
+      "name": "مركّز",
+      "desc": "لقب يظهر أسفل اسم ملفك",
+      "price": "750 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#10b981",
+      "swatch": {
+       "kind": "text",
+       "text": "🎯"
+      },
+      "btn": {
+       "label": "نقاط غير كافية",
+       "enabled": false
+      }
+     },
+     {
+      "id": "title_sharp",
+      "name": "ذهن حاد",
+      "desc": "لقب يظهر أسفل اسم ملفك",
+      "price": "900 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#10b981",
+      "swatch": {
+       "kind": "text",
+       "text": "⚡"
+      },
+      "btn": {
+       "label": "نقاط غير كافية",
+       "enabled": false
+      }
+     },
+     {
+      "id": "title_strategist",
+      "name": "استراتيجي",
+      "desc": "لقب يظهر أسفل اسم ملفك",
+      "price": "1050 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#10b981",
+      "swatch": {
+       "kind": "text",
+       "text": "♟️"
+      },
+      "btn": {
+       "label": "نقاط غير كافية",
+       "enabled": false
+      }
+     },
+     {
+      "id": "title_owl",
+      "name": "بومة العقل",
+      "desc": "لقب يظهر أسفل اسم ملفك",
+      "price": "1050 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#10b981",
+      "swatch": {
+       "kind": "text",
+       "text": "🦉"
+      },
+      "btn": {
+       "label": "نقاط غير كافية",
+       "enabled": false
+      }
+     },
+     {
+      "id": "title_unstoppable",
+      "name": "لا يُوقف",
+      "desc": "لقب يظهر أسفل اسم ملفك",
+      "price": "1350 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#10b981",
+      "swatch": {
+       "kind": "text",
+       "text": "🔥"
+      },
+      "btn": {
+       "label": "نقاط غير كافية",
+       "enabled": false
+      }
+     },
+     {
+      "id": "title_grandmaster",
+      "name": "أستاذ كبير",
+      "desc": "لقب يظهر أسفل اسم ملفك",
+      "price": "1500 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#10b981",
+      "swatch": {
+       "kind": "text",
+       "text": "👑"
+      },
+      "btn": {
+       "label": "نقاط غير كافية",
+       "enabled": false
+      }
+     },
+     {
+      "id": "title_legend",
+      "name": "أسطورة",
+      "desc": "لقب يظهر أسفل اسم ملفك",
+      "price": "1800 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#10b981",
+      "swatch": {
+       "kind": "text",
+       "text": "🌟"
+      },
+      "btn": {
+       "label": "نقاط غير كافية",
+       "enabled": false
+      }
+     },
+     {
+      "id": "title_cyberbrain",
+      "name": "عقل سيبراني",
+      "desc": "اللقب نفسه الذي يحمله المستوى الأقصى للملف",
+      "price": "1950 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#10b981",
+      "swatch": {
+       "kind": "text",
+       "text": "🧠"
+      },
+      "btn": {
+       "label": "نقاط غير كافية",
+       "enabled": false
+      }
+     },
+     {
+      "id": "title_comet",
+      "name": "مذنّب",
+      "desc": "لقب يظهر أسفل اسم ملفك",
+      "price": "7500 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#10b981",
+      "swatch": {
+       "kind": "text",
+       "text": "☄️"
+      },
+      "btn": {
+       "label": "نقاط غير كافية",
+       "enabled": false
+      }
+     },
+     {
+      "id": "title_diamond",
+      "name": "ماسة",
+      "desc": "لقب يظهر أسفل اسم ملفك",
+      "price": "10000 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#10b981",
+      "swatch": {
+       "kind": "text",
+       "text": "💎"
+      },
+      "btn": {
+       "label": "نقاط غير كافية",
+       "enabled": false
+      }
+     },
+     {
+      "id": "title_infinity",
+      "name": "لا نهائي",
+      "desc": "لقب يظهر أسفل اسم ملفك",
+      "price": "15000 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#10b981",
+      "swatch": {
+       "kind": "text",
+       "text": "♾️"
+      },
+      "btn": {
+       "label": "نقاط غير كافية",
+       "enabled": false
+      }
+     }
+    ]
+   },
+   {
+    "type": "avatar",
+    "title": "👤 الصور الرمزية — أيقونتك الخاصة بدل الشارة الافتراضية.",
+    "first": false,
+    "items": [
+     {
+      "id": "avatar_owl",
+      "name": "بومة",
+      "desc": "أيقونة ملف بدل الشارة الافتراضية",
+      "price": "900 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#10b981",
+      "swatch": {
+       "kind": "image",
+       "uri": "/assets/images/avatars/avatar_owl.webp"
+      },
+      "btn": {
+       "label": "نقاط غير كافية",
+       "enabled": false
+      }
+     },
+     {
+      "id": "avatar_fox",
+      "name": "ثعلب",
+      "desc": "أيقونة ملف بدل الشارة الافتراضية",
+      "price": "900 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#10b981",
+      "swatch": {
+       "kind": "image",
+       "uri": "/assets/images/avatars/avatar_fox.webp"
+      },
+      "btn": {
+       "label": "نقاط غير كافية",
+       "enabled": false
+      }
+     },
+     {
+      "id": "avatar_gem",
+      "name": "جوهرة",
+      "desc": "أيقونة ملف بدل الشارة الافتراضية",
+      "price": "1050 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#10b981",
+      "swatch": {
+       "kind": "image",
+       "uri": "/assets/images/avatars/avatar_gem.webp"
+      },
+      "btn": {
+       "label": "نقاط غير كافية",
+       "enabled": false
+      }
+     },
+     {
+      "id": "avatar_lightning",
+      "name": "برق",
+      "desc": "أيقونة ملف بدل الشارة الافتراضية",
+      "price": "1050 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#10b981",
+      "swatch": {
+       "kind": "image",
+       "uri": "/assets/images/avatars/avatar_lightning.webp"
+      },
+      "btn": {
+       "label": "نقاط غير كافية",
+       "enabled": false
+      }
+     },
+     {
+      "id": "avatar_star",
+      "name": "نجمة",
+      "desc": "أيقونة ملف بدل الشارة الافتراضية",
+      "price": "1200 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#10b981",
+      "swatch": {
+       "kind": "image",
+       "uri": "/assets/images/avatars/avatar_star.webp"
+      },
+      "btn": {
+       "label": "نقاط غير كافية",
+       "enabled": false
+      }
+     },
+     {
+      "id": "avatar_knight",
+      "name": "حصان",
+      "desc": "أيقونة ملف بدل الشارة الافتراضية",
+      "price": "1350 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#10b981",
+      "swatch": {
+       "kind": "image",
+       "uri": "/assets/images/avatars/avatar_knight.webp"
+      },
+      "btn": {
+       "label": "نقاط غير كافية",
+       "enabled": false
+      }
+     },
+     {
+      "id": "avatar_phoenix",
+      "name": "عنقاء",
+      "desc": "أيقونة ملف بدل الشارة الافتراضية",
+      "price": "1500 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#10b981",
+      "swatch": {
+       "kind": "image",
+       "uri": "/assets/images/avatars/avatar_phoenix.webp"
+      },
+      "btn": {
+       "label": "نقاط غير كافية",
+       "enabled": false
+      }
+     },
+     {
+      "id": "avatar_robot",
+      "name": "روبوت",
+      "desc": "أيقونة ملف بدل الشارة الافتراضية",
+      "price": "1500 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#10b981",
+      "swatch": {
+       "kind": "image",
+       "uri": "/assets/images/avatars/avatar_robot.webp"
+      },
+      "btn": {
+       "label": "نقاط غير كافية",
+       "enabled": false
+      }
+     },
+     {
+      "id": "avatar_brain",
+      "name": "دماغ",
+      "desc": "الصورة الرمزية الرائدة — أيقونة الملف",
+      "price": "1800 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#10b981",
+      "swatch": {
+       "kind": "image",
+       "uri": "/assets/images/avatars/avatar_brain.webp"
+      },
+      "btn": {
+       "label": "نقاط غير كافية",
+       "enabled": false
+      }
+     }
+    ]
+   },
+   {
+    "type": "pet",
+    "title": "🐾 للحيوان الأليف — إكسسوارات سينابس (تُلبس في كل الشاشات)",
+    "first": false,
+    "items": [
+     {
+      "id": "pet_bow",
+      "name": "ربطة",
+      "desc": "إكسسوار الحيوان المتجوّل — يظهر في كل الشاشات",
+      "price": "900 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#10b981",
+      "swatch": {
+       "kind": "text",
+       "text": "🎀"
+      },
+      "btn": {
+       "label": "نقاط غير كافية",
+       "enabled": false
+      }
+     },
+     {
+      "id": "pet_party_hat",
+      "name": "قبعة الحفلات",
+      "desc": "إكسسوار الحيوان المتجوّل — يظهر في كل الشاشات",
+      "price": "1200 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#10b981",
+      "swatch": {
+       "kind": "text",
+       "text": "🥳"
+      },
+      "btn": {
+       "label": "نقاط غير كافية",
+       "enabled": false
+      }
+     },
+     {
+      "id": "pet_glasses",
+      "name": "نظارة ذكية",
+      "desc": "إكسسوار الحيوان المتجوّل — يظهر في كل الشاشات",
+      "price": "1500 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#10b981",
+      "swatch": {
+       "kind": "text",
+       "text": "👓"
+      },
+      "btn": {
+       "label": "نقاط غير كافية",
+       "enabled": false
+      }
+     },
+     {
+      "id": "pet_bow_tie",
+      "name": "ربطة عنق فراشية",
+      "desc": "إكسسوار الحيوان المتجوّل — يظهر في كل الشاشات",
+      "price": "900 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#10b981",
+      "swatch": {
+       "kind": "text",
+       "text": "🎩"
+      },
+      "btn": {
+       "label": "نقاط غير كافية",
+       "enabled": false
+      }
+     }
+    ]
+   },
+   {
+    "type": "digits",
+    "title": "أطقم أرقام السودوكو",
+    "first": false,
+    "items": [
+     {
+      "id": "digits_pastel",
+      "name": "باستيل",
+      "desc": "أرقام مرسومة للسودوكو — اخترها من إعدادات الجولة",
+      "price": "1500 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#10b981",
+      "swatch": {
+       "kind": "digits",
+       "uri": "/assets/images/digits_pastel/d5.webp"
+      },
+      "btn": {
+       "label": "نقاط غير كافية",
+       "enabled": false
+      }
+     },
+     {
+      "id": "digits_neon",
+      "name": "نيون تقني",
+      "desc": "أرقام مرسومة للسودوكو — اخترها من إعدادات الجولة",
+      "price": "1500 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#10b981",
+      "swatch": {
+       "kind": "digits",
+       "uri": "/assets/images/digits_neon/d5.webp"
+      },
+      "btn": {
+       "label": "نقاط غير كافية",
+       "enabled": false
+      }
+     },
+     {
+      "id": "digits_elegant",
+      "name": "أنيق",
+      "desc": "أرقام مرسومة للسودوكو — اخترها من إعدادات الجولة",
+      "price": "1500 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#10b981",
+      "swatch": {
+       "kind": "digits",
+       "uri": "/assets/images/digits_elegant/d5.webp"
+      },
+      "btn": {
+       "label": "نقاط غير كافية",
+       "enabled": false
+      }
+     }
+    ]
+   },
+   {
+    "type": "theme",
+    "title": "سمات الخريطة",
+    "first": false,
+    "items": [
+     {
+      "id": "theme_odv999",
+      "name": "ODV999",
+      "desc": "خلفية خريطة المستويات بنمط ملف آخر",
+      "price": "2400 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#10b981",
+      "swatch": {
+       "kind": "image",
+       "uri": "/assets/images/level-map-themes/odv999.webp"
+      },
+      "btn": {
+       "label": "نقاط غير كافية",
+       "enabled": false
+      }
+     },
+     {
+      "id": "theme_chess",
+      "name": "Шахматист",
+      "desc": "خلفية خريطة المستويات بنمط ملف آخر",
+      "price": "2400 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#10b981",
+      "swatch": {
+       "kind": "image",
+       "uri": "/assets/images/level-map-themes/chess.webp"
+      },
+      "btn": {
+       "label": "نقاط غير كافية",
+       "enabled": false
+      }
+     },
+     {
+      "id": "theme_vasilyeva",
+      "name": "Скорочтение PRO",
+      "desc": "خلفية خريطة المستويات بنمط ملف آخر",
+      "price": "2400 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#10b981",
+      "swatch": {
+       "kind": "image",
+       "uri": "/assets/images/level-map-themes/vasilyeva.webp"
+      },
+      "btn": {
+       "label": "نقاط غير كافية",
+       "enabled": false
+      }
+     },
+     {
+      "id": "theme_nzt48",
+      "name": "NZT-48 (полный)",
+      "desc": "خلفية خريطة المستويات بنمط ملف آخر",
+      "price": "2400 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#10b981",
+      "swatch": {
+       "kind": "image",
+       "uri": "/assets/images/level-map-themes/nzt48.webp"
+      },
+      "btn": {
+       "label": "نقاط غير كافية",
+       "enabled": false
+      }
+     },
+     {
+      "id": "theme_free",
+      "name": "Стандарт",
+      "desc": "خلفية خريطة المستويات بنمط ملف آخر",
+      "price": "2400 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#10b981",
+      "swatch": {
+       "kind": "image",
+       "uri": "/assets/images/level-map-themes/free.webp"
+      },
+      "btn": {
+       "label": "نقاط غير كافية",
+       "enabled": false
+      }
+     },
+     {
+      "id": "theme_drivers",
+      "name": "Реакция ПРО",
+      "desc": "خلفية خريطة المستويات بنمط ملف آخر",
+      "price": "2400 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#10b981",
+      "swatch": {
+       "kind": "image",
+       "uri": "/assets/images/level-map-themes/drivers.webp"
+      },
+      "btn": {
+       "label": "نقاط غير كافية",
+       "enabled": false
+      }
+     },
+     {
+      "id": "theme_seniors",
+      "name": "50+ профилактика",
+      "desc": "خلفية خريطة المستويات بنمط ملف آخر",
+      "price": "2400 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#10b981",
+      "swatch": {
+       "kind": "image",
+       "uri": "/assets/images/level-map-themes/seniors.webp"
+      },
+      "btn": {
+       "label": "نقاط غير كافية",
+       "enabled": false
+      }
+     },
+     {
+      "id": "theme_execs",
+      "name": "Предприниматели",
+      "desc": "خلفية خريطة المستويات بنمط ملف آخر",
+      "price": "2400 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#10b981",
+      "swatch": {
+       "kind": "image",
+       "uri": "/assets/images/level-map-themes/execs.webp"
+      },
+      "btn": {
+       "label": "نقاط غير كافية",
+       "enabled": false
+      }
+     },
+     {
+      "id": "theme_students",
+      "name": "Студенты PRO",
+      "desc": "خلفية خريطة المستويات بنمط ملف آخر",
+      "price": "2400 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#10b981",
+      "swatch": {
+       "kind": "image",
+       "uri": "/assets/images/level-map-themes/students.webp"
+      },
+      "btn": {
+       "label": "نقاط غير كافية",
+       "enabled": false
+      }
+     },
+     {
+      "id": "theme_women",
+      "name": "Микро-релакс",
+      "desc": "خلفية خريطة المستويات بنمط ملف آخر",
+      "price": "2400 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#10b981",
+      "swatch": {
+       "kind": "image",
+       "uri": "/assets/images/level-map-themes/women.webp"
+      },
+      "btn": {
+       "label": "نقاط غير كافية",
+       "enabled": false
+      }
+     },
+     {
+      "id": "theme_polyglot",
+      "name": "Языки / Полиглот",
+      "desc": "خلفية خريطة المستويات بنمط ملف آخر",
+      "price": "2400 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#10b981",
+      "swatch": {
+       "kind": "image",
+       "uri": "/assets/images/level-map-themes/polyglot.webp"
+      },
+      "btn": {
+       "label": "نقاط غير كافية",
+       "enabled": false
+      }
+     }
+    ]
+   },
+   {
+    "type": "background",
+    "title": "خلفيات الرئيسية",
+    "first": false,
+    "items": [
+     {
+      "id": "bg_students",
+      "name": "Студенты PRO",
+      "desc": "خلفية الشاشة الرئيسية بنمط ملف آخر",
+      "price": "1050 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#10b981",
+      "swatch": {
+       "kind": "image",
+       "uri": "/assets/images/profile-bg/students.webp"
+      },
+      "btn": {
+       "label": "نقاط غير كافية",
+       "enabled": false
+      }
+     },
+     {
+      "id": "bg_seniors",
+      "name": "50+ профилактика",
+      "desc": "خلفية الشاشة الرئيسية بنمط ملف آخر",
+      "price": "1050 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#10b981",
+      "swatch": {
+       "kind": "image",
+       "uri": "/assets/images/profile-bg/seniors.webp"
+      },
+      "btn": {
+       "label": "نقاط غير كافية",
+       "enabled": false
+      }
+     },
+     {
+      "id": "bg_women",
+      "name": "Микро-релакс",
+      "desc": "خلفية الشاشة الرئيسية بنمط ملف آخر",
+      "price": "1200 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#10b981",
+      "swatch": {
+       "kind": "image",
+       "uri": "/assets/images/profile-bg/women.webp"
+      },
+      "btn": {
+       "label": "نقاط غير كافية",
+       "enabled": false
+      }
+     },
+     {
+      "id": "bg_drivers",
+      "name": "Реакция ПРО",
+      "desc": "خلفية الشاشة الرئيسية بنمط ملف آخر",
+      "price": "1350 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#10b981",
+      "swatch": {
+       "kind": "image",
+       "uri": "/assets/images/profile-bg/drivers.webp"
+      },
+      "btn": {
+       "label": "نقاط غير كافية",
+       "enabled": false
+      }
+     },
+     {
+      "id": "bg_vasilyeva",
+      "name": "Скорочтение PRO",
+      "desc": "خلفية الشاشة الرئيسية بنمط ملف آخر",
+      "price": "1350 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#10b981",
+      "swatch": {
+       "kind": "image",
+       "uri": "/assets/images/profile-bg/vasilyeva.webp"
+      },
+      "btn": {
+       "label": "نقاط غير كافية",
+       "enabled": false
+      }
+     },
+     {
+      "id": "bg_chess",
+      "name": "Шахматист",
+      "desc": "خلفية الشاشة الرئيسية بنمط ملف آخر",
+      "price": "1500 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#10b981",
+      "swatch": {
+       "kind": "image",
+       "uri": "/assets/images/profile-bg/chess.webp"
+      },
+      "btn": {
+       "label": "نقاط غير كافية",
+       "enabled": false
+      }
+     },
+     {
+      "id": "bg_nzt48",
+      "name": "NZT-48 (полный)",
+      "desc": "خلفية الشاشة الرئيسية بنمط ملف آخر",
+      "price": "1650 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#10b981",
+      "swatch": {
+       "kind": "image",
+       "uri": "/assets/images/profile-bg/nzt48.webp"
+      },
+      "btn": {
+       "label": "نقاط غير كافية",
+       "enabled": false
+      }
+     },
+     {
+      "id": "bg_execs",
+      "name": "Предприниматели",
+      "desc": "خلفية الشاشة الرئيسية بنمط ملف آخر",
+      "price": "1800 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#10b981",
+      "swatch": {
+       "kind": "image",
+       "uri": "/assets/images/profile-bg/execs.webp"
+      },
+      "btn": {
+       "label": "نقاط غير كافية",
+       "enabled": false
+      }
+     },
+     {
+      "id": "bg_polyglot",
+      "name": "Языки / Полиглот",
+      "desc": "خلفية الشاشة الرئيسية بنمط ملف آخر",
+      "price": "1200 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#10b981",
+      "swatch": {
+       "kind": "image",
+       "uri": "/assets/images/profile-bg/polyglot.webp"
+      },
+      "btn": {
+       "label": "نقاط غير كافية",
+       "enabled": false
+      }
+     }
+    ]
+   },
+   {
+    "type": "badge",
+    "title": "شارات الملف",
+    "first": false,
+    "items": [
+     {
+      "id": "badge_free",
+      "name": "Стандарт",
+      "desc": "شارة ملف آخر على شريحتك الرئيسية",
+      "price": "900 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#10b981",
+      "swatch": {
+       "kind": "image",
+       "uri": "/assets/images/profiles/free.webp"
+      },
+      "btn": {
+       "label": "نقاط غير كافية",
+       "enabled": false
+      }
+     },
+     {
+      "id": "badge_students",
+      "name": "Студенты PRO",
+      "desc": "شارة ملف آخر على شريحتك الرئيسية",
+      "price": "1050 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#10b981",
+      "swatch": {
+       "kind": "image",
+       "uri": "/assets/images/profiles/students.webp"
+      },
+      "btn": {
+       "label": "نقاط غير كافية",
+       "enabled": false
+      }
+     },
+     {
+      "id": "badge_seniors",
+      "name": "50+ профилактика",
+      "desc": "شارة ملف آخر على شريحتك الرئيسية",
+      "price": "1050 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#10b981",
+      "swatch": {
+       "kind": "image",
+       "uri": "/assets/images/profiles/seniors.webp"
+      },
+      "btn": {
+       "label": "نقاط غير كافية",
+       "enabled": false
+      }
+     },
+     {
+      "id": "badge_women",
+      "name": "Микро-релакс",
+      "desc": "شارة ملف آخر على شريحتك الرئيسية",
+      "price": "1200 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#10b981",
+      "swatch": {
+       "kind": "image",
+       "uri": "/assets/images/profiles/women.webp"
+      },
+      "btn": {
+       "label": "نقاط غير كافية",
+       "enabled": false
+      }
+     },
+     {
+      "id": "badge_drivers",
+      "name": "Реакция ПРО",
+      "desc": "شارة ملف آخر على شريحتك الرئيسية",
+      "price": "1200 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#10b981",
+      "swatch": {
+       "kind": "image",
+       "uri": "/assets/images/profiles/drivers.webp"
+      },
+      "btn": {
+       "label": "نقاط غير كافية",
+       "enabled": false
+      }
+     },
+     {
+      "id": "badge_vasilyeva",
+      "name": "Скорочтение PRO",
+      "desc": "شارة ملف آخر على شريحتك الرئيسية",
+      "price": "1350 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#10b981",
+      "swatch": {
+       "kind": "image",
+       "uri": "/assets/images/profiles/vasilyeva.webp"
+      },
+      "btn": {
+       "label": "نقاط غير كافية",
+       "enabled": false
+      }
+     },
+     {
+      "id": "badge_polyglot",
+      "name": "Языки / Полиглот",
+      "desc": "شارة ملف آخر على شريحتك الرئيسية",
+      "price": "1350 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#10b981",
+      "swatch": {
+       "kind": "image",
+       "uri": "/assets/images/profiles/polyglot.webp"
+      },
+      "btn": {
+       "label": "نقاط غير كافية",
+       "enabled": false
+      }
+     },
+     {
+      "id": "badge_chess",
+      "name": "Шахматист",
+      "desc": "شارة ملف آخر على شريحتك الرئيسية",
+      "price": "1500 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#10b981",
+      "swatch": {
+       "kind": "image",
+       "uri": "/assets/images/profiles/chess.webp"
+      },
+      "btn": {
+       "label": "نقاط غير كافية",
+       "enabled": false
+      }
+     },
+     {
+      "id": "badge_nzt48",
+      "name": "NZT-48 (полный)",
+      "desc": "شارة ملف آخر على شريحتك الرئيسية",
+      "price": "1650 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#10b981",
+      "swatch": {
+       "kind": "image",
+       "uri": "/assets/images/profiles/nzt48.webp"
+      },
+      "btn": {
+       "label": "نقاط غير كافية",
+       "enabled": false
+      }
+     },
+     {
+      "id": "badge_execs",
+      "name": "Предприниматели",
+      "desc": "شارة ملف آخر على شريحتك الرئيسية",
+      "price": "1650 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#10b981",
+      "swatch": {
+       "kind": "image",
+       "uri": "/assets/images/profiles/execs.webp"
+      },
+      "btn": {
+       "label": "نقاط غير كافية",
+       "enabled": false
+      }
+     },
+     {
+      "id": "badge_odv999",
+      "name": "ODV999",
+      "desc": "شارة ملف آخر على شريحتك الرئيسية",
+      "price": "1800 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#10b981",
+      "swatch": {
+       "kind": "image",
+       "uri": "/assets/images/profiles/odv999.webp"
+      },
+      "btn": {
+       "label": "نقاط غير كافية",
+       "enabled": false
+      }
+     }
+    ]
+   }
+  ],
+  "earnHint": "تُجمع النقاط من الألعاب والسلاسل والإنجازات."
+ }
+}

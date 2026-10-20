@@ -1,0 +1,1724 @@
+{
+ "now": 1792488309000,
+ "tzOffsetMinutes": -300,
+ "language": "en",
+ "cat": null,
+ "storage": {
+  "language": "en",
+  "psygames_active_profile": "nzt48"
+ },
+ "after": {
+  "language": "en",
+  "psygames_active_profile": "nzt48",
+  "psygames_hub_visible": "{\"profile\":\"nzt48\",\"hubs\":{\"/games/span\":[\"/games/digit-span\",\"/games/memory-matrix\",\"/games/listening-span\",\"/games/reading-span\",\"/games/n-back\",\"/games/picture-pairs\",\"/games/ospan\",\"/games/mnemonics\"],\"/games/sudoku-hub\":[\"/games/sudoku\",\"/games/sudoku-samurai\",\"/games/sudoku-fractal\",\"/games/sudoku?mode=towers\",\"/games/sudoku?mode=unequal\",\"/games/puzzles?mode=Solo\",\"/games/puzzles?mode=Towers\",\"/games/puzzles?mode=Unequal\",\"/games/puzzles?mode=Keen\",\"/games/puzzles?mode=Singles\",\"/games/puzzles?mode=Filling\",\"/games/puzzles?mode=Undead\",\"/games/cats\",\"/games/sudoku?mode=junior\",\"/games/puzzles?mode=Unruly\",\"/games/sudoku?mode=killer\",\"/games/sudoku?mode=free\"],\"/games/attention-conflict\":[\"/games/stroop\",\"/games/flanker\",\"/games/cpt\",\"/games/targets\",\"/games/wcst\",\"/games/inhibition\",\"/games/posner\",\"/games/prl\"],\"/games/relaxation-hub\":[\"/games/breathing\",\"/games/pause\",\"/games/eye-gym\",\"/warmup-night\"],\"/games/counting-hub\":[\"/games/counter\",\"/games/math-slider\",\"/games/number-run\",\"/games/math-sprint\",\"/games/number-bonds\",\"/games/pattern\",\"/games/puzzles?mode=Mines\",\"/games/puzzles?mode=Mosaic\",\"/games/puzzles?mode=Pattern\",\"/games/puzzles?mode=Range\",\"/games/puzzles?mode=Magnets\",\"/games/puzzles?mode=Palisade\",\"/games/puzzles?mode=Light%20Up\",\"/games/puzzles?mode=Tents\",\"/games/puzzles?mode=Rectangles\",\"/games/quick-count\",\"/games/puzzles?mode=Guess\"],\"/games/words-hub\":[\"/games/vocab-srs\",\"/games/semantic-sort\",\"/games/cloze\",\"/games/lexical-decision\",\"/games/anagrams\",\"/games/phonemic-fluency\",\"/games/story-recall\"],\"/games/hearing-hub\":[\"/games/phoneme-pairs\",\"/games/chinese-tones\",\"/games/pseudoword-echo\",\"/games/dictation\",\"/games/rhythm-pitch\"],\"/games/search-hub\":[\"/games/visual-search\",\"/games/find-differences\",\"/games/mahjong\",\"/games/schulte\",\"/games/object-tracker\",\"/games/sdmt\",\"/games/set-game\",\"/games/puzzles?mode=Dominosa\",\"/games/puzzles?mode=Map\",\"/games/proofreading\",\"/games/hidden-character\"],\"/games/mnemonics-hub\":[\"/games/memory-palace\",\"/games/faces-names\",\"/games/word-pairs\",\"/games/rmet\"],\"/games/languages-hub\":[\"/games/words-hub\",\"/games/hearing-hub\"],\"/games/chess-hub\":[\"/games/scholars-mate\",\"/games/chess-blind\",\"/games/find-move\",\"/games/solitaire-chess\",\"/games/knights-queens\",\"/games/puzzles?mode=Pegs\",\"/games/puzzles?mode=Signpost\",\"/games/puzzles?mode=Inertia\"],\"/games/sorting-hub\":[\"/games/goods-sort\",\"/games/water-sort\",\"/games/ball-sort\",\"/games/nut-sort\",\"/games/cake-sort\",\"/games/pizza-sort\",\"/games/hanoi\",\"/games/tower-london\",\"/games/puzzles?mode=Flood\",\"/games/puzzles?mode=Same%20Game\"],\"/games/spatial-hub\":[\"/games/mental-rotation\",\"/games/spatial-lab?mode=twiddle\",\"/games/spatial-lab?mode=net\",\"/games/puzzles?mode=Slide\",\"/games/puzzles?mode=Sokoban\",\"/games/dots-connect\",\"/games/one-line\",\"/games/trail-making\",\"/games/navigator\",\"/games/puzzles?mode=Net\",\"/games/puzzles?mode=Netslide\",\"/games/puzzles?mode=Twiddle\",\"/games/puzzles?mode=Cube\",\"/games/puzzles?mode=Flip\",\"/games/puzzles?mode=Sixteen\",\"/games/puzzles?mode=Fifteen\",\"/games/puzzles?mode=Untangle\",\"/games/puzzles?mode=Loopy\",\"/games/puzzles?mode=Pearl\",\"/games/puzzles?mode=Bridges\",\"/games/puzzles?mode=Train%20Tracks\",\"/games/puzzles?mode=Galaxies\",\"/games/puzzles?mode=Slant\",\"/games/puzzles?mode=Black%20Box\"]},\"suites\":{\"suite_stroop\":[\"/games/stroop\",\"/games/stroop-emotional\"],\"suite_arrows\":[\"/games/flanker\",\"/games/simon\",\"/games/choice-rt\",\"/games/ant\"],\"suite_positions\":[\"/games/memory-matrix\",\"/games/corsi\",\"/games/spatial-span\"],\"suite_stream\":[\"/games/cpt\",\"/games/switching-task\"],\"suite_inhibition\":[\"/games/inhibition\",\"/games/go-no-go\",\"/games/stop-signal\"],\"suite_decisions\":[\"/games/prl\",\"/games/iowa\",\"/games/bart\"]},\"catalog\":[\"span_group\",\"sudoku_group\",\"attention_conflict\",\"relaxation_group\",\"counting_group\",\"search_group\",\"mnemonics_group\",\"languages_group\",\"chess_group\",\"sorting_group\",\"spatial_group\"]}"
+ },
+ "model": {
+  "v": 1,
+  "title": "Shop",
+  "back": "Back",
+  "backIcon": "arrow-back",
+  "primary": "#a855f7",
+  "balance": "0",
+  "cats": [
+   {
+    "id": null,
+    "icon": "apps",
+    "label": "All sections",
+    "on": true
+   },
+   {
+    "id": "ability",
+    "icon": "flash",
+    "label": "Abilities",
+    "on": false
+   },
+   {
+    "id": "accent",
+    "icon": "color-palette",
+    "label": "Accent themes",
+    "on": false
+   },
+   {
+    "id": "sound",
+    "icon": "musical-notes",
+    "label": "Sound packs",
+    "on": false
+   },
+   {
+    "id": "frame",
+    "icon": "scan",
+    "label": "Frames",
+    "on": false
+   },
+   {
+    "id": "title",
+    "icon": "pricetag",
+    "label": "Titles",
+    "on": false
+   },
+   {
+    "id": "avatar",
+    "icon": "person",
+    "label": "Avatars",
+    "on": false
+   },
+   {
+    "id": "pet",
+    "icon": "paw",
+    "label": "For the pet",
+    "on": false
+   },
+   {
+    "id": "digits",
+    "icon": "calculator",
+    "label": "Category: digit sets",
+    "on": false
+   },
+   {
+    "id": "theme",
+    "icon": "map",
+    "label": "Category: map themes",
+    "on": false
+   },
+   {
+    "id": "background",
+    "icon": "image",
+    "label": "Category: backgrounds",
+    "on": false
+   },
+   {
+    "id": "badge",
+    "icon": "ribbon",
+    "label": "Category: badges",
+    "on": false
+   }
+  ],
+  "note": null,
+  "abilities": {
+   "title": "⚡ Abilities — consumable, one at a time. They never solve the task for you: they give a round or a streak back.",
+   "rows": [
+    {
+     "id": "second_life",
+     "icon": "heart",
+     "name": "Second life (Targets, Sudoku)",
+     "desc": "Targets and Sudoku: the round does not end when you run out of lives or mistakes. One per round, and that round will not raise your level.",
+     "price": "500 ⭐ · in your wallet: 0",
+     "buy": {
+      "label": "Need more",
+      "enabled": false
+     },
+     "use": null
+    },
+    {
+     "id": "practice_run",
+     "icon": "flask",
+     "name": "Practice run",
+     "desc": "Measured games: the round is recorded nowhere — no tokens, no level, no stats. Experiment without consequences.",
+     "price": "250 ⭐ · in your wallet: 0",
+     "buy": {
+      "label": "Need more",
+      "enabled": false
+     },
+     "use": null
+    },
+    {
+     "id": "streak_shield",
+     "icon": "shield-checkmark",
+     "name": "Streak shield",
+     "desc": "Bring back a day streak broken by one missed day. Works only on the day the streak broke.",
+     "price": "1500 ⭐ · in your wallet: 0",
+     "buy": {
+      "label": "Need more",
+      "enabled": false
+     },
+     "use": {
+      "label": "Use",
+      "ready": false
+     }
+    },
+    {
+     "id": "sudoku_hint",
+     "icon": "bulb",
+     "name": "Hint (Sudoku)",
+     "desc": "Sudoku: open a cell after the free hints run out. A round with a bought hint will not raise your level.",
+     "price": "150 ⭐ · in your wallet: 0",
+     "buy": {
+      "label": "Need more",
+      "enabled": false
+     },
+     "use": null
+    }
+   ],
+   "hint": "Every ability costs more than a round can ever pay out — you can never buy one to earn.",
+   "wager": {
+    "active": false,
+    "lost": false,
+    "title": "All or Nothing",
+    "desc": "Stake 300 ⭐ and check in 7 days in a row to take 600 ⭐. Miss a day and the stake burns — the Streak Shield won't save it.",
+    "btn": {
+     "label": "Need more",
+     "enabled": false
+    }
+   }
+  },
+  "sections": [
+   {
+    "type": "accent",
+    "title": "Accent themes — recolor the UI. Buy with tokens, equip for free.",
+    "first": false,
+    "items": [
+     {
+      "id": "accent_gold",
+      "name": "Gold",
+      "desc": "Warm amber accent — premium feel",
+      "price": "900 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#f5b50a",
+      "swatch": {
+       "kind": "color",
+       "color": "#f5b50a"
+      },
+      "btn": {
+       "label": "Need more",
+       "enabled": false
+      }
+     },
+     {
+      "id": "accent_neon",
+      "name": "Neon",
+      "desc": "Acid green — energetic, cyberpunk",
+      "price": "900 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#00e5a0",
+      "swatch": {
+       "kind": "color",
+       "color": "#00e5a0"
+      },
+      "btn": {
+       "label": "Need more",
+       "enabled": false
+      }
+     },
+     {
+      "id": "accent_ocean",
+      "name": "Ocean",
+      "desc": "Deep blue — calm and clear",
+      "price": "900 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#0aa6ff",
+      "swatch": {
+       "kind": "color",
+       "color": "#0aa6ff"
+      },
+      "btn": {
+       "label": "Need more",
+       "enabled": false
+      }
+     },
+     {
+      "id": "accent_rose",
+      "name": "Rose",
+      "desc": "Bright fuchsia — lively and warm",
+      "price": "1200 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#ff4d8d",
+      "swatch": {
+       "kind": "color",
+       "color": "#ff4d8d"
+      },
+      "btn": {
+       "label": "Need more",
+       "enabled": false
+      }
+     },
+     {
+      "id": "accent_emerald",
+      "name": "Emerald",
+      "desc": "Lush green — fresh and natural",
+      "price": "1500 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#10b981",
+      "swatch": {
+       "kind": "color",
+       "color": "#10b981"
+      },
+      "btn": {
+       "label": "Need more",
+       "enabled": false
+      }
+     },
+     {
+      "id": "accent_lavender",
+      "name": "Lavender",
+      "desc": "Soft violet — calm luxury",
+      "price": "1050 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#8b5cf6",
+      "swatch": {
+       "kind": "color",
+       "color": "#8b5cf6"
+      },
+      "btn": {
+       "label": "Need more",
+       "enabled": false
+      }
+     },
+     {
+      "id": "accent_crimson",
+      "name": "Crimson",
+      "desc": "Deep red — bold and confident",
+      "price": "1200 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#dc2626",
+      "swatch": {
+       "kind": "color",
+       "color": "#dc2626"
+      },
+      "btn": {
+       "label": "Need more",
+       "enabled": false
+      }
+     },
+     {
+      "id": "accent_cyan",
+      "name": "Cyan",
+      "desc": "Cool cyan — fresh and technical",
+      "price": "1350 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#06b6d4",
+      "swatch": {
+       "kind": "color",
+       "color": "#06b6d4"
+      },
+      "btn": {
+       "label": "Need more",
+       "enabled": false
+      }
+     },
+     {
+      "id": "accent_tangerine",
+      "name": "Tangerine",
+      "desc": "Juicy orange — punchy and visible",
+      "price": "1500 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#f97316",
+      "swatch": {
+       "kind": "color",
+       "color": "#f97316"
+      },
+      "btn": {
+       "label": "Need more",
+       "enabled": false
+      }
+     },
+     {
+      "id": "accent_indigo",
+      "name": "Indigo",
+      "desc": "Deep blue-violet — night sky",
+      "price": "1650 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#4f46e5",
+      "swatch": {
+       "kind": "color",
+       "color": "#4f46e5"
+      },
+      "btn": {
+       "label": "Need more",
+       "enabled": false
+      }
+     },
+     {
+      "id": "accent_coral",
+      "name": "Coral",
+      "desc": "Warm pink-red — lively and cosy",
+      "price": "1800 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#fb7185",
+      "swatch": {
+       "kind": "color",
+       "color": "#fb7185"
+      },
+      "btn": {
+       "label": "Need more",
+       "enabled": false
+      }
+     },
+     {
+      "id": "accent_slate",
+      "name": "Slate",
+      "desc": "Cool grey-blue — minimalist",
+      "price": "1950 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#64748b",
+      "swatch": {
+       "kind": "color",
+       "color": "#64748b"
+      },
+      "btn": {
+       "label": "Need more",
+       "enabled": false
+      }
+     },
+     {
+      "id": "accent_copper",
+      "name": "Copper",
+      "desc": "Warm copper — vintage and noble",
+      "price": "2100 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#b45309",
+      "swatch": {
+       "kind": "color",
+       "color": "#b45309"
+      },
+      "btn": {
+       "label": "Need more",
+       "enabled": false
+      }
+     },
+     {
+      "id": "accent_mint",
+      "name": "Mint",
+      "desc": "Minty teal — light and clean",
+      "price": "2250 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#2dd4bf",
+      "swatch": {
+       "kind": "color",
+       "color": "#2dd4bf"
+      },
+      "btn": {
+       "label": "Need more",
+       "enabled": false
+      }
+     },
+     {
+      "id": "accent_magenta",
+      "name": "Magenta",
+      "desc": "Bold magenta — loud and visible",
+      "price": "2400 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#d946ef",
+      "swatch": {
+       "kind": "color",
+       "color": "#d946ef"
+      },
+      "btn": {
+       "label": "Need more",
+       "enabled": false
+      }
+     }
+    ]
+   },
+   {
+    "type": "sound",
+    "title": "🎵 Sound packs — change the game sound character. Tap Equip to hear it.",
+    "first": false,
+    "items": [
+     {
+      "id": "sound_retro",
+      "name": "Retro",
+      "desc": "8-bit square synth — retro console",
+      "price": "1050 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#a855f7",
+      "swatch": {
+       "kind": "icon",
+       "icon": "musical-notes",
+       "color": "#a855f7"
+      },
+      "btn": {
+       "label": "Need more",
+       "enabled": false
+      }
+     },
+     {
+      "id": "sound_soft",
+      "name": "Soft",
+      "desc": "Warm triangle tone — softer",
+      "price": "1050 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#a855f7",
+      "swatch": {
+       "kind": "icon",
+       "icon": "musical-notes",
+       "color": "#a855f7"
+      },
+      "btn": {
+       "label": "Need more",
+       "enabled": false
+      }
+     },
+     {
+      "id": "sound_arcade",
+      "name": "Arcade",
+      "desc": "Bright sawtooth — punchy arcade",
+      "price": "1350 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#a855f7",
+      "swatch": {
+       "kind": "icon",
+       "icon": "musical-notes",
+       "color": "#a855f7"
+      },
+      "btn": {
+       "label": "Need more",
+       "enabled": false
+      }
+     },
+     {
+      "id": "sound_crystal",
+      "name": "Crystal",
+      "desc": "High clean tone — bright and airy",
+      "price": "1200 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#a855f7",
+      "swatch": {
+       "kind": "icon",
+       "icon": "musical-notes",
+       "color": "#a855f7"
+      },
+      "btn": {
+       "label": "Need more",
+       "enabled": false
+      }
+     },
+     {
+      "id": "sound_deep",
+      "name": "Deep",
+      "desc": "Low velvety tone — calm and solid",
+      "price": "1200 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#a855f7",
+      "swatch": {
+       "kind": "icon",
+       "icon": "musical-notes",
+       "color": "#a855f7"
+      },
+      "btn": {
+       "label": "Need more",
+       "enabled": false
+      }
+     },
+     {
+      "id": "sound_chipbass",
+      "name": "Chip Bass",
+      "desc": "Low square wave — bassy chiptune",
+      "price": "1500 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#a855f7",
+      "swatch": {
+       "kind": "icon",
+       "icon": "musical-notes",
+       "color": "#a855f7"
+      },
+      "btn": {
+       "label": "Need more",
+       "enabled": false
+      }
+     },
+     {
+      "id": "sound_buzz",
+      "name": "Buzz",
+      "desc": "High sawtooth — sharp and punchy",
+      "price": "1500 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#a855f7",
+      "swatch": {
+       "kind": "icon",
+       "icon": "musical-notes",
+       "color": "#a855f7"
+      },
+      "btn": {
+       "label": "Need more",
+       "enabled": false
+      }
+     }
+    ]
+   },
+   {
+    "type": "frame",
+    "title": "🖼️ Frames — a colored outline around your profile chip on the home screen.",
+    "first": false,
+    "items": [
+     {
+      "id": "frame_gold",
+      "name": "Gold frame",
+      "desc": "Warm amber outline for your profile chip",
+      "price": "1200 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#f5b50a",
+      "swatch": {
+       "kind": "frame",
+       "color": "#f5b50a"
+      },
+      "btn": {
+       "label": "Need more",
+       "enabled": false
+      }
+     },
+     {
+      "id": "frame_crimson",
+      "name": "Crimson frame",
+      "desc": "Bold red outline",
+      "price": "1350 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#ef4444",
+      "swatch": {
+       "kind": "frame",
+       "color": "#ef4444"
+      },
+      "btn": {
+       "label": "Need more",
+       "enabled": false
+      }
+     },
+     {
+      "id": "frame_azure",
+      "name": "Azure frame",
+      "desc": "Clear sky-blue outline",
+      "price": "1350 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#38bdf8",
+      "swatch": {
+       "kind": "frame",
+       "color": "#38bdf8"
+      },
+      "btn": {
+       "label": "Need more",
+       "enabled": false
+      }
+     },
+     {
+      "id": "frame_emerald",
+      "name": "Emerald frame",
+      "desc": "Lush green outline",
+      "price": "1500 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#22c55e",
+      "swatch": {
+       "kind": "frame",
+       "color": "#22c55e"
+      },
+      "btn": {
+       "label": "Need more",
+       "enabled": false
+      }
+     },
+     {
+      "id": "frame_violet",
+      "name": "Violet frame",
+      "desc": "Soft violet outline",
+      "price": "1500 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#a78bfa",
+      "swatch": {
+       "kind": "frame",
+       "color": "#a78bfa"
+      },
+      "btn": {
+       "label": "Need more",
+       "enabled": false
+      }
+     },
+     {
+      "id": "frame_silver",
+      "name": "Silver frame",
+      "desc": "Cool silver outline",
+      "price": "1650 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#cbd5e1",
+      "swatch": {
+       "kind": "frame",
+       "color": "#cbd5e1"
+      },
+      "btn": {
+       "label": "Need more",
+       "enabled": false
+      }
+     },
+     {
+      "id": "frame_onyx",
+      "name": "Onyx",
+      "desc": "A deep black frame — quiet status",
+      "price": "6000 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#0f172a",
+      "swatch": {
+       "kind": "frame",
+       "color": "#0f172a"
+      },
+      "btn": {
+       "label": "Need more",
+       "enabled": false
+      }
+     }
+    ]
+   },
+   {
+    "type": "title",
+    "title": "🏷️ Titles — a caption under your profile name.",
+    "first": false,
+    "items": [
+     {
+      "id": "title_focused",
+      "name": "Focused",
+      "desc": "Title shown under your profile name",
+      "price": "750 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#a855f7",
+      "swatch": {
+       "kind": "text",
+       "text": "🎯"
+      },
+      "btn": {
+       "label": "Need more",
+       "enabled": false
+      }
+     },
+     {
+      "id": "title_sharp",
+      "name": "Sharp Mind",
+      "desc": "Title shown under your profile name",
+      "price": "900 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#a855f7",
+      "swatch": {
+       "kind": "text",
+       "text": "⚡"
+      },
+      "btn": {
+       "label": "Need more",
+       "enabled": false
+      }
+     },
+     {
+      "id": "title_strategist",
+      "name": "Strategist",
+      "desc": "Title shown under your profile name",
+      "price": "1050 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#a855f7",
+      "swatch": {
+       "kind": "text",
+       "text": "♟️"
+      },
+      "btn": {
+       "label": "Need more",
+       "enabled": false
+      }
+     },
+     {
+      "id": "title_owl",
+      "name": "Mind Owl",
+      "desc": "Title shown under your profile name",
+      "price": "1050 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#a855f7",
+      "swatch": {
+       "kind": "text",
+       "text": "🦉"
+      },
+      "btn": {
+       "label": "Need more",
+       "enabled": false
+      }
+     },
+     {
+      "id": "title_unstoppable",
+      "name": "Unstoppable",
+      "desc": "Title shown under your profile name",
+      "price": "1350 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#a855f7",
+      "swatch": {
+       "kind": "text",
+       "text": "🔥"
+      },
+      "btn": {
+       "label": "Need more",
+       "enabled": false
+      }
+     },
+     {
+      "id": "title_grandmaster",
+      "name": "Grandmaster",
+      "desc": "Title shown under your profile name",
+      "price": "1500 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#a855f7",
+      "swatch": {
+       "kind": "text",
+       "text": "👑"
+      },
+      "btn": {
+       "label": "Need more",
+       "enabled": false
+      }
+     },
+     {
+      "id": "title_legend",
+      "name": "Legend",
+      "desc": "Title shown under your profile name",
+      "price": "1800 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#a855f7",
+      "swatch": {
+       "kind": "text",
+       "text": "🌟"
+      },
+      "btn": {
+       "label": "Need more",
+       "enabled": false
+      }
+     },
+     {
+      "id": "title_cyberbrain",
+      "name": "Cyberbrain",
+      "desc": "Same title as the max profile level",
+      "price": "1950 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#a855f7",
+      "swatch": {
+       "kind": "text",
+       "text": "🧠"
+      },
+      "btn": {
+       "label": "Need more",
+       "enabled": false
+      }
+     },
+     {
+      "id": "title_comet",
+      "name": "Comet",
+      "desc": "Title shown under your profile name",
+      "price": "7500 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#a855f7",
+      "swatch": {
+       "kind": "text",
+       "text": "☄️"
+      },
+      "btn": {
+       "label": "Need more",
+       "enabled": false
+      }
+     },
+     {
+      "id": "title_diamond",
+      "name": "Diamond",
+      "desc": "Title shown under your profile name",
+      "price": "10000 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#a855f7",
+      "swatch": {
+       "kind": "text",
+       "text": "💎"
+      },
+      "btn": {
+       "label": "Need more",
+       "enabled": false
+      }
+     },
+     {
+      "id": "title_infinity",
+      "name": "Infinite",
+      "desc": "Title shown under your profile name",
+      "price": "15000 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#a855f7",
+      "swatch": {
+       "kind": "text",
+       "text": "♾️"
+      },
+      "btn": {
+       "label": "Need more",
+       "enabled": false
+      }
+     }
+    ]
+   },
+   {
+    "type": "avatar",
+    "title": "👤 Avatars — your own profile icon instead of the default badge.",
+    "first": false,
+    "items": [
+     {
+      "id": "avatar_owl",
+      "name": "Owl",
+      "desc": "Profile icon replacing the default badge",
+      "price": "900 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#a855f7",
+      "swatch": {
+       "kind": "image",
+       "uri": "/assets/images/avatars/avatar_owl.webp"
+      },
+      "btn": {
+       "label": "Need more",
+       "enabled": false
+      }
+     },
+     {
+      "id": "avatar_fox",
+      "name": "Fox",
+      "desc": "Profile icon replacing the default badge",
+      "price": "900 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#a855f7",
+      "swatch": {
+       "kind": "image",
+       "uri": "/assets/images/avatars/avatar_fox.webp"
+      },
+      "btn": {
+       "label": "Need more",
+       "enabled": false
+      }
+     },
+     {
+      "id": "avatar_gem",
+      "name": "Gem",
+      "desc": "Profile icon replacing the default badge",
+      "price": "1050 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#a855f7",
+      "swatch": {
+       "kind": "image",
+       "uri": "/assets/images/avatars/avatar_gem.webp"
+      },
+      "btn": {
+       "label": "Need more",
+       "enabled": false
+      }
+     },
+     {
+      "id": "avatar_lightning",
+      "name": "Lightning",
+      "desc": "Profile icon replacing the default badge",
+      "price": "1050 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#a855f7",
+      "swatch": {
+       "kind": "image",
+       "uri": "/assets/images/avatars/avatar_lightning.webp"
+      },
+      "btn": {
+       "label": "Need more",
+       "enabled": false
+      }
+     },
+     {
+      "id": "avatar_star",
+      "name": "Star",
+      "desc": "Profile icon replacing the default badge",
+      "price": "1200 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#a855f7",
+      "swatch": {
+       "kind": "image",
+       "uri": "/assets/images/avatars/avatar_star.webp"
+      },
+      "btn": {
+       "label": "Need more",
+       "enabled": false
+      }
+     },
+     {
+      "id": "avatar_knight",
+      "name": "Knight",
+      "desc": "Profile icon replacing the default badge",
+      "price": "1350 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#a855f7",
+      "swatch": {
+       "kind": "image",
+       "uri": "/assets/images/avatars/avatar_knight.webp"
+      },
+      "btn": {
+       "label": "Need more",
+       "enabled": false
+      }
+     },
+     {
+      "id": "avatar_phoenix",
+      "name": "Phoenix",
+      "desc": "Profile icon replacing the default badge",
+      "price": "1500 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#a855f7",
+      "swatch": {
+       "kind": "image",
+       "uri": "/assets/images/avatars/avatar_phoenix.webp"
+      },
+      "btn": {
+       "label": "Need more",
+       "enabled": false
+      }
+     },
+     {
+      "id": "avatar_robot",
+      "name": "Robot",
+      "desc": "Profile icon replacing the default badge",
+      "price": "1500 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#a855f7",
+      "swatch": {
+       "kind": "image",
+       "uri": "/assets/images/avatars/avatar_robot.webp"
+      },
+      "btn": {
+       "label": "Need more",
+       "enabled": false
+      }
+     },
+     {
+      "id": "avatar_brain",
+      "name": "Brain",
+      "desc": "Flagship avatar — profile icon",
+      "price": "1800 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#a855f7",
+      "swatch": {
+       "kind": "image",
+       "uri": "/assets/images/avatars/avatar_brain.webp"
+      },
+      "btn": {
+       "label": "Need more",
+       "enabled": false
+      }
+     }
+    ]
+   },
+   {
+    "type": "pet",
+    "title": "🐾 For the pet — Synapse accessories (equipped globally)",
+    "first": false,
+    "items": [
+     {
+      "id": "pet_bow",
+      "name": "Bow",
+      "desc": "Accessory for the walking pet — visible on every screen",
+      "price": "900 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#a855f7",
+      "swatch": {
+       "kind": "text",
+       "text": "🎀"
+      },
+      "btn": {
+       "label": "Need more",
+       "enabled": false
+      }
+     },
+     {
+      "id": "pet_party_hat",
+      "name": "Party hat",
+      "desc": "Accessory for the walking pet — visible on every screen",
+      "price": "1200 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#a855f7",
+      "swatch": {
+       "kind": "text",
+       "text": "🥳"
+      },
+      "btn": {
+       "label": "Need more",
+       "enabled": false
+      }
+     },
+     {
+      "id": "pet_glasses",
+      "name": "Smart glasses",
+      "desc": "Accessory for the walking pet — visible on every screen",
+      "price": "1500 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#a855f7",
+      "swatch": {
+       "kind": "text",
+       "text": "👓"
+      },
+      "btn": {
+       "label": "Need more",
+       "enabled": false
+      }
+     },
+     {
+      "id": "pet_bow_tie",
+      "name": "Bow tie",
+      "desc": "Accessory for the walking pet — visible on every screen",
+      "price": "900 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#a855f7",
+      "swatch": {
+       "kind": "text",
+       "text": "🎩"
+      },
+      "btn": {
+       "label": "Need more",
+       "enabled": false
+      }
+     }
+    ]
+   },
+   {
+    "type": "digits",
+    "title": "Sudoku digit sets",
+    "first": false,
+    "items": [
+     {
+      "id": "digits_rainbow",
+      "name": "Rainbow",
+      "desc": "Hand-drawn sudoku digits — pick them in match settings",
+      "price": "1500 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#a855f7",
+      "swatch": {
+       "kind": "digits",
+       "uri": "/assets/images/digits_rainbow/d5.webp"
+      },
+      "btn": {
+       "label": "Need more",
+       "enabled": false
+      }
+     },
+     {
+      "id": "digits_pastel",
+      "name": "Pastel",
+      "desc": "Hand-drawn sudoku digits — pick them in match settings",
+      "price": "1500 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#a855f7",
+      "swatch": {
+       "kind": "digits",
+       "uri": "/assets/images/digits_pastel/d5.webp"
+      },
+      "btn": {
+       "label": "Need more",
+       "enabled": false
+      }
+     },
+     {
+      "id": "digits_elegant",
+      "name": "Elegant",
+      "desc": "Hand-drawn sudoku digits — pick them in match settings",
+      "price": "1500 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#a855f7",
+      "swatch": {
+       "kind": "digits",
+       "uri": "/assets/images/digits_elegant/d5.webp"
+      },
+      "btn": {
+       "label": "Need more",
+       "enabled": false
+      }
+     }
+    ]
+   },
+   {
+    "type": "theme",
+    "title": "Level map themes",
+    "first": false,
+    "items": [
+     {
+      "id": "theme_odv999",
+      "name": "ODV999",
+      "desc": "Level map backdrop in another profile’s style",
+      "price": "2400 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#a855f7",
+      "swatch": {
+       "kind": "image",
+       "uri": "/assets/images/level-map-themes/odv999.webp"
+      },
+      "btn": {
+       "label": "Need more",
+       "enabled": false
+      }
+     },
+     {
+      "id": "theme_chess",
+      "name": "Шахматист",
+      "desc": "Level map backdrop in another profile’s style",
+      "price": "2400 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#a855f7",
+      "swatch": {
+       "kind": "image",
+       "uri": "/assets/images/level-map-themes/chess.webp"
+      },
+      "btn": {
+       "label": "Need more",
+       "enabled": false
+      }
+     },
+     {
+      "id": "theme_kids",
+      "name": "Дети 7-12",
+      "desc": "Level map backdrop in another profile’s style",
+      "price": "2400 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#a855f7",
+      "swatch": {
+       "kind": "image",
+       "uri": "/assets/images/level-map-themes/kids.webp"
+      },
+      "btn": {
+       "label": "Need more",
+       "enabled": false
+      }
+     },
+     {
+      "id": "theme_vasilyeva",
+      "name": "Скорочтение PRO",
+      "desc": "Level map backdrop in another profile’s style",
+      "price": "2400 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#a855f7",
+      "swatch": {
+       "kind": "image",
+       "uri": "/assets/images/level-map-themes/vasilyeva.webp"
+      },
+      "btn": {
+       "label": "Need more",
+       "enabled": false
+      }
+     },
+     {
+      "id": "theme_free",
+      "name": "Стандарт",
+      "desc": "Level map backdrop in another profile’s style",
+      "price": "2400 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#a855f7",
+      "swatch": {
+       "kind": "image",
+       "uri": "/assets/images/level-map-themes/free.webp"
+      },
+      "btn": {
+       "label": "Need more",
+       "enabled": false
+      }
+     },
+     {
+      "id": "theme_drivers",
+      "name": "Реакция ПРО",
+      "desc": "Level map backdrop in another profile’s style",
+      "price": "2400 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#a855f7",
+      "swatch": {
+       "kind": "image",
+       "uri": "/assets/images/level-map-themes/drivers.webp"
+      },
+      "btn": {
+       "label": "Need more",
+       "enabled": false
+      }
+     },
+     {
+      "id": "theme_seniors",
+      "name": "50+ профилактика",
+      "desc": "Level map backdrop in another profile’s style",
+      "price": "2400 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#a855f7",
+      "swatch": {
+       "kind": "image",
+       "uri": "/assets/images/level-map-themes/seniors.webp"
+      },
+      "btn": {
+       "label": "Need more",
+       "enabled": false
+      }
+     },
+     {
+      "id": "theme_execs",
+      "name": "Предприниматели",
+      "desc": "Level map backdrop in another profile’s style",
+      "price": "2400 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#a855f7",
+      "swatch": {
+       "kind": "image",
+       "uri": "/assets/images/level-map-themes/execs.webp"
+      },
+      "btn": {
+       "label": "Need more",
+       "enabled": false
+      }
+     },
+     {
+      "id": "theme_students",
+      "name": "Студенты PRO",
+      "desc": "Level map backdrop in another profile’s style",
+      "price": "2400 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#a855f7",
+      "swatch": {
+       "kind": "image",
+       "uri": "/assets/images/level-map-themes/students.webp"
+      },
+      "btn": {
+       "label": "Need more",
+       "enabled": false
+      }
+     },
+     {
+      "id": "theme_women",
+      "name": "Микро-релакс",
+      "desc": "Level map backdrop in another profile’s style",
+      "price": "2400 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#a855f7",
+      "swatch": {
+       "kind": "image",
+       "uri": "/assets/images/level-map-themes/women.webp"
+      },
+      "btn": {
+       "label": "Need more",
+       "enabled": false
+      }
+     },
+     {
+      "id": "theme_polyglot",
+      "name": "Языки / Полиглот",
+      "desc": "Level map backdrop in another profile’s style",
+      "price": "2400 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#a855f7",
+      "swatch": {
+       "kind": "image",
+       "uri": "/assets/images/level-map-themes/polyglot.webp"
+      },
+      "btn": {
+       "label": "Need more",
+       "enabled": false
+      }
+     }
+    ]
+   },
+   {
+    "type": "background",
+    "title": "Home backgrounds",
+    "first": false,
+    "items": [
+     {
+      "id": "bg_kids",
+      "name": "Дети 7-12",
+      "desc": "Home screen background in another profile’s style",
+      "price": "900 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#a855f7",
+      "swatch": {
+       "kind": "image",
+       "uri": "/assets/images/profile-bg/kids.webp"
+      },
+      "btn": {
+       "label": "Need more",
+       "enabled": false
+      }
+     },
+     {
+      "id": "bg_students",
+      "name": "Студенты PRO",
+      "desc": "Home screen background in another profile’s style",
+      "price": "1050 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#a855f7",
+      "swatch": {
+       "kind": "image",
+       "uri": "/assets/images/profile-bg/students.webp"
+      },
+      "btn": {
+       "label": "Need more",
+       "enabled": false
+      }
+     },
+     {
+      "id": "bg_seniors",
+      "name": "50+ профилактика",
+      "desc": "Home screen background in another profile’s style",
+      "price": "1050 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#a855f7",
+      "swatch": {
+       "kind": "image",
+       "uri": "/assets/images/profile-bg/seniors.webp"
+      },
+      "btn": {
+       "label": "Need more",
+       "enabled": false
+      }
+     },
+     {
+      "id": "bg_women",
+      "name": "Микро-релакс",
+      "desc": "Home screen background in another profile’s style",
+      "price": "1200 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#a855f7",
+      "swatch": {
+       "kind": "image",
+       "uri": "/assets/images/profile-bg/women.webp"
+      },
+      "btn": {
+       "label": "Need more",
+       "enabled": false
+      }
+     },
+     {
+      "id": "bg_drivers",
+      "name": "Реакция ПРО",
+      "desc": "Home screen background in another profile’s style",
+      "price": "1350 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#a855f7",
+      "swatch": {
+       "kind": "image",
+       "uri": "/assets/images/profile-bg/drivers.webp"
+      },
+      "btn": {
+       "label": "Need more",
+       "enabled": false
+      }
+     },
+     {
+      "id": "bg_vasilyeva",
+      "name": "Скорочтение PRO",
+      "desc": "Home screen background in another profile’s style",
+      "price": "1350 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#a855f7",
+      "swatch": {
+       "kind": "image",
+       "uri": "/assets/images/profile-bg/vasilyeva.webp"
+      },
+      "btn": {
+       "label": "Need more",
+       "enabled": false
+      }
+     },
+     {
+      "id": "bg_chess",
+      "name": "Шахматист",
+      "desc": "Home screen background in another profile’s style",
+      "price": "1500 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#a855f7",
+      "swatch": {
+       "kind": "image",
+       "uri": "/assets/images/profile-bg/chess.webp"
+      },
+      "btn": {
+       "label": "Need more",
+       "enabled": false
+      }
+     },
+     {
+      "id": "bg_execs",
+      "name": "Предприниматели",
+      "desc": "Home screen background in another profile’s style",
+      "price": "1800 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#a855f7",
+      "swatch": {
+       "kind": "image",
+       "uri": "/assets/images/profile-bg/execs.webp"
+      },
+      "btn": {
+       "label": "Need more",
+       "enabled": false
+      }
+     },
+     {
+      "id": "bg_polyglot",
+      "name": "Языки / Полиглот",
+      "desc": "Home screen background in another profile’s style",
+      "price": "1200 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#a855f7",
+      "swatch": {
+       "kind": "image",
+       "uri": "/assets/images/profile-bg/polyglot.webp"
+      },
+      "btn": {
+       "label": "Need more",
+       "enabled": false
+      }
+     }
+    ]
+   },
+   {
+    "type": "badge",
+    "title": "Profile badges",
+    "first": false,
+    "items": [
+     {
+      "id": "badge_free",
+      "name": "Стандарт",
+      "desc": "Another profile’s badge on your home chip",
+      "price": "900 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#a855f7",
+      "swatch": {
+       "kind": "image",
+       "uri": "/assets/images/profiles/free.webp"
+      },
+      "btn": {
+       "label": "Need more",
+       "enabled": false
+      }
+     },
+     {
+      "id": "badge_kids",
+      "name": "Дети 7-12",
+      "desc": "Another profile’s badge on your home chip",
+      "price": "900 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#a855f7",
+      "swatch": {
+       "kind": "image",
+       "uri": "/assets/images/profiles/kids.webp"
+      },
+      "btn": {
+       "label": "Need more",
+       "enabled": false
+      }
+     },
+     {
+      "id": "badge_students",
+      "name": "Студенты PRO",
+      "desc": "Another profile’s badge on your home chip",
+      "price": "1050 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#a855f7",
+      "swatch": {
+       "kind": "image",
+       "uri": "/assets/images/profiles/students.webp"
+      },
+      "btn": {
+       "label": "Need more",
+       "enabled": false
+      }
+     },
+     {
+      "id": "badge_seniors",
+      "name": "50+ профилактика",
+      "desc": "Another profile’s badge on your home chip",
+      "price": "1050 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#a855f7",
+      "swatch": {
+       "kind": "image",
+       "uri": "/assets/images/profiles/seniors.webp"
+      },
+      "btn": {
+       "label": "Need more",
+       "enabled": false
+      }
+     },
+     {
+      "id": "badge_women",
+      "name": "Микро-релакс",
+      "desc": "Another profile’s badge on your home chip",
+      "price": "1200 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#a855f7",
+      "swatch": {
+       "kind": "image",
+       "uri": "/assets/images/profiles/women.webp"
+      },
+      "btn": {
+       "label": "Need more",
+       "enabled": false
+      }
+     },
+     {
+      "id": "badge_drivers",
+      "name": "Реакция ПРО",
+      "desc": "Another profile’s badge on your home chip",
+      "price": "1200 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#a855f7",
+      "swatch": {
+       "kind": "image",
+       "uri": "/assets/images/profiles/drivers.webp"
+      },
+      "btn": {
+       "label": "Need more",
+       "enabled": false
+      }
+     },
+     {
+      "id": "badge_vasilyeva",
+      "name": "Скорочтение PRO",
+      "desc": "Another profile’s badge on your home chip",
+      "price": "1350 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#a855f7",
+      "swatch": {
+       "kind": "image",
+       "uri": "/assets/images/profiles/vasilyeva.webp"
+      },
+      "btn": {
+       "label": "Need more",
+       "enabled": false
+      }
+     },
+     {
+      "id": "badge_polyglot",
+      "name": "Языки / Полиглот",
+      "desc": "Another profile’s badge on your home chip",
+      "price": "1350 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#a855f7",
+      "swatch": {
+       "kind": "image",
+       "uri": "/assets/images/profiles/polyglot.webp"
+      },
+      "btn": {
+       "label": "Need more",
+       "enabled": false
+      }
+     },
+     {
+      "id": "badge_chess",
+      "name": "Шахматист",
+      "desc": "Another profile’s badge on your home chip",
+      "price": "1500 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#a855f7",
+      "swatch": {
+       "kind": "image",
+       "uri": "/assets/images/profiles/chess.webp"
+      },
+      "btn": {
+       "label": "Need more",
+       "enabled": false
+      }
+     },
+     {
+      "id": "badge_execs",
+      "name": "Предприниматели",
+      "desc": "Another profile’s badge on your home chip",
+      "price": "1650 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#a855f7",
+      "swatch": {
+       "kind": "image",
+       "uri": "/assets/images/profiles/execs.webp"
+      },
+      "btn": {
+       "label": "Need more",
+       "enabled": false
+      }
+     },
+     {
+      "id": "badge_odv999",
+      "name": "ODV999",
+      "desc": "Another profile’s badge on your home chip",
+      "price": "1800 ⭐",
+      "owned": false,
+      "on": false,
+      "accent": "#a855f7",
+      "swatch": {
+       "kind": "image",
+       "uri": "/assets/images/profiles/odv999.webp"
+      },
+      "btn": {
+       "label": "Need more",
+       "enabled": false
+      }
+     }
+    ]
+   }
+  ],
+  "earnHint": "Tokens are earned from games, streaks and achievements."
+ }
+}

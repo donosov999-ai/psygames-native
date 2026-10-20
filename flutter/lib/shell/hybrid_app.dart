@@ -770,6 +770,7 @@ class _HybridAppState extends State<HybridApp> {
   /// Вкладки, которые считают модель сами (вариант Б, d6a60b02): модели страницы не ждут, и запасной
   /// показ страницы им не нужен. Главная — с 7б (`home_inputs.dart`).
   static const _ownModel = {
+    ShopScreen.route,
     StatsScreen.route, HomeScreen.route, StreakCalendarScreen.route,
     SourcesScreen.route, CollectionScreen.route, AchievementsScreen.route, LeaguesScreen.route,
     PetScreen.route,
@@ -1608,8 +1609,8 @@ class _HybridAppState extends State<HybridApp> {
             LeaguesScreen(state: widget.state),
             // «Друзья» (7bb8035b) — страница по модели; сервер круга держит веб.
             const FriendsScreen(),
-            // «Магазин» (9424da3a) — страница по модели; покупки и баланс держит веб.
-            ShopScreen(origin: widget.server.origin),
+            // «Магазин» (9424da3a) — модель на Dart (вариант Б); покупки — действия веба.
+            ShopScreen(origin: widget.server.origin, state: widget.state),
             // «Что нового» (84df0687): список версий — модель веба, проверку обновлений делает оболочка.
             const WhatsNewScreen(),
             // «Питомец» (d1e147b0) — вкладка по модели веба; кадры — тем же PetFrames, что у гуляки.
