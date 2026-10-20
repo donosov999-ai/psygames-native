@@ -134,6 +134,8 @@ for (const [file, fields] of [
   ['assets/collection.json', ['nameKey']],
   // «Магазин» на Dart (`shop_model.dart`): вкладки, разделы, способности и товары — `L.t(c.nameKey)` и др.
   ['assets/shop.json', ['nameKey', 'descKey', 'labelKey', 'titleKey']],
+  // Переключатель профилей на Dart (`switcher_model.dart`): `L.t('profileName_${id}')`, `L.t('profileDesc_${id}')`.
+  ['assets/switcher.json', ['textKeys']],
   // Главная (вариант Б): ключи, которые сборщик модели собирает на лету — замки, слоты, сложности, причины.
   ['assets/home.json', ['textKeys']],
   // Входы Главной на Dart (`home_inputs.dart`, 7б): титул надетой вещи — `L.t(title.nameKey)`.

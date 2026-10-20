@@ -815,7 +815,7 @@ class _HybridAppState extends State<HybridApp> {
   }
 
   /// Чип профиля на нативной Главной — нативный переключатель профилей (5b3513bd).
-  void _openSwitcher() => openProfileSwitcher(context, widget.server.origin);
+  void _openSwitcher() => openProfileSwitcher(context, widget.server.origin, state: widget.state);
 
   /// Нажатие на нижнюю вкладку: тело переключается сразу, страница уводится `router.replace`.
   Future<void> _selectTab(String route) async {

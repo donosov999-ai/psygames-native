@@ -1,16 +1,28 @@
+import 'dart:async';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'ionicons.g.dart';
+import 'profiles.dart';
 import 'screen_ui.dart';
+import 'shared_state.dart';
+import 'switcher_model.dart';
 import 'web_theme.dart';
 
 /// ПЕРЕКЛЮЧАТЕЛЬ ПРОФИЛЕЙ НА FLUTTER — ПЕРЕНОС `frontend/src/components/ProfileSwitcherModal.tsx` (5b3513bd).
 ///
-/// Чип профиля нативной Главной открывает этот лист. Что показать и что можно — у веба: компонент
-/// смонтирован на Главной под оболочкой и отдаёт модель `#switcher` (профили с доступом, кошельками и
-/// подписями, карточки закрытых, окно кода). Здесь только рисунок веба: лист снизу со скруглением 24,
-/// сетка карточек в треть ширины, карточка закрытого профиля и окно ввода кода. Переключение и код —
-/// действия веба (`switch`, `redeem`): составы режимов и история остаются там, где живут.
+/// Чип профиля нативной Главной открывает этот лист: снизу со скруглением 24, сетка карточек в треть
+/// ширины, карточка закрытого профиля и окно ввода кода — рисунок веба.
+///
+/// 🔴 МОДЕЛЬ СЧИТАЕТ DART (задача d6a60b02, вариант Б, `switcher_model.dart`): профили в порядке файла
+/// состава, доступ, кошельки, подписи и карточки — из общей памяти, на каждую запись — заново; лист не
+/// ждёт страницу. Ошибку кода и счётчик разблокировок рождает `redeem` веба — они приходят из модели
+/// страницы поверх своей. Переключение и код — по-прежнему действия веба (`switch`, `redeem`). Без общей
+/// памяти или если своя модель не собралась — лист рисует модель страницы (`#switcher`), как раньше.
+///
+/// ⚠️ Ввод кода — по платформе устройства: на iOS его нет (App Store 3.1.1, `CODE_ENTRY_ENABLED` веба).
+/// Веб под оболочкой считает себя `'web'` и прятать не умеет — его модель показывала кнопку и на iPhone.
 const _key = '#switcher';
 
 typedef _M = Map<String, Object?>;
@@ -18,15 +30,90 @@ _M _map(Object? v) => v is Map ? Map<String, Object?>.from(v) : const {};
 List<_M> _list(Object? v) => v is List ? [for (final x in v) _map(x)] : const [];
 String _s(Object? v) => v == null ? '' : '$v';
 
-/// [origin] — сервер раздачи: значки профилей в модели — адреса веб-сборки.
-Future<void> openProfileSwitcher(BuildContext context, String origin) {
-  return showModalBottomSheet<void>(
-    context: context,
-    isScrollControlled: true,
-    backgroundColor: Colors.transparent,
-    barrierColor: const Color(0xA6000000),
-    builder: (ctx) => _SwitcherSheet(origin: origin),
-  );
+/// Откуда лист, карточка и окно кода берут модель, пока лист открыт: своя или страницы.
+ValueListenable<_M?> _source = ScreenUi.model(_key);
+
+/// [origin] — сервер раздачи: значки профилей в модели — адреса веб-сборки. [state] — общая память:
+/// есть — модель своя.
+Future<void> openProfileSwitcher(BuildContext context, String origin, {SharedState? state}) async {
+  final feed = state == null ? null : SwitcherFeed(state);
+  _source = feed ?? ScreenUi.model(_key);
+  try {
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      barrierColor: const Color(0xA6000000),
+      builder: (ctx) => _SwitcherSheet(origin: origin),
+    );
+  } finally {
+    _source = ScreenUi.model(_key);
+    feed?.close();
+  }
+}
+
+/// Своя модель листа (вариант Б): пересчёт на запись в общую память и на модель страницы, поверх —
+/// ошибка кода и счётчик разблокировок страницы. Не собралась — модель страницы.
+class SwitcherFeed extends ValueNotifier<Map<String, Object?>?> {
+  SwitcherFeed(this.state) : super(null) {
+    ScreenUi.model(_key).addListener(_refresh);
+    state.writes.addListener(_onWrite);
+    SwitcherData.load().then(
+      (d) {
+        _data = d;
+        _refresh();
+      },
+      onError: (Object e) {
+        debugPrint('SwitcherFeed: own model data failed, using the page model ($e)');
+        _failed = true;
+        _refresh();
+      },
+    );
+  }
+
+  final SharedState state;
+
+  /// Ввод кода на этой платформе: на iOS — нет (App Store 3.1.1). Пробы подменяют.
+  @visibleForTesting
+  static bool Function() codeEntry = () => defaultTargetPlatform != TargetPlatform.iOS;
+
+  SwitcherData? _data;
+  bool _failed = false, _closed = false;
+  Timer? _debounce;
+
+  void _onWrite() {
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 200), _refresh);
+  }
+
+  Future<void> _refresh() async {
+    if (_closed) return;
+    final page = ScreenUi.model(_key).value;
+    final d = _data;
+    if (_failed) {
+      value = page;
+      return;
+    }
+    if (d == null) return;
+    try {
+      final ps = Profiles.current.list.isEmpty ? await Profiles.load() : Profiles.current;
+      if (_closed) return;
+      final own = switcherModelFrom(state, d, profiles: ps, language: state.language, codeEntry: codeEntry());
+      value = withSwitcherPageEvents(own, page);
+    } catch (e) {
+      debugPrint('SwitcherFeed: own model failed, using the page model ($e)');
+      _failed = true;
+      if (!_closed) value = page;
+    }
+  }
+
+  void close() {
+    _closed = true;
+    _debounce?.cancel();
+    ScreenUi.model(_key).removeListener(_refresh);
+    state.writes.removeListener(_onWrite);
+    dispose();
+  }
 }
 
 class _SwitcherSheet extends StatelessWidget {
@@ -37,7 +124,7 @@ class _SwitcherSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final web = WebTheme.of(context);
     return ValueListenableBuilder<_M?>(
-      valueListenable: ScreenUi.model(_key),
+      valueListenable: _source,
       builder: (context, m, _) {
         if (m == null) return const SizedBox(height: 200, child: Center(child: CircularProgressIndicator()));
         return ConstrainedBox(
@@ -207,7 +294,7 @@ void _openDetail(BuildContext context, String id, String origin) {
     backgroundColor: Colors.transparent,
     barrierColor: const Color(0xA6000000),
     builder: (ctx) => ValueListenableBuilder<_M?>(
-      valueListenable: ScreenUi.model(_key),
+      valueListenable: _source,
       builder: (ctx, m, _) {
         final web = WebTheme.of(ctx);
         final d = _map(_map(m?['details'])[id]);
@@ -332,7 +419,7 @@ void _openDetail(BuildContext context, String id, String origin) {
 /// модель растит счётчик `redeemed`, и окно с листом закрываются; ошибка — подпись под полем.
 void _openCode(BuildContext context) {
   ScreenUi.act(_key, 'clearError');
-  final before = _map(_map(ScreenUi.model(_key).value)['code'])['redeemed'];
+  final before = _map(_map(_source.value)['code'])['redeemed'];
   showGeneralDialog<void>(
     context: context,
     barrierDismissible: false,
@@ -368,7 +455,7 @@ class _CodeDialogState extends State<_CodeDialog> {
   Widget build(BuildContext context) {
     final web = WebTheme.of(context);
     return ValueListenableBuilder<_M?>(
-      valueListenable: ScreenUi.model(_key),
+      valueListenable: _source,
       builder: (context, m, _) {
         final code = _map(m?['code']);
         if (!_closed && code['redeemed'] != widget.before) {
