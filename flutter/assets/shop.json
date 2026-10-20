@@ -1,0 +1,1302 @@
+{
+ "cats": [
+  {
+   "id": null,
+   "icon": "apps",
+   "labelKey": "a11yCatAll"
+  },
+  {
+   "id": "ability",
+   "icon": "flash",
+   "labelKey": "a11yCatAbility"
+  },
+  {
+   "id": "accent",
+   "icon": "color-palette",
+   "labelKey": "a11yCatAccent"
+  },
+  {
+   "id": "sound",
+   "icon": "musical-notes",
+   "labelKey": "a11yCatSound"
+  },
+  {
+   "id": "frame",
+   "icon": "scan",
+   "labelKey": "a11yCatFrame"
+  },
+  {
+   "id": "title",
+   "icon": "pricetag",
+   "labelKey": "a11yCatTitle"
+  },
+  {
+   "id": "avatar",
+   "icon": "person",
+   "labelKey": "a11yCatAvatar"
+  },
+  {
+   "id": "pet",
+   "icon": "paw",
+   "labelKey": "a11yCatPet"
+  },
+  {
+   "id": "digits",
+   "icon": "calculator",
+   "labelKey": "a11yCatDigits"
+  },
+  {
+   "id": "theme",
+   "icon": "map",
+   "labelKey": "a11yCatTheme"
+  },
+  {
+   "id": "background",
+   "icon": "image",
+   "labelKey": "a11yCatBackground"
+  },
+  {
+   "id": "badge",
+   "icon": "ribbon",
+   "labelKey": "a11yCatBadge"
+  }
+ ],
+ "sections": [
+  {
+   "type": "accent",
+   "titleKey": "shopAccentSection"
+  },
+  {
+   "type": "sound",
+   "titleKey": "shopSoundSection"
+  },
+  {
+   "type": "frame",
+   "titleKey": "shopFrameSection"
+  },
+  {
+   "type": "title",
+   "titleKey": "shopTitleSection"
+  },
+  {
+   "type": "avatar",
+   "titleKey": "shopAvatarSection"
+  },
+  {
+   "type": "pet",
+   "titleKey": "shopPetSection"
+  },
+  {
+   "type": "digits",
+   "titleKey": "shopDigitsSection"
+  },
+  {
+   "type": "theme",
+   "titleKey": "shopThemeSection"
+  },
+  {
+   "type": "background",
+   "titleKey": "shopBackgroundSection"
+  },
+  {
+   "type": "badge",
+   "titleKey": "shopBadgeSection"
+  }
+ ],
+ "abilities": [
+  {
+   "id": "second_life",
+   "icon": "heart",
+   "nameKey": "abName_second_life",
+   "descKey": "abDesc_second_life",
+   "cost": 500,
+   "max": 5
+  },
+  {
+   "id": "practice_run",
+   "icon": "flask",
+   "nameKey": "abName_practice_run",
+   "descKey": "abDesc_practice_run",
+   "cost": 250,
+   "max": 10
+  },
+  {
+   "id": "streak_shield",
+   "icon": "shield-checkmark",
+   "nameKey": "abName_streak_shield",
+   "descKey": "abDesc_streak_shield",
+   "cost": 1500,
+   "max": 2
+  },
+  {
+   "id": "sudoku_hint",
+   "icon": "bulb",
+   "nameKey": "abName_sudoku_hint",
+   "descKey": "abDesc_sudoku_hint",
+   "cost": 150,
+   "max": 10
+  }
+ ],
+ "cosmetics": [
+  {
+   "id": "accent_gold",
+   "type": "accent",
+   "value": "#f5b50a",
+   "cost": 900,
+   "nameKey": "cosName_accent_gold",
+   "descKey": "cosDesc_accent_gold",
+   "swatch": {
+    "kind": "color",
+    "color": "#f5b50a"
+   }
+  },
+  {
+   "id": "accent_neon",
+   "type": "accent",
+   "value": "#00e5a0",
+   "cost": 900,
+   "nameKey": "cosName_accent_neon",
+   "descKey": "cosDesc_accent_neon",
+   "swatch": {
+    "kind": "color",
+    "color": "#00e5a0"
+   }
+  },
+  {
+   "id": "accent_ocean",
+   "type": "accent",
+   "value": "#0aa6ff",
+   "cost": 900,
+   "nameKey": "cosName_accent_ocean",
+   "descKey": "cosDesc_accent_ocean",
+   "swatch": {
+    "kind": "color",
+    "color": "#0aa6ff"
+   }
+  },
+  {
+   "id": "accent_rose",
+   "type": "accent",
+   "value": "#ff4d8d",
+   "cost": 1200,
+   "nameKey": "cosName_accent_rose",
+   "descKey": "cosDesc_accent_rose",
+   "swatch": {
+    "kind": "color",
+    "color": "#ff4d8d"
+   }
+  },
+  {
+   "id": "accent_emerald",
+   "type": "accent",
+   "value": "#10b981",
+   "cost": 1500,
+   "nameKey": "cosName_accent_emerald",
+   "descKey": "cosDesc_accent_emerald",
+   "swatch": {
+    "kind": "color",
+    "color": "#10b981"
+   }
+  },
+  {
+   "id": "accent_lavender",
+   "type": "accent",
+   "value": "#8b5cf6",
+   "cost": 1050,
+   "nameKey": "cosName_accent_lavender",
+   "descKey": "cosDesc_accent_lavender",
+   "swatch": {
+    "kind": "color",
+    "color": "#8b5cf6"
+   }
+  },
+  {
+   "id": "accent_crimson",
+   "type": "accent",
+   "value": "#dc2626",
+   "cost": 1200,
+   "nameKey": "cosName_accent_crimson",
+   "descKey": "cosDesc_accent_crimson",
+   "swatch": {
+    "kind": "color",
+    "color": "#dc2626"
+   }
+  },
+  {
+   "id": "accent_cyan",
+   "type": "accent",
+   "value": "#06b6d4",
+   "cost": 1350,
+   "nameKey": "cosName_accent_cyan",
+   "descKey": "cosDesc_accent_cyan",
+   "swatch": {
+    "kind": "color",
+    "color": "#06b6d4"
+   }
+  },
+  {
+   "id": "accent_tangerine",
+   "type": "accent",
+   "value": "#f97316",
+   "cost": 1500,
+   "nameKey": "cosName_accent_tangerine",
+   "descKey": "cosDesc_accent_tangerine",
+   "swatch": {
+    "kind": "color",
+    "color": "#f97316"
+   }
+  },
+  {
+   "id": "accent_indigo",
+   "type": "accent",
+   "value": "#4f46e5",
+   "cost": 1650,
+   "nameKey": "cosName_accent_indigo",
+   "descKey": "cosDesc_accent_indigo",
+   "swatch": {
+    "kind": "color",
+    "color": "#4f46e5"
+   }
+  },
+  {
+   "id": "accent_coral",
+   "type": "accent",
+   "value": "#fb7185",
+   "cost": 1800,
+   "nameKey": "cosName_accent_coral",
+   "descKey": "cosDesc_accent_coral",
+   "swatch": {
+    "kind": "color",
+    "color": "#fb7185"
+   }
+  },
+  {
+   "id": "accent_slate",
+   "type": "accent",
+   "value": "#64748b",
+   "cost": 1950,
+   "nameKey": "cosName_accent_slate",
+   "descKey": "cosDesc_accent_slate",
+   "swatch": {
+    "kind": "color",
+    "color": "#64748b"
+   }
+  },
+  {
+   "id": "accent_copper",
+   "type": "accent",
+   "value": "#b45309",
+   "cost": 2100,
+   "nameKey": "cosName_accent_copper",
+   "descKey": "cosDesc_accent_copper",
+   "swatch": {
+    "kind": "color",
+    "color": "#b45309"
+   }
+  },
+  {
+   "id": "accent_mint",
+   "type": "accent",
+   "value": "#2dd4bf",
+   "cost": 2250,
+   "nameKey": "cosName_accent_mint",
+   "descKey": "cosDesc_accent_mint",
+   "swatch": {
+    "kind": "color",
+    "color": "#2dd4bf"
+   }
+  },
+  {
+   "id": "accent_magenta",
+   "type": "accent",
+   "value": "#d946ef",
+   "cost": 2400,
+   "nameKey": "cosName_accent_magenta",
+   "descKey": "cosDesc_accent_magenta",
+   "swatch": {
+    "kind": "color",
+    "color": "#d946ef"
+   }
+  },
+  {
+   "id": "sound_retro",
+   "type": "sound",
+   "value": "square",
+   "cost": 1050,
+   "nameKey": "cosName_sound_retro",
+   "descKey": "cosDesc_sound_retro",
+   "swatch": {
+    "kind": "icon",
+    "icon": "musical-notes",
+    "color": null
+   }
+  },
+  {
+   "id": "sound_soft",
+   "type": "sound",
+   "value": "triangle",
+   "cost": 1050,
+   "nameKey": "cosName_sound_soft",
+   "descKey": "cosDesc_sound_soft",
+   "swatch": {
+    "kind": "icon",
+    "icon": "musical-notes",
+    "color": null
+   }
+  },
+  {
+   "id": "sound_arcade",
+   "type": "sound",
+   "value": "sawtooth",
+   "cost": 1350,
+   "nameKey": "cosName_sound_arcade",
+   "descKey": "cosDesc_sound_arcade",
+   "swatch": {
+    "kind": "icon",
+    "icon": "musical-notes",
+    "color": null
+   }
+  },
+  {
+   "id": "sound_crystal",
+   "type": "sound",
+   "value": "sine:1.6",
+   "cost": 1200,
+   "nameKey": "cosName_sound_crystal",
+   "descKey": "cosDesc_sound_crystal",
+   "swatch": {
+    "kind": "icon",
+    "icon": "musical-notes",
+    "color": null
+   }
+  },
+  {
+   "id": "sound_deep",
+   "type": "sound",
+   "value": "sine:0.6",
+   "cost": 1200,
+   "nameKey": "cosName_sound_deep",
+   "descKey": "cosDesc_sound_deep",
+   "swatch": {
+    "kind": "icon",
+    "icon": "musical-notes",
+    "color": null
+   }
+  },
+  {
+   "id": "sound_chipbass",
+   "type": "sound",
+   "value": "square:0.65",
+   "cost": 1500,
+   "nameKey": "cosName_sound_chipbass",
+   "descKey": "cosDesc_sound_chipbass",
+   "swatch": {
+    "kind": "icon",
+    "icon": "musical-notes",
+    "color": null
+   }
+  },
+  {
+   "id": "sound_buzz",
+   "type": "sound",
+   "value": "sawtooth:1.5",
+   "cost": 1500,
+   "nameKey": "cosName_sound_buzz",
+   "descKey": "cosDesc_sound_buzz",
+   "swatch": {
+    "kind": "icon",
+    "icon": "musical-notes",
+    "color": null
+   }
+  },
+  {
+   "id": "frame_gold",
+   "type": "frame",
+   "value": "#f5b50a",
+   "cost": 1200,
+   "nameKey": "cosName_frame_gold",
+   "descKey": "cosDesc_frame_gold",
+   "swatch": {
+    "kind": "frame",
+    "color": "#f5b50a"
+   }
+  },
+  {
+   "id": "frame_crimson",
+   "type": "frame",
+   "value": "#ef4444",
+   "cost": 1350,
+   "nameKey": "cosName_frame_crimson",
+   "descKey": "cosDesc_frame_crimson",
+   "swatch": {
+    "kind": "frame",
+    "color": "#ef4444"
+   }
+  },
+  {
+   "id": "frame_azure",
+   "type": "frame",
+   "value": "#38bdf8",
+   "cost": 1350,
+   "nameKey": "cosName_frame_azure",
+   "descKey": "cosDesc_frame_azure",
+   "swatch": {
+    "kind": "frame",
+    "color": "#38bdf8"
+   }
+  },
+  {
+   "id": "frame_emerald",
+   "type": "frame",
+   "value": "#22c55e",
+   "cost": 1500,
+   "nameKey": "cosName_frame_emerald",
+   "descKey": "cosDesc_frame_emerald",
+   "swatch": {
+    "kind": "frame",
+    "color": "#22c55e"
+   }
+  },
+  {
+   "id": "frame_violet",
+   "type": "frame",
+   "value": "#a78bfa",
+   "cost": 1500,
+   "nameKey": "cosName_frame_violet",
+   "descKey": "cosDesc_frame_violet",
+   "swatch": {
+    "kind": "frame",
+    "color": "#a78bfa"
+   }
+  },
+  {
+   "id": "frame_silver",
+   "type": "frame",
+   "value": "#cbd5e1",
+   "cost": 1650,
+   "nameKey": "cosName_frame_silver",
+   "descKey": "cosDesc_frame_silver",
+   "swatch": {
+    "kind": "frame",
+    "color": "#cbd5e1"
+   }
+  },
+  {
+   "id": "title_focused",
+   "type": "title",
+   "value": "🎯",
+   "cost": 750,
+   "nameKey": "cosName_title_focused",
+   "descKey": "cosDesc_title_generic",
+   "swatch": {
+    "kind": "text",
+    "text": "🎯"
+   }
+  },
+  {
+   "id": "title_sharp",
+   "type": "title",
+   "value": "⚡",
+   "cost": 900,
+   "nameKey": "cosName_title_sharp",
+   "descKey": "cosDesc_title_generic",
+   "swatch": {
+    "kind": "text",
+    "text": "⚡"
+   }
+  },
+  {
+   "id": "title_strategist",
+   "type": "title",
+   "value": "♟️",
+   "cost": 1050,
+   "nameKey": "cosName_title_strategist",
+   "descKey": "cosDesc_title_generic",
+   "swatch": {
+    "kind": "text",
+    "text": "♟️"
+   }
+  },
+  {
+   "id": "title_owl",
+   "type": "title",
+   "value": "🦉",
+   "cost": 1050,
+   "nameKey": "cosName_title_owl",
+   "descKey": "cosDesc_title_generic",
+   "swatch": {
+    "kind": "text",
+    "text": "🦉"
+   }
+  },
+  {
+   "id": "title_unstoppable",
+   "type": "title",
+   "value": "🔥",
+   "cost": 1350,
+   "nameKey": "cosName_title_unstoppable",
+   "descKey": "cosDesc_title_generic",
+   "swatch": {
+    "kind": "text",
+    "text": "🔥"
+   }
+  },
+  {
+   "id": "title_grandmaster",
+   "type": "title",
+   "value": "👑",
+   "cost": 1500,
+   "nameKey": "cosName_title_grandmaster",
+   "descKey": "cosDesc_title_generic",
+   "swatch": {
+    "kind": "text",
+    "text": "👑"
+   }
+  },
+  {
+   "id": "title_legend",
+   "type": "title",
+   "value": "🌟",
+   "cost": 1800,
+   "nameKey": "cosName_title_legend",
+   "descKey": "cosDesc_title_generic",
+   "swatch": {
+    "kind": "text",
+    "text": "🌟"
+   }
+  },
+  {
+   "id": "title_cyberbrain",
+   "type": "title",
+   "value": "🧠",
+   "cost": 1950,
+   "nameKey": "cosName_title_cyberbrain",
+   "descKey": "cosDesc_title_cyberbrain",
+   "swatch": {
+    "kind": "text",
+    "text": "🧠"
+   }
+  },
+  {
+   "id": "frame_onyx",
+   "type": "frame",
+   "value": "#0f172a",
+   "cost": 6000,
+   "nameKey": "cosName_frame_onyx",
+   "descKey": "cosDesc_frame_onyx",
+   "swatch": {
+    "kind": "frame",
+    "color": "#0f172a"
+   }
+  },
+  {
+   "id": "title_comet",
+   "type": "title",
+   "value": "☄️",
+   "cost": 7500,
+   "nameKey": "cosName_title_comet",
+   "descKey": "cosDesc_title_generic",
+   "swatch": {
+    "kind": "text",
+    "text": "☄️"
+   }
+  },
+  {
+   "id": "title_diamond",
+   "type": "title",
+   "value": "💎",
+   "cost": 10000,
+   "nameKey": "cosName_title_diamond",
+   "descKey": "cosDesc_title_generic",
+   "swatch": {
+    "kind": "text",
+    "text": "💎"
+   }
+  },
+  {
+   "id": "title_infinity",
+   "type": "title",
+   "value": "♾️",
+   "cost": 15000,
+   "nameKey": "cosName_title_infinity",
+   "descKey": "cosDesc_title_generic",
+   "swatch": {
+    "kind": "text",
+    "text": "♾️"
+   }
+  },
+  {
+   "id": "pet_bow",
+   "type": "pet",
+   "value": "bow",
+   "cost": 900,
+   "nameKey": "cosName_pet_bow",
+   "descKey": "cosDesc_pet_generic",
+   "swatch": {
+    "kind": "text",
+    "text": "🎀"
+   }
+  },
+  {
+   "id": "pet_party_hat",
+   "type": "pet",
+   "value": "party_hat",
+   "cost": 1200,
+   "nameKey": "cosName_pet_party_hat",
+   "descKey": "cosDesc_pet_generic",
+   "swatch": {
+    "kind": "text",
+    "text": "🥳"
+   }
+  },
+  {
+   "id": "pet_glasses",
+   "type": "pet",
+   "value": "glasses",
+   "cost": 1500,
+   "nameKey": "cosName_pet_glasses",
+   "descKey": "cosDesc_pet_generic",
+   "swatch": {
+    "kind": "text",
+    "text": "👓"
+   }
+  },
+  {
+   "id": "pet_bow_tie",
+   "type": "pet",
+   "value": "bow_tie",
+   "cost": 900,
+   "nameKey": "cosName_pet_bow_tie",
+   "descKey": "cosDesc_pet_generic",
+   "swatch": {
+    "kind": "text",
+    "text": "🎩"
+   }
+  },
+  {
+   "id": "avatar_owl",
+   "type": "avatar",
+   "value": "avatar_owl",
+   "cost": 900,
+   "nameKey": "cosName_avatar_owl",
+   "descKey": "cosDesc_avatar_generic",
+   "swatch": {
+    "kind": "image",
+    "uri": "/assets/images/avatars/avatar_owl.webp"
+   }
+  },
+  {
+   "id": "avatar_fox",
+   "type": "avatar",
+   "value": "avatar_fox",
+   "cost": 900,
+   "nameKey": "cosName_avatar_fox",
+   "descKey": "cosDesc_avatar_generic",
+   "swatch": {
+    "kind": "image",
+    "uri": "/assets/images/avatars/avatar_fox.webp"
+   }
+  },
+  {
+   "id": "avatar_gem",
+   "type": "avatar",
+   "value": "avatar_gem",
+   "cost": 1050,
+   "nameKey": "cosName_avatar_gem",
+   "descKey": "cosDesc_avatar_generic",
+   "swatch": {
+    "kind": "image",
+    "uri": "/assets/images/avatars/avatar_gem.webp"
+   }
+  },
+  {
+   "id": "avatar_lightning",
+   "type": "avatar",
+   "value": "avatar_lightning",
+   "cost": 1050,
+   "nameKey": "cosName_avatar_lightning",
+   "descKey": "cosDesc_avatar_generic",
+   "swatch": {
+    "kind": "image",
+    "uri": "/assets/images/avatars/avatar_lightning.webp"
+   }
+  },
+  {
+   "id": "avatar_star",
+   "type": "avatar",
+   "value": "avatar_star",
+   "cost": 1200,
+   "nameKey": "cosName_avatar_star",
+   "descKey": "cosDesc_avatar_generic",
+   "swatch": {
+    "kind": "image",
+    "uri": "/assets/images/avatars/avatar_star.webp"
+   }
+  },
+  {
+   "id": "avatar_knight",
+   "type": "avatar",
+   "value": "avatar_knight",
+   "cost": 1350,
+   "nameKey": "cosName_avatar_knight",
+   "descKey": "cosDesc_avatar_generic",
+   "swatch": {
+    "kind": "image",
+    "uri": "/assets/images/avatars/avatar_knight.webp"
+   }
+  },
+  {
+   "id": "avatar_phoenix",
+   "type": "avatar",
+   "value": "avatar_phoenix",
+   "cost": 1500,
+   "nameKey": "cosName_avatar_phoenix",
+   "descKey": "cosDesc_avatar_generic",
+   "swatch": {
+    "kind": "image",
+    "uri": "/assets/images/avatars/avatar_phoenix.webp"
+   }
+  },
+  {
+   "id": "avatar_robot",
+   "type": "avatar",
+   "value": "avatar_robot",
+   "cost": 1500,
+   "nameKey": "cosName_avatar_robot",
+   "descKey": "cosDesc_avatar_generic",
+   "swatch": {
+    "kind": "image",
+    "uri": "/assets/images/avatars/avatar_robot.webp"
+   }
+  },
+  {
+   "id": "avatar_brain",
+   "type": "avatar",
+   "value": "avatar_brain",
+   "cost": 1800,
+   "nameKey": "cosName_avatar_brain",
+   "descKey": "cosDesc_avatar_brain",
+   "swatch": {
+    "kind": "image",
+    "uri": "/assets/images/avatars/avatar_brain.webp"
+   }
+  },
+  {
+   "id": "digits_rainbow",
+   "type": "digits",
+   "value": "rainbow",
+   "cost": 1500,
+   "nameKey": "cosName_digits_rainbow",
+   "descKey": "cosDesc_digits_generic",
+   "swatch": {
+    "kind": "digits",
+    "uri": "/assets/images/digits_rainbow/d5.webp"
+   }
+  },
+  {
+   "id": "digits_pastel",
+   "type": "digits",
+   "value": "pastel",
+   "cost": 1500,
+   "nameKey": "cosName_digits_pastel",
+   "descKey": "cosDesc_digits_generic",
+   "swatch": {
+    "kind": "digits",
+    "uri": "/assets/images/digits_pastel/d5.webp"
+   }
+  },
+  {
+   "id": "digits_neon",
+   "type": "digits",
+   "value": "neon",
+   "cost": 1500,
+   "nameKey": "cosName_digits_neon",
+   "descKey": "cosDesc_digits_generic",
+   "swatch": {
+    "kind": "digits",
+    "uri": "/assets/images/digits_neon/d5.webp"
+   }
+  },
+  {
+   "id": "digits_elegant",
+   "type": "digits",
+   "value": "elegant",
+   "cost": 1500,
+   "nameKey": "cosName_digits_elegant",
+   "descKey": "cosDesc_digits_generic",
+   "swatch": {
+    "kind": "digits",
+    "uri": "/assets/images/digits_elegant/d5.webp"
+   }
+  },
+  {
+   "id": "theme_odv999",
+   "type": "theme",
+   "value": "odv999",
+   "cost": 2400,
+   "nameKey": "cosName_profile_item",
+   "descKey": "cosDesc_theme_generic",
+   "profileName": "ODV999",
+   "swatch": {
+    "kind": "image",
+    "uri": "/assets/images/level-map-themes/odv999.webp"
+   }
+  },
+  {
+   "id": "theme_chess",
+   "type": "theme",
+   "value": "chess",
+   "cost": 2400,
+   "nameKey": "cosName_profile_item",
+   "descKey": "cosDesc_theme_generic",
+   "profileName": "Шахматист",
+   "swatch": {
+    "kind": "image",
+    "uri": "/assets/images/level-map-themes/chess.webp"
+   }
+  },
+  {
+   "id": "theme_kids",
+   "type": "theme",
+   "value": "kids",
+   "cost": 2400,
+   "nameKey": "cosName_profile_item",
+   "descKey": "cosDesc_theme_generic",
+   "profileName": "Дети 7-12",
+   "swatch": {
+    "kind": "image",
+    "uri": "/assets/images/level-map-themes/kids.webp"
+   }
+  },
+  {
+   "id": "theme_vasilyeva",
+   "type": "theme",
+   "value": "vasilyeva",
+   "cost": 2400,
+   "nameKey": "cosName_profile_item",
+   "descKey": "cosDesc_theme_generic",
+   "profileName": "Скорочтение PRO",
+   "swatch": {
+    "kind": "image",
+    "uri": "/assets/images/level-map-themes/vasilyeva.webp"
+   }
+  },
+  {
+   "id": "theme_nzt48",
+   "type": "theme",
+   "value": "nzt48",
+   "cost": 2400,
+   "nameKey": "cosName_profile_item",
+   "descKey": "cosDesc_theme_generic",
+   "profileName": "NZT-48 (полный)",
+   "swatch": {
+    "kind": "image",
+    "uri": "/assets/images/level-map-themes/nzt48.webp"
+   }
+  },
+  {
+   "id": "theme_free",
+   "type": "theme",
+   "value": "free",
+   "cost": 2400,
+   "nameKey": "cosName_profile_item",
+   "descKey": "cosDesc_theme_generic",
+   "profileName": "Стандарт",
+   "swatch": {
+    "kind": "image",
+    "uri": "/assets/images/level-map-themes/free.webp"
+   }
+  },
+  {
+   "id": "theme_drivers",
+   "type": "theme",
+   "value": "drivers",
+   "cost": 2400,
+   "nameKey": "cosName_profile_item",
+   "descKey": "cosDesc_theme_generic",
+   "profileName": "Реакция ПРО",
+   "swatch": {
+    "kind": "image",
+    "uri": "/assets/images/level-map-themes/drivers.webp"
+   }
+  },
+  {
+   "id": "theme_seniors",
+   "type": "theme",
+   "value": "seniors",
+   "cost": 2400,
+   "nameKey": "cosName_profile_item",
+   "descKey": "cosDesc_theme_generic",
+   "profileName": "50+ профилактика",
+   "swatch": {
+    "kind": "image",
+    "uri": "/assets/images/level-map-themes/seniors.webp"
+   }
+  },
+  {
+   "id": "theme_execs",
+   "type": "theme",
+   "value": "execs",
+   "cost": 2400,
+   "nameKey": "cosName_profile_item",
+   "descKey": "cosDesc_theme_generic",
+   "profileName": "Предприниматели",
+   "swatch": {
+    "kind": "image",
+    "uri": "/assets/images/level-map-themes/execs.webp"
+   }
+  },
+  {
+   "id": "theme_students",
+   "type": "theme",
+   "value": "students",
+   "cost": 2400,
+   "nameKey": "cosName_profile_item",
+   "descKey": "cosDesc_theme_generic",
+   "profileName": "Студенты PRO",
+   "swatch": {
+    "kind": "image",
+    "uri": "/assets/images/level-map-themes/students.webp"
+   }
+  },
+  {
+   "id": "theme_women",
+   "type": "theme",
+   "value": "women",
+   "cost": 2400,
+   "nameKey": "cosName_profile_item",
+   "descKey": "cosDesc_theme_generic",
+   "profileName": "Микро-релакс",
+   "swatch": {
+    "kind": "image",
+    "uri": "/assets/images/level-map-themes/women.webp"
+   }
+  },
+  {
+   "id": "theme_polyglot",
+   "type": "theme",
+   "value": "polyglot",
+   "cost": 2400,
+   "nameKey": "cosName_profile_item",
+   "descKey": "cosDesc_theme_generic",
+   "profileName": "Языки / Полиглот",
+   "swatch": {
+    "kind": "image",
+    "uri": "/assets/images/level-map-themes/polyglot.webp"
+   }
+  },
+  {
+   "id": "bg_kids",
+   "type": "background",
+   "value": "kids",
+   "cost": 900,
+   "nameKey": "cosName_profile_item",
+   "descKey": "cosDesc_background_generic",
+   "profileName": "Дети 7-12",
+   "swatch": {
+    "kind": "image",
+    "uri": "/assets/images/profile-bg/kids.webp"
+   }
+  },
+  {
+   "id": "bg_students",
+   "type": "background",
+   "value": "students",
+   "cost": 1050,
+   "nameKey": "cosName_profile_item",
+   "descKey": "cosDesc_background_generic",
+   "profileName": "Студенты PRO",
+   "swatch": {
+    "kind": "image",
+    "uri": "/assets/images/profile-bg/students.webp"
+   }
+  },
+  {
+   "id": "bg_seniors",
+   "type": "background",
+   "value": "seniors",
+   "cost": 1050,
+   "nameKey": "cosName_profile_item",
+   "descKey": "cosDesc_background_generic",
+   "profileName": "50+ профилактика",
+   "swatch": {
+    "kind": "image",
+    "uri": "/assets/images/profile-bg/seniors.webp"
+   }
+  },
+  {
+   "id": "bg_women",
+   "type": "background",
+   "value": "women",
+   "cost": 1200,
+   "nameKey": "cosName_profile_item",
+   "descKey": "cosDesc_background_generic",
+   "profileName": "Микро-релакс",
+   "swatch": {
+    "kind": "image",
+    "uri": "/assets/images/profile-bg/women.webp"
+   }
+  },
+  {
+   "id": "bg_drivers",
+   "type": "background",
+   "value": "drivers",
+   "cost": 1350,
+   "nameKey": "cosName_profile_item",
+   "descKey": "cosDesc_background_generic",
+   "profileName": "Реакция ПРО",
+   "swatch": {
+    "kind": "image",
+    "uri": "/assets/images/profile-bg/drivers.webp"
+   }
+  },
+  {
+   "id": "bg_vasilyeva",
+   "type": "background",
+   "value": "vasilyeva",
+   "cost": 1350,
+   "nameKey": "cosName_profile_item",
+   "descKey": "cosDesc_background_generic",
+   "profileName": "Скорочтение PRO",
+   "swatch": {
+    "kind": "image",
+    "uri": "/assets/images/profile-bg/vasilyeva.webp"
+   }
+  },
+  {
+   "id": "bg_chess",
+   "type": "background",
+   "value": "chess",
+   "cost": 1500,
+   "nameKey": "cosName_profile_item",
+   "descKey": "cosDesc_background_generic",
+   "profileName": "Шахматист",
+   "swatch": {
+    "kind": "image",
+    "uri": "/assets/images/profile-bg/chess.webp"
+   }
+  },
+  {
+   "id": "bg_nzt48",
+   "type": "background",
+   "value": "nzt48",
+   "cost": 1650,
+   "nameKey": "cosName_profile_item",
+   "descKey": "cosDesc_background_generic",
+   "profileName": "NZT-48 (полный)",
+   "swatch": {
+    "kind": "image",
+    "uri": "/assets/images/profile-bg/nzt48.webp"
+   }
+  },
+  {
+   "id": "bg_execs",
+   "type": "background",
+   "value": "execs",
+   "cost": 1800,
+   "nameKey": "cosName_profile_item",
+   "descKey": "cosDesc_background_generic",
+   "profileName": "Предприниматели",
+   "swatch": {
+    "kind": "image",
+    "uri": "/assets/images/profile-bg/execs.webp"
+   }
+  },
+  {
+   "id": "bg_polyglot",
+   "type": "background",
+   "value": "polyglot",
+   "cost": 1200,
+   "nameKey": "cosName_profile_item",
+   "descKey": "cosDesc_background_generic",
+   "profileName": "Языки / Полиглот",
+   "swatch": {
+    "kind": "image",
+    "uri": "/assets/images/profile-bg/polyglot.webp"
+   }
+  },
+  {
+   "id": "badge_free",
+   "type": "badge",
+   "value": "free",
+   "cost": 900,
+   "nameKey": "cosName_profile_item",
+   "descKey": "cosDesc_badge_generic",
+   "profileName": "Стандарт",
+   "swatch": {
+    "kind": "image",
+    "uri": "/assets/images/profiles/free.webp"
+   }
+  },
+  {
+   "id": "badge_kids",
+   "type": "badge",
+   "value": "kids",
+   "cost": 900,
+   "nameKey": "cosName_profile_item",
+   "descKey": "cosDesc_badge_generic",
+   "profileName": "Дети 7-12",
+   "swatch": {
+    "kind": "image",
+    "uri": "/assets/images/profiles/kids.webp"
+   }
+  },
+  {
+   "id": "badge_students",
+   "type": "badge",
+   "value": "students",
+   "cost": 1050,
+   "nameKey": "cosName_profile_item",
+   "descKey": "cosDesc_badge_generic",
+   "profileName": "Студенты PRO",
+   "swatch": {
+    "kind": "image",
+    "uri": "/assets/images/profiles/students.webp"
+   }
+  },
+  {
+   "id": "badge_seniors",
+   "type": "badge",
+   "value": "seniors",
+   "cost": 1050,
+   "nameKey": "cosName_profile_item",
+   "descKey": "cosDesc_badge_generic",
+   "profileName": "50+ профилактика",
+   "swatch": {
+    "kind": "image",
+    "uri": "/assets/images/profiles/seniors.webp"
+   }
+  },
+  {
+   "id": "badge_women",
+   "type": "badge",
+   "value": "women",
+   "cost": 1200,
+   "nameKey": "cosName_profile_item",
+   "descKey": "cosDesc_badge_generic",
+   "profileName": "Микро-релакс",
+   "swatch": {
+    "kind": "image",
+    "uri": "/assets/images/profiles/women.webp"
+   }
+  },
+  {
+   "id": "badge_drivers",
+   "type": "badge",
+   "value": "drivers",
+   "cost": 1200,
+   "nameKey": "cosName_profile_item",
+   "descKey": "cosDesc_badge_generic",
+   "profileName": "Реакция ПРО",
+   "swatch": {
+    "kind": "image",
+    "uri": "/assets/images/profiles/drivers.webp"
+   }
+  },
+  {
+   "id": "badge_vasilyeva",
+   "type": "badge",
+   "value": "vasilyeva",
+   "cost": 1350,
+   "nameKey": "cosName_profile_item",
+   "descKey": "cosDesc_badge_generic",
+   "profileName": "Скорочтение PRO",
+   "swatch": {
+    "kind": "image",
+    "uri": "/assets/images/profiles/vasilyeva.webp"
+   }
+  },
+  {
+   "id": "badge_polyglot",
+   "type": "badge",
+   "value": "polyglot",
+   "cost": 1350,
+   "nameKey": "cosName_profile_item",
+   "descKey": "cosDesc_badge_generic",
+   "profileName": "Языки / Полиглот",
+   "swatch": {
+    "kind": "image",
+    "uri": "/assets/images/profiles/polyglot.webp"
+   }
+  },
+  {
+   "id": "badge_chess",
+   "type": "badge",
+   "value": "chess",
+   "cost": 1500,
+   "nameKey": "cosName_profile_item",
+   "descKey": "cosDesc_badge_generic",
+   "profileName": "Шахматист",
+   "swatch": {
+    "kind": "image",
+    "uri": "/assets/images/profiles/chess.webp"
+   }
+  },
+  {
+   "id": "badge_nzt48",
+   "type": "badge",
+   "value": "nzt48",
+   "cost": 1650,
+   "nameKey": "cosName_profile_item",
+   "descKey": "cosDesc_badge_generic",
+   "profileName": "NZT-48 (полный)",
+   "swatch": {
+    "kind": "image",
+    "uri": "/assets/images/profiles/nzt48.webp"
+   }
+  },
+  {
+   "id": "badge_execs",
+   "type": "badge",
+   "value": "execs",
+   "cost": 1650,
+   "nameKey": "cosName_profile_item",
+   "descKey": "cosDesc_badge_generic",
+   "profileName": "Предприниматели",
+   "swatch": {
+    "kind": "image",
+    "uri": "/assets/images/profiles/execs.webp"
+   }
+  },
+  {
+   "id": "badge_odv999",
+   "type": "badge",
+   "value": "odv999",
+   "cost": 1800,
+   "nameKey": "cosName_profile_item",
+   "descKey": "cosDesc_badge_generic",
+   "profileName": "ODV999",
+   "swatch": {
+    "kind": "image",
+    "uri": "/assets/images/profiles/odv999.webp"
+   }
+  }
+ ],
+ "digitDefaults": {
+  "odv999": "neon",
+  "whatsnew": "candy",
+  "women": "pastel",
+  "free": "rainbow",
+  "kids": "rainbow",
+  "seniors": "pastel",
+  "chess": "elegant",
+  "drivers": "neon",
+  "execs": "elegant",
+  "students": "rainbow",
+  "nzt48": "neon",
+  "vasilyeva": "pastel",
+  "polyglot": "elegant"
+ },
+ "digitFallback": "candy",
+ "wager": {
+  "stake": 300,
+  "days": 7,
+  "prize": 600
+ },
+ "rtl": [
+  "ar",
+  "he",
+  "fa",
+  "ur"
+ ]
+}

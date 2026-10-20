@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -6,8 +7,11 @@ import 'feedback_fab.dart' show FabRules;
 import 'info_screens.dart' show ModelPage, circleBack;
 import 'ion_icon.dart';
 import 'l10n.dart';
+import 'pet_model.dart';
+import 'profiles.dart';
 import 'screen_ui.dart';
 import 'shared_state.dart';
+import 'training_history.dart' show Wall, deviceWall;
 import 'walking_pet.dart' show PetFrames, PetSpec;
 import 'web_theme.dart';
 import '../synapse/synapse_feed.dart';
@@ -23,9 +27,22 @@ import '../synapse/synapse_feed.dart';
 /// 🗨 СИНАПС (задача 852e4b4a, решение Дениса 04.10): после партии в ТОМ ЖЕ пузыре — реплики ядра по
 /// фактам партии (`synapse/synapse_feed.dart`), «Следующая фраза» листает вторую и третью, «Закрыть»
 /// возвращает приветствие веба. Нет реплик, выключен питомец или нет общей памяти — пузырь как был.
+/// 🔴 ВАРИАНТ Б (задача d6a60b02): есть [state] — модель «Питомца» считается на Dart (`pet_model.dart`)
+/// из общей памяти и пересчитывается по каждой записи (кормление, мытьё, облик — их пишет страница);
+/// что сделало нажатие (действие на портрете, лакомство, реплика, подпись запертого облика), ложится
+/// поверх со страницы. Свой расчёт не удался — модель страницы, как раньше.
 class PetScreen extends StatefulWidget {
-  const PetScreen({super.key, required this.origin, this.state});
+  const PetScreen({super.key, required this.origin, this.state, this.ownModel = true});
   static const route = '/pet';
+
+  /// Считать модель на Dart (вариант Б). Пробы рисунка по модели веба выключают.
+  final bool ownModel;
+
+  /// Часы экрана (миг «сейчас» и местное время). Пробы подменяют.
+  @visibleForTesting
+  static int Function() now = () => DateTime.now().millisecondsSinceEpoch;
+  @visibleForTesting
+  static Wall wall = deviceWall;
 
   /// Адрес раздачи веб-сборки — кадры приходят путями от неё.
   final String origin;
@@ -53,8 +70,78 @@ class _PetScreenState extends State<PetScreen> with SingleTickerProviderStateMix
   /// Какая реплика Синапса в пузыре.
   int _line = 0;
 
+  // ── Своя модель (вариант Б) ──
+  final _own = ValueNotifier<Map<String, Object?>?>(null);
+  PetData? _data;
+  bool _failed = false;
+  Timer? _debounce;
+
+  /// Реплика пузыря — одна на показ экрана, как `pickReaction` веба на фокусе.
+  String? _bubble;
+
+  bool get _ownOn => widget.ownModel && widget.state != null;
+
+  @override
+  void initState() {
+    super.initState();
+    if (!_ownOn) return;
+    ScreenUi.model(PetScreen.route).addListener(_refresh);
+    widget.state!.writes.addListener(_onWrite);
+    PetData.load().then(
+      (d) {
+        _data = d;
+        _refresh();
+      },
+      onError: (Object e) {
+        debugPrint('PetScreen: own model data failed, using the page model ($e)');
+        _failed = true;
+        _refresh();
+      },
+    );
+  }
+
+  void _onWrite() {
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 200), _refresh);
+  }
+
+  Future<void> _refresh() async {
+    final s = widget.state, d = _data;
+    if (!mounted || s == null) return;
+    final page = ScreenUi.model(PetScreen.route).value;
+    if (_failed) {
+      _own.value = page;
+      return;
+    }
+    if (d == null) return;
+    try {
+      final ps = Profiles.current.list.isEmpty ? await Profiles.load() : Profiles.current;
+      _bubble ??= pickPetBubble(d, s.language);
+      final own = petModelFrom(
+        s,
+        d,
+        profiles: ps,
+        now: PetScreen.now(),
+        wall: PetScreen.wall,
+        language: s.language,
+        bubble: _bubble!,
+      );
+      if (mounted) _own.value = withPetPageEvents(own, page);
+    } catch (e) {
+      debugPrint('PetScreen: own model failed, using the page model ($e)');
+      _failed = true;
+      if (mounted) _own.value = page;
+    }
+  }
+
   @override
   void dispose() {
+    if (_ownOn) {
+      ScreenUi.model(PetScreen.route).removeListener(_refresh);
+      widget.state!.writes.removeListener(_onWrite);
+    }
+    _debounce?.cancel();
+    _own.dispose();
     _name.dispose();
     _treat.dispose();
     super.dispose();
@@ -84,6 +171,7 @@ class _PetScreenState extends State<PetScreen> with SingleTickerProviderStateMix
   Widget build(BuildContext context) => ModelPage(
     route: PetScreen.route,
     screenKey: 'pet-screen',
+    own: _ownOn ? _own : null,
     builder: (context, m) {
       final web = WebTheme.of(context);
       final win = MediaQuery.sizeOf(context);

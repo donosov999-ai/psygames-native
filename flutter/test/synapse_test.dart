@@ -118,7 +118,7 @@ void main() {
           data: MediaQueryData(size: size, textScaler: TextScaler.linear(text)),
           child: MaterialApp(
             home: Scaffold(
-              body: PetScreen(origin: 'http://127.0.0.1:1', state: s),
+              body: PetScreen(origin: 'http://127.0.0.1:1', state: s, ownModel: false),
             ),
           ),
         ),

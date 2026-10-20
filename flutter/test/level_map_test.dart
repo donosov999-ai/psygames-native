@@ -72,8 +72,15 @@ void main() {
     await openMap(tester);
     // 07.10.2026: потолок — ИЗ ЛЕСТНИЦЫ, а не литералом: #256 удлинил её 120 → 128, и литерал покраснел
     // на исправном экране (замер раздела «Поиск» на голове выпуска 2.56.15).
-    final ladderSteps = ((jsonDecode(File('assets/levels/sudoku-ladder.json').readAsStringSync()) as Map)['ladder'] as List).length;
-    expect(ladderSteps, greaterThanOrEqualTo(120), reason: 'лестница не может стать короче 120');
+    // 20.10.2026 (a72d652a): потолок карты — последняя СТУПЕНЬ, а не последняя доска: выше досок
+    // лестница идёт ступенями в других играх (строки kind:game файла переходов, 181–212).
+    final boards = ((jsonDecode(File('assets/levels/sudoku-ladder.json').readAsStringSync()) as Map)['ladder'] as List).length;
+    final games = [
+      for (final r in (jsonDecode(File('assets/levels/sudoku-ladder-transit.json').readAsStringSync()) as Map)['steps'] as List)
+        if ((r as Map)['kind'] == 'game') r['level'] as int,
+    ];
+    final ladderSteps = [boards, ...games].reduce((a, b) => a > b ? a : b);
+    expect(boards, greaterThanOrEqualTo(120), reason: 'лестница не может стать короче 120');
     expect(tester.widget<Text>(find.byKey(const Key('level-map-title'))).data, L.f('levelOfMax', {'n': '12', 'max': '$ladderSteps'}));
     // Закрытый узел (выше лучшего) не нажимается.
     await tester.scrollUntilVisible(find.byKey(const Key('level-node-21')), 120,

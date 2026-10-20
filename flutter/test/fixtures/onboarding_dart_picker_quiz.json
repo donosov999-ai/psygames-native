@@ -1,0 +1,175 @@
+{
+ "now": 1792469100000,
+ "tzOffsetMinutes": -300,
+ "language": "ru",
+ "tutorial": false,
+ "notifications": true,
+ "step": 0,
+ "quiz": {
+  "mood": 1,
+  "time": 2,
+  "taste": 0
+ },
+ "storage": {
+  "language": "ru",
+  "psygames_active_profile": "women"
+ },
+ "model": {
+  "v": 1,
+  "mode": "picker",
+  "busy": false,
+  "exit": "Пропустить",
+  "heading": {
+   "emoji": "🎮",
+   "title": "Выбери первую игру",
+   "body": "Не будем начинать с лекции. Выбери, что хочется попробовать прямо сейчас."
+  },
+  "quiz": {
+   "title": "🎯 Подобрать под меня",
+   "questions": [
+    {
+     "axis": "mood",
+     "q": "Чего хочется?",
+     "opts": [
+      {
+       "label": "Расслабиться",
+       "on": false
+      },
+      {
+       "label": "Прокачать мозг",
+       "on": true
+      },
+      {
+       "label": "Азарт и скорость",
+       "on": false
+      }
+     ]
+    },
+    {
+     "axis": "time",
+     "q": "Сколько времени есть?",
+     "opts": [
+      {
+       "label": "Минут пять",
+       "on": false
+      },
+      {
+       "label": "Десять–пятнадцать",
+       "on": false
+      },
+      {
+       "label": "Час и больше",
+       "on": true
+      }
+     ]
+    },
+    {
+     "axis": "taste",
+     "q": "Что ближе?",
+     "opts": [
+      {
+       "label": "Слова",
+       "on": true
+      },
+      {
+       "label": "Числа и логика",
+       "on": false
+      },
+      {
+       "label": "Картинки и память",
+       "on": false
+      }
+     ]
+    }
+   ],
+   "yours": {
+    "title": "Твои игры",
+    "cards": [
+     {
+      "id": "anagrams",
+      "name": "Анаграммы",
+      "skill": "Тренируем: вербальную гибкость",
+      "desc": "Собери слова из перемешанных букв — четыре режима",
+      "a11y": "Анаграммы. Тренируем: вербальную гибкость",
+      "gradient": [
+       "#ee9ca7",
+       "#ffdde1"
+      ],
+      "icon": "language",
+      "thumb": "/assets/images/gamethumbs/anagrams.webp"
+     },
+     {
+      "id": "sudoku_group",
+      "name": "Судоку: три доски",
+      "skill": "Тренируем: логику",
+      "desc": "Классическая, самурай и фрактальная",
+      "a11y": "Судоку: три доски. Тренируем: логику",
+      "gradient": [
+       "#3b2f7a",
+       "#5b4d9e"
+      ],
+      "icon": "apps",
+      "thumb": "/assets/images/gamethumbs/sudoku.webp"
+     },
+     {
+      "id": "hanoi",
+      "name": "Ханойская башня",
+      "skill": "Тренируем: решение задач",
+      "desc": "Перенеси все диски на правый стержень",
+      "a11y": "Ханойская башня. Тренируем: решение задач",
+      "gradient": [
+       "#a8c0ff",
+       "#3f2b96"
+      ],
+      "icon": "extension-puzzle",
+      "thumb": "/assets/images/gamethumbs/hanoi.webp"
+     }
+    ],
+    "profile": "Похоже, твой профиль — 🗣 Языки / Полиглот"
+   }
+  },
+  "or": "…или выбери сам",
+  "cards": [
+   {
+    "id": "picture_pairs",
+    "name": "Парные картинки",
+    "skill": "Тренируем: зрительную память",
+    "desc": "Открой все одинаковые пары",
+    "a11y": "Парные картинки. Тренируем: зрительную память",
+    "gradient": [
+     "#f857a6",
+     "#ff5858"
+    ],
+    "icon": "heart",
+    "thumb": "/assets/images/gamethumbs/picture_pairs.webp"
+   },
+   {
+    "id": "schulte_table",
+    "name": "Шульте: внимание",
+    "skill": "Тренируем: концентрацию",
+    "desc": "Поиск чисел от 1 до N",
+    "a11y": "Шульте: внимание. Тренируем: концентрацию",
+    "gradient": [
+     "#667eea",
+     "#764ba2"
+    ],
+    "icon": "grid",
+    "thumb": "/assets/images/gamethumbs/schulte_table.webp"
+   },
+   {
+    "id": "hanoi",
+    "name": "Ханойская башня",
+    "skill": "Тренируем: решение задач",
+    "desc": "Перенеси все диски на правый стержень",
+    "a11y": "Ханойская башня. Тренируем: решение задач",
+    "gradient": [
+     "#a8c0ff",
+     "#3f2b96"
+    ],
+    "icon": "extension-puzzle",
+    "thumb": "/assets/images/gamethumbs/hanoi.webp"
+   }
+  ],
+  "hint": "Память ∨ внимание ∨ логика — остальное всегда доступно на главной."
+ }
+}

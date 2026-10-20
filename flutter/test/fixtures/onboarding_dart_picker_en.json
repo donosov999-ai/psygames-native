@@ -1,0 +1,127 @@
+{
+ "now": 1792469100000,
+ "tzOffsetMinutes": -300,
+ "language": "en",
+ "tutorial": false,
+ "notifications": true,
+ "step": 0,
+ "quiz": {},
+ "storage": {
+  "language": "en",
+  "psygames_active_profile": "nzt48"
+ },
+ "model": {
+  "v": 1,
+  "mode": "picker",
+  "busy": false,
+  "exit": "Skip",
+  "heading": {
+   "emoji": "🎮",
+   "title": "Choose your first game",
+   "body": "No lecture first. Pick what you want to try right now."
+  },
+  "quiz": {
+   "title": "🎯 Pick for me",
+   "questions": [
+    {
+     "axis": "mood",
+     "q": "What are you in the mood for?",
+     "opts": [
+      {
+       "label": "Unwind",
+       "on": false
+      },
+      {
+       "label": "Train my brain",
+       "on": false
+      },
+      {
+       "label": "Thrill and speed",
+       "on": false
+      }
+     ]
+    },
+    {
+     "axis": "time",
+     "q": "How much time do you have?",
+     "opts": [
+      {
+       "label": "About five minutes",
+       "on": false
+      },
+      {
+       "label": "Ten to fifteen",
+       "on": false
+      },
+      {
+       "label": "An hour or more",
+       "on": false
+      }
+     ]
+    },
+    {
+     "axis": "taste",
+     "q": "What feels closer?",
+     "opts": [
+      {
+       "label": "Words",
+       "on": false
+      },
+      {
+       "label": "Numbers and logic",
+       "on": false
+      },
+      {
+       "label": "Pictures and memory",
+       "on": false
+      }
+     ]
+    }
+   ],
+   "yours": null
+  },
+  "or": "…or pick one yourself",
+  "cards": [
+   {
+    "id": "picture_pairs",
+    "name": "Picture Pairs",
+    "skill": "Training: visual memory",
+    "desc": "Reveal every matching pair",
+    "a11y": "Picture Pairs. Training: visual memory",
+    "gradient": [
+     "#f857a6",
+     "#ff5858"
+    ],
+    "icon": "heart",
+    "thumb": "/assets/images/gamethumbs/picture_pairs.webp"
+   },
+   {
+    "id": "schulte_table",
+    "name": "Schulte: Attention",
+    "skill": "Training: concentration",
+    "desc": "Find numbers from 1 to N",
+    "a11y": "Schulte: Attention. Training: concentration",
+    "gradient": [
+     "#667eea",
+     "#764ba2"
+    ],
+    "icon": "grid",
+    "thumb": "/assets/images/gamethumbs/schulte_table.webp"
+   },
+   {
+    "id": "hanoi",
+    "name": "Tower of Hanoi",
+    "skill": "Training: problem solving",
+    "desc": "Move all discs to the right peg",
+    "a11y": "Tower of Hanoi. Training: problem solving",
+    "gradient": [
+     "#a8c0ff",
+     "#3f2b96"
+    ],
+    "icon": "extension-puzzle",
+    "thumb": "/assets/images/gamethumbs/hanoi.webp"
+   }
+  ],
+  "hint": "Memory ∨ attention ∨ logic — everything else stays available on Home."
+ }
+}

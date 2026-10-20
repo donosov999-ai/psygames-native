@@ -1,0 +1,41 @@
+{
+ "now": 1792469100000,
+ "tzOffsetMinutes": -300,
+ "language": "en",
+ "tutorial": true,
+ "notifications": true,
+ "step": 7,
+ "quiz": {},
+ "storage": {
+  "language": "en",
+  "psygames_active_profile": "kids",
+  "psygames_playlists_override": "{\"профили\":{\"kids\":{\"зарядка_включена\":false}},\"наборы\":[],\"порядок\":null}"
+ },
+ "model": {
+  "v": 1,
+  "mode": "tutorial",
+  "busy": false,
+  "rtl": false,
+  "counter": "8 / 8",
+  "skip": null,
+  "slide": {
+   "emoji": "🚀",
+   "gradient": [
+    "#ef4444",
+    "#f97316"
+   ],
+   "title": "Let’s go!",
+   "body": "The best way to get PsyGames is to play right now. Your first round takes a couple of minutes.",
+   "finalHint": "🎲 Today: Choice RT: Speed"
+  },
+  "dots": {
+   "count": 8,
+   "active": 7
+  },
+  "main": {
+   "label": "PLAY TODAY’S CHALLENGE",
+   "icon": "play"
+  },
+  "secondary": "Just look around"
+ }
+}
