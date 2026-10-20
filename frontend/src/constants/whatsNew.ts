@@ -16,6 +16,22 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.56.33',
+    date: '2026-10-21',
+    en: [
+      'Sudoku: the ladder now continues past step 180 into other games — Cats and seven Tatham grids (Towers, Unequal, Keen, Solo, Undead, Singles, Filling), steps 181–212',
+      'Sudoku: a hint bought in the Shop now counts for your level step, like a free one — in classic Sudoku and Samurai',
+      'Sudoku section: the rules of Towers, Odd-Even and Cats are shown where you look for them — under “?” and in the walkthrough',
+      'Shop, Pet, Friends, onboarding, profile switcher and What’s new are now built by the app itself and no longer wait for the web layer',
+    ],
+    ru: [
+      '«Судоку»: лестница продолжается после 180-й ступени в других играх — «Кошки» и семь сеток Тэтхэма (Небоскрёбы, Неравенства, Keen, Solo, Undead, Singles, Filling), ступени 181–212',
+      '«Судоку»: подсказка, купленная в магазине, тоже засчитывается в ступень, как бесплатная — в классике и «Самурае»',
+      'Раздел «Судоку»: правила «Небоскрёбов», «Чёт-нечета» и «Кошек» видны там, где их ищут, — под «?» и в разборе',
+      '«Магазин», «Питомец», «Друзья», знакомство, переключатель профилей и «Что нового» теперь собирает само приложение — без ожидания веб-слоя',
+    ],
+  },
+  {
     version: '2.56.32',
     date: '2026-10-20',
     en: [

@@ -7,6 +7,16 @@
  "check": "Check for updates · v0.0.0",
  "entries": [
   {
+   "version": "v2.56.33",
+   "date": "2026-10-21",
+   "items": [
+    "Sudoku: the ladder now continues past step 180 into other games — Cats and seven Tatham grids (Towers, Unequal, Keen, Solo, Undead, Singles, Filling), steps 181–212",
+    "Sudoku: a hint bought in the Shop now counts for your level step, like a free one — in classic Sudoku and Samurai",
+    "Sudoku section: the rules of Towers, Odd-Even and Cats are shown where you look for them — under “?” and in the walkthrough",
+    "Shop, Pet, Friends, onboarding, profile switcher and What’s new are now built by the app itself and no longer wait for the web layer"
+   ]
+  },
+  {
    "version": "v2.56.32",
    "date": "2026-10-20",
    "items": [

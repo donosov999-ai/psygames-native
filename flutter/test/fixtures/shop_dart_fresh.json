@@ -140,7 +140,7 @@
      "id": "sudoku_hint",
      "icon": "bulb",
      "name": "Hint (Sudoku)",
-     "desc": "Sudoku: open a cell after the free hints run out. A round with a bought hint will not raise your level.",
+     "desc": "Sudoku: open a cell after the free hints run out. The level still counts, just like with a free hint.",
      "price": "150 ⭐ · in your wallet: 0",
      "buy": {
       "label": "Need more",
