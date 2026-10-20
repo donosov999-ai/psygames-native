@@ -1745,6 +1745,12 @@ class _SudokuScreenState extends State<SudokuScreen> {
     return LeaveGuard(live: _live, saved: _onRoad, child: GameShell(
       practice: _assisted,
       title: _title,
+      // 🔴 «?» В ШАПКЕ — ПРАВИЛО ЭТОЙ ДОСКИ (отзыв 0c682daf, 10.10: «Небоскрёбы», «ничего не понятно»).
+      // Без этого каркас брал правило по адресу, и для `?mode=towers` это описание карточки каталога
+      // «Подсказки на краях: сколько зданий видно», а правило с примером жило только в карточке
+      // «новое правило» (один раз) и в паузе. Классика своей справки правила не имеет — у неё «?»
+      // по-прежнему ведёт к правилу игры по адресу.
+      onRules: _hasRuleHelp ? _openRuleHelp : null,
       onLesson: _solution == null || _grid.isEmpty ? null : _openLesson,
       hud: [
         // ⚠️ Подпись одна и та же на оба случая: новая строка в коде — это новый долг

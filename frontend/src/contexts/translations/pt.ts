@@ -3044,6 +3044,7 @@ const t: Record<string, string> = {
   "puzzleSecondNoBridge": "Sem ponte",
   "puzzleSecondToPrev": "Ao anterior",
   "puzzleSecondWhite": "Branca",
+  "puzzleTapUnruly": "Toque numa casa: vazia → preta → branca",
   "puzzleNextStep": "Próximo passo",
   "teachLogicClueFull": "O número já foi atingido — as outras casas desta pista não recebem nada.",
   "teachLogicClueNeedsAll": "A pista precisa de exatamente tantas quantas casas livres restam — então todas são ocupadas.",
@@ -3108,7 +3109,7 @@ const t: Record<string, string> = {
   "puzzlesLightUpIntroDesc": "Ilumine todas as casas brancas. Uma lâmpada ilumina a própria casa e brilha em linha reta nas quatro direções até uma casa preta. Duas lâmpadas não podem iluminar uma à outra. O número numa casa preta diz quantas lâmpadas estão encostadas nela — em cima, embaixo, à esquerda e à direita; ao lado de uma casa preta sem número pode haver quantas forem. Exemplo: 0 quer dizer nenhuma lâmpada ao lado; 4, lâmpadas nos quatro lados. Toque para pôr ou tirar uma lâmpada; o botão “Sem lâmpada” ou um toque longo marca “aqui não vai lâmpada”. O que está iluminado fica amarelo e os erros ficam vermelhos: está resolvido quando tudo está amarelo e nada vermelho.",
   "puzzlesLoopyDesc": "Forma um laço fechado conforme os números",
   "puzzlesUnrulyDesc": "Mesmo número de casas pretas e brancas, nunca três iguais seguidas",
-  "puzzlesUnrulyIntroDesc": "Aqui vivem quarenta quebra-cabeças lógicos. Cada um tem sua regra, mas há algo em comum: cada tabuleiro tem exatamente uma solução e o raciocínio sempre chega lá — adivinhar nunca é preciso. Escolha o modo no cartão; a dificuldade cresce por uma escada própria em cada quebra-cabeça. Um toque curto faz uma jogada, um toque LONGO é a segunda ação: em Ímãs deixa metade do dominó vazia, em Minas marca uma mina, em Par e ímpar percorre ao contrário. Desfazer, pedir dica ou recomeçar estão no menu de pausa — o botão ⏸ no canto superior esquerdo.",
+  "puzzlesUnrulyIntroDesc": "O tabuleiro é preenchido com casas pretas e brancas segundo três regras: em cada linha e em cada coluna há tantas pretas quanto brancas; nunca há três iguais seguidas, nem na horizontal nem na vertical; e não há duas linhas nem duas colunas iguais. As casas iniciais não mudam. Um toque percorre vazia → preta → branca; ative ⇄ sob o tabuleiro e os toques vão ao contrário.",
   // Наборы «Стоп и запрет» и «Решения» — 12.09.2026, расформирование развилок inhibition-hub и risk-hub.
   "suiteInhibition": "Parar e conter",
   "suiteInhibitionDesc": "Não tocar no proibido e cancelar um movimento já iniciado",
