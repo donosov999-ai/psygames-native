@@ -161,6 +161,8 @@ flutter:
     - assets/shop.json
     # Переключатель профилей на Dart (вариант Б): ярус, значок, источник фразы, значки разделов — проба flutter-switcher-asset-fresh.
     - assets/switcher.json
+    # «Знакомство» на Dart (вариант Б): игры, подбор на 27 сочетаний, вопросы, слайды — проба flutter-onboarding-asset-fresh.
+    - assets/onboarding.json
     # Главная: готовые цвета карточек и ключи на лету (проба flutter-home-asset-fresh, вариант Б).
     - assets/home.json
     # Входы Главной на Dart (вариант Б, 7б): картинки профилей, вещи, кадры питомца, правила — `home_inputs.dart`.

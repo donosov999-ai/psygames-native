@@ -1,9 +1,14 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
 import 'ion_icon.dart';
+import 'onboarding_model.dart';
+import 'profiles.dart';
 import 'screen_ui.dart';
+import 'shared_state.dart';
+import 'training_history.dart' show Wall, deviceWall;
 import 'web_theme.dart';
 
 /// ЗНАКОМСТВО `/onboarding` НА FLUTTER — ПЕРЕНОС `frontend/app/onboarding.tsx` (задача a8aa91e0,
@@ -11,26 +16,164 @@ import 'web_theme.dart';
 ///
 /// Два вида, как у веба: ПОДБОР (первый запуск: три вопроса → три игры «под себя» и список игр
 /// знакомства, «Пропустить» сверху и снизу) и ОБУЧЕНИЕ (`?tutorial=1`: слайды, точки, «Дальше»).
-/// Подбор `pickGames`, отметки «знакомство пройдено», переходы и слайды считает веб под оболочкой;
-/// сюда приходит модель, нажатия уходят действиями веба (`quiz`, `choose`, `skipPicker`, `main`,
-/// `secondary`, `skip`).
-class OnboardingScreen extends StatelessWidget {
-  const OnboardingScreen({super.key, required this.origin});
+/// Отметки «знакомство пройдено», переходы и разрешение напоминаний — действия веба (`quiz`, `choose`,
+/// `skipPicker`, `main`, `secondary`, `skip`).
+///
+/// 🔴 МОДЕЛЬ СЧИТАЕТ DART (задача d6a60b02, вариант Б, `onboarding_model.dart`): подбор, карточки и слайды
+/// — без страницы. Шаг обучения и ответы подбора держит экран и шлёт те же действия странице; когда её
+/// модель сменилась, экран берёт её шаг и ответы — нажатие, не дошедшее до страницы, не разводит их.
+/// «Занято» — со страницы. Обучение ли (`?tutorial=1`) — по адресу страницы (`OnboardingScreen.enter`).
+/// Своя модель не собралась — модель страницы, как раньше.
+class OnboardingScreen extends StatefulWidget {
+  const OnboardingScreen({super.key, required this.origin, this.state, this.ownModel = true});
 
   static const route = '/onboarding';
 
   /// Сервер раздачи сборки — картинки игр по адресу из модели.
   final String origin;
 
+  /// Общая память. Нет — экран рисует модель страницы.
+  final SharedState? state;
+
+  /// Считать модель на Dart (вариант Б). Пробы рисунка по модели веба выключают.
+  final bool ownModel;
+
+  /// Часы экрана — местная дата вызова дня. Пробы подменяют.
+  @visibleForTesting
+  static int Function() now = () => DateTime.now().millisecondsSinceEpoch;
+  @visibleForTesting
+  static Wall wall = deviceWall;
+
+  /// Вход на экран: обучение ли (`?tutorial=1`) и номер входа. Каждый вход — первый слайд и пустые ответы,
+  /// как новый экран веба. Ставит оболочка по адресу страницы.
+  static final entry = ValueNotifier<({bool tutorial, int n})>((tutorial: false, n: 0));
+  static void enter({required bool tutorial}) => entry.value = (tutorial: tutorial, n: entry.value.n + 1);
+
+  @override
+  State<OnboardingScreen> createState() => _OnboardingScreenState();
+}
+
+class _OnboardingScreenState extends State<OnboardingScreen> {
+  static const route = OnboardingScreen.route;
   static const _violet = Color(0xFF7C3AED);
 
-  void _act(String a, [List<Object?> args = const []]) => ScreenUi.act(route, a, args);
+  /// Слайд уведомлений веб показывает только вне веба; под оболочкой страница — веб, слайда нет.
+  static const _notifications = false;
+
+  final _own = ValueNotifier<Map<String, Object?>?>(null);
+  OnboardingData? _data;
+  bool _failed = false;
+  Timer? _debounce;
+  int _step = 0;
+  Map<String, int> _quiz = {};
+  Map<String, Object?>? _pageSeen;
+
+  bool get _ownOn => widget.ownModel && widget.state != null;
+
+  @override
+  void initState() {
+    super.initState();
+    if (!_ownOn) return;
+    ScreenUi.model(route).addListener(_onPage);
+    widget.state!.writes.addListener(_onWrite);
+    OnboardingScreen.entry.addListener(_onEntry);
+    OnboardingData.load().then(
+      (d) {
+        _data = d;
+        _refresh();
+      },
+      onError: (Object e) {
+        debugPrint('OnboardingScreen: own model data failed, using the page model ($e)');
+        _failed = true;
+        _refresh();
+      },
+    );
+  }
+
+  void _onEntry() {
+    _step = 0;
+    _quiz = {};
+    _refresh();
+  }
+
+  void _onPage() {
+    final page = ScreenUi.model(route).value;
+    if (!identical(page, _pageSeen)) {
+      _pageSeen = page;
+      final st = onboardingPageState(page);
+      if (st.step case final step? when OnboardingScreen.entry.value.tutorial) _step = step;
+      if (st.quiz case final quiz? when !OnboardingScreen.entry.value.tutorial) _quiz = {...quiz};
+    }
+    _refresh();
+  }
+
+  void _onWrite() {
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 200), _refresh);
+  }
+
+  Future<void> _refresh() async {
+    final s = widget.state, d = _data;
+    if (!mounted || s == null) return;
+    final page = ScreenUi.model(route).value;
+    if (_failed) {
+      _own.value = page;
+      return;
+    }
+    if (d == null) return;
+    try {
+      final ps = Profiles.current.list.isEmpty ? await Profiles.load() : Profiles.current;
+      if (!mounted) return;
+      final own = onboardingModelFrom(
+        s,
+        d,
+        profiles: ps,
+        language: s.language,
+        tutorial: OnboardingScreen.entry.value.tutorial,
+        notifications: _notifications,
+        step: _step,
+        quiz: _quiz,
+        wall: OnboardingScreen.wall(OnboardingScreen.now()),
+      );
+      _own.value = withOnboardingPageEvents(own, page);
+    } catch (e) {
+      debugPrint('OnboardingScreen: own model failed, using the page model ($e)');
+      _failed = true;
+      if (mounted) _own.value = page;
+    }
+  }
+
+  @override
+  void dispose() {
+    if (_ownOn) {
+      ScreenUi.model(route).removeListener(_onPage);
+      widget.state!.writes.removeListener(_onWrite);
+      OnboardingScreen.entry.removeListener(_onEntry);
+    }
+    _debounce?.cancel();
+    _own.dispose();
+    super.dispose();
+  }
+
+  /// Действие — странице; ответ подбора и шаг обучения экран ставит себе сразу, как сделает страница:
+  /// «Дальше» не на последнем слайде, «Не сейчас» на слайде уведомлений — следующий слайд.
+  void _act(String a, [List<Object?> args = const []]) {
+    if (_ownOn && _data != null) {
+      final slides = onboardingSlides(_data!, notifications: _notifications);
+      final kind = slides[_step.clamp(0, slides.length - 1)]['kind'];
+      if (a == 'quiz' && args.length == 2 && args[1] is int) _quiz = {..._quiz, '${args[0]}': args[1]! as int};
+      if (a == 'main' && kind != 'final' && _step < slides.length - 1) _step++;
+      if (a == 'secondary' && kind == 'notifications') _step++;
+      _refresh();
+    }
+    ScreenUi.act(route, a, args);
+  }
 
   @override
   Widget build(BuildContext context) {
     final web = WebTheme.of(context);
     return ValueListenableBuilder<Map<String, Object?>?>(
-      valueListenable: ScreenUi.model(route),
+      valueListenable: _ownOn ? _own : ScreenUi.model(route),
       builder: (context, m, _) {
         final mode = m?['mode'];
         final Widget body;
@@ -313,7 +456,7 @@ class OnboardingScreen extends StatelessWidget {
                   Opacity(
                     opacity: 0.24,
                     child: Image.network(
-                      thumb.startsWith('http') ? thumb : '$origin$thumb',
+                      thumb.startsWith('http') ? thumb : '${widget.origin}$thumb',
                       fit: BoxFit.cover,
                       errorBuilder: (_, _, _) => const SizedBox.shrink(),
                     ),
