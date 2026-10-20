@@ -2735,7 +2735,7 @@ const t: Record<string, string> = {
   "abName_second_life": "Seconde vie (Cibles, Sudoku)",
   "abDesc_second_life": "Cibles et Sudoku : la partie ne s’arrête pas quand les vies ou les erreurs sont épuisées. Une par partie, et cette partie ne fait pas monter de niveau.",
   "abName_sudoku_hint": "Indice (Sudoku)",
-  "abDesc_sudoku_hint": "Sudoku : révèle une case quand les indices gratuits sont épuisés. Une partie avec un indice acheté ne fait pas monter de niveau.",
+  "abDesc_sudoku_hint": "Sudoku : révèle une case quand les indices gratuits sont épuisés. Le niveau compte comme avec un indice gratuit.",
   "abName_practice_run": "Essai libre",
   "abDesc_practice_run": "Jeux de mesure : la partie n’est enregistrée nulle part — ni points, ni niveau, ni statistiques. Essaie sans conséquences.",
   "abName_streak_shield": "Bouclier de série",

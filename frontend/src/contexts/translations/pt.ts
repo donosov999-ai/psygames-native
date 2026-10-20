@@ -2740,7 +2740,7 @@ const t: Record<string, string> = {
   "abName_second_life": "Segunda vida (Alvos, Sudoku)",
   "abDesc_second_life": "Alvos e Sudoku: a partida não termina quando acabam as vidas ou os erros. Uma por partida, e essa partida não sobe de nível.",
   "abName_sudoku_hint": "Dica (Sudoku)",
-  "abDesc_sudoku_hint": "Sudoku: revela uma casa quando as dicas grátis acabam. Uma partida com dica comprada não sobe de nível.",
+  "abDesc_sudoku_hint": "Sudoku: revela uma casa quando as dicas grátis acabam. O nível conta como com uma dica grátis.",
   "abName_practice_run": "Rodada de teste",
   "abDesc_practice_run": "Jogos de medição: a partida não é registrada em lugar nenhum — sem pontos, sem nível, sem estatísticas. Experimente sem consequências.",
   "abName_streak_shield": "Escudo de sequência",
