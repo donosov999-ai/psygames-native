@@ -7,6 +7,15 @@
  "check": "التحقق من التحديثات · v0.0.0",
  "entries": [
   {
+   "version": "v2.56.34",
+   "date": "2026-10-21",
+   "items": [
+    "Feedback: voice messages work again — the app asks for the microphone when you record",
+    "Cats: fewer hints on harder levels — 3, then 2, then 1",
+    "Fractal Sudoku: the centre cells show the grid beneath again — tap one to dive in"
+   ]
+  },
+  {
    "version": "v2.56.33",
    "date": "2026-10-21",
    "items": [

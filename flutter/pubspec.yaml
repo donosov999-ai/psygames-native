@@ -35,6 +35,10 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
   webview_flutter: ^4.14.1
+  # 🎤 Голос в отзыве (c092cd47): выдать основной странице микрофон и звук без жеста — нажатия формы
+  # идут из оболочки, а не пальцем по странице. Версии — те, что уже стояли в pubspec.lock транзитивно.
+  webview_flutter_android: ^4.14.1
+  webview_flutter_wkwebview: ^3.26.1
   shared_preferences: ^2.5.5
   ffi: ^2.1.4
   # Шахматные правила «Детского мата»: законные ходы, SAN, мат. Чистый Dart без

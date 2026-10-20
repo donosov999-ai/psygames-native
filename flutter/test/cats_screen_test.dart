@@ -194,6 +194,29 @@ void main() {
     semantics.dispose();
   });
 
+  testWidgets('🔴 подсказок — сколько даёт ступень: на первой три, на верхней одна (отзыв ceaadcc0)', (tester) async {
+    Finder cats() => find.byWidgetPredicate((w) => w is Text && w.key != null && w.key.toString().contains('cat_'));
+    Future<void> hint(WidgetTester tester) async {
+      await tester.tap(find.byTooltip(L.t('btn_hint')), warnIfMissed: false);
+      await tester.pump();
+    }
+
+    await boot(tester);
+    for (var i = 0; i < 4; i++) {
+      await hint(tester);
+    }
+    expect(cats(), findsNWidgets(3), reason: 'первая ступень: три подсказки, четвёртой нет');
+    await tester.pumpWidget(const SizedBox());
+
+    SharedPreferences.setMockInitialValues({'${SharedState.prefix}cats_level_nzt48': '$catsLevelCount'});
+    await tester.runAsync(() async => state = await SharedState.open());
+    await boot(tester);
+    for (var i = 0; i < 3; i++) {
+      await hint(tester);
+    }
+    expect(cats(), findsOneWidget, reason: 'верхняя ступень (перебор): одна подсказка, а не три');
+  });
+
   testWidgets('🔴 доска влезает в экран на 403×873 и на 360×640', (tester) async {
     for (final size in [const Size(403, 873), const Size(360, 640)]) {
       tester.view.physicalSize = size;

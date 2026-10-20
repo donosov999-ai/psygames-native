@@ -103,9 +103,11 @@ void main() {
 
     // Клетка корня, которую кормит дочерняя 0, — середина её блока: (1,1).
     expect(digitAt(tester, 'root_', 1, 1), 0, reason: 'кормящая клетка пуста на старте');
-    // Руками её не заполнить: тычок не выбирает её вовсе.
+    // Руками её не заполнить: тычок ведёт В ЕЁ СЕТКУ (вход, как у веба), цифра в корень не встаёт.
     await tap(tester, find.byKey(const Key('root_1_1')));
     await tap(tester, find.byKey(const Key('digit7')));
+    expect(find.byKey(const Key('root_0_0')), findsNothing, reason: 'тычок по кормящей клетке открыл сетку');
+    await tap(tester, find.byTooltip('На карту'));
     expect(digitAt(tester, 'root_', 1, 1), 0, reason: 'кормящую клетку руками не заполняют');
 
     // Играем дочернюю 0 по решению, пока экран сам не вернётся на карту.

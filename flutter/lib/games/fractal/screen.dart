@@ -21,6 +21,7 @@ import '../sudoku/lesson.dart';
 import '../sudoku/marks.dart';
 import '../sudoku/leave_guard.dart';
 import '../sudoku/level_map.dart';
+import '../deep/screen.dart' show FedRingPainter;
 import 'resume.dart';
 import 'levels.dart';
 import 'rules.dart';
@@ -284,7 +285,13 @@ class _FractalScreenState extends State<FractalScreen> {
       return;
     }
     final f = _puzzle!;
-    if (child == null && !rootEditable(f.rootPuzzle, r, c)) return;
+    // 🔴 Кормящая клетка корня — вход в свою сетку, как у веба («вложенная клетка и есть вход»,
+    // sudoku-fractal.tsx: касание `fedChild` ведёт в сетку). До 21.10 касание здесь было пустым.
+    if (child == null && !rootEditable(f.rootPuzzle, r, c)) {
+      final fed = fedChildAt(r, c);
+      if (fed != null) _openTile(fed);
+      return;
+    }
     if (child != null && f.children[child].puzzle[r][c] != 0) return;
     setState(() {
       _selected = (child: child, r: r, c: c);
@@ -765,6 +772,8 @@ class _MapView extends StatelessWidget {
                   // Корень единственен: рукой поставлена не та цифра — ошибка (как у веба).
                   wrong: (r, cc) => rootEditable(puzzle.rootPuzzle, r, cc) &&
                       play.rootGrid[r][cc] != puzzle.rootSolution[r][cc],
+                  fed: fedChildAt,
+                  ghost: (i) => (grid: play.children[i].grid, given: puzzle.children[i].puzzle),
                   onTap: onRootTap,
                 ),
               ),
@@ -914,6 +923,8 @@ class FractalGridView extends StatelessWidget {
     this.wrong,
     this.marks,
     this.colors,
+    this.fed,
+    this.ghost,
   });
 
   final double size;
@@ -934,6 +945,12 @@ class FractalGridView extends StatelessWidget {
 
   /// Номер (с нуля) сетки-близнеца портала — в углу клетки-портала, как у веба.
   final int? portalTag;
+
+  /// Какая дочерняя сетка кормит клетку корня (`null` — никакая); только на карте.
+  final int? Function(int r, int c)? fed;
+
+  /// Что сейчас в дочерней сетке — для призрака в её кормящей клетке.
+  final ({List<List<int>> grid, List<List<int>> given}) Function(int child)? ghost;
 
   @override
   Widget build(BuildContext context) {
@@ -963,6 +980,8 @@ class FractalGridView extends StatelessWidget {
                       waiting: dimmed?.call(r, c) ?? false,
                       portal: portal?.call(r, c) ?? false,
                       portalTag: portalTag,
+                      fedTag: fed?.call(r, c),
+                      ghost: switch (fed?.call(r, c)) { final int i => ghost?.call(i), _ => null },
                       wrong: values[r][c] != 0 && (wrong?.call(r, c) ?? false),
                       selected: selected != null && selected!.r == r && selected!.c == c,
                       scheme: scheme,
@@ -990,6 +1009,8 @@ class _Cell extends StatelessWidget {
     required this.waiting,
     required this.portal,
     this.portalTag,
+    this.fedTag,
+    this.ghost,
     required this.wrong,
     required this.selected,
     required this.scheme,
@@ -1010,6 +1031,16 @@ class _Cell extends StatelessWidget {
   /// Сетка-близнец портала (с нуля): её номер в углу кольца.
   final int? portalTag;
 
+  /// 🔴 КОРМЯЩАЯ КЛЕТКА КОРНЯ — «ПРОСВЕТ» СЛЕДУЮЩЕГО УРОВНЯ (отзыв 170e9f46, 10.10: «должны были
+  /// просвечивать следующий уровень»). Номер сетки (с нуля), что приносит сюда цифру. Как у веба
+  /// (sudoku-fractal.tsx, `fedRing`/`fedTag`/`ghost`): пунктирная рамка, пока цифра не пришла
+  /// (сплошная вполсилы — когда пришла), номер в левом углу и призрак — миниатюра сетки под клеткой.
+  /// Перенос 02.10 взял только серый фон, и центр каждого квадрата выглядел пустой клеткой.
+  final int? fedTag;
+
+  /// Текущая дочерняя сетка и её задание — точки призрака.
+  final ({List<List<int>> grid, List<List<int>> given})? ghost;
+
   /// Цифра — доказуемая ошибка: рисуется красным.
   final bool wrong;
   final bool selected;
@@ -1020,13 +1051,17 @@ class _Cell extends StatelessWidget {
   Widget build(BuildContext context) {
     // Выбор виден поверх краски — как в классике: иначе в крашеной клетке человек
     // теряет, куда сейчас пишет.
+    final dark = scheme.brightness == Brightness.dark;
     final bg = selected
         ? scheme.primaryContainer
         : paint >= 0 && paint < sudokuColorCount
             ? cellColors[paint].withValues(alpha: 0.35)
-            : waiting
-                ? scheme.surfaceContainerHighest
-                : scheme.surface;
+            : fedTag != null && value == 0
+                ? (dark ? const Color(0xFF3A3358) : const Color(0xFFECE9F7))
+                : waiting
+                    ? scheme.surfaceContainerHighest
+                    : scheme.surface;
+    final fed = fedTag;
     return SizedBox(
       width: size,
       height: size,
@@ -1058,6 +1093,18 @@ class _Cell extends StatelessWidget {
             ),
             child: Stack(
               children: [
+                if (fed != null) ...[
+                  Positioned.fill(
+                    child: CustomPaint(
+                      key: Key('fed_ring_$keyName'),
+                      painter: FedRingPainter(
+                        color: dark ? const Color(0xFF6F66A8) : const Color(0xFFA89FDB),
+                        dashed: value == 0,
+                      ),
+                    ),
+                  ),
+                  if (value == 0 && ghost != null) _Ghost(key: Key('fed_ghost_$keyName'), cell: size, ghost: ghost!, dark: dark),
+                ],
                 // Кольцо портала: клетка видна из двух пазлов сразу.
                 if (portal)
                   Positioned.fill(
@@ -1100,6 +1147,22 @@ class _Cell extends StatelessWidget {
                           ),
                         ),
                 ),
+                // Номер сетки — после цифры: в углу, поверх, и первым Text клетки остаётся цифра.
+                if (fed != null)
+                  Positioned(
+                    top: -0.5,
+                    left: 2.5,
+                    child: Text(
+                      '${fed + 1}',
+                      key: Key('fed_tag_$keyName'),
+                      style: TextStyle(
+                        fontSize: max(7, size * 0.24),
+                        fontWeight: FontWeight.w800,
+                        color: (dark ? const Color(0xFF8D84C2) : const Color(0xFF7F76B8))
+                            .withValues(alpha: value == 0 ? 1 : 0.6),
+                      ),
+                    ),
+                  ),
               ],
             ),
           ),
@@ -1107,6 +1170,62 @@ class _Cell extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Какая дочерняя сетка кормит клетку корня ([rootCellForChild] наоборот); `null` — никакая.
+int? fedChildAt(int r, int c) {
+  for (var i = 0; i < 9; i++) {
+    final at = rootCellForChild(i);
+    if (at[0] == r && at[1] == c) return i;
+  }
+  return null;
+}
+
+/// Призрак дочерней сетки — точки 9×9 в кормящей клетке корня, размеры и цвета веба (`ghost()`):
+/// точка подстраивается под клетку (`(клетка − 6) / 9`), меньше 2 px — не рисуется; заданная
+/// цифра — бледно-фиолетовая, поставленная рукой — `#7f7fd5`, пустая — прозрачная.
+class _Ghost extends StatelessWidget {
+  const _Ghost({super.key, required this.cell, required this.ghost, required this.dark});
+
+  final double cell;
+  final ({List<List<int>> grid, List<List<int>> given}) ghost;
+  final bool dark;
+
+  @override
+  Widget build(BuildContext context) {
+    final dot = ((cell - 6) / 9).floorToDouble();
+    if (dot < 2) return const SizedBox.shrink();
+    return Center(
+      child: SizedBox(
+        width: dot * 9,
+        height: dot * 9,
+        child: CustomPaint(painter: _GhostPainter(ghost: ghost, dot: dot, dark: dark)),
+      ),
+    );
+  }
+}
+
+class _GhostPainter extends CustomPainter {
+  const _GhostPainter({required this.ghost, required this.dot, required this.dark});
+
+  final ({List<List<int>> grid, List<List<int>> given}) ghost;
+  final double dot;
+  final bool dark;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final given = Paint()..color = dark ? const Color(0x73A399E0) : const Color(0x4D5B4D9E);
+    final placed = Paint()..color = const Color(0xFF7F7FD5);
+    for (var r = 0; r < 9; r++) {
+      for (var c = 0; c < 9; c++) {
+        if (ghost.grid[r][c] == 0) continue;
+        canvas.drawRect(Rect.fromLTWH(c * dot, r * dot, dot, dot), ghost.given[r][c] != 0 ? given : placed);
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(_GhostPainter old) => true;
 }
 
 /// Липкий низ: общие клавиши раздела (`keypad.dart`) — цифры, «Стереть», палитра.
