@@ -40,7 +40,12 @@ void main() {
   Future<void> boot(WidgetTester tester, String mode) async {
     await tester.runAsync(() async {
       await tester.pumpWidget(MaterialApp(
-        home: PuzzlesScreen(state: state, mode: mode, libraryPath: libPath),
+        // 🔴 ДОСКА — ПО ЗЕРНУ (21.10.2026). Без него экран берёт время, и раз из ~40 у «Инерции» все
+        // диагонали со старта упираются в стену, а прямой ход ведёт на мину: партия кончена, панель
+        // стрелок прячется (`won || lost`), и тычок в диагональ падает «0 widgets». Так 21.10 упал CI
+        // PR #373 (правка не о «Инерции»). Скан 30 зёрен 20261001–20261030: диагональ ходит с первого
+        // круга на всех. Зерно — то же, что у `puzzles_screen_test`.
+        home: PuzzlesScreen(state: state, mode: mode, libraryPath: libPath, seed: 20261011),
       ));
       for (var i = 0; i < 40; i++) {
         await tester.pump(const Duration(milliseconds: 50));

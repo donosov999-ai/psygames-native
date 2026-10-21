@@ -16,6 +16,16 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.56.35',
+    date: '2026-10-21',
+    en: [
+      'Sudoku section: after a win the header shows the level you just played, not the next one',
+    ],
+    ru: [
+      'Раздел «Судоку»: после победы в шапке — сыгранный уровень, а не следующий',
+    ],
+  },
+  {
     version: '2.56.34',
     date: '2026-10-21',
     en: [

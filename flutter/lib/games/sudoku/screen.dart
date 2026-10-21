@@ -347,6 +347,14 @@ class _SudokuScreenState extends State<SudokuScreen> {
   /// «Начать». `null` — ступень своя, с доской.
   LadderTransit? _gameStep;
   bool _lost = false;
+
+  /// 🔴 СТУПЕНЬ СЫГРАННОЙ ПАРТИИ — ДЛЯ ШАПКИ, ПОКА НА ЭКРАНЕ ИТОГ. [LevelLadder.win] поднимает
+  /// ступень сразу, и до 21.10 над решённой доской с «Далее» шапка уже показывала следующую
+  /// (замер: «Кошки», ступень 1 → «Уровень: 2»). Тот же дефект веба чинила ветка 17.09
+  /// `sudoku/cleared-card-level`, в натив он переехал вместе с экраном.
+  int? _endLevel;
+
+  int get _hudLevel => _won ? (_endLevel ?? _ladder.level) : _ladder.level;
   String? _failure;
 
   /// 🔴 ВТОРАЯ ЖИЗНЬ И КУПЛЕННАЯ ПОДСКАЗКА (задача 576405e7, решение Дениса 08.10).
@@ -1473,6 +1481,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
     }
     _recordOutcome(helped ? Outcome.assisted : Outcome.passed);
     final level = _ladder.level;
+    _endLevel = level;
     // Звёзды карты уровней — за пройденную ступень; ступень с купленной жизнью не пройдена.
     if (!_lifeSpent) unawaited(saveLevelStars(widget.state, 'sudoku', level, sudokuStars(_errors)));
     // Трудность и подробности — как у веба (app/games/sudoku.tsx, saveSession победы).
@@ -1838,7 +1847,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
                   ? _freeLabel(_side?.step ?? 1)
                   : widget.mode != null
                       ? '${_side?.step ?? 1}/${sideStepsOf(widget.mode!)}'
-                      : _pilot ? '${_pilotWins + 1}' : '${_ladder.level}',
+                      : _pilot ? '${_pilotWins + 1}' : '$_hudLevel',
           icon: _pilot ? Icons.auto_awesome : Icons.trending_up,
         ),
         HudItem(label: L.t('errors'), value: '$_errors/$_errorCap', icon: Icons.close),

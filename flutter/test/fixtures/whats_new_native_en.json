@@ -7,6 +7,13 @@
  "check": "Check for updates · v0.0.0",
  "entries": [
   {
+   "version": "v2.56.35",
+   "date": "2026-10-21",
+   "items": [
+    "Sudoku section: after a win the header shows the level you just played, not the next one"
+   ]
+  },
+  {
    "version": "v2.56.34",
    "date": "2026-10-21",
    "items": [

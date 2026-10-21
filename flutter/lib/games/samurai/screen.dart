@@ -72,6 +72,14 @@ class _SamuraiScreenState extends State<SamuraiScreen> {
   int _startedAt = gameNow();
   int get _elapsed => (gameNow() - _startedAt) ~/ 1000;
   bool _lost = false;
+
+  /// 🔴 СТУПЕНЬ СЫГРАННОЙ ПАРТИИ — ДЛЯ ШАПКИ, ПОКА НА ЭКРАНЕ ИТОГ. [LevelLadder.win] поднимает
+  /// ступень сразу, и до 21.10 над решённой доской с «Далее» шапка уже показывала следующую
+  /// (замер: «Кошки», ступень 1 → «Уровень: 2»). Тот же дефект веба чинила ветка 17.09
+  /// `sudoku/cleared-card-level`, в натив он переехал вместе с экраном.
+  int? _endLevel;
+
+  int get _hudLevel => (_won || _lost) ? (_endLevel ?? _ladder.level) : _ladder.level;
   String? _failure;
   SamuraiZoom _zoom = SamuraiZoom.map;
 
@@ -360,6 +368,7 @@ class _SamuraiScreenState extends State<SamuraiScreen> {
     _deathOffer = false;
     _lost = true;
     final level = _ladder.level;
+    _endLevel = level;
     unawaited(_ladder.fail(
       timeSeconds: _elapsed,
       errors: _errors,
@@ -442,6 +451,7 @@ class _SamuraiScreenState extends State<SamuraiScreen> {
     if (!isSolved(_grid, board.solution)) return;
     _won = true;
     final level = _ladder.level;
+    _endLevel = level;
     // Звёзды — за пройденную ступень; ступень с потраченной жизнью не пройдена.
     if (!_lifeSpent) unawaited(saveLevelStars(widget.state, 'sudoku_samurai', level, samuraiStars(_errors, _hintsUsed)));
     unawaited(_ladder.win(
@@ -545,7 +555,7 @@ class _SamuraiScreenState extends State<SamuraiScreen> {
       title: _title,
       onLesson: _lessonSteps().isEmpty ? null : _openLesson,
       hud: [
-        HudItem(label: L.t('sdkHudStage'), value: '${_ladder.level}', icon: Icons.trending_up),
+        HudItem(label: L.t('sdkHudStage'), value: '$_hudLevel', icon: Icons.trending_up),
         HudItem(label: L.t('errors'), value: '$_errors/$_errorCap', icon: Icons.close),
         if (board != null) HudItem(label: L.t('hcLeft'), value: '$_left', icon: Icons.grid_on),
       ],
