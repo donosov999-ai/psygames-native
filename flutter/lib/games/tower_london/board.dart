@@ -39,7 +39,7 @@ const Map<String, List<Color>> ballColors = {
   'P': [Color(0xFFF9A8D4), Color(0xFFDB2777)],
 };
 
-/// ПОЛЕ «ЛОНДОНСКОЙ БАШНИ»: слева цель, справа рабочие стержни.
+/// ПОЛЕ «ЛОНДОНСКОЙ БАШНИ»: сверху мелко цель, в центре рабочие стержни.
 ///
 /// 🔴 ЦЕЛЬ ВИДНА ВСЁ ВРЕМЯ, А НЕ «в справке». Игра на планирование: держать
 /// положение-цель в голове — это другая задача (на память), и она мерила бы не
@@ -62,46 +62,74 @@ class TolBoard extends StatelessWidget {
   final void Function(int peg) onTapPeg;
   final void Function(int from, int to) onDrop;
 
+  /// Доля высоты поля под образец сверху.
+  static const double goalShare = 0.18;
+
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, c) {
-        // Цель занимает треть ширины, поле — остальное: цель только смотрят.
-        final goalW = (c.maxWidth * 0.32).clamp(90.0, 160.0);
-        final boardW = c.maxWidth - goalW - 12;
+        /*
+         * 🔴 РАБОЧАЯ ДОСКА — В ЦЕНТРЕ, ОБРАЗЕЦ — МЕЛКО НАД НЕЙ (отзыв b7bce17c,
+         * 11.10.2026: «подними в центр что решаем и пример мелко под ним или над
+         * ним»). Раньше образец стоял слева на треть ширины, обе доски жались к
+         * низу поля, а над ними пустовало две трети экрана. Теперь образец —
+         * сверху посередине и вдвое уже рабочей доски, рабочая — в центре
+         * оставшегося места. Порядок стержней один и тот же — сравнивать сверху
+         * вниз так же легко, как раньше слева направо.
+         */
+        final goalH = (fieldHeight * goalShare).clamp(56.0, 110.0);
+        final boardW = c.maxWidth < 560 ? c.maxWidth : 560.0;
+        final goalW = (boardW * 0.5).clamp(110.0, 260.0);
+        final boardH = fieldHeight - goalH - 12;
         return SizedBox(
           width: c.maxWidth,
           height: fieldHeight,
-          child: Row(
-            // По ОСНОВАНИЮ, а не по центру: цель и рабочая доска стоят на одной
-            // линии, и их легко сравнивать взглядом — ради этого цель и рисуется.
-            crossAxisAlignment: CrossAxisAlignment.end,
+          child: Column(
             children: [
               SizedBox(
-                width: goalW,
-                child: _Pegs(
-                  state: goal,
-                  height: fieldHeight * 0.62,
-                  width: goalW,
-                  title: L.t('goalLabel'),
-                  interactive: false,
-                  selected: null,
-                  onTapPeg: (_) {},
-                  onDrop: (_, _) {},
+                key: const ValueKey('tol-goal-panel'),
+                height: goalH,
+                // Крупный шрифт растит подпись «Цель» — образец ужимается, а не
+                // вылезает из своей полосы (проба tower_london_layout_test, ×1,6).
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: SizedBox(
+                    width: goalW,
+                    child: _Pegs(
+                      state: goal,
+                      // Подпись «Цель» берёт строку над стержнями — её место вычитаем.
+                      height: goalH - 18,
+                      width: goalW,
+                      title: L.t('goalLabel'),
+                      maxBall: 24,
+                      interactive: false,
+                      selected: null,
+                      onTapPeg: (_) {},
+                      onDrop: (_, _) {},
+                    ),
+                  ),
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(height: 12),
               SizedBox(
-                width: boardW,
-                child: _Pegs(
-                  state: state,
-                  height: fieldHeight * 0.86,
-                  width: boardW,
-                  title: null,
-                  interactive: true,
-                  selected: selected,
-                  onTapPeg: onTapPeg,
-                  onDrop: onDrop,
+                key: const ValueKey('tol-work-panel'),
+                height: boardH,
+                child: Center(
+                  child: SizedBox(
+                    width: boardW,
+                    child: _Pegs(
+                      state: state,
+                      height: boardH,
+                      width: boardW,
+                      title: null,
+                      maxBall: 64,
+                      interactive: true,
+                      selected: selected,
+                      onTapPeg: onTapPeg,
+                      onDrop: onDrop,
+                    ),
+                  ),
                 ),
               ),
             ],
@@ -118,6 +146,7 @@ class _Pegs extends StatelessWidget {
     required this.height,
     required this.width,
     required this.title,
+    required this.maxBall,
     required this.interactive,
     required this.selected,
     required this.onTapPeg,
@@ -128,6 +157,9 @@ class _Pegs extends StatelessWidget {
   final double height;
   final double width;
   final String? title;
+
+  /// Потолок шара: образец мелкий (24), рабочая доска крупная (64).
+  final double maxBall;
   final bool interactive;
   final int? selected;
   final void Function(int peg) onTapPeg;
@@ -141,7 +173,7 @@ class _Pegs extends StatelessWidget {
     final tallest = state.caps.reduce((a, b) => a > b ? a : b);
     // Шар считается от МЕСТА: и по ширине стержня, и по высоте самого высокого.
     final ball = (pegW * 0.78 < (height - 26) / tallest ? pegW * 0.78 : (height - 26) / tallest)
-        .clamp(12.0, 46.0);
+        .clamp(12.0, maxBall);
 
     return Column(
       mainAxisSize: MainAxisSize.min,
