@@ -272,12 +272,34 @@ describe('киллер: лестница растит нужность сумм,
    * Сторожим то же, что у башен: снизу вверх суммы должны становиться НУЖНЕЕ.
    */
   const d9 = dimsForSize(9);
+  /**
+   * 🔴 ДОСКИ — ПО ЗЕРНУ, А НЕ ПО `Math.random` (21.10.2026). Без зерна проба плавала: 21.10 CI PR #373
+   * (правка только во Flutter) дал «верх 1.00 не выше низа 1.00» — все 14 верхних досок решились без
+   * сумм. Замер по 20 зёрнам 20261001–20261020: низ 14/14 всегда, верх 6–12/14 (медиана 9),
+   * «с суммами» 12/12 всегда — то есть 14/14 наверху это хвост выборки, а не поломка лестницы.
+   * Зерно взято МЕДИАННОЕ (верх 9/14), не самое удобное. Приём — mulberry32, как в
+   * `conflict-ratio-is-not-difficulty.test.ts`.
+   */
+  const KILLER_SEED = 20261008;
+  const seeded = (seed: number): (() => number) => {
+    let a = seed >>> 0;
+    return () => {
+      a = (a + 0x6d2b79f5) >>> 0;
+      let t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  };
+  const realRandom = Math.random;
+  afterEach(() => { Math.random = realRandom; });
   const безСумм = (blanks: number, tries = 14) => {
+    Math.random = seeded(KILLER_SEED);
     let n = 0;
     for (let i = 0; i < tries; i++) {
       const g = generatePuzzle(blanks, d9.N, d9.BR, d9.BC, 'none');
       if (gradePuzzle(g.puzzle, { N: d9.N, BR: d9.BR, BC: d9.BC, variant: 'none' }).solved) n++;
     }
+    Math.random = realRandom;
     return n / tries;
   };
 
@@ -300,6 +322,7 @@ describe('киллер: лестница растит нужность сумм,
 
   it('🔴 доска верхней ступени всё ещё берётся логикой — с суммами', () => {
     const blanks = KILLER_LADDER[KILLER_LADDER.length - 1];
+    Math.random = seeded(KILLER_SEED);
     let решено = 0;
     for (let i = 0; i < 12; i++) {
       const g = generatePuzzle(blanks, d9.N, d9.BR, d9.BC, 'none');
