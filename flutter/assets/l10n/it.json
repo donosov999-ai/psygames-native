@@ -1840,6 +1840,7 @@
 "rollAndBankDesc":"Tira il dado e avanza. Puoi tirare ancora o mettere al sicuro i passi fatti. Un uno brucia tutto ciò che non è al sicuro e il turno passa al bot. Vince chi arriva primo al traguardo.",
 "round":"Round",
 "rspanLvlAuto":"Liv {n} — cresce da solo: più frasi per set",
+"rspanTapHint":"Tocca le ultime parole nell'ordine in cui sono apparse le frasi",
 "sameLevelRetry":"Stesso livello — di nuovo…",
 "samuraiDesc":"Cinque griglie 9×9 con blocchi d’angolo condivisi. Regole del sudoku in ognuna.",
 "samuraiTitle":"Samurai",

@@ -1840,6 +1840,7 @@
 "rollAndBankDesc":"Würfle und zieh vorwärts. Würfle weiter oder sichere deinen Fortschritt. Eine Eins lässt alles Ungesicherte verfallen, und der Bot ist dran. Wer zuerst im Ziel ist, gewinnt.",
 "round":"Runde",
 "rspanLvlAuto":"Lv {n} — wächst von allein: mehr Sätze pro Set",
+"rspanTapHint":"Tippe die letzten Wörter in der Reihenfolge an, in der die Sätze kamen",
 "sameLevelRetry":"Gleiches Level — noch mal …",
 "samuraiDesc":"Fünf 9×9-Gitter mit gemeinsamen Eckblöcken. In jedem gelten Sudoku-Regeln.",
 "samuraiTitle":"Samurai",

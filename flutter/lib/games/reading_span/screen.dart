@@ -65,6 +65,9 @@ class _ReadingSpanScreenState extends State<ReadingSpanScreen> {
   final _input = TextEditingController();
   List<RspanSentence> _pool = const [];
 
+  /// Плитки вспоминания касанием — только в шаге зарядки; `null` — ввод с клавиатуры.
+  List<String>? _choices;
+
   ReadingSpanGame? _game;
   RspanPhase _phase = RspanPhase.ready;
   int _setSize = 3;
@@ -121,6 +124,7 @@ class _ReadingSpanScreenState extends State<ReadingSpanScreen> {
       _holdMs = p.holdMs;
     }
     _game = null;
+    _choices = null;
     _phase = RspanPhase.ready;
     _input.clear();
     _lastJudge = null;
@@ -139,6 +143,7 @@ class _ReadingSpanScreenState extends State<ReadingSpanScreen> {
     if (!mounted) return;
     setState(() {
       _game = ReadingSpanGame(level: _ladder.level, seq: deal.picked);
+      if (GamePreset.isWarmup) _choices = rspanRecallChoices(deal.picked, _pool, _lang, _rng);
       _phase = RspanPhase.judge;
     });
     _startedAt = gameNow();
@@ -223,7 +228,9 @@ class _ReadingSpanScreenState extends State<ReadingSpanScreen> {
         RspanPhase.ready => _Ready(level: _ladder.level, onStart: _start),
         RspanPhase.judge => _Judge(sentence: g!.current, language: _lang),
         RspanPhase.hold => const _Hold(),
-        RspanPhase.recall => const _Recall(),
+        RspanPhase.recall => _Recall(
+            tiles: _choices == null ? null : _RecallTiles(words: _choices!, controller: _input),
+          ),
         RspanPhase.done => _Done(game: g!, levelNow: _ladder.level),
         RspanPhase.revealed => RspanSolution(seq: g?.seq ?? const [], language: _lang),
       },
@@ -238,7 +245,9 @@ class _ReadingSpanScreenState extends State<ReadingSpanScreen> {
       ]),
       toolbar: switch (_phase) {
         RspanPhase.judge => _JudgeButtons(last: _lastJudge, onJudge: _judge),
-        RspanPhase.recall => _RecallBar(controller: _input, onSubmit: _check),
+        RspanPhase.recall => _choices == null
+            ? _RecallBar(controller: _input, onSubmit: _check)
+            : _TapRecallBar(controller: _input, onSubmit: _check),
         RspanPhase.done || RspanPhase.revealed => Padding(
             padding: const EdgeInsets.all(12),
             child: FilledButton.icon(
@@ -445,7 +454,11 @@ class _Hold extends StatelessWidget {
 }
 
 class _Recall extends StatelessWidget {
-  const _Recall();
+  const _Recall({this.tiles});
+
+  /// Плитки вспоминания касанием (шаг зарядки) — в прокрутке поля: на длинном наборе их до
+  /// 18, в ряд под полем они не влезают (замер 360×640, 21.10.2026). `null` — ввод с клавиатуры.
+  final Widget? tiles;
 
   @override
   Widget build(BuildContext context) {
@@ -456,7 +469,8 @@ class _Recall extends StatelessWidget {
         children: [
           Text(L.t('recallNow'), textAlign: TextAlign.center, style: text.titleLarge?.copyWith(fontWeight: FontWeight.w800)),
           const SizedBox(height: 6),
-          Text(L.t('recallHint'), textAlign: TextAlign.center, style: text.bodySmall),
+          Text(tiles != null ? L.t('rspanTapHint') : L.t('recallHint'), textAlign: TextAlign.center, style: text.bodySmall),
+          if (tiles != null) ...[const SizedBox(height: 12), tiles!],
         ],
       ),
     );
@@ -512,6 +526,103 @@ class _RecallBar extends StatelessWidget {
             ),
           ),
         ),
+      );
+}
+
+/// Слова ответа, собранного касаниями, — из того же поля, что пишет клавиатура.
+List<String> _pickedWords(TextEditingController c) => [
+      for (final w in c.text.split(' '))
+        if (w.isNotEmpty) w,
+    ];
+
+/// Вспоминание касанием — в шаге зарядки: плитка дописывает слово в тот же ответ, что и
+/// клавиатура. Проверка и счёт — общие с вводом текстом.
+class _RecallTiles extends StatelessWidget {
+  const _RecallTiles({required this.words, required this.controller});
+
+  final List<String> words;
+  final TextEditingController controller;
+
+  @override
+  Widget build(BuildContext context) => Wrap(
+        alignment: WrapAlignment.center,
+        spacing: 8,
+        runSpacing: 8,
+        children: [
+          for (var i = 0; i < words.length; i++)
+            OutlinedButton(
+              key: Key('rspan-word-$i'),
+              onPressed: () => controller.text = [..._pickedWords(controller), words[i]].join(' '),
+              style: OutlinedButton.styleFrom(minimumSize: const Size(48, 48)),
+              child: Text(words[i]),
+            ),
+        ],
+      );
+}
+
+/// Ряд под полем в шаге зарядки: собранный ответ, «Стереть» (снимает последнее слово) и «Проверить».
+class _TapRecallBar extends StatelessWidget {
+  const _TapRecallBar({required this.controller, required this.onSubmit});
+
+  final TextEditingController controller;
+  final VoidCallback onSubmit;
+
+  @override
+  Widget build(BuildContext context) => ListenableBuilder(
+        listenable: controller,
+        builder: (context, _) {
+          final picked = _pickedWords(controller);
+          return Padding(
+            padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 460),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Container(
+                      constraints: const BoxConstraints(minHeight: 48),
+                      alignment: Alignment.center,
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Theme.of(context).colorScheme.outline),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        picked.isEmpty ? L.t('recallPlaceholder') : picked.join(' · '),
+                        key: const Key('rspan-answer'),
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        OutlinedButton.icon(
+                          key: const Key('rspan-erase'),
+                          onPressed: picked.isEmpty ? null : () => controller.text = picked.sublist(0, picked.length - 1).join(' '),
+                          style: OutlinedButton.styleFrom(minimumSize: const Size(48, 48)),
+                          icon: const Icon(Icons.backspace_outlined),
+                          label: Text(L.t('a11yErase')),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: FilledButton(
+                            key: const Key('rspan-check'),
+                            onPressed: onSubmit,
+                            style: FilledButton.styleFrom(minimumSize: const Size(0, 48)),
+                            child: Text(L.t('check')),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
       );
 }
 

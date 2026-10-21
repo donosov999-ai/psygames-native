@@ -308,14 +308,64 @@ void main() {
     expect(find.byKey(const Key('rspan-input')), findsOneWidget, reason: 'после удержания ввод открылся');
   });
 
+  /// Шаг зарядки: слова собираются касанием плиток, клавиатуры нет (отчёт 42240f97).
+  Future<void> tapAnswer(WidgetTester tester, List<String> words) async {
+    for (final w in words) {
+      await tester.tap(find.widgetWithText(OutlinedButton, w.toLowerCase()));
+      await tester.pump();
+    }
+    await tester.tap(find.byKey(const Key('rspan-check')));
+    await tester.pump();
+    await tester.pump();
+  }
+
   testWidgets('🔴 шаг зарядки: стартует сам, набор из шага под потолком уровня, уровень не двигается', (tester) async {
     await boot(tester, level: 1, preset: {'wu': '1', 'setSize': '6'});
     expect(find.byKey(const Key('rspan-start')), findsNothing, reason: 'шаг стартует сам');
     final words = await readSet(tester);
     expect(words.length, 4, reason: 'шаг просит 6, освоено 3 — больше освоенного + 1 не даём');
-    await answer(tester, words.join(' '));
+    await tapAnswer(tester, words);
     expect('${sent.single['difficulty']} / ${sent.single['mode']}', 'medium / 4-set');
     expect(hud(tester, L.t('level'), '1'), isTrue, reason: 'шаг зарядки личный уровень не двигает');
+  });
+
+  testWidgets('🔴 шаг зарядки вспоминается касанием: клавиатуры нет, плитки — слова набора и столько же чужих (42240f97)',
+      (tester) async {
+    await boot(tester, level: 3, preset: {'wu': '1', 'setSize': '4'});
+    final words = await readSet(tester);
+    expect(find.byKey(const Key('rspan-input')), findsNothing, reason: 'в шаге зарядки поля ввода нет');
+    expect(find.byType(EditableText), findsNothing, reason: 'клавиатура не вызывается ничем');
+    expect(find.text(L.t('rspanTapHint')), findsOneWidget, reason: 'подсказка про касание, не про набор');
+    final tiles = [
+      for (var i = 0; find.byKey(Key('rspan-word-$i')).evaluate().isNotEmpty; i++)
+        ((tester.widget<OutlinedButton>(find.byKey(Key('rspan-word-$i'))).child! as Text).data!),
+    ];
+    final want = {for (final w in words) w.toLowerCase()};
+    expect(tiles.toSet().containsAll(want), isTrue, reason: 'все слова набора есть среди плиток: $tiles против $want');
+    expect(tiles.length, want.length * 2, reason: 'чужих слов столько же, сколько своих: $tiles');
+    expect(tiles.toSet().length, tiles.length, reason: 'плитки не повторяются');
+  });
+
+  testWidgets('🔴 шаг зарядки: не тот порядок — ошибка; «Стереть» снимает последнее слово', (tester) async {
+    await boot(tester, level: 3, preset: {'wu': '1', 'setSize': '4'});
+    final words = await readSet(tester);
+    final answerText = find.byKey(const Key('rspan-answer'));
+    await tester.tap(find.widgetWithText(OutlinedButton, words[1].toLowerCase()));
+    await tester.pump();
+    expect(tester.widget<Text>(answerText).data, words[1].toLowerCase());
+    await tester.tap(find.byKey(const Key('rspan-erase')));
+    await tester.pump();
+    expect(tester.widget<Text>(answerText).data, L.t('recallPlaceholder'), reason: 'стёрто — ответ пуст');
+    await tapAnswer(tester, [...words.reversed]);
+    expect(find.byKey(const Key('rspan-failed')), findsOneWidget, reason: 'обратный порядок не засчитан');
+  });
+
+  testWidgets('🔴 шаг зарядки на 360×640: плитки, «Стереть» и «Проверить» на экране, не меньше 48×48', (tester) async {
+    await expectPlayFit(tester, () async {
+      await boot(tester, level: 9, preset: {'wu': '1', 'setSize': '9'});
+      await readSet(tester);
+    }, where: 'reading-span, шаг зарядки, вспоминание касанием');
+    await tester.pumpWidget(const SizedBox());
   });
 
   testWidgets('🔴 «Показать решение»: весь набор с пометкой смысла и словами по порядку; партия не засчитана', (tester) async {

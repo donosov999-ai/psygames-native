@@ -1840,6 +1840,7 @@
 "rollAndBankDesc":"Lance le dé et avance. Tu peux relancer ou garder ta progression. Un 1 fait perdre tout ce qui n’est pas gardé et le tour passe au bot. Le premier à l’arrivée gagne.",
 "round":"Manche",
 "rspanLvlAuto":"Niv {n} — évolue seul : plus de phrases par série",
+"rspanTapHint":"Touche les derniers mots dans l'ordre où les phrases sont apparues",
 "sameLevelRetry":"Même niveau — on remet ça…",
 "samuraiDesc":"Cinq grilles 9×9 aux blocs d’angle partagés. Règles du sudoku dans chacune.",
 "samuraiTitle":"Samouraï",

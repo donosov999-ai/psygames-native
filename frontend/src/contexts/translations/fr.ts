@@ -784,6 +784,7 @@ const t: Record<string, string> = {
   "recallNow": "Restitue les mots",
   "recallHint": "Saisis les derniers mots, séparés par des espaces, dans le bon ordre",
   "recallPlaceholder": "mot mot mot ...",
+  "rspanTapHint": "Touche les derniers mots dans l'ordre où les phrases sont apparues",
   "teachRspanJudge": "Lisez la phrase et décidez si elle a du sens. Retenez son dernier mot : on vous le demandera à la fin.",
   "teachRspanNonsense": "L'absurde est aussi une réponse : touchez Absurde, mais retenez quand même le dernier mot.",
   "teachRspanRecall": "Après la série, tapez les derniers mots dans le même ordre, séparés par des espaces.",

@@ -429,6 +429,7 @@ const t: Record<string, string> = {
   "recallNow": "Wörter abrufen",
   "recallHint": "Gib die letzten Wörter durch Leerzeichen getrennt in der richtigen Reihenfolge ein",
   "recallPlaceholder": "Wort Wort Wort …",
+  "rspanTapHint": "Tippe die letzten Wörter in der Reihenfolge an, in der die Sätze kamen",
   "teachRspanJudge": "Lies den Satz und entscheide, ob er Sinn ergibt. Merke dir das letzte Wort: Am Ende wirst du danach gefragt.",
   "teachRspanNonsense": "Unsinn ist auch eine Antwort: Tippe auf Unsinn, aber merke dir trotzdem das letzte Wort.",
   "teachRspanRecall": "Tippe nach dem Satzblock die letzten Wörter in derselben Reihenfolge ein, getrennt durch Leerzeichen.",

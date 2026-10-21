@@ -1729,6 +1729,7 @@ const translations: Translations = {
   recallNow:      { ru: 'Вспомните слова',         en: 'Recall words' },
   recallHint:     { ru: 'Введите последние слова через пробел в правильном порядке', en: 'Type the last words separated by spaces in the correct order' },
   recallPlaceholder: { ru: 'слово слово слово ...', en: 'word word word ...' },
+  rspanTapHint:   { ru: 'Нажимайте последние слова в том порядке, в каком шли предложения', en: 'Tap the last words in the order the sentences were shown' },
   teachRspanJudge: { ru: 'Прочитайте предложение и решите, есть ли в нём смысл. Последнее слово запомните — его спросят в конце.', en: 'Read the sentence and decide whether it makes sense. Remember its last word: you will be asked for it at the end.' },
   teachRspanNonsense: { ru: 'Бессмыслица — тоже ответ: жмите «Бессмыслица», но последнее слово всё равно запомните.', en: 'Nonsense is an answer too: tap Nonsense, but still remember the last word.' },
   teachRspanRecall: { ru: 'После набора наберите последние слова в том же порядке, через пробел.', en: 'After the set, type the last words in the same order, separated by spaces.' },

@@ -429,6 +429,7 @@ const t: Record<string, string> = {
   "recallNow": "Lembrar palavras",
   "recallHint": "Digite as últimas palavras separadas por espaços na ordem correta",
   "recallPlaceholder": "palavra palavra palavra ...",
+  "rspanTapHint": "Toque nas últimas palavras na ordem em que as frases apareceram",
   "teachRspanJudge": "Leia a frase e decida se ela faz sentido. Guarde a última palavra: ela será pedida no final.",
   "teachRspanNonsense": "Sem sentido também é uma resposta: toque em Sem sentido, mas guarde a última palavra mesmo assim.",
   "teachRspanRecall": "Depois da série, digite as últimas palavras na mesma ordem, separadas por espaços.",
