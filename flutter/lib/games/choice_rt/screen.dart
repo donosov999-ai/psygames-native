@@ -76,6 +76,14 @@ class _ChoiceRtScreenState extends State<ChoiceRtScreen> {
     if (choiceRtAutostart || GamePreset.autostart) _start();
   }
 
+  /// Лестница поднялась этой партией — кнопка ведёт на новый уровень и сразу его начинает, как
+  /// «Дальше» у Струпа и `nextNow` веба. «Ещё раз» после победы читалось как повтор (отзыв ec36e399).
+  int? get _nextLevel {
+    final g = _game;
+    if (g == null || GamePreset.isPreset || GamePreset.isTransit) return null;
+    return _ladder.level > g.level ? _ladder.level : null;
+  }
+
   void _reset() {
     _timer?.cancel();
     _game = ChoiceRtGame(level: _ladder.level, nowMs: widget.clock, rnd: widget.rnd);
@@ -202,6 +210,11 @@ class _ChoiceRtScreenState extends State<ChoiceRtScreen> {
         height: h,
         onStart: _start,
         onAgain: () => setState(_reset),
+        nextLevel: _nextLevel,
+        onContinue: () {
+          setState(_reset);
+          _start();
+        },
       ),
       toolbar: _phase == ChoiceRtPhase.playing ? _Pad(game: g, onPick: _answer) : null,
     );
@@ -248,6 +261,8 @@ class _Field extends StatelessWidget {
     required this.height,
     required this.onStart,
     required this.onAgain,
+    this.nextLevel,
+    this.onContinue,
   });
 
   final ChoiceRtGame game;
@@ -260,6 +275,10 @@ class _Field extends StatelessWidget {
   final double height;
   final VoidCallback onStart;
   final VoidCallback onAgain;
+
+  /// Уровень, на который партия подняла лестницу; `null` — не подняла (проигрыш, зарядка, транзит).
+  final int? nextLevel;
+  final VoidCallback? onContinue;
 
   @override
   Widget build(BuildContext context) {
@@ -306,7 +325,14 @@ class _Field extends StatelessWidget {
                 : '${L.t('meanReaction')}: ${game.meanRtMs} ${L.t('msShort')}'),
             BossOutcomeLine(boss),
             const SizedBox(height: 16),
-            FilledButton(onPressed: onAgain, child: Text(L.t('retry'))),
+            if (nextLevel != null)
+              FilledButton(
+                key: const Key('level-next'),
+                onPressed: onContinue,
+                child: Text(L.t('nextLevelBtn').replaceAll('{n}', '$nextLevel')),
+              )
+            else
+              FilledButton(onPressed: onAgain, child: Text(L.t('retry'))),
           ],
         );
       case ChoiceRtPhase.playing:
