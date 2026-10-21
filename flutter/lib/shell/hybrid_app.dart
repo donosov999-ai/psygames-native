@@ -1430,6 +1430,8 @@ class _HybridAppState extends State<HybridApp> {
       );
     _openedPage = page;
     final result = await Navigator.of(context).push(page);
+    // Хозяин шага зарядки на момент закрытия (после «Заново» он новый) — ниже он завершает зарядку.
+    final stepOwnerAtClose = step != null && identical(_openedPage, page) ? _openedWarmupOwner : null;
     // ⚠️ Отметку снимаем, ТОЛЬКО если она всё ещё наша: когда страница ушла вперёд,
     // поверх уже открыт следующий экран, и его отметку затирать нельзя.
     /*
@@ -1484,11 +1486,25 @@ class _HybridAppState extends State<HybridApp> {
      */
     // `takeWebDirty` — после переноса кодом / восстановления копии: прогресс переписан целиком.
     final reloadWeb = (_watchedSnapshot() != watchedBefore) | SettingsScreen.takeWebDirty();
+    /*
+     * 🔴 ЧЕЛОВЕК ЗАКРЫЛ ШАГ ЗАРЯДКИ САМ — ЭТО ВЫХОД ИЗ ЗАРЯДКИ, А НЕ ШАГ ИСТОРИИ НАЗАД
+     * (задача 3795a9be, 21.10.2026, 3 из 3 на 2.56.32/2.56.33). Шаг, открытый после
+     * отсчёта моста, веб ставит на адрес через `router.replace` (`goTo`) — записи
+     * «до шага» в истории нет, `history.back()` оставлял страницу на ВЕБ-копии игры:
+     * без нижней панели, с идущим таймером, поверх — веб-«Что нового». Веб сам на
+     * «Назад» во время зарядки делает `stop` и уходит на главную (`WarmupContext`,
+     * hardwareBackPress) — оболочка просит ровно это хозяином закрытого шага. Хозяин
+     * чужой или хоста нет — прежний путь назад.
+     */
+    final stopWarmup = stepOwnerAtClose == null
+        ? ''
+        : 'var h=window.__psyWarmupHost;if(h&&h.stop&&h.stop(${jsonEncode(stepOwnerAtClose.toJson())})){'
+            '${reloadWeb ? 'setTimeout(function(){location.reload();},800);' : ''}return;}';
     if (mounted && !goingOn) {
-      await _c.runJavaScript(reloadWeb
-          ? "(function(){var d=false;function r(){if(d)return;d=true;location.reload();}"
-              "if(String(location.pathname).indexOf('$route')>=0){window.addEventListener('popstate',r,{once:true});history.back();setTimeout(r,800);}else r();})();"
-          : "if (String(location.pathname).indexOf('$route') >= 0) history.back();");
+      await _c.runJavaScript('(function(){$stopWarmup${reloadWeb
+          ? "var d=false;function r(){if(d)return;d=true;location.reload();}"
+              "if(String(location.pathname).indexOf('$route')>=0){window.addEventListener('popstate',r,{once:true});history.back();setTimeout(r,800);}else r();"
+          : "if (String(location.pathname).indexOf('$route') >= 0) history.back();"}})();');
     } else if (mounted && reloadWeb && result is HubCardTap && HybridApp.native.containsKey(result.route)) {
       // Дальше откроется нативный экран, а страница под ним осталась бы в старом виде.
       await _c.runJavaScript('location.reload();');
