@@ -61,7 +61,7 @@ COSA TROVI NELL'APP
 • 131 esercizi per memoria, attenzione, logica, velocità e controllo
 • Riscaldamenti mattina, giorno, sera e notte pronti con un tocco
 • Tema scuro e un set notturno per quando non arriva il sonno: respirazione 4-7-8, schermo attenuato, senza punti né serie
-• 12 profili: lingue, bambini, 50+, concentrazione, reazione, studenti e altro
+• 13 profili: lingue, bambini, 50+, concentrazione, reazione, studenti e altro
 • Valutazione con radar di punti forti e capacità da migliorare
 • 12 lingue · funziona offline · senza pubblicità · senza registrazione
 

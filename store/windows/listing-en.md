@@ -77,7 +77,7 @@ WHAT'S INSIDE
 
 • 131 exercises for memory, attention, logic, speed and control
 • Warm-up in one button: morning, daytime, evening and night — ready sets launch with the right settings
-• 12 profiles for different goals: languages, kids, 50+, focus, reaction, founders and more
+• 13 profiles for different goals: languages, kids, 50+, focus, reaction, founders and more
 • Assessment with a radar of strengths and weak spots
 • 12 languages · works offline · no ads
 
@@ -121,7 +121,7 @@ Levels that adapt: rise when you nail it, wait when you miss
 Sudoku with 37 rule variants
 N-back, Stroop, Corsi, Trail Making and 50 more validated tasks
 Warm-up in one button: morning, daytime, evening, night
-12 profiles: languages, kids, 50+, focus, reaction, founders
+13 profiles: languages, kids, 50+, focus, reaction, founders
 Assessment with a radar of strengths and weak spots
 Synapse — a pet that grows with your training
 Daily challenge, streaks and achievements

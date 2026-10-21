@@ -78,7 +78,7 @@ WHAT'S INSIDE
 • 131 exercises for memory, attention, logic, speed and control
 • Warm-up in one button: morning, daytime, evening and night
 • Dark theme, and a night set for when you can't sleep: 4-7-8 breathing on a dimmed screen, no points, no streak
-• 12 profiles: languages, kids, 50+, focus, reaction, founders and more
+• 13 profiles: languages, kids, 50+, focus, reaction, founders and more
 • Assessment with a radar of strengths and weak spots
 • 12 languages · works offline · no ads
 
