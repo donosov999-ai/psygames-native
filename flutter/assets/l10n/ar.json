@@ -2246,6 +2246,7 @@
 "sudokuJuniorTitle":"سودوكو للصغار",
 "sudokuKillerHubDesc":"مجاميع الأقفاص في الزوايا، ولا تكرار داخل القفص",
 "sudokuKillerRule":"القاتل: اللوحة مقسمة إلى أقفاص. أرقام كل قفص مجموعها الدليل المذكور ولا تتكرر داخله.",
+"sudokuLadderComplete":"لقد أكملت سلّم المستويات كاملاً! التالي: ألغاز مولّدة تناسب مستواك.",
 "sudokuLessonUnavailable":"لا توجد لوحة أخرى بهذه الصعوبة لدرس منفصل.",
 "sudokuModeFree":"حر",
 "sudokuModeKiller":"القاتل",

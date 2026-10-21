@@ -3273,6 +3273,7 @@ const t: Record<string, string> = {
   "catsWhyTrial": "कोई मजबूरी वाली चाल नहीं — यहाँ से आज़माना होगा",
   "sudokuPilotOn": "जनरेट किए गए स्तर (पायलट)",
   "sudokuPilotOff": "स्तरों की सीढ़ी पर लौटें",
+  "sudokuLadderComplete": "आपने स्तरों की पूरी सीढ़ी पार कर ली! आगे: आपके स्तर के अनुसार बनाई गई पहेलियाँ।",
   "sudokuRepeatSame": "इसी कठिनाई से फिर से",
   "sudokuSkinLetters": "अंकों की जगह अक्षर",
   "sudokuSkinAnimals": "अंकों की जगह जानवर",

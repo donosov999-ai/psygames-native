@@ -3270,6 +3270,7 @@ const t: Record<string, string> = {
   "catsWhyTrial": "没有必走的一步——从这里开始试探",
   "sudokuPilotOn": "生成的关卡（试点）",
   "sudokuPilotOff": "返回关卡阶梯",
+  "sudokuLadderComplete": "你已走完整个关卡阶梯！接下来：按你的水平生成的谜题。",
   "sudokuRepeatSame": "同样难度再来一次",
   "sudokuSkinLetters": "用字母代替数字",
   "sudokuSkinAnimals": "用动物代替数字",

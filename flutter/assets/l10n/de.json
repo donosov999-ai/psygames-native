@@ -2246,6 +2246,7 @@
 "sudokuJuniorTitle":"Sudoku für die Kleinen",
 "sudokuKillerHubDesc":"Käfigsummen in den Ecken, im Käfig keine Wiederholung",
 "sudokuKillerRule":"Killer: Das Feld ist in Käfige geteilt. Die Ziffern eines Käfigs ergeben seine Summe und wiederholen sich darin nicht.",
+"sudokuLadderComplete":"Du hast die ganze Level-Leiter geschafft! Weiter mit generierten Rätseln passend zu deinem Niveau.",
 "sudokuLessonUnavailable":"Für eine eigene Lektion ist kein anderes Brett dieser Schwierigkeit verfügbar.",
 "sudokuModeFree":"Frei",
 "sudokuModeKiller":"Killer",

@@ -123,7 +123,8 @@ void main() {
     expect(state.get(ladderKey), '193');
   });
 
-  testWidgets('212 — последняя ступень: «Заполнение областей», уровень 4; дальше потолок', (tester) async {
+  testWidgets('🔴 212 — последняя ступень: «Заполнение», уровень 4; победа → «лестница пройдена» → генератор',
+      (tester) async {
     await boot(tester, 212);
     expect(text(tester, 'ladderstep-game'), L.t('puzzlesFilling'));
     expect(text(tester, 'ladderstep-level'), '${L.t('level')} 4');
@@ -134,8 +135,24 @@ void main() {
       await tester.pump(BossRound.doneTime);
       await tester.pumpAndSettle();
     }
-    expect(state.get(ladderKey), '212');
-    expect(find.byKey(const Key('ladderstep-card')), findsOneWidget);
+    // 21.10.2026: раньше здесь был потолок — 212 по кругу. Теперь ступень за последней = «пройдено».
+    expect(state.get(ladderKey), '213');
+    expect(find.byKey(const Key('ladderstep-card')), findsNothing);
+    expect(find.byKey(const Key('ladderdone-card')), findsOneWidget);
+    expect(find.text(L.t('sudokuLadderComplete')), findsOneWidget);
+
+    await tester.runAsync(() async {
+      await tester.tap(find.byKey(const Key('ladderdone-pilot')));
+      for (var i = 0; i < 60; i++) {
+        await tester.pump(const Duration(milliseconds: 50));
+        await Future<void>.delayed(const Duration(milliseconds: 20));
+        if (find.byKey(const Key('cell_0_0')).evaluate().isNotEmpty) break;
+      }
+    });
+    await tester.pump();
+    expect(find.byKey(const Key('ladderdone-card')), findsNothing);
+    expect(find.byKey(const Key('cell_0_0')), findsOneWidget, reason: 'генератор раздал доску');
+    expect(state.get('psygames_sudoku_adaptive_on_nzt48'), '1', reason: 'генератор включён той же кнопкой, что в паузе');
   });
 }
 

@@ -2246,6 +2246,7 @@
 "sudokuJuniorTitle":"Sudoku para pequenos",
 "sudokuKillerHubDesc":"Somas das gaiolas nos cantos, sem repetição dentro da gaiola",
 "sudokuKillerRule":"Killer: o tabuleiro é dividido em gaiolas. Os dígitos somam a pista e não se repetem dentro dela.",
+"sudokuLadderComplete":"Você concluiu toda a escada de níveis! A seguir: tabuleiros gerados no seu nível.",
 "sudokuLessonUnavailable":"Não há outro tabuleiro desta dificuldade para uma lição separada.",
 "sudokuModeFree":"Livre",
 "sudokuModeKiller":"Killer",

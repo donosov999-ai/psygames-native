@@ -2246,6 +2246,7 @@
 "sudokuJuniorTitle":"儿童数独",
 "sudokuKillerHubDesc":"笼的角上标出总和，笼内数字不重复",
 "sudokuKillerRule":"Killer：棋盘被分成若干笼子。笼内数字之和等于提示数，且笼内不重复。",
+"sudokuLadderComplete":"你已走完整个关卡阶梯！接下来：按你的水平生成的谜题。",
 "sudokuLessonUnavailable":"目前没有同等难度的其他棋盘用于单独教学。",
 "sudokuModeFree":"自由",
 "sudokuModeKiller":"Killer",

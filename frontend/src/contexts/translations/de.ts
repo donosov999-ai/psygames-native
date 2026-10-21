@@ -3270,6 +3270,7 @@ const t: Record<string, string> = {
   "catsWhyTrial": "Kein erzwungener Zug — ab hier wird probiert",
   "sudokuPilotOn": "Generierte Level (Pilot)",
   "sudokuPilotOff": "Zurück zur Level-Leiter",
+  "sudokuLadderComplete": "Du hast die ganze Level-Leiter geschafft! Weiter mit generierten Rätseln passend zu deinem Niveau.",
   "sudokuRepeatSame": "Gleiche Schwierigkeit nochmal",
   "sudokuSkinLetters": "Buchstaben statt Ziffern",
   "sudokuSkinAnimals": "Tiere statt Ziffern",

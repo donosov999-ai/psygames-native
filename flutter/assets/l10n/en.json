@@ -2246,6 +2246,7 @@
 "sudokuJuniorTitle":"Sudoku for Little Ones",
 "sudokuKillerHubDesc":"Cage sums in the corners, no repeats inside a cage",
 "sudokuKillerRule":"Killer: the board is split into cages. Digits in a cage sum to its clue and don’t repeat inside it.",
+"sudokuLadderComplete":"You have finished the whole level ladder! Next: generated boards matched to your level.",
 "sudokuLessonUnavailable":"No other board at this difficulty is available for a separate lesson.",
 "sudokuModeFree":"Free",
 "sudokuModeKiller":"Killer",

@@ -3265,6 +3265,7 @@ const t: Record<string, string> = {
   "catsWhyTrial": "강제된 수가 없습니다 — 여기서부터는 시도",
   "sudokuPilotOn": "생성된 레벨 (시범)",
   "sudokuPilotOff": "레벨 사다리로 돌아가기",
+  "sudokuLadderComplete": "레벨 사다리를 모두 완료했습니다! 다음은 실력에 맞춰 생성된 퍼즐입니다.",
   "sudokuRepeatSame": "같은 난이도로 한 번 더",
   "sudokuSkinLetters": "숫자 대신 글자",
   "sudokuSkinAnimals": "숫자 대신 동물",

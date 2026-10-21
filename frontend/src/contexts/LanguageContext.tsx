@@ -3536,6 +3536,7 @@ const translations: Translations = {
   // Пилот генератора уровней судоку (§10 шаг 3): пункт меню паузы и кнопка после проигрыша.
   sudokuPilotOn: { ru: 'Уровни от генератора (пилот)', en: 'Generated levels (pilot)' },
   sudokuPilotOff: { ru: 'Вернуться к лестнице уровней', en: 'Back to the level ladder' },
+  sudokuLadderComplete: { ru: 'Вся лестница уровней пройдена! Дальше — доски от генератора под ваш уровень.', en: 'You have finished the whole level ladder! Next: generated boards matched to your level.' },
   sudokuRepeatSame: { ru: 'Ещё раз эту же', en: 'Same difficulty again' },
   // Значки вместо цифр (задача f1e1ff9c): пункт паузы и спрятанное слово Wordoku после победы.
   sudokuSkinLetters: { ru: 'Буквы вместо цифр', en: 'Letters instead of digits' },

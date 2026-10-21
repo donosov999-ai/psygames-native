@@ -2246,6 +2246,7 @@
 "sudokuJuniorTitle":"꼬마 스도쿠",
 "sudokuKillerHubDesc":"케이지 모서리에 합계, 케이지 안에서 숫자 중복 없음",
 "sudokuKillerRule":"킬러: 보드가 케이지로 나뉩니다. 케이지 숫자 합은 표시된 값과 같고 내부에서 중복되지 않습니다.",
+"sudokuLadderComplete":"레벨 사다리를 모두 완료했습니다! 다음은 실력에 맞춰 생성된 퍼즐입니다.",
 "sudokuLessonUnavailable":"별도 수업에 사용할 같은 난이도의 다른 판이 없습니다.",
 "sudokuModeFree":"자유",
 "sudokuModeKiller":"킬러",
