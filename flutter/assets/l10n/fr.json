@@ -2256,6 +2256,7 @@
 "sudokuJuniorTitle":"Sudoku pour les petits",
 "sudokuKillerHubDesc":"Sommes des cages dans les coins, sans répétition dans une cage",
 "sudokuKillerRule":"Killer : la grille est découpée en cages. Les chiffres d’une cage totalisent son indice sans s’y répéter.",
+"sudokuLadderComplete":"Vous avez terminé toute l’échelle des niveaux ! Ensuite : des grilles générées à votre niveau.",
 "sudokuLessonUnavailable":"Aucune autre grille de cette difficulté n’est disponible pour une leçon séparée.",
 "sudokuModeFree":"Libre",
 "sudokuModeKiller":"Killer",

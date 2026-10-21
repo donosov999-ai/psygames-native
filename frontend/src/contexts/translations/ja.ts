@@ -3297,6 +3297,7 @@ const t: Record<string, string> = {
   "catsWhyTrial": "確定する手がない — ここから試行",
   "sudokuPilotOn": "生成レベル（試験版）",
   "sudokuPilotOff": "レベルの階段に戻る",
+  "sudokuLadderComplete": "レベルの階段をすべてクリアしました！次は、あなたのレベルに合わせて生成されたパズルです。",
   "sudokuRepeatSame": "同じ難しさでもう一度",
   "sudokuSkinLetters": "数字の代わりに文字",
   "sudokuSkinAnimals": "数字のかわりに どうぶつ",

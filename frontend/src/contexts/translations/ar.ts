@@ -3299,6 +3299,7 @@ const t: Record<string, string> = {
   "catsWhyTrial": "لا توجد نقلة إجبارية — من هنا نجرّب",
   "sudokuPilotOn": "مستويات مولَّدة (تجريبي)",
   "sudokuPilotOff": "العودة إلى سلّم المستويات",
+  "sudokuLadderComplete": "لقد أكملت سلّم المستويات كاملاً! التالي: ألغاز مولّدة تناسب مستواك.",
   "sudokuRepeatSame": "مرة أخرى بالصعوبة نفسها",
   "sudokuSkinLetters": "حروف بدل الأرقام",
   "sudokuSkinAnimals": "حيوانات بدل الأرقام",

@@ -3298,6 +3298,7 @@ const t: Record<string, string> = {
   "catsWhyTrial": "Aucun coup forcé — à partir d’ici, on essaie",
   "sudokuPilotOn": "Niveaux générés (pilote)",
   "sudokuPilotOff": "Revenir à l’échelle des niveaux",
+  "sudokuLadderComplete": "Vous avez terminé toute l’échelle des niveaux ! Ensuite : des grilles générées à votre niveau.",
   "sudokuRepeatSame": "Encore, même difficulté",
   "sudokuSkinLetters": "Des lettres au lieu des chiffres",
   "sudokuSkinAnimals": "Animaux au lieu des chiffres",

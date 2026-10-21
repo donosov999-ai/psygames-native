@@ -2256,6 +2256,7 @@
 "sudokuJuniorTitle":"Sudoku per piccoli",
 "sudokuKillerHubDesc":"Somme delle gabbie negli angoli, nessuna ripetizione nella gabbia",
 "sudokuKillerRule":"Killer: la griglia è divisa in gabbie. Le cifre di una gabbia sommano al suo indizio e non si ripetono al suo interno.",
+"sudokuLadderComplete":"Hai completato tutta la scala dei livelli! Ora: griglie generate per il tuo livello.",
 "sudokuLessonUnavailable":"Non è disponibile un’altra griglia di questa difficoltà per una lezione separata.",
 "sudokuModeFree":"Libero",
 "sudokuModeKiller":"Killer",

@@ -2256,6 +2256,7 @@
 "sudokuJuniorTitle":"Sudoku para peques",
 "sudokuKillerHubDesc":"Sumas de las jaulas en las esquinas, sin repetir dentro de la jaula",
 "sudokuKillerRule":"Killer: el tablero se divide en jaulas. Los dígitos de cada jaula suman su pista y no se repiten dentro.",
+"sudokuLadderComplete":"¡Has completado toda la escalera de niveles! Ahora: tableros generados a tu nivel.",
 "sudokuLessonUnavailable":"No hay otro tablero de esta dificultad para una lección separada.",
 "sudokuModeFree":"Libre",
 "sudokuModeKiller":"Killer",

@@ -2256,6 +2256,7 @@
 "sudokuJuniorTitle":"ちびっこ数独",
 "sudokuKillerHubDesc":"ケージの隅に合計、ケージ内で数字は重複なし",
 "sudokuKillerRule":"キラー：盤面はケージに分割。ケージ内の数字は合計がヒントと一致し、重複しません。",
+"sudokuLadderComplete":"レベルの階段をすべてクリアしました！次は、あなたのレベルに合わせて生成されたパズルです。",
 "sudokuLessonUnavailable":"別のレッスン用に同じ難易度の別の盤面がありません。",
 "sudokuModeFree":"フリー",
 "sudokuModeKiller":"キラー",

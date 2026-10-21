@@ -2256,6 +2256,7 @@
 "sudokuJuniorTitle":"छोटों के लिए सुडोकू",
 "sudokuKillerHubDesc":"समूहों के कोनों में योग, समूह के अंदर अंक दोहराते नहीं",
 "sudokuKillerRule":"Killer: बोर्ड पिंजरों में बँटा है। पिंजरे के अंक दिए गए योग तक जुड़ते हैं और भीतर दोहराए नहीं जाते।",
+"sudokuLadderComplete":"आपने स्तरों की पूरी सीढ़ी पार कर ली! आगे: आपके स्तर के अनुसार बनाई गई पहेलियाँ।",
 "sudokuLessonUnavailable":"अलग पाठ के लिए इस कठिनाई का कोई दूसरा बोर्ड उपलब्ध नहीं है।",
 "sudokuModeFree":"फ्री",
 "sudokuModeKiller":"Killer",
