@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """ЭТАЛОН «РИСКНИ И СОХРАНИ»: оптимальный бот решением игры, а не порогом.
 
-Запуск из корня дерева:  python3 flutter/tools/roll_and_bank_reference.py
-Пишет flutter/test/fixtures/roll-and-bank-optimal.json — по нему проба сверяет
+Запуск из корня дерева:  python3 flutter/tools/roll_and_bank_reference.py [трассы…]
+Пишет flutter/test/fixtures/roll-and-bank-optimal.json (трасса 30) и -50.json, -60.json — по нему проба сверяет
 решатель на Dart (flutter/lib/games/roll_and_bank/solver.dart) решение в решение.
 
 ЗАЧЕМ ДВЕ РЕАЛИЗАЦИИ. Бот верхних ступеней играет по таблице, которую никто не
@@ -21,8 +21,9 @@ P = max(бросок, сохранить); итерация по значени�
 """
 import json
 import os
+import sys
 
-GOAL = 30
+GOALS = (30, 50, 60)
 BUST = 1
 EPS = 1e-12
 TIE = 1e-9
@@ -76,25 +77,33 @@ def decisions(p, goal, bust):
     return ''.join(out)
 
 
-def main():
-    p = solve(GOAL, BUST)
-    policy = decisions(p, GOAL, BUST)
-    best = {str(s): round(p[(0, s, 0)], 12) for s in range(GOAL - 1)}
+def export(goal):
+    p = solve(goal, BUST)
+    policy = decisions(p, goal, BUST)
+    best = {str(s): round(p[(0, s, 0)], 12) for s in range(goal - 1)}
     here = os.path.dirname(os.path.abspath(__file__))
-    out = os.path.join(here, '..', 'test', 'fixtures', 'roll-and-bank-optimal.json')
+    name = 'roll-and-bank-optimal.json' if goal == 30 else f'roll-and-bank-optimal-{goal}.json'
+    out = os.path.join(here, '..', 'test', 'fixtures', name)
     with open(out, 'w', encoding='utf-8') as f:
         json.dump({
             'source': 'flutter/tools/roll_and_bank_reference.py',
-            'goal': GOAL,
+            'goal': goal,
             'bust': BUST,
             'order': 'i (сохранено у ходящего), j (у соперника), k (в ходу) по возрастанию; k < goal - i',
             'policy': policy,
             'ties': policy.count('t'),
             'best_by_head_start': best,
         }, f, ensure_ascii=False, indent=1)
-    print(f'решений {len(policy)}, бросать {policy.count("1")}, сохранить {policy.count("0")}, ничьих {policy.count("t")}')
-    print(f'лучший игрок против лучшего бота без форы: {p[(0, 0, 0)]:.6f}; с форой 28: {p[(0, 28, 0)]:.6f}')
-    print(f'записано: {os.path.relpath(out)}')
+    print(f'трасса {goal}: решений {len(policy)}, бросать {policy.count("1")}, сохранить {policy.count("0")}, ничьих {policy.count("t")}')
+    print(f'  лучший против лучшего без форы: {p[(0, 0, 0)]:.6f}')
+    print(f'  записано: {os.path.relpath(out)}')
+
+
+def main():
+    # Трасса 30 — ступени L8–L22; 50 и 60 — верх лестницы, где «сохранить» существует.
+    # ⚠️ Трасса 60 считается здесь больше минуты: экспорт редкий, сверка — в пробе.
+    for goal in sys.argv[1:] and [int(a) for a in sys.argv[1:]] or GOALS:
+        export(goal)
 
 
 if __name__ == '__main__':

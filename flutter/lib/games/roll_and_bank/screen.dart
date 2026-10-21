@@ -12,6 +12,7 @@ import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import 'model.dart';
+import 'solver.dart';
 
 /// ЭКРАН «РИСКНИ И СОХРАНИ» — развилка «Конфликт внимания», рядом с пробами
 /// решений, но НЕ в их наборе (там выбор по скрытой обратной связи, здесь явный
@@ -74,7 +75,18 @@ class _RollAndBankScreenState extends State<RollAndBankScreen> {
     _botTimer?.cancel();
     _levelNo = _ladder.level;
     final step = rollAndBankStep(_levelNo);
-    _game = RollAndBank(goal: step.goal, botHold: step.botHold, headStart: step.headStart, rnd: _rnd);
+    final game = RollAndBank(
+      goal: step.goal,
+      botHold: step.botHold,
+      headStart: step.headStart,
+      policy: step.solved ? RollAndBankPolicy.ready(step.goal) : null,
+      rnd: _rnd,
+    );
+    _game = game;
+    // Таблица решения считается в изоляте, пока ходит человек: первый ход — его.
+    if (step.solved && game.policy == null) {
+      RollAndBankPolicy.warm(step.goal).then((p) => game.policy = p);
+    }
     _note = L.t('rbYourTurn');
     _burnt = false;
     _started = DateTime.now();
@@ -113,6 +125,8 @@ class _RollAndBankScreenState extends State<RollAndBankScreen> {
   Future<void> _botStep() async {
     final g = _game;
     if (!mounted || g == null || g.over || g.side != 1) return;
+    // Бот по решению игры не ходит наугад, пока таблица не готова, — ждёт её.
+    if (rollAndBankStep(_levelNo).solved && g.policy == null) return _botLater();
     if (g.botWantsToBank) {
       setState(() {
         g.bank();
@@ -142,7 +156,8 @@ class _RollAndBankScreenState extends State<RollAndBankScreen> {
        */
       'goal': g.goal,
       'bot_hold': g.botHold,
-      'bot': g.botHold == null ? 'never_banks' : 'threshold',
+      // «solved» — бот по таблице решения (трасса 60, с L9); на трассе 30 решение и есть «не сохранять».
+      'bot': g.policy != null ? 'solved' : (g.botHold == null ? 'never_banks' : 'threshold'),
       'head_start': g.headStart,
       'rolls': g.rolls,
       'busts': g.busts,
@@ -179,7 +194,11 @@ class _RollAndBankScreenState extends State<RollAndBankScreen> {
     if (g == null) return;
     final steps = [
       LessonStep(payload: 0, techniqueKey: 'teachBankAverage', text: L.t('teachBankAverage')),
-      LessonStep(payload: 1, techniqueKey: 'teachBankRule', text: L.t('teachBankRule')),
+      // Второй шаг зависит от трассы: «сохранить» выгодно только на длинной (solver.dart);
+      // в гонке до 30 решение игры — не сохранять, и разбор обязан говорить это честно.
+      g.goal >= 50
+          ? LessonStep(payload: 1, techniqueKey: 'teachBankRule', text: L.t('teachBankRule'))
+          : LessonStep(payload: 1, techniqueKey: 'teachBankShort', text: L.t('teachBankShort')),
       LessonStep(payload: 2, techniqueKey: 'teachBankRace', text: L.t('teachBankRace')),
     ];
     LessonUsed.mark();
