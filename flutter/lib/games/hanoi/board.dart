@@ -13,6 +13,9 @@ import '../../shell/l10n.dart';
 /// 🔴 ШИРИНА ДИСКА СЧИТАЕТСЯ ОТ СТЕРЖНЯ, А СТЕРЖЕНЬ — ОТ ПОЛЯ, КОТОРОЕ ДАЛ
 /// КАРКАС. В вебе высота доски бралась от окна (`height - 210`), и на коротком
 /// экране нижний диск подрезало.
+/// Цвет цели — тот же зелёный, что у подсветки стержня, принимающего диск.
+const Color _goal = Color(0xFF22C55E);
+
 class HanoiBoard extends StatelessWidget {
   const HanoiBoard({
     super.key,
@@ -66,15 +69,21 @@ class HanoiBoard extends StatelessWidget {
                       onAcceptWithDetails: (d) => onDrop(d.data, i),
                       builder: (context, candidate, rejected) {
                         final active = candidate.isNotEmpty;
+                        // 🔴 ЦЕЛЬ ВИДНА НА САМОМ ПОЛЕ (отзыв af75de31, 14.10.2026: «what i had
+                        // to do»). На старте три стержня выглядели одинаково, и куда нести
+                        // башню, знал только тот, кто открыл правила. Цель — последний
+                        // стержень: так её проверяет `HanoiState.solved`.
+                        final target = i == n - 1;
                         return GestureDetector(
                           behavior: HitTestBehavior.opaque,
                           onTap: () => onTapPeg(i),
                           child: Semantics(
                             button: true,
                             selected: selected == i,
-                            label: state.pegs[i].isEmpty
-                                ? '${L.t('a11yPeg')} ${i + 1}: ${L.t('a11yEmpty')}'
-                                : '${L.t('a11yPeg')} ${i + 1}: ${L.f('a11yHanoiPeg', {'n': '${state.pegs[i].length}', 't': '${state.pegs[i].last}'})}',
+                            label: (state.pegs[i].isEmpty
+                                    ? '${L.t('a11yPeg')} ${i + 1}: ${L.t('a11yEmpty')}'
+                                    : '${L.t('a11yPeg')} ${i + 1}: ${L.f('a11yHanoiPeg', {'n': '${state.pegs[i].length}', 't': '${state.pegs[i].last}'})}') +
+                                (target ? '. ${L.t('hanoiDesc')}' : ''),
                             child: Container(
                               key: ValueKey('peg-$i'),
                               width: pegW,
@@ -109,14 +118,27 @@ class HanoiBoard extends StatelessWidget {
                                   Positioned(
                                     bottom: 0,
                                     child: Container(
+                                      key: target ? const ValueKey('hanoi-goal-base') : null,
                                       width: pegW - 12,
                                       height: 6,
                                       decoration: BoxDecoration(
-                                        color: scheme.onSurface.withValues(alpha: 0.6),
+                                        color: target ? _goal : scheme.onSurface.withValues(alpha: 0.6),
                                         borderRadius: BorderRadius.circular(3),
                                       ),
                                     ),
                                   ),
+                                  // Флажок над целью — в запасе высоты над самой высокой
+                                  // башней (`towerH` берёт лишний диск сверху).
+                                  if (target)
+                                    Positioned(
+                                      top: 0,
+                                      child: Icon(
+                                        Icons.flag_rounded,
+                                        key: const ValueKey('hanoi-goal-flag'),
+                                        size: discH.clamp(12.0, 20.0),
+                                        color: _goal,
+                                      ),
+                                    ),
                                   for (var k = 0; k < state.pegs[i].length; k += 1)
                                     Positioned(
                                       bottom: 6 + k * discH,
