@@ -138,4 +138,24 @@ void main() {
     await boot(tester, keyboard: false);
     expect(find.byKey(const Key('dict-keyboard-warning')), findsOneWidget);
   });
+
+  testWidgets('🔴 неверная клавиша видна на месте курсора красным, верная её заменяет (отзыв a23ae078)', (tester) async {
+    final voice = await boot(tester);
+    await tester.tap(find.byKey(const Key('dict-start')));
+    await tester.pump(const Duration(milliseconds: 500));
+    final phrase = voice.said.last;
+    final first = phrase.split('').firstWhere((c) => !isPunct(c) && c != ' ');
+    final wrong = first.toLowerCase() == 'ж' ? 'щ' : 'ж';
+    await tester.enterText(find.byKey(const Key('dict-input')), '​$wrong');
+    await tester.pump();
+    Text shownAt0() => tester.widget<Text>(find.descendant(of: find.byKey(const Key('dict-char-0')), matching: find.byType(Text)));
+    expect(shownAt0().data, wrong, reason: 'набранная неверная буква видна');
+    expect(shownAt0().style?.color, const Color(0xFFF43F5E), reason: 'и она красная');
+    await tester.enterText(find.byKey(const Key('dict-input')), '');
+    await tester.pump();
+    expect(shownAt0().data, '·', reason: 'стёрта — снова точка');
+    await tester.enterText(find.byKey(const Key('dict-input')), '​$first');
+    await tester.pump();
+    expect(shownAt0().data?.toLowerCase(), first.toLowerCase(), reason: 'верная — на месте');
+  });
 }

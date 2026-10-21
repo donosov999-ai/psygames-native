@@ -35,8 +35,10 @@ void main() {
     for (final e in jsonDecode(File('assets/reading_span/sentences.json').readAsStringSync()) as List)
       RspanSentence.fromJson((e as Map).cast<String, Object?>()),
   ];
-  // Смысл предложения по его тексту на любом из двух языков — «знание языка» пробы.
-  final senseOf = {for (final s in sentences) ...{s.ru: s.ok, s.en: s.ok}};
+  // Смысл предложения по его тексту на любом языке корпуса — «знание языка» пробы.
+  final senseOf = {
+    for (final s in sentences) ...{s.ru: s.ok, s.en: s.ok, for (final t in s.tr.values) t[0]: s.ok},
+  };
 
   setUpAll(() async {
     await L.load('ru');
@@ -240,6 +242,28 @@ void main() {
     expect(((sent.single['details'] as Map)['expected'] as String).split(' ').every(english.contains), isTrue);
   });
 
+  // Корпус на десяти языках (задача 03a1440e): до 21.10.2026 es…hi играли английскими предложениями —
+  // кадр 2.56.15 на испанском: «Tea is brewed in the refrigerator quickly.». Игра меряет память при
+  // ПОНИМАНИИ текста, на чужом языке она меряла знание английского.
+  for (final lang in ['es', 'de', 'fr', 'it', 'pt', 'ja', 'ko', 'zh', 'ar', 'hi']) {
+    testWidgets('🔴 интерфейс $lang — предложения и слова на $lang, партия берётся словами своего языка', (tester) async {
+      await L.load(lang);
+      addTearDown(() => L.load('ru'));
+      await boot(tester, level: 1);
+      await tester.tap(find.byKey(const Key('rspan-start')));
+      await tester.pump();
+      final first = sentenceOnScreen(tester);
+      final mine = {for (final s in sentences) s.tr[lang]![0]: s.tr[lang]![1]};
+      expect(mine.containsKey(first), isTrue, reason: 'предложение на $lang: «$first»');
+      expect(lastWordOnScreen(tester), mine[first], reason: 'слово «Запомните» — того же языка');
+      final words = await readSet(tester);
+      await answer(tester, words.join(' '));
+      expect(find.byKey(const Key('rspan-passed')), findsOneWidget, reason: 'набранные слова $words засчитаны');
+      final expected = ((sent.single['details'] as Map)['expected'] as String).split(' ');
+      expect(expected, [for (final w in words) w.toLowerCase()]);
+    });
+  }
+
   // Подпись игры `readingSpanDesc` — карточка развилки и экран старта. Замер 01.10.2026: она теряла
   // оба действия — en «Judge sense, recall last words» без «каждого предложения», ru «Оцените смысл
   // и запомните слова» без «последнее» (задача cf5ff1ca). Справка из партии с 2.56.12 — полный текст
@@ -308,14 +332,64 @@ void main() {
     expect(find.byKey(const Key('rspan-input')), findsOneWidget, reason: 'после удержания ввод открылся');
   });
 
+  /// Шаг зарядки: слова собираются касанием плиток, клавиатуры нет (отчёт 42240f97).
+  Future<void> tapAnswer(WidgetTester tester, List<String> words) async {
+    for (final w in words) {
+      await tester.tap(find.widgetWithText(OutlinedButton, w.toLowerCase()));
+      await tester.pump();
+    }
+    await tester.tap(find.byKey(const Key('rspan-check')));
+    await tester.pump();
+    await tester.pump();
+  }
+
   testWidgets('🔴 шаг зарядки: стартует сам, набор из шага под потолком уровня, уровень не двигается', (tester) async {
     await boot(tester, level: 1, preset: {'wu': '1', 'setSize': '6'});
     expect(find.byKey(const Key('rspan-start')), findsNothing, reason: 'шаг стартует сам');
     final words = await readSet(tester);
     expect(words.length, 4, reason: 'шаг просит 6, освоено 3 — больше освоенного + 1 не даём');
-    await answer(tester, words.join(' '));
+    await tapAnswer(tester, words);
     expect('${sent.single['difficulty']} / ${sent.single['mode']}', 'medium / 4-set');
     expect(hud(tester, L.t('level'), '1'), isTrue, reason: 'шаг зарядки личный уровень не двигает');
+  });
+
+  testWidgets('🔴 шаг зарядки вспоминается касанием: клавиатуры нет, плитки — слова набора и столько же чужих (42240f97)',
+      (tester) async {
+    await boot(tester, level: 3, preset: {'wu': '1', 'setSize': '4'});
+    final words = await readSet(tester);
+    expect(find.byKey(const Key('rspan-input')), findsNothing, reason: 'в шаге зарядки поля ввода нет');
+    expect(find.byType(EditableText), findsNothing, reason: 'клавиатура не вызывается ничем');
+    expect(find.text(L.t('rspanTapHint')), findsOneWidget, reason: 'подсказка про касание, не про набор');
+    final tiles = [
+      for (var i = 0; find.byKey(Key('rspan-word-$i')).evaluate().isNotEmpty; i++)
+        ((tester.widget<OutlinedButton>(find.byKey(Key('rspan-word-$i'))).child! as Text).data!),
+    ];
+    final want = {for (final w in words) w.toLowerCase()};
+    expect(tiles.toSet().containsAll(want), isTrue, reason: 'все слова набора есть среди плиток: $tiles против $want');
+    expect(tiles.length, want.length * 2, reason: 'чужих слов столько же, сколько своих: $tiles');
+    expect(tiles.toSet().length, tiles.length, reason: 'плитки не повторяются');
+  });
+
+  testWidgets('🔴 шаг зарядки: не тот порядок — ошибка; «Стереть» снимает последнее слово', (tester) async {
+    await boot(tester, level: 3, preset: {'wu': '1', 'setSize': '4'});
+    final words = await readSet(tester);
+    final answerText = find.byKey(const Key('rspan-answer'));
+    await tester.tap(find.widgetWithText(OutlinedButton, words[1].toLowerCase()));
+    await tester.pump();
+    expect(tester.widget<Text>(answerText).data, words[1].toLowerCase());
+    await tester.tap(find.byKey(const Key('rspan-erase')));
+    await tester.pump();
+    expect(tester.widget<Text>(answerText).data, L.t('recallPlaceholder'), reason: 'стёрто — ответ пуст');
+    await tapAnswer(tester, [...words.reversed]);
+    expect(find.byKey(const Key('rspan-failed')), findsOneWidget, reason: 'обратный порядок не засчитан');
+  });
+
+  testWidgets('🔴 шаг зарядки на 360×640: плитки, «Стереть» и «Проверить» на экране, не меньше 48×48', (tester) async {
+    await expectPlayFit(tester, () async {
+      await boot(tester, level: 9, preset: {'wu': '1', 'setSize': '9'});
+      await readSet(tester);
+    }, where: 'reading-span, шаг зарядки, вспоминание касанием');
+    await tester.pumpWidget(const SizedBox());
   });
 
   testWidgets('🔴 «Показать решение»: весь набор с пометкой смысла и словами по порядку; партия не засчитана', (tester) async {

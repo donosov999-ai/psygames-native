@@ -9,7 +9,6 @@
  *   - psygames_warmup_history       (зарядка, streak)
  *   - psygames_assessment_history   (G1 оценки)
  *   - psygames_achievements_unlocked
- *   - psygames_unlocked_themed      (введённые коды)
  *   - psygames_active_profile, _theme, _language, _sound_enabled, etc.
  *
  * Платформы:

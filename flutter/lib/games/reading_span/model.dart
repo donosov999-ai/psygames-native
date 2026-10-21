@@ -19,9 +19,16 @@ const rspanLoadFromLevel = 5;
 /// Пауза удержания на каждый уровень сверх ёмкости словаря — как в вебе.
 const rspanHoldStepMs = 700;
 
-/// Одно предложение: текст на двух языках, осмысленно ли оно и его последнее слово.
+/// Одно предложение: текст на языках, осмысленно ли оно и слово, которое запоминают.
 class RspanSentence {
-  const RspanSentence({required this.ru, required this.en, required this.ok, required this.lastRu, required this.lastEn});
+  const RspanSentence({
+    required this.ru,
+    required this.en,
+    required this.ok,
+    required this.lastRu,
+    required this.lastEn,
+    this.tr = const {},
+  });
 
   factory RspanSentence.fromJson(Map<String, Object?> j) => RspanSentence(
         ru: j['ru']! as String,
@@ -29,6 +36,10 @@ class RspanSentence {
         ok: j['ok']! as bool,
         lastRu: j['lastRu']! as String,
         lastEn: j['lastEn']! as String,
+        tr: {
+          for (final e in ((j['tr'] as Map?) ?? const {}).entries)
+            e.key as String: (e.value as List).cast<String>(),
+        },
       );
 
   final String ru;
@@ -37,10 +48,13 @@ class RspanSentence {
   final String lastRu;
   final String lastEn;
 
-  /// Предложения есть на двух языках: русский — для русского интерфейса, остальным английский
-  /// (веб: `language !== 'ru' ? en : ru`).
-  String text(String language) => language != 'ru' ? en : ru;
-  String last(String language) => language != 'ru' ? lastEn : lastRu;
+  /// Остальные десять языков: язык → [предложение, слово] (веб `sentences-i18n.ts`).
+  final Map<String, List<String>> tr;
+
+  /// Предложение на языке интерфейса: ru — русское, есть перевод — он, иначе английское
+  /// (веб `sentenceText`). До 21.10.2026 es…hi играли английскими — меряли знание английского.
+  String text(String language) => language == 'ru' ? ru : (tr[language]?[0] ?? en);
+  String last(String language) => language == 'ru' ? lastRu : (tr[language]?[1] ?? lastEn);
 }
 
 /// Правила уровня: размер набора и удержание перед вводом (ось 3).
@@ -81,6 +95,35 @@ class RspanLevelParams {
     }
   }
   return (hits: hits, errors: errors, expected: expected);
+}
+
+/// Плитки для вспоминания касанием — в шаге зарядки, где клавиатура лишняя (отчёт 42240f97:
+/// «в утреннюю зарядку — печатать тексты»). Последние слова набора и столько же последних слов
+/// других предложений, всё вперемешку; ответ из плиток проверяет тот же [rspanRecallScore].
+/// Слово набора, стоящее в нём дважды, — одна плитка: её нажимают дважды.
+List<String> rspanRecallChoices(
+  List<RspanSentence> seq,
+  List<RspanSentence> pool,
+  String language,
+  double Function() rng,
+) {
+  final want = {for (final s in seq) s.last(language).toLowerCase().trim()};
+  final others = [
+    ...{for (final s in pool) s.last(language).toLowerCase().trim()}.difference(want),
+  ];
+  void shuffle(List<String> a) {
+    for (var i = a.length - 1; i > 0; i--) {
+      final j = (rng() * (i + 1)).floor();
+      final t = a[i];
+      a[i] = a[j];
+      a[j] = t;
+    }
+  }
+
+  shuffle(others);
+  final words = [...want, ...others.take(seq.length)];
+  shuffle(words);
+  return words;
 }
 
 /// Метка трудности партии по размеру набора — как её пишет веб-отчёт.

@@ -19,8 +19,7 @@ import 'l10n.dart';
 ///   · `psygames_<играId>_level_<профиль>`      — уровень игры у профиля
 ///   · `psygames_<играId>_failstreak_<профиль>` — подряд провалов
 ///   · `psygames_active_profile`                — текущий профиль
-///   · `psygames_theme_override`, `psygames_colorblind`, `psygames_first_run_done`,
-///     `psygames_unlocked_themed`               — вид и первый запуск
+///   · `psygames_theme_override`, `psygames_colorblind`, `psygames_first_run_done` — вид и первый запуск
 /// Список ключей меняется каждую неделю, префикс — нет. Поэтому мост возит
 /// пространство целиком: новая игра появится по обе стороны сама, без правки моста.
 ///

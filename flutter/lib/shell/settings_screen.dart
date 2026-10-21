@@ -452,7 +452,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 decoration: BoxDecoration(color: card, borderRadius: BorderRadius.circular(14)),
                 child: Text(t, style: TextStyle(fontSize: 11, color: text)),
               );
-          final accessible = _profiles.accessible(_s, p.id);
           final current = _s.activeProfile == p.id;
           return ConstrainedBox(
             constraints: BoxConstraints(maxHeight: MediaQuery.of(c).size.height * 0.9),
@@ -472,17 +471,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                   IconButton(tooltip: L.t('close'), icon: Icon(Icons.cancel, color: sub, size: 28), onPressed: () => Navigator.of(c).pop()),
                 ]),
-                if (p.text('sales_hook', loc) != null)
-                  Container(
-                    margin: const EdgeInsets.only(top: 8, bottom: 14),
-                    padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-                    decoration: BoxDecoration(
-                      color: color.withValues(alpha: 0.13),
-                      border: Border(left: BorderSide(color: color, width: 4)),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(p.text('sales_hook', loc)!, style: TextStyle(fontSize: 14, color: text, fontWeight: FontWeight.w600, height: 1.35)),
-                  ),
                 if (p.text('long_description', loc) != null)
                   Padding(
                     padding: const EdgeInsets.only(bottom: 14),
@@ -514,24 +502,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         ]),
                       ),
                 const SizedBox(height: 18),
-                /*
-                 * ⚠️ ВВОД КОДА И ЗАПРОС В TELEGRAM НЕ ПЕРЕНЕСЕНЫ — ОНИ ВЫКЛЮЧЕНЫ В ВЕБЕ:
-                 * `UNLOCK_CODES_ENABLED = false` (запертых профилей нет вовсе) и
-                 * `MONETIZATION_ENABLED = false`. Включат — проба `settings_screen_test`
-                 * покраснеет и потребует перенести `tryUnlock`; на iOS ввод кода прятать
-                 * `Platform.isIOS` (App Store 3.1.1) — в гибриде веб считал себя 'web' и не прятал.
-                 */
-                if (!accessible && p.comingSoon)
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(color: card, borderRadius: BorderRadius.circular(12)),
-                    child: Column(children: [
-                      Text('🔒 ${L.t('label_coming_soon')}', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: text)),
-                      const SizedBox(height: 8),
-                      Text(L.t('comingSoonBody'), textAlign: TextAlign.center, style: TextStyle(fontSize: 12, color: sub)),
-                    ]),
-                  ),
-                if (accessible && !current)
+                // 21.10.2026 (решение Дениса, d5e5814a): монетизации нет — замков, «скоро» и кодов нет.
+                if (!current)
                   FilledButton(
                     key: Key('profile-switch-${p.id}'),
                     style: FilledButton.styleFrom(backgroundColor: color, foregroundColor: Colors.black, minimumSize: const Size.fromHeight(48)),
@@ -558,7 +530,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final text = AppLook.token('text', dark: dark), sub = AppLook.token('textSecondary', dark: dark);
     final cardColor = AppLook.token('card', dark: dark), border = AppLook.token('border', dark: dark);
     final wide = MediaQuery.of(context).size.width >= 520;
-    final unlocked = Profiles.unlocked(_s);
     Widget label(String t) => Padding(
           padding: const EdgeInsets.only(top: 12, bottom: 8),
           child: Text(t.toUpperCase(), style: TextStyle(color: sub, fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: 1)),
@@ -569,14 +540,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
             for (final p in ps)
               Builder(builder: (_) {
                 final active = p.id == _s.activeProfile;
-                final locked = !_profiles.accessible(_s, p.id);
                 final color = AppLook.hexColor(p.color) ?? AppLook.accentOf(_s);
-                return Opacity(
-                  opacity: locked ? 0.55 : 1,
-                  child: InkWell(
+                return InkWell(
                     key: Key('profile-${p.id}'),
                     borderRadius: BorderRadius.circular(12),
-                    onTap: () => locked ? _details(p, dark: dark) : _switch(p.id),
+                    onTap: () => _switch(p.id),
                     onLongPress: () => _details(p, dark: dark),
                     child: Container(
                       width: w,
@@ -587,7 +555,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Column(children: [
-                        Text('${p.emoji}${locked ? '🔒' : ''}', style: const TextStyle(fontSize: 32)),
+                        Text(p.emoji, style: const TextStyle(fontSize: 32)),
                         const SizedBox(height: 4),
                         Text(L.t('profileName_${p.id}'),
                             textAlign: TextAlign.center,
@@ -603,7 +571,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               style: TextStyle(fontSize: 9, color: active ? Colors.black.withValues(alpha: 0.55) : sub)),
                       ]),
                     ),
-                  ),
                 );
               }),
           ]);
@@ -620,35 +587,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
         Text(L.t('desc_profile_section'), style: TextStyle(color: sub, fontSize: 12, height: 1.4)),
         if (personal.isNotEmpty) ...[label('👥 ${L.t('label_personal')}'), grid(personal)],
         if (themed.isNotEmpty) ...[
-          label(_profiles.codesEnabled ? L.t('label_themed_codes_on') : L.t('label_themed_codes_off')),
+          label(L.t('label_themed_group')),
           grid(themed),
         ],
-        if (unlocked.isNotEmpty)
-          Align(
-            alignment: AlignmentDirectional.centerEnd,
-            child: TextButton(
-              key: const Key('profile-reset-unlocks'),
-              onPressed: () async {
-                final ok = await showDialog<bool>(
-                  context: context,
-                  builder: (c) => AlertDialog(
-                    title: Text(L.t('alert_reset_unlocks')),
-                    content: Text(L.t('msg_reset_unlocks_confirm')),
-                    actions: [
-                      TextButton(onPressed: () => Navigator.of(c).pop(false), child: Text(L.t('btn_cancel'))),
-                      TextButton(onPressed: () => Navigator.of(c).pop(true), child: Text(L.t('btn_reset'))),
-                    ],
-                  ),
-                );
-                if (ok == true) {
-                  await _profiles.resetUnlocks(_s);
-                  AppLook.refresh(_s);
-                  if (mounted) setState(() {});
-                }
-              },
-              child: Text('${L.t('label_unlocked')}: ${unlocked.length} · 🗑 ${L.t('btn_reset')}', style: TextStyle(fontSize: 11, color: sub)),
-            ),
-          ),
       ]),
     );
   }
@@ -888,9 +829,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 textAlign: TextAlign.center,
                 style: TextStyle(color: sub, fontSize: 16, fontWeight: FontWeight.w600),
               ),
-              const SizedBox(height: 4),
-              // MONETIZATION_ENABLED = false (`frontend/src/constants/profiles.ts:1137`).
-              Text(L.t('hint_profile_tap_unlock'), textAlign: TextAlign.center, style: TextStyle(color: sub, fontSize: 12)),
             ]),
             ),
           ),

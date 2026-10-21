@@ -1228,7 +1228,7 @@
      },
      {
       "id": "theme_vasilyeva",
-      "name": "Скорочтение PRO",
+      "name": "Скорочтение",
       "desc": "Level map backdrop in another profile’s style",
       "price": "2400 ⭐",
       "owned": false,
@@ -1262,7 +1262,7 @@
      },
      {
       "id": "theme_drivers",
-      "name": "Реакция ПРО",
+      "name": "Реакция",
       "desc": "Level map backdrop in another profile’s style",
       "price": "2400 ⭐",
       "owned": false,
@@ -1313,7 +1313,7 @@
      },
      {
       "id": "theme_students",
-      "name": "Студенты PRO",
+      "name": "Студенты",
       "desc": "Level map backdrop in another profile’s style",
       "price": "2400 ⭐",
       "owned": false,
@@ -1388,7 +1388,7 @@
      },
      {
       "id": "bg_students",
-      "name": "Студенты PRO",
+      "name": "Студенты",
       "desc": "Home screen background in another profile’s style",
       "price": "1050 ⭐",
       "owned": false,
@@ -1439,7 +1439,7 @@
      },
      {
       "id": "bg_drivers",
-      "name": "Реакция ПРО",
+      "name": "Реакция",
       "desc": "Home screen background in another profile’s style",
       "price": "1350 ⭐",
       "owned": false,
@@ -1456,7 +1456,7 @@
      },
      {
       "id": "bg_vasilyeva",
-      "name": "Скорочтение PRO",
+      "name": "Скорочтение",
       "desc": "Home screen background in another profile’s style",
       "price": "1350 ⭐",
       "owned": false,
@@ -1565,7 +1565,7 @@
      },
      {
       "id": "badge_students",
-      "name": "Студенты PRO",
+      "name": "Студенты",
       "desc": "Another profile’s badge on your home chip",
       "price": "1050 ⭐",
       "owned": false,
@@ -1616,7 +1616,7 @@
      },
      {
       "id": "badge_drivers",
-      "name": "Реакция ПРО",
+      "name": "Реакция",
       "desc": "Another profile’s badge on your home chip",
       "price": "1200 ⭐",
       "owned": false,
@@ -1633,7 +1633,7 @@
      },
      {
       "id": "badge_vasilyeva",
-      "name": "Скорочтение PRO",
+      "name": "Скорочтение",
       "desc": "Another profile’s badge on your home chip",
       "price": "1350 ⭐",
       "owned": false,

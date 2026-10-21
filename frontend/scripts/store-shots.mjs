@@ -385,17 +385,7 @@ async function main() {
   await page.evaluate((lang) => {
     localStorage.setItem('language', lang);
     localStorage.setItem('psygames_devchat_on', '0');   // кнопка отзыва — инструмент тестировщика
-    // Профиль владельца: ровно та пара ключей, которую пишет redeemCode +
-    // switchProfile в ProfileContext.
-    //
-    // ⚠️ ПРО ВТОРОЙ КЛЮЧ, ЧЕСТНО. Проверено поломкой 19.08.2026: сегодня хватает
-    // одного `active_profile` — в `services/unlock.ts` стоит UNLOCK_CODES_ENABLED
-    // = false («free-фаза, замков нет»), и `requiresUnlock` возвращает false для
-    // всех профилей. `unlocked_themed` пишем не «на всякий случай», а потому что
-    // там же расписан возврат гейтинга при переходе на оплату: как только замки
-    // включат, ProfileContext откатит несведённый профиль на free, и рецепт
-    // молча начнёт снимать каталог с девятью карточками.
-    localStorage.setItem('psygames_unlocked_themed', JSON.stringify(['odv999']));
+    // Профиль полного доступа: с 21.10.2026 замков нет (d5e5814a), хватает активного профиля.
     localStorage.setItem('psygames_active_profile', 'odv999');
     localStorage.setItem('psygames_first_run_done', '1');
   }, LANG);

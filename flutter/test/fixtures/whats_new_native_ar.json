@@ -7,6 +7,22 @@
  "check": "التحقق من التحديثات · v0.0.0",
  "entries": [
   {
+   "version": "v2.56.36",
+   "date": "2026-10-21",
+   "items": [
+    "Profiles: all 13 are open to everyone — no codes, prices or locks",
+    "Sudoku: finishing the whole level ladder now leads to generated boards matched to your level",
+    "Warm-up: Back on a step that started after the countdown now leaves the warm-up instead of showing an old screen",
+    "Reading span: in a warm-up you answer by tapping word tiles — no keyboard; sentences now come in 10 more languages",
+    "Attention games: after a passed level the button says “Next — level N”, not just “Again”; Simon keeps its target frame steady",
+    "Tower of Hanoi: the goal is shown on the board",
+    "Tower of London: your board is centred, the target is a small picture above it",
+    "Dictation: a wrong letter now shows in red where you typed it",
+    "OSpan: the keyboard no longer autocorrects your answer",
+    "Roll and bank: top levels on a 60 track against a bot that plays the exact best strategy"
+   ]
+  },
+  {
    "version": "v2.56.35",
    "date": "2026-10-21",
    "items": [

@@ -28,6 +28,7 @@ import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/
 import { gameNow } from '@/src/services/gamePause';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { pickFresh } from '@/src/services/freshPool';
+import { SENTENCE_TR } from '@/src/games/reading-span/sentences-i18n';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 
 const GRADIENT = ['#1f4037', '#99f2c8'];
@@ -43,10 +44,14 @@ const RS_BENEFITS = [
   { icon: 'sync-outline', textKey: 'benefitRs3' },
 ];
 
-export interface SentenceItem { ru: string; en: string; ok: boolean; lastRu: string; lastEn: string; }
+export interface SentenceItem {
+  ru: string; en: string; ok: boolean; lastRu: string; lastEn: string;
+  /** Остальные десять языков: язык → [предложение, слово]. Нет языка — английский. */
+  tr?: Readonly<Record<string, readonly [string, string]>>;
+}
 
 // Each sentence has a sensibility judgment (true = makes sense). Last word is what subject must recall.
-export const SENTENCES: SentenceItem[] = [
+const SENTENCES_RU_EN: SentenceItem[] = [
   { ru: 'Кошка пьёт молоко из миски.',           en: 'The cat drinks milk from the bowl.',     ok: true,  lastRu: 'миски',     lastEn: 'bowl' },
   { ru: 'Солнце светит ночью на крыше.',          en: 'The sun shines at night on the roof.',   ok: false, lastRu: 'крыше',     lastEn: 'roof' },
   { ru: 'Дети играют в парке возле дома.',        en: 'Children play in the park near home.',   ok: true,  lastRu: 'дома',      lastEn: 'home' },
@@ -112,6 +117,19 @@ export const SENTENCES: SentenceItem[] = [
   { ru: 'Кирпич плавает в воздухе над городом.',      en: 'A brick floats in the air above the city.', ok: false, lastRu: 'городом', lastEn: 'city' },
 ];
 
+/** Корпус игры: ru/en здесь, десять остальных языков — `sentences-i18n.ts` по ключу `en`. */
+export const SENTENCES: SentenceItem[] = SENTENCES_RU_EN.map((s) => ({ ...s, tr: SENTENCE_TR[s.en] }));
+
+/** Предложение на языке интерфейса: ru — русское, есть перевод — он, иначе английское. */
+export function sentenceText(s: SentenceItem, language: string): string {
+  return language === 'ru' ? s.ru : (s.tr?.[language]?.[0] ?? s.en);
+}
+
+/** Слово, которое запоминают, — на том же языке, что и предложение. */
+export function sentenceWord(s: SentenceItem, language: string): string {
+  return language === 'ru' ? s.lastRu : (s.tr?.[language]?.[1] ?? s.lastEn);
+}
+
 /**
  * Что меняется с уровнем — вслух, а не молча.
  *
@@ -161,7 +179,7 @@ type GamePhase = 'intro' | 'config' | 'playing' | 'recall' | 'cleared' | 'result
 export function recallScore(
   seq: readonly SentenceItem[], language: string, input: string,
 ): { hits: number; errors: number; expected: string[] } {
-  const expected = seq.map(s => language !== 'ru' ? s.lastEn : s.lastRu).map(x => x.toLowerCase().trim());
+  const expected = seq.map(s => sentenceWord(s, language)).map(x => x.toLowerCase().trim());
   const given = input.toLowerCase().split(/[\s,;]+/).filter(Boolean).map(x => x.trim());
   let hits = 0, errors = 0;
   for (let i = 0; i < expected.length; i++) {
@@ -393,8 +411,8 @@ export default function ReadingSpanGame() {
       >
         {phase === 'playing' ? (() => {
           const cur = seq[stepIdx];
-          const sentence = language !== 'ru' ? cur.en : cur.ru;
-          const lastWord = language !== 'ru' ? cur.lastEn : cur.lastRu;
+          const sentence = sentenceText(cur, language);
+          const lastWord = sentenceWord(cur, language);
           return (
             <View style={styles.fieldCol}>
               <View style={[styles.sentenceBox, { backgroundColor: colors.surface }]}>
