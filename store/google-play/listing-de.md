@@ -71,7 +71,7 @@ WAS DRIN IST
 • 131 Übungen für Gedächtnis, Aufmerksamkeit, Logik, Tempo und Kontrolle
 • Aufwärmen per Knopfdruck: morgens, tagsüber, abends und nachts
 • Dunkles Design und ein Set für schlaflose Nächte: 4-7-8-Atmung, gedimmter Bildschirm, ohne Punkte und Serie
-• 12 Profile: Sprachen, Kinder, 50+, Fokus, Reaktion, Gründer und mehr
+• 13 Profile: Sprachen, Kinder, 50+, Fokus, Reaktion, Gründer und mehr
 • Auswertung mit Radar der Stärken und Schwachstellen
 • 12 Sprachen · funktioniert offline · ohne Werbung
 

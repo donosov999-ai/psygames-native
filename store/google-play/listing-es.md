@@ -61,7 +61,7 @@ QUÉ INCLUYE
 • 131 ejercicios de memoria, atención, lógica, velocidad y control
 • Calentamientos de mañana, tarde y noche listos para empezar con un toque
 • Tema oscuro y un set nocturno para cuando no puedes dormir: respiración 4-7-8, pantalla atenuada, sin puntos ni racha
-• 12 perfiles: idiomas, niños, 50+, enfoque, reacción, estudiantes y más
+• 13 perfiles: idiomas, niños, 50+, enfoque, reacción, estudiantes y más
 • Evaluación con un radar de fortalezas y aspectos por mejorar
 • 12 idiomas · funciona sin conexión · sin anuncios · sin registro
 

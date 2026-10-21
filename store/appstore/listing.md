@@ -26,7 +26,7 @@ Train and measure the things that matter: memory, attention, logic, processing s
 WHAT'S INSIDE
 • 131 games across 6 categories: Memory, Attention, Logic, Intuition, Speed & Control, Recovery
 • Morning warm-up and a calm "before sleep" session — curated complexes that auto-run with the right settings
-• 12 profiles for different goals: languages, kids, seniors, focus, reaction, entrepreneurs and more
+• 13 profiles for different goals: languages, kids, seniors, focus, reaction, entrepreneurs and more
 • Progress tracking + a cognitive assessment that maps your strengths and weaknesses on a radar
 • 12 languages · works fully offline · no ads, no spam
 
@@ -43,7 +43,7 @@ PsyGames — это 131 когнитивный тренажёр на основ�
 ЧТО ВНУТРИ
 • 131 игра в 6 категориях: Память, Внимание, Логика, Интуиция, Скорость и Контроль, Восстановление
 • Утренняя зарядка и спокойный режим «перед сном» — готовые комплексы, запускаются сразу с нужными настройками
-• 12 профилей под разные цели: языки, дети, 50+, фокус, реакция, предприниматели и др.
+• 13 профилей под разные цели: языки, дети, 50+, фокус, реакция, предприниматели и др.
 • Отслеживание прогресса + оценка с радаром сильных и слабых сторон
 • 12 языков · работает офлайн · без рекламы
 
@@ -91,5 +91,5 @@ PsyGames is a cognitive-training app with 131 standalone games. No login require
 Текст на скринах — на языке локали (EN для базы, RU для рус. локали).
 
 ## 11. What's New (release notes, первый релиз)
-- **EN:** `First release. 131 cognitive games, morning & evening complexes, 12 profiles, cognitive assessment, 12 languages, fully offline.`
-- **RU:** `Первый релиз. 131 когнитивная игра, утренние и вечерние комплексы, 12 профилей, оценка профиля, 12 языков, полностью офлайн.`
+- **EN:** `First release. 131 cognitive games, morning & evening complexes, 13 profiles, cognitive assessment, 12 languages, fully offline.`
+- **RU:** `Первый релиз. 131 когнитивная игра, утренние и вечерние комплексы, 13 профилей, оценка профиля, 12 языков, полностью офлайн.`
