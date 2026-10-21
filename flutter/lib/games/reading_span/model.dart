@@ -19,9 +19,16 @@ const rspanLoadFromLevel = 5;
 /// Пауза удержания на каждый уровень сверх ёмкости словаря — как в вебе.
 const rspanHoldStepMs = 700;
 
-/// Одно предложение: текст на двух языках, осмысленно ли оно и его последнее слово.
+/// Одно предложение: текст на языках, осмысленно ли оно и слово, которое запоминают.
 class RspanSentence {
-  const RspanSentence({required this.ru, required this.en, required this.ok, required this.lastRu, required this.lastEn});
+  const RspanSentence({
+    required this.ru,
+    required this.en,
+    required this.ok,
+    required this.lastRu,
+    required this.lastEn,
+    this.tr = const {},
+  });
 
   factory RspanSentence.fromJson(Map<String, Object?> j) => RspanSentence(
         ru: j['ru']! as String,
@@ -29,6 +36,10 @@ class RspanSentence {
         ok: j['ok']! as bool,
         lastRu: j['lastRu']! as String,
         lastEn: j['lastEn']! as String,
+        tr: {
+          for (final e in ((j['tr'] as Map?) ?? const {}).entries)
+            e.key as String: (e.value as List).cast<String>(),
+        },
       );
 
   final String ru;
@@ -37,10 +48,13 @@ class RspanSentence {
   final String lastRu;
   final String lastEn;
 
-  /// Предложения есть на двух языках: русский — для русского интерфейса, остальным английский
-  /// (веб: `language !== 'ru' ? en : ru`).
-  String text(String language) => language != 'ru' ? en : ru;
-  String last(String language) => language != 'ru' ? lastEn : lastRu;
+  /// Остальные десять языков: язык → [предложение, слово] (веб `sentences-i18n.ts`).
+  final Map<String, List<String>> tr;
+
+  /// Предложение на языке интерфейса: ru — русское, есть перевод — он, иначе английское
+  /// (веб `sentenceText`). До 21.10.2026 es…hi играли английскими — меряли знание английского.
+  String text(String language) => language == 'ru' ? ru : (tr[language]?[0] ?? en);
+  String last(String language) => language == 'ru' ? lastRu : (tr[language]?[1] ?? lastEn);
 }
 
 /// Правила уровня: размер набора и удержание перед вводом (ось 3).
