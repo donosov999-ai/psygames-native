@@ -65,6 +65,14 @@ class _CatsScreenState extends State<CatsScreen> {
   bool _won = false;
   bool _lost = false;
 
+  /// 🔴 СТУПЕНЬ СЫГРАННОЙ ПАРТИИ — ДЛЯ ШАПКИ, ПОКА НА ЭКРАНЕ ИТОГ. [LevelLadder.win] поднимает
+  /// ступень сразу, и до 21.10 над решённой доской с «Далее» шапка уже показывала следующую
+  /// (замер: «Кошки», ступень 1 → «Уровень: 2»). Тот же дефект веба чинила ветка 17.09
+  /// `sudoku/cleared-card-level`, в натив он переехал вместе с экраном.
+  int? _endLevel;
+
+  int get _hudLevel => (_won || _lost) ? (_endLevel ?? _ladder.level) : _ladder.level;
+
   @override
   void initState() {
     super.initState();
@@ -150,6 +158,7 @@ class _CatsScreenState extends State<CatsScreen> {
       if (_errors >= lives) {
         _lost = true;
         _bumpAttempt();
+        _endLevel = _ladder.level;
         _ladder.fail(errors: _errors, details: _report(board));
       }
     });
@@ -210,6 +219,7 @@ class _CatsScreenState extends State<CatsScreen> {
     if (board == null) return;
     if (!catsSolved(board, _cats)) return;
     _won = true;
+    _endLevel = _ladder.level;
     _ladder.win(errors: _errors, details: _report(board));
   }
 
@@ -222,7 +232,7 @@ class _CatsScreenState extends State<CatsScreen> {
       onRules: () => _showRules(context),
       onLesson: board == null ? null : _openLesson,
       hud: [
-        HudItem(label: L.t('level'), value: '${_board == null ? 1 : _ladder.level}', icon: Icons.trending_up),
+        HudItem(label: L.t('level'), value: '${_board == null ? 1 : _hudLevel}', icon: Icons.trending_up),
         HudItem(
           label: L.t('label_found'),
           value: '${_cats.length}/$n',

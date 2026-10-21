@@ -558,7 +558,9 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
     if (_modeOrNull == null) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
-    final step = _steps[(_ladder.level - 1).clamp(0, _steps.length - 1)];
+    // Ступень РАЗДАЧИ, а не лестницы: победа поднимает лестницу сразу, и шапка с выбором масштаба
+    // брали бы следующую доску над решённой (тот же дефект, что [_endLevel] у соседей, 21.10).
+    final step = _steps[(_dealLevel - 1).clamp(0, _steps.length - 1)];
 
     return GameShell(
       title: _mode.title,
@@ -578,7 +580,7 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
           ? null
           : () => showGameRules(context, title: _mode.title, ruleKey: _mode.rulesKey!),
       hud: [
-        HudItem(label: L.t('puzzleHudLevel'), value: '${_ladder.level}/${_steps.length}', icon: Icons.trending_up),
+        HudItem(label: L.t('puzzleHudLevel'), value: '$_dealLevel/${_steps.length}', icon: Icons.trending_up),
         HudItem(label: L.t('puzzleHudBoard'), value: stepTitle(step), icon: Icons.grid_on),
       ],
       field: (context, height) {
