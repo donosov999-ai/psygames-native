@@ -122,6 +122,14 @@ class _FractalScreenState extends State<FractalScreen> {
   ({int? child, int r, int c})? _selected;
   bool _won = false;
 
+  /// 🔴 СТУПЕНЬ СЫГРАННОЙ ПАРТИИ — ДЛЯ ШАПКИ, ПОКА НА ЭКРАНЕ ИТОГ. [LevelLadder.win] поднимает
+  /// ступень сразу, и до 21.10 над решённой доской с «Далее» шапка уже показывала следующую
+  /// (замер: «Кошки», ступень 1 → «Уровень: 2»). Тот же дефект веба чинила ветка 17.09
+  /// `sudoku/cleared-card-level`, в натив он переехал вместе с экраном.
+  int? _endLevel;
+
+  int get _hudLevel => _won ? (_endLevel ?? _ladder.level) : _ladder.level;
+
   /// Начало партии по часам игры — время в отчёте, как у веба.
   int _startedAt = gameNow();
   int get _elapsed => (gameNow() - _startedAt) ~/ 1000;
@@ -335,6 +343,7 @@ class _FractalScreenState extends State<FractalScreen> {
         // 🔴 ОТЧЁТ — КАК У ВЕБА (sudoku-fractal.tsx, saveSession; сверка 138f7818): счёт
         // 4000 − ошибки·60 − время, не ниже пола.
         final level = _ladder.level;
+        _endLevel = level;
         unawaited(saveLevelStars(widget.state, 'sudoku_fractal', level, fractalStars(_errors)));
         unawaited(_ladder.win(
           score: max(fractalWinFloor, (4000 - _errors * 60 - min(_elapsed, fractalTimeCap)).round()),
@@ -595,7 +604,7 @@ class _FractalScreenState extends State<FractalScreen> {
       title: _title,
       onLesson: _lessonSteps().isEmpty ? null : _openLesson,
       hud: [
-        HudItem(label: L.t('level'), value: '${_ladder.level}', icon: Icons.trending_up),
+        HudItem(label: L.t('level'), value: '$_hudLevel', icon: Icons.trending_up),
         HudItem(label: L.t('fractalOpened'), value: '$_unlocked/9', icon: Icons.lock_open),
         HudItem(label: L.t('errors'), value: '$_errors', icon: Icons.close),
         if (open != null)
