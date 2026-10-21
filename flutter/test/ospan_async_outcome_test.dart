@@ -225,6 +225,29 @@ void main() {
     }
   }
 
+  // Ответ — набор букв: автозамена клавиатуры не должна его переписывать
+  // (отчёт 6589e751: «ЛВБ» превратилось в «ДУБ»). Мерим то, что уходит в
+  // клавиатуру платформы, — EditableText, а не обёртку TextField.
+  testWidgets('recall field turns off autocorrect and suggestions', (
+    tester,
+  ) async {
+    final state = await SharedState.open();
+    await boot(tester, state);
+    await recallRound(tester, passed: true);
+    final editable = tester.widget<EditableText>(
+      find.descendant(
+        of: find.byKey(const Key('ввод')),
+        matching: find.byType(EditableText),
+      ),
+    );
+    expect(editable.autocorrect, isFalse);
+    expect(editable.enableSuggestions, isFalse);
+    expect(
+      editable.spellCheckConfiguration?.spellCheckEnabled ?? false,
+      isFalse,
+    );
+  });
+
   testWidgets('unmounted screen ignores delayed completion', (tester) async {
     final state = await SharedState.open();
     final gate = Completer<void>();
