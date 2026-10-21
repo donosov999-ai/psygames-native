@@ -875,7 +875,7 @@
    "cost": 2400,
    "nameKey": "cosName_profile_item",
    "descKey": "cosDesc_theme_generic",
-   "profileName": "Скорочтение PRO",
+   "profileName": "Скорочтение",
    "swatch": {
     "kind": "image",
     "uri": "/assets/images/level-map-themes/vasilyeva.webp"
@@ -914,7 +914,7 @@
    "cost": 2400,
    "nameKey": "cosName_profile_item",
    "descKey": "cosDesc_theme_generic",
-   "profileName": "Реакция ПРО",
+   "profileName": "Реакция",
    "swatch": {
     "kind": "image",
     "uri": "/assets/images/level-map-themes/drivers.webp"
@@ -953,7 +953,7 @@
    "cost": 2400,
    "nameKey": "cosName_profile_item",
    "descKey": "cosDesc_theme_generic",
-   "profileName": "Студенты PRO",
+   "profileName": "Студенты",
    "swatch": {
     "kind": "image",
     "uri": "/assets/images/level-map-themes/students.webp"
@@ -1005,7 +1005,7 @@
    "cost": 1050,
    "nameKey": "cosName_profile_item",
    "descKey": "cosDesc_background_generic",
-   "profileName": "Студенты PRO",
+   "profileName": "Студенты",
    "swatch": {
     "kind": "image",
     "uri": "/assets/images/profile-bg/students.webp"
@@ -1044,7 +1044,7 @@
    "cost": 1350,
    "nameKey": "cosName_profile_item",
    "descKey": "cosDesc_background_generic",
-   "profileName": "Реакция ПРО",
+   "profileName": "Реакция",
    "swatch": {
     "kind": "image",
     "uri": "/assets/images/profile-bg/drivers.webp"
@@ -1057,7 +1057,7 @@
    "cost": 1350,
    "nameKey": "cosName_profile_item",
    "descKey": "cosDesc_background_generic",
-   "profileName": "Скорочтение PRO",
+   "profileName": "Скорочтение",
    "swatch": {
     "kind": "image",
     "uri": "/assets/images/profile-bg/vasilyeva.webp"
@@ -1148,7 +1148,7 @@
    "cost": 1050,
    "nameKey": "cosName_profile_item",
    "descKey": "cosDesc_badge_generic",
-   "profileName": "Студенты PRO",
+   "profileName": "Студенты",
    "swatch": {
     "kind": "image",
     "uri": "/assets/images/profiles/students.webp"
@@ -1187,7 +1187,7 @@
    "cost": 1200,
    "nameKey": "cosName_profile_item",
    "descKey": "cosDesc_badge_generic",
-   "profileName": "Реакция ПРО",
+   "profileName": "Реакция",
    "swatch": {
     "kind": "image",
     "uri": "/assets/images/profiles/drivers.webp"
@@ -1200,7 +1200,7 @@
    "cost": 1350,
    "nameKey": "cosName_profile_item",
    "descKey": "cosDesc_badge_generic",
-   "profileName": "Скорочтение PRO",
+   "profileName": "Скорочтение",
    "swatch": {
     "kind": "image",
     "uri": "/assets/images/profiles/vasilyeva.webp"

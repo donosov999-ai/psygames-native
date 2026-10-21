@@ -1,10 +1,9 @@
-/* psygames-flutter-profiles-asset-fresh · VER 2 · 07.10.2026 */
+/* psygames-flutter-profiles-asset-fresh · VER 3 · 21.10.2026 */
 /**
  * ПРОФИЛИ ДЛЯ НАТИВНЫХ НАСТРОЕК — ВЫГРУЗКОЙ ИЗ ЖИВОГО TS, И СВЕЖЕСТЬ ПОД СТОРОЖЕМ (задача eae0879c).
  *
- * 🔴 ПОЧЕМУ ВЫГРУЗКА, А НЕ КОПИЯ. Кто из профилей заперт, решают `requiresUnlock` и
- * `isComingSoon` (`src/services/unlock.ts`) по флагу `UNLOCK_CODES_ENABLED`; поля карточек и
- * порядок — `PROFILES` (`src/constants/profiles.ts`, 1287 строк). Переписать это в Dart —
+ * 🔴 ПОЧЕМУ ВЫГРУЗКА, А НЕ КОПИЯ. Поля карточек и порядок — `PROFILES`
+ * (`src/constants/profiles.ts`). Переписать это в Dart —
  * завести второй источник правды, который разойдётся с первым молча. Поэтому натив читает
  * `flutter/assets/profiles.json`, а эта проба держит его свежим.
  *
@@ -12,9 +11,8 @@
  * профили в вебе поменяли, а ассет нет. Перевыпуск — из `frontend/`:
  *   WRITE=1 npx jest -i --runTestsByPath src/__tests__/flutter-profiles-asset-fresh.test.ts
  */
-import { PROFILES, MONETIZATION_ENABLED, PUBLIC_GAME_COUNT, ALWAYS_ALLOWED } from '@/src/constants/profiles';
+import { PROFILES, PUBLIC_GAME_COUNT, ALWAYS_ALLOWED } from '@/src/constants/profiles';
 import { заводскойСостав } from '@/src/services/playlistOverride';
-import { UNLOCK_CODES_ENABLED, requiresUnlock, isComingSoon } from '@/src/services/unlock';
 import { GAMES } from '@/src/constants/games';
 
 declare function require(id: string): any;
@@ -27,7 +25,7 @@ const OUT = path.resolve(__dirname, '../../../flutter/assets/profiles.json');
 /** Поля, которые читает экран настроек (`app/settings.tsx`): карточка, лист деталей, подвал. */
 const FIELDS = [
   'id', 'group', 'emoji', 'color', 'allowed_games', 'session_minutes',
-  'audience', 'audience_en', 'sales_hook', 'sales_hook_en', 'long_description', 'long_description_en',
+  'audience', 'audience_en', 'long_description', 'long_description_en',
   'warmup_enabled', 'financial_brain_day_enabled', 'assessment_enabled',
 ] as const;
 
@@ -37,8 +35,6 @@ function build(): string {
     for (const f of FIELDS) if ((p as any)[f] !== undefined) o[f] = (p as any)[f];
     // Единица — словарём натива (`unitMin`), а не русским хвостом в данных: «5-15 мин» → «5-15».
     if (typeof o.session_minutes === 'string') o.session_minutes = (o.session_minutes as string).replace(/\s*мин\.?\s*$/, '');
-    o.requiresUnlock = requiresUnlock(p.id);
-    o.comingSoon = isComingSoon(p.id);
     return o;
   });
   // Игры из списков профилей — для листа деталей: имя ключом словаря и категория (значок).
@@ -62,7 +58,8 @@ function build(): string {
     if (Object.keys(o).length) factoryOverlay[id] = o;
   }
   const data = {
-    flags: { MONETIZATION_ENABLED, UNLOCK_CODES_ENABLED, PUBLIC_GAME_COUNT },
+    // 21.10.2026 (d5e5814a): замков и цен нет — флагов монетизации тоже.
+    flags: { PUBLIC_GAME_COUNT },
     profiles,
     games,
     alwaysAllowed: [...ALWAYS_ALLOWED].sort(),

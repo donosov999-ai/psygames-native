@@ -5,12 +5,11 @@
  * `ProfileSwitcherModal` смонтирован на Главной; под оболочкой (`window.PsyBridge`,
  * `window.__psyHostScreens` с `#switcher`) он отдаёт модель листа и принимает действия:
  *   · без оболочки — ни модели, ни действий (браузер работает как раньше);
- *   · модель: только переключаемые профили (без «владельца»), активный отмечен, закрытые — замком,
- *     у каждого — карточка с тем, что показывает веб-лист;
+ *   · модель: все профили, активный отмечен, у каждого — то, что показывает веб-лист;
  *   · действие `switch` переключает профиль — модель отражает новый активный;
- *   · `switch` на закрытый профиль не открывает его (доступ решает веб, а не нажатие) — ⚠️ на 07.10.2026
- *     закрытых профилей нет (бесплатно всё), ветка исполнится, когда они появятся;
- *   · неверный код — ошибка в модели, без закрытия окна.
+ *   · 🔴 сторож монетизации (d5e5814a, решение Дениса 21.10.2026): на ru и en, на iOS, Android и в
+ *     браузере в модели нет замка, «Скоро», цены, «/год», кода, Telegram и «PRO». Слова сторожа —
+ *     `flutter/test/fixtures/no_monetization_words.json`, их же читает проба Dart.
  */
 declare const process: { env: Record<string, string | undefined> };
 
@@ -22,8 +21,9 @@ jest.mock('expo-router', () => ({
 
 const МЕТРИК = { frame: { x: 0, y: 0, width: 390, height: 844 }, insets: { top: 0, left: 0, right: 0, bottom: 0 } };
 
-async function смонтировать(host: boolean, language = 'en') {
+async function смонтировать(host: boolean, language = 'en', os?: string) {
   jest.resetModules();
+  if (os) Object.defineProperty(require('react-native').Platform, 'OS', { value: os, configurable: true });
   const sent: any[] = [];
   const g = globalThis as any;
   if (host) {
@@ -61,53 +61,6 @@ afterEach(() => {
 });
 
 describe('переключатель профилей под оболочкой', () => {
-  it('ошибка кода переводится при смене языка, а не застывает на русском', async () => {
-    const { last, r, TestRenderer, setLanguage } = await смонтировать(true, 'ru');
-    await TestRenderer.act(async () => { (globalThis as any).__psyScreenUi['#switcher'].redeem('NOT-A-CODE'); });
-    await TestRenderer.act(async () => { await new Promise((ok) => setTimeout(ok, 10)); });
-    expect(last().code.error).toMatch(/[А-Яа-яЁё]/);
-    await TestRenderer.act(async () => { await setLanguage('en'); });
-    expect(last().code.error).toBe('Invalid code. Check it and try again.');
-    expect(last().code.redeemed).toBe(0);
-    await TestRenderer.act(async () => r.unmount());
-  });
-
-  it('новые подписи переведены во всех накладках, а не скрыты английским fallback', () => {
-    const keys = ['switcherCodeHint', 'switcherOwnerBadge', 'switcherProfileGames', 'switcherPerYear', 'switcherAnnual', 'switcherBundleTitle', 'switcherBundleOrder', 'switcherCorporateTitle', 'switcherCorporateDesc', 'switcherEmployeeCost', 'switcherQuoteRequest', 'switcherConsult', 'switcherPaymentInfo', 'switcherMonthlyCost', 'switcherOrderPrice'];
-    const { LANGUAGES, translateFor } = require('@/src/contexts/LanguageContext');
-    for (const { code } of LANGUAGES) {
-      const overlay = ['ru', 'en'].includes(code) ? null : require(`@/src/contexts/translations/${code}`).default;
-      for (const key of keys) {
-        const value = translateFor(code, key);
-        expect(value).not.toBe(key);
-        expect(value.length).toBeGreaterThan(0);
-        if (overlay) expect(overlay[key]).toBe(value);
-        const slots = (value.match(/\{\w+\}/g) ?? []).sort();
-        expect(slots).toEqual((translateFor('en', key).match(/\{\w+\}/g) ?? []).sort());
-      }
-    }
-  });
-
-  it.each(['en', 'es', 'pt', 'hi', 'zh', 'de', 'fr', 'it', 'ja', 'ko', 'ar'])
-   ('%s: весь лист, все детали и ошибка кода — без русского текста', async (language) => {
-      const { last, r, TestRenderer } = await смонтировать(true, language);
-      const checkStrings = (value: any, path = 'switcher') => {
-        if (typeof value === 'string') {
-          expect({ path, russian: /[А-Яа-яЁё]/.test(value), value }).toEqual({ path, russian: false, value });
-        } else if (Array.isArray(value)) {
-          value.forEach((v, i) => checkStrings(v, `${path}[${i}]`));
-        } else if (value && typeof value === 'object') {
-          Object.entries(value).forEach(([key, v]) => checkStrings(v, `${path}.${key}`));
-        }
-      };
-      checkStrings(last());
-      await TestRenderer.act(async () => { (globalThis as any).__psyScreenUi['#switcher'].redeem('NOT-A-CODE'); });
-      await TestRenderer.act(async () => { await new Promise((ok) => setTimeout(ok, 10)); });
-      expect(last().code.error).toBeTruthy();
-      checkStrings(last());
-      await TestRenderer.act(async () => r.unmount());
-    });
-
   it('без оболочки — ни модели, ни действий', async () => {
     const { sent, r, TestRenderer } = await смонтировать(false);
     expect(sent).toEqual([]);
@@ -115,33 +68,70 @@ describe('переключатель профилей под оболочкой'
     await TestRenderer.act(async () => r.unmount());
   });
 
-  it('🔴 модель: переключаемые профили, активный отмечен, у каждого карточка', async () => {
+  it('🔴 модель: все профили, активный отмечен, у каждого имя и описание', async () => {
     const { last, r, TestRenderer } = await смонтировать(true);
     const m = last();
     expect(m).toBeTruthy();
-    const { PROFILES, isSwitchable } = require('@/src/constants/profiles');
-    const ids = Object.values(PROFILES as Record<string, any>).filter(isSwitchable).map((p: any) => p.id).sort();
-    expect([...m.profiles.map((p: any) => p.id)].sort()).toEqual(ids);
+    const { PROFILES } = require('@/src/constants/profiles');
+    expect([...m.profiles.map((p: any) => p.id)].sort()).toEqual(PROFILES.map((p: any) => p.id).sort());
     expect(m.profiles.filter((p: any) => p.active).map((p: any) => p.id)).toEqual([m.activeId]);
-    for (const p of m.profiles) expect([p.id, typeof m.details[p.id]?.name]).toEqual([p.id, 'string']);
-    expect(typeof (globalThis as any).__psyScreenUi?.['#switcher']?.switch).toBe('function');
+    for (const p of m.profiles) expect([p.id, typeof p.name, typeof p.desc]).toEqual([p.id, 'string', 'string']);
+    expect(Object.keys((globalThis as any).__psyScreenUi?.['#switcher'] ?? {})).toEqual(['switch']);
     await TestRenderer.act(async () => r.unmount());
   });
 
-  it('🔴 switch переключает открытый профиль (закрытый — не открывает, если такие есть)', async () => {
+  it('🔴 switch переключает любой профиль; чужой id — ничего не меняет', async () => {
     const { last, r, TestRenderer } = await смонтировать(true);
-    const m = last();
-    const открытый = m.profiles.find((p: any) => !p.locked && !p.active);
-    const закрытый = m.profiles.find((p: any) => p.locked);
-    await TestRenderer.act(async () => { (globalThis as any).__psyScreenUi['#switcher'].switch(открытый.id); });
+    const другой = last().profiles.find((p: any) => !p.active);
+    await TestRenderer.act(async () => { (globalThis as any).__psyScreenUi['#switcher'].switch(другой.id); });
     await TestRenderer.act(async () => { await new Promise((ok) => setTimeout(ok, 0)); });
-    expect(last().activeId).toBe(открытый.id);
-    if (закрытый) {
-      await TestRenderer.act(async () => { (globalThis as any).__psyScreenUi['#switcher'].switch(закрытый.id); });
-      await TestRenderer.act(async () => { await new Promise((ok) => setTimeout(ok, 0)); });
-      expect(last().activeId).toBe(открытый.id);
-    }
+    expect(last().activeId).toBe(другой.id);
+    await TestRenderer.act(async () => { (globalThis as any).__psyScreenUi['#switcher'].switch('no-such-profile'); });
+    await TestRenderer.act(async () => { await new Promise((ok) => setTimeout(ok, 0)); });
+    expect(last().activeId).toBe(другой.id);
     await TestRenderer.act(async () => r.unmount());
+  });
+
+  it.each(['en', 'es', 'pt', 'hi', 'zh', 'de', 'fr', 'it', 'ja', 'ko', 'ar'])
+   ('%s: весь лист — без русского текста', async (language) => {
+      const { last, r, TestRenderer } = await смонтировать(true, language);
+      const russian = strings(last()).filter(([, v]) => /[А-Яа-яЁё]/.test(v));
+      expect(russian).toEqual([]);
+      await TestRenderer.act(async () => r.unmount());
+    });
+
+  describe('🔴 сторож монетизации (d5e5814a)', () => {
+    const fs = require('fs');
+    const path = require('path');
+    const file = path.resolve(__dirname, '../../../flutter/test/fixtures/no_monetization_words.json');
+
+    it('слова сторожа для пробы Dart — те же, что здесь', () => {
+      const now = `${JSON.stringify({ patterns: NO_MONEY.map((r) => ({ source: r.source, caseSensitive: !r.flags.includes('i') })) }, null, 1)}\n`;
+      if (process.env.WRITE === '1') fs.writeFileSync(file, now, 'utf8');
+      const was = fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : '';
+      expect({ fresh: was === now, regenerate: 'cd frontend && WRITE=1 npx jest -i --runTestsByPath src/__tests__/profile-switcher-host-model.test.tsx' })
+        .toEqual({ fresh: true, regenerate: expect.any(String) });
+    });
+
+    it('сторож видит каждый признак продажи — проверка самого сторожа', () => {
+      const samples = ['Reaction PRO', 'Скорочтение PRO', '990 ₽ / год', '$9.99/year', 'Скоро', 'Coming soon', 'Enter access code',
+        'Ввести код доступа', 'Купить в Telegram', 'Годовой доступ'];
+      expect(samples.filter((v) => sold({ profiles: [{ desc: v }] }).length === 0)).toEqual([]);
+      expect(sold({ profiles: [{ badge: '🔒' }] }).length).toBe(1);
+      // Обычные слова листа сторож не трогает: иначе он красный на ровном месте.
+      expect(sold({ profiles: [{ name: 'Скорочтение', desc: 'Reaction · Students · Programs' }] })).toEqual([]);
+    });
+
+    for (const os of ['ios', 'android', 'web']) {
+      for (const language of ['ru', 'en']) {
+        it(`${os}/${language}: в листе нет замка, «Скоро», цены, «/год», кода, Telegram и «PRO»`, async () => {
+          const { last, r, TestRenderer } = await смонтировать(true, language, os);
+          expect(last().profiles.length).toBeGreaterThan(8);
+          expect(sold(last())).toEqual([]);
+          await TestRenderer.act(async () => r.unmount());
+        });
+      }
+    }
   });
 
   it('образец модели для пробы Flutter совпадает с живым компонентом', async () => {
@@ -159,16 +149,26 @@ describe('переключатель профилей под оболочкой'
       .toEqual({ fresh: true, regenerate: expect.any(String) });
     await TestRenderer.act(async () => r.unmount());
   });
-
-  it('неверный код — ошибка в модели', async () => {
-    const { last, r, TestRenderer } = await смонтировать(true);
-    const before = last().code.redeemed;
-    await TestRenderer.act(async () => { (globalThis as any).__psyScreenUi['#switcher'].redeem('NOT-A-CODE'); });
-    await TestRenderer.act(async () => { await new Promise((ok) => setTimeout(ok, 10)); });
-    expect(typeof last().code.error).toBe('string');
-    expect(last().code.redeemed).toBe(before);
-    await TestRenderer.act(async () => { (globalThis as any).__psyScreenUi['#switcher'].clearError(); });
-    expect(last().code.error).toBeNull();
-    await TestRenderer.act(async () => r.unmount());
-  });
 });
+
+/** Все строки модели с путём — кроме адресов картинок и цветов: там слов человек не видит. */
+function strings(value: any, at = 'switcher'): [string, string][] {
+  if (typeof value === 'string') return /(^|\.)(badge|color|id|activeId)$/.test(at) ? [] : [[at, value]];
+  if (Array.isArray(value)) return value.flatMap((v, i) => strings(v, `${at}[${i}]`));
+  if (value && typeof value === 'object') return Object.entries(value).flatMap(([k, v]) => strings(v, `${at}.${k}`));
+  return [];
+}
+
+/**
+ * Признаки продажи в тексте листа. Список — из решения «убрать монетизацию»: замок, «Скоро», цена,
+ * «в год», код доступа, покупка в Telegram, ярус «PRO». Значок 🔒 ищется и в адресах значков.
+ */
+const NO_MONEY: RegExp[] = [
+  /🔒/u, /(?<!\p{L})(скоро|soon)(?!\p{L})/iu, /[₽$€₸]/u, /\d\s*(руб|rub|usd)/iu, /\/\s*(год|year|yr)(?!\p{L})/iu,
+  /per year|в год|(?<!\p{L})annual|годов/iu, /(?<!\p{L})(код|code)/iu, /telegram|телеграм/iu, /(?<!\p{L})PRO(?!\p{L})/u,
+];
+
+function sold(model: any): string[] {
+  const all = [...strings(model), ...JSON.stringify(model).includes('🔒') ? [['*', '🔒'] as [string, string]] : []];
+  return [...new Set(all.flatMap(([at, v]) => NO_MONEY.filter((re) => re.test(v)).map((re) => `${at}: ${re.source} ← ${v}`)))];
+}
