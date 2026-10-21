@@ -230,10 +230,12 @@ class SimonStimulus extends StatelessWidget {
   final bool thick;
 
   @override
-  Widget build(BuildContext context) => Container(
+  Widget build(BuildContext context) => LayoutBuilder(builder: (context, c) => Container(
         // Ширина — явно во всю строку. Без неё рамка между пробами сжималась до крестика
-        // и раздувалась со вспышкой: «зачем сужает рамку цели» (отзыв 2ceb3684).
-        width: double.infinity,
+        // и раздувалась со вспышкой: «зачем сужает рамку цели» (отзыв 2ceb3684). Где ширина
+        // не ограничена (карточка разбора под FittedBox) — постоянные 320: «во всю строку»
+        // там бесконечность, и раскладка падает.
+        width: c.hasBoundedWidth ? double.infinity : 320,
         height: 160,
         margin: const EdgeInsets.symmetric(horizontal: 12),
         decoration: BoxDecoration(
@@ -270,7 +272,7 @@ class SimonStimulus extends StatelessWidget {
               ),
           ],
         ),
-      );
+      ));
 }
 
 class _Field extends StatelessWidget {
