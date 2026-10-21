@@ -1,4 +1,4 @@
-/* psygames-switcher-dart-model · VER 1 · 20.10.2026 */
+/* psygames-switcher-dart-model · VER 2 · 21.10.2026 */
 /**
  * 🔴 ПЕРЕКЛЮЧАТЕЛЬ ПРОФИЛЕЙ — ЭТАЛОН МОДЕЛИ ДЛЯ DART (задача d6a60b02, вариант Б).
  *
@@ -8,6 +8,7 @@
  *   · `ru` — RU, свой профиль, очки у нескольких профилей (у одного ноль), файл состава: свой порядок,
  *     свой список игр, выключенная зарядка;
  *   · `en` — EN, ничего не загружено: заводской слой состава, порядок заводской.
+ * С 21.10.2026 (d5e5814a) замков и кода нет: модель от платформы не зависит, в ней все профили.
  * Перезапись — `WRITE=1 npx jest -i --runTestsByPath src/__tests__/switcher-dart-model.test.tsx`.
  */
 declare const process: { env: Record<string, string | undefined> };
@@ -71,7 +72,6 @@ async function снять(name: string, o: { profile: string; language: string; 
   const Switcher = require('@/src/components/ProfileSwitcherModal').default;
   const ReactNow = require('react');
   const TestRenderer = require('react-test-renderer');
-  const { CODE_ENTRY_ENABLED } = require('@/src/constants/profiles');
   /* eslint-enable @typescript-eslint/no-require-imports */
   let r: any;
   await TestRenderer.act(async () => {
@@ -98,8 +98,7 @@ async function снять(name: string, o: { profile: string; language: string; 
   const keys: string[] = [...(await AsyncStorage.getAllKeys())].sort();
   const storage: Record<string, string> = {};
   for (const [k, v] of await AsyncStorage.multiGet(keys)) if (v != null) storage[k] = v;
-  // Ввод кода зависит от платформы (`CODE_ENTRY_ENABLED`): образец хранит, на какой его сняли.
-  const out = { language: o.language, codeEntry: CODE_ENTRY_ENABLED, storage, model };
+  const out = { language: o.language, storage, model };
   const file = path.resolve(__dirname, '../../../flutter/test/fixtures', `switcher_dart_${name}.json`);
   if (process.env.WRITE === '1') fs.writeFileSync(file, `${JSON.stringify(out, null, 1)}\n`, 'utf8');
   expect(fs.existsSync(file)).toBe(true);
@@ -124,12 +123,11 @@ describe('Переключатель профилей — эталон моде�
     expect(m.profiles.slice(0, 3).map((p: any) => p.id)).toEqual(['kids', 'women', 'nzt48']);
     expect(m.profiles.find((p: any) => p.id === 'nzt48').wallet).toBe('⭐ 4500');
     expect(m.profiles.find((p: any) => p.id === 'kids').wallet).toBeNull();
-    expect(m.details.women.games.length).toBe(3);
   });
 
   it('en: заводской состав и порядок', async () => {
     const m = await снять('en', { profile: 'nzt48', language: 'en', prep: { psygames_tokens_v1: { nzt48: 33 } } });
-    expect(m.profiles.map((p: any) => p.id)).not.toContain('odv999');
+    expect(m.profiles.map((p: any) => p.id)).toContain('odv999');
     expect(m.profiles.find((p: any) => p.id === 'nzt48').active).toBe(true);
   });
 });

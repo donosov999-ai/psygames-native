@@ -11,8 +11,8 @@ import 'shared_state.dart';
 ///
 /// `assets/profiles.json` пишет и держит свежим веб-проба
 /// `frontend/src/__tests__/flutter-profiles-asset-fresh.test.ts`: поля карточек из
-/// `PROFILES`, а «заперт ли» и «скоро ли» — результатом `requiresUnlock` / `isComingSoon`
-/// (`unlock.ts`). Правило доступа здесь не повторяется — только читается.
+/// `PROFILES`. С 21.10.2026 (решение Дениса, d5e5814a) монетизации нет: замков, кодов и «скоро»
+/// нет — все профили открыты всем на всех платформах.
 class Profile {
   Profile(this.raw);
 
@@ -22,8 +22,6 @@ class Profile {
   String get group => (raw['group'] as String?) ?? 'personal';
   String get emoji => (raw['emoji'] as String?) ?? '';
   String? get color => raw['color'] as String?;
-  bool get requiresUnlock => raw['requiresUnlock'] == true;
-  bool get comingSoon => raw['comingSoon'] == true;
 
   /// `null` — вся библиотека (`allowed_games: 'all'`).
   List<String>? get games => raw['allowed_games'] is List ? (raw['allowed_games'] as List).cast<String>() : null;
@@ -50,8 +48,6 @@ class Profiles {
   static Profiles empty = Profiles._(const [], const {}, const {});
   static Profiles current = empty;
 
-  bool get monetization => flags['MONETIZATION_ENABLED'] == true;
-  bool get codesEnabled => flags['UNLOCK_CODES_ENABLED'] == true;
   int get publicGameCount => (flags['PUBLIC_GAME_COUNT'] as num?)?.toInt() ?? 0;
 
   Profile? byId(String id) {
@@ -82,30 +78,12 @@ class Profiles {
   @visibleForTesting
   static void useForTest(Profiles p) => current = p;
 
-  // ── Разблокировки — как `ProfileContext.tsx` ────────────────────────────────────
-  static const unlockedKey = '${SharedState.prefix}unlocked_themed';
   static const activeKey = '${SharedState.prefix}active_profile';
 
-  static Set<String> unlocked(SharedState s) {
-    try {
-      return {for (final v in jsonDecode(s.get(unlockedKey) ?? '[]') as List) '$v'};
-    } catch (_) {
-      return const {};
-    }
-  }
-
-  bool accessible(SharedState s, String id) => !(byId(id)?.requiresUnlock ?? false) || unlocked(s).contains(id);
-
-  /// `switchProfile`: запертый без разблокировки — не переключаем.
+  /// `switchProfile`: любой существующий профиль.
   Future<bool> switchTo(SharedState s, String id) async {
-    if (byId(id) == null || !accessible(s, id)) return false;
+    if (byId(id) == null) return false;
     await s.set(activeKey, id);
     return true;
-  }
-
-  /// `resetUnlocks`: снять все разблокировки; текущий запертый → «free».
-  Future<void> resetUnlocks(SharedState s) async {
-    await s.remove(unlockedKey);
-    if (byId(s.activeProfile)?.requiresUnlock ?? false) await s.set(activeKey, 'free');
   }
 }

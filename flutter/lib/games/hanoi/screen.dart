@@ -220,6 +220,9 @@ class _HanoiScreenState extends State<HanoiScreen> {
   /// где его надо переводить, и первым, где забудут.
   static String get _title => L.t('hanoi');
 
+  /// Высота строки цели над доской.
+  static const double _goalLineH = 28;
+
   Future<void> _openLesson() async {
     final from = _board;
     if (from == null) return;
@@ -281,15 +284,34 @@ class _HanoiScreenState extends State<HanoiScreen> {
         HudItem(label: L.t('discsCount'), value: '${board.discs}', icon: Icons.layers_outlined),
         HudItem(label: L.t('errors'), value: '$_errors', icon: Icons.error_outline),
       ],
-      field: (context, h) => HanoiBoard(
-        state: board,
-        fieldHeight: h,
-        selected: _sel,
-        onTapPeg: _tapPeg,
-        onDrop: (from, to) => setState(() {
-          _sel = null;
-          _move(from, to);
-        }),
+      // Цель — строкой над доской, а не только в правилах за «?» (отзыв af75de31,
+      // 14.10.2026: «what i had to do»). Ключ тот же, что у карточки игры.
+      field: (context, h) => Column(
+        children: [
+          SizedBox(
+            height: _goalLineH,
+            child: Center(
+              child: Text(
+                L.t('hanoiDesc'),
+                key: const ValueKey('hanoi-goal'),
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+              ),
+            ),
+          ),
+          HanoiBoard(
+            state: board,
+            fieldHeight: h - _goalLineH,
+            selected: _sel,
+            onTapPeg: _tapPeg,
+            onDrop: (from, to) => setState(() {
+              _sel = null;
+              _move(from, to);
+            }),
+          ),
+        ],
       ),
       auxRow: AuxBar(children: [
         AuxAction(icon: Icons.undo, label: L.t('btn_undo'), onPressed: _history.isEmpty ? null : _undo),

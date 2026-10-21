@@ -31,20 +31,14 @@ import {
 import { exportProgress, importProgress } from '@/src/services/dataTransfer';
 import { checkForUpdate, currentVersion, updateUrl } from '@/src/services/appUpdates';
 import type { ProfileDef } from '@/src/constants/profiles';
-import { MONETIZATION_ENABLED, CODE_ENTRY_ENABLED, PUBLIC_GAME_COUNT } from '@/src/constants/profiles';
+import { PUBLIC_GAME_COUNT } from '@/src/constants/profiles';
 import { GAMES } from '@/src/constants/games';
-// v1.16.0: флаг монетизации + helper «скоро» (раньше UNLOCK_CODES_ENABLED
-// использовался без импорта → был undefined → вёл себя как false случайно).
-import { UNLOCK_CODES_ENABLED, isComingSoon } from '@/src/services/unlock';
 // v1.24.3 fix: функции бэкапа использовались без импорта → ReferenceError при тапе
-// на «Экспорт/Импорт бэкапа» (тот же класс бага, что был с UNLOCK_CODES_ENABLED выше).
+// на «Экспорт/Импорт бэкапа».
 import { buildBackupJSON, restoreBackupJSON, downloadBackup, pickAndRestoreBackup } from '@/src/services/backup';
 // v1.26.0: локальные напоминания (зарядка/перед сном) — натив-only.
 import { loadReminderSettings, saveReminderSettings, applyReminders, requestReminderPermission, ReminderSettings, DEFAULT_REMINDERS } from '@/src/services/reminders';
 import { a11yModal } from '@/src/services/a11y';
-
-// Telegram-аккаунт владельца для запроса кодов разблокировки.
-const OWNER_TG = 'Denis_On999';
 
 /** Emoji-mapping для категории игры (для модалки деталей профиля). */
 const CATEGORY_EMOJI: Record<string, string> = {
@@ -81,44 +75,15 @@ function SettingsScreenBody() {
   const { t, language, setLanguage } = useLanguage();
   const {
     profile, switchProfile, allProfiles,
-    unlockedThemed, redeemCode, resetUnlocks, isAccessible,
     составИзФайла, перечитатьСостав,
   } = useProfile();
   const router = useRouter();
   const { width } = useWindowDimensions();
   // Адаптивная сетка профилей: узкий экран (телефон) → 2 колонки, широкий (планшет/web/desktop) → 3.
   const profileCardWidth = width >= 520 ? '31%' : '48%';
-  // Unlock-code modal state
-  const [codeModalOpen, setCodeModalOpen] = React.useState(false);
-  const [codeInput, setCodeInput] = React.useState('');
-  const [codeError, setCodeError] = React.useState<string | null>(null);
-  // Profile detail modal state (v1.6.0) — открывается при клике на locked профиль
+  // Профиль подробно — долгое нажатие на карточку.
   const [detailProfile, setDetailProfile] = React.useState<ProfileDef | null>(null);
 
-  /** Открыть Telegram с pre-filled сообщением для запроса кода. */
-  const requestCodeViaTelegram = (p: ProfileDef) => {
-    const msg = encodeURIComponent(
-      t('tgRequestCodeMsg').replace('{name}', p.display_name).replace('{emoji}', p.emoji)
-    );
-    const url = `https://t.me/${OWNER_TG}?text=${msg}`;
-    Linking.openURL(url).catch(() => {
-      Alert.alert(
-        t('alert_telegram_open_failed'),
-        t('messageManually').replace('{tg}', OWNER_TG)
-      );
-    });
-  };
-
-  const tryRedeem = async () => {
-    setCodeError(null);
-    const id = await redeemCode(codeInput);
-    if (id) {
-      setCodeModalOpen(false);
-      setCodeInput('');
-    } else {
-      setCodeError(t('msg_invalid_code'));
-    }
-  };
   const [soundOn, setSoundOn] = React.useState(true);
   const [громкость, setГромкость] = React.useState(80);
   const [hapticOn, setHapticOn] = React.useState(true);
@@ -450,56 +415,25 @@ function SettingsScreenBody() {
         {/* Themed (commercial) profiles */}
         {allProfiles.some(p => p.group === 'themed') && (
           <>
-            {/* flexWrap: при системном крупном шрифте кнопка «Ввести код» не влезала в ряд
-                с длинным лейблом → уезжала за край; перенос вместо выдавливания */}
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginTop: 16, marginBottom: 4 }}>
-              <Text style={[styles.groupLabel, { color: colors.textSecondary, marginTop: 0, marginBottom: 0, flexShrink: 1, minWidth: 0 }]}>
-                {UNLOCK_CODES_ENABLED
-                  ? t('label_themed_codes_on')
-                  : t('label_themed_codes_off')}
-              </Text>
-              {/* v1.15.0: «Ввести код» скрыт пока UNLOCK_CODES_ENABLED=false.
-                  + App Store 3.1.1: на iOS скрыт всегда (CODE_ENTRY_ENABLED). */}
-              {UNLOCK_CODES_ENABLED && CODE_ENTRY_ENABLED && (
-                <TouchableOpacity
-                  accessibilityRole="button" onPress={() => setCodeModalOpen(true)} style={{ flexShrink: 0, paddingVertical: 4, paddingHorizontal: 10, borderRadius: 14, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }}>
-                  <Text style={{ fontSize: 11, fontWeight: '700', color: colors.text }}>🔑 {t('btn_enter_code')}</Text>
-                </TouchableOpacity>
-              )}
-            </View>
+            <Text style={[styles.groupLabel, { color: colors.textSecondary }]}>{t('label_themed_group')}</Text>
             <View style={styles.profileGrid}>
               {allProfiles.filter(p => p.group === 'themed').map((p) => {
                 const active = p.id === profile.id;
-                const accessible = isAccessible(p.id);   // FREE is always accessible; others need unlock
-                const locked = !accessible;
                 return (
                   <TouchableOpacity
                     accessibilityRole="button"
                     key={p.id}
-                    // v1.6.0: убрали disabled — теперь locked-карточки кликабельные
-                    // и открывают modal с описанием/хуком/инструкцией как получить код
                     style={[styles.profileCard, {
                       width: profileCardWidth,
                       backgroundColor: active ? p.color : colors.card,
                       borderColor: active ? p.color : colors.border,
                       borderWidth: 2,
-                      opacity: locked ? 0.55 : 1,
                     }]}
-                    onPress={() => {
-                      if (locked) {
-                        // v1.6.0: клик по locked → показать детальную модалку
-                        // (с описанием, хуком, играми, кнопками «ввести код» / «получить в TG»)
-                        setDetailProfile(p);
-                      } else {
-                        switchProfile(p.id);
-                      }
-                    }}
-                    onLongPress={() => {
-                      // Long press на любой карточке (locked или unlocked) → детали
-                      setDetailProfile(p);
-                    }}
+                    onPress={() => switchProfile(p.id)}
+                    // Долгое нажатие → профиль подробно.
+                    onLongPress={() => setDetailProfile(p)}
                   >
-                    <Text style={styles.profileEmoji}>{p.emoji}{locked && '🔒'}</Text>
+                    <Text style={styles.profileEmoji}>{p.emoji}</Text>
                     <Text style={[styles.profileName, { color: active ? '#000' : colors.text }]}>
                       {t('profileName_' + p.id)}
                     </Text>
@@ -516,69 +450,9 @@ function SettingsScreenBody() {
                 );
               })}
             </View>
-            {unlockedThemed.size > 0 && (
-              <TouchableOpacity
-                accessibilityRole="button" onPress={() => {
-                Alert.alert(
-                  t('alert_reset_unlocks'),
-                  t('msg_reset_unlocks_confirm'),
-                  [
-                    { text: t('btn_cancel'), style: 'cancel' },
-                    { text: t('btn_reset'), style: 'destructive', onPress: () => resetUnlocks() },
-                  ]
-                );
-              }} style={{ marginTop: 8, alignSelf: 'flex-end' }}>
-                <Text style={{ fontSize: 11, color: colors.textSecondary }}>
-                  {t('label_unlocked')}: {unlockedThemed.size} · 🗑 {t('btn_reset')}
-                </Text>
-              </TouchableOpacity>
-            )}
           </>
         )}
       </View>
-
-      {/* Unlock-code modal */}
-      <Modal visible={codeModalOpen} animationType="fade" transparent onRequestClose={() => setCodeModalOpen(false)}>
-        <View {...a11yModal} style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.55)', justifyContent: 'center', padding: 20 }}>
-          <View style={{ backgroundColor: colors.surface, borderRadius: 16, padding: 22, gap: 14 }}>
-            <Text style={{ fontSize: 18, fontWeight: '700', color: colors.text }}>🔑 {t('title_access_code')}</Text>
-            <Text style={{ fontSize: 13, color: colors.textSecondary, lineHeight: 18 }}>
-              {t('desc_enter_code')}
-            </Text>
-            <TextInput
-              value={codeInput}
-              onChangeText={(t) => { setCodeInput(t); setCodeError(null); }}
-              autoCapitalize="characters"
-              autoCorrect={false}
-              placeholder={t('ph_code_example')}
-              placeholderTextColor={colors.textSecondary}
-              style={{
-                borderWidth: 1,
-                borderColor: codeError ? '#ef4444' : colors.border,
-                borderRadius: 10,
-                padding: 12,
-                fontSize: 16,
-                color: colors.text,
-                fontFamily: 'monospace',
-              }}
-              onSubmitEditing={tryRedeem}
-            />
-            {codeError && <Text style={{ fontSize: 12, color: '#ef4444' }}>{codeError}</Text>}
-            <View style={{ flexDirection: 'row', gap: 10, justifyContent: 'flex-end' }}>
-              <TouchableOpacity
-                accessibilityRole="button" onPress={() => { setCodeModalOpen(false); setCodeInput(''); setCodeError(null); }}
-                style={{ paddingVertical: 10, paddingHorizontal: 16 }}>
-                <Text style={{ color: colors.textSecondary, fontWeight: '600' }}>{t('btn_cancel')}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                accessibilityRole="button" onPress={tryRedeem}
-                style={{ minHeight: 48, justifyContent: 'center', paddingVertical: 10, paddingHorizontal: 18, backgroundColor: '#10b981', borderRadius: 8 }}>
-                <Text style={{ color: textOn('#10b981'), fontWeight: '700' }}>{t('welcomeUnlock')}</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
 
       {/* Profile Detail Modal (v1.6.0) — описание, хук, список игр + кнопки */}
       <Modal visible={detailProfile !== null} animationType="slide" transparent onRequestClose={() => setDetailProfile(null)}>
@@ -601,22 +475,6 @@ function SettingsScreenBody() {
                     <Ionicons name="close-circle" size={28} color={colors.textSecondary} />
                   </TouchableOpacity>
                 </View>
-
-                {/* Sales hook */}
-                {detailProfile.sales_hook && (
-                  <View style={{
-                    backgroundColor: detailProfile.color + '22',
-                    borderLeftWidth: 4,
-                    borderLeftColor: detailProfile.color,
-                    paddingVertical: 10, paddingHorizontal: 12,
-                    borderRadius: 8,
-                    marginTop: 8, marginBottom: 14,
-                  }}>
-                    <Text style={{ fontSize: 14, color: colors.text, lineHeight: 19, fontWeight: '600' }}>
-                      {language === 'ru' ? detailProfile.sales_hook : (detailProfile.sales_hook_en ?? detailProfile.sales_hook)}
-                    </Text>
-                  </View>
-                )}
 
                 {/* Long description */}
                 {detailProfile.long_description && (
@@ -675,51 +533,7 @@ function SettingsScreenBody() {
                   </Text>
                 )}
 
-                {/* Action buttons */}
-                {!isAccessible(detailProfile.id) && (
-                  isComingSoon(detailProfile.id) ? (
-                    /* v1.16.0: free-trial этап — кодов нет, профиль откроется после запуска.
-                       НЕ показываем код-кнопки (тупик), показываем «Скоро» + что доступно сейчас. */
-                    <View style={{ gap: 8, backgroundColor: colors.card, borderRadius: 12, padding: 16 }}>
-                      <Text style={{ fontSize: 16, fontWeight: '800', color: colors.text, textAlign: 'center' }}>🔒 {t('label_coming_soon')}</Text>
-                      <Text style={{ fontSize: 12, color: colors.textSecondary, textAlign: 'center', lineHeight: 17 }}>
-                        {t('comingSoonBody')}
-                      </Text>
-                    </View>
-                  ) : (
-                    <View style={{ gap: 10 }}>
-                      {/* App Store 3.1.1: на iOS ввод кода скрыт (CODE_ENTRY_ENABLED) */}
-                      {CODE_ENTRY_ENABLED && (
-                      <TouchableOpacity
-                        accessibilityRole="button"
-                        onPress={() => { setDetailProfile(null); setCodeModalOpen(true); }}
-                        style={{ backgroundColor: '#10b981', paddingVertical: 14, borderRadius: 12, alignItems: 'center' }}
-                      >
-                        <Text style={{ color: textOn('#10b981'), fontWeight: '800', fontSize: 15 }}>🔑 {t('btn_already_have_code')}</Text>
-                      </TouchableOpacity>
-                      )}
-                      {/* v1.30.2: запрос кода в Telegram скрыт в App-Store-режиме (anti-steering). */}
-                      {MONETIZATION_ENABLED && (
-                        <>
-                          <TouchableOpacity
-                            accessibilityRole="button"
-                            onPress={() => requestCodeViaTelegram(detailProfile)}
-                            style={{ backgroundColor: '#0088cc', paddingVertical: 14, borderRadius: 12, alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 8 }}
-                          >
-                            <Ionicons name="paper-plane" size={18} color="#fff" />
-                            <Text style={{ color: '#fff', fontWeight: '800', fontSize: 15 }}>{t('requestCodeFrom').replace('{tg}', OWNER_TG)}</Text>
-                          </TouchableOpacity>
-                          <Text style={{ fontSize: 11, color: colors.textSecondary, textAlign: 'center', marginTop: 4, lineHeight: 16 }}>
-                            {t('requestCodeHint')}
-                          </Text>
-                        </>
-                      )}
-                    </View>
-                  )
-                )}
-
-                {/* Если уже разблокирован — кнопка «Активировать» */}
-                {!!isAccessible(detailProfile.id) && detailProfile.id !== profile.id && (
+                {detailProfile.id !== profile.id && (
                   <TouchableOpacity
                     accessibilityRole="button"
                     onPress={() => { switchProfile(detailProfile.id); setDetailProfile(null); }}
@@ -1104,9 +918,6 @@ function SettingsScreenBody() {
       {/* App Info */}
       <View style={styles.appInfo}>
         <Text style={[styles.appName, { color: colors.textSecondary }]}>PsyGames v{Constants.expoConfig?.version ?? ''} · {profile.emoji} {t('profileName_' + profile.id)} · {t('label_validated_paradigms')}</Text>
-        <Text style={[styles.appVersion, { color: colors.textSecondary }]}>{MONETIZATION_ENABLED
-          ? t('hint_profile_tap_telegram')
-          : t('hint_profile_tap_unlock')}</Text>
       </View>
       </ScrollView>
 

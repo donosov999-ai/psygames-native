@@ -40,7 +40,7 @@ const mockProfile = (() => {
 // Профиль и состав меняет только проба входов (ниже): там профиль — с наложенным файлом состава, как
 // у настоящего провайдера (`наложить`), а не голая запись из PROFILES.
 const mockCtx: any = { profile: mockProfile, ready: true, составИзФайла: null, allProfiles: [mockProfile],
-  switchProfile: () => {}, redeemCode: async () => null, isAccessible: () => true, unlockedThemed: new Set() };
+  switchProfile: () => {} };
 jest.mock('@/src/contexts/ProfileContext', () => ({
   useProfile: () => mockCtx,
   useProfileOptional: () => ({ profile: mockCtx.profile }),

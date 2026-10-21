@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/shell/l10n.dart';
@@ -17,15 +18,15 @@ import 'package:shared_preferences/shared_preferences.dart';
 ///
 /// Эталоны выгружает веб-проба `switcher-dart-model.test.tsx`: настоящий `ProfileSwitcherModal` с
 /// провайдерами профиля, темы и языка на подготовленном хранилище. Здесь то же хранилище кладётся в общую
-/// память, и Dart собирает модель сам. Ввод кода — платформенный: образец хранит, на какой платформе снят.
+/// память, и Dart собирает модель сам.
+///
+/// 🔴 Сторож монетизации (d5e5814a, решение Дениса 21.10.2026): на ru и en, на iOS и Android в модели нет
+/// замка, «Скоро», цены, «/год», кода, Telegram и «PRO». Слова — `test/fixtures/no_monetization_words.json`
+/// (их выгружает веб-проба `profile-switcher-host-model.test.tsx`, тот же список у обоих).
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   Map<String, Object?> obj(String f) => (jsonDecode(File(f).readAsStringSync()) as Map).cast<String, Object?>();
-  final data = SwitcherData(
-    j: obj('assets/switcher.json'),
-    profilesJson: obj('assets/profiles.json'),
-    games: [for (final g in (obj('assets/catalog.json')['games']! as List)) (g as Map).cast<String, Object?>()],
-  );
+  final data = SwitcherData(j: obj('assets/switcher.json'));
   final profiles = Profiles.parse(File('assets/profiles.json').readAsStringSync());
   void lang(String l) => L.useForTest(l, (jsonDecode(File('assets/l10n/$l.json').readAsStringSync()) as Map).cast<String, String>());
 
@@ -37,16 +38,10 @@ void main() {
       SharedPreferences.setMockInitialValues((f['storage']! as Map).cast<String, Object>());
       final state = await SharedState.open();
       lang(language);
-      final dart = switcherModelFrom(state, data, profiles: profiles, language: language, codeEntry: f['codeEntry']! as bool);
+      final dart = switcherModelFrom(state, data, profiles: profiles);
       final got = (jsonDecode(jsonEncode(dart)) as Map).cast<String, Object?>();
       for (final k in want.keys) {
-        if (k == 'details') continue;
         expect(got[k], want[k], reason: 'поле $k');
-      }
-      final wd = (want['details']! as Map).cast<String, Object?>(), gd = (got['details']! as Map).cast<String, Object?>();
-      expect(gd.keys.toList(), wd.keys.toList(), reason: 'карточки — те же профили в том же порядке');
-      for (final id in wd.keys) {
-        expect(gd[id], wd[id], reason: 'карточка $id');
       }
       expect(got.keys.toSet(), want.keys.toSet());
     });
@@ -72,21 +67,56 @@ void main() {
     expect(switcherOrder(await SharedState.open()), isNull, reason: 'без раздела «профили» состава нет вовсе');
   });
 
-  test('ошибка кода и счётчик разблокировок — со страницы, остальное своё', () {
-    final own = <String, Object?>{
-      'activeId': 'women',
-      'code': {'title': 'T', 'error': null, 'redeemed': 0},
-    };
-    expect(withSwitcherPageEvents(own, null), same(own));
-    final m = withSwitcherPageEvents(own, {
-      'activeId': 'kids',
-      'code': {'title': 'X', 'error': 'Неверный код', 'redeemed': 2},
+  group('🔴 сторож монетизации (d5e5814a)', () {
+    final words = [
+      for (final w in (obj('test/fixtures/no_monetization_words.json')['patterns']! as List).cast<Map>())
+        RegExp(w['source'] as String, caseSensitive: w['caseSensitive'] as bool, unicode: true),
+    ];
+
+    /// Все строки модели с путём — кроме значков, цветов и id: там слов человек не видит. Значок 🔒 — везде.
+    List<String> sold(Object? v, [String at = 'switcher']) {
+      if (v is String) {
+        final hidden = RegExp(r'(^|\.)(badge|color|id|activeId)$').hasMatch(at);
+        return [
+          if (v.contains('🔒')) '$at: 🔒',
+          if (!hidden)
+            for (final re in words)
+              if (re.hasMatch(v)) '$at: ${re.pattern} ← $v',
+        ];
+      }
+      if (v is List) return [for (final (i, x) in v.indexed) ...sold(x, '$at[$i]')];
+      if (v is Map) return [for (final e in v.entries) ...sold(e.value, '$at.${e.key}')];
+      return const [];
+    }
+
+    test('сторож видит каждый признак продажи — проверка самого сторожа', () {
+      const samples = ['Reaction PRO', 'Скорочтение PRO', '990 ₽ / год', r'$9.99/year', 'Скоро', 'Coming soon',
+        'Enter access code', 'Ввести код доступа', 'Купить в Telegram', 'Годовой доступ'];
+      expect([for (final v in samples) if (sold({'desc': v}).isEmpty) v], isEmpty);
+      expect(sold({'badge': '🔒'}), hasLength(1));
+      expect(sold({'name': 'Скорочтение', 'desc': 'Reaction · Students · Programs'}), isEmpty);
     });
-    expect(m['activeId'], 'women');
-    expect(m['code'], {'title': 'T', 'error': 'Неверный код', 'redeemed': 2});
+
+    for (final platform in [TargetPlatform.iOS, TargetPlatform.android]) {
+      for (final language in ['ru', 'en']) {
+        test('${platform.name}/$language: в модели нет замка, «Скоро», цены, «/год», кода, Telegram и «PRO»', () async {
+          debugDefaultTargetPlatformOverride = platform;
+          addTearDown(() => debugDefaultTargetPlatformOverride = null);
+          SharedPreferences.setMockInitialValues({'language': language});
+          lang(language);
+          final m = switcherModelFrom(await SharedState.open(), data, profiles: profiles);
+          expect((m['profiles']! as List).length, profiles.list.length, reason: 'все профили');
+          expect(sold(m), isEmpty);
+          // Мутация: замок одному профилю — сторож обязан покраснеть.
+          final locked = jsonDecode(jsonEncode(m)) as Map;
+          ((locked['profiles'] as List).first as Map)['badge'] = '🔒';
+          expect(sold(locked), isNotEmpty);
+        });
+      }
+    }
   });
 
-  Future<SharedState> openSheet(WidgetTester t, {required bool codeEntry}) async {
+  Future<SharedState> openSheet(WidgetTester t) async {
     final f = obj('test/fixtures/switcher_dart_ru.json');
     SharedPreferences.setMockInitialValues((f['storage']! as Map).cast<String, Object>());
     final state = await SharedState.open();
@@ -94,9 +124,6 @@ void main() {
     Profiles.useForTest(profiles);
     await t.runAsync(WebTheme.load);
     ScreenUi.reset();
-    final was = SwitcherFeed.codeEntry;
-    SwitcherFeed.codeEntry = () => codeEntry;
-    addTearDown(() => SwitcherFeed.codeEntry = was);
     t.view.physicalSize = const Size(780, 4000);
     t.view.devicePixelRatio = 2;
     addTearDown(t.view.reset);
@@ -120,22 +147,18 @@ void main() {
     return state;
   }
 
-  testWidgets('🔴 лист считает сам: без страницы — профили в порядке файла и кошельки; на iOS кнопки кода нет', (t) async {
-    await openSheet(t, codeEntry: false);
+  testWidgets('🔴 лист считает сам: без страницы — профили в порядке файла и кошельки; кода и замка нет', (t) async {
+    await openSheet(t);
     expect(ScreenUi.model('#switcher').value, isNull, reason: 'модель не от страницы');
     final kids = t.getTopLeft(find.byKey(const ValueKey('switcher-profile-kids')));
     final women = t.getTopLeft(find.byKey(const ValueKey('switcher-profile-women')));
     expect(kids.dx < women.dx || kids.dy < women.dy, isTrue, reason: 'порядок файла: дети раньше');
     expect(find.text('⭐ 4500'), findsOneWidget);
-    expect(find.byKey(const ValueKey('switcher-code')), findsNothing, reason: 'App Store 3.1.1');
+    expect(find.byKey(const ValueKey('switcher-code')), findsNothing);
+    expect(find.byKey(const ValueKey('switcher-profile-odv999')), findsOneWidget, reason: 'все профили открыты');
   });
 
-  testWidgets('кнопка кода — где ввод кода есть', (t) async {
-    await openSheet(t, codeEntry: true);
-    expect(find.byKey(const ValueKey('switcher-code')), findsOneWidget);
-  });
-
-  testWidgets('своя модель листа: ошибка кода — со страницы; смена профиля — пересчёт без страницы', (t) async {
+  testWidgets('своя модель листа: модель страницы не нужна; смена профиля — пересчёт без страницы', (t) async {
     final f = obj('test/fixtures/switcher_dart_ru.json');
     SharedPreferences.setMockInitialValues((f['storage']! as Map).cast<String, Object>());
     final state = await SharedState.open();
@@ -152,17 +175,11 @@ void main() {
 
     await settle(() => feed.value != null);
     expect(feed.value!['activeId'], 'women');
-    ScreenUi.model('#switcher').value = {
-      'activeId': 'nzt48',
-      'code': {'error': 'Неверный код', 'redeemed': 1},
-    };
-    await settle(() => (feed.value!['code'] as Map)['error'] != null);
-    expect((feed.value!['code'] as Map)['error'], 'Неверный код');
-    expect((feed.value!['code'] as Map)['redeemed'], 1);
+    ScreenUi.model('#switcher').value = {'activeId': 'nzt48'};
+    await t.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 60)));
     expect(feed.value!['activeId'], 'women', reason: 'активный — из памяти, не со страницы');
     await t.runAsync(() => state.set(Profiles.activeKey, 'kids'));
     await settle(() => feed.value!['activeId'] == 'kids');
     expect(feed.value!['activeId'], 'kids');
-    expect((feed.value!['code'] as Map)['error'], 'Неверный код', reason: 'ошибка страницы держится до её снятия');
   });
 }

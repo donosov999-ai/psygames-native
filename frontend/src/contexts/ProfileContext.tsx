@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ProfileId, ProfileDef, PROFILE_BY_ID, PROFILES } from '@/src/constants/profiles';
-import { tryUnlock, requiresUnlock } from '@/src/services/unlock';
 import { загрузить as загрузитьСостав, наложить, поПорядку, вСеткуЗарядки, type СохранённыйСостав } from '@/src/services/playlistOverride';
 import { установитьХабыИзФайла } from '@/src/constants/hubContents';
 import { hubVisibility, HUB_VISIBLE_KEY } from '@/src/services/hubVisibility';
@@ -10,7 +9,6 @@ import { установитьПорогиФигурок } from '@/src/services/c
 import { установитьПравилоУровня, установитьНаборыДняИНочи, установитьЯвноеНазначение, установитьСеткуИзФайла } from '@/src/services/warmup';
 
 const ACTIVE_PROFILE_KEY = 'psygames_active_profile';
-const UNLOCKED_THEMED_KEY = 'psygames_unlocked_themed';   // string[] of profile ids
 
 /**
  * Profile IDs that existed pre-v1.3.0 (personal: Денис/Алекс/Валя/Юля/Гость).
@@ -24,15 +22,6 @@ interface ProfileCtx {
   switchProfile: (id: ProfileId) => Promise<void>;
   ready: boolean;
   allProfiles: ProfileDef[];
-
-  /** Set of themed profile ids the user has unlocked with codes. */
-  unlockedThemed: Set<ProfileId>;
-  /** Try a code → returns the unlocked profile id, or null if invalid. */
-  redeemCode: (code: string) => Promise<ProfileId | null>;
-  /** Forget all unlocks. */
-  resetUnlocks: () => Promise<void>;
-  /** Is this profile available to switch to right now? */
-  isAccessible: (id: ProfileId) => boolean;
 
   /** True on the very first app launch (no saved profile, no flag). */
   isFirstRun: boolean;
@@ -54,7 +43,6 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
   // Load effect below restores a saved profile (if it still exists post-v1.3.0).
   const [profile, setProfile] = useState<ProfileDef>(PROFILE_BY_ID.free);
   const [ready, setReady] = useState(false);
-  const [unlockedThemed, setUnlockedThemed] = useState<Set<ProfileId>>(new Set());
   const [isFirstRun, setIsFirstRun] = useState(false);
   /**
    * 🔴 ЕДИНСТВЕННАЯ ТОЧКА, ГДЕ НАКЛАДЫВАЕТСЯ ФАЙЛ СОСТАВА.
@@ -76,16 +64,10 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     (async () => {
       try {
-        const [savedProfile, savedUnlocks, firstRunDone] = await Promise.all([
+        const [savedProfile, firstRunDone] = await Promise.all([
           AsyncStorage.getItem(ACTIVE_PROFILE_KEY),
-          AsyncStorage.getItem(UNLOCKED_THEMED_KEY),
           AsyncStorage.getItem(FIRST_RUN_KEY),
         ]);
-
-        const unlocks = new Set<ProfileId>(
-          savedUnlocks ? (JSON.parse(savedUnlocks) as ProfileId[]) : []
-        );
-        setUnlockedThemed(unlocks);
 
         // Первый запуск. Экрана выбора («Начать с FREE» / «У меня есть код»)
         // больше нет: приложение бесплатное, а код-вход на iOS запрещён
@@ -104,13 +86,8 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
             setProfile(PROFILE_BY_ID.free);
             try { await AsyncStorage.setItem(ACTIVE_PROFILE_KEY, 'free'); } catch {}
           } else if (savedProfile in PROFILE_BY_ID) {
-            const candidate = PROFILE_BY_ID[savedProfile as ProfileId];
-            // If saved is a themed-locked profile and unlock was cleared → fall back to FREE
-            if (requiresUnlock(candidate.id) && !unlocks.has(candidate.id)) {
-              setProfile(PROFILE_BY_ID.free);
-            } else {
-              setProfile(candidate);
-            }
+            // 🔴 21.10.2026 (решение Дениса, d5e5814a): монетизации нет — все профили открыты всем.
+            setProfile(PROFILE_BY_ID[savedProfile as ProfileId]);
           }
         }
         /**
@@ -133,22 +110,9 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
     try { await AsyncStorage.setItem(FIRST_RUN_KEY, '1'); } catch {}
   }, []);
 
-  const persistUnlocks = useCallback(async (next: Set<ProfileId>) => {
-    try {
-      await AsyncStorage.setItem(UNLOCKED_THEMED_KEY, JSON.stringify(Array.from(next)));
-    } catch (e) {
-      console.warn('ProfileContext persist unlocks failed:', e);
-    }
-  }, []);
-
   const switchProfile = useCallback(async (id: ProfileId) => {
     const next = PROFILE_BY_ID[id];
     if (!next) return;
-    // Block switching to a locked themed profile unless unlocked
-    if (requiresUnlock(id) && !unlockedThemed.has(id)) {
-      console.warn('Cannot switch to locked themed profile without unlock:', id);
-      return;
-    }
     setProfile(next);
     try {
       await AsyncStorage.setItem(ACTIVE_PROFILE_KEY, id);
@@ -157,39 +121,7 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
     } catch (e) {
       console.warn('ProfileContext save failed:', e);
     }
-  }, [unlockedThemed]);
-
-  const redeemCode = useCallback(async (code: string): Promise<ProfileId | null> => {
-    const unlocked = await tryUnlock(code);
-    if (!unlocked) return null;
-    const next = new Set(unlockedThemed);
-    next.add(unlocked);
-    setUnlockedThemed(next);
-    await persistUnlocks(next);
-    // Auto-switch to the just-unlocked profile
-    await switchProfile(unlocked);
-    return unlocked;
-  }, [unlockedThemed, persistUnlocks, switchProfile]);
-
-  const resetUnlocks = useCallback(async () => {
-    setUnlockedThemed(new Set());
-    try {
-      await AsyncStorage.removeItem(UNLOCKED_THEMED_KEY);
-    } catch (e) {
-      console.warn('ProfileContext reset unlocks failed:', e);
-    }
-    // If current profile was a locked themed → fall back to FREE
-    if (requiresUnlock(profile.id)) {
-      const fallback = PROFILE_BY_ID.free;
-      setProfile(fallback);
-      try { await AsyncStorage.setItem(ACTIVE_PROFILE_KEY, fallback.id); } catch {}
-    }
-  }, [profile.id]);
-
-  const isAccessible = useCallback((id: ProfileId): boolean => {
-    if (!requiresUnlock(id)) return true;
-    return unlockedThemed.has(id);
-  }, [unlockedThemed]);
+  }, []);
 
   // Push current person + themed-flag to globals on every change (for api.ts level-unlocks)
   useEffect(() => {
@@ -263,7 +195,6 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
     <Ctx.Provider value={{
       profile: профильСоСоставом, switchProfile, ready, allProfiles: всеСоСоставом,
       составИзФайла: состав, перечитатьСостав,
-      unlockedThemed, redeemCode, resetUnlocks, isAccessible,
       isFirstRun, completeFirstRun,
     }}>
       {children}

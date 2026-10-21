@@ -53,13 +53,13 @@ class SynapseFeed {
   static void expect({required Outcome outcome, int? level, int? levelBefore}) =>
       _next = (outcome: outcome, level: level, levelBefore: levelBefore);
 
-  /// Профиль, под которым веб запишет партию (`ProfileContext`: сохранённый и доступный, иначе `free`).
+  /// Профиль, под которым веб запишет партию (`ProfileContext`: сохранённый, иначе `free`).
   static String _profile(SharedState s) {
     final ps = Profiles.current;
     final id = s.get(Profiles.activeKey);
     if (ps.list.isEmpty) return id ?? 'free';
     final p = id == null ? null : ps.byId(id);
-    return p != null && ps.accessible(s, p.id) ? p.id : 'free';
+    return p?.id ?? 'free';
   }
 
   static int? _int(Object? v) => v is num && v.isFinite ? v.round() : null;

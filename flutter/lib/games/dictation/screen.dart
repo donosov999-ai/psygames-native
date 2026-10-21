@@ -91,6 +91,11 @@ class _DictationScreenState extends State<DictationScreen> {
   bool _inputOpen = true;
   TypingState? _typing;
   int? _errorAt;
+
+  /// Последняя НЕВЕРНАЯ клавиша — видна на месте курсора красным. Без неё человек жмёт клавиши
+  /// и не видит ни одной буквы: курсор стоит на ошибке, а знак скрыт точкой (отзыв a23ae078:
+  /// «не видно слова под клавиатурой»). Ответа она не раскрывает — это набор самого человека.
+  String? _wrongKey;
   int _streakPos = -1, _streak = 0, _revealTo = 0;
   Timer? _sayLater;
   Timer? _openLater;
@@ -205,6 +210,7 @@ class _DictationScreenState extends State<DictationScreen> {
     setState(() {
       _typing = TypingState.create([phrase.text], lenient: true, nowMs: () => _now);
       _errorAt = null;
+      _wrongKey = null;
       _streakPos = -1;
       _streak = 0;
       _revealTo = 0;
@@ -240,6 +246,7 @@ class _DictationScreenState extends State<DictationScreen> {
     final r = st.pressChar(ch, blockOnError: true, lenient: true);
     setState(() {
       _errorAt = st.errors > before ? st.pos : null;
+      _wrongKey = st.errors > before ? ch : null;
       if (st.errors > before) {
         _streak = _streakPos == st.pos ? _streak + 1 : 1;
         _streakPos = st.pos;
@@ -261,6 +268,7 @@ class _DictationScreenState extends State<DictationScreen> {
     setState(() {
       st.backspace();
       _errorAt = null;
+      _wrongKey = null;
     });
   }
 
@@ -472,6 +480,7 @@ class _DictationScreenState extends State<DictationScreen> {
     return _DictationTyping(
       state: st,
       errorAt: _errorAt,
+      wrongKey: _wrongKey,
       revealTo: _revealTo,
       hint: L.t('dictationHint'),
       onKey: _key,
@@ -507,6 +516,7 @@ class _DictationTyping extends StatefulWidget {
   const _DictationTyping({
     required this.state,
     required this.errorAt,
+    this.wrongKey,
     required this.revealTo,
     required this.hint,
     required this.onKey,
@@ -514,6 +524,7 @@ class _DictationTyping extends StatefulWidget {
   });
   final TypingState state;
   final int? errorAt;
+  final String? wrongKey;
   final int revealTo;
   final String hint;
   final void Function(String) onKey;
@@ -569,7 +580,9 @@ class _DictationTypingState extends State<_DictationTyping> {
                 child: Text(
                   i < st.pos && st.marks[i] == Mark.correct
                       ? st.pattern[i]
-                      : (i >= widget.revealTo ? (st.pattern[i] == ' ' ? ' ' : '·') : st.pattern[i]),
+                      : (i == st.pos && i >= widget.revealTo && widget.errorAt != null && widget.wrongKey != null)
+                          ? widget.wrongKey!
+                          : (i >= widget.revealTo ? (st.pattern[i] == ' ' ? ' ' : '·') : st.pattern[i]),
                   style: TextStyle(
                     fontSize: 26,
                     fontWeight: FontWeight.w500,

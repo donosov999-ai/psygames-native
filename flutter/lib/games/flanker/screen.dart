@@ -95,6 +95,14 @@ class _FlankerScreenState extends State<FlankerScreen> {
     if (flankerAutostart || GamePreset.autostart) _start();
   }
 
+  /// Лестница поднялась этой партией — кнопка ведёт на новый уровень и сразу его начинает, как
+  /// «Дальше» у Струпа и `nextNow` веба. «Ещё раз» после победы читалось как повтор (отзыв ec36e399).
+  int? get _nextLevel {
+    final g = _game;
+    if (g == null || GamePreset.isPreset || GamePreset.isTransit) return null;
+    return _ladder.level > g.level ? _ladder.level : null;
+  }
+
   void _reset() {
     _timer?.cancel();
     // Шаг «Оценки» и зарядки задаёт длину партии, как в вебе (`num('trials', 20)`): норма
@@ -227,6 +235,11 @@ class _FlankerScreenState extends State<FlankerScreen> {
         height: h,
         onStart: _start,
         onAgain: () => setState(_reset),
+        nextLevel: _nextLevel,
+        onContinue: () {
+          setState(_reset);
+          _start();
+        },
       ),
       toolbar: _phase == FlankerPhase.playing ? _Answers(onPick: _answer) : null,
     );
@@ -249,6 +262,8 @@ class _Field extends StatelessWidget {
     required this.height,
     required this.onStart,
     required this.onAgain,
+    this.nextLevel,
+    this.onContinue,
   });
 
   final FlankerGame game;
@@ -261,6 +276,10 @@ class _Field extends StatelessWidget {
   final double height;
   final VoidCallback onStart;
   final VoidCallback onAgain;
+
+  /// Уровень, на который партия подняла лестницу; `null` — не подняла (проигрыш, зарядка, транзит).
+  final int? nextLevel;
+  final VoidCallback? onContinue;
 
   @override
   Widget build(BuildContext context) {
@@ -310,7 +329,14 @@ class _Field extends StatelessWidget {
             ),
             BossOutcomeLine(boss),
             const SizedBox(height: 16),
-            FilledButton(onPressed: onAgain, child: Text(L.t('retry'))),
+            if (nextLevel != null)
+              FilledButton(
+                key: const Key('level-next'),
+                onPressed: onContinue,
+                child: Text(L.t('nextLevelBtn').replaceAll('{n}', '$nextLevel')),
+              )
+            else
+              FilledButton(onPressed: onAgain, child: Text(L.t('retry'))),
           ],
         );
       case FlankerPhase.playing:

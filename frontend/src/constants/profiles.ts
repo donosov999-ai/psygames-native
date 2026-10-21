@@ -13,7 +13,6 @@
  * the only no-code profile.
  */
 
-import { Platform } from 'react-native';
 import { GAMES, isHubGame } from '@/src/constants/games';
 import { NATIVE_ONLY_GAMES } from '@/src/constants/nativeOnlyGames';
 import { ВСЕ_РЕЖИМЫ } from '@/src/games/tatham-bridge/names';
@@ -57,37 +56,6 @@ export interface ProfileDef {
   audience_en?: string;
   /** Typical session length. */
   session_minutes?: string;
-  /** Sales hook — 1 короткая эмоциональная фраза для верха модалки.
-   *  Цель: продать профиль за 3 сек чтения. (v1.6.0) */
-  sales_hook?: string;
-  /** EN-перевод sales_hook. */
-  sales_hook_en?: string;
-  /** v1.12.0: Краткая ссылка на научное исследование за цифрой в hook.
-   *  Премиум-аудитория (врачи, учёные) проверяет источники — без них
-   *  выглядит как маркетинг-ложь. Формат: "(Автор et al., год, журнал)" */
-  sales_hook_source?: string;
-  /** EN-перевод sales_hook_source — только там, где в RU-варианте есть русская
-   *  проза (чисто латинские цитаты не дублируем — fallback на RU-поле). */
-  sales_hook_source_en?: string;
-  /** v1.13.0: Tier визуального отделения профиля.
-   *  - 'trial' = FREE-profile, funnel-tier (выделять зелёным "TRIAL" бейджем)
-   *  - 'owner' = ODV999, не для продажи (выделять серым)
-   *  - 'paid' = коммерческий themed-профиль (default)
-   *  Это меняет ТОЛЬКО визуальное представление в switcher/landing,
-   *  не влияет на логику unlock или allowed_games. */
-  /**
-   * ⚠️ `owner` ЗНАЧИТ «СКРЫТ ИЗ ВЫБОРА», а не «не продаётся». Свитчер прячет
-   * такие профили фильтром, и это правильно для ODV999 — он открывается
-   * мастер-кодом. Но «Новинки» я по ошибке пометил так же, желая сказать «не
-   * продаётся», и витрина свежей работы стала невидимой: заведена, переведена,
-   * считает состав по датам — и не показывается никому. Отсюда `showcase`:
-   * виден всем, но не продаётся и не имеет цены.
-   */
-  tier?: 'trial' | 'paid' | 'owner' | 'showcase';
-  /** Цена годовой подписки в рублях (v1.8.0). 0 / undefined = бесплатно / не продаётся. */
-  price_year?: number;
-  /** Опциональная зачёркнутая «старая цена» для psychology (показать со скидкой). */
-  price_year_old?: number;
   group?: ProfileGroup;       // default 'personal' if undefined (back-compat)
   allowed_games: 'all' | string[];   // 'all' = no filter, otherwise whitelist of game_ids
   /**
@@ -156,10 +124,9 @@ export const PUBLIC_GAME_COUNT =
 /** Сколько лежит в песочнице — чтобы это было видно числом, а не на глаз. */
 export const SANDBOX_GAME_COUNT = GAMES.filter((g) => g.sandbox).length;
 
-// ─── 🛠 ODV999 — Денис, locked by master code ────────────────────────────
-// Все игры разблокированы. Master code = тот же что для NZT staticrypt.
-// Раньше был personal profile "Денис"; в v1.3.0 переименован + переведён
-// в themed (требует код) чтобы личные данные не светились публично.
+// ─── 🛠 ODV999 — полный доступ ──────────────────────────────────────────
+// Все игры. С 21.10.2026 открыт всем, как и остальные профили (d5e5814a) — поэтому
+// в текстах профиля нет ни имени, ни слова «владелец».
 
 const ODV999: ProfileDef = {
   allow_sandbox: true,
@@ -169,15 +136,11 @@ const ODV999: ProfileDef = {
   emoji: '🛠',
   color: '#fbbf24',
   description: `Все игры (${PUBLIC_GAME_COUNT}) · Зарядка · Financial · Assessment`,
-  long_description: `Полный доступ ко всему приложению — все игры (${PUBLIC_GAME_COUNT}), Утренняя Зарядка, Financial Brain Day, G1 Assessment. Для владельца программы (Денис, ODV999) и его доверенных лиц. Разблокируется одним мастер-кодом.`,
-  long_description_en: `Full access to the entire app — all ${PUBLIC_GAME_COUNT} games, Morning Warm-up, Financial Brain Day, G1 Assessment. For the program owner (Denis, ODV999) and his trusted circle. Unlocked with a single master code.`,
-  audience: 'Владелец · полный доступ',
-  audience_en: 'Owner · full access',
+  long_description: `Полный доступ ко всему приложению — все игры (${PUBLIC_GAME_COUNT}), Утренняя Зарядка, Financial Brain Day, G1 Assessment.`,
+  long_description_en: `Full access to the entire app — all ${PUBLIC_GAME_COUNT} games, Morning Warm-up, Financial Brain Day, G1 Assessment.`,
+  audience: 'Полный доступ',
+  audience_en: 'Full access',
   session_minutes: '5-40 мин',
-  sales_hook: `🛠 Полный набор владельца — все тренажёры (${PUBLIC_GAME_COUNT}), без ограничений. Выдаётся только лично.`,
-  sales_hook_en: `🛠 The full owner kit — all ${PUBLIC_GAME_COUNT} trainers, no limits. Granted in person only.`,
-  // price_year не задан → "не продаётся" (см. helper isForSale)
-  tier: 'owner',
   group: 'themed',
   allowed_games: 'all',
   // custom_playlists undefined → утро = дефолтный weekday-плейлист (Денис-era).
@@ -208,10 +171,6 @@ const CHESS: ProfileDef = {
   audience: 'Шахматисты, тренеры, шахматные школы',
   audience_en: 'Chess players, coaches, chess schools',
   session_minutes: '10-25 мин',
-  sales_hook: '♟ Тренируй то, что качают Карлсен и Каруана между турнирами. +100-150 ELO за 3 месяца.',
-  sales_hook_en: '♟ Train what Carlsen and Caruana work on between tournaments. +100-150 ELO in 3 months.',
-  sales_hook_source: 'Burgoyne et al., 2016, Intelligence — meta-analysis chess+cognition (r=0.24 fluid intelligence ↔ ELO)',
-  price_year: 690,
   group: 'themed',
   // Ядро v1.2.0 «1+1+1+1 + 5 темовых» (covers all 4 categories, bias on logic) + chess_blind
   // (v1.105.0) + четыре игры лаборатории 19.08.2026 + «Детский мат» (05.09.2026).
@@ -304,9 +263,6 @@ const KIDS: ProfileDef = {
   audience: 'Дети 7-12 лет, родители',
   audience_en: 'Kids 7-12, parents',
   session_minutes: '3-5 мин',
-  sales_hook: '🧒 Развивающий центр в кармане. 5 мин после школы — заметный прогресс к концу четверти.',
-  sales_hook_en: '🧒 A learning center in your pocket. 5 minutes after school — visible progress by the end of the term.',
-  price_year: 490,
   group: 'themed',
   // Ядро v1.2.0 «1+1+1+1 + 5 темовых» (all 4 cats, bias on action — speed/math for fun);
   // + судоку и три игры лаборатории 19.08.2026. Формула про ЯДРО, а не про длину списка.
@@ -409,7 +365,7 @@ const KIDS: ProfileDef = {
 const VASILYEVA: ProfileDef = {
   id: 'vasilyeva',
   person: 'Скорочтение',
-  display_name: 'Скорочтение PRO',
+  display_name: 'Скорочтение',
   emoji: '📖',
   color: '#0ea5e9',
   description: 'Поле зрения · скорость глаз · удержание текста',
@@ -418,10 +374,6 @@ const VASILYEVA: ProfileDef = {
   audience: 'Школы скорочтения · репетиторы · топ-менеджеры',
   audience_en: 'Speed-reading schools · tutors · executives',
   session_minutes: '8-12 мин',
-  sales_hook: '📖 Поле зрения шире на 30% к 4-й неделе. Удержание прочитанного +40%.',
-  sales_hook_en: '📖 Visual span 30% wider by week 4. Retention of what you read +40%.',
-  sales_hook_source: 'Edwards et al., 2005, J Gerontol — UFOV training expands visual span 22-35% (10-15 hours practice)',
-  price_year: 690,
   group: 'themed',
   // Ядро v1.2.0 «1+1+1+1 + 5 темовых»: bias on attention/speed для скорочтения; +трекер 19.08.2026
   allowed_games: [
@@ -489,11 +441,6 @@ const NZT48: ProfileDef = {
   audience: 'Биохакеры, серьёзный когнитивный тренинг',
   audience_en: 'Biohackers, serious cognitive training',
   session_minutes: '25-40 мин',
-  sales_hook: '💊 NZT-48 из фильма — но реально. Полная батарея префронталки уровня CANTAB.',
-  sales_hook_en: '💊 NZT-48 from the movie — but real. A full CANTAB-grade prefrontal battery.',
-  sales_hook_source: 'Jaeggi et al., 2008, PNAS — Dual N-back training улучшает fluid intelligence (transfer-эффект на IQ, d=0.65)',
-  sales_hook_source_en: 'Jaeggi et al., 2008, PNAS — Dual N-back training improves fluid intelligence (transfer effect on IQ, d=0.65)',
-  price_year: 990,
   group: 'themed',
   // v1.x (13.06): NZT-48 = ПОЛНЫЙ доступ ко всем тренажёрам, как у ODV999 (решение Дениса).
   // Курированная программа остаётся в weekday/evening playlists; 'all' открывает весь каталог
@@ -513,10 +460,7 @@ const NZT48: ProfileDef = {
 };
 
 // ─── 🎁 FREE — Бесплатные/легкие игры (без подписки, без кода) ──────────
-// Funnel-tier: показывает по 1 игре из каждой категории чтобы человек
-// попробовал ценность. Премиум игры (CPT, Iowa, MR-3D, N-back DUAL) —
-// под подпиской/кодом.
-// v1.13.0: FREE — funnel/trial tier. Визуально отделяется от платных профилей.
+// По одной игре из каждой категории — попробовать всё понемногу.
 const FREE: ProfileDef = {
   id: 'free',
   person: 'Гость',           // generic visitor identifier in cognitive_sessions.person
@@ -524,14 +468,11 @@ const FREE: ProfileDef = {
   emoji: '🎁',
   color: '#f59e0b',
   description: '12 тренажёров · подобранный набор для старта',
-  long_description: 'Набор для старта, без кода. По одному тренажёру из каждой категории: Шульте (внимание), Парные картинки (память), Мишени (реакция), Математический спринт + Считалка, Поиск отличий, Анаграммы, Ханойская башня, Сортировка товаров, N-back (рабочая память — облегчённая), Детский мат и Прокладывание пути. Двенадцать — это осознанный размер: полный каталог в первый день не помогает, а отпугивает. Последние две добавлены 06.09.2026, чтобы стартовому набору были видны развилки «Шахматы» и «Маршруты» — просьба Дениса «добавить во все профили». Остальные профили — такие же подборки под конкретную задачу, открываются кодом.',
-  long_description_en: 'The starter set — no code needed. One trainer from each category: Schulte tables (attention), Picture Pairs (memory), Targets (reaction), Math Sprint + Counter, Spot the Difference, Anagrams, Tower of Hanoi, Goods Sort, N-back (working memory — light version), the Scholar\'s Mate drill and Trail Making. Themed profiles unlock with an access code.',
+  long_description: 'Набор для старта. По одному тренажёру из каждой категории: Шульте (внимание), Парные картинки (память), Мишени (реакция), Математический спринт + Считалка, Поиск отличий, Анаграммы, Ханойская башня, Сортировка товаров, N-back (рабочая память — облегчённая), Детский мат и Прокладывание пути. Двенадцать — это осознанный размер: полный каталог в первый день не помогает, а отпугивает. Последние две добавлены 06.09.2026, чтобы стартовому набору были видны развилки «Шахматы» и «Маршруты» — просьба Дениса «добавить во все профили». Остальные профили — такие же подборки под конкретную задачу.',
+  long_description_en: 'The starter set. One trainer from each category: Schulte tables (attention), Picture Pairs (memory), Targets (reaction), Math Sprint + Counter, Spot the Difference, Anagrams, Tower of Hanoi, Goods Sort, N-back (working memory — light version), the Scholar\'s Mate drill and Trail Making. Themed profiles are similar sets built for a specific goal.',
   audience: 'Знакомство с приложением',
   audience_en: 'First look at the app',
   session_minutes: '3-10 мин',
-  sales_hook: '🎁 10 тренажёров без кода — по одному из каждой категории.',
-  sales_hook_en: '🎁 10 trainers, no code needed — one from each category.',
-  tier: 'trial',
   group: 'themed',
   // v1.2.0 «1+1+1+1 + 5 темовых»: one game per category + funnel teasers
   allowed_games: [
@@ -577,13 +518,11 @@ const FREE: ProfileDef = {
 // ВСЕ профессии с высокой нагрузкой на решение под давлением (пилоты,
 // хирурги, диспетчеры, военные, профессиональные водители). Это снимает
 // blue-collar позиционирование которое размывало премиум-бренд PsyGames.
-// Цена поднята 790 → 990 ₽/год (premium-tier).
-// ID оставлен 'drivers' для backward-compat (master-код DRIVE-NZT-2026
-// продолжает работать, сохранённые prefs пользователей не ломаются).
+// ID оставлен 'drivers' для backward-compat: сохранённые prefs пользователей не ломаются.
 const DRIVERS: ProfileDef = {
   id: 'drivers',
   person: 'Pro',
-  display_name: 'Реакция ПРО',
+  display_name: 'Реакция',
   emoji: '⚡',
   color: '#f97316',
   description: 'Решения за секунды · для тех у кого цена ошибки = жизнь',
@@ -592,11 +531,6 @@ const DRIVERS: ProfileDef = {
   audience: 'Пилоты · хирурги · диспетчеры · военные · pro-водители',
   audience_en: 'Pilots · surgeons · controllers · military · pro drivers',
   session_minutes: '12-15 мин',
-  sales_hook: '⚡ Решения за секунды. Тренировка для тех у кого цена ошибки = жизнь.',
-  sales_hook_en: '⚡ Decisions in seconds. Training for those whose cost of error = a life.',
-  sales_hook_source: 'Roenker et al., 2003, Human Factors — speed-of-processing training снижает driving errors на 31% (vs control)',
-  sales_hook_source_en: 'Roenker et al., 2003, Human Factors — speed-of-processing training cuts driving errors by 31% (vs control)',
-  price_year: 990,
   group: 'themed',
   // Ядро v1.2.0 «1+1+1+1 + 5 темовых»: bias on attention + reaction; +«Навигатор» 19.08.2026
   allowed_games: [
@@ -648,10 +582,6 @@ const SENIORS: ProfileDef = {
   audience: 'Люди 50-75+, медцентры, программы active aging',
   audience_en: 'Adults 50-75+, medical centers, active-aging programs',
   session_minutes: '10-15 мин',
-  sales_hook: '👴 Замедли когнитивное старение на 7-10 лет. 15 минут в день — критично для профилактики.',
-  sales_hook_en: '👴 Slow cognitive aging by 7-10 years. 15 minutes a day — critical for prevention.',
-  sales_hook_source: 'ACTIVE trial — Rebok et al., 2014, JAMA Intern Med — 10 hours speed training → effects persist 10+ years (N=2832)',
-  price_year: 990,
   group: 'themed',
   // Ядро v1.2.0 «1+1+1+1 + 5 темовых»: bias on memory (профилактика деменции);
   // + четыре игры лаборатории 19.08.2026. Формула описывает ЯДРО, а не длину списка.
@@ -712,9 +642,6 @@ const EXECS: ProfileDef = {
   audience: 'CEO, владельцы бизнеса, executive coaching',
   audience_en: 'CEOs, business owners, executive coaching',
   session_minutes: '15-25 мин',
-  sales_hook: '💼 Лучшие решения под давлением. Цена ошибки = миллион — цена тренировки = 15 минут в день.',
-  sales_hook_en: '💼 Better decisions under pressure. A mistake costs a million — training costs 15 minutes a day.',
-  price_year: 990,
   group: 'themed',
   // Ядро v1.2.0 «1+1+1+1 + 5 темовых»: bias on logic (decisions + risk);
   // + четыре игры лаборатории 19.08.2026. Формула описывает ЯДРО, а не длину списка.
@@ -766,7 +693,7 @@ const EXECS: ProfileDef = {
 const STUDENTS: ProfileDef = {
   id: 'students',
   person: 'Студент',
-  display_name: 'Студенты PRO',
+  display_name: 'Студенты',
   emoji: '🎓',
   color: '#f97316',
   description: 'Фокус · память · скорость · ЕГЭ / GMAT / GRE / IELTS',
@@ -775,10 +702,6 @@ const STUDENTS: ProfileDef = {
   audience: 'Школьники · студенты GMAT/GRE/IELTS/TOEFL · MBA-prep',
   audience_en: 'High schoolers · GMAT/GRE/IELTS/TOEFL candidates · MBA prep',
   session_minutes: '10-15 мин',
-  sales_hook: '🎓 GMAT 3.5 часа без падения концентрации. ЕГЭ 100 баллов. Подготовь мозг к марафону.',
-  sales_hook_en: '🎓 3.5 hours of GMAT without focus fading. A perfect score on high-stakes exams. Get your brain marathon-ready.',
-  sales_hook_source: 'Sala & Gobet, 2017, Educational Research Review — cognitive training improves academic outcomes (d=0.30 transfer effect)',
-  price_year: 490,
   group: 'themed',
   // Ядро v1.2.0 «1+1+1+1 + 5 темовых»: bias on memory + action (скорость на экзамене);
   // + четыре игры лаборатории 19.08.2026. Формула описывает ЯДРО, а не длину списка.
@@ -846,9 +769,6 @@ const WOMEN: ProfileDef = {
   audience: 'Все · микро-отдых + dopamine (преим. женская аудитория)',
   audience_en: 'Everyone · micro-breaks + dopamine (mostly female audience)',
   session_minutes: '5-10 мин',
-  sales_hook: '🌸 5 минут залипательного отдыха — без чувства вины. Реально тренирует память.',
-  sales_hook_en: '🌸 5 minutes of delightfully addictive downtime — guilt-free. And it genuinely trains memory.',
-  price_year: 490,
   group: 'themed',
   // v1.4.1 — engagement-driven mix (НЕ формула 1+1+1+1+5)
   // Распределение: память 2 · внимание 4 (поиск) + Goods Sort (сортировка) · логика 3 · скорость 1 = 11
@@ -964,11 +884,6 @@ const POLYGLOT: ProfileDef = {
   audience: 'Изучающие языки · полиглоты · языковые курсы',
   audience_en: 'Language learners · polyglots · language courses',
   session_minutes: '10-15 мин',
-  sales_hook: '🗣 Прокачай вербальную память и беглость, на которые опирается изучение языков. Мозг под язык — в дополнение к Duolingo, не вместо.',
-  sales_hook_en: '🗣 Build the verbal memory and fluency that language learning stands on. A brain primed for languages — alongside Duolingo, not instead of it.',
-  sales_hook_source: 'Gathercole & Baddeley, 1990, J Memory & Language — фонологическая рабочая память предсказывает усвоение словаря (foundational)',
-  sales_hook_source_en: 'Gathercole & Baddeley, 1990, J Memory & Language — phonological working memory predicts vocabulary acquisition (foundational)',
-  price_year: 490,
   group: 'themed',
   // «1+1+1+1 + 5 темовых», bias на вербальную/рабочую память + скрипт
   allowed_games: [
@@ -1045,8 +960,7 @@ const POLYGLOT: ProfileDef = {
 
 // C3a v1.122.1: порядок в свитчере по массовости аудитории (репорт Ребёнка:
 // «женский сверху, дальше по частоте, влезть в один экран»). WOMEN первым,
-// затем FREE (воронка), далее по убыванию массовости. ODV999 (owner) идёт
-// первым в массиве, но скрыт из свитчера фильтром tier!=='owner'.
+// затем FREE, далее по убыванию массовости. С 21.10.2026 в выборе видны все, включая ODV999.
 // ─── 🆕 НОВИНКИ — витрина свежего, не для продажи ───────────────────────
 /**
  * ЗАЧЕМ ОТДЕЛЬНЫЙ ПРОФИЛЬ. Заказ Дениса: «сделать профиль (новое) и вгонять всё,
@@ -1058,9 +972,7 @@ const POLYGLOT: ProfileDef = {
  * через три месяца показывают полугодовой давности работу и врут названием.
  * Здесь запись уходит из профиля сама, удалять её не надо.
  *
- * ⚠️ НЕ ПРОДАЁТСЯ. `tier: 'owner'` и нет цены: это витрина, а не набор под
- * задачу. Продавать «то, что мы недавно трогали» нечестно — состав меняется
- * каждый релиз, и купивший получил бы каждый месяц другое.
+ * Это витрина, а не набор под задачу: состав меняется каждый релиз.
  */
 const WHATSNEW: ProfileDef = {
   id: 'whatsnew',
@@ -1075,7 +987,6 @@ const WHATSNEW: ProfileDef = {
   audience: 'Посмотреть, что нового',
   audience_en: 'See what changed',
   session_minutes: '5-15 мин',
-  tier: 'showcase',   // виден в выборе, но не продаётся
   group: 'personal',
   /**
    * ⚠️ Считается ОДИН раз при загрузке модуля, а не на каждый показ. Состав
@@ -1117,67 +1028,14 @@ export const PROFILE_BY_ID: Record<ProfileId, ProfileDef> = PROFILES.reduce((acc
 }, {} as Record<ProfileId, ProfileDef>);
 
 /** Profiles grouped for Settings UI */
-/**
- * ПОКАЗЫВАТЬ ЛИ ПРОФИЛЬ В ВЫБОРЕ. Одно правило на приложение, а не условие,
- * переписанное в разметке экрана.
- *
- * 🔴 Раньше фильтр жил прямо в свитчере строкой `p.tier !== 'owner'`, и проверить
- * его было нечем: профиль пропадал из выбора молча, будучи полностью заведённым.
- * Ровно так исчезли «Новинки» — заведены, переведены, состав считается по датам,
- * а в списке их нет. Теперь правило вынесено и проверяется исполнением.
- */
-export function isSwitchable(p: ProfileDef): boolean {
-  return p.tier !== 'owner';
-}
-
-/** Профили, скрытые из выбора НАМЕРЕННО, с причиной. Список закрыт. */
-export const HIDDEN_FROM_SWITCHER: Record<string, string> = {
-  odv999: 'полный доступ владельца, открывается мастер-кодом — в общем списке ему не место',
-};
-
 export const PROFILES_BY_GROUP = {
   personal: PROFILES.filter(p => !p.group || p.group === 'personal'),
   themed:   PROFILES.filter(p => p.group === 'themed'),
 };
 
-// ─── Pricing (v1.8.0) ───────────────────────────────────────────────────
-
-/**
- * v1.30.2: Витрина монетизации (цены, пакеты, покупка/консультация в Telegram).
- * ВЫКЛЮЧЕНА перед выводом в App Store / Google Play: сторы реджектят увод на
- * внешнюю оплату цифрового контента (anti-steering) — нужен встроенный IAP.
- * Профили остаются за кодом разблокировки (redeem-модель сторами разрешена),
- * коды раздаются вне приложения. ВЕРНУТЬ true когда будет IAP или для прямого
- * (не-сторового) дистрибутива. Скрывает: Bundle/Corporate блоки в свитчере +
- * ценник и кнопки покупки/консультации в деталях профиля. НЕ трогает «Ввести код».
- */
-export const MONETIZATION_ENABLED = false;
-
-/** App Store guideline 3.1.1: разблокировка контента кодами, полученными вне
- *  Apple, запрещена (у Google Play redeem-код ок). На iOS прячем ВЕСЬ ввод
- *  кода доступа (онбординг, свитчер, настройки), пока не появится IAP.
- *  Тематические профили на iOS показываются как «Скоро». */
-export const CODE_ENTRY_ENABLED = Platform.OS !== 'ios';
-
-/** Цена пакета «Все 9 тематических» (без ODV999) на год. */
-export const BUNDLE_ALL_THEMED_PRICE = 4990;
-
-/** v1.12.0: Corporate Pack — B2B tier для компаний/команд.
- *  Даёт до 50 кодов разблокировки за 49 900 ₽/год. Это даёт «якорь
- *  дороговизны» — без него Personal 4990 ₽ выглядит несерьёзно для
- *  бизнес-аудитории. По сути: бесплатно ~30 ₽/сотрудник/мес × 50 чел. */
-export const CORPORATE_PACK_PRICE = 49900;
-export const CORPORATE_PACK_MAX_CODES = 50;
-
-/** Профиль продаётся (есть цена и не FREE)? */
-export function isForSale(profile: ProfileDef): boolean {
-  return !!profile.price_year && profile.id !== 'free';
-}
-
-/** Форматировать цену в "490 ₽". */
-export function formatPrice(rub: number): string {
-  return `${rub.toLocaleString('ru-RU')} ₽`;
-}
+// 🔴 21.10.2026, решение Дениса (d5e5814a): монетизации нет. Цены, пакеты, коды доступа, покупка в
+// Telegram и ярусы профилей вырезаны целиком — все профили открыты всем на всех платформах. Понадобится
+// снова — добавлять заново через встроенные покупки магазинов, а не возвращать прежний код.
 
 // Доступны во ВСЕХ профилях независимо от whitelist (Денис: парные картинки везде, как goods_sort).
 // v1.124.0: breathing видимо во ВСЕХ профилях (репорт «Дыхание не вижу в приложении»).

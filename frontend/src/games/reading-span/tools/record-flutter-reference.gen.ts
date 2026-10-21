@@ -1,4 +1,4 @@
-/* psygames-reading-span-record-flutter-reference · VER 1 · 01.10.2026 */
+/* psygames-reading-span-record-flutter-reference · VER 2 · 21.10.2026 */
 /**
  * ЭТАЛОН И ДАННЫЕ ДЛЯ FLUTTER-ПОЛОВИНЫ «ОБЪЁМА ПРИ ЧТЕНИИ». Пишет два файла:
  *   · `flutter/assets/reading_span/sentences.json` — предложения игры (`SENTENCES`) как есть:
@@ -21,7 +21,7 @@
  *   npx jest --testMatch '**\/reading-span/tools/record-flutter-reference.gen.ts'
  */
 import {
-  levelParams, READINGSPAN_RULES, recallScore, SENTENCES, sessionDifficulty, sessionScore,
+  levelParams, READINGSPAN_RULES, recallScore, SENTENCES, sentenceWord, sessionDifficulty, sessionScore,
 } from '@/app/games/reading-span';
 import { pickFreshFrom } from '@/src/services/freshPool';
 
@@ -61,8 +61,9 @@ test('эталон «Объёма при чтении» и предложени�
   const nbsp = ' ';
   for (const [from, size] of [[0, 3], [10, 5], [21, 4], [40, 8], [55, 7]] as const) {
     const seq = SENTENCES.slice(from, from + size);
-    for (const language of ['ru', 'en', 'de']) {
-      const words = seq.map((s) => (language !== 'ru' ? s.lastEn : s.lastRu));
+    // ja и ar — письменности без регистра, ko — слово с частицей в предложении, но без неё в ответе.
+    for (const language of ['ru', 'en', 'de', 'ja', 'ko', 'ar', 'hi']) {
+      const words = seq.map((s) => sentenceWord(s, language));
       const inputs = [
         words.join(' '),
         words.join(', '),

@@ -252,6 +252,11 @@ class _OspanScreenState extends State<OspanScreen> {
               readOnly: _submitted,
               autofocus: true,
               textCapitalization: TextCapitalization.characters,
+              // Ответ — набор букв, а не слово: автозамена клавиатуры его переписывает. Отчёт 6589e751
+              // (2.56.24, iPhone): набрал «ЛВБ», Т9 подменил на «ДУБ», ответ ушёл ошибкой.
+              autocorrect: false,
+              enableSuggestions: false,
+              spellCheckConfiguration: const SpellCheckConfiguration.disabled(),
               decoration: InputDecoration(
                 labelText: L.t('ospanRecallTitle'),
                 // Пример — из букв ТОГО набора, которым идёт игра: «АБВ» по-русски, «ABC» иначе.

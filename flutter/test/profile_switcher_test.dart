@@ -5,6 +5,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:psygames_flutter/shell/ionicons.g.dart';
 import 'package:psygames_flutter/shell/profile_switcher.dart';
 import 'package:psygames_flutter/shell/screen_ui.dart';
 import 'support/real_fonts.dart';
@@ -14,10 +15,8 @@ import 'support/real_fonts.dart';
 /// Модель — образец живого `ProfileSwitcherModal` (`test/fixtures/switcher_model.json`, выгружает
 /// `profile-switcher-host-model.test.tsx`). Проверяется:
 ///   · лист — все профили модели, активный отмечен;
-///   · открытый профиль — действие `switch` вебу и лист закрыт; активный — просто закрыть;
-///   · закрытый — карточка профиля, не переключение (доступ решает веб);
-///   · код: ввод уходит вебу (`redeem`), ошибка видна под полем, удача (растёт `redeemed`)
-///     закрывает окно и лист.
+///   · любой другой профиль — действие `switch` вебу и лист закрыт; активный — просто закрыть;
+///   · 21.10.2026 (d5e5814a): монетизации нет — в листе нет замка, окна кода и карточки закрытого профиля.
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   final js = <String>[];
@@ -32,19 +31,11 @@ void main() {
     model = (jsonDecode(File('test/fixtures/switcher_model.json').readAsStringSync()) as Map).cast<String, Object?>();
   });
 
-  Future<void> open(WidgetTester t, {String? lockId, bool code = false, Size size = const Size(390, 844), double scale = 1}) async {
+  Future<void> open(WidgetTester t, {Size size = const Size(390, 844), double scale = 1}) async {
     t.view.physicalSize = size * 2;
     t.view.devicePixelRatio = 2;
     addTearDown(t.view.reset);
-    final m = jsonDecode(jsonEncode(model)) as Map<String, Object?>;
-    if (lockId != null) {
-      for (final p in (m['profiles'] as List).cast<Map>()) {
-        if (p['id'] == lockId) p['locked'] = true;
-      }
-      ((m['details'] as Map)[lockId] as Map)['locked'] = true;
-    }
-    m['codeEntry'] = code;
-    ScreenUi.model('#switcher').value = m.cast<String, Object?>();
+    ScreenUi.model('#switcher').value = (jsonDecode(jsonEncode(model)) as Map).cast<String, Object?>();
     await t.pumpWidget(RepaintBoundary(key: capture, child: MaterialApp(
       theme: ThemeData(fontFamily: 'Roboto'),
       builder: (context, child) => MediaQuery(data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(scale)), child: child!),
@@ -71,33 +62,24 @@ void main() {
   }
 
   for (final size in const [Size(320, 568), Size(360, 760), Size(390, 844)]) {
-    testWidgets('en ${size.width.toInt()}×${size.height.toInt()}: лист, детали, код без русских строк, Roboto ×1.3', (t) async {
-      await open(t, lockId: 'nzt48', code: true, size: size, scale: 1.3);
-      void english() {
-        for (final text in t.widgetList<Text>(find.byType(Text))) {
-          expect(text.data ?? text.textSpan?.toPlainText() ?? '', isNot(matches(RegExp('[А-Яа-яЁё]'))));
-        }
-        expect(t.takeException(), isNull);
+    testWidgets('en ${size.width.toInt()}×${size.height.toInt()}: лист без русских строк, без замка и кода, Roboto ×1.3', (t) async {
+      await open(t, size: size, scale: 1.3);
+      for (final text in t.widgetList<Text>(find.byType(Text))) {
+        final shown = text.data ?? text.textSpan?.toPlainText() ?? '';
+        expect(shown, isNot(matches(RegExp('[А-Яа-яЁё]'))));
+        expect(shown, isNot(contains('🔒')));
       }
-      english();
+      expect(t.takeException(), isNull);
+      for (final name in const ['lock-closed', 'lock-open']) {
+        expect(find.byIcon(Ion.of(name)!), findsNothing, reason: 'замка в листе нет');
+      }
+      expect(find.byKey(const ValueKey('switcher-code')), findsNothing);
       await screenshot(t, 'en-${size.width.toInt()}-list');
-      await t.ensureVisible(key('switcher-profile-nzt48'));
-      await t.tap(key('switcher-profile-nzt48'));
-      await t.pumpAndSettle();
-      expect(key('switcher-detail-nzt48'), findsOneWidget);
-      english();
-      await screenshot(t, 'en-${size.width.toInt()}-detail');
-      await t.ensureVisible(key('switcher-detail-code'));
-      await t.tap(key('switcher-detail-code'));
-      await t.pumpAndSettle();
-      expect(key('switcher-code-dialog'), findsOneWidget);
-      english();
-      await screenshot(t, 'en-${size.width.toInt()}-code');
       await t.pumpWidget(const SizedBox());
     });
   }
 
-  testWidgets('🔴 лист — все профили модели; открытый переключает и закрывается', (t) async {
+  testWidgets('🔴 лист — все профили модели; другой переключает и закрывается', (t) async {
     await open(t);
     expect(key('switcher-sheet'), findsOneWidget);
     for (final p in (model['profiles'] as List).cast<Map>()) {
@@ -121,41 +103,6 @@ void main() {
     await t.pump();
     await t.pump(const Duration(milliseconds: 500));
     expect(js.where((s) => s.contains('switch(')), isEmpty);
-    expect(key('switcher-sheet'), findsNothing);
-  });
-
-  testWidgets('🔴 закрытый профиль — карточка, а не переключение; код уходит вебу, удача закрывает', (t) async {
-    await open(t, lockId: 'nzt48', code: true);
-    await t.ensureVisible(key('switcher-profile-nzt48'));
-    await t.pump();
-    await t.tap(key('switcher-profile-nzt48'));
-    await t.pump();
-    await t.pump(const Duration(milliseconds: 500));
-    expect(js.where((s) => s.contains('switch(')), isEmpty);
-    expect(key('switcher-detail-nzt48'), findsOneWidget);
-    await t.ensureVisible(key('switcher-detail-code'));
-    await t.pump();
-    await t.tap(key('switcher-detail-code'));
-    await t.pump();
-    await t.pump(const Duration(milliseconds: 500));
-    expect(key('switcher-code-dialog'), findsOneWidget);
-    await t.enterText(key('switcher-code-input'), 'NZT-2026');
-    await t.tap(key('switcher-code-unlock'));
-    await t.pump();
-    expect(js.last, contains('redeem("NZT-2026")'));
-    // Веб ответил ошибкой — подпись под полем, окно на месте.
-    final err = jsonDecode(jsonEncode(ScreenUi.model('#switcher').value)) as Map<String, Object?>;
-    (err['code'] as Map)['error'] = 'Неверный код.';
-    ScreenUi.model('#switcher').value = err;
-    await t.pump();
-    expect(key('switcher-code-error'), findsOneWidget);
-    // Веб принял код — счётчик вырос, окно и лист закрылись.
-    final ok = jsonDecode(jsonEncode(err)) as Map<String, Object?>;
-    (ok['code'] as Map)['error'] = null;
-    (ok['code'] as Map)['redeemed'] = ((ok['code'] as Map)['redeemed'] as num) + 1;
-    ScreenUi.model('#switcher').value = ok;
-    await t.pumpAndSettle(const Duration(milliseconds: 100), EnginePhase.sendSemanticsUpdate, const Duration(seconds: 5));
-    expect(key('switcher-code-dialog'), findsNothing);
     expect(key('switcher-sheet'), findsNothing);
   });
 }

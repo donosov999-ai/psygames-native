@@ -46,8 +46,6 @@ for (const [, name, body] of defs) {
     display: grab(/display_name:\s*'([^']+)'/) ?? grab(/person:\s*'([^']+)'/),
     emoji: grab(/emoji:\s*'([^']+)'/),
     color: grab(/color:\s*'(#[0-9a-fA-F]{3,8})'/),
-    price: grab(/price_year:\s*(\d+)/),
-    tier: grab(/tier:\s*'([^']+)'/),
   });
 }
 const listed = [...(profilesSrc.match(/export const PROFILES: ProfileDef\[\] = \[([\s\S]*?)\n\];/) ?? [])[1]
@@ -110,7 +108,6 @@ const table = rows.map((r) => [
   r.logo ? `${link(r.logo)}<br>плашка ${r.plate}` : '—',
   link(r.badge),
   r.theme ? `${link(r.art)}<br>\`${r.theme.effect}\`${r.theme.params ? ' ' + JSON.stringify(r.theme.params) : ''}` : '—',
-  r.price ? `${r.price} ₽/год` : (r.tier ?? '—'),
 ].join(' | ')).map((line) => `| ${line} |`).join('\n');
 
 const noBg = rows.filter((r) => !r.bg).map((r) => r.id);
@@ -137,8 +134,8 @@ const book = `# БРЕНД-БУК ПРОФИЛЕЙ PsyGames
 
 ## Таблица
 
-| Профиль | Палитра | Фон главной | Вордмарк | Значок | Карта уровней | Цена |
-|---|---|---|---|---|---|---|
+| Профиль | Палитра | Фон главной | Вордмарк | Значок | Карта уровней |
+|---|---|---|---|---|---|
 ${table}
 
 ## Правила, без которых таблица развалится

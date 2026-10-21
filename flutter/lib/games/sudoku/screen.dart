@@ -346,6 +346,9 @@ class _SudokuScreenState extends State<SudokuScreen> {
   /// Ступень лестницы в ДРУГОЙ игре (181–212: «Кошки», сетки Тэтхэма) — вместо доски карточка
   /// «Начать». `null` — ступень своя, с доской.
   LadderTransit? _gameStep;
+
+  /// Пройдена последняя ступень лестницы — дальше генератор (карточка вместо доски).
+  bool _ladderDone = false;
   bool _lost = false;
 
   /// 🔴 СТУПЕНЬ СЫГРАННОЙ ПАРТИИ — ДЛЯ ШАПКИ, ПОКА НА ЭКРАНЕ ИТОГ. [LevelLadder.win] поднимает
@@ -398,8 +401,13 @@ class _SudokuScreenState extends State<SudokuScreen> {
   ///
   /// Хранилище — дороги (`SudokuRoadStore`): лестница читает уровень ВЫБРАННОЙ дороги с
   /// переносом пройденного вниз и пишет только её счётчик. На обычной дороге ключ прежний.
+  ///
+  /// 🔴 ПОТОЛОК — НА ОДНУ ВЫШЕ ПОСЛЕДНЕЙ СТУПЕНИ (задача a72d652a, 21.10.2026). Победа на последней
+  /// ступени (212) оставляла человека на ней же, и он переигрывал «Заполнение» уровня 4 по кругу;
+  /// генератор включался только из меню паузы. «Ступень за последней» значит «лестница пройдена»:
+  /// экран предлагает генератор (`_ladderDoneCard`).
   LevelLadder _ladderUpTo(int last) =>
-      LevelLadder(gameId: 'sudoku', store: SudokuRoadStore(widget.state, _road), maxLevel: last);
+      LevelLadder(gameId: 'sudoku', store: SudokuRoadStore(widget.state, _road), maxLevel: last + 1);
 
   Future<void> _boot() async {
     final levels = await SudokuLevels.load();
@@ -752,9 +760,11 @@ class _SudokuScreenState extends State<SudokuScreen> {
     }
     final levels = _levels;
     if (levels == null) return;
-    final step = _gameStepAt(levels, _ladder.level);
-    if (step != null) {
+    final done = _ladder.level > levels.lastStep;
+    final step = done ? null : _gameStepAt(levels, _ladder.level);
+    if (done || step != null) {
       setState(() {
+        _ladderDone = done;
         _gameStep = step;
         _board = null;
         _failure = null;
@@ -765,6 +775,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
       return;
     }
     _gameStep = null;
+    _ladderDone = false;
     final seed = DateTime.now().millisecondsSinceEpoch; // wall-clock: зерно раздачи
     final board = sudokuDistinctBoard<SudokuBoard>(
       draw: (i) => levels.boardFor(_ladder.level, seed: seed + i, road: _road),
@@ -983,7 +994,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
     if (store == null || levels == null || widget.mode != null) return;
     final on = !_pilot;
     if (on && !store.pilotStarted) {
-      store.save(startFromLadder(levels, _ladder.level));
+      store.save(startFromLadder(levels, math.min(_ladder.level, levels.lastLevel)));
       store.markPilotStarted();
     }
     store.setEnabled(on);
@@ -1594,6 +1605,28 @@ class _SudokuScreenState extends State<SudokuScreen> {
         ),
       );
 
+  /// Вся лестница пройдена: дальше — доски генератора под уровень человека (старт — от трудности
+  /// последней доски лестницы, см. `startFromLadder`). Кнопка та же, что в меню паузы.
+  Widget _ladderDoneCard() => Center(
+        key: const Key('ladderdone-card'),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(L.t('sudokuLadderComplete'),
+                  textAlign: TextAlign.center, style: Theme.of(context).textTheme.titleMedium),
+              const SizedBox(height: 20),
+              FilledButton(
+                key: const Key('ladderdone-pilot'),
+                onPressed: _togglePilot,
+                child: Text(L.t('sudokuPilotOn'), textAlign: TextAlign.center),
+              ),
+            ],
+          ),
+        ),
+      );
+
   /// Босс после пройденной ступени [played] — по строке `boss` файла лестницы.
   Future<void> _bossAfter(int played) async {
     final row = _levels?.transitRow(played);
@@ -1858,6 +1891,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
         if (!ready) return const Center(child: CircularProgressIndicator());
         final side = _sideBoard;
         final gameStep = _gameStep;
+        if (widget.mode == null && _ladderDone && !_pilot && !widget.junior) return _ladderDoneCard();
         if (widget.mode == null && gameStep != null && !_pilot && !widget.junior) return _gameStepCard(gameStep);
         if (widget.mode == null ? board == null : side == null) {
           return Center(child: Text(_failure ?? L.t('sdkBoardFailed')));

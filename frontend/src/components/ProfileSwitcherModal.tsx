@@ -1,42 +1,28 @@
 /**
  * ProfileSwitcherModal (v1.7.0)
  *
- * Bottom-sheet modal со всеми 11 профилями. Используется и в Settings, и
- * в Home — единая точка переключения профиля и запроса кода.
+ * Bottom-sheet modal со всеми профилями. Используется и в Settings, и в Home — единая точка
+ * переключения профиля.
  *
  * Логика клика:
  *  - Уже активный профиль → закрывает модалку (ничего не меняет)
- *  - Разблокированный неактивный → switchProfile + закрывает
- *  - Locked → открывает inline ProfileDetailModal с описанием + хуком +
- *    кнопками «Ввести код» / «Запросить в Telegram»
+ *  - Любой другой → switchProfile + закрывает
+ *
+ * 🔴 21.10.2026, решение Дениса (d5e5814a): монетизации нет. Замков, ярусов, цен, кодов доступа и
+ * покупки в Telegram больше нет — все профили открыты всем на всех платформах.
  */
 
-import { textOn } from '@/src/services/onGradientText';
 import React from 'react';
-import { View, Text, Modal, TouchableOpacity, ScrollView, Linking, TextInput, Image } from 'react-native';
-// ⚠️ Alert — НЕ из react-native: в вебе (а Android у нас WebView) он пустой метод.
-import { Alert } from '@/src/services/alert';
+import { View, Text, Modal, TouchableOpacity, ScrollView, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import type { ProfileDef } from '@/src/constants/profiles';
-import { BUNDLE_ALL_THEMED_PRICE, CORPORATE_PACK_PRICE, CORPORATE_PACK_MAX_CODES, isForSale, formatPrice, MONETIZATION_ENABLED, CODE_ENTRY_ENABLED, isSwitchable } from '@/src/constants/profiles';
-import { GAMES } from '@/src/constants/games';
 import { profileBadge } from '@/src/constants/profileBadges';
 import { a11yDecor, a11yModal } from '@/src/services/a11y';
 import { getTokens } from '@/src/services/tokens';
 import { assetUri, postScreenModel, registerScreenActions } from '@/src/services/hostScreens';
-
-const OWNER_TG = 'Denis_On999';
-
-/** Значок раздела игры в списке карточки профиля. Выгружается и в модель Dart (`flutter-switcher-asset-fresh`). */
-export const CATEGORY_EMOJI: Record<string, string> = {
-  memory: '🧠',
-  attention: '🎯',
-  logic: '🧩',
-  action: '⚡',
-};
 
 interface Props {
   visible: boolean;
@@ -45,14 +31,9 @@ interface Props {
 
 export default function ProfileSwitcherModal({ visible, onClose }: Props) {
   const { colors } = useTheme();
-  const { t, language } = useLanguage();
-  const fmt = React.useCallback((key: string, values: Record<string, string | number>) =>
-    Object.entries(values).reduce((s, [k, v]) => s.replaceAll(`{${k}}`, String(v)), t(key)), [t]);
-  const {
-    profile, allProfiles, switchProfile, redeemCode, isAccessible, unlockedThemed,
-  } = useProfile();
+  const { t } = useLanguage();
+  const { profile, allProfiles, switchProfile } = useProfile();
 
-  // States
   // v1.163 (репорт Вали «когда я перехожу в другой профиль, теряются все очки — обидно,
   // и я уже не хочу менять профиль»): очки НЕ теряются, у каждой программы свой счёт —
   // это нигде не было написано, и переключение читалось как обнуление. Показываем счёт
@@ -66,76 +47,12 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
       .catch(() => {});
     return () => { alive = false; };
   }, [visible, allProfiles]);
-  const [detailProfile, setDetailProfile] = React.useState<ProfileDef | null>(null);
-  const [codeModalOpen, setCodeModalOpen] = React.useState(false);
-  const [codeInput, setCodeInput] = React.useState('');
-  // Store the key, not a translated sentence: changing language must also translate a pending error.
-  const [codeError, setCodeError] = React.useState<string | null>(null);
-
-  const tryRedeem = async () => {
-    setCodeError(null);
-    const id = await redeemCode(codeInput);
-    if (id) {
-      setCodeModalOpen(false);
-      setCodeInput('');
-      setDetailProfile(null);
-      onClose();
-    } else {
-      setCodeError('msg_invalid_code');
-    }
-  };
-
-  const requestCodeViaTelegram = (p: ProfileDef) => {
-    const msg = encodeURIComponent(
-      `Привет, Денис! Хочу получить код доступа к профилю «${p.display_name}» (${p.emoji}) в PsyGames. Это для меня / для (укажи кому, если в подарок).`
-    );
-    const url = `https://t.me/${OWNER_TG}?text=${msg}`;
-    Linking.openURL(url).catch(() => {
-      Alert.alert(t('alert_telegram_open_failed'), fmt('messageManually', { tg: OWNER_TG }));
-    });
-  };
-
-  /** v1.8.0: Покупка профиля — pre-filled заявка с ценой и сроком. */
-  const buyProfileViaTelegram = (p: ProfileDef) => {
-    const price = p.price_year ? formatPrice(p.price_year) : 'договорно';
-    const msg = encodeURIComponent(
-      `Привет, Денис! Хочу оформить годовую подписку на профиль «${p.display_name}» (${p.emoji}) за ${price}/год.\n\nПодскажи как оплатить (карта / СБП / крипта).\n\nКод нужен для: меня / для (укажи кому если в подарок).`
-    );
-    const url = `https://t.me/${OWNER_TG}?text=${msg}`;
-    Linking.openURL(url).catch(() => {
-      Alert.alert(t('alert_telegram_open_failed'), fmt('messageManually', { tg: OWNER_TG }));
-    });
-  };
-
-  /** v1.12.0: Corporate Pack — B2B-tier для компаний (50 кодов / 49 900 ₽/год). */
-  const buyCorporateViaTelegram = () => {
-    const msg = encodeURIComponent(
-      `Добрый день, Денис.\n\nИнтересует Corporate Pack PsyGames — ${formatPrice(CORPORATE_PACK_PRICE)}/год за до ${CORPORATE_PACK_MAX_CODES} кодов разблокировки для команды.\n\nКомпания: (укажите название)\nКоличество сотрудников: (укажите)\nЦелевые профили: (NZT-48 / Execs / Реакция ПРО / комбинация)\nКонтакт для договора: (email)\n\nПрошу прислать коммерческое предложение с реквизитами и условиями поставки кодов.`
-    );
-    const url = `https://t.me/${OWNER_TG}?text=${msg}`;
-    Linking.openURL(url).catch(() => {
-      Alert.alert(t('alert_telegram_open_failed'), fmt('messageManually', { tg: OWNER_TG }));
-    });
-  };
-
-  /** v1.8.0: Покупка пакета «Все 9 тематических» — топовый CTA в switcher. */
-  const buyBundleViaTelegram = () => {
-    const msg = encodeURIComponent(
-      `Привет, Денис! Хочу пакет «Все 9 тематических профилей» PsyGames за ${formatPrice(BUNDLE_ALL_THEMED_PRICE)}/год.\n\nЭто Шахматист + Дети + Скорочтение + NZT-48 + Реакция ПРО + 50+ + Предприниматели + Студенты + Женщины — на 365 дней.\n\nПодскажи как оплатить.`
-    );
-    const url = `https://t.me/${OWNER_TG}?text=${msg}`;
-    Linking.openURL(url).catch(() => {
-      Alert.alert(t('alert_telegram_open_failed'), fmt('messageManually', { tg: OWNER_TG }));
-    });
-  };
 
   /**
    * 🔴 ПОД ОБОЛОЧКОЙ ПЕРЕКЛЮЧАТЕЛЬ РИСУЕТ FLUTTER (задача 5b3513bd, `services/hostScreens.ts`).
-   * Нативная Главная открывает свой лист выбора, а этот компонент (он смонтирован на Главной под
-   * оболочкой) отдаёт модель: профили с тем же доступом, кошельками и подписями, карточки закрытых
-   * и окно кода — ровно то, что рисует разметка ниже. Решения (доступ, код, переключение) — здесь.
+   * Модель листа Dart считает сам (`switcher_model.dart`); эта модель — запасная, если своя не
+   * собралась: профили с кошельками и подписями — ровно то, что рисует разметка ниже.
    */
-  const [redeemSeq, setRedeemSeq] = React.useState(0);
   // Кошельки для листа оболочки — без ожидания `visible`: лист открывает оболочка, не этот компонент.
   const [allWallets, setAllWallets] = React.useState<Record<string, number>>({});
   React.useEffect(() => {
@@ -146,526 +63,102 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
     return () => { alive = false; };
   }, [allProfiles, profile.id]);
   React.useEffect(() => {
-    const switchable = allProfiles.filter(isSwitchable);
-    const tierBadge = (p: ProfileDef) =>
-      p.tier === 'trial' ? { kind: 'trial', text: t('badgeNoCode'), bg: '#22c55e', fg: textOn('#22c55e') }
-        : p.tier === 'owner' ? { kind: 'owner', text: t('switcherOwnerBadge'), bg: '#6b7280', fg: '#fff' } : null;
-    const ru = language === 'ru';
     postScreenModel('#switcher', {
       v: 1,
       activeId: profile.id,
       title: `👤 ${t('a11ySwitchProfile')}`,
       intro: t('switcherIntro'),
       closeLabel: t('close'),
-      profiles: switchable.map((p) => {
-        const locked = !isAccessible(p.id);
+      profiles: allProfiles.map((p) => {
+        const wallet = wallets[p.id] ?? allWallets[p.id] ?? 0;
         return {
           id: p.id,
           name: t('profileName_' + p.id),
           desc: t('profileDesc_' + p.id),
           minutes: p.session_minutes ? `⏱ ${p.session_minutes.replace('мин', t('unitMin'))}` : null,
-          wallet: !locked && (wallets[p.id] ?? allWallets[p.id] ?? 0) > 0 ? `⭐ ${wallets[p.id] ?? allWallets[p.id]}` : null,
+          wallet: wallet > 0 ? `⭐ ${wallet}` : null,
           badge: assetUri(profileBadge(p.id)),
           emoji: p.emoji,
           color: p.color,
           active: p.id === profile.id,
-          locked,
-          tier: tierBadge(p),
         };
       }),
-      codeEntry: CODE_ENTRY_ENABLED,
-      codeButton: `🔑 ${t('btn_already_have_code')}`,
-      code: {
-        title: `🔑 ${t('title_access_code')}`,
-        hint: t('switcherCodeHint'),
-        placeholder: `${t('ph_code_example')} / EXC-260822-A4F2-1B8C3D`,
-        cancel: t('btn_cancel'),
-        unlock: t('welcomeUnlock'),
-        unlockFg: textOn('#10b981'),
-        error: codeError ? t(codeError) : null,
-        redeemed: redeemSeq,
-      },
-      details: Object.fromEntries(switchable.map((p) => [p.id, {
-        emoji: p.emoji,
-        name: t('profileName_' + p.id),
-        audience: p.audience ? `👥 ${ru ? p.audience : (p.audience_en ?? p.audience)}` : null,
-        hook: p.sales_hook ? (ru ? p.sales_hook : (p.sales_hook_en ?? p.sales_hook)) : null,
-        hookSource: p.sales_hook_source ? `📚 ${ru ? p.sales_hook_source : (p.sales_hook_source_en ?? p.sales_hook_source)}` : null,
-        color: p.color,
-        long: p.long_description ? (ru ? p.long_description : (p.long_description_en ?? p.long_description)) : null,
-        chips: [
-          p.session_minutes ? `⏱ ${p.session_minutes.replace('мин', t('unitMin'))}` : null,
-          p.warmup_enabled ? `☀️ ${t('badge_morning_warmup')}` : null,
-          p.financial_brain_day_enabled ? '💰 Financial Brain Day' : null,
-          p.assessment_enabled ? '📊 G1 Assessment' : null,
-        ].filter(Boolean),
-        gamesTitle: `🎮 ${fmt(p.allowed_games === 'all' ? 'label_all_48_games' : 'switcherProfileGames', { n: p.allowed_games === 'all' ? GAMES.length : p.allowed_games.length })}`,
-        games: p.allowed_games === 'all' ? [] : (p.allowed_games as string[]).flatMap((id) => {
-          const game = GAMES.find((g) => g.id === id);
-          return game ? [{ emoji: CATEGORY_EMOJI[game.category] || '•', name: t(game.nameKey) }] : [];
-        }),
-        locked: !isAccessible(p.id),
-        soon: `🔒 ${t('label_coming_soon')}`,
-        switchText: `✓ ${t('btn_switch_to_profile')}`,
-        currentText: `✓ ${t('label_current_profile')}`,
-      }])),
     });
-  }, [allProfiles, profile.id, isAccessible, wallets, allWallets, language, t, fmt, codeError, redeemSeq]);
+  }, [allProfiles, profile.id, wallets, allWallets, t]);
   React.useEffect(() => registerScreenActions('#switcher', {
-    switch: (id: string) => { if (isAccessible(id as any) && id !== profile.id) switchProfile(id as any); },
-    redeem: (code: string) => {
-      setCodeError(null);
-      redeemCode(code).then((id) => {
-        if (id) { setCodeError(null); setRedeemSeq((n) => n + 1); }
-        else setCodeError('msg_invalid_code');
-      }).catch(() => setCodeError('msg_invalid_code'));
-    },
-    clearError: () => setCodeError(null),
-  }), [isAccessible, profile.id, switchProfile, redeemCode]);
+    switch: (id: string) => { if (id !== profile.id && allProfiles.some((p) => p.id === id)) switchProfile(id as ProfileDef['id']); },
+  }), [allProfiles, profile.id, switchProfile]);
 
   const handleProfileClick = (p: ProfileDef) => {
-    if (p.id === profile.id) {
-      // Уже активный → просто закрыть
-      onClose();
-      return;
-    }
-    if (!isAccessible(p.id)) {
-      // Locked → открыть детали + способ получить код
-      setDetailProfile(p);
-      return;
-    }
-    // Доступный → переключить и закрыть
-    switchProfile(p.id);
+    // Уже активный → просто закрыть; любой другой → переключить и закрыть.
+    if (p.id !== profile.id) switchProfile(p.id);
     onClose();
   };
 
   return (
-    <>
-      {/* === Main switcher modal === */}
-      <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
-        <View {...a11yModal} style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.65)', justifyContent: 'flex-end' }}>
-          <View style={{ backgroundColor: colors.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: '88%' }}>
-            {/* C3b v1.122.1: уплотнено (padding/marginBottom/gap/card-padding урезаны),
-                чтобы все 11 профилей влезали в один экран без прокрутки. */}
-            <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 20 }}>
-              {/* Header */}
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                <Text style={{ fontSize: 19, fontWeight: '800', color: colors.text }}>👤 {t('a11ySwitchProfile')}</Text>
-                <TouchableOpacity accessibilityRole="button" accessibilityLabel={t('close')} onPress={onClose} style={{ padding: 4 }}>
-                  <Ionicons name="close-circle" size={28} color={colors.textSecondary} />
-                </TouchableOpacity>
-              </View>
-              <Text style={{ fontSize: 12, color: colors.textSecondary, lineHeight: 16, marginBottom: 10 }}>
-                {t('switcherIntro')}
-              </Text>
-
-              {/* Grid */}
-              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, justifyContent: 'flex-start', maxWidth: '100%' }}>
-                {allProfiles.filter(isSwitchable).map((p) => {
-                  const active = p.id === profile.id;
-                  const accessible = isAccessible(p.id);
-                  const locked = !accessible;
-                  return (
-                    <TouchableOpacity
-                      accessibilityRole="button"
-                      key={p.id}
-                      style={{
-                        width: '31.5%', minWidth: 92,
-                        backgroundColor: active ? p.color : colors.card,
-                        borderColor: active ? p.color : colors.border,
-                        borderWidth: 2,
-                        padding: 9, borderRadius: 12,
-                        alignItems: 'center',
-                        opacity: locked ? 0.65 : 1,
-                      }}
-                      onPress={() => handleProfileClick(p)}
-                    >
-                      {profileBadge(p.id) ? (
-                  <View>
-                    <Image {...a11yDecor} source={profileBadge(p.id)} style={{ width: 46, height: 46, borderRadius: 13, opacity: locked ? 0.5 : 1 }} />
-                    {locked && <Text style={{ position: 'absolute', right: -3, bottom: -3, fontSize: 15 }}>🔒</Text>}
-                  </View>
-                ) : (
-                  <Text style={{ fontSize: 32 }}>{p.emoji}{locked && '🔒'}</Text>
-                )}
-                      <Text style={{ fontSize: 14, fontWeight: '700', color: active ? '#000' : colors.text, marginTop: 4, textAlign: 'center' }}>
-                        {t('profileName_' + p.id)}
-                      </Text>
-                      <Text numberOfLines={2} style={{ fontSize: 10, color: active ? 'rgba(0,0,0,0.7)' : colors.textSecondary, textAlign: 'center', marginTop: 2, lineHeight: 13 }}>
-                        {t('profileDesc_' + p.id)}
-                      </Text>
-                      {p.session_minutes && (
-                        <Text style={{ fontSize: 9, color: active ? 'rgba(0,0,0,0.55)' : colors.textSecondary, marginTop: 2, fontFamily: 'monospace' }}>
-                          ⏱ {p.session_minutes.replace('мин', t('unitMin'))}
-                        </Text>
-                      )}
-                      {!locked && (wallets[p.id] ?? 0) > 0 && (
-                        <Text style={{ fontSize: 10, fontWeight: '800', marginTop: 3, color: active ? 'rgba(0,0,0,0.75)' : colors.textSecondary }}>
-                          ⭐ {wallets[p.id]}
-                        </Text>
-                      )}
-                      {/* v1.8.0: Ценник на каждой locked-карточке. v1.30.3: гейт App-Store-режимом —
-                          в Google Play-сборке цен в UI быть не должно (пока всё бесплатно). */}
-                      {MONETIZATION_ENABLED && locked && p.price_year && (
-                        <View style={{
-                          marginTop: 6,
-                          backgroundColor: '#10b981',
-                          paddingVertical: 3,
-                          paddingHorizontal: 8,
-                          borderRadius: 100,
-                        }}>
-                          <Text style={{ fontSize: 11, color: textOn('#10b981'), fontWeight: '800' }}>
-                            {formatPrice(p.price_year)}{t('switcherPerYear')}
-                          </Text>
-                        </View>
-                      )}
-                      {/* v1.13.0: tier-based бейдж — отделяет TRIAL / OWNER от paid */}
-                      {p.tier === 'trial' && (
-                        <View style={{
-                          marginTop: 6,
-                          backgroundColor: '#22c55e',
-                          paddingVertical: 3,
-                          paddingHorizontal: 8,
-                          borderRadius: 100,
-                          flexDirection: 'row', alignItems: 'center', gap: 4,
-                        }}>
-                          {/* Не «FREE»: бесплатно сейчас всё, и обещать этим словом
-                              нечего. Бейдж говорит единственное, чем профиль
-                              отличается от соседей по сетке, — он открыт без кода. */}
-                          <Ionicons name="lock-open" size={10} color={textOn('#22c55e')} />
-                          <Text style={{ fontSize: 10, color: textOn('#22c55e'), fontWeight: '900' }}>
-                            {t('badgeNoCode')}
-                          </Text>
-                        </View>
-                      )}
-                      {p.tier === 'owner' && (
-                        <View style={{
-                          marginTop: 6,
-                          backgroundColor: '#6b7280',
-                          paddingVertical: 3,
-                          paddingHorizontal: 8,
-                          borderRadius: 100,
-                          flexDirection: 'row', alignItems: 'center', gap: 4,
-                        }}>
-                          <Ionicons name="lock-closed" size={10} color="#fff" />
-                          <Text style={{ fontSize: 10, color: '#fff', fontWeight: '900', letterSpacing: 1 }}>
-                            {t('switcherOwnerBadge')}
-                          </Text>
-                        </View>
-                      )}
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-
-              {/* v1.8.0: Bundle CTA — "Все 9 за 4990₽". v1.30.2: скрыто в App-Store-режиме (MONETIZATION_ENABLED). */}
-              {MONETIZATION_ENABLED && (
-              <View style={{
-                marginTop: 22,
-                backgroundColor: '#fbbf24',
-                borderRadius: 14,
-                padding: 18,
-                alignItems: 'center',
-              }}>
-                <Text style={{ fontSize: 18, fontWeight: '800', color: '#1a1a1a', marginBottom: 4 }}>
-                  📦 {t('switcherBundleTitle')}
-                </Text>
-                <Text style={{ fontSize: 12, color: 'rgba(0,0,0,0.7)', textAlign: 'center', marginBottom: 4 }}>
-                  {['chess', 'kids', 'vasilyeva', 'nzt48', 'drivers', 'seniors', 'execs', 'students', 'women'].map((id) => t('profileName_' + id)).join(' · ')}
-                </Text>
-                <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 6, marginBottom: 12 }}>
-                  <Text style={{ fontSize: 13, color: 'rgba(0,0,0,0.5)', textDecorationLine: 'line-through' }}>
-                    {formatPrice(490+490+490+690+690+990+990+990+990)}
-                  </Text>
-                  <Text style={{ fontSize: 24, fontWeight: '900', color: '#1a1a1a' }}>
-                    {formatPrice(BUNDLE_ALL_THEMED_PRICE)}
-                  </Text>
-                  <Text style={{ fontSize: 12, color: 'rgba(0,0,0,0.7)' }}>{t('switcherPerYear')}</Text>
-                </View>
-                <TouchableOpacity
-                  accessibilityRole="button"
-                  onPress={buyBundleViaTelegram}
-                  style={{ backgroundColor: '#1a1a1a', paddingVertical: 12, paddingHorizontal: 24, borderRadius: 10, flexDirection: 'row', alignItems: 'center', gap: 8 }}
-                >
-                  <Ionicons name="cart" size={16} color="#fff" />
-                  <Text style={{ color: '#fff', fontWeight: '800', fontSize: 14 }}>{t('switcherBundleOrder')}</Text>
-                </TouchableOpacity>
-              </View>
-              )}
-
-              {/* v1.13.0: Corporate Pack — формальный B2B-блок (минимум эмодзи,
-                  деловой язык, премиум-якорь × 10 от Bundle). v1.30.2: скрыто в App-Store-режиме. */}
-              {MONETIZATION_ENABLED && (
-              <View style={{
-                marginTop: 12,
-                backgroundColor: '#1f2937',
-                borderWidth: 2,
-                borderColor: '#475569',
-                borderRadius: 14,
-                padding: 16,
-                alignItems: 'center',
-              }}>
-                <Text style={{ fontSize: 11, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1.5, fontWeight: '700', marginBottom: 6 }}>
-                  Corporate / B2B
-                </Text>
-                <Text style={{ fontSize: 16, fontWeight: '800', color: '#fff', marginBottom: 4, textAlign: 'center' }}>
-                  {t('switcherCorporateTitle')}
-                </Text>
-                <Text style={{ fontSize: 11, color: '#94a3b8', textAlign: 'center', marginBottom: 10, lineHeight: 15 }}>
-                  {fmt('switcherCorporateDesc', { n: CORPORATE_PACK_MAX_CODES, paradigms: t('label_validated_paradigms') })}
-                </Text>
-                <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 4, marginBottom: 10 }}>
-                  <Text style={{ fontSize: 22, fontWeight: '900', color: '#fbbf24' }}>{formatPrice(CORPORATE_PACK_PRICE)}</Text>
-                  <Text style={{ fontSize: 12, color: '#94a3b8' }}>{t('switcherPerYear')} · {fmt('switcherEmployeeCost', { price: Math.round(CORPORATE_PACK_PRICE / CORPORATE_PACK_MAX_CODES) })}</Text>
-                </View>
-                <TouchableOpacity
-                  accessibilityRole="button"
-                  onPress={buyCorporateViaTelegram}
-                  style={{ backgroundColor: '#fbbf24', paddingVertical: 10, paddingHorizontal: 20, borderRadius: 8, flexDirection: 'row', alignItems: 'center', gap: 6 }}
-                >
-                  <Ionicons name="business" size={14} color="#1a1a1a" />
-                  <Text style={{ color: '#1a1a1a', fontWeight: '800', fontSize: 13 }}>{t('switcherQuoteRequest')}</Text>
-                </TouchableOpacity>
-              </View>
-              )}
-
-              {/* Inline code button at bottom. App Store 3.1.1: на iOS скрыто. */}
-              {CODE_ENTRY_ENABLED && (
-              <TouchableOpacity
-                accessibilityRole="button"
-                onPress={() => setCodeModalOpen(true)}
-                style={{ marginTop: 14, paddingVertical: 12, borderRadius: 10, borderWidth: 1, borderColor: colors.border, alignItems: 'center' }}
-              >
-                <Text style={{ color: colors.text, fontWeight: '700', fontSize: 13 }}>🔑 {t('btn_already_have_code')}</Text>
-              </TouchableOpacity>
-              )}
-            </ScrollView>
-          </View>
-        </View>
-      </Modal>
-
-      {/* === Detail modal (clicked on locked profile) === */}
-      <Modal visible={detailProfile !== null} animationType="slide" transparent onRequestClose={() => setDetailProfile(null)}>
-        <View {...a11yModal} style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.65)', justifyContent: 'flex-end' }}>
-          <View style={{ backgroundColor: colors.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: '90%' }}>
-            {detailProfile && (
-              <ScrollView contentContainerStyle={{ padding: 22, paddingBottom: 30 }}>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 }}>
-                    <Text style={{ fontSize: 38 }}>{detailProfile.emoji}</Text>
-                    <View style={{ flex: 1 }}>
-                      <Text style={{ fontSize: 22, fontWeight: '800', color: colors.text }}>{t('profileName_' + detailProfile.id)}</Text>
-                      {detailProfile.audience && (
-                        <Text style={{ fontSize: 12, color: colors.textSecondary, marginTop: 2 }}>👥 {language === 'ru' ? detailProfile.audience : (detailProfile.audience_en ?? detailProfile.audience)}</Text>
-                      )}
-                    </View>
-                  </View>
-                  <TouchableOpacity accessibilityRole="button" accessibilityLabel={t('close')} onPress={() => setDetailProfile(null)} style={{ padding: 4 }}>
-                    <Ionicons name="close-circle" size={28} color={colors.textSecondary} />
-                  </TouchableOpacity>
-                </View>
-
-                {detailProfile.sales_hook && (
-                  <View style={{
-                    backgroundColor: detailProfile.color + '22',
-                    borderLeftWidth: 4, borderLeftColor: detailProfile.color,
-                    paddingVertical: 10, paddingHorizontal: 12,
-                    borderRadius: 8, marginTop: 8, marginBottom: 14,
-                  }}>
-                    <Text style={{ fontSize: 14, color: colors.text, lineHeight: 19, fontWeight: '600' }}>
-                      {language === 'ru' ? detailProfile.sales_hook : (detailProfile.sales_hook_en ?? detailProfile.sales_hook)}
-                    </Text>
-                    {/* v1.12.0: научный источник под цифрой в хуке —
-                        обязательно для критичной аудитории (врачи, учёные) */}
-                    {detailProfile.sales_hook_source && (
-                      <Text style={{ fontSize: 10, color: colors.textSecondary, marginTop: 6, fontStyle: 'italic', lineHeight: 14 }}>
-                        📚 {language === 'ru' ? detailProfile.sales_hook_source : (detailProfile.sales_hook_source_en ?? detailProfile.sales_hook_source)}
-                      </Text>
-                    )}
-                  </View>
-                )}
-
-                {detailProfile.long_description && (
-                  <Text style={{ fontSize: 13, color: colors.textSecondary, lineHeight: 19, marginBottom: 14 }}>
-                    {language === 'ru' ? detailProfile.long_description : (detailProfile.long_description_en ?? detailProfile.long_description)}
-                  </Text>
-                )}
-
-                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16, maxWidth: '100%' }}>
-                  {detailProfile.session_minutes && (
-                    <View style={{ backgroundColor: colors.card, paddingVertical: 6, paddingHorizontal: 10, borderRadius: 14 }}>
-                      <Text style={{ fontSize: 11, color: colors.text }}>⏱ {detailProfile.session_minutes.replace('мин', t('unitMin'))}</Text>
-                    </View>
-                  )}
-                  {detailProfile.warmup_enabled && (
-                    <View style={{ backgroundColor: colors.card, paddingVertical: 6, paddingHorizontal: 10, borderRadius: 14 }}>
-                      <Text style={{ fontSize: 11, color: colors.text }}>☀️ {t('badge_morning_warmup')}</Text>
-                    </View>
-                  )}
-                  {detailProfile.financial_brain_day_enabled && (
-                    <View style={{ backgroundColor: colors.card, paddingVertical: 6, paddingHorizontal: 10, borderRadius: 14 }}>
-                      <Text style={{ fontSize: 11, color: colors.text }}>💰 Financial Brain Day</Text>
-                    </View>
-                  )}
-                  {detailProfile.assessment_enabled && (
-                    <View style={{ backgroundColor: colors.card, paddingVertical: 6, paddingHorizontal: 10, borderRadius: 14 }}>
-                      <Text style={{ fontSize: 11, color: colors.text }}>📊 G1 Assessment</Text>
-                    </View>
-                  )}
-                </View>
-
-                <Text style={{ fontSize: 14, fontWeight: '700', color: colors.text, marginBottom: 10 }}>
-                  {/* ⚠️ ЧИСЛО СЧИТАЕМ, А НЕ ПИШЕМ РУКАМИ. Здесь стояло «Все 48
-                      тренажёров» — столько их было когда-то. Каталог дорос до 63,
-                      а строка осталась, и человек видел цифру меньше правды прямо
-                      в карточке своего профиля. Теперь из GAMES: каталог вырастет
-                      — вырастет и подпись.
-
-                      Число вынесено за слово намеренно. «23 тренажёров» неверно
-                      по-русски (нужно «23 тренажёра»), а окончание зависит от
-                      последней цифры — при вычисляемом числе пришлось бы заводить
-                      склонятор. Двоеточие снимает вопрос для любого числа. */}
-                  🎮 {fmt(detailProfile.allowed_games === 'all' ? 'label_all_48_games' : 'switcherProfileGames', { n: detailProfile.allowed_games === 'all' ? GAMES.length : detailProfile.allowed_games.length })}
-                </Text>
-                {detailProfile.allowed_games !== 'all' && (
-                  <View style={{ gap: 6, marginBottom: 18 }}>
-                    {(detailProfile.allowed_games as string[]).map(gameId => {
-                      const game = GAMES.find(g => g.id === gameId);
-                      if (!game) return null;
-                      return (
-                        <View key={gameId} style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 4 }}>
-                          <Text style={{ fontSize: 16 }}>{CATEGORY_EMOJI[game.category] || '•'}</Text>
-                          <Text style={{ fontSize: 13, color: colors.text, flex: 1 }}>{t(game.nameKey)}</Text>
-                        </View>
-                      );
-                    })}
-                  </View>
-                )}
-
-                {!isAccessible(detailProfile.id) && (
-                  <View style={{ gap: 10 }}>
-                    {/* v1.8.0: БОЛЬШОЙ ценник + кнопка «Купить» — главный CTA. v1.30.2: скрыто в App-Store-режиме. */}
-                    {MONETIZATION_ENABLED && isForSale(detailProfile) && detailProfile.price_year && (
-                      <View style={{
-                        backgroundColor: '#10b981' + '18',
-                        borderWidth: 2,
-                        borderColor: '#10b981',
-                        borderRadius: 14,
-                        padding: 16,
-                        alignItems: 'center',
-                        marginBottom: 4,
-                      }}>
-                        <Text style={{ fontSize: 11, color: colors.textSecondary, textTransform: 'uppercase', letterSpacing: 1, fontWeight: '700' }}>{t('switcherAnnual')}</Text>
-                        <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 6, marginTop: 4, marginBottom: 12 }}>
-                          <Text style={{ fontSize: 32, fontWeight: '900', color: colors.text }}>
-                            {formatPrice(detailProfile.price_year)}
-                          </Text>
-                          <Text style={{ fontSize: 14, color: colors.textSecondary }}>{t('switcherPerYear')}</Text>
-                        </View>
-                        <Text style={{ fontSize: 11, color: colors.textSecondary, textAlign: 'center', marginBottom: 12 }}>
-                          {fmt('switcherMonthlyCost', { price: Math.round(detailProfile.price_year / 12) })}
-                        </Text>
-                        <TouchableOpacity
-                          accessibilityRole="button"
-                          onPress={() => buyProfileViaTelegram(detailProfile)}
-                          style={{ backgroundColor: '#10b981', paddingVertical: 13, paddingHorizontal: 24, borderRadius: 10, flexDirection: 'row', alignItems: 'center', gap: 8 }}
-                        >
-                          <Ionicons name="cart" size={18} color={textOn('#10b981')} />
-                          <Text style={{ color: textOn('#10b981'), fontWeight: '800', fontSize: 15 }}>{fmt('switcherOrderPrice', { price: formatPrice(detailProfile.price_year) })}</Text>
-                        </TouchableOpacity>
-                      </View>
-                    )}
-
-                    {CODE_ENTRY_ENABLED ? (
-                    <TouchableOpacity
-                      accessibilityRole="button"
-                      onPress={() => { setDetailProfile(null); setCodeModalOpen(true); }}
-                      style={{ borderWidth: 1.5, borderColor: colors.border, paddingVertical: 12, borderRadius: 10, alignItems: 'center' }}
-                    >
-                      <Text style={{ color: colors.text, fontWeight: '700', fontSize: 13 }}>🔑 {t('btn_already_have_code')}</Text>
-                    </TouchableOpacity>
-                    ) : (
-                    <View style={{ backgroundColor: colors.card, paddingVertical: 12, borderRadius: 10, alignItems: 'center' }}>
-                      <Text style={{ color: colors.textSecondary, fontWeight: '700', fontSize: 13 }}>🔒 {t('label_coming_soon')}</Text>
-                    </View>
-                    )}
-                    {/* v1.30.2: консультация/оплата в Telegram скрыты в App-Store-режиме (anti-steering). */}
-                    {MONETIZATION_ENABLED && (
-                      <>
-                        <TouchableOpacity
-                          accessibilityRole="button"
-                          onPress={() => requestCodeViaTelegram(detailProfile)}
-                          style={{ backgroundColor: '#0088cc', paddingVertical: 12, borderRadius: 10, alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 8 }}
-                        >
-                          <Ionicons name="chatbubble-ellipses" size={16} color="#fff" />
-                          <Text style={{ color: '#fff', fontWeight: '700', fontSize: 13 }}>{t('switcherConsult')}</Text>
-                        </TouchableOpacity>
-                        <Text style={{ fontSize: 11, color: colors.textSecondary, textAlign: 'center', marginTop: 4, lineHeight: 16 }}>
-                          {t('switcherPaymentInfo')}
-                        </Text>
-                      </>
-                    )}
-                  </View>
-                )}
-                {isAccessible(detailProfile.id) && detailProfile.id !== profile.id && (
-                  <TouchableOpacity
-                    accessibilityRole="button"
-                    onPress={() => { switchProfile(detailProfile.id); setDetailProfile(null); onClose(); }}
-                    style={{ backgroundColor: detailProfile.color, paddingVertical: 14, borderRadius: 12, alignItems: 'center' }}
-                  >
-                    <Text style={{ color: '#000', fontWeight: '800', fontSize: 15 }}>✓ {t('btn_switch_to_profile')}</Text>
-                  </TouchableOpacity>
-                )}
-                {detailProfile.id === profile.id && (
-                  <View style={{ backgroundColor: detailProfile.color + '33', paddingVertical: 14, borderRadius: 12, alignItems: 'center' }}>
-                    <Text style={{ color: colors.text, fontWeight: '700', fontSize: 14 }}>✓ {t('label_current_profile')}</Text>
-                  </View>
-                )}
-              </ScrollView>
-            )}
-          </View>
-        </View>
-      </Modal>
-
-      {/* === Code input modal === */}
-      <Modal visible={codeModalOpen} animationType="fade" transparent onRequestClose={() => setCodeModalOpen(false)}>
-        <View {...a11yModal} style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.55)', justifyContent: 'center', padding: 20 }}>
-          <View style={{ backgroundColor: colors.surface, borderRadius: 16, padding: 22, gap: 14 }}>
-            <Text style={{ fontSize: 18, fontWeight: '700', color: colors.text }}>🔑 {t('title_access_code')}</Text>
-            <Text style={{ fontSize: 13, color: colors.textSecondary, lineHeight: 18 }}>
-              {t('switcherCodeHint')}
-            </Text>
-            <TextInput
-              value={codeInput}
-              onChangeText={(t) => { setCodeInput(t); setCodeError(null); }}
-              autoCapitalize="characters"
-              autoCorrect={false}
-              placeholder={`${t('ph_code_example')} / EXC-260822-A4F2-1B8C3D`}
-              placeholderTextColor={colors.textSecondary}
-              style={{
-                borderWidth: 1,
-                borderColor: codeError ? '#ef4444' : colors.border,
-                borderRadius: 10, padding: 12, fontSize: 16,
-                color: colors.text, fontFamily: 'monospace',
-              }}
-              onSubmitEditing={tryRedeem}
-            />
-            {codeError && <Text style={{ fontSize: 12, color: '#ef4444' }}>{t(codeError)}</Text>}
-            <View style={{ flexDirection: 'row', gap: 10, justifyContent: 'flex-end' }}>
-              <TouchableOpacity
-                accessibilityRole="button" onPress={() => { setCodeModalOpen(false); setCodeInput(''); setCodeError(null); }}
-                style={{ paddingVertical: 10, paddingHorizontal: 16 }}>
-                <Text style={{ color: colors.textSecondary, fontWeight: '600' }}>{t('btn_cancel')}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                accessibilityRole="button" onPress={tryRedeem}
-                style={{ paddingVertical: 10, paddingHorizontal: 18, backgroundColor: '#10b981', borderRadius: 8 }}>
-                <Text style={{ color: textOn('#10b981'), fontWeight: '700' }}>{t('welcomeUnlock')}</Text>
+    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
+      <View {...a11yModal} style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.65)', justifyContent: 'flex-end' }}>
+        <View style={{ backgroundColor: colors.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: '88%' }}>
+          {/* C3b v1.122.1: уплотнено (padding/marginBottom/gap/card-padding урезаны),
+              чтобы все профили влезали в один экран без прокрутки. */}
+          <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 20 }}>
+            {/* Header */}
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+              <Text style={{ fontSize: 19, fontWeight: '800', color: colors.text }}>👤 {t('a11ySwitchProfile')}</Text>
+              <TouchableOpacity accessibilityRole="button" accessibilityLabel={t('close')} onPress={onClose} style={{ padding: 4 }}>
+                <Ionicons name="close-circle" size={28} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>
-          </View>
+            <Text style={{ fontSize: 12, color: colors.textSecondary, lineHeight: 16, marginBottom: 10 }}>
+              {t('switcherIntro')}
+            </Text>
+
+            {/* Grid */}
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, justifyContent: 'flex-start', maxWidth: '100%' }}>
+              {allProfiles.map((p) => {
+                const active = p.id === profile.id;
+                return (
+                  <TouchableOpacity
+                    accessibilityRole="button"
+                    key={p.id}
+                    style={{
+                      width: '31.5%', minWidth: 92,
+                      backgroundColor: active ? p.color : colors.card,
+                      borderColor: active ? p.color : colors.border,
+                      borderWidth: 2,
+                      padding: 9, borderRadius: 12,
+                      alignItems: 'center',
+                    }}
+                    onPress={() => handleProfileClick(p)}
+                  >
+                    {profileBadge(p.id) ? (
+                      <Image {...a11yDecor} source={profileBadge(p.id)} style={{ width: 46, height: 46, borderRadius: 13 }} />
+                    ) : (
+                      <Text style={{ fontSize: 32 }}>{p.emoji}</Text>
+                    )}
+                    <Text style={{ fontSize: 14, fontWeight: '700', color: active ? '#000' : colors.text, marginTop: 4, textAlign: 'center' }}>
+                      {t('profileName_' + p.id)}
+                    </Text>
+                    <Text numberOfLines={2} style={{ fontSize: 10, color: active ? 'rgba(0,0,0,0.7)' : colors.textSecondary, textAlign: 'center', marginTop: 2, lineHeight: 13 }}>
+                      {t('profileDesc_' + p.id)}
+                    </Text>
+                    {p.session_minutes && (
+                      <Text style={{ fontSize: 9, color: active ? 'rgba(0,0,0,0.55)' : colors.textSecondary, marginTop: 2, fontFamily: 'monospace' }}>
+                        ⏱ {p.session_minutes.replace('мин', t('unitMin'))}
+                      </Text>
+                    )}
+                    {(wallets[p.id] ?? 0) > 0 && (
+                      <Text style={{ fontSize: 10, fontWeight: '800', marginTop: 3, color: active ? 'rgba(0,0,0,0.75)' : colors.textSecondary }}>
+                        ⭐ {wallets[p.id]}
+                      </Text>
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </ScrollView>
         </View>
-      </Modal>
-    </>
+      </View>
+    </Modal>
   );
 }
