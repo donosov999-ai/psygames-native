@@ -1840,6 +1840,7 @@
 "rollAndBankDesc":"Jogue o dado e avance. Você pode jogar de novo ou guardar o que avançou. Um 1 queima tudo o que não foi guardado e a vez passa para o bot. Quem chegar primeiro vence.",
 "round":"Rodada",
 "rspanLvlAuto":"Nv {n} — cresce sozinho: mais frases por conjunto",
+"rspanTapHint":"Toque nas últimas palavras na ordem em que as frases apareceram",
 "sameLevelRetry":"Mesmo nível — de novo…",
 "samuraiDesc":"Cinco grades 9×9 com blocos de canto compartilhados. Regras de sudoku em cada uma.",
 "samuraiTitle":"Samurai",

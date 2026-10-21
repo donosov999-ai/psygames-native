@@ -1684,6 +1684,7 @@ const t: Record<string, string> = {
   "sdmt": "SDMT：記号→数字",
   "benefitSdmt2": "情報の符号化",
   "recallPlaceholder": "単語 単語 単語 …",
+  "rspanTapHint": "文が出た順に、最後の単語をタップしてください",
   "teachRspanJudge": "文を読んで、意味が通るかを判断してください。最後の単語を覚えておきましょう。最後に聞かれます。",
   "teachRspanNonsense": "意味が通らないのも答えです。「無意味語」を押し、それでも最後の単語は覚えてください。",
   "teachRspanRecall": "セットの後で、最後の単語を同じ順番でスペースで区切って入力してください。",

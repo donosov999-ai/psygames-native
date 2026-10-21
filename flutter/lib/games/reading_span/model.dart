@@ -83,6 +83,35 @@ class RspanLevelParams {
   return (hits: hits, errors: errors, expected: expected);
 }
 
+/// Плитки для вспоминания касанием — в шаге зарядки, где клавиатура лишняя (отчёт 42240f97:
+/// «в утреннюю зарядку — печатать тексты»). Последние слова набора и столько же последних слов
+/// других предложений, всё вперемешку; ответ из плиток проверяет тот же [rspanRecallScore].
+/// Слово набора, стоящее в нём дважды, — одна плитка: её нажимают дважды.
+List<String> rspanRecallChoices(
+  List<RspanSentence> seq,
+  List<RspanSentence> pool,
+  String language,
+  double Function() rng,
+) {
+  final want = {for (final s in seq) s.last(language).toLowerCase().trim()};
+  final others = [
+    ...{for (final s in pool) s.last(language).toLowerCase().trim()}.difference(want),
+  ];
+  void shuffle(List<String> a) {
+    for (var i = a.length - 1; i > 0; i--) {
+      final j = (rng() * (i + 1)).floor();
+      final t = a[i];
+      a[i] = a[j];
+      a[j] = t;
+    }
+  }
+
+  shuffle(others);
+  final words = [...want, ...others.take(seq.length)];
+  shuffle(words);
+  return words;
+}
+
 /// Метка трудности партии по размеру набора — как её пишет веб-отчёт.
 String rspanDifficulty(int setSize) => setSize <= 3 ? 'easy' : (setSize <= 5 ? 'medium' : 'hard');
 

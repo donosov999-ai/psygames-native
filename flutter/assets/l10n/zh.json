@@ -1840,6 +1840,7 @@
 "rollAndBankDesc":"掷骰子向前走。可以继续掷，也可以把走过的格数存下来。掷出 1 时，没存下的全部作废，轮到机器人。先到终点的一方获胜。",
 "round":"回合",
 "rspanLvlAuto":"第 {n} 级——自动提升：每组句子更多",
+"rspanTapHint":"按句子出现的顺序点按末词",
 "sameLevelRetry":"同一关——再来一次…",
 "samuraiDesc":"五张 9×9 棋盘共享角上宫格。每张都遵循数独规则。",
 "samuraiTitle":"武士",

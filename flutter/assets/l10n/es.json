@@ -1840,6 +1840,7 @@
 "rollAndBankDesc":"Tira el dado y avanza. Puedes seguir tirando o guardar lo avanzado. Un uno quema todo lo no guardado y el turno pasa al bot. Gana quien llegue primero a la meta.",
 "round":"Ronda",
 "rspanLvlAuto":"Nv {n} — crece solo con tus resultados: más frases por serie",
+"rspanTapHint":"Toca las últimas palabras en el orden en que aparecieron las frases",
 "sameLevelRetry":"Mismo nivel — otra vez…",
 "samuraiDesc":"Cinco cuadrículas 9×9 con bloques de esquina compartidos. Reglas de sudoku en cada una.",
 "samuraiTitle":"Samurái",

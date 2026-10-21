@@ -1840,6 +1840,7 @@
 "rollAndBankDesc":"Roll the die and move forward. Roll again or bank your progress. A one burns everything unbanked and the turn passes to the bot. First to the finish wins.",
 "round":"Round",
 "rspanLvlAuto":"Lv {n} — grows with results: more sentences per set",
+"rspanTapHint":"Tap the last words in the order the sentences were shown",
 "sameLevelRetry":"Same level — retry…",
 "samuraiDesc":"Five overlapping 9×9 grids sharing corner blocks; standard sudoku in each.",
 "samuraiTitle":"Samurai",

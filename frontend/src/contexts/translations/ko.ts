@@ -784,6 +784,7 @@ const t: Record<string, string> = {
   "recallNow": "단어 떠올리기",
   "recallHint": "마지막 단어를 올바른 순서로 띄어쓰기로 구분해 입력하세요",
   "recallPlaceholder": "단어 단어 단어 ...",
+  "rspanTapHint": "문장이 나온 순서대로 마지막 단어를 누르세요",
   "teachRspanJudge": "문장을 읽고 말이 되는지 판단하세요. 마지막 단어를 기억하세요. 끝에서 물어봅니다.",
   "teachRspanNonsense": "말이 안 되는 것도 답입니다. '말이 안 돼요'를 누르되, 마지막 단어는 그래도 기억하세요.",
   "teachRspanRecall": "세트가 끝나면 마지막 단어들을 같은 순서로 띄어 써서 입력하세요.",
