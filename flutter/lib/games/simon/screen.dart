@@ -231,6 +231,9 @@ class SimonStimulus extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
+        // Ширина — явно во всю строку. Без неё рамка между пробами сжималась до крестика
+        // и раздувалась со вспышкой: «зачем сужает рамку цели» (отзыв 2ceb3684).
+        width: double.infinity,
         height: 160,
         margin: const EdgeInsets.symmetric(horizontal: 12),
         decoration: BoxDecoration(

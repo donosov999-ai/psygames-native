@@ -84,6 +84,25 @@ void main() {
         reason: 'все пробы шли поровну — разность половин ноль');
   });
 
+  testWidgets('🔴 рамка поля одной ширины до вспышки и во время неё', (tester) async {
+    // Отзыв 2ceb3684: «зачем сужает рамку цели». Без явной ширины рамка до вспышки
+    // сжималась до крестика фиксации, а со вспышкой раздувалась на всю строку.
+    await tester.pumpWidget(MaterialApp(home: SimonScreen(state: state, rnd: Random(7))));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(L.t('start')));
+    await tester.pump();
+    final frame = find.byType(SimonStimulus);
+    expect(stimulusVisible(), isFalse);
+    final before = tester.getSize(frame).width;
+    await tester.pump(preWait);
+    expect(stimulusVisible(), isTrue);
+    final during = tester.getSize(frame).width;
+    expect(before, during, reason: 'рамка меняет ширину между пробами: $before → $during');
+    expect(before, greaterThan(tester.getSize(find.byType(Scaffold).first).width / 2),
+        reason: 'поле обязано быть широким — в стороне вспышки весь эффект Саймона');
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
   testWidgets('🔴 ответ по СТОРОНЕ вспышки, а не по цвету — ошибка', (tester) async {
     await tester.pumpWidget(MaterialApp(home: SimonScreen(state: state, rnd: Random(4))));
     await tester.pumpAndSettle();
