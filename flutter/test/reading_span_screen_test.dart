@@ -35,8 +35,10 @@ void main() {
     for (final e in jsonDecode(File('assets/reading_span/sentences.json').readAsStringSync()) as List)
       RspanSentence.fromJson((e as Map).cast<String, Object?>()),
   ];
-  // Смысл предложения по его тексту на любом из двух языков — «знание языка» пробы.
-  final senseOf = {for (final s in sentences) ...{s.ru: s.ok, s.en: s.ok}};
+  // Смысл предложения по его тексту на любом языке корпуса — «знание языка» пробы.
+  final senseOf = {
+    for (final s in sentences) ...{s.ru: s.ok, s.en: s.ok, for (final t in s.tr.values) t[0]: s.ok},
+  };
 
   setUpAll(() async {
     await L.load('ru');
@@ -239,6 +241,28 @@ void main() {
     final english = {for (final s in sentences) s.lastEn.toLowerCase()};
     expect(((sent.single['details'] as Map)['expected'] as String).split(' ').every(english.contains), isTrue);
   });
+
+  // Корпус на десяти языках (задача 03a1440e): до 21.10.2026 es…hi играли английскими предложениями —
+  // кадр 2.56.15 на испанском: «Tea is brewed in the refrigerator quickly.». Игра меряет память при
+  // ПОНИМАНИИ текста, на чужом языке она меряла знание английского.
+  for (final lang in ['es', 'de', 'fr', 'it', 'pt', 'ja', 'ko', 'zh', 'ar', 'hi']) {
+    testWidgets('🔴 интерфейс $lang — предложения и слова на $lang, партия берётся словами своего языка', (tester) async {
+      await L.load(lang);
+      addTearDown(() => L.load('ru'));
+      await boot(tester, level: 1);
+      await tester.tap(find.byKey(const Key('rspan-start')));
+      await tester.pump();
+      final first = sentenceOnScreen(tester);
+      final mine = {for (final s in sentences) s.tr[lang]![0]: s.tr[lang]![1]};
+      expect(mine.containsKey(first), isTrue, reason: 'предложение на $lang: «$first»');
+      expect(lastWordOnScreen(tester), mine[first], reason: 'слово «Запомните» — того же языка');
+      final words = await readSet(tester);
+      await answer(tester, words.join(' '));
+      expect(find.byKey(const Key('rspan-passed')), findsOneWidget, reason: 'набранные слова $words засчитаны');
+      final expected = ((sent.single['details'] as Map)['expected'] as String).split(' ');
+      expect(expected, [for (final w in words) w.toLowerCase()]);
+    });
+  }
 
   // Подпись игры `readingSpanDesc` — карточка развилки и экран старта. Замер 01.10.2026: она теряла
   // оба действия — en «Judge sense, recall last words» без «каждого предложения», ru «Оцените смысл
