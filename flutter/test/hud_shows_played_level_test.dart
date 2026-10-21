@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/cats/ladder.dart';
 import 'package:psygames_flutter/games/cats/screen.dart';
@@ -24,20 +23,12 @@ void main() {
   setUpAll(() async => L.load('ru'));
   late SharedState state;
 
-  /// Подписи шапки — «Уровень: 1» и т. п.: ровно то, что видит человек.
-  List<String> hud(WidgetTester tester, String label) {
-    final out = <String>[];
-    void walk(SemanticsNode n) {
-      if (n.label.startsWith('$label: ')) out.add(n.label.split('\n').first);
-      n.visitChildren((c) {
-        walk(c);
-        return true;
-      });
-    }
-
-    walk(tester.binding.pipelineOwner.semanticsOwner!.rootSemanticsNode!);
-    return out;
-  }
+  /// Значения шапки по подписи доступности («Уровень: 1» и т. п.) — ровно то, что видит человек.
+  /// Подпись плитки — «метка: значение», а под ней строкой ещё раз значение; берётся первая строка.
+  List<String> hud(WidgetTester tester, String label) => [
+        for (var v = 1; v <= 400; v++)
+          if (find.bySemanticsLabel(RegExp('^${RegExp.escape(label)}: $v(\n|\$)')).evaluate().isNotEmpty) '$label: $v',
+      ];
 
   Future<void> mount(WidgetTester tester, Widget screen, String readyKey) async {
     await tester.runAsync(() async {
