@@ -2,124 +2,57 @@
  "profiles": [
   {
    "id": "odv999",
-   "tier": "owner",
-   "switchable": false,
-   "badge": "/assets/images/profiles/odv999.webp",
-   "hookSource": null,
-   "hookSourceEn": null
+   "badge": "/assets/images/profiles/odv999.webp"
   },
   {
    "id": "whatsnew",
-   "tier": "showcase",
-   "switchable": true,
-   "badge": null,
-   "hookSource": null,
-   "hookSourceEn": null
+   "badge": null
   },
   {
    "id": "women",
-   "tier": null,
-   "switchable": true,
-   "badge": "/assets/images/profiles/women.webp",
-   "hookSource": null,
-   "hookSourceEn": null
+   "badge": "/assets/images/profiles/women.webp"
   },
   {
    "id": "free",
-   "tier": "trial",
-   "switchable": true,
-   "badge": "/assets/images/profiles/free.webp",
-   "hookSource": null,
-   "hookSourceEn": null
+   "badge": "/assets/images/profiles/free.webp"
   },
   {
    "id": "kids",
-   "tier": null,
-   "switchable": true,
-   "badge": "/assets/images/profiles/kids.webp",
-   "hookSource": null,
-   "hookSourceEn": null
+   "badge": "/assets/images/profiles/kids.webp"
   },
   {
    "id": "seniors",
-   "tier": null,
-   "switchable": true,
-   "badge": "/assets/images/profiles/seniors.webp",
-   "hookSource": "ACTIVE trial — Rebok et al., 2014, JAMA Intern Med — 10 hours speed training → effects persist 10+ years (N=2832)",
-   "hookSourceEn": null
+   "badge": "/assets/images/profiles/seniors.webp"
   },
   {
    "id": "chess",
-   "tier": null,
-   "switchable": true,
-   "badge": "/assets/images/profiles/chess.webp",
-   "hookSource": "Burgoyne et al., 2016, Intelligence — meta-analysis chess+cognition (r=0.24 fluid intelligence ↔ ELO)",
-   "hookSourceEn": null
+   "badge": "/assets/images/profiles/chess.webp"
   },
   {
    "id": "drivers",
-   "tier": null,
-   "switchable": true,
-   "badge": "/assets/images/profiles/drivers.webp",
-   "hookSource": "Roenker et al., 2003, Human Factors — speed-of-processing training снижает driving errors на 31% (vs control)",
-   "hookSourceEn": "Roenker et al., 2003, Human Factors — speed-of-processing training cuts driving errors by 31% (vs control)"
+   "badge": "/assets/images/profiles/drivers.webp"
   },
   {
    "id": "execs",
-   "tier": null,
-   "switchable": true,
-   "badge": "/assets/images/profiles/execs.webp",
-   "hookSource": null,
-   "hookSourceEn": null
+   "badge": "/assets/images/profiles/execs.webp"
   },
   {
    "id": "students",
-   "tier": null,
-   "switchable": true,
-   "badge": "/assets/images/profiles/students.webp",
-   "hookSource": "Sala & Gobet, 2017, Educational Research Review — cognitive training improves academic outcomes (d=0.30 transfer effect)",
-   "hookSourceEn": null
+   "badge": "/assets/images/profiles/students.webp"
   },
   {
    "id": "nzt48",
-   "tier": null,
-   "switchable": true,
-   "badge": "/assets/images/profiles/nzt48.webp",
-   "hookSource": "Jaeggi et al., 2008, PNAS — Dual N-back training улучшает fluid intelligence (transfer-эффект на IQ, d=0.65)",
-   "hookSourceEn": "Jaeggi et al., 2008, PNAS — Dual N-back training improves fluid intelligence (transfer effect on IQ, d=0.65)"
+   "badge": "/assets/images/profiles/nzt48.webp"
   },
   {
    "id": "vasilyeva",
-   "tier": null,
-   "switchable": true,
-   "badge": "/assets/images/profiles/vasilyeva.webp",
-   "hookSource": "Edwards et al., 2005, J Gerontol — UFOV training expands visual span 22-35% (10-15 hours practice)",
-   "hookSourceEn": null
+   "badge": "/assets/images/profiles/vasilyeva.webp"
   },
   {
    "id": "polyglot",
-   "tier": null,
-   "switchable": true,
-   "badge": "/assets/images/profiles/polyglot.webp",
-   "hookSource": "Gathercole & Baddeley, 1990, J Memory & Language — фонологическая рабочая память предсказывает усвоение словаря (foundational)",
-   "hookSourceEn": "Gathercole & Baddeley, 1990, J Memory & Language — phonological working memory predicts vocabulary acquisition (foundational)"
+   "badge": "/assets/images/profiles/polyglot.webp"
   }
  ],
- "categoryEmoji": {
-  "memory": "🧠",
-  "attention": "🎯",
-  "logic": "🧩",
-  "action": "⚡"
- },
- "trialBadge": {
-  "bg": "#22c55e",
-  "fg": "#062311"
- },
- "ownerBadge": {
-  "bg": "#6b7280",
-  "fg": "#fff"
- },
- "unlockFg": "#032117",
  "textKeys": [
   "profileName_odv999",
   "profileDesc_odv999",

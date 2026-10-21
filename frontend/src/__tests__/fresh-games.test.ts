@@ -12,7 +12,7 @@
  */
 import { FRESH, FRESH_DAYS, FRESH_MIN, freshEntries, freshGameIds, todayISO } from '@/src/constants/freshGames';
 import { GAMES } from '@/src/constants/games';
-import { PROFILE_BY_ID, isSwitchable } from '@/src/constants/profiles';
+import { PROFILES, PROFILE_BY_ID } from '@/src/constants/profiles';
 
 const IDS = new Set(GAMES.map((g) => g.id));
 
@@ -110,13 +110,12 @@ describe('реестр свежего', () => {
      * моя же ошибка, закреплённая проверкой: `owner` в этом коде значит «СКРЫТ
      * из выбора», а сказать хотелось «не продаётся». Витрина из-за этого не
      * показывалась никому, а гейт был согласен. Теперь спрашиваем ровно два
-     * свойства: её не продают и её ВИДНО.
+     * свойства: её не продают и её ВИДНО. С 21.10.2026 (d5e5814a) цен нет ни у кого,
+     * а в выборе все профили — проверка цены стоит в `profile-visibility`.
      */
-    it('существует, не продаётся и видна в выборе', () => {
+    it('существует и видна в выборе', () => {
       expect(p).toBeTruthy();
-      expect(p.price_year).toBeUndefined();   // витрина меняется каждый релиз — продавать её нечестно
-      expect((p as any).price).toBeUndefined();
-      expect(`видна: ${isSwitchable(p)}`).toBe('видна: true');
+      expect(`видна: ${PROFILES.includes(p)}`).toBe('видна: true');
     });
 
     it('состав берётся из реестра, а не зашит рядом', () => {

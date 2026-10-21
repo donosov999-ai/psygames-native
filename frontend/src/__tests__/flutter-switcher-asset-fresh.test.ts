@@ -1,22 +1,20 @@
-/* psygames-flutter-switcher-asset-fresh · VER 1 · 20.10.2026 */
+/* psygames-flutter-switcher-asset-fresh · VER 2 · 21.10.2026 */
 /**
  * ДАННЫЕ ПЕРЕКЛЮЧАТЕЛЯ ПРОФИЛЕЙ ДЛЯ МОДЕЛИ НА DART — ВЫГРУЗКОЙ ИЗ ЖИВОГО TS (задача d6a60b02, вариант Б).
  *
- * Модель листа (`lib/shell/switcher_model.dart`) переносит правила кодом (`isSwitchable`, доступ, кошельки,
- * карточка профиля), а то, чего нет в `assets/profiles.json`, берёт отсюда: ярус профиля (`tier`), значок,
- * источник продающей фразы, значки разделов игр, цвета бейджей (`textOn`). Ключи словаря, которые Dart
- * зовёт переменной (`profileName_<id>`, `profileDesc_<id>`), — в `textKeys` для `embed-l10n.mjs`.
+ * Модель листа (`lib/shell/switcher_model.dart`) берёт отсюда то, чего нет в `assets/profiles.json`:
+ * значок профиля. Ключи словаря, которые Dart зовёт переменной (`profileName_<id>`,
+ * `profileDesc_<id>`), — в `textKeys` для `embed-l10n.mjs`. С 21.10.2026 (d5e5814a) ярусов, замков и
+ * окна кода нет: все профили открыты всем.
  *
  * ⚠️ ЭТО СТОРОЖ: без WRITE сравнивает и краснеет, если данные поменяли, а ассет нет.
  * Перевыпуск — из `frontend/`:
  *   WRITE=1 npx jest -i --runTestsByPath src/__tests__/flutter-switcher-asset-fresh.test.ts
  * и затем `node flutter/tools/embed-l10n.mjs`.
  */
-import { CATEGORY_EMOJI } from '@/src/components/ProfileSwitcherModal';
-import { PROFILES, isSwitchable } from '@/src/constants/profiles';
+import { PROFILES } from '@/src/constants/profiles';
 import { profileBadge } from '@/src/constants/profileBadges';
 import { assetUri } from '@/src/services/hostScreens';
-import { textOn } from '@/src/services/onGradientText';
 
 declare function require(id: string): any;
 declare const __dirname: string;
@@ -30,19 +28,7 @@ const clean = (v: any): any => (typeof v === 'string' ? v.replace(/^(?:\.\.\/)+(
 
 function build(): string {
   const data = {
-    profiles: PROFILES.map((p) => ({
-      id: p.id,
-      tier: p.tier ?? null,
-      switchable: isSwitchable(p),
-      badge: clean(assetUri(profileBadge(p.id))),
-      hookSource: p.sales_hook_source ?? null,
-      hookSourceEn: p.sales_hook_source_en ?? null,
-    })),
-    categoryEmoji: CATEGORY_EMOJI,
-    // Бейджи ярусов и кнопка «Открыть» окна кода: цвет текста — `textOn` фона.
-    trialBadge: { bg: '#22c55e', fg: textOn('#22c55e') },
-    ownerBadge: { bg: '#6b7280', fg: '#fff' },
-    unlockFg: textOn('#10b981'),
+    profiles: PROFILES.map((p) => ({ id: p.id, badge: clean(assetUri(profileBadge(p.id))) })),
     textKeys: PROFILES.flatMap((p) => [`profileName_${p.id}`, `profileDesc_${p.id}`]),
   };
   return `${JSON.stringify(data, null, 1)}\n`;
@@ -57,10 +43,10 @@ describe('flutter/assets/switcher.json — свежая выгрузка дан�
       .toEqual({ fresh: true, regenerate: expect.any(String) });
   });
 
-  it('значки — адресами сборки; владелец в выбор не входит', () => {
+  it('значки — адресами сборки; в выборе все профили', () => {
     const data = JSON.parse(build());
     expect(JSON.stringify(data)).not.toMatch(/\.\.\/|frontend\//);
-    expect(data.profiles.find((p: any) => p.id === 'odv999').switchable).toBe(false);
+    expect(data.profiles.map((p: any) => p.id)).toEqual(PROFILES.map((p) => p.id));
     for (const p of data.profiles) if (p.badge !== null) expect(p.badge).toMatch(/^\/assets\/images\//);
   });
 });

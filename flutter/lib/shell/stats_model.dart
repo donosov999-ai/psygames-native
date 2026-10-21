@@ -88,11 +88,11 @@ class ProfileAccess {
   }
 }
 
-/// Профиль экрана — как `ProfileContext`: сохранённый, если он есть и доступен; иначе `free`.
+/// Профиль экрана — как `ProfileContext`: сохранённый, если он есть; иначе `free`.
 Profile activeProfileOf(Profiles ps, SharedState s) {
   final id = s.get(Profiles.activeKey);
   final p = id == null ? null : ps.byId(id);
-  return p != null && ps.accessible(s, p.id) ? p : ps.byId('free')!;
+  return p ?? ps.byId('free')!;
 }
 
 /// Всё, из чего «Прогресс» строит модель.
