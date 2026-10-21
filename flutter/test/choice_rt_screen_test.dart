@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/choice_rt/model.dart';
 import 'package:psygames_flutter/games/choice_rt/screen.dart';
+import 'package:psygames_flutter/shell/game_preset.dart';
 import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -51,6 +52,26 @@ void main() {
   Future<void> waitTrialEnd(WidgetTester tester) async {
     for (var i = 0; i < 120; i++) {
       if (!neutralShown() && !ChoiceDirection.values.any((d) => shown(d.name))) return;
+      await tester.pump(const Duration(milliseconds: 50));
+    }
+  }
+
+  /// Партия без ошибок: знак — жмём его направление, нейтраль — молчим до конца окна.
+  Future<void> playClean(WidgetTester tester, void Function() tick) async {
+    for (var i = 0; i < 12; i++) {
+      await waitStimulus(tester);
+      final dir = ChoiceDirection.values.where((d) => shown(d.name)).toList();
+      if (dir.isEmpty) {
+        await waitFlash(tester, 'choicert-held');
+      } else {
+        tick();
+        await tester.tap(find.byKey(Key('choicert-answer-${dir.first.name}')));
+        await tester.pump();
+      }
+      await tester.pump(const Duration(milliseconds: 400));
+    }
+    for (var i = 0; i < 80; i++) {
+      if (find.textContaining(L.t('meanReaction')).evaluate().isNotEmpty) break;
       await tester.pump(const Duration(milliseconds: 50));
     }
   }
@@ -119,7 +140,41 @@ void main() {
     expect(find.textContaining('${L.t('meanReaction')}: 460 ${L.t('msShort')}'), findsOneWidget,
         reason: 'отсчёт обязан идти от показа знака, а не от рождения пробы');
     expect(neutrals >= 0, isTrue);
+
+    // 🔴 После победы кнопка ведёт на поднятый уровень и сразу его начинает. «Ещё раз» здесь
+    // тестировщик прочёл как повтор и решил, что игра «никуда не переходит» (отзыв ec36e399).
+    expect(state.get('${SharedState.prefix}choice_rt_level_nzt48'), '2');
+    expect(find.text(L.t('retry')), findsNothing, reason: 'после победы «Ещё раз» читается как повтор');
+    expect(find.text(L.t('nextLevelBtn').replaceAll('{n}', '2')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('level-next')));
+    await tester.pump();
+    await waitStimulus(tester);
+    expect(neutralShown() || ChoiceDirection.values.any((d) => shown(d.name)), isTrue,
+        reason: '«Дальше» обязано сразу начать партию, а не вернуть на экран «Начать»');
+    expect(state.get('${SharedState.prefix}choice_rt_level_nzt48'), '2', reason: 'начать уровень — не ещё одна победа');
+    await tester.pumpWidget(const SizedBox.shrink());
   });
+
+  for (final params in [{'wu': '1'}, {'ladderGame': 'sudoku', 'ladderLevel': '77'}]) {
+    testWidgets('зарядка и транзит своего «Дальше» не предлагают: $params', (tester) async {
+      GamePreset.set(params);
+      addTearDown(GamePreset.clear);
+      var clock = 0;
+      await tester.pumpWidget(MaterialApp(home: ChoiceRtScreen(state: state, clock: () => clock, rnd: Random(9))));
+      await tester.pump();
+      await tester.pump();
+      if (!GamePreset.autostart) {
+        await tester.pumpAndSettle();
+        await tester.tap(find.text(L.t('start')));
+        await tester.pump();
+      }
+      await playClean(tester, () => clock += 460);
+      expect(find.textContaining(L.t('meanReaction')), findsOneWidget, reason: 'партия не дошла до итога');
+      expect(find.byKey(const Key('level-next')), findsNothing);
+      expect(state.get('${SharedState.prefix}choice_rt_level_nzt48'), isNot('2'));
+      await tester.pumpWidget(const SizedBox.shrink());
+    });
+  }
 
   testWidgets('🔴 нажатие на нейтраль — ложная тревога', (tester) async {
     await tester.pumpWidget(MaterialApp(home: ChoiceRtScreen(state: state, rnd: Random(4))));

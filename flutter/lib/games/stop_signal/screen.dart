@@ -88,6 +88,14 @@ class _StopSignalScreenState extends State<StopSignalScreen> {
     if (stopSignalAutostart || GamePreset.autostart) _start();
   }
 
+  /// Лестница поднялась этой партией — кнопка ведёт на новый уровень и сразу его начинает, как
+  /// «Дальше» у Струпа и `nextNow` веба. «Ещё раз» после победы читалось как повтор (отзыв ec36e399).
+  int? get _nextLevel {
+    final g = _game;
+    if (g == null || GamePreset.isPreset || GamePreset.isTransit) return null;
+    return _ladder.level > g.level ? _ladder.level : null;
+  }
+
   void _reset() {
     _timer?.cancel();
     _stopTimer?.cancel();
@@ -233,6 +241,11 @@ class _StopSignalScreenState extends State<StopSignalScreen> {
         height: h,
         onStart: _start,
         onAgain: () => setState(_reset),
+        nextLevel: _nextLevel,
+        onContinue: () {
+          setState(_reset);
+          _start();
+        },
         onPress: _press,
       ),
       toolbar: _phase == StopSignalPhase.playing
@@ -320,6 +333,8 @@ class _Field extends StatelessWidget {
     required this.height,
     required this.onStart,
     required this.onAgain,
+    this.nextLevel,
+    this.onContinue,
     required this.onPress,
   });
 
@@ -334,6 +349,10 @@ class _Field extends StatelessWidget {
   final double height;
   final VoidCallback onStart;
   final VoidCallback onAgain;
+
+  /// Уровень, на который партия подняла лестницу; `null` — не подняла (проигрыш, зарядка, транзит).
+  final int? nextLevel;
+  final VoidCallback? onContinue;
   final VoidCallback onPress;
 
   Widget _ssrtBlock(BuildContext context) {
@@ -411,7 +430,14 @@ class _Field extends StatelessWidget {
             _ssrtBlock(context),
             BossOutcomeLine(boss),
             const SizedBox(height: 16),
-            FilledButton(onPressed: onAgain, child: Text(L.t('retry'))),
+            if (nextLevel != null)
+              FilledButton(
+                key: const Key('level-next'),
+                onPressed: onContinue,
+                child: Text(L.t('nextLevelBtn').replaceAll('{n}', '$nextLevel')),
+              )
+            else
+              FilledButton(onPressed: onAgain, child: Text(L.t('retry'))),
           ],
         );
       case StopSignalPhase.playing:
