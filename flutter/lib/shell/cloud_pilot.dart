@@ -410,7 +410,8 @@ class CloudPilot extends ChangeNotifier {
   }
 
   bool get canDeleteAccount =>
-      enabled && _bound && gateway is CloudAccountDeletionGateway;
+      (enabled || stage == CloudPilotStage.history) &&
+      _bound && gateway is CloudAccountDeletionGateway;
 
   /// Explicit UI confirmation covers the shared account, not just this app.
   /// Failure can follow successful session revocation, so reconnect explicitly.
