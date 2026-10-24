@@ -127,6 +127,24 @@ void main() {
     },
   );
 
+  testWidgets('account deletion and sign-out do not require enabling backup', (
+    t,
+  ) async {
+    await open(t, deletion: true);
+    await signedIn(t);
+    expect(pilot.enabled, false);
+    expect(find.byKey(const Key('cloud-delete-account')), findsOneWidget);
+    expect(find.byKey(const Key('cloud-sign-out')), findsOneWidget);
+    expect(find.byKey(const Key('cloud-delete')), findsNothing);
+    await tap(t, 'cloud-delete-account');
+    expect(gateway.calls.contains('delete-account'), false);
+    await tap(t, 'cloud-delete-account-confirm');
+    expect(gateway.calls.contains('delete-account'), true);
+    expect(gateway.calls.contains('enable'), false);
+    expect(gateway.calls.contains('save'), false);
+    expect(state.get('psygames_sudoku_level_women'), '78');
+  });
+
   testWidgets('login does not switch ON before explicit history choice', (
     t,
   ) async {

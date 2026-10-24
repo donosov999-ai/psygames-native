@@ -1,6 +1,18 @@
 {
  "entries": [
   {
+   "version": "2.56.37",
+   "date": "2026-10-24",
+   "en": [
+    "Account settings: sign out or delete your account without first enabling cloud backups",
+    "Account deletion still requires separate confirmation and does not erase local game progress"
+   ],
+   "ru": [
+    "Настройки аккаунта: выйти или удалить аккаунт можно без предварительного включения облачного бэкапа",
+    "Удаление аккаунта по-прежнему требует отдельного подтверждения и не стирает локальный игровой прогресс"
+   ]
+  },
+  {
    "version": "2.56.36",
    "date": "2026-10-21",
    "en": [

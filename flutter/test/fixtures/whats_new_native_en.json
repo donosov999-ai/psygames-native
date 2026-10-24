@@ -7,6 +7,14 @@
  "check": "Check for updates · v0.0.0",
  "entries": [
   {
+   "version": "v2.56.37",
+   "date": "2026-10-24",
+   "items": [
+    "Account settings: sign out or delete your account without first enabling cloud backups",
+    "Account deletion still requires separate confirmation and does not erase local game progress"
+   ]
+  },
+  {
    "version": "v2.56.36",
    "date": "2026-10-21",
    "items": [
