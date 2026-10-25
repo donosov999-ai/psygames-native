@@ -118,8 +118,8 @@ class PracticeStage extends StatelessWidget {
               // A separate orb would cover the anatomical illustration.
               // In combinations, the perimeter remains the breathing guide.
               if (bodyZones)
-                Positioned.fill(
-                  bottom: breath != null ? 56 : 0,
+                Positioned.fromRect(
+                  rect: frame,
                   child: MuscleBodyVisual(
                     abdomen: abdomen,
                     pelvic: pelvic,

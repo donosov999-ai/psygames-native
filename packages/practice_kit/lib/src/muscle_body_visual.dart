@@ -28,12 +28,12 @@ class MuscleBodyVisual extends StatelessWidget {
             width: width,
             height: height,
             child: Stack(
+              clipBehavior: Clip.none,
               children: [
                 Positioned.fill(
                   child: Opacity(
                     opacity: eyeOverlay ? .24 : .8,
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(28),
+                    child: ClipOval(
                       child: Stack(
                         children: [
                           Positioned(
@@ -141,6 +141,8 @@ class MuscleBodyVisual extends StatelessWidget {
               child: Text(
                 '$name · $phase',
                 key: Key('muscle-phase-$kind'),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
                 textAlign: TextAlign.center,
                 style: Theme.of(
                   context,
