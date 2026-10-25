@@ -152,7 +152,7 @@ void main() {
           ),
         );
         await tester.pump(const Duration(milliseconds: 50));
-        final artwork = tester.getRect(find.byType(PracticeArtwork));
+        final artwork = tester.getRect(find.byType(MuscleBodyVisual));
         artRect ??= artwork;
         expect(artwork, artRect);
         expect(

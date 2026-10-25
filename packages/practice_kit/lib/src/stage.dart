@@ -18,6 +18,7 @@ import 'eye_geometry.dart';
 import 'eye_modes.dart';
 import 'face_massage_guide.dart';
 import 'practices.dart';
+import 'muscle_body_visual.dart';
 
 class PracticeStage extends StatelessWidget {
   final VoidCallback? onEyeHit;
@@ -41,6 +42,18 @@ class PracticeStage extends StatelessWidget {
     final eye = cues.where((c) => c['setId'] == 'eye-gym').firstOrNull;
     final specialEye =
         eye != null && ['catch-overlap', 'two-dots'].contains(eye['programId']);
+    final abdomen = cues.where((c) => c['setId'] == 'abdomen').firstOrNull;
+    final pelvic = cues.where((c) => c['setId'] == 'pelvic-floor').firstOrNull;
+    final bodyZones =
+        (abdomen != null || pelvic != null) &&
+        cues.every(
+          (c) => [
+            'abdomen',
+            'pelvic-floor',
+            'breathing',
+            'eye-gym',
+          ].contains(c['setId']),
+        );
     final aux = cues
         .where((c) => c['setId'] != 'breathing' && c['setId'] != 'eye-gym')
         .toList();
@@ -76,12 +89,22 @@ class PracticeStage extends StatelessWidget {
                 ),
               // Рамка — круг или многоугольник: картинка обрезается кругом,
               // иначе её углы торчали бы за линию.
-              if (picture != null && !massage)
+              if (picture != null && !massage && !bodyZones)
                 Positioned.fromRect(
                   rect: frame,
                   child: round
                       ? ClipOval(child: PracticeArtwork(cue: picture))
                       : PracticeArtwork(cue: picture),
+                ),
+              if (bodyZones)
+                Positioned.fill(
+                  bottom: breath != null ? 56 : 0,
+                  child: MuscleBodyVisual(
+                    abdomen: abdomen,
+                    pelvic: pelvic,
+                    eyeOverlay: eye != null,
+                    locale: locale,
+                  ),
                 ),
               if (phase != null && !(massage && breath == null))
                 Positioned.fill(
@@ -104,7 +127,10 @@ class PracticeStage extends StatelessWidget {
                 ),
               // A separate orb would cover the anatomical illustration.
               // In combinations, the perimeter remains the breathing guide.
-              if (breath != null && eye == null && picture == null)
+              if (breath != null &&
+                  eye == null &&
+                  picture == null &&
+                  !bodyZones)
                 Align(
                   alignment: const Alignment(0, -.1),
                   child: SizedBox.square(

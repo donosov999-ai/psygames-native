@@ -90,6 +90,30 @@ class Practices {
       .toSet()
       .toList();
 
+  /// Explicit gentle coordination only. Never turn vacuum/Nauli or a breath
+  /// retention programme into a pelvic-floor instruction silently.
+  bool canCoordinateMuscles(Json r) {
+    final selections = objects(r['selections']);
+    final abdomen = selections
+        .where((s) => s['setId'] == 'abdomen')
+        .firstOrNull;
+    final pelvic = selections
+        .where((s) => s['setId'] == 'pelvic-floor')
+        .firstOrNull;
+    final breath = selections
+        .where((s) => s['setId'] == 'breathing')
+        .firstOrNull;
+    return r['mode'] == 'parallel' &&
+        abdomen?['programId'] == 'level-1' &&
+        ['holds', 'exhale-sync'].contains(pelvic?['programId']) &&
+        (breath == null ||
+            [
+              'coherent',
+              'extended-exhale',
+              'ujjayi',
+            ].contains(breath['programId']));
+  }
+
   String? _parallelIssue(Json i, Json r) {
     final p = i['program'], s = i['set'];
     final category = p['parallelClass'] ?? s['parallelClass'];
@@ -112,6 +136,9 @@ class Practices {
 
   List<String> validate(Json r) {
     final errors = <String>[];
+    if (r['muscleCoordination'] == 'gentle' && !canCoordinateMuscles(r)) {
+      errors.add('MUSCLE_SYNC_UNAVAILABLE');
+    }
     final duration = r['durationMs'];
     if (!safeInt(duration) || duration < 30000 || duration > 3600000) {
       errors.add('INVALID_DURATION');
@@ -312,10 +339,53 @@ class Practices {
       final breath = items.first['set']['id'] == 'breathing'
           ? _lane(items.first, r['locale'], 0, cursor, end)
           : null;
+      final coordinated = r['muscleCoordination'] == 'gentle';
+      final muscleClock = coordinated
+          ? (breath ??
+                _lane(
+                  items.firstWhere((i) => i['set']['id'] == 'pelvic-floor'),
+                  r['locale'],
+                  0,
+                  cursor,
+                  end,
+                ))
+          : null;
       for (int lane = 0; lane < items.length; lane++) {
         final item = items[lane], steps = objects(item['program']['steps']);
         List<Json> raw;
-        if (lane == 0 && breath != null) {
+        if (coordinated &&
+            ['abdomen', 'pelvic-floor'].contains(item['set']['id'])) {
+          raw = muscleClock!.map((clock) {
+            final id = '${clock['stepId']}';
+            final squeeze = breath == null
+                ? id.endsWith('squeeze')
+                : id.contains('exhale') || id.endsWith('-out');
+            final abdomen = item['set']['id'] == 'abdomen';
+            final target = abdomen
+                ? (squeeze ? 'exhale-engage' : 'release')
+                : (squeeze ? 'long-squeeze' : 'long-release');
+            final step = steps.firstWhere((s) => s['id'] == target);
+            final cue = _step(
+              item,
+              step,
+              r['locale'],
+              lane,
+              clock['startMs'],
+              clock['endMs'],
+            );
+            cue['coordination'] = 'gentle';
+            if (!abdomen) {
+              cue['cue'] = r['locale'] == 'ru'
+                  ? (squeeze
+                        ? 'Мягко сократите и приподнимите тазовое дно вместе с низом живота. Продолжайте дышать, не тужьтесь.'
+                        : 'Полностью расслабьте тазовое дно и живот. Дышите свободно.')
+                  : (squeeze
+                        ? 'Gently squeeze and lift the pelvic floor with the lower abdomen. Keep breathing; do not bear down.'
+                        : 'Fully relax the pelvic floor and abdomen. Breathe freely.');
+            }
+            return cue;
+          }).toList();
+        } else if (lane == 0 && breath != null) {
           raw = breath;
         } else if (item['set']['id'] == 'eye-gym' ||
             item['program']['singlePass'] == true ||
@@ -395,6 +465,7 @@ class Practices {
       'guideMode': r['guideMode'],
       'context': r['context'],
       'visualLeaderMode': mode,
+      if (r['muscleCoordination'] == 'gentle') 'muscleCoordination': 'gentle',
     });
     int hash = 0x811c9dc5;
     for (final code in fingerprint.codeUnits) {
@@ -412,6 +483,7 @@ class Practices {
       'guideMode': r['guideMode'],
       'context': r['context'],
       'visualLeaderMode': mode,
+      if (r['muscleCoordination'] == 'gentle') 'muscleCoordination': 'gentle',
       'durationMs': duration,
       'selections': selections,
       'blocks': blocks,
@@ -460,6 +532,7 @@ class Practices {
               'motion',
             ])
               key: s[key],
+            if (s['coordination'] != null) 'coordination': s['coordination'],
             'leaderShape':
                 program(s['setId'], s['programId'])['leaderShape'] ?? 'none',
             'tone': tone,
