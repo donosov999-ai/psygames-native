@@ -146,7 +146,12 @@ void main() {
               ),
             ),
           );
+          await t.runAsync(() => precacheImage(
+            const AssetImage('packages/practice_kit/assets/cosmic-body/body-master-v1.webp'),
+            t.element(find.byType(MuscleBodyVisual)),
+          ));
           await t.pumpAndSettle();
+          expect(t.widget<RawImage>(find.byType(RawImage)).image, isNotNull);
           expect(find.byKey(const Key('muscle-zone-abdomen')), findsOneWidget);
           expect(find.byKey(const Key('muscle-zone-kegel')), findsOneWidget);
           expect(find.byType(EyeModes), findsOneWidget);
