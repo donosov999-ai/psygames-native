@@ -96,16 +96,6 @@ class PracticeStage extends StatelessWidget {
                       ? ClipOval(child: PracticeArtwork(cue: picture))
                       : PracticeArtwork(cue: picture),
                 ),
-              if (bodyZones)
-                Positioned.fill(
-                  bottom: breath != null ? 56 : 0,
-                  child: MuscleBodyVisual(
-                    abdomen: abdomen,
-                    pelvic: pelvic,
-                    eyeOverlay: eye != null,
-                    locale: locale,
-                  ),
-                ),
               if (phase != null && !(massage && breath == null))
                 Positioned.fill(
                   child: CustomPaint(
@@ -127,6 +117,16 @@ class PracticeStage extends StatelessWidget {
                 ),
               // A separate orb would cover the anatomical illustration.
               // In combinations, the perimeter remains the breathing guide.
+              if (bodyZones)
+                Positioned.fill(
+                  bottom: breath != null ? 56 : 0,
+                  child: MuscleBodyVisual(
+                    abdomen: abdomen,
+                    pelvic: pelvic,
+                    eyeOverlay: eye != null,
+                    locale: locale,
+                  ),
+                ),
               if (breath != null &&
                   eye == null &&
                   picture == null &&

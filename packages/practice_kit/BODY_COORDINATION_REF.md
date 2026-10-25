@@ -32,6 +32,9 @@ breathing, identical lane phase/progress, independent defaults, incompatible
 vacuum/box/quick modes, and session pause. Widget matrix 320×480, light/dark,
 normal/large text: both anatomical indicators and eye targets remain present.
 Stage bounds/original SVG/body-crop tests remain. flutter analyze: No issues.
+Negative control: temporarily disabling the coordinated scheduler makes the
+alignment test fail (0 PASS / 1 FAIL); the mutation was removed, not committed.
+mutation-no-sync.log is saved in the same evidence directory.
 
 /Users/denisonosov/Documents/TeamOps/smart-alarm-ux/body-rituals-20261025/
 contains kit-tests-final.log and four body-{theme}-{scale}.png Flutter-rendered

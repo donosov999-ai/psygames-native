@@ -100,7 +100,12 @@ class MuscleBodyVisual extends StatelessWidget {
     final name = kind == 'abdomen'
         ? (ru ? 'Живот' : 'Abdomen')
         : (ru ? 'Тазовое дно' : 'Pelvic floor');
-    final phase = tension
+    final phase =
+        tension &&
+            progress >= 1 / 3 &&
+            (kind == 'kegel' || cue['coordination'] == 'gentle')
+        ? (ru ? 'Мягко удерживать' : 'Hold gently')
+        : tension
         ? kind == 'abdomen'
               ? '${cue['title']}'
               : (ru ? 'Сократить и приподнять' : 'Squeeze and lift')
