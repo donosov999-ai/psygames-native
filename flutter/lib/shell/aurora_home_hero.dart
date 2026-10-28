@@ -34,18 +34,22 @@ class AuroraHomeHero extends StatelessWidget {
     return Padding(
       key: const ValueKey('aurora-home-hero'),
       padding: const EdgeInsets.only(top: 4, bottom: 16),
-      child: AspectRatio(
-        aspectRatio: 1280 / 714,
+      // Высота — не меньше пропорций картинки, но растёт под текст: при крупном шрифте (×2)
+      // название, пояснение и кнопка не обрезаются, картинка остаётся фоном (cover).
+      child: LayoutBuilder(builder: (context, box) => ConstrainedBox(
+        constraints: BoxConstraints(minHeight: box.maxWidth * 714 / 1280),
         child: Material(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24), side: BorderSide(color: border)),
           clipBehavior: Clip.antiAlias,
           child: InkWell(
             onTap: onTap,
-            child: Stack(fit: StackFit.expand, children: [
-              Image.asset('assets/aurora_hubs/home_hero_${dark ? 'dark' : 'light'}.webp', fit: BoxFit.cover),
+            child: Stack(children: [
+              Positioned.fill(
+                child: Image.asset('assets/aurora_hubs/home_hero_${dark ? 'dark' : 'light'}.webp', fit: BoxFit.cover),
+              ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
-                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
                   FractionallySizedBox(
                     widthFactor: 0.55,
                     child: Text(title,
@@ -61,9 +65,9 @@ class AuroraHomeHero extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(fontSize: 14, height: 1.3, color: secondary)),
                   ),
-                  const Spacer(),
-                  SizedBox(
-                    height: 48,
+                  SizedBox(height: box.maxWidth * 0.12),
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(minHeight: 48),
                     child: FilledButton.icon(
                       key: const ValueKey('aurora-home-hero-start'),
                       onPressed: onTap,
@@ -82,7 +86,7 @@ class AuroraHomeHero extends StatelessWidget {
             ]),
           ),
         ),
-      ),
+      )),
     );
   }
 }

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
 import 'aurora_home_hero.dart';
+import 'aurora_home_header.dart';
 import 'catalog_kit.dart';
 import 'design_template.dart';
 import 'collection_model.dart' show hexOf;
@@ -246,6 +247,16 @@ class _HomeScreenState extends State<HomeScreen> {
         }
         final bg = _map(m['background']);
         final toasts = _map(m['toasts']);
+        final aurora = Theme.of(context).extension<UiTemplateTheme>()?.template == UiTemplate.aurora;
+        final top = aurora
+            ? AuroraHomeTop(
+                header: _map(m['header']),
+                origin: widget.origin,
+                onOpen: widget.onOpen,
+                onSwitcher: widget.onSwitcher,
+                onUpdate: () => _act('update'),
+              )
+            : null;
         return Material(
           key: const ValueKey('home-screen'),
           color: web.background,
@@ -290,16 +301,19 @@ class _HomeScreenState extends State<HomeScreen> {
             SafeArea(
               bottom: false,
               child: Column(children: [
-                _Header(m: _map(m['header']), origin: widget.origin, onOpen: widget.onOpen, onSwitcher: widget.onSwitcher, act: _act),
+                if (aurora) top! else _Header(m: _map(m['header']), origin: widget.origin, onOpen: widget.onOpen, onSwitcher: widget.onSwitcher, act: _act),
                 Expanded(
                   child: ListView(
                     key: const ValueKey('home-list'),
                     padding: EdgeInsets.fromLTRB(16, 0, 16, FabRules.clearance),
                     children: [
-                      // «Аврора»: сверху карточка зарядки с Синапсом (лист 01 Codex). Данные — та же
-                      // карточка `warmup` блока практик, отдельной модели нет; Classic — без изменений.
-                      if (Theme.of(context).extension<UiTemplateTheme>()?.template == UiTemplate.aurora)
+                      // «Аврора» (лист 01 Codex): строка «Режим», карточка зарядки с Синапсом и ряд
+                      // счётчиков. Данные — те же `header` и карточка `warmup`; Classic — без изменений.
+                      if (aurora) ...[
+                        ...top!.modeAndUpdate(context),
                         ?_auroraHero(m),
+                        top.stats(context),
+                      ],
                       for (final b in _list(m['blocks'])) _block(context, b),
                     ],
                   ),
