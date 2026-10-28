@@ -4,11 +4,14 @@ import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
+import 'aurora_home_hero.dart';
 import 'catalog_kit.dart';
+import 'design_template.dart';
 import 'collection_model.dart' show hexOf;
 import 'feedback_fab.dart' show FabRules;
 import 'home_inputs.dart';
 import 'home_model.dart';
+import 'l10n.dart';
 import 'ion_icon.dart';
 import 'profiles.dart';
 import 'screen_ui.dart';
@@ -293,6 +296,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     key: const ValueKey('home-list'),
                     padding: EdgeInsets.fromLTRB(16, 0, 16, FabRules.clearance),
                     children: [
+                      // «Аврора»: сверху карточка зарядки с Синапсом (лист 01 Codex). Данные — та же
+                      // карточка `warmup` блока практик, отдельной модели нет; Classic — без изменений.
+                      if (Theme.of(context).extension<UiTemplateTheme>()?.template == UiTemplate.aurora)
+                        ?_auroraHero(m),
                       for (final b in _list(m['blocks'])) _block(context, b),
                     ],
                   ),
@@ -345,6 +352,23 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
       );
+
+  Widget? _auroraHero(_M m) {
+    for (final b in _list(m['blocks'])) {
+      if (b['kind'] != 'practices') continue;
+      for (final c in _list(b['cards'])) {
+        if (c['id'] != 'warmup') continue;
+        final href = _s(c['href']);
+        return AuroraHomeHero(
+          title: _s(c['title']),
+          sub: _s(c['sub']),
+          cta: L.t('ctaStart'),
+          onTap: () => widget.onOpen(href),
+        );
+      }
+    }
+    return null;
+  }
 
   Widget _block(BuildContext context, _M b) {
     switch (b['kind']) {

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:psygames_flutter/shell/app_theme.dart';
+import 'package:psygames_flutter/shell/aurora_home_hero.dart';
 import 'package:psygames_flutter/shell/aurora_hub_tile.dart';
 import 'package:psygames_flutter/shell/catalog.dart';
 import 'package:psygames_flutter/shell/catalog_kit.dart';
@@ -77,4 +78,20 @@ void main() {
     expect(find.byType(AuroraHubTile), findsNothing);
     expect(find.byType(GameTile), findsOneWidget);
   });
+
+  for (final dark in [true, false]) {
+    testWidgets('главная «Авроры»: карточка зарядки — картинка темы, текст модели, кнопка ведёт по href (${dark ? 'тёмная' : 'светлая'})', (tester) async {
+      var taps = 0;
+      await tester.pumpWidget(MaterialApp(
+        theme: applyUiTemplate(classicShellTheme(dark ? Brightness.dark : Brightness.light), UiTemplate.aurora),
+        home: Scaffold(body: SizedBox(width: 390, child: AuroraHomeHero(title: 'Зарядка', sub: 'Утро · 5 мин', cta: 'СТАРТ', onTap: () => taps++))),
+      ));
+      final image = tester.widget<Image>(find.byType(Image));
+      expect((image.image as AssetImage).assetName, 'assets/aurora_hubs/home_hero_${dark ? 'dark' : 'light'}.webp');
+      expect(File('assets/aurora_hubs/home_hero_${dark ? 'dark' : 'light'}.webp').existsSync(), isTrue);
+      expect(find.text('Зарядка'), findsOneWidget);
+      await tester.tap(find.byKey(const ValueKey('aurora-home-hero-start')));
+      expect(taps, 1);
+    });
+  }
 }
