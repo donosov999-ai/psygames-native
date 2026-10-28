@@ -15,6 +15,7 @@ library;
 import 'package:flutter/material.dart';
 
 import '../../shell/game_shell.dart' show GameExit;
+import '../../shell/game_colors.dart';
 import '../../shell/l10n.dart';
 import '../../shell/shared_state.dart';
 import 'reject_why.dart' show variantRuleKey;
@@ -112,15 +113,16 @@ Future<void> showSudokuRuleHelp(
     context: context,
     builder: (ctx) {
       final scheme = Theme.of(ctx).colorScheme;
+      final roles = GameColors.of(ctx);
       Color bg(SudokuExampleMark? m) => switch (m?.kind) {
-            SudokuExampleKind.source => const Color(0xFF7F7FD5),
-            SudokuExampleKind.banned => const Color(0xFFFECACA),
+            SudokuExampleKind.source => roles.highlight,
+            SudokuExampleKind.banned => roles.wrongFill,
             SudokuExampleKind.zone => const Color(0xFFFDE68A),
             null => scheme.surface,
           };
       Color ink(SudokuExampleMark? m) => switch (m?.kind) {
-            SudokuExampleKind.source => Colors.white,
-            SudokuExampleKind.banned => const Color(0xFFB91C1C),
+            SudokuExampleKind.source => roles.onStrong,
+            SudokuExampleKind.banned => roles.wrongInk,
             _ => scheme.onSurface,
           };
       return AlertDialog(

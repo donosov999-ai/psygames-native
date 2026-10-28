@@ -141,7 +141,7 @@ class ModeBoard extends StatelessWidget {
         color: sudokuCellBackground(
           look,
           colors: roles,
-          surface: scheme.surface,
+          surface: roles.cell,
           dark: scheme.brightness == Brightness.dark,
           mark: paint >= 0 && paint < sudokuColorCount ? cellColors[paint] : null,
         ),
@@ -151,10 +151,10 @@ class ModeBoard extends StatelessWidget {
           child: DecoratedBox(
             decoration: BoxDecoration(
               border: Border(
-                top: _side(scheme, r % board.br == 0),
-                left: _side(scheme, c % board.bc == 0),
-                bottom: _side(scheme, r == board.n - 1),
-                right: _side(scheme, c == board.n - 1),
+                top: _side(roles, r % board.br == 0),
+                left: _side(roles, c % board.bc == 0),
+                bottom: _side(roles, r == board.n - 1),
+                right: _side(roles, c == board.n - 1),
               ),
             ),
             child: Center(
@@ -164,7 +164,7 @@ class ModeBoard extends StatelessWidget {
                       mask: mask,
                       value: v,
                       cell: cell,
-                      color: look.selected ? Colors.white : scheme.onSurfaceVariant,
+                      color: look.selected ? roles.onStrong : roles.notesInk,
                     )
                   : Text(
                       v == 0 ? '' : '$v',
@@ -181,8 +181,8 @@ class ModeBoard extends StatelessWidget {
     );
   }
 
-  BorderSide _side(ColorScheme scheme, bool thick) => BorderSide(
-        color: thick ? scheme.onSurface : scheme.outlineVariant,
+  BorderSide _side(GameColors roles, bool thick) => BorderSide(
+        color: thick ? roles.boardLineStrong : roles.boardLine,
         width: thick ? 1.6 : 0.5,
       );
 

@@ -3,7 +3,9 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
+import 'aurora_hub_tile.dart';
 import 'catalog.dart';
+import 'design_template.dart';
 import 'game_tile.dart';
 import 'hub_screen.dart';
 import 'ionicons.g.dart';
@@ -101,6 +103,19 @@ class CatalogKit {
 
   /// Плитка веба (`GameCard`) для записи каталога.
   Widget tile(SharedState state, CatalogEntry g, {required Map<String, int> hubCount, required VoidCallback onTap}) =>
+      // Под «Авророй» развилка с нарисованной картинкой — новая плитка; всё остальное прежнее.
+      Builder(builder: (context) {
+        final theme = Theme.of(context);
+        final asset = g.hub && theme.extension<UiTemplateTheme>()?.template == UiTemplate.aurora
+            ? AuroraHubTile.assetFor(g.route, dark: theme.brightness == Brightness.dark)
+            : null;
+        if (asset != null) {
+          return AuroraHubTile(asset: asset, title: g.name, hubCount: hubCount[g.route], onTap: onTap);
+        }
+        return _classicTile(state, g, hubCount: hubCount, onTap: onTap);
+      });
+
+  Widget _classicTile(SharedState state, CatalogEntry g, {required Map<String, int> hubCount, required VoidCallback onTap}) =>
       GameTile(
         title: g.name,
         description: g.desc,

@@ -88,9 +88,6 @@ const _ladderBossText = <String, (String, String)>{
   '/games/sudoku-fractal-deep': ('deepTitle', 'deepDesc'),
 };
 
-/// Цвет боя — первый цвет градиента судоку в вебе (`GRADIENT[0]`).
-const sudokuBossColor = Color(0xFF7F7FD5);
-
 class SudokuScreen extends StatefulWidget {
   const SudokuScreen({super.key, required this.state, this.mode, this.junior = false});
 
@@ -1637,7 +1634,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
       await _offerLadderBoss(played, big);
       return;
     }
-    final beaten = await openBossRound(context, type: nextSudokuBoss(_bossRnd), color: sudokuBossColor);
+    final beaten = await openBossRound(context, type: nextSudokuBoss(_bossRnd), color: GameColors.of(context).highlight);   // цвет боя — роль подсветки (в Classic тот же #7F7FD5)
     if (mounted) setState(() => _boss = beaten);
   }
 
@@ -1975,7 +1972,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
         AuxAction(
           icon: Icons.lightbulb_outline,
           label: L.t('btn_hint'),
-          tint: const Color(0xFFB45309),
+          tint: GameColors.of(context).hint,
           // Остаток — бесплатные плюс купленные: купленная подсказка — та же кнопка.
           count: _hintMax > 0 || _boughtLeft > 0 ? _freeHintsLeft + _boughtLeft : null,
           onPressed: (_freeHintsLeft + _boughtLeft > 0 && _selected != null && !_halted && !_spending)
@@ -2442,8 +2439,8 @@ class _Cell extends StatelessWidget {
   final void Function(int r, int c) onTap;
 
   /// Толстая черта там, где кончается блок — а у кривых блоков там, где кончается регион.
-  BorderSide _side(bool thick) => BorderSide(
-        color: thick ? scheme.onSurface : scheme.outlineVariant,
+  BorderSide _side(GameColors gc, bool thick) => BorderSide(
+        color: thick ? gc.boardLineStrong : gc.boardLine,
         width: thick ? 2 : 0.5,
       );
 
@@ -2480,11 +2477,12 @@ class _Cell extends StatelessWidget {
     final bool thickRight = regions != null
         ? _regionEdge(row, col, row, col + 1)
         : col == board.n - 1 || (!chaos && (col + 1) % board.bc == 0);
+    final gc = GameColors.of(context);
     final border = Border(
-      top: _side(thickTop),
-      left: _side(thickLeft),
-      bottom: _side(thickBottom),
-      right: _side(thickRight),
+      top: _side(gc, thickTop),
+      left: _side(gc, thickLeft),
+      bottom: _side(gc, thickBottom),
+      right: _side(gc, thickRight),
     );
 
     if (fogged) {
@@ -2518,8 +2516,8 @@ class _Cell extends StatelessWidget {
         // показывать, что она выбрана, человек в режиме цифр теряет, куда сейчас пишет.
         color: sudokuCellBackground(
           look,
-          colors: GameColors.of(context),
-          surface: scheme.surface,
+          colors: gc,
+          surface: gc.cell,
           dark: scheme.brightness == Brightness.dark,
           cageId: decor?.cageId ?? -1,
           mark: paint >= 0 && paint < sudokuColorCount ? cellColors[paint] : null,
@@ -2544,7 +2542,7 @@ class _Cell extends StatelessWidget {
                       mask: mask,
                       value: value,
                       cell: size,
-                      color: look.selected ? Colors.white : scheme.onSurfaceVariant,
+                      color: look.selected ? gc.onStrong : gc.notesInk,
                       glyph: glyph,
                       withZero: board.variant == 'schrodinger',
                     )
@@ -2557,7 +2555,7 @@ class _Cell extends StatelessWidget {
                       style: TextStyle(
                         fontSize: board.variant == 'schrodinger' && value >= 100 ? size * 0.34 : size * 0.52,
                         fontWeight: given ? FontWeight.w800 : FontWeight.w500,
-                        color: sudokuDigitInk(look, given: given, colors: GameColors.of(context)),
+                        color: sudokuDigitInk(look, given: given, colors: gc),
                       ),
                     ),
               ),

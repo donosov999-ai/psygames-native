@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'catalog.dart';
+import 'design_template.dart';
 import 'catalog_kit.dart';
 import 'game_tile.dart';
 import 'hub_screen.dart';
@@ -154,7 +155,73 @@ class _CatalogScreenState extends State<CatalogScreen> {
     return Scaffold(appBar: AppBar(title: Text(L.t('tabGames'))), body: body);
   }
 
+  /// «Аврора» (лист 01/02 Codex): фильтр — строка чипов вместо выпадающего списка. Те же
+  /// варианты: все игры, все развилки, разделы; навыки — последним чипом, открывает список.
+  Widget _auroraChips(Catalog c) {
+    Widget chip(String key, String label, CatalogFilter? value) => Padding(
+          padding: const EdgeInsets.only(right: 8),
+          child: ChoiceChip(
+            key: ValueKey(key),
+            label: Text(label),
+            selected: _filter == value,
+            showCheckmark: false,
+            onSelected: (_) => setState(() => _filter = value),
+          ),
+        );
+    final skillOn = _filter?.skill == true;
+    return Semantics(
+      label: L.t('catalogFilter'),
+      child: SizedBox(
+        key: const ValueKey('catalog-filter'),
+        height: 48,
+        // Навыки — справа и всегда на виду: в конце длинной строки чипов их бы не нашли.
+        child: Row(children: [
+          Expanded(
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(children: [
+                chip('catalog-chip-all', L.t('allGames'), null),
+                chip('catalog-chip-hubs', L.t('allForks'), const CatalogFilter.hubs()),
+                for (final cat in c.categories) chip('catalog-chip-${cat.id}', cat.title, CatalogFilter.section(cat.id)),
+              ]),
+            ),
+          ),
+          const SizedBox(width: 4),
+          ChoiceChip(
+            key: const ValueKey('catalog-chip-skills'),
+            label: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 120),
+              child: Text(skillOn ? skillTitle(_filter!.value) : L.t('catalogBySkill'),
+                  maxLines: 1, overflow: TextOverflow.ellipsis),
+            ),
+            selected: skillOn,
+            showCheckmark: false,
+            avatar: const Icon(Icons.tune, size: 18),
+            onSelected: (_) async {
+              final picked = await showModalBottomSheet<CatalogFilter>(
+                context: context,
+                showDragHandle: true,
+                builder: (context) => SafeArea(
+                  child: ListView(shrinkWrap: true, children: [
+                    for (final sk in c.skills)
+                      ListTile(
+                        key: ValueKey('catalog-skill-$sk'),
+                        title: Text(skillTitle(sk)),
+                        onTap: () => Navigator.of(context).pop(CatalogFilter.skill(sk)),
+                      ),
+                  ]),
+                ),
+              );
+              if (picked != null && mounted) setState(() => _filter = picked);
+            },
+          ),
+        ]),
+      ),
+    );
+  }
+
   Widget _filterField(Catalog c) {
+    if (Theme.of(context).extension<UiTemplateTheme>()?.template == UiTemplate.aurora) return _auroraChips(c);
     Widget header(String text) => Text(text.toUpperCase(),
         style: TextStyle(
             fontSize: 12, fontWeight: FontWeight.w800, letterSpacing: 0.6, color: Theme.of(context).colorScheme.primary));

@@ -1279,7 +1279,7 @@
      },
      {
       "id": "theme_seniors",
-      "name": "50+ профилактика",
+      "name": "50+ Активный ум",
       "desc": "Level map backdrop in another profile’s style",
       "price": "2400 ⭐",
       "owned": false,
@@ -1405,7 +1405,7 @@
      },
      {
       "id": "bg_seniors",
-      "name": "50+ профилактика",
+      "name": "50+ Активный ум",
       "desc": "Home screen background in another profile’s style",
       "price": "1050 ⭐",
       "owned": false,
@@ -1582,7 +1582,7 @@
      },
      {
       "id": "badge_seniors",
-      "name": "50+ профилактика",
+      "name": "50+ Активный ум",
       "desc": "Another profile’s badge on your home chip",
       "price": "1050 ⭐",
       "owned": false,

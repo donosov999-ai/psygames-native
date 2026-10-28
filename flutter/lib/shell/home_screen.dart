@@ -4,11 +4,15 @@ import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
+import 'aurora_home_hero.dart';
+import 'aurora_home_header.dart';
 import 'catalog_kit.dart';
+import 'design_template.dart';
 import 'collection_model.dart' show hexOf;
 import 'feedback_fab.dart' show FabRules;
 import 'home_inputs.dart';
 import 'home_model.dart';
+import 'l10n.dart';
 import 'ion_icon.dart';
 import 'profiles.dart';
 import 'screen_ui.dart';
@@ -243,6 +247,16 @@ class _HomeScreenState extends State<HomeScreen> {
         }
         final bg = _map(m['background']);
         final toasts = _map(m['toasts']);
+        final aurora = Theme.of(context).extension<UiTemplateTheme>()?.template == UiTemplate.aurora;
+        final top = aurora
+            ? AuroraHomeTop(
+                header: _map(m['header']),
+                origin: widget.origin,
+                onOpen: widget.onOpen,
+                onSwitcher: widget.onSwitcher,
+                onUpdate: () => _act('update'),
+              )
+            : null;
         return Material(
           key: const ValueKey('home-screen'),
           color: web.background,
@@ -287,12 +301,19 @@ class _HomeScreenState extends State<HomeScreen> {
             SafeArea(
               bottom: false,
               child: Column(children: [
-                _Header(m: _map(m['header']), origin: widget.origin, onOpen: widget.onOpen, onSwitcher: widget.onSwitcher, act: _act),
+                if (aurora) top! else _Header(m: _map(m['header']), origin: widget.origin, onOpen: widget.onOpen, onSwitcher: widget.onSwitcher, act: _act),
                 Expanded(
                   child: ListView(
                     key: const ValueKey('home-list'),
                     padding: EdgeInsets.fromLTRB(16, 0, 16, FabRules.clearance),
                     children: [
+                      // «Аврора» (лист 01 Codex): строка «Режим», карточка зарядки с Синапсом и ряд
+                      // счётчиков. Данные — те же `header` и карточка `warmup`; Classic — без изменений.
+                      if (aurora) ...[
+                        ...top!.modeAndUpdate(context),
+                        ?_auroraHero(m),
+                        top.stats(context),
+                      ],
                       for (final b in _list(m['blocks'])) _block(context, b),
                     ],
                   ),
@@ -346,6 +367,23 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       );
 
+  Widget? _auroraHero(_M m) {
+    for (final b in _list(m['blocks'])) {
+      if (b['kind'] != 'practices') continue;
+      for (final c in _list(b['cards'])) {
+        if (c['id'] != 'warmup') continue;
+        final href = _s(c['href']);
+        return AuroraHomeHero(
+          title: _s(c['title']),
+          sub: _s(c['sub']),
+          cta: L.t('ctaStart'),
+          onTap: () => widget.onOpen(href),
+        );
+      }
+    }
+    return null;
+  }
+
   Widget _block(BuildContext context, _M b) {
     switch (b['kind']) {
       case 'search':
@@ -355,7 +393,7 @@ class _HomeScreenState extends State<HomeScreen> {
       case 'chest':
         return _Chest(b: b, onOpen: widget.onOpen);
       case 'resume':
-        return _Resume(b: b, onOpen: widget.onOpen);
+        return _Resume(b: b, onOpen: widget.onOpen, kit: _kit);
       case 'goal':
         return _GoalCard(key: const ValueKey('home-goal'), b: b, act: _act);
       case 'today':
@@ -890,11 +928,68 @@ class _Chest extends StatelessWidget {
 }
 
 class _Resume extends StatelessWidget {
-  const _Resume({required this.b, required this.onOpen});
+  const _Resume({required this.b, required this.onOpen, this.kit});
   final _M b;
   final ValueChanged<String> onOpen;
+  final CatalogKit? kit;
+
+  /// «Аврора» (лист 01, «Продолжить»): значок самой игры вместо квадрата с «play», рамка и
+  /// поверхность шаблона, а не цвет игры. Тот же адрес и та же подпись.
+  Widget _aurora(BuildContext context) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final text = auroraToken('text', dark: dark)!;
+    final secondary = auroraToken('textSecondary', dark: dark)!;
+    final surface = auroraToken('surface', dark: dark)!;
+    final border = auroraToken('border', dark: dark)!;
+    final entry = kit?.byRoute(_s(b['href']));
+    final icon = entry == null ? null : kit!.iconFile(entry);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Semantics(
+        button: true,
+        label: _s(b['label']),
+        child: Material(
+          color: surface,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18), side: BorderSide(color: border)),
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            key: const ValueKey('home-resume'),
+            onTap: () => onOpen(_s(b['href'])),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 72),
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Row(children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: icon == null
+                        ? SizedBox(width: 48, height: 48, child: IonIcon('play', size: 22, color: text))
+                        : Image.asset('assets/game_icons/$icon', width: 48, height: 48, fit: BoxFit.cover,
+                            errorBuilder: (_, _, _) => SizedBox(width: 48, height: 48, child: IonIcon('play', size: 22, color: text))),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+                      Text(_s(b['title']), maxLines: 2, overflow: TextOverflow.ellipsis,
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: text)),
+                      const SizedBox(height: 2),
+                      Text(_s(b['sub']), maxLines: 1, overflow: TextOverflow.ellipsis,
+                          style: TextStyle(fontSize: 13, color: secondary)),
+                    ]),
+                  ),
+                  Icon(Icons.chevron_right, color: text),
+                ]),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (Theme.of(context).extension<UiTemplateTheme>()?.template == UiTemplate.aurora) return _aurora(context);
     final web = WebTheme.of(context);
     final g = [for (final c in (b['gradient'] as List? ?? const [])) cssColor(c)];
     final first = g.isEmpty ? _accentOf(context) : g.first;

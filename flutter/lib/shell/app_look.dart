@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'shared_state.dart';
+import 'design_template.dart';
 
 /// 🔴 ВИД ПРИЛОЖЕНИЯ — ТЕМ ЖЕ ПРАВИЛОМ, ЧТО У ВЕБА (задача eae0879c).
 ///
@@ -29,12 +30,14 @@ class AppLook {
   /// Акцент текущего профиля (или надетый). Экраны оболочки красят им кнопки и тумблеры.
   static final accent = ValueNotifier<Color>(const Color(0xFF0A84FF));
 
+  static UiTemplate template = UiTemplate.classic;
+
   static const overrideKey = '${SharedState.prefix}theme_override';
   static String equippedKey(String profile) => '${SharedState.prefix}cosmetics_equipped_$profile';
 
   /// Ключи, от которых зависит вид: их смена в вебе или в настройках пересчитывает тему.
   static bool affects(String key) =>
-      key == overrideKey || key == '${SharedState.prefix}active_profile' || key.startsWith('${SharedState.prefix}cosmetics_equipped_');
+      key == uiTemplateKey || key == overrideKey || key == '${SharedState.prefix}active_profile' || key.startsWith('${SharedState.prefix}cosmetics_equipped_');
 
   static Future<void> load(SharedState state, {AssetBundle? bundle}) async {
     try {
@@ -75,12 +78,14 @@ class AppLook {
   }
 
   static void refresh(SharedState s) {
+    template = parseUiTemplate(s.get(uiTemplateKey));
     mode.value = isDark(s) ? ThemeMode.dark : ThemeMode.light;
     accent.value = accentOf(s);
   }
 
   /// Цвет токена веба (`background`, `surface`, `card`, `text`, `textSecondary`, `border`…).
   static Color token(String name, {required bool dark}) =>
+      (template == UiTemplate.aurora ? auroraToken(name, dark: dark) : null) ??
       hexColor((_data[dark ? 'dark' : 'light'] as Map?)?[name] as String?) ?? (dark ? Colors.white : Colors.black);
 
   static Color? hexColor(String? v) {

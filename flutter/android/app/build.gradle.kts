@@ -7,7 +7,8 @@ plugins {
 android {
     namespace = "pro.psygames.psygames_flutter"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+    // Same pinned toolchain as the native Tatham build in Android workflows.
+    ndkVersion = "28.2.13676358"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17

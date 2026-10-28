@@ -7,6 +7,26 @@
  "check": "التحقق من التحديثات · v0.0.0",
  "entries": [
   {
+   "version": "v2.56.39",
+   "date": "2026-10-28",
+   "items": [
+    "“Aurora” look: Home opens with PsyGames, Synapse and settings at the top, then your mode, the workout card and three counters — streak, points and level, achievements. “Continue” shows the game’s own icon",
+    "“Aurora” look: in the Games tab the filter is a row of chips; skills are behind the button on the right",
+    "Sudoku, Samurai, Fractal, Abyss and Cats boards use the shared game colours in “Aurora”; the classic look is unchanged",
+    "Tower of Hanoi: if you are stuck, the game offers a next-move hint or the full walkthrough"
+   ]
+  },
+  {
+   "version": "v2.56.38",
+   "date": "2026-10-28",
+   "items": [
+    "New look “Aurora” to try: Settings → Interface template. Game sections in the Games tab and on Home get new illustrated tiles, and Home opens with a Workout card featuring Synapse. The classic look stays the default",
+    "Profiles: “50+ Prevention” is now “50+ Active Mind”; profile descriptions no longer promise health effects, and Standard lists its real 12 trainers",
+    "Cloud backup: no more “test pilot” labels; after a restore, simply close and reopen the app",
+    "Android: works on devices with 16 KB memory pages"
+   ]
+  },
+  {
    "version": "v2.56.37",
    "date": "2026-10-24",
    "items": [
