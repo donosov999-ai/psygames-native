@@ -30,12 +30,14 @@ void main() {
           .onPressed,
       isNull,
     );
+    expect(find.byKey(const Key('diary-preview-hint')), findsOneWidget);
     await t.tap(find.byKey(const Key('diary-camera-consent')));
     await t.pump();
     expect(value.cameraConsent, true);
     expect(value.storageConsent, false);
     expect(value.wakeTasks, false);
     expect(previews, 0);
+    expect(find.byKey(const Key('diary-preview-hint')), findsNothing);
     await t.ensureVisible(find.byKey(const Key('diary-preview')));
     await t.tap(find.byKey(const Key('diary-preview')));
     expect(previews, 1);

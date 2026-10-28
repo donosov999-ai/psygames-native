@@ -102,6 +102,17 @@ class DiarySettings extends StatelessWidget {
         icon: const Icon(Icons.camera_front),
         label: Text(tr('Настроить камеру заранее', 'Set up camera beforehand')),
       ),
+      // Отзыв Smart Alarm 28.10: серая кнопка без причины непонятна, а
+      // переключатель согласия уже уехал выше экрана.
+      if (!value.cameraConsent)
+        Text(
+          key: const Key('diary-preview-hint'),
+          tr(
+            'Кнопка заработает, когда выше включено «Разрешаю съёмку до и после».',
+            'Turn on “I consent to before/after capture” above to use this button.',
+          ),
+          style: Theme.of(context).textTheme.bodySmall,
+        ),
       Text(
         tr(
           'Камера недоступна — задание продолжается. Отзыв согласия не удаляет старые снимки: их можно удалить ниже.',
