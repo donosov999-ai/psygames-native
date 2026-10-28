@@ -45,6 +45,8 @@ void main() {
     final out = <String, int>{};
     for (final f in Directory('lib').listSync(recursive: true).whereType<File>()) {
       if (!f.path.endsWith('.dart') || f.path.endsWith('.g.dart')) continue;
+      // Сама палитра ролей — единственное законное место цветов-литералов.
+      if (f.path.replaceAll(r'\', '/').endsWith('lib/shell/game_colors.dart')) continue;
       final n = count(f);
       if (n > 0) out.update(keyOf(f.path), (v) => v + n, ifAbsent: () => n);
     }

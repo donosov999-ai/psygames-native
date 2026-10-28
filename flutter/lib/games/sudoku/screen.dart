@@ -4,6 +4,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../shell/game_colors.dart';
 import '../../shell/ability_wallet.dart';
 import '../../shell/game_clock.dart';
 import '../../shell/aux_action.dart';
@@ -2517,6 +2518,7 @@ class _Cell extends StatelessWidget {
         // показывать, что она выбрана, человек в режиме цифр теряет, куда сейчас пишет.
         color: sudokuCellBackground(
           look,
+          colors: GameColors.of(context),
           surface: scheme.surface,
           dark: scheme.brightness == Brightness.dark,
           cageId: decor?.cageId ?? -1,
@@ -2555,7 +2557,7 @@ class _Cell extends StatelessWidget {
                       style: TextStyle(
                         fontSize: board.variant == 'schrodinger' && value >= 100 ? size * 0.34 : size * 0.52,
                         fontWeight: given ? FontWeight.w800 : FontWeight.w500,
-                        color: sudokuDigitInk(look, given: given, scheme: scheme),
+                        color: sudokuDigitInk(look, given: given, colors: GameColors.of(context)),
                       ),
                     ),
               ),
