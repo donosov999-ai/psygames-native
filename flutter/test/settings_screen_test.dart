@@ -7,6 +7,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:psygames_flutter/shell/app_look.dart';
+import 'package:psygames_flutter/shell/app_theme.dart';
+import 'package:psygames_flutter/shell/design_template.dart';
 import 'package:psygames_flutter/shell/app_update.dart';
 import 'package:psygames_flutter/shell/hub_screen.dart' show HubCardTap;
 import 'package:psygames_flutter/shell/ionicons.g.dart';
@@ -97,6 +99,57 @@ void main() {
     expect(state.get(AppLook.overrideKey), 'light');
     await tap(t, 'settings-theme-profile');
     expect(state.get(AppLook.overrideKey), isNull, reason: "веб: mode === 'profile' → removeItem");
+  });
+
+  testWidgets('template is opt-in, persists and changes no progress/profile preferences', (t) async {
+    final original = <String, Object>{
+      AppLook.overrideKey: 'light',
+      'psygames_active_profile': 'chess',
+      'psygames_sudoku_level_chess': '80',
+      'psygames_pet_name': 'Synapse',
+      'psygames_custom_unrelated': '{"points":340,"owned":["hat"]}',
+    };
+    await open(t, prefs: original);
+    final before = state.snapshot();
+    expect(t.widget<ChoiceChip>(find.byKey(const Key('settings-template-classic'))).selected, isTrue);
+    expect(SettingsScreen.watched, isNot(contains(uiTemplateKey)), reason: 'pure Flutter preference must not reload the hidden game');
+    await tap(t, 'settings-template-aurora');
+    expect(state.snapshot(), {...before, uiTemplateKey: UiTemplate.aurora.id});
+    expect(AppLook.template, UiTemplate.aurora);
+    final reopened = await SharedState.open();
+    expect(parseUiTemplate(reopened.get(uiTemplateKey)), UiTemplate.aurora);
+    await tap(t, 'settings-template-classic');
+    expect(state.snapshot(), {...before, uiTemplateKey: UiTemplate.classic.id});
+    expect(AppLook.template, UiTemplate.classic);
+    expect(t.takeException(), isNull);
+  });
+
+  testWidgets('unknown template stays classic without silently rewriting the stored value', (t) async {
+    await open(t, prefs: {uiTemplateKey: 'future_v99'});
+    expect(t.widget<ChoiceChip>(find.byKey(const Key('settings-template-classic'))).selected, isTrue);
+    expect(state.get(uiTemplateKey), 'future_v99');
+    expect(AppLook.template, UiTemplate.classic);
+  });
+
+  testWidgets('Aurora selector fits 320px, large text and both appearance modes', (t) async {
+    for (final mode in ['light', 'dark']) {
+      await open(t, prefs: {uiTemplateKey: 'aurora_v1', AppLook.overrideKey: mode});
+      await t.binding.setSurfaceSize(const Size(320, 740));
+      await t.runAsync(() => L.load('ru'));
+      await t.pumpWidget(MaterialApp(
+        theme: appShellTheme(state, brightness: mode == 'dark' ? Brightness.dark : Brightness.light),
+        home: MediaQuery(
+          data: const MediaQueryData(size: Size(320, 740), textScaler: TextScaler.linear(2)),
+          child: SettingsScreen(state: state),
+        ),
+      ));
+      await t.pumpAndSettle();
+      await t.ensureVisible(find.byKey(const Key('settings-template-aurora')));
+      await t.pumpAndSettle();
+      expect(t.takeException(), isNull, reason: mode);
+      expect(t.widget<ChoiceChip>(find.byKey(const Key('settings-template-aurora'))).selected, isTrue);
+    }
+    await t.binding.setSurfaceSize(null);
   });
 
   testWidgets('громкость: ±10 в пределах 0…100, ползунок спрятан при выключенном звуке', (t) async {

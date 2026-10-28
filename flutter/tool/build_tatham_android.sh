@@ -103,7 +103,7 @@ for abi in arm64-v8a armeabi-v7a x86_64; do
   # символы в .so, и ошибка всплывала только при загрузке. --no-undefined валит сборку здесь же.
   "$CC" --target=$TARGET$API -O2 -DCOMBINED -DSOLVER_DIAGNOSTICS -include "$BRIDGE/psy_diag.h" -fvisibility=hidden -fPIC \
     -I"$WORK/gen" -I"$SRC" -shared -o "$OUT/$abi/libtatham.so" $SRCS \
-    -lm -Wl,--no-undefined 2> "$WORK/build-$abi.err" || {
+    -lm -Wl,--no-undefined -Wl,-z,max-page-size=16384 -Wl,-z,common-page-size=16384 2> "$WORK/build-$abi.err" || {
       grep -E "error:" "$WORK/build-$abi.err" | head -5; exit 5; }
   SZ=$(wc -c < "$OUT/$abi/libtatham.so" | tr -d ' ')
   N=$("$BIN/llvm-nm" -D --defined-only "$OUT/$abi/libtatham.so" 2>/dev/null | grep -c ' T psy_' || true)
@@ -112,4 +112,6 @@ for abi in arm64-v8a armeabi-v7a x86_64; do
   echo "$NEEDED" | grep -q 'libm.so' || { echo "🔴 в $abi нет libm.so в зависимостях — atan2/sqrt не найдутся на телефоне"; exit 7; }
   # ⚠️ Библиотека без экспортов собирается молча и падает на первом ходе у человека.
   [ "$N" -ge 15 ] || { echo "🔴 в $abi нет экспортов psy_* — Dart не найдёт их по имени"; exit 6; }
+  # ZIP alignment cannot repair a 4KB ELF. Inspect the actual linked object.
+  python3 "$FLUTTER_DIR/../scripts/check_android_16k.py" "$OUT/$abi/libtatham.so"
 done

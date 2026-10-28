@@ -127,15 +127,8 @@ class PsyGamesPilotApp extends StatelessWidget {
         navigatorKey: _navigatorKey,
         debugShowCheckedModeBanner: false,
         themeMode: appThemeMode(state),
-        theme: ThemeData(
-          colorSchemeSeed: const Color(0xFF7F7FD5),
-          useMaterial3: true,
-        ),
-        darkTheme: ThemeData(
-          colorSchemeSeed: const Color(0xFF7F7FD5),
-          brightness: Brightness.dark,
-          useMaterial3: true,
-        ),
+        theme: appShellTheme(state),
+        darkTheme: appShellTheme(state, brightness: Brightness.dark),
         // Кадр всего приложения — для снимка в отзыв с нативного экрана (`feedback_screen.dart`).
         builder: (context, child) =>
             RepaintBoundary(key: FeedbackHost.shotKey, child: child),

@@ -13,6 +13,7 @@ import 'package:share_plus/share_plus.dart';
 
 import '../games/languages/lang_names.dart';
 import 'app_look.dart';
+import 'design_template.dart';
 import 'cloud_pilot.dart';
 import 'cloud_settings_screen.dart';
 import 'hub_screen.dart' show HubCardTap;
@@ -166,7 +167,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         Row(children: [
           Icon(dark ? Icons.dark_mode : Icons.light_mode, color: accent, size: 24),
           const SizedBox(width: 12),
-          Text(L.t('theme_selection'), style: TextStyle(color: tok('text'), fontSize: 16, fontWeight: FontWeight.w500)),
+          Expanded(child: Text(L.t('theme_selection'), style: TextStyle(color: tok('text'), fontSize: 16, fontWeight: FontWeight.w500))),
         ]),
         const SizedBox(height: 12),
         Wrap(spacing: 8, runSpacing: 8, children: [
@@ -190,6 +191,41 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _put(String key, String value) async {
     await _s.set(key, value);
     if (mounted) setState(() {});
+  }
+
+  /// A local visual preference only: no WebView reload and no game/session writes.
+  Widget _templateChoice({required bool dark}) {
+    final selected = parseUiTemplate(_s.get(uiTemplateKey));
+    Color tok(String name) => AppLook.token(name, dark: dark);
+    final labels = {
+      UiTemplate.classic: L.t('modeClassic'),
+      UiTemplate.aurora: L.t('frameAurora'),
+    };
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(color: tok('surface'), borderRadius: BorderRadius.circular(16)),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text(L.t('ui_template_title'), style: TextStyle(color: tok('text'), fontSize: 16, fontWeight: FontWeight.w500)),
+        const SizedBox(height: 8),
+        Text(L.t('ui_template_hint'), style: TextStyle(color: tok('textSecondary'))),
+        const SizedBox(height: 12),
+        Wrap(spacing: 8, runSpacing: 8, children: [
+          for (final template in UiTemplate.values)
+            ChoiceChip(
+              key: Key('settings-template-${template.name}'),
+              label: Text(labels[template]!),
+              selected: selected == template,
+              onSelected: (_) async {
+                await _s.set(uiTemplateKey, template.id);
+                AppLook.refresh(_s);
+                if (mounted) setState(() {});
+              },
+            ),
+        ]),
+      ]),
+    );
+
   }
 
   /// 🔴 ТЕМА — ЧЕТЫРЕ ВАРИАНТА, КАК У ВЕБА С 2.56.12 (`settings.tsx`, `ThemeContext.setThemeMode`):
@@ -692,6 +728,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
               if (_profiles.list.isNotEmpty) _profileSection(dark: dark),
               _themeChoice(dark: dark),
+              _templateChoice(dark: dark),
               if (widget.cloudPilot != null)
                 action('cloud', Icons.cloud_outlined, accent, L.t('cloudPilotTitle'), () async {
                   await Navigator.of(context).push<void>(MaterialPageRoute(builder: (_) =>
@@ -786,7 +823,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 Row(children: [
                   Icon(Icons.translate, color: accent, size: 24),
                   const SizedBox(width: 12),
-                  Text(L.t('language'), style: TextStyle(color: text, fontSize: 16, fontWeight: FontWeight.w500)),
+                  Expanded(child: Text(L.t('language'), style: TextStyle(color: text, fontSize: 16, fontWeight: FontWeight.w500))),
                 ]),
                 const SizedBox(height: 12),
                 Wrap(spacing: 8, runSpacing: 8, children: [

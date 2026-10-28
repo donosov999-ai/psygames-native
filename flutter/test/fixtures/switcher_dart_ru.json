@@ -72,7 +72,7 @@
    {
     "id": "free",
     "name": "Стандарт",
-    "desc": "9 тренажёров · подобранный набор для старта",
+    "desc": "12 тренажёров · подобранный набор для старта",
     "minutes": "⏱ 3-10 мин",
     "wallet": null,
     "badge": "/assets/images/profiles/free.webp",
@@ -82,8 +82,8 @@
    },
    {
     "id": "seniors",
-    "name": "50+ профилактика",
-    "desc": "Память · processing speed · замедление старения",
+    "name": "50+ Активный ум",
+    "desc": "Память · скорость обработки · внимание",
     "minutes": "⏱ 10-15 мин",
     "wallet": null,
     "badge": "/assets/images/profiles/seniors.webp",

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
 import 'shared_state.dart';
+import 'design_template.dart';
 
 /// ПАЛИТРА ВЕБА ДЛЯ ГЛАВНЫХ ЭКРАНОВ, КОТОРЫЕ РИСУЕТ ОБОЛОЧКА (задачи 5136754e, 99628ecf).
 ///
@@ -87,7 +88,19 @@ class WebTheme {
     loaded = true;
   }
 
-  static WebColors of(BuildContext context) => Theme.of(context).brightness == Brightness.dark ? dark : light;
+  static WebColors of(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    if (theme.extension<UiTemplateTheme>()?.template == UiTemplate.aurora) {
+      Color token(String name) => auroraToken(name, dark: isDark)!;
+      return WebColors(
+        background: token('background'), surface: token('surface'),
+        card: token('card'), text: token('text'),
+        textSecondary: token('textSecondary'), border: token('border'),
+      );
+    }
+    return isDark ? dark : light;
+  }
 
   /// `colors.primary` веба: надетый акцент (`getEquippedAccent`) → акцент профиля → запасной.
   /// [profile] — профиль экрана после откатов `ProfileContext` (запертый без разблокировки → `free`);

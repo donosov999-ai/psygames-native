@@ -16,6 +16,22 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.56.38',
+    date: '2026-10-28',
+    en: [
+      'New look “Aurora” to try: Settings → Interface template. Game sections in the Games tab and on Home get new illustrated tiles, and Home opens with a Workout card featuring Synapse. The classic look stays the default',
+      'Profiles: “50+ Prevention” is now “50+ Active Mind”; profile descriptions no longer promise health effects, and Standard lists its real 12 trainers',
+      'Cloud backup: no more “test pilot” labels; after a restore, simply close and reopen the app',
+      'Android: works on devices with 16 KB memory pages',
+    ],
+    ru: [
+      'Новое оформление «Аврора» — можно попробовать: Настройки → Шаблон интерфейса. Разделы во вкладке «Игры» и на главной — новые иллюстрированные плитки, а главная открывается карточкой зарядки с Синапсом. Привычный вид остаётся по умолчанию',
+      'Профили: «50+ профилактика» теперь «50+ Активный ум»; в описаниях профилей нет обещаний для здоровья, а у «Стандарта» указаны его настоящие 12 тренажёров',
+      'Облачное сохранение: без пометок «тестовый пилот»; после восстановления достаточно закрыть и снова открыть приложение',
+      'Android: работает на устройствах со страницами памяти 16 КБ',
+    ],
+  },
+  {
     version: '2.56.37',
     date: '2026-10-24',
     en: [

@@ -927,7 +927,7 @@
    "cost": 2400,
    "nameKey": "cosName_profile_item",
    "descKey": "cosDesc_theme_generic",
-   "profileName": "50+ профилактика",
+   "profileName": "50+ Активный ум",
    "swatch": {
     "kind": "image",
     "uri": "/assets/images/level-map-themes/seniors.webp"
@@ -1018,7 +1018,7 @@
    "cost": 1050,
    "nameKey": "cosName_profile_item",
    "descKey": "cosDesc_background_generic",
-   "profileName": "50+ профилактика",
+   "profileName": "50+ Активный ум",
    "swatch": {
     "kind": "image",
     "uri": "/assets/images/profile-bg/seniors.webp"
@@ -1161,7 +1161,7 @@
    "cost": 1050,
    "nameKey": "cosName_profile_item",
    "descKey": "cosDesc_badge_generic",
-   "profileName": "50+ профилактика",
+   "profileName": "50+ Активный ум",
    "swatch": {
     "kind": "image",
     "uri": "/assets/images/profiles/seniors.webp"
