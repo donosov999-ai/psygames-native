@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/hanoi/board.dart';
 import 'package:psygames_flutter/games/hanoi/model.dart';
 import 'package:psygames_flutter/games/hanoi/screen.dart';
+import 'package:psygames_flutter/shell/game_clock.dart';
 import 'package:psygames_flutter/shell/game_colors.dart';
 import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/lesson.dart';
@@ -19,6 +20,9 @@ Future<void> _boot(WidgetTester tester) async {
   tester.view.physicalSize = const Size(780, 1688);
   tester.view.devicePixelRatio = 2;
   addTearDown(tester.view.reset);
+  // Таймер простоя идёт по часам партии (game_clock): в пробе — по часам пробы.
+  gameWallMs = () => tester.binding.clock.now().millisecondsSinceEpoch;
+  addTearDown(() => gameWallMs = () => DateTime.now().millisecondsSinceEpoch);
   SharedPreferences.setMockInitialValues({});
   final state = await SharedState.open();
   await tester.runAsync(() async {

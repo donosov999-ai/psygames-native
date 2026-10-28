@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../../shell/app_haptics.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/game_shell.dart';
+import '../../shell/game_clock.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/level_rules.dart';
@@ -78,7 +79,7 @@ class _HanoiScreenState extends State<HanoiScreen> {
    */
   static const Duration _idleHelp = Duration(seconds: 45);
   static const int _errorsForHelp = 3;
-  Timer? _idle;
+  GameTimer? _idle;
   bool _help = false;
   int _errorStreak = 0;
 
@@ -88,7 +89,9 @@ class _HanoiScreenState extends State<HanoiScreen> {
   void _armIdle() {
     _idle?.cancel();
     if (_won || _help) return;
-    _idle = Timer(_idleHelp, () {
+    // Часы партии, а не настенные: пауза и разбор поверх игры простой не копят
+    // (храповик game_clock_discipline_test).
+    _idle = gameTimeout(_idleHelp, () {
       if (mounted && !_won) setState(() => _help = true);
     });
   }
