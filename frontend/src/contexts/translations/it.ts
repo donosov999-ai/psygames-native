@@ -145,7 +145,7 @@ const t: Record<string, string> = {
   "profileDesc_free": "12 esercizi · una selezione per iniziare",
   "profileName_drivers": "Riflessi",
   "profileDesc_drivers": "Decisioni in una frazione di secondo · quando un errore può costare la vita",
-  "profileName_seniors": "Prevenzione 50+",
+  "profileName_seniors": "Mente attiva 50+",
   "profileDesc_seniors": "Memoria · velocità di elaborazione · attenzione",
   "profileName_execs": "Imprenditori",
   "profileDesc_execs": "Decisioni sotto pressione · rischio · memoria di lavoro · flessibilità",

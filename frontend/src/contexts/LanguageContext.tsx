@@ -219,7 +219,7 @@ const translations: Translations = {
   profileDesc_free: { ru: '12 тренажёров · подобранный набор для старта', en: '12 trainers · a curated set to start with' },
   profileName_drivers: { ru: 'Реакция', en: 'Reaction' },
   profileDesc_drivers: { ru: 'Решения за секунды · для тех у кого цена ошибки = жизнь', en: 'Split-second decisions · when the cost of error is life' },
-  profileName_seniors: { ru: '50+ профилактика', en: '50+ Prevention' },
+  profileName_seniors: { ru: '50+ Активный ум', en: '50+ Active Mind' },
   profileDesc_seniors: { ru: 'Память · скорость обработки · внимание', en: 'Memory · processing speed · attention' },
   profileName_execs: { ru: 'Предприниматели', en: 'Entrepreneurs' },
   profileDesc_execs: { ru: 'Решения под давлением · risk · WM · flexibility', en: 'Decisions under pressure · risk · WM · flexibility' },

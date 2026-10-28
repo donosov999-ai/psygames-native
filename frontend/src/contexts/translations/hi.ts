@@ -727,7 +727,7 @@ const t: Record<string, string> = {
   "profileDesc_free": "12 अभ्यास · शुरुआत के लिए चुना गया सेट",
   "profileName_drivers": "रिएक्शन",
   "profileDesc_drivers": "पल-भर के निर्णय · जब ग़लती की क़ीमत जान हो",
-  "profileName_seniors": "50+ रोकथाम",
+  "profileName_seniors": "50+ सक्रिय मन",
   "profileDesc_seniors": "स्मृति · प्रसंस्करण गति · ध्यान",
   "profileName_execs": "उद्यमी",
   "profileDesc_execs": "दबाव में निर्णय · जोखिम · कार्यशील स्मृति · लचीलापन",

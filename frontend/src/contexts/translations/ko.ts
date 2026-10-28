@@ -145,7 +145,7 @@ const t: Record<string, string> = {
   "profileDesc_free": "12가지 훈련 · 시작을 위한 엄선된 구성",
   "profileName_drivers": "반응",
   "profileDesc_drivers": "찰나의 판단 · 실수의 대가가 생명일 때",
-  "profileName_seniors": "50+ 예방",
+  "profileName_seniors": "50+ 액티브 마인드",
   "profileDesc_seniors": "기억력 · 처리 속도 · 주의력",
   "profileName_execs": "사업가",
   "profileDesc_execs": "압박 속 판단 · 리스크 · 작업기억 · 유연성",

@@ -724,7 +724,7 @@ const t: Record<string, string> = {
   "profileDesc_free": "12 Trainer · ein kuratiertes Set für den Start",
   "profileName_drivers": "Reaktion",
   "profileDesc_drivers": "Entscheidungen in Sekundenbruchteilen · wenn ein Fehler das Leben kostet",
-  "profileName_seniors": "Prävention 50+",
+  "profileName_seniors": "Aktiver Geist 50+",
   "profileDesc_seniors": "Gedächtnis · Verarbeitungsgeschwindigkeit · Aufmerksamkeit",
   "profileName_execs": "Unternehmer",
   "profileDesc_execs": "Entscheidungen unter Druck · Risiko · Arbeitsgedächtnis · Flexibilität",

@@ -145,7 +145,7 @@ const t: Record<string, string> = {
   "profileDesc_free": "١٢ تمرينًا · مجموعة مختارة للبداية",
   "profileName_drivers": "رد الفعل",
   "profileDesc_drivers": "قرارات في أجزاء من الثانية · حين يكون ثمن الخطأ حياة",
-  "profileName_seniors": "الوقاية 50+",
+  "profileName_seniors": "العقل النشط 50+",
   "profileDesc_seniors": "الذاكرة · سرعة المعالجة · الانتباه",
   "profileName_execs": "روّاد الأعمال",
   "profileDesc_execs": "قرارات تحت الضغط · المخاطرة · الذاكرة العاملة · المرونة",

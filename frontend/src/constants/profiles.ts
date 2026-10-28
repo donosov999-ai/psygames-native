@@ -573,7 +573,7 @@ const DRIVERS: ProfileDef = {
 const SENIORS: ProfileDef = {
   id: 'seniors',
   person: '50+',
-  display_name: '50+ профилактика',
+  display_name: '50+ Активный ум',
   emoji: '👴',
   color: '#8b5cf6',
   description: 'Память · скорость обработки · внимание',
@@ -1012,7 +1012,7 @@ export const PROFILES: ProfileDef[] = [
   WOMEN,      // самая массовая казуальная аудитория
   FREE,       // бесплатный вход-воронка
   KIDS,       // родители/дети — массовый сегмент
-  SENIORS,    // 50+ профилактика — массовый
+  SENIORS,    // 50+ Активный ум — массовый
   CHESS,      // шахматисты
   DRIVERS,    // Реакция ПРО — pro-профессии
   EXECS,      // предприниматели

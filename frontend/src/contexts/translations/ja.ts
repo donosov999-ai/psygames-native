@@ -145,7 +145,7 @@ const t: Record<string, string> = {
   "profileDesc_free": "12種のトレーニング · 始めるための厳選セット",
   "profileName_drivers": "反応",
   "profileDesc_drivers": "瞬時の判断・ミスが命に関わる状況に対応",
-  "profileName_seniors": "50+ 予防",
+  "profileName_seniors": "50+ アクティブ・マインド",
   "profileDesc_seniors": "記憶・処理速度・注意力",
   "profileName_execs": "起業家",
   "profileDesc_execs": "重圧下の判断・リスク・作業記憶・柔軟性",

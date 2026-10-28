@@ -724,7 +724,7 @@ const t: Record<string, string> = {
   "profileDesc_free": "12 项训练 · 为入门精选的一组",
   "profileName_drivers": "反应",
   "profileDesc_drivers": "瞬间决策 · 当失误的代价是生命",
-  "profileName_seniors": "50+ 预防",
+  "profileName_seniors": "50+ 活跃思维",
   "profileDesc_seniors": "记忆 · 处理速度 · 注意力",
   "profileName_execs": "企业家",
   "profileDesc_execs": "压力下的决策 · 风险 · 工作记忆 · 灵活性",
