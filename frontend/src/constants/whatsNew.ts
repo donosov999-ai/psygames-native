@@ -16,6 +16,22 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.56.39',
+    date: '2026-10-28',
+    en: [
+      '“Aurora” look: Home opens with PsyGames, Synapse and settings at the top, then your mode, the workout card and three counters — streak, points and level, achievements. “Continue” shows the game’s own icon',
+      '“Aurora” look: in the Games tab the filter is a row of chips; skills are behind the button on the right',
+      'Sudoku, Samurai, Fractal, Abyss and Cats boards use the shared game colours in “Aurora”; the classic look is unchanged',
+      'Tower of Hanoi: if you are stuck, the game offers a next-move hint or the full walkthrough',
+    ],
+    ru: [
+      'Оформление «Аврора»: на главной сверху PsyGames, Синапс и настройки, ниже режим, карточка зарядки и три счётчика — серия, баллы с уровнем, достижения. В «Продолжить» — значок самой игры',
+      'Оформление «Аврора»: во вкладке «Игры» фильтр — строка чипов, навыки — за кнопкой справа',
+      '«Судоку», «Самурай», «Фрактал», «Бездна» и «Кошки» в «Авроре» берут общие цвета игр; привычный вид не меняется',
+      '«Ханойская башня»: если застрял, игра предложит подсказку следующего хода или весь разбор',
+    ],
+  },
+  {
     version: '2.56.38',
     date: '2026-10-28',
     en: [

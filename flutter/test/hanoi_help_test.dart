@@ -120,7 +120,7 @@ void main() {
       final to = find.descendant(of: find.byKey(ValueKey('peg-${hint.to}')), matching: find.byKey(const ValueKey('hanoi-hint-to')));
       expect(from, findsOneWidget);
       expect(to, findsOneWidget);
-      expect(tester.widget<Icon>(from).color, GameColors.classic.highlight);
+      expect(tester.widget<Icon>(from).color, GameColors.of(tester.element(from)).highlight);
       await _tapMove(tester, hint.from, hint.to);
       moves++;
       if (!_board(tester).solved) {
