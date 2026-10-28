@@ -70,7 +70,7 @@ void main() {
   test('all twelve locales contain the four template labels', () async {
     for (final locale in ['ru','en','de','es','fr','it','pt','ja','ko','zh','hi','ar']) {
       await L.load(locale);
-      for (final key in ['ui_template_title','ui_template_classic','ui_template_aurora','ui_template_hint']) {
+      for (final key in ['ui_template_title','modeClassic','frameAurora','ui_template_hint']) {
         expect(L.t(key), isNot(key), reason: '$locale/$key');
         expect(L.t(key), isNotEmpty);
       }

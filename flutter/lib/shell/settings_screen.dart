@@ -198,8 +198,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final selected = parseUiTemplate(_s.get(uiTemplateKey));
     Color tok(String name) => AppLook.token(name, dark: dark);
     final labels = {
-      UiTemplate.classic: L.t('ui_template_classic'),
-      UiTemplate.aurora: L.t('ui_template_aurora'),
+      UiTemplate.classic: L.t('modeClassic'),
+      UiTemplate.aurora: L.t('frameAurora'),
     };
     return Container(
       margin: const EdgeInsets.only(bottom: 8),

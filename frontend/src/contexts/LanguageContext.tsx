@@ -113,8 +113,6 @@ const translations: Translations = {
   switcherProfileGames: { ru: "Тренажёров в профиле: {n}", en: "Exercises in this profile: {n}" },
   theme_selection: { ru: 'Тема оформления', en: 'Appearance' },
   ui_template_title: { ru: 'Шаблон интерфейса', en: 'Interface template' },
-  ui_template_classic: { ru: 'Классический', en: 'Classic' },
-  ui_template_aurora: { ru: 'Аврора', en: 'Aurora' },
   ui_template_hint: { ru: 'Аврора — первый этап нового оформления, пока без перестройки экранов. Тема, профиль и прогресс сохраняются.', en: 'Aurora is the first styling step, not a full screen redesign yet. Your appearance mode, profile and progress are preserved.' },
   theme_light: { ru: 'Светлая', en: 'Light' },
   theme_dark: { ru: 'Тёмная', en: 'Dark' },

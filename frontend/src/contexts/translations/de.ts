@@ -3,8 +3,6 @@
 // zh/hi — машинное качество, нужна вычитка нативом до сторов.
 const t: Record<string, string> = {
   "ui_template_title": "Oberflächenvorlage",
-  "ui_template_classic": "Klassisch",
-  "ui_template_aurora": "Aurora",
   "ui_template_hint": "Erster Gestaltungsschritt, noch kein vollständiges Redesign. Darstellungsmodus, Profil und Fortschritt bleiben erhalten.",
   sudokuSupportTitle: "Hilfe zum Sudoku-Fortschritt",
   sudokuSupportExplanation: "Separate, freiwillige Berechtigung für 24 Stunden, nur für den ausgewählten Sudoku-Modus. Der Support kann deine Konto-E-Mail-Adresse, den Modus und das aktuelle Level sehen, aber nicht dein Spielfeld, deine Punkte, Käufe oder dein Haustier. Du erhältst Korrekturen hier ohne Dateien oder Codes; eine Korrektur schaltet nur ein Level frei und zählt nicht als Sieg.",

@@ -3,8 +3,6 @@
 // Вычитка: Claude 12.06.2026 (skillAttention/skillFocus swap, 序列记忆, 主访问码). При регенерации воркфлоу — НЕ затирать, мерджить через git diff.
 const t: Record<string, string> = {
   "ui_template_title": "界面模板",
-  "ui_template_classic": "经典",
-  "ui_template_aurora": "极光",
   "ui_template_hint": "这是外观更新的第一步，尚非完整界面改版。外观模式、个人模式和进度均会保留。",
   sudokuSupportTitle: "数独进度支持",
   sudokuSupportExplanation: "这是一项独立、自愿的授权，有效期为 24 小时，仅适用于所选数独模式。支持人员可查看你的账号邮箱、模式和当前关卡，但无法查看棋盘、积分、购买记录或宠物。你可在此直接接收修复，无需文件或代码；修复只会解锁关卡，不会计为获胜。",
