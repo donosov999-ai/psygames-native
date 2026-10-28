@@ -163,7 +163,11 @@ jobs:
       - run: flutter pub get
       - name: Pinned Android NDK
         run: |
-          sdkmanager "ndk;$PSY_ANDROID_NDK_VERSION"
+          # sdkmanager на ubuntu-раннере не в PATH — берём из cmdline-tools SDK.
+          SDKM="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          [ -x "$SDKM" ] || SDKM="$(command -v sdkmanager)"
+          yes | "$SDKM" --install "ndk;$PSY_ANDROID_NDK_VERSION" > /dev/null
+          test -d "$ANDROID_HOME/ndk/$PSY_ANDROID_NDK_VERSION"
           echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/$PSY_ANDROID_NDK_VERSION" >> "$GITHUB_ENV"
       # 🔴 ДВИЖОК ТЭТХЭМА ПОД ANDROID — .so на каждую архитектуру, ДО сборки APK.
       #
