@@ -2,6 +2,8 @@
 // 493 ключей, переведены с английской базы. Не править руками — регенерировать воркфлоу.
 // zh/hi — машинное качество, нужна вычитка нативом до сторов.
 const t: Record<string, string> = {
+  "ui_template_title": "Plantilla de interfaz",
+  "ui_template_hint": "Primera etapa visual, aún no es un rediseño completo. Se conservan el modo de apariencia, el perfil y el progreso.",
   sudokuSupportTitle: "Asistencia con el progreso de Sudoku",
   sudokuSupportExplanation: "Permiso independiente y opcional de 24 horas solo para el modo de Sudoku seleccionado. El equipo de asistencia podrá ver el correo de tu cuenta, el modo y el nivel actual, pero no el tablero, los puntos, las compras ni la mascota. Recibe correcciones aquí sin archivos ni códigos; una corrección solo desbloquea un nivel y no registra una victoria.",
   sudokuSupportProfile: "Perfil de juego: {profile}",

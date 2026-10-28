@@ -1,6 +1,8 @@
 // AUTO-GENERATED translation overlay (fr). Источник: транскреация с EN-базы (856 ключей).
 // Не править руками — регенерировать.
 const t: Record<string, string> = {
+  "ui_template_title": "Modèle d’interface",
+  "ui_template_hint": "Première étape visuelle, pas encore une refonte complète. Le mode d’affichage, le profil et la progression sont conservés.",
   sudokuSupportTitle: "Assistance pour la progression au Sudoku",
   sudokuSupportExplanation: "Autorisation distincte et facultative de 24 heures, uniquement pour le mode Sudoku sélectionné. L’assistance pourra voir l’adresse e-mail de votre compte, le mode et le niveau actuel, mais ni la grille, ni les points, ni les achats, ni l’animal de compagnie. Recevez les corrections ici, sans fichiers ni codes ; une correction débloque seulement un niveau et n’enregistre pas de victoire.",
   sudokuSupportProfile: "Profil de jeu : {profile}",

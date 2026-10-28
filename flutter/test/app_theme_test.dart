@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:webview_flutter_platform_interface/webview_flutter_platform_interface.dart' as wv;
 import 'package:psygames_flutter/main.dart';
 import 'package:psygames_flutter/shell/app_theme.dart';
+import 'package:psygames_flutter/shell/design_template.dart';
 import 'package:psygames_flutter/shell/asset_server.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'hybrid_overlay_route_repro_test.dart' show FakeWebViewPlatform, resetHarnessSingletons;
@@ -64,6 +65,16 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 250));
     expect(actual(), Brightness.light);
+    final webWidget = tester.widget(find.byKey(const Key('fake-webview')));
+    for (final id in ['aurora_v1', 'classic_v1', 'future_v99']) {
+      await tester.runAsync(() => state.set(uiTemplateKey, id));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+      final theme = Theme.of(tester.element(find.byKey(const Key('fake-webview'))));
+      expect(theme.extension<UiTemplateTheme>()?.template, id == 'aurora_v1' ? UiTemplate.aurora : null);
+      expect(actual(), Brightness.light);
+      expect(tester.widget(find.byKey(const Key('fake-webview'))), same(webWidget), reason: 'template change must not recreate the WebView');
+    }
     expect(tester.takeException(), isNull);
   });
 }

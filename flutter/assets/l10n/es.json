@@ -2689,6 +2689,8 @@
 "trkTargets":"Objetivos",
 "typeAsShown":"Escribe los dígitos en el mismo orden",
 "typeReversed":"Escribe los dígitos al revés",
+"ui_template_hint":"Primera etapa visual, aún no es un rediseño completo. Se conservan el modo de apariencia, el perfil y el progreso.",
+"ui_template_title":"Plantilla de interfaz",
 "unitGames":"juegos",
 "unitHourShort":"h",
 "unitLevelShort":"niv.",

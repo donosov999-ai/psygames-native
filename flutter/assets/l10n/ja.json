@@ -2689,6 +2689,8 @@
 "trkTargets":"ターゲット",
 "typeAsShown":"数字を同じ順序で入力",
 "typeReversed":"数字を逆順で入力",
+"ui_template_hint":"外観変更の第一段階です。画面全体の再設計はまだです。表示モード、プロフィール、進捗は保持されます。",
+"ui_template_title":"インターフェースのテンプレート",
 "unitGames":"ゲーム",
 "unitHourShort":"時間",
 "unitLevelShort":"Lv",

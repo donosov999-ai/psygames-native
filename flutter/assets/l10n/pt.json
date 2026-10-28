@@ -2689,6 +2689,8 @@
 "trkTargets":"Alvos",
 "typeAsShown":"Digite os dígitos na mesma ordem",
 "typeReversed":"Digite os dígitos ao contrário",
+"ui_template_hint":"Primeira etapa visual, ainda não é um redesenho completo. O modo de aparência, o perfil e o progresso são preservados.",
+"ui_template_title":"Modelo de interface",
 "unitGames":"jogos",
 "unitHourShort":"h",
 "unitLevelShort":"nív.",

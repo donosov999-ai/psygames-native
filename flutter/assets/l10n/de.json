@@ -2689,6 +2689,8 @@
 "trkTargets":"Ziele",
 "typeAsShown":"Ziffern in gleicher Reihenfolge eingeben",
 "typeReversed":"Ziffern in umgekehrter Reihenfolge eingeben",
+"ui_template_hint":"Erster Gestaltungsschritt, noch kein vollständiges Redesign. Darstellungsmodus, Profil und Fortschritt bleiben erhalten.",
+"ui_template_title":"Oberflächenvorlage",
 "unitGames":"Spiele",
 "unitHourShort":"h",
 "unitLevelShort":"Lv.",
