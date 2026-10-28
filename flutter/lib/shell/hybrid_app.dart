@@ -1,4 +1,5 @@
 import 'app_look.dart';
+import 'aurora_scope.dart';
 import 'settings_screen.dart';
 import 'dart:async';
 import 'dart:convert';
@@ -1393,9 +1394,13 @@ class _HybridAppState extends State<HybridApp> {
     Map<String, String> query = const {},
     WarmupStepInfo? stepInfo,
   }) async {
+    final game = HybridApp.native[route];
+    // Игра без отметки готовности остаётся в классической теме и под «Авророй» — см. [AuroraGameScope].
     final build = route == '/settings'
         ? (SharedState s) => SettingsScreen(state: s, cloudPilot: widget.cloudPilot)
-        : HybridApp.native[route] ?? HybridApp.shell[route];
+        : game != null
+            ? (SharedState s) => AuroraGameScope(route: route, child: game(s))
+            : HybridApp.shell[route];
     if (build == null) return false;
     _openedRoute = route;
     _openedWarmupOwner = WarmupOwner.fromQuery(query);

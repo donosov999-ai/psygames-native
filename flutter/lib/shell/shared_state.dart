@@ -124,7 +124,7 @@ class SharedState extends ChangeNotifier {
       throw StateError('local_storage_write_not_confirmed');
     }
     if (changed) writes.value++;
-    if (changed && (key == 'psygames_theme_override' || key == 'psygames_active_profile')) {
+    if (changed && (key == 'psygames_theme_override' || key == 'psygames_ui_template_id' || key == 'psygames_active_profile')) {
       notifyListeners();
     }
   }
@@ -136,7 +136,7 @@ class SharedState extends ChangeNotifier {
       throw StateError('local_storage_remove_not_confirmed');
     }
     if (changed) writes.value++;
-    if (changed && (key == 'psygames_theme_override' || key == 'psygames_active_profile')) {
+    if (changed && (key == 'psygames_theme_override' || key == 'psygames_ui_template_id' || key == 'psygames_active_profile')) {
       notifyListeners();
     }
   }
