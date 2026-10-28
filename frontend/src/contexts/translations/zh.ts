@@ -183,6 +183,8 @@ const t: Record<string, string> = {
   "skillSwitching": "训练：注意力切换",
   "hanoi": "汉诺塔",
   "hanoiDesc": "将所有圆盘移到最右边的柱子",
+  "hanoiStuck": "卡住了？我可以显示下一步或完整讲解。",
+  "hanoiRuleBig": "大圆盘永远不能放在小圆盘上。",
   "hanoiIntroDesc": "将圆盘塔从左侧柱子移到右侧柱子。大圆盘永远不能放在小圆盘上。训练规划、递归和问题解决能力。",
   "discsCount": "圆盘数",
   "hanoiOptimal": "最优",

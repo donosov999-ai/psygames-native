@@ -183,6 +183,8 @@ const t: Record<string, string> = {
   "skillSwitching": "Training: Aufmerksamkeitswechsel",
   "hanoi": "Türme von Hanoi",
   "hanoiDesc": "Bringe alle Scheiben auf den rechten Stab",
+  "hanoiStuck": "Hängst du fest? Ich zeige den nächsten Zug oder die ganze Erklärung.",
+  "hanoiRuleBig": "Eine größere Scheibe darf nie auf einer kleineren liegen.",
   "hanoiIntroDesc": "Bewege den Scheibenturm vom linken Stab auf den rechten. Eine größere Scheibe darf nie auf einer kleineren liegen. Trainiert Planung, Rekursion und Problemlösung.",
   "discsCount": "Scheiben",
   "hanoiOptimal": "Optimal",

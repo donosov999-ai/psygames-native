@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import '../../shell/app_haptics.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/game_clock.dart';
+import '../../shell/game_colors.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/hybrid_app.dart' show HybridApp;
 import '../../shell/level_ladder.dart';
@@ -671,7 +672,7 @@ class _FractalScreenState extends State<FractalScreen> {
           key: const Key('show-solution'),
           icon: Icons.lightbulb_outline,
           label: L.t('puzzleShowSolution'),
-          tint: const Color(0xFFB45309),
+          tint: GameColors.of(context).hint,
           onPressed: _canAskSolution ? () => setState(() => _askSolution = true) : null,
         ),
       ]),
@@ -1061,6 +1062,7 @@ class _Cell extends StatelessWidget {
     // Выбор виден поверх краски — как в классике: иначе в крашеной клетке человек
     // теряет, куда сейчас пишет.
     final dark = scheme.brightness == Brightness.dark;
+    final gc = GameColors.of(context);
     final bg = selected
         ? scheme.primaryContainer
         : paint >= 0 && paint < sudokuColorCount
@@ -1068,8 +1070,8 @@ class _Cell extends StatelessWidget {
             : fedTag != null && value == 0
                 ? (dark ? const Color(0xFF3A3358) : const Color(0xFFECE9F7))
                 : waiting
-                    ? scheme.surfaceContainerHighest
-                    : scheme.surface;
+                    ? gc.cellAlt
+                    : gc.cell;
     final fed = fedTag;
     return SizedBox(
       width: size,
@@ -1083,19 +1085,19 @@ class _Cell extends StatelessWidget {
             decoration: BoxDecoration(
               border: Border(
                 top: BorderSide(
-                  color: row % 3 == 0 ? scheme.onSurface : scheme.outlineVariant,
+                  color: row % 3 == 0 ? gc.boardLineStrong : gc.boardLine,
                   width: row % 3 == 0 ? 1.6 : 0.4,
                 ),
                 left: BorderSide(
-                  color: col % 3 == 0 ? scheme.onSurface : scheme.outlineVariant,
+                  color: col % 3 == 0 ? gc.boardLineStrong : gc.boardLine,
                   width: col % 3 == 0 ? 1.6 : 0.4,
                 ),
                 bottom: BorderSide(
-                  color: row == 8 ? scheme.onSurface : scheme.outlineVariant,
+                  color: row == 8 ? gc.boardLineStrong : gc.boardLine,
                   width: row == 8 ? 1.6 : 0.4,
                 ),
                 right: BorderSide(
-                  color: col == 8 ? scheme.onSurface : scheme.outlineVariant,
+                  color: col == 8 ? gc.boardLineStrong : gc.boardLine,
                   width: col == 8 ? 1.6 : 0.4,
                 ),
               ),
@@ -1112,7 +1114,7 @@ class _Cell extends StatelessWidget {
                       ),
                     ),
                   ),
-                  if (value == 0 && ghost != null) _Ghost(key: Key('fed_ghost_$keyName'), cell: size, ghost: ghost!, dark: dark),
+                  if (value == 0 && ghost != null) _Ghost(key: Key('fed_ghost_$keyName'), cell: size, ghost: ghost!, dark: dark, placed: gc.highlight),
                 ],
                 // Кольцо портала: клетка видна из двух пазлов сразу.
                 if (portal)
@@ -1145,14 +1147,14 @@ class _Cell extends StatelessWidget {
                           mask: mask,
                           value: value,
                           cell: size,
-                          color: scheme.onSurfaceVariant,
+                          color: gc.notesInk,
                         )
                       : Text(
                           value == 0 ? '' : '$value',
                           style: TextStyle(
                             fontSize: size * 0.52,
                             fontWeight: given ? FontWeight.w800 : FontWeight.w500,
-                            color: wrong ? scheme.error : given ? scheme.onSurface : scheme.primary,
+                            color: wrong ? scheme.error : given ? gc.onCell : gc.inkPlaced,
                           ),
                         ),
                 ),
@@ -1194,7 +1196,10 @@ int? fedChildAt(int r, int c) {
 /// точка подстраивается под клетку (`(клетка − 6) / 9`), меньше 2 px — не рисуется; заданная
 /// цифра — бледно-фиолетовая, поставленная рукой — `#7f7fd5`, пустая — прозрачная.
 class _Ghost extends StatelessWidget {
-  const _Ghost({super.key, required this.cell, required this.ghost, required this.dark});
+  const _Ghost({super.key, required this.cell, required this.ghost, required this.dark, required this.placed});
+
+  /// Цвет поставленной цифры в призраке — роль подсветки (`GameColors.highlight`).
+  final Color placed;
 
   final double cell;
   final ({List<List<int>> grid, List<List<int>> given}) ghost;
@@ -1208,14 +1213,16 @@ class _Ghost extends StatelessWidget {
       child: SizedBox(
         width: dot * 9,
         height: dot * 9,
-        child: CustomPaint(painter: _GhostPainter(ghost: ghost, dot: dot, dark: dark)),
+        child: CustomPaint(painter: _GhostPainter(ghost: ghost, dot: dot, dark: dark, placed: placed)),
       ),
     );
   }
 }
 
 class _GhostPainter extends CustomPainter {
-  const _GhostPainter({required this.ghost, required this.dot, required this.dark});
+  const _GhostPainter({required this.ghost, required this.dot, required this.dark, required this.placed});
+
+  final Color placed;
 
   final ({List<List<int>> grid, List<List<int>> given}) ghost;
   final double dot;
@@ -1224,7 +1231,7 @@ class _GhostPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final given = Paint()..color = dark ? const Color(0x73A399E0) : const Color(0x4D5B4D9E);
-    final placed = Paint()..color = const Color(0xFF7F7FD5);
+    final placed = Paint()..color = this.placed;
     for (var r = 0; r < 9; r++) {
       for (var c = 0; c < 9; c++) {
         if (ghost.grid[r][c] == 0) continue;
@@ -1261,7 +1268,7 @@ class _SolutionAsk extends StatelessWidget {
             const SizedBox(width: 12),
             FilledButton(
               key: const Key('fractal-solution-confirm'),
-              style: FilledButton.styleFrom(backgroundColor: _solutionFill),
+              style: FilledButton.styleFrom(backgroundColor: GameColors.of(context).hint),
               onPressed: onConfirm,
               child: Text(L.t('puzzleShowSolution')),
             ),
@@ -1294,7 +1301,6 @@ class _ReviewOver extends StatelessWidget {
 }
 
 /// Цвет показа решения — как у веба и лампочек головоломок.
-const _solutionFill = Color(0xFFB45309);
 
 class _Toolbar extends StatelessWidget {
   const _Toolbar({
@@ -1366,7 +1372,7 @@ class _Toolbar extends StatelessWidget {
             L.t('fractalSolutionUsed'),
             key: const Key('fractal-solution-used'),
             textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: _solutionFill),
+            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: GameColors.of(context).hint),
           ),
         ),
       if (h != null)

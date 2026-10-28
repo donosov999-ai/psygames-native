@@ -278,6 +278,8 @@ const t: Record<string, string> = {
   "skillSwitching": "トレーニング：注意の切り替え",
   "hanoi": "ハノイの塔",
   "hanoiDesc": "すべての円盤を右の柱へ移動",
+  "hanoiStuck": "行き詰まりましたか？次の一手か解説全体をお見せします。",
+  "hanoiRuleBig": "大きい円盤を小さい円盤の上に置くことはできません。",
   "hanoiIntroDesc": "円盤の塔を左の柱から右の柱へ移します。大きい円盤を小さい円盤の上に置くことはできません。計画・再帰・問題解決を鍛えます。",
   "discsCount": "円盤の数",
   "hanoiOptimal": "最適手数",

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../../shell/app_haptics.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/game_shell.dart';
+import '../../shell/game_clock.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/level_rules.dart';
@@ -65,6 +66,53 @@ class _HanoiScreenState extends State<HanoiScreen> {
     _autoNext = null;
   }
 
+  /*
+   * 🔴 ПОМОЩЬ ЗАСТРЯВШЕМУ (задачи 4366818b и d7e75e2d, отзывы 45039889 и 166ae4aa,
+   * 27.10.2026, fr: «j'arrive pas», «aide moi»). Новичок прошёл L1 за 6,5 мин, на
+   * L2 застрял: ввод работал, ошибок 0, разбор в шапке он не нашёл. Помощь теперь
+   * приходит сама — после [_idleHelp] без хода или после [_errorsForHelp] ошибок
+   * подряд — строкой над полем: «Подсказка» (один ход решения) или «Разбор».
+   *
+   * ⚠️ ПОДСКАЗКА — ПОМОЩЬ, А НЕ УЧЕБНАЯ ПАРТИЯ (правило «Судоку» 20.10.2026):
+   * уровень после неё засчитывается. Полный разбор, как и раньше, ставит
+   * `LessonUsed.mark` — там решение показано целиком.
+   */
+  static const Duration _idleHelp = Duration(seconds: 45);
+  static const int _errorsForHelp = 3;
+  GameTimer? _idle;
+  bool _help = false;
+  int _errorStreak = 0;
+
+  /// Ход-подсказка: стержни подсвечиваются, пока человек не сходит.
+  HanoiMove? _hint;
+
+  void _armIdle() {
+    _idle?.cancel();
+    if (_won || _help) return;
+    // Часы партии, а не настенные: пауза и разбор поверх игры простой не копят
+    // (храповик game_clock_discipline_test).
+    _idle = gameTimeout(_idleHelp, () {
+      if (mounted && !_won) setState(() => _help = true);
+    });
+  }
+
+  /// Один ход того же решения, что у разбора (`HanoiPuzzle` + `BoardSolver`).
+  /// Предел положений меньше, чем у разбора: подсказка зовётся на нажатии и не
+  /// должна подвешивать экран на крупных башнях. Не нашлось — открываем разбор.
+  void _showHint() {
+    final board = _board;
+    if (board == null || _won) return;
+    final route = BoardSolver.solve(const HanoiPuzzle(), board, maxStates: 20000);
+    if (route.isEmpty) {
+      _openLesson();
+      return;
+    }
+    setState(() {
+      _sel = null;
+      _hint = route.first;
+    });
+  }
+
   late LevelLadder _ladder;
   HanoiState? _board;
   int? _sel;
@@ -82,6 +130,7 @@ class _HanoiScreenState extends State<HanoiScreen> {
   void dispose() {
     // Открытый таймер после ухода с экрана валит весь прогон проб молча.
     _cancelNext();
+    _idle?.cancel();
     super.dispose();
   }
 
@@ -130,6 +179,10 @@ class _HanoiScreenState extends State<HanoiScreen> {
     _errors = 0;
     _won = false;
     _history.clear();
+    _help = false;
+    _errorStreak = 0;
+    _hint = null;
+    _armIdle();
   }
 
   void _restart() {
@@ -181,15 +234,22 @@ class _HanoiScreenState extends State<HanoiScreen> {
     if (after == null) {
       _haptics.miss();
       _errors += 1;
+      _errorStreak += 1;
+      if (_errorStreak >= _errorsForHelp) _help = true;
       return;
     }
+    _errorStreak = 0;
+    _hint = null;
     after.solved ? _haptics.win() : _haptics.hit();
     _history.add(board.copy());
     _moves += 1;
     _board = after;
     if (after.solved) {
       _won = true;
+      _idle?.cancel();
       _scheduleNext();
+    } else {
+      _armIdle();
     }
   }
 
@@ -203,6 +263,8 @@ class _HanoiScreenState extends State<HanoiScreen> {
       _moves = _moves > 0 ? _moves - 1 : 0;
       _sel = null;
       _won = false;
+      _hint = null;
+      _armIdle();
     });
   }
 
@@ -220,8 +282,11 @@ class _HanoiScreenState extends State<HanoiScreen> {
   /// где его надо переводить, и первым, где забудут.
   static String get _title => L.t('hanoi');
 
-  /// Высота строки цели над доской.
-  static const double _goalLineH = 28;
+  /// Высота строк цели и правила над доской.
+  static const double _goalLineH = 46;
+
+  /// Высота полосы помощи, когда она показана.
+  static const double _helpLineH = 92;
 
   Future<void> _openLesson() async {
     final from = _board;
@@ -286,33 +351,95 @@ class _HanoiScreenState extends State<HanoiScreen> {
       ],
       // Цель — строкой над доской, а не только в правилах за «?» (отзыв af75de31,
       // 14.10.2026: «what i had to do»). Ключ тот же, что у карточки игры.
-      field: (context, h) => Column(
-        children: [
-          SizedBox(
-            height: _goalLineH,
-            child: Center(
-              child: Text(
-                L.t('hanoiDesc'),
-                key: const ValueKey('hanoi-goal'),
-                textAlign: TextAlign.center,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+      field: (context, h) {
+        final helpH = _help && !_won ? _helpLineH : 0.0;
+        final text = Theme.of(context).textTheme;
+        return Column(
+          children: [
+            SizedBox(
+              height: _goalLineH,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    L.t('hanoiDesc'),
+                    key: const ValueKey('hanoi-goal'),
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: text.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+                  ),
+                  // Правило — рядом с целью, а не только в справке (задача d7e75e2d:
+                  // «правило перемещения дисков не понимают»).
+                  Text(
+                    L.t('hanoiRuleBig'),
+                    key: const ValueKey('hanoi-rule'),
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: text.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                  ),
+                ],
               ),
             ),
-          ),
-          HanoiBoard(
-            state: board,
-            fieldHeight: h - _goalLineH,
-            selected: _sel,
-            onTapPeg: _tapPeg,
-            onDrop: (from, to) => setState(() {
-              _sel = null;
-              _move(from, to);
-            }),
-          ),
-        ],
-      ),
+            if (helpH > 0)
+              SizedBox(
+                key: const ValueKey('hanoi-help'),
+                height: helpH,
+                // Фраза сверху, кнопки под ней: французская строка в один ряд с двумя
+                // кнопками обрезалась на телефоне (снимок 28.10, fr, 1080×2400).
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        L.t('hanoiStuck'),
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: text.bodySmall,
+                      ),
+                      const SizedBox(height: 4),
+                      // Длинные подписи (fr, de) ужимают ряд, а не выталкивают за край.
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            FilledButton.tonalIcon(
+                              key: const ValueKey('hanoi-hint'),
+                              onPressed: _showHint,
+                              icon: const Icon(Icons.lightbulb_outline, size: 18),
+                              label: Text(L.t('btn_hint')),
+                            ),
+                            const SizedBox(width: 8),
+                            TextButton(
+                              key: const ValueKey('hanoi-help-lesson'),
+                              onPressed: _openLesson,
+                              child: Text(L.t('teachButton')),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            HanoiBoard(
+              state: board,
+              fieldHeight: h - _goalLineH - helpH,
+              selected: _sel,
+              hint: _hint,
+              onTapPeg: _tapPeg,
+              onDrop: (from, to) => setState(() {
+                _sel = null;
+                _move(from, to);
+              }),
+            ),
+          ],
+        );
+      },
       auxRow: AuxBar(children: [
         AuxAction(icon: Icons.undo, label: L.t('btn_undo'), onPressed: _history.isEmpty ? null : _undo),
         AuxAction(icon: Icons.refresh, label: L.t('restart'), onPressed: _restart),

@@ -696,6 +696,8 @@
 "hanoi":"Torre di Hanoi",
 "hanoiDesc":"Sposta tutti i dischi sul perno destro",
 "hanoiIntroDesc":"Sposta la torre di dischi dal perno sinistro a quello destro. Un disco più grande non può mai stare sopra uno più piccolo. Allena pianificazione, ricorsione e problem solving.",
+"hanoiRuleBig":"Un disco più grande non può mai stare su uno più piccolo.",
+"hanoiStuck":"Bloccato? Posso mostrarti la prossima mossa o tutta la spiegazione.",
 "hanoiWon":"Risolto in {m} mosse (minimo {min}) · {s}★",
 "hanoiWonMin":"Risolto col minimo: {m} mosse · {s}★",
 "hard":"Difficile",
