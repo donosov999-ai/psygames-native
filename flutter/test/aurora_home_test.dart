@@ -75,6 +75,15 @@ void main() {
     expect(find.descendant(of: key('home-streak'), matching: find.text('4')), findsOneWidget);
     expect(find.descendant(of: key('home-achievements'), matching: find.text('5')), findsOneWidget);
     expect(find.text('${((model['header'] as Map)['chip'] as Map)['name']}'), findsOneWidget);
+    // «Продолжить» — значок самой игры, тот же переход.
+    final resume = (model['blocks'] as List).cast<Map>().firstWhere((b) => b['kind'] == 'resume', orElse: () => const {});
+    if (resume.isNotEmpty) {
+      await t.scrollUntilVisible(key('home-resume'), 200, scrollable: find.descendant(of: key('home-list'), matching: find.byType(Scrollable)).first);
+      expect(find.descendant(of: key('home-resume'), matching: find.byType(Image)), findsOneWidget);
+      await t.tap(key('home-resume'));
+      expect(opened.removeLast(), resume['href']);
+      await t.scrollUntilVisible(key('home-profile-chip'), -200, scrollable: find.descendant(of: key('home-list'), matching: find.byType(Scrollable)).first);
+    }
 
     await t.tap(key('home-profile-chip'));
     expect(switcher, 1);
