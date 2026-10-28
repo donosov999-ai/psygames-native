@@ -987,7 +987,9 @@ class _HybridAppState extends State<HybridApp> {
     // знает только оболочка.
     LevelTransition.resolve = (url) {
       final route = HybridApp.routeOf(url);
-      return route == null ? null : HybridApp.native[route];
+      final game = route == null ? null : HybridApp.native[route];
+      // Тем же правилом, что `_openNative`: неготовая игра и под «Авророй» — классическая.
+      return game == null ? null : (SharedState s) => AuroraGameScope(route: route!, child: game(s));
     };
     // 🔴 ПРИЁМНИК ПАРТИЙ. Перенесённая игра не хранит партию сама — она отдаёт
     // результат сюда, а здесь он уходит в ТУ ЖЕ `saveSession` веб-половины,
