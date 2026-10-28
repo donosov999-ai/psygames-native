@@ -3,6 +3,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../shell/game_colors.dart';
 import '../../shell/app_haptics.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/boss_round.dart';
@@ -309,7 +310,7 @@ class _VisualSearchScreenState extends State<VisualSearchScreen> {
                       Container(
                         padding: const EdgeInsets.all(6),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF1F2937),
+                          color: GameColors.of(context).stimulusField,
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: VsGlyph(
@@ -330,10 +331,10 @@ class _VisualSearchScreenState extends State<VisualSearchScreen> {
                     width: side,
                     height: side,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF1F2937),
+                      color: GameColors.of(context).stimulusField,
                       border: Border.all(
                         color: _phase == _Phase.wrong
-                            ? const Color(0xFFF43F5E)
+                            ? GameColors.of(context).wrong
                             : Theme.of(context).colorScheme.outlineVariant,
                         width: 2,
                       ),
@@ -459,7 +460,7 @@ class _ItemView extends StatelessWidget {
           height: vsItemSize,
           alignment: Alignment.center,
           decoration: BoxDecoration(
-            color: item.found ? const Color(0x6622C55E) : Colors.transparent,
+            color: item.found ? GameColors.of(context).highlight.withValues(alpha: 0.4) : Colors.transparent,
             borderRadius: BorderRadius.circular(4),
           ),
           child: Stack(

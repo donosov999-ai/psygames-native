@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 
+import '../../shell/game_colors.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/game_shell.dart';
@@ -472,7 +473,7 @@ class _NumberRunScreenState extends State<NumberRunScreen> with SingleTickerProv
           style: TextStyle(
             fontSize: station != null ? 22 : 15,
             fontWeight: FontWeight.w800,
-            color: station != null ? Colors.white : scheme.onSurface,
+            color: station != null ? GameColors.of(context).onStrong : scheme.onSurface,
           ),
         ),
       ),
@@ -675,6 +676,7 @@ class NumberRoadView extends StatelessWidget {
                 carY: carY,
                 viewAhead: viewAhead,
                 ink: Theme.of(context).colorScheme.onSurface,
+                roles: GameColors.of(context),
                 font: DefaultTextStyle.of(context).style.fontFamily,
               ),
             ),
@@ -730,6 +732,7 @@ class RoadPainter extends CustomPainter {
     required this.carY,
     required this.viewAhead,
     required this.ink,
+    required this.roles,
     this.font,
     this.showPassedScale = true,
   });
@@ -744,6 +747,9 @@ class RoadPainter extends CustomPainter {
   final List<int> collected;
   final double carY, viewAhead;
   final Color ink;
+
+  /// Роли исхода (`GameColors`): верная арка и флажок верного ответа. Сцена дороги — своя.
+  final GameColors roles;
   final bool showPassedScale;
 
   @override
@@ -869,7 +875,7 @@ class RoadPainter extends CustomPainter {
       final passed = nextRow > r.id;
       canvas.drawRRect(
         RRect.fromRectAndRadius(rect, const Radius.circular(8)),
-        Paint()..color = passed && lane == r.correct ? const Color(0xFF16A34A) : const Color(0xFF1E3A8A),
+        Paint()..color = passed && lane == r.correct ? roles.correct : const Color(0xFF1E3A8A),
       );
       canvas.drawRRect(
         RRect.fromRectAndRadius(rect, const Radius.circular(8)),
@@ -900,7 +906,7 @@ class RoadPainter extends CustomPainter {
     }
     // Флажок верного ответа — после проезда: показать, где было надо.
     if (showPassedScale && nextRow > r.id) {
-      canvas.drawCircle(Offset(tx(r.answer), yy), 7, Paint()..color = const Color(0xFF22C55E));
+      canvas.drawCircle(Offset(tx(r.answer), yy), 7, Paint()..color = roles.correct);
     }
   }
 
@@ -1013,6 +1019,7 @@ class RoadPainter extends CustomPainter {
       old.collected != collected ||
       old.course != course ||
       old.ink != ink ||
+      old.roles != roles ||
       old.font != font;
 }
 
@@ -1045,6 +1052,7 @@ class RowArt extends StatelessWidget {
               carY: size.height - 10,
               viewAhead: 40,
               ink: Theme.of(context).colorScheme.onSurface,
+              roles: GameColors.of(context),
               font: DefaultTextStyle.of(context).style.fontFamily,
               showPassedScale: false,
             ),

@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../shell/game_colors.dart';
 import '../../shell/app_haptics.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/game_clock.dart';
@@ -185,7 +186,7 @@ class _SubmarinesScreenState extends State<SubmarinesScreen> {
                         width: 10,
                         height: 10,
                         margin: const EdgeInsets.all(1),
-                        color: b.sea.sunk.contains(s.name) ? const Color(0xFF334155) : const Color(0xFF94A3B8),
+                        color: b.sea.sunk.contains(s.name) ? Theme.of(context).colorScheme.onSurface : GameColors.of(context).muted,
                       ),
                   ]),
               ],
@@ -247,7 +248,7 @@ class _Cell extends StatelessWidget {
           decoration: BoxDecoration(
             color: fill,
             borderRadius: BorderRadius.circular(3),
-            border: reveal && shot == null ? Border.all(color: const Color(0xFFF59E0B), width: 2.5) : null,
+            border: reveal && shot == null ? Border.all(color: GameColors.of(context).warning, width: 2.5) : null,
           ),
           alignment: Alignment.center,
           child: shot == false
@@ -296,10 +297,10 @@ class _LessonGrid extends StatelessWidget {
                     _Art.finish => (r, c) == (mid, mid)
                         ? const Color(0xFFDC2626)
                         : ((r - mid).abs() + (c - mid).abs() == 1)
-                            ? const Color(0xFFFBBF24)
+                            ? GameColors.of(context).reward
                             : const Color(0xFFE0F2FE),
                     _Art.heat => shots.containsKey((r, c))
-                        ? (shots[(r, c)]! ? const Color(0xFFDC2626) : const Color(0xFF94A3B8))
+                        ? (shots[(r, c)]! ? const Color(0xFFDC2626) : GameColors.of(context).muted)
                         : Color.lerp(const Color(0xFFE0F2FE), const Color(0xFFB91C1C), (heat[(r, c)] ?? 0) / top)!,
                   },
                 ),

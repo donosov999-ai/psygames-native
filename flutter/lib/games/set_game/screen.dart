@@ -3,6 +3,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../shell/game_colors.dart';
 import '../../shell/app_haptics.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/boss_round.dart';
@@ -211,7 +212,7 @@ class _SetGameScreenState extends State<SetGameScreen> {
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: const Color(0xFF22C55E), width: 2),
+                border: Border.all(color: GameColors.of(context).highlight, width: 2),
               ),
               child: CustomPaint(painter: _CardPainter(board[i])),
             ),
@@ -333,7 +334,7 @@ class _Table extends StatelessWidget {
                           color: picked.contains(i)
                               ? (right == null
                                   ? scheme.primary
-                                  : (right! ? const Color(0xFF22C55E) : const Color(0xFFF43F5E)))
+                                  : (right! ? GameColors.of(context).correct : GameColors.of(context).wrong))
                               : scheme.outlineVariant,
                           width: picked.contains(i) ? 3 : 1,
                         ),

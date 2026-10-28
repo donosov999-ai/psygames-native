@@ -3,6 +3,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../shell/game_colors.dart';
 import '../../shell/app_haptics.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/game_clock.dart';
@@ -302,7 +303,7 @@ class _Prompt extends StatelessWidget {
               key: const ValueKey('mt-joint'),
               style: text.titleMedium?.copyWith(
                 fontWeight: FontWeight.w800,
-                color: round.negate2 ? const Color(0xFFDC2626) : null,
+                color: round.negate2 ? GameColors.of(context).wrong : null,
               ),
             ),
             _TraitChip(trait: round.trait2!, value: round.value2!, crossed: round.negate2),
@@ -327,7 +328,7 @@ class _TraitChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: crossed ? const Color(0xFFFEE2E2) : scheme.primaryContainer,
+        color: crossed ? GameColors.of(context).wrongFill : scheme.primaryContainer,
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(mainAxisSize: MainAxisSize.min, children: [
@@ -337,7 +338,7 @@ class _TraitChip extends StatelessWidget {
           traitLabel(trait, value),
           style: TextStyle(
             fontWeight: FontWeight.w700,
-            color: crossed ? const Color(0xFF991B1B) : scheme.onPrimaryContainer,
+            color: crossed ? GameColors.of(context).wrongInk : scheme.onPrimaryContainer,
             decoration: crossed ? TextDecoration.lineThrough : null,
           ),
         ),
@@ -378,35 +379,35 @@ class _Grid extends StatelessWidget {
         runSpacing: gap,
         alignment: WrapAlignment.center,
         children: [
-          for (var i = 0; i < n; i++) _card(i, cell, scheme),
+          for (var i = 0; i < n; i++) _card(i, cell, scheme, GameColors.of(context)),
         ],
       ),
     );
   }
 
-  Widget _card(int i, double cell, ColorScheme scheme) {
+  Widget _card(int i, double cell, ColorScheme scheme, GameColors roles) {
     final m = round.cards[i];
     final g = graded;
     final isSel = selected.contains(i);
-    Color border = isSel ? const Color(0xFF6D4C41) : scheme.outlineVariant;
+    Color border = isSel ? roles.selected : scheme.outlineVariant;
     double width = isSel ? 4 : 1.5;
     IconData? mark;
     Color? markColor;
     if (g != null) {
       if (g.missed.contains(i)) {
-        border = const Color(0xFFFB8C00);
+        border = roles.warning;
         width = 4;
         mark = Icons.priority_high;
-        markColor = const Color(0xFFFB8C00);
+        markColor = roles.warning;
       } else if (g.extras.contains(i)) {
-        border = const Color(0xFFDC2626);
+        border = roles.wrong;
         width = 4;
         mark = Icons.close;
-        markColor = const Color(0xFFDC2626);
+        markColor = roles.wrong;
       } else if (isSel) {
-        border = const Color(0xFF16A34A);
+        border = roles.correct;
         mark = Icons.check;
-        markColor = const Color(0xFF16A34A);
+        markColor = roles.correct;
       }
     }
     final tap = onTap;
@@ -422,7 +423,7 @@ class _Grid extends StatelessWidget {
           width: cell,
           height: cell,
           decoration: BoxDecoration(
-            color: isSel ? const Color(0xFFFFF3E0) : scheme.surface,
+            color: isSel ? roles.selected.withValues(alpha: 0.12) : scheme.surface,
             borderRadius: BorderRadius.circular(cell * 0.18),
             border: Border.all(color: border, width: width),
           ),

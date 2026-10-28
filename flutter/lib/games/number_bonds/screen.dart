@@ -3,6 +3,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../shell/game_colors.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/boss_round.dart';
 import '../../shell/demo_lesson.dart';
@@ -327,7 +328,7 @@ class _Field extends StatelessWidget {
                 fontWeight: FontWeight.w700,
                 color: right == null
                     ? scheme.primary
-                    : (right! ? const Color(0xFF22C55E) : const Color(0xFFF43F5E)),
+                    : (right! ? GameColors.of(context).correct : GameColors.of(context).wrong),
               ),
             ),
             Text(

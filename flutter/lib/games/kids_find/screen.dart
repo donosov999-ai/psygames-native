@@ -3,6 +3,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../shell/game_colors.dart';
 import '../../shell/app_haptics.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/game_clock.dart';
@@ -216,9 +217,9 @@ class _KidsFindScreenState extends State<KidsFindScreen> {
                         margin: EdgeInsets.all(cell * 0.06),
                         decoration: BoxDecoration(
                           color: _phase == _Phase.right && i == b.target
-                              ? const Color(0x3322C55E)
+                              ? GameColors.of(context).correct.withValues(alpha: 0.2)
                               : _wrongAt == i
-                                  ? const Color(0x33EF4444)
+                                  ? GameColors.of(context).wrongFill
                                   : Colors.transparent,
                           borderRadius: BorderRadius.circular(cell * 0.18),
                         ),
@@ -274,7 +275,7 @@ class _BoardArt extends StatelessWidget {
                   margin: const EdgeInsets.all(3),
                   decoration: i == mark
                       ? BoxDecoration(
-                          border: Border.all(color: const Color(0xFF22C55E), width: 3),
+                          border: Border.all(color: GameColors.of(context).highlight, width: 3),
                           borderRadius: BorderRadius.circular(8),
                         )
                       : null,

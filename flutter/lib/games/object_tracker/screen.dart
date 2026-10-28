@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
+import '../../shell/game_colors.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/l10n.dart';
@@ -393,7 +394,7 @@ class _Ball extends StatelessWidget {
               color: scheme.primary.withValues(alpha: chosen ? 0.9 : 0.55),
               shape: BoxShape.circle,
               border: Border.all(
-                color: outlined ? scheme.tertiary : Colors.transparent,
+                color: outlined ? GameColors.of(context).highlight : Colors.transparent,
                 width: outlined ? 5 : 0,
               ),
             ),

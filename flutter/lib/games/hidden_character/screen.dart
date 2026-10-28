@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../shell/game_colors.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
@@ -190,12 +191,12 @@ class _HiddenCharacterScreenState extends State<HiddenCharacterScreen> {
     padding: const EdgeInsets.symmetric(horizontal: 10),
   );
   /// Выбранный признак и включённое «или…» — заметно отличаются от остальных кнопок.
-  static final _compactPicked = OutlinedButton.styleFrom(
+  static ButtonStyle _compactPicked(GameColors roles) => OutlinedButton.styleFrom(
     visualDensity: VisualDensity.compact,
     minimumSize: const Size(0, 36),
     padding: const EdgeInsets.symmetric(horizontal: 10),
-    backgroundColor: const Color(0x337F7FD5),
-    side: const BorderSide(color: Color(0xFF7F7FD5), width: 2),
+    backgroundColor: roles.highlight.withValues(alpha: 0.2),
+    side: BorderSide(color: roles.highlight, width: 2),
   );
   static final _compactFilled = FilledButton.styleFrom(
     visualDensity: VisualDensity.compact,
@@ -328,7 +329,7 @@ class _HiddenCharacterScreenState extends State<HiddenCharacterScreen> {
                     if (_showFeature(r, f))
                       OutlinedButton(
                         key: ValueKey('hc-ask-${f.name}'),
-                        style: f == _orFirst ? _compactPicked : _compact,
+                        style: f == _orFirst ? _compactPicked(GameColors.of(context)) : _compact,
                         onPressed: () => _ask(f),
                         child: Text(featureQuestion(f)),
                       ),
@@ -336,7 +337,7 @@ class _HiddenCharacterScreenState extends State<HiddenCharacterScreen> {
                   if (r.withOr && r.features.any((f) => _pairOpen(r, f)))
                     OutlinedButton(
                       key: const ValueKey('hc-or'),
-                      style: _orMode ? _compactPicked : _compact,
+                      style: _orMode ? _compactPicked(GameColors.of(context)) : _compact,
                       onPressed: () => setState(() {
                         _orMode = !_orMode;
                         _orFirst = null;
@@ -395,24 +396,24 @@ class _Grid extends StatelessWidget {
         spacing: gap,
         runSpacing: gap,
         alignment: WrapAlignment.center,
-        children: [for (var i = 0; i < n; i++) _card(i, cell, scheme)],
+        children: [for (var i = 0; i < n; i++) _card(i, cell, scheme, GameColors.of(context))],
       ),
     );
   }
 
-  Widget _card(int i, double cell, ColorScheme scheme) {
+  Widget _card(int i, double cell, ColorScheme scheme, GameColors roles) {
     final on = alive.contains(i);
     var border = scheme.outlineVariant;
     var width = 1.5;
     if (chosen == i) {
-      border = const Color(0xFF6D4C41);
+      border = roles.selected;
       width = 4;
     }
     if (reveal && i == round.target) {
-      border = const Color(0xFF16A34A);
+      border = roles.correct;
       width = 4;
     } else if (reveal && i == picked) {
-      border = const Color(0xFFDC2626);
+      border = roles.wrong;
       width = 4;
     }
     final tap = onTap;
@@ -440,7 +441,7 @@ class _Grid extends StatelessWidget {
             child: Stack(children: [
               Positioned.fill(child: CustomPaint(painter: FacePainter(round.suspects[i]))),
               if (!on && !(reveal && i == round.target))
-                Positioned.fill(child: Icon(Icons.close, color: const Color(0xFF9CA3AF), size: cell * 0.7)),
+                Positioned.fill(child: Icon(Icons.close, color: roles.muted, size: cell * 0.7)),
             ]),
           ),
         ),

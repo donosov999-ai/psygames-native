@@ -3,6 +3,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../shell/game_colors.dart';
 import '../../shell/app_haptics.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/boss_round.dart';
@@ -347,7 +348,7 @@ class _Scene extends StatelessWidget {
                   decoration: found.contains(i)
                       ? BoxDecoration(
                           shape: BoxShape.circle,
-                          border: Border.all(color: const Color(0xFF22C55E), width: 3),
+                          border: Border.all(color: GameColors.of(context).highlight, width: 3),
                         )
                       : null,
                   child: Icon(

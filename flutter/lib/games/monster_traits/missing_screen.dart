@@ -3,6 +3,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../shell/game_colors.dart';
 import '../../shell/app_haptics.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/game_clock.dart';
@@ -239,7 +240,7 @@ class _MonsterMissingScreenState extends State<MonsterMissingScreen> {
               style: TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.w900,
-                color: _lastOk == true ? const Color(0xFF16A34A) : const Color(0xFFDC2626),
+                color: _lastOk == true ? GameColors.of(context).correct : GameColors.of(context).wrong,
               ),
             ),
           _ => FilledButton.icon(
@@ -326,9 +327,9 @@ class _Options extends StatelessWidget {
                 final border = gone == null
                     ? (sel ? scheme.primary : scheme.outlineVariant)
                     : right
-                        ? const Color(0xFF16A34A)
+                        ? GameColors.of(context).correct
                         : sel
-                            ? const Color(0xFFDC2626)
+                            ? GameColors.of(context).wrong
                             : scheme.outlineVariant;
                 return Semantics(
                   button: onTap != null,

@@ -20,6 +20,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 
+import '../../shell/game_colors.dart';
 import '../../shell/boss_round.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/game_shell.dart';
@@ -296,6 +297,7 @@ class _SearchRunnerScreenState extends State<SearchRunnerScreen> with SingleTick
             targets: flashing ? tr.round.targetIds.toSet() : const {},
             rings: stopped ? {for (var lane = 0; lane < 3; lane += 1) tr.ringed[lane]: runnerLaneColors[lane]} : const {},
             ink: scheme.onSurface,
+              target: GameColors.of(context).highlight,
           ),
         ),
       );
@@ -315,7 +317,7 @@ class _SearchRunnerScreenState extends State<SearchRunnerScreen> with SingleTick
             row is TokenRow && row.trackerStart ? Icons.visibility : Icons.star_rounded,
             key: const Key('runner-ask'),
             size: 48,
-            color: const Color(0xFFFBBF24),
+            color: GameColors.of(context).reward,
           ),
       };
     }
@@ -411,10 +413,11 @@ class _LessonArt extends StatelessWidget {
               targets: round.targetIds.toSet(),
               rings: const {},
               ink: scheme.onSurface,
+              target: GameColors.of(context).highlight,
             ),
           ),
         ),
-      TokenRow() => const Icon(Icons.star_rounded, size: 40, color: Color(0xFFFBBF24)),
+      TokenRow() => Icon(Icons.star_rounded, size: 40, color: GameColors.of(context).reward),
     };
     return FittedBox(
       child: SizedBox(
@@ -499,7 +502,7 @@ class _RoadView extends StatelessWidget {
           decoration: BoxDecoration(
             color: runnerAccent,
             borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: Colors.white, width: 2),
+            border: Border.all(color: GameColors.of(context).onStrong, width: 2),
           ),
         ),
       ));
@@ -529,12 +532,12 @@ class _Arch extends StatelessWidget {
     final frame = verdict == null
         ? scheme.outline
         : verdict!
-            ? const Color(0xFF22C55E)
-            : const Color(0xFFEF4444);
+            ? GameColors.of(context).correct
+            : GameColors.of(context).wrong;
     Widget? content;
     switch (row) {
       case TokenRow(:final answer):
-        if (lane == answer) content = const Icon(Icons.star_rounded, color: Color(0xFFFBBF24), size: 36);
+        if (lane == answer) content = Icon(Icons.star_rounded, color: GameColors.of(context).reward, size: 36);
       case GatesRow(:final arches, :final colors):
         content = FittedBox(
           child: Padding(
@@ -591,7 +594,7 @@ class _Arch extends StatelessWidget {
       label: _label(),
       child: Container(
         decoration: BoxDecoration(
-          color: row is WindowsRow ? const Color(0xFF1F2937) : scheme.surfaceContainerHigh,
+          color: row is WindowsRow ? GameColors.of(context).stimulusField : scheme.surfaceContainerHigh,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: frame, width: verdict == null ? 1.5 : 3),
         ),
@@ -642,6 +645,7 @@ class _TrackerPainter extends CustomPainter {
     required this.targets,
     required this.rings,
     required this.ink,
+    required this.target,
   });
 
   final tracker.TrackerWorld world;
@@ -650,13 +654,16 @@ class _TrackerPainter extends CustomPainter {
   final Map<String, Color> rings;
   final Color ink;
 
+  /// Цвет отмеченной цели — роль `highlight` (найденное, цель).
+  final Color target;
+
   @override
   void paint(Canvas canvas, Size size) {
     final side = math.min(size.width, size.height);
     final r = radius * side;
     for (final o in world.objects) {
       final c = Offset(o.x * side, o.y * side);
-      canvas.drawCircle(c, r, Paint()..color = targets.contains(o.id) ? const Color(0xFF22C55E) : ink);
+      canvas.drawCircle(c, r, Paint()..color = targets.contains(o.id) ? target : ink);
       final ring = rings[o.id];
       if (ring != null) {
         canvas.drawCircle(
