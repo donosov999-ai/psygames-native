@@ -331,6 +331,33 @@ describe('единый стандарт игровой механики', () => 
     expect(list && desc).toBeTruthy();
     const real = list![1].split(',').filter((s) => /'[a-z0-9_]+'/.test(s)).length;
     expect(`в наборе ${real}, в подписи ${desc![1]}`).toBe(`в наборе ${real}, в подписи ${real}`);
+    // 28.10.2026: profiles.ts уже говорил «12», а словарь (его показывает переключатель
+    // профилей на 12 языках) — «9». Сверяем и словарь.
+    const dict: string = readFileSync(join(__dirname, '../contexts/LanguageContext.tsx'), 'utf8');
+    const dictNum = dict.match(/profileDesc_free:\s*\{\s*ru:\s*'(\d+)\s*тренажёр/);
+    expect(dictNum).toBeTruthy();
+    expect(`в наборе ${real}, в словаре ${dictNum![1]}`).toBe(`в наборе ${real}, в словаре ${real}`);
+  });
+
+  /**
+   * ОПИСАНИЯ ПРОФИЛЕЙ НЕ ОБЕЩАЮТ ЭФФЕКТА ДЛЯ ЗДОРОВЬЯ.
+   *
+   * Решение Дениса (метод §10): «защищает от деменции» и «мозг стареет медленнее»
+   * запрещены — отсрочка симптомов ≠ профилактика болезни. 28.10.2026 профиль 50+
+   * всё равно обещал «замедление старения» в описании на 12 языках и в длинном
+   * описании; для App Store это ещё и риск по 1.4.1. Проверяем ru и en — с них
+   * переводят остальные десять.
+   */
+  it('описания профилей без обещаний про старение и деменцию', () => {
+    const BANNED = /старени|деменц|альцгейм|\baging\b|dementia|alzheimer/i;
+    const dict: string = readFileSync(join(__dirname, '../contexts/LanguageContext.tsx'), 'utf8');
+    const prof: string = readFileSync(join(__dirname, '../constants/profiles.ts'), 'utf8');
+    const lines = [
+      ...dict.split('\n').filter((l) => /^\s*profileDesc_\w+:/.test(l)),
+      ...prof.split('\n').filter((l) => /^\s*(description|long_description|long_description_en):/.test(l)),
+    ];
+    expect(lines.length).toBeGreaterThan(20);
+    expect(lines.filter((l) => BANNED.test(l)).map((l) => l.trim().slice(0, 90))).toEqual([]);
   });
 
   it('хабы стандарту не подчиняются — им нечего показывать', () => {

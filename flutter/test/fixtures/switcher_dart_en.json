@@ -49,7 +49,7 @@
    {
     "id": "free",
     "name": "Standard",
-    "desc": "9 trainers · a curated set to start with",
+    "desc": "12 trainers · a curated set to start with",
     "minutes": "⏱ 3-10 min",
     "wallet": null,
     "badge": "/assets/images/profiles/free.webp",
@@ -70,8 +70,8 @@
    },
    {
     "id": "seniors",
-    "name": "50+ Prevention",
-    "desc": "Memory · processing speed · slowing aging",
+    "name": "50+ Active Mind",
+    "desc": "Memory · processing speed · attention",
     "minutes": "⏱ 10-15 min",
     "wallet": null,
     "badge": "/assets/images/profiles/seniors.webp",

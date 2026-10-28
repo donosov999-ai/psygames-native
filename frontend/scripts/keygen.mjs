@@ -44,7 +44,7 @@ const PROFILE_CODES = {
   RED: 'vasilyeva',  // 📖 Скорочтение (READing)
   NZT: 'nzt48',      // 💊 NZT-48 полный
   DRV: 'drivers',    // 🚗 Водители
-  SEN: 'seniors',    // 👴 50+ профилактика
+  SEN: 'seniors',    // 👴 50+ Активный ум
   EXC: 'execs',      // 💼 Предприниматели
   STD: 'students',   // 🎓 Студенты ЕГЭ
   WOM: 'women',      // 👩 Женщины
