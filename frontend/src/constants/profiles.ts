@@ -6,7 +6,7 @@
  *
  * The original Денис profile (full access to all 48 games) is preserved
  * as a themed profile under the alias **ODV999** — unlocked with a
- * master code (same one as NZT staticrypt: `963Alex963!@#$%^&*()`).
+ * master code (same one as NZT staticrypt: `<скрыто 21.10.2026>)`).
  *
  * All other public profiles are themed and require their own master codes
  * (chess/kids/vasilyeva/nzt48/drivers/seniors/execs/students). FREE is
