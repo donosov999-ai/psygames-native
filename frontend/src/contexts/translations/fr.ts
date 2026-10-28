@@ -276,6 +276,8 @@ const t: Record<string, string> = {
   "skillSwitching": "On entraîne : la bascule d'attention",
   "hanoi": "Tour de Hanoï",
   "hanoiDesc": "Déplace tous les disques sur la tige de droite",
+  "hanoiStuck": "Bloqué ? Je peux montrer le prochain coup ou toute l'explication.",
+  "hanoiRuleBig": "Un disque plus grand ne peut jamais aller sur un plus petit.",
   "hanoiIntroDesc": "Déplace la tour de disques de la tige gauche vers la droite. Un grand disque ne peut jamais reposer sur un plus petit. Entraîne la planification, la récursion et la résolution de problèmes.",
   "discsCount": "Disques",
   "hanoiOptimal": "Optimal",

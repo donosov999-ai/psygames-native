@@ -696,6 +696,8 @@
 "hanoi":"Torre de Hanói",
 "hanoiDesc":"Mova todos os discos para o pino da direita",
 "hanoiIntroDesc":"Mova a torre de discos do pino esquerdo para o direito. Um disco maior nunca pode ficar sobre um menor. Treina planejamento, recursão e resolução de problemas.",
+"hanoiRuleBig":"Um disco maior nunca pode ficar sobre um menor.",
+"hanoiStuck":"Travou? Posso mostrar o próximo movimento ou a explicação completa.",
 "hanoiWon":"Resolvido em {m} jogadas (mínimo {min}) · {s}★",
 "hanoiWonMin":"Resolvido no mínimo: {m} jogadas · {s}★",
 "hard":"Difícil",

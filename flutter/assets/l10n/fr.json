@@ -696,6 +696,8 @@
 "hanoi":"Tour de Hanoï",
 "hanoiDesc":"Déplace tous les disques sur la tige de droite",
 "hanoiIntroDesc":"Déplace la tour de disques de la tige gauche vers la droite. Un grand disque ne peut jamais reposer sur un plus petit. Entraîne la planification, la récursion et la résolution de problèmes.",
+"hanoiRuleBig":"Un disque plus grand ne peut jamais aller sur un plus petit.",
+"hanoiStuck":"Bloqué ? Je peux montrer le prochain coup ou toute l'explication.",
 "hanoiWon":"Résolu en {m} coups (minimum {min}) · {s}★",
 "hanoiWonMin":"Résolu au minimum : {m} coups · {s}★",
 "hard":"Difficile",

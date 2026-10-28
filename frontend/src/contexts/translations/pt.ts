@@ -181,6 +181,8 @@ const t: Record<string, string> = {
   "skillSwitching": "Treino: alternância de atenção",
   "hanoi": "Torre de Hanói",
   "hanoiDesc": "Mova todos os discos para o pino da direita",
+  "hanoiStuck": "Travou? Posso mostrar o próximo movimento ou a explicação completa.",
+  "hanoiRuleBig": "Um disco maior nunca pode ficar sobre um menor.",
   "hanoiIntroDesc": "Mova a torre de discos do pino esquerdo para o direito. Um disco maior nunca pode ficar sobre um menor. Treina planejamento, recursão e resolução de problemas.",
   "discsCount": "Discos",
   "hanoiOptimal": "Ótimo",

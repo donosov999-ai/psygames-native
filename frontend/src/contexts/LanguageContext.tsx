@@ -426,6 +426,8 @@ const translations: Translations = {
   // Tower of Hanoi
   hanoi: { ru: 'Ханойская башня', en: 'Tower of Hanoi' },
   hanoiDesc: { ru: 'Перенеси все диски на правый стержень', en: 'Move all discs to the right peg' },
+  hanoiStuck: { ru: 'Застрял? Покажу следующий ход или весь разбор.', en: 'Stuck? I can show the next move or the full walkthrough.' },
+  hanoiRuleBig: { ru: 'Больший диск нельзя класть на меньший.', en: 'A larger disc may never sit on a smaller one.' },
   hanoiIntroDesc: {
     ru: 'Перенесите башню из дисков с левого стержня на правый. Большой диск нельзя класть на маленький. Тренирует планирование, рекурсивное мышление и решение задач.',
     en: 'Move the tower of discs from the left peg to the right one. A larger disc may never sit on a smaller one. Trains planning, recursion and problem solving.',

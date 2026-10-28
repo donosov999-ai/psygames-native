@@ -696,6 +696,8 @@
 "hanoi":"Türme von Hanoi",
 "hanoiDesc":"Bringe alle Scheiben auf den rechten Stab",
 "hanoiIntroDesc":"Bewege den Scheibenturm vom linken Stab auf den rechten. Eine größere Scheibe darf nie auf einer kleineren liegen. Trainiert Planung, Rekursion und Problemlösung.",
+"hanoiRuleBig":"Eine größere Scheibe darf nie auf einer kleineren liegen.",
+"hanoiStuck":"Hängst du fest? Ich zeige den nächsten Zug oder die ganze Erklärung.",
 "hanoiWon":"Gelöst in {m} Zügen (Minimum {min}) · {s}★",
 "hanoiWonMin":"Mit dem Minimum gelöst: {m} Züge · {s}★",
 "hard":"Schwer",

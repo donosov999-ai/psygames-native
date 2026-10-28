@@ -276,6 +276,8 @@ const t: Record<string, string> = {
   "skillSwitching": "훈련: 주의 전환",
   "hanoi": "하노이 탑",
   "hanoiDesc": "모든 원반을 오른쪽 기둥으로 옮겨요",
+  "hanoiStuck": "막혔나요? 다음 한 수나 전체 풀이를 보여 드릴게요.",
+  "hanoiRuleBig": "큰 원반은 작은 원반 위에 놓을 수 없어요.",
   "hanoiIntroDesc": "원반 탑을 왼쪽 기둥에서 오른쪽으로 옮기세요. 큰 원반은 작은 원반 위에 올릴 수 없어요. 계획력, 재귀적 사고, 문제 해결을 훈련해요.",
   "discsCount": "원반",
   "hanoiOptimal": "최적 횟수",
