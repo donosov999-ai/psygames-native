@@ -5,6 +5,7 @@ import 'design_template.dart';
 import 'catalog_kit.dart';
 import 'game_tile.dart';
 import 'hub_screen.dart';
+import 'ion_icon.dart';
 import 'l10n.dart';
 import 'shared_state.dart';
 import 'web_theme.dart';
@@ -112,7 +113,9 @@ class _CatalogScreenState extends State<CatalogScreen> {
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
             keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
             children: [
-              if (widget.embedded)
+              if (widget.embedded && _aurora)
+                _auroraHeader(c)
+              else if (widget.embedded)
                 Padding(
                   // Заголовок вкладки — как `app/games.tsx`: 24/800, сверху 8, снизу 14.
                   padding: const EdgeInsets.only(top: 8, bottom: 14),
@@ -153,6 +156,47 @@ class _CatalogScreenState extends State<CatalogScreen> {
     // Вкладка без своего Scaffold — поле ввода всё равно обязано стоять на Material.
     if (widget.embedded) return Material(color: web.background, child: WebTheme.textDefaults(context, body));
     return Scaffold(appBar: AppBar(title: Text(L.t('tabGames'))), body: body);
+  }
+
+  bool get _aurora => Theme.of(context).extension<UiTemplateTheme>()?.template == UiTemplate.aurora;
+
+  /// «Аврора» (лист 01, экран «Игры»): заголовок 28/700, под ним — сколько игр и режимов находит
+  /// поиск (все записи, кроме самих развилок), справа — настройки. Classic: прежний заголовок 24/800.
+  Widget _auroraHeader(Catalog c) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final text = auroraToken('text', dark: dark)!;
+    final secondary = auroraToken('textSecondary', dark: dark)!;
+    final count = c.entries.where((e) => !e.hub).length;
+    return Padding(
+      key: const ValueKey('catalog-aurora-header'),
+      padding: const EdgeInsets.only(top: 8, bottom: 12),
+      child: Row(children: [
+        Expanded(
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+            Text(L.t('tabGames'),
+                maxLines: 1,
+                style: TextStyle(fontSize: 28, height: 1.1, fontWeight: FontWeight.w700, color: text)),
+            const SizedBox(height: 2),
+            Text(L.t('catalogGamesModes').replaceAll('{n}', '$count'),
+                key: const ValueKey('catalog-count'),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(fontSize: 14, color: secondary)),
+          ]),
+        ),
+        if (widget.onOpen != null)
+          Semantics(
+            button: true,
+            label: L.t('settings'),
+            child: InkResponse(
+              key: const ValueKey('catalog-settings'),
+              onTap: () => widget.onOpen!('/settings'),
+              radius: 24,
+              child: SizedBox(width: 44, height: 48, child: Center(child: IonIcon('settings-outline', size: 22, color: text))),
+            ),
+          ),
+      ]),
+    );
   }
 
   /// «Аврора» (лист 01/02 Codex): фильтр — строка чипов вместо выпадающего списка. Те же

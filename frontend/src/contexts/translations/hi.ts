@@ -1978,6 +1978,7 @@ const t: Record<string, string> = {
   "leagueLimit": "सीमा",
   "frameSurge": "चार्ज",
   "frameAurora": "अरोरा",
+  "catalogGamesModes": "खेल और मोड: {n}",
   "frameCrown": "मुकुट",
   "frameInfinity": "अनंत",
   "cosName_frame_onyx": "ओनिक्स",

@@ -206,6 +206,7 @@
 "catalogBySection":"Sections",
 "catalogBySkill":"Skills",
 "catalogFilter":"Filter",
+"catalogGamesModes":"Games and modes: {n}",
 "catalogNothing":"No games match your search",
 "catalogSearch":"Find a game",
 "catsDesc":"Place one cat in every row, every column and every colour. Cats may not touch — not even diagonally.",

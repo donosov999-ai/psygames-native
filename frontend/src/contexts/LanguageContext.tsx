@@ -3167,6 +3167,7 @@ const translations: Translations = {
   a11yCatBackground: { ru: 'Категория: фоны', en: 'Category: backgrounds' },
   a11yCatBadge: { ru: 'Категория: значки', en: 'Category: badges' },
   frameAurora: { ru: 'Аврора', en: 'Aurora' },
+  catalogGamesModes: { ru: 'Игр и режимов: {n}', en: 'Games and modes: {n}' },
   frameCrown: { ru: 'Корона', en: 'Crown' },
   frameInfinity: { ru: 'Бесконечность', en: 'Infinity' },
   leaguesTitle: { ru: 'Лиги', en: 'Leagues' },

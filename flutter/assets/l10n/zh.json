@@ -206,6 +206,7 @@
 "catalogBySection":"分区",
 "catalogBySkill":"能力",
 "catalogFilter":"筛选",
+"catalogGamesModes":"游戏与模式：{n}",
 "catalogNothing":"没有匹配的游戏",
 "catalogSearch":"查找游戏",
 "catsDesc":"在每一行、每一列和每种颜色中各放一只猫。猫与猫不能相邻，斜向也不行。",

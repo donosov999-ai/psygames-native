@@ -206,6 +206,7 @@
 "catalogBySection":"Sections",
 "catalogBySkill":"Compétences",
 "catalogFilter":"Filtre",
+"catalogGamesModes":"Jeux et modes : {n}",
 "catalogNothing":"Aucun jeu ne correspond",
 "catalogSearch":"Trouver un jeu",
 "catsDesc":"Place un chat dans chaque ligne, chaque colonne et chaque couleur. Les chats ne peuvent pas se toucher, même en diagonale.",

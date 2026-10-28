@@ -206,6 +206,7 @@
 "catalogBySection":"Sezioni",
 "catalogBySkill":"Abilità",
 "catalogFilter":"Filtro",
+"catalogGamesModes":"Giochi e modalità: {n}",
 "catalogNothing":"Nessun gioco trovato",
 "catalogSearch":"Cerca un gioco",
 "catsDesc":"Metti un gatto in ogni riga, ogni colonna e ogni colore. I gatti non possono toccarsi, nemmeno in diagonale.",

@@ -24,7 +24,7 @@ void main() {
     L.useForTest('ru', _asset('assets/l10n/ru.json').cast<String, String>());
   });
 
-  Future<void> open(WidgetTester t, UiTemplate template) async {
+  Future<void> open(WidgetTester t, UiTemplate template, {bool embedded = false, void Function(String)? onOpen}) async {
     t.view.physicalSize = const Size(780, 1688);
     t.view.devicePixelRatio = 2;
     addTearDown(t.view.reset);
@@ -32,7 +32,7 @@ void main() {
     await t.runAsync(() async {
       await t.pumpWidget(MaterialApp(
         theme: applyUiTemplate(classicShellTheme(Brightness.dark), template),
-        home: CatalogScreen(state: state, catalog: catalog),
+        home: Scaffold(body: CatalogScreen(state: state, catalog: catalog, embedded: embedded, onOpen: onOpen)),
       ));
       for (var i = 0; i < 60; i++) {
         await t.pump(const Duration(milliseconds: 50));
@@ -75,6 +75,24 @@ void main() {
     await t.pumpAndSettle();
     expect(t.widget<ChoiceChip>(key('catalog-chip-skills')).selected, isTrue);
     expect(key('catalog-flat'), findsOneWidget);
+  });
+
+  testWidgets('«Аврора», вкладка: заголовок, «Игр и режимов: N» по каталогу, шестерёнка ведёт в настройки', (t) async {
+    final opened = <String>[];
+    await open(t, UiTemplate.aurora, embedded: true, onOpen: opened.add);
+    final catalog = Catalog.fromJson(_asset('assets/catalog.json'), _asset('assets/hubs.json'));
+    final n = catalog.entries.where((e) => !e.hub).length;
+    expect(n, greaterThan(100), reason: 'считаются игры и режимы за развилками, а не только плитки');
+    expect(t.widget<Text>(key('catalog-count')).data, 'Игр и режимов: $n');
+    await t.tap(key('catalog-settings'));
+    expect(opened, ['/settings']);
+  });
+
+  testWidgets('Classic, вкладка: прежний заголовок, без счётчика и шестерёнки', (t) async {
+    await open(t, UiTemplate.classic, embedded: true, onOpen: (_) {});
+    expect(key('catalog-aurora-header'), findsNothing);
+    expect(key('catalog-count'), findsNothing);
+    expect(find.text('Игры'), findsOneWidget);
   });
 
   testWidgets('Classic: прежний выпадающий фильтр, чипов нет', (t) async {
