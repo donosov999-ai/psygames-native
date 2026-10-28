@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../shell/design_template.dart';
 import '../../shell/game_colors.dart';
 import '../../shell/app_haptics.dart';
 import '../../shell/demo_lesson.dart';
@@ -186,7 +187,7 @@ class _SubmarinesScreenState extends State<SubmarinesScreen> {
                         width: 10,
                         height: 10,
                         margin: const EdgeInsets.all(1),
-                        color: b.sea.sunk.contains(s.name) ? Theme.of(context).colorScheme.onSurface : GameColors.of(context).muted,
+                        color: b.sea.sunk.contains(s.name) ? const Color(0xFF334155) : GameColors.of(context).muted,
                       ),
                   ]),
               ],
@@ -297,7 +298,7 @@ class _LessonGrid extends StatelessWidget {
                     _Art.finish => (r, c) == (mid, mid)
                         ? const Color(0xFFDC2626)
                         : ((r - mid).abs() + (c - mid).abs() == 1)
-                            ? GameColors.of(context).reward
+                            ? _auroraOr(context, GameColors.of(context).reward, const Color(0xFFFBBF24))
                             : const Color(0xFFE0F2FE),
                     _Art.heat => shots.containsKey((r, c))
                         ? (shots[(r, c)]! ? const Color(0xFFDC2626) : GameColors.of(context).muted)
@@ -310,3 +311,9 @@ class _LessonGrid extends StatelessWidget {
     );
   }
 }
+
+/// «Аврора» — роль `GameColors`, Classic — прежний цвет игры: Classic до ворот Г3/Г4 не меняется
+/// (`flutter/DESIGN_SYSTEM.md`, правило 6). Там, где classic-значение роли совпадает с прежним цветом,
+/// роль стоит напрямую.
+Color _auroraOr(BuildContext context, Color role, Color classic) =>
+    Theme.of(context).extension<UiTemplateTheme>()?.template == UiTemplate.aurora ? role : classic;

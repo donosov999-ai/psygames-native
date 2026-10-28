@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 
+import '../../shell/design_template.dart';
 import '../../shell/game_colors.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/game_preset.dart';
@@ -677,6 +678,7 @@ class NumberRoadView extends StatelessWidget {
                 viewAhead: viewAhead,
                 ink: Theme.of(context).colorScheme.onSurface,
                 roles: GameColors.of(context),
+                aurora: Theme.of(context).extension<UiTemplateTheme>()?.template == UiTemplate.aurora,
                 font: DefaultTextStyle.of(context).style.fontFamily,
               ),
             ),
@@ -733,6 +735,7 @@ class RoadPainter extends CustomPainter {
     required this.viewAhead,
     required this.ink,
     required this.roles,
+    this.aurora = false,
     this.font,
     this.showPassedScale = true,
   });
@@ -750,6 +753,9 @@ class RoadPainter extends CustomPainter {
 
   /// Роли исхода (`GameColors`): верная арка и флажок верного ответа. Сцена дороги — своя.
   final GameColors roles;
+
+  /// «Аврора»: верная арка — роль `correct`; Classic — прежний `#16A34A` (Classic не меняется).
+  final bool aurora;
   final bool showPassedScale;
 
   @override
@@ -875,7 +881,7 @@ class RoadPainter extends CustomPainter {
       final passed = nextRow > r.id;
       canvas.drawRRect(
         RRect.fromRectAndRadius(rect, const Radius.circular(8)),
-        Paint()..color = passed && lane == r.correct ? roles.correct : const Color(0xFF1E3A8A),
+        Paint()..color = passed && lane == r.correct ? (aurora ? roles.correct : const Color(0xFF16A34A)) : const Color(0xFF1E3A8A),
       );
       canvas.drawRRect(
         RRect.fromRectAndRadius(rect, const Radius.circular(8)),
@@ -1020,6 +1026,7 @@ class RoadPainter extends CustomPainter {
       old.course != course ||
       old.ink != ink ||
       old.roles != roles ||
+      old.aurora != aurora ||
       old.font != font;
 }
 
@@ -1053,6 +1060,7 @@ class RowArt extends StatelessWidget {
               viewAhead: 40,
               ink: Theme.of(context).colorScheme.onSurface,
               roles: GameColors.of(context),
+              aurora: Theme.of(context).extension<UiTemplateTheme>()?.template == UiTemplate.aurora,
               font: DefaultTextStyle.of(context).style.fontFamily,
               showPassedScale: false,
             ),

@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../shell/design_template.dart';
 import '../../shell/game_colors.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/game_shell.dart';
@@ -396,24 +397,24 @@ class _Grid extends StatelessWidget {
         spacing: gap,
         runSpacing: gap,
         alignment: WrapAlignment.center,
-        children: [for (var i = 0; i < n; i++) _card(i, cell, scheme, GameColors.of(context))],
+        children: [for (var i = 0; i < n; i++) _card(context, i, cell, scheme, GameColors.of(context))],
       ),
     );
   }
 
-  Widget _card(int i, double cell, ColorScheme scheme, GameColors roles) {
+  Widget _card(BuildContext context, int i, double cell, ColorScheme scheme, GameColors roles) {
     final on = alive.contains(i);
     var border = scheme.outlineVariant;
     var width = 1.5;
     if (chosen == i) {
-      border = roles.selected;
+      border = _auroraOr(context, roles.selected, const Color(0xFF6D4C41));
       width = 4;
     }
     if (reveal && i == round.target) {
-      border = roles.correct;
+      border = _auroraOr(context, roles.correct, const Color(0xFF16A34A));
       width = 4;
     } else if (reveal && i == picked) {
-      border = roles.wrong;
+      border = _auroraOr(context, roles.wrong, const Color(0xFFDC2626));
       width = 4;
     }
     final tap = onTap;
@@ -441,7 +442,7 @@ class _Grid extends StatelessWidget {
             child: Stack(children: [
               Positioned.fill(child: CustomPaint(painter: FacePainter(round.suspects[i]))),
               if (!on && !(reveal && i == round.target))
-                Positioned.fill(child: Icon(Icons.close, color: roles.muted, size: cell * 0.7)),
+                Positioned.fill(child: Icon(Icons.close, color: _auroraOr(context, roles.muted, const Color(0xFF9CA3AF)), size: cell * 0.7)),
             ]),
           ),
         ),
@@ -538,3 +539,9 @@ class FacePainter extends CustomPainter {
   @override
   bool shouldRepaint(FacePainter old) => old.mask != mask;
 }
+
+/// «Аврора» — роль `GameColors`, Classic — прежний цвет игры: Classic до ворот Г3/Г4 не меняется
+/// (`flutter/DESIGN_SYSTEM.md`, правило 6). Там, где classic-значение роли совпадает с прежним цветом,
+/// роль стоит напрямую.
+Color _auroraOr(BuildContext context, Color role, Color classic) =>
+    Theme.of(context).extension<UiTemplateTheme>()?.template == UiTemplate.aurora ? role : classic;

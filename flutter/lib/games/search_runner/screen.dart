@@ -20,6 +20,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 
+import '../../shell/design_template.dart';
 import '../../shell/game_colors.dart';
 import '../../shell/boss_round.dart';
 import '../../shell/demo_lesson.dart';
@@ -297,7 +298,7 @@ class _SearchRunnerScreenState extends State<SearchRunnerScreen> with SingleTick
             targets: flashing ? tr.round.targetIds.toSet() : const {},
             rings: stopped ? {for (var lane = 0; lane < 3; lane += 1) tr.ringed[lane]: runnerLaneColors[lane]} : const {},
             ink: scheme.onSurface,
-              target: GameColors.of(context).highlight,
+              target: _auroraOr(context, GameColors.of(context).highlight, const Color(0xFF22C55E)),
           ),
         ),
       );
@@ -317,7 +318,7 @@ class _SearchRunnerScreenState extends State<SearchRunnerScreen> with SingleTick
             row is TokenRow && row.trackerStart ? Icons.visibility : Icons.star_rounded,
             key: const Key('runner-ask'),
             size: 48,
-            color: GameColors.of(context).reward,
+            color: _auroraOr(context, GameColors.of(context).reward, const Color(0xFFFBBF24)),
           ),
       };
     }
@@ -413,11 +414,11 @@ class _LessonArt extends StatelessWidget {
               targets: round.targetIds.toSet(),
               rings: const {},
               ink: scheme.onSurface,
-              target: GameColors.of(context).highlight,
+              target: _auroraOr(context, GameColors.of(context).highlight, const Color(0xFF22C55E)),
             ),
           ),
         ),
-      TokenRow() => Icon(Icons.star_rounded, size: 40, color: GameColors.of(context).reward),
+      TokenRow() => Icon(Icons.star_rounded, size: 40, color: _auroraOr(context, GameColors.of(context).reward, const Color(0xFFFBBF24))),
     };
     return FittedBox(
       child: SizedBox(
@@ -537,7 +538,7 @@ class _Arch extends StatelessWidget {
     Widget? content;
     switch (row) {
       case TokenRow(:final answer):
-        if (lane == answer) content = Icon(Icons.star_rounded, color: GameColors.of(context).reward, size: 36);
+        if (lane == answer) content = Icon(Icons.star_rounded, color: _auroraOr(context, GameColors.of(context).reward, const Color(0xFFFBBF24)), size: 36);
       case GatesRow(:final arches, :final colors):
         content = FittedBox(
           child: Padding(
@@ -681,3 +682,9 @@ class _TrackerPainter extends CustomPainter {
   @override
   bool shouldRepaint(_TrackerPainter old) => true;
 }
+
+/// «Аврора» — роль `GameColors`, Classic — прежний цвет игры: Classic до ворот Г3/Г4 не меняется
+/// (`flutter/DESIGN_SYSTEM.md`, правило 6). Там, где classic-значение роли совпадает с прежним цветом,
+/// роль стоит напрямую.
+Color _auroraOr(BuildContext context, Color role, Color classic) =>
+    Theme.of(context).extension<UiTemplateTheme>()?.template == UiTemplate.aurora ? role : classic;
