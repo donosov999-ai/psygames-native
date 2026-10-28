@@ -91,6 +91,8 @@ jobs:
     if: inputs.promote_version_code == '' && inputs.from_run == ''
     runs-on: ubuntu-latest
     timeout-minutes: 90
+    env:
+      PSY_ANDROID_NDK_VERSION: 28.2.13676358
     steps:
       - name: Продакшн — только с подтверждением
         if: inputs.track == 'production'
@@ -143,6 +145,16 @@ jobs:
           if [ "$DIRS" -lt 50 ] || [ "$FILES" -lt 1000 ]; then
             echo "::error title=Веб-часть::вложено слишком мало — сборка была бы пустой"; exit 1
           fi
+
+      - name: Pinned Android NDK and alignment checker tests
+        run: |
+          # sdkmanager на ubuntu-раннере не в PATH — берём из cmdline-tools SDK.
+          SDKM="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          [ -x "$SDKM" ] || SDKM="$(command -v sdkmanager)"
+          yes | "$SDKM" --install "ndk;$PSY_ANDROID_NDK_VERSION" > /dev/null
+          test -d "$ANDROID_HOME/ndk/$PSY_ANDROID_NDK_VERSION"
+          echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/$PSY_ANDROID_NDK_VERSION" >> "$GITHUB_ENV"
+          python3 -m unittest discover -s scripts/tests -p 'test_android_16k.py' -v
 
       # ⚠️ Метка канона ОБЯЗАНА совпадать с flutter-pilot.yml и flutter-testflight.yml
       # (сторож tatham_pin_matches_test): разойдутся — выпуск соберётся на другом движке,
@@ -245,6 +257,8 @@ jobs:
         run: |
           flutter build apk --release --dart-define-from-file="$RUNNER_TEMP/psygames-cloud.json"
           APK=build/app/outputs/flutter-apk/app-release.apk
+          python3 ../scripts/check_android_16k.py --require-abi arm64-v8a \
+            build/app/outputs/bundle/release/app-release.aab "$APK"
           # Разрешения — из ИТОГОВОГО манифеста релиза, а не из исходника: debug/profile
           # подмешивают свои, и flutter run их прятал (INTERNET, 01.10.2026).
           AAPT=$(ls -d "$ANDROID_HOME"/build-tools/*/aapt | sort -V | tail -1)
@@ -311,6 +325,8 @@ jobs:
           PLAY_TRACKS: ${{ inputs.track }}
         run: |
           ls -l aab
+          # Reject old incompatible artifacts as well as new build regressions.
+          python3 scripts/check_android_16k.py --require-abi arm64-v8a aab/app-release.aab aab/app-release.apk
           VERSION=$(cat aab/version.txt)
           npm install --no-save --prefix "$RUNNER_TEMP/play" googleapis
           AAB_PATH=aab/app-release.aab VERSION_NAME="$VERSION" NODE_PATH="$RUNNER_TEMP/play/node_modules" node .github/scripts/deploy_play.js
