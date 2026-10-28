@@ -292,24 +292,24 @@ class _CloudSettingsScreenState extends State<CloudSettingsScreen> {
                       child: Text(L.t('cloudPilotOff')),
                     ),
                   ),
-                if (_p.enabled) ...[
+                if (_p.enabled || _p.canDeleteAccount)
                   TextButton(
                     key: const Key('cloud-sign-out'),
                     onPressed: _p.busy ? null : () => unawaited(_p.signOut()),
                     child: Text(L.t('cloudPilotSignOut')),
                   ),
+                if (_p.enabled)
                   TextButton(
                     key: const Key('cloud-delete'),
                     onPressed: _p.busy ? null : _delete,
                     child: Text(L.t('cloudPilotDelete')),
                   ),
-                  if (_p.canDeleteAccount)
-                    TextButton(
-                      key: const Key('cloud-delete-account'),
-                      onPressed: _p.busy ? null : _deleteAccount,
-                      child: Text(L.t('cloudPilotDeleteAccount')),
-                    ),
-                ],
+                if (_p.canDeleteAccount)
+                  TextButton(
+                    key: const Key('cloud-delete-account'),
+                    onPressed: _p.busy ? null : _deleteAccount,
+                    child: Text(L.t('cloudPilotDeleteAccount')),
+                  ),
               ],
             ),
           ),

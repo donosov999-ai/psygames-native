@@ -62,6 +62,12 @@ if (broken.length) {
   process.exit(1);
 }
 
+// Exercise upload/promotion and review-conflict handling without credentials or
+// network. Syntax alone cannot prove that a publisher preserves another review.
+execFileSync(process.execPath, ['--test', join(ROOT, 'scripts/deploy-play-review.test.cjs')], {
+  stdio: 'inherit',
+});
+
 const version = JSON.parse(readFileSync(join(ROOT, 'frontend/package.json'), 'utf8')).version;
 const notes = extractNotes(version);
 

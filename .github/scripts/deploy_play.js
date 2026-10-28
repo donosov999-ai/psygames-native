@@ -103,7 +103,10 @@ async function main() {
     }
 
     console.log('Committing...');
-    await pub.edits.commit({ packageName: PACKAGE, editId });
+    // Never silently cancel another owner's in-review changes. If Play has a
+    // review in progress, stop and retain a clear failure instead of replacing it.
+    await pub.edits.commit({ packageName: PACKAGE, editId,
+      changesInReviewBehavior: 'ERROR_IF_IN_REVIEW' });
     console.log(`✅ ${VERSION_NAME} → ${TRACKS.join(', ')}`);
   } catch (err) {
     /**

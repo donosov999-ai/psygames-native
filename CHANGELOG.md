@@ -15,6 +15,11 @@ to a GitHub Release automatically.
 ---
 
 
+## [2.56.37] — 2026-10-24
+
+- Account sign-out and confirmed account deletion are available before enabling history backups; local progress remains untouched.
+- Google Play publication refuses to cancel an existing review implicitly.
+
 ## [2.56.36] — 2026-10-21
 
 - Монетизации нет: все 13 профилей открыты всем — без кодов, цен, Telegram-покупки, «PRO», «Скоро» и замков; сторож «нет признаков продажи» в вебе и Dart (#383, d5e5814a)
