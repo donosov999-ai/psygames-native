@@ -206,6 +206,7 @@
 "catalogBySection":"섹션",
 "catalogBySkill":"능력",
 "catalogFilter":"필터",
+"catalogGamesModes":"게임과 모드: {n}",
 "catalogNothing":"일치하는 게임이 없습니다",
 "catalogSearch":"게임 찾기",
 "catsDesc":"모든 행, 모든 열, 모든 색에 고양이를 한 마리씩 놓으세요. 고양이끼리는 대각선으로도 닿을 수 없습니다.",

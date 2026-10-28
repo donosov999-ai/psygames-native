@@ -1975,6 +1975,7 @@ const t: Record<string, string> = {
   "leagueLimit": "极限",
   "frameSurge": "电涌",
   "frameAurora": "极光",
+  "catalogGamesModes": "游戏与模式：{n}",
   "frameCrown": "王冠",
   "frameInfinity": "无限",
   "cosName_frame_onyx": "缟玛瑙",

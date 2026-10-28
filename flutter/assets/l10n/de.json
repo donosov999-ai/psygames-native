@@ -206,6 +206,7 @@
 "catalogBySection":"Bereiche",
 "catalogBySkill":"Fähigkeiten",
 "catalogFilter":"Filter",
+"catalogGamesModes":"Spiele und Modi: {n}",
 "catalogNothing":"Keine passenden Spiele",
 "catalogSearch":"Spiel suchen",
 "catsDesc":"Setze eine Katze in jede Zeile, jede Spalte und jede Farbe. Katzen dürfen sich nicht berühren – auch nicht diagonal.",

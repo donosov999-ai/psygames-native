@@ -1170,6 +1170,7 @@ const t: Record<string, string> = {
   "leagueLimit": "リミット",
   "frameSurge": "サージ",
   "frameAurora": "オーロラ",
+  "catalogGamesModes": "ゲームとモード：{n}",
   "frameCrown": "クラウン",
   "frameInfinity": "インフィニティ",
   "cosName_frame_onyx": "オニキス",

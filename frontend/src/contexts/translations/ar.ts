@@ -1971,6 +1971,7 @@ const t: Record<string, string> = {
   "leagueLimit": "الحد",
   "frameSurge": "شحنة",
   "frameAurora": "شفق",
+  "catalogGamesModes": "الألعاب والأوضاع: {n}",
   "frameCrown": "تاج",
   "frameInfinity": "لانهاية",
   "cosName_frame_onyx": "أونيكس",

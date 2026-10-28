@@ -206,6 +206,7 @@
 "catalogBySection":"Seções",
 "catalogBySkill":"Habilidades",
 "catalogFilter":"Filtro",
+"catalogGamesModes":"Jogos e modos: {n}",
 "catalogNothing":"Nenhum jogo encontrado",
 "catalogSearch":"Encontrar um jogo",
 "catsDesc":"Coloque um gato em cada linha, cada coluna e cada cor. Os gatos não podem se tocar, nem na diagonal.",

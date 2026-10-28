@@ -206,6 +206,7 @@
 "catalogBySection":"Разделы",
 "catalogBySkill":"Навыки",
 "catalogFilter":"Фильтр",
+"catalogGamesModes":"Игр и режимов: {n}",
 "catalogNothing":"Ничего не нашлось",
 "catalogSearch":"Найти игру",
 "catsDesc":"Поставь по одной кошке в каждую строку, каждый столбец и каждый цвет. Кошки не касаются друг друга — даже углами.",

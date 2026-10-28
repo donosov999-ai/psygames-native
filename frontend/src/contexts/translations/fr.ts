@@ -1970,6 +1970,7 @@ const t: Record<string, string> = {
   "leagueLimit": "Limite",
   "frameSurge": "Décharge",
   "frameAurora": "Aurore",
+  "catalogGamesModes": "Jeux et modes : {n}",
   "frameCrown": "Couronne",
   "frameInfinity": "Infini",
   "cosName_frame_onyx": "Onyx",

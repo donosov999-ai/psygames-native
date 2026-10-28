@@ -206,6 +206,7 @@
 "catalogBySection":"セクション",
 "catalogBySkill":"スキル",
 "catalogFilter":"絞り込み",
+"catalogGamesModes":"ゲームとモード：{n}",
 "catalogNothing":"該当するゲームはありません",
 "catalogSearch":"ゲームを探す",
 "catsDesc":"どの行・列・色にも猫を1匹ずつ置こう。猫どうしは隣り合えない — 斜めもダメ。",
