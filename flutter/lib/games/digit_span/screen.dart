@@ -10,6 +10,7 @@ import '../../shell/audio_host.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/game_clock.dart';
+import '../../shell/game_colors.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
@@ -456,7 +457,7 @@ class _DigitSpanScreenState extends State<DigitSpanScreen> {
         AuxAction(
           icon: Icons.visibility_outlined,
           label: L.t('puzzleShowSolution'),
-          tint: const Color(0xFFB45309),
+          tint: GameColors.of(context).hint,
           onPressed: _phase == DsPhase.input ? _reveal : null,
         ),
         AuxAction(icon: Icons.refresh, label: L.t('restart'), onPressed: () => setState(_reset)),
@@ -711,13 +712,14 @@ class _Answer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final roles = GameColors.of(context);
     final s = session;
     final typed = s.entered.join() + '•' * max(0, s.seqLen - s.entered.length);
     final status = switch ((phase, feedback)) {
       (DsPhase.revealed, _) => (text: '${L.t('label_was')}: ${s.expected.join()}', color: scheme.primary),
       (_, null) => (text: '${s.entered.length}/${s.seqLen} — ${L.t('hint_autocheck')}', color: scheme.onSurfaceVariant),
-      (_, true) => (text: L.t('msg_correct_level_up'), color: const Color(0xFF22C55E)),
-      (_, false) => (text: '${L.t('label_was')}: ${s.expected.join()}', color: const Color(0xFFF43F5E)),
+      (_, true) => (text: L.t('msg_correct_level_up'), color: roles.correct),
+      (_, false) => (text: '${L.t('label_was')}: ${s.expected.join()}', color: roles.wrong),
     };
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -739,9 +741,9 @@ class _Answer extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
                 color: feedback == true
-                    ? const Color(0xFF22C55E)
+                    ? roles.correct
                     : feedback == false
-                        ? const Color(0xFFF43F5E)
+                        ? roles.wrong
                         : scheme.outlineVariant,
                 width: feedback == null ? 1 : 3,
               ),

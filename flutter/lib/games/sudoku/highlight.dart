@@ -13,19 +13,23 @@ library;
 
 import 'package:flutter/material.dart';
 
+import '../../shell/game_colors.dart';
 import 'variant_decor.dart' show cageTint;
 
-/// Оттенок подсветки совпадений и линии — лаванда шапки судоку (`HIGHLIGHT_ACCENT`).
-const sudokuHighlightAccent = Color(0xFF7F7FD5);
-
-/// Выбранная клетка. Тёмная лаванда, а не светлая: на светлой белая цифра не читалась
+/// 🎨 Цвета подсветки — роли общей палитры игр `GameColors` (дизайн «Аврора», 28.10.2026): в Classic они
+/// ровно прежние (лаванда шапки `#7F7FD5`, тёмная лаванда выбора `#5B4FD1`, ошибка `#FECACA` / `#EF4444` /
+/// `#B91C1C`), в «Авроре» — её роли. Свои литералы игра больше не держит.
+///
+/// Выбранная клетка — тёмная лаванда, а не светлая: на светлой белая цифра не читалась
 /// (отчёт Вали, уровень 30, контраст ~2,9:1; стало ~6:1 при любой теме).
-const sudokuSelectedFill = Color(0xFF5B4FD1);
-
-/// Неверная цифра: фон клетки и он же на выбранной клетке; цвет самой цифры.
-const sudokuWrongFill = Color(0xFFFECACA);
-const sudokuWrongSelectedFill = Color(0xFFEF4444);
-const sudokuWrongInk = Color(0xFFB91C1C);
+///
+/// Имена ниже — Classic-значения ролей для проб, которые сверяют цвет клетки с прежним.
+final _classic = GameColors.classicFor(const ColorScheme.light());
+Color get sudokuHighlightAccent => _classic.highlight;
+Color get sudokuSelectedFill => _classic.selected;
+Color get sudokuWrongFill => _classic.wrongFill;
+Color get sudokuWrongSelectedFill => _classic.wrong;
+Color get sudokuWrongInk => _classic.wrongInk;
 
 /// Что подсветить в клетке.
 typedef SudokuCellLook = ({bool selected, bool sameValue, bool sameLine, bool wrong});
@@ -55,11 +59,12 @@ SudokuCellLook sudokuCellLook(
 
 /// Фон клетки — `cellBackground` веба.
 ///
-/// `surface` — фон клетки темы, `cageId` — группа-сумма клетки (-1 — нет), `mark` — цвет, которым
-/// клетку покрасил игрок (`null` — не красил). Слои — в порядке веба: подсветка, тонировка группы,
-/// краска, затем ошибка и выбор поверх всего.
+/// `colors` — роли палитры (`GameColors.of(context)`), `surface` — фон клетки темы, `cageId` — группа-сумма
+/// клетки (-1 — нет), `mark` — цвет, которым клетку покрасил игрок (`null` — не красил). Слои — в порядке
+/// веба: подсветка, тонировка группы, краска, затем ошибка и выбор поверх всего.
 Color sudokuCellBackground(
   SudokuCellLook look, {
+  required GameColors colors,
   required Color surface,
   required bool dark,
   int cageId = -1,
@@ -68,19 +73,19 @@ Color sudokuCellBackground(
   var bg = surface;
   if (look.sameValue || look.sameLine) {
     final t = look.sameValue ? (dark ? 0.30 : 0.16) : (dark ? 0.18 : 0.09);
-    bg = Color.lerp(bg, sudokuHighlightAccent, t)!;
+    bg = Color.lerp(bg, colors.highlight, t)!;
   }
   bg = cageTint(bg, cageId) ?? bg;
   if (mark != null) bg = Color.lerp(bg, mark, dark ? 0.34 : 0.24)!;
-  if (look.wrong) return look.selected ? sudokuWrongSelectedFill : sudokuWrongFill;
-  if (look.selected) return sudokuSelectedFill;
+  if (look.wrong) return look.selected ? colors.wrong : colors.wrongFill;
+  if (look.selected) return colors.selected;
   return bg;
 }
 
-/// Цвет цифры клетки: на выбранной — белый, неверная — красная, подсказка — цвет текста темы,
-/// своя — основной цвет темы.
-Color sudokuDigitInk(SudokuCellLook look, {required bool given, required ColorScheme scheme}) {
-  if (look.selected) return Colors.white;
-  if (look.wrong) return sudokuWrongInk;
-  return given ? scheme.onSurface : scheme.primary;
+/// Цвет цифры клетки: на выбранной — `onStrong` (белый в Classic), неверная — `wrongInk`, подсказка —
+/// `onCell`, своя — `inkPlaced` (в Classic — цвет текста и основной цвет темы, как раньше).
+Color sudokuDigitInk(SudokuCellLook look, {required bool given, required GameColors colors}) {
+  if (look.selected) return colors.onStrong;
+  if (look.wrong) return colors.wrongInk;
+  return given ? colors.onCell : colors.inkPlaced;
 }

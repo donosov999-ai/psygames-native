@@ -17,6 +17,7 @@ library;
 
 import 'package:flutter/material.dart';
 
+import '../../shell/game_colors.dart';
 import 'highlight.dart';
 import 'marks.dart';
 import 'modes.dart';
@@ -94,9 +95,9 @@ class ModeBoard extends StatelessWidget {
     if (mode == SideMode.towers) {
       final inner = row > 0 && row <= board.n && col > 0 && col <= board.n;
       if (!inner) return _clue(scheme, row, col, cell);
-      return _cell(scheme, row - 1, col - 1, cell);
+      return _cell(scheme, row - 1, col - 1, cell, GameColors.of(context));
     }
-    return _cell(scheme, row, col, cell);
+    return _cell(scheme, row, col, cell, GameColors.of(context));
   }
 
   /// Подсказка кольца: сколько зданий видно с этой стороны. Углы пусты.
@@ -126,7 +127,7 @@ class ModeBoard extends StatelessWidget {
     );
   }
 
-  Widget _cell(ColorScheme scheme, int r, int c, double cell) {
+  Widget _cell(ColorScheme scheme, int r, int c, double cell, GameColors roles) {
     final v = grid[r][c];
     final isGiven = given[r][c];
     final mask = r < marks.length && c < marks[r].length ? marks[r][c] : 0;
@@ -139,6 +140,7 @@ class ModeBoard extends StatelessWidget {
       child: Material(
         color: sudokuCellBackground(
           look,
+          colors: roles,
           surface: scheme.surface,
           dark: scheme.brightness == Brightness.dark,
           mark: paint >= 0 && paint < sudokuColorCount ? cellColors[paint] : null,
@@ -169,7 +171,7 @@ class ModeBoard extends StatelessWidget {
                       style: TextStyle(
                         fontSize: cell * 0.5,
                         fontWeight: isGiven ? FontWeight.w800 : FontWeight.w500,
-                        color: sudokuDigitInk(look, given: isGiven, scheme: scheme),
+                        color: sudokuDigitInk(look, given: isGiven, colors: roles),
                       ),
                     ),
             ),
