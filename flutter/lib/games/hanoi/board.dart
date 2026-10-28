@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../../shell/game_colors.dart';
 import 'model.dart';
+import 'puzzle.dart';
 import '../../shell/l10n.dart';
 
 /// ПОЛЕ «ХАНОЙСКОЙ БАШНИ»: стержни, диски, два способа хода.
@@ -22,6 +24,7 @@ class HanoiBoard extends StatelessWidget {
     required this.state,
     required this.fieldHeight,
     required this.selected,
+    this.hint,
     required this.onTapPeg,
     required this.onDrop,
   });
@@ -31,12 +34,16 @@ class HanoiBoard extends StatelessWidget {
 
   /// Выбранный стержень (тапом) — с него поедет верхний диск.
   final int? selected;
+
+  /// Ход-подсказка: оба стержня в рамке роли «подсветка» (`GameColors.highlight`).
+  final HanoiMove? hint;
   final void Function(int peg) onTapPeg;
   final void Function(int from, int to) onDrop;
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final highlight = GameColors.of(context).highlight;
     return LayoutBuilder(
       builder: (context, c) {
         final n = state.pegs.length;
@@ -74,6 +81,7 @@ class HanoiBoard extends StatelessWidget {
                         // башню, знал только тот, кто открыл правила. Цель — последний
                         // стержень: так её проверяет `HanoiState.solved`.
                         final target = i == n - 1;
+                        final hinted = hint != null && (hint!.from == i || hint!.to == i);
                         return GestureDetector(
                           behavior: HitTestBehavior.opaque,
                           onTap: () => onTapPeg(i),
@@ -95,8 +103,10 @@ class HanoiBoard extends StatelessWidget {
                                       ? const Color(0xFF22C55E)
                                       : selected == i
                                       ? const Color(0xFFF59E0B)
+                                      : hinted
+                                      ? highlight
                                       : Colors.transparent,
-                                  width: active || selected == i ? 2 : 0,
+                                  width: active || selected == i ? 2 : (hinted ? 3 : 0),
                                 ),
                               ),
                               child: Stack(
@@ -127,6 +137,18 @@ class HanoiBoard extends StatelessWidget {
                                       ),
                                     ),
                                   ),
+                                  // Стрелка подсказки: откуда снять (вверх) и куда положить (вниз).
+                                  if (hinted)
+                                    Positioned(
+                                      top: 0,
+                                      right: 2,
+                                      child: Icon(
+                                        hint!.from == i ? Icons.arrow_upward_rounded : Icons.arrow_downward_rounded,
+                                        key: ValueKey(hint!.from == i ? 'hanoi-hint-from' : 'hanoi-hint-to'),
+                                        size: discH.clamp(14.0, 22.0),
+                                        color: highlight,
+                                      ),
+                                    ),
                                   // Флажок над целью — в запасе высоты над самой высокой
                                   // башней (`towerH` берёт лишний диск сверху).
                                   if (target)

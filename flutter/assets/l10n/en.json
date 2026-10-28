@@ -696,6 +696,8 @@
 "hanoi":"Tower of Hanoi",
 "hanoiDesc":"Move all discs to the right peg",
 "hanoiIntroDesc":"Move the tower of discs from the left peg to the right one. A larger disc may never sit on a smaller one. Trains planning, recursion and problem solving.",
+"hanoiRuleBig":"A larger disc may never sit on a smaller one.",
+"hanoiStuck":"Stuck? I can show the next move or the full walkthrough.",
 "hanoiWon":"Solved in {m} moves (minimum {min}) · {s}★",
 "hanoiWonMin":"Solved in the minimum: {m} moves · {s}★",
 "hard":"Hard",

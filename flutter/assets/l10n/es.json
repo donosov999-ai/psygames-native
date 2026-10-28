@@ -696,6 +696,8 @@
 "hanoi":"Torre de Hanói",
 "hanoiDesc":"Mueve todos los discos a la varilla derecha",
 "hanoiIntroDesc":"Mueve la torre de discos de la varilla izquierda a la derecha. Un disco grande nunca puede colocarse sobre uno más pequeño. Entrena la planificación, la recursión y la resolución de problemas.",
+"hanoiRuleBig":"Un disco más grande nunca puede ir sobre uno más pequeño.",
+"hanoiStuck":"¿Atascado? Puedo mostrar el siguiente movimiento o toda la explicación.",
 "hanoiWon":"Resuelto en {m} movimientos (mínimo {min}) · {s}★",
 "hanoiWonMin":"Resuelto con el mínimo: {m} movimientos · {s}★",
 "hard":"Difícil",

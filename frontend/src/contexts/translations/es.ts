@@ -183,6 +183,8 @@ const t: Record<string, string> = {
   "skillSwitching": "Entrenamiento: cambio de atención",
   "hanoi": "Torre de Hanói",
   "hanoiDesc": "Mueve todos los discos a la varilla derecha",
+  "hanoiStuck": "¿Atascado? Puedo mostrar el siguiente movimiento o toda la explicación.",
+  "hanoiRuleBig": "Un disco más grande nunca puede ir sobre uno más pequeño.",
   "hanoiIntroDesc": "Mueve la torre de discos de la varilla izquierda a la derecha. Un disco grande nunca puede colocarse sobre uno más pequeño. Entrena la planificación, la recursión y la resolución de problemas.",
   "discsCount": "Discos",
   "hanoiOptimal": "Óptimo",
