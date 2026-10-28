@@ -8,6 +8,7 @@ import '../../shell/game_clock.dart';
 
 import '../../shell/aux_action.dart';
 import '../../shell/resume_store.dart';
+import '../../shell/game_colors.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
@@ -594,7 +595,7 @@ class _SamuraiScreenState extends State<SamuraiScreen> {
         AuxAction(
           icon: Icons.lightbulb_outline,
           label: L.t('btn_hint'),
-          tint: const Color(0xFFB45309),
+          tint: GameColors.of(context).hint,
           count: _params.hintMax > 0 || _boughtLeft > 0 ? _freeHintsLeft + _boughtLeft : null,
           onPressed: (_freeHintsLeft + _boughtLeft > 0 && _selected != null && !_halted && !_spending)
               ? _hint
@@ -753,18 +754,19 @@ class _Cell extends StatelessWidget {
     return !isSamuraiCell(r + dr, c + dc);
   }
 
-  BorderSide _side(bool thick) => BorderSide(
-        color: thick ? scheme.onSurface : scheme.outlineVariant,
+  BorderSide _side(GameColors gc, bool thick) => BorderSide(
+        color: thick ? gc.boardLineStrong : gc.boardLine,
         width: thick ? 1.6 : 0.4,
       );
 
   @override
   Widget build(BuildContext context) {
+    final gc = GameColors.of(context);
     final bg = wrong
         ? scheme.errorContainer
         : selected
             ? scheme.primaryContainer
-            : scheme.surface;
+            : gc.cell;
     return SizedBox(
       width: size,
       height: size,
@@ -776,10 +778,10 @@ class _Cell extends StatelessWidget {
           child: DecoratedBox(
             decoration: BoxDecoration(
               border: Border(
-                top: _side(_thick(row, col, -1, 0)),
-                left: _side(_thick(row, col, 0, -1)),
-                bottom: _side(_thick(row, col, 1, 0)),
-                right: _side(_thick(row, col, 0, 1)),
+                top: _side(gc, _thick(row, col, -1, 0)),
+                left: _side(gc, _thick(row, col, 0, -1)),
+                bottom: _side(gc, _thick(row, col, 1, 0)),
+                right: _side(gc, _thick(row, col, 0, 1)),
               ),
             ),
             child: Center(
@@ -791,8 +793,8 @@ class _Cell extends StatelessWidget {
                   color: wrong
                       ? scheme.onErrorContainer
                       : given
-                          ? scheme.onSurface
-                          : scheme.primary,
+                          ? gc.onCell
+                          : gc.inkPlaced,
                 ),
               ),
             ),

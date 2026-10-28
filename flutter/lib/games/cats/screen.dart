@@ -27,6 +27,7 @@ import '../../shell/lesson_player.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
+import '../../shell/game_colors.dart';
 import 'grade.dart';
 import 'ladder.dart';
 import 'lesson.dart';
@@ -264,7 +265,7 @@ class _CatsScreenState extends State<CatsScreen> {
         AuxAction(
           icon: Icons.lightbulb_outline,
           label: L.t('btn_hint'),
-          tint: const Color(0xFFB45309),
+          tint: GameColors.of(context).hint,
           count: (_hintMax - _hintsUsed).clamp(0, _hintMax),
           onPressed: (_hintsUsed < _hintMax && !_won && !_lost) ? _hint : null,
         ),

@@ -17,6 +17,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 
+import '../../shell/game_colors.dart';
 import '../../shell/l10n.dart';
 import '../../shell/shared_state.dart';
 
@@ -152,7 +153,7 @@ class _LevelMapState extends State<_LevelMap> {
                   SizedBox(
                     height: 16,
                     child: s > 0
-                        ? Text('★' * s, key: Key('level-stars-$n'), style: const TextStyle(fontSize: 11, color: Color(0xFFEF9F27)))
+                        ? Text('★' * s, key: Key('level-stars-$n'), style: TextStyle(fontSize: 11, color: GameColors.of(context).reward))
                         : null,
                   ),
                 ]);

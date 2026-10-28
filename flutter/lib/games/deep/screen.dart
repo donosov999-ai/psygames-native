@@ -5,6 +5,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 
 import '../../shell/game_clock.dart';
+import '../../shell/game_colors.dart';
 import '../../shell/game_rules.dart';
 import '../../shell/app_haptics.dart';
 import '../../shell/aux_action.dart';
@@ -709,6 +710,7 @@ class _Cell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final gc = GameColors.of(context);
     return SizedBox(
       width: size,
       height: size,
@@ -717,7 +719,7 @@ class _Cell extends StatelessWidget {
             ? scheme.primaryContainer
             : feed
                 ? scheme.tertiaryContainer.withValues(alpha: 0.45)
-                : scheme.surface,
+                : gc.cell,
         child: InkWell(
           key: Key('cell_${row}_$col'),
           onTap: () => onTap(row, col),
@@ -725,19 +727,19 @@ class _Cell extends StatelessWidget {
             decoration: BoxDecoration(
               border: Border(
                 top: BorderSide(
-                  color: row % 3 == 0 ? scheme.onSurface : scheme.outlineVariant,
+                  color: row % 3 == 0 ? gc.boardLineStrong : gc.boardLine,
                   width: row % 3 == 0 ? 1.6 : 0.4,
                 ),
                 left: BorderSide(
-                  color: col % 3 == 0 ? scheme.onSurface : scheme.outlineVariant,
+                  color: col % 3 == 0 ? gc.boardLineStrong : gc.boardLine,
                   width: col % 3 == 0 ? 1.6 : 0.4,
                 ),
                 bottom: BorderSide(
-                  color: row == deepN - 1 ? scheme.onSurface : scheme.outlineVariant,
+                  color: row == deepN - 1 ? gc.boardLineStrong : gc.boardLine,
                   width: row == deepN - 1 ? 1.6 : 0.4,
                 ),
                 right: BorderSide(
-                  color: col == deepN - 1 ? scheme.onSurface : scheme.outlineVariant,
+                  color: col == deepN - 1 ? gc.boardLineStrong : gc.boardLine,
                   width: col == deepN - 1 ? 1.6 : 0.4,
                 ),
               ),
@@ -775,7 +777,7 @@ class _Cell extends StatelessWidget {
                       mask: marks,
                       value: value,
                       cell: size,
-                      color: scheme.onSurfaceVariant,
+                      color: gc.notesInk,
                     ),
                   ),
                 Center(
@@ -785,10 +787,10 @@ class _Cell extends StatelessWidget {
                       fontSize: size * 0.52,
                       fontWeight: given ? FontWeight.w800 : FontWeight.w500,
                       color: given
-                          ? scheme.onSurface
+                          ? gc.onCell
                           : feed
                               ? scheme.tertiary
-                              : scheme.primary,
+                              : gc.inkPlaced,
                     ),
                   ),
                 ),
