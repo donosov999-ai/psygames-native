@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/math_sprint/model.dart' as sprint;
 import 'package:psygames_flutter/games/math_sprint/screen.dart';
+import 'package:psygames_flutter/games/pattern/model.dart' as pattern;
+import 'package:psygames_flutter/games/pattern/screen.dart';
 import 'package:psygames_flutter/games/sdmt/model.dart' as sdmt;
 import 'package:psygames_flutter/games/sdmt/screen.dart';
 import 'package:psygames_flutter/shell/app_theme.dart';
@@ -11,7 +13,7 @@ import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// КЛАВИАТУРА ПОД «АВРОРОЙ» — НЕЙТРАЛЬНЫЕ ПЛИТКИ (листы 24 и 27, приёмка 29a06aa2).
+/// КЛАВИАТУРА И ОТВЕТЫ ПОД «АВРОРОЙ» — НЕЙТРАЛЬНЫЕ ПЛИТКИ (листы 23, 24 и 27, приёмка 29a06aa2).
 /// Сборка 29.10 показала цифры SDMT и «Математического спринта», залитые акцентом профиля,
 /// а на листах это тёмные плитки `cell` с цифрой `onCell`. В Classic клавиша остаётся прежней:
 /// стиль без своего цвета, то есть цвет темы.
@@ -21,7 +23,8 @@ void main() {
     await L.load('ru');
   });
 
-  Future<void> open(WidgetTester tester, UiTemplate template, Widget Function(SharedState) screen) async {
+  Future<void> open(WidgetTester tester, UiTemplate template, Widget Function(SharedState) screen,
+      {bool start = true}) async {
     SharedPreferences.setMockInitialValues({});
     final state = await SharedState.open();
     await tester.pumpWidget(MaterialApp(
@@ -30,6 +33,7 @@ void main() {
     ));
     await tester.pump();
     await tester.pump();
+    if (!start) return;
     // Клавиатура появляется с началом партии — как у человека, по кнопке «Начать».
     await tester.tap(find.byKey(const Key('начать')));
     await tester.pump();
@@ -61,4 +65,21 @@ void main() {
       expect(style.foregroundColor, isNull);
     });
   }
+
+  // «Паттерны» начинаются сразу, а ключ кнопки — сам вариант ответа: берём первую.
+  final answer = find.byWidgetPredicate((w) => w is FilledButton && '${w.key}'.contains('ответ')).first;
+  Widget patternScreen(SharedState s) => PatternScreen(state: s, rnd: pattern.createRng('ответы'));
+
+  testWidgets('Паттерны: под «Авророй» ответ — плитка cell с цифрой onCell', (tester) async {
+    await open(tester, UiTemplate.aurora, patternScreen, start: false);
+    final style = tester.widget<FilledButton>(answer).style!;
+    final roles = GameColors.of(tester.element(answer));
+    expect(style.backgroundColor?.resolve({}), roles.cell);
+    expect(style.foregroundColor?.resolve({}), roles.onCell);
+  });
+
+  testWidgets('Паттерны: в Classic ответ без своего стиля — прежний вид', (tester) async {
+    await open(tester, UiTemplate.classic, patternScreen, start: false);
+    expect(tester.widget<FilledButton>(answer).style, isNull);
+  });
 }
