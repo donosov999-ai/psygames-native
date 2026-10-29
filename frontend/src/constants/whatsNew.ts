@@ -16,6 +16,18 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.56.43',
+    date: '2026-10-29',
+    en: [
+      '“Aurora” look: your favourite sections on Home are illustrated tiles — tap one to open Games filtered to that section',
+      '“Aurora” look: the Sudoku board, cells and number keys are redesigned',
+    ],
+    ru: [
+      'Оформление «Аврора»: любимые разделы на главной — плитки с картинками; нажатие открывает «Игры» с этим разделом',
+      'Оформление «Аврора»: поле «Судоку», клетки и клавиши цифр перерисованы',
+    ],
+  },
+  {
     version: '2.56.42',
     date: '2026-10-29',
     en: [
