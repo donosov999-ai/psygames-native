@@ -24,6 +24,29 @@ const Color fwHintColor = Color(0xFF99F6E4);
 /// Вид клетки: заливка, цвет буквы (null — цвет темы), жирность.
 typedef FwCellLook = ({Color? bg, Color? ink, bool bold});
 
+/// Клетка под пальцем — по ШАГУ сетки (зазор плитки внутри шага).
+///
+/// 🔴 [inner] — для ведения линии: клетка засчитывается, только когда палец в её середине
+/// ([fwInnerShare] стороны), у края — null, линия не меняется. Отчёт игрока e39ce923 (10.10.2026,
+/// «не выделяется последнее чтобы финишировать»): на ДИАГОНАЛЬНОМ шаге палец проходит угол и
+/// задевает соседнюю клетку того же слова раньше времени — линия сбивается, слово не сдаётся.
+/// Замер 29.10 (ru, L1–30, каждое слово последним, палец с дрожью 15 % клетки): без зоны не
+/// выделялось 943 из 2685 последних слов (35,1 %), с зоной — 0. Первое касание — без зоны: с
+/// какой клетки начать, человек выбирает сам.
+int? fwCellAt(Offset o, {required double cell, required int rows, required int cols, bool inner = false}) {
+  final col = (o.dx / cell).floor().clamp(0, cols - 1);
+  final row = (o.dy / cell).floor().clamp(0, rows - 1);
+  if (inner) {
+    final cx = (col + 0.5) * cell, cy = (row + 0.5) * cell;
+    final half = cell * fwInnerShare / 2;
+    if ((o.dx - cx).abs() > half || (o.dy - cy).abs() > half) return null;
+  }
+  return row * cols + col;
+}
+
+/// Доля стороны клетки, в которой засчитывается ведение линии.
+const double fwInnerShare = 0.65;
+
 /// Сетка букв ОДНА на филворды и на серию: одно правило клетки под пальцем, один вид плитки.
 /// [onTapCell] — блок «Знак» серии: нажатие по клетке, без линии; иначе — ведение линии.
 class FwGrid extends StatelessWidget {
@@ -54,11 +77,7 @@ class FwGrid extends StatelessWidget {
   final VoidCallback? onRelease;
   final ValueChanged<int>? onTapCell;
 
-  int _cellAt(Offset o) {
-    final col = (o.dx / cell).floor().clamp(0, cols - 1);
-    final row = (o.dy / cell).floor().clamp(0, rows - 1);
-    return row * cols + col;
-  }
+  int _cellAt(Offset o) => fwCellAt(o, cell: cell, rows: rows, cols: cols)!;
 
   Widget _tile(BuildContext context, int index) {
     final theme = Theme.of(context);
@@ -109,7 +128,11 @@ class FwGrid extends StatelessWidget {
       key: Key('$keyPrefix-grid'),
       behavior: HitTestBehavior.opaque,
       onPointerDown: (e) => onTouch?.call(_cellAt(e.localPosition)),
-      onPointerMove: (e) => onDrag?.call(_cellAt(e.localPosition)),
+      // Ведение линии засчитывает клетку только в её середине — см. [fwCellAt].
+      onPointerMove: (e) {
+        final c = fwCellAt(e.localPosition, cell: cell, rows: rows, cols: cols, inner: true);
+        if (c != null) onDrag?.call(c);
+      },
       onPointerUp: (_) => onRelease?.call(),
       onPointerCancel: (_) => onRelease?.call(),
       child: grid,

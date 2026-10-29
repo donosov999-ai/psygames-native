@@ -7,6 +7,15 @@
  "check": "التحقق من التحديثات · v0.0.0",
  "entries": [
   {
+   "version": "v2.56.41",
+   "date": "2026-10-29",
+   "items": [
+    "“Aurora” look in games: the back arrow sits left of the game name, the yellow round pause is at the bottom left next to the game actions, and the pause screen is redesigned — your progress, rules and both ways out are in one place",
+    "Sudoku: Killer and Free modes have their own icons",
+    "Proofreading word search: the last word is selected again even when your finger brushes a corner cell on a diagonal"
+   ]
+  },
+  {
    "version": "v2.56.40",
    "date": "2026-10-29",
    "items": [
