@@ -2478,6 +2478,7 @@ class _Cell extends StatelessWidget {
         ? _regionEdge(row, col, row, col + 1)
         : col == board.n - 1 || (!chaos && (col + 1) % board.bc == 0);
     final gc = GameColors.of(context);
+    final ring = sudokuSelectionRing(context);
     final border = Border(
       top: _side(gc, thickTop),
       left: _side(gc, thickLeft),
@@ -2521,6 +2522,7 @@ class _Cell extends StatelessWidget {
           dark: scheme.brightness == Brightness.dark,
           cageId: decor?.cageId ?? -1,
           mark: paint >= 0 && paint < sudokuColorCount ? cellColors[paint] : null,
+          ring: ring,
         ),
         child: InkWell(
           key: Key('cell_${row}_$col'),
@@ -2542,7 +2544,7 @@ class _Cell extends StatelessWidget {
                       mask: mask,
                       value: value,
                       cell: size,
-                      color: look.selected ? gc.onStrong : gc.notesInk,
+                      color: look.selected && !ring ? gc.onStrong : gc.notesInk,
                       glyph: glyph,
                       withZero: board.variant == 'schrodinger',
                     )
@@ -2555,7 +2557,7 @@ class _Cell extends StatelessWidget {
                       style: TextStyle(
                         fontSize: board.variant == 'schrodinger' && value >= 100 ? size * 0.34 : size * 0.52,
                         fontWeight: given ? FontWeight.w800 : FontWeight.w500,
-                        color: sudokuDigitInk(look, given: given, colors: gc),
+                        color: sudokuDigitInk(look, given: given, colors: gc, ring: ring),
                       ),
                     ),
               ),
@@ -2610,6 +2612,18 @@ class _Cell extends StatelessWidget {
                       fontSize: size * 0.27 < 8 ? 8 : size * 0.27,
                       fontWeight: FontWeight.w700,
                       color: scheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+              // «Аврора», лист 11: выбор — кольцо роли `selected` поверх клетки, а не заливка.
+              if (ring && look.selected && !look.wrong)
+                IgnorePointer(
+                  child: Container(
+                    key: Key('aurora-ring_${row}_$col'),
+                    margin: const EdgeInsets.all(2),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: gc.selected, width: 2),
+                      borderRadius: BorderRadius.circular(4),
                     ),
                   ),
                 ),
