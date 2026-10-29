@@ -7,6 +7,15 @@
  "check": "Check for updates · v0.0.0",
  "entries": [
   {
+   "version": "v2.56.42",
+   "date": "2026-10-29",
+   "items": [
+    "“Aurora” look in games: the game actions under the board are tiles with captions next to the yellow pause; “Continue” on the pause screen is orange",
+    "“Aurora” look: games that are already redesigned use the Aurora game colours",
+    "Profile list: the ODV999 profile shows its number of games again"
+   ]
+  },
+  {
    "version": "v2.56.41",
    "date": "2026-10-29",
    "items": [
