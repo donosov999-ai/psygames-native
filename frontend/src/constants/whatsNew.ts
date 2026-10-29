@@ -16,6 +16,20 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.56.41',
+    date: '2026-10-29',
+    en: [
+      '“Aurora” look in games: the back arrow sits left of the game name, the yellow round pause is at the bottom left next to the game actions, and the pause screen is redesigned — your progress, rules and both ways out are in one place',
+      'Sudoku: Killer and Free modes have their own icons',
+      'Proofreading word search: the last word is selected again even when your finger brushes a corner cell on a diagonal',
+    ],
+    ru: [
+      'Оформление «Аврора» в играх: стрелка назад — слева от названия, жёлтая круглая пауза — внизу слева рядом с действиями игры, пауза перерисована: счётчики, правила и оба выхода в одном месте',
+      '«Судоку»: у режимов «Киллер» и «Свободно» свои значки',
+      'Филворды «Корректуры»: последнее слово снова выделяется, даже если палец на диагонали задел угловую клетку',
+    ],
+  },
+  {
     version: '2.56.40',
     date: '2026-10-29',
     en: [
