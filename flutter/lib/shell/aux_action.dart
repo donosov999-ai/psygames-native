@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'design_template.dart';
+
 /// Служебное действие игры — значком в ряду ПОД полем.
 ///
 /// Решение Дениса 17.09.2026 для всех игр PsyGames: отменить, заново, подсказка,
@@ -33,6 +35,7 @@ class AuxAction extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (_aurora(context)) return _auroraTile(context);
     final scheme = Theme.of(context).colorScheme;
     final disabled = onPressed == null;
     final fg = disabled
@@ -69,6 +72,63 @@ class AuxAction extends StatelessWidget {
   }
 }
 
+/// «Аврора» включена в теме этого места: в нижнем ряду игры рамка ставит её тему
+/// (`GameShell`, задача 045be21d), поэтому служебные действия игры меняют вид один раз здесь.
+bool _aurora(BuildContext context) =>
+    Theme.of(context).extension<UiTemplateTheme>()?.template == UiTemplate.aurora;
+
+extension on AuxAction {
+  /*
+   * «Аврора», лист 32: служебное действие — плитка со значком и подписью (та же подпись,
+   * что у чтеца экрана и в меню паузы). Включённый режим — залитая плитка, число — вместо
+   * значка, как в Classic. Высота 64, ширина по подписи в пределах 56–88.
+   */
+  Widget _auroraTile(BuildContext context) {
+    final theme = Theme.of(context);
+    final dark = theme.brightness == Brightness.dark;
+    final disabled = onPressed == null;
+    final text = auroraToken('text', dark: dark)!;
+    final accent = tint ?? theme.colorScheme.primary;
+    final fg = disabled
+        ? text.withValues(alpha: 0.35)
+        : (active ? theme.colorScheme.onPrimary : (tint ?? text));
+    return Semantics(
+      button: true,
+      enabled: !disabled,
+      label: label,
+      excludeSemantics: true,
+      child: Material(
+        color: active ? accent : auroraToken('raised', dark: dark),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+          side: BorderSide(color: active ? accent : auroraToken('border', dark: dark)!),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onPressed,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minWidth: 56, maxWidth: 88, minHeight: 64),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+              child: Column(mainAxisSize: MainAxisSize.min, mainAxisAlignment: MainAxisAlignment.center, children: [
+                count == null
+                    ? Icon(icon, size: 22, color: fg)
+                    : Text('$count', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: fg)),
+                const SizedBox(height: 4),
+                Text(label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 11, height: 1.1, color: fg)),
+              ]),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 /// Ряд служебных значков под полем. Переносится строкой только тогда, когда
 /// значки не встают в ширину: два ряда над полем — то, от чего ушли 17.09.2026.
 class AuxBar extends StatelessWidget {
@@ -77,7 +137,17 @@ class AuxBar extends StatelessWidget {
   final List<Widget> children;
 
   @override
-  Widget build(BuildContext context) => Padding(
+  Widget build(BuildContext context) => _aurora(context)
+      // «Аврора»: одной строкой плиток, каждая сжимается по месту рядом с паузой.
+      ? Row(
+          key: const Key('aux-bar-aurora'),
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            for (final c in children)
+              Flexible(child: Padding(padding: const EdgeInsets.symmetric(horizontal: 3), child: c)),
+          ],
+        )
+      : Padding(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         child: Wrap(
           alignment: WrapAlignment.center,
