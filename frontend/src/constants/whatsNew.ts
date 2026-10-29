@@ -16,6 +16,20 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.56.42',
+    date: '2026-10-29',
+    en: [
+      '“Aurora” look in games: the game actions under the board are tiles with captions next to the yellow pause; “Continue” on the pause screen is orange',
+      '“Aurora” look: games that are already redesigned use the Aurora game colours',
+      'Profile list: the ODV999 profile shows its number of games again',
+    ],
+    ru: [
+      'Оформление «Аврора» в играх: действия игры под полем — плитки с подписями рядом с жёлтой паузой; «Продолжить игру» в паузе — оранжевая',
+      'Оформление «Аврора»: уже перерисованные игры берут цвета «Авроры»',
+      'Список профилей: у ODV999 снова видно число игр',
+    ],
+  },
+  {
     version: '2.56.41',
     date: '2026-10-29',
     en: [
