@@ -7,5 +7,5 @@ environment:
 dependencies:
   ecosystem_account:
     path: ../ecosystem_account
-    version: 0.1.4
+    version: 0.1.5
   supabase: 2.16.5

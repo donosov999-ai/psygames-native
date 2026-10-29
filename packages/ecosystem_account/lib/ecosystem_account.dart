@@ -78,7 +78,7 @@ class EcosystemAccount {
     AccountVault? vault,
     this.transport,
   }) : vault = vault ?? const SecureAccountVault() {
-    if (!const {'psygames', 'smart-alarm', 'abstract-hub', 'typerighting'}.contains(appId)) {
+    if (!const {'psygames', 'smart-alarm', 'abstract-hub', 'typerighting', 'fudao'}.contains(appId)) {
       throw ArgumentError('Unknown ecosystem app');
     }
     final endpoint = Uri.parse(url);
@@ -406,7 +406,12 @@ class EcosystemAccount {
   /// and confirm the scope. This never erases local app data or exposes a JWT.
   /// After dispatch, even an ambiguous failure requires a fresh sign-in: the
   /// server may already have revoked sessions. A later account B is untouched.
+  /// Draft.6: fudao signs in with the shared identity but is outside the frozen
+  /// `all_ecosystem_apps` cascade until a separate version is approved.
   Future<void> deleteAccount({required bool confirmAllApps}) async {
+    if (!const {'psygames', 'smart-alarm', 'abstract-hub', 'typerighting'}.contains(appId)) {
+      throw StateError('Shared-account deletion is not part of the $appId contract');
+    }
     if (!confirmAllApps || accountId == null || _deletingAccount) {
       throw StateError('Explicit shared-account confirmation required');
     }
