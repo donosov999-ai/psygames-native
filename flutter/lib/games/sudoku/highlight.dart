@@ -81,13 +81,31 @@ Color sudokuCellBackground(
   if (mark != null) bg = Color.lerp(bg, mark, dark ? 0.34 : 0.24)!;
   if (look.wrong) return look.selected ? colors.wrong : colors.wrongFill;
   // «Аврора» (лист 11): выбранная клетка — кольцо [sudokuSelectionRing], а не заливка; под ним лёгкий тон выбора.
-  if (look.selected) return ring ? Color.lerp(bg, colors.selected, 0.18)! : colors.selected;
+  if (look.selected) return ring ? sudokuRingTone(bg, colors) : colors.selected;
   return bg;
 }
 
 /// Под «Авророй» выбор клетки — кольцо, как на листе 11; в Classic — заливка, как было.
 bool sudokuSelectionRing(BuildContext context) =>
     Theme.of(context).extension<UiTemplateTheme>()?.template == UiTemplate.aurora;
+
+/// Кольцо выбора «Авроры» — одно на все доски раздела («Судоку», режимы, «Самурай», «Фрактал», «Бездна»):
+/// ответ каркаса ffc61832 п. 6 — «одна подсветка на четыре доски». Ставится последним слоем клетки.
+class SudokuSelectionRing extends StatelessWidget {
+  const SudokuSelectionRing({super.key, required this.color});
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) => IgnorePointer(
+        child: Container(
+          margin: const EdgeInsets.all(2),
+          decoration: BoxDecoration(border: Border.all(color: color, width: 2), borderRadius: BorderRadius.circular(4)),
+        ),
+      );
+}
+
+/// Фон выбранной клетки под кольцом — лёгкий тон выбора поверх `bg`, как у «Судоку».
+Color sudokuRingTone(Color bg, GameColors colors) => Color.lerp(bg, colors.selected, 0.18)!;
 
 /// Цвет цифры клетки: на выбранной — `onStrong` (белый в Classic), неверная — `wrongInk`, подсказка —
 /// `onCell`, своя — `inkPlaced` (в Classic — цвет текста и основной цвет темы, как раньше).

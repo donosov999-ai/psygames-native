@@ -7,7 +7,8 @@ import 'marks.dart';
 /// 🔴 КЛАВИШИ ПОД «АВРОРОЙ» — ТЁМНЫЕ ПЛИТКИ ПОЛЯ, НЕ АКЦЕНТ (лист 11, «Судоку»): фон `cell`, цифра `onCell`,
 /// рамка `boardLine`, скруглённый квадрат. Сборка 29.10 под «Авророй» заливала цифры акцентом профиля
 /// (жёлтым у ODV999). В Classic стиля нет (`null`) — кнопки как были.
-ButtonStyle? _auroraKeyStyle(BuildContext context) {
+/// Тот же стиль берут доски со своей раскладкой клавиш («Самурай»).
+ButtonStyle? sudokuAuroraKeyStyle(BuildContext context) {
   if (Theme.of(context).extension<UiTemplateTheme>()?.template != UiTemplate.aurora) return null;
   final gc = GameColors.of(context);
   return FilledButton.styleFrom(
@@ -136,7 +137,7 @@ class SudokuKeys extends StatelessWidget {
                       child: FilledButton(
                         key: const Key('digit0'),
                         onPressed: () => onDigit(10),
-                        style: _auroraKeyStyle(context) ?? FilledButton.styleFrom(padding: EdgeInsets.zero),
+                        style: sudokuAuroraKeyStyle(context) ?? FilledButton.styleFrom(padding: EdgeInsets.zero),
                         child: const Text('0', style: TextStyle(fontSize: 20)),
                       ),
                     ),
@@ -147,7 +148,7 @@ class SudokuKeys extends StatelessWidget {
                       child: FilledButton(
                         key: Key('digit$v'),
                         onPressed: () => onDigit(v),
-                        style: _auroraKeyStyle(context) ?? FilledButton.styleFrom(padding: EdgeInsets.zero),
+                        style: sudokuAuroraKeyStyle(context) ?? FilledButton.styleFrom(padding: EdgeInsets.zero),
                         child: icon?.call(v) ??
                             Text(label?.call(v) ?? '$v', style: const TextStyle(fontSize: 20)),
                       ),
@@ -158,7 +159,7 @@ class SudokuKeys extends StatelessWidget {
                     child: OutlinedButton(
                       key: const Key('erase'),
                       onPressed: onErase,
-                      style: _auroraKeyStyle(context) ?? OutlinedButton.styleFrom(padding: EdgeInsets.zero),
+                      style: sudokuAuroraKeyStyle(context) ?? OutlinedButton.styleFrom(padding: EdgeInsets.zero),
                       child: const Icon(Icons.backspace_outlined, size: 18),
                     ),
                   ),

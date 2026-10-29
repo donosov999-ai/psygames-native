@@ -17,6 +17,7 @@ import '../../shell/lesson.dart';
 import '../../shell/lesson_player.dart';
 import '../../shell/resume_store.dart';
 import '../../shell/session_report.dart';
+import '../sudoku/highlight.dart' show SudokuSelectionRing, sudokuRingTone, sudokuSelectionRing;
 import '../sudoku/keypad.dart';
 import '../sudoku/lesson.dart';
 import '../sudoku/marks.dart';
@@ -1063,15 +1064,22 @@ class _Cell extends StatelessWidget {
     // теряет, куда сейчас пишет.
     final dark = scheme.brightness == Brightness.dark;
     final gc = GameColors.of(context);
-    final bg = selected
-        ? scheme.primaryContainer
-        : paint >= 0 && paint < sudokuColorCount
-            ? cellColors[paint].withValues(alpha: 0.35)
-            : fedTag != null && value == 0
-                ? (dark ? const Color(0xFF3A3358) : const Color(0xFFECE9F7))
-                : waiting
-                    ? gc.cellAlt
-                    : gc.cell;
+    // «Аврора» (ответ каркаса ffc61832): выбор и ошибка — как у «Судоку» (кольцо selected, wrongFill / wrongInk),
+    // клетка-вход — cellAlt, её кольцо и номер — link. Classic — прежние цвета.
+    final aurora = sudokuSelectionRing(context);
+    final base = paint >= 0 && paint < sudokuColorCount
+        ? cellColors[paint].withValues(alpha: 0.35)
+        : fedTag != null && value == 0
+            ? (aurora ? gc.cellAlt : (dark ? const Color(0xFF3A3358) : const Color(0xFFECE9F7)))
+            : waiting
+                ? gc.cellAlt
+                : gc.cell;
+    final bg = aurora && wrong
+        ? gc.wrongFill
+        : selected
+            ? (aurora ? sudokuRingTone(base, gc) : scheme.primaryContainer)
+            : base;
+    final link = aurora ? gc.link : (dark ? const Color(0xFF6F66A8) : const Color(0xFFA89FDB));
     final fed = fedTag;
     return SizedBox(
       width: size,
@@ -1109,7 +1117,7 @@ class _Cell extends StatelessWidget {
                     child: CustomPaint(
                       key: Key('fed_ring_$keyName'),
                       painter: FedRingPainter(
-                        color: dark ? const Color(0xFF6F66A8) : const Color(0xFFA89FDB),
+                        color: link,
                         dashed: value == 0,
                       ),
                     ),
@@ -1154,7 +1162,13 @@ class _Cell extends StatelessWidget {
                           style: TextStyle(
                             fontSize: size * 0.52,
                             fontWeight: given ? FontWeight.w800 : FontWeight.w500,
-                            color: wrong ? scheme.error : given ? gc.onCell : gc.inkPlaced,
+                            color: wrong
+                                ? (aurora ? gc.wrongInk : scheme.error)
+                                : aurora && selected
+                                    ? gc.selected
+                                    : given
+                                        ? gc.onCell
+                                        : gc.inkPlaced,
                           ),
                         ),
                 ),
@@ -1169,11 +1183,12 @@ class _Cell extends StatelessWidget {
                       style: TextStyle(
                         fontSize: max(7, size * 0.24),
                         fontWeight: FontWeight.w800,
-                        color: (dark ? const Color(0xFF8D84C2) : const Color(0xFF7F76B8))
+                        color: (aurora ? gc.link : (dark ? const Color(0xFF8D84C2) : const Color(0xFF7F76B8)))
                             .withValues(alpha: value == 0 ? 1 : 0.6),
                       ),
                     ),
                   ),
+                if (aurora && selected && !wrong) SudokuSelectionRing(key: Key('aurora-ring_$keyName'), color: gc.selected),
               ],
             ),
           ),
