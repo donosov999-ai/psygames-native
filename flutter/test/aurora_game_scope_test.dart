@@ -8,18 +8,23 @@ import 'package:psygames_flutter/shell/web_theme.dart';
 
 /// Игра без отметки готовности не должна перекраситься, когда человек выбрал «Аврору».
 void main() {
+  // Маршрут, которого нет ни в одном списке: проба не ломается, когда раздел переходит в готовые.
+  const unready = '/games/__aurora_unready_probe__';
+  test('проба-маршрут не в списке готовых', () => expect(auroraReadyRoutes.contains(unready), isFalse));
+
   Future<ThemeData> themeInside(
     WidgetTester tester, {
     required UiTemplate template,
     required Brightness brightness,
     Set<String> ready = auroraReadyRoutes,
+    String route = unready,
   }) async {
     late ThemeData seen;
     final app = applyUiTemplate(classicShellTheme(brightness), template);
     await tester.pumpWidget(MaterialApp(
       theme: app,
       home: AuroraGameScope(
-        route: '/games/sudoku',
+        route: route,
         ready: ready,
         child: Builder(builder: (context) {
           seen = Theme.of(context);
@@ -45,6 +50,7 @@ void main() {
         tester,
         template: UiTemplate.aurora,
         brightness: brightness,
+        route: '/games/sudoku',
         ready: const {'/games/sudoku'},
       );
       expect(seen.extension<UiTemplateTheme>()?.template, UiTemplate.aurora);
@@ -63,7 +69,7 @@ void main() {
     await tester.pumpWidget(MaterialApp(
       theme: applyUiTemplate(classicShellTheme(Brightness.dark), UiTemplate.aurora),
       home: AuroraGameScope(
-        route: '/games/sudoku',
+        route: unready,
         child: Builder(builder: (context) {
           seen = WebTheme.of(context);
           return const SizedBox();

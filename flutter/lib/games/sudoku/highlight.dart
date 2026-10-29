@@ -13,6 +13,7 @@ library;
 
 import 'package:flutter/material.dart';
 
+import '../../shell/design_template.dart';
 import '../../shell/game_colors.dart';
 import 'variant_decor.dart' show cageTint;
 
@@ -69,6 +70,7 @@ Color sudokuCellBackground(
   required bool dark,
   int cageId = -1,
   Color? mark,
+  bool ring = false,
 }) {
   var bg = surface;
   if (look.sameValue || look.sameLine) {
@@ -78,14 +80,19 @@ Color sudokuCellBackground(
   bg = cageTint(bg, cageId) ?? bg;
   if (mark != null) bg = Color.lerp(bg, mark, dark ? 0.34 : 0.24)!;
   if (look.wrong) return look.selected ? colors.wrong : colors.wrongFill;
-  if (look.selected) return colors.selected;
+  // «Аврора» (лист 11): выбранная клетка — кольцо [sudokuSelectionRing], а не заливка; под ним лёгкий тон выбора.
+  if (look.selected) return ring ? Color.lerp(bg, colors.selected, 0.18)! : colors.selected;
   return bg;
 }
 
+/// Под «Авророй» выбор клетки — кольцо, как на листе 11; в Classic — заливка, как было.
+bool sudokuSelectionRing(BuildContext context) =>
+    Theme.of(context).extension<UiTemplateTheme>()?.template == UiTemplate.aurora;
+
 /// Цвет цифры клетки: на выбранной — `onStrong` (белый в Classic), неверная — `wrongInk`, подсказка —
 /// `onCell`, своя — `inkPlaced` (в Classic — цвет текста и основной цвет темы, как раньше).
-Color sudokuDigitInk(SudokuCellLook look, {required bool given, required GameColors colors}) {
-  if (look.selected) return colors.onStrong;
+Color sudokuDigitInk(SudokuCellLook look, {required bool given, required GameColors colors, bool ring = false}) {
+  if (look.selected) return ring ? colors.selected : colors.onStrong;
   if (look.wrong) return colors.wrongInk;
   return given ? colors.onCell : colors.inkPlaced;
 }
