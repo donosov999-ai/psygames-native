@@ -95,9 +95,9 @@ class ModeBoard extends StatelessWidget {
     if (mode == SideMode.towers) {
       final inner = row > 0 && row <= board.n && col > 0 && col <= board.n;
       if (!inner) return _clue(scheme, row, col, cell);
-      return _cell(scheme, row - 1, col - 1, cell, GameColors.of(context));
+      return _cell(scheme, row - 1, col - 1, cell, GameColors.of(context), sudokuSelectionRing(context));
     }
-    return _cell(scheme, row, col, cell, GameColors.of(context));
+    return _cell(scheme, row, col, cell, GameColors.of(context), sudokuSelectionRing(context));
   }
 
   /// Подсказка кольца: сколько зданий видно с этой стороны. Углы пусты.
@@ -127,7 +127,7 @@ class ModeBoard extends StatelessWidget {
     );
   }
 
-  Widget _cell(ColorScheme scheme, int r, int c, double cell, GameColors roles) {
+  Widget _cell(ColorScheme scheme, int r, int c, double cell, GameColors roles, bool ring) {
     final v = grid[r][c];
     final isGiven = given[r][c];
     final mask = r < marks.length && c < marks[r].length ? marks[r][c] : 0;
@@ -144,6 +144,7 @@ class ModeBoard extends StatelessWidget {
           surface: roles.cell,
           dark: scheme.brightness == Brightness.dark,
           mark: paint >= 0 && paint < sudokuColorCount ? cellColors[paint] : null,
+          ring: ring,
         ),
         child: InkWell(
           key: Key('cell_${r}_$c'),
@@ -157,24 +158,38 @@ class ModeBoard extends StatelessWidget {
                 right: _side(roles, c == board.n - 1),
               ),
             ),
-            child: Center(
-              child: v == 0 && mask != 0
-                  ? PencilMarksLayer(
-                      key: Key('marks_${r}_$c'),
-                      mask: mask,
-                      value: v,
-                      cell: cell,
-                      color: look.selected ? roles.onStrong : roles.notesInk,
-                    )
-                  : Text(
-                      v == 0 ? '' : '$v',
-                      style: TextStyle(
-                        fontSize: cell * 0.5,
-                        fontWeight: isGiven ? FontWeight.w800 : FontWeight.w500,
-                        color: sudokuDigitInk(look, given: isGiven, colors: roles),
+            child: Stack(fit: StackFit.expand, children: [
+              Center(
+                child: v == 0 && mask != 0
+                    ? PencilMarksLayer(
+                        key: Key('marks_${r}_$c'),
+                        mask: mask,
+                        value: v,
+                        cell: cell,
+                        color: look.selected && !ring ? roles.onStrong : roles.notesInk,
+                      )
+                    : Text(
+                        v == 0 ? '' : '$v',
+                        style: TextStyle(
+                          fontSize: cell * 0.5,
+                          fontWeight: isGiven ? FontWeight.w800 : FontWeight.w500,
+                          color: sudokuDigitInk(look, given: isGiven, colors: roles, ring: ring),
+                        ),
                       ),
+              ),
+              // «Аврора», лист 11: выбор — кольцо роли `selected`, а не заливка (как на доске лестницы).
+              if (ring && look.selected && !look.wrong)
+                IgnorePointer(
+                  child: Container(
+                    key: Key('aurora-ring_${r}_$c'),
+                    margin: const EdgeInsets.all(2),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: roles.selected, width: 2),
+                      borderRadius: BorderRadius.circular(4),
                     ),
-            ),
+                  ),
+                ),
+            ]),
           ),
         ),
       ),

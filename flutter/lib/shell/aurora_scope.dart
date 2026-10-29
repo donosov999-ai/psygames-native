@@ -13,7 +13,12 @@ import 'design_template.dart';
 ///
 /// Раздел добавляет сюда маршрут ТЕМ ЖЕ PR, где поле переведено на общие
 /// цвета и сверено с листом референса (`flutter/DESIGN_SYSTEM.md`).
-const Set<String> auroraReadyRoutes = {};
+const Set<String> auroraReadyRoutes = {
+  // Раздел «Судоку» (задача 6016f895): поле на ролях GameColors, сверено с листом 11 в обеих темах.
+  // «Самурай», «Фрактал», «Кошки» — не сверены с листом 25 (своя клавиатура и заливка выбора,
+  // пять рамок полей, палитра областей), остаются классическими до своего PR.
+  '/games/sudoku',
+};
 
 class AuroraGameScope extends StatelessWidget {
   const AuroraGameScope({

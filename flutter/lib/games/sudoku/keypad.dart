@@ -1,6 +1,23 @@
 import 'package:flutter/material.dart';
 
+import '../../shell/design_template.dart';
+import '../../shell/game_colors.dart';
 import 'marks.dart';
+
+/// 🔴 КЛАВИШИ ПОД «АВРОРОЙ» — ТЁМНЫЕ ПЛИТКИ ПОЛЯ, НЕ АКЦЕНТ (лист 11, «Судоку»): фон `cell`, цифра `onCell`,
+/// рамка `boardLine`, скруглённый квадрат. Сборка 29.10 под «Авророй» заливала цифры акцентом профиля
+/// (жёлтым у ODV999). В Classic стиля нет (`null`) — кнопки как были.
+ButtonStyle? _auroraKeyStyle(BuildContext context) {
+  if (Theme.of(context).extension<UiTemplateTheme>()?.template != UiTemplate.aurora) return null;
+  final gc = GameColors.of(context);
+  return FilledButton.styleFrom(
+    padding: EdgeInsets.zero,
+    backgroundColor: gc.cell,
+    foregroundColor: gc.onCell,
+    side: BorderSide(color: gc.boardLine),
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+  );
+}
 
 /// КЛАВИШИ СУДОКУ — ОДНИ НА ВСЕ ЭКРАНЫ РАЗДЕЛА: цифры, «Стереть» и палитра цвета.
 ///
@@ -119,7 +136,7 @@ class SudokuKeys extends StatelessWidget {
                       child: FilledButton(
                         key: const Key('digit0'),
                         onPressed: () => onDigit(10),
-                        style: FilledButton.styleFrom(padding: EdgeInsets.zero),
+                        style: _auroraKeyStyle(context) ?? FilledButton.styleFrom(padding: EdgeInsets.zero),
                         child: const Text('0', style: TextStyle(fontSize: 20)),
                       ),
                     ),
@@ -130,7 +147,7 @@ class SudokuKeys extends StatelessWidget {
                       child: FilledButton(
                         key: Key('digit$v'),
                         onPressed: () => onDigit(v),
-                        style: FilledButton.styleFrom(padding: EdgeInsets.zero),
+                        style: _auroraKeyStyle(context) ?? FilledButton.styleFrom(padding: EdgeInsets.zero),
                         child: icon?.call(v) ??
                             Text(label?.call(v) ?? '$v', style: const TextStyle(fontSize: 20)),
                       ),
@@ -141,7 +158,7 @@ class SudokuKeys extends StatelessWidget {
                     child: OutlinedButton(
                       key: const Key('erase'),
                       onPressed: onErase,
-                      style: OutlinedButton.styleFrom(padding: EdgeInsets.zero),
+                      style: _auroraKeyStyle(context) ?? OutlinedButton.styleFrom(padding: EdgeInsets.zero),
                       child: const Icon(Icons.backspace_outlined, size: 18),
                     ),
                   ),
