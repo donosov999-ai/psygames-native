@@ -18,6 +18,8 @@ import 'levels.dart';
 import '../../shell/l10n.dart';
 import '../../shell/lesson.dart';
 import '../../shell/lesson_player.dart';
+import '../sudoku/highlight.dart' show SudokuSelectionRing, sudokuRingTone, sudokuSelectionRing;
+import '../sudoku/keypad.dart' show sudokuAuroraKeyStyle;
 import '../sudoku/lesson.dart';
 import '../sudoku/leave_guard.dart';
 import '../sudoku/level_map.dart';
@@ -762,10 +764,13 @@ class _Cell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final gc = GameColors.of(context);
+    // «Аврора»: выбор и ошибка — как у «Судоку» (кольцо selected, wrongFill / wrongInk), ответ каркаса
+    // ffc61832 п. 6; Classic — прежние primaryContainer / errorContainer.
+    final ring = sudokuSelectionRing(context);
     final bg = wrong
-        ? scheme.errorContainer
+        ? (ring ? gc.wrongFill : scheme.errorContainer)
         : selected
-            ? scheme.primaryContainer
+            ? (ring ? sudokuRingTone(gc.cell, gc) : scheme.primaryContainer)
             : gc.cell;
     return SizedBox(
       width: size,
@@ -784,20 +789,25 @@ class _Cell extends StatelessWidget {
                 right: _side(gc, _thick(row, col, 0, 1)),
               ),
             ),
-            child: Center(
-              child: Text(
-                value == 0 ? '' : '$value',
-                style: TextStyle(
-                  fontSize: size * 0.52,
-                  fontWeight: given ? FontWeight.w800 : FontWeight.w500,
-                  color: wrong
-                      ? scheme.onErrorContainer
-                      : given
-                          ? gc.onCell
-                          : gc.inkPlaced,
+            child: Stack(fit: StackFit.expand, children: [
+              Center(
+                child: Text(
+                  value == 0 ? '' : '$value',
+                  style: TextStyle(
+                    fontSize: size * 0.52,
+                    fontWeight: given ? FontWeight.w800 : FontWeight.w500,
+                    color: wrong
+                        ? (ring ? gc.wrongInk : scheme.onErrorContainer)
+                        : ring && selected
+                            ? gc.selected
+                            : given
+                                ? gc.onCell
+                                : gc.inkPlaced,
+                  ),
                 ),
               ),
-            ),
+              if (ring && selected && !wrong) SudokuSelectionRing(key: Key('aurora-ring_${row}_$col'), color: gc.selected),
+            ]),
           ),
         ),
       ),
@@ -867,7 +877,7 @@ class _Toolbar extends StatelessWidget {
                       child: FilledButton(
                         key: Key('digit$v'),
                         onPressed: () => onDigit(v),
-                        style: FilledButton.styleFrom(padding: EdgeInsets.zero),
+                        style: sudokuAuroraKeyStyle(context) ?? FilledButton.styleFrom(padding: EdgeInsets.zero),
                         child: Text('$v', style: const TextStyle(fontSize: 20)),
                       ),
                     ),
@@ -877,7 +887,7 @@ class _Toolbar extends StatelessWidget {
                     child: OutlinedButton(
                       key: const Key('erase'),
                       onPressed: onErase,
-                      style: OutlinedButton.styleFrom(padding: EdgeInsets.zero),
+                      style: sudokuAuroraKeyStyle(context) ?? OutlinedButton.styleFrom(padding: EdgeInsets.zero),
                       child: const Icon(Icons.backspace_outlined, size: 18),
                     ),
                   ),

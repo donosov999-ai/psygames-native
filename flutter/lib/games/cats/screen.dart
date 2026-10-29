@@ -27,6 +27,7 @@ import '../../shell/lesson_player.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
+import '../../shell/design_template.dart';
 import '../../shell/game_colors.dart';
 import 'grade.dart';
 import 'ladder.dart';
@@ -411,6 +412,13 @@ class CatsBoardView extends StatelessWidget {
                             row: r,
                             col: col,
                             color: _regionColors[board.regionAt(r, col) % _regionColors.length],
+                            // Грани области: соседа нет или он из другой области — там под «Авророй» яркая граница.
+                            edges: (
+                              top: r == 0 || board.regionAt(r - 1, col) != board.regionAt(r, col),
+                              left: col == 0 || board.regionAt(r, col - 1) != board.regionAt(r, col),
+                              bottom: r == n - 1 || board.regionAt(r + 1, col) != board.regionAt(r, col),
+                              right: col == n - 1 || board.regionAt(r, col + 1) != board.regionAt(r, col),
+                            ),
                             mark: marks[r * n + col] ?? CatMark.empty,
                             scheme: scheme,
                             onTap: onTap,
@@ -434,6 +442,7 @@ class _Cell extends StatelessWidget {
     required this.row,
     required this.col,
     required this.color,
+    required this.edges,
     required this.mark,
     required this.scheme,
     required this.onTap,
@@ -444,6 +453,7 @@ class _Cell extends StatelessWidget {
   final int row;
   final int col;
   final Color color;
+  final ({bool top, bool left, bool bottom, bool right}) edges;
   final CatMark mark;
   final ColorScheme scheme;
   final void Function(int r, int c) onTap;
@@ -452,19 +462,32 @@ class _Cell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final press = onLongPress;
+    // «Аврора» (лист 25): область — бледная заливка своим цветом и яркая граница по краю области, клетки
+    // встык. Цвета областей те же: они различают области, это стимул. Classic — плитки с зазором, как было.
+    final aurora = Theme.of(context).extension<UiTemplateTheme>()?.template == UiTemplate.aurora;
+    final gc = GameColors.of(context);
+    BorderSide side(bool edge) =>
+        edge ? BorderSide(color: color, width: 2.5) : BorderSide(color: gc.boardLine, width: 0.5);
     return SizedBox(
       width: size,
       height: size,
       child: Padding(
-        padding: const EdgeInsets.all(1),
+        padding: EdgeInsets.all(aurora ? 0 : 1),
         child: Material(
-          color: color.withValues(alpha: 0.75),
-          borderRadius: BorderRadius.circular(4),
+          color: aurora ? Color.alphaBlend(color.withValues(alpha: 0.28), gc.cell) : color.withValues(alpha: 0.75),
+          borderRadius: aurora ? null : BorderRadius.circular(4),
           child: InkWell(
             key: Key('cell_${row}_$col'),
             onTap: () => onTap(row, col),
             onLongPress: press == null ? null : () => press(row, col),
-            child: Center(
+            child: DecoratedBox(
+              key: aurora ? Key('aurora-region_${row}_$col') : null,
+              decoration: aurora
+                  ? BoxDecoration(
+                      border: Border(
+                          top: side(edges.top), left: side(edges.left), bottom: side(edges.bottom), right: side(edges.right)))
+                  : const BoxDecoration(),
+              child: Center(
               child: switch (mark) {
                 CatMark.empty => const SizedBox.shrink(),
                 CatMark.cross => Icon(Icons.close,
@@ -473,10 +496,14 @@ class _Cell extends StatelessWidget {
                     color: scheme.onSurface.withValues(alpha: 0.55)),
                 CatMark.cat => Text('🐱',
                     key: Key('cat_${row}_$col'), style: TextStyle(fontSize: size * 0.55)),
-                // Промах вскрытия: кошки здесь нет — красный ✕, видный издалека.
+                // Промах вскрытия: кошки здесь нет — красный ✕, видный издалека. «Аврора» — роль wrong
+                // (ответ каркаса ffc61832 п. 5), Classic — прежний #DC2626.
                 CatMark.miss => Icon(Icons.close,
-                    key: Key('miss_${row}_$col'), size: size * 0.6, color: const Color(0xFFDC2626)),
+                    key: Key('miss_${row}_$col'),
+                    size: size * 0.6,
+                    color: aurora ? gc.wrong : const Color(0xFFDC2626)),
               },
+            ),
             ),
           ),
         ),

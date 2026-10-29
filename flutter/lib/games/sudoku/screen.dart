@@ -2287,7 +2287,11 @@ class SudokuBoardView extends StatelessWidget {
                 child: IgnorePointer(
                   child: CustomPaint(
                     key: const Key('kropki-layer'),
-                    painter: KropkiPainter(dots: kropkiDots(g.kropki!, n, cell), cell: cell),
+                    painter: KropkiPainter(
+                      dots: kropkiDots(g.kropki!, n, cell),
+                      cell: cell,
+                      edge: sudokuSelectionRing(context) ? GameColors.of(context).muted : null,
+                    ),
                   ),
                 ),
               ),
@@ -2302,6 +2306,7 @@ class SudokuBoardView extends StatelessWidget {
                       cell: cell,
                       surface: scheme.surface,
                       ink: scheme.onSurface,
+                      edge: sudokuSelectionRing(context) ? GameColors.of(context).muted : null,
                     ),
                   ),
                 ),
@@ -2617,16 +2622,7 @@ class _Cell extends StatelessWidget {
                 ),
               // «Аврора», лист 11: выбор — кольцо роли `selected` поверх клетки, а не заливка.
               if (ring && look.selected && !look.wrong)
-                IgnorePointer(
-                  child: Container(
-                    key: Key('aurora-ring_${row}_$col'),
-                    margin: const EdgeInsets.all(2),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: gc.selected, width: 2),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                  ),
-                ),
+                SudokuSelectionRing(key: Key('aurora-ring_${row}_$col'), color: gc.selected),
             ]),
           ),
         ),

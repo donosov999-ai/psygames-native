@@ -16,6 +16,8 @@ import '../../shell/l10n.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/lesson.dart';
 import '../../shell/lesson_player.dart';
+import '../sudoku/highlight.dart' show SudokuSelectionRing, sudokuRingTone, sudokuSelectionRing;
+import '../sudoku/keypad.dart' show sudokuAuroraKeyStyle;
 import '../sudoku/lesson.dart';
 import '../fractal/rules.dart' show conflictsInChild;
 import '../sudoku/marks.dart';
@@ -711,12 +713,14 @@ class _Cell extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final gc = GameColors.of(context);
+    // «Аврора» (ответ каркаса ffc61832): выбор — кольцо selected, как у «Судоку»; портал — link. Classic — прежнее.
+    final aurora = sudokuSelectionRing(context);
     return SizedBox(
       width: size,
       height: size,
       child: Material(
         color: selected
-            ? scheme.primaryContainer
+            ? (aurora ? sudokuRingTone(gc.cell, gc) : scheme.primaryContainer)
             : feed
                 ? scheme.tertiaryContainer.withValues(alpha: 0.45)
                 : gc.cell,
@@ -761,7 +765,7 @@ class _Cell extends StatelessWidget {
                   Positioned.fill(
                     child: CustomPaint(
                       key: Key('portal_ring_${row}_$col'),
-                      painter: FedRingPainter(color: portalColor, dashed: value == 0, width: 1.5),
+                      painter: FedRingPainter(color: aurora ? gc.link : portalColor, dashed: value == 0, width: 1.5),
                     ),
                   ),
                 // Кормимая клетка помечена стрелкой: под ней целая судоку, и цифру туда
@@ -786,14 +790,17 @@ class _Cell extends StatelessWidget {
                     style: TextStyle(
                       fontSize: size * 0.52,
                       fontWeight: given ? FontWeight.w800 : FontWeight.w500,
-                      color: given
-                          ? gc.onCell
-                          : feed
-                              ? scheme.tertiary
-                              : gc.inkPlaced,
+                      color: aurora && selected
+                          ? gc.selected
+                          : given
+                              ? gc.onCell
+                              : feed
+                                  ? scheme.tertiary
+                                  : gc.inkPlaced,
                     ),
                   ),
                 ),
+                if (aurora && selected) SudokuSelectionRing(key: Key('aurora-ring_${row}_$col'), color: gc.selected),
               ],
             ),
           ),
@@ -891,7 +898,7 @@ class _Toolbar extends StatelessWidget {
                       child: FilledButton(
                         key: Key('digit$v'),
                         onPressed: () => onDigit(v),
-                        style: FilledButton.styleFrom(padding: EdgeInsets.zero),
+                        style: sudokuAuroraKeyStyle(context) ?? FilledButton.styleFrom(padding: EdgeInsets.zero),
                         child: Text('$v', style: const TextStyle(fontSize: 20)),
                       ),
                     ),
@@ -901,7 +908,7 @@ class _Toolbar extends StatelessWidget {
                     child: OutlinedButton(
                       key: const Key('erase'),
                       onPressed: onErase,
-                      style: OutlinedButton.styleFrom(padding: EdgeInsets.zero),
+                      style: sudokuAuroraKeyStyle(context) ?? OutlinedButton.styleFrom(padding: EdgeInsets.zero),
                       child: const Icon(Icons.backspace_outlined, size: 18),
                     ),
                   ),

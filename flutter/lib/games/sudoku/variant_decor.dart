@@ -333,8 +333,10 @@ List<XvMark> xvMarks(KropkiMap xv, int n, double cell) => [
 
 /// XV — буква в кружке на грани, как знак неравенства веба (пилюля 0,36 клетки).
 class XvPainter extends CustomPainter {
-  XvPainter({required this.marks, required this.cell, required this.surface, required this.ink});
+  XvPainter({required this.marks, required this.cell, required this.surface, required this.ink, this.edge});
   final List<XvMark> marks;
+  /// Обводка знака: под «Авророй» — роль `muted` (ответ каркаса ffc61832 п. 4), без неё — прежний `#777777`.
+  final Color? edge;
   final double cell;
   final Color surface;
   final Color ink;
@@ -343,7 +345,7 @@ class XvPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final rad = cell * 0.18;
     final edge = Paint()
-      ..color = const Color(0xFF777777)
+      ..color = this.edge ?? const Color(0xFF777777)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1;
     for (final m in marks) {
@@ -361,19 +363,22 @@ class XvPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(XvPainter old) => old.marks != marks || old.cell != cell || old.surface != surface || old.ink != ink;
+  bool shouldRepaint(XvPainter old) =>
+      old.marks != marks || old.cell != cell || old.surface != surface || old.ink != ink || old.edge != edge;
 }
 
 class KropkiPainter extends CustomPainter {
-  KropkiPainter({required this.dots, required this.cell});
+  KropkiPainter({required this.dots, required this.cell, this.edge});
   final List<KropkiDot> dots;
+  /// Обводка точки: под «Авророй» — роль `muted`, без неё — прежний `#777777`.
+  final Color? edge;
   final double cell;
 
   @override
   void paint(Canvas canvas, Size size) {
     final rad = cell * 0.1;
     final edge = Paint()
-      ..color = const Color(0xFF777777)
+      ..color = this.edge ?? const Color(0xFF777777)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.5;
     for (final d in dots) {

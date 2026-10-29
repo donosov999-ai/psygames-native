@@ -15,6 +15,7 @@ library;
 import 'package:flutter/material.dart';
 
 import '../../shell/game_shell.dart' show GameExit;
+import '../../shell/design_template.dart';
 import '../../shell/game_colors.dart';
 import '../../shell/l10n.dart';
 import '../../shell/shared_state.dart';
@@ -114,10 +115,12 @@ Future<void> showSudokuRuleHelp(
     builder: (ctx) {
       final scheme = Theme.of(ctx).colorScheme;
       final roles = GameColors.of(ctx);
+      final aurora = Theme.of(ctx).extension<UiTemplateTheme>()?.template == UiTemplate.aurora;
       Color bg(SudokuExampleMark? m) => switch (m?.kind) {
             SudokuExampleKind.source => roles.highlight,
             SudokuExampleKind.banned => roles.wrongFill,
-            SudokuExampleKind.zone => const Color(0xFFFDE68A),
+            // «Аврора» — warning под прозрачностью подложек 0.2 (ответ каркаса ffc61832 п. 3); Classic — прежний #FDE68A.
+            SudokuExampleKind.zone => aurora ? roles.warning.withValues(alpha: 0.2) : const Color(0xFFFDE68A),
             null => scheme.surface,
           };
       Color ink(SudokuExampleMark? m) => switch (m?.kind) {

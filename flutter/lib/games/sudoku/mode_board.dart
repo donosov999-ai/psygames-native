@@ -179,16 +179,7 @@ class ModeBoard extends StatelessWidget {
               ),
               // «Аврора», лист 11: выбор — кольцо роли `selected`, а не заливка (как на доске лестницы).
               if (ring && look.selected && !look.wrong)
-                IgnorePointer(
-                  child: Container(
-                    key: Key('aurora-ring_${r}_$c'),
-                    margin: const EdgeInsets.all(2),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: roles.selected, width: 2),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                  ),
-                ),
+                SudokuSelectionRing(key: Key('aurora-ring_${r}_$c'), color: roles.selected),
             ]),
           ),
         ),
