@@ -13,7 +13,31 @@ import 'design_template.dart';
 ///
 /// Раздел добавляет сюда маршрут ТЕМ ЖЕ PR, где поле переведено на общие
 /// цвета и сверено с листом референса (`flutter/DESIGN_SYSTEM.md`).
-const Set<String> auroraReadyRoutes = {};
+const Set<String> auroraReadyRoutes = {
+  // «Поиск глазами» и «Счёт» (29a06aa2): поля на ролях GameColors с #401, Classic прежний.
+  // Сверка с листами 11/14/23/24/27/28 — ~/Documents/TeamOps/psygames-design/acceptance-20261029/search-counting/.
+  '/games/visual-search',
+  '/games/find-differences',
+  '/games/mahjong',
+  '/games/schulte',
+  '/games/schulte?series=1',
+  '/games/object-tracker',
+  '/games/sdmt',
+  '/games/set-game',
+  '/games/hidden-character',
+  '/games/monster-traits',
+  '/games/monster-traits?mode=missing',
+  '/games/kids-find',
+  '/games/search-runner',
+  '/games/submarines',
+  '/games/counter',
+  '/games/math-slider',
+  '/games/math-sprint',
+  '/games/number-bonds',
+  '/games/number-run',
+  '/games/pattern',
+  '/games/quick-count',
+};
 
 class AuroraGameScope extends StatelessWidget {
   const AuroraGameScope({
