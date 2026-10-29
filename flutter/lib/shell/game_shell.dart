@@ -1,3 +1,5 @@
+import 'aurora_scope.dart';
+import 'design_template.dart';
 import 'game_clock.dart';
 import 'feedback_fab.dart';
 import 'game_pet.dart';
@@ -97,6 +99,10 @@ class GameShell extends StatelessWidget {
   /// Отступ справа сверху, который в режиме [fieldOnly] занимает кнопка паузы.
   static const fieldOnlyPauseClear = 72.0;
 
+  /// Жёлтая круглая пауза — одна на fieldOnly и нижний ряд «Авроры».
+  static const pauseYellow = Color(0xFFFBBF24);
+  static const onPauseYellow = Color(0xFF201500);
+
   /*
    * 🔴 ЧТО НА ЭКРАНЕ — В ОТЧЁТ (задача 75348e44, 08.10.2026).
    *
@@ -137,7 +143,7 @@ class GameShell extends StatelessWidget {
                 label: L.t('gamePauseOpen'),
                 child: Material(
                   key: const Key('field-only-pause'),
-                  color: const Color(0xFFFBBF24),
+                  color: pauseYellow,
                   shape: const CircleBorder(),
                   elevation: 3,
                   child: InkWell(
@@ -146,7 +152,7 @@ class GameShell extends StatelessWidget {
                     child: const SizedBox(
                       width: 52,
                       height: 52,
-                      child: Icon(Icons.pause, size: 28, color: Color(0xFF201500)),
+                      child: Icon(Icons.pause, size: 28, color: onPauseYellow),
                     ),
                   ),
                 ),
@@ -160,6 +166,26 @@ class GameShell extends StatelessWidget {
     final spot = levelRule;
     final ruleKey = spot == null ? null : LevelRules.activeKey(spot.gameId, spot.level);
     final hasRule = spot != null && ruleKey != null && LevelRules.hasText(spot.gameId, ruleKey);
+    final frame = auroraFrameOf(context);
+    if (frame != null) {
+      final body = _auroraBody(
+        context,
+        frame,
+        _AuroraHeader(
+          title: title,
+          onBack: () => _leave(context),
+          onRules: onRules ?? _rulesByRoute(context),
+          onLesson: onLesson,
+          onFeedback: GameExit.feedback,
+          levelRuleTitle: hasRule ? L.t(LevelRules.textKey(spot.gameId, ruleKey, 'title')) : null,
+          onLevelRule: hasRule ? () => showLevelRule(context, spot.gameId, ruleKey) : null,
+        ),
+      );
+      return Scaffold(
+        backgroundColor: auroraToken('background', dark: frame.brightness == Brightness.dark),
+        body: SafeArea(child: spot == null ? body : LevelRuleWatcher(spot: spot, child: body)),
+      );
+    }
     final body = Column(
           children: [
             _Header(
@@ -271,6 +297,42 @@ class GameShell extends StatelessWidget {
     Navigator.of(context).maybePop();
   }
 
+  /// Тема рамки в «Авроре»: от [AuroraGameScope] (поле может остаться классическим) или
+  /// сама тема экрана; null — Classic, рамка прежняя.
+  static ThemeData? auroraFrameOf(BuildContext context) {
+    final frame = AuroraFrame.of(context);
+    if (frame != null) return frame;
+    final theme = Theme.of(context);
+    return theme.extension<UiTemplateTheme>()?.template == UiTemplate.aurora ? theme : null;
+  }
+
+  /*
+   * «АВРОРА» (листы 15 и 32, LAYOUT_CORRECTIONS п. 1 и 3, задача 045be21d).
+   *
+   * Шапка «‹ Название» в одну строку, справа значки — те же действия, что в Classic.
+   * Пауза уходит из шапки вниз: жёлтая круглая слева в нижнем ряду игры, справа от неё
+   * служебные значки игры (AuxBar); клавиатура игры — над этим рядом, как на листе 32.
+   * Рамка — в теме [frame], поле и клавиатура — в своей (классической, пока маршрут
+   * не в [auroraReadyRoutes]), поэтому у поля и свой фон.
+   */
+  Widget _auroraBody(BuildContext context, ThemeData frame, Widget header) {
+    Widget chrome(Widget w) => Theme(data: frame, child: w);
+    return Column(children: [
+      chrome(header),
+      if (hud.isNotEmpty) chrome(_HudRow(items: hud, aurora: true)),
+      Expanded(
+        key: const Key('game-field'),
+        child: ColoredBox(
+          color: Theme.of(context).scaffoldBackgroundColor,
+          child: LayoutBuilder(builder: (context, c) => field(context, c.maxHeight)),
+        ),
+      ),
+      if (toolbar != null)
+        Container(width: double.infinity, color: Theme.of(context).colorScheme.surface, child: toolbar),
+      chrome(_AuroraGameBar(onPause: () => _pause(context), aux: auxRow)),
+    ]);
+  }
+
   /// Свой «Заново» у игры уже есть: значок обновления или подпись перезапуска.
   static bool _isRestart(PauseAction a) =>
       a.icon == Icons.refresh ||
@@ -300,6 +362,7 @@ class GameShell extends StatelessWidget {
           hud: hud,
           actions: actions,
           onLeave: () => _leave(context),
+          frame: auroraFrameOf(context),
         ),
       ),
     ));
@@ -325,7 +388,14 @@ class GameExit {
 /// главной кнопкой, ниже служебные пункты, и ДВА ухода в конце. Лист снизу на три
 /// пункта, который стоял здесь до этого, не давал ни выхода, ни счётчиков.
 class _PauseScreen extends StatelessWidget {
-  const _PauseScreen({required this.title, this.ruleKey, required this.hud, required this.actions, required this.onLeave});
+  const _PauseScreen({
+    required this.title,
+    this.ruleKey,
+    required this.hud,
+    required this.actions,
+    required this.onLeave,
+    this.frame,
+  });
 
   final String title;
   final String? ruleKey;
@@ -334,8 +404,13 @@ class _PauseScreen extends StatelessWidget {
   final List<PauseAction> actions;
   final VoidCallback onLeave;
 
+  /// Тема «Авроры» — пауза по листу 15; null — Classic.
+  final ThemeData? frame;
+
   @override
   Widget build(BuildContext context) {
+    final f = frame;
+    if (f != null) return Theme(data: f, child: Builder(builder: _aurora));
     final scheme = Theme.of(context).colorScheme;
     Widget button(String label, IconData icon, VoidCallback onTap, {bool primary = false, Key? key}) {
       final child = Row(
@@ -450,6 +525,140 @@ class _PauseScreen extends StatelessWidget {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+extension on _PauseScreen {
+  /*
+   * Пауза «Авроры» — лист 15: карточка с жёлтой круглой паузой, «Пауза» и названием игры,
+   * под ней правила; «Продолжить игру» — главная оранжевая; служебные пункты — обведённые;
+   * два ухода внизу рядом — в развилку и на главную. Набор пунктов тот же, что в Classic.
+   */
+  Widget _aurora(BuildContext context) {
+    final theme = Theme.of(context);
+    final dark = theme.brightness == Brightness.dark;
+    final text = auroraToken('text', dark: dark)!;
+    final secondary = auroraToken('textSecondary', dark: dark)!;
+    final surface = auroraToken('surface', dark: dark)!;
+    final border = auroraToken('border', dark: dark)!;
+    final accent = theme.colorScheme.primary;
+
+    Widget button(String label, IconData icon, VoidCallback onTap, {bool primary = false, Key? key}) {
+      final fg = primary ? theme.colorScheme.onPrimary : text;
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 5),
+        child: SizedBox(
+          width: double.infinity,
+          height: 52,
+          child: Material(
+            key: key,
+            color: primary ? accent : surface,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+              side: primary ? BorderSide.none : BorderSide(color: border),
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: InkWell(
+              onTap: onTap,
+              child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                Icon(icon, size: 22, color: fg),
+                const SizedBox(width: 10),
+                Flexible(
+                  child: Text(label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: fg)),
+                ),
+              ]),
+            ),
+          ),
+        ),
+      );
+    }
+
+    void leaveWith(VoidCallback go) {
+      Navigator.of(context).pop();
+      go();
+    }
+
+    return Scaffold(
+      backgroundColor: auroraToken('background', dark: dark),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            Container(
+              key: const Key('pause-card'),
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: surface,
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: border),
+              ),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                Row(children: [
+                  Container(
+                    width: 48,
+                    height: 48,
+                    decoration: const BoxDecoration(color: GameShell.pauseYellow, shape: BoxShape.circle),
+                    child: const Icon(Icons.pause, size: 28, color: GameShell.onPauseYellow),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      Text(L.t('teachPause'),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: text)),
+                      Text(title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(fontSize: 14, color: secondary)),
+                    ]),
+                  ),
+                ]),
+                if (hud.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  _HudRow(items: hud, aurora: true, padding: EdgeInsets.zero),
+                ],
+                if (ruleKey != null) ...[
+                  const SizedBox(height: 12),
+                  ConstrainedBox(
+                    constraints: BoxConstraints(
+                        maxHeight: (MediaQuery.sizeOf(context).height * .3).clamp(90.0, 240.0)),
+                    child: SingleChildScrollView(
+                      key: const Key('pause-rules'),
+                      child: Text(L.t(ruleKey!), style: TextStyle(fontSize: 15, height: 1.35, color: text)),
+                    ),
+                  ),
+                ],
+              ]),
+            ),
+            const SizedBox(height: 12),
+            button(L.t('exitConfirmStay'), Icons.play_arrow, () => Navigator.of(context).pop(),
+                primary: true, key: const Key('pause-resume')),
+            for (final a in actions) button(a.label, a.icon, () => leaveWith(a.onPressed)),
+            if (GameExit.feedback != null)
+              button(L.t('feedbackFabLabel'), Icons.chat_bubble_outline, GameExit.feedback!,
+                  key: const Key('pause-feedback')),
+            const SizedBox(height: 6),
+            Row(children: [
+              Expanded(
+                child: button(L.t('pauseExitGame'), Icons.sports_esports_outlined, () => leaveWith(onLeave),
+                    key: const Key('pause-leave')),
+              ),
+              if (GameExit.home != null) ...[
+                const SizedBox(width: 10),
+                Expanded(
+                  child: button(L.t('goHome'), Icons.home_outlined, () => leaveWith(GameExit.home!),
+                      key: const Key('pause-home')),
+                ),
+              ],
+            ]),
+          ]),
         ),
       ),
     );
@@ -577,14 +786,24 @@ class _Header extends StatelessWidget {
 }
 
 class _HudRow extends StatelessWidget {
-  const _HudRow({required this.items});
+  const _HudRow({
+    required this.items,
+    this.aurora = false,
+    this.padding = const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+  });
   final List<HudItem> items;
+
+  /// «Аврора»: фишки на поверхности рамки с обводкой, текст — токены рамки.
+  final bool aurora;
+  final EdgeInsetsGeometry padding;
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final ink = aurora ? auroraToken('text', dark: dark) : null;
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      padding: padding,
       child: Wrap(
         spacing: 8,
         runSpacing: 4,
@@ -593,14 +812,15 @@ class _HudRow extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
-                color: scheme.surfaceContainerHighest,
+                color: aurora ? auroraToken('raised', dark: dark) : scheme.surfaceContainerHighest,
                 borderRadius: BorderRadius.circular(14),
+                border: aurora ? Border.all(color: auroraToken('border', dark: dark)!) : null,
               ),
               child: Semantics(
                 label: '${i.label}: ${i.value}',
                 child: Row(mainAxisSize: MainAxisSize.min, children: [
-                  if (i.icon != null) ...[Icon(i.icon, size: 14), const SizedBox(width: 4)],
-                  Text(i.value, style: const TextStyle(fontWeight: FontWeight.w700)),
+                  if (i.icon != null) ...[Icon(i.icon, size: 14, color: ink), const SizedBox(width: 4)],
+                  Text(i.value, style: TextStyle(fontWeight: FontWeight.w700, color: ink)),
                 ]),
               ),
             ),
@@ -608,4 +828,121 @@ class _HudRow extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Шапка «Авроры» — LAYOUT_CORRECTIONS п. 1: одна строка 56 pt, «‹» слева от названия,
+/// название в одну строку, справа Синапс и значки. Паузы здесь нет — она в нижнем ряду.
+class _AuroraHeader extends StatelessWidget {
+  const _AuroraHeader({
+    required this.title,
+    required this.onBack,
+    this.onRules,
+    this.onLesson,
+    this.onLevelRule,
+    this.levelRuleTitle,
+    this.onFeedback,
+  });
+  final String title;
+  final VoidCallback onBack;
+  final VoidCallback? onRules;
+  final VoidCallback? onLesson;
+  final VoidCallback? onLevelRule;
+  final String? levelRuleTitle;
+  final VoidCallback? onFeedback;
+
+  @override
+  Widget build(BuildContext context) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final text = auroraToken('text', dark: dark)!;
+    final narrow = MediaQuery.sizeOf(context).width < 380;
+    return IconButtonTheme(
+      data: IconButtonThemeData(
+          style: IconButton.styleFrom(
+              foregroundColor: text, visualDensity: narrow ? VisualDensity.compact : null)),
+      child: SizedBox(
+        key: const Key('game-header-aurora'),
+        height: 56,
+        child: Row(children: [
+          IconButton(
+            key: const Key('game-back'),
+            onPressed: onBack,
+            icon: const Icon(Icons.chevron_left, size: 30),
+            tooltip: L.t('back'),
+          ),
+          Expanded(
+            child: Text(title,
+                key: const Key('game-title'),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: text)),
+          ),
+          if (PetHost.ready)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: GamePet(state: PetHost.state!, origin: PetHost.origin!, size: 32),
+            ),
+          if (onLevelRule != null)
+            IconButton(
+              key: const Key('game-level-rule'),
+              onPressed: onLevelRule,
+              icon: const Icon(Icons.new_releases_outlined),
+              tooltip: levelRuleTitle,
+            ),
+          if (onLesson != null)
+            IconButton(
+              key: const Key('game-lesson'),
+              onPressed: onLesson,
+              icon: const Icon(Icons.school_outlined),
+              tooltip: L.t('teachButton'),
+            ),
+          if (onRules != null)
+            IconButton(onPressed: onRules, icon: const Icon(Icons.help_outline), tooltip: L.t('btn_rules')),
+          if (onFeedback != null)
+            IconButton(
+              key: const Key('game-feedback'),
+              onPressed: onFeedback,
+              icon: const Icon(Icons.chat_bubble_outline),
+              tooltip: L.t('feedbackFabLabel'),
+            ),
+        ]),
+      ),
+    );
+  }
+}
+
+/// Нижний ряд игры в «Авроре» — LAYOUT_CORRECTIONS п. 3: жёлтая круглая пауза слева,
+/// справа служебные значки игры. Пятивкладочной панели оболочки поверх игры нет.
+class _AuroraGameBar extends StatelessWidget {
+  const _AuroraGameBar({required this.onPause, this.aux});
+  final VoidCallback onPause;
+  final Widget? aux;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+        key: const Key('game-bar-aurora'),
+        padding: const EdgeInsets.fromLTRB(12, 6, 12, 8),
+        child: Row(children: [
+          Semantics(
+            button: true,
+            label: L.t('gamePauseOpen'),
+            child: Material(
+              key: const Key('game-pause'),
+              color: GameShell.pauseYellow,
+              shape: const CircleBorder(),
+              elevation: 2,
+              child: InkWell(
+                customBorder: const CircleBorder(),
+                onTap: onPause,
+                child: const SizedBox(
+                  width: 52,
+                  height: 52,
+                  child: Icon(Icons.pause, size: 28, color: GameShell.onPauseYellow),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(child: aux ?? const SizedBox.shrink()),
+        ]),
+      );
 }

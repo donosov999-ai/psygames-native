@@ -31,9 +31,27 @@ class AuroraGameScope extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    if (theme.extension<UiTemplateTheme>()?.template != UiTemplate.aurora || ready.contains(route)) {
-      return child;
-    }
-    return Theme(data: classicShellTheme(theme.brightness), child: child);
+    if (theme.extension<UiTemplateTheme>()?.template != UiTemplate.aurora) return child;
+    // Рамка игры (шапка, счётчики, пауза — GameShell) в «Авроре» всегда, поле — только
+    // когда маршрут готов (этап 6а, задача 045be21d).
+    return AuroraFrame(
+      theme: theme,
+      child: ready.contains(route) ? child : Theme(data: classicShellTheme(theme.brightness), child: child),
+    );
   }
+}
+
+/// Тема рамки игры. [GameShell] рисует шапку, счётчики, нижний ряд и паузу в ней, даже
+/// когда поле под [AuroraGameScope] ещё классическое: рамку переводит один раз каркас,
+/// поле — раздел, своим PR.
+class AuroraFrame extends InheritedWidget {
+  const AuroraFrame({super.key, required this.theme, required super.child});
+
+  final ThemeData theme;
+
+  static ThemeData? of(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<AuroraFrame>()?.theme;
+
+  @override
+  bool updateShouldNotify(AuroraFrame oldWidget) => oldWidget.theme != theme;
 }
