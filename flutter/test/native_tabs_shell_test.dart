@@ -240,6 +240,22 @@ void main() {
     expect(t.widget<TextField>(find.byKey(const ValueKey('catalog-search'))).controller!.text, 'Мосты');
   });
 
+  testWidgets('/games?filter=section:attention — вкладка со списком игр только этого раздела (плитка «Любимых разделов» «Авроры»)', (t) async {
+    await mount(t);
+    await route(t, '/games?filter=section:attention');
+    await settle(t, () => find.byKey(const ValueKey('catalog-flat')).evaluate().isNotEmpty);
+    expect(active(t), '/games');
+    final rows = find.descendant(of: find.byKey(const ValueKey('catalog-flat')), matching: find.byWidgetPredicate(
+        (w) => w.key is ValueKey && '${(w.key! as ValueKey).value}'.startsWith('catalog-row-')));
+    final routes = [for (final e in rows.evaluate()) '${(e.widget.key! as ValueKey).value}'.substring('catalog-row-'.length)];
+    expect(routes, isNotEmpty);
+    final catalog = (jsonDecode(File('assets/catalog.json').readAsStringSync()) as Map)['games'] as List;
+    final attention = {for (final g in catalog.cast<Map>()) if (g['category'] == 'attention') g['route']};
+    final other = {for (final g in catalog.cast<Map>()) if (g['category'] != null && g['category'] != 'attention') g['route']};
+    expect(routes.where((r) => attention.contains(r)), isNotEmpty, reason: 'в списке игры раздела «Внимание»: $routes');
+    expect(routes.where((r) => other.contains(r)), isEmpty, reason: 'игр других разделов нет: $routes');
+  });
+
   testWidgets('🔴 на адресе игры полосы нет; назад на /games — снова вкладка с полосой', (t) async {
     await mount(t);
     await route(t, '/statistics');

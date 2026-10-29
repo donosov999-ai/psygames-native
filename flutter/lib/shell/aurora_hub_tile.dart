@@ -42,6 +42,14 @@ class AuroraHubTile extends StatelessWidget {
     return 'assets/aurora_hubs/${slug}_${dark ? 'dark' : 'light'}.webp';
   }
 
+  /// Разделы каталога с картинками (`assets/aurora_sections/<раздел>_<тема>.webp`, 720×360):
+  /// «Любимые разделы» главной под «Авророй» — лист 01, решение Дениса 29.10 (Q1).
+  static const sectionIds = {'memory', 'attention', 'logic', 'intuition', 'action', 'recovery'};
+
+  /// Картинка раздела под тему; `null` — для этого раздела её нет.
+  static String? sectionAssetFor(String id, {required bool dark}) =>
+      sectionIds.contains(id) ? 'assets/aurora_sections/${id}_${dark ? 'dark' : 'light'}.webp' : null;
+
   @override
   Widget build(BuildContext context) {
     final dark = Theme.of(context).brightness == Brightness.dark;
