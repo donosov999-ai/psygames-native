@@ -1,6 +1,10 @@
+import 'dart:io';
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/shell/app_theme.dart';
 import 'package:psygames_flutter/shell/design_template.dart';
@@ -13,7 +17,14 @@ import '../support/real_fonts.dart';
 /// 🏁 Общий экран итога «Авроры» (46dc791d, лист 15): победа ≠ поражение, действия срабатывают,
 /// ничего не вылезает на узких экранах и при крупном шрифте, текст читается в обеих темах.
 void main() {
-  setUpAll(loadRoboto);
+  setUpAll(() async {
+    await loadRoboto();
+    // Значки Material — в пробах по умолчанию квадраты; для кадров приёмки нужен настоящий шрифт значков.
+    final icons = File(
+      '${Platform.environment['FLUTTER_ROOT']}/bin/cache/artifacts/material_fonts/MaterialIcons-Regular.otf',
+    );
+    await (FontLoader('MaterialIcons')..addFont(Future.value(ByteData.sublistView(icons.readAsBytesSync())))).load();
+  });
 
   final taps = <String>[];
   GameResultAction act(String id, IconData icon) =>
@@ -65,18 +76,16 @@ void main() {
 
   Color textColor(WidgetTester t, String key) => t.widget<Text>(find.byKey(Key(key))).style!.color!;
 
-  testWidgets('победа и поражение различаются: цвет заголовка, пояснение, значок, показатели', (t) async {
+  testWidgets('победа и поражение различаются: картинка, пояснение, показатели; заголовок — цвет текста', (t) async {
     await show(t, panel(won: true));
-    final wonTitle = textColor(t, 'game-result-title');
+    final wonSub = textColor(t, 'game-result-subtitle');
+    expect(wonSub, GameColors.auroraDark.selected, reason: '«Отличная работа!» — голубым, как на листе');
+    expect(textColor(t, 'game-result-title'), auroraToken('text', dark: true));
     expect(find.byKey(const Key('game-result-hero-won')), findsOneWidget);
     expect(find.byKey(const Key('game-result-stats')), findsOneWidget);
     await show(t, panel(won: false));
-    expect(textColor(t, 'game-result-title'), isNot(wonTitle));
-    expect(
-      textColor(t, 'game-result-subtitle'),
-      GameColors.auroraDark.wrong,
-      reason: 'причина поражения — цветом ошибки',
-    );
+    expect(textColor(t, 'game-result-subtitle'), isNot(wonSub));
+    expect(textColor(t, 'game-result-title'), auroraToken('text', dark: true));
     expect(find.byKey(const Key('game-result-hero-lost')), findsOneWidget);
     expect(find.byKey(const Key('game-result-stats')), findsNothing);
   });
@@ -90,7 +99,42 @@ void main() {
     }
     expect(taps, ['next', 'again', 'games']);
     expect(t.widgetList<AuroraButton>(find.byType(AuroraButton)).where((b) => b.primary).length, 1);
+    // Флаг «значок справа» доходит от действия до кнопки (лист 15: «Следующий уровень ›»).
+    await show(t, _sheetLike(won: true, dark: true));
+    final next = t.widgetList<AuroraButton>(find.byType(AuroraButton)).firstWhere((b) => b.primary);
+    expect(next.trailing, isTrue);
+    final label = t.getTopLeft(find.text('Следующий уровень')).dx;
+    expect(t.getTopLeft(find.byIcon(Icons.chevron_right)).dx, greaterThan(label), reason: 'стрелка справа от подписи');
   });
+
+  // Кадры для приёмки в три колонки (лист 15 / сборка / наложение): только с
+  // --dart-define=RESULT_EVIDENCE_DIR=<папка>; в обычном прогоне ничего не пишет.
+  const evidence = String.fromEnvironment('RESULT_EVIDENCE_DIR');
+  if (evidence.isNotEmpty) {
+    for (final b in Brightness.values) {
+      for (final won in [true, false]) {
+        testWidgets('кадр ${b.name} ${won ? 'won' : 'lost'}', (t) async {
+          final key = GlobalKey();
+          await show(
+            t,
+            RepaintBoundary(
+              key: key,
+              child: _sheetLike(won: won, dark: b == Brightness.dark),
+            ),
+            b: b,
+          );
+          await t.runAsync(() async {
+            final img = await (key.currentContext!.findRenderObject()! as RenderRepaintBoundary).toImage(pixelRatio: 2);
+            final png = await img.toByteData(format: ui.ImageByteFormat.png);
+            await Directory(evidence).create(recursive: true);
+            await File('$evidence/result-${b.name}-${won ? 'won' : 'lost'}.png')
+                .writeAsBytes(png!.buffer.asUint8List());
+            img.dispose();
+          });
+        });
+      }
+    }
+  }
 
   for (final b in Brightness.values) {
     for (final width in const [320.0, 390.0, 430.0]) {
@@ -117,7 +161,8 @@ void main() {
       final g = GameColors.aurora(b);
       final pairs = <String, double>{
         'заголовок победы': _contrast(g.correct, bg),
-        'причина поражения': _contrast(g.wrong, bg),
+        '«Отличная работа!»': _contrast(g.selected, bg),
+        'причина поражения': _contrast(auroraToken('textSecondary', dark: dark)!, bg),
         'заголовок поражения': _contrast(auroraToken('text', dark: dark)!, bg),
         'подпись показателя': _contrast(auroraToken('textSecondary', dark: dark)!, raised),
         'текст главной кнопки': _contrast(AuroraButton.onAction, AuroraButton.action),
@@ -138,4 +183,57 @@ double _contrast(Color a, Color b) {
 
   final x = lum(a), y = lum(b);
   return (math.max(x, y) + 0.05) / (math.min(x, y) + 0.05);
+}
+
+/// Экран как на листе 15: те же подписи и простое поле 9×9 ролями доски — только для кадров приёмки.
+Widget _sheetLike({required bool won, required bool dark}) {
+  final g = GameColors.aurora(dark ? Brightness.dark : Brightness.light);
+  const digits = '123456789456789123789123456214365897365897214897214365531642978642978531978531642';
+  final board = SizedBox(
+    width: 300,
+    height: 300,
+    child: GridView.count(
+      crossAxisCount: 9,
+      physics: const NeverScrollableScrollPhysics(),
+      children: [
+        for (var i = 0; i < 81; i++)
+          Container(
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: g.cell,
+              border: Border.all(color: g.boardLine, width: 0.5),
+            ),
+            child: Text(digits[i], style: TextStyle(fontSize: 15, color: g.onCell)),
+          ),
+      ],
+    ),
+  );
+  void none() {}
+  return GameResultPanel(
+    won: won,
+    title: won ? 'Уровень пройден!' : 'Попробуем ещё раз',
+    subtitle: won ? 'Отличная работа!' : 'Лимит ошибок исчерпан',
+    stats: won
+        ? const [
+            GameResultStat(icon: Icons.star_rounded, label: 'Уровень', value: '24 → 25'),
+            GameResultStat(icon: Icons.local_fire_department_rounded, label: 'Получено', value: '+ 24 балла'),
+          ]
+        : const [],
+    board: board,
+    primary: won
+        ? GameResultAction(label: 'Следующий уровень', icon: Icons.chevron_right, onTap: none, trailing: true)
+        : GameResultAction(label: 'Повторить', icon: Icons.replay, onTap: none),
+    pair: won
+        ? [
+            GameResultAction(label: 'Ещё раз', icon: Icons.replay, onTap: none),
+            GameResultAction(label: 'К играм', icon: Icons.sports_esports_outlined, onTap: none),
+          ]
+        : const [],
+    extra: won
+        ? const []
+        : [
+            GameResultAction(label: 'Разобрать с учителем', icon: Icons.school_outlined, onTap: none),
+            GameResultAction(label: 'К играм', icon: Icons.sports_esports_outlined, onTap: none),
+          ],
+  );
 }

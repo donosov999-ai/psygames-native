@@ -15,6 +15,7 @@ class AuroraButton extends StatelessWidget {
     required this.onTap,
     this.primary = false,
     this.compact = false,
+    this.trailing = false,
   });
 
   final String label;
@@ -26,6 +27,9 @@ class AuroraButton extends StatelessWidget {
 
   /// Кнопка в ряду из двух: меньше шрифт и значок.
   final bool compact;
+
+  /// Значок справа у края, подпись по центру («Следующий уровень ›» на листе 15).
+  final bool trailing;
 
   static Color get action => GameColors.auroraDark.highlight;
   static Color get onAction => GameColors.auroraDark.onStrong;
@@ -50,16 +54,19 @@ class AuroraButton extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(icon, size: compact ? 20 : 22, color: fg),
+                if (trailing) SizedBox(width: compact ? 20 : 22) else Icon(icon, size: compact ? 20 : 22, color: fg),
                 const SizedBox(width: 10),
                 Flexible(
+                  fit: trailing ? FlexFit.tight : FlexFit.loose,
                   child: Text(
                     label,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
                     style: TextStyle(fontSize: compact ? 15 : 17, fontWeight: FontWeight.w700, color: fg),
                   ),
                 ),
+                if (trailing) ...[const SizedBox(width: 10), Icon(icon, size: compact ? 20 : 22, color: fg)],
               ],
             ),
           ),
