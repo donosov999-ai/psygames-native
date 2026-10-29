@@ -103,6 +103,11 @@ class GameShell extends StatelessWidget {
   static const pauseYellow = Color(0xFFFBBF24);
   static const onPauseYellow = Color(0xFF201500);
 
+  /// Главная кнопка паузы «Авроры» — оранжевая, как на листе 15, а не акцент профиля:
+  /// решение Дениса 29.10 15:03 («оранжевая»). Оттенок снят с листа (≈ 248,168,72) и равен
+  /// оранжевому «Авроры» в `GameColors.aurora`; текст на нём тёмный, как на листе.
+  static const auroraAction = Color(0xFFFFA34C);
+
   /*
    * 🔴 ЧТО НА ЭКРАНЕ — В ОТЧЁТ (задача 75348e44, 08.10.2026).
    *
@@ -544,10 +549,10 @@ extension on _PauseScreen {
     final secondary = auroraToken('textSecondary', dark: dark)!;
     final surface = auroraToken('surface', dark: dark)!;
     final border = auroraToken('border', dark: dark)!;
-    final accent = theme.colorScheme.primary;
+    const accent = GameShell.auroraAction;
 
     Widget button(String label, IconData icon, VoidCallback onTap, {bool primary = false, Key? key}) {
-      final fg = primary ? theme.colorScheme.onPrimary : text;
+      final fg = primary ? GameShell.onPauseYellow : text;
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 5),
         child: SizedBox(
