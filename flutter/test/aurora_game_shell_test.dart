@@ -89,6 +89,8 @@ void main() {
     expect(find.text('Заново'), findsOneWidget);
     expect(key('pause-home'), findsOneWidget);
     expect(t.getRect(key('pause-leave')).top, t.getRect(key('pause-home')).top, reason: 'два ухода — рядом');
+    // Решение Дениса 29.10: главная кнопка паузы — оранжевая по листу 15, не акцент профиля.
+    expect(t.widget<Material>(key('pause-resume')).color, GameShell.auroraAction);
 
     await t.tap(key('pause-resume'));
     await t.pumpAndSettle();
