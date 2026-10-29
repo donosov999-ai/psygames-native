@@ -1,8 +1,10 @@
-# Unified account — ecosystem.account/1-draft.5
+# Unified account — ecosystem.account/1-draft.6
 
-Status: candidate for owner review, NOT four-app acceptance or a public release.
-Package: ecosystem_account 0.1.4. Adds a bounded shared-account deletion method
-to draft.4/SOURCE057c as a NEW review candidate, not automatic acceptance.
+Status: candidate for owner review, NOT multi-app acceptance or a public release.
+Package: ecosystem_account 0.1.5. Draft.6 = draft.5 + app_id `fudao` (see
+"Draft.6: Fudao" below). Draft.5 stays frozen for apps that pinned it; adopting
+draft.6 is a separate review per app. Draft.5 added a bounded shared-account
+deletion method to draft.4/SOURCE057c as a NEW review candidate, not automatic acceptance.
 Current implementation is not runtime-connected in the published four apps.
 Owner of shared coordination: psygames-claude-mac, task
 f27599dc-31c9-4638-946d-ccb3270079bb. PsyGames implementation:
@@ -36,6 +38,7 @@ No identity merging by mascot name, nickname, PIN or device name.
 | Smart Alarm | smart-alarm | Owner host candidate; new exact-pin integration/review pending |
 | Chess & Go | abstract-hub | Owner host candidate; new exact-pin integration/review pending |
 | TypeFree / TypeRIGHTing | typerighting | Owner host candidate and common TS connector; protected AuthHost pending |
+| Fudao | fudao | Draft.6 candidate: identity only (local consultant service, synthetic verifier); outside the deletion cascade |
 
 Default LOCAL. Each app must obtain its OWN explicit, versioned, account-bound
 storage consent and history-link preview. Login alone is not progress consent.
@@ -49,6 +52,25 @@ retries immediately, preserves local data and does not mean remote deletion.
 Logout, cloud-copy deletion, shared-account deletion and local erasure are
 separate explained actions. Shared-account deletion still needs a coordinated
 backend implementation before account creation is exposed publicly.
+
+## Draft.6: Fudao (29.10.2026, task 739ccbcb)
+
+Denis's plan of 24.10 (task c524a41b) extends the shared identity from four to six
+products with separate data, consents, tenants and roles. Draft.6 admits only Fudao:
+
+- Identity is the same issuer + account_id; app_id `fudao`; storage namespace
+  `ecosystem.account.v2.fudao.<base64url(canonical-issuer)>`.
+- Fudao data stays in Fudao's own consultation service (contract:
+  fydao-app `docs/CONSULTATION_CONTRACT.md`). It is NOT added to
+  `public.ecosystem_app_cloud_backups` — that app_id CHECK stays at four.
+- `deleteAccount` throws for `fudao`: the frozen `all_ecosystem_apps` cascade covers
+  the four products only. Extending it needs a new version and Denis's explicit consent.
+- Fudao permissions are namespaced (`fudao.charts`, `fudao.consultations`,
+  `fudao.shared_diary`) so they never collide with `ecosystem.coaching` permissions
+  such as `assigned_results`.
+- A Fudao callback in the Supabase Auth redirect allowlist is a production change and
+  needs Denis's explicit confirmation, as the PsyGames callback did. Not done here.
+- Grovi is the sixth product in the plan; it is NOT admitted until its owner reviews.
 
 ## Session API and security
 

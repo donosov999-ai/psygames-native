@@ -191,7 +191,7 @@ packages:
       path: "../packages/ecosystem_account"
       relative: true
     source: path
-    version: "0.1.4"
+    version: "0.1.5"
   ecosystem_cloud:
     dependency: "direct main"
     description:

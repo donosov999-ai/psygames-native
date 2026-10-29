@@ -1,7 +1,7 @@
 # ecosystem_cloud 0.1.0 / ecosystem.cloud/1
 
 Private Dart connector for the deployed owner/app backup tables. Uses
-ecosystem_account 0.1.4 (draft.5 candidate); no second authentication or gameplay writer.
+ecosystem_account 0.1.5 (draft.6 candidate); no second authentication or gameplay writer.
 Canonical wire/host handoff: ../../ECOSYSTEM_CLOUD_V1_REF.md.
 
 Construct `AppCloudClient(account, expectedAccountId, validatePayload)` only after
