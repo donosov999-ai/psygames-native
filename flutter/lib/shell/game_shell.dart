@@ -1,6 +1,7 @@
 import 'aurora_scope.dart';
 import 'design_template.dart';
 import 'game_clock.dart';
+import 'game_colors.dart';
 import 'feedback_fab.dart';
 import 'game_pet.dart';
 import 'game_rules.dart';
@@ -105,8 +106,9 @@ class GameShell extends StatelessWidget {
 
   /// Главная кнопка паузы «Авроры» — оранжевая, как на листе 15, а не акцент профиля:
   /// решение Дениса 29.10 15:03 («оранжевая»). Оттенок снят с листа (≈ 248,168,72) и равен
-  /// оранжевому «Авроры» в `GameColors.aurora`; текст на нём тёмный, как на листе.
-  static const auroraAction = Color(0xFFFFA34C);
+  /// оранжевому «Авроры» в `GameColors.aurora` (берётся оттуда, без второго литерала —
+  /// храповик цветов); на листе он один в обеих темах. Текст на нём тёмный, как на листе.
+  static final auroraAction = GameColors.aurora(Brightness.dark).highlight;
 
   /*
    * 🔴 ЧТО НА ЭКРАНЕ — В ОТЧЁТ (задача 75348e44, 08.10.2026).
@@ -549,7 +551,7 @@ extension on _PauseScreen {
     final secondary = auroraToken('textSecondary', dark: dark)!;
     final surface = auroraToken('surface', dark: dark)!;
     final border = auroraToken('border', dark: dark)!;
-    const accent = GameShell.auroraAction;
+    final accent = GameShell.auroraAction;
 
     Widget button(String label, IconData icon, VoidCallback onTap, {bool primary = false, Key? key}) {
       final fg = primary ? GameShell.onPauseYellow : text;
