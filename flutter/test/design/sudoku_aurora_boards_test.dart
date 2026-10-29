@@ -114,6 +114,8 @@ void main() {
         await t.pump();
         final icon = t.widget<Icon>(find.byKey(Key('miss_0_$miss')));
         expect(icon.color, aurora ? GameColors.aurora(b).wrong : const Color(0xFFDC2626));
+        // Области: под «Авророй» — бледная заливка и граница по краю области (лист 25), в Classic — прежние плитки.
+        expect(find.byKey(const Key('aurora-region_0_0')).evaluate().isNotEmpty, aurora);
         await t.pumpWidget(const SizedBox());
       });
     }

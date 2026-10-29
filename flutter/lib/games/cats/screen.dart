@@ -412,6 +412,13 @@ class CatsBoardView extends StatelessWidget {
                             row: r,
                             col: col,
                             color: _regionColors[board.regionAt(r, col) % _regionColors.length],
+                            // Грани области: соседа нет или он из другой области — там под «Авророй» яркая граница.
+                            edges: (
+                              top: r == 0 || board.regionAt(r - 1, col) != board.regionAt(r, col),
+                              left: col == 0 || board.regionAt(r, col - 1) != board.regionAt(r, col),
+                              bottom: r == n - 1 || board.regionAt(r + 1, col) != board.regionAt(r, col),
+                              right: col == n - 1 || board.regionAt(r, col + 1) != board.regionAt(r, col),
+                            ),
                             mark: marks[r * n + col] ?? CatMark.empty,
                             scheme: scheme,
                             onTap: onTap,
@@ -435,6 +442,7 @@ class _Cell extends StatelessWidget {
     required this.row,
     required this.col,
     required this.color,
+    required this.edges,
     required this.mark,
     required this.scheme,
     required this.onTap,
@@ -445,6 +453,7 @@ class _Cell extends StatelessWidget {
   final int row;
   final int col;
   final Color color;
+  final ({bool top, bool left, bool bottom, bool right}) edges;
   final CatMark mark;
   final ColorScheme scheme;
   final void Function(int r, int c) onTap;
@@ -453,19 +462,32 @@ class _Cell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final press = onLongPress;
+    // «Аврора» (лист 25): область — бледная заливка своим цветом и яркая граница по краю области, клетки
+    // встык. Цвета областей те же: они различают области, это стимул. Classic — плитки с зазором, как было.
+    final aurora = Theme.of(context).extension<UiTemplateTheme>()?.template == UiTemplate.aurora;
+    final gc = GameColors.of(context);
+    BorderSide side(bool edge) =>
+        edge ? BorderSide(color: color, width: 2.5) : BorderSide(color: gc.boardLine, width: 0.5);
     return SizedBox(
       width: size,
       height: size,
       child: Padding(
-        padding: const EdgeInsets.all(1),
+        padding: EdgeInsets.all(aurora ? 0 : 1),
         child: Material(
-          color: color.withValues(alpha: 0.75),
-          borderRadius: BorderRadius.circular(4),
+          color: aurora ? Color.alphaBlend(color.withValues(alpha: 0.28), gc.cell) : color.withValues(alpha: 0.75),
+          borderRadius: aurora ? null : BorderRadius.circular(4),
           child: InkWell(
             key: Key('cell_${row}_$col'),
             onTap: () => onTap(row, col),
             onLongPress: press == null ? null : () => press(row, col),
-            child: Center(
+            child: DecoratedBox(
+              key: aurora ? Key('aurora-region_${row}_$col') : null,
+              decoration: aurora
+                  ? BoxDecoration(
+                      border: Border(
+                          top: side(edges.top), left: side(edges.left), bottom: side(edges.bottom), right: side(edges.right)))
+                  : const BoxDecoration(),
+              child: Center(
               child: switch (mark) {
                 CatMark.empty => const SizedBox.shrink(),
                 CatMark.cross => Icon(Icons.close,
@@ -479,10 +501,9 @@ class _Cell extends StatelessWidget {
                 CatMark.miss => Icon(Icons.close,
                     key: Key('miss_${row}_$col'),
                     size: size * 0.6,
-                    color: Theme.of(context).extension<UiTemplateTheme>()?.template == UiTemplate.aurora
-                        ? GameColors.of(context).wrong
-                        : const Color(0xFFDC2626)),
+                    color: aurora ? gc.wrong : const Color(0xFFDC2626)),
               },
+            ),
             ),
           ),
         ),
