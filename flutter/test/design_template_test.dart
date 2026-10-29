@@ -103,7 +103,8 @@ void main() {
         final theme = applyUiTemplate(base, UiTemplate.aurora);
         expect(theme.extension<_GameColors>(), same(game));
         expect(theme.extension<_OtherExtension>(), same(other));
-        expect(theme.extensions.length, base.extensions.length + 1);
+        // +2: метка шаблона и смысловые цвета игр «Авроры» (GameColors).
+        expect(theme.extensions.length, base.extensions.length + 2);
         expect(theme.extension<UiTemplateTheme>()?.template, UiTemplate.aurora);
         expect(theme.colorScheme.primary, base.colorScheme.primary);
         expect(
