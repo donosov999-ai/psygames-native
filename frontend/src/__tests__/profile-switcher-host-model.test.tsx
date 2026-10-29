@@ -100,6 +100,12 @@ describe('переключатель профилей под оболочкой'
       await TestRenderer.act(async () => r.unmount());
     });
 
+  it.each(['ru', 'en'])('%s: в листе нет неподставленных шаблонов «{…}» (ODV999 «Все игры ({n})», 09c3ded8)', async (language) => {
+    const { last, r, TestRenderer } = await смонтировать(true, language);
+    expect(strings(last()).filter(([, v]) => v.includes('{'))).toEqual([]);
+    await TestRenderer.act(async () => r.unmount());
+  });
+
   describe('🔴 сторож монетизации (d5e5814a)', () => {
     const fs = require('fs');
     const path = require('path');

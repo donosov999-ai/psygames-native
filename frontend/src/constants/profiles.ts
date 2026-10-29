@@ -121,6 +121,14 @@ export const PUBLIC_GAME_COUNT =
   PUZZLE_MODE_COUNT +
   NATIVE_ONLY_GAMES.length;
 
+/**
+ * Краткое описание профиля с подставленным числом игр (`{n}` у ODV999 «Все игры ({n})»).
+ * Одна функция для Настроек и листа выбора профиля — 21.10.2026 лист показывал голое «{n}».
+ */
+export function profileDescText(t: (key: string) => string, id: string): string {
+  return t('profileDesc_' + id).replace('{n}', String(PUBLIC_GAME_COUNT));
+}
+
 /** Сколько лежит в песочнице — чтобы это было видно числом, а не на глаз. */
 export const SANDBOX_GAME_COUNT = GAMES.filter((g) => g.sandbox).length;
 

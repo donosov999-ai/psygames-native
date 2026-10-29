@@ -18,7 +18,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { useProfile } from '@/src/contexts/ProfileContext';
-import type { ProfileDef } from '@/src/constants/profiles';
+import { profileDescText, type ProfileDef } from '@/src/constants/profiles';
 import { profileBadge } from '@/src/constants/profileBadges';
 import { a11yDecor, a11yModal } from '@/src/services/a11y';
 import { getTokens } from '@/src/services/tokens';
@@ -74,7 +74,7 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
         return {
           id: p.id,
           name: t('profileName_' + p.id),
-          desc: t('profileDesc_' + p.id),
+          desc: profileDescText(t, p.id),
           minutes: p.session_minutes ? `⏱ ${p.session_minutes.replace('мин', t('unitMin'))}` : null,
           wallet: wallet > 0 ? `⭐ ${wallet}` : null,
           badge: assetUri(profileBadge(p.id)),
@@ -140,7 +140,7 @@ export default function ProfileSwitcherModal({ visible, onClose }: Props) {
                       {t('profileName_' + p.id)}
                     </Text>
                     <Text numberOfLines={2} style={{ fontSize: 10, color: active ? 'rgba(0,0,0,0.7)' : colors.textSecondary, textAlign: 'center', marginTop: 2, lineHeight: 13 }}>
-                      {t('profileDesc_' + p.id)}
+                      {profileDescText(t, p.id)}
                     </Text>
                     {p.session_minutes && (
                       <Text style={{ fontSize: 9, color: active ? 'rgba(0,0,0,0.55)' : colors.textSecondary, marginTop: 2, fontFamily: 'monospace' }}>
