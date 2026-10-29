@@ -220,6 +220,33 @@ class _VisualSearchScreenState extends State<VisualSearchScreen> {
   /// РАЗБОР ПОКАЗЫВАЕТ СТИМУЛ ТЕМ ЖЕ ВИДЖЕТОМ, ЧТО РИСУЕТ ПАРТИЯ.
   ///
   /// Фигуру нельзя «нарисовать похоже»: в игре она под случайным поворотом, и
+  /// «Аврора» (лист 23, «Поиск глазами»): цель — одной карточкой, образец крупно слева, подпись справа.
+  /// Счётчики «Найдено / Ошибки» остаются фишками HUD рамки — второй раз их не дублируем.
+  Widget _auroraTargetCard(BuildContext context) {
+    final roles = GameColors.of(context);
+    return Container(
+      padding: const EdgeInsets.fromLTRB(8, 6, 16, 6),
+      decoration: BoxDecoration(
+        color: roles.cellAlt,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: roles.boardLine),
+      ),
+      child: Row(mainAxisSize: MainAxisSize.min, children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(color: roles.stimulusField, borderRadius: BorderRadius.circular(12)),
+          child: VsGlyph(shape: _target.shape, color: _target.color, size: 36, key: const Key('sample')),
+        ),
+        const SizedBox(width: 12),
+        Text(
+          _cfg.conjunction ? L.t('vsFindConj') : L.t('vsFindAll'),
+          key: const Key('hint'),
+          style: Theme.of(context).textTheme.titleSmall?.copyWith(color: roles.onCell),
+        ),
+      ]),
+    );
+  }
+
   /// именно поворот делает поиск трудным. Поэтому образец — `_Glyph`, тот же
   /// класс, что стоит на поле, и цель берётся у того же выбора цели.
   List<DemoTrial> _demoTrials() {
@@ -299,7 +326,7 @@ class _VisualSearchScreenState extends State<VisualSearchScreen> {
                 height: headH,
                 child: FittedBox(
                   fit: BoxFit.scaleDown,
-                  child: Column(
+                  child: _aurora(context) ? _auroraTargetCard(context) : Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
@@ -563,3 +590,6 @@ class VsGlyph extends StatelessWidget {
 /// роль стоит напрямую.
 Color _auroraOr(BuildContext context, Color role, Color classic) =>
     Theme.of(context).extension<UiTemplateTheme>()?.template == UiTemplate.aurora ? role : classic;
+
+bool _aurora(BuildContext context) =>
+    Theme.of(context).extension<UiTemplateTheme>()?.template == UiTemplate.aurora;
