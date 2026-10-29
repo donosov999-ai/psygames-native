@@ -19,6 +19,7 @@ void main() {
   late SharedState state;
   late Map<String, Object?> model;
   final opened = <String>[];
+  final tabs = <String>[];
   var switcher = 0;
 
   setUp(() async {
@@ -29,6 +30,7 @@ void main() {
     ScreenUi.reset();
     ScreenUi.run = (s) async {};
     opened.clear();
+    tabs.clear();
     switcher = 0;
   });
 
@@ -52,7 +54,7 @@ void main() {
           origin: 'http://127.0.0.1:1',
           kit: kit,
           onOpen: opened.add,
-          onTab: (_) {},
+          onTab: tabs.add,
           onSwitcher: () => switcher++,
           ownModel: false,
         ),
@@ -93,11 +95,28 @@ void main() {
     expect(opened, ['/shop', '/streak-calendar', '/achievements', '/pet', '/settings', '/friends']);
   });
 
+  testWidgets('«Аврора»: «Любимые разделы» — плитки разделов, нажатие → «Игры» с этим разделом (Q1 Дениса 29.10)', (t) async {
+    await mount(t, template: UiTemplate.aurora);
+    final fav = (model['blocks'] as List).cast<Map>().firstWhere((b) => b['kind'] == 'favourites');
+    final first = ((fav['sections'] as List).first as Map)['category'] as String;
+    final list = find.descendant(of: key('home-list'), matching: find.byType(Scrollable)).first;
+    await t.scrollUntilVisible(key('home-section-tile-$first'), 200, scrollable: list);
+    expect(find.descendant(of: key('home-favourites'), matching: find.byType(GridView)), findsNothing);
+    expect(key('home-section-$first'), findsNothing, reason: 'ряда игр раздела под «Авророй» нет');
+    await t.tap(key('home-section-tile-$first'));
+    expect(tabs, ['/games?filter=section:$first']);
+  });
+
   testWidgets('Classic: новой шапки нет, классическая на месте', (t) async {
     await mount(t, template: UiTemplate.classic);
     expect(key('aurora-home-top'), findsNothing);
     expect(key('aurora-home-stats'), findsNothing);
     expect(key('home-header'), findsOneWidget);
+    final fav = (model['blocks'] as List).cast<Map>().firstWhere((b) => b['kind'] == 'favourites');
+    final first = ((fav['sections'] as List).first as Map)['category'] as String;
+    await t.scrollUntilVisible(key('home-section-$first'), 200,
+        scrollable: find.descendant(of: key('home-list'), matching: find.byType(Scrollable)).first);
+    expect(key('home-section-tile-$first'), findsNothing, reason: 'Classic — прежний раздел с рядом игр');
   });
 
   testWidgets('«Аврора»: 320 pt и шрифт ×2 — ничего не вылезает за края', (t) async {

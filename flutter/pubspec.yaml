@@ -181,6 +181,7 @@ flutter:
     # (flutter/tools/embed-game-icons.mjs), не править руками.
     - assets/game_icons/
     - assets/aurora_hubs/
+    - assets/aurora_sections/
     # Превью игр фоном плиток вкладки «Игры» — копия веба (`flutter-catalog-asset-fresh.test.ts`), не править руками.
     - assets/game_thumbs/
     - assets/level_rules.json

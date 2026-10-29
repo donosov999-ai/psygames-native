@@ -659,7 +659,10 @@ class _HybridAppState extends State<HybridApp> {
     // «Друзья» живут на Dart: на каждом входе свой код и круг спрашиваются заново (`useFocusEffect` веба).
     if (tab == FriendsScreen.route && _nativeTab != tab) enterFriends();
     final search = tab == null ? null : uri.queryParameters['search'];
-    final hubsOnly = tab == '/games' && uri.queryParameters['filter'] == 'hubs';
+    final filter = tab == '/games' ? uri.queryParameters['filter'] : null;
+    final hubsOnly = filter == 'hubs';
+    // Плитка раздела в «Любимых разделах» «Авроры» (Q1 Дениса 29.10): `/games?filter=section:memory`.
+    final section = filter != null && filter.startsWith('section:') ? filter.substring(8) : null;
     if (!mounted) return tab != null;
     final before = _shownIndex();
     if (_nativeTab != tab) _leaveModelWait(_nativeTab);
@@ -676,6 +679,11 @@ class _HybridAppState extends State<HybridApp> {
       if (hubsOnly) {
         _catalogQuery = '';
         _catalogFilter = const CatalogFilter.hubs();
+        _catalogGen++;
+      }
+      if (section != null && section.isNotEmpty) {
+        _catalogQuery = '';
+        _catalogFilter = CatalogFilter.section(section);
         _catalogGen++;
       }
     });

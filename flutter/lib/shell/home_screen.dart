@@ -6,6 +6,7 @@ import 'package:flutter/rendering.dart';
 
 import 'aurora_home_hero.dart';
 import 'aurora_home_header.dart';
+import 'aurora_hub_tile.dart';
 import 'catalog_kit.dart';
 import 'design_template.dart';
 import 'collection_model.dart' show hexOf;
@@ -1483,6 +1484,7 @@ class _Favourites extends StatelessWidget {
     final k = kit;
     if (k == null) return const SizedBox.shrink();
     final accent = _accentOf(context);
+    if (Theme.of(context).extension<UiTemplateTheme>()?.template == UiTemplate.aurora) return _aurora(context, k, accent);
     final hubCount = k.visible(state).hubCount;
     return Column(key: const ValueKey('home-favourites'), crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       _sectionHeader(
@@ -1518,6 +1520,71 @@ class _Favourites extends StatelessWidget {
                 ),
             ]),
           ),
+    ]);
+  }
+
+  /*
+   * «АВРОРА», ЛИСТ 01 — «ЛЮБИМЫЕ РАЗДЕЛЫ» ПЛИТКАМИ РАЗДЕЛОВ (решение Дениса 29.10, Q1).
+   *
+   * Те же разделы модели веба, что в Classic, но вместо раздела с рядом игр — плитка раздела
+   * с картинкой (две на раздел, тёмная и светлая; `assets/aurora_sections/`), подпись и число
+   * игр кодом. Нажатие ведёт во вкладку «Игры» с этим разделом в фильтре
+   * (`/games?filter=section:<раздел>`, разбор — `hybrid_app.dart`). Быстрый вход в отдельные
+   * игры Денис осознанно отдал вкладке «Игры». Раздел без картинки рисуется прежним блоком.
+   */
+  Widget _aurora(BuildContext context, CatalogKit k, Color accent) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final hubCount = k.visible(state).hubCount;
+    final tiles = <Widget>[];
+    final rest = <Widget>[];
+    for (final s in _list(b['sections'])) {
+      final cat = k.category(_s(s['category']));
+      if (cat == null) continue;
+      final asset = AuroraHubTile.sectionAssetFor(cat.id, dark: dark);
+      if (asset == null) {
+        rest.add(Padding(
+          padding: const EdgeInsets.only(bottom: 24),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            CatalogKit.sectionHeader(context, cat, (s['total'] as num? ?? 0).toInt(), key: ValueKey('home-section-${cat.id}')),
+            CatalogKit.grid(context, [
+              for (final r in (s['routes'] as List? ?? const []))
+                if (k.byRoute('$r') case final g?) (_) => k.tile(state, g, hubCount: hubCount, onTap: () => onOpen(g.route)),
+            ]),
+          ]),
+        ));
+        continue;
+      }
+      tiles.add(AspectRatio(
+        aspectRatio: 2,
+        child: AuroraHubTile(
+          key: ValueKey('home-section-tile-${cat.id}'),
+          asset: asset,
+          title: cat.title,
+          hubCount: (s['total'] as num?)?.toInt(),
+          onTap: () => onTab('/games?filter=section:${cat.id}'),
+        ),
+      ));
+    }
+    return Column(key: const ValueKey('home-favourites'), crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      _sectionHeader(
+        context,
+        title: _s(b['title']),
+        trailing: GestureDetector(
+          key: const ValueKey('home-all-games'),
+          onTap: () => onTab('/games'),
+          child: Text(_s(b['allLabel']), style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: accent)),
+        ),
+      ),
+      for (var i = 0; i < tiles.length; i += 2)
+        Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: Row(children: [
+            Expanded(child: tiles[i]),
+            const SizedBox(width: 12),
+            Expanded(child: i + 1 < tiles.length ? tiles[i + 1] : const SizedBox.shrink()),
+          ]),
+        ),
+      ...rest,
     ]);
   }
 }
