@@ -395,11 +395,13 @@ class _Field extends StatelessWidget {
             builder: (context, c) {
               // 🔴 Сторона берётся от МЕНЬШЕГО из высоты каркаса и ширины. Высота
               // здесь — та, что осталась под полем, а не высота окна.
-              final free = height - (aurora ? 68 : 34);   // строка цели над сеткой / карточка под ней
+              final free = height - (aurora ? 76 : 34);   // строка цели над сеткой / карточка под ней
               final side = (free < c.maxWidth ? free : c.maxWidth) - 12;
               final n = game.size;
               final cell = side / n;
-              return Center(
+              // «Аврора»: сетка прижата к карточке цели под ней (лист 11), Classic — по центру.
+              return Align(
+                alignment: aurora ? Alignment.bottomCenter : Alignment.center,
                 child: SizedBox(
                   width: side,
                   height: side,
@@ -496,10 +498,10 @@ class _Cell extends StatelessWidget {
 /// Подпись берётся из словаря целиком и режется по `{x}`: в других языках другой порядок слов.
 Widget _auroraGoal(BuildContext context, String target) {
   final roles = GameColors.of(context);
-  final style = Theme.of(context).textTheme.titleMedium?.copyWith(color: roles.onCell);
+  final style = Theme.of(context).textTheme.titleLarge?.copyWith(color: roles.onCell, fontWeight: FontWeight.w600);
   final parts = L.t('schulteFind').split('{x}');
   return Container(
-    height: 52,
+    height: 60,
     width: double.infinity,
     alignment: Alignment.center,
     padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -511,7 +513,7 @@ Widget _auroraGoal(BuildContext context, String target) {
     child: Text.rich(
       TextSpan(children: [
         TextSpan(text: parts.first),
-        TextSpan(text: target, style: TextStyle(color: roles.highlight, fontWeight: FontWeight.w700)),
+        TextSpan(text: target, style: TextStyle(color: roles.highlight, fontWeight: FontWeight.w800, fontSize: 26)),
         if (parts.length > 1) TextSpan(text: parts.sublist(1).join('{x}')),
       ]),
       key: const Key('цель'),

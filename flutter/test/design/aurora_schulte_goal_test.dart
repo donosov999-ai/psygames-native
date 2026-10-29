@@ -43,10 +43,16 @@ void main() {
   }
 
   testWidgets('«Аврора»: цель — карточка под полем, число выделено highlight', (tester) async {
+    // Экран эмулятора приёмки (1080×2400, 420 dpi): сетка упирается в ширину, а не в высоту.
+    tester.view.devicePixelRatio = 2.625;
+    tester.view.physicalSize = const Size(1080, 2400);
+    addTearDown(tester.view.reset);
     await open(tester, UiTemplate.aurora);
     final goal = find.byKey(const Key('цель'));
     final (_, bottom) = gridSpan(tester);
     expect(tester.getRect(goal).top, greaterThanOrEqualTo(bottom));
+    // Сетка прижата к карточке: снимок 29.10 (b46bc4715) показал пустую полосу между ними.
+    expect(tester.getRect(goal).top - bottom, lessThanOrEqualTo(28));
     final rich = tester.widget<Text>(goal).textSpan! as TextSpan;
     final colored = rich.children!.whereType<TextSpan>().where((s) => s.style?.color == GameColors.auroraDark.highlight);
     expect(colored.map((s) => s.text), ['1']);
