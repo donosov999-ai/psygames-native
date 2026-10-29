@@ -469,7 +469,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  String _desc(Profile p) => L.t('profileDesc_${p.id}').replaceAll('{n}', '${_profiles.publicGameCount}');
+  String _desc(Profile p) => _profiles.desc(p.id);
 
   /// Лист деталей профиля (`Profile Detail Modal` веба): описание, хук, метки, игры, действие.
   Future<void> _details(Profile p, {required bool dark}) => showModalBottomSheet<void>(
