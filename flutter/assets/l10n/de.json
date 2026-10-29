@@ -1957,7 +1957,7 @@
 "sdkZoomCloser":"Vergrößern",
 "sdmt":"SDMT: Symbol→Ziffer",
 "sdmtDesc":"Symbole per Nachschlagetabelle kodieren",
-"sdmtIntroDesc":"Eine Tabelle ordnet 9 Symbole ↔ 9 Ziffern zu (pro Spiel zufällig). Ein Symbol erscheint — drücke die passende Ziffer. Gib im Zeitlimit so viele richtige Antworten wie möglich. Ein empfindliches Maß für die Verarbeitungsgeschwindigkeit.",
+"sdmtIntroDesc":"Eine Tabelle ordnet 9 Symbole ↔ 9 Ziffern zu (pro Spiel zufällig). Ein Symbol erscheint — drücke die passende Ziffer. Gib im Zeitlimit so viele richtige Antworten wie möglich. Ein empfindliches Maß für die Verarbeitungsgeschwindigkeit. Dasselbe Spiel steckt im morgendlichen „Training“: dort ist es ein 60-Sekunden-Tempotest, hier wird geübt.",
 "searchGroup":"Blicksuche",
 "searchGroupDesc":"Das Richtige unter Ähnlichem finden",
 "searchGroupFootnote":"Gemeinsam ist: du weißt, was du suchst — schwierig macht es alles Ähnliche daneben.",

@@ -747,7 +747,7 @@ const t: Record<string, string> = {
   "readingSpanIntroDesc": "Lis les phrases une par une. Pour chacune : juge si elle a du sens (✓ ou ✗) ET retiens le dernier mot. Après N phrases, saisis tous les derniers mots dans l'ordre. Le test classique de mémoire de travail en lecture de Daneman-Carpenter.",
   "switchingTaskIntroDesc": "Tu vois une paire chiffre+lettre, p. ex. « 3A ». Un indice coloré donne la tâche : CHIFFRE — pair ou impair ? LETTRE — voyelle ou consonne ? La tâche change au hasard. Entraîne la flexibilité cognitive et mesure le coût de bascule (switch cost).",
   "visualSearchIntroDesc": "Touche les figures du plateau qui correspondent au modèle. Le plateau est rempli de figures semblables sous divers angles. Trouve toutes les cibles — le modèle est affiché à côté. La cible change à chaque manche, et plus le niveau monte, plus il y a d'objets et de cibles. Un paradigme classique d'attention sélective.",
-  "sdmtIntroDesc": "Une table associe 9 symboles ↔ 9 chiffres (au hasard à chaque partie). Un symbole apparaît — appuie sur le chiffre correspondant. Fais un maximum de bonnes réponses dans le temps imparti. Une mesure sensible de la vitesse de traitement.",
+  "sdmtIntroDesc": "Une table associe 9 symboles ↔ 9 chiffres (au hasard à chaque partie). Un symbole apparaît — appuie sur le chiffre correspondant. Fais un maximum de bonnes réponses dans le temps imparti. Une mesure sensible de la vitesse de traitement. C’est le même jeu que dans la « Séance » du matin : là, un test de vitesse de 60 secondes ; ici, de l’entraînement.",
   "benefitMr1": "Raisonnement spatial",
   "benefitMr2": "Rotation mentale",
   "benefitMr3": "Travail visuo-analytique",

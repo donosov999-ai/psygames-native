@@ -393,7 +393,7 @@ const t: Record<string, string> = {
   "readingSpanIntroDesc": "Lies die Sätze einzeln nacheinander. Bei jedem: beurteile, ob er Sinn ergibt (✓ oder ✗) UND merke dir das letzte Wort. Gib nach N Sätzen alle letzten Wörter der Reihe nach ein. Dies ist der klassische Daneman-Carpenter-Test zum Lese-Arbeitsgedächtnis.",
   "switchingTaskIntroDesc": "Du siehst ein Ziffer-Buchstabe-Paar, z. B. „3A“. Ein farbiger Hinweis nennt die Aufgabe: ZAHL — ist die Ziffer ungerade oder gerade? BUCHSTABE — ist der Buchstabe ein Vokal oder Konsonant? Die Aufgabe wechselt zufällig. Trainiert kognitive Flexibilität und misst die Wechselkosten.",
   "visualSearchIntroDesc": "Tippe die Formen im Feld an, die zum Muster passen. Das Feld ist mit ähnlichen Formen in verschiedenen Winkeln gefüllt. Finde alle Zielformen — die Vorlage wird daneben angezeigt. Die gesuchte Form wechselt in jeder Runde, und mit steigenden Levels gibt es mehr Objekte und mehr Ziele. Ein klassisches Paradigma der selektiven Aufmerksamkeit.",
-  "sdmtIntroDesc": "Eine Tabelle ordnet 9 Symbole ↔ 9 Ziffern zu (pro Spiel zufällig). Ein Symbol erscheint — drücke die passende Ziffer. Gib im Zeitlimit so viele richtige Antworten wie möglich. Ein empfindliches Maß für die Verarbeitungsgeschwindigkeit.",
+  "sdmtIntroDesc": "Eine Tabelle ordnet 9 Symbole ↔ 9 Ziffern zu (pro Spiel zufällig). Ein Symbol erscheint — drücke die passende Ziffer. Gib im Zeitlimit so viele richtige Antworten wie möglich. Ein empfindliches Maß für die Verarbeitungsgeschwindigkeit. Dasselbe Spiel steckt im morgendlichen „Training“: dort ist es ein 60-Sekunden-Tempotest, hier wird geübt.",
   "benefitMr1": "Räumliches Denken",
   "benefitMr2": "Mentale Rotation",
   "benefitMr3": "Visuell-analytische Arbeit",

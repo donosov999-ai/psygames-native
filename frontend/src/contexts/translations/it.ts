@@ -747,7 +747,7 @@ const t: Record<string, string> = {
   "readingSpanIntroDesc": "Leggi le frasi una alla volta. Per ciascuna: giudica se ha senso (✓ o ✗) E ricorda l'ultima parola. Dopo N frasi, scrivi tutte le ultime parole in ordine. Il classico test di memoria di lavoro di Daneman-Carpenter.",
   "switchingTaskIntroDesc": "Vedi una coppia cifra+lettera, ad es. \"3A\". Un segnale colorato indica il compito: CIFRA — la cifra è pari o dispari? LETTERA — la lettera è vocale o consonante? Il compito cambia in modo casuale. Allena la flessibilità cognitiva e misura lo switch cost.",
   "visualSearchIntroDesc": "Tocca le figure nel campo che corrispondono al modello. Il campo è pieno di figure simili con angolazioni diverse. Trova tutte le figure bersaglio — il modello è mostrato accanto. Il bersaglio cambia ogni round e, salendo di livello, oggetti e bersagli aumentano. Un classico paradigma di attenzione selettiva.",
-  "sdmtIntroDesc": "Una tabella collega 9 simboli ↔ 9 cifre (abbinamento casuale a ogni partita). Appare un simbolo — premi la cifra corrispondente. Fai più risposte corrette possibili nel tempo limite. Una misura sensibile della velocità di elaborazione.",
+  "sdmtIntroDesc": "Una tabella collega 9 simboli ↔ 9 cifre (abbinamento casuale a ogni partita). Appare un simbolo — premi la cifra corrispondente. Fai più risposte corrette possibili nel tempo limite. Una misura sensibile della velocità di elaborazione. È lo stesso gioco dell’«Allenamento» del mattino: lì è una prova di velocità di 60 secondi, qui è esercizio.",
   "benefitMr1": "Ragionamento spaziale",
   "benefitMr2": "Rotazione mentale",
   "benefitMr3": "Lavoro visivo-analitico",

@@ -1957,7 +1957,7 @@
 "sdkZoomCloser":"Agrandir",
 "sdmt":"SDMT : symbole→chiffre",
 "sdmtDesc":"Code les symboles en chiffres selon la table",
-"sdmtIntroDesc":"Une table associe 9 symboles ↔ 9 chiffres (au hasard à chaque partie). Un symbole apparaît — appuie sur le chiffre correspondant. Fais un maximum de bonnes réponses dans le temps imparti. Une mesure sensible de la vitesse de traitement.",
+"sdmtIntroDesc":"Une table associe 9 symboles ↔ 9 chiffres (au hasard à chaque partie). Un symbole apparaît — appuie sur le chiffre correspondant. Fais un maximum de bonnes réponses dans le temps imparti. Une mesure sensible de la vitesse de traitement. C’est le même jeu que dans la « Séance » du matin : là, un test de vitesse de 60 secondes ; ici, de l’entraînement.",
 "searchGroup":"Recherche visuelle",
 "searchGroupDesc":"Trouver le bon parmi les semblables",
 "searchGroupFootnote":"Le point commun : tu sais ce que tu cherches ; la difficulté, c’est tout ce qui lui ressemble à côté.",
