@@ -1,9 +1,12 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/math_sprint/model.dart' as sprint;
 import 'package:psygames_flutter/games/math_sprint/screen.dart';
 import 'package:psygames_flutter/games/pattern/model.dart' as pattern;
 import 'package:psygames_flutter/games/pattern/screen.dart';
+import 'package:psygames_flutter/games/quick_count/screen.dart';
 import 'package:psygames_flutter/games/sdmt/model.dart' as sdmt;
 import 'package:psygames_flutter/games/sdmt/screen.dart';
 import 'package:psygames_flutter/shell/app_theme.dart';
@@ -86,5 +89,33 @@ void main() {
   testWidgets('Паттерны: в Classic ответ без своего стиля — прежний вид', (tester) async {
     await open(tester, UiTemplate.classic, patternScreen, start: false);
     expect(tester.widget<FilledButton>(answer).style, isNull);
+  });
+
+  // «Быстрый счёт»: ответы появляются после показа точек — ждём показ и задержку с запасом.
+  Widget quickCount(SharedState s) => QuickCountScreen(state: s, rnd: math.Random(7));
+  Future<Finder> quickAnswer(WidgetTester tester, UiTemplate template) async {
+    await open(tester, template, quickCount);
+    // Показ точек, промежуток и задержка — с запасом; поштучно, чтобы таймеры раунда сработали.
+    for (var i = 0; i < 12; i += 1) {
+      await tester.pump(const Duration(milliseconds: 500));
+    }
+    await tester.pump();
+    return answer;
+  }
+
+  testWidgets('Быстрый счёт: под «Авророй» ответ — плитка cell с обводкой boardLine', (tester) async {
+    final a = await quickAnswer(tester, UiTemplate.aurora);
+    final style = tester.widget<FilledButton>(a).style!;
+    final roles = GameColors.auroraDark;
+    expect(style.backgroundColor?.resolve({}), roles.cell);
+    expect(style.foregroundColor?.resolve({}), roles.onCell);
+    expect(style.side?.resolve({})?.color, roles.boardLine);
+  });
+
+  testWidgets('Быстрый счёт: в Classic ответ без своего цвета', (tester) async {
+    final a = await quickAnswer(tester, UiTemplate.classic);
+    final style = tester.widget<FilledButton>(a).style!;
+    expect(style.backgroundColor, isNull);
+    expect(style.side, isNull);
   });
 }
