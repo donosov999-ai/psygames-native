@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'game_colors.dart';
+
 /// Storage is owned by the shell, not by this theme transformation.
 const uiTemplateKey = 'psygames_ui_template_id';
 
@@ -137,8 +139,11 @@ ThemeData applyUiTemplate(ThemeData base, UiTemplate template) {
   // transitions and splash settings. No animation or MediaQuery override is added.
   return base.copyWith(
     extensions: [
-      ...base.extensions.values.where((e) => e is! UiTemplateTheme),
+      ...base.extensions.values.where((e) => e is! UiTemplateTheme && e is! GameColors),
       UiTemplateTheme(template),
+      // Смысловые цвета игр «Авроры» (`game_colors.dart`). Игры, ещё не переведённые, их не видят:
+      // `AuroraGameScope` рисует их в classic-теме без расширения, где `GameColors.of` = Classic.
+      GameColors.aurora(base.brightness),
     ],
     colorScheme: scheme,
     scaffoldBackgroundColor: background,
