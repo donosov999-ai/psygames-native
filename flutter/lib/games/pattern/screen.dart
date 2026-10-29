@@ -3,6 +3,8 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../shell/design_template.dart';
+import '../../shell/game_colors.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/l10n.dart';
@@ -318,7 +320,7 @@ class _Field extends StatelessWidget {
                           ? scheme.surfaceContainerHighest
                           : (right == null
                               ? Colors.transparent
-                              : (right! ? const Color(0xFF22C55E) : const Color(0xFFF43F5E))),
+                              : (right! ? GameColors.of(context).correct : _auroraOr(context, GameColors.of(context).wrong, const Color(0xFFF43F5E)))),
                       border: Border.all(
                         color: i < labels.length - 1 ? scheme.outlineVariant : scheme.primary,
                         width: i < labels.length - 1 ? 1 : 2,
@@ -333,7 +335,7 @@ class _Field extends StatelessWidget {
                         fontWeight: FontWeight.w700,
                         color: i < labels.length - 1
                             ? scheme.onSurface
-                            : (right == null ? scheme.primary : Colors.white),
+                            : (right == null ? scheme.primary : GameColors.of(context).onStrong),
                       ),
                     ),
                   ),
@@ -373,3 +375,9 @@ class _Field extends StatelessWidget {
     );
   }
 }
+
+/// «Аврора» — роль `GameColors`, Classic — прежний цвет игры: Classic до ворот Г3/Г4 не меняется
+/// (`flutter/DESIGN_SYSTEM.md`, правило 6). Там, где classic-значение роли совпадает с прежним цветом,
+/// роль стоит напрямую.
+Color _auroraOr(BuildContext context, Color role, Color classic) =>
+    Theme.of(context).extension<UiTemplateTheme>()?.template == UiTemplate.aurora ? role : classic;

@@ -3,6 +3,8 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../shell/design_template.dart';
+import '../../shell/game_colors.dart';
 import '../../shell/app_haptics.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/game_clock.dart';
@@ -216,9 +218,9 @@ class _KidsFindScreenState extends State<KidsFindScreen> {
                         margin: EdgeInsets.all(cell * 0.06),
                         decoration: BoxDecoration(
                           color: _phase == _Phase.right && i == b.target
-                              ? const Color(0x3322C55E)
+                              ? GameColors.of(context).correct.withValues(alpha: 0.2)
                               : _wrongAt == i
-                                  ? const Color(0x33EF4444)
+                                  ? _auroraOr(context, GameColors.of(context).wrongFill, const Color(0x33EF4444))
                                   : Colors.transparent,
                           borderRadius: BorderRadius.circular(cell * 0.18),
                         ),
@@ -274,7 +276,7 @@ class _BoardArt extends StatelessWidget {
                   margin: const EdgeInsets.all(3),
                   decoration: i == mark
                       ? BoxDecoration(
-                          border: Border.all(color: const Color(0xFF22C55E), width: 3),
+                          border: Border.all(color: _auroraOr(context, GameColors.of(context).highlight, const Color(0xFF22C55E)), width: 3),
                           borderRadius: BorderRadius.circular(8),
                         )
                       : null,
@@ -337,3 +339,9 @@ class FindItemPainter extends CustomPainter {
   @override
   bool shouldRepaint(FindItemPainter old) => old.m != m;
 }
+
+/// «Аврора» — роль `GameColors`, Classic — прежний цвет игры: Classic до ворот Г3/Г4 не меняется
+/// (`flutter/DESIGN_SYSTEM.md`, правило 6). Там, где classic-значение роли совпадает с прежним цветом,
+/// роль стоит напрямую.
+Color _auroraOr(BuildContext context, Color role, Color classic) =>
+    Theme.of(context).extension<UiTemplateTheme>()?.template == UiTemplate.aurora ? role : classic;

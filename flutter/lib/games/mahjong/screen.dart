@@ -4,6 +4,8 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
+import '../../shell/design_template.dart';
+import '../../shell/game_colors.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/game_clock.dart';
 import '../../shell/game_preset.dart';
@@ -543,7 +545,6 @@ class _TileView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
     final pos = tilePlacement(tile.x, tile.y, tile.layer, maxLayer, half.round(), offset);
     final shade = tileShadeFor(tile.layer, maxLayer, free);
     final face = faceUp
@@ -571,9 +572,9 @@ class _TileView extends StatelessWidget {
                 borderRadius: BorderRadius.circular(6),
                 border: Border.all(
                   color: selected
-                      ? scheme.primary
+                      ? _auroraOr(context, GameColors.of(context).selected, Theme.of(context).colorScheme.primary)
                       : blocking
-                          ? scheme.error
+                          ? _auroraOr(context, GameColors.of(context).wrong, Theme.of(context).colorScheme.error)
                           : const Color(0x22000000),
                   width: selected || blocking ? 2.5 : 1,
                 ),
@@ -594,3 +595,9 @@ class _TileView extends StatelessWidget {
     );
   }
 }
+
+/// «Аврора» — роль `GameColors`, Classic — прежний цвет игры: Classic до ворот Г3/Г4 не меняется
+/// (`flutter/DESIGN_SYSTEM.md`, правило 6). Там, где classic-значение роли совпадает с прежним цветом,
+/// роль стоит напрямую.
+Color _auroraOr(BuildContext context, Color role, Color classic) =>
+    Theme.of(context).extension<UiTemplateTheme>()?.template == UiTemplate.aurora ? role : classic;

@@ -3,6 +3,8 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../shell/design_template.dart';
+import '../../shell/game_colors.dart';
 import '../../shell/app_haptics.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/game_clock.dart';
@@ -302,7 +304,7 @@ class _Prompt extends StatelessWidget {
               key: const ValueKey('mt-joint'),
               style: text.titleMedium?.copyWith(
                 fontWeight: FontWeight.w800,
-                color: round.negate2 ? const Color(0xFFDC2626) : null,
+                color: round.negate2 ? _auroraOr(context, GameColors.of(context).wrong, const Color(0xFFDC2626)) : null,
               ),
             ),
             _TraitChip(trait: round.trait2!, value: round.value2!, crossed: round.negate2),
@@ -327,7 +329,7 @@ class _TraitChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: crossed ? const Color(0xFFFEE2E2) : scheme.primaryContainer,
+        color: crossed ? _auroraOr(context, GameColors.of(context).wrongFill, const Color(0xFFFEE2E2)) : scheme.primaryContainer,
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(mainAxisSize: MainAxisSize.min, children: [
@@ -337,7 +339,7 @@ class _TraitChip extends StatelessWidget {
           traitLabel(trait, value),
           style: TextStyle(
             fontWeight: FontWeight.w700,
-            color: crossed ? const Color(0xFF991B1B) : scheme.onPrimaryContainer,
+            color: crossed ? _auroraOr(context, GameColors.of(context).wrongInk, const Color(0xFF991B1B)) : scheme.onPrimaryContainer,
             decoration: crossed ? TextDecoration.lineThrough : null,
           ),
         ),
@@ -378,35 +380,35 @@ class _Grid extends StatelessWidget {
         runSpacing: gap,
         alignment: WrapAlignment.center,
         children: [
-          for (var i = 0; i < n; i++) _card(i, cell, scheme),
+          for (var i = 0; i < n; i++) _card(context, i, cell, scheme, GameColors.of(context)),
         ],
       ),
     );
   }
 
-  Widget _card(int i, double cell, ColorScheme scheme) {
+  Widget _card(BuildContext context, int i, double cell, ColorScheme scheme, GameColors roles) {
     final m = round.cards[i];
     final g = graded;
     final isSel = selected.contains(i);
-    Color border = isSel ? const Color(0xFF6D4C41) : scheme.outlineVariant;
+    Color border = isSel ? _auroraOr(context, roles.selected, const Color(0xFF6D4C41)) : scheme.outlineVariant;
     double width = isSel ? 4 : 1.5;
     IconData? mark;
     Color? markColor;
     if (g != null) {
       if (g.missed.contains(i)) {
-        border = const Color(0xFFFB8C00);
+        border = _auroraOr(context, roles.warning, const Color(0xFFFB8C00));
         width = 4;
         mark = Icons.priority_high;
-        markColor = const Color(0xFFFB8C00);
+        markColor = _auroraOr(context, roles.warning, const Color(0xFFFB8C00));
       } else if (g.extras.contains(i)) {
-        border = const Color(0xFFDC2626);
+        border = _auroraOr(context, roles.wrong, const Color(0xFFDC2626));
         width = 4;
         mark = Icons.close;
-        markColor = const Color(0xFFDC2626);
+        markColor = _auroraOr(context, roles.wrong, const Color(0xFFDC2626));
       } else if (isSel) {
-        border = const Color(0xFF16A34A);
+        border = _auroraOr(context, roles.correct, const Color(0xFF16A34A));
         mark = Icons.check;
-        markColor = const Color(0xFF16A34A);
+        markColor = _auroraOr(context, roles.correct, const Color(0xFF16A34A));
       }
     }
     final tap = onTap;
@@ -422,7 +424,7 @@ class _Grid extends StatelessWidget {
           width: cell,
           height: cell,
           decoration: BoxDecoration(
-            color: isSel ? const Color(0xFFFFF3E0) : scheme.surface,
+            color: isSel ? _auroraOr(context, roles.selected.withValues(alpha: 0.12), const Color(0xFFFFF3E0)) : scheme.surface,
             borderRadius: BorderRadius.circular(cell * 0.18),
             border: Border.all(color: border, width: width),
           ),
@@ -544,3 +546,9 @@ class _TraitIconPainter extends CustomPainter {
   @override
   bool shouldRepaint(_TraitIconPainter old) => old.trait != trait || old.value != value;
 }
+
+/// «Аврора» — роль `GameColors`, Classic — прежний цвет игры: Classic до ворот Г3/Г4 не меняется
+/// (`flutter/DESIGN_SYSTEM.md`, правило 6). Там, где classic-значение роли совпадает с прежним цветом,
+/// роль стоит напрямую.
+Color _auroraOr(BuildContext context, Color role, Color classic) =>
+    Theme.of(context).extension<UiTemplateTheme>()?.template == UiTemplate.aurora ? role : classic;

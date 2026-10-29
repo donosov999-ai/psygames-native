@@ -4,6 +4,8 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
+import '../../shell/design_template.dart';
+import '../../shell/game_colors.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/l10n.dart';
@@ -393,7 +395,7 @@ class _Ball extends StatelessWidget {
               color: scheme.primary.withValues(alpha: chosen ? 0.9 : 0.55),
               shape: BoxShape.circle,
               border: Border.all(
-                color: outlined ? scheme.tertiary : Colors.transparent,
+                color: outlined ? _auroraOr(context, GameColors.of(context).highlight, scheme.tertiary) : Colors.transparent,
                 width: outlined ? 5 : 0,
               ),
             ),
@@ -403,3 +405,9 @@ class _Ball extends StatelessWidget {
     );
   }
 }
+
+/// «Аврора» — роль `GameColors`, Classic — прежний цвет игры: Classic до ворот Г3/Г4 не меняется
+/// (`flutter/DESIGN_SYSTEM.md`, правило 6). Там, где classic-значение роли совпадает с прежним цветом,
+/// роль стоит напрямую.
+Color _auroraOr(BuildContext context, Color role, Color classic) =>
+    Theme.of(context).extension<UiTemplateTheme>()?.template == UiTemplate.aurora ? role : classic;

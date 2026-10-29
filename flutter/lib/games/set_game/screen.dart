@@ -3,6 +3,8 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../shell/design_template.dart';
+import '../../shell/game_colors.dart';
 import '../../shell/app_haptics.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/boss_round.dart';
@@ -211,7 +213,7 @@ class _SetGameScreenState extends State<SetGameScreen> {
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: const Color(0xFF22C55E), width: 2),
+                border: Border.all(color: _auroraOr(context, GameColors.of(context).highlight, const Color(0xFF22C55E)), width: 2),
               ),
               child: CustomPaint(painter: _CardPainter(board[i])),
             ),
@@ -333,7 +335,7 @@ class _Table extends StatelessWidget {
                           color: picked.contains(i)
                               ? (right == null
                                   ? scheme.primary
-                                  : (right! ? const Color(0xFF22C55E) : const Color(0xFFF43F5E)))
+                                  : (right! ? GameColors.of(context).correct : _auroraOr(context, GameColors.of(context).wrong, const Color(0xFFF43F5E))))
                               : scheme.outlineVariant,
                           width: picked.contains(i) ? 3 : 1,
                         ),
@@ -410,3 +412,9 @@ class _CardPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _CardPainter old) => old.card.id != card.id;
 }
+
+/// «Аврора» — роль `GameColors`, Classic — прежний цвет игры: Classic до ворот Г3/Г4 не меняется
+/// (`flutter/DESIGN_SYSTEM.md`, правило 6). Там, где classic-значение роли совпадает с прежним цветом,
+/// роль стоит напрямую.
+Color _auroraOr(BuildContext context, Color role, Color classic) =>
+    Theme.of(context).extension<UiTemplateTheme>()?.template == UiTemplate.aurora ? role : classic;

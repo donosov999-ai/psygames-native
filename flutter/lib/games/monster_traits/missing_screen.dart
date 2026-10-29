@@ -3,6 +3,8 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../shell/design_template.dart';
+import '../../shell/game_colors.dart';
 import '../../shell/app_haptics.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/game_clock.dart';
@@ -239,7 +241,7 @@ class _MonsterMissingScreenState extends State<MonsterMissingScreen> {
               style: TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.w900,
-                color: _lastOk == true ? const Color(0xFF16A34A) : const Color(0xFFDC2626),
+                color: _lastOk == true ? _auroraOr(context, GameColors.of(context).correct, const Color(0xFF16A34A)) : _auroraOr(context, GameColors.of(context).wrong, const Color(0xFFDC2626)),
               ),
             ),
           _ => FilledButton.icon(
@@ -326,9 +328,9 @@ class _Options extends StatelessWidget {
                 final border = gone == null
                     ? (sel ? scheme.primary : scheme.outlineVariant)
                     : right
-                        ? const Color(0xFF16A34A)
+                        ? _auroraOr(context, GameColors.of(context).correct, const Color(0xFF16A34A))
                         : sel
-                            ? const Color(0xFFDC2626)
+                            ? _auroraOr(context, GameColors.of(context).wrong, const Color(0xFFDC2626))
                             : scheme.outlineVariant;
                 return Semantics(
                   button: onTap != null,
@@ -380,3 +382,9 @@ class _HandArt extends StatelessWidget {
         ),
       );
 }
+
+/// «Аврора» — роль `GameColors`, Classic — прежний цвет игры: Classic до ворот Г3/Г4 не меняется
+/// (`flutter/DESIGN_SYSTEM.md`, правило 6). Там, где classic-значение роли совпадает с прежним цветом,
+/// роль стоит напрямую.
+Color _auroraOr(BuildContext context, Color role, Color classic) =>
+    Theme.of(context).extension<UiTemplateTheme>()?.template == UiTemplate.aurora ? role : classic;
