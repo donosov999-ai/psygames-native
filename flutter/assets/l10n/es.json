@@ -1957,7 +1957,7 @@
 "sdkZoomCloser":"Acercar",
 "sdmt":"SDMT: Símbolo→Dígito",
 "sdmtDesc":"Codifica símbolos con una tabla de consulta",
-"sdmtIntroDesc":"Una tabla relaciona 9 símbolos ↔ 9 dígitos (aleatoria en cada partida). Aparece un símbolo: pulsa el dígito correspondiente. Consigue tantas respuestas correctas como puedas en el tiempo límite. Una medida sensible de la velocidad de procesamiento.",
+"sdmtIntroDesc":"Una tabla relaciona 9 símbolos ↔ 9 dígitos (aleatoria en cada partida). Aparece un símbolo: pulsa el dígito correspondiente. Consigue tantas respuestas correctas como puedas en el tiempo límite. Una medida sensible de la velocidad de procesamiento. Es el mismo juego que en el «Entrenamiento» de la mañana: allí es una prueba de velocidad de 60 segundos; aquí, práctica.",
 "searchGroup":"Búsqueda visual",
 "searchGroupDesc":"Encontrar lo que hace falta entre lo parecido",
 "searchGroupFootnote":"Lo común: sabes qué buscas; lo difícil es todo lo parecido que hay al lado.",

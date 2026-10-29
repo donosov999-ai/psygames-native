@@ -1682,8 +1682,8 @@ const translations: Translations = {
     en: 'Tap the shapes in the field that match the sample. The field is filled with similar shapes at various angles. Find all the target shapes — the reference is shown alongside. The target changes every round, and as levels rise there are more objects and targets. A classic selective-attention paradigm.'
   },
   sdmtIntroDesc: {
-    ru: 'В таблице: 9 символов ↔ 9 цифр (привязка случайная для каждой игры). Появляется символ — нажмите соответствующую цифру. За отведённое время делайте максимум правильных ответов. Чувствительный показатель скорости обработки информации.',
-    en: 'A table maps 9 symbols ↔ 9 digits (random per game). A symbol appears — press the matching digit. Make as many correct answers as possible in the time limit. A sensitive measure of processing speed.'
+    ru: 'В таблице: 9 символов ↔ 9 цифр (привязка случайная для каждой игры). Появляется символ — нажмите соответствующую цифру. За отведённое время делайте максимум правильных ответов. Чувствительный показатель скорости обработки информации. Это та же игра, что в утренней «Зарядке»: там она — замер скорости на 60 секунд, здесь — тренировка.',
+    en: 'A table maps 9 symbols ↔ 9 digits (random per game). A symbol appears — press the matching digit. Make as many correct answers as possible in the time limit. A sensitive measure of processing speed. This is the same game as in the morning “Workout”: there it is a 60-second speed check, here it is practice.'
   },
 
   // Round-4 — benefits

@@ -393,7 +393,7 @@ const t: Record<string, string> = {
   "readingSpanIntroDesc": "Leia as frases uma por vez. Para cada uma: julgue se ela faz sentido (✓ ou ✗) E lembre a última palavra. Após N frases, digite todas as últimas palavras em ordem. É o clássico teste de Memória de Trabalho de Leitura de Daneman-Carpenter.",
   "switchingTaskIntroDesc": "Você vê um par dígito+letra, ex.: \"3A\". Uma pista colorida indica a tarefa: NÚMERO — o dígito é ímpar ou par? LETRA — a letra é vogal ou consoante? A tarefa muda aleatoriamente. Treina a flexibilidade cognitiva e mede o custo de alternância.",
   "visualSearchIntroDesc": "Toque nas formas do campo que correspondem ao modelo. O campo está cheio de formas semelhantes em vários ângulos. Encontre todas as formas-alvo — o modelo é mostrado ao lado. A forma procurada muda a cada rodada e, conforme os níveis sobem, há mais objetos e mais alvos. Um paradigma clássico de atenção seletiva.",
-  "sdmtIntroDesc": "Uma tabela mapeia 9 símbolos ↔ 9 dígitos (aleatória a cada jogo). Um símbolo aparece — pressione o dígito correspondente. Acerte o máximo possível no tempo limite. Uma medida sensível da velocidade de processamento.",
+  "sdmtIntroDesc": "Uma tabela mapeia 9 símbolos ↔ 9 dígitos (aleatória a cada jogo). Um símbolo aparece — pressione o dígito correspondente. Acerte o máximo possível no tempo limite. Uma medida sensível da velocidade de processamento. É o mesmo jogo do “Treino” da manhã: lá é um teste de velocidade de 60 segundos; aqui, prática.",
   "benefitMr1": "Raciocínio espacial",
   "benefitMr2": "Rotação mental",
   "benefitMr3": "Trabalho visuoanalítico",
