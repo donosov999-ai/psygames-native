@@ -88,7 +88,7 @@ Map<String, Object?> switcherModelFrom(SharedState state, SwitcherData d, {requi
           return {
             'id': p.id,
             'name': L.t('profileName_${p.id}'),
-            'desc': L.t('profileDesc_${p.id}'),
+            'desc': profiles.desc(p.id),
             // Выгрузка профилей срезает единицу («5-10 мин» → «5-10») — она подставляется словарём, как у веба.
             'minutes': jsTruthy(m) ? '⏱ $m ${L.t('unitMin')}' : null,
             'wallet': w is num && w > 0 ? '⭐ ${jsNumStr(w)}' : null,

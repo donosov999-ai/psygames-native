@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:flutter/services.dart';
 
+import 'l10n.dart';
 import 'shared_state.dart';
 
 /// 🔴 ПРОФИЛИ — ВЫГРУЗКА ЖИВОГО TS, А НЕ КОПИЯ (задача eae0879c).
@@ -49,6 +50,10 @@ class Profiles {
   static Profiles current = empty;
 
   int get publicGameCount => (flags['PUBLIC_GAME_COUNT'] as num?)?.toInt() ?? 0;
+
+  /// Краткое описание профиля на текущем языке — с подставленным числом игр (`{n}` у ODV999 «Все игры ({n})»).
+  /// Одна функция для Настроек и листа выбора профиля: подстановка в одном месте не разойдётся с другим.
+  String desc(String id) => L.t('profileDesc_$id').replaceAll('{n}', '$publicGameCount');
 
   Profile? byId(String id) {
     for (final p in list) {

@@ -155,10 +155,10 @@ export const MODE_ICONS: Record<string, any> = {
   '/games/spatial-lab?mode=twiddle': require('../../assets/images/game_icons/puzzle_twiddle.webp'),
   '/games/sudoku?mode=towers': require('../../assets/images/game_icons/sudoku_towers.webp'),
   '/games/sudoku?mode=unequal': require('../../assets/images/game_icons/sudoku_unequal.webp'),
-  // Временно, до своих картинок (заказ imagegen-codex-mac): киллер — клетки с суммами, как у Keen;
-  // «Свободно» — классика без вариантов, как сама судоку.
-  '/games/sudoku?mode=killer': require('../../assets/images/game_icons/puzzle_keen.webp'),
-  '/games/sudoku?mode=free': require('../../assets/images/game_icons/sudoku.webp'),
+  // Свои картинки режимов (задача 5d1e7b68, 28.10): киллер — сетка с пунктирными клетками и суммами,
+  // «Свободно» — классика со знаком выбора размера и сложности.
+  '/games/sudoku?mode=killer': require('../../assets/images/game_icons/sudoku_killer.webp'),
+  '/games/sudoku?mode=free': require('../../assets/images/game_icons/sudoku_free.webp'),
   // «Судоку для малышей»: звери из «Пар» (flutter/assets/pairs/animals) в клетках — те же, что на доске.
   '/games/sudoku?mode=junior': require('../../assets/images/game_icons/sudoku_junior.webp'),
   '/games/find-move': require('../../assets/images/game_icons/find_move.webp'),

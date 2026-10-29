@@ -67,6 +67,17 @@ void main() {
     expect(switcherOrder(await SharedState.open()), isNull, reason: 'без раздела «профили» состава нет вовсе');
   });
 
+  for (final language in ['ru', 'en']) {
+    test('$language: в листе нет неподставленных шаблонов «{…}» (ODV999 «Все игры ({n})», 09c3ded8)', () async {
+      SharedPreferences.setMockInitialValues({'language': language});
+      lang(language);
+      final m = switcherModelFrom(await SharedState.open(), data, profiles: profiles);
+      final odv = (m['profiles']! as List).cast<Map>().firstWhere((p) => p['id'] == 'odv999');
+      expect(odv['desc'], contains('${profiles.publicGameCount}'));
+      expect(jsonEncode(m), isNot(contains('{n}')));
+    });
+  }
+
   group('🔴 сторож монетизации (d5e5814a)', () {
     final words = [
       for (final w in (obj('test/fixtures/no_monetization_words.json')['patterns']! as List).cast<Map>())
