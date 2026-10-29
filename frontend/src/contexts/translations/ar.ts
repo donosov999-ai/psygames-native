@@ -2791,7 +2791,7 @@ const t: Record<string, string> = {
   "languagesWarmupDesc": "لغتان أجنبيتان متداخلتان، ولغتك تبقى المرجع. ستخطئ أكثر مما لو كانت لغة واحدة — وهذا هو المقصود",
   "andMore": "{n} أخرى ›",
   // >>> SCREEN_STRINGS
-  "lr_digit_span_surprise_dir_title": "الاتجاه يُقال لاحقًا",
+  "lr_digit_span_surprise_dir_title": "يُعلَن الاتجاه لاحقًا",
   "lr_digit_span_surprise_dir_rule": "من هذا المستوى ستعرف كيف تُعيد السلسلة — كما هي أو بالعكس أو تصاعديًا — بعد انتهاء العرض فقط. احتفظ بها كما رأيتها إلى أن يُطلب منك.",
   "lr_digit_span_surprise_dir_example": "رأيت 5-2-8-1، والآن فقط ظهر «تصاعديًا» — الإجابة 1-2-5-8.",
   "lr_memory_matrix_two_series_title": "مجموعتان تباعًا",
@@ -2800,7 +2800,7 @@ const t: Record<string, string> = {
   "lr_memory_matrix_decoys_title": "لا تحفظ المشطوبة",
   "lr_memory_matrix_decoys_rule": "بعض المربعات تضيء وعليها علامة ×، وهي مشتِّتات. لا داعي لحفظها ولا يجوز الضغط عليها: يُحتسب ذلك خطأً.",
   "lr_memory_matrix_decoys_example": "أضاءت أربعة مربعات، أحدها مشطوب — احفظ ثلاثة.",
-  "mmIgnoreCrossed": "تجاوز المشطوبة",
+  "mmIgnoreCrossed": "تخطَّ المشطوبة",
   "lr_listening_span_similar_title": "ستصبح الكلمات متشابهة",
   "lr_listening_span_similar_rule": "من هذا المستوى تُختار الكلمات الزائدة في الشبكة لتبدو مشابهة في وقعها لما سمعته. الخلط بينها سهل، لذا احتفظ لا بالكلمات وحدها بل بترتيبها أيضًا.",
   "lr_listening_span_similar_example": "سمعت «casa» — وسيظهر «cama» بجوارها. اختر ما سمعته لا ما يشبهه.",
