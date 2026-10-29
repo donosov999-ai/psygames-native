@@ -53,7 +53,8 @@ void main() {
       final key = find.byKey(Key(keyName));
       expect(key, findsOneWidget);
       final style = tester.widget<FilledButton>(key).style!;
-      final roles = GameColors.of(tester.element(key));
+      // Явно набор «Авроры», а не GameColors.of: тот при пустой теме молча отдаёт classicFor (29.10).
+      final roles = GameColors.auroraDark;
       expect(style.backgroundColor?.resolve({}), roles.cell);
       expect(style.foregroundColor?.resolve({}), roles.onCell);
       expect(style.side?.resolve({})?.color, roles.boardLine);
@@ -75,7 +76,8 @@ void main() {
   testWidgets('Паттерны: под «Авророй» ответ — плитка cell с цифрой onCell', (tester) async {
     await open(tester, UiTemplate.aurora, patternScreen, start: false);
     final style = tester.widget<FilledButton>(answer).style!;
-    final roles = GameColors.of(tester.element(answer));
+    // Явно набор «Авроры», а не GameColors.of: тот при пустой теме молча отдаёт classicFor (29.10).
+    final roles = GameColors.auroraDark;
     expect(style.backgroundColor?.resolve({}), roles.cell);
     expect(style.foregroundColor?.resolve({}), roles.onCell);
     expect(style.side?.resolve({})?.color, roles.boardLine);
