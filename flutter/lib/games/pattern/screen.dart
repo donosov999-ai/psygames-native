@@ -388,5 +388,10 @@ Color _auroraOr(BuildContext context, Color role, Color classic) =>
 ButtonStyle? _answerStyle(BuildContext context) {
   if (Theme.of(context).extension<UiTemplateTheme>()?.template != UiTemplate.aurora) return null;
   final roles = GameColors.of(context);
-  return FilledButton.styleFrom(backgroundColor: roles.cell, foregroundColor: roles.onCell);
+  return FilledButton.styleFrom(
+    backgroundColor: roles.cell,
+    foregroundColor: roles.onCell,
+    // В светлой «Авроре» клетка белая на белом — без обводки плитки не видно.
+    side: BorderSide(color: roles.boardLine),
+  );
 }

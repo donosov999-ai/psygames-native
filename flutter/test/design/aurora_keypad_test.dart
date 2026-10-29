@@ -56,6 +56,7 @@ void main() {
       final roles = GameColors.of(tester.element(key));
       expect(style.backgroundColor?.resolve({}), roles.cell);
       expect(style.foregroundColor?.resolve({}), roles.onCell);
+      expect(style.side?.resolve({})?.color, roles.boardLine);
     });
 
     testWidgets('$name: в Classic клавиша без своего цвета — прежний цвет темы', (tester) async {
@@ -63,6 +64,7 @@ void main() {
       final style = tester.widget<FilledButton>(find.byKey(Key(keyName))).style!;
       expect(style.backgroundColor, isNull);
       expect(style.foregroundColor, isNull);
+      expect(style.side, isNull);
     });
   }
 
@@ -76,6 +78,7 @@ void main() {
     final roles = GameColors.of(tester.element(answer));
     expect(style.backgroundColor?.resolve({}), roles.cell);
     expect(style.foregroundColor?.resolve({}), roles.onCell);
+    expect(style.side?.resolve({})?.color, roles.boardLine);
   });
 
   testWidgets('Паттерны: в Classic ответ без своего стиля — прежний вид', (tester) async {

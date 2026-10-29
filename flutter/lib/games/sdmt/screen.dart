@@ -479,5 +479,7 @@ ButtonStyle _keyStyle(BuildContext context) {
     padding: EdgeInsets.zero,
     backgroundColor: aurora ? roles.cell : null,
     foregroundColor: aurora ? roles.onCell : null,
+    // В светлой «Авроре» клетка белая на белом — без обводки клавиши не видно (снимок 29.10).
+    side: aurora ? BorderSide(color: roles.boardLine) : null,
   );
 }
