@@ -146,7 +146,7 @@ class _SuiteSwitchState extends State<SuiteSwitch> {
                   label: Text(L.t(m.labelKey)),
                   selected: m.route == widget.route,
                   onSelected: (_) {
-                    if (m.route != widget.route) Navigator.of(context).pop(HubCardTap(m.route));
+                    if (m.route != widget.route) Navigator.of(context).pop(HubCardTap(m.route, replace: true));
                   },
                 ),
             ],
