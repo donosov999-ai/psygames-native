@@ -1957,7 +1957,7 @@
 "sdkZoomCloser":"Zoom in",
 "sdmt":"SDMT: Symbol→Digit",
 "sdmtDesc":"Encode symbols by lookup table",
-"sdmtIntroDesc":"A table maps 9 symbols ↔ 9 digits (random per game). A symbol appears — press the matching digit. Make as many correct answers as possible in the time limit. A sensitive measure of processing speed.",
+"sdmtIntroDesc":"A table maps 9 symbols ↔ 9 digits (random per game). A symbol appears — press the matching digit. Make as many correct answers as possible in the time limit. A sensitive measure of processing speed. This is the same game as in the morning “Workout”: there it is a 60-second speed check, here it is practice.",
 "searchGroup":"Visual Search",
 "searchGroupDesc":"Find the one among the many",
 "searchGroupFootnote":"What they share: you know what you are looking for; the difficulty is everything similar lying next to it.",

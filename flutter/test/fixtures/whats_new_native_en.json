@@ -7,6 +7,17 @@
  "check": "Check for updates · v0.0.0",
  "entries": [
   {
+   "version": "v2.56.40",
+   "date": "2026-10-29",
+   "items": [
+    "“Aurora” look: the Games tab shows how many games and modes search can find, and settings are one tap away",
+    "“Aurora” look: Search and Counting games use the shared game colours; the classic look is unchanged",
+    "Puzzles: each of the 21 descriptions now says where to tap and what the second action does, in 10 languages, with the button name exactly as on the board",
+    "Memory span: rules reviewed in 7 languages",
+    "SDMT: the help says it is the same game as in the morning workout — there it is a 60-second measurement, here it is practice"
+   ]
+  },
+  {
    "version": "v2.56.39",
    "date": "2026-10-28",
    "items": [

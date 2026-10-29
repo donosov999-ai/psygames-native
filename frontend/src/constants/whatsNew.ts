@@ -16,6 +16,24 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.56.40',
+    date: '2026-10-29',
+    en: [
+      '“Aurora” look: the Games tab shows how many games and modes search can find, and settings are one tap away',
+      '“Aurora” look: Search and Counting games use the shared game colours; the classic look is unchanged',
+      'Puzzles: each of the 21 descriptions now says where to tap and what the second action does, in 10 languages, with the button name exactly as on the board',
+      'Memory span: rules reviewed in 7 languages',
+      'SDMT: the help says it is the same game as in the morning workout — there it is a 60-second measurement, here it is practice',
+    ],
+    ru: [
+      'Оформление «Аврора»: во вкладке «Игры» видно, сколько игр и режимов находит поиск, настройки — одним касанием',
+      'Оформление «Аврора»: игры «Поиска» и «Счёта» берут общие цвета игр; привычный вид не меняется',
+      'Головоломки: во всех 21 описании сказано, где нажимать и что делает второе действие, на 10 языках, название кнопки — как на поле',
+      '«Объём памяти»: правила вычитаны на 7 языках',
+      'SDMT: справка говорит, что это та же игра, что в утренней «Зарядке» — там замер на 60 секунд, здесь тренировка',
+    ],
+  },
+  {
     version: '2.56.39',
     date: '2026-10-28',
     en: [
