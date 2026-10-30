@@ -16,6 +16,20 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.56.45',
+    date: '2026-10-30',
+    en: [
+      '“Aurora” look: a compact home screen — recommendations, daily practices and favourite sections as small tiles, four in a row',
+      '“Aurora” look: the bottom bar shows five tabs with captions; the active tab is orange',
+      'Home: “Today” fits in one line; the play sign ▶ is shown only where a game starts right away',
+    ],
+    ru: [
+      'Оформление «Аврора»: компактная главная — рекомендации, практики дня и любимые разделы маленькими плитками, по четыре в ряд',
+      'Оформление «Аврора»: внизу пять вкладок с подписями, активная — оранжевая',
+      'Главная: «Сегодня» — одной строкой; знак ▶ только там, где игра запускается сразу',
+    ],
+  },
+  {
     version: '2.56.44',
     date: '2026-10-30',
     en: [
