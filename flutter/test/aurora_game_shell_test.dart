@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/shell/app_theme.dart';
 import 'package:psygames_flutter/shell/aurora_scope.dart';
 import 'package:psygames_flutter/shell/design_template.dart';
+import 'package:psygames_flutter/shell/game_colors.dart';
 import 'package:psygames_flutter/shell/game_rules.dart';
 import 'package:psygames_flutter/shell/game_shell.dart';
 import 'package:psygames_flutter/shell/l10n.dart';
@@ -68,10 +69,10 @@ void main() {
     expect(pause.left, lessThan(t.getRect(find.text('ПРАВИЛА · ОТМЕНИТЬ')).left), reason: 'пауза слева от значков');
     // Пауза — жёлтый глянец (стандарт 30.10, стекло и золото): градиент от жёлтого паузы.
     final yellow = t.widget<Container>(key('game-pause')).decoration! as BoxDecoration;
-    expect((yellow.gradient! as LinearGradient).colors.last, GameShell.pauseYellow);
+    expect((yellow.gradient! as LinearGradient).colors, [ChromePalette.dark.primaryTop, ChromePalette.dark.primaryBottom]);
 
     final title = t.widget<Text>(key('game-title'));
-    expect(title.style?.color, auroraToken('text', dark: true), reason: 'рамка — в «Авроре»');
+    expect(title.style?.color, ChromePalette.dark.text, reason: 'рамка — по палитре рефа');
     // У классической темы метки шаблона нет вовсе (classicShellTheme) — это и есть Classic.
     expect(fieldTemplate, isNot(UiTemplate.aurora), reason: 'поле неготовой игры — классическое');
 
@@ -95,7 +96,7 @@ void main() {
     // Решение Дениса 29.10: главная кнопка паузы — оранжевая по листу 15, не акцент профиля.
     // Стандарт 30.10: «Продолжить» — жёлто-золотой градиент (реф pause-grouped-levels-v4).
     final resume = t.widget<Container>(key('pause-resume')).decoration! as BoxDecoration;
-    expect((resume.gradient! as LinearGradient).colors.last, GameShell.pauseYellow);
+    expect((resume.gradient! as LinearGradient).colors, [ChromePalette.dark.primaryTop, ChromePalette.dark.primaryBottom]);
 
     await t.tap(key('pause-resume'));
     await t.pumpAndSettle();
