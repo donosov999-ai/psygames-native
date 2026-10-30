@@ -58,11 +58,13 @@ class AuroraHomeTop extends StatelessWidget {
                 maxLines: 1,
                 style: TextStyle(fontSize: 28, height: 1.1, fontWeight: FontWeight.w700, color: text)),
             const SizedBox(height: 2),
+            // Две строки: подсказка «нажми на чип, чтобы сменить профиль» в одну строку обрезалась
+            // на «нажми на …» и теряла смысл (замер 30.10, 390 pt, ru и en).
             Text(_s(header['subtitle']),
                 key: const ValueKey('home-subtitle'),
-                maxLines: 1,
+                maxLines: 2,
                 overflow: TextOverflow.ellipsis,
-                style: TextStyle(fontSize: 14, color: secondary)),
+                style: TextStyle(fontSize: 13.5, height: 1.25, color: secondary)),
           ]),
         ),
         _icon(context, key: 'home-friends', ion: 'people', label: _s(header['friendsLabel']), onTap: () => onOpen('/friends')),
