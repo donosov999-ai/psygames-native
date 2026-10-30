@@ -295,3 +295,85 @@ class GameColors extends ThemeExtension<GameColors> {
     );
   }
 }
+
+/*
+ * 🔴 ПАЛИТРА ИГРОВОЙ РАМКИ — СНЯТА С РЕФА CODEX 30.10 ПО ПИКСЕЛЯМ, А НЕ ПОДОГНАНА ПОД ТОКЕНЫ.
+ *
+ * Денис 30.10: «ты вообще собрал в другой палитре и другой вид по форме и виду и геометрии… да
+ * похуй на аврору, повтори сначала». Первая версия стандарта брала цвета «Авроры» (бирюзовое
+ * стекло, тусклое золото) — вышла другая картинка. Здесь — замер рефов
+ * `pause-grouped-levels-v4`, `sudoku-even-toolbar-v4`, `header-help-dropdown-v1`:
+ * тёмная — фон #0A2031, стекло #0F2D44, кромка — тонкая яркая #F4DD40…#FBF8A1, «Продолжить»
+ * #FBE45B→#FDBB34; светлая — стекло #FDFBE8, кромка #FCDA79…#FEBB3B, «Продолжить» #FDEF76→#FEC542.
+ * Шапка, тулбар, кнопки игры и пауза берут цвета только отсюда (`game_chrome.dart`).
+ */
+@immutable
+class ChromePalette {
+  const ChromePalette({
+    required this.background,
+    required this.glow,
+    required this.glass,
+    required this.glassTop,
+    required this.gold,
+    required this.goldSoft,
+    required this.primaryTop,
+    required this.primaryBottom,
+    required this.onPrimary,
+    required this.text,
+    required this.textSecondary,
+    required this.ringFill,
+    required this.ringFillTop,
+    required this.petRing,
+  });
+
+  final Color background;
+  final Color glow;
+  final Color glass;
+  final Color glassTop;
+  final Color gold;
+  final Color goldSoft;
+  final Color primaryTop;
+  final Color primaryBottom;
+  final Color onPrimary;
+  final Color text;
+  final Color textSecondary;
+  final Color ringFill;
+  final Color ringFillTop;
+  final Color petRing;
+
+  static const dark = ChromePalette(
+    background: Color(0xFF0A2031),
+    glow: Color(0xFF1C5E9E),
+    glass: Color(0xFF0F2D44),
+    glassTop: Color(0xFF17405F),
+    gold: Color(0xFFF4DD40),
+    goldSoft: Color(0xFFFBF8A1),
+    primaryTop: Color(0xFFFBE45B),
+    primaryBottom: Color(0xFFFDBB34),
+    onPrimary: Color(0xFF1A1200),
+    text: Color(0xFFF5F5F7),
+    textSecondary: Color(0xFFA9BCD0),
+    ringFill: Color(0xFF0B2740),
+    ringFillTop: Color(0xFF1F4E74),
+    petRing: Color(0xFFA06BFF),
+  );
+
+  static const light = ChromePalette(
+    background: Color(0xFFFFF9EE),
+    glow: Color(0xFFFDE5A8),
+    glass: Color(0xFFFDFBE8),
+    glassTop: Color(0xFFFFFFFF),
+    gold: Color(0xFFF5C451),
+    goldSoft: Color(0xFFFCDA79),
+    primaryTop: Color(0xFFFDEF76),
+    primaryBottom: Color(0xFFFEC542),
+    onPrimary: Color(0xFF2A1C00),
+    text: Color(0xFF151A2D),
+    textSecondary: Color(0xFF5C657A),
+    ringFill: Color(0xFFFFFBF0),
+    ringFillTop: Color(0xFFFFFFFF),
+    petRing: Color(0xFFA06BFF),
+  );
+
+  static ChromePalette of(bool dark) => dark ? ChromePalette.dark : ChromePalette.light;
+}

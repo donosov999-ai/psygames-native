@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'aurora_glass.dart';
 import 'design_template.dart';
+import 'game_colors.dart';
 
 /// Служебное действие игры — значком в ряду ПОД полем.
 ///
@@ -80,68 +81,63 @@ bool _aurora(BuildContext context) =>
 
 extension on AuxAction {
   /*
-   * «Аврора», реф Codex 30.10 (sudoku-even-toolbar-v4): служебное действие — круглая стеклянная
-   * кнопка 52 со значком и подпись под ней (та же подпись, что у чтеца экрана и в меню паузы).
-   * Включённый режим — залитый круг, число — вместо значка, как в Classic.
+   * «Аврора», реф Codex 30.10 (sudoku-even-toolbar-v4): действие игры — стеклянный шар в
+   * золотом кольце со значком, подпись под ним; число — золотым значком-счётчиком на шаре;
+   * включённый режим — залитый шар. Цвета и размеры — общие для рамки (`aurora_glass.dart`).
    */
   Widget _auroraTile(BuildContext context) {
     final theme = Theme.of(context);
     final dark = theme.brightness == Brightness.dark;
+    final p = ChromePalette.of(dark);
+    final m = ChromeMetrics.of(context);
     final disabled = onPressed == null;
-    final text = auroraToken('text', dark: dark)!;
-    final accent = tint ?? theme.colorScheme.primary;
-    final fg = disabled
-        ? text.withValues(alpha: 0.35)
-        : (active ? theme.colorScheme.onPrimary : (tint ?? text));
+    final fg = disabled ? p.text.withValues(alpha: 0.35) : (active ? p.onPrimary : (tint ?? p.text));
+    final icon = Icon(this.icon, size: m.barCircle * 0.46, color: fg);
     return Semantics(
       button: true,
       enabled: !disabled,
       label: label,
       excludeSemantics: true,
       onTap: onPressed,
-      // Нажимается вся колонка — и круг, и подпись под ним (как вкладки внизу): по подписи палец
-      // тоже попадает. Рябь — у круга, его InkWell выигрывает спор жестов.
+      // Нажимается вся колонка — и шар, и подпись под ним (как вкладки внизу).
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: onPressed,
         child: Column(mainAxisSize: MainAxisSize.min, children: [
-        // Стеклянный круг в золотом ободке (стандарт игрового экрана, `AuroraGlass`).
-        Container(
-          decoration: AuroraGlass.ring(dark, active: active ? accent : null),
-          child: Material(
-          type: MaterialType.transparency,
-          child: InkWell(
-            customBorder: const CircleBorder(),
-            onTap: onPressed,
-            child: SizedBox(
-              width: 52,
-              height: 52,
-              // Число — значком-счётчиком на значке (реф 30.10: лампочка с «2»), а не вместо значка:
-              // по значку видно, ЧТО считается.
-              child: Center(
-                child: count == null
-                    ? Icon(icon, size: 22, color: fg)
-                    : Badge(
-                        key: const Key('aux-count'),
-                        label: Text('$count'),
-                        backgroundColor: theme.colorScheme.primary,
-                        textColor: theme.colorScheme.onPrimary,
-                        child: Icon(icon, size: 22, color: fg),
-                      ),
+          Container(
+            decoration: AuroraGlass.ring(dark, active: active ? (tint ?? p.primaryBottom) : null),
+            child: Material(
+              type: MaterialType.transparency,
+              child: InkWell(
+                customBorder: const CircleBorder(),
+                onTap: onPressed,
+                child: SizedBox(
+                  width: m.barCircle,
+                  height: m.barCircle,
+                  child: Center(
+                    child: count == null
+                        ? icon
+                        : Badge(
+                            key: const Key('aux-count'),
+                            label: Text('$count', style: TextStyle(fontWeight: FontWeight.w900, color: p.onPrimary)),
+                            backgroundColor: p.primaryBottom,
+                            offset: const Offset(10, -10),
+                            child: icon,
+                          ),
+                  ),
+                ),
               ),
             ),
           ),
+          SizedBox(height: m.compact ? 3 : 6),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(label,
+                maxLines: 1,
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: m.barLabel, height: 1.1, color: disabled ? fg : p.text)),
           ),
-        ),
-        const SizedBox(height: 4),
-        FittedBox(
-          fit: BoxFit.scaleDown,
-          child: Text(label,
-              maxLines: 1,
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 11, height: 1.1, color: disabled ? fg : text)),
-        ),
-      ]),
+        ]),
       ),
     );
   }
