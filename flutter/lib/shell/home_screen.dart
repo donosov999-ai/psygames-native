@@ -1175,6 +1175,12 @@ class _GoalCardState extends State<_GoalCard> {
           ),
         );
     final ask = TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: web.text);
+    // «Аврора», компактная главная: два ответа цели — в одну строку пополам, а не столбиком
+    // во всю ширину (кнопка с выравниванием растягивается и в `Wrap` встаёт отдельной строкой).
+    final aurora = _isAurora(context);
+    Widget pair(Widget a, Widget b) => aurora
+        ? Row(children: [Expanded(child: a), const SizedBox(width: 8), Expanded(child: b)])
+        : Wrap(spacing: 8, runSpacing: 8, children: [a, b]);
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
       padding: const EdgeInsets.all(12),
@@ -1248,14 +1254,14 @@ class _GoalCardState extends State<_GoalCard> {
             ),
           ),
           const SizedBox(height: 6),
-          Wrap(spacing: 8, runSpacing: 8, children: [
+          pair(
             primary(t('dayGoalSave'), canSave ? _accent : web.border, canSave ? Colors.white : web.textSecondary, () {
               if (!canSave) return;
               widget.act('goalSave', [_draft.text]);
               _draft.clear();
             }, const ValueKey('goal-save')),
             ghost(t('notNow'), () => widget.act('goalDismiss'), const ValueKey('goal-later')),
-          ]),
+          ),
           const SizedBox(height: 10),
           Text(t('dayGoalExamplesTitle'), style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: web.textSecondary)),
           for (final e in (widget.b['examples'] as List? ?? const []))
@@ -1275,11 +1281,11 @@ class _GoalCardState extends State<_GoalCard> {
           const SizedBox(height: 6),
           Text(t('dayGoalReview'), style: ask),
           const SizedBox(height: 6),
-          Wrap(spacing: 8, runSpacing: 8, children: [
+          pair(
             primary(t('dayGoalYes'), const Color(0xFF22C55E), cssColor(tx['yesFg'], Colors.white),
                 () => widget.act('goalOutcome', ['done']), const ValueKey('goal-yes')),
             ghost(t('dayGoalNo'), () => widget.act('goalOutcome', ['not_today']), const ValueKey('goal-no')),
-          ]),
+          ),
         ],
         if (state == 'closed') ...[
           const SizedBox(height: 6),
@@ -1817,13 +1823,26 @@ bool _isAurora(BuildContext context) =>
     Theme.of(context).extension<UiTemplateTheme>()?.template == UiTemplate.aurora;
 
 /// Сетка маленьких плиток — до 4 в ряд, как «Быстрый доступ» на рефе; при крупном шрифте и на
-/// узком экране колонок меньше, плитка не сжимается под подпись.
+/// узком экране колонок меньше, плитка не сжимается под подпись. Плитки ряда — одной высоты
+/// (по самой высокой): с причиной под названием и без неё ряд не «скачет».
 Widget _miniGrid(List<Widget> tiles) => LayoutBuilder(builder: (context, box) {
       final scale = MediaQuery.textScalerOf(context).scale(1).clamp(1.0, 2.0);
       final cols = (box.maxWidth / (80 * (scale > 1.3 ? 1.4 : 1.0))).floor().clamp(2, 4);
       const gap = 10.0;
-      final w = (box.maxWidth - gap * (cols - 1)) / cols;
-      return Wrap(spacing: gap, runSpacing: gap, children: [for (final t in tiles) SizedBox(width: w, child: t)]);
+      return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        for (var i = 0; i < tiles.length; i += cols)
+          Padding(
+            padding: EdgeInsets.only(top: i == 0 ? 0 : gap),
+            child: IntrinsicHeight(
+              child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                for (var k = i; k < i + cols; k++) ...[
+                  if (k > i) const SizedBox(width: gap),
+                  Expanded(child: k < tiles.length ? tiles[k] : const SizedBox.shrink()),
+                ],
+              ]),
+            ),
+          ),
+      ]);
     });
 
 /// «Рекомендуем» и «Практики дня» в «Авроре»: те же карточки модели, но маленькими плитками.
@@ -1892,9 +1911,7 @@ class _AuroraMiniTile extends StatelessWidget {
       button: true,
       label: _s(c['label']),
       excludeSemantics: true,
-      child: Tooltip(
-        message: sub.isEmpty ? _s(c['title']) : sub,
-        child: GestureDetector(
+      child: GestureDetector(
           key: ValueKey('home-card-${c['id']}'),
           behavior: HitTestBehavior.opaque,
           onTap: () => c['action'] == 'challenge' ? act('challenge') : onOpen(_s(c['href'])),
@@ -1923,6 +1940,17 @@ class _AuroraMiniTile extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     textAlign: TextAlign.center,
                     style: TextStyle(color: fg, fontSize: 12, height: 1.15, fontWeight: FontWeight.w700)),
+                if (sub.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 2),
+                    child: Text(sub,
+                        key: ValueKey('home-card-reason-${c['id']}'),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: fg.withValues(alpha: 0.82), fontSize: 10.5, height: 1.15, fontWeight: FontWeight.w500)),
+                  ),
+                const Spacer(),
                 const SizedBox(height: 4),
                 Icon(play ? Icons.play_arrow_rounded : Icons.chevron_right, size: 20, color: fg),
               ]),
@@ -1935,7 +1963,6 @@ class _AuroraMiniTile extends StatelessWidget {
             ]),
           ),
         ),
-      ),
     );
   }
 }
@@ -1982,6 +2009,7 @@ class _AuroraSectionMini extends StatelessWidget {
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 12, height: 1.15, fontWeight: FontWeight.w700, color: text)),
             ),
+            const Spacer(),
             Padding(
               padding: const EdgeInsets.only(bottom: 4),
               child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [

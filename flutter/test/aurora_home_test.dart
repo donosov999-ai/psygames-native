@@ -130,6 +130,8 @@ void main() {
     final reco = t.getSize(key('home-card-schulte_table'));
     expect(reco.width, lessThan(120));
     expect(reco.height, lessThan(150));
+    // Причина рекомендации видна под названием, не только чтецу экрана.
+    expect(find.descendant(of: key('home-card-hanoi'), matching: find.text('Сегодня сыграно')), findsOneWidget);
     // ▶ — только у прямого запуска, у зарядки и релаксации › к выбору.
     expect(find.descendant(of: key('home-card-schulte_table'), matching: find.byIcon(Icons.play_arrow_rounded)), findsOneWidget);
     expect(find.descendant(of: key('home-card-warmup'), matching: find.byIcon(Icons.chevron_right)), findsOneWidget);
@@ -139,6 +141,18 @@ void main() {
       await t.tap(key('home-card-$id'));
     }
     expect(opened, ['/games/schulte?calm=1', '/warmup-picker', '/games/relaxation-hub']);
+  });
+
+  testWidgets('«Аврора»: цель «Как прошло?» — два ответа в одну строку, нажатие уходит в модель', (t) async {
+    final js = <String>[];
+    final blocks = [for (final b in (model['blocks'] as List).cast<Map>()) b['kind'] == 'goal' ? ({...b, 'state': 'review'}) : b];
+    model = {...model, 'blocks': blocks};
+    await mount(t, template: UiTemplate.aurora, size: const Size(780, 6000));
+    ScreenUi.run = (s) async => js.add(s);
+    expect(t.getTopLeft(key('goal-yes')).dy, t.getTopLeft(key('goal-no')).dy, reason: '«Да» и «Не сегодня» — в одной строке');
+    await t.tap(key('goal-yes'));
+    await t.pump();
+    expect(js.join(), contains('goalOutcome'));
   });
 
   testWidgets('Classic: новой шапки нет, классическая на месте', (t) async {
