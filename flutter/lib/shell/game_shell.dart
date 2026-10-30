@@ -1,3 +1,4 @@
+import 'aurora_glass.dart';
 import 'aurora_scope.dart';
 import 'design_template.dart';
 import 'game_clock.dart';
@@ -190,7 +191,11 @@ class GameShell extends StatelessWidget {
       );
       return Scaffold(
         backgroundColor: auroraToken('background', dark: frame.brightness == Brightness.dark),
-        body: SafeArea(child: spot == null ? body : LevelRuleWatcher(spot: spot, child: body)),
+        // Тот же фон, что у паузы (стандарт: стекло и золото на глубоком синем).
+        body: DecoratedBox(
+          decoration: AuroraGlass.backdrop(frame.brightness == Brightness.dark),
+          child: SafeArea(child: spot == null ? body : LevelRuleWatcher(spot: spot, child: body)),
+        ),
       );
     }
     final body = Column(
@@ -540,132 +545,298 @@ class _PauseScreen extends StatelessWidget {
 
 extension on _PauseScreen {
   /*
-   * Пауза «Авроры» — лист 15: карточка с жёлтой круглой паузой, «Пауза» и названием игры,
-   * под ней правила; «Продолжить игру» — главная оранжевая; служебные пункты — обведённые;
-   * два ухода внизу рядом — в развилку и на главную. Набор пунктов тот же, что в Classic.
+   * Пауза «Авроры» — реф Codex 30.10 (pause-grouped-levels-v4), стандарт игрового экрана:
+   * стеклянные панели с золотой кромкой и мягким свечением на глубоком фоне; шапка «Синапс ·
+   * <игра> · Пауза · ✕»; «Правила» свёрнуты; «Заново» слева и «Продолжить» (жёлтый градиент)
+   * справа — одним рядом; пункты игры строками; «Сообщить о проблеме»; два ухода рядом.
+   * Набор пунктов тот же, что в Classic: каркас не выдумывает действий, «Заново» — тот же пункт
+   * игры с тем же подтверждением (`leaveWith`). Цвета — токены «Авроры» и цвета паузы.
    */
   Widget _aurora(BuildContext context) {
     final theme = Theme.of(context);
     final dark = theme.brightness == Brightness.dark;
+    final colors = GameColors.aurora(theme.brightness);
     final text = auroraToken('text', dark: dark)!;
     final secondary = auroraToken('textSecondary', dark: dark)!;
-    final surface = auroraToken('surface', dark: dark)!;
-    final border = auroraToken('border', dark: dark)!;
-    final accent = GameShell.auroraAction;
-
-    Widget button(String label, IconData icon, VoidCallback onTap, {bool primary = false, Key? key}) {
-      final fg = primary ? GameShell.onPauseYellow : text;
-      return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 5),
-        child: SizedBox(
-          width: double.infinity,
-          height: 52,
-          child: Material(
-            key: key,
-            color: primary ? accent : surface,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(14),
-              side: primary ? BorderSide.none : BorderSide(color: border),
-            ),
-            clipBehavior: Clip.antiAlias,
-            child: InkWell(
-              onTap: onTap,
-              child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                Icon(icon, size: 22, color: fg),
-                const SizedBox(width: 10),
-                Flexible(
-                  child: Text(label,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: fg)),
-                ),
-              ]),
-            ),
-          ),
-        ),
-      );
-    }
+    final background = auroraToken('background', dark: dark)!;
+    final gold = AuroraGlass.gold(dark);
 
     void leaveWith(VoidCallback go) {
       Navigator.of(context).pop();
       go();
     }
 
-    return Scaffold(
-      backgroundColor: auroraToken('background', dark: dark),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            Container(
-              key: const Key('pause-card'),
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: surface,
-                borderRadius: BorderRadius.circular(18),
-                border: Border.all(color: border),
+    BoxDecoration glassBox({double radius = 18, bool glow = true}) => AuroraGlass.panel(dark, radius: radius, glow: glow);
+
+    Widget tap({required Widget child, Key? key, required VoidCallback onTap, BoxDecoration? decoration, double height = 56}) =>
+        Container(
+          key: key,
+          decoration: decoration ?? glassBox(radius: 16),
+          child: Material(
+            type: MaterialType.transparency,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(16),
+              onTap: onTap,
+              child: ConstrainedBox(constraints: BoxConstraints(minHeight: height), child: child),
+            ),
+          ),
+        );
+
+    Widget label(String text, IconData icon, Color fg, {double size = 17}) => Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+            Icon(icon, size: 24, color: fg),
+            const SizedBox(width: 8),
+            // Уменьшается, а не режется: половина ряда на 390 pt.
+            Flexible(
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(text, maxLines: 1, style: TextStyle(fontSize: size, fontWeight: FontWeight.w700, color: fg)),
               ),
-              child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                Row(children: [
-                  Container(
-                    width: 48,
-                    height: 48,
-                    decoration: const BoxDecoration(color: GameShell.pauseYellow, shape: BoxShape.circle),
-                    child: const Icon(Icons.pause, size: 28, color: GameShell.onPauseYellow),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Text(L.t('teachPause'),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: text)),
-                      Text(title,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(fontSize: 14, color: secondary)),
-                    ]),
-                  ),
+            ),
+          ]),
+        );
+
+    Widget row(String title, IconData icon, VoidCallback onTap, {Key? key}) => Padding(
+          padding: const EdgeInsets.only(top: 10),
+          child: tap(
+            key: key,
+            onTap: onTap,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(children: [
+                Icon(icon, size: 26, color: text),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Text(title,
+                      maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600, color: text)),
+                ),
+                Icon(Icons.chevron_right_rounded, size: 26, color: text),
+              ]),
+            ),
+          ),
+        );
+
+    final restart = actions.where(GameShell._isRestart).firstOrNull;
+    final others = [for (final a in actions) if (!identical(a, restart)) a];
+    final resume = tap(
+      key: const Key('pause-resume'),
+      onTap: () => Navigator.of(context).pop(),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [GameColors.auroraDark.warning, GameShell.pauseYellow],
+        ),
+        borderRadius: BorderRadius.circular(16),
+        // Кромка той же толщины, что у стекла (1.4): иначе «Заново» и «Продолжить» разной высоты.
+        border: Border.all(color: gold, width: 1.4),
+        boxShadow: [BoxShadow(color: GameShell.pauseYellow.withValues(alpha: 0.45), blurRadius: 18)],
+      ),
+      child: label(L.t('exitConfirmStay'), Icons.play_arrow_rounded, GameShell.onPauseYellow, size: 18),
+    );
+
+    return Scaffold(
+      backgroundColor: background,
+      body: Container(
+        key: const Key('pause-aurora-bg'),
+        decoration: AuroraGlass.backdrop(dark),
+        child: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+              Container(
+                key: const Key('pause-card'),
+                padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
+                decoration: glassBox(radius: 22),
+                child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                  Row(children: [
+                    // Синапс — настоящий питомец, в светящемся кольце; нет питомца — жёлтая пауза.
+                    Container(
+                      width: 52,
+                      height: 52,
+                      padding: const EdgeInsets.all(2),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: LinearGradient(colors: [colors.selected, gold]),
+                        boxShadow: [BoxShadow(color: colors.selected.withValues(alpha: 0.35), blurRadius: 12)],
+                      ),
+                      child: ClipOval(
+                        child: ColoredBox(
+                          color: background,
+                          child: Center(
+                            child: PetHost.ready
+                                ? GamePet(state: PetHost.state!, origin: PetHost.origin!, size: 40)
+                                : const Icon(Icons.pause, size: 26, color: GameShell.pauseYellow),
+                          ),
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text.rich(
+                            TextSpan(children: [
+                              TextSpan(text: title),
+                              const TextSpan(text: ' · '),
+                              TextSpan(text: L.t('teachPause')),
+                            ]),
+                            maxLines: 1,
+                            style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: text),
+                          ),
+                        ),
+                      ),
+                    ),
+                    Semantics(
+                      button: true,
+                      label: L.t('exitConfirmStay'),
+                      excludeSemantics: true,
+                      child: InkResponse(
+                        key: const Key('pause-close'),
+                        onTap: () => Navigator.of(context).pop(),
+                        radius: 26,
+                        child: Container(
+                          width: 46,
+                          height: 46,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(color: gold, width: 2),
+                            color: gold.withValues(alpha: 0.12),
+                          ),
+                          child: Icon(Icons.close_rounded, color: gold, size: 28),
+                        ),
+                      ),
+                    ),
+                  ]),
+                  if (hud.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    Center(child: _HudRow(items: hud, aurora: true, padding: EdgeInsets.zero)),
+                  ],
                 ]),
-                if (hud.isNotEmpty) ...[
-                  const SizedBox(height: 12),
-                  _HudRow(items: hud, aurora: true, padding: EdgeInsets.zero),
+              ),
+              if (ruleKey != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 10),
+                  child: _AuroraPauseRules(
+                    text: L.t(ruleKey!),
+                    decoration: glassBox(radius: 18, glow: false),
+                    gold: gold,
+                    color: text,
+                    secondary: secondary,
+                  ),
+                ),
+              const SizedBox(height: 10),
+              // «Заново» слева, «Продолжить» справа — одним рядом (требование Дениса 30.10).
+              Row(children: [
+                if (restart != null) ...[
+                  Expanded(
+                    child: tap(
+                      key: const Key('pause-restart'),
+                      onTap: () => leaveWith(restart.onPressed),
+                      child: label(restart.label, restart.icon, text),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
                 ],
-                if (ruleKey != null) ...[
-                  const SizedBox(height: 12),
-                  ConstrainedBox(
-                    constraints: BoxConstraints(
-                        maxHeight: (MediaQuery.sizeOf(context).height * .3).clamp(90.0, 240.0)),
-                    child: SingleChildScrollView(
-                      key: const Key('pause-rules'),
-                      child: Text(L.t(ruleKey!), style: TextStyle(fontSize: 15, height: 1.35, color: text)),
+                Expanded(child: resume),
+              ]),
+              for (final a in others) row(a.label, a.icon, () => leaveWith(a.onPressed)),
+              if (GameExit.feedback != null)
+                row(L.t('feedbackFabLabel'), Icons.bug_report_outlined, GameExit.feedback!, key: const Key('pause-feedback')),
+              const SizedBox(height: 10),
+              Row(children: [
+                Expanded(
+                  child: tap(
+                    key: const Key('pause-leave'),
+                    onTap: () => leaveWith(onLeave),
+                    child: label(L.t('pauseExitGame'), Icons.sports_esports_outlined, text, size: 16),
+                  ),
+                ),
+                if (GameExit.home != null) ...[
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: tap(
+                      key: const Key('pause-home'),
+                      onTap: () => leaveWith(GameExit.home!),
+                      child: label(L.t('goHome'), Icons.home_outlined, text, size: 16),
                     ),
                   ),
                 ],
               ]),
-            ),
-            const SizedBox(height: 12),
-            button(L.t('exitConfirmStay'), Icons.play_arrow, () => Navigator.of(context).pop(),
-                primary: true, key: const Key('pause-resume')),
-            for (final a in actions) button(a.label, a.icon, () => leaveWith(a.onPressed)),
-            if (GameExit.feedback != null)
-              button(L.t('feedbackFabLabel'), Icons.chat_bubble_outline, GameExit.feedback!,
-                  key: const Key('pause-feedback')),
-            const SizedBox(height: 6),
-            Row(children: [
-              Expanded(
-                child: button(L.t('pauseExitGame'), Icons.sports_esports_outlined, () => leaveWith(onLeave),
-                    key: const Key('pause-leave')),
-              ),
-              if (GameExit.home != null) ...[
-                const SizedBox(width: 10),
+            ]),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// «Правила» в паузе «Авроры»: свёрнуты (значок в золотом квадрате, заголовок, первая фраза),
+/// по нажатию раскрываются целиком (реф Codex 30.10).
+class _AuroraPauseRules extends StatefulWidget {
+  const _AuroraPauseRules({required this.text, required this.decoration, required this.gold, required this.color, required this.secondary});
+  final String text;
+  final BoxDecoration decoration;
+  final Color gold;
+  final Color color;
+  final Color secondary;
+
+  @override
+  State<_AuroraPauseRules> createState() => _AuroraPauseRulesState();
+}
+
+class _AuroraPauseRulesState extends State<_AuroraPauseRules> {
+  var _open = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final first = widget.text.split(RegExp(r'(?<=[.!?])\s')).first;
+    return Container(
+      decoration: widget.decoration,
+      child: Material(
+        type: MaterialType.transparency,
+        child: InkWell(
+          key: const Key('pause-rules-toggle'),
+          borderRadius: BorderRadius.circular(18),
+          onTap: () => setState(() => _open = !_open),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+              Row(children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: widget.gold.withValues(alpha: 0.22),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: widget.gold.withValues(alpha: 0.7)),
+                  ),
+                  child: Icon(Icons.menu_book_rounded, color: widget.gold, size: 26),
+                ),
+                const SizedBox(width: 12),
                 Expanded(
-                  child: button(L.t('goHome'), Icons.home_outlined, () => leaveWith(GameExit.home!),
-                      key: const Key('pause-home')),
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Text(L.t('btn_rules'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: widget.color)),
+                    if (!_open)
+                      Text(first, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 13.5, color: widget.secondary)),
+                  ]),
+                ),
+                Icon(_open ? Icons.expand_less_rounded : Icons.expand_more_rounded, size: 28, color: widget.color),
+              ]),
+              if (_open) ...[
+                const SizedBox(height: 8),
+                ConstrainedBox(
+                  constraints: BoxConstraints(maxHeight: (MediaQuery.sizeOf(context).height * .4).clamp(120.0, 320.0)),
+                  child: SingleChildScrollView(
+                    key: const Key('pause-rules'),
+                    child: Text(widget.text, style: TextStyle(fontSize: 15, height: 1.35, color: widget.color)),
+                  ),
                 ),
               ],
             ]),
-          ]),
+          ),
         ),
       ),
     );
@@ -818,11 +989,9 @@ class _HudRow extends StatelessWidget {
           for (final i in items)
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: BoxDecoration(
-                color: aurora ? auroraToken('raised', dark: dark) : scheme.surfaceContainerHighest,
-                borderRadius: BorderRadius.circular(14),
-                border: aurora ? Border.all(color: auroraToken('border', dark: dark)!) : null,
-              ),
+              decoration: aurora
+                  ? AuroraGlass.panel(dark, radius: 14, glow: false)
+                  : BoxDecoration(color: scheme.surfaceContainerHighest, borderRadius: BorderRadius.circular(14)),
               child: Semantics(
                 label: '${i.label}: ${i.value}',
                 child: Row(mainAxisSize: MainAxisSize.min, children: [
@@ -857,61 +1026,149 @@ class _AuroraHeader extends StatelessWidget {
   final String? levelRuleTitle;
   final VoidCallback? onFeedback;
 
+  /// Круглая стеклянная кнопка шапки в золотом ободке (стандарт игрового экрана, `AuroraGlass`).
+  static Widget ring(BuildContext context, {Key? key, required IconData icon, required String tooltip, required VoidCallback onTap, double size = 40}) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 3),
+      child: Tooltip(
+        message: tooltip,
+        child: Semantics(
+          button: true,
+          label: tooltip,
+          excludeSemantics: true,
+          onTap: onTap,
+          child: Container(
+            key: key,
+            width: size,
+            height: size,
+            decoration: AuroraGlass.ring(dark),
+            child: Material(
+              type: MaterialType.transparency,
+              child: InkWell(
+                customBorder: const CircleBorder(),
+                onTap: onTap,
+                child: Icon(icon, size: 22, color: auroraToken('text', dark: dark)),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final dark = Theme.of(context).brightness == Brightness.dark;
     final text = auroraToken('text', dark: dark)!;
     final narrow = MediaQuery.sizeOf(context).width < 380;
-    return IconButtonTheme(
-      data: IconButtonThemeData(
-          style: IconButton.styleFrom(
-              foregroundColor: text, visualDensity: narrow ? VisualDensity.compact : null)),
-      child: SizedBox(
-        key: const Key('game-header-aurora'),
-        height: 56,
-        child: Row(children: [
-          IconButton(
-            key: const Key('game-back'),
-            onPressed: onBack,
-            icon: const Icon(Icons.chevron_left, size: 30),
-            tooltip: L.t('back'),
-          ),
-          Expanded(
-            child: Text(title,
-                key: const Key('game-title'),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: text)),
-          ),
-          if (PetHost.ready)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4),
-              child: GamePet(state: PetHost.state!, origin: PetHost.origin!, size: 32),
+    final size = narrow ? 36.0 : 42.0;
+    // Стекло и золото: полоса шапки с кромкой, значки — круги в ободке (реф header-help-dropdown-v1).
+    return Container(
+      key: const Key('game-header-aurora'),
+      // Высота рамки — прежняя (56 = 4 + 52): поле игры не должно сжаться от стекла
+      // (с 68 pt клавиатура SDMT вылезала на 24 px — проба aurora_keypad_test).
+      margin: const EdgeInsets.fromLTRB(8, 2, 8, 0),
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      height: 54,
+      decoration: AuroraGlass.panel(dark, radius: 20),
+      child: Row(children: [
+        ring(context, key: const Key('game-back'), icon: Icons.chevron_left_rounded, tooltip: L.t('back'), onTap: onBack, size: size),
+        const SizedBox(width: 6),
+        Expanded(
+          child: Text(title,
+              key: const Key('game-title'),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(fontSize: 21, fontWeight: FontWeight.w800, color: text)),
+        ),
+        if (PetHost.ready)
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 3),
+            padding: const EdgeInsets.all(2),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: LinearGradient(colors: [GameColors.aurora(Theme.of(context).brightness).selected, AuroraGlass.gold(dark)]),
             ),
-          if (onLevelRule != null)
-            IconButton(
+            child: ClipOval(child: GamePet(state: PetHost.state!, origin: PetHost.origin!, size: size - 4)),
+          ),
+        if (onLevelRule != null)
+          ring(context,
               key: const Key('game-level-rule'),
-              onPressed: onLevelRule,
-              icon: const Icon(Icons.new_releases_outlined),
-              tooltip: levelRuleTitle,
-            ),
+              icon: Icons.new_releases_outlined,
+              tooltip: levelRuleTitle ?? '',
+              onTap: onLevelRule!,
+              size: size),
+        // Учитель и правила — ОДНОЙ кнопкой «Обучение и справка» с раздельными пунктами (реф Codex
+        // 30.10, header-help-dropdown-v1): открытие меню само ничего не включает, учебной попытку
+        // делает только «Разбор», как и раньше. Есть одно из двух — один значок, как было.
+        if (onLesson != null && onRules != null)
+          _AuroraHelpMenu(onLesson: onLesson!, onRules: onRules!, size: size)
+        else ...[
           if (onLesson != null)
-            IconButton(
-              key: const Key('game-lesson'),
-              onPressed: onLesson,
-              icon: const Icon(Icons.school_outlined),
-              tooltip: L.t('teachButton'),
-            ),
+            ring(context, key: const Key('game-lesson'), icon: Icons.school_outlined, tooltip: L.t('teachButton'), onTap: onLesson!, size: size),
           if (onRules != null)
-            IconButton(onPressed: onRules, icon: const Icon(Icons.help_outline), tooltip: L.t('btn_rules')),
-          if (onFeedback != null)
-            IconButton(
+            ring(context, icon: Icons.help_outline, tooltip: L.t('btn_rules'), onTap: onRules!, size: size),
+        ],
+        // Отзыв — значком жука, как плавающая bugFX: облачко не читалось как «сообщить о проблеме».
+        if (onFeedback != null)
+          ring(context,
               key: const Key('game-feedback'),
-              onPressed: onFeedback,
-              icon: const Icon(Icons.chat_bubble_outline),
+              icon: Icons.bug_report_outlined,
               tooltip: L.t('feedbackFabLabel'),
-            ),
-        ]),
+              onTap: onFeedback!,
+              size: size),
+      ]),
+    );
+  }
+}
+
+/// «Обучение и справка» шапки «Авроры»: шапочка с ▾, в меню «Разбор» (учитель) и «Правила».
+class _AuroraHelpMenu extends StatelessWidget {
+  const _AuroraHelpMenu({required this.onLesson, required this.onRules, this.size = 40});
+  final VoidCallback onLesson;
+  final VoidCallback onRules;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final text = auroraToken('text', dark: dark)!;
+    PopupMenuItem<VoidCallback> item(String key, IconData icon, String label, VoidCallback go) => PopupMenuItem(
+          key: Key(key),
+          value: go,
+          child: Row(children: [
+            Icon(icon, color: text),
+            const SizedBox(width: 12),
+            Flexible(child: Text(label, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: text))),
+          ]),
+        );
+    return PopupMenuButton<VoidCallback>(
+      key: const Key('game-help-menu'),
+      tooltip: '${L.t('teachButton')} · ${L.t('btn_rules')}',
+      color: auroraToken('raised', dark: dark),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: auroraToken('border', dark: dark)!),
+      ),
+      position: PopupMenuPosition.under,
+      onSelected: (go) => go(),
+      itemBuilder: (_) => [
+        item('game-lesson', Icons.school_outlined, L.t('teachButton'), onLesson),
+        item('game-rules', Icons.help_outline, L.t('btn_rules'), onRules),
+      ],
+      // Шапочка в золотом ободке и ▾ под ней — как на рефе header-help-dropdown-v1.
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 3),
+        child: Container(
+          width: size + 6,
+          height: size + 6,
+          decoration: AuroraGlass.ring(dark),
+          child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+            Icon(Icons.school_outlined, size: 20, color: text),
+            Icon(Icons.keyboard_arrow_down_rounded, size: 14, color: text),
+          ]),
+        ),
       ),
     );
   }
@@ -924,32 +1181,62 @@ class _AuroraGameBar extends StatelessWidget {
   final VoidCallback onPause;
   final Widget? aux;
 
+  /*
+   * Реф Codex 30.10 (sudoku-even-toolbar-v4): жёлтая круглая «Пауза» с подписью слева, действия
+   * игры — круглые кнопки с подписями равными колонками на всю ширину ([AuxBar]); пустого места
+   * справа нет, выдуманных кнопок нет — сколько действий у игры, столько колонок.
+   */
   @override
-  Widget build(BuildContext context) => Padding(
-        key: const Key('game-bar-aurora'),
-        padding: const EdgeInsets.fromLTRB(12, 6, 12, 8),
-        child: Row(children: [
-          Semantics(
+  Widget build(BuildContext context) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    // Стекло и золото (стандарт игрового экрана): панель с кромкой и свечением, пауза — жёлтый глянец.
+    return Container(
+      key: const Key('game-bar-aurora'),
+      // Не выше прежнего ряда (83): 2 + 4 + 52 + 4 + подпись + 4 + 2 — поле игры не сжимается.
+      margin: const EdgeInsets.fromLTRB(8, 2, 8, 2),
+      // Кромка стекла (1.4 × 2) входит в высоту — отступ на столько же меньше.
+      padding: const EdgeInsets.fromLTRB(4, 3, 4, 2),
+      decoration: AuroraGlass.panel(dark, radius: 24),
+      child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        SizedBox(
+          width: 68,
+          child: Semantics(
             button: true,
             label: L.t('gamePauseOpen'),
-            child: Material(
-              key: const Key('game-pause'),
-              color: GameShell.pauseYellow,
-              shape: const CircleBorder(),
-              elevation: 2,
-              child: InkWell(
-                customBorder: const CircleBorder(),
-                onTap: onPause,
-                child: const SizedBox(
-                  width: 52,
-                  height: 52,
-                  child: Icon(Icons.pause, size: 28, color: GameShell.onPauseYellow),
+            excludeSemantics: true,
+            onTap: onPause,
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: onPause,
+              child: Column(mainAxisSize: MainAxisSize.min, children: [
+              Container(
+                key: const Key('game-pause'),
+                decoration: AuroraGlass.pause(dark),
+                child: Material(
+                  type: MaterialType.transparency,
+                  child: InkWell(
+                    customBorder: const CircleBorder(),
+                    onTap: onPause,
+                    child: const SizedBox(
+                      width: 52,
+                      height: 52,
+                      child: Icon(Icons.pause_rounded, size: 30, color: GameShell.onPauseYellow),
+                    ),
+                  ),
                 ),
               ),
+              const SizedBox(height: 4),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(L.t('teachPause'),
+                    maxLines: 1, style: TextStyle(fontSize: 11, height: 1.1, color: auroraToken('text', dark: dark))),
+              ),
+            ]),
             ),
           ),
-          const SizedBox(width: 10),
-          Expanded(child: aux ?? const SizedBox.shrink()),
-        ]),
-      );
+        ),
+        Expanded(child: aux ?? const SizedBox.shrink()),
+      ]),
+    );
+  }
 }
