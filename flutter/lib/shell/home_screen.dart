@@ -424,10 +424,10 @@ class _HomeScreenState extends State<HomeScreen> {
       case 'today':
         return _Today(b: b, onOpen: widget.onOpen);
       case 'reco':
-        if (_isAurora(context)) return _AuroraMiniBlock(b: b, origin: widget.origin, onOpen: widget.onOpen, act: _act, ion: 'sparkles-outline');
+        if (_isAurora(context)) return _AuroraMiniBlock(b: b, origin: widget.origin, onOpen: widget.onOpen, act: _act, ion: 'sparkles-outline', kit: _kit);
         return _HeroBlock(b: b, origin: widget.origin, onOpen: widget.onOpen, act: _act, ion: 'sparkles-outline', iconSize: 20, accent: null);
       case 'practices':
-        if (_isAurora(context)) return _AuroraMiniBlock(b: b, origin: widget.origin, onOpen: widget.onOpen, act: _act, ion: 'leaf-outline');
+        if (_isAurora(context)) return _AuroraMiniBlock(b: b, origin: widget.origin, onOpen: widget.onOpen, act: _act, ion: 'leaf-outline', kit: _kit);
         return _HeroBlock(b: b, origin: widget.origin, onOpen: widget.onOpen, act: _act, ion: 'leaf-outline', iconSize: 19, accent: const Color(0xFF10B981));
       case 'favourites':
         return _Favourites(b: b, kit: _kit, state: widget.state, onOpen: widget.onOpen, onTab: widget.onTab);
@@ -1848,12 +1848,13 @@ Widget _miniGrid(List<Widget> tiles) => LayoutBuilder(builder: (context, box) {
 
 /// «Рекомендуем» и «Практики дня» в «Авроре»: те же карточки модели, но маленькими плитками.
 class _AuroraMiniBlock extends StatelessWidget {
-  const _AuroraMiniBlock({required this.b, required this.origin, required this.onOpen, required this.act, required this.ion});
+  const _AuroraMiniBlock({required this.b, required this.origin, required this.onOpen, required this.act, required this.ion, this.kit});
   final _M b;
   final String origin;
   final ValueChanged<String> onOpen;
   final void Function(String, [List<Object?>]) act;
   final String ion;
+  final CatalogKit? kit;
 
   @override
   Widget build(BuildContext context) {
@@ -1880,7 +1881,7 @@ class _AuroraMiniBlock extends StatelessWidget {
             child: Text(_s(b['hint']), maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 12, color: secondary)),
           ),
         const SizedBox(height: 10),
-        _miniGrid([for (final c in cards) _AuroraMiniTile(c: c, origin: origin, onOpen: onOpen, act: act)]),
+        _miniGrid([for (final c in cards) _AuroraMiniTile(c: c, origin: origin, onOpen: onOpen, act: act, kit: kit)]),
       ]),
     );
   }
@@ -1893,11 +1894,12 @@ class _AuroraMiniBlock extends StatelessWidget {
  * чтеца экрана и во всплывающей подсказке; нажатие то же, что у большой карточки Classic.
  */
 class _AuroraMiniTile extends StatelessWidget {
-  const _AuroraMiniTile({required this.c, required this.origin, required this.onOpen, required this.act});
+  const _AuroraMiniTile({required this.c, required this.origin, required this.onOpen, required this.act, this.kit});
   final _M c;
   final String origin;
   final ValueChanged<String> onOpen;
   final void Function(String, [List<Object?>]) act;
+  final CatalogKit? kit;
 
   @override
   Widget build(BuildContext context) {
@@ -1906,6 +1908,11 @@ class _AuroraMiniTile extends StatelessWidget {
     final g = [for (final x in (c['gradient'] as List? ?? const [])) cssColor(x)];
     final icon = _map(c['icon']);
     final image = icon['image'];
+    // Значок игры из каталога — цветной, как на рефе 30.10, а не белый глиф: по маршруту без
+    // `?calm=1`, тем же способом, что у «Продолжить». У практик (зарядка, релаксация, вызов) игры
+    // нет — у них прежний глиф модели.
+    final entry = kit?.byRoute(_s(c['href']).split('?').first);
+    final gameIcon = entry == null ? null : kit!.iconFile(entry);
     final play = _s(_map(c['cta'])['ion']) == 'play';
     final sub = _s(c['sub']);
     void open() => c['action'] == 'challenge' ? act('challenge') : onOpen(_s(c['href']));
@@ -1931,7 +1938,14 @@ class _AuroraMiniTile extends StatelessWidget {
             child: Stack(children: [
               Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
                 Center(
-                  child: image != null
+                  child: image == null && gameIcon != null
+                      ? ClipRRect(
+                          key: ValueKey('home-card-icon-${c['id']}'),
+                          borderRadius: BorderRadius.circular(10),
+                          child: Image.asset('assets/game_icons/$gameIcon', width: 42, height: 42, fit: BoxFit.cover,
+                              errorBuilder: (_, _, _) => IonIcon(_s(icon['ion']), size: 30, color: fg)),
+                        )
+                      : image != null
                       ? ClipRRect(
                           borderRadius: BorderRadius.circular(8),
                           child: Image.network(image.toString().startsWith('http') ? '$image' : '$origin$image',

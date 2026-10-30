@@ -130,6 +130,10 @@ void main() {
     final reco = t.getSize(key('home-card-schulte_table'));
     expect(reco.width, lessThan(120));
     expect(reco.height, lessThan(150));
+    // Значок игры — цветной из каталога (как на рефе), у практики без игры — глиф модели.
+    final icon = t.widget<Image>(find.descendant(of: key('home-card-icon-schulte_table'), matching: find.byType(Image)));
+    expect((icon.image as AssetImage).assetName, 'assets/game_icons/schulte_table.webp');
+    expect(key('home-card-icon-warmup'), findsNothing);
     // Причина рекомендации видна под названием, не только чтецу экрана.
     expect(find.descendant(of: key('home-card-hanoi'), matching: find.text('Сегодня сыграно')), findsOneWidget);
     // ▶ — только у прямого запуска, у зарядки и релаксации › к выбору.
