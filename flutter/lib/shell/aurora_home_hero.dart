@@ -70,8 +70,9 @@ class AuroraHomeHero extends StatelessWidget {
                         style: TextStyle(fontSize: 14, height: 1.3, color: secondary)),
                   ),
                   SizedBox(height: box.maxWidth * 0.12),
+                  // Во всю ширину карточки — как «Начать зарядку» на рефе 30.10.
                   ConstrainedBox(
-                    constraints: const BoxConstraints(minHeight: 48),
+                    constraints: const BoxConstraints(minHeight: 48, minWidth: double.infinity),
                     child: FilledButton.icon(
                       key: const ValueKey('aurora-home-hero-start'),
                       onPressed: onTap,

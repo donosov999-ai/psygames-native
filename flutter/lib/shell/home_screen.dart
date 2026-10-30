@@ -1305,6 +1305,7 @@ class _Today extends StatelessWidget {
     final web = WebTheme.of(context);
     const amber = Color(0xFFF59E0B);
     final rows = _list(b['rows']);
+    final aurora = _isAurora(context);
     return Semantics(
       button: true,
       label: _s(b['title']),
@@ -1355,6 +1356,18 @@ class _Today extends StatelessWidget {
             const SizedBox(height: 6),
             if (b['empty'] != null)
               Text(_s(b['empty']), style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, height: 17 / 12.5, color: web.textSecondary)),
+            // «Аврора», компактная главная (реф 30.10): строки игр — одной строкой «игра +очки · …»,
+            // полный список — в статистике по нажатию на блок, как и раньше.
+            if (aurora && rows.isNotEmpty)
+              Text(
+                [for (final r in rows) '${_s(r['name'])}${r['doubled'] == true ? ' ×2' : ''} +${r['gain']}'].join(' · ') +
+                    (b['more'] != null ? ' …' : ''),
+                key: const ValueKey('home-today-line'),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, height: 18 / 13, color: web.text),
+              ),
+            if (!aurora)
             for (final r in rows)
               Padding(
                 padding: const EdgeInsets.only(bottom: 6),
@@ -1384,7 +1397,7 @@ class _Today extends StatelessWidget {
                   ),
                 ]),
               ),
-            if (b['more'] != null)
+            if (b['more'] != null && !aurora)
               Padding(
                 padding: const EdgeInsets.only(top: 4),
                 child: Text(_s(b['more']), textAlign: TextAlign.right, style: TextStyle(fontSize: 12, color: web.textSecondary)),

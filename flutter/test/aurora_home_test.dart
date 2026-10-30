@@ -103,6 +103,8 @@ void main() {
     await t.scrollUntilVisible(key('home-section-tile-$first'), 200, scrollable: list);
     expect(find.descendant(of: key('home-favourites'), matching: find.byType(GridView)), findsNothing);
     expect(key('home-section-$first'), findsNothing, reason: 'ряда игр раздела под «Авророй» нет');
+    await t.ensureVisible(key('home-section-tile-$first'));
+    await t.pump();
     await t.tap(key('home-section-tile-$first'));
     expect(tabs, ['/games?filter=section:$first']);
   });
@@ -120,6 +122,10 @@ void main() {
     for (var i = 1; i < shown.length; i++) {
       expect(y('home-${shown[i - 1]}') < y('home-${shown[i]}'), isTrue, reason: '${shown[i - 1]} выше ${shown[i]}');
     }
+    // «Сегодня» компактно: игры одной строкой, нажатие — статистика, «+N ⭐» — магазин, как раньше.
+    expect(key('home-today-line'), findsOneWidget);
+    await t.tap(key('home-today'));
+    expect(opened.removeLast(), '/statistics');
     // Плитки: до 4 в ряд, низкие — не прежние большие карточки.
     final reco = t.getSize(key('home-card-schulte_table'));
     expect(reco.width, lessThan(120));
