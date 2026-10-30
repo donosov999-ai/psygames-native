@@ -155,6 +155,12 @@ void main() {
     expect(js.join(), contains('goalOutcome'));
   });
 
+  testWidgets('«Аврора»: планшет 768 pt — плитки остаются маленькими (колонок больше, а не шире)', (t) async {
+    await mount(t, template: UiTemplate.aurora, size: const Size(1536, 6000));
+    expect(t.getSize(key('home-card-schulte_table')).width, lessThan(130));
+    expect(t.takeException(), isNull);
+  });
+
   testWidgets('Classic: новой шапки нет, классическая на месте', (t) async {
     await mount(t, template: UiTemplate.classic);
     expect(key('aurora-home-top'), findsNothing);
