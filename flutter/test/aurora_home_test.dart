@@ -161,6 +161,18 @@ void main() {
     expect(t.takeException(), isNull);
   });
 
+  testWidgets('«Аврора»: плитки нажимаются и из чтеца экрана (действие нажатия в подписи)', (t) async {
+    final handle = t.ensureSemantics();
+    await mount(t, template: UiTemplate.aurora, size: const Size(780, 6000));
+    for (final id in ['schulte_table', 'warmup', 'relaxation', 'challenge']) {
+      expect(t.getSemantics(key('home-card-$id')), isSemantics(isButton: true, hasTapAction: true), reason: id);
+    }
+    final fav = (model['blocks'] as List).cast<Map>().firstWhere((b) => b['kind'] == 'favourites');
+    final first = ((fav['sections'] as List).first as Map)['category'] as String;
+    expect(t.getSemantics(key('home-section-tile-$first')), isSemantics(isButton: true, hasTapAction: true));
+    handle.dispose();
+  });
+
   testWidgets('Classic: новой шапки нет, классическая на месте', (t) async {
     await mount(t, template: UiTemplate.classic);
     expect(key('aurora-home-top'), findsNothing);
