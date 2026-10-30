@@ -66,8 +66,9 @@ void main() {
     expect(pause.top, greaterThanOrEqualTo(field.bottom), reason: 'пауза — под полем');
     expect(pause.top, greaterThanOrEqualTo(toolbar.bottom), reason: 'клавиатура игры — над нижним рядом');
     expect(pause.left, lessThan(t.getRect(find.text('ПРАВИЛА · ОТМЕНИТЬ')).left), reason: 'пауза слева от значков');
-    final yellow = t.widget<Material>(key('game-pause'));
-    expect(yellow.color, GameShell.pauseYellow);
+    // Пауза — жёлтый глянец (стандарт 30.10, стекло и золото): градиент от жёлтого паузы.
+    final yellow = t.widget<Container>(key('game-pause')).decoration! as BoxDecoration;
+    expect((yellow.gradient! as LinearGradient).colors.last, GameShell.pauseYellow);
 
     final title = t.widget<Text>(key('game-title'));
     expect(title.style?.color, auroraToken('text', dark: true), reason: 'рамка — в «Авроре»');
@@ -85,13 +86,16 @@ void main() {
     await t.tap(key('game-pause'));
     await t.pumpAndSettle();
     expect(key('pause-card'), findsOneWidget);
-    expect(find.descendant(of: key('pause-card'), matching: find.text(L.t('teachPause'))), findsOneWidget);
+    // Шапка паузы одной строкой «<игра> · Пауза» (реф pause-grouped-levels-v4).
+    expect(find.descendant(of: key('pause-card'), matching: find.text('Судоку · ${L.t('teachPause')}', findRichText: true)), findsOneWidget);
     expect(find.descendant(of: key('pause-card'), matching: find.text('24')), findsOneWidget);
     expect(find.text('Заново'), findsOneWidget);
     expect(key('pause-home'), findsOneWidget);
     expect(t.getRect(key('pause-leave')).top, t.getRect(key('pause-home')).top, reason: 'два ухода — рядом');
     // Решение Дениса 29.10: главная кнопка паузы — оранжевая по листу 15, не акцент профиля.
-    expect(t.widget<Material>(key('pause-resume')).color, GameShell.auroraAction);
+    // Стандарт 30.10: «Продолжить» — жёлто-золотой градиент (реф pause-grouped-levels-v4).
+    final resume = t.widget<Container>(key('pause-resume')).decoration! as BoxDecoration;
+    expect((resume.gradient! as LinearGradient).colors.last, GameShell.pauseYellow);
 
     await t.tap(key('pause-resume'));
     await t.pumpAndSettle();

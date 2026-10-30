@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'aurora_glass.dart';
 import 'design_template.dart';
 
 /// Служебное действие игры — значком в ряду ПОД полем.
@@ -104,11 +105,13 @@ extension on AuxAction {
         behavior: HitTestBehavior.opaque,
         onTap: onPressed,
         child: Column(mainAxisSize: MainAxisSize.min, children: [
-        Material(
-          color: active ? accent : auroraToken('raised', dark: dark),
-          shape: CircleBorder(side: BorderSide(color: active ? accent : auroraToken('border', dark: dark)!)),
-          clipBehavior: Clip.antiAlias,
+        // Стеклянный круг в золотом ободке (стандарт игрового экрана, `AuroraGlass`).
+        Container(
+          decoration: AuroraGlass.ring(dark, active: active ? accent : null),
+          child: Material(
+          type: MaterialType.transparency,
           child: InkWell(
+            customBorder: const CircleBorder(),
             onTap: onPressed,
             child: SizedBox(
               width: 52,
@@ -127,6 +130,7 @@ extension on AuxAction {
                       ),
               ),
             ),
+          ),
           ),
         ),
         const SizedBox(height: 4),
