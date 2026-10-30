@@ -1,5 +1,6 @@
 import 'app_look.dart';
 import 'aurora_scope.dart';
+import 'level_ladder.dart';
 import 'settings_screen.dart';
 import 'dart:async';
 import 'dart:convert';
@@ -1420,6 +1421,7 @@ class _HybridAppState extends State<HybridApp> {
     GamePreset.set(query);
     // Адрес нужен каркасу, чтобы показать правило ИМЕННО этой игры.
     GameRules.currentRoute = route;
+    LevelLadder.newScreen(); // пауза «проще/сложнее» берёт лестницу ЭТОЙ игры (654b5a60)
     // Снимок шапки прошлой игры не должен уехать в отзыв этой: экран без каркаса его не перепишет.
     GameShell.feedbackState = null;
     // 🔴 ШАГ ЗАРЯДКИ — В РАМКЕ С ПОЛОСКОЙ «N/M · ⏭» (задача 63bccf96): веб рисует её в

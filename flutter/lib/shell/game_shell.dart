@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'aurora_scope.dart';
 import 'design_template.dart';
 import 'game_clock.dart';
@@ -8,6 +10,7 @@ import 'game_rules.dart';
 import 'l10n.dart';
 import 'level_rules.dart';
 import 'package:flutter/material.dart';
+import 'level_ladder.dart';
 import 'restart_scope.dart';
 import 'game_preset.dart';
 import 'warmup_owner.dart';
@@ -348,6 +351,31 @@ class GameShell extends StatelessWidget {
       a.label == 'Начать заново' ||
       a.label == 'Новая партия';
 
+  /*
+   * 🔴 «УРОВЕНЬ ПРОЩЕ / СЛОЖНЕЕ» — В ПАУЗЕ КАЖДОЙ ИГРЫ С ЛЕСТНИЦЕЙ (задача 654b5a60, как веб с 10.09).
+   * «Проще» — с уровня > 1; «сложнее» — пока уровень ниже достигнутого (выше достигнутого не прыгаем,
+   * его зарабатывают). Выбор сохраняется ([LevelLadder.pick]) и партия раздаётся заново тем же
+   * путём, что «Заново» ([RestartScope]). В зарядке и пресете уровень задан снаружи — пунктов нет.
+   */
+  static List<PauseAction> _levelActions(VoidCallback? restart) {
+    final ladder = LevelLadder.current;
+    if (restart == null || ladder == null || GamePreset.isPreset || GamePreset.isWarmup) return const [];
+    return [
+      if (ladder.level > 1)
+        PauseAction(
+          label: L.t('pauseEasier'),
+          icon: Icons.south_rounded,
+          onPressed: () => ladder.pick(ladder.level - 1).then((_) => restart()),
+        ),
+      if (ladder.level < ladder.best)
+        PauseAction(
+          label: L.t('pauseHarder'),
+          icon: Icons.north_rounded,
+          onPressed: () => ladder.pick(math.min(ladder.best, ladder.level + 1)).then((_) => restart()),
+        ),
+    ];
+  }
+
   void _pause(BuildContext context) {
     // 🔴 «ЗАНОВО» У КАЖДОЙ ИГРЫ (задача 1e21b974): нет своего — каркас добавляет пункт,
     // который пересоздаёт экран через RestartScope (проигрыш не пишется). Замер 01.10:
@@ -358,6 +386,7 @@ class GameShell extends StatelessWidget {
       if (restart != null && (ownedWarmup || !pauseActions.any(_isRestart)))
         PauseAction(label: L.t('restart'), icon: Icons.refresh, onPressed: restart),
       ...pauseActions.where((a) => !(restart != null && ownedWarmup && _isRestart(a))),
+      ..._levelActions(restart),
     ];
     Navigator.of(context).push(MaterialPageRoute<void>(
       // Пауза — страница ПОВЕРХ игры: пока она видна, часы и таймеры партии стоят
