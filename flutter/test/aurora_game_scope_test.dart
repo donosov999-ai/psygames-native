@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/shell/app_theme.dart';
 import 'package:psygames_flutter/shell/aurora_scope.dart';
 import 'package:psygames_flutter/shell/design_template.dart';
+import 'package:psygames_flutter/shell/hybrid_app.dart';
 import 'package:psygames_flutter/shell/web_theme.dart';
 
 /// Игра без отметки готовности не должна перекраситься, когда человек выбрал «Аврору».
@@ -76,5 +77,11 @@ void main() {
       ),
     ));
     expect(seen.background == auroraToken('background', dark: true), isFalse);
+  });
+
+  test('каждый маршрут из auroraReadyRoutes — ключ нативной игры', () {
+    // Опечатка в ключе не падает, а молча оставляет игру классической — ловим здесь.
+    final missing = auroraReadyRoutes.where((r) => !HybridApp.native.containsKey(r)).toList();
+    expect(missing, isEmpty);
   });
 }

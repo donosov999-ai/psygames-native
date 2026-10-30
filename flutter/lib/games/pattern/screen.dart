@@ -264,6 +264,7 @@ class _PatternScreenState extends State<PatternScreen> {
               height: 56,
               child: FilledButton(
                 key: Key('ответ$o'),
+                style: _answerStyle(context),
                 onPressed: _phase == _Phase.playing ? () => _answer(o) : null,
                 child: Text(showNumber(o), style: const TextStyle(fontSize: 18)),
               ),
@@ -381,3 +382,16 @@ class _Field extends StatelessWidget {
 /// роль стоит напрямую.
 Color _auroraOr(BuildContext context, Color role, Color classic) =>
     Theme.of(context).extension<UiTemplateTheme>()?.template == UiTemplate.aurora ? role : classic;
+
+/// «Аврора» (лист 23, «Выбрать ответ»): вариант ответа — нейтральная плитка `cell` с цифрой `onCell`,
+/// а не заливка акцентом профиля. В Classic — `null`, прежний вид кнопки (правило 6).
+ButtonStyle? _answerStyle(BuildContext context) {
+  if (Theme.of(context).extension<UiTemplateTheme>()?.template != UiTemplate.aurora) return null;
+  final roles = GameColors.of(context);
+  return FilledButton.styleFrom(
+    backgroundColor: roles.cell,
+    foregroundColor: roles.onCell,
+    // В светлой «Авроре» клетка белая на белом — без обводки плитки не видно.
+    side: BorderSide(color: roles.boardLine),
+  );
+}

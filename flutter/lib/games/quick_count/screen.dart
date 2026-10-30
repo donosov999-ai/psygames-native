@@ -8,6 +8,8 @@ import '../../shell/boss_round.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/game_clock.dart';
 import '../../shell/l10n.dart';
+import '../../shell/design_template.dart';
+import '../../shell/game_colors.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/lesson.dart';
 import '../../shell/level_ladder.dart';
@@ -321,7 +323,7 @@ class _QuickCountScreenState extends State<QuickCountScreen> {
                     height: grid.size,
                     child: FilledButton(
                       key: Key('ответ$value'),
-                      style: FilledButton.styleFrom(padding: EdgeInsets.zero),
+                      style: _answerStyle(context),
                       onPressed: () => _answer(value),
                       child: Text('$value'),
                     ),
@@ -415,4 +417,17 @@ class _Field extends StatelessWidget {
       );
     });
   }
+}
+
+/// «Аврора» (лист 23, «Выбрать ответ»): вариант ответа — нейтральная плитка `cell` с цифрой `onCell`
+/// и обводкой `boardLine`, а не заливка акцентом профиля. В Classic — прежняя кнопка (правило 6).
+ButtonStyle _answerStyle(BuildContext context) {
+  final aurora = Theme.of(context).extension<UiTemplateTheme>()?.template == UiTemplate.aurora;
+  final roles = GameColors.of(context);
+  return FilledButton.styleFrom(
+    padding: EdgeInsets.zero,
+    backgroundColor: aurora ? roles.cell : null,
+    foregroundColor: aurora ? roles.onCell : null,
+    side: aurora ? BorderSide(color: roles.boardLine) : null,
+  );
 }

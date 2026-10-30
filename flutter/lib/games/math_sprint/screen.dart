@@ -8,6 +8,8 @@ import '../../shell/aux_action.dart';
 import '../../shell/boss_round.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/l10n.dart';
+import '../../shell/design_template.dart';
+import '../../shell/game_colors.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/lesson.dart';
 import '../../shell/level_ladder.dart';
@@ -283,7 +285,7 @@ class _MathSprintScreenState extends State<MathSprintScreen> {
                   height: pad.keyH,
                   child: FilledButton(
                     key: Key('клавиша$k'),
-                    style: FilledButton.styleFrom(padding: EdgeInsets.zero),
+                    style: _keyStyle(context),
                     onPressed: () => _press(k),
                     child: Text(k, style: const TextStyle(fontSize: 20)),
                   ),
@@ -355,4 +357,19 @@ class _Field extends StatelessWidget {
       ),
     );
   }
+}
+
+/// «Аврора» (листы 24/27): клавиша — нейтральная плитка `cell`, цифра — `onCell`; акцентом остаётся
+/// только главная кнопка. В Classic — `null`, то есть прежний цвет темы: Classic до ворот Г3/Г4 не
+/// меняется (`flutter/DESIGN_SYSTEM.md`, правило 6).
+ButtonStyle _keyStyle(BuildContext context) {
+  final aurora = Theme.of(context).extension<UiTemplateTheme>()?.template == UiTemplate.aurora;
+  final roles = GameColors.of(context);
+  return FilledButton.styleFrom(
+    padding: EdgeInsets.zero,
+    backgroundColor: aurora ? roles.cell : null,
+    foregroundColor: aurora ? roles.onCell : null,
+    // В светлой «Авроре» клетка белая на белом — без обводки клавиши не видно (снимок 29.10).
+    side: aurora ? BorderSide(color: roles.boardLine) : null,
+  );
 }
