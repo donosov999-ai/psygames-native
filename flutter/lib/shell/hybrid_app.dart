@@ -195,6 +195,18 @@ class HybridApp extends StatefulWidget {
         '/settings': (s) => SettingsScreen(state: s),
       };
 
+  /*
+   * 🔴 ЭКРАН ОБОЛОЧКИ ПО МОДЕЛИ СТРАНИЦЫ ОТКРЫВАЕТСЯ УВОДОМ СТРАНИЦЫ, А НЕ ПОВЕРХ НЕЁ.
+   *
+   * Выбор и итог зарядки и мост рисуют модель, которую считает страница НА ЭТОМ ЖЕ адресе
+   * (`warmupUi.ts`). Положенный поверх Главной, экран ждал её вечно: белый экран с кругом —
+   * «нажал Зарядку — приложение висит» (Денис 30.10; замер на эмуляторе: 2.56.44 и 2.56.45,
+   * Classic «Выбрать» и «Аврора» — плитка и «СТАРТ» шапки). Вкладка «Зарядка» шла через страницу
+   * (`_selectTab`) и работала: страница уходит на адрес, присылает `op:'route'`, перехват кладёт
+   * экран и страница шлёт модель. Настройки модели страницы не ждут — их кладём сразу.
+   */
+  static bool opensThroughPage(String route) => shell.containsKey(route) && route != '/settings';
+
   /// Игра перенесена → строится нативно. Ключ — путь маршрута веб-сборки.
   static Map<String, Widget Function(SharedState)> get native => {
         /*
@@ -903,7 +915,7 @@ class _HybridAppState extends State<HybridApp> {
   /// (`router.push`), чтобы «назад» из неё вернул на вкладку «Игры».
   Future<void> _openFromCatalog(String route) async {
     final native = HybridApp.routeOf('${widget.server.origin}$route');
-    if (native != null) {
+    if (native != null && !HybridApp.opensThroughPage(native)) {
       await _openNative(native, query: HybridApp.queryOf(route));
       return;
     }
