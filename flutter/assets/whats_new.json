@@ -1,6 +1,20 @@
 {
  "entries": [
   {
+   "version": "2.56.44",
+   "date": "2026-10-30",
+   "en": [
+    "“Aurora” look: Visual Search and Counting games are redesigned",
+    "Feedback: under each of your messages you can see whether it was received, is in progress or fixed",
+    "Game sets: switching between tiles of a set no longer piles up screens — one “back” returns to the section"
+   ],
+   "ru": [
+    "Оформление «Аврора»: игры «Поиска глазами» и «Счёта» перерисованы",
+    "Отзывы: под каждым своим сообщением видно — получено, в работе или исправлено",
+    "Наборы игр: переход между плашками набора больше не копит экраны — одно «назад» возвращает в развилку"
+   ]
+  },
+  {
    "version": "2.56.43",
    "date": "2026-10-29",
    "en": [
