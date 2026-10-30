@@ -193,6 +193,12 @@ void main() {
     expect(ys.length, 1);
     await t.tap(key('home-league'));
     expect(opened.removeLast(), '/leagues');
+    // Подпись «Достижения» не режется многоточием (FittedBox уменьшает).
+    final label = find.descendant(of: key('home-achievements'), matching: find.text('Достижения'));
+    expect(t.widget<Text>(label).overflow, isNot(TextOverflow.ellipsis));
+    final handle = t.ensureSemantics();
+    expect(t.getSemantics(key('home-friends')), isSemantics(isButton: true, hasTapAction: true, label: 'Друзья'));
+    handle.dispose();
     // «Все игры ›» у «Рекомендуем» — вкладка «Игры».
     await t.tap(key('home-reco-all'));
     expect(tabs.removeLast(), '/games');

@@ -246,9 +246,13 @@ class AuroraHomeTop extends StatelessWidget {
     final secondary = auroraToken('textSecondary', dark: dark)!;
     final surface = auroraToken('surface', dark: dark)!;
     final border = auroraToken('border', dark: dark)!;
+    // Подпись целиком и нажатие — в самой подписи: без `excludeSemantics` TalkBack читал плитку дважды
+    // («Стрик: 0, 🔥, 0, Стрик» — дамп uiautomator 2.56.47).
     return Semantics(
       button: true,
       label: semantic,
+      onTap: onTap,
+      excludeSemantics: true,
       child: Material(
         color: surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14), side: BorderSide(color: border)),
@@ -274,11 +278,11 @@ class AuroraHomeTop extends StatelessWidget {
                   ],
                 ]),
                 const SizedBox(height: 4),
-                Text(label,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 11, color: secondary)),
+                // Уменьшается, а не режется: «Достижения» в плитке 66 pt была «Достиже…» (2.56.47).
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(label, maxLines: 1, textAlign: TextAlign.center, style: TextStyle(fontSize: 11, color: secondary)),
+                ),
               ]),
             ),
           ),
