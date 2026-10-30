@@ -3,6 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/shell/app_theme.dart';
 import 'package:psygames_flutter/shell/aurora_scope.dart';
 import 'package:psygames_flutter/shell/design_template.dart';
+import 'package:psygames_flutter/shell/game_colors.dart';
+import 'package:psygames_flutter/shell/game_rules.dart';
 import 'package:psygames_flutter/shell/game_shell.dart';
 import 'package:psygames_flutter/shell/l10n.dart';
 
@@ -65,11 +67,12 @@ void main() {
     expect(pause.top, greaterThanOrEqualTo(field.bottom), reason: 'пауза — под полем');
     expect(pause.top, greaterThanOrEqualTo(toolbar.bottom), reason: 'клавиатура игры — над нижним рядом');
     expect(pause.left, lessThan(t.getRect(find.text('ПРАВИЛА · ОТМЕНИТЬ')).left), reason: 'пауза слева от значков');
-    final yellow = t.widget<Material>(key('game-pause'));
-    expect(yellow.color, GameShell.pauseYellow);
+    // Пауза — жёлтый глянец (стандарт 30.10, стекло и золото): градиент от жёлтого паузы.
+    final yellow = t.widget<Container>(key('game-pause')).decoration! as BoxDecoration;
+    expect((yellow.gradient! as LinearGradient).colors, [ChromePalette.dark.primaryTop, ChromePalette.dark.primaryBottom]);
 
     final title = t.widget<Text>(key('game-title'));
-    expect(title.style?.color, auroraToken('text', dark: true), reason: 'рамка — в «Авроре»');
+    expect(title.style?.color, ChromePalette.dark.text, reason: 'рамка — по палитре рефа');
     // У классической темы метки шаблона нет вовсе (classicShellTheme) — это и есть Classic.
     expect(fieldTemplate, isNot(UiTemplate.aurora), reason: 'поле неготовой игры — классическое');
 
@@ -84,13 +87,16 @@ void main() {
     await t.tap(key('game-pause'));
     await t.pumpAndSettle();
     expect(key('pause-card'), findsOneWidget);
-    expect(find.descendant(of: key('pause-card'), matching: find.text(L.t('teachPause'))), findsOneWidget);
+    // Шапка паузы одной строкой «<игра> · Пауза» (реф pause-grouped-levels-v4).
+    expect(find.descendant(of: key('pause-card'), matching: find.text('Судоку · ${L.t('teachPause')}', findRichText: true)), findsOneWidget);
     expect(find.descendant(of: key('pause-card'), matching: find.text('24')), findsOneWidget);
     expect(find.text('Заново'), findsOneWidget);
     expect(key('pause-home'), findsOneWidget);
     expect(t.getRect(key('pause-leave')).top, t.getRect(key('pause-home')).top, reason: 'два ухода — рядом');
     // Решение Дениса 29.10: главная кнопка паузы — оранжевая по листу 15, не акцент профиля.
-    expect(t.widget<Material>(key('pause-resume')).color, GameShell.auroraAction);
+    // Стандарт 30.10: «Продолжить» — жёлто-золотой градиент (реф pause-grouped-levels-v4).
+    final resume = t.widget<Container>(key('pause-resume')).decoration! as BoxDecoration;
+    expect((resume.gradient! as LinearGradient).colors, [ChromePalette.dark.primaryTop, ChromePalette.dark.primaryBottom]);
 
     await t.tap(key('pause-resume'));
     await t.pumpAndSettle();
@@ -117,5 +123,83 @@ void main() {
     await t.tap(key('game-pause'));
     await t.pumpAndSettle();
     expect(t.takeException(), isNull);
+  });
+
+  testWidgets('Стандарт 30.10: «Обучение и справка» одной кнопкой, отзыв — жук, пауза «Заново | Продолжить», правила свёрнуты', (t) async {
+    var lesson = 0, rules = 0, feedback = 0;
+    GameExit.feedback = () => feedback++;
+    addTearDown(() => GameExit.feedback = null);
+    // Правило паузы каркас берёт по адресу игры (`GameRules`), как в приложении.
+    await t.runAsync(GameRules.load);
+    GameRules.currentRoute = '/games/schulte';
+    addTearDown(() => GameRules.currentRoute = null);
+    expect(GameRules.fullKeyFor('/games/schulte'), isNotNull, reason: 'у Шульте есть правило');
+    t.view.physicalSize = const Size(780, 1688);
+    t.view.devicePixelRatio = 2;
+    addTearDown(t.view.reset);
+    await t.pumpWidget(MaterialApp(
+      theme: applyUiTemplate(classicShellTheme(Brightness.dark), UiTemplate.aurora),
+      home: AuroraGameScope(
+        route: '/games/probe',
+        child: GameShell(
+          title: 'Судоку',
+          onLesson: () => lesson++,
+          onRules: () => rules++,
+          field: (_, _) => const SizedBox.expand(),
+          pauseActions: [
+            PauseAction(label: 'Заново', icon: Icons.refresh, onPressed: () {}),
+            PauseAction(label: 'Уровни', icon: Icons.stairs_outlined, onPressed: () {}),
+          ],
+        ),
+      ),
+    ));
+    await t.pump();
+    // Шапка: одна кнопка вместо двух значков; пункты — только в раскрытом меню.
+    expect(key('game-help-menu'), findsOneWidget);
+    expect(key('game-lesson'), findsNothing);
+    await t.tap(key('game-help-menu'));
+    await t.pumpAndSettle();
+    expect(key('game-lesson'), findsOneWidget);
+    expect(key('game-rules'), findsOneWidget);
+    expect(lesson, 0, reason: 'открытие меню учебной попытку не делает');
+    await t.tap(key('game-lesson'));
+    await t.pumpAndSettle();
+    expect(lesson, 1);
+    await t.tap(key('game-help-menu'));
+    await t.pumpAndSettle();
+    await t.tap(key('game-rules'));
+    await t.pumpAndSettle();
+    expect(rules, 1);
+    // Отзыв — значком жука.
+    expect(find.descendant(of: key('game-feedback'), matching: find.byIcon(Icons.bug_report_outlined)), findsOneWidget);
+    // Пауза: «Заново» слева от «Продолжить» в одном ряду; прочие пункты — строками ниже.
+    await t.tap(key('game-pause'));
+    await t.pumpAndSettle();
+    final restart = t.getRect(key('pause-restart'));
+    final resume = t.getRect(key('pause-resume'));
+    expect(restart.right, lessThan(resume.left), reason: '«Заново» слева');
+    expect(restart.top, resume.top, reason: 'одним рядом');
+    expect(t.getRect(find.text('Уровни')).top, greaterThan(resume.bottom));
+    // «Правила» свёрнуты, раскрываются нажатием.
+    expect(key('pause-rules'), findsNothing);
+    await t.tap(key('pause-rules-toggle'));
+    await t.pump();
+    expect(key('pause-rules'), findsOneWidget);
+  });
+
+  testWidgets('Стандарт 30.10: одно из двух (только правила) — один значок без меню', (t) async {
+    t.view.physicalSize = const Size(780, 1688);
+    t.view.devicePixelRatio = 2;
+    addTearDown(t.view.reset);
+    await t.pumpWidget(MaterialApp(
+      theme: applyUiTemplate(classicShellTheme(Brightness.dark), UiTemplate.aurora),
+      home: AuroraGameScope(
+        route: '/games/probe',
+        child: GameShell(title: 'Судоку', onRules: () {}, field: (_, _) => const SizedBox.expand()),
+      ),
+    ));
+    await t.pump();
+    expect(key('game-help-menu'), findsNothing);
+    expect(find.byIcon(Icons.help_outline), findsOneWidget);
   });
 }

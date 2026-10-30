@@ -1,6 +1,18 @@
 {
  "entries": [
   {
+   "version": "2.56.49",
+   "date": "2026-10-30",
+   "en": [
+    "“Aurora” look: one standard game screen for every game — glass header and bottom bar with round buttons, “Teacher and rules” under one button",
+    "“Aurora” look: new pause — “Start over” and “Continue” side by side, rules fold out on tap"
+   ],
+   "ru": [
+    "Оформление «Аврора»: единый игровой экран для всех игр — стеклянные шапка и нижняя панель с круглыми кнопками, «Разбор и правила» под одной кнопкой",
+    "Оформление «Аврора»: новая пауза — «Начать заново» и «Продолжить» рядом, правила раскрываются по нажатию"
+   ]
+  },
+  {
    "version": "2.56.48",
    "date": "2026-10-30",
    "en": [

@@ -397,8 +397,12 @@ class _Field extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    // Поле уменьшается целиком, если рамка игры заняла больше места (стандарт игрового экрана
+    // 30.10, шапка и тулбар по рефу), — а не вылезает за край: размеры считаются от экрана.
     return Center(
-      child: Column(
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           // Легенда ВИДНА всё время: прятать её — мерить память, а не скорость.
@@ -458,12 +462,17 @@ class _Field extends StatelessWidget {
           ),
           if (!playing) ...[
             const SizedBox(height: 8),
-            Text(
-              L.t('sdmtDesc'),
-              style: Theme.of(context).textTheme.bodySmall,
+            SizedBox(
+              width: layout.fieldW,
+              child: Text(
+                L.t('sdmtDesc'),
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
             ),
           ],
         ],
+      ),
       ),
     );
   }

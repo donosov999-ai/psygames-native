@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import 'aurora_glass.dart';
 import 'design_template.dart';
+import 'game_colors.dart';
 
 /// Служебное действие игры — значком в ряду ПОД полем.
 ///
@@ -79,62 +81,68 @@ bool _aurora(BuildContext context) =>
 
 extension on AuxAction {
   /*
-   * «Аврора», лист 32: служебное действие — плитка со значком и подписью (та же подпись,
-   * что у чтеца экрана и в меню паузы). Включённый режим — залитая плитка, число — вместо
-   * значка, как в Classic. Высота 64, ширина по подписи в пределах 56–88.
+   * «Аврора», реф Codex 30.10 (sudoku-even-toolbar-v4): действие игры — стеклянный шар в
+   * золотом кольце со значком, подпись под ним; число — золотым значком-счётчиком на шаре;
+   * включённый режим — залитый шар. Цвета и размеры — общие для рамки (`aurora_glass.dart`).
    */
   Widget _auroraTile(BuildContext context) {
     final theme = Theme.of(context);
     final dark = theme.brightness == Brightness.dark;
+    final p = ChromePalette.of(dark);
+    final m = ChromeMetrics.of(context);
     final disabled = onPressed == null;
-    final text = auroraToken('text', dark: dark)!;
-    final accent = tint ?? theme.colorScheme.primary;
-    final fg = disabled
-        ? text.withValues(alpha: 0.35)
-        : (active ? theme.colorScheme.onPrimary : (tint ?? text));
+    final fg = disabled ? p.text.withValues(alpha: 0.35) : (active ? p.onPrimary : (tint ?? p.text));
+    final icon = Icon(this.icon, size: m.barCircle * 0.46, color: fg);
     return Semantics(
       button: true,
       enabled: !disabled,
       label: label,
       excludeSemantics: true,
-      child: Material(
-        color: active ? accent : auroraToken('raised', dark: dark),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(14),
-          side: BorderSide(color: active ? accent : auroraToken('border', dark: dark)!),
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTap: onPressed,
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(minWidth: 56, maxWidth: 88, minHeight: 64),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-              child: Column(mainAxisSize: MainAxisSize.min, mainAxisAlignment: MainAxisAlignment.center, children: [
-                count == null
-                    ? Icon(icon, size: 22, color: fg)
-                    : Text('$count', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: fg)),
-                const SizedBox(height: 4),
-                // Подпись целиком, как на листе: на узкой плитке она ужимается, а не обрывается
-                // многоточием («Отмен…», «Подска…» — замер на пилоте #416, 29.10).
-                FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(label,
-                      maxLines: 1,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 11, height: 1.1, color: fg)),
+      onTap: onPressed,
+      // Нажимается вся колонка — и шар, и подпись под ним (как вкладки внизу).
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onPressed,
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          Container(
+            decoration: AuroraGlass.ring(dark, active: active ? (tint ?? p.primaryBottom) : null),
+            child: Material(
+              type: MaterialType.transparency,
+              child: InkWell(
+                customBorder: const CircleBorder(),
+                onTap: onPressed,
+                child: SizedBox(
+                  width: m.barCircle,
+                  height: m.barCircle,
+                  child: Center(
+                    child: count == null
+                        ? icon
+                        : Badge(
+                            key: const Key('aux-count'),
+                            label: Text('$count', style: TextStyle(fontWeight: FontWeight.w900, color: p.onPrimary)),
+                            backgroundColor: p.primaryBottom,
+                            offset: const Offset(10, -10),
+                            child: icon,
+                          ),
+                  ),
                 ),
-              ]),
+              ),
             ),
           ),
-        ),
+          SizedBox(height: m.compact ? 3 : 6),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(label,
+                maxLines: 1,
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: m.barLabel, height: 1.1, color: disabled ? fg : p.text)),
+          ),
+        ]),
       ),
     );
   }
 }
 
-/// Ряд служебных значков под полем. Переносится строкой только тогда, когда
-/// значки не встают в ширину: два ряда над полем — то, от чего ушли 17.09.2026.
 class AuxBar extends StatelessWidget {
   const AuxBar({super.key, required this.children});
 
@@ -142,13 +150,13 @@ class AuxBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => _aurora(context)
-      // «Аврора»: одной строкой плиток, каждая сжимается по месту рядом с паузой.
+      // «Аврора»: равные колонки на всю ширину справа от паузы (реф Codex 30.10) — без пустого места справа.
       ? Row(
           key: const Key('aux-bar-aurora'),
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             for (final c in children)
-              Flexible(child: Padding(padding: const EdgeInsets.symmetric(horizontal: 3), child: c)),
+              Expanded(child: Padding(padding: const EdgeInsets.symmetric(horizontal: 2), child: Center(child: c))),
           ],
         )
       : Padding(
