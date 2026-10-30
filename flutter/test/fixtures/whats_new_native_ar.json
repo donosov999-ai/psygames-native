@@ -7,6 +7,14 @@
  "check": "التحقق من التحديثات · v0.0.0",
  "entries": [
   {
+   "version": "v2.56.47",
+   "date": "2026-10-30",
+   "items": [
+    "“Aurora” look: the profile switch moved up next to the title; streak, coins, achievements, friends and leagues are now one row of quick-access tiles",
+    "“Aurora” look: “All games ›” next to the recommendations; the active bottom tab is underlined"
+   ]
+  },
+  {
    "version": "v2.56.46",
    "date": "2026-10-30",
    "items": [
