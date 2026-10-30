@@ -16,6 +16,18 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.56.46',
+    date: '2026-10-30',
+    en: [
+      'Workout from the home screen no longer hangs on a white screen — the workout choice opens right away',
+      '“Aurora” look: recommendation tiles show the game’s own colour icon',
+    ],
+    ru: [
+      'Зарядка с главной больше не зависает на белом экране — выбор зарядки открывается сразу',
+      'Оформление «Аврора»: на плитках рекомендаций — цветной значок самой игры',
+    ],
+  },
+  {
     version: '2.56.45',
     date: '2026-10-30',
     en: [
