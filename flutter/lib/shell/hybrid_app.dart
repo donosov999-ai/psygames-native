@@ -1551,6 +1551,9 @@ class _HybridAppState extends State<HybridApp> {
        * развилку другим видом. Шаг «назад» отсюда не делаем — его сделает сам выбор, когда
        * человек закроет и его.
        */
+      // Плашка набора и смена режима — ЗАМЕНА экрана (a0fd8105): закрыли новый — возвращаемся туда, откуда
+      // открыли прежний (развилка снова откроется в своём кадре), а не в прежнюю игру.
+      if (result.replace) return cameBack;
       if (mounted && cameBack) return _openNative(route, query: query);
       return false;
     }
