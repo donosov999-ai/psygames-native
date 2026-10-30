@@ -668,7 +668,7 @@ class _DeepScreenState extends State<DeepScreen> {
           active: _pencil,
           onPressed: _won ? null : () => setState(() => _pencil = !_pencil),
         ),
-        AuxAction(icon: Icons.refresh, label: L.t('sdkNewGame'), onPressed: _chooseAndStart),
+        AuxAction(inPause: true, icon: Icons.refresh, label: L.t('sdkNewGame'), onPressed: _chooseAndStart),
       ]),
       toolbar: _Toolbar(won: _won, onDigit: _place, onErase: _erase, onNext: _chooseAndStart),
       pauseActions: [

@@ -166,7 +166,7 @@ class _OneLineScreenState extends State<OneLineScreen> {
             _won = game.isWon;
           }),
         ),
-        AuxAction(icon: Icons.refresh, label: L.t('restart'), onPressed: _restart),
+        AuxAction(inPause: true, icon: Icons.refresh, label: L.t('restart'), onPressed: _restart),
         AuxAction(
           icon: Icons.lightbulb_outline,
           label: L.t('puzzleShowSolution'),

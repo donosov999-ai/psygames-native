@@ -218,7 +218,7 @@ class _PatternScreenState extends State<PatternScreen> {
                   })
               : null,
         ),
-        AuxAction(icon: Icons.refresh, label: L.t('restart'), onPressed: () => setState(_reset)),
+        AuxAction(inPause: true, icon: Icons.refresh, label: L.t('restart'), onPressed: () => setState(_reset)),
       ]),
       toolbar: _toolbar(context),
       pauseActions: [

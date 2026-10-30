@@ -372,7 +372,7 @@ class _MahjongScreenState extends State<MahjongScreen> {
           label: '${L.t('btn_undo')} (${undosPerLevel - _undosUsed})',
           onPressed: !_won && !_timedOut && _history.isNotEmpty && _undosUsed < undosPerLevel ? _undo : null,
         ),
-        AuxAction(icon: Icons.refresh, label: L.t('restart'), onPressed: () => setState(_deal)),
+        AuxAction(inPause: true, icon: Icons.refresh, label: L.t('restart'), onPressed: () => setState(_deal)),
       ]),
       toolbar: _won || _timedOut || _openPairs == 0
           ? Padding(
