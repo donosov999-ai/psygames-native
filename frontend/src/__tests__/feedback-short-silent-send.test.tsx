@@ -35,7 +35,8 @@ jest.mock('@/src/services/voiceNote', () => ({
   staleWebViewMajor: () => null,
   SILENCE_PEAK: 0.02,
 }));
-jest.mock('@/src/services/feedbackDialog', () => ({ getMyDialog: () => Promise.resolve([]) }));
+jest.mock('@/src/services/feedbackDialog', () => ({
+  dialogStatusLabel: jest.requireActual('@/src/services/feedbackDialog').dialogStatusLabel, getMyDialog: () => Promise.resolve([]) }));
 jest.mock('expo-router', () => ({ usePathname: () => '/games/schulte', useGlobalSearchParams: () => mockParams }));
 jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),

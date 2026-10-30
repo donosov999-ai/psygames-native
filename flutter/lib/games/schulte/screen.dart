@@ -8,6 +8,8 @@ import '../../shell/aux_action.dart';
 import '../../shell/boss_round.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/l10n.dart';
+import '../../shell/design_template.dart';
+import '../../shell/game_colors.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/lesson.dart';
 import '../../shell/level_ladder.dart';
@@ -378,28 +380,28 @@ class _Field extends StatelessWidget {
     }
 
     final target = ruleRevealed ? '${game.target}' : '?';
+    // «Аврора» (лист 11): цель — карточкой ПОД полем, число выделено; Classic — строка над полем.
+    final aurora = Theme.of(context).extension<UiTemplateTheme>()?.template == UiTemplate.aurora;
+    final goal = phase == _Phase.done
+        ? Text(won ? L.t('storyDone') : L.t('schulteCollected'), key: const Key('цель'), style: text.titleMedium)
+        : aurora
+            ? _auroraGoal(context, target)
+            : Text(L.f('schulteFind', {'x': target}), key: const Key('цель'), style: text.titleMedium);
     return Column(
       children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 4),
-          child: Text(
-            phase == _Phase.done
-                ? (won ? L.t('storyDone') : L.t('schulteCollected'))
-                : L.f('schulteFind', {'x': target}),
-            key: const Key('цель'),
-            style: text.titleMedium,
-          ),
-        ),
+        if (!aurora) Padding(padding: const EdgeInsets.symmetric(vertical: 4), child: goal),
         Expanded(
           child: LayoutBuilder(
             builder: (context, c) {
               // 🔴 Сторона берётся от МЕНЬШЕГО из высоты каркаса и ширины. Высота
               // здесь — та, что осталась под полем, а не высота окна.
-              final free = height - 34;   // строка цели над сеткой
+              final free = height - (aurora ? 76 : 34);   // строка цели над сеткой / карточка под ней
               final side = (free < c.maxWidth ? free : c.maxWidth) - 12;
               final n = game.size;
               final cell = side / n;
-              return Center(
+              // «Аврора»: сетка прижата к карточке цели под ней (лист 11), Classic — по центру.
+              return Align(
+                alignment: aurora ? Alignment.bottomCenter : Alignment.center,
                 child: SizedBox(
                   width: side,
                   height: side,
@@ -428,6 +430,7 @@ class _Field extends StatelessWidget {
             },
           ),
         ),
+        if (aurora) Padding(padding: const EdgeInsets.only(top: 8), child: goal),
       ],
     );
   }
@@ -489,4 +492,32 @@ class _Cell extends StatelessWidget {
       ),
     );
   }
+}
+
+/// «Аврора» (лист 11): карточка цели под полем — «Ищи: 12», число выделено `highlight`.
+/// Подпись берётся из словаря целиком и режется по `{x}`: в других языках другой порядок слов.
+Widget _auroraGoal(BuildContext context, String target) {
+  final roles = GameColors.of(context);
+  final style = Theme.of(context).textTheme.titleLarge?.copyWith(color: roles.onCell, fontWeight: FontWeight.w600);
+  final parts = L.t('schulteFind').split('{x}');
+  return Container(
+    height: 60,
+    width: double.infinity,
+    alignment: Alignment.center,
+    padding: const EdgeInsets.symmetric(horizontal: 16),
+    decoration: BoxDecoration(
+      color: roles.cellAlt,
+      borderRadius: BorderRadius.circular(16),
+      border: Border.all(color: roles.boardLine),
+    ),
+    child: Text.rich(
+      TextSpan(children: [
+        TextSpan(text: parts.first),
+        TextSpan(text: target, style: TextStyle(color: roles.highlight, fontWeight: FontWeight.w800, fontSize: 26)),
+        if (parts.length > 1) TextSpan(text: parts.sublist(1).join('{x}')),
+      ]),
+      key: const Key('цель'),
+      style: style,
+    ),
+  );
 }

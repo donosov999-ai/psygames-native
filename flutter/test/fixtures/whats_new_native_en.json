@@ -7,6 +7,15 @@
  "check": "Check for updates · v0.0.0",
  "entries": [
   {
+   "version": "v2.56.44",
+   "date": "2026-10-30",
+   "items": [
+    "“Aurora” look: Visual Search and Counting games are redesigned",
+    "Feedback: under each of your messages you can see whether it was received, is in progress or fixed",
+    "Game sets: switching between tiles of a set no longer piles up screens — one “back” returns to the section"
+   ]
+  },
+  {
    "version": "v2.56.43",
    "date": "2026-10-29",
    "items": [
