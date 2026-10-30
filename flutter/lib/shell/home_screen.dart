@@ -11,6 +11,7 @@ import 'catalog_kit.dart';
 import 'design_template.dart';
 import 'collection_model.dart' show hexOf;
 import 'feedback_fab.dart' show FabRules;
+import 'game_colors.dart';
 import 'home_inputs.dart';
 import 'home_model.dart';
 import 'l10n.dart';
@@ -424,7 +425,10 @@ class _HomeScreenState extends State<HomeScreen> {
       case 'today':
         return _Today(b: b, onOpen: widget.onOpen);
       case 'reco':
-        if (_isAurora(context)) return _AuroraMiniBlock(b: b, origin: widget.origin, onOpen: widget.onOpen, act: _act, ion: 'sparkles-outline', kit: _kit);
+        if (_isAurora(context)) {
+          return _AuroraMiniBlock(b: b, origin: widget.origin, onOpen: widget.onOpen, act: _act, ion: 'sparkles-outline', kit: _kit,
+              onAll: () => widget.onTab('/games'));
+        }
         return _HeroBlock(b: b, origin: widget.origin, onOpen: widget.onOpen, act: _act, ion: 'sparkles-outline', iconSize: 20, accent: null);
       case 'practices':
         if (_isAurora(context)) return _AuroraMiniBlock(b: b, origin: widget.origin, onOpen: widget.onOpen, act: _act, ion: 'leaf-outline', kit: _kit);
@@ -1848,13 +1852,16 @@ Widget _miniGrid(List<Widget> tiles) => LayoutBuilder(builder: (context, box) {
 
 /// «Рекомендуем» и «Практики дня» в «Авроре»: те же карточки модели, но маленькими плитками.
 class _AuroraMiniBlock extends StatelessWidget {
-  const _AuroraMiniBlock({required this.b, required this.origin, required this.onOpen, required this.act, required this.ion, this.kit});
+  const _AuroraMiniBlock({required this.b, required this.origin, required this.onOpen, required this.act, required this.ion, this.kit, this.onAll});
   final _M b;
   final String origin;
   final ValueChanged<String> onOpen;
   final void Function(String, [List<Object?>]) act;
   final String ion;
   final CatalogKit? kit;
+
+  /// «Все игры ›» в строке заголовка, как на рефе 30.10 — переход на вкладку «Игры»; null — без ссылки.
+  final VoidCallback? onAll;
 
   @override
   Widget build(BuildContext context) {
@@ -1874,6 +1881,25 @@ class _AuroraMiniBlock extends StatelessWidget {
             child: Text(_s(b['title']),
                 maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: text)),
           ),
+          if (onAll != null)
+            Semantics(
+              button: true,
+              child: InkWell(
+                key: ValueKey('home-${b['kind']}-all'),
+                onTap: onAll,
+                borderRadius: BorderRadius.circular(8),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(minHeight: 44),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    child: Row(mainAxisSize: MainAxisSize.min, children: [
+                      Text(L.t('allGames'), style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: GameColors.aurora(Theme.of(context).brightness).highlight)),
+                      Icon(Icons.chevron_right, size: 18, color: GameColors.aurora(Theme.of(context).brightness).highlight),
+                    ]),
+                  ),
+                ),
+              ),
+            ),
         ]),
         if (_s(b['hint']).isNotEmpty)
           Padding(

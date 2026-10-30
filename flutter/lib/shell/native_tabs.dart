@@ -104,7 +104,7 @@ class NativeTabBar extends StatelessWidget {
           color: auroraToken('background', dark: dark),
           border: Border(top: BorderSide(color: auroraToken('border', dark: dark)!, width: 0.5)),
         ),
-        child: _row(GameColors.aurora(theme.brightness).highlight, auroraToken('textSecondary', dark: dark)!),
+        child: _row(GameColors.aurora(theme.brightness).highlight, auroraToken('textSecondary', dark: dark)!, underline: true),
       );
     }
     final idle = WebTheme.of(context).textSecondary; // BottomTabBar.tsx: невыбранная — textSecondary
@@ -127,8 +127,10 @@ class NativeTabBar extends StatelessWidget {
   }
 
   /// Пять вкладок — одна разметка на Classic и «Аврору»: значок 22, подпись 11/600, вся высота
-  /// вкладки нажимается. [on] — цвет активной, [idle] — невыбранной.
-  Widget _row(Color on, Color idle) => Row(children: [
+  /// вкладки нажимается. [on] — цвет активной, [idle] — невыбранной. [underline] — полоса под
+  /// активной вкладкой, как на рефе главной 30.10 («Аврора»); у остальных место под неё пустое,
+  /// чтобы вкладки не прыгали.
+  Widget _row(Color on, Color idle, {bool underline = false}) => Row(children: [
             for (final t in NativeTabs.tabs)
               Expanded(
                 child: Semantics(
@@ -154,6 +156,18 @@ class NativeTabBar extends StatelessWidget {
                                 height: 1.2,
                                 fontWeight: FontWeight.w600,
                                 color: active == t.route ? on : idle)),
+                        if (underline) ...[
+                          const SizedBox(height: 3),
+                          Container(
+                            key: active == t.route ? const ValueKey('native-tab-underline') : null,
+                            width: 24,
+                            height: 3,
+                            decoration: BoxDecoration(
+                              color: active == t.route ? on : on.withValues(alpha: 0),
+                              borderRadius: BorderRadius.circular(2),
+                            ),
+                          ),
+                        ],
                       ]),
                     ),
                   ),

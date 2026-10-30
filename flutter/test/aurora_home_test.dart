@@ -177,6 +177,27 @@ void main() {
     handle.dispose();
   });
 
+  testWidgets('«Аврора»: шапка и «Быстрый доступ» как на рефе — профиль в шапке, друзья и лига в ряду плиток', (t) async {
+    await mount(t, template: UiTemplate.aurora, size: const Size(780, 6000));
+    final top = key('aurora-home-top');
+    final quick = key('aurora-home-stats');
+    expect(find.descendant(of: top, matching: key('home-profile-chip')), findsOneWidget);
+    expect(find.descendant(of: top, matching: key('home-pet')), findsOneWidget);
+    expect(find.descendant(of: top, matching: key('home-settings')), findsOneWidget);
+    for (final k in ['home-friends', 'home-league']) {
+      expect(find.descendant(of: top, matching: key(k)), findsNothing, reason: '$k — не в шапке');
+      expect(find.descendant(of: quick, matching: key(k)), findsOneWidget, reason: '$k — в «Быстром доступе»');
+    }
+    // Один ряд на телефоне: пять плиток на одной высоте.
+    final ys = {for (final k in ['home-streak', 'home-tokens', 'home-achievements', 'home-friends', 'home-league']) t.getTopLeft(key(k)).dy};
+    expect(ys.length, 1);
+    await t.tap(key('home-league'));
+    expect(opened.removeLast(), '/leagues');
+    // «Все игры ›» у «Рекомендуем» — вкладка «Игры».
+    await t.tap(key('home-reco-all'));
+    expect(tabs.removeLast(), '/games');
+  });
+
   testWidgets('Classic: новой шапки нет, классическая на месте', (t) async {
     await mount(t, template: UiTemplate.classic);
     expect(key('aurora-home-top'), findsNothing);
