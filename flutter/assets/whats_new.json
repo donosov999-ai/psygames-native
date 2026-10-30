@@ -1,6 +1,18 @@
 {
  "entries": [
   {
+   "version": "2.56.47",
+   "date": "2026-10-30",
+   "en": [
+    "“Aurora” look: the profile switch moved up next to the title; streak, coins, achievements, friends and leagues are now one row of quick-access tiles",
+    "“Aurora” look: “All games ›” next to the recommendations; the active bottom tab is underlined"
+   ],
+   "ru": [
+    "Оформление «Аврора»: смена профиля — рядом с названием; серия, баллы, достижения, друзья и лиги — один ряд «быстрого доступа»",
+    "Оформление «Аврора»: «Все игры ›» у рекомендаций; активная вкладка внизу подчёркнута"
+   ]
+  },
+  {
    "version": "2.56.46",
    "date": "2026-10-30",
    "en": [

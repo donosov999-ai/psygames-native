@@ -51,12 +51,17 @@ void main() {
       expect(iconColor(t, '/games'), GameColors.aurora(b).highlight);
       expect(iconColor(t, '/'), auroraToken('textSecondary', dark: dark));
       expect(find.byType(BackdropFilter), findsNothing, reason: 'в «Авроре» панель сплошная');
+      // Полоса под активной вкладкой — как на рефе главной 30.10; ровно одна, под активной.
+      final underline = find.byKey(const ValueKey('native-tab-underline'));
+      expect(underline, findsOneWidget);
+      expect(find.descendant(of: find.byKey(const ValueKey('native-tab-/games')), matching: underline), findsOneWidget);
     });
 
     testWidgets('${b.name}: Classic — прежнее стекло и акцент профиля', (t) async {
       await show(t, UiTemplate.classic, b);
       expect(find.byType(BackdropFilter), findsOneWidget);
       expect(iconColor(t, '/games'), accent);
+      expect(find.byKey(const ValueKey('native-tab-underline')), findsNothing, reason: 'Classic без полосы');
     });
 
     for (final width in const [320.0, 390.0]) {
