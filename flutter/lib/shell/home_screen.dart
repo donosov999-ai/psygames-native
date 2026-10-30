@@ -1822,12 +1822,13 @@ class _AllForks extends StatelessWidget {
 bool _isAurora(BuildContext context) =>
     Theme.of(context).extension<UiTemplateTheme>()?.template == UiTemplate.aurora;
 
-/// Сетка маленьких плиток — до 4 в ряд, как «Быстрый доступ» на рефе; при крупном шрифте и на
-/// узком экране колонок меньше, плитка не сжимается под подпись. Плитки ряда — одной высоты
-/// (по самой высокой): с причиной под названием и без неё ряд не «скачет».
+/// Сетка маленьких плиток — 4 в ряд на телефоне, как «Быстрый доступ» на рефе; при крупном шрифте
+/// и на узком экране колонок меньше, на планшете больше (до 6) — плитка остаётся маленькой, а не
+/// растягивается в карточку. Плитки ряда — одной высоты (по самой высокой): с причиной под
+/// названием и без неё ряд не «скачет».
 Widget _miniGrid(List<Widget> tiles) => LayoutBuilder(builder: (context, box) {
       final scale = MediaQuery.textScalerOf(context).scale(1).clamp(1.0, 2.0);
-      final cols = (box.maxWidth / (80 * (scale > 1.3 ? 1.4 : 1.0))).floor().clamp(2, 4);
+      final cols = (box.maxWidth / (80 * (scale > 1.3 ? 1.4 : 1.0))).floor().clamp(2, 6);
       const gap = 10.0;
       return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         for (var i = 0; i < tiles.length; i += cols)
