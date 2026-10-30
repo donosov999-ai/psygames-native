@@ -1908,14 +1908,18 @@ class _AuroraMiniTile extends StatelessWidget {
     final image = icon['image'];
     final play = _s(_map(c['cta'])['ion']) == 'play';
     final sub = _s(c['sub']);
+    void open() => c['action'] == 'challenge' ? act('challenge') : onOpen(_s(c['href']));
+    // `onTap` — в самой подписи: `excludeSemantics` срезает действие нажатия у детей, и без него
+    // TalkBack читал плитку, но двойным касанием не открывал (дамп uiautomator 30.10: clickable=false).
     return Semantics(
       button: true,
       label: _s(c['label']),
+      onTap: open,
       excludeSemantics: true,
       child: GestureDetector(
           key: ValueKey('home-card-${c['id']}'),
           behavior: HitTestBehavior.opaque,
-          onTap: () => c['action'] == 'challenge' ? act('challenge') : onOpen(_s(c['href'])),
+          onTap: open,
           child: Container(
             constraints: const BoxConstraints(minHeight: 104),
             padding: const EdgeInsets.fromLTRB(6, 10, 6, 8),
@@ -1987,6 +1991,7 @@ class _AuroraSectionMini extends StatelessWidget {
     return Semantics(
       button: true,
       label: count == null ? title : '$title, $count',
+      onTap: onTap,
       excludeSemantics: true,
       child: Material(
         color: auroraToken('surface', dark: dark),
