@@ -7,6 +7,14 @@
  "check": "Check for updates · v0.0.0",
  "entries": [
   {
+   "version": "v2.56.50",
+   "date": "2026-10-30",
+   "items": [
+    "“Aurora” look: difficulty choice in the pause is one row of three tiles; the selected one is highlighted",
+    "“Aurora” look: Sudoku’s “Restart” moved from the bottom bar into the pause"
+   ]
+  },
+  {
    "version": "v2.56.49",
    "date": "2026-10-30",
    "items": [

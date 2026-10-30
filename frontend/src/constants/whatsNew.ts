@@ -16,6 +16,18 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.56.50',
+    date: '2026-10-30',
+    en: [
+      '“Aurora” look: difficulty choice in the pause is one row of three tiles; the selected one is highlighted',
+      '“Aurora” look: Sudoku’s “Restart” moved from the bottom bar into the pause',
+    ],
+    ru: [
+      'Оформление «Аврора»: выбор сложности в паузе — одним рядом из трёх плашек, выбранная подсвечена',
+      'Оформление «Аврора»: у Судоку «Заново» переехало из нижней панели в паузу',
+    ],
+  },
+  {
     version: '2.56.49',
     date: '2026-10-30',
     en: [

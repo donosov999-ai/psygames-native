@@ -19,6 +19,7 @@ class AuxAction extends StatelessWidget {
     this.active = false,
     this.count,
     this.tint,
+    this.inPause = false,
   });
 
   final IconData icon;
@@ -34,6 +35,14 @@ class AuxAction extends StatelessWidget {
   /// Число внутри значка: сколько пометок, сколько отмен осталось.
   final int? count;
   final Color? tint;
+
+  /*
+   * 🔴 ДУБЛЬ ПУНКТА ПАУЗЫ — В «АВРОРЕ» ЖИВЁТ ТОЛЬКО В ПАУЗЕ (стандарт игрового экрана, Денис 30.10:
+   * «Заново» из нижнего тулбара — в меню паузы). Ставит игра и только после сверки, что в паузе
+   * ТО ЖЕ действие с ТЕМ ЖЕ подтверждением (у Судоку оба «Заново» — один `restartGuarded`).
+   * Под «Авророй» нижний ряд такую кнопку не показывает; в Classic она на месте.
+   */
+  final bool inPause;
 
   @override
   Widget build(BuildContext context) {
@@ -148,6 +157,9 @@ class AuxBar extends StatelessWidget {
 
   final List<Widget> children;
 
+  /// Кнопки ряда под «Авророй»: дубли пунктов паузы ([AuxAction.inPause]) живут только в паузе.
+  List<Widget> get auroraChildren => [for (final c in children) if (!(c is AuxAction && c.inPause)) c];
+
   @override
   Widget build(BuildContext context) => _aurora(context)
       // «Аврора»: равные колонки на всю ширину справа от паузы (реф Codex 30.10) — без пустого места справа.
@@ -155,7 +167,7 @@ class AuxBar extends StatelessWidget {
           key: const Key('aux-bar-aurora'),
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            for (final c in children)
+            for (final c in auroraChildren)
               Expanded(child: Padding(padding: const EdgeInsets.symmetric(horizontal: 2), child: Center(child: c))),
           ],
         )
