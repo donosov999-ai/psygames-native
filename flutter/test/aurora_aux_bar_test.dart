@@ -80,4 +80,31 @@ void main() {
     await mount(t, UiTemplate.aurora, size: const Size(640, 1136), textScale: 2);
     expect(t.takeException(), isNull);
   });
+
+  for (final template in UiTemplate.values) {
+    testWidgets('Стандарт 30.10: дубль пункта паузы (inPause) — ${template == UiTemplate.aurora ? 'в «Авроре» только в паузе' : 'в Classic на месте'}', (t) async {
+      await t.pumpWidget(MaterialApp(
+        theme: applyUiTemplate(classicShellTheme(Brightness.dark), template),
+        home: AuroraGameScope(
+          route: '/games/probe',
+          child: GameShell(
+            title: 'Судоку',
+            field: (_, _) => const SizedBox.expand(),
+            auxRow: AuxBar(children: [
+              AuxAction(icon: Icons.undo, label: 'Отменить', onPressed: () {}),
+              AuxAction(icon: Icons.refresh, label: 'Заново', inPause: true, onPressed: () {}),
+            ]),
+          ),
+        ),
+      ));
+      await t.pump();
+      final aurora = template == UiTemplate.aurora;
+      expect(find.text('Отменить').evaluate().isNotEmpty || find.byTooltip('Отменить').evaluate().isNotEmpty, isTrue);
+      if (aurora) {
+        expect(find.text('Заново'), findsNothing, reason: '«Заново» под «Авророй» — только в паузе');
+      } else {
+        expect(find.byTooltip('Заново'), findsOneWidget, reason: 'Classic не меняется');
+      }
+    });
+  }
 }
