@@ -7,6 +7,14 @@
  "check": "التحقق من التحديثات · v0.0.0",
  "entries": [
   {
+   "version": "v2.56.46",
+   "date": "2026-10-30",
+   "items": [
+    "Workout from the home screen no longer hangs on a white screen — the workout choice opens right away",
+    "“Aurora” look: recommendation tiles show the game’s own colour icon"
+   ]
+  },
+  {
    "version": "v2.56.45",
    "date": "2026-10-30",
    "items": [

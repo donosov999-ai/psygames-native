@@ -543,4 +543,14 @@ void main() {
       expect((screen as PauseScreen).flavor, PauseFlavor.eyeGym, reason: url);
     }
   });
+
+  test('экран оболочки по модели страницы открывается уводом страницы, настройки и игры — сразу', () {
+    // «Зарядка» с Главной висела белым экраном: выбор клали поверх Главной, а модель считает страница
+    // на адресе `/warmup-picker` (Денис 30.10, 2.56.44–2.56.45).
+    for (final r in ['/warmup-picker', '/warmup-complete', '/warmup-bridge']) {
+      expect(HybridApp.opensThroughPage(r), isTrue, reason: r);
+    }
+    expect(HybridApp.opensThroughPage('/settings'), isFalse);
+    expect(HybridApp.opensThroughPage('/games/schulte'), isFalse);
+  });
 }
