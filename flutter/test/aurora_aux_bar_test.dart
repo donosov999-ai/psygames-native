@@ -56,7 +56,7 @@ void main() {
     final clean = t.getRect(find.text('Очистить'));
     expect(undo.left, greaterThan(pause.right), reason: 'плитки — справа от паузы');
     expect(clean.center.dy, closeTo(undo.center.dy, 1), reason: 'одной строкой');
-    expect(find.text('3'), findsOneWidget, reason: 'число — вместо значка, как в Classic');
+    expect(find.descendant(of: find.byKey(const Key('aux-count')), matching: find.text('3')), findsOneWidget, reason: 'число — счётчиком на значке (реф 30.10)');
     await t.tap(find.text('Отменить'));
     expect(undone, 1, reason: 'нажимается и подпись под кругом');
     // Стандарт 30.10: равные колонки на всю ширину — центры кнопок на равном шаге, справа пусто не остаётся.

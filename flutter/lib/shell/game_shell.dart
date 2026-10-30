@@ -576,9 +576,13 @@ extension on _PauseScreen {
           child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
             Icon(icon, size: 22, color: fg),
             const SizedBox(width: 8),
+            // Уменьшается, а не режется: «Продолжить игру» и «Выйти из упражнения» на 390 pt в половине
+            // ряда были «Продолжить иг…» (рендер 30.10).
             Flexible(
-              child: Text(label,
-                  maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: fg)),
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(label, maxLines: 1, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: fg)),
+              ),
             ),
           ]),
         );

@@ -113,10 +113,18 @@ extension on AuxAction {
             child: SizedBox(
               width: 52,
               height: 52,
+              // Число — значком-счётчиком на значке (реф 30.10: лампочка с «2»), а не вместо значка:
+              // по значку видно, ЧТО считается.
               child: Center(
                 child: count == null
                     ? Icon(icon, size: 22, color: fg)
-                    : Text('$count', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: fg)),
+                    : Badge(
+                        key: const Key('aux-count'),
+                        label: Text('$count'),
+                        backgroundColor: theme.colorScheme.primary,
+                        textColor: theme.colorScheme.onPrimary,
+                        child: Icon(icon, size: 22, color: fg),
+                      ),
               ),
             ),
           ),
