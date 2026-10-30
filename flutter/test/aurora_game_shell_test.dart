@@ -202,4 +202,42 @@ void main() {
     expect(key('game-help-menu'), findsNothing);
     expect(find.byIcon(Icons.help_outline), findsOneWidget);
   });
+
+  testWidgets('Стандарт 30.10: выбор «один из нескольких» в паузе — одним рядом сегментов, выбранный отмечен', (t) async {
+    var picked = '';
+    t.view.physicalSize = const Size(780, 1688);
+    t.view.devicePixelRatio = 2;
+    addTearDown(t.view.reset);
+    await t.pumpWidget(MaterialApp(
+      theme: applyUiTemplate(classicShellTheme(Brightness.dark), UiTemplate.aurora),
+      home: AuroraGameScope(
+        route: '/games/probe',
+        child: GameShell(
+          title: 'Судоку',
+          field: (_, _) => const SizedBox.expand(),
+          pauseActions: [
+            PauseAction(label: 'Полегче · 5', icon: Icons.radio_button_unchecked, onPressed: () => picked = 'easy'),
+            PauseAction(label: 'Обычная · 5', icon: Icons.radio_button_checked, onPressed: () => picked = 'mid'),
+            PauseAction(label: 'Пожёстче · 1', icon: Icons.radio_button_unchecked, onPressed: () => picked = 'hard'),
+            PauseAction(label: 'Стиль цифр', icon: Icons.style_outlined, onPressed: () {}),
+          ],
+        ),
+      ),
+    ));
+    await t.pump();
+    await t.tap(key('game-pause'));
+    await t.pumpAndSettle();
+    // Подписи разной длины уменьшаются по-разному — сравниваются центры, а не верх.
+    final ys = [for (final l in ['Полегче · 5', 'Обычная · 5', 'Пожёстче · 1']) t.getCenter(find.text(l)).dy];
+    for (final y in ys) {
+      expect(y, closeTo(ys.first, 1.5), reason: 'три сегмента — одним рядом');
+    }
+    expect(t.getRect(find.text('Стиль цифр')).top, greaterThan(ys.first), reason: 'прочие пункты — строками ниже');
+    final handle = t.ensureSemantics();
+    expect(t.getSemantics(find.text('Обычная · 5')), isSemantics(isSelected: true, isButton: true, hasTapAction: true));
+    handle.dispose();
+    await t.tap(find.text('Пожёстче · 1'));
+    await t.pumpAndSettle();
+    expect(picked, 'hard', reason: 'нажатие — обработчик игры');
+  });
 }
