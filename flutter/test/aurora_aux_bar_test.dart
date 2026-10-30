@@ -58,7 +58,15 @@ void main() {
     expect(clean.center.dy, closeTo(undo.center.dy, 1), reason: 'одной строкой');
     expect(find.text('3'), findsOneWidget, reason: 'число — вместо значка, как в Classic');
     await t.tap(find.text('Отменить'));
-    expect(undone, 1);
+    expect(undone, 1, reason: 'нажимается и подпись под кругом');
+    // Стандарт 30.10: равные колонки на всю ширину — центры кнопок на равном шаге, справа пусто не остаётся.
+    final centers = [for (final l in ['Правила', 'Отменить', 'Карандаш', 'Подсказка', 'Очистить']) t.getRect(find.text(l)).center.dx];
+    final steps = [for (var i = 1; i < centers.length; i++) centers[i] - centers[i - 1]];
+    for (final d in steps) {
+      expect(d, closeTo(steps.first, 1.5));
+    }
+    final width = t.view.physicalSize.width / t.view.devicePixelRatio;
+    expect(width - centers.last, lessThan(steps.first), reason: 'последняя кнопка у правого края, без пустого места');
   });
 
   testWidgets('Classic: прежние круглые значки без подписей', (t) async {
