@@ -1209,7 +1209,7 @@ class _AuroraGameBar extends StatelessWidget {
       ),
     );
     // Кнопки игры из её AuxBar — в те же равные колонки, что и пауза (реф: пять равных колонок).
-    final items = aux is AuxBar ? (aux! as AuxBar).children : null;
+    final items = aux is AuxBar ? (aux! as AuxBar).auroraChildren : null;
     return Container(
       key: const Key('game-bar-aurora'),
       margin: const EdgeInsets.fromLTRB(8, 2, 8, 4),

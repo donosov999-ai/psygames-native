@@ -1993,7 +1993,8 @@ class _SudokuScreenState extends State<SudokuScreen> {
           active: _paint != null,
           onPressed: _halted ? null : _togglePaint,
         ),
-        AuxAction(icon: Icons.refresh, label: L.t('restart'), onPressed: () => restartGuarded(context, live: _live, deal: _deal)),
+        // Тот же `restartGuarded(... _deal)`, что «Начать заново» в паузе ниже, — под «Авророй» только в паузе.
+        AuxAction(icon: Icons.refresh, label: L.t('restart'), inPause: true, onPressed: () => restartGuarded(context, live: _live, deal: _deal)),
       ]),
       toolbar: (board == null && _sideBoard == null)
           ? null
