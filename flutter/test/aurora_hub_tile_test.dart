@@ -87,8 +87,8 @@ void main() {
         home: Scaffold(body: SizedBox(width: 390, child: AuroraHomeHero(title: 'Зарядка', sub: 'Утро · 5 мин', cta: 'СТАРТ', onTap: () => taps++))),
       ));
       final image = tester.widget<Image>(find.byType(Image));
-      expect((image.image as AssetImage).assetName, 'assets/aurora_hubs/home_hero_${dark ? 'dark' : 'light'}.webp');
-      expect(File('assets/aurora_hubs/home_hero_${dark ? 'dark' : 'light'}.webp').existsSync(), isTrue);
+      expect((image.image as AssetImage).assetName, 'assets/aurora_hubs/home_hero_brain_${dark ? 'dark' : 'light'}.webp');
+      expect(File('assets/aurora_hubs/home_hero_brain_${dark ? 'dark' : 'light'}.webp').existsSync(), isTrue);
       expect(find.text('Зарядка'), findsOneWidget);
       await tester.tap(find.byKey(const ValueKey('aurora-home-hero-start')));
       expect(taps, 1);
