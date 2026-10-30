@@ -103,8 +103,74 @@ void main() {
     await t.scrollUntilVisible(key('home-section-tile-$first'), 200, scrollable: list);
     expect(find.descendant(of: key('home-favourites'), matching: find.byType(GridView)), findsNothing);
     expect(key('home-section-$first'), findsNothing, reason: 'ряда игр раздела под «Авророй» нет');
+    await t.ensureVisible(key('home-section-tile-$first'));
+    await t.pump();
     await t.tap(key('home-section-tile-$first'));
     expect(tabs, ['/games?filter=section:$first']);
+  });
+
+  testWidgets('«Аврора»: компактная главная (реф 30.10) — порядок блоков и маленькие плитки с прежними переходами', (t) async {
+    // Высокий экран — ленивый список строит все блоки сразу, порядок меряется без прокрутки.
+    await mount(t, template: UiTemplate.aurora, size: const Size(780, 6000));
+    // Порядок как на рефе: «Продолжить» → счётчики → «Зачем сегодня» → «Сегодня» → «Рекомендуем» → «Практики».
+    double y(String k) => t.getTopLeft(key(k)).dy;
+    final kinds = [for (final b in (model['blocks'] as List).cast<Map>()) b['kind'] as String];
+    final shown = [for (final k in ['resume', 'goal', 'today', 'reco', 'practices']) if (kinds.contains(k)) k];
+    expect(shown, ['resume', 'goal', 'today', 'reco', 'practices'], reason: 'проба модели должна содержать все пять блоков');
+    expect(y('home-resume') < y('aurora-home-stats') && y('aurora-home-stats') < y('home-goal'), isTrue,
+        reason: 'счётчики — между «Продолжить» и «Зачем сегодня»');
+    for (var i = 1; i < shown.length; i++) {
+      expect(y('home-${shown[i - 1]}') < y('home-${shown[i]}'), isTrue, reason: '${shown[i - 1]} выше ${shown[i]}');
+    }
+    // «Сегодня» компактно: игры одной строкой, нажатие — статистика, «+N ⭐» — магазин, как раньше.
+    expect(key('home-today-line'), findsOneWidget);
+    await t.tap(key('home-today'));
+    expect(opened.removeLast(), '/statistics');
+    // Плитки: до 4 в ряд, низкие — не прежние большие карточки.
+    final reco = t.getSize(key('home-card-schulte_table'));
+    expect(reco.width, lessThan(120));
+    expect(reco.height, lessThan(150));
+    // Причина рекомендации видна под названием, не только чтецу экрана.
+    expect(find.descendant(of: key('home-card-hanoi'), matching: find.text('Сегодня сыграно')), findsOneWidget);
+    // ▶ — только у прямого запуска, у зарядки и релаксации › к выбору.
+    expect(find.descendant(of: key('home-card-schulte_table'), matching: find.byIcon(Icons.play_arrow_rounded)), findsOneWidget);
+    expect(find.descendant(of: key('home-card-warmup'), matching: find.byIcon(Icons.chevron_right)), findsOneWidget);
+    expect(find.descendant(of: key('home-card-warmup'), matching: find.byIcon(Icons.play_arrow_rounded)), findsNothing);
+    expect(find.descendant(of: key('home-card-relaxation'), matching: find.byIcon(Icons.play_arrow_rounded)), findsNothing);
+    for (final id in ['schulte_table', 'warmup', 'relaxation']) {
+      await t.tap(key('home-card-$id'));
+    }
+    expect(opened, ['/games/schulte?calm=1', '/warmup-picker', '/games/relaxation-hub']);
+  });
+
+  testWidgets('«Аврора»: цель «Как прошло?» — два ответа в одну строку, нажатие уходит в модель', (t) async {
+    final js = <String>[];
+    final blocks = [for (final b in (model['blocks'] as List).cast<Map>()) b['kind'] == 'goal' ? ({...b, 'state': 'review'}) : b];
+    model = {...model, 'blocks': blocks};
+    await mount(t, template: UiTemplate.aurora, size: const Size(780, 6000));
+    ScreenUi.run = (s) async => js.add(s);
+    expect(t.getTopLeft(key('goal-yes')).dy, t.getTopLeft(key('goal-no')).dy, reason: '«Да» и «Не сегодня» — в одной строке');
+    await t.tap(key('goal-yes'));
+    await t.pump();
+    expect(js.join(), contains('goalOutcome'));
+  });
+
+  testWidgets('«Аврора»: планшет 768 pt — плитки остаются маленькими (колонок больше, а не шире)', (t) async {
+    await mount(t, template: UiTemplate.aurora, size: const Size(1536, 6000));
+    expect(t.getSize(key('home-card-schulte_table')).width, lessThan(130));
+    expect(t.takeException(), isNull);
+  });
+
+  testWidgets('«Аврора»: плитки нажимаются и из чтеца экрана (действие нажатия в подписи)', (t) async {
+    final handle = t.ensureSemantics();
+    await mount(t, template: UiTemplate.aurora, size: const Size(780, 6000));
+    for (final id in ['schulte_table', 'warmup', 'relaxation', 'challenge']) {
+      expect(t.getSemantics(key('home-card-$id')), isSemantics(isButton: true, hasTapAction: true), reason: id);
+    }
+    final fav = (model['blocks'] as List).cast<Map>().firstWhere((b) => b['kind'] == 'favourites');
+    final first = ((fav['sections'] as List).first as Map)['category'] as String;
+    expect(t.getSemantics(key('home-section-tile-$first')), isSemantics(isButton: true, hasTapAction: true));
+    handle.dispose();
   });
 
   testWidgets('Classic: новой шапки нет, классическая на месте', (t) async {
@@ -122,6 +188,11 @@ void main() {
   testWidgets('«Аврора»: 320 pt и шрифт ×2 — ничего не вылезает за края', (t) async {
     await mount(t, template: UiTemplate.aurora, size: const Size(640, 1400), textScale: 2);
     expect(t.takeException(), isNull);
-    expect(key('aurora-home-stats'), findsOneWidget);
+    final list = find.descendant(of: key('home-list'), matching: find.byType(Scrollable)).first;
+    await t.scrollUntilVisible(key('aurora-home-stats'), 200, scrollable: list);
+    // Компактные плитки при шрифте ×2: колонок меньше, подписи не вылезают.
+    await t.scrollUntilVisible(key('home-practices'), 200, scrollable: list);
+    await t.pump();
+    expect(t.takeException(), isNull);
   });
 }

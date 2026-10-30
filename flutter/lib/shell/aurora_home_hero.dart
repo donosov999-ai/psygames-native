@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 
 import 'design_template.dart';
+import 'game_shell.dart';
 
-/// 🔴 КАРТОЧКА ЗАРЯДКИ НА ГЛАВНОЙ В «АВРОРЕ» — Синапс во всю карточку, слева название,
-/// пояснение и кнопка (лист 01 Codex, «Тренировка дня»).
+/// 🔴 КАРТОЧКА ЗАРЯДКИ НА ГЛАВНОЙ В «АВРОРЕ» — иллюстрация во всю карточку, слева название,
+/// пояснение и кнопка (лист 01 Codex, «Тренировка дня»; компактный реф главной 30.10 —
+/// HOME_DESIGN_REF.md: «иллюстративная шапка без Синапса», питомец остаётся в шапке экрана).
 ///
-/// Картинки две — тёмная и светлая (`assets/aurora_hubs/home_hero_<тема>.webp`), левая
-/// часть нарисована спокойной под текст. Текст и действие — из той же карточки `warmup`
+/// Картинки две — тёмная и светлая (`assets/aurora_hubs/home_hero_brain_<тема>.webp`, 1280×720,
+/// мозг со свечением), левая часть нарисована спокойной под текст. Текст и действие — из той же карточки `warmup`
 /// модели главной, что и в Classic: своих строк и своего перехода у карточки нет.
 class AuroraHomeHero extends StatelessWidget {
   const AuroraHomeHero({
@@ -29,15 +31,17 @@ class AuroraHomeHero extends StatelessWidget {
     final text = auroraToken('text', dark: dark)!;
     final secondary = auroraToken('textSecondary', dark: dark)!;
     final border = auroraToken('border', dark: dark)!;
-    final accent = theme.colorScheme.primary;
-    final onAccent = theme.colorScheme.onPrimary;
+    // Кнопка — оранжевая, как на листе и как главная кнопка паузы (решение Дениса 29.10), а не
+    // акцент профиля: один цвет действия «Авроры» на всё приложение.
+    final accent = GameShell.auroraAction;
+    const onAccent = GameShell.onPauseYellow;
     return Padding(
       key: const ValueKey('aurora-home-hero'),
       padding: const EdgeInsets.only(top: 4, bottom: 16),
       // Высота — не меньше пропорций картинки, но растёт под текст: при крупном шрифте (×2)
       // название, пояснение и кнопка не обрезаются, картинка остаётся фоном (cover).
       child: LayoutBuilder(builder: (context, box) => ConstrainedBox(
-        constraints: BoxConstraints(minHeight: box.maxWidth * 714 / 1280),
+        constraints: BoxConstraints(minHeight: box.maxWidth * 720 / 1280),
         child: Material(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24), side: BorderSide(color: border)),
           clipBehavior: Clip.antiAlias,
@@ -45,7 +49,7 @@ class AuroraHomeHero extends StatelessWidget {
             onTap: onTap,
             child: Stack(children: [
               Positioned.fill(
-                child: Image.asset('assets/aurora_hubs/home_hero_${dark ? 'dark' : 'light'}.webp', fit: BoxFit.cover),
+                child: Image.asset('assets/aurora_hubs/home_hero_brain_${dark ? 'dark' : 'light'}.webp', fit: BoxFit.cover),
               ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
@@ -66,8 +70,9 @@ class AuroraHomeHero extends StatelessWidget {
                         style: TextStyle(fontSize: 14, height: 1.3, color: secondary)),
                   ),
                   SizedBox(height: box.maxWidth * 0.12),
+                  // Во всю ширину карточки — как «Начать зарядку» на рефе 30.10.
                   ConstrainedBox(
-                    constraints: const BoxConstraints(minHeight: 48),
+                    constraints: const BoxConstraints(minHeight: 48, minWidth: double.infinity),
                     child: FilledButton.icon(
                       key: const ValueKey('aurora-home-hero-start'),
                       onPressed: onTap,

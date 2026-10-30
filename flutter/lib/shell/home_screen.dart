@@ -310,12 +310,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       // «Аврора» (лист 01 Codex): строка «Режим», карточка зарядки с Синапсом и ряд
                       // счётчиков. Данные — те же `header` и карточка `warmup`; Classic — без изменений.
-                      if (aurora) ...[
-                        ...top!.modeAndUpdate(context),
-                        ?_auroraHero(m),
-                        top.stats(context),
-                      ],
-                      for (final b in _list(m['blocks'])) _block(context, b),
+                      if (aurora) ..._auroraList(context, m, top!)
+                      else
+                        for (final b in _list(m['blocks'])) _block(context, b),
                     ],
                   ),
                 ),
@@ -368,6 +365,33 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       );
 
+  /*
+   * «АВРОРА», КОМПАКТНАЯ ГЛАВНАЯ (HOME_DESIGN_REF.md, 30.10.2026). Сверху — то, что на рефе:
+   * режим, зарядка, поиск с фильтром, «Продолжить», счётчики, цель, «Сегодня»; затем ряды
+   * маленьких плиток (рекомендации, практики, частые разделы); подсказка лестницы и сундук —
+   * ниже. Блоки те же, что у Classic, и из той же модели веба: ни один не пропадает и не
+   * дублируется, неизвестный новый блок встаёт в конец.
+   */
+  List<Widget> _auroraList(BuildContext context, _M m, AuroraHomeTop top) {
+    const order = ['search', 'resume', '#stats', 'goal', 'today', 'reco', 'practices', 'favourites', 'ladder', 'chest', 'allForks'];
+    final blocks = _list(m['blocks']);
+    final out = <Widget>[...top.modeAndUpdate(context), ?_auroraHero(m)];
+    final used = <int>{};
+    for (final k in order) {
+      if (k == '#stats') {
+        out.add(top.stats(context));
+        continue;
+      }
+      for (var i = 0; i < blocks.length; i++) {
+        if (blocks[i]['kind'] == k && used.add(i)) out.add(_block(context, blocks[i]));
+      }
+    }
+    for (var i = 0; i < blocks.length; i++) {
+      if (!used.contains(i)) out.add(_block(context, blocks[i]));
+    }
+    return out;
+  }
+
   Widget? _auroraHero(_M m) {
     for (final b in _list(m['blocks'])) {
       if (b['kind'] != 'practices') continue;
@@ -400,8 +424,10 @@ class _HomeScreenState extends State<HomeScreen> {
       case 'today':
         return _Today(b: b, onOpen: widget.onOpen);
       case 'reco':
+        if (_isAurora(context)) return _AuroraMiniBlock(b: b, origin: widget.origin, onOpen: widget.onOpen, act: _act, ion: 'sparkles-outline');
         return _HeroBlock(b: b, origin: widget.origin, onOpen: widget.onOpen, act: _act, ion: 'sparkles-outline', iconSize: 20, accent: null);
       case 'practices':
+        if (_isAurora(context)) return _AuroraMiniBlock(b: b, origin: widget.origin, onOpen: widget.onOpen, act: _act, ion: 'leaf-outline');
         return _HeroBlock(b: b, origin: widget.origin, onOpen: widget.onOpen, act: _act, ion: 'leaf-outline', iconSize: 19, accent: const Color(0xFF10B981));
       case 'favourites':
         return _Favourites(b: b, kit: _kit, state: widget.state, onOpen: widget.onOpen, onTab: widget.onTab);
@@ -827,6 +853,7 @@ class _SearchState extends State<_Search> {
   @override
   Widget build(BuildContext context) {
     final web = WebTheme.of(context);
+    if (_isAurora(context)) return _aurora(context);
     // `HomeCatalogSearch.tsx`: поле 48 и кнопка 44 «Игры · Фильтр», зазор 8, снизу 16.
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
@@ -848,6 +875,61 @@ class _SearchState extends State<_Search> {
             alignment: Alignment.center,
             decoration: BoxDecoration(color: web.surface, borderRadius: BorderRadius.circular(12)),
             child: Text(_s(widget.b['button']), style: TextStyle(color: _accentOf(context), fontWeight: FontWeight.w700, fontSize: 14)),
+          ),
+        ),
+      ]),
+    );
+  }
+}
+
+extension on _SearchState {
+  /// «Аврора» (компактный реф 30.10): поиск и фильтр одной строкой — то же поле и то же действие.
+  Widget _aurora(BuildContext context) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final text = auroraToken('text', dark: dark)!;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Row(children: [
+        Expanded(
+          child: TextField(
+            key: const ValueKey('home-search'),
+            controller: _c,
+            style: WebTheme.fieldText(context),
+            textInputAction: TextInputAction.search,
+            onSubmitted: (_) => _go(),
+            decoration: WebTheme.field(context, hint: _s(widget.b['placeholder'])),
+          ),
+        ),
+        const SizedBox(width: 8),
+        ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 168),
+          child: Material(
+            key: const ValueKey('home-search-open'),
+            color: auroraToken('surface', dark: dark),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+              side: BorderSide(color: auroraToken('border', dark: dark)!),
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: InkWell(
+              onTap: _go,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(minHeight: 48),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: Row(mainAxisSize: MainAxisSize.min, children: [
+                    Icon(Icons.tune, size: 18, color: text),
+                    const SizedBox(width: 6),
+                    Flexible(
+                      child: Text(_s(widget.b['button']),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(color: text, fontWeight: FontWeight.w600, fontSize: 13)),
+                    ),
+                  ]),
+                ),
+              ),
+            ),
           ),
         ),
       ]),
@@ -1093,6 +1175,12 @@ class _GoalCardState extends State<_GoalCard> {
           ),
         );
     final ask = TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: web.text);
+    // «Аврора», компактная главная: два ответа цели — в одну строку пополам, а не столбиком
+    // во всю ширину (кнопка с выравниванием растягивается и в `Wrap` встаёт отдельной строкой).
+    final aurora = _isAurora(context);
+    Widget pair(Widget a, Widget b) => aurora
+        ? Row(children: [Expanded(child: a), const SizedBox(width: 8), Expanded(child: b)])
+        : Wrap(spacing: 8, runSpacing: 8, children: [a, b]);
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
       padding: const EdgeInsets.all(12),
@@ -1129,7 +1217,14 @@ class _GoalCardState extends State<_GoalCard> {
               child: Row(children: [
                 Expanded(child: Text(t('dayGoalAsk'), maxLines: 1, overflow: TextOverflow.ellipsis, style: ask)),
                 const SizedBox(width: 8),
-                Text(t('dayGoalSave'), style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: _accent)),
+                // Потолок ширины: при шрифте ×2 на 320 pt подпись вылезала на 22 px; в обычном размере не влияет.
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 140),
+                  child: Text(t('dayGoalSave'),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: _accent)),
+                ),
                 const SizedBox(width: 8),
                 IonIcon('chevron-forward', size: 16, color: _accent),
               ]),
@@ -1159,14 +1254,14 @@ class _GoalCardState extends State<_GoalCard> {
             ),
           ),
           const SizedBox(height: 6),
-          Wrap(spacing: 8, runSpacing: 8, children: [
+          pair(
             primary(t('dayGoalSave'), canSave ? _accent : web.border, canSave ? Colors.white : web.textSecondary, () {
               if (!canSave) return;
               widget.act('goalSave', [_draft.text]);
               _draft.clear();
             }, const ValueKey('goal-save')),
             ghost(t('notNow'), () => widget.act('goalDismiss'), const ValueKey('goal-later')),
-          ]),
+          ),
           const SizedBox(height: 10),
           Text(t('dayGoalExamplesTitle'), style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: web.textSecondary)),
           for (final e in (widget.b['examples'] as List? ?? const []))
@@ -1186,11 +1281,11 @@ class _GoalCardState extends State<_GoalCard> {
           const SizedBox(height: 6),
           Text(t('dayGoalReview'), style: ask),
           const SizedBox(height: 6),
-          Wrap(spacing: 8, runSpacing: 8, children: [
+          pair(
             primary(t('dayGoalYes'), const Color(0xFF22C55E), cssColor(tx['yesFg'], Colors.white),
                 () => widget.act('goalOutcome', ['done']), const ValueKey('goal-yes')),
             ghost(t('dayGoalNo'), () => widget.act('goalOutcome', ['not_today']), const ValueKey('goal-no')),
-          ]),
+          ),
         ],
         if (state == 'closed') ...[
           const SizedBox(height: 6),
@@ -1216,6 +1311,7 @@ class _Today extends StatelessWidget {
     final web = WebTheme.of(context);
     const amber = Color(0xFFF59E0B);
     final rows = _list(b['rows']);
+    final aurora = _isAurora(context);
     return Semantics(
       button: true,
       label: _s(b['title']),
@@ -1266,6 +1362,18 @@ class _Today extends StatelessWidget {
             const SizedBox(height: 6),
             if (b['empty'] != null)
               Text(_s(b['empty']), style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, height: 17 / 12.5, color: web.textSecondary)),
+            // «Аврора», компактная главная (реф 30.10): строки игр — одной строкой «игра +очки · …»,
+            // полный список — в статистике по нажатию на блок, как и раньше.
+            if (aurora && rows.isNotEmpty)
+              Text(
+                [for (final r in rows) '${_s(r['name'])}${r['doubled'] == true ? ' ×2' : ''} +${r['gain']}'].join(' · ') +
+                    (b['more'] != null ? ' …' : ''),
+                key: const ValueKey('home-today-line'),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, height: 18 / 13, color: web.text),
+              ),
+            if (!aurora)
             for (final r in rows)
               Padding(
                 padding: const EdgeInsets.only(bottom: 6),
@@ -1295,7 +1403,7 @@ class _Today extends StatelessWidget {
                   ),
                 ]),
               ),
-            if (b['more'] != null)
+            if (b['more'] != null && !aurora)
               Padding(
                 padding: const EdgeInsets.only(top: 4),
                 child: Text(_s(b['more']), textAlign: TextAlign.right, style: TextStyle(fontSize: 12, color: web.textSecondary)),
@@ -1524,7 +1632,8 @@ class _Favourites extends StatelessWidget {
   }
 
   /*
-   * «АВРОРА», ЛИСТ 01 — «ЛЮБИМЫЕ РАЗДЕЛЫ» ПЛИТКАМИ РАЗДЕЛОВ (решение Дениса 29.10, Q1).
+   * «АВРОРА», ЛИСТ 01 — «ЛЮБИМЫЕ РАЗДЕЛЫ» ПЛИТКАМИ РАЗДЕЛОВ (решение Дениса 29.10, Q1),
+   * размером «Быстрого доступа» — до 4 в ряд (компактный реф главной 30.10).
    *
    * Те же разделы модели веба, что в Classic, но вместо раздела с рядом игр — плитка раздела
    * с картинкой (две на раздел, тёмная и светлая; `assets/aurora_sections/`), подпись и число
@@ -1554,15 +1663,12 @@ class _Favourites extends StatelessWidget {
         ));
         continue;
       }
-      tiles.add(AspectRatio(
-        aspectRatio: 2,
-        child: AuroraHubTile(
-          key: ValueKey('home-section-tile-${cat.id}'),
-          asset: asset,
-          title: cat.title,
-          hubCount: (s['total'] as num?)?.toInt(),
-          onTap: () => onTab('/games?filter=section:${cat.id}'),
-        ),
+      tiles.add(_AuroraSectionMini(
+        key: ValueKey('home-section-tile-${cat.id}'),
+        asset: asset,
+        title: cat.title,
+        count: (s['total'] as num?)?.toInt(),
+        onTap: () => onTab('/games?filter=section:${cat.id}'),
       ));
     }
     return Column(key: const ValueKey('home-favourites'), crossAxisAlignment: CrossAxisAlignment.stretch, children: [
@@ -1575,15 +1681,7 @@ class _Favourites extends StatelessWidget {
           child: Text(_s(b['allLabel']), style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: accent)),
         ),
       ),
-      for (var i = 0; i < tiles.length; i += 2)
-        Padding(
-          padding: const EdgeInsets.only(bottom: 12),
-          child: Row(children: [
-            Expanded(child: tiles[i]),
-            const SizedBox(width: 12),
-            Expanded(child: i + 1 < tiles.length ? tiles[i + 1] : const SizedBox.shrink()),
-          ]),
-        ),
+      if (tiles.isNotEmpty) Padding(padding: const EdgeInsets.only(bottom: 20), child: _miniGrid(tiles)),
       ...rest,
     ]);
   }
@@ -1716,4 +1814,218 @@ class _AllForks extends StatelessWidget {
           ),
         ),
       );
+}
+
+
+// ─────────────────── «Аврора»: компактные плитки главной (реф 30.10) ───────────────────
+
+bool _isAurora(BuildContext context) =>
+    Theme.of(context).extension<UiTemplateTheme>()?.template == UiTemplate.aurora;
+
+/// Сетка маленьких плиток — 4 в ряд на телефоне, как «Быстрый доступ» на рефе; при крупном шрифте
+/// и на узком экране колонок меньше, на планшете больше (до 6) — плитка остаётся маленькой, а не
+/// растягивается в карточку. Плитки ряда — одной высоты (по самой высокой): с причиной под
+/// названием и без неё ряд не «скачет».
+Widget _miniGrid(List<Widget> tiles) => LayoutBuilder(builder: (context, box) {
+      final scale = MediaQuery.textScalerOf(context).scale(1).clamp(1.0, 2.0);
+      final cols = (box.maxWidth / (80 * (scale > 1.3 ? 1.4 : 1.0))).floor().clamp(2, 6);
+      const gap = 10.0;
+      return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        for (var i = 0; i < tiles.length; i += cols)
+          Padding(
+            padding: EdgeInsets.only(top: i == 0 ? 0 : gap),
+            child: IntrinsicHeight(
+              child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                for (var k = i; k < i + cols; k++) ...[
+                  if (k > i) const SizedBox(width: gap),
+                  Expanded(child: k < tiles.length ? tiles[k] : const SizedBox.shrink()),
+                ],
+              ]),
+            ),
+          ),
+      ]);
+    });
+
+/// «Рекомендуем» и «Практики дня» в «Авроре»: те же карточки модели, но маленькими плитками.
+class _AuroraMiniBlock extends StatelessWidget {
+  const _AuroraMiniBlock({required this.b, required this.origin, required this.onOpen, required this.act, required this.ion});
+  final _M b;
+  final String origin;
+  final ValueChanged<String> onOpen;
+  final void Function(String, [List<Object?>]) act;
+  final String ion;
+
+  @override
+  Widget build(BuildContext context) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final text = auroraToken('text', dark: dark)!;
+    final secondary = auroraToken('textSecondary', dark: dark)!;
+    final cards = _list(b['cards']);
+    if (cards.isEmpty) return const SizedBox.shrink();
+    return Padding(
+      key: ValueKey('home-${b['kind']}'),
+      padding: const EdgeInsets.only(bottom: 20),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Row(children: [
+          IonIcon(ion, size: 18, color: text),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(_s(b['title']),
+                maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: text)),
+          ),
+        ]),
+        if (_s(b['hint']).isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(top: 2),
+            child: Text(_s(b['hint']), maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 12, color: secondary)),
+          ),
+        const SizedBox(height: 10),
+        _miniGrid([for (final c in cards) _AuroraMiniTile(c: c, origin: origin, onOpen: onOpen, act: act)]),
+      ]),
+    );
+  }
+}
+
+/*
+ * Маленькая плитка карточки: значок, название и знак действия из ДАННЫХ карточки — ▶ у прямого
+ * запуска (`cta.ion == play`), › у перехода к выбору (зарядка, релаксация): плитка не обещает
+ * запуск там, где раньше был выбор. Причина рекомендации («Давно не играли») — в подписи для
+ * чтеца экрана и во всплывающей подсказке; нажатие то же, что у большой карточки Classic.
+ */
+class _AuroraMiniTile extends StatelessWidget {
+  const _AuroraMiniTile({required this.c, required this.origin, required this.onOpen, required this.act});
+  final _M c;
+  final String origin;
+  final ValueChanged<String> onOpen;
+  final void Function(String, [List<Object?>]) act;
+
+  @override
+  Widget build(BuildContext context) {
+    final look = _map(c['look']);
+    final fg = cssColor(look['fg'], Colors.white);
+    final g = [for (final x in (c['gradient'] as List? ?? const [])) cssColor(x)];
+    final icon = _map(c['icon']);
+    final image = icon['image'];
+    final play = _s(_map(c['cta'])['ion']) == 'play';
+    final sub = _s(c['sub']);
+    void open() => c['action'] == 'challenge' ? act('challenge') : onOpen(_s(c['href']));
+    // `onTap` — в самой подписи: `excludeSemantics` срезает действие нажатия у детей, и без него
+    // TalkBack читал плитку, но двойным касанием не открывал (дамп uiautomator 30.10: clickable=false).
+    return Semantics(
+      button: true,
+      label: _s(c['label']),
+      onTap: open,
+      excludeSemantics: true,
+      child: GestureDetector(
+          key: ValueKey('home-card-${c['id']}'),
+          behavior: HitTestBehavior.opaque,
+          onTap: open,
+          child: Container(
+            constraints: const BoxConstraints(minHeight: 104),
+            padding: const EdgeInsets.fromLTRB(6, 10, 6, 8),
+            decoration: BoxDecoration(
+              gradient: g.length >= 2 ? LinearGradient(colors: g, begin: Alignment.topLeft, end: Alignment.bottomRight) : null,
+              color: g.length >= 2 ? null : g.firstOrNull,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Stack(children: [
+              Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                Center(
+                  child: image != null
+                      ? ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: Image.network(image.toString().startsWith('http') ? '$image' : '$origin$image',
+                              width: 34, height: 34, errorBuilder: (_, _, _) => const SizedBox(width: 34, height: 34)),
+                        )
+                      : IonIcon(_s(icon['ion']), size: 30, color: fg),
+                ),
+                const SizedBox(height: 6),
+                Text(_s(c['title']),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: fg, fontSize: 12, height: 1.15, fontWeight: FontWeight.w700)),
+                if (sub.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 2),
+                    child: Text(sub,
+                        key: ValueKey('home-card-reason-${c['id']}'),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: fg.withValues(alpha: 0.82), fontSize: 10.5, height: 1.15, fontWeight: FontWeight.w500)),
+                  ),
+                const Spacer(),
+                const SizedBox(height: 4),
+                Icon(play ? Icons.play_arrow_rounded : Icons.chevron_right, size: 20, color: fg),
+              ]),
+              if (c['chip'] != null)
+                Positioned(
+                  top: -4,
+                  right: -2,
+                  child: Text(_s(c['chip']), style: TextStyle(color: fg, fontSize: 10, fontWeight: FontWeight.w900)),
+                ),
+            ]),
+          ),
+        ),
+    );
+  }
+}
+
+/// Плитка раздела «Чаще всего играешь» в «Авроре»: картинка раздела (объект — справа на
+/// иллюстрации 2:1, поэтому кадр берётся с правого края), название отдельной строкой (в одну
+/// строку с числом на ширине 76 pt «Внимание» обрезалось), под ним число игр и › — переход
+/// к списку раздела, не запуск, поэтому не ▶.
+class _AuroraSectionMini extends StatelessWidget {
+  const _AuroraSectionMini({super.key, required this.asset, required this.title, required this.count, required this.onTap});
+  final String asset;
+  final String title;
+  final int? count;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final text = auroraToken('text', dark: dark)!;
+    final secondary = auroraToken('textSecondary', dark: dark)!;
+    return Semantics(
+      button: true,
+      label: count == null ? title : '$title, $count',
+      onTap: onTap,
+      excludeSemantics: true,
+      child: Material(
+        color: auroraToken('surface', dark: dark),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(color: auroraToken('border', dark: dark)!),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            AspectRatio(
+              aspectRatio: 1.25,
+              child: Image.asset(asset, fit: BoxFit.cover, alignment: const Alignment(0.55, 0)),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(4, 5, 4, 4),
+              child: Text(title,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 12, height: 1.15, fontWeight: FontWeight.w700, color: text)),
+            ),
+            const Spacer(),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 4),
+              child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                if (count != null) Flexible(child: Text('$count', maxLines: 1, style: TextStyle(fontSize: 11, color: secondary))),
+                Icon(Icons.chevron_right, size: 18, color: text),
+              ]),
+            ),
+          ]),
+        ),
+      ),
+    );
+  }
 }
