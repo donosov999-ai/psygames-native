@@ -4,7 +4,9 @@ import 'dart:ui' show ImageFilter;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
+import 'design_template.dart';
 import 'feedback_fab.dart';
+import 'game_colors.dart';
 import 'l10n.dart';
 import 'web_theme.dart';
 
@@ -19,6 +21,10 @@ import 'web_theme.dart';
 /// Рисунок — перенос веб-полосы: стекло 0,72 с размытием 24, волосяная кромка сверху, высота 58 +
 /// низ безопасной зоны, значок 22 и подпись 11/600, активная — акцентом профиля или надетым в
 /// магазине ([WebTheme.accent]), невыбранная — `textSecondary`.
+///
+/// «Аврора» (лист 01 v2, LAYOUT_CORRECTIONS §2): та же пятёрка с подписями, но сплошная панель
+/// цвета фона шаблона с кромкой `border`, активная — оранжевым «Авроры» (`GameColors.aurora.highlight`,
+/// как пауза — решение Дениса 29.10 15:03), невыбранная — `textSecondary` шаблона. Classic не меняется.
 class TabDef {
   const TabDef({required this.route, required this.icon, required this.labelKey});
   final String route;
@@ -85,8 +91,22 @@ class NativeTabBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final dark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
+    final dark = theme.brightness == Brightness.dark;
     final bottom = MediaQuery.paddingOf(context).bottom;
+    if (theme.extension<UiTemplateTheme>()?.template == UiTemplate.aurora) {
+      // «Аврора»: сплошная панель фона шаблона, кромка `border`, активная — оранжевым.
+      return Container(
+        key: const ValueKey('native-tab-bar'),
+        height: NativeTabs.height + bottom,
+        padding: EdgeInsets.only(bottom: bottom),
+        decoration: BoxDecoration(
+          color: auroraToken('background', dark: dark),
+          border: Border(top: BorderSide(color: auroraToken('border', dark: dark)!, width: 0.5)),
+        ),
+        child: _row(GameColors.aurora(theme.brightness).highlight, auroraToken('textSecondary', dark: dark)!),
+      );
+    }
     final idle = WebTheme.of(context).textSecondary; // BottomTabBar.tsx: невыбранная — textSecondary
     return ClipRect(
       child: BackdropFilter(
@@ -100,7 +120,15 @@ class NativeTabBar extends StatelessWidget {
             border: Border(
                 top: BorderSide(color: dark ? const Color(0x1FFFFFFF) : const Color(0x1A000000), width: 0.5)),
           ),
-          child: Row(children: [
+          child: _row(accent, idle),
+        ),
+      ),
+    );
+  }
+
+  /// Пять вкладок — одна разметка на Classic и «Аврору»: значок 22, подпись 11/600, вся высота
+  /// вкладки нажимается. [on] — цвет активной, [idle] — невыбранной.
+  Widget _row(Color on, Color idle) => Row(children: [
             for (final t in NativeTabs.tabs)
               Expanded(
                 child: Semantics(
@@ -116,7 +144,7 @@ class NativeTabBar extends StatelessWidget {
                       height: NativeTabs.height,
                       child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
                         Icon(_tabIcons[t.icon] ?? Icons.circle_outlined,
-                            size: 22, color: active == t.route ? accent : idle),
+                            size: 22, color: active == t.route ? on : idle),
                         const SizedBox(height: 2),
                         Text(L.t(t.labelKey),
                             maxLines: 1,
@@ -125,15 +153,12 @@ class NativeTabBar extends StatelessWidget {
                                 fontSize: 11,
                                 height: 1.2,
                                 fontWeight: FontWeight.w600,
-                                color: active == t.route ? accent : idle)),
+                                color: active == t.route ? on : idle)),
                       ]),
                     ),
                   ),
                 ),
               ),
-          ]),
-        ),
-      ),
-    );
-  }
+          ]);
+
 }
