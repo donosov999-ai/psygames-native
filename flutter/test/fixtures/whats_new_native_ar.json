@@ -7,6 +7,14 @@
  "check": "التحقق من التحديثات · v0.0.0",
  "entries": [
   {
+   "version": "v2.56.51",
+   "date": "2026-10-31",
+   "items": [
+    "“Aurora” look: new game frame “glass and gems” — painted header and bottom bar, glowing background; Sudoku first: see-through board and gem buttons",
+    "“Aurora” look: in 40 more games “Restart” moved from the bottom bar into the pause"
+   ]
+  },
+  {
    "version": "v2.56.50",
    "date": "2026-10-30",
    "items": [

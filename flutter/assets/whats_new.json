@@ -1,6 +1,18 @@
 {
  "entries": [
   {
+   "version": "2.56.51",
+   "date": "2026-10-31",
+   "en": [
+    "“Aurora” look: new game frame “glass and gems” — painted header and bottom bar, glowing background; Sudoku first: see-through board and gem buttons",
+    "“Aurora” look: in 40 more games “Restart” moved from the bottom bar into the pause"
+   ],
+   "ru": [
+    "Оформление «Аврора»: новая игровая рамка «стекло и камни» — нарисованные шапка и нижняя панель, сияющий фон; первым — Судоку: прозрачное поле и кнопки-камни",
+    "Оформление «Аврора»: ещё в 40 играх «Заново» переехало из нижней панели в паузу"
+   ]
+  },
+  {
    "version": "2.56.50",
    "date": "2026-10-30",
    "en": [
