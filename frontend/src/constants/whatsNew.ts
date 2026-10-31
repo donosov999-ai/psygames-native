@@ -16,6 +16,20 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.56.52',
+    date: '2026-10-31',
+    en: [
+      '“Aurora” look: one bottom bar for all games — gem Pause everywhere; Undo, Hint, Notes and Color buttons get the same gems in every game',
+      '“Aurora” look: in 8 more games “Restart” moved from the bottom bar into the pause',
+      '“Aurora” home: “Quick access” title above the tiles and “All games ›” next to “Daily practices”',
+    ],
+    ru: [
+      'Оформление «Аврора»: нижняя панель одна для всех игр — пауза-камень везде; «Отменить», «Подсказка», «Заметки» и «Цвет» — одинаковые камни в каждой игре',
+      'Оформление «Аврора»: ещё в 8 играх «Заново» переехало из нижней панели в паузу',
+      'Главная «Авроры»: заголовок «Быстрый доступ» над плитками и «Все игры ›» у «Практик дня»',
+    ],
+  },
+  {
     version: '2.56.51',
     date: '2026-10-31',
     en: [
