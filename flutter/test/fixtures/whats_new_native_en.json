@@ -7,6 +7,14 @@
  "check": "Check for updates · v0.0.0",
  "entries": [
   {
+   "version": "v2.56.53",
+   "date": "2026-10-31",
+   "items": [
+    "“Aurora” look: game buttons moved from the board to the bottom bar — easier to reach: Replay sound in 4 listening games, Undo / Where is the mistake / Hint in Knights and Queens, Hint in 3 chess puzzles",
+    "“Aurora” look: the pause background now fills the whole screen"
+   ]
+  },
+  {
    "version": "v2.56.52",
    "date": "2026-10-31",
    "items": [
