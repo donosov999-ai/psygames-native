@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 
 import '../../shell/game_clock.dart';
+import '../../shell/aux_action.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
@@ -305,6 +306,7 @@ class _FindMoveScreenState extends State<FindMoveScreen> {
         _Phase.playing => run == null ? const SizedBox.shrink() : _play(run, h),
         _Phase.done => _result(),
       },
+      auxRow: playing ? _aux(run) : null,
       pauseActions: [
         if (playing)
           PauseAction(
@@ -351,6 +353,19 @@ class _FindMoveScreenState extends State<FindMoveScreen> {
     );
   }
 
+  /*
+   * «Подсказка» — в нижнем тулбаре каркаса, а не кнопкой под доской (стандарт игрового экрана,
+   * Денис 31.10; CHATS_RULES.md §1в). Условие прежнее; до него — неактивная кнопка, ряд не прыгает.
+   */
+  AuxBar _aux(FindMoveRun run) => AuxBar(children: [
+        AuxAction(
+          key: const Key('fm-hint'),
+          icon: Icons.lightbulb_outline,
+          label: L.t('btn_hint'),
+          onPressed: run.verdict == null && run.secondsLeft <= findMoveSeconds / 2 && !(run.hintSquare != null) ? () => setState(run.takeHint) : null,
+        ),
+      ]);
+
   Widget _play(FindMoveRun run, double fieldHeight) {
     final scheme = Theme.of(context).colorScheme;
     final p = run.puzzle;
@@ -373,7 +388,7 @@ class _FindMoveScreenState extends State<FindMoveScreen> {
         // превращения/подсказки и вердикта; и не шире поля.
         final side = min(
           box.maxWidth - 16,
-          fieldHeight - 200,
+          fieldHeight - 150,
         ).clamp(120.0, 520.0);
         return Column(
           children: [
@@ -437,17 +452,8 @@ class _FindMoveScreenState extends State<FindMoveScreen> {
                     ),
                 ],
               )
-            else if (verdict == null && left <= findMoveSeconds / 2)
-              run.hintSquare != null
-                  ? Text(L.t('hintUsed'), key: const Key('fm-hint-used'))
-                  : OutlinedButton(
-                      key: const Key('fm-hint'),
-                      onPressed: () => setState(run.takeHint),
-                      style: OutlinedButton.styleFrom(
-                        minimumSize: const Size(110, 48),
-                      ),
-                      child: Text(L.t('btn_hint')),
-                    ),
+            else if (verdict == null && left <= findMoveSeconds / 2 && run.hintSquare != null)
+              Text(L.t('hintUsed'), key: const Key('fm-hint-used')),
             Text(
               verdictText(),
               key: const Key('fm-verdict'),

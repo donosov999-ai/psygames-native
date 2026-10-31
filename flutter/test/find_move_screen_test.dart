@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:bishop/bishop.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:psygames_flutter/shell/aux_action.dart';
 import 'package:psygames_flutter/games/find_move/corpus.dart';
 import 'package:psygames_flutter/games/find_move/ladder.dart';
 import 'package:psygames_flutter/games/find_move/lesson.dart';
@@ -162,9 +163,10 @@ void main() {
     await open(tester);
     await tester.tap(find.byKey(const Key('fm-start')));
     await tester.pump();
-    expect(find.byKey(const Key('fm-hint')), findsNothing);
+    // «Подсказка» в нижнем тулбаре есть всегда, до половины времени — неактивна (ряд не прыгает).
+    expect(tester.widget<AuxAction>(find.byKey(const Key('fm-hint'))).onPressed, isNull);
     await wait(tester, findMoveSeconds * 500 + 100);
-    expect(find.byKey(const Key('fm-hint')), findsOneWidget);
+    expect(tester.widget<AuxAction>(find.byKey(const Key('fm-hint'))).onPressed, isNotNull);
     await tester.tap(find.byKey(const Key('fm-hint')));
     await tester.pump();
     expect(find.byKey(const Key('fm-hint-used')), findsOneWidget);
