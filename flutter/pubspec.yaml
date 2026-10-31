@@ -130,6 +130,10 @@ flutter:
   # `test/assets_bundled_test.dart`: он сверяет файлы на диске с тем, что
   # реально попало в сборку, и краснеет на пропущенном каталоге.
   assets:
+    # Игровая рамка «Авроры» — пилот Codex «стекло и камни» (31.10): подложки, фон, кнопки-шары;
+    # наборы камней игр — вложенными каталогами (каждый каталог — своей строкой).
+    - assets/aurora_game_chrome/
+    - assets/aurora_game_chrome/sudoku_buttons/
     - assets/levels/
     - assets/digits/candy/
     - assets/digits/elegant/

@@ -33,6 +33,22 @@ import 'package:flutter/material.dart';
 /// «Аврору» (обёртка classic-темы), остаётся прежним.
 @immutable
 class GameColors extends ThemeExtension<GameColors> {
+  /// Судоку в «Авроре» (пилот Codex 31.10): поле прозрачное на фоне рамки — свои клетки и золотые
+  /// толстые линии; роли других игр не меняет.
+  static GameColors sudokuGlass(GameColors base, Brightness brightness) => brightness == Brightness.dark
+      ? base.copyWith(
+          cell: const Color(0xFF061E32),
+          cellAlt: const Color(0xFF0A2C42),
+          boardLine: const Color(0xFF315E73),
+          boardLineStrong: const Color(0xFFFFD77D),
+        )
+      : base.copyWith(
+          cell: const Color(0xFFFFFAF1),
+          cellAlt: const Color(0xFFF3E9D7),
+          boardLine: const Color(0xFFC0B6A5),
+          boardLineStrong: const Color(0xFF9A6200),
+        );
+
   const GameColors({
     required this.correct,
     required this.wrong,
@@ -346,7 +362,7 @@ class ChromePalette {
     glow: Color(0xFF1C5E9E),
     glass: Color(0xFF0F2D44),
     glassTop: Color(0xFF17405F),
-    gold: Color(0xFFF4DD40),
+    gold: Color(0xFFFFD77D),
     goldSoft: Color(0xFFFBF8A1),
     primaryTop: Color(0xFFFBE45B),
     primaryBottom: Color(0xFFFDBB34),
@@ -363,7 +379,7 @@ class ChromePalette {
     glow: Color(0xFFFDE5A8),
     glass: Color(0xFFFDFBE8),
     glassTop: Color(0xFFFFFFFF),
-    gold: Color(0xFFF5C451),
+    gold: Color(0xFFFFB620),
     goldSoft: Color(0xFFFCDA79),
     primaryTop: Color(0xFFFDEF76),
     primaryBottom: Color(0xFFFEC542),
@@ -376,4 +392,37 @@ class ChromePalette {
   );
 
   static ChromePalette of(bool dark) => dark ? ChromePalette.dark : ChromePalette.light;
+}
+
+
+/*
+ * 🔴 ЦВЕТА ПИЛОТА CODEX «СТЕКЛО И КАМНИ» (31.10) — выбор Дениса: «красиво, чего тебе не удавалось».
+ * Источник: `~/Documents/TeamOps/psygames-design/codex-game-chrome-handoff-20261031/source/flutter/
+ * lib/shell/aurora_glass.dart`. Литералы — здесь, в источнике цветов, а не в `aurora_glass.dart`:
+ * храповик цветов не даёт заводить их в файлах рамки.
+ */
+class ChromePilot {
+  ChromePilot._();
+
+  /// Подложка шапки и нижнего ряда (поверх картинки `*_chrome_glass`).
+  static const chromeDark = [Color(0xF04A7482), Color(0xF01A4157), Color(0xF0082135), Color(0xF0193C4C)];
+  static const chromeLight = [Color(0xFFFDF9F0), Color(0xFFF4E9D7), Color(0xFFE9DCC8), Color(0xFFFBF5E9)];
+
+  /// Панели паузы и меню.
+  static const panelDark = [Color(0xEB5B8493), Color(0xF01B455D), Color(0xF0071B2D), Color(0xF00A2C46)];
+  static const panelLight = [Color(0xFFFFFFF9), Color(0xFFFAF3E7), Color(0xFFE9DDC9), Color(0xFFFFF9EB)];
+
+  /// Фон под картинкой боке (тёмная) и кремовый (светлая).
+  static const backdropDark = [Color(0xFF164A6B), Color(0xFF061B2C), Color(0xFF03121E)];
+  static const backdropLight = [Color(0xFFFFFCF4), Color(0xFFF5ECD9), Color(0xFFE9DAC0)];
+
+  /// Круглая кнопка в светлой теме (в тёмной — картинка `dark_round_button`).
+  static const ringLight = [Color(0xFFFFFFFF), Color(0xFFF8EFDF), Color(0xFFDFCFB8)];
+
+  /// Заливка стекла одним цветом.
+  static const fillDark = Color(0xE8092339);
+  static const fillLight = Color(0xF5FFF9EB);
+
+  /// Тень подложки рамки.
+  static const shadow = Color(0x60000000);
 }

@@ -38,6 +38,8 @@ class GameShell extends StatelessWidget {
     this.pauseActions = const [],
     this.levelRule,
     this.fieldOnly = false,
+    this.auroraTransparentField = false,
+    this.auroraJewelPause = false,
     this.practice,
   });
 
@@ -98,6 +100,14 @@ class GameShell extends StatelessWidget {
    * По умолчанию выключено: остальные экраны каркаса не меняются.
    */
   final bool fieldOnly;
+
+  /// «Аврора», по выбору игры: поле и клавиатура без своей подложки — за ними фон рамки (боке,
+  /// в светлой — переливы PrismaLoop). Пилот Codex 31.10 — Судоку; остальные игры сохраняют свой
+  /// фон, пока их контраст не проверен отдельно.
+  final bool auroraTransparentField;
+
+  /// «Аврора», по выбору игры: «Пауза» — нарисованный камень из её набора кнопок (пилот — Судоку).
+  final bool auroraJewelPause;
 
   /// Отступ справа сверху, который в режиме [fieldOnly] занимает кнопка паузы.
   static const fieldOnlyPauseClear = 72.0;
@@ -194,7 +204,7 @@ class GameShell extends StatelessWidget {
         backgroundColor: auroraToken('background', dark: frame.brightness == Brightness.dark),
         // Тот же фон, что у паузы (стандарт: стекло и золото на глубоком синем).
         body: DecoratedBox(
-          decoration: AuroraGlass.backdrop(frame.brightness == Brightness.dark),
+          decoration: AuroraGlass.backdrop(frame.brightness == Brightness.dark, lightPilot: auroraTransparentField),
           child: SafeArea(child: spot == null ? body : LevelRuleWatcher(spot: spot, child: body)),
         ),
       );
@@ -336,13 +346,16 @@ class GameShell extends StatelessWidget {
       Expanded(
         key: const Key('game-field'),
         child: ColoredBox(
-          color: Theme.of(context).scaffoldBackgroundColor,
+          color: auroraTransparentField ? Colors.transparent : Theme.of(context).scaffoldBackgroundColor,
           child: LayoutBuilder(builder: (context, c) => field(context, c.maxHeight)),
         ),
       ),
       if (toolbar != null)
-        Container(width: double.infinity, color: Theme.of(context).colorScheme.surface, child: toolbar),
-      chrome(_AuroraGameBar(onPause: () => _pause(context), aux: auxRow)),
+        Container(
+            width: double.infinity,
+            color: auroraTransparentField ? Colors.transparent : Theme.of(context).colorScheme.surface,
+            child: toolbar),
+      chrome(_AuroraGameBar(onPause: () => _pause(context), aux: auxRow, jewelPause: auroraJewelPause)),
     ]);
   }
 
@@ -618,6 +631,32 @@ extension on _PauseScreen {
 
     final restart = actions.where(GameShell._isRestart).firstOrNull;
     final others = [for (final a in actions) if (!identical(a, restart)) a];
+    final levels = [for (final a in others) if (a.group == 'levels') a];
+    final rest = [for (final a in others) if (a.group != 'levels') a];
+
+    // Выбор из нескольких (пункты игры со значком-кружком: дорога сложности Судоку и т. п.) — рядом
+    // сегментов по три, выбранный подсвечен (реф: «Полегче · Обычная · Пожёстче»); прочие — строками.
+    // Те же пункты и обработчики игры, каркас только раскладывает.
+    List<Widget> laid(List<PauseAction> list) => [
+          for (final group in _groupChoices(list))
+            if (group.length > 1 && _isChoice(group.first))
+              for (var i = 0; i < group.length; i += 3)
+                Padding(
+                  padding: const EdgeInsets.only(top: gap),
+                  child: Row(children: [
+                    for (var k = i; k < i + 3; k++) ...[
+                      if (k > i) const SizedBox(width: 8),
+                      Expanded(
+                        child: k < group.length
+                            ? _choiceSegment(group[k], dark, () => leaveWith(group[k].onPressed))
+                            : const SizedBox.shrink(),
+                      ),
+                    ],
+                  ]),
+                )
+            else
+              for (final a in group) row(a.label, a.icon, () => leaveWith(a.onPressed)),
+        ];
 
     return Scaffold(
       backgroundColor: p.background,
@@ -721,27 +760,31 @@ extension on _PauseScreen {
                   ),
                 ),
               ]),
-              // Выбор из нескольких (пункты игры со значком-кружком: дорога сложности Судоку и т. п.)
-              // — одним рядом сегментов, выбранный подсвечен (реф: «Полегче · Обычная · Пожёстче»).
-              // Те же пункты и обработчики игры, каркас только раскладывает.
-              for (final group in _groupChoices(others))
-                if (group.length > 1 && _isChoice(group.first))
-                  for (var i = 0; i < group.length; i += 3)
-                    Padding(
-                      padding: const EdgeInsets.only(top: gap),
-                      child: Row(children: [
-                        for (var k = i; k < i + 3; k++) ...[
-                          if (k > i) const SizedBox(width: 8),
-                          Expanded(
-                            child: k < group.length
-                                ? _choiceSegment(group[k], dark, () => leaveWith(group[k].onPressed))
-                                : const SizedBox.shrink(),
-                          ),
-                        ],
-                      ]),
-                    )
-                else
-                  for (final a in group) row(a.label, a.icon, () => leaveWith(a.onPressed)),
+              // «Уровни · Сложность» — пункты игры с `group: 'levels'` одной раскрытой панелью (реф
+              // pause-grouped-levels-v4, пилот Codex 31.10): уровни, генератор, дорога сложности рядом,
+              // но режимы не сливаются — каждый пункт остаётся своим действием игры.
+              if (levels.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(top: gap),
+                  child: Container(
+                    key: const Key('pause-level-group'),
+                    decoration: AuroraGlass.panel(dark, radius: 18),
+                    child: Theme(
+                      data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+                      child: ExpansionTile(
+                        initiallyExpanded: true,
+                        iconColor: p.text,
+                        collapsedIconColor: p.text,
+                        leading: Icon(Icons.bar_chart_rounded, color: p.gold, size: 28),
+                        title: Text('${L.t('sudokuModeLevels')} · ${L.t('difficultyLabel')}',
+                            style: TextStyle(color: p.text, fontSize: 18, fontWeight: FontWeight.w800)),
+                        childrenPadding: const EdgeInsets.fromLTRB(10, 0, 10, 12),
+                        children: laid(levels),
+                      ),
+                    ),
+                  ),
+                ),
+              ...laid(rest),
               if (GameExit.feedback != null)
                 row(L.t('feedbackFabLabel'), Icons.bug_report_outlined, GameExit.feedback!, key: const Key('pause-feedback')),
               const SizedBox(height: gap),
@@ -911,10 +954,14 @@ class HudItem {
 }
 
 class PauseAction {
-  const PauseAction({required this.label, required this.icon, required this.onPressed});
+  const PauseAction({required this.label, required this.icon, required this.onPressed, this.group});
   final String label;
   final IconData icon;
   final VoidCallback onPressed;
+
+  /// Смысловая группа в паузе «Авроры»: `levels` — панель «Уровни · Сложность» (уровни, генератор,
+  /// дорога сложности). Без группы — отдельной строкой. В Classic не влияет.
+  final String? group;
 }
 
 class _Header extends StatelessWidget {
@@ -1133,7 +1180,7 @@ class _AuroraHeader extends StatelessWidget {
       margin: const EdgeInsets.fromLTRB(8, 4, 8, 0),
       padding: const EdgeInsets.symmetric(horizontal: 6),
       height: m.headerHeight,
-      decoration: AuroraGlass.panel(dark, radius: 22),
+      decoration: AuroraGlass.chrome(dark, radius: 22),
       child: Row(children: [
         ring(context, key: const Key('game-back'), icon: Icons.chevron_left_rounded, tooltip: L.t('back'), onTap: onBack, size: size),
         const SizedBox(width: 8),
@@ -1244,9 +1291,10 @@ class _AuroraHelpMenu extends StatelessWidget {
 /// жёлтая глянцевая «Пауза» и кнопки игры — ОДНИМ рядом равных колонок (пауза — первая колонка),
 /// подписи под кругами. Пятивкладочной панели оболочки поверх игры нет.
 class _AuroraGameBar extends StatelessWidget {
-  const _AuroraGameBar({required this.onPause, this.aux});
+  const _AuroraGameBar({required this.onPause, this.aux, this.jewelPause = false});
   final VoidCallback onPause;
   final Widget? aux;
+  final bool jewelPause;
 
   @override
   Widget build(BuildContext context) {
@@ -1261,29 +1309,35 @@ class _AuroraGameBar extends StatelessWidget {
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: onPause,
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Container(
-            key: const Key('game-pause'),
-            decoration: AuroraGlass.pause(dark),
-            child: Material(
-              type: MaterialType.transparency,
-              child: InkWell(
-                customBorder: const CircleBorder(),
-                onTap: onPause,
-                child: SizedBox(
-                  width: m.barCircle,
-                  height: m.barCircle,
-                  child: Icon(Icons.pause_rounded, size: m.barCircle * 0.56, color: p.onPrimary),
+        // Круг — по ширине колонки (до 62, пилот Codex); у игры с набором камней — нарисованная пауза.
+        child: LayoutBuilder(builder: (context, box) {
+          final size = box.maxWidth.isFinite ? m.circleFor(box.maxWidth) : m.barCircle;
+          return Column(mainAxisSize: MainAxisSize.min, children: [
+            Container(
+              key: const Key('game-pause'),
+              decoration: jewelPause ? null : AuroraGlass.pause(dark),
+              child: Material(
+                type: MaterialType.transparency,
+                child: InkWell(
+                  customBorder: const CircleBorder(),
+                  onTap: onPause,
+                  child: SizedBox(
+                    width: size,
+                    height: size,
+                    child: jewelPause
+                        ? Image.asset('assets/aurora_game_chrome/sudoku_buttons/${dark ? 'dark' : 'light'}_pause.webp')
+                        : Icon(Icons.pause_rounded, size: size * 0.56, color: p.onPrimary),
+                  ),
                 ),
               ),
             ),
-          ),
-          SizedBox(height: m.compact ? 3 : 6),
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Text(L.t('teachPause'), maxLines: 1, style: TextStyle(fontSize: m.barLabel, height: 1.1, color: p.text)),
-          ),
-        ]),
+            SizedBox(height: m.compact ? 3 : 5),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(L.t('teachPause'), maxLines: 1, style: TextStyle(fontSize: m.barLabel, height: 1.1, color: p.text)),
+            ),
+          ]);
+        }),
       ),
     );
     // Кнопки игры из её AuxBar — в те же равные колонки, что и пауза (реф: пять равных колонок).
@@ -1292,7 +1346,7 @@ class _AuroraGameBar extends StatelessWidget {
       key: const Key('game-bar-aurora'),
       margin: const EdgeInsets.fromLTRB(8, 2, 8, 4),
       padding: m.barPadding,
-      decoration: AuroraGlass.panel(dark, radius: 24),
+      decoration: AuroraGlass.chrome(dark, radius: 24),
       child: items != null
           ? Row(key: const Key('aux-bar-aurora'), crossAxisAlignment: CrossAxisAlignment.start, children: [
               Expanded(child: Center(child: pause)),
