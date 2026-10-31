@@ -7,6 +7,13 @@
  "check": "Check for updates · v0.0.0",
  "entries": [
   {
+   "version": "v2.56.54",
+   "date": "2026-10-31",
+   "items": [
+    "Warm-up opened from the Home card now keeps the bottom tabs"
+   ]
+  },
+  {
    "version": "v2.56.53",
    "date": "2026-10-31",
    "items": [
