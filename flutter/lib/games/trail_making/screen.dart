@@ -182,7 +182,8 @@ class _TrailMakingScreenState extends State<TrailMakingScreen> {
       ],
       field: (context, h) => _field(context, h),
       auxRow: AuxBar(children: [
-        AuxAction(icon: Icons.refresh, label: L.t('restart'), onPressed: _phase == TrailPhase.playing ? _restart : null),
+        // Тот же `_restart`, что «Заново» в паузе (там доступен всегда) — под «Авророй» только в паузе.
+        AuxAction(inPause: true, icon: Icons.refresh, label: L.t('restart'), onPressed: _phase == TrailPhase.playing ? _restart : null),
       ]),
       toolbar: switch (_phase) {
         TrailPhase.ready => Padding(
