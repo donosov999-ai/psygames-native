@@ -1,6 +1,18 @@
 {
  "entries": [
   {
+   "version": "2.56.53",
+   "date": "2026-10-31",
+   "en": [
+    "“Aurora” look: game buttons moved from the board to the bottom bar — easier to reach: Replay sound in 4 listening games, Undo / Where is the mistake / Hint in Knights and Queens, Hint in 3 chess puzzles",
+    "“Aurora” look: the pause background now fills the whole screen"
+   ],
+   "ru": [
+    "Оформление «Аврора»: кнопки игры переехали с поля в нижнюю панель — до них проще дотянуться: «Повторить звук» в 4 играх на слух, «Отменить», «Где ошибка», «Подсказка» в «Конях и ферзях», «Подсказка» в 3 шахматных задачах",
+    "Оформление «Аврора»: фон паузы теперь на весь экран"
+   ]
+  },
+  {
    "version": "2.56.52",
    "date": "2026-10-31",
    "en": [
