@@ -293,7 +293,7 @@ class _WordPairsScreenState extends State<WordPairsScreen> {
       ],
       field: (context, h) => _field(context, s, h),
       auxRow: AuxBar(children: [
-        AuxAction(icon: Icons.refresh, label: L.t('restart'), onPressed: _start),
+        AuxAction(inPause: true, icon: Icons.refresh, label: L.t('restart'), onPressed: _start),
       ]),
       toolbar: _toolbar(s),
       pauseActions: [

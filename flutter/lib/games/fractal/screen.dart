@@ -667,7 +667,7 @@ class _FractalScreenState extends State<FractalScreen> {
           active: _paint != null,
           onPressed: _won ? null : _togglePaint,
         ),
-        AuxAction(icon: Icons.refresh, label: L.t('restart'), onPressed: () => restartGuarded(context, live: _live, deal: _deal)),
+        AuxAction(inPause: true, icon: Icons.refresh, label: L.t('restart'), onPressed: () => restartGuarded(context, live: _live, deal: _deal)),
         AuxAction(
           key: const Key('show-solution'),
           icon: Icons.lightbulb_outline,

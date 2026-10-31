@@ -362,7 +362,7 @@ class _MentalRotationScreenState extends State<MentalRotationScreen> {
       auxRow: _phase == Phase.playing
           ? AuxBar(
               children: [
-                AuxAction(icon: Icons.refresh, label: L.t('restart'), onPressed: _startRun),
+                AuxAction(inPause: true, icon: Icons.refresh, label: L.t('restart'), onPressed: _startRun),
                 AuxAction(
                   icon: Icons.rotate_right,
                   label: mrWord('rotateManually'),

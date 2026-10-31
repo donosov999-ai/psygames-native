@@ -181,7 +181,7 @@ class _AnimalQueueScreenState extends State<AnimalQueueScreen> {
       ],
       field: (context, h) => _QueueBoard(game: game, wrong: _wrong, onTap: _tap),
       auxRow: AuxBar(children: [
-        AuxAction(icon: Icons.refresh, label: L.t('restart'), onPressed: _restart),
+        AuxAction(inPause: true, icon: Icons.refresh, label: L.t('restart'), onPressed: _restart),
       ]),
       toolbar: _won
           ? Padding(

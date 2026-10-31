@@ -247,7 +247,7 @@ class _RollAndBankScreenState extends State<RollAndBankScreen> {
         ],
       ),
       auxRow: AuxBar(children: [
-        AuxAction(icon: Icons.refresh, label: L.t('restart'), onPressed: () => setState(_deal)),
+        AuxAction(inPause: true, icon: Icons.refresh, label: L.t('restart'), onPressed: () => setState(_deal)),
       ]),
       toolbar: Padding(
         padding: const EdgeInsets.all(12),
