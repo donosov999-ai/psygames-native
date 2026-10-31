@@ -276,6 +276,8 @@ class _SchulteScreenState extends State<SchulteScreen> {
       ),
       auxRow: AuxBar(children: [
         AuxAction(
+          // Тот же обработчик, что «Заново» в паузе — под «Авророй» только в паузе.
+          inPause: true,
           icon: Icons.refresh,
           label: L.t('restart'),
           onPressed: () => setState(_reset),

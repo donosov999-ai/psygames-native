@@ -377,7 +377,8 @@ class _NBackScreenState extends State<NBackScreen> {
           label: L.t('puzzleShowSolution'),
           onPressed: _phase == NbPhase.playing ? _reveal : null,
         ),
-        AuxAction(icon: Icons.refresh, label: L.t('restart'), onPressed: () => setState(_reset)),
+        // В паузе — общее «Заново» каркаса (пересоздаёт экран, новая партия с нуля); под «Авророй» только там.
+        AuxAction(inPause: true, icon: Icons.refresh, label: L.t('restart'), onPressed: () => setState(_reset)),
       ]),
       toolbar: _phase == NbPhase.playing
           ? _Buttons(
