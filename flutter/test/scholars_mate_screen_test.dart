@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:psygames_flutter/shell/aux_action.dart';
 import 'package:psygames_flutter/games/scholars_mate/check.dart';
 import 'package:psygames_flutter/games/scholars_mate/deck.dart';
 import 'package:psygames_flutter/games/scholars_mate/ladder.dart';
@@ -167,9 +168,10 @@ void main() {
     await tester.tap(find.byKey(const Key('sm-start')));
     await tester.pump();
     await wait(tester, 500);
-    expect(find.byKey(const Key('sm-hint')), findsNothing);
+    // «Подсказка» в нижнем тулбаре есть всегда, до половины времени — неактивна (ряд не прыгает).
+    expect(tester.widget<AuxAction>(find.byKey(const Key('sm-hint'))).onPressed, isNull);
     await wait(tester, levelParams(1).seconds * 500);
-    expect(find.byKey(const Key('sm-hint')), findsOneWidget);
+    expect(tester.widget<AuxAction>(find.byKey(const Key('sm-hint'))).onPressed, isNotNull);
     await tester.tap(find.byKey(const Key('sm-hint')));
     await tester.pump();
     expect(find.byKey(const Key('sm-hint-used')), findsOneWidget);

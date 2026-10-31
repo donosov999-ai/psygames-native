@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:psygames_flutter/shell/aux_action.dart';
 import 'package:psygames_flutter/games/knights_queens/ladder.dart';
 import 'package:psygames_flutter/games/knights_queens/lesson.dart';
 import 'package:psygames_flutter/games/knights_queens/screen.dart';
@@ -189,9 +190,11 @@ void main() {
     await open(tester);
     await tester.tap(find.byKey(const Key('kq-start')));
     await tester.pump();
-    expect(find.byKey(const Key('kq-hint')), findsNothing);
+    // Кнопка в нижнем тулбаре есть всегда, но до половины времени неактивна (ряд не прыгает).
+    AuxAction hint() => tester.widget<AuxAction>(find.byKey(const Key('kq-hint')));
+    expect(hint().onPressed, isNull);
     await wait(tester, kqSeconds(KqMode.queens) * 500 + 100);
-    expect(find.byKey(const Key('kq-hint')), findsOneWidget);
+    expect(hint().onPressed, isNotNull);
     await tester.tap(find.byKey(const Key('kq-hint')));
     await tester.pump();
     expect(find.byKey(const Key('kq-hint-used')), findsOneWidget);

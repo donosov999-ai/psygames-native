@@ -244,9 +244,16 @@ get_session "self"        →  local_<uuid>
 **Можно в поле:** кнопки, которые часть хода или итога — «Дальше», «Ещё раз» на экране итога,
 выход из тупика «ходов нет».
 
+🔴 **Управление — в тулбар, если он позволяет** (Денис 31.10: «тянуться в низ экрана проще, чем в центр»).
+Даже главная кнопка экрана — например, «Повторить звук» в играх на слух — идёт в `AuxAction`, а не крупной
+кнопкой в центре поля. Довод «это стимул, пусть будет в центре» Денис отклонил. Сторож —
+`flutter/test/design/no_self_drawn_service_buttons_test.dart` (подписи служебных действий вне
+`AuxAction`/`PauseAction` — красный).
+
 Нет нужной кнопки или вида — задача каркасу (координатор `psygames-claude-mac`), а не своя копия
 «пока так». Сторожа в CI: `flutter/test/design/restart_only_in_pause_test.dart` («Заново» внизу без
-`inPause`), `aurora_aux_bar_test.dart`, `aurora_game_shell_test.dart`, храповик зашитых цветов.
+`inPause`), `no_self_drawn_service_buttons_test.dart` (служебная кнопка в поле), `aurora_aux_bar_test.dart`,
+`aurora_game_shell_test.dart`, храповик зашитых цветов.
 
 ---
 

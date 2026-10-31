@@ -663,6 +663,9 @@ extension on _PauseScreen {
       backgroundColor: p.background,
       body: Container(
         key: const Key('pause-aurora-bg'),
+        // На весь экран: тело Scaffold получает нежёсткие размеры, и без expand подложка
+        // ужималась до высоты пунктов — ниже них шла ровная заливка (замер 2.56.52, Корректура).
+        constraints: const BoxConstraints.expand(),
         decoration: AuroraGlass.backdrop(dark),
         child: SafeArea(
           child: SingleChildScrollView(
