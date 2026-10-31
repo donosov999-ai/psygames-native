@@ -39,7 +39,7 @@ class GameShell extends StatelessWidget {
     this.levelRule,
     this.fieldOnly = false,
     this.auroraTransparentField = false,
-    this.auroraJewelPause = false,
+    this.auroraJewelPause = true,
     this.practice,
   });
 
@@ -106,7 +106,8 @@ class GameShell extends StatelessWidget {
   /// фон, пока их контраст не проверен отдельно.
   final bool auroraTransparentField;
 
-  /// «Аврора», по выбору игры: «Пауза» — нарисованный камень из её набора кнопок (пилот — Судоку).
+  /// «Аврора»: «Пауза» — нарисованный камень пилота. С 31.10 — у всех игр (стандарт игрового экрана:
+  /// нижний тулбар один на все игры); `false` — только для пробы старого вида.
   final bool auroraJewelPause;
 
   /// Отступ справа сверху, который в режиме [fieldOnly] занимает кнопка паузы.

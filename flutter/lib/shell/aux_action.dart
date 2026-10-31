@@ -50,6 +50,24 @@ class AuxAction extends StatelessWidget {
   /// недоступность — настоящие виджеты поверх картинки; null — общий стеклянный шар.
   final String? jewelAssetId;
 
+  /*
+   * 🔴 КАМЕНЬ ПО ЗНАЧКУ — ОДИН ВИД У ВСЕХ ИГР (стандарт игрового экрана, Денис 31.10: «нижний тулбар
+   * с паузой и кнопками у всех… а то скачет у всех по-разному»). Пилот нарисовал камни Судоку;
+   * «Отменить», «Подсказка», «Заметки» и «Цвет» в других играх получают тот же камень по значку,
+   * без правки игры. Остальные действия — общий стеклянный шар.
+   */
+  static final Map<IconData, String> _jewelByIcon = {
+    Icons.undo: 'undo',
+    Icons.lightbulb_outline: 'hint',
+    Icons.lightbulb: 'hint',
+    Icons.edit: 'notes',
+    Icons.edit_outlined: 'notes',
+    Icons.palette: 'color',
+    Icons.palette_outlined: 'color',
+  };
+
+  String? get _jewel => jewelAssetId ?? _jewelByIcon[icon];
+
   @override
   Widget build(BuildContext context) {
     if (_aurora(context)) return _auroraTile(context);
@@ -121,11 +139,11 @@ extension on AuxAction {
         child: LayoutBuilder(builder: (context, box) {
           final size = box.maxWidth.isFinite ? m.circleFor(box.maxWidth) : m.barCircle;
           final glyph = Icon(icon, size: size * 0.46, color: fg);
-          final Widget face = jewelAssetId != null
+          final Widget face = _jewel != null
               ? Stack(clipBehavior: Clip.none, alignment: Alignment.center, children: [
                   Opacity(
                     opacity: disabled ? 0.55 : 1,
-                    child: Image.asset('assets/aurora_game_chrome/sudoku_buttons/${dark ? 'dark' : 'light'}_$jewelAssetId.webp',
+                    child: Image.asset('assets/aurora_game_chrome/sudoku_buttons/${dark ? 'dark' : 'light'}_$_jewel.webp',
                         width: size, height: size),
                   ),
                   if (active)
@@ -156,7 +174,7 @@ extension on AuxAction {
                     );
           return Column(mainAxisSize: MainAxisSize.min, children: [
             Container(
-              decoration: jewelAssetId == null ? AuroraGlass.ring(dark, active: active ? (tint ?? p.primaryBottom) : null) : null,
+              decoration: _jewel == null ? AuroraGlass.ring(dark, active: active ? (tint ?? p.primaryBottom) : null) : null,
               child: Material(
                 type: MaterialType.transparency,
                 child: InkWell(

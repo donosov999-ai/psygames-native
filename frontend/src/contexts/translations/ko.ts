@@ -1281,6 +1281,7 @@ const t: Record<string, string> = {
   "unitHourShort": "시간",
   "unitMinShort": "분",
   "allGames": "모든 게임",
+  "homeQuickAccess": "빠른 접근",
   "totalPlayedCompleted": "총 플레이: {n}판 (완료)",
   "tokensLabel": "포인트",
   "gamesPlayed": "판 완료",

@@ -1281,6 +1281,7 @@ const t: Record<string, string> = {
   "unitHourShort": "h",
   "unitMinShort": "min",
   "allGames": "Tutti i giochi",
+  "homeQuickAccess": "Accesso rapido",
   "totalPlayedCompleted": "Totale giocato: {n} partite (completate)",
   "tokensLabel": "Punti",
   "gamesPlayed": "partite completate",

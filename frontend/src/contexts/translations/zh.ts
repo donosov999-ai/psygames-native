@@ -1104,6 +1104,7 @@ const t: Record<string, string> = {
   "unitHourShort": "小时",
   "unitMinShort": "分",
   "allGames": "全部游戏",
+  "homeQuickAccess": "快速访问",
   "totalPlayedCompleted": "共游玩：{n} 局（已完成）",
   "tokensLabel": "积分",
   "gamesPlayed": "局已完成",

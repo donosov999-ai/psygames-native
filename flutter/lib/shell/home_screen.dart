@@ -431,7 +431,11 @@ class _HomeScreenState extends State<HomeScreen> {
         }
         return _HeroBlock(b: b, origin: widget.origin, onOpen: widget.onOpen, act: _act, ion: 'sparkles-outline', iconSize: 20, accent: null);
       case 'practices':
-        if (_isAurora(context)) return _AuroraMiniBlock(b: b, origin: widget.origin, onOpen: widget.onOpen, act: _act, ion: 'leaf-outline', kit: _kit);
+        // «Все игры ›» и у «Практик», как на рефе 30.10 — тот же переход на вкладку «Игры».
+        if (_isAurora(context)) {
+          return _AuroraMiniBlock(b: b, origin: widget.origin, onOpen: widget.onOpen, act: _act, ion: 'leaf-outline', kit: _kit,
+              onAll: () => widget.onTab('/games'));
+        }
         return _HeroBlock(b: b, origin: widget.origin, onOpen: widget.onOpen, act: _act, ion: 'leaf-outline', iconSize: 19, accent: const Color(0xFF10B981));
       case 'favourites':
         return _Favourites(b: b, kit: _kit, state: widget.state, onOpen: widget.onOpen, onTab: widget.onTab);

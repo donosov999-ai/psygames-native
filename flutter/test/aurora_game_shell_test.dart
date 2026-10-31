@@ -67,9 +67,10 @@ void main() {
     expect(pause.top, greaterThanOrEqualTo(field.bottom), reason: 'пауза — под полем');
     expect(pause.top, greaterThanOrEqualTo(toolbar.bottom), reason: 'клавиатура игры — над нижним рядом');
     expect(pause.left, lessThan(t.getRect(find.text('ПРАВИЛА · ОТМЕНИТЬ')).left), reason: 'пауза слева от значков');
-    // Пауза — жёлтый глянец (стандарт 30.10, стекло и золото): градиент от жёлтого паузы.
-    final yellow = t.widget<Container>(key('game-pause')).decoration! as BoxDecoration;
-    expect((yellow.gradient! as LinearGradient).colors, [ChromePalette.dark.primaryTop, ChromePalette.dark.primaryBottom]);
+    // Пауза — камень пилота у ВСЕХ игр (стандарт 31.10: нижний тулбар один на все игры), не своя заливка.
+    final pauseImage = t.widget<Image>(find.descendant(of: key('game-pause'), matching: find.byType(Image)));
+    expect((pauseImage.image as AssetImage).assetName, 'assets/aurora_game_chrome/sudoku_buttons/dark_pause.webp');
+    expect(t.widget<Container>(key('game-pause')).decoration, isNull, reason: 'вид паузы — только камень');
 
     final title = t.widget<Text>(key('game-title'));
     expect(title.style?.color, ChromePalette.dark.text, reason: 'рамка — по палитре рефа');
