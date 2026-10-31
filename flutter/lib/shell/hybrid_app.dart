@@ -1446,8 +1446,23 @@ class _HybridAppState extends State<HybridApp> {
     late final MaterialPageRoute<dynamic> page;
     page = MaterialPageRoute<dynamic>(
         // «Заново» в паузе любой игры — пересоздание экрана в RestartScope (restart_scope.dart).
+        // 🔴 Экран-вкладка (`/warmup-picker`), открытый со страницы (карточка «Зарядка» на главной),
+        // ложится маршрутом поверх корневого Scaffold — и нижние вкладки пропадали (Кодекс 31.10,
+        // лаборатория aurora-chrome-parallel). Такой странице — своя полоса вкладок.
         builder: (_) => step == null
-            ? RestartScope(builder: (_) => build(widget.state))
+            ? _tabsReady && NativeTabs.tabs.any((t) => t.route == route)
+                ? Scaffold(
+                    body: RestartScope(builder: (_) => build(widget.state)),
+                    bottomNavigationBar: NativeTabBar(
+                      active: route,
+                      accent: WebTheme.accent(widget.state),
+                      onTap: (target) {
+                        _closeNativeBecausePageMoved();
+                        unawaited(_selectTab(target));
+                      },
+                    ),
+                  )
+                : RestartScope(builder: (_) => build(widget.state))
             : WarmupStepFrame(
                 info: step,
                 onSkip: () => _skipNativeStep(page, _openedWarmupOwner),
