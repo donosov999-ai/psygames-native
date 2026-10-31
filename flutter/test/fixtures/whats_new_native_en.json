@@ -7,6 +7,15 @@
  "check": "Check for updates · v0.0.0",
  "entries": [
   {
+   "version": "v2.56.52",
+   "date": "2026-10-31",
+   "items": [
+    "“Aurora” look: one bottom bar for all games — gem Pause everywhere; Undo, Hint, Notes and Color buttons get the same gems in every game",
+    "“Aurora” look: in 8 more games “Restart” moved from the bottom bar into the pause",
+    "“Aurora” home: “Quick access” title above the tiles and “All games ›” next to “Daily practices”"
+   ]
+  },
+  {
    "version": "v2.56.51",
    "date": "2026-10-31",
    "items": [
