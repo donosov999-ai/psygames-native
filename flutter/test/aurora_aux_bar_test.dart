@@ -69,6 +69,27 @@ void main() {
     expect(width - centers.last, lessThan(steps.first), reason: 'последняя кнопка у правого края, без пустого места');
   });
 
+  testWidgets('Стандарт 31.10: «Отменить», «Подсказка», «Заметки» — камнем по значку в любой игре, остальное — стеклянный шар', (t) async {
+    await mount(t, UiTemplate.aurora);
+    String? jewelOf(String label) {
+      final images = find.descendant(
+        of: find.ancestor(of: find.text(label), matching: find.byType(AuxAction)),
+        matching: find.byType(Image),
+      );
+      if (images.evaluate().isEmpty) return null;
+      return (t.widget<Image>(images.first).image as AssetImage).assetName.split('/').last;
+    }
+
+    // Игра камень не передаёт (jewelAssetId нет) — каркас берёт его по значку.
+    expect(jewelOf('Правила'), 'dark_hint.webp', reason: 'значок лампочки — камень «Подсказка»');
+    expect(jewelOf('Отменить'), 'dark_undo.webp');
+    expect(jewelOf('Карандаш'), 'dark_notes.webp');
+    expect(jewelOf('Очистить'), isNull, reason: 'камня нет — общий стеклянный шар');
+    final pause = find.descendant(of: find.byKey(const Key('game-pause')), matching: find.byType(Image));
+    expect((t.widget<Image>(pause).image as AssetImage).assetName.split('/').last, 'dark_pause.webp',
+        reason: 'пауза — камень у всех игр, без флага игры');
+  });
+
   testWidgets('Classic: прежние круглые значки без подписей', (t) async {
     await mount(t, UiTemplate.classic);
     expect(find.byKey(const Key('aux-bar-aurora')), findsNothing);
