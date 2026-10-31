@@ -239,7 +239,7 @@ class _ObjectTrackerScreenState extends State<ObjectTrackerScreen> with SingleTi
           active: _reduced,
           onPressed: _phase == _Phase.preview ? () => setState(() => _reduced = !_reduced) : null,
         ),
-        AuxAction(icon: Icons.refresh, label: L.t('restart'), onPressed: () => setState(_reset)),
+        AuxAction(inPause: true, icon: Icons.refresh, label: L.t('restart'), onPressed: () => setState(_reset)),
       ]),
       toolbar: Padding(
         padding: const EdgeInsets.all(12),

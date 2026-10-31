@@ -878,7 +878,7 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
                 AuxAction(key: const Key('pause-pause'), icon: Icons.pause, label: ps('pause'), onPressed: () => act('pause'))
               else
                 AuxAction(key: const Key('pause-resume'), icon: Icons.play_arrow, label: ps('resume'), onPressed: () => act('resume')),
-              AuxAction(key: const Key('pause-restart'), icon: Icons.replay, label: ps('restart'), onPressed: _again),
+              AuxAction(inPause: true, key: const Key('pause-restart'), icon: Icons.replay, label: ps('restart'), onPressed: _again),
             ])
           : phase == PausePhase.playing && s != null
           ? AuxBar(children: [
@@ -888,7 +888,7 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
                 AuxAction(key: const Key('pause-resume'), icon: Icons.play_arrow, label: ps('resume'), onPressed: () => act('resume')),
               AuxAction(key: const Key('pause-skip'), icon: Icons.skip_next, label: pc('skipStepBtn'), onPressed: () => act('skip')),
               AuxAction(key: const Key('pause-extend'), icon: Icons.more_time, label: pc('extend30'), onPressed: () => act('extend')),
-              AuxAction(key: const Key('pause-restart'), icon: Icons.replay, label: ps('restart'), onPressed: _again),
+              AuxAction(inPause: true, key: const Key('pause-restart'), icon: Icons.replay, label: ps('restart'), onPressed: _again),
             ])
           : null,
       // 🔴 Подход гимнастики и стереокартинки — ТОЛЬКО ПОЛЕ (решение Дениса, задача

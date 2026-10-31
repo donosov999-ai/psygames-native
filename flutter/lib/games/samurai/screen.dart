@@ -591,7 +591,7 @@ class _SamuraiScreenState extends State<SamuraiScreen> {
           label: L.t('btn_undo'),
           onPressed: _history.isEmpty || _halted ? null : _undo,
         ),
-        AuxAction(icon: Icons.refresh, label: L.t('restart'), onPressed: () => restartGuarded(context, live: _live, deal: _deal)),
+        AuxAction(inPause: true, icon: Icons.refresh, label: L.t('restart'), onPressed: () => restartGuarded(context, live: _live, deal: _deal)),
         AuxAction(
           icon: Icons.lightbulb_outline,
           label: L.t('btn_hint'),
