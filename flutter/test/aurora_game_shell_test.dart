@@ -88,6 +88,9 @@ void main() {
     await t.tap(key('game-pause'));
     await t.pumpAndSettle();
     expect(key('pause-card'), findsOneWidget);
+    // Фон паузы — на весь экран, а не до последнего пункта (2.56.52: ниже пунктов шла ровная заливка).
+    final screen = t.view.physicalSize / t.view.devicePixelRatio;
+    expect(t.getSize(key('pause-aurora-bg')), screen, reason: 'подложка паузы растянута на весь экран');
     // Шапка паузы одной строкой «<игра> · Пауза» (реф pause-grouped-levels-v4).
     expect(find.descendant(of: key('pause-card'), matching: find.text('Судоку · ${L.t('teachPause')}', findRichText: true)), findsOneWidget);
     expect(find.descendant(of: key('pause-card'), matching: find.text('24')), findsOneWidget);
