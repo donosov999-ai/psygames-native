@@ -202,6 +202,13 @@ void main() {
     // «Все игры ›» у «Рекомендуем» — вкладка «Игры».
     await t.tap(key('home-reco-all'));
     expect(tabs.removeLast(), '/games');
+    // Заголовок ряда «Быстрый доступ» над плитками (реф 30.10) — словом из словаря, не макетом.
+    final title = find.descendant(of: quick, matching: key('home-quick-title'));
+    expect(t.widget<Text>(title).data, 'Быстрый доступ');
+    expect(t.getRect(title).bottom, lessThan(t.getTopLeft(key('home-streak')).dy), reason: 'заголовок над плитками');
+    // «Все игры ›» и у «Практик дня» — та же вкладка «Игры».
+    await t.tap(key('home-practices-all'));
+    expect(tabs.removeLast(), '/games');
   });
 
   testWidgets('Classic: новой шапки нет, классическая на месте', (t) async {

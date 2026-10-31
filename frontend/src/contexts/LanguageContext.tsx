@@ -2897,6 +2897,7 @@ const translations: Translations = {
   unitHourShort: { ru: 'ч', en: 'h' },
   unitMinShort: { ru: 'м', en: 'm' },
   allGames: { ru: 'Все игры', en: 'All games' },
+  homeQuickAccess: { ru: 'Быстрый доступ', en: 'Quick access' },
   totalPlayedCompleted: { ru: 'Всего сыграно: {n} игр (завершённых)', en: 'Total played: {n} games (completed)' },
   tokensLabel: { ru: 'Очки', en: 'Tokens' },
   // 🔴 ПОДПИСЬ НАЗЫВАЕТ ТО, ЧТО СЧИТАЕТ. Замер 23.09.2026 по отзыву с кадром

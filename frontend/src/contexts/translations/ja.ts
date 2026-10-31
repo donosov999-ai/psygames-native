@@ -480,6 +480,7 @@ const t: Record<string, string> = {
   "unitHourShort": "時間",
   "unitMinShort": "分",
   "allGames": "すべてのゲーム",
+  "homeQuickAccess": "クイックアクセス",
   "totalPlayedCompleted": "合計プレイ：{n}回（完了分）",
   "tokensLabel": "ポイント",
   "gamesPlayed": "回完了",

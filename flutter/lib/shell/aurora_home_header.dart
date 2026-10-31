@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'design_template.dart';
 import 'ion_icon.dart';
+import 'l10n.dart';
 import 'walking_pet.dart' show PetFrames, PetSpec;
 
 /// 🔴 ВЕРХ ГЛАВНОЙ В «АВРОРЕ» — по рефу главной 30.10 (`home-dark-small-tiles-v1`): в строке
@@ -167,9 +168,11 @@ class AuroraHomeTop extends StatelessWidget {
    * Плитки — те же переходы, что были в шапке и в ряду счётчиков, без вторых копий: серия
    * (`/streak-calendar`), баллы с уровнем = магазин (`/shop`), достижения, друзья, лига.
    * Цифры — модели (серия, баллы, «Lv», достижения), не макетные. Подписи — из модели шапки,
-   * новых ключей словаря нет. Узко или крупный шрифт — переносится в два ряда.
+   * новых ключей у плиток нет; заголовок ряда — ключ `homeQuickAccess` (12 языков, 31.10). Узко или
+   * крупный шрифт — переносится в два ряда.
    */
   Widget stats(BuildContext context) {
+    final text = auroraToken('text', dark: Theme.of(context).brightness == Brightness.dark)!;
     final labels = _map(header['labels']);
     final streak = header['streak'];
     final league = header['league'];
@@ -217,6 +220,21 @@ class AuroraHomeTop extends StatelessWidget {
         final scale = MediaQuery.textScalerOf(context).scale(1).clamp(1.0, 2.0);
         final perRow = (box.maxWidth / (62 * scale)).floor().clamp(3, tiles.length);
         return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          // Заголовок ряда, как на рефе 30.10 («Быстрый доступ») — тем же видом, что у «Рекомендуем».
+          Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: Row(children: [
+              IonIcon('flash-outline', size: 18, color: text),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(L.t('homeQuickAccess'),
+                    key: const ValueKey('home-quick-title'),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: text)),
+              ),
+            ]),
+          ),
           for (var i = 0; i < tiles.length; i += perRow)
             Padding(
               padding: EdgeInsets.only(top: i == 0 ? 0 : gap),
