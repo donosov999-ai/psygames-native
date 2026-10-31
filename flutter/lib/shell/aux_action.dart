@@ -20,6 +20,7 @@ class AuxAction extends StatelessWidget {
     this.count,
     this.tint,
     this.inPause = false,
+    this.jewelAssetId,
   });
 
   final IconData icon;
@@ -43,6 +44,11 @@ class AuxAction extends StatelessWidget {
    * Под «Авророй» нижний ряд такую кнопку не показывает; в Classic она на месте.
    */
   final bool inPause;
+
+  /// «Аврора»: нарисованный камень кнопки из набора игры (пилот Codex 31.10 — Судоку:
+  /// `assets/aurora_game_chrome/sudoku_buttons/<тема>_<id>.webp`). Счётчик, включённый режим и
+  /// недоступность — настоящие виджеты поверх картинки; null — общий стеклянный шар.
+  final String? jewelAssetId;
 
   @override
   Widget build(BuildContext context) {
@@ -101,7 +107,6 @@ extension on AuxAction {
     final m = ChromeMetrics.of(context);
     final disabled = onPressed == null;
     final fg = disabled ? p.text.withValues(alpha: 0.35) : (active ? p.onPrimary : (tint ?? p.text));
-    final icon = Icon(this.icon, size: m.barCircle * 0.46, color: fg);
     return Semantics(
       button: true,
       enabled: !disabled,
@@ -112,41 +117,65 @@ extension on AuxAction {
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: onPressed,
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Container(
-            decoration: AuroraGlass.ring(dark, active: active ? (tint ?? p.primaryBottom) : null),
-            child: Material(
-              type: MaterialType.transparency,
-              child: InkWell(
-                customBorder: const CircleBorder(),
-                onTap: onPressed,
-                child: SizedBox(
-                  width: m.barCircle,
-                  height: m.barCircle,
-                  child: Center(
-                    child: count == null
-                        ? icon
-                        : Badge(
-                            key: const Key('aux-count'),
-                            label: Text('$count', style: TextStyle(fontWeight: FontWeight.w900, color: p.onPrimary)),
-                            backgroundColor: p.primaryBottom,
-                            offset: const Offset(10, -10),
-                            child: icon,
-                          ),
+        // Круг — по ширине колонки: крупнее, где помещается (до 62, пилот Codex).
+        child: LayoutBuilder(builder: (context, box) {
+          final size = box.maxWidth.isFinite ? m.circleFor(box.maxWidth) : m.barCircle;
+          final glyph = Icon(icon, size: size * 0.46, color: fg);
+          final Widget face = jewelAssetId != null
+              ? Stack(clipBehavior: Clip.none, alignment: Alignment.center, children: [
+                  Opacity(
+                    opacity: disabled ? 0.55 : 1,
+                    child: Image.asset('assets/aurora_game_chrome/sudoku_buttons/${dark ? 'dark' : 'light'}_$jewelAssetId.webp',
+                        width: size, height: size),
                   ),
+                  if (active)
+                    Container(
+                      width: size,
+                      height: size,
+                      decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: p.goldSoft, width: 2.5)),
+                    ),
+                  if (count != null)
+                    Positioned(
+                      top: 0,
+                      right: 0,
+                      child: Badge(
+                        key: const Key('aux-count'),
+                        label: Text('$count', style: TextStyle(fontWeight: FontWeight.w900, color: p.onPrimary)),
+                        backgroundColor: p.primaryBottom,
+                      ),
+                    ),
+                ])
+              : count == null
+                  ? glyph
+                  : Badge(
+                      key: const Key('aux-count'),
+                      label: Text('$count', style: TextStyle(fontWeight: FontWeight.w900, color: p.onPrimary)),
+                      backgroundColor: p.primaryBottom,
+                      offset: const Offset(10, -10),
+                      child: glyph,
+                    );
+          return Column(mainAxisSize: MainAxisSize.min, children: [
+            Container(
+              decoration: jewelAssetId == null ? AuroraGlass.ring(dark, active: active ? (tint ?? p.primaryBottom) : null) : null,
+              child: Material(
+                type: MaterialType.transparency,
+                child: InkWell(
+                  customBorder: const CircleBorder(),
+                  onTap: onPressed,
+                  child: SizedBox(width: size, height: size, child: Center(child: face)),
                 ),
               ),
             ),
-          ),
-          SizedBox(height: m.compact ? 3 : 6),
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Text(label,
-                maxLines: 1,
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: m.barLabel, height: 1.1, color: disabled ? fg : p.text)),
-          ),
-        ]),
+            SizedBox(height: m.compact ? 3 : 5),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(label,
+                  maxLines: 1,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: m.barLabel, height: 1.1, color: disabled ? p.text.withValues(alpha: 0.7) : p.text)),
+            ),
+          ]);
+        }),
       ),
     );
   }

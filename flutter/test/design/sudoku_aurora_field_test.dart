@@ -22,7 +22,9 @@ void main() {
   ThemeData themeOf(Brightness b, UiTemplate t) => applyUiTemplate(classicShellTheme(b), t);
 
   for (final b in Brightness.values) {
-    testWidgets('${b.name}: «Аврора» — клавиши цифр тёмные плитки поля (cell / onCell / boardLine)', (t) async {
+    // Пилот Codex 31.10 «стекло и камни»: клавиша — стеклянная плитка рамки (AuroraGlass.panel под
+    // прозрачной кнопкой), цифра — цветом onCell поля; кромку рисует стекло, а не обводка кнопки.
+    testWidgets('${b.name}: «Аврора» — клавиши цифр стеклянные плитки (стекло рамки, цифра onCell)', (t) async {
       await t.pumpWidget(MaterialApp(
         theme: themeOf(b, UiTemplate.aurora),
         home: Scaffold(body: SudokuKeys(n: 9, onDigit: (_) {}, onErase: () {}, onPaint: (_) {})),
@@ -30,11 +32,14 @@ void main() {
       final want = GameColors.aurora(b);
       final style = t.widget<FilledButton>(find.byKey(const Key('digit1'))).style;
       expect(style, isNotNull, reason: 'под «Авророй» у клавиши свой стиль');
-      expect(style!.backgroundColor?.resolve(<WidgetState>{}), want.cell);
+      expect(style!.backgroundColor?.resolve(<WidgetState>{}), Colors.transparent, reason: 'под кнопкой — стекло');
       expect(style.foregroundColor?.resolve(<WidgetState>{}), want.onCell);
-      expect(style.side?.resolve(<WidgetState>{})?.color, want.boardLine);
-      expect(t.widget<OutlinedButton>(find.byKey(const Key('erase'))).style?.backgroundColor?.resolve(<WidgetState>{}),
-          want.cell, reason: '«Стереть» — та же плитка');
+      for (final k in ['digit1', 'erase']) {
+        final glass = find.ancestor(of: find.byKey(Key(k)), matching: find.byType(DecoratedBox));
+        expect(glass, findsWidgets, reason: '$k — на стеклянной плитке');
+        final deco = t.widget<DecoratedBox>(glass.first).decoration as BoxDecoration;
+        expect(deco.border, isNotNull, reason: '$k — кромка стекла');
+      }
     });
 
     testWidgets('${b.name}: Classic — клавиши как были (своего стиля нет)', (t) async {

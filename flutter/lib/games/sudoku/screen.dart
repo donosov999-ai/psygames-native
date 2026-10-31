@@ -5,6 +5,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../../shell/game_colors.dart';
+import '../../shell/design_template.dart';
 import '../../shell/ability_wallet.dart';
 import '../../shell/game_clock.dart';
 import '../../shell/aux_action.dart';
@@ -1857,6 +1858,9 @@ class _SudokuScreenState extends State<SudokuScreen> {
         : (variant != null && variant != 'none' ? variantTitle(variant) : null);
 
     return LeaveGuard(live: _live, saved: _onRoad, child: GameShell(
+      // Пилот Codex «стекло и камни» (31.10): поле прозрачное на фоне рамки, пауза — камень.
+      auroraTransparentField: true,
+      auroraJewelPause: true,
       practice: _assisted,
       title: _title,
       // 🔴 «?» В ШАПКЕ — ПРАВИЛО ЭТОЙ ДОСКИ (отзыв 0c682daf, 10.10: «Небоскрёбы», «ничего не понятно»).
@@ -1965,12 +1969,14 @@ class _SudokuScreenState extends State<SudokuScreen> {
       auxRow: AuxBar(children: [
         AuxAction(
           icon: Icons.undo,
+          jewelAssetId: 'undo',
           label: L.t('btn_undo'),
           count: _history.isEmpty ? null : _history.length,
           onPressed: _history.isEmpty || _halted ? null : _undo,
         ),
         AuxAction(
           icon: Icons.lightbulb_outline,
+          jewelAssetId: 'hint',
           label: L.t('btn_hint'),
           tint: GameColors.of(context).hint,
           // Остаток — бесплатные плюс купленные: купленная подсказка — та же кнопка.
@@ -1981,6 +1987,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
         ),
         AuxAction(
           key: const Key('pencil'),
+          jewelAssetId: 'notes',
           icon: _pencil ? Icons.edit : Icons.edit_outlined,
           label: L.t('sudokuPencilMode'),
           active: _pencil,
@@ -1988,6 +1995,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
         ),
         AuxAction(
           key: const Key('paint'),
+          jewelAssetId: 'color',
           icon: _paint != null ? Icons.palette : Icons.palette_outlined,
           label: L.t('sudokuColorMode'),
           active: _paint != null,
@@ -2040,7 +2048,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
         PauseAction(label: L.t('sdkStartOver'), icon: Icons.refresh, onPressed: () => restartGuarded(context, live: _live, deal: _deal)),
         // Карта уровней лестницы — вернуться на пройденный (b5df5096 п.4; у веба — карта на экране настройки).
         if (widget.mode == null && !widget.junior && !_pilot && _levels != null)
-          PauseAction(label: L.t('sudokuModeLevels'), icon: Icons.map_outlined, onPressed: _openLevelMap),
+          PauseAction(label: L.t('sudokuModeLevels'), icon: Icons.map_outlined, onPressed: _openLevelMap, group: 'levels'),
         // Правило доски — окно со схемой, как бейдж варианта у веба (b5df5096 п.5).
         if (_hasRuleHelp)
           PauseAction(label: '${L.t('simonRule')}: ${_ruleTitle()}', icon: Icons.rule, onPressed: _openRuleHelp),
@@ -2049,6 +2057,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
             label: _pilot ? L.t('sudokuPilotOff') : L.t('sudokuPilotOn'),
             icon: _pilot ? Icons.trending_up : Icons.auto_awesome,
             onPressed: () => restartGuarded(context, live: _live, deal: _togglePilot),
+            group: 'levels',
           ),
         // Дорога сложности — между партиями, как переключатель веб-экрана: рядом с каждой
         // её уровень, видный ДО выбора (перенос пройденного вниз без этих чисел не понять).
@@ -2059,6 +2068,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
                   '${effectiveRoadLevel(widget.state, widget.state.activeProfile, r)}',
               icon: r == _road ? Icons.radio_button_checked : Icons.radio_button_unchecked,
               onPressed: () => restartGuarded(context, live: _live, deal: () => _switchRoad(r)),
+              group: 'levels',
             ),
         // «Стиль цифр»: буквы внутри — только на правилах без числового смысла
         // (symbols.dart); рисованные цифры — везде, это всё ещё цифры.
@@ -2478,7 +2488,11 @@ class _Cell extends StatelessWidget {
     final bool thickRight = regions != null
         ? _regionEdge(row, col, row, col + 1)
         : col == board.n - 1 || (!chaos && (col + 1) % board.bc == 0);
-    final gc = GameColors.of(context);
+    // «Аврора» (пилот Codex 31.10): поле прозрачное — клетки и золотые линии своей палитрой.
+    final baseColors = GameColors.of(context);
+    final gc = Theme.of(context).extension<UiTemplateTheme>()?.template == UiTemplate.aurora
+        ? GameColors.sudokuGlass(baseColors, Theme.of(context).brightness)
+        : baseColors;
     final ring = sudokuSelectionRing(context);
     final border = Border(
       top: _side(gc, thickTop),
