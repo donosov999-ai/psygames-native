@@ -16,6 +16,16 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.56.54',
+    date: '2026-10-31',
+    en: [
+      'Warm-up opened from the Home card now keeps the bottom tabs',
+    ],
+    ru: [
+      '«Зарядка», открытая с главной, больше не прячет нижние вкладки',
+    ],
+  },
+  {
     version: '2.56.53',
     date: '2026-10-31',
     en: [
