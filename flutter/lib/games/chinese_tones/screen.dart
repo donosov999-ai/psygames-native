@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import '../../shell/app_haptics.dart';
 import '../../shell/audio_host.dart';
 import '../../shell/game_preset.dart';
+import '../../shell/aux_action.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/lesson.dart';
@@ -267,6 +268,13 @@ class _ChineseTonesScreenState extends State<ChineseTonesScreen> {
         CtPhase.playing => _playing(context, h, t!),
         CtPhase.result => _result(context, h),
       },
+      // «Повторить звук» — в нижнем тулбаре каркаса, не кнопкой в центре поля: Денис 31.10 — «управление,
+      // если тулбар позволяет, идёт в него: тянуться в низ экрана проще, чем в центр» (CHATS_RULES.md §1в).
+      auxRow: t == null
+          ? null
+          : AuxBar(children: [
+              AuxAction(key: const Key('ct-replay'), icon: Icons.volume_up, label: L.t('replaySound'), onPressed: _answered == null ? _replay : null),
+            ]),
       toolbar: t == null ? null : _options(context, t),
     );
   }
@@ -308,15 +316,6 @@ class _ChineseTonesScreenState extends State<ChineseTonesScreen> {
       height: h,
       child: Center(
         child: Column(mainAxisSize: MainAxisSize.min, children: [
-          IconButton.filledTonal(
-            key: const Key('ct-replay'),
-            iconSize: 40,
-            tooltip: L.t('replaySound'),
-            onPressed: _answered == null ? _replay : null,
-            icon: const Icon(Icons.volume_up, color: _accent),
-          ),
-          Text(L.t('replaySound'), style: Theme.of(context).textTheme.bodySmall),
-          const SizedBox(height: 16),
           Text(_params.pinyinMode ? L.t('ctPickPinyin') : L.t('ctPickTone'), textAlign: TextAlign.center),
           // Иероглиф и пиньинь — ПОСЛЕ ответа и только на младших уровнях:
           // раньше времени они превращают слух в чтение.
