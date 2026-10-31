@@ -721,7 +721,27 @@ extension on _PauseScreen {
                   ),
                 ),
               ]),
-              for (final a in others) row(a.label, a.icon, () => leaveWith(a.onPressed)),
+              // Выбор из нескольких (пункты игры со значком-кружком: дорога сложности Судоку и т. п.)
+              // — одним рядом сегментов, выбранный подсвечен (реф: «Полегче · Обычная · Пожёстче»).
+              // Те же пункты и обработчики игры, каркас только раскладывает.
+              for (final group in _groupChoices(others))
+                if (group.length > 1 && _isChoice(group.first))
+                  for (var i = 0; i < group.length; i += 3)
+                    Padding(
+                      padding: const EdgeInsets.only(top: gap),
+                      child: Row(children: [
+                        for (var k = i; k < i + 3; k++) ...[
+                          if (k > i) const SizedBox(width: 8),
+                          Expanded(
+                            child: k < group.length
+                                ? _choiceSegment(group[k], dark, () => leaveWith(group[k].onPressed))
+                                : const SizedBox.shrink(),
+                          ),
+                        ],
+                      ]),
+                    )
+                else
+                  for (final a in group) row(a.label, a.icon, () => leaveWith(a.onPressed)),
               if (GameExit.feedback != null)
                 row(L.t('feedbackFabLabel'), Icons.bug_report_outlined, GameExit.feedback!, key: const Key('pause-feedback')),
               const SizedBox(height: gap),
@@ -754,6 +774,64 @@ extension on _PauseScreen {
       ),
     );
   }
+}
+
+/// Пункт выбора «один из нескольких»: игра рисует его кружком (отмеченный — выбран).
+bool _isChoice(PauseAction a) => a.icon == Icons.radio_button_checked || a.icon == Icons.radio_button_unchecked;
+
+/// Подряд идущие пункты выбора — одной группой, остальные — по одному.
+List<List<PauseAction>> _groupChoices(List<PauseAction> actions) {
+  final out = <List<PauseAction>>[];
+  for (final a in actions) {
+    if (_isChoice(a) && out.isNotEmpty && _isChoice(out.last.first)) {
+      out.last.add(a);
+    } else {
+      out.add([a]);
+    }
+  }
+  return out;
+}
+
+/// Сегмент выбора в паузе: кружок сверху, подпись под ним; выбранный — золотая кромка и ореол.
+Widget _choiceSegment(PauseAction a, bool dark, VoidCallback onTap) {
+  final p = ChromePalette.of(dark);
+  final on = a.icon == Icons.radio_button_checked;
+  return Semantics(
+    button: true,
+    selected: on,
+    label: a.label,
+    excludeSemantics: true,
+    onTap: onTap,
+    child: Container(
+      decoration: on
+          ? AuroraGlass.panel(dark, radius: 16).copyWith(
+              border: Border.all(color: p.goldSoft, width: 2.2),
+              boxShadow: [BoxShadow(color: p.gold.withValues(alpha: 0.6), blurRadius: 18)],
+            )
+          : AuroraGlass.panel(dark, radius: 16, glow: false),
+      child: Material(
+        type: MaterialType.transparency,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: onTap,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 72),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+              child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                Icon(a.icon, size: 26, color: on ? p.gold : p.text),
+                const SizedBox(height: 4),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(a.label, maxLines: 1, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: p.text)),
+                ),
+              ]),
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
 }
 
 /// «Правила» в паузе «Авроры» (реф): значок в золотом квадрате, заголовок, первая фраза; свёрнуты,
