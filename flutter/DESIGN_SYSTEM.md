@@ -69,6 +69,12 @@
 под каждую игру. Под игру меняется **только набор кнопок**, но не их вид, место,
 размер или порядок блоков.
 
+**Охват** (замер 31.10, main `2b9849581`): 158 входов каталога и хабов → 108 адресов игр →
+116 экранов на `GameShell` в 90 папках `lib/games`. Других игровых экранов нет: веб-игр в
+каталоге не осталось, Тэтхэм — один экран на 40 режимов. Что игра передаёт каркасу и чего
+ей рисовать нельзя — `CHATS_RULES.md` §1в. Сторожа: `test/design/restart_only_in_pause_test.dart`,
+`aurora_aux_bar_test.dart`, `aurora_game_shell_test.dart`.
+
 Рисунки: `~/dev/psygames-game-lab/design-refresh-20261024/sudoku-toolbar-review-20261030/`
 (`header-help-dropdown-v1.png`, `sudoku-even-toolbar-v4.png`, `pause-grouped-levels-v4.png`).
 Текст: `CLAUDE_SORTING_HUB_AND_GAME_CHROME_REF_20261030.md` там же, уровнем выше.
