@@ -1243,7 +1243,9 @@ class _HybridAppState extends State<HybridApp> {
   String _markNativeOver(String route) {
     final token = '${++_nativeOverSeq} $route';
     _nativeOver = token;
-    unawaited(_c.runJavaScript('window.__psyNativeOver=${jsonEncode(token)};').catchError((Object _) {}));
+    unawaited(_c.runJavaScript('window.__psyNativeOver=${jsonEncode(token)};'
+        'window.__psyMusicNativeRoute=${jsonEncode({'token': token, 'route': route})};'
+        'window.dispatchEvent(new Event("psygames-music-route"));').catchError((Object _) {}));
     return token;
   }
 
@@ -1251,6 +1253,11 @@ class _HybridAppState extends State<HybridApp> {
   /// это тоже фантом. Новый нативный экран за это время ставит свою метку, и старая её не трогает.
   void _unmarkNativeOver(String token) {
     if (_nativeOver == token) _nativeOver = null;
+    // Music ownership is separate from the 1.5s phantom-session quarantine.
+    // An old native screen must not clear the next game's music hold.
+    unawaited(_c.runJavaScript('(function(t){if(window.__psyMusicNativeRoute && window.__psyMusicNativeRoute.token===t){'
+        'window.__psyMusicNativeRoute=null;window.dispatchEvent(new Event("psygames-music-route"));}})(${jsonEncode(token)});')
+        .catchError((Object _) {}));
     unawaited(_c
         .runJavaScript('(function(t){setTimeout(function(){if(window.__psyNativeOver===t)window.__psyNativeOver=null;},1500);})'
             '(${jsonEncode(token)});')
@@ -1266,6 +1273,7 @@ class _HybridAppState extends State<HybridApp> {
     }.toList()
       ..sort();
     return 'window.__psyHostNativeRoutes=${jsonEncode(routes)};'
+        'window.__psyMusicNativeRoute=${jsonEncode(_nativeOver == null || _openedRoute == null ? null : {'token': _nativeOver, 'route': _openedRoute})};'
         // Страница перезагрузилась под открытым нативным экраном — метка возвращается (5f9d4ea0).
         'window.__psyNativeOver=${jsonEncode(_nativeOver)};'
         'window.__psyHostLang=${jsonEncode(widget.state.language)};'
