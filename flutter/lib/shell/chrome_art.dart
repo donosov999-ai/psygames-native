@@ -20,6 +20,12 @@ class ChromeArt {
     centerSlice: Rect.fromLTRB(35, 20, 221, 57.5),
     fit: BoxFit.fill,
   );
+  /// Same approved gold artwork, with caps that fit four >=44px controls.
+  static const compactAction = DecorationImage(
+    image: ExactAssetImage('$_root/home_panels_pilot/approved_action.png', scale: 4),
+    centerSlice: Rect.fromLTRB(18, 16, 238, 61.5),
+    fit: BoxFit.fill,
+  );
 
   static bool aurora(BuildContext context) => Theme.of(context).extension<UiTemplateTheme>()?.template == UiTemplate.aurora;
 

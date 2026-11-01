@@ -9,6 +9,7 @@ import 'ion_icon.dart';
 import 'l10n.dart';
 import 'pet_model.dart';
 import 'pet_materialization.dart';
+import 'pet_gem_console.dart';
 import 'design_template.dart';
 import 'chrome_art.dart';
 import 'game_colors.dart';
@@ -39,7 +40,13 @@ import '../synapse/synapse_feed.dart';
 /// что сделало нажатие (действие на портрете, лакомство, реплика, подпись запертого облика), ложится
 /// поверх со страницы. Свой расчёт не удался — модель страницы, как раньше.
 class PetScreen extends StatefulWidget {
-  const PetScreen({super.key, required this.origin, this.state, this.ownModel = true, this.active = true});
+  const PetScreen({
+    super.key,
+    required this.origin,
+    this.state,
+    this.ownModel = true,
+    this.active = true,
+  });
   final bool active;
   static const route = '/pet';
 
@@ -64,15 +71,21 @@ class PetScreen extends StatefulWidget {
 
 typedef _M = Map<String, Object?>;
 _M _map(Object? v) => v is Map ? Map<String, Object?>.from(v) : const {};
-List<_M> _list(Object? v) => v is List ? [for (final x in v) _map(x)] : const [];
+List<_M> _list(Object? v) =>
+    v is List ? [for (final x in v) _map(x)] : const [];
 String _s(Object? v) => v == null ? '' : '$v';
 
 const _violet = Color(0xFF8A68F5);
 
-class _PetScreenState extends State<PetScreen> with SingleTickerProviderStateMixin {
+class _PetScreenState extends State<PetScreen>
+    with SingleTickerProviderStateMixin {
   bool _editing = false;
+  bool _speechExpanded = false;
   final _name = TextEditingController();
-  late final AnimationController _treat = AnimationController(vsync: this, duration: const Duration(milliseconds: 900));
+  late final AnimationController _treat = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 900),
+  );
   bool _treatShown = false;
 
   /// Какая реплика Синапса в пузыре.
@@ -101,7 +114,9 @@ class _PetScreenState extends State<PetScreen> with SingleTickerProviderStateMix
         _refresh();
       },
       onError: (Object e) {
-        debugPrint('PetScreen: own model data failed, using the page model ($e)');
+        debugPrint(
+          'PetScreen: own model data failed, using the page model ($e)',
+        );
         _failed = true;
         _refresh();
       },
@@ -123,7 +138,9 @@ class _PetScreenState extends State<PetScreen> with SingleTickerProviderStateMix
     }
     if (d == null) return;
     try {
-      final ps = Profiles.current.list.isEmpty ? await Profiles.load() : Profiles.current;
+      final ps = Profiles.current.list.isEmpty
+          ? await Profiles.load()
+          : Profiles.current;
       _bubble ??= pickPetBubble(d, s.language);
       final own = petModelFrom(
         s,
@@ -155,7 +172,8 @@ class _PetScreenState extends State<PetScreen> with SingleTickerProviderStateMix
     super.dispose();
   }
 
-  void _act(String a, [List<Object?> args = const []]) => ScreenUi.act(PetScreen.route, a, args);
+  void _act(String a, [List<Object?> args = const []]) =>
+      ScreenUi.act(PetScreen.route, a, args);
 
   void _save() {
     setState(() => _editing = false);
@@ -169,7 +187,8 @@ class _PetScreenState extends State<PetScreen> with SingleTickerProviderStateMix
     if (!on) {
       _treat.value = 0;
     } else if (reduced) {
-      _treat.value = 0.85; // щадящий режим: сразу у рта, без полёта (как `PetTreat`)
+      _treat.value =
+          0.85; // щадящий режим: сразу у рта, без полёта (как `PetTreat`)
     } else {
       _treat.forward(from: 0);
     }
@@ -186,26 +205,40 @@ class _PetScreenState extends State<PetScreen> with SingleTickerProviderStateMix
       // Портрет — как у веба: на телефоне 220, на широком 300, но не выше трети окна.
       final portrait = ChromeArt.aurora(context)
           ? min(min(win.width * .74, 340.0), (win.height * .38).roundToDouble())
-          : min(win.width >= 768 ? 300.0 : 220.0, (win.height * 0.34).roundToDouble());
+          : min(
+              win.width >= 768 ? 300.0 : 220.0,
+              (win.height * 0.34).roundToDouble(),
+            );
       final p = _map(m['portrait']);
       final specs = _map(p['specs']);
       final state = _s(p['state']);
-      final spec = PetSpec.fromJson(specs[state]) ?? PetSpec.fromJson(specs['idle']);
+      final spec =
+          PetSpec.fromJson(specs[state]) ?? PetSpec.fromJson(specs['idle']);
       final treat = p['treat'] is Map ? _map(p['treat']) : null;
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) _syncTreat(treat != null, MediaQuery.disableAnimationsOf(context));
+        if (mounted) {
+          _syncTreat(treat != null, MediaQuery.disableAnimationsOf(context));
+        }
       });
 
-      Widget gapped(List<Widget> ws) => Column(mainAxisSize: MainAxisSize.min, spacing: 6, children: ws);
+      Widget gapped(List<Widget> ws) =>
+          Column(mainAxisSize: MainAxisSize.min, spacing: 6, children: ws);
 
       // ── Шапка: «назад», имя (тап — правка), место справа ──
       final headerControls = Padding(
         padding: ChromeArt.aurora(context)
-            ? const EdgeInsets.symmetric(horizontal: 20, vertical: 2)
+            ? const EdgeInsets.symmetric(horizontal: 5, vertical: 2)
             : const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         child: Row(
           children: [
-            circleBack(context, 'pet-back', _s(m['back']), _s(m['backIcon']), () => _act('back')),
+            if (!ChromeArt.aurora(context))
+              circleBack(
+                context,
+                'pet-back',
+                _s(m['back']),
+                _s(m['backIcon']),
+                () => _act('back'),
+              ),
             Expanded(
               child: Center(
                 child: _editing
@@ -213,27 +246,57 @@ class _PetScreenState extends State<PetScreen> with SingleTickerProviderStateMix
                         mainAxisSize: MainAxisSize.min,
                         spacing: 8,
                         children: [
-                          ConstrainedBox(
-                            constraints: ChromeArt.aurora(context)
-                                ? BoxConstraints(minWidth: 40, maxWidth: min(220, max(40, win.width - 216)))
-                                : const BoxConstraints(minWidth: 140, maxWidth: 220),
-                            child: IntrinsicWidth(
-                              child: TextField(
-                                key: const ValueKey('pet-name-field'),
-                                controller: _name,
-                                autofocus: true,
-                                maxLength: (m['nameMax'] as num?)?.toInt() ?? 20,
-                                textAlign: TextAlign.center,
-                                onSubmitted: (_) => _save(),
-                                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: web.text),
-                                decoration: InputDecoration(
-                                  isDense: true,
-                                  counterText: '',
-                                  hintText: _s(m['namePlaceholder']),
-                                  hintStyle: TextStyle(color: web.textSecondary),
-                                  contentPadding: const EdgeInsets.symmetric(vertical: 2),
-                                  enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: web.border, width: 1.5)),
-                                  focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: web.border, width: 1.5)),
+                          Flexible(
+                            child: ConstrainedBox(
+                              constraints: ChromeArt.aurora(context)
+                                  ? BoxConstraints(
+                                      minWidth: 40,
+                                      maxWidth: min(
+                                        220,
+                                        max(40, win.width - 216),
+                                      ),
+                                    )
+                                  : const BoxConstraints(
+                                      minWidth: 140,
+                                      maxWidth: 220,
+                                    ),
+                              child: IntrinsicWidth(
+                                child: TextField(
+                                  key: const ValueKey('pet-name-field'),
+                                  controller: _name,
+                                  autofocus: true,
+                                  maxLength:
+                                      (m['nameMax'] as num?)?.toInt() ?? 20,
+                                  textAlign: TextAlign.center,
+                                  onSubmitted: (_) => _save(),
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w800,
+                                    color: web.text,
+                                  ),
+                                  decoration: InputDecoration(
+                                    isDense: true,
+                                    counterText: '',
+                                    hintText: _s(m['namePlaceholder']),
+                                    hintStyle: TextStyle(
+                                      color: web.textSecondary,
+                                    ),
+                                    contentPadding: const EdgeInsets.symmetric(
+                                      vertical: 2,
+                                    ),
+                                    enabledBorder: UnderlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color: web.border,
+                                        width: 1.5,
+                                      ),
+                                    ),
+                                    focusedBorder: UnderlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color: web.border,
+                                        width: 1.5,
+                                      ),
+                                    ),
+                                  ),
                                 ),
                               ),
                             ),
@@ -248,8 +311,17 @@ class _PetScreenState extends State<PetScreen> with SingleTickerProviderStateMix
                               child: Container(
                                 width: 48,
                                 height: 48,
-                                decoration: const BoxDecoration(color: _violet, shape: BoxShape.circle),
-                                child: const Center(child: IonIcon('checkmark', size: 20, color: Colors.white)),
+                                decoration: const BoxDecoration(
+                                  color: _violet,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Center(
+                                  child: IonIcon(
+                                    'checkmark',
+                                    size: 20,
+                                    color: Colors.white,
+                                  ),
+                                ),
                               ),
                             ),
                           ),
@@ -277,10 +349,18 @@ class _PetScreenState extends State<PetScreen> with SingleTickerProviderStateMix
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                     textAlign: TextAlign.center,
-                                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: web.text),
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w800,
+                                      color: web.text,
+                                    ),
                                   ),
                                 ),
-                                IonIcon('pencil-outline', size: 15, color: web.textSecondary),
+                                IonIcon(
+                                  'pencil-outline',
+                                  size: 15,
+                                  color: web.textSecondary,
+                                ),
                               ],
                             ),
                           ),
@@ -288,7 +368,7 @@ class _PetScreenState extends State<PetScreen> with SingleTickerProviderStateMix
                       ),
               ),
             ),
-            const SizedBox(width: 44),
+            if (!ChromeArt.aurora(context)) const SizedBox(width: 44),
           ],
         ),
       );
@@ -308,9 +388,19 @@ class _PetScreenState extends State<PetScreen> with SingleTickerProviderStateMix
               Positioned.fill(
                 child: PetMaterialization(
                   active: widget.active,
-                  enabled: uiMotionPilot && Theme.of(context).extension<UiTemplateTheme>()?.template == UiTemplate.aurora,
-                  child: PetFrames(key: ValueKey('pet-frames-$state'), spec: spec, size: portrait, origin: widget.origin,
-                    still: MediaQuery.disableAnimationsOf(context)),
+                  enabled:
+                      uiMotionPilot &&
+                      Theme.of(context)
+                              .extension<UiTemplateTheme>()
+                              ?.template ==
+                          UiTemplate.aurora,
+                  child: PetFrames(
+                    key: ValueKey('pet-frames-$state'),
+                    spec: spec,
+                    size: portrait,
+                    origin: widget.origin,
+                    still: MediaQuery.disableAnimationsOf(context),
+                  ),
                 ),
               ),
             if (treat != null && mouth != null)
@@ -322,14 +412,23 @@ class _PetScreenState extends State<PetScreen> with SingleTickerProviderStateMix
                   final scale = v < 0.75 ? 1.0 : 1 - 0.8 * (v - 0.75) / 0.25;
                   return Positioned(
                     key: const ValueKey('pet-treat'),
-                    left: ((mouth['x'] as num?) ?? 0) / 100 * portrait - portrait * 0.09 + portrait * 0.18 * (1 - v),
-                    top: ((mouth['y'] as num?) ?? 0) / 100 * portrait - portrait * 0.09 + portrait * 0.28 * (1 - v),
+                    left:
+                        ((mouth['x'] as num?) ?? 0) / 100 * portrait -
+                        portrait * 0.09 +
+                        portrait * 0.18 * (1 - v),
+                    top:
+                        ((mouth['y'] as num?) ?? 0) / 100 * portrait -
+                        portrait * 0.09 +
+                        portrait * 0.28 * (1 - v),
                     child: IgnorePointer(
                       child: Opacity(
                         opacity: fade.clamp(0, 1),
                         child: Transform.scale(
                           scale: scale.clamp(0.2, 1),
-                          child: Text(_s(treat['emoji']), style: TextStyle(fontSize: portrait * 0.18)),
+                          child: Text(
+                            _s(treat['emoji']),
+                            style: TextStyle(fontSize: portrait * 0.18),
+                          ),
                         ),
                       ),
                     ),
@@ -359,7 +458,9 @@ class _PetScreenState extends State<PetScreen> with SingleTickerProviderStateMix
                         color: web.border,
                         alignment: Alignment.centerLeft,
                         child: FractionallySizedBox(
-                          widthFactor: ((growth['frac'] as num?) ?? 0).toDouble().clamp(0, 1),
+                          widthFactor: ((growth['frac'] as num?) ?? 0)
+                              .toDouble()
+                              .clamp(0, 1),
                           child: Container(color: _violet),
                         ),
                       ),
@@ -378,21 +479,30 @@ class _PetScreenState extends State<PetScreen> with SingleTickerProviderStateMix
       final feed = _map(m['feed']);
       final fed = feed['fed'] == true;
       final feedBtn = Padding(
-        padding: const EdgeInsets.only(top: 8),
+        padding: EdgeInsets.only(top: ChromeArt.aurora(context) ? 0 : 8),
         child: Semantics(
           button: true,
           enabled: !fed,
+          hint: feed['needMore'] == null ? null : _s(feed['needMore']),
           child: GestureDetector(
             key: const ValueKey('pet-feed'),
             onTap: fed ? null : () => _act('feed'),
             child: Container(
               constraints: const BoxConstraints(minHeight: 48),
-              padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 20),
-              decoration: ChromeArt.aurora(context) ? ChromeArt.panel(context, selected: !fed) : BoxDecoration(
-                color: fed ? web.surface : _violet,
-                border: Border.all(color: fed ? web.border : _violet, width: 1.5),
-                borderRadius: BorderRadius.circular(16),
+              padding: EdgeInsets.symmetric(
+                vertical: 6,
+                horizontal: ChromeArt.aurora(context) ? 4 : 20,
               ),
+              decoration: ChromeArt.aurora(context)
+                  ? const BoxDecoration(image: ChromeArt.compactAction)
+                  : BoxDecoration(
+                      color: fed ? web.surface : _violet,
+                      border: Border.all(
+                        color: fed ? web.border : _violet,
+                        width: 1.5,
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
               // По ширине текста и по центру строки, как у веба: кнопка не растягивается на всю ширину.
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -400,8 +510,17 @@ class _PetScreenState extends State<PetScreen> with SingleTickerProviderStateMix
                 children: [
                   Text(
                     _s(feed['label']),
-                    style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w800,
-                      color: ChromeArt.aurora(context) ? web.text : fed ? web.textSecondary : Colors.white),
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: ChromeArt.aurora(context) ? 11.5 : 13.5,
+                      height: 1.2,
+                      fontWeight: FontWeight.w800,
+                      color: ChromeArt.aurora(context)
+                          ? ChromePilot.onGoldAction
+                          : fed
+                          ? web.textSecondary
+                          : Colors.white,
+                    ),
                   ),
                 ],
               ),
@@ -418,6 +537,39 @@ class _PetScreenState extends State<PetScreen> with SingleTickerProviderStateMix
           style: TextStyle(fontSize: 11.5, color: web.textSecondary),
         ),
       );
+      Widget careButton(Map<String, Object?> c) => Semantics(
+        button: true,
+        enabled: c['enabled'] == true,
+        label: _s(c['a11y']),
+        excludeSemantics: true,
+        child: GestureDetector(
+          key: ValueKey('pet-care-${c['id']}'),
+          onTap: c['enabled'] == true ? () => _act('${c['id']}') : null,
+          child: Opacity(
+            opacity: c['enabled'] == true ? 1 : .5,
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 4),
+              decoration: ChromeArt.panel(context, square: true),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(_s(c['emoji']), style: const TextStyle(fontSize: 19)),
+                  Text(
+                    _s(c['label']),
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 11.5,
+                      height: 1.2,
+                      fontWeight: FontWeight.w700,
+                      color: web.text,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
       final careRow = Padding(
         padding: const EdgeInsets.fromLTRB(4, 10, 4, 0),
         child: Row(
@@ -432,29 +584,48 @@ class _PetScreenState extends State<PetScreen> with SingleTickerProviderStateMix
                   excludeSemantics: true,
                   child: GestureDetector(
                     key: ValueKey('pet-care-${c['id']}'),
-                    onTap: c['enabled'] == true ? () => _act('${c['id']}') : null,
+                    onTap: c['enabled'] == true
+                        ? () => _act('${c['id']}')
+                        : null,
                     child: Opacity(
                       opacity: c['enabled'] == true ? 1 : 0.5,
                       child: Container(
                         constraints: const BoxConstraints(minHeight: 56),
-                        padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
-                        decoration: ChromeArt.aurora(context) ? ChromeArt.panel(context, square: true) : BoxDecoration(
-                          color: web.surface,
-                          border: Border.all(color: c['accent'] == true ? _violet : web.border, width: 1.5),
-                          borderRadius: BorderRadius.circular(14),
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 6,
+                          horizontal: 4,
                         ),
+                        decoration: ChromeArt.aurora(context)
+                            ? ChromeArt.panel(context, square: true)
+                            : BoxDecoration(
+                                color: web.surface,
+                                border: Border.all(
+                                  color: c['accent'] == true
+                                      ? _violet
+                                      : web.border,
+                                  width: 1.5,
+                                ),
+                                borderRadius: BorderRadius.circular(14),
+                              ),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Padding(
                               padding: const EdgeInsets.only(bottom: 1),
-                              child: Text(_s(c['emoji']), style: const TextStyle(fontSize: 19)),
+                              child: Text(
+                                _s(c['emoji']),
+                                style: const TextStyle(fontSize: 19),
+                              ),
                             ),
                             Text(
                               _s(c['label']),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: web.text),
+                              style: TextStyle(
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w700,
+                                color: web.text,
+                              ),
                             ),
                           ],
                         ),
@@ -491,24 +662,45 @@ class _PetScreenState extends State<PetScreen> with SingleTickerProviderStateMix
                       opacity: sk['locked'] == true ? 0.5 : 1,
                       child: Container(
                         constraints: const BoxConstraints(minWidth: 96),
-                        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 14),
-                        decoration: ChromeArt.aurora(context) ? ChromeArt.panel(context, square: true).copyWith(
-                          border: Border.all(color: sk['on'] == true ? ChromePilot.selectedSkin : Colors.transparent, width: sk['on'] == true ? 2 : 1),
-                        ) : BoxDecoration(
-                          color: web.surface,
-                          border: Border.all(color: sk['on'] == true ? _violet : web.border, width: sk['on'] == true ? 2 : 1),
-                          borderRadius: BorderRadius.circular(15),
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 8,
+                          horizontal: 14,
                         ),
+                        decoration: ChromeArt.aurora(context)
+                            ? ChromeArt.panel(context, square: true).copyWith(
+                                border: Border.all(
+                                  color: sk['on'] == true
+                                      ? ChromePilot.selectedSkin
+                                      : Colors.transparent,
+                                  width: sk['on'] == true ? 2 : 1,
+                                ),
+                              )
+                            : BoxDecoration(
+                                color: web.surface,
+                                border: Border.all(
+                                  color: sk['on'] == true
+                                      ? _violet
+                                      : web.border,
+                                  width: sk['on'] == true ? 2 : 1,
+                                ),
+                                borderRadius: BorderRadius.circular(15),
+                              ),
                         child: Stack(
                           clipBehavior: Clip.none,
                           children: [
                             Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                if (PetSpec.fromJson(sk['still']) case final st?)
+                                if (PetSpec.fromJson(sk['still'])
+                                    case final st?)
                                   SizedBox.square(
                                     dimension: 52,
-                                    child: PetFrames(spec: st, size: 52, origin: widget.origin, still: true),
+                                    child: PetFrames(
+                                      spec: st,
+                                      size: 52,
+                                      origin: widget.origin,
+                                      still: true,
+                                    ),
                                   ),
                                 Padding(
                                   padding: const EdgeInsets.only(top: 3),
@@ -518,7 +710,9 @@ class _PetScreenState extends State<PetScreen> with SingleTickerProviderStateMix
                                     style: TextStyle(
                                       fontSize: 11.5,
                                       fontWeight: FontWeight.w800,
-                                      color: sk['on'] == true ? _violet : web.textSecondary,
+                                      color: sk['on'] == true
+                                          ? _violet
+                                          : web.textSecondary,
                                     ),
                                   ),
                                 ),
@@ -551,130 +745,183 @@ class _PetScreenState extends State<PetScreen> with SingleTickerProviderStateMix
         key: ValueKey(key),
         constraints: const BoxConstraints(minWidth: 112),
         padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
-        decoration: ChromeArt.aurora(context) ? ChromeArt.panel(context) : BoxDecoration(
-          color: web.surface,
-          border: Border.all(color: web.border),
-          borderRadius: BorderRadius.circular(15),
-        ),
+        decoration: ChromeArt.aurora(context)
+            ? ChromeArt.panel(context)
+            : BoxDecoration(
+                color: web.surface,
+                border: Border.all(color: web.border),
+                borderRadius: BorderRadius.circular(15),
+              ),
         child: Column(
           children: [
             Text(
               _s(big),
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: web.text),
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w900,
+                color: web.text,
+              ),
             ),
             Padding(
               padding: const EdgeInsets.only(top: 1),
-              child: Text(_s(small), style: TextStyle(fontSize: 11.5, color: web.textSecondary)),
+              child: Text(
+                _s(small),
+                style: TextStyle(fontSize: 11.5, color: web.textSecondary),
+              ),
             ),
           ],
         ),
       );
       // Реплики Синапса после партии — вместо приветствия, пока не закрыты (852e4b4a).
-      final synapse = widget.state == null ? const <String>[] : SynapseFeed.linesFor(widget.state!);
+      final synapse = widget.state == null
+          ? const <String>[]
+          : SynapseFeed.linesFor(widget.state!);
       if (_line >= synapse.length) _line = 0;
-      Widget synapseLink(String key, String text, VoidCallback onTap) => Semantics(
-        button: true,
-        label: text,
-        excludeSemantics: true,
-        child: GestureDetector(
-          key: ValueKey(key),
-          behavior: HitTestBehavior.opaque,
-          onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsets.only(top: 6, bottom: 2),
-            child: Text(text, style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: _violet)),
-          ),
-        ),
-      );
+      Widget synapseLink(String key, String text, VoidCallback onTap) =>
+          Semantics(
+            button: true,
+            label: text,
+            excludeSemantics: true,
+            child: GestureDetector(
+              key: ValueKey(key),
+              behavior: HitTestBehavior.opaque,
+              onTap: onTap,
+              child: Padding(
+                padding: const EdgeInsets.only(top: 6, bottom: 2),
+                child: Text(
+                  text,
+                  style: const TextStyle(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w700,
+                    color: _violet,
+                  ),
+                ),
+              ),
+            ),
+          );
       final advice = m['advice'] is Map ? _map(m['advice']) : null;
-      final adviceColor = advice == null ? _violet : cssColor(advice['color'], _violet);
+      final adviceColor = advice == null
+          ? _violet
+          : cssColor(advice['color'], _violet);
 
       final speechBox = Container(
-          key: const ValueKey('pet-bubble'),
-          constraints: const BoxConstraints(maxWidth: 260),
-          margin: const EdgeInsets.only(bottom: 6),
-          padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 14),
-          decoration: BoxDecoration(
-            color: web.surface,
-            border: Border.all(color: web.border),
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(15),
-              topRight: Radius.circular(15),
-              bottomRight: Radius.circular(15),
-              bottomLeft: Radius.circular(4),
+        key: const ValueKey('pet-bubble'),
+        constraints: const BoxConstraints(maxWidth: 260),
+        margin: const EdgeInsets.only(bottom: 6),
+        padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 14),
+        decoration: BoxDecoration(
+          color: web.surface,
+          border: Border.all(color: web.border),
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(15),
+            topRight: Radius.circular(15),
+            bottomRight: Radius.circular(15),
+            bottomLeft: Radius.circular(4),
+          ),
+        ),
+        child: synapse.isEmpty
+            ? Text(
+                _s(m['bubble']),
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  height: 18 / 13,
+                  color: web.text,
+                ),
+              )
+            : Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    synapse[_line],
+                    key: const ValueKey('pet-synapse-line'),
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      height: 18 / 13,
+                      color: web.text,
+                    ),
+                  ),
+                  Wrap(
+                    alignment: WrapAlignment.center,
+                    spacing: 16,
+                    children: [
+                      if (_line < synapse.length - 1)
+                        synapseLink(
+                          'pet-synapse-next',
+                          '${L.t('synapseNextLine')} ›',
+                          () => setState(() => _line += 1),
+                        ),
+                      synapseLink('pet-synapse-close', L.t('close'), () async {
+                        await SynapseFeed.dismiss(widget.state!);
+                        if (mounted) setState(() => _line = 0);
+                      }),
+                    ],
+                  ),
+                ],
+              ),
+      );
+      final aurora = ChromeArt.aurora(context);
+      final body = <Widget>[
+        if (aurora)
+          PetGemConsole(
+            name: headerControls,
+            stage: _s(m['stageName']),
+            portrait: portraitBox,
+            speech: speechBox,
+            expandedSpeech: _speechExpanded,
+            onExpand: () => setState(() => _speechExpanded = !_speechExpanded),
+            controls: [
+              feedBtn,
+              for (final c in _list(m['care'])) careButton(c),
+            ],
+            controlLabels: [
+              _s(feed['label']),
+              for (final c in _list(m['care'])) _s(c['label']),
+            ],
+          )
+        else ...[
+          speechBox,
+          portraitBox,
+        ],
+        if (!aurora) ...[
+          Padding(
+            padding: const EdgeInsets.only(top: 2),
+            child: Text(
+              _s(m['stageName']),
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.w900,
+                color: web.text,
+              ),
             ),
           ),
-          child: synapse.isEmpty
-              ? Text(
-                  _s(m['bubble']),
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, height: 18 / 13, color: web.text),
-                )
-              : Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      synapse[_line],
-                      key: const ValueKey('pet-synapse-line'),
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, height: 18 / 13, color: web.text),
-                    ),
-                    Wrap(
-                      alignment: WrapAlignment.center,
-                      spacing: 16,
-                      children: [
-                        if (_line < synapse.length - 1)
-                          synapseLink('pet-synapse-next', '${L.t('synapseNextLine')} ›', () => setState(() => _line += 1)),
-                        synapseLink('pet-synapse-close', L.t('close'), () async {
-                          await SynapseFeed.dismiss(widget.state!);
-                          if (mounted) setState(() => _line = 0);
-                        }),
-                      ],
-                    ),
-                  ],
-                ),
-        );
-      final inlineBubble = ChromeArt.aurora(context) && synapse.isEmpty &&
-          MediaQuery.textScalerOf(context).scale(1) <= 1.25 && _s(m['bubble']).length < 100;
-      final body = <Widget>[
-        if (!inlineBubble) speechBox,
-        if (ChromeArt.aurora(context)) Container(
-          key: const ValueKey('pet-gem-stage'),
-          width: double.infinity,
-          height: min(win.width - 32, 390),
-          decoration: BoxDecoration(borderRadius: BorderRadius.circular(24), image: DecorationImage(
-            image: AssetImage('assets/aurora_tab_panels/pet-stage-${Theme.of(context).brightness == Brightness.dark ? 'dark' : 'light'}.png'),
-            fit: BoxFit.cover, alignment: Alignment.bottomCenter,
-          )),
-          child: Stack(children: [
-            Positioned.fill(child: Align(alignment: const Alignment(0, -.65), child: portraitBox)),
-            if (inlineBubble) PositionedDirectional(top: 12, start: 12, end: 12,
-              child: Align(alignment: AlignmentDirectional.topStart, child: speechBox)),
-          ]),
-        ) else portraitBox,
-        if (ChromeArt.aurora(context)) headerControls,
-        Padding(
-          padding: const EdgeInsets.only(top: 2),
-          child: Text(
-            _s(m['stageName']),
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: web.text),
+          Text(
+            _s(m['stageHint']),
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 12.5, color: web.textSecondary),
           ),
-        ),
-        Text(
-          _s(m['stageHint']),
-          textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 12.5, color: web.textSecondary),
-        ),
+        ],
         ?growthBox,
-        feedBtn,
-        if (feed['needMore'] != null) hint(feed['needMore'], key: const ValueKey('pet-feed-hint')),
-        careRow,
-        if (m['lookReason'] != null) hint(m['lookReason'], key: const ValueKey('pet-look-reason')),
+        if (!aurora) ...[
+          feedBtn,
+          if (feed['needMore'] != null)
+            hint(feed['needMore'], key: const ValueKey('pet-feed-hint')),
+          careRow,
+        ],
+        if (m['lookReason'] != null)
+          hint(m['lookReason'], key: const ValueKey('pet-look-reason')),
         Padding(
           padding: const EdgeInsets.only(top: 14),
           child: Text(
             _s(m['skinTitle']),
-            style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: web.textSecondary),
+            style: TextStyle(
+              fontSize: 12.5,
+              fontWeight: FontWeight.w700,
+              color: web.textSecondary,
+            ),
           ),
         ),
         Padding(padding: const EdgeInsets.only(top: 6), child: skins),
@@ -686,7 +933,10 @@ class _PetScreenState extends State<PetScreen> with SingleTickerProviderStateMix
             alignment: WrapAlignment.center,
             spacing: 10,
             runSpacing: 10,
-            children: [statusBox(m['level'], m['levelLabel'], 'pet-level'), statusBox(m['total'], m['totalLabel'], 'pet-total')],
+            children: [
+              statusBox(m['level'], m['levelLabel'], 'pet-level'),
+              statusBox(m['total'], m['totalLabel'], 'pet-total'),
+            ],
           ),
         ),
         if (advice != null)
@@ -711,11 +961,19 @@ class _PetScreenState extends State<PetScreen> with SingleTickerProviderStateMix
                   children: [
                     Text(
                       _s(advice['title']),
-                      style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w800, color: adviceColor),
+                      style: TextStyle(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w800,
+                        color: adviceColor,
+                      ),
                     ),
                     Text(
                       _s(advice['body']),
-                      style: TextStyle(fontSize: 13.5, height: 19 / 13.5, color: web.text),
+                      style: TextStyle(
+                        fontSize: 13.5,
+                        height: 19 / 13.5,
+                        color: web.text,
+                      ),
                     ),
                   ],
                 ),
@@ -731,12 +989,17 @@ class _PetScreenState extends State<PetScreen> with SingleTickerProviderStateMix
               for (final k in _list(m['skills']))
                 Container(
                   key: ValueKey('pet-skill-${k['key']}'),
-                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 14),
-                  decoration: ChromeArt.aurora(context) ? ChromeArt.panel(context) : BoxDecoration(
-                    color: web.surface,
-                    border: Border.all(color: web.border),
-                    borderRadius: BorderRadius.circular(15),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 12,
+                    horizontal: 14,
                   ),
+                  decoration: ChromeArt.aurora(context)
+                      ? ChromeArt.panel(context)
+                      : BoxDecoration(
+                          color: web.surface,
+                          border: Border.all(color: web.border),
+                          borderRadius: BorderRadius.circular(15),
+                        ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
@@ -745,16 +1008,28 @@ class _PetScreenState extends State<PetScreen> with SingleTickerProviderStateMix
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Expanded(child: Text(
-                              _s(k['label']),
-                              style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700, color: web.text),
-                            )),
+                            Expanded(
+                              child: Text(
+                                _s(k['label']),
+                                style: TextStyle(
+                                  fontSize: 13.5,
+                                  fontWeight: FontWeight.w700,
+                                  color: web.text,
+                                ),
+                              ),
+                            ),
                             const SizedBox(width: 8),
-                            Flexible(child: Text(
-                              _s(k['value']),
-                              textAlign: TextAlign.end,
-                              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: cssColor(k['color'])),
-                            )),
+                            Flexible(
+                              child: Text(
+                                _s(k['value']),
+                                textAlign: TextAlign.end,
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w900,
+                                  color: cssColor(k['color']),
+                                ),
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -765,7 +1040,9 @@ class _PetScreenState extends State<PetScreen> with SingleTickerProviderStateMix
                           color: web.border,
                           alignment: Alignment.centerLeft,
                           child: FractionallySizedBox(
-                            widthFactor: (((k['value'] as num?) ?? 0) / 100).clamp(0, 1).toDouble(),
+                            widthFactor: (((k['value'] as num?) ?? 0) / 100)
+                                .clamp(0, 1)
+                                .toDouble(),
                             child: Container(color: cssColor(k['color'])),
                           ),
                         ),
@@ -787,7 +1064,10 @@ class _PetScreenState extends State<PetScreen> with SingleTickerProviderStateMix
               key: const ValueKey('pet-list'),
               padding: EdgeInsets.fromLTRB(16, 16, 16, FabRules.clearance),
               child: Center(
-                child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 520), child: gapped(body)),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 520),
+                  child: gapped(body),
+                ),
               ),
             ),
           ),
