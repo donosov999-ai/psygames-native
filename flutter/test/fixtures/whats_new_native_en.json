@@ -7,6 +7,16 @@
  "check": "Check for updates · v0.0.0",
  "entries": [
   {
+   "version": "v2.56.55",
+   "date": "2026-11-01",
+   "items": [
+    "Aurora: jewel Home, Games, Workout, Progress and Pet screens with matching headers and bottom tabs",
+    "Games stay in a square grid; Workout keeps your real programmes and durations",
+    "Gentle screen-entry effects, a new Pet entrance and animated item moves; respects Reduce Motion",
+    "Summary and History both keep their button backgrounds; improved music continuity between tabs"
+   ]
+  },
+  {
    "version": "v2.56.54",
    "date": "2026-10-31",
    "items": [

@@ -28,3 +28,9 @@
 4. Записывать фактические PR/SHA/run IDs/versionCodes/ответы магазинов ниже и в TeamOps. При существующих чужих changes in review не отменять их и не обходить защиту deploy_play.js.
 
 Статус на создание этого рефа: ПОДГОТОВКА. Ни новая сборка в Apple, ни Play2056055 пока не подтверждены. Рефы подготовки не являются квитанцией публикации.
+
+## Сверка PR454
+
+PR: https://github.com/donosov999-ai/psygames-native/pull/454. Предрелизная проверка поймала6require-style warnings в новом music-preferences-race test и устаревшие RU/EN/AR fixtures истории обновлений. Исправлены реальные причины: typed jest.requireMock/requireActual с сохранением resetModules/проверки гонки; fixtures заново экспортированы настоящим whats-new-host-model.test.tsx через WRITE_WHATS_NEW=1 WRITE=1, ни одна проверка не убрана. Архив343релизов синхронизирован штатным embed-whats-new.mjs.
+
+Локально музыка11/11, What’s New7/7, линт461errors/373warnings при прежнем потолке471/373 (долг не вырос). Компиляция с утверждёнными release defines45/45. Это не окончательный зелёный CI. Отменять можно только собственные прогоны устаревшего SHA этого PR; чужие/main/release-процессы не отменять. Ждать проверки последнего SHA перед слиянием.
