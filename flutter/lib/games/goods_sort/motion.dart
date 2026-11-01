@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
@@ -21,7 +19,7 @@ class GoodsMotion extends ChangeNotifier {
   GlobalKey niche(int index) => _niches.putIfAbsent(index, GlobalKey.new);
   GoodsFlight? flight;
   String? hiddenItem;
-  Timer? _timer;
+  VoidCallback? _onLand;
   int _epoch = 0;
   bool enabled = false;
   bool get busy => flight != null;
@@ -43,22 +41,24 @@ class GoodsMotion extends ChangeNotifier {
     final id = ++_epoch;
     hiddenItem = hide;
     flight = GoodsFlight(id, type, a, Rect.fromLTWH(b.center.dx - a.width / 2, b.bottom - a.height - 4, a.width, a.height));
-    _timer = Timer(const Duration(milliseconds: 350), () {
-      if (id != _epoch) return;
-      flight = null;
-      hiddenItem = null;
-      _timer = null;
-      notifyListeners();
-      onLand?.call();
-    });
+    _onLand = onLand;
     notifyListeners();
     return true;
   }
 
+  void complete(int id) {
+    if (id != _epoch || flight == null) return;
+    final landed = _onLand;
+    _onLand = null;
+    flight = null;
+    hiddenItem = null;
+    notifyListeners();
+    landed?.call();
+  }
+
   void cancel() {
     _epoch++;
-    _timer?.cancel();
-    _timer = null;
+    _onLand = null;
     final changed = flight != null;
     flight = null;
     hiddenItem = null;
@@ -66,7 +66,7 @@ class GoodsMotion extends ChangeNotifier {
   }
 
   @override
-  void dispose() { _timer?.cancel(); super.dispose(); }
+  void dispose() { _epoch++; _onLand = null; super.dispose(); }
 }
 
 class GoodsMotionLayer extends StatelessWidget {
@@ -85,7 +85,7 @@ class GoodsMotionLayer extends StatelessWidget {
           rect: f.from,
           child: IgnorePointer(child: ExcludeSemantics(child:
             Image.asset('assets/goods/good${f.type}.webp', fit: BoxFit.contain)
-              .animate(key: ValueKey('goods-flight-${f.id}'))
+              .animate(key: ValueKey('goods-flight-${f.id}'), onComplete: (_) => motion.complete(f.id))
               .move(end: f.to.topLeft - f.from.topLeft, duration: 260.ms, curve: Curves.easeInOutCubic)
               .then().scale(begin: const Offset(1.08, .94), end: const Offset(1, 1), duration: 90.ms),
           )),

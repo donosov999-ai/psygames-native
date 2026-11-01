@@ -12,6 +12,7 @@ import '../../shell/game_shell.dart';
 import '../../shell/game_clock.dart';
 import '../../shell/game_effect_audio.dart';
 import '../../shell/reward_effects.dart';
+import '../../shell/app_haptics.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/level_rules.dart';
 import '../../shell/shared_level_store.dart';
@@ -56,6 +57,7 @@ class GoodsSortScreen extends StatefulWidget {
 /// Сколько разбор вправе думать на нажатии. Задача 747a6ece: время разбора на
 /// эмуляторе Android ≤ 1 с; остаток секунды — на сборку шагов и переход.
 const Duration _lessonDeadline = Duration(milliseconds: 700);
+const _eventHapticsPilot = bool.fromEnvironment('PSYGAMES_EVENT_HAPTICS', defaultValue: false);
 
 /// Снимок партии для отмены: ход необратим по частям — каскад троек, закрытие
 /// полок и приход из очереди случаются разом.
@@ -452,6 +454,12 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> with WidgetsBindingOb
       unawaited(_recordResult(false));
     }
     if (!animated) landed();
+    // One existing system signal per accepted move, never per animation frame.
+    // Practice owners keep their own signals; untested new patterns stay off.
+    if (_eventHapticsPilot && !GamePreset.isPreset) {
+      final haptics = AppHaptics(widget.state);
+      unawaited(_won ? haptics.win() : haptics.hit());
+    }
   }
 
   // ⚠️ СОСЕДИ НИШИ ПЕРЕЕХАЛИ В `GoodsPlay.neighbours`: по ним снимается заслон,

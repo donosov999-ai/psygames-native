@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 
 import 'design_template.dart';
-import 'aurora_glass.dart';
 import 'ion_icon.dart';
 import 'l10n.dart';
 import 'section_header_surface.dart';
+import 'chrome_art.dart';
+import 'pilot_liquid_surface.dart';
 import 'walking_pet.dart' show PetFrames, PetSpec;
 
 /// 🔴 ВЕРХ ГЛАВНОЙ В «АВРОРЕ» — по рефу главной 30.10 (`home-dark-small-tiles-v1`): в строке
@@ -54,11 +55,11 @@ class AuroraHomeTop extends StatelessWidget {
       key: const ValueKey('aurora-home-top'),
       constraints: const BoxConstraints(minHeight: auroraSectionHeaderMinHeight),
       alignment: Alignment.center,
-      decoration: AuroraGlass.chrome(dark, radius: 20, glow: false).copyWith(
-        image: dark ? null : const DecorationImage(image: AssetImage('assets/aurora_game_chrome/home_panels_pilot/light_header.png'), fit: BoxFit.fill),
+      decoration: BoxDecoration(
+        image: ChromeArt.header(dark),
       ),
       padding: const EdgeInsets.fromLTRB(20, 8, 12, 4),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, mainAxisSize: MainAxisSize.min, children: [
+      child: PilotLiquidSurface(child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, mainAxisSize: MainAxisSize.min, children: [
         Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
           Expanded(
             child: FittedBox(
@@ -102,7 +103,7 @@ class AuroraHomeTop extends StatelessWidget {
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(fontSize: 13.5, height: 1.25, color: secondary)),
-      ]),
+      ])),
     );
   }
 

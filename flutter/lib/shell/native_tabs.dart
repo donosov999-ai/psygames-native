@@ -10,6 +10,8 @@ import 'feedback_fab.dart';
 import 'game_colors.dart';
 import 'l10n.dart';
 import 'web_theme.dart';
+import 'chrome_art.dart';
+import 'pilot_liquid_surface.dart';
 
 /// НИЖНЯЯ ПОЛОСА — У ОБОЛОЧКИ FLUTTER (задача 5136754e, решение Дениса 07.10.2026).
 ///
@@ -112,11 +114,10 @@ class NativeTabBar extends StatelessWidget {
         padding: EdgeInsets.only(bottom: bottom),
         // The artwork already has an edge; a BoxDecoration border adds implicit
         // layout padding and clips large accessibility text in the fixed bar.
-        decoration: AuroraGlass.chrome(dark, radius: 16, glow: false).copyWith(
-          border: null,
-          image: dark ? null : const DecorationImage(image: AssetImage('assets/aurora_game_chrome/home_panels_pilot/light_footer.png'), fit: BoxFit.fill),
+        decoration: BoxDecoration(
+          image: ChromeArt.footer(dark),
         ),
-        child: _row(GameColors.aurora(theme.brightness).highlight, auroraToken('textSecondary', dark: dark)!, underline: true, dark: dark),
+        child: PilotLiquidSurface(child: _row(GameColors.aurora(theme.brightness).highlight, auroraToken('textSecondary', dark: dark)!, underline: true, dark: dark)),
       );
     }
     final idle = WebTheme.of(context).textSecondary; // BottomTabBar.tsx: невыбранная — textSecondary

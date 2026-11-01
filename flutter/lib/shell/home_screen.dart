@@ -7,6 +7,7 @@ import 'package:flutter/rendering.dart';
 import 'aurora_home_hero.dart';
 import 'aurora_home_header.dart';
 import 'reward_effects.dart';
+import 'aurora_glass.dart';
 import 'aurora_hub_tile.dart';
 import 'catalog_kit.dart';
 import 'design_template.dart';
@@ -264,10 +265,12 @@ class _HomeScreenState extends State<HomeScreen> {
           key: const ValueKey('home-screen'),
           color: web.background,
           child: WebTheme.textDefaults(context, Stack(children: [
-            if (bg['image'] != null)
+            if (aurora)
+              Positioned.fill(child: DecoratedBox(decoration: AuroraGlass.backdrop(Theme.of(context).brightness == Brightness.dark, lightPilot: true)))
+            else if (bg['image'] != null)
               Positioned.fill(child: Image.network(_url(_s(bg['image'])), fit: BoxFit.cover, errorBuilder: (_, _, _) => const SizedBox())),
             // Налёт цветом темы (18 / 30 %) — показывает купленный цвет интерфейса.
-            Positioned(
+            if (!aurora) Positioned(
               top: 0, left: 0, right: 0, height: 260,
               child: IgnorePointer(
                 child: DecoratedBox(
@@ -282,7 +285,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
             // Вуаль к низу поверх фото: до 45 % почти чисто, к низу не темнее D9.
-            if (bg['veil'] != null)
+            if (!aurora && bg['veil'] != null)
               Positioned.fill(
                 child: IgnorePointer(
                   child: DecoratedBox(
@@ -836,7 +839,7 @@ Widget _sectionHeader(BuildContext context, {Color? dot, String? ion, double ico
       ],
       if (ion != null) ...[IonIcon(ion, size: iconSize, color: dot), const SizedBox(width: 8)],
       Expanded(child: Text(title, style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: web.text))),
-      ?trailing,
+      if (trailing != null) _isAurora(context) ? Flexible(child: trailing) : trailing,
     ]),
   );
 }
@@ -1914,7 +1917,7 @@ class _AuroraMiniBlock extends StatelessWidget {
                 maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: text)),
           ),
           if (onAll != null)
-            Semantics(
+            Flexible(child: Semantics(
               button: true,
               child: InkWell(
                 key: ValueKey('home-${b['kind']}-all'),
@@ -1925,13 +1928,13 @@ class _AuroraMiniBlock extends StatelessWidget {
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 4),
                     child: Row(mainAxisSize: MainAxisSize.min, children: [
-                      Text(L.t('allGames'), style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: GameColors.aurora(Theme.of(context).brightness).highlight)),
+                      Flexible(child: Text(L.t('allGames'), maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: GameColors.aurora(Theme.of(context).brightness).highlight))),
                       Icon(Icons.chevron_right, size: 18, color: GameColors.aurora(Theme.of(context).brightness).highlight),
                     ]),
                   ),
                 ),
               ),
-            ),
+            )),
         ]),
         if (_s(b['hint']).isNotEmpty)
           Padding(

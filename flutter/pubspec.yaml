@@ -59,6 +59,7 @@ dependencies:
   flame_audio: 2.12.2
   flutter_soloud: 5.2.2
   lottie: 3.8.1
+  liquid_glass_easy: 5.1.0
   # 🔴 Забрать прогресс ПРЕЖНЕЙ версии из контейнера приложения (lib/shell/legacy_import.dart).
   # Tauri-сборка держала его в localStorage WKWebView, а это обычный sqlite внутри
   # нашего же контейнера. Без чтения этих файлов человек после обновления видит нули.

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import 'design_template.dart';
+import 'chrome_art.dart';
+import 'pilot_liquid_surface.dart';
 
 /// Shared content height, excluding the system safe area. Content may grow.
 const auroraSectionHeaderMinHeight = 104.0;
@@ -18,14 +20,9 @@ class SectionHeaderSurface extends StatelessWidget {
       constraints: const BoxConstraints(minHeight: auroraSectionHeaderMinHeight),
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        image: DecorationImage(
-          image: AssetImage(dark
-              ? 'assets/aurora_game_chrome/section-header-dark-blank-v1.png'
-              : 'assets/aurora_game_chrome/home_panels_pilot/light_header.png'),
-          fit: BoxFit.fill,
-        ),
+        image: ChromeArt.header(dark),
       ),
-      child: child,
+      child: PilotLiquidSurface(child: child),
     );
   }
 }

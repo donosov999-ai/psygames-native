@@ -46,7 +46,7 @@ void main() {
     testWidgets('${b.name}: «Аврора» — фон шаблона, активная оранжевая, прочие вторичным текстом', (t) async {
       await show(t, UiTemplate.aurora, b);
       final bar = t.widget<Container>(find.byKey(const ValueKey('native-tab-bar')));
-      expect((bar.decoration! as BoxDecoration).gradient, isNotNull);
+      expect((bar.decoration! as BoxDecoration).image!.centerSlice, isNotNull);
       final activeLabel = t.widget<Text>(find.text(L.t('tabGames')));
       expect(activeLabel.style!.color, GameColors.aurora(b).highlight);
       expect(find.byType(Image), findsNWidgets(5));

@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
+import 'game_colors.dart';
 
 const rewardEffectsPilot = bool.fromEnvironment('PSYGAMES_REWARD_EFFECTS', defaultValue: false);
 
@@ -37,7 +38,7 @@ class _VictorySparksState extends State<VictorySparks> {
 class _Sparks extends FlameGame {
   double elapsed = 0;
   @override
-  Color backgroundColor() => const Color(0x00000000);
+  Color backgroundColor() => Colors.transparent;
   @override
   void update(double dt) {
     super.update(dt);
@@ -52,7 +53,7 @@ class _Sparks extends FlameGame {
       final angle = 2 * math.pi * i / 14;
       final distance = (14 + 55 * elapsed) * (i.isEven ? 1.0 : .7);
       final center = Offset(size.x / 2 + math.cos(angle) * distance, size.y / 2 + math.sin(angle) * distance * .6);
-      canvas.drawCircle(center, 2.5 + (i % 3), Paint()..color = const Color(0xffffd56c).withValues(alpha: opacity));
+      canvas.drawCircle(center, 2.5 + (i % 3), Paint()..color = ChromePalette.of(true).gold.withValues(alpha: opacity));
     }
   }
 }

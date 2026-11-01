@@ -43,7 +43,6 @@ const _baseline = <String, int>{
   'fractal/screen.dart': 1,
   'gonogo/model.dart': 1,
   'gonogo/screen.dart': 3,
-  'goods_sort/screen.dart': 1,
   'hanoi/screen.dart': 1,
   'hidden_character/screen.dart': 3,
   'inhibition/model.dart': 1,
