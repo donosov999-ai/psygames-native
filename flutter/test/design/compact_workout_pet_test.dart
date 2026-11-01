@@ -168,13 +168,32 @@ void main() {
             ('pet-feed', 'feed'),
             ('pet-care-wash', 'wash'),
             ('pet-care-stroke', 'stroke'),
-            ('pet-care-play', 'play'),
           ]) {
             js.clear();
             await t.tap(key(pair.$1));
             expect(js.single, contains('.${pair.$2}('));
           }
           expect(t.takeException(), isNull);
+          js.clear();
+          await t.tap(key('pet-care-play'));
+          await t.pump();
+          expect(
+            js,
+            isEmpty,
+            reason: 'Play is local, never routes to catalogue',
+          );
+          expect(
+            find.descendant(of: stage, matching: key('pet-play-toy')),
+            findsOneWidget,
+          );
+          final toyBefore = t.getRect(key('pet-play-toy'));
+          await t.tap(key('pet-play-toy'));
+          await t.pump();
+          expect(t.getRect(key('pet-play-toy')), isNot(toyBefore));
+          expect(js, isEmpty, reason: 'No session, token or training write');
+          await t.tap(key('pet-play-close'));
+          await t.pump();
+          expect(key('pet-play-toy'), findsNothing);
         },
       );
     }
@@ -241,6 +260,38 @@ void main() {
       },
     );
   }
+  testWidgets(
+    'Local pet play stops on background and tab exit without model writes',
+    (t) async {
+      ScreenUi.model('/pet').value = pet();
+      await mount(
+        t,
+        const PetScreen(origin: 'http://127.0.0.1:1', ownModel: false),
+      );
+      js.clear();
+      await t.tap(key('pet-care-play'));
+      await t.pump();
+      expect(key('pet-play-toy'), findsOneWidget);
+      t.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+      await t.pump();
+      expect(key('pet-play-toy'), findsNothing);
+      t.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await t.tap(key('pet-care-play'));
+      await t.pump();
+      await mount(
+        t,
+        const PetScreen(
+          origin: 'http://127.0.0.1:1',
+          ownModel: false,
+          active: false,
+        ),
+      );
+      expect(key('pet-play-toy'), findsNothing);
+      expect(js, isEmpty);
+      expect(t.takeException(), isNull);
+    },
+  );
+
   testWidgets('AI Next and Close remain inside console, not outside picture', (
     t,
   ) async {

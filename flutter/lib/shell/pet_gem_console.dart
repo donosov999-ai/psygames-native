@@ -18,6 +18,7 @@ class PetGemConsole extends StatelessWidget {
     required this.controlLabels,
     required this.expandedSpeech,
     required this.onExpand,
+    this.playOverlay,
   });
   final Widget name, portrait, speech;
   final String stage;
@@ -25,6 +26,7 @@ class PetGemConsole extends StatelessWidget {
   final List<String> controlLabels;
   final bool expandedSpeech;
   final VoidCallback onExpand;
+  final Widget? playOverlay;
 
   @override
   Widget build(BuildContext context) => LayoutBuilder(
@@ -212,6 +214,11 @@ class PetGemConsole extends StatelessWidget {
                           ],
                         ),
                       ),
+                      if (playOverlay != null)
+                        Positioned.fill(
+                          top: speechHeight + 8,
+                          child: playOverlay!,
+                        ),
                     ],
                   ),
                 ),

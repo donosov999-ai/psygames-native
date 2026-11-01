@@ -10,6 +10,7 @@ import 'l10n.dart';
 import 'pet_model.dart';
 import 'pet_materialization.dart';
 import 'pet_gem_console.dart';
+import 'pet_play_overlay.dart';
 import 'design_template.dart';
 import 'chrome_art.dart';
 import 'game_colors.dart';
@@ -78,9 +79,31 @@ String _s(Object? v) => v == null ? '' : '$v';
 const _violet = Color(0xFF8A68F5);
 
 class _PetScreenState extends State<PetScreen>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   bool _editing = false;
   bool _speechExpanded = false;
+  bool _playing = false;
+  int _playHits = 0;
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state != AppLifecycleState.resumed && mounted && _playing) {
+      setState(() {
+        _playing = false;
+        _playHits = 0;
+      });
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant PetScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!widget.active) {
+      _playing = false;
+      _playHits = 0;
+    }
+  }
+
   final _name = TextEditingController();
   late final AnimationController _treat = AnimationController(
     vsync: this,
@@ -105,6 +128,7 @@ class _PetScreenState extends State<PetScreen>
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     if (!_ownOn) return;
     ScreenUi.model(PetScreen.route).addListener(_refresh);
     widget.state!.writes.addListener(_onWrite);
@@ -161,6 +185,7 @@ class _PetScreenState extends State<PetScreen>
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     if (_ownOn) {
       ScreenUi.model(PetScreen.route).removeListener(_refresh);
       widget.state!.writes.removeListener(_onWrite);
@@ -172,8 +197,25 @@ class _PetScreenState extends State<PetScreen>
     super.dispose();
   }
 
-  void _act(String a, [List<Object?> args = const []]) =>
-      ScreenUi.act(PetScreen.route, a, args);
+  void _act(String a, [List<Object?> args = const []]) {
+    if (a == 'play') {
+      setState(() {
+        _playing = !_playing;
+        _playHits = 0;
+      });
+      return;
+    }
+    ScreenUi.act(PetScreen.route, a, args);
+  }
+
+  Widget get _toy => PetPlayOverlay(
+    hits: _playHits,
+    onHit: () => setState(() => _playHits++),
+    onClose: () => setState(() {
+      _playing = false;
+      _playHits = 0;
+    }),
+  );
 
   void _save() {
     setState(() => _editing = false);
@@ -211,7 +253,7 @@ class _PetScreenState extends State<PetScreen>
             );
       final p = _map(m['portrait']);
       final specs = _map(p['specs']);
-      final state = _s(p['state']);
+      final state = _playing && _playHits > 0 ? 'wiggle' : _s(p['state']);
       final spec =
           PetSpec.fromJson(specs[state]) ?? PetSpec.fromJson(specs['idle']);
       final treat = p['treat'] is Map ? _map(p['treat']) : null;
@@ -395,11 +437,17 @@ class _PetScreenState extends State<PetScreen>
                               ?.template ==
                           UiTemplate.aurora,
                   child: PetFrames(
-                    key: ValueKey('pet-frames-$state'),
+                    key: ValueKey(
+                      _playing
+                          ? 'pet-frames-play-$_playHits'
+                          : 'pet-frames-$state',
+                    ),
                     spec: spec,
                     size: portrait,
                     origin: widget.origin,
-                    still: MediaQuery.disableAnimationsOf(context),
+                    still:
+                        MediaQuery.disableAnimationsOf(context) ||
+                        !widget.active,
                   ),
                 ),
               ),
@@ -435,6 +483,8 @@ class _PetScreenState extends State<PetScreen>
                   );
                 },
               ),
+            if (_playing && !ChromeArt.aurora(context))
+              Positioned.fill(top: portrait * .28, child: _toy),
           ],
         ),
       );
@@ -542,6 +592,7 @@ class _PetScreenState extends State<PetScreen>
         enabled: c['enabled'] == true,
         label: _s(c['a11y']),
         excludeSemantics: true,
+        onTap: c['enabled'] == true ? () => _act('${c['id']}') : null,
         child: GestureDetector(
           key: ValueKey('pet-care-${c['id']}'),
           onTap: c['enabled'] == true ? () => _act('${c['id']}') : null,
@@ -873,6 +924,7 @@ class _PetScreenState extends State<PetScreen>
             speech: speechBox,
             expandedSpeech: _speechExpanded,
             onExpand: () => setState(() => _speechExpanded = !_speechExpanded),
+            playOverlay: _playing ? _toy : null,
             controls: [
               feedBtn,
               for (final c in _list(m['care'])) careButton(c),

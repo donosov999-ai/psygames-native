@@ -129,7 +129,6 @@ void main() {
       contains('["/pet"].feed()'),
       contains('["/pet"].wash()'),
       contains('["/pet"].stroke()'),
-      contains('["/pet"].play()'),
       contains('["/pet"].skin("robot")'),
       contains('["/pet"].advice()'),
       contains('["/pet"].back()'),

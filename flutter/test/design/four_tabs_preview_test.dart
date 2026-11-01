@@ -27,6 +27,7 @@ Map<String, dynamic> data(String p) =>
 void main() {
   const capture = bool.fromEnvironment('CAPTURE_TABS');
   const motion = bool.fromEnvironment('CAPTURE_MOTION');
+  const playCapture = bool.fromEnvironment('CAPTURE_PET_PLAY');
   HttpServer? server;
   final clients = <HttpClient>[];
   final host = Object();
@@ -245,6 +246,27 @@ void main() {
                 find.byType(MaterialApp),
                 matchesGoldenFile('preview/$name-${brightness.name}-top.png'),
               );
+            }
+            if (playCapture &&
+                route == '/pet' &&
+                brightness == Brightness.dark &&
+                config.width == 390 &&
+                config.locale == 'en') {
+              await t.tap(find.byKey(const ValueKey('pet-care-play')));
+              await t.pump();
+              for (var frame = 0; frame < 8; frame++) {
+                await expectLater(
+                  find.byType(MaterialApp),
+                  matchesGoldenFile(
+                    'preview/motion/pet_play-${frame.toString().padLeft(2, '0')}.png',
+                  ),
+                );
+                await t.tap(find.byKey(const ValueKey('pet-play-toy')));
+                await t.pump(const Duration(milliseconds: 100));
+              }
+              await t.tap(find.byKey(const ValueKey('pet-play-close')));
+              await t.pump();
+              expect(find.byKey(const ValueKey('pet-play-toy')), findsNothing);
             }
             final scrollKey = switch (route) {
               '/games' => 'catalog-list',

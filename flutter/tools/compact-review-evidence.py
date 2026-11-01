@@ -38,7 +38,7 @@ for i, page in enumerate(('warmup_picker', 'pet')):
         d.text((x + 8, 8), label, fill='white')
         sheet.paste(im, (x, 32))
     sheet.save(out / f'{page}-reference-flutter-overlay.png')
-for page in ('games', 'warmup_picker', 'statistics', 'pet'):
+for page in ('games', 'warmup_picker', 'statistics', 'pet', 'pet_play'):
     sources = sorted((frames / 'motion').glob(f'{page}-*.png'))
     if not sources:
         continue
@@ -47,4 +47,4 @@ for page in ('games', 'warmup_picker', 'statistics', 'pet'):
         im = Image.open(f).convert('RGB')
         images.append(im.resize((390, round(im.height * 390 / im.width))))
     images[0].save(out / f'{page}-motion.gif', save_all=True,
-        append_images=images[1:], duration=[40] * (len(images) - 1) + [800], loop=0)
+        append_images=images[1:], duration=[100 if page == 'pet_play' else 40] * (len(images) - 1) + [800], loop=0)
