@@ -25,11 +25,7 @@ void main() {
     await NativeTabs.load();
     if (Platform.isMacOS) {
       await (FontLoader('MaterialIcons')..addFont(
-            Future.value(
-              File(
-                '/opt/homebrew/share/flutter/bin/cache/artifacts/material_fonts/MaterialIcons-Regular.otf',
-              ).readAsBytesSync().buffer.asByteData(),
-            ),
+            rootBundle.load('fonts/MaterialIcons-Regular.otf'),
           ))
           .load();
       await (FontLoader('PaletteArial')..addFont(
