@@ -3,9 +3,7 @@ import 'package:flutter/material.dart';
 import 'design_template.dart';
 import 'ion_icon.dart';
 import 'l10n.dart';
-import 'section_header_surface.dart';
-import 'chrome_art.dart';
-import 'pilot_liquid_surface.dart';
+import 'tab_chrome.dart';
 import 'walking_pet.dart' show PetFrames, PetSpec;
 
 /// 🔴 ВЕРХ ГЛАВНОЙ В «АВРОРЕ» — по рефу главной 30.10 (`home-dark-small-tiles-v1`): в строке
@@ -48,62 +46,19 @@ class AuroraHomeTop extends StatelessWidget {
     final theme = Theme.of(context);
     final dark = theme.brightness == Brightness.dark;
     final text = auroraToken('text', dark: dark)!;
-    final secondary = auroraToken('textSecondary', dark: dark)!;
-    final labels = _map(header['labels']);
     final pet = PetSpec.fromJson(header['pet']);
-    return Container(
+    return AuroraTabHeader(
       key: const ValueKey('aurora-home-top'),
-      constraints: const BoxConstraints(minHeight: auroraSectionHeaderMinHeight),
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        image: ChromeArt.header(dark),
-      ),
-      padding: const EdgeInsets.fromLTRB(20, 8, 12, 4),
-      child: PilotLiquidSurface(child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, mainAxisSize: MainAxisSize.min, children: [
-        Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-          Expanded(
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              alignment: Alignment.centerLeft,
-              child: SizedBox(
-                width: 150, height: 42,
-                child: Stack(alignment: Alignment.centerLeft, children: [
-                  const Text('PsyGames', maxLines: 1, style: TextStyle(color: Colors.transparent, fontSize: 28)),
-                  ExcludeSemantics(child: Image.asset('assets/aurora_game_chrome/home_wordmark_pilot.png',
-                    fit: BoxFit.contain, width: 150, height: 42,
-                    errorBuilder: (_, _, _) => Text('PsyGames', style: TextStyle(fontSize: 28, fontWeight: FontWeight.w700, color: text)))),
-                ]),
-              ),
-            ),
-          ),
-          Semantics(
-            button: true,
-            label: _s(header['petLabel']),
-            child: InkResponse(
-              key: const ValueKey('home-pet'),
-              onTap: () => onOpen('/pet'),
-              radius: 26,
-              child: SizedBox(
-                width: 48,
-                height: 48,
-                child: Center(
-                  child: pet == null
-                      ? const SizedBox(width: 36, height: 36)
-                      : PetFrames(spec: pet, size: 40, origin: origin, still: true),
-                ),
-              ),
-            ),
-          ),
-          _icon(context, key: 'home-settings', ion: 'settings-outline', label: _s(labels['settings']), onTap: () => onOpen('/settings')),
-        ]),
-        const SizedBox(height: 2),
-        // Локализованный подзаголовок: не ссылается на убранный чип профиля.
-        Text(L.t('trainYourBrain'),
-            key: const ValueKey('home-subtitle'),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(fontSize: 13.5, height: 1.25, color: secondary)),
-      ])),
+      route: '/', title: 'PsyGames', subtitle: L.t('trainYourBrain'), onOpen: onOpen,
+      petKey: const ValueKey('home-pet'), settingsKey: const ValueKey('home-settings'),
+      subtitleKey: const ValueKey('home-subtitle'),
+      titleWidget: Stack(alignment: AlignmentDirectional.centerStart, children: [
+        const Text('PsyGames', style: TextStyle(fontSize: 28, color: Colors.transparent)),
+        ExcludeSemantics(child: Image.asset(
+          'assets/aurora_game_chrome/home_wordmark_pilot.png', fit: BoxFit.contain, width: 150, height: 34,
+          errorBuilder: (_, _, _) => Text('PsyGames', style: AuroraTabHeader.titleStyle.copyWith(color: text)))),
+      ]),
+      pet: pet == null ? null : PetFrames(spec: pet, size: 38, origin: origin, still: true),
     );
   }
 
@@ -286,22 +241,4 @@ class AuroraHomeTop extends StatelessWidget {
     );
   }
 
-  Widget _icon(BuildContext context,
-      {required String key, required String ion, required String label, required VoidCallback onTap}) {
-    final dark = Theme.of(context).brightness == Brightness.dark;
-    final text = auroraToken('text', dark: dark)!;
-    return Semantics(
-      button: true,
-      label: label,
-      child: InkResponse(
-        key: ValueKey(key),
-        onTap: onTap,
-        radius: 24,
-        child: SizedBox(width: 44, height: 48, child: Center(child: key == 'home-settings'
-            ? Image.asset('assets/aurora_game_chrome/home_icons_approved/settings.png', width: 30, height: 30, fit: BoxFit.contain,
-                errorBuilder: (_, _, _) => IonIcon(ion, size: 22, color: text))
-            : IonIcon(ion, size: 22, color: text))),
-      ),
-    );
-  }
 }

@@ -140,6 +140,7 @@ flutter:
     # Игровая рамка «Авроры» — пилот Codex «стекло и камни» (31.10): подложки, фон, кнопки-шары;
     # наборы камней игр — вложенными каталогами (каждый каталог — своей строкой).
     - assets/aurora_game_chrome/
+    - assets/aurora_tab_panels/
     - assets/aurora_game_chrome/sudoku_buttons/
     - assets/aurora_game_chrome/home_panels_pilot/
     - assets/aurora_game_chrome/home_icons_approved/

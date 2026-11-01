@@ -137,6 +137,7 @@ import 'warmup_bridge.dart';
 import 'warmup_step_bridge.dart';
 import 'warmup_owner.dart';
 import 'game_pet.dart';
+import 'tab_chrome.dart';
 import 'session_report.dart';
 import 'game_preset.dart';
 import 'game_rules.dart';
@@ -1023,6 +1024,7 @@ class _HybridAppState extends State<HybridApp> {
     // они там уже лежат, класть их второй раз в ассеты Flutter значило бы
     // 4,2 МБ впустую.
     PetHost.bind(this, widget.state, widget.server.origin, widget.server.assetRevision);
+    TabChromeHost.bind(this, _openFromCatalog);
     // Синапс (852e4b4a) пишет реплики по партиям в общую память — ту же, что у веба.
     SynapseFeed.state = widget.state;
     SessionReport.sink = (json) async {
@@ -1155,6 +1157,7 @@ class _HybridAppState extends State<HybridApp> {
   void dispose() {
     SessionReport.sink = null;
     PetHost.unbind(this);
+    TabChromeHost.unbind(this);
     if (SynapseFeed.state == widget.state) SynapseFeed.state = null;
     GameExit.home = null;
     GameExit.feedback = null;
@@ -1614,6 +1617,10 @@ class _HybridAppState extends State<HybridApp> {
     final bar = _tabsReady && NativeTabs.barVisible(path);
     final shown = _shownIndex();
     final waiting = shown != 0 && _needsModel(_nativeTab);
+    final chromeRoute = waiting ? null : path;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && (_nativeTab ?? _pagePath) == path) TabChromeHost.update(this, chromeRoute);
+    });
     final scaffold = Scaffold(
       // Полоса под часами и фон вкладки — `colors.background` веба, а не цвет семени Material.
       backgroundColor: WebTheme.of(context).background,
