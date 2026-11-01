@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 
 import 'feedback_fab.dart' show FabRules;
 import 'ion_icon.dart';
@@ -49,7 +50,8 @@ class StatsScreen extends StatefulWidget {
 
 typedef _M = Map<String, Object?>;
 _M _map(Object? v) => v is Map ? Map<String, Object?>.from(v) : const {};
-List<_M> _list(Object? v) => v is List ? [for (final x in v) _map(x)] : const [];
+List<_M> _list(Object? v) =>
+    v is List ? [for (final x in v) _map(x)] : const [];
 String _s(Object? v) => v == null ? '' : '$v';
 double _d(Object? v, [double f = 0]) => v is num ? v.toDouble() : f;
 
@@ -94,11 +96,15 @@ class _StatsScreenState extends State<StatsScreen> {
   }
 
   /// Перечитать общую память: последнее чтение побеждает, устаревшее отбрасывается.
-  void _reload() {
+  Future<void> _reload() async {
     final state = widget.state;
     if (state == null) return;
     final gen = ++_gen;
-    statsInputsFor(state, now: StatsScreen.now(), wall: StatsScreen.wall).then(
+    await statsInputsFor(
+      state,
+      now: StatsScreen.now(),
+      wall: StatsScreen.wall,
+    ).then(
       (v) {
         if (mounted && gen == _gen) setState(() => _in = v);
       },
@@ -113,13 +119,23 @@ class _StatsScreenState extends State<StatsScreen> {
     final inp = _in;
     if (inp == null) return null;
     final key = (inp: inp, all: _scopeAll, grey: cssUpper(web.textSecondary));
-    if (_memoKey case final k? when identical(k.inp, inp) && k.all == key.all && k.grey == key.grey) return _memo;
+    if (_memoKey case final k?
+        when identical(k.inp, inp) && k.all == key.all && k.grey == key.grey) {
+      return _memo;
+    }
     _memoKey = key;
-    return _memo = statsModel(inp, scopeAll: _scopeAll, textSecondary: key.grey);
+    return _memo = statsModel(
+      inp,
+      scopeAll: _scopeAll,
+      textSecondary: key.grey,
+    );
   }
 
   /// Охват и «Обновить» — свои (вариант Б); «Назад» и всё без своей модели — действия веба.
   bool get _own0 => widget.state != null && !_failed;
+
+  Future<void> _refresh() =>
+      _own0 ? _reload() : ScreenUi.act(StatsScreen.route, 'refresh');
 
   void _act(String a, [List<Object?> args = const []]) {
     if (_own0 && a == 'scope') {
@@ -148,7 +164,9 @@ class _StatsScreenState extends State<StatsScreen> {
     if (m == null) {
       return ColoredBox(
         color: web.background,
-        child: const Center(child: CircularProgressIndicator(key: ValueKey('stats-loading'))),
+        child: const Center(
+          child: CircularProgressIndicator(key: ValueKey('stats-loading')),
+        ),
       );
     }
     final labels = _map(m['labels']);
@@ -166,39 +184,54 @@ class _StatsScreenState extends State<StatsScreen> {
             children: [
               if (ChromeArt.aurora(context)) ...[
                 AuroraTabHeader(route: '/statistics', title: L.t('progress')),
-                Padding(padding: const EdgeInsets.symmetric(horizontal: 20), child: Row(children: [
-                  _round(context, 'stats-back', _s(labels['back']),
-                    Directionality.of(context) == TextDirection.rtl ? 'arrow-forward' : 'arrow-back', () => _act('back')),
-                  const Spacer(),
-                  _round(context, 'stats-refresh', _s(labels['refresh']), 'refresh', () => _act('refresh')),
-                ])),
-              ] else SectionHeaderSurface(child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                child: Row(
-                  children: [
-                    _round(
-                      context,
-                      'stats-back',
-                      _s(labels['back']),
-                      Directionality.of(context) == TextDirection.rtl ? 'arrow-forward' : 'arrow-back',
-                      () => _act('back'),
+              ] else
+                SectionHeaderSurface(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 16,
                     ),
-                    Expanded(
-                      child: Text(
-                        _s(m['title']),
-                        textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: web.text),
-                      ),
+                    child: Row(
+                      children: [
+                        _round(
+                          context,
+                          'stats-back',
+                          _s(labels['back']),
+                          Directionality.of(context) == TextDirection.rtl
+                              ? 'arrow-forward'
+                              : 'arrow-back',
+                          () => _act('back'),
+                        ),
+                        Expanded(
+                          child: Text(
+                            _s(m['title']),
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w700,
+                              color: web.text,
+                            ),
+                          ),
+                        ),
+                        _round(
+                          context,
+                          'stats-refresh',
+                          _s(labels['refresh']),
+                          'refresh',
+                          () => _act('refresh'),
+                        ),
+                      ],
                     ),
-                    _round(context, 'stats-refresh', _s(labels['refresh']), 'refresh', () => _act('refresh')),
-                  ],
+                  ),
                 ),
-              )),
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 0, 20, 10),
                 child: Row(
                   children: [
-                    for (final (id, key) in [('summary', 'summary'), ('history', 'history')]) ...[
+                    for (final (id, key) in [
+                      ('summary', 'summary'),
+                      ('history', 'history'),
+                    ]) ...[
                       if (id == 'history') const SizedBox(width: 8),
                       Expanded(
                         child: Semantics(
@@ -214,18 +247,29 @@ class _StatsScreenState extends State<StatsScreen> {
                               alignment: Alignment.center,
                               decoration: ChromeArt.aurora(context)
                                   ? _tab == id
-                                      ? const BoxDecoration(image: ChromeArt.action)
-                                      : ChromeArt.panel(context)
+                                        ? const BoxDecoration(
+                                            image: ChromeArt.action,
+                                          )
+                                        : ChromeArt.panel(context)
                                   : BoxDecoration(
-                                border: Border(bottom: BorderSide(color: _tab == id ? primary : Colors.transparent, width: 3)),
-                              ),
+                                      border: Border(
+                                        bottom: BorderSide(
+                                          color: _tab == id
+                                              ? primary
+                                              : Colors.transparent,
+                                          width: 3,
+                                        ),
+                                      ),
+                                    ),
                               child: Text(
                                 _s(labels[key]),
                                 style: TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w800,
                                   color: _tab == id
-                                      ? ChromeArt.aurora(context) ? ChromePilot.onGoldAction : primary
+                                      ? ChromeArt.aurora(context)
+                                            ? ChromePilot.onGoldAction
+                                            : primary
                                       : web.textSecondary,
                                 ),
                               ),
@@ -277,9 +321,35 @@ class _StatsScreenState extends State<StatsScreen> {
               Expanded(
                 child: m['loading'] == true
                     ? Center(child: CircularProgressIndicator(color: primary))
+                    : ChromeArt.aurora(context)
+                    ? Semantics(
+                        customSemanticsActions: {
+                          CustomSemanticsAction(
+                            label: _s(labels['refresh']),
+                          ): () =>
+                              unawaited(_refresh()),
+                        },
+                        child: RefreshIndicator(
+                          key: const ValueKey('stats-pull-refresh'),
+                          onRefresh: _refresh,
+                          child: _tab == 'summary'
+                              ? _Summary(m: m, primary: primary)
+                              : _History(
+                                  m: m,
+                                  primary: primary,
+                                  act: _act,
+                                  onTab: widget.onTab,
+                                ),
+                        ),
+                      )
                     : _tab == 'summary'
                     ? _Summary(m: m, primary: primary)
-                    : _History(m: m, primary: primary, act: _act, onTab: widget.onTab),
+                    : _History(
+                        m: m,
+                        primary: primary,
+                        act: _act,
+                        onTab: widget.onTab,
+                      ),
               ),
             ],
           ),
@@ -288,7 +358,13 @@ class _StatsScreenState extends State<StatsScreen> {
     );
   }
 
-  Widget _round(BuildContext context, String key, String label, String ion, VoidCallback onTap) {
+  Widget _round(
+    BuildContext context,
+    String key,
+    String label,
+    String ion,
+    VoidCallback onTap,
+  ) {
     final web = WebTheme.of(context);
     return Semantics(
       button: true,
@@ -306,7 +382,14 @@ class _StatsScreenState extends State<StatsScreen> {
     );
   }
 
-  Widget _scope(BuildContext context, String key, String text, bool on, Color primary, VoidCallback onTap) {
+  Widget _scope(
+    BuildContext context,
+    String key,
+    String text,
+    bool on,
+    Color primary,
+    VoidCallback onTap,
+  ) {
     final web = WebTheme.of(context);
     return GestureDetector(
       key: ValueKey(key),
@@ -317,16 +400,25 @@ class _StatsScreenState extends State<StatsScreen> {
         alignment: Alignment.center,
         padding: const EdgeInsets.symmetric(vertical: 8),
         decoration: ChromeArt.aurora(context)
-          ? on ? const BoxDecoration(image: ChromeArt.action) : ChromeArt.panel(context)
-          : BoxDecoration(
-          color: on ? primary : web.surface,
-          border: Border.all(color: on ? primary : web.border),
-          borderRadius: BorderRadius.circular(10),
-        ),
+            ? on
+                  ? const BoxDecoration(image: ChromeArt.action)
+                  : ChromeArt.panel(context)
+            : BoxDecoration(
+                color: on ? primary : web.surface,
+                border: Border.all(color: on ? primary : web.border),
+                borderRadius: BorderRadius.circular(10),
+              ),
         child: Text(
           text,
-          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700,
-            color: on ? ChromeArt.aurora(context) ? ChromePilot.onGoldAction : Colors.white : web.text),
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w700,
+            color: on
+                ? ChromeArt.aurora(context)
+                      ? ChromePilot.onGoldAction
+                      : Colors.white
+                : web.text,
+          ),
         ),
       ),
     );
@@ -348,13 +440,19 @@ class _Summary extends StatelessWidget {
     final ai = _map(m['ai']);
     const white85 = Color(0xD9FFFFFF);
     final onHero = ChromeArt.aurora(context) ? web.text : Colors.white;
-    final heroSecondary = ChromeArt.aurora(context) ? web.textSecondary : white85;
+    final heroSecondary = ChromeArt.aurora(context)
+        ? web.textSecondary
+        : white85;
     Widget metric(String emoji, String value, String label) => Column(
       children: [
         Text(emoji, style: const TextStyle(fontSize: 20)),
         Text(
           value,
-          style: TextStyle(color: onHero, fontWeight: FontWeight.w900, fontSize: 18),
+          style: TextStyle(
+            color: onHero,
+            fontWeight: FontWeight.w900,
+            fontSize: 18,
+          ),
         ),
         Text(label, style: TextStyle(color: heroSecondary, fontSize: 11)),
       ],
@@ -367,18 +465,32 @@ class _Summary extends StatelessWidget {
           key: const ValueKey('stats-hero'),
           margin: const EdgeInsets.only(bottom: 14),
           padding: const EdgeInsets.all(16),
-          decoration: ChromeArt.aurora(context) ? ChromeArt.panel(context) : BoxDecoration(
-            borderRadius: BorderRadius.circular(18),
-            gradient: LinearGradient(colors: [primary, primary.withAlpha(0xBB)], begin: Alignment.topLeft, end: Alignment.bottomRight),
-          ),
+          decoration: ChromeArt.aurora(context)
+              ? ChromeArt.panel(context)
+              : BoxDecoration(
+                  borderRadius: BorderRadius.circular(18),
+                  gradient: LinearGradient(
+                    colors: [primary, primary.withAlpha(0xBB)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                ),
           child: Column(
             children: [
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (ChromeArt.aurora(context)) Expanded(child: metric('⭐', '${hero['tokens']}', _s(hero['tokensLabel'])))
-                  else metric('⭐', '${hero['tokens']}', _s(hero['tokensLabel'])),
+                  if (ChromeArt.aurora(context))
+                    Expanded(
+                      child: metric(
+                        '⭐',
+                        '${hero['tokens']}',
+                        _s(hero['tokensLabel']),
+                      ),
+                    )
+                  else
+                    metric('⭐', '${hero['tokens']}', _s(hero['tokensLabel'])),
                   Flexible(
                     child: Padding(
                       padding: const EdgeInsets.only(top: 2),
@@ -386,21 +498,37 @@ class _Summary extends StatelessWidget {
                         children: [
                           Text(
                             _s(hero['level']),
-                            style: TextStyle(color: onHero, fontWeight: FontWeight.w900, fontSize: 22),
+                            style: TextStyle(
+                              color: onHero,
+                              fontWeight: FontWeight.w900,
+                              fontSize: 22,
+                            ),
                           ),
                           Text(
                             _s(hero['levelTitle']),
                             maxLines: 2,
                             textAlign: TextAlign.center,
                             overflow: TextOverflow.ellipsis,
-                            style: TextStyle(color: heroSecondary, fontSize: 12, fontWeight: FontWeight.w700),
+                            style: TextStyle(
+                              color: heroSecondary,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                            ),
                           ),
                         ],
                       ),
                     ),
                   ),
-                  if (ChromeArt.aurora(context)) Expanded(child: metric('🔥', '${hero['streak']}', _s(hero['streakLabel'])))
-                  else metric('🔥', '${hero['streak']}', _s(hero['streakLabel'])),
+                  if (ChromeArt.aurora(context))
+                    Expanded(
+                      child: metric(
+                        '🔥',
+                        '${hero['streak']}',
+                        _s(hero['streakLabel']),
+                      ),
+                    )
+                  else
+                    metric('🔥', '${hero['streak']}', _s(hero['streakLabel'])),
                 ],
               ),
               if (hero['progress'] is num)
@@ -434,7 +562,11 @@ class _Summary extends StatelessWidget {
                       child: Text(
                         _s(hero[k]),
                         textAlign: TextAlign.center,
-                        style: TextStyle(color: onHero, fontSize: 12, fontWeight: FontWeight.w700),
+                        style: TextStyle(
+                          color: onHero,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                     ),
                 ],
@@ -447,18 +579,28 @@ class _Summary extends StatelessWidget {
             key: const ValueKey('stats-areas'),
             margin: const EdgeInsets.only(bottom: 14),
             padding: EdgeInsets.all(ChromeArt.aurora(context) ? 20 : 0),
-            decoration: ChromeArt.aurora(context) ? ChromeArt.panel(context) : null,
+            decoration: ChromeArt.aurora(context)
+                ? ChromeArt.panel(context)
+                : null,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text(
                   _s(areas['title']),
-                  style: TextStyle(color: web.text, fontSize: 16, fontWeight: FontWeight.w800),
+                  style: TextStyle(
+                    color: web.text,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   _s(areas['hint']),
-                  style: TextStyle(color: web.textSecondary, fontSize: 12.5, height: 18 / 12.5),
+                  style: TextStyle(
+                    color: web.textSecondary,
+                    fontSize: 12.5,
+                    height: 18 / 12.5,
+                  ),
                 ),
                 const SizedBox(height: 10),
                 for (final a in _list(areas['rows']))
@@ -477,7 +619,11 @@ class _Summary extends StatelessWidget {
                               Expanded(
                                 child: Text(
                                   _s(a['label']),
-                                  style: TextStyle(color: web.text, fontSize: 13.5, fontWeight: FontWeight.w700),
+                                  style: TextStyle(
+                                    color: web.text,
+                                    fontSize: 13.5,
+                                    fontWeight: FontWeight.w700,
+                                  ),
                                 ),
                               ),
                               Text(
@@ -485,7 +631,9 @@ class _Summary extends StatelessWidget {
                                 style: TextStyle(
                                   color: web.textSecondary,
                                   fontSize: 13,
-                                  fontFeatures: const [FontFeature.tabularFigures()],
+                                  fontFeatures: const [
+                                    FontFeature.tabularFigures(),
+                                  ],
                                 ),
                               ),
                             ],
@@ -501,7 +649,10 @@ class _Summary extends StatelessWidget {
                                   ColoredBox(color: web.border),
                                   FractionallySizedBox(
                                     alignment: Alignment.centerLeft,
-                                    widthFactor: (_d(a['pct']) / 100).clamp(0, 1),
+                                    widthFactor: (_d(a['pct']) / 100).clamp(
+                                      0,
+                                      1,
+                                    ),
                                     child: ColoredBox(color: primary),
                                   ),
                                 ],
@@ -515,7 +666,9 @@ class _Summary extends StatelessWidget {
                                 _s(_map(a['trend'])['text']),
                                 style: TextStyle(
                                   fontSize: 11.5,
-                                  color: _map(a['trend'])['up'] == true ? const Color(0xFF1F6B4A) : const Color(0xFF9E2B2B),
+                                  color: _map(a['trend'])['up'] == true
+                                      ? const Color(0xFF1F6B4A)
+                                      : const Color(0xFF9E2B2B),
                                 ),
                               ),
                             ),
@@ -526,7 +679,13 @@ class _Summary extends StatelessWidget {
                 if (areas['weak'] != null)
                   Padding(
                     padding: const EdgeInsets.only(top: 2),
-                    child: Text(_s(areas['weak']), style: TextStyle(color: web.textSecondary, fontSize: 12.5)),
+                    child: Text(
+                      _s(areas['weak']),
+                      style: TextStyle(
+                        color: web.textSecondary,
+                        fontSize: 12.5,
+                      ),
+                    ),
                   ),
               ],
             ),
@@ -546,12 +705,21 @@ class _Summary extends StatelessWidget {
               children: [
                 Text(
                   _s(ai['title']),
-                  style: TextStyle(color: primary, fontSize: 11, fontWeight: FontWeight.w800, letterSpacing: 1),
+                  style: TextStyle(
+                    color: primary,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 1,
+                  ),
                 ),
                 const SizedBox(height: 6),
                 Text(
                   _s(ai['text']),
-                  style: TextStyle(color: web.text, fontSize: 14, height: 21 / 14),
+                  style: TextStyle(
+                    color: web.text,
+                    fontSize: 14,
+                    height: 21 / 14,
+                  ),
                 ),
               ],
             ),
@@ -563,7 +731,11 @@ class _Summary extends StatelessWidget {
             padding: const EdgeInsets.only(top: 60, bottom: 16),
             child: Column(
               children: [
-                IonIcon('bar-chart-outline', size: 64, color: web.textSecondary),
+                IonIcon(
+                  'bar-chart-outline',
+                  size: 64,
+                  color: web.textSecondary,
+                ),
                 Text(
                   _s(m['empty']),
                   textAlign: TextAlign.center,
@@ -584,108 +756,169 @@ class _GameCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final web = WebTheme.of(context);
-    final grad = [for (final c in (g['gradient'] as List? ?? const [])) cssColor(c)];
+    final grad = [
+      for (final c in (g['gradient'] as List? ?? const [])) cssColor(c),
+    ];
     final spark = _map(g['spark']);
     return ClipRRect(
       key: ValueKey('stats-game-${g['id']}'),
       borderRadius: BorderRadius.circular(16),
-      child: DecoratedBox(decoration: ChromeArt.aurora(context) ? ChromeArt.panel(context) : const BoxDecoration(), child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Container(
-            margin: const EdgeInsets.only(bottom: 12),
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(gradient: !ChromeArt.aurora(context) && grad.length >= 2 ? LinearGradient(colors: grad) : null),
-            child: Row(
-              children: [
-                IonIcon(_s(g['icon']), size: 24, color: ChromeArt.aurora(context) ? web.text : Colors.white),
-                Flexible(
-                  child: Text(
-                    _s(g['name']),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: ChromeArt.aurora(context) ? web.text : Colors.white),
+      child: DecoratedBox(
+        decoration: ChromeArt.aurora(context)
+            ? ChromeArt.panel(context)
+            : const BoxDecoration(),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                gradient: !ChromeArt.aurora(context) && grad.length >= 2
+                    ? LinearGradient(colors: grad)
+                    : null,
+              ),
+              child: Row(
+                children: [
+                  IonIcon(
+                    _s(g['icon']),
+                    size: 24,
+                    color: ChromeArt.aurora(context) ? web.text : Colors.white,
                   ),
-                ),
-              ],
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.all(16),
-            color: ChromeArt.aurora(context) ? Colors.transparent : web.surface,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Row(
-                  // Колонки сверху, как у веба (`statRow` — ряд с растяжением): подпись в две строки не сдвигает соседей вниз.
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    for (final r in _list(g['stats']))
-                      Expanded(
-                        child: Column(
-                          children: [
-                            Text(_s(r['label']), style: TextStyle(fontSize: 12, color: web.textSecondary)),
-                            const SizedBox(height: 4),
-                            Text(
-                              _s(r['value']),
-                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: web.text),
-                            ),
-                          ],
-                        ),
+                  Flexible(
+                    child: Text(
+                      _s(g['name']),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: ChromeArt.aurora(context)
+                            ? web.text
+                            : Colors.white,
                       ),
-                  ],
-                ),
-                if (spark.isNotEmpty) ...[
-                  const SizedBox(height: 12),
-                  Text(_s(spark['caption']), style: TextStyle(fontSize: 12, color: web.textSecondary)),
-                  const SizedBox(height: 6),
-                  SizedBox(
-                    height: 26,
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        for (final (i, b) in _list(spark['bars']).indexed) ...[
-                          if (i > 0) const SizedBox(width: 2),
-                          Expanded(
-                            child: Opacity(
-                              opacity: _d(b['op'], 1).clamp(0, 1),
-                              child: Container(
-                                height: _d(b['h'], 5),
-                                decoration: BoxDecoration(color: cssColor(spark['color']), borderRadius: BorderRadius.circular(2)),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ],
                     ),
                   ),
-                  const SizedBox(height: 2),
+                ],
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.all(16),
+              color: ChromeArt.aurora(context)
+                  ? Colors.transparent
+                  : web.surface,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    // Колонки сверху, как у веба (`statRow` — ряд с растяжением): подпись в две строки не сдвигает соседей вниз.
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(_s(spark['older']), style: TextStyle(fontSize: 10, color: web.textSecondary)),
-                      Flexible(
-                        child: Text(
-                          _s(spark['numbers']),
-                          textAlign: TextAlign.center,
-                          style: TextStyle(fontSize: 10, color: web.textSecondary),
+                      for (final r in _list(g['stats']))
+                        Expanded(
+                          child: Column(
+                            children: [
+                              Text(
+                                _s(r['label']),
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: web.textSecondary,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                _s(r['value']),
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w700,
+                                  color: web.text,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                      Text(_s(spark['newer']), style: TextStyle(fontSize: 10, color: web.textSecondary)),
                     ],
                   ),
+                  if (spark.isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    Text(
+                      _s(spark['caption']),
+                      style: TextStyle(fontSize: 12, color: web.textSecondary),
+                    ),
+                    const SizedBox(height: 6),
+                    SizedBox(
+                      height: 26,
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          for (final (i, b) in _list(
+                            spark['bars'],
+                          ).indexed) ...[
+                            if (i > 0) const SizedBox(width: 2),
+                            Expanded(
+                              child: Opacity(
+                                opacity: _d(b['op'], 1).clamp(0, 1),
+                                child: Container(
+                                  height: _d(b['h'], 5),
+                                  decoration: BoxDecoration(
+                                    color: cssColor(spark['color']),
+                                    borderRadius: BorderRadius.circular(2),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          _s(spark['older']),
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: web.textSecondary,
+                          ),
+                        ),
+                        Flexible(
+                          child: Text(
+                            _s(spark['numbers']),
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: web.textSecondary,
+                            ),
+                          ),
+                        ),
+                        Text(
+                          _s(spark['newer']),
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: web.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ],
-              ],
+              ),
             ),
-          ),
-        ],
-      )),
+          ],
+        ),
+      ),
     );
   }
 }
 
 class _History extends StatelessWidget {
-  const _History({required this.m, required this.primary, required this.act, required this.onTab});
+  const _History({
+    required this.m,
+    required this.primary,
+    required this.act,
+    required this.onTab,
+  });
   final _M m;
   final Color primary;
   final void Function(String, [List<Object?>]) act;
@@ -710,7 +943,11 @@ class _History extends StatelessWidget {
                 Text(
                   _s(h['title']),
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: web.text, fontSize: 17, fontWeight: FontWeight.w800),
+                  style: TextStyle(
+                    color: web.text,
+                    fontSize: 17,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
                 const SizedBox(height: 8),
                 Text(
@@ -721,15 +958,24 @@ class _History extends StatelessWidget {
                 const SizedBox(height: 18),
                 GestureDetector(
                   key: const ValueKey('stats-history-cta'),
-                  onTap: () => h['action'] == 'scopeAll' ? act('scope', [true]) : onTab('/'),
+                  onTap: () => h['action'] == 'scopeAll'
+                      ? act('scope', [true])
+                      : onTab('/'),
                   child: Container(
                     constraints: const BoxConstraints(minHeight: 48),
                     alignment: Alignment.center,
                     padding: const EdgeInsets.symmetric(horizontal: 22),
-                    decoration: BoxDecoration(color: primary, borderRadius: BorderRadius.circular(12)),
+                    decoration: BoxDecoration(
+                      color: primary,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                     child: Text(
                       _s(h['cta']),
-                      style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w800),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w800,
+                      ),
                     ),
                   ),
                 ),
@@ -751,7 +997,11 @@ class _History extends StatelessWidget {
               children: [
                 Text(
                   _s(day['label']),
-                  style: TextStyle(color: web.text, fontSize: 15, fontWeight: FontWeight.w800),
+                  style: TextStyle(
+                    color: web.text,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
                 const SizedBox(height: 8),
                 for (final e in _list(day['entries']))
@@ -769,8 +1019,17 @@ class _History extends StatelessWidget {
                           Container(
                             width: 34,
                             height: 34,
-                            decoration: BoxDecoration(color: cssColor(e['color']), borderRadius: BorderRadius.circular(10)),
-                            child: Center(child: IonIcon(_s(e['icon']), size: 18, color: Colors.white)),
+                            decoration: BoxDecoration(
+                              color: cssColor(e['color']),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Center(
+                              child: IonIcon(
+                                _s(e['icon']),
+                                size: 18,
+                                color: Colors.white,
+                              ),
+                            ),
                           ),
                           const SizedBox(width: 10),
                           Expanded(
@@ -781,7 +1040,11 @@ class _History extends StatelessWidget {
                                   _s(e['name']),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(color: web.text, fontSize: 14, fontWeight: FontWeight.w700),
+                                  style: TextStyle(
+                                    color: web.text,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w700,
+                                  ),
                                 ),
                                 const SizedBox(height: 1),
                                 Wrap(
@@ -789,11 +1052,23 @@ class _History extends StatelessWidget {
                                   runSpacing: 2,
                                   children: [
                                     Text(
-                                        _s(e['verdict']),
-                                        style: TextStyle(color: cssColor(e['verdictColor'], web.textSecondary), fontSize: 12),
+                                      _s(e['verdict']),
+                                      style: TextStyle(
+                                        color: cssColor(
+                                          e['verdictColor'],
+                                          web.textSecondary,
+                                        ),
+                                        fontSize: 12,
+                                      ),
                                     ),
                                     if (e['level'] != null) ...[
-                                      Text('· ${e['level']}', style: TextStyle(color: web.textSecondary, fontSize: 11)),
+                                      Text(
+                                        '· ${e['level']}',
+                                        style: TextStyle(
+                                          color: web.textSecondary,
+                                          fontSize: 11,
+                                        ),
+                                      ),
                                     ],
                                   ],
                                 ),
@@ -810,10 +1085,18 @@ class _History extends StatelessWidget {
                                   color: web.text,
                                   fontSize: 15,
                                   fontWeight: FontWeight.w800,
-                                  fontFeatures: const [FontFeature.tabularFigures()],
+                                  fontFeatures: const [
+                                    FontFeature.tabularFigures(),
+                                  ],
                                 ),
                               ),
-                              Text(_s(e['time']), style: TextStyle(color: web.textSecondary, fontSize: 11)),
+                              Text(
+                                _s(e['time']),
+                                style: TextStyle(
+                                  color: web.textSecondary,
+                                  fontSize: 11,
+                                ),
+                              ),
                             ],
                           ),
                         ],

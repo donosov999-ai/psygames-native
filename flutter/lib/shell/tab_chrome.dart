@@ -351,6 +351,7 @@ class ProgressEntryList extends StatelessWidget {
       route: '/statistics',
       duration: const Duration(milliseconds: 600),
       builder: (context, progress, _) => ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
         padding: padding,
         children: [
           for (var i = 0; i < children.length; i++)
@@ -371,6 +372,29 @@ class ProgressEntryList extends StatelessWidget {
               },
             ),
         ],
+      ),
+    );
+  }
+}
+
+/// Only the first six real catalog tiles, finite <=450ms; filters remain immediate.
+class CatalogTileEntry extends StatelessWidget {
+  const CatalogTileEntry({super.key, required this.index, required this.child});
+  final int index;
+  final Widget child;
+  @override
+  Widget build(BuildContext context) {
+    if (index >= 6 || !ChromeArt.aurora(context)) return child;
+    return TabEntryMotion(
+      route: '/games',
+      duration: const Duration(milliseconds: 450),
+      child: child,
+      builder: (context, t, child) => Opacity(
+        alwaysIncludeSemantics: true,
+        opacity: Curves.easeOut.transform(
+          ((t - index * .05) / .75).clamp(0, 1),
+        ),
+        child: child,
       ),
     );
   }

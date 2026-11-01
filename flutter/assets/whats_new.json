@@ -1,6 +1,22 @@
 {
  "entries": [
   {
+   "version": "2.56.56",
+   "date": "2026-11-01",
+   "en": [
+    "Workout: compact time-of-day gems connected to the selected programme",
+    "Pet: name, speech, shop and four care actions together inside the scene",
+    "Play with a toy beside your pet without leaving the screen; this does not count as a workout",
+    "Progress: pull to refresh; gentler catalogue entry and improved large-text layouts"
+   ],
+   "ru": [
+    "Зарядка: компактные камни времени суток соединены с выбранной программой",
+    "Питомец: имя, реплика, магазин и четыре действия ухода внутри одной сцены",
+    "«Поиграть»: игрушка рядом с питомцем без перехода в каталог и без зачёта тренировки",
+    "Прогресс: обновление жестом; мягкое появление каталога и улучшения крупного текста"
+   ]
+  },
+  {
    "version": "2.56.55",
    "date": "2026-11-01",
    "en": [
