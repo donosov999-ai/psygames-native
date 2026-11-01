@@ -26,6 +26,7 @@ Map<String, dynamic> data(String p) =>
 
 void main() {
   const capture = bool.fromEnvironment('CAPTURE_TABS');
+  const motion = bool.fromEnvironment('CAPTURE_MOTION');
   HttpServer? server;
   final clients = <HttpClient>[];
   final host = Object();
@@ -68,10 +69,13 @@ void main() {
         (width: 390.0, locale: 'en', scale: 1.0),
         (width: 320.0, locale: 'en', scale: 2.0),
         (width: 320.0, locale: 'ar', scale: 1.0),
+        (width: 390.0, locale: 'ru', scale: 1.0),
       ]) {
         testWidgets(
           'real $route ${brightness.name}: ${config.width} ${config.locale} x${config.scale}',
           (t) async {
+            final petActive = ValueNotifier(false);
+            addTearDown(petActive.dispose);
             t.view.physicalSize = Size(config.width * 2, 1688);
             t.view.devicePixelRatio = 2;
             addTearDown(t.view.reset);
@@ -139,7 +143,11 @@ void main() {
                 onOpen: (_) {},
               ),
               '/statistics' => StatsScreen(onTab: (_) {}),
-              '/pet' => PetScreen(origin: origin, ownModel: false),
+              '/pet' => ValueListenableBuilder<bool>(
+                valueListenable: petActive,
+                builder: (_, active, _) =>
+                    PetScreen(origin: origin, ownModel: false, active: active),
+              ),
               _ => const WarmupPickerScreen(),
             };
             var theme = applyUiTemplate(
@@ -160,7 +168,7 @@ void main() {
                 theme: theme,
                 builder: (c, child) => MediaQuery(
                   data: MediaQuery.of(c).copyWith(
-                    disableAnimations: true,
+                    disableAnimations: !motion,
                     textScaler: TextScaler.linear(config.scale),
                   ),
                   child: Directionality(
@@ -195,7 +203,43 @@ void main() {
             expect(find.byType(AuroraTabHeader), findsOneWidget);
             expect(t.takeException(), isNull);
             final name = route.substring(1).replaceAll('-', '_');
-            final save = capture && config.width == 390;
+            if (motion &&
+                brightness == Brightness.dark &&
+                config.width == 390 &&
+                config.locale == 'en') {
+              TabChromeHost.update(host, '/home');
+              await t.pump();
+              petActive.value = true;
+              TabChromeHost.update(host, route);
+              if (route == '/warmup-picker') {
+                final m = data(
+                  'test/fixtures/warmup_model_from_screen_en.json',
+                );
+                final slots = m['slots'] as List;
+                (slots[0] as Map)['on'] = false;
+                (slots[1] as Map).addAll(<String, dynamic>{
+                  'on': true,
+                  'durs': (slots[0] as Map)['durs'],
+                  'steps': (slots[0] as Map)['steps'],
+                });
+                WarmupUi.picker.value = m;
+              }
+              await t.pump();
+              for (var frame = 0; frame < 28; frame++) {
+                await expectLater(
+                  find.byType(MaterialApp),
+                  matchesGoldenFile(
+                    'preview/motion/$name-${frame.toString().padLeft(2, '0')}.png',
+                  ),
+                );
+                await t.pump(const Duration(milliseconds: 40));
+              }
+            } else {
+              petActive.value = true;
+              await t.pump();
+            }
+            final save =
+                capture && config.width == 390 && config.locale == 'en';
             if (save) {
               await expectLater(
                 find.byType(MaterialApp),

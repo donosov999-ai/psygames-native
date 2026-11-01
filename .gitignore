@@ -19,6 +19,8 @@ src-tauri/gen/
 
 # Generated mini-app visual QA artifacts
 miniapps/qa/
+# Reproducible raw Flutter recording frames; GIFs and generator remain versioned.
+flutter/test/design/preview/motion/
 
 # OS
 .DS_Store
