@@ -1,0 +1,11 @@
+00:00 +0: loading /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/integration_test/game_feedback_native_test.dart
+The following plugins do not support Swift Package Manager for macos:
+  - flutter_tts
+This will become an error in a future version of Flutter. Please contact the plugin maintainers to request Swift Package Manager adoption.
+Building macOS application...                                   
+✓ Built build/macos/Build/Products/Debug/psygames_flutter.app
+Failed to foreground app; open returned 1
+00:00 +0: native flame commands, stop and dispose (muted, not listening acceptance)
+00:03 +1: native soloud commands, stop and dispose (muted, not listening acceptance)
+00:03 +2: (tearDownAll)
+00:03 +2: All tests passed!

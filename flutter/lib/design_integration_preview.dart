@@ -14,6 +14,9 @@ import 'shell/shared_state.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // Manual acceptance harness only: in-memory storage is intentional safety,
+  // not an app storage implementation. Production still targets lib/main.dart.
+  // ignore: invalid_use_of_visible_for_testing_member
   SharedPreferences.setMockInitialValues({
     uiTemplateKey: 'aurora_v1',
     'psygames_theme_override': 'dark',
