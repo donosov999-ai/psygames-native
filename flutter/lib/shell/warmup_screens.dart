@@ -740,33 +740,88 @@ class _WarmupPickerScreenState extends State<WarmupPickerScreen> {
                       ),
                       const SizedBox(width: 10),
                       Expanded(
-                        child: DecoratedBox(
-                          decoration: aurora
-                              ? const BoxDecoration(image: ChromeArt.action)
-                              : const BoxDecoration(),
-                          child: FilledButton.icon(
-                            key: const Key('warmup-picker-start'),
-                            style: FilledButton.styleFrom(
-                              minimumSize: const Size(0, 48),
-                              backgroundColor: aurora
-                                  ? Colors.transparent
-                                  : _hex(start['tint']),
-                              foregroundColor: aurora
-                                  ? ChromePilot.onGoldAction
-                                  : Colors.white,
-                            ),
-                            onPressed: disabled
-                                ? null
-                                : () => WarmupUi.act('picker', 'launch'),
-                            icon: const Icon(Icons.play_arrow),
-                            label: Text(
-                              _s(start['label']),
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w800,
+                        child: aurora
+                            ? Semantics(
+                                button: true,
+                                enabled: !disabled,
+                                label: _s(start['label']),
+                                excludeSemantics: true,
+                                onTap: disabled
+                                    ? null
+                                    : () => WarmupUi.act('picker', 'launch'),
+                                child: InkWell(
+                                  key: const Key('warmup-picker-start'),
+                                  onTap: disabled
+                                      ? null
+                                      : () => WarmupUi.act('picker', 'launch'),
+                                  borderRadius: BorderRadius.circular(24),
+                                  child: Opacity(
+                                    opacity: disabled ? .45 : 1,
+                                    child: Container(
+                                      constraints: const BoxConstraints(
+                                        minHeight: 48,
+                                      ),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 18,
+                                        vertical: 12,
+                                      ),
+                                      decoration: const BoxDecoration(
+                                        image: ChromeArt.action,
+                                      ),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          const Icon(
+                                            Icons.play_arrow,
+                                            color: ChromePilot.onGoldAction,
+                                          ),
+                                          const SizedBox(width: 6),
+                                          Flexible(
+                                            child: Text(
+                                              _s(start['label']),
+                                              textAlign: TextAlign.center,
+                                              style: const TextStyle(
+                                                color: ChromePilot.onGoldAction,
+                                                fontWeight: FontWeight.w800,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              )
+                            : DecoratedBox(
+                                decoration: aurora
+                                    ? const BoxDecoration(
+                                        image: ChromeArt.action,
+                                      )
+                                    : const BoxDecoration(),
+                                child: FilledButton.icon(
+                                  key: const Key('warmup-picker-start'),
+                                  style: FilledButton.styleFrom(
+                                    minimumSize: const Size(0, 48),
+                                    backgroundColor: aurora
+                                        ? Colors.transparent
+                                        : _hex(start['tint']),
+                                    foregroundColor: aurora
+                                        ? ChromePilot.onGoldAction
+                                        : Colors.white,
+                                  ),
+                                  onPressed: disabled
+                                      ? null
+                                      : () => WarmupUi.act('picker', 'launch'),
+                                  icon: const Icon(Icons.play_arrow),
+                                  label: Text(
+                                    _s(start['label']),
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                                  ),
+                                ),
                               ),
-                            ),
-                          ),
-                        ),
                       ),
                     ],
                   ),
