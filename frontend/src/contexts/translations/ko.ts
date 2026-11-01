@@ -1,6 +1,23 @@
 // AUTO-GENERATED translation overlay (ko). Источник: транскреация с EN-базы (856 ключей).
 // Не править руками — регенерировать. Нужна вычитка нативом до сторов.
 const t: Record<string, string> = {
+  gemPaletteTitle: "크리스털 팔레트",
+  gemPaletteEnabled: "크리스털 색상 사용",
+  gemPaletteHint: "Aurora 헤더와 탐색에만 적용됩니다. 프로필마다 프리셋이 있으며 게임 색상과 밝은/어두운 테마 설정은 바뀌지 않습니다.",
+  gemPaletteHue: "색조",
+  gemPaletteLightness: "명도",
+  gemPaletteSaturation: "채도",
+  gemPaletteGlow: "발광",
+  gemPaletteBackground: "배경 색조",
+  gemPaletteCustom: "사용자 지정",
+  gemPaletteUnavailable: "크리스털 렌더링을 사용할 수 없습니다. 기존 디자인이 유지됩니다.",
+  gemPaletteSaveError: "저장할 수 없습니다. 다시 시도하세요.",
+  gemDiamond: "밝은 다이아몬드",
+  gemBlackDiamond: "블랙 다이아몬드",
+  gemPinkDiamond: "연분홍 다이아몬드",
+  gemSapphire: "사파이어",
+  gemRuby: "루비",
+  gemAmethyst: "자수정",
   "ui_template_title": "인터페이스 템플릿",
   "ui_template_hint": "첫 번째 스타일 변경 단계이며 전체 화면 개편은 아직 아닙니다. 화면 모드, 프로필, 진행 상황은 유지됩니다.",
   sudokuSupportTitle: "스도쿠 진행 상황 지원",

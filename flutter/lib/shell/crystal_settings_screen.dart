@@ -11,7 +11,7 @@ const crystalPresetKeys = <String>[
   'gemBlackDiamond',
   'gemPinkDiamond',
   'gemSapphire',
-  'gemEmerald',
+  'cosName_accent_emerald',
   'gemRuby',
   'gemAmethyst',
   'gemPaletteHue',

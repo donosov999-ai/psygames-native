@@ -1,6 +1,23 @@
 // AUTO-GENERATED translation overlay (it). Источник: транскреация с EN-базы (856 ключей).
 // Не править руками — регенерировать.
 const t: Record<string, string> = {
+  gemPaletteTitle: "Tavolozza di cristalli",
+  gemPaletteEnabled: "Usa i colori dei cristalli",
+  gemPaletteHint: "Solo intestazioni e navigazione Aurora. Ogni profilo ha un preset; colori dei giochi e tema chiaro/scuro non cambiano.",
+  gemPaletteHue: "Tonalità",
+  gemPaletteLightness: "Luminosità",
+  gemPaletteSaturation: "Saturazione",
+  gemPaletteGlow: "Bagliore",
+  gemPaletteBackground: "Tonalità dello sfondo",
+  gemPaletteCustom: "Personalizzato",
+  gemPaletteUnavailable: "Rendering dei cristalli non disponibile. Rimane il design attuale.",
+  gemPaletteSaveError: "Impossibile salvare. Riprova.",
+  gemDiamond: "Diamante chiaro",
+  gemBlackDiamond: "Diamante nero",
+  gemPinkDiamond: "Diamante rosa pallido",
+  gemSapphire: "Zaffiro",
+  gemRuby: "Rubino",
+  gemAmethyst: "Ametista",
   "ui_template_title": "Modello interfaccia",
   "ui_template_hint": "Prima fase visiva, non ancora un restyling completo. Modalità di visualizzazione, profilo e progressi restano invariati.",
   sudokuSupportTitle: "Assistenza per i progressi nel Sudoku",
