@@ -18,15 +18,14 @@ class PilotLiquidSurface extends StatelessWidget {
       future: _shaders ??= LiquidGlassShaders.ensureLoaded(),
       builder: (context, snapshot) {
         if (snapshot.hasError || snapshot.connectionState != ConnectionState.done) return child;
-        return Stack(alignment: Alignment.center, children: [
-          Positioned.fill(child: IgnorePointer(child: LiquidGlassLens(
+        return LiquidGlassLens(
+            touch: const LiquidGlassTouch(flex: LiquidGlassFlex(stretch: 5, lean: 0)),
             style: const LiquidGlassStyle(
               shape: LiquidGlassShape.continuousRoundedRectangle(cornerRadius: 24),
               refractionIndex: 1.01, refractionWidth: 5, blur: 0,
             ),
-          ))),
-          child,
-        ]);
+            child: child,
+        );
       },
     );
   }

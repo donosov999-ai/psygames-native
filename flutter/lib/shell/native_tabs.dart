@@ -12,6 +12,7 @@ import 'l10n.dart';
 import 'web_theme.dart';
 import 'chrome_art.dart';
 import 'pilot_liquid_surface.dart';
+import 'pilot_press_response.dart';
 
 /// НИЖНЯЯ ПОЛОСА — У ОБОЛОЧКИ FLUTTER (задача 5136754e, решение Дениса 07.10.2026).
 ///
@@ -155,7 +156,7 @@ class NativeTabBar extends StatelessWidget {
                     // ⚠️ Вся высота вкладки нажимается, а не только значок (веб: порог 48 из
                     // tap-target-audit, подпись входит в цель).
                     onTap: active == t.route ? null : () => onTap(t.route),
-                    child: SizedBox(
+                    child: PilotPressResponse(enabled: underline, child: SizedBox(
                       height: NativeTabs.height + (underline ? auroraExtraHeight : 0),
                       child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
                         if (underline && _lightNavAssets.containsKey(t.icon))
@@ -197,7 +198,7 @@ class NativeTabBar extends StatelessWidget {
                           ),
                         ],
                       ]),
-                    ),
+                    )),
                   ),
                 ),
               ),

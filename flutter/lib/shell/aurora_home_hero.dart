@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'design_template.dart';
 import 'game_shell.dart';
 import 'chrome_art.dart';
+import 'pilot_press_response.dart';
 
 /// 🔴 КАРТОЧКА ЗАРЯДКИ НА ГЛАВНОЙ В «АВРОРЕ» — иллюстрация во всю карточку, слева название,
 /// пояснение и кнопка (лист 01 Codex, «Тренировка дня»; компактный реф главной 30.10 —
@@ -75,7 +76,7 @@ class AuroraHomeHero extends StatelessWidget {
                 left: 18, bottom: 16,
                 child: SizedBox(
                     width: (box.maxWidth - 36).clamp(0.0, 220.0), height: 56,
-                    child: DecoratedBox(
+                    child: PilotPressResponse(child: DecoratedBox(
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(24),
                         image: ChromeArt.action,
@@ -92,7 +93,7 @@ class AuroraHomeHero extends StatelessWidget {
                       ),
                       icon: const Icon(Icons.play_arrow_rounded),
                       label: Text(cta, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
-                    )),
+                    ))),
                   ),
               ),
             ]),
