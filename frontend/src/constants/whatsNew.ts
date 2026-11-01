@@ -16,6 +16,22 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.56.55',
+    date: '2026-11-01',
+    en: [
+      'Aurora: jewel Home, Games, Workout, Progress and Pet screens with matching headers and bottom tabs',
+      'Games stay in a square grid; Workout keeps your real programmes and durations',
+      'Gentle screen-entry effects, a new Pet entrance and animated item moves; respects Reduce Motion',
+      'Summary and History both keep their button backgrounds; improved music continuity between tabs',
+    ],
+    ru: [
+      'Аврора: драгоценное оформление главной, игр, зарядки, прогресса и питомца; единые шапки и нижние вкладки',
+      'Каталог остаётся квадратным; зарядка сохраняет настоящие программы и выбор длительности',
+      'Мягкие эффекты входа, появление питомца и движение товаров; учитывается уменьшение анимации',
+      'Подложки у обеих кнопок «Сводка» и «История»; музыка больше не обрывается при смене вкладок меню',
+    ],
+  },
+  {
     version: '2.56.54',
     date: '2026-10-31',
     en: [
