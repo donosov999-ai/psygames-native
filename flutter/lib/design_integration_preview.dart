@@ -10,6 +10,7 @@ import 'shell/game_clock.dart';
 import 'shell/game_rules.dart';
 import 'shell/l10n.dart';
 import 'shell/level_rules.dart';
+import 'shell/native_tabs.dart';
 import 'shell/shared_state.dart';
 
 Future<void> main() async {
@@ -27,6 +28,9 @@ Future<void> main() async {
   await AppLook.load(state);
   await GameRules.load();
   await LevelRules.load();
+  // Review must fail visibly on an invalid manifest, not silently fall back to
+  // a bare WebView when the shell's asynchronous tab-manifest load is delayed.
+  await NativeTabs.load();
   final server = await AssetServer.start();
   server.reviveOnResume();
   installGameClockLifecycle();

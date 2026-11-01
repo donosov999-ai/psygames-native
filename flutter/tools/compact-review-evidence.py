@@ -14,6 +14,13 @@ frames = root / 'test/design/preview'
 out = root.parent / 'design-integration-evidence/compact/review'
 out.mkdir(parents=True, exist_ok=True)
 ref = Image.open(args.reference).convert('RGB')
+for theme in ('dark', 'light'):
+    pair = Image.new('RGB', (780, 844), '#071622')
+    for i, page in enumerate(('warmup_picker', 'pet')):
+        im = Image.open(frames / f'{page}-{theme}-top.png').convert('RGB')
+        im = im.resize((390, round(im.height * 390 / im.width)))
+        pair.paste(im, (390 * i, 0))
+    pair.save(out / f'flutter-workout-pet-{theme}.png')
 for i, page in enumerate(('warmup_picker', 'pet')):
     actual = Image.open(frames / f'{page}-dark-top.png').convert('RGB')
     actual = actual.resize((390, round(actual.height * 390 / actual.width)))
