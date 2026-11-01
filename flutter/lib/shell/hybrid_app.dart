@@ -137,6 +137,7 @@ import 'warmup_bridge.dart';
 import 'warmup_step_bridge.dart';
 import 'warmup_owner.dart';
 import 'game_pet.dart';
+import 'tab_chrome.dart';
 import 'session_report.dart';
 import 'game_preset.dart';
 import 'game_rules.dart';
@@ -1023,6 +1024,7 @@ class _HybridAppState extends State<HybridApp> {
     // они там уже лежат, класть их второй раз в ассеты Flutter значило бы
     // 4,2 МБ впустую.
     PetHost.bind(this, widget.state, widget.server.origin, widget.server.assetRevision);
+    TabChromeHost.bind(this, _openFromCatalog);
     // Синапс (852e4b4a) пишет реплики по партиям в общую память — ту же, что у веба.
     SynapseFeed.state = widget.state;
     SessionReport.sink = (json) async {
@@ -1155,6 +1157,7 @@ class _HybridAppState extends State<HybridApp> {
   void dispose() {
     SessionReport.sink = null;
     PetHost.unbind(this);
+    TabChromeHost.unbind(this);
     if (SynapseFeed.state == widget.state) SynapseFeed.state = null;
     GameExit.home = null;
     GameExit.feedback = null;
@@ -1243,7 +1246,9 @@ class _HybridAppState extends State<HybridApp> {
   String _markNativeOver(String route) {
     final token = '${++_nativeOverSeq} $route';
     _nativeOver = token;
-    unawaited(_c.runJavaScript('window.__psyNativeOver=${jsonEncode(token)};').catchError((Object _) {}));
+    unawaited(_c.runJavaScript('window.__psyNativeOver=${jsonEncode(token)};'
+        'window.__psyMusicNativeRoute=${jsonEncode({'token': token, 'route': route})};'
+        'window.dispatchEvent(new Event("psygames-music-route"));').catchError((Object _) {}));
     return token;
   }
 
@@ -1251,6 +1256,11 @@ class _HybridAppState extends State<HybridApp> {
   /// это тоже фантом. Новый нативный экран за это время ставит свою метку, и старая её не трогает.
   void _unmarkNativeOver(String token) {
     if (_nativeOver == token) _nativeOver = null;
+    // Music ownership is separate from the 1.5s phantom-session quarantine.
+    // An old native screen must not clear the next game's music hold.
+    unawaited(_c.runJavaScript('(function(t){if(window.__psyMusicNativeRoute && window.__psyMusicNativeRoute.token===t){'
+        'window.__psyMusicNativeRoute=null;window.dispatchEvent(new Event("psygames-music-route"));}})(${jsonEncode(token)});')
+        .catchError((Object _) {}));
     unawaited(_c
         .runJavaScript('(function(t){setTimeout(function(){if(window.__psyNativeOver===t)window.__psyNativeOver=null;},1500);})'
             '(${jsonEncode(token)});')
@@ -1266,6 +1276,7 @@ class _HybridAppState extends State<HybridApp> {
     }.toList()
       ..sort();
     return 'window.__psyHostNativeRoutes=${jsonEncode(routes)};'
+        'window.__psyMusicNativeRoute=${jsonEncode(_nativeOver == null || _openedRoute == null ? null : {'token': _nativeOver, 'route': _openedRoute})};'
         // Страница перезагрузилась под открытым нативным экраном — метка возвращается (5f9d4ea0).
         'window.__psyNativeOver=${jsonEncode(_nativeOver)};'
         'window.__psyHostLang=${jsonEncode(widget.state.language)};'
@@ -1606,6 +1617,10 @@ class _HybridAppState extends State<HybridApp> {
     final bar = _tabsReady && NativeTabs.barVisible(path);
     final shown = _shownIndex();
     final waiting = shown != 0 && _needsModel(_nativeTab);
+    final chromeRoute = waiting ? null : path;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && (_nativeTab ?? _pagePath) == path) TabChromeHost.update(this, chromeRoute);
+    });
     final scaffold = Scaffold(
       // Полоса под часами и фон вкладки — `colors.background` веба, а не цвет семени Material.
       backgroundColor: WebTheme.of(context).background,
@@ -1686,7 +1701,8 @@ class _HybridAppState extends State<HybridApp> {
             // «Что нового»: полный архив и модель на Dart; legacy WEB fixtures — только без state.
             WhatsNewScreen(state: widget.state),
             // «Питомец» (d1e147b0) — вкладка по модели веба; кадры — тем же PetFrames, что у гуляки.
-            PetScreen(origin: widget.server.origin, state: widget.state),
+            PetScreen(origin: widget.server.origin, state: widget.state,
+              active: shown != 0 && path == PetScreen.route && !waiting),
           ],
                 ),
                   ),

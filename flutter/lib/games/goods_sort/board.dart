@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
 import 'layout.dart';
 import 'model.dart';
+import 'motion.dart';
 import '../../shell/l10n.dart';
 
 /// Что держит человек: ниша и место товара в ней.
@@ -41,9 +43,11 @@ class GoodsField extends StatelessWidget {
     required this.onPickItem,
     required this.onTapNiche,
     required this.onDrop,
+    this.motion,
   });
 
   final GoodsLevel level;
+  final GoodsMotion? motion;
   final GoodsBoard board;
   final double fieldHeight;
 
@@ -122,6 +126,7 @@ class GoodsField extends StatelessWidget {
                         child: switch (_nicheAtPlace(r * level.cols + col)) {
                           final int i => Center(
                               child: _Niche(
+                                motion: motion,
                                 index: i,
                                 row: r,
                                 board: board,
@@ -154,13 +159,14 @@ class GoodsField extends StatelessWidget {
         // Витрина (с L46) НАМЕРЕННО не влезает в поле: ряды растут, колонки нет,
         // товар при этом не ужимается ниже пола читаемости. Об этом говорит сама
         // раскладка (`scrolls`) — здесь только оборачиваем в прокрутку.
-        return SizedBox(
+        final field = SizedBox(
           width: c.maxWidth,
           height: fieldHeight,
           child: lay.scrolls
               ? SingleChildScrollView(child: Center(child: cabinet))
               : Center(child: cabinet),
         );
+        return motion == null ? field : GoodsMotionLayer(motion: motion!, child: field);
       },
     );
   }
@@ -184,9 +190,11 @@ class _Niche extends StatelessWidget {
     required this.onPickItem,
     required this.onTapNiche,
     required this.onDrop,
+    this.motion,
   });
 
   final int index;
+  final GoodsMotion? motion;
   final int row;
   final GoodsBoard board;
   final GsLayout lay;
@@ -214,7 +222,7 @@ class _Niche extends StatelessWidget {
     final behind = back != null && index < back.length ? back[index].length : 0;
     final flagged = goal.kind == 'free' && goal.niches.contains(index);
 
-    return DragTarget<GoodsPick>(
+    return KeyedSubtree(key: motion?.niche(index), child: DragTarget<GoodsPick>(
       onWillAcceptWithDetails: (d) => canDrop(d.data, index),
       onAcceptWithDetails: (d) => onDrop(d.data, index),
       builder: (context, candidate, rejected) {
@@ -310,6 +318,7 @@ class _Niche extends StatelessWidget {
                       ),
                     ),
                   _Stack(
+                    motion: motion,
                     niche: index,
                     cell: cell,
                     box: box,
@@ -378,7 +387,7 @@ class _Niche extends StatelessWidget {
           ),
         );
       },
-    );
+    ));
   }
 
   String _label(List<int> cell, int cap) {
@@ -409,9 +418,11 @@ class _Stack extends StatelessWidget {
     required this.selection,
     required this.enabled,
     required this.onPick,
+    this.motion,
   });
 
   final int niche;
+  final GoodsMotion? motion;
   final List<int> cell;
   final GsItemBox box;
   final Set<String> covered;
@@ -419,6 +430,14 @@ class _Stack extends StatelessWidget {
   final GoodsPick? selection;
   final bool enabled;
   final void Function(GoodsPick pick) onPick;
+
+  Widget _motionItem(int index, Widget child) {
+    if (motion == null) return child;
+    return AnimatedBuilder(animation: motion!, builder: (_, _) => Opacity(
+      opacity: motion!.hiddenItem == '$niche:$index' ? 0 : 1,
+      child: child,
+    ));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -431,15 +450,16 @@ class _Stack extends StatelessWidget {
       items.add(Positioned(
         left: k * step,
         bottom: selected ? 4 : 0,   // выбранный приподнят — как в вебе
-        child: _Item(
+        child: KeyedSubtree(key: motion?.item(niche, k), child: _motionItem(k, _Item(
           pick: GoodsPick(niche, k, cell[k]),
           box: box,
           covered: covered.contains('$niche:$k'),
           hiddenLevel: hiddenLevel,
           selected: selected,
           enabled: enabled,
+          animateSelection: motion?.enabled ?? false,
           onPick: onPick,
-        ),
+        ))),
       ));
     }
     // Первый товар рисуется последним, то есть поверх; выбранный — над всеми.
@@ -470,9 +490,11 @@ class _Item extends StatelessWidget {
     required this.selected,
     required this.enabled,
     required this.onPick,
+    this.animateSelection = false,
   });
 
   final GoodsPick pick;
+  final bool animateSelection;
   final GsItemBox box;
   final bool covered;
   final bool hiddenLevel;
@@ -532,7 +554,10 @@ class _Item extends StatelessWidget {
           width: 2,
         ),
       ),
-      child: face,
+      child: selected && animateSelection
+          ? face.animate().scale(begin: const Offset(1, 1), end: const Offset(1.06, 1.06), duration: 120.ms)
+              .shake(rotation: .035, duration: 180.ms, hz: 2)
+          : face,
     );
 
     if (!enabled) return body;

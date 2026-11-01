@@ -5,10 +5,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
 import 'design_template.dart';
+import 'aurora_glass.dart';
 import 'feedback_fab.dart';
 import 'game_colors.dart';
 import 'l10n.dart';
 import 'web_theme.dart';
+import 'chrome_art.dart';
+import 'pilot_liquid_surface.dart';
+import 'pilot_press_response.dart';
 
 /// НИЖНЯЯ ПОЛОСА — У ОБОЛОЧКИ FLUTTER (задача 5136754e, решение Дениса 07.10.2026).
 ///
@@ -81,6 +85,14 @@ const _tabIcons = <String, IconData>{
   'paw': Icons.pets_rounded,
 };
 
+const _lightNavAssets = <String, String>{
+  'home': 'home',
+  'game-controller': 'games',
+  'flash': 'warmup',
+  'stats-chart': 'progress',
+  'paw': 'pet',
+};
+
 class NativeTabBar extends StatelessWidget {
   const NativeTabBar({super.key, required this.active, required this.onTap, required this.accent});
 
@@ -88,6 +100,7 @@ class NativeTabBar extends StatelessWidget {
   final String? active;
   final ValueChanged<String> onTap;
   final Color accent;
+  static const auroraExtraHeight = 12.0;
 
   @override
   Widget build(BuildContext context) {
@@ -98,13 +111,14 @@ class NativeTabBar extends StatelessWidget {
       // «Аврора»: сплошная панель фона шаблона, кромка `border`, активная — оранжевым.
       return Container(
         key: const ValueKey('native-tab-bar'),
-        height: NativeTabs.height + bottom,
+        height: NativeTabs.height + auroraExtraHeight + bottom,
         padding: EdgeInsets.only(bottom: bottom),
+        // The artwork already has an edge; a BoxDecoration border adds implicit
+        // layout padding and clips large accessibility text in the fixed bar.
         decoration: BoxDecoration(
-          color: auroraToken('background', dark: dark),
-          border: Border(top: BorderSide(color: auroraToken('border', dark: dark)!, width: 0.5)),
+          image: ChromeArt.footer(dark),
         ),
-        child: _row(GameColors.aurora(theme.brightness).highlight, auroraToken('textSecondary', dark: dark)!, underline: true),
+        child: PilotLiquidSurface(child: _row(GameColors.aurora(theme.brightness).highlight, auroraToken('textSecondary', dark: dark)!, underline: true, dark: dark)),
       );
     }
     final idle = WebTheme.of(context).textSecondary; // BottomTabBar.tsx: невыбранная — textSecondary
@@ -130,7 +144,7 @@ class NativeTabBar extends StatelessWidget {
   /// вкладки нажимается. [on] — цвет активной, [idle] — невыбранной. [underline] — полоса под
   /// активной вкладкой, как на рефе главной 30.10 («Аврора»); у остальных место под неё пустое,
   /// чтобы вкладки не прыгали.
-  Widget _row(Color on, Color idle, {bool underline = false}) => Row(children: [
+  Widget _row(Color on, Color idle, {bool underline = false, bool dark = false}) => Row(children: [
             for (final t in NativeTabs.tabs)
               Expanded(
                 child: Semantics(
@@ -142,11 +156,26 @@ class NativeTabBar extends StatelessWidget {
                     // ⚠️ Вся высота вкладки нажимается, а не только значок (веб: порог 48 из
                     // tap-target-audit, подпись входит в цель).
                     onTap: active == t.route ? null : () => onTap(t.route),
-                    child: SizedBox(
-                      height: NativeTabs.height,
+                    child: PilotPressResponse(enabled: underline, child: SizedBox(
+                      height: NativeTabs.height + (underline ? auroraExtraHeight : 0),
                       child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                        Icon(_tabIcons[t.icon] ?? Icons.circle_outlined,
-                            size: 22, color: active == t.route ? on : idle),
+                        if (underline && _lightNavAssets.containsKey(t.icon))
+                          Image.asset(
+                            'assets/aurora_game_chrome/home_nav_extraction_trial/${dark ? 'dark_' : ''}${_lightNavAssets[t.icon]}.png',
+                            width: 32, height: 32, fit: BoxFit.contain,
+                            excludeFromSemantics: true,
+                            errorBuilder: (_, _, _) => Icon(_tabIcons[t.icon], size: 22, color: active == t.route ? on : idle),
+                          )
+                        else if (underline)
+                          Container(
+                            width: 32, height: 32,
+                            decoration: AuroraGlass.ring(dark),
+                            child: Icon(_tabIcons[t.icon] ?? Icons.circle_outlined,
+                                size: 21, color: active == t.route ? on : idle),
+                          )
+                        else
+                          Icon(_tabIcons[t.icon] ?? Icons.circle_outlined,
+                              size: 22, color: active == t.route ? on : idle),
                         const SizedBox(height: 2),
                         Text(L.t(t.labelKey),
                             maxLines: 1,
@@ -157,7 +186,7 @@ class NativeTabBar extends StatelessWidget {
                                 fontWeight: FontWeight.w600,
                                 color: active == t.route ? on : idle)),
                         if (underline) ...[
-                          const SizedBox(height: 3),
+                          const SizedBox(height: 1),
                           Container(
                             key: active == t.route ? const ValueKey('native-tab-underline') : null,
                             width: 24,
@@ -169,7 +198,7 @@ class NativeTabBar extends StatelessWidget {
                           ),
                         ],
                       ]),
-                    ),
+                    )),
                   ),
                 ),
               ),

@@ -1,0 +1,101 @@
+00:00 +0: loading /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/hardcoded_colors_ratchet_test.dart
+00:00 +0: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/hardcoded_colors_ratchet_test.dart: зашитых цветов ни в одной игре и ни в одном файле каркаса не стало больше базы
+00:00 +1: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/hardcoded_colors_ratchet_test.dart: счётчик видит все три записи цвета и не видит комментарии — проверка самой пробы
+00:00 +2: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/hardcoded_colors_ratchet_test.dart: ключ носителя: игра — каталогом, каркас — файлом
+00:00 +3: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: (setUpAll)
+00:00 +3: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /games dark: 390.0 en x1.0
+00:01 +4: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /games dark: 390.0 en x1.0
+00:01 +5: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /games dark: 390.0 en x1.0
+00:01 +6: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /games dark: 390.0 en x1.0
+00:01 +7: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /games dark: 390.0 en x1.0
+00:01 +8: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /games dark: 390.0 en x1.0
+00:01 +9: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /games dark: 390.0 en x1.0
+00:01 +10: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /games dark: 390.0 en x1.0
+00:01 +11: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /games dark: 390.0 en x1.0
+00:01 +12: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /games dark: 390.0 en x1.0
+00:01 +13: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /games dark: 390.0 en x1.0
+00:01 +14: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /games dark: 390.0 en x1.0
+00:02 +15: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /games dark: 390.0 en x1.0
+00:02 +16: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /games dark: 390.0 en x1.0
+00:02 +17: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /games dark: 390.0 en x1.0
+00:02 +18: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /games dark: 390.0 en x1.0
+00:02 +19: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /games dark: 390.0 en x1.0
+00:02 +20: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /games dark: 390.0 en x1.0
+00:02 +21: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /games dark: 390.0 en x1.0
+00:02 +22: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /games dark: 390.0 en x1.0
+00:02 +23: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /games dark: 390.0 en x1.0
+00:02 +24: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /games dark: 390.0 en x1.0
+00:02 +25: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /games dark: 390.0 en x1.0
+00:02 +26: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /games dark: 390.0 en x1.0
+00:02 +27: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /games dark: 390.0 en x1.0
+00:02 +28: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /games dark: 390.0 en x1.0
+00:02 +29: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /games dark: 390.0 en x1.0
+00:02 +30: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /games dark: 390.0 en x1.0
+00:02 +31: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /games dark: 390.0 en x1.0
+00:02 +32: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /games dark: 390.0 en x1.0
+00:02 +33: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /games dark: 390.0 en x1.0
+00:02 +34: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /games dark: 390.0 en x1.0
+00:02 +35: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /games dark: 390.0 en x1.0
+00:02 +36: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /games dark: 390.0 en x1.0
+00:02 +37: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /games dark: 390.0 en x1.0
+00:02 +38: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /games dark: 390.0 en x1.0
+00:02 +39: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /games dark: 390.0 en x1.0
+00:02 +40: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /games dark: 390.0 en x1.0
+00:02 +41: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /games dark: 390.0 en x1.0
+00:02 +42: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /games dark: 390.0 en x1.0
+00:02 +43: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /games dark: 390.0 en x1.0
+00:02 +44: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /games dark: 390.0 en x1.0
+00:02 +45: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /games dark: 390.0 en x1.0
+00:02 +46: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/tab_chrome_contract_test.dart: same five header slots de light 390.0 x2.0
+00:02 +47: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /games dark: 320.0 en x2.0
+00:02 +48: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /games dark: 320.0 en x2.0
+00:02 +49: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /games dark: 320.0 en x2.0
+00:02 +50: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /games dark: 320.0 en x2.0
+00:02 +51: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /games dark: 320.0 en x2.0
+00:03 +52: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /games dark: 320.0 en x2.0
+00:03 +53: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /games dark: 320.0 en x2.0
+00:03 +54: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /games dark: 320.0 en x2.0
+00:03 +55: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /games dark: 320.0 ar x1.0
+00:04 +56: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /warmup-picker dark: 390.0 en x1.0
+00:04 +57: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /warmup-picker dark: 320.0 en x2.0
+00:05 +58: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /warmup-picker dark: 320.0 ar x1.0
+00:05 +59: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /statistics dark: 390.0 en x1.0
+00:06 +60: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /statistics dark: 320.0 en x2.0
+00:06 +61: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /statistics dark: 320.0 en x2.0
+00:06 +62: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /statistics dark: 320.0 en x2.0
+00:06 +63: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /statistics dark: 320.0 en x2.0
+00:07 +64: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/warmup_screens_test.dart: выбор зарядки пока модели нет — ждём и просим страницу прислать её ещё раз
+00:07 +65: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /statistics dark: 320.0 ar x1.0
+00:07 +66: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /statistics dark: 320.0 ar x1.0
+00:07 +67: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /statistics dark: 320.0 ar x1.0
+00:07 +68: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /statistics dark: 320.0 ar x1.0
+00:07 +69: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /statistics dark: 320.0 ar x1.0
+00:07 +70: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /statistics dark: 320.0 ar x1.0
+00:07 +71: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/warmup_screens_test.dart: выбор зарядки модель сменилась — экран перерисовался без переоткрытия
+00:07 +72: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /pet dark: 390.0 en x1.0
+00:07 +73: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /pet dark: 390.0 en x1.0
+00:07 +74: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /pet dark: 390.0 en x1.0
+00:07 +75: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /pet dark: 390.0 en x1.0
+00:07 +76: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /pet dark: 390.0 en x1.0
+00:07 +77: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /pet dark: 390.0 en x1.0
+00:07 +78: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /pet dark: 390.0 en x1.0
+00:07 +79: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /pet dark: 390.0 en x1.0
+00:07 +80: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /pet dark: 390.0 en x1.0
+00:08 +81: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /pet dark: 390.0 en x1.0
+00:08 +82: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /pet dark: 390.0 en x1.0
+00:08 +83: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /pet dark: 320.0 en x2.0
+00:08 +84: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /pet dark: 320.0 ar x1.0
+00:09 +85: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /games light: 390.0 en x1.0
+00:10 +86: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /games light: 320.0 en x2.0
+00:10 +87: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /games light: 320.0 ar x1.0
+00:11 +88: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /warmup-picker light: 390.0 en x1.0
+00:12 +89: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /warmup-picker light: 320.0 en x2.0
+00:12 +90: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /warmup-picker light: 320.0 ar x1.0
+00:13 +91: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /statistics light: 390.0 en x1.0
+00:13 +92: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /statistics light: 320.0 en x2.0
+00:14 +93: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /statistics light: 320.0 ar x1.0
+00:14 +94: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /pet light: 390.0 en x1.0
+00:15 +95: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /pet light: 320.0 en x2.0
+00:16 +96: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: real /pet light: 320.0 ar x1.0
+00:16 +97: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart: (tearDownAll)
+00:16 +97: All tests passed!

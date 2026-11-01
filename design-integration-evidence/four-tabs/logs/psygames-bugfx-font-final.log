@@ -1,0 +1,17 @@
+00:00 +0: loading /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/feedback_bugfx_test.dart
+00:00 +0: bugFX measures and paints the same app font
+00:00 +1: button and header show bug + exact bugFX with localized accessibility
+00:00 +2: game FAB opens existing feedback sheet and leaves the game intact
+00:00 +3: no callback means no FAB or header feedback button
+00:00 +4: without shared host state FAB is not promised; header callback still works
+00:00 +5: hide setting suppresses both game buttons and reacts without remount
+00:00 +6: field-only game gets draggable feedback and respects hide setting
+00:00 +7: overlay does not reduce game field or swallow other game taps
+00:00 +8: 320x568 safe area and readable text at scale 1.0
+00:00 +9: 320x568 safe area and readable text at scale 2.0
+00:00 +10: 320x568 safe area and readable text at scale 3.0
+00:00 +11: saved bottom-right position clamps in landscape with side cutouts
+00:00 +12: RTL default position and short viewport stay in safe bounds
+00:00 +13: live drag stays safe, persists existing key, never opens feedback
+00:00 +14: FAB coordinates use local Stack bounds, including SafeArea
+00:00 +15: All tests passed!

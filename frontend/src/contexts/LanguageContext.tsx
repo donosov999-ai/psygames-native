@@ -914,6 +914,7 @@ const translations: Translations = {
   // выбор, где нужный набор уже выбран, но доступны и остальные. Границы часов
   // согласованы с Денисом: 5-12 · 12-18 · 18-00 · 00-05.
   warmupPickerTitle: { ru: 'Зарядка', en: 'Workout' },
+  homeStartWorkout: { ru: 'Начать зарядку', en: 'Start workout' },
   warmupPickerHint:  { ru: 'Выбрано по времени суток — можно взять любой другой', en: 'Picked by time of day — you can take any other' },
   slotMorning:      { ru: 'Утренняя', en: 'Morning' },
   slotDay:          { ru: 'Дневная', en: 'Daytime' },

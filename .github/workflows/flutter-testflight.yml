@@ -220,7 +220,7 @@ jobs:
           </dict></plist>
           PLIST
           flutter test --no-pub test/cloud_build_config_test.dart --dart-define-from-file="$RUNNER_TEMP/psygames-cloud.json"
-          flutter build ipa --release --dart-define-from-file="$RUNNER_TEMP/psygames-cloud.json" --export-options-plist="$RUNNER_TEMP/ExportOptions.plist"
+          flutter build ipa --release --dart-define-from-file="$RUNNER_TEMP/psygames-cloud.json" --dart-define-from-file=config/approved-ui.json --export-options-plist="$RUNNER_TEMP/ExportOptions.plist"
 
       # 🔴 ДВИЖОК ДОЕХАЛ ДО БИНАРНИКА? Проверяем ДО заливки, а не после.
       # Линковка молчит, когда движок выпадает: сборка зелёная, размер

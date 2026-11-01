@@ -18,6 +18,18 @@ void main() {
   final header = find.byKey(const Key('game-feedback'));
   late SharedState state;
 
+  testWidgets('bugFX measures and paints the same app font', (t) async {
+    await t.pumpWidget(MaterialApp(
+      theme: ThemeData(fontFamily: 'BrandFont'),
+      home: const Scaffold(body: FeedbackBugMark()),
+    ));
+    final mark = find.byType(FeedbackBugMark);
+    final label = t.widget<Text>(find.descendant(of: mark, matching: find.text('bugFX')));
+    expect(label.style!.fontFamily, 'BrandFont');
+    expect(FeedbackBugMark.labelStyleOf(t.element(mark)).fontFamily, label.style!.fontFamily);
+    expect(t.takeException(), isNull);
+  });
+
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
     state = await SharedState.open();

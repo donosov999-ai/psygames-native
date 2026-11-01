@@ -67,10 +67,11 @@ void main() {
     expect(find.byKey(const ValueKey('aurora-hubcount')), findsOneWidget);
   });
 
-  testWidgets('«Аврора»: обычная игра — прежняя плитка', (tester) async {
+  testWidgets('«Аврора»: обычная игра — тот же квадратный gem-контракт, не список', (tester) async {
     await tileUnder(tester, UiTemplate.aurora, game);
-    expect(find.byType(AuroraHubTile), findsNothing);
-    expect(find.byType(GameTile), findsOneWidget);
+    expect(find.byType(AuroraHubTile), findsOneWidget);
+    expect(find.byType(GameTile), findsNothing);
+    expect(tester.widget<AuroraHubTile>(find.byType(AuroraHubTile)).title, game.name);
   });
 
   testWidgets('Classic: развилка — прежняя плитка', (tester) async {
@@ -87,8 +88,9 @@ void main() {
         home: Scaffold(body: SizedBox(width: 390, child: AuroraHomeHero(title: 'Зарядка', sub: 'Утро · 5 мин', cta: 'СТАРТ', onTap: () => taps++))),
       ));
       final image = tester.widget<Image>(find.byType(Image));
-      expect((image.image as AssetImage).assetName, 'assets/aurora_hubs/home_hero_brain_${dark ? 'dark' : 'light'}.webp');
-      expect(File('assets/aurora_hubs/home_hero_brain_${dark ? 'dark' : 'light'}.webp').existsSync(), isTrue);
+      final art = 'assets/aurora_game_chrome/${dark ? 'home_training_hero_pilot' : 'home_training_hero_light_v2'}.png';
+      expect((image.image as AssetImage).assetName, art);
+      expect(File(art).existsSync(), isTrue);
       expect(find.text('Зарядка'), findsOneWidget);
       await tester.tap(find.byKey(const ValueKey('aurora-home-hero-start')));
       expect(taps, 1);

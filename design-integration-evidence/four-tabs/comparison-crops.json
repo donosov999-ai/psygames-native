@@ -1,0 +1,90 @@
+{
+  "games-dark": {
+    "reference": "/Users/denisonosov/dev/psygames-game-lab/design-refresh-20261024/four-tabs-review-20261101/games-dark-light-candidate.png",
+    "crop": [
+      60,
+      113,
+      416,
+      858
+    ],
+    "actual": "/Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/preview/games-dark-top.png",
+    "comparison": "same width; no vertical stretching"
+  },
+  "warmup_picker-dark": {
+    "reference": "/Users/denisonosov/dev/psygames-game-lab/design-refresh-20261024/four-tabs-review-20261101/workout-dark-light-candidate.png",
+    "crop": [
+      31,
+      146,
+      365,
+      915
+    ],
+    "actual": "/Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/preview/warmup_picker-dark-top.png",
+    "comparison": "same width; no vertical stretching"
+  },
+  "statistics-dark": {
+    "reference": "/Users/denisonosov/dev/psygames-game-lab/design-refresh-20261024/four-tabs-review-20261101/progress-dark-light-candidate.png",
+    "crop": [
+      31,
+      146,
+      365,
+      915
+    ],
+    "actual": "/Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/preview/statistics-dark-top.png",
+    "comparison": "same width; no vertical stretching"
+  },
+  "pet-dark": {
+    "reference": "/Users/denisonosov/dev/psygames-game-lab/design-refresh-20261024/four-tabs-review-20261101/pet-dark-light-candidate.png",
+    "crop": [
+      31,
+      146,
+      365,
+      915
+    ],
+    "actual": "/Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/preview/pet-dark-top.png",
+    "comparison": "same width; no vertical stretching"
+  },
+  "games-light": {
+    "reference": "/Users/denisonosov/dev/psygames-game-lab/design-refresh-20261024/four-tabs-review-20261101/games-dark-light-candidate.png",
+    "crop": [
+      882,
+      113,
+      1244,
+      858
+    ],
+    "actual": "/Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/preview/games-light-top.png",
+    "comparison": "same width; no vertical stretching"
+  },
+  "warmup_picker-light": {
+    "reference": "/Users/denisonosov/dev/psygames-game-lab/design-refresh-20261024/four-tabs-review-20261101/workout-dark-light-candidate.png",
+    "crop": [
+      795,
+      146,
+      1129,
+      915
+    ],
+    "actual": "/Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/preview/warmup_picker-light-top.png",
+    "comparison": "same width; no vertical stretching"
+  },
+  "statistics-light": {
+    "reference": "/Users/denisonosov/dev/psygames-game-lab/design-refresh-20261024/four-tabs-review-20261101/progress-dark-light-candidate.png",
+    "crop": [
+      795,
+      146,
+      1129,
+      915
+    ],
+    "actual": "/Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/preview/statistics-light-top.png",
+    "comparison": "same width; no vertical stretching"
+  },
+  "pet-light": {
+    "reference": "/Users/denisonosov/dev/psygames-game-lab/design-refresh-20261024/four-tabs-review-20261101/pet-dark-light-candidate.png",
+    "crop": [
+      795,
+      146,
+      1129,
+      915
+    ],
+    "actual": "/Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/preview/pet-light-top.png",
+    "comparison": "same width; no vertical stretching"
+  }
+}

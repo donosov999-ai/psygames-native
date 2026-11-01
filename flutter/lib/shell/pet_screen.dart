@@ -8,8 +8,15 @@ import 'info_screens.dart' show ModelPage, circleBack;
 import 'ion_icon.dart';
 import 'l10n.dart';
 import 'pet_model.dart';
+import 'pet_materialization.dart';
+import 'design_template.dart';
+import 'chrome_art.dart';
+import 'game_colors.dart';
+import 'tab_chrome.dart';
+import 'pilot_press_response.dart' show uiMotionPilot;
 import 'profiles.dart';
 import 'screen_ui.dart';
+import 'section_header_surface.dart';
 import 'shared_state.dart';
 import 'training_history.dart' show Wall, deviceWall;
 import 'walking_pet.dart' show PetFrames, PetSpec;
@@ -32,7 +39,8 @@ import '../synapse/synapse_feed.dart';
 /// что сделало нажатие (действие на портрете, лакомство, реплика, подпись запертого облика), ложится
 /// поверх со страницы. Свой расчёт не удался — модель страницы, как раньше.
 class PetScreen extends StatefulWidget {
-  const PetScreen({super.key, required this.origin, this.state, this.ownModel = true});
+  const PetScreen({super.key, required this.origin, this.state, this.ownModel = true, this.active = true});
+  final bool active;
   static const route = '/pet';
 
   /// Считать модель на Dart (вариант Б). Пробы рисунка по модели веба выключают.
@@ -176,7 +184,9 @@ class _PetScreenState extends State<PetScreen> with SingleTickerProviderStateMix
       final web = WebTheme.of(context);
       final win = MediaQuery.sizeOf(context);
       // Портрет — как у веба: на телефоне 220, на широком 300, но не выше трети окна.
-      final portrait = min(win.width >= 768 ? 300.0 : 220.0, (win.height * 0.34).roundToDouble());
+      final portrait = ChromeArt.aurora(context)
+          ? min(min(win.width * .74, 340.0), (win.height * .38).roundToDouble())
+          : min(win.width >= 768 ? 300.0 : 220.0, (win.height * 0.34).roundToDouble());
       final p = _map(m['portrait']);
       final specs = _map(p['specs']);
       final state = _s(p['state']);
@@ -189,8 +199,10 @@ class _PetScreenState extends State<PetScreen> with SingleTickerProviderStateMix
       Widget gapped(List<Widget> ws) => Column(mainAxisSize: MainAxisSize.min, spacing: 6, children: ws);
 
       // ── Шапка: «назад», имя (тап — правка), место справа ──
-      final header = Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      final headerControls = Padding(
+        padding: ChromeArt.aurora(context)
+            ? const EdgeInsets.symmetric(horizontal: 20, vertical: 2)
+            : const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         child: Row(
           children: [
             circleBack(context, 'pet-back', _s(m['back']), _s(m['backIcon']), () => _act('back')),
@@ -202,7 +214,9 @@ class _PetScreenState extends State<PetScreen> with SingleTickerProviderStateMix
                         spacing: 8,
                         children: [
                           ConstrainedBox(
-                            constraints: const BoxConstraints(minWidth: 140, maxWidth: 220),
+                            constraints: ChromeArt.aurora(context)
+                                ? BoxConstraints(minWidth: 40, maxWidth: min(220, max(40, win.width - 216)))
+                                : const BoxConstraints(minWidth: 140, maxWidth: 220),
                             child: IntrinsicWidth(
                               child: TextField(
                                 key: const ValueKey('pet-name-field'),
@@ -278,6 +292,9 @@ class _PetScreenState extends State<PetScreen> with SingleTickerProviderStateMix
           ],
         ),
       );
+      final header = ChromeArt.aurora(context)
+          ? AuroraTabHeader(route: '/pet', title: L.t('tabPet'))
+          : SectionHeaderSurface(child: headerControls);
 
       // ── Портрет с лакомством ──
       final mouth = treat == null ? null : _map(treat['mouth']);
@@ -289,7 +306,12 @@ class _PetScreenState extends State<PetScreen> with SingleTickerProviderStateMix
           children: [
             if (spec != null)
               Positioned.fill(
-                child: PetFrames(key: ValueKey('pet-frames-$state'), spec: spec, size: portrait, origin: widget.origin),
+                child: PetMaterialization(
+                  active: widget.active,
+                  enabled: uiMotionPilot && Theme.of(context).extension<UiTemplateTheme>()?.template == UiTemplate.aurora,
+                  child: PetFrames(key: ValueKey('pet-frames-$state'), spec: spec, size: portrait, origin: widget.origin,
+                    still: MediaQuery.disableAnimationsOf(context)),
+                ),
               ),
             if (treat != null && mouth != null)
               AnimatedBuilder(
@@ -366,7 +388,7 @@ class _PetScreenState extends State<PetScreen> with SingleTickerProviderStateMix
             child: Container(
               constraints: const BoxConstraints(minHeight: 48),
               padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 20),
-              decoration: BoxDecoration(
+              decoration: ChromeArt.aurora(context) ? ChromeArt.panel(context, selected: !fed) : BoxDecoration(
                 color: fed ? web.surface : _violet,
                 border: Border.all(color: fed ? web.border : _violet, width: 1.5),
                 borderRadius: BorderRadius.circular(16),
@@ -378,7 +400,8 @@ class _PetScreenState extends State<PetScreen> with SingleTickerProviderStateMix
                 children: [
                   Text(
                     _s(feed['label']),
-                    style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w800, color: fed ? web.textSecondary : Colors.white),
+                    style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w800,
+                      color: ChromeArt.aurora(context) ? web.text : fed ? web.textSecondary : Colors.white),
                   ),
                 ],
               ),
@@ -415,7 +438,7 @@ class _PetScreenState extends State<PetScreen> with SingleTickerProviderStateMix
                       child: Container(
                         constraints: const BoxConstraints(minHeight: 56),
                         padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
-                        decoration: BoxDecoration(
+                        decoration: ChromeArt.aurora(context) ? ChromeArt.panel(context, square: true) : BoxDecoration(
                           color: web.surface,
                           border: Border.all(color: c['accent'] == true ? _violet : web.border, width: 1.5),
                           borderRadius: BorderRadius.circular(14),
@@ -469,7 +492,9 @@ class _PetScreenState extends State<PetScreen> with SingleTickerProviderStateMix
                       child: Container(
                         constraints: const BoxConstraints(minWidth: 96),
                         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 14),
-                        decoration: BoxDecoration(
+                        decoration: ChromeArt.aurora(context) ? ChromeArt.panel(context, square: true).copyWith(
+                          border: Border.all(color: sk['on'] == true ? ChromePilot.selectedSkin : Colors.transparent, width: sk['on'] == true ? 2 : 1),
+                        ) : BoxDecoration(
                           color: web.surface,
                           border: Border.all(color: sk['on'] == true ? _violet : web.border, width: sk['on'] == true ? 2 : 1),
                           borderRadius: BorderRadius.circular(15),
@@ -526,7 +551,7 @@ class _PetScreenState extends State<PetScreen> with SingleTickerProviderStateMix
         key: ValueKey(key),
         constraints: const BoxConstraints(minWidth: 112),
         padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
-        decoration: BoxDecoration(
+        decoration: ChromeArt.aurora(context) ? ChromeArt.panel(context) : BoxDecoration(
           color: web.surface,
           border: Border.all(color: web.border),
           borderRadius: BorderRadius.circular(15),
@@ -564,8 +589,7 @@ class _PetScreenState extends State<PetScreen> with SingleTickerProviderStateMix
       final advice = m['advice'] is Map ? _map(m['advice']) : null;
       final adviceColor = advice == null ? _violet : cssColor(advice['color'], _violet);
 
-      final body = <Widget>[
-        Container(
+      final speechBox = Container(
           key: const ValueKey('pet-bubble'),
           constraints: const BoxConstraints(maxWidth: 260),
           margin: const EdgeInsets.only(bottom: 6),
@@ -609,8 +633,26 @@ class _PetScreenState extends State<PetScreen> with SingleTickerProviderStateMix
                     ),
                   ],
                 ),
-        ),
-        portraitBox,
+        );
+      final inlineBubble = ChromeArt.aurora(context) && synapse.isEmpty &&
+          MediaQuery.textScalerOf(context).scale(1) <= 1.25 && _s(m['bubble']).length < 100;
+      final body = <Widget>[
+        if (!inlineBubble) speechBox,
+        if (ChromeArt.aurora(context)) Container(
+          key: const ValueKey('pet-gem-stage'),
+          width: double.infinity,
+          height: min(win.width - 32, 390),
+          decoration: BoxDecoration(borderRadius: BorderRadius.circular(24), image: DecorationImage(
+            image: AssetImage('assets/aurora_tab_panels/pet-stage-${Theme.of(context).brightness == Brightness.dark ? 'dark' : 'light'}.png'),
+            fit: BoxFit.cover, alignment: Alignment.bottomCenter,
+          )),
+          child: Stack(children: [
+            Positioned.fill(child: Align(alignment: const Alignment(0, -.65), child: portraitBox)),
+            if (inlineBubble) PositionedDirectional(top: 12, start: 12, end: 12,
+              child: Align(alignment: AlignmentDirectional.topStart, child: speechBox)),
+          ]),
+        ) else portraitBox,
+        if (ChromeArt.aurora(context)) headerControls,
         Padding(
           padding: const EdgeInsets.only(top: 2),
           child: Text(
@@ -690,7 +732,7 @@ class _PetScreenState extends State<PetScreen> with SingleTickerProviderStateMix
                 Container(
                   key: ValueKey('pet-skill-${k['key']}'),
                   padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 14),
-                  decoration: BoxDecoration(
+                  decoration: ChromeArt.aurora(context) ? ChromeArt.panel(context) : BoxDecoration(
                     color: web.surface,
                     border: Border.all(color: web.border),
                     borderRadius: BorderRadius.circular(15),
@@ -703,14 +745,16 @@ class _PetScreenState extends State<PetScreen> with SingleTickerProviderStateMix
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(
+                            Expanded(child: Text(
                               _s(k['label']),
                               style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700, color: web.text),
-                            ),
-                            Text(
+                            )),
+                            const SizedBox(width: 8),
+                            Flexible(child: Text(
                               _s(k['value']),
+                              textAlign: TextAlign.end,
                               style: TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: cssColor(k['color'])),
-                            ),
+                            )),
                           ],
                         ),
                       ),

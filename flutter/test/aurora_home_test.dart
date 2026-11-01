@@ -73,22 +73,21 @@ void main() {
     expect(find.text('PsyGames'), findsOneWidget);
     expect(key('aurora-home-stats'), findsOneWidget);
     expect(find.descendant(of: key('home-tokens'), matching: find.text('235')), findsOneWidget);
-    expect(find.descendant(of: key('home-tokens'), matching: find.text('Lv 3')), findsOneWidget);
+    expect(find.descendant(of: key('home-tokens'), matching: find.textContaining('Lv 3')), findsOneWidget);
     expect(find.descendant(of: key('home-streak'), matching: find.text('4')), findsOneWidget);
     expect(find.descendant(of: key('home-achievements'), matching: find.text('5')), findsOneWidget);
-    expect(find.text('${((model['header'] as Map)['chip'] as Map)['name']}'), findsOneWidget);
+    expect(key('home-profile-chip'), findsNothing);
     // «Продолжить» — значок самой игры, тот же переход.
     final resume = (model['blocks'] as List).cast<Map>().firstWhere((b) => b['kind'] == 'resume', orElse: () => const {});
     if (resume.isNotEmpty) {
       await t.scrollUntilVisible(key('home-resume'), 200, scrollable: find.descendant(of: key('home-list'), matching: find.byType(Scrollable)).first);
-      expect(find.descendant(of: key('home-resume'), matching: find.byType(Image)), findsOneWidget);
+      expect(find.descendant(of: key('home-resume'), matching: find.byType(Image)), findsWidgets);
       await t.tap(key('home-resume'));
       expect(opened.removeLast(), resume['href']);
-      await t.scrollUntilVisible(key('home-profile-chip'), -200, scrollable: find.descendant(of: key('home-list'), matching: find.byType(Scrollable)).first);
+      await t.scrollUntilVisible(key('home-settings'), -200, scrollable: find.descendant(of: key('home-list'), matching: find.byType(Scrollable)).first);
     }
 
-    await t.tap(key('home-profile-chip'));
-    expect(switcher, 1);
+    expect(switcher, 0, reason: 'profile is available through settings, not a header chip');
     for (final k in ['home-tokens', 'home-streak', 'home-achievements', 'home-pet', 'home-settings', 'home-friends']) {
       await t.tap(key(k));
     }
@@ -181,7 +180,7 @@ void main() {
     await mount(t, template: UiTemplate.aurora, size: const Size(780, 6000));
     final top = key('aurora-home-top');
     final quick = key('aurora-home-stats');
-    expect(find.descendant(of: top, matching: key('home-profile-chip')), findsOneWidget);
+    expect(find.descendant(of: top, matching: key('home-profile-chip')), findsNothing);
     expect(find.descendant(of: top, matching: key('home-pet')), findsOneWidget);
     expect(find.descendant(of: top, matching: key('home-settings')), findsOneWidget);
     for (final k in ['home-friends', 'home-league']) {

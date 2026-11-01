@@ -106,11 +106,14 @@ class CatalogKit {
       // Под «Авророй» развилка с нарисованной картинкой — новая плитка; всё остальное прежнее.
       Builder(builder: (context) {
         final theme = Theme.of(context);
-        final asset = g.hub && theme.extension<UiTemplateTheme>()?.template == UiTemplate.aurora
+        final aurora = theme.extension<UiTemplateTheme>()?.template == UiTemplate.aurora;
+        final asset = g.hub && aurora
             ? AuroraHubTile.assetFor(g.route, dark: theme.brightness == Brightness.dark)
             : null;
-        if (asset != null) {
-          return AuroraHubTile(asset: asset, title: g.name, hubCount: hubCount[g.route], onTap: onTap);
+        if (aurora) {
+          return AuroraHubTile(asset: asset, title: g.name, hubCount: g.hub ? hubCount[g.route] : null, onTap: onTap,
+            iconFile: iconFile(g), glyph: hubIcon(g.icon), starsCompleted: g.id == null ? 0 : starsCompleted(state, g.id!),
+            showStars: g.id != null, description: g.desc, skill: g.skillKey == null ? '' : L.t(g.skillKey!));
         }
         return _classicTile(state, g, hubCount: hubCount, onTap: onTap);
       });
@@ -136,11 +139,14 @@ class CatalogKit {
       LayoutBuilder(builder: (context, box) {
         const gap = 10.0;
         final minTile = MediaQuery.sizeOf(context).width < 480 ? 150.0 : 170.0;
-        final cols = ((box.maxWidth + gap) / (minTile + gap)).floor().clamp(1, 6);
+        final aurora = Theme.of(context).extension<UiTemplateTheme>()?.template == UiTemplate.aurora;
+        final cols = aurora && MediaQuery.sizeOf(context).width < 600
+            ? (MediaQuery.textScalerOf(context).scale(1) > 1.5 ? 1 : 2)
+            : ((box.maxWidth + gap) / (minTile + gap)).floor().clamp(1, 6);
         final w = (box.maxWidth - gap * (cols - 1)) / cols;
         return Wrap(spacing: gap, runSpacing: gap, children: [
           for (var i = 0; i < tiles.length; i++)
-            SizedBox(key: keys?[i], width: w, height: w * 1.06, child: tiles[i](w)),
+            SizedBox(key: keys?[i], width: w, height: w * (aurora ? 1 : 1.06), child: tiles[i](w)),
         ]);
       });
 

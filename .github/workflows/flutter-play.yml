@@ -213,7 +213,7 @@ jobs:
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
           flutter test --no-pub test/cloud_build_config_test.dart --dart-define-from-file="$RUNNER_TEMP/psygames-cloud.json"
-          flutter build appbundle --release --dart-define-from-file="$RUNNER_TEMP/psygames-cloud.json"
+          flutter build appbundle --release --dart-define-from-file="$RUNNER_TEMP/psygames-cloud.json" --dart-define-from-file=config/approved-ui.json
 
       - name: Гейты пакета — подпись, движок, веб-часть
         working-directory: flutter
@@ -255,7 +255,7 @@ jobs:
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
-          flutter build apk --release --dart-define-from-file="$RUNNER_TEMP/psygames-cloud.json"
+          flutter build apk --release --dart-define-from-file="$RUNNER_TEMP/psygames-cloud.json" --dart-define-from-file=config/approved-ui.json
           APK=build/app/outputs/flutter-apk/app-release.apk
           python3 ../scripts/check_android_16k.py --require-abi arm64-v8a \
             build/app/outputs/bundle/release/app-release.aab "$APK"

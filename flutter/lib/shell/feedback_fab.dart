@@ -144,14 +144,19 @@ class FeedbackBugMark extends StatelessWidget {
     height: 1.2,
   );
 
+  static TextStyle labelStyleOf(BuildContext context) => labelStyle.copyWith(
+    fontFamily: Theme.of(context).textTheme.bodySmall?.fontFamily,
+    fontFamilyFallback: Theme.of(context).textTheme.bodySmall?.fontFamilyFallback,
+  );
+
   static Size sizeOf(BuildContext context) {
     final label = TextPainter(
-      text: const TextSpan(text: 'bugFX', style: labelStyle),
+      text: TextSpan(text: 'bugFX', style: labelStyleOf(context)),
       textDirection: Directionality.of(context),
       textScaler: MediaQuery.textScalerOf(context),
     )..layout();
     final nominal = TextPainter(
-      text: const TextSpan(text: 'bugFX', style: labelStyle),
+      text: TextSpan(text: 'bugFX', style: labelStyleOf(context)),
       textDirection: Directionality.of(context),
     )..layout();
     final size = Size(
@@ -179,7 +184,7 @@ class FeedbackBugMark extends StatelessWidget {
           fit: BoxFit.scaleDown,
           child: Text(
             'bugFX',
-            style: labelStyle.copyWith(
+            style: labelStyleOf(context).copyWith(
               color: color ?? Theme.of(context).colorScheme.onSurface,
             ),
           ),

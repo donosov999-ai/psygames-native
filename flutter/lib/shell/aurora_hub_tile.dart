@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import 'design_template.dart';
+import 'chrome_art.dart';
+import 'game_colors.dart';
 
 /// 🔴 ПЛИТКА РАЗВИЛКИ В «АВРОРЕ» — иллюстрация во всю плитку, подпись поверх.
 ///
@@ -18,9 +20,20 @@ class AuroraHubTile extends StatelessWidget {
     required this.title,
     required this.onTap,
     this.hubCount,
+    this.iconFile,
+    this.glyph = Icons.extension_outlined,
+    this.starsCompleted = 0,
+    this.showStars = false,
+    this.description = '',
+    this.skill = '',
   });
 
-  final String asset;
+  final String? asset;
+  final String? iconFile;
+  final IconData glyph;
+  final int starsCompleted;
+  final bool showStars;
+  final String description, skill;
   final String title;
   final VoidCallback onTap;
 
@@ -59,8 +72,9 @@ class AuroraHubTile extends StatelessWidget {
     final border = auroraToken('border', dark: dark)!;
     return Semantics(
       button: true,
-      label: title,
-      child: Material(
+      label: [title, description, skill].where((s) => s.isNotEmpty).join('. '),
+      child: DecoratedBox(decoration: ChromeArt.panel(context, square: true), child: Padding(
+        padding: const EdgeInsets.all(5), child: Material(
         color: surface,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(18),
@@ -72,7 +86,20 @@ class AuroraHubTile extends StatelessWidget {
           child: Stack(
             fit: StackFit.expand,
             children: [
-              Image.asset(asset, fit: BoxFit.cover, alignment: Alignment.topCenter),
+              if (asset != null) Image.asset(asset!, fit: BoxFit.cover, alignment: Alignment.topCenter)
+              else Positioned.fill(bottom: 42, child: Center(child: iconFile != null
+                ? FractionallySizedBox(widthFactor: .58, heightFactor: .72,
+                    child: Image.asset('assets/game_icons/$iconFile', fit: BoxFit.contain,
+                      errorBuilder: (_, _, _) => Icon(glyph, size: 40, color: secondary)))
+                : Icon(glyph, size: 46, color: secondary))),
+              if (showStars) PositionedDirectional(top: 8, end: 8,
+                child: Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                  decoration: BoxDecoration(color: surface.withValues(alpha: .9), borderRadius: BorderRadius.circular(8)),
+                  child: Row(mainAxisSize: MainAxisSize.min, children: [
+                    const Icon(Icons.star_rounded, size: 12, color: ChromePilot.jewelStar),
+                    const SizedBox(width: 2),
+                    Text('$starsCompleted/15', style: TextStyle(color: text, fontSize: 10, fontWeight: FontWeight.w700)),
+                  ]))),
               // Нижние ~30 % картинки нарисованы спокойными — подпись читается и без
               // затемнения, но на узкой плитке картинка уходит ниже, отсюда мягкий слой.
               Positioned(
@@ -94,7 +121,7 @@ class AuroraHubTile extends StatelessWidget {
                 left: 14,
                 right: 8,
                 bottom: 10,
-                child: Row(
+                child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, mainAxisSize: MainAxisSize.min, children: [Row(
                   children: [
                     Expanded(
                       child: Text(
@@ -111,11 +138,16 @@ class AuroraHubTile extends StatelessWidget {
                     Icon(Icons.chevron_right, size: 20, color: text),
                   ],
                 ),
+                  if (asset == null && description.isNotEmpty)
+                    Text(description, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11, color: secondary)),
+                  if (asset == null && skill.isNotEmpty)
+                    Text(skill, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 10, color: secondary)),
+                ]),
               ),
             ],
           ),
         ),
-      ),
+      ))),
     );
   }
 }

@@ -11,7 +11,7 @@
 
 import { Vibration, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { startMusic as musicStart, stopMusic as musicStop } from '@/src/services/music';
+import { startMusic as musicStart, stopMusic as musicStop, setMusicGain } from '@/src/services/music';
 
 const SOUND_KEY = 'psygames_sound_enabled';
 const HAPTIC_KEY = 'psygames_haptic_enabled';
@@ -35,11 +35,13 @@ let _hapticEnabled = true;
 let _musicOn = false;         // S1: музыка OPT-IN (дефолт off)
 let _soundPack: string | null = null;   // SND-P: 'square'|'triangle'|'sawtooth', null=sine (дефолт)
 let _prefsLoaded = false;
+let _prefsLoading: Promise<void> | null = null;
 let _audioCtx: any = null;
 
 async function loadPrefs() {
   if (_prefsLoaded) return;
-  try {
+  if (_prefsLoading) return _prefsLoading;
+  return _prefsLoading = (async () => { try {
     const v = await AsyncStorage.getItem(SOUND_KEY);
     _soundEnabled = v === null ? true : v === 'true';
     const h = await AsyncStorage.getItem(HAPTIC_KEY);
@@ -50,8 +52,10 @@ async function loadPrefs() {
     _soundPack = sp || null;
     const vol = await AsyncStorage.getItem(VOLUME_KEY);
     _volume = vol === null ? 80 : clampVolume(Number(vol));
+    setMusicGain(_volume / 100);
   } catch { /* оставляем дефолты ON */ }
   _prefsLoaded = true;
+  })();
 }
 loadPrefs();
 
@@ -95,15 +99,18 @@ export async function setHapticEnabled(v: boolean) {
 }
 export async function getMusicEnabled(): Promise<boolean> { await loadPrefs(); return _musicOn; }
 export async function setMusicEnabled(v: boolean) {
+  if (!_prefsLoaded) await loadPrefs();
   _musicOn = v;
-  try { await AsyncStorage.setItem(MUSIC_KEY, String(v)); } catch {}
   if (v) startMusic(); else stopMusic();
+  try { await AsyncStorage.setItem(MUSIC_KEY, String(v)); } catch {}
 }
 // SND-P: глобальный звук-пак (форма волны игровых звуков). null = дефолтный sine.
 /** Громкость 0…100. Ноль — тишина, но тумблер при этом остаётся включённым. */
 export async function getVolume(): Promise<number> { await loadPrefs(); return _volume; }
 export async function setVolume(v: number) {
+  if (!_prefsLoaded) await loadPrefs();
   _volume = clampVolume(v);
+  setMusicGain(_volume / 100);
   try { await AsyncStorage.setItem(VOLUME_KEY, String(_volume)); } catch {}
 }
 /** Ноль и мусор на входе не должны рвать звук: 0…100, целое. */

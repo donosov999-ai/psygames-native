@@ -3,6 +3,8 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:psygames_flutter/shell/app_theme.dart';
+import 'package:psygames_flutter/shell/design_template.dart';
 import 'package:psygames_flutter/shell/screen_ui.dart';
 import 'package:psygames_flutter/shell/stats_screen.dart';
 
@@ -45,6 +47,50 @@ void main() {
   Finder key(String k) => find.byKey(ValueKey(k));
   List<Map<String, Object?>> list(Object? v) => [for (final x in v as List) (x as Map).cast<String, Object?>()];
   Map<String, Object?> map(Object? v) => (v as Map).cast<String, Object?>();
+
+  for (final brightness in Brightness.values) {
+    testWidgets('Aurora ${brightness.name}: both tabs keep backplates before and after switching', (t) async {
+      t.view.physicalSize = const Size(780, 1688);
+      t.view.devicePixelRatio = 2;
+      addTearDown(t.view.reset);
+      ScreenUi.model(StatsScreen.route).value = model;
+      await t.pumpWidget(MaterialApp(
+        theme: applyUiTemplate(classicShellTheme(brightness), UiTemplate.aurora),
+        home: Scaffold(body: StatsScreen(onTab: tabs.add)),
+      ));
+      await t.pump();
+      String art(String id) {
+        final surface = t.widget<Container>(key('stats-tab-surface-$id'));
+        final image = (surface.decoration! as BoxDecoration).image;
+        expect(image, isNotNull, reason: '$id must retain its own backplate');
+        return (image!.image as ExactAssetImage).assetName;
+      }
+      final theme = brightness.name;
+      final before = [for (final id in ['summary', 'history']) t.getRect(key('stats-tab-$id'))];
+      expect(art('summary'), contains('approved_action.png'));
+      expect(art('history'), endsWith('$theme-panel.png'));
+      await t.tap(key('stats-tab-history'));
+      await t.pump();
+      expect(key('stats-history'), findsOneWidget);
+      expect(art('history'), contains('approved_action.png'));
+      expect(art('summary'), endsWith('$theme-panel.png'));
+      expect([for (final id in ['summary', 'history']) t.getRect(key('stats-tab-$id'))], before);
+      await t.tap(key('stats-tab-summary'));
+      await t.pump();
+      expect(key('stats-summary'), findsOneWidget);
+      expect(art('history'), endsWith('$theme-panel.png'));
+      expect(js, isEmpty, reason: 'local tab switching must not send model mutations');
+      expect(t.takeException(), isNull);
+    });
+  }
+
+  testWidgets('Classic keeps the original non-image tab decoration', (t) async {
+    await mount(t);
+    for (final id in ['summary', 'history']) {
+      final surface = t.widget<Container>(key('stats-tab-surface-$id'));
+      expect((surface.decoration! as BoxDecoration).image, isNull);
+    }
+  });
 
   testWidgets('без модели — ожидание, а не пустой экран', (t) async {
     ScreenUi.model(StatsScreen.route).value = null;
