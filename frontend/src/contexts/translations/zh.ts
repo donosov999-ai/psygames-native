@@ -1937,6 +1937,7 @@ const t: Record<string, string> = {
   "slotNightNote": "这不是训练：不计分，也不算连续天数",
   "warmupPickerHint": "按当前时段推荐，你也可以选其他任意一组",
   "warmupPickerTitle": "训练",
+  "homeStartWorkout": "开始训练",
   "leagueSeed": "萌芽",
   "leagueSpark": "火花",
   "leagueFocus": "专注",

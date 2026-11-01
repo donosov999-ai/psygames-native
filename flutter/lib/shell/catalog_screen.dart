@@ -8,6 +8,7 @@ import 'hub_screen.dart';
 import 'ion_icon.dart';
 import 'l10n.dart';
 import 'shared_state.dart';
+import 'section_header_surface.dart';
 import 'web_theme.dart';
 
 /// ВКЛАДКА «ИГРЫ» НА FLUTTER — ПЛИТКИ ВЕБА, ПОИСК НАД НИМИ, ФИЛЬТР ПОД ПОИСКОМ (задачи 99628ecf, de8ac1eb).
@@ -170,7 +171,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
     return Padding(
       key: const ValueKey('catalog-aurora-header'),
       padding: const EdgeInsets.only(top: 8, bottom: 12),
-      child: Row(children: [
+      child: SectionHeaderSurface(child: Padding(padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10), child: Row(children: [
         Expanded(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
             Text(L.t('tabGames'),
@@ -195,7 +196,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
               child: SizedBox(width: 44, height: 48, child: Center(child: IonIcon('settings-outline', size: 22, color: text))),
             ),
           ),
-      ]),
+      ]))),
     );
   }
 

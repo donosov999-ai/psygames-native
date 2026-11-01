@@ -31,7 +31,7 @@ class AuroraGlass {
    * стекло `*_chrome_glass` поверх градиента, тонкая золотая кромка, ореол и тень. Без нарисованной
    * внутренней кромки: растянутая, она попадала на подписи нижнего ряда.
    */
-  static BoxDecoration chrome(bool dark, {double radius = 22}) => BoxDecoration(
+  static BoxDecoration chrome(bool dark, {double radius = 22, bool glow = true}) => BoxDecoration(
         borderRadius: BorderRadius.circular(radius),
         image: DecorationImage(
           image: AssetImage('$_dir/${dark ? 'dark' : 'light'}_chrome_glass.webp'),
@@ -45,10 +45,10 @@ class AuroraGlass {
           stops: const [0, 0.16, 0.7, 1],
         ),
         border: Border.all(color: gold(dark), width: 1.35),
-        boxShadow: [
+        boxShadow: glow ? [
           BoxShadow(color: gold(dark).withValues(alpha: dark ? 0.32 : 0.22), blurRadius: 13),
           const BoxShadow(color: ChromePilot.shadow, blurRadius: 10, offset: Offset(0, 4)),
-        ],
+        ] : null,
       );
 
   /// Панель (пауза, меню): стекло с переливом, на крупных тёмных — текстура `dark_panel`, кромка, ореол.

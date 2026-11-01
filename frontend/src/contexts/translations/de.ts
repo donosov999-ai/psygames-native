@@ -1937,6 +1937,7 @@ const t: Record<string, string> = {
   "slotNightNote": "Kein Training: keine Punkte, keine Serie",
   "warmupPickerHint": "Nach Tageszeit gewählt — du kannst jede andere nehmen",
   "warmupPickerTitle": "Training",
+  "homeStartWorkout": "Training starten",
   "leagueSeed": "Keim",
   "leagueSpark": "Funke",
   "leagueFocus": "Fokus",

@@ -33,7 +33,6 @@ class AuroraHomeHero extends StatelessWidget {
     final border = auroraToken('border', dark: dark)!;
     // Кнопка — оранжевая, как на листе и как главная кнопка паузы (решение Дениса 29.10), а не
     // акцент профиля: один цвет действия «Авроры» на всё приложение.
-    final accent = GameShell.auroraAction;
     const onAccent = GameShell.onPauseYellow;
     return Padding(
       key: const ValueKey('aurora-home-hero'),
@@ -41,7 +40,7 @@ class AuroraHomeHero extends StatelessWidget {
       // Высота — не меньше пропорций картинки, но растёт под текст: при крупном шрифте (×2)
       // название, пояснение и кнопка не обрезаются, картинка остаётся фоном (cover).
       child: LayoutBuilder(builder: (context, box) => ConstrainedBox(
-        constraints: BoxConstraints(minHeight: box.maxWidth * 720 / 1280),
+        constraints: BoxConstraints(minHeight: (box.maxWidth * 720 / 1280).clamp(190.0, 300.0)),
         child: Material(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24), side: BorderSide(color: border)),
           clipBehavior: Clip.antiAlias,
@@ -49,10 +48,10 @@ class AuroraHomeHero extends StatelessWidget {
             onTap: onTap,
             child: Stack(children: [
               Positioned.fill(
-                child: Image.asset('assets/aurora_hubs/home_hero_brain_${dark ? 'dark' : 'light'}.webp', fit: BoxFit.cover),
+                child: Image.asset(dark ? 'assets/aurora_game_chrome/home_training_hero_pilot.png' : 'assets/aurora_game_chrome/home_training_hero_light_v2.png', fit: BoxFit.cover),
               ),
               Padding(
-                padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
+                padding: const EdgeInsets.fromLTRB(18, 18, 18, 88),
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
                   FractionallySizedBox(
                     widthFactor: 0.55,
@@ -69,24 +68,31 @@ class AuroraHomeHero extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(fontSize: 14, height: 1.3, color: secondary)),
                   ),
-                  SizedBox(height: box.maxWidth * 0.12),
-                  // Во всю ширину карточки — как «Начать зарядку» на рефе 30.10.
-                  ConstrainedBox(
-                    constraints: const BoxConstraints(minHeight: 48, minWidth: double.infinity),
-                    child: FilledButton.icon(
+                ]),
+              ),
+              Positioned(
+                left: 18, bottom: 16,
+                child: SizedBox(
+                    width: (box.maxWidth - 36).clamp(0.0, 220.0), height: 56,
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(24),
+                        image: const DecorationImage(image: AssetImage('assets/aurora_game_chrome/home_panels_pilot/approved_action.png'), fit: BoxFit.fill),
+                      ),
+                      child: FilledButton.icon(
                       key: const ValueKey('aurora-home-hero-start'),
                       onPressed: onTap,
                       style: FilledButton.styleFrom(
-                        backgroundColor: accent,
+                        backgroundColor: Colors.transparent,
+                        shadowColor: Colors.transparent,
                         foregroundColor: onAccent,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
                         padding: const EdgeInsets.symmetric(horizontal: 22),
                       ),
                       icon: const Icon(Icons.play_arrow_rounded),
-                      label: Text(cta, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
-                    ),
+                      label: Text(cta, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+                    )),
                   ),
-                ]),
               ),
             ]),
           ),

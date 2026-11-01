@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'feedback_fab.dart' show FabRules;
 import 'ion_icon.dart';
 import 'screen_ui.dart';
+import 'section_header_surface.dart';
 import 'shared_state.dart';
 import 'stats_model.dart';
 import 'training_history.dart' show Wall, deviceWall;
@@ -159,7 +160,7 @@ class _StatsScreenState extends State<StatsScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Padding(
+              SectionHeaderSurface(child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                 child: Row(
                   children: [
@@ -180,7 +181,7 @@ class _StatsScreenState extends State<StatsScreen> {
                     _round(context, 'stats-refresh', _s(labels['refresh']), 'refresh', () => _act('refresh')),
                   ],
                 ),
-              ),
+              )),
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 0, 20, 10),
                 child: Row(

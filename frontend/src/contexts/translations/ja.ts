@@ -1131,6 +1131,7 @@ const t: Record<string, string> = {
   "slotNightNote": "トレーニングではありません：点数も連続記録もつきません",
   "warmupPickerHint": "時間帯で選ばれています。ほかのものも選べます",
   "warmupPickerTitle": "トレーニング",
+  "homeStartWorkout": "トレーニングを始める",
   "a11yResetLevel": "レベル1からやり直す",
   "leagueSeed": "芽",
   "leagueSpark": "火花",

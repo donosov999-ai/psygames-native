@@ -42,14 +42,16 @@ void main() {
       .color!;
 
   for (final b in Brightness.values) {
-    final dark = b == Brightness.dark;
 
     testWidgets('${b.name}: «Аврора» — фон шаблона, активная оранжевая, прочие вторичным текстом', (t) async {
       await show(t, UiTemplate.aurora, b);
       final bar = t.widget<Container>(find.byKey(const ValueKey('native-tab-bar')));
-      expect((bar.decoration! as BoxDecoration).color, auroraToken('background', dark: dark));
-      expect(iconColor(t, '/games'), GameColors.aurora(b).highlight);
-      expect(iconColor(t, '/'), auroraToken('textSecondary', dark: dark));
+      expect((bar.decoration! as BoxDecoration).gradient, isNotNull);
+      final activeLabel = t.widget<Text>(find.text(L.t('tabGames')));
+      expect(activeLabel.style!.color, GameColors.aurora(b).highlight);
+      expect(find.byType(Image), findsNWidgets(5));
+      final widths = NativeTabs.tabs.map((tab) => t.getSize(find.byKey(ValueKey('native-tab-${tab.route}'))).width).toSet();
+      expect(widths.length, 1, reason: 'five equal tap targets');
       expect(find.byType(BackdropFilter), findsNothing, reason: 'в «Авроре» панель сплошная');
       // Полоса под активной вкладкой — как на рефе главной 30.10; ровно одна, под активной.
       final underline = find.byKey(const ValueKey('native-tab-underline'));

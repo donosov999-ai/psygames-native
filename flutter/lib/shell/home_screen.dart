@@ -402,7 +402,7 @@ class _HomeScreenState extends State<HomeScreen> {
         return AuroraHomeHero(
           title: _s(c['title']),
           sub: _s(c['sub']),
-          cta: L.t('ctaStart'),
+          cta: L.t('homeStartWorkout'),
           onTap: () => widget.onOpen(href),
         );
       }
@@ -899,26 +899,33 @@ extension on _SearchState {
       padding: const EdgeInsets.only(bottom: 16),
       child: Row(children: [
         Expanded(
-          child: TextField(
-            key: const ValueKey('home-search'),
-            controller: _c,
-            style: WebTheme.fieldText(context),
-            textInputAction: TextInputAction.search,
-            onSubmitted: (_) => _go(),
-            decoration: WebTheme.field(context, hint: _s(widget.b['placeholder'])),
+          child: Container(
+            decoration: BoxDecoration(image: DecorationImage(
+              image: AssetImage('assets/aurora_game_chrome/home_panels_pilot/${dark ? 'dark' : 'light'}_utility_ladder.png'), fit: BoxFit.fill)),
+            child: TextField(
+              key: const ValueKey('home-search'),
+              controller: _c,
+              style: WebTheme.fieldText(context).copyWith(color: text),
+              textInputAction: TextInputAction.search,
+              onSubmitted: (_) => _go(),
+              decoration: WebTheme.field(context, hint: _s(widget.b['placeholder'])).copyWith(
+                fillColor: Colors.transparent,
+                border: InputBorder.none, enabledBorder: InputBorder.none, focusedBorder: InputBorder.none,
+                prefixIcon: Icon(Icons.search, size: 19, color: text),
+                hintStyle: WebTheme.fieldText(context).copyWith(color: text.withValues(alpha: 0.8)),
+              ),
+            ),
           ),
         ),
         const SizedBox(width: 8),
         ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 168),
-          child: Material(
+          child: Container(
+            decoration: BoxDecoration(image: DecorationImage(
+              image: AssetImage('assets/aurora_game_chrome/home_panels_pilot/${dark ? 'dark' : 'light'}_utility_resume.png'), fit: BoxFit.fill)),
+            child: Material(
             key: const ValueKey('home-search-open'),
-            color: auroraToken('surface', dark: dark),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(14),
-              side: BorderSide(color: auroraToken('border', dark: dark)!),
-            ),
-            clipBehavior: Clip.antiAlias,
+            color: Colors.transparent,
             child: InkWell(
               onTap: _go,
               child: ConstrainedBox(
@@ -938,6 +945,7 @@ extension on _SearchState {
                 ),
               ),
             ),
+            ),
           ),
         ),
       ]),
@@ -951,23 +959,27 @@ class _Ladder extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final web = WebTheme.of(context);
+    final aurora = _isAurora(context);
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final foreground = aurora ? auroraToken('text', dark: dark)! : web.textSecondary;
     return Container(
       key: const ValueKey('home-ladder'),
       margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-      decoration: BoxDecoration(
+      padding: EdgeInsets.symmetric(horizontal: aurora ? 20 : 14, vertical: 10),
+      decoration: aurora ? BoxDecoration(image: DecorationImage(
+        image: AssetImage('assets/aurora_game_chrome/home_panels_pilot/${dark ? 'dark' : 'light'}_utility_ladder.png'), fit: BoxFit.fill)) : BoxDecoration(
         color: web.surface,
         border: Border.all(color: web.border, width: 0.5),
         borderRadius: BorderRadius.circular(14),
       ),
       child: Row(children: [
-        IonIcon('lock-closed', size: 16, color: web.textSecondary),
+        IonIcon('lock-closed', size: 16, color: foreground),
         const SizedBox(width: 8),
         Flexible(
           child: Text(_s(b['text']),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
-              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: web.textSecondary)),
+              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: foreground)),
         ),
       ]),
     );
@@ -981,6 +993,9 @@ class _Chest extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final web = WebTheme.of(context);
+    final aurora = _isAurora(context);
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final foreground = aurora ? auroraToken('text', dark: dark)! : web.textSecondary;
     return Semantics(
       button: true,
       label: _s(b['label']),
@@ -990,8 +1005,9 @@ class _Chest extends StatelessWidget {
         onTap: () => onOpen('/collection'),
         child: Container(
           margin: const EdgeInsets.only(bottom: 12),
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-          decoration: BoxDecoration(
+          padding: EdgeInsets.symmetric(horizontal: aurora ? 20 : 14, vertical: 10),
+          decoration: aurora ? BoxDecoration(image: DecorationImage(
+            image: AssetImage('assets/aurora_game_chrome/home_panels_pilot/${dark ? 'dark' : 'light'}_utility_chest.png'), fit: BoxFit.fill)) : BoxDecoration(
             color: web.surface,
             border: Border.all(color: web.border, width: 0.5),
             borderRadius: BorderRadius.circular(14),
@@ -1004,13 +1020,13 @@ class _Chest extends StatelessWidget {
                 Text(_s(b['text']),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: web.textSecondary)),
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: foreground)),
                 const SizedBox(height: 6),
                 _progress(_d(b['ratio']), web.border, _accentOf(context), 5, 3),
               ]),
             ),
             const SizedBox(width: 10),
-            IonIcon('chevron-forward', size: 18, color: web.textSecondary),
+            IonIcon('chevron-forward', size: 18, color: foreground),
           ]),
         ),
       ),
@@ -1030,8 +1046,6 @@ class _Resume extends StatelessWidget {
     final dark = Theme.of(context).brightness == Brightness.dark;
     final text = auroraToken('text', dark: dark)!;
     final secondary = auroraToken('textSecondary', dark: dark)!;
-    final surface = auroraToken('surface', dark: dark)!;
-    final border = auroraToken('border', dark: dark)!;
     final entry = kit?.byRoute(_s(b['href']));
     final icon = entry == null ? null : kit!.iconFile(entry);
     return Padding(
@@ -1039,9 +1053,12 @@ class _Resume extends StatelessWidget {
       child: Semantics(
         button: true,
         label: _s(b['label']),
-        child: Material(
-          color: surface,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18), side: BorderSide(color: border)),
+        child: Container(
+          decoration: BoxDecoration(image: DecorationImage(
+            image: AssetImage('assets/aurora_game_chrome/home_panels_pilot/${dark ? 'dark' : 'light'}_utility_resume.png'), fit: BoxFit.fill)),
+          child: Material(
+          color: Colors.transparent,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
           clipBehavior: Clip.antiAlias,
           child: InkWell(
             key: const ValueKey('home-resume'),
@@ -1073,7 +1090,7 @@ class _Resume extends StatelessWidget {
               ),
             ),
           ),
-        ),
+        )),
       ),
     );
   }
@@ -1191,13 +1208,17 @@ class _GoalCardState extends State<_GoalCard> {
         : Wrap(spacing: 8, runSpacing: 8, children: [a, b]);
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(color: web.surface, border: Border.all(color: web.border), borderRadius: BorderRadius.circular(14)),
+      padding: EdgeInsets.symmetric(horizontal: aurora ? 20 : 12, vertical: 12),
+      decoration: aurora ? (Theme.of(context).brightness == Brightness.dark
+          ? const BoxDecoration(image: DecorationImage(image: AssetImage('assets/aurora_game_chrome/home_panels_pilot/dark_wide_goal.png'), fit: BoxFit.fill))
+          : const BoxDecoration(image: DecorationImage(image: AssetImage('assets/aurora_game_chrome/home_panels_pilot/light_wide_goal.png'), fit: BoxFit.fill)))
+          : BoxDecoration(color: web.surface, border: Border.all(color: web.border), borderRadius: BorderRadius.circular(14)),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
           Container(width: 4, height: 18, decoration: BoxDecoration(color: _accent, borderRadius: BorderRadius.circular(2))),
           const SizedBox(width: 8),
-          IonIcon('flag-outline', size: 18, color: _accent),
+          if (aurora) Image.asset('assets/aurora_game_chrome/home_icons_approved/goal.png', width: 24, height: 24)
+          else IonIcon('flag-outline', size: 18, color: _accent),
           const SizedBox(width: 8),
           Expanded(
             child: Text(t('dayGoalTitle'), maxLines: 1, overflow: TextOverflow.ellipsis,
@@ -1329,8 +1350,11 @@ class _Today extends StatelessWidget {
         onTap: () => onOpen('/statistics'),
         child: Container(
           margin: const EdgeInsets.only(bottom: 14),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          decoration: BoxDecoration(color: web.surface, border: Border.all(color: web.border), borderRadius: BorderRadius.circular(16)),
+          padding: EdgeInsets.symmetric(horizontal: aurora ? 20 : 12, vertical: 10),
+          decoration: aurora ? (Theme.of(context).brightness == Brightness.dark
+              ? const BoxDecoration(image: DecorationImage(image: AssetImage('assets/aurora_game_chrome/home_panels_pilot/dark_wide_today.png'), fit: BoxFit.fill))
+              : const BoxDecoration(image: DecorationImage(image: AssetImage('assets/aurora_game_chrome/home_panels_pilot/light_wide_today.png'), fit: BoxFit.fill)))
+              : BoxDecoration(color: web.surface, border: Border.all(color: web.border), borderRadius: BorderRadius.circular(16)),
           child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
             Row(children: [
               Container(width: 4, height: 18, decoration: BoxDecoration(color: amber, borderRadius: BorderRadius.circular(2))),
@@ -1341,9 +1365,10 @@ class _Today extends StatelessWidget {
               Semantics(
                 button: true,
                 label: _s(b['totalLabel']),
-                // `todayTotalBtn`: 44 в высоту, строке отдаёт 20 (marginVertical −12).
+                // В «Авроре» кнопка целиком помещается внутри графической рамки;
+                // классический вариант сохраняет прежнюю компактную геометрию.
                 child: _tall(
-                  layout: 20,
+                  layout: aurora ? 44 : 20,
                   visible: 44,
                   child: GestureDetector(
                   key: const ValueKey('home-today-total'),
@@ -1834,7 +1859,9 @@ bool _isAurora(BuildContext context) =>
 /// и на узком экране колонок меньше, на планшете больше (до 6) — плитка остаётся маленькой, а не
 /// растягивается в карточку. Плитки ряда — одной высоты (по самой высокой): с причиной под
 /// названием и без неё ряд не «скачет».
-Widget _miniGrid(List<Widget> tiles) => LayoutBuilder(builder: (context, box) {
+Widget _miniGrid(List<Widget> tiles) => Align(
+    alignment: Alignment.centerLeft,
+    child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 600), child: LayoutBuilder(builder: (context, box) {
       final scale = MediaQuery.textScalerOf(context).scale(1).clamp(1.0, 2.0);
       final cols = (box.maxWidth / (80 * (scale > 1.3 ? 1.4 : 1.0))).floor().clamp(2, 6);
       const gap = 10.0;
@@ -1852,7 +1879,7 @@ Widget _miniGrid(List<Widget> tiles) => LayoutBuilder(builder: (context, box) {
             ),
           ),
       ]);
-    });
+    })));
 
 /// «Рекомендуем» и «Практики дня» в «Авроре»: те же карточки модели, но маленькими плитками.
 class _AuroraMiniBlock extends StatelessWidget {
@@ -1933,9 +1960,8 @@ class _AuroraMiniTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final look = _map(c['look']);
-    final fg = cssColor(look['fg'], Colors.white);
-    final g = [for (final x in (c['gradient'] as List? ?? const [])) cssColor(x)];
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final fg = auroraToken('text', dark: dark)!;
     final icon = _map(c['icon']);
     final image = icon['image'];
     // Значок игры из каталога — цветной, как на рефе 30.10, а не белый глиф: по маршруту без
@@ -1943,6 +1969,9 @@ class _AuroraMiniTile extends StatelessWidget {
     // нет — у них прежний глиф модели.
     final entry = kit?.byRoute(_s(c['href']).split('?').first);
     final gameIcon = entry == null ? null : kit!.iconFile(entry);
+    final practiceIcon = const {'warmup': 'warmup', 'relaxation': 'relaxation', 'challenge': 'challenge'}[_s(c['id'])];
+    final visualSeed = _s(c['id']).codeUnits.fold<int>(0, (sum, code) => sum * 31 + code);
+    final panel = practiceIcon ?? const ['streak', 'shop', 'achievements', 'friends', 'league'][visualSeed.abs() % 5];
     final play = _s(_map(c['cta'])['ion']) == 'play';
     final sub = _s(c['sub']);
     void open() => c['action'] == 'challenge' ? act('challenge') : onOpen(_s(c['href']));
@@ -1961,14 +1990,18 @@ class _AuroraMiniTile extends StatelessWidget {
             constraints: const BoxConstraints(minHeight: 104),
             padding: const EdgeInsets.fromLTRB(6, 10, 6, 8),
             decoration: BoxDecoration(
-              gradient: g.length >= 2 ? LinearGradient(colors: g, begin: Alignment.topLeft, end: Alignment.bottomRight) : null,
-              color: g.length >= 2 ? null : g.firstOrNull,
               borderRadius: BorderRadius.circular(16),
+              image: DecorationImage(
+                image: AssetImage('assets/aurora_game_chrome/home_panels_pilot/${dark ? 'dark' : 'light'}_$panel.png'),
+                fit: BoxFit.fill,
+              ),
             ),
             child: Stack(children: [
               Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
                 Center(
-                  child: image == null && gameIcon != null
+                  child: practiceIcon != null
+                      ? Image.asset('assets/aurora_game_chrome/home_icons_approved/$practiceIcon.png', width: 42, height: 42, fit: BoxFit.contain)
+                      : image == null && gameIcon != null
                       ? ClipRRect(
                           key: ValueKey('home-card-icon-${c['id']}'),
                           borderRadius: BorderRadius.circular(10),
@@ -2032,24 +2065,29 @@ class _AuroraSectionMini extends StatelessWidget {
     final dark = Theme.of(context).brightness == Brightness.dark;
     final text = auroraToken('text', dark: dark)!;
     final secondary = auroraToken('textSecondary', dark: dark)!;
+    final seed = asset.codeUnits.fold<int>(0, (sum, code) => sum * 31 + code);
+    final panel = const ['streak', 'shop', 'achievements', 'friends', 'league'][seed.abs() % 5];
     return Semantics(
       button: true,
       label: count == null ? title : '$title, $count',
       onTap: onTap,
       excludeSemantics: true,
-      child: Material(
-        color: auroraToken('surface', dark: dark),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-          side: BorderSide(color: auroraToken('border', dark: dark)!),
-        ),
+      child: Container(
+        decoration: BoxDecoration(image: DecorationImage(
+          image: AssetImage('assets/aurora_game_chrome/home_panels_pilot/${dark ? 'dark' : 'light'}_$panel.png'), fit: BoxFit.fill)),
+        child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(16),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
           onTap: onTap,
           child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            AspectRatio(
-              aspectRatio: 1.25,
-              child: Image.asset(asset, fit: BoxFit.cover, alignment: const Alignment(0.55, 0)),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(6, 6, 6, 0),
+              child: ClipRRect(borderRadius: BorderRadius.circular(10), child: AspectRatio(
+                aspectRatio: 1.25,
+                child: Image.asset(asset, fit: BoxFit.cover, alignment: const Alignment(0.55, 0)),
+              )),
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(4, 5, 4, 4),
@@ -2069,7 +2107,7 @@ class _AuroraSectionMini extends StatelessWidget {
             ),
           ]),
         ),
-      ),
+      )),
     );
   }
 }

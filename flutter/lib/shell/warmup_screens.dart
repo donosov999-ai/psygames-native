@@ -3,6 +3,8 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'design_template.dart';
+import 'section_header_surface.dart';
 
 /// 🔴 ВЫБОР ЗАРЯДКИ И ИТОГ — НАТИВНЫЕ ЭКРАНЫ (задача 748c3f5f).
 ///
@@ -310,6 +312,13 @@ class _WarmupPickerScreenState extends State<WarmupPickerScreen> {
             child: Scaffold(
               key: const Key('warmup-picker'),
               appBar: AppBar(
+                toolbarHeight: Theme.of(context).extension<UiTemplateTheme>()?.template == UiTemplate.aurora
+                    ? auroraSectionHeaderMinHeight * MediaQuery.textScalerOf(context).scale(1).clamp(1.0, 2.0)
+                    : null,
+                backgroundColor: Theme.of(context).extension<UiTemplateTheme>()?.template == UiTemplate.aurora
+                    ? Colors.transparent
+                    : null,
+                flexibleSpace: const SectionHeaderSurface(child: SizedBox.expand()),
                 leading: IconButton(
                   tooltip: _s(m['back']),
                   icon: const Icon(Icons.arrow_back),

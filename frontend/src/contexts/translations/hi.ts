@@ -1940,6 +1940,7 @@ const t: Record<string, string> = {
   "slotNightNote": "यह अभ्यास नहीं है: न अंक, न लगातार दिन",
   "warmupPickerHint": "समय के अनुसार चुना गया — आप कोई भी दूसरा ले सकते हैं",
   "warmupPickerTitle": "अभ्यास",
+  "homeStartWorkout": "अभ्यास शुरू करें",
   "leagueSeed": "बीज",
   "leagueSpark": "चिंगारी",
   "leagueFocus": "फोकस",

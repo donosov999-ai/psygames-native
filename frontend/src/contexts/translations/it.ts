@@ -1932,6 +1932,7 @@ const t: Record<string, string> = {
   "slotNightNote": "Non è un allenamento: niente punti, niente serie",
   "warmupPickerHint": "Scelto in base all’ora — puoi prenderne un altro",
   "warmupPickerTitle": "Allenamento",
+  "homeStartWorkout": "Inizia allenamento",
   "leagueSeed": "Seme",
   "leagueSpark": "Scintilla",
   "leagueFocus": "Fuoco",

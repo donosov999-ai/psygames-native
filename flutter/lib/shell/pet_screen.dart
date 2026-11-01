@@ -10,6 +10,7 @@ import 'l10n.dart';
 import 'pet_model.dart';
 import 'profiles.dart';
 import 'screen_ui.dart';
+import 'section_header_surface.dart';
 import 'shared_state.dart';
 import 'training_history.dart' show Wall, deviceWall;
 import 'walking_pet.dart' show PetFrames, PetSpec;
@@ -189,7 +190,7 @@ class _PetScreenState extends State<PetScreen> with SingleTickerProviderStateMix
       Widget gapped(List<Widget> ws) => Column(mainAxisSize: MainAxisSize.min, spacing: 6, children: ws);
 
       // ── Шапка: «назад», имя (тап — правка), место справа ──
-      final header = Padding(
+      final header = SectionHeaderSurface(child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         child: Row(
           children: [
@@ -277,7 +278,7 @@ class _PetScreenState extends State<PetScreen> with SingleTickerProviderStateMix
             const SizedBox(width: 44),
           ],
         ),
-      );
+      ));
 
       // ── Портрет с лакомством ──
       final mouth = treat == null ? null : _map(treat['mouth']);
