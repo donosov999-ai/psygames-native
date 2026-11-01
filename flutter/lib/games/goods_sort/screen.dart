@@ -9,6 +9,7 @@ import '../../shell/l10n.dart';
 import '../../shell/lesson.dart';
 import '../../shell/lesson_player.dart';
 import '../../shell/game_shell.dart';
+import '../../shell/game_clock.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/level_rules.dart';
 import '../../shell/shared_level_store.dart';
@@ -17,6 +18,7 @@ import 'board.dart';
 import 'model.dart';
 import 'sets.dart';
 import 'solver.dart';
+import 'motion.dart';
 
 /// «СОРТИРОВКА ТОВАРОВ» на общем каркасе — первый экран раздела на Flutter.
 ///
@@ -70,6 +72,8 @@ class _Snapshot {
 }
 
 class _GoodsSortScreenState extends State<GoodsSortScreen> {
+  final _motion = GoodsMotion();
+  late final VoidCallback _releaseHoldListener;
   /// 🔴 СЛЕДУЮЩИЙ УРОВЕНЬ ЕДЕТ САМ (Денис 24.09.2026: «не переходит на
   /// следующий уровень сам»).
   ///
@@ -78,11 +82,11 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> {
   ///
   /// ⚠️ Таймер гасится при уходе с экрана, отмене хода и «начать заново»:
   /// открытый таймер после размонтирования валит весь прогон проб молча.
-  Timer? _autoNext;
+  GameTimer? _autoNext;
 
   void _scheduleNext() {
     _autoNext?.cancel();
-    _autoNext = Timer(const Duration(milliseconds: 1400), () {
+    _autoNext = gameTimeout(const Duration(milliseconds: 1400), () {
       if (mounted && _won) _next();
     });
   }
@@ -126,12 +130,17 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> {
   void dispose() {
     // Открытый таймер после ухода с экрана валит весь прогон проб молча.
     _cancelNext();
+    _releaseHoldListener();
+    _motion.dispose();
     super.dispose();
   }
 
   @override
   void initState() {
     super.initState();
+    _releaseHoldListener = onGameHold((held) {
+      if (held) _motion.cancel();
+    });
     _ladder = LevelLadder(gameId: 'goods_sort', store: SharedLevelStore(widget.state));
     _boot();
   }
@@ -225,6 +234,7 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> {
     final sets = _sets;
     if (sets == null || key == _setKey) return;
     _cancelNext();
+    _motion.cancel();
     final raw = await rootBundle.loadString('assets/levels/${sets.byKey(key).file}');
     if (!mounted) return;
     final set = GoodsLevelSet.fromJsonString(raw, width: MediaQuery.of(context).size.width);
@@ -238,6 +248,7 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> {
   }
 
   void _start(GoodsLevel level) {
+    _motion.cancel();
     _deal += 1;
     _resultFuture = null;
     _recordedLoss = false;
@@ -266,6 +277,7 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> {
     if (!_won || _nextPending) return;
     setState(() => _nextPending = true);
     _cancelNext();
+    _motion.cancel();
     final deal = _deal;
     try {
       await _recordResult(true);
@@ -316,7 +328,7 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> {
   }
 
   void _pick(GoodsPick p) {
-    if (_won || _lost) return;
+    if (_won || _lost || _motion.busy || isGameHeld()) return;
     if (!_usable(p.cell)) return;
     setState(() {
       if (_sel != null && _sel!.cell == p.cell && _sel!.index == p.index) {
@@ -332,7 +344,7 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> {
   }
 
   void _tapNiche(int i) {
-    if (_won || _lost) return;
+    if (_won || _lost || _motion.busy || isGameHeld()) return;
     final sel = _sel;
     if (sel == null) return;
     setState(() {
@@ -343,7 +355,7 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> {
 
   /// Ход: взятый товар уезжает в нишу, ядро разбирает тройки, препятствия стареют.
   void _move(GoodsPick pick, int to) {
-    if (_won || _lost || _nextPending) return;
+    if (_won || _lost || _nextPending || _motion.busy || isGameHeld()) return;
     if (!_canDrop(pick, to)) return;
     final board = _board!;
     final level = _level!;
@@ -355,6 +367,9 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> {
     final report = CollapseReport();
     final played = _play.move(pick.cell, pick.index, to, report);
     if (played == null) return;
+    _motion.begin(pick.cell, pick.index, pick.type, to,
+      hide: played.board.cells[to].isNotEmpty && played.board.cells[to].last == pick.type
+          ? '$to:${played.board.cells[to].length - 1}' : null);
     final after = played.board;
 
     // ⚠️ СНИМОК ДЛЯ ОТМЕНЫ — ПОСЛЕ проверки хода, а не до неё: иначе отказанный
@@ -405,6 +420,7 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> {
   // где чинить сетку с дырами.
 
   void _undo() {
+    _motion.cancel();
     _cancelNext();
     if (_history.isEmpty) return;
     final s = _history.removeLast();
@@ -559,6 +575,7 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> {
 
   @override
   Widget build(BuildContext context) {
+    _motion.enabled = goodsMotionPilot && !MediaQuery.disableAnimationsOf(context);
     final level = _level;
     final board = _board;
     if (level == null || board == null) {
@@ -586,6 +603,7 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> {
         HudItem(label: L.t('score'), value: '$_score', icon: Icons.star_outline),
       ],
       field: (context, h) => GoodsField(
+        motion: _motion,
         level: level,
         board: board,
         fieldHeight: h,
