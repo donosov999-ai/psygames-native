@@ -11,6 +11,7 @@ import 'pet_model.dart';
 import 'pet_materialization.dart';
 import 'design_template.dart';
 import 'chrome_art.dart';
+import 'game_colors.dart';
 import 'tab_chrome.dart';
 import 'pilot_press_response.dart' show uiMotionPilot;
 import 'profiles.dart';
@@ -492,7 +493,7 @@ class _PetScreenState extends State<PetScreen> with SingleTickerProviderStateMix
                         constraints: const BoxConstraints(minWidth: 96),
                         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 14),
                         decoration: ChromeArt.aurora(context) ? ChromeArt.panel(context, square: true).copyWith(
-                          border: Border.all(color: sk['on'] == true ? const Color(0xFFFFCF78) : Colors.transparent, width: sk['on'] == true ? 2 : 1),
+                          border: Border.all(color: sk['on'] == true ? ChromePilot.selectedSkin : Colors.transparent, width: sk['on'] == true ? 2 : 1),
                         ) : BoxDecoration(
                           color: web.surface,
                           border: Border.all(color: sk['on'] == true ? _violet : web.border, width: sk['on'] == true ? 2 : 1),
@@ -744,14 +745,16 @@ class _PetScreenState extends State<PetScreen> with SingleTickerProviderStateMix
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(
+                            Expanded(child: Text(
                               _s(k['label']),
                               style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700, color: web.text),
-                            ),
-                            Text(
+                            )),
+                            const SizedBox(width: 8),
+                            Flexible(child: Text(
                               _s(k['value']),
+                              textAlign: TextAlign.end,
                               style: TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: cssColor(k['color'])),
-                            ),
+                            )),
                           ],
                         ),
                       ),

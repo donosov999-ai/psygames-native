@@ -8,6 +8,7 @@ import 'screen_ui.dart';
 import 'section_header_surface.dart';
 import 'tab_chrome.dart';
 import 'chrome_art.dart';
+import 'game_colors.dart';
 import 'l10n.dart';
 import 'shared_state.dart';
 import 'stats_model.dart';
@@ -224,7 +225,7 @@ class _StatsScreenState extends State<StatsScreen> {
                                   fontSize: 14,
                                   fontWeight: FontWeight.w800,
                                   color: _tab == id
-                                      ? ChromeArt.aurora(context) ? const Color(0xFF201300) : primary
+                                      ? ChromeArt.aurora(context) ? ChromePilot.onGoldAction : primary
                                       : web.textSecondary,
                                 ),
                               ),
@@ -325,7 +326,7 @@ class _StatsScreenState extends State<StatsScreen> {
         child: Text(
           text,
           style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700,
-            color: on ? ChromeArt.aurora(context) ? const Color(0xFF201300) : Colors.white : web.text),
+            color: on ? ChromeArt.aurora(context) ? ChromePilot.onGoldAction : Colors.white : web.text),
         ),
       ),
     );
@@ -783,16 +784,15 @@ class _History extends StatelessWidget {
                                   style: TextStyle(color: web.text, fontSize: 14, fontWeight: FontWeight.w700),
                                 ),
                                 const SizedBox(height: 1),
-                                Row(
+                                Wrap(
+                                  spacing: 6,
+                                  runSpacing: 2,
                                   children: [
-                                    Flexible(
-                                      child: Text(
+                                    Text(
                                         _s(e['verdict']),
                                         style: TextStyle(color: cssColor(e['verdictColor'], web.textSecondary), fontSize: 12),
-                                      ),
                                     ),
                                     if (e['level'] != null) ...[
-                                      const SizedBox(width: 6),
                                       Text('· ${e['level']}', style: TextStyle(color: web.textSecondary, fontSize: 11)),
                                     ],
                                   ],

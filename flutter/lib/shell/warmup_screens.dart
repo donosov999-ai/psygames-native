@@ -7,6 +7,7 @@ import 'design_template.dart';
 import 'section_header_surface.dart';
 import 'tab_chrome.dart';
 import 'chrome_art.dart';
+import 'game_colors.dart';
 import 'l10n.dart';
 
 /// 🔴 ВЫБОР ЗАРЯДКИ И ИТОГ — НАТИВНЫЕ ЭКРАНЫ (задача 748c3f5f).
@@ -194,7 +195,7 @@ class _WarmupPickerScreenState extends State<WarmupPickerScreen> {
                       fontSize: 12.5,
                       fontWeight: FontWeight.w800,
                       color: d['selected'] == true
-                          ? ChromeArt.aurora(context) ? const Color(0xFF201300) : Colors.white
+                          ? ChromeArt.aurora(context) ? ChromePilot.onGoldAction : Colors.white
                           : scheme.onSurface,
                     ),
                   ),
@@ -319,7 +320,7 @@ class _WarmupPickerScreenState extends State<WarmupPickerScreen> {
                 Text(_s(c['desc']), style: TextStyle(fontSize: 13, color: scheme.onSurfaceVariant)),
               ])),
               if (selected) const Padding(padding: EdgeInsetsDirectional.only(start: 6),
-                child: Icon(Icons.check_circle, size: 20, color: Color(0xFFFFBE58))),
+                child: Icon(Icons.check_circle, size: 20, color: ChromePilot.controlGold)),
             ]),
             const SizedBox(height: 8),
             Text(_s(c['meta']), style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant)),
@@ -352,7 +353,7 @@ class _WarmupPickerScreenState extends State<WarmupPickerScreen> {
                 child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
                   Icon(c['on'] == true ? Icons.check_circle : _icon(c['icon']), size: 24,
                     color: c['on'] == true && Theme.of(context).brightness == Brightness.dark
-                      ? const Color(0xFFFFBE58) : Theme.of(context).colorScheme.onSurface),
+                      ? ChromePilot.controlGold : Theme.of(context).colorScheme.onSurface),
                   const SizedBox(height: 5),
                   Flexible(child: Text(_s(c['title']), maxLines: 2, overflow: TextOverflow.ellipsis, textAlign: TextAlign.center,
                     style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700))),
@@ -452,7 +453,7 @@ class _WarmupPickerScreenState extends State<WarmupPickerScreen> {
                               style: FilledButton.styleFrom(
                                 minimumSize: const Size(0, 48),
                                 backgroundColor: aurora ? Colors.transparent : _hex(start['tint']),
-                                foregroundColor: aurora ? const Color(0xFF201300) : Colors.white,
+                                foregroundColor: aurora ? ChromePilot.onGoldAction : Colors.white,
                               ),
                               onPressed: disabled ? null : () => WarmupUi.act('picker', 'launch'),
                               icon: const Icon(Icons.play_arrow),

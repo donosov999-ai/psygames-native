@@ -3,11 +3,24 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/shell/game_effect_audio.dart';
+import 'package:psygames_flutter/shell/game_colors.dart';
 import 'package:psygames_flutter/shell/pilot_liquid_surface.dart';
 import 'package:psygames_flutter/shell/pilot_press_response.dart';
 import 'package:psygames_flutter/shell/reward_effects.dart';
 
 void main() {
+  test('central jewel roles preserve the approved shades unchanged', () {
+    expect([
+      ChromePilot.jewelStar, ChromePilot.selectedSkin, ChromePilot.controlGold,
+      ChromePilot.onGoldAction, ChromePilot.headerGlint,
+      ChromePilot.materializationGold, ChromePilot.materializationGlowDark,
+      ChromePilot.materializationGlowLight,
+    ].map((color) => color.toARGB32()).toList(), [
+      0xffffc85b, 0xffffcf78, 0xffffbe58, 0xff201300, 0x22fff3c4,
+      0xffffd77e, 0xff75dfff, 0xff3075b5,
+    ]);
+  });
+
   test('approved release config enables UI but not experimental audio/haptics', () {
     final json = jsonDecode(File('config/approved-ui.json').readAsStringSync()) as Map;
     expect(json, {

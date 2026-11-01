@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'design_template.dart';
 import 'chrome_art.dart';
+import 'game_colors.dart';
 
 /// 🔴 ПЛИТКА РАЗВИЛКИ В «АВРОРЕ» — иллюстрация во всю плитку, подпись поверх.
 ///
@@ -95,7 +96,7 @@ class AuroraHubTile extends StatelessWidget {
                 child: Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
                   decoration: BoxDecoration(color: surface.withValues(alpha: .9), borderRadius: BorderRadius.circular(8)),
                   child: Row(mainAxisSize: MainAxisSize.min, children: [
-                    const Icon(Icons.star_rounded, size: 12, color: Color(0xffffc85b)),
+                    const Icon(Icons.star_rounded, size: 12, color: ChromePilot.jewelStar),
                     const SizedBox(width: 2),
                     Text('$starsCompleted/15', style: TextStyle(color: text, fontSize: 10, fontWeight: FontWeight.w700)),
                   ]))),

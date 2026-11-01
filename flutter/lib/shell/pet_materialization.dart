@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import 'pilot_press_response.dart';
+import 'game_colors.dart';
 
 /// Finite reveal of the real portrait. IndexedStack callers pass actual visibility.
 class PetMaterialization extends StatefulWidget {
@@ -128,8 +129,8 @@ class _MaterializationLight extends CustomPainter {
     final center = size.center(Offset.zero);
     final extent = size.shortestSide * .49;
     final fade = math.sin(math.pi * t).clamp(0.0, 1.0);
-    final blue = Color(dark ? 0xFF75DFFF : 0xFF3075B5);
-    const gold = Color(0xFFFFD77E);
+    final blue = dark ? ChromePilot.materializationGlowDark : ChromePilot.materializationGlowLight;
+    const gold = ChromePilot.materializationGold;
     final coreRadius = extent * (.12 + t * .24);
     canvas.drawCircle(
       center,

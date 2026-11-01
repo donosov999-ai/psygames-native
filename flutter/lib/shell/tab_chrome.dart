@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import 'chrome_art.dart';
 import 'game_pet.dart';
+import 'game_colors.dart';
 import 'ion_icon.dart';
 import 'l10n.dart';
 import 'pilot_liquid_surface.dart';
@@ -187,8 +188,8 @@ class AuroraTabHeader extends StatelessWidget {
   Widget build(BuildContext context) => LayoutBuilder(
     builder: (context, box) {
       final dark = Theme.of(context).brightness == Brightness.dark;
-      final text = Color(dark ? 0xFFF4F7FA : 0xFF152A38);
-      final secondary = Color(dark ? 0xFFB7CAD6 : 0xFF526577);
+      final text = Theme.of(context).colorScheme.onSurface;
+      final secondary = Theme.of(context).colorScheme.onSurfaceVariant;
       final open = onOpen ?? TabChromeHost.open;
       final titleSlot = titleHeight(context, box.maxWidth);
       Widget action(Key? key, String label, Widget child, String destination) =>
@@ -320,7 +321,7 @@ class _HeaderGlint extends CustomPainter {
           end: Alignment.bottomRight,
           colors: [
             Colors.transparent,
-            const Color(0x22FFF3C4),
+            ChromePilot.headerGlint,
             Colors.transparent,
           ],
         ).createShader(Rect.fromLTWH(x - 45, 0, 90, s.height))

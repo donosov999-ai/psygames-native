@@ -404,6 +404,17 @@ class ChromePalette {
 class ChromePilot {
   ChromePilot._();
 
+  /// Already approved jewel/tab/effect shades, centralized unchanged (01.11).
+  /// Decorative roles only: never a stimulus, score or game-result signal.
+  static const jewelStar = Color(0xFFFFC85B);
+  static const selectedSkin = Color(0xFFFFCF78);
+  static const controlGold = Color(0xFFFFBE58);
+  static const onGoldAction = Color(0xFF201300);
+  static const headerGlint = Color(0x22FFF3C4);
+  static const materializationGold = Color(0xFFFFD77E);
+  static const materializationGlowDark = Color(0xFF75DFFF);
+  static const materializationGlowLight = Color(0xFF3075B5);
+
   /// Подложка шапки и нижнего ряда (поверх картинки `*_chrome_glass`).
   static const chromeDark = [Color(0xF04A7482), Color(0xF01A4157), Color(0xF0082135), Color(0xF0193C4C)];
   static const chromeLight = [Color(0xFFFDF9F0), Color(0xFFF4E9D7), Color(0xFFE9DCC8), Color(0xFFFBF5E9)];
