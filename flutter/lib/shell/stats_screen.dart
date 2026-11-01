@@ -6,6 +6,9 @@ import 'feedback_fab.dart' show FabRules;
 import 'ion_icon.dart';
 import 'screen_ui.dart';
 import 'section_header_surface.dart';
+import 'tab_chrome.dart';
+import 'chrome_art.dart';
+import 'l10n.dart';
 import 'shared_state.dart';
 import 'stats_model.dart';
 import 'training_history.dart' show Wall, deviceWall;
@@ -160,7 +163,15 @@ class _StatsScreenState extends State<StatsScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              SectionHeaderSurface(child: Padding(
+              if (ChromeArt.aurora(context)) ...[
+                AuroraTabHeader(route: '/statistics', title: L.t('progress')),
+                Padding(padding: const EdgeInsets.symmetric(horizontal: 20), child: Row(children: [
+                  _round(context, 'stats-back', _s(labels['back']),
+                    Directionality.of(context) == TextDirection.rtl ? 'arrow-forward' : 'arrow-back', () => _act('back')),
+                  const Spacer(),
+                  _round(context, 'stats-refresh', _s(labels['refresh']), 'refresh', () => _act('refresh')),
+                ])),
+              ] else SectionHeaderSurface(child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                 child: Row(
                   children: [
@@ -199,7 +210,9 @@ class _StatsScreenState extends State<StatsScreen> {
                             child: Container(
                               constraints: const BoxConstraints(minHeight: 48),
                               alignment: Alignment.center,
-                              decoration: BoxDecoration(
+                              decoration: ChromeArt.aurora(context) && _tab == id
+                                  ? const BoxDecoration(image: ChromeArt.action)
+                                  : BoxDecoration(
                                 border: Border(bottom: BorderSide(color: _tab == id ? primary : Colors.transparent, width: 3)),
                               ),
                               child: Text(
@@ -207,7 +220,9 @@ class _StatsScreenState extends State<StatsScreen> {
                                 style: TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w800,
-                                  color: _tab == id ? primary : web.textSecondary,
+                                  color: _tab == id
+                                      ? ChromeArt.aurora(context) ? const Color(0xFF201300) : primary
+                                      : web.textSecondary,
                                 ),
                               ),
                             ),
@@ -297,14 +312,17 @@ class _StatsScreenState extends State<StatsScreen> {
         constraints: const BoxConstraints(minHeight: 48),
         alignment: Alignment.center,
         padding: const EdgeInsets.symmetric(vertical: 8),
-        decoration: BoxDecoration(
+        decoration: ChromeArt.aurora(context)
+          ? on ? const BoxDecoration(image: ChromeArt.action) : ChromeArt.panel(context)
+          : BoxDecoration(
           color: on ? primary : web.surface,
           border: Border.all(color: on ? primary : web.border),
           borderRadius: BorderRadius.circular(10),
         ),
         child: Text(
           text,
-          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: on ? Colors.white : web.text),
+          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700,
+            color: on ? ChromeArt.aurora(context) ? const Color(0xFF201300) : Colors.white : web.text),
         ),
       ),
     );
@@ -325,17 +343,19 @@ class _Summary extends StatelessWidget {
     final areas = _map(m['areas']);
     final ai = _map(m['ai']);
     const white85 = Color(0xD9FFFFFF);
+    final onHero = ChromeArt.aurora(context) ? web.text : Colors.white;
+    final heroSecondary = ChromeArt.aurora(context) ? web.textSecondary : white85;
     Widget metric(String emoji, String value, String label) => Column(
       children: [
         Text(emoji, style: const TextStyle(fontSize: 20)),
         Text(
           value,
-          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 18),
+          style: TextStyle(color: onHero, fontWeight: FontWeight.w900, fontSize: 18),
         ),
-        Text(label, style: const TextStyle(color: white85, fontSize: 11)),
+        Text(label, style: TextStyle(color: heroSecondary, fontSize: 11)),
       ],
     );
-    return ListView(
+    return ProgressEntryList(
       key: const ValueKey('stats-summary'),
       padding: _scrollPad(),
       children: [
@@ -343,7 +363,7 @@ class _Summary extends StatelessWidget {
           key: const ValueKey('stats-hero'),
           margin: const EdgeInsets.only(bottom: 14),
           padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
+          decoration: ChromeArt.aurora(context) ? ChromeArt.panel(context) : BoxDecoration(
             borderRadius: BorderRadius.circular(18),
             gradient: LinearGradient(colors: [primary, primary.withAlpha(0xBB)], begin: Alignment.topLeft, end: Alignment.bottomRight),
           ),
@@ -353,7 +373,8 @@ class _Summary extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  metric('⭐', '${hero['tokens']}', _s(hero['tokensLabel'])),
+                  if (ChromeArt.aurora(context)) Expanded(child: metric('⭐', '${hero['tokens']}', _s(hero['tokensLabel'])))
+                  else metric('⭐', '${hero['tokens']}', _s(hero['tokensLabel'])),
                   Flexible(
                     child: Padding(
                       padding: const EdgeInsets.only(top: 2),
@@ -361,20 +382,21 @@ class _Summary extends StatelessWidget {
                         children: [
                           Text(
                             _s(hero['level']),
-                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 22),
+                            style: TextStyle(color: onHero, fontWeight: FontWeight.w900, fontSize: 22),
                           ),
                           Text(
                             _s(hero['levelTitle']),
                             maxLines: 2,
                             textAlign: TextAlign.center,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(color: Color(0xE6FFFFFF), fontSize: 12, fontWeight: FontWeight.w700),
+                            style: TextStyle(color: heroSecondary, fontSize: 12, fontWeight: FontWeight.w700),
                           ),
                         ],
                       ),
                     ),
                   ),
-                  metric('🔥', '${hero['streak']}', _s(hero['streakLabel'])),
+                  if (ChromeArt.aurora(context)) Expanded(child: metric('🔥', '${hero['streak']}', _s(hero['streakLabel'])))
+                  else metric('🔥', '${hero['streak']}', _s(hero['streakLabel'])),
                 ],
               ),
               if (hero['progress'] is num)
@@ -387,11 +409,11 @@ class _Summary extends StatelessWidget {
                       child: Stack(
                         fit: StackFit.expand,
                         children: [
-                          const ColoredBox(color: Color(0x40FFFFFF)),
+                          ColoredBox(color: onHero.withValues(alpha: .18)),
                           FractionallySizedBox(
                             alignment: Alignment.centerLeft,
                             widthFactor: _d(hero['progress']).clamp(0, 1),
-                            child: const ColoredBox(color: Colors.white),
+                            child: ColoredBox(color: onHero),
                           ),
                         ],
                       ),
@@ -408,7 +430,7 @@ class _Summary extends StatelessWidget {
                       child: Text(
                         _s(hero[k]),
                         textAlign: TextAlign.center,
-                        style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w700),
+                        style: TextStyle(color: onHero, fontSize: 12, fontWeight: FontWeight.w700),
                       ),
                     ),
                 ],
@@ -417,9 +439,11 @@ class _Summary extends StatelessWidget {
           ),
         ),
         if (areas.isNotEmpty)
-          Padding(
+          Container(
             key: const ValueKey('stats-areas'),
-            padding: const EdgeInsets.only(bottom: 14),
+            margin: const EdgeInsets.only(bottom: 14),
+            padding: EdgeInsets.all(ChromeArt.aurora(context) ? 20 : 0),
+            decoration: ChromeArt.aurora(context) ? ChromeArt.panel(context) : null,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -561,22 +585,22 @@ class _GameCard extends StatelessWidget {
     return ClipRRect(
       key: ValueKey('stats-game-${g['id']}'),
       borderRadius: BorderRadius.circular(16),
-      child: Column(
+      child: DecoratedBox(decoration: ChromeArt.aurora(context) ? ChromeArt.panel(context) : const BoxDecoration(), child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Container(
             margin: const EdgeInsets.only(bottom: 12),
             padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(gradient: grad.length >= 2 ? LinearGradient(colors: grad) : null),
+            decoration: BoxDecoration(gradient: !ChromeArt.aurora(context) && grad.length >= 2 ? LinearGradient(colors: grad) : null),
             child: Row(
               children: [
-                IonIcon(_s(g['icon']), size: 24, color: Colors.white),
+                IonIcon(_s(g['icon']), size: 24, color: ChromeArt.aurora(context) ? web.text : Colors.white),
                 Flexible(
                   child: Text(
                     _s(g['name']),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: ChromeArt.aurora(context) ? web.text : Colors.white),
                   ),
                 ),
               ],
@@ -584,7 +608,7 @@ class _GameCard extends StatelessWidget {
           ),
           Container(
             padding: const EdgeInsets.all(16),
-            color: web.surface,
+            color: ChromeArt.aurora(context) ? Colors.transparent : web.surface,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -651,7 +675,7 @@ class _GameCard extends StatelessWidget {
             ),
           ),
         ],
-      ),
+      )),
     );
   }
 }
@@ -668,7 +692,7 @@ class _History extends StatelessWidget {
     final web = WebTheme.of(context);
     final h = _map(m['history']);
     if (h['kind'] != 'days') {
-      return ListView(
+      return ProgressEntryList(
         key: const ValueKey('stats-history'),
         padding: _scrollPad(),
         children: [
@@ -711,7 +735,7 @@ class _History extends StatelessWidget {
         ],
       );
     }
-    return ListView(
+    return ProgressEntryList(
       key: const ValueKey('stats-history'),
       padding: _scrollPad(),
       children: [

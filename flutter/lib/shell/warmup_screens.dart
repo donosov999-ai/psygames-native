@@ -5,6 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'design_template.dart';
 import 'section_header_surface.dart';
+import 'tab_chrome.dart';
+import 'chrome_art.dart';
+import 'l10n.dart';
 
 /// 🔴 ВЫБОР ЗАРЯДКИ И ИТОГ — НАТИВНЫЕ ЭКРАНЫ (задача 748c3f5f).
 ///
@@ -190,7 +193,9 @@ class _WarmupPickerScreenState extends State<WarmupPickerScreen> {
                     style: TextStyle(
                       fontSize: 12.5,
                       fontWeight: FontWeight.w800,
-                      color: d['selected'] == true ? Colors.white : scheme.onSurface,
+                      color: d['selected'] == true
+                          ? ChromeArt.aurora(context) ? const Color(0xFF201300) : Colors.white
+                          : scheme.onSurface,
                     ),
                   ),
                 ),
@@ -201,7 +206,8 @@ class _WarmupPickerScreenState extends State<WarmupPickerScreen> {
     );
   }
 
-  Widget _card(Map<String, Object?> c) {
+  Widget _card(Map<String, Object?> c, {bool detail = false}) {
+    if (ChromeArt.aurora(context)) return _auroraRoutine(c, detail: detail);
     final scheme = Theme.of(context).colorScheme;
     final tints = c['tint'] is List ? (c['tint'] as List) : const [];
     final tint = _hex(tints.isNotEmpty ? tints[0] : null);
@@ -215,12 +221,12 @@ class _WarmupPickerScreenState extends State<WarmupPickerScreen> {
         selected: on,
         button: true,
         child: InkWell(
-          key: Key('warmup-card-${c['key']}'),
+          key: Key('warmup-${detail ? 'details' : 'card'}-${c['key']}'),
           borderRadius: BorderRadius.circular(16),
           onTap: off ? null : () => WarmupUi.act('picker', 'pick', [c['key']]),
           child: Container(
-            padding: const EdgeInsets.all(13),
-            decoration: BoxDecoration(
+            padding: EdgeInsets.all(ChromeArt.aurora(context) ? 22 : 13),
+            decoration: ChromeArt.aurora(context) ? ChromeArt.panel(context, selected: on) : BoxDecoration(
               color: scheme.surfaceContainerLow,
               border: Border.all(color: on ? tint : scheme.outlineVariant, width: on ? 2 : 1),
               borderRadius: BorderRadius.circular(16),
@@ -294,6 +300,68 @@ class _WarmupPickerScreenState extends State<WarmupPickerScreen> {
     );
   }
 
+  Widget _auroraRoutine(Map<String, Object?> c, {required bool detail}) {
+    final scheme = Theme.of(context).colorScheme;
+    final selected = c['on'] == true;
+    final off = c['off'] == true;
+    final steps = [for (final s in (c['steps'] as List? ?? const [])) '$s'];
+    return Opacity(opacity: off ? .45 : 1, child: Semantics(button: true, selected: selected,
+      child: InkWell(key: Key('warmup-${detail ? 'details' : 'card'}-${c['key']}'),
+        onTap: off ? null : () => WarmupUi.act('picker', 'pick', [c['key']]),
+        child: Container(padding: const EdgeInsets.all(22), decoration: ChromeArt.panel(context, selected: selected),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Icon(_icon(c['icon']), color: scheme.onSurfaceVariant, size: 28),
+              const SizedBox(width: 10),
+              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text(_s(c['title']), style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
+                const SizedBox(height: 3),
+                Text(_s(c['desc']), style: TextStyle(fontSize: 13, color: scheme.onSurfaceVariant)),
+              ])),
+              if (selected) const Padding(padding: EdgeInsetsDirectional.only(start: 6),
+                child: Icon(Icons.check_circle, size: 20, color: Color(0xFFFFBE58))),
+            ]),
+            const SizedBox(height: 8),
+            Text(_s(c['meta']), style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant)),
+            if (c['note'] is String) ...[
+              const SizedBox(height: 5),
+              Text(_s(c['note']), style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant)),
+            ],
+            if (c['durs'] is List) _chips(c, 'durs', 'dur'),
+            if (c['ownLens'] is List) _chips(c, 'ownLens', 'ownLen'),
+            if (steps.isNotEmpty) ...[
+              const SizedBox(height: 10),
+              for (final line in steps) Padding(padding: const EdgeInsets.only(bottom: 5),
+                child: Text(line, style: TextStyle(fontSize: 12.5, height: 1.35, color: scheme.onSurface))),
+            ],
+          ])),
+      )));
+  }
+
+  Widget _slotChoices(List<Map<String, Object?>> slots) => LayoutBuilder(builder: (context, box) {
+    final columns = box.maxWidth < 330 || MediaQuery.textScalerOf(context).scale(1) > 1.25 ? 2 : 4;
+    final width = (box.maxWidth - 8 * (columns - 1)) / columns;
+    return Wrap(spacing: 8, runSpacing: 8, children: [for (final c in slots)
+      SizedBox(width: width, height: width * (MediaQuery.textScalerOf(context).scale(1) > 1.25 ? 1.35 : 1.1),
+        child: Semantics(button: true, selected: c['on'] == true,
+          child: InkWell(key: Key('warmup-card-${c['key']}'),
+            onTap: c['off'] == true ? null : () => WarmupUi.act('picker', 'pick', [c['key']]),
+            child: Opacity(opacity: c['off'] == true ? .45 : 1,
+              child: Container(padding: const EdgeInsets.all(10),
+                decoration: ChromeArt.panel(context, square: true),
+                child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                  Icon(c['on'] == true ? Icons.check_circle : _icon(c['icon']), size: 24,
+                    color: c['on'] == true && Theme.of(context).brightness == Brightness.dark
+                      ? const Color(0xFFFFBE58) : Theme.of(context).colorScheme.onSurface),
+                  const SizedBox(height: 5),
+                  Flexible(child: Text(_s(c['title']), maxLines: 2, overflow: TextOverflow.ellipsis, textAlign: TextAlign.center,
+                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700))),
+                ])),
+            )),
+        )),
+    ]);
+  });
+
   @override
   Widget build(BuildContext context) => ValueListenableBuilder<Map<String, Object?>?>(
         valueListenable: WarmupUi.picker,
@@ -303,6 +371,7 @@ class _WarmupPickerScreenState extends State<WarmupPickerScreen> {
           final start = m['start'] is Map ? Map<String, Object?>.from(m['start'] as Map) : const <String, Object?>{};
           final help = m['help'] is Map ? Map<String, Object?>.from(m['help'] as Map) : const <String, Object?>{};
           final disabled = start['disabled'] == true;
+          final aurora = ChromeArt.aurora(context);
           return PopScope(
             canPop: false,
             // «Назад» — как у страницы (`goBackOrHome`): страница уйдёт, экран снимет оболочка.
@@ -311,7 +380,11 @@ class _WarmupPickerScreenState extends State<WarmupPickerScreen> {
             },
             child: Scaffold(
               key: const Key('warmup-picker'),
-              appBar: AppBar(
+              appBar: aurora ? PreferredSize(
+                preferredSize: Size.fromHeight(AuroraTabHeader.height(context, MediaQuery.sizeOf(context).width)),
+                child: SafeArea(bottom: false, child: AuroraTabHeader(route: '/warmup-picker',
+                  title: L.t('warmupPickerTitle'), subtitle: _s(m['hint']))),
+              ) : AppBar(
                 toolbarHeight: Theme.of(context).extension<UiTemplateTheme>()?.template == UiTemplate.aurora
                     ? auroraSectionHeaderMinHeight * MediaQuery.textScalerOf(context).scale(1).clamp(1.0, 2.0)
                     : null,
@@ -329,7 +402,10 @@ class _WarmupPickerScreenState extends State<WarmupPickerScreen> {
               ),
               body: Column(
                 children: [
-                  Padding(
+                  if (aurora) Align(alignment: AlignmentDirectional.centerStart, child: IconButton(
+                    tooltip: _s(m['back']), icon: const Icon(Icons.arrow_back),
+                    onPressed: () => WarmupUi.act('picker', 'back'),
+                  )) else Padding(
                     padding: const EdgeInsets.fromLTRB(24, 0, 24, 10),
                     child: Text(_s(m['hint']),
                         textAlign: TextAlign.center,
@@ -339,7 +415,13 @@ class _WarmupPickerScreenState extends State<WarmupPickerScreen> {
                     child: ListView(
                       padding: const EdgeInsets.fromLTRB(14, 0, 14, 16),
                       children: [
-                        for (final c in _list(m['slots'])) Padding(padding: const EdgeInsets.only(bottom: 10), child: _card(c)),
+                        if (aurora) ...[
+                          _slotChoices(_list(m['slots'])),
+                          const SizedBox(height: 12),
+                          for (final c in _list(m['slots'])) if (c['on'] == true)
+                            _card(c, detail: true),
+                        ] else
+                          for (final c in _list(m['slots'])) Padding(padding: const EdgeInsets.only(bottom: 10), child: _card(c)),
                         _head(m['seriesHead']),
                         for (final c in _list(m['series'])) Padding(padding: const EdgeInsets.only(bottom: 10), child: _card(c)),
                         _head(m['ownHead']),
@@ -355,26 +437,27 @@ class _WarmupPickerScreenState extends State<WarmupPickerScreen> {
                       decoration: BoxDecoration(border: Border(top: BorderSide(color: scheme.outlineVariant))),
                       child: Row(
                         children: [
-                          OutlinedButton.icon(
+                          Flexible(child: OutlinedButton.icon(
                             key: const Key('warmup-picker-help-btn'),
                             style: OutlinedButton.styleFrom(minimumSize: const Size(0, 48)),
                             onPressed: () => _help(help),
                             icon: const Icon(Icons.help_outline, size: 18),
                             label: Text(_s(help['label'])),
-                          ),
+                          )),
                           const SizedBox(width: 10),
                           Expanded(
-                            child: FilledButton.icon(
+                            child: DecoratedBox(decoration: aurora ? const BoxDecoration(image: ChromeArt.action) : const BoxDecoration(),
+                              child: FilledButton.icon(
                               key: const Key('warmup-picker-start'),
                               style: FilledButton.styleFrom(
                                 minimumSize: const Size(0, 48),
-                                backgroundColor: _hex(start['tint']),
-                                foregroundColor: Colors.white,
+                                backgroundColor: aurora ? Colors.transparent : _hex(start['tint']),
+                                foregroundColor: aurora ? const Color(0xFF201300) : Colors.white,
                               ),
                               onPressed: disabled ? null : () => WarmupUi.act('picker', 'launch'),
                               icon: const Icon(Icons.play_arrow),
                               label: Text(_s(start['label']), style: const TextStyle(fontWeight: FontWeight.w800)),
-                            ),
+                            )),
                           ),
                         ],
                       ),
