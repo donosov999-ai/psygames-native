@@ -208,10 +208,13 @@ class _StatsScreenState extends State<StatsScreen> {
                             behavior: HitTestBehavior.opaque,
                             onTap: () => setState(() => _tab = id),
                             child: Container(
+                              key: ValueKey('stats-tab-surface-$id'),
                               constraints: const BoxConstraints(minHeight: 48),
                               alignment: Alignment.center,
-                              decoration: ChromeArt.aurora(context) && _tab == id
-                                  ? const BoxDecoration(image: ChromeArt.action)
+                              decoration: ChromeArt.aurora(context)
+                                  ? _tab == id
+                                      ? const BoxDecoration(image: ChromeArt.action)
+                                      : ChromeArt.panel(context)
                                   : BoxDecoration(
                                 border: Border(bottom: BorderSide(color: _tab == id ? primary : Colors.transparent, width: 3)),
                               ),
