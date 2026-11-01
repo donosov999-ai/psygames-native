@@ -412,6 +412,12 @@ class ChromePilot {
   static const onGoldAction = Color(0xFF201300);
   static const headerGlint = Color(0x22FFF3C4);
   static const materializationGold = Color(0xFFFFD77E);
+  static const timeMorning = Color(0xFFE8A1BA);
+  static const timeDay = Color(0xFFFFC85B);
+  static const timeEvening = Color(0xFFD44B72);
+  static const timeNight = Color(0xFFAA7DEA);
+  static const programSeamDark = Color(0xFF082450);
+  static const programSeamLight = Color(0xFFFFF5E3);
   static const materializationGlowDark = Color(0xFF75DFFF);
   static const materializationGlowLight = Color(0xFF3075B5);
 
