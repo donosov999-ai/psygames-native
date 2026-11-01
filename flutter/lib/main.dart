@@ -20,6 +20,8 @@ import 'shell/shared_state.dart';
 import 'shell/web_game_screen.dart';
 import 'shell/cloud_runtime.dart';
 import 'shell/sudoku_support_recovery.dart';
+import 'shell/crystal_palette.dart';
+import 'shell/gem_palette_material.dart';
 
 /// Пилот переезда PsyGames на Flutter (задачи 6ec9bd56 и 4a24281a).
 ///
@@ -86,6 +88,7 @@ Future<void> main() async {
   await L.load(state.language);
   // Вид — тем же правилом, что у веба: профиль, ручной выбор, надетый акцент (app_look.dart).
   await AppLook.load(state);
+  if(CrystalPalette.read(state).enabled) await GemPaletteEngine.initialize();
   await GameRules.load(); // правила игр — из того же реестра, что карточки развилок
   await LevelRules.load(); // правила УРОВНЕЙ — до первого экрана, иначе шапка не узнает о правиле
   final server = await AssetServer.start();

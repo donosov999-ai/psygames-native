@@ -11,6 +11,7 @@ import 'game_colors.dart';
 import 'l10n.dart';
 import 'web_theme.dart';
 import 'chrome_art.dart';
+import 'crystal_palette.dart';
 import 'pilot_liquid_surface.dart';
 import 'pilot_press_response.dart';
 
@@ -116,9 +117,10 @@ class NativeTabBar extends StatelessWidget {
         // The artwork already has an edge; a BoxDecoration border adds implicit
         // layout padding and clips large accessibility text in the fixed bar.
         decoration: BoxDecoration(
-          image: ChromeArt.footer(dark),
+          image: ChromeArt.footer(dark,context:context),
         ),
-        child: PilotLiquidSurface(child: _row(GameColors.aurora(theme.brightness).highlight, auroraToken('textSecondary', dark: dark)!, underline: true, dark: dark)),
+        child: PilotLiquidSurface(child: _row(CrystalPalette.of(context)?.foreground ?? GameColors.aurora(theme.brightness).highlight,
+          CrystalPalette.of(context)?.foreground.withValues(alpha:.8) ?? auroraToken('textSecondary', dark: dark)!, underline: true, dark: dark)),
       );
     }
     final idle = WebTheme.of(context).textSecondary; // BottomTabBar.tsx: невыбранная — textSecondary

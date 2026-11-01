@@ -6,6 +6,7 @@ import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'crystal_settings_screen.dart';
 import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
@@ -729,6 +730,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               if (_profiles.list.isNotEmpty) _profileSection(dark: dark),
               _themeChoice(dark: dark),
               _templateChoice(dark: dark),
+              action('crystal-palette', Icons.diamond_outlined, accent, L.t('gemPaletteTitle'), () async {
+                await Navigator.of(context).push<void>(MaterialPageRoute(builder: (_) => CrystalSettingsScreen(state:_s)));
+                if(mounted) setState(() {});
+              }),
               if (widget.cloudPilot != null)
                 action('cloud', Icons.cloud_outlined, accent, L.t('cloudPilotTitle'), () async {
                   await Navigator.of(context).push<void>(MaterialPageRoute(builder: (_) =>
