@@ -1,6 +1,23 @@
 // AUTO-GENERATED translation overlay (ja). Источник: транскреация с EN-базы (856 ключей).
 // Не править руками — регенерировать. Нужна вычитка нативом до сторов.
 const t: Record<string, string> = {
+  gemPaletteTitle: "クリスタル配色",
+  gemPaletteEnabled: "クリスタルの色を使う",
+  gemPaletteHint: "Aurora のヘッダーとナビゲーション専用です。プロフィールごとにプリセットがあり、ゲームの色とライト／ダーク設定は変わりません。",
+  gemPaletteHue: "色相",
+  gemPaletteLightness: "明るさ",
+  gemPaletteSaturation: "彩度",
+  gemPaletteGlow: "輝き",
+  gemPaletteBackground: "背景の色相",
+  gemPaletteCustom: "カスタム",
+  gemPaletteUnavailable: "クリスタル表示は利用できません。従来のデザインを維持します。",
+  gemPaletteSaveError: "保存できませんでした。もう一度お試しください。",
+  gemDiamond: "ライトダイヤモンド",
+  gemBlackDiamond: "ブラックダイヤモンド",
+  gemPinkDiamond: "淡いピンクダイヤモンド",
+  gemSapphire: "サファイア",
+  gemRuby: "ルビー",
+  gemAmethyst: "アメジスト",
   "ui_template_title": "インターフェースのテンプレート",
   "ui_template_hint": "外観変更の第一段階です。画面全体の再設計はまだです。表示モード、プロフィール、進捗は保持されます。",
   sudokuSupportTitle: "数独の進捗サポート",

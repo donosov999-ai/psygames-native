@@ -5,6 +5,23 @@
 //   Аббревиатуры тестов (Stroop/SDMT/WCST/N-back/BART/SET/Cloze...) оставлены латиницей — международные термины.
 //   ⚠️ Стилистику деванагари подтвердить носителем. При регенерации воркфлоу — НЕ затирать, мерджить через git diff.
 const t: Record<string, string> = {
+  gemPaletteTitle: "क्रिस्टल पैलेट",
+  gemPaletteEnabled: "क्रिस्टल रंग इस्तेमाल करें",
+  gemPaletteHint: "केवल Aurora शीर्षक और नेविगेशन के लिए। हर प्रोफ़ाइल का अपना प्रीसेट है; खेल के रंग और हल्की/गहरी थीम नहीं बदलते।",
+  gemPaletteHue: "रंगत",
+  gemPaletteLightness: "प्रकाशमानता",
+  gemPaletteSaturation: "संतृप्ति",
+  gemPaletteGlow: "चमक",
+  gemPaletteBackground: "पृष्ठभूमि की रंगत",
+  gemPaletteCustom: "कस्टम",
+  gemPaletteUnavailable: "क्रिस्टल रेंडरिंग उपलब्ध नहीं है। मौजूदा डिज़ाइन बना रहेगा।",
+  gemPaletteSaveError: "सहेजा नहीं जा सका। फिर कोशिश करें।",
+  gemDiamond: "हल्का हीरा",
+  gemBlackDiamond: "काला हीरा",
+  gemPinkDiamond: "हल्का गुलाबी हीरा",
+  gemSapphire: "नीलम",
+  gemRuby: "माणिक",
+  gemAmethyst: "जामुनी क्रिस्टल",
   "ui_template_title": "इंटरफ़ेस टेम्पलेट",
   "ui_template_hint": "यह पहले चरण का दृश्य बदलाव है, अभी पूर्ण नया डिज़ाइन नहीं है। डिस्प्ले मोड, प्रोफ़ाइल और प्रगति सुरक्षित रहते हैं।",
   sudokuSupportTitle: "सुडोकू की प्रगति के लिए सहायता",

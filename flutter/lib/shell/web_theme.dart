@@ -5,6 +5,7 @@ import 'package:flutter/services.dart' show rootBundle;
 
 import 'shared_state.dart';
 import 'design_template.dart';
+import 'crystal_palette.dart';
 
 /// ПАЛИТРА ВЕБА ДЛЯ ГЛАВНЫХ ЭКРАНОВ, КОТОРЫЕ РИСУЕТ ОБОЛОЧКА (задачи 5136754e, 99628ecf).
 ///
@@ -94,7 +95,7 @@ class WebTheme {
     if (theme.extension<UiTemplateTheme>()?.template == UiTemplate.aurora) {
       Color token(String name) => auroraToken(name, dark: isDark)!;
       return WebColors(
-        background: token('background'), surface: token('surface'),
+        background: CrystalPalette.of(context)?.background(isDark) ?? token('background'), surface: token('surface'),
         card: token('card'), text: token('text'),
         textSecondary: token('textSecondary'), border: token('border'),
       );

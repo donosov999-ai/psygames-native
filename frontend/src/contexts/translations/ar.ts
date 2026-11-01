@@ -1,6 +1,23 @@
 // AUTO-GENERATED translation overlay (ar). Источник: транскреация с EN-базы (856 ключей).
 // ⚠️ НЕ ПОДКЛЮЧЁН в LANGUAGES — ждёт RTL-захода (I18nManager). Не править руками.
 const t: Record<string, string> = {
+  gemPaletteTitle: "لوحة ألوان الكريستال",
+  gemPaletteEnabled: "استخدام ألوان الكريستال",
+  gemPaletteHint: "لرؤوس الصفحات والتنقل في Aurora فقط. لكل ملف إعداد مسبق؛ لا تتغير ألوان الألعاب أو إعدادات الوضع الفاتح والداكن.",
+  gemPaletteHue: "درجة اللون",
+  gemPaletteLightness: "الإضاءة",
+  gemPaletteSaturation: "التشبع",
+  gemPaletteGlow: "التوهج",
+  gemPaletteBackground: "درجة لون الخلفية",
+  gemPaletteCustom: "مخصص",
+  gemPaletteUnavailable: "عرض الكريستال غير متاح. يبقى التصميم الحالي مفعلاً.",
+  gemPaletteSaveError: "تعذر الحفظ. حاول مجددًا.",
+  gemDiamond: "ألماس فاتح",
+  gemBlackDiamond: "ألماس أسود",
+  gemPinkDiamond: "ألماس وردي باهت",
+  gemSapphire: "ياقوت أزرق",
+  gemRuby: "ياقوت أحمر",
+  gemAmethyst: "جمشت",
   "ui_template_title": "قالب الواجهة",
   "ui_template_hint": "هذه أول خطوة لتحديث المظهر وليست إعادة تصميم كاملة بعد. يبقى وضع العرض والملف الشخصي والتقدم محفوظًا.",
   sudokuSupportTitle: "دعم تقدّم سودوكو",

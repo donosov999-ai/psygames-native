@@ -2,6 +2,23 @@
 // 493 ключей, переведены с английской базы. Не править руками — регенерировать воркфлоу.
 // zh/hi — машинное качество, нужна вычитка нативом до сторов.
 const t: Record<string, string> = {
+  gemPaletteTitle: "Paleta de cristales",
+  gemPaletteEnabled: "Usar colores de cristal",
+  gemPaletteHint: "Solo cabeceras y navegación de Aurora. Cada perfil tiene su ajuste; no cambia los colores de los juegos ni el tema claro u oscuro.",
+  gemPaletteHue: "Tono",
+  gemPaletteLightness: "Luminosidad",
+  gemPaletteSaturation: "Saturación",
+  gemPaletteGlow: "Resplandor",
+  gemPaletteBackground: "Tono del fondo",
+  gemPaletteCustom: "Personalizado",
+  gemPaletteUnavailable: "El renderizado de cristal no está disponible. Se mantiene el diseño actual.",
+  gemPaletteSaveError: "No se pudo guardar. Inténtalo de nuevo.",
+  gemDiamond: "Diamante claro",
+  gemBlackDiamond: "Diamante negro",
+  gemPinkDiamond: "Diamante rosa pálido",
+  gemSapphire: "Zafiro",
+  gemRuby: "Rubí",
+  gemAmethyst: "Amatista",
   "ui_template_title": "Plantilla de interfaz",
   "ui_template_hint": "Primera etapa visual, aún no es un rediseño completo. Se conservan el modo de apariencia, el perfil y el progreso.",
   sudokuSupportTitle: "Asistencia con el progreso de Sudoku",

@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import 'chrome_art.dart';
+import 'crystal_palette.dart';
 import 'game_pet.dart';
 import 'game_colors.dart';
 import 'ion_icon.dart';
@@ -188,8 +189,9 @@ class AuroraTabHeader extends StatelessWidget {
   Widget build(BuildContext context) => LayoutBuilder(
     builder: (context, box) {
       final dark = Theme.of(context).brightness == Brightness.dark;
-      final text = Theme.of(context).colorScheme.onSurface;
-      final secondary = Theme.of(context).colorScheme.onSurfaceVariant;
+      final crystal = CrystalPalette.of(context);
+      final text = crystal?.foreground ?? Theme.of(context).colorScheme.onSurface;
+      final secondary = crystal?.foreground.withValues(alpha:.8) ?? Theme.of(context).colorScheme.onSurfaceVariant;
       final open = onOpen ?? TabChromeHost.open;
       final titleSlot = titleHeight(context, box.maxWidth);
       Widget action(Key? key, String label, Widget child, String destination) =>
@@ -278,7 +280,10 @@ class AuroraTabHeader extends StatelessWidget {
         height: height(context, box.maxWidth),
         child: DecoratedBox(
           key: const ValueKey('aurora-tab-header'),
-          decoration: BoxDecoration(image: ChromeArt.header(dark)),
+          decoration: BoxDecoration(image: ChromeArt.header(dark,context:context),
+            boxShadow: crystal == null ? null : [BoxShadow(
+              color: HSVColor.fromAHSV(crystal.recipe.glow,crystal.recipe.hue,
+                crystal.recipe.saturation.clamp(0,1),1).toColor(),blurRadius:12)]),
           child: TabEntryMotion(
             route: route,
             child: PilotLiquidSurface(child: content),

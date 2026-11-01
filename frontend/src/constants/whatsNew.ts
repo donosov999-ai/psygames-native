@@ -23,12 +23,14 @@ export const WHATS_NEW: WhatsNewEntry[] = [
       'Pet: name, speech, shop and four care actions together inside the scene',
       'Play with a toy beside your pet without leaving the screen; this does not count as a workout',
       'Progress: pull to refresh; gentler catalogue entry and improved large-text layouts',
+      'Settings: optional crystal presets for all profiles, hue, lightness and saturation; dark text and icons on pale stones',
     ],
     ru: [
       'Зарядка: компактные камни времени суток соединены с выбранной программой',
       'Питомец: имя, реплика, магазин и четыре действия ухода внутри одной сцены',
       '«Поиграть»: игрушка рядом с питомцем без перехода в каталог и без зачёта тренировки',
       'Прогресс: обновление жестом; мягкое появление каталога и улучшения крупного текста',
+      'Настройки: палитры кристаллов по профилям, оттенок, светлота и насыщенность; тёмные надписи на светлом камне',
     ],
   },
   {

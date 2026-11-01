@@ -61,6 +61,23 @@ interface Translations {
 }
 
 const translations: Translations = {
+  gemPaletteTitle: { ru: "Палитра кристаллов", en: "Crystal palette" },
+  gemPaletteEnabled: { ru: "Использовать цвета кристаллов", en: "Use crystal colours" },
+  gemPaletteHint: { ru: "Только шапки и навигация «Авроры». У каждого профиля свой пресет; цвета заданий и выбор светлой/тёмной темы не меняются.", en: "Aurora headers and navigation only. Each profile has its own preset; game colours and the light/dark setting stay unchanged." },
+  gemPaletteHue: { ru: "Оттенок", en: "Hue" },
+  gemPaletteLightness: { ru: "Светлота", en: "Lightness" },
+  gemPaletteSaturation: { ru: "Насыщенность", en: "Saturation" },
+  gemPaletteGlow: { ru: "Свечение", en: "Glow" },
+  gemPaletteBackground: { ru: "Оттенок фона", en: "Background hue" },
+  gemPaletteCustom: { ru: "Свой вариант", en: "Custom" },
+  gemPaletteUnavailable: { ru: "Кристальное оформление недоступно. Сохраняется прежний дизайн.", en: "Crystal rendering is unavailable. The existing design remains active." },
+  gemPaletteSaveError: { ru: "Не удалось сохранить. Повторите попытку.", en: "Could not save. Please try again." },
+  gemDiamond: { ru: "Светлый бриллиант", en: "Light diamond" },
+  gemBlackDiamond: { ru: "Чёрный бриллиант", en: "Black diamond" },
+  gemPinkDiamond: { ru: "Бледно-розовый бриллиант", en: "Pale pink diamond" },
+  gemSapphire: { ru: "Сапфир", en: "Sapphire" },
+  gemRuby: { ru: "Рубин", en: "Ruby" },
+  gemAmethyst: { ru: "Аметист", en: "Amethyst" },
   sudokuSupportTitle: { ru: 'Поддержка прогресса Судоку', en: 'Sudoku progress support' },
   sudokuSupportExplanation: { ru: 'Отдельное добровольное разрешение на 24 часа для выбранного режима Судоку. Поддержка увидит почту аккаунта, режим и текущий уровень, но не доску, баллы, покупки или питомца. Исправление можно получить здесь без файлов и кодов; оно только открывает уровень, не засчитывая победу.', en: 'Separate, optional 24-hour permission for the selected Sudoku mode. Support can see your account email, mode and current level, but not your board, points, purchases or pet. Receive fixes here without files or codes; a fix only unlocks a level and does not record a win.' },
   sudokuSupportProfile: { ru: 'Профиль-режим: {profile}', en: 'Play profile: {profile}' },
