@@ -10,6 +10,8 @@ import '../../shell/lesson.dart';
 import '../../shell/lesson_player.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/game_clock.dart';
+import '../../shell/game_effect_audio.dart';
+import '../../shell/reward_effects.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/level_rules.dart';
 import '../../shell/shared_level_store.dart';
@@ -71,8 +73,25 @@ class _Snapshot {
   final GoodsMove move;
 }
 
-class _GoodsSortScreenState extends State<GoodsSortScreen> {
+class _GoodsSortScreenState extends State<GoodsSortScreen> with WidgetsBindingObserver {
   final _motion = GoodsMotion();
+  late final GameEffectAudio _audio;
+  int _soundId = 0;
+  bool _background = false;
+  bool _celebrate = false;
+  bool get _effectsHeld => _background || isGameHeld();
+
+  void _syncEffects() {
+    unawaited(_audio.suspend(_effectsHeld));
+    if (_effectsHeld) { _motion.cancel(); _celebrate = false; }
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    _background = state != AppLifecycleState.resumed;
+    _syncEffects();
+  }
   late final VoidCallback _releaseHoldListener;
   /// 🔴 СЛЕДУЮЩИЙ УРОВЕНЬ ЕДЕТ САМ (Денис 24.09.2026: «не переходит на
   /// следующий уровень сам»).
@@ -131,6 +150,8 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> {
     // Открытый таймер после ухода с экрана валит весь прогон проб молча.
     _cancelNext();
     _releaseHoldListener();
+    WidgetsBinding.instance.removeObserver(this);
+    unawaited(_audio.dispose());
     _motion.dispose();
     super.dispose();
   }
@@ -138,9 +159,10 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> {
   @override
   void initState() {
     super.initState();
-    _releaseHoldListener = onGameHold((held) {
-      if (held) _motion.cancel();
-    });
+    _audio = GameEffectAudio(backend: pilotSoundBackend(), enabled: () =>
+      gameSfxEngine != 'off' && widget.state.get('${SharedState.prefix}game_sfx_enabled') != 'false');
+    WidgetsBinding.instance.addObserver(this);
+    _releaseHoldListener = onGameHold((_) => _syncEffects());
     _ladder = LevelLadder(gameId: 'goods_sort', store: SharedLevelStore(widget.state));
     _boot();
   }
@@ -235,6 +257,7 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> {
     if (sets == null || key == _setKey) return;
     _cancelNext();
     _motion.cancel();
+    unawaited(_audio.stop());
     final raw = await rootBundle.loadString('assets/levels/${sets.byKey(key).file}');
     if (!mounted) return;
     final set = GoodsLevelSet.fromJsonString(raw, width: MediaQuery.of(context).size.width);
@@ -249,6 +272,8 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> {
 
   void _start(GoodsLevel level) {
     _motion.cancel();
+    _audio.reset();
+    _celebrate = false;
     _deal += 1;
     _resultFuture = null;
     _recordedLoss = false;
@@ -278,6 +303,7 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> {
     setState(() => _nextPending = true);
     _cancelNext();
     _motion.cancel();
+    unawaited(_audio.stop());
     final deal = _deal;
     try {
       await _recordResult(true);
@@ -339,6 +365,7 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> {
         _move(from, p.cell);
       } else {
         _sel = p;
+        _audio.emit(GameSound.selection, 'select:${++_soundId}');
       }
     });
   }
@@ -367,7 +394,17 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> {
     final report = CollapseReport();
     final played = _play.move(pick.cell, pick.index, to, report);
     if (played == null) return;
-    _motion.begin(pick.cell, pick.index, pick.type, to,
+    final soundToken = 'move:${++_soundId}';
+    _audio.emit(GameSound.transfer, soundToken);
+    final deal = _deal;
+    void landed() {
+      if (!mounted || deal != _deal || _effectsHeld) return;
+      _audio.emit(GameSound.landing, soundToken);
+      if (report.clearedTypes.isNotEmpty) _audio.emit(GameSound.group, soundToken);
+      if (_won) _audio.emit(GameSound.victory, soundToken);
+    }
+    final animated = _motion.begin(pick.cell, pick.index, pick.type, to,
+      onLand: landed,
       hide: played.board.cells[to].isNotEmpty && played.board.cells[to].last == pick.type
           ? '$to:${played.board.cells[to].length - 1}' : null);
     final after = played.board;
@@ -406,6 +443,7 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> {
 
     if (levelWon(after.cells, level.goal, queueLength: after.queue.length, back: after.back)) {
       _won = true;
+      _celebrate = rewardEffectsPilot;
       _scheduleNext();
     } else if (movesExhausted(_moves, level.moveLimit, after.cells, level.goal)) {
       _lost = true;
@@ -413,6 +451,7 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> {
       // the toolbar left the host waiting forever and retry erased history.
       unawaited(_recordResult(false));
     }
+    if (!animated) landed();
   }
 
   // ⚠️ СОСЕДИ НИШИ ПЕРЕЕХАЛИ В `GoodsPlay.neighbours`: по ним снимается заслон,
@@ -421,6 +460,8 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> {
 
   void _undo() {
     _motion.cancel();
+    unawaited(_audio.stop());
+    _celebrate = false;
     _cancelNext();
     if (_history.isEmpty) return;
     final s = _history.removeLast();
@@ -575,7 +616,7 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> {
 
   @override
   Widget build(BuildContext context) {
-    _motion.enabled = goodsMotionPilot && !MediaQuery.disableAnimationsOf(context);
+    _motion.enabled = goodsMotionPilot && !MediaQuery.disableAnimationsOf(context) && !_effectsHeld;
     final level = _level;
     final board = _board;
     if (level == null || board == null) {
@@ -602,7 +643,7 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> {
           HudItem(label: L.t('goalLabel'), value: '${progress.done}/${progress.total}', icon: Icons.task_alt),
         HudItem(label: L.t('score'), value: '$_score', icon: Icons.star_outline),
       ],
-      field: (context, h) => GoodsField(
+      field: (context, h) => Stack(children: [GoodsField(
         motion: _motion,
         level: level,
         board: board,
@@ -622,6 +663,9 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> {
           _move(pick, to);
         }),
       ),
+        if (_won && _celebrate && !_effectsHeld && rewardEffectsPilot)
+          Positioned.fill(child: VictorySparks(key: ValueKey('goods-victory-$_deal'))),
+      ]),
       auxRow: AuxBar(children: [
         AuxAction(icon: Icons.undo, label: L.t('btn_undo'), onPressed: _history.isEmpty ? null : _undo),
         AuxAction(inPause: true, icon: Icons.refresh, label: L.t('restart'), onPressed: _restart),

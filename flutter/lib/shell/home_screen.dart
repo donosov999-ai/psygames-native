@@ -6,6 +6,7 @@ import 'package:flutter/rendering.dart';
 
 import 'aurora_home_hero.dart';
 import 'aurora_home_header.dart';
+import 'reward_effects.dart';
 import 'aurora_hub_tile.dart';
 import 'catalog_kit.dart';
 import 'design_template.dart';
@@ -355,7 +356,7 @@ class _HomeScreenState extends State<HomeScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 34, vertical: 22),
               decoration: BoxDecoration(color: const Color(0xFFF59E0B), borderRadius: BorderRadius.circular(22)),
               child: Column(mainAxisSize: MainAxisSize.min, children: [
-                const Text('⭐', style: TextStyle(fontSize: 40)),
+                const RewardStar(),
                 const SizedBox(height: 4),
                 Text(_s(t['title']), style: const TextStyle(color: Color(0xFF3F2B00), fontWeight: FontWeight.w900, fontSize: 24)),
                 const SizedBox(height: 4),
