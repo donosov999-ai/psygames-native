@@ -1,5 +1,11 @@
 # PsyGames · безопасная интеграция · 01.11.2026
 
+## Дополнение: материализация питомца
+
+Денис согласовал направление четырёх candidate-листов при сохранении прежних подложек шапки/футера. Общий четырёхэкранный редизайн ещё не завершён. Отдельно подключён локальный `PetMaterialization` к реальному `PetScreen`: радиальное раскрытие портрета из центра, световое ядро, редкие расходящиеся частицы, конечные 1000ms. Портрет и PetFrames/кормление/облики/имя остаются настоящими. Видимость передаётся из HybridApp, чтобы скрытый IndexedStack не проигрывал вход заранее; повторные model updates не перезапускают появление. Выход/фон прерывают эффект, Reduce Motion/accessibility/Classic/выключенный PSYGAMES_UI_MOTION — без эффекта. Без начислений, звука и новых данных.
+
+13 targeted widget tests passed: `flutter test --no-pub test/design/pet_materialization_test.dart test/pet_screen_test.dart --dart-define=PSYGAMES_UI_MOTION=true --dart-define=CAPTURE_PET_MOTION=true`. Analyzer clean. Кадры и GIF: `design-integration-evidence/pet-materialization.gif`, `pet-materialization-frames.jpg`, источник `flutter/test/design/preview/pet-materialization-frames/`; упаковка `python3 flutter/tools/pack-pet-materialization.py`. Это Flutter-компонент с реальным спрайтом, не физический телефон и не запись всего приложения. В обычном запуске пилот остаётся выключенным до приёмки.
+
 Ветка `codex/psygames-design-integration`, основа remote main `d6621a413f22375c3d0200d82b1a285d063e4336`. Никаких reset, изменения рабочих деревьев Клауда, push/merge/release. Перенос адресный, сохраняет `inPause`, исправления вкладок и реальные модели.
 
 ## Резервирование

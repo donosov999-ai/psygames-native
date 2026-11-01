@@ -6,6 +6,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/shell/pet_screen.dart';
 import 'package:psygames_flutter/shell/screen_ui.dart';
 import 'package:psygames_flutter/shell/walking_pet.dart' show PetFrames;
+import 'package:psygames_flutter/shell/design_template.dart';
+import 'package:psygames_flutter/shell/pilot_press_response.dart' show uiMotionPilot;
 
 /// 🔴 «ПИТОМЕЦ» НА FLUTTER РИСУЕТ МОДЕЛЬ ВЕБА (задача d1e147b0).
 ///
@@ -43,6 +45,34 @@ void main() {
     await mount(t, null);
     expect(key('pet-screen-loading'), findsOneWidget);
   });
+
+  testWidgets('Aurora: real page enters once; action-model refresh does not replay', (t) async {
+    t.view.physicalSize = const Size(780, 6000);
+    t.view.devicePixelRatio = 2;
+    addTearDown(t.view.reset);
+    final m = load('pet_model.json');
+    ScreenUi.model(route).value = m;
+    Future<void> show(bool active) => t.pumpWidget(MaterialApp(
+      theme: applyUiTemplate(ThemeData.dark(), UiTemplate.aurora),
+      home: Scaffold(body: PetScreen(origin: 'http://127.0.0.1:1', active: active)),
+    ));
+    final effect = key('pet-materialization-light');
+    await show(false);
+    expect(effect, findsNothing);
+    await show(true);
+    expect(effect, findsOneWidget);
+    await t.pump(const Duration(milliseconds: 1050));
+    expect(effect, findsNothing);
+    ScreenUi.model(route).value = {...m, 'bubble': 'Updated factual message'};
+    await t.pump();
+    expect(effect, findsNothing);
+    expect(key('pet-frames-idle'), findsOneWidget);
+    await show(false);
+    await show(true);
+    expect(effect, findsOneWidget);
+    await t.pump(const Duration(milliseconds: 1050));
+    expect(t.takeException(), isNull);
+  }, skip: !uiMotionPilot);
 
   testWidgets('🔴 портрет — кадры действия веба; реплика, стадия, рост, облики, уровень, совет, шкалы', (t) async {
     final m = load('pet_model.json');

@@ -1694,7 +1694,8 @@ class _HybridAppState extends State<HybridApp> {
             // «Что нового»: полный архив и модель на Dart; legacy WEB fixtures — только без state.
             WhatsNewScreen(state: widget.state),
             // «Питомец» (d1e147b0) — вкладка по модели веба; кадры — тем же PetFrames, что у гуляки.
-            PetScreen(origin: widget.server.origin, state: widget.state),
+            PetScreen(origin: widget.server.origin, state: widget.state,
+              active: shown != 0 && path == PetScreen.route && !waiting),
           ],
                 ),
                   ),

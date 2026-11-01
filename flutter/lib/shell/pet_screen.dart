@@ -8,6 +8,9 @@ import 'info_screens.dart' show ModelPage, circleBack;
 import 'ion_icon.dart';
 import 'l10n.dart';
 import 'pet_model.dart';
+import 'pet_materialization.dart';
+import 'design_template.dart';
+import 'pilot_press_response.dart' show uiMotionPilot;
 import 'profiles.dart';
 import 'screen_ui.dart';
 import 'section_header_surface.dart';
@@ -33,7 +36,8 @@ import '../synapse/synapse_feed.dart';
 /// что сделало нажатие (действие на портрете, лакомство, реплика, подпись запертого облика), ложится
 /// поверх со страницы. Свой расчёт не удался — модель страницы, как раньше.
 class PetScreen extends StatefulWidget {
-  const PetScreen({super.key, required this.origin, this.state, this.ownModel = true});
+  const PetScreen({super.key, required this.origin, this.state, this.ownModel = true, this.active = true});
+  final bool active;
   static const route = '/pet';
 
   /// Считать модель на Dart (вариант Б). Пробы рисунка по модели веба выключают.
@@ -290,7 +294,11 @@ class _PetScreenState extends State<PetScreen> with SingleTickerProviderStateMix
           children: [
             if (spec != null)
               Positioned.fill(
-                child: PetFrames(key: ValueKey('pet-frames-$state'), spec: spec, size: portrait, origin: widget.origin),
+                child: PetMaterialization(
+                  active: widget.active,
+                  enabled: uiMotionPilot && Theme.of(context).extension<UiTemplateTheme>()?.template == UiTemplate.aurora,
+                  child: PetFrames(key: ValueKey('pet-frames-$state'), spec: spec, size: portrait, origin: widget.origin),
+                ),
               ),
             if (treat != null && mouth != null)
               AnimatedBuilder(
