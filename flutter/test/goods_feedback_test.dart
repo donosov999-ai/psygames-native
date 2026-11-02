@@ -90,8 +90,9 @@ void main() {
     vibration.clear();
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(SystemChannels.platform, (call) async {
-          if (call.method == 'HapticFeedback.vibrate')
+          if (call.method == 'HapticFeedback.vibrate') {
             vibration.add('${call.arguments}');
+          }
           return null;
         });
     sound = RecordingSound();
@@ -133,10 +134,11 @@ void main() {
       state,
       brightness: light ? Brightness.light : Brightness.dark,
     );
-    if (capture && Platform.isMacOS)
+    if (capture && Platform.isMacOS) {
       theme = theme.copyWith(
         textTheme: theme.textTheme.apply(fontFamily: 'GoodsReview'),
       );
+    }
     await t.runAsync(() async {
       await t.pumpWidget(
         RepaintBoundary(
@@ -441,8 +443,9 @@ void main() {
         await t.pump();
         for (var i = 0; i < 24; i++) {
           await t.pump(const Duration(milliseconds: 16));
-          if (width == 390 && !light)
+          if (width == 390 && !light) {
             await snapshot(t, 'motion-${i.toString().padLeft(2, '0')}');
+          }
         }
         await land(t);
         await snapshot(t, '$name-landed');
