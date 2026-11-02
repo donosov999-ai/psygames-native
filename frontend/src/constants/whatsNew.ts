@@ -16,6 +16,22 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.56.57',
+    date: '2026-11-02',
+    en: [
+      'Settings: compact sections for appearance, sound, Synapse, language, backups and help; Classic remains available',
+      'Goods Sort: items land precisely in their new shelf position with a soft settling effect',
+      'Victory sparks appear after the last item lands; rapid taps, pause and undo cancel stale effects',
+      'Game rules, stars and saved progress remain unchanged; experimental sound and haptics stay off',
+    ],
+    ru: [
+      'Настройки: компактные разделы оформления, звука, Синапса, языка, копий и помощи; Classic сохранён',
+      'Сортировка товаров: точное попадание на новое место полки и мягкое приземление',
+      'Искры победы после приземления; быстрые нажатия, пауза и отмена не оставляют старых эффектов',
+      'Правила, звёзды и сохранения прежние; экспериментальные звуки и вибросигналы пока выключены',
+    ],
+  },
+  {
     version: '2.56.56',
     date: '2026-11-01',
     en: [
