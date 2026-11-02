@@ -1,6 +1,22 @@
 // AUTO-GENERATED translation overlay (ko). Источник: транскреация с EN-базы (856 ключей).
 // Не править руками — регенерировать. Нужна вычитка нативом до сторов.
 const t: Record<string, string> = {
+  settingsTrainingProfile: "훈련 모드",
+  settingsSoundHaptics: "소리 및 진동",
+  settingsLanguageAccess: "언어 및 접근성",
+  settingsCloudBackups: "클라우드 및 백업",
+  settingsHelpAbout: "도움말 및 앱 정보",
+  settingsOn: "켜짐",
+  settingsOff: "꺼짐",
+  settingsPersonalize: "맞춤 설정",
+  settingsSynapseSummary: "표시, 움직임, 크기",
+  settingsDataSupport: "데이터 및 지원",
+  settingsHelpSummary: "튜토리얼, 의견, 업데이트",
+  settingsTheme: "테마",
+  settingsPresetCount: "전체 프리셋 {n}개",
+  settingsCustomize: "팔레트 조정",
+  settingsTransferOptions: "다른 전송 방법",
+  settingsOwnerTools: "소유자 도구",
   gemPaletteTitle: "크리스털 팔레트",
   gemPaletteEnabled: "크리스털 색상 사용",
   gemPaletteHint: "Aurora 헤더와 탐색에만 적용됩니다. 프로필마다 프리셋이 있으며 게임 색상과 밝은/어두운 테마 설정은 바뀌지 않습니다.",

@@ -2,6 +2,22 @@
 // 493 ключей, переведены с английской базы. Не править руками — регенерировать воркфлоу.
 // Вычитка: Claude 12.06.2026 (skillAttention/skillFocus swap, 序列记忆, 主访问码). При регенерации воркфлоу — НЕ затирать, мерджить через git diff.
 const t: Record<string, string> = {
+  settingsTrainingProfile: "训练模式",
+  settingsSoundHaptics: "声音与触感",
+  settingsLanguageAccess: "语言与无障碍",
+  settingsCloudBackups: "云端与备份",
+  settingsHelpAbout: "帮助与关于",
+  settingsOn: "开",
+  settingsOff: "关",
+  settingsPersonalize: "个性化",
+  settingsSynapseSummary: "显示、移动、大小",
+  settingsDataSupport: "数据与支持",
+  settingsHelpSummary: "教程、反馈、更新",
+  settingsTheme: "主题",
+  settingsPresetCount: "全部 {n} 个预设",
+  settingsCustomize: "自定义配色",
+  settingsTransferOptions: "更多传输方式",
+  settingsOwnerTools: "所有者工具",
   gemPaletteTitle: "水晶配色",
   gemPaletteEnabled: "使用水晶颜色",
   gemPaletteHint: "仅用于 Aurora 页眉和导航。每个模式有独立预设；游戏颜色和明暗主题设置保持不变。",

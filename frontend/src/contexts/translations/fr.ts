@@ -1,6 +1,22 @@
 // AUTO-GENERATED translation overlay (fr). Источник: транскреация с EN-базы (856 ключей).
 // Не править руками — регенерировать.
 const t: Record<string, string> = {
+  settingsTrainingProfile: "Profil d’entraînement",
+  settingsSoundHaptics: "Son et vibrations",
+  settingsLanguageAccess: "Langue et accessibilité",
+  settingsCloudBackups: "Cloud et sauvegardes",
+  settingsHelpAbout: "Aide et informations",
+  settingsOn: "Activé",
+  settingsOff: "Désactivé",
+  settingsPersonalize: "Personnalisation",
+  settingsSynapseSummary: "Affichage, mouvement, taille",
+  settingsDataSupport: "Données et assistance",
+  settingsHelpSummary: "Tutoriel, commentaires, mises à jour",
+  settingsTheme: "Thème",
+  settingsPresetCount: "Les {n} préréglages",
+  settingsCustomize: "Personnaliser la palette",
+  settingsTransferOptions: "Autres options de transfert",
+  settingsOwnerTools: "Outils du propriétaire",
   gemPaletteTitle: "Palette de cristaux",
   gemPaletteEnabled: "Utiliser les couleurs des cristaux",
   gemPaletteHint: "Uniquement les en-têtes et la navigation Aurora. Chaque profil a son préréglage ; les couleurs des jeux et le thème clair/sombre restent inchangés.",

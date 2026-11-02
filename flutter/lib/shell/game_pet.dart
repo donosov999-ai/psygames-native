@@ -88,6 +88,7 @@ class GamePet extends StatefulWidget {
     required this.origin,
     this.mood = PetMood.idle,
     this.size = 46,
+    this.errorPlaceholder,
   });
 
   final SharedState state;
@@ -97,6 +98,8 @@ class GamePet extends StatefulWidget {
 
   final PetMood mood;
   final double size;
+  /// Optional visible fallback for navigation; gameplay keeps its quiet default.
+  final Widget? errorPlaceholder;
 
   /// Включён ли питомец у человека. Ключ общий с веб-половиной.
   static bool enabled(SharedState s) => s.get('${SharedState.prefix}pet_on') != 'false';
@@ -156,7 +159,7 @@ class _GamePetState extends State<GamePet> {
         fit: BoxFit.cover,
         // Кадра нет или сервер не отдал — показываем ПУСТОЙ кружок, а не значок
         // ошибки: питомец не должен кричать о себе посреди партии.
-        errorBuilder: (_, _, _) => const SizedBox.shrink(),
+        errorBuilder: (_, _, _) => widget.errorPlaceholder ?? const SizedBox.shrink(),
       )),
     );
   }
